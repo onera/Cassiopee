@@ -1,4 +1,0 @@
-#!/bin/bash
-
-# Helper file to print the version of PDM
-echo @PDM_VERSION@

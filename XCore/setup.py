@@ -80,6 +80,7 @@ cython = Dist.checkCython(additionalLibPaths, additionalIncludePaths)
 if cython:
     #import srcs_paradigma23 as srcs_paradigma
     import srcs_paradigma
+    PPATH = srcs_paradigma.PPATH
     from Cython.Build import cythonize
     for c in srcs_paradigma.pyx_srcs:
         name = c.replace('.pyx', '')
@@ -88,7 +89,7 @@ if cython:
         listExtensionsPyx.append(
             Extension(name,
                     sources=[c],
-                    include_dirs=["XCore","XCore/paradigma","XCore/paradigma/ppart","XCore/paradigma/struct","XCore/paradigma/pario","XCore/paradigma/mesh","XCore/paradigma/meshgen","XCore/paradigma/mpi_wrapper", "XCore/paradigma/util"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir, mpiIncDir, mpi4pyIncDir, pythonIncDir],
+                    include_dirs=["XCore","%s"%PPATH,"%s/ppart"%PPATH,"%s/struct"%PPATH,"%s/pario"%PPATH,"%s/mesh"%PPATH,"%s/meshgen"%PPATH,"%s/mpi_wrapper"%PPATH, "%s/util"%PPATH]+additionalIncludePaths+[numpyIncDir, kcoreIncDir, mpiIncDir, mpi4pyIncDir, pythonIncDir],
                     #include_dirs=["XCore","XCore/paradigma23","XCore/paradigma23/ppart","XCore/paradigma23/struct","XCore/paradigma23/pario","XCore/paradigma23/mesh","XCore/paradigma23/meshgen","XCore/paradigma23/mpi_wrapper", "XCore/paradigma23/util"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir, mpiIncDir, mpi4pyIncDir, pythonIncDir],
                     library_dirs=additionalLibPaths+libraryDirs,
                     libraries=libraries+additionalLibs,

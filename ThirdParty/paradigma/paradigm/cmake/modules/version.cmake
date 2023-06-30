@@ -1,1 +1,0 @@
-set (PDM_DEF_VERSION "1.11.1")

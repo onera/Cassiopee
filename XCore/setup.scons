@@ -37,6 +37,12 @@ libraryDirs = ['..', '.', pythonLibDir, kcoreLibDir]
 includeDirs = [numpyIncDir, kcoreIncDir, pythonIncDir]
 libraries = ["xcore"]
 
+import srcs
+import srcs_scotch
+import srcs_zoltan
+#import srcs_paradigma23 as srcs_paradigma
+import srcs_paradigma
+
 ADDITIONALCPPFLAGS = []
 if mpi:
     libraryDirs.append(mpiLibDir)
@@ -63,8 +69,7 @@ elif cc == 'nvc': opt1 += []
 else: opt1 += ['-restrict']
 
 # Specific options for paradigma - paradigma install path
-#PPATH = 'XCore/paradigma23'
-PPATH = 'XCore/paradigma'
+PPATH = srcs_paradigma.PPATH
 opt2 = ['-I%s'%PPATH,'-I%s/mpi_wrapper'%PPATH,'-I%s/mesh'%PPATH,'-I%s/util'%PPATH,'-I%s/io'%PPATH,'-I%s/ppart'%PPATH,'-I%s/struct'%PPATH,'-I%s/pario'%PPATH,'-I%s/ext_wrapper'%PPATH]
 opt2 += ['-IXCore/scotch']
 opt2 += ['-std=c99', '-DSCOTCH_RENAME']
@@ -101,12 +106,6 @@ env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
 ELSAPROD = os.environ.get('ELSAPROD', 'x86_r8')
 env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
             
-import srcs
-import srcs_scotch
-#import srcs_paradigma23 as srcs_paradigma
-import srcs_paradigma
-import srcs_zoltan
-
 modDir = 'build/'+ELSAPROD
 deps = []
 
@@ -124,7 +123,7 @@ if srcs.PARADIGMA:
     else:
         src_paradigma = [x for x in srcs_paradigma.cpp_srcs if not 'mpi_wrapper/mpi' in x]
     srcs_pdm = []
-    for i in src_paradigma: srcs_pdm.append('%s/%s'%(PPATH,i))
+    for i in src_paradigma: srcs_pdm.append('%s/%s'%(srcs_paradigma.PPATH,i))
     if mpi:
         env2 = env.Clone(CXXFLAGS=Dist.getCppArgs()+ADDITIONALCPPFLAGS+opt1+opt1_1+opt2, 
                          CFLAGS=Dist.getCArgs()+ADDITIONALCPPFLAGS+opt1+opt1_1+opt2)
