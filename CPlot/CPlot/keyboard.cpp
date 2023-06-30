@@ -58,7 +58,7 @@ void garrows(int key, int x, int y)
 // Branche les differents appels pour le clavier
 void Data::keyboard(unsigned char key, E_Int x, E_Int y)
 {
-  //printf("normal key: %d\n", key);
+//   printf("normal key: %d\n", key);
   E_Int nv;
   E_Int stateHeader, stateInfo, stateMenu, stateBB;
   double alpha = 0.04;
@@ -78,33 +78,42 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
   if (ptrState->kkeysActivated == 0) return; // no short cuts
 
   switch (key) {
-    // -- Quit --
+  
+  // -- Quit --
   case 'q':
   case 'Q':
+  {
     glutHideWindow();
     freeGPUResources(-1, 0, _numberOfZones-1, 1);
     ptrState->freeGPURes = 1;
     _exit(0);
     break;
+  }
 
-  // Menu - display state information
-  case 27: // esc key
-    menu();
-    break;
-
+  // -- Menu / display state information --
+  // case 27: // esc key
+  // {
+  //   menu();
+  //   break;
+  // }
+    
   // -- Move down --
-  case 'o':
-    moveDown(alpha, dx, dy, dz, d, dirx, diry, dirz);
-    break;
-
+  // case 'o':
+  // {
+  //   moveDown(alpha, dx, dy, dz, d, dirx, diry, dirz);
+  //   break;
+  // }
+    
   // -- Move up --
-  case 'p':
-    moveUp(alpha, dx, dy, dz, d, dirx, diry, dirz);
-    break;
+  // case 'p':
+  // {
+  //   moveUp(alpha, dx, dy, dz, d, dirx, diry, dirz);
+  //   break;
+  // }
      
   // -- Fit view / fullscreen --
   case 'f':
-  case 6:
+  {
     if (modif == GLUT_ACTIVE_CTRL) {
       if (ptrState->fullScreen == 0)
         { 
@@ -121,278 +130,271 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
       }
       else { initCam(); farClipping(); }
       break;
+  }
       
-      // -- Mesh or surface display --
-    case '2':
-    case 32: // space 
-    case 64: // 2
-    //   if (modif == GLUT_ACTIVE_SHIFT) ptrState->mode = SOLID;
-    //   else if (modif == GLUT_ACTIVE_CTRL) ptrState->mode = RENDER;
-    //   else ptrState->mode = MESH;
-      if (modif == (GLUT_ACTIVE_CTRL | GLUT_ACTIVE_SHIFT))
-      {
-        if (ptrState->mode < 2)
-          ptrState->mode++;
-        else
-          ptrState->mode = MESH;
-      }
-      else
-      {
-        if (ptrState->mode > 0)
-          ptrState->mode--;
-        else
-          ptrState->mode = RENDER;
-      }
-      break;
-      
-      // -- Primary field toggle -- 
-    case '1':
-    case 33: // !
-    case 38: // 1
-      nv = _zones[0]->nfield;
-      if (_zones[0]->nfield < 1) break;
-
-      if (modif == (GLUT_ACTIVE_CTRL | GLUT_ACTIVE_SHIFT))
-      {
-        if (ptrState->mode <= 3 || ptrState->mode == VECTORFIELD) 
-          ptrState->mode = SCALARFIELD;
-        ptrState->scalarField--;
-        if (ptrState->scalarField < 0) ptrState->scalarField = nv-1;
-        
-      }
-      else
-      {
-        if (ptrState->mode <= 3 || ptrState->mode == VECTORFIELD)
-          ptrState->mode = SCALARFIELD;
-        ptrState->scalarField++;
-        if (ptrState->scalarField >= nv) ptrState->scalarField = 0;
-      }
-      break;
-
-    //   // -- Secondary field toggle --
-    // case '2':
-    // case 169:
-    //   if (ptrState->dim == 3) break;
-
-    //   if (modif == GLUT_ACTIVE_SHIFT) changeSecondaryVariableMinus();
-    //   else changeSecondaryVariablePlus();
-    //   break;
-
-    //   // -- Toggle i,j,k mode --
-    // case '3':
-    // case 34:
-    //   if (ptrState->dim == 3 || ptrState->dim == 2) break;
-
-    //   if (modif == GLUT_ACTIVE_SHIFT)
-    //   {
-    //     ptrState->ijk1D--;
-    //     if (ptrState->ijk1D < 0) ptrState->ijk1D = 2;
-    //   }
-    //   else
-    //   {
-    //     ptrState->ijk1D++;
-    //     if (ptrState->ijk1D > 2) ptrState->ijk1D = 0;
-    //   }
-    //   break;
-      
-
-      // -- Change the displayed plane --
-    case 'i':
-    case 9:
-      changeIPlanePlus();
-      break;
-    case 'I':
-      changeIPlaneMinus();
-      break;
-    case 'j':
-    case 10:
-      changeJPlanePlus();
-      break;
-    case 'J':
-      changeJPlaneMinus();
-      break;
-    case 'k':
-    case 11:
-      changeKPlanePlus();
-      break;
-    case 'K':
-      changeKPlaneMinus();
-      break;
-
-      // -- Change the dimension mode (3D - 2D - 1D) --
-    case 'm':
-      switch (ptrState->dim)
-      {
-        case 3:
-          ptrState->dim = 2;
-          freeGPUResources( -1, 0, _numberOfZones-1, 0 );
-          roll3Dto2D();
-          break;
-
-        case 2:
-          ptrState->dim = 3;
-          freeGPUResources( -1, 0, _numberOfZones-1, 0 );
-          roll2Dto3D();
-          break;
-          
-        case 1: // 1D mode est osolete dans cette version
-          ptrState->dim = 3;
-          roll1Dto3D();
-          break;
-      }
-      break;
-
-      // -- Change the dimension mode (1D - 2D - 3D) --
-    case 'M':
-      switch (ptrState->dim)
-      {
-        case 1:
-          ptrState->dim = 2;
-          roll1Dto2D();
-          break;
-
-        case 2:
-          ptrState->dim = 3;
-          freeGPUResources( -1, 0, _numberOfZones-1, 0 );
-          roll2Dto3D();
-          break;
-          
-        case 3:
-          ptrState->dim = 2;
-          freeGPUResources( -1, 0, _numberOfZones-1, 0 );
-          roll3Dto2D();
-          break;
-      }
-      break;
-      
-      // Reload file
-    case 'r':
+  // -- Mesh/Solid/Render display --
+  case '2':
+  case 32: // space 
+  case 195: // 2
+  {
+    if (modif == (GLUT_ACTIVE_CTRL | GLUT_ACTIVE_SHIFT))
     {
-      PyEval_RestoreThread(_save);
-      char com[1024];
-      E_Int l = strlen(ptrState->file); char *p = ptrState->file;
-      if (l > 5 && p[l-1] == 's' && p[l-2] == 'n' && p[l-3] == 'g' 
-          && p[l-4] == 'c' && p[l-5] == '.')
-        sprintf(com, "import Converter.PyTree; import CPlot.PyTree; kpl = Converter.PyTree.convertFile2PyTree('%s'); CPlot.PyTree.display(kpl)",
-                ptrState->file);
+      if (ptrState->mode < 2)
+        ptrState->mode++;
       else
-        sprintf(com, "import Converter; import CPlot; kpl = Converter.convertFile2Arrays('%s'); CPlot.display(kpl)",
-                ptrState->file);
-      PyRun_SimpleString(com);
-      _save = PyEval_SaveThread(); 
-      printTmpMessage("File reloaded.");
+        ptrState->mode = MESH;
+    }
+    else
+    {
+      if (ptrState->mode > 0)
+        ptrState->mode--;
+      else
+        ptrState->mode = RENDER;
     }
     break;
+  }
+    
+  // -- Scalar mode -- 
+  case '1':
+  case 33: // !
+  case 38: // 1
+  {
+    nv = _zones[0]->nfield;
+    if (_zones[0]->nfield < 1) break;
 
-      // Select active zone
-    case 'z':
-      if (_pref.selectNextZone != NULL) _pref.selectNextZone->f(this);
-      break;
-    case 'Z':
-      if (_pref.selectPreviousZone != NULL) _pref.selectPreviousZone->f(this);
-      break;
+    if (modif == (GLUT_ACTIVE_CTRL | GLUT_ACTIVE_SHIFT))
+    {
+      if (ptrState->mode <= 3 || ptrState->mode == VECTORFIELD) 
+        ptrState->mode = SCALARFIELD;
+      ptrState->scalarField--;
+      if (ptrState->scalarField < 0) ptrState->scalarField = nv-1;
+      
+    }
+    else
+    {
+      if (ptrState->mode <= 3 || ptrState->mode == VECTORFIELD)
+        ptrState->mode = SCALARFIELD;
+      ptrState->scalarField++;
+      if (ptrState->scalarField >= nv) ptrState->scalarField = 0;
+    }
+    break;
+  }
+     
+  // -- I/J/K mode --
+  case 'i':
+  {
+    changeIPlanePlus();
+    break;
+  }
+  case 'I':
+  {
+    changeIPlaneMinus();
+    break;
+  }
+  case 'j':
+  {
+    changeJPlanePlus();
+    break;
+  }
+  case 'J':
+  {
+    changeJPlaneMinus();
+    break;
+  }
+  case 'k':
+  {
+    changeKPlanePlus();
+    break;
+  }
+  case 'K':
+  {
+    changeKPlaneMinus();
+    break;
+  }
 
-      // Look for active zone
-    case 'l':
-      if (_pref.lookFor != NULL) _pref.lookFor->f(this);
-      break;
+  // -- Change the dimension mode (3D - 2D - 1D) --
+  case 'm':
+  {
+    switch (ptrState->dim)
+    {
+      case 3:
+        ptrState->dim = 2;
+        freeGPUResources( -1, 0, _numberOfZones-1, 0 );
+        roll3Dto2D();
+        break;
 
-//       // Change the blanking plugin function
-//     case 2: // Ctrl+b
-//       if (modif == GLUT_ACTIVE_CTRL)
-//         changeBlankingFunction();
-//       break;
+      case 2:
+        ptrState->dim = 3;
+        freeGPUResources( -1, 0, _numberOfZones-1, 0 );
+        roll2Dto3D();
+        break;
+        
+      case 1: // 1D mode est osolete dans cette version
+        ptrState->dim = 3;
+        roll1Dto3D();
+        break;
+    }
+    break;
+  }
+  case 'M':
+  {
+    switch (ptrState->dim)
+    {
+      case 1:
+        ptrState->dim = 2;
+        roll1Dto2D();
+        break;
 
-      // Zone deactivation
-    case 'a':
-      if (ptrState->selectedZone != 0)
+      case 2:
+        ptrState->dim = 3;
+        freeGPUResources( -1, 0, _numberOfZones-1, 0 );
+        roll2Dto3D();
+        break;
+        
+      case 3:
+        ptrState->dim = 2;
+        freeGPUResources( -1, 0, _numberOfZones-1, 0 );
+        roll3Dto2D();
+        break;
+    }
+    break;
+  }
+      
+  // Reload file
+  case 'r':
+  {
+    PyEval_RestoreThread(_save);
+    char com[1024];
+    E_Int l = strlen(ptrState->file); char *p = ptrState->file;
+    if (l > 5 && p[l-1] == 's' && p[l-2] == 'n' && p[l-3] == 'g' 
+        && p[l-4] == 'c' && p[l-5] == '.')
+      sprintf(com, "import Converter.PyTree; import CPlot.PyTree; kpl = Converter.PyTree.convertFile2PyTree('%s'); CPlot.PyTree.display(kpl)",
+              ptrState->file);
+    else
+      sprintf(com, "import Converter; import CPlot; kpl = Converter.convertFile2Arrays('%s'); CPlot.display(kpl)",
+              ptrState->file);
+    PyRun_SimpleString(com);
+    _save = PyEval_SaveThread(); 
+    printTmpMessage("File reloaded.");
+    break;
+  }
+
+  // Select active zone
+  case 'z':
+  {
+    if (_pref.selectNextZone != NULL) _pref.selectNextZone->f(this);
+    break;
+  }
+  case 'Z':
+  {
+    if (_pref.selectPreviousZone != NULL) _pref.selectPreviousZone->f(this);
+    break;
+  }
+
+  // Look for active zone
+  case 'l':
+  {
+    if (_pref.lookFor != NULL) _pref.lookFor->f(this);
+    break;
+  }
+
+  // Zone deactivation/reactivation
+  case 'a':
+  {
+    if (ptrState->selectedZone != 0)
+    {
+      _zones[ptrState->selectedZone-1]->active = 0;
+      _zones[ptrState->selectedZone-1]->selected = 0;
+      if (ptrState->deactivatedZones == NULL)
       {
-        _zones[ptrState->selectedZone-1]->active = 0;
-        _zones[ptrState->selectedZone-1]->selected = 0;
-        if (ptrState->deactivatedZones == NULL)
-        {
-          struct chain_int* ci;
-          ci = (struct chain_int*)malloc(sizeof(struct chain_int));
-          ci->value = ptrState->selectedZone;
-          ci->next = NULL;
-          ptrState->deactivatedZones = ci;
-        }
-        else
-        {
-          struct chain_int* ci = ptrState->deactivatedZones;
-          while (ci->next != NULL) ci = ci->next;
-          ci->next = (struct chain_int*)malloc(sizeof(struct chain_int));
-          ci = ci->next;
-          ci->value = ptrState->selectedZone;
-          ci->next = NULL;
-        }
-        ptrState->selectedZone = ptrState->selectedZone+1;
-        if (ptrState->selectedZone == _numberOfZones+1) 
-          ptrState->selectedZone = 0;
-        else
-        {
-          while (_zones[ptrState->selectedZone-1]->active == 0)
-          {
-            ptrState->selectedZone = ptrState->selectedZone+1;
-            if (ptrState->selectedZone == _numberOfZones+1) 
-            {
-              ptrState->selectedZone = 0;
-              break;
-            }
-          }
-          if (ptrState->selectedZone != 0)
-            _zones[ptrState->selectedZone-1]->selected = 1;
-        }
+        struct chain_int* ci;
+        ci = (struct chain_int*)malloc(sizeof(struct chain_int));
+        ci->value = ptrState->selectedZone;
+        ci->next = NULL;
+        ptrState->deactivatedZones = ci;
       }
-      break;
-
-      // Zone reactivation
-    case 'A':
-      if (ptrState->deactivatedZones != NULL)
+      else
       {
         struct chain_int* ci = ptrState->deactivatedZones;
-        struct chain_int* cip = ptrState->deactivatedZones;
-        while (ci->next != NULL)
-        {
-          cip = ci;
-          ci = ci->next;
-        }
-        if (ptrState->selectedZone != 0) _zones[ptrState->selectedZone-1]->selected = 0;
-        _zones[ci->value-1]->active = 1;
-        //ptrState->selectedZone = ci->value;
-        if (ptrState->selectedZone != 0) _zones[ptrState->selectedZone-1]->selected = 1;
-        if (cip == ci) ptrState->deactivatedZones = ci->next;
-        else cip->next = NULL;
-        free(ci);
+        while (ci->next != NULL) ci = ci->next;
+        ci->next = (struct chain_int*)malloc(sizeof(struct chain_int));
+        ci = ci->next;
+        ci->value = ptrState->selectedZone;
+        ci->next = NULL;
       }
-      break;
+      ptrState->selectedZone = ptrState->selectedZone+1;
+      if (ptrState->selectedZone == _numberOfZones+1) 
+        ptrState->selectedZone = 0;
+      else
+      {
+        while (_zones[ptrState->selectedZone-1]->active == 0)
+        {
+          ptrState->selectedZone = ptrState->selectedZone+1;
+          if (ptrState->selectedZone == _numberOfZones+1) 
+          {
+            ptrState->selectedZone = 0;
+            break;
+          }
+        }
+        if (ptrState->selectedZone != 0)
+          _zones[ptrState->selectedZone-1]->selected = 1;
+      }
+    }
+    break;
+  }
+  case 'A':
+  {
+    if (ptrState->deactivatedZones != NULL)
+    {
+      struct chain_int* ci = ptrState->deactivatedZones;
+      struct chain_int* cip = ptrState->deactivatedZones;
+      while (ci->next != NULL)
+      {
+        cip = ci;
+        ci = ci->next;
+      }
+      if (ptrState->selectedZone != 0) _zones[ptrState->selectedZone-1]->selected = 0;
+      _zones[ci->value-1]->active = 1;
+      //ptrState->selectedZone = ci->value;
+      if (ptrState->selectedZone != 0) _zones[ptrState->selectedZone-1]->selected = 1;
+      if (cip == ci) ptrState->deactivatedZones = ci->next;
+      else cip->next = NULL;
+      free(ci);
+    }
+    break;
+  }
 
-      // Image dump
-    case 'y':
-      stateHeader = ptrState->header;
-      stateInfo = ptrState->info;
-      stateMenu = ptrState->menu;
-      stateBB = ptrState->bb;
-      ptrState->header = 0;
-      ptrState->info = 0;
-      ptrState->menu = 0;
-      ptrState->bb = 0;
-      display();
-      dumpWindow();
-      ptrState->header = stateHeader;
-      ptrState->info = stateInfo;
-      ptrState->menu = stateMenu;
-      ptrState->bb = stateBB;
-      printTmpMessage("Image dumped to file.");
-      break;
+  // Image dump
+  // case 'y':
+  // {
+  //   stateHeader = ptrState->header;
+  //   stateInfo = ptrState->info;
+  //   stateMenu = ptrState->menu;
+  //   stateBB = ptrState->bb;
+  //   ptrState->header = 0;
+  //   ptrState->info = 0;
+  //   ptrState->menu = 0;
+  //   ptrState->bb = 0;
+  //   display();
+  //   dumpWindow();
+  //   ptrState->header = stateHeader;
+  //   ptrState->info = stateInfo;
+  //   ptrState->menu = stateMenu;
+  //   ptrState->bb = stateBB;
+  //   printTmpMessage("Image dumped to file.");
+  //   break;
+  // }
 
-      // Change render appearance
-    case 'c':
-      changeAppearance();
-      break;
+  // Change render appearance
+  case 'c':
+  {
+    changeAppearance();
+    break;
+  }
 
-    default:
-      break;
+  default:
+  break;
+
   }
 }
 
@@ -433,6 +435,7 @@ void Data::arrows(unsigned char key, E_Int x, E_Int y)
   switch (key)
   {
     case GLUT_KEY_UP:
+    {
 			if (modif == GLUT_ACTIVE_SHIFT)
         strafeUp(alpha, dx, dy, dz, d, dirx, diry, dirz);
 			else if (modif == GLUT_ACTIVE_CTRL)
@@ -444,32 +447,11 @@ void Data::arrows(unsigned char key, E_Int x, E_Int y)
 			}
       else
 				moveUp(alpha, dx, dy, dz, d, dirx, diry, dirz);
-
-      // if (modif == GLUT_ACTIVE_SHIFT)
-      //   strafeUp(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      // else if (modif == GLUT_ACTIVE_CTRL)
-      //   rotateHeadUp(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      // else
-      // {
-      //   _view.xcam += dx;
-      //   _view.ycam += dy;
-      //   _view.zcam += dz;
-        
-      //   /*
-      //   if (d <= epsup*1.e-5)
-      //   { if (_view.clipping != 3) veryVeryCloseClipping(); }
-      //   else if (d <= epsup*1.e-3)
-      //   { if (_view.clipping != 2) veryCloseClipping(); }
-      //   else if (d <= epsup*1.)
-      //   { if (_view.clipping != 1) closeClipping(); }
-      //   else
-      //   { if (_view.clipping != 0) farClipping(); }
-      //   */
-      //   adaptiveClipping(d);
-      // }
       break;
+    }
       
     case GLUT_KEY_DOWN:
+    {
 			if (modif == GLUT_ACTIVE_SHIFT)
         strafeDown(alpha, dx, dy, dz, d, dirx, diry, dirz);
 			else if (modif == GLUT_ACTIVE_CTRL)
@@ -481,65 +463,30 @@ void Data::arrows(unsigned char key, E_Int x, E_Int y)
 			}
       else
 				moveDown(alpha, dx, dy, dz, d, dirx, diry, dirz);
-
-      // if (modif == GLUT_ACTIVE_SHIFT)
-      //   strafeDown(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      // else if (modif == GLUT_ACTIVE_CTRL)
-      //   rotateHeadDown(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      // else
-      // {
-      //   _view.xcam -= dx;
-      //   _view.ycam -= dy;
-      //   _view.zcam -= dz;
-      //   /*
-      //   if (d > epsup*1.)
-      //   { if (_view.clipping != 0) farClipping(); }
-      //   else if (d > epsup*1.e-3)
-      //   { if (_view.clipping != 1) closeClipping(); }
-      //   else if (d > epsup*1.e-5)
-      //   { if (_view.clipping != 2) veryCloseClipping(); }
-      //   else
-      //   { if (_view.clipping != 3) veryVeryCloseClipping(); }
-      //   */
-      //   adaptiveClipping(d);
-      // }
       break;
+    }
       
     case GLUT_KEY_LEFT:
+    {
 			if (modif == GLUT_ACTIVE_SHIFT)
         strafeRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
 			else if (modif == GLUT_ACTIVE_CTRL)
 				tiltLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
       else
 				moveRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
-
-      // if (modif == GLUT_ACTIVE_SHIFT)
-      //   strafeLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      // else if (modif == GLUT_ACTIVE_CTRL)
-      //   rotateHeadLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      // else if (modif == (GLUT_ACTIVE_CTRL | GLUT_ACTIVE_SHIFT))
-      //   tiltLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      // else
-      //   moveLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
       break;
+    }
       
     case GLUT_KEY_RIGHT:
+    {
 			if (modif == GLUT_ACTIVE_SHIFT)
         strafeLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
 			else if (modif == GLUT_ACTIVE_CTRL)
 				tiltRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
       else
 				moveLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
-
-      // if (modif == GLUT_ACTIVE_SHIFT)
-      //   strafeRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      // else if (modif == GLUT_ACTIVE_CTRL)
-      //   rotateHeadRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      // else if (modif == (GLUT_ACTIVE_CTRL | GLUT_ACTIVE_SHIFT))
-      //   tiltRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      // else
-      //   moveRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
       break;
+    }
   }
   //printf("camera position %f %f %f\n",_view.xcam,_view.ycam,_view.zcam);
 }
