@@ -40,7 +40,7 @@ if [ "$PRODMODE" == "" ]; then
 fi
 
 # Creation des liens
-python createLinks.py
+#python createLinks.py
 
 # Compilation et installation
 if [ $PRODMODE -le 1 ]; then

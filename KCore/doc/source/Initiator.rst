@@ -1,5 +1,7 @@
 .. Initiator documentation master file
 
+:tocdepth: 2
+
 Initiator: solution Initialization Module
 =========================================
 

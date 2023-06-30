@@ -343,10 +343,9 @@ def merge(t, sizeMax=1000000000, dir=0, tol=1.e-10, alphaRef=180., mergeBCs=Fals
                     out = []
                     for i in zbc[2]:
                         if Internal.getValue(i) == 'FamilySpecified':
-                            fn = Internal.getNodeFromType1(bc, 'FamilyName_t')
+                            fn = Internal.getNodeFromType1(i, 'FamilyName_t')
                             btype = Internal.getValue(fn)
-                            if btype != k:
-                                out.append(i)
+                            if btype != k: out.append(i)
                         else: out.append(i)
                     zbc[2] = out
                 C._fillEmptyBCWith(z, fct[k], 'FamilySpecified:'+k)
@@ -357,7 +356,7 @@ def mergeCart(t, sizeMax=1000000000, tol=1.e-10):
     Usage: mergeCart(t, sizeMax, tol)"""
     Internal._orderFlowSolution(t, loc='both')
     allBCInfos = C.extractBCInfo(t)
-    A = C.getAllFields(t, 'nodes',api=2)
+    A = C.getAllFields(t, 'nodes', api=2)
     A = Transform.mergeCart(A, sizeMax, tol)
     for noz in range(len(A)):
         A[noz] = C.convertArrays2ZoneNode('Cart',[A[noz]])

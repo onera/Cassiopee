@@ -1,5 +1,6 @@
 .. Geom documentation master file
 
+:tocdepth: 2
 
 Geom: Geometry Definition Module
 =========================================

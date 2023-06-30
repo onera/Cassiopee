@@ -1,5 +1,6 @@
 .. Internal documentation master file
 
+:tocdepth: 2
 
 Internal: CGNS/Python tree management
 =========================================
