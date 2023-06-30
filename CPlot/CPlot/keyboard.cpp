@@ -123,21 +123,36 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
       break;
       
       // -- Mesh or surface display --
-    case 32:
-    case 0:
-      if (modif == GLUT_ACTIVE_SHIFT) ptrState->mode = SOLID;
-      else if (modif == GLUT_ACTIVE_CTRL) ptrState->mode = RENDER;
-      else ptrState->mode = MESH;
+    case '2':
+    case 32: // space 
+    case 64: // 2
+    //   if (modif == GLUT_ACTIVE_SHIFT) ptrState->mode = SOLID;
+    //   else if (modif == GLUT_ACTIVE_CTRL) ptrState->mode = RENDER;
+    //   else ptrState->mode = MESH;
+      if (modif == (GLUT_ACTIVE_CTRL | GLUT_ACTIVE_SHIFT))
+      {
+        if (ptrState->mode < 2)
+          ptrState->mode++;
+        else
+          ptrState->mode = MESH;
+      }
+      else
+      {
+        if (ptrState->mode > 0)
+          ptrState->mode--;
+        else
+          ptrState->mode = RENDER;
+      }
       break;
       
       // -- Primary field toggle -- 
     case '1':
-    case 33:
-    case 38:
+    case 33: // !
+    case 38: // 1
       nv = _zones[0]->nfield;
       if (_zones[0]->nfield < 1) break;
 
-      if (modif == GLUT_ACTIVE_SHIFT)
+      if (modif == (GLUT_ACTIVE_CTRL | GLUT_ACTIVE_SHIFT))
       {
         if (ptrState->mode <= 3 || ptrState->mode == VECTORFIELD) 
           ptrState->mode = SCALARFIELD;
@@ -154,31 +169,31 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
       }
       break;
 
-      // -- Secondary field toggle --
-    case '2':
-    case 169:
-      if (ptrState->dim == 3) break;
+    //   // -- Secondary field toggle --
+    // case '2':
+    // case 169:
+    //   if (ptrState->dim == 3) break;
 
-      if (modif == GLUT_ACTIVE_SHIFT) changeSecondaryVariableMinus();
-      else changeSecondaryVariablePlus();
-      break;
+    //   if (modif == GLUT_ACTIVE_SHIFT) changeSecondaryVariableMinus();
+    //   else changeSecondaryVariablePlus();
+    //   break;
 
-      // -- Toggle i,j,k mode --
-    case '3':
-    case 34:
-      if (ptrState->dim == 3 || ptrState->dim == 2) break;
+    //   // -- Toggle i,j,k mode --
+    // case '3':
+    // case 34:
+    //   if (ptrState->dim == 3 || ptrState->dim == 2) break;
 
-      if (modif == GLUT_ACTIVE_SHIFT)
-      {
-        ptrState->ijk1D--;
-        if (ptrState->ijk1D < 0) ptrState->ijk1D = 2;
-      }
-      else
-      {
-        ptrState->ijk1D++;
-        if (ptrState->ijk1D > 2) ptrState->ijk1D = 0;
-      }
-      break;
+    //   if (modif == GLUT_ACTIVE_SHIFT)
+    //   {
+    //     ptrState->ijk1D--;
+    //     if (ptrState->ijk1D < 0) ptrState->ijk1D = 2;
+    //   }
+    //   else
+    //   {
+    //     ptrState->ijk1D++;
+    //     if (ptrState->ijk1D > 2) ptrState->ijk1D = 0;
+    //   }
+    //   break;
       
 
       // -- Change the displayed plane --
@@ -418,74 +433,112 @@ void Data::arrows(unsigned char key, E_Int x, E_Int y)
   switch (key)
   {
     case GLUT_KEY_UP:
-      if (modif == GLUT_ACTIVE_SHIFT)
+			if (modif == GLUT_ACTIVE_SHIFT)
         strafeUp(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      else if (modif == GLUT_ACTIVE_CTRL)
-        rotateHeadUp(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      else
-      {
-        _view.xcam += dx;
+			else if (modif == GLUT_ACTIVE_CTRL)
+			{
+				_view.xcam += dx;
         _view.ycam += dy;
         _view.zcam += dz;
+				adaptiveClipping(d);
+			}
+      else
+				moveUp(alpha, dx, dy, dz, d, dirx, diry, dirz);
+
+      // if (modif == GLUT_ACTIVE_SHIFT)
+      //   strafeUp(alpha, dx, dy, dz, d, dirx, diry, dirz);
+      // else if (modif == GLUT_ACTIVE_CTRL)
+      //   rotateHeadUp(alpha, dx, dy, dz, d, dirx, diry, dirz);
+      // else
+      // {
+      //   _view.xcam += dx;
+      //   _view.ycam += dy;
+      //   _view.zcam += dz;
         
-        /*
-        if (d <= epsup*1.e-5)
-        { if (_view.clipping != 3) veryVeryCloseClipping(); }
-        else if (d <= epsup*1.e-3)
-        { if (_view.clipping != 2) veryCloseClipping(); }
-        else if (d <= epsup*1.)
-        { if (_view.clipping != 1) closeClipping(); }
-        else
-        { if (_view.clipping != 0) farClipping(); }
-        */
-        adaptiveClipping(d);
-      }
+      //   /*
+      //   if (d <= epsup*1.e-5)
+      //   { if (_view.clipping != 3) veryVeryCloseClipping(); }
+      //   else if (d <= epsup*1.e-3)
+      //   { if (_view.clipping != 2) veryCloseClipping(); }
+      //   else if (d <= epsup*1.)
+      //   { if (_view.clipping != 1) closeClipping(); }
+      //   else
+      //   { if (_view.clipping != 0) farClipping(); }
+      //   */
+      //   adaptiveClipping(d);
+      // }
       break;
       
     case GLUT_KEY_DOWN:
-      if (modif == GLUT_ACTIVE_SHIFT)
+			if (modif == GLUT_ACTIVE_SHIFT)
         strafeDown(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      else if (modif == GLUT_ACTIVE_CTRL)
-        rotateHeadDown(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      else
-      {
-        _view.xcam -= dx;
+			else if (modif == GLUT_ACTIVE_CTRL)
+			{
+				_view.xcam -= dx;
         _view.ycam -= dy;
         _view.zcam -= dz;
-        /*
-        if (d > epsup*1.)
-        { if (_view.clipping != 0) farClipping(); }
-        else if (d > epsup*1.e-3)
-        { if (_view.clipping != 1) closeClipping(); }
-        else if (d > epsup*1.e-5)
-        { if (_view.clipping != 2) veryCloseClipping(); }
-        else
-        { if (_view.clipping != 3) veryVeryCloseClipping(); }
-        */
-        adaptiveClipping(d);
-      }
+				adaptiveClipping(d);
+			}
+      else
+				moveDown(alpha, dx, dy, dz, d, dirx, diry, dirz);
+
+      // if (modif == GLUT_ACTIVE_SHIFT)
+      //   strafeDown(alpha, dx, dy, dz, d, dirx, diry, dirz);
+      // else if (modif == GLUT_ACTIVE_CTRL)
+      //   rotateHeadDown(alpha, dx, dy, dz, d, dirx, diry, dirz);
+      // else
+      // {
+      //   _view.xcam -= dx;
+      //   _view.ycam -= dy;
+      //   _view.zcam -= dz;
+      //   /*
+      //   if (d > epsup*1.)
+      //   { if (_view.clipping != 0) farClipping(); }
+      //   else if (d > epsup*1.e-3)
+      //   { if (_view.clipping != 1) closeClipping(); }
+      //   else if (d > epsup*1.e-5)
+      //   { if (_view.clipping != 2) veryCloseClipping(); }
+      //   else
+      //   { if (_view.clipping != 3) veryVeryCloseClipping(); }
+      //   */
+      //   adaptiveClipping(d);
+      // }
       break;
       
     case GLUT_KEY_LEFT:
-      if (modif == GLUT_ACTIVE_SHIFT)
-        strafeLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      else if (modif == GLUT_ACTIVE_CTRL)
-        rotateHeadLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      else if (modif == (GLUT_ACTIVE_CTRL | GLUT_ACTIVE_SHIFT))
-        tiltLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
+			if (modif == GLUT_ACTIVE_SHIFT)
+        strafeRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
+			else if (modif == GLUT_ACTIVE_CTRL)
+				tiltLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
       else
-        moveLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
+				moveRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
+
+      // if (modif == GLUT_ACTIVE_SHIFT)
+      //   strafeLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
+      // else if (modif == GLUT_ACTIVE_CTRL)
+      //   rotateHeadLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
+      // else if (modif == (GLUT_ACTIVE_CTRL | GLUT_ACTIVE_SHIFT))
+      //   tiltLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
+      // else
+      //   moveLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
       break;
       
     case GLUT_KEY_RIGHT:
-      if (modif == GLUT_ACTIVE_SHIFT)
-        strafeRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      else if (modif == GLUT_ACTIVE_CTRL)
-        rotateHeadRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      else if (modif == (GLUT_ACTIVE_CTRL | GLUT_ACTIVE_SHIFT))
-        tiltRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
+			if (modif == GLUT_ACTIVE_SHIFT)
+        strafeLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
+			else if (modif == GLUT_ACTIVE_CTRL)
+				tiltRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
       else
-        moveRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
+				moveLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
+
+      // if (modif == GLUT_ACTIVE_SHIFT)
+      //   strafeRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
+      // else if (modif == GLUT_ACTIVE_CTRL)
+      //   rotateHeadRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
+      // else if (modif == (GLUT_ACTIVE_CTRL | GLUT_ACTIVE_SHIFT))
+      //   tiltRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
+      // else
+      //   moveRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
       break;
   }
   //printf("camera position %f %f %f\n",_view.xcam,_view.ycam,_view.zcam);
@@ -1248,24 +1301,24 @@ void Data::changeBlankingFunction()
 //=============================================================================
 void Data::changeAppearance()
 {
-  // In iso solid mode, change the colormap or the light
-  if (ptrState->mode == SCALARFIELD)
-  {
-    if (ptrState->isoLight == 0)
-    {
-      ptrState->isoLight = 1;
-      //printTmpMessage("Activating light for iso.");
-    }
-    else
-    {
-      if (_pref.colorMap->next == NULL)
-        _pref.colorMap = _plugins.colorMap;
-      else
-        _pref.colorMap = _pref.colorMap->next;
-      //printTmpMessage(_pref.colorMap->functionName);
-      ptrState->isoLight = 0;
-    }
-  }
+  // // In iso solid mode, change the colormap or the light
+  // if (ptrState->mode == SCALARFIELD)
+  // {
+  //   if (ptrState->isoLight == 0)
+  //   {
+  //     ptrState->isoLight = 1;
+  //     //printTmpMessage("Activating light for iso.");
+  //   }
+  //   else
+  //   {
+  //     if (_pref.colorMap->next == NULL)
+  //       _pref.colorMap = _plugins.colorMap;
+  //     else
+  //       _pref.colorMap = _pref.colorMap->next;
+  //     //printTmpMessage(_pref.colorMap->functionName);
+  //     ptrState->isoLight = 0;
+  //   }
+  // }
 
   // In solid mode 
   if (ptrState->mode == SOLID)
