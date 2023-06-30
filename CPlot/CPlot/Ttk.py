@@ -15,6 +15,9 @@ except:
 BACKGROUNDCOLOR = '#FFFFFF'
 FOREGROUNDCOLOR = '#000000'
 
+# Icon light (0) or dark (1) - deduced from theme colors
+ICONMODE = 0
+
 #=================================================================
 # Installe des themes livres avec CPlot
 #=================================================================
@@ -94,15 +97,33 @@ def setTheme(myTheme):
 def createStyles():
     if ttk is not None:
         
+        global BACKGROUNDCOLOR, FOREGROUNDCOLOR, ICONMODE
         style = ttk.Style()
         # Get theme colors
-        global BACKGROUNDCOLOR, FOREGROUNDCOLOR
         ret = style.lookup('TFrame', 'background')
-        if ret != "": BACKGROUNDCOLOR = ret
+        if ret != "": BACKGROUNDCOLOR = str(ret)
         ret = style.lookup('TFrame', 'foreground')
-        if ret != "": FOREGROUNDCOLOR = ret
+        if ret != "": FOREGROUNDCOLOR = str(ret)
         #ret = style.lookup('TFrame', 'font')
         #if ret != "": CTK.GENERALFONT = ret
+
+        # Deduce icon style (light or dark)
+        if BACKGROUNDCOLOR == 'black': BACKGROUNDCOLOR = "#000000"
+        elif BACKGROUNDCOLOR == 'white': BACKGROUNDCOLOR = "#FFFFFF"
+        if FOREGROUNDCOLOR == 'black': FOREGROUNDCOLOR = "#000000"
+        elif FOREGROUNDCOLOR == 'white': FOREGROUNDCOLOR = "#FFFFFF"
+        if BACKGROUNDCOLOR[0] == "#" and FOREGROUNDCOLOR[0] == "#":
+            R = int(BACKGROUNDCOLOR[1:3], 16)
+            G = int(BACKGROUNDCOLOR[3:5], 16)
+            B = int(BACKGROUNDCOLOR[5:7], 16)
+            intensityBackground = 0.299*R + 0.587*G + 0.114*B
+            R = int(FOREGROUNDCOLOR[1:3], 16)
+            G = int(FOREGROUNDCOLOR[3:5], 16)
+            B = int(FOREGROUNDCOLOR[5:7], 16)
+            intensityForeground = 0.299*R + 0.587*G + 0.114*B
+            if intensityBackground > intensityForeground: ICONMODE = 0
+            else: ICONMODE = 1
+        else: ICONMODE = 0
 
         # Set all fonts
         style.configure('.', font=CTK.GENERALFONT)

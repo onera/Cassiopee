@@ -58,17 +58,17 @@ void garrows(int key, int x, int y)
 // Branche les differents appels pour le clavier
 void Data::keyboard(unsigned char key, E_Int x, E_Int y)
 {
-//   printf("normal key: %d\n", key);
+  //printf("normal key: %d\n", key); fflush(stdout);
   E_Int nv;
-  E_Int stateHeader, stateInfo, stateMenu, stateBB;
-  double alpha = 0.04;
-  double dx = (_view.xeye-_view.xcam)*alpha;
-  double dy = (_view.yeye-_view.ycam)*alpha;
-  double dz = (_view.zeye-_view.zcam)*alpha;
-  double d = sqrt(dx*dx + dy*dy + dz*dz);
-  double dirx = _view.dirx;
-  double diry = _view.diry;
-  double dirz = _view.dirz;
+  //E_Int stateHeader, stateInfo, stateMenu, stateBB;
+  //double alpha = 0.04;
+  //double dx = (_view.xeye-_view.xcam)*alpha;
+  //double dy = (_view.yeye-_view.ycam)*alpha;
+  //double dz = (_view.zeye-_view.zcam)*alpha;
+  //double d = sqrt(dx*dx + dy*dy + dz*dz);
+  //double dirx = _view.dirx;
+  //double diry = _view.diry;
+  //double dirz = _view.dirz;
   E_Int modif = glutGetModifiers();
 
   ptrState->render = 1;
@@ -134,8 +134,8 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
       
   // -- Mesh/Solid/Render display --
   case '2':
-  case 32: // space 
   case 195: // 2
+  case 233: // 2
   {
     if (modif == (GLUT_ACTIVE_CTRL | GLUT_ACTIVE_SHIFT))
     {
@@ -150,6 +150,27 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
         ptrState->mode--;
       else
         ptrState->mode = RENDER;
+    }
+    break;
+  }
+
+  // -- Select/unselectAll --
+  case 32: // space 
+  {
+    // toggle selectall
+    E_Int toggle = 0;
+    for (E_Int i = 0; i < _numberOfZones; i++)
+      toggle = std::max(toggle, _zones[i]->selected);
+    if (toggle == 1)
+    {
+      // unselect  all
+      for (E_Int i = 0; i < _numberOfZones; i++) _zones[i]->selected = 0;
+      ptrState->selectedZone = 0;
+    }
+    else
+    {
+      // select all
+      for (E_Int i = 0; i < _numberOfZones; i++) _zones[i]->selected = 1;
     }
     break;
   }
@@ -168,7 +189,6 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
         ptrState->mode = SCALARFIELD;
       ptrState->scalarField--;
       if (ptrState->scalarField < 0) ptrState->scalarField = nv-1;
-      
     }
     else
     {
@@ -219,13 +239,13 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
     {
       case 3:
         ptrState->dim = 2;
-        freeGPUResources( -1, 0, _numberOfZones-1, 0 );
+        freeGPUResources(-1, 0, _numberOfZones-1, 0);
         roll3Dto2D();
         break;
 
       case 2:
         ptrState->dim = 3;
-        freeGPUResources( -1, 0, _numberOfZones-1, 0 );
+        freeGPUResources(-1, 0, _numberOfZones-1, 0);
         roll2Dto3D();
         break;
         
@@ -247,13 +267,13 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
 
       case 2:
         ptrState->dim = 3;
-        freeGPUResources( -1, 0, _numberOfZones-1, 0 );
+        freeGPUResources(-1, 0, _numberOfZones-1, 0);
         roll2Dto3D();
         break;
         
       case 3:
         ptrState->dim = 2;
-        freeGPUResources( -1, 0, _numberOfZones-1, 0 );
+        freeGPUResources(-1, 0, _numberOfZones-1, 0);
         roll3Dto2D();
         break;
     }
@@ -436,55 +456,55 @@ void Data::arrows(unsigned char key, E_Int x, E_Int y)
   {
     case GLUT_KEY_UP:
     {
-			if (modif == GLUT_ACTIVE_SHIFT)
+      if (modif == GLUT_ACTIVE_SHIFT)
         strafeUp(alpha, dx, dy, dz, d, dirx, diry, dirz);
-			else if (modif == GLUT_ACTIVE_CTRL)
-			{
-				_view.xcam += dx;
+      else if (modif == GLUT_ACTIVE_CTRL)
+      {
+        _view.xcam += dx;
         _view.ycam += dy;
         _view.zcam += dz;
-				adaptiveClipping(d);
-			}
+        adaptiveClipping(d);
+      }
       else
-				moveUp(alpha, dx, dy, dz, d, dirx, diry, dirz);
+        moveUp(alpha, dx, dy, dz, d, dirx, diry, dirz);
       break;
     }
       
     case GLUT_KEY_DOWN:
     {
-			if (modif == GLUT_ACTIVE_SHIFT)
+      if (modif == GLUT_ACTIVE_SHIFT)
         strafeDown(alpha, dx, dy, dz, d, dirx, diry, dirz);
-			else if (modif == GLUT_ACTIVE_CTRL)
-			{
-				_view.xcam -= dx;
+      else if (modif == GLUT_ACTIVE_CTRL)
+      {
+        _view.xcam -= dx;
         _view.ycam -= dy;
         _view.zcam -= dz;
-				adaptiveClipping(d);
-			}
+        adaptiveClipping(d);
+      }
       else
-				moveDown(alpha, dx, dy, dz, d, dirx, diry, dirz);
+        moveDown(alpha, dx, dy, dz, d, dirx, diry, dirz);
       break;
     }
       
     case GLUT_KEY_LEFT:
     {
-			if (modif == GLUT_ACTIVE_SHIFT)
+      if (modif == GLUT_ACTIVE_SHIFT)
         strafeRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
-			else if (modif == GLUT_ACTIVE_CTRL)
-				tiltLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
+      else if (modif == GLUT_ACTIVE_CTRL)
+        tiltLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
       else
-				moveRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
+        moveRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
       break;
     }
       
     case GLUT_KEY_RIGHT:
     {
-			if (modif == GLUT_ACTIVE_SHIFT)
+      if (modif == GLUT_ACTIVE_SHIFT)
         strafeLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
-			else if (modif == GLUT_ACTIVE_CTRL)
-				tiltRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
+      else if (modif == GLUT_ACTIVE_CTRL)
+        tiltRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
       else
-				moveLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
+        moveLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
       break;
     }
   }
@@ -499,20 +519,47 @@ void Data::moveDown(double alpha, double dx, double dy, double dz, double d,
 {
   if (ptrState->dim == 3)
   {
-    double z1, z2, z3, d1, d2, d3;
-    _view.xcam = _view.xcam - dirx*d;
-    _view.ycam = _view.ycam - diry*d;
-    _view.zcam = _view.zcam - dirz*d;
-    z1 = dy*dirz - dz*diry;
-    z2 = dz*dirx - dx*dirz;
-    z3 = dx*diry - dy*dirx;
-    d1 = dy*z3 -dz*z2;
-    d2 = dz*z1 -dx*z3;
-    d3 = dx*z2-dy*z1;
-    z1 = 1./sqrt(d1*d1 + d2*d2 + d3*d3);
-    _view.dirx =  -d1 * z1;
-    _view.diry =  -d2 * z1;
-    _view.dirz =  -d3 * z1;
+    double P0ex, P0ey, P0ez, ox, oy, oz, P1x, P1y, P1z;
+    double P1ex, P1ey, P1ez, nv, nd, f, nP1e, nP0e, k;
+    P1x = _view.xcam - dirx*d;
+    P1y = _view.ycam - diry*d;
+    P1z = _view.zcam - dirz*d;
+    P1ex = P1x - _view.xeye;
+    P1ey = P1y - _view.yeye;
+    P1ez = P1z - _view.zeye;
+
+    P0ex = _view.xcam - _view.xeye;
+    P0ey = _view.ycam - _view.yeye;
+    P0ez = _view.zcam - _view.zeye;
+
+    ox = P0ey*dirz - P0ez*diry;
+    oy = P0ez*dirx - P0ex*dirz;
+    oz = P0ex*diry - P0ey*dirx;
+    nv = dirx*dirx+diry*diry+dirz*dirz;
+    
+    dx = P1ey*oz - P1ez*oy;
+    dy = P1ez*ox - P1ex*oz;
+    dz = P1ex*oy - P1ey*ox;
+
+    nd = dx*dx + dy*dy + dz*dz;
+    if (nd > 1.e-24) f = sqrt(nv/nd);
+    else f = 1.;
+    dx = - dx * f;
+    dy = - dy * f;
+    dz = - dz * f;
+
+    _view.dirx = dx;
+    _view.diry = dy;
+    _view.dirz = dz;
+
+    nP1e = P1ex*P1ex+P1ey*P1ey+P1ez*P1ez;
+    nP0e = P0ex*P0ex+P0ey*P0ey+P0ez*P0ez;
+    if (nP1e > 1.e-10) k = sqrt(nP0e / nP1e);
+    else k = 0.;    
+    _view.xcam = _view.xeye + k*P1ex;
+    _view.ycam = _view.yeye + k*P1ey;
+    _view.zcam = _view.zeye + k*P1ez;
+
   }
   else
   {
@@ -583,20 +630,47 @@ void Data::moveUp(double alpha, double dx, double dy, double dz, double d,
 {
   if (ptrState->dim == 3)
   {
-    double z1, z2, z3, d1, d2, d3;
-    _view.xcam = _view.xcam + dirx*d;
-    _view.ycam = _view.ycam + diry*d;
-    _view.zcam = _view.zcam + dirz*d;
-    z1 = dy*dirz - dz*diry;
-    z2 = dz*dirx - dx*dirz;
-    z3 = dx*diry - dy*dirx;
-    d1 = dy*z3 -dz*z2;
-    d2 = dz*z1 -dx*z3;
-    d3 = dx*z2-dy*z1;
-    z1 = 1./sqrt(d1*d1 + d2*d2 + d3*d3);
-    _view.dirx =  -d1 * z1;
-    _view.diry =  -d2 * z1;
-    _view.dirz =  -d3 * z1;
+    double P0ex, P0ey, P0ez, ox, oy, oz, P1x, P1y, P1z;
+    double P1ex, P1ey, P1ez, nv, nd, f, nP1e, nP0e, k;
+    P1x = _view.xcam + dirx*d;
+    P1y = _view.ycam + diry*d;
+    P1z = _view.zcam + dirz*d;
+    P1ex = P1x - _view.xeye;
+    P1ey = P1y - _view.yeye;
+    P1ez = P1z - _view.zeye;
+ 
+    P0ex = _view.xcam - _view.xeye;
+    P0ey = _view.ycam - _view.yeye;
+    P0ez = _view.zcam - _view.zeye;
+
+    ox = P0ey*dirz - P0ez*diry;
+    oy = P0ez*dirx - P0ex*dirz;
+    oz = P0ex*diry - P0ey*dirx;
+    nv = dirx*dirx+diry*diry+dirz*dirz;
+    
+    dx = P1ey*oz - P1ez*oy;
+    dy = P1ez*ox - P1ex*oz;
+    dz = P1ex*oy - P1ey*ox;
+
+    nd = dx*dx + dy*dy + dz*dz;
+    if (nd > 1.e-24) f = sqrt(nv/nd);
+    else f = 1.;
+    dx = - dx * f;
+    dy = - dy * f;
+    dz = - dz * f;
+
+    _view.dirx = dx;
+    _view.diry = dy;
+    _view.dirz = dz;
+
+    nP1e = P1ex*P1ex+P1ey*P1ey+P1ez*P1ez;
+    nP0e = P0ex*P0ex+P0ey*P0ey+P0ez*P0ez;
+    if (nP1e > 1.e-10) k = sqrt(nP0e / nP1e);
+    else k = 0.;    
+    _view.xcam = _view.xeye + k*P1ex;
+    _view.ycam = _view.yeye + k*P1ey;
+    _view.zcam = _view.zeye + k*P1ez;
+
   }
   else
   {
