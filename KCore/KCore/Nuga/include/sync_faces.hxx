@@ -118,7 +118,7 @@ inline void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* ce
 #endif
   for (size_t i = npgs; i < nids.size(); ++i)
   {
-    if (nids[i] == i)
+    if (nids[i] == E_Int(i))
     {
 #ifdef DEBUG_MATCH_PERIO
       remain.push_back(i - npgs);
@@ -644,7 +644,7 @@ inline void replace_faces(
 
       for (size_t k = 0; k < lnids.size(); ++k)
       {
-        if (lnids[k] == k) continue;
+        if (lnids[k] == E_Int(k)) continue;
         E_Int id1 = hph.poids[k] - 1;
         E_Int id2 = hph.poids[lnids[k]] - 1;
         if (id2 < id1) std::swap(id1, id2);
@@ -767,7 +767,7 @@ inline bool sync_faces
 
         for (size_t k = 0; k < lnids.size(); ++k)
         {
-          if (lnids[k] == k) continue;
+          if (lnids[k] == E_Int(k)) continue;
           E_Int id1 = hph.poids[k] - 1;
           E_Int id2 = hph.poids[lnids[k]] - 1;
           if (id2 < id1) std::swap(id1, id2);

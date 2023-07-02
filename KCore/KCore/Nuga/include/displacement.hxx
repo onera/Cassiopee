@@ -39,7 +39,7 @@ namespace NUGA
     auto sqrmetric1 = m1.get_nodal_metric2(mtype);
 
     vertices.reserve(m1.crd.cols());
-    for (size_t i = 0; i < m1.crd.cols(); ++i)
+    for (E_Int i = 0; i < m1.crd.cols(); ++i)
       vertices.push_back(NUGA::vertex(m1.crd.col(i), sqrmetric1[i]));
 
     // identify singular points
@@ -650,7 +650,7 @@ namespace NUGA
 #endif
 
     // compute displacement for missing nodes on double walls by extrapolation
-    for (size_t i = 0; i < bit->cnt.size(); ++i)
+    for (E_Int i = 0; i < bit->cnt.size(); ++i)
     {
       if (!is_dw[i]) continue;
 

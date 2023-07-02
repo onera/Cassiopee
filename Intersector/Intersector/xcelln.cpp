@@ -42,7 +42,7 @@ std::string medith::wdir = "./";
 
 using namespace NUGA;
 
-#if !  defined(NETBEANS) && ! defined(VISUAL)
+#if ! defined(NETBEANS) && ! defined(VISUAL)
 
 /// Default impl : for both output_type 0 (mask) and 1 (xcelln) for SURAFCE and VOLUME
 template<typename classifyer_t>
@@ -186,7 +186,7 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
 
   if (nb_zones != nb_basenum)
   {
-    std::cout << "nb zones vs nb_basenum : " << nb_zones << "/" << nb_basenum << std::endl;
+    std::cout << "xCellN: Info: nb zones / nb_basenum: " << nb_zones << "/" << nb_basenum << std::endl;
     PyErr_SetString(PyExc_ValueError,
        "XcellN: must have as many base ids as zones.");
       return NULL;
@@ -211,6 +211,12 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
 
     err = getFromNGON(py_zone, crds[i], false, cnts[i], z_varString, z_eltType);
   }
+  if (err)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "xCellN: at least one input NGON is invalid.");
+    return NULL;
+  }
 
   // get the masks (BAR in 2D, nuga NGON in 3D)
   char* msk_varString, *msk_eltType;
@@ -234,6 +240,12 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
     // }
     // else
     //   std::cout << "mask sizes : "<< mask_cnts[i].cols() << " cells" << std::endl;
+  }
+  if (err)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "xCellN: one mask is invalid.");
+    return NULL;
   }
 
   bool DIM3 = (strcmp("NGON", msk_eltType) == 0);
@@ -275,7 +287,12 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
     }
   }
 
-  if (err) return nullptr;
+  if (err)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "xCellN: one error occured in input.");
+    return NULL;
+  }
 
   // get the priority pairs
   for (E_Int i=0; i < nb_priority_pairs; ++i)
@@ -309,18 +326,18 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
   if (!DIM3)
   {
     if (output_type == 0)
-      pyMOVLP_XcellN<NUGA::masker<pg_smesh_t, edge_mesh_t>>(crds, cnts, zone_wall_ids, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, "xcelln", z_eltType, l);
+      pyMOVLP_XcellN<NUGA::masker<pg_smesh_t, edge_mesh_t>>(crds, cnts, zone_wall_ids, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, "ratio", z_eltType, l);
     else if (output_type == 1)
-      pyMOVLP_XcellN<NUGA::xcellnv<pg_smesh_t, edge_mesh_t>>(crds, cnts, zone_wall_ids, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, "xcelln", z_eltType, l);
+      pyMOVLP_XcellN<NUGA::xcellnv<pg_smesh_t, edge_mesh_t>>(crds, cnts, zone_wall_ids, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, "ratio", z_eltType, l);
     else if (output_type == 2)    
       pyMOVLP_XcellN<NUGA::xcellno<pg_smesh_t, edge_mesh_t>>(crds, cnts, zone_wall_ids, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, z_varString, z_eltType, l);
   }
   else
   {
     if (output_type == 0)
-      pyMOVLP_XcellN<NUGA::masker<ph_mesh_t, pg_smesh_t>>(crds, cnts, zone_wall_ids, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, "xcelln", z_eltType, l);
+      pyMOVLP_XcellN<NUGA::masker<ph_mesh_t, pg_smesh_t>>(crds, cnts, zone_wall_ids, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, "ratio", z_eltType, l);
     else if (output_type == 1)
-      pyMOVLP_XcellN<NUGA::xcellnv<ph_mesh_t, pg_smesh_t>>(crds, cnts, zone_wall_ids, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, "xcelln", z_eltType, l);
+      pyMOVLP_XcellN<NUGA::xcellnv<ph_mesh_t, pg_smesh_t>>(crds, cnts, zone_wall_ids, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, "ratio", z_eltType, l);
     else if (output_type == 2)    
       pyMOVLP_XcellN<NUGA::xcellno<ph_mesh_t, pg_smesh_t>>(crds, cnts, zone_wall_ids, comp_id, priority, mask_crds, mask_cnts, mask_wall_ids, RTOL, z_varString, z_eltType, l);
   }

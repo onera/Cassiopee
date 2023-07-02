@@ -1179,7 +1179,8 @@ PyObject* K_INTERSECTOR::checkAngularExtrema(PyObject* self, PyObject* args)
   }
 
   std::vector<E_Int> orient;
-  E_Int imax{-1}, imin{-1}, PG1max=-1, PG2max=-1;
+  E_Int imax{-1}, imin{-1};
+  E_Int PG1max{-1}, PG2max{-1};
   E_Float minA{7.}, maxA{-1.};
   
   //
@@ -1217,9 +1218,9 @@ PyObject* K_INTERSECTOR::checkAngularExtrema(PyObject* self, PyObject* args)
     }
   }
 
-  std::cout << "minimal dihedral angle : " << minA << " reached at cell : " << imin << std::endl;
-  std::cout << "maximal dihedral angle : " << maxA << " reached at cell : " << imax << std::endl;
-  std::cout << "maximal dihedral angle for PGs : " << PG1max << " and " << PG2max << std::endl;
+  std::cout << "minimal dihedral angle: " << minA << " reached at cell: " << imin << std::endl;
+  std::cout << "maximal dihedral angle: " << maxA << " reached at cell: " << imax << std::endl;
+  std::cout << "maximal dihedral angle for PGs: " << PG1max << " and " << PG2max << std::endl;
 
   delete f; delete cn;
 
@@ -3008,7 +3009,7 @@ PyObject* K_INTERSECTOR::immerseNodes(PyObject* self, PyObject* args)
   else if (s2.oriented == -1)
     s2.reverse_orient();
 
-  auto opp_dirs  = NUGA::immerse_nodes(m1, s2, TOL);
+  auto opp_dirs = NUGA::immerse_nodes(m1, s2, TOL);
 
   // // grabb involved points
   // auto crd = m1.crd;

@@ -113,23 +113,25 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
      
   // -- Fit view / fullscreen --
   case 'f':
+  case 6: // on windows
   {
-    if (modif == GLUT_ACTIVE_CTRL) {
+    if (modif == GLUT_ACTIVE_CTRL) 
+    {
       if (ptrState->fullScreen == 0)
-        { 
-          glutFullScreen(); // pas de retour possible sous linux
-          _view.wSav = _view.w; _view.hSav = _view.h;
-          //glutReshapeWindow(1680, 1050);
-          ptrState->fullScreen = 1;
-        }
-        else 
-        {
-          glutReshapeWindow(_view.wSav, _view.hSav);
-          ptrState->fullScreen = 0;
-        }
+      { 
+        glutFullScreen(); // pas de retour possible sous linux
+        _view.wSav = _view.w; _view.hSav = _view.h;
+        //glutReshapeWindow(1680, 1050);
+        ptrState->fullScreen = 1;
       }
-      else { initCam(); farClipping(); }
-      break;
+      else 
+      {
+        glutReshapeWindow(_view.wSav, _view.hSav);
+        ptrState->fullScreen = 0;
+      }
+    }
+    else { initCam(); farClipping(); }
+    break;
   }
       
   // -- Mesh/Solid/Render display --
@@ -554,7 +556,7 @@ void Data::moveDown(double alpha, double dx, double dy, double dz, double d,
 
     nP1e = P1ex*P1ex+P1ey*P1ey+P1ez*P1ez;
     nP0e = P0ex*P0ex+P0ey*P0ey+P0ez*P0ez;
-    if (nP1e > 1.e-10) k = sqrt(nP0e / nP1e);
+    if (nP1e > 1.e-24) k = sqrt(nP0e / nP1e);
     else k = 0.;    
     _view.xcam = _view.xeye + k*P1ex;
     _view.ycam = _view.yeye + k*P1ey;
@@ -665,7 +667,7 @@ void Data::moveUp(double alpha, double dx, double dy, double dz, double d,
 
     nP1e = P1ex*P1ex+P1ey*P1ey+P1ez*P1ez;
     nP0e = P0ex*P0ex+P0ey*P0ey+P0ez*P0ez;
-    if (nP1e > 1.e-10) k = sqrt(nP0e / nP1e);
+    if (nP1e > 1.e-24) k = sqrt(nP0e / nP1e);
     else k = 0.;    
     _view.xcam = _view.xeye + k*P1ex;
     _view.ycam = _view.yeye + k*P1ey;
@@ -758,7 +760,7 @@ void Data::moveRight(double alpha, double dx, double dy, double dz, double d,
     P0ez = _view.zcam - _view.zeye;
     nP1e = P1ex*P1ex+P1ey*P1ey+P1ez*P1ez;
     nP0e = P0ex*P0ex+P0ey*P0ey+P0ez*P0ez;
-    if (nP1e > 1.e-10) k = sqrt(nP0e / nP1e);
+    if (nP1e > 1.e-24) k = sqrt(nP0e / nP1e);
     else k = 0.;
     _view.xcam = _view.xeye + k*P1ex;
     _view.ycam = _view.yeye + k*P1ey;
@@ -988,7 +990,7 @@ void Data::moveLeft(double alpha, double dx, double dy, double dz, double d,
     P0ez = _view.zcam - _view.zeye;
     nP1e = P1ex*P1ex+P1ey*P1ey+P1ez*P1ez;
     nP0e = P0ex*P0ex+P0ey*P0ey+P0ez*P0ez;
-    if (nP1e > 1.e-10) k = sqrt(nP0e / nP1e);
+    if (nP1e > 1.e-24) k = sqrt(nP0e / nP1e);
     else k = 0.;
     _view.xcam = _view.xeye + k*P1ex;
     _view.ycam = _view.yeye + k*P1ey;

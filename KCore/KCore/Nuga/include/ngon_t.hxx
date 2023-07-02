@@ -5736,7 +5736,7 @@ static int validate_moves_by_fluxes
     double newmaxflux = -1.;
     double newminvol = NUGA::FLOAT_MAX;
     TriangulatorType dt;
-    for (size_t u = 0; u < ngshell.PHs.size(); ++u)
+    for (E_Int u = 0; u < ngshell.PHs.size(); ++u)
     {
       K_MESH::Polyhedron<0> PH0(ngshell, u);
       double fluxvec[3];
