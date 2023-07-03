@@ -131,28 +131,28 @@ PyObject* K_OCC::linkNodes2CAD(PyObject* self, PyObject* args)
 
   E_Float tol = 1e-11;
   
-// Get first component of each list 
+  // Get first component of each list 
   arr = PyList_GetItem(arr, 0);
   dhx = PyList_GetItem(dhx, 0);
   dhy = PyList_GetItem(dhy, 0);
   dhz = PyList_GetItem(dhz, 0);
   ncad = PyList_GetItem(ncad, 0);
 
-// array (mesh)
+  // array (mesh)
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
   char* varString;  char* eltType;
   E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
   if (err) return NULL;
 
-  K_FLD::FloatArray & crd = *f;
+  //K_FLD::FloatArray & crd = *f;
   K_FLD::IntArray & cnt = *cn;
   
   typedef ngon_t<K_FLD::IntArray> ngon_type;
   ngon_type ngi(cnt);
 
 
-// faces vector
+  // faces vector
   std::vector<E_Int>  Flist = getFacesVector(arrf);
     
     

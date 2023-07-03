@@ -520,7 +520,7 @@ E_Int K_OCC::OCCSurface::parameters2
 {
   UVs.clear();
   
-  E_Int err(0), sz(coord3D.cols());
+  E_Int sz(coord3D.cols());
   UVs.resize(2, sz, K_CONST::E_MAX_FLOAT);
 
   K_FLD::IntArray index;
@@ -545,7 +545,7 @@ E_Int K_OCC::OCCSurface::parameters2
   {
     if (start[i] == 1) { Up=-K_CONST::E_MAX_FLOAT; Vp=-K_CONST::E_MAX_FLOAT; Upp=-K_CONST::E_MAX_FLOAT; Vpp=-K_CONST::E_MAX_FLOAT; }
     n = index[i];
-    err = parameters2(coord3D.col(n), UVs(0,n), UVs(1,n), n, Up, Vp, Upp, Vpp);
+    parameters2(coord3D.col(n), UVs(0,n), UVs(1,n), n, Up, Vp, Upp, Vpp);
     if (_isRevol == true && (std::fabs(Up-Upp) > 0.7*(_U1-_U0) || std::fabs(Vp-Vpp) > 0.7*(_V1-_V0)))
     {
 #ifdef DEBUG_CAD_READER

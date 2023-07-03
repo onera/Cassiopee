@@ -192,7 +192,8 @@ def drawCircle(npts):
                     normi = 1./math.sqrt(norm)
                     tx = tx*normi; ty = ty*normi; tz = tz*normi;
                     alpha = R*R - (xa*xa+ya*ya+za*za)*0.25
-                    alpha = math.sqrt(alpha)
+                    if alpha >= 0: alpha = math.sqrt(alpha)
+                    else: alpha = 0.    
                     center = [0,0,0]
                     center[0] = 0.5*(x1+x2) + alpha*tx
                     center[1] = 0.5*(y1+y2) + alpha*ty
@@ -211,6 +212,9 @@ def drawCircle(npts):
                     e1 = [x1-center[0], y1-center[1], z1-center[2]]
                     e2 = [x2-center[0], y2-center[1], z2-center[2]]
                     e3 = Vector.cross(e1, e2)
+                    if (e3[0]*e3[0]+e3[1]*e3[1]+e3[2]*e3[2]) < 1e-24:
+                        e2 = [x3-center[0], y3-center[1], z3-center[2]]
+                        e3 = Vector.cross(e1, e2)
                     e4 = Vector.cross(e1, e3)
                     circle = T.rotate(circle,
                                       (center[0], center[1], center[2]),
@@ -278,8 +282,9 @@ def drawArc(npts):
                     b2 = xb*xb + yb*yb + zb*zb
                     c2 = xc*xc + yc*yc + zc*zc
                     A = 2*b2*c2 + 2*c2*a2 + 2*a2*b2 - a2*a2 - b2*b2 - c2*c2
-                    R = math.sqrt( a2*b2*c2 / A )
-                    
+                    if A > 1.e-48: R = math.sqrt(a2*b2*c2 / A)
+                    else: R = 0.
+
                     nx = ya*zb - za*yb
                     ny = za*xb - xa*zb
                     nz = xa*yb - ya*xb
@@ -287,10 +292,13 @@ def drawArc(npts):
                     ty = za*nx - xa*nz
                     tz = xa*ny - ya*nx
                     norm = tx*tx + ty*ty + tz*tz
-                    normi = 1./math.sqrt(norm)
+                    if norm > 1.e-24: normi = 1./math.sqrt(norm)
+                    else: normi = 1.e24
+
                     tx = tx*normi; ty = ty*normi; tz = tz*normi;
                     alpha = R*R - (xa*xa+ya*ya+za*za)*0.25
-                    alpha = math.sqrt(alpha)
+                    if alpha >= 0: alpha = math.sqrt(alpha)
+                    else: alpha = 0.
                     center = [0,0,0]
                     center[0] = 0.5*(x1+x2) + alpha*tx
                     center[1] = 0.5*(y1+y2) + alpha*ty
@@ -307,6 +315,9 @@ def drawArc(npts):
                     e1 = [x1-center[0], y1-center[1], z1-center[2]]
                     e2 = [x2-center[0], y2-center[1], z2-center[2]]
                     e3 = Vector.cross(e1, e2)
+                    if (e3[0]*e3[0]+e3[1]*e3[1]+e3[2]*e3[2]) < 1e-24:
+                        e2 = [x3-center[0], y3-center[1], z3-center[2]]
+                        e3 = Vector.cross(e1, e2)
                     e4 = Vector.cross(e1, e3)
 
                     # Images des pts dans le plan xyz 

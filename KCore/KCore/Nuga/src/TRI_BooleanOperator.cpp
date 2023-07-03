@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : SÃ¢m Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/TRI_BooleanOperator.h"
 #include "Nuga/include/TRI_Conformizer.h"
@@ -113,8 +113,7 @@ TRI_BooleanOperator::get_2_minus_1(K_FLD::FloatArray& coord, K_FLD::IntArray& co
 }
 
 ///
-E_Int
-TRI_BooleanOperator::getUnion
+E_Int TRI_BooleanOperator::getUnion
 (K_FLD::FloatArray& coord, K_FLD::IntArray& connect, std::vector<E_Int>& colors)
 {
   if (!initialized()) return 1;
@@ -134,8 +133,7 @@ TRI_BooleanOperator::getUnion
 }
 
 ///
-E_Int
-TRI_BooleanOperator::getIntersection
+E_Int TRI_BooleanOperator::getIntersection
 (K_FLD::FloatArray& coord, K_FLD::IntArray& connect, std::vector<E_Int>& colors)
 {
   if (!initialized()) return 1;
@@ -155,8 +153,7 @@ TRI_BooleanOperator::getIntersection
 }
 
 ///
-E_Int
-TRI_BooleanOperator::getIntersectionBorder
+E_Int TRI_BooleanOperator::getIntersectionBorder
 (K_FLD::FloatArray& coord, K_FLD::IntArray& connectB)
 {
   connectB.clear();
@@ -230,40 +227,54 @@ TRI_BooleanOperator::__compute_x_contour(std::set<K_MESH::NO_Edge>& hXC)
   return 0;
 }
 
-///
-E_Int
-TRI_BooleanOperator::check_sanity()
+// Check if surfaces are closed
+E_Int TRI_BooleanOperator::check_sanity()
 {
   bool is_closed = isClosed(_coord, _connects[0]);
   if (!is_closed)
-    return 1; 
-  is_closed = isClosed(_coord, _connects[1]);
-  if (!is_closed)
+  {
+    printf("Warning: Boolean: surface 0 is not closed.\n");
     return 1;
+  } 
+  is_closed = isClosed(_coord, _connects[1]);
+  if (!is_closed) 
+  {
+    printf("Warning: Boolean: surface 1 is not closed.\n");
+    return 1;
+  }
   return 0;
 }
 
 ///
-E_Int
-TRI_BooleanOperator::compute_zones()
+E_Int TRI_BooleanOperator::compute_zones()
 {
-  E_Int                      ret(0), S0, i=0;
+  E_Int ret(0), S0, i=0;
   std::set<K_MESH::NO_Edge>  hXC;
   
   _hXCO.clear();
 
   // Computes the common boundary (intersection edges and overlap zones boundaries).
   ret = __compute_x_contour(hXC);
-  if (ret)
+  if (ret) 
+  {
+    printf("Warning: Boolean: fail to compute intersection boundary.\n");
     return ret;
+  }
+
   // Get an external element to initialize colors (to 0).
   ret = __find_external_element(_coord, _connects, S0, i);
-  if (ret)
+  if (ret) 
+  {
+    printf("Warning: Boolean: fail to find initial element for coloring.\n");
     return ret;
+  }
   //
   ret = __alternate_coloring(_connects[i], S0, hXC, _colors[i]);
-  if (ret)
+  if (ret) 
+  {
+    printf("Warning: Boolean: fail to find alternate element for coloring.\n");
     return ret;
+  }
 
   // Fill the relevant containers.
   K_FLD::IntArray *pCout, *pCin, *pCinter;
@@ -285,12 +296,18 @@ TRI_BooleanOperator::compute_zones()
   __fillZoneContainers(_colors[i], _connects[i], pCin, pCout, pCinter);
   
   ret = __reorient_x_contour(*pCout, hXC, _hXCO);
-  if (ret)
+  if (ret) 
+  {
+    printf("Warning: Boolean: fail to reorient intersection boundary.\n");
     return ret;
-  
+  }
+
   ret = __color_other_part(_connects[(i+1)%2], hXC, _hXCO, _colors[(i+1)%2]);
-  if (ret)
+  if (ret) 
+  {
+    printf("Warning: Boolean: fail to color zone.\n");
     return ret;
+  }
 
   // Fill the relevant containers.
   if (i == 0)

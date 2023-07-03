@@ -122,14 +122,11 @@ BooleanOperator::BooleanOperator
 E_Int
 BooleanOperator::initialized()
 {
-  if (_initialized)
-    return 1;
+  if (_initialized) return 1;
   
-  if (this->check_sanity())
-    return 0;
+  if (this->check_sanity()) return 0;
   
-  if (this->compute_zones())
-    return 0;
+  if (this->compute_zones()) return 0;
   
   _initialized = true;
   return 1;

@@ -1060,6 +1060,7 @@ E_Int K_OCC::CADviaOCC::__reorient_holed_surface(K_FLD::IntArray& connectB, cons
   if (nb_loops == 1) return 0;
 
   E_Int err =  K_OCC::CADviaOCC::__reorient_holed_surface(cntLoops, UVcontour);
+  if (err) printf("Warning: reorient_holed_surface: fail to reorient surface.\n");
 
   //concatenate back to connectB
   connectB.clear();

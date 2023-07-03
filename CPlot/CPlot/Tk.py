@@ -1433,7 +1433,7 @@ def toolBar(win, mode=0):
         B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
                     image=iconics.PHOTO[5], borderwidth=0,
                     command=toggleSelectAll)
-        BB = infoBulle(parent=B, text='Toggle select/unselect all zones.')
+        BB = infoBulle(parent=B, text='Select/unselect all zones.')
         B.grid(row=0, column=5)
 
         B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
@@ -1451,7 +1451,7 @@ def toolBar(win, mode=0):
         B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
                     image=iconics.PHOTO[12], borderwidth=0, 
                     command=revertActivated)
-        BB = infoBulle(parent=B, text='Toggle active zones.')
+        BB = infoBulle(parent=B, text='Switch active <-> inactive zones.')
         B.grid(row=0, column=8)
 
         B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
@@ -1907,7 +1907,8 @@ def toggleAutoOpen(name, m):
         auto = auto.replace(name+';', '')
         auto = auto.replace(name, '')
         PREFS['auto'] = auto
-        m.entryconfigure('Pin ', image=iconics.PHOTO[9])
+        m.entryconfigure('Unpin ', image=iconics.PHOTO[9])
+        m.entryconfigure('Unpin ', label='Pin ')
     else:
         if 'auto' not in PREFS: PREFS['auto'] = name+';'
         else:
@@ -1915,6 +1916,7 @@ def toggleAutoOpen(name, m):
             auto += name+';'
             PREFS['auto'] = auto
         m.entryconfigure('Pin ', image=iconics.PHOTO[10])
+        m.entryconfigure('Pin ', label='Unpin ')
     savePrefFile()
 
 #==============================================================================
@@ -1922,10 +1924,10 @@ def toggleAutoOpen(name, m):
 #==============================================================================
 def addPinMenu(m, name):
     opened = isAppAutoOpen(name)
-    if opened: icon = iconics.PHOTO[10]
-    else: icon = iconics.PHOTO[9]
+    if opened: txt='Unpin '; icon = iconics.PHOTO[10]
+    else: txt='Pin '; icon = iconics.PHOTO[9]
     m.add_command(
-        label='Pin ', image=icon, compound=TK.RIGHT,
+        label=txt, image=icon, compound=TK.RIGHT,
         command=lambda name=name, m=m: toggleAutoOpen(name, m))
 
 #==============================================================================

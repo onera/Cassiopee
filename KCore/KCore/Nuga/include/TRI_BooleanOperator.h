@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : SÃ¢m Landier (sam.landier@onera.fr)
 
 #ifndef __BOOLEAN_OPERATOR_H__
 #define __BOOLEAN_OPERATOR_H__

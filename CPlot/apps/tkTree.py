@@ -106,7 +106,7 @@ class Node:
             sw.tag_bind(self.indic, '<Button-1>', self.PVT_click)
             sw.tag_bind(self.symbol, '<Button-1>', self.PVT_click)
             sw.tag_bind(self.label, '<Button-1>', self.PVT_clickSelect)
-            sw.tag_bind(self.label, '<Control-Button-1>',
+            sw.tag_bind(self.label, '<Control-Shift-Button-1>',
                         self.PVT_clickMultipleSelect)
             sw.tag_bind(self.label, '<Double-Button-1>',
                         self.PVT_clickEdit)

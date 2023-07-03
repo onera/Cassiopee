@@ -1,3 +1,4 @@
+
 # Functions used in *Cassiopee* modules setup.py
 import os, sys, distutils.sysconfig, platform, glob, subprocess
 

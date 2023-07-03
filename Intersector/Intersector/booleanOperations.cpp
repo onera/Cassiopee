@@ -19,9 +19,9 @@
 
 // Some boolean operations like intersection, union, minus...
 //#define FLAG_STEP
-// #define DEBUG_W_PYTHON_LAYER
+//#define DEBUG_W_PYTHON_LAYER
 //#define DEBUG_MESHER
-// #define DEBUG_BOOLEAN
+//#define DEBUG_BOOLEAN
 
 # include <string>
 # include <sstream> 
@@ -38,10 +38,10 @@ using namespace NUGA;
 #include "Nuga/include/chrono.h"
 #endif
 #if defined(DEBUG_TRIANGULATOR)
-      bool DELAUNAY::Triangulator::dbg_enabled = false;
+    bool DELAUNAY::Triangulator::dbg_enabled = false;
 #endif
 #ifdef DEBUG_BOOLEAN
-      std::string medith::wdir = "./";
+    std::string medith::wdir = "./";
 #endif
 
 //=============================================================================
@@ -72,7 +72,8 @@ std::string getName(eOperation oper)
 }
 
 //==============================================================================
-bool is_valid (char* eltType, eOperation oper)
+// Return true is eltType is ok for given oper
+bool is_valid(char* eltType, eOperation oper)
 {
   switch (oper)
   {
@@ -95,6 +96,7 @@ bool is_valid (char* eltType, eOperation oper)
 }
 
 //==============================================================================
+// Return false si error in args, true otherwise
 bool getArgs(PyObject* args, eOperation oper,
              K_FLD::FloatArray& pos1, K_FLD::IntArray& connect1,
              K_FLD::FloatArray& pos2, K_FLD::IntArray& connect2,
@@ -189,6 +191,7 @@ bool getArgs(PyObject* args, eOperation oper,
 }
 
 //==============================================================================
+// Return true if args are ok
 bool getBorderArgs(PyObject* args,
              K_FLD::FloatArray& pos1, K_FLD::IntArray& connect1,
              K_FLD::FloatArray& pos2, K_FLD::IntArray& connect2,
@@ -273,6 +276,8 @@ bool getBorderArgs(PyObject* args,
   return (err == 0);
 }
 
+//==============================================================
+// Return true if args are ok
 bool getUnionArgs(PyObject* args,
              K_FLD::FloatArray& pos1, K_FLD::IntArray& connect1,
              K_FLD::FloatArray& pos2, K_FLD::IntArray& connect2,
@@ -422,6 +427,7 @@ operation getOperation(eOperation oper)
 }
 
 //==============================================================================
+// Main function that perform all kind of operations
 PyObject* call_operation(PyObject* args, eOperation oper)
 {
   K_FLD::FloatArray pos1, pos2, pos;
@@ -431,10 +437,11 @@ PyObject* call_operation(PyObject* args, eOperation oper)
   std::vector<E_Int> colors;
   E_Int preserve_right, solid_right, agg_mode, itermax;
   bool improve_conformal_cloud_qual(false), outward_surf(true);
-  
+
   bool ok = getArgs(args, oper, pos1, connect1, pos2, connect2, tolerance,
 		    preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual, outward_surf, itermax, eltType, varString);
   if (!ok) return NULL;
+
   PyObject* tpl = NULL;
   E_Int err(0), et=-1;
 
@@ -478,15 +485,13 @@ PyObject* call_operation(PyObject* args, eOperation oper)
     {
       //AGG = bo_t::NONE; fixme : not working because of new_skin PG triangulation : diconnexion between modified and unlodified parts
     }
-    else if (agg_mode == 2)
-      AGG = bo_t::FULL;
+    else if (agg_mode == 2) AGG = bo_t::FULL;
         
     bo_t BO(pos1, connect1, pos2, connect2, tolerance, AGG);
 
     if (improve_conformal_cloud_qual) BO.setConformizerParams(true);
 
-    if (oper == DIFFSURF && outward_surf == false)
-      BO._outward = false;
+    if (oper == DIFFSURF && outward_surf == false) BO._outward = false;
 
     switch (oper)
     {
@@ -512,6 +517,7 @@ PyObject* call_operation(PyObject* args, eOperation oper)
     std::ostringstream o;
     o << getName(oper) << ": failed to proceed.";
     PyErr_SetString(PyExc_TypeError, o.str().c_str());
+    return NULL;
   }
   return tpl;
 }
@@ -561,6 +567,9 @@ PyObject* call_xborder(PyObject* args)
   return tpl;
 }
 
+//==============================================================
+// Fonction generale d'union
+//==============================================================
 PyObject* call_union(PyObject* args)
 {
   K_FLD::FloatArray pos1, pos2;
@@ -576,6 +585,7 @@ PyObject* call_union(PyObject* args)
   bool ok = getUnionArgs(args, pos1, connect1, pos2, connect2, tolerance, 
         preserve_right, solid_right, agg_mode, improve_conformal_cloud_qual, ghost_pgs, simplify_pgs, hard_mode, itermax, eltType, varString);
   if (!ok) return NULL;
+  
   PyObject* tpl  = NULL;
   PyObject* tplph0 = NULL, *tplph1 = NULL;
   PyObject* tplpg0 = NULL, *tplpg1 = NULL;
@@ -592,7 +602,6 @@ PyObject* call_union(PyObject* args)
   std::vector<K_FLD::IntArray> cnts;
   std::vector<std::string> znames;
 
-
   if ((strcmp(eltType, "TRI") == 0) || (strcmp(eltType, "BAR") == 0))
   {
     BooleanOperator* BO = NULL;
@@ -608,13 +617,10 @@ PyObject* call_union(PyObject* args)
       BO = new BAR_BooleanOperator (pos1, connect1, pos2, connect2, tolerance);
       op = getOperation<BAR_BooleanOperator>(UNION);
     }
-    
-    crds.resize(1);
-    cnts.resize(1);
-
+    crds.resize(1); cnts.resize(1);
     err = (BO->*op)(crds[0], cnts[0], colors);
     delete BO;
-    et=-1;
+    et = -1;
   }
   else if (strcmp(eltType, "NGON") == 0)
   {
@@ -643,7 +649,7 @@ PyObject* call_union(PyObject* args)
 
     K_FLD::IntArray cnt;
     K_FLD::FloatArray crd;
-    err=BO.Union(crd, cnt, (bo_t::eInterPolicy)solid_right, (bo_t::eMergePolicy)preserve_right);
+    err = BO.Union(crd, cnt, (bo_t::eInterPolicy)solid_right, (bo_t::eMergePolicy)preserve_right);
     et = 8;
 
 #ifndef DEBUG_W_PYTHON_LAYER
@@ -672,7 +678,6 @@ PyObject* call_union(PyObject* args)
       
       assert (i >=0 && i < phoids0.size());
       assert (i >=0 && i < phoids1.size());
-      
       
       if (ancPH1 == E_IDX_NONE && ancPH2 == E_IDX_NONE)
       {
@@ -733,28 +738,28 @@ PyObject* call_union(PyObject* args)
 
       if (ancPG1 == E_IDX_NONE && ancPG2 == E_IDX_NONE)
       {
-    	std::ostringstream o;
-    	o << "Error: Union: Face " << i << " without ancestor." << std::endl;
-    	PyErr_SetString(PyExc_TypeError, o.str().c_str());
-    	return NULL;	  
+    	  std::ostringstream o;
+    	  o << "Error: Union: Face " << i << " without ancestor." << std::endl;
+    	  PyErr_SetString(PyExc_TypeError, o.str().c_str());
+    	  return NULL;	  
       }
       
       if (ancPG1 != E_IDX_NONE && ancPG2 != E_IDX_NONE)
       {
-    	std::ostringstream o;
-    	o << "Error: Union: Face " << i << " has 2 ancestors. ancPG1 = " << ancPG1 << " and ancPG2 =" <<  ancPG2 << std::endl;
-    	PyErr_SetString(PyExc_TypeError, o.str().c_str());
-    	return NULL;
+    	  std::ostringstream o;
+    	  o << "Error: Union: Face " << i << " has 2 ancestors. ancPG1 = " << ancPG1 << " and ancPG2 =" <<  ancPG2 << std::endl;
+    	  PyErr_SetString(PyExc_TypeError, o.str().c_str());
+    	  return NULL;
       }
 
       // Detect interior faces 
       E_Int elt1 = F2E(0,i);
       E_Int elt2 = F2E(1,i);
       
-      if ( elt1 != E_IDX_NONE && elt2 != E_IDX_NONE )
+      if (elt1 != E_IDX_NONE && elt2 != E_IDX_NONE)
       {
-	    pgoids0[i] = E_IDX_NONE; 
-	    pgoids1[i] = E_IDX_NONE; 
+	      pgoids0[i] = E_IDX_NONE; 
+	      pgoids1[i] = E_IDX_NONE; 
       }
  
     }
@@ -852,11 +857,12 @@ PyObject* call_union(PyObject* args)
     else
     {
       std::ostringstream o;
-      o << "Union : failed to proceed.";
+      o << "Union: failed to proceed.";
       PyErr_SetString(PyExc_TypeError, o.str().c_str());
+      return NULL;
     }
 
-    PyObject* l   = PyList_New(0);
+    PyObject* l = PyList_New(0);
 
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
@@ -882,7 +888,7 @@ PyObject* call_union(PyObject* args)
   {
     {
       size_t nb_zones = cnts.size();
-      //std::cout << "nb zones : " << nb_zones << std::endl;
+      //std::cout << "nb zones: " << nb_zones << std::endl;
       for (size_t i=0; i < nb_zones; ++i)
       {
         if (crds[i].cols() == 0) continue;
@@ -895,7 +901,7 @@ PyObject* call_union(PyObject* args)
       }
     }
   }
-    
+
   return l;
 
 #endif
@@ -926,7 +932,7 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE(args, 
                     "OOddllll", "OOddiiii", "OOffllll", "OOffiiii", &arr1s, &arr2s, &xtol, &closetol, &agg_mode, &improve_qual, &simplify_pgs, &hard_mode))
   {
-    PyErr_SetString(PyExc_TypeError, "booleanUnion2 : wrong args");
+    PyErr_SetString(PyExc_TypeError, "booleanUnion2: wrong args");
     return NULL;
   }
 
@@ -951,7 +957,7 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
         delete crd1s[i];
         delete cnt1s[i];
       }
-      PyErr_SetString(PyExc_TypeError, "booleanUnionMZ : not NGON elts.");
+      PyErr_SetString(PyExc_TypeError, "booleanUnionMZ: not NGON elts.");
       return NULL;
     }
   }
@@ -1013,18 +1019,18 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
   ngon_type::clean_connectivity(ng2, crd2, -1/*ngon_dim*/, closetol/*tolerance*/, true/*remove_dup_phs*/, true/*do_omp*/, &clean_pgnids2, &clean_phnids2);
 
   // Reverse indirection (preserving information when 2 ancestors exist) 
-  map<E_Int,std::vector<E_Int>> vect_pgoids1 ;
-  map<E_Int,std::vector<E_Int>> vect_pgoids2 ;
+  map<E_Int,std::vector<E_Int>> vect_pgoids1;
+  map<E_Int,std::vector<E_Int>> vect_pgoids2;
 
-  for (size_t i=0; i < clean_pgnids1.size(); ++i )
+  for (size_t i=0; i < clean_pgnids1.size(); ++i)
   {
-    E_Int nids         = clean_pgnids1[i] ; 
+    E_Int nids = clean_pgnids1[i]; 
     vect_pgoids1[nids].push_back(i); 
   }
   
-  for (size_t i=0; i < clean_pgnids2.size(); ++i )
+  for (size_t i=0; i < clean_pgnids2.size(); ++i)
   {
-    E_Int nids         = clean_pgnids2[i] ; 
+    E_Int nids         = clean_pgnids2[i]; 
     vect_pgoids2[nids].push_back(i); 
   }
 
@@ -1039,8 +1045,7 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
   {
     //AGG = bo_t::NONE; fixme : not working because of new_skin PG triangulation : diconnexion between modified and unlodified parts
   }
-  else if (agg_mode == 2)
-    AGG = bo_t::FULL;
+  else if (agg_mode == 2) AGG = bo_t::FULL;
   
   bo_t BO(crd1, cnt1, crd2, cnt2, xtol, AGG);
 
@@ -1078,10 +1083,10 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
   std::vector<std::vector<E_Int>> phoids1(nb_zones1), phoids2(nb_zones2); // phoids[zid][i] = k <=> the i-th cell in zid-th zone either had k as id, or was a piece of k (in same zone) 
 
   // Structure for keeping new matches information 
-   std::map<E_Int, std::map<E_Int, std::set<E_Int>>> z1_jz_to_ptl1, z2_jz_to_ptl2;
+  std::map<E_Int, std::map<E_Int, std::set<E_Int>>> z1_jz_to_ptl1, z2_jz_to_ptl2;
    
   //
-  K_FLD::IntArray F2E ; 
+  K_FLD::IntArray F2E; 
   ngo.build_noF2E(F2E);
   //
 
@@ -1118,8 +1123,8 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
         assert (PHleft == i || PHright == i);
         
         E_Int PHother    = (PHleft == i) ? PHright : PHleft;
-	E_Int ancPHother = E_IDX_NONE ;
-	if (PHother != E_IDX_NONE)  ancPHother = ngo.PHs._ancEs(1,PHother);
+        E_Int ancPHother = E_IDX_NONE ;
+        if (PHother != E_IDX_NONE)  ancPHother = ngo.PHs._ancEs(1,PHother);
 	  
         if (ancPHother == IDX_NONE) continue;// provient de op1 => pgoids en sortie permettra de mettre à jour le ptlist
         E_Int zidother = zonePHids2[ancPHother] + nb_zones1 ; // zid dans op2 + shift (pour num. globale)
@@ -1146,15 +1151,14 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
         assert (PHleft == i || PHright == i);
         
         E_Int PHother = (PHleft == i) ? PHright : PHleft;
-	E_Int ancPHother = E_IDX_NONE ;
-	if (PHother != E_IDX_NONE)  ancPHother = ngo.PHs._ancEs(0,PHother);
+        E_Int ancPHother = E_IDX_NONE ;
+        if (PHother != E_IDX_NONE)  ancPHother = ngo.PHs._ancEs(0,PHother);
         
         if (ancPHother == IDX_NONE) continue;// provient de op2 => pgoids en sortie permettra de mettre à jour le ptlist
         E_Int zidother = zonePHids1[ancPHother]; // dans op1
 
         z2_jz_to_ptl2[zid+nb_zones1][zidother].insert(PGi);
       }
-      
     }
   }
   
@@ -1185,11 +1189,11 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
         auto & ptl = j.second;
         for (auto & pg : ptl)
         {
-            if (pgnids[pg] !=  E_IDX_NONE)
-            {
-                z1loc_jz_to_ptl1[zid][jzid].push_back(pgnids[pg]);
-	        }
-	    }
+          if (pgnids[pg] !=  E_IDX_NONE)
+          {
+            z1loc_jz_to_ptl1[zid][jzid].push_back(pgnids[pg]);
+          }
+        }
       }
     }
     
@@ -1203,24 +1207,23 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
       E_Int ancPG1 = ng1so[i].PGs._ancEs(0,k);
       glo_pgoids.push_back(ancPG1);
     }
-
   }
   
-    // Remove faces already belonging to matches
-    for (auto& ii : z1loc_jz_to_ptl1)
+  // Remove faces already belonging to matches
+  for (auto& ii : z1loc_jz_to_ptl1)
+  {
+    E_Int zid = ii.first;
+    for (auto& j : ii.second)
     {
-      E_Int zid = ii.first;
-      for (auto& j : ii.second)
+      //E_Int jzid = j.first;
+      auto & ptl = j.second;
+      for (auto & pg : ptl)
       {
-    	//E_Int jzid = j.first;
-    	auto & ptl = j.second;
-    	for (auto & pg : ptl)
-    	{
-    	  if (pg != E_IDX_NONE)
-	        idx_to_remove1[zid].push_back(pg); 
-    	}
+        if (pg != E_IDX_NONE)
+          idx_to_remove1[zid].push_back(pg); 
       }
     }
+  }
   
   E_Int prev = 0 ;
   
@@ -1238,23 +1241,22 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
 
     // computing PG histo
     std::vector<E_Int> pgoids(ng1so[i].PGs.size(), IDX_NONE);
-    E_Int shift = 0 ;
+    E_Int shift = 0;
       
     for (size_t k = prev; k < prev+pgoids.size(); ++k)
     {
-      if (i>0) shift = zoneshiftPG1[i-1] ;
+      if (i>0) shift = zoneshiftPG1[i-1];
       
       E_Int ids_u = glo_pgoids[k];
 
       if (ids_u != E_IDX_NONE)
       {
-	pgoids[k-prev] = vect_pgoids1[ids_u][0]-shift ;
-	
-	if ( vect_pgoids1[ids_u].size() > 1)
-	  vect_pgoids1[ids_u].erase(vect_pgoids1[ids_u].begin());
+        pgoids[k-prev] = vect_pgoids1[ids_u][0]-shift ;
+
+        if ( vect_pgoids1[ids_u].size() > 1)
+          vect_pgoids1[ids_u].erase(vect_pgoids1[ids_u].begin());
       }
-      else
-	pgoids[k-prev] = -1 ; 
+      else pgoids[k-prev] = -1; 
     }
 
     // Remove pg already flagged as match
@@ -1295,17 +1297,17 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
     // indice global => local
     for (auto& i : z2_jz_to_ptl2)  
     {
-        E_Int zid = i.first;
-        for (auto& j : i.second)
+      E_Int zid = i.first;
+      for (auto& j : i.second)
+      {
+        E_Int jzid = j.first;
+        auto & ptl = j.second;
+        for (auto & pg : ptl)
         {
-          E_Int jzid = j.first;
-          auto & ptl = j.second;
-          for (auto & pg : ptl)
-	  {
-	    if (pgnids[pg] !=  E_IDX_NONE)
-	      z2loc_jz_to_ptl2[zid][jzid].push_back(pgnids[pg]);
-	  }
+          if (pgnids[pg] !=  E_IDX_NONE)
+            z2loc_jz_to_ptl2[zid][jzid].push_back(pgnids[pg]);
         }
+      }
     }
    
     ngon_type::compact_to_used_nodes(ng2so[i].PGs, crd2so[i]);
@@ -1321,19 +1323,18 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
   
   // Remove faces belonging to matches
   for (auto& ii : z2loc_jz_to_ptl2)
+  {
+    E_Int zid = ii.first;
+    for (auto& j : ii.second)
     {
-      E_Int zid = ii.first;
-      for (auto& j : ii.second)
+      //E_Int jzid = j.first;
+      auto & ptl = j.second;
+      for (auto & pg : ptl)
       {
-        //E_Int jzid = j.first;
-        auto & ptl = j.second;
-        for (auto & pg : ptl)
-        {
-          if (pg !=  E_IDX_NONE)
-            idx_to_remove2[zid-nb_zones1].push_back(pg);
-        }
+        if (pg != E_IDX_NONE) idx_to_remove2[zid-nb_zones1].push_back(pg);
       }
     }
+  }
    
   prev = 0;
   
@@ -1351,7 +1352,7 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
 
     // computing PG histo
     std::vector<E_Int> pgoids(ng2so[i].PGs.size(), IDX_NONE);
-    E_Int shift = 0 ;
+    E_Int shift = 0;
     
     for (size_t k = prev; k < prev+pgoids.size(); ++k)
     {
@@ -1361,21 +1362,19 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
 
       if (ids_u != E_IDX_NONE)
       {
-	pgoids[k-prev] = vect_pgoids2[ids_u][0]-shift ;
-	
-	if ( vect_pgoids2[ids_u].size() > 1)
-	  vect_pgoids2[ids_u].erase(vect_pgoids2[ids_u].begin());
-      }
-      else
-	pgoids[k-prev] = -1 ;
-    }
+        pgoids[k-prev] = vect_pgoids2[ids_u][0]-shift ;
 
+        if ( vect_pgoids2[ids_u].size() > 1)
+          vect_pgoids2[ids_u].erase(vect_pgoids2[ids_u].begin());
+      }
+      else pgoids[k-prev] = -1 ;
+    }
     
     // Remove pg already flagged as match
     for (size_t kk = 0 ; kk < idx_to_remove2[i].size(); ++kk )
     {
       E_Int id_rm   = idx_to_remove2[i][kk];
-      pgoids[id_rm] = -1 ;
+      pgoids[id_rm] = -1;
     }
     
     prev = prev + pgoids.size();
@@ -1419,7 +1418,6 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
   }
   PyList_Append(l, pointList1_dict);
   Py_DECREF(pointList1_dict);
-
 
 
   // pushing out map z2loc_jz_to_ptl2 (>> Python dictionary)
@@ -1514,8 +1512,8 @@ PyObject* K_INTERSECTOR::DiffSurf(PyObject* self, PyObject* args)
 
    if (strcmp(eltType, "NGON") != 0)
    {
-    PyErr_SetString(PyExc_TypeError, "only NGON");
-    return NULL; //fixme mem leak ?
+      PyErr_SetString(PyExc_TypeError, "only NGON");
+      return NULL; //fixme mem leak ?
    }
 
   {
@@ -1524,17 +1522,16 @@ PyObject* K_INTERSECTOR::DiffSurf(PyObject* self, PyObject* args)
     bo_t::eAggregation AGG=bo_t::CONVEX;
     if (agg_mode == 0) // NONE
     {
-      //AGG = bo_t::NONE; fixme : not working because of new_skin PG triangulation : diconnexion between modified and unlodified parts
+      //AGG = bo_t::NONE; fixme: not working because of new_skin PG triangulation: disconnexion between modified and unlodified parts
     }
-    else if (agg_mode == 2)
-      AGG = bo_t::FULL;
+    else if (agg_mode == 2) AGG = bo_t::FULL;
         
     bo_t BO(pos1, connect1, pos2, connect2, tolerance, AGG);
 
-    if (improve_conformal_cloud_qual)BO.setConformizerParams(true);
+    if (improve_conformal_cloud_qual) BO.setConformizerParams(true);
     BO._outward = outward_surf;
 
-    err=BO.Diffsurf(pos, connect);
+    err = BO.Diffsurf(pos, connect);
     //et = 8;
   }
   

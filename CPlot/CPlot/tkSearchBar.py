@@ -231,6 +231,7 @@ class AutocompleteEntry(TK.Entry):
         self.bind("<Down>", self.down)
         self.bind("<Return>", self.selection)
         self.bind("<Control-c>", self.clearVar)
+        self.bind("<Escape>", self.clearVar)
         self.lb_up = False
 
     def clearVar(self, event):
@@ -248,7 +249,7 @@ class AutocompleteEntry(TK.Entry):
                     self.lb.bind("<Double-Button-1>", self.selection)
                     self.lb.bind("<Right>", self.selection)
                     self.lb.bind("<Return>", self.selection)
-                    self.lb.place(x=self.winfo_x(), y=self.winfo_y()+2*self.winfo_height())
+                    self.lb.place(x=self.winfo_x(), y=self.winfo_y()+2*self.winfo_height()+11)
                     self.lb_up = True
                     #self.sb = TTK.Scrollbar()
                     #self.lb.config(yscrollcommand=self.sb.set)
