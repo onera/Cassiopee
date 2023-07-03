@@ -31,8 +31,8 @@ def findVar(var):
     if len(v) > 0: vars = v[0]
     else: vars = []
     for i in vars:
-        if (var == i): return 1
-        if ('centers:'+var == i): return 2
+        if var == i: return 1
+        if 'centers:'+var == i: return 2
     return 0
 
 #==============================================================================
@@ -81,9 +81,10 @@ def viewQual():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkMeshQual', font=CTK.FRAMEFONT, takefocus=1)
+                           text='tkMeshQual  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
     #BB = CTK.infoBulle(parent=Frame, text='Analyse mesh quality.\nCtrl+w to close applet.', temps=0, btype=1)
     Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)

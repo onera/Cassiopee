@@ -1433,7 +1433,8 @@ tcuom2foARAAyKRSmQAAOw==
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, border=2, relief=CTK.FRAMESTYLE,
-                           text='tkTree', font=CTK.FRAMEFONT)
+                           text='tkTree  [ + ]  ', font=CTK.FRAMEFONT)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.columnconfigure(0, weight=1)
     WIDGETS['frame'] = Frame

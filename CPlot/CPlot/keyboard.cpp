@@ -135,9 +135,9 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
   }
       
   // -- Mesh/Solid/Render display --
-  case '2':
-  case 195: // 2
-  case 233: // 2
+  case '1':
+  case 33: // !
+  case 38: // 1
   {
     if (modif == (GLUT_ACTIVE_CTRL | GLUT_ACTIVE_SHIFT))
     {
@@ -177,10 +177,10 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
     break;
   }
     
-  // -- Scalar mode -- 
-  case '1':
-  case 33: // !
-  case 38: // 1
+  // -- Scalar mode --
+  case '2':
+  case 195: // 2
+  case 233: // 2
   {
     nv = _zones[0]->nfield;
     if (_zones[0]->nfield < 1) break;
