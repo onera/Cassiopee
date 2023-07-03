@@ -1397,66 +1397,75 @@ def toolBar(win, mode=0):
     frame = TTK.Frame(win)
     frame.rowconfigure(0, weight=0)
 
+    width, height = 30,30
+
     if mode == 0: # Cassiopee
-        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20, 
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height, 
                     image=iconics.PHOTO[0], borderwidth=0,
                     command=quickSaveFile)
         BB = infoBulle(parent=B, text='Save.')
         B.grid(row=0, column=0)
-        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
-                    image=iconics.PHOTO[11], borderwidth=0,
-                    command=quickReloadFile)
-        BB = infoBulle(parent=B, text='Reload current file.')
-        B.grid(row=0, column=1)
-        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
                     image=iconics.PHOTO[1], borderwidth=0,
                     command=undo)
         BB = infoBulle(parent=B, text='Undo.')
+        B.grid(row=0, column=1)
+
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
+                    image=iconics.PHOTO[11], borderwidth=0,
+                    command=quickReloadFile)
+        BB = infoBulle(parent=B, text='Reload current file.')
         B.grid(row=0, column=2)
-        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
-                    image=iconics.PHOTO[2], borderwidth=0,
-                    command=rmBlock)
-        BB = infoBulle(parent=B, text='Rm block.')
+
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
+            image=iconics.PHOTO[3], borderwidth=0,
+            command=cplotExport)
+        BB = infoBulle(parent=B, text='Export image.')
         B.grid(row=0, column=3)
-        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
-                    image=iconics.PHOTO[3], borderwidth=0,
-                    command=copyBlock)
-        BB = infoBulle(parent=B, text='Copy block.')
-        B.grid(row=0, column=4)
-        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
                     image=iconics.PHOTO[4], borderwidth=0,
                     command=lookFor)
         BB = infoBulle(parent=B, text='Fit view to selection\nor fit to full size.')
-        B.grid(row=0, column=5)
-        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+        B.grid(row=0, column=4)
+
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
                     image=iconics.PHOTO[5], borderwidth=0,
-                    command=unselectAll)
-        BB = infoBulle(parent=B, text='Unselect all blocks.')
+                    command=toggleSelectAll)
+        BB = infoBulle(parent=B, text='Toggle select/unselect all zones.')
+        B.grid(row=0, column=5)
+
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
+                    image=iconics.PHOTO[2], borderwidth=0,
+                    command=rmBlock)
+        BB = infoBulle(parent=B, text='Remove selected zones.')
         B.grid(row=0, column=6)
-        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
                     image=iconics.PHOTO[6], borderwidth=0, 
                     command=viewDeactivatedZones)
         BB = infoBulle(parent=B, text='View deactivated zones.')
         B.grid(row=0, column=7)
-        
-        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
                     image=iconics.PHOTO[12], borderwidth=0, 
                     command=revertActivated)
         BB = infoBulle(parent=B, text='Toggle active zones.')
         B.grid(row=0, column=8)
-        
-        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
                     image=iconics.PHOTO[7], borderwidth=0, 
                     command=displayMainTree)
         BB = infoBulle(parent=B, text='Display main tree.')
         B.grid(row=0, column=9)
     else: # kcgnsview
-        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
                     image=iconics.PHOTO[11], borderwidth=0,
                     command=quickReloadSkeleton)
         BB = infoBulle(parent=B, text='Reload current file.')
         B.grid(row=0, column=0)
-        B = TTK.Button2(frame, compound=TK.TOP, width=20, height=20,
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
                     image=iconics.PHOTO[1], borderwidth=0,
                     command=undo)
         BB = infoBulle(parent=B, text='Undo.')
