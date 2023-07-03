@@ -31,6 +31,7 @@ def setSnear(t, value):
     _setSnear(tp, value)
     return tp
 
+
 def _setSnear(t, value):
     """Set the value of snear in a geometry tree.
     Usage: _setSnear(t,value=X)"""
@@ -50,6 +51,7 @@ def setDfar(t, value):
     tp = Internal.copyRef(t)
     _setDfar(tp, value)
     return tp
+
 
 def _setDfar(t, value):
     """Set the value of dfar in a geometry tree.
@@ -94,6 +96,7 @@ def snearFactor(t, sfactor):
     _snearFactor(tp, sfactor)
     return tp
 
+
 def _snearFactor(t, sfactor):
     """Multiply the value of snear in a geometry tree by a sfactor.
     Usage: _snearFactor(t, sfactor)"""
@@ -113,6 +116,7 @@ def setIBCType(t, value):
     tp = Internal.copyRef(t)
     _setIBCType(tp, value)
     return tp
+
 
 def _setIBCType(t, value):
     """Set the IBC type in a geometry tree.
@@ -134,6 +138,7 @@ def setFluidInside(t):
     _setFluidInside(tp)
     return tp
 
+
 def _setFluidInside(t):
     """Set fluid inside a geometry tree.
     Usage: _setFluidInside(t)"""
@@ -147,16 +152,20 @@ def _setFluidInside(t):
 #==============================================================================
 # Set the IBC type outpress for zones in familyName
 #==============================================================================
-def initOutflow(tc, familyName, PStatic):
-    """Set the value of static pressure PStatic for the outflow pressure IBC with family name familyName.
-    Usage: initOutflow(tc,familyName, PStatic)"""
+def initOutflow(tc, familyName, PStatic, InterpolPlane=None, PressureVar=0):
+    """Set the value of static pressure PStatic for the outflow pressure IBC with family name familyName. 
+    A plane InterpolPlane may also be provided with only static pressure variable or various variables with static pressure as the PressureVar (e.g. 2nd) variable)
+    Usage: initOutflow(tc,familyName, PStatic, InterpolPlane, PressureVar)"""
     tc2 = Internal.copyRef(tc)
-    _initOutflow(tc2, familyName, PStatic)
+    _initOutflow(tc2, familyName, PStatic, InterpolPlane=InterpolPlane, PressureVar=PressureVar)
     return tc2
 
-def _initOutflow(tc, familyName, PStatic):
+
+def _initOutflow(tc, familyName, PStatic, InterpolPlane=None, PressureVar=0):
     """Set the value of the pressure PStatic for the outflow pressure IBC with family name familyName.
-    Usave: _initOutflow(tc,familyName, PStatic)"""    
+    A plane InterpolPlane may also be provided with various variables with static pressure as the PressureVar (e.g. 2nd) variable)
+    Usage: _initOutflow(tc,familyName, PStatic, InterpolPlane, PressureVar)"""
+    import Post.PyTree as P
     for zc in Internal.getZones(tc):
         for zsr in Internal.getNodesFromName(zc,'IBCD_4_*'):
             FamNode = Internal.getNodeFromType1(zsr,'FamilyName_t')
@@ -165,8 +174,19 @@ def _initOutflow(tc, familyName, PStatic):
                 if FamName==familyName:
                     stagPNode =  Internal.getNodeFromName(zsr,'Pressure')    
                     sizeIBC   = numpy.shape(stagPNode[1])
-                    stagPNode[1][:]  = PStatic
-                    #Internal.setValue(stagPNode,PStatic*numpy.ones(sizeIBC))
+                    if InterpolPlane:
+                        print("Zone: %s | ZoneSubRegion: %s"%(zc[0],zsr[0]))
+                        x_wall =  Internal.getNodeFromName(zsr,'CoordinateX_PW')[1]
+                        y_wall =  Internal.getNodeFromName(zsr,'CoordinateY_PW')[1]
+                        z_wall =  Internal.getNodeFromName(zsr,'CoordinateZ_PW')[1]
+                        list_pnts=[]
+                        for i in range(sizeIBC[0]): list_pnts.append((x_wall[i],y_wall[i],z_wall[i]))
+                        val      = P.extractPoint(InterpolPlane, list_pnts, 2)
+                        val_flat=[]
+                        for i in range(len(val)): val_flat.append(val[i][PressureVar])
+                        stagPNode[1][:] = val_flat[:]
+                    else:
+                        stagPNode[1][:] = PStatic
     return None
 
 #==============================================================================
@@ -178,6 +198,7 @@ def initIsoThermal(tc, familyName, TStatic):
     tc2 = Internal.copyRef(tc)
     _initIsoThermal(tc2, familyName, TStatic)
     return tc2
+
 
 def _initIsoThermal(tc, familyName, TStatic):
     """Set the value of static temperature TStatic for the wall no slip IBC with family name familyName.
@@ -207,6 +228,7 @@ def initHeatFlux(tc, familyName, QWall):
     _initHeatFlux(tc2, familyName, QWall)
     return tc2
 
+
 def _initHeatFlux(tc, familyName, QWall):
     """Set the value of heat flux QWall for the wall no slip IBC with family name familyName.
     Usage: _initHeatFlux(tc,familyName, QWall)"""
@@ -228,16 +250,20 @@ def _initHeatFlux(tc, familyName, QWall):
 #==============================================================================
 # Set the IBC type inj for zones in familyName
 #==============================================================================
-def initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.]):
+def initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.], InterpolPlane=None, PressureVar=0, EnthalpyVar=0):
     """Set the total pressure PTot, total enthalpy HTot, and direction of the flow injDir for the injection IBC with family name familyName.
-    Usave: initInj(tc, familyName, PTot, HTot, injDir)"""
+    A plane InterpolPlane may also be provided with at least the stagnation pressure and stagnation enthalpy variables with the former and latter as the PressureVar (e.g. 2nd) and EnthalpyVar variables, respectively.)
+    Usage: initInj(tc, familyName, PTot, HTot, injDir, InterpolPlane, PressureVar, EnthalpyVar)"""
     tc2 = Internal.copyRef(tc)
-    _initInj(tc2, familyName, PTot, HTot, injDir)
+    _initInj(tc2, familyName, PTot, HTot, injDir, InterpolPlane=InterpolPlane, PressureVar=PressureVar, EnthalpyVar=EnthalpyVar)
     return tc2
                  
-def _initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.]):
+
+def _initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.], InterpolPlane=None, PressureVar=0, EnthalpyVar=0):
     """Set the total pressure PTot, total enthalpy HTot, and direction of the flow injDir for the injection IBC with family name familyName.
-    Usage: _initInj(tc, familyName, PTot, HTot, injDir)"""
+    A plane InterpolPlane may also be provided with at least the stagnation pressure and stagnation enthalpy variables with the former and latter as the PressureVar (e.g. 2nd) and EnthalpyVar variables, respectively.)
+    Usage: _initInj(tc, familyName, PTot, HTot, injDir, InterpolPlane, PressureVar, EnthalpyVar)"""
+    import Post.PyTree as P
     for zc in Internal.getZones(tc):
         for zsr in Internal.getNodesFromName(zc,'IBCD_5_*'):
             FamNode = Internal.getNodeFromType1(zsr,'FamilyName_t')
@@ -256,18 +282,27 @@ def _initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.]):
                     diryNode  = Internal.getNodeFromName(zsr,'diry')
                     dirzNode  = Internal.getNodeFromName(zsr,'dirz')
                     sizeIBC   = numpy.shape(stagHNode[1])
-                    stagPNode[1][:] = PTot
-                    stagHNode[1][:] = HTot
+                    if InterpolPlane:
+                        print("Zone: %s | ZoneSubRegion: %s"%(zc[0],zsr[0]))
+                        x_wall =  Internal.getNodeFromName(zsr,'CoordinateX_PW')[1]
+                        y_wall =  Internal.getNodeFromName(zsr,'CoordinateY_PW')[1]
+                        z_wall =  Internal.getNodeFromName(zsr,'CoordinateZ_PW')[1]
+                        list_pnts=[]
+                        for i in range(sizeIBC[0]): list_pnts.append((x_wall[i],y_wall[i],z_wall[i]))
+                        val      = P.extractPoint(InterpolPlane, list_pnts, 2)
+                        val_flatPtot=[]
+                        val_flatHtot=[]
+                        for i in range(len(val)):
+                            val_flatPtot.append(val[i][PressureVar])
+                            val_flatHtot.append(val[i][EnthalpyVar])
+                        stagPNode[1][:]=val_flatPtot[:]
+                        stagHNode[1][:]=val_flatHtot[:]
+                    else:
+                        stagPNode[1][:] = PTot
+                        stagHNode[1][:] = HTot
                     dirxNode[1][:]  = injDir[0]
                     diryNode[1][:]  = injDir[1]
                     dirzNode[1][:]  = injDir[2]
-                    
-                    #Internal.setValue(stagHNode,HTot*numpy.ones(sizeIBC))
-                    #Internal.setValue(stagPNode,PTot*numpy.ones(sizeIBC))
-                    #
-                    #Internal.setValue(dirxNode, injDir[0]*numpy.ones(sizeIBC))
-                    #Internal.setValue(diryNode, injDir[1]*numpy.ones(sizeIBC))
-                    #Internal.setValue(dirzNode, injDir[2]*numpy.ones(sizeIBC))
                     
     return None
 
@@ -320,6 +355,7 @@ def changeIBCType(tc, oldIBCType, newIBCType):
     _changeIBCType(tcp, oldIBCType, newIBCType)
     return tcp
 
+
 def _changeIBCType(tc, oldIBCType, newIBCType):
     """Change the IBC type in a connectivity tree from oldIBCType to newIBCType.
     Usage: changeIBCType(tc, oldIBCType, newIBCType)"""
@@ -351,6 +387,7 @@ def transformTc2(tc2):
     _transformTc2(tcp)
     return tcp
 
+
 def _transformTc2(tc2):
     for z in Internal.getZones(tc2):
         subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
@@ -375,3 +412,5 @@ def _transformTc2(tc2):
                 _addVariablesTcIbc(zsr,ibctype,nIBC)
                 
     return None
+
+
