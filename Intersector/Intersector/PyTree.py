@@ -2510,16 +2510,17 @@ def getRidToZones(t, zidDict):
 # IN: sensor_metric_policy (specific for xsensor) : which reference cell size (edge length) to use ? min (0), mean (1), max(2) or min_or_max(3) 
 # IN: hmesh : hierarchical mesh hook
 # IN: sensor : sensor hook
+# IN: conf: dump a conformal polyhedral mesh
 # OUT: returns a 3D NGON Mesh with adapted cells
 #==============================================================================
-def adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, sensor_metric_policy=0, hmesh=None, sensor=None):
+def adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, sensor_metric_policy=0, hmesh=None, sensor=None, conf=1):
   """Adapts an unstructured mesh a with respect to a sensor.
   Usage: adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, sensor_metric_policy=0, hmesh=None, sensor=None)"""
   tp = Internal.copyRef(t)
-  _adaptCells(tp, sensdata, sensor_type, smoothing_type, itermax, subdiv_type, sensor_metric_policy, hmesh, sensor)
+  _adaptCells(tp, sensdata, sensor_type, smoothing_type, itermax, subdiv_type, sensor_metric_policy, hmesh, sensor, conf)
   return tp
 
-def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, sensor_metric_policy=0, hmesh=None, sensor=None):
+def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, sensor_metric_policy=0, hmesh=None, sensor=None, conf=1):
     """Adapts an unstructured mesh a with respect to a sensor.
     Usage: adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, sensor_metric_policy=0, hmesh=None, sensor=None)"""
 
@@ -2600,7 +2601,7 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
     
     if owesHmesh == 1 : #and owesSensor == 1 :
       #print("_conformizeHMesh")
-      _conformizeHMesh(t, hmesh)
+      _conformizeHMesh(t, hmesh, conf)
     
     if owesHmesh == 1 :
     #   #print('delete owned hmesh')
@@ -2865,11 +2866,11 @@ def deleteCom(hook):
 # IN: hook : list of hooks to hiearchical zones (same size as nb of zones in t).
 # OUT: Nothing 
 #==============================================================================
-def conformizeHMesh(t, hooks):
+def conformizeHMesh(t, hooks, conf=1):
     """Converts the basic element leaves of a hierarchical mesh to a conformal polyhedral mesh.
     Usage: conformizeHMesh(t, hooks)"""
     tp = Internal.copyRef(t)
-    _conformizeHMesh(tp, hooks)
+    _conformizeHMesh(tp, hooks, conf)
     return tp
 
 #==============================================================================
@@ -2879,7 +2880,7 @@ def conformizeHMesh(t, hooks):
 # IN: hook : list of hooks to hiearchical zones (same size as nb of zones in t).
 # OUT: Nothing 
 #==============================================================================
-def _conformizeHMesh(t, hooks):
+def _conformizeHMesh(t, hooks, conf):
     """Converts the basic element leaves of a hierarchical mesh to a conformal polyhedral mesh.
     Usage: _conformizeHMesh(t, hooks)"""
     nb_hooks = len(hooks)
@@ -2928,7 +2929,7 @@ def _conformizeHMesh(t, hooks):
       except TypeError:
         fieldsF = None
 
-      res = intersector.conformizeHMesh(hooks[i], bcptlists, rid_to_ptlist, rid_to_zones, fieldsC, fieldsN, fieldsF)
+      res = intersector.conformizeHMesh(hooks[i], bcptlists, rid_to_ptlist, rid_to_zones, fieldsC, fieldsN, fieldsF, conf)
 
       # res[0] : mesh
       # res[1] : List : updated bc pointlist

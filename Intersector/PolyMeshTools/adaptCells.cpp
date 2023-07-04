@@ -1589,7 +1589,8 @@ void __conformizeHM(const void* hmesh_ptr, K_FLD::FloatArray& crdo, K_FLD::IntAr
                     std::vector<std::vector<E_Int>>&     bcptlists,
                     std::vector<std::vector<E_Float>>& fieldsC,
                     std::vector<std::vector<E_Float>>& fieldsN,
-                    std::vector<std::vector<E_Float>>& fieldsF)
+                    std::vector<std::vector<E_Float>>& fieldsF,
+					const bool conformize)
 {
   using mesh_type = NUGA::hierarchical_mesh<ELT_t, STYPE>;
 
@@ -1645,7 +1646,11 @@ void __conformizeHM(const void* hmesh_ptr, K_FLD::FloatArray& crdo, K_FLD::IntAr
 
   ngon_type ngo;
   std::vector<E_Int> pghids1, phhids1, hmpgid_to_confpgid;
-  hmesh->conformize(ngo, hmpgid_to_confpgid, pghids1, phhids1);
+  if (conformize)
+  	hmesh->conformize(ngo, hmpgid_to_confpgid, pghids1, phhids1);
+  else
+  	hmesh->no_conformize(ngo, hmpgid_to_confpgid, pghids1, phhids1);
+
 
   // HISTORY BETWEEN PREVIOUS OUTPUT AND CUURENT ONE
   if (hmpgid_to_confpgid.empty()) // hmesh==exported <=> no adaptation
@@ -1730,8 +1735,9 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
   //hooks[i], bcptlists, jzone_to_ptlist, fieldsC, fieldsN, fieldsF
   PyObject* hook, *py_bcptlists, *py_rid_to_ptlist, *py_rid_to_zones;
   PyObject* pyfieldsC, *pyfieldsN, *pyfieldsF;
+  E_Int conformize;
   
-  if (!PyArg_ParseTuple(args, "OOOOOOO", &hook, &py_bcptlists, &py_rid_to_ptlist, &py_rid_to_zones, &pyfieldsC, &pyfieldsN, &pyfieldsF)) return nullptr;
+  if (!PyArg_ParseTuple(args, "OOOOOOOi", &hook, &py_bcptlists, &py_rid_to_ptlist, &py_rid_to_zones, &pyfieldsC, &pyfieldsN, &pyfieldsF, &conformize)) return nullptr;
 
   int* sub_type{ nullptr }, *elt_type{ nullptr }, *hook_id{ nullptr }, *zid(nullptr);
   std::string* vString{ nullptr };
@@ -1894,13 +1900,13 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
   if (*sub_type == NUGA::ISO)
   {
     if (*elt_type == elt_t::HEXA)
-      __conformizeHM<K_MESH::Hexahedron, NUGA::ISO>(hmesh, crdo, cnto, rid_to_ptlist, rid_to_zones, bcptlists, fieldsC, fieldsN, fieldsF);
+      __conformizeHM<K_MESH::Hexahedron, NUGA::ISO>(hmesh, crdo, cnto, rid_to_ptlist, rid_to_zones, bcptlists, fieldsC, fieldsN, fieldsF, conformize);
     else if (*elt_type == (E_Int)elt_t::TETRA)
-      __conformizeHM<K_MESH::Tetrahedron, NUGA::ISO>(hmesh, crdo, cnto, rid_to_ptlist, rid_to_zones, bcptlists, fieldsC, fieldsN, fieldsF);
+      __conformizeHM<K_MESH::Tetrahedron, NUGA::ISO>(hmesh, crdo, cnto, rid_to_ptlist, rid_to_zones, bcptlists, fieldsC, fieldsN, fieldsF, conformize);
     else if (*elt_type == (E_Int)elt_t::PRISM3)
-      __conformizeHM<K_MESH::Prism, NUGA::ISO>(hmesh, crdo, cnto, rid_to_ptlist, rid_to_zones, bcptlists, fieldsC, fieldsN, fieldsF);
+      __conformizeHM<K_MESH::Prism, NUGA::ISO>(hmesh, crdo, cnto, rid_to_ptlist, rid_to_zones, bcptlists, fieldsC, fieldsN, fieldsF, conformize);
     else if (*elt_type == (E_Int)elt_t::BASIC)
-      __conformizeHM<K_MESH::Basic, NUGA::ISO>(hmesh, crdo, cnto, rid_to_ptlist, rid_to_zones, bcptlists, fieldsC, fieldsN, fieldsF);
+      __conformizeHM<K_MESH::Basic, NUGA::ISO>(hmesh, crdo, cnto, rid_to_ptlist, rid_to_zones, bcptlists, fieldsC, fieldsN, fieldsF, conformize);
   }
   else if (*sub_type == NUGA::ISO_HEX)
   {
@@ -1910,7 +1916,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
         "conformizeHMesh: ISO_HEX policy is only supported Polyhedral mesh.", 1);
       return nullptr;
     }
-    __conformizeHM<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(hmesh, crdo, cnto, rid_to_ptlist, rid_to_zones, bcptlists, fieldsC, fieldsN, fieldsF);
+    __conformizeHM<K_MESH::Polyhedron<0>, NUGA::ISO_HEX>(hmesh, crdo, cnto, rid_to_ptlist, rid_to_zones, bcptlists, fieldsC, fieldsN, fieldsF, conformize);
   }
   else if (*sub_type == NUGA::DIR_PROTO)
   {
@@ -1920,7 +1926,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
         "conformizeHMesh: directionnal policy is only supported with Hexahedral mesh currently.", 1);
       return nullptr;
     }
-    __conformizeHM<K_MESH::Hexahedron, NUGA::DIR_PROTO>(hmesh, crdo, cnto, rid_to_ptlist, rid_to_zones, bcptlists, fieldsC, fieldsN, fieldsF);
+    __conformizeHM<K_MESH::Hexahedron, NUGA::DIR_PROTO>(hmesh, crdo, cnto, rid_to_ptlist, rid_to_zones, bcptlists, fieldsC, fieldsN, fieldsF, conformize);
   }
   else if (*sub_type == NUGA::DIR)
   {
@@ -1930,7 +1936,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
         "conformizeHMesh: directionnal policy is only supported with Hexahedral mesh currently.", 1);
       return nullptr;
     }
-    __conformizeHM<K_MESH::Hexahedron, NUGA::DIR>(hmesh, crdo, cnto, rid_to_ptlist, rid_to_zones, bcptlists, fieldsC, fieldsN, fieldsF);
+    __conformizeHM<K_MESH::Hexahedron, NUGA::DIR>(hmesh, crdo, cnto, rid_to_ptlist, rid_to_zones, bcptlists, fieldsC, fieldsN, fieldsF, conformize);
   }
 
 

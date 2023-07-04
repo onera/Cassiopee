@@ -192,7 +192,7 @@ def _conformizeHMesh(t, hooks, zidDict, procDict, rid_to_zones = None, zonerank 
         fieldsF = None
 
       #tconf=time.time()
-      res = intersector.conformizeHMesh(hooks[i], bcptlists, rid_to_ptlist, rid_to_zones, fieldsC, fieldsN, fieldsF)
+      res = intersector.conformizeHMesh(hooks[i], bcptlists, rid_to_ptlist, rid_to_zones, fieldsC, fieldsN, fieldsF, 1)
       #dtconf += time.time() - tconf
 
       # res[0] : mesh
