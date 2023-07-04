@@ -187,6 +187,7 @@ def NGONBlock(t, nb_comps, mixed_type=False, keep_BC=False, tol = 0.):
             if Internal.getZoneDim(zone)[3] in ['TRI','QUAD']: Internal.rmNode(t,zone)
 
     t = C.convertArray2NGon(t, recoverBC=keep_BC)
+    
     #C.convertPyTree2File(t, 'tNG.cgns')
     # compute relevant tolerance : 1% of the minimum edge length
     TOL = tol
@@ -410,7 +411,7 @@ def concatenateBC(bctype, zones, wallpgs, cur_shift):
         wallpgs.append(id2)
 
       c = c[0]
-      #print(c)
+      # print(c)
       #z_nb_pts= len(c[1][0])
       z_nb_pgs= c[2][0][0]
       #print(z_nb_pts)
@@ -1521,7 +1522,7 @@ def superMesh(surfz, sclip, tol=-1.e-4, proj_on_first=True):
   if res == []: return None # empty result
 
   mesh = res[0]
-  anc = res[1]
+  anc  = res[1]
 
   xmatch = C.convertArrays2ZoneNode('xmatch', [mesh])
   nnuga = Internal.getNodeFromName(surfz, 'NUGA')
@@ -1535,6 +1536,55 @@ def superMesh(surfz, sclip, tol=-1.e-4, proj_on_first=True):
           nf[1] = updateNugaData(nf[1], anc)
 
   return xmatch
+
+
+#==============================================================================
+# superMesh2: 
+# IN: surfz: 3D NGON surface mesh to clip
+# IN: sclip: 3D NGON surface mesh (clipper)
+# IN: tol: tolerance (abolute if positive, relative otherwise)
+# IN: proj_on_first: if True(False), each sclip(surfz) face is projected on surfz(sclip).
+# OUT: returns face indices and face surface values 
+#==============================================================================
+def superMesh2(surfz, sclip, tol=-1.e-4, proj_on_first=True):
+  """Polyclips surfz surface with sclip surface.
+  Usage: superMesh(surfz, sclip, priorFirst, tol)"""
+  m1 = C.getFields(Internal.__GridCoordinates__, surfz)[0]
+  m2 = C.getFields(Internal.__GridCoordinates__, sclip)[0]
+
+  res = intersector.superMeshCompSurf(m1, m2, tol, proj_on_first)
+
+  if res == []: return (None, None, None) # empty result
+
+  mesh    = res[0]
+  anc     = res[1]
+  anc2    = res[2]
+  surf    = res[3]
+  isMatch = res[4]
+
+  xmatch = C.convertArrays2ZoneNode('xmatch', [mesh])
+  nnuga = Internal.getNodeFromName(surfz, 'NUGA')
+  if nnuga != None:
+    nnug = Internal.addChild(xmatch, nnuga)
+    nuga_fields = Internal.getChildren(nnug)
+    for nf in nuga_fields:
+        nf0 = nb_faces(surfz)
+        fld_sz = len(nf[1])
+        if nf0 == fld_sz : #valid face field stored => convert it
+          nf[1] = updateNugaData(nf[1], anc)
+
+  # C.convertPyTree2File(xmatch,'xmatch.cgns')
+
+  return (anc, anc2, surf, isMatch)  
+#==============================================================================
+def extractBCMatchTNC(ancA,ancB,weight,fields, iminA, jminA, kminA,
+                      imaxA, jmaxA, kmaxA):
+
+    fld = intersector.computeTNCFields(ancA,ancB,weight,fields,
+                                        (iminA, jminA, kminA, imaxA, jmaxA, kmaxA))
+
+    return fld
+
 
 #==============================================================================
 # replaceFaces

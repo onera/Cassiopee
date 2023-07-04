@@ -5238,8 +5238,7 @@ def extractAllBCMatch(t,varList=None):
           for gc in gcs:
               zname  = Internal.getValue(gc)
               zdonor = Internal.getNodeFromName(t,zname)
-              # if zdonor == None:
-                # zdonor = Internal.getNodeFromName(t,zname+'_MX')
+        
               # Extraction BCMatch pour la zone donneuse
               [indR,fldD]  = extractBCMatch(zdonor,gc,dim,varList)
               key          = z[0]+"/"+gc[0]
@@ -5299,12 +5298,62 @@ def computeBCMatchField(z, allMatch, variables=None):
 
       fld = None; indR = None
 
+      # ============================= Traitement TNC  ===================================
+      isTNC    = False
+      allCount = {} # dictionnaire nb occurence des faces
+
+      if isTNC:
+        # Concatenation de tous les indices de la zone
+        # l'objectif est de detecter les indices presents plusieurs fois et
+        # de compter leur nombre d'occurence (-> allCount)
+        indRzone = []
+        for key in allMatch:
+          if key.split("/")[0] == z[0]:
+            [indR,fldD] = allMatch[key]
+            if indRzone != []:
+              indRzone = numpy.concatenate((indRzone,indR))
+            else:
+              indRzone = indR
+
+        # Test l'existence de doublons
+        if indRzone != []:
+      
+          [indUniq, indIndir, indCount] = numpy.unique(indRzone,return_inverse=True,return_counts=True)
+          
+          nind1 = indRzone.size
+          nind2 = indUniq.size
+          
+          if nind2 != nind1: # il y a des indices presents plusieurs fois
+
+            shift = 0
+      
+            for key in allMatch:
+              if key.split("/")[0] == z[0]:
+                [indR,fldD] = allMatch[key]
+
+                ncount = numpy.zeros(indR.size, dtype=Internal.E_NpyInt)
+
+                for i in range(indR.size):
+                  indx      = indIndir[i+shift]
+                  ncount[i] = indCount[indx]
+
+                allCount[key] = ncount
+
+                shift += indR.size
+      # ============================= Fin traitement TNC  ===============================
+
       for key in allMatch:
         if key.split("/")[0] == z[0]:
           [indR1,fldD] = allMatch[key]
- 
-          if fields != []:
-              fld1 = Converter.converter.buildBCMatchFieldStruct(fields,indR1,fldD)
+
+          if key in allCount.keys():
+            ncount = allCount[key]
+            # print(key, ncount)
+          else:
+            ncount = None 
+            
+          if fields != []: 
+              fld1 = Converter.converter.buildBCMatchFieldStruct(fields,indR1,fldD,ncount)
 
               if fld is not None:
                 fld.append(fld1)
@@ -5497,6 +5546,176 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
     # print("len(fldD): ", len(fldD[1][0]) )
     
     return [indR,fldD]
+  
+# ===================================================================================
+# Extraction des champs sur les raccords de type no-match
+# Le champs en centre est extrapole sur les centres des faces et pondere (via l'algo
+# superMesh qui permet de decouper les faces)
+# ===================================================================================
+def extractAllBCMatchTNC(t,variables=None):
+    zones       = Internal.getZones(t)
+    allMatchTNC = {}
+
+    # Variables a extraire
+    # ====================
+    if variables is not None:
+        if not isinstance(variables, list): varList = [variables]
+        else: varList = variables
+    else:
+        varList = []
+        FS = Internal.getNodeFromName1(zones[0],Internal.__FlowSolutionCenters__)
+        for fs in FS[2]:
+          if Internal.getType(fs) == 'DataArray_t': 
+            varList.append(Internal.getName(fs))
+
+    # Parcours des zones et raccords
+    # ==============================
+    for zoneA in zones:
+        if not isXZone(zoneA):
+            indRzA = []
+            fldDzA = []
+            dim    = Internal.getZoneDim(zoneA)
+
+            if dim[0] != 'Structured':
+              print("extractAllBCMatchTNC: not ready for not structured grid.")
+              return {}
+
+            gcs  = Internal.getNodesFromType2(zoneA, 'GridConnectivity_t')
+            gcs += Internal.getNodesFromType2(zoneA, 'GridConnectivity1to1_t')
+
+            for gcA in gcs:
+                zname  = Internal.getValue(gcA)
+                zoneB  = Internal.getNodeFromName(t,zname)
+
+                # Dim du raccord
+                prr   = Internal.getNodeFromName1(gcA,'PointRange')
+                wr    = Internal.range2Window(prr[1])
+
+                iminA = wr[0] ; imaxA = wr[1]
+                jminA = wr[2] ; jmaxA = wr[3]
+                kminA = wr[4] ; kmaxA = wr[5]
+    
+                nface = max(1,imaxA-iminA)*max(1,jmaxA-jminA)*max(1,kmaxA-kminA)
+
+                
+                gcBs   = Internal.getNodesFromType2(zoneB, 'GridConnectivity_t')
+                gcBs  += Internal.getNodesFromType2(zoneB, 'GridConnectivity1to1_t')
+
+                for gcB in gcBs:
+                  zname = Internal.getValue(gcB)
+                  if zname == zoneA[0]: break 
+
+                key    = zoneA[0]+"/"+gcA[0]
+
+                [indR,fldD] = computeBCMatchTNC(zoneA,zoneB,gcA, gcB, varList)
+
+                if indR != []:
+                  allMatchTNC[key] = [indR,fldD]
+              
+    return allMatchTNC
+
+
+    
+def computeBCMatchTNC(zoneA,zoneB,gcA,gcB, varList):
+  
+  try: import Transform.PyTree as T
+  except: raise ImportError("computeBCMatchTNC: requires Transform module.")
+  try: import Intersector.PyTree as XOR
+  except: raise ImportError("computeBCMatchTNC: requires Intersector module.")
+  
+  # Type de la zone
+  # ================
+  dim = Internal.getZoneDim(zoneB)
+    
+  if dim[0]=='Structured':
+    zoneType=1
+  else: 
+    zoneType = 2; eltName = dim[3]
+    if eltName=='NGON':
+      raise ValueError("computeBCMatchTNC: not yet implement for Ngon elements.")
+    else:
+      raise ValueError("computeBCMatchTNC: not yet implement for basic elements.")
+    
+  prr   = Internal.getNodeFromName1(gcA,'PointRange')
+  wrA   = Internal.range2Window(prr[1])
+
+  iminA = wrA[0] ; imaxA = wrA[1]
+  jminA = wrA[2] ; jmaxA = wrA[3]
+  kminA = wrA[4] ; kmaxA = wrA[5]
+  
+  prr   = Internal.getNodeFromName1(gcB,'PointRange')
+  wrB   = Internal.range2Window(prr[1])
+
+  iminB = wrB[0] ; imaxB = wrB[1]
+  jminB = wrB[2] ; jmaxB = wrB[3]
+  kminB = wrB[4] ; kmaxB = wrB[5]
+
+  surfA0 = T.subzone(zoneA, (iminA,jminA,kminA), (imaxA,jmaxA,kmaxA))
+  clipB0 = T.subzone(zoneB, (iminB,jminB,kminB), (imaxB,jmaxB,kmaxB))
+  
+  surfA = convertArray2NGon(surfA0, recoverBC=0)
+  clipB = convertArray2NGon(clipB0, recoverBC=0)
+
+  XOR._convertNGON2DToNGON3D(surfA) # convert to ngon format expected by XOR (faces/nodes)
+  XOR._convertNGON2DToNGON3D(clipB) # convert to ngon format expected by XOR (faces/nodes)
+
+  hook  = createHook(zoneA, function='faceCenters')
+  indR  = identifyFaces(hook, surfA) # indice des faces dans le maillage vol.
+  indR  = indR-1 # shift 
+    
+  # convertPyTree2File(surfA, 'surfA.cgns')
+  # convertPyTree2File(clipB, 'clipB.cgns')
+
+  (ancA, ancB, weight, isMatch) = XOR.superMesh2(surfA, clipB, tol=-1.e-4, proj_on_first=True)
+
+  if (isMatch):
+    return [[],[]]
+
+  fields = []
+
+  for var in varList:
+    # on verifie qu'on cherche des variables aux centres
+    spl = var.split(':') 
+    if len(spl) != 1: 
+      if spl[0] != 'centers':
+        raise TypeError("computeBCMatchTNC: expected variables at centers location.")
+    else:
+      var = 'centers:'+var
+                
+    fld = getField(var, clipB0)[0]
+        
+    if fld != []:
+      fields.append(fld)
+
+    if fields != [] :
+        if zoneType==1: connects = []
+        else: connects = Internal.getElementNodes(zoneB)
+
+        fields = Internal.convertDataNodes2Array2(fields, dim, connects, loc=1)
+            
+    fx =XOR.extractBCMatchTNC(ancA, ancB, weight, fields, iminA, jminA, kminA,
+                              imaxA, jmaxA, kmaxA)
+
+    return [indR, fx]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # ===================================================================================
 # Extract fields at face centers defining a BC

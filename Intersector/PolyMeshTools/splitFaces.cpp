@@ -344,6 +344,246 @@ PyObject* K_INTERSECTOR::convexifyFaces(PyObject* self, PyObject* args)
   return tpl;
 }
 
+
+PyObject* K_INTERSECTOR::computeTNCFields(PyObject* self, PyObject* args)
+{
+
+  PyObject *py_ancA, *py_ancB, *py_weight, *py_fields;
+
+  E_Int iminA, jminA, kminA;
+  E_Int imaxA, jmaxA, kmaxA;
+  
+  if (!PYPARSETUPLEI(args, "OOOO(llllll)", "OOOO(iiiiii)", &py_ancA, &py_ancB,
+		     &py_weight, &py_fields, &iminA, &jminA, &kminA, &imaxA, &jmaxA, &kmaxA))
+  {
+    PyErr_SetString(PyExc_TypeError, "computeTNCFields: wrong args");
+    return NULL;
+  }
+
+  // Champ zone B (input)
+  // ====================
+  FldArrayF* FCenter; FldArrayI* cn;
+  char* varString; char* eltType;
+  E_Int niB, njB, nkB; // dim zone donneuse (zone B) 
+  E_Int res = K_ARRAY::getFromArray2(py_fields, varString, FCenter, niB, njB, nkB, 
+                                    cn, eltType); 
+
+  if (res != 1)
+  {
+    PyErr_SetString(PyExc_TypeError, "computeTNCFields: array must be structured."); 
+    if (res == 2) RELEASESHAREDS(py_fields, FCenter);
+    return NULL; 
+  }
+
+  E_Int nfld = FCenter->getNfld();
+  E_Int nint = std::max(E_Int(1),(imaxA-iminA))*std::max(E_Int(1),(jmaxA-jminA))
+                                               *std::max(E_Int(1),(kmaxA-kminA));
+
+  
+  // Champ interpole zone A (output)
+  // ===============================
+  PyObject *py_fldA = K_ARRAY::buildArray2(nfld,varString,nint,1,1,2);
+
+  FldArrayF* fldA; 
+  FldArrayI* cn2;
+  E_Int ni2, nj2, nk2;
+  char* varStringTmp;
+  res = K_ARRAY::getFromArray2(py_fldA, varStringTmp, fldA, ni2, nj2, nk2, cn2, eltType);
+
+  if (res != 1)
+  {
+    PyErr_SetString(PyExc_TypeError, "computeTNCFields: output array must be structured."); 
+    if (res == 2) RELEASESHAREDS(py_fldA, fldA);
+    return NULL; 
+  }
+  
+  // Set to zero
+  for (E_Int ifld = 0; ifld < nfld; ifld++)
+  {
+    E_Float* ptrVarA = fldA->begin(ifld+1); 
+    for (E_Int indx = 0; indx < nint; indx++)
+      ptrVarA[indx] = 0; 
+  }
+  
+
+  // Tableaux poids et ancetres 
+  // ==========================
+  FldArrayI *ancA, *ancB;
+  FldArrayF *weight;
+  K_NUMPY::getFromNumpyArray(py_ancA,   ancA,   true);
+  K_NUMPY::getFromNumpyArray(py_ancB,   ancB,   true);
+  K_NUMPY::getFromNumpyArray(py_weight, weight, true);
+
+  for (E_Int ifld = 0; ifld < nfld; ifld++)
+  {
+    E_Float* ptrVarA = fldA->begin(ifld+1);
+    E_Float* ptrVarB = FCenter->begin(ifld+1);
+
+    E_Int* ptrAncA     = ancA->begin();
+    E_Int* ptrAncB     = ancB->begin();
+    E_Float* ptrWeight = weight->begin();
+
+    // std::cout << "size ancA: " << ancA->getSize() << std::endl;
+    // std::cout << "size ancB: " << ancB->getSize() << std::endl;
+
+    for (E_Int indx = 0; indx < ancA->getSize(); indx++)
+    {
+
+      if ( indx < ancB->getSize())
+      {
+	E_Int indxB   = ptrAncB[indx] ;
+	E_Int indxA   = ptrAncA[indx] ;
+	E_Float coeff = ptrWeight[indx];
+	// std::cout << "indxB = " << indxB  << std::endl;
+	if (indxB != -1)
+	{
+	  ptrVarA[indxA] += coeff*ptrVarB[indxB];
+	  // std::cout << "indxA: " << indxA << " - coeff: " << coeff << "- indxB:" << indxB << " - varB: " << ptrVarB[indxB] << std::endl;
+	  // std::cout << "coeff = " << coeff  << std::endl;
+	  // std::cout << "varB  = " << ptrVarB[indxB]  << std::endl;
+	}
+      }
+    }
+    // for (E_Int indx = 0; indx < nint ; indx++)
+      // std::cout << "varA[" << indx << "]= " << ptrVarA[indx] << std::endl;
+  }
+    
+  return py_fldA;
+}
+
+
+
+PyObject* K_INTERSECTOR::superMeshCompSurf(PyObject* self, PyObject* args)
+{
+  PyObject *arr1{nullptr}, *arr2{nullptr};
+  E_Float ARTOL(1.e-6);
+  E_Int proj_on_first=1;
+
+  if (!PYPARSETUPLE(args, "OOdl", "OOdi", "OOfl", "OOfi", &arr1, &arr2, &ARTOL, &proj_on_first))
+  {
+    PyErr_SetString(PyExc_TypeError, "superMeshCompSurf: wrong args");
+    return NULL;
+  }
+
+  K_FLD::FloatArray* f1(0);
+  K_FLD::IntArray* cn1(0);
+  char* varString1, *eltType1;
+  // Check array # 1
+  E_Int err = check_is_NGON(arr1, f1, cn1, varString1, eltType1);
+  if (err)
+  {
+    PyErr_SetString(PyExc_TypeError, "superMeshCompSurf : not NGON elts.");
+    return NULL;
+  }
+    
+  K_FLD::FloatArray & crd1 = *f1;
+  K_FLD::IntArray   & cnt1 = *cn1;
+
+  K_FLD::FloatArray* f2(0);
+  K_FLD::IntArray*  cn2(0);
+  char* varString2, *eltType2;
+  // Check array # 2
+  err = check_is_NGON(arr2, f2, cn2, varString2, eltType2);
+  if (err)
+  {
+    PyErr_SetString(PyExc_TypeError, "superMeshCompSurf : not NGON elts.");
+    return NULL;
+  }
+    
+  K_FLD::FloatArray & crd2 = *f2;
+  K_FLD::IntArray   & cnt2 = *cn2;
+
+  // construction des structures de type "mesh" a partir des ngon
+  zmesh_t m0(crd1, cnt1);
+  zmesh_t m1(crd2, cnt2);
+
+  //
+  zmesh_t xmesh;                 // maillage des morceaux polygonaux
+  std::vector<E_Int> anc0, anc1; // anc0/anc1 : indice ancetre d'un polygone de xmesh dans m0/m1
+  NUGA::xmatch<zmesh_t>(m0, m1, ARTOL, anc0, anc1, xmesh, (proj_on_first==1));
+  
+  std::vector<double> surfFace, surfM0 ;
+
+  surfFace.clear();
+  surfM0.clear();
+
+  for (E_Int k = 0; k < m0.ncells(); k++)
+  {
+    auto aelt   =  m0.aelement(k);
+    double surf =  aelt.extent();
+    surfM0.push_back(surf); 
+  }
+
+  bool match = true; // on verifie s'il s'agit d'un raccord match
+
+  for (E_Int k = 0; k < anc0.size(); k++)
+  {
+    if (anc0[k] != k)
+    {
+      match = false;
+      break;
+    }
+  }
+  for (E_Int k = 0; k < anc1.size(); k++)
+  {
+    if (anc1[k] != k)
+    {
+      match = false;
+      break;
+    }
+  }
+  
+  // Compute surface values
+  for (E_Int k = 0; k < xmesh.ncells(); k++)
+  {
+    auto aelt   =  xmesh.aelement(k);
+    double surf =  aelt.extent();
+
+    E_Int indx0 = anc0[k];
+    surf = surf/surfM0[indx0];
+    
+    surfFace.push_back(surf); 
+  }
+  
+  PyObject *l(PyList_New(0));
+
+  if (xmesh.ncells())
+  {
+    ngon_type ngo(xmesh.cnt, true);
+    K_FLD::IntArray cnto;
+    ngo.export_to_array(cnto);
+
+    PyObject* tpl = K_ARRAY::buildArray(xmesh.crd, varString1, cnto, -1, eltType1, false);
+
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+    // pushing out arr1 history  
+    tpl = K_NUMPY::buildNumpyArray(&anc0[0], anc0.size(), 1, 0);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+    // pushing out arr2 history  
+    tpl = K_NUMPY::buildNumpyArray(&anc1[0], anc1.size(), 1, 0);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+    // pushing out surf array 
+    tpl = K_NUMPY::buildNumpyArray(&surfFace[0], surfFace.size(), 1, 0);
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+
+    PyObject* o = Py_BuildValue("b", match);
+    PyList_Append(l, o);
+    
+  }
+  
+  delete f1; delete cn1;
+  delete f2; delete cn2;
+  return l;
+}
+
+
 //=============================================================================
 /* XXX. */
 //=============================================================================
@@ -515,9 +755,9 @@ PyObject* K_INTERSECTOR::replaceFaces(PyObject* self, PyObject* args)
   //std::cout << "anc size : " << m0.cnt.PGs._type.size() << std::endl;
 
   // pushing out arr2 history  
-  //pl = K_NUMPY::buildNumpyArray(&anc1[0], anc1.size(), 1, 0);
-  //PyList_Append(l, tpl);
-  //Py_DECREF(tpl);
+  // tpl = K_NUMPY::buildNumpyArray(&anc1[0], anc1.size(), 1, 0);
+  // PyList_Append(l, tpl);
+  // Py_DECREF(tpl);
 
   delete f1; delete cn1;
   delete f2; delete cn2;

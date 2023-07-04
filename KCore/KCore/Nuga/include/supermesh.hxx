@@ -1,14 +1,12 @@
 /*
 
 
-
 --------- NUGA v1.0
 
 
 
 */
 //Authors : Sâm Landier (sam.landier@onera.fr)
-
 #ifndef NUGA_SUPERMESH_HXX
 #define NUGA_SUPERMESH_HXX
 
@@ -319,6 +317,7 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
           xm.add(bits[k], false/*do capitalize crds*/);
           anc0.push_back(i);
           anc1.push_back(i2);
+	  // std::cout << "anc0 : " << i << " - anc1 : " << i2 << std::endl;
 
 #ifdef SUPERMESH_DBG
           std::ostringstream o;
@@ -485,6 +484,8 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
         //fixme : m_poids might be inconsitent or inexistent for the residual bit => so force to be in 'coordinate appending' mode in add
         xm.add(bits[b], true/*append vertices*/);
         anc0.push_back(i);
+	anc1.push_back(-1);
+	// std::cout << "elt orphelin : " << i << std::endl;
 
 #ifdef SUPERMESH_DBG
         std::ostringstream o;

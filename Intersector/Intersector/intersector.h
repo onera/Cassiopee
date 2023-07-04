@@ -36,6 +36,8 @@ namespace K_INTERSECTOR
 
   PyObject* XcellN(PyObject* self, PyObject* args);
   PyObject* superMesh(PyObject* self, PyObject* args);
+  PyObject* superMeshCompSurf(PyObject* self, PyObject* args);
+  PyObject* computeTNCFields(PyObject* self, PyObject* args);
   
   PyObject* P1ConservativeInterpolation(PyObject* self, PyObject* args);
   PyObject* P1ConservativeChimeraCoeffs(PyObject* self, PyObject* args);

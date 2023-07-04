@@ -1442,14 +1442,14 @@ def _computeGradLSQ(t, var, dim):
 
     return None
 
-def computeGrad2(t, var, ghostCells=False, withCellN=True):
+def computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
     """Compute the gradient of a variable defined in array.
     Usage: computeGrad2(t, var)"""
     tp = Internal.copyRef(t)
-    _computeGrad2(tp, var, ghostCells=False, withCellN=True)
+    _computeGrad2(tp, var, ghostCells, withCellN, withTNC)
     return tp
 
-def _computeGrad2(t, var, ghostCells=False, withCellN=True):
+def _computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
     """Compute the gradient of a variable defined in array.
     Usage: computeGrad2(t, var)"""
     if type(var) == list:
@@ -1464,8 +1464,11 @@ def _computeGrad2(t, var, ghostCells=False, withCellN=True):
 
     # Compute fields on BCMatch (for all match connectivities)
     if not ghostCells:
-        allMatch    = C.extractAllBCMatch(t, vare)
-        allMatchTNC = {} #C.extractAllBCMatchTNC(t,vare) # CW TEMPO
+        allMatch    = C.extractAllBCMatch(t, vare) 
+        if withTNC:
+            allMatchTNC = C.extractAllBCMatchTNC(t,vare)
+        else:
+            allMatchTNC = {}
     else:
         allMatch    = {}
         allMatchTNC = {}

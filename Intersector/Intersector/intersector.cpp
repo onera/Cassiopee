@@ -42,6 +42,8 @@ static PyMethodDef Pyintersector [] =
 
   {"XcellN", K_INTERSECTOR::XcellN, METH_VARARGS},
   {"superMesh", K_INTERSECTOR::superMesh, METH_VARARGS},
+  {"superMeshCompSurf", K_INTERSECTOR::superMeshCompSurf, METH_VARARGS},
+  {"computeTNCFields", K_INTERSECTOR::computeTNCFields, METH_VARARGS},
   
   {"P1ConservativeInterpolation", K_INTERSECTOR::P1ConservativeInterpolation, METH_VARARGS},
   {"P1ConservativeChimeraCoeffs", K_INTERSECTOR::P1ConservativeChimeraCoeffs, METH_VARARGS},

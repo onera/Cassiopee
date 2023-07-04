@@ -24,7 +24,6 @@ using namespace std;
 using namespace K_FLD;
 
 #include <map>
-
 //=============================================================================
 PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
 {
@@ -1186,9 +1185,9 @@ PyObject* K_CONVERTER::buildBCMatchFieldStruct(PyObject* self, PyObject* args )
 {
 //   // indR fldD fldR >> fld = 0.5(fldD+flR)
 
-  PyObject *pyFieldsR, *pyIndR, *pyFldD ; 
+  PyObject *pyFieldsR, *pyIndR, *pyFldD, *pyNcnt ; 
   
-  if (!PYPARSETUPLEI(args, "OOO", "OOO", &pyFieldsR, &pyIndR, &pyFldD )) return NULL;
+  if (!PYPARSETUPLEI(args, "OOOO", "OOOO", &pyFieldsR, &pyIndR, &pyFldD, &pyNcnt )) return NULL;
 
   // Get current zone fields (in volume)
   // ===================================
@@ -1237,6 +1236,31 @@ PyObject* K_CONVERTER::buildBCMatchFieldStruct(PyObject* self, PyObject* args )
 
   E_Int  nind    = indR->getSize();
 
+  // Get ncount array if supplied (used for near-match or TNC match)
+  // ================================================================
+  E_Bool needcount = true;
+  FldArrayI* ncount;
+    
+  if (pyNcnt != Py_None)
+  {
+    E_Int resi = K_NUMPY::getFromNumpyArray(pyNcnt, ncount, true);
+    if ( resi == 0)
+    {
+      PyErr_SetString(PyExc_TypeError, "buildBCMatchFieldStruct: not a valid numpy for ncount array.");
+      RELEASESHAREDN(pyNcnt, ncount);
+      return NULL;   
+    }
+    
+    // E_Int* ptrNcnt = ncount->begin();
+
+    // for (E_Int ko=0 ; ko< ncount->getSize(); ko++)
+	   // std::cout << "ncout[" << ko << "]= " << ptrNcnt[ko] << std::endl;
+  }
+  else
+  {
+    needcount = false ;
+  }
+
   // Create output array 
   // ===================
   E_Int nn;
@@ -1251,6 +1275,8 @@ PyObject* K_CONVERTER::buildBCMatchFieldStruct(PyObject* self, PyObject* args )
   E_Int  ind,indFace;
   E_Int* ptrIndR = indR->begin();
 
+  E_Int* ptrNcnt = ncount->begin();
+    
   for (E_Int noindint = 0 ; noindint < nind ; noindint++)
   {
     indFace = ptrIndR[noindint]; 
@@ -1262,7 +1288,15 @@ PyObject* K_CONVERTER::buildBCMatchFieldStruct(PyObject* self, PyObject* args )
       E_Float* ptrFieldsR = fieldsR->begin(var);
       E_Float* ptrFldD    = fldD->begin(var);
       E_Float* ptrFld     = fld->begin(var);
-      ptrFld[noindint]    = 0.5*( ptrFieldsR[ind]+ptrFldD[noindint] );    
+      if(needcount)
+      {
+	std::cout << "ncout[" << noindint << "]= " << ptrNcnt[noindint] << std::endl;
+	ptrFld[noindint]    = 0.5*( ptrFieldsR[ind]/ptrNcnt[noindint]+ptrFldD[noindint] );   
+      }
+      else
+      {
+	ptrFld[noindint]    = 0.5*( ptrFieldsR[ind]+ptrFldD[noindint] );
+      }
     }
   }
 
