@@ -99,7 +99,7 @@ class hierarchical_mesh
   
     /// face-conformity
     void conformize(ngo_t& ngo, Vector_t<E_Int>& hmpgid_to_confpgid, Vector_t<E_Int>& pghids, Vector_t<E_Int>& phhids) const;
-	void no_conformize(ngo_t& ngo, Vector_t<E_Int>& hmpgid_to_confpgid, Vector_t<E_Int>& pghids, Vector_t<E_Int>& phhids) const;
+    void no_conformize(ngo_t& ngo, Vector_t<E_Int>& hmpgid_to_confpgid, Vector_t<E_Int>& pghids, Vector_t<E_Int>& phhids) const;
     /// Keep only enabled PHs
     void extract_enabled_phs(ngon_type& filtered_ng) const ;
     ///

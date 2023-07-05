@@ -518,7 +518,7 @@ PyObject* K_INTERSECTOR::superMeshCompSurf(PyObject* self, PyObject* args)
 
   for (size_t k = 0; k < anc0.size(); k++)
   {
-    if (anc0[k] != k)
+    if (anc0[k] != E_Int(k))
     {
       match = false;
       break;
@@ -526,7 +526,7 @@ PyObject* K_INTERSECTOR::superMeshCompSurf(PyObject* self, PyObject* args)
   }
   for (size_t k = 0; k < anc1.size(); k++)
   {
-    if (anc1[k] != k)
+    if (anc1[k] != E_Int(k))
     {
       match = false;
       break;

@@ -5625,7 +5625,7 @@ static int validate_moves_by_fluxes
   // identify moves as neg vals, then validate by setting them positive
   for (size_t n = 0; n < nids.size(); ++n)
   {
-    if (nids[n] != n)
+    if (nids[n] != E_Int(n))
     {
       nids[n] = -nids[n] - 1;
       has_moves=true;
@@ -5635,7 +5635,8 @@ static int validate_moves_by_fluxes
   if (!has_moves) return 0;
 
   ngon_unit orient;
-  E_Int err = build_orientation_ngu<TriangulatorType>(crd, ngio, orient);//fixme hpc : should be deduced from the input PH orientation
+  //E_Int err = 
+  build_orientation_ngu<TriangulatorType>(crd, ngio, orient);//fixme hpc : should be deduced from the input PH orientation
 
   std::vector<double> fluxes0(ngio.PHs.size(), NUGA::FLOAT_MAX);
   std::vector<double> vols0  (ngio.PHs.size(), NUGA::FLOAT_MAX);
@@ -5761,7 +5762,7 @@ static int validate_moves_by_fluxes
         const E_Int* nodes = ngio.PGs.get_facets_ptr(Fi);
         int nnodes = ngio.PGs.stride(Fi);
 
-        for (int n = 0; n < nnodes; ++n)
+        for (E_Int n = 0; n < nnodes; ++n)
         {
           E_Int Ni = nodes[n] - 1;
           if (nids[Ni] >= 0) continue;
@@ -5781,7 +5782,7 @@ static int validate_moves_by_fluxes
   E_Int nb_valid_moves = 0;
   for (size_t n = 0; n < nids.size(); ++n)
   {
-    if (nids[n] != n)
+    if (nids[n] != E_Int(n))
     {
       ++nb_valid_moves;
     }

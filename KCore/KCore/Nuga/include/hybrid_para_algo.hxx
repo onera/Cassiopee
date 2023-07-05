@@ -7,7 +7,7 @@
 
 
 */
-//Authors : S�m Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/omp_algo.hxx"
 #include "Nuga/include/mpi_stl.hxx"
@@ -217,7 +217,8 @@ namespace NUGA
 
     STACK_ARRAY(bool, nranks, all_status);
     MPI_Request req;
-    if (rank != 0) {
+    if (rank != 0) 
+    {
       MPI_Isend(&local_changes, 1, MPI_C_BOOL, 0, TAG_MPI_EXCH_STATUS, COM, &req);
       //if (rank == 1) std::cout << "rank : " << rank << " is sendind its change status : " << has_changes << std::endl;
     }
@@ -225,7 +226,8 @@ namespace NUGA
     {
       all_status[0] = local_changes;
       MPI_Status status;
-      for (size_t r = 1; r < nranks; ++r) {
+      for (E_Int r = 1; r < nranks; ++r) 
+      {
         MPI_Recv(&all_status[r], 1, MPI_C_BOOL, r, TAG_MPI_EXCH_STATUS, COM, &status);
         //std::cout << " has received status from rank " << r << std::endl;
       }

@@ -1330,7 +1330,8 @@ void metric_sensor<mesh_t>::metric_fix(mesh_t& hmesh, output_t& adap_incr)
 
     E_Int own = -1, nei = -1;
     E_Int *pOwn = 0, *pNei = 0;
-    bool own_changed = false, nei_changed = false;
+    //bool own_changed = false;
+    //bool nei_changed = false;
     E_Int ao = -1, bo = -1, co = -1, an = -1, bn = -1, cn = -1;
     E_Int PHi_to_mod = -1;
 
@@ -1367,10 +1368,10 @@ void metric_sensor<mesh_t>::metric_fix(mesh_t& hmesh, output_t& adap_incr)
             nei_faces_incr[i] = adap_incr.face_adap_incr[pNei[i]-1];
         }
 
-        own_changed = false;
-        nei_changed = false;
+        //own_changed = false;
+        //nei_changed = false;
 
-        start_fix:
+        //start_fix:
         ao = adap_incr.cell_adap_incr[own].n[0];
         bo = adap_incr.cell_adap_incr[own].n[1];
         co = adap_incr.cell_adap_incr[own].n[2];
@@ -2116,7 +2117,6 @@ template <typename mesh_t>
 E_Int metric_sensor<mesh_t>::assign_data(const sensor_input_t& data)
 {
   E_Int npts = parent_t::_hmesh._crd.cols();
-
   assert(npts == data.size()); // input must be sized as number of pts (if decided to do differently,  need here to resize and fill missing field values)
 
   parent_t::_data = data;

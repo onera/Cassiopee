@@ -221,17 +221,17 @@ Setting IBC Type
                         
 ---------------------------------------
 
-.. py:function:: Geom.IBM.initOutflow(tc, familyName, P_static)
+.. py:function:: Geom.IBM.initOutflow(tc, familyName, PStatic)
 
-    Set the value of the static pressure P_static for the outflow pressure IBC with family name familyName.
+    Set the value of the static pressure PStatic for the outflow pressure IBC with family name familyName.
     Exists also as in-place (_initOutflow).
     
     :param tc: connectivity tree
     :type  tc: [zone, list of zones, tree]
     :param familyName: familyName
     :type familyName: string
-    :param P_static: static pressure
-    :type P_static: float	
+    :param PStatic: static pressure
+    :type PStatic: float	
     :return: same as input
 
     *Example of use:*

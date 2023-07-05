@@ -80,7 +80,7 @@ namespace NUGA
       //
       for (E_Int k = id_start; k < crd2D.cols(); ++k)
       {
-        if (k < xedge.size() && xedge[k].first != IDX_NONE)
+        if (size_t(k) < xedge.size() && xedge[k].first != IDX_NONE)
         {
           w_keep[k] = true;
           continue; // X node => lying on (impacted) sub : no test required (which is good it as it might fail)
@@ -825,7 +825,7 @@ namespace NUGA
       for (size_t i = 0; i < zs.size(); ++i)
       {
         if (zs[i] != NUGA::FLOAT_MAX) continue;            // non valuated node
-        if (i < pnids.size() && pnids[i] != i && pnids[i] != IDX_NONE) continue;   // merged node
+        if (i < pnids.size() && pnids[i] != E_Int(i) && pnids[i] != IDX_NONE) continue;   // merged node
 
         auto xe = xedge[i];
         

@@ -172,10 +172,10 @@ namespace NUGA
       pregnant.clear();
       pregnant.resize(nbPHtoadapt);
 
-      E_Int PHl, nb_pgs;
+      //E_Int PHl, nb_pgs;
       for (E_Int l = 0; l < nbPHtoadapt; l++)
       {
-        PHl = PHlist[l];
+        //PHl = PHlist[l];
         const auto& dir = PH_directive[l];
 
         if (dir == XYZ) pregnant[l] = 8;

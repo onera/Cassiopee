@@ -18,7 +18,7 @@ varsDeleteIBM = ['utau','StagnationEnthalpy','StagnationPressure',
 #==============================================================================
 # compute the near wall spacing in agreement with the yplus target at image points - front42
 #==============================================================================
-def computeSnearOpt(Re=None,tb=None,Lref=1.,q=1.2,yplus=300.,Cf_law='ANSYS'):
+def computeSnearOpt(Re=None, tb=None, Lref=1., q=1.2, yplus=300., Cf_law='ANSYS'):
     return G_IBM_Height.computeSnearOpt(Re=Re, tb=tb, Lref=Lref, q=q, yplus=yplus, Cf_law=Cf_law)
 
 #==============================================================================
@@ -47,7 +47,7 @@ def _setSnear(t, value):
 #==============================================================================
 def setDfar(t, value):
     """Set the value of dfar in a geometry tree.
-    Usage: setDfar(t,value=X)"""
+    Usage: setDfar(t, value=X)"""
     tp = Internal.copyRef(t)
     _setDfar(tp, value)
     return tp
@@ -55,7 +55,7 @@ def setDfar(t, value):
 
 def _setDfar(t, value):
     """Set the value of dfar in a geometry tree.
-        Usage: _setDfar(t,value=X)"""
+        Usage: _setDfar(t, value=X)"""
     zones = Internal.getZones(t)
     for z in zones:
         Internal._createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
@@ -120,7 +120,7 @@ def setIBCType(t, value):
 
 def _setIBCType(t, value):
     """Set the IBC type in a geometry tree.
-    Usage: _setIBCType(t,value=X)"""
+    Usage: _setIBCType(t, value=X)"""
     zones = Internal.getZones(t)
     for z in zones:         
         Internal._createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
@@ -152,34 +152,32 @@ def _setFluidInside(t):
 #==============================================================================
 # Set the IBC type outpress for zones in familyName
 #==============================================================================
-def initOutflow(tc, familyName, PStatic, InterpolPlane=None, PressureVar=0,isDensityConstant=False):
+def initOutflow(tc, familyName, PStatic, InterpolPlane=None, PressureVar=0, isDensityConstant=False):
     """Set the value of static pressure PStatic for the outflow pressure IBC with family name familyName. 
-    A plane InterpolPlane may also be provided with only static pressure variable or various variables with static pressure as the PressureVar (e.g. 2nd) variable)
-    Usage: initOutflow(tc,familyName, PStatic, InterpolPlane, PressureVar)"""
+    A plane InterpolPlane may also be provided with only static pressure variable or various variables with static pressure as the PressureVar (e.g. 2nd) variable)"""
     tc2 = Internal.copyRef(tc)
-    _initOutflow(tc2, familyName, PStatic, InterpolPlane=InterpolPlane, PressureVar=PressureVar,isDensityConstant=isDensityConstant)
+    _initOutflow(tc2, familyName, PStatic, InterpolPlane=InterpolPlane, PressureVar=PressureVar, isDensityConstant=isDensityConstant)
     return tc2
 
 
-def _initOutflow(tc, familyName, PStatic, InterpolPlane=None, PressureVar=0,isDensityConstant=False):
+def _initOutflow(tc, familyName, PStatic, InterpolPlane=None, PressureVar=0, isDensityConstant=False):
     """Set the value of the pressure PStatic for the outflow pressure IBC with family name familyName.
-    A plane InterpolPlane may also be provided with various variables with static pressure as the PressureVar (e.g. 2nd) variable)
-    Usage: _initOutflow(tc,familyName, PStatic, InterpolPlane, PressureVar)"""
+    A plane InterpolPlane may also be provided with various variables with static pressure as the PressureVar (e.g. 2nd) variable)"""
     import Post.PyTree as P
     for zc in Internal.getZones(tc):
-        for zsr in Internal.getNodesFromName(zc,'IBCD_4_*'):
-            FamNode = Internal.getNodeFromType1(zsr,'FamilyName_t')
+        for zsr in Internal.getNodesFromName(zc, 'IBCD_4_*'):
+            FamNode = Internal.getNodeFromType1(zsr, 'FamilyName_t')
             if FamNode is not None:
                 FamName = Internal.getValue(FamNode)
                 if FamName==familyName:
-                    stagPNode =  Internal.getNodeFromName(zsr,'Pressure')
-                    dens      =  Internal.getNodeFromName(zsr,'Density')    
+                    stagPNode =  Internal.getNodeFromName(zsr, 'Pressure')
+                    dens      =  Internal.getNodeFromName(zsr, 'Density')    
                     sizeIBC   = numpy.shape(stagPNode[1])
                     if InterpolPlane:
                         print("Zone: %s | ZoneSubRegion: %s"%(zc[0],zsr[0]))
-                        x_wall =  Internal.getNodeFromName(zsr,'CoordinateX_PW')[1]
-                        y_wall =  Internal.getNodeFromName(zsr,'CoordinateY_PW')[1]
-                        z_wall =  Internal.getNodeFromName(zsr,'CoordinateZ_PW')[1]
+                        x_wall =  Internal.getNodeFromName(zsr, 'CoordinateX_PW')[1]
+                        y_wall =  Internal.getNodeFromName(zsr, 'CoordinateY_PW')[1]
+                        z_wall =  Internal.getNodeFromName(zsr, 'CoordinateZ_PW')[1]
                         list_pnts=[]
                         for i in range(sizeIBC[0]): list_pnts.append((x_wall[i],y_wall[i],z_wall[i]))
                         val      = P.extractPoint(InterpolPlane, list_pnts, 2)
@@ -196,28 +194,27 @@ def _initOutflow(tc, familyName, PStatic, InterpolPlane=None, PressureVar=0,isDe
 #==============================================================================
 def initIsoThermal(tc, familyName, TStatic):
     """Set the value of static temperature TStatic for the wall no slip IBC with family name familyName.
-    Usage: initIsoThermal(tc,familyName, TStatic)"""
+    Usage: initIsoThermal(tc, familyName, TStatic)"""
     tc2 = Internal.copyRef(tc)
     _initIsoThermal(tc2, familyName, TStatic)
     return tc2
 
-
 def _initIsoThermal(tc, familyName, TStatic):
     """Set the value of static temperature TStatic for the wall no slip IBC with family name familyName.
-    Usage: _initIsoThermal(tc,familyName, TStatic)"""
+    Usage: _initIsoThermal(tc, familyName, TStatic)"""
     for zc in Internal.getZones(tc):
-        for zsr in Internal.getNodesFromName(zc,'IBCD_12_*'):
-            FamNode = Internal.getNodeFromType1(zsr,'FamilyName_t')
+        for zsr in Internal.getNodesFromName(zc, 'IBCD_12_*'):
+            FamNode = Internal.getNodeFromType1(zsr, 'FamilyName_t')
             if FamNode is not None:
                 FamName = Internal.getValue(FamNode)
                 if FamName==familyName:
-                    stagPNode = Internal.getNodeFromName(zsr,'TemperatureWall')    
+                    stagPNode = Internal.getNodeFromName(zsr, 'TemperatureWall')    
                     sizeIBC   = numpy.shape(stagPNode[1])
                     stagPNode[1][:]  = TStatic
                     #Internal.setValue(stagPNode,TStatic*numpy.ones(sizeIBC))
 
-                    stagPNode =  Internal.getNodeFromName(zsr,'Temperature')    
-                    Internal.setValue(stagPNode,TStatic*numpy.ones(sizeIBC))
+                    stagPNode =  Internal.getNodeFromName(zsr, 'Temperature')    
+                    Internal.setValue(stagPNode, TStatic*numpy.ones(sizeIBC))
     return None
 
 #==============================================================================
@@ -239,7 +236,7 @@ def _initHeatFlux(tc, familyName, QWall):
             FamNode = Internal.getNodeFromType1(zsr,'FamilyName_t')
             if FamNode is not None:
                 FamName = Internal.getValue(FamNode)
-                if FamName==familyName:
+                if FamName == familyName:
                     stagPNode = Internal.getNodeFromName(zsr,'WallHeatFlux')    
                     sizeIBC   = numpy.shape(stagPNode[1])
                     stagPNode[1][:]  = QWall
@@ -271,12 +268,12 @@ def _initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.], InterpolPlane=None, 
             FamNode = Internal.getNodeFromType1(zsr,'FamilyName_t')
             if FamNode is not None:
                 FamName = Internal.getValue(FamNode)
-                if FamName==familyName:
+                if FamName == familyName:
                     node_temp = Internal.getNodeFromName(zsr,'utau')
-                    if node_temp is not None:Internal._rmNode(zsr,node_temp)
+                    if node_temp is not None: Internal._rmNode(zsr,node_temp)
 
                     node_temp = Internal.getNodeFromName(zsr,'yplus')
-                    if node_temp is not None:Internal._rmNode(zsr,node_temp)
+                    if node_temp is not None: Internal._rmNode(zsr,node_temp)
                     
                     stagPNode = Internal.getNodeFromName(zsr,'StagnationPressure')
                     stagHNode = Internal.getNodeFromName(zsr,'StagnationEnthalpy')

@@ -53,7 +53,7 @@ pyMOVLP_XcellN
   const std::vector<E_Int>& comp_id, std::vector<std::pair<E_Int, E_Int>> & priority,
   const std::vector<K_FLD::FloatArray> &mask_crds, const std::vector<K_FLD::IntArray>& mask_cnts,
   std::vector< std::vector<E_Int>> &mask_wall_ids,
-  E_Float RTOL, char* varString, char* eltType, PyObject* l)
+  E_Float RTOL, const char* varString, char* eltType, PyObject* l)
 {
   using outdata_t = typename classifyer_t::outdata_t;
   std::vector<outdata_t> xcelln;
@@ -84,7 +84,7 @@ pyMOVLP_XcellN<NUGA::xcellno<pg_smesh_t, edge_mesh_t>>
   const std::vector<E_Int>& comp_id, std::vector<std::pair<E_Int, E_Int>> & priority,
   const std::vector<K_FLD::FloatArray> &mask_crds, const std::vector<K_FLD::IntArray>& mask_cnts,
   std::vector< std::vector<E_Int>> &mask_wall_ids,
-  E_Float RTOL, char* varString, char* eltType, PyObject* l)
+  E_Float RTOL, const char* varString, char* eltType, PyObject* l)
 {
   using classifyer_t = NUGA::xcellno<pg_smesh_t, edge_mesh_t>;
   std::vector<typename classifyer_t::outdata_t> xmesh;
@@ -130,7 +130,7 @@ pyMOVLP_XcellN<NUGA::xcellno<ph_mesh_t, pg_smesh_t>>
   const std::vector<E_Int>& comp_id, std::vector<std::pair<E_Int, E_Int>> & priority,
   const std::vector<K_FLD::FloatArray> &mask_crds, const std::vector<K_FLD::IntArray>& mask_cnts,
   std::vector< std::vector<E_Int>> &mask_wall_ids,
-  E_Float RTOL, char* varString, char* eltType, PyObject* l)
+  E_Float RTOL, const char* varString, char* eltType, PyObject* l)
 {
   using classifyer_t = NUGA::xcellno<ph_mesh_t, pg_smesh_t>;
   std::vector<typename classifyer_t::outdata_t> xmesh;

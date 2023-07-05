@@ -28,7 +28,7 @@ namespace NUGA
     ///
     template <typename arr_t>
     splitting_t(K_FLD::FloatArray& crd, const ngon_type& ng, E_Int PHi, E_Int centroidId,
-      const K_FLD::IntArray & F2E, const tree<arr_t> & PGtree)
+      const K_FLD::IntArray& F2E, const tree<arr_t>& PGtree)
     {
       //calcul et stockage du centroid de PHi dans crd
       E_Int indexstart = 1;
@@ -271,8 +271,9 @@ namespace NUGA
       //== 6=== final F2E for internal faces =====================================================
       //========== go for double loop on coarse nodes ==========================================
 
-      E_Int indnode1, indnode2, indComFace;
-      E_Bool comInternalFace;
+      E_Int indnode1, indnode2;
+      //E_Int indComFace;
+      //E_Bool comInternalFace;
       //
       for (j1 = 0; j1 < nb_nodesc; j1++)        // browse coarse level nodes    
       {
@@ -282,13 +283,14 @@ namespace NUGA
           indnode2 = unodes[j2];
           //std::cout << " couple de noeuds envisage " << indnode1 << " -- " << indnode2 << std::endl;
           //---------------------------------------------------
-          comInternalFace = false;
+          //comInternalFace = false;
+          // CBX: louche
           for (k1 = 0; k1 < 2 * arity[j1]; k1++)
             for (k2 = 0; k2 < 2 * arity[j2]; k2++)
               if (mapcn2fPG[j1][k1] == mapcn2fPG[j2][k2])
               {
-                comInternalFace = true;
-                indComFace = mapcn2fPG[j2][k2];
+                //comInternalFace = true;
+                //indComFace = mapcn2fPG[j2][k2];
                 break;
               }
           //-------------------------------------------------

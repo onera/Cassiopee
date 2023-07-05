@@ -723,7 +723,7 @@ struct mesh_t
     // Lref2
     // if nodal_metric2 exist and is 'valid' (same size as crd) => use it
     // otherwise compute Lref2 based only on min edge length of the element (so might by over estimated)
-    E_Float Lr2 = (nodal_metric2.size() == crd.cols()) ? e.Lref2(nodal_metric2) : e.Lref2(crd);
+    E_Float Lr2 = (E_Int(nodal_metric2.size()) == crd.cols()) ? e.Lref2(nodal_metric2) : e.Lref2(crd);
     
     return aelt_t(e, crd, Lr2);
   }

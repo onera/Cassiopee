@@ -106,7 +106,8 @@ inline void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* ce
   // 4. Filtrate exact-matches
 
   K_FLD::ArrayAccessor<K_FLD::FloatArray> ca(Cs_glog);
-  E_Int nmerges = ::merge(ca, TOL, nids);
+  //E_Int nmerges = 
+  ::merge(ca, TOL, nids);
   //std::cout << "nmerges : " << nmerges << std::endl;
 
   // check wrong auto_match
