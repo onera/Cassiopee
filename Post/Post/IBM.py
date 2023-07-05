@@ -129,7 +129,11 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1):
                 PW = Internal.getNodeFromName1(IBCD,XOD.__PRESSURE__)
                 if PW is not None: pressNP.append(PW[1])
                 RHOW = Internal.getNodeFromName1(IBCD,XOD.__DENSITY__)
-                if RHOW is not None: densNP.append(RHOW[1])
+                if RHOW is not None:
+                    maxVal = numpy.max(RHOW[1])
+                    minVal = numpy.min(RHOW[1])
+                    if maxVal<0 and minVal<0: RHOW[1][:]=-RHOW[1][:]
+                    densNP.append(RHOW[1])
                 UTAUW = Internal.getNodeFromName1(IBCD,XOD.__UTAU__)
                 if UTAUW is not None: utauNP.append(UTAUW[1])
                 YPLUSW = Internal.getNodeFromName1(IBCD, XOD.__YPLUS__)
@@ -310,7 +314,7 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], front=1):
             C._initVars(td,XOD.__CONV1__,0.)
             C._initVars(td,XOD.__CONV2__,0.)
         #print("projectCloudSolution for dim {}".format(dimPb))
-        
+
         P._projectCloudSolution(z, td, dim=dimPb)                
         return td
 

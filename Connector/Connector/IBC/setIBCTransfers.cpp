@@ -1014,14 +1014,15 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 	  if (densPtr[noind+ideb] > 0.) {
             roOut[indR] = densPtr[noind+ideb];
 	  }
-	  
+	  else{
+	    densPtr[noind+ideb] = -roOut[indR];
+	  }
 	  if (pressPtr[noind+ideb] > 0.) {
             tOut[indR] = pressPtr[noind+ideb]/(roOut[indR]*cvgam);//pext/(roext*cvgam)
 	  }
 	  
-	  // tOut[indR] = pressPtr[noind+ideb]/(roOut[indR]*cvgam);//pext/(roext*cvgam)
-	  // densPtr[noind+ideb] = roOut[indR];
-	  // printf(" press = %g \n", pressPtr[noind+ideb]);
+	  //tOut[indR] = pressPtr[noind+ideb]/(roOut[indR]*cvgam);//pext/(roext*cvgam)
+	  //densPtr[noind+ideb] = roOut[indR];
 	  
 	  
 	  vxPtr[noind+ideb] = uOut[indR];
