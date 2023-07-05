@@ -31,6 +31,7 @@ void gmouseMotion(int x, int y)
 }
 void gmousePassiveMotion(int x, int y)
 {
+  // unused
   Data* d = Data::getInstance();
   d->mousePassiveMotion(x, y);
 }
@@ -45,10 +46,10 @@ void gmousePassiveMotion(int x, int y)
 //=============================================================================
 void Data::mouseButton(E_Int button, E_Int etat, E_Int x, E_Int y)
 {
-  if (etat == 1) { ptrState->currentMouseButton = 5; return; } // button released
-  E_Int modif = glutGetModifiers();
   ptrState->render = 1;
-
+  if (etat == 1) { ptrState->currentMouseButton = 5; ptrState->ondrag = 0; return; } // button released
+  E_Int modif = glutGetModifiers();
+  
   switch (button)
   {
     case GLUT_LEFT_BUTTON:
@@ -187,14 +188,16 @@ void Data::mouseButton(E_Int button, E_Int etat, E_Int x, E_Int y)
 }
 
 //=============================================================================
+// Called when moving mouse
 void Data::mouseMotion(E_Int x, E_Int y)
 {
-  // Mouvement de la souris + shift = selection par BBOX
+  // Mouvement de la souris + shift = selection par mouse drag
   if (ptrState->modifier == GLUT_ACTIVE_SHIFT) { mouseDrag(x, y); return;}
   if (ptrState->modifier == (GLUT_ACTIVE_SHIFT | GLUT_ACTIVE_CTRL)) 
   { mouseDrag(x, y); return;}
 
   // Mouvement de la souris sans shift
+  ptrState->ondrag = 1;
   ptrState->render = 1;
 
   // Zoom / dezoom
@@ -357,7 +360,7 @@ void Data::mouseMotion(E_Int x, E_Int y)
 }
 
 //=============================================================================
-// Appele quand la souris se balade dans la fenetre sans cliquer
+// Appele quand la souris se balade dans la fenetre sans cliquer (unused)
 //=============================================================================
 void Data::mousePassiveMotion(E_Int x, E_Int y)
 {
@@ -366,7 +369,8 @@ void Data::mousePassiveMotion(E_Int x, E_Int y)
 }
 
 //=============================================================================
-// Appele quand la souris est presse + motion
+// Called from mouseMotion only
+// Select by dragging
 //=============================================================================
 void Data::mouseDrag(E_Int x, E_Int y)
 {

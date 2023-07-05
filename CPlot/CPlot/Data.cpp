@@ -325,6 +325,7 @@ void Data::initState()
   ptrState->activeMouseX = 0;
   ptrState->activeMouseY = 0;
   ptrState->currentMouseButton = 5; // unclicked
+  ptrState->ondrag = 0; // not drag moving
 
   // Keyboard
   ptrState->kcursor = 0; // position in keys

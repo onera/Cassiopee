@@ -43,10 +43,11 @@ def remap():
     offset = offset[0]
 
     CTK.saveTree()
-
+    CPlot.setState(cursor=2)
     if VARS[2].get() == '0': algo = 0
     else: algo = 1
     iso = Geom.PyTree.offsetSurface(a, offset, pointsPerUnitLength, algo)
+    CPlot.setState(cursor=0)
 
     if iso != []:
         nob = CTK.Nb[nzs[0]]+1

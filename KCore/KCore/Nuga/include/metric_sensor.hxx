@@ -1026,19 +1026,22 @@ void metric_sensor<mesh_t>::fix_beta_gamma(E_Int PHi, E_Int NEI, output_t& adap_
 
         // look for min
         E_Int MIN = IDX_NONE;
-        E_Int idx = -1;
-        for (E_Int i = 0; i < 4; i++) {
+        //E_Int idx = -1;
+        for (E_Int i = 0; i < 4; i++) 
+        {
             if (incr[i] == 0) continue;
-            if (incr[i] < MIN) {
+            if (incr[i] < MIN) 
+            {
                 MIN = incr[i];
-                idx = i;
+                //idx = i;
             }
         }
 
         INCR += MIN;
 
         // decrement
-        for (E_Int i = 0; i < 4; i++) {
+        for (E_Int i = 0; i < 4; i++) 
+        {
             incr[i] -= MIN;
             if (incr[i] < 0) incr[i] = 0;
         }

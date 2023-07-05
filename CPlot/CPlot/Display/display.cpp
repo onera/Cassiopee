@@ -168,8 +168,8 @@ void gdisplay()
     // Check si display iso solid
     if (d->ptrState->mode == SCALARFIELD) d->createIsoGPURes(d->ptrState->scalarField);
     if (d->ptrState->mode == VECTORFIELD) d->createIsoGPURes(d->ptrState->vectorField1,
-							      d->ptrState->vectorField2,
-							      d->ptrState->vectorField3);
+                                                             d->ptrState->vectorField2,
+                                                             d->ptrState->vectorField3);
     if (d->ptrState->mode == RENDER) d->createIsoGPUResForRender();
 
     // Update mouse cursor eventuellement

@@ -1559,7 +1559,7 @@ def minimal(title, show=True, mode=0):
         menu.add_cascade(label='Tools', menu=tools)
         tools.add_command(label='Save prefs', command=savePrefFile)
         tools.add_separator()
-        tools.add_command(label='Activate key', command=Panels.activation)
+        #tools.add_command(label='Activate key', command=Panels.activation)
     else:
         tools = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
         menu.add_cascade(label='Tools', menu=tools)

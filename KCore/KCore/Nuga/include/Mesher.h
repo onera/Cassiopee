@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef __DELAUNAY_MESHER_H__
 #define __DELAUNAY_MESHER_H__
@@ -228,8 +228,7 @@ namespace DELAUNAY
 
   //
   template <typename T, typename MetricType>
-  E_Int
-    Mesher<T, MetricType>::run (MeshData& data)
+  E_Int Mesher<T, MetricType>::run (MeshData& data)
   {
     _err = 0;
     _data = &data;
@@ -257,7 +256,7 @@ namespace DELAUNAY
 
     if (_err)
     {
-      if (!mode.silent_errors) std::cout << "error triangulating" << std::endl;
+      if (!mode.silent_errors) std::cout << "Warning: mesher: error triangulating." << std::endl;
 #ifdef DEBUG_MESHER
       medith::write("err_tria.mesh", *_data->pos, *_data->connectB, "BAR");
 #endif
@@ -275,7 +274,7 @@ namespace DELAUNAY
     _err = restoreBoundaries(*data.pos, data.connectM, data.neighbors, data.ancestors);
     if (_err)
     {
-      if (!mode.silent_errors) std::cout << "error restoring boundaries" << std::endl;
+      if (!mode.silent_errors) std::cout << "Warning: mesher: error restoring boundaries." << std::endl;
       return _err;
     }
     
@@ -298,7 +297,7 @@ namespace DELAUNAY
     _err = setColors(data.pos->cols()-1, data);//fixme : Nbox
     if (_err)
     {
-      if (!mode.silent_errors) std::cout << "error setting colors" << std::endl;
+      if (!mode.silent_errors) std::cout << "Warning: mesher: error setting colors." << std::endl;
       return _err;
     }
 
@@ -310,14 +309,13 @@ namespace DELAUNAY
     if (mode.mesh_mode == MesherMode::REFINE_MODE)
     {
 #ifdef E_TIME
-    c.start();
-    std::cout << "REFINE" << std::endl;
+      c.start();
+      std::cout << "REFINE" << std::endl;
 #endif
 
-    // Refine
-    _err = refine();
-    if (_err)
-      return _err;
+      // Refine
+      _err = refine();
+      if (_err) return _err;
     }
 
 #ifdef E_TIME
@@ -333,7 +331,7 @@ namespace DELAUNAY
     c.start();
 #endif
 
-    if (_err && !mode.silent_errors) std::cout << "error finalizing" << std::endl;
+    if (_err && !mode.silent_errors) std::cout << "Warning: mesher: error finalizing." << std::endl;
     
     return _err;
   }
@@ -1270,8 +1268,7 @@ namespace DELAUNAY
 
   ///
   template <typename T, typename MetricType>
-  E_Int
-  Mesher<T, MetricType>::finalize(MeshData& data, E_Int N0)
+  E_Int Mesher<T, MetricType>::finalize(MeshData& data, E_Int N0)
   {
     size_type cols(data.connectM.cols());
 
@@ -1285,7 +1282,7 @@ namespace DELAUNAY
 
     clean_data(data, data.mask);
 
-    if (cols && data.connectM.cols() == 0)// all the elements are masked
+    if (cols && data.connectM.cols() == 0) // all the elements are masked
       return 77;
 
     std::vector<E_Int> new_IDs;
@@ -1293,8 +1290,9 @@ namespace DELAUNAY
 
     // update ancestors.
     for (size_t i = 0; i < data.ancestors.size(); ++i)
-      if (new_IDs[i] != IDX_NONE)
-      data.ancestors[new_IDs[i]] = data.ancestors[i];
+    {
+      if (new_IDs[i] != IDX_NONE) data.ancestors[new_IDs[i]] = data.ancestors[i];
+    }
     data.ancestors.resize(data.pos->cols());
 
     return 0;

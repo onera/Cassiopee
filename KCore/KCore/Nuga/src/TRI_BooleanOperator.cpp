@@ -57,8 +57,7 @@ TRI_BooleanOperator::~TRI_BooleanOperator(void)
 }
 
 ///
-E_Int
-TRI_BooleanOperator::get_1_minus_2
+E_Int TRI_BooleanOperator::get_1_minus_2
 (K_FLD::FloatArray& coord, K_FLD::IntArray& connect, std::vector<E_Int>& colors)
 {
   colors.clear();
@@ -84,8 +83,7 @@ TRI_BooleanOperator::get_1_minus_2
 }
 
 ///
-E_Int
-TRI_BooleanOperator::get_2_minus_1(K_FLD::FloatArray& coord, K_FLD::IntArray& connect, std::vector<E_Int>& colors)
+E_Int TRI_BooleanOperator::get_2_minus_1(K_FLD::FloatArray& coord, K_FLD::IntArray& connect, std::vector<E_Int>& colors)
 {
   colors.clear();
 
@@ -173,10 +171,8 @@ E_Int TRI_BooleanOperator::getIntersectionBorder
 }
 
 ///
-E_Int
-TRI_BooleanOperator::__compute_x_contour(std::set<K_MESH::NO_Edge>& hXC)
+E_Int TRI_BooleanOperator::__compute_x_contour(std::set<K_MESH::NO_Edge>& hXC)
 {
-
   std::vector<K_MESH::NO_Edge> hE1, hE2, hXE, hXE1, hOv, hC;
 
   hXC.clear();

@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr), Jacques Peter (jacques.peter@onera.fr)
+//Authors : SÃ¢m Landier (sam.landier@onera.fr), Jacques Peter (jacques.peter@onera.fr)
 
 #ifndef NUGA_PHQ4_HXX
 #define NUGA_PHQ4_HXX
@@ -41,14 +41,14 @@ namespace NUGA
     void split(ngon_type& ng, E_Int PHi, tree<arr_t>& PHtree, tree<arr_t>& PGtree, K_FLD::IntArray& F2E,
       E_Int firstIntPG, E_Int firstPHchild)
     {
-      // 1. dispatcher les quads découpés (decoupage des faces de PHi a l'etape refine_PGs ) par sommet
+      // 1. dispatcher les quads decoupes (decoupage des faces de PHi a l'etape refine_PGs ) par sommet
       // 2. pour chaque paquet de quad :
       //   a. determiner la ligne polygonale frontiere du paquet
       //   b. "tisser" les quads internes (gestion des doublons ?) avec le centroid et la ligne
       // 3. MAJ de PHtree: PHtree.set_children(PHi, firstPHchild, nbc);
       // 4. MAJ F2E
 
-      E_Int i, j, k, l, m, n, j1, j2, k1, k2;
+      E_Int j, k, l, m, n, j1, j2, k1, k2;
 
       //== 1 get unodes and number of edges ==============================================================
       //========= build working array for interior faces ====================================  
@@ -181,12 +181,14 @@ namespace NUGA
         {
           found = false;
           for (l = 0; l < edgedone.size(); l++)
+          {
             if ((omapnode[j])[3 * k + 1] == edgedone[l])
             {
               found = true;
               mapcn2fPG[j].push_back(midToPGi[(omapnode[j])[3 * k + 1]]);
               //std::cout << " just add already created internal face" << midToPGi[(omapnode[j])[3 * k + 1]] << std::endl;
             }
+          }
           if (!found)
           {
             E_Int* p = ng.PGs.get_facets_ptr(indIntPG);

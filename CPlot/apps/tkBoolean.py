@@ -34,6 +34,7 @@ def union():
     tol = tol[0]
 
     CTK.saveTree()
+    CPlot.setState(cursor=2)
     zlist = []
     deletedZoneNames = []
     for nz in nzs:
@@ -45,15 +46,18 @@ def union():
     
     try: j = XOR.booleanUnion(zlist[0], zlist[1], tol=tol)
     except Exception as e:
+        CPlot.setState(cursor=0)
         Panels.displayErrors([0,str(e)], header='Error: union')
         CTK.TXT.insert('START', 'Union failed\n'); return
 
     for nz in range(len(zlist)-2):
         try: j = XOR.booleanUnion(j, zlist[nz+2], tol=tol)
         except Exception as e:
+            CPlot.setState(cursor=0)
             Panels.displayErrors([0,str(e)], header='Error: union')
             CTK.TXT.insert('START', 'Union failed.\n'); return
         
+    CPlot.setState(cursor=0)
     CTK.t = CPlot.deleteSelection(CTK.t, CTK.Nb, CTK.Nz, nzs)
     CPlot.delete(deletedZoneNames)
     CTK.add(CTK.t, CTK.Nb[0]+1, -1, j)
@@ -83,6 +87,7 @@ def difference():
     tol = tol[0]
 
     CTK.saveTree()
+    CPlot.setState(cursor=2)
     deletedZoneNames = []
     nz = nzs[0]
     nob1 = CTK.Nb[nz]+1
@@ -105,6 +110,7 @@ def difference():
         Panels.displayErrors([0,str(e)], header='Error: difference')
         CTK.TXT.insert('START', 'Difference failed.\n')
     #C._fillMissingVariables(CTK.t)
+    CPlot.setState(cursor=0)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -128,6 +134,7 @@ def difference2():
     tol = tol[0]
 
     CTK.saveTree()
+    CPlot.setState(cursor=2)
     deletedZoneNames = []
     nz = nzs[0]
     nob1 = CTK.Nb[nz]+1
@@ -150,6 +157,7 @@ def difference2():
         Panels.displayErrors([0,str(e)], header='Error: difference')
         CTK.TXT.insert('START', 'Difference failed.\n')
 
+    CPlot.setState(cursor=0)
     #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -174,6 +182,8 @@ def intersection():
     tol = tol[0]
 
     CTK.saveTree()
+    CPlot.setState(cursor=2)
+
     zlist = []
     deletedZoneNames = []
     for nz in nzs:
@@ -185,17 +195,20 @@ def intersection():
 
     try: j = XOR.booleanIntersection(zlist[0], zlist[1], tol=tol)
     except Exception as e:
+        CPlot.setState(cursor=0)
         Panels.displayErrors([0,str(e)], header='Error: intersection')
         CTK.TXT.insert('START', 'Intersection failed.\n'); return
 
     for nz in range(len(zlist)-2):
         try: j = XOR.booleanIntersection(j, zlist[nz+2], tol=tol)
         except Exception as e:
+            CPlot.setState(cursor=0)
             Panels.displayErrors([0,str(e)], header='Error: intersection')
             CTK.TXT.insert('START', 'Intersection failed.\n'); return
         
     CTK.t = CPlot.deleteSelection(CTK.t, CTK.Nb, CTK.Nz, nzs)
     CPlot.delete(deletedZoneNames)
+    CPlot.setState(cursor=0)
     CTK.add(CTK.t, CTK.Nb[0]+1, -1, j)
     CTK.TXT.insert('START', 'Intersection performed.\n')
     #C._fillMissingVariables(CTK.t)

@@ -380,9 +380,9 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, double ARTOL, std::vector<E_In
         {
           // project ae1 on ae0
           double zmean = 0;
-          for (size_t u = 0; u < ae0_2D.m_crd.cols(); ++u) zmean += ae0_2D.m_crd(2, u);
+          for (E_Int u = 0; u < ae0_2D.m_crd.cols(); ++u) zmean += ae0_2D.m_crd(2, u);
           zmean /= ae0_2D.m_crd.cols();
-          for (size_t u = 0; u < ae1_2D.m_crd.cols(); ++u)ae1_2D.m_crd(2, u) = zmean;
+          for (E_Int u = 0; u < ae1_2D.m_crd.cols(); ++u) ae1_2D.m_crd(2, u) = zmean;
           NUGA::transform(ae1_2D.m_crd, P); // back to original ref frame  
           ae1_2D.m_poids = ae1.m_poids;
         }

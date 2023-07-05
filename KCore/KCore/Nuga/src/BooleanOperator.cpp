@@ -49,7 +49,7 @@ BooleanOperator::BooleanOperator
     assert (mini >= 0);
     assert (maxi < coord1.cols() || maxi == IDX_NONE);
   }
-    {
+  {
     E_Int mini, maxi;
     NUGA::MeshTool::computeMinMaxIndices(connect2, mini, maxi);
     assert (mini >= 0);
@@ -119,8 +119,7 @@ BooleanOperator::BooleanOperator
 }
 
 ///
-E_Int
-BooleanOperator::initialized()
+E_Int BooleanOperator::initialized()
 {
   if (_initialized) return 1;
   
@@ -133,8 +132,7 @@ BooleanOperator::initialized()
 }
 
 ///
-E_Int
-BooleanOperator::getSum
+E_Int BooleanOperator::getSum
 (K_FLD::FloatArray& coord, K_FLD::IntArray& connect, std::vector<E_Int>& colors)
 {
   if (!initialized()) return 1;
@@ -149,7 +147,6 @@ BooleanOperator::getSum
 
   return 0;
 }
-
 
 
 

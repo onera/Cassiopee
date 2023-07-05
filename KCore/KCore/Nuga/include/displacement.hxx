@@ -579,7 +579,7 @@ namespace NUGA
     is_dw.clear();
     is_dw.resize(nbcells, false);
 
-    for (size_t i = 0; i < bit->cnt.size(); ++i)
+    for (E_Int i = 0; i < bit->cnt.size(); ++i)
     {
       const E_Int* nodes = bit->cnt.get_facets_ptr(i);
       E_Int nnodes = bit->cnt.stride(i);
@@ -732,7 +732,7 @@ namespace NUGA
             std::cout << "error for face : " << i << " : need to unmove" << std::endl;
 #endif
             ++bad;
-            for (size_t n = 0; n < elt.nb_nodes(); ++n)
+            for (E_Int n = 0; n < elt.nb_nodes(); ++n)
             {
               E_Int Ni = elt.node(n);
               assert (Ni > -1 && Ni < all_nodes_disp.size());

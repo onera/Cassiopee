@@ -409,7 +409,7 @@ def toggleFix(event=None):
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkFixer  [ + ]  2', font=CTK.FRAMEFONT, takefocus=1)
+                           text='tkFixer2  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
     #BB = CTK.infoBulle(parent=Frame, text='Fix holes in surfaces.\nCtrl+w to close applet.', temps=0, btype=1)
     Frame.bind('<Control-w>', hideApp)
     Frame.bind('<ButtonRelease-1>', displayFrameMenu)

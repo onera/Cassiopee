@@ -32,13 +32,15 @@
 #endif
 
 /* Define a chained integer list */
-struct chain_int {
+struct chain_int 
+{
     E_Int        value;
     chain_int* next;
 };
 
 /* Define informations on the state of software */
-struct CPlotState {
+struct CPlotState 
+{
     E_Int mode;  // mode=MESH, SOLID, RENDER, SCALARFIELD, VECTORFIELD
     E_Int dim;   // 1D, 2D, 3D display
 
@@ -90,7 +92,7 @@ struct CPlotState {
     double lightOffsetY;
 
     // Depth of field
-    E_Int    DOF;
+    E_Int DOF;
     double dofPower;
     
     // Gamma correction
@@ -155,6 +157,7 @@ struct CPlotState {
     float currentMousePosX;    // position courante de la souris
     float currentMousePosY;    // quand on est en drag mode (shift + click)
     float currentMousePosZ;
+    int   ondrag;    // 1 if we are dragging/moving view
     int   modifier;  // modifieur quand la souris est pressee
 
     // Styles

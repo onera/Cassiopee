@@ -516,7 +516,7 @@ PyObject* K_INTERSECTOR::superMeshCompSurf(PyObject* self, PyObject* args)
 
   bool match = true; // on verifie s'il s'agit d'un raccord match
 
-  for (E_Int k = 0; k < anc0.size(); k++)
+  for (size_t k = 0; k < anc0.size(); k++)
   {
     if (anc0[k] != k)
     {
@@ -524,7 +524,7 @@ PyObject* K_INTERSECTOR::superMeshCompSurf(PyObject* self, PyObject* args)
       break;
     }
   }
-  for (E_Int k = 0; k < anc1.size(); k++)
+  for (size_t k = 0; k < anc1.size(); k++)
   {
     if (anc1[k] != k)
     {

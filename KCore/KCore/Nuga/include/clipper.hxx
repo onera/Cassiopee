@@ -403,7 +403,7 @@ namespace NUGA
       for (size_t i = 0; i < zs.size(); ++i)
       {
         if (zs[i] != NUGA::FLOAT_MAX) continue;            // non valuated node
-        if (i < pnids.size() && pnids[i] != i && pnids[i] != IDX_NONE) continue;   // merged node
+        if (i < pnids.size() && pnids[i] != E_Int(i) && pnids[i] != IDX_NONE) continue;   // merged node
 
         auto xe = xedge[i];
         

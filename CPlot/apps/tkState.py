@@ -367,8 +367,7 @@ def createApp(win):
     # -5- Incidence/Y -
     V = TK.StringVar(win); V.set('0.'); VARS.append(V)
     # -6- Type de modele de turbulence
-    V = TK.StringVar(win); V.set('SpalartAllmaras')
-    VARS.append(V)
+    V = TK.StringVar(win); V.set('SpalartAllmaras'); VARS.append(V)
     # -7- Valeurs pour les grandeurs turbulentes
     V = TK.StringVar(win); V.set('1.e-6'); VARS.append(V)
     # -8- Jeux de variables definissant l'etat de reference

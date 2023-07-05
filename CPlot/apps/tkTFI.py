@@ -161,6 +161,8 @@ def OTFI():
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     surf = getSurfaces()
     
+    CPlot.setState(cursor=2)
+
     zones = []
     for nz in nzs:
         nob = CTK.Nb[nz]+1
@@ -208,7 +210,9 @@ def OTFI():
         m3 = T.projectOrthoSmooth(m3, surf)
         m4 = T.projectOrthoSmooth(m4, surf)
 
-    CTK.saveTree()   
+    CTK.saveTree()
+    CPlot.setState(cursor=0)
+    
     CTK.t = C.addBase2PyTree(CTK.t, 'MESHES')
     bases = Internal.getNodesFromName1(CTK.t, 'MESHES')
     nob = C.getNobOfBase(bases[0], CTK.t)
@@ -256,6 +260,8 @@ def HOTFI():
         CTK.TXT.insert('START', 'Number of points of countours must be all odd or all even.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
+    CPlot.setState(cursor=2)
+    
     coords1 = C.getFields(Internal.__GridCoordinates__, zones[0])[0]
     coords2 = C.getFields(Internal.__GridCoordinates__, zones[1])[0]
 
@@ -283,6 +289,7 @@ def HOTFI():
         m2 = T.projectOrthoSmooth(m2, surf)
         m3 = T.projectOrthoSmooth(m3, surf)
 
+    CPlot.setState(cursor=0)
     CTK.saveTree()   
     CTK.t = C.addBase2PyTree(CTK.t, 'MESHES')
     bases = Internal.getNodesFromName1(CTK.t, 'MESHES')
