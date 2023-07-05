@@ -99,6 +99,7 @@ class hierarchical_mesh
   
     /// face-conformity
     void conformize(ngo_t& ngo, Vector_t<E_Int>& hmpgid_to_confpgid, Vector_t<E_Int>& pghids, Vector_t<E_Int>& phhids) const;
+	void no_conformize(ngo_t& ngo, Vector_t<E_Int>& hmpgid_to_confpgid, Vector_t<E_Int>& pghids, Vector_t<E_Int>& phhids) const;
     /// Keep only enabled PHs
     void extract_enabled_phs(ngon_type& filtered_ng) const ;
     ///
@@ -314,6 +315,47 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::conformize(ngo_t& ngo, Vector_t<E_I
     phhids.push_back(i);
   }
 
+  ngo.PGs = _ng.PGs; // on copie tous les polygones
+  ngo.PHs = new_phs; // compressed leaves only
+  ngo.PHs.updateFacets();
+
+  std::vector<E_Int>  dummy;//new_phs keeps intact
+  ngo.remove_unreferenced_pgs(hmpgid_to_confpgid, dummy);
+
+  K_CONNECT::IdTool::reverse_indirection(hmpgid_to_confpgid, pghids);
+}
+
+template <typename ELT_t, eSUBDIV_TYPE STYPE, typename ngo_t>
+void hierarchical_mesh<ELT_t, STYPE, ngo_t>::no_conformize(ngo_t& ngo, Vector_t<E_Int>& hmpgid_to_confpgid, Vector_t<E_Int>& pghids, Vector_t<E_Int>& phhids) const
+{
+  ngon_unit new_phs;
+  Vector_t<E_Int> molec, ids;
+
+  pghids.clear();
+  phhids.clear();
+
+  E_Int nb_phs = _ng.PHs.size();
+  for (E_Int i = 0; i < nb_phs; ++i)
+  { 
+    if (!_PHtree.is_enabled(i)) continue;
+
+    molec.clear();
+    E_Int s = _ng.PHs.stride(i);
+    const E_Int* pPGi = _ng.PHs.get_facets_ptr(i);
+
+    for (E_Int j = 0; j < s; ++j)
+    {
+      E_Int PGi = *(pPGi + j) - 1;
+
+      molec.push_back(PGi + 1);
+      pghids.push_back(PGi);
+
+    }
+
+    new_phs.add(molec.size(), &molec[0]);  //alexis : set _type for children ??
+    phhids.push_back(i);
+  }
+  
   ngo.PGs = _ng.PGs; // on copie tous les polygones
   ngo.PHs = new_phs; // compressed leaves only
   ngo.PHs.updateFacets();
