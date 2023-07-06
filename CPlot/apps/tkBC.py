@@ -606,7 +606,8 @@ def setBCWith():
         return
 
     CTK.saveTree()
-    CPlot.setState(cursor=2)
+    CTK.setCursor(2, WIDGETS['setBCWith'])  
+    
     wins = C.getEmptyBC(CTK.t, ndim, splitFactor)
     
     # calcul nzr : le nz dans la numerotation des fenetres emptys
@@ -652,7 +653,7 @@ def setBCWith():
     CTK.TXT.insert('START', 'BCs set to %s.\n'%typeBC)
     CTK.TKTREE.updateApp()
     check()
-    CPlot.setState(cursor=0)
+    CTK.setCursor(0, WIDGETS['setBCWith'])  
     
 #==============================================================================
 def setSplitFactor(event=None):
@@ -768,6 +769,7 @@ def createApp(win):
     
     # - setBCWith -
     B = TTK.Button(Frame, text="setBCWith", command=setBCWith)
+    WIDGETS['setBCWith'] = B
     B.grid(row=5, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Set the BC with specified type.\nAdded to pyTree.')
     F = TTK.Frame(Frame, borderwidth=0)

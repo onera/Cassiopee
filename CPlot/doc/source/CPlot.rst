@@ -101,8 +101,9 @@ Keys in CPlot window
     + **Ctrl + left mouse click**: Accurate select (click on nearest mesh node)
     + **Shift + right mouse click**: deactivate (hide) zone.
     + **Shift + double left mouse click**: center view on clicked point.
-    + **1** or **Shift+1**: toggle between mesh/render/solid modes.
+    + **1** or **Shift+1**: toggle between mesh/solid modes.
     + **2** or **Shift+2**: display fields (switch variable - next and previous).
+    + **3**: set render mode.
     + **Space bar**: toggle select all zones.
     + **m** or **M**: toggle between 2D and 3D mode.
     + **z** or **Z**: select zones one by one.

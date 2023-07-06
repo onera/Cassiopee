@@ -43,12 +43,14 @@ def remap():
     offset = offset[0]
 
     CTK.saveTree()
-    CPlot.setState(cursor=2)
+    
     if VARS[2].get() == '0': algo = 0
     else: algo = 1
+    
+    CTK.setCursor(2, WIDGETS['remap'])
     iso = Geom.PyTree.offsetSurface(a, offset, pointsPerUnitLength, algo)
-    CPlot.setState(cursor=0)
-
+    CTK.setCursor(0, WIDGETS['remap'])
+    
     if iso != []:
         nob = CTK.Nb[nzs[0]]+1
         for i in iso: CTK.add(CTK.t, nob, -1, i)
@@ -121,6 +123,7 @@ def createApp(win):
     
     # - Remap -
     B = TTK.Button(Frame, text="Filter/offset", command=remap)
+    WIDGETS['remap'] = B
     BB = CTK.infoBulle(parent=B, text='Remap/offset a surface with a given spacing.')
     B.grid(row=2, column=0, columnspan=4, sticky=TK.EW)
     

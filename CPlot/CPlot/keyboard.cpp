@@ -134,25 +134,27 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
     break;
   }
       
-  // -- Mesh/Solid/Render display --
+  // -- Mesh/Solid display --
   case '1':
   case 33: // !
   case 38: // 1
   {
+    /*
     if (modif == (GLUT_ACTIVE_CTRL | GLUT_ACTIVE_SHIFT))
     {
-      if (ptrState->mode < 2)
-        ptrState->mode++;
-      else
-        ptrState->mode = MESH;
+      if (ptrState->mode < 2) ptrState->mode++;
+      else ptrState->mode = MESH;
     }
     else
     {
-      if (ptrState->mode > 0)
-        ptrState->mode--;
-      else
-        ptrState->mode = RENDER;
+      if (ptrState->mode > 0) ptrState->mode--;
+      else ptrState->mode = RENDER;
     }
+    */
+
+    if (ptrState->mode == SOLID) ptrState->mode = MESH;
+    else if (ptrState->mode == MESH) ptrState->mode = SOLID;
+    else ptrState->mode = MESH;
     break;
   }
 
@@ -202,6 +204,14 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
     break;
   }
      
+  // -- render mode --
+  case '3':
+  case 34: // 3
+  {
+    ptrState->mode = RENDER;
+    break;
+  }
+
   // -- I/J/K mode --
   case 'i':
   {

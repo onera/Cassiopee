@@ -153,14 +153,26 @@ def conformUnstr():
             #zo1 = XOR.conformUnstr(z1, z2, tol=tol, itermax=1)
             #zo2 = XOR.conformUnstr(z2, z1, tol=tol, itermax=1)
             z = T.join([z1, z2])
-            z = XOR.conformUnstr(z, tol=tol, itermax=1)
+            try:
+                z = XOR.conformUnstr(z, tol=tol, itermax=1)
+            except Exception as e:
+                CTK.setCursor(0, WIDGETS['conformUnstr'])
+                Panels.displayErrors([0,str(e)], header='Error: conformUnstr')
+                CTK.TXT.insert('START', 'ConformUnstr failed\n'); return
+
             zones = T.splitManifold(z); lz = len(zones)
             if lz > 0: CTK.replace(CTK.t, nob1, noz1, zones[0])
             if lz > 1: CTK.replace(CTK.t, nob2, noz2, zones[1])
             for i in zones[2:]: CTK.add(CTK.t, nob1, -1, i)
         else:
-            zo1 = XOR.conformUnstr(z1, z2, tol=tol, itermax=1)
-            zo2 = XOR.conformUnstr(z2, z1, tol=tol, itermax=1)
+            try:
+                zo1 = XOR.conformUnstr(z1, z2, tol=tol, itermax=1)
+                zo2 = XOR.conformUnstr(z2, z1, tol=tol, itermax=1)
+            except Exception as e:
+                CTK.setCursor(0, WIDGETS['conformUnstr'])
+                Panels.displayErrors([0,str(e)], header='Error: conformUnstr')
+                CTK.TXT.insert('START', 'ConformUnstr failed\n'); return
+
             CTK.replace(CTK.t, nob1, noz1, zo1)
             CTK.replace(CTK.t, nob2, noz2, zo2)
     else:

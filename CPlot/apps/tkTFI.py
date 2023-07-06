@@ -161,7 +161,7 @@ def OTFI():
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     surf = getSurfaces()
     
-    CPlot.setState(cursor=2)
+    CTK.setCursor(2, WIDGETS['o'])
 
     zones = []
     for nz in nzs:
@@ -211,8 +211,8 @@ def OTFI():
         m4 = T.projectOrthoSmooth(m4, surf)
 
     CTK.saveTree()
-    CPlot.setState(cursor=0)
-    
+    CTK.setCursor(0, WIDGETS['o'])
+
     CTK.t = C.addBase2PyTree(CTK.t, 'MESHES')
     bases = Internal.getNodesFromName1(CTK.t, 'MESHES')
     nob = C.getNobOfBase(bases[0], CTK.t)
@@ -260,7 +260,7 @@ def HOTFI():
         CTK.TXT.insert('START', 'Number of points of countours must be all odd or all even.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
-    CPlot.setState(cursor=2)
+    CTK.setCursor(2, WIDGETS['ho'])
     
     coords1 = C.getFields(Internal.__GridCoordinates__, zones[0])[0]
     coords2 = C.getFields(Internal.__GridCoordinates__, zones[1])[0]
@@ -289,8 +289,9 @@ def HOTFI():
         m2 = T.projectOrthoSmooth(m2, surf)
         m3 = T.projectOrthoSmooth(m3, surf)
 
-    CPlot.setState(cursor=0)
     CTK.saveTree()   
+    CTK.setCursor(0, WIDGETS['ho'])
+    
     CTK.t = C.addBase2PyTree(CTK.t, 'MESHES')
     bases = Internal.getNodesFromName1(CTK.t, 'MESHES')
     nob = C.getNobOfBase(bases[0], CTK.t)
@@ -443,10 +444,12 @@ def createApp(win):
 
     # - O - TFI -
     B = TTK.Button(Frame, text="O", command=OTFI)
+    WIDGETS['o'] = B
     B.grid(row=1, column=0, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Perform a O-TFI from a close contour (npts must be odd).')
     # - HO - TFI
     B = TTK.Button(Frame, text="Half-O", command=HOTFI)
+    WIDGETS['ho'] = B
     B.grid(row=1, column=1, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Perform a Half O-TFI from 2 contours (longer contour is taken to be the round part).')
     # - TRI - TFI -

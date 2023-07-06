@@ -34,7 +34,7 @@ def union():
     tol = tol[0]
 
     CTK.saveTree()
-    CPlot.setState(cursor=2)
+    CTK.setCursor(2, WIDGETS['union'])
     zlist = []
     deletedZoneNames = []
     for nz in nzs:
@@ -46,18 +46,18 @@ def union():
     
     try: j = XOR.booleanUnion(zlist[0], zlist[1], tol=tol)
     except Exception as e:
-        CPlot.setState(cursor=0)
+        CTK.setCursor(0, WIDGETS['union'])
         Panels.displayErrors([0,str(e)], header='Error: union')
         CTK.TXT.insert('START', 'Union failed\n'); return
 
     for nz in range(len(zlist)-2):
         try: j = XOR.booleanUnion(j, zlist[nz+2], tol=tol)
         except Exception as e:
-            CPlot.setState(cursor=0)
+            CTK.setCursor(0, WIDGETS['union'])
             Panels.displayErrors([0,str(e)], header='Error: union')
             CTK.TXT.insert('START', 'Union failed.\n'); return
-        
-    CPlot.setState(cursor=0)
+
+    CTK.setCursor(0, WIDGETS['union'])    
     CTK.t = CPlot.deleteSelection(CTK.t, CTK.Nb, CTK.Nz, nzs)
     CPlot.delete(deletedZoneNames)
     CTK.add(CTK.t, CTK.Nb[0]+1, -1, j)
@@ -87,7 +87,7 @@ def difference():
     tol = tol[0]
 
     CTK.saveTree()
-    CPlot.setState(cursor=2)
+    CTK.setCursor(2, WIDGETS['difference'])
     deletedZoneNames = []
     nz = nzs[0]
     nob1 = CTK.Nb[nz]+1
@@ -107,10 +107,12 @@ def difference():
         CTK.add(CTK.t, nob1, -1, j)
         CTK.TXT.insert('START', 'Difference performed.\n')
     except Exception as e:
+        CTK.setCursor(0, WIDGETS['difference'])
         Panels.displayErrors([0,str(e)], header='Error: difference')
         CTK.TXT.insert('START', 'Difference failed.\n')
     #C._fillMissingVariables(CTK.t)
-    CPlot.setState(cursor=0)
+    CTK.setCursor(0, WIDGETS['difference'])
+    
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -134,7 +136,7 @@ def difference2():
     tol = tol[0]
 
     CTK.saveTree()
-    CPlot.setState(cursor=2)
+    CTK.setCursor(2, WIDGETS['revdiff'])
     deletedZoneNames = []
     nz = nzs[0]
     nob1 = CTK.Nb[nz]+1
@@ -154,10 +156,11 @@ def difference2():
         CTK.add(CTK.t, nob1, -1, j)
         CTK.TXT.insert('START', 'Difference performed.\n')
     except Exception as e:
+        CTK.setCursor(0, WIDGETS['revdiff'])
         Panels.displayErrors([0,str(e)], header='Error: difference')
         CTK.TXT.insert('START', 'Difference failed.\n')
 
-    CPlot.setState(cursor=0)
+    CTK.setCursor(0, WIDGETS['revdiff'])    
     #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -182,7 +185,7 @@ def intersection():
     tol = tol[0]
 
     CTK.saveTree()
-    CPlot.setState(cursor=2)
+    CTK.setCursor(2, WIDGETS['intersection'])
 
     zlist = []
     deletedZoneNames = []
@@ -195,20 +198,20 @@ def intersection():
 
     try: j = XOR.booleanIntersection(zlist[0], zlist[1], tol=tol)
     except Exception as e:
-        CPlot.setState(cursor=0)
+        CTK.setCursor(0, WIDGETS['intersection'])
         Panels.displayErrors([0,str(e)], header='Error: intersection')
         CTK.TXT.insert('START', 'Intersection failed.\n'); return
 
     for nz in range(len(zlist)-2):
         try: j = XOR.booleanIntersection(j, zlist[nz+2], tol=tol)
         except Exception as e:
-            CPlot.setState(cursor=0)
+            CTK.setCursor(0, WIDGETS['intersection'])
             Panels.displayErrors([0,str(e)], header='Error: intersection')
             CTK.TXT.insert('START', 'Intersection failed.\n'); return
         
     CTK.t = CPlot.deleteSelection(CTK.t, CTK.Nb, CTK.Nz, nzs)
     CPlot.delete(deletedZoneNames)
-    CPlot.setState(cursor=0)
+    CTK.setCursor(0, WIDGETS['intersection'])
     CTK.add(CTK.t, CTK.Nb[0]+1, -1, j)
     CTK.TXT.insert('START', 'Intersection performed.\n')
     #C._fillMissingVariables(CTK.t)
@@ -251,21 +254,25 @@ def createApp(win):
 
     # - Union -
     B = TTK.Button(Frame, text="Union", command=union)
+    WIDGETS['union'] = B
     B.grid(row=1, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Union of two surfaces.')
 
     # - Difference -
     B = TTK.Button(Frame, text="Difference", command=difference)
+    WIDGETS['difference'] = B
     B.grid(row=1, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Difference of two surfaces.')
 
     # - Intersection -
     B = TTK.Button(Frame, text="Intersection", command=intersection)
+    WIDGETS['intersection'] = B
     B.grid(row=2, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Intersect two surfaces.')
 
     # - Rev. Difference -
     B = TTK.Button(Frame, text="Rev. Diff", command=difference2)
+    WIDGETS['revdiff'] = B
     B.grid(row=2, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Reversed difference of two surfaces.')
     
