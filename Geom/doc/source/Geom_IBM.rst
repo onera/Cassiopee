@@ -31,7 +31,7 @@ Table outlining the various IBCs currently supported. Please note that the "Name
 +-------------------------------------------------------+---------------+-------------------+
 | Wall model: Thin Boundary Layer Equations (TBLE)      | TBLE          | 6                 |
 +-------------------------------------------------------+---------------+-------------------+
-| Wall model: Mobile Musker                             | MuskerMob     | 7                 |
+| Wall no slip with rotation (limited capabilities)     | MuskerMob     | 7                 |
 +-------------------------------------------------------+---------------+-------------------+
 | Wall model: Pohlhausen                                | Pohlhausen    | 8                 |
 +-------------------------------------------------------+---------------+-------------------+
@@ -44,6 +44,7 @@ Table outlining the various IBCs currently supported. Please note that the "Name
 | Wall no slip with curvature radius                    | slip_cr       | 100               |
 +-------------------------------------------------------+---------------+-------------------+
 
+Note: Wall no slip with rotation with an integer identifier of 7 assumes the x-axis (i.e. x=0) is the axis of rotation. A more complete IBM with rotation is in the process of being developed and will be shortly be available making the current IBC decrepit.
 
 .. py:module:: Geom.IBM
 
@@ -221,17 +222,23 @@ Setting IBC Type
                         
 ---------------------------------------
 
-.. py:function:: Geom.IBM.initOutflow(tc, familyName, PStatic)
+.. py:function:: Geom.IBM.initOutflow(tc, familyName, Pstatic, InterpolPlane=None, PressureVar=0,isDensityConstant=False)
 
-    Set the value of the static pressure PStatic for the outflow pressure IBC with family name familyName.
+    Set the value of the static pressure Pstatic for the outflow pressure IBC with family name familyName. A plane InterpolPlane may also be provided with only static pressure variable or various variables with static pressure as the PressureVar (e.g. 2nd) variable).
     Exists also as in-place (_initOutflow).
     
     :param tc: connectivity tree
     :type  tc: [zone, list of zones, tree]
     :param familyName: familyName
     :type familyName: string
-    :param PStatic: static pressure
-    :type PStatic: float	
+    :param Pstatic: static pressure
+    :type Pstatic: float
+    :param PInterpolPlane: interpolation plane
+    :type PInterpolPlane: [zone, list of zones, tree]
+    :param PressureVar: variable number of static pressure
+    :type PressureVar: integer
+    :param isDensityConstant: is density at the outflow constant and equal to the reference density
+    :type isDensityConstant: boolean
     :return: same as input
 
     *Example of use:*
@@ -243,21 +250,27 @@ Setting IBC Type
 
 ---------------------------------------
 
-.. py:function:: Geom.IBM.initInj(tc, familyName, P_tot, H_tot, injDir=[1.,0.,0.])
+.. py:function:: Geom.IBM.initInj(tc, familyName, Ptot, Htot, injDir=[1.,0.,0.], InterpolPlane=None, PressureVar=0, EnthalpyVar=0)
 
-    Set the total pressure P_tot, total enthalpy H_tot, and direction of the flow injDir for the injection IBC with family name familyName. Exists also as in-place (_initInj).
-
+    Set the total pressure Ptot, total enthalpy Htot, and direction of the flow injDir (w.r.t the absolute frame of reference) for the injection IBC with family name familyName. A plane InterpolPlane may also be provided with at least the total pressure and total enthalpy variables with the former and latter as the PressureVar (e.g. 2nd) and EnthalpyVar (e.g. 4th) variables, respectively.
+    Exists also as in-place (_initInj). 
 
     :param tc: connectivity tree
     :type  tc: [zone, list of zones, tree]
     :param familyName: familyName
     :type familyName: string
-    :param P_tot: total pressure
-    :type P_tot: float
-    :param H_tot: total enthalpy
-    :type H_tot: float
+    :param Ptot: total pressure
+    :type Ptot: float
+    :param Htot: total enthalpy
+    :type Htot: float
     :param injDir: direction of the injection w.r.t to the reference coordinate axis
     :type injDir: float list
+    :param PInterpolPlane: interpolation plane
+    :type PInterpolPlane: [zone, list of zones, tree]
+    :param PressureVar: variable number of total pressure			  
+    :type PressureVar: integer
+    :param EnthalpyVar: variable number of total enthalpy		       
+    :type EnthalpyVar: integer
     :return: same as input
 
     *Example of use:*

@@ -21,7 +21,7 @@ To use the module with the Converter array interface::
 
 To use the module with the CGNS/Python interface::
 
-    import Geom.PyTree as D
+   import Geom.PyTree as D
 
 
 .. py:module:: Geom
@@ -73,7 +73,7 @@ List of functions
    Geom.orthoDrive
    Geom.axisym
    Geom.connect1D
-   Geom.offsetSurface
+   Geom.Offset.offsetSurface
 
    .. Geom.volumeFromCrossSections
    .. Geom.addSeparationLine
@@ -974,7 +974,7 @@ Geometry modification
 
 ---------------------------------------
 
-.. py:function:: Geom.offsetSurface(a, offset=1., pointsPerUnitLength=1., algo=0, dim=3)
+.. py:function:: Geom.Offset.offsetSurface(a, offset=1., pointsPerUnitLength=1., algo=0, dim=3)
   
     Offset a surface of certain distance. The underlaying algorithm uses an 
     octree (algo=1) or a cartesian grid (algo=0) with a number of points normalized per unit length
@@ -996,9 +996,6 @@ Geometry modification
 
     *Example of use:*
 
-    * `Offset a surface  (array) <Examples/Geom/offsetSurface.py>`_:
-
-    .. literalinclude:: ../build/Examples/Geom/offsetSurface.py
 
     * `Offset a surface (pyTree) <Examples/Geom/offsetSurfacePT.py>`_:
 
