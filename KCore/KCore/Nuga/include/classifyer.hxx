@@ -441,7 +441,7 @@ namespace NUGA
 
     
 
-  };
+  }
 
   ///
   TEMPLATE_TYPES

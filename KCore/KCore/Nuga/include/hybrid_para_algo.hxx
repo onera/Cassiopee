@@ -85,7 +85,6 @@ namespace NUGA
     MPI_Comm COM
   )
   {
-    int err(0);
     int NBZ{ int(meshes.size()) };
 
     //1. autonomous runs

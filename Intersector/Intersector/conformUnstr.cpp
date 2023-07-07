@@ -40,7 +40,7 @@ E_Int check_args(PyObject* z1arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1,
   err |= (strcmp(eltType, "TRI") != 0) && (strcmp(eltType, "BAR") != 0);
   if (err)
   {
-    PyErr_SetString(PyExc_TypeError, "conformUnstr : invalid array, must be a unstructured TRI or BAR array.");
+    PyErr_SetString(PyExc_TypeError, "conformUnstr: invalid array, must be a unstructured TRI or BAR array.");
     delete f1; delete cn1;
     return 1;
   }
@@ -52,7 +52,7 @@ E_Int check_args(PyObject* z1arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1,
 
   if ((posx == -1) || (posy == -1) || (posz == -1))
   {
-    PyErr_SetString(PyExc_TypeError, "conformUnstr : can't find coordinates in array.");
+    PyErr_SetString(PyExc_TypeError, "conformUnstr: can't find coordinates in array.");
     delete f1; delete cn1;
     return 1;
   }
@@ -90,12 +90,11 @@ PyObject* K_INTERSECTOR::conformUnstr(PyObject* self, PyObject* args)
   {
     // Check array # 2
     err = check_args(z2arr, f2, cn2, varString, eltType2);
-    if (err)
-      return NULL;
+    if (err) return NULL;
     
     if (strcmp(eltType1, eltType2) != 0) // do not handle mixed type yet*
     {
-      PyErr_SetString(PyExc_TypeError, "conformUnstr : invalid arrays, both must be of same type, unstructured TRI or BAR arrays.");
+      PyErr_SetString(PyExc_TypeError, "conformUnstr: invalid arrays, both must be of same type, unstructured TRI or BAR arrays.");
       return NULL;
     }
     
@@ -118,54 +117,57 @@ PyObject* K_INTERSECTOR::conformUnstr(PyObject* self, PyObject* args)
   {
     TRI_Conformizer<3> conformizer;
     err = conformizer.run(crd, cnt, colors, 0, tolerance, X0, itermax);
-    if (err) PyErr_SetString(PyExc_TypeError, "conformUnstr : conformizer failed.");
+    if (err) 
+    {
+      PyErr_SetString(PyExc_TypeError, "conformUnstr: conformizer failed.");
+      return NULL;
+    }
   }
   else // BAR
   {
     BAR_Conformizer<3> conformizer;
     err = conformizer.run(crd, cnt, colors, 0, tolerance, X0, itermax);
-    if (err) PyErr_SetString(PyExc_TypeError, "conformUnstr : conformizer failed.");
+    if (err) 
+    {
+      PyErr_SetString(PyExc_TypeError, "conformUnstr: conformizer failed.");
+      return NULL;
+    }
   }
   
   PyObject* tpl = NULL;
-  if (!err)
+  
+  vector<E_Int> nids;
+  K_FLD::IntArray* cntOut = 0;
+  E_Int rows = cnt.rows();
+    
+  if (left_or_right_or_both == 2) // both
   {
-    vector<E_Int> nids;
-    K_FLD::IntArray* cntOut = 0;
-    E_Int rows = cnt.rows();
-    
-    if (left_or_right_or_both == 2) // both
-    {
-      cntOut = &cnt;
-    }
-    else if (left_or_right_or_both == 1) // right
-    {
-      cntOut = new K_FLD::IntArray;
-      //
-      for (E_Int i=0; i < cnt.cols(); ++i)
-      {
-        if (colors[i] >= min_z2_id)
-          cntOut->pushBack(cnt.col(i), cnt.col(i)+rows);
-      }
-    }
-    else //left
-    {
-      //
-      cntOut = new K_FLD::IntArray;
-      for (E_Int i=0; i < cnt.cols(); ++i)
-      {
-        if (colors[i] < min_z2_id)
-          cntOut->pushBack(cnt.col(i), cnt.col(i)+rows);
-      }
-    }
-    
-    //
-    NUGA::MeshTool::compact_to_mesh(crd, *cntOut, nids);
-    //std::cout << "nb elts : " << cntOut->cols() << " and type (nb rows) : " << cntOut->rows() << std::endl; 
-    tpl = K_ARRAY::buildArray(crd, varString, *cntOut, -1, eltType1, false);
-    
-    if (left_or_right_or_both != 2) delete cntOut;
+    cntOut = &cnt;
   }
+  else if (left_or_right_or_both == 1) // right
+  {
+    cntOut = new K_FLD::IntArray;
+    for (E_Int i=0; i < cnt.cols(); ++i)
+    {
+      if (colors[i] >= min_z2_id)
+        cntOut->pushBack(cnt.col(i), cnt.col(i)+rows);
+    }
+  }
+  else //left
+  {
+    cntOut = new K_FLD::IntArray;
+    for (E_Int i=0; i < cnt.cols(); ++i)
+    {
+      if (colors[i] < min_z2_id)
+        cntOut->pushBack(cnt.col(i), cnt.col(i)+rows);
+    }
+  }
+    
+  NUGA::MeshTool::compact_to_mesh(crd, *cntOut, nids);
+  //std::cout << "nb elts : " << cntOut->cols() << " and type (nb rows) : " << cntOut->rows() << std::endl; 
+  tpl = K_ARRAY::buildArray(crd, varString, *cntOut, -1, eltType1, false);
+    
+  if (left_or_right_or_both != 2) delete cntOut;
   
   delete f1; delete f2; delete cn1; delete cn2;
   return tpl;
@@ -173,4 +175,4 @@ PyObject* K_INTERSECTOR::conformUnstr(PyObject* self, PyObject* args)
 
 
 
-//=======================  Generator/conforrmTri.cpp ====================
+//=======================  Generator/conformUnstr.cpp ====================

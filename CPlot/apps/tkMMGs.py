@@ -190,11 +190,11 @@ def createApp(win):
 
     # RidgeAngle
     B = TTK.Label(Frame, text="angle")
-    BB = CTK.infoBulle(parent=B, text='Ridge angle (degree).')
+    BB = CTK.infoBulle(parent=B, text='Ridge angle detection (degrees).')
     B.grid(row=0, column=0, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=10)
     B.grid(row=0, column=1, columnspan=1, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Ridge angle (degree).')
+    BB = CTK.infoBulle(parent=B, text='Ridge angle  detection (degrees).')
 
     # hausd
     B = TTK.Label(Frame, text="hausd")

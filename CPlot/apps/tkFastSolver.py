@@ -153,7 +153,7 @@ def getDim(t):
 
 #==============================================================================
 def run(event=None):
-    CTK.setCursor(2, WIDGETS['frame'])
+    CTK.setCursor(2, WIDGETS['compute'])
     dim = getDim(CTK.t)
     mode = VARS[10].get()
     if mode == 'Body':
@@ -178,7 +178,7 @@ def run(event=None):
         displayByReplace(CTK.t)
     else: displaySlices()
     CTK.TKTREE.updateApp()
-    CTK.setCursor(0, WIDGETS['frame'])
+    CTK.setCursor(0, WIDGETS['compute'])
     return None
 
 # Display replacing all zones in place
@@ -471,7 +471,7 @@ def createApp(win):
     # -3- restart_fields -
     V = TK.StringVar(win); V.set('1');VARS.append(V)
     # -4- scheme -
-    V = TK.StringVar(win); V.set('senseur'); VARS.append(V)
+    V = TK.StringVar(win); V.set('roe_min'); VARS.append(V)
     # -5- Time step or cfl -
     V = TK.DoubleVar(win); V.set(TIMESTEP); VARS.append(V)
     # -6- Snear -
@@ -539,6 +539,7 @@ def createApp(win):
 
     # - compute -
     B = TTK.Button(Frame, text="Compute", command=run)
+    WIDGETS['compute'] = B
     BB = CTK.infoBulle(parent=B, text='Launch computation.')
     B.grid(row=5, column=0, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[9], width=5, background='White')

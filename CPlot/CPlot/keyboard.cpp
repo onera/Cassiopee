@@ -435,7 +435,7 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
 //=============================================================================
 void Data::arrows(unsigned char key, E_Int x, E_Int y)
 {
-  double alpha = 0.07;
+  double alpha = 0.07853981633974483;
   double dx = (_view.xeye - _view.xcam)*alpha;
   double dy = (_view.yeye - _view.ycam)*alpha;
   double dz = (_view.zeye - _view.zcam)*alpha;

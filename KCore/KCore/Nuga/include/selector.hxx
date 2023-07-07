@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sï¿½m Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_SELECTOR_HXX
 #define NUGA_SELECTOR_HXX
@@ -48,7 +48,7 @@ namespace NUGA
       m.compress(keep);
     }
 
-  };
+  }
 
 }
 

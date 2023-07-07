@@ -226,16 +226,21 @@ class AutocompleteEntry(TK.Entry):
             self.var = self["textvariable"] = TK.StringVar()
             self.var.set("Ask me...")
         self.var.trace('w', self.changed)
+        self.bind("<FocusIn>", self.focusin)
         self.bind("<Right>", self.selection)
         self.bind("<Up>", self.up)
         self.bind("<Down>", self.down)
         self.bind("<Return>", self.selection)
         self.bind("<Control-c>", self.clearVar)
+        self.bind("<Control-u>", self.clearVar)
         self.bind("<Escape>", self.clearVar)
         self.lb_up = False
 
     def clearVar(self, event):
         self.var.set('')
+
+    def focusin(self, event):
+        if self.var.get() == 'Ask me...': self.var.set('')
 
     def changed(self, name, index, mode):
         if self.var.get() == '':
