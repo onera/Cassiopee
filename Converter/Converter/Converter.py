@@ -530,6 +530,7 @@ def convertExt2Format__(fileName):
     elif extension == '.stl': format = 'fmt_stl'
     elif extension == '.fstl': format = 'fmt_stl'
     elif extension == '.bstl': format = 'bin_stl'
+    elif extension == '.selig': format = 'fmt_selig'
     elif extension == '.gltf': format = 'bin_gltf'
     elif extension == '.fig': format = 'fmt_xfig'
     elif extension == '.svg': format = 'fmt_svg'
@@ -1677,7 +1678,7 @@ def checkFileType(fileName):
     fileSize = os.path.getsize(fileName)
     try: ntri = header[80:82]; ntri = int(ntri)
     except: ntri = 0
-    sizet = ntri*50+84  #format bin_stl 80 octets d entete/nombre de triangles/50 octets par triangles
+    sizet = ntri*50+84  #format bin_stl 80 octets d'entete/nombre de triangles/50 octets par triangles
     if fileSize == sizet: return 'bin_stl'
 
     eolx1 = beader.find(eol, 0)

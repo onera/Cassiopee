@@ -610,11 +610,11 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
 # IN: t_3d arbre cartesien   (from prepare1)
 # IN: tc_3d arbre cartesien connectivite   (from prepare1)
 # IN: t_curvi arbre curviligne   (with bc and connectivity but without ghost)
-#==================================================
-def setInterpData_Hybride(t_3d, tc_3d, t_curvi,extrusion=None,interpDataType=1):
-    overlap     ='14'
-    InterpOrder =2
-    root_racHybride='joinIBC'
+#================================================================================
+def setInterpData_Hybride(t_3d, tc_3d, t_curvi, extrusion=None, interpDataType=1):
+    overlap = '14'
+    InterpOrder = 2
+    root_racHybride = 'joinIBC'
     
     #ajout 2 ghost maillag curvi
     Internal._addGhostCells(t_curvi, t_curvi, 2, adaptBCs=1, fillCorner=0)
@@ -872,7 +872,7 @@ def interpolateSolutionCoarse2Fine(tCoarse, tFine, NPprep, NPinterp):
 #================================================================================
 # IBM prepare
 # IN: t_case: fichier ou arbre body
-# OUT: t_out, tc_out : fichier ou arbres de sorties
+# OUT: t_out, tc_out: fichier ou arbres de sorties
 # snears         : liste des snear, mais c'est mieux si ils sont dans t_case
 # dfar, dfarList : liste des dfars, mais c'est mieux si ils sont dans t_case
 # tbox           : arbre de raffinement

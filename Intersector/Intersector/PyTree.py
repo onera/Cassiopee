@@ -53,10 +53,8 @@ def nb_cells(a):
   return ncellsTot
 
 #==============================================================================
-# nb_faces : Returns teh numbe rof faces in t
-
-# IN: t             : 3D NGON mesh
-
+# nb_faces: Returns teh number of faces in t
+# IN: t: 3D NGON mesh
 # OUT: returns the adapted feature
 #==============================================================================
 def nb_faces(t):
@@ -76,27 +74,23 @@ def nb_faces(t):
     return ncfacesTot
 
 #==============================================================================
-# updateNugaData : update a field by applying an oid
-
-# IN: t             : 3D NGON mesh
-
+# updateNugaData: update a field by applying an oid
+# IN: t: 3D NGON mesh
 # OUT: returns the adapted feature
 #==============================================================================
 def updateNugaData(field, oid):
   new_fld = numpy.empty(len(oid), Internal.E_NpyInt)
-  i=-1
+  i = -1
   #print(oid)
   for oi in oid:
-    i +=1
-    new_fld[i]=field[oi]
+    i += 1
+    new_fld[i] = field[oi]
   return new_fld
 
 #==============================================================================
-# getTreeDim : XXX
-
-# IN: t             : 3D NGON mesh
-
-# OUT:  XXX
+# getTreeDim: XXX
+# IN: t: 3D NGON mesh
+# OUT: XXX
 #==============================================================================
 def getTreeDim(t):
   zs = Internal.getZones(t)
@@ -105,39 +99,34 @@ def getTreeDim(t):
   for z in zs:
     dims = Internal.getZoneDim(z)
     if d == 0: d = dims[4]
-    if dims[4] != d:return 0; # mixed type : not handled
-    if dims[3] == 'NGON' : nb_elts_per_zone += nb_cells(z)
+    if dims[4] != d: return 0 # mixed type : not handled
+    if dims[3] == 'NGON': nb_elts_per_zone += nb_cells(z)
 
   if d == 3 and nb_elts_per_zone == len(zs): d = 21 # NGON with one cell per zone => NUGA NGON => 2D
 
   return d
 
 #==============================================================================
-# getZoneNSTypeAndDim : XXX
-
-# IN: t             : 3D NGON mesh
-
-# OUT:  XXX
+# getZoneNSTypeAndDim: XXX
+# IN: t: 3D NGON mesh
+# OUT: XXX
 #==============================================================================
 def getZoneNSTypeAndDim(z):
   dims = Internal.getZoneDim(z)
   d = dims[4]
   if d == 2:
-    if dims[3] == 'NGON' : return ('NGON_CASSIOPEE', 2)
+    if dims[3] == 'NGON': return ('NGON_CASSIOPEE', 2)
     else : return ('BASIC', 2)
   else: # 3D
     #print(nb_cells(z))
-    if dims[3] == 'NGON' and nb_cells(z) == 1 : return ('NGON_NUGA',2)
-    elif dims[3] == 'NGON' : return ('NGON', 3)
+    if dims[3] == 'NGON' and nb_cells(z) == 1: return ('NGON_NUGA',2)
+    elif dims[3] == 'NGON': return ('NGON', 3)
     else : return ('BASIC', 3)
 
-
 #==============================================================================
-# InputType : XXX
-
-# IN: t             : 3D NGON mesh
-
-# OUT:  XXX
+# InputType: XXX
+# IN: t: 3D NGON mesh
+# OUT: XXX
 #==============================================================================
 # return values : 0(single numpy), 1(list of numpies), 2(single zone), 3 (PyTree), 4(list of zones), 5(list of list of numpies)
 def InputType(t): # fixme : based on first block only
@@ -153,13 +142,13 @@ def InputType(t): # fixme : based on first block only
       if XOR.isSingleZone(t):
         #print('is isSingleZone node')
         return 2
-      if Internal.isTopTree(t) :
+      if Internal.isTopTree(t):
         #print('is isSingleZone node')
         return 3
       if XOR.isSingleZone(t[0]):
         #print('is isSingleZone t0')
         return 4
-    else : return -1
+    else: return -1
   else:
     if isinstance(t, numpy.ndarray): return 0
     else: return -1 # error
@@ -167,12 +156,10 @@ def InputType(t): # fixme : based on first block only
 #==============================================================================
 # NGONBlock
 
-# GOAL : converts into a single connex NGON zone
-
+# GOAL: converts into a single connex NGON zone
 # IN: t             : 3D NGON mesh
 # IN: TOL           : tolerance
 # IN: nb_comps      : nb of connex parts
-
 # OUT: returns the adapted feature
 #==============================================================================
 def NGONBlock(t, nb_comps, mixed_type=False, keep_BC=False, tol = 0.):
@@ -181,7 +168,7 @@ def NGONBlock(t, nb_comps, mixed_type=False, keep_BC=False, tol = 0.):
       C._deleteGridConnectivity__(t)
       C._deleteZoneBC__(t)
     
-    if mixed_type == True:
+    if mixed_type:
         t = C.breakConnectivity(t)
         for zone in Internal.getZones(t):
             if Internal.getZoneDim(zone)[3] in ['TRI','QUAD']: Internal.rmNode(t,zone)
@@ -191,18 +178,17 @@ def NGONBlock(t, nb_comps, mixed_type=False, keep_BC=False, tol = 0.):
     #C.convertPyTree2File(t, 'tNG.cgns')
     # compute relevant tolerance : 1% of the minimum edge length
     TOL = tol
-    if TOL == 0. :
+    if TOL == 0.:
       TOL = 0.1 * edgeLengthExtrema(t)
     
-    t = concatenate(t, tol = TOL)
+    t = concatenate(t, tol=TOL)
 
     valid = True
     if nb_comps > 0:
       valid = isConformalNConnex(t, nb_comps)
-    if valid == False:
+    if not valid:
       #C.convertPyTree2File(t, 'bad_oper.cgns')
-      print('Invalid operand : concatenation failed to produce a single connex and conformal block.')
-      import sys; sys.exit()
+      raise ValueError('NGONBlock: concatenation failed to produce a single connex and conformal block.')
 
     #Internal._correctPyTree(t) # to add families if required and missing    
     zs = Internal.getZones(t)
@@ -211,12 +197,9 @@ def NGONBlock(t, nb_comps, mixed_type=False, keep_BC=False, tol = 0.):
 
 #==============================================================================
 # isConformalNConnex
-
-# GOAL : check if a component is conformal and connex
-
-# IN: t             : 3D NGON mesh
-# IN: nb_comps      : nb of connex parts
-
+# GOAL: check if a component is conformal and connex
+# IN: t         : 3D NGON mesh
+# IN: nb_comps  : nb of connex parts
 # OUT: returns the adapted feature
 #==============================================================================
 def isConformalNConnex(t, nb_comps):
@@ -224,25 +207,23 @@ def isConformalNConnex(t, nb_comps):
     F = P.exteriorFaces(t)
     F = T.splitConnexity(F)
     zs = Internal.getZones(F)
-    if len(zs) != nb_comps :
-      print('nb of contours : '+str(len(zs)))
-      print ('expected to be : '+str(nb_comps))
+    if len(zs) != nb_comps:
+      print('nb of contours: '+str(len(zs)))
+      print ('expected to be: '+str(nb_comps))
       return False
     F = P.exteriorFaces(F)
     zs = Internal.getZones(F)
     #print('nb of edge zones: ' + str(len(zs)))
     if len(zs) > 0:
-        if nb_faces(zs[0]) != 0 : return False
+        if nb_faces(zs[0]) != 0: return False
     return True
 
 
 #==============================================================================
 # computeMeshAssemblyParameters
 
-# GOAL : Computes the tolerance (based on min edge length) and thr configuration span to nomalize it 
-
-# IN: t             : 3D NGON mesh
-
+# GOAL: Computes the tolerance (based on min edge length) and thr configuration span to nomalize it 
+# IN: t: 3D NGON mesh
 # OUT: returns the tolerance and the max bounding box size
 #==============================================================================
 def computeMeshAssemblyParameters(t):
@@ -279,21 +260,22 @@ def computeVmin(zones):
   return vmin
 
 def computeMetrics(NGzones):
-    import sys;
-    MEL=GRmin=Vmin=sys.float_info.max
+    import sys
+    MEL = GRmin = Vmin = sys.float_info.max
     
     for z in NGzones:
 
         zi = Internal.createElsaHybrid(z, method=1, methodPE=1)
         (Vmini, ivmin, vzoneid, GRmini, igrmin, grzoneid) = checkCellsVolumeAndGrowthRatio(zi)
 
-        MELi=edgeLengthExtrema(zi)
+        MELi = edgeLengthExtrema(zi)
 
         MEL = min(MEL, MELi)
         Vmin = min(Vmin, Vmini)
         GRmin = min(GRmin, GRmini)
 
     return (0.01*MEL, Vmin, GRmin)
+
 #==============================================================================
 # checkAssemblyForlSolver
 
@@ -310,11 +292,10 @@ def checkAssemblyForlSolver(t, fullcheck=False, nb_comps=1):
 
   # VERIFICATION 1 : CONFORMITE
   conformal = isConformalNConnex(t, nb_comps)
-  if conformal == False:
-    print('ERROR : non conformal mesh')
-    import sys; sys.exit()
+  if not conformal:
+    raise ValueError('checkAssemblyForSolver: non conformal mesh.')
   else:
-    print('OK : conformal')
+    print('OK: conformal.')
 
   # VERIFICATION 2 : CELLULES FERMEES
   print("Check cells closure ...")
@@ -384,17 +365,17 @@ def checkAssemblyForlSolver(t, fullcheck=False, nb_comps=1):
   detectIdenticalCells(t, TOL=1.e-10, clean=0)
 
 #=============================================================================
-# Concatenation des PointList d un type de BC donne dans une liste de zones
+# Concatenation des PointList d'un type de BC donne dans une liste de zones
 #=============================================================================
 def concatenateBC(bctype, zones, wallpgs, cur_shift):
-    i=0
+    i = 0
     for z in zones:
       c = C.getFields(Internal.__GridCoordinates__, z)
-
       if c == []: continue
+      if len(c[0]) == 5: continue # structure (skip)
 
       #print(' -- zone : %d / %d' %(i+1, len(zones)))
-      i=i+1
+      i = i+1
       bnds = Internal.getNodesFromType(z, 'BC_t')
       #print(" -- this zone has %d boundaries"%(len(bnds)))
       #print(' -- cur shift %d' %(cur_shift))
@@ -411,9 +392,8 @@ def concatenateBC(bctype, zones, wallpgs, cur_shift):
         wallpgs.append(id2)
 
       c = c[0]
-      # print(c)
       #z_nb_pts= len(c[1][0])
-      z_nb_pgs= c[2][0][0]
+      z_nb_pgs = c[2][0][0]
       #print(z_nb_pts)
       #print(z_nb_pgs)
       cur_shift += z_nb_pgs
@@ -421,7 +401,7 @@ def concatenateBC(bctype, zones, wallpgs, cur_shift):
 
 # update BC and JOINS point lists given an indirection "new id to old id"
 def updatePointLists(z, zones, oids):
-    if len(oids) == 0 :
+    if len(oids) == 0:
       C._deleteZoneBC__(z)
       C._deleteGridConnectivity__(z)
       return
@@ -430,10 +410,10 @@ def updatePointLists(z, zones, oids):
 
 def updateBCPointLists1(z, oids):
     bnds = Internal.getNodesFromType(z, 'BC_t')
-    zname=z[0]
+    zname = z[0]
 
     ptLists = []
-    for bb in bnds :
+    for bb in bnds:
       ptl = Internal.getNodesFromType(bb, 'IndexArray_t')
       ptLists.append(ptl[0][1][0])
 
@@ -445,13 +425,13 @@ def updateBCPointLists1(z, oids):
     i=0
     bc_to_remove=[]
     #print('update the BC pointlists') 
-    for bb in bnds :
-      torem=False
+    for bb in bnds:
+      torem = False
       if isinstance(ptLists[i], numpy.ndarray):
-        if len(ptLists[i]) == 0 : torem = True
-      elif ptLists[i] == None : torem=True
+        if len(ptLists[i]) == 0: torem = True
+      elif ptLists[i] is None: torem = True
 
-      if torem == True :
+      if torem:
         bc_to_remove.append(Internal.getPath(z, bb))
         continue
       

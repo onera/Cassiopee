@@ -37,7 +37,7 @@ def changeMode(event=None):
         CTK.TXT.insert('START', 'Revert to body tree.\n')
     elif mode == 'PrevStep':
         # Reload from restart.cgns
-        try: 
+        try:
             CTK.t = C.convertFile2PyTree('restart.cgns')
             (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
             CTK.TKTREE.updateApp()
@@ -159,7 +159,14 @@ def run(event=None):
     if mode == 'Body':
         global BODY
         BODY = Internal.copyRef(CTK.t)
-        prepare() # save t, tc
+        try:
+            prepare() # save t, tc
+            CTK.TXT.insert('START', 'Prepare OK.')
+        except:
+            CTK.setCursor(0, WIDGETS['compute'])    
+            CTK.TXT.insert('START', 'Prepare failed.')
+            return
+        
         VARS[10].set('Main')
         CTK.t = CTK.upgradeTree(CTK.t)
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
@@ -249,7 +256,7 @@ def compute():
     #import Compressor.PyTree as Compressor
     #tp = Compressor.compressCartesian(CTK.t)
     #C.convertPyTree2File(tp, 'restart.cgns'); tp = None
-    Fast.saveFile(CTK.t, 'restart.cgns', compress=1)
+    Fast.saveFile(CTK.t, 'restart.cgns', compress=2)
 
     # check state
     state = Internal.getNodeFromName2(CTK.t, 'ReferenceState')
@@ -300,7 +307,7 @@ def compute():
     time_step_nature = Internal.getValue(time_step_nature)
     if time_step_nature == 'local': time_step = 0.
 
-    for it in range(1,nit+1):
+    for it in range(1, nit+1):
         FastS._compute(CTK.t, metrics, it, tc, graph)
         time0 += time_step
         if it%50 == 0:
@@ -358,17 +365,20 @@ def writePrepFile():
     
     # Save preventif
     C.convertPyTree2File(tbody, 'body.cgns')
-    C.convertPyTree2File(tbox, 'tbox.cgns')
+    if tbox is not None:
+        C.convertPyTree2File(tbox, 'tbox.cgns')
     
     f = open('prep.py', 'w')
     
     text= """
 import Apps.Fast.IBM as App
 myApp = App.IBM(format='single')
+myApp.input_var.vmin = 21
+myApp.input_var.check = False    
 """
 
-    if tbox is None: text +="myApp.prepare('body.cgns', t_out='t.cgns', tc_out='tc.cgns', check=False)"
-    else: text += "myApp.prepare('body.cgns', t_out='t.cgns', tbox='tbox.cgns', tc_out='tc.cgns', check=False)"
+    if tbox is None: text +="myApp.prepare('body.cgns', t_out='t.cgns', tc_out='tc.cgns')"
+    else: text += "myApp.prepare('body.cgns', t_out='t.cgns', tbox='tbox.cgns', tc_out='tc.cgns')"
 
     f.write(text)
     CTK.TXT.insert('START', 'File prep.py written.\n')

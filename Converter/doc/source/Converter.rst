@@ -2290,6 +2290,8 @@ Array / PyTree input/output
     +------------+-----------+---------------------------------------+
     |fmt_stl     | .fstl     | formatted STL file                    |
     +------------+-----------+---------------------------------------+
+    |fmt_selig   | .selig    | formatted selig file (airfoils)       |
+    +------------+-----------+---------------------------------------+
     |fmt_obj     | .obj      | formatted OBJ file (WAVEFRONT)        |
     +------------+-----------+---------------------------------------+
     |bin_gltf    | .gltf     | binary gltf file (KHRONOS, only read) |

@@ -152,7 +152,7 @@ def _setFluidInside(t):
 #==============================================================================
 # Set the IBC type outpress for zones in familyName
 #==============================================================================
-def initOutflow(tc, familyName, PStatic, InterpolPlane=None, PressureVar=0, isDensityConstant=False):
+def initOutflow(tc, familyName, PStatic, InterpolPlane=None, PressureVar=0, isDensityConstant=True):
     """Set the value of static pressure PStatic for the outflow pressure IBC with family name familyName. 
     A plane InterpolPlane may also be provided with only static pressure variable or various variables with static pressure as the PressureVar (e.g. 2nd) variable)"""
     tc2 = Internal.copyRef(tc)
@@ -160,7 +160,7 @@ def initOutflow(tc, familyName, PStatic, InterpolPlane=None, PressureVar=0, isDe
     return tc2
 
 
-def _initOutflow(tc, familyName, PStatic, InterpolPlane=None, PressureVar=0, isDensityConstant=False):
+def _initOutflow(tc, familyName, PStatic, InterpolPlane=None, PressureVar=0, isDensityConstant=True):
     """Set the value of the pressure PStatic for the outflow pressure IBC with family name familyName.
     A plane InterpolPlane may also be provided with various variables with static pressure as the PressureVar (e.g. 2nd) variable)"""
     import Post.PyTree as P
@@ -169,9 +169,8 @@ def _initOutflow(tc, familyName, PStatic, InterpolPlane=None, PressureVar=0, isD
             FamNode = Internal.getNodeFromType1(zsr, 'FamilyName_t')
             if FamNode is not None:
                 FamName = Internal.getValue(FamNode)
-                if FamName==familyName:
+                if FamName == familyName:
                     stagPNode =  Internal.getNodeFromName(zsr, 'Pressure')
-                    dens      =  Internal.getNodeFromName(zsr, 'Density')    
                     sizeIBC   = numpy.shape(stagPNode[1])
                     if InterpolPlane:
                         print("Zone: %s | ZoneSubRegion: %s"%(zc[0],zsr[0]))
@@ -181,12 +180,14 @@ def _initOutflow(tc, familyName, PStatic, InterpolPlane=None, PressureVar=0, isD
                         list_pnts=[]
                         for i in range(sizeIBC[0]): list_pnts.append((x_wall[i],y_wall[i],z_wall[i]))
                         val      = P.extractPoint(InterpolPlane, list_pnts, 2)
-                        val_flat=[]
+                        val_flat = []
                         for i in range(len(val)): val_flat.append(val[i][PressureVar])
                         stagPNode[1][:] = val_flat[:]
                     else:
                         stagPNode[1][:] = PStatic
-                    if not isDensityConstant: dens[1][:] = -dens[1][:]
+                    if not isDensityConstant:
+                        dens =  Internal.getNodeFromName(zsr, 'Density') 
+                        dens[1][:] = -dens[1][:]
     return None
 
 #==============================================================================

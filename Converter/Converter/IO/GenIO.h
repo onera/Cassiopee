@@ -455,6 +455,23 @@ class GenIO
       std::vector<char*>& zoneNames);
     ///-
 
+    ///+ fmt selig functions
+    E_Int seligread(
+      char* file, char*& varString,
+      std::vector<FldArrayF*>& structField,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connect,
+      std::vector<E_Int>& eltType, std::vector<char*>& zoneNames);
+    E_Int seligwrite(
+      char* file, char* dataFmt, char* varString,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector<FldArrayF*>& structField,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connect,
+      std::vector<E_Int>& eltType,
+      std::vector<char*>& zoneNames);
+
     /** PLY (Stanford) read */
     E_Int plyread(
       char* file, char*& varString,

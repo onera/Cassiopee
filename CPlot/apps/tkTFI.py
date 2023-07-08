@@ -179,7 +179,9 @@ def OTFI():
     Nt = Internal.getZoneDim(a)[1]
     if Nt//2 - Nt*0.5 == 0:
         CTK.TXT.insert('START', 'Number of points of countour must be odd.\n')
-        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+        CTK.TXT.insert('START', 'Error: ', 'Error')
+        CTK.setCursor(0, WIDGETS['o'])
+        return
 
     coords = C.getFields(Internal.__GridCoordinates__, a)[0]
 

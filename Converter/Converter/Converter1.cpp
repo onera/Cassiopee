@@ -204,6 +204,13 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
                                                im, jm, km, 
                                                ufield, c, et, zoneNames);
   }
+  else if (K_STRING::cmp(fileFmt, "fmt_selig") == 0)
+  {
+    // fmt selig file
+    ret = K_IO::GenIO::getInstance()->seligread(fileName, varString, field, 
+                                                im, jm, km, 
+                                                ufield, c, et, zoneNames);
+  }
   else if (K_STRING::cmp(fileFmt, "bin_3ds") == 0)
   {
     // Binary 3DS read
@@ -799,6 +806,16 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
                                                  fieldc, fieldu, connectu, elt,
                                                  zoneNames);
   }
+  else if (K_STRING::cmp(fileFmt, "fmt_selig") == 0) // fmt selig
+  {
+    if (fieldu.size() != 0)
+      printf("Warning: convertArrays2File: structured arrays not converted.\n"); 
+    
+    isok = K_IO::GenIO::getInstance()->seligwrite(fileName, dataFmt, varString,
+                                                  ni, nj, nk,
+                                                  fieldc, fieldu, connectu, elt,
+                                                  zoneNames);
+  }
   else if (K_STRING::cmp(fileFmt, "bin_3ds") == 0) // 3ds
   {
     if (fieldc.size() != 0)
@@ -901,6 +918,7 @@ E_Int K_CONVERTER::checkRecognisedFormat(char* fileFmt)
       K_STRING::cmp(fileFmt, "fmt_stl") == 0 ||
       K_STRING::cmp(fileFmt, "bin_gltf") == 0 ||
       K_STRING::cmp(fileFmt, "bin_wav") == 0 ||
+      K_STRING::cmp(fileFmt, "fmt_selig") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_xfig") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_svg") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_obj") == 0 ||
