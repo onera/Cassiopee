@@ -44,12 +44,13 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
   E_Int anisotropy = 0;
   E_Int optim = 0;
   PyObject* array;
-  PyObject* fixedNodes;
+  PyObject* fixedNodes; // imposed nodes
+  PyObject* fixedEdges; // imposed edge
   if (!PYPARSETUPLE(args, 
-                    "OdddddllO", "OdddddiiO", 
-                    "OfffffllO", "OfffffiiO", 
+                    "OdddddllOO", "OdddddiiOO", 
+                    "OfffffllOO", "OfffffiiOO", 
                     &array, &ridgeAngle, &hmin, &hmax, &hausd, &hgrad, 
-                    &anisotropy, &optim, &fixedNodes))
+                    &anisotropy, &optim, &fixedNodes, &fixedEdges))
   {
     return NULL;
   }
@@ -239,7 +240,21 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
   // dimensionne nbre de vertex, nbre de triangles, nbre d'edges
   E_Int ne = cn->getSize(); // nbre d'elements
   E_Int np = f->getSize(); // nbre de vertex
-  MMGS_Set_meshSize(mesh, np, ne, 0);
+  E_Int na = 0; // nbre d'edges
+  if (fixedEdges != Py_None)
+  {
+    // we add imposed edges in the mesh -> increase na
+    E_Int ns = PyList_Size(fixedEdges);
+    for (E_Int l = 0; l < ns; l++)
+    {
+      PyObject* o = PyList_GetItem(fixedEdges, l); // BAR connect numpy
+      E_Int* ptr; E_Int nelts; E_Int nfld;
+      K_NUMPY::getFromNumpyArray(o, ptr, nelts, nfld, true);
+      na += nelts;
+      Py_DECREF(o);
+    }
+  }
+  MMGS_Set_meshSize(mesh, np, ne, na);
 
   E_Float* fx = f->begin(posx);
   E_Float* fy = f->begin(posy);
@@ -274,6 +289,27 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
       E_Int* ptr; E_Int npts; E_Int nfld;
       K_NUMPY::getFromNumpyArray(o, ptr, npts, nfld, true);
       for (E_Int i = 0; i < npts; i++) MMGS_Set_requiredVertex(mesh, ptr[i]); // +1?
+      Py_DECREF(o);
+    }
+  }
+
+  // Used fixedEdges if any (through a BAR connectivity)
+  if (fixedEdges != Py_None)
+  {
+    E_Int ns = PyList_Size(fixedEdges);
+    for (E_Int l = 0; l < ns; l++)
+    {
+      PyObject* o = PyList_GetItem(fixedEdges, l); // BAR connect numpy
+      E_Int* ptr; E_Int nelts; E_Int nfld;
+      K_NUMPY::getFromNumpyArray(o, ptr, nelts, nfld, true);
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        int v0 = ptr[i];
+        int v1 = ptr[i+nelts];
+        MMGS_Set_edge(mesh, v0, v1, 2, i+1); // define edge i+1
+        MMGS_Set_requiredEdge(mesh, i+1);
+      }
+      Py_DECREF(o);
     }
   }
 

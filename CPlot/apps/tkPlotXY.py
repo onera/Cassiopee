@@ -12205,7 +12205,7 @@ class DesktopFrameTK(TK.Frame):
     def __init__(self,parent):
         TK.Frame.__init__(self,parent)
         self.initialize()
-#        self.data = data # TODO : should be self.data = {} or None at the end of development
+        #self.data = data # TODO : should be self.data = {} or None at the end of development
         self.data = None
         self.thread = None
         self.parent = parent
@@ -13230,23 +13230,23 @@ class DesktopFrameTK(TK.Frame):
 # ==============================================================================
 class DesktopTK(TK.Tk):
     # --------------------------------------------------------------------- init
-    def __init__(self,parent):
-        TK.Tk.__init__(self,parent)
+    def __init__(self, parent):
+        TK.Tk.__init__(self, parent)
         self.protocol(name="WM_DELETE_WINDOW", func=self.killProgramm)
         self.title(string="tkPlotXY")
         self.desktopFrameTK = DesktopFrameTK(self)
         self.grid_columnconfigure(0,weight=1)
         self.grid_rowconfigure(0,weight=1)
-        self.desktopFrameTK.grid(row=0,column=0,sticky='NSEW')
+        self.desktopFrameTK.grid(row=0, column=0, sticky='NSEW')
     # ------------------------------------------------------ replaceGroupZonesWithDict
-    def replaceGroupZonesWithDict(self,d,oldZoneList):
+    def replaceGroupZonesWithDict(self, d, oldZoneList):
         self.desktopFrameTK.replaceGroupZonesWithDict(d,oldZoneList)
     # -------------------------------------------------------------- replaceGroupZones
     def replaceGroupZones(self, d, oldZoneList):
         self.desktopFrameTK.replaceGroupZones(d, oldZoneList)
     # ------------------------------------------------------ replaceGroupZonesWithTree
-    def replaceGroupZonesWithTree(self,d,oldZoneList):
-        self.desktopFrameTK.replaceGroupZonesWithTree(d,oldZoneList)
+    def replaceGroupZonesWithTree(self, d, oldZoneList):
+        self.desktopFrameTK.replaceGroupZonesWithTree(d, oldZoneList)
     # -------------------------------------------------------------- updateGroupCurves
     def updateGroupCurves(self,oldZoneList,newZoneList):
         self.desktopFrameTK.updateGroupCurves(oldZoneList,newZoneList)
@@ -13327,7 +13327,7 @@ class Desktop():
         self.thread = None
 
     # ------------------------------------------------------------------ addZone
-    def addZone(self,data,zoneName,baseName='.*'):
+    def addZone(self, data, zoneName, baseName='.*'):
         """
         Add a specific zone to the set of data. If pyTree format is used as input, then 'basename' can be specified to add only the zone from a specific base. If 'basename' is not specified in case of pyTree format, then the specified zone for all the bases from the pyTree will be added.
         """
@@ -13335,10 +13335,11 @@ class Desktop():
             self.data = {}
         if isinstance(data,list):
             # add zone according to a tree
-            self.addZoneWithTree(data,zoneName,baseName)
-        elif isinstance(data,dict):
+            self.addZoneWithTree(data,zoneName, baseName)
+        elif isinstance(data, dict):
             # add zone according to a dict data
-            self.addZoneWithDict(data,zoneName)
+            self.addZoneWithDict(data, zoneName)
+
     # ---------------------------------------------------------- addZoneWithTree
     def addZoneWithTree(self,t,zoneName,baseNameFilter):
         for base in Internal.getNodesFromType1(t, 'CGNSBase_t'):
@@ -15662,7 +15663,7 @@ def createApp(win):
     desktopFrameTK.grid(row=0, column=0, sticky='NSEW')
     global DESKTOP
     DESKTOP = desktopFrameTK
-#    desktopFrameTK.setData(CTK.t) # commente par CB pour l'instant
+    #desktopFrameTK.setData(CTK.t) # commente par CB pour l'instant
 
 #==============================================================================
 # Called to display widgets
@@ -15739,8 +15740,10 @@ IMAGE_DICT = {
 #==============================================================================
 # single line plot (bloquant)
 # plot toutes les zones 1d de a sur le meme graphe
+# si export != None: ecrit le fichier en mode batch
 #==============================================================================
-def plot(a, varx='CoordinateX', vary='F', export=None, 
+def plot(a, varx='CoordinateX', vary='F', 
+         export=None, 
          rangex=None, rangey=None, 
          xlabel=None, ylabel=None,
          xformat=None, yformat=None,
@@ -15753,7 +15756,7 @@ def plot(a, varx='CoordinateX', vary='F', export=None,
 
     if export is not None: setBatch()
 
-    # traitement parallele : on concatene les zones
+    # traitement parallele: on concatene les zones
     # chaque proc doit envoyer le meme nbre de zones ([] est accepte)
     import Converter.Mpi as Cmpi
     zones = Internal.getZones(a)
@@ -15788,8 +15791,8 @@ def plot(a, varx='CoordinateX', vary='F', export=None,
     elif vary[0:10] != 'Coordinate': vary = vary+'@'+Internal.__FlowSolutionNodes__
 
     # Set data
-    if export is None: desktop, win = createTkDesktop()
-    else: desktop = Desktop()
+    if export is not None: desktop = Desktop()
+    else: desktop, win = createTkDesktop()
     desktop.setData(a)
 
     size = len(desktop.data)
@@ -15868,10 +15871,11 @@ def plot(a, varx='CoordinateX', vary='F', export=None,
 
     graph.updateGraph('1:1')
 
-    if export is None: win.mainloop()
-    else: 
+    if export is not None: # export in image 
         graph.save(export)
         graph.close()
+    else: # interactive
+        win.mainloop()
     
 #==============================================================================
 if __name__ == "__main__":

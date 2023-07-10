@@ -161,10 +161,10 @@ def run(event=None):
         BODY = Internal.copyRef(CTK.t)
         try:
             prepare() # save t, tc
-            CTK.TXT.insert('START', 'Prepare OK.')
+            CTK.TXT.insert('START', 'Prepare OK.\n')
         except:
             CTK.setCursor(0, WIDGETS['compute'])    
-            CTK.TXT.insert('START', 'Prepare failed.')
+            CTK.TXT.insert('START', 'Prepare failed.\n')
             return
         
         VARS[10].set('Main')
@@ -324,7 +324,13 @@ def compute():
     global WALL
     WALL = TIBM.extractIBMWallFields(tc, tb=BODY) # avec surface
     #WALL = TIBM.extractIBMWallFields(tc) # seulement en node
-    WALL = Internal.getZones(WALL)
+    #WALL = Internal.getZones(WALL)
+    C.convertPyTree2File(WALL, 'walls.cgns')
+
+    # optional plot
+    #if CTK.TKPLOTXY is not None:
+    #    CTK.TKPLOTXY.updateData(WALL)
+
     return None
 
 #===============================================================
@@ -559,16 +565,16 @@ def createApp(win):
     B.grid(row=5, column=2, sticky=TK.EW)
 
     # - Body time -
-    B = TTK.Button(Frame, text="Step", command=updateBodyAndPrepare)
-    BB = CTK.infoBulle(parent=B, text='Apply one motion step to body.')
-    B.grid(row=6, column=0, columnspan=1, sticky=TK.EW)
-    B = TTK.Entry(Frame, textvariable=VARS[13], width=4, background="White")
-    B.grid(row=6, column=1, columnspan=1, sticky=TK.EW)
-    B.bind('<Return>', updateBodyAndPrepare)
-    BB = CTK.infoBulle(parent=B, text='Current body time.')
-    B = TTK.Entry(Frame, textvariable=VARS[14], width=4, background="White")
-    B.grid(row=6, column=2, columnspan=1, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Number of steps to reach body time 1.')
+    #B = TTK.Button(Frame, text="Step", command=updateBodyAndPrepare)
+    #BB = CTK.infoBulle(parent=B, text='Apply one motion step to body.')
+    #B.grid(row=6, column=0, columnspan=1, sticky=TK.EW)
+    #B = TTK.Entry(Frame, textvariable=VARS[13], width=4, background="White")
+    #B.grid(row=6, column=1, columnspan=1, sticky=TK.EW)
+    #B.bind('<Return>', updateBodyAndPrepare)
+    #BB = CTK.infoBulle(parent=B, text='Current body time.')
+    #B = TTK.Entry(Frame, textvariable=VARS[14], width=4, background="White")
+    #B.grid(row=6, column=2, columnspan=1, sticky=TK.EW)
+    #BB = CTK.infoBulle(parent=B, text='Number of steps to reach body time 1.')
 
 #==============================================================================
 # Called to display widgets

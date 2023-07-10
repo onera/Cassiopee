@@ -5,6 +5,7 @@ try: import tkinter as TK
 except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
+import Geom.PyTree as D
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import Converter.Internal as Internal
@@ -12,6 +13,23 @@ import CPlot.iconics as iconics
 
 # local widgets list
 WIDGETS = {}; VARS = []
+
+# Set IBM data in zone
+# if zone is 1D STRUCT or BAR: remesh
+def _setDataInZone(z, snear, ibctype, dfar, inv):
+    # set data in solver#define
+    n = Internal.createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
+    Internal.createUniqueChild(n, 'snear', 'DataArray_t', value=snear)
+    Internal.createUniqueChild(n, 'ibctype', 'DataArray_t', value=ibctype)
+    Internal.createUniqueChild(n, 'dfar', 'DataArray_t', value=dfar)
+    Internal.createUniqueChild(n, 'inv', 'DataArray_t', value=inv)
+    # remesh eventually
+    dim = Internal.getZoneDim(z)
+    remesh = False
+    if dim[0] == 'Structured' and dim[2] == 1 and dim[3] == 1: remesh = True
+    if dim[0] == 'Unstructured' and dim[3] == 'BAR': remesh = True
+    if remesh: D._uniformize(z, h=float(snear))
+    return None
 
 #==============================================================================
 # Set data in selected zones
@@ -27,27 +45,17 @@ def setData():
     
     nzs = CPlot.getSelectedZones()
     CTK.saveTree()
-    if nzs == []:
-        zones = Internal.getZones(CTK.t)
-        for z in zones:
-            n = Internal.createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
-            Internal.createUniqueChild(n, 'snear', 'DataArray_t', value=snear)
-            Internal.createUniqueChild(n, 'ibctype', 'DataArray_t', value=ibctype)
-            Internal.createUniqueChild(n, 'dfar', 'DataArray_t', value=dfar)
-            Internal.createUniqueChild(n, 'inv', 'DataArray_t', value=inv)
 
-    else:
-        for nz in nzs:
-            nob = CTK.Nb[nz]+1
-            noz = CTK.Nz[nz]
-            z = CTK.t[2][nob][2][noz]
-            b, c = Internal.getParentOfNode(CTK.t, z)
-            n = Internal.createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
-            Internal.createUniqueChild(n, 'snear', 'DataArray_t', snear)
-            Internal.createUniqueChild(n, 'ibctype', 'DataArray_t', ibctype)
-            Internal.createUniqueChild(n, 'dfar', 'DataArray_t', value=dfar)
-            Internal.createUniqueChild(n, 'inv', 'DataArray_t', value=inv)
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        z = CTK.t[2][nob][2][noz]
+        _setDataInZone(z, snear, ibctype, dfar, inv)
+        CTK.replace(CTK.t, nob, noz, z)
 
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
+    CPlot.render()
     CTK.TXT.insert('START', 'IBC data set.\n')
 
 #==============================================================================

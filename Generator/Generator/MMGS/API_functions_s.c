@@ -423,7 +423,7 @@ int  MMGS_Get_vertices(MMG5_pMesh mesh, double* vertices, int* refs,
   return 1;
 }
 
-int MMGS_Set_triangle(MMG5_pMesh mesh, int v0, int v1, int v2, int ref,int pos) {
+int MMGS_Set_triangle(MMG5_pMesh mesh, int v0, int v1, int v2, int ref, int pos) {
 
   if ( !mesh->nt ) {
     fprintf(stderr,"\n  ## Error: %s: You must set the number of triangles"
@@ -647,7 +647,7 @@ int MMGS_Set_edges(MMG5_pMesh mesh, int *edges, int *refs) {
   return 1;
 }
 
-int MMGS_Get_edges(MMG5_pMesh mesh, int* edges,int *refs,int* areRidges,int* areRequired) {
+int MMGS_Get_edges(MMG5_pMesh mesh, int* edges, int *refs, int* areRidges, int* areRequired) {
   int i,j;
 
   for (i=1;i<=mesh->na;i++)

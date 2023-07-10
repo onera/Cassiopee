@@ -737,16 +737,22 @@ def mmgs(array, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1,
         l = []
         for i in array:
             if fixedConstraints != []:
-                fixedNodes = []
+                fixedNodes = []; fixedEdges = []
                 hook = C.createHook(i, function='nodes')
-                for c in fixedConstraints: fixedNodes.append(C.nearestNodes(hook, c)[0])
-            else: fixedNodes = None
+                for c in fixedConstraints:
+                    loc = C.nearestNodes(hook, c)[0]
+                    fixedNodes.append(loc)
+                    if c[3] == 'BAR':
+                        pt = c[2].copy()
+                        pt[:,:] = loc[pt[:,:]-1]
+                        fixedEdges.append(pt)
+            else: fixedNodes = None; fixedEdges = None
             if sizeConstraints != []:
                 i = defineSizeMapForMMGs(i, hmax, sizeConstraints)
                 hmaxl = 1000.
             else: hmaxl = hmax
             l.append(generator.mmgs(i, ridgeAngle, hmin, hmaxl, hausd,
-                                    grow, anisotropy, optim, fixedNodes))
+                                    grow, anisotropy, optim, fixedNodes, fixedEdges))
         return l
     else:
         if fixedConstraints != []:

@@ -147,7 +147,7 @@ applet = {
     'Set Boundary conditions':'tkBC', 'Fill empty BCs':'tkBC',
     'View undefined BC':'tkBC', 'Remove BC':'tkBC',
     # tkIBC
-    'tkIBC':'tkIBC', 'Set snear on surface':'tkIBC',
+    'tkIBC':'tkIBC', 'Set snear on surface':'tkIBC', 'Immersed boundaries':'tkIBC', 'Set data for IBM':'tkIBC',
     # tkChimera
     'tkChimera':'tkChimera', 'Blank cells':'tkChimera', 
     'Optimize overlap':'tkChimera',
