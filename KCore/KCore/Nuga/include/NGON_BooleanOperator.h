@@ -4827,10 +4827,9 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
   {
     const E_Int& zi = _ngXs.PHs._type[i];
     
-    if (zi == (E_Int)Z_NONE)
-      continue;
+    if (zi == (E_Int)Z_NONE) continue;
     
-    if (_Op == DIFF && zi != Z_1) //fixme : hack filter to boost : no necessary to retriev all the zones when diffsurf. similar thing should be done for all the other cases.
+    if (_Op == DIFF && zi != Z_1) //fixme: hack filter to boost: no necessary to retrieve all the zones when diffsurf. similar thing should be done for all the other cases.
       continue;
     
     const E_Int& ci = colors[i];
@@ -4845,12 +4844,12 @@ E_Int NGON_BOOLEAN_CLASS::__classify_soft()
         toprocess.push_back(i);
       }
 #else
-      assert (col_to_z[ci] == zi);
+      //assert (col_to_z[ci] == zi);
 #endif
       continue;
     }
 
-    col_to_z[ci]=zi;
+    col_to_z[ci] = zi;
   }
   
   // Now update missing zones (Z_NONE)

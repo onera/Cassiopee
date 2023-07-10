@@ -12,6 +12,11 @@
 #ifndef NUGA_MPI_STL_HXX
 #define NUGA_MPI_STL_HXX
 
+#include <map>
+#include <vector>
+#include "kcore.h"
+#include "Nuga/include/macros.h"
+
 #ifdef _MPI
 #include "mpi.h"
 

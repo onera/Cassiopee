@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : SÃ¢m Landier (sam.landier@onera.fr)
 
 #ifndef __CONFORMIZER_CXX__
 #define __CONFORMIZER_CXX__
@@ -119,26 +119,25 @@ E_Int Conformizer<DIM, Element_t>::run
   bool                          carry_on(false);
   NUGA::bool_vector_type  xc;
 
-  if (connect.cols() == 0)
-    return 0;
+  if (connect.cols() == 0) return 0;
   
-  _itermax=itermax;
+  _itermax = itermax;
   _one_pass_mode = (_itermax == 1);
-  _priority=priority;
-    
+  _priority = priority;
+
   //assert(pos.rows() == DIM);
   _initialrows = -1;
-  if (DIM < pos.rows())//fixme : right place to make the problem 2D ?
+  if (DIM < pos.rows()) //fixme : right place to make the problem 2D ?
   {
     _initialrows = pos.rows();
     pos.resize(DIM, pos.cols());
   }
   
 #ifdef FLAG_STEP
-     std::cout << "Conformizer::__initialize : X0 "        << X0 << std::endl;
-     std::cout << "Conformizer::__initialize : tolerance " << tolerance << std::endl;
-     std::cout << "Conformizer::__initialize : nb elts "   << connect.cols() << std::endl;
-     std::cout << "Conformizer::__initialize : xc size "   << xc.size() << std::endl;
+     std::cout << "Conformizer::__initialize: X0 "        << X0 << std::endl;
+     std::cout << "Conformizer::__initialize: tolerance " << tolerance << std::endl;
+     std::cout << "Conformizer::__initialize: nb elts "   << connect.cols() << std::endl;
+     std::cout << "Conformizer::__initialize: xc size "   << xc.size() << std::endl;
 #endif
 
   this->__initialize(pos, connect, tolerance, ancestors, xc, X0);
@@ -146,8 +145,8 @@ E_Int Conformizer<DIM, Element_t>::run
   do
   {
 #ifdef FLAG_STEP
-     std::cout << "Conformizer::run : ITER " << iter << std::endl;
-    std::cout << "Conformizer::run : Initial Nb Points : " << pos.cols() << std::endl;
+    std::cout << "Conformizer::run: ITER " << iter << std::endl;
+    std::cout << "Conformizer::run: Initial Nb Points : " << pos.cols() << std::endl;
 #endif
 
     ++_iter;
@@ -180,8 +179,7 @@ E_Int Conformizer<DIM, Element_t>::run
     // Delete the BST.
     this->__finalize();
     
-    if (xnb < 0)
-      break;
+    if (xnb < 0) break;
     
 #ifdef FLAG_STEP
     std::cout << "Conformizer::run : __finalize : " << c.elapsed() << std::endl;
@@ -512,14 +510,14 @@ E_Int Conformizer<DIM, Element_t>::__run
     this->__update_data(pos, connect, nids);
 
 #ifdef FLAG_STEP
-   std::cout << "inter : __update_data after cleaning :" << tt.elapsed() << std::endl;
+  std::cout << "inter: __update_data after cleaning:" << tt.elapsed() << std::endl;
   tt.start();
 #endif
   }
   
 #ifdef DEBUG_CONFORMIZER
   if (detect_duplis_and_baffles(connect))
-    std::cout << "oddities : after __update_data : FOUND !!!!" << std::endl;
+    std::cout << "oddities: after __update_data: FOUND !!!!" << std::endl;
 #endif
 
 #ifdef E_DEBUG
@@ -706,10 +704,10 @@ template <short DIM, typename Element_t>
 void
 Conformizer<DIM, Element_t>::__update_tolerance(const K_FLD::FloatArray& coord, NUGA::bool_vector_type& xc, const std::vector<E_Int>& ancestors)
 {
-  NUGA::bool_vector_type xc0(_connect0.cols(), false);
+  NUGA::bool_vector_type xc0(_connect0.cols()+1, false);
   for (size_t i=0; i < xc.size(); ++i)
   {
-    xc0[ancestors[i]]=xc[i];
+    xc0[ancestors[i]] = xc[i];
   }
   //medith::write("X.mesh", pos, _connect0, 0/*elt type*/, &xc0);
   E_Float Lmin, Lmax;
@@ -718,7 +716,7 @@ Conformizer<DIM, Element_t>::__update_tolerance(const K_FLD::FloatArray& coord, 
   _tolerance = std::max(new_tol, _tolerance);
   
 #ifdef DEBUG_CONFORMIZER
-  std::cout << "new tol : "  << _tolerance << std::endl;
+  std::cout << "new tol: "  << _tolerance << std::endl;
 #endif
   
 }

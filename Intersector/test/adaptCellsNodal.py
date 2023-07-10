@@ -2,6 +2,7 @@
 import Intersector as XOR
 import Converter as C
 import Generator as G
+import Converter.Internal as Internal
 import numpy
 
 a = G.cartHexa((0.,0.,0.), (0.1,0.1,0.1), (5,5,5))
@@ -14,10 +15,8 @@ n = C.getNPts(a)
 nodal_vals = numpy.empty((n,), dtype=Internal.E_NpyInt)
 nodal_vals[:] = 2
 
-XOR._setZonesAndJoinsUId(a)
-
 ## HEXA static adaptation
-m = XOR.adaptCells(a, nodal_vals, sensor_type = 2, smoothing_type = 1)
+m = XOR.adaptCells(a, nodal_vals, sensor_type=2, smoothing_type=1)
 
 m = XOR.closeCells(m[0])
 C.convertArrays2File([m], 'out.plt')
@@ -27,7 +26,7 @@ n = C.getNPts(aTH4)
 nodal_vals = numpy.empty((n,), dtype=Internal.E_NpyInt)
 nodal_vals[:] = 2
 
-m = XOR.adaptCells(aTH4, nodal_vals, sensor_type = 2, smoothing_type = 1)
+m = XOR.adaptCells(aTH4, nodal_vals, sensor_type=2, smoothing_type=1)
 
 m = XOR.closeCells(m[0])
 C.convertArrays2File([m], 'out2.plt')

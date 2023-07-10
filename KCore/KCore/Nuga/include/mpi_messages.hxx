@@ -14,13 +14,12 @@
 
 #include "Nuga/include/mpi_stl.hxx"
 
-
 namespace NUGA
 {
-  enum eMPI_Tag { TAG_DATA_SZ = 2, TAG_XRANGE_SZ = 4, TAG_XRANGE = 5, TAG_PGS_SZ = 6, TAG_PGS = 7, TAG_SZONE_SZ = 8, TAG_SZONERANGE_SZ = 10, TAG_JZONE_SZ = 12, TAG_JZONERANGE_SZ = 14, TAG_PTL_SZ = 16, TAG_MPI_EXCH_STATUS = 18, TAG_HASSENT = 99 };
+  enum eMPI_Tag { TAG_DATA_SZ=2, TAG_XRANGE_SZ=4, TAG_XRANGE=5, TAG_PGS_SZ=6, TAG_PGS=7, TAG_SZONE_SZ=8, TAG_SZONERANGE_SZ=10, TAG_JZONE_SZ=12, TAG_JZONERANGE_SZ=14, TAG_PTL_SZ=16, TAG_MPI_EXCH_STATUS=18, TAG_HASSENT=99 };
 
   inline
-  static int get_opp_zone(const std::map<int, std::pair<int,int>>& rid_to_zones, int rid, int zid)
+  static int get_opp_zone(const std::map< int, std::pair<int,int> >& rid_to_zones, int rid, int zid)
   {
     const auto itjz = rid_to_zones.find(rid); assert(itjz != rid_to_zones.end());
     int jzid = (itjz->second.first == zid) ? itjz->second.second : itjz->second.first;
@@ -527,7 +526,7 @@ namespace NUGA
       const std::map<int, std::map<int, std::vector<E_Int>>> & zone_to_rid_to_list_mpi,
       const std::map<int, std::pair<int,int>>& rid_to_zones,
       const std::vector<int>& zonerank,
-      std::map<int, pointlist_msg_type> & rank_to_data
+      std::map<int, pointlist_msg_type>& rank_to_data
     )
     {
       rank_to_data.clear();
@@ -544,6 +543,7 @@ namespace NUGA
           int rid = it2.first;
           auto& PTL = it2.second;
 
+          printf("rid = %d %ld\n", rid, rid_to_zones.size()); fflush(stdout);
           assert(rid > -1 && rid < rid_to_zones.size());
           int jzid = get_opp_zone(rid_to_zones, rid, szid);
           int jrk = zonerank[jzid];
@@ -604,7 +604,7 @@ namespace NUGA
       for (E_Int n = 0; n < nrank; ++n) has_sent[n] = false;
       
       int count_req{ -1 };
-      for (auto& d : rank_to_data) // WARNING : reference is manadatory ! otherwise ISend might not finish before iteration d copy is deleted
+      for (auto& d : rank_to_data) // WARNING: reference is mandatory ! otherwise ISend might not finish before iteration d copy is deleted
       {
         int rankid = d.first;
         auto& data = d.second;

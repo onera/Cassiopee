@@ -252,7 +252,7 @@ def computeZb(teff, psi, RoInf, ASOUND, Mtip, AR, SIGMA,
 # OUT: Thrust en Newton et Torque en N.m
 #========================================================================
 def computeThrustAndTorque(teff, psi, PInf, center=(0,0,0), relativeShaft=0., accumulatorThrust=None):
-    """Compute thrust."""
+    """Compute thrust and torque."""
     PE._extractShearStress(teff)
     PE._extractForce(teff, withPInf=PInf)
     if relativeShaft != 0.:
