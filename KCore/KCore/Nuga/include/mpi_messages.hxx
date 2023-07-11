@@ -543,7 +543,6 @@ namespace NUGA
           int rid = it2.first;
           auto& PTL = it2.second;
 
-          printf("rid = %d %ld\n", rid, rid_to_zones.size()); fflush(stdout);
           assert(rid > -1 && rid < rid_to_zones.size());
           int jzid = get_opp_zone(rid_to_zones, rid, szid);
           int jrk = zonerank[jzid];

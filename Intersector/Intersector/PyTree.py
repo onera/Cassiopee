@@ -1368,6 +1368,8 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
     xcelln_time = time.time()
 
   # 2. COMPUTE THE COEFFS PER ZONE (PARALLEL OMP PER ZONE)
+  print(wall_ids)
+  print(boundaries)
   xcellns = XOR.XcellN(ngons, zwall_ids, basenum, boundaries, wall_ids, priorities, output_type, rtol)
 
   if TIMER:

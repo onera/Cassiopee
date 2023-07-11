@@ -1,4 +1,4 @@
-# - writePyTreeFromFilter (pyTree) -
+# - adaptCells (pyTree) -
 import Intersector.Mpi as XORMPI
 import Intersector.PyTree as XOR
 
@@ -12,15 +12,10 @@ import Generator.PyTree as G
 import Distributor2.PyTree as D2
 import Converter.Distributed as D
 
-import time
-import numpy as numpy
-import sys
-import random as rand
-
+import numpy
 import KCore.test as test
 
 LOCAL = test.getLocal()
-print(LOCAL)
 
 Nprocs = Cmpi.size
 print('Nprocs = ', Nprocs)
@@ -30,7 +25,7 @@ ofname = LOCAL + '/out_'  + str(Nprocs) + '.cgns'
 
 if Cmpi.rank == 0:
     # Build case
-    N=7
+    N = 7
     x0, y0, z0 = 1., 1., 1.
     a = G.cart((x0,y0,z0), (1,1,1), (N,N,N))
 
@@ -64,8 +59,7 @@ for z in zs :
     n = C.getNCells(I.getZones(z))
     cv = numpy.empty((n,), dtype=I.E_NpyInt)
     cv[:]=0
-    if Cmpi.rank%2== 0:
-        cv[20]=CVmax
+    if Cmpi.rank%2== 0: cv[20]=CVmax
     cell_vals.append(cv)
 
 # add dummy BC and fields

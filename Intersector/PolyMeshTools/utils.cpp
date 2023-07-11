@@ -590,7 +590,7 @@ PyObject* K_INTERSECTOR::removeNthCell(PyObject* self, PyObject* args)
   PyObject *arr;
   E_Int nth(0);
 
-  if (!PyArg_ParseTuple(args, "Ol", &arr, &nth)) return NULL;
+  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arr, &nth)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -644,7 +644,7 @@ PyObject* K_INTERSECTOR::removeNthFace(PyObject* self, PyObject* args)
   PyObject *arr;
   E_Int nth(0);
 
-  if (!PyArg_ParseTuple(args, "Ol", &arr, &nth)) return NULL;
+  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arr, &nth)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -678,8 +678,6 @@ PyObject* K_INTERSECTOR::removeNthFace(PyObject* self, PyObject* args)
     nids[i]=count++;
   }
 
-
-  
   ngon_type ng;
   ng.PGs = pgs;
   ng.PHs = ngi.PHs;
@@ -710,7 +708,7 @@ PyObject* K_INTERSECTOR::detectIdenticalCells(PyObject* self, PyObject* args)
   E_Int clean(0);
   E_Float tol(1.e-15);
 
-  if (!PyArg_ParseTuple(args, "Odl", &arr, &tol, &clean)) return NULL;
+  if (!PYPARSETUPLE(args, "Odl", "Odi", "Ofl", "Ofi", &arr, &tol, &clean)) return NULL;
 
   //std::cout << "detectIdenticalCells : after parse" << std::endl;
 
@@ -3656,7 +3654,7 @@ PyObject* K_INTERSECTOR::getCollidingCells(PyObject* self, PyObject* args)
   E_Float RTOL(1.e-12);
   E_Int only_externals{0};
 
-  if (!PyArg_ParseTuple(args, "OOdl", &arr1, &arr2, &RTOL, &only_externals)) return NULL;
+  if (!PYPARSETUPLE(args, "OOdl", "OOdi", "OOfl", "OOfi", &arr1, &arr2, &RTOL, &only_externals)) return NULL;
 
   K_FLD::FloatArray *f1(0), *f2(0);
   K_FLD::IntArray *cn1(0), *cn2(0);

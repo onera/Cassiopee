@@ -173,6 +173,8 @@ struct ngon_t
     E_Int pos(2);
     E_Int face_id(0);
 
+    E_Int nodes[8];
+      
     K_MESH::Quadrangle face;
 
     for (int i = 0; i < ncells; i++)
@@ -182,7 +184,6 @@ struct ngon_t
       PHs[celli_pos] = 6;
       E_Int local_face = 1;
 
-      E_Int nodes[nvpc];
       for (E_Int j = 0; j < nvpc; j++) nodes[j] = cnt(j,i)+1;
 
       // bottom

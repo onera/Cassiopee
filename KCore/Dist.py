@@ -1880,6 +1880,10 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
     if Cppcompiler.find('gcc') == 0 or Cppcompiler.find('g++') == 0:
         os.environ['CC'] = 'gcc' # forced in 2.6 to overide setup.cfg
         os.environ['CXX'] = 'g++'
+        from distutils import sysconfig
+        cflags = sysconfig.get_config_var('CFLAGS')
+        sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
+        sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
         l = checkLibFile__('libstdc++.so*', additionalLibPaths)
         if l is None:
             l = checkLibFile__('libstdc++.a', additionalLibPaths)

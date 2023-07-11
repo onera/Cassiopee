@@ -1737,7 +1737,8 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
   PyObject* pyfieldsC, *pyfieldsN, *pyfieldsF;
   E_Int conformize;
   
-  if (!PyArg_ParseTuple(args, "OOOOOOOi", &hook, &py_bcptlists, &py_rid_to_ptlist, &py_rid_to_zones, &pyfieldsC, &pyfieldsN, &pyfieldsF, &conformize)) return nullptr;
+  if (!PYPARSETUPLEI(args, "OOOOOOOl", "OOOOOOOi", &hook, &py_bcptlists, &py_rid_to_ptlist, &py_rid_to_zones, 
+    &pyfieldsC, &pyfieldsN, &pyfieldsF, &conformize)) return NULL;
 
   int* sub_type{ nullptr }, *elt_type{ nullptr }, *hook_id{ nullptr }, *zid(nullptr);
   std::string* vString{ nullptr };

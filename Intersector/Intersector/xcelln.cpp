@@ -173,17 +173,18 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
   E_Int output_type(1);
   E_Float RTOL(0.05);
 
-  if (!PyArg_ParseTuple(args, "OOOOOOld", &zones, &zwall_ids, &base_num, &masks, &wall_ids, &priorities, &output_type, &RTOL)) return NULL;
+  if (!PYPARSETUPLE(args, "OOOOOOld", "OOOOOOid", "OOOOOOlf", "OOOOOOif", &zones, &zwall_ids, &base_num, &masks, 
+    &wall_ids, &priorities, &output_type, &RTOL)) return NULL;
 
   E_Int nb_zones = PyList_Size(zones);
   //E_Int nb_wall_zones = PyList_Size(zwall_ids);
   E_Int nb_basenum = PyList_Size(base_num);
   E_Int nb_masks = PyList_Size(masks);
   E_Int nb_priority_pairs = PyList_Size(priorities);
-  //E_Int nb_wall_sets = PyList_Size(wall_ids);
+  E_Int nb_wall_sets = PyList_Size(wall_ids);
 
   //std::cout << "nb_zones/nb_wall_zones/nb_basenum/nb_masks/nb_priority_pairs/output_type : " << nb_zones << "/" << nb_wall_zones << "/" << nb_basenum << "/" << nb_masks << "/" << nb_priority_pairs << "/" << output_type << std::endl;
-
+  
   if (nb_zones != nb_basenum)
   {
     std::cout << "xCellN: Info: nb zones / nb_basenum: " << nb_zones << "/" << nb_basenum << std::endl;
@@ -252,7 +253,7 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
   //std::cout << "DIM3 ? " << DIM3 << std::endl;
 
   // get the zone wall ids
-  for (E_Int i=0; (i < nb_zones) && !err; ++i)
+  for (E_Int i=0; i < nb_zones; ++i)
   {
     PyObject* py_zwall_ids = PyList_GetItem(zwall_ids, i);
     //std::cout << "py_zwall_ids" << py_zwall_ids << std::endl;
@@ -269,7 +270,8 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
   }
 
   // get the mask wall ids
-  for (E_Int i=0; (i < nb_masks) && !err; ++i)
+  assert(wall_ids != Py_None);
+  for (E_Int i=0; i < nb_masks; ++i)
   {
     PyObject* py_wall_ids = PyList_GetItem(wall_ids, i);
     if (py_wall_ids != Py_None)

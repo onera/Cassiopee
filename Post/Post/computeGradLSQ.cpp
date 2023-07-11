@@ -164,7 +164,7 @@ PyObject *K_POST::computeGradLSQ(PyObject *self, PyObject *args)
     }
     pt--;
     *pt = '\0';
-    for (E_Int i = 0; i < vars.size(); i++)
+    for (size_t i = 0; i < vars.size(); i++)
         delete [] vars[i];
 
     FldArrayI cFE;

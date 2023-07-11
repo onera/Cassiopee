@@ -764,6 +764,7 @@ else if ($MAC == "spiro_el8") then
         source /etc/profile.d/modules-onera.csh
         module purge
         module load socle-cfd/5.0-intel2120-impi
+        #module load gcc/12.1.0 # added to compile with gcc
         #module load socle-cfd/6.0-intel2220-impi
         module load occt/7.6.1-gnu831
         module load subversion/1.14.1-gnu831

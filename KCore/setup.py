@@ -39,8 +39,7 @@ extensions = [
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
               extra_compile_args=Dist.getCppArgs(),
-              extra_link_args=Dist.getLinkArgs()
-	)
+              extra_link_args=Dist.getLinkArgs())
     ]
 
 # Setup ======================================================================
