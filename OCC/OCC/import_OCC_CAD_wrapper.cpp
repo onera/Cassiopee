@@ -34,7 +34,7 @@ E_Int K_OCC::import_OCC_CAD_wrapper::import_cad
   std::cout << "import_cad..." << std::endl;
 #endif
   
-  // CAD --> OCC Shape with associated homemade graph to link flat sorage ids between faces and edges.
+  // CAD --> OCC Shape with associated homemade graph to link flat storage ids between faces and edges.
   CADviaOCC reader;
   E_Int err = reader.import_cad(fname, format, h, chordal_err, gr);
   if (err) return err;

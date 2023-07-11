@@ -1,7 +1,7 @@
 """OpenCascade definition module.
 """
 __version__ = '3.7'
-__author__ = "Sam Landier"
+__author__ = "Sam Landier, Christophe Benoit"
 
 from . import occ
 
@@ -26,11 +26,17 @@ def convertCAD2Arrays(fileName, format=None,
         a = occ.convertCAD2Arrays0(fileName, format, "None", "None", chordal_err)
         try: import Generator; a = Generator.close(a)
         except: pass
-        return a
     elif algo == 1: # OCC+T3Mesher
-        return  occ.convertCAD2Arrays1(fileName, format, h, chordal_err, growth_ratio, join)
+        a = occ.convertCAD2Arrays1(fileName, format, h, chordal_err, growth_ratio, join)
     else: # OCC+T3Mesher v2
-    	return  occ.convertCAD2Arrays2(fileName, format, h, chordal_err, growth_ratio, merge_tol, join)
+        a = occ.convertCAD2Arrays2(fileName, format, h, chordal_err, growth_ratio, merge_tol, join)
+    
+    # if nothing is read, try to read as edges (suppose draft)
+    if Converter.getNPts(a) == 0:
+        if h == 0.: h = 1.e-2
+        hook = occ.readCAD(fileName, format)
+        a = occ.meshGlobalEdges(hook, h)
+    return a
 
 # IN: edges: liste d'arrays STRUCT possedant x,y,z,u,v
 # OUT: liste d'arrays STRUCT ayant uv dans x,y et z=0

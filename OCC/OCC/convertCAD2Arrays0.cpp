@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-// convertCAD2Arrays (algo=1)
+// convertCAD2Arrays (algo=0)
 
 #include "STEPControl_Reader.hxx"
 #include "IGESControl_Reader.hxx"
@@ -119,7 +119,7 @@ PyObject* K_OCC::convertCAD2Arrays0(PyObject* self, PyObject* args)
     reader.ReadFile(inFileName);
     reader.TransferRoots();
     shape = reader.OneShape();
-    printf("done reading %s.\n",inFileName);
+    printf("done reading %s.\n", inFileName);
   }
   if (strcmp(inFileFormat, "fmt_iges") == 0)
   {
@@ -163,8 +163,11 @@ PyObject* K_OCC::convertCAD2Arrays0(PyObject* self, PyObject* args)
   */
  
   // Triangulate
-  E_Float angularDeflection = 10.; // en degres
-  BRepMesh_IncrementalMesh Mesh(shape, deflection, Standard_False, angularDeflection, Standard_True);
+  E_Float angularDeflection = 0.5; // en degres
+  Standard_Boolean relative = Standard_False;
+  if (deflection < 0) { relative = Standard_True; deflection = -deflection; }
+  BRepMesh_IncrementalMesh Mesh(shape, deflection, relative, angularDeflection, Standard_True);
+  
   Mesh.Perform(); 
 
   PyObject* out = PyList_New(0);
@@ -199,8 +202,8 @@ PyObject* K_OCC::convertCAD2Arrays0(PyObject* self, PyObject* args)
     }
   }
   
-  printf("Info: total number of nodes: %d\n", nbNodes);
-  printf("Info:  total number of triangles: %d\n", nbTris);
+  printf("INFO: total number of nodes: %d\n", nbNodes);
+  printf("INFO:  total number of triangles: %d\n", nbTris);
   
   // buildArray
   PyObject* o = K_ARRAY::buildArray2(3, "x,y,z", nbNodes, nbTris, -1, "TRI", false, 0, 0, 0, 1);

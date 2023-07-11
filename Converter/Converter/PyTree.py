@@ -1066,7 +1066,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
     a = Converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine,
                                      density, zoneNames=zn, BCFaces=bcfaces,
                                      hmax=hmax, hausd=hausd, grow=grow, 
-                                     mergeTol=mergeTol, occAlgo=occAlgo, 
+                                     mergeTol=mergeTol, occAlgo=occAlgo,
                                      centerArrays=centerArrays)
   t = newPyTree([])
   base1 = False; base2 = False; base3 = False; base = 1; c = 0

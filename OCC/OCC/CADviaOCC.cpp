@@ -663,7 +663,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces
       
     // surface of revolution => duplicate, reverse and separate seams
     //bool is_of_revolution = ((E_Int)nodes.size() != connectB.cols());
-    bool is_of_revolution = (nodes.size() != connectB.cols());
+    bool is_of_revolution = (nodes.size() != (size_t)connectB.cols());
     
     std::map<E_Int, std::pair<E_Int, E_Int> > seam_nodes;
     
@@ -943,17 +943,17 @@ E_Int K_OCC::CADviaOCC::__build_graph(const TopoDS_Shape& occ_shape, std::vector
   E_Int nb_faces = _surfs.Extent();
   
 #ifdef DEBUG_CAD_READER
-  std::cout << "nb of faces : " <<  nb_faces << std::endl;
+  std::cout << "INFO: nb of faces: " <<  nb_faces << std::endl;
 #endif
   
   TopExp::MapShapes(occ_shape, TopAbs_EDGE, _edges);
   
 #ifdef DEBUG_CAD_READER
   E_Int nb_edges = _edges.Extent();
-  std::cout << "nb of edges : " << nb_edges << std::endl;
+  std::cout << "INFO: nb of edges: " << nb_edges << std::endl;
 #endif
   
-  // Now build the graph : for each Face in _surfs associate edges ids in _edges and stamp the solid id.
+  // Now build the graph: for each Face in _surfs associate edges ids in _edges and stamp the solid id.
   vFG.resize(nb_faces+1, 0);
   
   TopExp_Explorer top_expl;
@@ -996,7 +996,7 @@ E_Int K_OCC::CADviaOCC::__build_graph(const TopoDS_Shape& occ_shape, std::vector
   for (top_expl.Init(occ_shape, TopAbs_FACE, TopAbs_SOLID); top_expl.More(); top_expl.Next())
   {
     E_Int idx = (E_Int)_surfs.FindIndex(top_expl.Current());   
-    const TopoDS_Face& F=TopoDS::Face(_surfs(idx));
+    const TopoDS_Face& F = TopoDS::Face(_surfs(idx));
 
     vFG[idx] = new OCCSurface(F, _edges, nb_solids);
 
@@ -1044,7 +1044,7 @@ E_Int K_OCC::CADviaOCC::__mesh_edge(const TopoDS_Edge& E, E_Int& nb_points, K_FL
   // Insert new edges
   for (Standard_Integer i=0; i < nb_points-1; ++i)
   {
-    Ei[0]=sz+i; Ei[1]=sz+i+1;
+    Ei[0] = sz+i; Ei[1] = sz+i+1;
     connectE.pushBack(Ei, Ei+2);
   }
   return 0;

@@ -588,7 +588,6 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
     elif format == 'fmt_iges' or format == 'fmt_step':
         try: import OCC
         except: raise ImportError("convertFile2Arrays: CAD readers requires OCC module.")
-        
         a = OCC.convertCAD2Arrays(fileName, format=format, h=hmax,
                                   chordal_err=hausd, growth_ratio=grow,
                                   merge_tol=mergeTol, algo=occAlgo)

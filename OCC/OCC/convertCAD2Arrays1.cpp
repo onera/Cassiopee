@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-// convertCAD2Arrays (algo=0)
+// convertCAD2Arrays (algo=1)
 
 #include <stdio.h>
 #include <string.h>

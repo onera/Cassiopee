@@ -155,7 +155,7 @@ E_Int K_OCC::CADviaOCC::mesh_faces2
       
     // surface of revolution => duplicate, reverse and separate seams
     //bool is_of_revolution = ((E_Int)nodes.size() != connectB.cols());
-    bool is_of_revolution = (nodes.size() != connectB.cols());
+    bool is_of_revolution = (nodes.size() != (size_t)connectB.cols());
 #ifdef DEBUG_CAD_READER
     if (i == faulty_id && is_of_revolution) printf("Edge is not loop - Is of revolution=true\n");
 #endif
