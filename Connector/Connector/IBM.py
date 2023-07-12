@@ -915,14 +915,8 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
     C._rmVars(t, varsRM)
 
     if check:
-        tibm = extractIBMInfo(tc, IBCNames="IBCD_*")
-        Cmpi.convertPyTree2File(tibm, 'IBMInfo.cgns')
-        del tibm
-
-        if twoFronts:
-            tibm2 = extractIBMInfo(tc, IBCNames="2_IBCD_*")
-            Cmpi.convertPyTree2File(tibm2, 'IBMInfo2.cgns')
-            del tibm2
+        extractIBMInfo(tc, IBCNames="IBCD_*", filename_out='IBMInfo.cgns')
+        if twoFronts: extractIBMInfo(tc, IBCNames="2_IBCD_*", filename_out='IBMInfo2.cgns')
 
     return None
 
@@ -1484,8 +1478,11 @@ def _extractIBMInfo_param(t, tc):
 # Extraction des pts IBM: retourne un arbre avec les coordonnees des
 # pts IBM a corriger, paroi, miroirs
 #=============================================================================
-def extractIBMInfo(tc, IBCNames="IBCD_*"):
+def extractIBMInfo(tc_in, IBCNames="IBCD_*", filename_out=None):
     """Extract IBM informations in a pyTree."""
+    if isinstance(tc_in, str): tc = Cmpi.convertFile2PyTree(tc_in, proc=Cmpi.rank)
+    else: tc = tc_in
+
     XPC={}; YPC={}; ZPC={}
     XPW={}; YPW={}; ZPW={}
     XPI={}; YPI={}; ZPI={}
@@ -1609,6 +1606,8 @@ def extractIBMInfo(tc, IBCNames="IBCD_*"):
         for z in Internal.getZones(t):
             if int(z[0][-1]) != Cmpi.rank:
                 z[0] = z[0]+"%"+str(Cmpi.rank)
+
+    if isinstance(filename_out, str): Cmpi.convertPyTree2File(t, filename_out)
 
     return t
 
