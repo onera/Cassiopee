@@ -17,8 +17,10 @@ WIDGETS = {}; VARS = []
 BODY = None
 # tkSlice module
 TKSLICE = None
-# WALL extract
+# WALL extraction
 WALL = None
+# tkPlotXY Desktop keeping data and curves
+DESKTOP = None
 # CFL
 CFL = 0.7
 # TIMESTEP
@@ -328,10 +330,40 @@ def compute():
     C.convertPyTree2File(WALL, 'walls.cgns')
 
     # optional plot
-    #if CTK.TKPLOTXY is not None:
-    #    CTK.TKPLOTXY.updateData(WALL)
+    if CTK.TKPLOTXY is not None: updatePlots(WALL)
 
     return None
+
+#========================================================================
+# update 1D plots graphs from walls tree
+#========================================================================
+def updatePlots(walls):
+    import tkPlotXY
+    if not tkPlotXY.IMPORTOK: return
+    global DESKTOP
+    # rename zones to keep the same names through computation
+    for c, z in enumerate(Internal.getZones(walls)): z[0] = 'wall'+str(c)
+    # filter walls following extraction
+    outwalls = []
+    wallsz = Internal.getZones(walls)
+    for c, z in enumerate(Internal.getZones(BODY)):
+        n = Internal.getNodeFromPath(z, '.Solver#define/extractPressure')
+        if n is not None:
+            v = Internal.getValue(n)
+            if v == 1: outwalls.append(wallsz[c])
+    
+    if outwalls == []: return
+
+    # create desktop if needed
+    if DESKTOP is None:
+        DESKTOP = tkPlotXY.DesktopFrameTK(CTK.WIDGETS['masterWin'])
+        DESKTOP.setData(outwalls)
+        graph = DESKTOP.createGraph('graph', '1:1')
+        for z in DESKTOP.data:
+                curve = tkPlotXY.Curve(zone=[z], varx='CoordinateX', vary='Pressure@FlowSolution')
+                graph.addCurve('1:1', curve)
+    else:
+        DESKTOP.setData(outwalls)
 
 #===============================================================
 def writeFiles():

@@ -1,8 +1,7 @@
-# - writePyTreeFromFilter (pyTree) -
+# - adaptCells (pyTree) -
 import Intersector.Mpi as XORMPI
 import Intersector.PyTree as XOR
 
-import Converter.Filter as Filter
 import Converter.Internal as I
 import Converter.Mpi as Cmpi
 import Converter.PyTree as C
@@ -12,15 +11,10 @@ import Generator.PyTree as G
 import Distributor2.PyTree as D2
 import Converter.Distributed as D
 
-import time
 import numpy as numpy
-import sys
-import random as rand
-
 import KCore.test as test
 
 LOCAL = test.getLocal()
-print(LOCAL)
 
 Nprocs = Cmpi.size
 ifname = LOCAL + '/case_' + str(Nprocs) + '.cgns'
@@ -28,7 +22,7 @@ ofname = LOCAL + '/out_' + str(Nprocs) + '.cgns'
 
 if Cmpi.rank == 0:
     # Build case
-    N=7
+    N = 7
     a = G.cart((0,0,0), (1,1,1), (N,N,N))
 
     a = T.splitNParts(a, Nprocs)
@@ -57,15 +51,15 @@ Cmpi._convert2PartialTree(t)                    # now t is a partial tree (conta
 CVmax=3
 zs = I.getZones(t)
 cell_vals = []
-for z in zs :
+for z in zs:
     n = C.getNCells(I.getZones(z))
     cv = numpy.empty((n,), dtype=I.E_NpyInt)
     cv[:] = 0
-    if Cmpi.rank%2== 0: cv[0]=CVmax
+    if Cmpi.rank%2 == 0: cv[0] = CVmax
     cell_vals.append(cv)
 
 # add dummy BC and fields
-for z in zs : 
+for z in zs: 
     C._fillEmptyBCWith(z, 'wall', 'BCWall')
     C._initVars(z, '{centers:Density} = {centers:CoordinateX} + {centers:CoordinateY}')
     C._initVars(z, '{centers:Temperature} = {centers:CoordinateX} + {centers:CoordinateY}')
@@ -73,7 +67,7 @@ for z in zs :
     C._initVars(z, '{centers:var2} = {centers:CoordinateX} + {centers:CoordinateY}')
     C._initVars(z, '{centers:var3} = {centers:CoordinateX} + {centers:CoordinateY}')
 
-at = XORMPI.adaptCells(t,cell_vals, sensor_type=3, subdiv_type=0, procDict=procDico, zidDict=zidDico)
+at = XORMPI.adaptCells(t, cell_vals, sensor_type=3, subdiv_type=0, procDict=procDico, zidDict=zidDico)
 at = XORMPI.closeCells(at, procDico, zidDico)
 
 Cmpi.convertPyTree2File(at, ofname)

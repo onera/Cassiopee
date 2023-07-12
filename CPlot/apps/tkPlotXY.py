@@ -12202,37 +12202,37 @@ class editCurvesWindow(TK.Toplevel):
 # ==============================================================================
 # ==============================================================================
 class DesktopFrameTK(TK.Frame):
-    def __init__(self,parent):
-        TK.Frame.__init__(self,parent)
+    def __init__(self, parent):
+        TK.Frame.__init__(self, parent)
         self.initialize()
         #self.data = data # TODO : should be self.data = {} or None at the end of development
         self.data = None
         self.thread = None
         self.parent = parent
     # -------------------------------------------------------------- replaceGroupZones
-    def replaceGroupZones(self,data,oldZoneList):
+    def replaceGroupZones(self, data, oldZoneList):
         if isinstance(data,list):
             # replace zone according to a tree
-            self.replaceGroupZonesWithTree(data,oldZoneList)
-        elif isinstance(data,dict):
+            self.replaceGroupZonesWithTree(data, oldZoneList)
+        elif isinstance(data, dict):
             # Conformize the input dictionnary
             tmp = {}
             # Check if d structure is 'zone' oriented
             isZoneOriented = True
             for k in data:
-                if not isinstance(data[k],dict): # then it is not zone oriented
+                if not isinstance(data[k], dict): # then it is not zone oriented
                     isZoneOriented = False
                     break
             if not isZoneOriented: tmp[default_base] = data
             else: tmp = data
             # replace zone according to a dict data
-            self.replaceGroupZonesWithDict(data,oldZoneList)
+            self.replaceGroupZonesWithDict(data, oldZoneList)
     # ------------------------------------------------------ replaceGroupZonesWithTree
-    def replaceGroupZonesWithTree(self,d,oldZoneList):
+    def replaceGroupZonesWithTree(self, d, oldZoneList):
         # add data and determine the list of new data
         newZoneList = self.addDataWithTree(d)
         # Get the curves that are concerned by a group of old zones and change it to the group of new zones
-        self.updateGroupCurves(oldZoneList,newZoneList)
+        self.updateGroupCurves(oldZoneList, newZoneList)
         # Compare old zones to new zones group and remove old zones that do not exist anymore
         for zoneName in oldZoneList:
             if zoneName not in newZoneList:
@@ -12244,14 +12244,14 @@ class DesktopFrameTK(TK.Frame):
         self.updateAllGraph()
 
     # ------------------------------------------------------ replaceGroupZonesWithDict
-    def replaceGroupZonesWithDict(self,d,oldZoneList):
+    def replaceGroupZonesWithDict(self, d, oldZoneList):
         # Add new data and determine the list of new zones
         newZoneList = []
         for zoneName in d:
             newZoneList.append(zoneName)
-            self.addZoneWithDict(d,zoneName)
+            self.addZoneWithDict(d, zoneName)
         # Get the curves that are concerned by a group of old zones and change it to the group of new zones
-        self.updateGroupCurves(oldZoneList,newZoneList)
+        self.updateGroupCurves(oldZoneList, newZoneList)
         # Compare old zones to new zones group and remove old zones that do not exist anymore
         for zoneName in oldZoneList:
             if zoneName not in newZoneList:
@@ -12262,31 +12262,31 @@ class DesktopFrameTK(TK.Frame):
         ##### Redraw all
         self.updateAllGraph()
     # -------------------------------------------------------------- deleteZoneInCurve
-    def deleteZoneInCurve(self,zoneName):
+    def deleteZoneInCurve(self, zoneName):
         for graph in self.graphWdwL:
             for ax_name in graph.fig.subGraph:
-                graph.deleteZoneInCurve(ax_name,zoneName)
+                graph.deleteZoneInCurve(ax_name, zoneName)
     # -------------------------------------------------------------- updateGroupCurves
-    def updateGroupCurves(self,oldZoneList,newZoneList):
+    def updateGroupCurves(self, oldZoneList, newZoneList):
         for graph in self.graphWdwL:
             for ax_name in graph.fig.subGraph:
-                graph.updateGroupCurvesZoneName(ax_name,oldZoneList,newZoneList)
+                graph.updateGroupCurvesZoneName(ax_name, oldZoneList, newZoneList)
     # ---------------------------------------------------------- addDataWithTree
-    def addDataWithTree(self,t):
+    def addDataWithTree(self, t):
         tmp = self.data
         newZoneList = []
         for base in Internal.getNodesFromType1(t, 'CGNSBase_t'):
             basename = Internal.getName(base)
             ## ## Loop on zones
-            for zone in Internal.getNodesFromType1(base,'Zone_t'):
+            for zone in Internal.getNodesFromType1(base, 'Zone_t'):
                 # Grab GridCoordinates
                 zonename = Internal.getName(zone)
                 ## ## Get GridCoorinates nodes
                 try:
-                    gridcoord = Internal.getNodesFromType1(zone,'GridCoordinates_t')[0]
+                    gridcoord = Internal.getNodesFromType1(zone, 'GridCoordinates_t')[0]
                     for child in Internal.getChildren(gridcoord):
                         if not basename+'/'+zonename in tmp:
-                            tmp[basename+'/'+zonename]={}
+                            tmp[basename+'/'+zonename] = {}
                         tmp[basename+'/'+zonename][Internal.getName(child)]=Internal.getValue(child)
                         newZoneList.append(basename+'/'+zonename)
                 except IndexError: # No GridCoorinates node in this zone
@@ -12295,11 +12295,11 @@ class DesktopFrameTK(TK.Frame):
 
                 # Grab FlowSolution for ZoneBC
                 try:
-                    zoneBC = Internal.getNodesFromType1(zone,'ZoneBC_t')[0]
+                    zoneBC = Internal.getNodesFromType1(zone, 'ZoneBC_t')[0]
                     for bc in Internal.getChildren(zoneBC):
                         bcname = Internal.getName(bc)
                         try:
-                            bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0]
+                            bcdata = Internal.getNodesFromType(zoneBC, 'BCData_t')[0]
                             for var in Internal.getChildren(bcdata):
                                 if Internal.getType(var) == 'DataArray_t':
                                     if not basename+'/'+zonename in tmp:
@@ -12314,40 +12314,40 @@ class DesktopFrameTK(TK.Frame):
                     # print('''zoneBC = Internal.getNodesFromType(zone,'ZoneBC_t')[0] -----> Can not be loaded''')
                     pass
                 # Grab FlowSolution (the rest of them)
-                for flowsolution in Internal.getNodesFromType1(zone,'FlowSolution_t'):
+                for flowsolution in Internal.getNodesFromType1(zone, 'FlowSolution_t'):
                     flowsolutionname = Internal.getName(flowsolution)
                     for var in Internal.getChildren(flowsolution):
-                        if Internal.getType(var)=='DataArray_t':
+                        if Internal.getType(var) == 'DataArray_t':
                             if not basename+'/'+zonename in tmp: tmp[basename+'/'+zonename]={}
                             tmp[basename+'/'+zonename][Internal.getName(var)+'@'+flowsolutionname]=Internal.getValue(var)
                             newZoneList.append(basename+'/'+zonename)
 
-        self.data = OrderedDict(sorted(tmp.items(),key=lambda t : t[0]))
+        self.data = OrderedDict(sorted(tmp.items(), key=lambda t : t[0]))
         return newZoneList
     # ------------------------------------------------------------------ addZone
-    def addZone(self,data,zoneName,basename='.*'):
+    def addZone(self, data, zoneName, basename='.*'):
         if self.data is None:
             self.data = {}
         if isinstance(data,list):
             # add zone according to a tree
-            self.addZoneWithTree(data,zoneName,basename)
-        elif isinstance(data,dict):
+            self.addZoneWithTree(data, zoneName, basename)
+        elif isinstance(data, dict):
             # add zone according to a dict data
-            self.addZoneWithDict(data,zoneName)
+            self.addZoneWithDict(data, zoneName)
         if self.editCurveWdw  is not None:
             # self.editCurveWdw.createFrame()
             self.editCurveWdw.updateData()
     # ---------------------------------------------------------- addZoneWithTree
-    def addZoneWithTree(self,t,zoneName,basenamefilter):
+    def addZoneWithTree(self, t, zoneName, basenamefilter):
         for base in Internal.getNodesFromType1(t, 'CGNSBase_t'):
             basename = Internal.getName(base)
-            if re.match(basenamefilter,basename):
+            if re.match(basenamefilter, basename):
 
                 zone = Internal.getNodesFromName1(base, zoneName)[0]
                 zonename = zoneName
-                ## ## Get GridCoorinates nodes
+                ## Get GridCoordinates nodes
                 try:
-                    gridcoord = Internal.getNodesFromType2(zone,'GridCoordinates_t')[0]
+                    gridcoord = Internal.getNodesFromType2(zone, 'GridCoordinates_t')[0]
                     for child in Internal.getChildren(gridcoord):
                         if not basename+'/'+zonename in self.data: self.data[basename+'/'+zonename]={}
                         self.data[basename+'/'+zonename][Internal.getName(child)]=Internal.getValue(child)
@@ -12357,11 +12357,11 @@ class DesktopFrameTK(TK.Frame):
 
                 # Grab FlowSolution for ZoneBC
                 try:
-                    zoneBC = Internal.getNodesFromType1(zone,'ZoneBC_t')[0]
+                    zoneBC = Internal.getNodesFromType1(zone, 'ZoneBC_t')[0]
                     for bc in Internal.getChildren(zoneBC):
                         bcname = Internal.getName(bc)
                         try:
-                            bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0]
+                            bcdata = Internal.getNodesFromType(zoneBC, 'BCData_t')[0]
                             for var in Internal.getChildren(bcdata):
                                 if Internal.getType(var) == 'DataArray_t':
                                     if not basename+'/'+zonename in self.data: self.data[basename+'/'+zonename]={}
@@ -12374,10 +12374,10 @@ class DesktopFrameTK(TK.Frame):
                     # print('''zoneBC = Internal.getNodesFromType(zone,'ZoneBC_t')[0] -----> Can not be loaded''')
                     pass
                 # Grab FlowSolution (the rest of them)
-                for flowsolution in Internal.getNodesFromType1(zone,'FlowSolution_t'):
+                for flowsolution in Internal.getNodesFromType1(zone, 'FlowSolution_t'):
                     flowsolutionname = Internal.getName(flowsolution)
                     for var in Internal.getChildren(flowsolution):
-                        if Internal.getType(var)=='DataArray_t':
+                        if Internal.getType(var) == 'DataArray_t':
                             if not basename+'/'+zonename in self.data: self.data[basename+'/'+zonename]={}
                             self.data[basename+'/'+zonename][Internal.getName(var)+'@'+flowsolutionname]=Internal.getValue(var)
     # ---------------------------------------------------------- addZoneWithDict
@@ -12385,47 +12385,47 @@ class DesktopFrameTK(TK.Frame):
         if zoneName in d: self.data[zoneName] = d[zoneName]
         else: print('''### Warning: Can not find zone %s in submitted data.'''%zoneName)
     # ------------------------------------------------------- deleteZoneFromData
-    def deleteZoneFromData(self,zoneName,oldBaseName=""):
+    def deleteZoneFromData(self, zoneName, oldBaseName=""):
         for k in self.data.copy():
             re_str = oldBaseName+zoneName.replace('\\','\\\\') # replace \ by \\ for regular expression conversion
             if re.match(re_str,k): del self.data[k]
     # -------------------------------------------------------------- replaceZone
-    def replaceZone(self,data,oldZoneName,newZoneName,oldBaseName="",newBaseName=""):
+    def replaceZone(self, data, oldZoneName, newZoneName, oldBaseName="", newBaseName=""):
         if isinstance(data,list):
             # replace zone according to a tree
-            self.replaceZoneWithTree(data,oldBaseName,oldZoneName,newBaseName,newZoneName)
-        elif isinstance(data,dict):
+            self.replaceZoneWithTree(data, oldBaseName, oldZoneName, newBaseName, newZoneName)
+        elif isinstance(data, dict):
             # replace zone according to a dict data
             if oldBaseName != "": oldZoneName = oldBaseName+'/'+oldZoneName
             if newBaseName != "": newZoneName = newBaseName+'/'+newZoneName
-            self.replaceZoneWithDict(data,oldZoneName,newZoneName)
+            self.replaceZoneWithDict(data, oldZoneName, newZoneName)
         if self.editCurveWdw  is not None:
             # self.editCurveWdw.createFrame()
             self.editCurveWdw.updateData()
     # ------------------------------------------------------ replaceZoneWithDict
-    def replaceZoneWithDict(self,d,oldZoneName,newZoneName):
+    def replaceZoneWithDict(self, d, oldZoneName, newZoneName):
         # Delete old zone from data
         self.deleteZoneFromData(oldZoneName)
-        self.addZoneWithDict(d,newZoneName)
+        self.addZoneWithDict(d, newZoneName)
         ##### Edit curves : change the zonename
-        self.updateAllCurvesZoneName(oldZoneName,newZoneName)
+        self.updateAllCurvesZoneName(oldZoneName, newZoneName)
         ##### Redraw all
         self.updateAllGraph()
     # ------------------------------------------------------ replaceZoneWithTree
-    def replaceZoneWithTree(self,t,oldBaseName,oldZoneName,newBaseName,newZoneName):
+    def replaceZoneWithTree(self, t, oldBaseName, oldZoneName, newBaseName, newZoneName):
         # Delete old zone from data
-        self.deleteZoneFromData(oldZoneName,oldBaseName+'/')
+        self.deleteZoneFromData(oldZoneName, oldBaseName+'/')
         # Find the newZone in tree
-        self.addZoneWithTree(t,newZoneName,newBaseName)
-        ##### Edit curves : change the zonename
+        self.addZoneWithTree(t, newZoneName, newBaseName)
+        ##### Edit curves: change the zonename
         self.updateAllCurvesZoneName(oldBaseName+'/'+oldZoneName,newBaseName+'/'+newZoneName)
         ##### Redraw all
         self.updateAllGraph()
     # -------------------------------------------------- updateAllCurvesZoneName
-    def updateAllCurvesZoneName(self,oldZoneName,newZoneName):
+    def updateAllCurvesZoneName(self, oldZoneName, newZoneName):
         for graph in self.graphWdwL:
             for ax_name in graph.fig.subGraph:
-                graph.updateCurvesZoneName(ax_name,oldZoneName,newZoneName)
+                graph.updateCurvesZoneName(ax_name, oldZoneName, newZoneName)
 
     # -------------------------------------------------------------- replaceData
     def setData(self, data):
@@ -12443,13 +12443,13 @@ class DesktopFrameTK(TK.Frame):
             for ax_name in graph.fig.subGraph:
                 for zonename in old_zones:
                     if zonename not in self.data:
-                        graph.removeCurvesZoneName(ax_name,zonename)
+                        graph.removeCurvesZoneName(ax_name, zonename)
         
         if self.editCurveWdw is not None: self.editCurveWdw.updateData()
         ##### Redraw all
         self.updateAllGraph()
     # ---------------------------------------------------------- setDataWithDict
-    def setDataWithDict(self,d):
+    def setDataWithDict(self, d):
         tmp = {}
         # Check if d structure is 'zone' oriented
         isZoneOriented = True
@@ -12472,7 +12472,6 @@ class DesktopFrameTK(TK.Frame):
         tmp = {}
         tp = getPlotTree(t)
         bases = Internal.getNodesFromType1(tp, 'CGNSBase_t')
-        
         for base in bases:
             basename = Internal.getName(base)
             ## Loop on zones
@@ -12511,7 +12510,7 @@ class DesktopFrameTK(TK.Frame):
                 for flowsolution in Internal.getNodesFromType1(zone,'FlowSolution_t'):
                     flowsolutionname = Internal.getName(flowsolution)
                     for var in Internal.getChildren(flowsolution):
-                        if Internal.getType(var)=='DataArray_t':
+                        if Internal.getType(var) == 'DataArray_t':
                             if not basename+'/'+zonename in tmp: tmp[basename+'/'+zonename]={}
                             tmp[basename+'/'+zonename][Internal.getName(var)+'@'+flowsolutionname]=Internal.getValue(var)
 
@@ -13240,7 +13239,7 @@ class DesktopTK(TK.Tk):
         self.desktopFrameTK.grid(row=0, column=0, sticky='NSEW')
     # ------------------------------------------------------ replaceGroupZonesWithDict
     def replaceGroupZonesWithDict(self, d, oldZoneList):
-        self.desktopFrameTK.replaceGroupZonesWithDict(d,oldZoneList)
+        self.desktopFrameTK.replaceGroupZonesWithDict(d, oldZoneList)
     # -------------------------------------------------------------- replaceGroupZones
     def replaceGroupZones(self, d, oldZoneList):
         self.desktopFrameTK.replaceGroupZones(d, oldZoneList)
@@ -13248,19 +13247,19 @@ class DesktopTK(TK.Tk):
     def replaceGroupZonesWithTree(self, d, oldZoneList):
         self.desktopFrameTK.replaceGroupZonesWithTree(d, oldZoneList)
     # -------------------------------------------------------------- updateGroupCurves
-    def updateGroupCurves(self,oldZoneList,newZoneList):
-        self.desktopFrameTK.updateGroupCurves(oldZoneList,newZoneList)
+    def updateGroupCurves(self, oldZoneList, newZoneList):
+        self.desktopFrameTK.updateGroupCurves(oldZoneList, newZoneList)
     # ---------------------------------------------------------- addDataWithTree
-    def addDataWithTree(self,t):
+    def addDataWithTree(self, t):
         self.desktopFrameTK.addDataWithTree(t)
     # -------------------------------------------------------------- deleteZoneInCurve
-    def deleteZoneInCurve(self,zoneName):
+    def deleteZoneInCurve(self, zoneName):
         self.desktopFrameTK.deleteZoneInCurve(zoneName)
     # ------------------------------------------------------------------ addZone
-    def addZone(self,data,zoneName,baseName='.*'):
+    def addZone(self, data, zoneName, baseName='.*'):
         self.desktopFrameTK.addZone(data,zoneName,baseName)
     # ---------------------------------------------------------- addZoneWithTree
-    def addZoneWithTree(self,t,zoneName,baseName='.*'):
+    def addZoneWithTree(self, t, zoneName,baseName='.*'):
         self.desktopFrameTK.addZoneWithTree(t,zoneName,baseName)
     # ---------------------------------------------------------- addZoneWithDict
     def addZoneWithDict(self,d,zoneName):
@@ -13278,13 +13277,13 @@ class DesktopTK(TK.Tk):
     def replaceZoneWithTree(self,t,oldBaseName,oldZoneName,newBaseName,newZoneName):
         self.desktopFrameTK.replaceZoneWithTree(t,oldBaseName,oldZoneName,newBaseName,newZoneName)
     # ------------------------------------------------------------------ setData
-    def setData(self,data):
+    def setData(self, data):
         self.desktopFrameTK.setData(data)
     # ----------------------------------------------------------------- setQueue
-    def setQueue(self,queue):
+    def setQueue(self, queue):
         self.desktopFrameTK.setQueue(queue)
     # ---------------------------------------------------------------- setThread
-    def setThread(self,thread):
+    def setThread(self, thread):
         self.desktopFrameTK.setThread(thread)
     # ------------------------------------------------------------- killProgramm
     def killProgramm(self):
@@ -13341,7 +13340,7 @@ class Desktop():
             self.addZoneWithDict(data, zoneName)
 
     # ---------------------------------------------------------- addZoneWithTree
-    def addZoneWithTree(self,t,zoneName,baseNameFilter):
+    def addZoneWithTree(self, t, zoneName, baseNameFilter):
         for base in Internal.getNodesFromType1(t, 'CGNSBase_t'):
             basename = Internal.getName(base)
             if re.match(baseNameFilter,basename):
@@ -13391,7 +13390,7 @@ class Desktop():
         if zoneName in d: self.data[zoneName] = d[zoneName]
         else: print('''### Warning: Can not find zone %s in submitted data.'''%zoneName)
     # ------------------------------------------------------- deleteZoneFromData
-    def deleteZoneFromData(self,zoneName,oldBaseName=""):
+    def deleteZoneFromData(self, zoneName, oldBaseName=""):
         """
         Simply delete data from a given zone and base to the set of data from the Desktop object.
         """
@@ -13402,8 +13401,8 @@ class Desktop():
         # Answer : no it has to be done after deletezonefromdata only if we don't replace the zone ...
 
     # -------------------------------------------------------------- replaceGroupZones
-    def replaceGroupZones(self,data,oldZoneList):
-        if isinstance(data,list):
+    def replaceGroupZones(self, data, oldZoneList):
+        if isinstance(data, list):
             # replace zone according to a tree
             self.replaceGroupZonesWithTree(data,oldZoneList)
         elif isinstance(data,dict):
@@ -13434,7 +13433,7 @@ class Desktop():
                 self.deleteZoneInCurve(zoneName)
         ##### Redraw all
         self.updateAllGraph()
-        #
+
     # ---------------------------------------------------------- addDataWithTree
     def addDataWithTree(self,t):
         tmp = self.data

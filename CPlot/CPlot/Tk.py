@@ -61,7 +61,7 @@ __FIELD__ = '__all__'
 __MAINTREE__ = 1
 # Les differents status pour l'arbre
 MAIN=1; DEFINEDBC=-1; TIME=-2; SLICE=-2; CELLN=-3; MESHQUAL=-4; 
-UNDEFINEDBC=-5; IJK=-6
+UNDEFINEDBC=-5; IJK=-6; MONITOR=-7
 
 # Sauvegarde des zones actives de main (avant de basculer sur un arbre
 # temporaire)
