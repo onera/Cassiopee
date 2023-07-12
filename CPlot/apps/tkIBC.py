@@ -186,6 +186,7 @@ def showApp():
     #WIDGETS['frame'].grid(sticky=TK.NSEW)
     CTK.WIDGETS['BCNoteBook'].add(WIDGETS['frame'], text='tkIBC')
     CTK.WIDGETS['BCNoteBook'].select(WIDGETS['frame'])
+    getData()
 
 #==============================================================================
 # Called to hide widgets

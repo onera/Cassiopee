@@ -255,9 +255,6 @@ def compute():
     import Apps.Fast.IBM as App
     
     # Save preventif avec compression cartesienne
-    #import Compressor.PyTree as Compressor
-    #tp = Compressor.compressCartesian(CTK.t)
-    #C.convertPyTree2File(tp, 'restart.cgns'); tp = None
     Fast.saveFile(CTK.t, 'restart.cgns', compress=2)
 
     # check state
@@ -324,6 +321,7 @@ def compute():
     # Wall extraction
     import Connector.ToolboxIBM as TIBM
     global WALL
+    # extract one BAR wall for each base (body)
     WALL = TIBM.extractIBMWallFields(tc, tb=BODY) # avec surface
     #WALL = TIBM.extractIBMWallFields(tc) # seulement en node
     #WALL = Internal.getZones(WALL)
@@ -343,15 +341,18 @@ def updatePlots(walls):
     global DESKTOP
     # rename zones to keep the same names through computation
     for c, z in enumerate(Internal.getZones(walls)): z[0] = 'wall'+str(c)
+
     # filter walls following extraction
     outwalls = []
     wallsz = Internal.getZones(walls)
-    for c, z in enumerate(Internal.getZones(BODY)):
-        n = Internal.getNodeFromPath(z, '.Solver#define/extractPressure')
-        if n is not None:
-            v = Internal.getValue(n)
-            if v == 1: outwalls.append(wallsz[c])
-    
+    for c, b in enumerate(Internal.getBases(BODY)):
+        zones = Internal.getZones(b)
+        if zones: 
+            n = Internal.getNodeFromPath(zones[0], '.Solver#define/extractPressure')
+            if n is not None:
+                v = Internal.getValue(n)
+                if v == 1: outwalls.append(wallsz[c])
+        
     if outwalls == []: return
 
     # create desktop if needed

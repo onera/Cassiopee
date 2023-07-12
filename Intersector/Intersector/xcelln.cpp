@@ -181,7 +181,7 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
   E_Int nb_basenum = PyList_Size(base_num);
   E_Int nb_masks = PyList_Size(masks);
   E_Int nb_priority_pairs = PyList_Size(priorities);
-  E_Int nb_wall_sets = PyList_Size(wall_ids);
+  //E_Int nb_wall_sets = PyList_Size(wall_ids);
 
   //std::cout << "nb_zones/nb_wall_zones/nb_basenum/nb_masks/nb_priority_pairs/output_type : " << nb_zones << "/" << nb_wall_zones << "/" << nb_basenum << "/" << nb_masks << "/" << nb_priority_pairs << "/" << output_type << std::endl;
   

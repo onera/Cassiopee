@@ -12458,7 +12458,7 @@ class DesktopFrameTK(TK.Frame):
                 isZoneOriented = False
                 break
         if not isZoneOriented:
-            tmp[default_base]=d
+            tmp[default_base] = d
             self.setDataWithDict(tmp)
             return
         # Here the dict of data is zone oriented
@@ -12516,10 +12516,10 @@ class DesktopFrameTK(TK.Frame):
 
         self.data = OrderedDict(sorted(tmp.items(),key=lambda t : t[0]))
     # ----------------------------------------------------------------- setQueue
-    def setQueue(self,queue):
+    def setQueue(self, queue):
         self.queue = queue
     # ---------------------------------------------------------------- setThread
-    def setThread(self,thread):
+    def setThread(self, thread):
         self.thread = thread
     # ------------------------------------------------------------- killProgramm
     def killProgramm(self):
@@ -12558,75 +12558,71 @@ class DesktopFrameTK(TK.Frame):
         # Add a labelFrame
         #lblframeCreate = TTK.LabelFrame(self, text="Create Graph")
         lblframeCreate = TTK.Frame(self)
-        lblframeCreate.grid(row=0,column=0,sticky="nsew")
+        lblframeCreate.grid(row=0,column=0, sticky="nsew")
         # # Configure grid for postionning for the inside of the LabelFrame
-        lblframeCreate.grid_columnconfigure(0,weight=1)
-        lblframeCreate.grid_columnconfigure(1,weight=1)
-        lblframeCreate.grid_rowconfigure(0,weight=1)
+        lblframeCreate.grid_columnconfigure(0, weight=1)
+        lblframeCreate.grid_columnconfigure(1, weight=1)
+        lblframeCreate.grid_rowconfigure(0, weight=1)
 
         # Add butons to the label frame
 
         # ROW 1
         B = TTK.Button(lblframeCreate, text='Add Graph', command=self.cmd_addGraph)
-        B.grid(row=0,column=0,sticky="nsew")
+        B.grid(row=0, column=0, sticky="nsew")
         #
         frame = TTK.Frame(lblframeCreate)
-        frame.grid(row=0,column=1,sticky="NSEW")
-        frame.grid_columnconfigure(0,weight=1)
-        frame.grid_columnconfigure(1,weight=1)
-        frame.grid_rowconfigure(0,weight=1)
-        frame.grid_rowconfigure(1,weight=1)
+        frame.grid(row=0, column=1, sticky="NSEW")
+        frame.grid_columnconfigure(0, weight=1)
+        frame.grid_columnconfigure(1, weight=1)
+        frame.grid_rowconfigure(0, weight=1)
+        frame.grid_rowconfigure(1, weight=1)
         #
-        lblframe = TTK.LabelFrame(frame,text="Name")
-#        lblframe = TK.LabelFrame(lblframeCreate,text="Name")
-        lblframe.grid(row=0,column=0,sticky="NSEW")
-        lblframe.grid_columnconfigure(0,weight=1)
-        lblframe.grid_rowconfigure(0,weight=1)
+        lblframe = TTK.LabelFrame(frame, text="Name")
+        lblframe.grid(row=0, column=0, sticky="NSEW")
+        lblframe.grid_columnconfigure(0, weight=1)
+        lblframe.grid_rowconfigure(0, weight=1)
         #
         self.entryAddName = TK.Entry(lblframe)
         self.entryAddName.insert(TK.END,"Graph #%s"%len(self.graphWdwL))
-        self.entryAddName.bind("<Button-1>",self.eraseEntry)
-        self.entryAddName.bind("<FocusOut>",self.checkEntry)
+        self.entryAddName.bind("<Button-1>", self.eraseEntry)
+        self.entryAddName.bind("<FocusOut>", self.checkEntry)
         self.entryAddName.grid(row=0,column=0,sticky="NSEW")
         self.entryAddName.name = 'name'
         #
-        lblframe = TTK.LabelFrame(frame,text="Zones")
-#        lblframe = TK.LabelFrame(lblframeCreate,text="Zones")
-        lblframe.grid(row=0,column=1,sticky="NSEW")
-        lblframe.grid_columnconfigure(0,weight=1)
-        lblframe.grid_rowconfigure(0,weight=1)
+        lblframe = TTK.LabelFrame(frame, text="Zones")
+        lblframe.grid(row=0, column=1, sticky="NSEW")
+        lblframe.grid_columnconfigure(0, weight=1)
+        lblframe.grid_rowconfigure(0, weight=1)
         #
         self.entryAddGraph = TK.Entry(lblframe)
         self.entryAddGraph.insert(TK.END, "1:1") #TODO : comprendre pourquoi le END
-        self.entryAddGraph.bind("<Button-1>",self.eraseEntry)
-        self.entryAddGraph.bind("<FocusOut>",self.checkEntry)
-        self.entryAddGraph.grid(row=0,column=0,sticky="nsew")
+        self.entryAddGraph.bind("<Button-1>", self.eraseEntry)
+        self.entryAddGraph.bind("<FocusOut>", self.checkEntry)
+        self.entryAddGraph.grid(row=0, column=0, sticky="nsew")
         self.entryAddGraph.name = 'zones'
         #
         lblframe = TTK.LabelFrame(frame,text="Fig. Size (inches)")
-#        lblframe = TK.LabelFrame(lblframeCreate,text="Size")
-        lblframe.grid(row=1,column=0,sticky="NSEW")
-        lblframe.grid_columnconfigure(0,weight=1)
-        lblframe.grid_rowconfigure(0,weight=1)
+        lblframe.grid(row=1, column=0, sticky="NSEW")
+        lblframe.grid_columnconfigure(0, weight=1)
+        lblframe.grid_rowconfigure(0, weight=1)
         #
         self.entrySize = TK.Entry(lblframe)
         self.entrySize.insert(TK.END, "default") #TODO : comprendre pourquoi le END
-        self.entrySize.bind("<Button-1>",self.eraseEntry)
-        self.entrySize.bind("<FocusOut>",self.checkEntry)
-        self.entrySize.grid(row=0,column=0,sticky="nsew")
+        self.entrySize.bind("<Button-1>", self.eraseEntry)
+        self.entrySize.bind("<FocusOut>", self.checkEntry)
+        self.entrySize.grid(row=0, column=0, sticky="nsew")
         self.entrySize.name = 'size'
         #
         lblframe = TTK.LabelFrame(frame,text="dpi (dots per inch)")
-#        lblframe = TK.LabelFrame(lblframeCreate,text="Resolution")
-        lblframe.grid(row=1,column=1,sticky="NSEW")
-        lblframe.grid_columnconfigure(0,weight=1)
-        lblframe.grid_rowconfigure(0,weight=1)
+        lblframe.grid(row=1, column=1, sticky="NSEW")
+        lblframe.grid_columnconfigure(0, weight=1)
+        lblframe.grid_rowconfigure(0, weight=1)
         #
         self.entryResolution = TK.Entry(lblframe)
         self.entryResolution.insert(TK.END, "default") #TODO : comprendre pourquoi le END
-        self.entryResolution.bind("<Button-1>",self.eraseEntry)
-        self.entryResolution.bind("<FocusOut>",self.checkEntry)
-        self.entryResolution.grid(row=0,column=0,sticky="nsew")
+        self.entryResolution.bind("<Button-1>", self.eraseEntry)
+        self.entryResolution.bind("<FocusOut>", self.checkEntry)
+        self.entryResolution.grid(row=0, column=0, sticky="nsew")
         self.entryResolution.name = 'resolution'
 
 
@@ -12634,31 +12630,30 @@ class DesktopFrameTK(TK.Frame):
         # Add a labelFrame
         #lblframeEdit = TTK.LabelFrame(self, text="Edit Graph")
         lblframeEdit = TTK.Frame(self)
-        lblframeEdit.grid(row=1,column=0,sticky="nsew")
+        lblframeEdit.grid(row=1, column=0, sticky="nsew")
         # # Configure grid for postionning for the inside of the LabelFrame
-        lblframeEdit.grid_columnconfigure(0,weight=1)
-        lblframeEdit.grid_columnconfigure(1,weight=1)
+        lblframeEdit.grid_columnconfigure(0, weight=1)
+        lblframeEdit.grid_columnconfigure(1, weight=1)
         #
-        lblframeEdit.grid_rowconfigure(0,weight=1)
-        lblframeEdit.grid_rowconfigure(1,weight=1)
-        lblframeEdit.grid_rowconfigure(2,weight=1)
-        lblframeEdit.grid_rowconfigure(3,weight=1)
-        lblframeEdit.grid_rowconfigure(4,weight=1)
-        lblframeEdit.grid_rowconfigure(5,weight=1)
-        lblframeEdit.grid_rowconfigure(6,weight=1)
-        lblframeEdit.grid_rowconfigure(7,weight=1)
+        lblframeEdit.grid_rowconfigure(0, weight=1)
+        lblframeEdit.grid_rowconfigure(1, weight=1)
+        lblframeEdit.grid_rowconfigure(2, weight=1)
+        lblframeEdit.grid_rowconfigure(3, weight=1)
+        lblframeEdit.grid_rowconfigure(4, weight=1)
+        lblframeEdit.grid_rowconfigure(5, weight=1)
+        lblframeEdit.grid_rowconfigure(6, weight=1)
+        lblframeEdit.grid_rowconfigure(7, weight=1)
         #
         ## Select Graph
         #
         lblframe = TTK.LabelFrame(lblframeEdit, text="Graph Name")
-        lblframe.grid(row=0,column=0,sticky='NESW')
+        lblframe.grid(row=0, column=0, sticky='NESW')
         # Grid of lblframe
-        lblframe.grid_columnconfigure(0,weight=1)
-        lblframe.grid_rowconfigure(0,weight=1)
-        #
+        lblframe.grid_columnconfigure(0, weight=1)
+        lblframe.grid_rowconfigure(0, weight=1)
 
         self.graphNameList = [g.name for g in self.graphWdwL]
-        if len(self.graphNameList)==0:
+        if len(self.graphNameList) == 0:
             self.graphNameList.append('')
         self.activeGraph = cttk.Combobox(lblframe,values = self.graphNameList,state='readonly')
         try:
@@ -12667,17 +12662,17 @@ class DesktopFrameTK(TK.Frame):
         except KeyError:
             self.activeGraph.val = ''
         self.activeGraph.set(self.activeGraph.val)
-        self.activeGraph.bind("<<ComboboxSelected>>",self.cmd_graphNameChange)
-        self.activeGraph.grid(row=0,column=0,sticky="NSEW")
+        self.activeGraph.bind("<<ComboboxSelected>>", self.cmd_graphNameChange)
+        self.activeGraph.grid(row=0, column=0, sticky="NSEW")
 
         #
         ## Select Zone -> Row 0 of lblframeEdit
         #
         lblframe = TTK.LabelFrame(lblframeEdit, text="Zone")
-        lblframe.grid(row=0,column=1,sticky='NESW')
+        lblframe.grid(row=0, column=1, sticky='NESW')
         # Grid of lblframe
-        lblframe.grid_columnconfigure(0,weight=1)
-        lblframe.grid_rowconfigure(0,weight=1)
+        lblframe.grid_columnconfigure(0, weight=1)
+        lblframe.grid_rowconfigure(0, weight=1)
         #
         try: self.positionList = list(self.graphWdwL[self.activeGraph.val].subGraph.keys())
         except IndexError: self.positionList = ['']
@@ -12691,23 +12686,23 @@ class DesktopFrameTK(TK.Frame):
         #
         ## Edit/Delete curves
         #
-        B = TTK.Button(lblframeEdit,text='Edit Curves',command=self.cmd_editCurves)
-        B.grid(row=1,column=0,columnspan=1,sticky="nsew")
+        B = TTK.Button(lblframeEdit, text='Edit Curves', command=self.cmd_editCurves)
+        B.grid(row=1, column=0, columnspan=1, sticky="nsew")
         #
         ## Set Legend
         #
-        B = TTK.Button(lblframeEdit,text='Set Legend',command=self.cmd_setLegend)
-        B.grid(row=1,column=1,columnspan=1,sticky="nsew")
+        B = TTK.Button(lblframeEdit, text='Set Legend', command=self.cmd_setLegend)
+        B.grid(row=1, column=1, columnspan=1, sticky="nsew")
         #
         ## Set Axis
         #
-        B = TTK.Button(lblframeEdit,text='Set Axis',command=self.cmd_setAxis)
-        B.grid(row=2,column=0,columnspan=1,sticky="nsew")
+        B = TTK.Button(lblframeEdit, text='Set Axis', command=self.cmd_setAxis)
+        B.grid(row=2, column=0, columnspan=1, sticky="nsew")
         #
         ## Set Grids
         #
-        B = TTK.Button(lblframeEdit,text='Set Grid',command=self.cmd_setGrid)
-        B.grid(row=2,column=1,columnspan=1,sticky="nsew")
+        B = TTK.Button(lblframeEdit, text='Set Grid', command=self.cmd_setGrid)
+        B.grid(row=2, column=1, columnspan=1, sticky="nsew")
         #
         ## Set Text
         #

@@ -37,35 +37,43 @@ C
 C FORWARD SOLUTION SWEEP
       CALL k6SOL(M,M,A,Y,IP)
       DO 30 K=2,NM1
-      KM1=K-1
-      DO 20 I=1,M
-      DP=0.D0
-      DO 10 J=1,M
- 10   DP=DP+C(I,J,K)*Y(J,KM1)
- 20   Y(I,K)=Y(I,K)-DP
-      CALL k6SOL (M,M,A(1,1,K),Y(1,K),IP(1,K))
+        KM1=K-1
+        DO 20 I=1,M
+          DP=0.D0
+          DO 10 J=1,M
+            DP=DP+C(I,J,K)*Y(J,KM1)
+ 10       CONTINUE
+          Y(I,K)=Y(I,K)-DP
+ 20     CONTINUE
+        CALL k6SOL (M,M,A(1,1,K),Y(1,K),IP(1,K))
  30   CONTINUE
       DO 50 I=1,M
-      DP=0.D0
-      DO 40 J=1,M
- 40   DP=DP+C(I,J,N)*Y(J,NM1)+B(I,J,N)*Y(J,NM2)
- 50   Y(I,N)=Y(I,N)-DP
+        DP=0.D0
+        DO 40 J=1,M
+          DP=DP+C(I,J,N)*Y(J,NM1)+B(I,J,N)*Y(J,NM2)
+ 40     CONTINUE
+        Y(I,N)=Y(I,N)-DP
+ 50   CONTINUE
       CALL k6SOL (M,M,A(1,1,N),Y(1,N),IP(1,N))
 C BACKWARD SOLUTION SWEEP.
       DO 80 KB=1,NM1
-      K=N-KB
-      KP1=K+1
-      DO 70 I=1,M
-      DP=0.D0
-      DO 60 J=1,M
- 60   DP=DP+B(I,J,K)*Y(J,KP1)
- 70   Y(I,K)=Y(I,K)-DP
+        K=N-KB
+        KP1=K+1
+        DO 70 I=1,M
+          DP=0.D0
+          DO 60 J=1,M
+            DP=DP+B(I,J,K)*Y(J,KP1)
+ 60       CONTINUE
+          Y(I,K)=Y(I,K)-DP
+ 70     CONTINUE
  80   CONTINUE
       DO 100 I=1,M
-      DP=0.D0
-      DO 90 J=1,M
- 90   DP=DP+C(I,J,1)*Y(J,3)
- 100  Y(I,1)=Y(I,1)-DP
+        DP=0.D0
+        DO 90 J=1,M
+          DP=DP+C(I,J,1)*Y(J,3)
+ 90     CONTINUE
+        Y(I,1)=Y(I,1)-DP
+ 100  CONTINUE
       RETURN
       END
 C

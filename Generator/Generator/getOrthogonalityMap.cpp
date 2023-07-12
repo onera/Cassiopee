@@ -383,7 +383,7 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
       
       #pragma omp parallel
       {
-        E_Float s1, s2, s3, s4, s5, s12, s13, s14, s15, s23, s24, s25, s34, s35, s45;
+        E_Float s1, s2, s3, s4, s5, s13, s14, s15, s23, s24, s25, s34, s35, s45;
         E_Float alpha13, alpha14, alpha15, alpha23, alpha24, alpha25, alpha34, alpha35, alpha45;
         E_Float alphamax1, alphamax2, alphamax3;  
         #pragma omp for
@@ -434,7 +434,7 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
       #pragma omp parallel
       {
         E_Float s1, s2, s3, s4, s5, s6;
-        E_Float s12, s13, s14, s15, s16, s23, s24, s25, s26, s34, s35, s36, s45, s46, s55;
+        E_Float s13, s14, s15, s16, s23, s24, s25, s26, s35, s36, s45, s46;
         E_Float alpha13, alpha14, alpha15, alpha16, alpha23, alpha24, alpha25, alpha26;
         E_Float alpha35, alpha36, alpha45, alpha46;
         E_Float alphamax1, alphamax2, alphamax3, alphamax4;

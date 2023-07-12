@@ -29,7 +29,7 @@ c
       g11 = xxi*xxi + yxi*yxi
       g12 = xxi*xet + yxi*yet
       g22 = xet*xet + yet*yet
-      rg = xxi*yet - xet*yxi
+      rg = xxi*yet - xet*yxi 
       g = rg*rg
 
       RETURN

@@ -7,34 +7,34 @@ C
 C
 C***********************************************************************
 C
-C	SOLUTION OF PERIODIC BLOCK TRIDIAGONAL SYSTEM
+C SOLUTION OF PERIODIC BLOCK TRIDIAGONAL SYSTEM
 C
-C	THIS SUBROUTINE SOLVES A SYSTEM OF THE TYPE
+C THIS SUBROUTINE SOLVES A SYSTEM OF THE TYPE
 C
-C	--                      --   --    --   --    --
-C	| B1  C1             A1  |   |  X1  |   |  D1  |
-C	| A2  B2  C2             |   |  X2  |   |  D2  | 
-C	|                        |   |      |   |      |
-C	|     ... ... ...        | * |  ... | = |  ... |
-C   |                        |   |      |   |      |
-C	|         AN-1 BN-1 CN-1 |   |  XN-1|   |  DN-1|
-C	| CN            AN   BN  |   |  XN  |   |  DN  |
-C	--                      --   --    --   --    --
+C --                      --   --    --   --    --
+C | B1  C1             A1  |   |  X1  |   |  D1  |
+C | A2  B2  C2             |   |  X2  |   |  D2  | 
+C |                        |   |      |   |      |
+C |     ... ... ...        | * |  ... | = |  ... |
+C |                        |   |      |   |      |
+C |         AN-1 BN-1 CN-1 |   |  XN-1|   |  DN-1|
+C | CN            AN   BN  |   |  XN  |   |  DN  |
+C --                      --   --    --   --    --
 C
 C       INPUT:
-C	     M ORDER OF BLOCKS IN EACH DIRECTION OF THE MATRIX
-C	     N ORDER OF LINES OF THE MATRIX
-C	     A,B,C  MATRICES MxMxN (DESTROYED DURING COMPUTATION)
-C	     X,D    MATRICES MxN (STORED IN THE SAME MATRIX,D AT
-C		    INPUT,X AT THE OUTPUT)
+C      M ORDER OF BLOCKS IN EACH DIRECTION OF THE MATRIX
+C      N ORDER OF LINES OF THE MATRIX
+C      A,B,C  MATRICES MxMxN (DESTROYED DURING COMPUTATION)
+C      X,D    MATRICES MxN (STORED IN THE SAME MATRIX,D AT
+C             INPUT,X AT THE OUTPUT)
 C        Z      WORKING MATRIX  MxMxN
-C	     ZA     WORKING MATRIX Mx(N-1)
+C      ZA     WORKING MATRIX Mx(N-1)
 C        IP     WORKING MATRIX FOR PIVOT INFORMATION Mx(N-1)
-C	THE SUBROUTINES DECBT,SOLBT,DEC,SOL ARE USED FOR SOLVING THE
-C	ASSOCIATED BLOCK TRIDIAGONAL SYSTEMS.
-C	SUBROUTINE GELG  IS USED FOR THE CALCULATION OF THE MATRIX XN
-C	THE EXECUTION IS STOPPED IF THE BLOCK DECOMPOSITION OR THE 
-C	SOLUTION OF THE SYSTEM FOR XN ARE FAILED
+C THE SUBROUTINES DECBT,SOLBT,DEC,SOL ARE USED FOR SOLVING THE
+C ASSOCIATED BLOCK TRIDIAGONAL SYSTEMS.
+C SUBROUTINE GELG  IS USED FOR THE CALCULATION OF THE MATRIX XN
+C THE EXECUTION IS STOPPED IF THE BLOCK DECOMPOSITION OR THE 
+C SOLUTION OF THE SYSTEM FOR XN ARE FAILED
 C
 C***********************************************************************
 C
@@ -78,64 +78,71 @@ C
 C
       DO L=1,N-1
       DO I=1,M
- 11     ZA(I,L)=D(I,L)
+        ZA(I,L)=D(I,L)
       ENDDO
       ENDDo
       CALL k6SOLBT (M,N-1,B,C,A,ZA,IP)
 
       DO L=1,N-1
       DO I=1,M
- 12     D(I,L)=ZA(I,L)
+        D(I,L)=ZA(I,L)
       ENDDO
       ENDDO
       
       DO 20 JK=1,M
-      DO L=1,N-1
-      DO I=1,M
- 21     ZA(I,L)=Z(I,JK,L)
-      ENDDO
-      ENDDO
+        DO L=1,N-1
+        DO I=1,M
+          ZA(I,L)=Z(I,JK,L)
+        ENDDO
+        ENDDO
       
-	  CALL k6SOLBT (M,N-1,B,C,A,ZA,IP)
-      DO L=1,N-1
-      DO I=1,M
- 22     Z(I,JK,L)=ZA(I,L)
-      ENDDO
-      ENDDO
- 20     CONTINUE
+        CALL k6SOLBT (M,N-1,B,C,A,ZA,IP)
+        DO L=1,N-1
+        DO I=1,M
+          Z(I,JK,L)=ZA(I,L)
+        ENDDO
+        ENDDO
+ 20   CONTINUE
 
       DO I=1,M
- 23     Z(I,1,N)=D(I,N)
+        Z(I,1,N)=D(I,N)
       ENDDO
 C
-      DO 30 I=1,M
-      DO 30 J=1,M
+      DO I=1,M
+      DO J=1,M
         S1=0.D0
         S2=0.D0
         DO 31 IR=1,M
-        S1=S1+C(I,IR,N)*Z(IR,J,1)
- 31     S2=S2+A(I,IR,N)*Z(IR,J,N-1)
- 30     ZA(I,J)=B(I,J,N)-S1-S2
-
+          S1=S1+C(I,IR,N)*Z(IR,J,1)
+          S2=S2+A(I,IR,N)*Z(IR,J,N-1)
+ 31     CONTINUE
+        ZA(I,J)=B(I,J,N)-S1-S2
+      ENDDO
+      ENDDO
       DO 40 I=1,M
         S1=0.D0
         S2=0.D0
-      DO 41 IR=1,M
-        S1=S1+C(I,IR,N)*D(IR,1)
- 41     S2=S2+A(I,IR,N)*D(IR,N-1)
- 40     D(I,N)=D(I,N)-S1-S2
-	    CALL k6GELG (D(1,N),ZA,M,1,EPS,IER)
-        IF (IER.NE.0.) THEN
+        DO 41 IR=1,M
+          S1=S1+C(I,IR,N)*D(IR,1)
+          S2=S2+A(I,IR,N)*D(IR,N-1)
+ 41     CONTINUE
+        D(I,N)=D(I,N)-S1-S2
+ 40   CONTINUE
+      CALL k6GELG (D(1,N),ZA,M,1,EPS,IER)
+      IF (IER.NE.0.) THEN
         WRITE (6,100)
  100    FORMAT (1X,'SOLUTION OF SYSTEM A*(XN)=B FAILED')
       ENDIF
 C
-      DO 60 L=1,N-1
-      DO 60 I=1,M
+      DO L=1,N-1
+      DO I=1,M
         T=0.D0
-      DO 61 IR=1,M
- 61     T=T+Z(I,IR,L)*D(IR,N)
- 60     D(I,L)=D(I,L)-T
+        DO 61 IR=1,M
+          T=T+Z(I,IR,L)*D(IR,N)
+ 61     CONTINUE
+        D(I,L)=D(I,L)-T
+      ENDDO
+      ENDDO 
       RETURN
       END
-C
+

@@ -287,7 +287,7 @@ def _loadVariables(a, fileName, znp, var, format):
     fvars = []; cont = []
     for v in vars:
        s = v.split(':',1)
-       if v[0:10] == 'Coordinate': 
+       if v[0:10] == 'Coordinate':
         fvars.append(Internal.__GridCoordinates__+'/'+v); cont = Internal.__GridCoordinates__
        elif len(s) == 2 and s[0] == 'centers': 
         fvars.append(Internal.__FlowSolutionCenters__+'/'+s[1]); cont = Internal.__FlowSolutionCenters__
