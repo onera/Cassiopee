@@ -130,7 +130,7 @@ PyObject* K_INTERSECTOR::closeCells_mpi(PyObject* self, PyObject* args)
 
   // pushing out the result : the set of closed meshes
   PyObject *l(PyList_New(0));
-  for (size_t i=0; i < nb_meshes; ++i)
+  for (size_t i=0; i < (size_t)nb_meshes; ++i)
   {
     K_FLD::IntArray cnto;
     ptr_ph_meshes[i]->cnt.export_to_array(cnto);

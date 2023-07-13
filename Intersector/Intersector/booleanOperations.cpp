@@ -658,20 +658,20 @@ PyObject* call_union(PyObject* args)
 
     ngon_type & ngo = *BO._ngoper;
        
-    E_Int nb_phs = ngo.PHs.size();
-    E_Int nb_pgs = ngo.PGs.size();
+    size_t nb_phs = ngo.PHs.size();
+    size_t nb_pgs = ngo.PGs.size();
 
     std::vector<E_Int> phoids0(nb_phs);
     std::vector<E_Int> phoids1(nb_phs);
     std::ostringstream o;
     
-    for (E_Int i=0; i < nb_phs; ++i)
+    for (size_t i=0; i < nb_phs; ++i)
     {
 	
       E_Int ancPH1 = ngo.PHs._ancEs(0,i);
       E_Int ancPH2 = ngo.PHs._ancEs(1,i);
       
-      assert (i >=0 && i < ngo.PHs._ancEs.cols());
+      assert (i >=0 && i < (size_t)ngo.PHs._ancEs.cols());
       
       phoids0[i] = ancPH1;
       phoids1[i] = ancPH2;
@@ -723,9 +723,9 @@ PyObject* call_union(PyObject* args)
     K_FLD::IntArray F2E ; 
     ngo.build_noF2E(F2E);
         
-    for (E_Int i=0; i < nb_pgs; ++i)
+    for (size_t i=0; i < nb_pgs; ++i)
     {      
-      assert (i >=0 && i < ngo.PGs._ancEs.cols());
+      assert (i >=0 && i < (size_t)ngo.PGs._ancEs.cols());
       
       E_Int ancPG1 = ngo.PGs._ancEs(0,i);
       E_Int ancPG2 = ngo.PGs._ancEs(1,i);

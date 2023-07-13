@@ -128,8 +128,7 @@ const char* varString, PyObject *out)
 {
   int err(0);
   size_t nb_meshes = hmeshes.size();
-
-  assert (nb_meshes == sensors.size());
+  if (nb_meshes != sensors.size()) exit(1);
 
   if (elt_type==elt_t::HEXA)
   {

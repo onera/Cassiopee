@@ -431,8 +431,6 @@ PyObject* K_INTERSECTOR::extractNthCell(PyObject* self, PyObject* args)
   }
   // Exract also its shell
   {
-    E_Int nb_pgs = ngi.PHs.stride(nth);
-    E_Int* pgs = ngi.PHs.get_facets_ptr(nth);
     std::vector<bool> wprocessed/*externalized to not reallocate it each time*/;
     std::vector<E_Int> shellPHs, boundPGs;
     std::vector<bool> keepPH;
@@ -859,7 +857,6 @@ PyObject* K_INTERSECTOR::collapseSmallEdges(PyObject* self, PyObject* args)
 
   std::vector<E_Int> nids;
   bool carry_on{false};
-  int iter{0};
 
   //
   do
@@ -1044,7 +1041,7 @@ PyObject* K_INTERSECTOR::checkCellsFlux(PyObject* self, PyObject* args)
 
   // Check numpy (parentElement)
   FldArrayI* cFE;
-  E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE, true);
+  K_NUMPY::getFromNumpyArray(PE, cFE, true);
 
   K_FLD::FloatArray & crd = *f;
   K_FLD::IntArray & cnt = *cn;
@@ -1158,7 +1155,7 @@ PyObject* K_INTERSECTOR::checkAngularExtrema(PyObject* self, PyObject* args)
 
   // Check numpy (parentElement)
   FldArrayI* cFE;
-  E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE, true);
+  K_NUMPY::getFromNumpyArray(PE, cFE, true);
 
   K_FLD::FloatArray & crd = *f;
   K_FLD::IntArray & cnt = *cn;
@@ -1178,7 +1175,8 @@ PyObject* K_INTERSECTOR::checkAngularExtrema(PyObject* self, PyObject* args)
 
   std::vector<E_Int> orient;
   E_Int imax{-1}, imin{-1};
-  E_Int PG1max{-1}, PG2max{-1};
+  E_Int PG1max = -1;
+  E_Int PG2max = -1;
   E_Float minA{7.}, maxA{-1.};
   
   //
@@ -1199,7 +1197,7 @@ PyObject* K_INTERSECTOR::checkAngularExtrema(PyObject* self, PyObject* args)
     }
 
     E_Float mA, MA;
-    E_Int maxAPG1, maxAPG2;
+    E_Int maxAPG1 = -1, maxAPG2 = -1;
     err = K_MESH::Polyhedron<UNKNOWN>::min_max_angles(crd, ngi.PGs, pF, nbf, false, &orient[0], mA, MA, maxAPG1, maxAPG2);
 
     if (MA > maxA)
@@ -1299,7 +1297,7 @@ PyObject* K_INTERSECTOR::checkCellsVolume(PyObject* self, PyObject* args)
 
   // Check numpy (parentElement)
   FldArrayI* cFE;
-  E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE, true);
+  K_NUMPY::getFromNumpyArray(PE, cFE, true);
 
   K_FLD::FloatArray & crd = *f;
   K_FLD::IntArray & cnt = *cn;
@@ -1400,8 +1398,6 @@ PyObject* K_INTERSECTOR::checkCellsVolume(PyObject* self, PyObject* args)
 PyObject* K_INTERSECTOR::checkCellsVolumeAndGrowthRatio(PyObject* self, PyObject* args)
 {
   PyObject *arr, *PE;
-  double aratio{0.125}, vmin{0.};
-  int nneighs{1};
 
   if (!PyArg_ParseTuple(args, "OO", &arr, &PE)) return NULL;
 
@@ -1414,7 +1410,7 @@ PyObject* K_INTERSECTOR::checkCellsVolumeAndGrowthRatio(PyObject* self, PyObject
 
   // Check numpy (parentElement)
   FldArrayI* cFE;
-  E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE, true);
+  K_NUMPY::getFromNumpyArray(PE, cFE, true);
 
   K_FLD::FloatArray & crd = *f;
   K_FLD::IntArray & cnt = *cn;
@@ -1542,7 +1538,7 @@ PyObject* K_INTERSECTOR::extractBadVolCells(PyObject* self, PyObject* args)
 
   // Check numpy (parentElement)
   FldArrayI* cFE;
-  E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE, true);
+  K_NUMPY::getFromNumpyArray(PE, cFE, true);
 
   K_FLD::FloatArray & crd = *f;
   K_FLD::IntArray & cnt = *cn;
@@ -1564,7 +1560,6 @@ PyObject* K_INTERSECTOR::extractBadVolCells(PyObject* self, PyObject* args)
 
   std::vector<E_Int> orient;
   std::vector<double> vols(nphs, NUGA::FLOAT_MAX);
-  E_Int imin=-1;
   
   //compute volumes using input orientation 
   for (E_Int i=0; i < ngi.PHs.size(); ++i)
@@ -1607,7 +1602,7 @@ PyObject* K_INTERSECTOR::extractBadVolCells(PyObject* self, PyObject* args)
 
   std::vector<bool> keep(nphs, false);
   E_Int badcount=0;
-  for (size_t i=0; i < nphs; ++i)
+  for (size_t i=0; i < (size_t)nphs; ++i)
   {
     if ( (growth_ratio[i] < aratio) || (vols[i] < vmin) ) {
       ++badcount;
@@ -1665,11 +1660,11 @@ PyObject* K_INTERSECTOR::extractOverConnectedCells(PyObject* self, PyObject* arg
 
   std::vector<bool> keep(ngi.PHs.size(), false);
 
-  for (size_t k = 0; k < ngi.PHs.size(); ++k)
+  for (size_t k = 0; k < (size_t)ngi.PHs.size(); ++k)
   {
-    E_Int nf = ngi.PHs.stride(k);
+    size_t nf = ngi.PHs.stride(k);
     const E_Int* faces = ngi.PHs.get_facets_ptr(k);
-    E_Int nb_overcon = 0;
+    size_t nb_overcon = 0;
     for (size_t f = 0; f < nf; ++f)
     {
       E_Int PGi = faces[f] - 1;
@@ -2530,7 +2525,7 @@ PyObject* K_INTERSECTOR::externalFaces(PyObject* self, PyObject* args)
 
       discard_ids.insert(ptL, ptL+size);
 
-      for (size_t k=0; k < ef.ncells(); ++k)
+      for (size_t k=0; k < (size_t)ef.ncells(); ++k)
         if (discard_ids.find(oids[k]) != discard_ids.end())
           keep[k] = false;
 
@@ -3104,7 +3099,7 @@ PyObject* K_INTERSECTOR::closeCells(PyObject* self, PyObject* args)
 
   // pushing out the result : the set of closed meshes
   PyObject *l(PyList_New(0));
-  for (size_t i=0; i < nb_meshes; ++i)
+  for (size_t i=0; i < (size_t)nb_meshes; ++i)
   {
     K_FLD::IntArray cnto;
     ptr_ph_meshes[i]->cnt.export_to_array(cnto);
@@ -3549,15 +3544,13 @@ PyObject* K_INTERSECTOR::getCollidingTopFaces(PyObject* self, PyObject* args)
     bool is_hexa = K_MESH::Hexahedron::is_of_type(m1.cnt.PGs, m1.cnt.PHs.get_facets_ptr(i), m1.cnt.PHs.stride(i));
     if (!is_hexa) continue;
 
-    int nneighs = neighbors->stride(i);
+    size_t nneighs = neighbors->stride(i);
 
     const E_Int* pneighs = neighbors->get_facets_ptr(i);
 
-    E_Int nfaces = m1.cnt.PHs.stride(i);
     const E_Int* pfaces = m1.cnt.PHs.get_facets_ptr(i);
 
     //freeze top of boundary elements
-    E_Int bot = IDX_NONE;
     for (size_t k = 0; k< nneighs; ++k)
     {
       if (pneighs[k] != IDX_NONE) continue;
@@ -3582,17 +3575,15 @@ PyObject* K_INTERSECTOR::getCollidingTopFaces(PyObject* self, PyObject* args)
 
     if (!is_prism && !is_hexa) continue;
 
-    int nneighs = neighbors->stride(i);
+    size_t nneighs = neighbors->stride(i);
 
     const E_Int* pneighs = neighbors->get_facets_ptr(i);
 
-    E_Int nfaces = m1.cnt.PHs.stride(i);
     const E_Int* pfaces = m1.cnt.PHs.get_facets_ptr(i);
 
     E_Int top=IDX_NONE, topOK=IDX_NONE;
 
     // seek for colliging regions boundary
-    E_Int bot = IDX_NONE;
     for (size_t k = 0; k< nneighs; ++k)
     {
       if (pneighs[k] == IDX_NONE) continue;  // boundary
@@ -3624,7 +3615,7 @@ PyObject* K_INTERSECTOR::getCollidingTopFaces(PyObject* self, PyObject* args)
         break;
       }
 
-      bot = k;
+      //bot = k;
       topOK=top;
     }
 
@@ -3883,7 +3874,7 @@ PyObject* K_INTERSECTOR::getNthNeighborhood(PyObject* self, PyObject* args)
 
   // Check numpy array
   FldArrayI* fids;
-  E_Int res = K_NUMPY::getFromNumpyArray(py_ids, fids, true);
+  K_NUMPY::getFromNumpyArray(py_ids, fids, true);
 
   std::vector<E_Int> ids(fids->getSize());
   for (size_t i=0; i < ids.size();++i)
@@ -4175,8 +4166,8 @@ PyObject* K_INTERSECTOR::concatenate(PyObject* self, PyObject* args)
     K_CONNECT::IdTool::init_inc(z_phnids[i], ngt.PHs.size());
 
     // Shift pour indir. dans tab. globaux  
-    for ( size_t j=0; j<ngt.PGs.size(); ++j){ z_pgnids[i][j] +=  ng.PGs.size(); } 
-    for ( size_t j=0; j<ngt.PHs.size(); ++j){ z_phnids[i][j] +=  ng.PHs.size(); }
+    for ( size_t j=0; j<(size_t)ngt.PGs.size(); ++j){ z_pgnids[i][j] +=  ng.PGs.size(); } 
+    for ( size_t j=0; j<(size_t)ngt.PHs.size(); ++j){ z_phnids[i][j] +=  ng.PHs.size(); }
 
     ng.append(ngt);
     crd.pushBack(*crds[i]);
@@ -4202,7 +4193,7 @@ PyObject* K_INTERSECTOR::concatenate(PyObject* self, PyObject* args)
   ngon_type::clean_connectivity(ng, crd, -1/*ngon_dim*/, tol/*tolerance*/, true/*remove_dup_phs*/, true/*do_omp*/, &glo_pgnids, &glo_phnids, pLmin2 );
 
   //Propagation des nouveaux ids dans z_pgnids/z_phnids
-  for (size_t i=0; i < nb_zones; ++i)
+  for (size_t i=0; i < (size_t)nb_zones; ++i)
   {
     // propagate pgnids
     for ( size_t j=0; j< z_pgnids[i].size(); ++j) 
@@ -4220,8 +4211,8 @@ PyObject* K_INTERSECTOR::concatenate(PyObject* self, PyObject* args)
     }
   }
 
-  if (geodim == SURFACIC) // NUGA SURF
-
+  if (geodim == ngon_type::eGEODIM::SURFACIC)
+  //if (geodim == SURFACIC) // NUGA SURF
     ng = ngon_type(ng.PGs, true);
 
   //std::cout << "after clean : nb_phs/phs/crd : " << ng.PHs.size() << "/" << ng.PGs.size() << "/" << crd.cols() << std::endl;
@@ -4236,7 +4227,7 @@ PyObject* K_INTERSECTOR::concatenate(PyObject* self, PyObject* args)
   PyList_Append(l, tpl);
  
   //Sortie indirection pgnids pour chaque zone
-  for (size_t i=0; i < nb_zones; ++i)
+  for (size_t i=0; i < (size_t)nb_zones; ++i)
   {
     tpl = K_NUMPY::buildNumpyArray(&z_pgnids[i][0], z_pgnids[i].size(), 1, 0);
     PyList_Append(l, tpl);
@@ -4244,7 +4235,7 @@ PyObject* K_INTERSECTOR::concatenate(PyObject* self, PyObject* args)
   }
 
   //Sortie indirection phnids pour chaque zone
-  for (size_t i=0; i < nb_zones; ++i)
+  for (size_t i=0; i < (size_t)nb_zones; ++i)
   {
     tpl = K_NUMPY::buildNumpyArray(&z_phnids[i][0], z_phnids[i].size(), 1, 0);
     PyList_Append(l, tpl);
@@ -4338,7 +4329,7 @@ PyObject* K_INTERSECTOR::getFaceIdsWithCentroids(PyObject* self, PyObject* args)
   K_FLD::FloatArray* f2(nullptr);
   K_FLD::IntArray* cn2(nullptr);
   char* varString2, *eltType2;
-  E_Int res = K_ARRAY::getFromArray(arr2, varString2, f2, ni, nj, nk, cn2, eltType2);
+  K_ARRAY::getFromArray(arr2, varString2, f2, ni, nj, nk, cn2, eltType2);
 
   K_FLD::FloatArray& crd = *f;
   K_FLD::IntArray& cnt = *cn;
@@ -4400,7 +4391,6 @@ PyObject* K_INTERSECTOR::getFaceIdsWithCentroids(PyObject* self, PyObject* args)
 
   for (E_Int i=0; i < nb_pts2; ++i)
   {
-    double d2;
     E_Int N = tree.getClosest(crd2.col(i));
     if (N != IDX_NONE)
       ids.push_back(N+1);
@@ -4472,7 +4462,6 @@ PyObject* K_INTERSECTOR::getFaceIdsCollidingVertex(PyObject* self, PyObject* arg
   // SURFACIC OR VOLUMIC ?
 
   ngon_type ngi(cnt);
-  ngon_unit& PGS = ngi.PGs;
 
   //std::cout << "nb pts : " << nb_pts2 << std::endl;
 
@@ -4546,13 +4535,12 @@ PyObject* K_INTERSECTOR::getCells(PyObject* self, PyObject* args)
   E_Int err = check_is_NGON(arr1, f, cn, varString, eltType);
   if (err) return NULL;
 
-  E_Int res=0;
   E_Int* ids{nullptr};
   E_Int size, nfld;
   if (arr2 != Py_None)
-    res = K_NUMPY::getFromNumpyArray(arr2, ids, size, nfld, true/*shared*/);
+      K_NUMPY::getFromNumpyArray(arr2, ids, size, nfld, true/*shared*/);
 
-    if (ids == nullptr) return NULL;
+  if (ids == nullptr) return NULL;
 
   K_FLD::FloatArray& crd = *f;
   K_FLD::IntArray& cnt = *cn;
@@ -4574,7 +4562,7 @@ PyObject* K_INTERSECTOR::getCells(PyObject* self, PyObject* args)
   else // cell id
   {
     keep.resize(ng.PHs.size(), false);
-    for (size_t i=0; i < size; ++i) keep[ids[i]]=true;
+    for (size_t i=0; i < (size_t)size; ++i) keep[ids[i]]=true;
   }
 
   std::vector<E_Int> oids;
@@ -4631,11 +4619,10 @@ PyObject* K_INTERSECTOR::getFaces(PyObject* self, PyObject* args)
   E_Int err = check_is_NGON(arr1, f, cn, varString, eltType);
   if (err) return NULL;
 
-  E_Int res=0;
   E_Int* pgids=NULL;
   E_Int size, nfld;
   if (arr2 != Py_None)
-    res = K_NUMPY::getFromNumpyArray(arr2, pgids, size, nfld, true/*shared*/);
+      K_NUMPY::getFromNumpyArray(arr2, pgids, size, nfld, true/*shared*/);
 
   K_FLD::FloatArray& crd = *f;
   K_FLD::IntArray& cnt = *cn;

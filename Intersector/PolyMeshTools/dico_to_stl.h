@@ -54,7 +54,7 @@ inline void convert_dico_to_map___int_int_vecint
         PyArrayObject* pyarr = reinterpret_cast<PyArrayObject*>(py_ptlist);
 
         long ndims = PyArray_NDIM(pyarr);
-        assert (ndims == 1); // vector
+        if (ndims != 1) exit(1);
         npy_intp* dims = PyArray_SHAPE(pyarr);
 
         E_Int ptl_sz = dims[0];
@@ -63,7 +63,7 @@ inline void convert_dico_to_map___int_int_vecint
         E_Int* dataPtr = (E_Int*)PyArray_DATA(pyarr);
 
         std::vector<E_Int> ptl(ptl_sz);
-        for (size_t u=0; u < ptl_sz; ++u) ptl[u] = dataPtr[u];
+        for (size_t u=0; u < (size_t)ptl_sz; ++u) ptl[u] = dataPtr[u];
 
         //std::cout << "max in C is : " << *std::max_element(ALL(ptl)) << std::endl;
 
@@ -93,7 +93,6 @@ inline void convert_dico_to_map__int_pairint
       assert (PyTuple_Check(py_pair) == 1); // is it a tuple ?
 
       PyTupleObject* pytup = reinterpret_cast<PyTupleObject*>(py_pair);    
-      Py_ssize_t nb = PyTuple_GET_SIZE(pytup);
 
       // -----
 
@@ -148,8 +147,7 @@ inline int convert_dico_to_map___transfo_to_vecint
     assert (PyTuple_Check(py_transfo) == 1) ; // it s a tuple (Xx, Yc, Zc, R)
     PyTupleObject* pytup = reinterpret_cast<PyTupleObject*>(py_transfo);
     Py_ssize_t nb = PyTuple_GET_SIZE(pytup);
-
-    assert (nb == 6);
+    if (nb != 6) exit(1);
     for (size_t i=0; i < 6; ++i)
     {
       PyObject * p PyTuple_GET_ITEM(pytup, i);
@@ -162,7 +160,7 @@ inline int convert_dico_to_map___transfo_to_vecint
     PyArrayObject* pyarr = reinterpret_cast<PyArrayObject*>(py_vecint);
 
     long ndims = PyArray_NDIM(pyarr);
-    assert (ndims == 1); // vector
+    if (ndims != 1) exit(1);
     npy_intp* dims = PyArray_SHAPE(pyarr);
 
     E_Int sz = dims[0];
@@ -171,7 +169,7 @@ inline int convert_dico_to_map___transfo_to_vecint
     E_Int* dataPtr = (E_Int*)PyArray_DATA(pyarr);
 
     transfo_to_list[t].resize(sz);
-    for (size_t u=0; u < sz; ++u) transfo_to_list[t][u] = dataPtr[u];
+    for (size_t u=0; u < (size_t)sz; ++u) transfo_to_list[t][u] = dataPtr[u];
   }
   return 0;
 }

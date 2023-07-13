@@ -451,7 +451,7 @@ void __interpolateHMeshNodalField(const void* hmesh_ptrs, std::vector<double>& f
 
 // PARTIE A
   std::set<E_Int> donnorFaces;  
-  for(E_Int i = 0; i < bcptlists[0].size(); ++i)
+  for(size_t i = 0; i < bcptlists[0].size(); ++i)
   {
     E_Int PGi_hmesh = bcptlists[0][i] - 1;  
     PGi_hmesh = hmesh->pghids0[PGi_hmesh];
@@ -1131,8 +1131,7 @@ const char* varString, PyObject *out)
 {
   int err(0);
   size_t nb_meshes = hmeshes.size();
-
-  assert (nb_meshes == sensors.size());
+  if (nb_meshes != sensors.size()) exit(1);
 
   if (elt_type==elt_t::HEXA)
   {
@@ -1785,7 +1784,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
       PyArrayObject* pyarr = reinterpret_cast<PyArrayObject*>(py_ptlist);
 
       long ndims = PyArray_NDIM(pyarr);
-      assert (ndims == 1); // vector
+      if (ndims != 1) exit(1);
       npy_intp* dims = PyArray_SHAPE(pyarr);
 
       E_Int ptl_sz = dims[0];
@@ -1794,7 +1793,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
       E_Int* dataPtr = (E_Int*)PyArray_DATA(pyarr);
 
       std::vector<E_Int> ptl(ptl_sz);
-      for (size_t u=0; u < ptl_sz; ++u) ptl[u] = dataPtr[u];
+      for (size_t u=0; u < (size_t)ptl_sz; ++u) ptl[u] = dataPtr[u];
 
       //std::cout << "max in C is : " << *std::max_element(ALL(ptl)) << std::endl;
 
@@ -1818,8 +1817,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
     K_FLD::FloatArray fldsC;
     K_FLD::IntArray cn;
 
-    E_Int res = 
-      K_ARRAY::getFromArray(pyfieldsC, fvarStringsC, fldsC, ni, nj, nk, cn, feltType);
+    K_ARRAY::getFromArray(pyfieldsC, fvarStringsC, fldsC, ni, nj, nk, cn, feltType);
 
     /*std::cout << "res : " << res << std::endl;
     std::cout << "var : " << fvarStrings[0] << std::endl;
@@ -1844,8 +1842,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
     K_FLD::FloatArray fldsN;
     K_FLD::IntArray cn;
 
-    E_Int res = 
-      K_ARRAY::getFromArray(pyfieldsN, fvarStringsN, fldsN, ni, nj, nk, cn, feltType);
+    K_ARRAY::getFromArray(pyfieldsN, fvarStringsN, fldsN, ni, nj, nk, cn, feltType);
 
     /*td::cout << "res : " << res << std::endl;
     std::cout << "var : " << fvarStrings[0] << std::endl;
@@ -1877,13 +1874,13 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
       PyObject* fieldFi = PyList_GetItem(pyfieldsF, j);
 
       FldArrayF* Fid;
-      E_Int res = K_NUMPY::getFromNumpyArray(fieldFi, Fid, true);
+      K_NUMPY::getFromNumpyArray(fieldFi, Fid, true);
       pFid[j] = Fid->begin(1);
       fieldsF[j].resize(Fid->getSize());
     }
 
     for (E_Int j = 0; j < nfieldsF; ++j)
-      for (E_Int i = 0; i < fieldsF[j].size(); ++i)
+      for (size_t i = 0; i < fieldsF[j].size(); ++i)
       {
         fieldsF[j][i] = pFid[j][i];
         //std::cout << "pFid[j][i] : " << pFid[j][i] << std::endl;
