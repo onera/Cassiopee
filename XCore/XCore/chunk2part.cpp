@@ -26,34 +26,62 @@
 //============================================================================
 PyObject* K_XCORE::chunk2part(PyObject* self, PyObject* args)
 {
-  PyObject* coords; // list of coord numpys (chunks)
-  PyObject* ngons; // list of ngons numpys (chunks)
-  PyObject* nfaces; // list of nfaces numpys (chunks)
-  PyObject* pes; // list of pe numpys (chunks)
-  if (!PyArg_ParseTuple(args, "OOOO", &coords, &ngons, &nfaces, &pes)) return NULL;
+  PyObject* arrays;
+  if (!PyArg_ParseTuple(args, "O", &arrays)) return NULL;
   
-  E_Int ncoords = PyList_Size(coords);
-  PyObject* o;
+  E_Int nzones = PyList_Size(arrays);
+
+  PyObject* o; PyObject* l;
   E_Float* ptrf; E_Int size; E_Int nfld;
   E_Int* ptri;
-  for (E_Int i = 0; i < ncoords; i++)
+  
+  for (E_Int i = 0; i < nzones; i++)
   {
-    o = PyList_GetItem(coords, i);
+    l = PyList_GetItem(arrays, i);
+
+    // 1 must be coordinateX chunk
+    o = PyList_GetItem(l, 0);
     K_NUMPY::getFromNumpyArray(o, ptrf, size, nfld, true);
-  }
-
-  E_Int nngons = PyList_Size(ngons);
-  for (E_Int i = 0; i < nngons; i++)
-  {
-    o = PyList_GetItem(ngons, i);
+    // 2 must be coordinateY chunk
+    o = PyList_GetItem(l, 1);
+    K_NUMPY::getFromNumpyArray(o, ptrf, size, nfld, true);
+    // 3 must be coordinateZ chunk
+    o = PyList_GetItem(l, 2);
+    K_NUMPY::getFromNumpyArray(o, ptrf, size, nfld, true);
+    // 4 must be ngon chunk
+    o = PyList_GetItem(l, 3);
     K_NUMPY::getFromNumpyArray(o, ptri, size, nfld, true);
-  }
-  
+    // 5 must be ngon so chunk
+    o = PyList_GetItem(l, 4);
+    K_NUMPY::getFromNumpyArray(o, ptri, size, nfld, true);
+    // 6 must be nface chunk
+    o = PyList_GetItem(l, 5);
+    K_NUMPY::getFromNumpyArray(o, ptri, size, nfld, true);
+    // 6 must be nface so chunk
+    o = PyList_GetItem(l, 6);
+    K_NUMPY::getFromNumpyArray(o, ptri, size, nfld, true);
+    
+    // PE a venir...
 
-  // Release numpys
-  for (E_Int i = 0; i < ncoords; i++) Py_DECREF(PyList_GetItem(coords, i));
-  for (E_Int i = 0; i < nngons; i++) Py_DECREF(PyList_GetItem(ngons, i));
+  }
+
+  // ..
   
+  // export with buildNumpyArray
+  
+  // Release numpys
+  for (E_Int i = 0; i < nzones; i++) 
+  {
+    l = PyList_GetItem(arrays, i);
+    Py_DECREF(PyList_GetItem(l, 0));
+    Py_DECREF(PyList_GetItem(l, 1));
+    Py_DECREF(PyList_GetItem(l, 2));
+    Py_DECREF(PyList_GetItem(l, 3));
+    Py_DECREF(PyList_GetItem(l, 4));
+    Py_DECREF(PyList_GetItem(l, 5));
+    Py_DECREF(PyList_GetItem(l, 6));
+    
+  }
 
   Py_INCREF(Py_None);
   return Py_None;

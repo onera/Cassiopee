@@ -3534,7 +3534,7 @@ class editShapeWindow(TK.Toplevel):
     def __init__(self):
         TK.Toplevel.__init__(self)
         self.title('Edit  texts')
-        self.protocol("WM_DELETE_WINDOW",self.cmd_close)
+        self.protocol("WM_DELETE_WINDOW", self.cmd_close)
         #
         self.list_dialog = None
         self.input_dialog = None
@@ -3543,9 +3543,7 @@ class editShapeWindow(TK.Toplevel):
     # --------------------------------------------------------------- initialize
     def initialize(self,parent):
         self.parent = parent
-        #
         self.graph = self.parent.activeGraph.val
-
         self.zone  = self.parent.position.val
         try:
             self.subGraph = self.parent.graphWdwL[self.graph].fig.subGraph[self.zone]
@@ -3791,7 +3789,7 @@ class editShapeWindow(TK.Toplevel):
     def cb_visibility(self,ind):
         CB = self.frame.visibilityItem[ind]
         initialValue = CB.val.get()
-        self.subGraph.shapes[ind].setValue('visibility',initialValue)
+        self.subGraph.shapes[ind].setValue('visibility', initialValue)
         # If line was selected, apply this modification to all other selected lines
         if self.frame.selectionItem[ind].val.get():
             for ind2 in range(len(self.frame.selectionItem)):
@@ -9477,7 +9475,7 @@ class list_dialogWindow(TK.Toplevel):
 
 class GraphTK(TK.Toplevel):
     # --------------------------------------------------------------------- init
-    def __init__(self,parent,name,conf,dpi=None,figsize=None):
+    def __init__(self, parent, name, conf, dpi=None, figsize=None):
         TK.Toplevel.__init__(self)
         self.dpi = dpi
         self.figsize = figsize
@@ -9505,24 +9503,24 @@ class GraphTK(TK.Toplevel):
     def initialize(self):
         self.title(string=self.name)
         self.parent.updateGraphName2Id()
-        self.parent.graphName2Id[self.name]=len(self.parent.graphWdwL)
+        self.parent.graphName2Id[self.name] = len(self.parent.graphWdwL)
         self.index = len(self.parent.graphWdwL)
         self.parent.graphWdwL.append(self)
         # Create a frame
         self.frame = TK.Frame(self) # Can not use TTK here because of line : self.frame.configure(bg="white")
         self.frame.configure(bg="white")
-        self.frame.grid(row=0,column=0,sticky="nsew")
-        self.frame.grid_columnconfigure(0,weight=1)
-        self.frame.grid_rowconfigure(0,weight=1)
-        self.frame.grid_rowconfigure(1,weight=0)
+        self.frame.grid(row=0, column=0, sticky="nsew")
+        self.frame.grid_columnconfigure(0, weight=1)
+        self.frame.grid_rowconfigure(0, weight=1)
+        self.frame.grid_rowconfigure(1, weight=0)
         # Figure
-        self.fig = MatplotlibFigure(self.parent,self,self.conf,self.dpi,self.figsize)
+        self.fig = MatplotlibFigure(self.parent, self, self.conf, self.dpi, self.figsize)
 
         # Canvas
-        self.canvas = FigureCanvasTkAgg(self.fig.instance,self.frame)
-        self.canvas.get_tk_widget().grid_columnconfigure(0,weight=1)
-        self.canvas.get_tk_widget().grid_rowconfigure(0,weight=1)
-        self.canvas.get_tk_widget().grid(row=0,column=0,sticky="NSEW")
+        self.canvas = FigureCanvasTkAgg(self.fig.instance, self.frame)
+        self.canvas.get_tk_widget().grid_columnconfigure(0, weight=1)
+        self.canvas.get_tk_widget().grid_rowconfigure(0, weight=1)
+        self.canvas.get_tk_widget().grid(row=0, column=0, sticky="NSEW")
         self.canvas.draw()
         
         # interactive zoom/pan
@@ -9538,6 +9536,7 @@ class GraphTK(TK.Toplevel):
             self.canvas.mpl_connect('button_press_event', self._onMousePress)
             self.canvas.mpl_connect('button_release_event', self._onMouseRelease)
             self.canvas.mpl_connect('motion_notify_event', self._onMouseMotion)
+            self.canvas.mpl_connect('key_press_event', self._onKeyPress)
         self.canvas.mpl_connect('pick_event', self._onPick) # interactive legend
 
         # Toolbar
@@ -9556,16 +9555,16 @@ class GraphTK(TK.Toplevel):
     def getFig(self):
         return self.fig.getFig()
     # ------------------------------------------------------ deleteZoneInCurve
-    def deleteZoneInCurve(self,iCurSubGraph,zoneName):
-        self.fig.deleteZoneInCurve(iCurSubGraph,zoneName)
+    def deleteZoneInCurve(self, iCurSubGraph,zoneName):
+        self.fig.deleteZoneInCurve(iCurSubGraph, zoneName)
     # ------------------------------------------------------ updateGroupCurvesZoneName
-    def updateGroupCurvesZoneName(self,iCurSubGraph,oldZoneList,newZoneList):
-        self.fig.updateGroupCurvesZoneName(iCurSubGraph,oldZoneList,newZoneList)
+    def updateGroupCurvesZoneName(self, iCurSubGraph, oldZoneList, newZoneList):
+        self.fig.updateGroupCurvesZoneName(iCurSubGraph, oldZoneList, newZoneList)
 
     # ------------------------------------------------------ updateSubPlotParams
     def updateSubPlotParams(self, params):
         for var in params:
-            self.subPlotParams.setValue(var,params[var])
+            self.subPlotParams.setValue(var, params[var])
             if var == 'isActive': self.tightLayout.setValue(var,not params[var])
         # Update Figure
         self.applyViewSettings()
@@ -9588,17 +9587,17 @@ class GraphTK(TK.Toplevel):
     def save(self, path, format=None):
         self.fig.saveFigure(path, format=format)
     # ------------------------------------------------------------------ addGrid
-    def getGrid(self,iCurSubGraph,ind=0,axis=None):
+    def getGrid(self, iCurSubGraph, ind=0, axis=None):
         if axis: ind = axis.getInd()
         return self.fig.getGrid(iCurSubGraph, ind)
     # ------------------------------------------------------------------ addAxis
-    def addAxis(self,iCurSubGraph,shared=None,ind=0,axis=None):
+    def addAxis(self, iCurSubGraph, shared=None, ind=0, axis=None):
         if axis: ind = axis.getInd()
         axis_to_twin = ind
         if shared is None:
             self.fig.subGraph[iCurSubGraph].addAxis()
             newind = len(self.fig.subGraph[iCurSubGraph].axis)-1
-            newaxis = self.fig.getAxis(iCurSubGraph,ind=newind)
+            newaxis = self.fig.getAxis(iCurSubGraph, ind=newind)
             newaxis.ind = newind
             return newaxis
         elif shared == 'x' or shared == 'X':
@@ -9615,13 +9614,13 @@ class GraphTK(TK.Toplevel):
             return newaxis
         else: print('''### Error: value used for 'shared' is unknown, must be in [None, 'x', 'X', 'y', 'Y'].''')
     # ---------------------------------------------------------------- getLegend
-    def getLegend(self,iCurSubGraph):
+    def getLegend(self, iCurSubGraph):
         return self.fig.getLegend(iCurSubGraph)
     # ------------------------------------------------------------------ getAxis
     def getAxis(self, iCurSubGraph, ind=0):
         return self.fig.getAxis(iCurSubGraph, ind)
     # -------------------------------------------------------------------- write
-    def write(self,ind):
+    def write(self, ind):
         line = '''graph_%s=GraphTK(obj,'%s','%s',dpi=%s,figsize=%s)\n'''%(ind,self.name,self.conf,self.dpi,self.figsize)
         if self.image_background_color != default_values['Graph']['image_background_color']:
             line += '''graph_%s.setValue('image_background_color',%s)\n'''%(ind,self.image_background_color)
@@ -9866,8 +9865,64 @@ class GraphTK(TK.Toplevel):
         #print(artist.get_text())
         # Il suffirait de desactiver la courbe, mais comment la reactiver ensuite?
 
+    def _onKeyPress(self, event):
+        
+        if event.key != '&' and event.key != '1' and event.key != 'é' and event.key != '2': return
+
+        desktop = self.parent
+        data = desktop.data
+        iCurSubGraph = self.parent.position.val
+        curves = self.fig.subGraph[iCurSubGraph].curves
+
+        if event.key == '&': # x+1
+            for c in curves:
+                if c.varx == 'x': c.setValue('varx', 'y')
+                elif c.varx == 'CoordinateX': c.setValue('varx', 'CoordinateY')
+                elif c.varx == 'y': c.setValue('varx', 'z')
+                elif c.varx == 'CoordinateY': c.setValue('varx', 'CoordinateZ')
+                elif c.varx == 'z': c.setValue('varx', 'x')
+                elif c.varx == 'CoordinateZ': c.setValue('varx', 'CoordinateX')
+        elif event.key == '1': # x-1
+            for c in curves:
+                if c.varx == 'x': c.setValue('varx', 'z')
+                elif c.varx == 'CoordinateX': c.setValue('varx', 'CoordinateZ')
+                elif c.varx == 'y': c.setValue('varx', 'x')
+                elif c.varx == 'CoordinateY': c.setValue('varx', 'CoordinateX')
+                elif c.varx == 'z': c.setValue('varx', 'y')
+                elif c.varx == 'CoordinateZ': c.setValue('varx', 'CoordinateY')
+         
+        elif event.key == 'é': #y+1
+            for c in curves:
+                zoneNames = c.zone # zone Name
+                varlist = []
+                if len(zoneNames) > 0:
+                    z = zoneNames[0] # only first one
+                    vars = data[z]   # dict
+                    varlist = list(vars.keys())
+                for n, v in enumerate(varlist):
+                    if c.vary == v:
+                        if n < len(varlist)-1: c.setValue('vary', varlist[n+1])
+                        else: c.setValue('vary', varlist[0])
+                        break
+        elif event.key == '2': #y+1
+            for c in curves:
+                zoneNames = c.zone # zone Name
+                varlist = []
+                if len(zoneNames) > 0:
+                    z = zoneNames[0] # only first one
+                    vars = data[z]   # dict
+                    varlist = list(vars.keys())
+                for n, v in enumerate(varlist):
+                    if c.vary == v:
+                        if n > 1: c.setValue('vary', varlist[n-1])
+                        else: c.setValue('vary', varlist[n-1])
+                        break        
+
+        self.updateGraph(iCurSubGraph)
+            
+        
     # ------------------------------------------------------------ clickOnCanvas
-    def clickOnCanvas(self,event):
+    def clickOnCanvas(self, event):
         try:
             ax = event.inaxes
             self.parent.selectPositionByName(ax.name)
@@ -9902,26 +9957,26 @@ class GraphTK(TK.Toplevel):
         self.parent.updateactiveGraph()
         self.destroy()
     # ----------------------------------------------------------------- addCurve
-    def addCurve(self,iCurSubGraph,curve):
+    def addCurve(self, iCurSubGraph, curve):
         # If colors are set by default, we use a color map
         # Rmk : this is useless in the workflow using editCurve class but usefull while reloading a file ...
         curve.correctColor(len(self.fig.subGraph[iCurSubGraph].curves))
         self.fig.subGraph[iCurSubGraph].curves.append(curve)
         self.updateGraph(iCurSubGraph)
     # ----------------------------------------------------------------- addCurve
-    def addText(self,iCurSubGraph,text):
+    def addText(self, iCurSubGraph, text):
         self.fig.subGraph[iCurSubGraph].texts.append(text)
         self.updateGraph(iCurSubGraph)
     # ----------------------------------------------------------------- addShape
-    def addShape(self,iCurSubGraph,shape):
+    def addShape(self, iCurSubGraph, shape):
         self.fig.subGraph[iCurSubGraph].shapes.append(shape)
         self.updateGraph(iCurSubGraph)
     # ----------------------------------------------------- removeCurvesZoneName
-    def removeCurvesZoneName(self,ax_name,zonename):
-        self.fig.removeCurvesZoneName(ax_name,zonename)
+    def removeCurvesZoneName(self, ax_name, zonename):
+        self.fig.removeCurvesZoneName(ax_name, zonename)
     # ----------------------------------------------------- updateCurvesZoneName
-    def updateCurvesZoneName(self,iCurSubGraph,oldZoneName,newZoneName):
-        self.fig.updateCurvesZoneName(iCurSubGraph,oldZoneName,newZoneName)
+    def updateCurvesZoneName(self, iCurSubGraph, oldZoneName, newZoneName):
+        self.fig.updateCurvesZoneName(iCurSubGraph, oldZoneName, newZoneName)
     # -------------------------------------------------------------- updateGraph
     def updateGraph(self, iCurSubGraph):
         self.fig.drawOneFigure(iCurSubGraph)
@@ -9941,7 +9996,7 @@ class GraphTK(TK.Toplevel):
                                            w_pad=self.tightLayout.wpad)
         self.canvas.draw()
     # ----------------------------------------------------------------- setValue
-    def setValue(self,variable,value):
+    def setValue(self, variable, value):
         if variable == 'image_background_color':
             self.image_background_color = value
         elif variable == 'image_background_alpha':
@@ -9962,7 +10017,7 @@ class Graph():
     An object of class Graph corresponds to a window where plots are drawn. A graph window can manage several plots.
     """
     # --------------------------------------------------------------------- init
-    def __init__(self,parent,name,conf,dpi=None,figsize=None):
+    def __init__(self, parent, name, conf, dpi=None, figsize=None):
 
         self.parent = parent
         self.figsize = figsize
@@ -9988,19 +10043,19 @@ class Graph():
         self.parent.graphWdwL.append(self)
 
         # Figure
-        self.fig = MatplotlibFigure(self.parent,self,self.conf,self.dpi,self.figsize)
+        self.fig = MatplotlibFigure(self.parent, self,self.conf, self.dpi, self.figsize)
         self.setName(self.name)
 
         # Update Main window : graph name list
-#        self.parent.updateactiveGraph()
+        # self.parent.updateactiveGraph()
 
         # Configure une zone graphique
     # ------------------------------------------------------ deleteZoneInCurve
-    def deleteZoneInCurve(self,iCurSubGraph,zoneName):
-        self.fig.deleteZoneInCurve(iCurSubGraph,zoneName)
+    def deleteZoneInCurve(self, iCurSubGraph, zoneName):
+        self.fig.deleteZoneInCurve(iCurSubGraph, zoneName)
     # ------------------------------------------------------ updateGroupCurvesZoneName
-    def updateGroupCurvesZoneName(self,iCurSubGraph,oldZoneList,newZoneList):
-        self.fig.updateGroupCurvesZoneName(iCurSubGraph,oldZoneList,newZoneList)
+    def updateGroupCurvesZoneName(self, iCurSubGraph, oldZoneList, newZoneList):
+        self.fig.updateGroupCurvesZoneName(iCurSubGraph, oldZoneList, newZoneList)
     # -------------------------------------------------------- applyViewSettings
     def applyViewSettings(self):
         if self.subPlotParams.isActive:
@@ -10024,26 +10079,26 @@ class Graph():
                                   w_pad=self.tightLayout.wpad)
         self.drawFigure()
     # ------------------------------------------------------ updateSubPlotParams
-    def updateSubPlotParams(self,params):
+    def updateSubPlotParams(self, params):
         for var in params:
-            self.subPlotParams.setValue(var,params[var])
+            self.subPlotParams.setValue(var, params[var])
             if var == 'isActive':
-                self.tightLayout.setValue(var,not params[var])
+                self.tightLayout.setValue(var, not params[var])
         # Update Figure
         self.applyViewSettings()
     # -------------------------------------------------------- updateTightLayout
-    def updateTightLayout(self,params):
+    def updateTightLayout(self, params):
         for var in params:
-            self.tightLayout.setValue(var,params[var])
+            self.tightLayout.setValue(var, params[var])
             if var == 'isActive':
-                self.subPlotParams.setValue(var,not params[var])
+                self.subPlotParams.setValue(var, not params[var])
         # Update Figure
         self.applyViewSettings()
     # --------------------------------------------------------------------- save
     def save(self, path, format=None):
         self.fig.saveFigure(path, format=format)
     # ------------------------------------------------------------------ setName
-    def setName(self,name):
+    def setName(self, name):
         (self.getFig()).canvas.set_window_title(name)
     # --------------------------------------------------------------- drawFigure
     def drawFigure(self):
@@ -10060,15 +10115,12 @@ class Graph():
     def getFig(self):
         return self.fig.getFig()
     # ------------------------------------------------------------------ addGrid
-    def getGrid(self,iCurSubGraph,ind=0,axis=None):
-        if axis:
-            ind = axis.getInd()
-        #
-        return self.fig.getGrid(iCurSubGraph,ind)
+    def getGrid(self, iCurSubGraph, ind=0, axis=None):
+        if axis: ind = axis.getInd()
+        return self.fig.getGrid(iCurSubGraph, ind)
     # ------------------------------------------------------------------ addAxis
-    def addAxis(self,iCurSubGraph,shared=None,ind=0,axis=None):
-        if axis:
-            ind = axis.getInd()
+    def addAxis(self, iCurSubGraph, shared=None, ind=0, axis=None):
+        if axis: ind = axis.getInd()
         #
         axis_to_twin = ind
         if shared is None:
@@ -10222,8 +10274,8 @@ class editCurvesWindow(TK.Toplevel):
     # -------------------------------------------------------------- createFrame
     def createFrame(self):
         self.geometry("")
-        self.grid_columnconfigure(0,weight=1)
-        self.grid_rowconfigure(0,weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
         # Load colormap
         cm = plt.get_cmap(COLOR_MAP)
         # Close all opened dialog windows
@@ -10231,7 +10283,7 @@ class editCurvesWindow(TK.Toplevel):
         #
         self.frame = TTK.Frame(self)
 
-        self.frame.grid(row=0,column=0,sticky='NESW')
+        self.frame.grid(row=0, column=0, sticky='NESW')
         #
         if self.labelView[0]:
             self.frame.grid_columnconfigure(0,weight=4)
@@ -10293,28 +10345,27 @@ class editCurvesWindow(TK.Toplevel):
             title = lblframeManip.title + "> "
         lblframeManip.config(text=title)
         #
-        lblframeManip.bind("<Button-1>",self.expandLblFrame)
+        lblframeManip.bind("<Button-1>", self.expandLblFrame)
         #
         frameManip = TTK.Frame(lblframeManip)
-        frameManip.grid(row=0,column=0,sticky='NSEW')
-        if not lblframeManip.display:
-            frameManip.grid_forget()
-        frameManip.grid_columnconfigure(0,weight=1)
-        frameManip.grid_columnconfigure(1,weight=1)
-        frameManip.grid_columnconfigure(2,weight=1)
-        frameManip.grid_columnconfigure(3,weight=1)
-        frameManip.grid_rowconfigure(0,weight=1)
+        frameManip.grid(row=0, column=0, sticky='NSEW')
+        if not lblframeManip.display: frameManip.grid_forget()
+        frameManip.grid_columnconfigure(0, weight=1)
+        frameManip.grid_columnconfigure(1, weight=1)
+        frameManip.grid_columnconfigure(2, weight=1)
+        frameManip.grid_columnconfigure(3, weight=1)
+        frameManip.grid_rowconfigure(0, weight=1)
         #
         lblframeManip.frame = frameManip
         # Create a hidden label to set minimum size of the lblframe respecting to its title
-        label = TTK.Label(self.frame,text="Manip.")
-        label.grid(row=0,column=0,in_=lblframeManip)
+        label = TTK.Label(self.frame, text="Manip.")
+        label.grid(row=0,column=0, in_=lblframeManip)
         label.lower(lblframeManip)
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Selection
         lblframe = TTK.LabelFrame(frameManip, text="Selected")
-        lblframe.grid(row=0,column=0,sticky='NESW')
+        lblframe.grid(row=0, column=0, sticky='NESW')
         #
-        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_columnconfigure(0, weight=1)
         for ind in range(len(self.subGraph.curves)+1): lblframe.grid_rowconfigure(ind,weight=1)
         #
         lblframelvl1.append(lblframe)
@@ -10347,7 +10398,7 @@ class editCurvesWindow(TK.Toplevel):
         #
         lblframe.grid_columnconfigure(0,weight=1)
         for ind in range(len(self.subGraph.curves)+1):
-            lblframe.grid_rowconfigure(ind,weight=1)
+            lblframe.grid_rowconfigure(ind, weight=1)
         #
         lblframelvl1.append(lblframe)
         #
@@ -10361,19 +10412,19 @@ class editCurvesWindow(TK.Toplevel):
             self.frame.IdItem.append(LBL)
         # Curve to add
         ind = len(self.subGraph.curves)
-        LBL = TK.Label(lblframe,text='to add')
+        LBL = TK.Label(lblframe, text='to add')
         LBL.ind = ind
-        LBL.grid(row=ind,column=0,sticky='NSEW')
+        LBL.grid(row=ind, column=0, sticky='NSEW')
         LBL.container = self.frame.IdItem
         self.frame.IdItem.append(LBL)
 
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Axis to plot
         lblframe = TTK.LabelFrame(frameManip, text="Axis")
-        lblframe.grid(row=0,column=2,sticky='NESW')
+        lblframe.grid(row=0, column=2, sticky='NESW')
         #
-        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_columnconfigure(0, weight=1)
         for ind in range(len(self.subGraph.curves)+1):
-            lblframe.grid_rowconfigure(ind,weight=1)
+            lblframe.grid_rowconfigure(ind, weight=1)
         #
         lblframelvl1.append(lblframe)
         #
@@ -10386,7 +10437,7 @@ class editCurvesWindow(TK.Toplevel):
             B.var = 'ind_axis'
             B.ind = ind
             B.treatmentId = 0
-            B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+            B.grid(row=ind, column=0, columnspan=1, sticky="nsew")
             B.container = self.frame.axisItem
             self.frame.axisItem.append(B)
         # Curve to add
@@ -10490,42 +10541,42 @@ class editCurvesWindow(TK.Toplevel):
         ind = len(self.subGraph.curves)
         B = TTK.Button(lblframe,text=len(self.parent.data.keys()),command=lambda n=(ind,self.frame.zoneItem): self.bt_click(n))
         B.val = list(self.parent.data.keys())
-#        B.listUnused = []
-#        B.val = B.list
+        #B.listUnused = []
+        #B.val = B.list
         B.var = 'zone'
         B.ind = ind
         B.treatmentId = 4
-        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.grid(row=ind, column=0, columnspan=1, sticky="nsew")
         B.container = self.frame.zoneItem
         self.frame.zoneItem.append(B)
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& VarX
         lblframe = TTK.LabelFrame(frameData, text="VarX")
-        lblframe.grid(row=0,column=1,sticky='NESW')
+        lblframe.grid(row=0, column=1, sticky='NESW')
         #
-        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_columnconfigure(0, weight=1)
         for ind in range(len(self.subGraph.curves)+1):
-            lblframe.grid_rowconfigure(ind,weight=1)
+            lblframe.grid_rowconfigure(ind, weight=1)
         #
         lblframelvl1.append(lblframe)
         #
         self.frame.varxItem = []
         for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
-            B = TTK.Button(lblframe,text=c.varx,command=lambda n=(ind,self.frame.varxItem): self.bt_click(n))
+            B = TTK.Button(lblframe, text=c.varx, command=lambda n=(ind,self.frame.varxItem): self.bt_click(n))
             B.ind = ind
             B.list = self.filterVarWithZone(B)
             B.val = c.varx
             B.var = 'varx'
             B.treatmentId = 0
-            B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+            B.grid(row=ind, column=0, columnspan=1, sticky="nsew")
             B.container = self.frame.varxItem
             self.frame.varxItem.append(B)
         # Curve to add
         ind = len(self.subGraph.curves)
-        B = TTK.Button(lblframe,text=None,command=lambda n=(ind,self.frame.varxItem): self.bt_click(n))
+        B = TTK.Button(lblframe, text=None, command=lambda n=(ind,self.frame.varxItem): self.bt_click(n))
         B.ind = ind
         B.list = self.filterVarWithZone(B)
-        if len(B.list)!=0:
+        if len(B.list) != 0:
             B.config(text=B.list[0])
             B.val = B.list[0]
         else:
@@ -10533,38 +10584,38 @@ class editCurvesWindow(TK.Toplevel):
             B.val = None
         B.var = 'varx'
         B.treatmentId = 0
-        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.grid(row=ind, column=0, columnspan=1, sticky="nsew")
         B.container = self.frame.varxItem
         self.frame.varxItem.append(B)
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& VarY
         lblframe = TTK.LabelFrame(frameData, text="VarY")
-        lblframe.grid(row=0,column=2,sticky='NESW')
+        lblframe.grid(row=0, column=2, sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
         for ind in range(len(self.subGraph.curves)+1):
-            lblframe.grid_rowconfigure(ind,weight=1)
+            lblframe.grid_rowconfigure(ind, weight=1)
         #
         lblframelvl1.append(lblframe)
         #
         self.frame.varyItem = []
         for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
-            B = TTK.Button(lblframe,text=c.vary,command=lambda n=(ind,self.frame.varyItem): self.bt_click(n))
+            B = TTK.Button(lblframe, text=c.vary, command=lambda n=(ind,self.frame.varyItem): self.bt_click(n))
             B.ind = ind
             B.list = self.filterVarWithZone(B)
             B.val = c.vary
             B.var = 'vary'
             B.ind = ind
             B.treatmentId = 0
-            B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+            B.grid(row=ind, column=0, columnspan=1, sticky="nsew")
             B.container = self.frame.varyItem
             self.frame.varyItem.append(B)
         # Curve to add
         ind = len(self.subGraph.curves)
-        B = TTK.Button(lblframe,text=None,command=lambda n=(ind,self.frame.varyItem): self.bt_click(n))
+        B = TTK.Button(lblframe, text=None, command=lambda n=(ind,self.frame.varyItem): self.bt_click(n))
         B.ind = ind
         B.list = self.filterVarWithZone(B)
-        if len(B.list)!=0:
+        if len(B.list) != 0:
             B.config(text=B.list[0])
             B.val = B.list[0]
         else:
@@ -10572,7 +10623,7 @@ class editCurvesWindow(TK.Toplevel):
             B.val = None
         B.var = 'vary'
         B.treatmentId = 0
-        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.grid(row=ind, column=0, columnspan=1, sticky="nsew")
         B.container = self.frame.varyItem
         self.frame.varyItem.append(B)
 
@@ -11819,7 +11870,7 @@ class editCurvesWindow(TK.Toplevel):
             return
         else:
             # if indSelected == 0, can not move up beacause it is already at the top !
-            if indSelected!= 0:
+            if indSelected != 0:
                 c = copy.deepcopy(self.subGraph.curves[indSelected])
                 self.subGraph.curves[indSelected]=self.subGraph.curves[indSelected-1]
                 self.subGraph.curves[indSelected-1]=c
@@ -11833,7 +11884,7 @@ class editCurvesWindow(TK.Toplevel):
                 # Update Graph
                 self.parent.graphWdwL[self.graph].updateGraph(self.zone)
     # ------------------------------------------------------------- switchUpCurve
-    def switchCurve(self,indSelected,incr):
+    def switchCurve(self, indSelected, incr):
         self.geometry("")
         cm = plt.get_cmap(COLOR_MAP)
         if indSelected==0 and incr == -1: return
@@ -11900,7 +11951,7 @@ class editCurvesWindow(TK.Toplevel):
                 c = copy.deepcopy(self.subGraph.curves[indSelected])
                 self.subGraph.curves[indSelected]=self.subGraph.curves[indSelected+1]
                 self.subGraph.curves[indSelected+1]=c
-                self.switchCurve(indSelected,1)
+                self.switchCurve(indSelected, 1)
                 self.updatelblFrameSize()
                 try:
                     self.frameList[self.graph][self.zone] = self.frame
@@ -11910,11 +11961,11 @@ class editCurvesWindow(TK.Toplevel):
                 # Update Graph
                 self.parent.graphWdwL[self.graph].updateGraph(self.zone)
     # ---------------------------------------------------------- updateVarXYList
-    def updateVarXYList(self,ind):
+    def updateVarXYList(self, ind):
         self.frame.varxItem[ind].list = self.filterVarWithZone(self.frame.varxItem[ind])
         self.frame.varyItem[ind].list = self.filterVarWithZone(self.frame.varyItem[ind])
     # ----------------------------------------------------------- updateVarXYVal
-    def updateVarXYVal(self,ind):
+    def updateVarXYVal(self, ind):
         needsUpdate = False
         if not self.frame.varxItem[ind].val in self.frame.varxItem[ind].list:
             self.frame.varxItem[ind].val = None
@@ -11934,21 +11985,19 @@ class editCurvesWindow(TK.Toplevel):
                 return
 
     # -------------------------------------------------------- filterVarWithZone
-    def filterVarWithZone(self,B):
+    def filterVarWithZone(self, B):
         tmp = {}
         for zone in self.frame.zoneItem[B.ind].val:
             for var in self.parent.data[zone]:
                 if not var in tmp: tmp[var]=1
                 else: tmp[var]+=1
-        #
         res = []
         nbzones = len(self.frame.zoneItem[B.ind].val)
         for var in tmp:
-            if tmp[var]==nbzones:
-                res.append(var)
+            if tmp[var] == nbzones: res.append(var)
         return sorted(res)
     # ----------------------------------------------------------------- bt_click
-    def updateColor(self,color,B,extra_data):
+    def updateColor(self, color, B, extra_data):
         bt_list = extra_data[1]
         # B = bt_list[ind[0]]
         l_ind = [extra_data[0]]
@@ -11974,10 +12023,10 @@ class editCurvesWindow(TK.Toplevel):
         bt_list = ind[1]
         B = bt_list[ind[0]]
         self.closeAllDialog()
-        if B.treatmentId==0:
+        if B.treatmentId == 0:
             self.list_dialog = list_dialogWindow()
             self.list_dialog.initialize(self,B)
-        elif B.treatmentId==1:
+        elif B.treatmentId == 1:
             self.list_dialog = ColorControler.color_dialogWindow(self,B,B.val,extra_data=ind)
             # try:
             #     color = askcolor(B.val,parent=self)
@@ -12003,7 +12052,7 @@ class editCurvesWindow(TK.Toplevel):
             #                 return
             # except ValueError:
             #     return
-        elif B.treatmentId==2:
+        elif B.treatmentId == 2:
             self.input_dialog = input_dialogWindow()
             self.input_dialog.initialize(self,B)
         elif B.treatmentId == 3:
@@ -12023,7 +12072,7 @@ class editCurvesWindow(TK.Toplevel):
             self.input_dialog.cmd_close()
             self.input_dialog = None
     # ------------------------------------------------------------ cb_visibility
-    def cb_visibility(self,ind):
+    def cb_visibility(self, ind):
         CB = self.frame.visibilityItem[ind]
         initialValue = CB.val.get()
         # CB.val.set(not initialValue)
@@ -12067,7 +12116,7 @@ class editCurvesWindow(TK.Toplevel):
         for ind, select in enumerate(self.frame.selectionItem):
             if select.val.get() == 1: deletionList.append(ind)
         deletionList.sort()
-        ind=0
+        ind = 0
         nbDeletion = len(deletionList)-1
         while ind <= nbDeletion:
             indRemove = deletionList[ind]
@@ -12142,7 +12191,7 @@ class editCurvesWindow(TK.Toplevel):
     def cmd_duplicateCurves(self):
         for ind, select in enumerate(self.frame.selectionItem):            
             if select.val.get():
-                c= Curve(
+                c = Curve(
                 zone                   = self.frame.zoneItem[ind].val,
                 varx                   = self.frame.varxItem[ind].val,
                 vary                   = self.frame.varyItem[ind].val,
@@ -12194,7 +12243,7 @@ class editCurvesWindow(TK.Toplevel):
             else:
                 B.config(text=B.val)
             try:
-                self.subGraph.curves[B.ind].setValue(B.var,B.val)
+                self.subGraph.curves[B.ind].setValue(B.var, B.val)
                 # Update Graph
                 self.parent.graphWdwL[self.graph].updateGraph(self.zone)
             except IndexError:
@@ -12211,7 +12260,7 @@ class DesktopFrameTK(TK.Frame):
         self.parent = parent
     # -------------------------------------------------------------- replaceGroupZones
     def replaceGroupZones(self, data, oldZoneList):
-        if isinstance(data,list):
+        if isinstance(data, list):
             # replace zone according to a tree
             self.replaceGroupZonesWithTree(data, oldZoneList)
         elif isinstance(data, dict):
@@ -12287,7 +12336,7 @@ class DesktopFrameTK(TK.Frame):
                     for child in Internal.getChildren(gridcoord):
                         if not basename+'/'+zonename in tmp:
                             tmp[basename+'/'+zonename] = {}
-                        tmp[basename+'/'+zonename][Internal.getName(child)]=Internal.getValue(child)
+                        tmp[basename+'/'+zonename][Internal.getName(child)] = Internal.getValue(child)
                         newZoneList.append(basename+'/'+zonename)
                 except IndexError: # No GridCoorinates node in this zone
                     # print('''gridcoord = Internal.getNodesFromType(zone,'GridCoordinates_t')[0] -----> Can not be loaded''')
@@ -13327,7 +13376,7 @@ class Desktop():
             self.data = {}
         if isinstance(data,list):
             # add zone according to a tree
-            self.addZoneWithTree(data,zoneName, baseName)
+            self.addZoneWithTree(data, zoneName, baseName)
         elif isinstance(data, dict):
             # add zone according to a dict data
             self.addZoneWithDict(data, zoneName)
@@ -13336,13 +13385,13 @@ class Desktop():
     def addZoneWithTree(self, t, zoneName, baseNameFilter):
         for base in Internal.getNodesFromType1(t, 'CGNSBase_t'):
             basename = Internal.getName(base)
-            if re.match(baseNameFilter,basename):
+            if re.match(baseNameFilter, basename):
                 zone = Internal.getNodesFromName1(base, zoneName)[0]
                 zonename = zoneName
 
                 ## Get GridCoordinates nodes
                 try:
-                    gridcoord = Internal.getNodesFromType2(zone,'GridCoordinates_t')[0]
+                    gridcoord = Internal.getNodesFromType2(zone, 'GridCoordinates_t')[0]
                     for child in Internal.getChildren(gridcoord):
                         if not basename+'/'+zonename in self.data:
                             self.data[basename+'/'+zonename]={}
@@ -13353,7 +13402,7 @@ class Desktop():
 
                 # Grab FlowSolution for ZoneBC
                 try:
-                    zoneBC = Internal.getNodesFromType1(zone,'ZoneBC_t')[0]
+                    zoneBC = Internal.getNodesFromType1(zone, 'ZoneBC_t')[0]
                     for bc in Internal.getChildren(zoneBC):
                         bcname = Internal.getName(bc)
                         try:
@@ -13374,7 +13423,7 @@ class Desktop():
                 for flowsolution in Internal.getNodesFromType1(zone,'FlowSolution_t'):
                     flowsolutionname = Internal.getName(flowsolution)
                     for var in Internal.getChildren(flowsolution):
-                        if Internal.getType(var)=='DataArray_t':
+                        if Internal.getType(var) == 'DataArray_t':
                             if not basename+'/'+zonename in self.data:
                                 self.data[basename+'/'+zonename]={}
                             self.data[basename+'/'+zonename][Internal.getName(var)+'@'+flowsolutionname]=Internal.getValue(var)
@@ -13407,16 +13456,16 @@ class Desktop():
                 if not isinstance(data[k],dict): # then it is not zone oriented
                     isZoneOriented = False
                     break
-            if not isZoneOriented: tmp[default_base]=data
+            if not isZoneOriented: tmp[default_base] = data
             else: tmp = data
             # replace zone according to a dict data
-            self.replaceGroupZonesWithDict(data,oldZoneList)
+            self.replaceGroupZonesWithDict(data, oldZoneList)
     # ------------------------------------------------------ replaceGroupZonesWithTree
-    def replaceGroupZonesWithTree(self,d,oldZoneList):
+    def replaceGroupZonesWithTree(self, d, oldZoneList):
         # add data and determine the list of new data
         newZoneList = self.addDataWithTree(d)
         # Get the curves that are concerned by a group of old zones and change it to the group of new zones
-        self.updateGroupCurves(oldZoneList,newZoneList)
+        self.updateGroupCurves(oldZoneList, newZoneList)
         # Compare old zones to new zones group and remove old zones that do not exist anymore
         for zoneName in oldZoneList:
             if zoneName not in newZoneList:
@@ -13428,16 +13477,16 @@ class Desktop():
         self.updateAllGraph()
 
     # ---------------------------------------------------------- addDataWithTree
-    def addDataWithTree(self,t):
+    def addDataWithTree(self, t):
         tmp = self.data
         newZoneList = []
         for base in Internal.getNodesFromType1(t, 'CGNSBase_t'):
             basename = Internal.getName(base)
-            ## ## Loop on zones
+            ## Loop on zones
             for zone in Internal.getNodesFromType1(base,'Zone_t'):
                 # Grab GridCoordinates
                 zonename = Internal.getName(zone)
-                ## ## Get GridCoorinates nodes
+                ## Get GridCoorinates nodes
                 try:
                     gridcoord = Internal.getNodesFromType1(zone,'GridCoordinates_t')[0]
                     for child in Internal.getChildren(gridcoord):
@@ -13470,7 +13519,7 @@ class Desktop():
                     # print('''zoneBC = Internal.getNodesFromType(zone,'ZoneBC_t')[0] -----> Can not be loaded''')
                     pass
                 # Grab FlowSolution (the rest of them)
-                for flowsolution in Internal.getNodesFromType1(zone,'FlowSolution_t'):
+                for flowsolution in Internal.getNodesFromType1(zone, 'FlowSolution_t'):
                     flowsolutionname = Internal.getName(flowsolution)
                     for var in Internal.getChildren(flowsolution):
                         if Internal.getType(var) == 'DataArray_t':
@@ -13482,14 +13531,14 @@ class Desktop():
         self.data = OrderedDict(sorted(tmp.items(),key=lambda t : t[0]))
         return newZoneList
     # ------------------------------------------------------ replaceGroupZonesWithDict
-    def replaceGroupZonesWithDict(self,d,oldZoneList):
+    def replaceGroupZonesWithDict(self, d, oldZoneList):
         # Add new data and determine the list of new zones
         newZoneList = []
         for zoneName in d:
             newZoneList.append(zoneName)
-            self.addZoneWithDict(d,zoneName)
+            self.addZoneWithDict(d, zoneName)
         # Get the curves that are concerned by a group of old zones and change it to the group of new zones
-        self.updateGroupCurves(oldZoneList,newZoneList)
+        self.updateGroupCurves(oldZoneList, newZoneList)
         # Compare old zones to new zones group and remove old zones that do not exist anymore
         for zoneName in oldZoneList:
             if zoneName not in newZoneList:
@@ -13500,51 +13549,51 @@ class Desktop():
         ##### Redraw all
         self.updateAllGraph()
     # -------------------------------------------------------------- deleteZoneInCurve
-    def deleteZoneInCurve(self,zoneName):
+    def deleteZoneInCurve(self, zoneName):
         for graph in self.graphWdwL:
             for ax_name in graph.fig.subGraph:
-                graph.deleteZoneInCurve(ax_name,zoneName)
+                graph.deleteZoneInCurve(ax_name, zoneName)
     # -------------------------------------------------------------- updateGroupCurves
-    def updateGroupCurves(self,oldZoneList,newZoneList):
+    def updateGroupCurves(self, oldZoneList, newZoneList):
         for graph in self.graphWdwL:
             for ax_name in graph.fig.subGraph:
-                graph.updateGroupCurvesZoneName(ax_name,oldZoneList,newZoneList)
+                graph.updateGroupCurvesZoneName(ax_name, oldZoneList, newZoneList)
     # -------------------------------------------------------------- replaceZone
-    def replaceZone(self,data,oldZoneName,newZoneName,oldBaseName="",newBaseName=""):
+    def replaceZone(self, data, oldZoneName, newZoneName, oldBaseName="", newBaseName=""):
         """
         Allows you to replace a given zone by a new one. If some data from the old zone are plotted, then the plot remains but the data are updated with the data loaded from the new zone. According to the method addZone, old basename and new basename can be given to specify the targeted base.
         """
-        if isinstance(data,list):
+        if isinstance(data, list):
             # replace zone according to a tree
-            self.replaceZoneWithTree(data,oldBaseName,oldZoneName,newBaseName,newZoneName)
-        elif isinstance(data,dict):
+            self.replaceZoneWithTree(data, oldBaseName, oldZoneName, newBaseName, newZoneName)
+        elif isinstance(data, dict):
             if oldBaseName != "": oldZoneName = oldBaseName+'/'+oldZoneName
             if newBaseName != "": newZoneName = newBaseName+'/'+newZoneName
             # replace zone according to a dict data
-            self.replaceZoneWithDict(data,oldZoneName,newZoneName)
+            self.replaceZoneWithDict(data, oldZoneName, newZoneName)
     # ------------------------------------------------------ replaceZoneWithDict
-    def replaceZoneWithDict(self,d,oldZoneName,newZoneName):
+    def replaceZoneWithDict(self, d, oldZoneName, newZoneName):
         # Delete old zone from data
         self.deleteZoneFromData(oldZoneName)
         #
         self.addZoneWithDict(d,newZoneName)
         #
         ##### Edit curves : change the zonename
-        self.updateAllCurvesZoneName(oldZoneName,newZoneName)
+        self.updateAllCurvesZoneName(oldZoneName, newZoneName)
         ##### Redraw all
         self.updateAllGraph()
     # ------------------------------------------------------ replaceZoneWithTree
-    def replaceZoneWithTree(self,t,oldBaseName,oldZoneName,newBaseName,newZoneName):
+    def replaceZoneWithTree(self, t, oldBaseName, oldZoneName, newBaseName, newZoneName):
         # Delete old zone from data
-        self.deleteZoneFromData(oldZoneName,oldBaseName+'/')
+        self.deleteZoneFromData(oldZoneName, oldBaseName+'/')
         # Find the newZone in tree
-        self.addZoneWithTree(t,newZoneName,newBaseName)
+        self.addZoneWithTree(t, newZoneName, newBaseName)
         ##### Edit curves : change the zonename
         self.updateAllCurvesZoneName(oldBaseName+'/'+oldZoneName,newBaseName+'/'+newZoneName)
         ##### Redraw all
         self.updateAllGraph()
     # -------------------------------------------------- updateAllCurvesZoneName
-    def updateAllCurvesZoneName(self,oldZoneName,newZoneName):
+    def updateAllCurvesZoneName(self, oldZoneName, newZoneName):
         for graph in self.graphWdwL:
             for ax_name in graph.fig.subGraph:
                 graph.updateCurvesZoneName(ax_name,oldZoneName,newZoneName)
@@ -13577,14 +13626,14 @@ class Desktop():
             for ax_name in graph.fig.subGraph:
                 for zonename in old_zones:
                     if zonename not in self.data:
-                        graph.removeCurvesZoneName(ax_name,zonename)
+                        graph.removeCurvesZoneName(ax_name, zonename)
         
         if self.editCurveWdw is not None:
             self.editCurveWdw.updateData()
         ##### Redraw all
         self.updateAllGraph()
     # ---------------------------------------------------------- setDataWithDict
-    def setDataWithDict(self,d):
+    def setDataWithDict(self, d):
         tmp = {}
         # Check if d structure is 'zone' oriented
         isZoneOriented = True
@@ -13981,7 +14030,7 @@ class MatplotlibFigure():
             for zoneName in newZoneList:
                 if zoneName not in c.zone: c.zone.append(zoneName)
     # ----------------------------------------------------- updateCurvesZoneName
-    def updateCurvesZoneName(self,iCurSubGraph,oldZoneName,newZoneName):
+    def updateCurvesZoneName(self, iCurSubGraph, oldZoneName, newZoneName):
         for c in self.subGraph[iCurSubGraph].curves:
             if oldZoneName in c.zone:
                 index = c.zone.index(oldZoneName)
@@ -14478,7 +14527,7 @@ class DirAxis():
         self.axis_label_fontsize = axis_label_fontsize
         self.axis_label_format = axis_label_format
 
-    def setValue(self,variable,value):
+    def setValue(self, variable, value):
         if variable == 'axis_logscale': self.axis_logscale = value
         elif variable == 'axis_autoscale': self.axis_autoscale = value
         elif variable == 'axis_min': self.axis_min = value
@@ -14530,9 +14579,9 @@ class Axis():
     def getInd(self):
         return self.ind
 
-    def setValue(self,axis,variable,value):
-        if axis == 'x': self.x.setValue(variable,value)
-        else: self.y.setValue(variable,value)
+    def setValue(self, axis, variable, value):
+        if axis == 'x': self.x.setValue(variable, value)
+        else: self.y.setValue(variable, value)
     
     def write(self, axisobj):
         lines =""
@@ -14606,7 +14655,7 @@ class Legend():
         self.legend_title_size              = kwargs.get('legend_title_size', default_values['Legend']['legend_title_size'])
         self.legend_title_color             = kwargs.get('legend_title_color', default_values['Legend']['legend_title_color'])
 
-    def setValue(self,variable,value):
+    def setValue(self, variable, value):
         if variable == 'legend_display': self.legend_display = value
         elif variable == 'legend_title': self.legend_title = value
         elif variable == 'legend_border_width': self.legend_border_width = value
@@ -14624,7 +14673,7 @@ class Legend():
         elif variable == 'legend_title_size': self.legend_title_size = value
         elif variable == 'legend_title_color': self.legend_title_color = value
 
-    def write(self,legendobj):
+    def write(self, legendobj):
         lines = ""
         if self.legend_display                 != default_values['Legend']['legend_display']    :
             lines += '''    %s.setValue('legend_display',%s)\n'''%(legendobj,bool(self.legend_display))
@@ -14670,7 +14719,7 @@ class AxisGrid:
         self.grid_width = grid_width
         self.grid_tick_number = grid_tick_number
         self.grid_tick_size = grid_tick_size
-    def setValue(self,variable,value):
+    def setValue(self, variable, value):
         if variable == 'display': self.display = value
         elif variable == 'grid_color': self.grid_color = value
         elif variable == 'grid_style': self.grid_style = value
@@ -14685,9 +14734,9 @@ class LevelGrid():
                  y_display,y_grid_color,y_grid_style,y_grid_width,y_grid_tick_number,y_grid_tick_size):
         self.x = AxisGrid(x_display,x_grid_color,x_grid_style,x_grid_width,x_grid_tick_number,x_grid_tick_size)
         self.y = AxisGrid(y_display,y_grid_color,y_grid_style,y_grid_width,y_grid_tick_number,y_grid_tick_size)
-    def setValue(self,direction,variable,value):
-        if direction == 'x': self.x.setValue(variable,value)
-        else: self.y.setValue(variable,value)
+    def setValue(self, direction, variable, value):
+        if direction == 'x': self.x.setValue(variable, value)
+        else: self.y.setValue(variable, value)
 # ==============================================================================
 # ==============================================================================
 class Grid:
@@ -14726,10 +14775,10 @@ class Grid:
                                My_display,My_grid_color,My_grid_style,My_grid_width,My_grid_tick_number,My_grid_tick_size)
         self.minor = LevelGrid(mx_display,mx_grid_color,mx_grid_style,mx_grid_width,mx_grid_tick_number,mx_grid_tick_size,
                                my_display,my_grid_color,my_grid_style,my_grid_width,my_grid_tick_number,my_grid_tick_size)
-    def setValue(self,level,direction,variable,value):
-        if level == 'major': self.major.setValue(direction,variable,value)
-        else: self.minor.setValue(direction,variable,value)
-    def write(self,gridobj):
+    def setValue(self, level, direction, variable, value):
+        if level == 'major': self.major.setValue(direction, variable, value)
+        else: self.minor.setValue(direction, variable, value)
+    def write(self, gridobj):
         lines = ""
         if self.major.x.display != default_values['Grid']['Mx_display']    :
             lines +='''    %s.setValue('major','x','display',%s)\n'''%(gridobj,bool(self.major.x.display))
@@ -14821,26 +14870,26 @@ class Curve:
         if self.marker_edge_color is None: self.marker_edge_color = html_color
 
     # ------------------------------------------------------------------- setVal
-    def setValue(self,variable,value):
+    def setValue(self, variable, value):
         if   variable == 'zone': self.zone = value
         elif variable == 'varx': self.varx = value
-        elif variable =='vary': self.vary = value
-        elif variable =='line_color': self.line_color = value
-        elif variable =='line_style': self.line_style = value
-        elif variable =='line_width': self.line_width = value
-        elif variable =='marker_style': self.marker_style = value
-        elif variable =='marker_size': self.marker_size = value
-        elif variable =='marker_edge_width': self.marker_edge_width = value
-        elif variable =='marker_face_color': self.marker_face_color = value
-        elif variable =='marker_edge_color': self.marker_edge_color = value
-        elif variable =='marker_sampling_start': self.marker_sampling_start = value
-        elif variable =='marker_sampling_end': self.marker_sampling_end = value
-        elif variable =='marker_sampling_step': self.marker_sampling_step = value
-        elif variable =='legend_label': self.legend_label = value
-        elif variable =='legend_display': self.legend_display = value
-        elif variable =='ind_axis': self.axis = value
-        elif variable =='axis': self.axis = value.getInd()
-        elif variable =='visible': self.visible = value
+        elif variable == 'vary': self.vary = value
+        elif variable == 'line_color': self.line_color = value
+        elif variable == 'line_style': self.line_style = value
+        elif variable == 'line_width': self.line_width = value
+        elif variable == 'marker_style': self.marker_style = value
+        elif variable == 'marker_size': self.marker_size = value
+        elif variable == 'marker_edge_width': self.marker_edge_width = value
+        elif variable == 'marker_face_color': self.marker_face_color = value
+        elif variable == 'marker_edge_color': self.marker_edge_color = value
+        elif variable == 'marker_sampling_start': self.marker_sampling_start = value
+        elif variable == 'marker_sampling_end': self.marker_sampling_end = value
+        elif variable == 'marker_sampling_step': self.marker_sampling_step = value
+        elif variable == 'legend_label': self.legend_label = value
+        elif variable == 'legend_display': self.legend_display = value
+        elif variable == 'ind_axis': self.axis = value
+        elif variable == 'axis': self.axis = value.getInd()
+        elif variable == 'visible': self.visible = value
     # -------------------------------------------------------------------- write
     def write(self,indgraph,iCurSubGraph,indsubgraph,indcurve):
         lines = '''    curve_%s = Curve(zone=%s,varx='%s',vary='%s' '''%(indcurve,self.zone,self.varx,self.vary)
