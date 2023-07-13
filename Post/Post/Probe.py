@@ -940,3 +940,66 @@ class Probe:
                     else: jj = i//ni; ii = i-jj*ni
                     ptx[start:start+size,c] = ptx2[0:size,ii,jj]
         return None
+    
+    # mode 2: lit un container, retourne un numpy du champ pour 
+    # chaque probe zone (ncells, ntime), concatene avec le precedent
+    def readCont2(self, cont, field, pin):
+        # field name
+        spl = field.split(':')
+        if len(spl) == 2: 
+            fieldName = spl[1]
+            if spl[0] == 'centers': fieldCont = 'FlowSolution#Centers'
+            else: fcont = 'FlowSolution'
+        else:
+            fieldName = field; fieldCont = 'FlowSolution'
+
+        # read container
+        out = self.read(cont=cont)
+    
+        # concatenate all times in p
+        zones = Internal.getZones(out)
+    
+        # get all probe zone names and number of time
+        ntime = 0
+        zoneNames = {}
+        tmin = 1.e6; tmax = -1.e6
+        for z in zones:
+            name = z[0]
+            name = name.split('@')
+            if not name[0] in zoneNames: zoneNames[name[0]] = {}
+            time = int(name[1])
+            zoneNames[name[0]][time] = z
+            tmin = min(time, tmin)
+            tmax = max(time, tmax)
+
+        ntime = tmax-tmin+1
+        nzones = len(zoneNames.keys())
+        #print('INFO: read from probe from time=%d to time=%d'%(tmin, tmax))
+        #print(zoneNames.keys())
+
+        allps = []
+        for name in zoneNames: # all probe zones
+            z = zoneNames[name][tmin]
+            npts = C.getNPts(z)
+            ncells = C.getNCells(z)
+            p2 = numpy.zeros( (ncells, ntime), dtype=numpy.float64)
+            for it in range(tmin, tmax):
+                z = zoneNames[name][it]
+                fss = Internal.getNodeFromName1(z, fieldCont)
+                pressure = Internal.getNodeFromName1(fss, fieldName)[1]
+                p2[:,it] = pressure.ravel('k')[:]
+            allps.append(p2)
+
+        # concatenate in input
+        if pin == []: pin = [None]*nzones
+        for c, r in enumerate(allps):
+            if pin[c] is None: pin[c] = r
+            else:
+                ncells = pin[c].shape[0]
+                ntime1 = pin[c].shape[1]
+                ntime2 = r.shape[1]
+                a = numpy.zeros( (ncells, ntime1+ntime2), dtype=numpy.float64)
+                a[:,0:ntime1] = pin[c][:,0:ntime1]
+                a[:,ntime1:ntime1+ntime2] = r[:,0:ntime2]
+                pin[c] = a
+        return pin

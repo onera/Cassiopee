@@ -12707,7 +12707,7 @@ class DesktopFrameTK(TK.Frame):
         ## Set Text
         #
         B = TTK.Button(lblframeEdit,text='Edit Texts',command=self.cmd_setText)
-        B.grid(row=3,column=0,columnspan=2,sticky="nsew")
+        B.grid(row=3, column=0, columnspan=2, sticky="nsew")
         #
         ## Set Shapes
         #
@@ -12717,38 +12717,38 @@ class DesktopFrameTK(TK.Frame):
         ## Set Graph Settings
         #
         B = TTK.Button(lblframeEdit,text='Graph settings',command=self.cmd_setGraph)
-        B.grid(row=4,column=0,columnspan=1,sticky="nsew")
+        B.grid(row=4, column=0, columnspan=1, sticky="nsew")
         #
         ## Export
         #
         B = TTK.Button(lblframeEdit,text='Export',command=self.cmd_export)
-        B.grid(row=4,column=1,columnspan=1,sticky="nsew")
+        B.grid(row=4, column=1, columnspan=1, sticky="nsew")
         #
         ## Close Graph
         #
         #B = TTK.Button(lblframeEdit,text='Close all graphs',command=self.cmd_closeAllGraph)
-        #B.grid(row=7,column=0,columnspan=1,sticky="nsew")
+        #B.grid(row=7, column=0, columnspan=1, sticky="nsew")
         #
         #B = TTK.Button(lblframeEdit,text='Close graph',command=self.cmd_closeGraph)
-        #B.grid(row=7,column=1,columnspan=1,sticky="nsew")
+        #B.grid(row=7, column=1, columnspan=1, sticky="nsew")
 
         ################## Row 2 of self : Graph configuration #################
         # Add a labelFrame
         lblframeEdit = TTK.LabelFrame(self, text="Graph configurations management")
-        lblframeEdit.grid(row=2,column=0,sticky="nsew")
+        lblframeEdit.grid(row=2, column=0, sticky="nsew")
         # # Configure grid for postionning for the inside of the LabelFrame
-        lblframeEdit.grid_columnconfigure(0,weight=1)
-        lblframeEdit.grid_columnconfigure(1,weight=1)
+        lblframeEdit.grid_columnconfigure(0, weight=1)
+        lblframeEdit.grid_columnconfigure(1, weight=1)
         #
-        lblframeEdit.grid_rowconfigure(0,weight=1)
+        lblframeEdit.grid_rowconfigure(0, weight=1)
         #
         ## Col 0
         #
-        B = TTK.Button(lblframeEdit,text='Save',command=self.cmd_confSave)
-        B.grid(row=0,column=0,columnspan=1,sticky="nsew")
+        B = TTK.Button(lblframeEdit, text='Save', command=self.cmd_confSave)
+        B.grid(row=0, column=0, columnspan=1, sticky="nsew")
         #
-        B = TTK.Button(lblframeEdit,text='Load',command=self.cmd_confLoad)
-        B.grid(row=0,column=1,columnspan=1,sticky="nsew")
+        B = TTK.Button(lblframeEdit, text='Load', command=self.cmd_confLoad)
+        B.grid(row=0, column=1, columnspan=1, sticky="nsew")
 
     # -------------------------------------------------------------- cmd_setText
     def cmd_setText(self):
@@ -12773,8 +12773,7 @@ class DesktopFrameTK(TK.Frame):
     def selectPositionByName(self,name):
         ind = self.positionList.index(name)
         # Avoid updating if clicking occured on the same ax as previous click
-        if self.positionList[ind]==self.position.get():
-            return
+        if self.positionList[ind] == self.position.get(): return
         # Update
         self.position.val = self.positionList[ind]
         self.position.set(self.position.val)
@@ -12816,15 +12815,15 @@ class DesktopFrameTK(TK.Frame):
                 val = ''
         elif widget.name == 'zones':
             pattern = '^[0123456789]*:[0123456789]*$'
-            if not re.match(pattern,val): val = ''
+            if not re.match(pattern, val): val = ''
         if val=='':
-            widget.delete(0,TK.END)
-            widget.insert(TK.END,widget.lastValue)
+            widget.delete(0, TK.END)
+            widget.insert(TK.END, widget.lastValue)
     # --------------------------------------------------------------- eraseEntry
-    def eraseEntry(self,event):
+    def eraseEntry(self, event):
         widget = event.widget
         widget.lastValue = widget.get()
-        widget.delete(0,TK.END)
+        widget.delete(0, TK.END)
     # ------------------------------------------------------------- cmd_confSave
     def cmd_confSave(self):
         global STYLEFILE
@@ -12834,7 +12833,7 @@ class DesktopFrameTK(TK.Frame):
         STYLEFILE = filename
         self.confSave(filename,True)
     # ----------------------------------------------------------------- confSave
-    def confSave(self,filename,withUI):
+    def confSave(self, filename, withUI):
         space = ' '*4
         #
         ## 1 /- Check that the directory where we save exists
@@ -12932,7 +12931,6 @@ class DesktopFrameTK(TK.Frame):
                 indsubgraph += 1
             indgraph += 1
 
-        #
         instance.write(lines)
         instance.close()
     # ------------------------------------------------------------- cmd_confLoad
@@ -13019,14 +13017,14 @@ class DesktopFrameTK(TK.Frame):
     def updateactiveGraph(self):
         self.graphNameList = [g.name for g in self.graphWdwL]
         self.updateGraphName2Id()
-        if len(self.graphNameList)==0:
+        if len(self.graphNameList) == 0:
             self.graphNameList.append('')
-            self.activeGraph['values']=self.graphNameList
+            self.activeGraph['values'] = self.graphNameList
             self.activeGraph.val = ''
             self.activeGraph.set('')
             self.updatePositionList()
         else:
-            self.activeGraph['values']=self.graphNameList
+            self.activeGraph['values'] = self.graphNameList
             self.activeGraph.val = self.graphName2Id[self.graphNameList[0]]
             self.activeGraph.set(self.graphNameList[0])
             self.updatePositionList()
@@ -13046,7 +13044,7 @@ class DesktopFrameTK(TK.Frame):
             self.positionList = ['']
         except TypeError:
             self.positionList = ['']
-        self.position['values']=self.positionList
+        self.position['values'] = self.positionList
         self.position.val = self.positionList[0]
         self.position.set(self.position.val)
         # Update editCurvesWindow
@@ -13071,9 +13069,9 @@ class DesktopFrameTK(TK.Frame):
             if widget.val>=len(self.graphWdwL):
                 widget.val=len(self.graphWdwL)-1
                 var.set(widget.val)
-            if widget.val==-1:
+            if widget.val == -1:
                 var.set('')
-                widget.val=''
+                widget.val = ''
         except ValueError:
             var.set(filterInteger(var.get()))
             widget.val = var.get()
@@ -13229,8 +13227,8 @@ class DesktopTK(TK.Tk):
         self.protocol(name="WM_DELETE_WINDOW", func=self.killProgramm)
         self.title(string="tkPlotXY")
         self.desktopFrameTK = DesktopFrameTK(self)
-        self.grid_columnconfigure(0,weight=1)
-        self.grid_rowconfigure(0,weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
         self.desktopFrameTK.grid(row=0, column=0, sticky='NSEW')
     # ------------------------------------------------------ replaceGroupZonesWithDict
     def replaceGroupZonesWithDict(self, d, oldZoneList):
@@ -13475,7 +13473,7 @@ class Desktop():
                 for flowsolution in Internal.getNodesFromType1(zone,'FlowSolution_t'):
                     flowsolutionname = Internal.getName(flowsolution)
                     for var in Internal.getChildren(flowsolution):
-                        if Internal.getType(var)=='DataArray_t':
+                        if Internal.getType(var) == 'DataArray_t':
                             if not basename+'/'+zonename in tmp:
                                 tmp[basename+'/'+zonename]={}
                             tmp[basename+'/'+zonename][Internal.getName(var)+'@'+flowsolutionname]=Internal.getValue(var)
