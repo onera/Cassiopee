@@ -33,7 +33,7 @@ from . import IBM_OLDIES
 # IN : extractIBMInfo (boolean): if True, store IB coordinates (PC, PI and PW)
 #=============================================================================
 def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IBCD_*", extractIBMInfo=False):
-    """Extract the flow field at the IBM target points onto the surface."""
+    """Extracts the flow field stored at IBM points onto the surface."""
     xwNP = []; ywNP = []; zwNP = []
     xiNP = []; yiNP = []; ziNP = []
     xcNP = []; ycNP = []; zcNP = []
@@ -332,13 +332,13 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IB
 # compute the shear stress using utau
 #=============================================================================
 def extractShearStress(ts):
-    """Compute the shear stress on the IB surface."""
+    """Computes the shear stress on the surface."""
     ts2 = Internal.copyRef(ts)
     _extractShearStress(ts2)
     return ts2
 
 def _extractShearStress(ts):
-    """Compute the shear stress on the IB surface.""" 
+    """Computes the shear stress on the surface.""" 
     if Internal.getNodeFromName(ts, Internal.__FlowSolutionCenters__) is None:
         ts = C.node2Center(ts, Internal.__FlowSolutionNodes__)
 
@@ -368,13 +368,13 @@ def _extractShearStress(ts):
 # needs gradxPressure, gradyPressure and gradzPressure fields
 #=============================================================================
 def extractLocalPressureGradients(ts):
-    """Compute the pressure gradients in the wall normal/tangent direction.""" 
+    """Computes the pressure gradients in the wall normal/tangent direction.""" 
     ts2 = Internal.copyRef(ts)
     _extractLocalPressureGradients(ts2)
     return ts2
 
 def _extractLocalPressureGradients(ts):
-    """Compute the pressure gradients in the wall normal/tangent direction.""" 
+    """Computes the pressure gradients in the wall normal/tangent direction.""" 
     if Internal.getNodeFromName(ts, Internal.__FlowSolutionCenters__) is None:
         ts = C.node2Center(ts, Internal.__FlowSolutionNodes__)
 
@@ -398,13 +398,13 @@ def _extractLocalPressureGradients(ts):
 # compute yplus_i
 #=============================================================================
 def extractYplusIP(tc):
-    """Compute the yplus at the image points and store them in the tc."""
+    """Computes yplus values at image points and store them in the tc."""
     tp = Internal.copyRef(tc)
     _extractYplusIP(tp)
     return tp
 
 def _extractYplusIP(tc):
-    """Compute the yplus at the image points and store them in the tc."""
+    """Computes yplus values at image points and store them in the tc."""
     for z in Internal.getZones(tc):
         subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
         for zsr in subRegions:
@@ -437,13 +437,13 @@ def _extractYplusIP(tc):
 # Extrapolate the wall pressure (1st order) using pressure gradient info
 #=============================================================================
 def extractPressureHO(tc, extractDensity=False):
-    """Extrapolate the wall pressure (1st order) at the the immersed boundaries and store the solution in the tc."""
+    """Extrapolates the wall pressure (1st order) at the immersed boundaries and stores the solution in the tc."""
     tp = Internal.copyRef(tc)
     _extractPressureHO(tp, extractDensity=extractDensity)
     return tp
 
 def _extractPressureHO(tc, extractDensity=False):
-    """Extrapolate the wall pressure (1st order) at the the immersed boundaries and store the solution in the tc."""
+    """Extrapolates the wall pressure (1st order) at the immersed boundaries and stores the solution in the tc."""
     for z in Internal.getZones(tc):
         subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
         for zsr in subRegions:
@@ -494,13 +494,13 @@ def _extractPressureHO(tc, extractDensity=False):
 # Extrapolate the wall pressure (2nd order) using pressure gradient info
 #=============================================================================    
 def extractPressureHO2(tc, extractDensity=False):
-    """Extrapolate the wall pressure (2nd order) at the the immersed boundaries and store the solution in the tc."""
+    """Extrapolates the wall pressure (2nd order) at the immersed boundaries and stores the solution in the tc."""
     tp = Internal.copyRef(tc)
     _extractPressureHO2(tp, extractDensity=extractDensity)
     return tp
 
 def _extractPressureHO2(tc, extractDensity=False):
-    """Extrapolate the wall pressure (2nd order) at the the immersed boundaries and store the solution in the tc."""
+    """Extrapolates the wall pressure (2nd order) at the immersed boundaries and stores the solution in the tc."""
     for z in Internal.getZones(tc):
         subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
         for zsr in subRegions:
@@ -565,16 +565,16 @@ def _extractPressureHO2(tc, extractDensity=False):
     return None
 
 #=============================================================================
-# Compute the convective terms required for the full thin boundary layers equations
+# Computes the convective terms required for the full thin boundary layers equations
 #=============================================================================
 def extractConvectiveTerms(tc):
-    """Compute the convective terms required for the thin boundary layers equations (TBLE) and store them in the tc."""
+    """Computes the convective terms required for the thin boundary layers equations (TBLE) and stores them in the tc."""
     tp = Internal.copyRef(tc)
     _extractConvectiveTerms(tp)
     return tp
 
 def _extractConvectiveTerms(tc):
-    """Compute the convective terms required for the thin boundary layers equations (TBLE) and store them in the tc."""
+    """Computes the convective terms required for the thin boundary layers equations (TBLE) and stores them in the tc."""
     for z in Internal.getZones(tc):
         subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
         for zsr in subRegions:
@@ -647,22 +647,22 @@ def _extractConvectiveTerms(tc):
     return None
 
 #=============================================================================
-# Compute additional variables required for the IBM post-processing.
+# Computes additional variables required for the IBM post-processing.
 # IN: ts (tree): geometry tree with solution at the cell centers
 # IN: PInf (float): reference pressure
-# IN: QInf (float): reference adimensional value
+# IN: QInf (float): reference dynamic pressure
 # IN: variables (list): list of extra variables to compute
 #=============================================================================
 def computeExtraVariables(ts, PInf, QInf, 
                           variables=['Cp','Cf','frictionX','frictionY','frictionZ', 'frictionMagnitude','ShearStress']):
-    """Compute additional variables required for the IBM post-processing."""
+    """Computes additional variables required for the IBM post-processing."""
     ts2 = Internal.copyRef(ts)
     _computeExtraVariables(ts2, PInf, QInf,variables=variables)
     return ts2
                           
 def _computeExtraVariables(ts, PInf, QInf, 
                            variables=['Cp','Cf','frictionX','frictionY','frictionZ', 'frictionMagnitude','ShearStress']):
-    """Compute additional variables required for the IBM post-processing."""
+    """Computes additional variables required for the IBM post-processing."""
     import Post.ExtraVariables2 as PE
 
     #-------------------------
@@ -692,7 +692,7 @@ def _computeExtraVariables(ts, PInf, QInf,
     return None
 
 #=============================================================================
-# Compute the viscous and pressure forces on the immersed boundaries
+# Computes the viscous and pressure forces on the immersed boundaries
 # IN: tb (tree): geometry tree (IBM bodies) 
 # IN: tc (tree): connectivity tree containing IBM information
 # IN: tc2 (tree, optional): connectivity tree containing IBM information for the second image point 
@@ -707,7 +707,6 @@ def _computeExtraVariables(ts, PInf, QInf,
 #       if tc2 is not None: use the information at second image points
 #       else: use the information at first image points
 # IN: famZones (list): if famZones is not empty, only extract some subregion families (['FAM1','FAM2,...])
-# IN: verbose: verbose for pressure & friction forces (& coeffcients) & total cl & total cd I/O to screen
 # OUT: Surface tree with additional solution fields: shear stress, tangential friction vector and modulus and taun, Cp, Cf
 # OUT (screen): CD & CL
 #=============================================================================
@@ -828,8 +827,8 @@ def _loads0(ts, Sref=None, Pref=None, Qref=None, alpha=0., beta=0., dimPb=3, ver
 
     return [res, res2, [clp, cdp], [clf, cdf]]
 
-def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref=None, order=1, gradP=False, famZones=[], verbose=True):
-    """Compute the viscous and pressure forces on the immersed boundaries"""
+def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref=None, order=1, gradP=False, famZones=[]):
+    """Computes the viscous and pressure forces on the immersed boundaries"""
 
     if tc_in is not None:
         if isinstance(tc_in, str):
@@ -844,8 +843,8 @@ def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sre
     else: 
         tc = None; tc2 = None
         
-    if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
-    else: tb = t_case
+    if isinstance(tb_in, str): tb = C.convertFile2PyTree(tb_in)
+    else: tb = tb_in
 
     if Sref is None:
         C._initVars(tb, '__ONE__',1.)
@@ -906,7 +905,7 @@ def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sre
     ts = C.node2Center(ts,'FlowSolution')
     C._rmVars(ts, 'FlowSolution')
     
-    _loads0(ts, Sref=Sref, Pref=None, Qref=None, alpha=alpha, beta=beta, dimPb=dimPb, verbose=verbose)
+    _loads0(ts, Sref=Sref, Pref=None, Qref=None, alpha=alpha, beta=beta, dimPb=dimPb, verbose=True)
 
     if dimPb == 2: # reextrait en 2D
         ts = P.isoSurfMC(ts, "CoordinateZ", 0.)
