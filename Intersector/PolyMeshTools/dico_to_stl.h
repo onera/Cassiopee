@@ -53,8 +53,6 @@ inline void convert_dico_to_map___int_int_vecint
         
         PyArrayObject* pyarr = reinterpret_cast<PyArrayObject*>(py_ptlist);
 
-        long ndims = PyArray_NDIM(pyarr);
-        if (ndims != 1) exit(1);
         npy_intp* dims = PyArray_SHAPE(pyarr);
 
         E_Int ptl_sz = dims[0];
@@ -146,8 +144,7 @@ inline int convert_dico_to_map___transfo_to_vecint
     // key
     assert (PyTuple_Check(py_transfo) == 1) ; // it s a tuple (Xx, Yc, Zc, R)
     PyTupleObject* pytup = reinterpret_cast<PyTupleObject*>(py_transfo);
-    Py_ssize_t nb = PyTuple_GET_SIZE(pytup);
-    if (nb != 6) exit(1);
+
     for (size_t i=0; i < 6; ++i)
     {
       PyObject * p PyTuple_GET_ITEM(pytup, i);
@@ -159,8 +156,6 @@ inline int convert_dico_to_map___transfo_to_vecint
     assert (PyArray_Check(py_vecint) == 1) ; // it s a numpy
     PyArrayObject* pyarr = reinterpret_cast<PyArrayObject*>(py_vecint);
 
-    long ndims = PyArray_NDIM(pyarr);
-    if (ndims != 1) exit(1);
     npy_intp* dims = PyArray_SHAPE(pyarr);
 
     E_Int sz = dims[0];

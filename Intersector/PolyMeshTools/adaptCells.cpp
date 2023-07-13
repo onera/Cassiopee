@@ -1130,8 +1130,6 @@ std::map<int, std::map<int, std::vector<E_Int>>>& zone_to_rid_to_list_owned,
 const char* varString, PyObject *out)
 {
   int err(0);
-  size_t nb_meshes = hmeshes.size();
-  if (nb_meshes != sensors.size()) exit(1);
 
   if (elt_type==elt_t::HEXA)
   {
@@ -1783,8 +1781,6 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
 
       PyArrayObject* pyarr = reinterpret_cast<PyArrayObject*>(py_ptlist);
 
-      long ndims = PyArray_NDIM(pyarr);
-      if (ndims != 1) exit(1);
       npy_intp* dims = PyArray_SHAPE(pyarr);
 
       E_Int ptl_sz = dims[0];
