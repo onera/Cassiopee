@@ -91,7 +91,7 @@ namespace NUGA
         auto PG0 = m2.element(PGi0);
         double dmin2= FLOAT_MAX;
         E_Int Ni{IDX_NONE};
-        for (size_t u=0; u < PG0.nb_nodes(); ++u) 
+        for (size_t u=0; u < (size_t)PG0.nb_nodes(); ++u) 
         {
           double d2 = NUGA::sqrDistance(m2.crd.col(PG0.node(u)), vertices[i].vec, 3);
           if (d2 < dmin2)
@@ -142,7 +142,7 @@ namespace NUGA
 
         }
 
-        if (count != pt_to_faces[i].size())
+        if ((size_t)count != pt_to_faces[i].size())
           std::cout << "WRONG LOGIC" << std::endl;
       }
 
@@ -735,7 +735,7 @@ namespace NUGA
             for (E_Int n = 0; n < elt.nb_nodes(); ++n)
             {
               E_Int Ni = elt.node(n);
-              assert (Ni > -1 && Ni < all_nodes_disp.size());
+              assert (Ni > -1 && (size_t)Ni < all_nodes_disp.size());
               //std::cout << "disabling node : " << Ni << std::endl;
               all_nodes_disp[Ni].val2 = FLOAT_MAX;
             }

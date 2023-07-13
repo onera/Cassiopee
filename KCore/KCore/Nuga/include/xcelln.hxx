@@ -35,7 +35,7 @@ namespace NUGA
 
     outdata_t __process_X_cells(zmesh_t const & z_mesh, std::vector< bound_mesh_t*> const & mask_bits, wdata_t & wdata)
     {
-      E_Int ncells = z_mesh.ncells();
+      size_t ncells = z_mesh.ncells();
       assert(ncells == wdata.size());
 
       z_mesh.get_nodal_metric2();
@@ -46,7 +46,7 @@ namespace NUGA
       std::vector<E_Int> cands;
       std::vector<aelt_t> bits, tmpbits; // one clip can produce several bits
 
-      for (E_Int i = 0; i < ncells; ++i)
+      for (size_t i = 0; i < ncells; ++i)
       {
         color_t const & idata = wdata[i];
 
@@ -114,13 +114,13 @@ namespace NUGA
 
     outdata_t __process_X_cells(zmesh_t const & z_mesh, std::vector< bound_mesh_t*> const & mask_bits, wdata_t & wdata)
     {
-      E_Int ncells = z_mesh.ncells();
+      size_t ncells = z_mesh.ncells();
       assert(ncells == wdata.size());
 
       outdata_t xmesh;
       bool docomp(false);
       std::vector<bool> keep(ncells, false);
-      for (E_Int i = 0; i < ncells; ++i)
+      for (size_t i = 0; i < ncells; ++i)
       {
         color_t const & idata = wdata[i];
         double v = double(idata);
@@ -136,7 +136,7 @@ namespace NUGA
       K_CONNECT::IdTool::init_inc(xmesh.mesh.flag, xmesh.mesh.ncells()); // for history
       if (docomp) xmesh.mesh.compress(keep);//contains now only non-X elements
 
-      xmesh.full_out = (ncells == xmesh.mesh.ncells());
+      xmesh.full_out = (ncells == (size_t)xmesh.mesh.ncells());
       if (xmesh.full_out) return xmesh;
 
       z_mesh.get_nodal_metric2();
@@ -144,7 +144,7 @@ namespace NUGA
       std::vector<E_Int> cands;
       std::vector<aelt_t> bits, tmpbits; // one clip can produce several bits
 
-      for (E_Int i = 0; i < ncells; ++i)
+      for (size_t i = 0; i < ncells; ++i)
       {
         color_t const & idata = wdata[i];
 
@@ -317,7 +317,7 @@ namespace NUGA
     //std::cout << "total nb of zones : " << nb_zones << std::endl;
     //std::cout << "nb of masks : " << mask_crds.size() << std::endl;
 
-    assert(zone_wall_ids.size() == nb_zones);
+    assert(zone_wall_ids.size() == (size_t)nb_zones);
 
     xcelln.resize(nb_zones); // xcelln can be clipped mesh
 

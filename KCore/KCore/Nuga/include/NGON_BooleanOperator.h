@@ -2712,7 +2712,7 @@ NGON_BOOLEAN_CLASS::__process_intersections
      
    } while (has_collapsed && ++railing < nb_max_attempts);
   
-   assert(connectT3.cols() == nT3_to_PG.size());
+   assert((size_t)connectT3.cols() == nT3_to_PG.size());
 
 #ifdef FLAG_STEP
    std::cout << "NGON Boolean : __fix_degen_for_turning_left : " << c.elapsed() << std::endl;
@@ -2750,7 +2750,7 @@ E_Int NGON_BOOLEAN_CLASS::__process_duplicates(const ngon_unit&wPGs, K_FLD::IntA
   {
     E_Int & dupId = dupIds[i];
     if (dupId==E_Int(i)) continue;
-    assert (dupId < i);
+    assert ((size_t)dupId < i);
             
     //
     E_Int pgkeep = zABS(nT3_to_PG[dupId]);

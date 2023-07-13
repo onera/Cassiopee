@@ -84,10 +84,10 @@ class hierarchical_mesh
     NUGA::history_t  histo;
 
     ///
-    hierarchical_mesh(crd_t& crd, ngo_t & ng):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), _sensor(nullptr), _idx_start(1) { init(); }
-    hierarchical_mesh(crd_t& crd, ngo_t && ng):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), zid(0), _sensor(nullptr), _idx_start(1) { init(); }
+    hierarchical_mesh(crd_t& crd, ngo_t & ng):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), _refiner(), _idx_start(1), zid(0), _sensor(nullptr) { init(); }
+    hierarchical_mesh(crd_t& crd, ngo_t && ng):_crd(crd), _ng(ng), _PGtree(ng.PGs), _PHtree(ng.PHs), _initialized(false), _refiner(), _idx_start(1), zid(0), _sensor(nullptr) { init(); }
     ///
-    hierarchical_mesh(crd_t& crd, K_FLD::IntArray& cnt, E_Int idx_start) :_crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false), _idx_start(idx_start), zid(0), _sensor(nullptr)  { init(); }
+    hierarchical_mesh(crd_t& crd, K_FLD::IntArray& cnt, E_Int idx_start) :_crd(crd), _ng(cnt), _PGtree(_ng.PGs), _PHtree(_ng.PHs), _initialized(false), _refiner(), _idx_start(idx_start), zid(0), _sensor(nullptr) { init(); }
 
     ~hierarchical_mesh(){}
 
@@ -654,7 +654,6 @@ void hierarchical_mesh<K_MESH::Hexahedron, DIR_PROTO, ngon_type>::enable_and_tra
       const E_Int* children = _PGtree.children(PGi);
       for (E_Int j = 0; j < nb_child; ++j)
       {
-        E_Int PGc = *(children + j);
         _PGtree.enable(*(children + j));
         adap_incr.face_adap_incr[*(children + j)] = adincrPGi;
 
@@ -734,13 +733,11 @@ void hierarchical_mesh<K_MESH::Hexahedron, DIR, ngon_type>::enable_and_transmit_
   _sensor->_canon_info.resize(_ng.PHs.size());
   _sensor->_start_nodes.resize(_ng.PHs.size());
 
-  E_Int nb_pgs0 = adap_incr.face_adap_incr.size();
-
   adap_incr.cell_adap_incr.resize(_ng.PHs.size(), cell_incr_t(0));
 
   K_MESH::NO_Edge e;
   E_Int nb_child;
-  E_Int PGi, j, n1, n2, center;
+  E_Int j;
 
   // enable cells and then faces
   for (E_Int PHi = 0; PHi < nb_phs0; PHi++) {

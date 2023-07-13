@@ -38,7 +38,7 @@ namespace NUGA
     using wdata_t = std::vector<double>;
     using outdata_t = std::vector<double>;
   
-    static void mark_cell_w_mask(wdata_t & data, E_Int i, E_Int im, E_Int val) { assert (i < data.size()); data[i] = val; } // minus to mark as new X for __flag_hidden_subzones
+    static void mark_cell_w_mask(wdata_t & data, E_Int i, E_Int im, E_Int val) { assert ((size_t)i < data.size()); data[i] = val; } // minus to mark as new X for __flag_hidden_subzones
   };
 
   struct color_t
@@ -71,7 +71,7 @@ namespace NUGA
     static void mark_cell_w_mask(wdata_t & data, E_Int i, E_Int im, E_Int val)
     {
       // minus to mark as new X for __flag_hidden_subzones
-      assert (i < data.size());
+      assert ((size_t)i < data.size());
       data[i].val = val;
       data[i].masks.push_back(im);
     }
@@ -404,7 +404,7 @@ namespace NUGA
       return ret;
     }
 
-    static eClassify classify2D(NUGA::aPolygon & ae1_2D/*!!!*/, NUGA::aPolygon& ae2_2D/*!!!*/, double ABSTOL)
+    static eClassify classify2D(NUGA::aPolygon & ae1_2D, NUGA::aPolygon& ae2_2D, double ABSTOL)
     {
       DELAUNAY::Triangulator dt;
 
@@ -414,9 +414,9 @@ namespace NUGA
         const double* P = ae1_2D.m_crd.col(k);
         // if P is in ae1, ae0 is a piece of ae1
         #ifdef NDEBUG
-        ae2_2D.fast_is_in_pred<DELAUNAY::Triangulator, 2/*!!!*/>(dt, ae2_2D.m_crd, P, is_in, ABSTOL);
+        ae2_2D.fast_is_in_pred<DELAUNAY::Triangulator, 2>(dt, ae2_2D.m_crd, P, is_in, ABSTOL);
         #else
-        E_Int err = ae2_2D.fast_is_in_pred<DELAUNAY::Triangulator, 2/*!!!*/>(dt, ae2_2D.m_crd, P, is_in, ABSTOL);
+        E_Int err = ae2_2D.fast_is_in_pred<DELAUNAY::Triangulator, 2>(dt, ae2_2D.m_crd, P, is_in, ABSTOL);
         assert(!err);
         #endif
         
@@ -438,9 +438,6 @@ namespace NUGA
 
       return OUT;
     }
-
-    
-
   }
 
   ///
@@ -1029,7 +1026,7 @@ namespace NUGA
   bool TEMPLATE_CLASS::__flag_colliding_cells
   (zmesh_t const & z_mesh, std::vector< bound_mesh_t*> const & mask_bits, E_Int im, wdata_t& data, E_Int XVAL)
   {
-    assert (im < mask_bits.size());
+    assert ((size_t)im < mask_bits.size());
     const bound_mesh_t* pmask = mask_bits[im];
     if (pmask == nullptr) return false;
     if (pmask->ncells() == 0) return false;
@@ -1054,7 +1051,7 @@ namespace NUGA
   
     std::vector<E_Int> cands;
     
-    for (E_Int i = 0; i < nbcells; ++i)
+    for (size_t i = 0; i < (size_t)nbcells; ++i)
     {
       //std::cout << i << " over " << nbcells << std::endl;
       assert (i < data.size());

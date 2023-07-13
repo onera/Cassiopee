@@ -42,7 +42,7 @@ class Tetrahedron {
     Tetrahedron():_shift(0){}
     ~Tetrahedron(){}
     
-    Tetrahedron(const E_Int* nodes, E_Int shift=0):_shift(shift){ for (size_t i = 0; i< 4; ++i)_nodes[i]=*(nodes++) + shift;}
+    Tetrahedron(const E_Int* nodes, E_Int shift=0):_shift(shift){ for (size_t i = 0; i< 4; ++i)_nodes[i]=nodes[i] + shift;}
     
     // Constructor from a NGON. non-oriented version
     template <typename ngunit_t>
@@ -63,6 +63,7 @@ class Tetrahedron {
       _nodes[0] = nodes[0]-1;
       _nodes[1] = nodes[1]-1;
       _nodes[2] = nodes[2]-1;
+      _nodes[3] = -1;
           
       nodes = PGs.get_facets_ptr(first_pg[1]-1);
       
@@ -268,6 +269,10 @@ class Tetrahedron {
 
         int count = 0; //fist 2 spike should be enough
         int pairs[2][2];
+        pairs[0][0] = -1;
+        pairs[0][1] = -1;
+        pairs[1][0] = -1;
+        pairs[1][1] = -1;
         if (ftype[0] == K_MESH::Triangle::eDegenType::SPIKE)
         {
           pairs[count][0] = nods[0][(ns[0] + 1) % 3]; // the two nodes but ns[0]

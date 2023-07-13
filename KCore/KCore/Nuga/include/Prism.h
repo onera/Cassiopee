@@ -42,7 +42,7 @@ public:
 
       for (size_t i=0; i < 5; ++i)
       {
-        if (i == k) continue;
+        if (i == (size_t)k) continue;
         int PGi  = first_pg[i]-1;
         if (PGs.stride(PGi) == 3) return i;
       }

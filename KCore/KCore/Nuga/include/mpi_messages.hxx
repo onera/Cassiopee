@@ -97,7 +97,7 @@ namespace NUGA
           int jzid = get_opp_zone(rid_to_zones, rid, szid);
 
           auto& PG_to_plan = it2.second;
-          assert(jzid > -1 && jzid < zonerank.size());
+          assert(jzid > -1 && (size_t)jzid < zonerank.size());
           int jrk = zonerank[jzid];
 
           rank_to_sz_to_rid_to_PG_to_plan[jrk][szid][rid] = PG_to_plan;
@@ -220,7 +220,7 @@ namespace NUGA
         for (int r = 0; r < nranks; ++r)
         {
           if (r == rank) continue;
-          int err = MPI_Irecv(&has_sent[r], 1, MPI_C_BOOL, r, int(TAG_HASSENT), COM, &sreqs[++req_count]);
+          MPI_Irecv(&has_sent[r], 1, MPI_C_BOOL, r, int(TAG_HASSENT), COM, &sreqs[++req_count]);
         }
 
         if (NB_REQ_FOR_HASSENT > 0)
@@ -385,7 +385,7 @@ namespace NUGA
 
           for (E_Int v = racrange_beg; v < racrange_end; ++v)
           {
-            assert(v >= 0 && v < rac.size());
+            assert(v >= 0 && (size_t)v < rac.size());
             int rid = rac[v];
             int jzid = get_opp_zone(rid_to_zones, rid, szid);
 
@@ -405,11 +405,11 @@ namespace NUGA
 
             for (E_Int n = n_beg; n < n_end; ++n)
             {
-              assert(n >= 0 && n < datarange.size());
-              assert((n + 1) < datarange.size());
+              assert(n >= 0 && (size_t)n < datarange.size());
+              assert((size_t)(n + 1) < datarange.size());
               E_Int data_beg = datarange[n];
               E_Int data_end = datarange[n + 1];
-              assert(n < pgs.size());
+              assert((size_t)n < pgs.size());
               E_Int iloc = pgs[n];
 
               E_Int sz = data_end - data_beg;
@@ -417,7 +417,7 @@ namespace NUGA
 
               E_Int cols = sz / data_stride;
              
-              assert(data_beg >= 0 && data_beg < data.size());
+              assert(data_beg >= 0 && (size_t)data_beg < data.size());
               const T* p = &data[data_beg];
               K_FLD::DynArray<T> a;
               a.resize(data_stride, cols);
@@ -428,7 +428,7 @@ namespace NUGA
                   a(k, c) = *(p++);
               }
 
-              assert(iloc >= 0 && iloc < ptlist.size());
+              assert(iloc >= 0 && (size_t)iloc < ptlist.size());
               E_Int PGi = ptlist[iloc] - 1;
               //std::cout << "PGi : " << PGi << std::endl;
               //std::cout << a << std::endl;
@@ -543,7 +543,7 @@ namespace NUGA
           int rid = it2.first;
           auto& PTL = it2.second;
 
-          assert(rid > -1 && rid < rid_to_zones.size());
+          assert(rid > -1 && (size_t)rid < rid_to_zones.size());
           int jzid = get_opp_zone(rid_to_zones, rid, szid);
           int jrk = zonerank[jzid];
 
@@ -633,9 +633,9 @@ namespace NUGA
       // tell if sent or not to all ranks (to avoid deadlock when receiving)
       STACK_ARRAY(MPI_Request, nrank, sreq);
       count_req = -1;
-      for (size_t r = 0; r < nrank; ++r) {
+      for (size_t r = 0; r < (size_t)nrank; ++r) {
         //std::cout << "rank : " << r << " has sent ? : " << has_sent[r] << std::endl;
-        if (r == rank) continue;
+        if (r == (size_t)rank) continue;
         MPI_Isend(&has_sent[r], 1, MPI_C_BOOL, r, int(TAG_HASSENT), COM, &sreq[++count_req]);
       }
 
@@ -661,7 +661,7 @@ namespace NUGA
         for (int r = 0; r < nranks; ++r)
         {
           if (r == rank) continue;
-          int err = MPI_Irecv(&has_sent[r], 1, MPI_C_BOOL, r, int(TAG_HASSENT), COM, &sreqs[++req_count]);
+          /*int err = */MPI_Irecv(&has_sent[r], 1, MPI_C_BOOL, r, int(TAG_HASSENT), COM, &sreqs[++req_count]);
         }
 
         if (NB_REQ_FOR_HASSENT > 0)
@@ -720,7 +720,7 @@ namespace NUGA
       }
 
       rcount = -1;
-      for (size_t r = 0; r < nranks; ++r)
+      for (size_t r = 0; r < (size_t)nranks; ++r)
       {
         if (has_sent[r] == false) continue;
         ++rcount;
@@ -743,7 +743,7 @@ namespace NUGA
 
         req_count = -1;
         rcount = -1;
-        for (size_t r = 0; r < nranks; ++r)
+        for (size_t r = 0; r < (size_t)nranks; ++r)
         {
           if (has_sent[r] == false) continue;
           ++rcount;
@@ -800,7 +800,7 @@ namespace NUGA
           //if (rank == 1) std::cout << "racrange_beg : " << racrange_beg << std::endl;
           //if (rank == 1) std::cout << "racrange_end : " << racrange_end << std::endl;
 
-          for (size_t v = racrange_beg; v < racrange_end; ++v)
+          for (size_t v = racrange_beg; v < (size_t)racrange_end; ++v)
           {
             assert(v >= 0 && v < rac.size());
             int rid = rac[v];

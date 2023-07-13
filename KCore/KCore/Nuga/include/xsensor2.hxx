@@ -194,7 +194,7 @@ bool xsensor2<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
   }
 
   return filled;
-};
+}
 
 ///
 template <typename mesh_t>

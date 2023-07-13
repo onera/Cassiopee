@@ -603,7 +603,7 @@ namespace NUGA
 
       ngon_unit::convert_fixed_stride_to_ngon_unit(cT3, 1, result.m_pgs);
 
-      assert(type.size() == result.m_pgs.size());
+      assert(type.size() == (size_t)result.m_pgs.size());
       result.m_pgs._type = type;
 
       E_Int nb_pgs = result.m_pgs.size();

@@ -321,7 +321,14 @@ namespace NUGA
     int_tuple& operator=(const int_tuple& d) { n[0] = d.n[0];  n[1] = d.n[1]; if (DIM == 3) n[2] = d.n[2]; return *this; }
     //E_Int operator+(E_Int v) const { return max() + v; }
     int_tuple& operator+(E_Int val) { n[0] += val;  n[1] += val; if (DIM == 3) n[2] += val; return *this; }
-    int_tuple& operator--() { n[0] = std::max((E_Int)0, --n[0]); n[1] = std::max((E_Int)0, --n[1]); if (DIM == 3) { n[2] = std::max((E_Int)0, --n[2]); }; return *this; }
+    int_tuple& operator--()
+    {
+        n[0] = std::max((E_Int)0, n[0]-1);
+        n[1] = std::max((E_Int)0, n[1]-1);
+        if (DIM == 3)
+            n[2] = std::max((E_Int)0, n[2]-1);
+        return *this;
+    }
 
     bool operator>=(E_Int v) const { return (max() >= v); }
     bool operator<=(E_Int v) const { return (max() <= v); }

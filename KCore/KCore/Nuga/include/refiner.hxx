@@ -153,8 +153,6 @@ namespace NUGA
     PG_to_ref.clear();
     PG_directive.clear();
 
-    using face_incr_t = typename output_t::face_incr_t;
-
     E_Int nb_phs = ng.PHs.size();
     // Gets PGs to refine
     E_Int nb_pgs(ng.PGs.size());

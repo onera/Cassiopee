@@ -662,7 +662,7 @@ E_Int Hexahedron::get_opposite(const ngunit_t & PGs, const E_Int* first_pg, E_In
 
   for (size_t i=0; i < 6; ++i)
   {
-    if (i == k) continue;
+    if (i == (size_t)k) continue;
 
     const E_Int* inodes = PGs.get_facets_ptr(first_pg[i]-1);
     tmp = bnodes;

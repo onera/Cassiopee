@@ -424,7 +424,7 @@ Design
   void
     DynArray<T>::set_field(size_type i, const std::vector<T>& f)
   {
-    assert(f.size() == _cols);
+    assert(f.size() == (size_t)_cols);
     assert(i < _rows);
 
     for (size_type j = 0; j < _cols; ++j)

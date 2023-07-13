@@ -46,7 +46,7 @@ namespace NUGA
       for (int i = 0; i < nb_nodes; i++) Q6nodes[i] = nodes[i];
 
       const E_Int* pNFils0 = PGs.get_facets_ptr(two_childrenPG[0]);
-      const E_Int* pNFils1 = PGs.get_facets_ptr(two_childrenPG[1]);
+      //const E_Int* pNFils1 = PGs.get_facets_ptr(two_childrenPG[1]);
 
       NUGA::eDIR dir = (pNFils0[1] == nodes[1]) ? Y : Xd;
 
@@ -54,7 +54,7 @@ namespace NUGA
 
       if (reorient) std::swap(Q6nodes[1], Q6nodes[3]);
 
-      NUGA::eDIR dout;
+      //NUGA::eDIR dout;
 
       // 1. setting the last 2 points, the refining point fetched from the first PG child.
       // 2. eventually swapping the children to fit to the convention
@@ -67,13 +67,13 @@ namespace NUGA
           {
             Q6nodes[4] = pNFils0[1];
             Q6nodes[5] = pNFils0[2];
-            dout = Xd;
+            //dout = Xd;
           }
           else if (i0 == 1)
           {
             Q6nodes[4] = pNFils0[2];
             Q6nodes[5] = pNFils0[1];
-            dout = Y;
+            //dout = Y;
             std::swap(two_childrenPG[0], two_childrenPG[1]);
 
           }
@@ -81,15 +81,14 @@ namespace NUGA
           {
             Q6nodes[4] = pNFils0[2];
             Q6nodes[5] = pNFils0[1];
-            dout = Xd;
+            //dout = Xd;
             std::swap(two_childrenPG[0], two_childrenPG[1]);
           }
           else if (i0 == 3)
           {
             Q6nodes[4] = pNFils0[1];
             Q6nodes[5] = pNFils0[2];
-            dout = Y;
-            
+            //dout = Y;
           }
         }
         else // opposite orientation stored
@@ -98,29 +97,27 @@ namespace NUGA
           {
             Q6nodes[4] = pNFils0[2];
             Q6nodes[5] = pNFils0[1];
-            dout = Y;
-            
+            //dout = Y;
           }
           else if (i0 == 1)
           {
             Q6nodes[4] = pNFils0[1];
             Q6nodes[5] = pNFils0[2];
-            dout = Xd;
+            //dout = Xd;
             std::swap(two_childrenPG[0], two_childrenPG[1]);
           }
           else if (i0 == 2)
           {
             Q6nodes[4] = pNFils0[1];
             Q6nodes[5] = pNFils0[2];
-            dout = Y;
+            //dout = Y;
             std::swap(two_childrenPG[0], two_childrenPG[1]);
-          
           }
           else if (i0 == 3)
           {
             Q6nodes[4] = pNFils0[2];
             Q6nodes[5] = pNFils0[1];
-            dout = Xd;
+            //dout = Xd;
           }
         }
       }
@@ -132,27 +129,26 @@ namespace NUGA
           {
             Q6nodes[4] = pNFils0[2];
             Q6nodes[5] = pNFils0[3];
-            dout = Y;
-            
+            //dout = Y;  
           }
           else if (i0 == 1)
           {
             Q6nodes[4] = pNFils0[2];
             Q6nodes[5] = pNFils0[3];
-            dout = Xd;
+            //dout = Xd;
           }
           else if (i0 == 2)
           {
             Q6nodes[4] = pNFils0[3];
             Q6nodes[5] = pNFils0[2];
-            dout = Y;
+            //dout = Y;
             std::swap(two_childrenPG[0], two_childrenPG[1]);
           }
           else if (i0 == 3)
           {
             Q6nodes[4] = pNFils0[3];
             Q6nodes[5] = pNFils0[2];
-            dout = Xd;
+            //dout = Xd;
             std::swap(two_childrenPG[0], two_childrenPG[1]);
           }
         }
@@ -162,32 +158,31 @@ namespace NUGA
           {
             Q6nodes[4] = pNFils0[3];
             Q6nodes[5] = pNFils0[2];
-            dout = Xd;
+            //dout = Xd;
           }
           else if (i0 == 1)
           {
             Q6nodes[4] = pNFils0[3];
             Q6nodes[5] = pNFils0[2];
-            dout = Y;
+            //dout = Y;
           }
           else if (i0 == 2)
           {
             Q6nodes[4] = pNFils0[2];
             Q6nodes[5] = pNFils0[3];
-            dout = Xd;
+            //dout = Xd;
             std::swap(two_childrenPG[0], two_childrenPG[1]);
           }
           else if (i0 == 3)
           {
             Q6nodes[4] = pNFils0[2];
             Q6nodes[5] = pNFils0[3];
-            dout = Y;
+            //dout = Y;
             std::swap(two_childrenPG[0], two_childrenPG[1]);
           }
         }
       }
     }
-      
   };
 }
 

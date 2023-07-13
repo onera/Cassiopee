@@ -1708,7 +1708,7 @@ namespace K_MESH
         for (E_Int k = 0; k < pgntris * 3; ++k, ++pstart)
         {
 
-          assert(*pstart < oids.size());
+          assert((size_t)*pstart < oids.size());
           *pstart = oids[*pstart]; //get back to global but 0-based
           assert(*pstart < crdi.cols());
         }

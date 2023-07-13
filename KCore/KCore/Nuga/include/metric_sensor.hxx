@@ -1318,7 +1318,7 @@ bool metric_sensor<mesh_t>::enforce_consistancy(E_Int PHi, mesh_t& hmesh, output
 template <typename mesh_t>
 void metric_sensor<mesh_t>::metric_fix(mesh_t& hmesh, output_t& adap_incr)
 {
-    using cell_incr_t = typename output_t::cell_incr_t;
+    //using cell_incr_t = typename output_t::cell_incr_t;
     using face_incr_t = typename output_t::face_incr_t;
 
     std::stack<E_Int> stk;
@@ -1378,13 +1378,6 @@ void metric_sensor<mesh_t>::metric_fix(mesh_t& hmesh, output_t& adap_incr)
         an = adap_incr.cell_adap_incr[nei].n[0];
         bn = adap_incr.cell_adap_incr[nei].n[1];
         cn = adap_incr.cell_adap_incr[nei].n[2];
-
-        E_Int &ao_up = adap_incr.cell_adap_incr[own].n[0];
-        E_Int &bo_up = adap_incr.cell_adap_incr[own].n[1];
-        E_Int &co_up = adap_incr.cell_adap_incr[own].n[2];
-        E_Int &an_up = adap_incr.cell_adap_incr[nei].n[0];
-        E_Int &bn_up = adap_incr.cell_adap_incr[nei].n[1];
-        E_Int &cn_up = adap_incr.cell_adap_incr[nei].n[2];
 
         PHi_to_mod = -1;
 
@@ -1470,7 +1463,6 @@ void metric_sensor<mesh_t>::metric_fix(mesh_t& hmesh, output_t& adap_incr)
 
             auto& f_incr = adap_incr.face_adap_incr[PGi];
             f_incr.n[0] = 0; f_incr.n[1] = 0;
-            E_Int alpha = adap_incr.cell_adap_incr[own].n[0];
             E_Int beta = adap_incr.cell_adap_incr[own].n[1];
             E_Int gamma = adap_incr.cell_adap_incr[own].n[2];
             const auto& swap = _canon_info[own];
@@ -1891,7 +1883,7 @@ template <typename mesh_t>
 void metric_sensor<mesh_t>::metric_fix_2(mesh_t& hmesh, output_t& adap_incr)
 {
     using cell_incr_t = typename output_t::cell_incr_t;
-    using face_incr_t = typename output_t::face_incr_t;
+    //using face_incr_t = typename output_t::face_incr_t;
 
     cell_incr_t c_incr_1, c_incr_0;
     E_Int count;
@@ -2117,7 +2109,7 @@ template <typename mesh_t>
 E_Int metric_sensor<mesh_t>::assign_data(const sensor_input_t& data)
 {
   E_Int npts = parent_t::_hmesh._crd.cols();
-  assert(npts == data.size()); // input must be sized as number of pts (if decided to do differently,  need here to resize and fill missing field values)
+  if (npts != data.size()) exit(1);
 
   parent_t::_data = data;
 
@@ -2156,10 +2148,8 @@ void metric_sensor<mesh_t>::Hexa_adap_compute(E_Int PHi, output_t& adap_incr)
     using face_incr_t = typename output_t::face_incr_t;
 
     const auto& ng = parent_t::_hmesh._ng;
-    const auto& F2E = parent_t::_hmesh._F2E;
 
     face_incr_t f_incr[6];
-    E_Int reorient, i0;
     E_Int PGi;
     const E_Int *pF = ng.PHs.get_facets_ptr(PHi);
     const auto& swap = _canon_info[PHi];

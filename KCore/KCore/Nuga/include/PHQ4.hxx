@@ -47,8 +47,9 @@ namespace NUGA
       //   b. "tisser" les quads internes (gestion des doublons ?) avec le centroid et la ligne
       // 3. MAJ de PHtree: PHtree.set_children(PHi, firstPHchild, nbc);
       // 4. MAJ F2E
-
-      E_Int j, k, l, m, n, j1, j2, k1, k2;
+    
+      size_t k, l;
+      E_Int j, m, n;
 
       //== 1 get unodes and number of edges ==============================================================
       //========= build working array for interior faces ====================================  
@@ -60,8 +61,6 @@ namespace NUGA
 
       K_MESH::Polyhedron<UNKNOWN>::unique_nodes_arity(ng.PGs, first_pg, nb_pgs, unodes, arity);
       E_Int nb_nodesc = unodes.size();
-
-      E_Int nbint = subdiv_pol<K_MESH::Polyhedron<0>, ISO_HEX>::nbi(ng.PGs, first_pg, nb_pgs);
 
       //== 2 gather all center-edge center-indices about the coarse-level nodes ============================
       //========= build auxiliary data for new (internal) PGi =======================
@@ -77,12 +76,12 @@ namespace NUGA
       {
         indnode = unodes[j];
 
-        for (k = 0; k < nb_pgs; k++)
+        for (k = 0; k < (size_t)nb_pgs; k++)
         {
           PGi = first_pg[k] - 1;
           childPGi = PGtree.children(PGi);
 
-          for (l = 0; l < PGtree.nb_children(PGi); l++)
+          for (l = 0; l < (size_t)PGtree.nb_children(PGi); l++)
           {
             PGf = childPGi[l];
             nb_nodesf = ng.PGs.stride(PGf);
@@ -133,7 +132,7 @@ namespace NUGA
 
         for (n = 0; n < narity - 1; n++)
         {
-          for (k = 0; k < narity; k++)
+          for (k = 0; k < (size_t)narity; k++)
           {
             if ((mapnode[j][3 * k] == omapnode[j][1 + 3 * n]) && (usedinmap[3 * k] == false))
             {
@@ -177,7 +176,7 @@ namespace NUGA
         // ==============================================================
         //  (1-based) coarse node number  " << j << " index " << indnode 
 
-        for (k = 0; k < earity; k++)
+        for (k = 0; k < (size_t)earity; k++)
         {
           found = false;
           for (l = 0; l < edgedone.size(); l++)
@@ -238,7 +237,7 @@ namespace NUGA
         //------------ external faces -----------------------
         // -------- the division kept the orientation -----------------
         //
-        for (k = 0; k < arity[j]; k++)       // the new PHj has arity[j] old "external" faces (all quadrangles)
+        for (k = 0; k < (size_t)arity[j]; k++)       // the new PHj has arity[j] old "external" faces (all quadrangles)
                                             // and arity[j] "internal" faces (all quadrangles) 
         {
           p[k] = mapcn2fPG[j][k] + 1;         // mapcn2fPG is 0-based
@@ -250,7 +249,7 @@ namespace NUGA
         }
         //------------ internal faces -----------------------
         //--------------------------------------------------
-        for (k = arity[j]; k < 2 * arity[j]; k++)   // the new PHj has arity[j] old "external" faces (all quadrangles)
+        for (k = arity[j]; k < (size_t)(2 * arity[j]); k++)   // the new PHj has arity[j] old "external" faces (all quadrangles)
                                                  // and arity[j] "internal" faces (all quadrangles) 
         {
           p[k] = mapcn2fPG[j][k] + 1;              // mapcn2fPG est 0-based
@@ -271,16 +270,17 @@ namespace NUGA
       //== 6=== final F2E for internal faces =====================================================
       //========== go for double loop on coarse nodes ==========================================
 
-      E_Int indnode1, indnode2;
       //E_Int indComFace;
       //E_Bool comInternalFace;
       //
+      // Note (Imad): j'ai commenté cette for loop qui n'accomplit rien a priori
+      /*
       for (j1 = 0; j1 < nb_nodesc; j1++)        // browse coarse level nodes    
       {
-        indnode1 = unodes[j1];
+        E_Int indnode1 = unodes[j1];
         for (j2 = 0; j2 < j1; j2++)        // browse coarse level nodes    
         {
-          indnode2 = unodes[j2];
+          E_Int indnode2 = unodes[j2];
           //std::cout << " couple de noeuds envisage " << indnode1 << " -- " << indnode2 << std::endl;
           //---------------------------------------------------
           //comInternalFace = false;
@@ -298,6 +298,7 @@ namespace NUGA
             //std::cout << " face interne et F2E a examiner indice face " << indComFace << std::endl;
         }
       }
+      */
     }
   };
 
