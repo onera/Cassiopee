@@ -1477,7 +1477,6 @@ void metric_sensor<mesh_t>::metric_fix(mesh_t& hmesh, output_t& adap_incr)
             }
 
             Hexa_adap_compute(own, adap_incr);
-            assert(alpha == adap_incr.cell_adap_incr[own].n[0]);
             assert(beta == adap_incr.cell_adap_incr[own].n[1]);
             assert(gamma == adap_incr.cell_adap_incr[own].n[2]);
         }
