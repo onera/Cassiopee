@@ -423,7 +423,7 @@ Main Functions
 ---------------------------------------
 
 
-.. py:function:: Intersector.adaptCells(a, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None)
+.. py:function:: Intersector.adaptCells(a, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None, conformize=1)
 
     Adapts a cells (any basic cells - TETRA, PENTA, PYRA, HEXA - currently) with respect to the sensor and its data (sensdata).
     
@@ -455,6 +455,8 @@ Main Functions
     :type            hmesh:  hook
     :param           sensor:  structure that holds the sensor and its data in case of successive adaptations on a mesh
     :type            sensor:  hook
+    :param           conformize:  conformal output mesh enabled (1), disabled (0). Enabled by default.
+    :type            conformize:  int
 
     *Example of use:*
 
