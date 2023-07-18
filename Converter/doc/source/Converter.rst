@@ -982,8 +982,8 @@ pyTree creation and manipulation
     Add a family node to a base node of a tree. 
     The family can designates a set of zone (family of zones) or
     a set of boundary conditions (family of BCs).
-    If the family designates a family BC, then bndType can be defined
-    with a CGNS BC type.
+    If the family designates a family BC, then bndType must be defined
+    with a CGNS BC type or with 'UserDefined'.
     This family name can then be referenced in zones or in boundary conditions.
 
     Exists also as in place version (_addFamily2Base) that modifies a and 

@@ -145,6 +145,12 @@ namespace K_PYTREE
      OUT: retoure le ptr sur le tableau de doubles. */
   E_Float* getValueAF(PyObject* o, std::vector<PyArrayObject*>& hook);
 
+  /* Retourne le nombre d'éléments d'une zone d'un pyTree
+     IN: zone
+     OUT: number of points
+  */
+  E_Int getNumberOfPointsOfZone(PyObject* o, std::vector<PyArrayObject*>& hook);
+
   /* Ajoute un noeud a o
      IN: o: objet representant un noeud de pyTree
      IN: name: le nom du noeud a creer

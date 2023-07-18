@@ -215,6 +215,7 @@ E_Int* K_PYTREE::getValueAI(PyObject* o, E_Int& s0, E_Int& s1,
    
     if (ndim == 1) { s0 = PyArray_DIM(ac,0); s1 = 1; }
     else if (ndim == 2 || ndim == 3) { s0 = PyArray_DIM(ac,0); s1 = PyArray_DIM(ac,1); }
+    else { s0 = 0; s1 = 1; } // fail
     hook.push_back(ac);
     return d;
   }
@@ -257,6 +258,39 @@ E_Float K_PYTREE::getValueF(PyObject* o)
   E_Float ret = d[0];
   Py_DECREF(ac);
   return ret;
+}
+
+//==============================================================================
+// Retourne le nombre d'éléments d'une zone d'un pyTree
+// IN: zone
+// OUT: number of points
+//==============================================================================
+E_Int K_PYTREE::getNumberOfPointsOfZone(PyObject* o, vector<PyArrayObject*>& hook)
+{
+  PyObject* t;
+  // get type
+  t = getNodeFromName1(o, "ZoneType");
+  if (t == NULL) return 0;
+  E_Int s;
+  char* type = getValueS(t, s, hook);
+  E_Int isStructured = false;
+  if (K_STRING::cmp(type, s, "Structured") == 0) isStructured = true;
+  // get dims
+  E_Int s0, s1, numberOfPoints;
+  E_Int* d = getValueAI(o, s0, s1, hook);
+  E_Int ni=0; E_Int nj=0; E_Int nk=0;
+  if (isStructured) // structured
+  {
+    if (s0 == 1) { ni = d[0]; nj = 1; nk = 1; }
+    else if (s0 == 2) { ni = d[0]; nj = d[1]; nk = 1; }
+    else { ni = d[0]; nj = d[1]; nk = d[2]; }
+    numberOfPoints = ni*nj*nk;
+  }
+  else // unstructured
+  {
+    numberOfPoints = d[0];
+  }
+  return numberOfPoints;
 }
 
 //==============================================================================
