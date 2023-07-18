@@ -31,7 +31,7 @@ def changeMode(event=None):
     global BODY
     mode = VARS[10].get()
     if mode == 'Body':
-        if BODY is not None: 
+        if BODY is not None:
             CTK.t = BODY
             (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
             CTK.TKTREE.updateApp()
@@ -294,6 +294,8 @@ def compute():
     # open compute
     CTK.t, tc, ts, metrics, graph = myApp.setup('restart.cgns', 'tc.cgns')
 
+    import FastC.PyTree as FastC
+    FastC.MX_OMP_SIZE_INT = 2*FastC.MX_OMP_SIZE_INT
     import FastS.PyTree as FastS
     it0 = 0; time0 = 0.
     first = Internal.getNodeFromName1(CTK.t, 'Iteration')

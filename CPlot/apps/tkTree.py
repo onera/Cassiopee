@@ -230,10 +230,8 @@ class Node:
         n = self.next_visible()
         x1, y1 = sw.coords(self.symbol)
         x2, y2 = sw.coords(n.symbol)
-        if me_too:
-            dist = y2-y1
-        else:
-            dist = y2-y1-sw.dist_y
+        if me_too: dist = y2-y1
+        else: dist = y2-y1-sw.dist_y
         self.PVT_tag_move(-dist)
         n = self
         if me_too:
@@ -249,7 +247,7 @@ class Node:
             self.parent_node.child_nodes.remove(self)
             # break circular ref now, so parent may be GC'ed later
             n = self.parent_node
-            self.parent_node=None
+            self.parent_node = None
         n.PVT_cleanup_lines()
         n.PVT_update_scrollregion()
 
@@ -1100,8 +1098,8 @@ tcuom2foARAAyKRSmQAAOw==
                 if z[3] == 'Zone_t': deletedZoneNames.append(id[0]+Internal.SEP1+z[0])
             if Internal.isStdNode(ret[0]) >= 0: del ret[0][ret[1]]
             else: del ret[0][2][ret[1]]
+            (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
             if deletedZoneNames != []:
-                (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
                 CPlot.delete(deletedZoneNames)
                 CPlot.render()
         elif id[3] == 'Zone_t': # efface une zone

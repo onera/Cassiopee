@@ -5,6 +5,8 @@ Editor :
 --------
 - indent with spaces (2 or 4 depending on file complexity). Dont use tabs.
 - use utf8/lf encoding
+- respect typo for commas: t1, t2, a3.
+- respect type for two points: a:
 
 Python Functions:
 -----------------

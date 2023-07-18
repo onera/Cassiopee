@@ -138,7 +138,6 @@ def setFluidInside(t):
     _setFluidInside(tp)
     return tp
 
-
 def _setFluidInside(t):
     """Set fluid inside a geometry tree.
     Usage: _setFluidInside(t)"""
@@ -159,7 +158,6 @@ def initOutflow(tc, familyName, PStatic, InterpolPlane=None, PressureVar=0, isDe
     _initOutflow(tc2, familyName, PStatic, InterpolPlane=InterpolPlane, PressureVar=PressureVar, isDensityConstant=isDensityConstant)
     return tc2
 
-
 def _initOutflow(tc, familyName, PStatic, InterpolPlane=None, PressureVar=0, isDensityConstant=True):
     """Set the value of the pressure PStatic for the outflow pressure IBC with family name familyName.
     A plane InterpolPlane may also be provided with various variables with static pressure as the PressureVar (e.g. 2nd) variable)"""
@@ -170,23 +168,23 @@ def _initOutflow(tc, familyName, PStatic, InterpolPlane=None, PressureVar=0, isD
             if FamNode is not None:
                 FamName = Internal.getValue(FamNode)
                 if FamName == familyName:
-                    stagPNode =  Internal.getNodeFromName(zsr, 'Pressure')
-                    sizeIBC   = numpy.shape(stagPNode[1])
+                    stagPNode = Internal.getNodeFromName(zsr, 'Pressure')
+                    sizeIBC = numpy.shape(stagPNode[1])
                     if InterpolPlane:
                         print("Zone: %s | ZoneSubRegion: %s"%(zc[0],zsr[0]))
-                        x_wall =  Internal.getNodeFromName(zsr, 'CoordinateX_PW')[1]
-                        y_wall =  Internal.getNodeFromName(zsr, 'CoordinateY_PW')[1]
-                        z_wall =  Internal.getNodeFromName(zsr, 'CoordinateZ_PW')[1]
-                        list_pnts=[]
+                        x_wall = Internal.getNodeFromName(zsr, 'CoordinateX_PW')[1]
+                        y_wall = Internal.getNodeFromName(zsr, 'CoordinateY_PW')[1]
+                        z_wall = Internal.getNodeFromName(zsr, 'CoordinateZ_PW')[1]
+                        list_pnts = []
                         for i in range(sizeIBC[0]): list_pnts.append((x_wall[i],y_wall[i],z_wall[i]))
-                        val      = P.extractPoint(InterpolPlane, list_pnts, 2)
+                        val = P.extractPoint(InterpolPlane, list_pnts, 2)
                         val_flat = []
                         for i in range(len(val)): val_flat.append(val[i][PressureVar])
                         stagPNode[1][:] = val_flat[:]
                     else:
                         stagPNode[1][:] = PStatic
                     if not isDensityConstant:
-                        dens =  Internal.getNodeFromName(zsr, 'Density') 
+                        dens = Internal.getNodeFromName(zsr, 'Density') 
                         dens[1][:] = -dens[1][:]
     return None
 
@@ -208,13 +206,13 @@ def _initIsoThermal(tc, familyName, TStatic):
             FamNode = Internal.getNodeFromType1(zsr, 'FamilyName_t')
             if FamNode is not None:
                 FamName = Internal.getValue(FamNode)
-                if FamName==familyName:
+                if FamName == familyName:
                     stagPNode = Internal.getNodeFromName(zsr, 'TemperatureWall')    
-                    sizeIBC   = numpy.shape(stagPNode[1])
-                    stagPNode[1][:]  = TStatic
+                    sizeIBC = numpy.shape(stagPNode[1])
+                    stagPNode[1][:] = TStatic
                     #Internal.setValue(stagPNode,TStatic*numpy.ones(sizeIBC))
 
-                    stagPNode =  Internal.getNodeFromName(zsr, 'Temperature')    
+                    stagPNode = Internal.getNodeFromName(zsr, 'Temperature')    
                     Internal.setValue(stagPNode, TStatic*numpy.ones(sizeIBC))
     return None
 
@@ -265,44 +263,44 @@ def _initInj(tc, familyName, PTot, HTot, injDir=[1.,0.,0.], InterpolPlane=None, 
     Usage: _initInj(tc, familyName, PTot, HTot, injDir, InterpolPlane, PressureVar, EnthalpyVar)"""
     import Post.PyTree as P
     for zc in Internal.getZones(tc):
-        for zsr in Internal.getNodesFromName(zc,'IBCD_5_*'):
-            FamNode = Internal.getNodeFromType1(zsr,'FamilyName_t')
+        for zsr in Internal.getNodesFromName(zc, 'IBCD_5_*'):
+            FamNode = Internal.getNodeFromType1(zsr, 'FamilyName_t')
             if FamNode is not None:
                 FamName = Internal.getValue(FamNode)
                 if FamName == familyName:
-                    node_temp = Internal.getNodeFromName(zsr,'utau')
-                    if node_temp is not None: Internal._rmNode(zsr,node_temp)
+                    node_temp = Internal.getNodeFromName(zsr, 'utau')
+                    if node_temp is not None: Internal._rmNode(zsr, node_temp)
 
-                    node_temp = Internal.getNodeFromName(zsr,'yplus')
-                    if node_temp is not None: Internal._rmNode(zsr,node_temp)
+                    node_temp = Internal.getNodeFromName(zsr, 'yplus')
+                    if node_temp is not None: Internal._rmNode(zsr, node_temp)
                     
-                    stagPNode = Internal.getNodeFromName(zsr,'StagnationPressure')
-                    stagHNode = Internal.getNodeFromName(zsr,'StagnationEnthalpy')
-                    dirxNode  = Internal.getNodeFromName(zsr,'dirx')
-                    diryNode  = Internal.getNodeFromName(zsr,'diry')
-                    dirzNode  = Internal.getNodeFromName(zsr,'dirz')
+                    stagPNode = Internal.getNodeFromName(zsr, 'StagnationPressure')
+                    stagHNode = Internal.getNodeFromName(zsr, 'StagnationEnthalpy')
+                    dirxNode  = Internal.getNodeFromName(zsr, 'dirx')
+                    diryNode  = Internal.getNodeFromName(zsr, 'diry')
+                    dirzNode  = Internal.getNodeFromName(zsr, 'dirz')
                     sizeIBC   = numpy.shape(stagHNode[1])
                     if InterpolPlane:
                         print("Zone: %s | ZoneSubRegion: %s"%(zc[0],zsr[0]))
-                        x_wall =  Internal.getNodeFromName(zsr,'CoordinateX_PW')[1]
-                        y_wall =  Internal.getNodeFromName(zsr,'CoordinateY_PW')[1]
-                        z_wall =  Internal.getNodeFromName(zsr,'CoordinateZ_PW')[1]
+                        x_wall = Internal.getNodeFromName(zsr, 'CoordinateX_PW')[1]
+                        y_wall = Internal.getNodeFromName(zsr, 'CoordinateY_PW')[1]
+                        z_wall = Internal.getNodeFromName(zsr, 'CoordinateZ_PW')[1]
                         list_pnts=[]
                         for i in range(sizeIBC[0]): list_pnts.append((x_wall[i],y_wall[i],z_wall[i]))
-                        val      = P.extractPoint(InterpolPlane, list_pnts, 2)
-                        val_flatPtot=[]
-                        val_flatHtot=[]
+                        val = P.extractPoint(InterpolPlane, list_pnts, 2)
+                        val_flatPtot = []
+                        val_flatHtot = []
                         for i in range(len(val)):
                             val_flatPtot.append(val[i][PressureVar])
                             val_flatHtot.append(val[i][EnthalpyVar])
-                        stagPNode[1][:]=val_flatPtot[:]
-                        stagHNode[1][:]=val_flatHtot[:]
+                        stagPNode[1][:] = val_flatPtot[:]
+                        stagHNode[1][:] = val_flatHtot[:]
                     else:
                         stagPNode[1][:] = PTot
                         stagHNode[1][:] = HTot
-                    dirxNode[1][:]  = injDir[0]
-                    diryNode[1][:]  = injDir[1]
-                    dirzNode[1][:]  = injDir[2]
+                    dirxNode[1][:] = injDir[0]
+                    diryNode[1][:] = injDir[1]
+                    dirzNode[1][:] = injDir[2]
                     
     return None
 

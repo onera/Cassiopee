@@ -80,6 +80,7 @@ def moveNodeUp():
     if node is None or node[3] == 'CGNSTree_t': return # Tree node can not move
     (p, c) = Internal.getParentOfNode(CTK.t, node)
     if c == 0: return # already first
+    if node[3] == 'CGNSBase_t' and c == 1: return # keep CGNSversion first
     
     if node[3] == 'Zone_t': # optimise
         z1 = p[2][c-1]
