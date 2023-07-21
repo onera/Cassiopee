@@ -193,14 +193,14 @@ Contents
 
 .. ---------------------------------------
 
-.. py:function:: Post.IBM.loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref=None, order=1, gradP=False, famZones=[])
+.. py:function:: Post.IBM.loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref=None, order=1, gradP=False, famZones=[])
 
-    Computes the viscous and pressure forces on the immersed boundaries (IB). If tc_in=None, t_case must also contain the projection of the flow field solution onto the surface.
+    Computes the viscous and pressure forces on the immersed boundaries (IB). If tc_in=None, tb_in must also contain the projection of the flow field solution onto the surface.
 
     if tc and tc2 are not None, uses the pressure information at second image points.
 
-    :param t_case: geometry tree
-    :type  t_case: [zone, list of zones, base, tree]
+    :param tb_in: geometry tree
+    :type  tb_in: [zone, list of zones, base, tree]
     :param tc_in: connectivity tree 
     :type  tc_in: [zone, list of zones, base, tree, or None]
     :param tc2_in: connectivity tree containing IBM information for the second image point (optional)
@@ -219,7 +219,7 @@ Contents
     :type Sref: float or None
     :param famZones: List of IBC families on which loads are computed.
     :type famZones: list of strings or None
-    :return: surface tree with the flow solution as well as the viscous and pressure loads. Drag and lift coefficients (on screen)
+    :return: surface tree with the flow solution. Lists of CD/CL per base.
        
     *Example of use:*
 

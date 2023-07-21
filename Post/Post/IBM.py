@@ -889,34 +889,64 @@ def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref
 
     if dimPb == 2: T._addkplane(zw)
 
+    # save basenames for the final tree
+    baseNames = []
+    for b in Internal.getBases(zw):
+        baseNames.append(b[0])
+
     zw = C.convertArray2Tetra(zw)
     zw = T.reorderAll(zw, 1)
 
-    ts = C.newPyTree(['SKIN']);
-    if famZones: ts[2][1][2] = zw
-    else: ts[2][1][2] = zw[2][1][2]
+    CD, CL = [], []
 
-    #==============================
-    # Reference state
-    #==============================
-    RefState = Internal.getNodeFromType(tb,'ReferenceState_t')
-    ts[2][1][2].append(RefState)
+    if famZones:
+        ts = C.newPyTree(['SKIN'])
+        ts[2][1][2] = zw
+        RefState = Internal.getNodeFromType(tb,'ReferenceState_t')
+        ts[2][1][2].append(RefState)
+        tp = C.node2Center(ts,'FlowSolution')
+        C._rmVars(ts, 'FlowSolution')
+        [res, res2, [clp, cdp], [clf, cdf]] = _loads0(ts, Sref=Sref, Pref=None, Qref=None, alpha=alpha, beta=beta, dimPb=dimPb, verbose=True)
 
-    ts = C.node2Center(ts,'FlowSolution')
-    C._rmVars(ts, 'FlowSolution')
-    
-    _loads0(ts, Sref=Sref, Pref=None, Qref=None, alpha=alpha, beta=beta, dimPb=dimPb, verbose=True)
+        CD.append(clp+cdp)
+        CL.append(clf+cdf)
 
-    if dimPb == 2: # reextrait en 2D
-        ts = P.isoSurfMC(ts, "CoordinateZ", 0.)
-        nodes = Internal.getNodesFromName(ts, 'CoordinateX')
-        xmin = numpy.min(nodes[0][1])
-        xmax = numpy.max(nodes[0][1])
-        dxi = 1./(xmax-xmin)
-        C._initVars(ts, 'xsc=({CoordinateX}-%g)*%g'%(xmin, dxi))
+        if dimPb == 2: # reextrait en 2D
+            ts = P.isoSurfMC(ts, "CoordinateZ", 0.)
+            nodes = Internal.getNodesFromName(ts, 'CoordinateX')
+            xmin = numpy.min(nodes[0][1])
+            xmax = numpy.max(nodes[0][1])
+            dxi = 1./(xmax-xmin)
+            C._initVars(ts, 'xsc=({CoordinateX}-%g)*%g'%(xmin, dxi))
+
+    else: # get loads info per base
+        ts = C.newPyTree()
+        for c, b in enumerate(Internal.getBases(zw)):
+            tp = C.newPyTree(['SKIN']);
+            tp[2][1][2] = zw[2][c+1][2]
+            RefState = Internal.getNodeFromType(tb,'ReferenceState_t')
+            tp[2][1][2].append(RefState)
+            tp = C.node2Center(tp,'FlowSolution')
+            C._rmVars(tp, 'FlowSolution')
+            print("Info: loads: get CD/CL on base %s"%(baseNames[c]))
+            [res, res2, [clp, cdp], [clf, cdf]] = _loads0(tp, Sref=Sref, Pref=None, Qref=None, alpha=alpha, beta=beta, dimPb=dimPb, verbose=True)
+
+            CD.append(clp+cdp)
+            CL.append(clf+cdf)
+
+            if dimPb == 2: # reextrait en 2D
+                tp = P.isoSurfMC(tp, "CoordinateZ", 0.)
+                nodes = Internal.getNodesFromName(tp, 'CoordinateX')
+                xmin = numpy.min(nodes[0][1])
+                xmax = numpy.max(nodes[0][1])
+                dxi = 1./(xmax-xmin)
+                C._initVars(tp, 'xsc=({CoordinateX}-%g)*%g'%(xmin, dxi))
+
+            base = Internal.newCGNSBase(baseNames[c], parent=ts)
+            base[2] += Internal.getZones(tp)
 
     if isinstance(wall_out, str): C.convertPyTree2File(ts, wall_out)
-    return ts
+    return ts, CD, CL
 
 ##################
 # WORK IN PROGRESS
