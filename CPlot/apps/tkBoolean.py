@@ -44,14 +44,16 @@ def union():
         z = CTK.t[2][nob][2][noz]
         zlist.append(z)
     
-    try: j = XOR.booleanUnion(zlist[0], zlist[1], tol=tol)
+    try: 
+        j = XOR.booleanUnion(zlist[0], zlist[1], tol=tol)
     except Exception as e:
         CTK.setCursor(0, WIDGETS['union'])
         Panels.displayErrors([0,str(e)], header='Error: union')
         CTK.TXT.insert('START', 'Union failed\n'); return
 
     for nz in range(len(zlist)-2):
-        try: j = XOR.booleanUnion(j, zlist[nz+2], tol=tol)
+        try: 
+            j = XOR.booleanUnion(j, zlist[nz+2], tol=tol)
         except Exception as e:
             CTK.setCursor(0, WIDGETS['union'])
             Panels.displayErrors([0,str(e)], header='Error: union')

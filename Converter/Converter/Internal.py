@@ -4014,7 +4014,7 @@ def setElementConnectivity2(z, array):
           # Creation du noeud NGON_n: connectivite Faces->Noeuds
           info.append(['NGonElements', i, [], 'Elements_t'])
           info2 = info[len(info)-1][2]
-          # Size of ElementRange : nb de faces
+          # Size of ElementRange: nb de faces
           if array[2][2][-1] == array[2][0].size: nfaces = array[2][2].size-1
           else: nfaces = array[2][2].size
           i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = nfaces

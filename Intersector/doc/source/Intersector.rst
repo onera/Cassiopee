@@ -192,11 +192,11 @@ Main Functions
     :type  preserve_right: 0 or 1
     :param solid_right: Indicates that the second operand is not penetrable, i.e. it is prioritized over the first operand a1.
     :type  solid_right: 0 or 1
-    :param agg_mode: Option for agglomerating cut polygons : 0 to keep them as split triangles, 1 to get convex agglomerations and 2 to get a full agglomeration.
+    :param agg_mode: Option for agglomerating cut polygons: 0 to keep them as split triangles, 1 to get convex agglomerations and 2 to get a full agglomeration.
     :type  agg_mode: 0,1 or 2.
     :param extrude_pgs: Optional list of polygons to extrude.
     :type  extrude_pgs: list of int
-    :param multi_zone: If set to True, preserve inpu zoning of a1 and a2 upon exit.
+    :param multi_zone: If set to True, preserve input zoning of a1 and a2 upon exit.
     :type  multi_zone: True or False
 
     
@@ -209,7 +209,7 @@ Main Functions
 
     * For assembling meshes, set solid_right to 1 and pass the prioritized mesh as second operand.
     
-    * extrude_pgs : required whenever a1 and a2 are in contact and a2 is prioritized : avoids to compute useless intersections by telling what are the indices of contact polygons in a2.
+    * extrude_pgs: required whenever a1 and a2 are in contact and a2 is prioritized: avoids to compute useless intersections by telling what are the indices of contact polygons in a2.
 
 
     *Example of use:*

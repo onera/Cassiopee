@@ -81,7 +81,7 @@ flags = ''
 for i in cppOpts: 
     if not Dist.isSimd(i): flags += i+' '
 for i, v in enumerate(srcs.cpp_srcs):
-    #print('altering',v,flags)
+    #print('altering', v, flags)
     srcs.cpp_srcs[i] = env.Object(v, CXXFLAGS=flags)
        
 #==============================================================================	

@@ -9,6 +9,7 @@ import CPlot.Tk as CTK
 import Converter.Internal as Internal
 import Fast.PyTree as Fast
 import CPlot.iconics as iconics
+import numpy
 
 # local widgets list
 WIDGETS = {}; VARS = []
@@ -17,10 +18,16 @@ WIDGETS = {}; VARS = []
 BODY = None
 # tkSlice module
 TKSLICE = None
-# WALL extraction
+# WALL extraction zones
 WALL = None
-# tkPlotXY Desktop keeping data and curves
-DESKTOP = None
+# tkPlotXY Desktop keeping wall data
+DESKTOP1 = None
+# The current number of run
+NITRUN = 0
+# LOAD extraction zones
+LOAD = None
+# tkPlotXY Desktop keeping load data
+DESKTOP2 = None
 # CFL
 CFL = 0.7
 # TIMESTEP
@@ -70,9 +77,12 @@ def setData():
 
     nzs = CPlot.getSelectedZones()
     CTK.saveTree()
+
     if nzs == []:
         Fast._setNum2Base(CTK.t, numb)
         Fast._setNum2Zones(CTK.t, numz)
+        CTK.TXT.insert('START', 'Solver data set in all bases.\n')
+    
     else:
         for nz in nzs:
             nob = CTK.Nb[nz]+1
@@ -81,9 +91,8 @@ def setData():
             b, c = Internal.getParentOfNode(CTK.t, z)
             Fast._setNum2Base(b, numb)
             Fast._setNum2Zones(z, numz)
-            
-    CTK.TXT.insert('START', 'Solver data set.\n')
-
+        CTK.TXT.insert('START', 'Solver data set in selection.\n')
+    
 #=============================================================================
 # Modifie le body, met le body modifie dans CTK.t
 #=============================================================================
@@ -249,10 +258,12 @@ def prepare(tinit=None):
 
 #==============================================================================
 # Lance des iterations
+#==============================================================================
 def compute():
     if CTK.t == []: return
 
     import Apps.Fast.IBM as App
+    global NITRUN # numero courant du run
     
     # Save preventif avec compression cartesienne
     Fast.saveFile(CTK.t, 'restart.cgns', compress=2)
@@ -288,7 +299,7 @@ def compute():
     "cfl": val
     })
 
-    nit = VARS[9].get()
+    nit = VARS[9].get() # nbre d'iterations a faire
     moduloVerif = 50
 
     # open compute
@@ -317,56 +328,152 @@ def compute():
         if it%moduloVerif == 0:
             FastS.display_temporal_criteria(CTK.t, metrics, it, format='single', stopAtNan=False)
             #CTK.display(CTK.t)
+    NITRUN += 1
     Internal.createUniqueChild(CTK.t, 'Iteration', 'DataArray_t', value=it0+nit)
     Internal.createUniqueChild(CTK.t, 'Time', 'DataArray_t', value=time0)
 
     # Wall extraction
     import Connector.ToolboxIBM as TIBM
+    import Post.IBM as P_IBM
     global WALL
     # extract one BAR wall for each base (body)
-    WALL = TIBM.extractIBMWallFields(tc, tb=BODY) # avec surface
+    #WALL = TIBM.extractIBMWallFields(tc, tb=BODY) # avec surface
     #WALL = TIBM.extractIBMWallFields(tc) # seulement en node
     #WALL = Internal.getZones(WALL)
-    C.convertPyTree2File(WALL, 'walls.cgns')
 
-    # optional plot
-    if CTK.TKPLOTXY is not None: updatePlots(WALL)
+    (WALL, CL, CD) = P_IBM.loads(tb_in=BODY, tc_in=tc, alpha=getAlphaAngle(BODY), beta=0., Sref=1.)
+    #C.convertPyTree2File(WALL, 'walls.cgns')
 
+    # optional plots
+    if CTK.TKPLOTXY is not None: 
+        updateWallPlot(WALL)
+        updateLoadPlot(CL, CD, NITRUN-1)
     return None
+
+#===================================================================
+# Retourne l'angle d'attaque a partir du refstate
+#===================================================================
+def getAlphaAngle(t):
+    refState = Internal.getNodeFromName1(t, 'ReferenceState')
+    alpha = 0.
+    if refState is not None:
+        vx = Internal.getNodeFromName1(refState, 'VelocityX')
+        vy = Internal.getNodeFromName1(refState, 'VelocityY')
+        if abs(vx) < 1.e-6 and abs(vy) < 1.e-6: alpha = 0.
+        elif abs(vx) < 1.e-6 and vy > 0: alpha = 90.
+        elif abs(vx) < 1.e-6 and vy < 0: alpha = -90.
+        else: alpha = numpy.atan(vy/vx)
+    print('alpha=', alpha)
+    return alpha
 
 #========================================================================
 # update 1D plots graphs from walls tree
 #========================================================================
-def updatePlots(walls):
+def updateWallPlot(walls):
     import tkPlotXY
     if not tkPlotXY.IMPORTOK: return
-    global DESKTOP
+    global DESKTOP1
     # rename zones to keep the same names through computation
     for c, z in enumerate(Internal.getZones(walls)): z[0] = 'wall'+str(c)
 
-    # filter walls following extraction
+    # filter walls following extractWalls tag
     outwalls = []
     wallsz = Internal.getZones(walls)
     for c, b in enumerate(Internal.getBases(BODY)):
         zones = Internal.getZones(b)
         if zones: 
-            n = Internal.getNodeFromPath(zones[0], '.Solver#define/extractPressure')
+            n = Internal.getNodeFromPath(zones[0], '.Solver#define/extractWalls')
             if n is not None:
                 v = Internal.getValue(n)
-                if v == 1: outwalls.append(wallsz[c])
+                if v == 1:
+                    wallsz[c][0] = b[0] # set body base name to zone name 
+                    outwalls.append(wallsz[c])
         
     if outwalls == []: return
 
     # create desktop if needed
-    if DESKTOP is None:
-        DESKTOP = tkPlotXY.DesktopFrameTK(CTK.WIDGETS['masterWin'])
-        DESKTOP.setData(outwalls)
-        graph = DESKTOP.createGraph('graph', '1:1')
-        for z in DESKTOP.data:
-                curve = tkPlotXY.Curve(zone=[z], varx='CoordinateX', vary='Pressure@FlowSolution')
+    if DESKTOP1 is None:
+        DESKTOP1 = tkPlotXY.DesktopFrameTK(CTK.WIDGETS['masterWin'])
+        DESKTOP1.setData(outwalls)
+        graph = DESKTOP1.createGraph('graph', '1:1')
+        for z in DESKTOP1.data:
+                curve = tkPlotXY.Curve(zone=[z], varx='CoordinateX', vary='Pressure@FlowSolution',
+                                       legend_label=z)
                 graph.addCurve('1:1', curve)
     else:
-        DESKTOP.setData(outwalls)
+        DESKTOP1.setData(outwalls)
+
+#========================================================================
+# update 1D plots graphs from CL and CD values
+#========================================================================
+def updateLoadPlot(CL, CD, it):
+    import tkPlotXY
+    if not tkPlotXY.IMPORTOK: return
+    import Generator.PyTree as G
+    global DESKTOP2, LOAD
+
+    # filter CL, CD following extractLoads tag
+    outCL = []; outCD = []
+    for c, b in enumerate(Internal.getBases(BODY)):
+        zones = Internal.getZones(b)
+        if zones: 
+            n = Internal.getNodeFromPath(zones[0], '.Solver#define/extractLoads')
+            if n is not None:
+                v = Internal.getValue(n)
+                if v == 1:
+                    outCL.append(CL[c])
+                    outCD.append(CD[c])
+        
+    if outCL == []: return
+
+    if DESKTOP2 is None:
+        LOAD = []
+        for c, v in enumerate(outCL): # par base = component
+            z = G.cart((0,0,0), (1,1,1), (10,1,1))
+            # X is iteration, Y is CL, Z is CD
+            Internal._renameNode(z, 'CoordinateX', 'it')
+            Internal._renameNode(z, 'CoordinateY', 'CL')
+            Internal._renameNode(z, 'CoordinateZ', 'CD')
+            C.setValue(z, 'CL', it, outCL[c])
+            C.setValue(z, 'CD', it, outCD[c])
+            z[0] = Internal.getBases(BODY)[c][0]
+            LOAD.append(z)
+        DESKTOP2 = tkPlotXY.DesktopFrameTK(CTK.WIDGETS['masterWin'])
+        DESKTOP2.setData(LOAD)
+        graph = DESKTOP2.createGraph('graph', '1:1')
+        for z in DESKTOP2.data:
+            curve = tkPlotXY.Curve(zone=[z], varx='it', vary='CL',
+                                   legend_label=z)
+            graph.addCurve('1:1', curve)
+    else:
+        z0 = LOAD[0]
+        npts0 = C.getNPts(z0) 
+        if npts0 <= it: # redim
+            print('redim', flush=True)
+            for c, v in enumerate(outCL): # par base = component
+                z = G.cart((0,0,0), (1,1,1), (npts0+10,1,1))
+                Internal._renameNode(z, 'CoordinateX', 'it')
+                Internal._renameNode(z, 'CoordinateY', 'CL')
+                Internal._renameNode(z, 'CoordinateZ', 'CD')
+                z0 = LOAD[c]
+                z0p = Internal.getNodeFromName2(z0, 'it')[1]
+                zp = Internal.getNodeFromName2(z, 'it')[1]
+                zp[0:-10] = z0p[:]
+                z0p = Internal.getNodeFromName2(z0, 'CL')[1]
+                zp = Internal.getNodeFromName2(z, 'CL')[1]
+                zp[0:-10] = z0p[:]
+                z0p = Internal.getNodeFromName2(z0, 'CD')[1]
+                zp = Internal.getNodeFromName2(z, 'CD')[1]
+                zp[0:-10] = z0p[:]
+                C.setValue(z, 'CL', it, outCL[c])
+                C.setValue(z, 'CD', it, outCD[c])
+                z[0] = Internal.getBases(BODY)[c][0] 
+                LOAD[c] = z
+        else:
+            for c, z in enumerate(LOAD):
+                C.setValue(z, 'CL', it, outCL[c])
+                C.setValue(z, 'CD', it, outCD[c])
+        DESKTOP2.setData(LOAD)
 
 #===============================================================
 def writeFiles():

@@ -11100,9 +11100,9 @@ class editCurvesWindow(TK.Toplevel):
         self.frame.marker_sampling_stepItem.append(B)
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
         lblframeLegend = TTK.LabelFrame(self.frame, text="Legend")
-        lblframeLegend.grid(row=0,column=5,sticky='NSEW')
-        lblframeLegend.grid_columnconfigure(0,weight=1)
-        lblframeLegend.grid_rowconfigure(0,weight=1)
+        lblframeLegend.grid(row=0, column=5, sticky='NSEW')
+        lblframeLegend.grid_columnconfigure(0, weight=1)
+        lblframeLegend.grid_rowconfigure(0, weight=1)
         lblframeLegend.id = 5
         lblframeLegend.display = self.labelView[lblframeLegend.id]
         #
@@ -11114,29 +11114,28 @@ class editCurvesWindow(TK.Toplevel):
         lblframeLegend.bind("<Button-1>",self.expandLblFrame)
         #
         frameLegend = TTK.Frame(lblframeLegend)
-        frameLegend.grid(row=0,column=0,sticky='NSEW')
-        if not lblframeLegend.display:
-            frameLegend.grid_forget()
-        frameLegend.grid_columnconfigure(0,weight=1)
-        frameLegend.grid_columnconfigure(1,weight=1)
-        frameLegend.grid_rowconfigure(0,weight=1)
+        frameLegend.grid(row=0, column=0, sticky='NSEW')
+        if not lblframeLegend.display: frameLegend.grid_forget()
+        frameLegend.grid_columnconfigure(0, weight=1)
+        frameLegend.grid_columnconfigure(1, weight=1)
+        frameLegend.grid_rowconfigure(0, weight=1)
         #
         lblframeLegend.frame = frameLegend
         #
         # Create a hidden label to set minimum size of the lblframe respecting to its title
-        label = TTK.Label(self.frame,text="Legend")
-        label.grid(row=0,column=0,in_=lblframeLegend)
+        label = TTK.Label(self.frame, text="Legend")
+        label.grid(row=0, column=0, in_=lblframeLegend)
         label.lower(lblframeLegend)
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Legend label
         lblframe = TTK.LabelFrame(frameLegend, text="Legend label")
-        lblframe.grid(row=0,column=0,sticky='NESW')
+        lblframe.grid(row=0, column=0, sticky='NESW')
         #
-        lblframe.grid_columnconfigure(0,weight=1)
+        lblframe.grid_columnconfigure(0, weight=1)
         for ind in range(len(self.subGraph.curves)+1):
-            lblframe.grid_rowconfigure(ind,weight=1)
-        #
+            lblframe.grid_rowconfigure(ind, weight=1)
+
         lblframelvl1.append(lblframe)
-        #
+
         self.frame.legend_labelItem = []
         for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
@@ -11146,7 +11145,7 @@ class editCurvesWindow(TK.Toplevel):
             B.var = 'legend_label'
             B.ind = ind
             B.treatmentId = 3
-            B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+            B.grid(row=ind, column=0, columnspan=1, sticky="nsew")
             B.container = self.frame.legend_labelItem
             self.frame.legend_labelItem.append(B)
         # Curve to add
@@ -11157,7 +11156,7 @@ class editCurvesWindow(TK.Toplevel):
         B.var = 'legend_label'
         B.ind = ind
         B.treatmentId = 3
-        B.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B.grid(row=ind, column=0, columnspan=1, sticky="nsew")
         B.container = self.frame.legend_labelItem
         self.frame.legend_labelItem.append(B)
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Legend display
@@ -13301,20 +13300,20 @@ class DesktopTK(TK.Tk):
     def addZone(self, data, zoneName, baseName='.*'):
         self.desktopFrameTK.addZone(data,zoneName,baseName)
     # ---------------------------------------------------------- addZoneWithTree
-    def addZoneWithTree(self, t, zoneName,baseName='.*'):
-        self.desktopFrameTK.addZoneWithTree(t,zoneName,baseName)
+    def addZoneWithTree(self, t, zoneName, baseName='.*'):
+        self.desktopFrameTK.addZoneWithTree(t, zoneName, baseName)
     # ---------------------------------------------------------- addZoneWithDict
-    def addZoneWithDict(self,d,zoneName):
+    def addZoneWithDict(self, d, zoneName):
         self.desktopFrameTK.addZoneWithDict(d,zoneName)
     # ------------------------------------------------------- deleteZoneFromData
-    def deleteZoneFromData(self,zoneName,oldBaseName=""):
-        self.desktopFrameTK.deleteZoneFromData(zoneName,oldBaseName)
+    def deleteZoneFromData(self, zoneName, oldBaseName=""):
+        self.desktopFrameTK.deleteZoneFromData(zoneName, oldBaseName)
     # -------------------------------------------------------------- replaceZone
-    def replaceZone(self,data,oldZoneName,newZoneName,oldBaseName="",newBaseName=""):
-        self.desktopFrameTK.replaceZone(data,oldZoneName,newZoneName,oldBaseName,newBaseName)
+    def replaceZone(self, data, oldZoneName, newZoneName, oldBaseName="", newBaseName=""):
+        self.desktopFrameTK.replaceZone(data, oldZoneName, newZoneName, oldBaseName, newBaseName)
     # ------------------------------------------------------ replaceZoneWithDict
-    def replaceZoneWithDict(self,d,oldZoneName,newZoneName):
-        self.desktopFrameTK.replaceZoneWithDict(d,oldZoneName,newZoneName)
+    def replaceZoneWithDict(self, d, oldZoneName, newZoneName):
+        self.desktopFrameTK.replaceZoneWithDict(d, oldZoneName, newZoneName)
     # ------------------------------------------------------ replaceZoneWithTree
     def replaceZoneWithTree(self,t,oldBaseName,oldZoneName,newBaseName,newZoneName):
         self.desktopFrameTK.replaceZoneWithTree(t,oldBaseName,oldZoneName,newBaseName,newZoneName)
@@ -13332,14 +13331,14 @@ class DesktopTK(TK.Tk):
         self.desktopFrameTK.killProgramm()
         self.quit()
     # ----------------------------------------------------------------- confSave
-    def confSave(self,filename,withUI):
-        self.desktopFrameTK.confSave(filename,withUI)
+    def confSave(self, filename, withUI):
+        self.desktopFrameTK.confSave(filename, withUI)
     # ----------------------------------------------------------------- confLoad
-    def confLoad(self,filename,withUI):
-        self.desktopFrameTK.confLoad(filename,withUI)
+    def confLoad(self, filename, withUI):
+        self.desktopFrameTK.confLoad(filename, withUI)
     # -------------------------------------------------------------- createGraph
-    def createGraph(self,name,conf,dpi=None,figsize=None):
-        return self.desktopFrameTK.createGraph(name,conf,dpi,figsize)
+    def createGraph(self, name, conf, dpi=None, figsize=None):
+        return self.desktopFrameTK.createGraph(name, conf, dpi, figsize)
     # ---------------------------------------------------------- processIncoming
     def processIncoming(self):
         self.desktopFrameTK.processIncoming()
@@ -13374,7 +13373,7 @@ class Desktop():
         """
         if self.data is None:
             self.data = {}
-        if isinstance(data,list):
+        if isinstance(data, list):
             # add zone according to a tree
             self.addZoneWithTree(data, zoneName, baseName)
         elif isinstance(data, dict):

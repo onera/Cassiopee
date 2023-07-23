@@ -23,11 +23,14 @@ def _setDataInZone(z, snear, ibctype, dfar, inv):
     Internal.createUniqueChild(n, 'ibctype', 'DataArray_t', value=ibctype)
     Internal.createUniqueChild(n, 'dfar', 'DataArray_t', value=dfar)
     Internal.createUniqueChild(n, 'inv', 'DataArray_t', value=inv)
-    # Set Extraction triggers in .Solver#define
+    # Set Extractions triggers in .Solver#define
     if VARS[4].get() == "1": value = 1
     else: value = 0
-    Internal.createUniqueChild(n, 'extractPressure', 'DataArray_t', value=value)
-    
+    Internal.createUniqueChild(n, 'extractWalls', 'DataArray_t', value=value)
+    if VARS[5].get() == "1": value = 1
+    else: value = 0
+    Internal.createUniqueChild(n, 'extractLoads', 'DataArray_t', value=value)
+
     # remesh surface eventually
     dim = Internal.getZoneDim(z)
     remesh = False
@@ -49,6 +52,10 @@ def setData():
     else: inv = 1
     
     nzs = CPlot.getSelectedZones()
+    if nzs == []:
+        CTK.TXT.insert('START', 'Selection is empty.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    
     CTK.saveTree()
 
     for nz in nzs:
@@ -61,7 +68,7 @@ def setData():
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
-    CTK.TXT.insert('START', 'IBC data set.\n')
+    CTK.TXT.insert('START', 'IBC data set on surface.\n')
 
 #==============================================================================
 # Get data from selected zone
@@ -94,13 +101,17 @@ def getData():
             val = Internal.getValue(n)
             if val == 0: VARS[3].set('out')
             else: VARS[3].set('in')
-        n = Internal.getNodeFromPath(zone, '.Solver#define/extractPressure')
+        n = Internal.getNodeFromPath(zone, '.Solver#define/extractWalls')
         if n is not None:
             val = Internal.getValue(n)
             if val == 0: VARS[4].set('0')
             else: VARS[4].set('1')
+        n = Internal.getNodeFromPath(zone, '.Solver#define/extractLoads')
+        if n is not None:
+            val = Internal.getValue(n)
+            if val == 0: VARS[5].set('0')
+            else: VARS[5].set('1')
 
-        
 #==============================================================================
 # Create app widgets
 #==============================================================================
@@ -133,9 +144,11 @@ def createApp(win):
     V = TK.DoubleVar(win); V.set(20.); VARS.append(V)
     # -3- mask inv or not -
     V = TK.StringVar(win); V.set('out'); VARS.append(V)
-    # -4- extract pressure on surface
+    # -4- extract fields on surface
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-
+    # -5- extract loads for each component
+    V = TK.StringVar(win); V.set('0'); VARS.append(V)
+    
     # - Snear settings -
     B = TTK.Label(Frame, text="snear")
     B.grid(row=0, column=0, sticky=TK.EW)
@@ -153,7 +166,7 @@ def createApp(win):
     # - IBC type -
     B = TTK.Label(Frame, text="IBC type")
     B.grid(row=2, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Type of Immersed boundary condition.')
+    BB = CTK.infoBulle(parent=B, text='Type of Immersed Boundary Condition.')
     B = TTK.OptionMenu(Frame, VARS[1], 'slip', 'noslip', 'Log', 'Musker', 'outpress', 'inj', 'TBLE', 'slip_cr', 'overlap')
     B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
 
@@ -163,21 +176,28 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[3], 'out', 'in')
     B.grid(row=3, column=1, columnspan=2, sticky=TK.EW)
 
-    # - Extract pressure on surface
+    # - Extract fields on surface
     B = TTK.Label(Frame, text="Extract")
     B.grid(row=4, column=0, sticky=TK.EW)
-    B = TTK.Checkbutton(Frame, text='Pressure', variable=VARS[4])
-    BB = CTK.infoBulle(parent=B, text='Extract pressure on surface.')
+    B = TTK.Checkbutton(Frame, text='Wall Fields', variable=VARS[4])
+    BB = CTK.infoBulle(parent=B, text='Extract various fields on surface.')
     B.grid(row=4, column=1, sticky=TK.EW)
+
+    # - Extract loads on components
+    B = TTK.Label(Frame, text="Extract")
+    B.grid(row=5, column=0, sticky=TK.EW)
+    B = TTK.Checkbutton(Frame, text='Loads', variable=VARS[5])
+    BB = CTK.infoBulle(parent=B, text='Extract loads for each component.')
+    B.grid(row=5, column=1, sticky=TK.EW)
 
     # - Set data -
     B = TTK.Button(Frame, text="Set data", command=setData)
     BB = CTK.infoBulle(parent=B, text='Set data into selected zone.')
-    B.grid(row=5, column=0, columnspan=2, sticky=TK.EW)
+    B.grid(row=6, column=0, columnspan=2, sticky=TK.EW)
     B = TTK.Button(Frame, text="Get data", command=getData,
                    image=iconics.PHOTO[8], padx=0, pady=0, compound=TK.RIGHT)
     BB = CTK.infoBulle(parent=B, text='Get data from selected zone.')
-    B.grid(row=5, column=2, sticky=TK.EW)
+    B.grid(row=6, column=2, sticky=TK.EW)
 
 #==============================================================================
 # Called to display widgets

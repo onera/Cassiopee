@@ -92,9 +92,9 @@ PyObject* K_INTERSECTOR::P1ConservativeInterpolation(PyObject* self, PyObject* a
 
 
   zmesh_t mR(crdR, cntR), mD(crdD, cntD);
-  double RTOL{1.e-12};
+  E_Float RTOL{1.e-12};
   
-  std::vector<std::vector<double>> rec_fields;
+  std::vector<std::vector<E_Float>> rec_fields;
   bool do_omp = true;
 
   NUGA::interpolate(mR, mD, RTOL, don_fields, rec_fields, do_omp);
@@ -103,7 +103,7 @@ PyObject* K_INTERSECTOR::P1ConservativeInterpolation(PyObject* self, PyObject* a
   K_FLD::FloatArray farr(nfields, rec_fields[0].size());
   for (size_t i=0; i < rec_fields.size(); ++i)
   {
-    std::vector<double>& fld = rec_fields[i];
+    std::vector<E_Float>& fld = rec_fields[i];
     for (size_t j = 0; j < fld.size(); ++j)farr(i, j) = fld[j];
   }
 
