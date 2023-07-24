@@ -70,10 +70,14 @@ def setData():
     ss_iteration = int(VARS[1].get())
     scheme = VARS[4].get()
     time_step = VARS[5].get()
+    timeVal = VARS[11].get() # "cfl" or "time_step"
     
     numb = {'temporal_scheme':temporal_scheme,
             'ss_iteration':ss_iteration}
-    numz = {'scheme':scheme, 'time_step':time_step, 'senseurType':0}
+    numz = {'scheme':scheme, 'senseurType':0}
+
+    if timeVal == "time_step": numz['time_step'] = time_step
+    if timeVal == "cfl": numz['cfl'] = time_step
 
     nzs = CPlot.getSelectedZones()
     CTK.saveTree()
@@ -130,6 +134,7 @@ def updateBodyAndPrepare():
 # Get data from selected zone
 #==============================================================================
 def getData():
+    global TIMESTEP, CFL
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
     if nzs == []:
@@ -143,7 +148,15 @@ def getData():
         n = Internal.getNodeFromPath(zone, '.Solver#define/time_step')
         if n is not None:
             val = Internal.getValue(n)
+            VARS[11].set("time_step")
             VARS[5].set(val)
+            TIMESTEP = val
+        n = Internal.getNodeFromPath(zone, '.Solver#define/cfl')
+        if n is not None:
+            val = Internal.getValue(n)
+            VARS[11].set("cfl")
+            VARS[5].set(val)
+            CFL = val
         d, c = Internal.getParentOfNode(CTK.t, zone)
         n = Internal.getNodeFromPath(d, '.Solver#define/temporal_scheme')
         if n is not None:
@@ -153,7 +166,11 @@ def getData():
         if n is not None:
             val = Internal.getValue(n)
             VARS[4].set(val)
+        
 
+#==============================================================================
+# get dim from equation set
+#==============================================================================
 def getDim(t):
     dim = Internal.getNodeFromName2(t, 'FlowEquationSet')
     if dim is not None:
@@ -302,11 +319,12 @@ def compute():
     nit = VARS[9].get() # nbre d'iterations a faire
     moduloVerif = 50
 
+    #import FastC.PyTree as FastC
+    #FastC.MX_OMP_SIZE_INT = XXX
+
     # open compute
     CTK.t, tc, ts, metrics, graph = myApp.setup('restart.cgns', 'tc.cgns')
 
-    import FastC.PyTree as FastC
-    FastC.MX_OMP_SIZE_INT = 2*FastC.MX_OMP_SIZE_INT
     import FastS.PyTree as FastS
     it0 = 0; time0 = 0.
     first = Internal.getNodeFromName1(CTK.t, 'Iteration')
@@ -391,17 +409,8 @@ def updateWallPlot(walls):
                     Internal._rmNodesFromName(wallsz[c], 'VelocityX')
                     Internal._rmNodesFromName(wallsz[c], 'VelocityY')
                     Internal._rmNodesFromName(wallsz[c], 'VelocityZ')
-                    Internal._rmNodesFromName(wallsz[c], 'CoordinateX_PW')
-                    Internal._rmNodesFromName(wallsz[c], 'CoordinateY_PW')
-                    Internal._rmNodesFromName(wallsz[c], 'CoordinateZ_PW')
-                    Internal._rmNodesFromName(wallsz[c], 'CoordinateX_PI')
-                    Internal._rmNodesFromName(wallsz[c], 'CoordinateY_PI')
-                    Internal._rmNodesFromName(wallsz[c], 'CoordinateZ_PI')
-                    Internal._rmNodesFromName(wallsz[c], 'CoordinateX_PC')
-                    Internal._rmNodesFromName(wallsz[c], 'CoordinateY_PC')
-                    Internal._rmNodesFromName(wallsz[c], 'CoordinateZ_PC')
                     outwalls.append(wallsz[c])
-        
+
     if outwalls == []: return
 
     # create desktop if needed
@@ -410,9 +419,10 @@ def updateWallPlot(walls):
         DESKTOP1.setData(outwalls)
         graph = DESKTOP1.createGraph('Wall fields', '1:1')
         for z in DESKTOP1.data:
-                curve = tkPlotXY.Curve(zone=[z], varx='CoordinateX', vary='Pressure@FlowSolution',
-                                       legend_label=z)
-                graph.addCurve('1:1', curve)
+            print("z", z)
+            curve = tkPlotXY.Curve(zone=[z], varx='CoordinateX', vary='Pressure@FlowSolution',
+                                   legend_label=z)
+            graph.addCurve('1:1', curve)
     else:
         DESKTOP1.setData(outwalls)
 
@@ -737,6 +747,7 @@ def showApp():
     #WIDGETS['frame'].grid(sticky=TK.NSEW)
     CTK.WIDGETS['SolverNoteBook'].add(WIDGETS['frame'], text='tkFastSolver')
     CTK.WIDGETS['SolverNoteBook'].select(WIDGETS['frame'])
+    getData()
 
 #==============================================================================
 # Called to hide widgets

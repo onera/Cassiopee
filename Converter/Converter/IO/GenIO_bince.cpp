@@ -52,7 +52,7 @@ E_Int K_IO::GenIO::readHeaderCE(FILE *ptrFile, E_Int& nfield,
   /* Endian check 1 */
   fread(&ib, si, 1, ptrFile);
 
-  /* FileType : ajoute depuis la version 112 */
+  /* FileType: ajoute depuis la version 112 */
   if (nversion >= 112) fread(&ib, si, 1, ptrFile);
 
   /* Title */

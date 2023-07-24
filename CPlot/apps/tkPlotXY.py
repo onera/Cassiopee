@@ -13315,8 +13315,8 @@ class DesktopTK(TK.Tk):
     def replaceZoneWithDict(self, d, oldZoneName, newZoneName):
         self.desktopFrameTK.replaceZoneWithDict(d, oldZoneName, newZoneName)
     # ------------------------------------------------------ replaceZoneWithTree
-    def replaceZoneWithTree(self,t,oldBaseName,oldZoneName,newBaseName,newZoneName):
-        self.desktopFrameTK.replaceZoneWithTree(t,oldBaseName,oldZoneName,newBaseName,newZoneName)
+    def replaceZoneWithTree(self, t, oldBaseName, oldZoneName, newBaseName, newZoneName):
+        self.desktopFrameTK.replaceZoneWithTree(t, oldBaseName, oldZoneName, newBaseName, newZoneName)
     # ------------------------------------------------------------------ setData
     def setData(self, data):
         self.desktopFrameTK.setData(data)
@@ -13657,12 +13657,12 @@ class Desktop():
         for base in Internal.getNodesFromType1(tp, 'CGNSBase_t'):
             basename = Internal.getName(base)
             ## Loop on zones
-            for zone in Internal.getNodesFromType1(base,'Zone_t'):
+            for zone in Internal.getNodesFromType1(base, 'Zone_t'):
                 # Grab GridCoordinates
                 zonename = Internal.getName(zone)
                 # Get GridCoordinates nodes
                 try:
-                    gridcoord = Internal.getNodesFromType1(zone,'GridCoordinates_t')[0]
+                    gridcoord = Internal.getNodesFromType1(zone, 'GridCoordinates_t')[0]
                     for child in Internal.getChildren(gridcoord):
                         if not basename+'/'+zonename in tmp:
                             tmp[basename+'/'+zonename]={}
@@ -13673,11 +13673,11 @@ class Desktop():
 
                 # Grab FlowSolution for ZoneBC
                 try:
-                    zoneBC = Internal.getNodesFromType1(zone,'ZoneBC_t')[0]
+                    zoneBC = Internal.getNodesFromType1(zone, 'ZoneBC_t')[0]
                     for bc in Internal.getChildren(zoneBC):
                         bcname = Internal.getName(bc)
                         try:
-                            bcdata = Internal.getNodesFromType(zoneBC,'BCData_t')[0]
+                            bcdata = Internal.getNodesFromType(zoneBC, 'BCData_t')[0]
                             for var in Internal.getChildren(bcdata):
                                 if Internal.getType(var) == 'DataArray_t':
                                     if not basename+'/'+zonename in tmp:
@@ -13701,18 +13701,17 @@ class Desktop():
 
         self.data = OrderedDict(sorted(tmp.items(),key=lambda t : t[0]))
     # ----------------------------------------------------------------- setQueue
-    def setQueue(self,queue):
-        self.queue=queue
+    def setQueue(self, queue):
+        self.queue = queue
     # ---------------------------------------------------------------- setThread
-    def setThread(self,thread):
-        self.thread=thread
+    def setThread(self, thread):
+        self.thread = thread
     # ------------------------------------------------------------- killProgramm
     def killProgramm(self):
         if self.thread: self.thread.endApplication()
         self.quit()
     # --------------------------------------------------------------- initialize
     def initialize(self):
-        #
         self.graphName2Id = {}
         self.graphWdwL = []
         self.addCurveWdw   = None

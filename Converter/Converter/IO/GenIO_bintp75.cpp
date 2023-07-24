@@ -35,7 +35,7 @@ using namespace K_FLD;
 
    IN: ptrFile: opened stream,
    
-   if zone is structured then returns :
+   if zone is structured then returns:
    OUT: dim, ni, nj, nk
    OUT: zoneName
    OUT: dataPacking: 0 (block), 1 (point)
