@@ -40,8 +40,10 @@ libraries = ["xcore"]
 import srcs
 import srcs_scotch
 import srcs_zoltan
-#import srcs_paradigma23 as srcs_paradigma
-import srcs_paradigma
+if srcs.PARADIGMA == 2:
+    import srcs_paradigma23 as srcs_paradigma
+elif srcs.PARADIGMA == 1:
+    import srcs_paradigma
 
 ADDITIONALCPPFLAGS = []
 if mpi:
@@ -115,7 +117,7 @@ dp1 = env.Install(modDir, myMod)
 deps.append(dp1)
 
 # Paradigma
-if srcs.PARADIGMA:
+if srcs.PARADIGMA != 0:
     #(pdm, pdmIncDir, pdmLibDir) = Dist.checkParadigma(additionalLibPaths, additionalIncludePaths)
     # suppression mpi ou no_mpi pour paradigma
     if mpi:

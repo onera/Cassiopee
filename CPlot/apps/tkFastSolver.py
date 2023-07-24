@@ -386,7 +386,20 @@ def updateWallPlot(walls):
             if n is not None:
                 v = Internal.getValue(n)
                 if v == 1:
-                    wallsz[c][0] = b[0] # set body base name to zone name 
+                    wallsz[c][0] = b[0] # set body base name to zone name
+                    # remove useless fields
+                    Internal._rmNodesFromName(wallsz[c], 'VelocityX')
+                    Internal._rmNodesFromName(wallsz[c], 'VelocityY')
+                    Internal._rmNodesFromName(wallsz[c], 'VelocityZ')
+                    Internal._rmNodesFromName(wallsz[c], 'CoordinateX_PW')
+                    Internal._rmNodesFromName(wallsz[c], 'CoordinateY_PW')
+                    Internal._rmNodesFromName(wallsz[c], 'CoordinateZ_PW')
+                    Internal._rmNodesFromName(wallsz[c], 'CoordinateX_PI')
+                    Internal._rmNodesFromName(wallsz[c], 'CoordinateY_PI')
+                    Internal._rmNodesFromName(wallsz[c], 'CoordinateZ_PI')
+                    Internal._rmNodesFromName(wallsz[c], 'CoordinateX_PC')
+                    Internal._rmNodesFromName(wallsz[c], 'CoordinateY_PC')
+                    Internal._rmNodesFromName(wallsz[c], 'CoordinateZ_PC')
                     outwalls.append(wallsz[c])
         
     if outwalls == []: return
@@ -395,7 +408,7 @@ def updateWallPlot(walls):
     if DESKTOP1 is None:
         DESKTOP1 = tkPlotXY.DesktopFrameTK(CTK.WIDGETS['masterWin'])
         DESKTOP1.setData(outwalls)
-        graph = DESKTOP1.createGraph('graph', '1:1')
+        graph = DESKTOP1.createGraph('Wall fields', '1:1')
         for z in DESKTOP1.data:
                 curve = tkPlotXY.Curve(zone=[z], varx='CoordinateX', vary='Pressure@FlowSolution',
                                        legend_label=z)
@@ -440,7 +453,7 @@ def updateLoadPlot(CL, CD, it):
             LOAD.append(z)
         DESKTOP2 = tkPlotXY.DesktopFrameTK(CTK.WIDGETS['masterWin'])
         DESKTOP2.setData(LOAD)
-        graph = DESKTOP2.createGraph('graph', '1:1')
+        graph = DESKTOP2.createGraph('Lift/drag', '1:1')
         for z in DESKTOP2.data:
             curve = tkPlotXY.Curve(zone=[z], varx='it', vary='CL',
                                    legend_label=z)
@@ -449,7 +462,6 @@ def updateLoadPlot(CL, CD, it):
         z0 = LOAD[0]
         npts0 = C.getNPts(z0) 
         if npts0 <= it: # redim
-            print('redim', flush=True)
             for c, v in enumerate(outCL): # par base = component
                 z = G.cart((0,0,0), (1,1,1), (npts0+10,1,1))
                 Internal._renameNode(z, 'CoordinateX', 'it')

@@ -1,7 +1,9 @@
 import KCore.Dist as Dist
 from KCore.config import *
 
-SCOTCH=True; PARADIGMA=True; ZOLTAN=True
+SCOTCH=True; ZOLTAN=True
+# 0: None, 1: paradigma, 2: paradigma23
+PARADIGMA=1
 
 #==============================================================================
 # Fichiers c++

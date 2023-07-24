@@ -13191,11 +13191,11 @@ class DesktopFrameTK(TK.Frame):
         if len(self.graphWdwL)==1: self.cmd_editCurves()
 
     # -------------------------------------------------------------- createGraph
-    def createGraph(self,name,conf,dpi=None,figsize=None):
-        new_graph = GraphTK(self,name,conf,dpi,figsize)
+    def createGraph(self, name, conf, dpi=None, figsize=None):
+        newGraph = GraphTK(self, name, conf, dpi, figsize)
         self.lift()
         self.focus()
-        return new_graph
+        return newGraph
     # ------------------------------------------------------------- cmd_setGraph
     def cmd_setGraph(self):
         if not self.editGraphWdw:

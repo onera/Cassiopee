@@ -42,7 +42,7 @@ import srcs
 libraries = ["xcore"]
 if srcs.ZOLTAN: libraries += ["zoltan"]
 if srcs.SCOTCH: libraries += ["scotch1", "scotch2"]
-if srcs.PARADIGMA: libraries += ["pdm"]
+if srcs.PARADIGMA != 0: libraries += ["pdm"]
 libraries += ["kcore"]
 
 mySystem = Dist.getSystem()
@@ -78,8 +78,12 @@ listExtensionsPyx = []
 cython = Dist.checkCython(additionalLibPaths, additionalIncludePaths)
 
 if cython:
-    #import srcs_paradigma23 as srcs_paradigma
-    import srcs_paradigma
+    if srcs.PARADIGMA == 2:
+      import srcs_paradigma23 as srcs_paradigma
+      paradigmaDir = "XCore/paradgima"
+    elif srcs.PARADIGMA == 1:
+      import srcs_paradigma
+      paradigmaDir = "XCore/paradigma23"
     PPATH = srcs_paradigma.PPATH
     from Cython.Build import cythonize
     for c in srcs_paradigma.pyx_srcs:
@@ -90,7 +94,6 @@ if cython:
             Extension(name,
                     sources=[c],
                     include_dirs=["XCore","%s"%PPATH,"%s/ppart"%PPATH,"%s/struct"%PPATH,"%s/pario"%PPATH,"%s/mesh"%PPATH,"%s/meshgen"%PPATH,"%s/mpi_wrapper"%PPATH, "%s/util"%PPATH]+additionalIncludePaths+[numpyIncDir, kcoreIncDir, mpiIncDir, mpi4pyIncDir, pythonIncDir],
-                    #include_dirs=["XCore","XCore/paradigma23","XCore/paradigma23/ppart","XCore/paradigma23/struct","XCore/paradigma23/pario","XCore/paradigma23/mesh","XCore/paradigma23/meshgen","XCore/paradigma23/mpi_wrapper", "XCore/paradigma23/util"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir, mpiIncDir, mpi4pyIncDir, pythonIncDir],
                     library_dirs=additionalLibPaths+libraryDirs,
                     libraries=libraries+additionalLibs,
                     extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
@@ -109,8 +112,7 @@ setup(
     url="http://elsa.onera.fr/Cassiopee",
     packages=['XCore'],
     package_dir={"":"."},
-    ext_modules=listExtensions+cythonize(listExtensionsPyx,include_path=["XCore/paradigma"])
-    #ext_modules=listExtensions+cythonize(listExtensionsPyx,include_path=["XCore/paradigma23"])
+    ext_modules=listExtensions+cythonize(listExtensionsPyx,include_path=[paradigmaDir])
     )
 
 # Check PYTHONPATH ===========================================================

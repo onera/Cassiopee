@@ -55,7 +55,6 @@ def setData():
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    
     CTK.saveTree()
 
     for nz in nzs:
