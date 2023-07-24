@@ -1430,10 +1430,15 @@ def toolBar(win, mode=0):
         BB = infoBulle(parent=B, text='Fit view to selection\nor fit to full size.')
         B.grid(row=0, column=4)
 
+        # B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
+        #             image=iconics.PHOTO[5], borderwidth=0,
+        #             command=toggleSelectAll)
+        # BB = infoBulle(parent=B, text='Select/unselect all zones.')
+        # B.grid(row=0, column=5)
         B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
-                    image=iconics.PHOTO[5], borderwidth=0,
-                    command=toggleSelectAll)
-        BB = infoBulle(parent=B, text='Select/unselect all zones.')
+                    image=iconics.PHOTO[14], borderwidth=0,
+                    command=copyBlock)
+        BB = infoBulle(parent=B, text='Duplicate selected zones.')
         B.grid(row=0, column=5)
 
         B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,

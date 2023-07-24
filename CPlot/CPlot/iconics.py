@@ -26,6 +26,7 @@ class Photo:
             elif key == 11: img = createRefreshIconImgLightMode()
             elif key == 12: img = createInvertSelectionImgLightMode()
             elif key == 13: img = createLogoCassiopeeImg()
+            elif key == 14: img = createCopyImgLightMode()
         else: #darkMode
             if key == 0: img = createSaveImgDarkMode()
             elif key == 1: img = createUndoImgDarkMode()
@@ -41,6 +42,7 @@ class Photo:
             elif key == 11: img = createRefreshIconImgDarkMode()
             elif key == 12: img = createInvertSelectionImgDarkMode()
             elif key == 13: img = createLogoCassiopeeImg()
+            elif key == 14: img = createCopyImgDarkMode()
         self._plist[key] = img
         return img
 
@@ -119,6 +121,30 @@ Nfm97jI0rAn9t35AC0Zz72ONUPbuAAAAAElFTkSuQmCC
 
 ####
 
+def createCopyImgDarkMode():
+    deleteImg = TK.PhotoImage(data="""
+iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAACX
+BIWXMAAAsTAAALEwEAmpwYAAAAhElEQVR4nO3WTQqAIBBAYQ9S
+FxHbJ923A1n3eBG4CRRNGvvzrYUPxkFUqvXbgAlYubYFsCl4Py
+SRS8FiqRoBHTBXhz3eB+Eai0QEFl8kIrBYr4c1YKrDqmBCDc4d
+tc54HIzEqE0GPEjAn1oudwfsgPE07BdpKIGDIdhjvzlWAD/eZ+
+t3bTevaj5hdmBpAAAAAElFTkSuQmCC
+""")
+    return deleteImg
+
+def createCopyImgLightMode():
+    deleteImg = TK.PhotoImage(data="""
+iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAACXB
+IWXMAAAsTAAALEwEAmpwYAAAAhklEQVR4nO3WTQqAIBBA4XeQuo
+jYPum+Hci6x0RQqzQl/Cnywaw/0BGE1p+bgBWQhLMAJgQviVE5x
+oZgyThF6oC5BrzX++ASiyQuuMQiiQsusUjySVgBugZ81mBJfdSK
+cDoHrCPgoS0X90dtazwnC4xPYB1xpz7YmWScd35zTAb8cp+tf7U
+BsEzPhL9359QAAAAASUVORK5CYII=
+""")
+    return deleteImg
+
+####
+
 def createFitImgDarkMode():
     fitImg = TK.PhotoImage(data="""
 iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAACXBIWXMAAAsTAAALEwEAmpwYAAACUk
@@ -180,29 +206,46 @@ TpRGQPFWlW1OA58VIb8nAuWjtuCVaO6OAAAAABJRU5ErkJggg==
 
 def createEyeImgDarkMode():
     eyeImg = TK.PhotoImage(data="""
-iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAACXBIWXMAAAsTAAALEwEAmpwYAAABl0l
-EQVR4nO2Wv0oDQRCHY6FBNFErfQCxNDFYi71iJxa24kskWpigEUSUPISSYCfYWIldIsSHiPljKRKrfL
-IwgbjZ2btogk0+2GbvN7+5nZ3du0hkzJj/BlgHssAjUAfaMuoydwKkhplwB3ghPGVg+y8JV4AHfs89s
-Dxo0j3g02HWBNJAEpiRsQZk5JnNB7AbJuEEcAp0HCZFIOaJjQElR5zxyhlvX9KCUraiGtjv4UpuuHZ6
-ABe4afpW6vCJAy3F69wWH6KTtrRTxgB4A2pA3sxZmiOP30FXlAC+PMKEZWoS2eQtjWk4jTawakQV/Pw
-os6zSpuZoNB8VI6qOILHZZx9VI9pUjk+XZIhSnw1Q6g6w0RVeeYQZR3PlZeVacx17/C5ts+chHac54F
-3xegIm7YAF4FUJKA1wgdwpHlVgXgtckq+LljwesFItaRlYDHrraeBWMWjJ5ZACZmWkZE+18t4Yz6Bq9
-ZZsXzk6YamJR+AW9SEXQc6zGq0q2UEaUgWIAlvy9TLd3+j59WnIXEE0Ud1pzJjI6PkGDLCOslXUiekA
-AAAASUVORK5CYII="
+iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7
+MK6iAAAACXBIWXMAAAsTAAALEwEAmpwYAAABt0lE
+QVR4nO2WTyuEURTG31Espmym+AIsFJZoqLHxBViI
+FJmF+QQWdobEmrD0MWRDiWTMwkb+RGEoNkpYiZ9u
+neH0dueO+5pQPHUWc85znme6973n3iD4x08AqAHm
+gGs+sBNBZ1f1G61Zo+1qMIQwtiMY71h0ZlwNV0Lq
+9DVzaHaJZsFFehFSrILGMdF8+ZXGW649BdqBJWAf
+uJfYl1xbmT3fjPKvG4BVymMdaPI2sAHoA56U+CEw
+DDRKjABHqv4I9AZfAZBR+26wBsQtvLjUijA9Y1FN
+B0Kmd0BC1atNqN8J4Wjzfl/T1tDyGsyr+pDUzbIO
+qvxCqMdwWnyMc5YPZ1TVb1X+RuVHLX17PsZ5i0Ba
+1U9V/kTl0181TgLPIYHF0BjMSyRV3pxnDaPR8Wlj
+EZkIiZhhUefg1wtHY9zLtAhgOSS0AdRaeLVSs66Q
+N2TOZoFXJXgm57tZIiO5Igx3siLzHkgBB5SH4aSC
+iC+HXIlaFdADrADHwIPEseRMrapEb975kvmT93FB
+SP77VFqzWzQvXaRpyweTi2Bmm3xZV4O5caaAC9Xg
+/XKQl0wR53K83m+yfwTfiTeflAtCzSughgAAAABJ
+RU5ErkJggg==
 """)
     return eyeImg
 
 def createEyeImgLightMode():
     eyeImg = TK.PhotoImage(data="""
-iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAACXBIWXMAAAsTAAALEwEAmpwYAA
-ABkklEQVR4nO2WvUoDQRSFPwsjoomk8wHEUpNgL9aKnVjYii/hT2FEIwgS8hBKgp1gY6ddYpGH
-WPNjKRKrRAZuYBj3zu5iRIs9cJs7557D3Duzs5AixT/AGlAGHoEOMJDoSO4UKE3ScBt4AUYxow
-ls/cRwGXhIYOjGPbCU1HQX+AgR6wGHQAGYkygCR7Lm8t+BnTiGU8A5MAwRqQNZT61Za4TUGa0z
-0VZNa0rb6r5CRyPMfARUNY0rpaAXsVMXOaCvaF265APPITEztZERgVcgACqSs3Hs0dsfk1aBTw
-/RrNuohHBMzkbRozcAVgypFXEt3DYHIRyTs5GN0GwZUvsXjHMRmm1D2lCuzzgKMVp9kaDVQ2B9
-TKx6iObjYCMj5oHncJ149K5dsecJXacF4E3RegKm3YK8Z96NBB+QO89c81rhorwumnkuYqeaaV
-O0vZgFbhWBvnwczLs7L1GSmWrtvRHNWDAt21OuTtwIRCPOiL4hKy+LthutK+WEB1LFDLApr5c5
-/V3r16cruZpwDDdFCv4MXw/YJO5+W1zLAAAAAElFTkSuQmCC
+iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7M
+K6iAAAACXBIWXMAAAsTAAALEwEAmpwYAAABr0lEQV
+R4nO2WTytEYRTGf6NYqNkovgALhSVC2PgCLESKzMJ
+8AgsrhsTa36WPIRtKo8mYhY38icJQbJSw0qC3zq3T
+2zt33Ds3lHnq1O2c5zzP7b7vPe8LFfwSaoBl4B74l
+MiE0DlU/UZrSbSLYkk1eHEQwjjj0Fn0a7gTUjfRoU
+c0836kgpBiERrHRLPwJ43TJda0A9gEjoFnCfO8AbS
+XWPP9MG/dCGw7Nowdu0AzEWEIeFPip8A40CQxAZyp+
+iswWK5pUq27iR2g1sGrlZrHMz1TYU1HLNMnoE7Vqy
+U81AlHmw8HNW2zPq+JFVUfk7r5rKMqv2r1GE5rEOO
+sY+NMqvqjyj+o/KSj7yiIcc4hkFD1S5W/UPlEucZd
+wLslsG6NwZyE4XrYsHqMRmcQY4MZS8QMi3offoNwd
+M80IbFpCe0BcQcvLjXNXaPMOZsCPpTglfzfLRJJyX
+l1w52Nat73ASffGJmG00vIm0O2SK0KGAC2ZCe/SJx
+LbkA4LuRK3WT+33mcF5JZ06jQL5q3fqQFx4YptuZB
+J1/Kr8GcNvPAjWoIc3NIq/5rYM46ySrgx/AF1c/MR
+0JNiqgAAAAASUVORK5CYII=
 """)
     return eyeImg
 
