@@ -25,6 +25,9 @@ from KCore.config import *
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
+# Test if fortran exists
+(ok, fortranLibs, fortranLibDir) = Dist.checkFortranLibs([], additionalLibPaths)
+
 # Test if libmpi exists ======================================================
 (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
                                                      additionalIncludePaths)
@@ -35,7 +38,7 @@ prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 
 # Setting libraryDirs, include dirs and libraries =============================
-libraryDirs = ["build/"+prod, kcoreLibDir]
+libraryDirs = ["build/"+prod, kcoreLibDir]+fortranLibDir
 includeDirs = [numpyIncDir, kcoreIncDir]
 
 import srcs
@@ -44,6 +47,7 @@ if srcs.ZOLTAN: libraries += ["zoltan"]
 if srcs.SCOTCH: libraries += ["scotch1", "scotch2"]
 if srcs.PARADIGMA != 0: libraries += ["pdm"]
 libraries += ["kcore"]
+libraries += fortranLibs
 
 mySystem = Dist.getSystem()
 if mySystem[0] == 'mingw': 
