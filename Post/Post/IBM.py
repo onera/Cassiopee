@@ -827,7 +827,7 @@ def _loads0(ts, Sref=None, Pref=None, Qref=None, alpha=0., beta=0., dimPb=3, ver
 
     return [res, res2, [clp, cdp], [clf, cdf]]
 
-def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref=None, order=1, gradP=False, famZones=[]):
+def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref=None, order=1, gradP=False, famZones=[], extractIBMInfo=False):
     """Computes the viscous and pressure forces on the immersed boundaries"""
 
     if tc_in is not None:
@@ -875,7 +875,7 @@ def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref
         zw = T.join(zw)
     else:
         _extractYplusIP(tc)
-        zw = extractIBMWallFields(tc, tb=tb, coordRef='wall', famZones=famZones, extractIBMInfo=True)
+        zw = extractIBMWallFields(tc, tb=tb, coordRef='wall', famZones=famZones, extractIBMInfo=extractIBMInfo)
     
     #====================================
     # Extract pressure info from tc2 to tc

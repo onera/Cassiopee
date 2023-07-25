@@ -14,6 +14,8 @@ import numpy
 # local widgets list
 WIDGETS = {}; VARS = []
 
+# Store main tree
+MAINTREE = None
 # Store body tree
 BODY = None
 # tkSlice module
@@ -36,8 +38,10 @@ TIMESTEP = 0.002
 #==============================================================================
 def changeMode(event=None):
     global BODY
+    global MAINTREE
     mode = VARS[10].get()
     if mode == 'Body':
+        MAINTREE = CTK.t
         if BODY is not None:
             CTK.t = BODY
             (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
@@ -55,7 +59,55 @@ def changeMode(event=None):
         except: pass
         VARS[10].set('Main')
     else:
+        if MAINTREE is not None:
+            CTK.t = MAINTREE
+            (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+            CTK.TKTREE.updateApp()
+            CTK.display(CTK.t)
         CTK.TXT.insert('START', 'Display main computation tree.\n')
+
+def bodyMode(event=None):
+    global BODY
+    global MAINTREE
+
+    MAINTREE = CTK.t
+    if BODY is not None:
+        CTK.t = BODY
+        (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+        CTK.TKTREE.updateApp()
+        CTK.display(CTK.t)
+    CTK.TXT.insert('START', 'Revert to body tree.\n')
+    VARS[10].set('Body')
+
+def mainTreeMode(event=None):
+    global BODY
+    global MAINTREE
+
+    if MAINTREE is not None:
+        CTK.t = MAINTREE
+        (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+        CTK.TKTREE.updateApp()
+        CTK.display(CTK.t)
+        CPlot.setState(mode=3, scalarField='Density')
+        CTK.TXT.insert('START', 'Display main computation tree.\n')
+        VARS[10].set('Main')
+
+def reloadPrevStep(event=None):
+    global BODY
+    global MAINTREE
+    global NITRUN
+
+    try:
+        CTK.t = C.convertFile2PyTree('restart.cgns')
+        (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+        CTK.TKTREE.updateApp()
+        CTK.display(CTK.t)
+        CTK.TXT.insert('START', 'Revert to previous solution step.\n')
+        VARS[10].set('Main')
+        NITRUN -= 1
+    except: 
+        CTK.TXT.insert('START', 'restart file not found.\n')
+        VARS[10].set('Body')
 
 #==============================================================================
 # Set data in selected zones
@@ -375,7 +427,7 @@ def compute():
     # optional plots
     if CTK.TKPLOTXY is not None: 
         updateWallPlot(WALL)
-        updateLoadPlot(CL, CD, NITRUN-1)
+        updateLoadPlot(CL, CD, NITRUN, nit)
     return None
 
 #===================================================================
@@ -419,6 +471,8 @@ def updateWallPlot(walls):
                     Internal._rmNodesFromName(wallsz[c], 'VelocityX')
                     Internal._rmNodesFromName(wallsz[c], 'VelocityY')
                     Internal._rmNodesFromName(wallsz[c], 'VelocityZ')
+                    Internal._rmNodesFromName(wallsz[c], 'yplus')
+                    Internal._rmNodesFromName(wallsz[c], 'friction*')
                     outwalls.append(wallsz[c])
 
     if outwalls == []: return
@@ -429,7 +483,7 @@ def updateWallPlot(walls):
         DESKTOP1.setData(outwalls)
         graph = DESKTOP1.createGraph('Wall fields', '1:1')
         for z in DESKTOP1.data:
-            print("z", z)
+            # print("z", z)
             curve = tkPlotXY.Curve(zone=[z], varx='CoordinateX', vary='Pressure@FlowSolution',
                                    legend_label=z)
             graph.addCurve('1:1', curve)
@@ -439,7 +493,7 @@ def updateWallPlot(walls):
 #========================================================================
 # update 1D plots graphs from CL and CD values
 #========================================================================
-def updateLoadPlot(CL, CD, it):
+def updateLoadPlot(CL, CD, nitrun, nit):
     import tkPlotXY
     if not tkPlotXY.IMPORTOK: return
     import Generator.PyTree as G
@@ -462,49 +516,58 @@ def updateLoadPlot(CL, CD, it):
     if DESKTOP2 is None:
         LOAD = []
         for c, v in enumerate(outCL): # par base = component
-            z = G.cart((0,0,0), (1,1,1), (10,1,1))
+            z = G.cart((0,0,0), (1,1,1), (2,1,1))
             # X is iteration, Y is CL, Z is CD
             Internal._renameNode(z, 'CoordinateX', 'it')
             Internal._renameNode(z, 'CoordinateY', 'CL')
             Internal._renameNode(z, 'CoordinateZ', 'CD')
-            C.setValue(z, 'CL', it, outCL[c])
-            C.setValue(z, 'CD', it, outCD[c])
+            C.setValue(z, 'CL', nitrun-1, outCL[c])
+            C.setValue(z, 'CD', nitrun-1, outCD[c])
+            C.setValue(z, 'it', nitrun-1, 0)
+            C.setValue(z, 'CL', nitrun, outCL[c])
+            C.setValue(z, 'CD', nitrun, outCD[c])
+            C.setValue(z, 'it', nitrun, nit)
             z[0] = Internal.getBases(BODY)[c][0]
             LOAD.append(z)
         DESKTOP2 = tkPlotXY.DesktopFrameTK(CTK.WIDGETS['masterWin'])
         DESKTOP2.setData(LOAD)
-        graph = DESKTOP2.createGraph('Lift/drag', '1:1')
+        graph = DESKTOP2.createGraph('Lift/Drag', '1:1')
         for z in DESKTOP2.data:
             curve = tkPlotXY.Curve(zone=[z], varx='it', vary='CL',
                                    legend_label=z)
             graph.addCurve('1:1', curve)
     else:
         z0 = LOAD[0]
-        npts0 = C.getNPts(z0) 
-        if npts0 <= it: # redim
+        npts0 = C.getNPts(z0)
+        if npts0 <= NITRUN:
             for c, v in enumerate(outCL): # par base = component
-                z = G.cart((0,0,0), (1,1,1), (npts0+10,1,1))
+                z = G.cart((0,0,0), (1,1,1), (npts0+1,1,1))
+                # X is iteration, Y is CL, Z is CD
                 Internal._renameNode(z, 'CoordinateX', 'it')
                 Internal._renameNode(z, 'CoordinateY', 'CL')
                 Internal._renameNode(z, 'CoordinateZ', 'CD')
                 z0 = LOAD[c]
                 z0p = Internal.getNodeFromName2(z0, 'it')[1]
                 zp = Internal.getNodeFromName2(z, 'it')[1]
-                zp[0:-10] = z0p[:]
+                zp[0:-1] = z0p[:]
                 z0p = Internal.getNodeFromName2(z0, 'CL')[1]
                 zp = Internal.getNodeFromName2(z, 'CL')[1]
-                zp[0:-10] = z0p[:]
+                zp[0:-1] = z0p[:]
                 z0p = Internal.getNodeFromName2(z0, 'CD')[1]
                 zp = Internal.getNodeFromName2(z, 'CD')[1]
-                zp[0:-10] = z0p[:]
-                C.setValue(z, 'CL', it, outCL[c])
-                C.setValue(z, 'CD', it, outCD[c])
-                z[0] = Internal.getBases(BODY)[c][0] 
+                zp[0:-1] = z0p[:]
+                C.setValue(z, 'CL', nitrun, outCL[c])
+                C.setValue(z, 'CD', nitrun, outCD[c])
+                itprev = C.getValue(z, 'it', nitrun-1)
+                C.setValue(z, 'it', nitrun, itprev+nit)
+                z[0] = Internal.getBases(BODY)[c][0]
                 LOAD[c] = z
         else:
-            for c, z in enumerate(LOAD):
-                C.setValue(z, 'CL', it, outCL[c])
-                C.setValue(z, 'CD', it, outCD[c])
+            for c, z in enumerate(LOAD): # par base = component
+                C.setValue(z, 'CL', nitrun, outCL[c])
+                C.setValue(z, 'CD', nitrun, outCD[c])
+                itprev = C.getValue(z, 'it', nitrun-1)
+                C.setValue(z, 'it', nitrun, itprev+nit)
         DESKTOP2.setData(LOAD)
 
 #===============================================================
@@ -640,9 +703,9 @@ def createApp(win):
     Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
-    Frame.columnconfigure(0, weight=0)
+    Frame.columnconfigure(0, weight=1)
     Frame.columnconfigure(1, weight=1)
-    Frame.columnconfigure(2, weight=0)
+    Frame.columnconfigure(2, weight=1)
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
@@ -689,8 +752,15 @@ def createApp(win):
     B = TTK.Label(Frame, text="Mode")
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Currently viewed tree.\nIn body mode:\nOne Base per body\nBase REFINE for refinement zones.')
-    B = TTK.OptionMenu(Frame, VARS[10], 'Body', 'Main', 'PrevStep', command=changeMode)
-    B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
+    # B = TTK.OptionMenu(Frame, VARS[10], 'Body', 'Main', 'PrevStep', command=changeMode)
+    # B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
+
+    B = TTK.Button(Frame, text="Body", command=bodyMode)
+    B.grid(row=0, column=1, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Display IBC bodies.')
+    B = TTK.Button(Frame, text="Main", command=mainTreeMode)
+    B.grid(row=0, column=2, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Display main tree.')
 
     # - temporal scheme -
     B = TTK.Label(Frame, text="time_scheme")
@@ -729,22 +799,26 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Get data from selected zone.')
     B.grid(row=4, column=1, columnspan=2, sticky=TK.EW)
 
+    # - save & reload -
+    B = TTK.Button(Frame, text="Reload", command=reloadPrevStep)
+    BB = CTK.infoBulle(parent=B, text='Reload the main tree from the previous step.')
+    B.grid(row=5, column=0, sticky=TK.EW)
+    B = TTK.Button(Frame, text="Save files", command=writeFiles)
+    BB = CTK.infoBulle(parent=B, text='Write python and cgns files to run elsewhere.')
+    B.grid(row=5, column=1, columnspan=2, sticky=TK.EW)
+
     # - compute -
     B = TTK.Button(Frame, text="Compute", command=run)
     WIDGETS['compute'] = B
     BB = CTK.infoBulle(parent=B, text='Launch computation.')
-    B.grid(row=5, column=0, sticky=TK.EW)
+    B.grid(row=6, column=0, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[9], width=5, background='White')
     BB = CTK.infoBulle(parent=B, text='Number of iterations for each run.')
-    B.grid(row=5, column=1, columnspan=1, sticky=TK.EW)
+    B.grid(row=6, column=1, columnspan=1, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[15], width=5, background='White')
     BB = CTK.infoBulle(parent=B, text='Number of runs.')
-    B.grid(row=5, column=2, columnspan=1, sticky=TK.EW)
-
-    #B = TTK.Button(Frame, text="Files", command=writeFiles)
-    #BB = CTK.infoBulle(parent=B, text='Write files to run elsewhere.')
-    #B.grid(row=5, column=2, sticky=TK.EW)
-
+    B.grid(row=6, column=2, columnspan=1, sticky=TK.EW)
+    
     # - Body time -
     #B = TTK.Button(Frame, text="Step", command=updateBodyAndPrepare)
     #BB = CTK.infoBulle(parent=B, text='Apply one motion step to body.')

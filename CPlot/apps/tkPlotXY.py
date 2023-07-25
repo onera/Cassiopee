@@ -99,9 +99,9 @@ EXPORTFILE = "fig.png"
 
 #### TODO : link the following variables with preference in GUI of Cassiopee
 # local NUM_COLORS for colormap
-NUM_COLORS = 8
+NUM_COLORS = 10
 # local color map set (see: http://matplotlib.org/examples/color/colormaps_reference.html)
-COLOR_MAP = 'Set1'
+COLOR_MAP = 'tab10'
 # default base name
 default_base = 'Base'
 # Navigation 0: matplotlib, 1: tecplot like
@@ -9874,6 +9874,9 @@ class GraphTK(TK.Toplevel):
         iCurSubGraph = self.parent.position.val
         curves = self.fig.subGraph[iCurSubGraph].curves
 
+        varyExcludes = ['CoordinateX', 'CoordinateY', 'CoordinateZ', 'x', 'y', 'z', 'xsc', 'index', 'it', 
+        'xsc@FlowSolution', 'index@FlowSolution', 'it@FlowSolution']
+
         if event.key == '&': # x+1
             for c in curves:
                 if c.varx == 'x': c.setValue('varx', 'y')
@@ -9899,12 +9902,15 @@ class GraphTK(TK.Toplevel):
                     z = zoneNames[0] # only first one
                     vars = data[z]   # dict
                     varlist = list(vars.keys())
+                    print(varlist)
+                    varlist = [var for var in varlist if var not in varyExcludes]
+                    print(varlist)
                 for n, v in enumerate(varlist):
                     if c.vary == v:
                         if n < len(varlist)-1: c.setValue('vary', varlist[n+1])
                         else: c.setValue('vary', varlist[0])
                         break
-        elif event.key == '2': #y+1
+        elif event.key == '2': #y-1
             for c in curves:
                 zoneNames = c.zone # zone Name
                 varlist = []
@@ -9912,6 +9918,7 @@ class GraphTK(TK.Toplevel):
                     z = zoneNames[0] # only first one
                     vars = data[z]   # dict
                     varlist = list(vars.keys())
+                    varlist = [var for var in varlist if var not in varyExcludes]
                 for n, v in enumerate(varlist):
                     if c.vary == v:
                         if n > 1: c.setValue('vary', varlist[n-1])
