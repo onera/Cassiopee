@@ -17,7 +17,34 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-# include "xcore.h"
+#include "xcore.h"
+#include <mpi.h>
+#include <unordered_map>
+
+#define ASSERT(expr) \
+    if (!(expr)) { \
+        printf("\nASSERTION failed on line %d of file %s: " #expr "\n", \
+            __LINE__, __FILE__); \
+        exit(1); \
+    }
+
+#define EXIT \
+  do { \
+    MPI_Finalize(); \
+    exit(0); \
+  } while (0);
+
+static
+E_Int get_proc(E_Int element, E_Int *distribution, E_Int nproc)
+{
+    for (E_Int j = 0; j < nproc; j++) {
+      if (element >= distribution[j] && element < distribution[j+1])
+        return j;
+    }
+    printf("\nWarning: could not find distribution of element %d\n", element);
+    ASSERT(0 == 1);
+    return -1;
+}
 
 // Chunk2part for NGON2
 
@@ -26,64 +53,731 @@
 //============================================================================
 PyObject* K_XCORE::chunk2part(PyObject* self, PyObject* args)
 {
-  PyObject* arrays;
-  if (!PyArg_ParseTuple(args, "O", &arrays)) return NULL;
+  PyObject* array;
+  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
   
-  E_Int nzones = PyList_Size(arrays);
+  E_Int nzones = PyList_Size(array);
+  ASSERT(nzones == 1); // Note(Imad): for now...
 
   PyObject* o; PyObject* l;
-  E_Float* ptrf; E_Int size; E_Int nfld;
-  E_Int* ptri;
+  E_Int nfld;
+  E_Float *X, *Y, *Z;
+  E_Int npoints, ncells, nfaces;
+  E_Int faces_size, cells_size;
+  E_Int *faces, *cells, *xfaces, *xcells;
+
+  E_Int rank, nproc;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &nproc);
+
+  E_Int res;
   
-  for (E_Int i = 0; i < nzones; i++)
-  {
-    l = PyList_GetItem(arrays, i);
+  l = PyList_GetItem(array, 0);
 
-    // 1 must be coordinateX chunk
-    o = PyList_GetItem(l, 0);
-    K_NUMPY::getFromNumpyArray(o, ptrf, size, nfld, true);
-    // 2 must be coordinateY chunk
-    o = PyList_GetItem(l, 1);
-    K_NUMPY::getFromNumpyArray(o, ptrf, size, nfld, true);
-    // 3 must be coordinateZ chunk
-    o = PyList_GetItem(l, 2);
-    K_NUMPY::getFromNumpyArray(o, ptrf, size, nfld, true);
-    // 4 must be ngon chunk
-    o = PyList_GetItem(l, 3);
-    K_NUMPY::getFromNumpyArray(o, ptri, size, nfld, true);
-    // 5 must be ngon so chunk
-    o = PyList_GetItem(l, 4);
-    K_NUMPY::getFromNumpyArray(o, ptri, size, nfld, true);
-    // 6 must be nface chunk
-    o = PyList_GetItem(l, 5);
-    K_NUMPY::getFromNumpyArray(o, ptri, size, nfld, true);
-    // 6 must be nface so chunk
-    o = PyList_GetItem(l, 6);
-    K_NUMPY::getFromNumpyArray(o, ptri, size, nfld, true);
+  // 1 must be coordinateX chunk
+  o = PyList_GetItem(l, 0);
+  res = K_NUMPY::getFromNumpyArray(o, X, npoints, nfld, true);
+  ASSERT(res == 1);
+
+  // 2 must be coordinateY chunk
+  o = PyList_GetItem(l, 1);
+  res = K_NUMPY::getFromNumpyArray(o, Y, npoints, nfld, true);
+  ASSERT(res == 1);
     
-    // PE a venir...
-
-  }
+  // 3 must be coordinateZ chunk
+  o = PyList_GetItem(l, 2);
+  res = K_NUMPY::getFromNumpyArray(o, Z, npoints, nfld, true);
+  ASSERT(res == 1);
+ 
+  // 4 must be ngon chunk
+  o = PyList_GetItem(l, 3);
+  res = K_NUMPY::getFromNumpyArray(o, faces, faces_size, nfld, true);
+  ASSERT(res == 1);  
+    
+  // 5 must be ngon so chunk
+  o = PyList_GetItem(l, 4);
+  res = K_NUMPY::getFromNumpyArray(o, xfaces, nfaces, nfld, true);
+  ASSERT(res == 1);
+    
+  // 6 must be nface chunk
+  o = PyList_GetItem(l, 5);
+  res = K_NUMPY::getFromNumpyArray(o, cells, cells_size, nfld, true);
+  ASSERT(res == 1);
+    
+  // 6 must be nface so chunk
+  o = PyList_GetItem(l, 6);
+  res = K_NUMPY::getFromNumpyArray(o, xcells, ncells, nfld, true);
+  ASSERT(res == 1);
+    
+  // PE a venir...
 
   // ..
-  
-  // export with buildNumpyArray
-  
-  // Release numpys
-  for (E_Int i = 0; i < nzones; i++) 
-  {
-    l = PyList_GetItem(arrays, i);
-    Py_DECREF(PyList_GetItem(l, 0));
-    Py_DECREF(PyList_GetItem(l, 1));
-    Py_DECREF(PyList_GetItem(l, 2));
-    Py_DECREF(PyList_GetItem(l, 3));
-    Py_DECREF(PyList_GetItem(l, 4));
-    Py_DECREF(PyList_GetItem(l, 5));
-    Py_DECREF(PyList_GetItem(l, 6));
-    
+  ncells--;
+  nfaces--;
+
+  // construct cells distribution
+  E_Int *cells_dist = (E_Int *)malloc((ncells+1) * sizeof(E_Int));
+  cells_dist[0] = 0;
+ 
+  MPI_Allgather(&ncells, 1, MPI_INT, cells_dist+1, 1, MPI_INT, MPI_COMM_WORLD);
+
+  for (E_Int i = 0; i < nproc; i++)
+    cells_dist[i+1] += cells_dist[i];
+
+  // construct faces distribution
+  E_Int *faces_dist = (E_Int *)malloc((nfaces+1) * sizeof(E_Int));
+  faces_dist[0] = 0;
+ 
+  MPI_Allgather(&nfaces, 1, MPI_INT, faces_dist+1, 1, MPI_INT, MPI_COMM_WORLD);
+
+  for (E_Int i = 0; i < nproc; i++)
+    faces_dist[i+1] += faces_dist[i];
+
+  // construct points distribution
+  E_Int *points_dist = (E_Int *)malloc((npoints+1) * sizeof(E_Int));
+  points_dist[0] = 0;
+ 
+  MPI_Allgather(&npoints, 1, MPI_INT, points_dist+1, 1, MPI_INT, MPI_COMM_WORLD);
+
+  for (E_Int i = 0; i < nproc; i++)
+      points_dist[i+1] += points_dist[i];
+
+
+  E_Int *scount = (E_Int *)calloc(nproc, sizeof(E_Int));
+  E_Int *rcount = (E_Int *)calloc(nproc, sizeof(E_Int));
+
+  // shift xcells, xfaces and xpoints to start from zero
+  E_Int cell_shift = xcells[0];
+  for (E_Int i = 0; i < ncells+1; i++)
+    xcells[i] -= cell_shift;
+
+  E_Int face_shift = xfaces[0];
+  for (E_Int i = 0; i < nfaces+1; i++)
+    xfaces[i] -= face_shift;
+
+
+  // count how many faces are requested from each proc
+  std::vector<std::set<E_Int>> face_tables(nproc);
+
+  for (E_Int i = 0; i < ncells; i++) {
+    E_Int start = xcells[i];
+    E_Int end = xcells[i+1];
+
+    for (E_Int j = start; j < end; j++) {
+      E_Int face = cells[j];
+      E_Int source = get_proc(face-1, faces_dist, nproc); 
+      auto search = face_tables[source].find(face);
+
+      if (search == face_tables[source].end()) {
+        face_tables[source].insert(face);
+        rcount[source]++;
+      }
+    }
   }
 
-  Py_INCREF(Py_None);
-  return Py_None;
+  MPI_Alltoall(rcount, 1, MPI_INT, scount, 1, MPI_INT, MPI_COMM_WORLD);
+
+  E_Int *sdist = (E_Int *)malloc((nproc+1) * sizeof(E_Int));
+  E_Int *rdist = (E_Int *)malloc((nproc+1) * sizeof(E_Int));
+  
+  sdist[0] = rdist[0] = 0;
+  for (E_Int i = 0; i < nproc; i++) {
+    sdist[i+1] = sdist[i] + scount[i];
+    rdist[i+1] = rdist[i] + rcount[i];
+  }
+
+  // faces to be sent/received
+  E_Int *sdata = (E_Int *)malloc(sdist[nproc] * sizeof(E_Int));
+  E_Int *rdata = (E_Int *)malloc(rdist[nproc] * sizeof(E_Int));
+
+  E_Int *idx = (E_Int *)malloc(nproc * sizeof(E_Int));
+  for (E_Int i = 0; i < nproc; i++)
+    idx[i] = rdist[i];
+
+  for (E_Int i = 0; i < nproc; i++)
+    face_tables[i].clear();
+
+  for (E_Int i = 0; i < ncells; i++) {
+    E_Int start = xcells[i];
+    E_Int end = xcells[i+1];
+    for (E_Int j = start; j < end; j++) {
+      E_Int face = cells[j];
+      E_Int source = get_proc(face-1, faces_dist, nproc);
+      auto search = face_tables[source].find(face);
+      if (search == face_tables[source].end()) {
+        face_tables[source].insert(face);
+        rdata[idx[source]++] = face;
+      }
+    }
+  }
+
+  for (E_Int i = 0; i < nproc; i++)
+    ASSERT(idx[i] == rdist[i+1]);
+
+  for (E_Int i = 0; i < nproc; i++)
+    face_tables[i].clear();
+
+  // sdata contains the faces to be sent to each proc
+  MPI_Alltoallv(rdata, rcount, rdist, MPI_INT,
+                sdata, scount, sdist, MPI_INT,
+                MPI_COMM_WORLD);
+
+  // face data (stride + points)
+  E_Int *fscount = (E_Int *)calloc(nproc, sizeof(E_Int));
+  
+  for (E_Int i = 0; i < nproc; i++) {
+    E_Int *ptr = &sdata[sdist[i]];
+    
+    for (E_Int j = 0; j < scount[i]; j++) {
+      E_Int face = ptr[j]-1;
+      ASSERT(get_proc(face, faces_dist, nproc) == rank);
+      E_Int pos = face - faces_dist[rank];
+      E_Int start = xfaces[pos];
+      E_Int end = xfaces[pos+1];
+      E_Int stride = end - start;
+      fscount[i] += 1 + stride; // stride + points
+    }
+  }
+
+  E_Int *frcount = (E_Int *)malloc(nproc * sizeof(E_Int));
+  MPI_Alltoall(fscount, 1, MPI_INT, frcount, 1, MPI_INT, MPI_COMM_WORLD);
+
+  E_Int *fsdist = (E_Int *)malloc((nproc+1) * sizeof(E_Int));
+  E_Int *frdist = (E_Int *)malloc((nproc+1) * sizeof(E_Int));
+  
+  fsdist[0] = frdist[0] = 0;
+  for (E_Int i = 0; i < nproc; i++) {
+    fsdist[i+1] = fsdist[i] + fscount[i];
+    frdist[i+1] = frdist[i] + frcount[i];
+  }
+
+  E_Int *fsdata = (E_Int *)malloc(fsdist[nproc] * sizeof(E_Int));
+  E_Int *frdata = (E_Int *)malloc(frdist[nproc] * sizeof(E_Int));
+
+  for (E_Int i = 0; i < nproc; i++)
+    idx[i] = fsdist[i];
+
+  for (E_Int i = 0; i < nproc; i++) {
+    E_Int *ptr = &sdata[sdist[i]];
+
+    for (E_Int j = 0; j < scount[i]; j++) {
+      E_Int face = ptr[j]-1;
+      E_Int pos = face - faces_dist[rank];
+      E_Int start = xfaces[pos];
+      E_Int end = xfaces[pos+1];
+      E_Int stride = end - start;
+
+      fsdata[idx[i]++] = stride;
       
+      for (E_Int k = start; k < end; k++)
+        fsdata[idx[i]++] = faces[k];
+    }
+
+    ASSERT(idx[i] == fsdist[i+1]);
+  }
+
+  MPI_Alltoallv(fsdata, fscount, fsdist, MPI_INT,
+                frdata, frcount, frdist, MPI_INT,
+                MPI_COMM_WORLD);
+ 
+  // frdata contains the stride and points of the faces requested in rdata
+
+  std::unordered_map<E_Int, E_Int> face_table;
+  E_Int n_local_faces = 0;
+  E_Int *l2gf = (E_Int *)malloc(rdist[nproc] * sizeof(E_Int));
+  // hash global faces -> local faces
+  for (E_Int i = 0; i < nproc; i++) {
+    E_Int *req_faces = &rdata[rdist[i]];
+
+    for (E_Int j = 0; j < rcount[i]; j++) {
+      E_Int face = req_faces[j];
+      // cannot encounter a face twice
+      ASSERT(face_table.find(face) == face_table.end());
+      face_table[face] = n_local_faces;
+      l2gf[n_local_faces++] = face;
+    }
+  }
+  ASSERT(n_local_faces == rdist[nproc]);
+
+  // request point coordinates
+  std::vector<std::set<E_Int>> point_tables(nproc);
+  E_Int *prcount = (E_Int *)calloc(nproc, sizeof(E_Int));
+
+  // loop over my local faces (rdata)
+  for (E_Int i = 0; i < nproc; i++) {
+    E_Int *r_face_data = &frdata[frdist[i]];
+    E_Int count = 0;
+
+    for (E_Int j = 0; j < rcount[i]; j++) {
+      E_Int stride = r_face_data[count++];
+      ASSERT(stride == 4);
+      for (E_Int k = 0; k < stride; k++) {
+        E_Int point = r_face_data[count++];
+        E_Int source = get_proc(point - 1, points_dist, nproc);
+        auto search = point_tables[source].find(point);
+        if (search == point_tables[source].end()) {
+          point_tables[source].insert(point);
+          prcount[source]++;
+        }
+      }
+    }
+  }
+
+  E_Int *prdist = (E_Int *)malloc((nproc+1) * sizeof(E_Int));
+  prdist[0] = 0;
+  for (E_Int i = 0; i < nproc; i++)
+    prdist[i+1] = prdist[i] + prcount[i];
+
+  for (E_Int i = 0; i < nproc; i++)
+    point_tables[i].clear();
+
+  for (E_Int i = 0; i < nproc; i++)
+    idx[i] = prdist[i];
+
+  E_Int *prdata = (E_Int *)malloc(prdist[nproc]* sizeof(E_Int));
+
+  for (E_Int i = 0; i < nproc; i++) {
+    E_Int *r_face_data = &frdata[frdist[i]];
+    E_Int count = 0;
+
+    for (E_Int j = 0; j < rcount[i]; j++) {
+      E_Int stride = r_face_data[count++];
+      for (E_Int k = 0; k < stride; k++) {
+        E_Int point = r_face_data[count++];
+        E_Int source = get_proc(point - 1, points_dist, nproc);
+        auto search = point_tables[source].find(point);
+        if (search == point_tables[source].end()) {
+          point_tables[source].insert(point);
+          prdata[idx[source]++] = point;
+        }
+      }
+    }
+  }
+
+  for (E_Int i = 0; i < nproc; i++)
+    point_tables[i].clear();
+
+  for (E_Int i = 0; i < nproc; i++)
+    ASSERT(idx[i] == prdist[i+1]);
+
+  E_Int *pscount = (E_Int *)malloc(nproc * sizeof(E_Int));
+  MPI_Alltoall(prcount, 1, MPI_INT, pscount, 1, MPI_INT, MPI_COMM_WORLD);
+  
+  E_Int *psdist = (E_Int *)malloc((nproc+1) * sizeof(E_Int));
+  psdist[0] = 0;
+  for (E_Int i = 0; i < nproc; i++)
+    psdist[i+1] = psdist[i] + pscount[i];
+
+  E_Int *psdata = (E_Int *)malloc(psdist[nproc] * sizeof(E_Int));
+  MPI_Alltoallv(prdata, prcount, prdist, MPI_INT,
+                psdata, pscount, psdist, MPI_INT,
+                MPI_COMM_WORLD);
+
+  // psdata contains the points that need to be sent to every proc
+  // all points within psdata should belong to me
+
+  E_Int *xsdist = (E_Int *)malloc((nproc+1) * sizeof(E_Int));
+  E_Int *xrdist = (E_Int *)malloc((nproc+1) * sizeof(E_Int));
+  E_Int *xscount = (E_Int *)malloc(nproc * sizeof(E_Int));
+  E_Int *xrcount = (E_Int *)malloc(nproc * sizeof(E_Int));
+  
+  xsdist[0] = xrdist[0] = 0;
+  for (E_Int i = 0; i < nproc; i++) {
+    xscount[i] = 3*pscount[i];
+    xrcount[i] = 3*prcount[i];
+    xsdist[i+1] = xsdist[i] + xscount[i];
+    xrdist[i+1] = xrdist[i] + xrcount[i];
+  }
+
+  E_Float *xsdata = (E_Float *)malloc(xsdist[nproc] * sizeof(E_Float));
+  E_Float *xrdata = (E_Float *)malloc(xrdist[nproc] * sizeof(E_Float));
+  
+  for (E_Int i = 0; i < nproc; i++)
+    idx[i] = xsdist[i];
+
+  for (E_Int i = 0; i < nproc; i++) {
+    E_Int *ptr = &psdata[psdist[i]];
+    for (E_Int j = 0; j < pscount[i]; j++) {
+      E_Int point = ptr[j];
+      point--;
+      ASSERT(get_proc(point, points_dist, nproc) == rank);
+      point -= points_dist[rank];
+      xsdata[idx[i]++] = X[point];
+      xsdata[idx[i]++] = Y[point];
+      xsdata[idx[i]++] = Z[point];
+    }
+  }
+
+  for (E_Int i = 0; i < nproc; i++)
+    ASSERT(idx[i] == xsdist[i+1]);
+
+  // xrdata contains xyz coordinates of the points requested in prdata
+  MPI_Alltoallv(xsdata, xscount, xsdist, MPI_DOUBLE,
+                xrdata, xrcount, xrdist, MPI_DOUBLE,
+                MPI_COMM_WORLD);
+
+
+  // hash received points
+  std::unordered_map<E_Int, E_Int> point_table;
+  E_Int n_local_points = prdist[nproc];
+  FldArrayF local_crd;
+  local_crd.malloc(n_local_points, 3);
+
+  E_Int *l2gp = (E_Int *)malloc(n_local_points * sizeof(E_Int));
+  E_Int count = 0;
+  for (E_Int i = 0; i < nproc; i++) {
+    E_Int *ptr = &prdata[prdist[i]];
+    E_Float *X = &xrdata[xrdist[i]];
+    for (E_Int j = 0; j < prcount[i]; j++) {
+      E_Int point = ptr[j];
+      
+      // cannot encounter a point twice
+      ASSERT(point_table.find(point) == point_table.end());
+      point_table[point] = count;
+      l2gp[count] = point;
+
+      // fill local coordinates
+      E_Float *pX = &X[3*j];   
+      local_crd(count, 1) = pX[0];
+      local_crd(count, 2) = pX[1];
+      local_crd(count, 3) = pX[2];
+
+      count++;
+    }
+  }
+  ASSERT(count == n_local_points);
+
+  // update cells connectivity with local faces
+  for (E_Int i = 0; i < ncells; i++) {
+    E_Int start = xcells[i];
+    E_Int end = xcells[i+1];
+    for (E_Int j = start; j < end; j++) {
+      ASSERT(face_table.find(cells[j]) != face_table.end());
+      cells[j] = face_table[cells[j]];
+    }
+  }
+
+  // local faces are the ones requested in rdata
+  // stride and points are stored in frdata
+  count = 0;
+  for (E_Int i = 0; i < n_local_faces; i++) {
+    E_Int stride = frdata[count++];
+    ASSERT(stride == 4);
+    for (E_Int j = 0; j < stride; j++) {
+      ASSERT(point_table.find(frdata[count]) != point_table.end());
+      frdata[count] = point_table[frdata[count]];
+      count++;
+    }
+  }
+
+  /*
+  // compute cell centers
+  E_Float *fc = (E_Float *)calloc(n_local_faces*3, sizeof(E_Float));
+  E_Float *cc = (E_Float *)calloc(ncells*3, sizeof(E_Float));
+
+  count = 0;
+  for (E_Int i = 0; i < n_local_faces; i++) {
+    E_Float *fx = &fc[3*i];
+    E_Int stride = frdata[count++];
+    for (E_Int j = 0; j < stride; j++) {
+      E_Int point = frdata[count++];
+      fx[0] += local_crd(point, 1);
+      fx[1] += local_crd(point, 2);
+      fx[2] += local_crd(point, 3);
+    }
+    E_Float coeff = 1./stride;
+    for (E_Int k = 0; k < 3; k++)
+      fx[k] *= coeff;
+  }
+
+  for (E_Int i = 0; i < ncells; i++) {
+    E_Float *cx = &cc[3*i];
+    E_Int start = xcells[i];
+    E_Int end = xcells[i+1];
+    for (E_Int j = start; j < end; j++) {
+      E_Int face = cells[j];
+      E_Float *fx = &fc[3*face];
+      for (E_Int k = 0; k < 3; k++)
+        cx[k] += fx[k];
+    }
+    E_Float coeff = 1./(end - start);
+    for (E_Int k = 0; k < 3; k++)
+      cx[k] *= coeff;
+  }
+
+  const E_Int nbits = 1;
+  const E_Int nbins = 1<<nbits;
+  E_Int *bxyz = (E_Int *)malloc(3*ncells * sizeof(E_Int));
+  memset(bxyz, -1, 3*ncells*sizeof(E_Int));
+  bin_coords(ncells, cc, nbins, bxyz);
+
+  E_Int icoord;
+  for (E_Int i=0; i<ncells; i++) {
+    E_Int j;
+    for (icoord=0, j=nbits-1; j>=0; j--) {
+      for (E_Int k=0; k<3; k++) {
+        icoord = (icoord<<1) + (bxyz[i*3+k]&(1<<j) ? 1 : 0);
+      }
+    }
+  }
+  */
+
+
+  // TODO (Imad): use Cassiopee's data structures to avoid copying
+  const char *varString = "CoordinateX,CoordinateY,CoordinateZ";
+
+  FldArrayI cn;
+  cn.malloc(2+frdist[nproc] + 2+ncells+xcells[ncells], 1);
+  cn.setAllValuesAtNull();
+  E_Int *ptr = cn.begin(1);
+  ptr[0] = n_local_faces;
+  ptr[1] = frdist[nproc];
+  ptr += 2;
+  count = 0;
+  for (E_Int i = 0; i < n_local_faces; i++) {
+    E_Int stride = frdata[count++];
+    ASSERT(stride == 4);
+    *ptr++ = stride;
+    for (E_Int j = 0; j < stride; j++) {
+      *ptr++ = frdata[count++]+1;
+    }
+  }
+
+  ptr = cn.begin(1) + frdist[nproc] + 2;
+  ptr[0] = ncells;
+  ptr[1] = ncells + xcells[ncells];
+  ptr += 2;
+  for (E_Int i = 0; i < ncells; i++) {
+    E_Int start = xcells[i];
+    E_Int end = xcells[i+1];
+    E_Int stride = end - start;
+    ASSERT(stride == 6);
+    *ptr++ = stride;
+    for (E_Int j = start; j < end; j++) {
+      *ptr++ = cells[j]+1;
+    }
+  }
+
+  PyObject* m = K_ARRAY::buildArray(local_crd, varString, cn, 8, NULL, false);
+
+  // Release numpys
+  l = PyList_GetItem(array, 0);
+  Py_DECREF(PyList_GetItem(l, 0));
+  Py_DECREF(PyList_GetItem(l, 1));
+  Py_DECREF(PyList_GetItem(l, 2));
+  Py_DECREF(PyList_GetItem(l, 3));
+  Py_DECREF(PyList_GetItem(l, 4));
+  Py_DECREF(PyList_GetItem(l, 5));
+  Py_DECREF(PyList_GetItem(l, 6));
+  
+  //Py_INCREF(Py_None);
+  //return Py_None;
+  
+  return m;    
+}
+
+const E_Int decomp_vector[3] = {3,2,1};
+
+static
+void assign_to_processor_group(E_Int ncells, E_Int *processor_groups, E_Int n_proc_groups)
+{
+  E_Int size = ncells / n_proc_groups;
+  E_Int sizeb = size + 1;
+  E_Int fat_procs =  ncells - size*n_proc_groups;
+
+  E_Int count = 0;
+  E_Int j = 0;
+
+  // procs with more elements than "size"
+  for (j = 0; j < fat_procs; j++) {
+    for (E_Int k = 0; k < sizeb; k++)
+      processor_groups[count++] = j;
+  }
+
+  // the remaining procs
+  for (; j < n_proc_groups; j++) {
+    for (E_Int k = 0; k < size; k++)
+      processor_groups[count++] = j;
+  }
+}
+
+E_Int *simple_geom_decomp(E_Int ncells, E_Float *xyz)
+{
+  E_Int *final_decomp = (E_Int *)malloc(ncells * sizeof(E_Int));
+  E_Int *processor_groups = (E_Int *)malloc(ncells * sizeof(E_Int));
+  E_Int *cell_indices = (E_Int *)malloc(ncells * sizeof(E_Int));
+  for (E_Int i = 0; i < ncells; i++)
+    cell_indices[i] = i;
+
+  // small angle rotation matrix to avoid jitters when mesh is aligned with XYZ
+  E_Float angle = 0.001;
+  E_Float c = 1. - 0.5*angle*angle; // taylor expansion of cos
+  E_Float s = angle; // taylor expansion of sin
+  E_Float c2 = c*c;
+  E_Float s2 = s*s;
+
+  E_Float rot[3][3] = {
+    c2, c*s2 - s*c, s*c2 + s2,
+    s*c, s2*s + c2, s2*c - c*s,
+    -s, c*s, c2
+  };
+
+  E_Float *rotated_cells = (E_Float *)malloc(3*ncells * sizeof(E_Float));
+  for (E_Int i = 0; i < ncells; i++) {
+    E_Float *cx = &xyz[3*i];
+    E_Float *rx = &rotated_cells[3*i];
+    rx[0] = rot[0][0]*cx[0] + rot[0][1]*cx[1] + rot[0][2]*cx[2];
+    rx[1] = rot[1][0]*cx[0] + rot[1][1]*cx[1] + rot[1][2]*cx[2];
+    rx[2] = rot[2][0]*cx[0] + rot[2][1]*cx[1] + rot[2][2]*cx[2];
+  }
+
+  // sort by X
+  std::sort(cell_indices, cell_indices+ncells, [&](E_Int a, E_Int b)
+                                               {
+                                                 return rotated_cells[3*a] < rotated_cells[3*b];
+                                               });
+
+
+  assign_to_processor_group(ncells, processor_groups, decomp_vector[0]);
+
+  for (E_Int i = 0; i < ncells; i++)
+    final_decomp[cell_indices[i]] = processor_groups[i];
+
+  // sort by Y
+  std::sort(cell_indices, cell_indices+ncells, [&](E_Int a, E_Int b)
+                                               {
+                                                 return rotated_cells[3*a+1] < rotated_cells[3*b+1];
+                                               });
+
+  assign_to_processor_group(ncells, processor_groups, decomp_vector[1]);
+
+  for (E_Int i = 0; i < ncells; i++)
+    final_decomp[cell_indices[i]] += decomp_vector[0] * processor_groups[i];
+
+  // sort by Z
+  std::sort(cell_indices, cell_indices+ncells, [&](E_Int a, E_Int b)
+                                               {
+                                                 return rotated_cells[3*a+2] < rotated_cells[3*b+2];
+                                               });
+
+  assign_to_processor_group(ncells, processor_groups, decomp_vector[2]);
+
+  for (E_Int i = 0; i < ncells; i++)
+    final_decomp[cell_indices[i]] += decomp_vector[0] * decomp_vector[1] * processor_groups[i];
+
+  return final_decomp;
+}
+
+struct rkv {
+  E_Float key;
+  E_Int val;
+};
+
+struct ikv {
+  E_Int key;
+  E_Int val;
+};
+
+bool compare_rkv(const rkv &a, const rkv &b)
+{
+  return (a.key < b.key) || ((a.key == b.key) && (a.val < b.val));
+}
+
+bool compare_ikv(const ikv &a, const ikv &b)
+{
+  return (a.key < b.key) || ((a.key == b.key) && (a.val < b.val));
+}
+
+void bin_coords(E_Int ncells, E_Float *xyz, E_Int nbins, E_Int *bxyz)
+{
+  E_Int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+  std::vector<ikv> buckets(nbins);
+  std::vector<rkv> cand(ncells);
+  E_Float gmin, gmax;
+  std::vector<E_Float> emarkers(nbins+1);
+  std::vector<E_Float> nemarkers(nbins+1);
+  std::vector<E_Int> lcounts(nbins);
+  std::vector<E_Int> gcounts(nbins);
+  std::vector<E_Int> lsums(nbins);
+  std::vector<E_Int> gsums(nbins);
+  E_Int cnbins;
+  E_Float gsum;
+  E_Int gncells;
+  MPI_Allreduce(&ncells, &gncells, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+  for (E_Int dim = 0; dim < 3; dim++) {
+    E_Float sum = 0.;
+    for (E_Int i = 0; i < ncells; i++) {
+      cand[i].key = xyz[3*i+dim];
+      cand[i].val = i;
+      sum += cand[i].key;
+    }
+    std::sort(cand.begin(), cand.end(), compare_rkv);
+
+    // determine initial range
+    MPI_Allreduce(&cand[0].key, &gmin, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+    MPI_Allreduce(&cand[ncells-1].key, &gmax, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+    MPI_Allreduce(&sum, &gsum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+    emarkers[0] = gmin;
+    emarkers[1] = gsum/gncells;
+    emarkers[2] = gmax*1.001;
+    cnbins = 2;
+
+    while (cnbins < nbins) {
+      for (E_Int i = 0; i < cnbins; i++) {
+        lcounts[i] = 0;
+        lsums[i] = 0;
+      }
+
+      E_Int j = 0;
+      for (E_Int i = 0; i < ncells; ) {
+        if (cand[i].key < emarkers[j+1]) {
+          lcounts[j]++;
+          lsums[j] += cand[i].key;
+          i++;
+        } else {
+          j++;
+        }
+      }
+
+      MPI_Allreduce(&lcounts[0], &gcounts[0], cnbins, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+      MPI_Allreduce(&lsums[0], &gsums[0], cnbins, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+      for (E_Int i = 0; i < cnbins; i++) {
+        buckets[i].key = gcounts[i];
+        buckets[i].val = i;
+      }
+      std::sort(buckets.begin(), buckets.end(), compare_ikv);
+
+      j = 0;
+      for (E_Int i = cnbins-1; i >= 0; i--, j++) {
+        E_Int l = buckets[i].val;
+        if (buckets[i].key > gncells/nbins && cnbins < nbins) {
+          nemarkers[j++] = (emarkers[l]+emarkers[l+1])/2;
+          cnbins++;
+        }
+        nemarkers[j] = emarkers[l];
+      }
+      ASSERT(cnbins == j);
+      
+      std::sort(&nemarkers[0], &nemarkers[0]+cnbins);
+      for (E_Int i = 0; i < cnbins; i++)
+        emarkers[i] = nemarkers[i];
+      emarkers[cnbins] = gmax*1.001;
+    }
+
+    // assign the coordinates to the appropriate bin
+    E_Int j = 0;
+    for (E_Int i = 0; i < ncells;) {
+      if (cand[i].key < emarkers[j+1]) {
+        bxyz[3*cand[i].val + dim] = j;
+        i++;
+      } else {
+        j++;
+      }
+    }
+  }
 }
