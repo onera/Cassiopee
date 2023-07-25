@@ -206,12 +206,21 @@ def run(event=None):
     if CPlot.getState('mode') == 0: # mesh
         CPlot.setState(mode=3, scalarField='Density')
 
-    compute()
+    # get number of runs
+    nruns = VARS[15].get()
+
+    # Launch computations of nit iterations
+    for n in range(nruns):
+        compute()
+        # stop if NAN to enable previous
+        isfinite = C.isFinite(CTK.t)
+        if not isfinite:
+            CTK.TXT.insert('START', 'NAN detected. Use PrevStep in mode.\n')
+            break
+
+        if dim == 2: displayByReplace(CTK.t)
+        else: displaySlices()
     
-    if dim == 2: 
-        #CTK.display(CTK.t)
-        displayByReplace(CTK.t)
-    else: displaySlices()
     CTK.TKTREE.updateApp()
     CTK.setCursor(0, WIDGETS['compute'])
     return None
@@ -319,6 +328,7 @@ def compute():
     nit = VARS[9].get() # nbre d'iterations a faire
     moduloVerif = 50
 
+    # sometimes we need to enlarge FastC.MX_OMP_SIZE_INT
     #import FastC.PyTree as FastC
     #FastC.MX_OMP_SIZE_INT = XXX
 
@@ -672,6 +682,8 @@ def createApp(win):
     V = TK.DoubleVar(win); V.set(0.); VARS.append(V)
     # -14- body time steps
     V = TK.DoubleVar(win); V.set(10); VARS.append(V)
+    # -15- nbre de runs -
+    V = TK.IntVar(win); V.set(1); VARS.append(V)
 
     #- Mode -
     B = TTK.Label(Frame, text="Mode")
@@ -723,10 +735,15 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Launch computation.')
     B.grid(row=5, column=0, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[9], width=5, background='White')
+    BB = CTK.infoBulle(parent=B, text='Number of iterations for each run.')
     B.grid(row=5, column=1, columnspan=1, sticky=TK.EW)
-    B = TTK.Button(Frame, text="Files", command=writeFiles)
-    BB = CTK.infoBulle(parent=B, text='Write files to run elsewhere.')
-    B.grid(row=5, column=2, sticky=TK.EW)
+    B = TTK.Entry(Frame, textvariable=VARS[15], width=5, background='White')
+    BB = CTK.infoBulle(parent=B, text='Number of runs.')
+    B.grid(row=5, column=2, columnspan=1, sticky=TK.EW)
+
+    #B = TTK.Button(Frame, text="Files", command=writeFiles)
+    #BB = CTK.infoBulle(parent=B, text='Write files to run elsewhere.')
+    #B.grid(row=5, column=2, sticky=TK.EW)
 
     # - Body time -
     #B = TTK.Button(Frame, text="Step", command=updateBodyAndPrepare)

@@ -12634,7 +12634,7 @@ class DesktopFrameTK(TK.Frame):
         self.entryAddName.insert(TK.END,"Graph #%s"%len(self.graphWdwL))
         self.entryAddName.bind("<Button-1>", self.eraseEntry)
         self.entryAddName.bind("<FocusOut>", self.checkEntry)
-        self.entryAddName.grid(row=0,column=0,sticky="NSEW")
+        self.entryAddName.grid(row=0, column=0, sticky="NSEW")
         self.entryAddName.name = 'name'
         #
         lblframe = TTK.LabelFrame(frame, text="Zones")
@@ -12725,11 +12725,11 @@ class DesktopFrameTK(TK.Frame):
         try: self.positionList = list(self.graphWdwL[self.activeGraph.val].subGraph.keys())
         except IndexError: self.positionList = ['']
         except TypeError: self.positionList = ['']
-        self.position = cttk.Combobox(lblframe,values = self.positionList,state='readonly')
+        self.position = cttk.Combobox(lblframe, values = self.positionList, state='readonly')
         self.position.val = self.positionList[0]
         self.position.set(self.position.val)
         self.position.bind("<<ComboboxSelected>>",self.cmd_positionChange)
-        self.position.grid(row=0,column=0,sticky="NSEW")
+        self.position.grid(row=0, column=0, sticky="NSEW")
 
         #
         ## Edit/Delete curves
@@ -13699,7 +13699,7 @@ class Desktop():
                                 tmp[basename+'/'+zonename]={}
                             tmp[basename+'/'+zonename][Internal.getName(var)+'@'+flowsolutionname]=Internal.getValue(var)
 
-        self.data = OrderedDict(sorted(tmp.items(),key=lambda t : t[0]))
+        self.data = OrderedDict(sorted(tmp.items(), key=lambda t : t[0]))
     # ----------------------------------------------------------------- setQueue
     def setQueue(self, queue):
         self.queue = queue
@@ -15631,10 +15631,15 @@ def getPlotTree(t):
             elif dim[0] == 'Unstructured' and dim[3] == 'BAR':
                 zps = T.splitConnexity(z)
                 zps = C.convertBAR2Struct(zps)
-                c = 0
-                for i in zps:
-                    i[0] = zname+str(c); c += 1
+                if len(zps) == 0:
+                    i = zps[0]
+                    i[0] = zname
                     i = C.center2Node(i, Internal.__FlowSolutionCenters__)
+                else:
+                    c = 0
+                    for i in zps:
+                        i[0] = zname+str(c); c += 1
+                        i = C.center2Node(i, Internal.__FlowSolutionCenters__)
                 zps = C.getIndexField(zps)
                 bn[2] += zps
 
