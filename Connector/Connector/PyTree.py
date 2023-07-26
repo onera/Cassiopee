@@ -199,7 +199,7 @@ def _connectMatchStruct__(a, tol, dim, glob):
     zones = []
     dimPb = -1
     for z in Internal.getZones(a):
-        if Internal.getZoneType(z)==1: 
+        if Internal.getZoneType(z) == 1:
             zones.append(z)
             if dimPb == -1: dimPb=Internal.getZoneDim(z)[4]
             else:
@@ -249,9 +249,9 @@ def _connectMatchStruct__(a, tol, dim, glob):
 
             # couplage RANS/laminar ou euler
             model_z1 = model; model_z2 = model
-            eq= Internal.getNodeFromName2(zones[noz1], 'GoverningEquations')
+            eq = Internal.getNodeFromName2(zones[noz1], 'GoverningEquations')
             if eq is not None: model_z1 = Internal.getValue(eq)
-            eq= Internal.getNodeFromName2(zones[noz2], 'GoverningEquations')
+            eq = Internal.getNodeFromName2(zones[noz2], 'GoverningEquations')
             if eq is not None: model_z2 = Internal.getValue(eq)
 
             if model_z1 == 'NSTurbulent' and model_z1 != model_z2:
@@ -592,12 +592,12 @@ def connectMatchPeriodicStruct__(a,rotationCenter,rotationAngle,translation,tol,
     if unitAngle in ['Degree',None]: rotationAngleD=rotationAngle
     elif unitAngle == 'Radian': rotationAngleD=[v*__RAD2DEG__ for v in rotationAngle]
     else: raise ValueError('connectMatchPeriodicStruct__: invalid value for unitAngle.')
-    infoPer = duplicatePeriodicZones__(zonesS,rotationCenter,rotationAngleD,translation,tol,dim)
+    infoPer = duplicatePeriodicZones__(zonesS, rotationCenter, rotationAngleD, translation, tol, dim)
     nzonesS = len(zonesS)
     typePeriodic = infoPer[0]
-    if typePeriodic==1: signT = [-1,1]; signR=[0,0]
-    elif typePeriodic==2: signT=[0,0]; signR=[-1,1]
-    elif typePeriodic==3: signT = [-1,-1,1,1]; signR=[-1,1,-1,1]
+    if typePeriodic == 1: signT = [-1,1]; signR=[0,0]
+    elif typePeriodic == 2: signT=[0,0]; signR=[-1,1]
+    elif typePeriodic == 3: signT = [-1,-1,1,1]; signR=[-1,1,-1,1]
     dupname = 'DUPPER_' # prefix for duplicated zones
     for i in range(1, len(infoPer)):
         # renommage des zones dupliquees
@@ -605,11 +605,11 @@ def connectMatchPeriodicStruct__(a,rotationCenter,rotationAngle,translation,tol,
             zname = infoPer[i][noz][0]
             infoPer[i][noz][0] = dupname+zname
         glob = 0
-        glob = _connectMatchStruct__(zonesS+infoPer[i],tol,dim,glob)
+        glob = _connectMatchStruct__(zonesS+infoPer[i], tol, dim, glob)
         for noz in range(nzonesS):
-            gcnodes = Internal.getNodesFromType2(zonesS[noz],'GridConnectivity1to1_t')
-            _addPeriodicInfo__(gcnodes,rotationCenter,rotationAngle,translation,\
-                               signT[i-1],signR[i-1],dupname,unitAngle=unitAngle)
+            gcnodes = Internal.getNodesFromType2(zonesS[noz], 'GridConnectivity1to1_t')
+            _addPeriodicInfo__(gcnodes, rotationCenter, rotationAngle, translation,\
+                               signT[i-1], signR[i-1], dupname, unitAngle=unitAngle)
             # CORRECTIF DANS LE CAS 180 DEG : LA PREMIERE PASSE FAIT LES 2 RACCORDS MIN ET MAX
             # MAIS L ANGLE N EST PAS BON POUR LE 2E RACCORD SI PAS CE CORRECTIF
             if i == 1:
@@ -620,9 +620,9 @@ def connectMatchPeriodicStruct__(a,rotationCenter,rotationAngle,translation,tol,
                             if Internal.getValue(gc)==Internal.getName(zonesS[noz]):
                                 rotation_angle = Internal.getNodeFromName(gc, "RotationAngle")
                                 if rotation_angle:
-                                    nogci+=1
+                                    nogci += 1
                                     if nogci == 2:# changement de signe
-                                        rotation_angle=Internal.getValue(rotation_angle)
+                                        rotation_angle = Internal.getValue(rotation_angle)
                                         for j in range(3): rotation_angle[j]=-rotation_angle[j]
 
         infoPer[i] = []
@@ -651,7 +651,7 @@ def _addPeriodicInfo__(gcnodes,rotationCenter,rotationAngle,translation,signT,si
             if isinstance(donorNamePref, numpy.ndarray): donorNamePref = donorNamePref.tobytes().decode()
             if donorNamePref == dupname: # cas periodique
                 info[1] = donorName
-                rotationAngleS=[v*signR for v in rotationAngle]
+                rotationAngleS = [v*signR for v in rotationAngle]
                 translationS = [v*signT for v in translation]
                 C._addPeriodicInfoInGC__(info, rotationCenter, rotationAngleS, translationS, unitAngle=unitAngle)
     return None

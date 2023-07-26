@@ -8,12 +8,14 @@ import Transform.PyTree as T
 import Post.Probe as Probe
 import KCore.test as test
 
+LOCAL = test.getLocal()
+
 # Surface probe
 s = D.sphere((2.5,2.5,2.5), 1.)
 s = T.splitNParts(s, 2)
 
 # Create probe to store surface
-probe = Probe.Probe('probe.cgns', t=None, fields=['centers:F'], bufferSize=15)
+probe = Probe.Probe(LOCAL+'/probe.cgns', t=None, fields=['centers:F'], bufferSize=15)
 
 # Extractions
 for i in range(40):
@@ -23,7 +25,7 @@ for i in range(40):
 probe.flush()
 
 # Relecture par containers
-p2 = Probe.Probe('probe.cgns', fields=['centers:F'])
+p2 = Probe.Probe(LOCAL+'/probe.cgns', fields=['centers:F'])
 
 out = p2.readCont2(0, 'centers:F', [])
 out = p2.readCont2(1, 'centers:F', out)
