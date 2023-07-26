@@ -221,13 +221,13 @@ E_Int K_IO::GenIO::tecread(
 
   /* Verification des Versions */
   E_Int vers = numeralVersion(version);
-  if (vers == 75 || vers == 108 || vers == 112) { ; /* supported */ }
+  if (vers == 75 || vers == 101 || vers == 108 || vers == 112) { ; /* supported */ }
   else if (vers < 75) 
   { printf("Warning: tecread: the file version %d is not really supported. Trying to read with %d. ", vers, 75); vers = 75; }
   else if (vers < 100)
   { printf("Warning: tecread: the file version %d is not really supported. Trying to read with %d. ", vers, 75); vers = 75; }
   else if (vers < 108)
-  { printf("Warning: tecread: the file version %d is not really supported. Trying to read with %d. ", vers, 108); vers = 108; }
+  { printf("Warning: tecread: the file version %d is not really supported. Trying to read with %d. ", vers, 108); vers = 101; }
   else if (vers < 111)
   { printf("Warning: tecread: the file version %d is not really supported. Trying to read with %d. ", vers, 108); vers = 108; }
   else if (vers > 112)
@@ -269,6 +269,7 @@ E_Int K_IO::GenIO::tecread(
         }
         break;
         
+      case 101:
       case 108:
       case 111:
       case 112:
@@ -436,16 +437,17 @@ E_Int K_IO::GenIO::tecread(
         }
         break;
           
+        case 101:
         case 108:
         case 111:
         case 112:
         {
           if (_convertEndian == false)
-            readData108(ptrFile, 
+            readData108(vers, ptrFile, 
                         ni[zoneStruct], nj[zoneStruct], nk[zoneStruct], 
                         dataPacking, loc, f, fc);
           else
-            readData108CE(ptrFile, 
+            readData108CE(vers, ptrFile, 
                           ni[zoneStruct], nj[zoneStruct], nk[zoneStruct], 
                           dataPacking, loc, f, fc);
         }
@@ -473,17 +475,19 @@ E_Int K_IO::GenIO::tecread(
             readData75CE(ptrFile, dataPacking, fp, c1);
         } 
         break;
+
+        case 101:
         case 108:
         case 111:
         case 112:
           if (_convertEndian == false)
-            readData108(ptrFile, dataPacking, loc, etl[zone], 
+            readData108(vers, ptrFile, dataPacking, loc, etl[zone], 
                         numFacesl[zoneUnstruct], numFaceNodesl[zoneUnstruct],
                         numBoundaryFacesl[zoneUnstruct],  
                         numBoundaryConnectionsl[zoneUnstruct],
                         neltsl[zoneUnstruct], rawlocal, f1, c1, fc);
           else
-            readData108CE(ptrFile, dataPacking, loc, etl[zone],
+            readData108CE(vers, ptrFile, dataPacking, loc, etl[zone],
                           numFacesl[zoneUnstruct], numFaceNodesl[zoneUnstruct],
                           numBoundaryFacesl[zoneUnstruct],  
                           numBoundaryConnectionsl[zoneUnstruct],
@@ -587,7 +591,7 @@ E_Int K_IO::GenIO::tecwrite(char* file, char* dataFmt, char* varString,
                             E_Int ni, E_Int nj, E_Int nk,
                             const FldArrayF& coord,
                             const FldArrayF& field,
-			    vector<char*>& zoneNames)
+                            vector<char*>& zoneNames)
 {
   assert(coord.getSize() == field.getSize());
   vector<E_Int> vni; vector<E_Int> vnj; vector<E_Int> vnk;

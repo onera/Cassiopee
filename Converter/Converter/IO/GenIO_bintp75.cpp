@@ -80,7 +80,7 @@ E_Int K_IO::GenIO::readZoneHeader75(FILE* ptrFile, E_Int& dim,
   }
   strcpy(zoneName, dummy);
   
-  /* Format of zone */
+  /* type of zone */
   fread(&ib, si, 1, ptrFile);
   fmt = ib;
   if (ib <= 1) dataPacking = ib;

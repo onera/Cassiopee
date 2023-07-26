@@ -181,17 +181,20 @@ E_Int K_IO::GenIO::readZoneHeader108(
   if (i == BUFSIZE) dummy[BUFSIZE] = '\0';
   strcpy(zoneName, dummy);
 
-  /* Parent zone: not used. */
-  fread(&ib, si, 1, ptrFile);
+  if (version > 101)
+  {
+    /* Parent zone: not used. */
+    fread(&ib, si, 1, ptrFile);
 
-  /* Strand id. */
-  fread(&ib, si, 1, ptrFile);
-  strand = ib;
+    /* Strand id. */
+    fread(&ib, si, 1, ptrFile);
+    strand = ib;
 
-  /* Solution time. */
-  fread(&t, sizeof(double), 1, ptrFile);
-  time = t;
-  
+    /* Solution time. */
+    fread(&t, sizeof(double), 1, ptrFile);
+    time = t;
+  }
+
   /* Zone color: not used. */
   fread(&ib, si, 1, ptrFile);
   
@@ -233,12 +236,15 @@ E_Int K_IO::GenIO::readZoneHeader108(
     }
   }
 
-  /* Raw local 1 to 1 face neighbors supplied: not supported. */
-  fread(&ib, si, 1, ptrFile);
-  if (ib != 0)
+  if (version > 101)
   {
-    printf("Warning: readZoneHeader: raw local faces not supported.\n");
-    rawlocal = 1;
+    /* Raw local 1 to 1 face neighbors supplied: not supported. */
+    fread(&ib, si, 1, ptrFile);
+    if (ib != 0)
+    {
+      printf("Warning: readZoneHeader: raw local faces not supported.\n");
+      rawlocal = 1;
+    }
   }
 
   /* Misc user defined faces: not supported. */
@@ -436,24 +442,26 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
   if (i == BUFSIZE) dummy[BUFSIZE] = '\0';
   strcpy(zoneName, dummy);
   
-  /* Parent zone: not used */
-  fread(&ib, si, 1, ptrFile);
+  if (version > 101)
+  {
+    /* Parent zone: not used */
+    fread(&ib, si, 1, ptrFile);
   
-  /* Strand id */
-  fread(&ib, si, 1, ptrFile);
-  strand = IBE(ib);
+    /* Strand id */
+    fread(&ib, si, 1, ptrFile);
+    strand = IBE(ib);
   
-  /* Solution time */
-  fread(&t, sizeof(double), 1, ptrFile);
-  time = DBE(t);
-  
+    /* Solution time */
+    fread(&t, sizeof(double), 1, ptrFile);
+    time = DBE(t);
+  }
+
   /* Zone color: not used */
   fread(&ib, si, 1, ptrFile);
   
   /* Zone type: checked */
   fread(&ib, si, 1, ptrFile);
   elt = IBE(ib);
-  
   if (elt < 0 || elt > 7)
   {
     printf("Warning: readZoneHeader: the element type is unknown.\n");
@@ -489,12 +497,15 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
     }
   }
 
-  /* Raw local: not supported */
-  fread(&ib, si, 1, ptrFile); ib = IBE(ib);
-  if (ib != 0)
+  if (version > 101)
   {
-    printf("Warning: readZoneHeader: raw local faces not supported.\n");
-    rawlocal = 1;
+    /* Raw local: not supported */
+    fread(&ib, si, 1, ptrFile); ib = IBE(ib);
+    if (ib != 0)
+    {
+      printf("Warning: readZoneHeader: raw local faces not supported.\n");
+      rawlocal = 1;
+    }
   }
 
   /* Misc user defined faces: not supported */
@@ -593,7 +604,8 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
    OUT: f: field read. Must be already dimensioned.
  */
 //=============================================================================
-E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
+E_Int K_IO::GenIO::readData108(E_Int version, FILE* ptrFile, 
+                               E_Int ni, E_Int nj, E_Int nk,
                                E_Int dataPacking, vector<E_Int>& loc,
                                FldArrayF* f, FldArrayF* fc)
 {
@@ -613,7 +625,8 @@ E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
     
   // Read zone separator
   fread(&a, sizeof(float), 1, ptrFile); // 299.
-
+  if (K_FUNC::fEqualZero(a - 299.) == false) return 1;
+  
   /* Type des variables */
   vector<int> varType(nfield);
   for (i = 0; i < nfield; i++)
@@ -624,15 +637,19 @@ E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
   }
 
   /* Passive variables */
-  fread(&ib, si, 1, ptrFile);
   E_Int* passive = new E_Int[nfield];
   for (E_Int i = 0; i < nfield; i++) passive[i] = 0;
-  if (ib != 0)
+
+  if (version > 101)
   {
-    for (E_Int i = 0; i < nfield; i++)
-    { 
-      fread(&ib, si, 1, ptrFile);
-      passive[i] = ib;
+    fread(&ib, si, 1, ptrFile);
+    if (ib != 0)
+    {
+      for (E_Int i = 0; i < nfield; i++)
+      { 
+        fread(&ib, si, 1, ptrFile);
+        passive[i] = ib;
+      }
     }
   }
 
@@ -651,13 +668,16 @@ E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
     printf("Warning: this file has sharing connectivity. Not supported.\n");
   }
 
-  /* Min-Max since no sharing and no passive. */
-  for (n = 0; n < nfield; n++)
+  if (version > 101)
   {
-    if (passive[n] == 0)
+    /* Min-Max since no sharing and no passive. */
+    for (n = 0; n < nfield; n++)
     {
-      fread(&t, sizeof(double), 1, ptrFile);
-      fread(&t, sizeof(double), 1, ptrFile);
+      if (passive[n] == 0)
+      {
+        fread(&t, sizeof(double), 1, ptrFile);
+        fread(&t, sizeof(double), 1, ptrFile);
+      }
     }
   }
 
@@ -825,6 +845,7 @@ E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
  */
 //=============================================================================
 E_Int K_IO::GenIO::readData108(
+  E_Int version,
   FILE* ptrFile,
   E_Int dataPacking, vector<E_Int>& loc, E_Int et,
   E_Int numFaces, E_Int numFaceNodes,
@@ -833,8 +854,8 @@ E_Int K_IO::GenIO::readData108(
   FldArrayF* f, FldArrayI& c, FldArrayF* fc)
 {
   float a;
-  int ib;
   double t;
+  int ib;
   E_Int i, n;
   E_Int sizer = 8;
   E_Int nfield = loc.size();
@@ -851,7 +872,6 @@ E_Int K_IO::GenIO::readData108(
     
   // Read zone separator
   fread(&a, sizeof(float), 1, ptrFile); // 299.
-
   if (K_FUNC::fEqualZero(a - 299.) == false) return 1;
 
   /* Type des variables */
@@ -864,15 +884,19 @@ E_Int K_IO::GenIO::readData108(
   }
 
   /* Passive variables */
-  fread(&ib, si, 1, ptrFile);
   E_Int* passive = new E_Int[nfield];
   for (E_Int i = 0; i < nfield; i++) passive[i] = 0;
-  if (ib != 0)
+  
+  if (version > 101)
   {
-    for (E_Int i = 0; i < nfield; i++)
+    fread(&ib, si, 1, ptrFile);
+    if (ib != 0)
     {
-      fread(&ib, si, 1, ptrFile);
-      passive[i] = ib;
+      for (E_Int i = 0; i < nfield; i++)
+      {
+        fread(&ib, si, 1, ptrFile);
+        passive[i] = ib;
+      }
     }
   }
 
@@ -891,13 +915,16 @@ E_Int K_IO::GenIO::readData108(
     printf("Warning: this file has sharing connectivity. Not supported.\n");
   }
 
-  /* Min-Max for no sharing and no passive. */
-  for (n = 0; n < nfield; n++)
+  if (version > 101)
   {
-    if (passive[n] == 0)
+    /* Min-Max for no sharing and no passive. */
+    for (n = 0; n < nfield; n++)
     {
-      fread(&t, sizeof(double), 1, ptrFile);
-      fread(&t, sizeof(double), 1, ptrFile);
+      if (passive[n] == 0)
+      {
+        fread(&t, sizeof(double), 1, ptrFile);
+        fread(&t, sizeof(double), 1, ptrFile);
+      }
     }
   }
 
@@ -1058,10 +1085,10 @@ E_Int K_IO::GenIO::readData108(
     for (n = 0; n < nelts; n++)
     {
       fread(buf2, si, eltType, ptrFile);
-      for (i = 0; i < eltType; i++)
-      {
-        c(n, i+1) = buf2[i]+1; // la numerotation a change en version 108!
-      }
+      if (version <= 101)
+      { for (i = 0; i < eltType; i++) c(n, i+1) = buf2[i]; }
+      else // la numerotation a change en version 108!
+      { for (i = 0; i < eltType; i++) c(n, i+1) = buf2[i]+1; }
     }
     delete [] buf2;
   }
@@ -1172,7 +1199,8 @@ E_Int K_IO::GenIO::readData108(
    OUT: f: field read. Must be already dimensioned.
  */
 //=============================================================================
-E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
+E_Int K_IO::GenIO::readData108CE(E_Int version, FILE* ptrFile, 
+                                 E_Int ni, E_Int nj, E_Int nk,
                                  E_Int dataPacking, vector<E_Int>& loc,
                                  FldArrayF* f, FldArrayF* fc)
 {
@@ -1192,6 +1220,8 @@ E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
   
   // Read zone separator
   fread(&a, sizeof(float), 1, ptrFile); // 299.
+  a = FBE(a);
+  if (K_FUNC::fEqualZero(a - 299.) == false) return 1;
 
   /* Type des variables */
   vector<int> varType(nfield);
@@ -1204,15 +1234,18 @@ E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
   }
 
   /* Passive variables */
-  fread(&ib, si, 1, ptrFile); ib = IBE(ib);
   E_Int* passive = new E_Int[nfield];
   for (E_Int i = 0; i < nfield; i++) passive[i] = 0;
-  if (ib != 0)
+  if (version > 101)
   {
-    for (E_Int i = 0; i < nfield; i++) 
+    fread(&ib, si, 1, ptrFile); ib = IBE(ib);
+    if (ib != 0)
     {
-      fread(&ib, si, 1, ptrFile);
-      passive[i] = IBE(ib);
+      for (E_Int i = 0; i < nfield; i++) 
+      {
+        fread(&ib, si, 1, ptrFile);
+        passive[i] = IBE(ib);
+      }
     }
   }
 
@@ -1231,13 +1264,16 @@ E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
     printf("Warning: this file has sharing connectivity. Not supported.\n");
   }
 
-  /* Min-Max since no sharing and no passive. */
-  for (n = 0; n < nfield; n++)
+  if (version > 101)
   {
-    if (passive[n] == 0)
+    /* Min-Max since no sharing and no passive. */
+    for (n = 0; n < nfield; n++)
     {
-      fread(&t, sizeof(double), 1, ptrFile);
-      fread(&t, sizeof(double), 1, ptrFile);
+      if (passive[n] == 0)
+      {
+        fread(&t, sizeof(double), 1, ptrFile);
+        fread(&t, sizeof(double), 1, ptrFile);
+      }
     }
   }
 
@@ -1400,7 +1436,7 @@ E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
  */
 //=============================================================================
 E_Int K_IO::GenIO::readData108CE(
-  FILE* ptrFile,
+  E_Int version, FILE* ptrFile,
   E_Int dataPacking, vector<E_Int>& loc, E_Int et,
   E_Int numFaces, E_Int numFaceNodes,
   E_Int numBoundaryFaces, E_Int numBoundaryConnections,
@@ -1408,8 +1444,8 @@ E_Int K_IO::GenIO::readData108CE(
   FldArrayF* f, FldArrayI& c, FldArrayF* fc)
 {
   float a;
-  int ib;
   double t;
+  int ib;
   E_Int i, n;
   E_Int sizer = 8;
   E_Int nfield = loc.size();
@@ -1420,42 +1456,37 @@ E_Int K_IO::GenIO::readData108CE(
   E_Int nelts = c.getSize();
   E_Int eltType = c.getNfld();
   E_Int si = sizeof(int);
-    
+  
   vector<E_Int> beginNodes; vector<E_Int> beginCenters;
   getBeginFromLoc(loc, beginNodes, beginCenters);
   
   // Read zone separator
   fread(&a, sizeof(float), 1, ptrFile); // 299.
   a = FBE(a);
-
-  if (K_FUNC::fEqualZero(a - 799.) == true)
-  {
-    // 799 means undocumented Aux data zone : discarded
-    while (a != 299.)
-      fread(&a, sizeof(float), 1, ptrFile);
-  }
-  if (K_FUNC::fEqualZero(a - 299.) == false)
-    return 1;
+  if (K_FUNC::fEqualZero(a - 299.) == false) return 1;
 
   /* Type des variables */
   vector<int> varType(nfield);
   for (i = 0; i < nfield; i++)
   {
-    fread(&ib, si, 1, ptrFile); ib = IBE(ib); // variables type
+    fread(&ib, si, 1, ptrFile); ib = IBE(ib); // variable type
     if (ib == 1) sizer = 4;
     varType[i] = ib;
   }
-
-  /* Passive variables */
-  fread(&ib, si, 1, ptrFile); ib = IBE(ib);
+  
   E_Int* passive = new E_Int[nfield];
   for (E_Int i = 0; i < nfield; i++) passive[i] = 0;
-  if (ib != 0)
+  if (version > 101)
   {
-    for (E_Int i = 0; i < nfield; i++) 
+    /* Passive variables */
+    fread(&ib, si, 1, ptrFile); ib = IBE(ib);
+    if (ib != 0)
     {
-      fread(&ib, si, 1, ptrFile);
-      passive[i] = IBE(ib);
+      for (E_Int i = 0; i < nfield; i++) 
+      {
+        fread(&ib, si, 1, ptrFile);
+        passive[i] = IBE(ib);
+      }
     }
   }
 
@@ -1474,13 +1505,16 @@ E_Int K_IO::GenIO::readData108CE(
     printf("This file has sharing connectivity. Not supported.\n");
   }
 
-  /* Min-Max since no sharing and no passive. */
-  for (n = 0; n < nfield; n++)
+  if (version > 101)
   {
-    if (passive[n] == 0)
+    /* Min-Max since no sharing and no passive. */
+    for (n = 0; n < nfield; n++)
     {
-      fread(&t, sizeof(double), 1, ptrFile);
-      fread(&t, sizeof(double), 1, ptrFile);
+      if (passive[n] == 0)
+      {
+        fread(&t, sizeof(double), 1, ptrFile);
+        fread(&t, sizeof(double), 1, ptrFile);
+      }
     }
   }
 
@@ -1491,7 +1525,7 @@ E_Int K_IO::GenIO::readData108CE(
     for (n = 0; n < nfield; n++)
     {
       float* buf1=NULL; double* buf2=NULL; int64_t* buf3=NULL;
-      int32_t* buf4=NULL; int8_t* buf5=NULL; 
+      int32_t* buf4=NULL; int8_t* buf5=NULL;
       E_Float* fp;
       if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
       else { size = npts; fp = f->begin(beginNodes[n]); }
@@ -1638,7 +1672,10 @@ E_Int K_IO::GenIO::readData108CE(
     for (n = 0; n < nelts; n++)
     {
       fread(&buf2[0], si, eltType, ptrFile);
-      for (i = 0; i < eltType; i++) c(n, i+1) = IBE(buf2[i])+1;
+      if (version <= 101)
+      { for (i = 0; i < eltType; i++) c(n, i+1) = IBE(buf2[i]); }
+      else  // la numerotation a change en version 108!
+      { for (i = 0; i < eltType; i++) c(n, i+1) = IBE(buf2[i])+1; }
     }
     if (rawlocal == 1)
     {
@@ -1746,7 +1783,7 @@ E_Int K_IO::GenIO::readData108CE(
     }
   }
 
-  if (sizer == 8 && dataPacking == 0) convertEndianField(*f);
+  //if (sizer == 8 && dataPacking == 0) convertEndianField(*f);
   return 0;
 }
 

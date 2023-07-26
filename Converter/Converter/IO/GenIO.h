@@ -799,19 +799,19 @@ class GenIO
       std::vector<E_Int>& loc,
       std::vector<FldArrayF*>& geom);
     /* bin_tp: read data */
-    E_Int readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
+    E_Int readData108(E_Int version, FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
                       E_Int dataPacking, std::vector<E_Int>& loc,
                       FldArrayF* f, FldArrayF* fc);
-    E_Int readData108(FILE* ptrFile,
+    E_Int readData108(E_Int version, FILE* ptrFile,
                       E_Int dataPacking, std::vector<E_Int>& loc, E_Int et,
                       E_Int numFaces, E_Int numFaceNodes,
                       E_Int numBoundaryFaces, E_Int numBoundaryConnections,
                       E_Int ne, E_Int rawlocal,
                       FldArrayF* f, FldArrayI& c, FldArrayF* fc);
-    E_Int readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
+    E_Int readData108CE(E_Int version, FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
                         E_Int dataPacking, std::vector<E_Int>& loc,
                         FldArrayF* f, FldArrayF* fc);
-    E_Int readData108CE(FILE* ptrFile,
+    E_Int readData108CE(E_Int version, FILE* ptrFile,
                         E_Int dataPacking, std::vector<E_Int>& loc, E_Int et,
                         E_Int numFaces, E_Int numFaceNodes,
                         E_Int numBoundaryFaces, E_Int numBoundaryConnections,
