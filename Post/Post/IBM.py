@@ -931,8 +931,8 @@ def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref
             print("Info: loads: get CD/CL on base %s"%(baseNames[c]))
             [res, res2, [clp, cdp], [clf, cdf]] = _loads0(tp, Sref=Sref, Pref=None, Qref=None, alpha=alpha, beta=beta, dimPb=dimPb, verbose=True)
 
-            CD.append(clp+cdp)
-            CL.append(clf+cdf)
+            CD.append(cdp+cdf)
+            CL.append(clp+clf)
 
             if dimPb == 2: # reextrait en 2D
                 tp = P.isoSurfMC(tp, "CoordinateZ", 0.)
@@ -946,7 +946,7 @@ def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref
             base[2] += Internal.getZones(tp)
 
     if isinstance(wall_out, str): C.convertPyTree2File(ts, wall_out)
-    return ts, CD, CL
+    return ts, CL, CD
 
 ##################
 # WORK IN PROGRESS
