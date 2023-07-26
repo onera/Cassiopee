@@ -9939,7 +9939,7 @@ class GraphTK(TK.Toplevel):
         self.parent.selectGraphByName(self.name)
         
     # ----------------------------------------------------------------- soleName
-    def soleName(self,name):
+    def soleName(self, name):
         graphNameList = [g.name for g in self.parent.graphWdwL]
         if not name in graphNameList:
             return name
@@ -15636,7 +15636,7 @@ def getPlotTree(t):
             elif dim[0] == 'Unstructured' and dim[3] == 'BAR':
                 zps = T.splitConnexity(z)
                 zps = C.convertBAR2Struct(zps)
-                if len(zps) == 0:
+                if len(zps) == 1:
                     i = zps[0]
                     i[0] = zname
                     i = C.center2Node(i, Internal.__FlowSolutionCenters__)

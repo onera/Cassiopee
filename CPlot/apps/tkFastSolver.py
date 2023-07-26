@@ -9,7 +9,7 @@ import CPlot.Tk as CTK
 import Converter.Internal as Internal
 import Fast.PyTree as Fast
 import CPlot.iconics as iconics
-import numpy
+import math
 
 # local widgets list
 WIDGETS = {}; VARS = []
@@ -432,19 +432,20 @@ def compute(nrun):
     return None
 
 #===================================================================
-# Retourne l'angle d'attaque a partir du refstate
+# Retourne l'angle d'attaque a partir du refstate (en degres)
 #===================================================================
 def getAlphaAngle(t):
-    refState = Internal.getNodeFromName1(t, 'ReferenceState')
+    refState = Internal.getNodeFromName2(t, 'ReferenceState')
     alpha = 0.
     if refState is not None:
         vx = Internal.getNodeFromName1(refState, 'VelocityX')
+        vx = Internal.getValue(vx)
         vy = Internal.getNodeFromName1(refState, 'VelocityY')
-        if abs(vx) < 1.e-6 and abs(vy) < 1.e-6: alpha = 0.
-        elif abs(vx) < 1.e-6 and vy > 0: alpha = 90.
-        elif abs(vx) < 1.e-6 and vy < 0: alpha = -90.
-        else: alpha = numpy.atan(vy/vx)
-    print('alpha=', alpha)
+        vy = Internal.getValue(vy)
+        if abs(vx) < 1.e-12 and abs(vy) < 1.e-12: alpha = 0.
+        elif abs(vx) < 1.e-12 and vy > 0: alpha = 90.
+        elif abs(vx) < 1.e-12 and vy < 0: alpha = -90.
+        else: alpha = math.atan2(vy, vx)*180./math.pi
     return alpha
 
 #========================================================================
