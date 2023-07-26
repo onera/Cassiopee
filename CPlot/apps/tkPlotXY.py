@@ -9902,9 +9902,7 @@ class GraphTK(TK.Toplevel):
                     z = zoneNames[0] # only first one
                     vars = data[z]   # dict
                     varlist = list(vars.keys())
-                    print(varlist)
                     varlist = [var for var in varlist if var not in varyExcludes]
-                    print(varlist)
                 for n, v in enumerate(varlist):
                     if c.vary == v:
                         if n < len(varlist)-1: c.setValue('vary', varlist[n+1])

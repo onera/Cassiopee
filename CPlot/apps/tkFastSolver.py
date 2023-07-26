@@ -263,7 +263,7 @@ def run(event=None):
 
     # Launch computations of nit iterations
     for n in range(nruns):
-        compute()
+        compute(n)
         # stop if NAN to enable previous
         isfinite = C.isFinite(CTK.t)
         if not isfinite:
@@ -337,7 +337,7 @@ def prepare(tinit=None):
 #==============================================================================
 # Lance des iterations
 #==============================================================================
-def compute():
+def compute(nrun):
     if CTK.t == []: return
 
     import Apps.Fast.IBM as App
@@ -378,6 +378,7 @@ def compute():
     })
 
     nit = VARS[9].get() # nbre d'iterations a faire
+    nruns = VARS[15].get() # nbre de runs a faire
     moduloVerif = 50
 
     # sometimes we need to enlarge FastC.MX_OMP_SIZE_INT
@@ -403,7 +404,7 @@ def compute():
         FastS._compute(CTK.t, metrics, it, tc, graph)
         time0 += time_step
         if it%50 == 0:
-            CTK.TXT.insert('START', '%d / %d - %f\n'%(it+it0,it0+nit,time0))
+            CTK.TXT.insert('START', '%d / %d - %f\n'%(it0+it,it0+nit*(nruns-nrun),time0))
             CTK.TXT.update()
         if it%moduloVerif == 0:
             FastS.display_temporal_criteria(CTK.t, metrics, it, format='single', stopAtNan=False)

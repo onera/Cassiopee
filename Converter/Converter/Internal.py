@@ -4662,8 +4662,8 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
 #==============================================================================
 # Remet des elements a un NGon
 #==============================================================================
-# methodPE = 0 : methode geometrique pour generer le ParentElement (pour un maillage relativement regulier, sans cellules concaves).
-# methodPE = 1 : methode topologique (pour un maillage quelconque).
+# methodPE = 0: methode geometrique pour generer le ParentElement (pour un maillage relativement regulier, sans cellules concaves).
+# methodPE = 1: methode topologique (pour un maillage quelconque).
 def _unfixNGon(t, methodPE=0):
     from . import PyTree; import Transform.PyTree as T
     zones = getZones(t)
