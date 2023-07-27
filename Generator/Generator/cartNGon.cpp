@@ -367,11 +367,11 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
 #pragma omp parallel
   {
     #pragma omp for
-    for (E_Int i = 0; i < nfaces; i++) indPG[i] = (4+shift)*i;
+    for (E_Int i = 0; i < nfaces; i++) indPG[i] = (pow(2,dim0-1)+shift)*i;
     #pragma omp for
-    for (E_Int i = 0; i < ncells; i++) indPH[i] = (6+shift)*i;  
+    for (E_Int i = 0; i < ncells; i++) indPH[i] = (2*dim0+shift)*i;  
   }
-  if (api == 3) { indPG[nfaces] = 4*nfaces; indPH[ncells] = 6*ncells; }
+  if (api == 3) { indPG[nfaces] = pow(2,dim0-1)*nfaces; indPH[ncells] = 2*dim0*ncells; }
   }
   //RELEASESHAREDU(tpl, f, cn);
   delete f; delete cn;
