@@ -781,10 +781,12 @@ def saveTreeFromFilter(filename, dist_tree, comm, hdf_filter):
 #========================================================
 # resume
 #========================================================
-#distTree = Part.loadCollectiveSizeTree(inputfile)
-#Part._addDistributionInfo(distTree)
-#hdf_filter = {}
-#Part.createTreeHdfFilter(distTree, hdf_filter)
-##skip_type_ancestors = [["Zone_t", "FlowSolution#EndOfRun", "Momentum*"],
-##                       ["Zone_t", "ZoneSubRegion_t", "Velocity*"]]
-#Part.loadTreeFromFilter(inputfile, distTree, Cmpi.KCOMM, hdf_filter)
+def load(fileName):
+    distTree = loadCollectiveSizeTree(fileName)
+    _addDistributionInfo(distTree)
+    hdf_filter = {}
+    createTreeHdfFilter(distTree, hdf_filter)
+    #skip_type_ancestors = [["Zone_t", "FlowSolution#EndOfRun", "Momentum*"],
+    #                       ["Zone_t", "ZoneSubRegion_t", "Velocity*"]]
+    loadTreeFromFilter(fileName, distTree, Cmpi.KCOMM, hdf_filter)
+    return distTree

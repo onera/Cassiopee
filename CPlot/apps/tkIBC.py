@@ -89,21 +89,20 @@ def ViewUndefinedIBC():
                 i   = CPlot.getCPlotNumber(CTK.t, b[0], zone[0])
                 ZoneLocal.append((i,0))
             else:
-                val             = -1000
-                VARSlocal       = min(val,VARSlocal)
-                ZoneLocalString+=zone[0]+','
-                
+                val = -1000
+                VARSlocal = min(val,VARSlocal)
+                ZoneLocalString += zone[0]+','
 
-    if VARSlocal<0:
+    if VARSlocal < 0:
         #VARS[6].set(ZoneLocalString[:-1])
-        TTK.setButtonRed(WIDGETS['View Undefined IBC'])
+        TTK.setButtonRed(WIDGETS['ViewUndefinedIBC'])
         
-    if VARSlocal>0:
+    if VARSlocal > 0:
         #VARS[6].set(ZoneLocalString[:])
-        TTK.setButtonGreen(WIDGETS['View Undefined IBC'])
+        TTK.setButtonGreen(WIDGETS['ViewUndefinedIBC'])
     
     CPlot.setActiveZones(ZoneLocal)
-    WIDGETS['View Undefined IBC'].update()
+    WIDGETS['ViewUndefinedIBC'].update()
     CPlot.setState(ghostifyDeactivatedZones=1)
                 
 #==============================================================================
@@ -130,12 +129,12 @@ def updateIBCNameList(event=None):
     lb = WIDGETS['IBCLB']
     lb.focus_set()
     varsbc = ['-All IBC-']+ViewAllDefinedIBC(CTK.t)
-    #if len(varsbc) == lb.size(): return # un peu brutal
-
+    
     # Remplace tous les elements
     lb.delete(0, TK.END)
     for i, value in enumerate(['-All IBC-']+ViewAllDefinedIBC(CTK.t)): lb.insert(i, value)
     return lb
+
 #==============================================================================
 # View specific IBC
 #==============================================================================
@@ -152,11 +151,10 @@ def ViewIBC(event=None):
     for s in selection:
         t = WIDGETS['IBCLB'].get(s)
         IBCTypes.append(t)
-    
         
-    nzs             = Internal.getNodesFromType2(CTK.t, 'Zone_t')
-    ZoneLocal       = []
-    bases           = CTK.t[2][1:]
+    nzs = Internal.getNodesFromType2(CTK.t, 'Zone_t')
+    ZoneLocal = []
+    bases = CTK.t[2][1:]
     for b in bases:
         for zone in Internal.getZones(b):            
             n = Internal.getNodeFromPath(zone, '.Solver#define/ibctype')
@@ -164,10 +162,10 @@ def ViewIBC(event=None):
             if n is not None:
                 val = Internal.getValue(n)
                 if val not in IBCTypes and '-All IBC-' not in IBCTypes:
-                    i   = CPlot.getCPlotNumber(CTK.t, b[0], zone[0])
+                    i = CPlot.getCPlotNumber(CTK.t, b[0], zone[0])
                     ZoneLocal.append((i,0))
             else:
-                i   = CPlot.getCPlotNumber(CTK.t, b[0], zone[0])
+                i = CPlot.getCPlotNumber(CTK.t, b[0], zone[0])
                 ZoneLocal.append((i,0))
     CPlot.setActiveZones(ZoneLocal)
     CPlot.setState(ghostifyDeactivatedZones=1)
@@ -292,25 +290,25 @@ def createApp(win):
     B.grid(row=4, column=0, sticky=TK.EW)
     B = TTK.Checkbutton(Frame, text='Wall Fields', variable=VARS[4])
     BB = CTK.infoBulle(parent=B, text='Extract various fields on surface.')
-    B.grid(row=4, column=1, sticky=TK.EW)
+    B.grid(row=4, column=1, columnspan=2, sticky=TK.EW)
 
     # - Extract loads on components
     B = TTK.Label(Frame, text="Extract")
     B.grid(row=5, column=0, sticky=TK.EW)
     B = TTK.Checkbutton(Frame, text='Loads', variable=VARS[5])
     BB = CTK.infoBulle(parent=B, text='Extract loads for each component.')
-    B.grid(row=5, column=1, sticky=TK.EW)
+    B.grid(row=5, column=1, columnspan=2, sticky=TK.EW)
 
     # - Set data -
     B = TTK.Button(Frame, text="Set data", command=setData)
     BB = CTK.infoBulle(parent=B, text='Set data into selected zone.')
-    B.grid(row=6, column=0, columnspan=2, sticky=TK.EW)
+    B.grid(row=6, column=0, columnspan=1, sticky=TK.EW)
 
     # - Get data -
     B = TTK.Button(Frame, text="Get data", command=getData,
                    image=iconics.PHOTO[8], padx=0, pady=0, compound=TK.RIGHT)
     BB = CTK.infoBulle(parent=B, text='Get data from selected zone.')
-    B.grid(row=6, column=2, sticky=TK.EW)
+    B.grid(row=6, column=1, columnspan=2, sticky=TK.EW)
 
     # - View type de IBC -
     B = TTK.Button(Frame, text="View IBC", command=ViewIBC)
@@ -325,7 +323,7 @@ def createApp(win):
     LBFrame.columnconfigure(0, weight=1)
     LBFrame.columnconfigure(1, weight=0)
     SB  = TTK.Scrollbar(LBFrame)
-    LB  = TTK.Listbox(LBFrame, selectmode=TK.EXTENDED, height=6)
+    LB  = TTK.Listbox(LBFrame, selectmode=TK.EXTENDED, height=5)
     LB.bind('<Double-1>', ViewIBC)
     LB.bind('<Enter>', updateIBCNameList)
     for i, value in enumerate(['-All IBC-']+ViewAllDefinedIBC(CTK.t)): LB.insert(i, value)
@@ -336,8 +334,8 @@ def createApp(win):
     WIDGETS['IBCLB'] = LB
 
     # - View Undefined IBC data -
-    B = TTK.Button(Frame, text="View Undefined IBC", command=ViewUndefinedIBC)
-    WIDGETS['View Undefined IBC'] = B
+    B = TTK.Button(Frame, text="View Undefined\n     IBC", command=ViewUndefinedIBC)
+    WIDGETS['ViewUndefinedIBC'] = B
     BB = CTK.infoBulle(parent=B, text='View Undefined IBC.')
     B.grid(row=8, column=0, sticky=TK.EW)
 
@@ -349,7 +347,6 @@ def createApp(win):
     #B.grid(row=8, column=1, columnspan=2, sticky=TK.EW)
 
     
-
 #==============================================================================
 # Called to display widgets
 #==============================================================================

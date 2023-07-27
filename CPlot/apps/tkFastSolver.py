@@ -381,9 +381,9 @@ def compute(nrun):
     nruns = VARS[15].get() # nbre de runs a faire
     moduloVerif = 50
 
-    # sometimes we need to enlarge FastC.MX_OMP_SIZE_INT
-    #import FastC.PyTree as FastC
-    #FastC.MX_OMP_SIZE_INT = XXX
+    # Force recalculation of MX_OMP_SIZE_INT if temporal scheme changed
+    import FastC.PyTree as FastC
+    FastC.MX_OMP_SIZE_INT = -1
 
     # open compute
     CTK.t, tc, ts, metrics, graph = myApp.setup('restart.cgns', 'tc.cgns')
