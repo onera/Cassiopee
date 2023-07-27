@@ -7,7 +7,7 @@ from . import Internal
 from . import PyTree as C
 import numpy
 
-# last is 77
+# last is 78
 CGNSTypes = {
     'CGNSTree_t':72,
     'CGNSLibraryVersion_t':1,
@@ -79,6 +79,7 @@ CGNSTypes = {
     'IntegralData_t':45,
     'ReferenceState_t':46,
     'SimulationType_t':47,
+    'EquationDimension_t':78,
   
     'ArbitraryGridMotion_t':49,
     'RigidGridMotion_t':55,
@@ -682,16 +683,14 @@ def checkOppositRanges(t, ntype):
                 prange = Internal.getNodesFromName1(n, 'PointRange')
                 prangedonor = Internal.getNodesFromName2(n, 'PointRangeDonor')#NearMatch : necessaire d aller au niveau 2
                 mtype = Internal.getNodeFromName1(n, 'GridConnectivityType')
-                if mtype is not None:
-                    mtype = mtype[1]
-                    if isinstance(mtype, numpy.ndarray): mtype = mtype.tobytes().decode()
+                if mtype is not None: mtype = Internal.getValue(mtype)
                 else: mtype = 'Match'
                 zdonorname = Internal.getValue(n)
                 zdonor = Internal.getNodesFromName2(t, zdonorname)
                 if zdonor == []:
                     errors += [n, bc, "Donor zone %s of BC %s (zone %s) does not exist."%(zdonorname,n[0],z[0])]
                 else:
-                    if mtype != 'Overset' and prange != []:
+                    if mtype != 'Overset' and prange != [] and prangedonor != []:
                         for z in zdonor:
                             if z[3] == 'Zone_t': zdonor = z; break
                         # Verifie que le donneur est dans la meme base (trop cher)
@@ -709,13 +708,9 @@ def checkOppositRanges(t, ntype):
                                 prangeopp = Internal.getNodesFromName1(nopp, 'PointRange')
                                 prangedonoropp = Internal.getNodesFromName2(nopp, 'PointRangeDonor') # NearMatch: necessaire d'aller au niveau 2
                                 mtypeopp = Internal.getNodeFromName1(nopp, 'GridConnectivityType')
-                                if mtypeopp is not None:
-                                    mtypeopp = mtypeopp[1]
-                                    if isinstance(mtypeopp, numpy.ndarray): mtypeopp = mtypeopp.tobytes().decode()
+                                if mtypeopp is not None: mtypeopp = Internal.getValue(mtypeopp)
                                 else: mtypeopp = 'Match'
-                                zoppdonorname = nopp[1]
-                                if isinstance(zoppdonorname, numpy.ndarray): 
-                                    zoppdonorname = zoppdonorname.tobytes().decode()
+                                zoppdonorname = Internal.getValue(nopp)
                                 if zoppdonorname == zname and mtype == mtypeopp:
                                     # current zone
                                     rangez = Internal.range2Window(prange[0][1]) 
