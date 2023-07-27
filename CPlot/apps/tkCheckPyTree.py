@@ -53,8 +53,14 @@ def runCheckPyTree():
         if len(minBlk)>0:
             errors = Internal.checkSize(CTK.t, sizeMax=minBlk[0])
         
-    if len(errors) == 0: errors = [0, 'No error found.']
-    Panels.displayErrors(errors, header='Checking pyTree')
+    if len(errors) == 0: 
+        TTK.setButtonGreen(WIDGETS['CheckPyTree'])
+        errors = [0, 'No error found.']
+    else:
+        TTK.setButtonRed(WIDGETS['CheckPyTree'])
+        Panels.displayErrors(errors, header='Checking pyTree')
+    
+    WIDGETS['CheckPyTree'].update()
     CTK.TXT.insert('START', 'pyTree checked.\n')
 
 #==============================================================================
@@ -161,7 +167,8 @@ def createApp(win):
     B.grid(row=1, column=0, columnspan=8, sticky=TK.EW)
 
     # - Buttons -
-    B = TTK.Button(Frame, text="Check", command=runCheckPyTree)
+    B = TTK.Button(Frame, text="Check pyTree", command=runCheckPyTree)
+    WIDGETS['CheckPyTree'] = B
     B.grid(row=2, column=0, columnspan=4, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Check pyTree.')
     B = TTK.Button(Frame, text="Correct", command=correctPyTree)
