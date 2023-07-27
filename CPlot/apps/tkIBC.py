@@ -121,6 +121,22 @@ def ViewAllDefinedIBC(t):
     return natives
                 
 #==============================================================================
+# Automatic update of all defined IBC
+#==============================================================================
+# Pour list box
+def updateIBCNameList(event=None):
+    if CTK.t == []: return
+
+    lb = WIDGETS['IBCLB']
+    lb.focus_set()
+    varsbc = ['-All IBC-']+ViewAllDefinedIBC(CTK.t)
+    #if len(varsbc) == lb.size(): return # un peu brutal
+
+    # Remplace tous les elements
+    lb.delete(0, TK.END)
+    for i, value in enumerate(['-All IBC-']+ViewAllDefinedIBC(CTK.t)): lb.insert(i, value)
+    return lb
+#==============================================================================
 # View specific IBC
 #==============================================================================
 def ViewIBC(event=None):
@@ -296,11 +312,34 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Get data from selected zone.')
     B.grid(row=6, column=2, sticky=TK.EW)
 
+    # - View type de IBC -
+    B = TTK.Button(Frame, text="View IBC", command=ViewIBC)
+    B.grid(row=7, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B,
+                       text='View specified IBC.\nTree is NOT modified.')
+
+    # - Type of IBC - ListBox Frame -
+    LBFrame = TTK.Frame(Frame)
+    LBFrame.grid(row=7, column=1, rowspan=4, columnspan=2, sticky=TK.EW)
+    LBFrame.rowconfigure(0, weight=1)
+    LBFrame.columnconfigure(0, weight=1)
+    LBFrame.columnconfigure(1, weight=0)
+    SB  = TTK.Scrollbar(LBFrame)
+    LB  = TTK.Listbox(LBFrame, selectmode=TK.EXTENDED, height=6)
+    LB.bind('<Double-1>', ViewIBC)
+    LB.bind('<Enter>', updateIBCNameList)
+    for i, value in enumerate(['-All IBC-']+ViewAllDefinedIBC(CTK.t)): LB.insert(i, value)
+    SB.config(command = LB.yview)
+    LB.config(yscrollcommand = SB.set)
+    LB.grid(row=0, column=0, sticky=TK.NSEW)
+    SB.grid(row=0, column=1, sticky=TK.NSEW)
+    WIDGETS['IBCLB'] = LB
+
     # - View Undefined IBC data -
     B = TTK.Button(Frame, text="View Undefined IBC", command=ViewUndefinedIBC)
     WIDGETS['View Undefined IBC'] = B
     BB = CTK.infoBulle(parent=B, text='View Undefined IBC.')
-    B.grid(row=7, column=0, columnspan=4, sticky=TK.EW)
+    B.grid(row=8, column=0, sticky=TK.EW)
 
     ## - Zones that are missing IBC info  -
     #B = TTK.Label(Frame, text="No IBC (Zones)")
@@ -309,28 +348,7 @@ def createApp(win):
     #B = TTK.Entry(Frame, textvariable=VARS[6], width=4, background="White")
     #B.grid(row=8, column=1, columnspan=2, sticky=TK.EW)
 
-    # - View type de BC -
-    B = TTK.Button(Frame, text="View BC", command=ViewIBC)
-    B.grid(row=9, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B,
-                       text='View specified IBC.\nTree is NOT modified.')
-
-    # - Type of BC - ListBox Frame -
-    LBFrame = TTK.Frame(Frame)
-    LBFrame.grid(row=9, column=1, rowspan=4, columnspan=3, sticky=TK.EW)
-    LBFrame.rowconfigure(0, weight=1)
-    LBFrame.columnconfigure(0, weight=1)
-    LBFrame.columnconfigure(1, weight=0)
-    SB  = TTK.Scrollbar(LBFrame)
-    LB  = TTK.Listbox(LBFrame, selectmode=TK.EXTENDED, height=6)
-    LB.bind('<Double-1>', ViewIBC)
-    #LB.bind('<Enter>', updateBCNameList)
-    for i, value in enumerate(['-All IBC-']+ViewAllDefinedIBC(CTK.t)): LB.insert(i, value)
-    SB.config(command = LB.yview)
-    LB.config(yscrollcommand = SB.set)
-    LB.grid(row=0, column=0, sticky=TK.NSEW)
-    SB.grid(row=0, column=1, sticky=TK.NSEW)
-    WIDGETS['IBCLB'] = LB
+    
 
 #==============================================================================
 # Called to display widgets
