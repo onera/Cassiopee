@@ -61,7 +61,7 @@ __FIELD__ = '__all__'
 __MAINTREE__ = 1
 # Les differents status pour l'arbre
 MAIN=1; DEFINEDBC=-1; TIME=-2; SLICE=-2; CELLN=-3; MESHQUAL=-4; 
-UNDEFINEDBC=-5; IJK=-6; MONITOR=-7
+UNDEFINEDBC=-5; IJK=-6; MONITOR=-7;UNDEFINEDIBC=-8;
 
 # Sauvegarde des zones actives de main (avant de basculer sur un arbre
 # temporaire)
@@ -444,6 +444,19 @@ def showSelectionInTkTree(event=None):
         zoneName = dt[2][nob][2][noz][0]
         zoneName = zoneName.split(Internal.SEP1,1)
         if len(zoneName) == 2:
+            baseName = zoneName[0]
+            zoneName = zoneName[1]
+            TKTREE.WIDGETS['tree'].focusOnGivenZone(baseName, zoneName)
+    elif __MAINTREE__ == UNDEFINEDIBC: # id par baseName/zoneName/c
+        (Nob, Noz) = CPlot.updateCPlotNumbering(dt)
+        nz = nzs[0]
+        nob = Nob[nz]+1
+        noz = Noz[nz]
+        baseName = dt[2][nob][0]
+        zoneName = dt[2][nob][2][noz][0]
+        # zoneName a ete etendu par appendBaseName2ZoneName
+        zoneName = zoneName.split(Internal.SEP1,2)
+        if len(zoneName) == 3:
             baseName = zoneName[0]
             zoneName = zoneName[1]
             TKTREE.WIDGETS['tree'].focusOnGivenZone(baseName, zoneName)

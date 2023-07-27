@@ -70,6 +70,94 @@ def setData():
     CTK.TXT.insert('START', 'IBC data set on surface.\n')
 
 #==============================================================================
+# View undefined IBC
+#==============================================================================
+def ViewUndefinedIBC():
+    CTK.TXT.insert('START', 'Display undefined IBC zones.\n')
+    if CTK.t == []: return
+            
+    nzs             = Internal.getNodesFromType2(CTK.t, 'Zone_t')
+    VARSlocal       = 10e10
+    ZoneLocalString = ''
+    ZoneLocal       = []
+    bases           = CTK.t[2][1:]
+    for b in bases:
+        for zone in Internal.getZones(b):            
+            n = Internal.getNodeFromPath(zone, '.Solver#define/snear')
+            if n is not None:
+                val = Internal.getValue(n)
+                i   = CPlot.getCPlotNumber(CTK.t, b[0], zone[0])
+                ZoneLocal.append((i,0))
+            else:
+                val             = -1000
+                VARSlocal       = min(val,VARSlocal)
+                ZoneLocalString+=zone[0]+','
+                
+
+    if VARSlocal<0:
+        #VARS[6].set(ZoneLocalString[:-1])
+        TTK.setButtonRed(WIDGETS['View Undefined IBC'])
+        
+    if VARSlocal>0:
+        #VARS[6].set(ZoneLocalString[:])
+        TTK.setButtonGreen(WIDGETS['View Undefined IBC'])
+    
+    CPlot.setActiveZones(ZoneLocal)
+    WIDGETS['View Undefined IBC'].update()
+    CPlot.setState(ghostifyDeactivatedZones=1)
+                
+#==============================================================================
+# View all defined IBC
+#==============================================================================
+def ViewAllDefinedIBC(t):
+    natives = set()
+    zones = Internal.getZones(t)
+    for zone in zones:            
+        n = Internal.getNodeFromPath(zone, '.Solver#define/ibctype')
+        if n is not None:
+            natives.add(Internal.getValue(n))
+    natives = list(natives)
+    natives.sort(key=str.lower)
+    return natives
+                
+#==============================================================================
+# View specific IBC
+#==============================================================================
+def ViewIBC(event=None):
+    if CTK.t == []: return
+
+    nz  = len(Internal.getZones(CTK.t))  
+    nzs = CPlot.getActiveZones()
+    active = [(i,1) for i in range(nz)]
+    CPlot.setActiveZones(active)
+
+    IBCTypes = []
+    selection = WIDGETS['IBCLB'].curselection()
+    for s in selection:
+        t = WIDGETS['IBCLB'].get(s)
+        IBCTypes.append(t)
+    
+        
+    nzs             = Internal.getNodesFromType2(CTK.t, 'Zone_t')
+    ZoneLocal       = []
+    bases           = CTK.t[2][1:]
+    for b in bases:
+        for zone in Internal.getZones(b):            
+            n = Internal.getNodeFromPath(zone, '.Solver#define/ibctype')
+            
+            if n is not None:
+                val = Internal.getValue(n)
+                if val not in IBCTypes and '-All IBC-' not in IBCTypes:
+                    i   = CPlot.getCPlotNumber(CTK.t, b[0], zone[0])
+                    ZoneLocal.append((i,0))
+            else:
+                i   = CPlot.getCPlotNumber(CTK.t, b[0], zone[0])
+                ZoneLocal.append((i,0))
+    CPlot.setActiveZones(ZoneLocal)
+    CPlot.setState(ghostifyDeactivatedZones=1)
+    return
+
+#==============================================================================
 # Get data from selected zone
 #==============================================================================
 def getData():
@@ -87,14 +175,20 @@ def getData():
         if n is not None:
             val = Internal.getValue(n)
             VARS[0].set(val)
+        else:
+            VARS[0].set(-1000)
         n = Internal.getNodeFromPath(zone, '.Solver#define/ibctype')
         if n is not None:
             val = Internal.getValue(n)
             VARS[1].set(val)
+        else:
+            VARS[1].set('None')
         n = Internal.getNodeFromPath(zone, '.Solver#define/dfar')
         if n is not None:
             val = Internal.getValue(n)
             VARS[2].set(val)
+        else:
+            VARS[2].set(-1000)
         n = Internal.getNodeFromPath(zone, '.Solver#define/inv')
         if n is not None:
             val = Internal.getValue(n)
@@ -147,7 +241,9 @@ def createApp(win):
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
     # -5- extract loads for each component
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    
+    # -6- Zones missing IBC info -
+    V = TK.StringVar(win); V.set(''); VARS.append(V)
+
     # - Snear settings -
     B = TTK.Label(Frame, text="snear")
     B.grid(row=0, column=0, sticky=TK.EW)
@@ -166,7 +262,7 @@ def createApp(win):
     B = TTK.Label(Frame, text="IBC type")
     B.grid(row=2, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Type of Immersed Boundary Condition.')
-    B = TTK.OptionMenu(Frame, VARS[1], 'slip', 'noslip', 'Log', 'Musker', 'outpress', 'inj', 'TBLE', 'slip_cr', 'overlap')
+    B = TTK.OptionMenu(Frame, VARS[1], 'slip', 'noslip', 'Log', 'Musker', 'outpress', 'inj', 'TBLE', 'slip_cr', 'overlap','None')
     B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
 
     # - Mask settings (in or out) -
@@ -193,10 +289,48 @@ def createApp(win):
     B = TTK.Button(Frame, text="Set data", command=setData)
     BB = CTK.infoBulle(parent=B, text='Set data into selected zone.')
     B.grid(row=6, column=0, columnspan=2, sticky=TK.EW)
+
+    # - Get data -
     B = TTK.Button(Frame, text="Get data", command=getData,
                    image=iconics.PHOTO[8], padx=0, pady=0, compound=TK.RIGHT)
     BB = CTK.infoBulle(parent=B, text='Get data from selected zone.')
     B.grid(row=6, column=2, sticky=TK.EW)
+
+    # - View Undefined IBC data -
+    B = TTK.Button(Frame, text="View Undefined IBC", command=ViewUndefinedIBC)
+    WIDGETS['View Undefined IBC'] = B
+    BB = CTK.infoBulle(parent=B, text='View Undefined IBC.')
+    B.grid(row=7, column=0, columnspan=4, sticky=TK.EW)
+
+    ## - Zones that are missing IBC info  -
+    #B = TTK.Label(Frame, text="No IBC (Zones)")
+    #B.grid(row=8, column=0, sticky=TK.EW)
+    #BB = CTK.infoBulle(parent=B, text='Zones that are missing IBC info.')
+    #B = TTK.Entry(Frame, textvariable=VARS[6], width=4, background="White")
+    #B.grid(row=8, column=1, columnspan=2, sticky=TK.EW)
+
+    # - View type de BC -
+    B = TTK.Button(Frame, text="View BC", command=ViewIBC)
+    B.grid(row=9, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B,
+                       text='View specified IBC.\nTree is NOT modified.')
+
+    # - Type of BC - ListBox Frame -
+    LBFrame = TTK.Frame(Frame)
+    LBFrame.grid(row=9, column=1, rowspan=4, columnspan=3, sticky=TK.EW)
+    LBFrame.rowconfigure(0, weight=1)
+    LBFrame.columnconfigure(0, weight=1)
+    LBFrame.columnconfigure(1, weight=0)
+    SB  = TTK.Scrollbar(LBFrame)
+    LB  = TTK.Listbox(LBFrame, selectmode=TK.EXTENDED, height=6)
+    LB.bind('<Double-1>', ViewIBC)
+    #LB.bind('<Enter>', updateBCNameList)
+    for i, value in enumerate(['-All IBC-']+ViewAllDefinedIBC(CTK.t)): LB.insert(i, value)
+    SB.config(command = LB.yview)
+    LB.config(yscrollcommand = SB.set)
+    LB.grid(row=0, column=0, sticky=TK.NSEW)
+    SB.grid(row=0, column=1, sticky=TK.NSEW)
+    WIDGETS['IBCLB'] = LB
 
 #==============================================================================
 # Called to display widgets
