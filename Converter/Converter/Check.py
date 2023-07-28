@@ -79,7 +79,7 @@ CGNSTypes = {
     'IntegralData_t':45,
     'ReferenceState_t':46,
     'SimulationType_t':47,
-    'EquationDimension_t':78,
+    'EquationDimension_t':78, # not SIDS (tolerate)
   
     'ArbitraryGridMotion_t':49,
     'RigidGridMotion_t':55,

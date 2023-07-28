@@ -80,7 +80,7 @@ Actions
     :type levels: None or list or numpy
     :param title: title of createColorBar
     :type title: string
-    :param cmap: colormap name ('Blue2Red', ...). If nonde, cmap is taken from CPlot.
+    :param cmap: colormap name ('Blue2Red', ...). If none, cmap is taken from CPlot.
     :type cmap: None or string
     :param valueFormat: format of values in colorbar
     :type valueFormat: string
@@ -114,8 +114,8 @@ Actions
     :param box: if True, display a box around text
     :type box: boolean
     :param boxColor: box color
-    :type boxColor: string    
-    :param boxBackColor: box backgroud color
+    :type boxColor: string
+    :param boxBackColor: box background color
     :type boxBackColor: string
     
 

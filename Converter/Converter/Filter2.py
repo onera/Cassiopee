@@ -781,7 +781,7 @@ def saveTreeFromFilter(filename, dist_tree, comm, hdf_filter):
 #========================================================
 # resume
 #========================================================
-def load(fileName):
+def loadAsChunks(fileName):
     distTree = loadCollectiveSizeTree(fileName)
     _addDistributionInfo(distTree)
     hdf_filter = {}

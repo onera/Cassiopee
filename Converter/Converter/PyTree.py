@@ -1365,7 +1365,7 @@ def getField(name, t, api=1):
 # IN: containerName: GridCoordinates, FlowSolution, FlowSolution#Centers (conteneur)
 # ou liste de conteneurs homogenes en localisation
 # IN: vars: optionel, liste des variables a recuperer (sans centers: car deja specifie dans container)
-# IN: api=1, sortie array (avec copie), api=2, sortie array2 sans copie
+# IN: api=1, sortie array (avec copie), api=2, sortie array2 sans copie, api=3, dortie array3 sans copie
 # OUT: arrays: solution (un par zone)
 # OUT: peut contenir des arrays vides ([])
 # Attention: il faut envoyer que des containeurs homogenes en localisation
@@ -1404,7 +1404,8 @@ def getFields(containerName, t, vars=None, api=1):
     if out != []:
       if api==1: array = Internal.convertDataNodes2Array(out, dim, connects, loc)
       elif api==2: array = Internal.convertDataNodes2Array2(out, dim, connects, loc)
-      else: array = Internal.convertDataNodes2Array3(out, dim, connects, loc)
+      elif api==3: array = Internal.convertDataNodes2Array3(out, dim, connects, loc)
+      else: raise ValueError('getFields: unknow api.')
     else: array = []
     arrays.append(array)
   return arrays
@@ -1953,7 +1954,7 @@ def _TZA(t, locin, locout, F, Fc, *args):
         setFields([fb], z, 'centers')
   return None
 
-# Temporaire : TZA sans write dim
+# Temporaire: TZA sans write dim
 def TZANW(t, locin, locout, F, Fc, *args):
   tp = Internal.copyRef(t)
   _TZANW(tp, locin, locout, F, Fc, *args)

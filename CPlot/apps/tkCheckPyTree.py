@@ -56,13 +56,14 @@ def runCheckPyTree():
     if len(errors) == 0: 
         TTK.setButtonGreen(WIDGETS['CheckPyTree'])
         errors = [0, 'No error found.']
+        CTK.TXT.insert('START', 'No error found in pyTree.\n')
     else:
         TTK.setButtonRed(WIDGETS['CheckPyTree'])
         Panels.displayErrors(errors, header='Checking pyTree')
-    
+        CTK.TXT.insert('START', 'Errors found in pyTree.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error');
     WIDGETS['CheckPyTree'].update()
-    CTK.TXT.insert('START', 'pyTree checked.\n')
-
+    
 #==============================================================================
 def correctPyTree():
     if CTK.t == []: return

@@ -376,7 +376,7 @@ PyObject* K_CONVERTER::cpyConnectP2ConnectA2(PyObject* self, PyObject* args)
       p1 = poff2[p];
       size = poff2[p+1]-p1;
       dataA[p1+p] = size;
-      for (E_Int j = 0; j < size; j++) dataA[p1+p+j+1] = dataP2[p1+j];
+      for (E_Int j = 0; j < size; j++) dataA[p1+p+j+1] = std::abs(dataP2[p1+j]); // rip signed face
     }
   }
 
