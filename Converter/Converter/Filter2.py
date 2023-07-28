@@ -67,10 +67,49 @@ def _addSizesToTree(size_tree, size_data):
   """
   for base in I.getNodesFromType1(size_tree, 'CGNSBase_t'):
     base_path = '/'+base[0]
-    for zone in I.getZones(base):
-      zone_path = base_path+"/"+zone[0]
-      _addSizesToZoneTree(zone, zone_path, size_data)
+    for z in I.getZones(base):
+      zone_path = base_path+"/"+z[0]
+      _addSizesToZoneTree(z, zone_path, size_data)
   return None
+
+def fixPointRanges(size_tree):
+  """
+  Permute start and end of PointRange or PointRangeDonor nodes found in GridConnectivity1to1_t
+  in order to
+  a. be consistent with the transform node
+  b. keep the symmetry PR|a->b = PRDonor|b->a
+  """
+  for base in I.getBases(size_tree):
+    for zone in I.getZones(base):
+      for zone_gc in I.getNodesFromType1(zone, 'ZoneGridConnectivity_t'):
+        for gc in I.getNodesFromType1(zone_gc, 'GridConnectivity1to1_t'):
+          base_name = I.getName(base)
+          zone_name = I.getName(zone)
+          gc_path = base_name + '/' + zone_name
+          gc_opp_path = I.getValue(gc)
+          if not '/' in gc_opp_path:
+            gc_opp_path = base_name + '/' + gc_opp_path
+          # WARNING: for hybrid case structured zone could have PointList, PointListDonor.
+          if I.getNodeFromType1(gc, 'IndexRange_t') is not None:
+            transform = I.getValue(I.getNodeFromName1(gc, 'Transform'))
+            point_range = I.getValue(I.getNodeFromName1(gc, 'PointRange'))
+            point_range_d = I.getValue(I.getNodeFromName1(gc, 'PointRangeDonor'))
+
+            donor_dir = abs(transform) - 1
+            nb_points = point_range[:,1] - point_range[:,0]
+            nb_points_d = numpy.sign(transform)*(point_range_d[donor_dir,1] - point_range_d[donor_dir,0])
+            dir_to_swap = (nb_points != nb_points_d)
+
+            if gc_path < gc_opp_path:
+              dir_to_swap = dir_to_swap[donor_dir]
+              point_range_d[dir_to_swap, 0], point_range_d[dir_to_swap, 1] = \
+                  point_range_d[dir_to_swap, 1], point_range_d[dir_to_swap, 0]
+            elif gc_path > gc_opp_path:
+              point_range[dir_to_swap, 0], point_range[dir_to_swap, 1] = \
+                  point_range[dir_to_swap, 1], point_range[dir_to_swap, 0]
+            # If same base/zone, transform should be 1, 2, 3
+            else:
+              assert (dir_to_swap == False).all()
 
 #=====================================================================
 # load un squelette sur le rank 0 et bcast
@@ -97,7 +136,7 @@ def loadCollectiveSizeTree(filename):
                              dataShape=size_data,
                              format='bin_hdf')
     _addSizesToTree(t, size_data)
-    #fix_point_ranges(t)
+    fixPointRanges(t)
     #load_grid_connectivity_property(filename, t)
   else: t = None
   t = Cmpi.bcast(t, root=0)
@@ -124,20 +163,20 @@ def _createDistributionNodeFromDistrib(name, parent_node, distrib):
   return None
 
 def getDistribution(node, distri_name=None):
-  return I.getNodeFromPath(node, '/'.join([':CGNS#Distribution', distri_name])) if distri_name \
-      else I.getNodeFromName1(node, ':CGNS#Distribution')
+  if distri_name is not None:
+    return I.getNodeFromPath(node, '/'.join([':CGNS#Distribution', distri_name]))
+  else:
+    return I.getNodeFromName1(node, ':CGNS#Distribution')
 
 def uniformDistributionAt(n_elt, i, n_interval):
-  step      = n_elt // n_interval
+  step = n_elt // n_interval
   remainder = n_elt %  n_interval
-
   if i < remainder:
     inf = i * (step + 1)
     sup = inf + step + 1
   else:
     inf = i * step + remainder
     sup = inf + step
-
   return inf, sup
 
 def uniformDistribution(n_elt, comm):
@@ -168,6 +207,28 @@ def createDistributionNode(n_elt, comm, name, parent_node):
   distrib = uniformDistribution(n_elt, comm)
   createDistributionNodeFromDistrib(name, parent_node, distrib)
 
+def computePlistOrPrangeDistribution(node, comm):
+  """
+  Compute the distribution for a given node using its PointList or PointRange child
+  If a PointRange node is found, the total lenght is getted from the product
+  of the differences for each direction (cgns convention (cgns convention :
+  first and last are included).
+  If a PointList node is found, the total lenght is getted from the product of
+  PointList#Size arrays, which store the size of the PL in each direction.
+  """
+  pr_n = I.getNodeFromName1(node, 'PointRange')
+  pl_n = I.getNodeFromName1(node, 'PointList')
+  if pr_n:
+    # CBX
+    #pr_lenght = SIDS.PointRange.n_elem(pr_n)
+    pr_length = pr_n[1][1] - pr_n[1][0] + 1
+    createDistributionNode(pr_length, comm, 'Index', node)
+
+  if pl_n:
+    pls_n   = I.getNodeFromName1(node, 'PointList#Size')
+    pl_size = I.getValue(pls_n).prod()
+    createDistributionNode(pl_size, comm, 'Index', node)
+
 def _computeZoneDistribution(zone, comm):
   n_vtx = C.getNPts(zone)
   n_cell = C.getNCells(zone)
@@ -180,19 +241,19 @@ def _computeZoneDistribution(zone, comm):
   #for zone_subregion in I.getNodesFromType1(zone, 'ZoneSubRegion_t'):
   #  compute_plist_or_prange_distribution(zone_subregion, comm)
 
-  #for flow_sol in I.getNodesFromType1(zone, 'FlowSolution_t'):
-  #  compute_plist_or_prange_distribution(flow_sol, comm)
+  for flow_sol in I.getNodesFromType1(zone, 'FlowSolution_t'):
+    computePlistOrPrangeDistribution(flow_sol, comm)
 
-  #for zone_bc in I.getNodesFromType1(zone, 'ZoneBC_t'):
-  #  for bc in I.getNodesFromType1(zone_bc, 'BC_t'):
-  #    compute_plist_or_prange_distribution(bc, comm)
-  #    for bcds in I.getNodesFromType1(bc, 'BCDataSet_t'):
-  #      compute_plist_or_prange_distribution(bcds, comm)
+  for zone_bc in I.getNodesFromType1(zone, 'ZoneBC_t'):
+    for bc in I.getNodesFromType1(zone_bc, 'BC_t'):
+      computePlistOrPrangeDistribution(bc, comm)
+      for bcds in I.getNodesFromType1(bc, 'BCDataSet_t'):
+        computePlistOrPrangeDistribution(bcds, comm)
 
-  #for zone_gc in I.getNodesFromType1(zone, 'ZoneGridConnectivity_t'):
-  #  gcs = I.getNodesFromType1(zone_gc, 'GridConnectivity_t') + I.getNodesFromType1(zone_gc, 'GridConnectivity1to1_t')
-  #  for gc in gcs:
-  #    compute_plist_or_prange_distribution(gc, comm)
+  for zone_gc in I.getNodesFromType1(zone, 'ZoneGridConnectivity_t'):
+    gcs = I.getNodesFromType1(zone_gc, 'GridConnectivity_t') + I.getNodesFromType1(zone_gc, 'GridConnectivity1to1_t')
+    for gc in gcs:
+      computePlistOrPrangeDistribution(gc, comm)
 
 def _addDistributionInfo(t, comm=Cmpi.KCOMM):
   for z in I.getZones(t):
@@ -625,7 +686,7 @@ def create_flow_solution_filter(zone, zone_path, hdf_filter):
     flow_solution_path = zone_path + "/" + I.getName(flow_solution)
     grid_location = I.getNodeFromType1(flow_solution, 'GridLocation_t')
     if grid_location is None: grid_location = 'Vertex'
-    else: grid_location = I.GetValue(grid_location)
+    else: grid_location = I.getValue(grid_location)
     distrib_ud_n = getDistribution(flow_solution)
     if distrib_ud_n:
       distrib_data = I.getNodeFromName1(distrib_ud_n, 'Index')[1]

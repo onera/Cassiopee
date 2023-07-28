@@ -47,8 +47,8 @@ E_Int check_is_NGON(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1
   err |= (strcmp(eltType, "NGON") != 0);
   if (err)
   {
-    //std::cout << "input error : err => " << err << std::endl;
-    //std::cout << "input error : eltType => " << eltType << std::endl;
+    //std::cout << "input error: err => " << err << std::endl;
+    //std::cout << "input error: eltType => " << eltType << std::endl;
     PyErr_SetString(PyExc_TypeError, "input error: invalid array, must be a unstructured NGON array.");//fixme triangulateExteriorFaces : PASS A STRING AS INPUT
     delete f1; delete cn1;
     return 1;
@@ -280,7 +280,7 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
     ok = K_NUMPY::getFromNumpyArray(pyo_j_donIds, donIds, c, r, true/*shared*/);
     if (!ok)
     {
-    	std::cout << "ERROR : could not get donnor ids" << std::endl; 
+    	std::cout << "ERROR: could not get donnor ids" << std::endl; 
     	break;
     }
      
@@ -288,7 +288,7 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
     ok = K_NUMPY::getFromPointList(pyo_j_ptLs_sz, ptL_sz, c, r, true/*shared*/);
     if (!ok) 
     {
-    	std::cout << "ERROR : could not get point list sizes" << std::endl; 
+    	std::cout << "ERROR: could not get point list sizes" << std::endl; 
     	break;
     }
 
@@ -319,7 +319,7 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
         
         if (!ok) 
         {
-          std::cout << "ERROR : could not get current point list" << std::endl; 
+          std::cout << "ERROR: could not get current point list" << std::endl; 
           break;
         }
         
@@ -335,7 +335,7 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
         
         if (!ok)
         {
-          std::cout << "ERROR : could not get current point list Donnor" << std::endl; 
+          std::cout << "ERROR: could not get current point list Donnor" << std::endl; 
           break;
         }
         
@@ -361,7 +361,7 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
       ok = K_NUMPY::getFromPointList(pyo_bc_ptL, ptL, nb_ids, r, true/*shared*/);
       if (!ok)
       {
-        std::cout << "ERROR : could not get current point list" << std::endl; 
+        std::cout << "ERROR: could not get current point list" << std::endl; 
         break;
       }
       //printf("ajout bc zone  %i, bc=% d %d \n", i,b,nb_ids );
