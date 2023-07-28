@@ -48,7 +48,10 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     return NULL;
 
   E_Int nzones = PyList_Size(array);
-  assert(nzones == 1);
+  if (nzones != 1) {
+    fprintf(stderr, "chunk2part(): should be one zone per chunk for now.\n");
+    return NULL;
+  }
 
   PyObject *o, *l;
   E_Int nfld;
@@ -92,7 +95,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   res = K_NUMPY::getFromNumpyArray(o, cells, cells_size, nfld, true);
   assert(res == 1);
     
-  // 6 must be nface so chunk
+  // 7 must be nface so chunk
   o = PyList_GetItem(l, 6);
   res = K_NUMPY::getFromNumpyArray(o, xcells, ncells, nfld, true);
   assert(res == 1);
@@ -201,7 +204,6 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
       E_Int size = ptr[j++];
       for (E_Int k = 0; k < size; k++) {
         A[2*face + c[face]++] = ptr[j++];
-        assert(c[face] <= 2);
       }
     }
   }
@@ -477,9 +479,6 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     nxfaces[lf+1] = rstride[lf];
   }
 
-  for (E_Int i = 1; i < nnfaces+1; i++)
-    assert(nxfaces[i] == 4);
-
   for (E_Int i = 0; i < nnfaces; i++)
     nxfaces[i+1] += nxfaces[i];
 
@@ -640,10 +639,8 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     E_Int start = nxfaces[i];
     E_Int end = nxfaces[i+1];
     E_Int stride = end - start;
-    assert(stride == 4);
     *ptr++ = stride;
     for (E_Int j = start; j < end; j++) {
-      assert(PT.find(NGON[j]) != PT.end());
       *ptr++ = PT[NGON[j]]+1;
     }
   }
@@ -656,10 +653,8 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     E_Int start = nxcells[i];
     E_Int end = nxcells[i+1];
     E_Int stride = end - start;
-    assert(stride == 6);
     *ptr++ = stride;
     for (E_Int j = start; j < end; j++) {
-      assert(FT.find(NFACE[j]) != FT.end());
       *ptr++ = FT[NFACE[j]]+1;
     }
   }
