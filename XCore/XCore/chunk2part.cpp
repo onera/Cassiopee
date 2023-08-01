@@ -99,7 +99,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   o = PyList_GetItem(l, 6);
   res = K_NUMPY::getFromNumpyArray(o, xcells, ncells, nfld, true);
   assert(res == 1);
-    
+
   ncells--;
   nfaces--;
 
@@ -130,7 +130,6 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   for (E_Int i = 0; i < nproc; i++)
       points_dist[i+1] += points_dist[i];
 
-
   // shift xcells and xfaces to start from zero
   E_Int cell_shift = xcells[0];
   for (E_Int i = 0; i < ncells+1; i++)
@@ -139,6 +138,33 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   E_Int face_shift = xfaces[0];
   for (E_Int i = 0; i < nfaces+1; i++)
     xfaces[i] -= face_shift;
+
+  // global info
+  if (rank == 0) {
+    printf("total number of cells: %d\n", cells_dist[nproc]);
+    printf("total number of faces: %d\n", faces_dist[nproc]);
+    printf("total number of points: %d\n", points_dist[nproc]);
+  }
+
+  // check for signed faces and holes in face numbering
+  E_Int sfaces_exist = 0; // switch for handling signed faces
+  std::set<E_Int> SF;
+  for (E_Int i = 0; i < ncells; i++) {
+    for (E_Int j = xcells[i]; j < xcells[i+1]; j++) {
+      E_Int face = cells[j];
+      if (face < 0) {
+        if (SF.find(-face) == SF.end())
+          SF.insert(-face);
+        cells[j] = -face;
+      } 
+    }
+  }
+  sfaces_exist = (SF.size() > 0);
+
+  if (rank == 0) {
+    if (sfaces_exist)
+      printf("Found signed faces\n", SF.size());
+  }
 
   // make ParentElement
   std::unordered_map<E_Int, std::vector<E_Int>> PE;
@@ -181,9 +207,6 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
       sdata[idx[target]++] = elem;
   }
   
-  for (E_Int i = 0; i < nproc; i++)
-    assert(idx[i] == sdist[i+1]);
-
   std::vector<E_Int> rdata(rdist[nproc]);
 
   MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], MPI_INT,
@@ -207,6 +230,9 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
       }
     }
   }
+
+  if (rank == 0)
+    printf("ParentElements OK\n");
 
   // dual graph
   std::unordered_map<E_Int, std::vector<E_Int>> CADJ;
@@ -250,9 +276,6 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
       sdata[idx[target]++] = elem;
   }
 
-  for (E_Int i = 0; i < nproc; i++)
-    assert(idx[i] == sdist[i+1]);
-
   MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], MPI_INT,
                 &rdata[0], &rcount[0], &rdist[0], MPI_INT,
                 MPI_COMM_WORLD);
@@ -264,7 +287,6 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     E_Int *ptr = &rdata[rdist[i]];
     for (E_Int j = 0; j < rcount[i]; ) {
       E_Int cell = ptr[j++];
-      assert(get_proc(cell, cells_dist, nproc) == rank);
       E_Int psize = ptr[j++];
       nedges += psize;
       for (E_Int k = 0; k < psize; k++)
@@ -284,6 +306,9 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   }
   assert(count == ncells);
   assert(xadj[count] == nedges);
+
+  if (rank == 0)
+    printf("Dual graph OK\n");
 
   SCOTCH_Dgraph graph;
   SCOTCH_dgraphInit(&graph, MPI_COMM_WORLD);
@@ -325,6 +350,9 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   if (ret != 0) {
     fprintf(stderr, "SCOTCH_dgraphPart(): Failed to map graph\n");
   }
+
+  if (rank == 0)
+    printf("Graph map OK\n");
 
   // Send cells to their target proc!
   for (E_Int i = 0; i < nproc; i++)
@@ -406,10 +434,12 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
                 &NFACE[0], &rcount[0], &rdist[0], MPI_INT,
                 MPI_COMM_WORLD);
 
+  
+  if (rank == 0)
+    printf("NFACE OK\n");
+
   // Hash and request faces
-  std::vector<E_Int> target_proc;
   std::unordered_map<E_Int, E_Int> FT;
-  std::vector<E_Int> l2gf;
   E_Int nnfaces = 0;
   for (E_Int i = 0; i < nproc; i++)
     rcount[i] = 0;
@@ -418,10 +448,8 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     for (E_Int j = nxcells[i]; j < nxcells[i+1]; j++) {
       E_Int face = NFACE[j];
       if (FT.find(face) == FT.end()) {
-        l2gf.push_back(face);
         FT[face] = nnfaces++;
         E_Int source = get_proc(face-1, faces_dist, nproc);
-        target_proc.push_back(source);
         rcount[source]++;
       }
     }
@@ -436,7 +464,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     sdist[i+1] = sdist[i] + scount[i];
   }
 
-  assert(rdist[nproc] == nnfaces);
+  assert(nnfaces == rdist[nproc]);
   std::vector<E_Int> sfaces(sdist[nproc]);
   std::vector<E_Int> rfaces(rdist[nproc]);
   std::vector<E_Int> nxfaces(nnfaces+1);
@@ -446,7 +474,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     idx[i] = rdist[i];
 
   for (const auto& face : FT) {
-    E_Int source = target_proc[face.second];
+    E_Int source = get_proc(face.first-1, faces_dist, nproc);
     rfaces[idx[source]++] = face.first;
   }
 
@@ -454,89 +482,72 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
                 &sfaces[0], &scount[0], &sdist[0], MPI_INT,
                 MPI_COMM_WORLD);
 
-  // send face strides
-  sstride.resize(sdist[nproc]);
+  std::vector<E_Int> fstride(sdist[nproc]);
   for (E_Int i = 0; i < nproc; i++)
     idx[i] = sdist[i];
+  
+  std::vector<E_Int> sscount(nproc, 0);
+  std::vector<E_Int> rrcount(nproc);
+  
   for (E_Int i = 0; i < nproc; i++) {
     E_Int *ptr = &sfaces[sdist[i]];
     for (E_Int j = 0; j < scount[i]; j++) {
-      E_Int face = ptr[j];
-      assert(rank == get_proc(face-1, faces_dist, nproc));
-      face = face - 1 - first_face;
-      sstride[idx[i]++] = xfaces[face+1] - xfaces[face];
+      E_Int face = ptr[j]-1;
+      face -= faces_dist[rank];
+      E_Int stride = xfaces[face+1] - xfaces[face];
+      fstride[idx[i]++] = stride;
+      sscount[i] += stride;
     }
   }
 
-  std::vector<E_Int> rstride(rdist[nproc]);
-  MPI_Alltoallv(&sstride[0], &scount[0], &sdist[0], MPI_INT,
-                &rstride[0], &rcount[0], &rdist[0], MPI_INT,
+  MPI_Alltoallv(&fstride[0], &scount[0], &sdist[0], MPI_INT,
+                &nxfaces[0]+1, &rcount[0], &rdist[0], MPI_INT,
                 MPI_COMM_WORLD);
-
-  for (E_Int i = 0; i < rdist[nproc]; i++) {
-    E_Int gf = rfaces[i];
-    E_Int lf = FT[gf];
-    nxfaces[lf+1] = rstride[lf];
-  }
 
   for (E_Int i = 0; i < nnfaces; i++)
     nxfaces[i+1] += nxfaces[i];
 
-  std::vector<E_Int> sfcount(nproc, 0);
-  std::vector<E_Int> rfcount(nproc);
+  MPI_Alltoall(&sscount[0], 1, MPI_INT, &rrcount[0], 1, MPI_INT, MPI_COMM_WORLD);
+
+  std::vector<E_Int> ssdist(nproc+1);
+  std::vector<E_Int> rrdist(nproc+1);
+  ssdist[0] = rrdist[0] = 0;
   for (E_Int i = 0; i < nproc; i++) {
-    E_Int *pf = &sfaces[sdist[i]];
-    for (E_Int j = 0; j < scount[i]; j++) {
-      E_Int face = pf[j]-1-first_face;
-      sfcount[i] += xfaces[face+1] - xfaces[face];
-    }
+    ssdist[i+1] = ssdist[i] + sscount[i];
+    rrdist[i+1] = rrdist[i] + rrcount[i];
   }
 
-  MPI_Alltoall(&sfcount[0], 1, MPI_INT, &rfcount[0], 1, MPI_INT,
-    MPI_COMM_WORLD);
-
-  std::vector<E_Int> sfdist(nproc+1);
-  std::vector<E_Int> rfdist(nproc+1);
-  sfdist[0] = rfdist[0] = 0;
-  for (E_Int i = 0; i < nproc; i++) {
-    sfdist[i+1] = sfdist[i] + sfcount[i];
-    rfdist[i+1] = rfdist[i] + rfcount[i];
-  }
-
-  std::vector<E_Int> sNGON(sfdist[nproc]);
-  std::vector<E_Int> rNGON(rfdist[nproc]);
+  std::vector<E_Int> sNGON(ssdist[nproc]);
+  std::vector<E_Int> NGON(rrdist[nproc]);
 
   for (E_Int i = 0; i < nproc; i++)
-    idx[i] = sfdist[i];
+    idx[i] = ssdist[i];
 
   for (E_Int i = 0; i < nproc; i++) {
-    E_Int *pf = &sfaces[sdist[i]];
+    E_Int *ptr = &sfaces[sdist[i]];
     for (E_Int j = 0; j < scount[i]; j++) {
-      E_Int face = pf[j];
-      assert(rank == get_proc(face-1, faces_dist, nproc));
-      face = face - 1 - first_face;
+      E_Int face = ptr[j] - 1 - faces_dist[rank];
       for (E_Int k = xfaces[face]; k < xfaces[face+1]; k++)
         sNGON[idx[i]++] = faces[k];
     }
   }
 
-  MPI_Alltoallv(&sNGON[0], &sfcount[0], &sfdist[0], MPI_INT,
-                &rNGON[0], &rfcount[0], &rfdist[0], MPI_INT,
+  MPI_Alltoallv(&sNGON[0], &sscount[0], &ssdist[0], MPI_INT,
+                &NGON[0], &rrcount[0], &rrdist[0], MPI_INT,
                 MPI_COMM_WORLD);
+ 
+  if (rank == 0)
+    printf("NGON OK\n");
 
-  std::vector<E_Int> NGON(rfdist[nproc]);
-  count = 0;
+  // renumber faces
+  FT.clear();
   for (E_Int i = 0; i < nnfaces; i++) {
-    E_Int gf = rfaces[i];
-    E_Int lf = FT[gf];
-    for (E_Int j = nxfaces[lf]; j < nxfaces[lf+1]; j++)
-      NGON[j] = rNGON[count++];
-  }
-
+    E_Int face = rfaces[i];
+    FT[face] = i;
+  } 
+  
   // Hash and request points
-  target_proc.clear();
   std::unordered_map<E_Int, E_Int> PT;
-  std::vector<E_Int> l2gp;
   E_Int nnpoints = 0;
   for (E_Int i = 0; i < nproc; i++)
     rcount[i] = 0;
@@ -545,10 +556,8 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     for (E_Int j = nxfaces[i]; j < nxfaces[i+1]; j++) {
       E_Int point = NGON[j];
       if (PT.find(point) == PT.end()) {
-        l2gp.push_back(point);
         PT[point] = nnpoints++;
         E_Int source = get_proc(point-1, points_dist, nproc);
-        target_proc.push_back(source);
         rcount[source]++;
       }
     }
@@ -570,7 +579,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     idx[i] = rdist[i];
 
   for (const auto& point : PT) {
-    E_Int source = target_proc[point.second];
+    E_Int source = get_proc(point.first-1, points_dist, nproc);
     rpoints[idx[source]++] = point.first;
   }
   
@@ -578,8 +587,8 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
                 &spoints[0], &scount[0], &sdist[0], MPI_INT,
                 MPI_COMM_WORLD);
 
-  std::vector<E_Int> sxcount(nproc);
-  std::vector<E_Int> rxcount(nproc);
+  std::vector<E_Int> sxcount(nproc,0);
+  std::vector<E_Int> rxcount(nproc,0);
   std::vector<E_Int> sxdist(nproc+1);
   std::vector<E_Int> rxdist(nproc+1);
   sxdist[0] = rxdist[0] = 0;
@@ -602,7 +611,6 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     E_Int *ptr = &spoints[sdist[i]];
     for (E_Int j = 0; j < scount[i]; j++) {
       E_Int point = ptr[j]-1;
-      assert(rank == get_proc(point, points_dist, nproc));
       point -= first_point;
       scrd[idx[i]++] = X[point];
       scrd[idx[i]++] = Y[point];
@@ -614,17 +622,143 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
                 &rcrd[0], &rxcount[0], &rxdist[0], MPI_DOUBLE,
                 MPI_COMM_WORLD);
 
+  if (rank == 0)
+    printf("Points OK\n");
+
+  // renumber points
+  PT.clear();
+  for (E_Int i = 0; i < nnpoints; i++) {
+    E_Int point = rpoints[i];
+    PT[point] = i;
+  }
+
   FldArrayF local_crd;
   local_crd.malloc(nnpoints, 3);
 
-  count = 0;
   for (E_Int i = 0; i < nnpoints; i++) {
-    E_Int gp = rpoints[i];
-    E_Int lp = PT[gp];
+    E_Float *px = &rcrd[3*i];
     for (E_Int j = 0; j < 3; j++)
-      local_crd(lp, j+1) = rcrd[count++];
+      local_crd(i, j+1) = px[j];
   }
 
+  // request signed faces info if need be
+  if (sfaces_exist) {
+    for (E_Int i = 0; i < nproc; i++)
+      rcount[i] = 0;
+
+    // my faces are in rfaces
+    for (E_Int i = 0; i < nnfaces; i++) {
+      E_Int face = rfaces[i];
+      E_Int source = get_proc(face-1, faces_dist, nproc);
+      rcount[source]++;
+    }
+
+    MPI_Alltoall(&rcount[0], 1, MPI_INT, &scount[0], 1, MPI_INT, MPI_COMM_WORLD);
+
+    sdist[0] = rdist[0] = 0;
+    for (E_Int i = 0; i < nproc; i++) {
+      rdist[i+1] = rdist[i] + rcount[i];
+      sdist[i+1] = sdist[i] + scount[i];
+    }
+
+    rdata.resize(rdist[nproc]);
+    sdata.resize(sdist[nproc]);
+
+    for (E_Int i = 0; i < nproc; i++)
+      idx[i] = rdist[i];
+
+    for (E_Int i = 0; i < nnfaces; i++) {
+      E_Int face = rfaces[i];
+      E_Int source = get_proc(face-1, faces_dist, nproc);
+      rdata[idx[source]++] = face;
+    }
+
+    MPI_Alltoallv(&rdata[0], &rcount[0], &rdist[0], MPI_INT,
+                  &sdata[0], &scount[0], &sdist[0], MPI_INT,
+                  MPI_COMM_WORLD);
+
+    for (E_Int i = 0; i < nproc; i++)
+      sscount[i] = 0;
+
+    for (E_Int i = 0; i < nproc; i++) {
+      E_Int *ptr = &sdata[sdist[i]];
+      for (E_Int j = 0; j < scount[i]; j++) {
+        E_Int face = ptr[j];
+        if (SF.find(face) != SF.end())
+          sscount[i]++;
+      }
+    }
+
+    std::vector<E_Int> rscount(nproc); // signed rcount
+    MPI_Alltoall(&sscount[0], 1, MPI_INT, &rscount[0], 1, MPI_INT, MPI_COMM_WORLD);
+
+    std::vector<E_Int> rsdist(nproc+1);
+    ssdist[0] = rsdist[0] = 0;
+    for (E_Int i = 0; i < nproc; i++) {
+      ssdist[i+1] = ssdist[i] + sscount[i];
+      rsdist[i+1] = rsdist[i] + rscount[i];
+    }
+
+    std::vector<E_Int> ssdata(ssdist[nproc]);
+    std::vector<E_Int> rsdata(rsdist[nproc]);
+
+    for (E_Int i = 0; i < nproc; i++)
+      idx[i] = ssdist[i];
+
+    for (E_Int i = 0; i < nproc; i++) {
+      E_Int *ptr = &sdata[sdist[i]];
+      for (E_Int j = 0; j < scount[i]; j++) {
+        E_Int face = ptr[j];
+        if (SF.find(face) != SF.end())
+          ssdata[idx[i]++] = face;
+      }
+    }
+
+    MPI_Alltoallv(&ssdata[0], &sscount[0], &ssdist[0], MPI_INT,
+                  &rsdata[0], &rscount[0], &rsdist[0], MPI_INT,
+                MPI_COMM_WORLD);
+  
+    // make local PE
+    std::vector<E_Int> lPE(2*nnfaces, -1);
+    std::vector<E_Int> cPE(nnfaces, 0);
+    for (E_Int i = 0; i < nncells; i++) {
+      for (E_Int j = nxcells[i]; j < nxcells[i+1]; j++) {
+        E_Int face = NFACE[j];
+        E_Int lf = FT[face];
+        lPE[2*lf + cPE[lf]++] = i;
+      }
+    }
+
+    // reset signed faces
+    for (E_Int i = 0; i < nproc; i++) {
+      E_Int *ptr = &rsdata[rsdist[i]];
+      for (E_Int j = 0; j < rscount[i]; j++) {
+        E_Int face = ptr[j];
+        E_Int lf = FT[face];
+        
+        E_Int own = lPE[2*lf];
+        for (E_Int k = nxcells[own]; k < nxcells[own+1]; k++) {
+          if (face == NFACE[k]) {
+            NFACE[k] = -face;
+            break;
+          }
+        }
+        
+        E_Int nei = lPE[2*lf+1];
+        if (nei == -1) continue;
+        for (E_Int k = nxcells[nei]; k < nxcells[nei+1]; k++) {
+          if (face == NFACE[k]) {
+            NFACE[k] = -face;
+            break;
+          }
+        }
+      }
+    }
+
+    if (rank == 0)
+      printf("Signed faces OK\n");
+  }
+  
   // TODO (Imad): use Cassiopee's data structures to avoid copying
   const char *varString = "CoordinateX,CoordinateY,CoordinateZ";
 
@@ -649,20 +783,30 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   ptr[0] = nncells;
   ptr[1] = nncells + nxcells[nncells];
   ptr += 2;
-  for (E_Int i = 0; i < nncells; i++) {
-    E_Int start = nxcells[i];
-    E_Int end = nxcells[i+1];
-    E_Int stride = end - start;
-    *ptr++ = stride;
-    for (E_Int j = start; j < end; j++) {
-      *ptr++ = FT[NFACE[j]]+1;
+
+  if (sfaces_exist) {
+    for (E_Int i = 0; i < nncells; i++) {
+      E_Int start = nxcells[i];
+      E_Int end = nxcells[i+1];
+      E_Int stride = end - start;
+      *ptr++ = stride;
+      for (E_Int j = start; j < end; j++) {
+        *ptr++ = FT[abs(NFACE[j])]+1;
+      }
+    }
+  } else {
+    for (E_Int i = 0; i < nncells; i++) {
+      E_Int start = nxcells[i];
+      E_Int end = nxcells[i+1];
+      E_Int stride = end - start;
+      *ptr++ = stride;
+      for (E_Int j = start; j < end; j++) {
+        *ptr++ = FT[NFACE[j]]+1;
+      }
     }
   }
-
-    
+ 
   PyObject* m = K_ARRAY::buildArray(local_crd, varString, cn, 8, NULL, false);
 
-
   return m;
-  return Py_None;
 }
