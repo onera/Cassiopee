@@ -41,11 +41,25 @@ E_Int get_proc(E_Int element, E_Int *distribution, E_Int nproc)
     return -1;
 }
 
+struct proc_patch {
+  E_Int proc;
+  std::vector<E_Int> faces;
+  std::vector<E_Int> neis;
+
+  proc_patch()
+  {}
+
+  proc_patch(E_Int pid) :
+    proc(pid), faces(), neis()
+  {}
+};
+
 PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
 {
   PyObject *array;
-  if (!PyArg_ParseTuple(args, "O", &array))
+  if (!PyArg_ParseTuple(args, "O", &array)) {
     return NULL;
+  }
 
   E_Int nzones = PyList_Size(array);
   if (nzones != 1) {
@@ -163,7 +177,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
 
   if (rank == 0) {
     if (sfaces_exist)
-      printf("Found signed faces\n", SF.size());
+      printf("Found signed faces\n");
   }
 
   // make ParentElement
@@ -641,6 +655,236 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
       local_crd(i, j+1) = px[j];
   }
 
+  // construct communication patches
+  for (E_Int i = 0; i < nproc; i++)
+    rcount[i] = 0;
+
+  for (E_Int i = 0; i < nnfaces; i++) {
+      E_Int face = rfaces[i];
+      E_Int src = get_proc(face-1, faces_dist, nproc);
+      rcount[src]++;
+  }
+
+  MPI_Alltoall(&rcount[0], 1, MPI_INT, &scount[0], 1, MPI_INT, MPI_COMM_WORLD);
+
+  for (E_Int i = 0; i < nproc; i++) {
+    rdist[i+1] = rdist[i] + rcount[i];
+    sdist[i+1] = sdist[i] + scount[i];
+  }
+  
+  for (E_Int i = 0; i < nproc; i++)
+    idx[i] = rdist[i];
+
+  for (E_Int i = 0; i < nproc; i++) {
+    sscount[i] = 2*scount[i];
+    rrcount[i] = 2*rcount[i];
+    ssdist[i+1] = ssdist[i] + sscount[i];
+    rrdist[i+1] = rrdist[i] + rrcount[i];
+  }
+
+  std::vector<E_Int> ssdata(ssdist[nproc]);
+  std::vector<E_Int> rrdata(rrdist[nproc]);
+
+  for (E_Int i = 0; i < nproc; i++)
+    idx[i] = ssdist[i];
+
+  for (E_Int i = 0; i < nproc; i++) {
+    E_Int *ptr = &sfaces[sdist[i]];
+    for (E_Int j = 0; j < scount[i]; j++) {
+      E_Int face = ptr[j];
+      assert(rank == get_proc(face-1, faces_dist, nproc));
+      face -= 1 + faces_dist[rank];
+      E_Int own = A[2*face];
+      E_Int nei = A[2*face+1];
+      ssdata[idx[i]++] = own;
+      ssdata[idx[i]++] = nei;
+    }
+  }
+
+  for (E_Int i = 0; i < nproc; i++)
+    assert(idx[i] == ssdist[i+1]);
+
+  assert(ssdist[nproc] == 2*sdist[nproc]);
+
+  MPI_Alltoallv(&ssdata[0], &sscount[0], &ssdist[0], MPI_INT,
+                &rrdata[0], &rrcount[0], &rrdist[0], MPI_INT,
+                MPI_COMM_WORLD);
+
+  std::unordered_map<E_Int, E_Int> CT;
+  for (E_Int i = 0; i < nncells; i++)
+    CT[rcells[i]] = i;
+
+  std::vector<E_Int> pneis; 
+  std::set<E_Int> vpneis;
+
+  E_Int nif = 0;
+
+  std::vector<E_Int> rncount(nproc,0);
+  for (E_Int i = 0; i < nproc; i++) {
+    E_Int *ptr = &rrdata[rrdist[i]];
+    E_Int j = 0;
+    for (; j < rrcount[i];) {
+      E_Int own = ptr[j++];
+      E_Int nei = ptr[j++];
+
+      assert(own != -1);
+
+      if (nei == -1) {
+        assert(CT.find(own) != CT.end());
+        continue; // boundary face
+      }
+
+      E_Int ho = CT.find(own) != CT.end();
+      E_Int hn = CT.find(nei) != CT.end();
+
+      assert(ho || hn);
+
+      if (ho && hn) {
+        nif++;
+        continue; // internal face
+      }
+
+      if (ho && !hn) {
+        // nei is remote neighbor
+        if (vpneis.find(nei) == vpneis.end()) {
+          vpneis.insert(nei);
+          E_Int src = get_proc(nei, cells_dist, nproc);
+          rncount[src]++;
+        }
+      } else if (!ho && hn) {
+        // own is remote neighbor
+        if (vpneis.find(own) == vpneis.end()) {
+          vpneis.insert(own);
+          E_Int src = get_proc(own, cells_dist, nproc);
+          rncount[src]++;
+        }
+      } else {
+        assert(0);
+      }
+    }
+    assert(j == rrcount[i]);
+  }
+
+  std::vector<E_Int> sncount(nproc);
+  MPI_Alltoall(&rncount[0], 1, MPI_INT, &sncount[0], 1, MPI_INT, MPI_COMM_WORLD);
+
+  std::vector<E_Int> sndist(nproc+1);
+  std::vector<E_Int> rndist(nproc+1);
+  sndist[0] = rndist[0] = 0;
+  for (E_Int i = 0; i < nproc; i++) {
+    rndist[i+1] = rndist[i] + rncount[i];
+    sndist[i+1] = sndist[i] + sncount[i];
+  }
+
+  std::vector<E_Int> sncells(sndist[nproc]);
+  std::vector<E_Int> rncells(rndist[nproc]);
+
+  for (E_Int i = 0; i < nproc; i++)
+    idx[i] = rndist[i];
+
+  vpneis.clear();
+
+
+  // pfaces follow rncells dist
+  std::vector<E_Int> pfaces(rndist[nproc]);
+
+  for (E_Int i = 0; i < nproc; i++) {
+    E_Int *ptr = &rrdata[rrdist[i]];
+    E_Int *pf = &rfaces[rdist[i]];
+    E_Int j = 0;
+    E_Int count = 0;
+    for (; j < rrcount[i];) {
+      E_Int face = pf[count++];
+      E_Int own = ptr[j++];
+      E_Int nei = ptr[j++];
+
+      if (nei == -1) {
+        continue; // boundary face
+      }
+
+      E_Int ho = CT.find(own) != CT.end();
+      E_Int hn = CT.find(nei) != CT.end();
+
+
+      if (ho && hn) {
+        continue; // face is internal
+      }
+
+      if (ho && !hn) {
+        // nei is remote neighbor
+        if (vpneis.find(nei) == vpneis.end()) {
+          vpneis.insert(nei);
+          E_Int src = get_proc(nei, cells_dist, nproc);
+          rncells[idx[src]] = nei;
+          pfaces[idx[src]] = face;
+          idx[src]++;
+        }
+      } else if (!ho && hn) {
+        // own is remote neighbor
+        if (vpneis.find(own) == vpneis.end()) {
+          vpneis.insert(own);
+          E_Int src = get_proc(own, cells_dist, nproc);
+          rncells[idx[src]] = own;
+          pfaces[idx[src]] = face;
+          idx[src]++;
+        }
+      } else {
+        assert(0);
+      }
+    }
+  }
+
+  MPI_Alltoallv(&rncells[0], &rncount[0], &rndist[0], MPI_INT,
+                &sncells[0], &sncount[0], &sndist[0], MPI_INT,
+                MPI_COMM_WORLD);
+
+  for (E_Int i = 0; i < nproc; i++) {
+    E_Int *ptr = &sncells[sndist[i]];
+    for (E_Int j = 0; j < sncount[i]; j++) {
+      E_Int cell = ptr[j];
+      assert(rank == get_proc(cell, cells_dist, nproc));
+      cell -= cells_dist[rank];
+      E_Int where = part[cell];
+      ptr[j] = where;
+    }
+  }
+
+  std::vector<E_Int> nei2proc(rndist[nproc]);
+  MPI_Alltoallv(&sncells[0], &sncount[0], &sndist[0], MPI_INT,
+                &nei2proc[0], &rncount[0], &rndist[0], MPI_INT,
+                MPI_COMM_WORLD);
+
+  // we have a one to one map between pfaces, pneis and nei2proc via rndist and rncount
+  // construct proc_patches
+  proc_patch **ppatches = new proc_patch *[nproc]; // nproc is max size;
+  std::unordered_map<E_Int, E_Int> patch_id; // global proc to local proc
+  E_Int npatches = 0;
+  for (E_Int i = 0; i < nproc; i++) {
+    E_Int *pf = &pfaces[rndist[i]];
+    E_Int *pn = &rncells[rndist[i]];
+    E_Int *pp = &nei2proc[rndist[i]];
+    for (E_Int j = 0; j < rncount[i]; j++) {
+      E_Int face = pf[j];
+      E_Int nei = pn[j];
+      E_Int proc = pp[j];
+
+      auto ppatch = patch_id.find(proc);
+
+      if (ppatch == patch_id.end()) {
+        proc_patch *PP = new proc_patch(proc);
+        PP->faces.push_back(face);
+        PP->neis.push_back(nei);
+
+        ppatches[npatches] = PP;
+
+        patch_id[proc] = npatches++;
+      } else {
+        ppatches[ppatch->second]->faces.push_back(face);
+        ppatches[ppatch->second]->neis.push_back(nei);
+      }
+    }
+  }
+
   // request signed faces info if need be
   if (sfaces_exist) {
     for (E_Int i = 0; i < nproc; i++)
@@ -807,6 +1051,43 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   }
  
   PyObject* m = K_ARRAY::buildArray(local_crd, varString, cn, 8, NULL, false);
+ 
+  // Build output Python list
+  // TODO(Imad): avoid copying
+  PyObject* out = PyList_New(0);
+  PyObject* comm_data = PyList_New(0);
 
-  return m;
+  for (E_Int i = 0; i < npatches; i++) {
+    proc_patch *PP = ppatches[i];
+    E_Int proc = PP->proc;
+    const auto& faces = PP->faces;
+    const auto& neis = PP->neis;
+  
+    npy_intp dims[2];
+
+    // faces array
+    dims[1] = 1;
+    dims[0] = (npy_intp)faces.size();
+ 
+    PyArrayObject *f = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_INT);
+    E_Int *pf = (E_Int *)PyArray_DATA(f);
+    for (size_t j = 0; j < faces.size(); j++)
+      pf[j] = faces[j];
+
+    // neis array
+    PyArrayObject *n = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_INT);
+    E_Int *pn = (E_Int *)PyArray_DATA(n);
+    for (size_t j = 0; j < neis.size(); j++)
+      pn[j] = neis[j];
+  
+    PyObject *arr = Py_BuildValue("[lOO]", proc, f, n);
+    Py_DECREF(f);
+    Py_DECREF(n);
+    PyList_Append(comm_data, arr);
+  }
+
+  PyList_Append(out, comm_data);
+  PyList_Append(out, m);
+  
+  return out;
 }
