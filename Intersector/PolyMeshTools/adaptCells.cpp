@@ -1893,7 +1893,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
 
   if (*sub_type == NUGA::ISO)
   {
-    std::cout << "conformize: " << conformize << std::endl;
+    //std::cout << "conformize: " << conformize << std::endl;
     if (*elt_type == elt_t::HEXA)
       __conformizeHM<K_MESH::Hexahedron, NUGA::ISO>(hmesh, crdo, cnto, rid_to_ptlist, rid_to_zones, bcptlists, fieldsC, fieldsN, fieldsF, conformize);
     else if (*elt_type == (E_Int)elt_t::TETRA)

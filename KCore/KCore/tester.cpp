@@ -123,49 +123,122 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
   K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
   char* varString; char* eltType;
   E_Int ret = K_ARRAY::getFromArray3(o, varString, f, ni, nj, nk, c, eltType);
-
   // Acces universel sur f (begin)
   //f->print();
   E_Int nfld = f->getNfld(); // nbre de champs
   E_Int npts = f->getSize(); // nbre de pts
 #ifdef E_DOUBLEINT
-  printf("field: npts=%lld, nfld=%lld\n", npts, nfld);
+  printf("universel field: npts=%lld, nfld=%lld\n", npts, nfld);
 #else
-  printf("field: npts=%d, nfld=%d\n", npts, nfld);
+  printf("universel field: npts=%d, nfld=%d\n", npts, nfld);
 #endif
+  
   // Acces par begin
-  E_Float* x = f->begin(1); x[0] = -0.05;
-  // Acces direct
-  FldArrayF& fr = (*f); fr(1, 1) = +0.05;
+  E_Float* x = f->begin(1); 
+  for (E_Int i = 0; i < 5; i++) printf(" %f ", x[i]);
+  printf("\n");
+  // modification
+  x[0] = -0.05;
 
-  if (ret == 2 && strcmp(eltType, "NGON") == 0)
+  // Acces direct
+  FldArrayF& fr = (*f);
+  fr(1, 1) = +0.05;
+
+  // Interrogation de l'api de field
+  // si apif=1, c'est un array1
+  // si apif=2, c'est un array2 ou un array3
+  // la distinction entre array2 et 3 est que le 3 peut stocker du ME
+  // et en cas de NGON est un NGONv4
+  // pour savoir si le NGON est un NGONv4, il faut regarder c->isNGON
+  // si isngon=1 (array1 compact CGNSv3), isngon=2 (rake CGNSv3), isgon=3 (rake CGNSv4)
+  E_Int apif = f->getApi();
+#ifdef E_DOUBLEINT
+    printf("api Fld C de field=%lld\n", apif);
+#else
+    printf("api Fld C de field=%d\n", apif);
+#endif
+
+  if (ret == 2 && K_STRING::cmp(eltType, 4, "NGON") == 0)
   {
     // Acces universel sur NGON
-
+    E_Int isNGon = c->isNGon();
+    // isNGon=1: NGON, NFACE CGNSv3 array1 compact
+    // isNGON=2: NGON, NFACE, [indPG], [indPF] rake CGNSv3
+    // isNGON=3: NGON, NFACE, indPG, indPF rake CGNSv4
+    printf("isNGON=%d\n", isNGon);
+    // Acces universel nbre de faces et d'elements
+    E_Int nfaces = c->getNFaces();
+    E_Int nelts = c->getNElts();
+    printf("universel NGON: nbre de faces=%d, nbre d'elements=%d\n", nfaces, nelts);
+    // Acces non universel sur le ptrs, attention suivant NGONv3 ou v4, pas les memes tableaux
+    E_Int* ngon = c->getNGon();
+    E_Int* nface = c->getNFace();
+    E_Int* indPG = c->getIndPG();
+    E_Int* indPH = c->getIndPH();
+    // Acces universel face 0
+    if (indPG != NULL)
+    {
+      E_Int size;
+      E_Int* face = c->getFace(0, size);
+      printf("face %d:", 0);
+      for (E_Int i = 0; i < size; i++) printf(" %d ", face[i]);
+      printf("\n");
+      face = c->getFace(1, size);
+      printf("face %d:", 1);
+      for (E_Int i = 0; i < size; i++) printf(" %d ", face[i]);
+      printf("\n");
+    }
+    else printf("indPG is NULL\n");
   }
   else if (ret == 2)
   {
     // Acces universel sur BE/ME
     E_Int nc = c->getNConnect();
+    // dans le cas mono element nc vaut 1
 #ifdef E_DOUBLEINT
-    printf("nombre de connectivites=%lld\n", nc); // may be 0
+    printf("universel nombre de connectivites=%lld\n", nc);
 #else
-    printf("nombre de connectivites=%d\n", nc); // may be 0
+    printf("universel nombre de connectivites=%d\n", nc);
 #endif
+    // universel eltTypes
+    std::vector<char*> eltTypes;
+    K_ARRAY::extractVars(eltType, eltTypes);
+
+    // acces premiere connectivite BE
     FldArrayI& cm = *(c->getConnect(0));
     E_Int nelts = cm.getSize();
     E_Int nvpe = cm.getNfld();
 #ifdef E_DOUBLEINT
-    printf("first connect, nelts=%lld, nvpe=%lld\n", nelts, nvpe);
+    printf("universel first connect, %s, nelts=%lld, nvpe=%lld\n", eltTypes[0], nelts, nvpe);
 #else
-    printf("first connect, nelts=%d, nvpe=%d\n", nelts, nvpe);
+    printf("universel first connect, %s, nelts=%d, nvpe=%d\n", eltTypes[0], nelts, nvpe);
 #endif
+    printf("universel elt 0: \n");
+    for (E_Int i = 0; i < nvpe; i++) printf(" %d ", cm(0,i+1));
+    printf("\n");
+    printf("universel elt 1: \n");
+    for (E_Int i = 0; i < nvpe; i++) printf(" %d ", cm(1,i+1));
+    printf("\n");
     for (E_Int i = 0; i < nelts; i++)
     {
       cm(i,1) = -1; cm(i,2) = -2; cm(i,3) = -3; // pas de begin sur les connects
     }
+    
+    // acces a toutes les connectivites
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      FldArrayI& cm = *(c->getConnect(ic));
+      E_Int nelts = cm.getSize();
+      E_Int nvpe = cm.getNfld();
+#ifdef E_DOUBLEINT
+      printf("universel connect ic=%lld, %s, nelts=%lld, nvpe=%lld\n", ic, eltTypes[ic], nelts, nvpe);
+#else
+      printf("universel connect ic=%d, %s, nelts=%d, nvpe=%d\n", ic, eltTypes[ic], nelts, nvpe);
+#endif
+    }
+    for (size_t i = 0; i < eltTypes.size(); i++) delete [] eltTypes[i];
   }
-
+  
   //if (ret == 2) c->print();
   RELEASESHAREDB(ret, o, f, c);
   Py_INCREF(Py_None);

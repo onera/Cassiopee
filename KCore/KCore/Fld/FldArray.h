@@ -187,8 +187,10 @@ class FldArray
     /** GetApi (1: compact, 2: rake) */
     inline E_Int getApi() { if (_compact == false) return 2; else return 1; }
 
-    /** Get NGon */
+    /** Get/Set NGon */
     inline E_Int isNGon() const { return _ngon; }
+    // 1: compact array1 CGNSv3, 2: rake CGNSv3, 3: rake CGNSv4
+    void setNGon(E_Int ngon) { _ngon = ngon; };
     /** Only if  ngon */
     inline E_Int getNFaces();
     inline E_Int getNElts();
@@ -199,6 +201,8 @@ class FldArray
     inline E_Int* getPE();
     inline E_Int getSizeNGon();
     inline E_Int getSizeNFace();
+    inline E_Int* getFace(E_Int no, E_Int& size);
+    inline E_Int* getElt(E_Int no, E_Int& size);
 
     /** ME */
     inline size_t getNConnect();
@@ -344,7 +348,9 @@ class FldArray
     /* stride */
     E_Int _stride;
 
-    /* si _ngon > 1, connect NGON (stockage rake, NGON, NFACE, PE, indir */
+    /* si _ngon==1, connect compact NGONv3 array1
+       si _ngon==2, connect NGONv3 (stockage rake, NGON, NFACE, indPG, indPH, PE)
+       si _ngon==3, connect NGONv4 (stockage rake, NGON, NFACE, indPG, indPH, PE) */
     E_Int _ngon;
     E_Int _nfaces; // nbre de faces (NGON)
     E_Int _nelts; // nbre d'elements (NGON)
@@ -515,7 +521,7 @@ void FldArray<T>::setitems(int i, int j, T value)
 TEMPLATE_T
 E_Int FldArray<T>::getNFaces()
 {
-  if (_ngon == 2) // Array2
+  if (_ngon >= 2) // Array2/3
   {
     return _nfaces;
   }
@@ -529,7 +535,7 @@ E_Int FldArray<T>::getNFaces()
 TEMPLATE_T
 E_Int FldArray<T>::getNElts()
 {
-  if (_ngon == 2) // Array2
+  if (_ngon >= 2) // Array2/3
   {
     return _nelts;
   }
@@ -549,7 +555,7 @@ E_Int FldArray<T>::getNElts()
 TEMPLATE_T
 E_Int* FldArray<T>::getNGon()
 {
-  if (_ngon == 2) // Array2
+  if (_ngon >= 2) // Array2/3
   {
     return _rake[0];
   }
@@ -563,7 +569,7 @@ E_Int* FldArray<T>::getNGon()
 TEMPLATE_T
 E_Int* FldArray<T>::getNFace()
 {
-  if (_ngon == 2) // Array2
+  if (_ngon >= 2) // Array2/3
   {
     return _rake[1];
   }
@@ -578,7 +584,7 @@ E_Int* FldArray<T>::getNFace()
 TEMPLATE_T
 E_Int* FldArray<T>::getIndPG()
 {
-  if (_ngon == 2) // Array 2
+  if (_ngon >= 2) // Array 2/3
   {
     return _rake[2];
   }
@@ -603,7 +609,7 @@ E_Int* FldArray<T>::getIndPG()
 TEMPLATE_T
 E_Int* FldArray<T>::getIndPH()
 {
-  if (_ngon == 2) // Array 2
+  if (_ngon >= 2) // Array 2/3
   {
     return _rake[3];
   }
@@ -628,7 +634,7 @@ E_Int* FldArray<T>::getIndPH()
 TEMPLATE_T
 E_Int* FldArray<T>::getPE()
 {
-  if (_ngon == 2) // Array 2
+  if (_ngon >= 2) // Array 2/3
   {
     return _rake[3];
   }
@@ -643,7 +649,7 @@ E_Int* FldArray<T>::getPE()
 TEMPLATE_T
 E_Int FldArray<T>::getSizeNGon()
 {
-  if (_ngon == 2) // Array2
+  if (_ngon >= 2) // Array2/3
   {
     return _sizeNGon;
   }
@@ -657,7 +663,7 @@ E_Int FldArray<T>::getSizeNGon()
 TEMPLATE_T
 E_Int FldArray<T>::getSizeNFace()
 {
-  if (_ngon == 2) // Array2
+  if (_ngon >= 2) // Array2/3
   {
     return _sizeNFace;
   }
@@ -666,6 +672,66 @@ E_Int FldArray<T>::getSizeNFace()
     return _data[3+_data[1]];
     //return _rake[0][_rake[0][1]+3];
   } 
+}
+
+//==============================================================================
+TEMPLATE_T
+E_Int* FldArray<T>::getFace(E_Int no, E_Int& size)
+{
+  if (_ngon == 3) // Array3
+  {
+    E_Int* ngon = _rake[0];
+    E_Int* indPG = _rake[2];
+    E_Int pos = indPG[no];
+    size = indPG[pos+1]-indPG[pos];
+    return ngon+pos;
+  }
+  else if (_ngon == 2) // Array 2
+  {
+    E_Int* ngon = _rake[0];
+    E_Int* indPG = _rake[2];
+    E_Int pos = indPG[no];
+    size = ngon[pos];
+    return ngon+pos+1;
+  }
+  else // Array1
+  {
+    E_Int* ngon = getNGon();
+    E_Int* indPG = getIndPG();
+    E_Int pos = indPG[no];
+    size = ngon[pos];
+    return ngon+pos+1;
+  }
+}
+
+//==============================================================================
+TEMPLATE_T
+E_Int* FldArray<T>::getElt(E_Int no, E_Int& size)
+{
+  if (_ngon == 3) // Array3
+  {
+    E_Int* nface = _rake[1];
+    E_Int* indPH = _rake[3];
+    E_Int pos = indPH[no];
+    size = indPH[pos+1]-indPH[pos];
+    return nface+pos;
+  }
+  else if (_ngon == 2) // Array 2
+  {
+    E_Int* nface = _rake[0];
+    E_Int* indPH = _rake[2];
+    E_Int pos = indPH[no];
+    size = nface[pos];
+    return nface+pos+1;
+  }
+  else // Array1
+  {
+    E_Int* nface = getNFace();
+    E_Int* indPH = getIndPH();
+    E_Int pos = indPH[no];
+    size = nface[pos];
+    return nface+pos+1;
+  }
 }
 
 //OK---------------------------------------------------------------------------------
@@ -826,7 +892,7 @@ FldArray<T>::FldArray(E_Int size, E_Int nfld,
 }
 
 //OK forcement NGON (array1) ----------------------------------------------------------------------
-// Ne pas utiliser : on utilise le constructeur standard dans le cas Array1
+// Ne pas utiliser: on utilise le constructeur standard dans le cas Array1
 TEMPLATE_T
 FldArray<T>::FldArray(E_Int nfaces, E_Int nelts, E_Int sizeNGon, E_Int sizeNFace, T* ngonc)
  : _sizeTot(4+sizeNGon+sizeNFace),
@@ -1755,7 +1821,9 @@ FldArray<T>* FldArray<T>::getConnect(E_Int i)
 TEMPLATE_T
 size_t FldArray<T>::getNConnect()
 {
-    return _BEConnects.size();
+    E_Int size = (E_Int)_BEConnects.size();
+    if (size == 0) return 1;
+    else return size;
 }
 } // End namespace K_FLD
 #endif

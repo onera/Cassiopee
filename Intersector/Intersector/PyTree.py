@@ -2483,15 +2483,15 @@ def getRidToZones(t, zidDict):
 
 #==============================================================================
 # adaptCells : Adapts an unstructured mesh a with respect to a sensor
-# IN: t : 3D NGON mesh
-# IN: sensdata : sensor data (a bunch of vertices or a mesh for a geom sensor, a mesh for a xsensor, punctual values for a nodal or cell sensor)
-# IN: sensor_type : geom_sensor (0) , xsensor (1), nodal_sensor (2), cell_sensor(3), xsensor(4)
-# IN smoothing_type : First-neighborhood (0) Shell-neighborhood(1)
-# IN itermax : max number of level in the hierarchy
-# IN: subdiv_type : isotropic currently
-# IN: sensor_metric_policy (specific for xsensor) : which reference cell size (edge length) to use ? min (0), mean (1), max(2) or min_or_max(3) 
-# IN: hmesh : hierarchical mesh hook
-# IN: sensor : sensor hook
+# IN: t: 3D NGON mesh
+# IN: sensdata: sensor data (a bunch of vertices or a mesh for a geom sensor, a mesh for a xsensor, punctual values for a nodal or cell sensor)
+# IN: sensor_type: geom_sensor (0) , xsensor (1), nodal_sensor (2), cell_sensor(3), xsensor(4)
+# IN smoothing_type: First-neighborhood (0) Shell-neighborhood(1)
+# IN itermax: max number of level in the hierarchy
+# IN: subdiv_type: isotropic currently
+# IN: sensor_metric_policy (specific for xsensor): which reference cell size (edge length) to use ? min (0), mean (1), max(2) or min_or_max(3) 
+# IN: hmesh: hierarchical mesh hook
+# IN: sensor: sensor hook
 # IN: conformize: dump a conformal polyhedral mesh
 # OUT: returns a 3D NGON Mesh with adapted cells
 #==============================================================================
@@ -2581,21 +2581,21 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
     #print('adaptCells..')
     intersector.adaptCells(hmesh, sensor, zone_to_rid_to_list_owned, rid_to_zones) #fxme agglo
     
-    if owesHmesh == 1 : #and owesSensor == 1 :
+    if owesHmesh == 1: #and owesSensor == 1 :
       #print("_conformizeHMesh")
       _conformizeHMesh(t, hmesh, conformize)
     
-    if owesHmesh == 1 :
+    if owesHmesh == 1:
     #   #print('delete owned hmesh')
       deleteHMesh(hmesh)
-    if owesSensor == 1 : 
+    if owesSensor == 1: 
       #print('delete owned sensor')
       deleteSensor(sensor)
 
 #==============================================================================
-# adaptCellsNodal (deprecated) : Adapts a polyhedral mesh a1 with repsect to the nodal subdivision values.
-# IN: t : 3D NGON mesh
-# IN: nodal_vals : nb of subdivision required expressed at mesh nodes
+# adaptCellsNodal (deprecated): Adapts a polyhedral mesh a1 with repsect to the nodal subdivision values.
+# IN: t: 3D NGON mesh
+# IN: nodal_vals: nb of subdivision required expressed at mesh nodes
 # OUT: returns a 3D NGON Mesh with adapted cells
 #==============================================================================
 def adaptCellsNodal(t, sensdata=None, smoothing_type = 0, subdiv_type=0, hmesh=None, sensor=None):
@@ -2856,10 +2856,10 @@ def conformizeHMesh(t, hooks, conformize=1):
     return tp
 
 #==============================================================================
-# _conformizeHMesh : Converts the basic element leaves of a hierarchical mesh (hooks is a list of hooks to hiearchical zones) to a conformal polyhedral mesh.
+# _conformizeHMesh: converts the basic element leaves of a hierarchical mesh (hooks is a list of hooks to hiearchical zones) to a conformal polyhedral mesh.
 #                   Each hiearchcial zone is referring to a zone in the original mesh t. So the mesh is replaced in the tree and the BCs/Joins/Fields are transferred.
-# IN: t : PyTree before adaptation
-# IN: hook : list of hooks to hiearchical zones (same size as nb of zones in t).
+# IN: t: PyTree before adaptation
+# IN: hook: list of hooks to hiearchical zones (same size as nb of zones in t).
 # OUT: Nothing 
 #==============================================================================
 def _conformizeHMesh(t, hooks, conformize=1):
@@ -2876,7 +2876,6 @@ def _conformizeHMesh(t, hooks, conformize=1):
     zidDict = {}
     for z in zones: # loop on blocks
       zidDict[z[0]] = getProperty(z, 'zid')
-
 
     ### 1. UPDATE BC & JOIN POINTLISTS WITH CURRENT ENABLING STATUS AND MPI EXCHANGES
     zone_to_rid_to_list_owned = getJoinsPtLists(t, zidDict)

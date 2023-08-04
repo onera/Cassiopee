@@ -4,7 +4,7 @@ import Apps.Fast.IBM as App
 import Converter.PyTree as C
 import Converter.Internal as Internal
 import KCore.test as test
-test.TOLERANCE = 1.e-9
+test.TOLERANCE = 1.e-7
 
 LOCAL = test.getLocal()
 

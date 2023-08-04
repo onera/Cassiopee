@@ -1,3 +1,4 @@
+#define API 2
   // Common part to display methods  
   PyObject* arrays;
   int dim;
@@ -58,6 +59,7 @@
   vector<FldArrayI*> cnt;
   vector<char*> eltType;
   vector<PyObject*> objs, obju;
+#if API == 2
   E_Boolean skipNoCoord = true;
   E_Boolean skipStructured = false;
   E_Boolean skipUnstructured = false;
@@ -81,9 +83,10 @@
       RELEASESHAREDU(obju[i], unstrF[i], cnt[i]);
     return NULL;
   }
+#endif
 
+#if API == 3
   // Read from arrays using Array2/3
-  /*
   char* varStringl; char* eltTypel;
   E_Int nil, njl, nkl, resl;
   FldArrayF* fl; FldArrayI* cnl;
@@ -109,6 +112,7 @@
         obju.push_back(o);
     }
     else printf("Warning: display: array %d is invalid.\n", i);
-  } */
+  }
+#endif
 
   Data* d = Data::getInstance();

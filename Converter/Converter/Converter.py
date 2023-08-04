@@ -15,9 +15,10 @@ try: from . import converter
 except: import converter
 import KCore
 
-__all__ = ['array', 'addVars', '_addVars', 'addVars2', 'center2ExtCenter', 'center2Node', 'conformizeNGon',
-    'convertArray2Hexa', 'convertArray2NGon', 'convertArray2Node', 'convertArray2Tetra',
-    'convertArrays2File', 'convertBAR2Struct', 'convertFile2Arrays', 'convertTri2Quad', 'copy',
+__all__ = ['array', 'getApi', 'addVars', '_addVars', 'addVars2', 'center2ExtCenter', 
+    'center2Node', 'conformizeNGon', 'convertArray2Hexa', 'convertArray2NGon', 'convertArray2Node', 
+    'convertArray2Tetra', 'convertBAR2Struct', 'convertTri2Quad',
+    'convertArrays2File', 'convertFile2Arrays', 'copy',
     'createGlobalHook', 'createHook', 
     'createGlobalIndex', '_createGlobalIndex', 'recoverGlobalIndex', '_recoverGlobalIndex',
     'createSockets', 'diffArrays', 'isFinite', 'extCenter2Node', 'extractVars', 'getIndexField',
@@ -114,6 +115,40 @@ def arrayNS(vars, npoints, nelts, eltType, api=1):
     else: c = [numpy.ones((nelts, nt), numpy.int32)]
 
     return [vars, a, c, eltType]
+
+# -- get array api (1,2,3) --
+# IN: array
+# OUT: -1 (not an array), 1,2,3 following api
+# OUT: 1 (array1)
+# OUT: 2 (array2) or array3 (structured, mono element because identical)
+# OUT: 3 (array3) (ME, NGONv4)
+def getApi(a):
+    if len(a) == 5: # structure
+        if not isinstance(a[0], str): return -1
+        if isinstance(a[1], numpy.ndarray): return 1
+        if isinstance(a[1], list): return 2 # compat. 3
+        return -1
+    elif len(a) == 4: # non structure
+        if not isinstance(a[0], str): return -1
+        if not isinstance(a[3], str): return -1
+        eltType = a[3]
+        if isinstance(a[1], numpy.ndarray) and isinstance(a[2], numpy.ndarray): return 1
+        if isinstance(a[1], list):
+            if not isinstance(a[2], list): return -1
+            if eltType == "NGON" or eltType == "NGON*":
+                if len(a[2]) == 2: return 2
+                if len(a[2]) == 4 or len(a[2]) == 5:
+                    if a[2][3][-1] == a[2][1].size: return 3
+                    else: return 2
+                else: return -1
+            else: # ELTS
+                if len(a[2]) == 1: return 2 # compat. 3
+                else: return 3
+            if isinstance(a[2], list): return 3
+            return -1
+        return -1
+    else:
+        return -1 # not a valid array
 
 # -- Get the number of points of an array --
 def getNPts(a):
