@@ -53,7 +53,7 @@ static void* threadFunc(void* v)
 PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
 {
   #include "display1.h"
-
+    
   // Construction de la chaine de toutes les variables
   E_Int referenceNfield;
   char** referenceVarNames;

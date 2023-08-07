@@ -175,20 +175,25 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
     E_Int* nface = c->getNFace();
     E_Int* indPG = c->getIndPG();
     E_Int* indPH = c->getIndPH();
+    // Acces universel taille des vecteurs ngon et nface
+    E_Int sizeNGon = c->getSizeNGon(); // for NGONv3, contains face number and so is greater than for CGNSv4
+    E_Int sizeNFace = c->getSizeNFace();
+    printf("universel NGON: sizeNGon=%d, sizeNFace=%d\n", sizeNGon, sizeNFace);
     // Acces universel face 0
-    if (indPG != NULL)
-    {
-      E_Int size;
-      E_Int* face = c->getFace(0, size);
-      printf("face %d:", 0);
-      for (E_Int i = 0; i < size; i++) printf(" %d ", face[i]);
-      printf("\n");
-      face = c->getFace(1, size);
-      printf("face %d:", 1);
-      for (E_Int i = 0; i < size; i++) printf(" %d ", face[i]);
-      printf("\n");
-    }
-    else printf("indPG is NULL\n");
+    E_Int size;
+    E_Int* face = c->getFace(0, size);
+    printf("face %d:", 0);
+    for (E_Int i = 0; i < size; i++) printf(" %d ", face[i]);
+    printf("\n");
+    face = c->getFace(1, size);
+    printf("face %d:", 1);
+    for (E_Int i = 0; i < size; i++) printf(" %d ", face[i]);
+    printf("\n");
+    // Acces universel element 0
+    E_Int* elt = c->getElt(0, size);
+    printf("elt %d:", 0);
+    for (E_Int i = 0; i < size; i++) printf(" %d ", elt[i]);
+    printf("\n");
   }
   else if (ret == 2)
   {

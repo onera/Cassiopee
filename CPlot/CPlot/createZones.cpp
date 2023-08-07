@@ -307,8 +307,7 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
                                     E_Int referenceNfield, char** referenceVarNames,
                                     E_Int mustComplete)
 {
-  E_Int api = unstrF->getApi();
-  UnstructZone* uz = new UnstructZone( ptrState, createZoneImpl() );
+  UnstructZone* uz = new UnstructZone(ptrState, createZoneImpl());
   UnstructZone& z = *uz;
   strcpy(z.zoneName, zoneName);
   z.npts = unstrF->getSize();
@@ -578,45 +577,64 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
     z.eltSize = 3;
     z.dim = 2;
   }
-  E_Int size = cn->getSize() * cn->getNfld();
-  if (api == 2 && z.eltType == 10) // array2 NGon
+
+  // copie par access universel
+  if (z.eltType == 10) // NGON
   {
-    // store as compact
-    E_Int size1 = cn->getSizeNGon();
-    E_Int size2 = cn->getSizeNFace();
     E_Int nfaces = cn->getNFaces();
     E_Int nelts = cn->getNElts();
+    E_Int size1 = cn->getSizeNGon();
+    E_Int size2 = cn->getSizeNFace();
+    if (cn->isNGon() == 3)
+    {
+      size1 += nfaces; size2 += nelts;
+    }
     z.connect = new E_Int[size1+size2+4];
     z.connect[0] = nfaces;
     z.connect[1] = size1;
     z.connect[size1+2] = nelts;
     z.connect[size1+3] = size2;
-    memcpy(z.connect+2, cn->getNGon(), size1*sizeof(E_Int));
-    memcpy(z.connect+size1+4, cn->getNFace(), size2*sizeof(E_Int));
-  }
-  else
-  {
-    z.connect = new E_Int[size];
-    if (api == 1) // array1, copie directe
-      memcpy(z.connect, cn->begin(), size*sizeof(E_Int));
-    else // array2, inverse les indices
+    E_Int* znp = z.connect+2;
+    E_Int* fp; E_Int size;
+    E_Int* ngon = cn->getNGon();
+    E_Int* nface = cn->getNFace();
+    E_Int* indPG = cn->getIndPG();
+    E_Int* indPH = cn->getIndPH();
+    for (E_Int i = 0; i < nfaces; i++)
     {
-      E_Int nfld = cn->getNfld();
-      E_Int s = cn->getSize();
-      E_Int* cnp = cn->begin();
-      E_Int* znp = z.connect;
-      for (E_Int n = 0; n < nfld; n++)
-        for (E_Int i = 0; i < s; i++)
-          znp[i+n*s] = cnp[n+i*nfld]; 
+      fp = cn->getFace(i, size, ngon, indPG);
+      znp[0] = size;
+      for (E_Int v = 0; v < size; v++) znp[v+1] = fp[v];
+      znp += size+1;
+    }
+    znp += 2;
+    for (E_Int i = 0; i < nelts; i++)
+    {
+      fp = cn->getElt(i, size, nface, indPH);
+      znp[0] = size;
+      for (E_Int v = 0; v < size; v++) znp[v+1] = std::abs(fp[v]);
+      znp += size+1;
     }
   }
+  else // BE
+  {
+    FldArrayI& cm = *(cn->getConnect(0));
+    E_Int nvpe = cm.getNfld();
+    E_Int nelts = cm.getSize();
+    E_Int size = nelts * nvpe;
+    z.connect = new E_Int[size];
+    E_Int* znp = z.connect;
+    for (E_Int n = 0; n < nvpe; n++)
+      for (E_Int i = 0; i < nelts; i++)
+        znp[i+n*nelts] = cm(i, n+1);
+  }  
 
 # if defined(__SHADERS__)
-  if ( is_high_order )
+  if (is_high_order)
   {
     z.eltSize = nb_nodes_per_elts[ind_type];
-    z.eltType = ( ind_type < 5 ? 2 : 3 );
-    z.dim     = 2;
+    z.eltType = (ind_type < 5 ? 2 : 3);
+    z.dim = 2;
   }
 # endif
 

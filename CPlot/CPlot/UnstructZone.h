@@ -52,6 +52,6 @@ class UnstructZone : public Zone
     E_Int nelts2D;                // nombre d'elements 2D
     E_Int* posElts1D;             // position des elements 1D dans connect
     E_Int* posElts2D;             // position des elements 2D dans connect
-    E_Int  _is_high_order;        // Dit si on est en presence d'elements high order ou non
+    E_Int _is_high_order;         // Dit si on est en presence d'elements high order ou non
 };
 #endif

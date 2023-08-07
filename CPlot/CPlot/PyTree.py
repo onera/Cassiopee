@@ -69,7 +69,7 @@ def display(t,
     else: t = C.node2Center(t)
     zoneNames = C.getZoneNames(t)
     renderTags = getRenderTags(t)
-    arrays = C.getAllFields(t, 'nodes', api=2)
+    arrays = C.getAllFields(t, 'nodes', api=3)
     CPlot.display(arrays, dim, mode, scalarField, vectorField1,
                   vectorField2, vectorField3, displayBB, displayInfo,
                   displayIsoLegend, meshStyle,

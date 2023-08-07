@@ -71,7 +71,7 @@ PyObject* K_CPLOT::replace(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, 
                                      ni, nj, nk, cn, eltType);
 
   if (res != 1 && res != 2) 

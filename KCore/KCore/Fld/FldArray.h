@@ -202,7 +202,9 @@ class FldArray
     inline E_Int getSizeNGon();
     inline E_Int getSizeNFace();
     inline E_Int* getFace(E_Int no, E_Int& size);
+    inline E_Int* getFace(E_Int no, E_Int& size, E_Int* ngon, E_Int* indPG); // faster    
     inline E_Int* getElt(E_Int no, E_Int& size);
+    inline E_Int* getElt(E_Int no, E_Int& size, E_Int* nface, E_Int* indPH); // faster
 
     /** ME */
     inline size_t getNConnect();
@@ -683,7 +685,7 @@ E_Int* FldArray<T>::getFace(E_Int no, E_Int& size)
     E_Int* ngon = _rake[0];
     E_Int* indPG = _rake[2];
     E_Int pos = indPG[no];
-    size = indPG[pos+1]-indPG[pos];
+    size = indPG[no+1]-pos;
     return ngon+pos;
   }
   else if (_ngon == 2) // Array 2
@@ -704,6 +706,22 @@ E_Int* FldArray<T>::getFace(E_Int no, E_Int& size)
   }
 }
 
+TEMPLATE_T
+E_Int* FldArray<T>::getFace(E_Int no, E_Int& size, E_Int* ngon, E_Int* indPG)
+{
+  E_Int pos = indPG[no];
+  if (_ngon == 3) // Array3
+  {
+    size = indPG[no+1]-pos;
+    return ngon+pos;
+  }
+  else // Array 1 or 2
+  {
+    size = ngon[pos];
+    return ngon+pos+1;
+  }
+}
+
 //==============================================================================
 TEMPLATE_T
 E_Int* FldArray<T>::getElt(E_Int no, E_Int& size)
@@ -713,13 +731,13 @@ E_Int* FldArray<T>::getElt(E_Int no, E_Int& size)
     E_Int* nface = _rake[1];
     E_Int* indPH = _rake[3];
     E_Int pos = indPH[no];
-    size = indPH[pos+1]-indPH[pos];
+    size = indPH[no+1]-pos;
     return nface+pos;
   }
   else if (_ngon == 2) // Array 2
   {
-    E_Int* nface = _rake[0];
-    E_Int* indPH = _rake[2];
+    E_Int* nface = _rake[1];
+    E_Int* indPH = _rake[3];
     E_Int pos = indPH[no];
     size = nface[pos];
     return nface+pos+1;
@@ -729,6 +747,22 @@ E_Int* FldArray<T>::getElt(E_Int no, E_Int& size)
     E_Int* nface = getNFace();
     E_Int* indPH = getIndPH();
     E_Int pos = indPH[no];
+    size = nface[pos];
+    return nface+pos+1;
+  }
+}
+
+TEMPLATE_T
+E_Int* FldArray<T>::getElt(E_Int no, E_Int& size, E_Int* nface, E_Int* indPH)
+{
+  E_Int pos = indPH[no];
+  if (_ngon == 3) // Array3
+  {
+    size = indPH[no+1]-pos;
+    return nface+pos;
+  }
+  else // Array 1 or 2
+  {
     size = nface[pos];
     return nface+pos+1;
   }
