@@ -47,12 +47,13 @@ void DataDL::renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield
 #endif
 
   double* x = zonep->x; double* y = zonep->y; double* z = zonep->z;
-  E_Int* connect = zonep->connect;
+  E_Int eltType0 = zonep->eltType[0];
+  E_Int* connect = zonep->connect[0];
   
   glCallList(zoneImpl->_DLiso);
 
   // Pour les BAR
-  if (zonep->eltType == 1)
+  if (eltType0 == 1)
   {
     glBegin(GL_LINES);
     if (zonep->blank == 0)
@@ -89,7 +90,7 @@ void DataDL::renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield
   }
 
   // Pour les NGONS 1D
-  if (zonep->eltType == 10 && zonep->nelts1D > 0)
+  if (eltType0 == 10 && zonep->nelts1D > 0)
   {
     glBegin(GL_LINES);
     if (zonep->blank == 0)
@@ -153,7 +154,6 @@ void DataDL::renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet,
   double blend;
   E_Int ret1, ret2;
 
-  E_Int ne = zonep->ne;
   ZoneImplDL* zoneImpl = static_cast<ZoneImplDL*>(zonep->ptr_impl);
   
   // Blending
@@ -167,12 +167,14 @@ void DataDL::renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet,
 #endif
 
   double* x = zonep->x; double* y = zonep->y; double* z = zonep->z;
-  E_Int* connect = zonep->connect;
+  E_Int ne = zonep->nec[0];
+  E_Int eltType0 = zonep->eltType[0];
+  E_Int* connect = zonep->connect[0];
   
   glCallList(zoneImpl->_DLiso);
 
   // Pour les BAR
-  if (zonep->eltType == 1)
+  if (eltType0 == 1)
   {
     glBegin(GL_LINES);
     if (zonep->blank == 0)
@@ -209,7 +211,7 @@ void DataDL::renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet,
   }
 
   // Pour les NGONS 1D
-  if (zonep->eltType == 10 && zonep->nelts1D > 0)
+  if (eltType0 == 10 && zonep->nelts1D > 0)
   {
     glBegin(GL_LINES);
     if (zonep->blank == 0)

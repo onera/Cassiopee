@@ -1,9 +1,13 @@
   double* x = zonep->x;
   double* y = zonep->y;
   double* z = zonep->z;
-  E_Int* connect = zonep->connect;
+
+  E_Int eltType = zonep->eltType[0];
+  E_Int nbNodesPerPatch = zonep->eltSize[0];
+  E_Int* connect = zonep->connect[0];
+  E_Int ne = zonep->nec[0];
+  
   // Grid dimensions
-  E_Int ne = zonep->ne;
   E_Int ne2 = 2*ne;
   E_Int ne3 = 3*ne;
   E_Int ne4 = 4*ne;
@@ -14,9 +18,7 @@
   E_Int ne9 = 9*ne;
   E_Int ne10= 10*ne;
   E_Int ne11= 11*ne;
-  E_Int eltType = zonep->eltType;
-  E_Int nbNodesPerPatch = zonep->eltSize;
-  glPatchParameteri( GL_PATCH_VERTICES, 3 );
+  glPatchParameteri(GL_PATCH_VERTICES, 3);
   glBegin(GL_PATCHES);
   //glBegin(GL_LINES);
   if (zonep->blank == 0)
@@ -24,7 +26,7 @@
     switch (eltType)
     {
       case 2: // TRI
-        if (nbNodesPerPatch==6)
+        if (nbNodesPerPatch == 6)
         {
           for (i = 0; i < ne; i++)
           {

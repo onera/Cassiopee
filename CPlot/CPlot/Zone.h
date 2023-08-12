@@ -20,6 +20,7 @@
 #ifndef _CPLOT_ZONE_H_
 #define _CPLOT_ZONE_H_
 #include "ZoneImpl.h"
+#include <vector>
 
 #ifndef MAXSTRINGLENGTH
 #define MAXSTRINGLENGTH 128   /* max length of strings */
@@ -58,13 +59,16 @@ class Zone
     double* z;
     double **f;                      // storage of variables (size nf)
     char** varnames;                 // x,y,z + other variables
-    float* surf;                     // normal to each element
+    std::vector<float*> surf;        // normal to each element
+                                     // for struct: only one at faces
+                                     // for TRI, QUAD: only one at nodes
+                                     // for others, one for each connectivity at faces
     double xmin, xmax;               // min max of zone coords
     double ymin, ymax; 
     double zmin, zmax;
-    double* minf;                   // min max value of f (size nf)
+    double* minf;                    // min max value of f (size nf)
     double* maxf;
-    double Di, Dj, Dk;               // Mesh densities
+    double Di, Dj, Dk;                // Mesh densities
     double xc, yc, zc;                // center of zone (sphere)
     double rc;                        // radius of sphere
     E_Int active; // if set to 0 the zone is not displayed

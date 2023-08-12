@@ -46,7 +46,8 @@ void Data::displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield)
 #include "displayUIsoSolidZone.h"
 
   // Pour les BARS
-  if (zonep->eltType == 1)
+  E_Int eltType0 = zonep->eltType[0];
+  if (eltType0 == 1)
   {
     glBegin(GL_LINES);
     if (zonep->blank == 0)
@@ -87,7 +88,7 @@ void Data::displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield)
   }
 
   // Pour les NGONS 1D
-  if (zonep->eltType == 10 && zonep->nelts1D > 0)
+  if (eltType0 == 10 && zonep->nelts1D > 0)
   {
     glBegin(GL_LINES);
     if (zonep->blank == 0)
@@ -178,8 +179,9 @@ void Data::displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet,
 #define PLOTQUAD2 PLOTQUADT2
 #include "displayUVectSolidZone.h"
 
+  E_Int eltType0 = zonep->eltType[0];
   // Pour les BARS
-  if (zonep->eltType == 1)
+  if (eltType0 == 1)
   {
     glBegin(GL_LINES);
     if (zonep->blank == 0)
@@ -216,7 +218,7 @@ void Data::displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet,
   }
 
   // Pour les NGONS 1D
-  if (zonep->eltType == 10 && zonep->nelts1D > 0)
+  if (eltType0 == 10 && zonep->nelts1D > 0)
   {
     glBegin(GL_LINES);
     if (zonep->blank == 0)

@@ -64,18 +64,6 @@ StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
 
   vector<char*> vars;
   K_ARRAY::extractVars(varString, vars);
-  //vector<char*> varsT;
-  //K_ARRAY::extractVars(varString, varsT);
-  /*
-  for (size_t i = 0; i < varsT.size(); i++)
-  {
-    char* v = varsT[i];
-    if (K_STRING::cmp(v, "x") != 0 && K_STRING::cmp(v, "y") != 0 && K_STRING::cmp(v, "z") != 0 &&
-        K_STRING::cmp(v, "CoordinateX") != 0 && K_STRING::cmp(v, "CoordinatY") != 0 && K_STRING::cmp(v, "CoordinateZ") != 0)
-    {
-      vars.push_back(v);
-    }
-  }*/
   E_Int varsSize = vars.size();
 
   // Allocation of var fields
@@ -235,7 +223,6 @@ StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
   }
 
   // Calcul les normales
-  z.surf = NULL; 
   z.compNorm();
 
   z.activePlane = 0;
@@ -326,35 +313,21 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
   };
   unsigned short ind_type = 0;
   const char* pt_type = high_order_types[ind_type];
-  while ( ( pt_type != NULL ) and (K_STRING::cmp(eltType, pt_type) != 0) )
+  while ( (pt_type != NULL) and (K_STRING::cmp(eltType, pt_type) != 0) )
   {
-    ind_type ++;
+    ind_type++;
     pt_type = high_order_types[ind_type];
   }
   bool is_high_order = (pt_type != NULL);
   z._is_high_order = is_high_order;
 # endif
-    z.x = new E_Float[z.npts];
-    memcpy(z.x, unstrF->begin(posx), z.npts*sizeof(E_Float));
-    z.y = new E_Float[z.npts];
-    memcpy(z.y, unstrF->begin(posy), z.npts*sizeof(E_Float));
-    z.z = new E_Float[z.npts];
-    memcpy(z.z, unstrF->begin(posz), z.npts*sizeof(E_Float));
+  z.x = new E_Float[z.npts];
+  memcpy(z.x, unstrF->begin(posx), z.npts*sizeof(E_Float));
+  z.y = new E_Float[z.npts];
+  memcpy(z.y, unstrF->begin(posy), z.npts*sizeof(E_Float));
+  z.z = new E_Float[z.npts];
+  memcpy(z.z, unstrF->begin(posz), z.npts*sizeof(E_Float));
   z.ne = cn->getSize();
-  /*
-  vector<char*> varsT;
-  K_ARRAY::extractVars(varString, varsT);
-  vector<char*> vars;
-  K_ARRAY::extractVars(varString, vars);
-  for (size_t i = 0; i < varsT.size(); i++)
-  {
-    char* v = varsT[i];
-    if (K_STRING::cmp(v, "x") != 0 && K_STRING::cmp(v, "y") != 0 && K_STRING::cmp(v, "z") != 0 &&
-        K_STRING::cmp(v, "CoordinateX") != 0 && K_STRING::cmp(v, "CoordinateY") != 0 && K_STRING::cmp(v, "CoordinateZ") != 0)
-    {
-      vars.push_back(v);
-    }
-  } */
   vector<char*> vars;
   K_ARRAY::extractVars(varString, vars);
   E_Int varsSize = vars.size();
@@ -392,13 +365,12 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
       {
         z.f[n] = new E_Float[z.npts];
         if (K_STRING::cmp(referenceVarNames[n], "cellN") == 0)
-        { for (int i = 0; i < z.npts; i++) z.f[n][i] = 1.; }
-        else { for (int i = 0; i < z.npts; i++) z.f[n][i] = 0.; }
+        { for (E_Int i = 0; i < z.npts; i++) z.f[n][i] = 1.; }
+        else { for (E_Int i = 0; i < z.npts; i++) z.f[n][i] = 0.; }
         strcpy(z.varnames[n], referenceVarNames[n]);
       }
     }
     // Complete all zones
-    //printf("nall %d %d\n", nall, referenceNfield);
     if (nall > referenceNfield && mustComplete == 1)
     {
       // reallocate (previous zones)
@@ -472,8 +444,8 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
             Zone* zp = _zones[nz];
             zp->f[nall] = new E_Float[zp->npts];
             if (K_STRING::cmp(vars[p], "cellN") == 0)
-            { for (int i = 0; i < zp->npts; i++) zp->f[nall][i] = 1.; }
-            else { for (int i = 0; i < zp->npts; i++) zp->f[nall][i] = 0.; }
+            { for (E_Int i = 0; i < zp->npts; i++) zp->f[nall][i] = 1.; }
+            else { for (E_Int i = 0; i < zp->npts; i++) zp->f[nall][i] = 0.; }
             strcpy(zp->varnames[nall], vars[p]);
           }
           z.f[nall] = new E_Float[z.npts];
@@ -515,71 +487,89 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
     z.shaderParam2 = 1.;
   }
 
-  if (K_STRING::cmp(eltType, "NODE") == 0)
-  {
-    z.eltType = 0;
-    z.eltSize = 0;
-    z.dim = 0;
-  }
-  else if (K_STRING::cmp(eltType, "BAR") == 0)
-  {
-    z.eltType = 1;
-    z.eltSize = 2;
-    z.dim = 1;
-  }
-  else if (K_STRING::cmp(eltType, "TRI") == 0)
-  {
-    z.eltType = 2;
-    z.eltSize = 3;
-    z.dim = 2;
-  }
-  else if (K_STRING::cmp(eltType, "QUAD") == 0)
-  {
-    z.eltType = 3;
-    z.eltSize = 4;
-    z.dim = 2;
-  }
-  else if (K_STRING::cmp(eltType, "TETRA") == 0)
-  {
-    z.eltType = 4;
-    z.eltSize = 4;
-    z.dim = 3;
-  }
-  else if (K_STRING::cmp(eltType, "PENTA") == 0)
-  {
-    z.eltType = 5;
-    z.eltSize = 6;
-    z.dim = 3;
-  }
-  else if (K_STRING::cmp(eltType, "PYRA") == 0)
-  {
-    z.eltType = 6;
-    z.eltSize = 5;
-    z.dim = 3;
-  }
-  else if (K_STRING::cmp(eltType, "HEXA") == 0)
-  {
-    z.eltType = 7;
-    z.eltSize = 8;
-    z.dim = 3;
-  }
-  else if (K_STRING::cmp(eltType, "NGON") == 0)
-  {
-    z.ne = cn->getNElts();
-    z.eltType = 10;
-    z.eltSize = 1;
-    z.dim = 3;
-  }
-  else if (not z._is_high_order)
-  {
-    printf("Warning: element type is unknown. Set to TRI.\n");
-    z.eltType = 2;
-    z.eltSize = 3;
-    z.dim = 2;
-  }
+  /* Explore connectivities */
+  std::vector<char*> eltTypes;
+  K_ARRAY::extractVars(eltType, eltTypes);
 
+  for (size_t i = 0; i < eltTypes.size(); i++)
+  {
+    if (K_STRING::cmp(eltTypes[i], "NODE") == 0)
+    {
+      z.eltType.push_back(0);
+      z.eltSize.push_back(0);
+      z.dim = 0;
+    }
+    else if (K_STRING::cmp(eltTypes[i], "BAR") == 0)
+    {
+      z.eltType.push_back(1);
+      z.eltSize.push_back(2);
+      z.dim = 1;
+    }
+    else if (K_STRING::cmp(eltTypes[i], "TRI") == 0)
+    {
+      z.eltType.push_back(2);
+      z.eltSize.push_back(3);
+      z.dim = 2;
+    }
+    else if (K_STRING::cmp(eltTypes[i], "QUAD") == 0)
+    {
+      z.eltType.push_back(3);
+      z.eltSize.push_back(4);
+      z.dim = 2;
+    }
+    else if (K_STRING::cmp(eltTypes[i], "TETRA") == 0)
+    {
+      z.eltType.push_back(4);
+      z.eltSize.push_back(4);
+      z.dim = 3;
+    }
+    else if (K_STRING::cmp(eltTypes[i], "PENTA") == 0)
+    {
+      z.eltType.push_back(5);
+      z.eltSize.push_back(6);
+      z.dim = 3;
+    }
+    else if (K_STRING::cmp(eltTypes[i], "PYRA") == 0)
+    {
+      z.eltType.push_back(6);
+      z.eltSize.push_back(5);
+      z.dim = 3;
+    }
+    else if (K_STRING::cmp(eltTypes[i], "HEXA") == 0)
+    {
+      z.eltType.push_back(7);
+      z.eltSize.push_back(8);
+      z.dim = 3;
+    }
+    else if (K_STRING::cmp(eltTypes[i], "NGON") == 0)
+    {
+      z.ne = cn->getNElts();
+      z.nec.push_back(z.ne);
+      z.eltType.push_back(10);
+      z.eltSize.push_back(1);
+      z.dim = 3;
+    }
+    else if (not z._is_high_order)
+    {
+      printf("Warning: element type is unknown. Set to TRI.\n");
+      z.eltType.push_back(2);
+      z.eltSize.push_back(3);
+      z.dim = 2;
+    }
+  }
+# if defined(__SHADERS__)
+  if (is_high_order)
+  {
+    z.eltSize.push_back(nb_nodes_per_elts[ind_type]);
+    z.eltType.push_back((ind_type < 5 ? 2 : 3));
+    z.dim = 2;
+  }
+# endif
+
+  for (size_t i = 0; i < eltTypes.size(); i++) delete [] eltTypes[i];
+  
   // copie par access universel
-  if (z.eltType == 10) // NGON
+  if (z.eltType[0] == 10) // NGON
   {
     E_Int nfaces = cn->getNFaces();
     E_Int nelts = cn->getNElts();
@@ -589,12 +579,13 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
     {
       size1 += nfaces; size2 += nelts;
     }
-    z.connect = new E_Int[size1+size2+4];
-    z.connect[0] = nfaces;
-    z.connect[1] = size1;
-    z.connect[size1+2] = nelts;
-    z.connect[size1+3] = size2;
-    E_Int* znp = z.connect+2;
+    z.connect.push_back(new E_Int[size1+size2+4]);
+    E_Int* zconnect = z.connect[0];
+    zconnect[0] = nfaces;
+    zconnect[1] = size1;
+    zconnect[size1+2] = nelts;
+    zconnect[size1+3] = size2;
+    E_Int* znp = zconnect+2;
     E_Int* fp; E_Int size;
     E_Int* ngon = cn->getNGon();
     E_Int* nface = cn->getNFace();
@@ -618,54 +609,54 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
   }
   else // BE
   {
-    FldArrayI& cm = *(cn->getConnect(0));
-    E_Int nvpe = cm.getNfld();
-    E_Int nelts = cm.getSize();
-    E_Int size = nelts * nvpe;
-    z.connect = new E_Int[size];
-    E_Int* znp = z.connect;
-    for (E_Int n = 0; n < nvpe; n++)
-      for (E_Int i = 0; i < nelts; i++)
-        znp[i+n*nelts] = cm(i, n+1);
-  }  
-
-# if defined(__SHADERS__)
-  if (is_high_order)
-  {
-    z.eltSize = nb_nodes_per_elts[ind_type];
-    z.eltType = (ind_type < 5 ? 2 : 3);
-    z.dim = 2;
+    E_Int ncon = cn->getNConnect();
+    E_Int neTot = 0;
+    for (E_Int nc = 0; nc < ncon; nc++)
+    {
+      FldArrayI& cm = *(cn->getConnect(nc));
+      E_Int nvpe = cm.getNfld();
+      E_Int nelts = cm.getSize();
+      neTot += nelts;
+      E_Int size = nelts * nvpe;
+      z.connect.push_back(new E_Int[size]);
+      E_Int* znp = z.connect[nc];
+      for (E_Int n = 0; n < nvpe; n++)
+        for (E_Int i = 0; i < nelts; i++)
+          znp[i+n*nelts] = cm(i, n+1);
+      z.nec.push_back(nelts);
+    }
+    z.ne = neTot;
   }
-# endif
 
 
   z.posFaces = NULL;
 
-  if (z.eltType == 10) // NGONS
+  if (z.eltType[0] == 10) // NGONS
   {
     // calcul posFaces (position des faces dans connect)
-    E_Int nfaces = NFACES(z.connect);
+    E_Int* zconnect = z.connect[0];
+    E_Int nfaces = NFACES(zconnect);
     z.posFaces = new E_Int[nfaces];
-    E_Int c = POSFACES(z.connect); E_Int l;
+    E_Int c = POSFACES(zconnect); E_Int l;
     for (E_Int i = 0; i < nfaces; i++)
     {
-      z.posFaces[i] = c; l = z.connect[c]; c += l+1;
+      z.posFaces[i] = c; l = zconnect[c]; c += l+1;
     }
 
     // calcul le nombre d'elements 1D et 2D
-    E_Int nelts = NELTS(z.connect);
+    E_Int nelts = NELTS(zconnect);
     
-    c = POSELTS(z.connect);
+    c = POSELTS(zconnect);
     E_Int dim, s, c1, c2;
     z.nelts1D = 0; z.nelts2D = 0;
     for (E_Int i = 0; i < nelts; i++)
     {
-      l = z.connect[c]; // nbre de faces
+      l = zconnect[c]; // nbre de faces
       dim = 0;
       for (E_Int j = 0; j < l; j++)
       {
-        s = z.posFaces[z.connect[c+j+1]-1];
-        dim = max(dim, z.connect[s]);
+        s = z.posFaces[zconnect[c+j+1]-1];
+        dim = max(dim, zconnect[s]);
       }
       if (dim == 1) { z.nelts1D++; }
       else if (dim == 2) { z.nelts2D++; }
@@ -675,16 +666,16 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
     //printf("1D: %d, 2D: %d\n", z.nelts1D, z.nelts2D);
     if (z.nelts1D > 0) z.posElts1D = new E_Int[z.nelts1D];
     if (z.nelts2D > 0) z.posElts2D = new E_Int[z.nelts2D];
-    c = POSELTS(z.connect);
+    c = POSELTS(zconnect);
     c1 = 0; c2 = 0;
     for (E_Int i = 0; i < nelts; i++)
     {
-      l = z.connect[c]; // nbre de faces
+      l = zconnect[c]; // nbre de faces
       dim = 0;
       for (E_Int j = 0; j < l; j++)
       {
-        s = z.posFaces[z.connect[c+j+1]-1];
-        dim = max(dim, z.connect[s]);
+        s = z.posFaces[zconnect[c+j+1]-1];
+        dim = max(dim, zconnect[s]);
       }
       if (dim == 1) { z.posElts1D[c1] = c; c1++; }
       else if (dim == 2) { z.posElts2D[c2] = c; c2++; }
@@ -692,7 +683,7 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
     }
   }
 
-  z.surf = NULL; z.compNorm();
+  z.compNorm();
   z.blank = 0;
   z.active = 1;
   z.selected = 0;

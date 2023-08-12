@@ -21,10 +21,9 @@
 #include <stdlib.h>
 
 //=============================================================================
-UnstructZone::UnstructZone( CPlotState* states, ZoneImpl* impl ) : Zone(states, impl)
+UnstructZone::UnstructZone(CPlotState* states, ZoneImpl* impl) : Zone(states, impl)
 {
-  connect = NULL; 
-  posFaces = NULL; 
+  posFaces = NULL;
   nelts1D = 0; nelts2D = 0;
   posElts1D = NULL; posElts2D = NULL;
 }
@@ -32,7 +31,7 @@ UnstructZone::UnstructZone( CPlotState* states, ZoneImpl* impl ) : Zone(states, 
 //=============================================================================
 UnstructZone::~UnstructZone()
 {
-  if (connect != NULL) delete [] connect;
+  for (size_t i = 0; i < connect.size(); i++) delete [] connect[i];
   if (posFaces != NULL) delete [] posFaces;
   if (posElts1D != NULL) delete [] posElts1D;
   if (posElts2D != NULL) delete [] posElts2D;

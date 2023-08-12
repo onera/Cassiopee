@@ -44,8 +44,9 @@ void DataDL::renderGPUUSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet)
     color1[2] = zonep->colorB;}
 
 #include "selection.h"
-  
-  bool is1D = ((zonep->eltType == 1) | (zonep->eltType == 10 && zonep->nelts1D>0));
+
+  E_Int eltType0 = zonep->eltType[0];  
+  bool is1D = ((eltType0 == 1) | (eltType0 == 10 && zonep->nelts1D>0));
   if (is1D == true && ptrState->mode == RENDER) glLineWidth(1.+5*zonep->shaderParam1);
   else if (is1D == true) glLineWidth(3.);
   else glLineWidth(1.);
@@ -100,7 +101,7 @@ void DataDL::renderGPUUSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet)
   GLenum error = glGetError();
   if (error != GL_NO_ERROR)
   {
-    std::cerr << __PRETTY_FUNCTION__ << " : get error n°0x" << std::hex << error << std::dec << std::flush << std::endl;
+    std::cerr << __PRETTY_FUNCTION__ << ": get error n°0x" << std::hex << error << std::dec << std::flush << std::endl;
   }
   glLineWidth(1.);
 }

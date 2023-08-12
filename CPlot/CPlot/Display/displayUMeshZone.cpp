@@ -91,7 +91,8 @@ void Data::displayUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet)
   E_Float nz = 1./_numberOfUnstructZones;
 #include "meshStyles.h"
 
-  if (zonep->eltType == 1 || zonep->eltType == 0 || (zonep->eltType == 10 && zonep->nelts1D > 0)) 
+  E_Int eltType0 = zonep->eltType[0]; 
+  if (eltType0 == 1 || eltType0 == 0 || (eltType0 == 10 && zonep->nelts1D > 0)) 
   { glLineWidth(3.); color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1.; }
       
 #include "selection.h"
@@ -99,9 +100,9 @@ void Data::displayUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet)
     /*if ( zonep->_is_high_order == true )
     {
       int ishader = 0;
-      if ( zonep->eltType == UnstructZone::TRI )
+      if ( eltType0 == UnstructZone::TRI )
         ishader = 1;  // OK, element de type Tri_6
-      if ( zonep->eltType == UnstructZone::QUAD )
+      if ( eltType0 == UnstructZone::QUAD )
         ishader = 2;  // OK, element de type Quad_8
       if ( not this->_shaders.has_tesselation() ) {
         this->_shaders.set_tesselation( ishader );
@@ -119,7 +120,7 @@ void Data::displayUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet)
 #include "displayUMeshZone.h"
 
   // For BARS or NODES or 1D NGONS: display node
-  if (eltType == 1 || eltType ==  0 || (eltType == 10 && zonep->nelts1D > 0))
+  if (eltType0 == 1 || eltType0 == 0 || (eltType0 == 10 && zonep->nelts1D > 0))
   {
     glBegin(GL_QUADS);
     if (zonep->blank == 0)

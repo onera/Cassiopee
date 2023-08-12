@@ -637,14 +637,16 @@ void Data::displayInfo()
     else
     {
       UnstructZone* zu = (UnstructZone*)z;
-      switch (zu->eltType)
+      E_Int eltType = zu->eltType[0];
+      E_Int eltSize = zu->eltSize[0];
+      switch (eltType)
       {
         case 0:
           sprintf(temp,"@1%s@0 (NODE): %d pts",
                   z->zoneName, zu->npts);
           break;
         case 1:
-          if (zu->_is_high_order && zu->eltSize == 3)
+          if (zu->_is_high_order && eltSize == 3)
             sprintf(temp,"@1%s@0 (BAR_3): %d pts, %d elts",
                     z->zoneName, zu->npts, zu->ne);
           else
@@ -652,7 +654,7 @@ void Data::displayInfo()
                     z->zoneName, zu->npts, zu->ne);
           break;
         case 2:
-          if (zu->_is_high_order && zu->eltSize == 6)
+          if (zu->_is_high_order && eltSize == 6)
             sprintf(temp,"@1%s@0 (TRI_6): %d pts, %d elts",
                     z->zoneName, zu->npts, zu->ne);
           else
@@ -660,10 +662,10 @@ void Data::displayInfo()
                     z->zoneName, zu->npts, zu->ne);
           break;
         case 3:
-          if (zu->_is_high_order && zu->eltSize == 8)
+          if (zu->_is_high_order && eltSize == 8)
             sprintf(temp,"@1%s@0 (QUAD_8): %d pts, %d elts",
                     z->zoneName, zu->npts, zu->ne);
-          else if (zu->_is_high_order && zu->eltSize == 9)
+          else if (zu->_is_high_order && eltSize == 9)
             sprintf(temp,"@1%s@0 (QUAD_9): %d pts, %d elts",
                     z->zoneName, zu->npts, zu->ne);
           else
@@ -671,7 +673,7 @@ void Data::displayInfo()
                     z->zoneName, zu->npts, zu->ne);
           break;
         case 4:
-          if (zu->_is_high_order && zu->eltSize == 10)
+          if (zu->_is_high_order && eltSize == 10)
             sprintf(temp,"@1%s@0 (TETRA_10): %d pts, %d elts",
                     z->zoneName, zu->npts, zu->ne);
           else
@@ -679,10 +681,10 @@ void Data::displayInfo()
                     z->zoneName, zu->npts, zu->ne);
           break;
         case 5:
-          if (zu->_is_high_order && zu->eltSize == 15)
+          if (zu->_is_high_order && eltSize == 15)
             sprintf(temp,"@1%s@0 (PENTA_15): %d pts, %d elts",
                     z->zoneName, zu->npts, zu->ne);
-          else if (zu->_is_high_order && zu->eltSize == 18)
+          else if (zu->_is_high_order && eltSize == 18)
             sprintf(temp,"@1%s@0 (PENTA_18): %d pts, %d elts",
                     z->zoneName, zu->npts, zu->ne);
           else
@@ -690,7 +692,7 @@ void Data::displayInfo()
                     z->zoneName, zu->npts, zu->ne);
           break;
         case 6:
-          if (zu->_is_high_order && zu->eltSize == 14)
+          if (zu->_is_high_order && eltSize == 14)
             sprintf(temp,"@1%s@0 (PYRA_14): %d pts, %d elts",
                     z->zoneName, zu->npts, zu->ne);
           else
@@ -698,10 +700,10 @@ void Data::displayInfo()
                     z->zoneName, zu->npts, zu->ne);
           break;
         case 7:
-          if (zu->_is_high_order && zu->eltSize == 20)
+          if (zu->_is_high_order && eltSize == 20)
             sprintf(temp,"@1%s@0 (HEXA_20): %d pts, %d elts",
                     z->zoneName, zu->npts, zu->ne);
-          else if (zu->_is_high_order && zu->eltSize == 27)
+          else if (zu->_is_high_order && eltSize == 27)
             sprintf(temp,"@1%s@0 (HEXA_27): %d pts, %d elts",
                     z->zoneName, zu->npts, zu->ne);
           else
@@ -727,7 +729,7 @@ void Data::displayInfo()
       if (ptrState->mode == MESH || ptrState->mode == SOLID)
         strcpy(local, "\nx=@1%g@0, y=@1%g@0, z=@1%g@0 (@1i=%d@0, @1j=%d@0, @1k=%d@0)");
       else strcpy(local, "\nx=%g, y=%g, z=%g (i=%d, j=%d,  k=%d)");
-      sprintf(temp, local,  
+      sprintf(temp, local,
               ptrState->activePointX, ptrState->activePointY, ptrState->activePointZ,
               ptrState->activePointI, ptrState->activePointJ, abs(ptrState->activePointK));
     }
@@ -740,7 +742,7 @@ void Data::displayInfo()
       // ou nf: no de la face (NGON)
       Zone* z = _zones[ptrState->selectedZone-1];
       UnstructZone* zu = (UnstructZone*)z;
-      if (zu->eltType != 10)
+      if (zu->eltType[0] != 10)
       {
         if (ptrState->mode == MESH || ptrState->mode == SOLID)
           strcpy(local, "\nx=@1%g@0, y=@1%g@0, z=@1%g@0 (@1np=%d@0, @1ne=%d@0, @1ns=%d@0)");

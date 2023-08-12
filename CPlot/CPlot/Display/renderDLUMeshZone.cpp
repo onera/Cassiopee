@@ -105,17 +105,18 @@ void DataDL::renderGPUUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet)
     E_Float nz = 1. / _numberOfUnstructZones;
 #include "meshStyles.h"
 
-    double* x       = zonep->x;
-    double* y       = zonep->y;
-    double* z       = zonep->z;
-    E_Int eltType = zonep->eltType;
+    double* x = zonep->x;
+    double* y = zonep->y;
+    double* z = zonep->z;
+    E_Int eltType0 = zonep->eltType[0];
 
-    if (eltType == 1 || eltType == 0 || (eltType == 10 && zonep->nelts1D > 0)) 
+    if (eltType0 == 1 || eltType0 == 0 || (eltType0 == 10 && zonep->nelts1D > 0)) 
     { glLineWidth(3.); color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1.; }
 #include "selection.h"
 
     // glCallList(zonep->_DLmesh);
-    if (zonep->_is_high_order == true) {
+    if (zonep->_is_high_order == true)
+    {
         int ishader = 3;
         this->_shaders.set_tesselation(ishader);
         this->_shaders.activate((short unsigned int)this->_shaders.shader_id(shader::None));
@@ -128,7 +129,8 @@ void DataDL::renderGPUUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet)
     glCallList(zImpl->_DLmesh);
 
     // For BARS, NODE, 1D NGONS: display node
-    if (eltType == 1 || eltType == 0 || (eltType == 10 && zonep->nelts1D > 0)) {
+    if (eltType0 == 1 || eltType0 == 0 || (eltType0 == 10 && zonep->nelts1D > 0)) 
+    {
         glBegin(GL_QUADS);
         if (zonep->blank == 0) 
         {

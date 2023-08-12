@@ -111,10 +111,10 @@ void Data::voxelize(UnstructZone& zn, UnstructZone& z)
   // Ajout de pts supplementaires par elements
   E_Int ne = z.ne;
   E_Int ind;
-  E_Int eltSize = z.eltSize;
+  E_Int eltSize = z.eltSize[0];
   double eltSizei = 1./eltSize;
   double eltSize1i = 1./(eltSize+1.);
-  E_Int* connect = z.connect;
+  E_Int* connect = z.connect[0];
   
   // Centre de l'element
   for (E_Int i = 0; i < ne; i++)

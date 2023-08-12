@@ -199,7 +199,7 @@
 #define PLOTNGON(n) r = f1[n]*deltai+0.5;                           \
   g = f2[n]*deltai+0.5;                                             \
   b = f3[n]*deltai+0.5;                                             \
-  glColor3f(r, g, b);                                                   \
+  glColor3f(r, g, b);                                               \
   glVertex3d(x[n], y[n], z[n]);
   
   double deltai1 = MAX(ABS(fmax1), 1.e-6);
@@ -218,17 +218,19 @@
   //void (*getrgb)(Data* data, double, float*, float*, float*);
   //getrgb = _pref.colorMap->f;
 
-  E_Int ne = zonep->ne;
+  E_Int np = zonep->np;
+  double* x = zonep->x; double* y = zonep->y; double* z = zonep->z;
+
+  E_Int ne = zonep->nec[0];
   E_Int ne2 = 2*ne; int ne3 = 3*ne;
   E_Int ne4 = 4*ne; int ne5 = 5*ne;
-  E_Int np = zonep->np;
+  E_Int* connect = zonep->connect[0];
+  E_Int eltType = zonep->eltType[0];
 
-  double* x = zonep->x; double* y = zonep->y; double* z = zonep->z;
-  E_Int* connect = zonep->connect;
-
-  if (zonep->eltType == 2) // TRI
+  if (eltType == 2) // TRI
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[0];
+    float* surfx = surfp;
     float* surfy = surfx + np;
     float* surfz = surfy + np;
     
@@ -256,9 +258,10 @@
     }
     glEnd();
   }
-  else if (zonep->eltType == 3) // QUAD
+  else if (eltType == 3) // QUAD
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[0];
+    float* surfx = surfp;
     float* surfy = surfx + np;
     float* surfz = surfy + np;
     
@@ -288,9 +291,10 @@
     }
     glEnd();
   }
-  else if (zonep->eltType == 4) // TETRA
+  else if (eltType == 4) // TETRA
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[0];
+    float* surfx = surfp;
     float* surfy = surfx + ne4;
     float* surfz = surfy + ne4;
     
@@ -350,9 +354,10 @@
     }
     glEnd();
   }
-  else if (zonep->eltType == 5) // PENTA
+  else if (eltType == 5) // PENTA
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[0];
+    float* surfx = surfp;
     float* surfy = surfx + ne5;
     float* surfz = surfy + ne5;
     
@@ -444,9 +449,10 @@
     }
     glEnd();
   } 
-  else if (zonep->eltType == 6) // PYRA
+  else if (eltType == 6) // PYRA
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[0];
+    float* surfx = surfp;
     float* surfy = surfx + ne5;
     float* surfz = surfy + ne5;
     
@@ -534,9 +540,10 @@
     }
     glEnd();
   } 
-  else if (zonep->eltType == 7) // HEXA
+  else if (eltType == 7) // HEXA
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[0];
+    float* surfx = surfp;
     float* surfy = surfx + 6*ne;
     float* surfz = surfy + 6*ne;
     
@@ -628,11 +635,12 @@
     }
     glEnd();
   }
-  else if (zonep->eltType == 10) // NGON
+  else if (eltType == 10) // NGON
   {
     E_Int nf = connect[0];
     E_Int l, nd, c;
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[0];
+    float* surfx = surfp;
     float* surfy = surfx + nf;
     float* surfz = surfy + nf;
     E_Int next, prev;
@@ -650,6 +658,7 @@
           n1 = connect[c+1]-1;
           n2 = connect[c+2]-1;
           n3 = connect[c+3]-1;
+          ff = i; // a verifier CB
           PLOTTRI2;
         }
         c += nd+1;
@@ -667,6 +676,7 @@
           n2 = connect[c+2]-1;
           n3 = connect[c+3]-1;
           n4 = connect[c+4]-1;
+          ff = i; // a verifier
           PLOTQUAD2;
         }
         c += nd+1;
@@ -692,6 +702,7 @@
       }
 
       // Elements 2D
+      E_Int j, first;
       for (i = 0; i < zonep->nelts2D; i++)
       {
         glBegin(GL_POLYGON);
@@ -699,8 +710,6 @@
         E_Int* ptrelt = &connect[elt];
         E_Int nf = ptrelt[0];
         E_Int drawn = 0;
-        E_Int j, first;
-
         E_Int face = ptrelt[1]-1;
         glNormal3f(surfx[face], surfy[face], surfz[face]);
         E_Int* ptrface = &connect[zonep->posFaces[face]];
@@ -865,7 +874,7 @@
   }
 
   // Pour les BAR
-  if (zonep->eltType == 1)
+  if (eltType == 1)
   {
     glLineWidth(3.);
     glPolygonOffset(-1.,-10.); // force offset
@@ -917,7 +926,7 @@
   }
 
   // Pour les NGONS 1D
-  if (zonep->eltType == 10 && zonep->nelts1D > 0)
+  if (eltType == 10 && zonep->nelts1D > 0)
   {
     glLineWidth(3.);
     glBegin(GL_LINES);

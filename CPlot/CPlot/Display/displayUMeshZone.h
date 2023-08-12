@@ -25,13 +25,14 @@
   double* x = zonep->x;
   double* y = zonep->y;
   double* z = zonep->z;
-  E_Int* connect = zonep->connect;
+
+  E_Int eltType = zonep->eltType[0];
+  E_Int* connect = zonep->connect[0];
+  E_Int ne = zonep->nec[0];
   
   // Grid dimensions
-  E_Int ne = zonep->ne;
   E_Int ne2 = 2*ne;
   E_Int ne3 = 3*ne;
-  E_Int eltType = zonep->eltType;
   E_Int nd, l;
 
   glBegin(GL_LINES);

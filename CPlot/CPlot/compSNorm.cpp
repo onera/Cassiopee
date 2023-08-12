@@ -47,16 +47,17 @@ void StructZone::compNorm()
   E_Int nbEltk = nij*nkm;
   E_Int nbElt = nbElti+nbEltj+nbEltk;
 
-  surf = new float [nbElt*3]; // float volontaire
-  float* surfx = surf;
+  float* surfp = new float [nbElt*3]; // float volontaire
+  surf.push_back(surfp);
+  float* surfx = surfp;
   float* surfy = surfx + nbElti;
   float* surfz = surfy + nbElti;
 
-  float* surfx2 = surf + 3*nbElti;
+  float* surfx2 = surfp + 3*nbElti;
   float* surfy2 = surfx2 + nbEltj;
   float* surfz2 = surfy2 + nbEltj;
 
-  float* surfx3 = surf + 3*nbElti + 3*nbEltj;
+  float* surfx3 = surfp + 3*nbElti + 3*nbEltj;
   float* surfy3 = surfx3 + nbEltk;
   float* surfz3 = surfy3 + nbEltk;
 

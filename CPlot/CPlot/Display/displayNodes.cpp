@@ -92,16 +92,16 @@ void Data::displayNodes()
   while (zone < _numberOfUnstructZones)
   {
     UnstructZone* zonep = _uzones[zone];
+    E_Int eltType = zonep->eltType[0];
 
     // if zone is activated and nodes and in frustum
-    if (zonep->active == 1 && zonep->eltType == 0
-        && isInFrustum(zonep, _view) == 1)
+    if (zonep->active == 1 && eltType == 0 && isInFrustum(zonep, _view) == 1)
     {
       if (ptrState->mode == RENDER && zonep->material == 9) // billboard
       { 
         alphaSav = ptrState->alpha;
         if (zonep->blending != -1.) ptrState->alpha = zonep->blending;
-        displayBillBoards(zonep, zone); 
+        displayBillBoards(zonep, zone);
         //glDisable(GL_CULL_FACE); 
         glDepthMask(GL_TRUE); 
         ptrState->alpha = alphaSav;

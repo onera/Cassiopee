@@ -305,7 +305,7 @@ E_Int Data::initZoneData(
 
   // Modifie les zones pour le rendu volumetrique
   replaceVolumetricZones();
-
+  
   return 1;
 }
 
@@ -365,7 +365,7 @@ void Data::replaceVolumetricZones()
         zn.shaderParam1 = z.shaderParam1;
         zn.shaderParam2 = z.shaderParam2;
 
-        zn.surf = NULL; zn.compNorm();
+        zn.compNorm();
         zn.blank = z.blank;
         zn.active = z.active;
         zn.selected = z.selected;
@@ -387,11 +387,11 @@ void Data::replaceVolumetricZones()
         zn.np = zn.npts;
         zn.nfield = z.nfield;
         zn.dim = z.dim;
-        zn.x = new E_Float[zn.npts];
         double factor = 0.3;
         double deltax = factor*(z.xmax - z.xmin);
         double deltay = factor*(z.ymax - z.ymin);
         double deltaz = factor*(z.zmax - z.zmin);
+        zn.x = new E_Float[zn.npts];
         zn.x[0] = z.xmin - deltax; zn.x[1] = z.xmax + deltax;
         zn.x[2] = z.xmax + deltax; zn.x[3] = z.xmin - deltax;
         zn.x[4] = z.xmin - deltax; zn.x[5] = z.xmax + deltax;
@@ -408,6 +408,7 @@ void Data::replaceVolumetricZones()
         zn.z[6] = z.zmax + deltaz; zn.z[7] = z.zmax + deltaz;
 
         zn.ne = 1;
+        zn.nec.push_back(1);
         
         for (E_Int n = 0; n < zn.nfield; n++)
         {
@@ -425,11 +426,11 @@ void Data::replaceVolumetricZones()
         zn.shaderParam1 = z.shaderParam1;
         zn.shaderParam2 = z.shaderParam2;
 
-        zn.eltType = 7;
-        zn.eltSize = 8;
+        zn.eltType.push_back(7);
+        zn.eltSize.push_back(8);
         
-        zn.connect = new E_Int[zn.ne*zn.eltSize];
-        E_Int* cn = zn.connect;
+        zn.connect.push_back(new E_Int[zn.nec[0]*zn.eltSize[0]]);
+        E_Int* cn = zn.connect[0];
 
         //cn[0] = 1; cn[6] = 2; cn[12] = 3; cn[18] = 4;
         //cn[1] = 5; cn[7] = 6; cn[13] = 7; cn[19] = 8;
@@ -441,7 +442,8 @@ void Data::replaceVolumetricZones()
         cn[0] = 1; cn[1] = 2; cn[2] = 3; cn[3] = 4; cn[4] = 5;
         cn[5] = 6; cn[6] = 7; cn[7] = 8;
 
-        zn.surf = NULL; zn.compNorm();
+        //zn.surf = NULL; 
+        zn.compNorm();
         zn.blank = z.blank;
         zn.active = z.active;
         zn.selected = z.selected;

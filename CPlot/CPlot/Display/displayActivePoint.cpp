@@ -324,54 +324,54 @@ void Data::displayActivePoint()
       }
       else
       {
-        switch (zu->eltType)
+        switch (zu->eltType[0])
         {
           case 0:
             sprintf(msg,"%s (NODE)", zone->zoneName); break;
           case 1:
-            if (zu->_is_high_order && zu->eltSize == 3)
+            if (zu->_is_high_order && zu->eltSize[0] == 3)
               sprintf(msg,"%s (BAR_3)", zone->zoneName);
             else
               sprintf(msg,"%s (BAR)", zone->zoneName); 
             break;
           case 2:
-            if (zu->_is_high_order && zu->eltSize == 6)
+            if (zu->_is_high_order && zu->eltSize[0] == 6)
               sprintf(msg,"%s (TRI_6)", zone->zoneName);
             else
               sprintf(msg,"%s (TRI)", zone->zoneName); 
             break;
           case 3:
-            if (zu->_is_high_order && zu->eltSize == 8)
+            if (zu->_is_high_order && zu->eltSize[0] == 8)
               sprintf(msg,"%s (QUAD_8)", zone->zoneName);
-            else if (zu->_is_high_order && zu->eltSize == 9)
+            else if (zu->_is_high_order && zu->eltSize[0] == 9)
               sprintf(msg,"%s (QUAD_9)", zone->zoneName);
             else
-              sprintf(msg,"%s (QUAD)", zone->zoneName); 
+              sprintf(msg,"%s (QUAD)", zone->zoneName);
             break;
           case 4:
-            if (zu->_is_high_order && zu->eltSize == 10)
+            if (zu->_is_high_order && zu->eltSize[0] == 10)
               sprintf(msg,"%s (TETRA_10)", zone->zoneName);
             else
               sprintf(msg,"%s (TETRA)", zone->zoneName); 
             break;
           case 5:
-            if (zu->_is_high_order && zu->eltSize == 15)
+            if (zu->_is_high_order && zu->eltSize[0] == 15)
               sprintf(msg,"%s (PENTA_15)", zone->zoneName);
-            else if (zu->_is_high_order && zu->eltSize == 18)
+            else if (zu->_is_high_order && zu->eltSize[0] == 18)
               sprintf(msg,"%s (PENTA_18)", zone->zoneName);
             else 
               sprintf(msg,"%s (PENTA)", zone->zoneName); 
             break;
           case 6:
-            if (zu->_is_high_order && zu->eltSize == 14)
+            if (zu->_is_high_order && zu->eltSize[0] == 14)
               sprintf(msg,"%s (PYRA_14)", zone->zoneName);
             else
               sprintf(msg,"%s (PYRA)", zone->zoneName); 
             break;
           case 7:
-            if (zu->_is_high_order && zu->eltSize == 20)
+            if (zu->_is_high_order && zu->eltSize[0] == 20)
               sprintf(msg,"%s (HEXA_20)", zone->zoneName);
-            else if (zu->_is_high_order && zu->eltSize == 27)
+            else if (zu->_is_high_order && zu->eltSize[0] == 27)
               sprintf(msg,"%s (HEXA_27)", zone->zoneName);
             else
               sprintf(msg,"%s (HEXA)", zone->zoneName); 

@@ -191,17 +191,22 @@
 
   double* f = zonep->f[nofield];
 
-  E_Int ne = zonep->ne;
-  E_Int ne2 = 2*ne; int ne3 = 3*ne;
-  E_Int ne4 = 4*ne; int ne5 = 5*ne;
   E_Int np = zonep->np;
+  double* x = zonep->x; 
+  double* y = zonep->y; 
+  double* z = zonep->z;
+  
+  E_Int eltType = zonep->eltType[0];
+  E_Int* connect = zonep->connect[0];
 
-  double* x = zonep->x; double* y = zonep->y; double* z = zonep->z;
-  E_Int* connect = zonep->connect;
-
-  if (zonep->eltType == 2) // TRI
+  E_Int ne = zonep->nec[0];
+  E_Int ne2 = 2*ne; E_Int ne3 = 3*ne;
+  E_Int ne4 = 4*ne; E_Int ne5 = 5*ne;
+  
+  if (eltType == 2) // TRI
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[0];
+    float* surfx = surfp;
     float* surfy = surfx + np;
     float* surfz = surfy + np;
     
@@ -229,9 +234,10 @@
     }
     glEnd();
   }
-  else if (zonep->eltType == 3) // QUAD
+  else if (eltType == 3) // QUAD
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[0];
+    float* surfx = surfp;
     float* surfy = surfx + np;
     float* surfz = surfy + np;
     
@@ -261,9 +267,10 @@
     }
     glEnd();
   }
-  else if (zonep->eltType == 4) // TETRA
+  else if (eltType == 4) // TETRA
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[0];
+    float* surfx = surfp;
     float* surfy = surfx + ne4;
     float* surfz = surfy + ne4;
     
@@ -323,9 +330,10 @@
     }
     glEnd();
   }
-  else if (zonep->eltType == 5) // PENTA
+  else if (eltType == 5) // PENTA
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[0];
+    float* surfx = surfp;
     float* surfy = surfx + ne5;
     float* surfz = surfy + ne5;
     
@@ -417,9 +425,10 @@
     }
     glEnd();
   } 
-  else if (zonep->eltType == 6) // PYRA
+  else if (eltType == 6) // PYRA
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[0];
+    float* surfx = surfp;
     float* surfy = surfx + ne5;
     float* surfz = surfy + ne5;
     
@@ -507,9 +516,10 @@
     }
     glEnd();
   } 
-  else if (zonep->eltType == 7) // HEXA
+  else if (eltType == 7) // HEXA
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[0];
+    float* surfx = surfp;
     float* surfy = surfx + 6*ne;
     float* surfz = surfy + 6*ne;
     
@@ -601,11 +611,12 @@
     }
     glEnd();
   }
-  else if (zonep->eltType == 10) // NGON
+  else if (eltType == 10) // NGON
   {
     E_Int nf = connect[0];
     E_Int l, nd, c;
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[0];
+    float* surfx = surfp;
     float* surfy = surfx + nf;
     float* surfz = surfy + nf;
     E_Int next, prev;
@@ -862,7 +873,7 @@
   }
 
   // Pour les BAR
-  if (zonep->eltType == 1)
+  if (eltType == 1)
   {
     glLineWidth(3.);
     glPolygonOffset(-1.,-10.); // force offset
@@ -906,7 +917,7 @@
   }
 
   // Pour les NGONS 1D
-  if (zonep->eltType == 10 && zonep->nelts1D > 0)
+  if (eltType == 10 && zonep->nelts1D > 0)
   {
     glLineWidth(3.);
     glBegin(GL_LINES);

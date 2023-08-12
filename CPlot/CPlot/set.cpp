@@ -837,11 +837,11 @@ PyObject* K_CPLOT::setActivePoint(PyObject* self, PyObject* args)
       d->ptrState->activePointI = ind; // indice du noeud le plus proche
       d->ptrState->activePointJ = indE; // indice de l'element contenant P
       UnstructZone* zz = (UnstructZone*)z;
-      if (zz->eltType != 10) // autre que NGON
+      if (zz->eltType[0] != 10) // autre que NGON
       {
-        E_Int* c = zz->connect;
-        E_Int size = zz->eltSize;
-        E_Int ne = zz->ne;
+        E_Int* c = zz->connect[0];
+        E_Int size = zz->eltSize[0];
+        E_Int ne = zz->nec[0];
         E_Int v = 0;
         for (v = 0; v < size; v++)
         {

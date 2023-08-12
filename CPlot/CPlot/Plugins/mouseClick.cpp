@@ -143,11 +143,11 @@ void Data::dataMouseClickSelect(E_Int button, E_Int etat, E_Int x, E_Int y,
       ptrState->activePointI = ind; // indice du noeud le plus proche
       ptrState->activePointJ = indE; // indice de l'element contenant P
       UnstructZone* zz = (UnstructZone*)z;
-      if (zz->eltType != 10) // autre que NGON
+      if (zz->eltType[0] != 10) // autre que NGON
       {
-        E_Int* c = zz->connect;
-        E_Int size = zz->eltSize;
-        E_Int ne = zz->ne;
+        E_Int* c = zz->connect[0];
+        E_Int size = zz->eltSize[0];
+        E_Int ne = zz->nec[0];
         E_Int v = 0;
         for (v = 0; v < size; v++)
         {
@@ -478,10 +478,10 @@ E_Int findNearestPoint(double xp, double yp, double zp,
 E_Int findElement(double xp, double yp, double zp,
                   UnstructZone* zone, double& distMin)
 {
-  E_Int ne = zone->ne;
-  E_Int nv = zone->eltSize;
+  E_Int ne = zone->nec[0];
+  E_Int nv = zone->eltSize[0];
   double nvi = 1./MAX(nv,1);
-  E_Int* c = zone->connect;
+  E_Int* c = zone->connect[0];
   double* x = zone->x;
   double* y = zone->y;
   double* z = zone->z;
@@ -489,7 +489,7 @@ E_Int findElement(double xp, double yp, double zp,
   double xc, yc, zc, dist, dx, dy, dz;
   distMin = 1.e6; 
   E_Int best = 0;
-  if (zone->eltType != 10) // basic elements
+  if (zone->eltType[0] != 10) // basic elements
   {
     for (i = 0; i < ne; i++)
     {
@@ -773,10 +773,10 @@ E_Int findElement(double xp, double yp, double zp,
 E_Int findFace(double xp, double yp, double zp, E_Int elt, 
                UnstructZone* zone, double& dist)
 {
-  E_Int* c = zone->connect;
+  E_Int* c = zone->connect[0];
   E_Int* ptr = PTRELTS(c); // ptr sur les elts
   E_Int f, p, np, rt, nf, i, ne;
-  ne = zone->ne;
+  ne = zone->nec[0];
   double xc, yc, zc, d;
   double* x = zone->x;
   double* y = zone->y;

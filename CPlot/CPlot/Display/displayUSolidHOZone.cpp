@@ -50,27 +50,26 @@ void Data::displayUSolidHOZone(UnstructZone *zonep, E_Int zone, E_Int zonet)
 
 #include "selection.h"
 
-    bool is1D = ( ( zonep->eltType == 1 ) | ( zonep->eltType == 10 && zonep->nelts1D > 0 ) );
+    E_Int eltType0 = zonep->eltType[0];
+    bool is1D = ( (eltType0 == 1) | (eltType0 == 10 && zonep->nelts1D > 0) );
     if (is1D == true && ptrState->mode == RENDER)
         glLineWidth(1. + 5 * zonep->shaderParam1);
-    else if (is1D == true)
-        glLineWidth(3.);
-    else
-        glLineWidth(1.);
+    else if (is1D == true) glLineWidth(3.);
+    else glLineWidth(1.);
 
     // scale
-    E_Float s = MAX( zonep->xmax - zonep->xmin, zonep->ymax - zonep->ymin );
-    s = MAX( s, zonep->zmax - zonep->zmin );
-    s = 100. / ( s + 1.e-12 );
+    E_Float s = MAX(zonep->xmax - zonep->xmin, zonep->ymax - zonep->ymin);
+    s = MAX(s, zonep->zmax - zonep->zmin);
+    s = 100. / (s + 1.e-12);
 
     // Only for textured rendering, we use vect display =======================
     if (ptrState->mode == RENDER && zonep->material == 14 && zonep->texu != NULL)  // Textured rendering
     {
         // Sans doute également à modifier pour le high order ?
-        triggerShader( *zonep, zonep->material, s, color1 );
+        triggerShader(*zonep, zonep->material, s, color1);
 
-        E_Int ff=0;
-        double offb=0.;
+        E_Int ff = 0;
+        double offb = 0.;
 #undef PLOT
         double* f1 = zonep->texu;
         double* f2 = zonep->texv;
@@ -89,42 +88,51 @@ void Data::displayUSolidHOZone(UnstructZone *zonep, E_Int zone, E_Int zonet)
     // END Textured rendering ===========================================
     // Activation du shader de tesselation :
     int ishader = 0;
-    if (zonep->eltType == UnstructZone::TRI)
+    if (eltType0 == UnstructZone::TRI)
         ishader = 1;  // OK, element de type Tri_6, TRI_9, TRI_10, TRI_12 or TRI_15
-    if (zonep->eltType == UnstructZone::QUAD)
+    if (eltType0 == UnstructZone::QUAD)
         ishader = 2;  // OK, element de type Quad_8 ou Quad_9, QUAD_12, QUAD_16, QUAD_25
     this->_shaders.set_tesselation(ishader);
-    if (ptrState->mode == RENDER) 
+    if (ptrState->mode == RENDER)
     {
-        if ( zonep->selected == 1 && zonep->active == 1 )
-            triggerShader( *zonep, zonep->material, s, color2 );
+        if (zonep->selected == 1 && zonep->active == 1)
+            triggerShader(*zonep, zonep->material, s, color2);
         else
-            triggerShader( *zonep, zonep->material, s, color1 );
-    } else {
-        if ( zonep->selected == 1 && zonep->active == 1 )
-            triggerShader( *zonep, 0, s, color2 );
+            triggerShader(*zonep, zonep->material, s, color1);
+    } 
+    else 
+    {
+        if (zonep->selected == 1 && zonep->active == 1)
+            triggerShader(*zonep, 0, s, color2);
         else
-            triggerShader( *zonep, 0, s, color1 );
+            triggerShader(*zonep, 0, s, color1);
     }
-    // Pour eviter de tracer le lo order sans faire expres :-)
+    // Pour eviter de tracer le low order sans faire expres :-)
     unsigned short idShader = this->_shaders.currentShader();
     int t_inner = this->ptrState->inner_tesselation;
     int t_outer = this->ptrState->outer_tesselation;
     this->_shaders[ idShader ]->setUniform( "uInner", (float)t_inner );
     this->_shaders[ idShader ]->setUniform( "uOuter", (float)t_outer );
-    this->_shaders[ idShader ]->setUniform( "patch_size", (int)zonep->eltSize );
+    this->_shaders[ idShader ]->setUniform( "patch_size", (int)zonep->eltSize[0] );
 
-    glPatchParameteri(GL_PATCH_VERTICES, zonep->eltSize);
-    E_Int stride = zonep->ne;
-    E_Int ind_elt, ind;
+    glPatchParameteri(GL_PATCH_VERTICES, zonep->eltSize[0]);
     glBegin(GL_PATCHES);
-    for (E_Int ielts = 0; ielts < zonep->ne; ++ielts) 
+
+    E_Int ind_elt, ind;
+    E_Int ne = zonep->nec[0];
+    E_Int stride = ne;
+    E_Int* connect = zonep->connect[0];
+    double* x = zonep->x;
+    double* y = zonep->y;
+    double* z = zonep->z;
+    
+    for (E_Int ielts = 0; ielts < ne; ++ielts) 
     {
         ind_elt = ielts;
-        for ( size_t inode = 0; inode < zonep->eltSize; inode++ ) 
+        for (E_Int inode = 0; inode < zonep->eltSize[0]; inode++) 
         {
-            ind = zonep->connect[ind_elt + inode * stride]-1;
-            glVertex3f( (float)zonep->x[ind], (float)zonep->y[ind], (float)zonep->z[ind] );
+            ind = connect[ind_elt + inode * stride]-1;
+            glVertex3f( (float)x[ind], (float)y[ind], (float)z[ind] );
         }
     }
     glEnd();

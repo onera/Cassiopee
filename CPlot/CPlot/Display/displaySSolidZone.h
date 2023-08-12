@@ -127,7 +127,8 @@
   double* y = zonep->y;
   double* z = zonep->z;
 
-  float* surfx = zonep->surf;
+  float* surfp = zonep->surf[0];
+  float* surfx = surfp;
   float* surfy = surfx + nbElti;
   float* surfz = surfy + nbElti;
   
@@ -207,7 +208,7 @@
       }
     }
     
-    surfx = zonep->surf + 3*nbElti;
+    surfx = surfp + 3*nbElti;
     surfy = surfx + nbEltj;
     surfz = surfy + nbEltj;
   
@@ -274,7 +275,7 @@
       }
     }
    
-    surfx = zonep->surf + 3*nbElti + 3*nbEltj;
+    surfx = surfp + 3*nbElti + 3*nbEltj;
     surfy = surfx + nbEltk;
     surfz = surfy + nbEltk;
 
@@ -403,7 +404,7 @@
       }
     }
   
-    surfx = zonep->surf + 3*nbElti;
+    surfx = surfp + 3*nbElti;
     surfy = surfx + nbEltj;
     surfz = surfy + nbEltj;
     
@@ -464,7 +465,7 @@
       }
     }
   
-    surfx = zonep->surf + 3*nbElti + 3*nbEltj;
+    surfx = surfp + 3*nbElti + 3*nbEltj;
     surfy = surfx + nbEltk;
     surfz = surfy + nbEltk;
 

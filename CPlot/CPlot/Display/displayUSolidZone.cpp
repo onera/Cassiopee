@@ -40,7 +40,7 @@ void Data::displayUSolidZone(UnstructZone *zonep, E_Int zone, E_Int zonet)
 #include "solidStyles.h"
 
     // Ecrasement si renderTag
-    if ( zonep->colorR > -0.5 ) 
+    if (zonep->colorR > -0.5) 
     {
         color1[ 0 ] = zonep->colorR;
         color1[ 1 ] = zonep->colorG;
@@ -49,16 +49,17 @@ void Data::displayUSolidZone(UnstructZone *zonep, E_Int zone, E_Int zonet)
 
 #include "selection.h"
 
-    bool is1D = ( ( zonep->eltType == 1 ) | ( zonep->eltType == 10 && zonep->nelts1D > 0 ) );
+    E_Int eltType0 = zonep->eltType[0];
+    bool is1D = ( (eltType0 == 1) | (eltType0 == 10 && zonep->nelts1D > 0) );
     if (is1D == true && ptrState->mode == RENDER)
-        glLineWidth( 1. + 5 * zonep->shaderParam1 );
+        glLineWidth(1. + 5 * zonep->shaderParam1);
     else if (is1D == true) glLineWidth(3.);
     else glLineWidth(1.);
 
     // scale
-    E_Float s = MAX( zonep->xmax - zonep->xmin, zonep->ymax - zonep->ymin );
-    s = MAX( s, zonep->zmax - zonep->zmin );
-    s = 100. / ( s + 1.e-12 );
+    E_Float s = MAX(zonep->xmax - zonep->xmin, zonep->ymax - zonep->ymin);
+    s = MAX(s, zonep->zmax - zonep->zmin);
+    s = 100. / (s + 1.e-12);
 
     // Only for textured rendering, we use vect display =======================
     if (ptrState->mode == RENDER && zonep->material == 14 && zonep->texu != NULL)  // Textured rendering
@@ -67,8 +68,8 @@ void Data::displayUSolidZone(UnstructZone *zonep, E_Int zone, E_Int zonet)
         triggerShader(*zonep, zonep->material, s, color1);
 #endif
 
-        E_Int ff=0;
-        double offb=0.;
+        E_Int ff = 0;
+        double offb = 0.;
 #undef PLOT
         double* f1 = zonep->texu;
         double* f2 = zonep->texv;

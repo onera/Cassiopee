@@ -43,7 +43,8 @@ void Data::displayUEdges()
   while (zone < _numberOfUnstructZones)
   {
     UnstructZone* zonep = _uzones[zone];
-    if ((zonep->eltType == 1) || (zonep->eltType == 10 && zonep->nelts1D > 0))
+    E_Int eltType = zonep->eltType[0];
+    if ((eltType == 1) || (eltType == 10 && zonep->nelts1D > 0))
     {
       if (isInFrustum(zonep, _view) == 1)
       {
@@ -52,8 +53,8 @@ void Data::displayUEdges()
             (zonep->active == 0 && ptrState->edgifyDeactivatedZones == 1))        
         {
           double* x = zonep->x; double* y = zonep->y; double* z = zonep->z;
-          E_Int* connect = zonep->connect;
-          if (zonep->eltType == 1) // BAR
+          E_Int* connect = zonep->connect[0];
+          if (eltType == 1) // BAR
           {
             ne = zonep->ne;
             glBegin(GL_LINES);
@@ -66,7 +67,7 @@ void Data::displayUEdges()
             }
             glEnd();
           }
-          if (zonep->eltType == 10) // NGON1D
+          if (eltType == 10) // NGON1D
           {
             glBegin(GL_LINES);
             for (E_Int i = 0; i < zonep->nelts1D; i++)

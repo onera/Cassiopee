@@ -38,7 +38,6 @@ Zone::Zone(CPlotState* states, ZoneImpl* impl) : ptr_impl(impl)
   x = NULL; y = NULL; z = NULL;
   f = NULL;
   varnames = NULL;
-  surf = NULL;
   minf = NULL; maxf = NULL;
   xmin = 1.e6; ymin = 1.e6; zmin = 1.e6;
   xmax = -1.e6; ymax = -1.e6; zmax = -1.e6;
@@ -57,7 +56,7 @@ Zone::~Zone()
   if (x != NULL) delete [] x;
   if (y != NULL) delete [] y;
   if (z != NULL) delete [] z;
-  if (surf != NULL) delete [] surf;
+  for (size_t i = 0; i < surf.size(); i++) delete [] surf[i];
   if (f != NULL)
   {
     for (E_Int i = 0; i < nfield; i++) delete [] f[i];
