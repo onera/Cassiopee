@@ -396,11 +396,11 @@ void Data::mouseDrag(E_Int x, E_Int y)
     ptrState->currentMousePosZ = posZ;
 
     // coloriage
-    E_Int zone, ind, indE, ret;
+    E_Int zone, ind, indE, ncon, ret;
     double dist;
     ret = findBlockContaining(posX, posY, posZ,
                               zone, ind, indE, 
-                              dist);
+                              dist, ncon);
     
     // mise a jour du state
     /*

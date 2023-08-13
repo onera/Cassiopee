@@ -116,7 +116,7 @@ struct CPlotState
     chain_int* deactivatedZones;
     // Clicked point
     double  activePointX, activePointY, activePointZ, activePointZBuf;
-    E_Int   activePointI, activePointJ, activePointK;
+    E_Int   activePointI, activePointJ, activePointK, activePointL;
     double* activePointF;
     // Pressed keys
     E_Int  kkeysActivated;  // if 1, short cut keys are activated, 0: deactivated

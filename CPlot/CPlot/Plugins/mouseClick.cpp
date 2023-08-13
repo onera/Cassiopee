@@ -28,7 +28,7 @@ E_Int findNearestPoint(double xp, double yp, double zp,
 E_Int findNearestPoint(double xp, double yp, double zp,
                        UnstructZone* zone, E_Int& ind, double& dist);
 E_Int findElement(double xp, double yp, double zp,
-                  UnstructZone* zone, double& dist);
+                  UnstructZone* zone, double& dist, E_Int& ncon);
 E_Int findElement(double xp, double yp, double zp,
                   StructZone* zone, double& dist);
 E_Int findFace(double xp, double yp, double zp, E_Int elt, 
@@ -96,8 +96,8 @@ void Data::dataMouseClickSelect(E_Int button, E_Int etat, E_Int x, E_Int y,
   //              &xorig, &yorig, &zorig);
 
   // Blocs contenant un point le plus proche de P
-  E_Int ret; E_Int zone, ind, indE; double dist;
-  ret = findBlockContaining(posX, posY, posZ, zone, ind, indE, dist);
+  E_Int ret; E_Int zone, ind, indE, ncon; double dist;
+  ret = findBlockContaining(posX, posY, posZ, zone, ind, indE, dist, ncon);
 
   // Projection posX, posY, posZ sur la face adhoc
   //projectP(posX, posY, posZ, _zones[zone], indE);
@@ -142,16 +142,19 @@ void Data::dataMouseClickSelect(E_Int button, E_Int etat, E_Int x, E_Int y,
     {
       ptrState->activePointI = ind; // indice du noeud le plus proche
       ptrState->activePointJ = indE; // indice de l'element contenant P
+      ptrState->activePointL = ncon; // connectivite contenant l'element
       UnstructZone* zz = (UnstructZone*)z;
       if (zz->eltType[0] != 10) // autre que NGON
       {
-        E_Int* c = zz->connect[0];
-        E_Int size = zz->eltSize[0];
-        E_Int ne = zz->nec[0];
+        E_Int* c = zz->connect[ncon];
+        E_Int size = zz->eltSize[ncon];
+        E_Int ne = zz->nec[ncon];
         E_Int v = 0;
+        E_Int prev = 0;
+        for (E_Int nc = 0; nc < ncon; nc++) prev += zz->nec[nc];
         for (v = 0; v < size; v++)
         {
-          if (c[indE+v*ne] == ind+1) break;
+          if (c[indE-prev+v*ne] == ind+1) break;
         }
         ptrState->activePointK = -v-1;
       }
@@ -212,8 +215,8 @@ void Data::dataMouseRightClickSelect(E_Int button, E_Int etat, E_Int x, E_Int y)
   gluUnProject( winX, winY, winZ, modelview, projection, viewport, 
                 &posX, &posY, &posZ);
   // Des erreurs peuvent exister sur posX, posY, posZ.
-  E_Int ret; E_Int zone, ind, indE; double dist;
-  ret = findBlockContaining(posX, posY, posZ, zone, ind, indE, dist);
+  E_Int ret; E_Int zone, ind, indE, ncon; double dist;
+  ret = findBlockContaining(posX, posY, posZ, zone, ind, indE, dist, ncon);
   
   Zone* z = _zones[zone];
   if (ret == 1 && (z->active == 1 || ptrState->ghostifyDeactivatedZones == 1))
@@ -254,7 +257,7 @@ void Data::dataMouseRightClickSelect(E_Int button, E_Int etat, E_Int x, E_Int y)
 //=============================================================================
 E_Int Data::findBlockContaining(double x, double y, double z,
                                 E_Int& zone, E_Int& ind, E_Int& indE,
-                                double& dist)
+                                double& dist, E_Int& ncon)
 {
   E_Int nz, indl, inde;
   double xmi, ymi, zmi, xma, yma, zma;
@@ -269,6 +272,7 @@ E_Int Data::findBlockContaining(double x, double y, double z,
   d = MAX(d, zmax-zmin);
   eps = d*eps;
   //printf("eps: %f\n", eps);
+  ncon = 0;
 
   for (nz = 0; nz < _numberOfZones; nz++)
   {
@@ -295,7 +299,7 @@ E_Int Data::findBlockContaining(double x, double y, double z,
         else 
         {
           findNearestPoint(x, y, z, (UnstructZone*)zone, indl, dn);
-          inde = findElement(x, y, z, (UnstructZone*)zone, de);
+          inde = findElement(x, y, z, (UnstructZone*)zone, de, ncon);
         }
         d = MIN(dn, de);
         if (zone->active == 0) d = d + eps*0.01; // malus
@@ -372,7 +376,7 @@ E_Int findNearestPoint(double xp, double yp, double zp,
   E_Int nk = zone->nk;
   E_Int ninj = ni*nj;
   ind = 0;
-  E_Int inds, inc; 
+  E_Int inds, inc;
 
   if (iplane >= 0) // un plan
   {
@@ -474,66 +478,79 @@ E_Int findNearestPoint(double xp, double yp, double zp,
 // Trouve l'element dont le centre est le plus proche de P (xp, yp, zp). 
 // (pour une zone non structuree)
 // Retourne distMin: la distance du centre a P
+// L'element est en numerotation globale
+// Retourne ncon: le numero de la connectivite qui contient l'element
 //=============================================================================
 E_Int findElement(double xp, double yp, double zp,
-                  UnstructZone* zone, double& distMin)
+                  UnstructZone* zone, double& distMin, E_Int& ncon)
 {
-  E_Int ne = zone->nec[0];
-  E_Int nv = zone->eltSize[0];
-  double nvi = 1./MAX(nv,1);
-  E_Int* c = zone->connect[0];
   double* x = zone->x;
   double* y = zone->y;
   double* z = zone->z;
   E_Int i, indl, v;
   double xc, yc, zc, dist, dx, dy, dz;
+
   distMin = 1.e6; 
   E_Int best = 0;
-  if (zone->eltType[0] != 10) // basic elements
+  ncon = 0;
+
+  for (size_t nc = 0; nc < zone->connect.size(); nc++)
   {
-    for (i = 0; i < ne; i++)
+    E_Int ne = zone->nec[nc];
+    E_Int nv = zone->eltSize[nc];
+    E_Int* c = zone->connect[nc];
+    E_Int eltType = zone->eltType[nc];
+
+    double nvi = 1./MAX(nv,1);
+
+    if (eltType != 10) // basic elements
     {
-      xc = 0.; yc = 0.; zc = 0.;
-      for (v = 0; v < nv; v++)
+      for (i = 0; i < ne; i++)
       {
-        indl = c[i+ne*v]-1;
-        xc += x[indl]; yc += y[indl]; zc += z[indl];
-      }
-      xc = xc * nvi; yc = yc * nvi; zc = zc * nvi;
-      dx = xp-xc; dy = yp-yc; dz = zp-zc;
-      dist = dx*dx + dy*dy + dz*dz;
-      if (dist < distMin)
-      {distMin = dist; best = i;}
-    }
-  }
-  else
-  { // NGONS
-    E_Int* ptr = PTRELTS(c); // ptr sur les elts
-    E_Int nf, f, p, np, rt;
-    E_Int* lp;
-    E_Int* posf = zone->posFaces;
-    for (i = 0; i < ne; i++)
-    {
-      xc = 0.; yc = 0.; zc = 0.; rt = 0;
-      nf = ptr[0];
-      for (f = 0; f < nf; f++) // pour chaque face
-      {
-        lp = &c[posf[ptr[f+1]-1]];
-        np = lp[0];
-        for (p = 0; p < np; p++)
+        xc = 0.; yc = 0.; zc = 0.;
+        for (v = 0; v < nv; v++)
         {
-          xc += x[lp[p+1]-1];
-          yc += y[lp[p+1]-1];
-          zc += z[lp[p+1]-1]; rt++;
+          indl = c[i+ne*v]-1;
+          xc += x[indl]; yc += y[indl]; zc += z[indl];
         }
+        xc = xc * nvi; yc = yc * nvi; zc = zc * nvi;
+        dx = xp-xc; dy = yp-yc; dz = zp-zc;
+        dist = dx*dx + dy*dy + dz*dz;
+        if (dist < distMin) {distMin = dist; best = i; ncon = nc;}
       }
-      ptr += nf+1;
-      rt = MAX(rt, 1);
-      xc = xc * 1./rt; yc = yc * 1./rt; zc = zc * 1./rt;
-      dx = xp-xc; dy = yp-yc; dz = zp-zc;
-      dist = dx*dx + dy*dy + dz*dz;
-      if (dist < distMin)
-      {distMin = dist; best = i;}
+      // shift element if not in first connect
+      E_Int prev = 0;
+      for (E_Int i = 0; i < ncon; i++) prev += zone->nec[i];
+      best += prev;
+    }
+    else
+    { // NGONS
+      E_Int* ptr = PTRELTS(c); // ptr sur les elts
+      E_Int nf, f, p, np, rt;
+      E_Int* lp;
+      E_Int* posf = zone->posFaces;
+      for (i = 0; i < ne; i++)
+      {
+        xc = 0.; yc = 0.; zc = 0.; rt = 0;
+        nf = ptr[0];
+        for (f = 0; f < nf; f++) // pour chaque face
+        {
+          lp = &c[posf[ptr[f+1]-1]];
+          np = lp[0];
+          for (p = 0; p < np; p++)
+          {
+            xc += x[lp[p+1]-1];
+            yc += y[lp[p+1]-1];
+            zc += z[lp[p+1]-1]; rt++;
+          }
+        }
+        ptr += nf+1;
+        rt = MAX(rt, 1);
+        xc = xc * 1./rt; yc = yc * 1./rt; zc = zc * 1./rt;
+        dx = xp-xc; dy = yp-yc; dz = zp-zc;
+        dist = dx*dx + dy*dy + dz*dz;
+        if (dist < distMin) {distMin = dist; best = i; ncon = nc;}
+      }
     }
   }
   return best;

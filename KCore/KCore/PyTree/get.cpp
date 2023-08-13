@@ -219,7 +219,7 @@ E_Int* K_PYTREE::getValueAI(PyObject* o, E_Int& s0, E_Int& s1,
     hook.push_back(ac);
     return d;
   }
-  else // NODE type : some nodes are empty (ElementConnectivity[1] = None for instance)
+  else // NODE type: some nodes are empty (ElementConnectivity[1] = None for instance)
   {
     s0 = 0; s1 = 1;
   }

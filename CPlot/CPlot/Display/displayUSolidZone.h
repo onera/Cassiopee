@@ -165,12 +165,14 @@
   double* z = zonep->z;
 
   E_Int np = zonep->np;
-  E_Int ne = zonep->nec[0];
+
+  for (size_t nc = 0; nc < zonep->connect.size(); nc++) {
+
+  E_Int ne = zonep->nec[nc];
   E_Int ne2 = 2*ne;
   E_Int ne3 = 3*ne;
-  
-  E_Int eltType = zonep->eltType[0];
-  E_Int* connect = zonep->connect[0];
+  E_Int eltType = zonep->eltType[nc];
+  E_Int* connect = zonep->connect[nc];
   
   if (eltType == 2) // TRI
   {
@@ -240,7 +242,7 @@
   }
   else if (eltType == 4) // TETRA
   {
-    float* surfp = zonep->surf[0];
+    float* surfp = zonep->surf[nc];
     float* surfx = surfp;
     float* surfy = surfx + 4*ne;
     float* surfz = surfy + 4*ne;
@@ -304,7 +306,7 @@
   }
   else if (eltType == 5) // PENTA
   {
-    float* surfp = zonep->surf[0];
+    float* surfp = zonep->surf[nc];
     float* surfx = surfp;
     float* surfy = surfx + 5*ne;
     float* surfz = surfy + 5*ne;
@@ -399,7 +401,7 @@
   }
   else if (eltType == 6) // PYRA
   {
-    float* surfp = zonep->surf[0];
+    float* surfp = zonep->surf[nc];
     float* surfx = surfp;
     float* surfy = surfx + 5*ne;
     float* surfz = surfy + 5*ne;
@@ -490,7 +492,7 @@
   }
   else if (eltType == 7 && zonep->material != 6) // HEXA
   {
-    float* surfp = zonep->surf[0];
+    float* surfp = zonep->surf[nc];
     float* surfx = surfp;
     float* surfy = surfx + 6*ne;
     float* surfz = surfy + 6*ne;
@@ -586,7 +588,7 @@
   }
   else if (eltType == 7 && zonep->material == 6) // HEXA for SMOKE
   {
-    float* surfp = zonep->surf[0];
+    float* surfp = zonep->surf[nc];
     float* surfx = surfp;
     float* surfy = surfx + np;
     float* surfz = surfy + np;
@@ -610,7 +612,7 @@
   {
     E_Int nf = connect[0];
     E_Int l, nd, c;
-    float* surfp = zonep->surf[0];
+    float* surfp = zonep->surf[nc];
     float* surfx = surfp;
     float* surfy = surfx + nf;
     float* surfz = surfy + nf;
@@ -884,17 +886,18 @@
   // Pour les NGONS 1D
   if (eltType == 10 && zonep->nelts1D > 0)
   {
+    E_Int elt, face1, face2, posface1, posface2;
     glBegin(GL_LINES);
     if (zonep->blank == 0)
     {
       for (i = 0; i < zonep->nelts1D; i++)
       {
-        E_Int elt = zonep->posElts1D[i];
+        elt = zonep->posElts1D[i];
         E_Int* ptrelt = &connect[elt];
-        E_Int face1 = ptrelt[1]-1;
-        E_Int face2 = ptrelt[2]-1;
-        E_Int posface1 = zonep->posFaces[face1];
-        E_Int posface2 = zonep->posFaces[face2];
+        face1 = ptrelt[1]-1;
+        face2 = ptrelt[2]-1;
+        posface1 = zonep->posFaces[face1];
+        posface2 = zonep->posFaces[face2];
         n1 = connect[posface1+1]-1;
         n2 = connect[posface2+1]-1;
         glVertex3d(x[n1], y[n1], z[n1]);
@@ -905,12 +908,12 @@
     {
       for (i = 0; i < zonep->nelts1D; i++)
       {
-        E_Int elt = zonep->posElts1D[i];
+        elt = zonep->posElts1D[i];
         E_Int* ptrelt = &connect[elt];
-        E_Int face1 = ptrelt[1]-1;
-        E_Int face2 = ptrelt[2]-1;
-        E_Int posface1 = zonep->posFaces[face1];
-        E_Int posface2 = zonep->posFaces[face2];
+        face1 = ptrelt[1]-1;
+        face2 = ptrelt[2]-1;
+        posface1 = zonep->posFaces[face1];
+        posface2 = zonep->posFaces[face2];
         n1 = connect[posface1+1]-1;
         n2 = connect[posface2+1]-1;
         ret1 = _pref.blanking->f(this, n1, zonep->blank, zonet);
@@ -924,3 +927,5 @@
     }
     glEnd();
   }
+
+  } // connects

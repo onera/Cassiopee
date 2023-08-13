@@ -390,12 +390,12 @@ PyObject* K_CPLOT::getActivePointIndex(PyObject* self, PyObject* args)
   {
     // Re-check (if zone has been replaced)
     double posX, posY, posZ;
-    E_Int zone, ind, indE; double dist;
+    E_Int zone, ind, indE, ncon; double dist;
     posX = d->ptrState->activePointX;
     posY = d->ptrState->activePointY;
     posZ = d->ptrState->activePointZ;
     d->findBlockContaining(posX, posY, posZ, 
-                           zone, ind, indE, dist);
+                           zone, ind, indE, dist, ncon);
     Zone* z = d->_zones[zone];
     if (zone < d->_numberOfStructZones)
     {
@@ -413,16 +413,19 @@ PyObject* K_CPLOT::getActivePointIndex(PyObject* self, PyObject* args)
     {
       d->ptrState->activePointI = ind; // indice du noeud le plus proche
       d->ptrState->activePointJ = indE; // indice de l'element contenant P
+      d->ptrState->activePointL = ncon; // connectivite contenant l'element
       UnstructZone* zz = (UnstructZone*)z;
       if (zz->eltType[0] != 10) // autre que NGON
       {
-        E_Int* c = zz->connect[0];
-        E_Int size = zz->eltSize[0];
-        E_Int ne = zz->ne;
+        E_Int* c = zz->connect[ncon];
+        E_Int size = zz->eltSize[ncon];
+        E_Int ne = zz->nec[ncon];
         E_Int v = 0;
+        E_Int prev = 0;
+        for (E_Int nc = 0; nc < ncon; nc++) prev += zz->nec[nc];
         for (v = 0; v < size; v++)
         {
-          if (c[indE+v*ne] == ind+1) break;
+          if (c[indE-prev+v*ne] == ind+1) break;
         }
         d->ptrState->activePointK = -v-1;
       }

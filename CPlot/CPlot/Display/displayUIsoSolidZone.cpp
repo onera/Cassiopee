@@ -47,15 +47,17 @@ void Data::displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield)
 
   // Pour les BARS
   E_Int eltType0 = zonep->eltType[0];
+  E_Int ne0 = zonep->nec[0];
+  E_Int* connect0 = zonep->connect[0];
   if (eltType0 == 1)
   {
     glBegin(GL_LINES);
     if (zonep->blank == 0)
     {
-      for (i = 0; i < ne; i++)
+      for (i = 0; i < ne0; i++)
       {
-        n1 = connect[i]-1;
-        n2 = connect[i+ne]-1;
+        n1 = connect0[i]-1;
+        n2 = connect0[i+ne0]-1;
         getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
         glColor4f(0., 0., 0.+offb, blend);   
         glVertex3d(x[n1], y[n1], z[n1]);
@@ -66,10 +68,10 @@ void Data::displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield)
     }
     else
     {
-      for (i = 0; i < ne; i++)
+      for (i = 0; i < ne0; i++)
       {
-        n1 = connect[i]-1;
-        n2 = connect[i+ne]-1;
+        n1 = connect0[i]-1;
+        n2 = connect0[i+ne0]-1;
         ret1 = _pref.blanking->f(this, n1, zonep->blank, zonet);
         ret2 = _pref.blanking->f(this, n2, zonep->blank, zonet);
         
@@ -90,19 +92,20 @@ void Data::displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield)
   // Pour les NGONS 1D
   if (eltType0 == 10 && zonep->nelts1D > 0)
   {
+    E_Int elt, face1, face2, posface1, posface2;
     glBegin(GL_LINES);
     if (zonep->blank == 0)
     {
       for (i = 0; i < zonep->nelts1D; i++)
       {
-        E_Int elt = zonep->posElts1D[i];
-        E_Int* ptrelt = &connect[elt];
-        E_Int face1 = ptrelt[1]-1;
-        E_Int face2 = ptrelt[2]-1;
-        E_Int posface1 = zonep->posFaces[face1];
-        E_Int posface2 = zonep->posFaces[face2];
-        n1 = connect[posface1+1]-1;
-        n2 = connect[posface2+1]-1;
+        elt = zonep->posElts1D[i];
+        E_Int* ptrelt = &connect0[elt];
+        face1 = ptrelt[1]-1;
+        face2 = ptrelt[2]-1;
+        posface1 = zonep->posFaces[face1];
+        posface2 = zonep->posFaces[face2];
+        n1 = connect0[posface1+1]-1;
+        n2 = connect0[posface2+1]-1;
         glColor4f(0., 0., 0.+offb, blend); 
         glVertex3d(x[n1], y[n1], z[n1]);
         glColor4f(0., 0., 0.+offb, blend); 
@@ -113,14 +116,14 @@ void Data::displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield)
     {
       for (i = 0; i < zonep->nelts1D; i++)
       {
-        E_Int elt = zonep->posElts1D[i];
-        E_Int* ptrelt = &connect[elt];
-        E_Int face1 = ptrelt[1]-1;
-        E_Int face2 = ptrelt[2]-1;
-        E_Int posface1 = zonep->posFaces[face1];
-        E_Int posface2 = zonep->posFaces[face2];
-        n1 = connect[posface1+1]-1;
-        n2 = connect[posface2+1]-1;
+        elt = zonep->posElts1D[i];
+        E_Int* ptrelt = &connect0[elt];
+        face1 = ptrelt[1]-1;
+        face2 = ptrelt[2]-1;
+        posface1 = zonep->posFaces[face1];
+        posface2 = zonep->posFaces[face2];
+        n1 = connect0[posface1+1]-1;
+        n2 = connect0[posface2+1]-1;
         ret1 = _pref.blanking->f(this, n1, zonep->blank, zonet);
         ret2 = _pref.blanking->f(this, n2, zonep->blank, zonet);
         if (ret1*ret2 != 0)
@@ -179,17 +182,20 @@ void Data::displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet,
 #define PLOTQUAD2 PLOTQUADT2
 #include "displayUVectSolidZone.h"
 
-  E_Int eltType0 = zonep->eltType[0];
   // Pour les BARS
+  E_Int eltType0 = zonep->eltType[0];
+  E_Int* connect0 = zonep->connect[0];
+  E_Int ne0 = zonep->nec[0];
+
   if (eltType0 == 1)
   {
     glBegin(GL_LINES);
     if (zonep->blank == 0)
     {
-      for (i = 0; i < ne; i++)
+      for (i = 0; i < ne0; i++)
       {
-        n1 = connect[i]-1;
-        n2 = connect[i+ne]-1;
+        n1 = connect0[i]-1;
+        n2 = connect0[i+ne0]-1;
         glColor4f(0., 0., 0.+offb, blend);   
         glVertex3d(x[n1], y[n1], z[n1]);
         glColor4f(0., 0., 0.+offb, blend);   
@@ -198,10 +204,10 @@ void Data::displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet,
     }
     else
     {
-      for (i = 0; i < ne; i++)
+      for (i = 0; i < ne0; i++)
       {
-        n1 = connect[i]-1;
-        n2 = connect[i+ne]-1;
+        n1 = connect0[i]-1;
+        n2 = connect0[i+ne0]-1;
         ret1 = _pref.blanking->f(this, n1, zonep->blank, zonet);
         ret2 = _pref.blanking->f(this, n2, zonep->blank, zonet);
         
@@ -220,19 +226,20 @@ void Data::displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet,
   // Pour les NGONS 1D
   if (eltType0 == 10 && zonep->nelts1D > 0)
   {
+    E_Int elt, face1, face2, posface1, posface2;
     glBegin(GL_LINES);
     if (zonep->blank == 0)
     {
       for (i = 0; i < zonep->nelts1D; i++)
       {
-        E_Int elt = zonep->posElts1D[i];
-        E_Int* ptrelt = &connect[elt];
-        E_Int face1 = ptrelt[1]-1;
-        E_Int face2 = ptrelt[2]-1;
-        E_Int posface1 = zonep->posFaces[face1];
-        E_Int posface2 = zonep->posFaces[face2];
-        n1 = connect[posface1+1]-1;
-        n2 = connect[posface2+1]-1;
+        elt = zonep->posElts1D[i];
+        E_Int* ptrelt = &connect0[elt];
+        face1 = ptrelt[1]-1;
+        face2 = ptrelt[2]-1;
+        posface1 = zonep->posFaces[face1];
+        posface2 = zonep->posFaces[face2];
+        n1 = connect0[posface1+1]-1;
+        n2 = connect0[posface2+1]-1;
         glColor4f(0., 0., 0.+offb, blend); 
         glVertex3d(x[n1], y[n1], z[n1]);
         glColor4f(0., 0., 0.+offb, blend); 
@@ -243,14 +250,14 @@ void Data::displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet,
     {
       for (i = 0; i < zonep->nelts1D; i++)
       {
-        E_Int elt = zonep->posElts1D[i];
-        E_Int* ptrelt = &connect[elt];
-        E_Int face1 = ptrelt[1]-1;
-        E_Int face2 = ptrelt[2]-1;
-        E_Int posface1 = zonep->posFaces[face1];
-        E_Int posface2 = zonep->posFaces[face2];
-        n1 = connect[posface1+1]-1;
-        n2 = connect[posface2+1]-1;
+        elt = zonep->posElts1D[i];
+        E_Int* ptrelt = &connect0[elt];
+        face1 = ptrelt[1]-1;
+        face2 = ptrelt[2]-1;
+        posface1 = zonep->posFaces[face1];
+        posface2 = zonep->posFaces[face2];
+        n1 = connect0[posface1+1]-1;
+        n2 = connect0[posface2+1]-1;
         ret1 = _pref.blanking->f(this, n1, zonep->blank, zonet);
         ret2 = _pref.blanking->f(this, n2, zonep->blank, zonet);
         if (ret1*ret2 != 0)

@@ -26,11 +26,12 @@
   double* y = zonep->y;
   double* z = zonep->z;
 
-  E_Int eltType = zonep->eltType[0];
-  E_Int* connect = zonep->connect[0];
-  E_Int ne = zonep->nec[0];
+  for (size_t nc = 0; nc < zonep->connect.size(); nc++) {
+
+  E_Int eltType = zonep->eltType[nc];
+  E_Int* connect = zonep->connect[nc];
+  E_Int ne = zonep->nec[nc];
   
-  // Grid dimensions
   E_Int ne2 = 2*ne;
   E_Int ne3 = 3*ne;
   E_Int nd, l;
@@ -461,12 +462,12 @@
         }
 
         // Elements 1D
-        E_Int elt;
+        E_Int elt, face;
         for (i = 0; i < zonep->nelts1D; i++)
         {
           elt = zonep->posElts1D[i];
           E_Int* ptrelt = &connect[elt];
-          E_Int face = ptrelt[1]-1; // indice de la face
+          face = ptrelt[1]-1; // indice de la face
           E_Int* ptrface = &connect[zonep->posFaces[face]];
           n1 = ptrface[1]-1;
           face = ptrelt[2]-1; // indice de la face
@@ -481,3 +482,4 @@
   glEnd();
   //glLineWidth(1.);
 
+  }

@@ -295,7 +295,7 @@ public:
 
   // Misc
   E_Int findBlockContaining(double x, double y, double z,
-                            E_Int& zone, E_Int& ind, E_Int& indE, double& dist);
+                            E_Int& zone, E_Int& ind, E_Int& indE, double& dist, E_Int& ncon);
 
   // Create textures
   E_Int createNodeTexture();

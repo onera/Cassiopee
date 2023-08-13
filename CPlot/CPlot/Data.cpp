@@ -270,6 +270,7 @@ void Data::initState()
   ptrState->activePointI = 0;
   ptrState->activePointJ = 0;
   ptrState->activePointK = 0;
+  ptrState->activePointL = 0;
   ptrState->activePointF = NULL;
 
   // Render

@@ -196,10 +196,12 @@
   double* y = zonep->y; 
   double* z = zonep->z;
   
+  for (size_t nc = 0; nc < zonep->connect.size(); nc++) {
+
   E_Int eltType = zonep->eltType[0];
   E_Int* connect = zonep->connect[0];
-
   E_Int ne = zonep->nec[0];
+
   E_Int ne2 = 2*ne; E_Int ne3 = 3*ne;
   E_Int ne4 = 4*ne; E_Int ne5 = 5*ne;
   
@@ -269,7 +271,7 @@
   }
   else if (eltType == 4) // TETRA
   {
-    float* surfp = zonep->surf[0];
+    float* surfp = zonep->surf[nc];
     float* surfx = surfp;
     float* surfy = surfx + ne4;
     float* surfz = surfy + ne4;
@@ -332,7 +334,7 @@
   }
   else if (eltType == 5) // PENTA
   {
-    float* surfp = zonep->surf[0];
+    float* surfp = zonep->surf[nc];
     float* surfx = surfp;
     float* surfy = surfx + ne5;
     float* surfz = surfy + ne5;
@@ -427,7 +429,7 @@
   } 
   else if (eltType == 6) // PYRA
   {
-    float* surfp = zonep->surf[0];
+    float* surfp = zonep->surf[nc];
     float* surfx = surfp;
     float* surfy = surfx + ne5;
     float* surfz = surfy + ne5;
@@ -518,7 +520,7 @@
   } 
   else if (eltType == 7) // HEXA
   {
-    float* surfp = zonep->surf[0];
+    float* surfp = zonep->surf[nc];
     float* surfx = surfp;
     float* surfy = surfx + 6*ne;
     float* surfz = surfy + 6*ne;
@@ -613,9 +615,9 @@
   }
   else if (eltType == 10) // NGON
   {
-    E_Int nf = connect[0];
+    E_Int nf = connect[nc];
     E_Int l, nd, c;
-    float* surfp = zonep->surf[0];
+    float* surfp = zonep->surf[nc];
     float* surfx = surfp;
     float* surfy = surfx + nf;
     float* surfz = surfy + nf;
@@ -920,17 +922,18 @@
   if (eltType == 10 && zonep->nelts1D > 0)
   {
     glLineWidth(3.);
+    E_Int elt, face1, face2, posface1, posface2;
     glBegin(GL_LINES);
     if (zonep->blank == 0)
     {
       for (i = 0; i < zonep->nelts1D; i++)
       {
-        E_Int elt = zonep->posElts1D[i];
+        elt = zonep->posElts1D[i];
         E_Int* ptrelt = &connect[elt];
-        E_Int face1 = ptrelt[1]-1;
-        E_Int face2 = ptrelt[2]-1;
-        E_Int posface1 = zonep->posFaces[face1];
-        E_Int posface2 = zonep->posFaces[face2];
+        face1 = ptrelt[1]-1;
+        face2 = ptrelt[2]-1;
+        posface1 = zonep->posFaces[face1];
+        posface2 = zonep->posFaces[face2];
         n1 = connect[posface1+1]-1;
         n2 = connect[posface2+1]-1;
         getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
@@ -945,12 +948,12 @@
     {
       for (i = 0; i < zonep->nelts1D; i++)
       {
-        E_Int elt = zonep->posElts1D[i];
+        elt = zonep->posElts1D[i];
         E_Int* ptrelt = &connect[elt];
-        E_Int face1 = ptrelt[1]-1;
-        E_Int face2 = ptrelt[2]-1;
-        E_Int posface1 = zonep->posFaces[face1];
-        E_Int posface2 = zonep->posFaces[face2];
+        face1 = ptrelt[1]-1;
+        face2 = ptrelt[2]-1;
+        posface1 = zonep->posFaces[face1];
+        posface2 = zonep->posFaces[face2];
         n1 = connect[posface1+1]-1;
         n2 = connect[posface2+1]-1;
         ret1 = _pref.blanking->f(this, n1, zonep->blank, zonet);
@@ -969,3 +972,5 @@
     glEnd();
     glLineWidth(1.);
   }
+
+  } // connects

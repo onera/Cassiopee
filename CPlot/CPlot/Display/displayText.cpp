@@ -637,8 +637,10 @@ void Data::displayInfo()
     else
     {
       UnstructZone* zu = (UnstructZone*)z;
-      E_Int eltType = zu->eltType[0];
-      E_Int eltSize = zu->eltSize[0];
+      E_Int ncon = ptrState->activePointL;
+      E_Int eltType = zu->eltType[ncon];
+      E_Int eltSize = zu->eltSize[ncon];
+      E_Int* connect = zu->connect[ncon];
       switch (eltType)
       {
         case 0:
@@ -712,7 +714,7 @@ void Data::displayInfo()
           break;
         case 10:
           sprintf(temp,"@1%s@0 (NGON): %d pts, %d elts, %d faces",
-                  z->zoneName, zu->npts, zu->ne, zu->connect[0]);
+                  z->zoneName, zu->npts, zu->ne, connect[0]);
           break;
         default:
           sprintf(temp,"@1%s@0 (UNKNOWN): %d pts, %d elts",
