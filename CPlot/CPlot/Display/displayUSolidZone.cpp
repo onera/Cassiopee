@@ -82,7 +82,7 @@ void Data::displayUSolidZone(UnstructZone *zonep, E_Int zone, E_Int zonet)
 #define PLOTQUAD PLOTQUADQ
 #define PLOTQUAD2 PLOTQUADQ2
 #include "displayUVectSolidZone.h"
-        glLineWidth( 1. );
+        glLineWidth(1.);
         return;
     }
     // END Textured rendering ============================================

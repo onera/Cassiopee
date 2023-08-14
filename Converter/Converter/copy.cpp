@@ -301,7 +301,7 @@ PyObject* K_CONVERTER::copy(PyObject* self, PyObject* args)
       else
       {
         // Multiple BE
-        vector< E_Int> neltsPerType(nc);
+        vector< E_Int > neltsPerType(nc);
         for (E_Int i = 0; i < nc; i++)
         { FldArrayI& cm = *(cn->getConnect(i));
           neltsPerType[i] = cm.getSize(); }

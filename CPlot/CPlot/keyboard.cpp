@@ -182,22 +182,21 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
   // -- Scalar mode --
   case '2':
   case 195: // 2
-  case 233: // 2
+  case 233: // é
   {
     nv = _zones[0]->nfield;
-    if (_zones[0]->nfield < 1) break;
+    if (nv < 1) break;
 
-    if (modif == (GLUT_ACTIVE_CTRL | GLUT_ACTIVE_SHIFT))
+    if (ptrState->mode != SCALARFIELD) 
+    { ptrState->mode = SCALARFIELD; break; }
+    
+    if (modif == GLUT_ACTIVE_SHIFT)
     {
-      if (ptrState->mode <= 3 || ptrState->mode == VECTORFIELD) 
-        ptrState->mode = SCALARFIELD;
       ptrState->scalarField--;
       if (ptrState->scalarField < 0) ptrState->scalarField = nv-1;
     }
     else
     {
-      if (ptrState->mode <= 3 || ptrState->mode == VECTORFIELD)
-        ptrState->mode = SCALARFIELD;
       ptrState->scalarField++;
       if (ptrState->scalarField >= nv) ptrState->scalarField = 0;
     }

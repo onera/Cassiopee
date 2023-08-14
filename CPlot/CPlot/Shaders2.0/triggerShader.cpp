@@ -311,8 +311,14 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
         _shaders[shader]->setUniform("specularFactor", (float)z.shaderParam1);
         _shaders[shader]->setUniform("shadow", (int)ptrState->shadow);
         _shaders[shader]->setUniform("hasBump", (int)hasBump);
-        if (z.blending == -1.) _shaders[shader]->setUniform("blend", (float)1.);
-        else _shaders[shader]->setUniform("blend", (float)z.blending);
+        float blend = 1.;
+        if (ptrState->selectionStyle == 1) // alpha selection
+        {
+          if (ptrState->selectedZone <= 0) blend = 1;
+          else if (z.selected == 0) blend = 0.12;
+        }
+        if (z.blending != -1.) blend = std::min((float)z.blending, blend);
+        _shaders[shader]->setUniform("blend", blend);
         _shaders[shader]->setUniform("ShadowMap", (int)0);
         _shaders[shader]->setUniform("Texmat0", (int)1);
         if (hasBump) _shaders[shader]->setUniform("Texbump0", (int)2);

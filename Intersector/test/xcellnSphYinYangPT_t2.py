@@ -3,7 +3,6 @@ import Geom.PyTree as D
 import Converter.PyTree as C
 import Intersector.PyTree as XOR
 import Converter.Internal as I
-import time
 import KCore.test as test
 
 s = D.sphereYinYang((0,0,0), 1., 50)

@@ -50,20 +50,39 @@ def addBumpMapFile(event=None):
 #==============================================================================
 def addTextureFile(event=None):
     if CTK.t == []: return
+    # Get files to add
     v = VARS[0].get()
     v.replace(' ', '')
     v = v.split(';')
     vo = []
     for i in v:
-        if i != '': vo.append(i) 
+        if i != '': vo.append(i)
+    # Get previous materials
+    renderInfo = Internal.getNodeFromName1(CTK.t, '.RenderInfo')
+    pos = Internal.getNodeFromName1(renderInfo, 'materials')
+    if pos is not None: nprev = len(pos[2])
+    else: nprev = 0
+
+    # Update shaderParameters
+    for z in Internal.getZones(CTK.t):
+        info = Internal.getNodeFromName1(z, '.RenderInfo')
+        if info is not None:
+            material = Internal.getNodeFromName1(info, 'Material')
+            if material is not None and Internal.getValue(material) == 'Texmat':
+                params = Internal.getNodeFromName1(info, 'ShaderParameters')[1]
+                params[1] = params[1]*nprev/(nprev+len(vo))
+
+    # Add new materials 
     CPlot._addRender2PyTree(CTK.t, materials=vo)
     CTK.TKTREE.updateApp()
     
+    # Update CPlot textures
     renderInfo = Internal.getNodeFromName1(CTK.t, '.RenderInfo')
     pos = Internal.getNodeFromName1(renderInfo, 'materials')
     out = []
     for i in pos[2]: out.append(Internal.getValue(i))
     CPlot.setState(materials=out)
+    CPlot.display(CTK.t)
     
 #==============================================================================
 def chooseFile():
@@ -123,18 +142,18 @@ def createApp(win):
     B.grid(row=0, column=1, sticky=TK.EW)
     F.grid(row=0, column=0, sticky=TK.EW)
     
-    B = TTK.Button(Frame, text="Set Billboards texture", command=addBillboardFile)
+    B = TTK.Button(Frame, text="Add Billboards textures", command=addBillboardFile)
     B.grid(row=1, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B,
-                       text='Add file name as image billboard file to be referenced\n in Sphere material of tkRenderSet.')
-    B = TTK.Button(Frame, text="Set Base Color texture", command=addTextureFile)
+                       text='Add file names as image billboard file to be referenced\n in Sphere material of tkRenderSet.')
+    B = TTK.Button(Frame, text="Add Base Color textures", command=addTextureFile)
     B.grid(row=2, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B,
-                       text='Add given file as color texture file to be referenced\n in Texmat material of tkRenderSet..')
-    B = TTK.Button(Frame, text="Set Normal map", command=addBumpMapFile)
+                       text='Add given files as color texture file to be referenced\n in Texmat material of tkRenderSet..')
+    B = TTK.Button(Frame, text="Add Normal maps", command=addBumpMapFile)
     B.grid(row=3, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B,
-                       text='Add given file as normal/bumpmap file to be referenced\n in Texmat material of tkRenderSet..')
+                       text='Add given files as normal/bumpmap file to be referenced\n in Texmat material of tkRenderSet..')
     
 #==============================================================================
 # Called to display widgets

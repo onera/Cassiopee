@@ -198,9 +198,9 @@
   
   for (size_t nc = 0; nc < zonep->connect.size(); nc++) {
 
-  E_Int eltType = zonep->eltType[0];
-  E_Int* connect = zonep->connect[0];
-  E_Int ne = zonep->nec[0];
+  E_Int eltType = zonep->eltType[nc];
+  E_Int* connect = zonep->connect[nc];
+  E_Int ne = zonep->nec[nc];
 
   E_Int ne2 = 2*ne; E_Int ne3 = 3*ne;
   E_Int ne4 = 4*ne; E_Int ne5 = 5*ne;

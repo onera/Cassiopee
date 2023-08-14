@@ -3998,106 +3998,119 @@ def setElementConnectivity(z, array):
 
 # Pour array - api2 ou 3
 def setElementConnectivity2(z, array):
-  etype, stype = eltName2EltNo(array[3])
+  estring = array[3]
+  estring = estring.split(',')
+  etype0, stype = eltName2EltNo(estring[0])
   GENodes = getElementNodes(z)
-  i = numpy.empty((2), E_NpyInt); i[0] = etype; i[1] = 0
-  if GENodes == []:
-      if etype != 22 and etype != 23: # Elements->Nodes connectivities
-          z[2].append(['GridElements', i, [], 'Elements_t'])
-          info = z[2][len(z[2])-1]
-          i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = array[2][0].shape[1]
-          info[2].append(['ElementRange', i, [], 'IndexRange_t'])
-          info[2].append(['ElementConnectivity', array[2][0], [], 'DataArray_t'])
-          _updateElementRange(z)
-      else: # Faces->Nodes and Elements->Faces connectivities (NGON or NFACE)
-          info = z[2]
-          # Creation du noeud NGON_n: connectivite Faces->Noeuds
-          info.append(['NGonElements', i, [], 'Elements_t'])
-          info2 = info[len(info)-1][2]
-          # Size of ElementRange: nb de faces
-          if array[2][2][-1] == array[2][0].size: nfaces = array[2][2].size-1
-          else: nfaces = array[2][2].size
-          i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = nfaces
-          info2.append(['ElementRange', i, [], 'IndexRange_t'])
-          # Tableau de connectivite Face/Noeuds
-          info2.append(['ElementConnectivity', array[2][0], [], 'DataArray_t'])
-          # Tableau FaceIndex (PH)
-          if array[2][2][-1] == array[2][0].size:
-            info2.append(['ElementStartOffset', array[2][2], [], 'DataArray_t'])
-          else:
-            info2.append(['FaceIndex', array[2][2], [], 'DataArray_t'])
-          _updateElementRange(z)
-          # Creation du noeud NFACE_n: connectivite Elements->Faces
-          etype,stype = eltName2EltNo('NFACE')
-          i2 = numpy.empty((2), E_NpyInt); i2[0] = etype; i2[1] = 0
-          info.append(['NFaceElements', i2, [], 'Elements_t'])
-          info2 = info[len(info)-1][2]
-          # Size of ElementRange
-          if array[2][3][-1] == array[2][1].size: nelts = array[2][3].size-1
-          else: nelts = array[2][3].size
-          i = numpy.empty((2), E_NpyInt)
-          i[0] = nfaces+1; i[1] = nfaces+nelts
-          info2.append(['ElementRange', i, [], 'IndexRange_t'])
-          # Tableau de connectivite Elements/Faces
-          info2.append(['ElementConnectivity', array[2][1], [], 'DataArray_t'])
-          # Tableau ElementIndex (PH)
-          if array[2][3][-1] == array[2][1].size:
-            info2.append(['ElementStartOffset', array[2][3], [], 'DataArray_t'])
-          else:
-            info2.append(['ElementIndex', array[2][3], [], 'DataArray_t'])
-          _updateElementRange(z)
-  else: # la connectivite existe deja
-      if etype != 22 and etype != 23: # Elements->Nodes connectivities
-          GENodes[0][1] = i
-          nodeE = getNodeFromName2(z, 'ElementRange')
-          i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = array[2][0].shape[1]
-          nodeE[1] = i
-          nodeE = getNodeFromName2(z, 'ElementConnectivity')
-          nodeE[1] = array[2][0]
-          _updateElementRange(z)
-          for n in GENodes[1:]: # delete NFace ou NGon (si il existe)
-              if n[1][0] == 23 or n[1][0] == 22:
-                  (p, r) = getParentOfNode(z, n)
-                  del p[2][r]
-      else: # Faces->Nodes and Elements->Faces connectivities (NGON or NFACE)
-          GEl = getNodesFromType1(z, 'Elements_t')
-          for GE in GEl:
-              if GE[1][1] == 0:
-                  (p, r) = getParentOfNode(z, GE)
-                  del p[2][r]
-          info = z[2]
-          # Creation du noeud NGON_n: connectivite Faces->Noeuds
-          info.append(['NGonElements', i, [], 'Elements_t'])
-          info2 = info[len(info)-1][2]
-          # Size of ElementRange : nb de faces
-          nfaces = array[2][2].size
-          i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = nfaces
-          info2.append(['ElementRange', i, [], 'IndexRange_t'])
-          # Tableau de connectivite Face/Noeuds
-          info2.append(['ElementConnectivity', array[2][0], [], 'DataArray_t'])
-          # Tableau FaceIndex (PG)
-          if nfaces+1 == array[2][2].size:
-            createUniqueChild(info2, 'ElementStartOffset', 'DataArray_t', array[2][2])
-          else:
-            createUniqueChild(info2, 'FaceIndex', 'DataArray_t', array[2][2])
-          # Creation du noeud NFACE_n : connectivite Elements->Faces
-          etype, stype = eltName2EltNo('NFACE')
-          i2 = numpy.empty((2), E_NpyInt); i2[0] = etype; i2[1] = 0
-          info.append(['NFaceElements', i2, [], 'Elements_t'])
-          info2 = info[len(info)-1][2]
-          # Size of ElementRange
-          nelts = array[2][3].size
-          i = numpy.empty((2), E_NpyInt)
-          i[0] = nfaces+1; i[1] = nfaces+nelts
-          info2.append(['ElementRange', i, [], 'IndexRange_t'])
-          # Tableau de connectivite Elements/Faces
-          info2.append(['ElementConnectivity', array[2][1], [], 'DataArray_t'])
-          # Tableau ElementIndex (PH)
-          if nelts+1 == array[2][3].size:
-            createUniqueChild(info2, 'ElementStartOffset', 'DataArray_t', array[2][3])
-          else:
-            createUniqueChild(info2, 'ElementIndex', 'DataArray_t', array[2][3])
-          _updateElementRange(z)
+  cnames = {}
+  for nc, gc in enumerate(GENodes): cnames[nc] = gc[0]
+  for gc in GENodes: _rmNode(z, gc)
+
+  #if GENodes == []: # la connectivite n'existe pas
+  if etype0 != 22 and etype0 != 23: # Elements->Nodes connectivities
+    for nc, gc in enumerate(array[2]):
+      etype, stype = eltName2EltNo(estring[nc])
+      i = numpy.empty((2), E_NpyInt); i[0] = etype; i[1] = 0
+      if nc in cnames: cname = cnames[nc]
+      elif nc == 0: cname = 'GridElements'
+      else: cname = 'GridElements%d'%nc        
+      z[2].append([cname, i, [], 'Elements_t'])
+      info = z[2][len(z[2])-1]
+      i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = gc.shape[1]
+      info[2].append(['ElementRange', i, [], 'IndexRange_t'])
+      info[2].append(['ElementConnectivity', gc, [], 'DataArray_t'])
+      _updateElementRange(z)
+  else: # Faces->Nodes and Elements->Faces connectivities (NGON or NFACE)
+      i = numpy.empty((2), E_NpyInt); i[0] = etype0; i[1] = 0        
+      info = z[2]
+      # Creation du noeud NGON_n: connectivite Faces->Noeuds
+      info.append(['NGonElements', i, [], 'Elements_t'])
+      info2 = info[len(info)-1][2]
+      # Size of ElementRange: nb de faces
+      if array[2][2][-1] == array[2][0].size: nfaces = array[2][2].size-1
+      else: nfaces = array[2][2].size
+      i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = nfaces
+      info2.append(['ElementRange', i, [], 'IndexRange_t'])
+      # Tableau de connectivite Face/Noeuds
+      info2.append(['ElementConnectivity', array[2][0], [], 'DataArray_t'])
+      # Tableau FaceIndex (PH)
+      if array[2][2][-1] == array[2][0].size:
+        info2.append(['ElementStartOffset', array[2][2], [], 'DataArray_t'])
+      else:
+        info2.append(['FaceIndex', array[2][2], [], 'DataArray_t'])
+      _updateElementRange(z)
+      # Creation du noeud NFACE_n: connectivite Elements->Faces
+      etype,stype = eltName2EltNo('NFACE')
+      i2 = numpy.empty((2), E_NpyInt); i2[0] = etype; i2[1] = 0
+      info.append(['NFaceElements', i2, [], 'Elements_t'])
+      info2 = info[len(info)-1][2]
+      # Size of ElementRange
+      if array[2][3][-1] == array[2][1].size: nelts = array[2][3].size-1
+      else: nelts = array[2][3].size
+      i = numpy.empty((2), E_NpyInt)
+      i[0] = nfaces+1; i[1] = nfaces+nelts
+      info2.append(['ElementRange', i, [], 'IndexRange_t'])
+      # Tableau de connectivite Elements/Faces
+      info2.append(['ElementConnectivity', array[2][1], [], 'DataArray_t'])
+      # Tableau ElementIndex (PH)
+      if array[2][3][-1] == array[2][1].size:
+        info2.append(['ElementStartOffset', array[2][3], [], 'DataArray_t'])
+      else:
+        info2.append(['ElementIndex', array[2][3], [], 'DataArray_t'])
+      _updateElementRange(z)
+  #else: # la connectivite existe deja
+  #    if etype0 != 22 and etype0 != 23: # Elements->Nodes connectivities
+  #        i = numpy.empty((2), E_NpyInt); i[0] = etype; i[1] = 0
+  #        GENodes[0][1] = i
+  #        nodeE = getNodeFromName2(z, 'ElementRange')
+  #        i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = array[2][0].shape[1]
+  #        nodeE[1] = i
+  #        nodeE = getNodeFromName2(z, 'ElementConnectivity')
+  #        nodeE[1] = array[2][0]
+  #        _updateElementRange(z)
+  #        for n in GENodes[1:]: # delete NFace ou NGon (si il existe)
+  #            if n[1][0] == 23 or n[1][0] == 22:
+  #                (p, r) = getParentOfNode(z, n)
+  #                del p[2][r]
+  #    else: # Faces->Nodes and Elements->Faces connectivities (NGON or NFACE)
+  #        GEl = getNodesFromType1(z, 'Elements_t')
+  #        for GE in GEl:
+  #            if GE[1][1] == 0:
+  #                (p, r) = getParentOfNode(z, GE)
+  #                del p[2][r]
+  #        info = z[2]
+  #        # Creation du noeud NGON_n: connectivite Faces->Noeuds
+  #        info.append(['NGonElements', i, [], 'Elements_t'])
+  #        info2 = info[len(info)-1][2]
+  #        # Size of ElementRange : nb de faces
+  #        nfaces = array[2][2].size
+  #        i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = nfaces
+  #        info2.append(['ElementRange', i, [], 'IndexRange_t'])
+  #        # Tableau de connectivite Face/Noeuds
+  #        info2.append(['ElementConnectivity', array[2][0], [], 'DataArray_t'])
+  #        # Tableau FaceIndex (PG)
+  #        if nfaces+1 == array[2][2].size:
+  #          createUniqueChild(info2, 'ElementStartOffset', 'DataArray_t', array[2][2])
+  #        else:
+  #          createUniqueChild(info2, 'FaceIndex', 'DataArray_t', array[2][2])
+  #        # Creation du noeud NFACE_n : connectivite Elements->Faces
+  #        etype, stype = eltName2EltNo('NFACE')
+  #        i2 = numpy.empty((2), E_NpyInt); i2[0] = etype; i2[1] = 0
+  #        info.append(['NFaceElements', i2, [], 'Elements_t'])
+  #        info2 = info[len(info)-1][2]
+  #        # Size of ElementRange
+  #        nelts = array[2][3].size
+  #        i = numpy.empty((2), E_NpyInt)
+  #        i[0] = nfaces+1; i[1] = nfaces+nelts
+  #        info2.append(['ElementRange', i, [], 'IndexRange_t'])
+  #        # Tableau de connectivite Elements/Faces
+  #        info2.append(['ElementConnectivity', array[2][1], [], 'DataArray_t'])
+  #        # Tableau ElementIndex (PH)
+  #        if nelts+1 == array[2][3].size:
+  #          createUniqueChild(info2, 'ElementStartOffset', 'DataArray_t', array[2][3])
+  #        else:
+  #          createUniqueChild(info2, 'ElementIndex', 'DataArray_t', array[2][3])
+  #        _updateElementRange(z)
 
 # Met un nbre non nul dans les Elements_t presuppose frontieres
 # Sert de reference a Cassiopee pour savoir si un Elements_t est volumique ou non

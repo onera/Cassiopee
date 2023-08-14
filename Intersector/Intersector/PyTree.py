@@ -1332,7 +1332,6 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
       elif DIM == 3:
         hook = C.createHook(b_bounds, function='faceCenters')
       wallf = C.identifyElements(hook, walls) # wallf are ids in boundaries
-      #print(wallf)
       wallf = wallf[wallf >= 1]
       if wallf != []:
         wallf -= 1 # make it 0 based
@@ -1360,16 +1359,13 @@ def _XcellN_(t, priorities, output_type=0, rtol=0.05):
         if zwallf != []: zwallf -= 1 # make it 0 based
         zwall_ids.append(zwallf)
 
-  #print(zwall_ids)
-  #import sys; sys.exit()
-
   if TIMER:
-    print ('XCellN: Preparing Inputs : CPU time : ',time.time()-xcelln_time,'s')
+    print ('XCellN: Preparing Inputs: CPU time: ',time.time()-xcelln_time,'s')
     xcelln_time = time.time()
 
   # 2. COMPUTE THE COEFFS PER ZONE (PARALLEL OMP PER ZONE)
-  print(wall_ids)
-  print(boundaries)
+  #print(wall_ids)
+  #print(boundaries)
   xcellns = XOR.XcellN(ngons, zwall_ids, basenum, boundaries, wall_ids, priorities, output_type, rtol)
 
   if TIMER:
