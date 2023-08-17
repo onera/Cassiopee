@@ -98,15 +98,14 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
   E_Int shift = 1;
   if (api == 3) { sizeFN -= nfaces; sizeEF -= ncells; shift = 0; }
 
-  //PyObject* tpl = K_ARRAY::buildArray2(3, "x,y,z", npts, ncells, -1, 
-  //                                     "NGON", false, sizeFN, sizeEF, nfaces, api);
-
+  E_Int ngonType = 1;
+  if (api == 1) ngonType = 1; // CGNSv3 compact array1
+  else if (api == 3) ngonType = 3; // force CGNSv4, array3
+  else if (api == 2) ngonType = 2; // CGNSv3, array2
   PyObject* tpl = K_ARRAY::buildArray3(3, "x,y,z", npts, ncells, nfaces, "NGON", 
-                                       sizeFN, sizeEF, false, api);
+                                       sizeFN, sizeEF, ngonType, false, api);
 
   K_FLD::FldArrayF* f; K_FLD::FldArrayI* cn;
-  //char* varString; char* eltType;
-  //K_ARRAY::getFromArray2(tpl, varString, f, ni, nj, nk, cn, eltType);
   K_ARRAY::getFromArray3(tpl, f, cn);
   
   E_Int* cFN = cn->getNGon();

@@ -140,7 +140,7 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
   // modification
   x[0] = -0.05;
 
-  // Acces direct
+  // Acces direct par operateur ()
   FldArrayF& fr = (*f);
   fr(1, 1) = +0.05;
 
@@ -148,7 +148,7 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
   // si apif=1, c'est un array1
   // si apif=2, c'est un array2 ou un array3
   // la distinction entre array2 et 3 est que le 3 peut stocker du ME
-  // et en cas de NGON est un NGONv4
+  // et en cas de NGON peut stocker un NGONv4
   // pour savoir si le NGON est un NGONv4, il faut regarder c->isNGON
   // si isngon=1 (array1 compact CGNSv3), isngon=2 (rake CGNSv3), isgon=3 (rake CGNSv4)
   E_Int apif = f->getApi();
@@ -173,7 +173,7 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
     // Acces non universel sur le ptrs, attention suivant NGONv3 ou v4, pas les memes tableaux
     E_Int* ngon = c->getNGon();
     E_Int* nface = c->getNFace();
-    E_Int* indPG = c->getIndPG();
+    E_Int* indPG = c->getIndPG(); // existe toujours meme en array1, must be called
     E_Int* indPH = c->getIndPH();
     // Acces universel taille des vecteurs ngon et nface
     E_Int sizeNGon = c->getSizeNGon(); // for NGONv3, contains face number and so is greater than for CGNSv4
@@ -363,7 +363,7 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
     {
     E_Int nvertex=8, nelts=1, nface=6, sizeNGon=4*6, sizeNFace=6;
     o = K_ARRAY::buildArray3(5, "x,y,z,F,G", nvertex, nelts, nface, 
-                             "NGON", sizeNGon, sizeNFace, false, 3);
+                             "NGON", sizeNGon, sizeNFace, 3, false, 3);
     K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
     K_ARRAY::getFromArray3(o, f, c);
     f->setAllValuesAt(1.);

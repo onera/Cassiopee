@@ -76,15 +76,17 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
    IN: center: set to true if field is localised in the centers of
    elements, otherwise let it to false.
    IN: sizeNGon, sizeNFace, nface: connectivity size.
-   if sizeNFace == -1, NFACE is not created 
-
+   if sizeNFace == -1, NFACE is not created
+   IN: ngonType=1 ou 2 (CGNSv3), ngonType=3 (CGNSv4)
+   IN: api=1 (array1, ngonType=1), api=2 (array2, ngonType=2 ou 3), 
+   api=3 (array3, ngonType=2 ou 3)
    OUT: PyObject created. */
 //=============================================================================
 // build pour les NGONS
 PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
                                E_Int nvertex, E_Int nelt, E_Int nface,
                                const char* etString,
-                               E_Int sizeNGon, E_Int sizeNFace, 
+                               E_Int sizeNGon, E_Int sizeNFace, E_Int ngonType,  
                                E_Boolean center, E_Int api)
 {
     npy_intp dim[2];
@@ -133,7 +135,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
         data[sizeNGon+2] = nelt;
         data[sizeNGon+3] = sizeNFace;
     }
-    else if (api == 2) // Array2
+    else if (ngonType == 2) // Array2/3 - NGonv3 + indir
     {
         ac = PyList_New(0);
         // ngons - NGON - sizeNGon
@@ -157,7 +159,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
         //PyObject* ar = PyArray_EMPTY(2, dim, E_NPY_INT, 0);
         //PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
     }
-    else // array3
+    else if (ngonType == 3) // array3 - NGONv4
     {
         ac = PyList_New(0);
         // NGON - sizeNGon
@@ -181,7 +183,11 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
         //PyObject* ar = PyArray_EMPTY(2, dim, E_NPY_INT, 0);
         //PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
     }
-  
+    else
+    {
+        printf("Warning: buildArray3: invalid api/ngonType. Array not built.\n");
+        return NULL;
+    }
     tpl = Py_BuildValue("[sOOs]", varString, a, ac, eltType);
     Py_DECREF(a); Py_DECREF(ac);
 
@@ -198,6 +204,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
    IN: etString: "TRI" ou avec *
    IN: center: set to true if field is localised in the centers of
    elements, otherwise let it to false.
+   IN: api=1 (array1), api=2 ou 3 (array2 ou 3)
 
    OUT: PyObject created. */
 //=============================================================================
@@ -273,17 +280,19 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
    IN: nfld: number of fields
    IN: varString: variable string
    IN: nvertex: number of vertex
-   IN: neltsPerType: number of elements per type
+   IN: neltsPerConnect: number of elements for each connect
    IN: etString: "TRI,QUAD" ou avec *
    IN: center: set to true if field is localised in the centers of
    elements, otherwise let it to false.
+   IN: api=1 (array1, single connect), api=2 (array2, single connect), 
+   api=3 (array3, all connects)
 
    OUT: PyObject created. */
 //=============================================================================
 // build pour les Multiple Element (ME)
 PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
                                E_Int nvertex,
-                               std::vector<E_Int>& neltsPerType,
+                               std::vector<E_Int>& neltsPerConnect,
                                const char* etString,
                                E_Boolean center, E_Int api)
 {
@@ -294,7 +303,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
 
     // taille de f
     E_Int nelt = 0;
-    for (size_t i = 0; i < neltsPerType.size(); i++) nelt += neltsPerType[i];
+    for (size_t i = 0; i < neltsPerConnect.size(); i++) nelt += neltsPerConnect[i];
     E_Int fSize;
     if (center == true) fSize = nelt;
     else fSize = nvertex;
@@ -319,7 +328,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
     } 
 
     // Connectivite
-    if (api == 1) // Array1
+    if (api == 1) // Array1 - force single connect
     {
         E_Int cSize = nelt;
         char st[256]; E_Int dummy; E_Int nvpe;
@@ -327,7 +336,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
         dim[1] = cSize; dim[0] = nvpe;
         ac = PyArray_SimpleNew(2, dim, E_NPY_INT);
     }
-    else if (api == 2) // Array2
+    else if (api == 2) // Array2 - force single connect
     {
         E_Int cSize = nelt;
         char st[256]; E_Int dummy; E_Int nvpe;
@@ -346,7 +355,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
         //printf("size=%d %s\n", eltTypes.size(), eltType);
         for (size_t i = 0; i < eltTypes.size(); i++)
         {
-            E_Int cSize = neltsPerType[i];
+            E_Int cSize = neltsPerConnect[i];
             eltString2TypeId(eltTypes[i], st, nvpe, dummy, dummy);
             dim[0] = cSize; dim[1] = nvpe;
             PyObject* ar = PyArray_EMPTY(2, dim, E_NPY_INT, 0);

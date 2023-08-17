@@ -448,14 +448,14 @@ namespace K_ARRAY
   PyObject* buildArray3(E_Int nfld, const char* varString,
                         E_Int nvertex, E_Int nelt, E_Int nface, 
                         const char* etString,
-                        E_Int sizeNGon=1, E_Int sizeNFace=-1,
+                        E_Int sizeNGon=1, E_Int sizeNFace=-1, E_Int ngonType=1,
                         E_Boolean center=false, E_Int api=1);
   PyObject* buildArray3(E_Int nfld, const char* varString,
                         E_Int nvertex, E_Int nelts,
                         const char* etString,
                         E_Boolean center=false, E_Int api=1);
   PyObject* buildArray3(E_Int nfld, const char* varString,
-                        E_Int nvertex, std::vector<E_Int>& neltsPerType,
+                        E_Int nvertex, std::vector<E_Int>& neltsPerConnect,
                         const char* etString,
                         E_Boolean center=false, E_Int api=1);
 

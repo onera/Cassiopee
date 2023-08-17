@@ -24,7 +24,7 @@ using namespace K_FUNC;
 using namespace K_FLD;
 
 // ============================================================================
-// Translate array2 - in place
+// Translate array2/3 - in place
 //=============================================================================
 PyObject* K_TRANSFORM::translate(PyObject* self, PyObject* args)
 {
