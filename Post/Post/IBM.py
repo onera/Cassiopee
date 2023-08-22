@@ -942,7 +942,7 @@ def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref
                 dxi = 1./(xmax-xmin)
                 C._initVars(tp, 'xsc=({CoordinateX}-%g)*%g'%(xmin, dxi))
 
-            base = Internal.newCGNSBase(baseNames[c], parent=ts)
+            base = Internal.newCGNSBase(baseNames[c], cellDim=1, physDim=3, parent=ts)
             base[2] += Internal.getZones(tp)
 
     if isinstance(wall_out, str): C.convertPyTree2File(ts, wall_out)

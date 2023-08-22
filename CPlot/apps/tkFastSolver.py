@@ -423,7 +423,8 @@ def compute(nrun):
     #WALL = Internal.getZones(WALL)
 
     (WALL, CL, CD) = P_IBM.loads(tb_in=BODY, tc_in=tc, alpha=getAlphaAngle(BODY), beta=0., Sref=1.)
-    #C.convertPyTree2File(WALL, 'walls.cgns')
+    C.convertPyTree2File(WALL, 'walls.cgns')
+    C.convertPyTree2File(tc, 'tc_restart.cgns')
 
     # optional plots
     if CTK.TKPLOTXY is not None: 
