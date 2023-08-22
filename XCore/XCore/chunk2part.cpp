@@ -369,31 +369,35 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     printf("Graph map OK\n");
 
   // Send cells to their target proc!
-  for (E_Int i = 0; i < nproc; i++)
-    scount[i] = 0;
+  std::vector<E_Int> c_scount(nproc, 0);
+  std::vector<E_Int> c_rcount(nproc);
 
   // start with cell ids
   for (E_Int i = 0; i < ncells; i++) {
     E_Int where = part[i];
-    scount[where]++;
+    c_scount[where]++;
   }
 
-  MPI_Alltoall(&scount[0], 1, MPI_INT, &rcount[0], 1, MPI_INT, MPI_COMM_WORLD);
+  MPI_Alltoall(&c_scount[0], 1, MPI_INT, &c_rcount[0], 1, MPI_INT, MPI_COMM_WORLD);
 
+  std::vector<E_Int> c_sdist(nproc+1);
+  std::vector<E_Int> c_rdist(nproc+1);
+  
+  c_sdist[0] = c_rdist[0] = 0;
   for (E_Int i = 0; i < nproc; i++) {
-    sdist[i+1] = sdist[i] + scount[i];
-    rdist[i+1] = rdist[i] + rcount[i];
+    c_sdist[i+1] = c_sdist[i] + c_scount[i];
+    c_rdist[i+1] = c_rdist[i] + c_rcount[i];
   }
 
   // Note(Imad): new ncells may differ from cells_dist[rank+1] - cells_dist[rank]
-  E_Int nncells = rdist[nproc];
+  E_Int nncells = c_rdist[nproc];
 
   std::vector<E_Int> scells(sdist[nproc]);
   std::vector<E_Int> rcells(rdist[nproc]);
   std::vector<E_Int> sstride(sdist[nproc]);
 
   for (E_Int i = 0; i < nproc; i++)
-    idx[i] = sdist[i];
+    idx[i] = c_sdist[i];
 
   for (E_Int i = 0; i < ncells; i++) {
     E_Int where = part[i];
@@ -402,14 +406,14 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     idx[where]++;
   }
 
-  MPI_Alltoallv(&scells[0], &scount[0], &sdist[0], MPI_INT,
-                &rcells[0], &rcount[0], &rdist[0], MPI_INT,
+  MPI_Alltoallv(&scells[0], &c_scount[0], &c_sdist[0], MPI_INT,
+                &rcells[0], &c_rcount[0], &c_rdist[0], MPI_INT,
                 MPI_COMM_WORLD);
 
   std::vector<E_Int> nxcells(nncells+1);
 
-  MPI_Alltoallv(&sstride[0], &scount[0], &sdist[0], MPI_INT,
-                &nxcells[0]+1, &rcount[0], &rdist[0], MPI_INT,
+  MPI_Alltoallv(&sstride[0], &c_scount[0], &c_sdist[0], MPI_INT,
+                &nxcells[0]+1, &c_rcount[0], &c_rdist[0], MPI_INT,
                 MPI_COMM_WORLD);
 
   nxcells[0] = 0;
@@ -563,8 +567,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   // Hash and request points
   std::unordered_map<E_Int, E_Int> PT;
   E_Int nnpoints = 0;
-  for (E_Int i = 0; i < nproc; i++)
-    rcount[i] = 0;
+  std::vector<E_Int> p_rcount(nproc, 0);
 
   for (E_Int i = 0; i < nnfaces; i++) {
     for (E_Int j = nxfaces[i]; j < nxfaces[i+1]; j++) {
@@ -572,33 +575,37 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
       if (PT.find(point) == PT.end()) {
         PT[point] = nnpoints++;
         E_Int source = get_proc(point-1, points_dist, nproc);
-        rcount[source]++;
+        p_rcount[source]++;
       }
     }
   }
   
   // requesting, roles are inverted
-  MPI_Alltoall(&rcount[0], 1, MPI_INT, &scount[0], 1, MPI_INT, MPI_COMM_WORLD);
+  std::vector<E_Int> p_scount(nproc);
+  MPI_Alltoall(&p_rcount[0], 1, MPI_INT, &p_scount[0], 1, MPI_INT, MPI_COMM_WORLD);
 
+  std::vector<E_Int> p_rdist(nproc+1);
+  std::vector<E_Int> p_sdist(nproc+1);
+  p_rdist[0] = p_sdist[0] = 0;
   for (E_Int i = 0; i < nproc; i++) {
-    rdist[i+1] = rdist[i] + rcount[i];
-    sdist[i+1] = sdist[i] + scount[i];
+    p_rdist[i+1] = p_rdist[i] + p_rcount[i];
+    p_sdist[i+1] = p_sdist[i] + p_scount[i];
   }
 
-  assert(rdist[nproc] == nnpoints);
-  std::vector<E_Int> rpoints(rdist[nproc]);
-  std::vector<E_Int> spoints(sdist[nproc]);
+  assert(p_rdist[nproc] == nnpoints);
+  std::vector<E_Int> rpoints(p_rdist[nproc]);
+  std::vector<E_Int> spoints(p_sdist[nproc]);
 
   for (E_Int i = 0; i < nproc; i++)
-    idx[i] = rdist[i];
+    idx[i] = p_rdist[i];
 
   for (const auto& point : PT) {
     E_Int source = get_proc(point.first-1, points_dist, nproc);
     rpoints[idx[source]++] = point.first;
   }
   
-  MPI_Alltoallv(&rpoints[0], &rcount[0], &rdist[0], MPI_INT,
-                &spoints[0], &scount[0], &sdist[0], MPI_INT,
+  MPI_Alltoallv(&rpoints[0], &p_rcount[0], &p_rdist[0], MPI_INT,
+                &spoints[0], &p_scount[0], &p_sdist[0], MPI_INT,
                 MPI_COMM_WORLD);
 
   std::vector<E_Int> sxcount(nproc,0);
@@ -607,8 +614,8 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   std::vector<E_Int> rxdist(nproc+1);
   sxdist[0] = rxdist[0] = 0;
   for (E_Int i = 0; i < nproc; i++) {
-    sxcount[i] = scount[i]*3;
-    rxcount[i] = rcount[i]*3;
+    sxcount[i] = p_scount[i]*3;
+    rxcount[i] = p_rcount[i]*3;
     sxdist[i+1] = sxdist[i] + sxcount[i];
     rxdist[i+1] = rxdist[i] + rxcount[i];
   }
@@ -622,8 +629,8 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     idx[i] = sxdist[i];
 
   for (E_Int i = 0; i < nproc; i++) {
-    E_Int *ptr = &spoints[sdist[i]];
-    for (E_Int j = 0; j < scount[i]; j++) {
+    E_Int *ptr = &spoints[p_sdist[i]];
+    for (E_Int j = 0; j < p_scount[i]; j++) {
       E_Int point = ptr[j]-1;
       point -= first_point;
       scrd[idx[i]++] = X[point];
@@ -1086,8 +1093,113 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     PyList_Append(comm_data, arr);
   }
 
+  npy_intp dims[2];
+  dims[1] = 1;
+  dims[0] = nncells;
+  PyArrayObject *mycells = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_INT);
+  E_Int *pc = (E_Int *)PyArray_DATA(mycells);
+  for (E_Int i = 0; i < nncells; i++)
+    pc[i] = rcells[i];
+
+  PyList_Append(out, (PyObject *)mycells); 
   PyList_Append(out, comm_data);
   PyList_Append(out, m);
-  
+
+  // 8 must be an array of FlowSolutions#Centers chunks
+  o = PyList_GetItem(l, 7);
+  E_Int csize = PyList_Size(o);
+  if (csize == 0) {
+    PyList_Append(out, PyList_New(0));
+  } else {
+    E_Float **csols = (E_Float **)malloc(csize * sizeof(E_Float *));
+
+    for (E_Int i = 0; i < csize; i++) {
+      PyObject *csol = PyList_GetItem(o, i);
+      res = K_NUMPY::getFromNumpyArray(csol, csols[i], ncells, nfld, true);
+      assert(res == 1);
+    }
+
+    PyObject *clist = PyList_New(0);
+
+    dims[1] = 1;
+    dims[0] = nncells;
+    
+    std::vector<E_Float> c_sdata(c_sdist[nproc]);
+
+    for (E_Int k = 0; k < csize; k++) {
+      PyArrayObject *ca = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+
+      for (E_Int i = 0; i < nproc; i++)
+        idx[i] = c_sdist[i];
+      
+      for (E_Int i = 0; i < nproc; i++) {
+        E_Int *ptr = &scells[c_sdist[i]];
+        for (E_Int j = 0; j < c_scount[i]; j++) {
+          E_Int cell = ptr[j] - cells_dist[rank];
+          assert(rank == get_proc(ptr[j], cells_dist, nproc));
+          c_sdata[idx[i]++] = csols[k][cell];
+        }
+      }
+
+      MPI_Alltoallv(&c_sdata[0], &c_scount[0], &c_sdist[0], MPI_DOUBLE,
+                    PyArray_DATA(ca), &c_rcount[0], &c_rdist[0], MPI_DOUBLE,
+                    MPI_COMM_WORLD);
+
+      PyList_Append(clist, (PyObject *)ca);
+      Py_DECREF(ca);
+    }
+
+    PyList_Append(out, clist);
+    Py_DECREF(clist);
+  }
+
+  // 9 must be an array of FlowSolutions chunks
+  o = PyList_GetItem(l, 8);
+  E_Int psize = PyList_Size(o);
+  if (psize == 0) {
+    PyList_Append(out, PyList_New(0));
+  } else {
+    E_Float **psols = (E_Float **)malloc(psize * sizeof(E_Float *));
+
+    for (E_Int i = 0; i < psize; i++) {
+      PyObject *psol = PyList_GetItem(o, i);
+      res = K_NUMPY::getFromNumpyArray(psol, psols[i], npoints, nfld, true);
+      assert(res == 1);
+    }
+
+    PyObject *plist = PyList_New(0);
+
+    dims[1] = 1;
+    dims[0] = nnpoints;
+    
+    std::vector<E_Float> p_sdata(p_sdist[nproc]);
+
+    for (E_Int k = 0; k < psize; k++) {
+      PyArrayObject *pa = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+
+      for (E_Int i = 0; i < nproc; i++)
+        idx[i] = p_sdist[i];
+      
+      for (E_Int i = 0; i < nproc; i++) {
+        E_Int *ptr = &spoints[p_sdist[i]];
+        for (E_Int j = 0; j < p_scount[i]; j++) {
+          E_Int point = ptr[j] - points_dist[rank] - 1;
+          assert(rank == get_proc(ptr[j]-1, points_dist, nproc));
+          p_sdata[idx[i]++] = psols[k][point];
+        }
+      }
+
+      MPI_Alltoallv(&p_sdata[0], &p_scount[0], &p_sdist[0], MPI_DOUBLE,
+                    PyArray_DATA(pa), &p_rcount[0], &p_rdist[0], MPI_DOUBLE,
+                    MPI_COMM_WORLD);
+
+      PyList_Append(plist, (PyObject *)pa);
+      Py_DECREF(pa);
+    }
+
+    PyList_Append(out, plist);
+    Py_DECREF(plist);
+  }
+
   return out;
 }

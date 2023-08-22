@@ -7,6 +7,7 @@ import Converter.Internal as Internal
 import Converter.Mpi as Cmpi
 import Converter.Filter2 as Filter2
 import XCore.xcore
+import sys
 
 rank = Cmpi.rank
 fileName = 'case.cgns'
@@ -15,6 +16,9 @@ fileName = 'case.cgns'
 if rank == 0:
     a = G.cartTetra((0,0,0),(1,1,1),(5,7,11))
     a = C.convertArray2NGon(a)
+    a = C.initVars(a, '{centers:Density} = {centers:CoordinateX} + sin({centers:CoordinateY}) + cos({centers:CoordinateZ})')
+    a = C.initVars(a, '{centers:Pressure} = {centers:CoordinateX} + cos({centers:CoordinateY}) + sin({centers:CoordinateZ})')
+    a = C.initVars(a, '{Density} = {CoordinateX} + sin({CoordinateY}) + cos({CoordinateZ})')
     Internal._adaptNGon12NGon2(a)
     C.convertPyTree2File(a, fileName)
 
@@ -37,11 +41,27 @@ for z in Internal.getZones(distTree):
     nfacec = Internal.getNodeFromName1(nface, 'ElementConnectivity')[1]
     nfaceso = Internal.getNodeFromName1(nface, 'ElementStartOffset')[1]
 
-    arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso])
+    fsolc = Internal.getNodeFromName2(z, 'FlowSolution#Centers')
+    denc = Internal.getNodeFromName1(fsolc, 'Density')[1]
+    prec = Internal.getNodeFromName1(fsolc, 'Pressure')[1]
+
+    fsol = Internal.getNodeFromName2(z, 'FlowSolution')
+    den = Internal.getNodeFromName1(fsol, 'Density')[1]
+    
+    arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,[],[]])
 
 #comm_data = list of [neighbor proc (int), interproc faces (array),
 #                     corresponding global neighbor ids (array)]
-[comm_data, ret] = XCore.xcore.chunk2part(arrays)
+RES = XCore.xcore.chunk2part(arrays)
+
+cells = RES[0]
+comm_data = RES[1]
+mesh = RES[2]
+solc = RES[3]
+sol = RES[4]
+
+if rank == 0:
+    print(solc)
 
 print('rank', rank, '-> interproc patches:', len(comm_data))
 
@@ -51,6 +71,6 @@ name = 'part' + str(Cmpi.rank) + '.cgns'
 z1 = Internal.newZone('Zone1')
 t1 = C.newPyTree(['Base', z1])
 new_zones = Internal.getZones(t1)
-C.setFields([ret], new_zones[0], 'nodes')
+C.setFields([mesh], new_zones[0], 'nodes')
 
 C.convertPyTree2File(t1, name)
