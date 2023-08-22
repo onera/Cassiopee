@@ -74,8 +74,8 @@ E_Int K_IO::GenIO::f3dsread(
   unsigned char version;
   KFSEEK(ptrFile, 28L, SEEK_SET);
   fread(&version, 1, 1, ptrFile);
-  if (version < 3)
-  { printf("Warning: 3dsread: this version is not really supported.\n"); }
+  //if (version < 3)
+  //{ printf("Warning: 3dsread: this version is not really supported.\n"); }
   
   KFSEEK(ptrFile, 0, SEEK_END);
   E_LONG filelength = KFTELL(ptrFile);

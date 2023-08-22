@@ -37,7 +37,7 @@ PyObject* K_CONVERTER::normL0(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; char* varString; 
   char* eltType; FldArrayI* cn;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, im, jm, km, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, 
                                      cn, eltType);
   
   E_Int npts = f->getSize();
@@ -123,7 +123,7 @@ PyObject* K_CONVERTER::normL2(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, im, jm, km, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, 
                                      cn, eltType);
 
   E_Int npts = f->getSize();
