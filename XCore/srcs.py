@@ -3,7 +3,7 @@ from KCore.config import *
 
 SCOTCH=True; ZOLTAN=True
 # 0: None, 1: paradigma, 2: paradigma23
-PARADIGMA=1
+PARADIGMA=2
 
 #==============================================================================
 # Fichiers c++

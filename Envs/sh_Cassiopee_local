@@ -809,6 +809,8 @@ elif [ "$MAC" = "sator_brw" ]; then
     # Set next two lines only if python is not python
     export PYTHONEXE=python3
     alias python=python3
+    # Other aliases
+    alias ffmpeg=/opt/tools/altair/2021.1/altair/hwdesktop/hw/bin/linux64/ffmpeg    
     # Number of threads
     export OMP_NUM_THREADS=28
     # Chemin de l'executable python
@@ -860,7 +862,8 @@ elif [ "$MAC" = "sator_cas" ]; then
     unset I_MPI_PMI_LIBRARY
     export PYTHONEXE=python3
     alias python=python3
-
+    # Other aliases
+    alias ffmpeg=/opt/tools/altair/2021.1/altair/hwdesktop/hw/bin/linux64/ffmpeg    
     # Chemin de l'executable python
     export PATH=$PATH
     export PATH=$PATH:$CASSIOPEE/Dist/bin

@@ -11,7 +11,7 @@
 # - additional library paths
 # - additional libraries
 # If you want use CPlot as an offscreen plotter on a cluster without a gfx
-# card (requires Mesa installed), set CPlotOffScreen to True
+# card (requires OSMesa installed), set CPlotOffScreen to True
 #=============================================================================
 
 import platform, re, os
