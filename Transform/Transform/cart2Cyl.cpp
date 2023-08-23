@@ -40,12 +40,12 @@ PyObject* K_TRANSFORM::_cart2CylA(PyObject* self, PyObject* args)
     E_Int im, jm, km;
     FldArrayF* f; FldArrayI* cn;
     char* varString; char* eltType;
-    E_Int res = K_ARRAY::getFromArray2(array, varString, f, im, jm, km, 
+    E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, 
                                        cn, eltType);
     if (res != 1 && res != 2)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "cart2CylA: 1st arg is an invalid array.");
+                      "cart2Cyl: 1st arg is an invalid array.");
       return NULL;
     }
 

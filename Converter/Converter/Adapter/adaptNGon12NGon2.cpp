@@ -21,7 +21,7 @@
 using namespace K_FLD;
 
 //=============================================================================
-/* Convert a NGon1 connectivity to NGon2 connectivity+offset  */
+/* Convert a NGon1 (NGONv3) to NGon2 connectivity+offset (NGONv4) */
 //=============================================================================
 PyObject* K_CONVERTER::adaptNGon12NGon2(PyObject* self, PyObject* args)
 {
@@ -37,7 +37,6 @@ PyObject* K_CONVERTER::adaptNGon12NGon2(PyObject* self, PyObject* args)
                     "adaptNGon12NGon2: connect numpy is invalid.");
     return NULL;
   }
-  
   
   // Find the size and number of elements
   E_Int* c = connect->begin();

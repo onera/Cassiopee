@@ -334,7 +334,7 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
       RELEASESHAREDN(arrayX, coordX);
       RELEASESHAREDN(arrayY, coordY);
       PyErr_SetString(PyExc_TypeError, 
-                    "adaptNFace2PE: method 2 : failed to reorient external faces.");
+                    "adaptNFace2PE: method 2: failed to reorient external faces.");
       return NULL;
     }
 
@@ -364,6 +364,6 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
   RELEASESHAREDN(arrayY, coordY);
   RELEASESHAREDN(arrayZ, coordZ);
 
-  // Construction du numpy de sortie
+  // export du numpy de sortie
   return tpl;
 }

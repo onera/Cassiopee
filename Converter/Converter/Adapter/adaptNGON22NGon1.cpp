@@ -21,7 +21,7 @@
 using namespace K_FLD;
 
 //=============================================================================
-/* Convert a NGon2+ElementStartOffSet connectivity to NGON1 connectivity  */
+/* Convert a NGon2+ElementStartOffSet (NGONv4) to NGON1 (NGONv3)  */
 //=============================================================================
 PyObject* K_CONVERTER::adaptNGon22NGon1(PyObject* self, PyObject* args)
 {

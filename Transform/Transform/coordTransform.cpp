@@ -40,7 +40,7 @@ extern "C"
                       E_Float* x, E_Float* y, E_Float* z);
 }
 // ============================================================================
-/* Homothety python from an array describing a mesh */
+/* Homothety from an array describing a mesh */
 // ============================================================================
 PyObject* K_TRANSFORM::homothety(PyObject* self, PyObject* args)
 {
@@ -59,7 +59,7 @@ PyObject* K_TRANSFORM::homothety(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = 
-    K_ARRAY::getFromArray2(array, varString, f, nil, njl, nkl, cn, eltType);
+    K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, cn, eltType);
 
   if (res != 1 && res != 2)
   {
@@ -115,7 +115,7 @@ PyObject* K_TRANSFORM::contract(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = 
-    K_ARRAY::getFromArray2(array, varString, f, nil, njl, nkl, cn, eltType); 
+    K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, cn, eltType); 
 
   if (res != 1 && res != 2)
   {

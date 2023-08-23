@@ -37,12 +37,12 @@ PyObject* K_TRANSFORM::_cyl2CartA(PyObject* self, PyObject* args)
     E_Int im, jm, km;
     FldArrayF* f; FldArrayI* cn;
     char* varString; char* eltType;
-    E_Int res = K_ARRAY::getFromArray2(array, varString, f, im, jm, km,
+    E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km,
                                        cn, eltType);
     if (res != 1 && res != 2)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "cyl2CartA: 1st arg is an invalid array.");
+                      "cyl2Cart: 1st arg is an invalid array.");
       return NULL;
     }
 
@@ -84,11 +84,12 @@ PyObject* K_TRANSFORM::_cyl2CartA(PyObject* self, PyObject* args)
     
 #pragma omp parallel default(shared)
     {
+      E_Float r, theta;
 #pragma omp for
       for (E_Int ind = 0; ind < npts; ind++)
       {
-        E_Float r     = rt[ind];
-        E_Float theta = thetat[ind];
+        r = rt[ind];
+        theta = thetat[ind];
         rt[ind] = r*cos(theta);
         thetat[ind] = r*sin(theta);//(y,z) dans le cas (X;R;Theta), (x,y) dans le cas (R,Theta,Z), (z,x) dans le cas (Theta,Y,R)
       }
@@ -163,11 +164,12 @@ PyObject* K_TRANSFORM::_cyl2CartZ(PyObject* self, PyObject* args)
 
 #pragma omp parallel default(shared)
     {
+      E_Float r, theta;
 #pragma omp for
       for (E_Int ind = 0; ind < npts; ind++)
       {
-        E_Float r     = xt[ind];
-        E_Float theta = yt[ind];
+        r = xt[ind];
+        theta = yt[ind];
         xt[ind] = r*cos(theta);
         yt[ind] = r*sin(theta);
       }//(y,z) dans le cas (X;R;Theta), (x,y) dans le cas (R,Theta,Z), (z,x) dans le cas (Theta,Y,R)

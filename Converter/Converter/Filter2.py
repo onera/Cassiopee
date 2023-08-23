@@ -3,6 +3,7 @@ import Converter.PyTree as C
 import Converter.Internal as I
 import Converter.Filter as Filter
 import Converter.Mpi as Cmpi
+import XCore.xcore
 import numpy
 from functools import partial
 
@@ -843,11 +844,68 @@ def saveTreeFromFilter(filename, dist_tree, comm, hdf_filter):
 # resume
 #========================================================
 def loadAsChunks(fileName):
-    distTree = loadCollectiveSizeTree(fileName)
-    _addDistributionInfo(distTree)
-    hdf_filter = {}
-    createTreeHdfFilter(distTree, hdf_filter)
-    #skip_type_ancestors = [["Zone_t", "FlowSolution#EndOfRun", "Momentum*"],
-    #                       ["Zone_t", "ZoneSubRegion_t", "Velocity*"]]
-    loadTreeFromFilter(fileName, distTree, Cmpi.KCOMM, hdf_filter)
-    return distTree
+  distTree = loadCollectiveSizeTree(fileName)
+  _addDistributionInfo(distTree)
+  hdf_filter = {}
+  createTreeHdfFilter(distTree, hdf_filter)
+  #skip_type_ancestors = [["Zone_t", "FlowSolution#EndOfRun", "Momentum*"],
+  #                       ["Zone_t", "ZoneSubRegion_t", "Velocity*"]]
+  loadTreeFromFilter(fileName, distTree, Cmpi.KCOMM, hdf_filter)
+  Cmpi._setProc(distTree, Cmpi.rank)
+  return distTree
+
+def chunk2part(distTree):
+  arrays = []
+  zones = I.getZones(distTree)
+  if len(zones) > 0: zoneName0 = zones[0][0]
+  else: zoneName0 = 'Zone'
+  for z in zones:
+    cx = I.getNodeFromName2(z, 'CoordinateX')[1]
+    cy = I.getNodeFromName2(z, 'CoordinateY')[1]
+    cz = I.getNodeFromName2(z, 'CoordinateZ')[1]
+
+    ngon = I.getNodeFromName2(z, 'NGonElements')
+    ngonc = I.getNodeFromName1(ngon, 'ElementConnectivity')[1]
+    ngonso = I.getNodeFromName1(ngon, 'ElementStartOffset')[1]
+
+    nface = I.getNodeFromName2(z, 'NFaceElements')
+    nfacec = I.getNodeFromName1(nface, 'ElementConnectivity')[1]
+    nfaceso = I.getNodeFromName1(nface, 'ElementStartOffset')[1]
+
+    fsolc = I.getNodeFromName2(z, I.__FlowSolutionCenters__)
+    solc = []
+    if fsolc is not None:
+      for f in fsolc[2]:
+        if f[3] == 'DataArray_t': solc.append(f[1]) 
+
+    fsol = I.getNodeFromName2(z, I.__FlowSolutionNodes__)
+    soln = []
+    if fsol is not None:
+      for f in fsol[2]:
+        if f[3] == 'DataArray_t': soln.append(f[1]) 
+
+    arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,solc,soln])
+
+  #comm_data = list of [neighbor proc (int), interproc faces (array),
+  #                     corresponding global neighbor ids (array)]
+  RES = XCore.xcore.chunk2part(arrays)
+
+  cells = RES[0]
+  comm_data = RES[1]
+  mesh = RES[2]
+  solc = RES[3]
+  sol = RES[4]
+
+  #print('rank', rank, '-> interproc patches:', len(comm_data))
+  Cmpi.barrier()
+
+  z1 = I.newZone(zoneName0+'%d'%Cmpi.rank)
+  t1 = C.newPyTree(['Base', z1])
+  C.setFields([mesh], z1, 'nodes')
+  Cmpi._setProc(t1, Cmpi.rank)
+  return t1
+
+def loadAndSplit(fileName):
+  dt = loadAsChunks(fileName)
+  t = chunk2part(dt)
+  return t
