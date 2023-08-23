@@ -21,6 +21,7 @@ if rank == 0:
     a = C.initVars(a, '{Density} = {CoordinateX} + sin({CoordinateY}) + cos({CoordinateZ})')
     Internal._adaptNGon12NGon2(a)
     C.convertPyTree2File(a, fileName)
+Cmpi.barrier()
 
 # 2 - Load
 distTree = Filter2.loadAsChunks(fileName)

@@ -1013,6 +1013,8 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   // TODO (Imad): use Cassiopee's data structures to avoid copying
   const char *varString = "CoordinateX,CoordinateY,CoordinateZ";
 
+  /* export (array1) */
+  /*
   FldArrayI cn;
   cn.malloc(2+nnfaces+nxfaces[nnfaces] + 2+nncells+nxcells[nncells], 1);
   cn.setAllValuesAtNull();
@@ -1058,7 +1060,46 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   }
  
   PyObject* m = K_ARRAY::buildArray(local_crd, varString, cn, 8, NULL, false);
+  */
  
+  /* export array3 / NGON v4 */
+  PyObject* m = K_ARRAY::buildArray3(3, varString, nnpoints, nncells, nnfaces, "NGON",
+                               nxfaces[nnfaces], nxcells[nncells], 3,  
+                               false, 3);
+  K_FLD::FldArrayF* f; K_FLD::FldArrayI* cn;
+  K_ARRAY::getFromArray3(m, f, cn); 
+  
+  // copie des champs
+  for (E_Int n = 0; n < 3; n++)
+  {
+    E_Float* pt = f->begin(n+1);
+    for (E_Int i = 0; i < nnpoints; i++) pt[i] = local_crd(i, n+1);
+  }
+  // copie connect
+  E_Int* ngon = cn->getNGon();
+  E_Int* nface = cn->getNFace();
+  E_Int* indPG = cn->getIndPG();
+  E_Int* indPH = cn->getIndPH();
+  for (E_Int i = 0; i <= nnfaces; i++) indPG[i] = nxfaces[i];
+  for (E_Int i = 0; i <= nncells; i++) indPH[i] = nxcells[i];
+  E_Int* ptr = ngon;
+  E_Int start, end;
+  for (E_Int i = 0; i < nnfaces; i++)
+  {
+    start = nxfaces[i];
+    end = nxfaces[i+1];
+    for (E_Int j = start; j < end; j++) 
+    { *ptr = PT[NGON[j]]+1; ptr++; }
+  }
+  ptr = nface;
+  for (E_Int i = 0; i < nncells; i++)
+  {
+    start = nxcells[i];
+    end = nxcells[i+1];
+    for (E_Int j = start; j < end; j++) 
+    { *ptr = FT[NFACE[j]]+1; ptr++; }
+  }
+
   // Build output Python list
   // TODO(Imad): avoid copying
   PyObject* out = PyList_New(0);

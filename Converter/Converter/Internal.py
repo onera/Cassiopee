@@ -4220,7 +4220,7 @@ def adaptNFace2PE(t, remove=True, methodPE=0):
     _adaptNFace2PE(tp, remove, methodPE)
     return tp
 
-def _adaptNFace2PE(t, remove=True, methodPE=0):
+def _adaptNFace2PE(t, remove=True, methodPE=0, shift=False):
     zones = getZones(t)
     for z in zones:
         nelts = 0; cNFace = None; NGON = None; noNFace = 0
@@ -4240,17 +4240,28 @@ def _adaptNFace2PE(t, remove=True, methodPE=0):
                     cNGon = getNodeFromName1(e, 'ElementConnectivity')[1]
                     node = getNodeFromName1(e, 'ElementRange')[1]
                     nfaces = node[1]-node[0]+1
+                    offset = getNodeFromName1(e, 'ElementStartOffset')
+                    if offset is not None: # CGNSv4
+                        offset = offset[1]
+                        cNGon = cNGon.copy()
+                        cNGon = numpy.insert(cNGon, offset[:-1], offset[1:]-offset[:-1])
                 elif val == 23: # NFace
                     node = getNodeFromName1(e, 'ElementRange')[1]
                     nelts = node[1]-node[0]+1
                     noNFace = c
                     cNFace = getNodeFromName1(e, 'ElementConnectivity')[1]
+                    offset = getNodeFromName1(e, 'ElementStartOffset')
+                    if offset is not None: # CGNSv4
+                        offset = offset[1]
+                        cNFace = cNFace.copy()
+                        cNFace = numpy.insert(cNFace, offset[:-1], offset[1:]-offset[:-1])
             c += 1
 
         if cNFace is not None and NGON is not None and cNGon is not None:
             cFE = converter.adaptNFace2PE(cNFace, cNGon, XN, YN, ZN, nelts, nfaces, methodPE)
             createUniqueChild(NGON, 'ParentElements', 'DataArray_t', value=cFE)
         if remove: del z[2][noNFace]
+        if shift: cFE[:] += nfaces
     return None
 
 # -- Adapte NGON en FaceIndex

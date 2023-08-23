@@ -350,7 +350,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   std::vector<char*> fNames;
   if (fields != Py_None)
   {
-    for (int i = 0; i < PyList_Size(fields); i++) 
+    for (E_Int i = 0; i < PyList_Size(fields); i++) 
     {
       PyObject* tpl0 = PyList_GetItem(fields, i);
       if (PyString_Check(tpl0)) 

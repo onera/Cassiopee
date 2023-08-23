@@ -873,16 +873,18 @@ def chunk2part(distTree):
     nfaceso = I.getNodeFromName1(nface, 'ElementStartOffset')[1]
 
     fsolc = I.getNodeFromName2(z, I.__FlowSolutionCenters__)
-    solc = []
+    solc = []; solcNames = []
     if fsolc is not None:
       for f in fsolc[2]:
-        if f[3] == 'DataArray_t': solc.append(f[1]) 
+        if f[3] == 'DataArray_t': 
+          solc.append(f[1]); solcNames.append(f[0]) 
 
     fsol = I.getNodeFromName2(z, I.__FlowSolutionNodes__)
-    soln = []
+    soln = []; solNames = []
     if fsol is not None:
       for f in fsol[2]:
-        if f[3] == 'DataArray_t': soln.append(f[1]) 
+        if f[3] == 'DataArray_t': 
+          soln.append(f[1]); solNames.append(f[0]) 
 
     arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,solc,soln])
 
@@ -899,11 +901,25 @@ def chunk2part(distTree):
   #print('rank', rank, '-> interproc patches:', len(comm_data))
   Cmpi.barrier()
 
+  # create zone
   z1 = I.newZone(zoneName0+'%d'%Cmpi.rank)
   t1 = C.newPyTree(['Base', z1])
   C.setFields([mesh], z1, 'nodes')
+
+  print(solNames, solcNames, flush=True)
+  
+  # add solutions
+  for n, name in enumerate(solNames):
+    cont = I.createUniqueChild(z1, I.__FlowSolutionNodes__, 'FlowSolution_t')
+    I.newDataArray(name, value=sol[n], parent=cont)
+  
+  for n, name in enumerate(solcNames):
+    cont = I.createUniqueChild(z1, I.__FlowSolutionCenters__, 'FlowSolution_t')
+    I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter', )
+    I.newDataArray(name, value=solc[n], parent=cont)
+
   Cmpi._setProc(t1, Cmpi.rank)
-  return t1
+  return t1, RES
 
 def loadAndSplit(fileName):
   dt = loadAsChunks(fileName)

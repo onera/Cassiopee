@@ -181,16 +181,16 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
     printf("universel NGON: sizeNGon=%d, sizeNFace=%d\n", sizeNGon, sizeNFace);
     // Acces universel face 0
     E_Int size;
-    E_Int* face = c->getFace(0, size);
+    E_Int* face = c->getFace(0, size, ngon, indPG);
     printf("face %d:", 0);
     for (E_Int i = 0; i < size; i++) printf(" %d ", face[i]);
     printf("\n");
-    face = c->getFace(1, size);
+    face = c->getFace(1, size, ngon, indPG);
     printf("face %d:", 1);
     for (E_Int i = 0; i < size; i++) printf(" %d ", face[i]);
     printf("\n");
     // Acces universel element 0
-    E_Int* elt = c->getElt(0, size);
+    E_Int* elt = c->getElt(0, size, nface, indPH);
     printf("elt %d:", 0);
     for (E_Int i = 0; i < size; i++) printf(" %d ", elt[i]);
     printf("\n");

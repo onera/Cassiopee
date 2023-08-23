@@ -202,7 +202,7 @@ class FldArray
     inline E_Int getSizeNGon();
     inline E_Int getSizeNFace();
     inline E_Int* getFace(E_Int no, E_Int& size);
-    inline E_Int* getFace(E_Int no, E_Int& size, E_Int* ngon, E_Int* indPG); // faster    
+    inline E_Int* getFace(E_Int no, E_Int& size, E_Int* ngon, E_Int* indPG); // faster
     inline E_Int* getElt(E_Int no, E_Int& size);
     inline E_Int* getElt(E_Int no, E_Int& size, E_Int* nface, E_Int* indPH); // faster
 
