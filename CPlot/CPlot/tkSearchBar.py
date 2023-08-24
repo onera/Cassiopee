@@ -74,6 +74,8 @@ applet = {
     'tkBoolean':'tkBoolean', 'Union two surfaces':'tkBoolean',
     'Intersection of rwo surfaces':'tkBoolean', 
     'Difference of two surfaces':'tkBoolean',
+    # tkMapUV
+    'tkMapUV':'tkMapUV', 'UV map of surface':'tkMapUV',
     # tkMapSurfs
     'tkMapSurfs':'tkMapSurfs', 'Remesh a surface':'tkMapSurfs',
     'Wrap surface -watertight-':'tkMapSurfs', 'Cartesian wrapper':'tkMapSurfs',

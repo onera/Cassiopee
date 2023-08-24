@@ -17,7 +17,8 @@ STATEAPPS = ['tkState', '---',
 EDGEAPPS = ['tkCanvas', 'tkPoint', 'tkDraw','---',
             'tkExtractEdges', 'tkMapEdge']
 SURFAPPS = ['tkBasicSurfs', 'tkText', '---',
-            'tkFixer2', 'tkBoolean', 'tkSculpt', 'tkPaint', '---',
+            'tkFixer2', 'tkBoolean', '---',
+            'tkMapUV', 'tkSculpt', 'tkPaint', '---',
             'tkMMGs', 'tkMapSurfs', 'tkFilterSurfs', 'tkSurfaceWalk', '---',
             'tkProjection']
 MESHAPPS = ['tkCells', 'tkStretch', '---',

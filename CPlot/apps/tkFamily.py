@@ -6,6 +6,7 @@ import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
+import Converter.Internal as Internal
 
 # local widgets list
 WIDGETS = {}; VARS = []
@@ -89,7 +90,7 @@ def createBCFamily(event=None):
         bases = CTK.t[2]
         for b in bases:
             if b[3] == 'CGNSBase_t':
-                C._addFamily2Base(b, name, 'UserDefined')
+                C._addFamily2Base(b, name, VARS[3].get())
         CTK.TXT.insert('START', 'BC Family '+name+' added to all bases.\n')
     else:
         nob = CTK.Nb[nzs[0]]+1
@@ -115,7 +116,8 @@ def createApp(win):
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
-    Frame.columnconfigure(1, weight=4)
+    Frame.columnconfigure(1, weight=2)
+    Frame.columnconfigure(2, weight=2)
     WIDGETS['frame'] = Frame
 
     # - Frame menu -
@@ -131,20 +133,22 @@ def createApp(win):
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -2- Nom de la famille zone pour le tag
     V = TK.StringVar(win); V.set(''); VARS.append(V)
+    # -3- Type de BC pour createFamilyBC -
+    V = TK.StringVar(win); V.set('UserDefined'); VARS.append(V)
     
     # - Create zone family name -
     B = TTK.Button(Frame, text="NewZoneFamily", command=createZoneFamily)
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Create a new zone family tag.')
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=15)
-    BB = CTK.infoBulle(parent=B, text='Zone family name.')
-    B.grid(row=0, column=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Zone family name to be created.')
+    B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
     B.bind('<Return>', createZoneFamily)
 
     # - Tag with zone family -
     B = TTK.Button(Frame, text="Tag zone", command=tagWithZoneFamily)
     B.grid(row=1, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Tag a zone with a zone family.')
+    BB = CTK.infoBulle(parent=B, text='Tag a zone with a zone family tag.')
     F = TTK.Frame(Frame, borderwidth=0)
     F.columnconfigure(0, weight=1)
 
@@ -153,14 +157,14 @@ def createApp(win):
         B.grid(sticky=TK.EW)
         BB = CTK.infoBulle(parent=B, text='Family zone name.')
         F.bind('<Enter>', updateFamilyZoneNameList)
-        F.grid(row=1, column=1, sticky=TK.EW)
+        F.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
         WIDGETS['zones'] = B
     else:
         B = TTK.Combobox(F, textvariable=VARS[2], 
                          values=[], state='readonly')
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateFamilyZoneNameList2)
-        F.grid(row=1, column=1, sticky=TK.EW)
+        F.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
         #BB = CTK.infoBulle(parent=B, text='Family zone name.')
         WIDGETS['zones'] = B
 
@@ -169,10 +173,18 @@ def createApp(win):
     B.grid(row=2, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Create a new BC family tag.')
     B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=15)
-    BB = CTK.infoBulle(parent=B, text='BC family name.')
+    BB = CTK.infoBulle(parent=B, text='BC family name to be created.')
     B.grid(row=2, column=1, sticky=TK.EW)
     B.bind('<Return>', createBCFamily)
     
+    if ttk is None:
+        B = TK.OptionMenu(Frame, VARS[3], *(Internal.KNOWNBCS))
+        B.grid(row=2, column=2, sticky=TK.EW)
+    else:
+        B = TTK.Combobox(Frame, textvariable=VARS[3], 
+                         values=Internal.KNOWNBCS, state='readonly', width=10)
+        B.grid(row=2, column=2, sticky=TK.EW)
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
