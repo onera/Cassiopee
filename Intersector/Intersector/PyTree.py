@@ -2476,6 +2476,9 @@ def getRidToZones(t, zidDict):
   return ridDict
 
 
+def adaptMesh(ngon, cells, faces, comm_data, solc):
+    m = intersector.adaptMesh(ngon, cells, faces, comm_data, solc)
+    return m
 
 #==============================================================================
 # adaptCells : Adapts an unstructured mesh a with respect to a sensor

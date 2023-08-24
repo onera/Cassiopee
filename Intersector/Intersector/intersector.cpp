@@ -73,6 +73,8 @@ static PyMethodDef Pyintersector [] =
   {"adaptCells", K_INTERSECTOR::adaptCells, METH_VARARGS},
   {"adaptCells_mpi", K_INTERSECTOR::adaptCells_mpi, METH_VARARGS},
   
+  {"adaptMesh", K_INTERSECTOR::adaptMesh, METH_VARARGS},
+ 
   {"adaptBox", K_INTERSECTOR::adaptBox, METH_VARARGS},
   
   {"initForAdaptCells", K_INTERSECTOR::initForAdaptCells, METH_VARARGS},

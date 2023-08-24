@@ -91,6 +91,8 @@ namespace K_INTERSECTOR
   PyObject* adaptCells(PyObject* self, PyObject* args);
   PyObject* adaptCells_mpi(PyObject* self, PyObject* args);
   
+  PyObject* adaptMesh(PyObject* self, PyObject* args);
+  
   PyObject* adaptBox(PyObject* self, PyObject* args);
 
   PyObject* initForAdaptCells(PyObject* self, PyObject* args);

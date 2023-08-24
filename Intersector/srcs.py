@@ -20,7 +20,17 @@ cpp_srcs = ["Intersector/conformUnstr.cpp",
             "PolyMeshTools/splitCells.cpp",
             "PolyMeshTools/adaptCells.cpp",
             "Intersector/testm.cpp",
-            "PolyMeshTools/utils.cpp"
+            "PolyMeshTools/utils.cpp",
+            
+            "PolyMeshTools/adaptMesh.cpp",
+            "PolyMeshTools/topo.cpp",
+            "PolyMeshTools/mesh.cpp",
+            "PolyMeshTools/comm.cpp",
+            "PolyMeshTools/math.cpp",
+            "PolyMeshTools/comm.cpp",
+            "PolyMeshTools/metric.cpp",
+            "PolyMeshTools/cut.cpp",
+            "PolyMeshTools/tree.cpp"
             ]
 
 if mpi:
