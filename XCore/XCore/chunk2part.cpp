@@ -674,6 +674,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
 
   MPI_Alltoall(&rcount[0], 1, MPI_INT, &scount[0], 1, MPI_INT, MPI_COMM_WORLD);
 
+  rdist[0] = sdist[0] = 0;
   for (E_Int i = 0; i < nproc; i++) {
     rdist[i+1] = rdist[i] + rcount[i];
     sdist[i+1] = sdist[i] + scount[i];
@@ -718,11 +719,11 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
                 MPI_COMM_WORLD);
 
   std::unordered_map<E_Int, E_Int> CT;
-  for (E_Int i = 0; i < nncells; i++)
+  for (E_Int i = 0; i < nncells; i++) {
     CT[rcells[i]] = i;
+  }
 
   std::vector<E_Int> pneis; 
-  std::set<E_Int> vpneis;
 
   E_Int nif = 0;
 
@@ -753,18 +754,11 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
 
       if (ho && !hn) {
         // nei is remote neighbor
-        if (vpneis.find(nei) == vpneis.end()) {
-          vpneis.insert(nei);
-          E_Int src = get_proc(nei, cells_dist, nproc);
-          rncount[src]++;
-        }
+        E_Int src = get_proc(nei, cells_dist, nproc);
+        rncount[src]++;
       } else if (!ho && hn) {
-        // own is remote neighbor
-        if (vpneis.find(own) == vpneis.end()) {
-          vpneis.insert(own);
-          E_Int src = get_proc(own, cells_dist, nproc);
-          rncount[src]++;
-        }
+        E_Int src = get_proc(own, cells_dist, nproc);
+        rncount[src]++;
       } else {
         assert(0);
       }
@@ -788,9 +782,6 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
 
   for (E_Int i = 0; i < nproc; i++)
     idx[i] = rndist[i];
-
-  vpneis.clear();
-
 
   // pfaces follow rncells dist
   std::vector<E_Int> pfaces(rndist[nproc]);
@@ -819,22 +810,16 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
 
       if (ho && !hn) {
         // nei is remote neighbor
-        if (vpneis.find(nei) == vpneis.end()) {
-          vpneis.insert(nei);
           E_Int src = get_proc(nei, cells_dist, nproc);
           rncells[idx[src]] = nei;
           pfaces[idx[src]] = face;
           idx[src]++;
-        }
       } else if (!ho && hn) {
         // own is remote neighbor
-        if (vpneis.find(own) == vpneis.end()) {
-          vpneis.insert(own);
           E_Int src = get_proc(own, cells_dist, nproc);
           rncells[idx[src]] = own;
           pfaces[idx[src]] = face;
           idx[src]++;
-        }
       } else {
         assert(0);
       }
@@ -1063,6 +1048,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   */
  
   /* export array3 / NGON v4 */
+  // TODO(Imad): avoid copying
   PyObject* m = K_ARRAY::buildArray3(3, varString, nnpoints, nncells, nnfaces, "NGON",
                                nxfaces[nnfaces], nxcells[nncells], 3,  
                                false, 3);
@@ -1101,8 +1087,11 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   }
 
   // Build output Python list
-  // TODO(Imad): avoid copying
   PyObject* out = PyList_New(0);
+
+  PyList_Append(out, m);  
+  Py_DECREF(m);
+
   PyObject* comm_data = PyList_New(0);
 
   for (E_Int i = 0; i < npatches; i++) {
@@ -1134,17 +1123,10 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     PyList_Append(comm_data, arr);
   }
 
-  npy_intp dims[2];
-  dims[1] = 1;
-  dims[0] = nncells;
-  PyArrayObject *mycells = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_INT);
-  E_Int *pc = (E_Int *)PyArray_DATA(mycells);
-  for (E_Int i = 0; i < nncells; i++)
-    pc[i] = rcells[i];
-
-  PyList_Append(out, (PyObject *)mycells); 
   PyList_Append(out, comm_data);
-  PyList_Append(out, m);
+  Py_DECREF(comm_data);
+
+  npy_intp dims[2];
 
   // 8 must be an array of FlowSolutions#Centers chunks
   o = PyList_GetItem(l, 7);
@@ -1163,7 +1145,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     PyObject *clist = PyList_New(0);
 
     dims[1] = 1;
-    dims[0] = nncells;
+    dims[0] = (npy_intp)nncells;
     
     std::vector<E_Float> c_sdata(c_sdist[nproc]);
 
@@ -1211,7 +1193,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     PyObject *plist = PyList_New(0);
 
     dims[1] = 1;
-    dims[0] = nnpoints;
+    dims[0] = (npy_intp)nnpoints;
     
     std::vector<E_Float> p_sdata(p_sdist[nproc]);
 
@@ -1242,5 +1224,26 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     Py_DECREF(plist);
   }
 
+  // my global cells
+  dims[1] = 1;
+  dims[0] = (npy_intp)nncells;
+  PyArrayObject *mycells = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_INT);
+  E_Int *pc = (E_Int *)PyArray_DATA(mycells);
+  for (E_Int i = 0; i < nncells; i++)
+    pc[i] = rcells[i];
+
+  // my global faces
+  dims[0] = (npy_intp)nnfaces;
+  PyArrayObject *myfaces = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_INT);
+  E_Int *pf = (E_Int *)PyArray_DATA(myfaces);
+  for (E_Int i = 0; i < nnfaces; i++)
+    pf[i] = rfaces[i];
+ 
+  PyList_Append(out, (PyObject *)mycells); 
+  PyList_Append(out, (PyObject *)myfaces); 
+
+  Py_DECREF(mycells); 
+  Py_DECREF(myfaces);
+  
   return out;
 }

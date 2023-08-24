@@ -892,11 +892,12 @@ def chunk2part(distTree):
   #                     corresponding global neighbor ids (array)]
   RES = XCore.xcore.chunk2part(arrays)
 
-  cells = RES[0]
+  mesh = RES[0]
   comm_data = RES[1]
-  mesh = RES[2]
-  solc = RES[3]
-  sol = RES[4]
+  solc = RES[2]
+  sol = RES[3]
+  cells = RES[4]
+  faces = RES[5]
 
   #print('rank', rank, '-> interproc patches:', len(comm_data))
   Cmpi.barrier()
