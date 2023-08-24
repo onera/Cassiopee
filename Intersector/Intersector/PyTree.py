@@ -2476,8 +2476,8 @@ def getRidToZones(t, zidDict):
   return ridDict
 
 
-def adaptMesh(ngon, cells, faces, comm_data, solc):
-    m = intersector.adaptMesh(ngon, cells, faces, comm_data, solc)
+def adaptMesh(ngon, comm_data, solc, cells, faces):
+    m = intersector.adaptMesh(ngon, comm_data, solc, cells, faces)
     return m
 
 #==============================================================================
