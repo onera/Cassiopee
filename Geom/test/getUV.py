@@ -10,7 +10,7 @@ a = C.initVars(a, '{VelocityX} = {x}')
 a = C.initVars(a, '{VelocityY} = 0.1')
 a = C.initVars(a, '{VelocityZ} = 0.')
 
-(a, color, normal) = D.getUV(a, 2., 0., fields=['VelocityX'])
+(a, color, normal) = D.getUV(a, 2., 1920, fields=['VelocityX'])
 
 # model with uv
 C.convertArrays2File(a, 'out.plt')

@@ -11,6 +11,10 @@ import CPlot.Tk as CTK
 WIDGETS = {}; VARS = []
 
 #==============================================================================
+def setNormalDeviation(event=None):
+    VARS[1].set('Normal deviation [%.2f]'%(WIDGETS['deviation'].get() / 10.))
+
+#==============================================================================
 def generateUVMap():
     if CTK.t == []: return
     
@@ -19,17 +23,22 @@ def generateUVMap():
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
+    CTK.setCursor(2, WIDGETS['generate'])
     CTK.saveTree()
-    
+
+    ndeviation = WIDGETS['deviation'].get()/10.
+    print("ndeviation=", ndeviation, flush=True)
+
     for nz in nzs:
         nob = CTK.Nb[nz]+1; noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
-        (z, color, normal) = D.getUV(z, 2., 0.)
+        (z, color, normal) = D.getUV(z, ndeviation, 0.)
         CPlot.replace(CTK.t, nob, noz, z)
         C.convertPyTree2File(color, 'color#%s.png'%z[0])
         C.convertPyTree2File(normal, 'bump#%s.png'%z[0])
     CTK.TXT.insert('START', 'UV map generated.\n')
     CPlot.render()
+    CTK.setCursor(0, WIDGETS['generate'])
 
 #==============================================================================
 # Create app widgets
@@ -55,10 +64,21 @@ def createApp(win):
     # - VARS -
     # -0- setting (not used for now) -
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
+    # -1- normal deviation info bulle
+    V = TK.StringVar(win); V.set('Normal deviation.'); VARS.append(V)
+
+    # - set Normal deviation -
+    B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, 
+                  command=setNormalDeviation, showvalue=0, borderwidth=1, value=100)
+    WIDGETS['deviation'] = B
+    WIDGETS['deviation'].set(20.)
+    B.grid(row=0, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, textVariable=VARS[1])
     
     # - Generate UV map -
     B = TTK.Button(Frame, text='Generate UV map', command=generateUVMap)
-    B.grid(row=0, column=0, columnspan=1, sticky=TK.EW)
+    B.grid(row=1, column=0, columnspan=1, sticky=TK.EW)
+    WIDGETS['generate'] = B
     BB = CTK.infoBulle(parent=B, text='Generate UV map for selection.')
     
 #==============================================================================

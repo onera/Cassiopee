@@ -19,6 +19,7 @@ def measure():
         CTK.__BUSY__ = True
         TTK.sunkButton(w)
         CPlot.setState(cursor=1)
+        CTK.setCursor(1, WIDGETS['measure'])
         while CTK.__BUSY__:
             CPlot.unselectAllZones()
             l = []
@@ -41,11 +42,13 @@ def measure():
                     prev = []
         CTK.__BUSY__ = False
         TTK.raiseButton(w)
+        CTK.setCursor(0, WIDGETS['measure'])
         CPlot.setState(cursor=0)
     else:
        CTK.__BUSY__ = False
        TTK.raiseButton(w)
        CPlot.setState(cursor=0)
+       CTK.setCursor(0, WIDGETS['measure'])
 
 #==============================================================================
 def vector():
@@ -56,6 +59,7 @@ def vector():
         CTK.__BUSY__ = True
         TTK.sunkButton(w)
         CPlot.setState(cursor=1)
+        CTK.setCursor(1, WIDGETS['vector'])
         while CTK.__BUSY__:
             CPlot.unselectAllZones()
             l = []
@@ -78,11 +82,13 @@ def vector():
         CTK.__BUSY__ = False
         TTK.raiseButton(w)
         CPlot.setState(cursor=0)
+        CTK.setCursor(0, WIDGETS['vector'])
     else:
        CTK.__BUSY__ = False
        TTK.raiseButton(w)
        CPlot.setState(cursor=0)
-
+       CTK.setCursor(0, WIDGETS['vector'])
+        
 #==============================================================================
 # Create app widgets
 #==============================================================================

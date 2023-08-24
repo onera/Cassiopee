@@ -282,10 +282,10 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Float normalDeviationWeight;
-  E_Float texelsPerUnit;
+  E_Float texResolution; 
   PyObject* fields; // champ a sortir en rgb
   if (!PYPARSETUPLEF(args, "OddO", "OffO", &array, &normalDeviationWeight, 
-      &texelsPerUnit, &fields)) return NULL;
+      &texResolution, &fields)) return NULL;
 
   // Check array
   E_Int im, jm, km;
@@ -434,7 +434,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   }
 
   // ajouter chartOptions et packOptions
-  printf("-> normal=%f texels=%f\n", normalDeviationWeight, texelsPerUnit);
+  printf("-> normal=%f texResolution=%f\n", normalDeviationWeight, texResolution);
   xatlas::ChartOptions opt1;
   opt1.normalDeviationWeight = normalDeviationWeight; // poids de la deviation des normales dans la metrique
   //opt1.maxCost = 2.; // si grand, moins de charts
@@ -445,7 +445,8 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   //opt1.textureSeamWeight = 0.5f;
   
   xatlas::PackOptions opt2;
-  opt2.texelsPerUnit = texelsPerUnit;
+  //opt2.texelsPerUnit = texelsPerUnit;
+  opt2.resolution = texResolution; // 1920
 
   xatlas::Generate(atlas, opt1, opt2);
   printf("   %d charts\n", atlas->chartCount);

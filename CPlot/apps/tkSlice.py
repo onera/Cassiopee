@@ -19,7 +19,7 @@ WIDGETS = {}; VARS = []
 XVALUE = 0.; YVALUE = 0.; ZVALUE = 0.
 # Valeur commune de delta pour la progression de la slice
 DELTA = 0.1
-# Conservation des zones slicees (Slice1 et Slice=)
+# Conservation des zones slicees (Slice et Slice=)
 XDATA = None; YDATA = None; ZDATA = None
 # Si not None, WALL a afficher dans View (liste de zones)
 WALL = None
@@ -27,8 +27,8 @@ WALL = None
 NODE2CENTER = False
 
 #==============================================================================
-# Trouve la position moyenne et un step moyen a partir de la selection
-def fit():
+# Trouve un step moyen a partir de la selection
+def fitStep():
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
     if CTK.__MAINTREE__ <= 0 or nzs == []: bb = G.bbox(CTK.t)
@@ -43,8 +43,8 @@ def fit():
         
     xmin = bb[0]; ymin = bb[1]; zmin = bb[2]
     xmax = bb[3]; ymax = bb[4]; zmax = bb[5]
-    global XVALUE, YVALUE, ZVALUE
-    XVALUE = 0.5*(xmax+xmin); YVALUE = 0.5*(ymax+ymin); ZVALUE = 0.5*(zmax+zmin)
+    #global XVALUE, YVALUE, ZVALUE
+    #XVALUE = 0.5*(xmax+xmin); YVALUE = 0.5*(ymax+ymin); ZVALUE = 0.5*(zmax+zmin)
 
     plane = VARS[0].get()
     if plane == 'Mesh':
@@ -52,23 +52,36 @@ def fit():
         delta = max(delta, zmax-zmin)
         delta = delta / 50.
         VARS[4].set(str(delta))
-        x = 0.5*(xmax+xmin)
-        VARS[1].set(str(x))
+        #x = 0.5*(xmax+xmin)
+        #VARS[1].set(str(x))
     elif plane == 'X':
         delta = (xmax-xmin) / 50.
         VARS[4].set(str(delta))
-        x = 0.5*(xmax+xmin)
-        VARS[1].set(str(x))
+        #x = 0.5*(xmax+xmin)
+        #VARS[1].set(str(x))
     elif plane == 'Y':
         delta = (ymax-ymin) / 50.
         VARS[4].set(str(delta))
-        y = 0.5*(ymax+ymin)
-        VARS[1].set(str(y))
+        #y = 0.5*(ymax+ymin)
+        #VARS[1].set(str(y))
     elif plane == 'Z':
         delta = (zmax-zmin) / 50.
         VARS[4].set(str(delta))
-        z = 0.5*(zmax+zmin)
-        VARS[1].set(str(z))
+        #z = 0.5*(zmax+zmin)
+        #VARS[1].set(str(z))
+
+# Get active point, set in VARS and view
+def getActivePoint():
+    if CTK.t == []: return
+    plane = VARS[0].get()
+    point = CPlot.getActivePoint()
+    if len(point) == 3: # set it in VARS
+        if plane == 'X': pos = point[0]; XVALUE = pos
+        elif plane == 'Y': pos = point[1]; YVALUE = pos
+        elif plane == 'Z': pos = point[2]; ZVALUE = pos
+        VARS[1].set(str(pos))
+    CPlot.unselectAllZones()
+    view()
 
 #==============================================================================
 # Clear other slice planes data and wall data
@@ -97,6 +110,10 @@ def moveMoins():
 def unselect(event=None):
     CPlot.unselectAllZones()
 
+def unselectAndView(evnet=None):
+    CPlot.unselectAllZones()
+    view()
+
 #==============================================================================
 def view(event=None):
     if CTK.t == []: return
@@ -117,7 +134,7 @@ def view(event=None):
     nzs = CPlot.getSelectedZones()
     if nzs != []:
         point = CPlot.getActivePoint()
-        if len(point) == 3:
+        if len(point) == 3: # if active point, take it
             if plane == 'X': pos = point[0]; XVALUE = pos
             elif plane == 'Y': pos = point[1]; YVALUE = pos
             elif plane == 'Z': pos = point[2]; ZVALUE = pos
@@ -134,11 +151,11 @@ def view(event=None):
 
         temp = C.newPyTree(['Base']); temp[2][1][2] += active
         if CTK.__LOCATION__ == 'centers' or NODE2CENTER: temp = C.node2Center(temp)
-        if plane == 'X' and algo == 'Slice1':
+        if plane == 'X' and algo == 'Slice':
             p = P.isoSurfMC(temp, 'CoordinateX', pos); XDATA = p
-        elif plane == 'Y' and algo == 'Slice1':
+        elif plane == 'Y' and algo == 'Slice':
             p = P.isoSurfMC(temp, 'CoordinateY', pos); YDATA = p
-        elif plane == 'Z' and algo == 'Slice1':
+        elif plane == 'Z' and algo == 'Slice':
             p = P.isoSurfMC(temp, 'CoordinateZ', pos); ZDATA = p
         elif plane == 'X' and algo == 'Slice2':
             p = P.extractPlane(active, (1,0,0,-pos), order=order, tol=eps)
@@ -165,7 +182,7 @@ def view(event=None):
         elif plane == 'Z' and algo == 'Select=':
             p = P.selectCells(temp, '({CoordinateZ}>='+str(pos-DELTA)+') & ({CoordinateZ}<='+str(pos+DELTA)+')'); ZDATA = p[2][1][2]
         CTK.dt = C.newPyTree(['Base'])
-        if algo == 'Slice1': CTK.dt[2][1][2] += p
+        if algo == 'Slice': CTK.dt[2][1][2] += p
         elif algo == 'Slice2': CTK.dt[2][1][2] += [p]
         else: CTK.dt[2][1][2] += p[2][1][2]
         if plane == 'X':
@@ -222,11 +239,11 @@ def extract(event=None):
         for z in CTK.__MAINACTIVEZONES__: active.append(zones[z])
         temp = C.newPyTree(['Base']); temp[2][1][2] += active
         if CTK.__LOCATION__ == 'centers' or NODE2CENTER: temp = C.node2Center(temp)
-        if plane == 'X' and algo == 'Slice1':
+        if plane == 'X' and algo == 'Slice':
             p = P.isoSurfMC(temp, 'CoordinateX', pos)
-        elif plane == 'Y' and algo == 'Slice1':
+        elif plane == 'Y' and algo == 'Slice':
             p = P.isoSurfMC(temp, 'CoordinateY', pos)
-        elif plane == 'Z' and algo == 'Slice1':
+        elif plane == 'Z' and algo == 'Slice':
             p = P.isoSurfMC(temp, 'CoordinateZ', pos)
         elif plane == 'X' and algo == 'Slice2':
             p = P.extractPlane(temp, (1,0,0,-pos), order=order, tol=eps)
@@ -254,7 +271,7 @@ def extract(event=None):
             p = P.selectCells(temp, '({CoordinateZ}>='+str(pos-DELTA)+') & ({CoordinateZ}<='+str(pos+DELTA)+')')
         CTK.t = C.addBase2PyTree(CTK.t, 'EXTRACT', 2)
         base = Internal.getNodeFromName1(CTK.t, 'EXTRACT')
-        if algo == 'Slice1':
+        if algo == 'Slice':
             for i in p: i[0] = C.getZoneName(i[0])
             base[2] += p
         elif algo == 'Slice2':
@@ -326,7 +343,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('0.1'); VARS.append(V)
     if 'tkSliceStep' in CTK.PREFS: V.set(CTK.PREFS['tkSliceStep'])
     # -5- slice algorithm
-    V = TK.StringVar(win); V.set('Slice1'); VARS.append(V)
+    V = TK.StringVar(win); V.set('Slice'); VARS.append(V)
 
     # - Settings -
     #B = TK.Entry(Frame, textvariable=VARS[2], background='White', width=3)
@@ -352,12 +369,12 @@ def createApp(win):
     B.grid(row=0, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Move step.')
     B = TTK.Button(Frame, image=iconics.PHOTO[8],
-                   command=fit, padx=0)
+                   command=fitStep, padx=0)
     B.grid(row=0, column=3, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Get a step from selection.')
 
     # Slice algorithm
-    B = TTK.OptionMenu(Frame, VARS[5], 'Slice1', 'Select+', 'Select-', 'Select=')
+    B = TTK.OptionMenu(Frame, VARS[5], 'Slice', 'Select+', 'Select-', 'Select=')
     BB = CTK.infoBulle(parent=B, text='Type of slice.')
     B.grid(row=1, column=0, columnspan=1, sticky=TK.EW)
     
@@ -367,11 +384,11 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Slice direction.')
     B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=3)
     B.grid(row=1, column=2, sticky=TK.EW)
-    B.bind('<Return>', unselect)
+    B.bind('<Return>', unselectAndView)
     BB = CTK.infoBulle(parent=B, text='Plane position.\nTaken from selection or set it here with no selection.')
-    B = TTK.Button(Frame, image=iconics.PHOTO[8], command=fit, padx=0)
+    B = TTK.Button(Frame, image=iconics.PHOTO[8], command=getActivePoint, padx=0)
     B.grid(row=1, column=3, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Get middle position from selection.')
+    BB = CTK.infoBulle(parent=B, text='Get active point.')
 
     # - View/extract/clear -
     B = TTK.Button(Frame, text="View", command=view)

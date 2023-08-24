@@ -220,21 +220,26 @@ def openApp(app):
   module = getModule(app)
   if module is not None: module.showApp()
 
+# 0: None, 2: watch, 3: cross
 def setCursor(cursor, B=None, C=None, D=None):
   win = WIDGETS['masterWin']
   if cursor == 2: win.config(cursor="watch")
+  elif cursor == 1: win.config(cursor="cross")
   elif cursor == 0: win.config(cursor="")
   win.update()
   if B is not None:
     if cursor == 2: B.config(cursor="watch")
+    elif cursor == 1: B.config(cursor="cross")
     elif cursor == 0: B.config(cursor="")
     B.update()
   if C is not None:
     if cursor == 2: C.config(cursor="watch")
+    elif cursor == 1: C.config(cursor="cross")
     elif cursor == 0: C.config(cursor="")
     C.update()
   if D is not None:
     if cursor == 2: D.config(cursor="watch")
+    elif cursor == 1: D.config(cursor="cross")
     elif cursor == 0: D.config(cursor="")
     D.update()
     

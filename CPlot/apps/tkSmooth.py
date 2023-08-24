@@ -144,6 +144,7 @@ def smooth():
         Pj = 0
     
     # Smooth
+    CTK.setCursor(2, WIDGETS['smooth'])
     fail = False
     try:
         if Pj == 0:
@@ -173,6 +174,8 @@ def smooth():
         CTK.TXT.insert('START', 'Smooth fails.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
 
+    CTK.setCursor(0, WIDGETS['smooth'])
+    
     #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -285,6 +288,7 @@ def createApp(win):
     
     # - Smooth -
     B = TTK.Button(Frame, text="Smooth", command=smooth)
+    WIDGETS['smooth'] = B
     BB = CTK.infoBulle(parent=B, text='Smooth mesh.')
     B.grid(row=3, column=0, columnspan=5, sticky=TK.EW)
     
