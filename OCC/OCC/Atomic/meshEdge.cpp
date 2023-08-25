@@ -42,6 +42,9 @@
 E_Int __meshEdge(const TopoDS_Edge& E, 
 E_Int& nbPoints, K_FLD::FldArrayF& coords)
 {
+  //std::string shapeName = BRep_Tool::Name(E);
+  //std::cout << "Edge name is " << shapeName << std::endl;
+
   BRepAdaptor_Curve C0(E);
   GeomAdaptor_Curve geomAdap(C0.Curve()); // Geometric Interface <=> access to discretizations tool
   Standard_Real u0 = geomAdap.FirstParameter();

@@ -257,7 +257,7 @@ PyObject* K_CONVERTER::getMeanRangeValue(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, im, jm, km, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, 
                                      cn, eltType);
 
   E_Int posvar = -1;

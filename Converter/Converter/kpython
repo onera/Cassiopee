@@ -16,7 +16,7 @@ if [ "$PYTHONEXE" = "" ]; then
 fi
 
 # Machine avec remote GL (utilisant virtual GL)
-if [ $ELSAPROD == 'vis_r8' ] 
+if [ $ELSAPROD == 'vis_r8' ] || [ $ELSAPROD == 'visung_el8' ] 
 then
     PYTHONEXE='vglrun '$PYTHONEXE
 fi

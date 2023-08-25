@@ -4,6 +4,7 @@
 #include "intersector.h"
 #include <mpi.h>
 #include <unordered_map>
+#include <map>
 
 #define MAXNEI 6
 

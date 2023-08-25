@@ -398,12 +398,14 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   E_Float* px = f->begin(posx);
   E_Float* py = f->begin(posy);
   E_Float* pz = f->begin(posz);
-  
+
+#define SCALEFACTOR 1000.
+
   for (E_Int i = 0; i < nvertex; i++) 
   {
-    coords[3*i] = px[i];
-    coords[3*i+1] = py[i];
-    coords[3*i+2] = pz[i];
+    coords[3*i] = px[i] * SCALEFACTOR;
+    coords[3*i+1] = py[i] * SCALEFACTOR;
+    coords[3*i+2] = pz[i] * SCALEFACTOR;
   }  
   // ecrit connect
   uint32_t* connect = new uint32_t [nf*nelts];
@@ -433,7 +435,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  // ajouter chartOptions et packOptions
+  // Ajout chartOptions et packOptions
   printf("-> normal=%f texResolution=%f\n", normalDeviationWeight, texResolution);
   xatlas::ChartOptions opt1;
   opt1.normalDeviationWeight = normalDeviationWeight; // poids de la deviation des normales dans la metrique
