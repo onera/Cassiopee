@@ -1389,14 +1389,14 @@ Operations on meshes
 
 .. py:function:: Generator.stack(a, b=None)
 
-    Stack two 2D structured meshes or a list of structured meshes (with the same nixnj) 
-    into a single 3D mesh. 
-
-    :param a:  a 2D structured mesh or a list of structured meshes
-    :type  a:  array, Zone or list of arrays, zones
-    :param b:  2D structured mesh or None
-    :type  b:  array or Zone
-    :return: new 3D structured mesh
+    Can stack 1D meshes with same topology into 2D meshes.
+    Can stack 2D meshes with same topology into 3D meshes.
+    
+    :param a:  a mesh or a list of topologically identical meshes
+    :type  a:  array, zone or list of arrays, zones
+    :param b:  a mesh
+    :type  b:  array, zone    
+    :return: a mesh
     :rtype: array or Zone
 
     *Example of use:*

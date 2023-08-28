@@ -10,6 +10,7 @@ import Converter as C
 # Si chamfer>0: chanfrein droit
 #==============================================================================
 def box(Pmin, Pmax, chamfer=-1.):
+    """3D Box with straight chamfer."""
     (xmin,ymin,zmin) = Pmin
     (xmax,ymax,zmax) = Pmax
     if chamfer <= 0.: # pas de chanfrein
@@ -26,7 +27,7 @@ def box(Pmin, Pmax, chamfer=-1.):
         a = [Q1,Q2,Q3,Q4,Q5,Q6]
         a = T.join(a)
         a = G.close(a)
-        a = T.reorder(a, (1,))
+        a = T.reorder(a, (-1,))
         return a
     else: # chanfrein droit
         deltax = xmax-xmin
@@ -98,11 +99,14 @@ def box(Pmin, Pmax, chamfer=-1.):
         return a
 
 #==========================================================================
+# Boite 2D
 # IN: Pmin, Pmax: pts min et max
 # IN: r: % de round (entre 0 et 1)
 # IN: fill: si True, remplit la surface
+# IN: uv: si True, cree le uv
 #==========================================================================
-def box2D(Pmin, Pmax, r=0., fill=True):
+def box2D(Pmin, Pmax, r=0., fill=True, uv=False):
+    """2D Box with round chamfer."""
     xmin = Pmin[0]; ymin = Pmin[1]
     xmax = Pmax[0]; ymax = Pmax[1]
     dx = r*(xmax-xmin); dy = r*(ymax-ymin) 
@@ -137,12 +141,16 @@ def box2D(Pmin, Pmax, r=0., fill=True):
     a = G.close(a)
     a = T.reorder(a, (1,))
     if fill: a = G.tetraMesher(a)
+    if uv:
+        a = C.initVars(a, '{u}=({x}-%f)/%f'%(xmin, (xmax-xmin)))
+        a = C.initVars(a, '{v}=({y}-%f)/%f'%(ymin, (ymax-ymin)))
     return a
 
 #=================================================================
 # Ellipse 2D
 #=================================================================
-def ellipse2D(Pmin, Pmax, fill=True):
+def ellipse2D(Pmin, Pmax, fill=True, uv=False):
+    """2D Ellipse."""
     xmin = Pmin[0]; ymin = Pmin[1]
     xmax = Pmax[0]; ymax = Pmax[1]
     xc = (xmin+xmax)*0.5
@@ -153,6 +161,10 @@ def ellipse2D(Pmin, Pmax, fill=True):
     a = D.circle((xc,yc,0), R, N=40)
     a = T.contract(a, (xc,yc,0),(1,0,0),(0,0,1),dy*1./dx)
     if fill: a = G.tetraMesher(a)
+    bb = G.bbox(a)
+    if uv:
+        a = C.initVars(a, '{u}=({x}-%f)/%f'%(bb[0], (bb[3]-bb[0])))
+        a = C.initVars(a, '{v}=({y}-%f)/%f'%(bb[1], (bb[4]-bb[1])))
     return a
 
 #=================================================================

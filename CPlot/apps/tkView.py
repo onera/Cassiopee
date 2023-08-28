@@ -219,8 +219,14 @@ def displayField(event=None):
     if CTK.t == []: return
     global VARNO
     field = VARS[18].get()
-    if CTK.__MAINTREE__ == 1: zvars = C.getVarNames(CTK.t, mode=1)[0]
-    else: zvars = C.getVarNames(CTK.dt, mode=1)[0]
+    if CTK.__MAINTREE__ == 1: 
+        zvars = C.getVarNames(CTK.t, mode=1)
+        if zvars == []: return
+        zvars = zvars[0]
+    else: 
+        zvars = C.getVarNames(CTK.dt, mode=1)[0]
+        if zvars == []: return
+        zvars = zvars[0]
     ifield = 0; lenvars = 0
     for i in zvars:
         if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':

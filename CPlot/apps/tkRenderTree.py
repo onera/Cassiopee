@@ -28,6 +28,7 @@ def addBillboardFile(event=None):
     out = []
     for i in pos[2]: out.append(Internal.getValue(i))
     CPlot.setState(billBoards=out, billBoardSize=0.8)
+    CTK.TXT.insert('START', 'New billboard texture added.\n')
 
 #==============================================================================
 def addBumpMapFile(event=None):
@@ -46,7 +47,8 @@ def addBumpMapFile(event=None):
     out = []
     for i in pos[2]: out.append(Internal.getValue(i))
     CPlot.setState(bumpMaps=out)
-    
+    CTK.TXT.insert('START', 'New bumpmap texture added.\n')
+
 #==============================================================================
 def addTextureFile(event=None):
     if CTK.t == []: return
@@ -83,7 +85,8 @@ def addTextureFile(event=None):
     for i in pos[2]: out.append(Internal.getValue(i))
     CPlot.setState(materials=out)
     CPlot.display(CTK.t)
-    
+    CTK.TXT.insert('START', 'New color texture added.\n')
+
 #==============================================================================
 def chooseFile():
     try: import tkFileDialog

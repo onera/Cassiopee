@@ -7,9 +7,9 @@ def box(Pmin, Pmax, chamfer=-1.):
     a = Models.box(Pmin, Pmax, chamfer)
     return C.convertArrays2ZoneNode('box', [a])
 
-def box2D(Pmin, Pmax, r=0.):
+def box2D(Pmin, Pmax, r=0., uv=False):
     """Create a 2D box."""
-    a = Models.box2D(Pmin, Pmax, r)
+    a = Models.box2D(Pmin, Pmax, r, uv)
     return C.convertArrays2ZoneNode('box', [a])
 
 def ellipse2D(Pmin, Pmax):
