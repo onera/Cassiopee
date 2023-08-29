@@ -16,4 +16,15 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/zoltan1.cpp',
             'XCore/chunk2part.cpp',
             'XCore/SplitElement/splitter.cpp',
-            'XCore/test/xmpi_t1.cpp']
+            'XCore/test/xmpi_t1.cpp',
+            'adaptMesh/cut.cpp',
+            'adaptMesh/tree.cpp',
+            'adaptMesh/mesh.cpp',
+            'adaptMesh/math.cpp',
+            'adaptMesh/adaptMesh.cpp',
+            'adaptMesh/comm.cpp',
+            'adaptMesh/metric.cpp',
+            'adaptMesh/topo.cpp',
+            'adaptMesh/distribute.cpp'
+            
+            ]

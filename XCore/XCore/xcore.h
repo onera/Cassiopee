@@ -25,5 +25,6 @@ namespace K_XCORE
   //PyObject* setBCDataInGhostCellsStruct(PyObject* self, PyObject* args);
   PyObject* zoltan1(PyObject* self, PyObject* args);
   PyObject* chunk2part(PyObject* self, PyObject* args);
+  PyObject* adaptMesh(PyObject* self, PyObject* args);
 }
 #endif

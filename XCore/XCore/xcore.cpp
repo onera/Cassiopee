@@ -29,6 +29,7 @@ static PyMethodDef Pyxcore [] =
   {"split_elements", split_elements, METH_VARARGS},
   {"zoltan1", K_XCORE::zoltan1, METH_VARARGS},
   {"chunk2part", K_XCORE::chunk2part, METH_VARARGS},
+  {"adaptMesh", K_XCORE::adaptMesh, METH_VARARGS},
   {"test_all", xcore::test_all, METH_VARARGS},
   {NULL, NULL} 
 };
