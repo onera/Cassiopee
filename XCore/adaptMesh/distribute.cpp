@@ -23,7 +23,8 @@ std::vector<E_Int> make_dual_graph(mesh *M, std::vector<E_Int> &xneis)
   for (E_Int i = 0; i < M->nppatches; i++) {
     npf += M->ppatches[i].nfaces;
     for (E_Int j = 0; j < M->ppatches[i].nfaces; j++) {
-      E_Int own = M->owner[j];
+      E_Int face = M->ppatches[i].faces[j];
+      E_Int own = M->owner[face];
       xneis[own+1]++;
     }
   }
@@ -70,12 +71,13 @@ std::vector<E_Int> make_dual_graph(mesh *M, std::vector<E_Int> &xneis)
 void redistribute_mesh(mesh *M, const std::vector<E_Int> &ref_data)
 {
   // compute cell weights
-  // TODO(Imad): for now, cell weight is max ref_data
-  std::vector<E_Int> cwgt(M->ncells);
+  // TODO(Imad): how to quantify cell weights?
+  std::vector<E_Int> cwgt(M->ncells, 0);
   for (E_Int i = 0; i < M->ncells; i++) {
     const E_Int *pr = &ref_data[3*i];
     for (E_Int j = 0; j < 3; j++)
-      cwgt[i] = std::max(std::max(pr[0], pr[1]), pr[2]);
+      cwgt[i] += pr[j];
+    //cwgt[i] = std::max(std::max(pr[0], pr[1]), pr[2]);
   }
 
   std::vector<E_Int> xadj(M->ncells+1);
@@ -106,4 +108,101 @@ void redistribute_mesh(mesh *M, const std::vector<E_Int> &ref_data)
   ret = SCOTCH_dgraphCheck(&graph);
 
   assert(ret == 0);
+
+  // ghosts
+  ret = SCOTCH_dgraphGhst(&graph);
+  assert(ret == 0);
+
+  // data
+  MPI_Comm comm;
+  MPI_Comm_dup(MPI_COMM_WORLD, &comm);
+  E_Int vertlocptr, vertgstptr, vertlocptz, *vertloctab, *vendloctab, *veloloctab, *vlblloctab,
+        edgelocptr, edgelocptz, *edgeloctab, *edgegsttab;
+  SCOTCH_dgraphData
+  (
+    &graph,
+    NULL,
+    NULL,
+    &vertlocptr,
+    &vertlocptz,
+    &vertgstptr,
+    &vertloctab,
+    &vendloctab,
+    &veloloctab,
+    &vlblloctab,
+    NULL,
+    &edgelocptr,
+    &edgelocptz,
+    &edgeloctab,
+    &edgegsttab,
+    NULL,
+    &comm);
+
+  if (M->pid == 0) {
+    printf("vertlocptr: %d\n", vertlocptr);
+    printf("vertlocptz: %d\n", vertlocptz);
+    printf("vertgstptr: %d\n", vertgstptr);
+
+    printf("xadj:\n");
+    for (E_Int i = 0; i < vertlocptr+1; i++)
+      printf("%d ", vertloctab[i]);
+    puts("");
+
+    printf("vendloctab\n");
+    for (E_Int i = 0; i < vertlocptr; i++)
+      printf("%d ", vendloctab[i]);
+    puts("");
+
+    puts("weights");
+    for (E_Int i = 0; i < vertlocptr; i++)
+      printf("%d ", veloloctab[i]);
+    puts("");
+
+    puts("global indices");
+    for (E_Int i = 0; i < vertlocptr; i++)
+      printf("%d ", vlblloctab[i]);
+    puts("");
+
+    // nedges
+    assert(edgelocptr == xadj[M->ncells]);
+
+    printf("edgelocptz: %d\n", edgelocptz);
+
+    puts("edgeloctab");
+    for (E_Int i = 0; i < vertlocptr; i++) {
+      for (E_Int j = vertloctab[i]; j < vertloctab[i+1]; j++)
+        printf("%d ", edgeloctab[j]);
+      puts("");
+    }
+
+    puts("edgegsttab");
+    // edgegsttab is of size edglocptz
+    for (E_Int i = 0; i < edgelocptz; i++) {
+      printf("%d ", edgegsttab[i]);
+    }
+    puts("");
+
+  }
+  
+  EXIT;
+
+  SCOTCH_Strat strat;
+  ret = SCOTCH_stratInit(&strat);
+  if (ret != 0) {
+    fprintf(stderr, "SCOTCH_startInit(): Failed to init strat\n");
+  }
+
+  std::vector<E_Int> part(M->ncells);
+  ret = SCOTCH_dgraphPart(&graph, M->npc, &strat, &part[0]); 
+
+  if (ret != 0) {
+    fprintf(stderr, "SCOTCH_dgraphPart(): Failed to map graph\n");
+  }
+
+  if (M->pid == 0)
+    printf("Graph map OK\n");
+
+  
+  // halo
+  //ret = SCOTCH_dgraphHalo(&graph,
 }

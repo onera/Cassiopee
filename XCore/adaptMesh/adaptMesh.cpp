@@ -168,7 +168,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   smooth_ref_data(M, ref_data);
 
   // redistribute
-  //redistribute_mesh(M, ref_data);
+  redistribute_mesh(M, ref_data);
 
   // isolate refinement cells
   E_Int nref_cells = -1;
@@ -250,7 +250,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
     nref_cells = nref_cells_next_gen;
   }
 
-  printf("ncells: %d\n", M->ncells);
+  //printf("ncells: %d\n", M->ncells);
 
   free(H);
 

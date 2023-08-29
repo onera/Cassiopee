@@ -18,7 +18,7 @@ E_Int is_metric_valid(E_Float *M)
 
 void hessian_to_metric(E_Float *H, mesh *M)
 {
-  E_Float h = 0.01;
+  E_Float h = 0.25;
   E_Int nsub = 2;
   E_Float hmin = h / pow(2., nsub);
   E_Float hmax = h;
