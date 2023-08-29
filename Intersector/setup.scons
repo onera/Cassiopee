@@ -25,6 +25,9 @@ installPath = Dist.getInstallPath(prefix)
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
+# Test if xcore exists =======================================================
+(xcoreVersion, xcoreIncDir, xcoreLibDir) = Dist.checkXCore()
+
 # Test if libmpi exists ======================================================
 (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
                                                      additionalIncludePaths)
@@ -32,9 +35,9 @@ installPath = Dist.getInstallPath(prefix)
                                                         additionalIncludePaths)
 
 # Setting libraryDirs and libraries ===========================================
-libraryDirs = ['..', '.', pythonLibDir, kcoreLibDir]
-includeDirs = [numpyIncDir, kcoreIncDir, pythonIncDir]
-libraries = ["kcore"]
+libraryDirs = ['..', '.', pythonLibDir, kcoreLibDir, xcoreLibDir]
+includeDirs = [numpyIncDir, kcoreIncDir, pythonIncDir, xcoreIncDir]
+libraries = ["kcore", "xcore", "ptscotch", "scotch1", "scotch2"]
 ADDITIONALCPPFLAGS = []
 if mpi:
     libraryDirs.append(mpiLibDir)
@@ -49,6 +52,7 @@ if mpi: libraries += mpiLibs
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
+
 
 # Env =========================================================================
 import srcs

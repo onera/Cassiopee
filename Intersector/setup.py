@@ -22,6 +22,9 @@ Dist.writeSetupCfg()
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
+# Test if xcore exists =======================================================
+(xcoreVersion, xcoreIncDir, xcoreLibDir) = Dist.checkXCore()
+
 from KCore.config import *
 
 # Test if libmpi exists ======================================================
@@ -35,9 +38,9 @@ prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 
 # Setting libraryDirs, include dirs and libraries =============================
-libraryDirs = ["build/"+prod, kcoreLibDir]
-includeDirs = [numpyIncDir, kcoreIncDir]
-libraries = ["intersector", "kcore"]
+libraryDirs = ["build/"+prod, kcoreLibDir, xcoreLibDir]
+includeDirs = [numpyIncDir, kcoreIncDir, xcoreIncDir]
+libraries = ["intersector", "kcore", "xcore"]
 ADDITIONALCPPFLAGS = []
 if mpi:
     libraryDirs.append(mpiLibDir)
