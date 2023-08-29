@@ -9,7 +9,7 @@ import KCore.config
 # Numpy
 # KCore
 # GL
-# optional: GLEW, PNG, MPEG, OSMesa
+# optional: MPEG, OSMesa
 #=============================================================================
 
 # If you want to use CPlot as a offscreen plotter (as on clusters)
@@ -62,17 +62,6 @@ else:
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
-
-# Test if PNG exists =========================================================
-(png, pngIncDir, pngLib) = Dist.checkPng(additionalLibPaths,
-                                         additionalIncludePaths)
-if png:
-    libraries += ["png"]
-    if mySystem[0] == 'mingw':
-        if not Dist.useStatic() and prod != "msys64": libraries += ["zlib1"]
-        else: libraries += ["z"]
-    libraryDirs += [pngLib]
-    includeDirs += [pngIncDir]
 
 # Test if MPEG exists =========================================================
 from srcs import MPEG

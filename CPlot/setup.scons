@@ -6,7 +6,7 @@ import KCore.Dist as Dist
 # Numpy
 # KCore
 # GL
-# optional: PNG, OSMesa
+# optional: OSMesa
 #==============================================================================
 from KCore.config import *
 
@@ -50,14 +50,6 @@ if UseOSMesa == 1:
 else: 
     OSMesa = False
     libraries += ["GL"]
-
-# Test if PNG exists =========================================================
-(png, pngIncDir, pngLib) = Dist.checkPng(additionalLibPaths, 
-                                         additionalIncludePaths)
-if png:
-    libraries += ["png"]
-    libraryDirs += [pngLib]
-    includeDirs += [pngIncDir]
 
 # Test if MPEG exists =========================================================
 import srcs

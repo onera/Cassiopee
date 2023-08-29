@@ -307,15 +307,15 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   {
     RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_TypeError,
-                      "getUV: ony for TRI array.");
+                      "getUV: ony for TRI or QUAD array.");
     return NULL;  
   }
 
-  if (strcmp(eltType, "TRI") != 0)
+  if (strcmp(eltType, "TRI") != 0 && strcmp(eltType, "QUAD") != 0)
   {
     RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_TypeError,
-                      "getUV: ony for TRI array.");
+                      "getUV: ony for TRI or QUAD array.");
     return NULL;  
   }
 
@@ -391,7 +391,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
 
   E_Int nvertex = f->getSize();
   E_Int nelts = cn->getSize();
-  E_Int nf = cn->getNfld();
+  E_Int nf = cn->getNfld(); // 3 or 4
 
   // compact coords
   float* coords = new float [3*nvertex];
@@ -410,20 +410,29 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   // ecrit connect
   uint32_t* connect = new uint32_t [nf*nelts];
   for (E_Int i = 0; i < nelts; i++)
-  {
-    connect[nf*i] = (*cn)(i,1)-1;
-    connect[nf*i+1] = (*cn)(i,2)-1;
-    connect[nf*i+2] = (*cn)(i,3)-1;
-  }
+    for (E_Int n = 0; n < nf; n++)
+    {
+      connect[nf*i+n] = (*cn)(i,n+1)-1;
+    }
 
   //printf("nvert=%d %d %d\n", nvertex, nf, nelts);
   xatlas::MeshDecl meshDecl;
   meshDecl.vertexCount = (uint32_t)nvertex;
   meshDecl.vertexPositionData = coords;
   meshDecl.vertexPositionStride = sizeof(float) * 3;
+
   meshDecl.indexCount = (uint32_t)(nelts*nf);
   meshDecl.indexData = connect;
-  //meshDecl.faceCount = (uint32_t)nf;
+
+  uint8_t* fvc = NULL;
+  if (nf == 4)
+  {
+    meshDecl.faceCount = (uint32_t)nelts;
+    // size of each element
+    fvc = new uint8_t [nelts];
+    for (E_Int i = 0; i < nelts; i++) fvc[i] = 4;
+    meshDecl.faceVertexCount = fvc;
+  }
   meshDecl.indexFormat = xatlas::IndexFormat::UInt32;
   xatlas::AddMeshError error = xatlas::AddMesh(atlas, meshDecl, (uint32_t)1);
   if (error != xatlas::AddMeshError::Success)
@@ -456,14 +465,14 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   for (uint32_t i = 0; i < atlas->atlasCount; i++)
     printf("      %d: %0.2f%% utilization\n", i, atlas->utilization[i] * 100.0f);
   printf("   %ux%u resolution\n", atlas->width, atlas->height);
-  
+
   // output
   // Fill uv in orig model
   E_Float* pu = f->begin(posu);
   E_Float* pv = f->begin(posv);
   const xatlas::Mesh &mesh = atlas->meshes[0];
   E_Int nvertexOut = mesh.vertexCount;
-  //printf("output nvertex=%d\n", mesh.vertexCount);
+  printf("output nvertex=%d\n", mesh.vertexCount);
 
   for (E_Int i = 0; i < nvertexOut; i++)
   {
@@ -476,14 +485,20 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
     //printf("vt %f %f\n", pu[i],pv[i]);
   }
 
+  // cleanup
+  delete [] connect;
+  delete [] fvc;
+
+
   //=========================
   // Export mesh with seams
   //=========================
   PyObject* o;
   if (exportFields)
-    o = K_ARRAY::buildArray2(8, "x,y,z,u,v,vx,vy,vz", nvertexOut, nelts, -1, "TRI", 0, 1, 1, api);
+    o = K_ARRAY::buildArray2(8, "x,y,z,u,v,vx,vy,vz", nvertexOut, nelts, -1, eltType, 0, 1, 1, api);
   else 
-    o = K_ARRAY::buildArray2(5, "x,y,z,u,v", nvertexOut, nelts, -1, "TRI", 0, 1, 1, api);
+    o = K_ARRAY::buildArray2(5, "x,y,z,u,v", nvertexOut, nelts, -1, eltType, 0, 1, 1, api);
+
   FldArrayF* fo; FldArrayI* cno; 
   K_ARRAY::getFromArray2(o, fo, cno);
   E_Float* puo = fo->begin(4);
@@ -516,15 +531,19 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
       pvzo[i] = pvz[iref];
     }
   }
+
   uint32_t currentIndex = 0;
-  for (E_Int i = 0; i < cn->getSize(); i++)
+  for (E_Int i = 0; i < nelts; i++)
   {
-    for (E_Int n = 1; n <= cn->getNfld(); n++)
+    for (E_Int n = 1; n <= nf; n++)
     {
-      (*cno)(i,n) = mesh.indexArray[currentIndex++] + 1;
+      (*cno)(i,n) = mesh.indexArray[currentIndex] + 1;
+      //printf("%d %d - %d %d\n", i, n, nvertexOut, mesh.indexArray[currentIndex]+1);
+      //(*cno)(i,n) = 1;
+      currentIndex++;
     }
   }
-  
+
   PyObject* tpl = PyList_New(0);
   PyList_Append(tpl, o); Py_DECREF(o);
 

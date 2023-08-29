@@ -213,7 +213,7 @@ def displayVectorl(v, l):
     v.set(l); displayVector()
     
 #==============================================================================
-# Display pour les scalar field
+# Display pour les scalar fields
 #==============================================================================
 def displayField(event=None):
     if CTK.t == []: return
@@ -224,7 +224,7 @@ def displayField(event=None):
         if zvars == []: return
         zvars = zvars[0]
     else: 
-        zvars = C.getVarNames(CTK.dt, mode=1)[0]
+        zvars = C.getVarNames(CTK.dt, mode=1)
         if zvars == []: return
         zvars = zvars[0]
     ifield = 0; lenvars = 0
@@ -851,7 +851,6 @@ def updateIsoWidgets():
         n = pos[1]; l = n.shape[0]
         list = []; c = 0
         while c < l:
-            #print(n[c], VARNO)
             if n[c] == VARNO:
                 VARS[2].set(str(int(n[c+1])))
                 VARS[9].set(str(n[c+2]))

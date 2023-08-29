@@ -3,8 +3,6 @@ from KCore.config import *
 
 MPEG = False
 
-(png, pngIncDir, pngLib) = Dist.checkPng(additionalLibPaths,
-                                         additionalIncludePaths)
 if MPEG:
     (mpeg, mpegIncDir, mpegLib) = Dist.checkMpeg(additionalLibPaths,
                                                 additionalIncludePaths)
@@ -179,12 +177,9 @@ else:
                  'CPlot/Shaders/ShaderObject.cpp',
                  'CPlot/Shaders/Shader.cpp',
                  'CPlot/Shaders/ShaderManager.cpp']
-if png:
-    cpp_srcs += ["CPlot/Plugins/writePNGFile.cpp",
-                 "CPlot/Textures/createPngTexture.cpp"]
-else:
-    cpp_srcs += ["CPlot/Plugins/writePNGFile_stub.cpp",
-                 "CPlot/Textures/createPngTexture_stub.cpp"]
+# png
+cpp_srcs += ["CPlot/Plugins/writePNGFile.cpp",
+             "CPlot/Textures/createPngTexture.cpp"]
 
 if mpeg:
     cpp_srcs += ["CPlot/Plugins/writeMPEGFrame.cpp"]
