@@ -5,11 +5,8 @@ try:
   from KCore.config import *
   (hdf, hdfIncDir, hdfLibDir, hdflibs) = Dist.checkHdf(additionalLibPaths,
                                                        additionalIncludePaths)
-  (png, pngIncDir, pngLibDir) = Dist.checkPng(additionalLibPaths,
-                                              additionalIncludePaths)
 except ModuleNotFoundError:
   hdf = True
-  png = True
 
 #==============================================================================
 # Fichiers c++
@@ -155,10 +152,8 @@ if hdf:
 else:
     cpp_srcs += ['Converter/IO/GenIO_hdfcgns_stub.cpp']
 
-if png:
-    cpp_srcs += ['Converter/IO/GenIO_binpng.cpp']
-else:
-    cpp_srcs += ['Converter/IO/GenIO_binpng_stub.cpp']
+# png
+cpp_srcs += ['Converter/IO/GenIO_binpng.cpp']
 
 #==============================================================================
 # Fichiers fortran

@@ -740,6 +740,7 @@ def isFinite__(a, var=None):
     for c, v in enumerate(vars):
         if var is None or v == var:
             ptr = a[1][c]
+            ptr = ptr.ravel("k")
             #b = numpy.isfinite(ptr)
             #res = numpy.all(b)
             res = converter.isFinite(ptr)

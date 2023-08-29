@@ -31,11 +31,10 @@ PyObject* K_CONVERTER::isFinite(PyObject* self, PyObject* args)
 {
   PyObject* array;
   if (!PYPARSETUPLEF(args, "O", "O", &array)) return NULL;
-
-  char* varString; char* eltType;
+  
   FldArrayF* f; 
   E_Int res = K_NUMPY::getFromNumpyArray(array, f, true);
-  
+
   if (res != 1)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -49,7 +48,7 @@ PyObject* K_CONVERTER::isFinite(PyObject* self, PyObject* args)
   E_Int* ret = new E_Int [nthreads];
   for (E_Int i = 0; i < nthreads; i++) ret[i] = 0;
 
-#pragma omp parallel
+  #pragma omp parallel
   {
     E_Int ithread = __CURRENT_THREAD__;
     #pragma omp for
@@ -58,7 +57,6 @@ PyObject* K_CONVERTER::isFinite(PyObject* self, PyObject* args)
       if (std::isfinite(fp[i]) == false) ret[ithread] = 1;
     }
   }
-
   E_Int found = 0;
   for (E_Int i = 0; i < nthreads; i++) found = max(found, ret[i]);
 

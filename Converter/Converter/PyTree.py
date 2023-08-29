@@ -6376,6 +6376,7 @@ def isFinite(a, var=None):
             array = n[1]
             #b = numpy.isfinite(array)
             #res = numpy.all(b)
+            array = array.ravel("k")
             res = Converter.converter.isFinite(array)
             if res > 0:
               ret = False

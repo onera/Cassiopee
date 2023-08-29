@@ -27,10 +27,6 @@ from KCore.config import *
 (hdf, hdfIncDir, hdfLibDir, hdflibs) = Dist.checkHdf(additionalLibPaths,
                                                      additionalIncludePaths)
 
-# Test if libpng exists ======================================================
-(png, pngIncDir, pngLibDir) = Dist.checkPng(additionalLibPaths,
-                                            additionalIncludePaths)
-
 # Test if libmpi exists ======================================================
 (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
                                                      additionalIncludePaths)
@@ -48,9 +44,6 @@ libraries = ["converter", "kcore"]
 if hdf:
     libraryDirs.append(hdfLibDir)
     includeDirs.append(hdfIncDir)
-if png:
-    libraryDirs.append(pngLibDir)
-    includeDirs.append(pngIncDir)
 ADDITIONALCPPFLAGS = []
 if mpi:
     libraryDirs.append(mpiLibDir)
@@ -61,19 +54,12 @@ if mpi4py:
 
 if hdf: 
   for l in hdflibs: libraries.append(l)
-if png: libraries.append('png')
 if mpi: libraries += mpiLibs
 
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs    
-
-if png: 
-    mySystem = Dist.getSystem()
-    if not Dist.useStatic() and mySystem[0] == "mingw" and prod != "msys64":
-        libraries += ["zlib1"]
-    else: libraries += ["z"]
     
 # Extensions ==================================================================
 listExtensions = []

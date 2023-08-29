@@ -29,10 +29,6 @@ installPath = Dist.getInstallPath(prefix)
 (hdf, hdfIncDir, hdfLibDir, hdflibs) = Dist.checkHdf(additionalLibPaths,
                                                      additionalIncludePaths)
 
-# Test if libpng exists ======================================================
-(png, pngIncDir, pngLibDir) = Dist.checkPng(additionalLibPaths,
-                                            additionalIncludePaths)
-
 # Test if libmpi exists ======================================================
 (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
                                                      additionalIncludePaths)
@@ -46,9 +42,6 @@ libraries = ["kcore"]
 if hdf:
     libraryDirs.append(hdfLibDir)
     includeDirs.append(hdfIncDir)
-if png:
-    libraryDirs.append(pngLibDir)
-    includeDirs.append(pngIncDir)
 ADDITIONALCPPFLAGS = []
 if mpi and mpi4py:
     libraryDirs.append(mpiLibDir)
@@ -58,7 +51,6 @@ if mpi and mpi4py:
 if hdf: 
     libraries.append(hdflibs)
     ADDITIONALCPPFLAGS += ['-D_HDF5']
-if png: libraries.append('png')
 if mpi: libraries += mpiLibs
     
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
