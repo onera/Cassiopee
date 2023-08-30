@@ -392,9 +392,9 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   // Note(Imad): new ncells may differ from cells_dist[rank+1] - cells_dist[rank]
   E_Int nncells = c_rdist[nproc];
 
-  std::vector<E_Int> scells(sdist[nproc]);
-  std::vector<E_Int> rcells(rdist[nproc]);
-  std::vector<E_Int> sstride(sdist[nproc]);
+  std::vector<E_Int> scells(c_sdist[nproc]);
+  std::vector<E_Int> rcells(c_rdist[nproc]);
+  std::vector<E_Int> sstride(c_sdist[nproc]);
 
   for (E_Int i = 0; i < nproc; i++)
     idx[i] = c_sdist[i];
@@ -1239,11 +1239,20 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   for (E_Int i = 0; i < nnfaces; i++)
     pf[i] = rfaces[i];
  
+  // my global points
+  dims[0] = (npy_intp)nnpoints;
+  PyArrayObject *mypoints = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_INT);
+  E_Int *pp = (E_Int *)PyArray_DATA(mypoints);
+  for (E_Int i = 0; i < nnpoints; i++)
+    pp[i] = rpoints[i];
+
   PyList_Append(out, (PyObject *)mycells); 
   PyList_Append(out, (PyObject *)myfaces); 
+  PyList_Append(out, (PyObject *)mypoints); 
 
   Py_DECREF(mycells); 
   Py_DECREF(myfaces);
+  Py_DECREF(mypoints);
   
   return out;
 }

@@ -898,6 +898,7 @@ def chunk2part(distTree):
   sol = RES[3]
   cells = RES[4]
   faces = RES[5]
+  points = RES[6]
 
   #print('rank', rank, '-> interproc patches:', len(comm_data))
   Cmpi.barrier()

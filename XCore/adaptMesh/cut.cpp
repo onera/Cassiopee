@@ -61,7 +61,6 @@ E_Int is_cell_to_refine(E_Int *ref_data)
 std::vector<E_Int> get_ref_cells
 (
   mesh *M,
-  std::vector<E_Int> &ref_data,
   E_Int *nref_cells,
   E_Int *nref_faces
 )
@@ -70,7 +69,8 @@ std::vector<E_Int> get_ref_cells
   *nref_cells = *nref_faces = 0;
   
   E_Int *vcells = (E_Int *)calloc(M->ncells, sizeof(E_Int));
-  
+  E_Int *ref_data = M->ref_data;
+
   for (E_Int i = 0; i < M->nfaces; i++) {
     E_Int own = M->owner[i];
     E_Int nei = M->neigh[i];

@@ -1,9 +1,9 @@
-create build/win64/libxcore.a
-addlib build/win64/libxcore1.a
-addlib build/win64/libpdm.a
-addlib build/win64/libscotch1.a
-addlib build/win64/libscotch2.a
-addlib build/win64/libptscotch.a
-addlib build/win64/libzoltan.a
+create build/spiro_intel/libxcore.a
+addlib build/spiro_intel/libxcore1.a
+addlib build/spiro_intel/libpdm.a
+addlib build/spiro_intel/libscotch1.a
+addlib build/spiro_intel/libscotch2.a
+addlib build/spiro_intel/libptscotch.a
+addlib build/spiro_intel/libzoltan.a
 save
 end

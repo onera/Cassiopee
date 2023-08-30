@@ -16,9 +16,9 @@ void shift_data(mesh *M)
 
 PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
 {
-  PyObject *arr, *solc, *comm_data, *gfaces, *gcells;
+  PyObject *arr, *comm_data, *solc, *gcells, *gfaces, *gpoints;
 
-  if (!PyArg_ParseTuple(args, "OOOOO", &arr, &comm_data, &solc, &gcells, &gfaces)) {
+  if (!PyArg_ParseTuple(args, "OOOOOO", &arr, &comm_data, &solc, &gcells, &gfaces, &gpoints)) {
     PyErr_SetString(PyExc_ValueError, "adaptMesh(): wrong input.");
     return NULL;
   }
@@ -53,7 +53,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
     px[2] = Z[i];
   }
 
-  // parse my global faces
+  // parse my global cells, faces and points
   E_Int nfld;
   K_NUMPY::getFromNumpyArray(gcells, M->gcells, M->ncells, nfld, true);
   for (E_Int i = 0; i < M->ncells; i++) {
@@ -63,6 +63,11 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   K_NUMPY::getFromNumpyArray(gfaces, M->gfaces, M->nfaces, nfld, true);
   for (E_Int i = 0; i < M->nfaces; i++) {
     M->FT[M->gfaces[i]] = i;
+  }
+
+  K_NUMPY::getFromNumpyArray(gpoints, M->gpoints, M->npoints, nfld, true);
+  for (E_Int i = 0; i < M->npoints; i++) {
+    M->PT[M->gpoints[i]] = i;
   }
 
   // zero based data
@@ -162,18 +167,18 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   hessian_to_metric(H, M);
 
   // compute refinement data
-  std::vector<E_Int> ref_data = compute_ref_data(M, H);
+  compute_ref_data(M, H);
 
   // process refinement data
-  smooth_ref_data(M, ref_data);
+  smooth_ref_data(M);
 
   // redistribute
-  redistribute_mesh(M, ref_data);
+  //mesh *rM = redistribute_mesh(M);
 
   // isolate refinement cells
   E_Int nref_cells = -1;
   E_Int nref_faces = -1;
-  std::vector<E_Int> ref_cells = get_ref_cells(M, ref_data, &nref_cells, &nref_faces);
+  std::vector<E_Int> ref_cells = get_ref_cells(M, &nref_cells, &nref_faces);
 
   E_Int ref_iter = 0;
   E_Int max_ref_iter = 10;
@@ -191,7 +196,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
     // refine cells
     for (E_Int i = 0; i < nref_cells; i++) {
       E_Int cell = ref_cells[i];
-      E_Int *pr = &ref_data[3*cell];
+      E_Int *pr = &M->ref_data[3*cell];
       if (pr[0] && pr[1] && pr[2]) {
         cut_cell_xyz(cell, M, &ct, &ft);
       } else if (pr[0] && pr[1] && !pr[2]) {
@@ -212,13 +217,13 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
     }
 
     // update refinement data
-    ref_data.resize(3*M->ncells);
+    M->ref_data = (E_Int *)realloc(M->ref_data, 3*M->ncells * sizeof(E_Int));
     std::vector<E_Int> new_ref_cells(8*nref_cells);
     E_Int nref_cells_next_gen = 0;
 
     for (E_Int i = 0; i < nref_cells; i++) {
       E_Int cell = ref_cells[i];
-      E_Int *pr = &ref_data[3*cell];
+      E_Int *pr = &M->ref_data[3*cell];
       for (E_Int j = 0; j < 3; j++)
         pr[j] = std::max(0, pr[j]-1);
 
@@ -226,7 +231,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
         E_Int nchildren = tree_get_nchildren(&ct, cell);
         E_Int *children = tree_get_children(&ct, cell);
         for (E_Int j = 0; j < nchildren; j++) {
-          E_Int *prc = &ref_data[3*children[j]];
+          E_Int *prc = &M->ref_data[3*children[j]];
           for (E_Int k = 0; k < 3; k++)
             prc[k] = pr[k];
           new_ref_cells[nref_cells_next_gen++] = children[j];
@@ -250,7 +255,12 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
     nref_cells = nref_cells_next_gen;
   }
 
-  //printf("ncells: %d\n", M->ncells);
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  E_Int gnc;
+  MPI_Allreduce(&M->ncells, &gnc, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  if (M->pid == 0)
+    printf("Final number of cells: %d\n", gnc);
 
   free(H);
 

@@ -18,7 +18,7 @@ E_Int is_metric_valid(E_Float *M)
 
 void hessian_to_metric(E_Float *H, mesh *M)
 {
-  E_Float h = 0.25;
+  E_Float h = 0.025;
   E_Int nsub = 2;
   E_Float hmin = h / pow(2., nsub);
   E_Float hmax = h;
@@ -48,16 +48,16 @@ void hessian_to_metric(E_Float *H, mesh *M)
   }
 }
 
-std::vector<E_Int> compute_ref_data(mesh *M, E_Float *H)
+void compute_ref_data(mesh *M, E_Float *H)
 {
   compute_face_centers(M);
 
-  std::vector<E_Int> ref_data(3*M->ncells);
+  M->ref_data = (E_Int *)malloc((3*M->ncells) * sizeof(E_Int));
   E_Float dd[3];
   for (E_Int i = 0; i < M->ncells; i++) {
     E_Int *pf = &M->NFACE[6*i];
     E_Float *pH = &H[6*i];
-    E_Int *pref = &ref_data[3*i];
+    E_Int *pref = &M->ref_data[3*i];
 
     E_Float *p0 = &M->fc[3*pf[2]];
     E_Float *p1 = &M->fc[3*pf[3]];
@@ -81,8 +81,6 @@ std::vector<E_Int> compute_ref_data(mesh *M, E_Float *H)
     L = sqrt(dot(d, dd, 3));
     pref[2] = std::max(0., round(log2(L)));
   }
-
-  return ref_data;
 }
 
 void compute_canon_info(E_Int cell, mesh *M, E_Int *ps)
@@ -606,7 +604,7 @@ void fix_conflict(E_Int *ac, E_Int *bc, E_Int *an, E_Int *bn)
 	*bn = std::max(*bn, INCR);
 }
 
-void smooth_ref_data(mesh *M, std::vector<E_Int> &ref_data)
+void smooth_ref_data(mesh *M)
 {
   std::vector<E_Int> start_nodes(6*M->ncells, -1);
   std::stack<E_Int> stk;
@@ -620,7 +618,7 @@ void smooth_ref_data(mesh *M, std::vector<E_Int> &ref_data)
 	E_Int npfaces, *pfaces, *owner;
 	ncells = M->ncells;
 	
-  owner = M->owner;;
+  owner = M->owner;
 
 	E_Int **pnei_topo_data = (E_Int **)malloc(M->nppatches * sizeof(E_Int *));
 
@@ -681,7 +679,7 @@ void smooth_ref_data(mesh *M, std::vector<E_Int> &ref_data)
 		exchange++;
 
 		// Exchange
-		comm_interface_data_i(M, &ref_data[0], 3, pnei_ref_data);
+		comm_interface_data_i(M, M->ref_data, 3, pnei_ref_data);
 
 		// do i need to smooth stuff out?
 		if (exchange > 1) {
@@ -738,7 +736,7 @@ void smooth_ref_data(mesh *M, std::vector<E_Int> &ref_data)
 				i0 = abs(pnei_topo[2] - ps[k]);
 				deduce_nei_ref_data(k, fpos, i0, reorient_c == reorient_n, prn);
 				
-				pr = &ref_data[3*cell];
+				pr = &M->ref_data[3*cell];
 				ac = pr[0];
 				bc = pr[1];
 				gc = pr[2];
@@ -773,7 +771,7 @@ void smooth_ref_data(mesh *M, std::vector<E_Int> &ref_data)
 
 		// then add ref cells to stack
 		for (i = 0; i < ncells; i++) {
-			if (is_cell_to_refine(&ref_data[3*i]))
+			if (is_cell_to_refine(&M->ref_data[3*i]))
 				stk.push(i);
 		}
 
@@ -788,7 +786,7 @@ void smooth_ref_data(mesh *M, std::vector<E_Int> &ref_data)
 
 			pf = &M->NFACE[6*cell];
 
-			pr = &ref_data[3*cell];
+			pr = &M->ref_data[3*cell];
 			ac = pr[0];
 			bc = pr[1];
 			gc = pr[2];
@@ -806,7 +804,7 @@ void smooth_ref_data(mesh *M, std::vector<E_Int> &ref_data)
         assert(fpos != -1);
 				reorient_n = get_reorient(face, nei, normalIn[fpos], M);
 				i0 = abs(start_nodes[6*nei+fpos] - ps[i]);
-				prn = &ref_data[3*nei];
+				prn = &M->ref_data[3*nei];
 				for (j = 0; j < 3; j++) An_orig[i][j] = prn[j];
 				deduce_nei_ref_data(i, fpos, i0, reorient_c != reorient_n, prn);
 			}
@@ -823,7 +821,7 @@ void smooth_ref_data(mesh *M, std::vector<E_Int> &ref_data)
 					if (nei == -1)
 						continue;
 
-					prn = &ref_data[3*nei];
+					prn = &M->ref_data[3*nei];
 					an = prn[0];
 					bn = prn[1];
 					gn = prn[2];
@@ -868,7 +866,7 @@ void smooth_ref_data(mesh *M, std::vector<E_Int> &ref_data)
         assert(fpos != -1);
 				reorient_n = get_reorient(face, nei, normalIn[fpos], M);
 				i0 = abs(start_nodes[6*nei+fpos] - ps[i]);
-				prn = &ref_data[3*nei];
+				prn = &M->ref_data[3*nei];
 
 				deduce_nei_ref_data(fpos, i, i0, reorient_c != reorient_n, prn);
 

@@ -81,6 +81,7 @@ struct mesh {
 
   std::unordered_map<E_Int, E_Int> CT;
   std::unordered_map<E_Int, E_Int> FT;
+  std::unordered_map<E_Int, E_Int> PT;
 
   std::map<edge, E_Int> ET; // edge to center
 
@@ -106,13 +107,17 @@ struct mesh {
 
   E_Int *gcells;
   E_Int *gfaces;
+  E_Int *gpoints;
+
+  E_Int *ref_data;
 
   mesh()
   :
   ncells(-1), nfaces(-1), npoints(-1), xyz(NULL), owner(NULL), neigh(NULL), NFACE(NULL),
   xcells(NULL), NGON(NULL), xfaces(NULL), CT(), FT(), ET(), cc(NULL), fc(NULL), lsqG(NULL),
   lsqGG(NULL), lsqH(NULL), lsqHH(NULL), ppatches(NULL), nppatches(-1), pid(-1), npc(-1), nreq(0),
-  req(NULL), pnei_coords(NULL), pnei_flds(NULL), pnei_grads(NULL), gcells(NULL), gfaces(NULL)
+  req(NULL), pnei_coords(NULL), pnei_flds(NULL), pnei_grads(NULL), gcells(NULL), gfaces(NULL),
+  gpoints(NULL), ref_data(NULL)
   {
     MPI_Comm_rank(MPI_COMM_WORLD, &pid);
     MPI_Comm_size(MPI_COMM_WORLD, &npc);

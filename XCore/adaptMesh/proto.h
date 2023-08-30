@@ -4,7 +4,7 @@
 #include "struct.h"
 
 /* distribute */
-void redistribute_mesh(mesh *, const std::vector<E_Int> &);
+mesh *redistribute_mesh(mesh *);
 
 /* comm */
 void comm_waitall(mesh *);
@@ -20,8 +20,8 @@ E_Int get_neighbour(E_Int, E_Int, mesh *);
 
 /* metric */
 void hessian_to_metric(E_Float *, mesh *);
-std::vector<E_Int> compute_ref_data(mesh *, E_Float *);
-void smooth_ref_data(mesh *, std::vector<E_Int> &);
+void compute_ref_data(mesh *, E_Float *);
+void smooth_ref_data(mesh *);
 void compute_canon_info(E_Int, mesh *, E_Int *);
 
 /* topo */
@@ -58,7 +58,7 @@ void cut_cell_xz(E_Int, mesh *, tree *, tree *);
 void cut_cell_yz(E_Int, mesh *, tree *, tree *);
 void cut_cell_xyz(E_Int, mesh *, tree *, tree *);
 void resize_data_for_refinement(mesh *, tree *, tree *, E_Int, E_Int);
-std::vector<E_Int> get_ref_cells(mesh *, std::vector<E_Int> &, E_Int *, E_Int *);
+std::vector<E_Int> get_ref_cells(mesh *, E_Int *, E_Int *);
 E_Int is_cell_to_refine(E_Int *);
 
 /* tree */
