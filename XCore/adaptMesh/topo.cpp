@@ -7,6 +7,7 @@ const E_Int normalIn[6] = {1,0,1,0,1,0};
 // Zero based face and cell
 E_Int get_reorient(E_Int face, E_Int cell, E_Int normalIn, mesh *M)
 {
+  assert(M->owner[face] == cell || M->neigh[face] == cell);
   if (M->neigh[face] == cell && normalIn == 1) return 0;
   else if (M->owner[face] == cell && normalIn == 0) return 0;
   else return 1;

@@ -609,31 +609,34 @@ void smooth_ref_data(mesh *M)
   std::vector<E_Int> start_nodes(6*M->ncells, -1);
   std::stack<E_Int> stk;
 
-	E_Int max_exchanges = 10;
+	E_Int max_exchanges = 100;
 	E_Int exchange = 0;
 	
 	E_Int i, j, k, cell, ncells, *pf, *pn, *pr, *ps, *prn, face, ac, bc, gc, an, bn, gn;
 	E_Int has_changed, reorient_c, reorient_n, nei, fpos, i0, ac_orig, bc_orig, gc_orig;
 	E_Int An_orig[6][3], an_orig, bn_orig, gn_orig, pcells_changed;
 	E_Int npfaces, *pfaces, *owner;
-	ncells = M->ncells;
 	
+  ncells = M->ncells;
   owner = M->owner;
 
-	E_Int **pnei_topo_data = (E_Int **)malloc(M->nppatches * sizeof(E_Int *));
+  // first, exchange topological info (doesn't change during smoothing) 
+	E_Int **pnei_topo_data = (E_Int **)calloc(M->nppatches, sizeof(E_Int *));
 
 	E_Int dest, l;
 
+  E_Int **send_buf = (E_Int **)malloc(M->nppatches * sizeof(E_Int *));
+
 	for (i = 0; i < M->nppatches; i++) {
-		proc_patch *ppatch = &M->ppatches[i];
-		npfaces = ppatch->nfaces;
-		pfaces = ppatch->faces;
-		dest = ppatch->nei_proc;
+		npfaces = M->ppatches[i].nfaces;
+		pfaces = M->ppatches[i].faces;
+		dest = M->ppatches[i].nei_proc;
 	
 		// fpos + reorient_n + start_node_nei_of_pface = 3
 		pnei_topo_data[i] = (E_Int *)malloc(3*npfaces * sizeof(E_Int));
 
-		ppatch->send_buf_i = (E_Int *)realloc(ppatch->send_buf_i, 3*npfaces*sizeof(E_Int));
+    send_buf[i] = (E_Int *)malloc(3*npfaces * sizeof(E_Int));
+    //std::vector<E_Int> send_buf(3*npfaces);
 
 		l = 0;
 		for (j = 0; j < npfaces; j++) {
@@ -648,15 +651,15 @@ void smooth_ref_data(mesh *M)
 			// start_node_nei
 			compute_canon_info(cell, M, ps);
 
-			ppatch->send_buf_i[l++] = fpos;
-			ppatch->send_buf_i[l++] = reorient_n;
-			ppatch->send_buf_i[l++] = ps[fpos];
+			send_buf[i][l++] = fpos;
+			send_buf[i][l++] = reorient_n;
+			send_buf[i][l++] = ps[fpos];
 		}
 		assert(l == 3*npfaces);
 
 		MPI_Irecv(pnei_topo_data[i], 3*npfaces, MPI_INT, dest, 0,
 			MPI_COMM_WORLD, &M->req[M->nreq++]);
-		MPI_Isend(ppatch->send_buf_i, 3*npfaces, MPI_INT, dest, 0,
+		MPI_Isend(send_buf[i], 3*npfaces, MPI_INT, dest, 0,
 			MPI_COMM_WORLD, &M->req[M->nreq++]);
 
 		assert(M->nreq < 2*M->npc);
@@ -664,118 +667,21 @@ void smooth_ref_data(mesh *M)
 
 	comm_waitall(M);
 
-	exchange = 0;
-	E_Int my_change, global_change;
-	E_Int **pnei_ref_data = (E_Int **)malloc(M->nppatches * sizeof(E_Int *));
-	E_Int **pnei_ref_data_cached = (E_Int **)malloc(M->nppatches * sizeof(E_Int *));
+  // allocate proc ref data 
+	E_Int **pnei_ref_data = (E_Int **)calloc(M->nppatches, sizeof(E_Int *));
 	for (i = 0; i < M->nppatches; i++) {
-		pnei_ref_data[i] = (E_Int *)malloc(3*M->ppatches[i].nfaces * sizeof(E_Int));
-		pnei_ref_data_cached[i] = (E_Int *)malloc(3*M->ppatches[i].nfaces * sizeof(E_Int));
+		pnei_ref_data[i] = (E_Int *)calloc(3*M->ppatches[i].nfaces, sizeof(E_Int));
 	}
 
-	while (exchange < max_exchanges) {
-		MPI_Barrier(MPI_COMM_WORLD);
-
-		exchange++;
-
-		// Exchange
-		comm_interface_data_i(M, M->ref_data, 3, pnei_ref_data);
-
-		// do i need to smooth stuff out?
-		if (exchange > 1) {
-			for (i = 0; i < M->nppatches; i++) {
-				proc_patch *ppatch = &M->ppatches[i];
-				for (j = 0; j < ppatch->nfaces; j++) {
-					if (pnei_ref_data[i][j] != pnei_ref_data_cached[i][j]) {
-						stk.push(owner[ppatch->faces[j]]);
-					}
-				}
-			}
-		}
-
-		my_change = (exchange == 1 ? 1 : (stk.size() > 0));
-
-		// how about every one else
-		MPI_Allreduce(&my_change, &global_change, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD); 
-
-		if (global_change == 0) {
-			break;
-		}
-
-		if (my_change == 0) {
-			continue;
-		}
-
-		pcells_changed = 0;
-
-		// fix proc cells
-		for (i = 0; i < M->nppatches; i++) {
-			proc_patch *ppatch = &M->ppatches[i];
-			npfaces = ppatch->nfaces;
-			pfaces = ppatch->faces;
-			E_Int *nei_ref_data = pnei_ref_data[i];
-			E_Int *nei_topo_data = pnei_topo_data[i];
-			for (j = 0; j < npfaces; j++) {
-				face = pfaces[j];
-        assert(face < M->nfaces);
-				cell = owner[face];
-        assert(cell >= 0 && cell < M->ncells);
-				pf = &M->NFACE[6*cell];
-				ps = &start_nodes[6*cell];
-				compute_canon_info(cell, M, ps);
-				k = get_pos(face, pf, 6);
-        assert(k != -1);
-				reorient_c = get_reorient(face, cell, normalIn[k], M);
-
-				// need fpos, reorient_n, start_node_nei, ref_data_nei
-				// reorient_n has to be 0 for nei
-				prn = &nei_ref_data[3*j];
-				E_Int *pnei_topo = &nei_topo_data[3*j];
-				fpos = pnei_topo[0];
-				reorient_n = pnei_topo[1];
-				i0 = abs(pnei_topo[2] - ps[k]);
-				deduce_nei_ref_data(k, fpos, i0, reorient_c == reorient_n, prn);
-				
-				pr = &M->ref_data[3*cell];
-				ac = pr[0];
-				bc = pr[1];
-				gc = pr[2];
-				ac_orig = ac;
-				bc_orig = bc;
-				gc_orig = gc;
-				an = prn[0];
-				bn = prn[1];
-				gn = prn[2];
-
-				// alpha
-				if (an > ac + 1) ac = an - 1;
-				// beta
-				if (bn > bc + 1) bc = bn - 1;
-				// gamma
-				if (gn > gc + 1) gc = gn - 1;
-
-				if (k == 0 || k == 1)
-					fix_conflict(&ac, &bc, &an, &bn);
-				else if (k == 2 || k == 3)
-					fix_conflict(&bc, &gc, &bn, &gn);
-				else if (k == 4 || k == 5)
-					fix_conflict(&ac, &gc, &an, &gn);
-
-				pr[0] = ac;
-				pr[1] = bc;
-				pr[2] = gc;
-					
-				pcells_changed |= !((ac == ac_orig) && (bc == bc_orig) && (gc == gc_orig));
-			}
-		}
-
-		// then add ref cells to stack
+  while (++exchange <= max_exchanges) {
+    // init refinement stack
 		for (i = 0; i < ncells; i++) {
 			if (is_cell_to_refine(&M->ref_data[3*i]))
 				stk.push(i);
 		}
 
-		while (!stk.empty()) {
+    // smooth locally
+    while (!stk.empty()) {
 			cell = stk.top();
       stk.pop();
 
@@ -877,20 +783,85 @@ void smooth_ref_data(mesh *M)
 					}
 				}
 			}
-		}
+    }
 
-		// cache
-		for (i = 0; i < M->nppatches; i++) {
-			memcpy(pnei_ref_data_cached[i], pnei_ref_data[i], M->ppatches[i].nfaces*3*sizeof(E_Int));
-		}
-	}
-	
+    // exchange proc ref data
+    MPI_Barrier(MPI_COMM_WORLD); 
+    comm_interface_data_i(M, M->ref_data, 3, pnei_ref_data);
+
+    // address proc cells
+    for (E_Int i = 0; i < M->nppatches; i++) {
+      E_Int *nei_ref_data = pnei_ref_data[i];
+      E_Int *nei_topo_data = pnei_topo_data[i];
+      for (E_Int j = 0; j < M->ppatches[i].nfaces; j++) {
+        E_Int face = M->ppatches[i].faces[j];
+        E_Int cell = M->owner[face];
+        pf = &M->NFACE[6*cell];
+        ps = &start_nodes[6*cell];
+        compute_canon_info(cell, M, ps);
+        k = get_pos(face, pf, 6);
+        assert(k != -1);
+        reorient_c = get_reorient(face, cell, normalIn[k], M);
+
+        // need fpos, reorient_n, start_node_nei, ref_data_nei
+        // reorient_n has to be 0 for nei
+        prn = &nei_ref_data[3*j];
+        E_Int *pnei_topo = &nei_topo_data[3*j];
+        fpos = pnei_topo[0];
+        assert(fpos >= 0 && fpos < 6);
+        reorient_n = pnei_topo[1];
+        i0 = abs(pnei_topo[2] - ps[k]);
+        deduce_nei_ref_data(k, fpos, i0, reorient_c == reorient_n, prn);
+
+        pr = &M->ref_data[3*cell];
+        ac = pr[0];
+        bc = pr[1];
+        gc = pr[2];
+        ac_orig = ac;
+        bc_orig = bc;
+        gc_orig = gc;
+        an = prn[0];
+        bn = prn[1];
+        gn = prn[2];
+
+        // alpha
+        if (an > ac + 1) ac = an - 1;
+        // beta
+        if (bn > bc + 1) bc = bn - 1;
+        // gamma
+        if (gn > gc + 1) gc = gn - 1;
+
+        if (k == 0 || k == 1)
+          fix_conflict(&ac, &bc, &an, &bn);
+        else if (k == 2 || k == 3)
+          fix_conflict(&bc, &gc, &bn, &gn);
+        else if (k == 4 || k == 5)
+          fix_conflict(&ac, &gc, &an, &gn);
+
+        pr[0] = ac;
+        pr[1] = bc;
+        pr[2] = gc;
+
+        E_Int pcell_changed = (ac != ac_orig) || (bc != bc_orig) || (gc != gc_orig);
+        if (pcell_changed)
+          stk.push(cell);
+      }
+    }
+
+    // stop condition is nothing to smooth anywhere
+    E_Int lstop = stk.size() > 0;
+    E_Int gstop;
+    MPI_Allreduce(&lstop, &gstop, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    if (gstop == 0)
+      break;
+  }
+  if (exchange > max_exchanges)
+    fprintf(stderr, "smooth_ref_data(): Warning: exceeded max_exchanges");
+
 	for (i = 0; i < M->nppatches; i++) {
 		free(pnei_topo_data[i]);
-		free(pnei_ref_data_cached[i]);
 		free(pnei_ref_data[i]);
 	}
 	free(pnei_topo_data);
-	free(pnei_ref_data_cached);
 	free(pnei_ref_data);
 }

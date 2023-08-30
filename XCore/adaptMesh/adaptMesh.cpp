@@ -255,8 +255,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
     nref_cells = nref_cells_next_gen;
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
-
+  //MPI_Barrier(MPI_COMM_WORLD);
   E_Int gnc;
   MPI_Allreduce(&M->ncells, &gnc, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
   if (M->pid == 0)
