@@ -112,9 +112,9 @@ modDir = 'build/'+ELSAPROD
 deps = []
 
 # XCore
-myMod = env.StaticLibrary('xcore', srcs.cpp_srcs)
-dp1 = env.Install(modDir, myMod)
-deps.append(dp1)
+myMod = env.StaticLibrary('xcore1', srcs.cpp_srcs)
+#dp1 = env.Install(modDir, myMod)
+deps.append('libxcore1.a')
 
 # Paradigma
 if srcs.PARADIGMA != 0:
@@ -130,31 +130,30 @@ if srcs.PARADIGMA != 0:
         env2 = env.Clone(CXXFLAGS=Dist.getCppArgs()+ADDITIONALCPPFLAGS+opt1+opt1_1+opt2, 
                          CFLAGS=Dist.getCArgs()+ADDITIONALCPPFLAGS+opt1+opt1_1+opt2)
         myMod2 = env2.StaticLibrary('pdm', srcs_pdm)
-        dp2 = env2.Install(modDir, myMod2)
+        #dp2 = env2.Install(modDir, myMod2)
     else:
         env2 = env.Clone(CXXFLAGS=Dist.getCppArgs()+ADDITIONALCPPFLAGS+opt1+opt2, 
                          CFLAGS=Dist.getCArgs()+ADDITIONALCPPFLAGS+opt1+opt2)
         myMod2 = env2.StaticLibrary('pdm', srcs_pdm)
-        dp2 = env2.Install(modDir, myMod2)
-    deps.append(dp2)
+        #dp2 = env2.Install(modDir, myMod2)
+    deps.append('libpdm.a')
 
 # Scotch
 if srcs.SCOTCH:
-
     env3 = env.Clone(CXXFLAGS=Dist.getCppArgs()+ADDITIONALCPPFLAGS+opt1, 
                      CFLAGS=Dist.getCArgs()+ADDITIONALCPPFLAGS+opt1)
     myMod3 = env3.StaticLibrary('scotch1', srcs_scotch.cpp_srcs1[0:99])
     myMod3b = env3.StaticLibrary('scotch2', srcs_scotch.cpp_srcs1[99:])
-    dp3 = env3.Install(modDir, myMod3)
-    dp3b = env3.Install(modDir, myMod3b)
-    deps += [dp3,dp3b]
+    #dp3 = env3.Install(modDir, myMod3)
+    #dp3b = env3.Install(modDir, myMod3b)
+    deps += ['libscotch1.a', 'libscotch2.a']
 
     if mpi:
         env3 = env.Clone(CXXFLAGS=Dist.getCppArgs()+ADDITIONALCPPFLAGS+opt1+opt1_1, 
                          CFLAGS=Dist.getCArgs()+ADDITIONALCPPFLAGS+opt1+opt1_1)
         myMod4 = env3.StaticLibrary('ptscotch', srcs_scotch.cpp_srcs2)
-        dp4 = env3.Install(modDir, myMod4)
-        deps += [dp4]
+        #dp4 = env3.Install(modDir, myMod4)
+        deps += ['libptscotch.a']
 
 # zoltan
 if srcs.ZOLTAN:
@@ -164,8 +163,28 @@ if srcs.ZOLTAN:
         env5 = env.Clone(CXXFLAGS=Dist.getCppArgs()+ADDITIONALCPPFLAGS+opt3, 
                          CFLAGS=Dist.getCArgs()+ADDITIONALCPPFLAGS+opt3)
         myMod5 = env5.StaticLibrary('zoltan', srcs_zolt)
-        dp5 = env5.Install(modDir, myMod5)
-        deps.append(dp5)
+        #dp5 = env5.Install(modDir, myMod5)
+        deps.append('libzoltan.a')
+
+# merge
+command = "echo 'create build/%s/libxcore.a' > merge.l; "%ELSAPROD
+command += "echo 'addlib build/%s/libxcore1.a' >> merge.l; "%ELSAPROD
+if srcs.PARADIGMA != 0: 
+    command += "echo 'addlib build/%s/libpdm.a' >> merge.l; "%ELSAPROD
+if srcs.SCOTCH: 
+    command += "echo 'addlib build/%s/libscotch1.a' >> merge.l; "%ELSAPROD
+    command += "echo 'addlib build/%s/libscotch2.a' >> merge.l; "%ELSAPROD
+    if mpi:
+        command += "echo 'addlib build/%s/libptscotch.a' >> merge.l; "%ELSAPROD
+if srcs.ZOLTAN and mpi:
+    command += "echo 'addlib build/%s/libzoltan.a' >> merge.l; "%ELSAPROD
+command += "echo 'save' >> merge.l; "
+command += "echo 'end' >> merge.l"
+command = 'sh -c \"'+command+'\"'
+print("COMMAND", command, flush=True)
+
+env.Command('merge.l', 'merge.ar', command)
+env.Command('libxcore.a', deps+['merge.l'], "ar -M < merge.l")
 
 # install deps
-env.Alias(target="install", source=deps)
+env.Alias(target="install", source=['libxcore.a'])

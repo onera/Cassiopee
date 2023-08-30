@@ -178,7 +178,7 @@ E_Int K_ARRAY::getFromArray3(PyObject* o,
 #if PY_VERSION_HEX >= 0x03000000
     else if (PyUnicode_Check(l))
     {
-      eltType = (char*)PyUnicode_AsUTF8(l); 
+      eltType = (char*)PyUnicode_AsUTF8(l);
     }
 #endif
     else

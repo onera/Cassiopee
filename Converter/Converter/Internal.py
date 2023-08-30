@@ -3216,10 +3216,10 @@ def convertDataNode2Array3(node, dim, connects, loc=-1):
                 iBE += 1
         cr = crOut
         eltString = eltString[:-1]
-        #if cr == []: # patch empty connect
-        #    c = numpy.empty((1,0), dtype=E_NpyInt)
-        #    eltString='NODE'
-        #    crOut.append(c)
+        if cr == []: # patch empty connect
+            c = numpy.empty((1,0), dtype=E_NpyInt)
+            eltString='NODE'
+            crOut.append(c)
     else:
         eltString = "NGON"
         if cr[0] is None: print('Warning: getField: empty NGON connectivity.')
@@ -3476,6 +3476,10 @@ def convertDataNodes2Array3(nodes, dim, connects, loc=-1):
                 iBE += 1
         cr = crOut
         eltString = eltString[:-1]
+        if cr == []: # patch empty connect
+            c = numpy.empty((1,0), dtype=E_NpyInt)
+            eltString='NODE'
+            crOut.append(c)
     else: 
         eltString = "NGON"
         if cr[0] is None: print('Warning: getField: empty NGON connectivity.')
