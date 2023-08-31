@@ -15,7 +15,6 @@ void cross(E_Float a[3], E_Float b[3], E_Float c[3])
   c[2] = a[0]*b[1] - a[1]*b[0];
 }
 
-static
 E_Float norm(E_Float *a, E_Int n)
 {
   return sqrt(dot(a, a, n));

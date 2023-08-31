@@ -43,6 +43,7 @@ E_Int BiCGStab(E_Float *, E_Float *, E_Float *, E_Int);
 void eigen(E_Float *, E_Float *, E_Float *, E_Float *, E_Float *);
 E_Int feq(E_Float, E_Float);
 E_Float dot(E_Float *, E_Float *, E_Int);
+E_Float norm(E_Float *, E_Int);
 void cross(E_Float *, E_Float *, E_Float *);
 void symmat_dot_vec(E_Float *, E_Float *, E_Float *c);
 

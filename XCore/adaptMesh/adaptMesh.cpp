@@ -186,6 +186,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   tree ct(M->ncells, 8);
   tree ft(M->nfaces, 4);
 
+  printf("%d -> nref_cells: %d\n", M->pid, nref_cells);
   while (nref_cells > 0) {
     if (++ref_iter > max_ref_iter)
       break;
@@ -242,6 +243,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
         pr[j] = 0;
     }
 
+    printf("%d -> ref_iter: %d - ncells: %d\n", M->pid, ref_iter, M->ncells);
     if (nref_cells_next_gen == 0) {
       break;
     }
@@ -253,6 +255,9 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
       ref_cells[i] = new_ref_cells[i];
 
     nref_cells = nref_cells_next_gen;
+
+    //E_Int gncells;
+    //MPI_Allreduce(&M->ncells, &gncells, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
   }
 
   //MPI_Barrier(MPI_COMM_WORLD);

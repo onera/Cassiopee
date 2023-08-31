@@ -18,7 +18,8 @@ E_Int is_metric_valid(E_Float *M)
 
 void hessian_to_metric(E_Float *H, mesh *M)
 {
-  E_Float h = 0.025;
+  /*
+  E_Float h = 0.01;
   E_Int nsub = 2;
   E_Float hmin = h / pow(2., nsub);
   E_Float hmax = h;
@@ -27,24 +28,24 @@ void hessian_to_metric(E_Float *H, mesh *M)
   E_Float cd = 0.5*dim/(dim+1.)*dim/(dim+1.);
   E_Float ohmin2 = 1. / (hmin * hmin);
   E_Float ohmax2 = 1. / (hmax * hmax);
-
+  */
   E_Float L[3], v0[3], v1[3], v2[3];
   E_Float L0, L1, L2, *pt;
-  E_Int i, k;
   E_Int ncells = M->ncells;
-  for (i = 0; i < ncells; i++) {
+  for (E_Int i = 0; i < ncells; i++) {
     pt = &H[6*i];
     eigen(pt, L, v0, v1, v2);
-    for (k = 0; k < 3; k++)
-      L[k] = fmin(fmax(cd*fabs(L[k])/eps, ohmax2), ohmin2);
-    L0 = L[0]; L1 = L[1]; L2 = L[2];
+    //for (E_Int k = 0; k < 3; k++)
+    //  L[k] = fmin(fmax(cd*fabs(L[k])/eps, ohmax2), ohmin2);
+    //L0 = L[0]; L1 = L[1]; L2 = L[2];
+    L0 = sqrt(fabs(L[0])); L1 = sqrt(fabs(L[1])); L2 = sqrt(fabs(L[2]));
     pt[0] = L0*v0[0]*v0[0] + L1*v1[0]*v1[0] + L2*v2[0]*v2[0];
     pt[1] = L0*v0[0]*v0[1] + L1*v1[0]*v1[1] + L2*v2[0]*v2[1];
     pt[2] = L0*v0[0]*v0[2] + L1*v1[0]*v1[2] + L2*v2[0]*v2[2];
     pt[3] = L0*v0[1]*v0[1] + L1*v1[1]*v1[1] + L2*v2[1]*v2[1];
     pt[4] = L0*v0[1]*v0[2] + L1*v1[1]*v1[2] + L2*v2[1]*v2[2];
     pt[5] = L0*v0[2]*v0[2] + L1*v1[2]*v1[2] + L2*v2[2]*v2[2];
-    assert(is_metric_valid(pt));
+    //assert(is_metric_valid(pt));
   }
 }
 
@@ -52,34 +53,43 @@ void compute_ref_data(mesh *M, E_Float *H)
 {
   compute_face_centers(M);
 
-  M->ref_data = (E_Int *)malloc((3*M->ncells) * sizeof(E_Int));
-  E_Float dd[3];
+  M->ref_data = (E_Int *)calloc((3*M->ncells), sizeof(E_Int));
+  E_Float d[3], dd[3], *p0, *p1, L;
+  E_Int Gmax = 5;
+  E_Float Tr = 0.5;
   for (E_Int i = 0; i < M->ncells; i++) {
     E_Int *pf = &M->NFACE[6*i];
     E_Float *pH = &H[6*i];
     E_Int *pref = &M->ref_data[3*i];
+    E_Float L0, L1, L2;
 
-    E_Float *p0 = &M->fc[3*pf[2]];
-    E_Float *p1 = &M->fc[3*pf[3]];
-    E_Float d[3];
+    p0 = &M->fc[3*pf[2]];
+    p1 = &M->fc[3*pf[3]];
     for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
     symmat_dot_vec(pH, d, dd);
-    E_Float L = sqrt(dot(d, dd, 3));
-    pref[0] = std::max(0., round(log2(L)));
+    L0 = norm(dd, 3);
 
     p0 = &M->fc[3*pf[4]];
     p1 = &M->fc[3*pf[5]];
     for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
     symmat_dot_vec(pH, d, dd);
-    L = sqrt(dot(d, dd, 3));
-    pref[1] = std::max(0., round(log2(L)));
-
+    L1 = norm(dd, 3);
+    
     p0 = &M->fc[3*pf[0]];
     p1 = &M->fc[3*pf[1]];
     for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
     symmat_dot_vec(pH, d, dd);
-    L = sqrt(dot(d, dd, 3));
-    pref[2] = std::max(0., round(log2(L)));
+    L2 = norm(dd, 3);
+
+    // get max stretch
+    E_Float MAX = std::max(std::max(L0, L1), L2);
+    if (MAX < Tr) continue;
+    
+    E_Float coeff = Gmax/MAX;
+
+    if (L0 >= Tr) pref[0] = round(coeff*L0);
+    if (L1 >= Tr) pref[1] = round(coeff*L1);
+    if (L2 >= Tr) pref[2] = round(coeff*L2);
   }
 }
 
@@ -607,14 +617,13 @@ void fix_conflict(E_Int *ac, E_Int *bc, E_Int *an, E_Int *bn)
 void smooth_ref_data(mesh *M)
 {
   std::vector<E_Int> start_nodes(6*M->ncells, -1);
-  std::stack<E_Int> stk;
 
-	E_Int max_exchanges = 100;
+	E_Int max_exchanges = 10;
 	E_Int exchange = 0;
 	
 	E_Int i, j, k, cell, ncells, *pf, *pn, *pr, *ps, *prn, face, ac, bc, gc, an, bn, gn;
 	E_Int has_changed, reorient_c, reorient_n, nei, fpos, i0, ac_orig, bc_orig, gc_orig;
-	E_Int An_orig[6][3], an_orig, bn_orig, gn_orig, pcells_changed;
+	E_Int An_orig[6][3], an_orig, bn_orig, gn_orig;
 	E_Int npfaces, *pfaces, *owner;
 	
   ncells = M->ncells;
@@ -636,7 +645,6 @@ void smooth_ref_data(mesh *M)
 		pnei_topo_data[i] = (E_Int *)malloc(3*npfaces * sizeof(E_Int));
 
     send_buf[i] = (E_Int *)malloc(3*npfaces * sizeof(E_Int));
-    //std::vector<E_Int> send_buf(3*npfaces);
 
 		l = 0;
 		for (j = 0; j < npfaces; j++) {
@@ -675,6 +683,7 @@ void smooth_ref_data(mesh *M)
 
   while (++exchange <= max_exchanges) {
     // init refinement stack
+    std::stack<E_Int> stk;
 		for (i = 0; i < ncells; i++) {
 			if (is_cell_to_refine(&M->ref_data[3*i]))
 				stk.push(i);
@@ -790,6 +799,7 @@ void smooth_ref_data(mesh *M)
     comm_interface_data_i(M, M->ref_data, 3, pnei_ref_data);
 
     // address proc cells
+    E_Int lstop = 0;
     for (E_Int i = 0; i < M->nppatches; i++) {
       E_Int *nei_ref_data = pnei_ref_data[i];
       E_Int *nei_topo_data = pnei_topo_data[i];
@@ -844,12 +854,11 @@ void smooth_ref_data(mesh *M)
 
         E_Int pcell_changed = (ac != ac_orig) || (bc != bc_orig) || (gc != gc_orig);
         if (pcell_changed)
-          stk.push(cell);
+          lstop = 1;
       }
     }
 
     // stop condition is nothing to smooth anywhere
-    E_Int lstop = stk.size() > 0;
     E_Int gstop;
     MPI_Allreduce(&lstop, &gstop, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
     if (gstop == 0)
