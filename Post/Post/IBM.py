@@ -31,9 +31,13 @@ from . import IBM_OLDIES
 #       If tb is not None, the solution is projected onto the bodies, at the vertices
 # IN : famZones (list): if famZones is not empty, only extract some subregion families (['FAM1','FAM2,...])
 # IN : extractIBMInfo (boolean): if True, store IB coordinates (PC, PI and PW)
+# IN : extractYplusAtImage (boolean): if True, project the y+ values at the image points to the IBM surface mesh
 #=============================================================================
-def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IBCD_*", extractIBMInfo=False):
+def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IBCD_*", extractIBMInfo=False, extractYplusAtImage=False):
     """Extracts the flow field stored at IBM points onto the surface."""
+
+    if extractYplusAtImage and not famZones:_extractYplusIP(tc)
+
     xwNP = []; ywNP = []; zwNP = []
     xiNP = []; yiNP = []; ziNP = []
     xcNP = []; ycNP = []; zcNP = []
@@ -76,7 +80,7 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IB
                 zones = dictOfZoneFamilies[famName]
                 if zones!=[]: tb2=C.newPyTree(['Base']); tb2[2][1][2]=zones
 
-            zd = extractIBMWallFields(zd, tb=tb2, coordRef=coordRef, famZones=[])
+            zd = extractIBMWallFields(zd, tb=tb2, coordRef=coordRef, famZones=[],extractYplusAtImage=extractYplusAtImage)
             out += Internal.getZones(zd)
         return out
 
@@ -874,8 +878,7 @@ def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref
         zw = Internal.getZones(tb)
         zw = T.join(zw)
     else:
-        _extractYplusIP(tc)
-        zw = extractIBMWallFields(tc, tb=tb, coordRef='wall', famZones=famZones, extractIBMInfo=extractIBMInfo)
+        zw = extractIBMWallFields(tc, tb=tb, coordRef='wall', famZones=famZones, extractIBMInfo=extractIBMInfo,extractYplusAtImage=True)
     
     #====================================
     # Extract pressure info from tc2 to tc
