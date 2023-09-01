@@ -54,7 +54,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
     PyObject *allCorrectedPts, *bodySurfaces, *frontSurfaces, *normalNames;
     PyObject *ListOfSnearsLoc;
     PyObject *ListOfModelisationHeightsLoc;
-    E_Int signOfDist; //if correctedPts are inside bodies: sign = -1, else sign=1
+    E_Int signOfDist; //if correctedPts are inside bodies: sign = -1, else sign=1 (e.g. for Euler sign=-1, for wall modeling sign=1)
     E_Int depth;//nb of layers of ghost cells
     E_Int isWireModel,isOrthoFirst;
     if (!PYPARSETUPLEI(args,"OOOOOOllll","OOOOOOiiii", 
@@ -108,7 +108,9 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
     }
   
     E_Int sign = -signOfDist; // sens de projection sur la paroi
-
+    if (isWireModel==1){
+      sign = signOfDist;
+    }
     //tolerance of distance between corrected pts and wall/image to control projection
     //distance max for image pt to its corrected pt : (depth+1)*sqrt(2)*snearloc 
     E_Float toldistFactorImage;
@@ -502,6 +504,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
             E_Float distF1 = -1.; E_Float distB1 = -1.;
             E_Float distF2 = -1.; E_Float distB2 = -1.;
             E_Float distF3 = -1.; E_Float distB3 = -1.;
+	    
             /*-----------------------------------------------------------------------------------------------------*/
             /* Step 1: projection  onto the front and bodies following normals -> snearloc resolution for the front*/
             /*-----------------------------------------------------------------------------------------------------*/
@@ -549,21 +552,21 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
                 indp = kdt.getClosest(pt);
                 // std::cout << "found = 0" << std::endl;
                 # include "IBC/getIBMPts_projectOrthoBodies.h"
-
+		
                 if (ok == 1)
                 { 
                     distB2 = (xsb-xc0)*(xsb-xc0)+(ysb-yc0)*(ysb-yc0)+(zsb-zc0)*(zsb-zc0);
 
                     xb_ortho = xsb; yb_ortho = ysb; zb_ortho=zsb;
 
-                    // projectDir for pt onto front surfaces using the new direction 
-                    dirx0 = sign*(xsb-xc0); //sign =1 (internal): follows vector CW
-                    diry0 = sign*(ysb-yc0); //sign=-1 (external): follows vector WC
+                    // projectDir for pt onto front surfaces using the new direction
+                    dirx0 = sign*(xsb-xc0); //sign = 1 (internal): follows vector CW
+                    diry0 = sign*(ysb-yc0); //sign =-1 (external): follows vector WC
                     dirz0 = sign*(zsb-zc0);
+	    
                     nxp = dirx0; nyp = diry0; nzp = dirz0; //normale orientee vers l'exterieur
                     #  include "IBC/getIBMPts_projectDirFront.h"
-
-                    if (ok == 1)
+		    if (ok == 1)
                     {
                         distF2 = (xsf-xc0)*(xsf-xc0)+(ysf-yc0)*(ysf-yc0)+(zsf-zc0)*(zsf-zc0);
                         if (distF2  <= distMaxF2 && distB2 <= distMaxB2) 
@@ -571,7 +574,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
                             ptrXW[ind] = xsb; ptrYW[ind] = ysb; ptrZW[ind] = zsb;
                             ptrXI[ind] = xsf; ptrYI[ind] = ysf; ptrZI[ind] = zsf;
                             typeProj[ind]=2; nType2+=1;
-                            goto end;
+			    goto end;
                         }
                     }
                 }
@@ -620,19 +623,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
                 ptrXI[ind] = xf_ortho; ptrYI[ind] = yf_ortho; ptrZI[ind] = zf_ortho;
             }// found CAS 1 = 0         
             end:;
-
-	    if (isWireModel==1){
-	      //direction is correct :: opposite of the real image point
-	      xc0   = ptrXC[ind]; yc0 = ptrYC[ind]; zc0 = ptrZC[ind];
-	      dirx0 = (ptrXW[ind]-xc0);
-	      diry0 = (ptrYW[ind]-yc0);
-	      dirz0 = (ptrZW[ind]-zc0);
-	      xc0=ptrXW[ind];yc0=ptrYW[ind];zc0=ptrZW[ind];	      
-#  include "IBC/getIBMPts_projectDirFront.h"
-	      ptrXI[ind] = xsf; ptrYI[ind] = ysf; ptrZI[ind] = zsf;
-	    }
 	    
-
             E_Int& nptsByType = nPtsPerIBCType[noibctype];
             E_Int* indicesForIBCType = vectOfIndicesByIBCType[noibctype]->begin();
             indicesForIBCType[nptsByType] = ind+1; 

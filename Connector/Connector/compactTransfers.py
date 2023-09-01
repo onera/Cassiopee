@@ -1117,12 +1117,12 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
                    param_real[ pttemp_extra2_local + l + l0 ]= temp_extra2_local[1][i]
 
                if wmodel_local_dens is not None:
-                   wmodel_local_dens[ pt_dens_wm_local       + l + l0 ]= wmodel_local_dens[1][i]
-                   wmodel_local_velx[ pt_velx_wm_local       + l + l0 ]= wmodel_local_velx[1][i]
-                   wmodel_local_vely[ pt_vely_wm_local       + l + l0 ]= wmodel_local_vely[1][i]
-                   wmodel_local_velz[ pt_velz_wm_local       + l + l0 ]= wmodel_local_velz[1][i]
-                   wmodel_local_temp[ pt_temp_wm_local       + l + l0 ]= wmodel_local_temp[1][i]
-                   wmodel_local_sanu[ pt_sanu_wm_local       + l + l0 ]= wmodel_local_sanu[1][i]
+                   param_real[ pt_dens_wm_local       + l + l0 ]= wmodel_local_dens[1][i]
+                   param_real[ pt_velx_wm_local       + l + l0 ]= wmodel_local_velx[1][i]
+                   param_real[ pt_vely_wm_local       + l + l0 ]= wmodel_local_vely[1][i]
+                   param_real[ pt_velz_wm_local       + l + l0 ]= wmodel_local_velz[1][i]
+                   param_real[ pt_temp_wm_local       + l + l0 ]= wmodel_local_temp[1][i]
+                   param_real[ pt_sanu_wm_local       + l + l0 ]= wmodel_local_sanu[1][i]
 
                if gradxP is not None:
                    param_real[ ptgradxP + l + l0 ]= gradxP[1][i]

@@ -34,7 +34,7 @@ TypesOfIBC["TBLE_FULL"]=11 #TBLE+gradP+conv+SA
 TypesOfIBC["isothermal"]=12 #isothermal: set T_wall
 TypesOfIBC["heatflux"]=13 #heatflux: set q_wall
 TypesOfIBC["overlap"]=14 #TBLE+gradP+conv+SA
-TypesOfIBC["wiremodel"]=140 #heatflux: set q_wall
+TypesOfIBC["wiremodel"]=140 #wire mesh model
 
 # Variables IBM pour le post traitement
 __PRESSURE__= 'Pressure'
@@ -776,7 +776,7 @@ def _setIBCDataForZone2__(z, zonesDnr, correctedPts, wallPts, interpPts, interpP
         xPC0 = correctedPts[1][0,:]; yPC0 = correctedPts[1][1,:]; zPC0 = correctedPts[1][2,:]
         xPW0 = wallPts[1][0,:]; yPW0 = wallPts[1][1,:]; zPW0 = wallPts[1][2,:]
         xPI0 = interpPts2[1][0,:]; yPI0 = interpPts2[1][1,:]; zPI0 = interpPts2[1][2,:]
-
+        
         #-------------------------------------------------------------------------
         # 6. Set the original indices of corrected pts in receptor zones
         #-------------------------------------------------------------------------
@@ -850,7 +850,6 @@ def _setIBCDataForZone2__(z, zonesDnr, correctedPts, wallPts, interpPts, interpP
                     # add coordinates of corrected point, wall point, interpolated point
                     _addIBCCoords2__(zonesDnr[noz], z[0], allCorrectedPts[noz], allWallPts[noz], allMirrorPts[noz], bcType, \
                                     bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBC2D)
-
             elif nborphan==nbinterpolated0: # Only orphan pts: orphan pt list is stored in any candidate donor zone
                 if storage == 'direct':
                     _createInterpRegion__(z, zonesDnr[noz][0],PL, PLD, CFS, INTERPTYPE,VOL,EXTRAP,ORPHAN,

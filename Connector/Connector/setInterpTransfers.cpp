@@ -1328,7 +1328,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
                 }
                 else if(isWireModel==2)
                 {
-                  if (ibcType==140)
+                  if (ibcType==140) // placing values in the tc
                   {
                     for (E_Int noind = 0; noind < pt_fin-pt_deb; noind++)
                     {

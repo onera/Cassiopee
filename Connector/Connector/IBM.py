@@ -1766,10 +1766,8 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
                 
                 front = Converter.convertArray2Tetra(front)
                 allCorrectedPts = Converter.extractVars(allCorrectedPts,['CoordinateX','CoordinateY','CoordinateZ']+varsn)
-                
                 res = connector.getIBMPtsWithFront(allCorrectedPts, listOfSnearsLoc, listOfModelisationHeightsLoc, bodies,
-                                                   front, varsn, signOfDistCorrected, depth, int(isWireModel), int(isOrthoFirst))
-
+                                                   front, varsn, signOfDistCorrected, depth, int(isWireModel), int(isOrthoFirst))                
     allWallPts = res[0]
     allWallPts = Converter.extractVars(allWallPts,['CoordinateX','CoordinateY','CoordinateZ'])
 
@@ -1777,7 +1775,6 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
     allInterpPts = Converter.extractVars(allInterpPts,['CoordinateX','CoordinateY','CoordinateZ'])
     allInterpPts = Converter.addVars([allInterpPts,indcell])
     allCorrectedPts = Converter.extractVars(allCorrectedPts,['CoordinateX','CoordinateY','CoordinateZ'])
-
     dictOfInterpPtsByIBCType={}
     dictOfCorrectedPtsByIBCType={}
     dictOfWallPtsByIBCType={}
@@ -1796,6 +1793,7 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
                     wallPtsL = Transform.subzone(allWallPts[noz], indicesByTypeL)
                 else:
                     correctedPtsL=[]; interpPtsL = []; wallPtsL = []
+
                 if noz == 0:
                     dictOfCorrectedPtsByIBCType[ibcTypeL] = [correctedPtsL]
                     dictOfWallPtsByIBCType[ibcTypeL] = [wallPtsL]
