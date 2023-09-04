@@ -268,6 +268,13 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
                                               im, jm, km, 
                                               ufield, c, et, zoneNames);
   }
+  else if (K_STRING::cmp(fileFmt, "bin_jpg") == 0)
+  {
+    // Binary JPG read
+    ret = K_IO::GenIO::getInstance()->jpgread(fileName, varString, field, 
+                                              im, jm, km, 
+                                              ufield, c, et, zoneNames);
+  }
   else if (K_STRING::cmp(fileFmt, "fmt_su2") == 0)
   {
     // Formatted su2 read
@@ -756,6 +763,15 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
                                                 fieldc, fieldu, connectu, elt,
                                                 zoneNames);
   }
+  else if (K_STRING::cmp(fileFmt, "bin_jpg") == 0) // in jpg
+  {
+    if (fieldu.size() != 0)
+      printf("Warning: convertArrays2File: unstructured arrays not converted.\n"); 
+    isok = K_IO::GenIO::getInstance()->jpgwrite(fileName, dataFmt, varString,
+                                                ni, nj, nk,
+                                                fieldc, fieldu, connectu, elt,
+                                                zoneNames);
+  }
   else if (K_STRING::cmp(fileFmt, "fmt_su2") == 0) // fmt su2
   {
     if (fieldc.size() != 0)
@@ -924,6 +940,7 @@ E_Int K_CONVERTER::checkRecognisedFormat(char* fileFmt)
       K_STRING::cmp(fileFmt, "fmt_obj") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_gts") == 0 ||
       K_STRING::cmp(fileFmt, "bin_png") == 0 ||
+      K_STRING::cmp(fileFmt, "bin_jpg") == 0 ||
       K_STRING::cmp(fileFmt, "bin_3ds") == 0 ||
       K_STRING::cmp(fileFmt, "bin_ply") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_cedre") == 0 ||

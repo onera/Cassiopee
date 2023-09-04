@@ -933,11 +933,11 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   E_Int ptiter   = ipt_omp[nssiter+ nstep-1];
 
   for (E_Int nd = 0; nd < nidomR; nd++) {impli_local[nd]=0;}//par defaut pas de transfert
-  for (E_Int ntask = 0; ntask < nbtask; ntask++)            //transfert sur les zones modifiees à la ssiter nstep
+  for (E_Int ntask = 0; ntask < nbtask; ntask++)            //transfert sur les zones modifiees ï¿½ la ssiter nstep
   {
     E_Int pttask = ptiter + ntask*(6+threadmax_sdm*7);
     E_Int nd = ipt_omp[ pttask ];
-    impli_local[nd]=1;
+    impli_local[nd] = 1;
   }
   E_Int maxlevel      =  iptdtloc[ 9];  //transfert sur les zones qui recupere leur valeur interpolees en LBM
   E_Int it_cycl_lbm   =  iptdtloc[10];

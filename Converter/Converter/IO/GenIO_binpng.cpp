@@ -19,7 +19,7 @@
 
 // Binary PNG (Portable Network Graphics) file support
 
-# include <png.h>
+# include "Images/png/png.h"
 # include "GenIO.h"
 # include "Array/Array.h"
 # include "Connect/connect.h"

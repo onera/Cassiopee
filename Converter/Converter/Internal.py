@@ -3218,7 +3218,7 @@ def convertDataNode2Array3(node, dim, connects, loc=-1):
         eltString = eltString[:-1]
         if cr == []: # patch empty connect
             c = numpy.empty((1,0), dtype=E_NpyInt)
-            eltString='NODE'
+            eltString = 'NODE'
             crOut.append(c)
     else:
         eltString = "NGON"
@@ -3478,7 +3478,7 @@ def convertDataNodes2Array3(nodes, dim, connects, loc=-1):
         eltString = eltString[:-1]
         if cr == []: # patch empty connect
             c = numpy.empty((1,0), dtype=E_NpyInt)
-            eltString='NODE'
+            eltString = 'NODE'
             crOut.append(c)
     else: 
         eltString = "NGON"

@@ -154,6 +154,8 @@ else:
 
 # png
 cpp_srcs += ['Converter/IO/GenIO_binpng.cpp']
+# jpg
+cpp_srcs += ['Converter/IO/GenIO_binjpg.cpp']
 
 #==============================================================================
 # Fichiers fortran

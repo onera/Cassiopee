@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <png.h>
+#include "Images/png/png.h"
 #include "../Data.h"
 
 //=============================================================================
