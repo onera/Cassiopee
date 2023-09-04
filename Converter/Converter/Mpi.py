@@ -33,7 +33,7 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         def seq(F, *args): F(*args)
         def convertFile2PyTree(fileName, format=None, proc=None): return C.convertFile2PyTree(fileName, format)
         def convertPyTree2File(t, fileName, format=None, links=[]): return C.convertPyTree2File(t, fileName, format, links)
-        print("Warning: Converter:Mpi: Sequential behaviour is forced by MPIRUN=0.")
+        #print("Warning: Converter:Mpi: Sequential behaviour is forced by MPIRUN=0.")
  
 else: # try import (may fail - core or hang)
     try: from .Mpi4py import *

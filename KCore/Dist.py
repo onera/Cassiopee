@@ -2067,10 +2067,10 @@ def writeBuildInfo():
     else: dict['numpy'] = "None"
 
     # Check png
-    (png, pngIncDir, pngLib) = checkPng(config.additionalLibPaths,
-                                        config.additionalIncludePaths)
-    if png: dict['png'] = pngLib
-    else: dict['png'] = "None"
+    #(png, pngIncDir, pngLib) = checkPng(config.additionalLibPaths,
+    #                                    config.additionalIncludePaths)
+    #if png: dict['png'] = pngLib
+    #else: dict['png'] = "None"
 
     # Check ffmpeg
     (mpeg, mpegIncDir, mpegLib) = checkMpeg(config.additionalLibPaths,

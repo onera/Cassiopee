@@ -20,7 +20,7 @@ ulimit -s unlimited
 # Detection machine (shortest first)
 KC=`uname -n`
 MAC0=$(echo $KC | grep 'n'); if [ "$MAC0" != "" ]; then export MAC="sator_brw"; fi
-MAC0=$(echo $KC | grep 'ld'); if [ "$MAC0" != "" ]; then export MAC="ld_eos8"; fi
+MAC0=$(echo $KC | grep 'ld'); if [ "$MAC0" != "" ]; then export MAC="ld"; fi
 MAC0=$(echo $KC | grep 'clausius'); if [ "$MAC0" != "" ]; then export MAC="ld"; fi
 MAC0=$(echo $KC | grep 'eos'); if [ "$MAC0" != "" ]; then export MAC="eos"; fi
 MAC0=$(echo $KC | grep 'ubuntu'); if [ "$MAC0" != "" ]; then export MAC="ubuntu"; fi
@@ -34,7 +34,7 @@ MAC0=$(echo $KC | grep 'celeste'); if [ "$MAC0" != "" ]; then export MAC="visio"
 MAC0=$(echo $KC | grep 'elmer'); if [ "$MAC0" != "" ]; then export MAC="visio"; fi
 MAC0=$(echo $KC | grep 'dumbo'); if [ "$MAC0" != "" ]; then export MAC="visio"; fi
 MAC0=$(echo $KC | grep 'ganesh'); if [ "$MAC0" != "" ]; then export MAC="visio"; fi
-MAC0=$(echo $KC | grep 'visung'); if [ "$MAC0" != "" ]; then export MAC="visung_el8"; fi
+MAC0=$(echo $KC | grep 'visung'); if [ "$MAC0" != "" ]; then export MAC="visung"; fi
 MAC0=$(echo $KC | grep 'moloch'); if [ "$MAC0" != "" ]; then export MAC="moloch"; fi
 MAC0=$(echo $KC | grep 'giulia'); if [ "$MAC0" != "" ]; then export MAC="giulia"; fi
 MAC0=$(echo $KC | grep 'westri'); if [ "$MAC0" != "" ]; then export MAC="westri"; fi
@@ -52,27 +52,7 @@ fi
 #echo 'Cassiopee :: MACHINE NAME::'$MAC, $KC, $MACHINE
 # ----------------------------- Common ----------------------------------------
 
-if [ "$MAC" = "ld" ]; then
-#------------------------------- ld centos 7 + python 3 -----------------------------------
-    export ELSAPROD=x86_r8
-    module unload $(module -t list 2>&1 | grep -i intel)
-    module load python/3.6.1
-    # Set next two lines only if python is not python
-    export PYTHONEXE=python3
-    alias python=python3
-    module load intel/17.0.4
-    module load impi/17
-    module load hdf5/1.8.8
-    # Nbre de threads
-    ncpu=$(grep processor /proc/cpuinfo |tail -1 |cut -f2 -d: )
-    ncpu=$((ncpu + 1 ))
-    export OMP_NUM_THREADS=$ncpu
-    export PATH=$PATH:$CASSIOPEE/Dist/bin
-    export PATH=$CASSIOPEE/Dist/bin/$ELSAPROD:$CASSIOPEE/Dist/bin/$ELSAPROD/bin:$PATH
-    export LD_LIBRARY_PATHL=/stck/benoit/lib:/stck/benoit/opencascade/lib:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
-    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
-
-elif [ "$MAC" = "ld_eos8" ]; then
+if [ "$MAC" = "ld_eos8" ]; then
 #------------------------------- ld centos 8 + python 3 -----------------------------------
     export ELSAPROD=eos8_r8
     #module unload $(module -t list 2>&1 | grep -i intel)
@@ -98,6 +78,28 @@ elif [ "$MAC" = "ld_eos8" ]; then
     export PATH=$CASSIOPEE/Dist/bin/$ELSAPROD:$CASSIOPEE/Dist/bin/$ELSAPROD/bin:$PATH
     export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
+
+elif [ "$MAC" = "ld" ]; then
+#------------------------------- ld centos 8 + python 3 -----------------------------------
+    export ELSAPROD=ld
+    module purge
+    module load occt/7.6.1-gnu831
+    module load python/3.8.14-gnu831
+    module load intel/21.2.0
+    module load hdf5/1.10.5-gnu831-ompi405
+    unset I_MPI_PMI_LIBRARY
+    export PRODMODE=1
+    # Set next two lines only if python is not python
+    export PYTHONEXE=python3
+    alias python=python3
+    # Nbre de threads
+    ncpu=$(grep processor /proc/cpuinfo |tail -1 |cut -f2 -d: )
+    ncpu=$((ncpu + 1 ))
+    export OMP_NUM_THREADS=$ncpu
+    export PATH=$PATH:$CASSIOPEE/Dist/bin
+    export PATH=$CASSIOPEE/Dist/bin/$ELSAPROD:$CASSIOPEE/Dist/bin/$ELSAPROD/bin:$PATH
+    export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.8/site-packages
 
 elif [ "$MAC" = "ld_python2" ]; then
 #------------------------------- ld centos 7 -----------------------------------
@@ -222,20 +224,22 @@ elif [ "$MAC" = "visio" ]; then
 elif [ "$MAC" = "visung" ]; then
 #----------------------------- visung -----------------------------------------
     export ELSAPROD=visung_r8
-    . /etc/profile.d/modules-dri.sh
+    . /etc/profile.d/modules-onera.sh
+    module purge
     module load subversion
-    module load python/3.6.1
-    module unload $(module -t list 2>&1 | grep -i intel)
-    module load intel/17.0.4
-    module load impi/17
-    # Nombre de threads
-    export OMP_NUM_THREADS=72
+    module load occt/7.6.1-gnu831
+    module load python/3.8.14-gnu831
+    module load intel/21.2.0
+    module load hdf5/1.10.5-gnu831-ompi405
+    export PRODMODE=1
     export PYTHONEXE=python3
     alias python=python3
+    # Nombre de threads
+    export OMP_NUM_THREADS=72
     export PATH=$PATH:$CASSIOPEE/Dist/bin
     export PATH=$CASSIOPEE/Dist/bin/$ELSAPROD:$CASSIOPEE/Dist/bin/$ELSAPROD/bin:$PATH
-    export LD_LIBRARY_PATHL=/stck/benoit/opencascade2/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.8/lib:/opt/tools/intel/studio/2017/compilers_and_libraries_2017.4.196/linux/mpi/intel64/lib
-    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
+    export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.8/site-packages
 
 elif [ "$MAC" = "visung_el8" ]; then
 #----------------------------- visung -----------------------------------------
@@ -478,6 +482,7 @@ elif [ "$MAC" = "spiro" ]; then
     export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PATH
     export LD_LIBRARY_PATHL=/stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.17/lib
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
+
 elif [ "$MAC" = "spiro_sky" ]; then
 #----------------------------- spiro -----------------------------------------
     export ELSAPROD=spiro_sky_r8

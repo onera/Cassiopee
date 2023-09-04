@@ -11,9 +11,9 @@ import numpy as np
 import sys
 import KCore.test as test
 
+test.TOLERANCE = 1.e-9
+
 #import Ael.Quantum      as KDG
-
-
 
 # get args
 ifile='hammer.iges'

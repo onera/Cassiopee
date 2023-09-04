@@ -222,7 +222,7 @@ PyObject* K_CONVERTER::copy(PyObject* self, PyObject* args)
   { 
     PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, ni, nj, nk, api);
     FldArrayF* f2; FldArrayI* cn2;
-    K_ARRAY::getFromArray3(tpl, varString, f2, ni, nj, nk, cn2, eltType);
+    K_ARRAY::getFromArray3(tpl, f2, cn2);
 
     #pragma omp parallel
     {
@@ -254,7 +254,8 @@ PyObject* K_CONVERTER::copy(PyObject* self, PyObject* args)
       PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, nelts, nfaces, 
         eltType, sizeNGon, sizeNFace, ngonType, center, api);
       FldArrayF* f2; FldArrayI* cn2;
-      K_ARRAY::getFromArray3(tpl, varString, f2, ni, nj, nk, cn2, eltType);
+      K_ARRAY::getFromArray3(tpl, f2, cn2);
+
       if (center == true) dim = nelts;
       else dim = npts;
       #pragma omp parallel
@@ -306,10 +307,9 @@ PyObject* K_CONVERTER::copy(PyObject* self, PyObject* args)
       { FldArrayI& cm = *(cn->getConnect(i));
         neltsPerConnect[i] = cm.getSize(); 
         nelts += cm.getSize(); }
-      tpl = K_ARRAY::buildArray3(nfld, varString, npts, neltsPerConnect,
-                eltType, center, api);
+      tpl = K_ARRAY::buildArray3(nfld, varString, npts, neltsPerConnect, eltType, center, api);
       FldArrayF* f2; FldArrayI* cn2;  
-      K_ARRAY::getFromArray3(tpl, varString, f2, ni, nj, nk, cn2, eltType);
+      K_ARRAY::getFromArray3(tpl, f2, cn2);
       
       // copie des champs
       E_Int dim;

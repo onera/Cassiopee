@@ -2,6 +2,7 @@
 if [ "$PYTHONEXE" = "" ]; then
     export PYTHONEXE=python
 fi
+export MPIRUN=0
 
 if ! command -v xdpyinfo &> /dev/null
 then
