@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include "proto.h"
-//#include <algorithm>
 
 const E_Int normalIn[6] = {1,0,1,0,1,0};
 
@@ -22,27 +21,38 @@ void topo_init_mesh(mesh *M)
 
 void reorder_hexa(mesh *M)
 {
-  E_Int map[4];
   E_Int common[4];
-  E_Int face, *pf, *pn;
-  E_Int bot, top, lft, rgt, fro, bck;
   for (E_Int i = 0; i < M->ncells; i++) {
-    pf = &M->NFACE[6*i];
-    bot = pf[0];
-    pn = &M->NGON[4*bot];
+    E_Int *pf = &M->NFACE[6*i];
+    E_Int bot = pf[0];
+    E_Int *pn = &M->NGON[4*bot];
+    
+    E_Int map[4];
     for (E_Int j = 0; j < 4; j++) map[j] = pn[j];
     E_Int reorient = get_reorient(bot, i, normalIn[0], M);
     if (reorient) std::swap(map[1], map[3]);
-    top = lft = rgt = fro = bck = -1;
+    
+    E_Int top, lft, rgt, fro, bck;
+    top = -1;
+    lft = -1;
+    rgt = -1;
+    fro = -1;
+    bck = -1;
+    
     for (E_Int j = 1; j < 6; j++) {
+      E_Int face = pf[j];
+
       for (E_Int k = 0; k < 4; k++)
         common[k] = 0;
-      face = pf[j];
+
       pn = &M->NGON[4*face];
+
       for (E_Int k = 0; k < 4; k++) {
+        E_Int point = pn[k];
+        // look for point in map
         for (E_Int l = 0; l < 4; l++) {
-          if (map[k] == pn[l])
-            common[k] = 1;
+          if (map[l] == point)
+            common[l] = 1;
         }
       }
       if (common[0] && common[3]) lft = face;
@@ -51,7 +61,6 @@ void reorder_hexa(mesh *M)
       else if (common[3] && common[2]) bck = face;
       else top = face;
     }
-    assert(!(top == -1 || lft == -1 || rgt == -1 || fro == -1 || bck == -1));
     pf[1] = top;
     pf[2] = lft;
     pf[3] = rgt;
@@ -70,8 +79,6 @@ void reorient_skin(mesh *M)
   for (E_Int i = 0; i < M->nfaces; i++) {
     E_Int nei = neigh[i];
 
-    assert(nei < M->ncells);
-    
     if (nei != -1)
       continue;
 
@@ -105,9 +112,8 @@ void reorient_skin(mesh *M)
 
     // normal should be pointing outwards: negative dot product
     if (dot(d, n, 3) > 0.) {
-      E_Int stride = M->xfaces[i+1] - start;
-      std::reverse(M->NGON+start+1, M->NGON+start+stride);
-      //std::swap(pn[1], pn[3]);
+      //std::reverse(M->NGON+start+1, M->NGON+start+stride);
+      std::swap(pn[1], pn[3]);
     }
   }
 }
@@ -124,7 +130,8 @@ void build_face_neighbourhood
   for (size_t i = 0; i < neighbour.size(); i++)
     neighbour[i] = -1;
 
-  std::map<edge, std::pair<std::pair<E_Int, E_Int>, std::pair<E_Int, E_Int>>> EM;
+  std::map<edge,
+           std::pair<std::pair<E_Int, E_Int>, std::pair<E_Int, E_Int>>> EM;
 
   size_t nf = xpgs.size() - 1;
 
@@ -166,7 +173,8 @@ void build_face_neighbourhood
 }
 
 static
-void get_boundary(E_Int *pn0, E_Int s0, E_Int *pn1, E_Int s1, E_Int *m, E_Int *n)
+void get_boundary(E_Int *pn0, E_Int s0, E_Int *pn1, E_Int s1, E_Int *m,
+  E_Int *n)
 {
   for (E_Int i = 0; i < s0; i++) {
     E_Int n00 = pn0[i];
@@ -184,7 +192,8 @@ void get_boundary(E_Int *pn0, E_Int s0, E_Int *pn1, E_Int s1, E_Int *m, E_Int *n
 }
 
 static
-E_Int get_orientation(E_Int *pn, E_Int stride, E_Int ni, E_Int nj, E_Int *same_orient)
+E_Int get_orientation(E_Int *pn, E_Int stride, E_Int ni, E_Int nj,
+  E_Int *same_orient)
 {
   *same_orient = 0;
   for (E_Int i = 0; i < stride; i++) {
@@ -201,14 +210,8 @@ E_Int get_orientation(E_Int *pn, E_Int stride, E_Int ni, E_Int nj, E_Int *same_o
 }
 
 static
-void reversi_connex
-(
-  std::vector<E_Int> &pgs,
-  std::vector<E_Int> &xpgs,
-  std::vector<E_Int> &neighbours,  
-  E_Int kseed,
-  std::vector<E_Int> &orient
-)
+void reversi_connex(std::vector<E_Int> &pgs, std::vector<E_Int> &xpgs,
+  std::vector<E_Int> &neighbours, E_Int kseed, std::vector<E_Int> &orient)
 {
   std::vector<E_Int> cpool;
   cpool.push_back(kseed);
@@ -235,20 +238,16 @@ void reversi_connex
       E_Int *pnn = &pgs[xpgs[nei]];
       E_Int sn = xpgs[nei+1] - xpgs[nei];
       get_boundary(pf, stride, pnn, sn, &k, &l);
-      assert(k != -1);
-      assert(l != -1);
 
       E_Int ni = pf[k];
       E_Int nj = pf[(k+1)%stride];
 
       E_Int reverse = 2;
-      E_Int ret = get_orientation(pnn, sn, ni, nj, &reverse);
-      assert(ret != -1);
+      get_orientation(pnn, sn, ni, nj, &reverse);
 
       if (orient[K] == -1) {
         if (reverse == 0) reverse = 1;
         else if (reverse == 1) reverse = 0;
-        else assert(0);
       }
 
       if (reverse)
@@ -269,11 +268,8 @@ void build_cell_neighbourhood(mesh *M, std::vector<E_Int>& neighbours)
   for (E_Int i = 0; i < M->ncells; i++) {
     for (E_Int j = M->xcells[i]; j < M->xcells[i+1]; j++) {
       E_Int face = M->NFACE[j];
-      assert(face >= 0 && face < M->nfaces);
       E_Int own = owner[face];
       E_Int nei = neigh[face];
-      assert(own < M->ncells);
-      assert(nei < M->ncells);
 
       if (i == own) neighbours[j] = nei;
       else neighbours[j] = own;
@@ -308,117 +304,107 @@ void build_own_nei(mesh *M)
 
   // look for first external cell
   std::vector<E_Int> processed(M->ncells, 0);
-  E_Int seed = 0;
-  while ((seed < M->ncells) && (processed[seed] || exPH[seed] == 0))
-    seed++;
-
-  assert(seed < M->ncells);
   
-  std::vector<E_Int> cpool;
+  while (1) {
+    E_Int seed = 0;
+    while ((seed < M->ncells) && (processed[seed] || exPH[seed] == 0))
+      seed++;
 
-  cpool.push_back(seed);
+    if (seed >= M->ncells)
+      break;
+    
+    std::vector<E_Int> cpool;
 
-  E_Int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    cpool.push_back(seed);
 
-  while (!cpool.empty()) {
-    E_Int cell = cpool.back();
-    cpool.pop_back();
+    E_Int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    assert(cell < M->ncells);
+    while (!cpool.empty()) {
+      E_Int cell = cpool.back();
+      cpool.pop_back();
 
-    if (processed[cell])
-      continue;
-
-    processed[cell] = 1;
-
-    // build faces neighbourhood based on shared edges' nodes order
-    E_Int start = M->xcells[cell];
-    E_Int end = M->xcells[cell+1];
-    E_Int stride = end - start;
-    assert(stride == 6);
-    std::vector<E_Int> oids;
-    std::vector<E_Int> orient(stride, 1);
-
-    std::vector<E_Int> pgs;
-    std::vector<E_Int> xpgs;
-    xpgs.push_back(0);
-    for (E_Int i = start; i < end; i++) {
-      E_Int face = M->NFACE[i];
-      for (E_Int j = M->xfaces[face]; j < M->xfaces[face+1]; j++)
-        pgs.push_back(M->NGON[j]);
-      xpgs.push_back(M->xfaces[face+1]-M->xfaces[face]);
-      oids.push_back(face+1);
-    }
-  
-
-
-    for (E_Int i = 0; i < stride; i++)
-      xpgs[i+1] += xpgs[i];
-
-    // Note(Imad): REMOVE THESE ASSERTIONS
-    assert(pgs.size() == 24);
-    assert(xpgs.size() == 7);
-
-    std::vector<E_Int> PGneighbours(pgs.size());
-    build_face_neighbourhood(pgs, xpgs, M, PGneighbours);
-
-    E_Int revers = 0;
-
-    // reference face is the external face
-    E_Int PGref = exPH[cell];
-    assert(PGref != 0);
-    // face can be negative
-    if (PGref < 0) {
-      revers = 1;
-      PGref = -PGref;
-    }
-
-    // find reference face index in oids
-    E_Int iref = -1;
-    for (size_t i = 0; i < oids.size(); i++) {
-      if (PGref == oids[i]) {
-        iref = i;
-        break;
-      }
-    }
-
-    assert(orient.size() == oids.size());
-
-    assert(iref != -1);
-
-    // set orientation of face if prescribed
-    if (revers)
-      orient[iref] = -1;
-
-    // all connected faces must follow the orientation of the reference face
-    reversi_connex(pgs, xpgs, PGneighbours, iref, orient);
-
-    // set the owner and neighbour of the faces
-    E_Int *pn = &neighbours[start];
-    E_Int *pf = &M->NFACE[start];
-    for (E_Int i = 0; i < stride; i++) {
-      E_Int face = pf[i];
-      E_Int nei = pn[i];
-
-      assert(nei < M->ncells);
-
-      owner[face] = cell;
-      neigh[face] = nei;
-      
-      if (nei == -1)
+      if (processed[cell])
         continue;
 
-      // set the reference face for neighbour
-      exPH[nei] = -(face+1);
+      processed[cell] = 1;
 
-      if (orient[i] == -1) {
-        std::swap(owner[face], neigh[face]);
-        exPH[nei] = face+1;
+      // build faces neighbourhood based on shared edges' nodes order
+      E_Int start = M->xcells[cell];
+      E_Int end = M->xcells[cell+1];
+      E_Int stride = end - start;
+      std::vector<E_Int> oids;
+      std::vector<E_Int> orient(stride, 1);
+
+      std::vector<E_Int> pgs;
+      std::vector<E_Int> xpgs;
+      xpgs.push_back(0);
+      for (E_Int i = start; i < end; i++) {
+        E_Int face = M->NFACE[i];
+        for (E_Int j = M->xfaces[face]; j < M->xfaces[face+1]; j++)
+          pgs.push_back(M->NGON[j]);
+        xpgs.push_back(M->xfaces[face+1]-M->xfaces[face]);
+        oids.push_back(face+1);
+      }
+    
+
+
+      for (E_Int i = 0; i < stride; i++)
+        xpgs[i+1] += xpgs[i];
+
+      std::vector<E_Int> PGneighbours(pgs.size());
+      build_face_neighbourhood(pgs, xpgs, M, PGneighbours);
+
+      E_Int revers = 0;
+
+      // reference face is the external face
+      E_Int PGref = exPH[cell];
+      // face can be negative
+      if (PGref < 0) {
+        revers = 1;
+        PGref = -PGref;
       }
 
-      if (!processed[nei])
-        cpool.push_back(nei);
+      // find reference face index in oids
+      E_Int iref = -1;
+      for (size_t i = 0; i < oids.size(); i++) {
+        if (PGref == oids[i]) {
+          iref = i;
+          break;
+        }
+      }
+
+      // set orientation of face if prescribed
+      if (revers)
+        orient[iref] = -1;
+
+      // all connected faces must follow the orientation of the reference face
+      reversi_connex(pgs, xpgs, PGneighbours, iref, orient);
+
+      // set the owner and neighbour of the faces
+      E_Int *pn = &neighbours[start];
+      E_Int *pf = &M->NFACE[start];
+      for (E_Int i = 0; i < stride; i++) {
+        E_Int face = pf[i];
+        E_Int nei = pn[i];
+
+        M->owner[face] = cell;
+        M->neigh[face] = nei;
+
+        if (nei == -1)
+          continue;
+
+        // set the reference face for neighbour
+        exPH[nei] = -(face+1);
+
+        if (orient[i] == -1) {
+          std::swap(M->owner[face], M->neigh[face]);
+          exPH[nei] = face+1;
+        }
+
+        if (!processed[nei])
+          cpool.push_back(nei);
+      }
     }
   }
 }

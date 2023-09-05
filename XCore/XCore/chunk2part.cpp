@@ -20,6 +20,7 @@
 #include "xcore.h"
 #include <mpi.h>
 #include <unordered_map>
+#include "../common/mem.h"
 
 #include "scotch/ptscotch.h"
 
@@ -118,7 +119,8 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   nfaces--;
 
   // construct cells distribution
-  E_Int *cells_dist = (E_Int *)malloc((nproc+1) * sizeof(E_Int));
+  E_Int *cells_dist = (E_Int *)XMALLOC((nproc+1)*sizeof(E_Int));
+  //E_Int *cells_dist = (E_Int *)XMALLOC((nproc+1) * sizeof(E_Int));
   cells_dist[0] = 0;
  
   MPI_Allgather(&ncells, 1, MPI_INT, cells_dist+1, 1, MPI_INT, MPI_COMM_WORLD);
@@ -127,7 +129,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     cells_dist[i+1] += cells_dist[i];
 
   // construct faces distribution
-  E_Int *faces_dist = (E_Int *)malloc((nproc+1) * sizeof(E_Int));
+  E_Int *faces_dist = (E_Int *)XMALLOC((nproc+1) * sizeof(E_Int));
   faces_dist[0] = 0;
  
   MPI_Allgather(&nfaces, 1, MPI_INT, faces_dist+1, 1, MPI_INT, MPI_COMM_WORLD);
@@ -136,7 +138,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     faces_dist[i+1] += faces_dist[i];
 
   // construct points distribution
-  E_Int *points_dist = (E_Int *)malloc((nproc+1) * sizeof(E_Int));
+  E_Int *points_dist = (E_Int *)XMALLOC((nproc+1) * sizeof(E_Int));
   points_dist[0] = 0;
  
   MPI_Allgather(&npoints, 1, MPI_INT, points_dist+1, 1, MPI_INT, MPI_COMM_WORLD);
@@ -1001,7 +1003,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   /* export (array1) */
   /*
   FldArrayI cn;
-  cn.malloc(2+nnfaces+nxfaces[nnfaces] + 2+nncells+nxcells[nncells], 1);
+  cn.XMALLOC(2+nnfaces+nxfaces[nnfaces] + 2+nncells+nxcells[nncells], 1);
   cn.setAllValuesAtNull();
   E_Int *ptr = cn.begin(1);
   ptr[0] = nnfaces;
@@ -1134,7 +1136,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   if (csize == 0) {
     PyList_Append(out, PyList_New(0));
   } else {
-    E_Float **csols = (E_Float **)malloc(csize * sizeof(E_Float *));
+    E_Float **csols = (E_Float **)XMALLOC(csize * sizeof(E_Float *));
 
     for (E_Int i = 0; i < csize; i++) {
       PyObject *csol = PyList_GetItem(o, i);
@@ -1182,7 +1184,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   if (psize == 0) {
     PyList_Append(out, PyList_New(0));
   } else {
-    E_Float **psols = (E_Float **)malloc(psize * sizeof(E_Float *));
+    E_Float **psols = (E_Float **)XMALLOC(psize * sizeof(E_Float *));
 
     for (E_Int i = 0; i < psize; i++) {
       PyObject *psol = PyList_GetItem(o, i);

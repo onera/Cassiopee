@@ -44,7 +44,7 @@ void compute_cell_center(mesh *M, E_Int cell)
 void compute_face_centers(mesh *M)
 {
   if (M->fc) return;
-  M->fc = (E_Float *)calloc(3*M->nfaces, sizeof(E_Float));
+  M->fc = (E_Float *)XCALLOC(3*M->nfaces, sizeof(E_Float));
 
   for (E_Int i = 0; i < M->nfaces; i++) {
     E_Float *pf = &M->fc[3*i];
@@ -70,7 +70,7 @@ void compute_face_centers(mesh *M)
 void compute_cell_centers(mesh *M)
 {
   if (M->cc) return;
-  M->cc = (E_Float *)calloc(3*M->ncells, sizeof(E_Float));
+  M->cc = (E_Float *)XCALLOC(3*M->ncells, sizeof(E_Float));
   compute_face_centers(M);
 
   E_Int *po = M->owner;
@@ -109,4 +109,43 @@ E_Int get_neighbour(E_Int cell, E_Int face, mesh *M)
   assert(cell == owner[face] || cell == neigh[face]);
   if (cell == owner[face]) return neigh[face];
   return owner[face];
+}
+
+static
+void ppatch_free(proc_patch *pp)
+{
+  XFREE(pp->faces);
+  XFREE(pp->gneis);
+  XFREE(pp->send_buf_d);
+  XFREE(pp->send_buf_i);
+  XFREE(pp->recv_buf_d);
+  XFREE(pp->recv_buf_i);
+}
+
+void mesh_free(mesh *M) {
+  XFREE(M->xyz);
+  XFREE(M->owner);
+  XFREE(M->neigh);
+  XFREE(M->NFACE);
+  XFREE(M->xcells);
+  XFREE(M->NGON);
+  XFREE(M->xfaces);
+  M->CT.clear();
+  M->FT.clear();
+  M->PT.clear();
+  M->ET.clear();
+  XFREE(M->cc);
+  XFREE(M->fc);
+  XFREE(M->lsqG);
+  XFREE(M->lsqGG);
+  XFREE(M->lsqH);
+  XFREE(M->lsqHH);
+  XFREE(M->gcells);
+  XFREE(M->gfaces);
+  XFREE(M->gpoints);
+  XFREE(M->ref_data);
+  for (E_Int i = 0; i < M->nppatches; i++)
+    ppatch_free(&M->ppatches[i]);
+  XFREE(M->ppatches);
+  delete M;
 }

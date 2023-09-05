@@ -1,7 +1,6 @@
 #include "proto.h"
 #include <stack>
 
-static
 E_Int is_metric_valid(E_Float *M)
 {
   E_Float a = M[0];
@@ -18,26 +17,12 @@ E_Int is_metric_valid(E_Float *M)
 
 void hessian_to_metric(E_Float *H, mesh *M)
 {
-  /*
-  E_Float h = 0.01;
-  E_Int nsub = 2;
-  E_Float hmin = h / pow(2., nsub);
-  E_Float hmax = h;
-  E_Float eps = 1e-3;
-  E_Float dim = 3.;
-  E_Float cd = 0.5*dim/(dim+1.)*dim/(dim+1.);
-  E_Float ohmin2 = 1. / (hmin * hmin);
-  E_Float ohmax2 = 1. / (hmax * hmax);
-  */
   E_Float L[3], v0[3], v1[3], v2[3];
   E_Float L0, L1, L2, *pt;
   E_Int ncells = M->ncells;
   for (E_Int i = 0; i < ncells; i++) {
     pt = &H[6*i];
     eigen(pt, L, v0, v1, v2);
-    //for (E_Int k = 0; k < 3; k++)
-    //  L[k] = fmin(fmax(cd*fabs(L[k])/eps, ohmax2), ohmin2);
-    //L0 = L[0]; L1 = L[1]; L2 = L[2];
     L0 = sqrt(fabs(L[0])); L1 = sqrt(fabs(L[1])); L2 = sqrt(fabs(L[2]));
     pt[0] = L0*v0[0]*v0[0] + L1*v1[0]*v1[0] + L2*v2[0]*v2[0];
     pt[1] = L0*v0[0]*v0[1] + L1*v1[0]*v1[1] + L2*v2[0]*v2[1];
@@ -45,7 +30,6 @@ void hessian_to_metric(E_Float *H, mesh *M)
     pt[3] = L0*v0[1]*v0[1] + L1*v1[1]*v1[1] + L2*v2[1]*v2[1];
     pt[4] = L0*v0[1]*v0[2] + L1*v1[1]*v1[2] + L2*v2[1]*v2[2];
     pt[5] = L0*v0[2]*v0[2] + L1*v1[2]*v1[2] + L2*v2[2]*v2[2];
-    //assert(is_metric_valid(pt));
   }
 }
 
@@ -53,50 +37,83 @@ void compute_ref_data(mesh *M, E_Float *H)
 {
   compute_face_centers(M);
 
-  M->ref_data = (E_Int *)calloc((3*M->ncells), sizeof(E_Int));
-  E_Float d[3], dd[3], *p0, *p1, L;
-  E_Int Gmax = 5;
-  E_Float Tr = 0.5;
-  for (E_Int i = 0; i < M->ncells; i++) {
-    E_Int *pf = &M->NFACE[6*i];
-    E_Float *pH = &H[6*i];
-    E_Int *pref = &M->ref_data[3*i];
-    E_Float L0, L1, L2;
+  M->ref_data = (E_Int *)XCALLOC((3*M->ncells), sizeof(E_Int));
+  E_Float d[3], dd[3], *p0, *p1;
 
-    p0 = &M->fc[3*pf[2]];
-    p1 = &M->fc[3*pf[3]];
-    for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
-    symmat_dot_vec(pH, d, dd);
-    L0 = norm(dd, 3);
+	if (!M->iso_mode) {
+		for (E_Int i = 0; i < M->ncells; i++) {
+			E_Int *pf = &M->NFACE[6*i];
+			E_Float *pH = &H[6*i];
+			E_Int *pref = &M->ref_data[3*i];
+			E_Float L0, L1, L2;
 
-    p0 = &M->fc[3*pf[4]];
-    p1 = &M->fc[3*pf[5]];
-    for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
-    symmat_dot_vec(pH, d, dd);
-    L1 = norm(dd, 3);
-    
-    p0 = &M->fc[3*pf[0]];
-    p1 = &M->fc[3*pf[1]];
-    for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
-    symmat_dot_vec(pH, d, dd);
-    L2 = norm(dd, 3);
+			p0 = &M->fc[3*pf[2]];
+			p1 = &M->fc[3*pf[3]];
+			for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
+			symmat_dot_vec(pH, d, dd);
+			L0 = norm(dd, 3);
 
-    // get max stretch
-    E_Float MAX = std::max(std::max(L0, L1), L2);
-    if (MAX < Tr) continue;
-    
-    E_Float coeff = Gmax/MAX;
+			p0 = &M->fc[3*pf[4]];
+			p1 = &M->fc[3*pf[5]];
+			for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
+			symmat_dot_vec(pH, d, dd);
+			L1 = norm(dd, 3);
+			
+			p0 = &M->fc[3*pf[0]];
+			p1 = &M->fc[3*pf[1]];
+			for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
+			symmat_dot_vec(pH, d, dd);
+			L2 = norm(dd, 3);
 
-    if (L0 >= Tr) pref[0] = round(coeff*L0);
-    if (L1 >= Tr) pref[1] = round(coeff*L1);
-    if (L2 >= Tr) pref[2] = round(coeff*L2);
-  }
+			// get max stretch
+			E_Float MAX = std::max(std::max(L0, L1), L2);
+			if (MAX < M->Tr) continue;
+			
+			E_Float coeff = M->Gmax/MAX;
+
+			if (L0 >= M->Tr) pref[0] = round(coeff*L0);
+			if (L1 >= M->Tr) pref[1] = round(coeff*L1);
+			if (L2 >= M->Tr) pref[2] = round(coeff*L2);
+		}
+	} else {
+		for (E_Int i = 0; i < M->ncells; i++) {
+			E_Int *pf = &M->NFACE[6*i];
+			E_Float *pH = &H[6*i];
+			E_Int *pref = &M->ref_data[3*i];
+			E_Float L0, L1, L2;
+
+			p0 = &M->fc[3*pf[2]];
+			p1 = &M->fc[3*pf[3]];
+			for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
+			symmat_dot_vec(pH, d, dd);
+			L0 = norm(dd, 3);
+
+			p0 = &M->fc[3*pf[4]];
+			p1 = &M->fc[3*pf[5]];
+			for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
+			symmat_dot_vec(pH, d, dd);
+			L1 = norm(dd, 3);
+			
+			p0 = &M->fc[3*pf[0]];
+			p1 = &M->fc[3*pf[1]];
+			for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
+			symmat_dot_vec(pH, d, dd);
+			L2 = norm(dd, 3);
+
+			E_Float MAX = std::max(std::max(L0, L1), L2);
+			if (MAX < M->Tr) continue;
+
+			pref[0] = M->Gmax;
+			pref[1] = M->Gmax;
+			pref[2] = M->Gmax;
+		}
+	}
 }
 
-void compute_canon_info(E_Int cell, mesh *M, E_Int *ps)
+std::vector<E_Int> compute_canon_info(E_Int cell, mesh *M, E_Int *ps)
 {
 	if (ps[0] != -1)
-		return;
+		return std::vector<E_Int>(0);
 	
 	E_Int *pn, *pf, reorient, i, local[4], face, i0;
 	E_Int nodes[8];
@@ -171,6 +188,11 @@ void compute_canon_info(E_Int cell, mesh *M, E_Int *ps)
 	assert(local[2] == nodes[7]);
 	assert(local[3] == nodes[6]);
 	ps[5] = i0;
+
+  std::vector<E_Int> res(8);
+  for (E_Int i = 0; i < 8; i++)
+    res[i] = nodes[i];
+  return res;
 }
 
 static
@@ -556,8 +578,8 @@ void dir_to_fro(E_Int pos_face, E_Int i0, E_Int reorient, E_Int *ref_dir)
 	}
 }
 
-static
-void deduce_nei_ref_data(E_Int face_idx, E_Int pos_face_in_nei, E_Int start_node, E_Int reorient, E_Int *local_dir)
+void deduce_nei_ref_data(E_Int face_idx, E_Int pos_face_in_nei,
+	E_Int start_node, E_Int reorient, E_Int *local_dir)
 {
 	assert(pos_face_in_nei >= 0 && pos_face_in_nei < 6);
 	assert(start_node >= 0 && start_node < 4);
@@ -588,9 +610,12 @@ void fix_conflict(E_Int *ac, E_Int *bc, E_Int *an, E_Int *bn)
 	E_Int i, MIN;
 	
 	while (1) {
-		if ((incr[0] == 0 && incr[1] == 0) || (incr[2] == 0 && incr[3] == 0)) break; // one cell is done
-		else if (incr[0] == 0 && incr[2] == 0) break; // first direction is done
-		else if (incr[1] == 0 && incr[3] == 0) break; // second direction is done
+		// one cell is done
+		if ((incr[0] == 0 && incr[1] == 0) || (incr[2] == 0 && incr[3] == 0)) break;
+		// first direction is done
+		else if (incr[0] == 0 && incr[2] == 0) break;
+		// second direction is done
+		else if (incr[1] == 0 && incr[3] == 0) break;
 
 		MIN = 1000;
 		for (i = 0; i < 4; i++) {
@@ -621,20 +646,20 @@ void smooth_ref_data(mesh *M)
 	E_Int max_exchanges = 10;
 	E_Int exchange = 0;
 	
-	E_Int i, j, k, cell, ncells, *pf, *pn, *pr, *ps, *prn, face, ac, bc, gc, an, bn, gn;
-	E_Int has_changed, reorient_c, reorient_n, nei, fpos, i0, ac_orig, bc_orig, gc_orig;
-	E_Int An_orig[6][3], an_orig, bn_orig, gn_orig;
-	E_Int npfaces, *pfaces, *owner;
+	E_Int i, j, k, cell, ncells, *pf, *pn, *pr, *ps, *prn, face, ac, bc, gc, an,
+		bn, gn, has_changed, reorient_c, reorient_n, nei, fpos, i0, ac_orig,
+		bc_orig, gc_orig, An_orig[6][3], an_orig, bn_orig, gn_orig, npfaces,
+		*pfaces, *owner;
 	
   ncells = M->ncells;
   owner = M->owner;
 
   // first, exchange topological info (doesn't change during smoothing) 
-	E_Int **pnei_topo_data = (E_Int **)calloc(M->nppatches, sizeof(E_Int *));
+	E_Int **pnei_topo_data = (E_Int **)XCALLOC(M->nppatches, sizeof(E_Int *));
 
 	E_Int dest, l;
 
-  E_Int **send_buf = (E_Int **)malloc(M->nppatches * sizeof(E_Int *));
+  E_Int **send_buf = (E_Int **)XMALLOC(M->nppatches * sizeof(E_Int *));
 
 	for (i = 0; i < M->nppatches; i++) {
 		npfaces = M->ppatches[i].nfaces;
@@ -642,9 +667,9 @@ void smooth_ref_data(mesh *M)
 		dest = M->ppatches[i].nei_proc;
 	
 		// fpos + reorient_n + start_node_nei_of_pface = 3
-		pnei_topo_data[i] = (E_Int *)malloc(3*npfaces * sizeof(E_Int));
+		pnei_topo_data[i] = (E_Int *)XMALLOC(3*npfaces * sizeof(E_Int));
 
-    send_buf[i] = (E_Int *)malloc(3*npfaces * sizeof(E_Int));
+    send_buf[i] = (E_Int *)XMALLOC(3*npfaces * sizeof(E_Int));
 
 		l = 0;
 		for (j = 0; j < npfaces; j++) {
@@ -676,9 +701,9 @@ void smooth_ref_data(mesh *M)
 	comm_waitall(M);
 
   // allocate proc ref data 
-	E_Int **pnei_ref_data = (E_Int **)calloc(M->nppatches, sizeof(E_Int *));
+	E_Int **pnei_ref_data = (E_Int **)XCALLOC(M->nppatches, sizeof(E_Int *));
 	for (i = 0; i < M->nppatches; i++) {
-		pnei_ref_data[i] = (E_Int *)calloc(3*M->ppatches[i].nfaces, sizeof(E_Int));
+		pnei_ref_data[i] = (E_Int *)XCALLOC(3*M->ppatches[i].nfaces, sizeof(E_Int));
 	}
 
   while (++exchange <= max_exchanges) {
@@ -765,8 +790,10 @@ void smooth_ref_data(mesh *M)
 					pr[0] = ac; pr[1] = bc; pr[2] = gc;
 					prn[0] = an; prn[1] = bn; prn[2] = gn;
 
-					has_changed |= !((ac == ac_orig) && (bc == bc_orig) && (gc == gc_orig));
-					has_changed |= !((an == an_orig) && (bn == bn_orig) && (gn == gn_orig));
+					has_changed |=
+						!((ac == ac_orig) && (bc == bc_orig) && (gc == gc_orig));
+					has_changed |=
+						!((an == an_orig) && (bn == bn_orig) && (gn == gn_orig));
 				}
 			} while (has_changed);
 
@@ -852,7 +879,8 @@ void smooth_ref_data(mesh *M)
         pr[1] = bc;
         pr[2] = gc;
 
-        E_Int pcell_changed = (ac != ac_orig) || (bc != bc_orig) || (gc != gc_orig);
+        E_Int pcell_changed =
+					(ac != ac_orig) || (bc != bc_orig) || (gc != gc_orig);
         if (pcell_changed)
           lstop = 1;
       }
@@ -868,9 +896,9 @@ void smooth_ref_data(mesh *M)
     fprintf(stderr, "smooth_ref_data(): Warning: exceeded max_exchanges");
 
 	for (i = 0; i < M->nppatches; i++) {
-		free(pnei_topo_data[i]);
-		free(pnei_ref_data[i]);
+		XFREE(pnei_topo_data[i]);
+		XFREE(pnei_ref_data[i]);
 	}
-	free(pnei_topo_data);
-	free(pnei_ref_data);
+	XFREE(pnei_topo_data);
+	XFREE(pnei_ref_data);
 }

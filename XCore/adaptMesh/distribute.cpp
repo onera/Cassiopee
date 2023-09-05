@@ -75,8 +75,11 @@ mesh *redistribute_mesh(mesh *M)
   std::vector<E_Int> cwgt(M->ncells, 0);
   for (E_Int i = 0; i < M->ncells; i++) {
     E_Int *pr = &M->ref_data[3*i];
+    E_Int pow = 0;
     for (E_Int j = 0; j < 3; j++)
-      cwgt[i] += pr[j];
+      pow += pr[j];
+    //cwgt[i] = 1 + (1<<pow);
+    cwgt[i] = 1<<pow;
     //cwgt[i] = std::max(std::max(pr[0], pr[1]), pr[2]);
   }
 
@@ -92,7 +95,7 @@ mesh *redistribute_mesh(mesh *M)
     &graph,
     0,
     M->ncells,
-    M->ncells, // change ?
+    M->ncells,
     &xadj[0],
     NULL,
     &cwgt[0],
@@ -127,7 +130,6 @@ mesh *redistribute_mesh(mesh *M)
 
   // exchange
   E_Int nproc = M->npc;
-  E_Int rank = M->pid;
   mesh *m = new mesh;
 
   // send cell ids and strides
@@ -136,7 +138,8 @@ mesh *redistribute_mesh(mesh *M)
   for (E_Int i = 0; i < M->ncells; i++)
     c_scount[part[i]]++;
 
-  MPI_Alltoall(&c_scount[0], 1, MPI_INT, &c_rcount[0], 1, MPI_INT, MPI_COMM_WORLD);
+  MPI_Alltoall(&c_scount[0], 1, MPI_INT, &c_rcount[0], 1, MPI_INT,
+    MPI_COMM_WORLD);
 
   std::vector<E_Int> c_sdist(nproc+1);
   std::vector<E_Int> c_rdist(nproc+1);
@@ -147,8 +150,9 @@ mesh *redistribute_mesh(mesh *M)
   }
 
   E_Int nncells = c_rdist[nproc];
+  m->ncells = nncells;
 
-  m->gcells = (E_Int *)malloc(nncells * sizeof(E_Int));
+  m->gcells = (E_Int *)XMALLOC(nncells * sizeof(E_Int));
   std::vector<E_Int> scells(c_sdist[nproc]);
   
   std::vector<E_Int> c_stride(c_sdist[nproc]);
@@ -167,7 +171,7 @@ mesh *redistribute_mesh(mesh *M)
                 m->gcells, &c_rcount[0], &c_rdist[0], MPI_INT,
                 MPI_COMM_WORLD);
 
-  m->xcells = (E_Int *)malloc((nncells+1) * sizeof(E_Int));
+  m->xcells = (E_Int *)XMALLOC((nncells+1) * sizeof(E_Int));
   MPI_Alltoallv(&c_stride[0], &c_scount[0], &c_sdist[0], MPI_INT,
                 m->xcells+1, &c_rcount[0], &c_rdist[0], MPI_INT,
                 MPI_COMM_WORLD);
@@ -175,6 +179,8 @@ mesh *redistribute_mesh(mesh *M)
   m->xcells[0] = 0;
   for (E_Int i = 0; i < nncells; i++)
     m->xcells[i+1] += m->xcells[i];
+
+  assert(m->xcells[m->ncells] == 6*m->ncells);
 
   // send NFACE connectivity
   std::vector<E_Int> scount(nproc, 0);
@@ -193,7 +199,7 @@ mesh *redistribute_mesh(mesh *M)
   }
 
   std::vector<E_Int> sdata(sdist[nproc]);
-  m->NFACE = (E_Int *)malloc(rdist[nproc] * sizeof(E_Int));
+  m->NFACE = (E_Int *)XMALLOC(rdist[nproc] * sizeof(E_Int));
 
   for (E_Int i = 0; i < nproc; i++)
     idx[i] = sdist[i];
@@ -208,9 +214,8 @@ mesh *redistribute_mesh(mesh *M)
                 m->NFACE, &rcount[0], &rdist[0], MPI_INT,
                 MPI_COMM_WORLD);
 
-  
   // hash cells
-  for (E_Int i = 0; i < nncells; i++)
+  for (E_Int i = 0; i < m->ncells; i++)
     m->CT[m->gcells[i]] = i;
 
   // hash and request faces
@@ -232,7 +237,8 @@ mesh *redistribute_mesh(mesh *M)
     }
   }
 
-  MPI_Alltoall(&f_rcount[0], 1, MPI_INT, &f_scount[0], 1, MPI_INT, MPI_COMM_WORLD);
+  MPI_Alltoall(&f_rcount[0], 1, MPI_INT, &f_scount[0], 1, MPI_INT,
+    MPI_COMM_WORLD);
 
   std::vector<E_Int> f_rdist(nproc+1);
   std::vector<E_Int> f_sdist(nproc+1);
@@ -243,8 +249,9 @@ mesh *redistribute_mesh(mesh *M)
   }
 
   assert(nnfaces == f_rdist[nproc]);
+  m->nfaces = nnfaces;
 
-  m->gfaces = (E_Int *)malloc(nnfaces * sizeof(E_Int));
+  m->gfaces = (E_Int *)XMALLOC(m->nfaces * sizeof(E_Int));
   std::vector<E_Int> sfaces(f_sdist[nproc]);
 
   for (E_Int i = 0; i < nproc; i++)
@@ -258,6 +265,7 @@ mesh *redistribute_mesh(mesh *M)
       E_Int cell = m->CT[pc[j]];
       for (E_Int k = m->xcells[cell]; k < m->xcells[cell+1]; k++) {
         E_Int face = m->NFACE[k];
+        assert(face > 0);
         if (!vfaces[m->FT[face]]) {
           vfaces[m->FT[face]]++;
           m->gfaces[idx[i]++] = face;
@@ -272,7 +280,7 @@ mesh *redistribute_mesh(mesh *M)
 
   // send face strides
   std::vector<E_Int> f_stride(f_sdist[nproc]);
-  m->xfaces = (E_Int *)malloc((f_rdist[nproc]+1) * sizeof(E_Int));
+  m->xfaces = (E_Int *)XMALLOC((m->nfaces+1) * sizeof(E_Int));
   for (E_Int i = 0; i < nproc; i++)
     scount[i] = 0;
   
@@ -281,6 +289,7 @@ mesh *redistribute_mesh(mesh *M)
     E_Int *ps = &f_stride[f_sdist[i]];
     for (E_Int j = 0; j < f_scount[i]; j++) {
       E_Int face = M->FT[pf[j]];
+      assert(face < M->nfaces);
       E_Int stride = M->xfaces[face+1] - M->xfaces[face];
       ps[j] = stride;
       scount[i] += stride;
@@ -295,6 +304,8 @@ mesh *redistribute_mesh(mesh *M)
   for (E_Int i = 0; i < nnfaces; i++)
     m->xfaces[i+1] += m->xfaces[i];
 
+  assert(m->xfaces[m->nfaces] == 4*m->nfaces);
+
   MPI_Alltoall(&scount[0], 1, MPI_INT, &rcount[0], 1, MPI_INT, MPI_COMM_WORLD);
 
   // send NGON
@@ -303,13 +314,15 @@ mesh *redistribute_mesh(mesh *M)
     rdist[i+1] = rdist[i] + rcount[i];
   }
   sdata.resize(sdist[nproc]);
-  m->NGON = (E_Int *)malloc(rdist[nproc] * sizeof(E_Int));
+  assert(rdist[nproc] == 4*m->nfaces);
+  m->NGON = (E_Int *)XMALLOC(rdist[nproc] * sizeof(E_Int));
 
   for (E_Int i = 0; i < nproc; i++) {
     E_Int *pf = &sfaces[f_sdist[i]];
     E_Int *pn = &sdata[sdist[i]];
     for (E_Int j = 0; j < f_scount[i]; j++) {
       E_Int face = M->FT[pf[j]];
+      assert(face < M->nfaces);
       for (E_Int k = M->xfaces[face]; k < M->xfaces[face+1]; k++)
         *pn++ = M->gpoints[M->NGON[k]];
     }
@@ -337,7 +350,8 @@ mesh *redistribute_mesh(mesh *M)
     }
   }
 
-  MPI_Alltoall(&p_rcount[0], 1, MPI_INT, &p_scount[0], 1, MPI_INT, MPI_COMM_WORLD);
+  MPI_Alltoall(&p_rcount[0], 1, MPI_INT, &p_scount[0], 1, MPI_INT,
+    MPI_COMM_WORLD);
 
   std::vector<E_Int> p_sdist(nproc+1);
   std::vector<E_Int> p_rdist(nproc+1);
@@ -347,9 +361,10 @@ mesh *redistribute_mesh(mesh *M)
     p_rdist[i+1] = p_rdist[i] + p_rcount[i];
   }
   std::vector<E_Int> spoints(p_sdist[nproc]);
-  m->gpoints = (E_Int *)malloc(p_rdist[nproc] * sizeof(E_Int));
+  m->gpoints = (E_Int *)XMALLOC(p_rdist[nproc] * sizeof(E_Int));
   std::vector<E_Int> vpoints(nnpoints, 0);
   assert(nnpoints == p_rdist[nproc]);
+  m->npoints = nnpoints;
 
   for (E_Int i = 0; i < nproc; i++)
     idx[i] = p_rdist[i];
@@ -360,6 +375,7 @@ mesh *redistribute_mesh(mesh *M)
       E_Int face = m->FT[pf[j]];
       for (E_Int k = m->xfaces[face]; k < m->xfaces[face+1]; k++) {
         E_Int point = m->NGON[k];
+        assert(m->PT.find(point) != m->PT.end());
         if (!vpoints[m->PT[point]]) {
           vpoints[m->PT[point]]++;
           m->gpoints[idx[i]++] = point;
@@ -383,7 +399,7 @@ mesh *redistribute_mesh(mesh *M)
   assert(rdist[nproc] == 3*p_rdist[nproc]);
   
   std::vector<E_Float> sxyz(sdist[nproc]);
-  m->xyz = (E_Float *)malloc(rdist[nproc] * sizeof(E_Float));
+  m->xyz = (E_Float *)XMALLOC(rdist[nproc] * sizeof(E_Float));
 
   for (E_Int i = 0; i < nproc; i++) {
     E_Int *pp = &spoints[p_sdist[i]];
@@ -400,8 +416,54 @@ mesh *redistribute_mesh(mesh *M)
                 m->xyz, &rcount[0], &rdist[0], MPI_DOUBLE,
                 MPI_COMM_WORLD);
 
-  M->ncells = nncells;
-  M->nfaces = nnfaces;
-  M->npoints = nnpoints;
+  // exchange ref_data
+  m->ref_data = (E_Int *)XMALLOC(3*m->ncells * sizeof(E_Int));
+  sdata.resize(3*c_sdist[nproc]);
+  E_Int *p = &sdata[0];
+  for (E_Int i = 0; i < nproc; i++) {
+    E_Int *ptr = &scells[c_sdist[i]];
+    for (E_Int j = 0; j < c_scount[i]; j++) {
+      E_Int cell = M->CT[ptr[j]];
+      E_Int *pr = &M->ref_data[3*cell];
+      for (E_Int k = 0; k < 3; k++)
+        *p++ = pr[k];
+    }
+  }
+
+  for (E_Int i = 0; i < nproc; i++) {
+    scount[i] = 3*c_scount[i];
+    rcount[i] = 3*c_rcount[i];
+    sdist[i+1] = sdist[i] + scount[i];
+    rdist[i+1] = rdist[i] + rcount[i];
+  }
+
+  MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], MPI_INT,
+                m->ref_data, &rcount[0], &rdist[0], MPI_INT,
+                MPI_COMM_WORLD);
+
+  // init parent elements
+  m->owner = (E_Int *)XMALLOC(m->nfaces * sizeof(E_Int));
+  m->neigh = (E_Int *)XMALLOC(m->nfaces * sizeof(E_Int));
+  for (E_Int i = 0; i < m->nfaces; i++) {
+    m->owner[i] = -1;
+    m->neigh[i] = -1;
+  }
+  
+  for (E_Int i = 0; i < m->xcells[m->ncells]; i++)
+    m->NFACE[i] = m->FT[m->NFACE[i]];
+
+  for (E_Int i = 0; i < m->xfaces[m->nfaces]; i++)
+    m->NGON[i] = m->PT[m->NGON[i]];
+  
+  for (E_Int i = 0; i < m->ncells; i++) {
+    for (E_Int j = m->xcells[i]; j < m->xcells[i+1]; j++) {
+      E_Int face = m->NFACE[j];
+      if (m->owner[face] == -1) m->owner[face] = i;
+      else m->neigh[face] = i;
+    }
+  }
+  
+  topo_init_mesh(m);
+
   return m;
 }

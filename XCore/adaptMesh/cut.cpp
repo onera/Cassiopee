@@ -16,25 +16,26 @@ E_Int get_nchildren(tree *T, E_Int id)
 
 void resize_data_for_refinement(mesh *M, tree *ct, tree *ft, E_Int nref_cells, E_Int nref_faces)
 {
-  E_Int cell_increment = 8*nref_cells;
-  E_Int face_increment = 6*cell_increment;
+  E_Int cell_increment = 8*nref_cells; // 8 new cells per cell
+  E_Int face_increment = 36*nref_cells; // 24 cfaces + 12 ifaces per new cell
 
   tree_resize(ft, face_increment, 4);
   tree_resize(ct, cell_increment, 8);
 
   E_Int new_nfaces = M->nfaces + face_increment;
   E_Int new_ncells = M->ncells + cell_increment;
+	E_Int new_npoints = M->npoints + cell_increment*19; // 27 - 8
 
-  M->NGON  = (E_Int *)   realloc(M->NGON,   (4*new_nfaces)  * sizeof(E_Int));
-  M->NFACE  = (E_Int *)  realloc(M->NFACE,  (6*new_ncells)  * sizeof(E_Int));
-  M->fc     = (E_Float *)realloc(M->fc,     (3*new_nfaces)  * sizeof(E_Float));
-  M->cc     = (E_Float *)realloc(M->cc,     (3*new_ncells)  * sizeof(E_Float));
-  M->xyz    = (E_Float *)realloc(M->xyz,    (12*new_nfaces) * sizeof(E_Float));
-  M->owner  = (E_Int *)  realloc(M->owner,  new_nfaces      * sizeof(E_Int));
-  M->neigh  = (E_Int *)  realloc(M->neigh,  new_nfaces      * sizeof(E_Int));
-  M->xfaces = (E_Int *)  realloc(M->xfaces, (new_nfaces+1)  * sizeof(E_Int));
-  M->xcells = (E_Int *)  realloc(M->xcells, (new_ncells+1)  * sizeof(E_Int));
-  
+  M->NGON  = (E_Int *)   XRESIZE(M->NGON,   (4*new_nfaces)  * sizeof(E_Int));
+  M->NFACE  = (E_Int *)  XRESIZE(M->NFACE,  (6*new_ncells)  * sizeof(E_Int));
+  M->fc     = (E_Float *)XRESIZE(M->fc,     (3*new_nfaces)  * sizeof(E_Float));
+  M->cc     = (E_Float *)XRESIZE(M->cc,     (3*new_ncells)  * sizeof(E_Float));
+  M->xyz    = (E_Float *)XRESIZE(M->xyz,    (3*new_npoints) * sizeof(E_Float));
+  M->owner  = (E_Int *)  XRESIZE(M->owner,  new_nfaces      * sizeof(E_Int));
+  M->neigh  = (E_Int *)  XRESIZE(M->neigh,  new_nfaces      * sizeof(E_Int));
+  M->xfaces = (E_Int *)  XRESIZE(M->xfaces, (new_nfaces+1)  * sizeof(E_Int));
+  M->xcells = (E_Int *)  XRESIZE(M->xcells, (new_ncells+1)  * sizeof(E_Int));
+
   // init
   for (E_Int i = M->nfaces; i < new_nfaces; i++) {
     M->owner[i] = -1;
@@ -42,15 +43,25 @@ void resize_data_for_refinement(mesh *M, tree *ct, tree *ft, E_Int nref_cells, E
   }
 
   // assume quad and hexa
-  for (E_Int i = M->nfaces; i < new_nfaces-1; i++)
+  for (E_Int i = M->nfaces; i < new_nfaces; i++)
     M->xfaces[i+1] = 4;
-  for (E_Int i = M->nfaces; i < new_nfaces-1; i++)
+  for (E_Int i = M->nfaces; i < new_nfaces; i++)
     M->xfaces[i+1] += M->xfaces[i];
 
-  for (E_Int i = M->ncells; i < new_ncells-1; i++)
+  for (E_Int i = M->ncells; i < new_ncells; i++)
     M->xcells[i+1] = 6;
-  for (E_Int i = M->ncells; i < new_ncells-1; i++)
+  for (E_Int i = M->ncells; i < new_ncells; i++)
     M->xcells[i+1] += M->xcells[i];
+
+	/*
+	for (E_Int i = 0; i < new_ncells; i++) {
+		assert(M->xcells[i+1] == M->xcells[i] + 6);
+	}
+
+	for (E_Int i = 0; i < new_nfaces; i++) {
+		assert(M->xfaces[i+1] == M->xfaces[i] + 4);
+	}
+	*/
 }
 
 E_Int is_cell_to_refine(E_Int *ref_data)
@@ -1515,7 +1526,8 @@ void cut_cell_xyz(E_Int cell, mesh *M, tree *ct, tree *ft)
 {
 	E_Int i, face, *pn, i0, reorient, *children, local[9];
 
-	E_Int NODES[27] = {-1};
+	E_Int NODES[27];
+	memset(NODES, -1, 27*sizeof(E_Int));
 	E_Int FACES[24];
 	E_Int *BOT = FACES;
 	E_Int *TOP = FACES + 4;
@@ -1529,6 +1541,7 @@ void cut_cell_xyz(E_Int cell, mesh *M, tree *ct, tree *ft)
 
 	// BOT
 	face = pf[0];
+	assert(M->owner[face] == cell || M->neigh[face] == cell);
 	pn = &faces[4*face];
 	i0 = 0;
 	reorient = get_reorient(face, cell, normalIn[0], M);
@@ -1546,6 +1559,7 @@ void cut_cell_xyz(E_Int cell, mesh *M, tree *ct, tree *ft)
 
 	// LFT
 	face = pf[2];
+	assert(M->owner[face] == cell || M->neigh[face] == cell);
 	pn = &faces[4*face];
 	i0 = get_pos(NODES[0], pn, 4);
 	reorient = get_reorient(face, cell, normalIn[2], M);
@@ -1566,6 +1580,7 @@ void cut_cell_xyz(E_Int cell, mesh *M, tree *ct, tree *ft)
 
 	// RGT
 	face = pf[3];
+	assert(M->owner[face] == cell || M->neigh[face] == cell);
 	pn = &faces[4*face];
 	i0 = get_pos(NODES[1], pn, 4);
 	reorient = get_reorient(face, cell, normalIn[3], M);
@@ -1586,6 +1601,7 @@ void cut_cell_xyz(E_Int cell, mesh *M, tree *ct, tree *ft)
 
 	// FRO
 	face = pf[4];
+	assert(M->owner[face] == cell || M->neigh[face] == cell);
 	pn = &faces[4*face];
 	i0 = get_pos(NODES[1], pn, 4);
 	reorient = get_reorient(face, cell, normalIn[4], M);
@@ -1606,6 +1622,7 @@ void cut_cell_xyz(E_Int cell, mesh *M, tree *ct, tree *ft)
 
 	// BCK
 	face = pf[5];
+	assert(M->owner[face] == cell || M->neigh[face] == cell);
 	pn = &faces[4*face];
 	i0 = get_pos(NODES[2], pn, 4);
 	reorient = get_reorient(face, cell, normalIn[5], M);
@@ -1626,6 +1643,7 @@ void cut_cell_xyz(E_Int cell, mesh *M, tree *ct, tree *ft)
 
 	// TOP
 	face = pf[1];
+	assert(M->owner[face] == cell || M->neigh[face] == cell);
 	pn = &faces[4*face];
 	i0 = get_pos(NODES[4], pn, 4);
 	reorient = get_reorient(face, cell, normalIn[1], M);
@@ -1644,13 +1662,14 @@ void cut_cell_xyz(E_Int cell, mesh *M, tree *ct, tree *ft)
 	assert(local[7] == NODES[14]);
 	NODES[24] = local[8];
 
-	// NOTE: centroid is supposed to be already computed
-	assert(M->cc);
+	// Add cell centroid
 	NODES[26] = M->npoints;
+	compute_cell_center(M, cell);
 	E_Float *cx = &M->cc[3*cell];
-	E_Float *X = &M->xyz[3*M->npoints++];
+	E_Float *X = &M->xyz[3*M->npoints];
 	for (E_Int k = 0; k < 3; k++)
 		X[k] = cx[k];
+	M->npoints++;
 
 	// E_Internal faces
 	E_Int nfaces = M->nfaces;
@@ -1730,8 +1749,8 @@ void cut_cell_xyz(E_Int cell, mesh *M, tree *ct, tree *ft)
 	new_cell_6[4] = nfaces+10; new_cell_7[4] = nfaces+11;
 	new_cell_6[5] = BCK[2];    new_cell_7[5] = BCK[3];
 
-	for (i = 0; i < 8; i++)
-		compute_cell_center(M, M->ncells+i);
+	//for (i = 0; i < 8; i++)
+	//	compute_cell_center(M, M->ncells+i);
 
 	// update cell tree
 	tree_insert_children(ct, cell, M->ncells, 8);

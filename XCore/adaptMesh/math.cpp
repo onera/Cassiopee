@@ -53,29 +53,29 @@ E_Int BiCGStab(E_Float *A, E_Float *x, E_Float *b, E_Int n)
   E_Int j;
 
 
-  E_Float *r = (E_Float *)malloc(n * sizeof(E_Float));
-  E_Float *Ax = (E_Float *)malloc(n * sizeof(E_Float));
+  E_Float *r = (E_Float *)XMALLOC(n * sizeof(E_Float));
+  E_Float *Ax = (E_Float *)XMALLOC(n * sizeof(E_Float));
 
   sqrmat_times_vec(A, x, Ax, n);
   for (i = 0; i < n; i++) r[i] = b[i] - Ax[i];
 
   E_Float err = norm(r, n);
   if (err < tol) {
-    free(r);
-    free(Ax);
+    XFREE(r);
+    XFREE(Ax);
     return 1;
   }
 
   E_Float omega, rho, beta, rho0, alpha;
   rho = beta = rho0 = alpha = 1.;
 
-  E_Float *rhat = (E_Float *)malloc(n * sizeof(E_Float));
+  E_Float *rhat = (E_Float *)XMALLOC(n * sizeof(E_Float));
   memcpy(rhat, r, n*sizeof(E_Float));
 
-  E_Float *p = (E_Float *)calloc(n, sizeof(E_Float));
-  E_Float *v = (E_Float *)calloc(n, sizeof(E_Float));
-  E_Float *s = (E_Float *)malloc(n * sizeof(E_Float));
-  E_Float *t = (E_Float *)malloc(n * sizeof(E_Float));
+  E_Float *p = (E_Float *)XCALLOC(n, sizeof(E_Float));
+  E_Float *v = (E_Float *)XCALLOC(n, sizeof(E_Float));
+  E_Float *s = (E_Float *)XMALLOC(n * sizeof(E_Float));
+  E_Float *t = (E_Float *)XMALLOC(n * sizeof(E_Float));
 
   E_Int maxiter = n*10;
   for (i = 1; i <= maxiter; i++) {
@@ -125,13 +125,13 @@ E_Int BiCGStab(E_Float *A, E_Float *x, E_Float *b, E_Int n)
     assert(!feq(omega, 0.));
   }
 
-  free(r);
-  free(Ax);
-  free(s);
-  free(t);
-  free(p);
-  free(v);
-  free(rhat);
+  XFREE(r);
+  XFREE(Ax);
+  XFREE(s);
+  XFREE(t);
+  XFREE(p);
+  XFREE(v);
+  XFREE(rhat);
 
   return converged;
 }
@@ -142,9 +142,9 @@ void compute_lsq_grad_matrices(mesh *M)
 {
   if (M->lsqG) return;
   E_Int stride = 3*MAXNEI;
-  M->lsqG = (E_Float *)calloc(stride*M->ncells, sizeof(E_Float));
-  M->lsqGG = (E_Float *)calloc(9*M->ncells, sizeof(E_Float));
-  E_Int *count_neis = (E_Int *)calloc(M->ncells, sizeof(E_Int));
+  M->lsqG = (E_Float *)XCALLOC(stride*M->ncells, sizeof(E_Float));
+  M->lsqGG = (E_Float *)XCALLOC(9*M->ncells, sizeof(E_Float));
+  E_Int *count_neis = (E_Int *)XCALLOC(M->ncells, sizeof(E_Int));
 
   E_Int *owner = M->owner;
   E_Int *neigh = M->neigh;
@@ -173,9 +173,11 @@ void compute_lsq_grad_matrices(mesh *M)
   // TODO(Imad): account for boundary data
 
   if (!M->pnei_coords) {
-    M->pnei_coords = (E_Float **)malloc(M->nppatches * sizeof(E_Float *));
-    for (E_Int i = 0; i < M->nppatches; i++)
-      M->pnei_coords[i] = (E_Float *)malloc(3*M->ppatches[i].nfaces * sizeof(E_Float));
+    M->pnei_coords = (E_Float **)XMALLOC(M->nppatches * sizeof(E_Float *));
+    for (E_Int i = 0; i < M->nppatches; i++) {
+      M->pnei_coords[i] = (E_Float *)XMALLOC(
+        3*M->ppatches[i].nfaces * sizeof(E_Float));
+    }
     comm_interface_data_d(M, &M->cc[0], 3, M->pnei_coords);
   }
 
@@ -213,7 +215,7 @@ void compute_lsq_grad_matrices(mesh *M)
     }
   }
 
-  free(count_neis);
+  XFREE(count_neis);
 }
 
 E_Float *compute_grad(mesh *M, E_Float *fld)
@@ -221,11 +223,11 @@ E_Float *compute_grad(mesh *M, E_Float *fld)
   compute_cell_centers(M);
   compute_lsq_grad_matrices(M);
 
-  E_Float *B = (E_Float *)malloc(3 * sizeof(E_Float));
-  E_Float *G = (E_Float *)malloc(3*M->ncells * sizeof(E_Float));
-  E_Float *b = (E_Float *)malloc(MAXNEI*M->ncells * sizeof(E_Float));
+  E_Float *B = (E_Float *)XMALLOC(3 * sizeof(E_Float));
+  E_Float *G = (E_Float *)XMALLOC(3*M->ncells * sizeof(E_Float));
+  E_Float *b = (E_Float *)XMALLOC(MAXNEI*M->ncells * sizeof(E_Float));
 
-  E_Int *count_neis = (E_Int *)calloc(M->ncells, sizeof(E_Int));
+  E_Int *count_neis = (E_Int *)XCALLOC(M->ncells, sizeof(E_Int));
 
   E_Int *owner = M->owner;
   E_Int *neigh = M->neigh;
@@ -240,9 +242,11 @@ E_Float *compute_grad(mesh *M, E_Float *fld)
   }
 
   if (!M->pnei_flds) {
-    M->pnei_flds = (E_Float **)malloc(M->nppatches * sizeof(E_Float *));
-    for (E_Int i = 0; i < M->nppatches; i++)
-      M->pnei_flds[i] = (E_Float *)malloc(M->ppatches[i].nfaces * sizeof(E_Float));
+    M->pnei_flds = (E_Float **)XMALLOC(M->nppatches * sizeof(E_Float *));
+    for (E_Int i = 0; i < M->nppatches; i++) {
+      M->pnei_flds[i] = (E_Float *)XMALLOC(
+        M->ppatches[i].nfaces * sizeof(E_Float));
+    }
     comm_interface_data_d(M, fld, 1, M->pnei_flds);
   }
 
@@ -270,9 +274,9 @@ E_Float *compute_grad(mesh *M, E_Float *fld)
     assert(converged);
   }
 
-  free(B);
-  free(b);
-  free(count_neis);
+  XFREE(B);
+  XFREE(b);
+  XFREE(count_neis);
 
   return G;
 }
@@ -281,9 +285,9 @@ void compute_lsq_hess_matrices(mesh *M)
 {
   if (M->lsqH) return;
   E_Int stride = 6*MAXNEI;
-  M->lsqH = (E_Float *)calloc(stride*M->ncells, sizeof(E_Float));
-  M->lsqHH = (E_Float *)calloc(36*M->ncells, sizeof(E_Float));
-  E_Int *count_neis = (E_Int *)calloc(M->ncells, sizeof(E_Int));
+  M->lsqH = (E_Float *)XCALLOC(stride*M->ncells, sizeof(E_Float));
+  M->lsqHH = (E_Float *)XCALLOC(36*M->ncells, sizeof(E_Float));
+  E_Int *count_neis = (E_Int *)XCALLOC(M->ncells, sizeof(E_Int));
 
   E_Float *lsqH = M->lsqH;
   E_Float *lsqHH = M->lsqHH;
@@ -327,9 +331,11 @@ void compute_lsq_hess_matrices(mesh *M)
   // TODO: boundary data
 
   if (!M->pnei_coords) {
-    M->pnei_coords = (E_Float **)malloc(M->nppatches * sizeof(E_Float *));
-    for (E_Int i = 0; i < M->nppatches; i++)
-      M->pnei_coords[i] = (E_Float *)malloc(3*M->ppatches[i].nfaces * sizeof(E_Float));
+    M->pnei_coords = (E_Float **)XMALLOC(M->nppatches * sizeof(E_Float *));
+    for (E_Int i = 0; i < M->nppatches; i++) {
+      M->pnei_coords[i] = (E_Float *)XMALLOC(
+        3*M->ppatches[i].nfaces * sizeof(E_Float));
+    }
     comm_interface_data_d(M, &M->cc[0], 3, M->pnei_coords);
   }
 
@@ -377,7 +383,7 @@ void compute_lsq_hess_matrices(mesh *M)
     }
   }
 
-  free(count_neis);
+  XFREE(count_neis);
 }
 
 E_Float *compute_hessian(mesh* M, E_Float *fld)
@@ -386,11 +392,11 @@ E_Float *compute_hessian(mesh* M, E_Float *fld)
   E_Float *G = compute_grad(M, fld);
   compute_lsq_hess_matrices(M);
   
-  E_Float *B = (E_Float *)malloc(6 * sizeof(E_Float));
-  E_Float *H = (E_Float *)malloc(6*M->ncells * sizeof(E_Float));
-  E_Float *b = (E_Float *)malloc(MAXNEI*M->ncells * sizeof(E_Float));
+  E_Float *B = (E_Float *)XMALLOC(6 * sizeof(E_Float));
+  E_Float *H = (E_Float *)XMALLOC(6*M->ncells * sizeof(E_Float));
+  E_Float *b = (E_Float *)XMALLOC(MAXNEI*M->ncells * sizeof(E_Float));
 
-  E_Int *count_neis = (E_Int *)calloc(M->ncells, sizeof(E_Int));
+  E_Int *count_neis = (E_Int *)XCALLOC(M->ncells, sizeof(E_Int));
 
   E_Int *owner = M->owner;
   E_Int *neigh = M->neigh;
@@ -413,20 +419,11 @@ E_Float *compute_hessian(mesh* M, E_Float *fld)
     E_Float dy = cn[1] - co[1];
     E_Float dz = cn[2] - co[2];
 
-    b[MAXNEI*own + count_neis[own]++] = 2.*( dfld - (go[0]*dx + go[1]*dy + go[2]*dz));
-    b[MAXNEI*nei + count_neis[nei]++] = 2.*(-dfld + (gn[0]*dx + gn[1]*dy + gn[2]*dz));
+    b[MAXNEI*own + count_neis[own]++] =
+      2.*( dfld - (go[0]*dx + go[1]*dy + go[2]*dz));
+    b[MAXNEI*nei + count_neis[nei]++] =
+      2.*(-dfld + (gn[0]*dx + gn[1]*dy + gn[2]*dz));
   }
-
-  // exchange gradients
-  // NOTE(Imad): not needed?
-  /*
-  if (!M->pnei_grads) {
-    M->pnei_grads = (E_Float **)malloc(M->nppatches * sizeof(E_Float *));
-    for (E_Int i = 0; i < M->nppatches; i++)
-      M->pnei_grads[i] = (E_Float *)malloc(3*M->ppatches[i].nfaces * sizeof(E_Float));
-    comm_interface_data_d(M, G, 3, M->pnei_grads);
-  }
-  */
 
   assert(M->pnei_flds);
 
@@ -449,7 +446,8 @@ E_Float *compute_hessian(mesh* M, E_Float *fld)
       E_Float dy = cn[1] - co[1];
       E_Float dz = cn[2] - co[2];
 
-      b[MAXNEI*own + count_neis[own]++] = 2.*(dfld - (go[0]*dx + go[1]*dy + go[2]*dz));
+      b[MAXNEI*own + count_neis[own]++] =
+        2.*(dfld - (go[0]*dx + go[1]*dy + go[2]*dz));
     }
   }
 
@@ -487,10 +485,10 @@ E_Float *compute_hessian(mesh* M, E_Float *fld)
     //assert(converged);
   }
 
-  free(B);
-  free(b);
-  free(count_neis);
-  free(G);
+  XFREE(B);
+  XFREE(b);
+  XFREE(count_neis);
+  XFREE(G);
 
   return H;
 }
@@ -573,7 +571,8 @@ void eigen(E_Float *M, E_Float *L, E_Float *v1, E_Float *v2, E_Float *v3)
   L[2] = M[5];
 
   E_Float Ap[6], B[6], Ar[4];
-  E_Float s1[3], s2[3], t2[3], t3[3], r1[3], r2[3], r3[3], tmp1[3], tmp2[3], u1[3], u2[3], w1[3];
+  E_Float s1[3], s2[3], t2[3], t3[3], r1[3], r2[3], r3[3], tmp1[3], tmp2[3],
+    u1[3], u2[3], w1[3];
   E_Float J2, J3, alpha, thirdTrA, norm1, norm2, norm3, coeff, dif, sum, sgn;
 
   // maxm

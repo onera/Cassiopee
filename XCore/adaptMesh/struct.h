@@ -2,6 +2,7 @@
 #define STRUCT_H
 
 #include "xcore.h"
+#include "../common/mem.h"
 #include <mpi.h>
 #include <unordered_map>
 #include <map>
@@ -19,7 +20,7 @@
   } while (0);
 
 extern const E_Int normalIn[6];
-extern const double one_sixth;
+extern const E_Float one_sixth;
 
 struct proc_patch {
   E_Int *faces;
@@ -30,12 +31,11 @@ struct proc_patch {
   E_Float *recv_buf_d;
   E_Int *send_buf_i;
   E_Int *recv_buf_i;
-  E_Int *indices; // sorted in increasing gface value
 
   proc_patch()
   :
-  faces(NULL), nfaces(-1), gneis(NULL), nei_proc(-1), send_buf_d(NULL), recv_buf_d(NULL),
-  send_buf_i(NULL), recv_buf_i(NULL), indices(NULL)
+  faces(NULL), nfaces(-1), gneis(NULL), nei_proc(-1), send_buf_d(NULL),
+  recv_buf_d(NULL), send_buf_i(NULL), recv_buf_i(NULL)
   {}
 };
 
@@ -110,18 +110,23 @@ struct mesh {
   E_Int *gpoints;
 
   E_Int *ref_data;
+  E_Int Gmax; // maximum number of refinement generations
+  E_Float Tr; // refinement threshold
+  E_Int iso_mode; // toggle directional/isotropic refinement
 
   mesh()
   :
-  ncells(-1), nfaces(-1), npoints(-1), xyz(NULL), owner(NULL), neigh(NULL), NFACE(NULL),
-  xcells(NULL), NGON(NULL), xfaces(NULL), CT(), FT(), ET(), cc(NULL), fc(NULL), lsqG(NULL),
-  lsqGG(NULL), lsqH(NULL), lsqHH(NULL), ppatches(NULL), nppatches(-1), pid(-1), npc(-1), nreq(0),
-  req(NULL), pnei_coords(NULL), pnei_flds(NULL), pnei_grads(NULL), gcells(NULL), gfaces(NULL),
-  gpoints(NULL), ref_data(NULL)
+  ncells(-1), nfaces(-1), npoints(-1), xyz(NULL), owner(NULL), neigh(NULL),
+  NFACE(NULL), xcells(NULL), NGON(NULL), xfaces(NULL), CT(), FT(), ET(),
+  cc(NULL), fc(NULL), lsqG(NULL), lsqGG(NULL), lsqH(NULL), lsqHH(NULL),
+  ppatches(NULL), nppatches(-1), pid(-1), npc(-1), nreq(0), req(NULL),
+  pnei_coords(NULL), pnei_flds(NULL), pnei_grads(NULL), gcells(NULL),
+  gfaces(NULL), gpoints(NULL), ref_data(NULL), Gmax(-1), Tr(-1.),
+  iso_mode(-1)
   {
     MPI_Comm_rank(MPI_COMM_WORLD, &pid);
     MPI_Comm_size(MPI_COMM_WORLD, &npc);
-    req = (MPI_Request *)malloc(2*npc * sizeof(MPI_Request));
+    req = (MPI_Request *)XMALLOC(2*npc * sizeof(MPI_Request));
   }
 };
 

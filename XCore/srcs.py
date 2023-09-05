@@ -25,6 +25,7 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'adaptMesh/comm.cpp',
             'adaptMesh/metric.cpp',
             'adaptMesh/topo.cpp',
-            'adaptMesh/distribute.cpp'
+            'adaptMesh/distribute.cpp',
+            'common/mem.cpp'
             
             ]

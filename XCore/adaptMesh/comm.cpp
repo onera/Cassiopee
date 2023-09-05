@@ -6,7 +6,8 @@ void comm_waitall(mesh *M)
   M->nreq = 0;
 }
 
-void comm_interface_data_d(mesh *M, E_Float *data, E_Int stride, E_Float **recv_data)
+void comm_interface_data_d(mesh *M, E_Float *data, E_Int stride,
+  E_Float **recv_data)
 {
   E_Int *owner = M->owner;
   E_Int nppatches = M->nppatches;
@@ -16,7 +17,7 @@ void comm_interface_data_d(mesh *M, E_Float *data, E_Int stride, E_Float **recv_
     E_Int *faces = M->ppatches[i].faces;
     E_Int dest = M->ppatches[i].nei_proc;
 
-    M->ppatches[i].send_buf_d = (E_Float *)realloc(
+    M->ppatches[i].send_buf_d = (E_Float *)XRESIZE(
       M->ppatches[i].send_buf_d, stride*nfaces * sizeof(E_Float));
 
     E_Int l = 0; 
@@ -40,7 +41,8 @@ void comm_interface_data_d(mesh *M, E_Float *data, E_Int stride, E_Float **recv_
   comm_waitall(M);
 }
 
-void comm_interface_data_i(mesh *M, E_Int *data, E_Int stride, E_Int **recv_data)
+void comm_interface_data_i(mesh *M, E_Int *data, E_Int stride,
+  E_Int **recv_data)
 {
   E_Int *owner = M->owner;
   E_Int nppatches = M->nppatches;
@@ -50,7 +52,7 @@ void comm_interface_data_i(mesh *M, E_Int *data, E_Int stride, E_Int **recv_data
     E_Int *faces = M->ppatches[i].faces;
     E_Int dest = M->ppatches[i].nei_proc;
 
-    M->ppatches[i].send_buf_i = (E_Int *)realloc(
+    M->ppatches[i].send_buf_i = (E_Int *)XRESIZE(
       M->ppatches[i].send_buf_i, stride*nfaces * sizeof(E_Int));
 
     E_Int l = 0; 

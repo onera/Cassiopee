@@ -17,12 +17,15 @@ void compute_cell_centers(mesh *);
 void compute_face_center(mesh *, E_Int);
 void compute_cell_center(mesh *, E_Int);
 E_Int get_neighbour(E_Int, E_Int, mesh *);
+void mesh_free(mesh *);
 
 /* metric */
 void hessian_to_metric(E_Float *, mesh *);
 void compute_ref_data(mesh *, E_Float *);
 void smooth_ref_data(mesh *);
-void compute_canon_info(E_Int, mesh *, E_Int *);
+std::vector<E_Int> compute_canon_info(E_Int, mesh *, E_Int *);
+void deduce_nei_ref_data(E_Int, E_Int, E_Int, E_Int, E_Int *);
+E_Int is_metric_valid(E_Float *);
 
 /* topo */
 void reorder_hexa(mesh *);
@@ -65,7 +68,7 @@ E_Int is_cell_to_refine(E_Int *);
 /* tree */
 tree *tree_new(E_Int, E_Int);
 void tree_insert_children(tree *, E_Int, E_Int, E_Int);
-void tree_free(tree *);
+void tree_XFREE(tree *);
 void tree_resize(tree *, E_Int, E_Int);
 E_Int tree_get_nchildren(tree *, E_Int);
 E_Int *tree_get_children(tree *, E_Int);
