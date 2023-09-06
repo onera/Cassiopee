@@ -146,6 +146,6 @@ void mesh_free(mesh *M) {
   XFREE(M->ref_data);
   for (E_Int i = 0; i < M->nppatches; i++)
     ppatch_free(&M->ppatches[i]);
-  XFREE(M->ppatches);
+  delete [] M->ppatches;
   delete M;
 }

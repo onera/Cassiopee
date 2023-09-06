@@ -186,6 +186,9 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   mesh *rM = redistribute_mesh(M);
 
   mesh_free(M);
+  for (E_Int i = 0; i < csize; i++)
+    XFREE(csols[i]);
+  XFREE(csols);
 
   // isolate refinement cells
   E_Int nref_cells = -1;

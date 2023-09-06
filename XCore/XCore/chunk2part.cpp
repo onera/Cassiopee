@@ -33,13 +33,13 @@
 static
 E_Int get_proc(E_Int element, E_Int *distribution, E_Int nproc)
 {
-    for (E_Int j = 0; j < nproc; j++) {
-      if (element >= distribution[j] && element < distribution[j+1])
-        return j;
-    }
-    printf("\nWarning: could not find distribution of element %d\n", element);
-    assert(0);
-    return -1;
+  for (E_Int j = 0; j < nproc; j++) {
+    if (element >= distribution[j] && element < distribution[j+1])
+      return j;
+  }
+  printf("\nWarning: could not find distribution of element %d\n", element);
+  assert(0);
+  return -1;
 }
 
 struct proc_patch {

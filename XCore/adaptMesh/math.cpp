@@ -493,88 +493,84 @@ E_Float *compute_hessian(mesh* M, E_Float *fld)
   return H;
 }
 
-
 void symmat_dot_vec(E_Float *a, E_Float *b, E_Float *c)
 {
-	c[0] = a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
-	c[1] = a[1]*b[0] + a[3]*b[1] + a[4]*b[2];
-	c[2] = a[2]*b[0] + a[4]*b[1] + a[5]*b[2];
+  c[0] = a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+  c[1] = a[1]*b[0] + a[3]*b[1] + a[4]*b[2];
+  c[2] = a[2]*b[0] + a[4]*b[1] + a[5]*b[2];
 }
 
 static
 E_Float sign(E_Float a)
 {
-	if (a > 0.) return 1.;
-	else if (a < 0.) return -1.;
-	else return a;
+  if (a > 0.) return 1.;
+  else if (a < 0.) return -1.;
+  else return a;
 }
 
 static
 void symmat_dot_symmat(E_Float *a, E_Float *b, E_Float *c)
 {
-	c[0] = a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
-	c[1] = a[0]*b[1] + a[1]*b[3] + a[2]*b[4];
-	c[2] = a[0]*b[2] + a[1]*b[4] + a[2]*b[5];
-
-	c[3] = a[1]*b[0] + a[3]*b[1] + a[4]*b[2];
-	c[4] = a[1]*b[1] + a[3]*b[3] + a[4]*b[4];
-	c[5] = a[1]*b[2] + a[3]*b[4] + a[4]*b[5];
-
-	c[6] = a[2]*b[0] + a[4]*b[1] + a[5]*b[2];
-	c[7] = a[2]*b[1] + a[4]*b[3] + a[5]*b[4];
-	c[8] = a[2]*b[2] + a[4]*b[4] + a[5]*b[5];
+  c[0] = a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+  c[1] = a[0]*b[1] + a[1]*b[3] + a[2]*b[4];
+  c[2] = a[0]*b[2] + a[1]*b[4] + a[2]*b[5]; 
+  c[3] = a[1]*b[0] + a[3]*b[1] + a[4]*b[2];
+  c[4] = a[1]*b[1] + a[3]*b[3] + a[4]*b[4];
+  c[5] = a[1]*b[2] + a[3]*b[4] + a[4]*b[5]; 
+  c[6] = a[2]*b[0] + a[4]*b[1] + a[5]*b[2];
+  c[7] = a[2]*b[1] + a[4]*b[3] + a[5]*b[4];
+  c[8] = a[2]*b[2] + a[4]*b[4] + a[5]*b[5];
 }
 
 static
 E_Float symmat_det(E_Float A[6])
 {
-	E_Float a = A[0];
-	E_Float b = A[1];
-	E_Float c = A[2];
-	E_Float d = A[3];
-	E_Float e = A[4];
-	E_Float f = A[5];
-
-	return a*d*f - (a*e*e + d*c*c + f*b*b) + 2.*b*c*e;
+  E_Float a = A[0];
+  E_Float b = A[1];
+  E_Float c = A[2];
+  E_Float d = A[3];
+  E_Float e = A[4];
+  E_Float f = A[5]; 
+  return a*d*f - (a*e*e + d*c*c + f*b*b) + 2.*b*c*e;
 }
 
-static
-inline E_Float symmat_trace(E_Float *A)
+static inline
+E_Float symmat_trace(E_Float *A)
 {
-    return A[0] + A[3] + A[5];
+  return A[0] + A[3] + A[5];
 }
 
 static
 E_Float symmat_second_invariant(E_Float *A)
 {
-    E_Float AA[9];
-    symmat_dot_symmat(A, A, AA);
-    return 0.5*(AA[0] + AA[4] + AA[8]);
+  E_Float AA[9];
+  symmat_dot_symmat(A, A, AA);
+  return 0.5*(AA[0] + AA[4] + AA[8]);
 }
 
 static
 E_Float symmat_third_invariant(E_Float *A)
 {
-    return symmat_det(A);
+  return symmat_det(A);
 }
 
 void eigen(E_Float *M, E_Float *L, E_Float *v1, E_Float *v2, E_Float *v3)
 {
-	const E_Float TOL = 1e-12;
-
-	// Init
+  const E_Float TOL = 1e-12;
+  
+  // Init
   v1[0] = 1.; v1[1] = 0.; v1[2] = 0.;
   v2[0] = 0.; v2[1] = 1.; v2[2] = 0.;
   v3[0] = 0.; v3[1] = 0.; v3[2] = 1.;
   L[0] = M[0];
   L[1] = M[3];
   L[2] = M[5];
-
+  
   E_Float Ap[6], B[6], Ar[4];
   E_Float s1[3], s2[3], t2[3], t3[3], r1[3], r2[3], r3[3], tmp1[3], tmp2[3],
     u1[3], u2[3], w1[3];
   E_Float J2, J3, alpha, thirdTrA, norm1, norm2, norm3, coeff, dif, sum, sgn;
-
+  
   // maxm
   E_Float maxm = fabs(M[0]);
   E_Float valm;
@@ -583,13 +579,13 @@ void eigen(E_Float *M, E_Float *L, E_Float *v1, E_Float *v2, E_Float *v3)
     if (valm > maxm) maxm = valm;
   }
   if (maxm < TOL) return;
-
+  
   // normalize matrix
   E_Float dd = 1. / maxm;
   E_Float A[6];
   memcpy(A, M, 6*sizeof(E_Float));
   for (E_Int i = 0; i < 6; i++) A[i] *= dd;
-
+  
   // check for diagonal matrix
   E_Float maxd = fabs(A[1]);
   valm = fabs(A[2]);
@@ -597,7 +593,6 @@ void eigen(E_Float *M, E_Float *L, E_Float *v1, E_Float *v2, E_Float *v3)
   valm = fabs(A[4]);
   if (valm > maxd) maxd = valm;
   if (maxd < TOL) return; // off-diagonal coeffs are smaller than tol
-
   thirdTrA = (A[0] + A[3] + A[5]) / 3.;
   Ap[0] = A[0] - thirdTrA;
   Ap[1] = A[1];
@@ -605,15 +600,13 @@ void eigen(E_Float *M, E_Float *L, E_Float *v1, E_Float *v2, E_Float *v3)
   Ap[3] = A[3] - thirdTrA;
   Ap[4] = A[4];
   Ap[5] = A[5] - thirdTrA;
-
   J2 = symmat_second_invariant(Ap);
   J3 = symmat_third_invariant(Ap);
-
   E_Float tmp = 0.5*J3 * pow(3./J2, 1.5);
   if (tmp > 1.) tmp = 1.;
   else if (tmp < -1) tmp = -1.;
   alpha = acos(tmp) / 3.;
-
+  
   if (alpha < M_PI/6.) {
     // find L[0] first
     L[0] = 2.*sqrt(J2/3.)*cos(alpha);
@@ -621,7 +614,7 @@ void eigen(E_Float *M, E_Float *L, E_Float *v1, E_Float *v2, E_Float *v3)
     // find L[2] first
     L[0] = 2.*sqrt(J2/3.)*cos(alpha + 4.*M_PI/3.);
   }
-
+  
   // find eigenvector corresponding to L[0]
   B[0] = Ap[0] - L[0];
   B[1] = Ap[1];
@@ -629,11 +622,9 @@ void eigen(E_Float *M, E_Float *L, E_Float *v1, E_Float *v2, E_Float *v3)
   B[3] = Ap[3] - L[0];
   B[4] = Ap[4];
   B[5] = Ap[5] - L[0];
-
   r1[0] = B[0]; r1[1] = B[1]; r1[2] = B[2];
   r2[0] = B[1]; r2[1] = B[3]; r2[2] = B[4];
   r3[0] = B[2]; r3[1] = B[4]; r3[2] = B[5];
-
   norm1 = norm(r1, 3);
   norm2 = norm(r2, 3);
   norm3 = norm(r3, 3);
@@ -643,12 +634,12 @@ void eigen(E_Float *M, E_Float *L, E_Float *v1, E_Float *v2, E_Float *v3)
     s1[0] = r1[0] * over_norm;
     s1[1] = r1[1] * over_norm;
     s1[2] = r1[2] * over_norm;
-    
+
     coeff = dot(s1, r2, 3);
     t2[0] = r2[0] - coeff*s1[0];
     t2[1] = r2[1] - coeff*s1[1];
     t2[2] = r2[2] - coeff*s1[2];
-    
+
     coeff = dot(s1, r3, 3);
     t3[0] = r3[0] - coeff*s1[0];
     t3[1] = r3[1] - coeff*s1[1];
@@ -658,12 +649,11 @@ void eigen(E_Float *M, E_Float *L, E_Float *v1, E_Float *v2, E_Float *v3)
     s1[0] = r2[0] * over_norm;
     s1[1] = r2[1] * over_norm;
     s1[2] = r2[2] * over_norm;
-    
+
     coeff = dot(s1, r1, 3);
     t2[0] = r1[0] - coeff*s1[0];
     t2[1] = r1[1] - coeff*s1[1];
     t2[2] = r1[2] - coeff*s1[2];
-
     coeff = dot(s1, r3, 3);
     t3[0] = r3[0] - coeff*s1[0];
     t3[1] = r3[1] - coeff*s1[1];
@@ -673,18 +663,17 @@ void eigen(E_Float *M, E_Float *L, E_Float *v1, E_Float *v2, E_Float *v3)
     s1[0] = r3[0] * over_norm;
     s1[1] = r3[1] * over_norm;
     s1[2] = r3[2] * over_norm;
-    
+
     coeff = dot(s1, r2, 3);
     t2[0] = r2[0] - coeff*s1[0];
     t2[1] = r2[1] - coeff*s1[1];
     t2[2] = r2[2] - coeff*s1[2];
-
     coeff = dot(s1, r1, 3);
     t3[0] = r1[0] - coeff*s1[0];
     t3[1] = r1[1] - coeff*s1[1];
     t3[2] = r1[2] - coeff*s1[2];
   }
-
+  
   norm2 = norm(t2, 3);
   norm3 = norm(t3, 3);
   if (norm2 >= norm3) {
@@ -698,25 +687,24 @@ void eigen(E_Float *M, E_Float *L, E_Float *v1, E_Float *v2, E_Float *v3)
     s2[1] = t3[1] * over_norm;
     s2[2] = t3[2] * over_norm;   
   }
-  
-  cross(s1, s2, v1); // got it!
 
+  cross(s1, s2, v1); // got it!
+  
   // Reduced form of Ap
   symmat_dot_vec(Ap, s1, tmp1);
   symmat_dot_vec(Ap, s2, tmp2);
-
   Ar[0] = dot(s1, tmp1, 3);
   Ar[1] = dot(s1, tmp2, 3);
   Ar[2] = dot(s2, tmp1, 3);
   Ar[3] = dot(s2, tmp2, 3);
-
+  
   // Wilkinson shift
   dif = Ar[0] - Ar[3];
   sum = Ar[0] + Ar[3];
   sgn = sign(dif);
   L[1] = 0.5*sum - 0.5*sgn*sqrt(dif*dif + 4.*Ar[1]*Ar[2]);
   L[2] = sum - L[1];
-
+  
   // find eigenvector corresponding to L1
   B[0] = Ap[0] - L[1];
   B[1] = Ap[1];
@@ -726,6 +714,7 @@ void eigen(E_Float *M, E_Float *L, E_Float *v1, E_Float *v2, E_Float *v3)
   B[5] = Ap[5] - L[1];
   symmat_dot_vec(B, s1, u1);
   symmat_dot_vec(B, s2, u2);
+  
   norm1 = norm(u1, 3);
   norm2 = norm(u2, 3);
   if (norm1 >= norm2) {
@@ -739,10 +728,9 @@ void eigen(E_Float *M, E_Float *L, E_Float *v1, E_Float *v2, E_Float *v3)
     w1[1] = u2[1] * over_norm;
     w1[2] = u2[2] * over_norm;
   }
-  
+
   cross(w1, v1, v2);
   cross(v1, v2, v3);
-
-	for (E_Int i = 0; i < 3; i++)
+  for (E_Int i = 0; i < 3; i++)
     L[i] = (L[i] + thirdTrA) * maxm;
 }
