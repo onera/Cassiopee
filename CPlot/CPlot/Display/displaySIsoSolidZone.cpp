@@ -45,52 +45,6 @@ void Data::displaySIsoSolidZone(StructZone* zonep, E_Int zone,
 #endif
 
 #include "displaySIsoSolidZone.h"
-      
-  // Pour les lignes
-  if (nij == 1 || ni*nk == 1 || nj*nk == 1)
-  {
-    glBegin(GL_LINES);
-    E_Int nie, nje, nke;
-    nie = ni; nje = nj; nke = nk;
-    if (ni*nj == 1) nke = nke-1;
-    if (ni*nk == 1) nje = nje-1;
-    if (nj*nk == 1) nie = nie-1;
-    if (zonep->blank == 0)
-    {
-      // No blanking
-      for (k = 0; k < nke; k++)
-        for (j = 0; j < nje; j++)
-          for (i = 0; i < nie; i++)
-          {
-            n1 = i+j*ni+k*nij;
-            n2 = n1+1;
-            glColor4f(0, 0, 0+offb, blend);
-            glVertex3d(x[n1], y[n1], z[n1]);
-            glColor4f(0, 0, 0+offb, blend);
-            glVertex3d(x[n2], y[n2], z[n2]);
-          }
-    }
-    else
-    {
-      for (k = 0; k < nke; k++)
-        for (j = 0; j < nje; j++)
-          for (i = 0; i < nie; i++)
-          {
-            n1 = i+j*ni+k*nij;
-            n2 = n1+1;
-            ret1 = _pref.blanking->f(this, n1, zonep->blank, zone);
-            ret2 = _pref.blanking->f(this, n2, zonep->blank, zone);
-            if (ret1*ret2 != 0)
-            { 
-              glColor4f(0, 0, 0+offb, blend);
-              glVertex3d(x[n1], y[n1], z[n1]);
-              glColor4f(0, 0, 0+offb, blend);
-              glVertex3d(x[n2], y[n2], z[n2]);
-            }
-          }
-    }
-    glEnd();
-  }
 }
 
 //=============================================================================

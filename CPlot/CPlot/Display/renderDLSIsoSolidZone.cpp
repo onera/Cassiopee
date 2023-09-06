@@ -51,57 +51,24 @@ void DataDL::renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield)
   int curr = _shaders.currentShader();
   if (curr != 0) _shaders[curr]->setUniform("blend", (float)blend);
   glColor4f(0.,0.,0., blend); // pour imposer blend
+
+  if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1)
+  {
+    if (curr != 0) _shaders[curr]->setUniform("lightOn", (int)0); // impose isoLight off on 1D meshes
+  }
 #endif
 
   double* x = zonep->x; double* y = zonep->y; double* z = zonep->z;
 
   glCallList(zoneImpl->_DLiso);
       
-  // Pour les lignes
-  if (nij == 1 || ni*nk == 1 || nj*nk == 1)
+#ifdef __SHADERS__
+  if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1)
   {
-    glBegin(GL_LINES);
-    E_Int nie, nje, nke;
-    nie = ni; nje = nj; nke = nk;
-    if (ni*nj == 1) nke = nke-1;
-    if (ni*nk == 1) nje = nje-1;
-    if (nj*nk == 1) nie = nie-1;
-    if (zonep->blank == 0)
-    {
-      // No blanking
-      for (k = 0; k < nke; k++)
-        for (j = 0; j < nje; j++)
-          for (i = 0; i < nie; i++)
-          {
-            n1 = i+j*ni+k*nij;
-            n2 = n1+1;
-            glColor4f(0, 0, 0+offb, blend);
-            glVertex3d(x[n1], y[n1], z[n1]);
-            glColor4f(0, 0, 0+offb, blend);
-            glVertex3d(x[n2], y[n2], z[n2]);
-          }
-    }
-    else
-    {
-      for (k = 0; k < nke; k++)
-        for (j = 0; j < nje; j++)
-          for (i = 0; i < nie; i++)
-          {
-            n1 = i+j*ni+k*nij;
-            n2 = n1+1;
-            ret1 = _pref.blanking->f(this, n1, zonep->blank, zone);
-            ret2 = _pref.blanking->f(this, n2, zonep->blank, zone);
-            if (ret1*ret2 != 0)
-            { 
-              glColor4f(0, 0, 0+offb, blend);
-              glVertex3d(x[n1], y[n1], z[n1]);
-              glColor4f(0, 0, 0+offb, blend);
-              glVertex3d(x[n2], y[n2], z[n2]);
-            }
-          }
-    }
-    glEnd();
+    if (ptrState->isoLight == 1 && ptrState->dim == 3)
+      if (curr != 0) _shaders[curr]->setUniform("lightOn", (int)1); // put back the isoLight value found in the CPlot state
   }
+#endif
 }
 
 //=============================================================================

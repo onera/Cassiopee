@@ -886,12 +886,21 @@
       {
         n1 = connect[i]-1;
         n2 = connect[i+ne]-1;
-        getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
-        glColor3f(r, g, b+offb); 
-        glVertex3d(x[n1], y[n1], z[n1]);
-        getrgb(this, (f[n2]-fmin)*deltai, &r, &g, &b);
-        glColor3f(r, g, b+offb); 
-        glVertex3d(x[n2], y[n2], z[n2]);
+        #ifndef __SHADERS__
+          getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
+          glColor3f(r, g, b+offb);
+          glVertex3d(x[n1], y[n1], z[n1]);
+          getrgb(this, (f[n2]-fmin)*deltai, &r, &g, &b);
+          glColor3f(r, g, b+offb); 
+          glVertex3d(x[n2], y[n2], z[n2]);
+        #else
+          r =(f[n1]-fmin)*deltai;
+          glColor3f(r, 0.f, 0.f);
+          glVertex3d(x[n1], y[n1], z[n1]);
+          r =(f[n2]-fmin)*deltai;
+          glColor3f(r, 0.f, 0.f);
+          glVertex3d(x[n2], y[n2], z[n2]);
+        #endif
       }
     }
     else
@@ -905,12 +914,21 @@
         
         if (ret1*ret2 != 0)
         {
-          getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
-          glColor3f(r, g, b+offb); 
-          glVertex3d(x[n1], y[n1], z[n1]);
-          getrgb(this, (f[n2]-fmin)*deltai, &r, &g, &b);
-          glColor3f(r, g, b+offb); 
-          glVertex3d(x[n2], y[n2], z[n2]);
+          #ifndef __SHADERS__
+            getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
+            glColor3f(r, g, b+offb); 
+            glVertex3d(x[n1], y[n1], z[n1]);
+            getrgb(this, (f[n2]-fmin)*deltai, &r, &g, &b);
+            glColor3f(r, g, b+offb); 
+            glVertex3d(x[n2], y[n2], z[n2]);
+          #else
+            r =(f[n1]-fmin)*deltai;
+            glColor3f(r, 0.f, 0.f);
+            glVertex3d(x[n1], y[n1], z[n1]);
+            r =(f[n2]-fmin)*deltai;
+            glColor3f(r, 0.f, 0.f);
+            glVertex3d(x[n2], y[n2], z[n2]);
+          #endif
         }
       }
     }
@@ -936,12 +954,21 @@
         posface2 = zonep->posFaces[face2];
         n1 = connect[posface1+1]-1;
         n2 = connect[posface2+1]-1;
-        getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
-        glColor3f(r, g, b+offb); 
-        glVertex3d(x[n1], y[n1], z[n1]);
-        getrgb(this, (f[n2]-fmin)*deltai, &r, &g, &b);
-        glColor3f(r, g, b+offb); 
-        glVertex3d(x[n2], y[n2], z[n2]);
+        #ifndef __SHADERS__
+          getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
+          glColor3f(r, g, b+offb);
+          glVertex3d(x[n1], y[n1], z[n1]);
+          getrgb(this, (f[n2]-fmin)*deltai, &r, &g, &b);
+          glColor3f(r, g, b+offb); 
+          glVertex3d(x[n2], y[n2], z[n2]);
+        #else
+          r =(f[n1]-fmin)*deltai;
+          glColor3f(r, 0.f, 0.f);
+          glVertex3d(x[n1], y[n1], z[n1]);
+          r =(f[n2]-fmin)*deltai;
+          glColor3f(r, 0.f, 0.f);
+          glVertex3d(x[n2], y[n2], z[n2]);
+        #endif
       }
     }
     else
@@ -960,12 +987,21 @@
         ret2 = _pref.blanking->f(this, n2, zonep->blank, zonet);
         if (ret1*ret2 != 0)
         {
-          getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
-          glColor3f(r, g, b+offb); 
-          glVertex3d(x[n1], y[n1], z[n1]);
-          getrgb(this, (f[n2]-fmin)*deltai, &r, &g, &b);
-          glColor3f(r, g, b+offb); 
-          glVertex3d(x[n2], y[n2], z[n2]);
+          #ifndef __SHADERS__
+            getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
+            glColor3f(r, g, b+offb); 
+            glVertex3d(x[n1], y[n1], z[n1]);
+            getrgb(this, (f[n2]-fmin)*deltai, &r, &g, &b);
+            glColor3f(r, g, b+offb); 
+            glVertex3d(x[n2], y[n2], z[n2]);
+          #else
+            r =(f[n1]-fmin)*deltai;
+            glColor3f(r, 0.f, 0.f);
+            glVertex3d(x[n1], y[n1], z[n1]);
+            r =(f[n2]-fmin)*deltai;
+            glColor3f(r, 0.f, 0.f);
+            glVertex3d(x[n2], y[n2], z[n2]);
+          #endif
         }
       }
     }
