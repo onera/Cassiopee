@@ -1,9 +1,9 @@
 # This is the dictionary keeping track of installation.
 # The key is the machine name. For each key a list is stored.
 # [description,
-# f77compiler, f90compiler, Cppcompiler, useOMP, static, CPlotOffScreen,
+# f77compiler, f90compiler, Cppcompiler, useOMP, static,
 # additionalIncludePaths, additionalLibs, additionalLibPaths].
-# Paths are list of strings. useOMP, CPlotOffScreen are booleans.
+# Paths are list of strings. useOMP, static, useCuda are booleans.
 # Others are strings.
 installDict = {
 ###############################################################################
@@ -15,7 +15,6 @@ installDict = {
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 ['/usr/include/mpi', '/usr/include/hdf5/serial'], # additionalIncludePaths
 ['gfortran', 'gomp', 'pthread'], # additionalLibs
 ['/usr/lib/x86_64-linux-gnu','/usr/lib/x86_64-linux-gnu/hdf5/serial/'], # additionalLibPaths
@@ -31,7 +30,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 ['c:/MinGW/include'], # additionalIncludePaths
 ['gfortran', 'gomp', 'pthread'], # additionalLibs
 ['c:/MinGW/lib', 'c:/Python27/libs', 'c:/MinGW/bin'], # additionalLibPaths
@@ -47,7 +45,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 ['d:/juvigny/msys64/mingw64/include',"d:/juvigny/msys64/mingw64/include/OpenBLAS"], # additionalIncludePaths
 ['gfortran', 'gomp', 'pthread', 'openblas', 'psapi'], # additionalLibs
 ['d:/juvigny/msys64/mingw64/lib', 'd:/juvigny/msys64/mingw64/bin'], # additionalLibPaths
@@ -63,7 +60,6 @@ True, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 ['c:/msys64/mingw64/include', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Include', 'c:/msys64/mingw64/include/OpenBLAS'], # additionalIncludePaths
 ['gomp', 'gfortran'], # additionalLibs
 ['c:/msys64/mingw64/lib', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64'], # additionalLibPaths
@@ -79,7 +75,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 ['d:/benoit/AppData/Local/msys2/mingw64/include', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Include', 'd:/benoit/AppData/Local/msys2/mingw64/include/OpenBLAS'], # additionalIncludePaths
 ['gomp', 'gfortran'], # additionalLibs
 ['d:/benoit/AppData/Local/msys2/mingw64/lib', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64'], # additionalLibPaths
@@ -95,7 +90,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 False, # useOMP
 False, # static
-False, # CPlotOffScreen
 ['c:/msys64/mingw64/include', 'c:/msys64/mingw64/include/OpenBLAS'], # additionalIncludePaths
 ['gomp', 'gfortran'], # additionalLibs
 ['c:/msys64/mingw64/lib'], # additionalLibPaths
@@ -111,7 +105,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 ['/usr/X11/include' ], # additionalIncludePaths
 ['python2.7', 'ifcore'], # additionalLibs
 ['/usr/X11/lib', '/System/Library/Frameworks/OpenGL.framework/Libraries/'], # additionalLibPaths
@@ -127,7 +120,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 ['/opt/hpmpi/include', '/opt/soft/cdtng/tools/portage/1.11/usr/include'], # additionalIncludePaths
 ['svml', 'irc', 'ifcore', 'iomp5'], # additionalLibs
 ['/opt/soft/cdtng/tools/intelcompiler/16.0/compiler/lib/intel64', '/opt/soft/cdtng/tools/portage/1.11/usr/lib', '/opt/hpmpi/lib/linux_amd64'], # additionalLibPaths
@@ -143,7 +135,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 ['/opt/mpi10/include', '/opt/soft/cdtng/tools/portage/1.11/usr/include'], # additionalIncludePaths
 ['ifcore', 'iomp5', 'svml', 'irc'], # additionalLibs
 ['/opt/soft/cdtng/tools/intelcompiler/2018/compilers_and_libraries_2018.5.274/linux/compiler/lib/intel64', '/opt/soft/cdtng/tools/portage/1.11/usr/lib', '/opt/mpi10/lib'], # additionalLibPaths
@@ -159,7 +150,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 ['/opt/soft/cdtng/tools/portage/1.11/usr/include'], # additionalIncludePaths
 ['svml', 'irc', 'ifcore', 'iomp5'], # additionalLibs
 ['/opt/soft/cdtng/tools/portage/1.11/composerxe/lib/intel64', '/opt/soft/cdtng/tools/portage/1.11/usr/lib'],  # additionalLibPaths
@@ -175,7 +165,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 ['/soft/intel-2017.5/compilers_and_libraries_2017.5.239/linux/mpi/include64','/home/mtaplaf/Environnement_Commun/Elsa/LIB_EXT/HDF5/hdf5-1.8.18-par/include'], # additionalIncludePaths
 ['mpi'], # additionalLibs
 ['/soft/intel-2017.5/compilers_and_libraries_2017.5.239/linux/mpi/lib64','/home/mtaplaf/Environnement_Commun/Elsa/LIB_EXT/HDF5/hdf5-1.8.18-par/lib'],  # additionalLibPaths
@@ -191,7 +180,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 ['/soft/intel-2017.5/compilers_and_libraries_2017.5.239/linux/mpi/include64','/home/mtaplaf/Environnement_Commun/Elsa/LIB_EXT/HDF5/hdf5-1.8.18-par/include'], # additionalIncludePaths
 ['mpi'], # additionalLibs
 ['/soft/intel-2017.5/compilers_and_libraries_2017.5.239/linux/mpi/lib64','/home/mtaplaf/Environnement_Commun/Elsa/LIB_EXT/HDF5/hdf5-1.8.18-par/lib'],  # additionalLibpaths
@@ -207,7 +195,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 False, # useOMP
 False, # static
-False, # CPlotOffScreen
 ['/appl/APPLI_SNECMA/HDF5/oper/1.8.11/include'], # additionalIncludePaths
 ['ifcore', 'svml', 'irc'], # additionalLibs
 ['/opt/intel/composer_xe_2013_sp1.0.080/lib/intel64', '/appl/APPLI_SNECMA/HDF5/oper/1.8.11/lib'],  # additionalLibPaths
@@ -223,7 +210,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 ['/usr/X11/include' ], # additionalIncludePaths
 ['python2.7', 'ifcore'], # additionalLibs
 ['/usr/X11/lib', '/System/Library/Frameworks/OpenGL.framework/Libraries/'], # additionalLibPaths
@@ -239,7 +225,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 ['/usr/local/hdf5-1.8.7/include'], # additionalIncludePaths
 [], # additionalLibs
 ['/usr/local/hdf5-1.8.7/lib'],  # additionalLibPaths
@@ -255,7 +240,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 ['Xxf86vm'], # additionalLibs
 [], # additionalLibPath
@@ -271,7 +255,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [],  # additionalLibPaths
@@ -287,7 +270,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 ['/stck1/benoit/include'], # additionalIncludePaths
 [], # additionalLibs
 ['/stck1/benoit/lib'],  # additionqlLibPaths
@@ -303,7 +285,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [],  # additionalLibPaths
@@ -319,7 +300,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [],  # additionalLibPaths
@@ -335,7 +315,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 ['/usr/local/hdf5-gnu-1.8.8/include'], # additionalIncludePaths
 [], # additionalLibs
 ['/usr/local/hdf5-gnu-1.8.8/lib'],  # additionalLibPaths
@@ -351,7 +330,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [],  # additionalLibPaths
@@ -367,7 +345,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [],  # additionalLibPaths
@@ -383,7 +360,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 ['/home/benoit/x86_64t/include'], # additionalIncludePaths
 [], # additionalLibs
 ['/home/benoit/x86_64t'],  # additionalLibPaths
@@ -399,7 +375,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 ['/home/benoit/aus/include'], # additionalIncludePaths
 [], # additionalLibs
 ['/home/benoit/aus/lib'],  # additionalLibPaths
@@ -415,7 +390,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 ['/softs/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/include'], # additionalIncludePaths
 [], # additionalLibs
 ['/softs/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/lib'],  # additionalLibPaths
@@ -431,7 +405,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 ['/softs/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/include'], # additionalIncludePaths
 [], # additionalLibs
 ['/softs/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/lib'],  # additionalLibPaths
@@ -447,7 +420,6 @@ False, # useCuda
 ['-g'], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 ['/usr/local/hdf5-1.8.8-intel-16/include','/home/benoit/aus/include','/stck/nalferez/intel/parallel_studio_xe_2018/compilers_and_libraries_2018/linux/mpi/include64/','/stck/nalferez/intel/parallel_studio_xe_2018/vtune_amplifier_2018/include/','/stck/nalferez/intel/parallel_studio_xe_2018/advisor_2018/include/intel64'], # additionalIncludePaths
 [], # additionalLibs
 ['/home/benoit/aus/lib','/stck/nalferez/intel/parallel_studio_xe_2018/compilers_and_libraries_2018/linux/mpi/lib64/','/stck/nalferez/intel/parallel_studio_xe_2018/compilers_and_libraries_2018/lib64/','/usr/local/hdf5-1.8.8-intel-16/lib/','/stck/nalferez/intel/parallel_studio_xe_2018/advisor_2018/lib64'],  # additionalLibPaths
@@ -463,7 +435,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 ["/tmp_opt/lib/hdf5-1.8.8-intel-16-impi/include",
 "/usr/local/intel/studio/2016/compilers_and_libraries_2016.0.109/linux/mpi/include64"], # additionalIncludePaths
 [], # additionalLibs
@@ -480,7 +451,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [],  # additionalLibPaths
@@ -496,7 +466,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [],  # additionalLibPaths
@@ -512,7 +481,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [], # additionalLibPaths
@@ -528,7 +496,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 ['/home/tools/local/x86_64a/include'], # additionalIncludePaths
 [], # additionalLibs
 ['/home/tools/local/x86_64a/lib'],  # additionalLibPaths
@@ -544,7 +511,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 ['/usr/lib/gcc/x86_64-redhat-linux/4.1.2'],  # additionalLibPaths
@@ -560,7 +526,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [], # additionalLibPaths
@@ -576,7 +541,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 ["pgf90","pgf902","pgc","pgmath","pgf90_rpm1","rt","pgf90rtl","pgftnrtl"], # additionalLibs
 ["/d/juvigny/Logiciels/linux86-64/2018/lib"],  # additionalLibPaths
@@ -592,7 +556,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 ['Xxf86vm'], # additionalLibs
 [], # additionalLibPaths
@@ -608,7 +571,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [], # additionalLibPaths
@@ -624,7 +586,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 ['Xxf86vm'], # additionalLibs
 [], # additionalLibPaths
@@ -640,7 +601,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 ['Xxf86vm'], # additionalLibs
 [], # additionalLibPaths
@@ -656,7 +616,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 True, # static
-False, # CPlotOffScreen
 ['c:/TDM-GCC-64/include'], # additionalIncludePaths
 ['gfortran', 'gomp', 'quadmath'], # additionalLibs
 ['c:/TDM-GCC-64/lib', 'c:/Python2.7/libs'],  # additionalLibPaths
@@ -672,7 +631,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 ['/usr/local/hdf5-intel-1.8.8/include'], # additionalIncludePaths
 [], # additionalLibs
 ['/usr/local/hdf5-intel-1.8.8/lib'],  # additionalLibPaths
@@ -688,7 +646,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [], # additionalLibPaths
@@ -704,7 +661,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [], # additionalLibPaths
@@ -720,7 +676,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [],  # additionAllIbpaths
@@ -736,7 +691,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 ["pgf90","pgf902","pgc","pgmath","pgkomp",'omp',"pgf90_rpm1","rt","pgf90rtl"], # additionalLibs
 ["/opt/pgi/linuxpower/18.4/lib/"],  # additionalLibPaths
@@ -752,7 +706,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [],  # additionalLibPaths
@@ -768,7 +721,6 @@ True, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [], # additionalLibPaths
@@ -784,7 +736,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [], # additionalLibPaths
@@ -800,7 +751,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 ['/opt/soft/cdtng/tools/portage/1.9/usr/include', '/opt/hpmpi/include'], # additionalIncludePaths
 [], # additionalLibs
 ['/opt/soft/cdtng/tools/portage/1.9/usr/lib', '/opt/hpmpi/lib', '/opt/soft/cdtng/tools/intelcompiler/11.0/lib/intel64'],  # additionalLibPaths
@@ -816,7 +766,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 ['/usr/local/hdf5/1.8.7/include'], # additionalIncludePaths
 [], # additionalLibs
 ['/usr/local/lib64', '/usr/local/hdf5/1.8.7/lib','/tmp_opt/Python/2.7.3/icc-mpt/lib'],  # additionalLibPaths
@@ -832,7 +781,6 @@ False, # useCuda
 ["-axAVX,SSE4.2"], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [], # additionalLibPaths
@@ -847,7 +795,6 @@ False, # useCuda
 ["-axAVX,SSE4.2"], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [], # additionalLibPaths
@@ -863,7 +810,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [], # additionalLibPaths
@@ -879,7 +825,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [], # additionalLibPaths
@@ -895,7 +840,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [], # additionalLibPaths
@@ -911,7 +855,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [], # additionalLibPaths
@@ -927,7 +870,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [],  # additionalLibPaths
@@ -943,7 +885,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [],  # additionalLibPaths
@@ -959,7 +900,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [],  # additionalLibPaths
@@ -975,7 +915,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [],  # additionalLibPaths
@@ -991,7 +930,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [],  # additionalLibPaths
@@ -1007,7 +945,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [],  # additionalLibPaths
@@ -1023,7 +960,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [],  # additionalLibPaths
@@ -1039,7 +975,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [],  # additionalLibPaths
@@ -1056,7 +991,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [],  # additionalLibPaths
@@ -1072,7 +1006,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [],  # additionalLibPaths
@@ -1088,7 +1021,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [],  # additionalLibPaths
@@ -1104,7 +1036,6 @@ True, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [],  # additionalLibPaths
@@ -1120,7 +1051,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [], # additionalLibPaths
@@ -1137,7 +1067,6 @@ False, # useCuda
 ['-march=native', '-fdefault-real-8', '-fdefault-double-8'], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 ['/usr/include/hdf5/serial/'], # additionalIncludePaths
 [], # additionalLibs
 ['/usr/lib/gcc/x86_64-linux-gnu/7',
@@ -1154,7 +1083,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 ['/usr/local/hdf5-1.8.8/include'], # additionalIncludePaths
 [], # additionalLibs
 ['/usr/local/hdf5-1.8.8/lib'], # hdfPath
@@ -1170,7 +1098,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-True, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 ['/usr/local/intel/cluster_studio/2012_0_032/lib/intel64'], # additionalLibPaths
@@ -1186,7 +1113,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [], # additionalLibPaths
@@ -1202,7 +1128,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [], # additionalLibPaths
@@ -1218,7 +1143,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 ['/tmp_opt/lib/hdf5-1.8.8-intel-15-impi/include',
  # '/tmp_opt/lib/hdf5/1.8.17/15/impi/include',
  '/tmp_opt/intel/studio/2015/impi/5.0.3.048/intel64/include'], # additionalIncludePaths
@@ -1238,7 +1162,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 ['Xxf86vm'], # additionalLibs
 [], # additionalLibPaths
@@ -1254,7 +1177,6 @@ False, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-False, # CPlotOffScreen
 [], # additionalIncludePaths
 [], # additionalLibs
 [], # additionalLibPaths

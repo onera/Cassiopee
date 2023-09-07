@@ -2020,7 +2020,7 @@ def save2Doc():
 #==============================================================================
 def changeWindowTitle(fileName, filePath="."):
   if fileName == '': return
-  CPlot.CPlot.cplot.setWindowTitle(fileName, filePath)
+  CPlot.setWindowTitle(fileName, filePath)
   win = WIDGETS['masterWin']
   win.title('Cassiopee'+C.__version__+' - '+fileName)
 

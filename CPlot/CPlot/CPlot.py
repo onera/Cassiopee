@@ -3,23 +3,32 @@
 __version__ = '3.7'
 __author__ = "Christophe Benoit, Stephanie Peron, Pascal Raud, Matthieu Soismier, Bertrand Michel"
 
-from . import cplot
+# cplot and cplotOSMesa must not be imported at the same time
+
 import KCore.kcore as KCore
 import KCore.Vector as Vector
 from . import ColorMaps
 
+import os.path
 import time
 __timeStep__ = 0.01
 __slot__ = None
-
-try: range = xrange
-except: pass
 
 #==============================================================================
 def configure(useRender):
     """Configure CPlot for direct rendering (cplot.useDirect), display Lists (cplot.useDL)
         or VBO (cplot.useVBO)"""
+    from . import cplot
     cplot.configure(useRender)
+
+def hasDirectRendering():
+    """Detect if direct rendering is available on host (may not work on windows)"""
+    try:
+        import subprocess
+        out = subprocess.check_output('glxinfo | grep "direct rendering"', shell=True, stderr=subprocess.STDOUT)
+        if "Yes" in out: return True
+        else: return False
+    except: return False
 
 #==============================================================================
 # -- display --
@@ -50,8 +59,41 @@ def display(arrays,
     """Display arrays.
     Usage: display(arrays)"""
     if arrays != [] and not isinstance(arrays[0], list): arrays = [arrays]
+    if offscreen == 1 or offscreen == 5 or offscreen == 6 or offscreen == 7:
+        from . import cplotOSMesa
+        global __slot__
+        if __slot__ is None:
+            shaderPath = os.path.dirname(__file__)+'/OSMESA/'
+            cplotOSMesa.setShaderPath(shaderPath)
+            cplotOSMesa.displayNew(arrays, dim, mode, scalarField, vectorField1,
+                        vectorField2, vectorField3, displayBB, displayInfo,
+                        displayIsoLegend, meshStyle, solidStyle,
+                        scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize, 
+                        vectorShowSurface, vectorShape, vectorProjection, 
+                        colormap, colormapC1, colormapC2, colormapC3, colormapC,
+                        niso, isoEdges, isoScales, win,
+                        posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
+                        shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
+                        stereo, stereoDist,
+                        export, exportResolution, zoneNames, renderTags,
+                        frameBuffer, offscreen)
+            __slot__ = 1
+        else:
+            cplotOSMesa.displayAgain(arrays, dim, mode, scalarField, vectorField1,
+                        vectorField2, vectorField3, displayBB, displayInfo,
+                        displayIsoLegend, meshStyle, solidStyle,
+                        scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize, 
+                        vectorShowSurface, vectorShape, vectorProjection, 
+                        colormap, colormapC1, colormapC2, colormapC3, colormapC,
+                        niso, isoEdges, isoScales, win,
+                        posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
+                        shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
+                        stereo, stereoDist,
+                        export, exportResolution, zoneNames, renderTags,
+                        frameBuffer, offscreen)
+        return
+    from . import cplot
     if __slot__ is None:
-        import os.path
         shaderPath = os.path.dirname(__file__)+'/'
         cplot.setShaderPath(shaderPath)
         displayNew__(arrays, dim, mode, scalarField, vectorField1,
@@ -79,130 +121,12 @@ def display(arrays,
                        stereo, stereoDist,
                        export, exportResolution,
                        zoneNames, renderTags, frameBuffer, offscreen)
-
-#==============================================================================
-def displayOSMesa(arrays,
-            dim=-1, mode=-1,
-            scalarField=-1,
-            vectorField1=-1, vectorField2=-1, vectorField3=-1,
-            displayBB=-1, displayInfo=-1, displayIsoLegend=-1,
-            meshStyle=-1, solidStyle=-1, scalarStyle=-1,
-            vectorStyle=-1, vectorScale=-1., vectorDensity=-1.,
-            vectorNormalize=-1, vectorShowSurface=-1, vectorShape=-1,
-            vectorProjection=-1,
-            colormap=-1, colormapC1="", colormapC2="", colormapC3="",
-            colormapC=None,
-            niso=-1, isoEdges=-1, isoScales=[],
-            win=(-1,-1),
-            posCam=(-999,-999,-999),
-            posEye=(-999,-999,-999),
-            dirCam=(-999,-999,-999),
-            viewAngle=-1.,
-            bgColor=-1, backgroundFile="None",
-            shadow=-1, lightOffset=(-999, -999), 
-            dof=-1, dofPower=-1, gamma=-1, toneMapping=-1, 
-            stereo=-1, stereoDist=-1.,
-            export="None", exportResolution="None",
-            zoneNames=[], renderTags=[], frameBuffer=-1,
-            offscreen=0):
-    """Display arrays.
-    Usage: display(arrays)"""
-    global __slot__
-    if arrays != [] and not isinstance(arrays[0], list): arrays = [arrays]
-    if __slot__ is None:
-        import os.path
-        shaderPath = os.path.dirname(__file__)+'/'
-        cplot.setShaderPath(shaderPath)
-        cplot.displayNewOSMesa(arrays, dim, mode, scalarField, vectorField1,
-                     vectorField2, vectorField3, displayBB, displayInfo,
-                     displayIsoLegend, meshStyle, solidStyle,
-                     scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize, 
-                     vectorShowSurface, vectorShape, vectorProjection, 
-                     colormap, colormapC1, colormapC2, colormapC3, colormapC,
-                     niso, isoEdges, isoScales, win,
-                     posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
-                     shadow, lightOffset, dof, stereo, stereoDist,
-                     export, exportResolution, zoneNames, renderTags,
-                     frameBuffer, offscreen)
-    else:
-        cplot.displayAgainOSMesa(arrays, dim, mode, scalarField, vectorField1,
-                       vectorField2, vectorField3, displayBB, displayInfo,
-                       displayIsoLegend, meshStyle, solidStyle,
-                       scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize,
-                       vectorShowSurface, vectorShape, vectorProjection,
-                       colormap, colormapC1, colormapC2, colormapC3, colormapC, 
-                       niso, isoEdges, isoScales, win,
-                       posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
-                       shadow, lightOffset, dof, dofPower, gamma, toneMapping,
-                       stereo, stereoDist,
-                       export, exportResolution,
-                       zoneNames, renderTags, frameBuffer, offscreen)
-    __slot__ = 1
-
-#==============================================================================
-def displayFBO(arrays,
-            dim=-1, mode=-1,
-            scalarField=-1,
-            vectorField1=-1, vectorField2=-1, vectorField3=-1,
-            displayBB=-1, displayInfo=-1, displayIsoLegend=-1,
-            meshStyle=-1, solidStyle=-1, scalarStyle=-1,
-            vectorStyle=-1, vectorScale=-1., vectorDensity=-1.,
-            vectorNormalize=-1, vectorShowSurface=-1, vectorShape=-1,
-            vectorProjection=-1,
-            colormap=-1, colormapC1="", colormapC2="", colormapC3="",
-            colormapC=None,
-            niso=-1, isoEdges=-1, isoScales=[],
-            win=(-1,-1),
-            posCam=(-999,-999,-999),
-            posEye=(-999,-999,-999),
-            dirCam=(-999,-999,-999),
-            viewAngle=-1.,
-            bgColor=-1, backgroundFile="None",
-            shadow=-1, lightOffset=(-999,-999),
-            dof=-1, dofPower=-1, gamma=-1, toneMapping=-1, 
-            stereo=-1, stereoDist=-1.,
-            export="None", exportResolution="None",
-            zoneNames=[], renderTags=[], frameBuffer=-1,
-            offscreen=0):
-    """Display arrays offscreen using FBO.
-    Usage: displayFBO(arrays)"""
-    global __slot__
-    if arrays != [] and not isinstance(arrays[0], list): arrays = [arrays]
-    if __slot__ is None:
-        import os.path
-        shaderPath = os.path.dirname(__file__)+'/'
-        cplot.setShaderPath(shaderPath)
-        cplot.displayNewFBO(arrays, dim, mode, scalarField, vectorField1,
-                     vectorField2, vectorField3, displayBB, displayInfo,
-                     displayIsoLegend, meshStyle, solidStyle,
-                     scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize, 
-                     vectorShowSurface, vectorShape, vectorProjection, 
-                     colormap, colormapC1, colormapC2, colormapC3, colormapC,
-                     niso, isoEdges, isoScales, win,
-                     posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
-                     shadow, lightOffset, dof, dofPower, gamma, toneMapping,
-                     stereo, stereoDist,
-                     export, exportResolution, zoneNames, renderTags,
-                     frameBuffer, offscreen)
-    else:
-        cplot.displayAgainFBO(arrays, dim, mode, scalarField, vectorField1,
-                     vectorField2, vectorField3, displayBB, displayInfo,
-                     displayIsoLegend, meshStyle, solidStyle,
-                     scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize, 
-                     vectorShowSurface, vectorShape, vectorProjection, 
-                     colormap, colormapC1, colormapC2, colormapC3, colormapC,
-                     niso, isoEdges, isoScales, win,
-                     posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
-                     shadow, lightOffset, dof, dofPower, gamma, toneMapping,
-                     stereo, stereoDist,
-                     export, exportResolution, zoneNames, renderTags,
-                     frameBuffer, offscreen)
-    __slot__ = 1
-
+    
 #==============================================================================
 def render():
     """Force render.
     Usage: render()"""
+    from . import cplot
     cplot.render()
 
 #==============================================================================
@@ -210,6 +134,7 @@ def delete(zlist):
     """Delete zones from plotter.
     Usage: delete([i1,i2,...])"""
     if __slot__ is None: return
+    from . import cplot
     cplot.delete(zlist)
 
 #==============================================================================
@@ -228,6 +153,7 @@ def add(arrays, no, array, zoneName=None, renderTag=None):
             display(arrays, zoneNames=[zoneName], renderTags=[renderTag])
         else: display(arrays)
     else:
+        from . import cplot
         cplot.add(array, (nzs, nzu), zoneName, renderTag)
 
 #==============================================================================
@@ -247,6 +173,7 @@ def replace(arrays, no, array, zoneName=None, renderTag=None):
             display(arrays, zoneNames=[zoneName], renderTags=[renderTag])
         else: display(arrays)
     else:
+        from . import cplot
         cplot.replace(array, (nzs, nzu, oldType), zoneName, renderTag)
 
 #==============================================================================
@@ -279,6 +206,7 @@ def display1D(arrays, slot=0, gridPos=(0,0), gridSize=(-1,-1),
     except: pass
     if r1 is None: r1 = (0.,1.)
     if r2 is None: r2 = (0.,1.)
+    from . import cplot
     cplot.display1D(arrays, slot, gridPos, gridSize,
                     bgBlend, var1, var2, r1, r2)
     time.sleep(__timeStep__)
@@ -287,6 +215,7 @@ def display1D(arrays, slot=0, gridPos=(0,0), gridSize=(-1,-1),
 def pressKey():
     """Wait for user to press a key.
     Usage: pressKey()"""
+    from . import cplot
     cplot.pressKey()
 
 #==============================================================================
@@ -294,60 +223,72 @@ def pressKey():
 def getState(mode):
     """Return a state in plotter.
     Usage: n = getState(mode)"""
+    from . import cplot
     return cplot.getState(mode)
 
 def getSelectedZone():
     """Return the selected zone in plotter.
     Usage: n = getSelectedZone()"""
+    from . import cplot
     return cplot.getSelectedZone()
 
 def getSelectedZones():
     """Return the selected zones in plotter.
     Usage: list = getSelectedZones()"""
+    from . import cplot
     return cplot.getSelectedZones()
 
 def getSelectedStatus(zone):
     """Return the selected status of a zone in plotter.
     Usage: status = getSelectedStatus(zone)"""
+    from . import cplot
     return cplot.getSelectedStatus(zone)
 
 def getActiveZones():
     """Return the active (displayed) zones in plotter.
     Usage: list = getActiveZones()"""
+    from . import cplot
     return cplot.getActiveZones()
 
 def getActiveStatus(zone):
     """Return the active status of a zone in plotter.
     Usage: status = getActiveStatus(zone)"""
+    from . import cplot
     return cplot.getActiveStatus(zone)
 
 def getActivePoint():
     """Return the active (clicked) point in plotter.
     Usage: n = getActivePoint()"""
+    from . import cplot
     return cplot.getActivePoint()
 
 def getActivePointIndex():
     """Return the active (clicked) point index.
     Usage: n = getActivePointIndex()"""
+    from . import cplot
     return cplot.getActivePointIndex()
 
 def getActivePointF():
     """Return the active (clicked) point field values.
     Usage: f = getActivePointF()"""
+    from . import cplot
     return cplot.getActivePointF()
 
 def getMouseState():
     """Return mouse state (mouse position and button state)."""
+    from . import cplot
     return cplot.getMouseState()
 
 def getKeyboard():
     """Return the pressed keys.
     Usage: n = getKeyboard()"""
+    from . import cplot
     return cplot.getKeyboard()
 
 def resetKeyboard():
     """Reset the keyboard string.
     Usage: resetKeyboard()"""
+    from . import cplot
     return cplot.resetKeyboard()
 
 # Ajoute des colormaps indirectes
@@ -447,6 +388,7 @@ def setState(dim=-1,
     Usage: setState(posCam=(12,0,0))"""
     if colormap != -1: 
         [colormap, colormapC1, colormapC2, colormapC3, colormapC] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3, colormapC] )
+    from . import cplot
     cplot.setState(dim, mode, scalarField, vectorField1, vectorField2,
                    vectorField3, displayBB, displayInfo, displayIsoLegend,
                    meshStyle, solidStyle, scalarStyle,
@@ -469,81 +411,106 @@ def setState(dim=-1,
 def setMode(mode):
     """Set CPlot display mode.
     Usage: setMode(0)"""
+    from . import cplot
     cplot.setMode(mode)
 
 def changeVariable():
     """Change displayed variable.
     Usage: changeVariable()"""
+    from . import cplot
     cplot.changeVariable()
 
 def changeStyle():
     """Change CPlot display style.
     Usage: changeStyle()"""
+    from . import cplot
     cplot.changeStyle()
 
 def changeInfoDisplay():
     """Change CPlot info display style.
     Usage: changeInfoDisplay()"""
+    from . import cplot
     cplot.changeInfoDisplay()
 
 def changeBlanking():
     """Change the blanking procedure.
     Usage: changeBlanking()"""
+    from . import cplot
     cplot.changeBlanking()
 
 def setDim(dim):
     """Set CPlot display dim 3, 2 or 1.
     Usage: setDim(2)"""
+    from . import cplot
     cplot.setDim(dim)
 
 def setActivePoint(x,y,z):
     """Set the active (clicked) point in plotter.
     Usage: setActivePoint(x,y,z)"""
+    from . import cplot
     return cplot.setActivePoint(x,y,z)
 
 def setSelectedZones(zlist):
     """Set selected zones.
     Usage: setSelectedZones([(0,1),(1,1),...])"""
+    from . import cplot
     cplot.setSelectedZones(zlist)
 
 def unselectAllZones():
     """Unselect all zones.
     Usage: unselectAllZones()"""
+    from . import cplot
     cplot.unselectAllZones()
 
 def setActiveZones(zlist):
     """Set active (displayed) zones.
     Usage: setActiveZones([(0,1)])"""
+    from . import cplot
     cplot.setActiveZones(zlist)
 
 def setZoneNames(zlist):
     """Set zone names.
     Usage: setZoneNames([(0,'myZone')])"""
+    from . import cplot
     cplot.setZoneNames(zlist)
 
 #==============================================================================
 def lookFor():
     """Look for selected zones.
     Usage: lookFor()"""
+    from . import cplot
     cplot.lookFor()
 
 def fitView():
     """Fit the view to objects.
     Usage: fitView()"""
+    from . import cplot
     cplot.fitView()
 
 def finalizeExport(action=0):
-    """Finalize export for continuous export."""
+    """Finalize export."""
+    if action == 1 or action == 5 or action == 6 or action == 7: 
+        from . import cplotOSMesa
+        cplotOSMesa.finalizeExport(action)
+        return
+    from . import cplot
     while cplot.isDisplayRunning() == 0: pass
     cplot.finalizeExport(action)
 
 def hide():
     """Hide window."""
+    from . import cplot
     cplot.hide()
 
 def show():
     """Show window if it has been hidden with flush."""
+    from . import cplot
     cplot.show()
+
+def setWindowTitle(file, path):
+    """Set the CPlot window title."""
+    from . import cplot
+    cplot.setWindowTitle(file, path)
 
 #==============================================================================
 # camera
@@ -776,6 +743,7 @@ def travelOut(xr=0.1, N=100):
 
 # -- Internal functions --
 def setFileName__(name):
+    from . import cplot
     cplot.setFileName(name)
 
 def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
@@ -795,6 +763,7 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
         [colormap, colormapC1, colormapC2, colormapC3, colormapC] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3, colormapC] )
     if offscreen > 0: daemon = True
     else: daemon = False
+    from . import cplot
     a = threading.Thread(None, cplot.displayNew, None,
                          (arrays, dim, mode, scalarField, vectorField1,
                           vectorField2, vectorField3, displayBB, displayInfo,
@@ -826,6 +795,7 @@ def displayAgain__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                    export, exportResolution, zoneNames, renderTags, frameBuffer, offscreen):
     if colormap != -1: 
         [colormap, colormapC1, colormapC2, colormapC3, colormapC] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3, colormapC] )
+    from . import cplot
     cplot.displayAgain(arrays, dim, mode, scalarField, vectorField1,
                        vectorField2, vectorField3, displayBB, displayInfo,
                        displayIsoLegend,

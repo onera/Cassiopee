@@ -60,31 +60,13 @@ namespace CPlot
     Shader* addFromFile(const char* geomFile, const char* vertexFile, const char* fragmentFile);
 
     bool eraseShader(Shader* obj);
-    unsigned short numberOfShaders() const
-    { return (unsigned short)_shaderList.size(); }
-    unsigned short currentShader() const
-    { return _currentActiveShader; }
-    unsigned short shader_id( int idShadMat ) const
-    {
-      unsigned short id = idShadMat;
-      if ( id >= (unsigned short)_shaderList.size() ) std::cerr << "Bogue, depassement de tableau de shader !!!!" << std::flush << std::endl;
-      return id;
-    }
+    unsigned short numberOfShaders() const;
+    unsigned short currentShader() const;
+    unsigned short shader_id( int idShadMat ) const;
     
-    Shader* operator [] (unsigned short id)
-    {
-        assert(id > 0);
-        assert(id < _shaderList.size());
-        return _shaderList[id]; 
-    }
-    
-    const Shader* operator [] (unsigned short id) const
-    { 
-        assert(id > 0);
-        assert(id < _shaderList.size());
-        return _shaderList[id]; 
-    }
-    
+    Shader* operator [] (unsigned short id);
+    const Shader* operator [] (unsigned short id) const;
+
     /* Return the id of a shader in shader list */
     unsigned short getId(Shader* shad) const;
     
@@ -102,14 +84,13 @@ namespace CPlot
     void deactivate();
     
     // Fake functions
-    void set_tesselation( unsigned short idTes ) {};
-    void unset_tesselation() {};
-    bool has_tesselation() const { return false; }
+    void set_tesselation( unsigned short idTes );
+    void unset_tesselation();
+    bool has_tesselation() const;
     
   private:
     ShaderManager(const ShaderManager& shadMan);
     ShaderManager& operator = (const ShaderManager& shadMan);
-    
     std::vector<Shader*> _shaderList;
     Shader* m_previous_shader;
     unsigned short _currentActiveShader;

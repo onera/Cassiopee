@@ -56,7 +56,9 @@ void DataDL::renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield
   glColor4f(0.,0.,0., blend); // pour imposer blend
 
   if ((eltType0 == 1) || (eltType0 == 10 && zonep->nelts1D > 0))
+  {
     if (curr != 0) _shaders[curr]->setUniform("lightOn", (int)0); // impose isoLight off on 1D meshes
+  }
 #endif
   
   glCallList(zoneImpl->_DLiso);
@@ -65,7 +67,9 @@ void DataDL::renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield
   if ((eltType0 == 1) || (eltType0 == 10 && zonep->nelts1D > 0))
   {
     if (ptrState->isoLight == 1 && ptrState->dim == 3)
+    {
       if (curr != 0) _shaders[curr]->setUniform("lightOn", (int)1); // put back the isoLight value found in the CPlot state
+    }
   }
 #endif
 }

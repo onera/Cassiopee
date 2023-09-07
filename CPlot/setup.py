@@ -12,10 +12,6 @@ import KCore.config
 # optional: MPEG, OSMesa
 #=============================================================================
 
-# If you want to use CPlot as a offscreen plotter (as on clusters)
-# set UseOSMesa to True (requires mesa)
-UseOSMesa = KCore.config.CPlotOffScreen
-
 # Write setup.cfg
 import KCore.Dist as Dist
 Dist.writeSetupCfg()
@@ -26,38 +22,13 @@ Dist.writeSetupCfg()
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
-mySystem = Dist.getSystem()
-if mySystem[0] == 'mingw' and mySystem[1] == '32':
-    libraries = ["cplot", "kcore", "wsock32", "winmm", "gdi32"]
-    libGL = ['opengl32', 'glu32']
-elif mySystem[0] == 'mingw' and mySystem[1] == '64':
-    libraries = ["cplot", "kcore", "wsock32", "winmm", "gdi32"]
-    libGL = ['opengl32', 'glu32']
-elif mySystem[0] == 'Darwin':
-    libraries = ["kcore", "X11", "Xmu", "cplot"]
-    libGL = ['GL', 'GLU'] 
-else:
-    libraries = ["cplot", "kcore", "Xi", "Xmu", "rt"]
-    libGL = ['GL', 'GLU']
-
 from KCore.config import *
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 libraryDirs = ["build/"+prod]
 includeDirs = [numpyIncDir, kcoreIncDir]
 
-# Test if OSMesa exists =======================================================
-if UseOSMesa:
-    (OSMesa, OSMesaIncDir, OSMesaLibDir, libname) = Dist.checkOSMesa(additionalLibPaths,
-                                                                     additionalIncludePaths)
-else: OSMesa = False
-
-if not OSMesa: libraries += libGL
-else: 
-  libraries += [libname]+libGL
-  libraryDirs += [OSMesaLibDir]
-  includeDirs += [OSMesaIncDir]
-
+libraries = []
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
@@ -74,36 +45,68 @@ if MPEG:
         includeDirs += [mpegIncDir]
     
 libraryDirs += [kcoreLibDir]
-
-from srcs import SHADERS
-if SHADERS == 2: includeDirs += ['CPlot/Shaders2.0']
-else: includeDirs += ['CPlot/Shaders']
+libraries += ["kcore"]
 
 # Test if libmpi exists ======================================================
 (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
                                                      additionalIncludePaths)
 
+
+# Test if GL exists ==========================================================
+#(isGL, GLIncDir, GLLibDir) = Dist.checkGL(additionalLibPaths,
+#                                          additionalIncludePaths)
+isGL = True; GLIncDir = []; GLLibDir = []
+
+mySystem = Dist.getSystem()
+if mySystem[0] == 'mingw' and mySystem[1] == '32':
+    libraries += ["wsock32", "winmm", "gdi32"]
+    libGL = ['opengl32', 'glu32']
+elif mySystem[0] == 'mingw' and mySystem[1] == '64':
+    libraries += ["wsock32", "winmm", "gdi32"]
+    libGL = ['opengl32', 'glu32']
+elif mySystem[0] == 'Darwin':
+    libraries += ["X11", "Xmu"]
+    libGL = ['GL', 'GLU'] 
+else:
+    libraries += ["Xi", "Xmu", "rt"]
+    libGL = ['GL', 'GLU']
+
+# Test if OSMesa exists =======================================================
+(OSMesa, OSMesaIncDir, OSMesaLibDir, OSMesaLibname) = Dist.checkOSMesa(additionalLibPaths,
+                                                                 additionalIncludePaths)
+
 # Extensions =================================================================
 EXTRA = ['-D__SHADERS__']
-if OSMesa: EXTRA += ['-D__MESA__']
 if mpi:
     libraryDirs.append(mpiLibDir)
     includeDirs.append(mpiIncDir)
     libraries += mpiLibs
     EXTRA += ['-D_MPI']
-
 EXTRA += Dist.getCppArgs()
 
-extensions = [
+extensions = []
+if isGL:
+    extensions += [
     Extension('CPlot.cplot',
               sources=['CPlot/cplot.cpp'],
-              include_dirs=["CPlot"]+additionalIncludePaths+includeDirs,
+              include_dirs=["CPlot", "CPlot/Shaders"]+additionalIncludePaths+includeDirs,
               library_dirs=additionalLibPaths+libraryDirs,
-              libraries=libraries+additionalLibs,
+              libraries=['cplot', 'cplot1', 'cplot', 'cplot1']+libGL+libraries+additionalLibs,
               extra_compile_args=EXTRA,
-              extra_link_args=Dist.getLinkArgs()
-	)
+              extra_link_args=Dist.getLinkArgs())            
     ]
+
+if OSMesa:
+    extensions += [
+    Extension('CPlot.cplotOSMesa',
+              sources=['CPlot/cplotOSMesa.cpp'],
+              include_dirs=["CPlot", "CPlot/Shaders2.0"]+additionalIncludePaths+includeDirs+[OSMesaIncDir],
+              library_dirs=additionalLibPaths+libraryDirs+[OSMesaLibDir],
+              libraries=['cplot', 'cplot2', 'cplot', 'cplot2', OSMesaLibname]+libraries+additionalLibs+libGL,
+              extra_compile_args=EXTRA+['-D__MESA__'],
+              extra_link_args=Dist.getLinkArgs())              
+    ]
+
 
 # Setup ======================================================================
 setup(

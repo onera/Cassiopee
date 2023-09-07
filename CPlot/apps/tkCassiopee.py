@@ -105,7 +105,7 @@ def run(t=None):
         CTK.t = CTK.upgradeTree(CTK.t)
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
         fileName = os.path.split(CTK.FILE)
-        CPlot.CPlot.cplot.setWindowTitle(fileName[1], fileName[0])
+        CPlot.setWindowTitle(fileName[1], fileName[0])
         
     # - Verifie l'arbre -
     errors = []

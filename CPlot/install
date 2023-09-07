@@ -47,6 +47,8 @@ if [ $PRODMODE -le 1 ]; then
     #touch CPlot/cplot.cpp
     rm -f build/lib.*/CPlot/cplot.*
     rm -f build/lib.*/CPlot/cplot-*.*
+    rm -f build/lib.*/CPlot/cplotOSMesa.*
+    rm -f build/lib.*/CPlot/cplotOSMesa-*.*
 
     if [ $PRODMODE -eq 0 ]; then
         python setup.py install --prefix="$INSTALLPATH"

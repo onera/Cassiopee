@@ -3,14 +3,9 @@
 import CPlot
 import Geom as D
 import Converter.Mpi as Cmpi
-import KCore.config
 import KCore.test as test
 
 LOCAL = test.getLocal()
-
-if not KCore.config.CPlotOffScreen: 
-    print("CPlot: no offscreen osmesa installed.")
-    import sys; sys.exit()
 
 a = D.sphere((0,Cmpi.rank,0), 1, N=200)
 

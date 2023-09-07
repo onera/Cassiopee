@@ -10,8 +10,6 @@
 # - additional include paths
 # - additional library paths
 # - additional libraries
-# If you want use CPlot as an offscreen plotter on a cluster without a gfx
-# card (requires OSMesa installed), set CPlotOffScreen to True
 #=============================================================================
 
 import platform, re, os
@@ -56,12 +54,11 @@ CppAdditionalOptions = v[4]
 f77AdditionalOptions = v[5]
 useOMP = v[6]
 useStatic = v[7]
-CPlotOffScreen = v[8]
-additionalIncludePaths = v[9]
-additionalLibs = v[10]
-additionalLibPaths = v[11]
-useCuda = v[12]
-NvccAdditionalOptions = v[13]
+additionalIncludePaths = v[8]
+additionalLibs = v[9]
+additionalLibPaths = v[10]
+useCuda = v[11]
+NvccAdditionalOptions = v[12]
 
 # this part to add intel compilers to distutils
 if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:

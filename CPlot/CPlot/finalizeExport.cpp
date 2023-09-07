@@ -37,9 +37,9 @@ PyObject* K_CPLOT::finalizeExport(PyObject* self, PyObject* args)
   if (!PyArg_ParseTuple(args, "i", &finalizeType)) return NULL;
 
   Data* d = Data::getInstance();
-
+  
   // Finalize pour osmesa (delete le context)
-  if (finalizeType == 1 || finalizeType == 6 || finalizeType == 7)
+  if (finalizeType == 1 || finalizeType == 5 || finalizeType == 6 || finalizeType == 7)
   {
 #ifdef __MESA__
     // We may sometimes need to delete the context (if new image if a new size)
@@ -48,11 +48,14 @@ PyObject* K_CPLOT::finalizeExport(PyObject* self, PyObject* args)
     //d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = NULL;
     //OSMesaDestroyContext(*(OSMesaContext*)(d->ptrState->ctx));
     //d->ptrState->ctx = NULL;
-    if (d->ptrState->offscreen == 6)
+    if (finalizeType == 6)
     {
-      // in composite mode, this buffer must be deleted 
+      // in composite mode, this buffer must be deleted
+      //free(d->ptrState->offscreenBuffer[d->ptrState->frameBuffer]);
+      //d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = NULL;
       free(d->ptrState->offscreenBuffer[d->ptrState->frameBuffer+1]);
       d->ptrState->offscreenBuffer[d->ptrState->frameBuffer+1] = NULL;
+      free(d->ptrState->offscreenDepthBuffer[d->ptrState->frameBuffer]);
     }
 #endif
     return Py_BuildValue("l", KSUCCESS);

@@ -8,9 +8,7 @@ import KCore.test as test
 
 LOCAL = test.getLocal()
 
-import KCore.config
-if KCore.config.CPlotOffScreen: offscreen = 1
-else: offscreen = 2 
+offscreen = 1 
 
 def F(x): return x
 

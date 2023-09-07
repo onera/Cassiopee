@@ -67,7 +67,7 @@ E_Int BiCGStab(E_Float *A, E_Float *x, E_Float *b, E_Int n)
   }
 
   E_Float omega, rho, beta, rho0, alpha;
-  rho = beta = rho0 = alpha = 1.;
+  omega = rho = beta = rho0 = alpha = 1.;
 
   E_Float *rhat = (E_Float *)XMALLOC(n * sizeof(E_Float));
   memcpy(rhat, r, n*sizeof(E_Float));

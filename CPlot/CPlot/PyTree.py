@@ -2,11 +2,6 @@
 """
 import numpy
 from . import CPlot
-try: from . import cplot
-except ImportError: raise ImportError("CPlot: is partially installed (no display).")
-
-try: range = xrange
-except: pass
 
 # Separateur intra-nom
 SEP1 = '/'
@@ -114,6 +109,7 @@ def add(t, nob, noz, zone):
     else: zone = C.node2Center(zone)
     array = C.getAllFields(zone, 'nodes', api=2)[0]
     
+    from . import cplot
     cplot.add(array, (nzs, nzu), zoneName, renderTag)
 
 #==============================================================================
@@ -131,7 +127,7 @@ def replace(t, nob, noz, zone):
         zone = C.center2Node(zone, Internal.__FlowSolutionCenters__)
     else: zone = C.node2Center(zone)
     array = C.getAllFields(zone, 'nodes', api=2)[0]
-    
+    from . import cplot
     cplot.replace(array, (nzs, nzu, oldType), zoneName, renderTag)
     
 #==============================================================================
@@ -420,6 +416,10 @@ def travelOut(xr=0.1, N=100):
     """Zoom camera out."""
     ret = CPlot.travelOut(xr, N)
     return ret
+
+def setWindowTitle(file, path):
+    """Set CPlot window title."""
+    CPlot.setWindowTitle(file, path)
 
 #==============================================================================
 # -- Numbering functions --

@@ -16,13 +16,13 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <stdexcept>
+#include "../Data.h"
 #include "ShaderManager.h"
 #include "VertexShader.h"
 #include "FragmentShader.h"
 #include "GeomShader.h"
 #include <string.h>
-#include "../Data.h"
+#include <stdexcept>
 using namespace CPlot;
 
 //=============================================================================
@@ -42,14 +42,45 @@ ShaderManager::~ShaderManager()
     }
 }
 
+unsigned short ShaderManager::numberOfShaders() const
+{ 
+    return (unsigned short)_shaderList.size(); 
+}
+
+unsigned short ShaderManager::currentShader() const
+{ 
+    return _currentActiveShader; 
+}
+
+unsigned short ShaderManager::shader_id( int idShadMat ) const
+{
+    unsigned short id = idShadMat;
+    if ( id >= (unsigned short)_shaderList.size() ) printf("Bogue, depassement de tableau de shader !!!!\n");
+    return id;
+}
+
+Shader* ShaderManager::operator [] (unsigned short id)
+{
+    assert(id > 0);
+    assert(id < _shaderList.size());
+    return _shaderList[id]; 
+}
+    
+const Shader* ShaderManager::operator [] (unsigned short id) const
+{ 
+    assert(id > 0);
+    assert(id < _shaderList.size());
+    return _shaderList[id]; 
+}
+
 //=============================================================================
 /* Cree un shader a partir de 1 fichier geomShader */
 //==============================================================================
 Shader* ShaderManager::addFromFile(const char* geomFile, const char* vertexFile, const char* fragmentFile)
 {
   Shader* shad = new Shader;
-  GeomShader   gShad;
-  VertexShader   vShad;
+  GeomShader gShad;
+  VertexShader vShad;
   FragmentShader sShad;
 
   try 
@@ -85,7 +116,7 @@ Shader* ShaderManager::addFromFile(const char* vertexFile,
                                    const char* fragmentFile)
 {
   Shader* shad = new Shader;
-  VertexShader   vShad;
+  VertexShader vShad;
   FragmentShader sShad;
 
   try 
@@ -112,20 +143,21 @@ Shader* ShaderManager::addFromFile(const char* vertexFile,
 }
 
 //=============================================================================
-unsigned short ShaderManager::getId( Shader *shad ) const
+unsigned short ShaderManager::getId(Shader* shad) const
 {
     unsigned short id = 0;
     std::vector<Shader *>::const_iterator it = _shaderList.begin();
-    while ( it != _shaderList.end() ) {
-        if ( ( *it ) == shad ) break;
+    while (it != _shaderList.end()) 
+    {
+        if ( (*it) == shad ) break;
         id++;
     }
-    if ( id == _shaderList.size() ) return 0;
+    if (id == _shaderList.size()) return 0;
     return id;
 }
 
 // ============================================================================
-bool ShaderManager::eraseShader( Shader *obj )
+bool ShaderManager::eraseShader(Shader* obj)
 {
     std::vector<Shader *>::iterator it = _shaderList.begin();
     while ( it != _shaderList.end() ) {
@@ -138,6 +170,15 @@ bool ShaderManager::eraseShader( Shader *obj )
     return false;
 }
 
+//=============================================================================
+void ShaderManager::set_tesselation( unsigned short idTess )
+{
+}
+// ----------------------------------------------------------------------------
+void ShaderManager::unset_tesselation()
+{
+}
+bool ShaderManager::has_tesselation() const { return false; }
 // ----------------------------------------------------------------------------
 /*
 void ShaderManager::activate(unsigned short id)
@@ -168,7 +209,7 @@ void ShaderManager::activate( unsigned short id )
             m_previous_shader = _shaderList[ id ];
 }
 //=============================================================================
-void ShaderManager::activate( Shader *shad )
+void ShaderManager::activate(Shader* shad)
 {
     if ( m_previous_shader != nullptr ) m_previous_shader->end();
     //if ( _currentActiveShader > 0 ) _shaderList[ _currentActiveShader - 1 ]->end();
@@ -375,12 +416,12 @@ int ShaderManager::load()
   strcpy(frag, path); strcat(frag, "isoAnisotropic.frag");
   addFromFile(vert, frag);
 
-  // - 33 - Velocity shader ( geom + frag + vert ) - fake
+  // - 33 - Vector shader ( geom + frag + vert ) - fake
   strcpy(vert, path); strcat(vert, "isoAnisotropic.vert");
   strcpy(frag, path); strcat(frag, "isoAnisotropic.frag");
   addFromFile(vert, frag);
 
-  // - 34 - Velocity shader ( geom + frag + vert ) - fake
+  // - 34 - Vector shader ( geom + frag + vert ) - fake
   strcpy(vert, path); strcat(vert, "isoAnisotropic.vert");
   strcpy(frag, path); strcat(frag, "isoAnisotropic.frag");
   addFromFile(vert, frag);

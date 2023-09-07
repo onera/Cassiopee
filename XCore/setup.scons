@@ -181,7 +181,6 @@ if srcs.ZOLTAN and mpi:
 command += "echo 'save' >> merge.l; "
 command += "echo 'end' >> merge.l"
 command = 'sh -c \"'+command+'\"'
-print("COMMAND", command, flush=True)
 
 env.Command('merge.l', 'merge.ar', command)
 env.Command('libxcore.a', deps+['merge.l'], "ar -M < merge.l")

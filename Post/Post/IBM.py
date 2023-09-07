@@ -29,14 +29,14 @@ from . import IBM_OLDIES
 # IN: tb (tree): geometry tree (IBM bodies) 
 #       If tb is None, return the cloud of IBM points
 #       If tb is not None, the solution is projected onto the bodies, at the vertices
-# IN : famZones (list): if famZones is not empty, only extract some subregion families (['FAM1','FAM2,...])
-# IN : extractIBMInfo (boolean): if True, store IB coordinates (PC, PI and PW)
-# IN : extractYplusAtImage (boolean): if True, project the y+ values at the image points to the IBM surface mesh
+# IN: famZones (list): if famZones is not empty, only extract some subregion families (['FAM1','FAM2,...])
+# IN: extractIBMInfo (boolean): if True, store IB coordinates (PC, PI and PW)
+# IN: extractYplusAtImage (boolean): if True, project the y+ values at the image points to the IBM surface mesh
 #=============================================================================
-def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IBCD_*", extractIBMInfo=False, extractYplusAtImage=False,ProjectOldVersion=False):
+def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IBCD_*", extractIBMInfo=False, extractYplusAtImage=False, ProjectOldVersion=False):
     """Extracts the flow field stored at IBM points onto the surface."""
 
-    if extractYplusAtImage and not famZones:_extractYplusIP(tc)
+    if extractYplusAtImage and not famZones: _extractYplusIP(tc)
 
     xwNP = []; ywNP = []; zwNP = []
     xiNP = []; yiNP = []; ziNP = []
@@ -80,59 +80,59 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IB
                 zones = dictOfZoneFamilies[famName]
                 if zones!=[]: tb2=C.newPyTree(['Base']); tb2[2][1][2]=zones
 
-            zd = extractIBMWallFields(zd, tb=tb2, coordRef=coordRef, famZones=[],extractYplusAtImage=extractYplusAtImage,ProjectOldVersion=ProjectOldVersion)
+            zd = extractIBMWallFields(zd, tb=tb2, coordRef=coordRef, famZones=[], extractYplusAtImage=extractYplusAtImage, ProjectOldVersion=ProjectOldVersion)
             out += Internal.getZones(zd)
         return out
 
     else:
         allZSR = Internal.getNodesFromType(tc,'ZoneSubRegion_t')
         if allZSR != []:
-            allIBCD = Internal.getNodesFromName(allZSR,IBCNames)
+            allIBCD = Internal.getNodesFromName(allZSR, IBCNames)
             for IBCD in allIBCD:
                 if coordRef == 'target':
-                    xPC = Internal.getNodeFromName1(IBCD,"CoordinateX_PC")[1]
-                    yPC = Internal.getNodeFromName1(IBCD,"CoordinateY_PC")[1]
-                    zPC = Internal.getNodeFromName1(IBCD,"CoordinateZ_PC")[1]
+                    xPC = Internal.getNodeFromName1(IBCD, "CoordinateX_PC")[1]
+                    yPC = Internal.getNodeFromName1(IBCD, "CoordinateY_PC")[1]
+                    zPC = Internal.getNodeFromName1(IBCD, "CoordinateZ_PC")[1]
                     xNP.append(xPC); yNP.append(yPC); zNP.append(zPC)
                 elif coordRef == 'image':
-                    xPI = Internal.getNodeFromName1(IBCD,"CoordinateX_PI")[1]
-                    yPI = Internal.getNodeFromName1(IBCD,"CoordinateY_PI")[1]
-                    zPI = Internal.getNodeFromName1(IBCD,"CoordinateZ_PI")[1]
+                    xPI = Internal.getNodeFromName1(IBCD, "CoordinateX_PI")[1]
+                    yPI = Internal.getNodeFromName1(IBCD, "CoordinateY_PI")[1]
+                    zPI = Internal.getNodeFromName1(IBCD, "CoordinateZ_PI")[1]
                     xNP.append(xPI); yNP.append(yPI); zNP.append(zPI)                 
                 else:
-                    xPW = Internal.getNodeFromName1(IBCD,"CoordinateX_PW")[1]
-                    yPW = Internal.getNodeFromName1(IBCD,"CoordinateY_PW")[1]
-                    zPW = Internal.getNodeFromName1(IBCD,"CoordinateZ_PW")[1]
+                    xPW = Internal.getNodeFromName1(IBCD, "CoordinateX_PW")[1]
+                    yPW = Internal.getNodeFromName1(IBCD, "CoordinateY_PW")[1]
+                    zPW = Internal.getNodeFromName1(IBCD, "CoordinateZ_PW")[1]
                     xNP.append(xPW); yNP.append(yPW); zNP.append(zPW)
 
                 if extractIBMInfo:
                     if coordRef != 'target':
-                        xPC = Internal.getNodeFromName1(IBCD,"CoordinateX_PC")[1]
-                        yPC = Internal.getNodeFromName1(IBCD,"CoordinateY_PC")[1]
-                        zPC = Internal.getNodeFromName1(IBCD,"CoordinateZ_PC")[1]
+                        xPC = Internal.getNodeFromName1(IBCD, "CoordinateX_PC")[1]
+                        yPC = Internal.getNodeFromName1(IBCD, "CoordinateY_PC")[1]
+                        zPC = Internal.getNodeFromName1(IBCD, "CoordinateZ_PC")[1]
                     xcNP.append(xPC); ycNP.append(yPC); zcNP.append(zPC)
 
                     if coordRef != 'image':
-                        xPI = Internal.getNodeFromName1(IBCD,"CoordinateX_PI")[1]
-                        yPI = Internal.getNodeFromName1(IBCD,"CoordinateY_PI")[1]
-                        zPI = Internal.getNodeFromName1(IBCD,"CoordinateZ_PI")[1]
+                        xPI = Internal.getNodeFromName1(IBCD, "CoordinateX_PI")[1]
+                        yPI = Internal.getNodeFromName1(IBCD, "CoordinateY_PI")[1]
+                        zPI = Internal.getNodeFromName1(IBCD, "CoordinateZ_PI")[1]
                     xiNP.append(xPI); yiNP.append(yPI); ziNP.append(zPI)
 
                     if coordRef != 'wall':
-                        xPW = Internal.getNodeFromName1(IBCD,"CoordinateX_PW")[1]
-                        yPW = Internal.getNodeFromName1(IBCD,"CoordinateY_PW")[1]
-                        zPW = Internal.getNodeFromName1(IBCD,"CoordinateZ_PW")[1]
+                        xPW = Internal.getNodeFromName1(IBCD, "CoordinateX_PW")[1]
+                        yPW = Internal.getNodeFromName1(IBCD, "CoordinateY_PW")[1]
+                        zPW = Internal.getNodeFromName1(IBCD, "CoordinateZ_PW")[1]
                     xwNP.append(xPW); ywNP.append(yPW); zwNP.append(zPW)
                     
-                PW = Internal.getNodeFromName1(IBCD,XOD.__PRESSURE__)
+                PW = Internal.getNodeFromName1(IBCD, XOD.__PRESSURE__)
                 if PW is not None: pressNP.append(PW[1])
-                RHOW = Internal.getNodeFromName1(IBCD,XOD.__DENSITY__)
+                RHOW = Internal.getNodeFromName1(IBCD, XOD.__DENSITY__)
                 if RHOW is not None:
                     maxVal = numpy.max(RHOW[1])
                     minVal = numpy.min(RHOW[1])
                     if maxVal<0 and minVal<0: RHOW[1][:]=-RHOW[1][:]
                     densNP.append(RHOW[1])
-                UTAUW = Internal.getNodeFromName1(IBCD,XOD.__UTAU__)
+                UTAUW = Internal.getNodeFromName1(IBCD, XOD.__UTAU__)
                 if UTAUW is not None: utauNP.append(UTAUW[1])
                 YPLUSW = Internal.getNodeFromName1(IBCD, XOD.__YPLUS__)
                 if YPLUSW is not None: yplusNP.append(YPLUSW[1])
@@ -206,7 +206,7 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IB
     # Creation d une seule zone
     zsize = numpy.empty((1,3), dtype=Internal.E_NpyInt, order='F')
     zsize[0,0] = xNP.shape[0]; zsize[0,1] = 0; zsize[0,2] = 0
-    z = Internal.newZone(name='IBW_Wall',zsize=zsize,ztype='Unstructured')
+    z = Internal.newZone(name='IBW_Wall', zsize=zsize, ztype='Unstructured')
     gc = Internal.newGridCoordinates(parent=z)
     coordx = ['CoordinateX',xNP,[],'DataArray_t']
     coordy = ['CoordinateY',yNP,[],'DataArray_t']

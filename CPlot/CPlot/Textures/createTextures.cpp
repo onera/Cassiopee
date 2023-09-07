@@ -52,7 +52,7 @@ E_Int Data::createNodeTexture(void)
     _texNodes = 0;
     return 0;
   }
-
+  
   p = texPixels;
   for (i = 0; i < texHeight; i++) 
   {
@@ -68,9 +68,10 @@ E_Int Data::createNodeTexture(void)
       p += 4;
     }
   }
-
+  
   gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, texWidth, texHeight, GL_RGBA, 
                     GL_UNSIGNED_BYTE, texPixels);
+  
   
   free(texPixels);
   return 1;

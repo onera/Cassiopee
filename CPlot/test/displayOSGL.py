@@ -8,10 +8,6 @@ import os
 
 LOCAL = test.getLocal()
 
-if KCore.config.CPlotOffScreen: 
-    print("CPlot: no offscreen GL installed.")
-    os._exit(0)
-
 a = D.sphere((0,0,0), 1.0, N=200)
 b = D.sphere((0,1,0), 0.8, N=200)
 
@@ -26,3 +22,5 @@ CPlot.finalizeExport(3)
 CPlot.display(b, mode=0, offscreen=4, export=LOCAL+'/out2.png')
 CPlot.finalizeExport(4)
 test.testF(LOCAL+'/out2.png', 2)
+
+os._exit(0)

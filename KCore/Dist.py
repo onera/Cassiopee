@@ -1340,13 +1340,13 @@ def checkOSMesa(additionalLibPaths=[], additionalIncludePaths=[]):
         print('Info: libOSmesa detected at %s.'%l)
         return (True, i, l, libname)
     elif l is None and i is not None:
-        print('Info: libOSMesa was not found on your system. No offscreen support for CPlot.')
+        print('Info: libOSMesa was not found on your system. No OSMESA offscreen support for CPlot.')
         return (False, i, l, libname)
     elif l is not None and i is None:
-        print('Info: GL/osmesa.h was not found on your system. No offscreen support for CPlot.')
+        print('Info: GL/osmesa.h was not found on your system. No OSMESA offscreen support for CPlot.')
         return (False, i, l, libname)
     else:
-        print('Info: libOSMesa or GL/osmesa.h was not found on your system. No offscreen support for CPlot.')
+        print('Info: libOSMesa or GL/osmesa.h was not found on your system. No OSMESA offscreen support for CPlot.')
         return (False, i, l, libname)
 
 #=============================================================================
@@ -2112,7 +2112,7 @@ def writeInstallBase(dict):
        raise SystemError("Error: can not open file installBase.py for writing.")
 
     # Write doc
-    p.write("# This is the dictionary keeping track of installation.\n# The key is the machine name or ELSAPROD name. For each key a list is stored.\n# [description, \n# f77compiler, libfortdir, libfort, f90compiler, libf90dir, libf90, \n# Cppcompiler, libCpp, useOMP, \n# CPlotOffScreen \n# pngPath, mpegPath, adfPath, hdfPath].\n# Path are list of strings. useOMP, CPlotOffScreen are booleans. \n# Others are strings.\n")
+    p.write("# This is the dictionary keeping track of installation.\n# The key is the machine name or ELSAPROD name. For each key a list is stored.\n# [description, \n# f77compiler, libfortdir, libfort, f90compiler, libf90dir, libf90, \n# Cppcompiler, libCpp, useOMP, \n# pngPath, mpegPath, adfPath, hdfPath].\n# Path are list of strings. useOMP, static are booleans. \n# Others are strings.\n")
 
     # Write dictionary
     #p.write("installDict = "+str(dict))
@@ -2139,12 +2139,11 @@ def writeInstallBase(dict):
             elif lc == 6: p.write("%s, # f77AdditionalOptions\n"%lstr)
             elif lc == 7: p.write("%s, # useOMP\n"%lstr)
             elif lc == 8: p.write("%s, # static\n"%lstr)
-            elif lc == 9: p.write("%s, # CPlotOffScreen\n"%lstr)
-            elif lc == 10: p.write("%s, # additionalIncludePaths\n"%lstr)
-            elif lc == 11: p.write("%s, # additionalLibs\n"%lstr)
-            elif lc == 12: p.write("%s, # additionalLibPaths\n"%lstr)
-            elif lc == 13: p.write("%s, # useCuda\n"%lstr)
-            elif lc == 14: p.write("%s  # NvccAdditionalOptions\n"%lstr)
+            elif lc == 9: p.write("%s, # additionalIncludePaths\n"%lstr)
+            elif lc == 10: p.write("%s, # additionalLibs\n"%lstr)
+            elif lc == 11: p.write("%s, # additionalLibPaths\n"%lstr)
+            elif lc == 12: p.write("%s, # useCuda\n"%lstr)
+            elif lc == 13: p.write("%s  # NvccAdditionalOptions\n"%lstr)
         kc += 1
         if kc == len(dict): p.write("]\n")
         else: p.write("], \n")

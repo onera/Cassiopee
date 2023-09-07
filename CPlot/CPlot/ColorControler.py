@@ -20,7 +20,7 @@ COLOR_LIST_HISTORY = []
 class ColorControler(object):
     def __init__(self, parent, color="#3a65c6", colormapName='Set1', nbColorMap=8, colorHistoryList=None):
 
-        if color == "black": color = "#FFFFFF"
+        if color == 'black' or color == 'Black': color = "#000000"
 
         self.parent = parent
         self.color = color

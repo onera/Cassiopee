@@ -39,7 +39,6 @@ def setDefaultVars():
 
     VuseOMP.set(1)
     VuseStatic.set(0)
-    VCPlotOffScreen.set(0)
     
     VadditionalIncludePaths.set("[]")
     VadditionalLibs.set("[]")
@@ -56,7 +55,6 @@ def setVars(v):
 
     VuseOMP.set(v[6])
     VuseStatic.set(v[7])
-    VCPlotOffScreen.set(v[8])
     
     VadditionalIncludePaths.set(v[9])
     VadditionalLibs.set(v[10])
@@ -79,7 +77,7 @@ def saveConfigFile(event=None):
                      Vf77compiler.get(), 
                      Vf90compiler.get(),
                      VCppcompiler.get(),
-                     VuseOMP.get(), VuseStatic.get(), VCPlotOffScreen.get(),
+                     VuseOMP.get(), VuseStatic.get(),
                      additionalIncludePaths, additionalLibs,
                      additionalLibPaths]
     Dist.writeInstallBase(dict)
@@ -299,7 +297,6 @@ Vf77compiler = TK.StringVar(master) ; Vf77compiler.set('')
 Vf90compiler = TK.StringVar(master) ; Vf90compiler.set('')
 VuseOMP = TK.IntVar(master) ; VuseOMP.set(0)
 VuseStatic = TK.IntVar(master) ; VuseStatic.set(0)
-VCPlotOffScreen = TK.IntVar(master) ; VCPlotOffScreen.set(0)
 VadditionalIncludePaths = TK.StringVar(master) ; VadditionalIncludePaths.set('')
 VadditionalLibs = TK.StringVar(master) ; VadditionalLibs.set('')
 VadditionalLibPaths = TK.StringVar(master) ; VadditionalLibPaths.set('')

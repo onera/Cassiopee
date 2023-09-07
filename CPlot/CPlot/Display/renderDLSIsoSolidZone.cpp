@@ -66,7 +66,9 @@ void DataDL::renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield)
   if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1)
   {
     if (ptrState->isoLight == 1 && ptrState->dim == 3)
+    {
       if (curr != 0) _shaders[curr]->setUniform("lightOn", (int)1); // put back the isoLight value found in the CPlot state
+    }
   }
 #endif
 }
