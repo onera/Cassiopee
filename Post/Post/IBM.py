@@ -33,7 +33,7 @@ from . import IBM_OLDIES
 # IN : extractIBMInfo (boolean): if True, store IB coordinates (PC, PI and PW)
 # IN : extractYplusAtImage (boolean): if True, project the y+ values at the image points to the IBM surface mesh
 #=============================================================================
-def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IBCD_*", extractIBMInfo=False, extractYplusAtImage=False):
+def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IBCD_*", extractIBMInfo=False, extractYplusAtImage=False,ProjectOldVersion=False):
     """Extracts the flow field stored at IBM points onto the surface."""
 
     if extractYplusAtImage and not famZones:_extractYplusIP(tc)
@@ -80,7 +80,7 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IB
                 zones = dictOfZoneFamilies[famName]
                 if zones!=[]: tb2=C.newPyTree(['Base']); tb2[2][1][2]=zones
 
-            zd = extractIBMWallFields(zd, tb=tb2, coordRef=coordRef, famZones=[],extractYplusAtImage=extractYplusAtImage)
+            zd = extractIBMWallFields(zd, tb=tb2, coordRef=coordRef, famZones=[],extractYplusAtImage=extractYplusAtImage,ProjectOldVersion=ProjectOldVersion)
             out += Internal.getZones(zd)
         return out
 
@@ -327,8 +327,7 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IB
             C._initVars(td,XOD.__CONV1__,0.)
             C._initVars(td,XOD.__CONV2__,0.)
         #print("projectCloudSolution for dim {}".format(dimPb))
-
-        P._projectCloudSolution(z, td, dim=dimPb)
+        P._projectCloudSolution(z, td, dim=dimPb,oldVersion=ProjectOldVersion)
 
         return td
 
@@ -1112,7 +1111,7 @@ def _prepareSkinReconstruction(ts, tc,famZones=[]):
     return tl, graphWPOST
 
 
-def _computeSkinVariables(ts, tc, tl, graphWPOST,famZones=[]):
+def _computeSkinVariables(ts, tc, tl, graphWPOST,famZones=[], ProjectOldVersion=False):
     for zc in Internal.getZones(tc):
         allIBCD = Internal.getNodesFromType(zc,"ZoneSubRegion_t")
         allIBCD = Internal.getNodesFromName(allIBCD,"IBCD_*")
@@ -1167,7 +1166,7 @@ def _computeSkinVariables(ts, tc, tl, graphWPOST,famZones=[]):
     
                     if cloud != []:
                         cloud = T.join(cloud)
-                        ts[2][nobs][2][nozs] = P.projectCloudSolution(cloud, zs, dim=3)
+                        ts[2][nobs][2][nozs] = P.projectCloudSolution(cloud, zs, dim=3, oldVersion=ProjectOldVersion)
                         
     return None
 

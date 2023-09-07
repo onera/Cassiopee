@@ -2342,8 +2342,8 @@ def _unsteadyLoads(tb, Sref=None, Pref=None, Qref=None, alpha=0., beta=0.):
 def _prepareSkinReconstruction(ts, tc):
     return P_IBM._prepareSkinReconstruction(ts, tc)
 
-def _computeSkinVariables(ts, tc, tl, graphWPOST):
-    return P_IBM._computeSkinVariables(ts, tc, tl, graphWPOST)
+def _computeSkinVariables(ts, tc, tl, graphWPOST,ProjectOldVersion=False):
+    return P_IBM._computeSkinVariables(ts, tc, tl, graphWPOST, ProjectOldVersion=ProjectOldVersion)
 
 def _modifIBCD(tc):
     raise NotImplementedError("_modifyIBCD is obsolete. Use _initOutflow and _initInj functions.")

@@ -32,11 +32,11 @@ using namespace std;
 // ============================================================================
 PyObject* K_POST::projectCloudSolution2Triangle(PyObject* self, PyObject* args)
 {
-  E_Int dimPb;
+  E_Int dimPb, oldVersion;
   PyObject *arrayR, *arrayD;
   if (!PYPARSETUPLEI(args,
-                    "OOl", "OOi",
-                    &arrayD, &arrayR, &dimPb))
+                    "OOll", "OOii",
+                    &arrayD, &arrayR, &dimPb, &oldVersion))
   {
       return NULL;
   }
@@ -324,45 +324,72 @@ PyObject* K_POST::projectCloudSolution2Triangle(PyObject* self, PyObject* args)
                                               listOfCloudPtsPerVertex,
                                               radius, axis, axisConst, &cfLoc[0]);
         if ( ok != 1)
-        {
-         indicesExtrap.push_back(indR);
-       }
-       else 
-        {
-          E_Int nbNonZeroCfs = 0;
-          for (E_Int nocf = 0; nocf < sizeOfCloud; nocf++)
-          {
-            if ( K_FUNC::E_abs(cfLoc[nocf]) > K_CONST::E_GEOM_CUTOFF) nbNonZeroCfs++;
-          }
-          if ( nbNonZeroCfs < 2) 
-          { 
-            indicesExtrap.push_back(indR);           
-          }
-          else
-          {
-            E_Float sumCf = 0.;
-            for(E_Int noind = 0; noind < sizeOfCloud; noind++)
-            {
-              sumCf += cfLoc[noind];
-            }
-            if ( K_FUNC::E_abs(sumCf-1.)>5.e-2) indicesExtrap.push_back(indR);
-            else // interpolate
-            {
-              for (E_Int posv = 0; posv < nbVars; posv++)
-              {
-                E_Float* varD = fd->begin(posvarsD[posv]+1);
-                E_Float* varR = fieldROut.begin(posvarsR[posv]+1);
-                E_Float val = 0.;
-                for(E_Int noind = 0; noind < sizeOfCloud; noind++)
-                {
-                  E_Int indD = listOfCloudPtsPerVertex[noind];
-                  val += cfLoc[noind]*varD[indD];                  
-                }
-                varR[indR] = val;
-              }
-            }
-          }          
-        }
+	{
+	  indicesExtrap.push_back(indR);
+	}
+	else 
+	{
+	  E_Int nbNonZeroCfs = 0;
+	  for (E_Int nocf = 0; nocf < sizeOfCloud; nocf++)
+	  {
+	    if ( K_FUNC::E_abs(cfLoc[nocf]) > K_CONST::E_GEOM_CUTOFF) nbNonZeroCfs++;
+	  }
+	  if ( nbNonZeroCfs < 2) 
+	  { 
+	    indicesExtrap.push_back(indR);           
+	  }
+	  else
+	  {
+	    if (oldVersion==0)
+	    {
+	      //BUG FIX - Interpolations BUT can lead to wrong values
+	      E_Float sumCf = 0.;
+	      for(E_Int noind = 0; noind < sizeOfCloud; noind++)
+	      {
+	        sumCf += cfLoc[noind];
+	      }
+	      if ( K_FUNC::E_abs(sumCf-1.)>5.e-2) indicesExtrap.push_back(indR);
+	      else // interpolate
+	      {
+	        for (E_Int posv = 0; posv < nbVars; posv++)
+	        {
+	            E_Float* varD = fd->begin(posvarsD[posv]+1);
+	            E_Float* varR = fieldROut.begin(posvarsR[posv]+1);
+	            E_Float val = 0.;
+	            for(E_Int noind = 0; noind < sizeOfCloud; noind++)
+	      	{
+	      	  E_Int indD = listOfCloudPtsPerVertex[noind];
+	      	  val += cfLoc[noind]*varD[indD];                  
+	      	}
+	            varR[indR] = val;
+		}
+	      }
+	    }
+	    else if (oldVersion==1)
+	    {
+	      //PRE BUG FIX - Mostly extrapolations
+	      for (E_Int posv = 0; posv < nbVars; posv++)
+	      {
+	        E_Float* varD = fd->begin(posvarsD[posv]+1);
+	        E_Float* varR = fieldROut.begin(posvarsR[posv]+1);
+	        E_Float sumCf = 0.;
+	        E_Float val = 0.;
+	        for(E_Int noind = 0; noind < sizeOfCloud; noind++)
+	        {
+		  E_Int indD = listOfCloudPtsPerVertex[noind];
+		  val += cfLoc[noind]*varD[indD];
+		  if ( posv == 0)
+		  {
+	      	  sumCf += cfLoc[noind];
+		  }
+		}
+	        //varR[indR] = val;
+	        if ( K_FUNC::E_abs(sumCf-1.)>5.e-2) indicesExtrap.push_back(indR);
+	        else varR[indR] = val;
+	      }
+	    }	    
+	  }          
+	}
       }
     }// indR to be interpolated
   }// loop on indR

@@ -159,7 +159,7 @@ def slice(a, type=None, eq=None):
         return p
     return a
 
-def projectCloudSolution(cloudArray, surfArray, dim=3, loc='nodes'):
+def projectCloudSolution(cloudArray, surfArray, dim=3, loc='nodes',oldVersion=False):
     """Project the solution defined on a set of points to a TRI surface."""
     surfArray = Converter.convertArray2Tetra(surfArray)
     if isinstance(surfArray[0], list):
@@ -167,14 +167,14 @@ def projectCloudSolution(cloudArray, surfArray, dim=3, loc='nodes'):
             import Transform
             surfArray = Transform.join(surfArray)
         except: pass
-    return projectCloudSolution__(cloudArray,surfArray,dim=dim,loc=loc)
+    return projectCloudSolution__(cloudArray,surfArray,dim=dim,loc=loc, oldVersion=oldVersion)
 
 # Much lighter than projectCloudSolution: no conversion to TETRA and no join.
-def projectCloudSolution__(cloudArray, surfArray, dim=3, loc='nodes'):
+def projectCloudSolution__(cloudArray, surfArray, dim=3, loc='nodes',oldVersion=False):
     """Project the solution defined on a set of points to a TRI surface."""
     cloudArray = Converter.convertArray2Node(cloudArray)
     if loc == 'centers': surfArray = Converter.node2Center(surfArray)
-    return post.projectCloudSolution2Triangle(cloudArray,surfArray,dim)
+    return post.projectCloudSolution2Triangle(cloudArray,surfArray,dim,int(oldVersion))
 
 def coarsen(a, indic, argqual=0.1, tol=1.e6):
     """Coarsen a surface TRI-type mesh given a coarsening indicator for each
