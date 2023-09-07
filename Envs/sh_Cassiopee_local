@@ -799,6 +799,7 @@ elif [ "$MAC" = "spiro_pgi" ]; then
 
 elif [ "$MAC" = "sator_brw" ]; then
 #----------------------------- sator for broadwell -----------------------------------------
+    echo 'SATOR - BROADWELL PARTITION'
     export ELSAPROD=sat_r8
     . /etc/profile.d/module.sh
     module purge
@@ -827,6 +828,7 @@ elif [ "$MAC" = "sator_brw" ]; then
 
 elif [ "$MAC" = "sator_sky" ]; then
 #----------------------------- sator skylake ---------------------------------------
+    echo 'SATOR - SKYLAKE PARTITION'
     export ELSAPROD=sat_sky_r8
     . /etc/profile.d/module.sh
     module purge
@@ -839,7 +841,7 @@ elif [ "$MAC" = "sator_sky" ]; then
     unset I_MPI_PMI_LIBRARY
     # Set next two lines only if python is not python
     export PYTHONEXE=python3
-    alias python python3
+    alias python=python3
     # Number of threads
     export OMP_NUM_THREADS=44
     # Chemin de l'executable python
@@ -850,7 +852,8 @@ elif [ "$MAC" = "sator_sky" ]; then
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.7/site-packages
 
 elif [ "$MAC" = "sator_cas" ]; then
-#----------------------------- sator for cascade ---------------------------------------
+    #----------------------------- sator for cascade ---------------------------------------
+    echo 'SATOR - CASCADE PARTITION'
     export ELSAPROD=sat_cas_r8
     # Nbre de threads
     export OMP_NUM_THREADS=48
