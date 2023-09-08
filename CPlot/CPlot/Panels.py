@@ -228,11 +228,11 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
     else: myText += 'not present (HDF format unavailable).\n'
     textWidget.insert(TK.END, myText)
     
-    myText = " CPlot: png: "
-    if 'png' in buildInfo and buildInfo['png'] != "None":
-        myText += 'present.\n'
-    else: myText += 'not present (png export unavailable).\n'
-    textWidget.insert(TK.END, myText)
+    #myText = " CPlot: png: "
+    #if 'png' in buildInfo and buildInfo['png'] != "None":
+    #    myText += 'present.\n'
+    #else: myText += 'not present (png export unavailable).\n'
+    #textWidget.insert(TK.END, myText)
     myText = " CPlot: mpeg: "
     if 'mpeg' in buildInfo and buildInfo['mpeg'] != "None":
         myText += 'present.\n'
@@ -257,7 +257,9 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
     myText += " - MMGs (see Generator/MMGS/LICENSE).\n"
     myText += " - opencascade (see opencascade/LICENSE_LGPL_21.txt).\n"
     myText += " - xatlas (see Geom/xatlas/LICENCE).\n"
-    myText += " - zstd (see Comrpessor/zstd/LICENCE).\n"
+    myText += " - zstd (see Compressor/zstd/LICENCE).\n"
+    myText += " - png (see KCore/Images/png/LICENCE).\n"
+    myText += " - openjpeg (see KCore/Images/openjpeg/LICENCE).\n"
     
     textWidget.insert(TK.END, myText)
     return

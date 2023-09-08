@@ -12,6 +12,7 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         except: raise ImportError("Converter:Mpi: requires mpi4py module.")
     else:
         rank = 0; size = 1; KCOMM = None; COMM_WORLD = None
+        SUM = 0; MAX = 0; MIN = 0; LAND = 0
         from .Distributed import setProc, _setProc, getProc, getProcDict, getProperty, getPropertyDict, convertFile2SkeletonTree, computeGraph, splitGraph, mergeGraph, readZones, convert2PartialTree, convert2SkeletonTree, readPyTreeFromPaths
         def barrier(): return
         def bcast(a, root=0): return a
@@ -39,6 +40,7 @@ else: # try import (may fail - core or hang)
     try: from .Mpi4py import *
     except:
         rank = 0; size = 1; KCOMM = None; COMM_WORLD = None
+        SUM = 0; MAX = 0; MIN = 0; LAND = 0
         from .Distributed import setProc, _setProc, getProc, getProcDict, getProperty, getPropertyDict, convertFile2SkeletonTree, computeGraph, splitGraph, mergeGraph, readZones, convert2PartialTree, convert2SkeletonTree, readPyTreeFromPaths
         def barrier(): return
         def bcast(a, root=0): return a

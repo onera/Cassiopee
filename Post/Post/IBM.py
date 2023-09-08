@@ -1,5 +1,4 @@
 # - IBM specific post-processing -
-from tkinter.ttk import Progressbar
 from . import PyTree as P
 import Connector.OversetData as XOD
 import Connector.PyTree as X
@@ -56,7 +55,7 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IB
         for zsr in allIBCD:
             fam = Internal.getNodeFromType(zsr,'FamilyName_t')
             if fam is not None:
-                famName=Internal.getValue(fam)
+                famName = Internal.getValue(fam)
                 if famName in famZones:
                     if famName not in dictOfFamilies: dictOfFamilies[famName]=[zsr]
                     else: dictOfFamilies[famName]+=[zsr]

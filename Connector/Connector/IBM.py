@@ -1,5 +1,4 @@
 """Connector for IBM preprocessing"""
-import numpy
 from . import PyTree as X
 from . import OversetData as XOD
 from . import Connector
