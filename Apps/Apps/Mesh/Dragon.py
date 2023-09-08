@@ -12,6 +12,9 @@ import Intersector.PyTree as XOR
 import numpy, math, copy
 
 SYM_PLANE_TOL = 1.e-7
+toler = 5.e-2
+toldist = 1.e-12 # tolerance pour distance entre deux surfaces representant la meme frontiere
+tol_match_perio = 1.e-6 # tolerance pour la perio entre les deux frontieres perios
 
 def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='./'):
     if 'sym_plane_axis' in dictOfParams: sym = dictOfParams['sym_plane_axis'] # symmetry plane at x,y,z constant
@@ -171,7 +174,6 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
             tsym[2][1][2].append(a1)
 
         Internal._rmNodesByName(tsym,'FlowSolution*')
-        if check: C.convertPyTree2File(tsym,directory_tmp_files+'toto.cgns')
         o = Internal.getZones(T.join(tsym))[0]
 
     # conversion en NGon et conformisation de l octree
@@ -190,11 +192,9 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
         s2 = [T.splitConnexity(s2)[0]]
         sexts = P.exteriorFaces(s2)
         sexts = T.splitConnexity(sexts)
-        if check: C.convertPyTree2File(sexts,directory_tmp_files+'tmp.cgns')
         for sext in sexts: 
             sext = G.tetraMesher(sext, grading=0.2, maxh=0.5*snear, algo=1)
             s2.append(sext)
-    if check: C.convertPyTree2File(s2, directory_tmp_files+'deltaSurface.cgns')
 
     # Blanking with delta surface
     print('Blanking octree width delta...')
@@ -282,7 +282,6 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
             s_in += [surfsym2]
 
     s_in = T.join(s_in); s_in = XOR.conformUnstr(s_in, tol=0., itermax=1); T._reorderAll(s_in,dir=1)
-    if check: C.convertPyTree2File(s_in, directory_tmp_files+'ext.cgns')
     m = G.tetraMesher([s_in], grading=0.2, maxh=0.5*snear, algo=1)
     m = C.convertArray2NGon(m)
     if check: C.convertPyTree2File(m, directory_tmp_files+'tetra1.cgns')
@@ -367,28 +366,39 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
 
     return tp
 
+def uniformizeMesh(z, N, dir):
+    N = int(N)
+    distrib = G.cart( (0,0,0), (1./(N-1),1,1), (N,1,1) )
+    zp = G.map(z, distrib, dir)
+    return zp
 
-def createDragonMeshForBladeInChannel(aube, dictOfParams={}, check=False, directory_tmp_files='./'):
+def createDragonMeshForBladeInChannel(ts, dictOfParams={}, check=False, directory_tmp_files='./'):
+    BA2BF = -1
+    Internal._rmNodesFromType(ts,'FlowSolution_t')
+    bases = Internal.getZones(ts)
+    if len(bases) != 3 :
+        raise("ValueError: createDragonMesh: 3 zones must be defined: HUB/SHROUD/BLADE")
+        return None
+    
+    surf_hub = Internal.getNodeFromName(ts,"HUB")
+    if surf_hub is None or surf_hub==[]:
+        raise("ValueError: no base/zone of name HUB found.")
+        return None
+
+    surf_shroud = Internal.getNodeFromName(ts,"SHROUD")
+    if surf_shroud is None or surf_shroud==[]:
+        raise("ValueError: no base/zone of name SHROUD found.")    
+        return None
+
+    surf_blade = Internal.getNodeFromName(ts,'BLADE')
+    if surf_blade is None or surf_blade==[]:
+        raise("ValueError: no base/zone of name BLADE found.") 
+        return None
+
     if 'remesh_input' in dictOfParams:
-        remesh_aube = dictOfParams['remesh_input']
-        if remesh_aube: aube = G.mmgs(aube)
-
-    if 'nb_blades' in dictOfParams:
-        nb_aubes_fan = dictOfParams["nb_blades"]
-    else:
-        raise ValueError("createDragonMesh: nb_blades required for periodicity.")
-        return None
-
-    if 'z_in' in dictOfParams:
-        zamont = dictOfParams['z_in']
-    else:
-        raise ValueError("createDragonMesh: value of z at inflow border is required.")
-        return None
-    if 'z_out' in dictOfParams:
-        zaval = dictOfParams['z_out']
-    else:
-        raise ValueError("createDragonMesh: value of z at outflow border is required.")
-        return None
+        remeshBorders = dictOfParams['remesh_input']
+        # SP : preferer le remaillage de l aube en externe
+        #remesh_aube = dictOfParams['remesh_input']
     
     if 'niter' not in dictOfParams: smoothIter = 100
     else: smoothIter = dictOfParams["niter"]
@@ -405,356 +415,690 @@ def createDragonMeshForBladeInChannel(aube, dictOfParams={}, check=False, direct
     else:
         nlayer = 10 # auto
         print('Warning: createDragonMesh: nlayer not defined. Set to %d.'%nlayer)
-        
-    centre = (0.,0.,0.); axis = (0.,0.,1.)
-    if 'rotation_axis' in dictOfParams: axis = dictOfParams['rotation_axis']
+
+    typePerio = -1 # rotation : 0, 1 : translation
+    if "periodicity" in dictOfParams:
+        if dictOfParams["periodicity"]=='rotation': typePerio = 0
+        else: typePerio = 1
     else:
-        print('Warning: createDragonMesh: rotation axis not defined. Set to default :', axis)
-    if 'rotation_center' in dictOfParams: centre = dictOfParams['rotation_center']
+        print(" periodicity key not found in dictOfParams. Set to default (rotation).")
+        typePerio = 0 
+
+    centre = (0.,0.,0.); axis = (0.,0.,1.); THETA = 0
+    translx = 0; transly = 0; translz = 0
+
+    if typePerio == 0:
+        if 'nb_blades' in dictOfParams: nb_aubes_fan = dictOfParams["nb_blades"]
+        else:
+            raise ValueError("createDragonMesh: nb_blades required for periodicity by rotation.")
+            return None   
+
+        if 'rotation_axis' in dictOfParams: axis = dictOfParams['rotation_axis']
+        else:
+            print('Warning: createDragonMesh: rotation axis not defined. Set to default :', axis)
+
+        if 'rotation_center' in dictOfParams: centre = dictOfParams['rotation_center']
+        else:
+            print('Warning: createDragonMesh: rotation center not defined. Set to default :', centre)   
+
+        THETA = 360./dictOfParams["nb_blades"]
     else:
-        print('Warning: createDragonMesh: rotation center not defined. Set to default :', centre)   
-    
-    mesh_aube = C.convertArray2Tetra(aube)
-    mesh_aube = T.reorder(mesh_aube, (-1,))
-    mesh_aube = Internal.getZones(mesh_aube)[0]
-    
-    lines_ext_aube = P.exteriorFaces(mesh_aube)
+        transl_vct = dictOfParams['translation_vct']
+        translx = transl_vct[0]
+        transly = transl_vct[1]
+        translz = transl_vct[2]
+
+    hext = hWall*raison**(nlayer) # cell height at outer prism layer
+    # projection of the blade root and tip onto the hub and shroud
+    surf_aube = Internal.getZones(surf_blade)[0]
+    surf_shroud = Internal.getZones(surf_shroud)[0] 
+    surf_hub = Internal.getZones(surf_hub)[0]                             
+    lines_ext_aube = P.exteriorFaces(surf_aube)  
     lines_ext_aube = T.splitConnexity(lines_ext_aube)
-    line_aube_spin = lines_ext_aube[0];T._reorder(line_aube_spin,(-1,2,3))
-    line_aube_cart = lines_ext_aube[1];T._reorder(line_aube_cart,(-1,2,3))
+    # which one is the root/tip ?
+    DTW._distance2Walls(lines_ext_aube, surf_hub,loc='nodes')
+    distl0 = C.getMaxValue(lines_ext_aube[0],'TurbulentDistance')    
+    distl1 = C.getMaxValue(lines_ext_aube[1],'TurbulentDistance')    
+    if distl0 < distl1:
+        lines_ext_aube[0][0]='line_BLADE_HUB'
+        lines_ext_aube[1][0]='line_BLADE_SHROUD'
+    else:
+        lines_ext_aube[0][0]='line_BLADE_SHROUD'
+        lines_ext_aube[1][0]='line_BLADE_HUB'
 
-    dim = C.getNPts(line_aube_spin)
-    zmin_aube_spin = C.getMinValue(line_aube_spin,'CoordinateZ')
-    zmax_aube_spin = C.getMaxValue(line_aube_spin,'CoordinateZ')
-    for i in range(dim):
-        coord = C.getValue(line_aube_spin,'GridCoordinates',i)
-        if coord[2]==zmin_aube_spin: ba_aube_spin = coord; ind_ba_spin = i
-        if coord[2]==zmax_aube_spin: bf_aube_spin = coord; ind_bf_spin = i
+    line_aube_hub = Internal.getNodeFromName(lines_ext_aube,'line_BLADE_HUB')        
+    line_aube_shroud = Internal.getNodeFromName(lines_ext_aube,'line_BLADE_SHROUD')        
 
-    line2_spin = T.splitBAR(line_aube_spin,ind_ba_spin,ind_bf_spin)[1]
-    line2_spin = D.uniformize(line2_spin, N=50, sharpAngle=40.)
-    amont_spin = copy.deepcopy(ba_aube_spin); amont_spin[2] = zamont
-    aval_spin = copy.deepcopy(bf_aube_spin); aval_spin[2] = zaval
-    line1_spin = D.line(amont_spin,ba_aube_spin,N=50)
-    line3_spin = D.line(bf_aube_spin,aval_spin,N=50)
-    line_spin = T.join([line1_spin,line2_spin,line3_spin]); line_spin = C.convertBAR2Struct(line_spin)
+    hook = C.createHook(surf_aube, function='nodes')
+    nodesMatch=C.identifyNodes(hook, line_aube_hub) 
+    T._projectOrtho(line_aube_hub, surf_hub)
+
+    for noind in range(len(nodesMatch)):
+        inds = nodesMatch[noind]
+        if (inds >-1):
+            xp = C.getValue(line_aube_hub, 'GridCoordinates', noind)
+            C.setValue(surf_aube, 'CoordinateX', inds-1, xp[0])
+            C.setValue(surf_aube, 'CoordinateY', inds-1, xp[1])
+            C.setValue(surf_aube, 'CoordinateZ', inds-1, xp[2])  
+
+    nodesMatch=C.identifyNodes(hook, line_aube_shroud) 
+    T._projectOrtho(line_aube_shroud, surf_shroud)
+
+    for noind in range(len(nodesMatch)):
+        inds = nodesMatch[noind]
+        if (inds >-1):
+            xp = C.getValue(line_aube_shroud, 'GridCoordinates', noind)
+            C.setValue(surf_aube, 'CoordinateX', inds-1, xp[0])
+            C.setValue(surf_aube, 'CoordinateY', inds-1, xp[1])
+            C.setValue(surf_aube, 'CoordinateZ', inds-1, xp[2])  
+                 
+    C.freeHook(hook) 
+   
+    # Creation of channel borders - HUB   
+    lines_hub = extractExternalLines__(surf_hub, surf_aube, BA2BF)
+    lines_perios_hub = lines_hub[:2]
+    line_in_h = lines_hub[2];  line_out_h = lines_hub[3]
     
-    dim = C.getNPts(line_aube_cart)
-    zmin_aube_cart = C.getMinValue(line_aube_cart,'CoordinateZ')
-    zmax_aube_cart = C.getMaxValue(line_aube_cart,'CoordinateZ')
-    for i in range(dim):
-        coord = C.getValue(line_aube_cart,'GridCoordinates',i)
-        if coord[2]==zmin_aube_cart: ba_aube_cart = coord; ind_ba_cart = i
-        if coord[2]==zmax_aube_cart: bf_aube_cart = coord; ind_bf_cart = i
-    line2_cart = T.splitBAR(line_aube_cart,ind_ba_cart,ind_bf_cart)[1]
-    line2_cart = D.uniformize(line2_cart, N=50, sharpAngle=40.)
-    amont_cart = copy.deepcopy(ba_aube_cart); amont_cart[2] = zamont
-    aval_cart = copy.deepcopy(bf_aube_cart); aval_cart[2] = zaval
-    line1_cart = D.line(amont_cart,ba_aube_cart,N=50)
-    line3_cart = D.line(bf_aube_cart,aval_cart,N=50)
-    line_cart = T.join([line1_cart,line2_cart,line3_cart]); line_cart = C.convertBAR2Struct(line_cart)
+    line_periom_h = lines_perios_hub[0]
+    line_periop_h = lines_perios_hub[1]
+    if typePerio==1:
+        periomdup = T.translate(line_periom_h,(translx, transly, translz))
+    else:
+        periomdup = T.rotate(line_periom_h, centre, axis, THETA)
+    periomdup = C.diffArrays(line_periop_h,periomdup)
+    C._initVars(periomdup,'{dist}=sqrt({DCoordinateX}**2+{DCoordinateY}**2+{DCoordinateZ}**2)')
+    if C.getMaxValue(periomdup,'dist')<tol_match_perio:
+        pass
+    else:
+        line_periom_h = lines_perios_hub[1]
+        line_periop_h = lines_perios_hub[0]
 
-    line_amont = D.line(amont_spin,amont_cart,N=50)
-    line_aval = D.line(aval_spin,aval_cart,N=50)
+    # Creation of channel borders -  SHROUD   
+    lines_shroud= extractExternalLines__(surf_shroud, surf_aube, BA2BF)
+    lines_perios_shroud = lines_shroud[:2]
+    line_in_s = lines_shroud[2];  line_out_s = lines_shroud[3]    
+    line_periom_s = lines_perios_shroud[0]
+    line_periop_s = lines_perios_shroud[1]
+    if typePerio==1:
+        periomdup = T.translate(line_periom_s,(translx, transly, translz))
+    else:
+        periomdup = T.rotate(line_periom_s, centre, axis, THETA)   
+             
+    periomdup = C.diffArrays(line_periop_s,periomdup)
+    C._initVars(periomdup,'{dist}=sqrt({DCoordinateX}**2+{DCoordinateY}**2+{DCoordinateZ}**2)')
+    if C.getMaxValue(periomdup,'dist')<tol_match_perio:pass
+    else:
+        line_periom_s = lines_perios_shroud[1]
+        line_periop_s = lines_perios_shroud[0]
 
-    perio = G.TFI([line_spin,line_aval,line_cart,line_amont])
-    perio = T.rotate(perio, centre, axis, -0.5*360./nb_aubes_fan)
+    # retrieve orders to create inlet/outlet border from hub to shroud
+    NPTS_L = C.getNPts(line_in_h)
+    ptA = getMatchingPoint__(line_in_h, line_periom_h)
+    ptB = getMatchingPoint__(line_in_s, line_periom_s)
+    linem_in = D.line(ptA, ptB, N=NPTS_L)
+    ptA = getMatchingPoint__(line_out_h, line_periom_h)
+    ptB = getMatchingPoint__(line_out_s, line_periom_s)
+    linem_out = D.line(ptA, ptB, N=NPTS_L)
+    surf_periom = G.TFI([line_periom_h,line_periom_s, linem_in, linem_out]); 
+    surf_periom[0]='PERIOM'
 
-    line_amont = T.rotate(line_amont, centre, axis, -0.5*360./nb_aubes_fan)
-    surf_amont = D.axisym(line_amont, centre, axis, angle=360./nb_aubes_fan, Ntheta=30); surf_amont = C.convertArray2Tetra(surf_amont); surf_amont[0]='AMONT'
-    line_aval = T.rotate(line_aval, centre, axis, -0.5*360./nb_aubes_fan)
-    surf_aval = D.axisym(line_aval, centre, axis, angle=360./nb_aubes_fan, Ntheta=30); surf_aval = C.convertArray2Tetra(surf_aval); surf_aval[0]='AVAL'
-    line_spin = T.rotate(line_spin, centre, axis, -0.5*360./nb_aubes_fan)
-    surf_spin = D.axisym(line_spin, centre, axis, angle=360./nb_aubes_fan, Ntheta=30); surf_spin[0]='SPIN'
-    line_cart = T.rotate(line_cart, centre, axis, -0.5*360./nb_aubes_fan)
-    surf_cart = D.axisym(line_cart, centre, axis, angle=360./nb_aubes_fan, Ntheta=30); surf_cart[0]='CART'
-    surf_perio1 = perio; surf_perio1 = C.convertArray2Tetra(surf_perio1); surf_perio1[0]='PERIO1'
-    surf_perio2 = T.rotate(perio, centre, axis, 360./nb_aubes_fan); surf_perio2 = C.convertArray2Tetra(surf_perio2); surf_perio2[0]='PERIO2'
+    if typePerio==0:
+        linep_in  = T.rotate(linem_in, centre, axis, THETA)
+        linep_out = T.rotate(linem_out, centre, axis, THETA)
+    else:
+        linep_in  = T.translate(linem_in,(translx,transly,translz))
+        linep_out = T.translate(linem_out,(translx,transly,translz))
+    linep_in[0]=linem_in[0]+'-dup'
+    linep_out[0]=linem_out[0]+'-dup'
 
-    tmp = C.newPyTree(['Base',surf_spin,surf_cart,surf_amont,surf_aval,surf_perio1,surf_perio2])
+    surf_periop = T.translate(surf_periom,(translx,transly,translz))
+    surf_periop[0]='PERIOP'
 
-    bc = P.exteriorFaces(mesh_aube)
-    bcproj = T.projectOrtho(bc,[surf_spin,surf_cart])
-    hook = C.createHook(mesh_aube, function='nodes')
-    nodes = C.identifyNodes(hook, bc)#; print(nodes)
-    for ind in nodes:
-        coord = tuple(C.getValue(mesh_aube, 'GridCoordinates', ind-1))#;print(coord)
-        indproj = D.getNearestPointIndex(bcproj, coord)[0]#;print indproj
-        coordproj = C.getValue(bcproj, 'GridCoordinates', indproj)#;print(coordproj)
-        C.setValue(mesh_aube, 'CoordinateX', ind-1, coordproj[0])
-        C.setValue(mesh_aube, 'CoordinateY', ind-1, coordproj[1])
-        C.setValue(mesh_aube, 'CoordinateZ', ind-1, coordproj[2])
+    surf_inlet = G.TFI([linem_in,linep_in,line_in_h,line_in_s])
+    surf_inlet[0]='INLET'
+    surf_outlet = G.TFI([linem_out,linep_out,line_out_h,line_out_s])
+    surf_outlet[0]='OUTLET'    
 
-    lines_ext_aube = P.exteriorFaces(mesh_aube)
+    lines_ext_aube = P.exteriorFaces(surf_aube)
     lines_ext_aube = T.splitConnexity(lines_ext_aube)
-    line_aube_spin = lines_ext_aube[0]#;T._reorder(line_aube_spin,(-1,2,3))
-    line_aube_cart = lines_ext_aube[1];T._reorder(line_aube_cart,(-1,2,3))
+    #which one is hub and shroud ? 
+    DTW._distance2Walls(lines_ext_aube,surf_hub, loc='nodes')
+    d0 = C.getMaxValue(lines_ext_aube[0], 'TurbulentDistance')
+    d1 = C.getMaxValue(lines_ext_aube[1], 'TurbulentDistance')
+    Internal._rmNodesFromType(lines_ext_aube,'FlowSolution_t')
+    if d0 < d1:
+        line_aube_hub = lines_ext_aube[0]
+        line_aube_shroud = lines_ext_aube[1]
+    else:
+        line_aube_hub = lines_ext_aube[1]
+        line_aube_shroud = lines_ext_aube[0]  
 
-    line_ext_spin = P.exteriorFaces(surf_spin)
-    line_ext_spin = C.convertArray2Hexa(line_ext_spin); line_ext_spin = C.convertBAR2Struct(line_ext_spin)
-    T._projectOrtho(line_ext_spin,[surf_spin])
-    line_ext_cart = P.exteriorFaces(surf_cart)
-    line_ext_cart = C.convertArray2Hexa(line_ext_cart); line_ext_cart = C.convertBAR2Struct(line_ext_cart)
-    T._projectOrtho(line_ext_cart,[surf_cart])
+    mesh_hub = generateTriMeshBetweenContours__(line_aube_hub, surf_hub, 
+                                                hmin = hWall,
+                                                remeshBorders=remeshBorders)
 
-    mesh_spin = G.tetraMesher([line_ext_spin,line_aube_spin])
-    T._projectOrtho(mesh_spin,[surf_spin])
-    
-    mesh_cart = G.tetraMesher([line_ext_cart,line_aube_cart])
-    T._smooth(mesh_cart, eps=0.5, niter=60, type=0, fixedConstraints=[line_ext_cart,line_aube_cart], \
-              projConstraints=[], delta=0.1, point=(0, 0, 0), radius=-1.)
-    T._projectOrtho(mesh_cart,[surf_cart])
+    mesh_shroud = generateTriMeshBetweenContours__(line_aube_shroud, surf_shroud,
+                                                    hmin = hWall,
+                                                    remeshBorders=remeshBorders)                                                
 
-    surfs = T.join([mesh_spin,mesh_cart,mesh_aube]); G._close(surfs)
+    surfs = T.join([mesh_hub,mesh_shroud, surf_aube])
     surfs = T.reorder(surfs,(-1,))
-    ts = C.newPyTree(['WALL','AMONT','AVAL','PERIODIC'])
-    ts[2][1][2] = [surfs]
-    ts[2][2][2] = [surf_amont]
-    ts[2][3][2] = [surf_aval]
-    ts[2][4][2] = [surf_perio1, surf_perio2]
 
+    ts = C.newPyTree(['HUB','SHROUD','BLADE','AMONT','AVAL','PERIODIC'])
+    ts[2][1][2] = Internal.getZones(mesh_shroud)
+    ts[2][2][2] = Internal.getZones(mesh_hub)
+    ts[2][3][2] = Internal.getZones(surf_aube)
+    ts[2][4][2] = Internal.getZones(surf_inlet)
+    ts[2][5][2] = Internal.getZones(surf_outlet)    
+    ts[2][6][2] = [surf_periop, surf_periom]
     # input: surfaces bases ['WALL','AMONT','AVAL','PERIODIC']
     print('Generating boundary layers...')
-    surfs = Internal.getZones(Internal.getNodeFromName(ts,'WALL'))[0]
-    surf_amont = Internal.getZones(Internal.getNodeFromName(ts,'AMONT'))[0]
-    surf_aval = Internal.getZones(Internal.getNodeFromName(ts,'AVAL'))[0]
-    surf_perio1 = Internal.getZones(Internal.getNodeFromName(ts,'PERIODIC'))[0]
-    surf_perio2 = Internal.getZones(Internal.getNodeFromName(ts,'PERIODIC'))[1]
-
     d = G.cart((0.,0.,0.), (0.1,1,1), (nlayer,1,1))
     for i in range(0,nlayer): C.setValue(d, 'CoordinateX', i, hWall*(1.-raison**i)/(1.-raison))
-    lay = G.addNormalLayers(surfs, d, check=1, niterType=0, niter=smoothIter, niterK=[], 
+    h_ext = C.getValue(d,'CoordinateX',nlayer-1)-C.getValue(d,'CoordinateX',nlayer-2)
+
+    surfs_wall=Internal.getZones(surfs)
+    prismatic = True
+    volmin = -1e10
+    if prismatic : 
+        lay = G.addNormalLayers(surfs_wall, d, check=0, niterType=0, niter=smoothIter, niterK=[], 
                             smoothType=0, eps=0.4, nitLocal=3, 
                             kappaType=0, kappaS=[0.2,1.6], blanking=False, algo=0)
-    lay = C.convertArray2NGon(lay, recoverBC=0)
-    XOR._volumes(lay)
-    volmin = C.getMinValue(lay,'centers:volumes')
-    print("final volume min =",volmin)
-    Internal._rmNodesByName(lay,'FlowSol*')
 
-    bcc = P.exteriorFaces(lay)
-    bcc = T.breakElements(bcc)
-    bc = bcc[1] #on selectionne les quads
-    bc = T.splitSharpEdges(bc, alphaRef=60.)
-    bcnames = [bc[2][0],bc[3][0],bc[4][0],bc[9][0]] # a automatiser
+        lay = C.convertArray2NGon(lay, recoverBC=0)
+        G._getVolumeMap(lay)
+        volmin = C.getMinValue(lay,'centers:vol')
+        C._rmVars(lay, ["centers:vol"])
+        if check:
+            C.convertPyTree2File(lay,"lay.cgns")
+    if volmin <-1e-16 or not prismatic:
+        print("Warning: negative cells found in prismatic layer !")
+        print("Full TETRA mesh generation is applied.")
+        prismatic = False
+        del lay
+        extBorders = [surf_inlet, surf_outlet, surf_periom, surf_periop]
+        surfs_wall += extBorders
+        surfs = C.convertArray2Tetra(surfs_wall,split='withBarycenters')
+        
+        surfs = T.join(surfs); surfs = T.reorderAll(surfs)
+        mesh_final = G.tetraMesher(surfs)
+        npts = Internal.getZoneDim(mesh_final)[1]
+        if npts == 0:
+            raise ValueError("createDragonMesh: tetraMesher failed. Please check input data.")
+            return None
+        mesh_final = C.convertArray2NGon(mesh_final)      
+    else:
+        # Reprojection des frontieres QUAD sur les frontieres du domaine
+        Internal._rmNodesByName(lay,'FlowSol*')
+        bcc = P.exteriorFaces(lay)
+        bcc = T.breakElements(bcc)
 
-    bc2 = []
-    for node in bc:
-        if node[0] not in bcnames: bc2.append(node)
-
-    bc = T.join(bc2)
-    bc = T.splitConnexity(bc)
-
-    bcstruct = []
-    for i in range(len(bc)):
-        z = bc[i]
-        cont = P.exteriorFaces(z)
-        cont = T.splitSharpEdges(cont, alphaRef=80.)
-        cont = C.convertBAR2Struct(cont)
-        cont = G.TFI(cont)
-        if i%2 != 0: cont = T.reorder(cont,(1,-2,3))
-        bcstruct.append(cont)
-
-
-    hook = C.createHook(lay, function='nodes')
-
-    for i in range(len(bc)):
-        b = bc[i]
-        ymin = C.getMinValue(b, 'CoordinateY'); print(b[0],ymin)
-        nodes = C.identifyNodes(hook, b)#; print(nodes)
-        if ymin<0.:
-            r = T.projectOrtho(b,[surf_perio1])
-        if ymin>0.:
-            b = bcstruct[i-1]
-            b = T.projectOrtho(b,[surf_perio1])
-            r = T.rotate(b, centre, axis, 360./nb_aubes_fan)
-        for ind in nodes:
-            coord = tuple(C.getValue(lay, 'GridCoordinates', ind-1))
-            if ymin<0.: indproj = D.getNearestPointIndex(r, coord)[0]
-            if ymin>0.: indproj = D.getNearestPointIndex(bcstruct[i], coord)[0]
-            coordproj = C.getValue(r, 'GridCoordinates', indproj)
-            C.setValue(lay, 'CoordinateX', ind-1, coordproj[0])
-            C.setValue(lay, 'CoordinateY', ind-1, coordproj[1])
-            C.setValue(lay, 'CoordinateZ', ind-1, coordproj[2])
-
-    bcc = P.exteriorFaces(lay)
-    bcc = T.breakElements(bcc)
-    bc = bcc[1] #on selectionne les quads
-    bc = P.exteriorFaces(bc)
-    bc = T.splitConnexity(bc)
-
-    #detection auto
-    minx = C.getMinValue(bc,'CoordinateX')
-    maxx = C.getMaxValue(bc,'CoordinateX')
-    for bound in bc:
-        minxloc = C.getMinValue(bound,'CoordinateX')
-        maxxloc = C.getMaxValue(bound,'CoordinateX')
-        if minxloc > minx and minxloc < (0.5*(maxx+minx)): line_ext_spin = bound
-        if maxxloc < maxx and maxxloc > (0.5*(maxx+minx)): line_ext_cart = bound
+        ext_QUAD = []; ext_TRI = []
+        for bc in bcc:
+            zdim = Internal.getZoneDim(bc)
+            if zdim[3]=='QUAD': ext_QUAD.append(bc)
+            
+        ext_QUAD = T.join(ext_QUAD)    
+        hook = C.createHook(lay, function='nodes')
+        surf_inlet[0] = 'INLET'; surf_outlet[0]='OUTLET'
+        surf_periom[0]='PERIOM'; surf_periop[0]= 'PERIOP'
+        extBorders = [surf_inlet, surf_outlet, surf_periom, surf_periop]
+        extBorders = C.convertArray2Tetra(extBorders)
     
-    #
-    line_ext_spin = T.splitSharpEdges(line_ext_spin, alphaRef=89.)
-    line_ext_spin = C.convertBAR2Struct(line_ext_spin)
+        ext_QUAD = T.splitConnexity(ext_QUAD) # hub and shroud parts
+        for ext_QUAD0 in ext_QUAD:
+            ext_QUAD0 = T.splitSharpEdges(ext_QUAD0,30.)
+            allnodes = []
+            for extq in ext_QUAD0:
+                nodes = C.identifyNodes(hook, extq)
+                allnodes.append(nodes)
 
-    line_ext_cart = T.splitSharpEdges(line_ext_cart, alphaRef=89.)
-    line_ext_cart = C.convertBAR2Struct(line_ext_cart)
+            # force periodicity 
+            DTW._distance2Walls(ext_QUAD0,surf_periom,loc='nodes')
+            C._initVars(ext_QUAD0,"{distM}={TurbulentDistance}")
+            DTW._distance2Walls(ext_QUAD0,surf_periop, loc='nodes')
+            C._initVars(ext_QUAD0,"{distP}={TurbulentDistance}")
+            noperm = -1; noperp = -1
+            distm = 1e10; distp = 1e10
+            for nol, zl in enumerate(ext_QUAD0):
+                dl = C.getMaxValue(zl,'distM') 
+                if dl < distm:
+                    distm = dl; noperm = nol
+                dl = C.getMaxValue(zl,'distP') 
+                if dl < distp:
+                    distp = dl; noperp = nol
+            ext_QUADPERP = None
 
-    line_spin_amont=[]
-    line_spin_aval=[]
-    line_spin_perio1=[]
-    line_spin_perio2=[]
-    for seg in line_ext_spin:
-        for surfproj in [surf_amont,surf_aval,surf_perio1,surf_perio2]:
-            segproj = T.projectOrtho(seg,surfproj)
-            coord = numpy.array(C.getValue(seg, 'GridCoordinates', (2,1,1)))#; print(coord)
-            coordproj = numpy.array(C.getValue(segproj, 'GridCoordinates', (2,1,1)))#; print(coordproj)
-            if numpy.allclose(coord,coordproj, atol=1.e-3):
-               if surfproj[0]=='AMONT': line_spin_amont.append(seg)
-               if surfproj[0]=='AVAL': line_spin_aval.append(seg)
-               if surfproj[0]=='PERIO1': line_spin_perio1.append(seg)
-               if surfproj[0]=='PERIO2': line_spin_perio2.append(seg)
+            projsurf = T.projectOrtho(ext_QUAD0[noperm], extBorders)  
+            if typePerio==1:
+                ext_QUADPERP=T.translate(projsurf,(translx, transly, translz))
+            else:
+                ext_QUADPERP=T.rotate(projsurf,centre, axis, THETA)
+                
+            nodes = allnodes[noperp]
+            for ind in nodes:
+                coord = tuple(C.getValue(lay, 'GridCoordinates', ind-1))
+                indproj = D.getNearestPointIndex(ext_QUADPERP, coord)[0]
+                coordproj = C.getValue(ext_QUADPERP, 'GridCoordinates', indproj)
+                C.setValue(lay, 'CoordinateX', ind-1, coordproj[0])
+                C.setValue(lay, 'CoordinateY', ind-1, coordproj[1])
+                C.setValue(lay, 'CoordinateZ', ind-1, coordproj[2])
+                
+            nodes = allnodes[noperm]
+            for ind in nodes:
+                coord = tuple(C.getValue(lay, 'GridCoordinates', ind-1))
+                indproj = D.getNearestPointIndex(projsurf, coord)[0]
+                coordproj = C.getValue(projsurf, 'GridCoordinates', indproj)
+                C.setValue(lay, 'CoordinateX', ind-1, coordproj[0])
+                C.setValue(lay, 'CoordinateY', ind-1, coordproj[1])
+                C.setValue(lay, 'CoordinateZ', ind-1, coordproj[2])          
+                
+        C.freeHook(hook)           
+        #---------------------------------------
+        # on cherche la frontiere ext TRI sur le maillage reprojete
+        bcc = P.exteriorFaces(lay)
+        bcc = T.breakElements(bcc)
+ 
+        ext_TRI = []
+        for bc in bcc:
+            zdim = Internal.getZoneDim(bc)
+            if zdim[3]=='TRI': ext_TRI.append(bc)        
+        DTW._distance2Walls(ext_TRI, surfs_wall, loc='nodes')
 
-
-    line_spin_amont = T.join(line_spin_amont)
-    line_spin_aval = T.join(line_spin_aval)
-    line_spin_perio1 = T.join(line_spin_perio1)
-    line_spin_perio2 = T.join(line_spin_perio2)
-
-    toler = 5.e-2
-
-    line_cart_amont=[]
-    line_cart_aval=[]
-    line_cart_perio1=[]
-    line_cart_perio2=[]
-    for seg in line_ext_cart:
-        for surfproj in [surf_amont,surf_aval,surf_perio1,surf_perio2]:
-            segproj = T.projectOrtho(seg,surfproj)
-            coord1 = numpy.array(C.getValue(seg, 'GridCoordinates', (1,1,1)))
-            coordproj1 = numpy.array(C.getValue(segproj, 'GridCoordinates', (1,1,1)))
-            coord2 = numpy.array(C.getValue(seg, 'GridCoordinates', (0,1,1)))
-            coordproj2 = numpy.array(C.getValue(segproj, 'GridCoordinates', (0,1,1)))
-            if numpy.allclose(coord1,coordproj1,atol=toler) and numpy.allclose(coord2,coordproj2,atol=toler):
-               if surfproj[0]=='AMONT':line_cart_amont.append(seg)#;print('AMONT')
-               if surfproj[0]=='AVAL':line_cart_aval.append(seg)#;print('AVAL')
-               if surfproj[0]=='PERIO1':line_cart_perio1.append(seg)#;print('PERIO1')
-               if surfproj[0]=='PERIO2':line_cart_perio2.append(seg)#;print('PERIO2')
-
-    line_cart_amont = T.join(line_cart_amont)
-    line_cart_aval = T.join(line_cart_aval)
-    line_cart_perio1 = T.join(line_cart_perio1)
-    line_cart_perio2 = T.join(line_cart_perio2)
-
-    ptA = C.getValue(line_spin_perio1, 'GridCoordinates', (0,1,1))
-    ptB = C.getValue(line_spin_perio1, 'GridCoordinates', (1,1,1))
-    ptC = C.getValue(line_cart_perio1, 'GridCoordinates', (0,1,1))
-    ptD = C.getValue(line_cart_perio1, 'GridCoordinates', (1,1,1))
-    ptE = C.getValue(line_spin_perio2, 'GridCoordinates', (0,1,1))
-    ptF = C.getValue(line_spin_perio2, 'GridCoordinates', (1,1,1))
-    ptG = C.getValue(line_cart_perio2, 'GridCoordinates', (0,1,1))
-    ptH = C.getValue(line_cart_perio2, 'GridCoordinates', (1,1,1))
-    linepts = [ptA,ptB,ptC,ptD,ptE,ptF,ptG,ptH]
-    # print(linepts)
-    z_linepts = [pt[2] for pt in linepts]
-    linepts.sort(key=lambda x:x[2])
-    linepts_amont = linepts[:4]
-    linepts_amont.sort(key=lambda x:x[0])
-    linepts_amont_spin = linepts_amont[:2]
-    linepts_amont_cart = linepts_amont[-2:]
-    linepts_amont_spin.sort(key=lambda x:x[1])
-    linepts_amont_cart.sort(key=lambda x:x[1])
-    linepts_aval = linepts[-4:]
-    linepts_aval.sort(key=lambda x:x[0])
-    linepts_aval_spin = linepts_aval[:2]
-    linepts_aval_cart = linepts_aval[-2:]
-    linepts_aval_spin.sort(key=lambda x:x[1])
-    linepts_aval_cart.sort(key=lambda x:x[1])
-
-
-    line_perio1_aval = D.line(linepts_aval_spin[0],linepts_aval_cart[0],N=50)
-    line_perio1_amont = D.line(linepts_amont_spin[0],linepts_amont_cart[0],N=50)
-    line_perio2_aval = D.line(linepts_aval_spin[1],linepts_aval_cart[1],N=50)
-    line_perio2_amont = D.line(linepts_amont_spin[1],linepts_amont_cart[1],N=50)
-
-    dh = 0.07
-    Npts = 100 #100
-    D.setH(line_perio1_amont, 0, dh); D.setH(line_perio1_amont, -1, dh)
-    line_perio1_amont = D.enforceh(line_perio1_amont, N=Npts)
-    D.setH(line_perio1_aval, 0, dh); D.setH(line_perio1_aval, -1, dh)
-    line_perio1_aval = D.enforceh(line_perio1_aval, N=Npts)
-    D.setH(line_perio2_amont, 0, dh); D.setH(line_perio2_amont, -1, dh)
-    line_perio2_amont = D.enforceh(line_perio2_amont, N=Npts)
-    D.setH(line_perio2_aval, 0, dh); D.setH(line_perio2_aval, -1, dh)
-    line_perio2_aval = D.enforceh(line_perio2_aval, N=Npts)
-
-
-    if check: C.convertPyTree2File([line_spin_amont,line_perio1_amont,line_cart_amont,line_perio2_amont,line_spin_aval,line_perio1_aval,line_cart_aval,line_perio2_aval,line_spin_perio1,line_cart_perio1,line_spin_perio2,line_cart_perio2],directory_tmp_files+'alllines.cgns')
-
-
-    print('mesh_amont')
-    mesh_amont = G.TFI([line_spin_amont,line_perio1_amont,line_cart_amont,line_perio2_amont])
-    mesh_amont = C.convertArray2Tetra(mesh_amont)
-
-    print('mesh_aval')
-    mesh_aval = G.TFI([line_spin_aval,line_perio1_aval,line_cart_aval,line_perio2_aval])
-    mesh_aval = C.convertArray2Tetra(mesh_aval)
-
-    print('mesh_perio1')
-    mesh_perio1 = G.TFI([line_spin_perio1,line_perio1_amont,line_cart_perio1,line_perio1_aval])
-    mesh_perio1 = C.convertArray2Tetra(mesh_perio1)
-
-    print('mesh_perio2')
-    mesh_perio2 = G.TFI([line_spin_perio2,line_perio2_amont,line_cart_perio2,line_perio2_aval])
-    mesh_perio2 = C.convertArray2Tetra(mesh_perio2)
-
-    bcc = P.exteriorFaces(lay)
-    bcc = T.breakElements(bcc)
-    mesh_ext = T.splitConnexity(bcc[0])[1]
-    surfs = [mesh_amont,mesh_aval,mesh_perio1,mesh_perio2]
-    surfs = T.join(surfs)
-    G._close(surfs, tol=toler)
-    surfs = [surfs,mesh_ext]
-    surfs = T.join(surfs)
-    G._close(surfs)
-    T._reorderAll(surfs)
-    if check: C.convertPyTree2File(surfs, directory_tmp_files+'surfs_ext.cgns')
-
-    mesh_ext = G.tetraMesher(surfs)
-    mesh_ext = C.convertArray2NGon(mesh_ext)
-    if check: C.convertPyTree2File(mesh_ext, directory_tmp_files+'mesh_ext.cgns')
-
-    mesh_final = T.join(mesh_ext,lay); G._close(mesh_final)
-
-    XOR._volumes(mesh_final)
-    volmin = C.getMinValue(mesh_final,'centers:volumes')
-    print("final volume min =",volmin)
+        ext_TRI0 = T.splitConnexity(ext_TRI)
+        ext_TRI=[]
+        for ext in ext_TRI0:
+            if C.getMaxValue(ext,'TurbulentDistance')>hWall: ext_TRI.append(ext)
+        ext_TRI = T.join(ext_TRI)
+        T._reorder(ext_TRI,(1,))
+        Internal._rmNodesFromType(ext_TRI,'FlowSolution_t')
+        tetMesh = createInternalTetraMesh__(ext_TRI, ts, hext)            
+        tetMesh = C.convertArray2NGon(tetMesh)      
+        mesh_final = T.join(tetMesh,lay)
+        
+    G._close(mesh_final, toldist)
+    G._getVolumeMap(mesh_final) 
+    volmin = C.getMinValue(mesh_final,'centers:vol')
+    print("final min volume =",volmin)
     Internal._rmNodesByName(mesh_final,'FlowSol*')
 
     # Add BCs
-    C._addBC2Zone(mesh_final, 'SPIN', 'FamilySpecified:SPIN', subzone=mesh_spin)
-    C._addBC2Zone(mesh_final, 'CART', 'FamilySpecified:CART', subzone=mesh_cart)
-    C._addBC2Zone(mesh_final, 'AUBE', 'FamilySpecified:AUBE', subzone=mesh_aube)
-    mesh_final = X.connectMatchPeriodic(mesh_final, rotationCenter=[0.,0.,0.],rotationAngle=[0.,0.,360./nb_aubes_fan], tol=1e-5)
-    faceList = C.getEmptyBC(mesh_final)
-    C._addBC2Zone(mesh_final, 'IN', 'FamilySpecified:IN', faceList = faceList[0])
-    C._addBC2Zone(mesh_final, 'OUT', 'FamilySpecified:OUT', faceList = faceList[1])
-    # convert GC2BC
-    pl = []
-    for gc in Internal.getNodesFromType(mesh_final,'GridConnectivity_t'):
-        pl.append(Internal.getValue(Internal.getNodeFromName(gc,'PointList')))
-    C._addBC2Zone(mesh_final, 'PERIOR', 'FamilySpecified:PERIOR', faceList = pl[0])
-    C._addBC2Zone(mesh_final, 'PERIOL', 'FamilySpecified:PERIOL', faceList = pl[1])
-    Internal._rmNodesByName(mesh_final,'ZoneGridConnectivity')
+    C._addBC2Zone(mesh_final, 'HUB', 'FamilySpecified:HUB', subzone=mesh_hub)
+    C._addBC2Zone(mesh_final, 'SHROUD', 'FamilySpecified:SHROUD', subzone=mesh_shroud)
+    C._addBC2Zone(mesh_final, 'BLADE', 'FamilySpecified:BLADE', subzone=surf_aube)
     
+    extFaces = P.exteriorFaces(mesh_final); extFaces = T.splitSharpEdges(extFaces, 60)
+    extBCs=['INLET','OUTLET','PERIOP','PERIOM']
+    ZBC={}
+    for bcname in extBCs:
+        zbc = Internal.getZones(Internal.getNodeFromName(ts,bcname))[0]
+        DTW._distance2Walls(extFaces, zbc, loc='nodes')
+        distmin = 1e10; efound = -1
+        for noe, ze in enumerate(extFaces):
+            d1 = C.getMaxValue(ze,'TurbulentDistance')
+            if d1 < distmin:
+                distmin = d1; efound = noe
+        if efound >-1:            
+            C._addBC2Zone(mesh_final,bcname,'FamilySpecified:%s'%bcname,subzone=extFaces[efound])
+
     print('add families')
     tp = C.newPyTree(['Base']); tp[2][1][2] += [mesh_final]
     base = Internal.getNodeFromType(tp,'CGNSBase_t')
-    C._addFamily2Base(base, 'IN', bndType='BCInflow')
-    C._addFamily2Base(base, 'OUT', bndType='BCOutflow')
-    C._addFamily2Base(base, 'SPIN', bndType='BCWall')
-    C._addFamily2Base(base, 'CART', bndType='BCWall')
-    C._addFamily2Base(base, 'AUBE', bndType='BCWall')
-
+    C._addFamily2Base(base, 'INLET', bndType='BCInflow')
+    C._addFamily2Base(base, 'OUTLET', bndType='BCOutflow')
+    C._addFamily2Base(base, 'HUB', bndType='BCWall')
+    C._addFamily2Base(base, 'SHROUD', bndType='BCWall')
+    C._addFamily2Base(base, 'BLADE', bndType='BCWall')
     return tp
+
+def createInternalTetraMesh__(ext_TRI, ts, hext): 
+    # ts  : ['HUB','SHROUD','BLADE','AMONT','AVAL','PERIODIC']
+    mesh_cart = Internal.getNodesFromName(ts,'SHROUD')
+    mesh_spin = Internal.getNodesFromName(ts,'HUB')
+    mesh_amont = Internal.getNodesFromName(ts,'AMONT')
+    mesh_aval = Internal.getNodesFromName(ts,'AVAL')
+    mesh_perios =  Internal.getNodesFromName(ts,'PERIODIC')
+
+    ext = P.exteriorFaces(ext_TRI)
+    # ATTENTION REORDER COHERENT CAR NORMALES VERS L INTERIEUR
+    # on remet les ext tous dans le meme sens 
+    ext = T.join(ext)
+    ext = T.splitConnexity(ext)
+    ext = C.convertBAR2Struct(ext)
+    T._reorder(ext[1],(-1,2,3))
+
+    lines_amont=[]; lines_aval = []; perios=[]
+    for e in ext:
+        iA = -1; iB = -1; iC = -1; iD = -1
+        DTW._distance2Walls(e, mesh_perios, loc='nodes')
+        dl = D.getLength(e)/C.getNPts(e)
+        toldistrel=0.1*dl
+        e1 = P.selectCells(e,'{TurbulentDistance}>%g'%toldistrel,strict=0)
+        e1 = T.splitConnexity(e1) # on doit en avoir 2
+        DTW._distance2Walls(e1, mesh_amont, loc='nodes')
+        
+        if C.getMinValue(e1[0],'TurbulentDistance')<C.getMinValue(e1[1],'TurbulentDistance'):
+            lines_amont.append(e1[0])
+            lines_aval.append(e1[1])
+        else:
+            lines_amont.append(e1[1])
+            lines_aval.append(e1[0])      
+        e1 = P.selectCells(e,'{TurbulentDistance}<%g'%toldistrel,strict=1)
+        e1 = T.splitConnexity(e1) # on doit en avoir 2   
+        perios+=e1   
+
+    lines_amont = C.convertBAR2Struct(lines_amont)
+    lines_aval = C.convertBAR2Struct(lines_aval)
+    perios = C.convertBAR2Struct(perios)
+
+    # TFI AMONT
+    Internal._rmNodesFromType(lines_amont,'FlowSolution_t')
+    Internal._rmNodesFromType(lines_aval,'FlowSolution_t')
+    Internal._rmNodesFromType(perios,'FlowSolution_t')
+
+    npts = C.getNPts(lines_amont[0])
+    zperiop = Internal.getZones(mesh_perios)[0]
+    DTW._distance2Walls(lines_amont, zperiop, loc='nodes')
+
+    d0 = C.getValue(lines_amont[0],'TurbulentDistance',0)
+    d1 = C.getValue(lines_amont[0],'TurbulentDistance',npts-1)
+    if d0<d1:
+        pt1 = C.getValue(lines_amont[0],'GridCoordinates',0)
+        pt3 = C.getValue(lines_amont[0],'GridCoordinates',npts-1)
+    else:
+        pt1 = C.getValue(lines_amont[0],'GridCoordinates',npts-1)
+        pt3 = C.getValue(lines_amont[0],'GridCoordinates',0)
+
+    d0 = C.getValue(lines_amont[1],'TurbulentDistance',0)
+    d1 = C.getValue(lines_amont[1],'TurbulentDistance',npts-1)
+    if d0<d1:
+        pt2 = C.getValue(lines_amont[1],'GridCoordinates',0)
+        pt4 = C.getValue(lines_amont[1],'GridCoordinates',npts-1)
+    else:
+        pt2 = C.getValue(lines_amont[1],'GridCoordinates',npts-1)
+        pt4 = C.getValue(lines_amont[1],'GridCoordinates',0)
+
+    line1 = D.line(pt1, pt2,N=npts); line2 = D.line(pt3, pt4,N=npts)
+    Internal._rmNodesFromType(lines_amont,'FlowSolution_t')
+    lines = T.join([line1,line2]+lines_amont)
+    lines = T.splitSharpEdges(lines)
+    lines = C.convertBAR2Struct(lines)
+    AMONT = G.TFI(lines)
+
+    # TFI AVAL
+    npts = C.getNPts(lines_aval[0])
+    DTW._distance2Walls(lines_aval, zperiop, loc='nodes')
+    d0 = C.getValue(lines_aval[0],'TurbulentDistance',0)
+    d1 = C.getValue(lines_aval[0],'TurbulentDistance',npts-1)
+    if d0<d1:
+        pt1 = C.getValue(lines_aval[0],'GridCoordinates',0)
+        pt3 = C.getValue(lines_aval[0],'GridCoordinates',npts-1)
+    else:
+        pt1 = C.getValue(lines_aval[0],'GridCoordinates',npts-1)
+        pt3 = C.getValue(lines_aval[0],'GridCoordinates',0)
+
+    d0 = C.getValue(lines_aval[1],'TurbulentDistance',0)
+    d1 = C.getValue(lines_aval[1],'TurbulentDistance',npts-1)
+    if d0<d1:
+        pt2 = C.getValue(lines_aval[1],'GridCoordinates',0)
+        pt4 = C.getValue(lines_aval[1],'GridCoordinates',npts-1)
+    else:
+        pt2 = C.getValue(lines_aval[1],'GridCoordinates',npts-1)
+        pt4 = C.getValue(lines_aval[1],'GridCoordinates',0)
+
+    line3 = D.line(pt1, pt2,N=npts); line4 = D.line(pt3, pt4,N=npts)    
+    Internal._rmNodesFromType(lines_aval,'FlowSolution_t')
+    lines = T.join([line3,line4]+lines_aval)
+    lines = T.splitSharpEdges(lines)
+    lines = C.convertBAR2Struct(lines)
+    AVAL = G.TFI(lines)
+
+    perios = C.convertArray2Tetra([line1,line2,line3,line4]+perios)
+    perios = T.join(perios)
+    perios = T.splitConnexity(perios)
+    sides = []
+    for e in perios:
+        alp0 = 80.
+        nsplit = 0
+        while nsplit < 4: 
+            zsplit = T.splitSharpEdges(e, alp0)
+            alp0 = alp0-10.
+            nsplit = len(zsplit)
+        if nsplit == 4: 
+            zsplit = C.convertBAR2Struct(zsplit)
+            sides.append(zsplit)
+
+    TFIPERM = G.TFI(sides[0])
+    TFIPERP = G.TFI(sides[1])    
+    
+    # remap
+    ZONES = [AMONT,AVAL,TFIPERM,TFIPERP]
+    ZONES = T.join(ZONES)
+    ZONES = remapSurf__(ZONES, hmin=hext, dir=2)
+    ZONES = C.convertArray2Tetra(ZONES)
+    surfs = Internal.getZones(ZONES)+Internal.getZones(ext_TRI)
+    surfs = T.join(surfs)
+    surfs = T.reorder(surfs,(1,))   
+    tetMesh = G.tetraMesher(surfs)    
+    return tetMesh 
+
+def remapSurf__(z, hmin=1e-6, dir=1):
+    diri = dir
+    dimZ = Internal.getZoneDim(z)
+    NIDIR = dimZ[diri]
+    if diri == 1: zt = T.subzone(z, (1,1,1), (NIDIR,1,1))
+    else:
+        zt = T.subzone(z, (1,1,1), (1,NIDIR,1))
+        zt = T.reorder(zt, (2,1,3))
+
+    l = D.getLength(zt)
+    D._getCurvilinearAbscissa(zt)
+    distrib = C.cpVars(zt, 's', zt, 'CoordinateX')
+    C._initVars(distrib, 'CoordinateY', 0.)
+    C._initVars(distrib, 'CoordinateZ', 0.)
+    C._rmVars(distrib, 's')
+    Npts_orig = Internal.getZoneDim(distrib)[1]
+    Nr = int(0.1*Npts_orig)
+    distrib = G.enforcePlusX(distrib, hmin/l, Nr, Nr)
+    Npts_fin = Internal.getZoneDim(distrib)[1]           
+    Nr2 = int(0.1*Npts_fin)
+    distrib = G.enforceMoinsX(distrib, hmin/l, Nr2, Nr2)
+    z = G.map(z, distrib, diri)
+    return z
+
+
+# IN : surface hub or shroud
+# OUT : periodic lines, inlet and outlet
+def extractExternalLines__(surf, surf_aube, BA2BF=1):
+    lines_ext = P.exteriorFaces(surf)
+    DTW._distance2Walls(lines_ext, surf_aube, loc='nodes')
+    lines_ext = T.splitConnexity(lines_ext)
+    lines_ext = C.convertBAR2Struct(lines_ext)
+    distl0 = C.getMaxValue(lines_ext[0],'TurbulentDistance')    
+    distl1 = C.getMaxValue(lines_ext[1],'TurbulentDistance')    
+    Internal._rmNodesFromType(lines_ext,'FlowSolution_t')
+
+    if distl0 < distl1: line_ext = lines_ext[1]
+    else: line_ext = lines_ext[0]
+    
+    lines_ext = []; nsplit = 0; alp0 = 80.
+    while nsplit < 4: 
+        zsplit = T.splitSharpEdges(line_ext, alp0)
+        alp0 = alp0-5.
+        nsplit = len(zsplit)        
+        if nsplit >= 4:
+           lines_ext = zsplit
+           break
+    
+    no_inflow=-1; no_outflow = -1
+    dmin = 1e10; dmax = 1e10
+    bb_all = G.bbox(lines_ext)
+    if BA2BF == 1:
+        imin = 0; imax = 3 # amont/aval selon axe X+
+    elif BA2BF ==-1:
+        imin = 3; imax = 0 # amont/aval selon axe X-
+    elif BA2BF == 2:
+        imin = 1; imax = 4 # amont/aval selon axe Y+
+    elif BA2BF ==-2:
+        imin = 4; imax = 1 # amont/aval selon axe Y-        
+    elif BA2BF == 3:
+        imin = 2; imax = 5 # amont/aval selon axe Z+
+    elif BA2BF ==-3:
+        imin = 5; imax = 2 # amont/aval selon axe Z-
+
+    for nol0 in range(len(lines_ext)):
+        l0 = lines_ext[nol0]
+        bbl = G.bbox(l0)
+        dl = abs(bbl[imax]-bbl[imin])
+        if abs(bbl[imin]-bb_all[imin])<1e-10: 
+            if dl < dmin:
+                if BA2BF>0: no_inflow=nol0
+                else: no_outflow=nol0
+                dmin = dl
+        elif abs(bbl[imax]-bb_all[imax])<1e-10:  
+            if dl < dmax:
+                if BA2BF<0: no_inflow=nol0
+                else: no_outflow=nol0
+                dmax = dl            
+    lines_perios = []
+    for noz in range(len(lines_ext)):
+        if noz != no_inflow and noz != no_outflow:
+            lines_perios.append(lines_ext[noz])
+
+    lines_perios = T.join(lines_perios)
+    lines_perios = T.splitConnexity(lines_perios)
+    lines_perios = C.convertBAR2Struct(lines_perios)
+    lines_ext = C.convertBAR2Struct(lines_ext)
+    return lines_perios+[lines_ext[no_inflow], lines_ext[no_outflow]]
+
+# lineb : contour de l aube au moyeu/carter typiquement
+# surfp : surface de projection (carter/moyeu)
+# line_ext : ligne exterieure
+def orderExteriorEdges__(surf, lineb):
+    lines_ext = P.exteriorFaces(surf)
+    lines_ext = C.convertArray2Hexa(lines_ext)
+    lines_ext = T.splitConnexity(lines_ext)
+    DTW._distance2Walls(lines_ext, lineb,type='ortho',loc='nodes')  
+    dmax = -1e10
+    line_ext = None; line_in = None
+    C.convertPyTree2File(lines_ext,"ext.cgns")
+    if len(lines_ext) != 2: 
+        raise ValueError("DRAGON: more than two curves defined to generate the TRI mesh.Case not taken into account.")
+
+    nol_ext = -1
+    for l0 in range(len(lines_ext)):
+        d0 = C.getMaxValue(lines_ext[l0],'TurbulentDistance')
+        if d0 > dmax:
+            dmax = d0; line_ext = lines_ext[l0]; nol_ext=l0
+    if nol_ext==0: 
+        line_in = lines_ext[1]
+    else: 
+        line_in = lines_ext[0]
+    return [line_in,line_ext]   
+   
+def generateTriMeshBetweenContours__(lineb, surfp, hmin=1e-6,remeshBorders=False):
+    extFaces0 = P.exteriorFaces(surfp)
+    extFaces = T.splitConnexity(extFaces0)
+    h0 = 0
+    lmax = 0
+    for ef in extFaces:
+        lenloc = D.getLength(ef)
+        if lenloc>lmax:
+            lmax = lenloc
+            npts = C.getNPts(ef)
+            h0 = lmax/npts
+            
+    [line_in,line_ext] = orderExteriorEdges__(surfp, lineb)
+
+    D0 = DTW.distance2Walls(line_ext, line_in, loc='nodes', type='ortho')
+    D0 = C.getMinValue(D0,'TurbulentDistance')
+    N0 = int(0.5*D0/h0)+1
+    distrib = G.cart((0,0,0),(h0,1,1),(N0,1,1))
+    distrib = G.enforcePlusX(distrib,hmin,N0//2,N0*3//2)
+    tri_in = G.surfaceWalk(surfp, lineb, distrib, constraints=[], niter=1000,
+                        alphaRef=180., check=0, toldist=1.e-6)
+    tri_in = C.convertArray2Tetra(tri_in); tri_in = G.close(tri_in)
+    [line_in,line_ext0] = orderExteriorEdges__(tri_in, lineb)
+    
+    Internal._rmNodesFromName(line_ext, 'FlowSol*')
+    Internal._rmNodesFromName(line_ext0, 'FlowSol*')
+
+    contour = T.join([line_ext0,line_ext])
+    tri_ext = G.tetraMesher(contour)
+
+    # check qu on a bien triangule la zone entre les deux ??    
+    # par distance des frontieres exterieures aux lignes en entree
+    ext = P.exteriorFaces(tri_ext)
+    DTW._distance2Walls(line_ext, tri_ext, loc='nodes', type='ortho')
+    if C.getMinValue(line_ext,'TurbulentDistance')>toldist:
+        line_ext0 = T.reorder(line_ext0,(-1,))
+        #line_ext = T.reorder(line_ext,(-1,))
+        Internal._rmNodesFromName(line_ext, 'FlowSol*')
+        
+        contour = T.join([line_ext0,line_ext])
+        tri_ext = G.tetraMesher(contour)
+
+    # projection sur la surface de depart...
+    #...sans bouger les frontieres...
+    _projectOrthoWithConstraints__(tri_ext, surfp, contour)
+    #    
+    if remeshBorders:
+        extFaces0 = P.exteriorFaces(tri_ext)
+        extFaces = T.splitConnexity(extFaces0)
+        density = 0
+        lmax = 0
+        for ef in extFaces:
+            lenloc = D.getLength(ef)
+            if lenloc>lmax:
+                lmax = lenloc
+                npts = C.getNPts(ef)
+                density = lmax/npts
+              
+        tri_ext = G.mmgs(tri_ext,ridgeAngle=45., 
+                          hmin=0., hmax=density, hausd=0.01,
+                          optim=0, fixedConstraints=extFaces0,
+                          sizeConstraints=extFaces0)   
+    tri = T.join(tri_in,tri_ext)    
+    return tri
+
+# after project Ortho : recover borders of surface mesh
+def _projectOrthoWithConstraints__(trimesh, surfp, lines_ext):
+    hook = C.createHook(trimesh, function='nodes')
+
+    nodes = C.identifyNodes(hook, lines_ext)  
+    T._projectOrtho(trimesh, surfp)
+    for indbc in range(len(nodes)):
+        indv = nodes[indbc]-1
+        coord = C.getValue(lines_ext, 'GridCoordinates', indbc)
+        C.setValue(trimesh, 'CoordinateX', indv, coord[0])
+        C.setValue(trimesh, 'CoordinateY', indv, coord[1])
+        C.setValue(trimesh, 'CoordinateZ', indv, coord[2])  
+    C.freeHook(hook) 
+    return None
+
+def getMatchingPoint__(line_in_h, line_periom_h):
+    npts = C.getNPts(line_periom_h)
+    nptsi = C.getNPts(line_in_h)
+    # INFLOW HUB 
+    pt11 = C.getValue(line_in_h,'GridCoordinates',0)
+    pt12 = C.getValue(line_in_h,'GridCoordinates',nptsi-1)
+    
+    pt21 = C.getValue(line_periom_h,'GridCoordinates',0)
+    pt22 = C.getValue(line_periom_h,'GridCoordinates',npts-1) 
+
+    dist11_21 = math.sqrt((pt11[0]-pt21[0])**2+(pt11[1]-pt21[1])**2+(pt11[2]-pt21[2])**2)
+    dist11_22 = math.sqrt((pt11[0]-pt22[0])**2+(pt11[1]-pt22[1])**2+(pt11[2]-pt22[2])**2)
+    
+    if dist11_21<toldist or dist11_22<toldist: ptA = pt11
+    else:
+        dist21_21 = math.sqrt((pt21[0]-pt21[0])**2+(pt21[1]-pt21[1])**2+(pt21[2]-pt21[2])**2)
+        dist21_22 = math.sqrt((pt21[0]-pt22[0])**2+(pt21[1]-pt22[1])**2+(pt21[2]-pt22[2])**2)
+        if dist21_21<toldist or dist21_22<toldist: ptA = pt21
+        else: 
+            raise ValueError("createDragonMesh: getMatchingPoint__: no valid point found. Please contact the support.")
+            return None       
+    return ptA 
+
 
 def _mirror(vtree, axis, CoordZero):
     GCNode = Internal.getNodeFromNameAndType(vtree,'GridCoordinates','GridCoordinates_t')

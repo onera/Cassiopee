@@ -3569,7 +3569,7 @@ def groupByFamily(t, familyChilds=None, unique=False):
 def getZoneDim(zone):
   """Return dimension information from a Zone_t node."""
   if len(zone) < 4: raise TypeError("getZoneDim: not a zone node.")
-  if zone[3] != 'Zone_t': raise TypeError("getZoneDim: '%s' is not a zone node."%zone[0])
+  if zone[3] != 'Zone_t': raise TypeError("getZoneDim: '%s' is not a zone node."%(zone[0]))
   dims = zone[1]
   # zone type
   info = zone[2]

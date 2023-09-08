@@ -4035,7 +4035,7 @@ def _convertNGON2DToNGON3D(t):
         m = C.getFields(Internal.__GridCoordinates__, z)[0]
         m = XOR.convertNGON2DToNGON3D(m)
         C.setFields([m], z, 'nodes')
-
+    return None
 def convertBasic2NGONFaces(t):
     tp = Internal.copyRef(t)
     _convertBasic2NGONFaces(tp)
@@ -4050,7 +4050,7 @@ def _convertBasic2NGONFaces(t):
         m = C.getFields(Internal.__GridCoordinates__, z)[0]
         m = XOR.convertBasic2NGONFaces(m)
         C.setFields([m], z, 'nodes')
-
+    return None
 def convertTree2NUGANGON(t, keep_BC=False):
     tp = Internal.copyRef(t)
     _convertTree2NUGANGON(tp, keep_BC)

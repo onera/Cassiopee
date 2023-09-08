@@ -423,7 +423,7 @@ def _adaptRanges(t, zo):
 # B0: bloc a remailler
 # dir0: direction du remaillage sur B0 (1,2,3,4,5,6,-1,-2,-3,-4,-5,-6)
 #======================================================================
-def _propagate(t, graph, stack, treated):
+def _propagate(t, graph, stack, treated, linelet):
 
     # dir0 est la direction du traitement a appliquer
     # peut-etre : 1,2,3,4,5,6,-1,-2,-3,-4,-5,-6

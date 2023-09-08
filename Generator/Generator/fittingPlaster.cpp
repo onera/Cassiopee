@@ -31,10 +31,10 @@ using namespace std;
 PyObject* K_GENERATOR::fittingPlaster(PyObject* self, PyObject* args)
 {
   PyObject *arrB0;
-  float pump_factor = 0.f;
-
-  if (!PyArg_ParseTuple(args, "Of", &arrB0, &pump_factor)) return NULL;
-
+  E_Float pump_factor;
+  if (!PYPARSETUPLE(args, 
+                    "Od", "Od", "Of", "Of", &arrB0, &pump_factor))
+    return NULL;
   E_Int ni, nj, nk;
   K_FLD::FloatArray *fB0;
   char* varString; char* eltType;
@@ -81,11 +81,10 @@ PyObject* K_GENERATOR::fittingPlaster(PyObject* self, PyObject* args)
   
   K_FLD::FloatArray &posB0(*fB0), plaster; 
   K_FLD::IntArray &connectB0(*cn);
-  E_Int ni1;
-
+  E_Int ni1;//SP : pas initialise ????
   Plaster p;
   E_Int err = p.make(posB0, connectB0, plaster, ni1, pump_factor);
-
+  
   delete fB0; delete cn;
   PyObject* tpl = NULL;
   if (!err)

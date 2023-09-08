@@ -81,7 +81,7 @@ def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=
         test.printMem(">>> extended cart grids [after add XZones]")
         zones = Internal.getZones(t)
         coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
-        coords, rinds = Generator.generator.extendCartGrids(coords, DEPTH+1, 1)
+        coords, rinds = Generator.extendCartGrids(coords, ext=DEPTH+1, optimized=1, extBnd=0)
         C.setFields(coords, zones, 'nodes')
         #for noz in range(len(zones)):
         #    Internal.newRind(value=rinds[noz], parent=zones[noz])

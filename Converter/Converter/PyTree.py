@@ -4852,6 +4852,7 @@ def getEmptyBCForNGonZone__(z, dims, pbDim, splitFactor):
     elif nfacesExt > nfacesDef:
       indicesBC = indicesBC.reshape( (indicesBC.size) )
       indicesE = Converter.converter.diffIndex(indicesF, indicesBC)
+      #indicesE = numpy.setdiff1d(indicesF, indicesBC) #SP
       #indicesE = numpy.delete(indicesF,indicesBC[0,:])
       undefBC = True
   else:
@@ -5890,7 +5891,19 @@ def _fillEmptyBCWith(t, bndName, bndType, dim=3):
       if ztype == 1: # structured
         _addBC2Zone(z, bndName+str(c), bndType, w); c += 1
       else:
-        _addBC2Zone(z, bndName+str(c), bndType, faceList=w); c += 1
+        dims = Internal.getZoneDim(z)
+        if dims[0] == 'Unstructured':
+          eltType = dims[3]
+          if eltType == 'NGON':
+            _addBC2Zone(z, bndName+str(c), bndType, faceList=w); c += 1
+          else:
+            try:
+              import Transform.PyTree as T
+              zbc = T.subzone(z,w, type='faces')
+              _addBC2Zone(z, bndName+str(c), bndType, subzone=zbc); c += 1
+            except:
+              raise ImportError("_fillEmptyBCWith: requires Transform module for unstructured BE zones")
+              
   return None
 
 #==============================================================================
@@ -7213,7 +7226,7 @@ def breakConnectivity(t):
                   zp[1][0,1] = end-start+1
                   b[2] += [zp]
                   #zp = pushBC(z, zp, type='F')
-
+   
     if typen == 1: typen = 2 # une zone renvoie une liste de zones
     return Internal.pyTree2Node(tp, typen)
 
@@ -7479,6 +7492,147 @@ def convertLO2HO(t, mode=0, order=2):
     """Convert a LO element mesh to high order mesh.
     Usage: convertLO2HO(t, mode, order)"""
     return TZGC2(t, Converter.convertLO2HO, 'nodes', True, mode, order)
+
+def convertME2NGon(a, recoverBC=True, merged=False):
+    """Convert a mixed-element monozone to an NGON. 
+    Usage: convertME2NGon(a, recoverBC, merged)"""
+    zones = Internal.getZones(a)
+    # Extrait les BCs comme des zones
+    AllBCs = []; AllBCNames = []; AllBCTypes = []
+    for z in zones:
+        zoneBC = Internal.getNodeFromType1(z, 'ZoneBC_t')
+        bcs = Internal.getNodesFromType1(zoneBC, 'BC_t')
+        for b in bcs:
+            myZone = Internal.rmNodesFromType(z, 'Elements_t')
+            ntype = Internal.getValue(b)
+            # Trouve la connectivite avec le nom de la BC (!)
+            split = b[0].split('-')
+            namebc = split[0]
+            bctype = split[-1]
+
+            if len(split)>2:
+                for nosuff in range(1,len(split)-1): namebc+='-%s'%(split[nosuff])
+                
+            ebc = Internal.getNodeFromName1(z, namebc)
+            if ebc is not None and Internal.getValue(ebc)[0]==20:
+                p = Internal.getNodeFromName1(ebc, 'ElementConnectivity')
+                out = Converter.converter.convertMix2BE(p[1])
+                if out[0] is not None:
+                    p = out[0]
+                    e = Internal.newElements(ebc[0]+'_BAR', etype='BAR', econnectivity=p, erange=[1,p.size/2], parent=myZone)
+                if out[1] is not None:
+                    p = out[1]
+                    e = Internal.newElements(ebc[0]+'_TRI', etype='TRI', econnectivity=p, erange=[1,p.size/3], parent=myZone)
+                if out[2] is not None:
+                    p = out[2]
+                    e = Internal.newElements(ebc[0]+'_QUAD', etype='QUAD', econnectivity=p, erange=[1,p.size/4], parent=myZone)
+                Internal._rmNodesFromName(myZone, 'ZoneBC')
+                Internal._updateElementRange(myZone)
+                znamebc = myZone[0]
+                myZone = breakConnectivity(myZone)
+
+                for zbc in Internal.getZones(myZone):
+                    zbc[0] = getZoneName(znamebc)
+                    Internal.createNode("BCName","UserDefinedData_t",value=b[0], parent=zbc)
+                    Internal.createNode("BCType","UserDefinedData_t",value=bctype, parent=zbc)
+                    AllBCs.append(zbc)
+
+    Internal._rmNodesFromType(a, 'ZoneBC_t')
+    tb = newPyTree(["BCs"]); tb[2][1][2] = Internal.getZones(AllBCs)
+    importG = False
+    try: 
+      import Generator.PyTree as G
+      tb = G.close(tb,tol=1e-6)
+      importG = True
+    except: 
+      pass
+
+    # Convertit les connectivites MIXED volumique
+    for z in Internal.getZones(a):
+        nodes = Internal.getNodesFromType(z, 'Elements_t')
+        for n in nodes:
+            p = Internal.getNodeFromName1(n, 'ElementConnectivity')
+            out = Converter.converter.convertMix2BE(p[1])
+            # Replace et renumerotes
+            if out[0] is not None:
+                Internal._rmNode(z,p[0])
+            if out[1] is not None:
+                Internal._rmNode(z,p[0])
+            if out[2] is not None:
+                Internal._rmNode(z,p[0])
+            if out[3] is not None:
+                p = out[3]
+                e = Internal.newElements(n[0]+'_TETRA', etype='TETRA', econnectivity=p, erange=[1,p.size/4], parent=z)
+            if out[4] is not None:
+                p = out[4]
+                e = Internal.newElements(n[0]+'_PYRA', etype='PYRA', econnectivity=p, erange=[1,p.size/5], parent=z)
+            if out[5] is not None:
+                p = out[5]
+                e = Internal.newElements(n[0]+'_PENTA', etype='PENTA', econnectivity=p, erange=[1,p.size/6], parent=z)
+            if out[6] is not None:
+                p = out[6]
+                e = Internal.newElements(n[0]+'_HEXA', etype='HEXA', econnectivity=p, erange=[1,p.size/8], parent=z)
+
+            Internal._rmNodesFromName(z, n[0])
+        Internal._updateElementRange(z)
+
+    # Join 
+    a = breakConnectivity(a)
+    a = convertArray2NGon(a)
+
+    if merged:
+        try: 
+          import Transform.PyTree as T
+          a = T.join(a)
+        except:
+          pass
+    if recoverBC:
+        Internal._rmNodesFromType(a,"ZoneBC_t")
+        nzones = len(Internal.getZones(a))
+        AllBCs = []; AllBCNames = []; AllBCTypes = []
+        dictOfBCsPerBCName={}
+        for zs in Internal.getZones(tb):
+            bcname = Internal.getNodeFromName(zs, 'BCName')
+            bcname = Internal.getValue(bcname)
+
+            if bcname not in dictOfBCsPerBCName:
+                dictOfBCsPerBCName[bcname]=[zs]
+            else:
+                #check connect
+                zsref=dictOfBCsPerBCName[bcname][0]
+                ecref = Internal.getNodeFromType(zsref,'Elements_t')
+                ecref = Internal.getNodeFromName(ecref,'ElementConnectivity')
+                ecref = Internal.getValue(ecref)
+                # to compare with
+                ec = Internal.getNodeFromType(zs,'Elements_t')
+                ec = Internal.getNodeFromName(ec,'ElementConnectivity')
+                ec = Internal.getValue(ec)
+                if not numpy.array_equal(ecref, ec):
+                    dictOfBCsPerBCName[bcname].append(zs)
+                else:
+                    print("WARNING: deux BCs identiques : %s : %s et %s !"%(bcname, zsref[0], zs[0]))
+
+        for noz, z in enumerate(Internal.getZones(a)):
+            AllBCs = []; AllBCNames = []; AllBCTypes = []
+            for zsname in dictOfBCsPerBCName:
+                for zs in dictOfBCsPerBCName[zsname]:
+                    intersect = 1
+                    if importG: intersect = G.bboxIntersection(z,zs)
+
+                    if intersect==1:
+                        bcname =Internal.getValue(Internal.getNodeFromName(zs,"BCName"))
+                        AllBCNames.append(bcname)
+                        AllBCTypes.append('FamilySpecified:'+bcname)
+                        Internal._rmNodesFromType(z,"UserDefinedData_t")
+                        AllBCs.append(zs)
+            _recoverBCs(z, (AllBCs, AllBCNames, AllBCTypes))
+
+        for base in Internal.getBases(a):
+            for famname in Internal.getNodesFromType(base,'FamilyName_t'):
+                name = Internal.getValue(famname)
+                _addFamily2Base(base, name, bndType='BCWall')
+
+    return a
 
 # Ghost cells
 def _addGhostCells(t, b, d, adaptBCs=1, modified=[], fillCorner=1):

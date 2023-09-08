@@ -1118,6 +1118,9 @@ def _correctElementNodes(t):
 # Corrige des boundary connectivity qui sont a zero (GE[1][1])
 #===============================================================================
 def _correctBCElementNodes(t):
+    _cleanBEConnect(t)
+    _correctBC_PL2ER(t)
+    
     zones = Internal.getZones(t)
     for z in zones:
         GEl = Internal.getNodesFromType1(z, 'Elements_t')
@@ -1139,6 +1142,68 @@ def _correctBCElementNodes(t):
                     if itype >= 5 and itype <= 9 and maxDim > 2: GE[1][1] = 7
     return None
 
+#==========================================================================================
+#  In a Basic Element mesh, retrieve BCs with ElementRange refering a surface connectivity
+#  1/ if BC is defined by a PointList= a set of vertices
+#  2/ or if BC is defined by a PointList= a set of face centers
+#==========================================================================================
+def _correctBC_PL2ER(t):
+    for z in Internal.getZones(t):
+        zdim = Internal.getZoneDim(z)
+        if zdim[0]=='Unstructured':
+            ztype = zdim[3]
+            if ztype != 'NGON':
+                for zbc in Internal.getNodesFromType(z,'BC_t'):
+                    bndName = Internal.getName(zbc)
+                    bndType = Internal.getValue(zbc)
+                    gcl = Internal.getNodeFromType(zbc,'GridLocation_t')
+                    PL = Internal.getNodeFromName(zbc,'PointList')
+                    if PL is not None:
+                        print(gcl, zbc[0])
+                        if gcl is None or Internal.getValue(gcl)=='Vertex':
+                            C._initVars(z,'tag',0.)
+                            for ind in Internal.getValue(PL)[0]:
+                                C.setValue(z,'tag',ind,1.)
+                            bc = P.exteriorFaces(z)
+                            C._rmVars(z,["tag"])
+                            bc = P.selectCells(bc,"{tag}>0",strict=1)
+                            Internal._rmNodesFromName(zbc,"PointList")
+                            if bc != []:
+                                bc[0] = C.getZoneName(bndName)
+                                C._mergeConnectivity(z,bc,boundary=1)
+                                bcn = Internal.getNodeFromName1(z,bc[0])
+                                bcnr = Internal.getNodeFromName1(bcn,'ElementRange')
+                                ER = [bcnr[1][0], bcnr[1][1]]
+
+                        elif Internal.getValue(gcl)=='FaceCenter':
+                            bc_gcname = 'Elements_%s'%(Internal.getName(zbc))
+                            bc_gcnode = Internal.getNodeFromName(z,bc_gcname)
+                            if bc_gcnode is not None:
+                                ER = Internal.getNodeFromName(bc_gcnode,'ElementRange')
+                                if ER is not None: ER = Internal.getValue(ER)
+
+                        if ER is not None:
+                            r = numpy.empty((1,2), dtype=Internal.E_NpyInt, order='F')
+                            r[0,0] = ER[0]
+                            r[0,1] = ER[1]
+                            zbc[2].append([Internal.__ELEMENTRANGE__, r, [], 'IndexRange_t'])
+                            Internal._rmNodesFromName(zbc,"GridLocation")
+                            Internal._rmNodesFromName(zbc,'PointList')
+    return None
+
+#===============================================================================
+#  Dans un maillage NGON, enleve les connectivites EB 
+#===============================================================================
+def _cleanBEConnect(t):
+    for z in Internal.getZones(t):
+        zdim=Internal.getZoneDim(z)
+        if zdim[0]=='Unstructured':
+            if zdim[3]=='NGON':
+                for elt_t in Internal.getNodesFromType(z,'Elements_t'):
+                    elt_no = Internal.getValue(elt_t)[0]
+                    if elt_no != 22 and elt_no != 23:
+                        Internal._rmNodesFromName(z,elt_t[0])
+    return None
 #===============================================================================
 # Check non CGNS varnames in FlowSolution_t and BCDataSet
 #===============================================================================
