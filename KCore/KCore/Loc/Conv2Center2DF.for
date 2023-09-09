@@ -120,7 +120,7 @@ C_LOCAL
       INTEGER_E i, j, indc
       INTEGER_E ind0, ind1, ind2, ind3
       INTEGER_E nic, njc
-      REAL_E f, somme
+      REAL_E somme
 
       nic = ni-1
       njc = nj-1

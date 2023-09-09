@@ -262,37 +262,47 @@ E_Int K_IO::GenIO::jpgwrite(
   if (posG == -1) posG = K_ARRAY::isNamePresent((char*)"G", varString);
   E_Int posB = K_ARRAY::isNamePresent((char*)"b", varString);
   if (posB == -1) posB = K_ARRAY::isNamePresent((char*)"B", varString);
-  int mode = 0; // only RGB
-  
-  // recupere la taille de la premiere grille structuree
-  int width = 0; int height = 0;
-  width = ni[0]; height = nj[0];
-  
-  //printf("pos %d %d %d - %d %d\n", posR, posG, posB, width, height);
   
 
-  FILE* fp;
-  if ((fp = fopen(file, "wb")) == NULL) {
+  //printf("pos %d %d %d - %d %d\n", posR, posG, posB, width, height);
+  E_Int nc = 3; // only for RGB for now
+
+  FILE* ptrFile;
+  if ((ptrFile = fopen(file, "wb")) == NULL) {
     printf("Warning: cannot open %s.\n", file);
     return 1;
   }
   
+  /* passe le Fld dans image_buffer */
   JSAMPLE* image_buffer;	/* Points to large array of R,G,B-order data */
-  int image_height;	/* Number of rows in image */
-  int image_width;		/* Number of columns in image */
+  int image_width = ni[0];	/* Number of rows in image */
+  int image_height = nj[0];		/* Number of columns in image */
+  image_buffer = new JSAMPLE [image_width*nc*image_height];
+  E_Float* r = structField[0]->begin(posR+1);
+  E_Float* g = structField[0]->begin(posG+1);
+  E_Float* b = structField[0]->begin(posB+1);
+  
+  JSAMPLE* p = image_buffer;
+  for (E_Int j = 0; j < image_height; j++)
+  {
+    for (E_Int i = 0; i < image_width; i++)
+    {
+      *p = (unsigned char)r[i+j*image_width]; p++;
+      *p = (unsigned char)g[i+j*image_width]; p++;
+      *p = (unsigned char)b[i+j*image_width]; p++;
+    }
+  }
 
   struct jpeg_compress_struct cinfo;
   
   struct jpeg_error_mgr jerr;
-  /* More stuff */
-  FILE* outfile;		/* target file */
   JSAMPROW row_pointer[1];	/* pointer to JSAMPLE row[s] */
   int row_stride;		/* physical row width in image buffer */
 
   cinfo.err = jpeg_std_error(&jerr);
   /* Now we can initialize the JPEG compression object. */
   jpeg_create_compress(&cinfo);
-  jpeg_stdio_dest(&cinfo, outfile);
+  jpeg_stdio_dest(&cinfo, ptrFile);
 
   cinfo.image_width = image_width; 	/* image width and height, in pixels */
   cinfo.image_height = image_height;
@@ -306,7 +316,7 @@ E_Int K_IO::GenIO::jpgwrite(
   /* Now you can set any non-default parameters you wish to.
    * Here we just illustrate the use of quality (quantization table) scaling:
    */
-  int quality = 10;
+  int quality = 100; // a ajuster
   jpeg_set_quality(&cinfo, quality, TRUE /* limit to baseline-JPEG values */);
 
   /* Step 4: Start compressor */
@@ -339,16 +349,12 @@ E_Int K_IO::GenIO::jpgwrite(
 
   jpeg_finish_compress(&cinfo);
   /* After finish_compress, we can close the output file. */
-  fclose(outfile);
+  fclose(ptrFile);
 
   /* Step 7: release JPEG compression object */
 
   /* This is an important step since it will release a good deal of memory. */
   jpeg_destroy_compress(&cinfo);
-
-
-
-  fclose(fp); 
 
   return 0;
 }

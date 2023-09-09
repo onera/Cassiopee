@@ -581,6 +581,8 @@ def convertExt2Format__(fileName):
     elif extension == '.obj': format = 'fmt_obj'
     elif extension == '.gts': format = 'fmt_gts'
     elif extension == '.png': format = 'bin_png'
+    elif extension == '.jpg': format = 'bin_jpg'
+    elif extension == '.jpeg': format = 'bin_jpg'
     elif extension == '.d': format = 'fmt_cedre'
     elif extension == '.su2': format = 'fmt_su2'
     elif extension == '.gbin': format = 'bin_plot3d'
@@ -1700,6 +1702,7 @@ def checkFileType(fileName):
     if (beader[10:12] == eol and (beader[50:52] == b"78" or beader[50:52] == b"79" or beader[50:52] == b"80" or  beader[12:14] == b"78" or   beader[12:14] == b"79" or beader[12:14] == b"80"  or beader[50:52] == b"58" or beader[50:52] == b"59" or beader[50:52] == b"60" or  beader[12:14] == b"58" or beader[12:14] == b"59" or beader[12:14] == b"60" or beader[46:52] == b"766172" or beader[46:52] == b"564152" or beader[12:18] == b"766172" or beader[12:18] == b"564152")):
         return 'fmt_v3d'
     if beader.find(b"4d4d") == 0: return 'bin_3ds'
+    if beader[0:4] == b"d8ff": return 'bin_jpg'
     dt = numpy.dtype('<i4')
     ieader = numpy.fromfile(fileName, dtype=dt, count=128, sep="")
     if ieader[0] == 4:

@@ -165,7 +165,7 @@ if PNG:
             ]
 
 if JPEG:
-    cpp_srcs += ['KCore/Images/libjpeg/ansi2knr.c',
+    cpp_srcs += [#'KCore/Images/libjpeg/ansi2knr.c',
                  'KCore/Images/libjpeg/jcdctmgr.c', 
                  'KCore/Images/libjpeg/jdapistd.c', 
                  'KCore/Images/libjpeg/jdmerge.c',

@@ -274,6 +274,9 @@ E_Int K_IO::GenIO::pngwrite(
   if (posG == -1) posG = K_ARRAY::isNamePresent((char*)"G", varString);
   E_Int posB = K_ARRAY::isNamePresent((char*)"b", varString);
   if (posB == -1) posB = K_ARRAY::isNamePresent((char*)"B", varString);
+  E_Int posA = K_ARRAY::isNamePresent((char*)"a", varString);
+  if (posA == -1) posA = K_ARRAY::isNamePresent((char*)"A", varString);
+  
   int mode = 0; // only RGB
   
   // recupere la taille de la premiere grille structuree
@@ -282,25 +285,32 @@ E_Int K_IO::GenIO::pngwrite(
   
   //printf("pos %d %d %d - %d %d\n", posR, posG, posB, width, height);
   
+  E_Int nc = 3;
+  if (posA >= 0) { nc = 4; mode = 1; }
+
   // cree le buffer
-  png_byte* buffer = new png_byte [3*width*height];
-  for (int i = 0; i < 3*width*height; i++) buffer[i] = 0;
+  png_byte* buffer = new png_byte [nc*width*height];
+  for (E_Int i = 0; i < nc*width*height; i++) buffer[i] = 0;
   if (posR >= 0)
   {
     E_Float* r = structField[0]->begin(posR+1);
-    for (int i = 0; i < width*height; i++) buffer[3*i] = (png_byte)r[i];
+    for (E_Int i = 0; i < width*height; i++) buffer[nc*i] = (png_byte)r[i];
   }
   if (posG >= 0)
   {
     E_Float* g = structField[0]->begin(posG+1);
-    for (int i = 0; i < width*height; i++) buffer[3*i+1] = (png_byte)g[i];
+    for (E_Int i = 0; i < width*height; i++) buffer[nc*i+1] = (png_byte)g[i];
   }
   if (posB >= 0)
   {
     E_Float* b = structField[0]->begin(posB+1);
-    for (int i = 0; i < width*height; i++) buffer[3*i+2] = (png_byte)b[i];
+    for (E_Int i = 0; i < width*height; i++) buffer[nc*i+2] = (png_byte)b[i];
   }
-
+  if (posA >= 0)
+  {
+    E_Float* a = structField[0]->begin(posA+1);
+    for (E_Int i = 0; i < width*height; i++) buffer[nc*i+3] = (png_byte)a[i];
+  }
   
   png_byte color_type;
   png_byte bit_depth;

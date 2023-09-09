@@ -80,7 +80,7 @@ jpeg_free_large (j_common_ptr cinfo, void FAR * object, size_t sizeofobject)
 #endif
 
 // CB : tmpfile ne marche pas en mingw
-FILE* tmpfile2() { printf("what\n"); fflush(stdout); return fopen("toto", "wb");}
+FILE* tmpfile2() { fflush(stdout); return fopen(".jpegdata", "wb"); }
 
 GLOBAL(long)
 jpeg_mem_available (j_common_ptr cinfo, long min_bytes_needed,
@@ -128,6 +128,8 @@ METHODDEF(void)
 close_backing_store (j_common_ptr cinfo, backing_store_ptr info)
 {
   fclose(info->temp_file);
+  //
+  remove(".jpegdata");
   /* Since this implementation uses tmpfile() to create the file,
    * no explicit file deletion is needed.
    */
