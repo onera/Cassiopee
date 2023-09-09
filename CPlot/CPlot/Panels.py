@@ -259,7 +259,7 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
     myText += " - xatlas (see Geom/xatlas/LICENCE).\n"
     myText += " - zstd (see Compressor/zstd/LICENCE).\n"
     myText += " - png (see KCore/Images/png/LICENCE).\n"
-    myText += " - openjpeg (see KCore/Images/openjpeg/LICENCE).\n"
+    myText += " - libjpeg (see KCore/Images/libjpeg/README).\n"
     
     textWidget.insert(TK.END, myText)
     return

@@ -248,20 +248,20 @@ unsigned int Shader::getStorageBufferLocation( const char *storageName ) const
     return (unsigned int)index;
 }
 // ============================================================================
-void Shader::setUniform( const char *varName, float v0 )
+void Shader::setUniform(const char *varName, float v0)
 {
-    GLint loc = GLint( getUniformLocation( varName ) );
-    glUniform1fARB( loc, v0 );
+    GLint loc = GLint(getUniformLocation(varName));
+    glUniform1fARB(loc, v0);
     CHECK_GL_ERROR();
 }
 // ----------------------------------------------------------------------------
-void Shader::setUniform( unsigned int loc, float v0 )
+void Shader::setUniform(unsigned int loc, float v0)
 {
-    glUniform1fARB( GLint( loc ), v0 );
+    glUniform1fARB(GLint(loc), v0);
     CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
-void Shader::setUniform( const char *varName, float v0, float v1 )
+void Shader::setUniform(const char *varName, float v0, float v1)
 {
     GLint loc = GLint( getUniformLocation( varName ) );
     glUniform2fARB( loc, v0, v1 );
@@ -302,14 +302,14 @@ void Shader::setUniform( unsigned int loc,
     CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
-void Shader::setUniform( const char *varName, int v0 )
+void Shader::setUniform(const char *varName, int v0)
 {
     GLint loc = GLint( getUniformLocation( varName ) );
     glUniform1iARB( loc, v0 );
     CHECK_GL_ERROR();
 }
 // ------------------------------------------------------------------------
-void Shader::setUniform( unsigned int loc, int v0 )
+void Shader::setUniform(unsigned int loc, int v0)
 {
     glUniform1iARB( GLint( loc ), v0 );
     CHECK_GL_ERROR();

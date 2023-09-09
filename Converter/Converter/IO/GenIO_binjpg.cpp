@@ -19,7 +19,8 @@
 
 // Binary JPG (JPEG) file support
 
-# include "Images/openjpeg/openjp2/openjpeg.h"
+#include "Images/libjpeg/jpeglib.h"
+
 # include "GenIO.h"
 # include "Array/Array.h"
 # include "Connect/connect.h"
@@ -29,6 +30,23 @@
 
 using namespace K_FLD;
 using namespace std;
+
+struct my_error_mgr 
+{
+  struct jpeg_error_mgr pub;	/* "public" fields */
+  //jmp_buf setjmp_buffer;	/* for return to caller */
+};
+typedef struct my_error_mgr* my_error_ptr;
+
+void my_error_exit (j_common_ptr cinfo)
+{
+  /* cinfo->err really points to a my_error_mgr struct, so coerce pointer */
+  my_error_ptr myerr = (my_error_ptr) cinfo->err;
+
+  /* Always display the message. */
+  /* We could postpone this until after returning, if we chose. */
+  (*cinfo->err->output_message) (cinfo);
+}
 
 //=============================================================================
 /* 
@@ -55,460 +73,118 @@ E_Int K_IO::GenIO::jpgread(
     return 1;
   }
 
-  opj_dparameters_t parameters;               /* Decompression parameters */
-  opj_image_t* image = NULL;                  /* Image structure */
-  opj_codec_t* l_codec = NULL;                /* Handle to a decompressor */
-  opj_stream_t *l_stream = NULL;              /* Stream */
+  /* This struct contains the JPEG decompression parameters and pointers to
+   * working space (which is allocated as needed by the JPEG library).
+   */
+  struct jpeg_decompress_struct cinfo;
+  /* We use our private extension JPEG error handler.
+   * Note that this struct must live as long as the main JPEG parameter
+   * struct, to avoid dangling-pointer problems.
+   */
+  struct my_error_mgr jerr;
+  /* More stuff */
+  JSAMPARRAY buffer;		/* Output row buffer */
+  int row_stride;		/* physical row width in output buffer */
 
-  l_stream = opj_stream_create_default_file_stream(parameters.infile, 1);
-  if (!l_stream) 
-  {
-    fprintf(stderr, "ERROR -> failed to create the stream from the file %s\n",
-            parameters.infile);
-  }
+  /* In this example we want to open the input file before doing anything else,
+   * so that the setjmp() error recovery below can assume the file is open.
+   * VERY IMPORTANT: use "b" option to fopen() if you are on a machine that
+   * requires it in order to read binary files.
+   */
+  
+  /* Step 1: allocate and initialize JPEG decompression object */
 
-  switch (parameters.decod_format) 
-  {
-    case 0: 
-    { /* JPEG-2000 codestream */
-      /* Get a decoder handle */
-      l_codec = opj_create_decompress(OPJ_CODEC_J2K);
-      break;
-    }
-
-    case 1: 
-    { /* JPEG 2000 compressed image data */
-      /* Get a decoder handle */
-      l_codec = opj_create_decompress(OPJ_CODEC_JP2);
-      break;
-    }
-
-    case 2: 
-    { /* JPEG 2000, JPIP */
-      /* Get a decoder handle */
-      l_codec = opj_create_decompress(OPJ_CODEC_JPT);
-      break;
-    }
-
-    default:
-    {
-      fprintf(stderr, "skipping file..\n");
-      //destroy_parameters(&parameters);
-      opj_stream_destroy(l_stream);
-      return 1;
-    }
-  }
-
-  //opj_set_info_handler(l_codec, quiet_callback, 00);
-  //opj_set_warning_handler(l_codec, quiet_callback, 00);
-  //opj_set_error_handler(l_codec, quiet_callback, 00);
-
-  //float t = opj_clock();
-
-  /* Setup the decoder decoding parameters using user parameters */
-  //if (!opj_setup_decoder(l_codec, &(parameters.core))) 
-  //{
-  //  fprintf(stderr, "ERROR -> opj_decompress: failed to setup the decoder\n");
-  //  opj_stream_destroy(l_stream);
-  //  opj_destroy_codec(l_codec);
-  //  return 1;
+  /* We set up the normal JPEG error routines, then override error_exit. */
+  
+  cinfo.err = jpeg_std_error(&jerr.pub);
+  jerr.pub.error_exit = my_error_exit;
+  /* Establish the setjmp return context for my_error_exit to use. */
+  //if (setjmp(jerr.setjmp_buffer)) {
+    /* If we get here, the JPEG code has signaled an error.
+     * We need to clean up the JPEG object, close the input file, and return.
+     */
+  //  jpeg_destroy_decompress(&cinfo);
+  //  fclose(ptrFile);
+  //  return 0;
   //}
 
-  //if (parameters.num_threads >= 1 && !opj_codec_set_threads(l_codec, parameters.num_threads)) 
-  //{
-  //  fprintf(stderr, "ERROR -> opj_decompress: failed to set number of threads\n");
-  //  opj_stream_destroy(l_stream);
-  //  opj_destroy_codec(l_codec);
-  //  return 1;
-  //}
+  /* Now we can initialize the JPEG decompression object. */
+  jpeg_create_decompress(&cinfo);
 
-  /* Read the main header of the codestream and if necessary the JP2 boxes */
-  if (! opj_read_header(l_stream, l_codec, &image)) 
-  {
-    fprintf(stderr, "ERROR -> opj_decompress: failed to read the header\n");
-    opj_stream_destroy(l_stream);
-    opj_destroy_codec(l_codec);
-    opj_image_destroy(image);
-    return 1;
-  }
+  /* Step 2: specify data source (eg, a file) */
+  jpeg_stdio_src(&cinfo, ptrFile);
 
-  // if (parameters.numcomps) 
-  // {
-  //   if (! opj_set_decoded_components(l_codec,
-  //                                     parameters.numcomps,
-  //                                     parameters.comps_indices,
-  //                                     OPJ_FALSE)) 
-  //   {
-  //     fprintf(stderr,
-  //             "ERROR -> opj_decompress: failed to set the component indices!\n");
-  //     opj_destroy_codec(l_codec);
-  //     opj_stream_destroy(l_stream);
-  //     opj_image_destroy(image);
-  //     return 1;
-  //   }
-  // }
+  /* Step 3: read file parameters with jpeg_read_header() */
+  (void) jpeg_read_header(&cinfo, TRUE);
 
-//   if (getenv("USE_OPJ_SET_DECODED_RESOLUTION_FACTOR") != NULL) 
-//   {
-//     /* For debugging/testing purposes, and also an illustration on how to */
-//     /* use the alternative API opj_set_decoded_resolution_factor() instead */
-//     /* of setting parameters.cp_reduce */
-//     if (! opj_set_decoded_resolution_factor(l_codec, cp_reduce)) 
-//     {
-//       fprintf(stderr,
-//               "ERROR -> opj_decompress: failed to set the resolution factor tile!\n");
-//       opj_destroy_codec(l_codec);
-//       opj_stream_destroy(l_stream);
-//       opj_image_destroy(image);
-//       return 1;
-//     }
-//   }
+  /* We can ignore the return value from jpeg_read_header since
+   *   (a) suspension is not possible with the stdio data source, and
+   *   (b) we passed TRUE to reject a tables-only JPEG file as an error.
+   * See libjpeg.txt for more info.
+   */
 
-  if (!parameters.nb_tile_to_decode) 
-  {
-    if (getenv("SKIP_OPJ_SET_DECODE_AREA") != NULL &&
-        parameters.DA_x0 == 0 &&
-        parameters.DA_y0 == 0 &&
-        parameters.DA_x1 == 0 &&
-        parameters.DA_y1 == 0) 
-    {
-      /* For debugging/testing purposes, */
-      /* do nothing if SKIP_OPJ_SET_DECODE_AREA env variable */
-      /* is defined and no decoded area has been set */
-    }
+  /* Step 4: set parameters for decompression */
 
-    /* Optional if you want decode the entire image */
-    else if (!opj_set_decode_area(l_codec, image, (OPJ_INT32)parameters.DA_x0,
-              (OPJ_INT32)parameters.DA_y0, (OPJ_INT32)parameters.DA_x1,
-              (OPJ_INT32)parameters.DA_y1)) 
-    {
-      fprintf(stderr, "ERROR -> opj_decompress: failed to set the decoded area\n");
-      opj_stream_destroy(l_stream);
-      opj_destroy_codec(l_codec);
-      opj_image_destroy(image);
-      return 1;
-    }
+  /* In this example, we don't need to change any of the defaults set by
+   * jpeg_read_header(), so we do nothing here.
+   */
 
-    /* Get the decoded image */
-    if (!(opj_decode(l_codec, l_stream, image) &&
-          opj_end_decompress(l_codec, l_stream))) 
-    {
-      fprintf(stderr, "ERROR -> opj_decompress: failed to decode image!\n");
-      opj_destroy_codec(l_codec);
-      opj_stream_destroy(l_stream);
-      opj_image_destroy(image);
-      return 1;
-    }
-  } 
-  else 
-  {
-    // if (!(parameters.DA_x0 == 0 &&
-    //       parameters.DA_y0 == 0 &&
-    //       parameters.DA_x1 == 0 &&
-    //       parameters.DA_y1 == 0)) 
-    // {
-    //   if (!(parameters.quiet)) 
-    //   {
-    //     fprintf(stderr, "WARNING: -d option ignored when used together with -t\n");
-    //   }
-    // }
+  /* Step 5: Start decompressor */
+  (void) jpeg_start_decompress(&cinfo);
+  
+  /* We can ignore the return value since suspension is not possible
+   * with the stdio data source.
+   */
+  /* We may need to do some setup of our own at this point before reading
+   * the data.  After jpeg_start_decompress() we have the correct scaled
+   * output image dimensions available, as well as the output colormap
+   * if we asked for color quantization.
+   * In this example, we need to make an output work buffer of the right size.
+   */ 
+  /* JSAMPLEs per row in output buffer */
+  row_stride = cinfo.output_width * cinfo.output_components;
+  /* Make a one-row-high sample array that will go away when done with image */
+  buffer = (*cinfo.mem->alloc_sarray)
+		((j_common_ptr) &cinfo, JPOOL_IMAGE, row_stride, 1);
 
-    if (!opj_get_decoded_tile(l_codec, l_stream, image, parameters.tile_index)) 
-    {
-      fprintf(stderr, "ERROR -> opj_decompress: failed to decode tile!\n");
-      opj_destroy_codec(l_codec);
-      opj_stream_destroy(l_stream);
-      opj_image_destroy(image);
-      return 1;
-    }
-    // if (!(parameters.quiet)) 
-    // {
-    //   fprintf(stdout, "tile %d is decoded!\n\n", parameters.tile_index);
-    // }
-  }
-
-  /* FIXME? Shouldn't that situation be considered as an error of */
-  /* opj_decode() / opj_get_decoded_tile() ? */
-  if (image->comps[0].data == NULL) 
-  {
-    fprintf(stderr, "ERROR -> opj_decompress: no image data!\n");
-    opj_destroy_codec(l_codec);
-    opj_stream_destroy(l_stream);
-    opj_image_destroy(image);
-    return 1;
-  }
-
-  //tCumulative += opj_clock() - t;
-  //numDecompressedImages++;
-
-  /* Close the byte stream */
-  opj_stream_destroy(l_stream);
-
-  if (image->color_space != OPJ_CLRSPC_SYCC
-      && image->numcomps == 3 && image->comps[0].dx == image->comps[0].dy
-      && image->comps[1].dx != 1) 
-  {
-    image->color_space = OPJ_CLRSPC_SYCC;
-  } 
-  else if (image->numcomps <= 2) 
-  {
-    image->color_space = OPJ_CLRSPC_GRAY;
-  }
-
-//   if (image->color_space == OPJ_CLRSPC_SYCC) 
-//   {
-//     color_sycc_to_rgb(image);
-//   } 
-//   else if ((image->color_space == OPJ_CLRSPC_CMYK) &&
-//             (parameters.cod_format != TIF_DFMT)) 
-//   {
-//     color_cmyk_to_rgb(image);
-//   } 
-//   else if (image->color_space == OPJ_CLRSPC_EYCC) 
-//   {
-//     color_esycc_to_rgb(image);
-//   }
-
-//   if (image->icc_profile_buf) 
-//   {
-// #if defined(OPJ_HAVE_LIBLCMS1) || defined(OPJ_HAVE_LIBLCMS2)
-//     if (image->icc_profile_len) 
-//     {
-//       color_apply_icc_profile(image);
-//     } 
-//     else 
-//     {
-//       color_cielab_to_rgb(image);
-//     }
-// #endif
-//     free(image->icc_profile_buf);
-//     image->icc_profile_buf = NULL;
-//     image->icc_profile_len = 0;
-//   }
-
-//  /* Force output precision */
-//  /* ---------------------- */
-//   if (parameters.precision != NULL) 
-//   {
-//     OPJ_UINT32 compno;
-//     for (compno = 0; compno < image->numcomps; ++compno) 
-//     {
-//       OPJ_UINT32 precno = compno;
-//       OPJ_UINT32 prec;
-
-//       if (precno >= parameters.nb_precision) 
-//       {
-//         precno = parameters.nb_precision - 1U;
-//       }
-
-//       prec = parameters.precision[precno].prec;
-//       if (prec == 0) 
-//       {
-//         prec = image->comps[compno].prec;
-//       }
-
-//       switch (parameters.precision[precno].mode) 
-//       {
-//         case OPJ_PREC_MODE_CLIP:
-//           clip_component(&(image->comps[compno]), prec);
-//           break;
-//         case OPJ_PREC_MODE_SCALE:
-//           scale_component(&(image->comps[compno]), prec);
-//           break;
-//         default:
-//           break;
-//       }
-
-//     }
-//   }
-
-//   /* Upsample components */
-//   /* ------------------- */
-//   if (parameters.upsample) 
-//   {
-//     image = upsample_image_components(image);
-//     if (image == NULL) 
-//     {
-//       fprintf(stderr,
-//               "ERROR -> opj_decompress: failed to upsample image components!\n");
-//       opj_destroy_codec(l_codec);
-//       return 1;
-//     }
-//   }
-
-  /* Force RGB output */
-  /* ---------------- */
-//   if (parameters.force_rgb) 
-//   {
-//     switch (image->color_space) 
-//     {
-//       case OPJ_CLRSPC_SRGB:
-//         break;
-//       case OPJ_CLRSPC_GRAY:
-//         image = convert_gray_to_rgb(image);
-//         break;
-//       default:
-//         fprintf(stderr,
-//                 "ERROR -> opj_decompress: don't know how to convert image to RGB colorspace!\n");
-//         opj_image_destroy(image);
-//         image = NULL;
-//         break;
-//     }
-//     if (image == NULL) 
-//     {
-//       fprintf(stderr, "ERROR -> opj_decompress: failed to convert to RGB image!\n");
-//       opj_destroy_codec(l_codec);
-//       return 1;
-//     }
-//   }
-
-  /* create output image */
-  /* ------------------- */
-//   switch (parameters.cod_format) 
-//   {
-//     case PXM_DFMT:          /* PNM PGM PPM */
-//       if (imagetopnm(image, parameters.outfile, parameters.split_pnm)) 
-//       {
-//         fprintf(stderr, "[ERROR] Outfile %s not generated\n", parameters.outfile);
-//         return 1;
-//       } else if (!(parameters.quiet)) 
-//       {
-//         fprintf(stdout, "[INFO] Generated Outfile %s\n", parameters.outfile);
-//       }
-//       break;
-
-//       case PGX_DFMT:          /* PGX */
-//         if (imagetopgx(image, parameters.outfile)) 
-//         {
-//           fprintf(stderr, "[ERROR] Outfile %s not generated\n", parameters.outfile);
-//           return 1;
-//         } 
-//         else if (!(parameters.quiet)) 
-//         {
-//           fprintf(stdout, "[INFO] Generated Outfile %s\n", parameters.outfile);
-//         }
-//         break;
-
-//         case BMP_DFMT:          /* BMP */
-//           if (imagetobmp(image, parameters.outfile)) 
-//           {
-//             fprintf(stderr, "[ERROR] Outfile %s not generated\n", parameters.outfile);
-//             return 1;
-//           } 
-//           else if (!(parameters.quiet)) 
-//           {
-//             fprintf(stdout, "[INFO] Generated Outfile %s\n", parameters.outfile);
-//           }
-//           break;
-// #ifdef OPJ_HAVE_LIBTIFF
-//         case TIF_DFMT:          /* TIFF */
-//             if (imagetotif(image, parameters.outfile)) {
-//                 fprintf(stderr, "[ERROR] Outfile %s not generated\n", parameters.outfile);
-//                 failed = 1;
-//             } else if (!(parameters.quiet)) {
-//                 fprintf(stdout, "[INFO] Generated Outfile %s\n", parameters.outfile);
-//             }
-//             break;
-// #endif /* OPJ_HAVE_LIBTIFF */
-//         case RAW_DFMT:          /* RAW */
-//             if (imagetoraw(image, parameters.outfile)) {
-//                 fprintf(stderr, "[ERROR] Error generating raw file. Outfile %s not generated\n",
-//                         parameters.outfile);
-//                 failed = 1;
-//             } else if (!(parameters.quiet)) {
-//                 fprintf(stdout, "[INFO] Generated Outfile %s\n", parameters.outfile);
-//             }
-//             break;
-
-//         case RAWL_DFMT:         /* RAWL */
-//             if (imagetorawl(image, parameters.outfile)) {
-//                 fprintf(stderr,
-//                         "[ERROR] Error generating rawl file. Outfile %s not generated\n",
-//                         parameters.outfile);
-//                 failed = 1;
-//             } else if (!(parameters.quiet)) {
-//                 fprintf(stdout, "[INFO] Generated Outfile %s\n", parameters.outfile);
-//             }
-//             break;
-
-//         case TGA_DFMT:          /* TGA */
-//             if (imagetotga(image, parameters.outfile)) {
-//                 fprintf(stderr, "[ERROR] Error generating tga file. Outfile %s not generated\n",
-//                         parameters.outfile);
-//                 failed = 1;
-//             } else if (!(parameters.quiet)) {
-//                 fprintf(stdout, "[INFO] Generated Outfile %s\n", parameters.outfile);
-//             }
-//             break;
-// #ifdef OPJ_HAVE_LIBPNG
-//         case PNG_DFMT:          /* PNG */
-//             if (imagetopng(image, parameters.outfile)) {
-//                 fprintf(stderr, "[ERROR] Error generating png file. Outfile %s not generated\n",
-//                         parameters.outfile);
-//                 failed = 1;
-//             } else if (!(parameters.quiet)) {
-//                 fprintf(stdout, "[INFO] Generated Outfile %s\n", parameters.outfile);
-//             }
-//             break;
-// #endif /* OPJ_HAVE_LIBPNG */
-//         /* Can happen if output file is TIFF or PNG
-//          * and OPJ_HAVE_LIBTIF or OPJ_HAVE_LIBPNG is undefined
-//         */
-//         default:
-//             fprintf(stderr, "[ERROR] Outfile %s not generated\n", parameters.outfile);
-//             failed = 1;
-//         }
-
-//         /* free remaining structures */
-//         if (l_codec) {
-//             opj_destroy_codec(l_codec);
-//         }
-
-
-//         /* free image data structure */
-//         opj_image_destroy(image);
-
-//         /* destroy the codestream index */
-//         opj_destroy_cstr_index(&cstr_index);
-    
-  // Stockage du champ
-  /*
-  varString = new char [128];
-  E_Int nil = width;
-  E_Int njl = height;
+  // allocate output Fld
   FldArrayF* f;
-  if (components == 1) // greyscale
+  E_Int nc = cinfo.output_components;
+  E_Int nil = cinfo.output_width;
+  E_Int njl = cinfo.output_height;
+  printf("size=%d %d, components=%d\n", nil, njl, nc);
+  
+  varString = new char [128];
+
+  if (nc == 1)
   {
     strcpy(varString, "x,y,z,r");
     f = new FldArrayF(nil*njl, 4);
   }
-  else if (components == 3) // RGB
+  else if (nc == 2)
+  {
+    strcpy(varString, "x,y,z,r,g");
+    f = new FldArrayF(nil*njl, 5);
+  }
+  else if (nc == 3)
   {
     strcpy(varString, "x,y,z,r,g,b");
     f = new FldArrayF(nil*njl, 6);
   }
-  else if (components == 2) // greyscale + alpha
-  {
-    strcpy(varString, "x,y,z,r,a");
-    f = new FldArrayF(nil*njl, 5);
-  }
-  else if (components == 4) // RGB + alpha
+  else if (nc == 4)
   {
     strcpy(varString, "x,y,z,r,g,b,a");
     f = new FldArrayF(nil*njl, 7);
   }
- 
+
   f->setAllValuesAtNull();
   E_Float* fx = f->begin(1);
   E_Float* fy = f->begin(2);
   E_Float* fz = f->begin(3);
 
-  structField.push_back(f);
-  ni.push_back(nil); nj.push_back(njl); nk.push_back(1);
-  
   // Cree les noms de zones
   char* zoneName = new char [128];
-  sprintf(zoneName, "Zone0");
+  sprintf(zoneName, "Image0");
   zoneNames.push_back(zoneName);
 
   for (E_Int j = 0; j < njl; j++)
@@ -519,76 +195,47 @@ E_Int K_IO::GenIO::jpgread(
       fz[i+j*nil] = 0.;
     }
 
-  if (components == 1) // greyscale
+  structField.push_back(f);
+  ni.push_back(nil); nj.push_back(njl); nk.push_back(1);
+
+  /* Step 6: while (scan lines remain to be read) */
+  /*           jpeg_read_scanlines(...); */
+
+  /* Here we use the library's state variable cinfo.output_scanline as the
+   * loop counter, so that we don't have to keep track ourselves.
+   */
+  E_Int j = 0;
+  while (cinfo.output_scanline < cinfo.output_height) 
   {
-    E_Float* r = f->begin(4);
-    for (E_Int j = 0; j < njl; j++)
+    /* jpeg_read_scanlines expects an array of pointers to scanlines.
+     * Here the array is only one element long, but you could ask for
+     * more than one scanline at a time if that's more convenient.
+     */
+    (void) jpeg_read_scanlines(&cinfo, buffer, 1);
+    unsigned char value;
+    for (E_Int n = 0; n < nc; n++)
     {
-      png_byte* p = row_pointers[j];
-      for (E_Int i = 0; i < nil; i++)
+      E_Float* fr = f->begin(n+4);
+      unsigned char* bufferp = *buffer;
+      for (E_Int i = 0; i < nil; i++) 
       {
-        r[i+j*nil] = *p; p++;
+        value = bufferp[nc*i+n];
+        fr[i+j*nil] = (E_Float)value;
       }
     }
-  }
-  else if (components == 3)
-  {
-    E_Float* r = f->begin(4);
-    E_Float* g = f->begin(5);
-    E_Float* b = f->begin(6);
-    for (E_Int j = 0; j < njl; j++)
-    {
-      png_byte* p = row_pointers[j];
-      for (E_Int i = 0; i < nil; i++)
-      {
-        r[i+j*nil] = *p; p++;
-        g[i+j*nil] = *p; p++;
-        b[i+j*nil] = *p; p++;
-      }
-    }
-  }
-  else if (components == 2)
-  {
-    E_Float* r = f->begin(4);
-    E_Float* alpha = f->begin(5);
-    for (E_Int j = 0; j < njl; j++)
-    {
-      png_byte* p = row_pointers[j];
-      for (E_Int i = 0; i < nil; i++)
-      {
-        r[i+j*nil] = *p; p++;
-        alpha[i+j*nil] = *p; p++;
-      }
-    }
-  }
-  else if (components == 4)
-  {
-    E_Float* r = f->begin(4);
-    E_Float* g = f->begin(5);
-    E_Float* b = f->begin(6);
-    E_Float* alpha = f->begin(7);
-    for (E_Int j = 0; j < njl; j++)
-    {
-      png_byte* p = row_pointers[j];
-      for (E_Int i = 0; i < nil; i++)
-      {
-        r[i+j*nil] = *p; p++;
-        g[i+j*nil] = *p; p++;
-        b[i+j*nil] = *p; p++;
-        alpha[i+j*nil] = *p; p++;
-      }
-    }
+    j += 1;
   }
 
-  for (int y = 0; y < height; y++) free(row_pointers[y]);
-  free(row_pointers);
-  
-  png_read_end(png_ptr, end_info_ptr);
-  */
+  /* Step 7: Finish decompression */
+  (void) jpeg_finish_decompress(&cinfo);
+  /* We can ignore the return value since suspension is not possible
+   * with the stdio data source.
+   */
 
-  opj_stream_destroy(l_stream);
-  opj_destroy_codec(l_codec);
-  opj_image_destroy(image);
+  /* Step 8: Release JPEG decompression object */
+
+  /* This is an important step since it will release a good deal of memory. */
+  jpeg_destroy_decompress(&cinfo);
     
   fclose(ptrFile);
   return 0;
@@ -630,6 +277,77 @@ E_Int K_IO::GenIO::jpgwrite(
     return 1;
   }
   
+  JSAMPLE* image_buffer;	/* Points to large array of R,G,B-order data */
+  int image_height;	/* Number of rows in image */
+  int image_width;		/* Number of columns in image */
+
+  struct jpeg_compress_struct cinfo;
+  
+  struct jpeg_error_mgr jerr;
+  /* More stuff */
+  FILE* outfile;		/* target file */
+  JSAMPROW row_pointer[1];	/* pointer to JSAMPLE row[s] */
+  int row_stride;		/* physical row width in image buffer */
+
+  cinfo.err = jpeg_std_error(&jerr);
+  /* Now we can initialize the JPEG compression object. */
+  jpeg_create_compress(&cinfo);
+  jpeg_stdio_dest(&cinfo, outfile);
+
+  cinfo.image_width = image_width; 	/* image width and height, in pixels */
+  cinfo.image_height = image_height;
+  cinfo.input_components = 3;		/* # of color components per pixel */
+  cinfo.in_color_space = JCS_RGB; 	/* colorspace of input image */
+  /* Now use the library's routine to set default compression parameters.
+   * (You must set at least cinfo.in_color_space before calling this,
+   * since the defaults depend on the source color space.)
+   */
+  jpeg_set_defaults(&cinfo);
+  /* Now you can set any non-default parameters you wish to.
+   * Here we just illustrate the use of quality (quantization table) scaling:
+   */
+  int quality = 10;
+  jpeg_set_quality(&cinfo, quality, TRUE /* limit to baseline-JPEG values */);
+
+  /* Step 4: Start compressor */
+
+  /* TRUE ensures that we will write a complete interchange-JPEG file.
+   * Pass TRUE unless you are very sure of what you're doing.
+   */
+  jpeg_start_compress(&cinfo, TRUE);
+
+  /* Step 5: while (scan lines remain to be written) */
+  /*           jpeg_write_scanlines(...); */
+
+  /* Here we use the library's state variable cinfo.next_scanline as the
+   * loop counter, so that we don't have to keep track ourselves.
+   * To keep things simple, we pass one scanline per call; you can pass
+   * more if you wish, though.
+   */
+  row_stride = image_width * 3;	/* JSAMPLEs per row in image_buffer */
+
+  while (cinfo.next_scanline < cinfo.image_height) {
+    /* jpeg_write_scanlines expects an array of pointers to scanlines.
+     * Here the array is only one element long, but you could pass
+     * more than one scanline at a time if that's more convenient.
+     */
+    row_pointer[0] = & image_buffer[cinfo.next_scanline * row_stride];
+    (void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
+  }
+
+  /* Step 6: Finish compression */
+
+  jpeg_finish_compress(&cinfo);
+  /* After finish_compress, we can close the output file. */
+  fclose(outfile);
+
+  /* Step 7: release JPEG compression object */
+
+  /* This is an important step since it will release a good deal of memory. */
+  jpeg_destroy_compress(&cinfo);
+
+
+
   fclose(fp); 
 
   return 0;
