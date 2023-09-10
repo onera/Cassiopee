@@ -183,7 +183,7 @@ void gdisplay()
     if (d->ptrState->updateEnvmap == 1)
     { 
       E_Int width, height;
-      d->createPngTexture(d->ptrState->envmapFile, d->_texEnviron1, width, height, true);
+      d->createImageTexture(d->ptrState->envmapFile, d->_texEnviron1, width, height, true);
       d->ptrState->updateEnvmap = 0; 
     }
     if (d->ptrState->updateBackground == 1)
@@ -204,7 +204,7 @@ void gdisplay()
       else if (d->ptrState->bgColor == 12)
        d->createPngTexture("paperBackground7.png", d->_texBackground, width, height, false);
       else if (d->ptrState->bgColor == 13)
-       d->createPngTexture(d->ptrState->backgroundFile, d->_texBackground, width, height, false);
+       d->createImageTexture(d->ptrState->backgroundFile, d->_texBackground, width, height, false);
       else
        d->createPngTexture("paperBackground1.png", d->_texBackground, width, height, false);
       d->ptrState->updateBackground = 0;

@@ -303,7 +303,13 @@ public:
   E_Int createColormapTexture();
   void fillColormapTexture(E_Int type);
   E_Int createFrameBufferTexture();
+  E_Int createImageTexture(const char* filename, GLuint &tex,
+                           E_Int& width, E_Int& height, 
+                           bool mipmap=true);
   E_Int createPngTexture(const char* filename, GLuint &tex,
+                         E_Int& width, E_Int& height, 
+                         bool mipmap=true);
+  E_Int createJpgTexture(const char* filename, GLuint &tex,
                          E_Int& width, E_Int& height, 
                          bool mipmap=true);
   E_Int createVoxelTexture();

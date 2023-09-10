@@ -113,3 +113,20 @@ E_Int Data::createFrameBufferTexture(void)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   return 1;
 }
+
+//=============================================================================
+// Create image teture from an image file
+// call createPngTexture or createJpgTexture depending on file end
+//=============================================================================
+E_Int Data::createImageTexture(const char* filename, GLuint &tex, 
+                               E_Int &width, E_Int &height, bool mipmap)
+{
+  E_Int l = strlen(filename);
+  if (filename[l-3] == 'p' && filename[l-2] == 'n' && filename[l-1] == 'g') 
+    return createPngTexture(filename, tex, width, height, mipmap);
+  else if (filename[l-3] == 'j' && filename[l-2] == 'p' && filename[l-1] == 'g') 
+    return createJpgTexture(filename, tex, width, height, mipmap);
+  else if (filename[l-4] == 'j' && filename[l-3] == 'p' && filename[l-2] == 'e' && filename[l-1] == 'g') 
+    return createJpgTexture(filename, tex, width, height, mipmap);
+  else return createPngTexture(filename, tex, width, height, mipmap);
+}

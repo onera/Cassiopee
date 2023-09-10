@@ -146,6 +146,8 @@ cpp_srcs = ['CPlot/render.cpp',
 # png
 cpp_srcs += ["CPlot/Plugins/writePNGFile.cpp",
              "CPlot/Textures/createPngTexture.cpp"]
+# jpg
+cpp_srcs += ["CPlot/Textures/createJpgTexture.cpp"]
 
 if mpeg:
     cpp_srcs += ["CPlot/Plugins/writeMPEGFrame.cpp"]

@@ -203,7 +203,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
         t = std::min(t, (int)_nBillBoards-1);
         if (_billBoardTexs[t] == 0) 
         {
-          createPngTexture(_billBoardFiles[t], _billBoardTexs[t], _billBoardWidths[t], _billBoardHeights[t], true);
+          createImageTexture(_billBoardFiles[t], _billBoardTexs[t], _billBoardWidths[t], _billBoardHeights[t], true);
           //printf("loading %d %s\n", type, _billBoardFiles[t]);
         }
         ptrState->billBoardNi = _billBoardNis[t];
@@ -282,7 +282,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
         glActiveTexture(GL_TEXTURE1);
         if (_materialTexs[t] == 0) 
         {
-           createPngTexture(_materialFiles[t], _materialTexs[t], _materialWidths[t], _materialHeights[t], true);
+           createImageTexture(_materialFiles[t], _materialTexs[t], _materialWidths[t], _materialHeights[t], true);
           //printf("loading %d %s\n", 0, _materialFiles[0]);
         }
         glBindTexture(GL_TEXTURE_2D, _materialTexs[t]);
@@ -297,7 +297,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
             hasBump = true;
             if (_bumpMapTexs[t] == 0) 
             {
-              createPngTexture(_bumpMapFiles[t], _bumpMapTexs[t], _bumpMapWidths[t], _bumpMapHeights[t], true);
+              createImageTexture(_bumpMapFiles[t], _bumpMapTexs[t], _bumpMapWidths[t], _bumpMapHeights[t], true);
             }   
           }
         }
