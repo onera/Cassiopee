@@ -45,8 +45,8 @@ E_Int K_LOC::cart2Cyl(E_Int npts,
                       E_Int ni, E_Int nj, E_Int nk, E_Int depth, 
                       E_Float thetaShift)
 {
-    E_Float x0, y0, z0;
-    E_Float *xl, *yl, *zl;
+    E_Float x0, y0;
+    E_Float *xl, *yl;
     E_Float eps = 1.e-12;
     //E_Float eps = K_CONST::E_ZERO_MACHINE;
     //E_Float eps = K_CONST::E_GEOM_CUTOFF;
@@ -65,18 +65,18 @@ E_Int K_LOC::cart2Cyl(E_Int npts,
     // Choix direction suivant axe
     if (ex > eps && ey < eps && ez < eps) // axe X
     {
-        xl = yt; yl = zt; zl = xt;
-        x0 = Y0; y0 = Z0; z0 = X0;
+        xl = yt; yl = zt; //zl = xt;
+        x0 = Y0; y0 = Z0; //z0 = X0;
     }
     else if (ey > eps && ex < eps && ez < eps) // axe Y
     {
-        xl = zt; yl = xt; zl = yt;
-        x0 = Z0; y0 = X0; z0 = Y0;
+        xl = zt; yl = xt; //zl = yt;
+        x0 = Z0; y0 = X0; //z0 = Y0;
     }
     else if (ez > eps && ey < eps && ex < eps) // axe Z
     {
-        xl = xt; yl = yt; zl = zt;
-        x0 = X0; y0 = Y0; z0 = Z0;
+        xl = xt; yl = yt; //zl = zt;
+        x0 = X0; y0 = Y0; //z0 = Z0;
     }
     else 
     { 

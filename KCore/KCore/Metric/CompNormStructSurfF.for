@@ -40,8 +40,6 @@ C_LOCAL
       INTEGER_E ind1, ind2, ind3, ind4
       REAL_E l1x, l1y, l1z
       REAL_E l2x, l2y, l2z
-      REAL_E l3x, l3y, l3z
-      REAL_E l4x, l4y, l4z
       REAL_E surf1x, surf1y, surf1z
       REAL_E surf2x, surf2y, surf2z
       REAL_E x1, y1, z1
