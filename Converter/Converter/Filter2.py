@@ -908,7 +908,8 @@ def chunk2part(distTree):
   t1 = C.newPyTree(['Base', z1])
   C.setFields([mesh], z1, 'nodes')
 
-  print(solNames, solcNames, flush=True)
+  if Cmpi.rank == 0:
+    print(solNames, solcNames, flush=True)
   
   # add solutions
   for n, name in enumerate(solNames):

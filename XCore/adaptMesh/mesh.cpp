@@ -140,12 +140,22 @@ void mesh_free(mesh *M) {
   XFREE(M->lsqGG);
   XFREE(M->lsqH);
   XFREE(M->lsqHH);
+  for (E_Int i = 0; i < M->nppatches; i++)
+    ppatch_free(&M->ppatches[i]);
+  delete [] M->ppatches;
+  XFREE(M->req);
+  for (E_Int i = 0; i < M->nppatches; i++) {
+    XFREE(M->pnei_coords[i]);
+    XFREE(M->pnei_flds[i]);
+    //XFREE(M->pnei_grads[i]);
+  }
+  XFREE(M->pnei_coords);
+  XFREE(M->pnei_flds);
+  XFREE(M->pnei_grads);
   XFREE(M->gcells);
   XFREE(M->gfaces);
   XFREE(M->gpoints);
   XFREE(M->ref_data);
-  for (E_Int i = 0; i < M->nppatches; i++)
-    ppatch_free(&M->ppatches[i]);
-  delete [] M->ppatches;
+
   delete M;
 }

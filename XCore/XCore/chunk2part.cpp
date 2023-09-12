@@ -119,8 +119,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   nfaces--;
 
   // construct cells distribution
-  E_Int *cells_dist = (E_Int *)XMALLOC((nproc+1)*sizeof(E_Int));
-  //E_Int *cells_dist = (E_Int *)XMALLOC((nproc+1) * sizeof(E_Int));
+  E_Int *cells_dist = (E_Int *)XCALLOC((nproc+1), sizeof(E_Int));
   cells_dist[0] = 0;
  
   MPI_Allgather(&ncells, 1, MPI_INT, cells_dist+1, 1, MPI_INT, MPI_COMM_WORLD);
@@ -129,7 +128,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     cells_dist[i+1] += cells_dist[i];
 
   // construct faces distribution
-  E_Int *faces_dist = (E_Int *)XMALLOC((nproc+1) * sizeof(E_Int));
+  E_Int *faces_dist = (E_Int *)XCALLOC((nproc+1), sizeof(E_Int));
   faces_dist[0] = 0;
  
   MPI_Allgather(&nfaces, 1, MPI_INT, faces_dist+1, 1, MPI_INT, MPI_COMM_WORLD);
@@ -138,7 +137,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     faces_dist[i+1] += faces_dist[i];
 
   // construct points distribution
-  E_Int *points_dist = (E_Int *)XMALLOC((nproc+1) * sizeof(E_Int));
+  E_Int *points_dist = (E_Int *)XCALLOC((nproc+1), sizeof(E_Int));
   points_dist[0] = 0;
  
   MPI_Allgather(&npoints, 1, MPI_INT, points_dist+1, 1, MPI_INT, MPI_COMM_WORLD);
@@ -999,55 +998,6 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   
   // TODO (Imad): use Cassiopee's data structures to avoid copying
   const char *varString = "CoordinateX,CoordinateY,CoordinateZ";
-
-  /* export (array1) */
-  /*
-  FldArrayI cn;
-  cn.XMALLOC(2+nnfaces+nxfaces[nnfaces] + 2+nncells+nxcells[nncells], 1);
-  cn.setAllValuesAtNull();
-  E_Int *ptr = cn.begin(1);
-  ptr[0] = nnfaces;
-  ptr[1] = nnfaces+nxfaces[nnfaces];
-  ptr += 2;
-  for (E_Int i = 0; i < nnfaces; i++) {
-    E_Int start = nxfaces[i];
-    E_Int end = nxfaces[i+1];
-    E_Int stride = end - start;
-    *ptr++ = stride;
-    for (E_Int j = start; j < end; j++) {
-      *ptr++ = PT[NGON[j]]+1;
-    }
-  }
-
-  ptr = cn.begin(1) + 2 + nnfaces + nxfaces[nnfaces];
-  ptr[0] = nncells;
-  ptr[1] = nncells + nxcells[nncells];
-  ptr += 2;
-
-  if (sfaces_exist) {
-    for (E_Int i = 0; i < nncells; i++) {
-      E_Int start = nxcells[i];
-      E_Int end = nxcells[i+1];
-      E_Int stride = end - start;
-      *ptr++ = stride;
-      for (E_Int j = start; j < end; j++) {
-        *ptr++ = FT[abs(NFACE[j])]+1;
-      }
-    }
-  } else {
-    for (E_Int i = 0; i < nncells; i++) {
-      E_Int start = nxcells[i];
-      E_Int end = nxcells[i+1];
-      E_Int stride = end - start;
-      *ptr++ = stride;
-      for (E_Int j = start; j < end; j++) {
-        *ptr++ = FT[NFACE[j]]+1;
-      }
-    }
-  }
- 
-  PyObject* m = K_ARRAY::buildArray(local_crd, varString, cn, 8, NULL, false);
-  */
  
   /* export array3 / NGON v4 */
   // TODO(Imad): avoid copying
@@ -1136,7 +1086,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   if (csize == 0) {
     PyList_Append(out, PyList_New(0));
   } else {
-    E_Float **csols = (E_Float **)XMALLOC(csize * sizeof(E_Float *));
+    E_Float **csols = (E_Float **)XCALLOC(csize, sizeof(E_Float *));
 
     for (E_Int i = 0; i < csize; i++) {
       PyObject *csol = PyList_GetItem(o, i);
@@ -1184,7 +1134,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   if (psize == 0) {
     PyList_Append(out, PyList_New(0));
   } else {
-    E_Float **psols = (E_Float **)XMALLOC(psize * sizeof(E_Float *));
+    E_Float **psols = (E_Float **)XCALLOC(psize, sizeof(E_Float *));
 
     for (E_Int i = 0; i < psize; i++) {
       PyObject *psol = PyList_GetItem(o, i);

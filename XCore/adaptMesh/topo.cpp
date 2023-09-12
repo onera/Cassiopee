@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "proto.h"
+#include <stack>
 
 const E_Int normalIn[6] = {1,0,1,0,1,0};
 
@@ -12,9 +13,346 @@ E_Int get_reorient(E_Int face, E_Int cell, E_Int normalIn, mesh *M)
   else return 1;
 }
 
+static
+void build_face_neighbourhood
+(
+  std::vector<E_Int> &pgs,
+  std::vector<E_Int> &xpgs,
+  std::vector<E_Int> &neighbour
+)
+{
+  for (size_t i = 0; i < neighbour.size(); i++)
+    neighbour[i] = -1;
+
+  std::map<edge,
+           std::pair<std::pair<E_Int, E_Int>, std::pair<E_Int, E_Int>>> EM;
+
+  size_t nf = xpgs.size() - 1;
+
+  for (size_t i = 0; i < nf; i++) {
+    E_Int start = xpgs[i];
+    E_Int end = xpgs[i+1];
+    E_Int stride = end - start;
+
+    E_Int *pn = &pgs[start];
+    for (E_Int j = 0; j < stride; j++) {
+      E_Int n0 = pn[j];
+      E_Int n1 = pn[(j+1)%stride];
+
+      edge E(n0, n1);
+
+      auto search = EM.find(E);
+
+      if (search == EM.end()) {
+        // first time encoutering this edge
+        EM[E].first = std::make_pair(i, j);
+        EM[E].second = std::make_pair(-1, -1);
+      } else {
+        if (search->second.second.first == -1)
+          search->second.second = std::make_pair(i, j);
+        else
+          search->second.second = std::make_pair(IDX_NONE, IDX_NONE);
+      }
+    }
+  }
+
+  for (auto &elem : EM) {
+    E_Int pg0 = elem.second.first.first;
+    E_Int n0 = elem.second.first.second;
+    E_Int pg1 = elem.second.second.first;
+    E_Int n1 = elem.second.second.second;
+
+    if (pg1 == -1 || pg1 == IDX_NONE)
+      continue;
+
+    E_Int s0 = xpgs[pg0];
+    E_Int s1 = xpgs[pg1];
+    
+    neighbour[s0 + n0] = pg1;
+    neighbour[s1 + n1] = pg0;
+  }
+}
+
+static
+E_Int get_orientation(E_Int *pn, E_Int stride, E_Int ni, E_Int nj,
+  E_Int *same_orient)
+{
+  *same_orient = 0;
+  for (E_Int i = 0; i < stride; i++) {
+    if (pn[i] == ni && pn[(i+1)%stride] == nj) {
+      *same_orient = 1;
+      return 0;
+    }
+    if (pn[i] == nj && pn[(i+1)%stride] == ni) {
+      *same_orient = 0;
+      return 0;
+    }
+  }
+  return -1;
+}
+
+static
+void get_boundary(E_Int *pn0, E_Int s0, E_Int *pn1, E_Int s1, E_Int *m,
+  E_Int *n)
+{
+  for (E_Int i = 0; i < s0; i++) {
+    E_Int n00 = pn0[i];
+    E_Int n01 = pn0[(i+1)%s0];
+    for (E_Int j = 0; j < s1; j++) {
+      E_Int n10 = pn1[j];
+      E_Int n11 = pn1[(j+1)%s1];
+      if ((n00 == n10 || n00 == n11) && (n01 == n10 || n01 == n11)) {
+        *m = i;
+        *n = j;
+        return;
+      }
+    }
+  }
+}
+
+static
+void colouring(const std::vector<E_Int>& neighbours, const std::vector<E_Int>& xadj,
+  std::vector<E_Int>& colours)
+{
+  E_Int K, Kn, Kseed(0), colour(0), size, nelems(xadj.size()-1);
+  std::vector<E_Int> kpool;
+
+  colours.resize(nelems, IDX_NONE);
+
+  while (1) {
+    while ((Kseed < nelems) && (colours[Kseed] != IDX_NONE))
+      Kseed++;
+
+    if (Kseed >= nelems)
+      return;
+
+    kpool.push_back(Kseed);
+
+    while (!kpool.empty()) {
+      K = kpool.back();
+      kpool.pop_back();
+
+      if (colours[K] != IDX_NONE)
+        continue;
+
+      colours[K] = colour;
+
+      E_Int start = xadj[K];
+      E_Int end = xadj[K+1];
+      E_Int stride = end - start;
+      const E_Int *pn = &neighbours[start];
+      for (E_Int i = 0; i < stride; i++) {
+        E_Int Kn = pn[i];
+        if ((Kn != IDX_NONE) && (colours[Kn] == IDX_NONE))
+          kpool.push_back(Kn);
+      }
+    }
+
+    colour++;
+  }
+}
+
+
+static
+void orient_boundary(mesh *M)
+{
+  std::vector<E_Int> fadj;
+  std::vector<E_Int> xadj(1, 0);
+  std::vector<E_Int> efaces;
+
+  // gather all the external faces
+  // external faces are faces that belong to only one cell
+  std::vector<E_Int> fcount(M->nfaces, 0);
+  for (E_Int i = 0; i < M->ncells; i++) {
+    for (E_Int j = M->xcells[i]; j < M->xcells[i+1]; j++) {
+      E_Int face = M->NFACE[j];
+      fcount[face] += 1;
+    }
+  }
+
+  for (E_Int i = 0; i < M->nfaces; i++) {
+    assert(fcount[i] == 1 || fcount[i] == 2);
+    if (fcount[i] == 1) {
+      efaces.push_back(i);
+      xadj.push_back(4);
+      for (E_Int j = M->xfaces[i]; j < M->xfaces[i+1]; j++)
+        fadj.push_back(M->NGON[j]);
+    }
+  }
+
+  E_Int nefaces = (E_Int)efaces.size();
+
+  for (E_Int i = 0; i < nefaces; i++)
+    xadj[i+1] += xadj[i];
+
+  std::vector<E_Int> neighbours(fadj.size(), -1);
+  build_face_neighbourhood(fadj, xadj, neighbours);
+  // Neighbour i of facej is the face shared edge(pn[i], pn[i+1])
+
+  // remove non-manifoldness
+  {
+    std::map<edge, E_Int> edge_count;
+    edge E;
+    for (E_Int i = 0; i < nefaces; i++) {
+      E_Int start = xadj[i];
+      E_Int end = xadj[i+1];
+      E_Int stride = end - start;
+      E_Int *pn = &fadj[start];
+
+      for (E_Int j = 0; j < stride; j++) {
+        E_Int n0 = pn[j];
+        E_Int n1 = pn[(j+1)%stride];
+        E.set(n0, n1);
+        auto search = edge_count.find(E);
+        if (search == edge_count.end())
+          edge_count.insert(std::make_pair(E, 1));
+        else
+          search->second++;
+      }
+    }
+
+    for (E_Int i = 0; i < nefaces; i++) {
+      E_Int start = xadj[i];
+      E_Int end = xadj[i+1];
+      E_Int stride = end - start;
+
+      E_Int *pn = &fadj[start];
+      E_Int *pk = &neighbours[start];
+
+      for (E_Int n = 0; n < stride; n++) {
+        E_Int n0 = pn[n];
+        E_Int n1 = pn[(n+1)%stride];
+        E.set(n0, n1);
+
+        if (edge_count[E] != 2)
+          pk[n] = IDX_NONE;
+      }
+    }
+  }
+
+  E_Int nb_connex = 1;
+  std::vector<E_Int> colours;
+  colouring(neighbours, xadj, colours);
+  nb_connex = 1 + *std::max_element(colours.begin(), colours.end());
+
+  //printf("%d -> nb_connex: %d\n", M->pid, nb_connex);
+
+  // faces belonging to the same connex part should have the same colour
+  //std::vector<E_Int> colours(M->nfaces);
+  //colour_elements(neighbours, colours);
+
+  std::vector<E_Int> processed(nefaces, 0);
+  std::vector<E_Int> orient(nefaces, 0);
+
+  // As many iterations as connex bits
+  while (1) {
+    // look for first unprocessed face
+    E_Int seed = 0;
+    for (; seed < nefaces; seed++)
+      if (!processed[seed])
+        break;
+    
+    if (seed >= nefaces) // all done
+      break;
+    
+    M->nconnex++;
+    
+    std::stack<E_Int> fpool; // face pool
+    fpool.push(seed);
+
+    // is the seed well oriented?
+    // TODO(Imad): improve this check
+    compute_cell_centers(M);
+    E_Int gf = efaces[seed];
+    E_Int *pn = &M->NGON[M->xfaces[gf]];
+    E_Int n0 = pn[0];
+    E_Int n1 = pn[1];
+    E_Int n2 = pn[2];
+    E_Float *X0 = &M->xyz[3*n0];
+    E_Float *X1 = &M->xyz[3*n1];
+    E_Float *X2 = &M->xyz[3*n2];
+    E_Float n[3]; // face normal
+    E_Float e1[3], e2[3]; // edges 10 & 20
+    for (E_Int i = 0; i < 3; i++) {
+      e1[i] = X1[i] - X0[i];
+      e2[i] = X2[i] - X0[i];
+    }
+    cross(e1, e2, n);
+    E_Float *fx = &M->fc[3*gf];
+    E_Int own = M->owner[gf];
+    assert(own >= 0 && M->neigh[gf] == -1);
+    E_Float *cx = &M->cc[3*own];
+    E_Float d[3]; // vector from face center to cell center
+    for (E_Int i = 0; i < 3; i++)
+      d[i] = cx[i] - fx[i];
+    // face should be oriented outwards: dot product should be negative
+    if (dot(d, n, 3) > 0.)
+      orient[seed] = -1;
+
+    while (!fpool.empty()) {
+      E_Int face = fpool.top();
+      fpool.pop();
+
+      if (processed[face]) {
+        continue;
+      }
+      
+      processed[face] = 1;
+
+      E_Int start = xadj[face];
+      E_Int end = xadj[face+1];
+      E_Int stride = end - start;
+      E_Int *pf = &fadj[start];
+      
+      for (E_Int i = xadj[face]; i < xadj[face+1]; i++) {
+        E_Int nei = neighbours[i];
+        if (nei == IDX_NONE)
+          continue;
+        if (processed[nei] == 1)
+          continue;
+        
+
+        E_Int nstart = xadj[nei];
+        E_Int nend = xadj[nei+1];
+        E_Int nstride = nend - nstart;
+        E_Int *pn = &fadj[nstart];
+
+        // find the shared edge
+        E_Int k, l;
+        k = l = -1;
+        get_boundary(pf, stride, pn, nstride, &k, &l);
+        assert(k != -1 && l != -1);
+
+        E_Int ni = pf[k];
+        E_Int nj = pf[(k+1)%stride];
+
+        E_Int reverse = 2;
+        E_Int ret = get_orientation(pn, nstride, ni, nj, &reverse);
+        assert(ret != -1);
+
+        if (orient[face] == -1) reverse = !reverse;
+        if (reverse) orient[nei] = -1;
+        fpool.push(nei);
+      }
+    }
+  }
+
+  for (E_Int i = 0; i < nefaces; i++) {
+    if (orient[i] == -1) {
+      E_Int face = efaces[i];
+      E_Int start = M->xfaces[face];
+      E_Int stride = M->xfaces[face+1] - start;
+      E_Int *pn = &M->NGON[start];
+      std::reverse(pn+1, pn+stride);
+      //std::swap(pn[1], pn[3]);
+    }
+  }
+}
+
 void topo_init_mesh(mesh *M)
 {
-  reorient_skin(M);
+  //reorient_skin(M);
+  orient_boundary(M);
   build_own_nei(M);
   reorder_hexa(M);
 }
@@ -69,6 +407,7 @@ void reorder_hexa(mesh *M)
   }
 }
 
+/*
 void reorient_skin(mesh *M)
 {
   compute_cell_centers(M);
@@ -117,97 +456,7 @@ void reorient_skin(mesh *M)
     }
   }
 }
-
-static
-void build_face_neighbourhood
-(
-  std::vector<E_Int> &pgs,
-  std::vector<E_Int> &xpgs,
-  mesh *M,
-  std::vector<E_Int> &neighbour
-)
-{
-  for (size_t i = 0; i < neighbour.size(); i++)
-    neighbour[i] = -1;
-
-  std::map<edge,
-           std::pair<std::pair<E_Int, E_Int>, std::pair<E_Int, E_Int>>> EM;
-
-  size_t nf = xpgs.size() - 1;
-
-  for (size_t i = 0; i < nf; i++) {
-    E_Int start = xpgs[i];
-    E_Int end = xpgs[i+1];
-    E_Int stride = end - start;
-
-    E_Int *pn = &pgs[start];
-    for (E_Int j = 0; j < stride; j++) {
-      E_Int n0 = pn[j];
-      E_Int n1 = pn[(j+1)%stride];
-
-      edge E(n0, n1);
-
-      auto search = EM.find(E);
-
-      if (search == EM.end()) {
-        // first time encoutering this edge
-        EM[E].first = std::make_pair(i, j);
-      } else {
-        search->second.second = std::make_pair(i, j);
-      }
-    }
-  }
-
-  for (auto &elem : EM) {
-    E_Int pg0 = elem.second.first.first;
-    E_Int n0 = elem.second.first.second;
-    E_Int pg1 = elem.second.second.first;
-    E_Int n1 = elem.second.second.second;
-
-    E_Int s0 = xpgs[pg0];
-    E_Int s1 = xpgs[pg1];
-    
-    neighbour[s0 + n0] = pg1;
-    neighbour[s1 + n1] = pg0;
-  }
-}
-
-static
-void get_boundary(E_Int *pn0, E_Int s0, E_Int *pn1, E_Int s1, E_Int *m,
-  E_Int *n)
-{
-  for (E_Int i = 0; i < s0; i++) {
-    E_Int n00 = pn0[i];
-    E_Int n01 = pn0[(i+1)%s0];
-    for (E_Int j = 0; j < s1; j++) {
-      E_Int n10 = pn1[j];
-      E_Int n11 = pn1[(j+1)%s1];
-      if ((n00 == n10 || n00 == n11) && (n01 == n10 || n01 == n11)) {
-        *m = i;
-        *n = j;
-        return;
-      }
-    }
-  }
-}
-
-static
-E_Int get_orientation(E_Int *pn, E_Int stride, E_Int ni, E_Int nj,
-  E_Int *same_orient)
-{
-  *same_orient = 0;
-  for (E_Int i = 0; i < stride; i++) {
-    if (pn[i] == ni && pn[(i+1)%stride] == nj) {
-      *same_orient = 1;
-      return 0;
-    }
-    if (pn[i] == nj && pn[(i+1)%stride] == ni) {
-      *same_orient = 0;
-      return 0;
-    }
-  }
-  return -1;
-}
+*/
 
 static
 void reversi_connex(std::vector<E_Int> &pgs, std::vector<E_Int> &xpgs,
@@ -245,14 +494,9 @@ void reversi_connex(std::vector<E_Int> &pgs, std::vector<E_Int> &xpgs,
       E_Int reverse = 2;
       get_orientation(pnn, sn, ni, nj, &reverse);
 
-      if (orient[K] == -1) {
-        if (reverse == 0) reverse = 1;
-        else if (reverse == 1) reverse = 0;
-      }
-
-      if (reverse)
-        orient[nei] = -1;
-
+      if (orient[K] == -1) reverse = !reverse;
+      if (reverse) orient[nei] = -1;
+  
       cpool.push_back(nei);
     }
   }
@@ -261,18 +505,25 @@ void reversi_connex(std::vector<E_Int> &pgs, std::vector<E_Int> &xpgs,
 static
 void build_cell_neighbourhood(mesh *M, std::vector<E_Int>& neighbours)
 {
-  neighbours.resize(M->xcells[M->ncells]);
-  E_Int *owner = M->owner;
-  E_Int *neigh = M->neigh;
+  neighbours.resize(M->xcells[M->ncells], -1);
 
-  for (E_Int i = 0; i < M->ncells; i++) {
-    for (E_Int j = M->xcells[i]; j < M->xcells[i+1]; j++) {
-      E_Int face = M->NFACE[j];
-      E_Int own = owner[face];
-      E_Int nei = neigh[face];
+  std::vector<E_Int> neigh(M->nfaces, -1);
+  E_Int count = 0;
 
-      if (i == own) neighbours[j] = nei;
-      else neighbours[j] = own;
+  while (count++ != 2) {
+    for (E_Int i = 0; i < M->ncells; i++) {
+      E_Int start = M->xcells[i];
+      E_Int end = M->xcells[i+1];
+      E_Int stride = end - start;
+      E_Int *pf = &M->NFACE[start];
+      for (E_Int j = 0; j < stride; j++) {
+        E_Int face = pf[j];
+        E_Int &nei = neigh[face];
+        E_Int &Kn = neighbours[6*i+j];
+        if (nei != -1 && nei != i)
+          Kn = nei;
+        neigh[face] = i;
+      }
     }
   }
 }
@@ -304,21 +555,23 @@ void build_own_nei(mesh *M)
 
   // look for first external cell
   std::vector<E_Int> processed(M->ncells, 0);
+
+  E_Int nconnex = 0;
   
+  E_Int seed = 0;
+
   while (1) {
-    E_Int seed = 0;
-    while ((seed < M->ncells) && (processed[seed] || exPH[seed] == 0))
+    while ((seed < M->ncells) && (processed[seed] || exPH[seed] == -1))
       seed++;
 
     if (seed >= M->ncells)
       break;
     
+    nconnex++;
+    
     std::vector<E_Int> cpool;
 
     cpool.push_back(seed);
-
-    E_Int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     while (!cpool.empty()) {
       E_Int cell = cpool.back();
@@ -346,14 +599,12 @@ void build_own_nei(mesh *M)
         xpgs.push_back(M->xfaces[face+1]-M->xfaces[face]);
         oids.push_back(face+1);
       }
-    
-
 
       for (E_Int i = 0; i < stride; i++)
         xpgs[i+1] += xpgs[i];
 
       std::vector<E_Int> PGneighbours(pgs.size());
-      build_face_neighbourhood(pgs, xpgs, M, PGneighbours);
+      build_face_neighbourhood(pgs, xpgs, PGneighbours);
 
       E_Int revers = 0;
 

@@ -50,7 +50,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
 
   // coordinates
   M->npoints = f->getSize();
-  M->xyz = (E_Float *)XMALLOC(3*M->npoints * sizeof(E_Float));
+  M->xyz = (E_Float *)XCALLOC(3*M->npoints, sizeof(E_Float));
   E_Float *X = f->begin(1);
   E_Float *Y = f->begin(2);
   E_Float *Z = f->begin(3);
@@ -78,14 +78,15 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
     M->PT[M->gpoints[i]] = i;
   }
 
-  // zero based data
   shift_data(M);
-  
+
   // init parent elements
-  M->owner = (E_Int *)XMALLOC(M->nfaces * sizeof(E_Int));
-  M->neigh = (E_Int *)XMALLOC(M->nfaces * sizeof(E_Int));
-  memset(M->owner, -1, M->nfaces*sizeof(E_Int));
-  memset(M->neigh, -1, M->nfaces*sizeof(E_Int));
+  M->owner = (E_Int *)XCALLOC(M->nfaces, sizeof(E_Int));
+  M->neigh = (E_Int *)XCALLOC(M->nfaces, sizeof(E_Int));
+  for (E_Int i = 0; i < M->nfaces; i++) {
+    M->owner[i] = -1;
+    M->neigh[i] = -1;
+  }
   for (E_Int i = 0; i < M->ncells; i++) {
     for (E_Int j = M->xcells[i]; j < M->xcells[i+1]; j++) {
       E_Int face = M->NFACE[j];
@@ -132,8 +133,8 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
         return M->ppatches[i].faces[a] < M->ppatches[i].faces[b];
       });
 
-    E_Int *sorted_pfaces = (E_Int *)XMALLOC(npfaces * sizeof(E_Int));
-    E_Int *sorted_gneis = (E_Int *)XMALLOC(npfaces * sizeof(E_Int));
+    E_Int *sorted_pfaces = (E_Int *)XCALLOC(npfaces, sizeof(E_Int));
+    E_Int *sorted_gneis = (E_Int *)XCALLOC(npfaces, sizeof(E_Int));
     for (E_Int j = 0; j < npfaces; j++) {
       sorted_pfaces[j] = M->ppatches[i].faces[indices[j]];
       sorted_gneis[j] = M->ppatches[i].gneis[indices[j]];
@@ -148,6 +149,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
     // replace with local ids
     for (E_Int j = 0; j < npfaces; j++) {
       assert(M->FT.find(M->ppatches[i].faces[j]) != M->FT.end());
+      assert(M->ppatches[i].faces[j] > 0);
       M->ppatches[i].faces[j] = M->FT[M->ppatches[i].faces[j]];
     }
   }
@@ -159,7 +161,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
     return NULL;
   }
   
-  E_Float **csols = (E_Float **)XMALLOC(csize * sizeof(E_Float *));
+  E_Float **csols = (E_Float **)XCALLOC(csize, sizeof(E_Float *));
   for (E_Int i = 0; i < csize; i++) {
     PyObject *csol = PyList_GetItem(solc, i);
     E_Int nfld;
@@ -172,10 +174,10 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   
   // compute hessians
   E_Float *H = compute_hessian(M, csols[0]);
-  
+    
   // process hessians
   hessian_to_metric(H, M);
-
+ 
   // compute refinement data
   compute_ref_data(M, H);
 
@@ -196,14 +198,14 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   std::vector<E_Int> ref_cells = get_ref_cells(rM, &nref_cells, &nref_faces);
   printf("%d -> ref_cells: %d - ncells: %d\n", rM->pid, nref_cells, rM->ncells);
 
-  E_Int ref_iter = 0;
+  rM->ref_iter = 0;
   E_Int max_ref_iter = 10;
 
   tree ct(rM->ncells, 8);
   tree ft(rM->nfaces, 4);
 
   while (nref_cells > 0) {
-    if (++ref_iter > max_ref_iter)
+    if (++rM->ref_iter > max_ref_iter)
       break;
 
     // resize data structures (isotropic resizing, faster)
@@ -258,7 +260,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
         pr[j] = 0;
     }
 
-    printf("%d -> ref_iter: %d - ncells: %d\n", rM->pid, ref_iter, rM->ncells);
+    printf("%d -> ref_iter: %d - ncells: %d\n", rM->pid, rM->ref_iter, rM->ncells);
     if (nref_cells_next_gen == 0) {
       break;
     }
@@ -276,7 +278,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   MPI_Allreduce(&rM->ncells, &gnc, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
   if (rM->pid == 0)
     printf("Final number of cells: %d\n", gnc);
-
+  
   XFREE(H);
 
   // output

@@ -659,7 +659,7 @@ void smooth_ref_data(mesh *M)
 
 	E_Int dest, l;
 
-  E_Int **send_buf = (E_Int **)XMALLOC(M->nppatches * sizeof(E_Int *));
+  E_Int **send_buf = (E_Int **)XCALLOC(M->nppatches, sizeof(E_Int *));
 
 	for (i = 0; i < M->nppatches; i++) {
 		npfaces = M->ppatches[i].nfaces;
@@ -667,9 +667,9 @@ void smooth_ref_data(mesh *M)
 		dest = M->ppatches[i].nei_proc;
 	
 		// fpos + reorient_n + start_node_nei_of_pface = 3
-		pnei_topo_data[i] = (E_Int *)XMALLOC(3*npfaces * sizeof(E_Int));
+		pnei_topo_data[i] = (E_Int *)XCALLOC(3*npfaces, sizeof(E_Int));
 
-    send_buf[i] = (E_Int *)XMALLOC(3*npfaces * sizeof(E_Int));
+    send_buf[i] = (E_Int *)XCALLOC(3*npfaces, sizeof(E_Int));
 
 		l = 0;
 		for (j = 0; j < npfaces; j++) {
@@ -898,7 +898,9 @@ void smooth_ref_data(mesh *M)
 	for (i = 0; i < M->nppatches; i++) {
 		XFREE(pnei_topo_data[i]);
 		XFREE(pnei_ref_data[i]);
+    XFREE(send_buf[i]);
 	}
 	XFREE(pnei_topo_data);
 	XFREE(pnei_ref_data);
+  XFREE(send_buf);
 }
