@@ -17,15 +17,51 @@ void shift_data(mesh *M)
 PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
 {
   PyObject *arr, *comm_data, *solc, *gcells, *gfaces, *gpoints;
-  E_Int Gmax, iso_mode;
+  E_Int Gmax, iso_mode, conformize;
   E_Float Tr;
+  PyObject *adaptDict;
 
-  if (!PYPARSETUPLE(args, "OOOOOOifi", "OOOOOOidi", "OOOOOOlfl", "OOOOOOldl",
-      &arr, &comm_data, &solc, &gcells, &gfaces, &gpoints, &Gmax, &Tr,
-      &iso_mode)) {
+  if (!PyArg_ParseTuple(args, "OOOOOOO", &arr, &comm_data, &solc, &gcells, &gfaces, &gpoints, &adaptDict)) {
     PyErr_SetString(PyExc_ValueError, "adaptMesh(): wrong input.");
     return NULL;
   }
+
+  assert(PyDict_Check(adaptDict));
+
+  // parse dictionary
+  PyObject *obj;
+
+  // Gmax
+  obj = PyDict_GetItemWithError(adaptDict, PyUnicode_FromString("Gmax"));
+  if (obj == NULL) {
+    PyErr_SetString(PyExc_ValueError, "adaptMesh(): Missing key \"Gmax\" in dictionary.");
+    return NULL;
+  }
+  Gmax = PyLong_AsLong(obj);
+
+  // Tr
+  obj = PyDict_GetItemWithError(adaptDict, PyUnicode_FromString("Tr"));
+  if (obj == NULL) {
+    PyErr_SetString(PyExc_ValueError, "adaptMesh(): Missing key \"Tr\" in dictionary.");
+    return NULL;
+  }
+  Tr = PyFloat_AsDouble(obj);
+
+  // iso_mode
+  obj = PyDict_GetItemWithError(adaptDict, PyUnicode_FromString("iso_mode"));
+  if (obj == NULL) {
+    PyErr_SetString(PyExc_ValueError, "adaptMesh(): Missing key \"iso_mode\" in dictionary.");
+    return NULL;
+  }
+  iso_mode = PyLong_AsLong(obj);
+
+  // conformize
+  obj = PyDict_GetItemWithError(adaptDict, PyUnicode_FromString("conformize"));
+  if (obj == NULL) {
+    PyErr_SetString(PyExc_ValueError, "adaptMesh(): Missing key \"conformize\" in dictionary.");
+    return NULL;
+  }
+  conformize = PyLong_AsLong(obj);
 
   FldArrayI *cn;
   FldArrayF *f;
@@ -191,6 +227,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   for (E_Int i = 0; i < csize; i++)
     XFREE(csols[i]);
   XFREE(csols);
+  XFREE(H);
 
   // isolate refinement cells
   E_Int nref_cells = -1;
@@ -233,6 +270,10 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
         assert(0);
       }
     }
+
+    save_memory(rM);
+    //tree_save_memory(&ct, rM->ncells);
+    //tree_save_memory(&ft, rM->nfaces);
 
     // update refinement data
     rM->ref_data = (E_Int *)XRESIZE(rM->ref_data, 3*rM->ncells * sizeof(E_Int));
@@ -278,8 +319,15 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   MPI_Allreduce(&rM->ncells, &gnc, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
   if (rM->pid == 0)
     printf("Final number of cells: %d\n", gnc);
-  
-  XFREE(H);
+
+  E_Float meshmem = mesh_memsize(rM);
+  E_Float ftmem = tree_memsize(&ft);
+  E_Float ctmem = tree_memsize(&ct);
+  printf("%d -> mesh size: %.1f MB\n", rM->pid, meshmem);
+  printf("%d -> ft size: %.1f MB\n", rM->pid, ftmem);
+  printf("%d -> ct size: %.1f MB\n", rM->pid, ctmem);
+
+  //return Py_None;
 
   // output
   const char *varString = "CoordinateX,CoordinateY,CoordinateZ";
@@ -310,6 +358,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   E_Int start, end;
   for (E_Int i = 0; i < rM->nfaces; i++)
   {
+    //if (!ft.enabled(i)) continue;
     start = rM->xfaces[i];
     end = rM->xfaces[i+1];
     for (E_Int j = start; j < end; j++)

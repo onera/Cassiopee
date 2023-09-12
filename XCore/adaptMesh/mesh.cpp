@@ -159,3 +159,59 @@ void mesh_free(mesh *M) {
 
   delete M;
 }
+
+static
+size_t umap_size(const std::unordered_map<E_Int, E_Int>& umap)
+{
+  size_t count = 0;
+  for (size_t i = 0; i < umap.bucket_count(); i++) {
+    size_t bucket_size = umap.bucket_size(i);
+    if (bucket_size == 0)
+      count++;
+    else
+      count += bucket_size;
+  }
+  return count;
+}
+
+E_Float mesh_memsize(mesh *M)
+{
+  size_t memsize = 0;
+
+  E_Int pc = M->predicted_ncells;
+  E_Int pf = M->predicted_nfaces;
+  E_Int pp = M->predicted_npoints;
+
+  // points
+  memsize += pp*3*sizeof(E_Float);
+
+  // cells
+  memsize += 6*pc*sizeof(E_Int); // NFACE
+  memsize += pc+1*sizeof(E_Int); // xcells
+  memsize += 3*pc*sizeof(E_Float); // cc
+
+  // faces
+  memsize += 2*pf*sizeof(E_Int); // owner + neigh
+  memsize += 4*pf*sizeof(E_Int); // NGON
+  memsize += (pf+1)*sizeof(E_Int); // xfaces
+  memsize += 3*pf*sizeof(E_Float); // fc
+
+  return memsize/1000000.; // in mega bytes
+}
+
+void save_memory(mesh *M)
+{
+  M->NGON  = (E_Int *)   XRESIZE(M->NGON,   (4*M->nfaces)  * sizeof(E_Int));
+  M->NFACE  = (E_Int *)  XRESIZE(M->NFACE,  (6*M->ncells)  * sizeof(E_Int));
+  M->fc     = (E_Float *)XRESIZE(M->fc,     (3*M->nfaces)  * sizeof(E_Float));
+  M->cc     = (E_Float *)XRESIZE(M->cc,     (3*M->ncells)  * sizeof(E_Float));
+  M->xyz    = (E_Float *)XRESIZE(M->xyz,    (3*M->npoints) * sizeof(E_Float));
+  M->owner  = (E_Int *)  XRESIZE(M->owner,  M->nfaces      * sizeof(E_Int));
+  M->neigh  = (E_Int *)  XRESIZE(M->neigh,  M->nfaces      * sizeof(E_Int));
+  M->xfaces = (E_Int *)  XRESIZE(M->xfaces, (M->nfaces+1)  * sizeof(E_Int));
+  M->xcells = (E_Int *)  XRESIZE(M->xcells, (M->ncells+1)  * sizeof(E_Int));
+
+  M->predicted_ncells = M->ncells;
+  M->predicted_nfaces = M->nfaces;
+  M->predicted_npoints = M->npoints;
+}

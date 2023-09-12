@@ -18,6 +18,7 @@ void compute_face_center(mesh *, E_Int);
 void compute_cell_center(mesh *, E_Int);
 E_Int get_neighbour(E_Int, E_Int, mesh *);
 void mesh_free(mesh *);
+E_Float mesh_memsize(mesh *);
 
 /* metric */
 void hessian_to_metric(E_Float *, mesh *);
@@ -64,6 +65,7 @@ void cut_cell_xyz(E_Int, mesh *, tree *, tree *);
 void resize_data_for_refinement(mesh *, tree *, tree *, E_Int, E_Int);
 std::vector<E_Int> get_ref_cells(mesh *, E_Int *, E_Int *);
 E_Int is_cell_to_refine(E_Int *);
+void save_memory(mesh *);
 
 /* tree */
 tree *tree_new(E_Int, E_Int);
@@ -73,5 +75,7 @@ void tree_resize(tree *, E_Int, E_Int);
 E_Int tree_get_nchildren(tree *, E_Int);
 E_Int *tree_get_children(tree *, E_Int);
 void tree_print(tree *);
+void tree_save_memory(tree *, E_Int);
+E_Float tree_memsize(tree *);
 
 #endif

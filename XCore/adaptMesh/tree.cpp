@@ -50,6 +50,18 @@ void tree_insert_children(tree *T, E_Int id, E_Int start, E_Int n)
 	T->last += n+1;
 }
 
+E_Float tree_memsize(tree *T)
+{
+  size_t memsize = 0;
+  memsize += T->enabled.size();
+  memsize += T->level.size();
+  memsize += T->parent.size();
+  memsize += T->indir.size();
+  memsize += T->children.size();
+
+  return memsize*sizeof(E_Int)/1000000.;
+}
+
 void tree_resize(tree *T, E_Int increment, E_Int stride)
 {
 

@@ -36,6 +36,10 @@ void resize_data_for_refinement(mesh *M, tree *ct, tree *ft, E_Int nref_cells, E
   M->xfaces = (E_Int *)  XRESIZE(M->xfaces, (new_nfaces+1)  * sizeof(E_Int));
   M->xcells = (E_Int *)  XRESIZE(M->xcells, (new_ncells+1)  * sizeof(E_Int));
 
+  M->predicted_ncells = M->ncells;
+  M->predicted_nfaces = M->nfaces;
+  M->predicted_npoints = M->npoints;
+
   // init
   for (E_Int i = M->nfaces; i < new_nfaces; i++) {
     M->owner[i] = -1;
@@ -52,15 +56,6 @@ void resize_data_for_refinement(mesh *M, tree *ct, tree *ft, E_Int nref_cells, E
     M->xcells[i+1] = 6;
   for (E_Int i = M->ncells; i < new_ncells; i++)
     M->xcells[i+1] += M->xcells[i];
-
-  /*
-  for (E_Int i = 0; i < new_ncells; i++) {
-  	assert(M->xcells[i+1] == M->xcells[i] + 6);
-  }
-  for (E_Int i = 0; i < new_nfaces; i++) {
-  	assert(M->xfaces[i+1] == M->xfaces[i] + 4);
-  }
-  */
 }
 
 E_Int is_cell_to_refine(E_Int *ref_data)
