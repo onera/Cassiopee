@@ -60,7 +60,7 @@ setup(
     version="3.7",
     description="OpenCascade python module.",
     author="ONERA",
-    url="http://elsa.onera.fr/Cassiopee",
+    url="https://cassiopee.onera.fr",
     packages=['OCC'],
     package_dir={"":"."},
     ext_modules=[Extension('OCC.occ',

@@ -187,6 +187,8 @@ Actions
     :type viewAngle: float
     :param bgColor: background color. 0-13 (default: 0)
     :type bgColor: int
+    :param backgroundFile: name of a image png file (default: 0)
+    :type backgroundFile: string
     :param shadow: display shadows. 0-1 (default: 0)
     :type shadow: int
     :param dof: depth of field smoothing. 0-1 (default: 0)

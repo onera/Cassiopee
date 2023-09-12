@@ -48,7 +48,7 @@ setup(
     version="3.7",
     description="Core for *Cassiopee* modules.",
     author="ONERA",
-    url="http://elsa.onera.fr/Cassiopee",
+    url="https://cassiopee.onera.fr",
     packages=['KCore'],
     package_dir={"":"."},
     ext_modules=extensions

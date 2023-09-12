@@ -114,7 +114,7 @@ setup(
     version="3.7",
     description="A plotter for *Cassiopee* Modules.",
     author="ONERA",
-    url="http://elsa.onera.fr/Cassiopee",
+    url="https://cassiopee.onera.fr",
     packages=['CPlot'],
     package_dir={"":"."},
     ext_modules=extensions

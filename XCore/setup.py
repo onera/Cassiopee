@@ -113,7 +113,7 @@ setup(
     version="3.7",
     description="XCore for *Cassiopee* modules.",
     author="ONERA",
-    url="http://elsa.onera.fr/Cassiopee",
+    url="https://cassiopee.onera.fr",
     packages=['XCore'],
     package_dir={"":"."},
     ext_modules=listExtensions+cythonize(listExtensionsPyx,include_path=[paradigmaDir])

@@ -40,7 +40,7 @@ setup(
     version="3.7",
     description="Initiator for *Cassiopee* modules.",
     author="ONERA",
-    url="http://elsa.onera.fr/Cassiopee",
+    url="https://cassiopee.onera.fr",
     packages=['Initiator'],
     package_dir={"":"."},
     ext_modules=[Extension('Initiator.initiator',

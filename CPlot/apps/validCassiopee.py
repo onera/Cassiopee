@@ -68,6 +68,14 @@ STOP = 0
 # WIDGETS dict
 WIDGETS = {}
 
+# Cree sessionLog et le vide
+if not os.path.exists(CASSIOPEE+'/Apps/Modules/ValidData'):
+    os.mkdir(CASSIOPEE+'/Apps/Modules/ValidData')
+    
+f = open(CASSIOPEE+"/Apps/Modules/validData/session.log", "w")
+f.write("")
+f.close()
+
 #==============================================================================
 # Simulate check_output since it doesn't existe for early version of python
 # Retourne le resultat de cmd comme une string
@@ -348,19 +356,23 @@ def writeTime(file, CPUtime, coverage):
     except: pass
 
 #==============================================================================
-# Ecrit un fichier contenant date, machine, nbre de threads
+# Ecrit un fichier contenant date, machine, nbre de threads, svnVersion 
+# et logTxt
 #==============================================================================
-def writeFinal(file, svnVersion):
-    execTime = time.strftime('%d/%m/%y %Hh%M',time.localtime())
+def writeFinal(file, svnVersion=None, logTxt=None, append=False):
+    execTime = time.strftime('%d/%m/%y %Hh%M', time.localtime())
     machine = platform.uname()
     if len(machine) > 1: machine = machine[1]
     else: machine = 'Unkwown'
     nthreads = Threads.get()
+    mode = 'w'
+    if append: mode = 'a'
     f = open(file, 'w')
     f.write(execTime+'\n')
     f.write(machine+'\n')
     f.write(nthreads+'\n')
-    f.write(svnVersion+'\n')
+    if svnVersion is not None: f.write(svnVersion+'\n')
+    if logTxt is not None: f.write(logTxt+'\n')
     f.close()
 
 #==============================================================================
@@ -666,6 +678,7 @@ def runTests():
     displayStatus(0)
     THREAD=None
     if len(selection) == len(TESTS): notifyValidOK()
+    finalizeRun()
     
 def runTestsInThread():
     global THREAD, STOP
@@ -1052,6 +1065,37 @@ def export2Text():
     file.close()
 
 #=======================================
+# Finalize run : write log and baseTime
+#=======================================
+def finalizeRun():
+    svnVersion = 'Unknown'
+    try:
+        svnInfo = subprocess.check_output("svn info https://elsa-svn.onera.fr/CASSIOPEE/Trunk/Cassiopee/Apps/Modules", shell=True)
+        svnInfo = svnInfo.decode('utf-8', 'ignore')
+        ss = svnInfo.split('\n')
+        for s in ss:
+            t = s.split(':')
+            if 'vision' in t[0]: svnVersion = t[1]
+    except: pass
+
+    messageText = 'Base from'+CASSIOPEE+'\n'
+    messageText += 'Based on version %s (can be locally modified).\n'%svnVersion
+    for t in TESTS:
+        messageText += t+'\n'
+
+    # Write time stamp dans ValidData/base.time et
+    # log dans ValidData/session.log
+    cassiopee = os.getenv("CASSIOPEE")
+    if not os.path.exists(cassiopee+'/Apps/Modules/ValidData'):
+        os.mkdir(cassiopee+'/Apps/Modules/ValidData')
+    writeFinal(cassiopee+'/Apps/Modules/ValidData/base.time', svnVersion)
+
+    writeFinal(cassiopee+'/Apps/Modules/ValidData/session.log', svnVersion, 
+               messageText, append=True)
+
+
+
+#=======================================
 # Notify "Commit ready" 
 #=======================================
 def notifyValidOK():
@@ -1069,6 +1113,12 @@ def notifyValidOK():
             t = s.split(':')
             if 'vision' in t[0]: svnVersion = t[1]
     except: pass
+
+    messageText = 'Base from'+CASSIOPEE+'\n'
+    messageText += 'Based on version %s (can be locally modified).\n'%svnVersion
+    for t in TESTS:
+        messageText += t+'\n'
+
     try:
         me = os.getenv('USER')+'@onera.fr'
         if me is None: me = ''
@@ -1078,10 +1128,6 @@ def notifyValidOK():
         msg['From'] = me
         msg['To'] = to
         msg.preamble = 'Send by Cassiopee.'
-        messageText = 'Base from'+CASSIOPEE+'\n'
-        messageText += 'Based on version %s (can be locally modified).\n'%svnVersion
-        for t in TESTS:
-            messageText += t+'\n'
         if messageText != '':
             msg.attach(MIMEText(messageText, 'plain'))
         s = smtplib.SMTP('localhost')
@@ -1089,12 +1135,6 @@ def notifyValidOK():
         s.quit()
     except: pass
     
-    # Write time stamp dans ValidData/base.time
-    cassiopee = os.getenv('CASSIOPEE')
-    if not os.path.exists(cassiopee+'/Apps/Modules/ValidData'):
-        os.mkdir(cassiopee+'/Apps/Modules/ValidData')
-    writeFinal(cassiopee+'/Apps/Modules/ValidData/base.time', svnVersion)
-
 #==============================================================================
 def Quit(event=None):
     import os; os._exit(0)

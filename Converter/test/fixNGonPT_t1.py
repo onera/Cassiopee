@@ -16,3 +16,8 @@ cFE = Internal.getNodeFromName2(a, 'ParentElements')
 cFE[1] = cFE[1]+2430*(cFE[1]>0)
 Internal._fixNGon(a)
 test.testT(a, 2)
+
+# NGonv4 (sort un NGonv3)
+a = G.cartNGon((0,0,0), (1,1,1), (10,10,10), api=3)
+Internal._fixNGon(a)
+test.testT(a, 3)

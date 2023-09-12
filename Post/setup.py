@@ -52,7 +52,7 @@ setup(
     version="3.7",
     description="Post-processing of CFD solutions.",
     author="ONERA",
-    url="http://elsa.onera.fr/Cassiopee",
+    url="https://cassiopee.onera.fr",
     packages=['Post'],
     package_dir={"":"."},
     ext_modules=listExtensions

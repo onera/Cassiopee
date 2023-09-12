@@ -89,7 +89,7 @@ setup(
     version="3.7",
     description="Converter for *Cassiopee* modules.",
     author="ONERA",
-    url="http://elsa.onera.fr/Cassiopee",
+    url="https://cassiopee.onera.fr",
     packages=['Converter'],
     package_dir={"":"."},
     ext_modules=listExtensions

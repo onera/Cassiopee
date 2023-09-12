@@ -40,7 +40,7 @@ setup(
     version="3.7",
     description="Geometry definition for *Cassiopee* modules.",
     author="ONERA",
-    url="http://elsa.onera.fr/Cassiopee",
+    url="https://cassiopee.onera.fr",
     packages=['Geom'],
     package_dir={"":"."},
     ext_modules=[Extension('Geom.geom',

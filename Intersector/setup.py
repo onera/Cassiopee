@@ -62,7 +62,7 @@ setup(
     version="3.7",
     description="Mesh-intersection-based services in *Cassiopee*.",
     author="ONERA",
-    url="http://elsa.onera.fr/Cassiopee",
+    url="https://cassiopee.onera.fr",
     packages=['Intersector'],
     package_dir={"":"."},
     ext_modules=[Extension('Intersector.intersector',

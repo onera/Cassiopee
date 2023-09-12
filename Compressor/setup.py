@@ -70,7 +70,7 @@ setup(
     version="3.7",
     description="Compress CFD solutions.",
     author="ONERA",
-    url="http://elsa.onera.fr/Cassiopee",
+    url="https://cassiopee.onera.fr",
     package_dir={"":"."},
     packages=['Compressor', 'Compressor.sz', 'Compressor.zfp'],
     ext_modules=extensions

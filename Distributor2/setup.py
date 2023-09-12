@@ -37,7 +37,7 @@ setup(
     version="3.7",
     description="Distributor for arrays and pyTrees.",
     author="ONERA",
-    url="http://elsa.onera.fr/Cassiopee",
+    url="https://cassiopee.onera.fr",
     packages=['Distributor2'],
     package_dir={"":"."},
     ext_modules=[Extension('Distributor2.distributor2',

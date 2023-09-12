@@ -41,7 +41,7 @@ setup(
     version="3.7",
     description="Modeler module.",
     author="ONERA",
-    url="http://elsa.onera.fr/Cassiopee",
+    url="https://cassiopee.onera.fr",
     packages=['Modeler'],
     package_dir={"":"."}
     )

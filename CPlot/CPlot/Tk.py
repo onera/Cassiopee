@@ -1889,7 +1889,7 @@ def getOnlineDoc():
     try:
         import webbrowser
         TXT.insert('START', 'Opening online documentation.\n')
-        webbrowser.open('http://elsa.onera.fr/Cassiopee/Userguide.html')
+        webbrowser.open('https://cassiopee.onera.fr/Userguide.html')
     except:
         TXT.insert('START', 'Can not open online documentation.\n')
         TXT.insert('START', 'Error: ', 'Error')
@@ -1911,7 +1911,7 @@ def getOnlineTutorials():
     try:
         import webbrowser
         TXT.insert('START', 'Opening online tutorials.\n')
-        webbrowser.open('http://elsa.onera.fr/Cassiopee/Tutorials/Tutorials.html')
+        webbrowser.open('https://cassiopee.onera.fr/Tutorials/Tutorials.html')
     except:
         TXT.insert('START', 'Can not open online tutorials.\n')
         TXT.insert('START', 'Error: ', 'Error')
