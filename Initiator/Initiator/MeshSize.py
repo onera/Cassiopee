@@ -1,7 +1,7 @@
 # Return first mesh size for y+=1
 import math
 
-# Mesh size comme pointwise (turbulent)
+# Mesh size comme pointwise (couche limite turbulente attachee)
 def meshSize1(UInf, RoInf, MuInf, LInf, yplus=1.):
     ReInf = RoInf*UInf*LInf/MuInf
     Cf = 0.026/ReInf**(1./7.)
@@ -17,7 +17,7 @@ def meshSize2(UInf, RoInf, ReInf, LInf, yplus=1.):
     MuInf = RoInf*UInf*LInf/ReInf
     return meshSize1(UInf, RoInf, MuInf, LInf, yplus)
 
-# Marco turbulent
+# Marco - couche limite turbulente attachee
 # avec correction de e/c = rapport de epaisseur sur corde
 def meshSize3(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1.):
     xsurL = 0.5
@@ -29,7 +29,7 @@ def meshSize3(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1.):
     print('INFO: utau: %20.16g'%utau)
     return hp
 
-# Marco laminaire
+# Marco - couche limite laminaire (Blasius)
 def meshSize4(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1.):
     xsurL = 0.5
     MuInf = RoInf*UInf*LInf/ReInf

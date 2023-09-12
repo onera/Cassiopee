@@ -33,7 +33,11 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         def Allreduce(a, b, op=None): return a
         def seq(F, *args): F(*args)
         def convertFile2PyTree(fileName, format=None, proc=None): return C.convertFile2PyTree(fileName, format)
-        def convertPyTree2File(t, fileName, format=None, links=[]): return C.convertPyTree2File(t, fileName, format, links)
+        def convertPyTree2File(t, fileName, format=None, links=[], ignoreProcNodes=False, merge=True): return C.convertPyTree2File(t, fileName, format, links)
+        def addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True, keepOldNodes=True, zoneGC=True): return Internal.copyRef(t)
+        def _addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True, keepOldNodes=True, zoneGC=True): return None
+        def rmXZones(t): return Internal.copyRef(t)
+        def _rmXZones(t): return None
         #print("Warning: Converter:Mpi: Sequential behaviour is forced by MPIRUN=0.")
  
 else: # try import (may fail - core or hang)
@@ -60,6 +64,12 @@ else: # try import (may fail - core or hang)
         def allreduce(a, op=None): return a
         def Allreduce(a, b, op=None): return a
         def seq(F, *args): F(*args)
+        def convertFile2PyTree(fileName, format=None, proc=None): return C.convertFile2PyTree(fileName, format)
+        def convertPyTree2File(t, fileName, format=None, links=[], ignoreProcNodes=False, merge=True): return C.convertPyTree2File(t, fileName, format, links)
+        def addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True, keepOldNodes=True, zoneGC=True): return Internal.copyRef(t)
+        def _addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True, keepOldNodes=True, zoneGC=True): return None
+        def rmXZones(t): return Internal.copyRef(t)
+        def _rmXZones(t): return None
         print("Warning: Converter:Mpi: mpi4py is not available. Sequential behaviour.")
 
 # Previous times for CPU time measures (trace)

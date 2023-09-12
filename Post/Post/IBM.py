@@ -876,7 +876,7 @@ def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref
         zw = Internal.getZones(tb)
         zw = T.join(zw)
     else:
-        zw = extractIBMWallFields(tc, tb=tb, coordRef='wall', famZones=famZones, extractIBMInfo=extractIBMInfo,extractYplusAtImage=True)
+        zw = extractIBMWallFields(tc, tb=tb, coordRef='wall', famZones=famZones, extractIBMInfo=extractIBMInfo, extractYplusAtImage=True)
     
     #====================================
     # Extract pressure info from tc2 to tc
@@ -903,9 +903,9 @@ def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref
     if famZones:
         ts = C.newPyTree(['SKIN'])
         ts[2][1][2] = zw
-        RefState = Internal.getNodeFromType(tb,'ReferenceState_t')
+        RefState = Internal.getNodeFromType(tb, 'ReferenceState_t')
         ts[2][1][2].append(RefState)
-        tp = C.node2Center(ts,'FlowSolution')
+        tp = C.node2Center(ts, 'FlowSolution')
         C._rmVars(ts, 'FlowSolution')
         [res, res2, [clp, cdp], [clf, cdf]] = _loads0(ts, Sref=Sref, Pref=None, Qref=None, alpha=alpha, beta=beta, dimPb=dimPb, verbose=True)
 
@@ -923,11 +923,11 @@ def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref
     else: # get loads info per base
         ts = C.newPyTree()
         for c, b in enumerate(Internal.getBases(zw)):
-            tp = C.newPyTree(['SKIN']);
+            tp = C.newPyTree(['SKIN'])
             tp[2][1][2] = zw[2][c+1][2]
-            RefState = Internal.getNodeFromType(tb,'ReferenceState_t')
+            RefState = Internal.getNodeFromType(tb, 'ReferenceState_t')
             tp[2][1][2].append(RefState)
-            tp = C.node2Center(tp,'FlowSolution')
+            tp = C.node2Center(tp, 'FlowSolution')
             C._rmVars(tp, 'FlowSolution')
             print("Info: loads: get CD/CL on base %s"%(baseNames[c]))
             [res, res2, [clp, cdp], [clf, cdf]] = _loads0(tp, Sref=Sref, Pref=None, Qref=None, alpha=alpha, beta=beta, dimPb=dimPb, verbose=True)

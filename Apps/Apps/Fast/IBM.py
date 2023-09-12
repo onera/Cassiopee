@@ -989,7 +989,6 @@ class IBM(Common):
                 Internal._rmNode(tb,node_local)     
                 self.isOrthoProjectFirst = True        
         
-        
         self.tbFilament = C.newPyTree(tbFilament);        
         return None
     
@@ -1685,7 +1684,7 @@ class IBM(Common):
                                         else:
                                             if zname not in interDictIBM2[zrname]: interDictIBM2[zrname].append(zname)
         else: graph={}
-        allGraph = Cmpi.KCOMM.allgather(graph)
+        allGraph = Cmpi.allgather(graph)
 
         graph = {}
         for i in allGraph:
@@ -1703,7 +1702,6 @@ class IBM(Common):
         ReferenceState = Internal.getNodeFromType2(t, 'ReferenceState_t')
         self.nbZonesIBC = len(self.zonesRIBC)
         
-    
         for i in range(Cmpi.size): datas[i] = [] # force
     
         if dictOfCorrectedPtsByIBCType!={}:
@@ -2135,7 +2133,6 @@ class IBM(Common):
                   for var in ['C','W','I']:            
                      r     = Internal.getNodeFromName(zsr,'CoordinateY_P'+var)[1]
                      theta = Internal.getNodeFromName(zsr,'CoordinateZ_P'+var)[1]
-                     #print('cyl2cart', var, numpy.size(r), zsr[0], z[0], toto,tutu )
                      for l in range(numpy.size(r)):
                           yy  = r[l]*numpy.cos( theta[l] )
                           zz  = r[l]*numpy.sin( theta[l] )
@@ -2153,7 +2150,6 @@ class IBM(Common):
             stats = D2._distribute(self.tbbc, self.NP, algorithm='graph', useCom='ID')
             D2._copyDistribution(tc, self.tbbc)
             D2._copyDistribution(t, self.tbbc)
-        
         self.tbbc = None
         
         if self.input_var.redistribute:
@@ -2164,12 +2160,12 @@ class IBM(Common):
             D2._copyDistribution(t , tcs)
             D2mpi._redispatch(tc)
             D2mpi._redispatch(t)
-            self._checkNcellsNptsPerProc(tc,isAtCenter=True)
+            self._checkNcellsNptsPerProc(tc, isAtCenter=True)
             
         ## ================================================
         ## === Recompute Distance for Wall (RANS Only) ====
         ## ================================================
-        if self.model == 'NSTurbulent':self._recomputeDistRANS__(t,tb)
+        if self.model == 'NSTurbulent':self._recomputeDistRANS__(t, tb)
         
         ## ================================================
         ## ======== Remaning & Saving tc tree  ============
@@ -2184,26 +2180,25 @@ class IBM(Common):
                 tc2 = Internal.rmNodesByName(tc2, 'gradxPressure')
                 tc2 = Internal.rmNodesByName(tc2, 'gradyPressure')
                 tc2 = Internal.rmNodesByName(tc2, 'gradzPressure')
-		
                 tc2  = transformTc2(tc2)
-                NewIBCD=140
-                _changeNameIBCD__(tc,NewIBCD)
-                NewIBCD=141
-                _changeNameIBCD__(tc2,NewIBCD)
-                tc=Internal.merge([tc,tc2])
+                NewIBCD = 140
+                _changeNameIBCD__(tc, NewIBCD)
+                NewIBCD = 141
+                _changeNameIBCD__(tc2, NewIBCD)
+                tc = Internal.merge([tc,tc2])
                 del tc2
         
         if RENAMEIBCNODES:
             for zc in Internal.getZones(tc):
                 for ibcd in Internal.getNodesFromName1(zc,'IBCD_*'):            
                     proposedName = Internal.getName(ibcd)[0:6]+'_X%d'%(self.rank)
-                    ibcd[0]=getIBCDName(proposedName)
+                    ibcd[0] = getIBCDName(proposedName)
             
             if self.input_var.twoFronts:
                 for zc in Internal.getZones(tc2):
                     for ibcd in Internal.getNodesFromName1(zc,'2_IBCD_*'):            
                         proposedName = Internal.getName(ibcd)[0:8]+'_X%d'%(self.rank)
-                        ibcd[0]=getIBCDName(proposedName)
+                        ibcd[0] = getIBCDName(proposedName)
 
         ##Adding a userdefined node to the tc tree for the IBC conditions that are provided
         ##to FastS solver to reduce the number of input arguments and to make a clear distinction
@@ -2238,18 +2233,17 @@ class IBM(Common):
             Internal._createUniqueChild(solverIBC, 'isTBLE'        , 'DataArray_t', 'True')
             Internal._createUniqueChild(solverIBC, 'alphaGrad'     , 'DataArray_t', 0)
             Internal._createUniqueChild(solverIBC, 'NbPtsLinelits' , 'DataArray_t', 0)            
-        
+                
         if isinstance(tc_out, str):
             tcp = Compressor.compressCartesian(tc)
             Cmpi.convertPyTree2File(tcp, tc_out, ignoreProcNodes=True)
-            
+        
             if self.input_var.twoFronts:
                 tc2  = transformTc2(tc2)
                 tcp2 = Compressor.compressCartesian(tc2)
                 Cmpi.convertPyTree2File(tcp2, 'tc2.cgns', ignoreProcNodes=True)
                 del tc2
-        
-        
+                
         ## ================================================
         ## ========= Initialization of t tree  ============
         ## ================================================

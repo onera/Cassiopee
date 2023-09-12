@@ -560,7 +560,7 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
             if nzones > 1:
                 print('Merging %d Cartesian zones of subdomain %d.'%(nzones,noo))
                 ZONES[noo] = mergeByParent__(ZONES[noo], parento[noo], sizeMax)
-                print('Nb of merged zones : %d.' %len(ZONES[noo]))
+                print('Nb of merged zones: %d.'%len(ZONES[noo]))
 
         if dimPb == 3:
             ZONES0 = T.mergeCart(ZONES[0]+ZONES[4],sizeMax=sizeMax)# XM
@@ -652,7 +652,7 @@ def mergeByParent__(zones, parent, sizeMax):
         if len(pool)> 1:
             res += T.mergeCart(pool, sizeMax=sizeMax)
             del pool
-        elif len(pool)==1: res += pool
+        elif len(pool) == 1: res += pool
     return res
 
 # only in generateIBMMeshPara and generateIBMMesh
@@ -694,9 +694,5 @@ def buildParentOctrees__(o, tb, snears=None, snearFactor=4., dfar=10., dfarList=
                     parento2 = P.selectCells2(parento,'centers:tag')
                     OCTREEPARENTS.append(parento2)
     return OCTREEPARENTS
-
-
-
-
 
 
