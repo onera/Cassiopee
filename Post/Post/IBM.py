@@ -412,27 +412,29 @@ def _extractYplusIP(tc):
         for zsr in subRegions:
             nameSubRegion = zsr[0]
             if (nameSubRegion[:4] == 'IBCD' or nameSubRegion[:4] == '2_IB'):
-                yplus = Internal.getNodeFromName(zsr, 'yplus')[1]
-                yplusI = numpy.zeros_like(yplus)
+                yplus = Internal.getNodeFromName(zsr, 'yplus')
+                if yplus is not None:
+                    yplus = yplus[1]
+                    yplusI = numpy.zeros_like(yplus)
 
-                XPW = Internal.getNodeFromName(zsr, 'CoordinateX_PW')[1]
-                YPW = Internal.getNodeFromName(zsr, 'CoordinateY_PW')[1]
-                ZPW = Internal.getNodeFromName(zsr, 'CoordinateZ_PW')[1]
+                    XPW = Internal.getNodeFromName(zsr, 'CoordinateX_PW')[1]
+                    YPW = Internal.getNodeFromName(zsr, 'CoordinateY_PW')[1]
+                    ZPW = Internal.getNodeFromName(zsr, 'CoordinateZ_PW')[1]
 
-                XPC = Internal.getNodeFromName(zsr, 'CoordinateX_PC')[1]
-                YPC = Internal.getNodeFromName(zsr, 'CoordinateY_PC')[1]
-                ZPC = Internal.getNodeFromName(zsr, 'CoordinateZ_PC')[1]
+                    XPC = Internal.getNodeFromName(zsr, 'CoordinateX_PC')[1]
+                    YPC = Internal.getNodeFromName(zsr, 'CoordinateY_PC')[1]
+                    ZPC = Internal.getNodeFromName(zsr, 'CoordinateZ_PC')[1]
 
-                XPI = Internal.getNodeFromName(zsr, 'CoordinateX_PI')[1]
-                YPI = Internal.getNodeFromName(zsr, 'CoordinateY_PI')[1]
-                ZPI = Internal.getNodeFromName(zsr, 'CoordinateZ_PI')[1]
+                    XPI = Internal.getNodeFromName(zsr, 'CoordinateX_PI')[1]
+                    YPI = Internal.getNodeFromName(zsr, 'CoordinateY_PI')[1]
+                    ZPI = Internal.getNodeFromName(zsr, 'CoordinateZ_PI')[1]
 
-                distCW = numpy.sqrt( (XPW-XPC)*(XPW-XPC) + (YPW-YPC)*(YPW-YPC) + (ZPW-ZPC)*(ZPW-ZPC))
-                distIW = numpy.sqrt( (XPW-XPI)*(XPW-XPI) + (YPW-YPI)*(YPW-YPI) + (ZPW-ZPI)*(ZPW-ZPI))
+                    distCW = numpy.sqrt( (XPW-XPC)*(XPW-XPC) + (YPW-YPC)*(YPW-YPC) + (ZPW-ZPC)*(ZPW-ZPC))
+                    distIW = numpy.sqrt( (XPW-XPI)*(XPW-XPI) + (YPW-YPI)*(YPW-YPI) + (ZPW-ZPI)*(ZPW-ZPI))
 
-                yplusI = yplus/distCW*distIW
+                    yplusI = yplus/distCW*distIW
 
-                zsr[2].append(['yplusIP', yplusI, [], 'DataArray_t'])
+                    zsr[2].append(['yplusIP', yplusI, [], 'DataArray_t'])
     return None
 
 #=============================================================================
