@@ -5550,6 +5550,7 @@ def extractBCMatch(zdonor,gc,dimzR,variables=None):
     return [indR,fldD]
   
 # ===================================================================================
+# ** ATTENTION : Code non fonctionnel pour le moment. **
 # Extraction des champs sur les raccords de type no-match
 # Le champs en centre est extrapole sur les centres des faces et pondere (via l'algo
 # superMesh qui permet de decouper les faces)
@@ -5579,26 +5580,21 @@ def extractAllBCMatchTNC(t,variables=None):
             dim    = Internal.getZoneDim(zoneA)
 
             if dim[0] != 'Structured':
-              print("extractAllBCMatchTNC: not ready for not structured grid.")
+              print("extractAllBCMatchTNC: not ready for unstructured grid.")
               return {}
 
-            gcs  = Internal.getNodesFromType2(zoneA, 'GridConnectivity_t')
-            gcs += Internal.getNodesFromType2(zoneA, 'GridConnectivity1to1_t')
+            gcs  = Internal.getNodesFromType2(zoneA, 'GridConnectivity_t')     # TNC 
+            gcs += Internal.getNodesFromType2(zoneA, 'GridConnectivity1to1_t') # near-match
 
             for gcA in gcs:
+
+                if (Internal.getNodeFromName1(gcA, '.Solver#Property') == None ):
+                  continue
+                else:
+                  print("TNC or near-field match found: ", gcA[0])
+                  
                 zname  = Internal.getValue(gcA)
-                zoneB  = Internal.getNodeFromName(t,zname)
-
-                # Dim du raccord
-                prr   = Internal.getNodeFromName1(gcA,'PointRange')
-                wr    = Internal.range2Window(prr[1])
-
-                iminA = wr[0] ; imaxA = wr[1]
-                jminA = wr[2] ; jmaxA = wr[3]
-                kminA = wr[4] ; kmaxA = wr[5]
-    
-                nface = max(1,imaxA-iminA)*max(1,jmaxA-jminA)*max(1,kmaxA-kminA)
-
+                zoneB  = Internal.getNodeFromName(t,zname) # A MODIFIER POUR TNC
                 
                 gcBs   = Internal.getNodesFromType2(zoneB, 'GridConnectivity_t')
                 gcBs  += Internal.getNodesFromType2(zoneB, 'GridConnectivity1to1_t')
@@ -5617,7 +5613,29 @@ def extractAllBCMatchTNC(t,variables=None):
     return allMatchTNC
 
 
+def extractMatchOfName(t,bndName,reorder=True,extrapFlow=True):
+    """Return match surfaces of given name as zones (in analogy with
+    C.extractBCOfType for BCs).
+    """
+    try: import Transform.PyTree as T
+    except: raise ImportError("extractMatchOfName: requires Transform module.")
     
+    tp = list()
+    for z in Internal.getZones(t):
+        zgc = Internal.getNodeFromType1(z, 'ZoneGridConnectivity_t')
+        if zgc is not None:
+            for match in zgc[2]:
+                if Internal.isName(match, bndName):
+                    getBC__(match, z, T, tp, reorder=reorder, extrapFlow=extrapFlow)
+
+    return tp
+  
+    
+  
+# ===================================================================================
+# ** ATTENTION : Code non fonctionnel pour le moment. **
+# Interpolation des champs sur les raccords de type no-match
+# ===================================================================================
 def computeBCMatchTNC(zoneA,zoneB,gcA,gcB, varList):
   
   try: import Transform.PyTree as T
@@ -5652,8 +5670,8 @@ def computeBCMatchTNC(zoneA,zoneB,gcA,gcB, varList):
   jminB = wrB[2] ; jmaxB = wrB[3]
   kminB = wrB[4] ; kmaxB = wrB[5]
 
-  surfA0 = T.subzone(zoneA, (iminA,jminA,kminA), (imaxA,jmaxA,kmaxA))
-  clipB0 = T.subzone(zoneB, (iminB,jminB,kminB), (imaxB,jmaxB,kmaxB))
+  surfA0 = extractMatchOfName(zoneA, gcA[0], extrapFlow=True)
+  clipB0 = extractMatchOfName(zoneB, gcB[0], extrapFlow=True)
   
   surfA = convertArray2NGon(surfA0, recoverBC=0)
   clipB = convertArray2NGon(clipB0, recoverBC=0)
@@ -5664,11 +5682,8 @@ def computeBCMatchTNC(zoneA,zoneB,gcA,gcB, varList):
   hook  = createHook(zoneA, function='faceCenters')
   indR  = identifyFaces(hook, surfA) # indice des faces dans le maillage vol.
   indR  = indR-1 # shift 
-    
-  # convertPyTree2File(surfA, 'surfA.cgns')
-  # convertPyTree2File(clipB, 'clipB.cgns')
 
-  (ancA, ancB, weight, isMatch) = XOR.superMesh2(surfA, clipB, tol=-1.e-4, proj_on_first=True)
+  (ancA, ancB, weight, isMatch) = XOR.superMesh2(surfA, clipB, tol=-1.e-4, proj_on_first=True) 
 
   if (isMatch):
     return [[],[]]
@@ -5699,23 +5714,6 @@ def computeBCMatchTNC(zoneA,zoneB,gcA,gcB, varList):
                               imaxA, jmaxA, kmaxA)
 
     return [indR, fx]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

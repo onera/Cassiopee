@@ -1452,6 +1452,7 @@ def computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
 def _computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
     """Compute the gradient of a variable defined in array.
     Usage: computeGrad2(t, var)"""
+    
     if type(var) == list:
         raise ValueError("computeGrad2: not available for lists of variables.")
     vare = var.split(':')
@@ -1464,7 +1465,7 @@ def _computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
 
     # Compute fields on BCMatch (for all match connectivities)
     if not ghostCells:
-        allMatch    = C.extractAllBCMatch(t, vare) 
+        allMatch    = C.extractAllBCMatch(t, vare)
         if withTNC:
             allMatchTNC = C.extractAllBCMatchTNC(t,vare)
         else:
@@ -1535,7 +1536,7 @@ def _computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
                 else: BCField = numpy.concatenate((BCField, fldp))
             # --------------------------------------------------------------
 
-        # compute field on TNC BCMatch for current zone
+        # compute field on TNC match for current zone
         if allMatchTNC != {}:
             indFaceTNC, fldFaceTNC = C.computeBCMatchField(z, allMatchTNC, vare)
             # --------------------------------------------------------------
@@ -1607,13 +1608,13 @@ def computeDiv(t,var):
     C.setFields(tc, tp, 'centers')
     return tp
 
-def computeDiv2(t, var, ghostCells=False):
+def computeDiv2(t, var, ghostCells=False, withTNC=False):
     """Compute the divergence of a variable defined in array."""
     tp = Internal.copyRef(t)
-    _computeDiv2(tp, var, ghostCells=False)
+    _computeDiv2(tp, var, ghostCells, withTNC)
     return tp
 
-def _computeDiv2(t, var, ghostCells=False):
+def _computeDiv2(t, var, ghostCells=False, withTNC=False):
     """Compute the divergence of a variable defined in array.
     Usage: computeDiv2(t, var)"""
     if isinstance(var, list):
@@ -1625,8 +1626,13 @@ def _computeDiv2(t, var, ghostCells=False):
     varList  = [vare+'X',vare+'Y',vare+'Z']
     if not ghostCells:
         allMatch = C.extractAllBCMatch(t,varList)
+        if withTNC:
+            allMatchTNC = C.extractAllBCMatchTNC(t,varList)
+        else:
+            allMatchTNC = {}
     else:
-        allMatch = {}
+        allMatch    = {}
+        allMatchTNC = {}
 
     zones = Internal.getZones(t)
     for z in zones:
@@ -1812,6 +1818,128 @@ def _computeDiv2(t, var, ghostCells=False):
 
                         if BCFieldZ is None: BCFieldZ = fldZ
                         else: BCFieldZ = numpy.concatenate((BCFieldZ, fldZ))
+
+# =================================================================================
+         # compute field on TNC match for current zone
+        if allMatchTNC != {}:
+            indFaceTNC, fldFaceTNC = C.computeBCMatchField(z,allMatch,varList)
+
+            print("fldFaceTNC: ", fldFaceTNC) 
+
+            if fldFaceTNC is not None:
+
+                fldX = None; fldY = None; fldZ = None
+                foundVar = fldFaceTNC[0][0].split(',')
+
+                if len(foundVar)==3: # 3D
+                    for fgc in fldFaceTNC:
+                        fgcX = fgc[1][0]
+                        fgcY = fgc[1][1]
+                        fgcZ = fgc[1][2]
+
+                        if fldX is None: fldX = fgcX
+                        else: fldX = numpy.concatenate((fldX,fgcX))
+
+                        if fldY is None: fldY = fgcY
+                        else: fldY = numpy.concatenate((fldY,fgcY))
+
+                        if fldZ is None: fldZ = fgcZ
+                        else: fldZ = numpy.concatenate((fldZ,fgcZ))
+
+                    indp    = indFaceTNC.ravel(order='K')
+                    fldX    = fldX.ravel(order='K')
+                    fldY    = fldY.ravel(order='K')
+                    fldZ    = fldZ.ravel(order='K')
+
+                    if indices is None: indices = indp
+                    else: indices = numpy.concatenate((indices, indp))
+
+                    if BCFieldX is None: BCFieldX = fldX
+                    else: BCFieldX = numpy.concatenate((BCFieldX, fldX))
+
+                    if BCFieldY is None: BCFieldY = fldY
+                    else: BCFieldY = numpy.concatenate((BCFieldY, fldY))
+
+                    if BCFieldZ is None: BCFieldZ = fldZ
+                    else: BCFieldZ = numpy.concatenate((BCFieldZ, fldZ))
+
+                elif len(foundVar)==2: # 2D
+                    # Config (XY)
+                    if foundVar[0][-1] == 'X' and foundVar[1][-1] == 'Y':
+                        for fgc in fldFaceTNC:
+                            fgcX = fgc[1][0]
+                            fgcY = fgc[1][1]
+
+                            if fldX is None: fldX = fgcX
+                            else: fldX = numpy.concatenate((fldX,fgcX))
+
+                            if fldY is None: fldY = fgcY
+                            else: fldY = numpy.concatenate((fldY,fgcY))
+
+                        indp    = indFaceTNC.ravel(order='K')
+                        fldX    = fldX.ravel(order='K')
+                        fldY    = fldY.ravel(order='K')
+
+                        if indices is None: indices = indp
+                        else: indices = numpy.concatenate((indices, indp))
+
+                        if BCFieldX is None: BCFieldX = fldX
+                        else: BCFieldX = numpy.concatenate((BCFieldX, fldX))
+
+                        if BCFieldY is None: BCFieldY = fldY
+                        else: BCFieldY = numpy.concatenate((BCFieldY, fldY))
+
+                    # Config (XZ)
+                    if foundVar[0][-1] == 'X' and foundVar[1][-1] == 'Z':
+                        for fgc in fldFaceTNC:
+                            fgcX = fgc[1][0]
+                            fgcZ = fgc[1][1]
+
+                            if fldX is None: fldX = fgcX
+                            else: fldX = numpy.concatenate((fldX,fgcX))
+
+                            if fldZ is None: fldZ = fgcZ
+                            else: fldZ = numpy.concatenate((fldZ,fgcZ))
+
+                        indp    = indFaceTNC.ravel(order='K')
+                        fldX    = fldX.ravel(order='K')
+                        fldZ    = fldZ.ravel(order='K')
+
+                        if indices is None: indices = indp
+                        else: indices = numpy.concatenate((indices, indp))
+
+                        if BCFieldX is None: BCFieldX = fldX
+                        else: BCFieldX = numpy.concatenate((BCFieldX, fldX))
+
+                        if BCFieldZ is None: BCFieldZ = fldZ
+                        else: BCFieldZ = numpy.concatenate((BCFieldZ, fldZ))
+
+                    # Config (YZ)
+                    if foundVar[0][-1] == 'Y' and foundVar[1][-1] == 'Z':
+                        for fgc in fldFaceTNC:
+                            fgcY = fgc[1][0]
+                            fgcZ = fgc[1][1]
+
+                            if fldY is None: fldY = fgcY
+                            else: fldY = numpy.concatenate((fldY,fgcY))
+
+                            if fldZ is None: fldZ = fgcZ
+                            else: fldZ = numpy.concatenate((fldZ,fgcZ))
+
+                        indp    = indFaceTNC.ravel(order='K')
+                        fldY    = fldY.ravel(order='K')
+                        fldZ    = fldZ.ravel(order='K')
+
+                        if indices is None: indices = indp
+                        else: indices = numpy.concatenate((indices, indp))
+
+                        if BCFieldY is None: BCFieldY = fldY
+                        else: BCFieldY = numpy.concatenate((BCFieldY, fldY))
+
+                        if BCFieldZ is None: BCFieldZ = fldZ
+                        else: BCFieldZ = numpy.concatenate((BCFieldZ, fldZ))
+
+# =================================================================================            
 
         if f != []:
             centers = Post.computeDiv2(x, f, vol, cellN, indices=indices, BCFieldX=BCFieldX,
