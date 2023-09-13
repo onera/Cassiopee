@@ -245,13 +245,7 @@ if ICONFORMAT == 'GIF':
 
     def createGetImgLightMode():
         getImg = TK.PhotoImage(data="""
-        iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAA
-        CXBIWXMAAAsTAAALEwEAmpwYAAAAnUlEQVR4nNXUsQmDUBDG
-        8X+RJlimdoJs4QRptJGMIWSEZASbDHCl4AAWabOBTbaw0SBc
-        8Qgviu9d4wcH9zU/rjrYax5AAxytQAEmoAMSS3CyQsUBTVD5
-        AaNR8YBRqPwBg1FZAINQWQHnuceCTyB3Jg0BB6DS/b0F8IEj
-        cNX+UjQjMBegdHqhYItRDsBHrz5boTe9srYCT0Cvr23H+QKl
-        lEgpqPve+gAAAABJRU5ErkJggg==
+        R0lGODlhFAAUAPAAAAAAAAAAACH5BAEAAAEALAAAAAAUABQAAAIojI+pyw3Q3IvrTYrsxUFv6n1SiIUWaIoJyZ0qc70lxGV0fciRjvdLAQA7
         """)
         return getImg
 
