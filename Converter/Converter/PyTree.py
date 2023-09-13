@@ -3421,7 +3421,7 @@ def _addBC2Zone(a, bndName, bndType, wrange=[],
                           tol=tol, unitAngle=unitAngle)
       else: # basic elements
         if elementList == [] and elementRange == [] and subzone is None and faceList == [] and pointList == []:
-          raise TypeError("addBC2Zone: unstructured grids requires a elementList, a elementRange or a subzone.")
+          raise TypeError("addBC2Zone: unstructured grids requires an elementList, a elementRange or a subzone.")
         _addBC2UnstructZone__(z, bndName, bndType, elementList=elementList, elementRange=elementRange,
                               faceList=faceList, pointList=pointList, data=data, subzone=subzone,
                               zoneDonor=zoneDonor, elementListDonor=elementListDonor, elementRangeDonor=elementRangeDonor,
@@ -5892,7 +5892,7 @@ def _fillEmptyBCWith(t, bndName, bndType, dim=3):
         dims = Internal.getZoneDim(z)
         if dims[0] == 'Unstructured':
           eltType = dims[3]
-          if eltType == 'NGON':
+          if eltType != 'MIXED':
             _addBC2Zone(z, bndName+str(c), bndType, faceList=w); c += 1
           else:
             try:
@@ -5900,7 +5900,7 @@ def _fillEmptyBCWith(t, bndName, bndType, dim=3):
               zbc = T.subzone(z,w, type='faces')
               _addBC2Zone(z, bndName+str(c), bndType, subzone=zbc); c += 1
             except:
-              raise ImportError("_fillEmptyBCWith: requires Transform module for unstructured BE zones")
+              raise ImportError("_fillEmptyBCWith: requires Transform module for unstructured MIXED zones")
               
   return None
 
@@ -7491,13 +7491,15 @@ def convertLO2HO(t, mode=0, order=2):
     Usage: convertLO2HO(t, mode, order)"""
     return TZGC2(t, Converter.convertLO2HO, 'nodes', True, mode, order)
 
-def convertME2NGon(a, recoverBC=True, merged=False):
+def convertMIXED2NGon(a, recoverBC=True, merged=False):
     """Convert a mixed-element monozone to an NGON. 
-    Usage: convertME2NGon(a, recoverBC, merged)"""
+    Usage: convertMIXED2NGon(a, recoverBC, merged)"""
     zones = Internal.getZones(a)
     # Extrait les BCs comme des zones
     AllBCs = []; AllBCNames = []; AllBCTypes = []
     for z in zones:
+        dimZ = Internal.getZoneDim(z)
+        if dimZ[3] != 'MIXED': pass
         zoneBC = Internal.getNodeFromType1(z, 'ZoneBC_t')
         bcs = Internal.getNodesFromType1(zoneBC, 'BC_t')
         for b in bcs:
