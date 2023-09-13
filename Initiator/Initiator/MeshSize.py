@@ -29,7 +29,7 @@ def meshSize3(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1.):
     print('INFO: utau: %20.16g'%utau)
     return hp
 
-# Marco - couche limite laminaire (Blasius)
+# Marco - couche limite laminaire
 def meshSize4(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1.):
     xsurL = 0.5
     MuInf = RoInf*UInf*LInf/ReInf

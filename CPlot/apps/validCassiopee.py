@@ -72,7 +72,7 @@ WIDGETS = {}
 if not os.path.exists(CASSIOPEE+'/Apps/Modules/ValidData'):
     os.mkdir(CASSIOPEE+'/Apps/Modules/ValidData')
     
-f = open(CASSIOPEE+"/Apps/Modules/validData/session.log", "w")
+f = open(CASSIOPEE+"/Apps/Modules/ValidData/session.log", "w")
 f.write("")
 f.close()
 

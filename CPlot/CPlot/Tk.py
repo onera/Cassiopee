@@ -9,7 +9,6 @@ from . import CPlot as CP
 import Transform
 import Post
 from . import PyTree as CPlot
-from . import cplot
 from . import Panels
 from . import iconics
 import os, os.path
@@ -377,6 +376,7 @@ def replace(t, nob, noz, zone):
     if CP.__slot__ is None: display(t); return
     (nzs, nzu) = CPlot.getNzs(t, zone)
     array = buildCPlotArrays(zone, topTree=t)[0]
+    from . import cplot
     cplot.replace(array, (nzs, nzu, oldType), zoneName, renderTag)
 
 #==============================================================================
@@ -392,6 +392,7 @@ def add(t, nob, noz, zone):
     if CP.__slot__ is None: display(t); return
     (nzs, nzu) = CPlot.getNzs(t, zone)
     array = buildCPlotArrays(zone, topTree=t)[0]
+    from . import cplot
     cplot.add(array, (nzs, nzu), zoneName, renderTag)
 
 #==============================================================================
