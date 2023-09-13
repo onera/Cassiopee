@@ -14,7 +14,7 @@ E_Int get_nchildren(tree *T, E_Int id)
   return T->children[T->indir[id]];
 }
 
-void resize_data_for_refinement(mesh *M, tree *ct, tree *ft, E_Int nref_cells, E_Int nref_faces)
+void resize_data_for_refinement(mesh *M, tree *ct, tree *ft, E_Int nref_cells)
 {
   E_Int cell_increment = 8*nref_cells; // 8 new cells per cell
   E_Int face_increment = 36*nref_cells; // 24 cfaces + 12 ifaces per new cell
@@ -63,54 +63,13 @@ E_Int is_cell_to_refine(E_Int *ref_data)
   return (ref_data[0] > 0) || (ref_data[1] > 0) || (ref_data[2] > 0);
 }
 
-std::vector<E_Int> get_ref_cells(mesh *M, E_Int *nref_cells, E_Int *nref_faces)
+std::vector<E_Int> get_ref_cells(mesh *M)
 {
-  std::vector<E_Int> ref_cells(M->ncells);
-  *nref_cells = *nref_faces = 0;
-  
-  E_Int *vcells = (E_Int *)calloc(M->ncells, sizeof(E_Int));
-  E_Int *ref_data = M->ref_data;
-
-  for (E_Int i = 0; i < M->nfaces; i++) {
-    E_Int own = M->owner[i];
-    E_Int nei = M->neigh[i];
-
-    // boundary face
-    if (nei == -1) {
-      if (is_cell_to_refine(&ref_data[3*own])) {
-        (*nref_faces)++;
-        if (!vcells[own]) {
-          vcells[own] = 1;
-          ref_cells[(*nref_cells)++] = own;
-        }
-      }
-    } else {
-      if (is_cell_to_refine(&ref_data[3*own])) {
-        (*nref_faces)++;
-        if (!vcells[own]) {
-          vcells[own] = 1;
-          ref_cells[(*nref_cells)++] = own;
-        }
-
-        if (is_cell_to_refine(&ref_data[3*nei])) {
-          if (!vcells[nei]) {
-            vcells[nei] = 1;
-            ref_cells[(*nref_cells)++] = nei;
-          }
-        }
-      } else if (is_cell_to_refine(&ref_data[3*nei])) {
-        (*nref_faces)++;
-        if (!vcells[nei]) {
-          vcells[nei] = 1;
-          ref_cells[(*nref_cells)++] = nei;
-        }
-      }
-    }
+  std::vector<E_Int> ref_cells;
+  for (E_Int i = 0; i < M->ncells; i++) {
+    if (is_cell_to_refine(&M->ref_data[3*i]))
+      ref_cells.push_back(i);
   }
-
-  free(vcells);
-
-  ref_cells.resize(*nref_cells);
 
   return ref_cells;
 }

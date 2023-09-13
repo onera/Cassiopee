@@ -199,7 +199,7 @@ E_Float mesh_memsize(mesh *M)
   return memsize/1000000.; // in mega bytes
 }
 
-void save_memory(mesh *M)
+void mesh_save_memory(mesh *M)
 {
   M->NGON  = (E_Int *)   XRESIZE(M->NGON,   (4*M->nfaces)  * sizeof(E_Int));
   M->NFACE  = (E_Int *)  XRESIZE(M->NFACE,  (6*M->ncells)  * sizeof(E_Int));

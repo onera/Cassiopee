@@ -14,6 +14,26 @@ void shift_data(mesh *M)
   }
 }
 
+#define PARSE_DICT(dict, key) parse_dictionary((dict), (key), __FUNCTION__)
+
+static
+PyObject *parse_dictionary(PyObject *dict, const char *key, const char *func)
+{
+  PyObject *strObj;
+#if PY_VERSION_HEX >= 0x03000000
+  strObj = PyUnicode_FromString(key);
+#else
+  strObj = PyString_FromString(key);
+#endif
+
+  PyObject *obj = PyDict_GetItem(dict, strObj);
+  if (obj == NULL) {
+    PyErr_Format(PyExc_KeyError, "%s: Missing key %s in dictionary", func, key);
+  }
+  Py_DECREF(strObj);
+  return obj;
+}
+
 PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
 {
   PyObject *arr, *comm_data, *solc, *gcells, *gfaces, *gpoints;
@@ -32,35 +52,23 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   PyObject *obj;
 
   // Gmax
-  obj = PyDict_GetItemWithError(adaptDict, PyUnicode_FromString("Gmax"));
-  if (obj == NULL) {
-    PyErr_SetString(PyExc_ValueError, "adaptMesh(): Missing key \"Gmax\" in dictionary.");
-    return NULL;
-  }
+  obj = PARSE_DICT(adaptDict, "Gmax");
+  if (obj == NULL) return NULL;
   Gmax = PyLong_AsLong(obj);
 
   // Tr
-  obj = PyDict_GetItemWithError(adaptDict, PyUnicode_FromString("Tr"));
-  if (obj == NULL) {
-    PyErr_SetString(PyExc_ValueError, "adaptMesh(): Missing key \"Tr\" in dictionary.");
-    return NULL;
-  }
+  obj = PARSE_DICT(adaptDict, "Tr");
+  if (obj == NULL) return NULL;
   Tr = PyFloat_AsDouble(obj);
 
   // iso_mode
-  obj = PyDict_GetItemWithError(adaptDict, PyUnicode_FromString("iso_mode"));
-  if (obj == NULL) {
-    PyErr_SetString(PyExc_ValueError, "adaptMesh(): Missing key \"iso_mode\" in dictionary.");
-    return NULL;
-  }
+  obj = PARSE_DICT(adaptDict, "iso_mode");
+  if (obj == NULL) return NULL;
   iso_mode = PyLong_AsLong(obj);
 
   // conformize
-  obj = PyDict_GetItemWithError(adaptDict, PyUnicode_FromString("conformize"));
-  if (obj == NULL) {
-    PyErr_SetString(PyExc_ValueError, "adaptMesh(): Missing key \"conformize\" in dictionary.");
-    return NULL;
-  }
+  obj = PARSE_DICT(adaptDict, "conformize");
+  if (obj == NULL) return NULL;
   conformize = PyLong_AsLong(obj);
 
   FldArrayI *cn;
@@ -229,24 +237,28 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   XFREE(csols);
   XFREE(H);
 
+  // adapt!
+  if (rM->pid == 0)
+    printf("Adapting...\n");
+  
+  MPI_Barrier(MPI_COMM_WORLD);
+  clock_t tic = clock();
+
   // isolate refinement cells
-  E_Int nref_cells = -1;
-  E_Int nref_faces = -1;
-  std::vector<E_Int> ref_cells = get_ref_cells(rM, &nref_cells, &nref_faces);
-  printf("%d -> ref_cells: %d - ncells: %d\n", rM->pid, nref_cells, rM->ncells);
+  std::vector<E_Int> ref_cells = get_ref_cells(rM);
+  E_Int nref_cells = ref_cells.size();
 
   rM->ref_iter = 0;
   E_Int max_ref_iter = 10;
 
   tree ct(rM->ncells, 8);
   tree ft(rM->nfaces, 4);
+  // resize data structures (isotropic resizing, faster)
+  resize_data_for_refinement(rM, &ct, &ft, nref_cells);
 
   while (nref_cells > 0) {
     if (++rM->ref_iter > max_ref_iter)
       break;
-
-    // resize data structures (isotropic resizing, faster)
-    resize_data_for_refinement(rM, &ct, &ft, nref_cells, nref_faces);
 
     // refine cells
     for (E_Int i = 0; i < nref_cells; i++) {
@@ -271,7 +283,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
       }
     }
 
-    save_memory(rM);
+    mesh_save_memory(rM);
     //tree_save_memory(&ct, rM->ncells);
     //tree_save_memory(&ft, rM->nfaces);
 
@@ -282,6 +294,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
 
     for (E_Int i = 0; i < nref_cells; i++) {
       E_Int cell = ref_cells[i];
+      assert(ct.enabled[cell] == 0);
       E_Int *pr = &rM->ref_data[3*cell];
       for (E_Int j = 0; j < 3; j++)
         pr[j] = std::max(0, pr[j]-1);
@@ -290,6 +303,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
         E_Int nchildren = tree_get_nchildren(&ct, cell);
         E_Int *children = tree_get_children(&ct, cell);
         for (E_Int j = 0; j < nchildren; j++) {
+          assert(ct.enabled[children[j]] == 1);
           E_Int *prc = &rM->ref_data[3*children[j]];
           for (E_Int k = 0; k < 3; k++)
             prc[k] = pr[k];
@@ -301,79 +315,157 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
         pr[j] = 0;
     }
 
-    printf("%d -> ref_iter: %d - ncells: %d\n", rM->pid, rM->ref_iter, rM->ncells);
     if (nref_cells_next_gen == 0) {
       break;
     }
-
-    nref_faces = 6*nref_cells;
     
     ref_cells.resize(nref_cells_next_gen);
     for (E_Int i = 0; i < nref_cells_next_gen; i++)
       ref_cells[i] = new_ref_cells[i];
 
     nref_cells = nref_cells_next_gen;
+
+    resize_data_for_refinement(rM, &ct, &ft, nref_cells);
   }
 
-  E_Int gnc;
+  MPI_Barrier(MPI_COMM_WORLD);
+  clock_t toc = clock();
+  E_Float adapt_time = ((E_Float)(toc-tic)) / CLOCKS_PER_SEC;
+
+  E_Int gnc = 0;
   MPI_Allreduce(&rM->ncells, &gnc, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-  if (rM->pid == 0)
-    printf("Final number of cells: %d\n", gnc);
 
   E_Float meshmem = mesh_memsize(rM);
   E_Float ftmem = tree_memsize(&ft);
   E_Float ctmem = tree_memsize(&ct);
-  printf("%d -> mesh size: %.1f MB\n", rM->pid, meshmem);
-  printf("%d -> ft size: %.1f MB\n", rM->pid, ftmem);
-  printf("%d -> ct size: %.1f MB\n", rM->pid, ctmem);
-
-  //return Py_None;
+  E_Float lmem = meshmem + ftmem + ctmem;
+  E_Float gmem = 0;
+  MPI_Allreduce(&lmem, &gmem, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+  
+  if (rM->pid == 0) {
+    printf("Adaptation time: %.2f s\n", adapt_time);
+    printf("Total number of cells: %d\n", gnc);
+    printf("Memory: %.1f MB\n", gmem);
+  }
 
   // output
+  std::vector<E_Int> nface, xcells(1,0), ngon, xfaces(1,0);
+  for (E_Int i = 0; i < rM->ncells; i++) {
+    if (ct.enabled[i] == 0) continue;
+    for (E_Int j = rM->xcells[i]; j < rM->xcells[i+1]; j++) {
+      E_Int face = rM->NFACE[j];
+      nface.push_back(face);
+    }
+    xcells.push_back(6);
+  }
+
+  E_Int necells = xcells.size()-1;
+
+  for (E_Int i = 0; i < necells; i++)
+    xcells[i+1] += xcells[i];
+
+  assert(xcells[necells] == 6*necells);
+
+  std::unordered_map<E_Int, E_Int> efaces;
+  E_Int nefaces = 0;
+
+  for (E_Int i = 0; i < 6*necells; i++) {
+    E_Int face = nface[i];
+    if (efaces.find(face) == efaces.end()) {
+      efaces[face] = nefaces++;
+      for (E_Int j = rM->xfaces[face]; j < rM->xfaces[face+1]; j++)
+        ngon.push_back(rM->NGON[j]);
+      xfaces.push_back(4);
+    }
+  }
+
+  for (E_Int i = 0; i < nefaces; i++)
+    xfaces[i+1] += xfaces[i];
+  assert(xfaces[nefaces] == 4*nefaces);
+
+  std::vector<E_Float> xyz;
+  std::unordered_map<E_Int, E_Int> epoints;
+  E_Int nepoints = 0;
+
+  for (E_Int i = 0; i < 4*nefaces; i++) {
+    E_Int point = ngon[i];
+    if (epoints.find(point) == epoints.end()) {
+      epoints[point] = nepoints++;
+      E_Float *ptr = &rM->xyz[3*point];
+      for (E_Int j = 0; j < 3; j++)
+        xyz.push_back(ptr[j]);
+    }
+  }
+
+  for (E_Int i = 0; i < necells; i++) {
+    for (E_Int j = xcells[i]; j < xcells[i+1]; j++) {
+      auto search = efaces.find(nface[j]);
+      assert(search != efaces.end());
+      nface[j] = search->second;
+    }
+  }
+
+  for (E_Int i = 0; i < nefaces; i++) {
+    for (E_Int j = xfaces[i]; j < xfaces[i+1]; j++) {
+      auto search = epoints.find(ngon[j]);
+      assert(search != epoints.end());
+      ngon[j] = search->second;
+    }
+  }
+
   const char *varString = "CoordinateX,CoordinateY,CoordinateZ";
-  PyObject* m = K_ARRAY::buildArray3(3, varString, rM->npoints, rM->ncells,
-    rM->nfaces, "NGON", rM->xfaces[rM->nfaces], rM->xcells[rM->ncells], 3, 
+
+  PyObject* m = K_ARRAY::buildArray3(3, varString, nepoints, necells,
+    nefaces, "NGON", xfaces[nefaces], xcells[necells], 3, 
     false, 3);
 
   FldArrayF *fo;
   FldArrayI *cno;
   K_ARRAY::getFromArray3(m, fo, cno);
 
-  assert(rM->xfaces[rM->nfaces] == 4*rM->nfaces);
-  assert(rM->xcells[rM->ncells] == 6*rM->ncells);
-
   for (E_Int n = 0; n < 3; n++) {
     E_Float *pt = fo->begin(n+1);
-    for (E_Int i = 0; i < rM->npoints; i++)
-      pt[i] = rM->xyz[3*i+n];
+    for (E_Int i = 0; i < nepoints; i++)
+      pt[i] = xyz[3*i+n];
   }
 
   E_Int *ngono = cno->getNGon();
   E_Int *nfaceo = cno->getNFace();
   E_Int *indPGo = cno->getIndPG();
   E_Int *indPHo = cno->getIndPH();
-  for (E_Int i = 0; i <= rM->nfaces; i++) indPGo[i] = rM->xfaces[i];
-  for (E_Int i = 0; i <= rM->ncells; i++) indPHo[i] = rM->xcells[i];
+
+  for (E_Int i = 0; i <= nefaces; i++) indPGo[i] = xfaces[i];
+
+  for (E_Int i = 0; i <= necells; i++) indPHo[i] = xcells[i];
+
   E_Int *ptr = ngono;
   E_Int start, end;
-  for (E_Int i = 0; i < rM->nfaces; i++)
+
+  for (E_Int i = 0; i < nefaces; i++)
   {
-    //if (!ft.enabled(i)) continue;
-    start = rM->xfaces[i];
-    end = rM->xfaces[i+1];
+    start = xfaces[i];
+    end = xfaces[i+1];
     for (E_Int j = start; j < end; j++)
-    { *ptr = rM->NGON[j]+1; ptr++; }
+    { *ptr = ngon[j]+1; ptr++; }
   }
+
   ptr = nfaceo;
-  for (E_Int i = 0; i < rM->ncells; i++)
+  for (E_Int i = 0; i < necells; i++)
   {
-    start = rM->xcells[i];
-    end = rM->xcells[i+1];
+    start = xcells[i];
+    end = xcells[i+1];
     for (E_Int j = start; j < end; j++)
-    { *ptr = rM->NFACE[j]+1; ptr++; }
+    { *ptr = nface[j]+1; ptr++; }
   }
+
+  E_Int ntcells = 0;
+  MPI_Allreduce(&necells, &ntcells, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  if (rM->pid == 0)
+    printf("Leaves: %d\n", ntcells);
+  
 
   mesh_free(rM);
 
+  //return Py_None;
   return m;
 }
