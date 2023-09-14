@@ -648,7 +648,7 @@ def _addPeriodicInfo__(gcnodes,rotationCenter,rotationAngle,translation,signT,si
     for info in gcnodes:
         if len(info[1]) > 8:
             donorNamePref = info[1][0:7]; donorName = info[1][7:]
-            if isinstance(donorNamePref, numpy.ndarray): donorNamePref = donorNamePref.tobytes().decode()
+            donorNamePref = Internal.getValue([0,donorNamePref])
             if donorNamePref == dupname: # cas periodique
                 info[1] = donorName
                 rotationAngleS = [v*signR for v in rotationAngle]

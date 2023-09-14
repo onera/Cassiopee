@@ -36,6 +36,9 @@ try:
     isMpi = True
 except: isMpi = False
 
+# Check svn version
+CHECKSVNVERSION = True
+
 # Regexprs
 regDiff = re.compile('DIFF')
 regFailed = re.compile('FAILED')
@@ -1069,14 +1072,15 @@ def export2Text():
 #=======================================
 def finalizeRun():
     svnVersion = 'Unknown'
-    try:
-        svnInfo = subprocess.check_output("svn info https://elsa-svn.onera.fr/CASSIOPEE/Trunk/Cassiopee/Apps/Modules", shell=True)
-        svnInfo = svnInfo.decode('utf-8', 'ignore')
-        ss = svnInfo.split('\n')
-        for s in ss:
-            t = s.split(':')
-            if 'vision' in t[0]: svnVersion = t[1]
-    except: pass
+    if CHECKSVNVERSION:
+        try:
+            svnInfo = subprocess.check_output("svn info https://elsa-svn.onera.fr/CASSIOPEE/Trunk/Cassiopee/Apps/Modules", shell=True)
+            svnInfo = svnInfo.decode('utf-8', 'ignore')
+            ss = svnInfo.split('\n')
+            for s in ss:
+                t = s.split(':')
+                if 'vision' in t[0]: svnVersion = t[1]
+        except: pass
 
     messageText = 'Base from'+CASSIOPEE+'\n'
     messageText += 'Based on version %s (can be locally modified).\n'%svnVersion

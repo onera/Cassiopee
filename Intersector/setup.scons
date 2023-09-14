@@ -26,7 +26,7 @@ installPath = Dist.getInstallPath(prefix)
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
 # Test if xcore exists =======================================================
-(xcoreVersion, xcoreIncDir, xcoreLibDir) = Dist.checkXCore()
+#(xcoreVersion, xcoreIncDir, xcoreLibDir) = Dist.checkXCore()
 
 # Test if libmpi exists ======================================================
 (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
@@ -35,9 +35,9 @@ installPath = Dist.getInstallPath(prefix)
                                                         additionalIncludePaths)
 
 # Setting libraryDirs and libraries ===========================================
-libraryDirs = ['..', '.', pythonLibDir, kcoreLibDir, xcoreLibDir]
-includeDirs = [numpyIncDir, kcoreIncDir, pythonIncDir, xcoreIncDir]
-libraries = ["kcore", "xcore", "ptscotch", "scotch1", "scotch2"]
+libraryDirs = ['..', '.', pythonLibDir, kcoreLibDir]
+includeDirs = [numpyIncDir, kcoreIncDir, pythonIncDir]
+libraries = ["kcore", "ptscotch", "scotch1", "scotch2"]
 ADDITIONALCPPFLAGS = []
 if mpi:
     libraryDirs.append(mpiLibDir)

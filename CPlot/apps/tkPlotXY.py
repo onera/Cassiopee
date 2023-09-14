@@ -17,24 +17,24 @@ except: pass
 
 # Import Tkinter
 IMPORTOK = True
-try: import Tkinter as TK
+try: import tkinter as TK
 except:
-    try: import tkinter as TK
+    try: import Tkinter as TK
     except: IMPORTOK = False
     
-try: import ttk as cttk
+try: import tkinter.ttk as cttk
 except: 
-    try: import tkinter.ttk as cttk
+    try: import ttk as cttk
     except: IMPORTOK = False
 
 try:
     # from tkColorChooser import askcolor
-    import tkFileDialog
-    import tkMessageBox
+    import tkinter.filedialog as tkFileDialog
+    import tkinter.messagebox as tkMessageBox
 except ImportError:
     try:
-        import tkinter.filedialog as tkFileDialog
-        import tkinter.messagebox as tkMessageBox
+        import tkFileDialog
+        import tkMessageBox
     except: IMPORTOK = False
 
 try:
@@ -45,9 +45,9 @@ try:
     matplotlib.use('TkAgg') # avec Tk
     #matplotlib.use('Agg') # sans serveur X
     from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+    
     try: from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
     except: from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg as NavigationToolbar2Tk
-
     import matplotlib.pyplot as plt
     # Will be imported in the right movie class:
     # import matplotlib.animation as animation
@@ -86,6 +86,13 @@ try:
 except ImportError:
     CTK = None
     TTK = TK
+
+# version de matplotlib pour l'api des backends
+#BACKENDS = 0
+#version = matplotlib.__version__
+#version = version.split('.')
+#version0 = int(version[0]); version1 = int(version[1])
+#if version0 >= 3 and version1 >= 6: BACKENDS = 1
 
 # local widgets list
 WIDGETS = {}
@@ -10104,7 +10111,9 @@ class Graph():
         self.fig.saveFigure(path, format=format)
     # ------------------------------------------------------------------ setName
     def setName(self, name):
+        # DBX EVO
         (self.getFig()).canvas.set_window_title(name)
+        
     # --------------------------------------------------------------- drawFigure
     def drawFigure(self):
         self.fig.drawFigure()
@@ -14047,8 +14056,9 @@ class MatplotlibFigure():
         legend_text = []
         ###
         for iCurrentAxis in range(len(self.subGraph[iCurSubGraph].axis)):
-            plt.sca(self.subGraph[iCurSubGraph].axis[iCurrentAxis])
-            self.subGraph[iCurSubGraph].axis[iCurrentAxis].name=self.subGraph[iCurSubGraph].name
+            # EVO
+            #plt.sca(self.subGraph[iCurSubGraph].axis[iCurrentAxis])
+            self.subGraph[iCurSubGraph].axis[iCurrentAxis].name = self.subGraph[iCurSubGraph].name
 
             xaxis_label = ""; yaxis_label = ""
             for c in self.subGraph[iCurSubGraph].curves:
@@ -15405,9 +15415,9 @@ class Movie(object):
 # --------------------------------------------------
 class CustomToolbar(NavigationToolbar2Tk):
     def __init__(self, canvas, parent, graph):
-        
+                
         if NAVIGATION == 0:
-            self.toolitems = (('Home', 'Reset original view', 'initial', 'home'),
+            self.toolitems = (('Home', 'Reset original view', 'home', 'home'),
                               ('Back', 'Back to  previous view', 'previous', 'back'),
                               ('Forward', 'Forward to next view', 'next', 'forward'),
                               (None, None, None, None),
@@ -15417,7 +15427,7 @@ class CustomToolbar(NavigationToolbar2Tk):
                               ('Subplots', 'Configure subplots', 'subplots', 'configure_subplots_tkPlotXY'),
                               ('Save', 'Save the figure', 'filesave', 'save_figure'))
         else:
-            self.toolitems = (('Home', 'Reset original view', 'initial', 'home_tkPlotXY'),
+            self.toolitems = (('Home', 'Reset original view', 'home', 'home_tkPlotXY'),
                               (None, None, None, None),
                               ('Subplots', 'Configure subplots', 'subplots', 'configure_subplots_tkPlotXY'),
                               ('Save', 'Save the figure', 'filesave', 'save_figure'))
@@ -15426,15 +15436,17 @@ class CustomToolbar(NavigationToolbar2Tk):
         self.button_dict = {}
         NavigationToolbar2Tk.__init__(self, canvas, parent)
 
-    def _Button(self, text, file, command, extension='.ppm'):
-        fileimage = file
-        im = TK.PhotoImage(data=IMAGE_DICT[fileimage])
-        b = TK.Button(master=self, text=text, padx=2, pady=2, image=im, command=command)
-        b._ntimage = im
-        b._image = fileimage
-        self.button_dict[fileimage] = b
-        b.pack(side=TK.LEFT)
-        return b
+
+    # def _Button(self, text, file, command, extension='.ppm'):
+    # #def _Button(self, text, file, toggle, command): 
+    #     fileimage = file
+    #     im = TK.PhotoImage(data=IMAGE_DICT[fileimage])
+    #     b = TK.Button(master=self, text=text, padx=2, pady=2, image=im, command=command)
+    #     b._ntimage = im
+    #     b._image = fileimage
+    #     self.button_dict[fileimage] = b
+    #     b.pack(side=TK.LEFT)
+    #     return b
 
     def home_tkPlotXY(self, *args):
         #self.graph.fig.instance.tight_layout()
@@ -15486,6 +15498,7 @@ class CustomToolbar(NavigationToolbar2Tk):
 
     def configure_subplots_tkPlotXY(self):
         toolfig = matplotlib.figure.Figure(figsize=(6,3))
+        #toolfig = plt.figure(figsize=(6,3))
         window = TK.Tk()
         canvas = FigureCanvasTkAgg(toolfig, master=window)
         toolfig.subplots_adjust(top=0.9)

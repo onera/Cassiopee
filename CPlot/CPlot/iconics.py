@@ -2,10 +2,10 @@
 try: import tkinter as TK
 except: import Tkinter as TK
 
-import sys
-# base64 png for python3, base64 gif for python2
-# ICONFORMAT = 'PNG' if sys.version_info[0] == 3 else 'GIF'
+# ICONFORMAT = 'PNG' or 'GIF'
 ICONFORMAT = 'PNG'
+try: createSaveImgLightMode()
+except: ICONFORMAT = 'GIF'
 
 # Class to store and provide load on demand of PhotoImages
 class Photo:

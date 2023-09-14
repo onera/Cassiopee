@@ -505,10 +505,11 @@ def create_zone_eso_elements_filter(elmt, zone_path, hdf_filter, mode):
   pe = I.getNodeFromName1(elmt, 'ParentElements')
   if pe:
     data_space = create_pe_dataspace(distrib_elmt)
-    hdf_filter[f"{zone_path}/{I.getName(elmt)}/ParentElements"] = data_space
+    #hdf_filter[f"{zone_path}/{I.getName(elmt)}/ParentElements"] = data_space
+    hdf_filter["%s/%s/ParentElements"%(zone_path,I.getName(elmt))] = data_space
     if I.getNodeFromName1(elmt, 'ParentElementsPosition'):
-      hdf_filter[f"{zone_path}/{I.getName(elmt)}/ParentElementsPosition"] = data_space
-
+      #hdf_filter[f"{zone_path}/{I.getName(elmt)}/ParentElementsPosition"] = data_space
+      hdf_filter["%s/%s/ParentElementsPosition"%(zone_path,I.getName(elmt))] = data_space
   eso = I.getNodeFromName1(elmt, 'ElementStartOffset')
   eso_path = None
   if eso:
