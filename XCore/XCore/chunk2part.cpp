@@ -161,15 +161,13 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     printf("total number of points: %d\n", points_dist[nproc]);
   }
 
-  // check for signed faces and holes in face numbering
   E_Int sfaces_exist = 0; // switch for handling signed faces
   std::set<E_Int> SF;
   for (E_Int i = 0; i < ncells; i++) {
     for (E_Int j = xcells[i]; j < xcells[i+1]; j++) {
       E_Int face = cells[j];
       if (face < 0) {
-        if (SF.find(-face) == SF.end())
-          SF.insert(-face);
+        SF.insert(-face);
         cells[j] = -face;
       } 
     }
@@ -371,67 +369,66 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
 
   // Send cells to their target proc!
   std::vector<E_Int> c_scount(nproc, 0);
-  std::vector<E_Int> c_rcount(nproc);
+  std::vector<E_Int> c_rcount(nproc, 0);
 
-  // start with cell ids
   for (E_Int i = 0; i < ncells; i++) {
     E_Int where = part[i];
-    c_scount[where]++;
+    c_scount[where] += 1;
   }
 
   MPI_Alltoall(&c_scount[0], 1, MPI_INT, &c_rcount[0], 1, MPI_INT, MPI_COMM_WORLD);
 
-  std::vector<E_Int> c_sdist(nproc+1);
-  std::vector<E_Int> c_rdist(nproc+1);
-  
-  c_sdist[0] = c_rdist[0] = 0;
+  std::vector<E_Int> c_sdist(nproc+1, 0);
+  std::vector<E_Int> c_rdist(nproc+1, 0);
   for (E_Int i = 0; i < nproc; i++) {
     c_sdist[i+1] = c_sdist[i] + c_scount[i];
     c_rdist[i+1] = c_rdist[i] + c_rcount[i];
   }
 
-  // Note(Imad): new ncells may differ from cells_dist[rank+1] - cells_dist[rank]
   E_Int nncells = c_rdist[nproc];
-
   std::vector<E_Int> scells(c_sdist[nproc]);
   std::vector<E_Int> rcells(c_rdist[nproc]);
-  std::vector<E_Int> sstride(c_sdist[nproc]);
+  std::vector<E_Int> c_stride(c_sdist[nproc]);
+  std::vector<E_Int> nxcells(nncells+1, 0);
 
-  for (E_Int i = 0; i < nproc; i++)
-    idx[i] = c_sdist[i];
+  for (E_Int i = 0; i < nproc; i++) idx[i] = c_sdist[i];
 
   for (E_Int i = 0; i < ncells; i++) {
     E_Int where = part[i];
     scells[idx[where]] = i + cells_dist[rank];
-    sstride[idx[where]] = xcells[i+1] - xcells[i];
+    c_stride[idx[where]] = xcells[i+1] - xcells[i];
     idx[where]++;
   }
 
   MPI_Alltoallv(&scells[0], &c_scount[0], &c_sdist[0], MPI_INT,
                 &rcells[0], &c_rcount[0], &c_rdist[0], MPI_INT,
                 MPI_COMM_WORLD);
-
-  std::vector<E_Int> nxcells(nncells+1);
-
-  MPI_Alltoallv(&sstride[0], &c_scount[0], &c_sdist[0], MPI_INT,
+  
+  MPI_Alltoallv(&c_stride[0], &c_scount[0], &c_sdist[0], MPI_INT,
                 &nxcells[0]+1, &c_rcount[0], &c_rdist[0], MPI_INT,
                 MPI_COMM_WORLD);
-
+  
   nxcells[0] = 0;
   for (E_Int i = 0; i < nncells; i++)
     nxcells[i+1] += nxcells[i];
+  
+  if (rank == 0)
+    puts("rcells & nxcells OK");
 
-  // send NFACE connectivity
-  for (E_Int i = 0; i < nproc; i++)
+  // send NFACE
+  for (E_Int i = 0; i < nproc; i++) {
     scount[i] = 0;
+    rcount[i] = 0;
+  }
 
   for (E_Int i = 0; i < ncells; i++) {
-     E_Int where = part[i];
-     scount[where] += xcells[i+1] - xcells[i];
+    E_Int where = part[i];
+    scount[where] += xcells[i+1] - xcells[i];
   }
 
   MPI_Alltoall(&scount[0], 1, MPI_INT, &rcount[0], 1, MPI_INT, MPI_COMM_WORLD);
 
+  sdist[0] = rdist[0] = 0;
   for (E_Int i = 0; i < nproc; i++) {
     sdist[i+1] = sdist[i] + scount[i];
     rdist[i+1] = rdist[i] + rcount[i];
@@ -440,289 +437,298 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   sdata.resize(sdist[nproc]);
   std::vector<E_Int> NFACE(rdist[nproc]);
 
-  for (E_Int i = 0; i < nproc; i++)
-    idx[i] = sdist[i];
+  for (E_Int i = 0; i < nproc; i++) idx[i] = sdist[i];
 
-  for (E_Int i = 0; i < ncells; i++) {
-    E_Int where = part[i];
-    for (E_Int j = xcells[i]; j < xcells[i+1]; j++)
-      sdata[idx[where]++] = cells[j];
+  if (sfaces_exist) {
+    for (E_Int i = 0; i < ncells; i++) {
+      E_Int where = part[i];
+      for (E_Int j = xcells[i]; j < xcells[i+1]; j++) {
+        E_Int face = cells[j];
+        if (SF.find(face) != SF.end())
+          sdata[idx[where]++] = -face;
+        else
+          sdata[idx[where]++] = face;
+      }
+    }
+  } else {
+    for (E_Int i = 0; i < ncells; i++) {
+      E_Int where = part[i];
+      for (E_Int j = xcells[i]; j < xcells[i+1]; j++)
+        sdata[idx[where]++] = cells[j];
+    }
   }
 
   MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], MPI_INT,
                 &NFACE[0], &rcount[0], &rdist[0], MPI_INT,
                 MPI_COMM_WORLD);
-
   
   if (rank == 0)
-    printf("NFACE OK\n");
+    puts("NFACE OK");
 
-  // Hash and request faces
-  std::unordered_map<E_Int, E_Int> FT;
-  E_Int nnfaces = 0;
-  for (E_Int i = 0; i < nproc; i++)
-    rcount[i] = 0;
-
-  for (E_Int i = 0; i < nncells; i++) {
-    for (E_Int j = nxcells[i]; j < nxcells[i+1]; j++) {
-      E_Int face = NFACE[j];
-      if (FT.find(face) == FT.end()) {
-        FT[face] = nnfaces++;
-        E_Int source = get_proc(face-1, faces_dist, nproc);
-        rcount[source]++;
+  // hash cells
+  std::unordered_map<E_Int, E_Int> CT;
+  for (E_Int i = 0; i < nncells; i++)
+    CT[rcells[i]] = i;
+  
+  // store signed faces again
+  if (sfaces_exist) {
+    SF.clear();
+    for (E_Int i = 0; i < nncells; i++) {
+      for (E_Int j = nxcells[i]; j < nxcells[i+1]; j++) {
+        if (NFACE[j] < 0) {
+          SF.insert(-NFACE[j]);
+          NFACE[j] = -NFACE[j];
+        }
       }
     }
   }
-  
-  // requesting, roles are inverted
-  MPI_Alltoall(&rcount[0], 1, MPI_INT, &scount[0], 1, MPI_INT, MPI_COMM_WORLD);
 
-  rdist[0] = sdist[0] = 0;
+  // hash and request faces
+  E_Int nnfaces = 0;
+  std::unordered_map<E_Int, E_Int> FT; // to avoid face duplication
+  std::vector<E_Int> f_rcount(nproc, 0), f_scount(nproc, 0);
+
   for (E_Int i = 0; i < nproc; i++) {
-    rdist[i+1] = rdist[i] + rcount[i];
-    sdist[i+1] = sdist[i] + scount[i];
-  }
-
-  assert(nnfaces == rdist[nproc]);
-  std::vector<E_Int> sfaces(sdist[nproc]);
-  std::vector<E_Int> rfaces(rdist[nproc]);
-  std::vector<E_Int> nxfaces(nnfaces+1);
-  nxfaces[0] = 0;
-
-  for (E_Int i = 0; i < nproc; i++)
-    idx[i] = rdist[i];
-
-  for (const auto& face : FT) {
-    E_Int source = get_proc(face.first-1, faces_dist, nproc);
-    rfaces[idx[source]++] = face.first;
-  }
-
-  MPI_Alltoallv(&rfaces[0], &rcount[0], &rdist[0], MPI_INT,
-                &sfaces[0], &scount[0], &sdist[0], MPI_INT,
-                MPI_COMM_WORLD);
-
-  std::vector<E_Int> fstride(sdist[nproc]);
-  for (E_Int i = 0; i < nproc; i++)
-    idx[i] = sdist[i];
-  
-  std::vector<E_Int> sscount(nproc, 0);
-  std::vector<E_Int> rrcount(nproc);
-  
-  for (E_Int i = 0; i < nproc; i++) {
-    E_Int *ptr = &sfaces[sdist[i]];
-    for (E_Int j = 0; j < scount[i]; j++) {
-      E_Int face = ptr[j]-1;
-      face -= faces_dist[rank];
-      E_Int stride = xfaces[face+1] - xfaces[face];
-      fstride[idx[i]++] = stride;
-      sscount[i] += stride;
+    E_Int *pc = &rcells[c_rdist[i]];
+    for (E_Int j = 0; j < c_rcount[i]; j++) {
+      E_Int lc = CT[pc[j]];
+      for (E_Int k = nxcells[lc]; k < nxcells[lc+1]; k++) {
+        E_Int face = NFACE[k];
+        if (FT.find(face) == FT.end()) {
+          FT[face] = nnfaces++;
+          E_Int src = get_proc(face-1, faces_dist, nproc);
+          f_rcount[src]++;
+        }
+      }
     }
   }
 
-  MPI_Alltoallv(&fstride[0], &scount[0], &sdist[0], MPI_INT,
-                &nxfaces[0]+1, &rcount[0], &rdist[0], MPI_INT,
+  MPI_Alltoall(&f_rcount[0], 1, MPI_INT, &f_scount[0], 1, MPI_INT, MPI_COMM_WORLD);
+  
+  std::vector<E_Int> f_rdist(nproc+1);
+  std::vector<E_Int> f_sdist(nproc+1);
+  f_rdist[0] = f_sdist[0] = 0;
+  for (E_Int i = 0; i < nproc; i++) {
+    f_rdist[i+1] = f_rdist[i] + f_rcount[i];
+    f_sdist[i+1] = f_sdist[i] + f_scount[i];
+  }
+
+  assert(nnfaces == f_rdist[nproc]);
+
+  std::vector<E_Int> rfaces(nnfaces);
+  std::vector<E_Int> sfaces(f_sdist[nproc]);
+
+  for (E_Int i = 0; i < nproc; i++) idx[i] = f_rdist[i];
+
+  std::vector<E_Int> vfaces(nnfaces, 0);
+  for (E_Int i = 0; i < nproc; i++) {
+    E_Int *pc = &rcells[c_rdist[i]];
+    for (E_Int j = 0; j < c_rcount[i]; j++) {
+      E_Int lc = CT[pc[j]];
+      for (E_Int k = nxcells[lc]; k < nxcells[lc+1]; k++) {
+        E_Int face = NFACE[k];
+        if (!vfaces[FT[face]]) {
+          vfaces[FT[face]]++;
+          E_Int src = get_proc(face-1, faces_dist, nproc);
+          rfaces[idx[src]++] = face;
+        }
+      }
+    }
+  }
+
+  MPI_Alltoallv(&rfaces[0], &f_rcount[0], &f_rdist[0], MPI_INT,
+                &sfaces[0], &f_scount[0], &f_sdist[0], MPI_INT,
                 MPI_COMM_WORLD);
 
+  FT.clear();
+  nnfaces = 0; 
+  for (const auto& face : rfaces)
+    FT[face] = nnfaces++;
+  
+
+  if (rank == 0)
+    puts("rfaces OK");
+  
+  // send face strides
+  std::vector<E_Int> f_stride(f_sdist[nproc]);
+  std::vector<E_Int> nxfaces(nnfaces+1, 0);
+  for (E_Int i = 0; i < nproc; i++) scount[i] = 0;
+
+  for (E_Int i = 0; i < nproc; i++) {
+    E_Int *pf = &sfaces[f_sdist[i]];
+    E_Int *ps = &f_stride[f_sdist[i]];
+    for (E_Int j = 0; j < f_scount[i]; j++) {
+      E_Int face = pf[j]-1-faces_dist[rank];
+      E_Int stride = xfaces[face+1] - xfaces[face];
+      ps[j] = stride;
+      scount[i] += stride;
+    }
+  }
+
+  MPI_Alltoallv(&f_stride[0], &f_scount[0], &f_sdist[0], MPI_INT,
+                &nxfaces[0]+1, &f_rcount[0], &f_rdist[0], MPI_INT,
+                MPI_COMM_WORLD);
+  
+  nxfaces[0] = 0;
   for (E_Int i = 0; i < nnfaces; i++)
     nxfaces[i+1] += nxfaces[i];
+  
+  MPI_Alltoall(&scount[0], 1, MPI_INT, &rcount[0], 1, MPI_INT, MPI_COMM_WORLD);
 
-  MPI_Alltoall(&sscount[0], 1, MPI_INT, &rrcount[0], 1, MPI_INT, MPI_COMM_WORLD);
+  if (rank == 0)
+    puts("nxfaces OK");
 
-  std::vector<E_Int> ssdist(nproc+1);
-  std::vector<E_Int> rrdist(nproc+1);
-  ssdist[0] = rrdist[0] = 0;
+  // send NGON
+  sdist[0] = rdist[0] = 0;
   for (E_Int i = 0; i < nproc; i++) {
-    ssdist[i+1] = ssdist[i] + sscount[i];
-    rrdist[i+1] = rrdist[i] + rrcount[i];
+    sdist[i+1] = sdist[i] + scount[i];
+    rdist[i+1] = rdist[i] + rcount[i];
   }
 
-  std::vector<E_Int> sNGON(ssdist[nproc]);
-  std::vector<E_Int> NGON(rrdist[nproc]);
-
-  for (E_Int i = 0; i < nproc; i++)
-    idx[i] = ssdist[i];
+  sdata.resize(sdist[nproc]);
+  std::vector<E_Int> NGON(rdist[nproc]);
 
   for (E_Int i = 0; i < nproc; i++) {
-    E_Int *ptr = &sfaces[sdist[i]];
-    for (E_Int j = 0; j < scount[i]; j++) {
-      E_Int face = ptr[j] - 1 - faces_dist[rank];
+    E_Int *pf = &sfaces[f_sdist[i]];
+    E_Int *pn = &sdata[sdist[i]];
+    for (E_Int j = 0; j < f_scount[i]; j++) {
+      E_Int face = pf[j] - 1 - faces_dist[rank];
       for (E_Int k = xfaces[face]; k < xfaces[face+1]; k++)
-        sNGON[idx[i]++] = faces[k];
+        *pn++ = faces[k];
     }
   }
 
-  MPI_Alltoallv(&sNGON[0], &sscount[0], &ssdist[0], MPI_INT,
-                &NGON[0], &rrcount[0], &rrdist[0], MPI_INT,
+  MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], MPI_INT,
+                &NGON[0], &rcount[0], &rdist[0], MPI_INT,
                 MPI_COMM_WORLD);
- 
-  if (rank == 0)
-    printf("NGON OK\n");
-
-  // renumber faces
-  FT.clear();
-  for (E_Int i = 0; i < nnfaces; i++) {
-    E_Int face = rfaces[i];
-    FT[face] = i;
-  } 
   
-  // Hash and request points
-  std::unordered_map<E_Int, E_Int> PT;
+  if (rank == 0)
+    puts("NGON OK");
+
+  // request points
+  std::unordered_map<E_Int, E_Int> PT; // avoid point repetition
   E_Int nnpoints = 0;
   std::vector<E_Int> p_rcount(nproc, 0);
-
-  for (E_Int i = 0; i < nnfaces; i++) {
-    for (E_Int j = nxfaces[i]; j < nxfaces[i+1]; j++) {
-      E_Int point = NGON[j];
-      if (PT.find(point) == PT.end()) {
-        PT[point] = nnpoints++;
-        E_Int source = get_proc(point-1, points_dist, nproc);
-        p_rcount[source]++;
+  std::vector<E_Int> p_scount(nproc);
+  for (E_Int i = 0; i < nproc; i++) {
+    E_Int *pf = &rfaces[f_rdist[i]];
+    for (E_Int j = 0; j < f_rcount[i]; j++) {
+      E_Int face = FT[pf[j]];
+      for (E_Int k = nxfaces[face]; k < nxfaces[face+1]; k++) {
+        E_Int point = NGON[k];
+        if (PT.find(point) == PT.end()) {
+          PT[point] = nnpoints++;
+          E_Int src = get_proc(point-1, points_dist, nproc);
+          p_rcount[src]++;
+        }
       }
     }
   }
-  
-  // requesting, roles are inverted
-  std::vector<E_Int> p_scount(nproc);
-  MPI_Alltoall(&p_rcount[0], 1, MPI_INT, &p_scount[0], 1, MPI_INT, MPI_COMM_WORLD);
 
-  std::vector<E_Int> p_rdist(nproc+1);
+  MPI_Alltoall(&p_rcount[0], 1, MPI_INT, &p_scount[0], 1, MPI_INT,
+    MPI_COMM_WORLD);
+
   std::vector<E_Int> p_sdist(nproc+1);
-  p_rdist[0] = p_sdist[0] = 0;
+  std::vector<E_Int> p_rdist(nproc+1);
+  p_sdist[0] = p_rdist[0] = 0;
   for (E_Int i = 0; i < nproc; i++) {
-    p_rdist[i+1] = p_rdist[i] + p_rcount[i];
     p_sdist[i+1] = p_sdist[i] + p_scount[i];
+    p_rdist[i+1] = p_rdist[i] + p_rcount[i];
   }
-
-  assert(p_rdist[nproc] == nnpoints);
-  std::vector<E_Int> rpoints(p_rdist[nproc]);
   std::vector<E_Int> spoints(p_sdist[nproc]);
+  std::vector<E_Int> rpoints(p_rdist[nproc]);
+  std::vector<E_Int> vpoints(nnpoints, 0);
+  assert(nnpoints == p_rdist[nproc]);
 
   for (E_Int i = 0; i < nproc; i++)
     idx[i] = p_rdist[i];
 
-  for (const auto& point : PT) {
-    E_Int source = get_proc(point.first-1, points_dist, nproc);
-    rpoints[idx[source]++] = point.first;
+  for (E_Int i = 0; i < nproc; i++) {
+    E_Int *pf = &rfaces[f_rdist[i]];
+    for (E_Int j = 0; j < f_rcount[i]; j++) {
+      E_Int face = FT[pf[j]];
+      for (E_Int k = nxfaces[face]; k < nxfaces[face+1]; k++) {
+        E_Int point = NGON[k];
+        if (!vpoints[PT[point]]) {
+          vpoints[PT[point]]++;
+          E_Int src = get_proc(point-1, points_dist, nproc);
+          rpoints[idx[src]++] = point;
+        }
+      }
+    }
   }
-  
+
   MPI_Alltoallv(&rpoints[0], &p_rcount[0], &p_rdist[0], MPI_INT,
                 &spoints[0], &p_scount[0], &p_sdist[0], MPI_INT,
                 MPI_COMM_WORLD);
 
-  std::vector<E_Int> sxcount(nproc,0);
-  std::vector<E_Int> rxcount(nproc,0);
-  std::vector<E_Int> sxdist(nproc+1);
-  std::vector<E_Int> rxdist(nproc+1);
-  sxdist[0] = rxdist[0] = 0;
-  for (E_Int i = 0; i < nproc; i++) {
-    sxcount[i] = p_scount[i]*3;
-    rxcount[i] = p_rcount[i]*3;
-    sxdist[i+1] = sxdist[i] + sxcount[i];
-    rxdist[i+1] = rxdist[i] + rxcount[i];
-  }
-
-  std::vector<E_Float> scrd(sxdist[nproc]);
-  std::vector<E_Float> rcrd(rxdist[nproc]);
-
-  E_Int first_point = points_dist[rank];
-
-  for (E_Int i = 0; i < nproc; i++)
-    idx[i] = sxdist[i];
-
-  for (E_Int i = 0; i < nproc; i++) {
-    E_Int *ptr = &spoints[p_sdist[i]];
-    for (E_Int j = 0; j < p_scount[i]; j++) {
-      E_Int point = ptr[j]-1;
-      point -= first_point;
-      scrd[idx[i]++] = X[point];
-      scrd[idx[i]++] = Y[point];
-      scrd[idx[i]++] = Z[point];
-    }
-  }
-
-  MPI_Alltoallv(&scrd[0], &sxcount[0], &sxdist[0], MPI_DOUBLE, 
-                &rcrd[0], &rxcount[0], &rxdist[0], MPI_DOUBLE,
-                MPI_COMM_WORLD);
-
   if (rank == 0)
-    printf("Points OK\n");
+    puts("rpoints ok");
 
   // renumber points
   PT.clear();
-  for (E_Int i = 0; i < nnpoints; i++) {
-    E_Int point = rpoints[i];
-    PT[point] = i;
+  nnpoints = 0;
+  for (const auto& point : rpoints)
+    PT[point] = nnpoints++;
+
+  // send coordinates
+  for (E_Int i = 0; i < nproc; i++) {
+    scount[i] = 3*p_scount[i];
+    rcount[i] = 3*p_rcount[i];
+    sdist[i+1] = sdist[i] + scount[i];
+    rdist[i+1] = rdist[i] + rcount[i];
+  }
+  assert(sdist[nproc] == 3*p_sdist[nproc]);
+  assert(rdist[nproc] == 3*p_rdist[nproc]);
+  
+  std::vector<E_Float> sxyz(sdist[nproc]);
+  std::vector<E_Float> rxyz(rdist[nproc]);
+
+  for (E_Int i = 0; i < nproc; i++) {
+    E_Int *pp = &spoints[p_sdist[i]];
+    E_Float *px = &sxyz[sdist[i]];
+    for (E_Int j = 0; j < p_scount[i]; j++) {
+      E_Int point = pp[j] - 1 - points_dist[rank];
+      *px++ = X[point];
+      *px++ = Y[point];
+      *px++ = Z[point];
+    }
   }
 
-  FldArrayF local_crd;
-  local_crd.malloc(nnpoints, 3);
-
-  for (E_Int i = 0; i < nnpoints; i++) {
-    E_Float *px = &rcrd[3*i];
-    for (E_Int j = 0; j < 3; j++)
-      local_crd(i, j+1) = px[j];
-  }
+  MPI_Alltoallv(&sxyz[0], &scount[0], &sdist[0], MPI_DOUBLE,
+                &rxyz[0], &rcount[0], &rdist[0], MPI_DOUBLE,
+                MPI_COMM_WORLD);
 
   // construct communication patches
-  for (E_Int i = 0; i < nproc; i++)
-    rcount[i] = 0;
-
-  for (E_Int i = 0; i < nnfaces; i++) {
-      E_Int face = rfaces[i];
-      E_Int src = get_proc(face-1, faces_dist, nproc);
-      rcount[src]++;
-  }
-
-  MPI_Alltoall(&rcount[0], 1, MPI_INT, &scount[0], 1, MPI_INT, MPI_COMM_WORLD);
-
-  rdist[0] = sdist[0] = 0;
   for (E_Int i = 0; i < nproc; i++) {
-    rdist[i+1] = rdist[i] + rcount[i];
+    scount[i] = 2*f_scount[i];
+    rcount[i] = 2*f_rcount[i];
     sdist[i+1] = sdist[i] + scount[i];
-  }
-  
-  for (E_Int i = 0; i < nproc; i++)
-    idx[i] = rdist[i];
-
-  for (E_Int i = 0; i < nproc; i++) {
-    sscount[i] = 2*scount[i];
-    rrcount[i] = 2*rcount[i];
-    ssdist[i+1] = ssdist[i] + sscount[i];
-    rrdist[i+1] = rrdist[i] + rrcount[i];
+    rdist[i+1] = rdist[i] + rcount[i];
   }
 
-  std::vector<E_Int> ssdata(ssdist[nproc]);
-  std::vector<E_Int> rrdata(rrdist[nproc]);
+  sdata.resize(sdist[nproc]);
+  rdata.resize(rdist[nproc]);
 
   for (E_Int i = 0; i < nproc; i++)
-    idx[i] = ssdist[i];
+    idx[i] = sdist[i];
 
   for (E_Int i = 0; i < nproc; i++) {
-    E_Int *ptr = &sfaces[sdist[i]];
-    for (E_Int j = 0; j < scount[i]; j++) {
+    E_Int *ptr = &sfaces[f_sdist[i]];
+    for (E_Int j = 0; j < f_scount[i]; j++) {
       E_Int face = ptr[j];
       assert(rank == get_proc(face-1, faces_dist, nproc));
       face -= 1 + faces_dist[rank];
       E_Int own = A[2*face];
       E_Int nei = A[2*face+1];
-      ssdata[idx[i]++] = own;
-      ssdata[idx[i]++] = nei;
+      sdata[idx[i]++] = own;
+      sdata[idx[i]++] = nei;
     }
   }
 
-  for (E_Int i = 0; i < nproc; i++)
-    assert(idx[i] == ssdist[i+1]);
-
-  assert(ssdist[nproc] == 2*sdist[nproc]);
-
-  MPI_Alltoallv(&ssdata[0], &sscount[0], &ssdist[0], MPI_INT,
-                &rrdata[0], &rrcount[0], &rrdist[0], MPI_INT,
+  MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], MPI_INT,
+                &rdata[0], &rcount[0], &rdist[0], MPI_INT,
                 MPI_COMM_WORLD);
-
-  std::unordered_map<E_Int, E_Int> CT;
-  for (E_Int i = 0; i < nncells; i++) {
-    CT[rcells[i]] = i;
-  }
 
   std::vector<E_Int> pneis; 
 
@@ -730,9 +736,9 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
 
   std::vector<E_Int> rncount(nproc,0);
   for (E_Int i = 0; i < nproc; i++) {
-    E_Int *ptr = &rrdata[rrdist[i]];
+    E_Int *ptr = &rdata[rdist[i]];
     E_Int j = 0;
-    for (; j < rrcount[i];) {
+    for (; j < rcount[i];) {
       E_Int own = ptr[j++];
       E_Int nei = ptr[j++];
 
@@ -764,7 +770,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
         assert(0);
       }
     }
-    assert(j == rrcount[i]);
+    assert(j == rcount[i]);
   }
 
   std::vector<E_Int> sncount(nproc);
@@ -788,11 +794,11 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   std::vector<E_Int> pfaces(rndist[nproc]);
 
   for (E_Int i = 0; i < nproc; i++) {
-    E_Int *ptr = &rrdata[rrdist[i]];
-    E_Int *pf = &rfaces[rdist[i]];
+    E_Int *ptr = &rdata[rdist[i]];
+    E_Int *pf = &rfaces[f_rdist[i]];
     E_Int j = 0;
     E_Int count = 0;
-    for (; j < rrcount[i];) {
+    for (; j < rcount[i];) {
       E_Int face = pf[count++];
       E_Int own = ptr[j++];
       E_Int nei = ptr[j++];
@@ -878,168 +884,63 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     }
   }
 
-  // request signed faces info if need be
-  if (sfaces_exist) {
-    for (E_Int i = 0; i < nproc; i++)
-      rcount[i] = 0;
-
-    // my faces are in rfaces
-    for (E_Int i = 0; i < nnfaces; i++) {
-      E_Int face = rfaces[i];
-      E_Int source = get_proc(face-1, faces_dist, nproc);
-      rcount[source]++;
-    }
-
-    MPI_Alltoall(&rcount[0], 1, MPI_INT, &scount[0], 1, MPI_INT, MPI_COMM_WORLD);
-
-    sdist[0] = rdist[0] = 0;
-    for (E_Int i = 0; i < nproc; i++) {
-      rdist[i+1] = rdist[i] + rcount[i];
-      sdist[i+1] = sdist[i] + scount[i];
-    }
-
-    rdata.resize(rdist[nproc]);
-    sdata.resize(sdist[nproc]);
-
-    for (E_Int i = 0; i < nproc; i++)
-      idx[i] = rdist[i];
-
-    for (E_Int i = 0; i < nnfaces; i++) {
-      E_Int face = rfaces[i];
-      E_Int source = get_proc(face-1, faces_dist, nproc);
-      rdata[idx[source]++] = face;
-    }
-
-    MPI_Alltoallv(&rdata[0], &rcount[0], &rdist[0], MPI_INT,
-                  &sdata[0], &scount[0], &sdist[0], MPI_INT,
-                  MPI_COMM_WORLD);
-
-    for (E_Int i = 0; i < nproc; i++)
-      sscount[i] = 0;
-
-    for (E_Int i = 0; i < nproc; i++) {
-      E_Int *ptr = &sdata[sdist[i]];
-      for (E_Int j = 0; j < scount[i]; j++) {
-        E_Int face = ptr[j];
-        if (SF.find(face) != SF.end())
-          sscount[i]++;
-      }
-    }
-
-    std::vector<E_Int> rscount(nproc); // signed rcount
-    MPI_Alltoall(&sscount[0], 1, MPI_INT, &rscount[0], 1, MPI_INT, MPI_COMM_WORLD);
-
-    std::vector<E_Int> rsdist(nproc+1);
-    ssdist[0] = rsdist[0] = 0;
-    for (E_Int i = 0; i < nproc; i++) {
-      ssdist[i+1] = ssdist[i] + sscount[i];
-      rsdist[i+1] = rsdist[i] + rscount[i];
-    }
-
-    std::vector<E_Int> ssdata(ssdist[nproc]);
-    std::vector<E_Int> rsdata(rsdist[nproc]);
-
-    for (E_Int i = 0; i < nproc; i++)
-      idx[i] = ssdist[i];
-
-    for (E_Int i = 0; i < nproc; i++) {
-      E_Int *ptr = &sdata[sdist[i]];
-      for (E_Int j = 0; j < scount[i]; j++) {
-        E_Int face = ptr[j];
-        if (SF.find(face) != SF.end())
-          ssdata[idx[i]++] = face;
-      }
-    }
-
-    MPI_Alltoallv(&ssdata[0], &sscount[0], &ssdist[0], MPI_INT,
-                  &rsdata[0], &rscount[0], &rsdist[0], MPI_INT,
-                MPI_COMM_WORLD);
-  
-    // make local PE
-    std::vector<E_Int> lPE(2*nnfaces, -1);
-    std::vector<E_Int> cPE(nnfaces, 0);
-    for (E_Int i = 0; i < nncells; i++) {
-      for (E_Int j = nxcells[i]; j < nxcells[i+1]; j++) {
-        E_Int face = NFACE[j];
-        E_Int lf = FT[face];
-        lPE[2*lf + cPE[lf]++] = i;
-      }
-    }
-
-    // reset signed faces
-    for (E_Int i = 0; i < nproc; i++) {
-      E_Int *ptr = &rsdata[rsdist[i]];
-      for (E_Int j = 0; j < rscount[i]; j++) {
-        E_Int face = ptr[j];
-        E_Int lf = FT[face];
-        
-        E_Int own = lPE[2*lf];
-        for (E_Int k = nxcells[own]; k < nxcells[own+1]; k++) {
-          if (face == NFACE[k]) {
-            NFACE[k] = -face;
-            break;
-          }
-        }
-        
-        E_Int nei = lPE[2*lf+1];
-        if (nei == -1) continue;
-        for (E_Int k = nxcells[nei]; k < nxcells[nei+1]; k++) {
-          if (face == NFACE[k]) {
-            NFACE[k] = -face;
-            break;
-          }
-        }
-      }
-    }
-
-    if (rank == 0)
-      printf("Signed faces OK\n");
-  }
-  
-  // TODO (Imad): use Cassiopee's data structures to avoid copying
-  const char *varString = "CoordinateX,CoordinateY,CoordinateZ";
- 
-  /* export array3 / NGON v4 */
-  // TODO(Imad): avoid copying
-  PyObject* m = K_ARRAY::buildArray3(3, varString, nnpoints, nncells, nnfaces, "NGON",
-                               nxfaces[nnfaces], nxcells[nncells], 3,  
-                               false, 3);
-  K_FLD::FldArrayF* f; K_FLD::FldArrayI* cn;
-  K_ARRAY::getFromArray3(m, f, cn); 
-  
-  // copie des champs
-  for (E_Int n = 0; n < 3; n++)
-  {
-    E_Float* pt = f->begin(n+1);
-    for (E_Int i = 0; i < nnpoints; i++) pt[i] = local_crd(i, n+1);
-  }
-  // copie connect
-  E_Int* ngon = cn->getNGon();
-  E_Int* nface = cn->getNFace();
-  E_Int* indPG = cn->getIndPG();
-  E_Int* indPH = cn->getIndPH();
-  for (E_Int i = 0; i <= nnfaces; i++) indPG[i] = nxfaces[i];
-  for (E_Int i = 0; i <= nncells; i++) indPH[i] = nxcells[i];
-  E_Int* ptr = ngon;
-  E_Int start, end;
-  for (E_Int i = 0; i < nnfaces; i++)
-  {
-    start = nxfaces[i];
-    end = nxfaces[i+1];
-    for (E_Int j = start; j < end; j++) 
-    { *ptr = PT[NGON[j]]+1; ptr++; }
-  }
-  ptr = nface;
-  for (E_Int i = 0; i < nncells; i++)
-  {
-    start = nxcells[i];
-    end = nxcells[i+1];
-    for (E_Int j = start; j < end; j++) 
-    { *ptr = FT[NFACE[j]]+1; ptr++; }
-  }
-
   // Build output Python list
   PyObject* out = PyList_New(0);
+
+  const char *varString = "CoordinateX,CoordinateY,CoordinateZ";
+  // TODO(Imad): avoid copying
+  PyObject* m = K_ARRAY::buildArray3(3, varString, nnpoints, nncells, nnfaces,
+    "NGON", nxfaces[nnfaces], nxcells[nncells], 3, false, 3);
+
+  K_FLD::FldArrayF *f; K_FLD::FldArrayI *cn;
+  K_ARRAY::getFromArray3(m, f, cn); 
+
+  for (E_Int n = 0; n < 3; n++) {
+    E_Float *pt = f->begin(n+1);
+    for (E_Int i = 0; i < nnpoints; i++)
+      pt[i] = rxyz[3*i+n];
+  }
+
+  E_Int *ngon = cn->getNGon();
+  E_Int *nface = cn->getNFace();
+  E_Int *indPG = cn->getIndPG();
+  E_Int *indPH = cn->getIndPH();
+
+  for (E_Int i = 0; i <= nnfaces; i++) indPG[i] = nxfaces[i];
+  for (E_Int i = 0; i <= nncells; i++) indPH[i] = nxcells[i];
+
+  E_Int* ptr = ngon;
+
+  for (E_Int i = 0; i < nnfaces; i++) {
+    E_Int start = nxfaces[i];
+    E_Int end = nxfaces[i+1];
+    for (E_Int j = start; j < end; j++) 
+      *ptr++ = PT[NGON[j]]+1;
+  }
+
+  ptr = nface;
+
+  if (sfaces_exist) {
+    for (E_Int i = 0; i < nncells; i++) {
+      E_Int start = nxcells[i];
+      E_Int end = nxcells[i+1];
+      for (E_Int j = start; j < end; j++) {
+        E_Int face = NFACE[j];
+        if (SF.find(face) == SF.end())
+          *ptr++ = FT[NFACE[j]]+1;
+        else
+          *ptr++ = -(FT[NFACE[j]]+1);
+      }
+    }
+  } else {
+    for (E_Int i = 0; i < nncells; i++) {
+      E_Int start = nxcells[i];
+      E_Int end = nxcells[i+1];
+      for (E_Int j = start; j < end; j++) 
+        *ptr++ = FT[NFACE[j]]+1;
+    }
+  }
+
 
   PyList_Append(out, m);  
   Py_DECREF(m);

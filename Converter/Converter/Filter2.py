@@ -927,5 +927,5 @@ def chunk2part(distTree):
 
 def loadAndSplit(fileName):
   dt = loadAsChunks(fileName)
-  t = chunk2part(dt)
-  return t
+  t, RES = chunk2part(dt)
+  return t, RES
