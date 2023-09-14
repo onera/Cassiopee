@@ -426,7 +426,8 @@ def createApp(win):
 #==============================================================================
 def showApp():
     #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    CTK.WIDGETS['SolverNoteBook'].add(WIDGETS['frame'], text='tkDistributor')
+    try: CTK.WIDGETS['SolverNoteBook'].add(WIDGETS['frame'], text='tkDistributor')
+    except: pass
     CTK.WIDGETS['SolverNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================

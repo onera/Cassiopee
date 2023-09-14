@@ -839,7 +839,8 @@ def createApp(win):
 #==============================================================================
 def showApp():
     #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    CTK.WIDGETS['SolverNoteBook'].add(WIDGETS['frame'], text='tkFastSolver')
+    try: CTK.WIDGETS['SolverNoteBook'].add(WIDGETS['frame'], text='tkFastSolver')
+    except: pass
     CTK.WIDGETS['SolverNoteBook'].select(WIDGETS['frame'])
     getData()
 

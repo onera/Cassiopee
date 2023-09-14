@@ -155,7 +155,8 @@ def createApp(win):
 #==============================================================================
 def showApp():
     #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    CTK.WIDGETS['StateNoteBook'].add(WIDGETS['frame'], text='tkCamera')
+    try: CTK.WIDGETS['StateNoteBook'].add(WIDGETS['frame'], text='tkCamera')
+    except: pass
     CTK.WIDGETS['StateNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================

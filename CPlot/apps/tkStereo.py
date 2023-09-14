@@ -75,7 +75,8 @@ def createApp(win):
 #==============================================================================
 def showApp():
     #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    CTK.WIDGETS['RenderNoteBook'].add(WIDGETS['frame'], text='tkStereo')
+    try: CTK.WIDGETS['RenderNoteBook'].add(WIDGETS['frame'], text='tkStereo')
+    except: pass
     CTK.WIDGETS['RenderNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================

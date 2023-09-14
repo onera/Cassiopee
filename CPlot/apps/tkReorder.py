@@ -200,7 +200,8 @@ def createApp(win):
 #==============================================================================
 def showApp():
     #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    CTK.WIDGETS['BlockNoteBook'].add(WIDGETS['frame'], text='tkReorder')
+    try: CTK.WIDGETS['BlockNoteBook'].add(WIDGETS['frame'], text='tkReorder')
+    except: pass
     CTK.WIDGETS['BlockNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================

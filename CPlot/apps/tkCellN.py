@@ -278,7 +278,8 @@ def createApp(win):
 #==============================================================================
 def showApp():
     #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    CTK.WIDGETS['VisuNoteBook'].add(WIDGETS['frame'], text='tkCellN')
+    try: CTK.WIDGETS['VisuNoteBook'].add(WIDGETS['frame'], text='tkCellN')
+    except: pass
     CTK.WIDGETS['VisuNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================

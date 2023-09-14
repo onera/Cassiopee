@@ -427,7 +427,8 @@ def createApp(win):
 #==============================================================================
 def showApp():
     #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    CTK.WIDGETS['BlockNoteBook'].add(WIDGETS['frame'], text='tkTransform')
+    try: CTK.WIDGETS['BlockNoteBook'].add(WIDGETS['frame'], text='tkTransform')
+    except: pass
     CTK.WIDGETS['BlockNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================

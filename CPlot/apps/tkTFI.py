@@ -477,7 +477,8 @@ def createApp(win):
 #==============================================================================
 def showApp():
     #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    CTK.WIDGETS['MeshNoteBook'].add(WIDGETS['frame'], text='tkTFI')
+    try: CTK.WIDGETS['MeshNoteBook'].add(WIDGETS['frame'], text='tkTFI')
+    except: pass
     CTK.WIDGETS['MeshNoteBook'].select(WIDGETS['frame'])
     
 #==============================================================================

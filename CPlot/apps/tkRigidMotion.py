@@ -926,7 +926,8 @@ def createApp(win):
 #==============================================================================
 def showApp():
     #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    CTK.WIDGETS['MotionNoteBook'].add(WIDGETS['frame'], text='tkRigidMotion')
+    try: CTK.WIDGETS['MotionNoteBook'].add(WIDGETS['frame'], text='tkRigidMotion')
+    except: pass
     CTK.WIDGETS['MotionNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================

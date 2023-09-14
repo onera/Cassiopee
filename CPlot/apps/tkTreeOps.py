@@ -242,7 +242,8 @@ def createApp(win):
 #==============================================================================
 def showApp():
     #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    CTK.WIDGETS['TreeNoteBook'].add(WIDGETS['frame'], text='tkTreeOps')
+    try: CTK.WIDGETS['TreeNoteBook'].add(WIDGETS['frame'], text='tkTreeOps')
+    except: pass
     CTK.WIDGETS['TreeNoteBook'].select(WIDGETS['frame'])
     
 #==============================================================================

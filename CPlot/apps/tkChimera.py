@@ -382,7 +382,8 @@ def createApp(win):
 #==============================================================================
 def showApp():
     #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    CTK.WIDGETS['BCNoteBook'].add(WIDGETS['frame'], text='tkChimera')
+    try: CTK.WIDGETS['BCNoteBook'].add(WIDGETS['frame'], text='tkChimera')
+    except: pass
     CTK.WIDGETS['BCNoteBook'].select(WIDGETS['frame'])
     updateApp()
 

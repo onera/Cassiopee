@@ -393,7 +393,8 @@ def createApp(win):
 #==============================================================================
 def showApp():
     #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    CTK.WIDGETS['EdgeNoteBook'].add(WIDGETS['frame'], text='tkExtractEdges')
+    try: CTK.WIDGETS['EdgeNoteBook'].add(WIDGETS['frame'], text='tkExtractEdges')
+    except: pass
     CTK.WIDGETS['EdgeNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================

@@ -316,7 +316,8 @@ def createApp(win):
 #==============================================================================
 def showApp():
     #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    CTK.WIDGETS['PostNoteBook'].add(WIDGETS['frame'], text='tkStream')
+    try: CTK.WIDGETS['PostNoteBook'].add(WIDGETS['frame'], text='tkStream')
+    except: pass
     CTK.WIDGETS['PostNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================

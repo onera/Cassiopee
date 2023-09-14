@@ -283,7 +283,8 @@ def createApp(win):
 #==============================================================================
 def showApp():
     #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    CTK.WIDGETS['SurfNoteBook'].add(WIDGETS['frame'], text='tkBoolean')
+    try: CTK.WIDGETS['SurfNoteBook'].add(WIDGETS['frame'], text='tkBoolean')
+    except: pass
     CTK.WIDGETS['SurfNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
