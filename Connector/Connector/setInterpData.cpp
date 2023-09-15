@@ -52,11 +52,12 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
   PyObject *donorArrays;// domaines d'interpolation
   E_Int Order;
   E_Int Nature;
+  E_Int enableExtrap;
   E_Int PenalizeBorders;
   PyObject* InterpDataType;// liste pour chaque zone donneuse 1 : ADT ou 0 : CART
   PyObject* allHooks;
-  if (!PYPARSETUPLEI(args, "OOlllOO", "OOiiiOO",
-                    &receiverArray, &donorArrays, &Order, &Nature, &PenalizeBorders, 
+  if (!PYPARSETUPLEI(args, "OOllllOO", "OOiiiiOO",
+                    &receiverArray, &donorArrays, &Order, &Nature, &PenalizeBorders, &enableExtrap,
                     &InterpDataType, &allHooks))
   {
       return NULL;
@@ -581,11 +582,12 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
   PyObject *donorArrays;// domaines d'interpolation
   E_Int Order;
   E_Int Nature;
+  E_Int enableExtrap;
   E_Int PenalizeBorders;
   PyObject* InterpDataType;// liste pour chaque zone donneuse 1 : ADT ou 0 : CART
   PyObject* allHooks;
-  if (!PYPARSETUPLEI(args, "OOlllOO", "OOiiiOO",
-                    &receiverArray, &donorArrays, &Order, &Nature, &PenalizeBorders, 
+  if (!PYPARSETUPLEI(args, "OOllllOO", "OOiiiiOO",
+                    &receiverArray, &donorArrays, &Order, &Nature, &PenalizeBorders, &enableExtrap,
                     &InterpDataType, &allHooks))
   {
       return NULL;
@@ -982,7 +984,8 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
         a2, a3, a4, a5, posxs, posys, poszs, poscs,
         vol, indi, cf, tmpIndi, tmpCf, type, noblk, interpType, nature, penalty);   
       isExtrapolated = 0;
-      if (ok != 1)
+      // if Extrap=1, enable extrapolation
+      if (ok != 1 && enableExtrap == 1)
       {
         ok = K_INTERP::getExtrapolationCell(
           x, y, z, interpDatas, fields,

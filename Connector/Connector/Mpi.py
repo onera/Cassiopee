@@ -684,7 +684,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
 # IN: sameBase=1 (itype='chimera'): autorise l'interpolation dans la meme base
 # memes arguments que setInterpData
 #=========================================================================
-def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
+def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0, extrap=1,
                    method='lagrangian', loc='nodes', storage='direct',
                    interpDataType=1, hook=None, cartesian=False, sameBase=0,
                    topTreeRcv=None, topTreeDnr=None, sameName=1, 
@@ -697,10 +697,10 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                         cartesian=False, zoneGC=True, keepOldNodes=False)
         Cmpi._addXZones(aD, graph, variables=[], noCoordinates=True, 
                         cartesian=False, zoneGC=True, keepOldNodes=False)
-        X._setInterpData(aR, aD, double_wall, order, penalty, nature, 
-                         method, loc, storage, interpDataType, hook, 
-                         topTreeRcv, topTreeDnr,
-                         sameName, dim, itype)
+        X._setInterpData(aR, aD, double_wall=double_wall, order=order, penalty=penalty, nature=nature, 
+                         method=method, loc=loc, storage=storage, interpDataType=interpDataType, hook=hook, 
+                         topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr,
+                         sameName=sameName, dim=dim, itype=itype)
         Cmpi._rmXZones(aR); Cmpi._rmXZones(aD)
 
     elif itype == 'chimeraOld': # ancienne version
@@ -723,10 +723,10 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
         Cmpi._addXZones(aD, graph, variables=['centers:cellN'], noCoordinates=False, 
                         cartesian=False, zoneGC=False, keepOldNodes=False)
         
-        X._setInterpData(aR, aD, double_wall, order, penalty, nature, 
-                         method, loc, storage, interpDataType, hook, 
-                         topTreeRcv, topTreeDnr,
-                         sameName, dim, itype)
+        X._setInterpData(aR, aD, double_wall=double_wall, order=order, penalty=penalty, nature=nature, 
+                         method=method, loc=loc, storage=storage, interpDataType=interpDataType, hook=hook, 
+                         topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr,
+                         sameName=sameName, dim=dim, itype=itype)
 
         Cmpi._rmXZones(aR); Cmpi._rmXZones(aD)
     
@@ -792,10 +792,11 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
                 else: interpDataTypeL.append(1)
             
             if dnrZones != []:
-                X._setInterpData(zr, dnrZones, double_wall, order, penalty, nature,
-                                 method, loc, storage, interpDataTypeL, hookL, # HOOKL 
-                                 topTreeRcv, topTreeDnr,
-                                 sameName, dim, itype="chimera")
+                X._setInterpData(zr, dnrZones, double_wall=double_wall, order=order, penalty=penalty, nature=nature, 
+                         method=method, loc=loc, storage=storage, interpDataType=interpDataTypeL, hook=hookL, 
+                         topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr,
+                         sameName=sameName, dim=dim, itype="chimera")
+
             for zd in dnrZones:
                 zdname = zd[0]
                 destProc = procDict[zdname]

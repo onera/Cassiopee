@@ -411,6 +411,8 @@ def setDoublyDefinedBC(z, cellN, listOfInterpZones, listOfCelln, winrange,
 # IN: penalty=1: penalise une cellule donneuse en terme de volume si elle est au bord
 # IN: nature=0: aucun sommet de la cellule d'interpolation ne doit etre avec un cellN=0
 #     nature=1: toutes les sommets de la cellule d'interpolation doivent etre de cellN=1
+# IN: extrap=0: pas de calcul des point extrapoles
+#     extrap=1: calcul et stockage des eventuels pts extrapoles
 # IN: hook: hook sur l'adt (pas reconstruit dans setInterpData), l'ordre doit suivre celui de zonesD
 # IN : interpDataType : 1 for ADT, 0 if donor are cartesian (optimized)
 # OUT: res = [[rcvInd1],[donorInd1D],[donorType],[coefs],extrapInd1D, orphanInd1D]
@@ -422,7 +424,7 @@ def setDoublyDefinedBC(z, cellN, listOfInterpZones, listOfCelln, winrange,
 #      res[5] orphanInd1D: indice 1D des points orphelins (numero ds interpPts)
 # 
 #===============================================================================
-def setInterpData__(interpPts, zonesD, order=2, penalty=1, nature=0, method='lagrangian', interpDataType=1, hook=None, dim=3):    
+def setInterpData__(interpPts, zonesD, order=2, penalty=1, extrap=1, nature=0, method='lagrangian', interpDataType=1, hook=None, dim=3):    
     if method == 'lagrangian': 
         if isinstance(interpPts[0], list): # liste d arrays
             if interpPts[0][1].shape[1] >0: return connector.setInterpDataDW(interpPts, zonesD, order, nature, penalty, hook)
@@ -431,7 +433,7 @@ def setInterpData__(interpPts, zonesD, order=2, penalty=1, nature=0, method='lag
             if interpPts[1].shape[1]>0: 
                 if not isinstance(interpDataType,list): interpDataTypeL=[interpDataType]*len(zonesD)
                 else: interpDataTypeL = interpDataType
-                return connector.setInterpData(interpPts, zonesD, order, nature, penalty, interpDataTypeL, hook)
+                return connector.setInterpData(interpPts, zonesD, order, nature, penalty, extrap, interpDataTypeL, hook)
             else: return None
 
     elif method == 'leastsquares':

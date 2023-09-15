@@ -1071,6 +1071,8 @@ def _setInterpData2(aR, aD, order=2, loc='centers', cartesian=False):
 # IN: penalty=1: penalise une cellule donneuse en terme de volume si elle est au bord
 # IN: nature=0: aucun sommet de la cellule d'interpolation ne doit etre avec un cellN=0
 #     nature=1: toutes les sommets de la cellule d'interpolation doivent etre de cellN=1
+# IN: extrap=0: pas de calcul des point extrapoles
+#     extrap=1: calcul et stockage des eventuels pts extrapoles
 # IN: interpDataType: 1 for ADT, 0 if donor are cartesian (optimized)
 # IN: hook: hook sur l'adt (pas reconstruit dans setInterpData), l'ordre doit suivre celui de zonesD
 # IN: double_wall=1: activation de la technique double wall
@@ -1084,21 +1086,20 @@ def _setInterpData2(aR, aD, order=2, loc='centers', cartesian=False):
 # OUT: stockage indirect: retourne tD avec les donnees d'interpolation
 # RMQ: method='conservative' -> tout le domaine receveur est pour l'instant considere a interpoler (maquette)
 #==============================================================================
-def setInterpData(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
+def setInterpData(tR, tD, double_wall=0, order=2, penalty=1, nature=0, extrap=1,
                   method='lagrangian', loc='nodes', storage='direct',
                   interpDataType=1, hook=None,
                   topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both'):
     """Compute and store overset interpolation data."""
     aR = Internal.copyRef(tR)
     aD = Internal.copyRef(tD)
-    _setInterpData(aR, aD, double_wall=double_wall, order=order, penalty=penalty, nature=nature,
+    _setInterpData(aR, aD, double_wall=double_wall, order=order, penalty=penalty, nature=nature, extrap=extrap,
                    method=method, loc=loc, storage=storage, interpDataType=interpDataType,
-                   hook=hook, topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr, sameName=sameName, 
-                   dim=dim, itype=itype)
+                   hook=hook, topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr, sameName=sameName, dim=dim, itype=itype)
     if storage == 'direct': return aR
     else: return aD
 
-def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
+def _setInterpData(aR, aD, double_wall=0, order=2, extrap=1, penalty=1, nature=0,
                    method='lagrangian', loc='nodes', storage='direct',
                    interpDataType=1, hook=None,
                    topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both'):
@@ -1106,7 +1107,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
     # Recherche pour les pts coincidents (base sur les GridConnectivity)
     if itype != 'chimera': # abutting
         if storage == 'direct':
-            _setInterpDataForGhostCellsStruct__(aR, aD, storage, loc)
+            _setInterpDataForGhostCellsStruct__(aR,aD,storage,loc)
         else:
             _setInterpDataForGhostCellsStruct__(aR, aD, storage, loc)
             _setInterpDataForGhostCellsNGon__(aR, aD, storage, loc)
@@ -1116,7 +1117,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
             _adaptForRANSLES__(aR, aD)
 
     if itype != 'abutting': # chimera
-        _setInterpDataChimera(aR, aD, double_wall=double_wall, order=order, penalty=penalty, nature=nature,
+        _setInterpDataChimera(aR, aD, double_wall=double_wall, order=order, penalty=penalty, nature=nature, extrap=extrap,
                               method=method, loc=loc, storage=storage, interpDataType=interpDataType, hook=hook,
                               topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr, sameName=sameName, dim=dim, itype=itype)
 
@@ -1125,7 +1126,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
     #if storage=='inverse': _adaptForRANSLES__(aR, aD)
     return None
 
-def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
+def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0, extrap=1,
                           method='lagrangian', loc='nodes', storage='direct',
                           interpDataType=1, hook=None,
                           topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both'):
@@ -1290,7 +1291,7 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
             # Etape 2 : calcul des donnees d'interpolation
             #---------------------------------------------
             # resInterp = [rcvInd1D,donorInd1D,donorType,coefs,extrap,orphan, EXdirs]
-            resInterp = Connector.setInterpData__(interpPts, arraysD, order=order, penalty=penalty, nature=nature, method=method, interpDataType=interpDataType,
+            resInterp = Connector.setInterpData__(interpPts, arraysD, order=order, penalty=penalty, nature=nature, extrap=extrap, method=method, interpDataType=interpDataType,
                                                   hook=allHooks, dim=dim)
             if resInterp is not None:
                 # Bilan
