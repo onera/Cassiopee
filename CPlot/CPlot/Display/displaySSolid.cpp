@@ -73,8 +73,12 @@ void DataDL::displaySSolid()
 #endif
         if (ptrState->isoLight == 1 && ptrState->dim == 3) light(3);
         
-        //displaySIsoSolidZone(zonep, zone, (int)(-zonep->colorR-2));
-        renderSIsoSolidZone(zonep, zone, (int)(-zonep->colorR-2));
+        if (ptrState->simplifyOnDrag == 1 && ptrState->ondrag == 1) displaySBBZone(zonep);
+        else
+        {
+          //displaySIsoSolidZone(zonep, zone, (int)(-zonep->colorR-2));
+          renderSIsoSolidZone(zonep, zone, (int)(-zonep->colorR-2));
+        }
       }
       //else if (ptrState->mode == RENDER && zonep->material == 9) // Billboarding
       //{
@@ -99,8 +103,12 @@ void DataDL::displaySSolid()
               light(2); break;
           }
         }
-        if (zoneImpl->_DLsolid != 0) renderGPUSSolidZone(zonep, zone);
-        else displaySSolidZone(zonep, zone);
+        if (ptrState->simplifyOnDrag == 1 && ptrState->ondrag == 1) displaySBBZone(zonep);
+        else
+        {
+          if (zoneImpl->_DLsolid != 0) renderGPUSSolidZone(zonep, zone);
+          else displaySSolidZone(zonep, zone);
+        }
       }
       ptrState->alpha = alphaSav;
       glDisable(GL_CULL_FACE); glDepthMask(GL_TRUE);

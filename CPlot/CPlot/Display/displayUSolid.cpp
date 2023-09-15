@@ -47,7 +47,8 @@ void DataDL::displayUSolid()
         // if zone is active and in frustum
         if ((zonep->active == 1 ||
                (zonep->active == 0 && ptrState->ghostifyDeactivatedZones == 1)) &&
-             isInFrustum( zonep, _view ) == 1 ) {
+             isInFrustum( zonep, _view ) == 1 ) 
+        {
             if (ptrState->mode == RENDER && zonep->meshOverlay == 1)
             {
                 noLight();
@@ -73,8 +74,12 @@ void DataDL::displayUSolid()
 #endif
                 if (ptrState->isoLight == 1 && ptrState->dim == 3) light(3);
 
-                //displayUIsoSolidZone(zonep, zone, (int)(-zonep->colorR-2));
-                renderUIsoSolidZone(zonep, zone, (int)( -zonep->colorR-2));
+                if (ptrState->simplifyOnDrag == 1 && ptrState->ondrag == 1) displayUBBZone(zonep);
+                else
+                {
+                    //displayUIsoSolidZone(zonep, zone, (int)(-zonep->colorR-2));
+                    renderUIsoSolidZone(zonep, zone, (int)( -zonep->colorR-2));
+                }
             }
             //else if (ptrState->mode == RENDER && zonep->material == 9) // Billboarding
             //{
@@ -99,15 +104,19 @@ void DataDL::displayUSolid()
                             light(2); break;
                     }
                 }
-                if (zonep->_is_high_order == false) 
+                if (ptrState->simplifyOnDrag == 1 && ptrState->ondrag == 1) displayUBBZone(zonep);
+                else
                 {
-                    if (zoneImpl->_DLsolid != 0) renderGPUUSolidZone(zonep, zone, zonet);
-                    else displayUSolidZone(zonep, zone, zonet);  // Direct
-                } 
-                else 
-                {
-                    if (zoneImpl->_DLsolid != 0) renderGPUUSolidHOZone(zonep, zone, zonet);
-                    else displayUSolidHOZone(zonep, zone, zonet);  // Direct
+                    if (zonep->_is_high_order == false)
+                    {
+                        if (zoneImpl->_DLsolid != 0) renderGPUUSolidZone(zonep, zone, zonet);
+                        else displayUSolidZone(zonep, zone, zonet);  // Direct
+                    } 
+                    else 
+                    {
+                        if (zoneImpl->_DLsolid != 0) renderGPUUSolidHOZone(zonep, zone, zonet);
+                        else displayUSolidHOZone(zonep, zone, zonet);  // Direct
+                    }
                 }
             }
             ptrState->alpha = alphaSav;

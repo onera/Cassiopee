@@ -252,6 +252,7 @@ void Data::initState()
   ptrState->ghostifyDeactivatedZones = 0;
   ptrState->edgifyDeactivatedZones = 0;
   ptrState->edgifyActivatedZones = 0;
+  ptrState->simplifyOnDrag = 0;
 
   ptrState->alpha = 1.;
   ptrState->currentMenuItem = 0;

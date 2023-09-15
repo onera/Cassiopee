@@ -92,8 +92,12 @@ void DataDL::displaySMesh()
 #else
       isDL = zoneImpl->_DLsolid;
 #endif
-      if (isDL == 0) displaySMeshZone(zonep, zone);
-      else renderGPUSMeshZone(zonep, zone);
+      if (ptrState->simplifyOnDrag == 1 && ptrState->ondrag == 1) displaySBBZone(zonep);
+      else
+      {
+        if (isDL == 0) displaySMeshZone(zonep, zone);
+        else renderGPUSMeshZone(zonep, zone);
+      }
     }
     zone++;
   }

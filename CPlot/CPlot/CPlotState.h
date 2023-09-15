@@ -54,6 +54,7 @@ struct CPlotState
     E_Int ghostifyDeactivatedZones;  // display deactivated zones as blended
     E_Int edgifyDeactivatedZones;    // display deactivated zones as edges (NI)
     E_Int edgifyActivatedZones;      // display activated zones as edges (NI)
+    E_Int simplifyOnDrag;            // simplify display on drag
 
     float alpha;            // parameter for alpha blending (1: no alpha blending)
     int   currentMenuItem;  // current displayed menu item
@@ -64,13 +65,13 @@ struct CPlotState
     E_Int render;             // -1: dont push data, dont flush buffer
                               // 0: push but dont flush
                               // 1, push and flush at end of display
-    E_Int   bb;               // if 1, display BB in global display
-    E_Int   header;           // if 1, display header in global display
-    E_Int   info;             // if 1, display the info on selected zone
-    E_Int   texture;          // if 1, display textures
-    E_Int   menu;             // if 1, display bottom menu
-    E_Int   isoLegend;        // if 1, display iso legend
-    E_Int   offscreen;        // 1: offscreen rendering with mesa, 2: with FBO, 
+    E_Int bb;                 // if 1, display BB in global display
+    E_Int header;             // if 1, display header in global display
+    E_Int info;               // if 1, display the info on selected zone
+    E_Int texture;            // if 1, display textures
+    E_Int menu;               // if 1, display bottom menu
+    E_Int isoLegend;          // if 1, display iso legend
+    E_Int offscreen;          // 1: offscreen rendering with mesa, 2: with FBO, 
                               // 3: with FBO composite incomplete, 4: with FBO composite finalized
     E_Int frameBuffer;        // numero du frame buffer (0-9)
     char* offscreenBuffer[10];  // buffer for rendering (offscreen)

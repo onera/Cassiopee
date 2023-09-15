@@ -1093,7 +1093,8 @@ def setInterpData(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
     aD = Internal.copyRef(tD)
     _setInterpData(aR, aD, double_wall=double_wall, order=order, penalty=penalty, nature=nature,
                    method=method, loc=loc, storage=storage, interpDataType=interpDataType,
-                   hook=hook, topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr, sameName=sameName, dim=dim, itype=itype)
+                   hook=hook, topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr, sameName=sameName, 
+                   dim=dim, itype=itype)
     if storage == 'direct': return aR
     else: return aD
 
@@ -1105,10 +1106,10 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0,
     # Recherche pour les pts coincidents (base sur les GridConnectivity)
     if itype != 'chimera': # abutting
         if storage == 'direct':
-            _setInterpDataForGhostCellsStruct__(aR,aD,storage,loc)
+            _setInterpDataForGhostCellsStruct__(aR, aD, storage, loc)
         else:
-            _setInterpDataForGhostCellsStruct__(aR,aD,storage,loc)
-            _setInterpDataForGhostCellsNGon__(aR,aD,storage,loc)
+            _setInterpDataForGhostCellsStruct__(aR, aD, storage, loc)
+            _setInterpDataForGhostCellsNGon__(aR, aD, storage, loc)
 
             # Determination du model pour RANS/LES
             #if itype == 'abutting': # SP : a mettre non ? sinon on le refait 2 fois

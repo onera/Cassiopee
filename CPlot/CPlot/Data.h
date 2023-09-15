@@ -395,6 +395,8 @@ public:
   void displayActivePoint();
   void displaySEdges();
   void displayUEdges();
+  void displaySBBZone(StructZone* z);
+  void displayUBBZone(UnstructZone* z);
   virtual void displaySMesh() = 0;
   void displaySMeshZone(StructZone* zonep, E_Int zone);
   virtual void displayUMesh() = 0;

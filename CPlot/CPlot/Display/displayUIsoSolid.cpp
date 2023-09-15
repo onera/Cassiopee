@@ -149,21 +149,25 @@ void DataDL::displayUIsoSolid()
          (zonep->active == 0 && ptrState->ghostifyDeactivatedZones == 1)) 
         && isInFrustum(zonep, _view) == 1)
     {
-      if (ptrState->mode == SCALARFIELD)
+      if (ptrState->simplifyOnDrag == 1 && ptrState->ondrag == 1) displayUBBZone(zonep);
+      else
       {
-        if (zoneImpl->_DLiso != 0)
-          renderUIsoSolidZone(zonep, zonet, ptrState->scalarField);
-        else
-          displayUIsoSolidZone(zonep, zonet, ptrState->scalarField);
-      }
-      else // VECTORFIELD
-      {
-        if (zoneImpl->_DLiso != 0)
-          renderUIsoSolidZone(zonep, zone, ptrState->vectorField1, 
-                              ptrState->vectorField2, ptrState->vectorField3);
-        else
-          displayUIsoSolidZone(zonep, zone, ptrState->vectorField1, 
-                               ptrState->vectorField2, ptrState->vectorField3);
+        if (ptrState->mode == SCALARFIELD)
+        {
+          if (zoneImpl->_DLiso != 0)
+            renderUIsoSolidZone(zonep, zonet, ptrState->scalarField);
+          else
+            displayUIsoSolidZone(zonep, zonet, ptrState->scalarField);
+        }
+        else // VECTORFIELD
+        {
+          if (zoneImpl->_DLiso != 0)
+            renderUIsoSolidZone(zonep, zone, ptrState->vectorField1, 
+                                ptrState->vectorField2, ptrState->vectorField3);
+          else
+            displayUIsoSolidZone(zonep, zone, ptrState->vectorField1, 
+                                ptrState->vectorField2, ptrState->vectorField3);
+        }
       }
     }
     zone++;
@@ -196,7 +200,8 @@ void DataDL::displayUIsoSolid()
            (zonep->active == 0 && ptrState->ghostifyDeactivatedZones == 1))
           && isInFrustum(zonep, _view) == 1)
       {
-	     displayUMeshZone(zonep, zone, zonet);
+        if (ptrState->simplifyOnDrag == 1 && ptrState->ondrag == 1) displayUBBZone(zonep);
+        else displayUMeshZone(zonep, zone, zonet);
       }
       zone++;
     }

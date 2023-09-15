@@ -151,7 +151,7 @@ def modifyBorders__(a, iminL, imaxL, jminL, jmaxL):
 def getExtCenterSubWin(wloc, allIndices, dirW=0):
     wloc = C.node2ExtCenter(wloc)
     dimsW = Internal.getZoneDim(wloc)        
-    niW=dimsW[1]; njW=dimsW[2];nkW=dimsW[3]
+    niW=dimsW[1]; njW=dimsW[2]; nkW=dimsW[3]
     if   dirW == 1: wLoc = T.subzone(wloc,(2,1,1),(2,njW,nkW))
     elif dirW == 2: wLoc = T.subzone(wloc,(1,2,1),(niW,2,nkW))
     elif dirW == 3: wLoc = T.subzone(wloc,(1,1,2),(niW,njW,2))
@@ -256,7 +256,7 @@ def extractDoubleWallInfo__(t):
     #
     nob=0; wallSurfacesEC=[]
     for base1 in bases:
-        zones1 = Internal.getNodesFromType1(base1,"Zone_t")
+        zones1 = Internal.getNodesFromType1(base1, "Zone_t")
         surfacesExt=[]; surfacesPerBase=[]
         noz=0
         for z1 in zones1:

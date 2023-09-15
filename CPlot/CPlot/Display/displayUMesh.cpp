@@ -29,7 +29,7 @@
 */
 //=============================================================================
 void DataDL::displayUMesh()
-{
+{  
   if (_numberOfUnstructZones == 0) return;
   E_Int zone, zonet, isDL;
 
@@ -94,8 +94,12 @@ void DataDL::displayUMesh()
 #else
       isDL = zoneImpl->_DLsolid;
 #endif
-      if (isDL == 0) displayUMeshZone(zonep, zone, zonet);
-      else renderGPUUMeshZone(zonep, zone, zonet);
+      if (ptrState->simplifyOnDrag == 1 && ptrState->ondrag == 1) displayUBBZone(zonep);
+      else
+      {
+        if (isDL == 0) displayUMeshZone(zonep, zone, zonet);
+        else renderGPUUMeshZone(zonep, zone, zonet);
+      }
     }
     zone++;
   }

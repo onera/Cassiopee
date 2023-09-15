@@ -151,21 +151,25 @@ void DataDL::displaySIsoSolid()
          (zonep->active == 0 && ptrState->ghostifyDeactivatedZones == 1))
         && isInFrustum(zonep, _view) == 1)
     {
-      if (ptrState->mode == SCALARFIELD)
+      if (ptrState->simplifyOnDrag == 1 && ptrState->ondrag == 1) displaySBBZone(zonep);
+      else
       {
-        if (zoneImpl->_DLiso != 0)
-          renderSIsoSolidZone(zonep, zone, ptrState->scalarField);
-        else
-          displaySIsoSolidZone(zonep, zone, ptrState->scalarField);
-      }
-      else // VECTORFIELD
-      {
-        if (zoneImpl->_DLiso != 0)
-          renderSIsoSolidZone(zonep, zone, ptrState->vectorField1, 
-                              ptrState->vectorField2, ptrState->vectorField3);
-        else
-          displaySIsoSolidZone(zonep, zone, ptrState->vectorField1, 
-                               ptrState->vectorField2, ptrState->vectorField3);
+        if (ptrState->mode == SCALARFIELD)
+        {
+          if (zoneImpl->_DLiso != 0)
+            renderSIsoSolidZone(zonep, zone, ptrState->scalarField);
+          else
+            displaySIsoSolidZone(zonep, zone, ptrState->scalarField);
+        }
+        else // VECTORFIELD
+        {
+          if (zoneImpl->_DLiso != 0)
+            renderSIsoSolidZone(zonep, zone, ptrState->vectorField1, 
+                                ptrState->vectorField2, ptrState->vectorField3);
+          else
+            displaySIsoSolidZone(zonep, zone, ptrState->vectorField1, 
+                                ptrState->vectorField2, ptrState->vectorField3);
+        }
       }
     }
     zone++;
