@@ -62,9 +62,8 @@ def modifyPoint(event=None):
     noz = CTK.Nz[nz]
     z = CTK.t[2][nob][2][noz]
     ind = CPlot.getActivePointIndex()
-    if ind == []:
-       CTK.TXT.insert('START', 'No selected point.\n')    
-       CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    if ind == []: # point in not selected in gfx window but
+       ind = [0]  # a point has only one point
     ind = ind[0]
     
     CTK.saveTree()
@@ -74,6 +73,8 @@ def modifyPoint(event=None):
     C.setValue(zp, 'CoordinateZ', ind, point[2])
     
     CPlot.replace(CTK.t, nob, noz, zp)
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
     CTK.TXT.insert('START', 'Point modified.\n')
     CPlot.render()
 
