@@ -6,8 +6,10 @@ import Converter.Mpi as Cmpi
 import Converter.Filter2 as Filter2
 import KCore.test as test
 
+LOCAL = test.getLocal()
+
 rank = Cmpi.rank
-fileName = 'case.cgns'
+fileName = LOCAL+'/case.cgns'
 
 # 1 - Make the case
 if rank == 0:
@@ -25,5 +27,5 @@ dt = Filter2.loadAsChunks(fileName)
 t, res = Filter2.chunk2part(dt)
 
 #if Cmpi.rank == 0: print(t, flush=True)
-Cmpi.convertPyTree2File(t, 'out.cgns')
-#if Cmpi.rank == 0: test.testT(t, 1)
+#Cmpi.convertPyTree2File(t, 'out.cgns')
+if Cmpi.rank == 0: test.testT(t, 1)

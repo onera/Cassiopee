@@ -37,7 +37,7 @@ try:
 except: isMpi = False
 
 # Check svn version
-CHECKSVNVERSION = True
+CHECKSVNVERSION = False
 
 # Regexprs
 regDiff = re.compile('DIFF')
