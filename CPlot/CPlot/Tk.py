@@ -944,6 +944,11 @@ def setPrefs():
             if val == 'Blue': style = 0
             elif val == 'Alpha': style = 1
             CPlot.setState(selectionStyle=style)
+        elif i == 'simplifyOnDrag':
+            if val == 'None': style = 0
+            elif val == 'BBox': style = 1
+            CPlot.setState(simplifyOnDrag=style)
+
         elif i == 'undo':
             val = int(val)
             if val == 0: __UNDO__ = False

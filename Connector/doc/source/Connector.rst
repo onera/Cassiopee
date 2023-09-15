@@ -715,7 +715,7 @@ Overset connectivity
    
 -----------------------------------------------------------------------------------------------------------------------------
 
-.. py:function:: Connector.PyTree.setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0, loc='nodes', storage='direct', topTreeRcv=None, topTreeDnr=None, sameName=0)
+.. py:function:: Connector.PyTree.setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0, extrap=1, loc='nodes', storage='direct', topTreeRcv=None, topTreeDnr=None, sameName=0)
 
     Compute and store in a pyTree the interpolation information (donor and receptor points, interpolation type, interpolation coefficients) given receptors defined by aR,
     donor zones given by aD. If storage='direct', then aR with interpolation data stored in receptor zones are returned, and if storage='inverse', then aD with interpolation data stored in donor zones are returned.
@@ -729,6 +729,8 @@ Overset connectivity
 
     nature=0 means that a candidate donor cell containing a blanked point(cellN=0) is not valid. If nature=1 all the nodes of the candidate donor cell must be cellN=1 to be valid.
 
+    extrap=1 means that extrapolation is enabled.
+    
     double_wall=1 activates the double wall correction. If there are walls defined by families in aR or aD, the corresponding top trees topTreeRcv or/and topTreeDnr must be defined.
 
     If sameName=1, interpolation from donor zones with the same name as

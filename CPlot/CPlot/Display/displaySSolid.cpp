@@ -54,7 +54,7 @@ void DataDL::displaySSolid()
       { 
         noLight(); 
         _shaders.activate((short unsigned int)0); 
-        displaySMeshZone(zonep, zone); 
+        displaySMeshZone(zonep, zone);
         light(2);
       }
 

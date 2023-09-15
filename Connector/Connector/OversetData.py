@@ -1051,7 +1051,7 @@ def _setInterpData2(aR, aD, order=2, loc='centers', cartesian=False):
     else: varcelln = 'centers:cellN'    
     cellNPresent = C.isNamePresent(aR, varcelln)
     if cellNPresent==-1: C._initVars(aR, varcelln, 2.) # interp all
-    _setInterpData(aR, aD, double_wall=0, order=order, penalty=1, nature=1,
+    _setInterpData(aR, aD, double_wall=0, order=order, penalty=1, nature=1, extrap=1, 
                    method='lagrangian', loc=loc, storage='inverse', 
                    interpDataType=interpDataType, sameName=0, itype="chimera")
     if cellNPresent==-1: C._rmVars(aR, [varcelln])
@@ -1099,7 +1099,7 @@ def setInterpData(tR, tD, double_wall=0, order=2, penalty=1, nature=0, extrap=1,
     if storage == 'direct': return aR
     else: return aD
 
-def _setInterpData(aR, aD, double_wall=0, order=2, extrap=1, penalty=1, nature=0,
+def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0, extrap=1,
                    method='lagrangian', loc='nodes', storage='direct',
                    interpDataType=1, hook=None,
                    topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both'):
@@ -1327,7 +1327,7 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0, e
                 # Interpoles/Extrapoles
                 for noz in range(nzonesDnr):
                     ninterploc = resInterp[0][noz].size
-                    if ninterploc > 0:# domaine d'interpolation
+                    if ninterploc > 0: # domaine d'interpolation
                         # Indices des receveurs
                         for noi in range(ninterploc):
                             index = resInterp[0][noz][noi]

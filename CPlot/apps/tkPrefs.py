@@ -79,8 +79,8 @@ def setBgColor(event=None):
     elif v == 'Clouds': va = 11
     elif v == 'Blueprint': va = 12
     elif v == 'Custom':
-        try: import tkFileDialog
-        except: import tkinter.filedialog as tkFileDialog
+        try: import tkinter.filedialog as tkFileDialog
+        except: import tkFileDialog
         if 'backgroundFile' in CTK.PREFS: initFile = CTK.PREFS['backgroundFile']
         else: initFile = 'paperBackground1.png'
         files = tkFileDialog.askopenfilenames(
@@ -109,6 +109,13 @@ def setSelectionStyle(event=None):
     elif v == 'Alpha': style = 1
     CPlot.setState(selectionStyle=style)
     CTK.PREFS['selectionStyle'] = v
+
+def setOnDragStyle(event=None):
+    v = VARS[10].get(); ondrag = 0
+    if v == 'None': ondrag = 0
+    elif v == 'BBox': ondrag = 1
+    CPlot.setState(simplifyOnDrag=ondrag)
+    CTK.PREFS['simplifyOnDrag'] = v
 
 def setEnvmap(event=None):
     val = VARS[6].get()
@@ -207,6 +214,8 @@ def createApp(win):
     V = TK.StringVar(win); V.set('1920x1080'); VARS.append(V)
     # -9- GUI Theme
     V = TK.StringVar(win); V.set('default'); VARS.append(V)
+    # -10- simplify on drag
+    V = TK.StringVar(win); V.set('None'); VARS.append(V)
 
     # Init VARS par le fichier de preferences
     CTK.loadPrefFile()
@@ -237,6 +246,7 @@ def createApp(win):
         elif i == 'auto': VARS[4].set(k1)
         elif i == 'envmap': VARS[6].set(k1)
         elif i == 'selectionStyle': VARS[7].set(k1)
+        elif i == 'simplifyOnDrag': VARS[10].set(k1)
         elif i == 'exportResolution': VARS[8].set(k1)
         elif i == 'guitheme': VARS[9].set(k1)
         
@@ -296,6 +306,14 @@ def createApp(win):
     B.grid(row=r, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Selection style.')
     B = TTK.OptionMenu(Frame, VARS[7], 'Blue', 'Alpha', command=setSelectionStyle)
+    B.grid(row=r, column=1, sticky=TK.EW)
+    r += 1
+
+    # - simplify on drag mode -
+    B = TTK.Label(Frame, text="On drag")
+    B.grid(row=r, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Kind of simplification when dragging.')
+    B = TTK.OptionMenu(Frame, VARS[10], 'None', 'BBox', command=setOnDragStyle)
     B.grid(row=r, column=1, sticky=TK.EW)
     r += 1
 

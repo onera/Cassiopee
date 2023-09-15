@@ -24,7 +24,7 @@
 #endif
 
 E_Int findFace(double xp, double yp, double zp, E_Int elt, 
-             UnstructZone* zone, double& dist);
+               UnstructZone* zone, double& dist);
 
 //=============================================================================
 PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
@@ -44,6 +44,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   int ghostifyDeactivatedZones;
   int edgifyActivatedZones;
   int edgifyDeactivatedZones;
+  int simplifyOnDrag;
   int stereo; E_Float stereoDist;
   int cursor;
   char* exportFile; char* exportResolution;
@@ -59,16 +60,18 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   char* backgroundFile;
   E_Float billBoardSize;
   if (!PyArg_ParseTuple(args, 
-	    "iOOiiiiiiiiiiddiiiiisssOidO(ii)(ddd)(ddd)(ddd)d(dd)isiiddidddiiississidi(ii)iiiOdOOii",
-        &dim, &modeObject, &scalarFieldObject,
+	    "iOOiiiiiiiiiiddiiiiisssOidO(ii)(ddd)(ddd)(ddd)d(dd)isiiddidddiiiississidi(ii)iiiOdOOii",
+        &dim, &modeObject, &scalarFieldObject, 
         &vectorField1, &vectorField2, &vectorField3,
         &displayBB, &displayInfo, &displayIsoLegend,
         &meshStyle, &solidStyle, &scalarStyle, 
-        &vectorStyle, &vectorScale, &vectorDensity, &vectorNormalize, 
-        &vectorShowSurface, &vectorShape, &vectorProjection, 
-        &colormap, &colormapC1, &colormapC2, &colormapC3, &colormapC,
+        &vectorStyle, &vectorScale, &vectorDensity, 
+        &vectorNormalize, &vectorShowSurface, &vectorShape, 
+        &vectorProjection, &colormap, &colormapC1, 
+        &colormapC2, &colormapC3, &colormapC,
         &niso, &isoEdges, &isoScales,
-        &winx, &winy, &xcam, &ycam, &zcam,
+        &winx, &winy, 
+        &xcam, &ycam, &zcam,
         &xeye, &yeye, &zeye, 
         &dirx, &diry, &dirz, &viewAngle,
         &lightOffsetX, &lightOffsetY,
@@ -76,7 +79,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
         &shadow, &dof, &dofPower, &gamma, &toneMapping,
         &sobelThreshold, &sharpenPower, &ssaoPower,
         &ghostifyDeactivatedZones, &edgifyActivatedZones,
-        &edgifyDeactivatedZones,
+        &edgifyDeactivatedZones, &simplifyOnDrag,
         &exportFile, &exportResolution, &continuousExport,
         &envmap, &message,
         &stereo, &stereoDist, &cursor,
@@ -128,6 +131,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   }
 
   if (cursor != -1) { int type = int(cursor); d->ptrState->updateCursor = type; }
+  if (simplifyOnDrag != -1) d->ptrState->simplifyOnDrag = simplifyOnDrag;
 
   if (continuousExport != -1) d->ptrState->continuousExport = continuousExport;
   if (gridSizeI != -1) d->ptrState->gridSizeI = gridSizeI;
