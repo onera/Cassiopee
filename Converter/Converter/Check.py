@@ -101,7 +101,8 @@ CGNSTypes = {
 # IN: level: check level 0 (version node), 1 (node conformity),
 # 2 (unique base name), 3 (unique zone name), 4 (unique BC name),
 # 5 (BC ranges), 6 (BCMatch/NearMatch), 7 (FamilyZone et FamilyBCs),
-# 8 (invalid CGNS Types), 9 (invalid connectivity), 10 (invalid fields)
+# 8 (invalid CGNS Types), 9 (invalid connectivity), 
+# 10 (invalid field names), 11 NAN in fields, 12 name length
 # if level=-n, perform check from 0 to n
 # OUT: error = [noeud posant probleme, message]
 #==============================================================================
@@ -162,6 +163,8 @@ def checkPyTree(t, level=-20):
         # check field dimension
         #errors += checkFieldConformity(t)
     if level <= -11 or level == 11:
+        errors += checkNAN(t)
+    if level <= -12 or level == 12:
         errors += checkNameLength(t)
     # Ne retourne que le noeud et le message dans les erreurs
     retErrors = []
@@ -223,6 +226,8 @@ def _correctPyTree(t, level=-20):
         #_correctCoordinatesInFields(t)
         #_correctFieldConformity(t)
     # Corrige les noms > 32 chars
+    if level <= -12 or level == 12:
+        _correctNAN(t)
     if level <= -11 or level == 11:
         _correctNameLength(t)
 
@@ -1296,3 +1301,26 @@ def _correctFieldConformity(t):
         c = Internal.getNodePosition(node, parent)
         del parent[2][c]
     return None
+
+#===============================================================================
+# Check NAN in fields
+#===============================================================================
+def checkNAN(t):
+    errors = []
+    zones = Internal.getZones(t)
+    for z in zones:
+        vars = C.getVarNames(z)
+        for v in vars:
+            isFinite = C.isFinite(z, v)
+            if not isFinite:
+                d = Internal.getZoneName2(z, v)
+                errors += [d, v, 'Field %s of zone %s has NAN.'%(v,z[0])]
+    return errors
+
+def _correctNAN(t):
+    errors = checkNAN(t)
+    for e in range(len(errors)//3):
+        node = errors[3*e]
+        field = errors[3*e+1]
+        C._setNANValuesAt(node, field, 0.)
+

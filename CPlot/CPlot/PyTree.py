@@ -80,6 +80,58 @@ def display(t,
                   export, exportResolution, 
                   zoneNames, renderTags, frameBuffer, offscreen)
     
+# CB: temporaire. Raw data direct display.
+def displayRaw(t,
+            dim=-1,
+            mode=-1,
+            scalarField=-1,
+            vectorField1=-1, vectorField2=-1, vectorField3=-1,
+            displayBB=-1,
+            displayInfo=-1,
+            displayIsoLegend=-1,
+            meshStyle=-1,
+            solidStyle=-1,
+            scalarStyle=-1,
+            vectorStyle=-1,
+            vectorScale=-1., vectorDensity=-1., vectorNormalize=-1,
+            vectorShowSurface=-1, vectorShape=-1, vectorProjection=-1,
+            colormap=-1,
+            colormapC1="", colormapC2="", colormapC3="", colormapC=None,
+            niso=25,
+            isoEdges=-0.5,
+            isoScales=[],
+            win=(-1,-1),
+            posCam=(-999,-999,-999),
+            posEye=(-999,-999,-999),
+            dirCam=(-999,-999,-999),
+            viewAngle=-1.,
+            bgColor=-1,
+            backgroundFile="None",
+            shadow=-1, lightOffset=(-999,-999),
+            dof=-1, dofPower=-1, gamma=-1, toneMapping=-1, 
+            stereo=-1, stereoDist=-1.,
+            export="None", exportResolution="None",
+            location='unchanged',
+            frameBuffer=-1,
+            offscreen=0):
+    zoneNames = C.getZoneNames(t)
+    renderTags = getRenderTags(t)
+    arrays = C.getAllFields(t, 'nodes', api=3)
+    CPlot.display(arrays, dim, mode, scalarField, vectorField1,
+                  vectorField2, vectorField3, displayBB, displayInfo,
+                  displayIsoLegend, meshStyle,
+                  solidStyle, scalarStyle, vectorStyle, 
+                  vectorScale, vectorDensity, vectorNormalize,
+                  vectorShowSurface, vectorShape, vectorProjection,
+                  colormap, colormapC1, colormapC2, colormapC3, colormapC,
+                  niso, isoEdges, isoScales, win,
+                  posCam, posEye, dirCam, viewAngle,
+                  bgColor, backgroundFile, 
+                  shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
+                  stereo, stereoDist,
+                  export, exportResolution, 
+                  zoneNames, renderTags, frameBuffer, offscreen)
+
 #==============================================================================
 def render():
     """Force render.

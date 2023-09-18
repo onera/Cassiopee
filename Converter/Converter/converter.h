@@ -59,6 +59,7 @@ namespace K_CONVERTER
   PyObject* normalize(PyObject* self, PyObject* args);
   PyObject* magnitude(PyObject* self, PyObject* args);
   PyObject* isFinite(PyObject* self, PyObject* args);
+  PyObject* setNANValuesAt(PyObject* self, PyObject* args);
   PyObject* convertBAR2Struct(PyObject* self, PyObject* args);
   PyObject* convertStruct2Tetra(PyObject* self, PyObject* args);
   PyObject* convertStruct2TetraBary(PyObject* self, PyObject* args);

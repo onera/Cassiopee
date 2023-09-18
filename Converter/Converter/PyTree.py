@@ -894,7 +894,7 @@ def _deleteEmptyZones(t):
     if dim[0] == 'Structured':
       if dim[1]*dim[2]*dim[3] == 0: removeZ = True
     else:
-      if dim[3]=='NODE':
+      if dim[3] == 'NODE':
         if dim[1] == 0: removeZ = True
       else: 
         if dim[1]*dim[2] == 0: removeZ = True
@@ -3193,7 +3193,7 @@ def getMinValue(t, varName):
   out = []
   if varNames[0] == Internal.__GridCoordinates__: varNames = ['CoordinateX', 'CoordinateY', 'CoordinateZ']
   for v in varNames:
-    A = getField(v, t, api=2)
+    A = getField(v, t, api=3)
     va = v.split(':')
     if len(va) > 1: v = va[1]
     minValue = 1.e9
@@ -3213,7 +3213,7 @@ def getMaxValue(t, varName):
   out = []
   if varNames[0] == Internal.__GridCoordinates__: varNames = ['CoordinateX', 'CoordinateY', 'CoordinateZ']
   for v in varNames:
-    A = getField(v, t, api=2)
+    A = getField(v, t, api=3)
     va = v.split(':')
     if len(va) > 1: v = va[1]
     maxValue = -1.e9
@@ -3228,7 +3228,7 @@ def getMaxValue(t, varName):
 def getMeanValue(t, var):
   """Get the mean value of variable defined by var.
   Usage: getMeanValue(t, var)"""
-  A = getField(var, t, api=2)
+  A = getField(var, t, api=3)
   v = var.split(':')
   if len(v) > 1: var = v[1]
   return Converter.getMeanValue(A, var)
@@ -6387,12 +6387,34 @@ def isFinite(a, var=None):
             array = n[1]
             #b = numpy.isfinite(array)
             #res = numpy.all(b)
-            array = array.ravel("k")
+            array = array.ravel(order="K")
             res = Converter.converter.isFinite(array)
             if res > 0:
               ret = False
               print('Warning: NAN or INF value in %s (%s)'%(n[0],z[0]))
   return ret
+
+def setNANValuesAt(a, var=None, value=0.):
+    """Set value if field is NAN."""
+    ap = Internal.copyTree(a)
+    _setNANValuesAt(ap, var=var, value=value)
+    return ap
+
+def _setNANValuesAt(a, var=None, value=0.):
+    """Set value if field is NAN."""
+    zones = Internal.getZones(a)
+    containers = [Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__, Internal.__FlowSolutionCenters__]
+    for z in zones:
+      for name in containers:
+        c = Internal.getNodeFromName1(z, name)
+        if c is not None:
+          nodes = Internal.getNodesFromType1(c, 'DataArray_t')
+          for n in nodes:
+            if var is None or n[0] == var:
+              array = n[1]
+              array = array.ravel(order="K")
+              Converter.converter.setNANValuesAt(array, value)
+    return None
 
 #==============================================================================
 # - add specific nodes -

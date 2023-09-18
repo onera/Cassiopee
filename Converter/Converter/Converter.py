@@ -21,7 +21,7 @@ __all__ = ['array', 'getApi', 'addVars', '_addVars', 'addVars2', 'center2ExtCent
     'convertArrays2File', 'convertFile2Arrays', 'copy',
     'createGlobalHook', 'createHook', 
     'createGlobalIndex', '_createGlobalIndex', 'recoverGlobalIndex', '_recoverGlobalIndex',
-    'createSockets', 'diffArrays', 'isFinite', 'extCenter2Node', 'extractVars', 'getIndexField',
+    'createSockets', 'diffArrays', 'isFinite', 'setNANValuesAt', 'extCenter2Node', 'extractVars', 'getIndexField',
     'freeHook', 'getArgMax', 'getArgMin', 'getMaxValue', 'getMeanRangeValue', 'getMeanValue', 'getMinValue',
     'getNCells', 'getNPts', 'getValue', 'getVarNames', 'identifyElements', 'identifyFaces', 'identifyNodes',
     'identifySolutions', 'initVars', '_initVars', 'isNamePresent', 'listen', 'magnitude',
@@ -742,7 +742,7 @@ def isFinite__(a, var=None):
     for c, v in enumerate(vars):
         if var is None or v == var:
             ptr = a[1][c]
-            ptr = ptr.ravel("k")
+            ptr = ptr.ravel(order="K")
             #b = numpy.isfinite(ptr)
             #res = numpy.all(b)
             res = converter.isFinite(ptr)
@@ -760,6 +760,27 @@ def isFinite(array, var=None):
             if not ret1: ret = False
         return ret
     else: return isFinite__(array, var)
+
+def _setNANValuesAt__(a, var=None, value=0.):
+    nfld = a[1].shape[0]
+    vars = getVarNames(a)
+    for c, v in enumerate(vars):
+        if var is None or v == var:
+            ptr = a[1][c]
+            ptr = ptr.ravel(order="K")            
+            converter.setNANValuesAt(ptr, value)
+    return None
+
+def _setNANValuesAt(array, var=None, value=0.):
+    """Set NAN values at value."""
+    if isinstance(array[0], list):
+        for a in array: _setNANValuesAt__(a, var)
+    else: return _setNANValuesAt__(array, var)
+
+def setNANValuesAt(array, var=None, value=0.):
+    """Set NAN values at value."""
+    b = copy(array)
+    return _setNANValuesAt(b, var, value)
 
 def getValue(array, ind):
     """Return the values of an array for a point of index ind or (i,j,k)...

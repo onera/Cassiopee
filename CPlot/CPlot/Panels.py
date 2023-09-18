@@ -260,6 +260,7 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
     myText += " - zstd (see Compressor/zstd/LICENCE).\n"
     myText += " - png (see KCore/Images/png/LICENCE).\n"
     myText += " - libjpeg (see KCore/Images/libjpeg/README).\n"
+    myText += " - Icons by Icons8.\n"
     
     textWidget.insert(TK.END, myText)
     return

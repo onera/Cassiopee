@@ -983,7 +983,7 @@ class Probe:
             npts = C.getNPts(z)
             ncells = C.getNCells(z)
             p2 = numpy.zeros( (ncells, ntime), dtype=numpy.float64)
-            for it in range(tmin, tmax):
+            for it in range(tmin, tmax+1):
                 z = zoneNames[name][it]
                 fss = Internal.getNodeFromName1(z, fieldCont)
                 pressure = Internal.getNodeFromName1(fss, fieldName)[1]
