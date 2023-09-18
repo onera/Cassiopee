@@ -226,11 +226,10 @@ def _correctPyTree(t, level=-20):
         #_correctCoordinatesInFields(t)
         #_correctFieldConformity(t)
     # Corrige les noms > 32 chars
-    if level <= -12 or level == 12:
-        _correctNAN(t)
     if level <= -11 or level == 11:
+        _correctNAN(t)
+    if level <= -12 or level == 12:
         _correctNameLength(t)
-
     C.registerAllNames(t)
 
     return None
@@ -1309,7 +1308,7 @@ def checkNAN(t):
     errors = []
     zones = Internal.getZones(t)
     for z in zones:
-        vars = C.getVarNames(z)
+        vars = C.getVarNames(z)[0]
         for v in vars:
             isFinite = C.isFinite(z, v)
             if not isFinite:
