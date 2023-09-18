@@ -116,3 +116,17 @@ void tree_print(tree *T)
 		puts("");
 	}
 }
+
+void tree_get_face_leaves(tree *ft, E_Int face, std::vector<E_Int> &leaves)
+{
+  E_Int nchildren = tree_get_nchildren(ft, face);
+
+  if (nchildren == 0) {
+    leaves.push_back(face);
+    return;
+  }
+
+  E_Int *children = tree_get_children(ft, face);
+  for (E_Int i = 0; i < nchildren; i++)
+    tree_get_face_leaves(ft, children[i], leaves);
+}

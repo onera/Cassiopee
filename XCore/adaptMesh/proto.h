@@ -20,6 +20,7 @@ E_Int get_neighbour(E_Int, E_Int, mesh *);
 void mesh_free(mesh *);
 E_Float mesh_memsize(mesh *);
 void mesh_save_memory(mesh *);
+mesh_leaves mesh_get_leaves(mesh *, tree *, tree *, E_Int);
 
 /* metric */
 void hessian_to_metric(E_Float *, mesh *);
@@ -77,5 +78,6 @@ E_Int *tree_get_children(tree *, E_Int);
 void tree_print(tree *);
 void tree_save_memory(tree *, E_Int);
 E_Float tree_memsize(tree *);
+void tree_get_face_leaves(tree *, E_Int, std::vector<E_Int> &);
 
 #endif

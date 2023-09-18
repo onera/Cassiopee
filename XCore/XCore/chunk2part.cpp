@@ -68,6 +68,9 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     return NULL;
   }
 
+  MPI_Barrier(MPI_COMM_WORLD);
+  clock_t tic = clock();
+  
   PyObject *o, *l;
   E_Int nfld;
   E_Float *X, *Y, *Z;
@@ -156,9 +159,9 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
 
   // global info
   if (rank == 0) {
-    printf("total number of cells: %d\n", cells_dist[nproc]);
-    printf("total number of faces: %d\n", faces_dist[nproc]);
-    printf("total number of points: %d\n", points_dist[nproc]);
+    printf("Total number of cells: %d\n", cells_dist[nproc]);
+    printf("Total number of faces: %d\n", faces_dist[nproc]);
+    printf("Total number of points: %d\n", points_dist[nproc]);
   }
 
   E_Int sfaces_exist = 0; // switch for handling signed faces
@@ -411,9 +414,6 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   nxcells[0] = 0;
   for (E_Int i = 0; i < nncells; i++)
     nxcells[i+1] += nxcells[i];
-  
-  if (rank == 0)
-    puts("rcells & nxcells OK");
 
   // send NFACE
   for (E_Int i = 0; i < nproc; i++) {
@@ -461,7 +461,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], MPI_INT,
                 &NFACE[0], &rcount[0], &rdist[0], MPI_INT,
                 MPI_COMM_WORLD);
-  
+
   if (rank == 0)
     puts("NFACE OK");
 
@@ -545,10 +545,6 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   for (const auto& face : rfaces)
     FT[face] = nnfaces++;
   
-
-  if (rank == 0)
-    puts("rfaces OK");
-  
   // send face strides
   std::vector<E_Int> f_stride(f_sdist[nproc]);
   std::vector<E_Int> nxfaces(nnfaces+1, 0);
@@ -574,9 +570,6 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
     nxfaces[i+1] += nxfaces[i];
   
   MPI_Alltoall(&scount[0], 1, MPI_INT, &rcount[0], 1, MPI_INT, MPI_COMM_WORLD);
-
-  if (rank == 0)
-    puts("nxfaces OK");
 
   // send NGON
   sdist[0] = rdist[0] = 0;
@@ -662,9 +655,6 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
                 &spoints[0], &p_scount[0], &p_sdist[0], MPI_INT,
                 MPI_COMM_WORLD);
 
-  if (rank == 0)
-    puts("rpoints ok");
-
   // renumber points
   PT.clear();
   nnpoints = 0;
@@ -698,6 +688,9 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   MPI_Alltoallv(&sxyz[0], &scount[0], &sdist[0], MPI_DOUBLE,
                 &rxyz[0], &rcount[0], &rdist[0], MPI_DOUBLE,
                 MPI_COMM_WORLD);
+
+  if (rank == 0)
+    puts("Coordinates OK");
 
   // construct communication patches
   for (E_Int i = 0; i < nproc; i++) {
@@ -883,6 +876,9 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
       }
     }
   }
+
+  if (rank == 0)
+    puts("Comm patches OK");
 
   // Build output Python list
   PyObject* out = PyList_New(0);
@@ -1106,6 +1102,16 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   Py_DECREF(mycells); 
   Py_DECREF(myfaces);
   Py_DECREF(mypoints);
+
+  if (rank == 0)
+    puts("Export OK");
   
+  MPI_Barrier(MPI_COMM_WORLD);
+  clock_t toc = clock();
+  E_Float ptime = ((E_Float)(toc-tic)) / CLOCKS_PER_SEC;
+  if (rank == 0) {
+    printf("Partitioned mesh in %.2f s\n", ptime);
+  }
+
   return out;
 }

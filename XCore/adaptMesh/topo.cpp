@@ -114,7 +114,7 @@ static
 void colouring(const std::vector<E_Int>& neighbours, const std::vector<E_Int>& xadj,
   std::vector<E_Int>& colours)
 {
-  E_Int K, Kn, Kseed(0), colour(0), size, nelems(xadj.size()-1);
+  E_Int K, Kseed(0), colour(0), nelems(xadj.size()-1);
   std::vector<E_Int> kpool;
 
   colours.resize(nelems, IDX_NONE);
@@ -230,12 +230,10 @@ void orient_boundary(mesh *M)
     }
   }
 
-  E_Int nb_connex = 1;
+  //E_Int nb_connex = 1;
   std::vector<E_Int> colours;
   colouring(neighbours, xadj, colours);
-  nb_connex = 1 + *std::max_element(colours.begin(), colours.end());
-
-  //printf("%d -> nb_connex: %d\n", M->pid, nb_connex);
+  //nb_connex = 1 + *std::max_element(colours.begin(), colours.end());
 
   // faces belonging to the same connex part should have the same colour
   //std::vector<E_Int> colours(M->nfaces);
@@ -254,8 +252,6 @@ void orient_boundary(mesh *M)
     
     if (seed >= nefaces) // all done
       break;
-    
-    M->nconnex++;
     
     std::stack<E_Int> fpool; // face pool
     fpool.push(seed);

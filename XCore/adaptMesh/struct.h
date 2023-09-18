@@ -150,4 +150,18 @@ struct tree {
   tree(E_Int, E_Int);
 };
 
+struct mesh_leaves {
+  std::vector<E_Int> NFACE;
+  std::vector<E_Int> XCELLS;
+  std::vector<E_Int> NGON;
+  std::vector<E_Int> XFACES;
+  std::vector<E_Float> XYZ;
+  std::vector<E_Int> ecells;
+  std::map<E_Int, E_Int> efaces;
+  std::map<E_Int, E_Int> epoints;
+  E_Int necells;
+  E_Int nefaces;
+  E_Int nepoints;
+};
+
 #endif

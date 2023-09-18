@@ -160,7 +160,7 @@ void mesh_free(mesh *M) {
   delete M;
 }
 
-static
+/*
 size_t umap_size(const std::unordered_map<E_Int, E_Int>& umap)
 {
   size_t count = 0;
@@ -173,6 +173,7 @@ size_t umap_size(const std::unordered_map<E_Int, E_Int>& umap)
   }
   return count;
 }
+*/
 
 E_Float mesh_memsize(mesh *M)
 {
@@ -214,4 +215,95 @@ void mesh_save_memory(mesh *M)
   M->predicted_ncells = M->ncells;
   M->predicted_nfaces = M->nfaces;
   M->predicted_npoints = M->npoints;
+}
+
+mesh_leaves mesh_get_leaves(mesh *M, tree *ct, tree *ft, E_Int conformize)
+{
+  mesh_leaves cM;
+  auto &NFACE   = cM.NFACE;
+  auto &XCELLS  = cM.XCELLS;
+  auto &NGON    = cM.NGON;
+  auto &XFACES  = cM.XFACES;
+  auto &XYZ     = cM.XYZ;
+  auto &ecells  = cM.ecells;
+  auto &efaces  = cM.efaces;
+  auto &epoints = cM.epoints;
+  auto &necells = cM.necells;
+  auto &nefaces = cM.nefaces;
+  auto &nepoints = cM.nepoints;
+
+  // extract enabled cells
+  for (E_Int i = 0; i < M->ncells; i++) {
+    if (ct->enabled[i])
+      ecells.push_back(i);
+  }
+  necells = ecells.size();
+
+  // replace faces with leaves
+  XCELLS.resize(1, 0);
+  XFACES.resize(1, 0);
+
+  nefaces = 0;
+  nepoints = 0;
+
+  if (conformize) {
+    for (const auto& cell : ecells) {
+      E_Int stride = 0;
+      for (E_Int j = M->xcells[cell]; j < M->xcells[cell+1]; j++) {
+        E_Int face = M->NFACE[j];
+        std::vector<E_Int> leaves;
+        tree_get_face_leaves(ft, face, leaves);
+        stride += leaves.size();
+        for (const auto& leaf : leaves)
+          NFACE.push_back(leaf);
+      }
+      XCELLS.push_back(stride);
+    }
+  } else {
+    for (const auto& cell : ecells) {
+      for (E_Int j = M->xcells[cell]; j < M->xcells[cell+1]; j++) {
+        E_Int face = M->NFACE[j];
+        NFACE.push_back(face);
+      }
+      XCELLS.push_back(M->xcells[cell+1] - M->xcells[cell]);
+    }
+  }
+
+  for (E_Int i = 0; i < necells; i++)
+        XCELLS[i+1] += XCELLS[i];
+
+  for (E_Int i = 0; i < necells; i++) {
+    for (E_Int j = XCELLS[i]; j < XCELLS[i+1]; j++) {
+      E_Int face = NFACE[j];
+      if (efaces.find(face) == efaces.end()) {
+        efaces[face] = nefaces++;
+        for (E_Int k = M->xfaces[face]; k < M->xfaces[face+1]; k++) {
+          E_Int point = M->NGON[k];
+          NGON.push_back(point);
+        }
+        XFACES.push_back(M->xfaces[face+1] - M->xfaces[face]);
+      }
+    }
+  }
+
+  for (E_Int i = 0; i < nefaces; i++)
+    XFACES[i+1] += XFACES[i];
+  
+  for (E_Int i = 0; i < nefaces; i++) {
+    for (E_Int j = XFACES[i]; j < XFACES[i+1]; j++) {
+      E_Int point = NGON[j];
+      if (epoints.find(point) == epoints.end())
+        epoints[point] = nepoints++;
+    }
+  }
+  
+  XYZ.resize(3*nepoints);
+  for (const auto& point : epoints) {
+    E_Float *ox = &M->xyz[3*point.first];
+    E_Float *nx = &XYZ[3*point.second];
+    for (E_Int i = 0; i < 3; i++)
+      nx[i] = ox[i];
+  }
+
+  return cM;
 }

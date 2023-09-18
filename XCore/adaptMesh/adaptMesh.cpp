@@ -122,6 +122,12 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
     M->PT[M->gpoints[i]] = i;
   }
 
+  E_Int gncells = 0;
+  MPI_Allreduce(&M->ncells, &gncells, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+  if (M->pid == 0)
+    printf("Total number of cells: %d\n", gncells);
+
   shift_data(M);
 
   // init parent elements
@@ -349,74 +355,18 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   }
 
   // output
-  std::vector<E_Int> nface, xcells(1,0), ngon, xfaces(1,0);
-  for (E_Int i = 0; i < rM->ncells; i++) {
-    if (ct.enabled[i] == 0) continue;
-    for (E_Int j = rM->xcells[i]; j < rM->xcells[i+1]; j++) {
-      E_Int face = rM->NFACE[j];
-      nface.push_back(face);
-    }
-    xcells.push_back(6);
-  }
+  if (rM->pid == 0)
+    puts("Exporting...");
 
-  E_Int necells = xcells.size()-1;
+  MPI_Barrier(MPI_COMM_WORLD);
+  tic = clock();
 
-  for (E_Int i = 0; i < necells; i++)
-    xcells[i+1] += xcells[i];
-
-  assert(xcells[necells] == 6*necells);
-
-  std::unordered_map<E_Int, E_Int> efaces;
-  E_Int nefaces = 0;
-
-  for (E_Int i = 0; i < 6*necells; i++) {
-    E_Int face = nface[i];
-    if (efaces.find(face) == efaces.end()) {
-      efaces[face] = nefaces++;
-      for (E_Int j = rM->xfaces[face]; j < rM->xfaces[face+1]; j++)
-        ngon.push_back(rM->NGON[j]);
-      xfaces.push_back(4);
-    }
-  }
-
-  for (E_Int i = 0; i < nefaces; i++)
-    xfaces[i+1] += xfaces[i];
-  assert(xfaces[nefaces] == 4*nefaces);
-
-  std::vector<E_Float> xyz;
-  std::unordered_map<E_Int, E_Int> epoints;
-  E_Int nepoints = 0;
-
-  for (E_Int i = 0; i < 4*nefaces; i++) {
-    E_Int point = ngon[i];
-    if (epoints.find(point) == epoints.end()) {
-      epoints[point] = nepoints++;
-      E_Float *ptr = &rM->xyz[3*point];
-      for (E_Int j = 0; j < 3; j++)
-        xyz.push_back(ptr[j]);
-    }
-  }
-
-  for (E_Int i = 0; i < necells; i++) {
-    for (E_Int j = xcells[i]; j < xcells[i+1]; j++) {
-      auto search = efaces.find(nface[j]);
-      assert(search != efaces.end());
-      nface[j] = search->second;
-    }
-  }
-
-  for (E_Int i = 0; i < nefaces; i++) {
-    for (E_Int j = xfaces[i]; j < xfaces[i+1]; j++) {
-      auto search = epoints.find(ngon[j]);
-      assert(search != epoints.end());
-      ngon[j] = search->second;
-    }
-  }
+  mesh_leaves cM = mesh_get_leaves(rM, &ct, &ft, conformize);
 
   const char *varString = "CoordinateX,CoordinateY,CoordinateZ";
 
-  PyObject* m = K_ARRAY::buildArray3(3, varString, nepoints, necells,
-    nefaces, "NGON", xfaces[nefaces], xcells[necells], 3, 
+  PyObject* m = K_ARRAY::buildArray3(3, varString, cM.nepoints, cM.necells,
+    cM.nefaces, "NGON", cM.XFACES[cM.nefaces], cM.XCELLS[cM.necells], 3, 
     false, 3);
 
   FldArrayF *fo;
@@ -425,8 +375,8 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
 
   for (E_Int n = 0; n < 3; n++) {
     E_Float *pt = fo->begin(n+1);
-    for (E_Int i = 0; i < nepoints; i++)
-      pt[i] = xyz[3*i+n];
+    for (E_Int i = 0; i < cM.nepoints; i++)
+      pt[i] = cM.XYZ[3*i+n];
   }
 
   E_Int *ngono = cno->getNGon();
@@ -434,38 +384,39 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   E_Int *indPGo = cno->getIndPG();
   E_Int *indPHo = cno->getIndPH();
 
-  for (E_Int i = 0; i <= nefaces; i++) indPGo[i] = xfaces[i];
+  for (E_Int i = 0; i <= cM.nefaces; i++) indPGo[i] = cM.XFACES[i];
 
-  for (E_Int i = 0; i <= necells; i++) indPHo[i] = xcells[i];
+  for (E_Int i = 0; i <= cM.necells; i++) indPHo[i] = cM.XCELLS[i];
 
   E_Int *ptr = ngono;
   E_Int start, end;
 
-  for (E_Int i = 0; i < nefaces; i++)
+  for (E_Int i = 0; i < cM.nefaces; i++)
   {
-    start = xfaces[i];
-    end = xfaces[i+1];
+    start = cM.XFACES[i];
+    end = cM.XFACES[i+1];
     for (E_Int j = start; j < end; j++)
-    { *ptr = ngon[j]+1; ptr++; }
+    { *ptr = cM.epoints[cM.NGON[j]]+1; ptr++; }
   }
 
   ptr = nfaceo;
-  for (E_Int i = 0; i < necells; i++)
+  for (E_Int i = 0; i < cM.necells; i++)
   {
-    start = xcells[i];
-    end = xcells[i+1];
+    start = cM.XCELLS[i];
+    end = cM.XCELLS[i+1];
     for (E_Int j = start; j < end; j++)
-    { *ptr = nface[j]+1; ptr++; }
+    { *ptr = cM.efaces[cM.NFACE[j]]+1; ptr++; }
   }
 
-  E_Int ntcells = 0;
-  MPI_Allreduce(&necells, &ntcells, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  E_Int nleaves = 0;
+  MPI_Allreduce(&cM.necells, &nleaves, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+  toc = clock();
+  E_Float extract_time = ((E_Float)(toc-tic)) / CLOCKS_PER_SEC;
   if (rM->pid == 0)
-    printf("Leaves: %d\n", ntcells);
-  
+    printf("Extracted %d leaves in %.2f s\n", nleaves, extract_time);
 
   mesh_free(rM);
 
-  //return Py_None;
   return m;
 }
