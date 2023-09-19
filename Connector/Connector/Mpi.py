@@ -792,8 +792,10 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0, extrap=1
                 else: interpDataTypeL.append(1)
             
             if dnrZones != []:
-                X._setInterpData(zr, dnrZones, double_wall=double_wall, order=order, penalty=penalty, nature=nature, 
-                         method=method, loc=loc, storage=storage, interpDataType=interpDataTypeL, hook=hookL, 
+                X._setInterpData(zr, dnrZones, double_wall=double_wall, order=order, penalty=penalty, 
+                         nature=nature, extrap=extrap, 
+                         method=method, loc=loc, storage=storage, 
+                         interpDataType=interpDataTypeL, hook=hookL, 
                          topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr,
                          sameName=sameName, dim=dim, itype="chimera")
 

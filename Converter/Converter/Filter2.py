@@ -595,9 +595,12 @@ def create_zone_std_elements_filter(elmt, zone_path, hdf_filter):
   pe = I.getNodeFromName1(elmt, 'ParentElements')
   if pe:
     data_space = create_pe_dataspace(distrib_elmt)
-    hdf_filter[f"{zone_path}/{I.getName(elmt)}/ParentElements"] = data_space
+    #hdf_filter[f"{zone_path}/{I.getName(elmt)}/ParentElements"] = data_space
+    hdf_filter["%s/%s/ParentElements"%(zone_path,I.getName(elmt))] = data_space
+    
     if I.getNodeFromName1(elmt, 'ParentElementsPosition'):
-      hdf_filter[f"{zone_path}/{I.getName(elmt)}/ParentElementsPosition"] = data_space
+      #hdf_filter[f"{zone_path}/{I.getName(elmt)}/ParentElementsPosition"] = data_space
+      hdf_filter["%s/%s/ParentElementsPosition"%(zone_path,I.getName(elmt))] = data_space
 
 def create_zone_elements_filter(zone_tree, zone_path, hdf_filter, mode):
   """
@@ -701,7 +704,7 @@ def create_flow_solution_filter(zone, zone_path, hdf_filter):
     elif grid_location == 'Vertex':
       data_space = create_data_array_filter(distrib_vtx, zone[1][:,0])
     else:
-      raise RuntimeError(f"GridLocation {grid_location} is not allowed without PL")
+      raise RuntimeError("GridLocation %s is not allowed without PL"%grid_location)
     apply_dataspace_to_arrays(flow_solution, flow_solution_path, data_space, hdf_filter)
 
 def create_zone_subregion_filter(zone, zone_path, hdf_filter):
@@ -909,9 +912,6 @@ def chunk2part(distTree):
   t1 = C.newPyTree(['Base', z1])
   C.setFields([mesh], z1, 'nodes')
 
-  if Cmpi.rank == 0:
-    print(solNames, solcNames, flush=True)
-  
   # add solutions
   for n, name in enumerate(solNames):
     cont = I.createUniqueChild(z1, I.__FlowSolutionNodes__, 'FlowSolution_t')

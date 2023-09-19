@@ -3229,14 +3229,14 @@ def convertDataNode2Array3(node, dim, connects, loc=-1):
             no = getNodeFromName1(iNGon, 'ElementRange')[1]
             nfaces = no[1]-no[0]+1
             n = converter.adaptNGon2Index(cr[0], nfaces)
-            g = createUniqueChild(connects[0], 'FaceIndex', 'DataArray_t', value=n)
+            g = createUniqueChild(iNGon, 'FaceIndex', 'DataArray_t', value=n)
             cr[2] = g[1]
         if cr[3] is None:
             # forcement Array2 old ngon
             no = getNodeFromName1(iNFace, 'ElementRange')[1]
             nelts = no[1]-no[0]+1
-            n = converter.adaptNGon2Index(cr[1], nelts)
-            g = createUniqueChild(connects[0], 'ElementIndex', 'DataArray_t', value=n)
+            n = converter.adaptNFace2Index(cr[1], nelts)
+            g = createUniqueChild(iNFace, 'ElementIndex', 'DataArray_t', value=n)
             cr[3] = g[1]
 
     locout = 'nodes'
@@ -4809,7 +4809,7 @@ def _orderFlowSolution(t, loc='both'):
                         nodel = getNodeFromName1(FSN,nodename)
                         newChildrens.append(nodel)  
                     FSN[2]=newChildrens        
-        noz+=1
+        noz += 1
     return None
 # -- Convert an array with (i,j,k) numerotation to an array with 1D-index
 # numerotation
@@ -4963,7 +4963,7 @@ def getPeriodicInfo(t):
     # Synthetisation    
     return ret
 
-# merge Elements_t nodes for BE  per elt type
+# merge Elements_t nodes for BE per elt type
 def _mergeEltsTPerType(t):
     for z in getZones(t):
         typesEltsT={}

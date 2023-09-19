@@ -48,13 +48,13 @@ using namespace K_FLD;
 //=============================================================================
 PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
 {
-  PyObject *receiverArray;
-  PyObject *donorArrays;// domaines d'interpolation
+  PyObject* receiverArray;
+  PyObject* donorArrays; // domaines d'interpolation
   E_Int Order;
   E_Int Nature;
   E_Int enableExtrap;
   E_Int PenalizeBorders;
-  PyObject* InterpDataType;// liste pour chaque zone donneuse 1 : ADT ou 0 : CART
+  PyObject* InterpDataType; // liste pour chaque zone donneuse 1: ADT ou 0: CART
   PyObject* allHooks;
   if (!PYPARSETUPLEI(args, "OOllllOO", "OOiiiiOO",
                     &receiverArray, &donorArrays, &Order, &Nature, &PenalizeBorders, &enableExtrap,
@@ -63,7 +63,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
       return NULL;
   }
   
-  // Extraction du type d'InterpData (0 : CART, 1 : ADT)
+  // Extraction du type d'InterpData (0: CART, 1: ADT)
   vector<E_Int> listOfInterpDataTypes;
   E_Int ninterptypes = PyList_Size(InterpDataType);
 
@@ -578,13 +578,13 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
 //=============================================================================
 PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
 {
-  PyObject *receiverArray; 
-  PyObject *donorArrays;// domaines d'interpolation
+  PyObject* receiverArray; 
+  PyObject* donorArrays; // domaines d'interpolation
   E_Int Order;
   E_Int Nature;
   E_Int enableExtrap;
   E_Int PenalizeBorders;
-  PyObject* InterpDataType;// liste pour chaque zone donneuse 1 : ADT ou 0 : CART
+  PyObject* InterpDataType; // liste pour chaque zone donneuse 1: ADT ou 0: CART
   PyObject* allHooks;
   if (!PYPARSETUPLEI(args, "OOllllOO", "OOiiiiOO",
                     &receiverArray, &donorArrays, &Order, &Nature, &PenalizeBorders, &enableExtrap,
@@ -593,7 +593,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
       return NULL;
   }
   
-  // Extraction du type d'InterpData (0 : CART, 1 : ADT)
+  // Extraction du type d'InterpData (0: CART, 1: ADT)
   vector<E_Int> listOfInterpDataTypes;
   E_Int ninterptypes = PyList_Size(InterpDataType);
 

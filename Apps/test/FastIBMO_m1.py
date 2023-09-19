@@ -1,3 +1,4 @@
+# - FastIBMO -
 import Apps.Fast.IBMO as App
 import Converter.Mpi as Cmpi
 import Transform.PyTree as T
@@ -19,6 +20,7 @@ myApp.set(numz={"time_step": 0.002,
 
 t,tc = myApp.prepare(FILE, t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/tc.cgns', expand=3, vmin=11, check=False, NP=Cmpi.size, distrib=True)
 if Cmpi.rank == 0: test.testT(t,1)
+Cmpi.barrier()
 
 t,tc = myApp.compute(LOCAL+'/t.cgns',LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.cgns', tc_out=LOCAL+'/tc_restart.cgns', nit=100)
 if Cmpi.rank == 0:

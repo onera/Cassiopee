@@ -426,10 +426,10 @@ def setDoublyDefinedBC(z, cellN, listOfInterpZones, listOfCelln, winrange,
 #===============================================================================
 def setInterpData__(interpPts, zonesD, order=2, penalty=1, extrap=1, nature=0, method='lagrangian', interpDataType=1, hook=None, dim=3):    
     if method == 'lagrangian': 
-        if isinstance(interpPts[0], list): # liste d arrays
+        if isinstance(interpPts[0], list): # liste d'arrays
             if interpPts[0][1].shape[1] >0: return connector.setInterpDataDW(interpPts, zonesD, order, nature, penalty, hook)
             else: return None
-        else: # pas de liste d arrays = pas de double wall              
+        else: # pas de liste d'arrays = pas de double wall              
             if interpPts[1].shape[1]>0: 
                 if not isinstance(interpDataType,list): interpDataTypeL=[interpDataType]*len(zonesD)
                 else: interpDataTypeL = interpDataType

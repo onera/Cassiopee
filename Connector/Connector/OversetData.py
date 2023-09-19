@@ -1056,6 +1056,7 @@ def _setInterpData2(aR, aD, order=2, loc='centers', cartesian=False):
                    interpDataType=interpDataType, sameName=0, itype="chimera")
     if cellNPresent==-1: C._rmVars(aR, [varcelln])
     return None
+
 #==============================================================================
 # Calcul des donnees d'interpolation et stockage dans l'arbre CGNS/Python
 # ----------------------------------------------------------------------------
@@ -1107,7 +1108,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0, extrap=1
     # Recherche pour les pts coincidents (base sur les GridConnectivity)
     if itype != 'chimera': # abutting
         if storage == 'direct':
-            _setInterpDataForGhostCellsStruct__(aR,aD,storage,loc)
+            _setInterpDataForGhostCellsStruct__(aR, aD, storage, loc)
         else:
             _setInterpDataForGhostCellsStruct__(aR, aD, storage, loc)
             _setInterpDataForGhostCellsNGon__(aR, aD, storage, loc)
@@ -1117,6 +1118,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0, extrap=1
             _adaptForRANSLES__(aR, aD)
 
     if itype != 'abutting': # chimera
+        print("extrap", extrap)
         _setInterpDataChimera(aR, aD, double_wall=double_wall, order=order, penalty=penalty, nature=nature, extrap=extrap,
                               method=method, loc=loc, storage=storage, interpDataType=interpDataType, hook=hook,
                               topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr, sameName=sameName, dim=dim, itype=itype)
@@ -1141,7 +1143,7 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0, e
     locCellND = 'nodes'
 
     # pour l'enlever ensuite si addCellN le cree
-    dictIsCellNPresent={}
+    dictIsCellNPresent = {}
     for zd in Internal.getZones(aD):
         dictIsCellNPresent[zd[0]] = C.isNamePresent(zd, 'cellN')
 
