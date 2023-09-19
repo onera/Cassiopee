@@ -264,7 +264,6 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   for (E_Int i = 0; i < nproc; i++)
     scount[i] = 0;
 
-  E_Int count = 0;
   for (const auto& cell : CADJ) {
     E_Int target = get_proc(cell.first, cells_dist, nproc);
     scount[target] += 1 + 1 + cell.second.size(); // cell + size + neis
@@ -283,7 +282,6 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   for (E_Int i = 0; i < nproc; i++)
     idx[i] = sdist[i];
 
-  count = 0;
   for (const auto& cell : CADJ) {
     E_Int target = get_proc(cell.first, cells_dist, nproc);
     sdata[idx[target]++] = cell.first;
@@ -314,7 +312,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
   ADJ.reserve(nedges);
   std::vector<E_Int> xadj(ncells+1);
   xadj[0] = 0;
-  count = 0;
+  E_Int count = 0;
   for (const auto& adj : cadj) {
     ADJ.insert(ADJ.end(), adj.begin(), adj.end());
     xadj[count+1] = xadj[count] + adj.size();

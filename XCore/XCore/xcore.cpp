@@ -31,6 +31,7 @@ static PyMethodDef Pyxcore [] =
   {"chunk2part", K_XCORE::chunk2part, METH_VARARGS},
   {"adaptMesh", K_XCORE::adaptMesh, METH_VARARGS},
   {"test_all", xcore::test_all, METH_VARARGS},
+  {"chunk2part_elt", K_XCORE::chunk2part_elt, METH_VARARGS},
   {NULL, NULL} 
 };
 
