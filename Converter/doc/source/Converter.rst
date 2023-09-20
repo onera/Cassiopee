@@ -1369,17 +1369,25 @@ Array / PyTree common manipulations
 
 -----------------------------------------------------------------------------------
 
-.. py:function:: Converter.initVars(a, varNameString, value)
+.. py:function:: Converter.initVars(a, varNameString, value, isVectorized=False)
 
-    Initialize a variable given by a string to a constant value,
-    or by using a string formula or by using an external function. 
+    Initialize one or several variables as given by varNameString.
+
+    For initialisation by a formula string, only one variable can be set at a time.
+
+    For initialisation by a function or by a constant, varNameString can be a string
+    or a list of strings.
+
+    If the function is vectorized (can be interpreted as a numpy formula), set isVectorized to True.
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param varNameString: string describing variable or formula
-    :type varNameString: string
+    :type varNameString: string or list of strings
     :param value: value in case of constant init or function.
     :type value: float or function and parameters
+    :param isVectorized: when using functions, indicates that function is vectorized.
+    :type isVectorized: boolean
     :rtype: identical to input
 
     *Example of use:*

@@ -393,71 +393,201 @@ def randomizeVar(array, var, deltaMin, deltaMax):
         return converter.randomizeVar(array, var, deltaMin, deltaMax)
 
 # -- Init variables --
-def initVars(a, var, v1=[], v2=[], mode=0):
-    """Initialize a variable by a value or a formula."""
+def initVars(a, var, v1=[], v2=[], mode=0, isVectorized=False):
+    """Initialize a variable by a value, a function or a formula."""
     b = copy(a)
-    _initVars(b, var, v1, v2, mode)
+    _initVars(b, var, v1, v2, mode, isVectorized)
     return b
 
-def _initVars(a, var, v1=[], v2=[], mode=0):
+def _initVars(a, var, v1=[], v2=[], mode=0, isVectorized=False):
     if isinstance(a[0], list):
-        for i in a: _initVars__(i, var, v1, v2, mode)
-    else: _initVars__(a, var, v1, v2, mode)
+        for i in a: _initVars__(i, var, v1, v2, mode, isVectorized)
+    else: _initVars__(a, var, v1, v2, mode, isVectorized)
     return None
 
-def _initVars__(a, var, v1, v2, mode=0):
+def _initVars__(a, var, v1, v2, mode=0, isVectorized=False):
     if v1 == []:
-        if mode == 0: _initVarByEq__(a, var)
-        else: _initVarByEq2__(a, var)
+        if mode == 0: _initVarByEq__(a, var) # numpy eval
+        else: _initVarByEq2__(a, var) # expression eval
     elif callable(v1):
-        _initVarByFunction__(a, var, v1, v2)
+        _initVarByFunction__(a, var, v1, v2, isVectorized)
     else:
         _initVarByConst__(a, var, v1)
     return None
 
 def _initVarByConst__(a, var, val):
-    varp = KCore.isNamePresent(a, var)
-    if varp == -1: 
-        _addVars(a, var); varp = KCore.isNamePresent(a, var)
+    # Init one or several vars by a constant value.
+    if not isinstance(var, list): var = [var]
+    posvars = []
+    for v in var:
+        posvar = KCore.isNamePresent(a, v)
+        if posvar == -1:
+            _addVars(a, var)
+            posvar = KCore.isNamePresent(a, v)
+        posvars.append(posvar)
+    
     if not isinstance(a[1], list): # array1
-        a[1][varp,:] = val
+        for posvar in posvars: a[1][posvar,:] = val
     else:
-        a[1][varp][:] = val
+        for posvar in posvars: a[1][posvar][:] = val
     return None
 
-def _initVarByFunction__(a, var, F, vars):
-    posvar = KCore.isNamePresent(a, var)
-    if posvar == -1:
-        _addVars(a, var); posvar = KCore.isNamePresent(a, var)
-    pos = []
-    for i in vars:
-        p = KCore.isNamePresent(a, i)
-        if p == -1:
-            raise TypeError("initVars: can't find %s in array."%i)
-        else: pos.append(p)
+def _initVarByFunction__(a, var, F, fargs=[], isVectorized=False):
+    # Init one or several vars with a function F.
+    isResMultivars = lambda res: isinstance(res, tuple)
+    isResSinglevar = lambda res: not isResMultivars(res)
+    
+    errorMsgVar = "The number of arguments returned by the function ({}) is "\
+                  "different from the number of variables to initialise ({})."
+    errorMsgName = "_initVarByFunction__: can't find variables {} in array."
 
-    n = a[1]; l = len(vars)
-    if not isinstance(a[1], list): # array1
-        nsize = n.shape[1]
-        if l == 0:
-            for i in range(nsize):
-                n[posvar,i] = F()
+    def isResValid(funcRes, numVarsToInit, errorMsgVar):
+        singlevar = (numVarsToInit == 1)
+        if singlevar:
+            if isResMultivars(funcRes):
+                raise IndexError(errorMsgVar.format(len(funcRes), 1))
+        elif isResSinglevar(funcRes):
+            raise IndexError(errorMsgVar.format(1, numVarsToInit))
+
+    if not isinstance(var, list): var = [var]
+
+    # Find position of vars
+    posvars = []
+    for v in var:
+        posvar = KCore.isNamePresent(a, v)
+        if posvar == -1:
+            _addVars(a, var)
+            posvar = KCore.isNamePresent(a, v)
+        posvars.append(posvar)
+    ninitvars = len(posvars)
+    singlevar = (ninitvars == 1)
+
+    # Find positions of the function's arguments
+    posargs = numpy.array([KCore.isNamePresent(a, i) for i in fargs], dtype=int)
+    posvarsNotFound = (posargs == -1).nonzero()[0]
+    if posvarsNotFound.size:
+        raise NameError(errorMsgName.format(', '.join(fargs[i] for i in posvarsNotFound)))
+
+    # Evaluate variable(s)
+    # Manage the following cases:
+    #   - is the node a[1] a numpy.ndarray (array1) or a list (array3)
+    #   - is the function F vectorized
+    #   - does the function F have arguments
+    #   - is there one or several lhs variables to initialise
+    if isVectorized:
+        # F is vectorized: manipulate arrays
+        if isinstance(a[1], list): # array3
+            if len(fargs):
+                res = F(*[a[1][posarg][:] for posarg in posargs])
+                if singlevar:
+                    # Case A1
+                    if isResMultivars(res):
+                        raise IndexError(errorMsgVar.format(len(res), 1))
+                    a[1][posvars[0]][:] = res
+                else:
+                    # Case A2
+                    if isResSinglevar(res):
+                        raise IndexError(errorMsgVar.format(1, ninitvars))
+                    for i, posvar in enumerate(posvars):
+                        a[1][posvar][:] = res[i]
+            else:
+                res = F()
+                if singlevar:
+                    # Case B1
+                    if isResMultivars(res):
+                        raise IndexError(errorMsgVar.format(len(res), 1))
+                    a[1][posvars[0]][:] = res
+                else:
+                    # Case B2
+                    if isResSinglevar(res):
+                        raise IndexError(errorMsgVar.format(1, ninitvars))
+                    for i, posvar in enumerate(posvars):
+                        a[1][posvar][:] = res[i]
+        else: # array1
+            if len(fargs):
+                # Case C
+                res = F(*[a[1][posarg,:] for posarg in posargs])
+                isResValid(res, ninitvars, errorMsgVar)
+                a[1][posvars,:] = res
+            else:
+                res = F()
+                isResValid(res, ninitvars, errorMsgVar)
+                if singlevar:
+                    # Case D1
+                    a[1][posvars[0],:] = res
+                else:
+                    # Case D2
+                    for i, posvar in enumerate(posvars):
+                        a[1][posvar,:] = res[i]
+    else:
+        # F is not vectorized: loop over all elements of the list/numpy.ndarray
+        if isinstance(a[1], list):
+            if singlevar:
+                varFlatten = a[1][posvars[0]].ravel(order='K')
+                if len(fargs):
+                    # Case E1a
+                    nelems = a[1][posvars[0]].size
+                    fargsFlatten = numpy.array([a[1][posarg].ravel(order='K') for posarg in posargs])
+                    res = F(*fargsFlatten[:,0])
+                    isResValid(res, ninitvars, errorMsgVar)
+                    varFlatten[0] = res
+                    for j in range(1, nelems):
+                        res = F(*fargsFlatten[:,j])
+                        varFlatten[j] = res
+                else:
+                    # Case E1b
+                    res = F()
+                    isResValid(res, ninitvars, errorMsgVar)
+                    varFlatten[:] = res
+            
+            else:
+                if len(fargs):
+                    # Case E2a
+                    nelems = a[1][posvars[0]].size
+                    varsFlatten = [a[1][posvar].ravel(order='K') for posvar in posvars]
+                    fargsFlatten = numpy.array([a[1][posarg].ravel(order='K') for posarg in posargs])
+                    res = F(*fargsFlatten[:,0])
+                    isResValid(res, ninitvars, errorMsgVar)
+                    for j in range(nelems):
+                        res = F(*fargsFlatten[:,j])
+                        for i, posvar in enumerate(posvars):
+                            varsFlatten[i][j] = res[i]
+                else:
+                    # Case E2b
+                    res = F()
+                    isResValid(res, ninitvars, errorMsgVar)
+                    for i, posvar in enumerate(posvars):
+                        varFlatten = a[1][posvar].ravel(order='K')
+                        varFlatten[:] = res[i]
+                    
         else:
-            for i in range(nsize):
-                x = [n[pos[j],i] for j in range(l)]
-                n[posvar,i] = F(*x)
-    else: # array2
-        nvar = n[posvar]
-        nsize = nvar.size
-        if l == 0:
-            nvar1 = nvar.ravel(order='K')
-            for i in range(nsize): nvar1[i] = F()
-        else:
-            npos = [n[pos[j]].ravel(order='K') for j in range(l)]
-            nvar1 = n[posvar].ravel(order='K')
-            for i in range(nsize):
-                x = [npos[j][i] for j in range(l)]
-                nvar1[i] = F(*x)
+            if len(fargs):
+                nelems = a[1].shape[1]
+                res = F(*[a[1][posarg,0] for posarg in posargs])
+                isResValid(res, ninitvars, errorMsgVar)
+                if singlevar:
+                    # Case F1
+                    posvar = posvars[0]
+                    a[1][posvar,0] = res
+                    for j in range(1, nelems):
+                        a[1][posvar,j] = F(*[a[1][posarg,j] for posarg in posargs])
+                else:
+                    # Case F2
+                    for j in range(nelems):
+                        res = F(*[a[1][posarg,j] for posarg in posargs])
+                        for i, posvar in enumerate(posvars):
+                            a[1][posvar,j] = res[i]
+            else:
+                res = F()
+                isResValid(res, ninitvars, errorMsgVar)
+                if singlevar:
+                    # Case G1
+                    posvar = posvars[0]
+                    a[1][posvar,:] = res
+                else:
+                    # Case G2
+                    for i, posvar in enumerate(posvars):
+                        a[1][posvar,:] = res[i]
     return None
 
 # Initialisation par une formule par numpy

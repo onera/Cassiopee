@@ -2253,8 +2253,8 @@ def __TZC(t, _F, locin, writeDim, *args):
         setFields([fa], z, locin, writeDim)
   return None
 
-# Recupere les champs de locin en shared array2
-# applique _F
+# Recupere les champs de locin en shared array2/3
+# applique _F (array in place)
 def __TZA(api, t, _F, locin, *args):
   zones = Internal.getZones(t)
   for z in zones:
@@ -2427,103 +2427,81 @@ def _addAVar__(z, dim, var):
   return None
 
 # -- initVars: initialise une variable
-def initVars(t, varNameString, v1=[], v2=[], mode=0):
+def initVars(t, varNameString, v1=[], v2=[], mode=0, isVectorized=False):
   """Init variables defined by varNameString.
   Usage: a = initVars(array, varNameString, val)
   or
   Usage: a = initVars(array, varNameString, F, [strings])"""
   tp = Internal.copyRef(t)
-  _initVars(tp, varNameString, v1, v2)
+  _initVars(tp, varNameString, v1, v2, isVectorized)
   return tp
 
-def _initVars(t, varNameString, v1=[], v2=[], mode=0):
-  s = varNameString.split('=')
-  if len(s) == 1: # const/F
-    loc = 'nodes'; var = varNameString
-    var = var.replace('}', '')
-    var = var.replace('{', '')
-    var = var.strip()
-    v = var.split(':',1)
-    if len(v) > 1:
-      if v[0] == 'nodes' or v[0] == 'centers': loc = v[0]; var = v[1]
-
-  else: # formule
-    loc = 'nodes'; var = s[0]
-    var = var.replace('}', '')
-    var = var.replace('{', '')
-    var = var.strip()
-    v = var.split(':',1)
-    if len(v) > 1:
-        if v[0] == 'centers': loc = v[0]
-
+def _initVars(t, varNameString, v1=[], v2=[], mode=0, isVectorized=False):
+  loc = 'nodes'
   centerCoordNeeded = False
-  if loc == 'centers':
-    if v1 == []:
-      r = s[1]
-      vars = re.findall("{.*?}", r)
-      for v in vars:
-       v = v.replace('}', '')
-       v = v.replace('{', '')
-       v = v.strip()
-       vp = v.split(':',1)
-       if len(vp) > 1:
-        if vp[0] == 'centers':
-          var1 = vp[1]
-          if var1[0:10] == 'Coordinate': centerCoordNeeded = True
-    elif callable(v1):
-      c = 0
-      for v in v2:
-       v = v.replace('}', '')
-       v = v.replace('{', '')
-       v = v.strip()
-       vp = v.split(':',1)
-       if len(vp) > 1:
-        if vp[0] == 'centers':
-          var1 = vp[1]
-          if var1[0:10] == 'Coordinate': centerCoordNeeded = True
-          v2[c] = vp[1]
-        elif vp[0] == 'nodes':
-          v2[c] = vp[1]
-       c += 1
+  # Check that the type of varNameString is correct for all types of initialisations
+  isFuncOrConstInit = callable(v1) or isinstance(v1, (int, float, numpy.float64))
+
+  if isFuncOrConstInit:
+    # Initialisation(s) by constant or function
+    varNames = []
+    if not isinstance(varNameString, list): varNameString = [varNameString]
+    for varName in varNameString:
+      v = varName.replace('}', '').replace('{', '').strip().split(':',1)
+      if len(v) > 1 and v[0] in ['nodes', 'centers']:
+        loc = v[0]
+        varNames.append(v[1])
+      else:
+        varNames.append(v[0])
+    
+    if callable(v1) and loc == 'centers':
+      # Initialisation(s) by function of (a) cell-centered lhs variable(s)
+      for i, farg in enumerate(v2):
+        v = farg.replace('}', '').replace('{', '').strip().split(':',1)
+        if len(v) > 1:
+          if v[0] == 'centers' and v[1].startswith('Coordinate'): centerCoordNeeded = True
+          v2[i] = v[1]
+  
+  else:
+    # Initialisation by string
+    s = varNameString.split('=')
+    varName = s[0].replace('}', '').replace('{', '').strip()
+    v = varName.split(':',1)
+    if len(v) > 1 and v[0] == 'centers' and v1 == []:
+      loc = v[0]
+      rhsVars = re.findall("{.*?}", s[1])
+      for var in rhsVars:
+        v = var.replace('}', '').replace('{', '').strip().split(':',1)
+        if len(v) > 1 and v[0] == 'centers' and v[1].startswith('Coordinate'): centerCoordNeeded = True
 
   #centerCoordNeeded = True # for DBX
-  if not centerCoordNeeded:
-    if v1 == []:
-      _addVars(t, var)
-      return __TZA2(t, Converter._initVars, loc, varNameString, v1, v2, mode)
-    elif callable(v1):
-      _addVars(t, varNameString)
-      return __TZA2(t, Converter._initVars, loc, var, v1, v2, mode)
-    else:
-      _addVars(t, varNameString)
-      return __TZA2(t, Converter._initVars, loc, var, v1, v2, mode)
-  else:
-    s = varNameString.split('=')
-    if len(s) == 1: # pas formule
-      loc = 'nodes'; var = varNameString
-      var = var.replace('}', '')
-      var = var.replace('{', '')
-      var = var.strip()
-      v = var.split(':',1)
-      if len(v) > 1:
-        if v[0] == 'centers' or v[0] == 'nodes': var = v[1]; loc = v[0]
-      _addVars(t, varNameString)
-      for c, i in enumerate(v2):
-          v = i.split(':',1)
-          if len(v) > 1:
-            if v2[0] == 'centers' or v2[0] == 'nodes': v2[c] = v[1]
+  if centerCoordNeeded:
+    if callable(v1):
+      # Initialisation(s) by function
       _TZAGC(t, loc, loc, False, Converter.initVars,
-             Converter.initVars, var, v1, v2, mode)
-    else: # formule
-      loc = 'nodes'; var = s[0]
-      var = var.replace('}', '')
-      var = var.replace('{', '')
-      var = var.strip()
-      v = var.split(':',1)
-      if len(v) > 1:
-        if v[0] == 'centers': loc = v[0]
-      _TZAGC(t, loc, loc, False, Converter.initVars, 
-             Converter.initVars, varNameString, v1, v2, mode)
+              Converter.initVars, varNames, v1, v2, mode, isVectorized)
+    elif isinstance(v1, (int, float, numpy.float64)):
+      # Initialisation(s) by constant
+      _TZAGC(t, loc, loc, False, Converter.initVars, Converter.initVars,
+              varNames, v1, v2, mode)
+    else:
+      # Initialisation by string
+      _TZAGC(t, loc, loc, False, Converter.initVars, Converter.initVars,
+              varNameString, v1, v2, mode)
+  else:               
+    if v1 == []:
+      # Initialisation by string
+      _addVars(t, varName)
+      __TZA2(t, Converter._initVars, loc, varNameString, v1, v2, mode)
+    else:
+      # Initialisation(s) ...
+      [_addVars(t, varName) for varName in varNameString]
+      if callable(v1):
+        # ... by function
+        __TZA2(t, Converter._initVars, loc, varNames, v1, v2, mode, isVectorized)
+      else:
+        # ... by constant
+        __TZA2(t, Converter._initVars, loc, varNames, v1, v2, mode)
   return None
 
 # Merge BCDataSets
@@ -3139,7 +3117,7 @@ def normL0(t, var):
   """Get the L0 norm of the field defined by varName in t.
   If celln exists in the array, the norm for blanked points is not computed.
   Usage: normL0(t, varName)"""
-  A = getField(var, t, api=2)
+  A = getField(var, t, api=3)
   v = var.split(':')
   if len(v) > 1: var = v[1]
   return Converter.normL0(A, var)
@@ -3149,7 +3127,7 @@ def normL2(t, var):
   """Get the L2 norm of the field defined by varName in t.
   If celln exists in the array, the norm for blanked points is not computed.
   Usage: normL0(t, varName)"""
-  A = getField(var, t, api=2)
+  A = getField(var, t, api=3)
   v = var.split(':')
   if len(v) > 1: var = v[1]
   return Converter.normL2(A, var)

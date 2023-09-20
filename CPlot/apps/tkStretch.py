@@ -146,6 +146,8 @@ def refine():
     except: power = 2.
 
     CTK.saveTree()
+    CTK.setCursor(2, WIDGETS['refine'])
+
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
@@ -168,6 +170,7 @@ def refine():
     #C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'Refine done.\n')
     CTK.TKTREE.updateApp()
+    CTK.setCursor(0, WIDGETS['refine'])
     CPlot.render()
 
 #==============================================================================
@@ -380,6 +383,7 @@ def createApp(win):
     # - refine -
     B = TTK.Button(Frame, text="Refine", command=refine)
     B.grid(row=2, column=0, columnspan=1, sticky=TK.EW)
+    WIDGETS['refine'] = B
     BB = CTK.infoBulle(parent=B, text='Refine a given mesh keeping original distribution.')
     B = TTK.Entry(Frame, textvariable=VARS[2], background='White', width=3)
     B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
