@@ -1015,7 +1015,7 @@ def generateTriMeshBetweenContours__(lineb, surfp, hmin=1e-6,remeshBorders=False
     N0 = int(0.5*D0/h0)+1
     distrib = G.cart((0,0,0),(h0,1,1),(N0,1,1))
     distrib = G.enforcePlusX(distrib,hmin,N0//2,N0*3//2)
-    tri_in = G.surfaceWalk(surfp, lineb, distrib, constraints=[], niter=1000,
+    tri_in = G.surfaceWalk(surfp, lineb, distrib, constraints=[], niter=50,
                         alphaRef=180., check=0, toldist=1.e-6)
     tri_in = C.convertArray2Tetra(tri_in); tri_in = G.close(tri_in)
     [line_in,line_ext0] = orderExteriorEdges__(tri_in, lineb)

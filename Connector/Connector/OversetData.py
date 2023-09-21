@@ -1051,7 +1051,7 @@ def _setInterpData2(aR, aD, order=2, loc='centers', cartesian=False):
     else: varcelln = 'centers:cellN'    
     cellNPresent = C.isNamePresent(aR, varcelln)
     if cellNPresent==-1: C._initVars(aR, varcelln, 2.) # interp all
-    _setInterpData(aR, aD, double_wall=0, order=order, penalty=1, nature=1, extrap=1, 
+    _setInterpData(aR, aD, order=order, penalty=1, nature=1, extrap=1, 
                    method='lagrangian', loc=loc, storage='inverse', 
                    interpDataType=interpDataType, sameName=0, itype="chimera")
     if cellNPresent==-1: C._rmVars(aR, [varcelln])
@@ -1076,7 +1076,6 @@ def _setInterpData2(aR, aD, order=2, loc='centers', cartesian=False):
 #     extrap=1: calcul et stockage des eventuels pts extrapoles
 # IN: interpDataType: 1 for ADT, 0 if donor are cartesian (optimized)
 # IN: hook: hook sur l'adt (pas reconstruit dans setInterpData), l'ordre doit suivre celui de zonesD
-# IN: double_wall=1: activation de la technique double wall
 # IN: storage: type de stockage (direct: sur le bloc interpole, inverse: sur le bloc d'interpolation)
 # IN: loc='nodes','cells','faces': interpolation appliquee pour les receveurs (localises en noeuds/centres/faces)
 # IN: topTreeR: top tree des receveurs, sert pour extraire les FamilyBC du double wall
@@ -1085,24 +1084,26 @@ def _setInterpData2(aR, aD, order=2, loc='centers', cartesian=False):
 # IN: itype='both','chimera','abutting': calcule toutes les donnees de transferts, seules les chimere, seules les match/nearmatch
 # OUT: stockage direct: retourne tR avec les donnees d'interpolation
 # OUT: stockage indirect: retourne tD avec les donnees d'interpolation
+# verbose: 0 (rien), 1 (bilan interpolation), 2 (ecrit les indices de pts orphelins), 
 # RMQ: method='conservative' -> tout le domaine receveur est pour l'instant considere a interpoler (maquette)
 #==============================================================================
-def setInterpData(tR, tD, double_wall=0, order=2, penalty=1, nature=0, extrap=1,
+def setInterpData(tR, tD, order=2, penalty=1, nature=0, extrap=1,
                   method='lagrangian', loc='nodes', storage='direct',
-                  interpDataType=1, hook=None,
+                  interpDataType=1, hook=None, verbose=2,
                   topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both'):
     """Compute and store overset interpolation data."""
     aR = Internal.copyRef(tR)
     aD = Internal.copyRef(tD)
-    _setInterpData(aR, aD, double_wall=double_wall, order=order, penalty=penalty, nature=nature, extrap=extrap,
+    _setInterpData(aR, aD, order=order, penalty=penalty, nature=nature, extrap=extrap,
                    method=method, loc=loc, storage=storage, interpDataType=interpDataType,
-                   hook=hook, topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr, sameName=sameName, dim=dim, itype=itype)
+                   hook=hook, verbose=verbose,
+                   topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr, sameName=sameName, dim=dim, itype=itype)
     if storage == 'direct': return aR
     else: return aD
 
-def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0, extrap=1,
+def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                    method='lagrangian', loc='nodes', storage='direct',
-                   interpDataType=1, hook=None,
+                   interpDataType=1, hook=None, verbose=2,
                    topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both'):
 
     # Recherche pour les pts coincidents (base sur les GridConnectivity)
@@ -1118,8 +1119,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0, extrap=1
             _adaptForRANSLES__(aR, aD)
 
     if itype != 'abutting': # chimera
-        print("extrap", extrap)
-        _setInterpDataChimera(aR, aD, double_wall=double_wall, order=order, penalty=penalty, nature=nature, extrap=extrap,
+        _setInterpDataChimera(aR, aD, order=order, penalty=penalty, nature=nature, extrap=extrap, verbose=verbose,
                               method=method, loc=loc, storage=storage, interpDataType=interpDataType, hook=hook,
                               topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr, sameName=sameName, dim=dim, itype=itype)
 
@@ -1128,9 +1128,9 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0, extrap=1
     #if storage=='inverse': _adaptForRANSLES__(aR, aD)
     return None
 
-def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0, extrap=1,
+def _setInterpDataChimera(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                           method='lagrangian', loc='nodes', storage='direct',
-                          interpDataType=1, hook=None,
+                          interpDataType=1, hook=None, verbose=2,
                           topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both'):
     locR = loc
 
@@ -1157,73 +1157,14 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0, e
     zonesRcv = Internal.getZones(aR); nzonesRcv = len(zonesRcv)
     zonesDnr = Internal.getZones(aD); nzonesDnr = len(zonesDnr)
 
-    #---------------------------------------------------------------------------
-    # CAS DOUBLE WALL
-    # Extraction des parois de projection issues des zones donneuses
-    # Extraction des premiers centres ou premiers noeuds (selon locR) des zones receveuses
-    #---------------------------------------------------------------------------
-    donorSurfs = []; interpWallPts = []
-    noWallsInDnr = 1 # parametre qui vaut 1 si pas de parois trouvees dans les zones donneuses, 0 si au moins une
-    noWallsInRcv = 1 # idem mais pour les receveurs
-    if double_wall == 1:
-        double_wall = 0
-        print("Warning: setInterpData: double wall technique not yet implemented. Not activated.")
-        # import DoubleWall
-        # try: import Geom.PyTree as D
-        # except: raise ImportError("setInterpData+double wall requires Geom.PyTree module.")
-
-        # ttreeR = []
-        # if topTreeRcv is not None: ttreeR = topTreeRcv
-        # else:
-        #     if Internal.isTopTree(aR): ttreeR = aR
-        #     else:
-        #         if Internal.getBases(aR) != []: ttreeR = aR# c est une base on peut recuperer les familles
-        #         else: print 'Warning: setInterpData+double wall: receptor zones may require a top tree.'
-        # ttreeD = []
-        # if topTreeDnr is not None: ttreeD = topTreeDnr
-        # else:
-        #     if Internal.isTopTree(aD): ttreeD = aD
-        #     else:
-        #         if Internal.getBases(aD) != []: ttreeD = aD # c'est une base on peut recuperer les familles
-        #         else: print 'Warning: setInterpData+double wall: donors zones may require a top tree.'
-
-        # # Zones donneuses : on recupere les surfaces de projection double wall
-        # for zd in zonesDnr:
-        #     walls = C.extractBCOfType(zd,'BCWall',topTree=ttreeD)
-        #     if walls != []:
-        #         noWallsInDnr = 0
-        #         walls = D.getCurvatureHeight(walls)
-        #         walls = C.convertArray2Tetra(walls, split="withBarycenters")
-        #         walls = C.getAllFields(walls,loc='nodes')
-        #     donorSurfs.append(walls)
-
-        # # Zones receveuses : on determine les 1ers points paroi (centres ou noeuds)
-        # # recup des familles de type paroi dans les zones receveuses
-        # famwallsR = C.getFamilyBCNamesOfType(ttreeR, 'BCWall')
-        # famwallsR += C.getFamilyBCNamesOfType(ttreeR, 'BCWallViscous')
-        # famwallsR += C.getFamilyBCNamesOfType(ttreeR, 'BCWallInviscid')
-
-        # # interpWallPts : selon la loc, on recupere les premiers centres ou noeuds
-        # for zr in zonesRcv:
-        #     wallRanges = DoubleWall.getBCWallRanges__(zr,famwallsR)
-        #     if wallRanges != []:
-        #         noWallsInRcv = 0
-        #         if locR == 'nodes': interpWallPts.append(DoubleWall.getFirstPointsInfo__(zr, wallRanges,loc='nodes'))
-        #         else: interpWallPts.append(DoubleWall.getFirstPointsInfo__(zr, wallRanges,loc='centers'))
-        #     else: interpWallPts.append([])
-
-    if noWallsInDnr == 1 or noWallsInRcv == 1: double_wall = 0 # on desactive le double wall
     arraysD = C.getFields(Internal.__GridCoordinates__, zonesDnr)
-    #print(arraysD)
     cellND = C.getField('cellN', zonesDnr)
-    #print(cellND)
     arraysD = Converter.addVars([arraysD,cellND])
     cellND = []
 
     #---------------------------------------------------------------------------
     # 1. Extraction des points a interpoler
-    #    interpPts : un array si pas de double wall
-    #              : une liste d arrays avec les coordonnees des pts a interpoler modifiees
+    #    interpPts : un array avec les coordonnees des pts a interpoler modifiees
     # 2. Calcul des coefs et donneurs
     #---------------------------------------------------------------------------
     if hook is not None:
@@ -1232,7 +1173,6 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0, e
     else: allHooks = None
 
     arraysDL = arraysD[:]
-    donorSurfsL = donorSurfs[:]
     zonesDnrL = zonesDnr[:]
     nzonesDnrL = nzonesDnr
     nozr = -1
@@ -1246,7 +1186,6 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0, e
             if sameName == 1:
                 arraysD = arraysDL[:]
                 if hook is not None: allHooks = allHooksL[:]
-                donorSurfs = donorSurfsL[:]
                 zonesDnr = zonesDnrL[:]
                 nzonesDnr = nzonesDnrL
                 cL = 0; found = 0
@@ -1257,37 +1196,23 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0, e
                     arraysD.pop(cL)
                     if hook is not None: allHooks.pop(cL)
                     zonesDnr.pop(cL); nzonesDnr = nzonesDnr-1
-                    if double_wall == 1: donorSurfs.pop(cL)
 
             #-------------------------------------------
             # Etape 1: on recupere les pts a interpoler
             #-------------------------------------------
             interpPts = []
-            isdw = 0 # si double wall effectivement active, interpPts est une liste d'arrays
             if locR == 'nodes':
                 an = C.getFields(Internal.__GridCoordinates__, z)[0]
                 cellN = C.getField('cellN', z)[0]
                 an = Converter.addVars([an,cellN])
-                if double_wall == 1 and interpWallPts[nozr] != []: # dw: liste d'arrays
-                    isdw = 1
-                    for nozd in range(nzonesDnr):
-                        an2 = Connector.changeWall__(an, interpWallPts[nozr], donorSurfs[nozd], planarTol=0.)
-                        interpPts.append(Connector.getInterpolatedPoints__(an2))
-                else: # pas de dw: un seul array
-                    interpPts = Connector.getInterpolatedPoints__(an)
+                interpPts = Connector.getInterpolatedPoints__(an)
 
             elif locR == 'centers':
                 an = C.getFields(Internal.__GridCoordinates__, z)[0]
                 ac = Converter.node2Center(an)
                 cellN = C.getField('centers:cellN',z)[0]
                 ac = Converter.addVars([ac,cellN])
-                if double_wall == 1 and interpWallPts[nozr] != []: # dw: liste d'arrays
-                    isdw = 1
-                    for nozd in range(nzonesDnr):
-                        ac2 = Connector.changeWall__(ac, interpWallPts[nozr], donorSurfs[nozd], planarTol=0.)
-                        interpPts.append(Connector.getInterpolatedPoints__(ac2))
-                else:  # pas de dw : un seul array
-                    interpPts = Connector.getInterpolatedPoints__(ac)
+                interpPts = Connector.getInterpolatedPoints__(ac)
             
             #---------------------------------------------
             # Etape 2 : calcul des donnees d'interpolation
@@ -1297,27 +1222,22 @@ def _setInterpDataChimera(aR, aD, double_wall=0, order=2, penalty=1, nature=0, e
                                                   hook=allHooks, dim=dim)
             if resInterp is not None:
                 # Bilan
-                nborphan = 0; nbextrapolated = 0; nbinterpolated = 0
-                if double_wall==0: nbinterpolated = interpPts[1].shape[1]
-                else: nbinterpolated = interpPts[0][1].shape[1]
+                nbinterpolated=interpPts[1].shape[1]
+                nbextrapolated=0
                 if len(resInterp[4])>0:
                     for r in resInterp[4]: nbextrapolated += r.shape[0]
                 nborphan = resInterp[5].size
                 nbinterpolated = nbinterpolated-nbextrapolated-nborphan
-
-                print('Zone %s: interpolated=%d ; extrapolated=%d ; orphan=%d'%(z[0], nbinterpolated, nbextrapolated, nborphan))
-                if nborphan > 0: print('Warning: zone %s has %d orphan points !'%(z[0], nborphan))
+                if verbose != 0:
+                    print('Zone %s: interpolated=%d ; extrapolated=%d ; orphan=%d'%(z[0], nbinterpolated, nbextrapolated, nborphan))
+                    if nborphan > 0: print('Warning: zone %s has %d orphan points !'%(z[0], nborphan))
                 # on remet a une seule zone, attention si x,y,z sont necessaires ensuite
                 # les coordonnees peuvent etre fausses a cause du double walls
                 indcells=[]
                 if loc == 'faces': vari = 'indcell1'
                 else: vari = 'indcell'
-                if isdw == 1:
-                    posindcell = KCore.isNamePresent(interpPts[0],vari)
-                    if posindcell != -1: indcells = interpPts[0][1][posindcell,:]
-                else:
-                    posindcell = KCore.isNamePresent(interpPts,vari)
-                    if posindcell != -1: indcells = interpPts[1][posindcell,:]
+                posindcell = KCore.isNamePresent(interpPts,vari)
+                if posindcell != -1: indcells = interpPts[1][posindcell,:]
 
                 # on recupere les bons indices de pts interpoles (indcell ds interpPts), de EXdir
                 # pour ceux obtenus en sortie de setInterpData
