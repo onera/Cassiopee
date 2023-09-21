@@ -18,7 +18,7 @@ if rank == 0:
     a = C.initVars(a, '{centers:Density} = {centers:CoordinateX} + sin({centers:CoordinateY}) + cos({centers:CoordinateZ})')
     a = C.initVars(a, '{centers:Pressure} = {centers:CoordinateX} + cos({centers:CoordinateY}) + sin({centers:CoordinateZ})')
     a = C.initVars(a, '{Density} = {CoordinateX} + sin({CoordinateY}) + cos({CoordinateZ})')
-    Internal._adaptNGon12NGon2(a) # NGONv4
+    Internal._adaptNGon32NGon4(a) # NGONv4
     C.convertPyTree2File(a, fileName)
 Cmpi.barrier()
 

@@ -4198,20 +4198,29 @@ def getElementRange(z, name=None, type=None, number=None):
 # -- Adapte une connectivite avec ParentElement en connectivite NFACE
 # remove = True: detruit la connectivite ParentElements
 def adaptPE2NFace(t, remove=True):
+    """Creates NFaceElements nodes from ParentElements arrays in each zone."""
     tp = copyRef(t)
     _adaptPE2NFace(tp, remove)
     return tp
 
 def _adaptPE2NFace(t, remove=True):
+    """Creates NFaceElements nodes from ParentElements arrays in each zone."""
     zones = getZones(t)
     for z in zones:
+        NGON = getNodeFromName1(z, 'NGonElements')
+        offset = getNodeFromName1(NGON, 'ElementStartOffset')
+        api = 3 if offset is not None else 2
+
         parentElt = getNodeFromName2(z, 'ParentElements')
         if parentElt is not None:
             cFE = parentElt[1]
-            cNFace, nelts = converter.adaptPE2NFace(cFE)
+            cNFace, off, nelts = converter.adaptPE2NFace(cFE, api)
             p = createUniqueChild(z, 'NFaceElements', 'Elements_t', value=[23,0])
             createUniqueChild(p, 'ElementRange', 'IndexRange_t', value=[1,nelts])
             createUniqueChild(p, 'ElementConnectivity', 'DataArray_t', value=cNFace)
+            if api < 3: createUniqueChild(p, 'ElementIndex', 'DataArray_t', value=off)
+            else: createUniqueChild(p, 'ElementStartOffset', 'DataArray_t', value=off)
+            
             if remove: _rmNodesByName(z, 'ParentElements')
     return None
 
@@ -4219,12 +4228,14 @@ def _adaptPE2NFace(t, remove=True):
 # remove = True: detruit la connectivite NFace
 # methodPE = 0 : methode geometrique pour generer le ParentElement (pour un maillage relativement regulier, sans cellules concaves).
 # methodPE = 1 : methode topologique (pour un maillage quelconque).
-def adaptNFace2PE(t, remove=True, methodPE=0):
+def adaptNFace2PE(t, remove=True, methodPE=0, shift=False):
+    """Creates ParentElements arrays from NFaceElements nodes in each zone."""
     tp = copyRef(t)
-    _adaptNFace2PE(tp, remove, methodPE)
+    _adaptNFace2PE(tp, remove, methodPE, shift)
     return tp
 
 def _adaptNFace2PE(t, remove=True, methodPE=0, shift=False):
+    """Creates ParentElements arrays from NFaceElements nodes in each zone."""
     zones = getZones(t)
     for z in zones:
         nelts = 0; cNFace = None; NGON = None; noNFace = 0
@@ -4300,13 +4311,15 @@ def _adaptNFace2Index(t):
                     createUniqueChild(NFACE, 'ElementIndex', 'DataArray_t', value=pos)
     return None
 
-# -- Adapte un NGon2 en NGon1
-def adaptNGon22NGon1(t):
+# -- Adapte un NGon(CGNSv4) en NGon(CGNSv3)
+def adaptNGon42NGon3(t):
+    """Adapts a NGON mesh from the CGNSv4 standard to the CGNSv3 standard."""
     tp = copyRef(t)
-    _adaptNGon22NGon1(tp)
+    _adaptNGon42NGon3(tp)
     return tp
     
-def _adaptNGon22NGon1(t):
+def _adaptNGon42NGon3(t):
+    """Adapts a NGON mesh from the CGNSv4 standard to the CGNSv3 standard."""
     zones = getZones(t)
     for z in zones:
         cn = getElementNodes(z)
@@ -4316,9 +4329,11 @@ def _adaptNGon22NGon1(t):
                 off = getNodeFromName1(c, 'ElementStartOffset')
                 cn = getNodeFromName1(c, 'ElementConnectivity')
                 if off is not None and cn is not None:
-                    n = converter.adaptNGon22NGon1(cn[1], off[1])
+                    n = converter.adaptNGon42NGon3(cn[1], off[1])
                     cn[1] = n
-                    _rmNodesFromName(c, 'ElementStartOffset')
+                    off[1] = off[1][:-1]
+                    if c[1][0] == 22: off[0] = 'FaceIndex'
+                    else: off[0] = 'ElementIndex'
 
             # Si ParentElement, regarde si il adresse les elements decales du nbre de faces de NGON
             if c[1][0] == 22:
@@ -4332,13 +4347,15 @@ def _adaptNGon22NGon1(t):
                         parentElt[1] = cFE
     return None
 
-# -- Adapte un NGon1 en NGon2
-def adaptNGon12NGon2(t):
+# -- Adapte un NGon(CGNSv3) en NGon(CGNSv4)
+def adaptNGon32NGon4(t):
+    """Adapts a NGON mesh from the CGNSv3 standard to the CGNSv4 standard"""
     tp = copyRef(t)
-    _adaptNGon12NGon2(tp)
+    _adaptNGon32NGon4(tp)
     return tp
     
-def _adaptNGon12NGon2(t):
+def _adaptNGon32NGon4(t):
+    """Adapts a NGON mesh from the CGNSv3 standard to the CGNSv4 standard"""
     zones = getZones(t)
     for z in zones:
         cn = getElementNodes(z)
@@ -4347,7 +4364,7 @@ def _adaptNGon12NGon2(t):
             if c[1][0] == 22 or c[1][0] == 23: 
                 cn = getNodeFromName1(c, 'ElementConnectivity')
                 if cn is not None:
-                    (n,off) = converter.adaptNGon12NGon2(cn[1])
+                    (n,off) = converter.adaptNGon32NGon4(cn[1])
                     cn[1] = n
                     createUniqueChild(c, 'ElementStartOffset', 'DataArray_t', off)
                     _rmNodesFromName(c, 'FaceIndex')
@@ -4541,20 +4558,25 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                 # Essaie de transformer la connectivite ParentElements en NFACE
                 ngon = sons[NGON]
                 parentElt = getNodeFromName1(ngon, 'ParentElements')
+                offset = getNodeFromName1(ngon, 'ElementStartOffset')
+                api = 3 if offset is not None else 2
                 if parentElt is not None and parentElt[1] is not None: # parent element est present
                     cFE = parentElt[1]
                     sh = cFE.shape
                     if len(sh) == 1: # Bug elsA
                         cFE = cFE.reshape((sh[0]//2,2), order='F'); parentElt[1] = cFE
-                    cNFace, nelts = converter.adaptPE2NFace(cFE)
-                    p = createUniqueChild(z, 'NFaceElements', 'Elements_t',
-                                          value=[23,0])
-                    createUniqueChild(p, 'ElementRange', 'IndexRange_t',
-                                      value=[1,nelts])
-                    createUniqueChild(p, 'ElementConnectivity',
-                                      'DataArray_t', value=cNFace)
+                    cNFace, off, nelts = converter.adaptPE2NFace(cFE, api)
+                    p = createUniqueChild(z, 'NFaceElements', 'Elements_t', value=[23,0])
+                    createUniqueChild(p, 'ElementRange', 'IndexRange_t', value=[1,nelts])
+                    createUniqueChild(p, 'ElementConnectivity', 'DataArray_t', value=cNFace)
+                    if api < 3: createUniqueChild(p, 'ElementIndex', 'DataArray_t', value=off)
+                    else: createUniqueChild(p, 'ElementStartOffset', 'DataArray_t', value=off)
                     NFACE = len(sons)-1; NFACEORIG = False
                     if remove: _rmNode(z, parentElt)
+
+                    NGON = getNodeFromName1(z, 'NGonElements')
+                    offset = getNodeFromName1(NGON, 'ElementStartOffset')
+                    api = 3 if offset is not None else 2
                 else:
                     print('Warning: cannot create NFACE. ParentElements node is not present.')
                 _updateElementRange(z)
@@ -4684,7 +4706,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                             shiftn = shift1[zdonorname][ref][0]-shift0[zdonorname][ref][0]
                             pln[:] += shiftn
                             pld[1] = pln.reshape((1, pln.size))
-    _adaptNGon22NGon1(t)
+    _adaptNGon42NGon3(t)
     return None
 
 #==============================================================================

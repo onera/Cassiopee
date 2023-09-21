@@ -21,12 +21,13 @@
 using namespace K_FLD;
 
 //=============================================================================
-/* Convert a NGon1 (NGONv3) to NGon2 connectivity+offset (NGONv4) */
+/* Convert a NGon2+ElementStartOffSet (NGONv4) to NGON1 (NGONv3)  */
 //=============================================================================
-PyObject* K_CONVERTER::adaptNGon12NGon2(PyObject* self, PyObject* args)
+PyObject* K_CONVERTER::adaptNGon42NGon3(PyObject* self, PyObject* args)
 {
-  PyObject* arrayConnect;
-  if (!PYPARSETUPLEI(args, "O", "O", &arrayConnect)) return NULL;
+  PyObject* arrayConnect; PyObject* arrayOffset;
+  if (!PYPARSETUPLEI(args, "OO", "OO", 
+                     &arrayConnect, &arrayOffset)) return NULL;
 
   // Check numpy (connect)
   FldArrayI* connect;
@@ -34,45 +35,52 @@ PyObject* K_CONVERTER::adaptNGon12NGon2(PyObject* self, PyObject* args)
   if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError, 
-                    "adaptNGon12NGon2: connect numpy is invalid.");
+                    "adaptNGon42NGon3: connect numpy is invalid.");
+    return NULL;
+  }
+  // Check numpy (Offset)
+  FldArrayI* offset;
+  res = K_NUMPY::getFromNumpyArray(arrayOffset, offset, true);
+  if (res == 0)
+  {
+    RELEASESHAREDN(arrayConnect, connect);
+    PyErr_SetString(PyExc_TypeError, 
+                    "adaptNGon42NGon3: offset numpy is invalid.");
     return NULL;
   }
   
-  // Find the size and number of elements
-  E_Int* c = connect->begin();
-  E_Int np;
-  E_Int ne = 0; E_Int size = 0;
-  E_Int sizeTot = connect->getSize();
-  E_Int p = 0; E_Int p2 = 0;
-  while (p < sizeTot)
-  {
-    np = c[0];
-    size += np;
-    ne++;
-    p += np+1;
-    c += np+1;
-  }
-  
+  // nbre d'element dans la connectivite
+  E_Int ne = offset->getSize()-1;
+  // taille de la connectivite de sortie contenant le no + les indices pour chaque element
+  E_Int size = connect->getSize()+ne;
+
   // creation sortie
   PyObject* tpl = K_NUMPY::buildNumpyArray(size, 1, 1, 1);
   E_Int* co = K_NUMPY::getNumpyPtrI(tpl);
-  PyObject* tpl2 = K_NUMPY::buildNumpyArray(ne+1, 1, 1, 1);
-  E_Int* off = K_NUMPY::getNumpyPtrI(tpl2);
-  
+
   // remplissage
-  p = 0; p2 = 0; c = connect->begin(); off[0] = 0;
-  for (E_Int i = 0; i < ne; i++)
+  E_Int* c = connect->begin();
+  E_Int* o = offset->begin();
+#pragma omp parallel
   {
-      np = c[0];
-      for (E_Int j = 0; j < np; j++) co[j] = c[j+1];
-      p2 += np;
-      off[i+1] = p2;
-      c += np+1;
-      co += np;
+    E_Int d, d1, d2;
+    #pragma omp for
+    for (E_Int i = 0; i < ne; i++)
+    {
+      d = o[i+1]-o[i];
+      d1 = o[i];
+      d2 = o[i]+i;
+      co[d2] = d;
+      for (E_Int j = 0; j < d; j++) co[d2+j+1] = c[d1+j];
+    }
   }
+
+  // Create index array from offset
+  for (E_Int i = 0; i < ne; i++) o[i] = o[i]+i;
  
   RELEASESHAREDN(arrayConnect, connect);
+  RELEASESHAREDN(arrayOffset, offset);
 
   // Retour du numpy de sortie
-  return Py_BuildValue("(OO)", tpl,tpl2);
+  return tpl;
 }

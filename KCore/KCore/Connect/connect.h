@@ -321,6 +321,12 @@ namespace K_CONNECT
   void connectFE2NFace(K_FLD::FldArrayI& cFE, K_FLD::FldArrayI& cNFace, 
                        E_Int& nelts);
 
+  void connectFE2NFace3(K_FLD::FldArrayI& cFE, K_FLD::FldArrayI& cNFace, 
+                       K_FLD::FldArrayI& off, E_Int& nelts);
+
+  void connectFE2NFace4(K_FLD::FldArrayI& cFE, K_FLD::FldArrayI& cNFace, 
+                       K_FLD::FldArrayI& off, E_Int& nelts);
+
   /* Calcul des connectivites elements a partir d'une
     connectivite mix */
   void connectMix2EV(K_FLD::FldArrayI& cMIX,

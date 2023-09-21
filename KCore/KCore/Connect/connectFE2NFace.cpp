@@ -31,6 +31,8 @@ using namespace std;
    the face indices.
  */
 //=============================================================================
+
+// NGON(CGNSv3)
 void K_CONNECT::connectFE2NFace(FldArrayI& cFE, FldArrayI& cNFace, E_Int& nelts)
 {
   E_Int nf = cFE.getSize();
@@ -83,3 +85,120 @@ void K_CONNECT::connectFE2NFace(FldArrayI& cFE, FldArrayI& cNFace, E_Int& nelts)
     size += nf+1;
   }
 }
+
+// NGON(CGNSv3) + index
+void K_CONNECT::connectFE2NFace3(FldArrayI& cFE, FldArrayI& cNFace, FldArrayI& off, E_Int& nelts)
+{
+  E_Int nf = cFE.getSize();
+  E_Int* facesp1 = cFE.begin(1);
+  E_Int* facesp2 = cFE.begin(2);
+
+  // Trouve le nbre d'elements (le max)
+  E_Int e1, e2;
+  nelts = 0;
+  for (E_Int i = 0; i < nf; i++)
+  {
+    e1 = facesp1[i]; e2 = facesp2[i];
+    nelts = K_FUNC::E_max(nelts, e1, e2);
+  }
+  vector< vector<E_Int> > a(nelts); // pour chaque element stocke les faces
+
+  for (E_Int i = 0; i < nf; i++)
+  {
+    e1 = facesp1[i]-1; e2 = facesp2[i]-1;
+    //printf("%d %d\n", e1, e2);
+    if (e1 >= 0) a[e1].push_back(i+1);
+    if (e2 >= 0) a[e2].push_back(i+1);
+  }
+
+  // unique it
+  for (E_Int i = 0; i < nelts; i++)
+  {
+    sort(a[i].begin(), a[i].end());
+    a[i].erase(unique(a[i].begin(), a[i].end()), a[i].end());
+    //printf("%d %d\n", i, a[i].size());
+  }
+
+  // compactage
+  E_Int size = 0;
+  for (E_Int i = 0; i < nelts; i++)
+  {
+    size += (a[i].size()+1);
+  }
+
+  cNFace.malloc(size);
+  E_Int* cn = cNFace.begin();
+
+  off.malloc(nelts);
+  E_Int* o = off.begin();
+
+  size = 0;
+  for (E_Int i = 0; i < nelts; i++)
+  {
+    nf = a[i].size();
+    cn[size] = nf;
+    o[i] = size;
+    for (E_Int j = 1; j <= nf; j++)
+    { cn[size+j] = a[i][j-1]; }
+    size += nf+1;
+  }
+}
+
+// NGON(CGNSv4) + offset
+void K_CONNECT::connectFE2NFace4(FldArrayI& cFE, FldArrayI& cNFace, FldArrayI& off, E_Int& nelts)
+{
+  E_Int nf = cFE.getSize();
+  E_Int* facesp1 = cFE.begin(1);
+  E_Int* facesp2 = cFE.begin(2);
+
+  // Trouve le nbre d'elements (le max)
+  E_Int e1, e2;
+  nelts = 0;
+  for (E_Int i = 0; i < nf; i++)
+  {
+    e1 = facesp1[i]; e2 = facesp2[i];
+    nelts = K_FUNC::E_max(nelts, e1, e2);
+  }
+  vector< vector<E_Int> > a(nelts); // pour chaque element stocke les faces
+
+  for (E_Int i = 0; i < nf; i++)
+  {
+    e1 = facesp1[i]-1; e2 = facesp2[i]-1;
+    //printf("%d %d\n", e1, e2);
+    if (e1 >= 0) a[e1].push_back(i+1);
+    if (e2 >= 0) a[e2].push_back(i+1);
+  }
+
+  // unique it
+  for (E_Int i = 0; i < nelts; i++)
+  {
+    sort(a[i].begin(), a[i].end());
+    a[i].erase(unique(a[i].begin(), a[i].end()), a[i].end());
+    //printf("%d %d\n", i, a[i].size());
+  }
+
+  // compactage
+  E_Int size = 0;
+  for (E_Int i = 0; i < nelts; i++)
+  {
+    size += (a[i].size());
+  }
+
+  cNFace.malloc(size);
+  E_Int* cn = cNFace.begin();
+
+  off.malloc(nelts+1);
+  E_Int* o = off.begin();
+
+  size = 0;
+  for (E_Int i = 0; i < nelts; i++)
+  {
+    o[i] = size;
+    nf = a[i].size();
+    for (E_Int j = 0; j < nf; j++)
+    { cn[size+j] = a[i][j]; }
+    size += nf;
+  }
+  o[nelts] = size;
+}
+

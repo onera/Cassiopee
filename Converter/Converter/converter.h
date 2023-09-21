@@ -150,8 +150,8 @@ namespace K_CONVERTER
   PyObject* adaptNFace2Index(PyObject* self, PyObject* args);
   PyObject* adaptBCFace2BCC(PyObject* self, PyObject* args);
   PyObject* adaptBCC2BCFace(PyObject* self, PyObject* args);
-  PyObject* adaptNGon22NGon1(PyObject* self, PyObject* args);
-  PyObject* adaptNGon12NGon2(PyObject* self, PyObject* args);
+  PyObject* adaptNGon42NGon3(PyObject* self, PyObject* args);
+  PyObject* adaptNGon32NGon4(PyObject* self, PyObject* args);
   PyObject* adapt2FastP(PyObject* self, PyObject* args);
   PyObject* createElsaHybrid(PyObject* self, PyObject* args);
   PyObject* diffIndex(PyObject* self, PyObject* args);
