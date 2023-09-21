@@ -11,6 +11,8 @@ from . import ColorMaps
 
 import os.path
 import time
+from sys import version_info
+
 __timeStep__ = 0.01
 __slot__ = None
 
@@ -765,7 +767,24 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
     if offscreen > 0: daemon = True
     else: daemon = False
     from . import cplot
-    a = threading.Thread(None, cplot.displayNew, None,
+    if version_info == 2: # python 2 - no daemon
+        a = threading.Thread(None, cplot.displayNew, None,
+                         (arrays, dim, mode, scalarField, vectorField1,
+                          vectorField2, vectorField3, displayBB, displayInfo,
+                          displayIsoLegend,
+                          meshStyle, solidStyle, scalarStyle,
+                          vectorStyle, vectorScale, vectorDensity, vectorNormalize,
+                          vectorShowSurface, vectorShape, vectorProjection, 
+                          colormap, colormapC1, colormapC2, colormapC3, colormapC,
+                          niso, isoEdges, isoScales,
+                          win, posCam, posEye, dirCam, viewAngle, 
+                          bgColor, backgroundFile,
+                          shadow, lightOffset, dof, dofPower, gamma, toneMapping,  
+                          stereo, stereoDist,
+                          export, exportResolution,
+                          zoneNames, renderTags, frameBuffer, offscreen), {})
+    else: # python3 - daemon
+        a = threading.Thread(None, cplot.displayNew, None,
                          (arrays, dim, mode, scalarField, vectorField1,
                           vectorField2, vectorField3, displayBB, displayInfo,
                           displayIsoLegend,

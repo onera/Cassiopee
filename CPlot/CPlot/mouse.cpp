@@ -46,8 +46,10 @@ void gmousePassiveMotion(int x, int y)
 //=============================================================================
 void Data::mouseButton(E_Int button, E_Int etat, E_Int x, E_Int y)
 {
-  ptrState->render = 1;
-  if (etat == 1) { ptrState->currentMouseButton = 5; ptrState->ondrag = 0; return; } // button released
+  //ptrState->render = 1;
+  if (etat == 1) 
+  { ptrState->currentMouseButton = 5; ptrState->ondrag = 0; ptrState->render = 1; return; } // button released
+  
   E_Int modif = glutGetModifiers();
   
   switch (button)
@@ -93,6 +95,8 @@ void Data::mouseButton(E_Int button, E_Int etat, E_Int x, E_Int y)
                 break;
             }
           }
+          ptrState->ondrag = 0;
+          ptrState->render = 1;
         }
       }
       else
@@ -106,18 +110,21 @@ void Data::mouseButton(E_Int button, E_Int etat, E_Int x, E_Int y)
         // Mouse multiple action
         if (_pref.mouseMultipleClick != NULL)
           _pref.mouseMultipleClick->f(this, button, etat, x, y);
+        ptrState->render = 1;
       }
       else if (modif == GLUT_ACTIVE_SHIFT)
       {
         // Mouse click action
         if (_pref.mouseClick != NULL)
           _pref.mouseClick->f(this, button, etat, x, y);
+        ptrState->render = 1;
       }
       else if (modif == GLUT_ACTIVE_CTRL)
       {
         // Mouse click accurate action
         if (_pref.mouseClick != NULL)
           _pref.mouseAccurateClick->f(this, button, etat, x, y);
+        ptrState->render = 1;
       }
       break;
 
@@ -127,6 +134,7 @@ void Data::mouseButton(E_Int button, E_Int etat, E_Int x, E_Int y)
         // Reverse mouse click action
         if (_pref.mouseRightClick != NULL)
           _pref.mouseRightClick->f(this, button, etat, x, y);
+        ptrState->render = 1;
       }
       break;
 
@@ -152,6 +160,7 @@ void Data::mouseButton(E_Int button, E_Int etat, E_Int x, E_Int y)
       
       adaptiveClipping(d);
       button = GLUT_MIDDLE_BUTTON;
+      ptrState->render = 1;
     }
 
     case 4: // mouse wheel, zoom out
@@ -178,6 +187,7 @@ void Data::mouseButton(E_Int button, E_Int etat, E_Int x, E_Int y)
       */
       adaptiveClipping(d);
       button = GLUT_MIDDLE_BUTTON;
+      ptrState->render = 1;
     }
   }
   ptrState->activeMouseButton = button;

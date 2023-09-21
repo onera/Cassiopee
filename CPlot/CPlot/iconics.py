@@ -11,6 +11,8 @@ except: ICONFORMAT = 'GIF'
 class Photo:
     def __init__(self):
         self._plist = {}
+    def __del__(self):
+        for p in self._plist: self._plist[p] = None
     def __getitem__(self, key):
         from .Ttk import ICONMODE
 

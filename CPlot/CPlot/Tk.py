@@ -24,6 +24,8 @@ FILE = ''
 HANDLE = None
 # Fichier pour les exports
 EXPORTFILE = ''
+# Update du menu Apps (semble poser pb sur certains linux)
+UPDATEAPPSMENU = True
 # pyTree contenant les donnees affichee
 t = []
 # pyTree contenant l'arbre precedent (pour le undo)
@@ -1050,6 +1052,7 @@ def saveTree():
 def Quit():
     #WIDGETS['masterWin'].destroy()
     #WIDGETS['masterWin'].quit()
+    del iconics.PHOTO
     os._exit(0)
 
 #==============================================================================
@@ -1548,6 +1551,7 @@ def minimal(title, show=True, mode=0):
     #win.minsize(325, 325)
 
     menu = TK.Menu(win, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
+    win.config(menu=menu)
 
     # menu file
     if mode == 0: # Cassiopee
@@ -1589,7 +1593,7 @@ def minimal(title, show=True, mode=0):
         cplot = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
         WIDGETS['cplotMenu'] = cplot
         menu.add_cascade(label='CPlot', menu=cplot)
-        
+                     
     # Menu specific tools
     if mode == 0:
         tools = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
@@ -1851,23 +1855,32 @@ class noteBook:
 
     # add a new frame (screen) to the (bottom/left of the) notebook
     def add_screen(self, fr, title, menu_fr=None):
-        b = TTK.Radiobutton(self.rb_fr, text=title, \
-                            #image=image, compound=TK.TOP, pady=0, border=TK.ROUND,
-                            offrelief=TK.GROOVE, \
-                            indicatoron=False, selectcolor='#ffffff', \
-                            variable=self.choice, value=self.count, \
-                            command=lambda: self.display(fr, menu_fr))
-        b.bind('<ButtonRelease-3>', lambda event: self.displayMenu(event, fr, menu_fr, b))
-        menu_fr.config(bg=TTK.BACKGROUNDCOLOR)
-        menu_fr.config(fg=TTK.FOREGROUNDCOLOR)
-        b.grid(sticky=TK.EW)
+        if menu_fr is None: 
+            b = TTK.Radiobutton(self.rb_fr, text=title,
+                                #image=image, compound=TK.TOP, pady=0, border=TK.ROUND,
+                                offrelief=TK.GROOVE,
+                                indicatoron=False, selectcolor='#ffffff',
+                                variable=self.choice, value=self.count)
+        else:
+            b = TTK.Radiobutton(self.rb_fr, text=title,
+                                #image=image, compound=TK.TOP, pady=0, border=TK.ROUND,
+                                offrelief=TK.GROOVE,
+                                indicatoron=False, selectcolor='#ffffff',
+                                variable=self.choice, value=self.count,
+                                command=lambda: self.display(fr, menu_fr))
+            b.bind('<ButtonRelease-3>', lambda event: self.displayMenu(event, fr, menu_fr, b))
+            menu_fr.config(bg=TTK.BACKGROUNDCOLOR)
+            menu_fr.config(fg=TTK.FOREGROUNDCOLOR)
+            b.grid(sticky=TK.EW)
 
         # ensures the first frame will be the first selected/enabled
         if not self.active_fr:
             fr.grid(sticky=TK.NSEW)
             self.active_fr = fr
             if self.menu is not None and menu_fr is not None:
-                self.menu.insert_cascade(index=3, label='Apps', menu=menu_fr)
+                if UPDATEAPPSMENU:
+                    self.menu.insert_cascade(index=3, label='Apps', menu=menu_fr)
+                
         self.count += 1
 
         # returns a reference to the newly created
@@ -1881,9 +1894,11 @@ class noteBook:
         fr.grid(sticky=TK.NSEW)
         self.active_fr = fr
         if self.menu is not None and menu_fr is not None:
-            self.menu.delete(3)
-            self.menu.insert_cascade(index=3, label='Apps', menu=menu_fr)
-
+            if UPDATEAPPSMENU:
+                self.menu.delete(3)
+                self.menu.insert_cascade(index=3, label='Apps', menu=menu_fr)
+                #self.menu.entryconfigure(3, menu=menu_fr)
+            
     # Display the gleize little menu
     def displayMenu(self, event, fr, menu_fr, b):
         menu_fr.tk_popup(event.x_root+50, event.y_root, 0)
@@ -2060,7 +2075,7 @@ def tkLoadFile(files, mode='full'):
     maxSize = PREFS.get('maxFileSizeForLoad', 6.) # en Gb
     maxSize = maxSize * 100000000
     if size > maxSize: mode = 'partial'
-    else: mode = 'full' 
+    else: mode = 'full'
 
   if mode == 'partial':
     fileName = files[0]
