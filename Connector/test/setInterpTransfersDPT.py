@@ -26,7 +26,7 @@ tR = C.initVars(tR, '{centers:cellN}=1.')
 tR = C.initVars(tR, '{centers:MomentumX}=0.1')
 tR = C.initVars(tR, '{centers:MomentumY}=0.2')
 tR = X.applyBCOverlaps(tR, depth=1) 
-tD = X.setInterpData(tR, tD, double_wall=1, loc='centers',
+tD = X.setInterpData(tR, tD, loc='centers',
                      storage='inverse', order=3)
-info = X.setInterpTransfersD(tD,variables=['MomentumX'])
+info = X.setInterpTransfersD(tD, variables=['MomentumX'])
 print(info)

@@ -684,7 +684,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
 # IN: sameBase=1 (itype='chimera'): autorise l'interpolation dans la meme base
 # memes arguments que setInterpData
 #=========================================================================
-def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0, extrap=1,
+def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                    method='lagrangian', loc='nodes', storage='direct',
                    interpDataType=1, hook=None, cartesian=False, sameBase=0,
                    topTreeRcv=None, topTreeDnr=None, sameName=1, 
@@ -697,7 +697,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0, extrap=1
                         cartesian=False, zoneGC=True, keepOldNodes=False)
         Cmpi._addXZones(aD, graph, variables=[], noCoordinates=True, 
                         cartesian=False, zoneGC=True, keepOldNodes=False)
-        X._setInterpData(aR, aD, double_wall=double_wall, order=order, penalty=penalty, nature=nature, extrap=extrap,
+        X._setInterpData(aR, aD, order=order, penalty=penalty, nature=nature, extrap=extrap,
                          method=method, loc=loc, storage=storage, interpDataType=interpDataType, hook=hook, 
                          topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr,
                          sameName=sameName, dim=dim, itype=itype)
@@ -723,7 +723,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0, extrap=1
         Cmpi._addXZones(aD, graph, variables=['centers:cellN'], noCoordinates=False, 
                         cartesian=False, zoneGC=False, keepOldNodes=False)
         
-        X._setInterpData(aR, aD, double_wall=double_wall, order=order, penalty=penalty, nature=nature, extrap=extrap,
+        X._setInterpData(aR, aD, order=order, penalty=penalty, nature=nature, extrap=extrap,
                          method=method, loc=loc, storage=storage, interpDataType=interpDataType, hook=hook, 
                          topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr,
                          sameName=sameName, dim=dim, itype=itype)
@@ -792,7 +792,7 @@ def _setInterpData(aR, aD, double_wall=0, order=2, penalty=1, nature=0, extrap=1
                 else: interpDataTypeL.append(1)
             
             if dnrZones != []:
-                X._setInterpData(zr, dnrZones, double_wall=double_wall, order=order, penalty=penalty, 
+                X._setInterpData(zr, dnrZones, order=order, penalty=penalty, 
                          nature=nature, extrap=extrap, 
                          method=method, loc=loc, storage=storage, 
                          interpDataType=interpDataTypeL, hook=hookL, 
