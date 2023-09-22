@@ -117,18 +117,18 @@ def exportAccumulatorPerPsi(accumulator, psi=0., vars=['F1','F2']):
     """Export accumulator (psi,rad) in a zone for a given psi."""
     accumulator = Cmpi.allgatherDict(accumulator)
 
-    radius = []
-    for k in accumulator.keys(): radius.append(k[1])
+    radii = []
+    for k in accumulator.keys(): radii.append(k[1])
 
-    radius = sorted(set(radius))
+    radii = sorted(set(radii))
     # Create zone
-    z = G.cart((0,0,0), (1,0,0), (len(radius),1,1))
+    z = G.cart((0,0,0), (1,0,0), (len(radii),1,1))
     C._addVars(z, 'radius')
     C._addVars(z, vars)
     qx = Internal.getNodeFromName2(z, 'CoordinateX')[1]
     qr = Internal.getNodeFromName2(z, 'radius')[1]
         
-    for r, rad in enumerate(radius):
+    for r, rad in enumerate(radii):
         acu = accumulator[(psi,rad)]
         qx[r] = rad
         qr[r] = rad
@@ -172,41 +172,47 @@ def exportAccumulatorMap(accumulator, vars=['Fx','Fy','Fz']):
     """Export accumulator (psi,rad) in a map zone."""
     accumulator = Cmpi.allgatherDict(accumulator)
 
-    psis = []; radius = []
+    psis = []; radii = []
     for k in accumulator.keys():
         psis.append(k[0]) # psi
-        radius.append(k[1]) # rad
+        radii.append(k[1]) # rad
     psis = sorted(set(psis))
-    radius = sorted(set(radius))
+    radii = sorted(set(radii))
 
     # Create zone
-    z = G.cart((0,0,0), (1,0,0), (len(psis),len(radius),1))
+    z = G.cart((0,0,0), (1,0,0), (len(psis),len(radii),1))
     qx = Internal.getNodeFromName2(z, 'CoordinateX')[1]
     qy = Internal.getNodeFromName2(z, 'CoordinateY')[1]
+
+    # C._initVars(z, 'Radius', 0)
+    # radii = Internal.getNodeFromName2(z, 'Radius')[1]
+    # for r, rad in enumerate(fadii):
+    #     radii[r] = rad
+    # Internal.getNodeFromName2(z, 'Radius')[1] = radii
 
     C._addVars(z, vars)
     if len(psis) == 1:
         psirad = psis[0]*math.pi/180.
-        for r, rad in enumerate(radius):
+        for r, rad in enumerate(radii):
                 acu = accumulator[(psis[0],rad)]
                 qx[r] = rad * math.cos(psirad)
                 qy[r] = rad * math.sin(psirad)
                 for c, v in enumerate(vars):
                     q = Internal.getNodeFromName2(z, v)[1]
                     q[r] = acu[c]
-    elif len(radius) == 1:
+    elif len(radii) == 1:
         for p, psi in enumerate(psis):
             psirad = psi*math.pi/180.
-            acu = accumulator[(psi,radius[0])]
-            qx[p] = radius[0] * math.cos(psirad)
-            qy[p] = radius[0] * math.sin(psirad)
+            acu = accumulator[(psi,radii[0])]
+            qx[p] = radii[0] * math.cos(psirad)
+            qy[p] = radii[0] * math.sin(psirad)
             for c, v in enumerate(vars):
                 q = Internal.getNodeFromName2(z, v)[1]
                 q[p] = acu[c]
     else:
         for p, psi in enumerate(psis):
             psirad = psi*math.pi/180.
-            for r, rad in enumerate(radius):
+            for r, rad in enumerate(radii):
                 acu = accumulator[(psi,rad)]
                 qx[p,r] = rad * math.cos(psirad)
                 qy[p,r] = rad * math.sin(psirad)
@@ -291,18 +297,63 @@ def frictionLines(teff):
 # extrait les slices en parallele et calcule les variables de post traitement 
 # IN: teff
 # IN: bladeName: name of base of blade
-# IN: radius: liste des radius a extraire
-# IN: delta: interne, largeur des bandelettes
-# IN: relativeShaft: si localFrame=False et le repere maillage n'est pas le repere vent
+# IN: psi: current angle of rotation, used as key in all accumulator dict
+# IN: radii: list of radii at which the solution on the blades must be extracted
+# IN: RoInf, PInf, ASOUND, Mtip, AR, CHORD, MU: flow information used for adimensioning
+# IN: accumulatorSlices: dict of slices used to track their evolution. Keys are (psi,rad)
+# IN: accumulatorCnM2: dict of CnM2 used to track their evolution. Keys are (psi,rad)
+# IN: accumulatorCmM2: dict of CmM2 used to track their evolution. Keys are (psi,rad)
+# IN: adimCnM2: scaling value for CnM2. If adimCnM2=0: computes the value with adimCnM2=0.5*RoInf*ASOUND**2*CHORD
+# IN: adimCmM2: scaling value for CmM2. If adimCmM2=0: computes the value with adimCmM2=0.5*RoInf*ASOUND**2*CHORD
+# IN: adimKp: scaling value for Kp. If Kp=0: computes the value with Kp=0.5*RoInf*(abs(rad)*Mtip*ASOUND/AR+MU*Mtip*ASOUND*math.sin(psi/180.*math.pi))**2
+# IN: relativeShaft: relative shaft angle if the mesh is not in the wind frame
+# IN: localFrame: if True, returns CnM2 and CmM2 in relative (blade section) frame
+# IN: delta: mean mesh step on blade in the span wise direction
+# IN: rotationCenter: center of rotation
+# IN: coordDir: axis of rotation ('CoordinateX', 'CooridnateY' or 'CoordinateZ')
+# IN: coordSlice: slicing direction ('CoordinateX', 'CooridnateY' or 'CoordinateZ')
+# IN: sliceNature: if 'straight', slices the blade(s) in the slicing direction coordSlice. If 'curved', slices at constant radii.
+
 # OUT: dictionnaire des slices, slices[rad] est une zone
 # OUT: accumule les valeurs de CnM2 dans un dictionnaire (psi,rad)
 #========================================================================
-def extractSlices(teff, bladeName, psi, radius, 
+def extractSlices(teff, bladeName, psi, radii, 
                   RoInf, PInf, ASOUND, Mtip, AR, CHORD, MU,
                   accumulatorSlices=None,
-                  accumulatorCnM2=None, accumulatorCmM2=None, 
-                  relativeShaft=0., localFrame=True, delta=0.05):
+                  accumulatorCnM2=None, accumulatorCmM2=None,
+                  adimCnM2=0, adimCmM2=0, adimKp=0,
+                  relativeShaft=0., localFrame=True, delta=0.05, rotationCenter=[0.,0.,0.], 
+                  coordDir='CoordinateZ', coordSlice='CoordinateX', sliceNature='straight'):
     """Extract slices on blade and compute Kp,Cf,CnM2,CmM2."""
+    if coordDir == coordSlice:
+        raise ValueError('extractSlices: coordDir and coordSlice are identical.')
+    
+    if sliceNature not in ['curved', 'straight']:
+        print('Warning: extractSlices: invalid sliceNature name. Default value is used')
+        sliceNature = 'straight'
+
+    if 'CoordinateX' not in [coordDir, coordSlice]: coordXSC = 'CoordinateX'
+    elif 'CoordinateY' not in [coordDir, coordSlice]: coordXSC = 'CoordinateY'
+    else: coordXSC = 'CoordinateX'
+
+    if sliceNature == 'curved':
+        if coordDir == 'CoordinateX':
+            cy,cz = rotationCenter[1],rotationCenter[2]
+            C._initVars(teff,'{Radius}=sqrt(({CoordinateY}-%f)*({CoordinateY}-%f) + ({CoordinateZ}-%f)*({CoordinateZ}-%f))'%(cy,cy,cz,cz))
+        elif coordDir == 'CoordinateY':
+            cx,cz = rotationCenter[0],rotationCenter[2]
+            C._initVars(teff,'{Radius}=sqrt(({CoordinateX}-%f)*({CoordinateX}-%f) + ({CoordinateZ}-%f)*({CoordinateZ}-%f))'%(cx,cx,cz,cz))
+        else:
+            cx,cy = rotationCenter[0],rotationCenter[1]
+            C._initVars(teff,'{Radius}=sqrt(({CoordinateX}-%f)*({CoordinateX}-%f) + ({CoordinateY}-%f)*({CoordinateY}-%f))'%(cx,cx,cy,cy))
+
+    # def arctan3(y,z):
+    #     theta = numpy.arctan2(-y,z)
+    #     if theta < 0: theta += 2*numpy.pi
+    #     return theta
+    # C._initVars(teff,'Theta', arctan3, [coordXSC, coordSlice])
+    # C._initVars(teff,'{Theta2}={Theta}*%f/%f'%(180., math.pi))
+
     b = Internal.getNodeFromName1(teff, bladeName)
     if b is not None:
         # Complete blade
@@ -341,12 +392,15 @@ def extractSlices(teff, bladeName, psi, radius,
     zones = Internal.getZones(bp)
     proc = 0
     allbandes = {}
-    for rad in radius:
+    for rad in radii:
         bandes = []
         for z in zones:
             C._addVars(z, 'tag')
             ga = Internal.getNodeFromName1(z, 'GridCoordinates')
-            xc = Internal.getNodeFromName1(ga, 'CoordinateX')
+            if sliceNature == 'straight':
+                xc = Internal.getNodeFromName1(ga, coordSlice)
+            else: # sliceNature curved
+                xc = Internal.getNodeFromName(z, 'Radius')
             xc[1] = xc[1].ravel('k')
             tag = Internal.getNodeFromName2(z, 'tag')
             tag[1] = tag[1].ravel('k')
@@ -379,7 +433,11 @@ def extractSlices(teff, bladeName, psi, radius,
             bandes = T.join(bandes)
             bandes = C.center2Node(bandes, 'FlowSolution#Centers')
             C._rmVars(bandes, 'FlowSolution#Centers')
-            slice = P.isoSurfMC(bandes, 'CoordinateX', rad)
+            if sliceNature == 'straight':
+                slice = P.isoSurfMC(bandes, coordSlice, rad)
+            else: # sliceNature curved
+                slice = P.isoSurfMC(bandes, 'Radius', rad)
+            #
             if slice == []: print('Warning: extractSlices: no slice found at position %f'%rad)
             else: slices[rad] = slice[0]
 
@@ -394,15 +452,22 @@ def extractSlices(teff, bladeName, psi, radius,
         #C.convertPyTree2File(iso, 'slice%f.cgns'%rad)
 
         # x/c
-        ymin = C.getMinValue(iso, 'CoordinateY')
-        ymax = C.getMaxValue(iso, 'CoordinateY')
-        C._initVars(iso, '{xc}= 1.-({CoordinateY}-%20.16g)/(%20.16g-%20.16g)'%(ymin,ymax,ymin))
+        xmin = C.getMinValue(iso, coordXSC)
+        xmax = C.getMaxValue(iso, coordXSC)
+        if coordXSC == 'CoordinateX':
+            C._initVars(iso, '{xc}= 1.-({CoordinateX}-%20.16g)/(%20.16g-%20.16g)'%(xmin,xmax,xmin))
+        elif coordXSC == 'CoordinateY':
+            C._initVars(iso, '{xc}= 1.-({CoordinateY}-%20.16g)/(%20.16g-%20.16g)'%(xmin,xmax,xmin))
+        else:
+            C._initVars(iso, '{xc}= 1.-({CoordinateZ}-%20.16g)/(%20.16g-%20.16g)'%(xmin,xmax,xmin))
+        
         
         # Kp
-        adimKp = 0.5*RoInf*(abs(rad)*Mtip*ASOUND/AR+MU*Mtip*ASOUND*math.sin(psi/180.*math.pi))**2
-        C._initVars(iso, '{Kp}= ({Pressure}-%20.16g)/ %20.16g'%(PInf,adimKp))
+        if adimKp == 0: adimKp_loc = 0.5*RoInf*(abs(rad)*Mtip*ASOUND/AR + MU*Mtip*ASOUND*math.sin(psi/180.*math.pi))**2
+        else: adimKp_loc = adimKp
+        C._initVars(iso, '{Kp}= ({Pressure}-%20.16g)/ %20.16g'%(PInf,adimKp_loc))
         # Cf
-        C._initVars(iso, '{Cf}= {frictionMagnitude}/ %20.16g'%adimKp)
+        C._initVars(iso, '{Cf}= {frictionMagnitude}/ %20.16g'%adimKp_loc)
 
         # Passage struct
         iso[0] = '%f'%rad
@@ -413,13 +478,14 @@ def extractSlices(teff, bladeName, psi, radius,
         (PLE,PTE,PF,Glob2Loc) = detectBA_BF_QC(iso, rad)
 
         # CnM2
-        adimCnM2 = 0.5*RoInf*ASOUND**2*CHORD
+        if adimCnM2 == 0: adimCnM2_loc = 0.5*RoInf*ASOUND**2*CHORD
+        else: adimCnM2_loc = adimCnM2
         CnM2x = P.integ(iso, var='Fx')[0]
         CnM2y = P.integ(iso, var='Fy')[0]
         CnM2z = P.integ(iso, var='Fz')[0]
-        CnM2x = CnM2x/adimCnM2
-        CnM2y = CnM2y/adimCnM2
-        CnM2z = CnM2z/adimCnM2
+        CnM2x = CnM2x/adimCnM2_loc
+        CnM2y = CnM2y/adimCnM2_loc
+        CnM2z = CnM2z/adimCnM2_loc
         Cn = (CnM2x, CnM2y, CnM2z)
         if localFrame: Cn = numpy.dot(Glob2Loc, Cn)
 
@@ -427,11 +493,12 @@ def extractSlices(teff, bladeName, psi, radius,
         CnM2All.append([Cn[0],Cn[1],Cn[2]])
 
         # CmM2
-        adimCmM2 = 0.5*RoInf*ASOUND**2*CHORD
+        if adimCmM2 == 0: adimCmM2_loc = 0.5*RoInf*ASOUND**2*CHORD
+        else: adimCmM2_loc = adimCmM2
         (CmM2x,CmM2y,CmM2z) = P.integMoment(iso, center=PF, vector=['Fx','Fy','Fz'])
-        CmM2x = CmM2x/adimCmM2
-        CmM2y = CmM2y/adimCmM2
-        CmM2z = CmM2z/adimCmM2
+        CmM2x = CmM2x/adimCmM2_loc
+        CmM2y = CmM2y/adimCmM2_loc
+        CmM2z = CmM2z/adimCmM2_loc
         Cm = (CmM2x, CmM2y, CmM2z)
         if localFrame: Cm = numpy.dot(Glob2Loc, Cm)
         

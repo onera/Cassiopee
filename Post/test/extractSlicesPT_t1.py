@@ -12,8 +12,8 @@ SIGMA = 4*CHORD / (math.pi*AR)
 teff = C.convertFile2PyTree('stress_419.cgns')
 
 accu1 = {}; accu2 = {} 
-psi = 419.; radius = [1.2,1.3,2.]
-slices, CnM2, CmM2 = PR.extractSlices(teff, 'Blade7A_00', psi, radius,
+psi = 419.; radii = [1.2,1.3,2.]
+slices, CnM2, CmM2 = PR.extractSlices(teff, 'Blade7A_00', psi, radii,
                                       RoInf, PInf, AINF, Mtip, AR, CHORD, MU,
                                       accumulatorCnM2=accu1, accumulatorCmM2=accu2, 
                                       localFrame=True,

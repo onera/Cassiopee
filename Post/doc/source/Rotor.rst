@@ -41,7 +41,7 @@ Force extractions
 ------------------
 
 
-.. py:function:: Post.Rotor.extractSlices(teff, bladeName, psi, radius, RoInf, PInf, ASOUND, Mtip, AR, CHORD, MU, relativeShaft=0., localFrame=True, delta=0.05, accumulatorSlices=None, accumulatorCnM2=None, accumulatorCmM2=None)
+.. py:function:: Post.Rotor.extractSlices(teff, bladeName, psi, radii, RoInf, PInf, ASOUND, Mtip, AR, CHORD, MU, adimCnM2=0, adimCmM2=0, adimKp=0, relativeShaft=0., localFrame=True, delta=0.05, rotationCenter=[0.,0.,0.], coordDir='CoordinateZ', coordSlice='CoordinateX', sliceNature='straight', accumulatorSlices=None, accumulatorCnM2=None, accumulatorCmM2=None)
 
     Extract slices on blades. Export Cp, Cf on those slices. 
     Compute CnM2 and CmM2 on those slices.
@@ -52,8 +52,8 @@ Force extractions
     :type bladeName: string
     :param psi: angular angle of blade in teff (in degree)
     :type psi: float
-    :param radius: list of radius to extract
-    :type radius: list of floats
+    :param radii: list of radii at which the solution on the blade must be extracted
+    :type radii: list of floats
     :param RoInf: infinite flow density
     :type RoInf: float
     :param PInf: infinite flow pressure
@@ -68,18 +68,32 @@ Force extractions
     :type CHORD: float
     :param MU: advance ratio
     :type MU: float
+    :param adimCnM2: scaling value for CnM2. If adimCnM2=0, automatically computes the value with adimCnM2=0.5*RoInf*ASOUND**2*CHORD
+    :type adimCnM2: float
+    :param adimCmM2: scaling value for CmM2. If adimCmM2=0, automatically computes the value with adimCmM2=0.5*RoInf*ASOUND**2*CHORD
+    :type adimCmM2: float
+    :param adimKp: scaling value for adimKp. If adimKp=0, automatically computes the value with adimKp=0.5*RoInf*(abs(radius)*Mtip*ASOUND/AR+MU*Mtip*ASOUND*math.sin(psi))**2
+    :type adimKp: float
     :param relativeShaft: relative shaft angle if the mesh is not in the wind frame
     :type relativeShaft: float
     :param localFrame: if True, return CnM2 and CmM2 in relative (blade section) frame
     :type localFrame: boolean
     :param delta: mean mesh step on blade in the span wise direction
     :type delta: float
+    :param rotationCenter: coordinates of the center of rotation
+    :type rotationCenter: list of floats
+    :param coordDir: axis of rotation
+    :type coordDir: string ('CoordinateX', 'CooridnateY' or 'CoordinateZ')
+    :param coordSlice: slicing direction
+    :type coordSlice: string ('CoordinateX', 'CooridnateY' or 'CoordinateZ')
+    :param sliceNature: if 'straight', slices the blade in the slicing direction. If 'curved', initializes the radius field using both the center and the axis of rotation, and slices at constant radii
+    :type sliceNature: string ('straight' or 'curved')
     :param accumulatorSlices: if not None, accumulate slices
-    :type accumulatorSlices: dictionary
+    :type accumulatorSlices: dictionary with key values (psi,radius)
     :param accumulatorCnM2: if not None, accumulate CnM2
-    :type accumulatorCnM2: dictionary
+    :type accumulatorCnM2: dictionary with key values (psi,radius)
     :param accumulatorCmM2: if not None, accumulate CmM2
-    :type accumulatorCmM2: dictionary
+    :type accumulatorCmM2: dictionary with key values (psi,radius)
     :return: list of slices, list of CnM2, list of CmM2 (one for each radius)
     :rtype: list of zones, list of 3 floats, list of 3 floats
 
