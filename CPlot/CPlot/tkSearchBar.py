@@ -161,6 +161,10 @@ applet = {
     'tkDistributor':'tkDistributor', 'Distribute over processors':'tkDistributor',
     # tkDist2Walls
     'tkDist2Walls':'tkDist2Walls', 'Compute wall distance':'tkDist2Walls',
+    # tkTime
+    'tkTime':'tkTime', 'View time motion':'tkTime',
+    # tkRigidMotion
+    'tkRigidMotion':'tkRigidMotion', 'Set rigid motion in tree':'tkRigidMotion',
     # tkElsaSolver
     'tkElsaSolver':'tkElsaSolver', 'Create elsAHybrid':'tkElsaSolver',
     'Adapt tree for elsA':'tkElsaSolver',

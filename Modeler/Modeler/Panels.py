@@ -33,16 +33,15 @@ def panel(text="Hello", scale=0.1, h=1.):
 
 #==============================================================================
 # Panneau avec une frame carree
-# X: position
 # w: width
 # h: height
 # border: largeur du border
 #==============================================================================
-def frame(X, w, h, border):
-    P0 = (X[0]-w*0.5, X[1]-0.5*h, X[2])
-    P1 = (X[0]+w*0.5, X[1]-0.5*h, X[2])
-    P2 = (X[0]+w*0.5, X[1]+0.5*h, X[2])
-    P3 = (X[0]-w*0.5, X[1]+0.5*h, X[2])
+def frame(w, h, border):
+    P0 = (-w*0.5, -0.5*h, 0.)
+    P1 = (w*0.5, -0.5*h, 0.)
+    P2 = (w*0.5, +0.5*h, 0.)
+    P3 = (-w*0.5, +0.5*h, 0.)
     a = Boxes.box2D(P0, P2, uv=True)
 
     P4 = (P0[0]-border,P0[1]-border,P0[2]+border)
@@ -58,7 +57,6 @@ def frame(X, w, h, border):
     q2 = D.quadrangle(P1,P5,P6,P2)
     q3 = D.quadrangle(P3,P2,P6,P7)
     q4 = D.quadrangle(P0,P3,P7,P4)
-
 
     q5 = D.quadrangle(P4,P5,P5b,P4b)
     q6 = D.quadrangle(P5,P6,P6b,P5b)

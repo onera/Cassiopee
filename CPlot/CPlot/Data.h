@@ -80,7 +80,7 @@ class Data
   // le getInstance ici n'est valable que si deja appele dans les
   // classes filles :
   static Data* getInstance(); // <--- put in DataDL and DataVBO class.
-  enum RenderID { Direct = 0, VBO = 1, DL = 2, END_GUARD };
+  enum RenderID { Direct=0, VBO=1, DL=2, END_GUARD };
   static RenderID _renderID;
   static Data* _instance;
 

@@ -851,7 +851,7 @@ Set rendering informations in pyTree
 
     :param a: input zone
     :type a: zone node
-    :param material: material to set (in 'Solid', 'Flat', 'Glass', 'Chrome', 'Metal', 'Wood', 'Marble', 'Granite', 'Brick', 'XRay', 'Cloud', 'Gooch', 'Sphere')
+    :param material: material to set (in 'Solid', 'Flat', 'Glass', 'Chrome', 'Metal', 'Wood', 'Marble', 'Granite', 'Brick', 'XRay', 'Cloud', 'Gooch', 'Sphere', 'Texmat')
     :type material: string
     :param color: color to set (in 'White', 'Grey', ... or '#FFFF')
     :type color: string

@@ -965,9 +965,14 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
     return NULL;
   }
 
-  if (( dir==2 && depth>3 && km>1) || (dir==2 && depth == 1))
+  if (dir==2 && depth>3 && km>1)
   {
     printf("WARNING: getOversetHolesInterpNodes: dir=2, depth>3 and 3D are incompatibles. Force dir=1.\n");
+    dir = 1;
+  }
+  if (dir==2 && depth == 1)
+  {
+    printf("WARNING: getOversetHolesInterpNodes: dir=2, depth=1 and 3D are incompatibles. Force dir=1.\n");
     dir = 1;
   }
 
@@ -1137,11 +1142,17 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpNodes(PyObject* self, PyObject* arg
     return NULL;
   }
 
-  if (( dir==2 && depth>3 && km>1) || (dir==2 && depth == 1))
+  if (dir==2 && depth>3 && km>1)
   {
     printf("WARNING: _getOversetHolesInterpNodes: dir=2, depth>3 and 3D are incompatibles. Force dir=1.\n");
     dir=1;
   }
+  if (dir==2 && depth == 1)
+  {
+    printf("WARNING: _getOversetHolesInterpNodes: dir=2, depth=1 and 3D are incompatibles. Force dir=1.\n");
+    dir=1;
+  }
+  
 
   E_Int posc;
   if (strcmp(cellNName, "cellN") == 0)
@@ -1272,9 +1283,14 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpCellCenters(PyObject* self, PyObjec
     return NULL;
   }
 
-  if (( dir==2 && depth>3 && km>1) || (dir==2 && depth == 1))
+  if (dir==2 && depth>3 && km>1)
   {
     printf("WARNING: _getOversetHolesInterpCellCenters: dir=2, depth>3 and 3D are incompatibles. Force dir=1.\n");
+    dir=1;
+  }
+  if (dir==2 && depth == 1)
+  {
+    printf("WARNING: _getOversetHolesInterpCellCenters: dir=2, depth=1 and 3D are incompatibles. Force dir=1.\n");
     dir=1;
   }
 
@@ -1396,11 +1412,17 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
     return NULL;
   }
 
-  if (( dir==2 && depth>3 && km>1) || (dir==2 && depth == 1))
+  if (dir==2 && depth>3 && km>1)
   {
     printf("WARNING: getOversetHolesInterpCellCenters: dir=2, depth>3 and 3D are incompatibles. Force dir=1.\n");
     dir=1;
   }
+  if (dir==2 && depth == 1)
+  {
+    printf("WARNING: getOversetHolesInterpCellCenters: dir=2, depth=1 and 3D are incompatibles. Force dir=1.\n");
+    dir=1;
+  }
+
 
   E_Int posc;
   if (strcmp(cellNName, "cellN") == 0)

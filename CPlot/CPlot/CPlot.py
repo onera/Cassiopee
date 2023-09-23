@@ -391,7 +391,10 @@ def setState(dim=-1,
     Usage: setState(posCam=(12,0,0))"""
     if colormap != -1: 
         [colormap, colormapC1, colormapC2, colormapC3, colormapC] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3, colormapC] )
-    from . import cplot
+    if offscreen == 1 or offscreen == 5 or offscreen == 6 or offscreen == 7: # must set in the right module
+        from . import cplotOSMesa as cplot
+    else:
+        from . import cplot
     cplot.setState(dim, mode, scalarField, vectorField1, vectorField2,
                    vectorField3, displayBB, displayInfo, displayIsoLegend,
                    meshStyle, solidStyle, scalarStyle,

@@ -50,6 +50,7 @@ def rotate():
         CTK.__BUSY__ = True
         TTK.sunkButton(WIDGETS['rotate'])
         CPlot.setState(cursor=2)
+        CTK.setCursor(2, WIDGETS['rotate'])
         i = 0
         while CTK.__BUSY__:
             speed = WIDGETS['speed'].get() * 0.0006 / 100.
@@ -65,10 +66,12 @@ def rotate():
         CTK.__BUSY__ = False
         TTK.raiseButton(WIDGETS['rotate'])
         CPlot.setState(cursor=0)
+        CTK.setCursor(0, WIDGETS['rotate'])
     else:
         CTK.__BUSY__ = False
         TTK.raiseButton(WIDGETS['rotate'])
         CPlot.setState(cursor=0)
+        CTK.setCursor(0, WIDGETS['rotate'])
 
 #==============================================================================
 def fly():
@@ -85,6 +88,7 @@ def fly():
         CTK.__BUSY__ = True
         TTK.sunkButton(WIDGETS['fly'])
         CPlot.setState(cursor=2)
+        CTK.setCursor(2, WIDGETS['fly'])
         i = 0
         while CTK.__BUSY__:
             speed = WIDGETS['speed'].get() / 50.
@@ -106,11 +110,13 @@ def fly():
         CTK.__BUSY__ = False
         TTK.raiseButton(WIDGETS['fly'])
         CPlot.setState(cursor=0)
+        CTK.setCursor(0, WIDGETS['fly'])
     else:
         CTK.__BUSY__ = False
         TTK.raiseButton(WIDGETS['fly'])
         CPlot.setState(cursor=0)
-
+        CTK.setCursor(0, WIDGETS['fly'])
+        
 #==============================================================================
 def orbite():
     if CTK.t == []: return
@@ -144,6 +150,7 @@ def orbite():
         CTK.__BUSY__ = True
         TTK.sunkButton(WIDGETS['orbite'])
         CPlot.setState(cursor=2)
+        CTK.setCursor(2, WIDGETS['orbite'])
         i = 0
         while CTK.__BUSY__:
             speed = 100. - WIDGETS['speed'].get()
@@ -159,10 +166,12 @@ def orbite():
         CTK.__BUSY__ = False
         TTK.raiseButton(WIDGETS['orbite'])
         CPlot.setState(cursor=0)
+        CTK.setCursor(0, WIDGETS['orbite'])
     else:
         CTK.__BUSY__ = False
         TTK.raiseButton(WIDGETS['orbite'])
         CPlot.setState(cursor=0)
+        CTK.setCursor(0, WIDGETS['orbite'])
         
 #==============================================================================
 # Create app widgets

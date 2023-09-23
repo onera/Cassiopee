@@ -52,9 +52,9 @@ def cylinder(R1=1., R2=1., N=10, h=1., Rc=-1):
     a = Models.cylinder(R1, R2, N, h, Rc)
     return C.convertArrays2ZoneNode('cylinder', [a])
 
-def frame(X, w, h, border):
+def frame(w, h, border):
     """Create a frame."""
-    a = Models.frame(X, w, h, border)
+    a = Models.frame(w, h, border)
     out = []
     for z in a: out.append(C.convertArrays2ZoneNode('frame', [z]))
     return out

@@ -273,7 +273,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
     case 14: // textured
       if (_nMaterials > 0)
       {
-        shader = 37;
+        shader = 35;
         SHADOWTEXTURE;
         // choix de la texture
         t = (int)( (z.shaderParam2)*((_nMaterials-1)*0.5) );
@@ -283,7 +283,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
         if (_materialTexs[t] == 0) 
         {
            createImageTexture(_materialFiles[t], _materialTexs[t], _materialWidths[t], _materialHeights[t], true);
-          //printf("loading %d %s\n", 0, _materialFiles[0]);
+           //printf("loading %d %s\n", 0, _materialFiles[0]);
         }
         glBindTexture(GL_TEXTURE_2D, _materialTexs[t]);
         

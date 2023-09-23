@@ -38,7 +38,8 @@ DataDL::createZoneImpl( )
 //=============================================================================
 Data* DataDL::getInstance()
 {
-  if (_instance == NULL) {
+  if (_instance == NULL) 
+  {
     Data::_renderID = Data::DL;
     _instance = new DataDL;
   }
