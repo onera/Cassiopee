@@ -34,10 +34,41 @@ PyObject *parse_dictionary(PyObject *dict, const char *key, const char *func)
   return obj;
 }
 
+void make_ref_data(mesh *M, E_Float *sol)
+{
+  if (M->sensor == 0) { // metric sensor
+    // compute hessians
+    E_Float *H = compute_hessian(M, sol);
+
+    // process hessians
+    hessian_to_metric(H, M);
+  
+    // compute refinement data
+    compute_ref_data(M, H);
+
+    XFREE(H);
+  } else if (M->sensor == 1) { // cell sensor
+    M->ref_data = (E_Int *)XMALLOC((3*M->ncells) * sizeof(E_Int));
+    for (E_Int i = 0; i < M->ncells; i++) {
+      E_Int *pr = &M->ref_data[3*i];
+      if (sol[i] == 0) {
+        for (E_Int j = 0; j < 3; j++)
+          pr[j] = M->Gmax;
+      } else {
+        for (E_Int j = 0; j < 3; j++)
+          pr[j] = 0;
+      }
+    }
+  }
+
+  // process refinement data
+  smooth_ref_data(M);
+}
+
 PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
 {
   PyObject *arr, *comm_data, *solc, *gcells, *gfaces, *gpoints;
-  E_Int Gmax, iso_mode, conformize;
+  E_Int Gmax, iso_mode, conformize, sensor;
   E_Float Tr;
   PyObject *adaptDict;
 
@@ -71,6 +102,11 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   if (obj == NULL) return NULL;
   conformize = PyLong_AsLong(obj);
 
+  // sensor
+  obj = PARSE_DICT(adaptDict, "sensor");
+  if (obj == NULL) return NULL;
+  sensor = PyLong_AsLong(obj);
+
   FldArrayI *cn;
   FldArrayF *f;
   E_Int res = K_ARRAY::getFromArray3(arr, f, cn);
@@ -91,6 +127,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   M->Gmax = Gmax;
   M->Tr = Tr;
   M->iso_mode = iso_mode;
+  M->sensor = sensor;
 
   // coordinates
   M->npoints = f->getSize();
@@ -221,18 +258,8 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
 
   // TODO(Imad): for now, assume only one solution field.
   // Later, implement metric interpolation
-  
-  // compute hessians
-  E_Float *H = compute_hessian(M, csols[0]);
-    
-  // process hessians
-  hessian_to_metric(H, M);
- 
-  // compute refinement data
-  compute_ref_data(M, H);
 
-  // process refinement data
-  smooth_ref_data(M);
+  make_ref_data(M, csols[0]);
 
   // redistribute
   mesh *rM = redistribute_mesh(M);
@@ -241,7 +268,6 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   for (E_Int i = 0; i < csize; i++)
     XFREE(csols[i]);
   XFREE(csols);
-  XFREE(H);
 
   // adapt!
   if (rM->pid == 0)

@@ -113,6 +113,8 @@ struct mesh {
   E_Int Gmax; // maximum number of refinement generations
   E_Float Tr; // refinement threshold
   E_Int iso_mode; // toggle directional/isotropic refinement
+  E_Int sensor; // metric - cell
+  
   E_Int ref_iter;
 
   E_Int nconnex; // number of connex bits in mesh
@@ -129,7 +131,7 @@ struct mesh {
   ppatches(NULL), nppatches(-1), pid(-1), npc(-1), nreq(0), req(NULL),
   pnei_coords(NULL), pnei_flds(NULL), pnei_grads(NULL), gcells(NULL),
   gfaces(NULL), gpoints(NULL), ref_data(NULL), Gmax(-1), Tr(-1.),
-  iso_mode(-1), ref_iter(0), nconnex(0), predicted_ncells(0),
+  iso_mode(-1), sensor(-1), ref_iter(0), nconnex(0), predicted_ncells(0),
   predicted_nfaces(0), predicted_npoints(0)
   {
     MPI_Comm_rank(MPI_COMM_WORLD, &pid);
