@@ -493,7 +493,7 @@ def _correctDonors(t, ntype, zoneDonors):
         for n in nodes:
             zdonorname = Internal.getValue(n)
             for zd in zoneDonors:
-                if zd[0] == zdonorname: Internal._setValue(n[1], zd[1])
+                if zd[0] == zdonorname: Internal._setValue(n, zd[1])
     return None
 
 #==============================================================================
@@ -1104,9 +1104,6 @@ def _correctElementNodes(t):
         msg = errors[3*e+2]
         if msg[0:8] == 'Negative':
             zone[1] = numpy.absolute(zone[1])
-            #minv = numpy.min(zone[1])
-            #maxv = numpy.max(zone[1])
-
         if msg[0:8] == 'Multiple':
             zones = C.breakConnectivity(zone)
             c = Internal.getNodePosition(zone, parent)
@@ -1123,7 +1120,7 @@ def _correctElementNodes(t):
 #===============================================================================
 def _correctBCElementNodes(t):
     _cleanBEConnect(t)
-    _correctBC_PL2ER(t)
+    #_correctBC_PL2ER(t)
     
     zones = Internal.getZones(t)
     for z in zones:
@@ -1152,18 +1149,18 @@ def _correctBCElementNodes(t):
 #  2/ or if BC is defined by a PointList= a set of face centers
 #==========================================================================================
 def _correctBC_PL2ER(t):
+    import Post.PyTree as P
     for z in Internal.getZones(t):
         zdim = Internal.getZoneDim(z)
-        if zdim[0]=='Unstructured':
+        if zdim[0] == 'Unstructured':
             ztype = zdim[3]
             if ztype != 'NGON':
-                for zbc in Internal.getNodesFromType(z,'BC_t'):
+                for zbc in Internal.getNodesFromType(z, 'BC_t'):
                     bndName = Internal.getName(zbc)
                     bndType = Internal.getValue(zbc)
-                    gcl = Internal.getNodeFromType(zbc,'GridLocation_t')
-                    PL = Internal.getNodeFromName(zbc,'PointList')
+                    gcl = Internal.getNodeFromType(zbc, 'GridLocation_t')
+                    PL = Internal.getNodeFromName(zbc, 'PointList')
                     if PL is not None:
-                        print(gcl, zbc[0])
                         if gcl is None or Internal.getValue(gcl)=='Vertex':
                             C._initVars(z,'tag',0.)
                             for ind in Internal.getValue(PL)[0]:
@@ -1171,15 +1168,15 @@ def _correctBC_PL2ER(t):
                             bc = P.exteriorFaces(z)
                             C._rmVars(z,["tag"])
                             bc = P.selectCells(bc,"{tag}>0",strict=1)
-                            Internal._rmNodesFromName(zbc,"PointList")
+                            Internal._rmNodesFromName(zbc, "PointList")
                             if bc != []:
                                 bc[0] = C.getZoneName(bndName)
-                                C._mergeConnectivity(z,bc,boundary=1)
-                                bcn = Internal.getNodeFromName1(z,bc[0])
-                                bcnr = Internal.getNodeFromName1(bcn,'ElementRange')
+                                C._mergeConnectivity(z, bc, boundary=1)
+                                bcn = Internal.getNodeFromName1(z, bc[0])
+                                bcnr = Internal.getNodeFromName1(bcn, 'ElementRange')
                                 ER = [bcnr[1][0], bcnr[1][1]]
 
-                        elif Internal.getValue(gcl)=='FaceCenter':
+                        elif Internal.getValue(gcl) == 'FaceCenter':
                             bc_gcname = 'Elements_%s'%(Internal.getName(zbc))
                             bc_gcnode = Internal.getNodeFromName(z,bc_gcname)
                             if bc_gcnode is not None:
@@ -1191,23 +1188,24 @@ def _correctBC_PL2ER(t):
                             r[0,0] = ER[0]
                             r[0,1] = ER[1]
                             zbc[2].append([Internal.__ELEMENTRANGE__, r, [], 'IndexRange_t'])
-                            Internal._rmNodesFromName(zbc,"GridLocation")
-                            Internal._rmNodesFromName(zbc,'PointList')
+                            Internal._rmNodesFromName(zbc, 'GridLocation')
+                            Internal._rmNodesFromName(zbc, 'PointList')
     return None
 
 #===============================================================================
-#  Dans un maillage NGON, enleve les connectivites EB 
+#  Dans un maillage NGON, enleve les connectivites BE 
 #===============================================================================
 def _cleanBEConnect(t):
     for z in Internal.getZones(t):
-        zdim=Internal.getZoneDim(z)
-        if zdim[0]=='Unstructured':
-            if zdim[3]=='NGON':
-                for elt_t in Internal.getNodesFromType(z,'Elements_t'):
+        zdim = Internal.getZoneDim(z)
+        if zdim[0] == 'Unstructured':
+            if zdim[3] == 'NGON':
+                for elt_t in Internal.getNodesFromType(z, 'Elements_t'):
                     elt_no = Internal.getValue(elt_t)[0]
                     if elt_no != 22 and elt_no != 23:
-                        Internal._rmNodesFromName(z,elt_t[0])
+                        Internal._rmNodesFromName(z, elt_t[0])
     return None
+
 #===============================================================================
 # Check non CGNS varnames in FlowSolution_t and BCDataSet
 #===============================================================================

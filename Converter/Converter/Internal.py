@@ -239,7 +239,8 @@ def setValue(node, value=None):
             else: node[1] = numpy.asfortranarray(value)
         elif isinstance(value, int) or isinstance(value, numpy.int32) or isinstance(value,numpy.int64) or isinstance(value,numpy.intc): node[1] = numpy.array([value], dtype=numpy.int32)
         elif isinstance(value, float) or isinstance(value, numpy.float32) or isinstance(value, numpy.float64): node[1] = numpy.array([value], dtype=numpy.float64)
-        elif isinstance(value, str): node[1] = numpy.array([c for c in value], 'c')
+        elif isinstance(value, str):
+            node[1] = numpy.array([c for c in value], 'c')
         elif isinstance(value, list):
             testValue = value
             while isinstance(testValue, list): testValue = testValue[0]
@@ -3742,9 +3743,9 @@ def checkMultigrid(t, level=1, nbMinCoarseB=5, nbMinCoarseW=3):
 # -- checkSize
 def checkSize(t, sizeMax=100000000):
     """Check if the number of points of a zone exceeds the sizeMax.
-    Usage: checkSize(t,sizeMax)"""
+    Usage: checkSize(t, sizeMax)"""
     from . import Check
-    return Check.checkSize(t,sizeMax)
+    return Check.checkSize(t, sizeMax)
 
 # -- correctBCElementNodes
 def _correctBCElementNodes(t):

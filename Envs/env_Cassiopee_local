@@ -110,6 +110,7 @@ else if ($MAC == "ld") then
         #module load intel/21.2.0
         module load gcc/10.2.0
         module load hdf5/1.10.5-gnu831-ompi405
+        module load lapack/3.9.1-gnu831
         unset I_MPI_PMI_LIBRARY
         setenv PRODMODE 1
         # Set next two lines only if python is not python
