@@ -24,13 +24,16 @@ def chunk2part(dt):
 
   cns = I.getNodesFromType(z, 'Elements_t')
 
-  out = []
+  zones = []
 
   for cn in cns:
     name, stride = I.eltNo2EltName(cn[1][0])
     arr = I.getNodeFromName1(cn, 'ElementConnectivity')[1]
     mesh = XCore.xcore.chunk2part_elt(XYZ, name, stride, arr)
-    out.append(mesh)
+    z = I.createZoneNode('Zone'+name+'_%d'%Cmpi.rank, mesh)
+    zones.append(z)
 
-  return out
+  t = C.newPyTree(['Base', zones])
+
+  return t
   
