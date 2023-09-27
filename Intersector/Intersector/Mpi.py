@@ -49,7 +49,7 @@ def adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1
   _adaptCells(tp, sensdata, sensor_type, smoothing_type, itermax, sensor_metric_policy, subdiv_type, hmesh, sensor, com, procDict, zidDict)
   return tp
 
-def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, sensor_metric_policy = 0, subdiv_type=0, hmesh=None, sensor=None, com = MPI.COMM_WORLD, procDict=None, zidDict=None):
+def _adaptCells(t, sensdata=None, sensor_type=0, smoothing_type=0, itermax=-1, sensor_metric_policy=0, subdiv_type=0, hmesh=None, sensor=None, com=MPI.COMM_WORLD, procDict=None, zidDict=None):
     """Adapts an unstructured mesh a with respect to a sensor.
     Usage: adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-1, subdiv_type=0, hmesh=None, sensor=None)"""
 
@@ -82,7 +82,7 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
 
     #tt0 = time.time()
 
-    if hmesh is None :
+    if hmesh is None:
       #print("create hm : ", NBZ)
       hmesh = XOR.createHMesh(t, subdiv_type)
       if hmesh == [None] : # no basic elts in t (assumed because hmesh creation as done [None]
@@ -90,7 +90,7 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
       owesHmesh=1
 
     owesSensor=0
-    if sensor is None : 
+    if sensor is None: 
       #print("create sensor")
       sensor = XOR.createSensor(hmesh, sensor_type, smoothing_type, itermax, sensor_metric_policy)
       owesSensor=1
@@ -123,10 +123,10 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
       #print("_conformizeHMesh")
       _conformizeHMesh(t, hmesh, zidDict, procDict, rid_to_zones, zonerank, zone_to_rid_to_list_owned, com)
     
-    if owesHmesh == 1 :
+    if owesHmesh == 1:
     #   #print('delete owned hmesh')
       XOR.deleteHMesh(hmesh)
-    if owesSensor == 1 : 
+    if owesSensor == 1: 
       #print('delete owned sensor')
       XOR.deleteSensor(sensor)
 
@@ -137,7 +137,7 @@ def _adaptCells(t, sensdata=None, sensor_type = 0, smoothing_type = 0, itermax=-
 # IN: hook : list of hooks to hiearchical zones (same size as nb of zones in t).
 # OUT: Nothing 
 #==============================================================================
-def _conformizeHMesh(t, hooks, zidDict, procDict, rid_to_zones = None, zonerank = None, zone_to_rid_to_list_owned = None, com = MPI.COMM_WORLD):
+def _conformizeHMesh(t, hooks, zidDict, procDict, rid_to_zones=None, zonerank=None, zone_to_rid_to_list_owned=None, com=MPI.COMM_WORLD):
     """Converts the basic element leaves of a hierarchical mesh to a conformal polyhedral mesh.
     Usage: _conformizeHMesh(t, hooks)"""
 
@@ -149,26 +149,26 @@ def _conformizeHMesh(t, hooks, zidDict, procDict, rid_to_zones = None, zonerank 
         print('must give one hook per zone')
         return
     
-    if zonerank == None:
+    if zonerank is None:
       zonerank = getZonesRanks(zidDict, procDict)
       #print(zonerank)
 
     ### 1. UPDATE BC & JOIN POINTLISTS WITH CURRENT ENABLING STATUS AND MPI EXCHANGES
-    if zone_to_rid_to_list_owned == None :
+    if zone_to_rid_to_list_owned is None:
       zone_to_rid_to_list_owned = XOR.getJoinsPtLists(t, zidDict)
 
     zone_to_bcptlists = XOR.getBCsPtLists(t)
 
-    if rid_to_zones == None:
+    if rid_to_zones is None:
       rid_to_zones = XOR.getRidToZones(t, zidDict)
 
-    i=-1
+    i = -1
     for z in zones:
 
       i +=1
       m = C.getFields(Internal.__GridCoordinates__, z)[0]
       if m == []: continue
-      if hooks[i] == None : continue
+      if hooks[i] is None: continue
 
       zid = CD.getProperty(z, 'zid')
 
@@ -177,16 +177,16 @@ def _conformizeHMesh(t, hooks, zidDict, procDict, rid_to_zones = None, zonerank 
       rid_to_ptlist = zone_to_rid_to_list_owned[zid]
 
       fieldsC = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
-      if fieldsC == [] : fieldsC = None
+      if fieldsC == []: fieldsC = None
 
       fieldsN = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
-      if fieldsN == [] : fieldsN = None
+      if fieldsN == []: fieldsN = None
 
       try:
         pfieldsF = Internal.getNodeFromName(z, 'CADData')
         fieldsF = Internal.getChildFromName(pfieldsF, 'fcadid')
         fieldsF = [fieldsF[1]]
-        if fieldsF == [] : fieldsF = None # Unnecessary ?
+        if fieldsF == []: fieldsF = None # Unnecessary ?
         
       except TypeError:
         fieldsF = None
@@ -209,13 +209,13 @@ def _conformizeHMesh(t, hooks, zidDict, procDict, rid_to_zones = None, zonerank 
       # MAJ du maillage de la zone
       C.setFields([mesh], z, 'nodes')
 
-      if len(res) < 2 : continue
+      if len(res) < 2: continue
 
       # MAJ BCs
       bcptlists = res[1]
       #print(bcptlists)
 
-      if bcptlists != [] :
+      if bcptlists != []:
         XOR.updateBCPointLists2(z, bcptlists)
       else:
         C._deleteZoneBC__(z)
@@ -249,7 +249,7 @@ def _conformizeHMesh(t, hooks, zidDict, procDict, rid_to_zones = None, zonerank 
       ## face fields 
       fieldz = [res[5]]
       #print(fieldz)
-      if fieldz != [None] :
+      if fieldz != [None]:
         Internal.newDataArray('fcadid', value=fieldz[0], parent=Internal.getNodeFromName(z, 'CADData'))
 
     _exchangePointLists(t, hooks, zidDict, procDict, rid_to_zones, zonerank, zone_to_bcptlists, zone_to_rid_to_list_owned, com)
@@ -269,28 +269,28 @@ def _exchangePointLists(t, hooks, zidDict, procDict, rid_to_zones = None, zonera
     print('must give one hook per zone')
     return
 
-  if zonerank == None:
+  if zonerank is None:
     zonerank = getZonesRanks(zidDict, procDict)
     #print(zonerank)
 
   if zone_to_rid_to_list_owned == None :
     zone_to_rid_to_list_owned = XOR.getJoinsPtLists(t, zidDict) #already up-to-date if conformizeHMesh is the caller or has been called
 
-  if rid_to_zones == None:
+  if rid_to_zones is None:
     rid_to_zones = XOR.getRidToZones(t, zidDict)
 
   # MPI exchange
   # zone_to_rid_to_list_opp or zone_to_zone_to_list_opp
   zone_to_rid_to_list_opp = intersector.exchangePointLists(rid_to_zones, zonerank, Cmpi.rank, Cmpi.size, zone_to_rid_to_list_owned, com)
 
-  if zone_to_rid_to_list_opp == {} : return # single block
+  if zone_to_rid_to_list_opp == {}: return # single block
   #
   for z in zones:
     zid = CD.getProperty(z, 'zid')
-    if zid not in zone_to_rid_to_list_opp : continue
+    if zid not in zone_to_rid_to_list_opp: continue
 
     rid_to_list_opp = zone_to_rid_to_list_opp[zid]
-    if rid_to_list_opp == {} : continue
+    if rid_to_list_opp == {}: continue
 
     XOR.updateJoinsPointLists3(z, zidDict, rid_to_list_opp, 'PointListDonor')
 
@@ -309,11 +309,11 @@ def _closeCells(t, procDict, zidDict, com = MPI.COMM_WORLD):
     """Closes any polyhedral cell in a mesh (processes hanging nodes on edges).
     Usage: closeCells(t, com, procDict, zidDict)"""
     if procDict is {}:
-      print ('INPUT ERROR : you must also give as an argument the processors dictionary')
+      print ('INPUT ERROR: you must also give as an argument the processors dictionary')
       return
 
     if zidDict is {}:
-      print ('INPUT ERROR : you must also give as an argument the zone id dictionary')
+      print ('INPUT ERROR: you must also give as an argument the zone id dictionary')
       return
 
     #
@@ -337,10 +337,10 @@ def _closeCells(t, procDict, zidDict, com = MPI.COMM_WORLD):
 
     # associate zid and closed mesh
     zid_to_m = {}
-    for i in range(len(zids)) :
+    for i in range(len(zids)):
       zid = zids[i]
       m = meshes[i]
-      zid_to_m[zid]=m
+      zid_to_m[zid] = m
 
     for z in zs : 
       zid = CD.getProperty(z, 'zid')

@@ -643,7 +643,7 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStruct_opt(E_Int imc, E_Int jmc, E_
       }
     }
   }//dir = 1
-  else //stencil losange (dir==2)
+  else if (dir == 2) //stencil losange (dir==2)
   {
     if (kmc == 1) // 2D losange
     {
@@ -928,6 +928,119 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStruct_opt(E_Int imc, E_Int jmc, E_
       }
     }
   }//dir = 2
+  else if (dir == 3) //stencil octahedron (dir==3)
+  {
+    // Nombre d'indices en fonction de la profondeur
+    if (kmc == 1)
+    {
+        nindices = pow(2*depth+1, 2) - 2*depth*(depth+1);
+    }
+    else
+    {
+        nindices = 0;
+        for (E_Int id=0; id < depth; id++)
+        { 
+            nindices += pow(2*id+1, 2) - 2*id*(id+1);   
+        }
+        nindices = 2*nindices + pow(2*depth+1, 2) - 2*depth*(depth+1);
+    }
+    
+    #pragma omp parallel
+    {
+      // Def de variables privees sur les procs
+      vector<E_Int> indices(nindices);
+      E_Int i, j, k;
+      E_Int ind2, compteur;
+      
+      // Shorthands
+      E_Int numKLayers = 1;
+      
+      // In 2D, set k to 0, otherwise 3D octahedron
+      if (kmc == 1) k = 0;
+      else numKLayers = depth + 1;
+
+      #pragma omp for schedule(guided)
+      for (E_Int ind = 0; ind < imjmkmc; ind++)
+      {
+          // Skip rest of the loop if cellN different from 1
+          if (not K_FUNC::fEqual(cellN[ind], 1.)) continue;
+          
+          // Indices de la maille
+          if (kmc != 1) k = ind/imjmc;
+          j = (ind - k*imjmc)/imc;
+          i = ind -k*imjmc - j*imc;
+          
+          compteur = 0;
+          // Loop over half of all vertical layers and use the symmetry for
+          // the negative half
+          for (E_Int kd=0; kd<numKLayers; kd++)
+          {
+              E_Int dLyr = depth - abs(kd);
+              E_Int kkm = K_FUNC::E_max(0, k-kd);
+              E_Int kkp = K_FUNC::E_min(kmc-1, k+kd);
+              
+              for (E_Int id=0; id<=dLyr; id++)
+              {
+                  E_Int iim = K_FUNC::E_max(0, i - id);
+                  E_Int iip = K_FUNC::E_min(imc-1, i + id);
+                  
+                  for (E_Int jd=0; jd<=dLyr-id; jd++)
+                  {
+                      E_Int jjm = K_FUNC::E_max(0, j - jd);
+                      E_Int jjp = K_FUNC::E_min(jmc-1, j + jd);
+                      
+                      indices[compteur] = iim + jjm*imc + kkm*imjmc; compteur++;
+                      
+                      if (kd != 0)
+                      {
+                          indices[compteur] = iim + jjm*imc + kkp*imjmc; compteur++;
+                      }
+                      
+                      if (jd != 0)
+                      {
+                          indices[compteur] = iim + jjp*imc + kkm*imjmc; compteur++;
+                          
+                          if (kd != 0)
+                          {
+                              indices[compteur] = iim + jjp*imc + kkp*imjmc; compteur++;
+                          }
+                      }
+
+                      if (id == 0) continue;
+                      
+                      indices[compteur] = iip + jjm*imc + kkm*imjmc; compteur++;
+                      
+                      if (kd != 0)
+                      {
+                          indices[compteur] = iip + jjm*imc + kkp*imjmc; compteur++;
+                      }
+                      
+                      if (jd != 0)
+                      {
+                          indices[compteur] = iip + jjp*imc + kkm*imjmc; compteur++;
+                          
+                          if (kd != 0)
+                          {
+                              indices[compteur] = iip + jjp*imc + kkp*imjmc; compteur++;
+                          }
+                      }
+                  }
+              }
+          }
+          
+          // Changement du cellN en fonction du stencil
+          for (E_Int noi = 0; noi < nindices; noi++)
+          {
+              ind2 = indices[noi];
+              if (K_FUNC::fEqualZero(cellN[ind2]))
+              {
+                  cellN_tmp[ind] = 2.; 
+                  break;
+              }
+          }
+      }
+    }
+  }
 }
 
 //=============================================================================
@@ -944,10 +1057,10 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
   {
       return NULL;
   }
-  if (dir != 0 && dir != 1 && dir != 2)
+  if (dir < 0 || dir > 3)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "getOversetHolesInterpNodes: dir must be 0, 1 or 2.");
+                    "getOversetHolesInterpNodes: dir must be between 0 and 3.");
     return NULL;
   }
   /*--------------------------------------------------*/

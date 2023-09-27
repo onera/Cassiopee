@@ -10,14 +10,10 @@ import Converter.PyTree as C
 import time, re
 from . import PyTree as CPlot
 from . import Ttk as TTK
+import CPlot.iconics as iconics
 
 try: range = xrange
 except: pass
-
-try:                        
-    import tkinter.font as TKF
-except ImportError:
-    import tkFont as TKF
 
 #==============================================================================
 # LoadPanel
@@ -926,8 +922,8 @@ def selectAll(event=None):
     myList.selection_set(0, TK.END)
 
 def getSelection(event=None):
-    myList = RENDERPANEL.winfo_children()[1]
-    myList.selection_clear(0, TK.END)
+    myList = WIDGETS['myLists'][0]
+    for l in WIDGETS['myLists']: l.selection_clear(0, TK.END)
     nzs = CPlot.getSelectedZones()
     if nzs == []: return
     for nz in nzs:
@@ -935,12 +931,13 @@ def getSelection(event=None):
         noz = CTK.Nz[nz]
         baseName = CTK.t[2][nob][0]
         name = baseName+'/'+CTK.t[2][nob][2][noz][0]
-        name = name.strip()
         for c in range(myList.size()):
             b = myList.get(c) ; b = b.split('|')
             name2 = b[0]
-            if name2.strip() == name: print(c); break
-        if c < myList.size(): myList.selection_set(c)
+            if name2.strip() == name: 
+                myList.see(c)
+                myList.selection_set(c)
+                break
 
 # reselect la list box i items from CPlot selected zones
 def reselect(i):
@@ -1259,6 +1256,12 @@ def openRenderPanel():
         BB = CTK.infoBulle(parent=B, text='Filter zones by this regexp.')
 
         # -- Setters -- 
+
+        # zone get selection from CPlot
+        B = TTK.Button(RENDERPANEL, command=getSelection, text='Get',
+                       image=iconics.PHOTO[8], padx=0, pady=0)
+        BB = CTK.infoBulle(parent=B, text='Get selection from plotter.')
+        B.grid(row=1, column=0, sticky=TK.EW)
 
         # material setter
         B = TK.OptionMenu(RENDERPANEL, VARS[0], *MATERIALS, command=setMaterial)

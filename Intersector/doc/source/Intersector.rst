@@ -735,7 +735,7 @@ Transformation Functions
 
     *Tips and Notes:*
 
-    * When asembling 2 meshes m1 and m2 where m2 is priorized , to improve the assembly quality, do before calling the boolean union:
+    * When assembling 2 meshes m1 and m2 where m2 is priorized, to improve the assembly quality, do before calling the boolean union:
 
     1) getOverlappingFaces (m1, skin(m2)) where skin(m2) is the external polygonal skin of m2
 
@@ -1058,7 +1058,7 @@ Extraction Functions
 
     *Tips and Notes:*
 
-    * When asembling 2 meshes m1 and m2 where m2 is priorized , to improve the assembly quality, do before calling the boolean union:
+    * When assembling 2 meshes m1 and m2 where m2 is priorized, to improve the assembly quality, do before calling the boolean union:
     
     1) getOverlappingFaces (m1, skin(m2)) where skin(m2) is the external polygonal skin of m2
 
