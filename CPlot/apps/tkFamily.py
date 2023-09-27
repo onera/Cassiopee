@@ -82,7 +82,7 @@ def createBCFamily(event=None):
     if CTK.t == []: return
     name = VARS[1].get()
     if name == '':
-        CTK.TXT.insert('START', 'FamilyZone name is invalid.\n')
+        CTK.TXT.insert('START', 'FamilyBC name is invalid.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
     CTK.saveTree()
@@ -96,7 +96,7 @@ def createBCFamily(event=None):
         nob = CTK.Nb[nzs[0]]+1
         noz = CTK.Nz[nzs[0]]
         z = CTK.t[2][nob][2][noz]
-        C._addFamily2Base(CTK.t[2][nob], name, 'UserDefined')
+        C._addFamily2Base(CTK.t[2][nob], name, VARS[3].get())
         CTK.TXT.insert('START', 'BC Family '+name+' added to base '+CTK.t[2][nob][0]+'.\n')
     CTK.TKTREE.updateApp()
 

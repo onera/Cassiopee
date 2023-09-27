@@ -1142,7 +1142,7 @@ class editTextWindow(TK.Toplevel):
         self.frame.haItem.append(B)
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Vertical Alignment
         lblframe = TTK.LabelFrame(framePosition, text="V. align.")
-        lblframe.grid(row=0,column=1,sticky='NESW')
+        lblframe.grid(row=0, column=1, sticky='NESW')
         #
         lblframe.grid_columnconfigure(0,weight=1)
         for ind in range(len(self.subGraph.texts)+1): lblframe.grid_rowconfigure(ind,weight=1)
@@ -1208,9 +1208,9 @@ class editTextWindow(TK.Toplevel):
         B.var = 'posx'
         B.ind = ind
         B.treatmentId = 4
-        B_left.grid(row=ind,column=0,columnspan=1,sticky="nsew")
+        B_left.grid(row=ind, column=0, columnspan=1, sticky="nsew")
         B.grid(row=ind,column=1,columnspan=1,sticky="nsew")
-        B_right.grid(row=ind,column=2,columnspan=1,sticky="nsew")
+        B_right.grid(row=ind, column=2, columnspan=1, sticky="nsew")
         B.container = self.frame.posxItem
         self.frame.posxItem.append(B)
         self.frame.posxLItem.append(B_left)
@@ -8957,7 +8957,7 @@ class input_dialogSelectZoneWindow(TK.Toplevel):
 # ==============================================================================
 class inputPattern_dialogWindow(TK.Toplevel):
     # --------------------------------------------------------------------- init
-    def __init__(self,pattern):
+    def __init__(self, pattern):
         TK.Toplevel.__init__(self)
         (x,y) = self.winfo_pointerxy()
         self.pattern = pattern

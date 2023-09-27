@@ -38,7 +38,7 @@ def setColorVar2(event=None):
         VARS[1].set(l)
 
 #==============================================================================
-# Cree la liste des variables dans l'arbre (optionMenu)
+# Cree la liste des couleurs + variables (optionMenu)
 #==============================================================================
 def updateVarNameList(event=None):
     if CTK.t == []: return
@@ -53,11 +53,10 @@ def updateVarNameList(event=None):
     if len(zvars) > 0:
         for v in zvars[0]: allvars.append('Iso:'+v)
     for i in allvars:
-        #m.add_command(label=i, command=lambda v=VARS[1],l=i:v.set(l))
         m.add_command(label=i, command=lambda v=VARS[1],l=i:setColorVar(l))
 
 #==============================================================================
-# Cree la liste des variables dans l'arbre (combobox)
+# Cree la liste des couleurs + variables (combobox)
 #==============================================================================
 def updateVarNameList2(event=None):
     if CTK.t == []: return

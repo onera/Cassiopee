@@ -662,6 +662,29 @@ def setSplitFactor(event=None):
     VARS[8].set('Split more or less undefined BCs [%.2f deg.]. \nUsefull only for unstructured grids.'%(180.-val*180./100.))
     
 #==============================================================================
+def createBCFamily(event=None):
+    if CTK.t == []: return
+    name = VARS[11].get()
+    if name == '':
+        CTK.TXT.insert('START', 'FamilyBC name is invalid.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    nzs = CPlot.getSelectedZones()
+    CTK.saveTree()
+    if CTK.__MAINTREE__ <= 0 or nzs == []:
+        bases = CTK.t[2]
+        for b in bases:
+            if b[3] == 'CGNSBase_t':
+                C._addFamily2Base(b, name, VARS[12].get())
+        CTK.TXT.insert('START', 'BC Family '+name+' added to all bases.\n')
+    else:
+        nob = CTK.Nb[nzs[0]]+1
+        noz = CTK.Nz[nzs[0]]
+        z = CTK.t[2][nob][2][noz]
+        C._addFamily2Base(CTK.t[2][nob], name, VARS[12].get())
+        CTK.TXT.insert('START', 'BC Family '+name+' added to base '+CTK.t[2][nob][0]+'.\n')
+    CTK.TKTREE.updateApp()
+
+#==============================================================================
 def createApp(win):
     ttk = CTK.importTtk()
 
@@ -673,7 +696,7 @@ def createApp(win):
     Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
-    Frame.columnconfigure(0, weight=1)
+    Frame.columnconfigure(0, weight=0)
     Frame.columnconfigure(1, weight=4)
     WIDGETS['frame'] = Frame
     
@@ -696,7 +719,7 @@ def createApp(win):
     # - 3 - ratio pour ConnectNearMatch -
     V = TK.StringVar(win); V.set('2'); VARS.append(V)
     # - 4 - Type de BC pour fillEmptyBCWith -
-    V = TK.StringVar(win); V.set('BCWall'); VARS.append(V)
+    V = TK.StringVar(win); V.set('BCFarfield'); VARS.append(V)
     # - 5 - Type de BC pour rmBCOfType -
     V = TK.StringVar(win); V.set('-All BC-'); VARS.append(V)
     # - 6 - Type de BC pour setBCWith -
@@ -711,6 +734,10 @@ def createApp(win):
     # -10- Periodicity field (0;0;0...)
     V = TK.StringVar(win); V.set('0.;0.;0.;0.;0.;0.'); VARS.append(V)
     if 'tkBCMatchPer' in CTK.PREFS: V.set(CTK.PREFS['tkBCMatchPer'])
+    # -11- Nom de la FamilyBC (new) -
+    V = TK.StringVar(win); V.set(''); VARS.append(V)
+    # -12- Type de BC pour createFamilyBC -
+    V = TK.StringVar(win); V.set('UserDefined'); VARS.append(V)
 
     # - View mesh -
     B = TTK.Button(Frame, text="View Mesh", command=viewMesh)
@@ -808,34 +835,53 @@ def createApp(win):
         F.grid(row=6, column=1, sticky=TK.EW)
         WIDGETS['BCs4'] = B
 
+    # - Create BC family -
+    B = TTK.Button(Frame, text="NewBCFamily", command=createBCFamily)
+    B.grid(row=7, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Create a new BC family tag.')
+    B = TTK.Entry(Frame, textvariable=VARS[11], background='White', width=15)
+    BB = CTK.infoBulle(parent=B, text='BC family name to be created.')
+    B.grid(row=7, column=1, sticky=TK.EW)
+    B.bind('<Return>', createBCFamily)
+    
+    if ttk is None:
+        B = TK.OptionMenu(Frame, VARS[12], *(Internal.KNOWNBCS))
+        BB = CTK.infoBulle(parent=B, text='BC family type to be created.')
+        B.grid(row=8, column=1, sticky=TK.EW)
+    else:
+        B = TTK.Combobox(Frame, textvariable=VARS[12], 
+                         values=Internal.KNOWNBCS, state='readonly', width=10)
+        BB = CTK.infoBulle(parent=B, text='BC family type to be created.')
+        B.grid(row=8, column=1, sticky=TK.EW)
+
     # - setDegeneratedBC -
     B = TTK.Button(Frame, text="SetDegeneratedBC", command=setDegeneratedBC)
-    B.grid(row=7, column=0, columnspan=2, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Find the degenerated BCs\nAdded to pyTree.')
+    B.grid(row=8, column=0, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Find the degenerated BCs,\nset them as "BCDegenerateLine"\nAdded to pyTree.')
 
     # - ConnectMatch -
     B = TTK.Button(Frame, text="ConnectMatch", command=connectMatch)
     WIDGETS['connectMatch'] = B
-    B.grid(row=8, column=0, sticky=TK.EW)
+    B.grid(row=9, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Find the matching BCs\nAdded to pyTree.')
     B = TTK.Entry(Frame, textvariable=VARS[2], background='White')
-    B.grid(row=8, column=1, sticky=TK.EW)
+    B.grid(row=9, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Tolerance for matching.')
 
     # - Periodicity management -
     B = TTK.OptionMenu(Frame, VARS[9], 'Not periodic', 'Translation', 'Rotation (Degree)')
-    B.grid(row=9, column=0, sticky=TK.EW)
+    B.grid(row=10, column=0, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[10], background='White')
-    B.grid(row=9, column=1, sticky=TK.EW)
+    B.grid(row=10, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Periodic translation: tx;ty;tz\nPeriodic rotation: cx;cy;cz;ax;ay;az\nangles in degrees.')
 
     # - ConnectNearMatch -
     B = TTK.Button(Frame, text="ConnectNearMatch", command=connectNearMatch)
     WIDGETS['connectNearMatch'] = B
-    B.grid(row=10, column=0, sticky=TK.EW)
+    B.grid(row=11, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Find the matching BCs\nAdded to pyTree.')
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White')
-    B.grid(row=10, column=1, sticky=TK.EW)
+    B.grid(row=11, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Nearmatch ratio (2 or 2;1;2).')
 
 #==============================================================================

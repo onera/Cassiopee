@@ -14,6 +14,11 @@ from . import Ttk as TTK
 try: range = xrange
 except: pass
 
+try:                        
+    import tkinter.font as TKF
+except ImportError:
+    import tkFont as TKF
+
 #==============================================================================
 # LoadPanel
 LOADPANEL = None
@@ -24,7 +29,7 @@ ERRORWINDOW = None
 # Materials (render)
 MATERIALS = ['Solid', 'Flat', 'Glass', 'Chrome',
              'Metal', 'Wood', 'Marble', 'Granite', 'Brick', 'XRay',
-             'Cloud', 'Gooch', 'Smoke', 'Sphere', 'Light']
+             'Cloud', 'Gooch', 'Sphere', 'Texmat']
 # global VARS for RENDER panel
 VARS = []
 # global VARS for ACTIVATION panel
@@ -199,7 +204,7 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
     textWidget.image_create(TK.INSERT, image=logoImg)
     textWidget.image = logoImg
 
-    myText = "\n\n Parts licensed under GPL3.\n Parts licensed by ONERA.\n\n"
+    myText = "\n\n Licensed under GPL3.\n\n"
     textWidget.insert(TK.END, myText)
     authors = KCore.__allAuthors__
     authors = authors.split(',')
@@ -815,89 +820,106 @@ def _destroyRenderWindow(event):
     global RENDERPANEL
     RENDERPANEL = None
 
-def _makeString(zoneName, material, color, blending, meshOverlay,
-                param1, param2):
-    return zoneName.ljust(26) + '|' + \
-           material.ljust(19) + '|' + \
-           color.ljust(16) + '|' + \
-           blending.ljust(10) + '|' + \
-           meshOverlay.ljust(10) + '|' + \
-           param1.ljust(10)+ '|' + \
-           param2.ljust(10)
-
+# update listboxes du render panel
 def updateRenderPanel():
     if RENDERPANEL is None: return
-    myList = RENDERPANEL.winfo_children()[1]
-    sel = myList.curselection() # on essai de garder la selection
-    myList.delete(0, TK.END)
+    filter = VARS[9].get()
+    sels = []
+    for l in WIDGETS['myLists']: sels.append(l.curselection()) # on essaie de garder la selection
+    for l in WIDGETS['myLists']: l.delete(0, TK.END)
     bases = Internal.getBases(CTK.t)
     for b in bases:
         zones = Internal.getNodesFromType1(b, 'Zone_t')
         for z in zones:
             name = b[0]+'/'+z[0]
             zoneName = name.ljust(20)
-            ri = Internal.getNodesFromName1(z, '.RenderInfo')
-            if ri != []:
-                ri = ri[0]
-                rt = Internal.getNodesFromName1(ri, 'Material')
-                if rt != []:
-                    v = Internal.getValue(rt[0])
-                    material = v
+            ri = Internal.getNodeFromName1(z, '.RenderInfo')
+            if ri is not None:
+                rt = Internal.getNodeFromName1(ri, 'Material')
+                if rt is not None: material = Internal.getValue(rt)
                 else: material = 'Solid'
-                rt = Internal.getNodesFromName1(ri, 'Color')
-                if rt != []:
-                    v = Internal.getValue(rt[0])
-                    color = v
+                rt = Internal.getNodeFromName1(ri, 'Color')
+                if rt is not None: color = Internal.getValue(rt)
                 else: color = 'None'
-                rt = Internal.getNodesFromName1(ri, 'Blending')
-                if rt != []:
-                    v = Internal.getValue(rt[0])
-                    blending = str(v)
-                else: blending = '1.'
-                rt = Internal.getNodesFromName1(ri, 'MeshOverlay')
-                if rt != []:
-                    v = Internal.getValue(rt[0])
-                    meshOverlay = str(v)
+                rt = Internal.getNodeFromName1(ri, 'Blending')
+                if rt is not None: blending = "%5.2f"%(Internal.getValue(rt))
+                else: blending = "%5.2f"%(1.)
+                rt = Internal.getNodeFromName1(ri, 'MeshOverlay')
+                if rt is not None: meshOverlay = str(Internal.getValue(rt))
                 else: meshOverlay = '0'
-                rt = Internal.getNodesFromName1(ri, 'ShaderParameters')
-                if rt != []:
-                    v = rt[0][1]
-                    param1 = str(v[0])
-                    param2 = str(v[1])
+                rt = Internal.getNodeFromName1(ri, 'ShaderParameters')
+                if rt is not None:
+                    v = rt[1]
+                    param1 = "%5.2f"%(v[0])
+                    param2 = "%5.2f"%(v[1])
                 else:
-                    param1 = '1'; param2 = '1'
+                    param1 = "%5.2f"%(1.); param2 = "%5.2f"%(1.)
             else:
-                material = 'Solid' ; color = 'None'
-                blending = '1.' ; meshOverlay = '0'
-                param1 = '1' ; param2 = '1'
-            info = _makeString(zoneName, material, color, blending,
-                               meshOverlay, param1, param2)
-            myList.insert(TK.END, info)
-    for i in sel:
-        try: myList.selection_set(i)
-        except: pass
+                material = 'Solid'; color = 'None'
+                blending = "%5.2f"%(1.); meshOverlay = '0'
+                param1 = "%5.2f"%(1.); param2 = "%5.2f"%(1.)
 
+            data = [zoneName, material, color, blending, meshOverlay, param1, param2]
+            if re.search(filter, zoneName, re.IGNORECASE) is not None:
+                for i, d in enumerate(data):
+                    WIDGETS['myLists'][i].insert(TK.END, d)
+
+    for c, sel in enumerate(sels):
+        l = WIDGETS['myLists'][c]
+        for i in sel:
+            #try: l.selection_set(i)
+            #except: pass
+            l.selection_set(i)
+
+# appele quand quelque chose est selectionne dans n'importe quelle listbox
 def renderSelect(event=None):
-    myList = RENDERPANEL.winfo_children()[1]
-    sel = myList.curselection()
+    sels = []
+    for l in WIDGETS['myLists']: sels.append(l.curselection())
+
+    # get la liste des numeros des selections
+    myset = set() # selected lines
+    for s in sels: # pour chaque listbox
+        for i in s: myset.add(i)
+    
+    # select les zones dans CPlot
     CPlot.unselectAllZones()
     selected = []
-    #num = event.num # bouton de la souris
-    for i in sel:
-        b = myList.get(i) ; b = b.split('|')
-        name = b[0] ; name = name.strip(); name = name.split('/')
+    myList = WIDGETS['myLists'][0]
+    for i in myset:
+        name = myList.get(i)
+        name = name.strip(); name = name.split('/')
         baseName = name[0]; zoneName = name[1]
         noz = CPlot.getCPlotNumber(CTK.t, baseName, zoneName)
         selected.append( (noz, 1) )
     CPlot.setSelectedZones(selected)
 
-def setColorVar(l):
-    if l == 'Custom>':
-        try: import tkColorChooser
-        except: import tkinter.colorchooser as tkColorChooser
-        ret = tkColorChooser.askcolor()
-        l = ret[1]
-    VARS[1].set(l); setColor()
+    # set les datas dans les setters
+    # ...
+
+# called when double click on zone name (listbox 0)
+def fitZone(i, event=None):
+    myList = WIDGETS['myLists'][i]
+    list0 = WIDGETS['myLists'][0]
+    sel = myList.curselection()[0]
+    name = list0.get(sel)
+    name = name.strip(); name = name.split('/')
+    baseName = name[0]; zoneName = name[1]
+    noz = CPlot.getCPlotNumber(CTK.t, baseName, zoneName)
+    selected = [(noz, 1)]
+    CPlot.setSelectedZones(selected)
+    CPlot.lookFor()
+
+# called when right click on zone name (listbox 0)
+def deactivateZone(event=None):
+    myList = WIDGETS['myLists'][0]
+    sel = myList.curselection()
+    name = myList.get(sel[0])
+    name = name.strip(); name = name.split('/')
+    baseName = name[0]; zoneName = name[1]
+    noz = CPlot.getCPlotNumber(CTK.t, baseName, zoneName)
+    activated = [(noz, 1)]
+    CPlot.setActiveZones(activated)
+
 
 def selectAll(event=None):
     myList = RENDERPANEL.winfo_children()[1]
@@ -920,6 +942,31 @@ def getSelection(event=None):
             if name2.strip() == name: print(c); break
         if c < myList.size(): myList.selection_set(c)
 
+# reselect la list box i items from CPlot selected zones
+def reselect(i):
+    zList = WIDGETS['myLists'][0]
+    myList = WIDGETS['myLists'][i]
+    items = zList.get(0, TK.END)
+    items = [it.strip() for it in items]
+    nzs = CPlot.getSelectedZones()
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        base = CTK.t[2][nob]
+        zone = CTK.t[2][nob][2][noz]
+        zoneName = base[0]+'/'+zone[0]
+        for c, item in enumerate(items):
+            if item == zoneName:
+                myList.selection_set(c); break
+
+def setColorVar(l):
+    if l == 'Custom>':
+        try: import tkinter.colorchooser as tkColorChooser
+        except: import tkColorChooser 
+        ret = tkColorChooser.askcolor()
+        l = ret[1]
+    VARS[1].set(l)
+
 def updateVarNameList(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
@@ -929,7 +976,7 @@ def updateVarNameList(event=None):
         nob = CTK.Nb[0]+1
         noz = CTK.Nz[0]
         vars = C.getVarNames(CTK.t[2][nob][2][noz], excludeXYZ=True)
-    m = VARS[6].children['menu']
+    m = WIDGETS['colors'].children['menu']
     m.delete(0, TK.END)
     allvars = ['White', 'Black', 'Grey', 'Blue', 'Red', 'Green', 'Yellow',
                'Orange', 'Brown', 'Magenta', 'Custom>']
@@ -938,6 +985,20 @@ def updateVarNameList(event=None):
     for i in allvars:
         m.add_command(label=i, command=lambda v=VARS[1],l=i:setColorVar(l))
 
+def updateVarNameList2(event=None):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
+        zvars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
+    else:
+        zvars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
+    allvars = ['White', 'Black', 'Grey', 'Blue', 'Red', 'Green', 'Yellow',
+               'Orange', 'Brown', 'Magenta', 'Custom>']
+    if len(zvars) > 0:
+        for v in zvars[0]: allvars.append('Iso:'+v)
+
+    if 'colors' in WIDGETS:
+        WIDGETS['colors']['values'] = allvars
+    
 def setMaterial(event=None):
     nzs = CPlot.getSelectedZones()
     material = VARS[0].get()
@@ -952,8 +1013,16 @@ def setMaterial(event=None):
     CPlot.render()
 
 def setColor(event=None):
-    nzs = CPlot.getSelectedZones()
     color = VARS[1].get()
+    if color == 'Custom>':
+        try: import tkinter.colorchooser as tkColorChooser
+        except: import tkColorChooser
+        ret = tkColorChooser.askcolor()
+        color = ret[1]
+    VARS[1].set(color)
+    print(color, flush=True)
+
+    nzs = CPlot.getSelectedZones()
     if nzs == []: return
     for nz in nzs:
         nob = CTK.Nb[nz]+1
@@ -962,16 +1031,14 @@ def setColor(event=None):
         CTK.replace(CTK.t, nob, noz, a)
     CTK.TKTREE.updateApp()
     updateRenderPanel()
+    reselect(2)
     CPlot.render()
 
 def setBlend(event=None):
+    VARS[6].set('Blending [%.2f]'%(WIDGETS['blending'].get() / 100.))
     nzs = CPlot.getSelectedZones()
-    blend = VARS[2].get()
-    try: blend = float(blend)
-    except:
-        CTK.TXT.insert('START', 'Blend value is incorrect.\n')
-        CTK.TXT.insert('START', 'Error: ', 'Error') ; return
-
+    blend = WIDGETS['blending'].get() / 100.
+    blend = float(blend)
     if nzs == []: return
     for nz in nzs:
         nob = CTK.Nb[nz]+1
@@ -984,36 +1051,35 @@ def setBlend(event=None):
 
 def setMesh(event=None):
     nzs = CPlot.getSelectedZones()
-    ov = VARS[3].get()
-    try: ov = int(ov)
-    except:
-        CTK.TXT.insert('START', 'Mesh overlay value is incorrect.\n')
-        CTK.TXT.insert('START', 'Error: ', 'Error') ; return
-
     if nzs == []: return
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
-        a = CPlot.addRender2Zone(CTK.t[2][nob][2][noz], meshOverlay=ov)
+        zone = CTK.t[2][nob][2][noz]
+        ri = Internal.getNodeFromName1(zone, '.RenderInfo')
+        meshOverlay = 0
+        if ri is not None:
+            rt = Internal.getNodeFromName1(ri, 'MeshOverlay')
+            if rt is not None: meshOverlay = Internal.getValue(rt)
+        if meshOverlay == 0: meshOverlay = 1
+        else: meshOverlay = 0
+        a = CPlot.addRender2Zone(CTK.t[2][nob][2][noz], meshOverlay=meshOverlay)
         CTK.replace(CTK.t, nob, noz, a)
     CTK.TKTREE.updateApp()
     updateRenderPanel()
     CPlot.render()
 
 def setShaderParameter1(event=None):
+    VARS[7].set('Shader1 [%.2f]'%(WIDGETS['shader1'].get() / 50.))
     nzs = CPlot.getSelectedZones()
-    p1 = VARS[4].get()
-    try: p1 = float(p1)
-    except:
-        CTK.TXT.insert('START', 'Shader parameter value is incorrect.\n')
-        CTK.TXT.insert('START', 'Error: ', 'Error') ; return
-
+    p1 = WIDGETS['shader1'].get() / 50.
+    p1 = float(p1)
     if nzs == []: return
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
-        r = Internal.getNodesFromName(CTK.t[2][nob][2][noz], 'ShaderParameters')
-        if r != []: p2 = r[0][1][1]
+        r = Internal.getNodeFromName(CTK.t[2][nob][2][noz], 'ShaderParameters')
+        if r is not None: p2 = r[1][1]
         else: p2 = 1.
         a = CPlot.addRender2Zone(CTK.t[2][nob][2][noz], shaderParameters=[p1,p2])
         CTK.replace(CTK.t, nob, noz, a)
@@ -1022,19 +1088,16 @@ def setShaderParameter1(event=None):
     CPlot.render()
 
 def setShaderParameter2(event=None):
+    VARS[8].set('Shader2 [%.2f]'%(WIDGETS['shader2'].get() / 50.))
     nzs = CPlot.getSelectedZones()
-    p2 = VARS[5].get()
-    try: p2 = float(p2)
-    except:
-        CTK.TXT.insert('START', 'Shader parameter value is incorrect.\n')
-        CTK.TXT.insert('START', 'Error: ', 'Error') ; return
-
+    p2 = WIDGETS['shader2'].get() / 50.
+    p2 = float(p2)
     if nzs == []: return
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
-        r = Internal.getNodesFromName(CTK.t[2][nob][2][noz], 'ShaderParameters')
-        if r != []: p1 = r[0][1][0]
+        r = Internal.getNodeFromName(CTK.t[2][nob][2][noz], 'ShaderParameters')
+        if r is not None: p1 = r[1][0]
         else: p1 = 1.
         a = CPlot.addRender2Zone(CTK.t[2][nob][2][noz], shaderParameters=[p1,p2])
         CTK.replace(CTK.t, nob, noz, a)
@@ -1042,16 +1105,46 @@ def setShaderParameter2(event=None):
     updateRenderPanel()
     CPlot.render()
 
+# fonction de scroll globale
+def updateScrollLists(*args):
+    for l in WIDGETS['myLists']:
+        l.yview(*args)
+
+# fonctions de scroll pour chaque listbox
+# chacun se base sur i
+def yscrolli(i, *args):
+    l0 = WIDGETS['myLists'][i]
+    for c, l in enumerate(WIDGETS['myLists']):
+        if c != i:
+            if l.yview() != l0.yview(): 
+                l.yview_moveto(args[0])
+    WIDGETS['scrollbar'].set(*args)
+
+# called when filtering
+def filterZones(event=None):
+    updateRenderPanel()
+
 def openRenderPanel():
     global RENDERPANEL
     if RENDERPANEL is not None:
         try: RENDERPANEL.withdraw()
         except: RENDERPANEL = None
     if RENDERPANEL is None:
+        ttk = CTK.importTtk()
         RENDERPANEL = TK.Toplevel(CTK.WIDGETS['masterWin'])
-        RENDERPANEL.option_add('*Font', CTK.FIXEDFONT)
-        RENDERPANEL.columnconfigure(0, weight=1)
-        RENDERPANEL.rowconfigure(0, weight=1)
+        RENDERPANEL.columnconfigure(0, weight=1) # zoneName
+        RENDERPANEL.columnconfigure(1, weight=1) # material
+        RENDERPANEL.columnconfigure(2, weight=1) # Color
+        RENDERPANEL.columnconfigure(3, weight=0) # blend
+        RENDERPANEL.columnconfigure(4, weight=0) # Mesh
+        RENDERPANEL.columnconfigure(5, weight=0) # shader param1
+        RENDERPANEL.columnconfigure(6, weight=0) # shader param2
+        RENDERPANEL.columnconfigure(7, weight=0) # scrollbar
+        RENDERPANEL.rowconfigure(0, weight=0)
+        RENDERPANEL.rowconfigure(1, weight=0)
+        RENDERPANEL.rowconfigure(2, weight=1)
+        RENDERPANEL.rowconfigure(3, weight=0)
+        
         RENDERPANEL.title("Render panel")
         # position de la fenetre parent
         xpos = RENDERPANEL.master.winfo_rootx()+45
@@ -1060,81 +1153,162 @@ def openRenderPanel():
         #RENDERPANEL.protocol("WM_DELETE_WINDOW", _deleteRenderWindow)
         #RENDERPANEL.bind("<Destroy>", _destroyRenderWindow)
         scrollbar = TTK.Scrollbar(RENDERPANEL, orient=TK.VERTICAL, width=10)
-        scrollbar.grid(sticky=TK.NSEW, row=1, column=1)
-        myList = TK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
-                            yscrollcommand=scrollbar.set,
-                            width=120, height=20, background='white')
-        myList.grid(sticky=TK.NSEW, row=1, column=0)
-        myList.bind('<<ListboxSelect>>', renderSelect)
-        scrollbar.config(command=myList.yview)
- 
-        # Menus as button is frame
-        F = TK.Frame(RENDERPANEL, border=0)
-        F.grid(row=0, column=0, columnspan=2, sticky=TK.W)
+        scrollbar.grid(sticky=TK.NSEW, row=2, column=7)
+        WIDGETS['scrollbar'] = scrollbar
+        myLists = []
+        for i in range(7):
+            if i == 0: # I cant find another way of setting constant in lambda functions
+                # ZoneName listbox
+                myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
+                                    yscrollcommand=lambda *args: yscrolli(0,*args),
+                                    #width=30, height=20, 
+                                    background='white')
+                myList.bind('<Double-Button>', lambda event: fitZone(0, event))
+                myList.bind('<Button-3>', deactivateZone)
+                
+            elif i == 1:
+                # Material listbox
+                myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
+                                    yscrollcommand=lambda *args: yscrolli(1,*args),
+                                    #width=30, height=20, 
+                                    background='white')
+                myList.bind('<Double-Button>', lambda event: fitZone(1, event))
+            elif i == 2:
+                # Color listbox
+                myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
+                                    yscrollcommand=lambda *args: yscrolli(2,*args),
+                                    #width=30, height=20, 
+                                    background='white')
+                myList.bind('<Double-Button>', lambda event: fitZone(2, event))
+            elif i == 3:
+                # Blend listbox
+                myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
+                                    yscrollcommand=lambda *args: yscrolli(3,*args),
+                                    width=4, 
+                                    background='white')
+                myList.bind('<Double-Button>', lambda event: fitZone(3, event))
+            elif i == 4:
+                # Mesh listbox
+                myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
+                                    yscrollcommand=lambda *args: yscrolli(4,*args),
+                                    width=4, 
+                                    background='white')
+                myList.bind('<Double-Button>', lambda event: fitZone(4, event))  
+            elif i == 5:
+                # Shader param1 listbox
+                myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
+                                    yscrollcommand=lambda *args: yscrolli(5,*args),
+                                    width=4, 
+                                    background='white')
+                myList.bind('<Double-Button>', lambda event: fitZone(5, event))
+            elif i == 6:
+                # shader param2 listbox
+                myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
+                                    yscrollcommand=lambda *args: yscrolli(6,*args),
+                                    width=4,  
+                                    background='white')
+                myList.bind('<Double-Button>', lambda event: fitZone(6, event))
+
+            myList.grid(sticky=TK.NSEW, row=2, column=i)
+            myList.bind('<<ListboxSelect>>', renderSelect)
+            myLists.append(myList)
+        WIDGETS['myLists'] = myLists
+        scrollbar.config(command=updateScrollLists)
 
         # -0- Material
-        V = TK.StringVar(F); V.set('Solid'); VARS.append(V)
+        V = TK.StringVar(RENDERPANEL); V.set('Solid'); VARS.append(V)
         # -1- Color
-        V = TK.StringVar(F); V.set('White'); VARS.append(V)
+        V = TK.StringVar(RENDERPANEL); V.set('White'); VARS.append(V)
         # -2- Blend
-        V = TK.StringVar(F); V.set('1.'); VARS.append(V)
+        V = TK.StringVar(RENDERPANEL); V.set('1.'); VARS.append(V)
         # -3- Mesh
-        V = TK.IntVar(F); V.set('0'); VARS.append(V)
+        V = TK.IntVar(RENDERPANEL); V.set('0'); VARS.append(V)
         # -4- Shader Param1
-        V = TK.StringVar(F); V.set('1.'); VARS.append(V)
+        V = TK.StringVar(RENDERPANEL); V.set('1.'); VARS.append(V)
         # -5- Shader Param2
-        V = TK.StringVar(F); V.set('1.'); VARS.append(V)
+        V = TK.StringVar(RENDERPANEL); V.set('1.'); VARS.append(V)
+        # -6- Blending info bulle
+        V = TK.StringVar(RENDERPANEL); V.set('Blending.'); VARS.append(V)
+        # -7- Shader parameter1 info bulle
+        V = TK.StringVar(RENDERPANEL); V.set('Shader1.'); VARS.append(V)
+        # -8- Shader parameter2 info bulle
+        V = TK.StringVar(RENDERPANEL); V.set('Shader2.'); VARS.append(V)
+        # -9- Filter zone name string
+        V = TK.StringVar(RENDERPANEL); V.set(''); VARS.append(V)
 
-        B = TK.Label(F, text='Name'.ljust(12))
-        B.grid(row=0, column=0, sticky=TK.W)
-        B = TK.Button(F, text='A', padx=1, command=selectAll)
-        BB = CTK.infoBulle(parent=B, text='Select all zones.')
-        from . import iconics
-        B.grid(row=0, column=1, sticky=TK.W)
-        B = TK.Button(F, text='', image=iconics.PHOTO[8], 
-                      padx=0, compound=TK.RIGHT, command=getSelection)
-        BB = CTK.infoBulle(parent=B, text='Get selection from plotter.')
-        B.grid(row=0, column=2, sticky=TK.W)
+        # -- labels --
+        label1 = TTK.Label(RENDERPANEL, text='Base/Zone')
+        label1.grid(row=0, column=0)
+        label2 = TTK.Label(RENDERPANEL, text='Material')
+        label2.grid(row=0, column=1)
+        label3 = TTK.Label(RENDERPANEL, text='Color')
+        label3.grid(row=0, column=2)
+        label4 = TTK.Label(RENDERPANEL, text='Blend')
+        label4.grid(row=0, column=3)
+        label5 = TTK.Label(RENDERPANEL, text='Mesh')
+        label5.grid(row=0, column=4)
+        label6 = TTK.Label(RENDERPANEL, text='Shader 1')
+        label6.grid(row=0, column=5)
+        label7 = TTK.Label(RENDERPANEL, text='Shader 2')
+        label7.grid(row=0, column=6)
 
-        B = TK.Button(F, text='Material', padx=1, command=setMaterial)
-        BB = CTK.infoBulle(parent=B, text='Set the material property.')
-        B.grid(row=0, column=3, sticky=TK.W)
-        B = TK.OptionMenu(F, VARS[0], *MATERIALS, command=setMaterial)
-        B.grid(row=0, column=4, sticky=TK.W)
-        B = TK.Button(F, text='Color', padx=1, command=setColor)
-        BB = CTK.infoBulle(parent=B, text='Set the color property.')
-        B.grid(row=0, column=5, sticky=TK.W)
-        F2 = TK.Frame(F, borderwidth=0)
-        F2.columnconfigure(0, weight=1)
-        B = TK.OptionMenu(F2, VARS[1], 'White', command=setColor)
-        VARS.append(B)
-        B.grid(sticky=TK.EW)
-        F2.bind('<Enter>', updateVarNameList)
-        F2.grid(row=0, column=6, sticky=TK.W)
-        B = TK.Button(F, text='Blend', padx=1, command=setBlend)
-        BB = CTK.infoBulle(parent=B, text='Set blending (0-1).')
-        B.grid(row=0, column=7, sticky=TK.W)
-        B = TK.Entry(F, textvariable=VARS[2], width=4)
-        B.bind('<Return>', setBlend)
-        B.grid(row=0, column=8, sticky=TK.W)
-        B = TK.Button(F, text='Mesh', padx=1, command=setMesh)
-        BB = CTK.infoBulle(parent=B, text='Mesh overlay (0 or 1).')
-        B.grid(row=0, column=9, sticky=TK.W)
-        B = TK.Checkbutton(F, text='', 
-                           variable=VARS[3], command=setMesh)
-        B.grid(row=0, column=10, sticky=TK.W)
-        B = TK.Button(F, text='Par1', padx=1, command=setShaderParameter1)
-        BB = CTK.infoBulle(parent=B, text='Set the shader parameter 1.')
-        B.grid(row=0, column=11, sticky=TK.W)
-        B = TK.Entry(F, textvariable=VARS[4], width=4)
-        B.grid(row=0, column=12, sticky=TK.W)
-        B.bind('<Return>', setShaderParameter1)
-        B = TK.Button(F, text='Par2', padx=1, command=setShaderParameter2)
-        BB = CTK.infoBulle(parent=B, text='Set the shader parameter 1.')
-        B.grid(row=0, column=13, sticky=TK.W)
-        B = TK.Entry(F, textvariable=VARS[5], width=4)
-        B.grid(row=0, column=14, sticky=TK.W)
-        B.bind('<Return>', setShaderParameter2)
+        # -- Filters --
+        B = TK.Entry(RENDERPANEL, textvariable=VARS[9], background='White', width=40)
+        B.bind('<KeyRelease>', filterZones)
+        B.grid(row=3, column=0, columnspan=7, sticky=TK.EW)
+        BB = CTK.infoBulle(parent=B, text='Filter zones by this regexp.')
+
+        # -- Setters -- 
+
+        # material setter
+        B = TK.OptionMenu(RENDERPANEL, VARS[0], *MATERIALS, command=setMaterial)
+        B.grid(row=1, column=1, sticky=TK.EW)
+
+        # color setter
+        F = TTK.Frame(RENDERPANEL, borderwidth=0)
+        F.columnconfigure(0, weight=1)
+        if ttk is None:
+            B = TK.OptionMenu(F, VARS[1], '', command=setColor)
+            B.grid(sticky=TK.EW)
+            F.bind('<Enter>', updateVarNameList)
+            F.grid(row=1, column=2, sticky=TK.EW)
+            WIDGETS['colors'] = B
+        else:
+            B = ttk.Combobox(F, textvariable=VARS[1], 
+                            values=[], state='readonly', height=11)
+            B.bind('<<ComboboxSelected>>', setColor)
+            B.grid(sticky=TK.EW)
+            F.bind('<Enter>', updateVarNameList2)
+            F.grid(row=1, column=2, sticky=TK.EW)
+            WIDGETS['colors'] = B
+
+        # blending setter
+        B = TTK.Scale(RENDERPANEL, from_=0, to=100, orient=TK.HORIZONTAL, 
+                     command=setBlend, showvalue=0, borderwidth=1, value=100)
+        WIDGETS['blending'] = B
+        B.grid(row=1, column=3, sticky=TK.EW)
+        BB = CTK.infoBulle(parent=B, textVariable=VARS[6])
+    
+        # Mesh setter (toggle)
+        B = TTK.Button(RENDERPANEL, text="Toggle", command=setMesh)
+        B.grid(row=1, column=4, sticky=TK.EW)
+        BB = CTK.infoBulle(parent=B, text="Toggle mesh overlay")
+        
+        # shader param1 setter
+        B = TTK.Scale(RENDERPANEL, from_=0, to=100, orient=TK.HORIZONTAL, 
+                     command=setShaderParameter1, showvalue=0, borderwidth=1, value=100)
+        WIDGETS['shader1'] = B
+        WIDGETS['shader1'].set(50)
+        B.grid(row=1, column=5, sticky=TK.EW)
+        BB = CTK.infoBulle(parent=B, textVariable=VARS[7])
+
+        # shaderparam2 setter
+        B = TTK.Scale(RENDERPANEL, from_=0, to=100, orient=TK.HORIZONTAL, 
+                     command=setShaderParameter2, showvalue=0, borderwidth=1, value=100)
+        WIDGETS['shader2'] = B
+        WIDGETS['shader2'].set(50)
+        B.grid(row=1, column=6, sticky=TK.EW)
+        BB = CTK.infoBulle(parent=B, textVariable=VARS[8])
 
     else:
         # trick pour avoir la fenetre au premier plan
