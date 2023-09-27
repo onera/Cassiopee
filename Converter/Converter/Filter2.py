@@ -582,7 +582,7 @@ def create_zone_std_elements_filter(elmt, zone_path, hdf_filter):
   distrib_elmt = I.getVal(getDistribution(elmt, 'Element'))
   dn_elmt      = distrib_elmt[1] - distrib_elmt[0]
 
-  elmt_npe = I.eltName2EltNo(elmt)[1] # nbre de vertex de l'element
+  name, elmt_npe = I.eltNo2EltName(elmt[1][0]) # nbre de vertex de l'element
 
   DSMMRYElmt = [[0                       ], [1], [dn_elmt*elmt_npe], [1]]
   DSFILEElmt = [[distrib_elmt[0]*elmt_npe], [1], [dn_elmt*elmt_npe], [1]]
