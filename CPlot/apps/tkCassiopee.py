@@ -19,7 +19,7 @@ EDGEAPPS = ['tkCanvas', 'tkPoint', 'tkDraw','---',
 SURFAPPS = ['tkBasicSurfs', 'tkText', '---',
             'tkFixer2', 'tkBoolean', '---',
             'tkMapUV', 'tkSculpt', 'tkPaint', '---',
-            'tkMMGs', 'tkMapSurfs', 'tkFilterSurfs', 'tkSurfaceWalk', '---',
+            'tkMMGs', 'tkCartWrap', 'tkOffset', 'tkSurfaceWalk', '---',
             'tkProjection']
 MESHAPPS = ['tkCells', 'tkStretch', '---',
             #tkMirabelle,

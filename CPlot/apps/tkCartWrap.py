@@ -1,5 +1,5 @@
-# - tkMapSurf -
-"""Surface remapper."""
+# - tkCartWrap -
+"""Surface remesh with cartesian wrapper."""
 try: import tkinter as TK
 except: import Tkinter as TK
 import CPlot.Ttk as TTK
@@ -208,8 +208,8 @@ def remap(event=None):
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkMapSurfs  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Remap surfaces with octrees.\nCtrl+w to close applet.', temps=0, btype=1)
+                           text='tkCartWrap  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Remap surfaces with cartesian wrapper.\nCtrl+w to close applet.', temps=0, btype=1)
     Frame.bind('<Control-w>', hideApp)
     Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
@@ -223,28 +223,28 @@ def createApp(win):
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
-    CTK.addPinMenu(FrameMenu, 'tkMapSurfs')
+    CTK.addPinMenu(FrameMenu, 'tkCartWrap')
     WIDGETS['frameMenu'] = FrameMenu
 
     # - VARS -
     # -0- Point density -
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
-    if 'tkMapSurfsDensity' in CTK.PREFS: 
-        V.set(CTK.PREFS['tkMapSurfsDensity'])
+    if 'tkCartWrapDensity' in CTK.PREFS: 
+        V.set(CTK.PREFS['tkCartWrapDensity'])
     # -1- Smoother power -
     V = TK.StringVar(win); V.set('10'); VARS.append(V)
-    if 'tkMapSurfsSmooth' in CTK.PREFS: 
-        V.set(CTK.PREFS['tkMapSurfsSmooth'])
+    if 'tkCartWrapSmooth' in CTK.PREFS: 
+        V.set(CTK.PREFS['tkCartWrapSmooth'])
     # -2- Elt type -
     V = TK.StringVar(win); V.set('QUAD'); VARS.append(V)
-    if 'tkMapSurfsElts' in CTK.PREFS: 
-        V.set(CTK.PREFS['tkMapSurfsElts'])
+    if 'tkCartWrapElts' in CTK.PREFS: 
+        V.set(CTK.PREFS['tkCartWrapElts'])
     # -3- Constraint
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -4- Constraint strength
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
-    if 'tkMapSurfsConsStrength' in CTK.PREFS: 
-        V.set(CTK.PREFS['tkMapSurfsConsStrength'])
+    if 'tkCartWrapConsStrength' in CTK.PREFS: 
+        V.set(CTK.PREFS['tkCartWrapConsStrength'])
 
     # - Point density -
     B = TTK.Label(Frame, text="Point density")
@@ -290,7 +290,7 @@ def createApp(win):
 #==============================================================================
 def showApp():
     #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    try: CTK.WIDGETS['SurfNoteBook'].add(WIDGETS['frame'], text='tkMapSurfs')
+    try: CTK.WIDGETS['SurfNoteBook'].add(WIDGETS['frame'], text='tkCartWrap')
     except: pass
     CTK.WIDGETS['SurfNoteBook'].select(WIDGETS['frame'])
 
@@ -308,10 +308,10 @@ def updateApp(): return
 
 #==============================================================================
 def saveApp():
-    CTK.PREFS['tkMapSurfsDensity'] = VARS[0].get()
-    CTK.PREFS['tkMapSurfsSmooth'] = VARS[1].get()
-    CTK.PREFS['tkMapSurfsElts'] = VARS[2].get()
-    CTK.PREFS['tkMapSurfsConsStrength'] = VARS[4].get()
+    CTK.PREFS['tkCartWrapDensity'] = VARS[0].get()
+    CTK.PREFS['tkCartWrapSmooth'] = VARS[1].get()
+    CTK.PREFS['tkCartWrapElts'] = VARS[2].get()
+    CTK.PREFS['tkCartWrapConsStrength'] = VARS[4].get()
     CTK.savePrefFile()
     
 #==============================================================================
@@ -320,10 +320,10 @@ def resetApp():
     VARS[1].set('10')
     VARS[2].set('QUAD')
     VARS[4].set('1.')
-    CTK.PREFS['tkMapSurfsDensity'] = VARS[0].get()
-    CTK.PREFS['tkMapSurfsSmooth'] = VARS[1].get()
-    CTK.PREFS['tkMapSurfsElts'] = VARS[2].get()
-    CTK.PREFS['tkMapSurfsConsStrength'] = VARS[4].get()
+    CTK.PREFS['tkCartWrapDensity'] = VARS[0].get()
+    CTK.PREFS['tkCartWrapSmooth'] = VARS[1].get()
+    CTK.PREFS['tkCartWrapElts'] = VARS[2].get()
+    CTK.PREFS['tkCartWrapConsStrength'] = VARS[4].get()
     CTK.savePrefFile()
 
 #==============================================================================
@@ -342,7 +342,7 @@ if __name__ == "__main__":
         except: pass
 
     # Main window
-    (win, menu, file, tools) = CTK.minimal('tkMapSurfs '+C.__version__)
+    (win, menu, file, tools) = CTK.minimal('tkCartWrap '+C.__version__)
 
     createApp(win); showApp()
 

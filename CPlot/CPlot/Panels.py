@@ -174,7 +174,7 @@ d9zwLy9L3enPhyeeLOEBN7t3siTSevTYbTf89bgRx7D1102HyW+1GU8cc8XFmt7yxMMvvvzhyVf+
 dI1Snx321WUXnHnRa08/e/UNOxy03C0bH3b89e6fvLAGPfMV0IAHRGACJhW4QAY20IEPhGAEJThB
 ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
 """)
-    winl = TK.Toplevel(border=0)
+    winl = TTK.Toplevel(border=0)
     winl.title('About Cassiopee')
     winl.columnconfigure(0, weight=1)
     winl.rowconfigure(0, weight=1)
@@ -275,7 +275,7 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
 def activation():
     global AVARS
     AVARS = []
-    winl = TK.Toplevel(border=0)
+    winl = TTK.Toplevel(border=0)
     winl.title('Activation key')
     winl.columnconfigure(0, weight=1)
     winl.columnconfigure(1, weight=1)
@@ -394,7 +394,7 @@ def displayErrors(errors, header=''):
         except: ERRORWINDOW = None
 
     if ERRORWINDOW is None:
-        ERRORWINDOW = TK.Toplevel()
+        ERRORWINDOW = TTK.Toplevel()
         ERRORWINDOW.columnconfigure(0, weight=1)
         ERRORWINDOW.rowconfigure(0, weight=1)
         ERRORWINDOW.title("Errors...")
@@ -562,7 +562,7 @@ def openMailWindow():
         except: mailData.pop('mailWindow')
     
     if 'mailWindow' not in mailData:
-        MAILWINDOW = TK.Toplevel()
+        MAILWINDOW = TTK.Toplevel()
         mailData['mailWindow'] = MAILWINDOW
         MAILWINDOW.columnconfigure(0, weight=0)
         MAILWINDOW.columnconfigure(1, weight=1)
@@ -761,7 +761,7 @@ def openDocWindow():
         try: docData['docWindow'].withdraw()
         except: docData.pop('docWindow')
     if 'docWindow' not in docData:
-        DOCWINDOW = TK.Toplevel()
+        DOCWINDOW = TTK.Toplevel()
         docData['docWindow'] = DOCWINDOW
         DOCWINDOW.columnconfigure(0, weight=0)
         DOCWINDOW.columnconfigure(1, weight=1)
@@ -833,7 +833,7 @@ def updateRenderPanel():
             if ri is not None:
                 rt = Internal.getNodeFromName1(ri, 'Material')
                 if rt is not None: material = Internal.getValue(rt)
-                else: material = 'Solid'
+                else: material = 'None'
                 rt = Internal.getNodeFromName1(ri, 'Color')
                 if rt is not None: color = Internal.getValue(rt)
                 else: color = 'None'
@@ -851,7 +851,7 @@ def updateRenderPanel():
                 else:
                     param1 = "%5.2f"%(1.); param2 = "%5.2f"%(1.)
             else:
-                material = 'Solid'; color = 'None'
+                material = 'None'; color = 'None'
                 blending = "%5.2f"%(1.); meshOverlay = '0'
                 param1 = "%5.2f"%(1.); param2 = "%5.2f"%(1.)
 
@@ -877,6 +877,10 @@ def renderSelect(event=None):
     for s in sels: # pour chaque listbox
         for i in s: myset.add(i)
     
+    # setter values
+    material = None; color = None; blending = None; 
+    meshOverlay = None; shader1 = None; shader2 = None
+
     # select les zones dans CPlot
     CPlot.unselectAllZones()
     selected = []
@@ -887,10 +891,31 @@ def renderSelect(event=None):
         baseName = name[0]; zoneName = name[1]
         noz = CPlot.getCPlotNumber(CTK.t, baseName, zoneName)
         selected.append( (noz, 1) )
+        z = Internal.getNodeFromPath(CTK.t, baseName+'/'+zoneName)
+        ri = Internal.getNodeFromName1(z, '.RenderInfo')
+        if ri is not None:
+            rt = Internal.getNodeFromName1(ri, 'Material')
+            if rt is not None: material = Internal.getValue(rt)
+            rt = Internal.getNodeFromName1(ri, 'Color')
+            if rt is not None: color = Internal.getValue(rt)
+            rt = Internal.getNodeFromName1(ri, 'Blending')
+            if rt is not None: blending = Internal.getValue(rt)
+            rt = Internal.getNodeFromName1(ri, 'MeshOverlay')
+            if rt is not None: meshOverlay = Internal.getValue(rt)
+            rt = Internal.getNodeFromName1(ri, 'ShaderParameters')
+            if rt is not None: shader1 = rt[1][0]; shader2 = rt[1][1]
+
     CPlot.setSelectedZones(selected)
 
     # set les datas dans les setters
-    # ...
+    if meshOverlay == 0 or meshOverlay is None: VARS[3].set(0)
+    elif meshOverlay == 1: VARS[3].set(1)
+    if blending is not None: WIDGETS['blending'].set(blending*100)
+    else: WIDGETS['blending'].set(100)
+    if shader1 is not None: WIDGETS['shader1'].set(shader1*50)
+    else: WIDGETS['shader1'].set(50)
+    if shader2 is not None: WIDGETS['shader2'].set(shader2*50)
+    else: WIDGETS['shader2'].set(50)
 
 # called when double click on zone name (listbox 0)
 def fitZone(i, event=None):
@@ -1128,7 +1153,7 @@ def openRenderPanel():
         except: RENDERPANEL = None
     if RENDERPANEL is None:
         ttk = CTK.importTtk()
-        RENDERPANEL = TK.Toplevel(CTK.WIDGETS['masterWin'])
+        RENDERPANEL = TTK.Toplevel(CTK.WIDGETS['masterWin'])
         RENDERPANEL.columnconfigure(0, weight=1) # zoneName
         RENDERPANEL.columnconfigure(1, weight=1) # material
         RENDERPANEL.columnconfigure(2, weight=1) # Color
@@ -1235,19 +1260,19 @@ def openRenderPanel():
 
         # -- labels --
         label1 = TTK.Label(RENDERPANEL, text='Base/Zone')
-        label1.grid(row=0, column=0)
+        label1.grid(row=0, column=0, sticky=TK.EW)
         label2 = TTK.Label(RENDERPANEL, text='Material')
-        label2.grid(row=0, column=1)
+        label2.grid(row=0, column=1, sticky=TK.EW)
         label3 = TTK.Label(RENDERPANEL, text='Color')
-        label3.grid(row=0, column=2)
+        label3.grid(row=0, column=2, sticky=TK.EW)
         label4 = TTK.Label(RENDERPANEL, text='Blend')
-        label4.grid(row=0, column=3)
+        label4.grid(row=0, column=3, sticky=TK.EW)
         label5 = TTK.Label(RENDERPANEL, text='Mesh')
-        label5.grid(row=0, column=4)
+        label5.grid(row=0, column=4, sticky=TK.EW)
         label6 = TTK.Label(RENDERPANEL, text='Shader 1')
-        label6.grid(row=0, column=5)
+        label6.grid(row=0, column=5, sticky=TK.EW)
         label7 = TTK.Label(RENDERPANEL, text='Shader 2')
-        label7.grid(row=0, column=6)
+        label7.grid(row=0, column=6, sticky=TK.EW)
 
         # -- Filters --
         B = TK.Entry(RENDERPANEL, textvariable=VARS[9], background='White', width=40)
@@ -1264,7 +1289,7 @@ def openRenderPanel():
         B.grid(row=1, column=0, sticky=TK.EW)
 
         # material setter
-        B = TK.OptionMenu(RENDERPANEL, VARS[0], *MATERIALS, command=setMaterial)
+        B = TTK.OptionMenu(RENDERPANEL, VARS[0], *MATERIALS, command=setMaterial)
         B.grid(row=1, column=1, sticky=TK.EW)
 
         # color setter
@@ -1293,7 +1318,8 @@ def openRenderPanel():
         BB = CTK.infoBulle(parent=B, textVariable=VARS[6])
     
         # Mesh setter (toggle)
-        B = TTK.Button(RENDERPANEL, text="Toggle", command=setMesh)
+        #B = TTK.Button(RENDERPANEL, text="Toggle", command=setMesh)
+        B = TTK.Checkbutton(RENDERPANEL, variable=VARS[3], command=setMesh)
         B.grid(row=1, column=4, sticky=TK.EW)
         BB = CTK.infoBulle(parent=B, text="Toggle mesh overlay")
         
@@ -1506,7 +1532,7 @@ def openLoadPanel(event=None):
         try: LOADPANEL.withdraw()
         except: LOADPANEL = None
     if LOADPANEL is None:
-        LOADPANEL = TK.Toplevel()
+        LOADPANEL = TTK.Toplevel()
         LOADPANEL.columnconfigure(0, weight=1)
         #LOADPANEL.columnconfigure(1, weight=0)
         #LOADPANEL.columnconfigure(2, weight=1)

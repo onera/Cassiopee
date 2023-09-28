@@ -1,5 +1,5 @@
-# - tkFilterSurfs -
-"""Filter or offset a surface."""
+# - tkOffset -
+"""Offset a surface."""
 try: import tkinter as TK
 except: import Tkinter as TK
 import CPlot.Ttk as TTK
@@ -38,7 +38,7 @@ def remap():
     # offset
     offset = CTK.varsFromWidget(VARS[1].get(), type=1)
     if len(offset) != 1:
-        CTK.TXT.insert('START', 'Offset is incorrect.\n')
+        CTK.TXT.insert('START', 'Offset value is incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     offset = offset[0]
 
@@ -70,8 +70,8 @@ def remap():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkFilterSurfs  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Filter or offset a surface.\nCtrl+w to close applet.', temps=0, btype=1)
+                           text='tkOffset  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Offset a surface.\nCtrl+w to close applet.', temps=0, btype=1)
     Frame.bind('<Control-w>', hideApp)
     Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
@@ -87,29 +87,29 @@ def createApp(win):
     FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
-    CTK.addPinMenu(FrameMenu, 'tkFilterSurfs')
+    CTK.addPinMenu(FrameMenu, 'tkOffset')
     WIDGETS['frameMenu'] = FrameMenu
 
     # - VARS -
     # -0- Point density -
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
-    if 'tkFilterSurfsDensity' in CTK.PREFS: 
-        V.set(CTK.PREFS['tkFilterSurfsDensity'])
+    if 'tkOffsetDensity' in CTK.PREFS: 
+        V.set(CTK.PREFS['tkOffsetDensity'])
     # -1- Offset -
-    V = TK.StringVar(win); V.set('0.'); VARS.append(V)
-    if 'tkFilterSurfsOffset' in CTK.PREFS: 
-        V.set(CTK.PREFS['tkFilterSurfsOffset'])
+    V = TK.StringVar(win); V.set('0.1'); VARS.append(V)
+    if 'tkOffsetOffset' in CTK.PREFS: 
+        V.set(CTK.PREFS['tkOffsetOffset'])
     # -2- Algorithm cart/octree
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    if 'tkFilterSurfsType' in CTK.PREFS: 
-        V.set(CTK.PREFS['tkFilterSurfsType'])
+    if 'tkOffsetType' in CTK.PREFS: 
+        V.set(CTK.PREFS['tkOffsetType'])
 
     # - Point density -
     B = TTK.Label(Frame, text="density/offset")
     B.grid(row=0, column=0, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=8)
     B.grid(row=0, column=1, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Point density (npts/length unit).')
+    BB = CTK.infoBulle(parent=B, text='Offset point density (npts/length unit).')
 
     # - Offset -
     B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=8)
@@ -122,9 +122,9 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Toggle octree algorithm.')
     
     # - Remap -
-    B = TTK.Button(Frame, text="Filter/offset", command=remap)
+    B = TTK.Button(Frame, text="Offset", command=remap)
     WIDGETS['remap'] = B
-    BB = CTK.infoBulle(parent=B, text='Remap/offset a surface with a given spacing.')
+    BB = CTK.infoBulle(parent=B, text='Offset a surface of a given distance with a given spacing.')
     B.grid(row=2, column=0, columnspan=4, sticky=TK.EW)
     
 #==============================================================================
@@ -132,7 +132,7 @@ def createApp(win):
 #==============================================================================
 def showApp():
     #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    try: CTK.WIDGETS['SurfNoteBook'].add(WIDGETS['frame'], text='tkFilterSurfs')
+    try: CTK.WIDGETS['SurfNoteBook'].add(WIDGETS['frame'], text='tkOffset')
     except: pass
     CTK.WIDGETS['SurfNoteBook'].select(WIDGETS['frame'])
 
@@ -150,9 +150,9 @@ def updateApp(): return
 
 #==============================================================================
 def saveApp():
-    CTK.PREFS['tkFilterSurfsDensity'] = VARS[0].get()
-    CTK.PREFS['tkFilterSurfsOffset'] = VARS[1].get()
-    CTK.PREFS['tkFilterSurfsType'] = VARS[2].get()
+    CTK.PREFS['tkOffsetDensity'] = VARS[0].get()
+    CTK.PREFS['tkOffsetOffset'] = VARS[1].get()
+    CTK.PREFS['tkOffsetType'] = VARS[2].get()
     CTK.savePrefFile()
     
 #==============================================================================
@@ -160,9 +160,9 @@ def resetApp():
     VARS[0].set('1.')
     VARS[1].set('0.')
     VARS[2].set('0')
-    CTK.PREFS['tkFilterSurfsDensity'] = VARS[0].get()
-    CTK.PREFS['tkFilterSurfsOffset'] = VARS[1].get()
-    CTK.PREFS['tkFilterSurfsType'] = VARS[1].get()
+    CTK.PREFS['tkOffsetDensity'] = VARS[0].get()
+    CTK.PREFS['tkOffsetOffset'] = VARS[1].get()
+    CTK.PREFS['tkOffsetType'] = VARS[1].get()
     CTK.savePrefFile()
 
 #==============================================================================
@@ -181,7 +181,7 @@ if __name__ == "__main__":
         except: pass
 
     # Main window
-    (win, menu, file, tools) = CTK.minimal('tkFilterSurfs '+C.__version__)
+    (win, menu, file, tools) = CTK.minimal('tkOffset '+C.__version__)
 
     createApp(win); showApp()
 

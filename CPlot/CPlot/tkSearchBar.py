@@ -76,9 +76,11 @@ applet = {
     'Difference of two surfaces':'tkBoolean',
     # tkMapUV
     'tkMapUV':'tkMapUV', 'UV map of surface':'tkMapUV',
-    # tkMapSurfs
-    'tkMapSurfs':'tkMapSurfs', 'Remesh a surface':'tkMapSurfs',
-    'Wrap surface -watertight-':'tkMapSurfs', 'Cartesian wrapper':'tkMapSurfs',
+    # tkCartWrap
+    'tkCartWrap':'tkCartWrap', 'Remesh a surface with cartesian wrapper':'tkCartWrap',
+    'Wrap surface -watertight-':'tkCartWrap', 'Cartesian wrapper':'tkCartWrap',
+    # tkOffset
+    'tkOffset':'tkOffset', 'Offset a surface of a given distance':'tkOffset',
     # tkMMGs
     'tkMMGs':'tkMMGs', 'Remesh a surface':'tkMMGs',
     'Refine a surface':'tkMMGs',

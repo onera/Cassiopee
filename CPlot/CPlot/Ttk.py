@@ -313,6 +313,13 @@ def Scrollbar(*args, **kwargs):
         #if width != 0: b.configure(style='TKTREE.TScrollbar')
         return b
 
+def Toplevel(*args, **kwargs):
+    if ttk is None: return TK.Toplevel(*args, **kwargs)
+    else:
+        t = TK.Toplevel(*args, **kwargs)
+        t.config(bg=BACKGROUNDCOLOR)
+        return t
+
 # Si ttk, renvoie une listbox avec accelerateur clavier
 def Listbox(*args, **kwargs):
     if ttk is None: return TK.Listbox(*args, **kwargs)
