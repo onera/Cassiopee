@@ -7,10 +7,10 @@ except ImportError: from . import Tk as CTK
 import Converter
 import Converter.Internal as Internal
 import Converter.PyTree as C
-import time, re
 from . import PyTree as CPlot
 from . import Ttk as TTK
 import CPlot.iconics as iconics
+import time
 
 try: range = xrange
 except: pass
@@ -828,7 +828,7 @@ def updateRenderPanel():
         zones = Internal.getNodesFromType1(b, 'Zone_t')
         for z in zones:
             name = b[0]+'/'+z[0]
-            zoneName = name.ljust(20)
+            zoneName = name
             ri = Internal.getNodeFromName1(z, '.RenderInfo')
             if ri is not None:
                 rt = Internal.getNodeFromName1(ri, 'Material')
@@ -856,7 +856,8 @@ def updateRenderPanel():
                 param1 = "%5.2f"%(1.); param2 = "%5.2f"%(1.)
 
             data = [zoneName, material, color, blending, meshOverlay, param1, param2]
-            if re.search(filter, zoneName, re.IGNORECASE) is not None:
+            ret = False
+            if CTK.matchString(filter, zoneName):
                 for i, d in enumerate(data):
                     WIDGETS['myLists'][i].insert(TK.END, d)
 
@@ -1451,7 +1452,7 @@ def filterVarList(event=None):
     listbox = WIDGETS['LBVARS']
     listbox.delete(0, TK.END)
     for s in OVARS[3]:
-        if re.search(filter, s, re.IGNORECASE) is not None:
+        if CTK.matchString(filter, s):
             listbox.insert(TK.END, s)
     listbox.config(yscrollcommand=WIDGETS['SCROLLVARS'].set)
     WIDGETS['SCROLLVARS'].config(command=listbox.yview)
@@ -1519,7 +1520,7 @@ def filterZoneList(event=None):
     listbox = WIDGETS['LBZONES']
     listbox.delete(0, TK.END)
     for s in OVARS[4]:
-        if re.search(filter, s, re.IGNORECASE) is not None:
+        if CTK.matchString(filter, s):
             listbox.insert(TK.END, s)
     listbox.config(yscrollcommand=WIDGETS['SCROLLZONES'].set)
     WIDGETS['SCROLLZONES'].config(command=listbox.yview)

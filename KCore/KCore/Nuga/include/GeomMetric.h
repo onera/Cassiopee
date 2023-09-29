@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef __GENERATOR_GEOM_METRIC_H__
 #define __GENERATOR_GEOM_METRIC_H__
@@ -510,7 +510,7 @@ namespace DELAUNAY
     std::vector<E_Int> Bnodes;
     connectB.uniqueVals(Bnodes);
 
-    K_FLD::FloatArray M1(2,2), M2(2,2), I(2,2);
+    K_FLD::FloatArray M1(2,2), M2(2,2), ID(2,2);
     E_Int Ni ;
     std::vector<E_Float> s(3);
     

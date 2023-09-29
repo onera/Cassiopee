@@ -82,10 +82,8 @@ applet = {
     # tkOffset
     'tkOffset':'tkOffset', 'Offset a surface of a given distance':'tkOffset',
     # tkMMGs
-    'tkMMGs':'tkMMGs', 'Remesh a surface':'tkMMGs',
-    'Refine a surface':'tkMMGs',
-    # tkFilterSurfs
-    'tkFilterSurfs':'tkFilterSurfs', 'Offset a surface':'tkFilterSurfs',
+    'tkMMGs':'tkMMGs', 'Remesh a TRI surface':'tkMMGs',
+    'Refine a TRI surface':'tkMMGs',
     # tkSurfaceWalk
     'tkSurfaceWalk':'tkSurfaceWalk', 
     'Mesh a surface -othogonal/structured-':'tkSurfaceWalk',

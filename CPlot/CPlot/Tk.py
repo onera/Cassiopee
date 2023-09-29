@@ -13,6 +13,7 @@ from . import Panels
 from . import iconics
 import os, os.path
 from sys import version_info
+import re, fnmatch
 
 try: range = xrange
 except: pass
@@ -2052,6 +2053,15 @@ def changeWindowTitle(fileName, filePath="."):
   CPlot.setWindowTitle(fileName, filePath)
   win = WIDGETS['masterWin']
   win.title('Cassiopee'+C.__version__+' - '+fileName)
+
+# Fonction pour matcher un filter dans une chaine
+def matchString(filter, myString):
+    if ('*' in filter)|('?' in filter)|('[' in filter):
+        ret = fnmatch.fnmatch(myString, filter)
+    else:
+        ret = False
+        if re.search(filter, myString, re.IGNORECASE) is not None: ret = True
+    return ret
 
 #==============================================================================
 # Meta load function of multiple files

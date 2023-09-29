@@ -73,6 +73,23 @@
 #define PYPARSETUPLEF(args, format1, format2, ...) PyArg_ParseTuple(args, format2, __VA_ARGS__)
 #endif
 
+// Nouveau parsetuple
+//#ifdef __NEWPARSETUPLE__
+#if defined E_DOUBLEINT
+#define _I "l"
+#else
+#define _I "i"
+#endif
+#if defined E_DOUBLEREAL
+#define _R "d"
+#else
+#define _R "f"
+#endif
+
+// ex de format string: "O" _I _R _I "O"
+#define PYPARSETUPLE0(args, format, ...) PyArg_ParseTuple(args, format, __VA_ARGS__) 
+//#endif
+
 namespace K_ARRAY
 {
   /* Taille max de la varString pour les alloc. statiques */

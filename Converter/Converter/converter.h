@@ -148,6 +148,7 @@ namespace K_CONVERTER
   PyObject* adaptNFace2PE(PyObject* self, PyObject* args);
   PyObject* adaptNGon2Index(PyObject* self, PyObject* args);
   PyObject* adaptNFace2Index(PyObject* self, PyObject* args);
+  PyObject* signNGonFaces(PyObject* self, PyObject* args);
   PyObject* adaptBCFace2BCC(PyObject* self, PyObject* args);
   PyObject* adaptBCC2BCFace(PyObject* self, PyObject* args);
   PyObject* adaptNGon42NGon3(PyObject* self, PyObject* args);

@@ -136,6 +136,7 @@ static PyMethodDef Pyconverter [] =
   {"adaptBCFace2BCC", K_CONVERTER::adaptBCFace2BCC, METH_VARARGS},
   {"adaptNGon42NGon3", K_CONVERTER::adaptNGon42NGon3, METH_VARARGS},
   {"adaptNGon32NGon4", K_CONVERTER::adaptNGon32NGon4, METH_VARARGS},
+  {"signNGonFaces", K_CONVERTER::signNGonFaces, METH_VARARGS},
   {"adapt2FastP", K_CONVERTER::adapt2FastP, METH_VARARGS},
   {"createElsaHybrid", K_CONVERTER::createElsaHybrid, METH_VARARGS},
   {"diffIndex", K_CONVERTER::diffIndex, METH_VARARGS},

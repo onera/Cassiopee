@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef _DELAUNAY_METRIC_H_
 #define _DELAUNAY_METRIC_H_
@@ -812,7 +812,7 @@ namespace DELAUNAY{
     vj[1] = mj[1]*v[0] + mj[3]*v[1] + mj[4]*v[2];
     vj[2] = mj[2]*v[0] + mj[4]*v[1] + mj[5]*v[2];
 
-    for (NUGA::size_type i = 0; i < _pos->rows(); ++i)
+    for (E_Int i = 0; i < _pos->rows(); ++i)
     {
       r1 += vi[i]*v[i];
       r2 += vj[i]*v[i];
@@ -1339,7 +1339,7 @@ namespace DELAUNAY{
   {  
     // Now set the metric at each node as the minimum(intersection) between the edge length and the input metric.
     // Only the first row of the input matrix is taken into account.
-    K_FLD::FloatArray M1(2,2), M2(2,2), I(2,2);
+    K_FLD::FloatArray M1(2,2), M2(2,2), ID(2,2);
     Aniso2D m;
 
     E_Int max = std::min((E_Int)metric1.size(), (E_Int)metric2.cols());
@@ -1364,11 +1364,11 @@ namespace DELAUNAY{
         M2(1,1) = metric2(0,i);
       }
 
-      K_LINEAR::DelaunayMath::intersect(M1, M2, I);
+      K_LINEAR::DelaunayMath::intersect(M1, M2, ID);
 
-      m[0] = I(0,0);
-      m[1] = I(1,0);
-      m[2] = I(1,1);
+      m[0] = ID(0,0);
+      m[1] = ID(1,0);
+      m[2] = ID(1,1);
       metric1[i] = m;
     }
   }

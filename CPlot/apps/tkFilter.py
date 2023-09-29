@@ -26,14 +26,12 @@ def setFilter(event=None):
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
-    import re
     # Get filter type
     filterType = VARS[1].get()
     actionType = VARS[2].get()
     # Filter by name
     if filterType == 'By Zone name':
         rexp = VARS[0].get()
-        exp = re.compile(rexp)
         bases = CTK.t[2][1:]
         active = []
         for b in bases:
@@ -42,7 +40,7 @@ def setFilter(event=None):
                 if z[3] == 'Zone_t':
                     zoneName = baseName + '/' + z[0]
                     i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
-                    if exp.search(zoneName) is not None: active.append((i,1))
+                    if CTK.matchString(rexp, zoneName): active.append((i,1))
                     else: active.append((i,0))
                     
         if actionType == 'Activate': CPlot.setActiveZones(active)
@@ -57,7 +55,6 @@ def setFilter(event=None):
     # Filter by Zone family
     if filterType == 'By Zone family':
         rexp = VARS[0].get()
-        exp = re.compile(rexp)
         bases = CTK.t[2][1:]
         active = []
         familySelect = C.getFamilyZones(bases, rexp)
