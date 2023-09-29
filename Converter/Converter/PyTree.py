@@ -5197,13 +5197,13 @@ def _mergeBCs(z):
   return None
 
 def isXZone(zone):
-    """ Check wheter a zone has been added by addXZones (for MPI computation)"""
-    r = Internal.getNodeFromName1(zone,'XZone')
+    """Check whether a zone has been added by addXZones."""
+    r = Internal.getNodeFromName1(zone, 'XZone')
     if r is None: return False
     else: return True 
 
 # Extract fields on all match connectivities
-def extractAllBCMatch(t,varList=None):
+def extractAllBCMatch(t, varList=None):
   zones    = Internal.getZones(t)
   allMatch = {}
 
@@ -5217,7 +5217,7 @@ def extractAllBCMatch(t,varList=None):
 
           for gc in gcs:
               zname  = Internal.getValue(gc)
-              zdonor = Internal.getNodeFromName(t,zname)
+              zdonor = Internal.getNodeFromName2(t, zname)
         
               # Extraction BCMatch pour la zone donneuse
               [indR,fldD]  = extractBCMatch(zdonor,gc,dim,varList)
@@ -7382,7 +7382,7 @@ def _addPeriodicZones__(a):
     zonesdup = []
     for z in zones:
       zname = Internal.getName(z)
-      usd = Internal.getNodeFromName2(z,".Solver#Param")
+      usd = Internal.getNodeFromName2(z, '.Solver#Param')
       periodicChimera = False
       if usd is not None:
         perdir = Internal.getNodeFromName1(usd, 'periodic_dir')
@@ -7404,7 +7404,7 @@ def _addPeriodicZones__(a):
           elif not rotated and not translated: pass
           else:
             zdonorname = Internal.getValue(gc)
-            zd = Internal.getNodeFromName2(a,zdonorname)
+            zd = Internal.getNodeFromName2(a, zdonorname)
             if zd is not None:
               if rotated:
                 xc = rotationData[0]; yc = rotationData[1]; zc = rotationData[2]
@@ -7414,7 +7414,7 @@ def _addPeriodicZones__(a):
                   zddup = T.rotate(zd,(xc,yc,zc), (vx,vy,vz),-angle)
                   if angle >0.: signangle = -1
                   else: signangle = 1
-                  rotationInfo = Internal.createNode('SignOfRotationAngle','UserDefinedData_t',value=signangle)
+                  rotationInfo = Internal.createNode('SignOfRotationAngle', 'UserDefinedData_t', value=signangle)
                   # creation du noeud temporaire le marquant comme periodique
                   zddup[0] = getZoneName(zddup[0]+'_dup')
                   Internal.createChild(zddup, 'TempPeriodicZone', 'UserDefinedData_t', value=zdonorname, children=[rotationInfo])
@@ -7446,7 +7446,7 @@ def _addPeriodicZones__(a):
             if perdir == 1 or perdir == 3:
               zdup = T.rotate(z,(xc,yc,zc), (vx,vy,vz),angle)
               signangle = 1
-              rotationInfo = Internal.createNode('SignOfRotationAngle','UserDefinedData_t',value=signangle)
+              rotationInfo = Internal.createNode('SignOfRotationAngle', 'UserDefinedData_t', value=signangle)
               # creation du noeud temporaire le marquant comme periodique
               #zdup[0] = getZoneName(zdup[0]+'_dup')
               pref = zdup[0].split('_')

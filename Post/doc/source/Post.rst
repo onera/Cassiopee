@@ -442,6 +442,7 @@ Modifying/creating variables
     ::
 
         P.computeDiv2(a, 'vect')
+        P.computeDiv2(a, ['vect1', 'vect2'])
 
     The variable name must be located at cell centers.
     Indices and BCFields are automatically extracted from BCDataSet nodes:
@@ -450,8 +451,8 @@ Modifying/creating variables
 
     :param a:  Input data
     :type  a:  [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param varname: variable name (can be preceded by 'nodes:' or 'centers:')
-    :type varname: string
+    :param varname: variable name(s) (can be preceded by 'nodes:' or 'centers:')
+    :type varname: [string, list of strings]
     :rtype:  identical to input
 
     *Example of use:*

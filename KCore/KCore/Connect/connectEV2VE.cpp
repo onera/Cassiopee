@@ -84,20 +84,22 @@ K_CONNECT::connectEV2VE(K_FLD::FldArrayI& cEV)
   E_Int nv = 0;
   // On prepare un tableau de pointeur pour chaque composante de la connectivité
   std::vector<E_Int*> pt_nevs(ns);
-  for ( E_Int j_vert = 0; j_vert < ns; ++j_vert )
+  for (E_Int j_vert = 0; j_vert < ns; ++j_vert)
     pt_nevs[j_vert] = cEV.begin(j_vert+1);
 
   // On compte le nombre d'elements contenant chaque sommet
   // On en profite pour compter le nombre de sommets du maillage
-  // à l'aide de sa numérotation.
+  // a l'aide de sa numerotation.
   std::vector<E_Int> counter(ns*ne, 0);
   E_Int* pt_cter = counter.data();
-  for ( E_Int j_vert = 0; j_vert < ns; ++j_vert )
+  E_Int vertex;
+  E_Int* pt_nev;
+  for (E_Int j_vert = 0; j_vert < ns; ++j_vert)
   {
-    E_Int* pt_nev = pt_nevs[j_vert];
-    for ( E_Int i_elt = 0; i_elt < ne; ++i_elt )
+    pt_nev = pt_nevs[j_vert];
+    for (E_Int i_elt = 0; i_elt < ne; ++i_elt)
     {
-      E_Int vertex = pt_nev[i_elt*stride]-1;
+      vertex = pt_nev[i_elt*stride]-1;
       nv = (nv <= vertex ? vertex+1 : nv);
       pt_cter[vertex] += 1;
     }
@@ -108,22 +110,22 @@ K_CONNECT::connectEV2VE(K_FLD::FldArrayI& cEV)
   beg_vert2elts[0] = 0;
   // Les suivants, commenceront n valeurs plus loin du debut du sommet precedent, où n est
   // le nombre d'elements contenant le sommet precedent.
-  for ( E_Int iv = 0; iv < nv; ++iv )
+  for (E_Int iv = 0; iv < nv; ++iv)
     beg_vert2elts[iv+1] = beg_vert2elts[iv] + pt_cter[iv];
   E_Int* pt_beg = beg_vert2elts.data();
   // Le tableau v2e est de taille la valeur du dernier element de beg_vert2elts :
   std::vector<E_Int> vert2elts(beg_vert2elts[nv]);
   E_Int* pt_v2e = vert2elts.data();
-  // On remet a zéro le compteur.
-  std::fill( counter.begin(), counter.end(), 0);
+  // On remet a zero le compteur.
+  std::fill(counter.begin(), counter.end(), 0);
   // Puis on remplit le tableau vert2elts :
   // Pour chaque element
-  for ( E_Int i_elt = 0; i_elt < ne; ++i_elt )
+  for (E_Int i_elt = 0; i_elt < ne; ++i_elt)
   {
     // On regarde les sommets qu'il contient
-    for ( E_Int i_vert = 0; i_vert < ns; ++i_vert )
+    for (E_Int i_vert = 0; i_vert < ns; ++i_vert)
     {
-      E_Int vertex = pt_nevs[i_vert][i_elt*stride]-1;
+      vertex = pt_nevs[i_vert][i_elt*stride]-1;
       // Et on rajoute cet element aux elements contenant ce sommet
       pt_v2e[pt_beg[vertex] + pt_cter[vertex]] = i_elt;
       pt_cter[vertex] += 1;

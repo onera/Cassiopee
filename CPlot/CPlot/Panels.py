@@ -869,14 +869,11 @@ def updateRenderPanel():
 
 # appele quand quelque chose est selectionne dans n'importe quelle listbox
 def renderSelect(event=None):
-    sels = []
-    for l in WIDGETS['myLists']: sels.append(l.curselection())
-
-    # get la liste des numeros des selections
     myset = set() # selected lines
-    for s in sels: # pour chaque listbox
-        for i in s: myset.add(i)
-    
+    for l in WIDGETS['myLists']:
+        sel = l.curselection()
+        for i in sel: myset.add(i)
+
     # setter values
     material = None; color = None; blending = None; 
     meshOverlay = None; shader1 = None; shader2 = None
@@ -891,31 +888,33 @@ def renderSelect(event=None):
         baseName = name[0]; zoneName = name[1]
         noz = CPlot.getCPlotNumber(CTK.t, baseName, zoneName)
         selected.append( (noz, 1) )
-        z = Internal.getNodeFromPath(CTK.t, baseName+'/'+zoneName)
-        ri = Internal.getNodeFromName1(z, '.RenderInfo')
-        if ri is not None:
-            rt = Internal.getNodeFromName1(ri, 'Material')
-            if rt is not None: material = Internal.getValue(rt)
-            rt = Internal.getNodeFromName1(ri, 'Color')
-            if rt is not None: color = Internal.getValue(rt)
-            rt = Internal.getNodeFromName1(ri, 'Blending')
-            if rt is not None: blending = Internal.getValue(rt)
-            rt = Internal.getNodeFromName1(ri, 'MeshOverlay')
-            if rt is not None: meshOverlay = Internal.getValue(rt)
-            rt = Internal.getNodeFromName1(ri, 'ShaderParameters')
-            if rt is not None: shader1 = rt[1][0]; shader2 = rt[1][1]
+        if len(myset) == 1:
+            z = Internal.getNodeFromPath(CTK.t, baseName+'/'+zoneName)
+            ri = Internal.getNodeFromName1(z, '.RenderInfo')
+            if ri is not None:
+                #rt = Internal.getNodeFromName1(ri, 'Material')
+                #if rt is not None: material = Internal.getValue(rt)
+                #rt = Internal.getNodeFromName1(ri, 'Color')
+                #if rt is not None: color = Internal.getValue(rt)
+                #rt = Internal.getNodeFromName1(ri, 'Blending')
+                #if rt is not None: blending = Internal.getValue(rt)
+                rt = Internal.getNodeFromName1(ri, 'MeshOverlay')
+                if rt is not None: meshOverlay = Internal.getValue(rt)
+                #rt = Internal.getNodeFromName1(ri, 'ShaderParameters')
+                #if rt is not None: shader1 = rt[1][0]; shader2 = rt[1][1]
 
     CPlot.setSelectedZones(selected)
 
     # set les datas dans les setters
-    if meshOverlay == 0 or meshOverlay is None: VARS[3].set(0)
-    elif meshOverlay == 1: VARS[3].set(1)
-    if blending is not None: WIDGETS['blending'].set(blending*100)
-    else: WIDGETS['blending'].set(100)
-    if shader1 is not None: WIDGETS['shader1'].set(shader1*50)
-    else: WIDGETS['shader1'].set(50)
-    if shader2 is not None: WIDGETS['shader2'].set(shader2*50)
-    else: WIDGETS['shader2'].set(50)
+    if len(myset) == 1: # uniquement si une seule zone selectionnee et pour le mesh overlay
+        if meshOverlay == 0 or meshOverlay is None: VARS[3].set(0)
+        elif meshOverlay == 1: VARS[3].set(1)
+        #if blending is not None: WIDGETS['blending'].set(blending*100)
+        #else: WIDGETS['blending'].set(100)
+        #if shader1 is not None: WIDGETS['shader1'].set(shader1*50)
+        #else: WIDGETS['shader1'].set(50)
+        #if shader2 is not None: WIDGETS['shader2'].set(shader2*50)
+        #else: WIDGETS['shader2'].set(50)
 
 # called when double click on zone name (listbox 0)
 def fitZone(i, event=None):
@@ -947,6 +946,7 @@ def selectAll(event=None):
     myList.selection_set(0, TK.END)
 
 def getSelection(event=None):
+    updateRenderPanel() # pour forcer l'update
     myList = WIDGETS['myLists'][0]
     for l in WIDGETS['myLists']: l.selection_clear(0, TK.END)
     nzs = CPlot.getSelectedZones()
@@ -1042,8 +1042,7 @@ def setColor(event=None):
         ret = tkColorChooser.askcolor()
         color = ret[1]
     VARS[1].set(color)
-    print(color, flush=True)
-
+    
     nzs = CPlot.getSelectedZones()
     if nzs == []: return
     for nz in nzs:
@@ -1186,7 +1185,7 @@ def openRenderPanel():
                                     #width=30, height=20, 
                                     background='white')
                 myList.bind('<Double-Button>', lambda event: fitZone(0, event))
-                myList.bind('<Button-3>', deactivateZone)
+                #myList.bind('<Button-3>', deactivateZone)
                 
             elif i == 1:
                 # Material listbox

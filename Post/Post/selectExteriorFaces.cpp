@@ -421,7 +421,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
                                    1.e-12, "QUAD", 
                                    *fnodes, *connect);
 
-    if ( boolIndir==true)
+    if (boolIndir==true)
     {
       PyList_Append(indices, indir);  Py_DECREF(indir);
     }
@@ -539,9 +539,9 @@ short K_POST::exteriorFacesBasic3(FldArrayF& f, FldArrayI& cn,
   K_CONNECT::connectEV2EENbrs(eltType, f.getSize(), cn, cEEN);
 
   // Nombre de voisins pour un elt interieur
-  unsigned int nvoisins = 0; // nbre de voisin si interieur  
-  unsigned int nfaces = 0; // nbre de faces par elements
-  unsigned int nof = 0; // nbre de noeuds par face
+  size_t nvoisins = 0; // nbre de voisin si interieur  
+  E_Int nfaces = 0; // nbre de faces par elements
+  E_Int nof = 0; // nbre de noeuds par face
 
   E_Int face[6][4];
   if (strcmp(eltType, "BAR") == 0) 
@@ -633,7 +633,7 @@ short K_POST::exteriorFacesBasic3(FldArrayF& f, FldArrayI& cn,
   }
 
   // determine les faces exterieures
-  unsigned int tag;
+  E_Int tag;
   E_Int s; E_Int e, ev;
   E_Int nn = 0; // nbre de faces ext
   FldArrayI* cnnl = new FldArrayI(ne*nfaces,nof);
@@ -644,24 +644,24 @@ short K_POST::exteriorFacesBasic3(FldArrayF& f, FldArrayI& cn,
     e = indir[i];
     s = cEEN[e].size();
     
-    for (unsigned int f = 0; f < nfaces; f++)
+    for (E_Int f = 0; f < nfaces; f++)
     {
       for (E_Int v = 0; v < s; v++) // pour tous les voisins
       {
         ev = cEEN[e][v];
-        for (unsigned int f2 = 0; f2 < nfaces; f2++)
+        for (E_Int f2 = 0; f2 < nfaces; f2++)
         {
           // full check
           tag = 0;
-          for (unsigned int n1 = 0; n1 < nof; n1++)
-            for (unsigned int n2 = 0; n2 < nof; n2++)
+          for (E_Int n1 = 0; n1 < nof; n1++)
+            for (E_Int n2 = 0; n2 < nof; n2++)
               if (cn(e,face[f][n1]) == cn(ev,face[f2][n2])) tag += 1;
           if (tag == nof) { goto next; } 
         }
       } 
 
       // add face
-      for (unsigned int n = 0; n < nof; n++)
+      for (E_Int n = 0; n < nof; n++)
       {
         (*cnnl)(nn,n+1) = cn(e,face[f][n]);
       }
@@ -681,7 +681,7 @@ short K_POST::exteriorFacesBasic3(FldArrayF& f, FldArrayI& cn,
   cnn.malloc(nntot, nof);
 
   // numero des faces
-  PyObject* indicesFaces = NULL;//numpy of indices of exterior faces is created if boolIndir=true
+  PyObject* indicesFaces = NULL; //numpy of indices of exterior faces is created if boolIndir=true
   E_Int* indicesf = NULL;
   vector<E_Int> posFacesV(nthreads);
   E_Int sizeL = 0; 
@@ -701,7 +701,7 @@ short K_POST::exteriorFacesBasic3(FldArrayF& f, FldArrayI& cn,
     E_Int ne = nes[ithread];
     E_Int p = prev[ithread];
     FldArrayI* cnnl = cnnls[ithread];
-    for (size_t n = 1; n <= nof; n++)
+    for (E_Int n = 1; n <= nof; n++)
     {
       E_Int* cnnp = cnn.begin(n);
       E_Int* cnp = cnnl->begin(n);
@@ -904,7 +904,7 @@ PyObject* K_POST::selectExteriorFacesNGon3D(char* varString, FldArrayF& f,
   PyObject* tpl = K_ARRAY::buildArray(*f2, varString, 
                                       *cnout, -1, eltTypeFaces);
   delete f2; delete cnout;
-  if (boolIndir == true) 
+  if (boolIndir == true)
   {
     PyList_Append(indices, indir); Py_DECREF(indir);
   }
@@ -994,7 +994,7 @@ PyObject* K_POST::selectExteriorFacesNGon2D(char* varString, FldArrayF& f,
     pos = posFacep[ind];
     ptr = cn.begin()+pos;
     nbnodes = ptr[0];
-    if ( boolIndir == true) indirp[i] = ind+1;
+    if (boolIndir == true) indirp[i] = ind+1;
 
     ptro2[0] = nbnodes;
     for (E_Int p = 0; p < nbnodes; p++)
@@ -1002,9 +1002,9 @@ PyObject* K_POST::selectExteriorFacesNGon2D(char* varString, FldArrayF& f,
       ptro1[0] = 1;
       indvertp1 = ptr[p+1]-1;
       foundFace = indicesFacesp[indvertp1];
-      if ( foundFace == -1)
+      if (foundFace == -1)
       { 
-        if ( indirNp[indvertp1] == -1 ) 
+        if (indirNp[indvertp1] == -1) 
         {
           indvertn += 1;
           indirNp[indvertp1] = indvertn;
@@ -1033,7 +1033,7 @@ PyObject* K_POST::selectExteriorFacesNGon2D(char* varString, FldArrayF& f,
     for (E_Int ind = 0; ind < npts; ind++)
     {
       E_Int indf = indirNp[ind]-1;
-      if ( indf> -1) fnp[indf] = fp[ind];
+      if (indf> -1) fnp[indf] = fp[ind];
     }
   }
   // Cree la nouvelle connectivite complete

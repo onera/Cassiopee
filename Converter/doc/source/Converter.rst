@@ -1685,7 +1685,7 @@ Array / PyTree common manipulations
 
 -----------------------------------------------------------------------------------
 
-.. py:function:: Converter.node2Center(a, var='',accurate=0)
+.. py:function:: Converter.node2Center(a, var='')
 
     Change data location from nodes to centers. 
     If no variable is specified, the mesh coordinates are also put
@@ -1695,10 +1695,8 @@ Array / PyTree common manipulations
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param var: variables to modify
+    :param var: modified variables
     :type var: string or list of strings or container name
-    :param accurate: the center can be computed by sorting the vertices of the cell (accurate=1)
-    :type accurate: integer (0 or 1)
     :rtype: Identical to input
 
     *Example of use:*

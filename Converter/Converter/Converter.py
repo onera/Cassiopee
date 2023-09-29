@@ -1296,14 +1296,14 @@ def convertArray2NGon(array):
 
 def node2Center(array, accurate=0):
     """Convert array defined on nodes to array defined on centers.
-    Usage: node2Center(array,accurate=0)"""
+    Usage: node2Center(array, accurate=0)"""
     if isinstance(array[0], list):
         b = []
         for i in array:
-            b.append(converter.node2Center(i,accurate))
+            b.append(converter.node2Center(i, accurate))
         return b
     else:
-        return converter.node2Center(array,accurate)
+        return converter.node2Center(array, accurate)
 
 def center2Node(array, cellNType=0, BCFields=None):
     """Convert array defined on centers to array defined on nodes.
