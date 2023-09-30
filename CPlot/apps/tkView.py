@@ -22,6 +22,7 @@ VARNO = -3
 VARMIN = 0.; VARMAX = 1.
 
 #==============================================================================
+# Change the mode (mesh, solid, scalar, render in tkView)
 def setMode(event=None):
     mode = VARS[6].get()
     imode = 0

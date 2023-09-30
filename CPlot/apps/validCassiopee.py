@@ -1074,7 +1074,8 @@ def finalizeRun():
     svnVersion = 'Unknown'
     if CHECKSVNVERSION:
         try:
-            svnInfo = subprocess.check_output("svn info %s/Apps/Modules"%CASSIOPEE, shell=True)
+            CASSIOPEEL = CASSIOPEE.replace('D:', '/d/') # patch pour msys2/CB
+            svnInfo = subprocess.check_output("svn info %s/Apps/Modules"%CASSIOPEEL, shell=True)
             svnInfo = svnInfo.decode('utf-8', 'ignore')
             ss = svnInfo.split('\n')
             for s in ss:
@@ -1098,7 +1099,6 @@ def finalizeRun():
                messageText, append=True)
 
 
-
 #=======================================
 # Notify "Commit ready" 
 #=======================================
@@ -1111,7 +1111,8 @@ def notifyValidOK():
     svnVersion = 'Unknown'
     if CHECKSVNVERSION:
         try:
-            svnInfo = subprocess.check_output("svn info %s/Apps/Modules"%CASSIOPEE, shell=True)
+            CASSIOPEEL = CASSIOPEE.replace('D:', '/d/') # patch pour msys2/CB
+            svnInfo = subprocess.check_output("svn info %s/Apps/Modules"%CASSIOPEEL, shell=True)
             svnInfo = svnInfo.decode('utf-8', 'ignore')
             ss = svnInfo.split('\n')
             for s in ss:

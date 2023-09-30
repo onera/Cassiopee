@@ -820,9 +820,15 @@ def _destroyRenderWindow(event):
 def updateRenderPanel():
     if RENDERPANEL is None: return
     filter = VARS[9].get()
-    sels = []
-    for l in WIDGETS['myLists']: sels.append(l.curselection()) # on essaie de garder la selection
+    selzones = set()
+    listz = WIDGETS['myLists'][0]
+    for l in WIDGETS['myLists']:
+        cur = l.curselection()
+        for s in cur:
+            zname = listz.get(s) 
+            selzones.add(zname)
     for l in WIDGETS['myLists']: l.delete(0, TK.END)
+    
     bases = Internal.getBases(CTK.t)
     for b in bases:
         zones = Internal.getNodesFromType1(b, 'Zone_t')
@@ -861,12 +867,11 @@ def updateRenderPanel():
                 for i, d in enumerate(data):
                     WIDGETS['myLists'][i].insert(TK.END, d)
 
-    for c, sel in enumerate(sels):
-        l = WIDGETS['myLists'][c]
-        for i in sel:
-            #try: l.selection_set(i)
-            #except: pass
-            l.selection_set(i)
+    for sel in selzones:
+        for i in range(listz.size()):
+            if sel == listz.get(i):
+                listz.see(i)
+                listz.selection_set(i)
 
 # appele quand quelque chose est selectionne dans n'importe quelle listbox
 def renderSelect(event=None):
@@ -941,7 +946,26 @@ def deactivateZone(event=None):
     activated = [(noz, 1)]
     CPlot.setActiveZones(activated)
 
-
+# called when right click in color listbox
+def openScalar(event=None):
+    myList = WIDGETS['myLists'][2]
+    cur = myList.curselection()
+    varName = ''
+    for c in cur:
+        varName = myList.get(c); break
+    if varName[0:4] == 'Iso:':
+        # open tkView applet + focus + select render mode
+        # open scalar in render widget
+        # set the right scalar variable
+        tkView = CTK.getModule('tkView')
+        tkView.showApp()
+        tkView.VARS[6].set('Render')
+        tkView.setMode()
+        tkView.WIDGETS['scalar'].grid(in_=tkView.WIDGETS['render'], row=1, column=0, columnspan=2, sticky=TK.EW)
+        tkView.VARS[18].set(varName[4:])
+        tkView.displayField()
+        CPlot.setState(mode='render')
+        
 def selectAll(event=None):
     myList = RENDERPANEL.winfo_children()[1]
     myList.selection_set(0, TK.END)
@@ -958,8 +982,7 @@ def getSelection(event=None):
         baseName = CTK.t[2][nob][0]
         name = baseName+'/'+CTK.t[2][nob][2][noz][0]
         for c in range(myList.size()):
-            b = myList.get(c) ; b = b.split('|')
-            name2 = b[0]
+            name2 = myList.get(c)
             if name2.strip() == name: 
                 myList.see(c)
                 myList.selection_set(c)
@@ -980,7 +1003,8 @@ def reselect(i):
         zoneName = base[0]+'/'+zone[0]
         for c, item in enumerate(items):
             if item == zoneName:
-                myList.selection_set(c); break
+                zList.see(c)
+                zList.selection_set(c); break
 
 def setColorVar(l):
     if l == 'Custom>':
@@ -1053,7 +1077,7 @@ def setColor(event=None):
         CTK.replace(CTK.t, nob, noz, a)
     CTK.TKTREE.updateApp()
     updateRenderPanel()
-    reselect(2)
+    reselect(0)
     CPlot.render()
 
 def setBlend(event=None):
@@ -1201,7 +1225,7 @@ def openRenderPanel():
                                     yscrollcommand=lambda *args: yscrolli(2,*args),
                                     #width=30, height=20, 
                                     background='white')
-                myList.bind('<Double-Button>', lambda event: fitZone(2, event))
+                myList.bind('<Double-Button>', openScalar)
             elif i == 3:
                 # Blend listbox
                 myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
