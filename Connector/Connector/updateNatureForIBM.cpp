@@ -32,8 +32,7 @@ PyObject* K_CONNECTOR::_updateNatureForIBM(PyObject* self, PyObject* args)
   char* GridCoordinates; char* FlowSolutionNodes;
   char* FlowSolutionCenters;
   E_Int ibctype;
-  if (!PYPARSETUPLEI(args,
-                    "Olsss", "Oisss",
+  if (!PYPARSETUPLE_(args, O_ I_ SSS_,
                     &zone, &ibctype, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
   {
       return NULL;

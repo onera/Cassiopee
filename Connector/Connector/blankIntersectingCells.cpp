@@ -75,8 +75,7 @@ PyObject* K_CONNECTOR::blankIntersectingCells(PyObject* self, PyObject* args)
 {
   PyObject *arrays, *cellnArrays;
   E_Float eps;
-  if (!PYPARSETUPLEF(args,
-                    "OOd", "OOf",
+  if (!PYPARSETUPLE_(args, OO_ R_,
                     &arrays, &cellnArrays, &eps))
   {
       return NULL;

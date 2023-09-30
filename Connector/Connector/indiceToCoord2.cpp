@@ -53,12 +53,9 @@ PyObject* K_CONNECTOR::indiceToCoord2(PyObject* self, PyObject* args)
   PyObject *typ;
   E_Int dir;
   E_Int nb_ind;
-  E_Int ni;
-  E_Int nj;
-  E_Int nk;
+  E_Int ni, nj, nk;
 
-  if (!PYPARSETUPLEI(args,
-                    "OOOOOOlllll", "OOOOOOiiiii",
+  if (!PYPARSETUPLE_(args, OOOO_ OO_ IIII_ I_,
 		     &indiceslist, &rangedonor,&transfo, &profondeur, &dirD, &typ, &dir, &nb_ind, &ni, &nj, &nk))
   {
       return NULL;
@@ -70,9 +67,7 @@ PyObject* K_CONNECTOR::indiceToCoord2(PyObject* self, PyObject* args)
 
   //cout <<"ni= "<< ni <<" "<<"nj= "<<nj<<" "<<"nk= " << nk << endl;
 
-  E_Int i;
-  E_Int j;
-  E_Int k;
+  E_Int i, j, k;
   E_Int imin=ni;
   E_Int imax=1;
   E_Int jmin=nj;

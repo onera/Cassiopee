@@ -31,7 +31,7 @@ using namespace std;
 PyObject* K_CONNECTOR::getIntersectingDomainsAABB(PyObject* self, PyObject* args)
 {
     PyObject* arrays; E_Float tol;
-    if (!PYPARSETUPLEF(args, "Od", "Of", &arrays, &tol)) return NULL;
+    if (!PYPARSETUPLE_(args, O_ R_, &arrays, &tol)) return NULL;
 
     E_Int na = PyList_Size(arrays);
     vector<FldArrayF*> fs(na);

@@ -36,7 +36,8 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
 {
   E_Int dimPb, order;
   PyObject *arrayR, *arraysD;
-  if (!PYPARSETUPLEI(args, "OOll", "OOii", &arraysD, &arrayR, &dimPb, &order))
+  if (!PYPARSETUPLE_(args, OO_ II_,
+                     &arraysD, &arrayR, &dimPb, &order))
     return NULL;
   
   if (PyList_Check(arraysD) == 0)

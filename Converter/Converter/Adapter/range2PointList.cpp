@@ -28,7 +28,7 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::range2PointList(PyObject* self, PyObject* args)
 {
   E_Int imin, imax, jmin, jmax, kmin, kmax, ni, nj, nk;
-  if (!PYPARSETUPLEI(args, "lllllllll", "iiiiiiiii", &imin, &imax, &jmin, &jmax, &kmin, &kmax,
+  if (!PYPARSETUPLE_(args, IIII_ IIII_ I_, &imin, &imax, &jmin, &jmax, &kmin, &kmax,
                      &ni, &nj, &nk)) return NULL;
   
   E_Int ni1 = std::max(ni-1,E_Int(1));

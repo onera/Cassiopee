@@ -49,23 +49,18 @@ PyObject* K_CONNECTOR::correctCoeffList(PyObject* self, PyObject* args)
   PyObject *coefflist;
   PyObject *typ;
   E_Int nb_ind;
-  E_Int ni;
-  E_Int nj;
-  E_Int nk;
+  E_Int ni, nj, nk;
 
-  if (!PYPARSETUPLEI(args,
-                    "OOOllll", "OOOiiii",
+  if (!PYPARSETUPLE_(args, OOO_ IIII_,
 		     &indiceslist, &coefflist, &typ, &nb_ind,  &ni, &nj, &nk))
   {
       return NULL;
   }
 
-  ni=ni-1;
-  nj=nj-1;
-  nk=nk-1;
-  E_Int i;
-  E_Int j;
-  E_Int k;
+  ni = ni-1;
+  nj = nj-1;
+  nk = nk-1;
+  E_Int i, j, k;
   E_Int compt=0;
   //E_Int imin=ni;
   //E_Int imax=1;

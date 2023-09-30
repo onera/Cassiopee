@@ -56,7 +56,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
   E_Int PenalizeBorders;
   PyObject* InterpDataType; // liste pour chaque zone donneuse 1: ADT ou 0: CART
   PyObject* allHooks;
-  if (!PYPARSETUPLEI(args, "OOllllOO", "OOiiiiOO",
+  if (!PYPARSETUPLE_(args, OO_ IIII_ OO_,
                     &receiverArray, &donorArrays, &Order, &Nature, &PenalizeBorders, &enableExtrap,
                     &InterpDataType, &allHooks))
   {
@@ -586,7 +586,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
   E_Int PenalizeBorders;
   PyObject* InterpDataType; // liste pour chaque zone donneuse 1: ADT ou 0: CART
   PyObject* allHooks;
-  if (!PYPARSETUPLEI(args, "OOllllOO", "OOiiiiOO",
+  if (!PYPARSETUPLE_(args, OO_ IIII_ OO_,
                     &receiverArray, &donorArrays, &Order, &Nature, &PenalizeBorders, &enableExtrap,
                     &InterpDataType, &allHooks))
   {
@@ -1319,8 +1319,7 @@ PyObject* K_CONNECTOR::setInterpDataDW(PyObject* self, PyObject* args)
   E_Int PenalizeBorders;
   PyObject* hook;
 
-  if (!PYPARSETUPLEI(args,
-                    "OOlllO", "OOiiiO",
+  if (!PYPARSETUPLE_(args, OO_ III_ O_,
                     &receiverArrays, &donorArrays, &Order, &Nature, &PenalizeBorders, &hook))
   {
       return NULL;

@@ -61,8 +61,8 @@ PyObject* K_CONNECTOR::getIBMPtsWithTwoFronts(PyObject* self, PyObject* args)
     PyObject *ListOfSnearsLoc;
     PyObject *ListOfModelisationHeightsLoc;
     E_Int signOfDist; //if correctedPts are inside bodies: sign = -1, else sign=1
-    E_Int depth;//nb of layers of ghost cells
-    if (!PYPARSETUPLEI(args,"OOOOOOOll","OOOOOOOii", 
+    E_Int depth; //nb of layers of ghost cells
+    if (!PYPARSETUPLE_(args, OOOO_ OOO_ II_,
                        &allCorrectedPts, &ListOfSnearsLoc, &ListOfModelisationHeightsLoc, &bodySurfaces, &frontSurfaces, &front2Surfaces, 
                        &normalNames, &signOfDist, &depth)) return NULL;
 

@@ -57,7 +57,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
     E_Int signOfDist; //if correctedPts are inside bodies: sign = -1, else sign=1 (e.g. for Euler sign=-1, for wall modeling sign=1)
     E_Int depth;//nb of layers of ghost cells
     E_Int isWireModel,isOrthoFirst;
-    if (!PYPARSETUPLEI(args,"OOOOOOllll","OOOOOOiiii", 
+    if (!PYPARSETUPLE_(args, OOOO_ OO_ IIII_,
                        &allCorrectedPts, &ListOfSnearsLoc, &ListOfModelisationHeightsLoc, &bodySurfaces, &frontSurfaces, 
                        &normalNames, &signOfDist, &depth, &isWireModel, &isOrthoFirst)) return NULL;
 

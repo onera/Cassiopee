@@ -87,7 +87,7 @@ PyObject* K_CONVERTER::convertPyTree2FFD(PyObject* self, PyObject* args)
   E_Int nd , ii;
   E_Int neq = 5 ;
 
-  if (!PYPARSETUPLEI(args, "OOOlsss", "OOOisss", 
+  if (!PYPARSETUPLE_(args, OOO_ I_ SSS_, 
                      &zone, &RefStat, &FlowEq, &nd,                 
                      &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters)) return NULL;
 

@@ -36,7 +36,7 @@ PyObject* K_CONNECTOR::setInterpTransfers(PyObject* self, PyObject* args)
   PyObject *pyArrayCoefs;
   PyObject *pyVariables;
   E_Float AngleX, AngleY, AngleZ;
-  if (!PYPARSETUPLEF(args, "OOOOOOO(ddd)", "OOOOOOO(fff)",
+  if (!PYPARSETUPLE_(args, OOOO_ OOO_ TRRR_, 
                      &arrayR, &arrayD,  &pyVariables, &pyIndRcv, &pyIndDonor, &pyArrayTypes, &pyArrayCoefs,
                      &AngleX, &AngleY, &AngleZ))
   {

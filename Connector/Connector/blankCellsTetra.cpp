@@ -52,8 +52,7 @@ PyObject* K_CONNECTOR::createTetraMask(PyObject* self, PyObject* args)
   K_FLD::FldArrayF *fV(0), *fS(0);
   K_FLD::FldArrayI *cV(0), *cS(0);
 
-  if (!PYPARSETUPLEF(args,
-                    "OOd", "OOf",
+  if (!PYPARSETUPLE_(args, OO_ R_,
                     &maskV, &maskS, &tol))
   {
       return NULL;
@@ -136,9 +135,7 @@ PyObject* K_CONNECTOR::createTriMask(PyObject* self, PyObject* args)
   K_FLD::FldArrayF *fmask(0);
   K_FLD::FldArrayI *cmask(0);
   
-  if (!PYPARSETUPLEF(args,
-                    "Od", "Of",
-                    &maskT, &tol))
+  if (!PYPARSETUPLE_(args, O_ R_, &maskT, &tol))
   {
       return NULL;
   }
@@ -293,8 +290,7 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
   K_FLD::FldArrayF *fmesh(0), *fC(0);
   K_FLD::FldArrayI *cmesh(0), *cC(0);
   
-  if (!PYPARSETUPLEI(args,
-                    "OOOllls", "OOOiiis",
+  if (!PYPARSETUPLE_(args, OOO_ III_ S_, 
                     &mesh, &celln, &maskHook, &blankingType, &CELLNVAL, &overwrite, &cellNName))
   {
       return NULL;

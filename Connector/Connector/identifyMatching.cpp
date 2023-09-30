@@ -37,8 +37,7 @@ PyObject* K_CONNECTOR::identifyMatchingP(PyObject* self, PyObject* args)
 {
   PyObject *listOfAllWins, *listOfAllWinsP;
   E_Float tolmatch;
-  if (!PYPARSETUPLEF(args,
-                    "OOd", "OOf",
+  if (!PYPARSETUPLE_(args, OO_ R_,
                     &listOfAllWins, &listOfAllWinsP, &tolmatch))
   {
       return NULL;
@@ -360,8 +359,7 @@ PyObject* K_CONNECTOR::identifyMatching(PyObject* self, PyObject* args)
 {
   PyObject *listOfAllWins;
   E_Float tolmatch;
-  if (!PYPARSETUPLEF(args,
-                    "Od", "Of",
+  if (!PYPARSETUPLE_(args, O_ R_,
                     &listOfAllWins, &tolmatch))
   {
       return NULL;
@@ -582,8 +580,7 @@ PyObject* K_CONNECTOR::identifyMatchingNM(PyObject* self, PyObject* args)
 {
   PyObject *listOfAllWinsR, *listOfAllWinsD;
   E_Float tolmatch;
-  if (!PYPARSETUPLEF(args,
-                    "OOd", "OOf",
+  if (!PYPARSETUPLE_(args, OO_ R_,
                     &listOfAllWinsR, &listOfAllWinsD, &tolmatch))
   {
       return NULL;

@@ -30,7 +30,7 @@ PyObject* K_CONNECTOR::changeWallEX(PyObject* self, PyObject* args)
   PyObject *arrayEX, *arrayNodes, *arrayCenters,*firstWallCenters;//domaine a interpoler
   PyObject *projectSurfArrays; // liste des surfaces de projection : TRI
   E_Float planarTol;
-  if (!PYPARSETUPLEF(args, "OOOOOd", "OOOOOf",
+  if (!PYPARSETUPLE_(args, OOOO_ O_ R_,
                      &arrayEX, &arrayNodes, &arrayCenters, &firstWallCenters, &projectSurfArrays, &planarTol))
     return NULL;
 
@@ -351,10 +351,10 @@ void K_CONNECTOR::changeWallEX(
   E_Int dirEX, indEX, indcell1, indicew, nodemin, indEX2;
   E_Int iA, jA, kA;
 
-  // Poids du vecteur delta pour chq pt au dessus du pt près de la paroi à interpoler : si i < no1 : alpha = 1, si no1 <= i< no2 : alpha decroissant, 0 ensuite
+  // Poids du vecteur delta pour chq pt au dessus du pt prï¿½s de la paroi ï¿½ interpoler : si i < no1 : alpha = 1, si no1 <= i< no2 : alpha decroissant, 0 ensuite
   vector<E_Float> xbt; vector<E_Float> ybt; vector<E_Float> zbt; vector<E_Int> dirt;vector<E_Float> hmaxt;
 
-  // Indirection : isWallEX[indEX] retourne le numéro du premier centre paroi associé dans indicesw
+  // Indirection : isWallEX[indEX] retourne le numï¿½ro du premier centre paroi associï¿½ dans indicesw
   vector<E_Int> isWallEX(nEXPts);
   FldArrayI indirEX(ncells,6); indirEX.setAllValuesAt(-1);
   E_Int* indirEX1 = indirEX.begin(1);

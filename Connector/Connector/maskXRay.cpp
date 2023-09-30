@@ -30,9 +30,7 @@ PyObject* K_CONNECTOR::maskXRay(PyObject* self, PyObject* args)
   PyObject* body;
   E_Float delta, tol;
   E_Int isNot, dim;
-  if (!PYPARSETUPLE(args,
-                    "Odlld", "Odiid",
-                    "Ofllf", "Ofiif",
+  if (!PYPARSETUPLE_(args, O_ R_ II_ R_,
                     &body, &delta, &dim, &isNot, &tol))
   {
       return NULL;

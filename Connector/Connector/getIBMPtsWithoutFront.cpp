@@ -46,7 +46,8 @@ PyObject* K_CONNECTOR::getIBMPtsWithoutFront(PyObject* self, PyObject* args)
 {
     PyObject *allCorrectedPts, *bodySurfaces, *normalNames, *distName;
     E_Int signOfDist; //if correctedPts are inside bodies: sign = -1, else sign=1
-    if (!PYPARSETUPLEI(args, "OOOOl","OOOOi", &allCorrectedPts, &bodySurfaces, 
+    if (!PYPARSETUPLE_(args, OOOO_ I_,
+                       &allCorrectedPts, &bodySurfaces, 
                        &normalNames, &distName, &signOfDist))
         return NULL;
 

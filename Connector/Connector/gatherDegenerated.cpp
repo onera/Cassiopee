@@ -32,8 +32,7 @@ PyObject* K_CONNECTOR::gatherDegenerated(PyObject* self, PyObject* args)
   PyObject *listOfAllTags, *listOfBlks, *listOfWinTypes;
   PyObject *listOfNI, *listOfNJ, *listOfNK;
   E_Int dimPb;
-  if (!PYPARSETUPLEI(args,
-                    "OOOOOOl", "OOOOOOi",
+  if (!PYPARSETUPLE_(args, OOOO_ OO_ I_,
                     &listOfAllTags, &listOfWinTypes, &listOfBlks, &listOfNI, &listOfNJ, &listOfNK, &dimPb))
   {
       return NULL;

@@ -43,9 +43,7 @@ PyObject* K_CONNECTOR::gatherMatching(PyObject* self, PyObject* args)
     *listOfNI, *listOfNJ, *listOfNK;
   E_Int dimPb;
   E_Float tol;
-  if (!PYPARSETUPLE(args,
-                    "OOOOOOOld", "OOOOOOOid",
-                    "OOOOOOOlf", "OOOOOOOif",
+  if (!PYPARSETUPLE_(args, OOOO_ OOO_ I_ R_,
                     &listOfAllWins, &listOfAllTags, 
                     &listOfWinTypes, &listOfBlks, &listOfNI, &listOfNJ, 
                     &listOfNK, &dimPb, &tol))

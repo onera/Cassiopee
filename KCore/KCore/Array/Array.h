@@ -74,21 +74,47 @@
 #endif
 
 // Nouveau parsetuple
-//#ifdef __NEWPARSETUPLE__
 #if defined E_DOUBLEINT
-#define _I "l"
+#define I_ "l"
+#define II_ "ll"
+#define III_ "lll"
+#define IIII_ "llll"
+#define TII_ "(ll)"
+#define TIII_ "(lll)"
 #else
-#define _I "i"
+#define I_ "i"
+#define II_ "ii"
+#define III_ "iii"
+#define IIII_ "iiii"
+#define TII_ "(ii)"
+#define TIII_ "(iii)"
 #endif
 #if defined E_DOUBLEREAL
-#define _R "d"
+#define R_ "d"
+#define RR_ "dd"
+#define RRR_ "ddd"
+#define RRRR_ "dddd"
+#define TRR_ "(dd)"
+#define TRRR_ "(ddd)"
 #else
-#define _R "f"
+#define R_ "f"
+#define RR_ "ff"
+#define RRR_ "fff"
+#define RRRR_ "ffff"
+#define TRR_ "(ff)"
+#define TRRR_ "(fff)"
 #endif
+#define O_ "O"
+#define OO_ "OO"
+#define OOO_ "OOO"
+#define OOOO_ "OOOO"
+#define S_ "s"
+#define SS_ "ss"
+#define SSS_ "sss"
+#define SSSS_ "ssss"
 
-// ex de format string: "O" _I _R _I "O"
-#define PYPARSETUPLE0(args, format, ...) PyArg_ParseTuple(args, format, __VA_ARGS__) 
-//#endif
+// ex de format string: O_ I_ R_ I_ O_    
+#define PYPARSETUPLE_(args, format, ...) PyArg_ParseTuple(args, format, __VA_ARGS__) 
 
 namespace K_ARRAY
 {

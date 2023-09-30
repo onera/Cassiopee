@@ -40,7 +40,7 @@ using namespace K_SEARCH;
 PyObject* K_CONNECTOR::getIBMPtsBasic(PyObject* self, PyObject* args)
 {
     PyObject *allCorrectedPts, *distName, *normalNames;
-    if (!PYPARSETUPLEF(args,"OOO","OOO", &allCorrectedPts, &normalNames, &distName))
+    if (!PYPARSETUPLE_(args, OOO_, &allCorrectedPts, &normalNames, &distName))
         return NULL;
     // check distname
     char* distname;

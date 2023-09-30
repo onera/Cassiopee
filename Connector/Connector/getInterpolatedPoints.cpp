@@ -1053,7 +1053,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
   PyObject *array;
   E_Int depth; E_Int dir;
   char* cellNName;
-  if (!PYPARSETUPLEI(args,"Olls", "Oiis", &array, &depth, &dir, &cellNName))
+  if (!PYPARSETUPLE_(args, O_ II_ S_, &array, &depth, &dir, &cellNName))
   {
       return NULL;
   }
@@ -1223,7 +1223,7 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpNodes(PyObject* self, PyObject* arg
   PyObject *array;
   E_Int depth; E_Int dir;
   char* cellNName;
-  if (!PYPARSETUPLEI(args,"Olls", "Oiis", &array, &depth, &dir, &cellNName))
+  if (!PYPARSETUPLE_(args, O_ II_ S_, &array, &depth, &dir, &cellNName))
   {
       return NULL;
   }
@@ -1362,7 +1362,7 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpCellCenters(PyObject* self, PyObjec
   PyObject *centersArray;
   E_Int depth; E_Int dir;
   char* cellNName;
-  if (!PYPARSETUPLEI(args,"Olls", "Oiis",
+  if (!PYPARSETUPLE_(args, O_ II_ S_,
                      &centersArray, &depth, &dir, &cellNName))
   {
       return NULL;
@@ -1497,8 +1497,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
   PyObject *centersArray;
   E_Int depth; E_Int dir;
   char* cellNName;
-  if (!PYPARSETUPLEI(args,
-                    "Olls", "Oiis",
+  if (!PYPARSETUPLE_(args, O_ II_ S_,
                     &centersArray, &depth, &dir, &cellNName))
   {
       return NULL;

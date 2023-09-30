@@ -24,6 +24,7 @@
 using namespace K_FUNC;
 using namespace std;
 using namespace K_FLD;
+
 //============================================================================
 // Gather matching points in windows in structured patches
 // IN: listOfAllWins: exterior faces located at centers defined as zones
@@ -41,9 +42,7 @@ PyObject* K_CONNECTOR::gatherMatchingNM(PyObject* self, PyObject* args)
   PyObject *listOfAllWins, *listOfAllTags, *listOfBlks, *listOfWinTypes, *listOfNI, *listOfNJ, *listOfNK;
   E_Int dimPb;
   E_Float tol;
-  if (!PYPARSETUPLE(args,
-                    "OOOOOOOld", "OOOOOOOid",
-                    "OOOOOOOlf", "OOOOOOOif",
+  if (!PYPARSETUPLE_(args, OOOO_ OOO_ I_ R_,
                     &listOfAllWins, &listOfAllTags, &listOfWinTypes, &listOfBlks, 
                     &listOfNI, &listOfNJ, &listOfNK, &dimPb, &tol))
   {

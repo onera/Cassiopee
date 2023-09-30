@@ -27,9 +27,9 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::signNGonFaces(PyObject* self, PyObject* args)
 {
   PyObject* array; 
-  if (!PYPARSETUPLE0(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, "O", &array)) return NULL;
 
   // Check array
-  printf("O" _I _R _I "O");
+  printf(O_ I_ "(" R_ I_ ")" O_);
   return NULL;
 }

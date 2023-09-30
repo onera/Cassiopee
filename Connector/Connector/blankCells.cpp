@@ -393,9 +393,7 @@ PyObject* K_CONNECTOR::_blankCells(PyObject* self, PyObject* args)
   E_Int blankingType;
   E_Int xraydim1, xraydim2;
   char* cellNName;
-  if (!PYPARSETUPLE(args,
-                    "OOOldlldlls", "OOOidiidiis",
-                    "OOOlfllflls", "OOOifiifiis",
+  if (!PYPARSETUPLE_(args, OOO_ I_ R_ II_ R_ II_ S_,
                     &coordArrays, &cellNArrays,
                     &bodyArrays, &blankingType, &delta, &dim,
                     &isNot, &tol, &xraydim1, &xraydim2, &cellNName)) return NULL;
@@ -669,9 +667,7 @@ PyObject* K_CONNECTOR::blankCells(PyObject* self, PyObject* args)
   E_Int blankingType;
   E_Int xraydim1, xraydim2;
 
-  if (!PYPARSETUPLE(args,
-                    "OOOldlldlls", "OOOidiidiis",
-                    "OOOlfllflls", "OOOifiifiis",
+  if (!PYPARSETUPLE_(args, OOO_ I_ R_ II_ R_ II_ S_,
                     &coordArrays, &cellnArrays,
                     &bodyArrays, &blankingType, &delta, &dim,
                     &isNot, &tol, &xraydim1, &xraydim2, &cellNName))

@@ -70,8 +70,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
   E_Int NZones;                        // nombre de points interpoles
   E_Int Solver;                        // solveur pour lequel les fichiers sont ecrits
   E_Int NGhostCells;
-  if (!PYPARSETUPLEI(args,
-                    "lOOOOOOOOOslll", "iOOOOOOOOOsiii",
+  if (!PYPARSETUPLE_(args, I_ OOOO_ OOOO_ O_ S_ III_,
                     &NZones, &BlockRcvIdMap, &RcvIndexMap, 
                     &EXDirectionMap, &DonorIndexMap, &DonorInterpCoefMap, &InterpTypesMap,
                     &DonorCellNMap, &ZoneDimMap,

@@ -33,13 +33,13 @@ PyObject* K_CONVERTER::PR2VL(PyObject* self, PyObject* args)
   E_Int nargs = PyTuple_Size(args);
   if (nargs == 4)
   {
-    if (PYPARSETUPLEI(args, "Olll", "Oiii", &PRo, &ni, &nj, &nk))
+    if (PYPARSETUPLE_(args, O_ III_, &PRo, &ni, &nj, &nk))
     {
       PRdo = NULL;
     }
     else return NULL;
   }
-  else if (PYPARSETUPLEI(args, "OlllOOlll", "OiiiOOiii", 
+  else if (PYPARSETUPLE_(args, O_ III_ OO_ III_, 
             &PRo, &ni, &nj, &nk,
             &PRdo, &trfo, &ni2, &nj2, &nk2))
   {

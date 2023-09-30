@@ -30,7 +30,7 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::diffIndex(PyObject* self, PyObject* args)
 {
   PyObject* arrayA; PyObject* arrayB;
-  if (!PYPARSETUPLEI(args, "OO", "OO", &arrayA, &arrayB)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &arrayA, &arrayB)) return NULL;
 
   // Check numpy (indexA)
   FldArrayI* indexA;

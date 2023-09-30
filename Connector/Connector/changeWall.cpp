@@ -29,9 +29,9 @@ using namespace std;
 PyObject* K_CONNECTOR::changeWall(PyObject* self, PyObject* args)
 {
   PyObject *arrayCenters, *firstWallCenters; //domaine a interpoler
-  PyObject *projectSurfArrays; // liste des surfaces de projection : TRI
+  PyObject *projectSurfArrays; // liste des surfaces de projection: TRI
   E_Float planarTol; // tolerance de shift double wall dans les cas planaires
-  if (!PYPARSETUPLEF(args, "OOOd", "OOOf",
+  if (!PYPARSETUPLE_(args, OOO_ R_, 
                      &arrayCenters, &firstWallCenters, &projectSurfArrays, &planarTol))
      return NULL;
 

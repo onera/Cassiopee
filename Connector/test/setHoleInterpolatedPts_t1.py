@@ -36,5 +36,5 @@ depth = 5
 a = G.cart((-1.,-1.,-1.),(0.1,0.1,0.1), (21,21,21))
 a = C.initVars(a,'cellN', cube, ['x','y','z'])
 cellN = X.setHoleInterpolatedPoints(a, depth=depth, dir=3)
-t1 = P.selectCells(cellN, '{cellN}==2')
-test.testT(t1, nod)
+#t1 = P.selectCells(cellN, '{cellN}==2')
+test.testA([cellN], nod)

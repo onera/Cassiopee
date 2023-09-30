@@ -33,8 +33,7 @@ PyObject* K_CONNECTOR::setInterpDataForGC(PyObject* self, PyObject* args)
   PyObject* pyArrayBorderIndices;
   PyObject* listOfDonorIndices;
 
-  if (!PYPARSETUPLEI(args,
-                    "OOlllll", "OOiiiii",
+  if (!PYPARSETUPLE_(args, OO_ IIII_ I_,
                     &pyArrayBorderIndices, &listOfDonorIndices,
                     &dim, &loc, &depth, &incrR, &incrD))
   {

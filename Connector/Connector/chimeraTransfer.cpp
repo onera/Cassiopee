@@ -23,6 +23,7 @@
 
 using namespace std;
 using namespace K_FLD;
+
 //=============================================================================
 /* 
    Calcul des transferts Chimere  issus de setInterpolations 
@@ -38,8 +39,7 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
   PyObject *pyArrayCoefs;
   PyObject *arrayR, *arrayD;
 
-  if (!PYPARSETUPLEI(args,
-                    "OOOOOO", "OOOOOO",
+  if (!PYPARSETUPLE_(args, OOOO_ OO_,
                     &pyIndRcv, &pyIndDonor, &pyArrayTypes, &pyArrayCoefs, &arrayR, &arrayD))
   {
       return NULL;

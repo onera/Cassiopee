@@ -29,7 +29,8 @@ PyObject* K_CONNECTOR::_blankClosestTargetCells(PyObject* self, PyObject* args)
   char *GridCoordinates, *FlowSolutionNodes, *FlowSolutionCenters;
   char* cellNName;
   E_Int depth;
-  if (!PYPARSETUPLEI(args, "Olssss","Oissss", &zone, &depth, &cellNName, 
+  if (!PYPARSETUPLE_(args, O_ I_ SSSS_,
+                     &zone, &depth, &cellNName, 
                      &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
   {
     PyErr_SetString(PyExc_TypeError,

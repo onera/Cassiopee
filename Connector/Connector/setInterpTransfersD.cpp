@@ -115,9 +115,10 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args )
   char* cellNVariable;
 
   E_Int vartype, compact;
-  if ( !PYPARSETUPLEI( args, "OOOOOllssss", "OOOOOiissss", &zoneD, &pyVariables, &pyIndDonor, &pyArrayTypes,
+  if ( !PYPARSETUPLE_(args, OOOO_ O_ II_ SSSS_,
+               &zoneD, &pyVariables, &pyIndDonor, &pyArrayTypes,
 		       &pyArrayCoefs, &vartype, &compact, &cellNVariable,
-		       &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters ) )
+		       &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters) )
     {
       return NULL;
     }
@@ -317,13 +318,11 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
   E_Int     vartype, type_transfert, no_transfert, It_target;
   E_Int     nstep, nitmax, rk, exploc, num_passage, rank, isWireModel;
 
-  if ( !PYPARSETUPLE( args,
-		      "OOOOOOlllllllllll",
-		      "OOOOOOiiiiiiiiiii",
-		      "OOOOOOlllllllllll",
-		      "OOOOOPiiiiiiiiiii", &zonesR,
+  if ( !PYPARSETUPLE_(args, OOOO_ OO_ IIII_ IIII_ III_,
+		      &zonesR,
 		      &zonesD, &pyVariables, &pydtloc, &pyParam_int, &pyParam_real, &It_target, &vartype, &type_transfert,
-		      &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage, &rank, &isWireModel) ) {
+		      &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage, &rank, &isWireModel) ) 
+  {
     return NULL;
   }
 
@@ -1222,14 +1221,12 @@ PyObject* K_CONNECTOR::__setInterpTransfersD4GradP(PyObject* self, PyObject* arg
   E_Int     nstep, nitmax, rk, exploc, num_passage;
   E_Float   gamma, cv, muS, Cs, Ts, Pr;
 
-  if ( !PYPARSETUPLE( args, 
-		      "OOOOOlllllllll", "OOOOOiiiiiiiii", 
-		      "OOOOOlllllllll", "OOOOOiiiiiiiii", 
-		      &zonesR, &zonesD, &pyVariables, &pyParam_int, &pyParam_real, &It_target, &vartype, 
-		      &type_transfert, &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage)) 
-    {
-      return NULL;
-    }
+  if ( !PYPARSETUPLE_( args, OOOO_ O_ IIII_ IIII_ I_,
+          &zonesR, &zonesD, &pyVariables, &pyParam_int, &pyParam_real, &It_target, &vartype, 
+          &type_transfert, &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage)) 
+  {
+    return NULL;
+  }
 
   E_Int it_target= E_Int(It_target);
 
@@ -1238,11 +1235,13 @@ PyObject* K_CONNECTOR::__setInterpTransfersD4GradP(PyObject* self, PyObject* arg
   // gestion nombre de pass pour ID et/ou IBC
   E_Int TypeTransfert = E_Int( type_transfert );
   E_Int pass_deb, pass_fin;
-  if ( TypeTransfert == 0 ) {
+  if ( TypeTransfert == 0 ) 
+  {
     pass_deb = 1;
     pass_fin = 2;
   }  // ID
-  else if ( TypeTransfert == 1 ) {
+  else if ( TypeTransfert == 1 ) 
+  {
     pass_deb = 0;
     pass_fin = 1;
   }  // IBCD

@@ -2763,9 +2763,8 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
   E_Int vartype;
   E_Float gamma, cv, muS, Cs, Ts;
 
-  if (!PYPARSETUPLE(args,
-                    "OOOOOOOOOOOOOOOOOllddddd", "OOOOOOOOOOOOOOOOOiiddddd",
-                    "OOOOOOOOOOOOOOOOOllfffff", "OOOOOOOOOOOOOOOOOiifffff",
+  if (!PYPARSETUPLE_(args,
+                    OOOO_ OOOO_ OOOO_ OOOO_ O_ II_ RRRR_ R_, 
                     &arrayR, &arrayD,  &pyVariables,
                     &pyIndRcv, &pyIndDonor, &pyArrayTypes, &pyArrayCoefs,
                     &pyArrayXPC, &pyArrayYPC, &pyArrayZPC,
@@ -3098,11 +3097,8 @@ PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
   E_Int bctype, loc, vartype, compact;
   E_Float gamma, cv, muS, Cs, Ts;
 
-  if (!PYPARSETUPLE(args,
-                    "OOOOOOOOOOOOOOOOOlllldddddsss", 
-                    "OOOOOOOOOOOOOOOOOiiiidddddsss",
-                    "OOOOOOOOOOOOOOOOOllllfffffsss", 
-                    "OOOOOOOOOOOOOOOOOiiiifffffsss",
+  if (!PYPARSETUPLE_(args,
+                    OOOO_ OOOO_ OOOO_ OOOO_ O_ IIII_ RRRR_ R_ SSS_,
                     &zoneR, &zoneD, &pyVariables,
                     &pyIndRcv  , &pyIndDonor, &pyArrayTypes, &pyArrayCoefs, 
                     &pyArrayXPC, &pyArrayYPC, &pyArrayZPC,
@@ -3359,9 +3355,8 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP(PyObject* self, PyObject* args)
   E_Int bctype, loc, vartype, compact;
   E_Float gamma, cv, muS, Cs, Ts, alpha;
 
-  if (!PYPARSETUPLE(args,
-                    "OOOOOOOOOOOllllddddddsss", "OOOOOOOOOOOiiiiddddddsss",
-                    "OOOOOOOOOOOllllffffffsss", "OOOOOOOOOOOiiiiffffffsss",
+  if (!PYPARSETUPLE_(args,
+                    OOOO_ OOOO_ OOO_ IIII_ RRRR_ RR_ SSS_,
                     &zoneR, &zoneD, &pyVariables,
                     &pyIndRcv  , &pyIndDonor, &pyArrayTypes, &pyArrayCoefs,
                     &pyArrayPressure,
@@ -3599,9 +3594,8 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP2(PyObject* self, PyObject* args)
   E_Int bctype, loc, vartype, compact;
   E_Float gamma, cv, muS, Cs, Ts, alpha;
 
-  if (!PYPARSETUPLE(args,
-                    "OOOOOOOOOOOOOOOOOOOOllllddddddsss", "OOOOOOOOOOOOOOOOOOOOiiiiddddddsss",
-                    "OOOOOOOOOOOOOOOOOOOOllllffffffsss", "OOOOOOOOOOOOOOOOOOOOiiiiffffffsss",
+  if (!PYPARSETUPLE_(args,
+                    OOOO_ OOOO_ OOOO_ OOOO_ OOOO_ IIII_ RRRR_ RR_ SSS_,
                     &zoneR, &zoneD, &pyVariables,
                     &pyIndRcv  , &pyIndDonor, &pyArrayTypes, &pyArrayCoefs,
                     &pyArrayPressure,
@@ -3876,9 +3870,8 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP3(PyObject* self, PyObject* args)
   E_Int bctype, loc, vartype, compact;
   E_Float gamma, cv, muS, Cs, Ts, alpha;
 
-  if (!PYPARSETUPLE(args,
-                    "OOOOOOOOOllllddddddsss", "OOOOOOOOOiiiiddddddsss",
-                    "OOOOOOOOOllllffffffsss", "OOOOOOOOOiiiiffffffsss",
+  if (!PYPARSETUPLE_(args,
+                    OOOO_ OOOO_ O_ IIII_ RRRR_ RR_ SSS_,
                     &zoneR, &pyVariables,
                     &pyIndRcv  , &pyIndDonor, &pyArrayTypes, &pyArrayCoefs,
                     &pyArrayGradxP, &pyArrayGradyP, &pyArrayGradzP,
@@ -4040,9 +4033,7 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP4(PyObject* self, PyObject* args)
   PyObject *pyArrayGradxP_new, *pyArrayGradyP_new, *pyArrayGradzP_new;
   PyObject *pyArrayGradxP, *pyArrayGradyP, *pyArrayGradzP;
 
-  if (!PYPARSETUPLE(args,
-                    "OOOOOO", "OOOOOO",
-                    "OOOOOO", "OOOOOO",
+  if (!PYPARSETUPLE_(args, OOOO_ OO_,
                     &pyArrayGradxP_new, &pyArrayGradyP_new, &pyArrayGradzP_new,
                     &pyArrayGradxP, &pyArrayGradyP, &pyArrayGradzP))
     {
@@ -4133,9 +4124,8 @@ PyObject* K_CONNECTOR::_setIBCTransfers4FULLTBLE(PyObject* self, PyObject* args)
   E_Int bctype, loc, vartype, compact;
   E_Float gamma, cv, muS, Cs, Ts, alpha;
 
-  if (!PYPARSETUPLE(args,
-                    "OOOOOOOOOOOOOOOOOOOOOOOllllddddddsss", "OOOOOOOOOOOOOOOOOOOOOOOiiiiddddddsss",
-                    "OOOOOOOOOOOOOOOOOOOOOOOllllffffffsss", "OOOOOOOOOOOOOOOOOOOOOOOiiiiffffffsss",
+  if (!PYPARSETUPLE_(args,
+                    OOOO_ OOOO_ OOOO_ OOOO_ OOOO_ OOO_ IIII_ RRRR_ RR_ SSS_,
                     &zoneR, &zoneD, &pyVariables,
                     &pyIndRcv  , &pyIndDonor, &pyArrayTypes, &pyArrayCoefs,
                     &pyArrayPressure,
@@ -4457,9 +4447,8 @@ PyObject* K_CONNECTOR::_setIBCTransfers4FULLTBLE2(PyObject* self, PyObject* args
   E_Int bctype, loc, vartype, compact;
   E_Float gamma, cv, muS, Cs, Ts, alpha;
 
-  if (!PYPARSETUPLE(args,
-                    "OOOOOOOOOOOOOOOOOOOOOOOllllddddddsss", "OOOOOOOOOOOOOOOOOOOOOOOiiiiddddddsss",
-                    "OOOOOOOOOOOOOOOOOOOOOOOllllffffffsss", "OOOOOOOOOOOOOOOOOOOOOOOiiiiffffffsss",
+  if (!PYPARSETUPLE_(args,
+                    OOOO_ OOOO_ OOOO_ OOOO_ OOOO_ OOO_ IIII_ RRRR_ RR_ SSS_,
                     &zoneR, &zoneD, &pyVariables,
                     &pyIndRcv  , &pyIndDonor, &pyArrayTypes, &pyArrayCoefs,
                     &pyArrayPressure,
@@ -4752,11 +4741,8 @@ PyObject* K_CONNECTOR::_WM_getVal2tc(PyObject* self, PyObject* args)
   E_Int     loc,nvars;
   char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
 
-  if (!PYPARSETUPLE(args,
-                    "OOOOOOOOOllsss",
-		    "OOOOOOOOOiisss",
-                    "OOOOOOOOOllsss",
-		    "OOOOOOOOOiisss",
+  if (!PYPARSETUPLE_(args,
+                    OOOO_ OOOO_ O_ II_ SSS_,
                     &zoneR, &pyVariables, &pyIndRcv, 
                     &pyArrayDensWM, &pyArrayVelXWM, &pyArrayVelYWM, &pyArrayVelZWM, &pyArrayTempWM, &pyArraySaNuWM,
                     &loc,&nvars,
@@ -4898,12 +4884,10 @@ PyObject* K_CONNECTOR::_WM_setVal2tc(PyObject* self, PyObject* args)
   PyObject *pyArraydens    , *pyArrayvelx    , *pyArrayvely;
   PyObject *pyArrayvelz    , *pyArraytemp    , *pyArraysanu;
 
-  if (!PYPARSETUPLE(args,
-                    "OOOOOOOOOOOO", "OOOOOOOOOOOO",
-                    "OOOOOOOOOOOO", "OOOOOOOOOOOO",
+  if (!PYPARSETUPLE_(args, OOOO_ OOOO_ OOOO_,
                     &pyArraydens_new, &pyArrayvelx_new, &pyArrayvely_new,
                     &pyArrayvelz_new, &pyArraytemp_new, &pyArraysanu_new,
-		    &pyArraydens    , &pyArrayvelx    , &pyArrayvely    ,
+                    &pyArraydens    , &pyArrayvelx    , &pyArrayvely    ,
                     &pyArrayvelz    , &pyArraytemp    , &pyArraysanu    ))
     {
       return NULL;

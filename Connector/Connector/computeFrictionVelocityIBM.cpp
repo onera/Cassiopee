@@ -22,11 +22,12 @@
 using namespace std;
 using namespace K_FLD;
 
+//===========================================================================
 PyObject* K_CONNECTOR::_computeFrictionVelocityIBM(PyObject* self, PyObject* args)
 {
     PyObject *zone;
     char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
-    if (!PYPARSETUPLEF(args,"Osss", "Osss",
+    if (!PYPARSETUPLE_(args, O_ SSS_,
                        &zone, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
         return NULL;
 

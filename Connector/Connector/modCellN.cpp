@@ -28,8 +28,7 @@
 PyObject* K_CONNECTOR::_modCellN1(PyObject* self, PyObject* args)
 {
   PyObject* array; char* cellNName;
-  if (!PYPARSETUPLEF(args,
-                    "Os", "Os",
+  if (!PYPARSETUPLE_(args, O_ S_,
                     &array, &cellNName))
       return NULL;
   
@@ -84,8 +83,7 @@ PyObject* K_CONNECTOR::_modCellN1(PyObject* self, PyObject* args)
 PyObject* K_CONNECTOR::_modCellN2(PyObject* self, PyObject* args)
 {
   PyObject* array; char* cellNName;
-  if (!PYPARSETUPLEF(args,
-                    "Os", "Os",
+  if (!PYPARSETUPLE_(args, O_ S_,
                     &array, &cellNName))
       return NULL;
   

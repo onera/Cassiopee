@@ -23,6 +23,7 @@
 using namespace K_FUNC;
 using namespace std;
 using namespace K_FLD;
+
 //=============================================================================
 // Identify matching points in windows
 //=============================================================================
@@ -30,8 +31,7 @@ PyObject* K_CONNECTOR::identifyDegenerated(PyObject* self, PyObject* args)
 {
   PyObject *listOfAllWins;
   E_Float tol;
-  if (!PYPARSETUPLEF(args,
-                    "Od", "Of",
+  if (!PYPARSETUPLE_(args, O_ R_,
                     &listOfAllWins, &tol))
   {
       return NULL;

@@ -56,7 +56,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
     PyObject* mpi4pyCom;
     E_Int oppNode;
     E_Int rank;
-    if (!PYPARSETUPLEI(args, "OllO", "OiiO", &datas, &oppNode, &rank, &mpi4pyCom)) return NULL;
+    if (!PYPARSETUPLE_(args, O_ II_ O_, &datas, &oppNode, &rank, &mpi4pyCom)) return NULL;
 
 
     // Recuperation du communicateur
@@ -517,7 +517,7 @@ PyObject* K_CONVERTER::waitAll(PyObject* self, PyObject* args)
 {
     // Recuperation des donnees
     PyObject* reqs;
-    if (!PYPARSETUPLEI(args, "O", "O", &reqs)) return NULL;
+    if (!PYPARSETUPLE_(args, O_, &reqs)) return NULL;
 
     E_Int nRequests = PyList_Size(reqs);
     
@@ -565,7 +565,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
     PyObject* mpi4pyCom;
     E_Int node;
     E_Int rank;
-    if (!PYPARSETUPLEI(args, "llO", "iiO", &node, &rank, &mpi4pyCom)) return NULL;
+    if (!PYPARSETUPLE_(args, II_ O_, &node, &rank, &mpi4pyCom)) return NULL;
 
     // Recuperation du communicateur
 #ifdef _MPI

@@ -135,7 +135,7 @@ PyObject* K_CONVERTER::setPartialFieldsPT(PyObject* self, PyObject* args)
   PyObject* listIndicesO;
   E_Int loc;
   E_Int startFrom;
-  if (!PYPARSETUPLEI(args, "OOOlsssl", "OOOisssi", &zone, &arrayF, &listIndicesO, &loc, 
+  if (!PYPARSETUPLE_(args, OOO_ I_ SSS_ I_, &zone, &arrayF, &listIndicesO, &loc, 
 		     &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters, &startFrom))
     { return NULL; }
 
@@ -255,7 +255,7 @@ PyObject* K_CONVERTER::_setPartialFields(PyObject* self, PyObject* args)
   PyObject* listIndicesO;
   E_Int loc;
   E_Int startFrom;
-  if (!PYPARSETUPLEI(args, "OOOlsssl", "OOOisssi", &zone, &listNumFields, &listIndicesO, &loc,
+  if (!PYPARSETUPLE_(args, OOO_ I_ SSS_ I_, &zone, &listNumFields, &listIndicesO, &loc,
                      &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters, &startFrom)) return NULL;
 
   /*--------------------------------------------*/
@@ -359,8 +359,7 @@ PyObject* K_CONVERTER::_setPartialFields(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::_setPartialFieldsAverage(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* indexList; PyObject* valueList;
-  if (!PYPARSETUPLEF(args,
-                     "OOO", "OOO",
+  if (!PYPARSETUPLE_(args, OOO_,
                      &array, &indexList, &valueList)) return NULL;
   
   // Check array

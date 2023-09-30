@@ -117,8 +117,8 @@ PyObject* K_COMPRESSOR::writeUnsteadyCoefs(PyObject* self, PyObject* args)
   char* Localisation;       // cellules ou centres des faces
   char* Format;             // format du fichier
 
-  if (!PYPARSETUPLEI(args, "lOsss", "iOsss",
-                        &Iteration, &ListInterpData, &FileName, &Localisation, &Format)) 
+  if (!PYPARSETUPLE_(args, I_ O_ SSS_,
+                     &Iteration, &ListInterpData, &FileName, &Localisation, &Format)) 
     return NULL;
   /*-------------------*/
   /* Variables locales */

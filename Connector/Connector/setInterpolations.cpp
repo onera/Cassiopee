@@ -53,8 +53,7 @@ PyObject* K_CONNECTOR::setInterpolations(PyObject* self, PyObject* args)
   E_Float geomCutOff = 1.e-8;
   E_Float cfMax = 30.;
   //E_Float extrapTol;//tolerance sur la  somme des coefs d'extrapolation
-  if (!PYPARSETUPLE(args,
-                    "llOOOlld","iiOOOiid","llOOOllf", "iiOOOiif",
+  if (!PYPARSETUPLE_(args, II_ OOO_ II_ R_,
                      &Nir, &Njr, &coordArrays, &interpArrays, &interpCellN, &isEX, &Zid, &cfMax))
   {
       return NULL;

@@ -37,8 +37,7 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
   PyObject* array; // array2 of zone
   PyObject* arrayDonor; // array2 of zone donor
 
-  if (!PYPARSETUPLEI(args,
-                    "OOOOOOOO", "OOOOOOOO",
+  if (!PYPARSETUPLE_(args, OOOO_ OOOO_,
                     &FL, &FLDonor,
                     &rindElt, &rindEltDonor,
                     &array, &arrayDonor, 

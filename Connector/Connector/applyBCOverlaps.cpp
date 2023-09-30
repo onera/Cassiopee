@@ -31,9 +31,8 @@ PyObject* K_CONNECTOR::applyBCOverlapStruct(PyObject* self, PyObject* args)
   PyObject *array;
   E_Int imin, imax, jmin, jmax, kmin, kmax;
   E_Int depth; E_Int loc; E_Int cellNInterpValue;
-  char* cellNName;
-  if (!PYPARSETUPLEI(args,
-                    "O(lll)(lll)llls", "O(iii)(iii)iiis",
+  char* cellNName; 
+  if (!PYPARSETUPLE_(args, O_ TIII_ TIII_ III_ S_,
                     &array, &imin, &jmin, &kmin, &imax, &jmax, &kmax, 
                     &depth, &loc, &cellNInterpValue, &cellNName))
     return NULL;
@@ -137,8 +136,7 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
   PyObject *array, *faceList;
   E_Int depth; E_Int loc; E_Int cellNInterpValue;
   char* cellNName;
-  if (!PYPARSETUPLEI(args,
-                    "OOllls", "OOiiis",
+  if (!PYPARSETUPLE_(args, OO_ III_ S_,
                     &array, &faceList, &depth, &loc, 
                     &cellNInterpValue, &cellNName))
   {

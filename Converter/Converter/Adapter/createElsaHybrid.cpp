@@ -32,7 +32,7 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
   PyObject* ox; PyObject* oy; PyObject* oz;
   E_Int axe2D, method;
   PyObject* ESO;
-  if (!PYPARSETUPLEI(args, "OOOOOllOOOO", "OOOOOiiOOOO", 
+  if (!PYPARSETUPLE_(args, OOOO_ O_ II_ OOOO_, 
                      &NGon, &PE, &ict, &bcct, &inct, 
                      &method, &axe2D, &ox, &oy, &oz, &ESO))
     return NULL;

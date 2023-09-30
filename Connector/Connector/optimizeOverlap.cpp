@@ -44,8 +44,7 @@ PyObject* K_CONNECTOR::optimizeOverlap(PyObject* self, PyObject* args)
   E_Int priorite1;
   E_Int priorite2;
   E_Int isDWO;
-  if (!PYPARSETUPLEI(args,
-                    "OOOOlllOO", "OOOOiiiOO",
+  if (!PYPARSETUPLE_(args, OOOO_ III_ OO_,
                     &coordArray1, &centerArray1, &coordArray2, &centerArray2,
                     &priorite1, &priorite2, &isDWO, &hook1, &hook2))
   {
