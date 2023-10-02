@@ -31,8 +31,7 @@ PyObject* K_TRANSFORM::computeDeformationVector(PyObject* self,
 {
   PyObject* arrays; PyObject* deltas;
   E_Float beta;
-  if (!PYPARSETUPLEF(args,
-                    "OOd", "OOf",
+  if (!PYPARSETUPLE_(args, OO_ R_,
                     &arrays, &deltas, &beta))
   {
       return NULL;

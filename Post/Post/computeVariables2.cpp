@@ -68,8 +68,7 @@ PyObject* K_POST::computeVariables2(PyObject* self, PyObject* args)
   PyObject* array; PyObject* vars0;
   E_Float gamma, rgp, s0, betas, Cs, mus, Ts;
 
-  if (!PYPARSETUPLEF(args,
-                    "OOddddddd", "OOfffffff",
+  if (!PYPARSETUPLE_(args, OO_ RRRR_ RRR_, 
                     &array, &vars0, &gamma, &rgp, &s0, &betas, &Cs, &mus, &Ts))
   {
       return NULL;

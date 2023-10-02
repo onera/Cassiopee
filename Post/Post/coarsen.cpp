@@ -45,8 +45,7 @@ PyObject* K_POST::coarsen(PyObject* self, PyObject* args)
   PyObject* surf; PyObject* aindic;
   E_Float eps, argqual;
   
-  if (!PYPARSETUPLEF(args,
-                    "OOdd", "OOff",
+  if (!PYPARSETUPLE_(args, OO_ RR_,
                     &surf, &aindic, &argqual, &eps))
   {
       return NULL;

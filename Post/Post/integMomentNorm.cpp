@@ -75,8 +75,7 @@ PyObject* K_POST::integMomentNorm(PyObject* self, PyObject* args)
   PyObject* coordArrays;
   PyObject* FArrays;
   PyObject* ratioArrays;
-  if (!PYPARSETUPLEF(args,
-                    "OOO(ddd)", "OOO(fff)",
+  if (!PYPARSETUPLE_(args, OOO_ TRRR_,
                     &coordArrays, &FArrays, &ratioArrays, &cx, &cy, &cz))
   {
       return NULL;

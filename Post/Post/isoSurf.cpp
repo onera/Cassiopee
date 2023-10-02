@@ -33,8 +33,7 @@ PyObject* K_POST::isoSurf(PyObject* self, PyObject* args)
   // value: valeur de l'iso
   PyObject* grid;
   char* field; E_Float value;
-  if (!PYPARSETUPLEF(args,
-                    "Osd", "Osf",
+  if (!PYPARSETUPLE_(args, O_ S_ R_,
                     &grid, &field, &value))
   {
       return NULL;

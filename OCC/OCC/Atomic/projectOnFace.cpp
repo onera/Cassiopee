@@ -70,7 +70,7 @@ void projectOnFace__(E_Int npts, E_Float* px, E_Float* py, E_Float* pz, const To
 PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
 {
   PyObject* hook; PyObject* array; PyObject* faceList;
-  if (!PYPARSETUPLEF(args, "OOO", "OOO", &hook, &array, &faceList)) return NULL;  
+  if (!PYPARSETUPLE_(args, OOO_, &hook, &array, &faceList)) return NULL;  
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)

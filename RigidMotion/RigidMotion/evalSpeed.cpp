@@ -34,9 +34,7 @@ PyObject* K_RIGIDMOTION::evalSpeed3(PyObject* self, PyObject* args)
   E_Float cx, cy, cz;
   E_Float kx, ky, kz;
 
-  if (!PYPARSETUPLEF(args, 
-                     "OOOOOOddddddddddd", 
-                     "OOOOOOfffffffffff",
+  if (!PYPARSETUPLE_(args, OOOO_ OO_ RRRR_ RRRR_ RRR_,
                      &xo, &yo, &zo,
                      &sxo, &syo, &szo,
                      &omega, &teta,

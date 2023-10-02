@@ -41,8 +41,7 @@ PyObject* K_POST::isoSurfNGon(PyObject* self, PyObject* args)
 {
   PyObject* array;
   char* fieldName; E_Float value;
-  if (!PYPARSETUPLEF(args,
-                    "Osd", "Osf",
+  if (!PYPARSETUPLE_(args, O_ S_ R_,
                     &array, &fieldName, &value)) return NULL;
 
   /*----------------------------------------------*/

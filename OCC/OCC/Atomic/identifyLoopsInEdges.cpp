@@ -34,7 +34,7 @@
 PyObject* K_OCC::identifyLoopsInEdges(PyObject* self, PyObject* args)
 {
   PyObject* hook;
-  if (!PYPARSETUPLEF(args, "O", "O", &hook)) return NULL;  
+  if (!PYPARSETUPLE_(args, O_, &hook)) return NULL;  
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)

@@ -62,9 +62,8 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionInfo(PyObject* self, PyObject* args)
     *bet_pnt0, *bet_vct, *betc0, *bets0,
     *tet_pnt0, *tet_vct, *tetc0, *tets0,
     *span_vct, *pre_lag_pnt0, *pre_lag_vct, *pre_con_pnt0, *pre_con_vct;
-  if (!PYPARSETUPLEF(args,
-                     "dOddOOdOOdOOdOOOOdOOOOdOOOdOOdOO",
-                     "fOffOOfOOfOOfOOOOfOOOOfOOOfOOfOO",
+  if (!PYPARSETUPLE_(args, 
+                     R_ O_ RR_ OO_ R_ OO_ R_ OO_ R_ OOOO_ R_ OOOO_ R_ OOOO_ R_ OO_,
                      &time, &transl_speed, &psi0, &psi0_b, 
                      &alp_pnt0, &alp_vct, &alp0,
                      &rot_pnt0, &rot_vct, &rot_omg,                     
@@ -240,9 +239,8 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
     *bet_pnt0, *bet_vct, *betc0, *bets0,
     *tet_pnt0, *tet_vct, *tetc0, *tets0,
     *span_vct, *pre_lag_pnt0, *pre_lag_vct, *pre_con_pnt0, *pre_con_vct;
-  if (!PYPARSETUPLEF(args,
-                     "OOOOdOddOOdOOdOOdOOOOdOOOOdOOOdOOdOOsss",
-                     "OOOOfOffOOfOOfOOfOOOOfOOOOfOOOfOOfOOsss",
+  if (!PYPARSETUPLE_(args,
+                      OOOO_ R_ O_ RR_ OO_ R_ OO_ R_ OO_ R_ OOOO_ R_ OOOO_ R_ OOO_ R_ OO_ R_ OO_ SSS_,
                      &zone, &sxo, &syo, &szo,
                      &time, &transl_speed, &psi0, &psi0_b, 
                      &alp_pnt0, &alp_vct, &alp0,

@@ -112,7 +112,7 @@ PyObject* K_TRANSFORM::rotateA1(PyObject* self, PyObject* args)
   PyObject* listOfFieldVectors;
   E_Float xc, yc, zc;
   E_Float nx, ny, nz, teta;
-  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ I_ O_,
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ R_ O_,
                     &array, &xc, &yc, &zc, &nx, &ny, &nz, &teta, &listOfFieldVectors))
   {
       return NULL;

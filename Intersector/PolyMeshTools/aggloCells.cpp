@@ -39,7 +39,7 @@ PyObject* K_INTERSECTOR::agglomerateSmallCells(PyObject* self, PyObject* args)
   E_Float vmin(0.), vratio(0.01), angle_threshold{1.e-12};
   E_Int method(0);
 
-  if (!PYPARSETUPLE(args, "Odddl", "Odddi", "Offfl", "Offfi",
+  if (!PYPARSETUPLE_(args, O_ RRR_ I_,
                      &arr, &vmin, &vratio, &angle_threshold, &method)) return NULL;
 
   K_FLD::FloatArray* f(0);
@@ -86,7 +86,7 @@ PyObject* K_INTERSECTOR::shellAgglomerateSmallCells(PyObject* self, PyObject* ar
   PyObject *arr;
   E_Float vmin(0.), vratio(1000.);
 
-  if (!PYPARSETUPLEF(args, "Odd", "Off", &arr, &vmin, &vratio)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ RR_, &arr, &vmin, &vratio)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -134,7 +134,7 @@ PyObject* K_INTERSECTOR::agglomerateNonStarCells(PyObject* self, PyObject* args)
   E_Int debug=0;
   double angle_threshold{1.e-12};
 
-  if (!PYPARSETUPLEF(args, "Od", "Of", &arr, &angle_threshold)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ R_, &arr, &angle_threshold)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);

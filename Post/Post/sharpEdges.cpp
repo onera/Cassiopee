@@ -31,8 +31,7 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
   E_Float dirVect[3];
   dirVect[0] = 0; dirVect[1] = 0; dirVect[2] = 1; 
   E_Float alpref;
-  if (!PYPARSETUPLEF(args,
-                    "Od", "Of",
+  if (!PYPARSETUPLE_(args, O_ R_,
                     &array, &alpref))
   {
       return NULL;

@@ -33,9 +33,8 @@ PyObject* K_RIGIDMOTION::move(PyObject* self, PyObject* args)
   E_Float cx, cy, cz;
   E_Float r11, r12, r13, r21, r22, r23, r31, r32, r33;
 
-  if (!PYPARSETUPLEF(args, 
-                     "Oddddddddddddddd", 
-                     "Offfffffffffffff",
+  if (!PYPARSETUPLE_(args,
+                      O_ RRRR_ RRRR_ RRRR_ RRR_,
                      &array,
                      &dx, &dy, &dz,
                      &cx, &cy, &cz,
@@ -100,9 +99,7 @@ PyObject* K_RIGIDMOTION::moveN(PyObject* self, PyObject* args)
   E_Float cx, cy, cz;
   E_Float r11, r12, r13, r21, r22, r23, r31, r32, r33;
 
-  if (!PYPARSETUPLEF(args, 
-                     "O(ddd)(ddd)ddddddddd", 
-                     "O(fff)(fff)fffffffff",
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ RRRR_ RRRR_ R_, 
                      &pyCoordsN,
                      &dx, &dy, &dz,
                      &cx, &cy, &cz,
@@ -163,9 +160,7 @@ PyObject* K_RIGIDMOTION::evalGridMotionN(PyObject* self, PyObject* args)
   E_Float omg1, omg2, omg3; // vitesse de rotation
   PyObject *pyCoordsN;
   PyObject *pySeN;
-  if (!PYPARSETUPLEF(args, 
-                     "OO(ddd)(ddd)(ddd)", 
-                     "OO(fff)(fff)(fff)",
+  if (!PYPARSETUPLE_(args, OO_ TRRR_ TRRR_ TRRR_, 
                      &pyCoordsN, &pySeN,
                      &s01, &s02, &s03,
                      &cx, &cy, &cz,

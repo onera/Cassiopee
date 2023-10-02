@@ -98,7 +98,7 @@ PyObject* K_GENERATOR::quad2Pyra(PyObject* self, PyObject* args)
   PyObject *arr;
   E_Float hratio(0.5); 
 
-  if (!PYPARSETUPLEF(args, "Od", "Of", &arr, &hratio)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ R_, &arr, &hratio)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);

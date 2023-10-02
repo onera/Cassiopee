@@ -40,7 +40,7 @@ PyObject* K_INTERSECTOR::simplifyCells(PyObject* self, PyObject* args)
   E_Float angular_threshold(0.);
   E_Int treat_externals(1);
 
-  if (!PYPARSETUPLE(args, "OldO", "OidO", "OlfO", "OifO", 
+  if (!PYPARSETUPLE_(args, O_ I_ R_ O_, 
                     &arr, &treat_externals, &angular_threshold, &py_skipids)) return NULL;
 
   K_FLD::FloatArray* f(0);
@@ -128,7 +128,7 @@ PyObject* K_INTERSECTOR::simplifySurf(PyObject* self, PyObject* args)
   PyObject *arr;
   E_Float angular_threshold(0.);
 
-  if (!PYPARSETUPLEF(args, "Od", "Of", &arr, &angular_threshold)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ R_, &arr, &angular_threshold)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -197,7 +197,7 @@ PyObject* K_INTERSECTOR::collapseSmallCells(PyObject* self, PyObject* args)
   PyObject *arr;
   E_Float vmin{0.}, grmin{0.};
 
-  if (!PYPARSETUPLEF(args, "Odd", "Off", &arr, &vmin, &grmin)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ RR_, &arr, &vmin, &grmin)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);

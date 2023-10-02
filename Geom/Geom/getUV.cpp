@@ -284,7 +284,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   E_Float normalDeviationWeight;
   E_Float texResolution; 
   PyObject* fields; // champ a sortir en rgb
-  if (!PYPARSETUPLEF(args, "OddO", "OffO", &array, &normalDeviationWeight, 
+  if (!PYPARSETUPLE_(args, O_ RR_ O_, &array, &normalDeviationWeight, 
       &texResolution, &fields)) return NULL;
 
   // Check array

@@ -33,9 +33,7 @@ PyObject* K_GEOM::lineMesh(PyObject* self, PyObject* args)
   E_Float x1, y1, z1;
   E_Float x2, y2, z2;
 
-  if (!PYPARSETUPLE(args,
-                    "(ddd)(ddd)l", "(ddd)(ddd)i",
-                    "(fff)(fff)l", "(fff)(fff)i",
+  if (!PYPARSETUPLE_(args, TRRR_ TRRR_ I_,
                     &x1, &y1, &z1, &x2, &y2, &z2, &N))
   {
       return NULL;
@@ -79,9 +77,7 @@ PyObject* K_GEOM::circleMesh(PyObject* self, PyObject* args)
   E_Float xc, yc, zc;
   E_Float R, tetas, tetae;
 
-  if (!PYPARSETUPLE(args,
-                    "(ddd)dddl", "(ddd)dddi",
-                    "(fff)fffl", "(fff)fffi",
+  if (!PYPARSETUPLE_(args, TRRR_, RRR_ I_,
                     &xc, &yc, &zc, &R, &tetas, &tetae, &N))
   {
       return NULL;
@@ -125,9 +121,7 @@ PyObject* K_GEOM::sphereMesh(PyObject* self, PyObject* args)
   E_Int N;
   E_Float xc, yc, zc;
   E_Float R;
-  if (!PYPARSETUPLE(args,
-                    "(ddd)dl", "(ddd)di",
-                    "(fff)fl", "(fff)fi",
+  if (!PYPARSETUPLE_(args, TRRR_ R_ I_,
                     &xc, &yc, &zc, &R, &N))
   {
       return NULL;
@@ -184,9 +178,7 @@ PyObject* K_GEOM::coneMesh(PyObject* self, PyObject* args)
   E_Int N;
   E_Float xc, yc, zc;
   E_Float Rb, Rv, H;
-  if (!PYPARSETUPLE(args,
-                    "(ddd)dddl", "(ddd)dddi",
-                    "(fff)fffl", "(fff)fffi",
+  if (!PYPARSETUPLE_(args, TRRR_ RRR_ I_,
                     &xc, &yc, &zc, &Rb, &Rv, &H, &N))
   {
       return NULL;
@@ -248,8 +240,7 @@ PyObject* K_GEOM::triangleMesh(PyObject* self, PyObject* args)
   E_Float x1, y1, z1;
   E_Float x2, y2, z2;
   E_Float x3, y3, z3;
-  if (!PYPARSETUPLEF(args,
-                    "(ddd)(ddd)(ddd)", "(fff)(fff)(fff)",
+  if (!PYPARSETUPLE_(args, TRRR_ TRRR_ TRRR_,
                     &x1, &y1, &z1, &x2, &y2, &z2, &x3, &y3, &z3))
   {
       return NULL;
@@ -280,8 +271,7 @@ PyObject* K_GEOM::quadrangleMesh(PyObject* self, PyObject* args)
   E_Float x2, y2, z2;
   E_Float x3, y3, z3;
   E_Float x4, y4, z4;
-  if (!PYPARSETUPLEF(args,
-                    "(ddd)(ddd)(ddd)(ddd)", "(fff)(fff)(fff)(fff)",
+  if (!PYPARSETUPLE_(args, TRRR_ TRRR_ TRRR_ TRRR_,
                     &x1, &y1, &z1, &x2, &y2, &z2, &x3, &y3, &z3, &x4, &y4, &z4))
   {
       return NULL;
