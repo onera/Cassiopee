@@ -69,7 +69,7 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
   PyObject* array;
   E_Int mode, order;
   order = 2;
-  if (!PYPARSETUPLEI(args, "Ol|l", "Oi|i", &array, &mode, &order)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_ "|" I_, &array, &mode, &order)) return NULL;
 
   // Check array
   E_Int ni, nj, nk;

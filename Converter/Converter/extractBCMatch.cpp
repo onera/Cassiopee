@@ -33,7 +33,7 @@ PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
   PyObject *zone, *pyIndices, *pyVariables ; 
   char *GridCoordinates, *FlowSolutionNodes, *FlowSolutionCenters;
   
-  if (!PYPARSETUPLEI(args, "OOOsss", "OOOsss", &zone, &pyIndices, &pyVariables, 
+  if (!PYPARSETUPLE_(args, OOO_ SSS_, &zone, &pyIndices, &pyVariables, 
                &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters )) 
      return NULL;
   
@@ -202,7 +202,7 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
 
   E_Int triI, triJ, triK ;   // transform (issu du GC de la zone "receveuse")
 
-  if (!PYPARSETUPLEI(args, "O(llllll)(llllll)(lll)(lll)", "O(iiiiii)(iiiiii)(iii)(iii)", 
+  if (!PYPARSETUPLE_(args, O_ "(" IIII_ II_ ")(" IIII_ II_ ")" TIII_ TIII_,
                      &fields, &iminD, &jminD, &kminD, &imaxD, &jmaxD, &kmaxD,
 		              &iminR, &jminR, &kminR, &imaxR, &jmaxR, &kmaxR, 
 		              &niR, &njR, &nkR, 
@@ -1027,7 +1027,7 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
   PyObject *zone, *pyIndR, *pyFldD, *pyVariables ; 
   char *GridCoordinates, *FlowSolutionNodes, *FlowSolutionCenters;
   
-  if (!PYPARSETUPLEI(args, "OOOOsss", "OOOOsss", &zone, &pyIndR, &pyFldD, 
+  if (!PYPARSETUPLE_(args, OOOO_ SSS_, &zone, &pyIndR, &pyFldD, 
                      &pyVariables, &GridCoordinates, &FlowSolutionNodes, 
                      &FlowSolutionCenters )) return NULL;
 
@@ -1187,7 +1187,7 @@ PyObject* K_CONVERTER::buildBCMatchFieldStruct(PyObject* self, PyObject* args )
 
   PyObject *pyFieldsR, *pyIndR, *pyFldD, *pyNcnt ; 
   
-  if (!PYPARSETUPLEI(args, "OOOO", "OOOO", &pyFieldsR, &pyIndR, &pyFldD, &pyNcnt )) return NULL;
+  if (!PYPARSETUPLE_(args, OOOO_, &pyFieldsR, &pyIndR, &pyFldD, &pyNcnt )) return NULL;
 
   // Get current zone fields (in volume)
   // ===================================

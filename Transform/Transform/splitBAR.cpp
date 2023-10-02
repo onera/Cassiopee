@@ -32,8 +32,7 @@ using namespace std;
 PyObject* K_TRANSFORM::splitBAR(PyObject* self, PyObject* args)
 {
   PyObject* array; E_Int N; E_Int N2;
-  if (!PYPARSETUPLEI(args,
-                    "Oll", "Oii",
+  if (!PYPARSETUPLE_(args, O_ II_,
                     &array, &N, &N2))
   {
       return NULL;

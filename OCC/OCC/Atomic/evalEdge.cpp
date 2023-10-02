@@ -52,7 +52,7 @@ PyObject* K_OCC::evalEdge(PyObject* self, PyObject* args)
   PyObject* hook;
   PyObject* arrayU;
   E_Int edgeNo; // No de la face 
-  if (!PYPARSETUPLEI(args, "OOl", "OOi", &hook, &arrayU, &edgeNo)) return NULL;  
+  if (!PYPARSETUPLE_(args, OO_ I_, &hook, &arrayU, &edgeNo)) return NULL;  
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)

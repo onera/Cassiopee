@@ -46,7 +46,7 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
   E_Int startFrom;
   char *filterName;// nom du filtre dans fArrays
   E_Int verbose;
-  if (!PYPARSETUPLEI(args, "OOOllssssl", "OOOiissssi", &zone, &fArrays, &listIndicesO, &loc, &startFrom, 
+  if (!PYPARSETUPLE_(args, OOO_ II_ SSSS_ I_, &zone, &fArrays, &listIndicesO, &loc, &startFrom, 
                      &filterName, &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters, &verbose))
     return NULL; 
 

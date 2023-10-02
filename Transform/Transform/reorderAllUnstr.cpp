@@ -34,8 +34,7 @@ PyObject* K_TRANSFORM::reorderAllUnstr(PyObject* self, PyObject* args)
   // Load block arrays 
   PyObject* listBlks;
   E_Int outward=1; // direction of the normals vers l'exterieur par defaut
-  if (!PYPARSETUPLEI(args,
-                    "Ol", "Oi",
+  if (!PYPARSETUPLE_(args, O_ I_,
                     &listBlks, &outward))
   {
       return NULL;

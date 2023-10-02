@@ -25,7 +25,7 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::adaptNFace2Index(PyObject* self, PyObject* args)
 {
   PyObject* arrayNF; E_Int nelts;
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arrayNF, &nelts)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &arrayNF, &nelts)) return NULL;
 
   // Check numpy (NFace)
   FldArrayI* cNFace;

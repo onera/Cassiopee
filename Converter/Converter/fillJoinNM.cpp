@@ -35,7 +35,7 @@ PyObject* K_CONVERTER::fillJoinNMNodes(PyObject* self, PyObject* args)
   E_Int Im=0;
   E_Int ImDonor=0;
   E_Int ShiftDir1, ShiftDir2, IsFine;
-  if (!PYPARSETUPLEI(args, "OOOOlllllllllllll", "OOOOiiiiiiiiiiiii", 
+  if (!PYPARSETUPLE_(args, OOOO_ IIII_ IIII_ I_, 
                      &arrayR, &arrayD, &arrayIR, &listID,
                      &arrayRdim1, &arrayRdim2, &Direction, &DirDonor, 
                      &IncrR, &IncrD, &DimZone, &D, &Im, &ImDonor,
@@ -255,7 +255,7 @@ PyObject* K_CONVERTER::fillJoinNMCenters(PyObject* self, PyObject* args)
   E_Int Im=0;
   E_Int ImDonor=0;
   E_Int ShiftDir1, ShiftDir2, IsFine;
-  if (!PYPARSETUPLEI(args, "OOOOlllllllllllll", "OOOOiiiiiiiiiiiii", 
+  if (!PYPARSETUPLE_(args, OOOO_ IIII_ IIII_ IIII_ I_, 
                         &arrayR, &arrayD, &arrayIR, &listID,
                         &arrayRdim1, &arrayRdim2, &Direction, &DirDonor, 
                         &IncrR, &IncrD, &DimZone, &D, &Im, &ImDonor,

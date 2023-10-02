@@ -29,7 +29,7 @@ PyObject* K_CONVERTER::tagDefinedBC(PyObject* self, PyObject* args)
 {
   PyObject *allwins, *array;
   E_Int dimPb;
-  if (!PYPARSETUPLEI(args, "OOl", "OOi", &array, &allwins, &dimPb)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ I_, &array, &allwins, &dimPb)) return NULL;
 
   // Check array
   E_Int im, jm, km;

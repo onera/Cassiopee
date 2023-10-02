@@ -26,7 +26,7 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::adaptNGon42NGon3(PyObject* self, PyObject* args)
 {
   PyObject* arrayConnect; PyObject* arrayOffset;
-  if (!PYPARSETUPLEI(args, "OO", "OO", 
+  if (!PYPARSETUPLE_(args, OO_, 
                      &arrayConnect, &arrayOffset)) return NULL;
 
   // Check numpy (connect)

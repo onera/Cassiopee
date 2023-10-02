@@ -31,7 +31,7 @@ PyObject* K_CONVERTER::createGlobalIndex(PyObject* self, PyObject* args)
 {
   PyObject *array;
   E_Int start;
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &array, &start)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &array, &start)) return NULL;
 
   // Check array
   E_Int ni, nj, nk;
@@ -82,7 +82,7 @@ PyObject* K_CONVERTER::recoverGlobalIndex(PyObject* self, PyObject* args)
 {
   PyObject *array;
   PyObject *arrayo;
-  if (!PYPARSETUPLEI(args, "OO", "OO", &array, &arrayo)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &arrayo)) return NULL;
 
   // Check input array
   E_Int ni, nj, nk;

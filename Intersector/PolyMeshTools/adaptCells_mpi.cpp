@@ -42,7 +42,6 @@
 #include "dico_to_stl.h"
 #include "adaptCells_hook.h"
 
-
 using namespace std;
 using namespace NUGA;
 
@@ -472,7 +471,7 @@ PyObject* K_INTERSECTOR::exchangePointLists(PyObject* self, PyObject* args)
   PyObject *py_rid_to_zones(nullptr), *py_zonerank(nullptr), *py_zone_to_rid_to_list_owned(nullptr), *mpi4pyCom(nullptr);
   E_Int rank{0}, nranks{1};
 
-  if (!PYPARSETUPLEI(args, "OOllOO", "OOiiOO", &py_rid_to_zones, &py_zonerank, &rank, &nranks, &py_zone_to_rid_to_list_owned, &mpi4pyCom)) return nullptr;
+  if (!PYPARSETUPLE_(args, OO_ II_ OO_, &py_rid_to_zones, &py_zonerank, &rank, &nranks, &py_zone_to_rid_to_list_owned, &mpi4pyCom)) return nullptr;
 
   void* pt_comm = (void*)&(((PyMPICommObject*)mpi4pyCom)->ob_mpi);
   MPI_Comm COM = *((MPI_Comm*) pt_comm);

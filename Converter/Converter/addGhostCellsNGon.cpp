@@ -28,7 +28,7 @@ PyObject* K_CONVERTER::addGhostCellsNGonNodes(PyObject* self, PyObject* args)
 {
   PyObject *arrayN;
   E_Int depth;
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arrayN, &depth)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &arrayN, &depth)) return NULL;
 
   if (depth < 1) 
   {
@@ -147,7 +147,7 @@ PyObject* K_CONVERTER::addGhostCellsNGonCenters(PyObject* self, PyObject* args)
 {
   PyObject *arrayC;
   E_Int depth;
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arrayC, &depth)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &arrayC, &depth)) return NULL;
 
   if (depth < 1)
   {
@@ -348,7 +348,7 @@ PyObject* K_CONVERTER::addGhostCellsNGonBoth(PyObject* self, PyObject* args)
 {
   PyObject *arrayN, *arrayC;
   E_Int depth;
-  if (!PYPARSETUPLEI(args, "OOl", "OOi", &arrayN, &arrayC, &depth)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ I_, &arrayN, &arrayC, &depth)) return NULL;
 
   if (depth < 1) 
   {

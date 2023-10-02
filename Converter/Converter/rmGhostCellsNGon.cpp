@@ -28,7 +28,7 @@ PyObject* K_CONVERTER::rmGhostCellsNGonNodes(PyObject* self, PyObject* args)
 {
   PyObject *arrayN;
   E_Int depth;
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arrayN, &depth)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &arrayN, &depth)) return NULL;
 
   if (depth < 1) 
   {
@@ -43,7 +43,7 @@ PyObject* K_CONVERTER::rmGhostCellsNGonNodes(PyObject* self, PyObject* args)
                                     cn, eltType, true);
   if (res != 2)
   {
-    if ( res == 1) RELEASESHAREDS(arrayN,f);
+    if (res == 1) RELEASESHAREDS(arrayN, f);
     PyErr_SetString(PyExc_TypeError, 
                     "rmGhostCells: array is invalid.");
     return NULL;
@@ -158,7 +158,7 @@ PyObject* K_CONVERTER::rmGhostCellsNGonCenters(PyObject* self, PyObject* args)
 {
   PyObject *arrayC;
   E_Int depth;
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arrayC, &depth)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &arrayC, &depth)) return NULL;
 
   if (depth < 1) 
   {
@@ -299,7 +299,7 @@ PyObject* K_CONVERTER::rmGhostCellsNGonBoth(PyObject* self, PyObject* args)
 {
   PyObject *arrayN, *arrayC;
   E_Int depth;
-  if (!PYPARSETUPLEI(args, "OOl", "OOi", &arrayN, &arrayC, &depth)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ I_, &arrayN, &arrayC, &depth)) return NULL;
 
   if (depth < 1) 
   {

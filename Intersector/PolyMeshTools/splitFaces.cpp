@@ -128,7 +128,7 @@ PyObject* K_INTERSECTOR::triangulateExteriorFaces(PyObject* self, PyObject* args
   E_Int int_or_ext(2); //0 : internals only, 1: external only, 2: both
   E_Int improve_qual(0);
 
-  if (!PYPARSETUPLEI(args, "Oll", "Oii", &arr, &int_or_ext, &improve_qual)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ II_, &arr, &int_or_ext, &improve_qual)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -167,7 +167,7 @@ PyObject* K_INTERSECTOR::triangulateSpecifiedFaces(PyObject* self, PyObject* arg
   PyObject *arr, *py_pgs;
   E_Int /*int_or_ext(2), */improve_qual(1); //0 : internals only, 1: external only, 2: both
 
-  if (!PYPARSETUPLEI(args, "OOl", "OOi", &arr, &py_pgs, &improve_qual)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ I_, &arr, &py_pgs, &improve_qual)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -232,7 +232,7 @@ PyObject* K_INTERSECTOR::triangulateNFaces(PyObject* self, PyObject* args)
   PyObject *arr, *py_pgs;
   E_Int improve_qual(1), min_nvertices(4);
 
-  if (!PYPARSETUPLEI(args, "OllO", "OiiO", &arr, &improve_qual, &min_nvertices, &py_pgs)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ II_ O_, &arr, &improve_qual, &min_nvertices, &py_pgs)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -316,7 +316,7 @@ PyObject* K_INTERSECTOR::convexifyFaces(PyObject* self, PyObject* args)
   PyObject *arr;
   E_Float convexity_tol(1.e-8);
 
-  if (!PYPARSETUPLEF(args, "Od", "Of", &arr, &convexity_tol)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ R_, &arr, &convexity_tol)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -347,13 +347,12 @@ PyObject* K_INTERSECTOR::convexifyFaces(PyObject* self, PyObject* args)
 
 PyObject* K_INTERSECTOR::computeTNCFields(PyObject* self, PyObject* args)
 {
-
   PyObject *py_ancA, *py_ancB, *py_weight, *py_fields;
 
   E_Int iminA, jminA, kminA;
   E_Int imaxA, jmaxA, kmaxA;
   
-  if (!PYPARSETUPLEI(args, "OOOO(llllll)", "OOOO(iiiiii)", &py_ancA, &py_ancB,
+  if (!PYPARSETUPLE_(args, OOOO_ "(" IIII_ II_ ")", &py_ancA, &py_ancB,
 		     &py_weight, &py_fields, &iminA, &jminA, &kminA, &imaxA, &jmaxA, &kmaxA))
   {
     PyErr_SetString(PyExc_TypeError, "computeTNCFields: wrong args");
@@ -459,7 +458,7 @@ PyObject* K_INTERSECTOR::superMeshCompSurf(PyObject* self, PyObject* args)
   E_Float ARTOL(1.e-6);
   E_Int proj_on_first=1;
 
-  if (!PYPARSETUPLE(args, "OOdl", "OOdi", "OOfl", "OOfi", &arr1, &arr2, &ARTOL, &proj_on_first))
+  if (!PYPARSETUPLE_(args, OO_ R_ I_, &arr1, &arr2, &ARTOL, &proj_on_first))
   {
     PyErr_SetString(PyExc_TypeError, "superMeshCompSurf: wrong args");
     return NULL;
@@ -593,7 +592,7 @@ PyObject* K_INTERSECTOR::superMesh(PyObject* self, PyObject* args)
   E_Float ARTOL(1.e-6);
   E_Int proj_on_first=1;
 
-  if (!PYPARSETUPLE(args, "OOdl", "OOdi", "OOfl", "OOfi", &arr1, &arr2, &ARTOL, &proj_on_first)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ R_ I_, &arr1, &arr2, &ARTOL, &proj_on_first)) return NULL;
 
   K_FLD::FloatArray* f1(0);
   K_FLD::IntArray* cn1(0);
@@ -778,8 +777,7 @@ PyObject* K_INTERSECTOR::prepareCellsSplit(PyObject* self, PyObject* args)
   E_Int PH_set(0); // 0 for concave cells or 1 for non-centroid-star_shaped cells
   E_Int split_policy (0); // 0 : convexify concave pgs on PH set. 1 : starify concave pgs on PH set. 2 : starify any pgs at concave-chains ends.
 
-  if (!PYPARSETUPLE(args, 
-                    "Ollddd", "Oiiddd", "Ollfff", "Oiifff",
+  if (!PYPARSETUPLE_(args, O_ II_ RRR_, 
                     &arr, &PH_set, &split_policy, &PH_conc_threshold, &PH_cvx_threshold, &PG_cvx_threshold)) return NULL;
 
   K_FLD::FloatArray* f(0);
@@ -789,8 +787,8 @@ PyObject* K_INTERSECTOR::prepareCellsSplit(PyObject* self, PyObject* args)
   E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
   if (err) return NULL;
     
-  K_FLD::FloatArray & crd = *f;
-  K_FLD::IntArray & cnt = *cn;
+  K_FLD::FloatArray& crd = *f;
+  K_FLD::IntArray& cnt = *cn;
   
   //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
   //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
@@ -831,10 +829,10 @@ PyObject* K_INTERSECTOR::syncMacthPeriodicFaces(PyObject* self, PyObject* args)
   PyObject *arr;
   E_Float center[3], axis[3], trans[3], artol(-0.01);
 
-  if (!PYPARSETUPLEF(args, "O(ddd)(ddd)(ddd)d", "O(fff)(fff)(fff)f", &arr, 
-                                                                     &center[0], &center[1], &center[2],
-                                                                     &axis[0], &axis[1], &axis[2],
-                                                                     &trans[0], &trans[1], &trans[2], &artol)) return nullptr;
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ TRRR_ R_, &arr, 
+                                                    &center[0], &center[1], &center[2],
+                                                    &axis[0], &axis[1], &axis[2],
+                                                    &trans[0], &trans[1], &trans[2], &artol)) return nullptr;
   
   bool is_rot = false;
   double rot_angle = 0.;

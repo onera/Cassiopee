@@ -43,8 +43,8 @@ PyObject* K_CONVERTER::fillCornerGhostCells(PyObject* self, PyObject* args)
   E_Int arrayRdim1, arrayRdim2;
   E_Int Direction, DirDonor, IncrR, IncrD, DimZone, D;
   E_Int Passage;
-  if (!PYPARSETUPLEI(args, "OOOOslllllllllllll", "OOOOsiiiiiiiiiiiii",
-                     &arrayR, &arrayD, 
+  if (!PYPARSETUPLE_(args, OOOO_ S_ IIII_ IIII_ IIII_ I_,
+                     &arrayR, &arrayD,
                      &arrayIR, &listID, &loc, 
                      &arrayRdim1, &arrayRdim2, 
                      &IncrRcvI, &IncrRcvJ, &IncrDonorI, &IncrDonorJ,

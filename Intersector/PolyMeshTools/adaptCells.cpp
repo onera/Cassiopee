@@ -191,7 +191,7 @@ PyObject* K_INTERSECTOR::createHMesh(PyObject* self, PyObject* args)
 
   PyObject *arr;
 
-  if (!PYPARSETUPLEI(args, "Oll", "Oii", &arr, subtype, zid)) return nullptr;
+  if (!PYPARSETUPLE_(args, O_ II_, &arr, subtype, zid)) return nullptr;
 
   // mesh
   K_FLD::FloatArray* f(0);
@@ -633,7 +633,7 @@ PyObject* K_INTERSECTOR::createSensor(PyObject* self, PyObject* args)
   E_Int smoothing_type(0), sensor_type(0), itermax(0); 
   E_Int metric_policy(0); // O:ISO_MIN, 1:ISO_MEAN, 2:ISO_MAX, 3:ISO_MIN OR ISO_MAX 
 
-  if (!PYPARSETUPLEI(args, "Ollll", "Oiiii", &hook_hmesh, &sensor_type, &smoothing_type, &itermax, &metric_policy)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ IIII_, &hook_hmesh, &sensor_type, &smoothing_type, &itermax, &metric_policy)) return NULL;
 
 
   // // Unpack hmesh hook
@@ -1480,7 +1480,7 @@ PyObject* K_INTERSECTOR::adaptBox(PyObject* self, PyObject* args)
   E_Float bratio(10.);
   E_Int itermax(0), smoothing_type(0);
 
-  if (!PYPARSETUPLE(args, "Odll", "Odii", "Ofll", "Ofii", &arrS, &bratio, &smoothing_type, &itermax)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ R_ II_, &arrS, &bratio, &smoothing_type, &itermax)) return NULL;
 
   if (bratio < 1.)bratio = 1.;
 
@@ -1734,7 +1734,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
   PyObject* pyfieldsC, *pyfieldsN, *pyfieldsF;
   E_Int conformize;
   
-  if (!PYPARSETUPLEI(args, "OOOOOOOl", "OOOOOOOi", &hook, &py_bcptlists, &py_rid_to_ptlist, &py_rid_to_zones, 
+  if (!PYPARSETUPLE_(args, OOOO_ OOO_ I_, &hook, &py_bcptlists, &py_rid_to_ptlist, &py_rid_to_zones, 
     &pyfieldsC, &pyfieldsN, &pyfieldsF, &conformize)) return NULL;
 
   int* sub_type{ nullptr }, *elt_type{ nullptr }, *hook_id{ nullptr }, *zid(nullptr);
@@ -2060,7 +2060,7 @@ PyObject* K_INTERSECTOR::transposePointLists(PyObject* self, PyObject* args)
   // zonerank, Cmpi.rank, Cmpi.size, zone_to_rid_to_list_owned
   PyObject *py_rid_to_zones(nullptr), *py_zone_to_rid_to_list_owned(nullptr);
 
-  if (!PYPARSETUPLEI(args, "OO", "OO", &py_rid_to_zones, &py_zone_to_rid_to_list_owned)) return nullptr;
+  if (!PYPARSETUPLE_(args, OO_, &py_rid_to_zones, &py_zone_to_rid_to_list_owned)) return nullptr;
 
   // 2. GET POINTLISTS MAP 
   std::map<int, std::map<int, std::vector<E_Int>>> zone_to_rid_to_list_owned;

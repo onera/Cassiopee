@@ -36,8 +36,7 @@ using namespace K_FUNC;
 PyObject* K_POST::selectInteriorFaces(PyObject* self, PyObject* args)
 {
   PyObject* array; E_Int strict;
-  if (!PYPARSETUPLEI(args,
-                    "Ol", "Oi",
+  if (!PYPARSETUPLE_(args, O_ I_,
                     &array, &strict))
   {
       return NULL;

@@ -26,7 +26,7 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::adaptNGon32NGon4(PyObject* self, PyObject* args)
 {
   PyObject* arrayConnect;
-  if (!PYPARSETUPLEI(args, "O", "O", &arrayConnect)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &arrayConnect)) return NULL;
 
   // Check numpy (connect)
   FldArrayI* connect;

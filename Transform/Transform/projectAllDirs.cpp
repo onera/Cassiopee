@@ -32,8 +32,7 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
   PyObject* arrays; PyObject* surfArrays;
   PyObject* varsO;
   E_Int oriented;
-  if (!PYPARSETUPLEI(args,
-                    "OOOl", "OOOi",
+  if (!PYPARSETUPLE_(args, OOO_ I_,
                     &arrays, &surfArrays, &varsO, &oriented))
   {
       return NULL;

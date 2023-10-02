@@ -30,7 +30,7 @@ using namespace K_FUNC;
 PyObject* K_TRANSFORM::flipEdges(PyObject* self, PyObject* args)
 {
   PyObject* o; E_Int mode; E_Int nit;
-  if (!PYPARSETUPLEI(args, "Oll", "Oii", &o, &mode, &nit)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ II_, &o, &mode, &nit)) return NULL;
    
   // Check array
   E_Int ni, nj, nk;

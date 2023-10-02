@@ -111,7 +111,7 @@ PyObject* K_CONVERTER::pointList2Ranges(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Int ni, nj, nk;
-  if (!PYPARSETUPLEI(args, "Olll", "Oiii", &array, &ni, &nj, &nk)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ III_, &array, &ni, &nj, &nk)) return NULL;
 
   // Check numpy (pointlist)
   FldArrayI* PL;

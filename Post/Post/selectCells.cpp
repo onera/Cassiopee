@@ -35,8 +35,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
   PyObject* PE;
   E_Int strict; E_Int cleanConnectivity;
   
-  if (!PYPARSETUPLEI(args,
-                    "OOOlOl", "OOOiOi",
+  if (!PYPARSETUPLE_(args, OOO_ I_ O_ I_,
 		     &arrayNodes, &arrayCenters, &tag, &strict, &PE, &cleanConnectivity))
   {
       return NULL;
@@ -817,8 +816,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
 PyObject* K_POST::selectCells3(PyObject* self, PyObject* args)
 {
   PyObject* tag; E_Int flag;
-  if (!PYPARSETUPLEI(args,
-                    "Ol", "Oi",
+  if (!PYPARSETUPLE_(args, O_ I_,
                     &tag, &flag))
   {
       return NULL;
@@ -913,8 +911,7 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
   PyObject* PE;
   E_Int strict; E_Int cleanConnectivity;
   
-  if (!PYPARSETUPLEI(args,
-                    "OOlOl", "OOiOi",
+  if (!PYPARSETUPLE_(args, OO_ I_ O_ I_,
                     &array, &tag, &strict, &PE, &cleanConnectivity))
   {
       return NULL;

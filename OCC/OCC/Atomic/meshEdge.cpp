@@ -158,7 +158,7 @@ E_Int __getNbPts(const TopoDS_Edge& E, E_Float hmax, E_Int& nbPoints)
 PyObject* K_OCC::meshGlobalEdges(PyObject* self, PyObject* args)
 {
   PyObject* hook; E_Float hmax;
-  if (!PYPARSETUPLEF(args, "Od", "Of", &hook, &hmax)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ R_, &hook, &hmax)) return NULL;
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
@@ -194,7 +194,7 @@ PyObject* K_OCC::meshGlobalEdges(PyObject* self, PyObject* args)
 PyObject* K_OCC::meshGlobalEdges2(PyObject* self, PyObject* args)
 {
   PyObject* hook; E_Int nbPoints;
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &hook, &nbPoints)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &hook, &nbPoints)) return NULL;
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
@@ -227,7 +227,7 @@ PyObject* K_OCC::meshGlobalEdges2(PyObject* self, PyObject* args)
 PyObject* K_OCC::meshEdgesByFace(PyObject* self, PyObject* args)
 {
   PyObject* hook; E_Int nbPoints; E_Int noFace; E_Float hmax;
-  if (!PYPARSETUPLE(args, "Olld", "Oiid", "Ollf", "Oiif", &hook, &noFace, &nbPoints, &hmax)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ II_ R_, &hook, &noFace, &nbPoints, &hmax)) return NULL;
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)

@@ -25,7 +25,7 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::adaptNGon2Index(PyObject* self, PyObject* args)
 {
   PyObject* arrayNG; E_Int nfaces;
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arrayNG, &nfaces)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &arrayNG, &nfaces)) return NULL;
 
   // Check numpy (NGon)
   FldArrayI* cNGon;

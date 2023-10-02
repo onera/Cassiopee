@@ -500,7 +500,7 @@ PyObject* K_OCC::getNodalParameters(PyObject* self, PyObject* args)
   PyObject* arrayU; PyObject* arrayV;
   PyObject* dhx; PyObject* dhy; PyObject* dhz; PyObject* ncad; 
   
-  if (!PYPARSETUPLEI(args, "OOOOOOOOO", "OOOOOOOOO", &arr, &arrf, &hook, &arrayU, &arrayV, &dhx, &dhy, &dhz, &ncad)) return NULL;  
+  if (!PYPARSETUPLE_(args, OOOO_ OOOO_ O_, &arr, &arrf, &hook, &arrayU, &arrayV, &dhx, &dhy, &dhz, &ncad)) return NULL;  
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)

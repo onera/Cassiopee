@@ -30,7 +30,7 @@ PyObject* K_CONVERTER::pointList2SPL(PyObject* self, PyObject* args)
 {
   PyObject* PLarray; PyObject* PLDarray;
   E_Int ni, nj, nk;
-  if (!PYPARSETUPLEI(args, "OOlll", "OOiii", &PLarray, &PLDarray, &ni, &nj, &nk)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ III_, &PLarray, &PLDarray, &ni, &nj, &nk)) return NULL;
 
   // Check numpy (pointlist)
   FldArrayI* PL;

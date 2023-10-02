@@ -34,7 +34,7 @@ PyObject* K_CONVERTER::node2Center(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Int sorted;
-  if (!PYPARSETUPLEI(args, "Ol","Oi", &array, &sorted)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &array, &sorted)) return NULL;
 
   PyObject* tpl;
   E_Int ni, nj, nk;

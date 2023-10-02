@@ -33,7 +33,7 @@ PyObject* K_GENERATOR::getEdgeRatio(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Int dimPb;
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &array, &dimPb)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &array, &dimPb)) return NULL;
 
   // Check array
   E_Int im, jm, km;

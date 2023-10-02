@@ -60,7 +60,7 @@ PyObject* K_INTERSECTOR::extractUncomputables(PyObject* self, PyObject* args)
   E_Int neigh_level(1);
   PyObject *arr;
 
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arr, &neigh_level)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &arr, &neigh_level)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -161,7 +161,7 @@ PyObject* K_INTERSECTOR::extractPathologicalCells(PyObject* self, PyObject* args
   E_Int neigh_level(2);
   PyObject *arr;
 
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arr, &neigh_level)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &arr, &neigh_level)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -313,7 +313,7 @@ PyObject* K_INTERSECTOR::extractOuterLayers(PyObject* self, PyObject* args)
   PyObject *arr;
   E_Int N(1), discard_external(0);
 
-  if (!PYPARSETUPLEI(args, "Oll", "Oii", &arr, &N, &discard_external)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ II_, &arr, &N, &discard_external)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -385,7 +385,7 @@ PyObject* K_INTERSECTOR::extractNthCell(PyObject* self, PyObject* args)
   PyObject *arr;
   E_Int nth(0);
 
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arr, &nth)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &arr, &nth)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -588,7 +588,7 @@ PyObject* K_INTERSECTOR::removeNthCell(PyObject* self, PyObject* args)
   PyObject *arr;
   E_Int nth(0);
 
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arr, &nth)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &arr, &nth)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -642,7 +642,7 @@ PyObject* K_INTERSECTOR::removeNthFace(PyObject* self, PyObject* args)
   PyObject *arr;
   E_Int nth(0);
 
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arr, &nth)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &arr, &nth)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -706,7 +706,7 @@ PyObject* K_INTERSECTOR::detectIdenticalCells(PyObject* self, PyObject* args)
   E_Int clean(0);
   E_Float tol(1.e-15);
 
-  if (!PYPARSETUPLE(args, "Odl", "Odi", "Ofl", "Ofi", &arr, &tol, &clean)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ R_ I_, &arr, &tol, &clean)) return NULL;
 
   //std::cout << "detectIdenticalCells : after parse" << std::endl;
 
@@ -836,7 +836,7 @@ PyObject* K_INTERSECTOR::collapseSmallEdges(PyObject* self, PyObject* args)
   PyObject *arr;
   E_Float edge_ratio(-1.), Lmax(-1.);
 
-  if (!PYPARSETUPLEF(args, "Odd", "Off", &arr, &edge_ratio, &Lmax)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ RR_, &arr, &edge_ratio, &Lmax)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -914,7 +914,7 @@ PyObject* K_INTERSECTOR::extractNthFace(PyObject* self, PyObject* args)
   PyObject *arr;
   E_Int nth(0);
 
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arr, &nth)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &arr, &nth)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -1527,7 +1527,7 @@ PyObject* K_INTERSECTOR::extractBadVolCells(PyObject* self, PyObject* args)
   double aratio{0.125}, vmin{0.};
   int nneighs{1};
 
-  if (!PYPARSETUPLE(args, "OOddl", "OOddi", "OOffl", "OOffi", &arr, &PE, &aratio, &vmin, &nneighs)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ RR_ I_, &arr, &PE, &aratio, &vmin, &nneighs)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -1637,7 +1637,7 @@ PyObject* K_INTERSECTOR::extractOverConnectedCells(PyObject* self, PyObject* arg
   PyObject *arr;
   int nneighs{1};
 
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arr, &nneighs)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &arr, &nneighs)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -1880,7 +1880,7 @@ PyObject* K_INTERSECTOR::checkForBigCells(PyObject* self, PyObject* args)
   PyObject *arr;
   E_Int N{8};
 
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arr, &N)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &arr, &N)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -2030,7 +2030,7 @@ PyObject* K_INTERSECTOR::computeGrowthRatio(PyObject* self, PyObject* args)
   PyObject *arr;
   E_Float vmin(0.);
 
-  if (!PYPARSETUPLEF(args, "Od", "Of", &arr, &vmin)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ R_, &arr, &vmin)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -2078,7 +2078,7 @@ PyObject* K_INTERSECTOR::extrudeBC(PyObject* self, PyObject* args)
   E_Int   strategy(0);   // 0 : CST_ABS , 1 : CST_REL_MEAN, 2 : CST_REL_MIN, 3 : VAR_REL_MEAN, 4 : VAR_REL_MIN
   E_Int create_ghost(true);
  
-  if (!PYPARSETUPLE(args, "OOdll", "OOdii", "OOfll", "OOfii", &arr, &pgs, &height, &strategy, &create_ghost)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ R_ II_, &arr, &pgs, &height, &strategy, &create_ghost)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -2152,7 +2152,7 @@ PyObject* K_INTERSECTOR::extrudeBC(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
-/* XXX */
+/* XXX : encore un beau commentaire explicite de Sam!! */
 //=============================================================================
 PyObject* K_INTERSECTOR::extrudeSurf(PyObject* self, PyObject* args)
 {
@@ -2160,7 +2160,7 @@ PyObject* K_INTERSECTOR::extrudeSurf(PyObject* self, PyObject* args)
   E_Float layer_height(0.25);
   E_Int   strategy(0), nlayers(1);   // 0 : CST_ABS , 1 : CST_REL_MEAN, 2 : CST_REL_MIN, 3 : VAR_REL_MEAN, 4 : VAR_REL_MIN
  
-  if (!PYPARSETUPLE(args, "Odll", "Odii", "Ofll", "Ofii", &arr, &layer_height, &nlayers, &strategy)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ R_ II_, &arr, &layer_height, &nlayers, &strategy)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -2221,7 +2221,7 @@ PyObject* K_INTERSECTOR::extrudeRevolSurf(PyObject* self, PyObject* args)
 
   //std::cout << "extrudeRevolSurf : 1" << std::endl;
  
-  if (!PYPARSETUPLE(args, "O(ddd)(ddd)l", "O(ddd)(ddd)i", "O(fff)(fff)l", "O(fff)(fff)i", &arr, &pt[0], &pt[1], &pt[2], &dir[0], &dir[1], &dir[2], &nlayers)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ I_, &arr, &pt[0], &pt[1], &pt[2], &dir[0], &dir[1], &dir[2], &nlayers)) return NULL;
 
   //std::cout << "extrudeRevolSurf : 2" << std::endl;
 
@@ -2287,7 +2287,7 @@ PyObject* K_INTERSECTOR::reorientSpecifiedFaces(PyObject* self, PyObject* args)
   PyObject *arr, *py_pgs;
   E_Int dir(1); //1 : outward -1 : inward
 
-  if (!PYPARSETUPLEI(args, "OOl", "OOi", &arr, &py_pgs, &dir)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ I_, &arr, &py_pgs, &dir)) return NULL;
 
   if (dir != -1 && dir != 1) dir = 1;
 
@@ -2375,7 +2375,7 @@ PyObject* K_INTERSECTOR::reorient(PyObject* self, PyObject* args)
   PyObject *arr;
   E_Int dir(1); //1 : outward -1 : inward
 
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arr, &dir)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &arr, &dir)) return NULL;
 
   if (dir != -1 && dir != 1) dir = 1;
 
@@ -2436,7 +2436,7 @@ PyObject* K_INTERSECTOR::externalFaces(PyObject* self, PyObject* args)
   PyObject *arr, *py_skipids;
   E_Int geo_dim(-1);
 
-  if (!PYPARSETUPLEI(args, "OOl", "OOi", &arr, &py_skipids, &geo_dim)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ I_, &arr, &py_skipids, &geo_dim)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -2719,7 +2719,7 @@ PyObject* K_INTERSECTOR::statsSize(PyObject* self, PyObject* args)
   PyObject *arr;
   E_Int comp_metrics(1);
 
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arr, &comp_metrics)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &arr, &comp_metrics)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -2952,7 +2952,7 @@ PyObject* K_INTERSECTOR::immerseNodes(PyObject* self, PyObject* args)
   PyObject *arr1, *arr2;
   double TOL{0.};
 
-  if (!PYPARSETUPLEF(args, "OOd", "OOf", &arr1, &arr2, &TOL)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ R_, &arr1, &arr2, &TOL)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -3349,7 +3349,7 @@ PyObject* K_INTERSECTOR::volumes(PyObject* self, PyObject* args)
   E_Int algo(0);
   E_Int all_pgs_cvx(0);
 
-  if (!PYPARSETUPLEI(args, "Oll", "Oii", &arr, &algo, &all_pgs_cvx)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ II_, &arr, &algo, &all_pgs_cvx)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -3390,7 +3390,7 @@ PyObject* K_INTERSECTOR::getOverlappingFaces(PyObject* self, PyObject* args)
   E_Float RTOL(0.1), AMAX(0.1);
   E_Float d2[3], *pdir2(nullptr);
 
-  if (!PYPARSETUPLEF(args, "OOdd(ddd)", "OOff(fff)", &arr1, &arr2, &RTOL, &AMAX, &d2[0], &d2[1], &d2[2])) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ RR_ TRRR_, &arr1, &arr2, &RTOL, &AMAX, &d2[0], &d2[1], &d2[2])) return NULL;
 
   if (d2[0] != 0. || d2[1] != 0. || d2[2] != 0.)
     pdir2 = d2;
@@ -3480,7 +3480,7 @@ PyObject* K_INTERSECTOR::getCollidingTopFaces(PyObject* self, PyObject* args)
   PyObject *arr1, *arr2;
   E_Float RTOL(1.e-12);
 
-  if (!PYPARSETUPLEF(args, "OOd", "OOf", &arr1, &arr2, &RTOL)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ I_, &arr1, &arr2, &RTOL)) return NULL;
 
   K_FLD::FloatArray *f1(0), *f2(0);
   K_FLD::IntArray *cn1(0), *cn2(0);
@@ -3645,7 +3645,7 @@ PyObject* K_INTERSECTOR::getCollidingCells(PyObject* self, PyObject* args)
   E_Float RTOL(1.e-12);
   E_Int only_externals{0};
 
-  if (!PYPARSETUPLE(args, "OOdl", "OOdi", "OOfl", "OOfi", &arr1, &arr2, &RTOL, &only_externals)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ R_ I_, &arr1, &arr2, &RTOL, &only_externals)) return NULL;
 
   K_FLD::FloatArray *f1(0), *f2(0);
   K_FLD::IntArray *cn1(0), *cn2(0);
@@ -3767,7 +3767,7 @@ PyObject* K_INTERSECTOR::estimateAdapReq(PyObject* self, PyObject* args)
   E_Float RTOL(1.e-12);
   E_Int minv{0}, maxv{5}, metric_policy{2}; // 0:MIN ; 1:MEAN ; 2:MAX
 
-  if (!PYPARSETUPLE(args, "OOldll", "OOidii", "OOlfll", "OOifii", &arr1, &arr2, &metric_policy, &RTOL, &minv, &maxv)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ I_ R_ II_, &arr1, &arr2, &metric_policy, &RTOL, &minv, &maxv)) return NULL;
 
   K_FLD::FloatArray *f1(0), *f2(0);
   K_FLD::IntArray *cn1(0), *cn2(0);
@@ -3863,7 +3863,7 @@ PyObject* K_INTERSECTOR::getNthNeighborhood(PyObject* self, PyObject* args)
   PyObject *arr1, *py_ids;
   E_Int N{0};
 
-  if (!PYPARSETUPLEI(args, "OiO", "OlO", &arr1, &N, &py_ids)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_ O_, &arr1, &N, &py_ids)) return NULL;
 
   K_FLD::FloatArray *f1(0);
   K_FLD::IntArray *cn1(0);
@@ -3933,7 +3933,7 @@ PyObject* K_INTERSECTOR::getAnisoInnerFaces(PyObject* self, PyObject* args)
   PyObject *arr;
   E_Float aniso_ratio(0.05);
   
-  if (!PYPARSETUPLEF(args, "Od", "Of", &arr, &aniso_ratio)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ R_, &arr, &aniso_ratio)) return NULL;
 
   K_FLD::FloatArray *f(0);
   K_FLD::IntArray *cn(0);
@@ -3988,7 +3988,7 @@ PyObject* K_INTERSECTOR::merge(PyObject* self, PyObject* args)
 
   PyObject *arr1, *arr2;
   E_Float tolerance(1.e-15);
-  if (!PYPARSETUPLEF(args, "OOd", "OOf", &arr1, &arr2, &tolerance)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ R_, &arr1, &arr2, &tolerance)) return NULL;
 
   char *varString, *eltType;
   E_Int ni, nj, nk;
@@ -4084,7 +4084,7 @@ PyObject* K_INTERSECTOR::concatenate(PyObject* self, PyObject* args)
   E_Float tol(1.e-15);
   PyObject* arrs;
 
-  if (!PYPARSETUPLEF(args, "Od", "Of", &arrs, &tol))
+  if (!PYPARSETUPLE_(args, O_ R_, &arrs, &tol))
   {
     PyErr_SetString(PyExc_TypeError, "concatenate : wrong args");
     return NULL;
@@ -4410,7 +4410,7 @@ PyObject* K_INTERSECTOR::getFaceIdsCollidingVertex(PyObject* self, PyObject* arg
 {
   PyObject *arr1;
   E_Float vtx[3];
-  if (!PYPARSETUPLEF(args, "O(ddd)", "O(fff)", &arr1, &vtx[0], &vtx[1], &vtx[2])) return NULL;
+  if (!PYPARSETUPLE_(args, O_ TRRR_, &arr1, &vtx[0], &vtx[1], &vtx[2])) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -4526,7 +4526,7 @@ PyObject* K_INTERSECTOR::getCells(PyObject* self, PyObject* args)
   PyObject *arr1, *arr2;
   E_Int is_face_id{1};
 
-  if (!PYPARSETUPLEI(args, "OOl", "OOi", &arr1, &arr2, &is_face_id)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ I_, &arr1, &arr2, &is_face_id)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);

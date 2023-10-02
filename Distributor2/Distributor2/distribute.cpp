@@ -29,7 +29,7 @@ PyObject* K_DISTRIBUTOR2::distribute(PyObject* self, PyObject* args)
   PyObject* perfProcs; PyObject* weight;
   PyObject* com; PyObject* comd; E_Int NProc;
   char* algorithm;
-  if (!PYPARSETUPLEI(args,"OOOOOOls","OOOOOOis", 
+  if (!PYPARSETUPLE_(args, OOOO_ OO_ I_ S_, 
                      &nbPts, &setBlocks, &perfProcs, &weight, 
                      &com, &comd, &NProc, &algorithm)) return NULL;
 

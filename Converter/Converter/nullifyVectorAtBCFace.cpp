@@ -49,7 +49,7 @@ PyObject* K_CONVERTER::nullifyVectorAtBCFaceStruct(PyObject* self, PyObject* arg
   E_Int Loc;
   char *vectx, *vecty, *vectz; 
   char *GridCoordinates, *FlowSolutionNodes, *FlowSolutionCenters;
-  if (!PYPARSETUPLEI(args, "OOOOlllllllssssss", "OOOOiiiiiiissssss", 
+  if (!PYPARSETUPLE_(args, OOOO_ IIII_ III_ SSSS_ SS_, 
                     &zone, &dataBCX, &dataBCY, &dataBCZ, 
                     &imin, &imax, &jmin, &jmax, &kmin, &kmax, &Loc,
                     &vectx, &vecty, &vectz, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters)) return NULL;

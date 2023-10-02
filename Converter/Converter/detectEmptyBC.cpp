@@ -30,7 +30,7 @@ PyObject* K_CONVERTER::detectEmptyBC(PyObject* self, PyObject* args)
   E_Int Ni=0, Nj=0, Nk=0, D;
   PyObject* winList;
   PyObject* NwinList;
-  if (!PYPARSETUPLEI(args, "OllllO", "OiiiiO", &winList, &Ni, &Nj, &Nk, &D, &NwinList)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ IIII_ O_, &winList, &Ni, &Nj, &Nk, &D, &NwinList)) return NULL;
 
   E_Int ni  = Ni; E_Int nj  = Nj; E_Int nk  = Nk;
   E_Int dir = D;

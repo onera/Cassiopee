@@ -29,7 +29,7 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Int mode;
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &array, &mode)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &array, &mode)) return NULL;
 
   // Check array
   E_Int ni, nj, nk;

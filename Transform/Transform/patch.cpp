@@ -31,8 +31,7 @@ PyObject* K_TRANSFORM::patch(PyObject* self, PyObject* args)
 {
   PyObject* array1; PyObject* array2;
   E_Int ii, jj, kk;
-  if (!PYPARSETUPLEI(args,
-                    "OO(lll)", "OO(iii)",
+  if (!PYPARSETUPLE_(args, OO_ TIII_,
                     &array1, &array2, &ii, &jj, &kk))
   {
       return NULL;

@@ -34,7 +34,7 @@ PyObject* K_CONVERTER::registerAllFaces(PyObject* self, PyObject* args)
 {
   PyObject* arrays;
   E_Int extended;
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arrays, &extended)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &arrays, &extended)) return NULL;
 
   E_Int extendedI = E_Int(extended);
   

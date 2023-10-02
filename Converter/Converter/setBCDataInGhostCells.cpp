@@ -38,7 +38,7 @@ PyObject* K_CONVERTER::setBCDataInGhostCellsStruct(PyObject* self,
   PyObject* zone;// zone with ghost cells, zone dim may not be consistent
   PyObject *dataBC, *BCRanges;// dataFS is dimensioned as ghost cells already im+2*d etc
   char* varname; char *GridCoordinates, *FlowSolutionNodes, *FlowSolutionCenters;
-  if (!PYPARSETUPLEI(args, "OOOlllllssss", "OOOiiiiissss", &zone, &BCRanges, &dataBC , &im, &jm, &km, &d, &locI, 
+  if (!PYPARSETUPLE_(args, OOO_ IIII_ I_ SSSS_, &zone, &BCRanges, &dataBC , &im, &jm, &km, &d, &locI, 
                      &varname, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters)) 
     return NULL;
 

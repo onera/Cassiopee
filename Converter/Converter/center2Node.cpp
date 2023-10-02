@@ -29,7 +29,7 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
   PyObject* array;
   E_Int type;
   PyObject* BCFields; // optional indR+fields on BCs
-  if (!PYPARSETUPLEI(args, "OlO", "OiO", &array, &type, &BCFields)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_ O_, &array, &type, &BCFields)) return NULL;
 
   // Check BCFields
   if (BCFields != Py_None)

@@ -29,7 +29,7 @@ PyObject* K_CONVERTER::extractBCFields(PyObject* self, PyObject* args)
   PyObject *zone, *pyIndices, *pyVariables;
   E_Int locI; // 0 = nodes, 1 centers
   char *GridCoordinates, *FlowSolutionNodes, *FlowSolutionCenters;
-  if (!PYPARSETUPLEI(args, "OOOlsss","OOOisss", &zone, &pyIndices, &pyVariables, 
+  if (!PYPARSETUPLE_(args, OOO_ I_ SSS_, &zone, &pyIndices, &pyVariables, 
                      &locI, 
                      &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters)) 
     return NULL; 

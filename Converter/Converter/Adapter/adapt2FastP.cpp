@@ -30,7 +30,7 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
 {
   PyObject* NGon; PyObject* NFace; PyObject* PE; PyObject* NGon_intext; PyObject* NFace_intext; PyObject* Ptlist_bc; PyObject* Ptlist_rac; PyObject* Ptlist_racD;
   E_Int nelts;
-  if (!PYPARSETUPLEI(args, "OOOOOOOOl", "OOOOOOOOi", &NGon, &NFace, &PE, &NGon_intext, &NFace_intext, &Ptlist_bc, &Ptlist_rac, &Ptlist_racD, &nelts))
+  if (!PYPARSETUPLE_(args, OOOO_ OOOO_ I_, &NGon, &NFace, &PE, &NGon_intext, &NFace_intext, &Ptlist_bc, &Ptlist_rac, &Ptlist_racD, &nelts))
     return NULL;
 
   // Check numpy NGon

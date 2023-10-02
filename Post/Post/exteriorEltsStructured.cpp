@@ -35,7 +35,7 @@ PyObject* K_POST::exteriorEltsStructured(PyObject* self, PyObject* args)
 {
   /* Check */ 
   PyObject* array; E_Int depth;
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &array, &depth)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &array, &depth)) return NULL;
   
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;

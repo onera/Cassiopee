@@ -35,11 +35,11 @@ PyObject* K_CONVERTER::fillJoin(PyObject* self, PyObject* args)
   E_Int Direction, DirDonor, IncrR, IncrD, DimZone, D;
   E_Int Im=0;
   E_Int ImDonor=0;
-  if (!PYPARSETUPLEI(args, "OOOOsllllllllll", "OOOOsiiiiiiiiii",
+  if (!PYPARSETUPLE_(args, OOOO_ S_ IIII_ IIII_ II_,
                      &arrayR, &arrayD, 
                      &arrayIR, &listID, &loc, 
                      &arrayRdim1, &arrayRdim2,
-                     &Direction, &DirDonor, &IncrR, &IncrD, &DimZone, &D , 
+                     &Direction, &DirDonor, &IncrR, &IncrD, &DimZone, &D, 
                      &Im, &ImDonor)) return NULL;
 
   // Get E_Int values

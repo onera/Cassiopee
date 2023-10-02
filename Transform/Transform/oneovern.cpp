@@ -31,8 +31,7 @@ PyObject* K_TRANSFORM::oneovern(PyObject* self, PyObject* args)
 {
   E_Int Ni, Nj, Nk, Add;
   PyObject* array;
-  if (!PYPARSETUPLEI(args,
-                    "O(lll)l", "O(iii)i",
+  if (!PYPARSETUPLE_(args, O_ TIII_ I_,
                     &array, &Ni, &Nj, &Nk, &Add))
   {
       return NULL;

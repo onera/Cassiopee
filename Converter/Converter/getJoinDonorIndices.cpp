@@ -35,7 +35,7 @@ PyObject* K_CONVERTER::getJoinDonorIndices(PyObject* self, PyObject* args)
   PyObject* arrayBorderI;
   E_Int T1, T2, T3;
   E_Int Direction, Dim, DimI, DimBI;
-  if (!PYPARSETUPLEI(args, "OOlllllll", "OOiiiiiii",
+  if (!PYPARSETUPLE_(args, OO_ IIII_ III_,
 			&arrayI, &arrayBorderI, &T1, &T2, &T3,
 			&Direction, &Dim, &DimI, &DimBI)) return NULL;
 

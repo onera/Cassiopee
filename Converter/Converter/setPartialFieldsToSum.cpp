@@ -134,7 +134,7 @@ PyObject* K_CONVERTER::updatePartialFieldsPT(PyObject* self, PyObject* args)
   PyObject* listIndicesO;
   E_Int loc;
   E_Int startFrom;
-  if (!PYPARSETUPLEI(args, "OOOlsssl", "OOOisssi", &zone, &arrayF, &listIndicesO, &loc, 
+  if (!PYPARSETUPLE_(args, OOO_ I_ SSS_ I_, &zone, &arrayF, &listIndicesO, &loc, 
 		     &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters, &startFrom))
     { return NULL; }
 
@@ -254,7 +254,7 @@ PyObject* K_CONVERTER::_updatePartialFields(PyObject* self, PyObject* args)
   PyObject* listIndicesO;
   E_Int loc;
   E_Int startFrom;
-  if (!PYPARSETUPLEI(args, "OOOlsssl", "OOOisssi", &zone, &listNumFields, &listIndicesO, &loc,
+  if (!PYPARSETUPLE_(args, OOO_ I_ SSS_ I_, &zone, &listNumFields, &listIndicesO, &loc,
                      &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters, &startFrom)) return NULL;
 
   /*--------------------------------------------*/

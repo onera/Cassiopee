@@ -36,7 +36,7 @@ PyObject* K_CONVERTER::getJoinBorderIndices(PyObject* self, PyObject* args)
   E_Int Im, Jm, Km;
   E_Int Direction, D, Dim, Dim1;
   E_Int Shift;
-  if (!PYPARSETUPLEI(args, "Ollllllllllllll", "Oiiiiiiiiiiiiii", 
+  if (!PYPARSETUPLE_(args, O_ IIII_ IIII_ IIII_ II_, 
                      &arrayI, &Dim1, &Im, &Jm, &Km,
                      &Wimin, &Wimax, &Wjmin, &Wjmax, &Wkmin, &Wkmax,
                      &Direction, &Dim, &D, &Shift)) return NULL;

@@ -44,8 +44,8 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
   char* fileName; char* fileFmt;
   PyObject* zoneNamesO; PyObject* BCFacesO; PyObject* centerArrays;
 
-  if (!PYPARSETUPLE(args, "sslldOOO", "ssiidOOO",
-                    "ssllfOOO", "ssiifOOO", &fileName, &fileFmt, 
+  if (!PYPARSETUPLE_(args, SS_ II_ R_ OOO_,
+                    &fileName, &fileFmt, 
                     &nCurve, &nLine, &density, &zoneNamesO,
                     &BCFacesO, &centerArrays)) return NULL;
 
@@ -516,7 +516,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   char* eltType;
   PyObject* zoneNamesO; PyObject* BCFacesO;
 
-  if (!PYPARSETUPLEI(args, "OssllslsOO", "OssiisisOO", 
+  if (!PYPARSETUPLE_(args, O_ SS_ II_ S_ I_ S_ OO_,
                      &arrays, &fileName, &fileFmt, &is, &rs, &e, &c, 
                      &dataFmt, &zoneNamesO, &BCFacesO)) return NULL;
 
@@ -988,7 +988,7 @@ PyObject* K_CONVERTER::readPyTreeFromPaths(PyObject* self, PyObject* args)
 {
   char* fileName; char* format; E_Int maxFloatSize; E_Int maxDepth; 
   PyObject* paths; PyObject* skipTypes; PyObject* dataShape; PyObject* mpi4pyCom;
-  if (!PYPARSETUPLEI(args, "sOsllOOO", "sOsiiOOO",
+  if (!PYPARSETUPLE_(args, S_ O_ S_ II_ OOO_,
                      &fileName, &paths, &format, 
                      &maxFloatSize, &maxDepth, &dataShape, &skipTypes, &mpi4pyCom)) return NULL;
   
@@ -1017,7 +1017,8 @@ PyObject* K_CONVERTER::writePyTreePaths(PyObject* self, PyObject* args)
 {
   char* fileName; char* format; E_Int maxDepth; E_Int mode;
   PyObject* paths; PyObject* nodeList; PyObject* links;
-  if (!PYPARSETUPLEI(args, "sOOsllO", "sOOsiiO", &fileName, &nodeList, &paths, &format, &maxDepth, &mode, &links))
+  if (!PYPARSETUPLE_(args, S_ OO_ S_ II_ O_,
+                     &fileName, &nodeList, &paths, &format, &maxDepth, &mode, &links))
     return NULL;
   
   if (links == Py_None) { links = NULL; }
@@ -1043,7 +1044,7 @@ PyObject* K_CONVERTER::deletePyTreePaths(PyObject* self, PyObject* args)
 {
   char* fileName; char* format;
   PyObject* paths;
-  if (!PYPARSETUPLEI(args, "sOs", "sOs", &fileName, &paths, &format))
+  if (!PYPARSETUPLE_(args, S_ O_ S_, &fileName, &paths, &format))
     return NULL;
   
   E_Int ret = 1;

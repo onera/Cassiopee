@@ -26,7 +26,7 @@ PyObject* K_CONVERTER::createBBTree(PyObject* self, PyObject* args)
 {
     PyObject* pymBB;
     PyObject* pyMBB;
-    if (!PYPARSETUPLEI(args, "OO", "OO", &pymBB, &pyMBB)) return NULL;
+    if (!PYPARSETUPLE_(args, OO_, &pymBB, &pyMBB)) return NULL;
 
     E_Int nBB = PyList_Size(pyMBB);
     E_Float mBB[3];
@@ -68,7 +68,7 @@ PyObject* K_CONVERTER::createBBTree(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::intersect(PyObject* self, PyObject* args)
 {
     PyObject* pymBB; PyObject* pyMBB; PyObject* hook;
-    if (!PYPARSETUPLEI(args, "OOO", "OOO", &pymBB, &pyMBB, &hook)) return NULL;
+    if (!PYPARSETUPLE_(args, OOO_, &pymBB, &pyMBB, &hook)) return NULL;
 
     // Calcul de la BB de la zone
     E_Float mBB[3]; E_Float MBB[3];
@@ -112,7 +112,7 @@ PyObject* K_CONVERTER::intersect(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::intersect2(PyObject* self, PyObject* args)
 {
     PyObject* hook; PyObject* inBB;
-    if (!PYPARSETUPLEI(args, "OO", "OO", &inBB, &hook)) return NULL;
+    if (!PYPARSETUPLE_(args, OO_, &inBB, &hook)) return NULL;
 
     // recupere le hook
     void** packet = NULL;
@@ -195,7 +195,7 @@ PyObject* K_CONVERTER::intersect2(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::deleteBBTree(PyObject* self, PyObject* args)
 {
     PyObject* hook;
-    if (!PYPARSETUPLEI(args, "O", "O", &hook)) return NULL;
+    if (!PYPARSETUPLE_(args, O_, &hook)) return NULL;
 
     // recupere le hook
     void** packet = NULL;
