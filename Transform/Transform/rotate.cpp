@@ -112,8 +112,7 @@ PyObject* K_TRANSFORM::rotateA1(PyObject* self, PyObject* args)
   PyObject* listOfFieldVectors;
   E_Float xc, yc, zc;
   E_Float nx, ny, nz, teta;
-  if (!PYPARSETUPLEF(args,
-                    "O(ddd)(ddd)dO", "O(fff)(fff)fO",
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ I_ O_,
                     &array, &xc, &yc, &zc, &nx, &ny, &nz, &teta, &listOfFieldVectors))
   {
       return NULL;
@@ -219,8 +218,7 @@ PyObject* K_TRANSFORM::rotateA2(PyObject* self, PyObject* args)
   E_Float f1x, f1y, f1z, f2x, f2y, f2z, f3x, f3y, f3z;
   PyObject* listOfFieldVectors;
 
-  if (!PYPARSETUPLEF(args,
-                    "O(ddd)((ddd)(ddd)(ddd))((ddd)(ddd)(ddd))O", "O(fff)((fff)(fff)(fff))((fff)(fff)(fff))O",
+  if (!PYPARSETUPLE_(args, O_ TRRR_, "(" TRRR_ TRRR_ TRRR_ ")" "(" TRRR_ TRRR_ TRRR_ ")" O_,
                     &array,
                     &xc, &yc, &zc, 
                     &e1x, &e1y, &e1z,
@@ -388,8 +386,7 @@ PyObject* K_TRANSFORM::rotateA3(PyObject* self, PyObject* args)
   E_Float alpha, beta, gamma;
   PyObject* listOfFieldVectors;
 
-  if (!PYPARSETUPLEF(args,
-                    "O(ddd)(ddd)O", "O(fff)(fff)O",
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ O_,
                     &array, &xc, &yc, &zc, &alpha, &beta, &gamma, &listOfFieldVectors))
   {
       return NULL;

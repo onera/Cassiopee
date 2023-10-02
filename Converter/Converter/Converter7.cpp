@@ -251,7 +251,7 @@ PyObject* K_CONVERTER::getMeanRangeValue(PyObject* self, PyObject* args)
 {
   PyObject* array; char* varName;
   E_Float rmin, rmax;
-  if (!PYPARSETUPLEF(args, "Osdd", "Osff", &array, &varName, &rmin, &rmax)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ S_ RR_, &array, &varName, &rmin, &rmax)) return NULL;
 
   // Check array
   E_Int im, jm, km;

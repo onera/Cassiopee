@@ -34,7 +34,7 @@ PyObject* K_CONVERTER::initVars(PyObject* self, PyObject* args)
   PyObject* array;
   E_Float val; char* varName;
 
-  if (!PYPARSETUPLEF(args, "Osd", "Osf", &array, &varName, &val)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ S_ R_, &array, &varName, &val)) return NULL;
 
   // Check array
   E_Int ni, nj, nk;

@@ -30,7 +30,7 @@ using namespace std;
 PyObject* K_CONVERTER::isFinite(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PYPARSETUPLEF(args, "O", "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
   
   FldArrayF* f; 
   E_Int res = K_NUMPY::getFromNumpyArray(array, f, true);

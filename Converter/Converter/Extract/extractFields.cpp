@@ -32,8 +32,7 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::extractFields(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* index;
-  if (!PYPARSETUPLEF(args,
-                     "OO", "OO",
+  if (!PYPARSETUPLE_(args, OO_,
                      &array, &index)) return NULL;
   
   // Check array

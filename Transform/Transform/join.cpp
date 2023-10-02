@@ -31,8 +31,7 @@ PyObject* K_TRANSFORM::join(PyObject* self, PyObject* args)
 {
   PyObject* array1; PyObject* array2;
   E_Float tol;
-  if (!PYPARSETUPLEF(args,
-                    "OOd", "OOf",
+  if (!PYPARSETUPLE_(args, OO_ R_,
                     &array1, &array2, &tol))
   {
       return NULL;

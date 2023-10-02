@@ -31,8 +31,7 @@ using namespace std;
 PyObject* K_TRANSFORM::splitNGon(PyObject* self, PyObject* args)
 {
   PyObject* array; E_Int nparts;
-  if (!PYPARSETUPLEI(args,
-                    "Ol", "Oi",
+  if (!PYPARSETUPLE_(args, O_ I_,
                     &array, &nparts))
   {
       return NULL;

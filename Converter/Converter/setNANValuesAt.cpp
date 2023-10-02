@@ -31,7 +31,7 @@ PyObject* K_CONVERTER::setNANValuesAt(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Float val;
-  if (!PYPARSETUPLEF(args, "Od", "Of", &array, &val)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ R_, &array, &val)) return NULL;
   
   FldArrayF* f; 
   E_Int res = K_NUMPY::getFromNumpyArray(array, f, true);

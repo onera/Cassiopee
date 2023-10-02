@@ -35,8 +35,7 @@ PyObject* K_TRANSFORM::symetrize(PyObject* self, PyObject* args)
   E_Float v1x, v1y, v1z;
   E_Float v2x, v2y, v2z;
   PyObject* array;
-  if (!PYPARSETUPLEF(args,
-                    "O(ddd)(ddd)(ddd)", "O(fff)(fff)(fff)",
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ TRRR_,
                     &array, &x0, &y0, &z0, &v1x, &v1y, &v1z, &v2x, &v2y, &v2z))
   {
       return NULL;

@@ -29,7 +29,7 @@ PyObject* K_TRANSFORM::_cyl2CartA(PyObject* self, PyObject* args)
     PyObject *array;
     E_Float X0, Y0, Z0;
     E_Float ex, ey, ez;
-    if (!PYPARSETUPLEF(args,"O(ddd)(ddd)", "O(fff)(fff)",
+    if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_,
                        &array, &X0, &Y0, &Z0, &ex, &ey, &ez))
       return NULL;
 
@@ -109,7 +109,7 @@ PyObject* K_TRANSFORM::_cyl2CartZ(PyObject* self, PyObject* args)
     char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
     E_Float X0, Y0, Z0;
     E_Float ex, ey, ez;
-    if (!PYPARSETUPLEF(args,"O(ddd)(ddd)sss", "O(fff)(fff)sss",
+    if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ SSS_,
                        &zone, &X0, &Y0, &Z0, &ex, &ey, &ez, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
         return NULL;
 

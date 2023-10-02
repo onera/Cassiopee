@@ -30,8 +30,7 @@ PyObject* K_TRANSFORM::translate(PyObject* self, PyObject* args)
 {
   E_Float vx, vy, vz;
   PyObject* array;
-  if (!PYPARSETUPLEF(args,
-                    "O(ddd)", "O(fff)",
+  if (!PYPARSETUPLE_(args, O_ TRRR_,
                     &array, &vx, &vy, &vz))
       return NULL;
   

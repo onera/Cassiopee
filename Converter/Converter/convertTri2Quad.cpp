@@ -39,7 +39,7 @@ PyObject* K_CONVERTER::convertTri2Quad(PyObject* self, PyObject* args)
 {
   PyObject* pArray;
   E_Float angle;
-  if (!PYPARSETUPLEF(args, "Od", "Of", &pArray, &angle)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ R_, &pArray, &angle)) return NULL;
  
   // Check array
   E_Int ni, nj, nk;

@@ -30,8 +30,7 @@ PyObject* K_TRANSFORM::projectRay(PyObject* self, PyObject* args)
 {
   PyObject* arrays; PyObject* array2;
   E_Float Px,Py,Pz;
-  if (!PYPARSETUPLEF(args,
-                    "OO(ddd)", "OO(fff)",
+  if (!PYPARSETUPLE_(args, OO_ TRRR_,
                     &arrays, &array2, &Px, &Py, &Pz))
   {
       return NULL;

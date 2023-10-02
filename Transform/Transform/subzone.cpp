@@ -30,8 +30,7 @@ PyObject* K_TRANSFORM::subzoneStruct(PyObject* self, PyObject* args)
 {
   E_Int i1, j1, k1; E_Int i2, j2, k2;
   E_Int ind, ind2; PyObject* array;
-  if (!PYPARSETUPLEI(args,
-                    "O(lll)(lll)", "O(iii)(iii)",
+  if (!PYPARSETUPLE_(args, O_ TIII_ TIII_,
                     &array, &i1, &j1, &k1, &i2, &j2, &k2))
   {
       return NULL;

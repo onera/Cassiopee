@@ -32,8 +32,7 @@ PyObject* K_TRANSFORM::_rotateA1(PyObject* self, PyObject* args)
   PyObject* array;
   E_Float xc, yc, zc;
   E_Float nx, ny, nz, teta;
-  if (!PYPARSETUPLEF(args,
-                    "O(ddd)(ddd)d", "O(fff)(fff)f",
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ R_,
                     &array, &xc, &yc, &zc, &nx, &ny, &nz, &teta))
   {
       return NULL;
@@ -142,9 +141,7 @@ PyObject* K_TRANSFORM::_rotateA2(PyObject* self, PyObject* args)
   E_Float e1x, e1y, e1z, e2x, e2y, e2z, e3x, e3y, e3z;
   E_Float f1x, f1y, f1z, f2x, f2y, f2z, f3x, f3y, f3z;
 
-  if (!PYPARSETUPLEF(args,
-                     "O(ddd)((ddd)(ddd)(ddd))((ddd)(ddd)(ddd))", 
-                     "O(fff)((fff)(fff)(fff))((fff)(fff)(fff))",
+  if (!PYPARSETUPLE_(args, O_ TRRR_ "(" TRRR_ TRRR_ TRRR_ ")" "(" TRRR_ TRRR_ TRRR_ ")",
                      &array,
                      &xc, &yc, &zc, 
                      &e1x, &e1y, &e1z,
@@ -257,8 +254,7 @@ PyObject* K_TRANSFORM::_rotateA3(PyObject* self, PyObject* args)
   PyObject* array;
   E_Float xc, yc, zc;
   E_Float alpha, beta, gamma;
-  if (!PYPARSETUPLEF(args,
-                    "O(ddd)(ddd)", "O(fff)(fff)",
+  if (!PYPARSETUPLE_(args, O_ TRRR_, TRRR_,
                     &array, &xc, &yc, &zc, &alpha, &beta, &gamma))
   {
       return NULL;

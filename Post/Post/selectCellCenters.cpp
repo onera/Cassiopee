@@ -34,7 +34,7 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* taga;
   PyObject* PE; E_Int cleanConnectivity;
-  if (!PYPARSETUPLEI(args, "OOOl", "OOOi", &array, &taga, &PE, &cleanConnectivity)) return NULL;
+  if (!PYPARSETUPLE_(args, OOO_ I_, &array, &taga, &PE, &cleanConnectivity)) return NULL;
 
   // Extract array
   char* varString; char* eltType;

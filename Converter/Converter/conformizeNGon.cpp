@@ -27,7 +27,7 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::conformizeNGon(PyObject* self, PyObject* args)
 {
   PyObject* array; E_Float tol;
-  if (!PYPARSETUPLEF(args, "Od", "Of", &array, &tol)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ R_, &array, &tol)) return NULL;
 
   // Check array
   E_Int ni, nj, nk, res;

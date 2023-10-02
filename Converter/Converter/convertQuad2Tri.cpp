@@ -37,7 +37,7 @@ using namespace K_FUNC;
 PyObject* K_CONVERTER::convertQuad2Tri(PyObject* self, PyObject* args)
 {
   PyObject* pArray;
-  if (!PYPARSETUPLEF(args, "O", "O", &pArray)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &pArray)) return NULL;
  
   // Check array
   E_Int ni, nj, nk;

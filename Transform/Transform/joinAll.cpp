@@ -30,8 +30,7 @@ using namespace K_CONST;
 PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
 {
   PyObject* arrays; E_Float tol;
-  if (!PYPARSETUPLEF(args,
-                    "Od", "Of",
+  if (!PYPARSETUPLE_(args, O_ R_,
                     &arrays, &tol))
   {
       return NULL;
@@ -198,8 +197,7 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
 {
   PyObject *arrays, *arraysc;
   E_Float tol;
-  if (!PYPARSETUPLEF(args,
-                    "OOd", "OOf",
+  if (!PYPARSETUPLE_(args, OO_ R_,
                     &arrays, &arraysc, &tol))
   {
       return NULL;

@@ -34,8 +34,7 @@ PyObject* K_POST::projectCloudSolution2Triangle(PyObject* self, PyObject* args)
 {
   E_Int dimPb, oldVersion;
   PyObject *arrayR, *arrayD;
-  if (!PYPARSETUPLEI(args,
-                    "OOll", "OOii",
+  if (!PYPARSETUPLE_(args, OO_ II_,
                     &arrayD, &arrayR, &dimPb, &oldVersion))
   {
       return NULL;

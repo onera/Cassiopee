@@ -30,7 +30,7 @@ using namespace K_FUNC;
 PyObject* K_TRANSFORM::checkTriMesh(PyObject* self, PyObject* args)
 {
   PyObject* o; E_Int mode;
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &o, &mode)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &o, &mode)) return NULL;
    
   // Check array
   E_Int ni, nj, nk;

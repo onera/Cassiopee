@@ -34,7 +34,7 @@ using namespace ExtendedArithmetics;
 PyObject* K_CONVERTER::identifyNodes(PyObject* self, PyObject* args)
 {  
   PyObject* array; PyObject* hook; E_Float tol;
-  if (!PYPARSETUPLEF(args, "OOd", "OOf", &hook, &array, &tol)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ R_, &hook, &array, &tol)) return NULL;
 
   // recupere le hook
   void** packet = NULL;
@@ -128,7 +128,7 @@ PyObject* K_CONVERTER::identifyFaces(PyObject* self, PyObject* args)
 { 
   PyObject* array; PyObject* hook;
   E_Float tol;
-  if (!PYPARSETUPLEF(args, "OOd", "OOf", &hook, &array, &tol)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ R_, &hook, &array, &tol)) return NULL;
 
   // recupere le hook
   void** packet = NULL;

@@ -47,8 +47,7 @@ PyObject* K_TRANSFORM::homothety(PyObject* self, PyObject* args)
   E_Float xc, yc, zc;
   E_Float alpha;
   PyObject* array;
-  if (!PYPARSETUPLEF(args,
-                    "O(ddd)d", "O(fff)f",
+  if (!PYPARSETUPLE_(args, O_ TRRR_ R_,
                     &array, &xc, &yc, &zc, &alpha))
   {
       return NULL;
@@ -102,8 +101,7 @@ PyObject* K_TRANSFORM::contract(PyObject* self, PyObject* args)
   E_Float alpha;
   PyObject* array;
 
-  if (!PYPARSETUPLEF(args,
-                    "O(ddd)(ddd)(ddd)d", "O(fff)(fff)(fff)f",
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ TRRR_ R_,
                     &array, &xc, &yc, &zc, &dir1x, &dir1y, &dir1z,
                     &dir2x, &dir2y, &dir2z, &alpha))
   {
@@ -197,8 +195,7 @@ PyObject* K_TRANSFORM::deformPoint(PyObject* self, PyObject* args)
   E_Float depth;
   E_Float width;
   PyObject* array;
-  if (!PYPARSETUPLEF(args,
-                    "O(ddd)(ddd)dd", "O(fff)(fff)ff",
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ RR_,
                     &array, &xi, &yi, &zi, &dx, &dy, &dz, &depth, &width))
   {
       return NULL;

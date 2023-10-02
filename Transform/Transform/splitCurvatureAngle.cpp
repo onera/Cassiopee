@@ -33,8 +33,8 @@ PyObject* K_TRANSFORM::splitCurvatureAngle(PyObject* self, PyObject* args)
   dirVect[0] = 0.;  dirVect[1] = 0.;  dirVect[2] = 1.;
   PyObject* array;
 
-  if (!PYPARSETUPLEF(args, "Od", "Of", &array, &tol) && 
-      !PYPARSETUPLEI(args, "O", "O", &array))
+  if (!PYPARSETUPLE_(args, O_ R_, &array, &tol) && 
+      !PYPARSETUPLE_(args, O_, &array))
   {
       return NULL;
   }

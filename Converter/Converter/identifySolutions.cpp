@@ -37,7 +37,7 @@ PyObject* K_CONVERTER::identifySolutions(PyObject* self, PyObject* args)
   PyObject *hook, *coordsRcv, *solDnr;
   E_Float tol;
   
-  if (!PYPARSETUPLEF(args, "OOOd", "OOOf", &hook, &solDnr, &coordsRcv, &tol))
+  if (!PYPARSETUPLE_(args, OOO_ R_, &hook, &solDnr, &coordsRcv, &tol))
     return NULL;
 
   E_Float tol2 = tol*tol;

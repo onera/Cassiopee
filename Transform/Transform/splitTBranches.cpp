@@ -29,8 +29,7 @@ PyObject* K_TRANSFORM::splitTBranches(PyObject* self, PyObject* args)
 {
   PyObject*  array;
   E_Float eps;
-  if (!PYPARSETUPLEF(args,
-                    "Od", "Of",
+  if (!PYPARSETUPLE_(args, O_ R_,
                     &array, &eps))
   {
       return NULL;

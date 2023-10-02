@@ -27,7 +27,7 @@ PyObject* K_GENERATOR::pointedHat(PyObject* self, PyObject* args)
   PyObject* array;
   double x, y, z;
 
-  if (!PYPARSETUPLEF(args, "O(ddd)", "O(fff)", &array, &x, &y, &z)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ TRRR_, &array, &x, &y, &z)) return NULL;
   
   // Check array
   E_Int im, jm, km;

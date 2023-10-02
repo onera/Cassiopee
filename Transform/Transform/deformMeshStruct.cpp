@@ -46,7 +46,7 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
 {
   PyObject* array; PyObject* deltas;
   E_Float beta;
-  if (!PYPARSETUPLEF(args,"OOd", "OOf",
+  if (!PYPARSETUPLE_(args, OO_ R_,
                      &array, &deltas, &beta))
     return NULL;
 

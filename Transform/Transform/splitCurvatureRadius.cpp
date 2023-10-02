@@ -31,8 +31,7 @@ PyObject* K_TRANSFORM::splitCurvatureRadius(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Float Rs; // courbure seuil
-  if (!PYPARSETUPLEF(args,
-                    "Od", "Of",
+  if (!PYPARSETUPLE_(args, O_ R_,
                     &array, &Rs))
   {
       return NULL;

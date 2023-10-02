@@ -35,8 +35,7 @@ PyObject* K_TRANSFORM::splitNGon2(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* arrayc; 
   E_Int nparts; E_Int nparts2; E_Int shift;
-  if (!PYPARSETUPLEI(args,
-                    "OOlll", "OOiii",
+  if (!PYPARSETUPLE_(args, OO_ III_,
                     &array, &arrayc, &nparts, &nparts2, &shift))
   {
       return NULL;
