@@ -34,7 +34,7 @@ PyObject* K_GENERATOR::tetgen(PyObject* self, PyObject* args)
   E_Int remeshBoundaries;
   char* optionString;
   PyObject* holes; // coord. d'un point a l'interieur
-  if (!PYPARSETUPLE(args, "OddlOs", "OddiOs", "OfflOs", "OffiOs", 
+  if (!PYPARSETUPLE_(args, O_ RR_ I_ O_ S_, 
                     &array, &maxh, &grading, &remeshBoundaries, &holes, &optionString))
     return NULL;
 

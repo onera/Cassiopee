@@ -31,9 +31,7 @@ PyObject* K_TRANSFORM::perturbate(PyObject* self, PyObject* args)
 {
   E_Float radius; PyObject* array;
   E_Int dim;
-  if (!PYPARSETUPLE(args,
-                    "Odl", "Odi",
-                    "Ofl", "Ofi",
+  if (!PYPARSETUPLE_(args, O_ R_ I_,
                     &array, &radius, &dim))
   {
       return NULL;

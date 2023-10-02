@@ -36,7 +36,7 @@ PyObject* K_GENERATOR::closeAllMeshes(PyObject* self, PyObject* args)
   E_Float eps;
   E_Int removeDegen{0};
   
-  if (!PYPARSETUPLE(args, "Odl", "Odi", "Ofl", "Ofi", &arrays, &eps, &removeDegen))   
+  if (!PYPARSETUPLE_(args, O_ R_ I_, &arrays, &eps, &removeDegen))   
     return NULL;
 
   // Extract infos from arrays

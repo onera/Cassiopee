@@ -34,7 +34,7 @@ PyObject* K_RIGIDMOTION::move(PyObject* self, PyObject* args)
   E_Float r11, r12, r13, r21, r22, r23, r31, r32, r33;
 
   if (!PYPARSETUPLE_(args,
-                      O_ RRRR_ RRRR_ RRRR_ RRR_,
+                     O_ RRRR_ RRRR_ RRRR_ RRR_,
                      &array,
                      &dx, &dy, &dz,
                      &cx, &cy, &cz,

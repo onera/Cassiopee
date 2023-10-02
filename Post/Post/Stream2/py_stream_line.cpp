@@ -31,7 +31,7 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
     E_Int     nStreamPtsMax;
     E_Int     signe;
 
-    if (!PYPARSETUPLE(args, "OOOOll", "OOOOii", "OOOOll", "OOOOii", &arrays, &surfArray, &listOfPoints,
+    if (!PYPARSETUPLE_(args, OOOO_ II_, &arrays, &surfArray, &listOfPoints,
                       &vectorNames, &signe, &nStreamPtsMax)) {
         return NULL;
     }

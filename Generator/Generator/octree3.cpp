@@ -70,7 +70,7 @@ OctreeNode* updateVoisin5_27(OctreeNode* node);
 OctreeNode* updateVoisin6_27(OctreeNode* node);
 
 //============================================================================
-/* Generation d'un octree à 27 branches 
+/* Generation d'un octree ï¿½ 27 branches 
    a partir d'une liste de surfaces et de snear */
 //============================================================================
 PyObject* octree3(PyObject* self, PyObject* args)
@@ -78,7 +78,7 @@ PyObject* octree3(PyObject* self, PyObject* args)
   PyObject *stlArrays, *listOfSnears;
   E_Float dfar; E_Int levelMax;
   PyObject* octant;
-  if (!PYPARSETUPLE(args, "OOdlO", "OOdiO", "OOflO", "OOfiO",
+  if (!PYPARSETUPLE_(args, OO_ R_ I_ O_,
                     &stlArrays, &listOfSnears, 
                     &dfar, &levelMax, &octant)) return NULL;
   

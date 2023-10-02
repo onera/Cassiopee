@@ -81,6 +81,7 @@
 #define IIII_ "llll"
 #define TII_ "(ll)"
 #define TIII_ "(lll)"
+#define TIIII_ "(llll)"
 #else
 #define I_ "i"
 #define II_ "ii"
@@ -88,6 +89,7 @@
 #define IIII_ "iiii"
 #define TII_ "(ii)"
 #define TIII_ "(iii)"
+#define TIIII_ "(iiii)"
 #endif
 #if defined E_DOUBLEREAL
 #define R_ "d"
@@ -96,6 +98,7 @@
 #define RRRR_ "dddd"
 #define TRR_ "(dd)"
 #define TRRR_ "(ddd)"
+#define TRRRR_ "(dddd)"
 #else
 #define R_ "f"
 #define RR_ "ff"
@@ -103,6 +106,7 @@
 #define RRRR_ "ffff"
 #define TRR_ "(ff)"
 #define TRRR_ "(fff)"
+#define TRRRR_ "(ffff)"
 #endif
 #define O_ "O"
 #define OO_ "OO"

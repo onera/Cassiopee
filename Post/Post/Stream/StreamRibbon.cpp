@@ -54,9 +54,7 @@ PyObject* K_POST::compStreamRibbon(PyObject* self, PyObject* args)
   PyObject* vectorNames;
   E_Int nStreamPtsMax;
   E_Float signe;
-  if (!PYPARSETUPLE(args,
-                    "O(ddd)(ddd)Odl", "O(ddd)(ddd)Odi",
-                    "O(fff)(fff)Ofl", "O(fff)(fff)Ofi",
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ O_ R_ I_,
                     &arrays, &x0, &y0, &z0, &n0x, &n0y, &n0z, &vectorNames, &signe, &nStreamPtsMax))
   {
       return NULL;

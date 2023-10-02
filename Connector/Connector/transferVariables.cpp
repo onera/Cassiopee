@@ -55,7 +55,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   E_Float constraint;
   //E_Int extrapOrder = 1;
   E_Int InterpDataType;// 0 : cart, 1 par ADT
-  if (!PYPARSETUPLE(args, "OOOOllldOOlsss", "OOOOiiidOOisss","OOOOlllfOOlsss","OOOOiiifOOisss",
+  if (!PYPARSETUPLE_(args, OOOO_ III_ R_ OO_ I_ SSS_,
                     &zoneD, &interpPtsCoordX, &interpPtsCoordY, &interpPtsCoordZ,
                     &interporder, &nature, &penalty, &constraint, &hookADT, &pyVariables,
                     &InterpDataType, &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters)) return NULL;

@@ -53,7 +53,7 @@ PyObject* K_INTERSECTOR::splitNonStarCells(PyObject* self, PyObject* args)
   E_Float GRmin = 1.e-6;
   E_Float Fluxmax = 1.e-9;
 
-  if (!PYPARSETUPLEF(args, "Oddd", "Offf", &arr, &PH_conc_threshold, &PH_cvx_threshold, &PG_cvx_threshold)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ RRR_, &arr, &PH_conc_threshold, &PH_cvx_threshold, &PG_cvx_threshold)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);

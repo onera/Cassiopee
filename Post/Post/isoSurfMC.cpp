@@ -1110,7 +1110,7 @@ PyObject* K_POST::isoSurfMC_opt(PyObject* self, PyObject* args)
   PyObject* grid;
   char* field;
   E_Float value;
-  if (!PYPARSETUPLEF(args, O_ S_ R_,
+  if (!PYPARSETUPLE_(args, O_ S_ R_,
                     &grid, &field, &value))
   {
       return NULL;

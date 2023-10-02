@@ -218,7 +218,7 @@ PyObject* K_TRANSFORM::rotateA2(PyObject* self, PyObject* args)
   E_Float f1x, f1y, f1z, f2x, f2y, f2z, f3x, f3y, f3z;
   PyObject* listOfFieldVectors;
 
-  if (!PYPARSETUPLE_(args, O_ TRRR_, "(" TRRR_ TRRR_ TRRR_ ")" "(" TRRR_ TRRR_ TRRR_ ")" O_,
+  if (!PYPARSETUPLE_(args, O_ TRRR_ "(" TRRR_ TRRR_ TRRR_ ")" "(" TRRR_ TRRR_ TRRR_ ")" O_,
                     &array,
                     &xc, &yc, &zc, 
                     &e1x, &e1y, &e1z,

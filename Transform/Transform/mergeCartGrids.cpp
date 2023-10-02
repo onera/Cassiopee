@@ -55,9 +55,7 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
   E_Int sizeMax; 
   E_Float eps = 1.e-10;// tolerance match 
 
-  if (!PYPARSETUPLE(args,
-                    "Old", "Oid",
-                    "Olf", "Oif",
+  if (!PYPARSETUPLE_(args, O_ I_ R_,
                     &arrays, &sizeMax, &eps))
   {
       return NULL;

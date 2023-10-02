@@ -34,11 +34,7 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
   E_Int bctype, vartype;
   E_Float gamma, cv, muS, Cs, Ts;
 
-  if (!PYPARSETUPLE(args,
-                    "OOOOOOOOOOOOOOOllddddd", 
-                    "OOOOOOOOOOOOOOOiiddddd",
-                    "OOOOOOOOOOOOOOOllfffff", 
-                    "OOOOOOOOOOOOOOOiifffff",
+  if (!PYPARSETUPLE_(args, OOOO_ OOOO_ OOOO_ OOO_ II_ RRRR_ R_,
                     &arrayD, &pyIndDonor, &pyArrayTypes, &pyArrayCoefs, 
                     &pyArrayXPC, &pyArrayYPC, &pyArrayZPC,
                     &pyArrayXPW, &pyArrayYPW, &pyArrayZPW,
@@ -299,11 +295,7 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
   E_Float gamma, cv, muS, Cs, Ts;
   char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
 
-  if (!PYPARSETUPLE(args,
-                    "OOOOOOOOOOOOOOOllldddddsss", 
-                    "OOOOOOOOOOOOOOOiiidddddsss",
-                    "OOOOOOOOOOOOOOOlllfffffsss", 
-                    "OOOOOOOOOOOOOOOiiifffffsss",
+  if (!PYPARSETUPLE_(args, OOOO_ OOOO_ OOOO_ OOO_ III_ RRRR_ R_ SSS_, 
                     &zoneD, &pyVariables, &pyIndDonor, &pyArrayTypes, &pyArrayCoefs, 
                     &pyArrayXPC, &pyArrayYPC, &pyArrayZPC,
                     &pyArrayXPW, &pyArrayYPW, &pyArrayZPW,
@@ -508,9 +500,7 @@ PyObject* K_CONNECTOR::_setIBCTransfersD4GradP(PyObject* self, PyObject* args)
   E_Float gamma, cv, muS, Cs, Ts, alpha;
   char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
 
-  if (!PYPARSETUPLE(args,
-                    "OOOOOOOOOlllddddddsss", "OOOOOOOOOiiiddddddsss",
-                    "OOOOOOOOOlllffffffsss", "OOOOOOOOOiiiffffffsss",
+  if (!PYPARSETUPLE_(args, OOOO_ OOOO_ O_ III_ RRRR_ RR_ SSS_, 
                     &zoneD, &pyVariables, &pyIndDonor, &pyArrayTypes, &pyArrayCoefs,
                     &pyArrayPressure,
                     &pyArrayGradxP, &pyArrayGradyP, &pyArrayGradzP,

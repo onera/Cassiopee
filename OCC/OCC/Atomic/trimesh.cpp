@@ -32,7 +32,7 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
     E_Int faceNo; // no de la face
     PyObject* arrayUV;
     E_Float hmax, hausd;
-    if (!PYPARSETUPLE(args, "OOldd", "OOidd", "OOlff", "OOiff", 
+    if (!PYPARSETUPLE_(args, OO_ I_ RR_, 
                       &hook, &arrayUV, &faceNo, &hmax, &hausd)) return NULL;  
     void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)

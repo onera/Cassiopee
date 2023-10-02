@@ -132,9 +132,7 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
   E_Int doubleLefti, doubleLeftj, doubleLeftk, doubleRighti, doubleRightj, doubleRightk;
   E_Int skeleton = 0;
   E_Int api = 1;
-  if (!PYPARSETUPLE(args, 
-                    "(ddd)(ddd)(ddd)(ddd)(lll)(lll)ll", "(ddd)(ddd)(ddd)(ddd)(iii)(iii)ii", 
-                    "(fff)(fff)(fff)(fff)(lll)(lll)ll", "(fff)(fff)(fff)(fff)(iii)(iii)ii",
+  if (!PYPARSETUPLE_(args, TRRR_ TRRR_ TRRR_ TRRR_ TIII_ TIII_ II_, 
                     &xo, &yo, &zo, &hi, &hj, &hk, &riinput, &rjinput, &rkinput, 
                     &xf, &yf, &zf, 
                     &doubleLefti, &doubleLeftj, &doubleLeftk, 

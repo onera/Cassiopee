@@ -37,7 +37,7 @@
 PyObject* K_OCC::projectOnEdges(PyObject* self, PyObject* args)
 {
   PyObject* hook; PyObject* array; PyObject* edgeList;
-  if (!PYPARSETUPLEF(args, "OOO", "OOO", &hook, &array, &edgeList)) return NULL;  
+  if (!PYPARSETUPLE_(args, OOO_, &hook, &array, &edgeList)) return NULL;  
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)

@@ -46,9 +46,7 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
   PyObject* array;
   PyObject* fixedNodes; // imposed nodes
   PyObject* fixedEdges; // imposed edge
-  if (!PYPARSETUPLE(args, 
-                    "OdddddllOO", "OdddddiiOO", 
-                    "OfffffllOO", "OfffffiiOO", 
+  if (!PYPARSETUPLE_(args, O_ RRRR_ R_ II_ OO_,
                     &array, &ridgeAngle, &hmin, &hmax, &hausd, &hgrad, 
                     &anisotropy, &optim, &fixedNodes, &fixedEdges))
   {

@@ -45,9 +45,7 @@ PyObject* K_GENERATOR::cartTetra(PyObject* self, PyObject* args)
   E_Float xo, yo, zo;
   E_Float hi, hj, hk;
   E_Int api=1;
-  if (!PYPARSETUPLE(args, 
-                    "(ddd)(ddd)(lll)l", "(ddd)(ddd)(iii)i",
-                    "(fff)(fff)(lll)l", "(fff)(fff)(iii)i", 
+  if (!PYPARSETUPLE_(args, TRRR_ TRRR_ TIII_ I_, 
                     &xo, &yo, &zo, &hi, &hj, &hk, &ni, &nj, &nk, &api))
   {
     return NULL;

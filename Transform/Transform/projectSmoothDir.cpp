@@ -33,9 +33,7 @@ PyObject* K_TRANSFORM::projectSmoothDir(PyObject* self, PyObject* args)
   E_Float nx, ny, nz;
   E_Int oriented;
 
-  if (!PYPARSETUPLE(args,
-                    "OO(ddd)l", "OO(ddd)i",
-                    "OO(fff)l", "OO(fff)i",
+  if (!PYPARSETUPLE_(args, OO_ TRRR_ I_,
                     &arrays, &array2, &nx, &ny, &nz, &oriented))
   {
       return NULL;

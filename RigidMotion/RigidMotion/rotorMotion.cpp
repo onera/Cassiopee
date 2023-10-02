@@ -63,7 +63,7 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionInfo(PyObject* self, PyObject* args)
     *tet_pnt0, *tet_vct, *tetc0, *tets0,
     *span_vct, *pre_lag_pnt0, *pre_lag_vct, *pre_con_pnt0, *pre_con_vct;
   if (!PYPARSETUPLE_(args, 
-                     R_ O_ RR_ OO_ R_ OO_ R_ OO_ R_ OOOO_ R_ OOOO_ R_ OOOO_ R_ OO_,
+                     R_ O_ RR_ OO_ R_ OO_ R_ OO_ R_ OOOO_ R_ OOOO_ R_ OOO_ R_ OO_ R_ OO_,
                      &time, &transl_speed, &psi0, &psi0_b, 
                      &alp_pnt0, &alp_vct, &alp0,
                      &rot_pnt0, &rot_vct, &rot_omg,                     

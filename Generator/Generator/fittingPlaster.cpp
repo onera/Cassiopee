@@ -32,8 +32,8 @@ PyObject* K_GENERATOR::fittingPlaster(PyObject* self, PyObject* args)
 {
   PyObject *arrB0;
   E_Float pump_factor;
-  if (!PYPARSETUPLE(args, 
-                    "Od", "Od", "Of", "Of", &arrB0, &pump_factor))
+  if (!PYPARSETUPLE_(args, O_ R_, 
+                    &arrB0, &pump_factor))
     return NULL;
   E_Int ni, nj, nk;
   K_FLD::FloatArray *fB0;

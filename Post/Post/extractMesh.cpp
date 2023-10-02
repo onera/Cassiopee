@@ -48,9 +48,7 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
   E_Int extrapOrder;
   E_Float constraint;
   PyObject* allHooks;
-  if (!PYPARSETUPLE(args,
-                    "OOlldO", "OOiidO",
-                    "OOllfO", "OOiifO",
+  if (!PYPARSETUPLE_(args, OO_ II_ R_ O_,
                     &listFields, &arrays, &interpOrder, &extrapOrder, &constraint, &allHooks))
   {
       return NULL;

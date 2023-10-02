@@ -84,7 +84,7 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
   E_Int eta_start, eta_end;
   E_Float beta;
 
-  if (!PYPARSETUPLE(args, "OOslld", "OOsiid", "OOsllf", "OOsiif", 
+  if (!PYPARSETUPLE_(args, OO_ S_ II_ R_, 
                     &array, &arrayd, &meshType, 
                     &eta_start, &eta_end, &beta))
     return NULL;

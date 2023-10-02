@@ -78,7 +78,7 @@ PyObject* octree(PyObject* self, PyObject* args)
   PyObject* listOfDfars;
   E_Float dfar; E_Int levelMax; E_Int dfarDir;
   PyObject* octant;
-  if (!PYPARSETUPLE(args, "OOOdlOl", "OOOdiOi", "OOOflOl", "OOOfiOi",
+  if (!PYPARSETUPLE_(args, OOO_ R_ I_ O_ I_,
                     &stlArrays, &listOfSnears, &listOfDfars,
                     &dfar, &levelMax, &octant, &dfarDir)) return NULL;
   

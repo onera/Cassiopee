@@ -31,8 +31,7 @@ PyObject* K_TRANSFORM::_cart2CylA(PyObject* self, PyObject* args)
     E_Float ex, ey, ez;
     E_Int depth;
     E_Float thetaShift;
-    if (!PYPARSETUPLE(args,"O(ddd)(ddd)ld", "O(ddd)(ddd)id", 
-                           "O(fff)(fff)lf","O(fff)(fff)if",
+    if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ I_ R_,
                       &array, &X0, &Y0, &Z0, &ex, &ey, &ez, &depth, &thetaShift))
         return NULL;
     
@@ -107,9 +106,7 @@ PyObject* K_TRANSFORM::_cart2CylZ(PyObject* self, PyObject* args)
     E_Float X0, Y0, Z0;
     E_Float ex, ey, ez;
     E_Int depth; E_Float thetaShift;
-    if (!PYPARSETUPLE(args,
-                      "O(ddd)(ddd)ldsss", "O(ddd)(ddd)idsss", 
-                      "O(fff)(fff)lfsss","O(fff)(fff)ifsss",
+    if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ I_ R_ SSS_,
                       &zone, &X0, &Y0, &Z0, &ex, &ey, &ez, 
                       &depth, &thetaShift, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
         return NULL;

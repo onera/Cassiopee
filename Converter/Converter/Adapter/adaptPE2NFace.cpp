@@ -27,7 +27,7 @@ PyObject* K_CONVERTER::adaptPE2NFace(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Int api;
-  if (!PYPARSETUPLE(args, "Ol", "Oi", "Ol", "Oi", &array, &api)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &array, &api)) return NULL;
 
   // Check numpy (parentElement)
   FldArrayI* cFE;

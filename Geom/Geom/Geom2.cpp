@@ -140,9 +140,7 @@ PyObject* K_GEOM::getDistantIndex(PyObject* self, PyObject* args)
   E_Int ind;
   E_Float l;
 
-  if (!PYPARSETUPLE(args,
-                    "Old", "Oid",
-                    "Olf", "Oif",
+  if (!PYPARSETUPLE_(args, O_ I_ R_,
                     &array, &ind, &l))
   {
       return NULL;

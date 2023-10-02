@@ -355,7 +355,7 @@ def _moveZone__(z, time):
                 pre_con_ang = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_ang'))
                 pre_con_pnt = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_pnt'))
                 pre_con_vct = Internal.getValue(Internal.getNodeFromName(m, 'pre_con_vct'))
-                [r0,x0,rotMat,s0,omega]=rigidMotion._computeRotorMotionInfo(
+                [r0,x0,rotMat,s0,omega] = rigidMotion._computeRotorMotionInfo(
                     time, transl_speed.tolist(), psi0, psi0_b,
                     alp_pnt.tolist(),alp_vct.tolist(),alp0,
                     rot_pnt.tolist(),rot_vct.tolist(),rot_omg,

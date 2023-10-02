@@ -517,7 +517,7 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
 {
   PyObject* arrayNodes; PyObject* arrayCenters; PyObject* taga;
   PyObject* PE; E_Int cleanConnectivity;
-  if (!PYPARSETUPLEI(args, "OOOOl", "OOOOi", &arrayNodes, &arrayCenters, &taga, &PE, &cleanConnectivity)) return NULL;
+  if (!PYPARSETUPLE_(args, OOOO_ I_, &arrayNodes, &arrayCenters, &taga, &PE, &cleanConnectivity)) return NULL;
 
   // Extract arrayNodes 
   char* varString; char* eltType;

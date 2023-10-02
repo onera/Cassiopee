@@ -30,9 +30,7 @@ PyObject* K_GEOM::spline(PyObject* self, PyObject* args)
   E_Int N,M;
   E_Int ordern, orderm;
   E_Float density;
-  if (!PYPARSETUPLE(args,
-                    "Olllld", "Oiiiid",
-                    "Ollllf", "Oiiiif",
+  if (!PYPARSETUPLE_(args, O_ IIII_ R_,
                     &Array, &ordern, &N, &orderm, &M, &density))
   {
       return NULL;

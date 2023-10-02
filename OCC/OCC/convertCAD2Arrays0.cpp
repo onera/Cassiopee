@@ -58,8 +58,8 @@ PyObject* K_OCC::convertCAD2Arrays0(PyObject* self, PyObject* args)
   char* inFileName; char* inFileFormat; 
   char* outFileName; char* outFileFormat;
   E_Float deflection;
-  if (!PYPARSETUPLE(args, "ssssd", "ssssd",
-                    "ssssf", "ssssf", &inFileName, &inFileFormat, 
+  if (!PYPARSETUPLE_(args, SSSS_ R_,
+                    &inFileName, &inFileFormat, 
                     &outFileName, &outFileFormat,
                     &deflection)) return NULL;
 

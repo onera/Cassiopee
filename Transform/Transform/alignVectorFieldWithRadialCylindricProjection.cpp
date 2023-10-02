@@ -31,8 +31,7 @@ PyObject* K_TRANSFORM::_alignVectorFieldWithRadialCylindricProjection(PyObject* 
   E_Float CenterX, CenterY, CenterZ;
   E_Float AxisX, AxisY, AxisZ; // axis unitary vector
   PyObject* varList;
-  if (!PYPARSETUPLE(args,
-                    "O(fff)(fff)O","O(ddd)(ddd)O","O(iii)(iii)O","O(lll)(lll)O",
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ O_,
                     &array, &CenterX, &CenterY, &CenterZ, &AxisX, &AxisY, &AxisZ, &varList))
   {
       return NULL;

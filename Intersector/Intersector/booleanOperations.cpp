@@ -109,8 +109,7 @@ bool getArgs(PyObject* args, eOperation oper,
   std::ostringstream o;
   std::string opername = getName(oper);
 
-  if (!PYPARSETUPLE(args, 
-                    "OOdllllll", "OOdiiiiii", "OOfllllll", "OOfiiiiii", 
+  if (!PYPARSETUPLE_(args, OO_ R_ IIII_ II_,
                     &arrS[0], &arrS[1], &tol, &preserv_r, &solid_r, &agg_mode, &imp_qual, &out_sur, &itermax))
   {
     o << opername << ": wrong arguments.";
@@ -202,8 +201,8 @@ bool getBorderArgs(PyObject* args,
   tolerance = 0.;
   std::ostringstream o;
 
-  if (!PYPARSETUPLE(args, 
-                    "OOdl", "OOdi", "OOfl", "OOfi", &arrS[0], &arrS[1], &tolerance, &itermax))
+  if (!PYPARSETUPLE_(args, OO_ R_ I_, 
+                    &arrS[0], &arrS[1], &tolerance, &itermax))
   {
     o << "booleanIntersectionBorder" << ": wrong arguments.";
     PyErr_SetString(PyExc_TypeError, o.str().c_str());
@@ -293,8 +292,7 @@ bool getUnionArgs(PyObject* args,
 
   pgsList.clear();
 
-  if (!PYPARSETUPLE(args, 
-                    "OOdllllOlll", "OOdiiiiOiii", "OOfllllOlll", "OOfiiiiOiii", 
+  if (!PYPARSETUPLE_(args, OO_ R_ IIII_ O_ III_, 
                     &arrS[0], &arrS[1], &tol, &preserv_r, &solid_r, &agg_mode, &imp_qual, &pgs, &simplify_pgs, &hard_mode, &itermax))
   {
     o << opername << ": wrong arguments.";
@@ -929,8 +927,8 @@ PyObject* K_INTERSECTOR::booleanUnionMZ(PyObject* self, PyObject* args)
   E_Float xtol(0.), closetol(0.);
   PyObject* arr1s, *arr2s;
 
-  if (!PYPARSETUPLE(args, 
-                    "OOddllll", "OOddiiii", "OOffllll", "OOffiiii", &arr1s, &arr2s, &xtol, &closetol, &agg_mode, &improve_qual, &simplify_pgs, &hard_mode))
+  if (!PYPARSETUPLE_(args, OO_ RR_ IIII_, 
+                    &arr1s, &arr2s, &xtol, &closetol, &agg_mode, &improve_qual, &simplify_pgs, &hard_mode))
   {
     PyErr_SetString(PyExc_TypeError, "booleanUnion2: wrong args");
     return NULL;

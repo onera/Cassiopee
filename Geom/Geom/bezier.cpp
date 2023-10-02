@@ -28,9 +28,7 @@ PyObject* K_GEOM::bezier(PyObject* self, PyObject* args)
   E_Int N, M;
   E_Float density;
   PyObject* array;
-  if (!PYPARSETUPLE(args,
-                    "Olld", "Oiid",
-                    "Ollf", "Oiif",
+  if (!PYPARSETUPLE_(args, O_ II_ R_,
                     &array, &N, &M, &density))
   {
       return NULL;

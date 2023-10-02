@@ -31,7 +31,7 @@ using namespace std;
 /* Cree une nappe de courant a  partir d'une ligne (BAR) et d'une liste
    de grilles definies par des arrays. Les grilles d'interpolation sont celles
    qui sont structurees, contenant les infos sur la vitesse, et ayant toutes
-   les m�mes variables dans le m�me ordre.
+   les memes variables dans le meme ordre.
 */
 //=============================================================================
 PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
@@ -40,9 +40,7 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
   PyObject* vectorNames;
   E_Int npts; E_Float signe;
 
-  if (!PYPARSETUPLE(args,
-                    "OOOdl", "OOOdi",
-                    "OOOfl", "OOOfi",
+  if (!PYPARSETUPLE_(args, OOO_ R_ I_,
                     &arrays, &arrayBAR, &vectorNames, &signe, &npts))
   {
       return NULL;

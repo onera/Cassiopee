@@ -44,9 +44,7 @@ PyObject* K_GEOM::axisym(PyObject* self, PyObject* args)
   E_Int nteta;
   PyObject* arrayR;
 
-  if (!PYPARSETUPLE(args,
-                    "O(ddd)(ddd)dlO", "O(ddd)(ddd)diO",
-                    "O(fff)(fff)flO", "O(fff)(fff)fiO",
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ R_ I_ O_,
                     &array, &xc, &yc, &zc, &nx, &ny, &nz, &teta, &nteta, &arrayR))
   {
       return NULL;

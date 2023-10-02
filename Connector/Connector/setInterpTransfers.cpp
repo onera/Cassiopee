@@ -267,9 +267,7 @@ PyObject* K_CONNECTOR::_setInterpTransfers(PyObject* self, PyObject* args)
   char* cellNVariable;
   E_Float AngleX, AngleY, AngleZ;
 
-  if (!PYPARSETUPLE(args,
-                    "OOOOOOOlllssssddd", "OOOOOOOiiissssddd",
-                    "OOOOOOOlllssssfff", "OOOOOOOiiissssfff",
+  if (!PYPARSETUPLE_(args, OOOO_ OOO_ III_ SSSS_ RRR_, 
                     &zoneR, &zoneD, &pyVariables, &pyIndRcv,
                     &pyIndDonor, &pyArrayTypes, &pyArrayCoefs, &loc , &vartype, &compact, &cellNVariable,
                     &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters,
@@ -517,9 +515,7 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
   E_Int loc, vartype, compact, flagibc, bctype;
   E_Float gamma, cv, muS, Cs, Ts;
 
-  if (!PYPARSETUPLE(args,
-                    "OOOOOllllddddd", "OOOOOiiiiddddd",
-                    "OOOOOllllfffff", "OOOOOiiiifffff",
+  if (!PYPARSETUPLE_(args, OOOO_ O_ IIII_ RRRR_ R_,
                     &zonesR, &zoneD, &pyVariables, &pyParam_int,  &pyParam_real, &vartype, &compact,
                     &flagibc, &bctype, &gamma, &cv, &muS, &Cs, &Ts))
   {
@@ -762,11 +758,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   E_Int vartype, type_transfert, no_transfert, It_target, nstep, nitmax;
   E_Int rk, exploc, num_passage, isWireModel;
   
-  if (!PYPARSETUPLE(args,
-                    "OOOOOOllllllllll", 
-                    "OOOOOOiiiiiiiiii",
-                    "OOOOOOllllllllll", 
-                    "OOOOOOiiiiiiiiii",
+  if (!PYPARSETUPLE_(args, OOOO_ OO_ IIII_ IIII_ II_,  
                     &zonesR, &zonesD, &pyVariables, &pydtloc, &pyParam_int,  
                     &pyParam_real, &It_target, &vartype,
                     &type_transfert, &no_transfert, &nstep, &nitmax, &rk, 
@@ -1386,9 +1378,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers4GradP(PyObject* self, PyObject* arg
   E_Int rk, exploc, num_passage;
   E_Float gamma, cv, muS, Cs, Ts, Pr;
 
-  if (!PYPARSETUPLE(args,
-                    "OOOOOlllllllll", "OOOOOiiiiiiiii",
-                    "OOOOOlllllllll", "OOOOOiiiiiiiii",
+  if (!PYPARSETUPLE_(args, OOOO_ O_ IIII_ IIII_ I_,  
                     &zonesR, &zonesD, &pyVariables, &pyParam_int,  &pyParam_real, &It_target, &vartype,
                     &type_transfert, &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage))
   {

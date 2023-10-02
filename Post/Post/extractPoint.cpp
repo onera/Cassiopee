@@ -24,7 +24,7 @@ using namespace K_FLD;
 
 // ============================================================================
 /* Extrait la solution en un point de coordonnees (x,y,z). Si ce point est 
-   dans une zone ou des maillages se recouvrent, la solution est extraite �
+   dans une zone ou des maillages se recouvrent, la solution est extraite a
    partir du maillage ayant la plus petite cellule d interpolation */
 // ============================================================================
 PyObject* K_POST::extractPoint(PyObject* self, PyObject* args)
@@ -34,9 +34,7 @@ PyObject* K_POST::extractPoint(PyObject* self, PyObject* args)
   E_Int extrapOrder;
   E_Float constraint;
   PyObject* hook;
-  if (!PYPARSETUPLE(args,
-                    "OOlldO", "OOiidO",
-                    "OOllfO", "OOiifO",
+  if (!PYPARSETUPLE_(args, OO_ II_ R_ O_,
                     &arrays, &listPts, &interpOrder, &extrapOrder, &constraint, &hook))
   {
       return NULL;

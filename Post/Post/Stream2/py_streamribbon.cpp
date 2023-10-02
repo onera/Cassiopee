@@ -30,7 +30,7 @@ PyObject* K_POST::comp_streamribbon(PyObject* self, PyObject* args)
     E_Int     nStreamPtsMax;
     E_Float   signe;
 
-    if (!PYPARSETUPLE(args, "OOOdld", "OOOdid", "OOOflf", "OOOfif", &arrays, &listOfPoints,
+    if (!PYPARSETUPLE_(args, OOO_ R_ I_ R_, &arrays, &listOfPoints,
                       &vectorNames, &signe, &nStreamPtsMax,&width)) {
         return NULL;
     }

@@ -173,7 +173,7 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
   E_Int output_type(1);
   E_Float RTOL(0.05);
 
-  if (!PYPARSETUPLE(args, "OOOOOOld", "OOOOOOid", "OOOOOOlf", "OOOOOOif", &zones, &zwall_ids, &base_num, &masks, 
+  if (!PYPARSETUPLE_(args, OOOO_ OO_ I_ R_, &zones, &zwall_ids, &base_num, &masks, 
     &wall_ids, &priorities, &output_type, &RTOL)) return NULL;
 
   E_Int nb_zones = PyList_Size(zones);

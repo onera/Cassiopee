@@ -145,9 +145,7 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
   PyObject *arrays, *arraysc;
   E_Int sizeMax;
 
-  if (!PYPARSETUPLE(args,
-                    "OOlldd", "OOiidd",
-                    "OOllff", "OOiiff",
+  if (!PYPARSETUPLE_(args, OO_ II_ RR_,
                     &arrays, &arraysc, &sizeMax, &dircons, &tol, &alphaRef))
   {
       return NULL;

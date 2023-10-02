@@ -68,9 +68,7 @@ PyObject* K_INTERSECTOR::conformUnstr(PyObject* self, PyObject* args)
   PyObject *z1arr, *z2arr;
   E_Float tolerance=0.;
   E_Int left_or_right_or_both=0, itermax=10;
-  if (!PYPARSETUPLE(args, 
-                    "OOdll", "OOdii", 
-                    "OOfll", "OOfii", 
+  if (!PYPARSETUPLE_(args, OO_ R_ II_, 
                     &z1arr, &z2arr, &tolerance, &left_or_right_or_both, 
                     &itermax)) { return NULL; }
 

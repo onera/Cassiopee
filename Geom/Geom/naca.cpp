@@ -40,9 +40,7 @@ PyObject* K_GEOM::nacaMesh(PyObject* self, PyObject* args)
 {
   E_Int N; E_Float e;
   E_Int im, ip, it, ith, iq, sharpte;
-  if (!PYPARSETUPLE(args,
-                    "dlllllll", "diiiiiii",
-                    "flllllll", "fiiiiiii",
+  if (!PYPARSETUPLE_(args, R_ IIII_ III_,
                     &e, &N,
                     &im, &ip, &it, &ith, &iq, &sharpte))
   {

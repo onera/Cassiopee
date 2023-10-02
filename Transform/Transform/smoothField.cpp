@@ -32,9 +32,7 @@ PyObject* K_TRANSFORM::_smoothField(PyObject* self, PyObject* args)
   PyObject* epsl; // numpy de eps (optional)
   E_Int niter, type;
   PyObject* varList;
-  if (!PYPARSETUPLE(args,
-                    "OdOllO", "OdOiiO",
-                    "OfOllO", "OfOiiO",
+  if (!PYPARSETUPLE_(args, O_ R_ O_ II_ O_,
                     &array, &eps, &epsl, &niter, &type, &varList))
   {
       return NULL;

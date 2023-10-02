@@ -36,9 +36,7 @@ PyObject* K_GEOM::torus( PyObject* self, PyObject* args )
   E_Float R, r;
   E_Float alphas, alphae, betas, betae;
 
-  if (!PYPARSETUPLE(args,
-                    "(ddd)ddddddll", "(ddd)ddddddii",
-                    "(fff)ffffffll", "(fff)ffffffii",
+  if (!PYPARSETUPLE_(args, TRRR_ RRRR_ RR_ II_, 
                     &xc, &yc, &zc, &R, &r,
                     &alphas, &alphae, &betas, &betae, &NR, &Nr))
   {

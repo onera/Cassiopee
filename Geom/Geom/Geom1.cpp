@@ -77,7 +77,7 @@ PyObject* K_GEOM::circleMesh(PyObject* self, PyObject* args)
   E_Float xc, yc, zc;
   E_Float R, tetas, tetae;
 
-  if (!PYPARSETUPLE_(args, TRRR_, RRR_ I_,
+  if (!PYPARSETUPLE_(args, TRRR_ RRR_ I_,
                     &xc, &yc, &zc, &R, &tetas, &tetae, &N))
   {
       return NULL;

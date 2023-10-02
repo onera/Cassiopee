@@ -37,9 +37,7 @@ PyObject* K_POST::extractPlane(PyObject* self, PyObject* args)
   E_Float coefa, coefb, coefc, coefd;
   PyObject* listFields;
   E_Int order;
-  if (!PYPARSETUPLE(args,
-                    "O(dddd)l", "O(dddd)i",
-                    "O(ffff)l", "O(ffff)i",
+  if (!PYPARSETUPLE_(args, O_ TRRRR_ I_,
                     &listFields, &coefa, &coefb, &coefc, &coefd, &order))
   {
       return NULL;

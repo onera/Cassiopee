@@ -32,8 +32,7 @@ PyObject* K_GENERATOR::T3mesher2D(PyObject* self, PyObject* args)
   E_Int triangulateOnly(0), metric_interp_type(0);
   E_Float grading(1.2);
 
-  if (!PYPARSETUPLE(args, 
-                    "Odll", "Odii", "Ofll", "Ofii", 
+  if (!PYPARSETUPLE_(args, O_ R_ II_, 
                     &array, &grading, &triangulateOnly, &metric_interp_type)) { return NULL; }
 
   // Check array

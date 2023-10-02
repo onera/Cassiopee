@@ -36,9 +36,7 @@ PyObject* K_TRANSFORM::smooth(PyObject* self, PyObject* args)
   PyObject* fixedConstraint; PyObject* projConstraint;
   E_Float delta; E_Float xR, yR, zR; E_Float radius;
 
-  if (!PYPARSETUPLE(args,
-                    "OdllOOd(ddd)d", "OdiiOOd(ddd)d",
-                    "OfllOOf(fff)f", "OfiiOOf(fff)f",
+  if (!PYPARSETUPLE_(args, O_ R_ II_ OO_ R_ TRRR_ R_,
                     &array, &eps, &niter, &type,
                     &fixedConstraint, &projConstraint, &delta,
                     &xR, &yR, &zR, &radius))

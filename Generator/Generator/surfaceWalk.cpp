@@ -169,7 +169,7 @@ PyObject* K_GENERATOR::straightenVector(PyObject* self, PyObject* args)
   PyObject *arrayc, * arrayv, *constrainedPtsa, *constraintsa;
   E_Int loop, niter;
   E_Float toldist;
-  if (!PYPARSETUPLE(args, "OOOOlld", "OOOOiid", "OOOOllf", "OOOOiif",
+  if (!PYPARSETUPLE_(args, OOOO_ II_ R_,
                     &arrayc, &arrayv, &constrainedPtsa, &constraintsa, 
                     &loop, &niter, &toldist)) return NULL;
   if (PyList_Check(constrainedPtsa) == 0)
