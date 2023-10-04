@@ -414,7 +414,11 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
 
     // [name, stride, connectivity]
     PyObject *NAME = PyList_GetItem(o, 0);
+#if PY_VERSION_HEX >= 0x03000000
     eltNames[i] = PyUnicode_AsUTF8(NAME);
+#else
+    eltNames[i] = PyString_AsString(NAME);
+#endif
 
     PyObject *STRIDE = PyList_GetItem(o, 1);
     strides[i] = PyLong_AsLong(STRIDE);

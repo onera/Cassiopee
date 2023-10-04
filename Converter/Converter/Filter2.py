@@ -894,7 +894,7 @@ def chunk2part(distTree):
 
   #comm_data = list of [neighbor proc (int), interproc faces (array),
   #                     corresponding global neighbor ids (array)]
-  RES = XCore.xcore.chunk2part(arrays)
+  RES = XCore.xcore.chunk2partNGon(arrays)
 
   mesh = RES[0]
   comm_data = RES[1]
