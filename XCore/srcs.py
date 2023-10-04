@@ -14,7 +14,7 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/xmpi/context_stub_impl.cpp',
             'XCore/xmpi/communicator.cpp',
             'XCore/zoltan1.cpp',
-            'XCore/chunk2part.cpp',
+            'XCore/chunk2partNGon.cpp',
             'XCore/SplitElement/splitter.cpp',
             'XCore/test/xmpi_t1.cpp',
             'adaptMesh/cut.cpp',
@@ -27,6 +27,6 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'adaptMesh/topo.cpp',
             'adaptMesh/distribute.cpp',
             'common/mem.cpp',
-            'XCore/chunk2part_elt.cpp'
+            'XCore/chunk2partElt.cpp'
             
             ]

@@ -23,6 +23,18 @@ E_Int get_proc(E_Int element, const std::vector<E_Int> &distribution,
   return -1;
 }
 
+static
+E_Int get_chunk(E_Int element, const std::vector<E_Int> &dist)
+{
+  for (size_t i = 0; i < dist.size(); i++) {
+    if (element >= dist[i] && element < dist[i+1])
+      return i;
+  }
+  printf("\nWarning: could not find chunk of element %d\n", element);
+  assert(0);
+  return -1;
+}
+
 struct Poly {
   E_Int n[8];
   E_Int stride;
@@ -94,9 +106,7 @@ void make_facets_HEXA(E_Int *cn, E_Int ncells, E_Int &nfaces,
   std::vector<E_Int> &NFACE, std::unordered_map<Poly, E_Int, Poly_hash> &faces,
   std::vector<Poly> &f2Q)
 {
-  nfaces = 1;
   NFACE.clear();
-  faces.clear();
 
   Poly Quad(4);
   E_Int n[4];
@@ -136,10 +146,6 @@ void make_facets_HEXA(E_Int *cn, E_Int ncells, E_Int &nfaces,
   }
 
   assert((E_Int)NFACE.size() == 6*ncells);
-
-  nfaces--;
-
-  assert(nfaces == (E_Int)faces.size());
 }
 
 static
@@ -147,9 +153,7 @@ void make_facets_TETRA(E_Int *cn, E_Int ncells, E_Int &nfaces,
   std::vector<E_Int> &NFACE, std::unordered_map<Poly, E_Int, Poly_hash> &faces,
   std::vector<Poly> &f2Q)
 {
-  nfaces = 1;
   NFACE.clear();
-  faces.clear();
 
   Poly Tri(3);
   E_Int n[3];
@@ -187,10 +191,6 @@ void make_facets_TETRA(E_Int *cn, E_Int ncells, E_Int &nfaces,
   }
 
   assert((E_Int)NFACE.size() == 4*ncells);
-
-  nfaces--;
-
-  assert(nfaces == (E_Int)faces.size());
 }
 
 static
@@ -198,9 +198,7 @@ void make_facets_PENTA(E_Int *cn, E_Int ncells, E_Int &nfaces,
   std::vector<E_Int> &NFACE, std::unordered_map<Poly, E_Int, Poly_hash> &faces,
   std::vector<Poly> &f2Q)
 {
-  nfaces = 1;
   NFACE.clear();
-  faces.clear();
 
   Poly Tri(3), Quad(4);
   E_Int n[4];
@@ -235,10 +233,6 @@ void make_facets_PENTA(E_Int *cn, E_Int ncells, E_Int &nfaces,
   }
 
   assert((E_Int)NFACE.size() == 5*ncells);
-
-  nfaces--;
-
-  assert(nfaces == (E_Int)faces.size());
 }
 
 static
@@ -246,9 +240,7 @@ void make_facets_PYRA(E_Int *cn, E_Int ncells, E_Int &nfaces,
   std::vector<E_Int> &NFACE, std::unordered_map<Poly, E_Int, Poly_hash> &faces,
   std::vector<Poly> &f2Q)
 {
-  nfaces = 1;
   NFACE.clear();
-  faces.clear();
 
   Poly Tri(3), Quad(4);
   E_Int n[5];
@@ -294,10 +286,47 @@ void make_facets_PYRA(E_Int *cn, E_Int ncells, E_Int &nfaces,
   }
 
   assert((E_Int)NFACE.size() == 5*ncells);
+}
 
-  nfaces--;
+static
+void make_facets_QUAD(E_Int *cn, E_Int ncells, E_Int &nfaces,
+  std::vector<E_Int> &NFACE, std::unordered_map<Poly, E_Int, Poly_hash> &faces,
+  std::vector<Poly> &f2Q)
+{
+  NFACE.clear();
 
-  assert(nfaces == (E_Int)faces.size());
+  Poly Edge(2);
+  E_Int n[4];
+
+  for (E_Int i = 0; i < ncells; i++) {
+    E_Int *pn = &cn[4*i];
+    
+    // bot
+    n[0] = pn[0];
+    n[1] = pn[1];
+    Edge.set(n);
+    add_facet(Edge, nfaces, faces, NFACE, f2Q);
+
+    // right
+    n[0] = pn[1];
+    n[1] = pn[2];
+    Edge.set(n);
+    add_facet(Edge, nfaces, faces, NFACE, f2Q);
+
+    // top
+    n[0] = pn[2];
+    n[1] = pn[3];
+    Edge.set(n);
+    add_facet(Edge, nfaces, faces, NFACE, f2Q);
+
+    // left
+    n[0] = pn[3];
+    n[1] = pn[0];
+    Edge.set(n);
+    add_facet(Edge, nfaces, faces, NFACE, f2Q);
+  }
+
+  assert((E_Int)NFACE.size() == 4*ncells);
 }
 
 static
@@ -310,12 +339,14 @@ E_Int make_facets(E_Int *cn, E_Int ncells, E_Int stride,
     make_facets_PYRA(cn, ncells, nfaces, NFACE, faces, f2Q);
   } else if (stride == 4 && strcmp(elemName, "TETRA") == 0) {
     make_facets_TETRA(cn, ncells, nfaces, NFACE, faces, f2Q);
+  } else if (stride == 4 && strcmp(elemName, "QUAD") == 0) {
+    make_facets_QUAD(cn, ncells, nfaces, NFACE, faces, f2Q);
   } else if (stride == 6) {
     make_facets_PENTA(cn, ncells, nfaces, NFACE, faces, f2Q);
   } else if (stride == 8) {
     make_facets_HEXA(cn, ncells, nfaces, NFACE, faces, f2Q);
   } else {
-    fprintf(stderr, "chunk2part_elt(): implemented for TETRA, PYRA, PENTA and HEXA\n");
+    fprintf(stderr, "chunk2part_elt(): %s not supported.\n", elemName);
     return 1;
   }
 
@@ -338,68 +369,84 @@ struct comm_patch {
   }
 };
 
-PyObject *K_XCORE::chunk2part_elt(PyObject *self, PyObject *args)
+PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
 {
-  PyObject *XYZ, *STRIDE, *CN;
-  char *eltName;
-
-  if (!PyArg_ParseTuple(args, "OsOO", &XYZ, &eltName, &STRIDE, &CN)) {
-    PyErr_SetString(PyExc_ValueError, "chunk2part_elt(): bad input");
-    return NULL;
-  }
-
-  // deduce fstride: number of faces per elements
-  E_Int fstride = -1;
-  if (strcmp(eltName, "HEXA") == 0)
-    fstride = 6;
-  else if (strcmp(eltName, "PENTA") == 0)
-    fstride = 5;
-  else if (strcmp(eltName, "TETRA") == 0)
-    fstride = 4;
-  else if (strcmp(eltName, "PYRA") == 0)
-    fstride = 5;
-  else {
-    PyErr_SetString(PyExc_TypeError, "chunk2part_elt(): only for HEXA, PENTA and TETRA elements.");
-    return NULL;
-  }
-
   E_Int rank, nproc;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &nproc);
 
-  PyObject *Xi, *Yi, *Zi;
-  E_Int res;
+  PyObject *XYZ, *CHUNKS;
+
+  if (!PyArg_ParseTuple(args, "OO", &XYZ, &CHUNKS)) {
+    PyErr_SetString(PyExc_ValueError, "chunk2partElt(): bad input");
+    return NULL;
+  }
 
   // coordinates
+  PyObject *Xi, *Yi, *Zi;
   E_Float *X, *Y, *Z;
   E_Int npoints, nfld;
 
   Xi = PyList_GetItem(XYZ, 0);
-  res = K_NUMPY::getFromNumpyArray(Xi, X, npoints, nfld, true);
-  assert(res == 1);
+  K_NUMPY::getFromNumpyArray(Xi, X, npoints, nfld, true);
 
   Yi = PyList_GetItem(XYZ, 1);
-  res = K_NUMPY::getFromNumpyArray(Yi, Y, npoints, nfld, true);
-  assert(res == 1);
+  K_NUMPY::getFromNumpyArray(Yi, Y, npoints, nfld, true);
 
   Zi = PyList_GetItem(XYZ, 2);
-  res = K_NUMPY::getFromNumpyArray(Zi, Z, npoints, nfld, true);
-  assert(res == 1);
+  K_NUMPY::getFromNumpyArray(Zi, Z, npoints, nfld, true);
 
-  // element stride
-  if (!PyLong_Check(STRIDE)) {
-    PyErr_SetString(PyExc_TypeError, "chunk2part_elt(): bad stride.");
-    return NULL;
+  // chunks
+  E_Int nchunks = PyList_Size(CHUNKS);
+
+  std::vector<char *> eltNames(nchunks);
+  std::vector<E_Int> strides(nchunks);
+  std::vector<E_Int *> cns(nchunks);
+  std::vector<E_Int> local_cdist(nchunks+1, 0);
+  std::vector<E_Int> csize(nchunks);
+  std::vector<E_Int> fstrides(nchunks);
+
+
+  E_Int ncells = 0;
+
+  for (E_Int i = 0; i < nchunks; i++) {
+    PyObject *o = PyList_GetItem(CHUNKS, i);
+
+    // [name, stride, connectivity]
+    PyObject *NAME = PyList_GetItem(o, 0);
+    eltNames[i] = PyUnicode_AsUTF8(NAME);
+
+    PyObject *STRIDE = PyList_GetItem(o, 1);
+    strides[i] = PyLong_AsLong(STRIDE);
+
+    PyObject *CN = PyList_GetItem(o, 2);
+    E_Int cnsize, nfld;
+    K_NUMPY::getFromNumpyArray(CN, cns[i], cnsize, nfld, true);
+    csize[i] = cnsize / strides[i];
+    local_cdist[i+1] = csize[i];
+    ncells += local_cdist[i+1];
+
+    if (strcmp(eltNames[i], "HEXA") == 0)
+      fstrides[i] = 6;
+    else if (strcmp(eltNames[i], "PENTA") == 0)
+      fstrides[i] = 5;
+    else if (strcmp(eltNames[i], "TETRA") == 0)
+      fstrides[i] = 4;
+    else if (strcmp(eltNames[i], "PYRA") == 0)
+      fstrides[i] = 5;
+    //TODO(Imad): QUAD et TRI
+    /*
+    else if (strcmp(eltNames[i], "TRI") == 0)
+      fstrides[i] = 1;
+    else if (strcmp(eltNames[i], "QUAD") == 0)
+      fstrides[i] = 1;
+    */
   }
-  E_Int stride;
-  stride = PyLong_AsLong(STRIDE);
 
-  // connectivity array
-  E_Int *cn;
-  E_Int cnsize;
-  res = K_NUMPY::getFromNumpyArray(CN, cn, cnsize, nfld, true);
-  assert(res == 1);
-  E_Int ncells = cnsize / stride;
+  for (E_Int i = 0; i < nchunks; i++)
+    local_cdist[i+1] += local_cdist[i];
+  
+  assert(ncells == local_cdist[nchunks]);
 
   // build cell and points distributions
   std::vector<E_Int> cdist((nproc+1));
@@ -417,18 +464,35 @@ PyObject *K_XCORE::chunk2part_elt(PyObject *self, PyObject *args)
   MPI_Allreduce(&ncells, &gncells, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
   assert(gncells == cdist[nproc]);
   if (rank == 0)
-    printf("Total number of %s: %d (Average: %d)\n", eltName, gncells, gncells/nproc);
+    printf("Total number of cells: %d (Average: %d)\n", gncells, gncells/nproc);
 
+  // make local cell labels
+  std::vector<E_Int> cellLabels(nchunks);
+
+  for (E_Int i = 0; i < nchunks; i++)
+    cellLabels[i] = csize[i];
+  
+  for (E_Int i = 0; i < nchunks-1; i++)
+    cellLabels[i+1] += cellLabels[i];
+  
+  for (E_Int i = 0; i < nchunks; i++) {
+    cellLabels[i] -= csize[i];
+    cellLabels[i] += cdist[rank];
+  }
 
   // make cellFaces connectivity
-  E_Int nfaces = 0;
-  std::vector<E_Int> NFACE;
+  E_Int nfaces = 1;
+  std::vector<std::vector<E_Int>> NFACES(nchunks);
   std::unordered_map<Poly, E_Int, Poly_hash> faces;
   std::vector<Poly> face2Poly;
-  res = make_facets(cn, ncells, stride, eltName, nfaces, NFACE, faces, face2Poly);
-  if (res == 1)
-    return NULL;
+  for (E_Int i = 0; i < nchunks; i++) {
+    E_Int res = make_facets(cns[i], csize[i], strides[i], eltNames[i], nfaces,
+      NFACES[i], faces, face2Poly);
+    if (res == 1)
+      return NULL;
+  }
 
+  nfaces--;
   E_Int firstFace;
   MPI_Scan(&nfaces, &firstFace, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
@@ -439,23 +503,29 @@ PyObject *K_XCORE::chunk2part_elt(PyObject *self, PyObject *args)
     face.second = face.second + firstFace;
   
   // adjust NFACE
-  for (auto &face : NFACE)
-    face = face + firstFace;
-
+  for (auto& NFACE : NFACES)
+    for (auto &face : NFACE)
+      face = face + firstFace;
+  
   // make local ParentElement
-  E_Int firstCell = cdist[rank];
 
   std::unordered_map<E_Int, std::vector<E_Int>> lPE;
 
-  for (E_Int i = 0; i < ncells; i++) {
-    E_Int *pf = &NFACE[fstride*i];
-    for (E_Int j = 0; j < fstride; j++) {
-      lPE[pf[j]].push_back(i+firstCell);
+  for (E_Int chunk = 0; chunk < nchunks; chunk++) {
+    auto& NFACE = NFACES[chunk];
+    E_Int nc = csize[chunk];
+    E_Int fstr = fstrides[chunk];
+    E_Int cstart = cellLabels[chunk];
+
+    for (E_Int i = 0; i < nc; i++) {
+      E_Int *pf = &NFACE[fstr*i];
+      for (E_Int j = 0; j < fstr; j++) {
+        lPE[pf[j]].push_back(i+cstart);
+      }
     }
   }
 
   // potential pface data to exchange with every proc
-  // Note(Imad): is it sufficient to send the facet hash only?
   std::vector<E_Int> SEND;
 
   for (auto &face : lPE) {
@@ -593,16 +663,18 @@ PyObject *K_XCORE::chunk2part_elt(PyObject *self, PyObject *args)
 
   E_Int nf = gstart+1;
 
-  for (auto &face : NFACE) {
-    if (dups.find(face) != dups.end()) {
-      face = -face;
-    } else {
-      auto search = old2new.find(face);
-      if (search == old2new.end()) {
-        old2new[face] = nf;
-        face = nf++;
-      } else{
-        face = search->second;
+  for (auto &NFACE : NFACES) {
+    for (auto &face : NFACE) {
+      if (dups.find(face) != dups.end()) {
+        face = -face;
+      } else {
+        auto search = old2new.find(face);
+        if (search == old2new.end()) {
+          old2new[face] = nf;
+          face = nf++;
+        } else {
+          face = search->second;
+        }
       }
     }
   }
@@ -673,12 +745,12 @@ PyObject *K_XCORE::chunk2part_elt(PyObject *self, PyObject *args)
     }
   }
 
-  for (auto &face : NFACE) {
-    if (face < 0)
-      face = old2new[face];
+  for (auto& NFACE : NFACES) {
+    for (auto &face : NFACE) {
+      if (face < 0)
+        face = old2new[face];
+    }
   }
-
-  //EXIT;
 
   // make face distribution
   std::vector<E_Int> fdist(nproc+1);
@@ -698,12 +770,19 @@ PyObject *K_XCORE::chunk2part_elt(PyObject *self, PyObject *args)
 
   // update lPE
   // Note(Imad): for now we create a new map
-  // WARNING(Imad): check that this is ok!!!
   std::unordered_map<E_Int, std::vector<E_Int>> PE;
-  for (auto i = 0; i < ncells; i++) {
-    E_Int *pf = &NFACE[fstride*i];
-    for (E_Int j = 0; j < fstride; j++)
-      PE[pf[j]].push_back(i + firstCell);
+  for (E_Int chunk = 0; chunk < nchunks; chunk++) {
+    auto& NFACE = NFACES[chunk];
+    E_Int nc = csize[chunk];
+    E_Int fstr = fstrides[chunk];
+    E_Int cstart = cellLabels[chunk];
+
+    for (E_Int i = 0; i < nc; i++) {
+      E_Int *pf = &NFACE[fstr*i];
+      for (E_Int j = 0; j < fstr; j++) {
+        PE[pf[j]].push_back(i+cstart);
+      }
+    }
   }
 
   // we know PE of every face
@@ -808,6 +887,7 @@ PyObject *K_XCORE::chunk2part_elt(PyObject *self, PyObject *args)
 
   std::vector<std::vector<E_Int>> cadj(ncells);
   E_Int nedges = 0;
+  E_Int firstCell = cdist[rank];
   for (E_Int i = 0; i < nproc; i++) {
     E_Int *ptr = &rdata[rdist[i]];
     for (E_Int j = 0; j < rcount[i];) {
@@ -881,7 +961,6 @@ PyObject *K_XCORE::chunk2part_elt(PyObject *self, PyObject *args)
   if (rank == 0)
     printf("Graph map OK\n");
 
-
   // distribute
   std::vector<E_Int> c_scount(nproc, 0), c_rcount(nproc);
   
@@ -916,53 +995,90 @@ PyObject *K_XCORE::chunk2part_elt(PyObject *self, PyObject *args)
                 &rcells[0], &c_rcount[0], &c_rdist[0], MPI_INT,
                 MPI_COMM_WORLD);
 
+
   // send connectivity
+  for (E_Int i = 0; i < nproc; i++)
+    scount[i] = 0;
+
   for (E_Int i = 0; i < nproc; i++) {
-    scount[i] = stride*c_scount[i];
-    rcount[i] = stride*c_rcount[i];
+    E_Int *ptr = &scells[c_sdist[i]];
+    for (E_Int j = 0; j < c_scount[i]; j++) {
+      E_Int cell = ptr[j] - cdist[rank];
+      E_Int chunk = get_chunk(cell, local_cdist);
+      scount[i] += strides[chunk];
+    }
+  }
+
+  MPI_Alltoall(&scount[0], 1, MPI_INT, &rcount[0], 1, MPI_INT, MPI_COMM_WORLD);
+
+  sdist[0] = rdist[0] = 0;
+  for (E_Int i = 0; i < nproc; i++) {
     sdist[i+1] = sdist[i] + scount[i];
     rdist[i+1] = rdist[i] + rcount[i];
   }
 
+  sdata.resize(sdist[nproc]);
+  rdata.resize(rdist[nproc]);
+
+  std::vector<E_Int> sstride(c_sdist[nproc]);
+  std::vector<E_Int> rstride(c_rdist[nproc]);
+
   for (E_Int i = 0; i < nproc; i++)
     idx[i] = sdist[i];
-  
-  sdata.resize(sdist[nproc]);
-  std::vector<E_Int> ncn(rdist[nproc]);
-  assert(rdist[nproc] == nncells*stride);
-  
+
   for (E_Int i = 0; i < nproc; i++) {
-    E_Int *pc = &scells[c_sdist[i]];
-    E_Int *ptr = &sdata[sdist[i]];
+    E_Int *ptr = &scells[c_sdist[i]];
+    E_Int *sp = &sstride[c_sdist[i]];
+
     for (E_Int j = 0; j < c_scount[i]; j++) {
-      E_Int cell = pc[j] - firstCell;
-      E_Int *pn = &cn[stride*cell];
+      E_Int cell = ptr[j];
+
+      E_Int lc = cell - cdist[rank];
+
+      E_Int chunk = get_chunk(lc, local_cdist);
+
+      E_Int stride = strides[chunk];
+      E_Int lsize = local_cdist[chunk];
+      const auto& cn = cns[chunk];
+
+      *sp++ = stride;
+      lc -= lsize;
+
+      E_Int *pn = &cn[lc * stride];
       for (E_Int k = 0; k < stride; k++)
-        *ptr++ = pn[k];
+        sdata[idx[i]++] = pn[k];
     }
   }
 
+
   MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], MPI_INT,
-                &ncn[0], &rcount[0], &rdist[0], MPI_INT,
+                &rdata[0], &rcount[0], &rdist[0], MPI_INT,
                 MPI_COMM_WORLD);
   
+  MPI_Alltoallv(&sstride[0], &c_scount[0], &c_sdist[0], MPI_INT,
+                &rstride[0], &c_rcount[0], &c_rdist[0], MPI_INT,
+                MPI_COMM_WORLD);
+
+  if (rank == 0)
+    puts("Connectivity OK");
+
   // hash cells
   std::unordered_map<E_Int, E_Int> CT;
   for (E_Int i = 0; i < nncells; i++)
     CT[rcells[i]] = i;
-
+  
   // request points
   E_Int nnpoints = 0;
   std::unordered_map<E_Int, E_Int> PT;
   std::vector<E_Int> p_rcount(nproc, 0), p_scount(nproc);
 
   for (E_Int i = 0; i < nproc; i++) {
-    E_Int *pc = &rcells[c_rdist[i]];
+    E_Int *ps = &rstride[c_rdist[i]];
+    E_Int *pr = &rdata[rdist[i]];
     for (E_Int j = 0; j < c_rcount[i]; j++) {
-      E_Int lc = CT[pc[j]];
-      E_Int *pn = &ncn[stride*lc];
+      E_Int stride = ps[j];
       for (E_Int k = 0; k < stride; k++) {
-        E_Int point = pn[k];
+        E_Int point = *pr++;
         if (PT.find(point) == PT.end()) {
           PT[point] = nnpoints++;
           E_Int src = get_proc(point-1, pdist, nproc);
@@ -971,9 +1087,9 @@ PyObject *K_XCORE::chunk2part_elt(PyObject *self, PyObject *args)
       }
     }
   }
-  
+
   MPI_Alltoall(&p_rcount[0], 1, MPI_INT, &p_scount[0], 1, MPI_INT, MPI_COMM_WORLD);
-  
+
   std::vector<E_Int> p_rdist(nproc+1);
   std::vector<E_Int> p_sdist(nproc+1);
   p_rdist[0] = p_sdist[0] = 0;
@@ -990,13 +1106,14 @@ PyObject *K_XCORE::chunk2part_elt(PyObject *self, PyObject *args)
   for (E_Int i = 0; i < nproc; i++) idx[i] = p_rdist[i];
 
   std::vector<E_Int> vpoints(nnpoints, 0);
+
   for (E_Int i = 0; i < nproc; i++) {
-    E_Int *pc = &rcells[c_rdist[i]];
+    E_Int *ps = &rstride[c_rdist[i]];
+    E_Int *pr = &rdata[rdist[i]];
     for (E_Int j = 0; j < c_rcount[i]; j++) {
-      E_Int lc = CT[pc[j]];
-      E_Int *pn = &ncn[stride*lc];
+      E_Int stride = ps[j];
       for (E_Int k = 0; k < stride; k++) {
-        E_Int point = pn[k];
+        E_Int point = *pr++;
         if (!vpoints[PT[point]]) {
           vpoints[PT[point]]++;
           E_Int src = get_proc(point-1, pdist, nproc);
@@ -1016,19 +1133,24 @@ PyObject *K_XCORE::chunk2part_elt(PyObject *self, PyObject *args)
     PT[point] = nnpoints++;
 
   // send coordinates
+  std::vector<E_Int> sxcount(nproc);
+  std::vector<E_Int> rxcount(nproc);
+  std::vector<E_Int> sxdist(nproc+1);
+  std::vector<E_Int> rxdist(nproc+1);
+  sxdist[0] = rxdist[0] = 0;
   for (E_Int i = 0; i < nproc; i++) {
-    scount[i] = 3*p_scount[i];
-    rcount[i] = 3*p_rcount[i];
-    sdist[i+1] = sdist[i] + scount[i];
-    rdist[i+1] = rdist[i] + rcount[i];
+    sxcount[i] = 3*p_scount[i];
+    rxcount[i] = 3*p_rcount[i];
+    sxdist[i+1] = sxdist[i] + sxcount[i];
+    rxdist[i+1] = rxdist[i] + rxcount[i];
   }
-  
-  std::vector<E_Float> sxyz(sdist[nproc]);
-  std::vector<E_Float> rxyz(rdist[nproc]);
+
+  std::vector<E_Float> sxyz(sxdist[nproc]);
+  std::vector<E_Float> rxyz(rxdist[nproc]);
 
   for (E_Int i = 0; i < nproc; i++) {
     E_Int *pp = &spoints[p_sdist[i]];
-    E_Float *px = &sxyz[sdist[i]];
+    E_Float *px = &sxyz[sxdist[i]];
     for (E_Int j = 0; j < p_scount[i]; j++) {
       E_Int point = pp[j] - 1 - pdist[rank];
       *px++ = X[point];
@@ -1037,31 +1159,116 @@ PyObject *K_XCORE::chunk2part_elt(PyObject *self, PyObject *args)
     }
   }
 
-  MPI_Alltoallv(&sxyz[0], &scount[0], &sdist[0], MPI_DOUBLE,
-                &rxyz[0], &rcount[0], &rdist[0], MPI_DOUBLE,
+  MPI_Alltoallv(&sxyz[0], &sxcount[0], &sxdist[0], MPI_DOUBLE,
+                &rxyz[0], &rxcount[0], &rxdist[0], MPI_DOUBLE,
                 MPI_COMM_WORLD);
 
   if (rank == 0)
     puts("Coordinates OK");
+  
+  // build output
+  if (rank == 0)
+    puts("Exporting...");
 
-  // Build output
+  PyObject *out = PyList_New(0);
+
   const char *varString = "CoordinateX,CoordinateY,CoordinateZ";
 
-  PyObject* m = K_ARRAY::buildArray3(3, varString, nnpoints, nncells, eltName, false, 3);
+  // count number of cells and points per element type
+  std::unordered_map<E_Int, E_Int> stride2nelem;
+  std::unordered_map<E_Int, std::set<E_Int>> stride2points;
 
-  FldArrayF *fo;
-  FldArrayI *cno;
-  K_ARRAY::getFromArray3(m, fo, cno);
+  for (E_Int i = 0; i < nchunks; i++)
+    stride2nelem[strides[i]] = 0;
 
-  for (E_Int n = 0; n < 3; n++) { 
-    E_Float *px = fo->begin(n+1);
-    for (E_Int i = 0; i < nnpoints; i++)
-      px[i] = rxyz[3*i+n];
+  for (E_Int i = 0; i < nproc; i++) {
+    E_Int *ps = &rstride[c_rdist[i]];
+    E_Int *pr = &rdata[rdist[i]];
+
+    for (E_Int j = 0; j < c_rcount[i]; j++) {
+      E_Int stride = ps[j];
+
+      stride2nelem[stride]++;
+
+
+      for (E_Int k = 0; k < stride; k++) {
+        E_Int point = *pr++;
+        stride2points[stride].insert(point);
+      }
+    }
   }
 
-  E_Int *pn = cno->begin();
-  for (E_Int i = 0; i < stride*nncells; i++)
-    pn[i] = PT[ncn[i]]+1;
+  std::unordered_map<E_Int, PyObject *> stride2arr;
+  std::unordered_map<E_Int, FldArrayF *> stride2fo;
+  std::unordered_map<E_Int, FldArrayI *> stride2cno;
+  std::unordered_map<E_Int, E_Int *> begin_ptr;
+  std::unordered_map<E_Int, E_Int> stride2count;
+  std::unordered_map<E_Int, std::unordered_map<E_Int, E_Int>> stride2localp;
 
-  return m;
+  for (auto& zone : stride2points) {
+    E_Int stride = zone.first;
+    const auto& points = zone.second;
+    E_Int ncells = stride2nelem[stride];
+    E_Int npoints = points.size();
+
+    char eltName[10];
+
+    // TODO(Imad): what if stride == 4 but elt is QUAD?
+    if (stride == 4)
+      strcpy(eltName, "TETRA");
+    else if (stride == 5)
+      strcpy(eltName, "PYRA");
+    else if (stride == 6)
+      strcpy(eltName, "PENTA");
+    else if (stride == 8)
+      strcpy(eltName, "HEXA");
+
+    stride2arr[stride] = K_ARRAY::buildArray3(3, varString, npoints, ncells, eltName, false, 3);
+    K_ARRAY::getFromArray3(stride2arr[stride], stride2fo[stride], stride2cno[stride]);
+  
+    begin_ptr[stride] = stride2cno[stride]->begin();
+
+    stride2count[stride] = 0;
+
+    // make local points table
+    E_Int np = 0;
+    auto& localp = stride2localp[stride];
+    for (const auto &point : points)
+      localp[point] = np++;
+    
+    // fill in xyz
+    for (E_Int n = 0; n < 3; n++) {
+      E_Float *px = stride2fo[stride]->begin(n+1);
+      for (auto& point : points) {
+        E_Int pt = localp[point];
+        px[pt] = rxyz[3*PT[point]+n];
+      }
+    }
+  }
+
+  for (E_Int i = 0; i < nproc; i++) {
+    E_Int *ps = &rstride[c_rdist[i]];
+    E_Int *pn = &rdata[rdist[i]];
+
+    for (E_Int j = 0; j < c_rcount[i]; j++) {
+      E_Int stride = ps[j];
+      E_Int& where = stride2count[stride];
+      E_Int *ptr = begin_ptr[stride];
+      auto& localp = stride2localp[stride];
+      for (E_Int k = 0; k < stride; k++) {
+        ptr[where] = localp[*pn]+1;
+        where++;
+        pn++;
+      }
+    }
+  }
+
+  for (auto& m : stride2arr) {
+    //E_Int stride = m.first;
+    //if (stride2nelem[stride] == 0) continue;
+    PyList_Append(out, m.second);
+    Py_DECREF(m.second);
+  }
+
+  return out;
 }

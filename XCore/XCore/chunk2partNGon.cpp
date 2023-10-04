@@ -55,7 +55,7 @@ struct proc_patch {
   {}
 };
 
-PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
+PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
 {
   PyObject *array;
   if (!PyArg_ParseTuple(args, "O", &array)) {
@@ -64,7 +64,7 @@ PyObject* K_XCORE::chunk2part(PyObject *self, PyObject *args)
 
   E_Int nzones = PyList_Size(array);
   if (nzones != 1) {
-    fprintf(stderr, "chunk2part(): should be one zone per chunk for now.\n");
+    fprintf(stderr, "chunk2partNGon(): should be one zone per chunk for now.\n");
     return NULL;
   }
 
