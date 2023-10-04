@@ -21,14 +21,24 @@ E_Float scale = MAX(zonep->xmax-zonep->xmin, zonep->ymax-zonep->ymin);
 scale = MAX(scale, zonep->zmax-zonep->zmin);
 scale = 100./(scale+1.e-12);
 E_Int shader;
-//printf("material %d\n", zonep->material);
 //float alpha = 0.004;
 //float dx = (_view.xeye - _view.xcam)*alpha;
 //float dy = (_view.yeye - _view.ycam)*alpha;
 //float dz = (_view.zeye - _view.zcam)*alpha;
-int nofield = -int(zonep->colorR)-2;
-int colormap = (int)((_isoColormap[nofield])*0.5);
-if (colormap == -1) colormap = (int)((ptrState->colormap)*0.5);
+E_Int nofield = -E_Int(zonep->colorR)-2;
+E_Int isoLight;
+E_Int colormap = (E_Int)(_isoColormap[nofield]);
+if (colormap != -1) // isoScales prevails
+{
+  isoLight = colormap%2;
+  colormap = (E_Int)(colormap*0.5);
+}
+else
+{
+  colormap = (E_Int)((ptrState->colormap)*0.5);
+  isoLight = ptrState->isoLight;
+}
+//printf("I use colormap %d and isoLight %d\n", colormap, isoLight); fflush(stdout);
 
 switch (zonep->material)
 { 
@@ -187,7 +197,7 @@ switch (zonep->material)
     }
     double resf = std::max(_view.w / 1080., 1.);
     _shaders[shader]->setUniform("edgeStyle", (float)(resf*ptrState->isoEdges));
-    if (ptrState->isoLight == 1 && ptrState->dim == 3)
+    if (isoLight == 1 && ptrState->dim == 3)
       _shaders[shader]->setUniform("lightOn", (int)1);
     else _shaders[shader]->setUniform("lightOn", (int)0);
     _shaders[shader]->setUniform("shadow", (int)ptrState->shadow);
@@ -230,7 +240,7 @@ switch (zonep->material)
       _shaders[shader]->setUniform("amax", (float)amax);
     }
     _shaders[shader]->setUniform("edgeStyle", (float)zonep->shaderParam1);
-    if (ptrState->isoLight == 1 && ptrState->dim == 3)
+    if (isoLight == 1 && ptrState->dim == 3)
       _shaders[shader]->setUniform("lightOn", (int)1);
     else _shaders[shader]->setUniform("lightOn", (int)0);
   }
@@ -271,7 +281,7 @@ switch (zonep->material)
       _shaders[shader]->setUniform("amax", (float)amax);
     }
     _shaders[shader]->setUniform("edgeStyle", (float)zonep->shaderParam1);
-    //if (ptrState->isoLight == 1 && ptrState->dim == 3)
+    //if (isoLight == 1 && ptrState->dim == 3)
     //  _shaders[shader]->setUniform("lightOn", (int)1);
     //else _shaders[shader]->setUniform("lightOn", (int)0);
   }
@@ -444,7 +454,7 @@ switch (zonep->material)
     }
     double resf = std::max(_view.w / 1080., 1.);
     _shaders[shader]->setUniform("edgeStyle", (float)(resf*ptrState->isoEdges));
-    if (ptrState->isoLight == 1 && ptrState->dim == 3)
+    if (isoLight == 1 && ptrState->dim == 3)
       _shaders[shader]->setUniform("lightOn", (int)1);
     else _shaders[shader]->setUniform("lightOn", (int)0);
     _shaders[shader]->setUniform("shadow", (int)ptrState->shadow);

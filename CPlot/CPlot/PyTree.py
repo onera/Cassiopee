@@ -879,6 +879,49 @@ def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
   return None
 
 #==============================================================================
+# IN: nom de la colormap
+# IN: light: 0 ou 1
+# OUT: style (entier)
+#==============================================================================
+def colormap2Style(colormapName, light=0):
+    style = 0
+    if colormapName == 'Blue2Red': style = 0
+    elif colormapName == 'BiColorRGB': style = 2
+    elif colormapName == 'BiColorHSV': style = 4
+    elif colormapName == 'TriColorRGB': style = 6
+    elif colormapName == 'TriColorHSV': style = 8
+    elif colormapName == 'Diverging': style = 14
+    elif colormapName == 'Viridis': style = 16
+    elif colormapName == 'Inferno': style = 18
+    elif colormapName == 'Magma': style = 20
+    elif colormapName == 'Plasma': style = 22
+    elif colormapName == 'Jet': style = 24
+    elif colormapName == 'Greys': style = 26
+    elif colormapName == 'NiceBlue': style = 28
+    elif colormapName == 'Greens': style = 30
+    if light == 1: style += 1
+    return style
+
+def style2Colormap(style):
+    light = 0
+    if style//2 - style*0.5 != 0.: light = 1
+    if style == 0 or style == 1: colormap = 'Blue2Red'
+    elif style == 2 or style == 3: colormap = 'BiColorRGB'
+    elif style == 4 or style == 5: colormap = 'BiColorHSV'
+    elif style == 6 or style == 7: colormap = 'TriColorRGB'
+    elif style == 8 or style == 9: colormap = 'TriColorHSV'
+    elif style == 14 or style == 15: colormap = 'Diverging'
+    elif style == 16 or style == 17: colormap = 'Viridis'
+    elif style == 18 or style == 19: colormap = 'Inferno'
+    elif style == 20 or style == 21: colormap = 'Magma'
+    elif style == 22 or style == 23: colormap = 'Plasma'
+    elif style == 24 or style == 25: colormap = 'Jet'
+    elif style == 26 or style == 27: colormap = 'Greys'
+    elif style == 28 or style == 29: colormap = 'NiceBlue'
+    elif style == 30 or style == 31: colormap = 'Greens'
+    return colormap, light
+    
+#==============================================================================
 # loadView form slot
 #==============================================================================
 def loadView(t, slot=0):
@@ -943,19 +986,8 @@ def loadView(t, slot=0):
     pos = Internal.getNodeFromName1(slot, 'colormapC')
     if pos is not None: colormapC = Internal.getValue(pos)
     else: colormapC = []
-    
-    style = 0
-    if colormap == 'Blue2Red': style = 0
-    elif colormap == 'Green2Red': style = 2
-    elif colormap == 'BiColorRGB': style = 4
-    elif colormap == 'BiColorHSV': style = 6
-    elif colormap == 'Diverging': style = 8
-    elif colormap == 'TriColorRGB': style = 10
-    elif colormap == 'TriColorHSV': style = 12
-    elif colormap == 'MultiColorRGB': style = 14
-    elif colormap == 'MultiColorHSV': style = 16
-    
-    if light == 1: style += 1
+    style = colormap2Style(colormap, light) 
+
     if legend == 1: CPlot.setState(displayIsoLegend=legend)
 
     CPlot.setState(colormap=style)

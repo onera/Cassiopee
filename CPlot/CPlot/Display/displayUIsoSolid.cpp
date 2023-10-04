@@ -35,19 +35,35 @@ void DataDL::displayUIsoSolid()
   glEnable(GL_POLYGON_OFFSET_FILL);
   glEnable(GL_POLYGON_OFFSET_LINE);
 
+  // Find colormap and isoLight
+  E_Int isoLight;
+  E_Int nofield = ptrState->scalarField;
+  E_Int colormap = (E_Int)(_isoColormap[nofield]);
+  if (colormap != -1) // isoScales prevails
+  {
+    isoLight = colormap%2;
+    colormap = (E_Int)(colormap*0.5);
+  }
+  else
+  {
+    colormap = (E_Int)((ptrState->colormap)*0.5);
+    isoLight = ptrState->isoLight;
+  }
+  //printf("I use colormap %d and isoLight %d\n", colormap, isoLight); fflush(stdout);
+
+
 #ifdef __SHADERS__
   SHADOWTEXTURE;
   if (ptrState->mode == SCALARFIELD)
   { // shader pour les isos scalaires
     glActiveTexture(GL_TEXTURE1);
     if (_texColormap == 0) createColormapTexture();
-    fillColormapTexture((int)_pref.colorMap->varName[0]-48);
+    fillColormapTexture(colormap);
     glBindTexture(GL_TEXTURE_1D, _texColormap);
     int s = _shaders.shader_id(shader::iso_banded_colormap);
     if (ptrState->scalarStyle == 2 || ptrState->scalarStyle == 3) s = _shaders.shader_id(shader::iso_colored_lines);
     if (_shaders.currentShader() != s) _shaders.activate((short unsigned int)s);
     _shaders[s]->setUniform("colormap", (int)1);
-    int nofield = ptrState->scalarField;
     if (_niso[nofield] == -1)
     {
       _shaders[s]->setUniform("alpha", (float)1.);
@@ -116,7 +132,7 @@ void DataDL::displayUIsoSolid()
 #endif 
 
   // lumiere
-  if (ptrState->isoLight == 1 && ptrState->dim == 3) 
+  if (isoLight == 1 && ptrState->dim == 3) 
   {
     light(3);
 #ifdef __SHADERS__

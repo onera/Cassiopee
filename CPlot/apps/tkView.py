@@ -243,7 +243,6 @@ def displayField(event=None):
     VARNO = ifield
     compMin(); compMax()
     updateIsoWidgets()
-    
     ifield = field.replace('centers:', '')
     CPlot.setState(mode=3, scalarField=ifield)
     CTK.TXT.insert('START', 'Variable %s displayed.\n'%field)
@@ -482,24 +481,10 @@ def setColormapLight(event=None):
     if CTK.t == []: return
     colormap = VARS[4].get()
     light = VARS[5].get()
-    style = 0
-    if colormap == 'Blue2Red': style = 0
-    elif colormap == 'BiColorRGB': style = 2
-    elif colormap == 'BiColorHSV': style = 4
-    elif colormap == 'TriColorRGB': style = 6
-    elif colormap == 'TriColorHSV': style = 8
-    elif colormap == 'Diverging': style = 14
-    elif colormap == 'Viridis': style = 16
-    elif colormap == 'Inferno': style = 18
-    elif colormap == 'Magma': style = 20
-    elif colormap == 'Plasma': style = 22
-    elif colormap == 'Jet': style = 24
-    elif colormap == 'Greys': style = 26
-    elif colormap == 'NiceBlue': style = 28
-    elif colormap == 'Greens': style = 30
-    
-    if light == 'IsoLight on': style += 1
-    
+    if light == 'IsoLight on': light = 1
+    else: light = 0
+    style = CPlot.colormap2Style(colormap, light)
+        
     if colormap == 'BiColorRGB' or colormap == 'BiColorHSV':
         WIDGETS['colormapC1'].grid(row=7, column=1, sticky=TK.EW)
         WIDGETS['colormapC2'].grid(row=7, column=2, sticky=TK.EW)
@@ -514,6 +499,7 @@ def setColormapLight(event=None):
         WIDGETS['colormapC3'].grid_forget()
                 
     CPlot.setState(colormap=style)
+    updateIsoPyTree()
 
 #==============================================================================
 def setScalarStyle(event=None):
@@ -832,11 +818,11 @@ def updateIsoWidgets():
     sl = Internal.getNodeFromName2(CTK.t, 'Slot'+slot)
     if sl is None:
         compIsoMin(); compIsoMax(); return
-
+    
     field = VARS[18].get()
     pos = Internal.getNodeFromName1(sl, 'isoScales[%s]'%field)
     if pos is not None and pos[1] is not None:
-        n = pos[1]
+        n = pos[1].copy()
         VARS[2].set(str(int(n[0])))
         VARS[9].set(str(n[1]))
         VARS[10].set(str(n[2]))
@@ -845,11 +831,18 @@ def updateIsoWidgets():
         WIDGETS['min'].set(s)
         s = 100*(n[2]-VARMIN)/delta
         WIDGETS['max'].set(s)
+        if len(n) == 4 or len(n) == 6: # colormap in isoScales
+            colormapStyle = n[-1]
+            colormap, light = CPlot.style2Colormap(colormapStyle)
+            VARS[4].set(colormap)
+            if light == 1: VARS[5].set("IsoLight on")
+            else: VARS[5].set("IsoLight off")
+            setColormapLight()
         return
 
     pos = Internal.getNodeFromName(sl, 'isoScales')
     if pos is not None and pos[1] is not None:
-        n = pos[1]; l = n.shape[0]
+        n = pos[1].copy(); l = n.shape[0]
         list = []; c = 0
         while c < l:
             if n[c] == VARNO:
@@ -877,7 +870,12 @@ def updateIsoPyTree():
         fmax = float(VARS[10].get())
         cutMin = float(VARS[30].get())
         cutMax = float(VARS[31].get())
-        list = [[VARS[18].get(), niso, fmin, fmax, cutMin, cutMax]]
+        colormap = VARS[4].get()
+        light = VARS[5].get()
+        if light == 'IsoLight on': light = 1
+        else: light = 0
+        style = CPlot.colormap2Style(colormap, light)
+        list = [[VARS[18].get(), niso, fmin, fmax, cutMin, cutMax, style]]
         CPlot.setState(isoScales=list)
         slot = int(VARS[0].get())
         CPlot._addRender2PyTree(CTK.t, slot=slot, isoScales=list)

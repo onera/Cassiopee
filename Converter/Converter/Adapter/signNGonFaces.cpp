@@ -26,10 +26,26 @@ using namespace K_FLD;
 //=============================================================================
 PyObject* K_CONVERTER::signNGonFaces(PyObject* self, PyObject* args)
 {
-  PyObject* array; 
-  if (!PYPARSETUPLE_(args, "O", &array)) return NULL;
+  PyObject* o; 
+  if (!PYPARSETUPLE_(args, O_, &o)) return NULL;
 
   // Check array
-  printf(O_ I_ "(" R_ I_ ")" O_);
+  E_Int ni, nj, nk;
+  K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
+  char* varString; char* eltType;
+  E_Int ret = K_ARRAY::getFromArray3(o, varString, f, ni, nj, nk, c, eltType);
+  
+  if (ret <= 0)
+  { PyErr_SetString(PyExc_TypeError, "signNGonFaces: only for NGons."); return NULL; }
+
+  if (ret == 1)
+  { 
+    PyErr_SetString(PyExc_TypeError, "signNGonFaces: only for NGons."); 
+    RELEASESHAREDS(o, f);
+    return NULL; 
+  }
+
+  RELEASESHAREDU(o, f, c);
+
   return NULL;
 }

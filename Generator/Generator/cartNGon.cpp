@@ -37,7 +37,7 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
   E_Float xo, yo, zo;
   E_Float hi, hj, hk;
   E_Int api = 1;
-  if (!PYPARSETUPLE_(args, TRRR_ TRRR_ TIII_ I_, 
+  if (!PYPARSETUPLE_(args, TRRR_ TRRR_ TIII_ I_,
                     &xo, &yo, &zo, &hi, &hj, &hk, &ni, &nj, &nk, &api))
     {
     return NULL;

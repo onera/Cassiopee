@@ -1144,7 +1144,7 @@ void Data::reallocNFieldArrays(E_Int nfield)
     _isoAlphaMax = n;
 
     E_Int* ni = new E_Int [nfield];
-    for (E_Int i = 0; i < nfield; i++) ni[i] = -2;
+    for (E_Int i = 0; i < nfield; i++) ni[i] = -1;
     if (_isoColormap != NULL) delete [] _isoColormap;
     _isoColormap = ni;
 

@@ -888,7 +888,7 @@ class Handle:
     nb_tot_verts = 0
     for z in Internal.getZones(a):
       dim = Internal.getZoneDim(z)
-      nb_tot_verts                += dim[1]
+      nb_tot_verts += dim[1]
     f = {}
     for b in bases:
       for z in Internal.getZones(b):
@@ -900,10 +900,10 @@ class Handle:
           #print(f"number of elements : {nb_elts}, element type name : {eltName}, number of nodes per element : {nb_nodes_per_elt}")
           nb_loc_elts = nb_elts // Cmpi.size
           reste_elts = nb_elts % Cmpi.size
-          if Cmpi.rank < reste_elts :
+          if Cmpi.rank < reste_elts:
             nb_loc_elts += 1
           beg_elt = Cmpi.rank * nb_loc_elts
-          if Cmpi.rank >= reste_elts :
+          if Cmpi.rank >= reste_elts:
             beg_elt += reste_elts
           beg_elt *= nb_nodes_per_elt
           nb_loc_elts *= nb_nodes_per_elt
