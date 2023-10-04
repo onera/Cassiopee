@@ -908,22 +908,21 @@ def chunk2part(distTree):
   Cmpi.barrier()
 
   # create zone
-  z1 = I.newZone(zoneName0+'%d'%Cmpi.rank)
-  t1 = C.newPyTree(['Base', z1])
-  C.setFields([mesh], z1, 'nodes')
+  zo = I.createZoneNode('Zone_' + '%d'%Cmpi.rank, mesh)
+  t = C.newPyTree(['Base', zo])
 
   # add solutions
   for n, name in enumerate(solNames):
-    cont = I.createUniqueChild(z1, I.__FlowSolutionNodes__, 'FlowSolution_t')
+    cont = I.createUniqueChild(zo, I.__FlowSolutionNodes__, 'FlowSolution_t')
     I.newDataArray(name, value=sol[n], parent=cont)
   
   for n, name in enumerate(solcNames):
-    cont = I.createUniqueChild(z1, I.__FlowSolutionCenters__, 'FlowSolution_t')
+    cont = I.createUniqueChild(zo, I.__FlowSolutionCenters__, 'FlowSolution_t')
     I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter', )
     I.newDataArray(name, value=solc[n], parent=cont)
 
-  Cmpi._setProc(t1, Cmpi.rank)
-  return t1, RES
+  Cmpi._setProc(t, Cmpi.rank)
+  return t, RES
 
 def loadAndSplit(fileName):
   dt = loadAsChunks(fileName)
