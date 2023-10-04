@@ -251,7 +251,7 @@ E_Int K_IO::GenIO::gltfread(
     zoneNames.push_back(zoneName);
   }
   varString = new char [30];
-  strcpy(varString, "x,y,z,u,v,nx,ny,nz");
+  strcpy(varString, "x,y,z,_u_,_v_,_nx_,_ny_,_nz_");
   
   return 0;
 }

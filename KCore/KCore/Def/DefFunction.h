@@ -323,7 +323,7 @@ E_Float zzdet3(E_Float u1, E_Float u2, E_Float u3, E_Float v1, E_Float v2, E_Flo
 {
   return (u1*(v2*w3 - v3*w2) + u2*(v3*w1 - v1*w3) + u3*(v1*w2 - v2*w1));
 }
-// Prouit mixte u.(v ^ w) = det(u,v,w)
+// Produit mixte u.(v ^ w) = det(u,v,w)
 inline
 E_Float tripleProduct(const E_Float* u, const E_Float* v, E_Float* w)
 {

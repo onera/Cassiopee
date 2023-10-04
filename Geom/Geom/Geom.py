@@ -925,6 +925,6 @@ def findNearest__(Pt, Pts, c):
 def getUV(a, normalDeviationWeight=2., texResolution=1920, fields=None):
     """Return uv of surface and atlas."""
     import Converter
-    a = Converter.initVars(a, 'u', 0.)
-    a = Converter.initVars(a, 'v', 0.)
+    a = Converter.initVars(a, '_u_', 0.)
+    a = Converter.initVars(a, '_v_', 0.)
     return geom.getUV(a, normalDeviationWeight, texResolution, fields)

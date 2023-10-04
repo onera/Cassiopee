@@ -547,7 +547,7 @@ E_Int K_IO::GenIO::objread(
   varString = new char [16];
   if (uvPresent == false)
   { strcpy(varString, "x,y,z"); }
-  else { strcpy(varString, "x,y,z,u,v"); }
+  else { strcpy(varString, "x,y,z,_u_,_v_"); }
   fclose(ptrFile);
   
   return 0;

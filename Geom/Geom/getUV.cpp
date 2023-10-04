@@ -334,13 +334,13 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   posx++; posy++; posz++;
 
   // UV must have been already added
-  E_Int posu = K_ARRAY::isNamePresent("u", varString);
-  E_Int posv = K_ARRAY::isNamePresent("v", varString);
+  E_Int posu = K_ARRAY::isNamePresent("_u_", varString);
+  E_Int posv = K_ARRAY::isNamePresent("_v_", varString);
   if (posu == -1 || posv == -1)
   {
     RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_TypeError,
-                    "getUV: can't find u,v in array.");
+                    "getUV: can't find _u_,_v_ in array.");
     return NULL;  
   }
   posu++; posv++;

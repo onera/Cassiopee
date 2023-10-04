@@ -115,9 +115,9 @@ void UnstructZone::compNorm()
   {
     for (E_Int nv = 0; nv < nfield; nv++)
     {
-      if (strcmp(varnames[nv], "nx") == 0) pnx = f[nv];
-      if (strcmp(varnames[nv], "ny") == 0) pny = f[nv];
-      if (strcmp(varnames[nv], "nz") == 0) pnz = f[nv];
+      if (strcmp(varnames[nv], "_nx_") == 0) pnx = f[nv];
+      if (strcmp(varnames[nv], "_ny_") == 0) pny = f[nv];
+      if (strcmp(varnames[nv], "_nz_") == 0) pnz = f[nv];
     }
     if (pnx != NULL && pny != NULL && pnz != NULL)
     {

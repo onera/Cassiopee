@@ -237,16 +237,16 @@ StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
   z.selected = 0;
   findMinMax(&z); findFMinMax(&z);
 
-  /* met les pointeurs sur u,v,w pour le rendu texture */
+  /* met les pointeurs sur _u_,_v_,_w_ pour le rendu texture */
   z.texu = NULL; z.texv = NULL; z.texw = NULL;
   z.regtexu = NULL; z.regtexv = NULL;
   if (z.material == 14)
   {
     for (E_Int n = 0; n < z.nfield; n++)
     { 
-      if (strcmp(z.varnames[n], "texu") == 0 || strcmp(z.varnames[n], "u") == 0 || strcmp(z.varnames[n], "U") == 0) { z.texu = z.f[n]; }
-      else if (strcmp(z.varnames[n], "texv") == 0 || strcmp(z.varnames[n], "v") == 0 || strcmp(z.varnames[n], "V") == 0) { z.texv = z.f[n]; }
-      else if (strcmp(z.varnames[n], "texw") == 0 || strcmp(z.varnames[n], "w") == 0 || strcmp(z.varnames[n], "W") == 0) { z.texw = z.f[n]; }
+      if (strcmp(z.varnames[n], "texu") == 0 || strcmp(z.varnames[n], "_u_") == 0 || strcmp(z.varnames[n], "_U_") == 0) { z.texu = z.f[n]; }
+      else if (strcmp(z.varnames[n], "texv") == 0 || strcmp(z.varnames[n], "_v_") == 0 || strcmp(z.varnames[n], "_V_") == 0) { z.texv = z.f[n]; }
+      else if (strcmp(z.varnames[n], "texw") == 0 || strcmp(z.varnames[n], "_w_") == 0 || strcmp(z.varnames[n], "_W_") == 0) { z.texw = z.f[n]; }
     }
     if (z.texu == NULL)
     {
@@ -696,9 +696,9 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
   {
     for (E_Int n = 0; n < z.nfield; n++)
     { 
-      if (strcmp(z.varnames[n], "texu") == 0 || strcmp(z.varnames[n], "u") == 0 || strcmp(z.varnames[n], "U") == 0) { z.texu = z.f[n]; }
-      else if (strcmp(z.varnames[n], "texv") == 0 || strcmp(z.varnames[n], "v") == 0 || strcmp(z.varnames[n], "V") == 0) { z.texv = z.f[n]; }
-      else if (strcmp(z.varnames[n], "texw") == 0 || strcmp(z.varnames[n], "w") == 0 || strcmp(z.varnames[n], "W") == 0) { z.texw = z.f[n]; }
+      if (strcmp(z.varnames[n], "texu") == 0 || strcmp(z.varnames[n], "_u_") == 0 || strcmp(z.varnames[n], "_U_") == 0) { z.texu = z.f[n]; }
+      else if (strcmp(z.varnames[n], "texv") == 0 || strcmp(z.varnames[n], "_v_") == 0 || strcmp(z.varnames[n], "_V_") == 0) { z.texv = z.f[n]; }
+      else if (strcmp(z.varnames[n], "texw") == 0 || strcmp(z.varnames[n], "_w_") == 0 || strcmp(z.varnames[n], "_W_") == 0) { z.texw = z.f[n]; }
     }
     
     if (z.texu != NULL && z.texv == NULL) z.texu = NULL;

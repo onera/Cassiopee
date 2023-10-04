@@ -69,8 +69,8 @@ def frame(w, h, border):
     q12 = D.quadrangle(P7b, P4b, P0, P3)
     
     all = [q1,q2,q3,q4,q5,q6,q7,q8,q9,q10,q11,q12]
-    all = C.initVars(all, 'u=0')
-    all = C.initVars(all, 'v=0')
+    all = C.initVars(all, '_u_=0')
+    all = C.initVars(all, '_v_=0')
     all = C.convertArray2Tetra(all)
     f = T.join(all)
 

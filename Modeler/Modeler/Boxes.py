@@ -142,8 +142,8 @@ def box2D(Pmin, Pmax, r=0., fill=True, uv=False):
     a = T.reorder(a, (1,))
     if fill: a = G.tetraMesher(a)
     if uv:
-        a = C.initVars(a, '{u}=({x}-%f)/%f'%(xmin, (xmax-xmin)))
-        a = C.initVars(a, '{v}=({y}-%f)/%f'%(ymin, (ymax-ymin)))
+        a = C.initVars(a, '{_u_}=({x}-%f)/%f'%(xmin, (xmax-xmin)))
+        a = C.initVars(a, '{_v_}=({y}-%f)/%f'%(ymin, (ymax-ymin)))
     return a
 
 #=================================================================
@@ -163,8 +163,8 @@ def ellipse2D(Pmin, Pmax, fill=True, uv=False):
     if fill: a = G.tetraMesher(a)
     bb = G.bbox(a)
     if uv:
-        a = C.initVars(a, '{u}=({x}-%f)/%f'%(bb[0], (bb[3]-bb[0])))
-        a = C.initVars(a, '{v}=({y}-%f)/%f'%(bb[1], (bb[4]-bb[1])))
+        a = C.initVars(a, '{_u_}=({x}-%f)/%f'%(bb[0], (bb[3]-bb[0])))
+        a = C.initVars(a, '{_v_}=({y}-%f)/%f'%(bb[1], (bb[4]-bb[1])))
     return a
 
 #=================================================================
