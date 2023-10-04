@@ -250,11 +250,9 @@ E_Int K_IO::GenIO::gltfread(
     sprintf(zoneName, "Zone%d", i);
     zoneNames.push_back(zoneName);
   }
-  varString = new char [20];
+  varString = new char [30];
   strcpy(varString, "x,y,z,u,v,nx,ny,nz");
-  //varString = new char [11];
-  //strcpy(varString, "x,y,z,u,v");
-
+  
   return 0;
 }
 

@@ -20,7 +20,7 @@
 #include "xcore.h"
 #include <mpi.h>
 #include <unordered_map>
-#include "../common/mem.h"
+#include "common/mem.h"
 
 #include "scotch/ptscotch.h"
 

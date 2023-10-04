@@ -19,7 +19,7 @@ if rank == 0:
     a = C.initVars(a, '{centers:Density} = {centers:CoordinateX} + sin({centers:CoordinateY}) + cos({centers:CoordinateZ})')
     a = C.initVars(a, '{centers:Pressure} = {centers:CoordinateX} + cos({centers:CoordinateY}) + sin({centers:CoordinateZ})')
     a = C.initVars(a, '{Density} = {CoordinateX} + sin({CoordinateY}) + cos({CoordinateZ})')
-    Internal._adaptNGon12NGon2(a)
+    Internal._adaptNGon32NGon4(a)
     C.convertPyTree2File(a, fileName)
 Cmpi.barrier()
 
@@ -53,7 +53,7 @@ for z in Internal.getZones(distTree):
 
 #comm_data = list of [neighbor proc (int), interproc faces (array),
 #                     corresponding global neighbor ids (array)]
-RES = XCore.xcore.chunk2part(arrays)
+RES = XCore.xcore.chunk2partNGon(arrays)
 
 cells = RES[0]
 comm_data = RES[1]

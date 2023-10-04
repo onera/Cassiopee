@@ -399,7 +399,7 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   // chunks
   E_Int nchunks = PyList_Size(CHUNKS);
 
-  std::vector<char *> eltNames(nchunks);
+  std::vector<const char *> eltNames(nchunks);
   std::vector<E_Int> strides(nchunks);
   std::vector<E_Int *> cns(nchunks);
   std::vector<E_Int> local_cdist(nchunks+1, 0);

@@ -939,14 +939,19 @@ def fitZone(i, event=None):
 def deactivateZone(event=None):
     myList = WIDGETS['myLists'][0]
     sel = myList.curselection()
-    name = myList.get(sel[0])
-    name = name.strip(); name = name.split('/')
-    baseName = name[0]; zoneName = name[1]
-    noz = CPlot.getCPlotNumber(CTK.t, baseName, zoneName)
-    activated = [(noz, 1)]
-    CPlot.setActiveZones(activated)
+    activated = []
+    for s in sel:
+        name = myList.get(s)
+        name = name.strip(); name = name.split('/')
+        baseName = name[0]; zoneName = name[1]
+        noz = CPlot.getCPlotNumber(CTK.t, baseName, zoneName)
+        sp = CPlot.getActiveStatus(noz)
+        if sp: activated.append((noz, 0))
+        else: activated.append((noz, 1))
+    if activated:
+        CPlot.setActiveZones(activated)
 
-# called when right click in color listbox
+# called when double left click in color listbox
 def openScalar(event=None):
     myList = WIDGETS['myLists'][2]
     cur = myList.curselection()
@@ -1208,55 +1213,56 @@ def openRenderPanel():
                 myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
                                     yscrollcommand=lambda *args: yscrolli(0,*args),
                                     #width=30, height=20, 
-                                    background='white')
+                                    background='white', exportselection=1)
                 myList.bind('<Double-Button>', lambda event: fitZone(0, event))
-                #myList.bind('<Button-3>', deactivateZone)
-                
+                myList.bind('<Button-3>', deactivateZone)
+
             elif i == 1:
                 # Material listbox
                 myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
                                     yscrollcommand=lambda *args: yscrolli(1,*args),
                                     #width=30, height=20, 
-                                    background='white')
+                                    background='white', exportselection=1)
                 myList.bind('<Double-Button>', lambda event: fitZone(1, event))
             elif i == 2:
                 # Color listbox
                 myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
                                     yscrollcommand=lambda *args: yscrolli(2,*args),
                                     #width=30, height=20, 
-                                    background='white')
+                                    background='white', exportselection=1)
                 myList.bind('<Double-Button>', openScalar)
             elif i == 3:
                 # Blend listbox
                 myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
                                     yscrollcommand=lambda *args: yscrolli(3,*args),
                                     width=4, 
-                                    background='white')
+                                    background='white', exportselection=1)
                 myList.bind('<Double-Button>', lambda event: fitZone(3, event))
             elif i == 4:
                 # Mesh listbox
                 myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
                                     yscrollcommand=lambda *args: yscrolli(4,*args),
                                     width=4, 
-                                    background='white')
+                                    background='white', exportselection=1)
                 myList.bind('<Double-Button>', lambda event: fitZone(4, event))  
             elif i == 5:
                 # Shader param1 listbox
                 myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
                                     yscrollcommand=lambda *args: yscrolli(5,*args),
                                     width=4, 
-                                    background='white')
+                                    background='white', exportselection=1)
                 myList.bind('<Double-Button>', lambda event: fitZone(5, event))
             elif i == 6:
                 # shader param2 listbox
                 myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
                                     yscrollcommand=lambda *args: yscrolli(6,*args),
                                     width=4,  
-                                    background='white')
+                                    background='white', exportselection=1)
                 myList.bind('<Double-Button>', lambda event: fitZone(6, event))
 
             myList.grid(sticky=TK.NSEW, row=2, column=i)
             myList.bind('<<ListboxSelect>>', renderSelect)
+
             myLists.append(myList)
         WIDGETS['myLists'] = myLists
         scrollbar.config(command=updateScrollLists)

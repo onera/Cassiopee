@@ -43,7 +43,7 @@ includeDirs = [numpyIncDir, kcoreIncDir]
 
 import srcs
 libraries = ["xcore"]
-if srcs.ZOLTAN: libraries += ["zoltan"]
+if srcs.ZOLTAN and mpi: libraries += ["zoltan"]
 if srcs.SCOTCH: libraries += ["scotch1", "scotch2"]
 if srcs.PARADIGMA != 0: libraries += ["pdm"]
 libraries += ["kcore"]
@@ -81,7 +81,7 @@ listExtensions.append(
 listExtensionsPyx = []
 cython = Dist.checkCython(additionalLibPaths, additionalIncludePaths)
 
-if cython:
+if cython and mpi and mpi4py:
     if srcs.PARADIGMA == 2:
       import srcs_paradigma23 as srcs_paradigma
       paradigmaDir = "XCore/paradgima"
@@ -106,6 +106,7 @@ if cython:
                     ) )
 else:
     def cythonize(srcs, include_path): return []
+    paradigmaDir = ''
 
 # setup ======================================================================
 setup(

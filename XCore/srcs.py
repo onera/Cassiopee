@@ -5,6 +5,9 @@ SCOTCH=True; ZOLTAN=True
 # 0: None, 1: paradigma, 2: paradigma23
 PARADIGMA=2
 
+(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
+                                                     additionalIncludePaths)
+
 #==============================================================================
 # Fichiers c++
 #==============================================================================
@@ -13,20 +16,27 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/xmpi/context_mpi_impl.cpp',
             'XCore/xmpi/context_stub_impl.cpp',
             'XCore/xmpi/communicator.cpp',
-            'XCore/zoltan1.cpp',
-            'XCore/chunk2partNGon.cpp',
-            'XCore/SplitElement/splitter.cpp',
             'XCore/test/xmpi_t1.cpp',
-            'adaptMesh/cut.cpp',
-            'adaptMesh/tree.cpp',
-            'adaptMesh/mesh.cpp',
-            'adaptMesh/math.cpp',
-            'adaptMesh/adaptMesh.cpp',
-            'adaptMesh/comm.cpp',
-            'adaptMesh/metric.cpp',
-            'adaptMesh/topo.cpp',
-            'adaptMesh/distribute.cpp',
-            'common/mem.cpp',
-            'XCore/chunk2partElt.cpp'
-            
             ]
+if mpi: # source that requires mpi
+    cpp_srcs += [
+            'XCore/zoltan1.cpp',
+            'XCore/SplitElement/splitter.cpp',
+            'XCore/chunk2partNGon.cpp',
+            'XCore/chunk2partElt.cpp',
+            'XCore/adaptMesh/cut.cpp',
+            'XCore/adaptMesh/tree.cpp',
+            'XCore/adaptMesh/mesh.cpp',
+            'XCore/adaptMesh/math.cpp',
+            'XCore/adaptMesh/adaptMesh.cpp',
+            'XCore/adaptMesh/comm.cpp',
+            'XCore/adaptMesh/metric.cpp',
+            'XCore/adaptMesh/topo.cpp',
+            'XCore/adaptMesh/distribute.cpp',
+            'XCore/common/mem.cpp'
+            ]
+else:
+    cpp_srcs += [
+        'XCore/chunk2partNGon_stub.cpp',
+        'XCore/chunk2partElt_stub.cpp',
+        'XCore/SplitElement/splitter_stub.cpp']

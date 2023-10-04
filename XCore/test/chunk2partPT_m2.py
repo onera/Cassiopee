@@ -27,5 +27,5 @@ dt = Filter2.loadAsChunks(fileName)
 t, res = Filter2.chunk2part(dt)
 
 #if Cmpi.rank == 0: print(t, flush=True)
-#Cmpi.convertPyTree2File(t, 'out.cgns')
+Cmpi.convertPyTree2File(t, 'out.cgns')
 if Cmpi.rank == 0: test.testT(t, 1)
