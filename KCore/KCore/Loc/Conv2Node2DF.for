@@ -560,7 +560,7 @@ C_LOCAL
             ind2 = ind0+nj
             ind3 = ind2+1
             sum = fieldcenter(ind0) + fieldcenter(ind1)
-     &           *fieldcenter(ind2) + fieldcenter(ind3)
+     &           +fieldcenter(ind2) + fieldcenter(ind3)
             IF (sum .EQ. 0) THEN
                fieldnode(indnode) = 0.D0
             ELSE
@@ -611,7 +611,7 @@ C     j = nj
          
          ind0 = nj-1+k0*nj 
          ind1 = ind0+gamma                      
-         sum = fieldcenter(ind0)*fieldcenter(ind1)
+         sum = fieldcenter(ind0) + fieldcenter(ind1)
          IF (sum .EQ. 0.) THEN
             fieldnode(indnode) = 0.D0
          ELSE
@@ -627,7 +627,7 @@ C     k = 0
       DO j = 0, nj
          indnode = j
          beta = 1
-         IF (k.EQ.0 .OR. k.EQ.nk) THEN
+         IF (j.EQ.0 .OR. j.EQ.nj) THEN
             beta = 0
          ENDIF
          j0 = MAX(j, 1)-1

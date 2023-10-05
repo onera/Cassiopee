@@ -75,6 +75,7 @@ static PyMethodDef Pyconverter [] =
   {"convertArray2Node", K_CONVERTER::convertArray2Node, METH_VARARGS},
   {"node2Center", K_CONVERTER::node2Center, METH_VARARGS},
   {"center2Node", K_CONVERTER::center2Node, METH_VARARGS},
+  {"center2Node2", K_CONVERTER::center2Node2, METH_VARARGS},
   {"node2ExtCenter", K_CONVERTER::node2ExtCenter, METH_VARARGS},
   {"extCenter2Node", K_CONVERTER::extCenter2Node, METH_VARARGS},
   {"center2ExtCenter", K_CONVERTER::center2ExtCenter, METH_VARARGS},

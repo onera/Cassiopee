@@ -39,7 +39,22 @@ namespace K_LOC
                           E_Int& nin, E_Int& njn, E_Int& nkn,
                           E_Int algo=0);
 
+  E_Int center2nodeStruct2(K_FLD::FldArrayF& FCenter, 
+                          E_Int ni, E_Int nj, E_Int nk,
+                          E_Int cellN, E_Int mod,
+                          E_Int posx, E_Int posy, E_Int posz,
+                          K_FLD::FldArrayF& FNode,
+                          E_Int& nin, E_Int& njn, E_Int& nkn,
+                          E_Int algo=0);
+
   E_Int center2nodeUnstruct(K_FLD::FldArrayF& FCenter, 
+                            K_FLD::FldArrayI& c,
+                            E_Int cellN, E_Int mod,
+                            E_Int posx, E_Int posy, E_Int posz,
+                            K_FLD::FldArrayF& FNode,
+                            E_Int algo=0);
+  
+  E_Int center2nodeUnstruct2(K_FLD::FldArrayF& FCenter, 
                             K_FLD::FldArrayI& c,
                             E_Int cellN, E_Int mod,
                             E_Int posx, E_Int posy, E_Int posz,
@@ -61,6 +76,11 @@ namespace K_LOC
                         std::vector< std::vector<E_Int> >& cEV, 
                         K_FLD::FldArrayF& FNode, E_Int cellN, E_Int mod, 
                         E_Int algo=0);
+  E_Int center2nodeNGon2(K_FLD::FldArrayF& FCenter, K_FLD::FldArrayI& cNG,
+                        std::vector< std::vector<E_Int> >& cEV, 
+                        K_FLD::FldArrayF& FNode, E_Int cellN, E_Int mod, 
+                        E_Int algo=0);
+
   E_Int node2ExtCenterStruct(E_Int imo, E_Int jmo, E_Int kmo,
                              K_FLD::FldArrayF& FNode,
                              E_Int ime, E_Int jme, E_Int kme, 
