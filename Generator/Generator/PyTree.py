@@ -294,7 +294,7 @@ def delaunay(a, tol=1.e-10, keepBB=0):
     """Create a delaunay mesh given a set of points defined by array.
     Usage: delaunay(mesh, tol, keepBB)"""
     contour = C.deleteFlowSolutions__(a, 'centers')
-    return C.TZGC(contour, 'nodes', Generator.delaunay, tol, keepBB)
+    return C.TZGC1(contour, 'nodes', True, Generator.delaunay, tol, keepBB)
 
 def checkDelaunay(contour, tri):
     """Check if the Delaunay triangulation defined by tri is inside the contour.
@@ -309,7 +309,7 @@ def constrainedDelaunay(contour, tol=1.e-10, keepBB=0):
     the contour.
     Usage: constrainedDelaunay( contour, tol, keepBB )"""
     contour = C.deleteFlowSolutions__(contour, 'centers')
-    return C.TZGC(contour, 'nodes',
+    return C.TZGC1(contour, 'nodes', True,
                   Generator.constrainedDelaunay, tol, keepBB)
 
 def plaster(contours, surfaces, side=0):
@@ -459,7 +459,7 @@ def _BB(t, method='AABB', weighting=0, tol=0.):
     C._rmNodes(t, 'Motion')
     C._rmNodes(t, 'Displacement#0')
     C._rmNodes(t, '.Solver#ownData')
-    C._TZGC(t, 'nodes', Generator.BB, method, weighting, tol)
+    C._TZGC1(t, 'nodes', True, Generator.BB, method, weighting, tol)
     return None
 
 def barycenter(t, weight='None'):
@@ -552,78 +552,78 @@ def checkPointInCEBB(t, P):
 def bboxOfCells(t):
     """Compute the bounding box of all cells of a mesh.
     Usage: getBBoxOfCells(t)"""
-    return C.TZGC(t, 'centers', Generator.bboxOfCells)
+    return C.TZGC1(t, 'centers', False, Generator.bboxOfCells)
 
 def _bboxOfCells(t):
-    return C._TZGC(t, 'centers', Generator.bboxOfCells)
+    return C._TZGC1(t, 'centers', False, Generator.bboxOfCells)
 
 def getVolumeMap(t):
     """Return the volume map in an array.
     Usage: getVolumeMap(t)"""
-    return C.TZGC(t, 'centers', Generator.getVolumeMap)
+    return C.TZGC1(t, 'centers', False, Generator.getVolumeMap)
 
 def _getVolumeMap(t):
     """Return the volume map in an array.
     Usage: _getVolumeMap(t)"""
-    return C._TZGC(t, 'centers', Generator.getVolumeMap)
+    return C._TZGC1(t, 'centers', False, Generator.getVolumeMap)
 
 def getNormalMap(t):
     """Return the map of surface normals in an array.
     Usage: getNormalMap(t)""" 
-    return C.TZGC(t, 'centers', Generator.getNormalMap)
+    return C.TZGC1(t, 'centers', False, Generator.getNormalMap)
 
 def _getNormalMap(t):
-    return C._TZGC(t, 'centers', Generator.getNormalMap)
+    return C._TZGC1(t, 'centers', False, Generator.getNormalMap)
 
 def getSmoothNormalMap(t, niter=2, eps=0.4):
     """Return the map of smoothed and non-normalized surface normals in an array.
     eps is the smoothing factor.
     Usage: getSmoothNormalMap(t, niter, eps)"""
-    return C.TZGC(t, 'nodes', Generator.getSmoothNormalMap, niter, eps)
+    return C.TZGC1(t, 'nodes', False, Generator.getSmoothNormalMap, niter, eps)
 
 def _getSmoothNormalMap(t, niter=2, eps=0.4):
-    return C._TZGC(t, 'nodes', Generator.getSmoothNormalMap, niter, eps)
+    return C._TZGC1(t, 'nodes', False, Generator.getSmoothNormalMap, niter, eps)
 
 def getCellPlanarity(t):
     """Return the cell planarity of a surface mesh in an array.
     Usage: getCellPlanarity(t)"""
-    return C.TZGC(t, 'centers', Generator.getCellPlanarity)
+    return C.TZGC1(t, 'centers', False, Generator.getCellPlanarity)
 
 def _getCellPlanarity(t):
-    return C._TZGC(t, 'centers', Generator.getCellPlanarity)
+    return C._TZGC1(t, 'centers', False, Generator.getCellPlanarity)
 
 def getCircumCircleMap(t):
     """Return the map of circum circle radius of a 'TRI' array.
     Usage: getCircumCircleMap(t)""" 
-    return C.TZGC(t, 'centers', Generator.getCircumCircleMap)
+    return C.TZGC1(t, 'centers', False, Generator.getCircumCircleMap)
 
 def _getCircumCircleMap(t):
-    return C._TZGC(t, 'centers', Generator.getCircumCircleMap)
+    return C._TZGC1(t, 'centers', False, Generator.getCircumCircleMap)
 
 def getInCircleMap(t):
     """Return the map of inscribed circle radius of a 'TRI' array.
     Usage: getInCircleMap(t)""" 
-    return C.TZGC(t, 'centers', Generator.getInCircleMap)
+    return C.TZGC1(t, 'centers', False, Generator.getInCircleMap)
 
 def _getInCircleMap(t):
-    return C._TZGC(t, 'centers', Generator.getInCircleMap)
+    return C._TZGC1(t, 'centers', False, Generator.getInCircleMap)
 
 def getEdgeRatio(t):
     """Compute the ratio between the max and min lengths of all the edges of
     cells in an array.
     Usage: getEdgeRatio(t)"""
-    return C.TZGC(t,'centers', Generator.getEdgeRatio)
+    return C.TZGC1(t, 'centers', False, Generator.getEdgeRatio)
 
 def _getEdgeRatio(t):
-    return C._TZGC(t,'centers', Generator.getEdgeRatio)
+    return C._TZGC1(t, 'centers', False, Generator.getEdgeRatio)
 
 def getMaxLength(t):
     """Compute the max length of all the edges of cells in a zone.
     Usage: getMaxLength(t)"""
-    return C.TZGC(t,'centers', Generator.getMaxLength)
+    return C.TZGC1(t, 'centers', False, Generator.getMaxLength)
 
 def _getMaxLength(t):
-    return C._TZGC(t,'centers', Generator.getMaxLength)
+    return C._TZGC1(t, 'centers', False, Generator.getMaxLength)
 
 def enforceX(a, x0, enforcedh, N, add=0, verbose=True):
     """Enforce a x0-centered line in a distribution defined by an array.
@@ -633,7 +633,7 @@ def enforceX(a, x0, enforcedh, N, add=0, verbose=True):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforceX, x0, enforcedh, N, add, verbose)
+    a = C.TZGC1(a, 'nodes', True, Generator.enforceX, x0, enforcedh, N, add, verbose)
     rdir = 1
     a = modifyBC__(rdir, ni0, nj0, nk0, a)
     return a
@@ -646,7 +646,7 @@ def enforceY(a, y0, enforcedh, N, add=0, verbose=True):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforceY, y0, enforcedh, N, add, verbose)
+    a = C.TZGC1(a, 'nodes', True, Generator.enforceY, y0, enforcedh, N, add, verbose)
     dir = 2
     a = modifyBC__(dir, ni0, nj0, nk0, a)
     return a
@@ -659,7 +659,7 @@ def enforceZ(a, z0, enforcedh, N, add=0):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforceZ, z0, enforcedh, N, add)
+    a = C.TZGC1(a, 'nodes', True, Generator.enforceZ, z0, enforcedh, N, add)
     dir = 3
     a = modifyBC__(dir, ni0, nj0, nk0, a)
     return a
@@ -673,7 +673,7 @@ def enforcePlusX(a, enforcedh, N, add=0, verbose=True):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforcePlusX, enforcedh, N, add, verbose)
+    a = C.TZGC1(a, 'nodes', True, Generator.enforcePlusX, enforcedh, N, add, verbose)
     dir = 1
     a = modifyBC__(dir, ni0, nj0, nk0, a)
     return a
@@ -687,7 +687,7 @@ def enforcePlusY(a, enforcedh, N, add=0, verbose=True):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforcePlusY, enforcedh, N, add, verbose)
+    a = C.TZGC1(a, 'nodes', True, Generator.enforcePlusY, enforcedh, N, add, verbose)
     dir = 2
     a = modifyBC__(dir, ni0, nj0, nk0, a)
     return a
@@ -701,7 +701,7 @@ def enforcePlusZ(a, enforcedh, N, add=0):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforcePlusZ, enforcedh, N, add )
+    a = C.TZGC1(a, 'nodes', True, Generator.enforcePlusZ, enforcedh, N, add )
     dir = 3
     a = modifyBC__(dir, ni0, nj0, nk0, a)
     return a
@@ -714,7 +714,7 @@ def enforceMoinsX(a, enforcedh, N, add=0, verbose=True):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforceMoinsX, enforcedh, N, add, verbose)
+    a = C.TZGC1(a, 'nodes', True, Generator.enforceMoinsX, enforcedh, N, add, verbose)
     dir = 1
     a = modifyBC__(dir, ni0, nj0, nk0, a)
     return a
@@ -727,7 +727,7 @@ def enforceMoinsY(a, enforcedh, N, add=0, verbose=True):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforceMoinsY, enforcedh, N, add, verbose)
+    a = C.TZGC1(a, 'nodes', True, Generator.enforceMoinsY, enforcedh, N, add, verbose)
     dir = 2
     a = modifyBC__(dir, ni0, nj0, nk0, a)
     return a
@@ -740,7 +740,7 @@ def enforceMoinsZ(a, enforcedh, N, add=0):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforceMoinsZ, enforcedh, N, add)
+    a = C.TZGC1(a, 'nodes', True, Generator.enforceMoinsZ, enforcedh, N, add)
     dir = 3
     a = modifyBC__(dir, ni0, nj0, nk0, a)
     return a
@@ -750,13 +750,13 @@ def enforceLine(a, line, enforcedh, N):
     Usage: enforceLine(array, line, enforcedh, (supp,add))"""
     a = C.deleteAllBCAndSolutions__(a)
     l = C.getFields(Internal.__GridCoordinates__,line)[0]
-    return C.TZGC(a,  'nodes', Generator.enforceLine, l, enforcedh, N)
+    return C.TZGC1(a, 'nodes', True, Generator.enforceLine, l, enforcedh, N)
 
 def enforcePoint(a, x0):
     """Enforce a point in a distribution.
     Usage: enforcePoint(a, x0)"""
     a = C.deleteAllBCAndSolutions__(a)
-    return C.TZGC(a, 'nodes', Generator.enforcePoint, x0)
+    return C.TZGC1(a, 'nodes', True, Generator.enforcePoint, x0)
 
 def enforceCurvature(distrib, curvature, power=0.5):
     """Enforce curvature of a curve in a distribution.
@@ -764,7 +764,7 @@ def enforceCurvature(distrib, curvature, power=0.5):
     Usage: enforceCurvature( distrib, curvature, power )"""
     distrib = C.deleteAllBCAndSolutions__(distrib)
     ac = C.getFields(Internal.__GridCoordinates__, curvature)[0]
-    return C.TZGC(distrib, 'nodes', Generator.enforceCurvature, ac, power)
+    return C.TZGC1(distrib, 'nodes', True, Generator.enforceCurvature, ac, power)
 
 def enforceCurvature2(distrib, curve, alpha=1.e-2):
     """Enforce a 1D distribution wrt the curvature radius
@@ -772,13 +772,13 @@ def enforceCurvature2(distrib, curve, alpha=1.e-2):
     Usage: enforceCurvature2(distrib, curve, alpha)"""
     distrib = C.deleteAllBCAndSolutions__(distrib)
     ac = C.getFields(Internal.__GridCoordinates__, curve)[0]
-    return C.TZGC(distrib, 'nodes', Generator.enforceCurvature2, ac, alpha)
+    return C.TZGC1(distrib, 'nodes', True, Generator.enforceCurvature2, ac, alpha)
 
 def addPointInDistribution(a, ind):
     """Add a point in a distribution defined by a.
     Usage: addPointInDistribution(a, ind)"""
     a = C.deleteAllBCAndSolutions__(a)
-    return C.TZGC(a, 'nodes', Generator.addPointInDistribution, ind)
+    return C.TZGC1(a, 'nodes', True, Generator.addPointInDistribution, ind)
 
 def close(a, tol=1.e-12, suppressDegeneratedNGons=False):
     """Close a mesh defined by an array gathering points nearer than tol.
@@ -805,16 +805,14 @@ def stitchedHat(a, offset, tol=1.e-6, tol2=1.e-5):
     """Create a structured surface defined by a contour and an offset (dx,dy,dz).
     Usage: stitchedHat(a, (dx,dy,dz))"""
     a = C.deleteFlowSolutions__(a, 'both')
-    return C.TZGC(a, 'nodes', Generator.stitchedHat, \
-                  offset, tol, tol2)
+    return C.TZGC1(a, 'nodes', True, Generator.stitchedHat, offset, tol, tol2)
 
 def selectInsideElts(a, curvesList):
     """Select elements whose center is in the surface delimited by curves.
     Usage: selectInsideElts(array, curvesList)"""
     a = C.deleteFlowSolutions__(a, 'centers')
     curves = C.getFields(Internal.__GridCoordinates__, curvesList)
-    return C.TZA(a, 'nodes', 'nodes', Generator.selectInsideElts, None,
-                 curves)
+    return C.TZA(a, 'nodes', 'nodes', Generator.selectInsideElts, None, curves)
 
 def grow(t, vector):
     """Grow a surface array of one layer by moving points of vector.
@@ -944,8 +942,7 @@ def map(z, d, dir=0, h1=None, h2=None, isAvg=False, nAvg=2):
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     z = C.deleteFlowSolutions__(z)
     dist = C.getFields(Internal.__GridCoordinates__, d)[0]
-
-    z = C.TZGC(z, 'nodes', Generator.map, dist, dir, h1, h2, isAvg, nAvg)
+    z = C.TZGC1(z, 'nodes', True, Generator.map, dist, dir, h1, h2, isAvg, nAvg)
     z = modifyBC__(dir, ni0, nj0, nk0, z)
     return z
 
@@ -956,7 +953,7 @@ def mapCurvature(z, N, power, dir):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     z = C.deleteFlowSolutions__(z)
-    z = C.TZGC(z, 'nodes', Generator.mapCurvature, N, power, dir)
+    z = C.TZGC1(z, 'nodes', True, Generator.mapCurvature, N, power, dir)
     z = modifyBC__(dir, ni0, nj0, nk0, z)
     return z
 
@@ -1061,7 +1058,7 @@ def _refine(t, power, dir):
         else:
             ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
             C._deleteFlowSolutions__(z)
-            C._TZGC(z, 'nodes', Generator.refine, power, dir)
+            C._TZGC1(z, 'nodes', True, Generator.refine, power, dir)
             # delete Chimera data : OversetHoles and InterpolationData
             C._deleteChimeraInfo__(z)
             # modify BCs
@@ -1186,26 +1183,26 @@ def hyper2D(t, distrib, type,
     """Generate an hyperbolic mesh. 
     Usage: hyper2D(t, distrib, type)"""
     d = C.getFields(Internal.__GridCoordinates__, distrib)[0]
-    return C.TZGC(t, 'nodes', Generator.hyper2D, d, type, 
-                  eta_start, eta_end, beta)
+    return C.TZGC1(t, 'nodes', True, Generator.hyper2D, d, type, 
+                   eta_start, eta_end, beta)
 
 def hyper2D2(t, distrib, type, alpha):
     """Generate an hyperbolic mesh with a constant alpha angle.
     Usage: hyper2D2(array, arrayd, type, alpha)"""
     d = C.getFields(Internal.__GridCoordinates__,distrib)[0]
-    return C.TZGC(t, 'nodes', Generator.hyper2D2, d, type, alpha)
+    return C.TZGC1(t, 'nodes', True, Generator.hyper2D2, d, type, alpha)
 
 def hyper2D3(t, distrib, type, alpha1, alpha2):
     """Generate an hyperbolic mesh with boundary alpha angles.
     Usage: hyper2D3(array, arrayd, type, alpha1, alpha2)"""
-    d = C.getFields(Internal.__GridCoordinates__,distrib)[0]
-    return C.TZGC(t, 'nodes', Generator.hyper2D3, d, type, alpha1, alpha2)
+    d = C.getFields(Internal.__GridCoordinates__, distrib)[0]
+    return C.TZGC1(t, 'nodes', True, Generator.hyper2D3, d, type, alpha1, alpha2)
 
 def hyper2D4(t, distrib, type):
     """Generate an hyperbolic mesh.
     Usage: hyper2D4(array, arrayd, type)"""
     d = C.getFields(Internal.__GridCoordinates__, distrib)[0]
-    return C.TZGC(t, 'nodes', Generator.hyper2D4, d, type)
+    return C.TZGC1(t, 'nodes', True, Generator.hyper2D4, d, type)
 
 def addNormalLayers(t, distrib, check=0, niterType=0, niter=0, niterK=[], 
                     smoothType=0, eps=0.4, nitLocal=3, kappaType=0, kappaS=[0.2,1.6], 
@@ -1490,10 +1487,10 @@ def mapSplit(z, d, split_crit, dens_max=1000):
 def getOrthogonalityMap(t):
     """Return the orthogonality map in an array.
     Usage: getOrthogonalityMap(t)"""
-    return C.TZGC(t, 'centers', Generator.getOrthogonalityMap)
+    return C.TZGC1(t, 'centers', False, Generator.getOrthogonalityMap)
 
 def _getOrthogonalityMap(t):
-    return C._TZGC(t, 'centers', Generator.getOrthogonalityMap)
+    return C._TZGC1(t, 'centers', False, Generator.getOrthogonalityMap)
 
 #------------------------------------------------------------------------------
 # Calcul de la regularite (ratio entre des mailles adjacentes) d'une grille
@@ -1505,13 +1502,13 @@ def getRegularityMap(t, addGC=False):
     """Return the regularity map in an array.
     Usage: getRegularityMap(t)"""
     if addGC: t = Internal.addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
-    t = C.TZGC(t, 'centers', Generator.getRegularityMap)
+    t = C.TZGC1(t, 'centers', False, Generator.getRegularityMap)
     if addGC: t = Internal.rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return t
 
 def _getRegularityMap(t, addGC=False):
     if addGC: Internal._addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
-    C._TZGC(t, 'centers', Generator.getRegularityMap)
+    C._TZGC1(t, 'centers', False, Generator.getRegularityMap)
     if addGC: Internal._rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return None
     
@@ -1526,13 +1523,13 @@ def getAngleRegularityMap(t, addGC=False):
     """Return the regularity map in an array (wrt angles).
     Usage: getAngleRegularityMap(t)"""
     if addGC: t = Internal.addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
-    t = C.TZGC(t, 'centers', Generator.getAngleRegularityMap)
+    t = C.TZGC1(t, 'centers', False, Generator.getAngleRegularityMap)
     if addGC: t = Internal.rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return t
 
 def _getAngleRegularityMap(t, addGC=False):
     if addGC: Internal._addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
-    C._TZGC(t, 'centers', Generator.getAngleRegularityMap)
+    C._TZGC1(t, 'centers', False, Generator.getAngleRegularityMap)
     if addGC: Internal._rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return None
     
@@ -1542,19 +1539,19 @@ def _getAngleRegularityMap(t, addGC=False):
 def getTriQualityMap(t):
     """Return the quality map of a TRI array (0. for a degenerated triangle, 1. for an equilateral one).
     Usage: getTriQualityMap(t)"""
-    return C.TZGC(t, 'centers', Generator.getTriQualityMap)
+    return C.TZGC1(t, 'centers', False, Generator.getTriQualityMap)
 
 def _getTriQualityMap(t):
-    return C._TZGC(t, 'centers', Generator.getTriQualityMap)
+    return C._TZGC1(t, 'centers', False, Generator.getTriQualityMap)
 
 #------------------------------------------------------------------------------
 # Genere des pyramides ayant pour base les QUAD d'une surface donnee
 #------------------------------------------------------------------------------
 def quad2Pyra(t, hratio=1.):
-     """Creates a set of pyramids from a set of quads.
-     Usage : quad2Pyra(array, hratio)"""
-     a = C.getFields(Internal.__GridCoordinates__,t)[0]
-     return C.convertArrays2ZoneNode('pyra', [Generator.quad2Pyra(a, hratio)])
+    """Creates a set of pyramids from a set of quads.
+    Usage: quad2Pyra(array, hratio)"""
+    a = C.getFields(Internal.__GridCoordinates__, t)[0]
+    return C.convertArrays2ZoneNode('pyra', [Generator.quad2Pyra(a, hratio)])
 
 
 # IN: t: arbre deep copy de torig

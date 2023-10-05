@@ -1239,12 +1239,12 @@ PyObject* K_CONVERTER::buildBCMatchFieldStruct(PyObject* self, PyObject* args )
   // Get ncount array if supplied (used for near-match or TNC match)
   // ================================================================
   E_Bool needcount = true;
-  FldArrayI* ncount;
+  FldArrayI* ncount = NULL;
     
   if (pyNcnt != Py_None)
   {
     E_Int resi = K_NUMPY::getFromNumpyArray(pyNcnt, ncount, true);
-    if ( resi == 0)
+    if (resi == 0)
     {
       PyErr_SetString(PyExc_TypeError, "buildBCMatchFieldStruct: not a valid numpy for ncount array.");
       RELEASESHAREDN(pyNcnt, ncount);
@@ -1254,11 +1254,11 @@ PyObject* K_CONVERTER::buildBCMatchFieldStruct(PyObject* self, PyObject* args )
     // E_Int* ptrNcnt = ncount->begin();
 
     // for (E_Int ko=0 ; ko< ncount->getSize(); ko++)
-	   // std::cout << "ncout[" << ko << "]= " << ptrNcnt[ko] << std::endl;
+    // std::cout << "ncout[" << ko << "]= " << ptrNcnt[ko] << std::endl;
   }
   else
   {
-    needcount = false ;
+    needcount = false;
   }
 
   // Create output array 
@@ -1275,7 +1275,8 @@ PyObject* K_CONVERTER::buildBCMatchFieldStruct(PyObject* self, PyObject* args )
   E_Int  ind,indFace;
   E_Int* ptrIndR = indR->begin();
 
-  E_Int* ptrNcnt = ncount->begin();
+  E_Int* ptrNcnt = NULL;
+  if (needcount) ptrNcnt = ncount->begin();
     
   for (E_Int noindint = 0 ; noindint < nind ; noindint++)
   {
@@ -1288,14 +1289,14 @@ PyObject* K_CONVERTER::buildBCMatchFieldStruct(PyObject* self, PyObject* args )
       E_Float* ptrFieldsR = fieldsR->begin(var);
       E_Float* ptrFldD    = fldD->begin(var);
       E_Float* ptrFld     = fld->begin(var);
-      if(needcount)
+      if (needcount)
       {
-	std::cout << "ncout[" << noindint << "]= " << ptrNcnt[noindint] << std::endl;
-	ptrFld[noindint]    = 0.5*( ptrFieldsR[ind]/ptrNcnt[noindint]+ptrFldD[noindint] );   
+        std::cout << "ncout[" << noindint << "]= " << ptrNcnt[noindint] << std::endl;
+        ptrFld[noindint]    = 0.5*( ptrFieldsR[ind]/ptrNcnt[noindint]+ptrFldD[noindint] );   
       }
       else
       {
-	ptrFld[noindint]    = 0.5*( ptrFieldsR[ind]+ptrFldD[noindint] );
+        ptrFld[noindint]    = 0.5*( ptrFieldsR[ind]+ptrFldD[noindint] );
       }
     }
   }
@@ -1304,6 +1305,8 @@ PyObject* K_CONVERTER::buildBCMatchFieldStruct(PyObject* self, PyObject* args )
   RELEASESHAREDS(pyFldD, fldD);
   RELEASESHAREDS(pyFld , fld );
   RELEASESHAREDS(pyFieldsR, fieldsR);
+  if (needcount) RELEASESHAREDN(pyNcnt, ncount);
+
 
   return pyFld; 
 }

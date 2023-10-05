@@ -623,11 +623,11 @@ def setValue(t, var, ind, val):
   return None
 
 def _getIndexField(t):
-  return _TZGC(t, 'nodes', Converter.getIndexField)
+  return _TZGC1(t, 'nodes', True, Converter.getIndexField)
 
 def getIndexField(t):
   """Return the index field."""
-  return TZGC(t, 'nodes', Converter.getIndexField)
+  return TZGC1(t, 'nodes', True, Converter.getIndexField)
 
 #==============================================================================
 # -- Create PyTree --
@@ -1818,11 +1818,6 @@ def makeNumpyStringString__(node):
 # Traitement agissant sur les coords, effectue par zones.
 # Prend le champ GC (noeuds), applique F, remet le resultat dans un
 # conteneur suivant locout.
-def TZGC(t, locout, F, *args):
-  tp = Internal.copyRef(t)
-  _TZGC(tp, locout, F, *args)
-  return tp
-
 def _TZGC(t, locout, F, *args):
   zones = Internal.getZones(t)
   for z in zones:
@@ -1832,6 +1827,11 @@ def _TZGC(t, locout, F, *args):
       setFields([coord], z, locout)
   return None
 
+def TZGC(t, locout, F, *args):
+  tp = Internal.copyRef(t)
+  _TZGC(tp, locout, F, *args)
+  return tp
+
 # Recupere les coords, applique _F dessus sans changement topologique
 def __TZGCX(api, t, _F, *args):
   zones = Internal.getZones(t)
@@ -1840,14 +1840,15 @@ def __TZGCX(api, t, _F, *args):
     if fc != []: _F(fc, *args)
   return None
 
+def __TZGC1(t, _F, *args):
+    return __TZGCX(1, t, _F, *args)
 def __TZGC2(t, _F, *args):
     return __TZGCX(2, t, _F, *args)
-
 def __TZGC3(t, _F, *args):
     return __TZGCX(3, t, _F, *args)
 
 # Recupere les coords, applique F qui renvoie une copie, fait un setFields
-def _TZGCX(api, t, F, locout, writeDim, *args):
+def _TZGCX(api, t, locout, writeDim, F, *args):
   zones = Internal.getZones(t)
   for z in zones:
     fc = getFields(Internal.__GridCoordinates__, z, api=api)[0]
@@ -1856,21 +1857,25 @@ def _TZGCX(api, t, F, locout, writeDim, *args):
       setFields([fcp], z, locout, writeDim)
   return None
 
-def _TZGC2(t, F, locout, writeDim, *args):
-    return _TZGCX(2, t, F, locout, writeDim, *args)
+def _TZGC1(t, locout, writeDim, F, *args):
+    return _TZGCX(1, t, locout, writeDim, F, *args)
+def _TZGC2(t, locout, writeDim, F, *args):
+    return _TZGCX(2, t, F, locout, writeDim, F, *args)
+def _TZGC3(t, locout, writeDim, F, *args):
+    return _TZGCX(3, t, F, locout, writeDim, F, *args)
 
-def _TZGC3(t, F, locout, writeDim, *args):
-    return _TZGCX(3, t, F, locout, writeDim, *args)
-
-def TZGC2(t, F, locout, writeDim, *args):
+def TZGCX(api, t, locout, writeDim, F, *args):
   tp = Internal.copyRef(t)
-  _TZGC2(tp, F, locout, writeDim, *args)
+  _TZGCX(api, tp, locout, writeDim, F, *args)
   return tp
 
-def TZGC3(t, F, locout, writeDim, *args):
-  tp = Internal.copyRef(t)
-  _TZGC3(tp, F, locout, writeDim, *args)
-  return tp
+def TZGC1(t, locout, writeDim, F, *args):
+  return TZGCX(1, t, locout, writeDim, F, *args)
+def TZGC2(t, locout, writeDim, F, *args):
+  return TZGCX(2, t, locout, writeDim, F, *args)
+def TZGC3(t, locout, writeDim, F, *args):
+  return TZGCX(3, t, locout, writeDim, F, *args)
+
 
 # -- TZGF
 # Traitement agissant sur le conteneur fieldName, effectue par zones.
@@ -1954,20 +1959,19 @@ def _TZA(t, locin, locout, F, Fc, *args):
         setFields([fb], z, 'centers')
   return None
 
-# Temporaire: TZA sans write dim
-def TZANW(t, locin, locout, F, Fc, *args):
-  tp = Internal.copyRef(t)
-  _TZANW(tp, locin, locout, F, Fc, *args)
-  return tp
-
-def _TZANW(t, locin, locout, F, Fc, *args):
+# -- TZA sans write dim = generique
+def _TZANWX(api, t, locin, locout, F, Fc, *args):
   zones = Internal.getZones(t)
   for z in zones:
     if locin == 'nodes':
-      fc = getFields(Internal.__GridCoordinates__, z)[0]
-      fa = getFields(Internal.__FlowSolutionNodes__, z)[0]
+      fc = getFields(Internal.__GridCoordinates__, z, api=api)[0]
+      fa = getFields(Internal.__FlowSolutionNodes__, z, api=api)[0]
       if fc != [] and fa != []:
-        Converter._addVars([fc, fa]) # modifie fc
+        if api == 1:
+            Converter._addVars([fc, fa]) # modifie fc
+        else:
+            fc[0] = fc[0]+','+fa[0]
+            fc[1] = fc[1]+fa[1]
         fp = F(fc, *args)
         setFields([fp], z, locout, writeDim=False)
       elif fa != []:
@@ -1985,11 +1989,15 @@ def _TZANW(t, locin, locout, F, Fc, *args):
       # Dans ce cas, on suppose que F ne change pas la localisation
       l = len(args)//2
       args1 = args[0:l]; args2 = args[l:]
-      fc = getFields(Internal.__GridCoordinates__, z)[0]
-      fa = getFields(Internal.__FlowSolutionNodes__, z)[0]
-      fb = getFields(Internal.__FlowSolutionCenters__, z)[0]
+      fc = getFields(Internal.__GridCoordinates__, z, api=api)[0]
+      fa = getFields(Internal.__FlowSolutionNodes__, z, api=api)[0]
+      fb = getFields(Internal.__FlowSolutionCenters__, z, api=api)[0]
       if fc != [] and fa != []:
-        Converter._addVars([fc, fa]) # modifie fc
+        if api == 1:
+            Converter._addVars([fc, fa]) # modifie fc
+        else:
+            fc[0] = fc[0]+','+fa[0]
+            fc[1] = fc[1]+fa[1]
         fp = F(fc, *args1)
         setFields([fp], z, 'nodes')
       elif fa != []:
@@ -2004,6 +2012,25 @@ def _TZANW(t, locin, locout, F, Fc, *args):
         setFields([fb], z, 'centers', writeDim=False)
   return None
 
+def _TZANW1(t, locin, locout, F, Fc, *args):
+  return _TZANWX(1, t, locin, locout, F, Fc, *args)
+def _TZANW2(t, locin, locout, F, Fc, *args):
+  return _TZANWX(2, t, locin, locout, F, Fc, *args)
+def _TZANW3(t, locin, locout, F, Fc, *args):
+  return _TZANWX(3, t, locin, locout, F, Fc, *args)
+
+def TZANWX(api, t, locin, locout, F, Fc, *args):
+  tp = Internal.copyRef(t)
+  _TZANWX(api, tp, locin, locout, F, Fc, *args)
+  return tp
+def TZANW1(t, locin, locout, F, Fc, *args):
+  return TZANWX(1, t, locin, locout, F, Fc, *args)
+def TZANW2(t, locin, locout, F, Fc, *args):
+  return TZANWX(2, t, locin, locout, F, Fc, *args)
+def TZANW3(t, locin, locout, F, Fc, *args):
+  return TZANWX(3, t, locin, locout, F, Fc, *args)
+
+
 # -- TZAGC
 # Traitement effectue pour tous les champs + coord. memes pour les centres.
 # Dans ce cas, on reconstruit un maillage en centres qui sera associe
@@ -2017,11 +2044,6 @@ def _TZANW(t, locin, locout, F, Fc, *args):
 # dans le cas both.
 # La fonction F est appelee une fois pour les noeuds, Fc une fois pour les
 # centres.
-def TZAGC(t, locin, locout, writeDim, F, Fc, *args):
-  tp = Internal.copyRef(t)
-  _TZAGC(tp, locin, locout, writeDim, F, Fc, *args)
-  return tp
-
 def _TZAGC(t, locin, locout, writeDim, F, Fc, *args):
   zones = Internal.getZones(t)
   for z in zones:
@@ -2107,6 +2129,11 @@ def _TZAGC(t, locin, locout, writeDim, F, Fc, *args):
         fp = Fc(fb, *args2)
         setFields([fp], z, 'centers', writeDim)
   return None
+
+def TZAGC(t, locin, locout, writeDim, F, Fc, *args):
+  tp = Internal.copyRef(t)
+  _TZAGC(tp, locin, locout, writeDim, F, Fc, *args)
+  return tp
 
 # -- TZANC
 # Traitement effectue pour tous les champs + coord. memes pour les centres.
@@ -2238,33 +2265,43 @@ def TLAGC(t, F, *args):
   elif allfb != []: return [allfb]
   else: return []
 
-# TZC
+# -- __TZC = generique
 # Traitement uniquement sur les champs
-def __TZC(t, _F, locin, writeDim, *args):
+def __TZCX(api, t, locin, writeDim, _F, *args):
   zones = Internal.getZones(t)
   for z in zones:
     if   locin == 'nodes':
-        fa = getFields(Internal.__FlowSolutionNodes__, z, api=2)[0]
+        fa = getFields(Internal.__FlowSolutionNodes__, z, api=api)[0]
     elif locin == 'centers':
-        fa = getFields(Internal.__FlowSolutionCenters__, z, api=2)[0]
+        fa = getFields(Internal.__FlowSolutionCenters__, z, api=api)[0]
 
     if fa != []:
         _F(fa, *args)
         setFields([fa], z, locin, writeDim)
   return None
 
-# Recupere les champs de locin en shared array2/3
+def __TZC1(t, locin, writeDim, _F, *args):
+  return __TZCX(1, t, locin, writeDim, _F, *args)
+def __TZC2(t, locin, writeDim, _F, *args):
+  return __TZCX(2, t, locin, writeDim, _F, *args)
+def __TZC3(t, locin, writeDim, _F, *args):
+  return __TZCX(3, t, locin, writeDim, _F, *args)
+
+
+# -- __TZA = generique
+# Recupere les champs de locin en shared
 # applique _F (array in place)
-def __TZA(api, t, _F, locin, *args):
+def __TZAX(api, t, locin, _F, *args):
   zones = Internal.getZones(t)
   for z in zones:
     if locin == 'nodes':
       fc = getFields(Internal.__GridCoordinates__, z, api=api)[0]
       fa = getFields(Internal.__FlowSolutionNodes__, z, api=api)[0]
       if fc != [] and fa != []:
-         # fusionne les arrays2
-         fc[0] = fc[0]+','+fa[0]
-         fc[1] = fc[1]+fa[1]
+         if api == 1: fc = Converter.addVars([fc, fa])
+         else:
+            fc[0] = fc[0]+','+fa[0]
+            fc[1] = fc[1]+fa[1]
          _F(fc, *args)
       elif fc != []: _F(fc, *args)
       elif fa != []: _F(fa, *args)
@@ -2275,9 +2312,10 @@ def __TZA(api, t, _F, locin, *args):
       fc = getFields(Internal.__GridCoordinates__, z, api=api)[0]
       fa = getFields(Internal.__FlowSolutionNodes__, z, api=api)[0]
       if fc != [] and fa != []:
-         # fusionne les arrays2
-         fc[0] = fc[0]+','+fa[0]
-         fc[1] = fc[1]+fa[1]
+         if api == 1: fc = Converter.addVars([fc, fa])
+         else:
+           fc[0] = fc[0]+','+fa[0]
+           fc[1] = fc[1]+fa[1]
          _F(fc, *args)
       elif fc != []: _F(fc, *args)
       elif fa != []: _F(fa, *args)
@@ -2285,42 +2323,59 @@ def __TZA(api, t, _F, locin, *args):
       if fa != []: _F(fa, *args)
   return None
 
-def __TZA2(t, _F, locin, *args):
-    return __TZA(2, t, _F, locin, *args)
+def __TZA1(t, locin, _F, *args):
+    return __TZAX(2, t, locin, _F, *args)
+def __TZA2(t, locin, _F, *args):
+    return __TZAX(2, t, locin, _F, *args)
+def __TZA3(t, locin, _F, *args):
+    return __TZAX(3, t, locin, _F, *args)
 
-def __TZA3(t, _F, locin, *args):
-    return __TZA(3, t, _F, locin, *args)
-
-# Recupere les champs locin en shared array2
+# -- _TZA = generique
+# Recupere les champs locin en shared
 # Applique F qui rend une copie
 # Remet cet array2 dans t a locout
-def _TZA2(t, F, locin, locout, writeDim, *args):
+def _TZAX(api, t, locin, locout, writeDim, F, *args):
   zones = Internal.getZones(t)
   for z in zones:
     if locin == 'nodes':
-      fc = getFields(Internal.__GridCoordinates__, z, api=2)[0]
-      fa = getFields(Internal.__FlowSolutionNodes__, z, api=2)[0]
+      fc = getFields(Internal.__GridCoordinates__, z, api=api)[0]
+      fa = getFields(Internal.__FlowSolutionNodes__, z, api=api)[0]
       ret = None
       if fc != [] and fa != []:
-         # fusionne les arrays2
-         fc[0] = fc[0]+','+fa[0]
-         fc[1] = fc[1]+fa[1]
+         if api == 1: fc = Converter.addVars([fc, fa])
+         else:
+           fc[0] = fc[0]+','+fa[0]
+           fc[1] = fc[1]+fa[1]
          ret = F(fc, *args)
       elif fc != []: ret = F(fc, *args)
       elif fa != []: ret = F(fa, *args)
       if ret is not None: setFields([ret], z, locout, writeDim)
     elif locin == 'centers':
-      fa = getFields(Internal.__FlowSolutionCenters__, z, api=2)[0]
+      fa = getFields(Internal.__FlowSolutionCenters__, z, api=api)[0]
       if fa != []:
         ret = F(fa, *args)
         setFields([ret], z, locout, writeDim)
   return None
 
+def _TZA1(t, locin, locout, writeDim, F, *args):
+  return _TZAX(1, locin, locout, writeDim, F, *args)
+def _TZA2(t, locin, locout, writeDim, F, *args):
+  return _TZAX(2, locin, locout, writeDim, F, *args)
+def _TZA3(t, locin, locout, writeDim, F, *args):
+  return _TZAX(3, locin, locout, writeDim, F, *args)
+
 # Fait une ref copie en +
-def TZA2(t, F, locin, locout, writeDim, *args):
+def TZAX(api, t, locin, locout, writeDim, F, *args):
   tp = Internal.copyRef(t)
-  _TZA2(tp, F, locin, locout, writeDim, *args)
+  _TZAX(api, tp, locin, locout, writeDim, F, *args)
   return tp
+
+def TZA1(t, locin, locout, writeDim, F, *args):
+  return TZAX(1, t, locin, locout, writeDim, F, *args)
+def TZA2(t, locin, locout, writeDim, F, *args):
+  return TZAX(2, t, locin, locout, writeDim, F, *args)
+def TZA3(t, locin, locout, writeDim, F, *args):
+  return TZAX(3, t, locin, locout, writeDim, F, *args)
 
 #==============================================================================
 # -- Fields / Vars management --
@@ -2492,16 +2547,16 @@ def _initVars(t, varNameString, v1=[], v2=[], mode=0, isVectorized=False):
     if v1 == []:
       # Initialisation by string
       _addVars(t, varName)
-      __TZA2(t, Converter._initVars, loc, varNameString, v1, v2, mode)
+      __TZA2(t, loc, Converter._initVars, varNameString, v1, v2, mode)
     else:
       # Initialisation(s) ...
       [_addVars(t, varName) for varName in varNameString]
       if callable(v1):
         # ... by function
-        __TZA2(t, Converter._initVars, loc, varNames, v1, v2, mode, isVectorized)
+        __TZA2(t, loc, Converter._initVars, varNames, v1, v2, mode, isVectorized)
       else:
         # ... by constant
-        __TZA2(t, Converter._initVars, loc, varNames, v1, v2, mode)
+        __TZA2(t, loc, Converter._initVars, varNames, v1, v2, mode)
   return None
 
 # Merge BCDataSets
@@ -3064,7 +3119,7 @@ def normalize(t, vars):
       if len(s) == 2: vars2.append(s[1])
       else: vars2.append(s[0])
     else: raise ValueError("normalize: invalid vector component.")
-  return TZA2(t, Converter.normalize, loc, loc, False, vars2)
+  return TZA2(t, loc, loc, False, Converter.normalize, vars2)
 
 def _normalize(t, vars):
   loc = ''; vars2 = []
@@ -3080,7 +3135,7 @@ def _normalize(t, vars):
       if len(s) == 2: vars2.append(s[1])
       else: vars2.append(s[0])
     else: raise ValueError("normalize: invalid vector component.")
-  __TZA2(t, Converter._normalize, loc, vars2)
+  __TZA2(t, loc, Converter._normalize, vars2)
   return None
 
 # -- magnitude: calcul la norme d'un jeu de variables
@@ -3350,10 +3405,10 @@ def convertTri2Quad(z, alpha=30.):
 def conformizeNGon(a, tol=1.e-6):
     """Conformize topologically a NGON zone.
     Usage: conformizeNGon(a, tol)"""
-    return TZGC(a, 'nodes', Converter.conformizeNGon, tol)
+    return TZGC1(a, 'nodes', True, Converter.conformizeNGon, tol)
 
 def _conformizeNGon(a, tol=1.e-6):
-    _TZGC(a, 'nodes', Converter.conformizeNGon, tol)
+    _TZGC1(a, 'nodes', True, Converter.conformizeNGon, tol)
     return None
 
 #=============================================================================
@@ -6920,18 +6975,18 @@ def nearestElements(hook, a):
 # Create global index
 def createGlobalIndex(a, start=0):
     """Create the global index field."""
-    return TZA2(a, Converter.createGlobalIndex, 'nodes', 'nodes', start)
+    return TZA2(a, 'nodes', 'nodes', Converter.createGlobalIndex, start)
 
 def _createGlobalIndex(a, start=0):
     """Create the global index field."""
     _initVars(a, 'globalIndex', 0)
-    return __TZA2(a, Converter._createGlobalIndex, 'nodes', start)
+    return __TZA2(a, 'nodes', Converter._createGlobalIndex, start)
 
 # Recover field from global index
 def recoverGlobalIndex(a, b):
     """Recover fields of b in a following the global index field."""
     fb = getFields(Internal.__FlowSolutionNodes__, b, api=2)[0]
-    return TZA2(a, Converter.recoverGlobalIndex, 'nodes', 'nodes', fb)
+    return TZA2(a, 'nodes', 'nodes', Converter.recoverGlobalIndex, fb)
 
 def _recoverGlobalIndex(a, b):
     """Recover fields of b in a following the global index field."""
@@ -6943,7 +6998,7 @@ def _recoverGlobalIndex(a, b):
       fb[0] = fb[0]+','+fx[0]
       fb[1] = fb[1]+fx[1]
     elif fb == []: fb = fx 
-    return __TZA2(a, Converter._recoverGlobalIndex, 'nodes', fb)
+    return __TZA2(a, 'nodes', Converter._recoverGlobalIndex, fb)
     
 #==============================================================================
 # -- Connectivity management --
@@ -7484,13 +7539,13 @@ def convertPyTree2FFD(zone, RefStat, FlowEq, nd):
 def convertHO2LO(t, mode=0):
     """Convert a HO element mesh to linear mesh.
     Usage: convertHO2LO(t, mode)"""
-    return TZGC2(t, Converter.convertHO2LO, 'nodes', True, mode)
+    return TZGC2(t, 'nodes', True, Converter.convertHO2LO, mode)
 
 # Convert to high order mesh
 def convertLO2HO(t, mode=0, order=2):
     """Convert a LO element mesh to high order mesh.
     Usage: convertLO2HO(t, mode, order)"""
-    return TZGC2(t, Converter.convertLO2HO, 'nodes', True, mode, order)
+    return TZGC2(t, 'nodes', True, Converter.convertLO2HO, mode, order)
 
 def convertMIXED2NGon(a, recoverBC=True, merged=False):
     """Convert a mixed-element monozone to an NGON. 

@@ -21,16 +21,16 @@ except:
 def collapse(a):
     """Collapse the smallest edge of each element for TRI arrays. Return a BAR.
     Usage: collapse(a)"""
-    return C.TZGC(a, 'nodes', Transform.collapse)
+    return C.TZGC1(a, 'nodes', True, Transform.collapse)
 
 def _collapse(a):
     """Collapse the smallest edge of each element for TRI arrays. Return a BAR."""    
-    return C._TZGC(a, 'nodes', Transform.collapse)
+    return C._TZGC1(a, 'nodes', True, Transform.collapse)
 
 def cart2Cyl(t, center, axis, depth=0, thetaShift=0):
     """Transform a mesh in Cartesian coordinates to cylindrical coordinates.
     Usage: cart2Cyl(t, center, axis, depth, thetaShift)"""
-    return C.TZGC(t, 'nodes', Transform.cart2Cyl, center, axis, depth, thetaShift)
+    return C.TZGC1(t, 'nodes', True, Transform.cart2Cyl, center, axis, depth, thetaShift)
 
 def _cart2Cyl(t, center, axis, depth=0, thetaShift=0):
     """Transform a mesh in Cartesian coordinates to cylindrical coordinates."""
@@ -42,7 +42,7 @@ def _cart2Cyl(t, center, axis, depth=0, thetaShift=0):
 def cyl2Cart(t, center, axis):
     """Transform a mesh in Cylindrical coordinates to Cartesian coordinates.
     Usage: cyl2Cart(t, center, axis)"""
-    return C.TZGC(t, 'nodes', Transform.cyl2Cart, center, axis)
+    return C.TZGC1(t, 'nodes', True, Transform.cyl2Cart, center, axis)
 
 def _cyl2Cart(t, center, axis):
     """Transform a mesh in Cylindrical coordinates to Cartesian coordinates."""    
@@ -53,12 +53,10 @@ def _cyl2Cart(t, center, axis):
 def translate(t, transvect):
     """Translate a zone.
     Usage: translate(z, (v1,v2,v3))"""
-    return C.TZGC2(t, Transform.translate, 'nodes', False, transvect)
-    #return C.TZGC3(t, Transform.translate, 'nodes', False, transvect)
+    return C.TZGC3(t, 'nodes', False, Transform.translate, transvect)
     
 def _translate(t, transvect):
     """Translate a zone."""
-    #C.__TZGC2(t, Transform._translate, transvect)
     C.__TZGC3(t, Transform._translate, transvect)
     return None
 
@@ -81,7 +79,7 @@ def rotate(a, center, arg1, arg2=None,
                 else: vectname.append(spl[0]); loc += 4
             if loc == 3: vectorsC += [vectname]
             elif loc == 12: vectorsN += [vectname]
-    return C.TZANW(a, 'both', 'both',
+    return C.TZANW1(a, 'both', 'both',
                    Transform.rotate, Transform.rotate,
                    center, arg1, arg2, vectorsN,
                    center, arg1, arg2, vectorsC)
@@ -102,7 +100,7 @@ def _rotate(a, center, arg1, arg2=None,
                 else: vectname.append(spl[0]); loc += 4
             if loc == 3: vectorsC += [vectname]
             elif loc == 12: vectorsN += [vectname]
-    return C._TZANW(a, 'both', 'both',
+    return C._TZANW1(a, 'both', 'both',
                     Transform.rotate, Transform.rotate,
                     center, arg1, arg2, vectorsN,
                     center, arg1, arg2, vectorsC)
@@ -116,7 +114,7 @@ def homothety(a, center, alpha):
     """Make for a mesh defined by an array an homothety of center Xc and
     of factor alpha.
     Usage: homothety(a, (xc,yc,zc), alpha)"""
-    return C.TZGC2(a, Transform.homothety, 'nodes', False, center, alpha)
+    return C.TZGC2(a, 'nodes', False, Transform.homothety, center, alpha)
 
 def _homothety(a, center, alpha):
     """Make for a mesh defined by an array an homothety of center Xc and of factor alpha."""    
@@ -125,7 +123,7 @@ def _homothety(a, center, alpha):
 def contract(a, center, dir1, dir2, alpha):
     """Contract a mesh around a plane defined by (center, dir1, dir2) and of factor alpha.
     Usage: contract(a, (xc,yc,zc), dir1, dir2, alpha)"""
-    return C.TZGC2(a, Transform.contract, 'nodes', False, center, dir1, dir2, alpha)
+    return C.TZGC2(a, 'nodes', False, Transform.contract, center, dir1, dir2, alpha)
 
 def _contract(a, center, dir1, dir2, alpha):
     """Contract a mesh around a plane defined by (center, dir1, dir2) and of factor alpha.
@@ -139,7 +137,7 @@ def scale(a, factor=1., X=None):
             import Generator.PyTree as G
             X = G.barycenter(a)
         except: pass
-    return C.TZGC2(a, Transform.scale, 'nodes', False, factor, X)
+    return C.TZGC2(a, 'nodes', False, Transform.scale, factor, X)
 
 def _scale(a, factor=1., X=None):
     """Scale a mesh of given factor."""
@@ -153,7 +151,7 @@ def _scale(a, factor=1., X=None):
 def symetrize(a, point, vector1, vector2):
     """Make a symetry of mesh from plane passing by point and of director vector: vector1 and vector2.
     Usage: symetrize(a, (xc,yc,zc), (v1x,v1y,v1z), (v2x,v2y,v2z))"""
-    return C.TZGC2(a, Transform.symetrize, 'nodes', False, point, vector1, vector2)
+    return C.TZGC2(a, 'nodes', False, Transform.symetrize, point, vector1, vector2)
 
 def _symetrize(a, point, vector1, vector2):
     """Make a symetry of mesh from plane passing by point and of director vector: vector1 and vector2.
@@ -163,16 +161,16 @@ def _symetrize(a, point, vector1, vector2):
 def perturbate(a, radius, dim=3):
     """Perturbate a mesh randomly of radius
     Usage: perturbate(a, radius, dim)"""
-    return C.TZANW(a, 'nodes', 'nodes', Transform.perturbate, None, radius, dim)
+    return C.TZANW1(a, 'nodes', 'nodes', Transform.perturbate, None, radius, dim)
 
 def _perturbate(a, radius, dim=3):
     """Perturbate a mesh randomly of radius
     Usage: perturbate(a, radius, dim)"""
-    return C._TZANW(a, 'nodes', 'nodes', Transform.perturbate, None, radius, dim)
+    return C._TZANW1(a, 'nodes', 'nodes', Transform.perturbate, None, radius, dim)
 
 def smoothField(t, eps=0.1, niter=1, type=0, varNames=[]):
     """Smooth given fields."""
-    return C.TZA2(t, Transform.smoothField, 'nodes', 'nodes', False, eps, niter, type, varNames)
+    return C.TZA2(t, 'nodes', 'nodes', False, Transform.smoothField, eps, niter, type, varNames)
 
 def _smoothField(t, eps=0.1, niter=1, type=0, varNames=[]):
     """Smooth given fields."""
@@ -183,8 +181,8 @@ def _smoothField(t, eps=0.1, niter=1, type=0, varNames=[]):
             if s[0] == 'centers': varCenters.append(s[1])
             else: varNodes.append(s[0])
         else: varNodes.append(v)
-    if varNodes != []: C.__TZA2(t, Transform._smoothField, 'nodes', eps, niter, type, varNodes)
-    if varCenters != []: C.__TZA2(t, Transform._smoothField, 'centers', eps, niter, type, varCenters)
+    if varNodes != []: C.__TZA2(t, 'nodes', Transform._smoothField, eps, niter, type, varNodes)
+    if varCenters != []: C.__TZA2(t, 'centers', Transform._smoothField, eps, niter, type, varCenters)
     return None
 
 def smooth(t, eps=0.5, niter=4, type=0, fixedConstraints=[],
@@ -230,7 +228,7 @@ def _deform(t, vector=['dx','dy','dz']):
     """Deform surface by moving surface of the vector (dx, dy, dz).
     Usage: deform(t, vector=['dx','dy','dz'])"""
     if len(vector) != 3: raise ValueError("deform: 3 variables are required.")
-    return C._TZANW(t, 'nodes', 'nodes', Transform.deform, None, vector)
+    return C._TZANW1(t, 'nodes', 'nodes', Transform.deform, None, vector)
 
 def deformNormals(t, alpha, niter=1):
     """Deform a a surface of alpha times the surface normals.
@@ -250,11 +248,11 @@ def _deformNormals(t, alpha, niter=1):
 def deformPoint(a, xyz, dxdydz, depth, width):
     """Deform mesh by moving point (x,y,z) of a vector (dx, dy, dz).
     Usage: deformPoint(a, (x,y,z), (dx,dy,dz), width, depth)"""
-    return C.TZGC(a, 'nodes', Transform.deformPoint, xyz, dxdydz, depth, width)
+    return C.TZGC1(a, 'nodes', False, Transform.deformPoint, xyz, dxdydz, depth, width)
 
 def _deformPoint(a, xyz, dxdydz, depth, width):
     """Deform mesh by moving point (x,y,z) of a vector (dx, dy, dz)."""
-    return C._TZGC(a, 'nodes', Transform.deformPoint, xyz, dxdydz, depth, width)
+    return C._TZGC1(a, 'nodes', False, Transform.deformPoint, xyz, dxdydz, depth, width)
 
 def deformMesh(a, surfDelta, beta=4., type='nearest'):
     """Deform a mesh a wrt surfDelta defining surface grids and deformation vector on it.
@@ -2047,11 +2045,11 @@ def _projectRay(t1, t2, Pt): # t1 is modified
 
 def alignVectorFieldWithRadialCylindricProjection(t, axisPassingPoint=(0,0,0), axisDirection=(1,0,0), vectorNames=[]):
     """Perform a cylindric radial projection of a vector field."""
-    return C.TZA2(t, Transform.alignVectorFieldWithRadialCylindricProjection, 'nodes', 'nodes', False, axisPassingPoint, axisDirection, vectorNames)
+    return C.TZA2(t, 'nodes', 'nodes', False, Transform.alignVectorFieldWithRadialCylindricProjection, axisPassingPoint, axisDirection, vectorNames)
 
 def _alignVectorFieldWithRadialCylindricProjection(t, axisPassingPoint=(0,0,0), axisDirection=(1,0,0), vectorNames=[]):
     """Perform a cylindric radial projection of a vector field."""
-    C.__TZA2(t, Transform._alignVectorFieldWithRadialCylindricProjection, 'nodes', axisPassingPoint, axisDirection, vectorNames)
+    C.__TZA2(t, 'nodes', Transform._alignVectorFieldWithRadialCylindricProjection, axisPassingPoint, axisDirection, vectorNames)
 
 # Split au milieu
 def _splitSize__(z, N, multigrid, dirs, t, stack):

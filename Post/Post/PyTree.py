@@ -631,8 +631,8 @@ def exteriorEltsStructured(t, depth=1):
 
 def _exteriorEltsStructured(t, depth=1):
     """Exterior (border) elts of a mesh as a structured grid."""
-    C._TZA2(t, Post.exteriorEltsStructured, 'nodes', 'nodes', 1, depth)
-    C._TZA2(t, Post.exteriorEltsStructured, 'centers', 'centers', 0, depth)
+    C._TZA2(t, 'nodes', 'nodes', True, Post.exteriorEltsStructured, depth)
+    C._TZA2(t, 'centers', 'centers', False, Post.exteriorEltsStructured, depth)
     return None
     
 def computeVariables(t, varList,
@@ -798,12 +798,12 @@ def _computeVariables2(t, varList, gamma=-1., rgp=-1., s0=0., betas=-1.,
         else: varnamesn.append(var)
 
     if varnamesn != []:
-        C.__TZC(t, Post._computeVariables2, 'nodes', False,
-                varnamesn, gamma, rgp, s0, betas, Cs, mus, Ts)
+        C.__TZC2(t, 'nodes', False,
+                 Post._computeVariables2, varnamesn, gamma, rgp, s0, betas, Cs, mus, Ts)
 
     if varnamesc != []:
-        C.__TZC(t, Post._computeVariables2, 'centers', False,
-                varnamesc, gamma, rgp, s0, betas, Cs, mus, Ts)
+        C.__TZC2(t, 'centers', False,
+                 Post._computeVariables2, varnamesc, gamma, rgp, s0, betas, Cs, mus, Ts)
 
     return None
 
@@ -2026,10 +2026,10 @@ def computeDiff(t, var):
 
 def perlinNoise(t, alpha=2., beta=2., n=8):
     """Generate a perlin noise."""
-    return C.TZGC(t, 'nodes', Post.perlinNoise, alpha, beta, n)
+    return C.TZGC1(t, 'nodes', True, Post.perlinNoise, alpha, beta, n)
 
 def _perlinNoise(t, alpha=2., beta=2., n=8):
-    return C._TZGC(t, 'nodes', Post.perlinNoise, alpha, beta, n)
+    return C._TZGC1(t, 'nodes', True, Post.perlinNoise, alpha, beta, n)
 
 def streamLine(t, X0, vector, N=2000, dir=2):
     """Compute a streamline starting from (x0,y0,z0) given

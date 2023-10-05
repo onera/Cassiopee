@@ -46,12 +46,12 @@ def circle(Center, R, tetas=0., tetae=360., N=100):
 def bezier(t, N=100, M=100, density=-1):
     """Create a a Bezier curve controlled by an array of control points.
     Usage: bezier(tc, N)"""
-    return C.TZGC(t, 'nodes', Geom.bezier, N, M, density)
-
+    return C.TZGC1(t, 'nodes', True, Geom.bezier, N, M, density)
+    
 def spline(t, order=3, N=100, M=100, density=-1):
     """Create a spline of N points.
     Usage: spline(ctrlsPts, order, N)"""
-    return C.TZGC(t, 'nodes', Geom.spline, order, N, M, density)
+    return C.TZGC1(t, 'nodes', True, Geom.spline, order, N, M, density)
 
 def nurbs(t, weight='weight', order=3, N=100, M=100, density=-1):
     """Create a nurbs of N points.
@@ -211,54 +211,54 @@ def getNearestPointIndex(t, pointList):
 def getCurvatureHeight(t):
     """Return the curvature height for each point.
     Usage: getCurvatureHeight(t)"""
-    return C.TZGC(t, 'nodes', Geom.getCurvatureHeight)
+    return C.TZGC1(t, 'nodes', False, Geom.getCurvatureHeight)
 
 def _getCurvatureHeight(t):
     """Return the curvature height for each point."""
-    return C._TZGC(t, 'nodes', Geom.getCurvatureHeight)
+    return C._TZGC1(t, 'nodes', False, Geom.getCurvatureHeight)
 
 def getCurvatureRadius(t):
     """Return the curvature radius for each point.
     Usage: getCurvatureRadius(t)"""
-    return C.TZGC(t, 'nodes', Geom.getCurvatureRadius)
+    return C.TZGC1(t, 'nodes', False, Geom.getCurvatureRadius)
     
 def _getCurvatureRadius(t):
     """Return the curvature radius for each point.""" 
-    return C._TZGC(t, 'nodes', Geom.getCurvatureRadius)
+    return C._TZGC1(t, 'nodes', False, Geom.getCurvatureRadius)
 
 def getCurvatureAngle(t):
     """Return the curvature angle for each point.
     Usage: getCurvatureAngle(t)"""
-    return C.TZGC(t, 'nodes', Geom.getCurvatureAngle)
+    return C.TZGC1(t, 'nodes', False, Geom.getCurvatureAngle)
 
 def _getCurvatureAngle(t):
     """Return the curvature angle for each point."""
-    return C._TZGC(t, 'nodes', Geom.getCurvatureAngle)
+    return C._TZGC1(t, 'nodes', False, Geom.getCurvatureAngle)
 
 def getSharpestAngle(t):
     """Return the sharpest angle for each point of a surface based on the sharpest angle
     between adjacent element to which the point belongs to.
     Usage: getSharpestAngle(a)"""
-    return C.TZGC(t, 'nodes', Geom.getSharpestAngle)
+    return C.TZGC1(t, 'nodes', False, Geom.getSharpestAngle)
 
 def _getSharpestAngle(t):
     """Return the sharpest angle for each point of a surface based on the sharpest angle."""
-    return C._TZGC(t, 'nodes', Geom.getSharpestAngle)
+    return C._TZGC1(t, 'nodes', False, Geom.getSharpestAngle)
 
 def getCurvilinearAbscissa(t):
     """Return the curvilinear abscissa for each point.
     Usage: getCurvilinearAbscissa(t)"""
-    return C.TZGC(t, 'nodes', Geom.getCurvilinearAbscissa)
+    return C.TZGC1(t, 'nodes', False, Geom.getCurvilinearAbscissa)
 
 def _getCurvilinearAbscissa(t):
     """Return the curvilinear abscissa for each point.
     Usage: getCurvilinearAbscissa(t)"""
-    return C._TZGC(t, 'nodes', Geom.getCurvilinearAbscissa)
+    return C._TZGC1(t, 'nodes', False, Geom.getCurvilinearAbscissa)
 
 def getDistribution(t):
-    """Return the curvilinear abscissa for each point as coordinates
+    """Return the curvilinear abscissa for each point as coordinates.
     Usage: getDistribution(t)"""
-    return C.TZGC(t, 'nodes', Geom.getDistribution)    
+    return C.TZGC(t, 'nodes', Geom.getDistribution)
 
 def getTangent(t):
     """
@@ -394,7 +394,7 @@ def refine(a, N=10, factor=-1, sharpAngle=30.):
 def _refine(a, N=10, factor=-1, sharpAngle=30.):
     """Refine a 1D curve."""
     C._deleteFlowSolutions__(a)
-    C._TZGC(a, 'nodes', Geom.refine, N, factor, sharpAngle)
+    C._TZGC1(a, 'nodes', True, Geom.refine, N, factor, sharpAngle)
     return None
 
 def distrib1(a, h, normalized=True):
@@ -461,7 +461,7 @@ def smooth(a, eps, niter):
 
 def _smooth(a, eps, niter):
     """Smooth distribution on a curve."""
-    C._TZGC(a, 'nodes', Geom.smooth, eps, niter)
+    C._TZGC1(a, 'nodes', True, Geom.smooth, eps, niter)
     return None
 
 def getUV(a, normalDeviationWeight=2., texResolution=1920, fields=None):
