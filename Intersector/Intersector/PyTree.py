@@ -40,7 +40,7 @@ def _addVar__(t, var, loc='centers'):
     return None
 
 #=============================================================================
-# Retourne le nombre de cellules d'un maillage
+# Retourne le nombre de cellules d'un maillage (voir C.getNCells)
 #=============================================================================
 def nb_cells(a):
   ncellsTot = 0
@@ -53,7 +53,7 @@ def nb_cells(a):
   return ncellsTot
 
 #==============================================================================
-# nb_faces: Returns teh number of faces in t
+# nb_faces: Returns the number of faces in t
 # IN: t: 3D NGON mesh
 # OUT: returns the adapted feature
 #==============================================================================

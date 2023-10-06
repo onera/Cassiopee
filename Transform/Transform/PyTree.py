@@ -248,7 +248,7 @@ def _deformNormals(t, alpha, niter=1):
 def deformPoint(a, xyz, dxdydz, depth, width):
     """Deform mesh by moving point (x,y,z) of a vector (dx, dy, dz).
     Usage: deformPoint(a, (x,y,z), (dx,dy,dz), width, depth)"""
-    return C.TZGC1(a, 'nodes', False, Transform.deformPoint, xyz, dxdydz, depth, width)
+    return C.TZGC1(a, 'nodes', True, Transform.deformPoint, xyz, dxdydz, depth, width)
 
 def _deformPoint(a, xyz, dxdydz, depth, width):
     """Deform mesh by moving point (x,y,z) of a vector (dx, dy, dz)."""

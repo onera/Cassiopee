@@ -1815,22 +1815,6 @@ def makeNumpyStringString__(node):
 #==============================================================================
 
 # -- TZGC
-# Traitement agissant sur les coords, effectue par zones.
-# Prend le champ GC (noeuds), applique F, remet le resultat dans un
-# conteneur suivant locout.
-def _TZGC(t, locout, F, *args):
-  zones = Internal.getZones(t)
-  for z in zones:
-    coord = getFields(Internal.__GridCoordinates__, z)[0]
-    if coord != []:
-      coord = F(coord, *args)
-      setFields([coord], z, locout)
-  return None
-
-def TZGC(t, locout, F, *args):
-  tp = Internal.copyRef(t)
-  _TZGC(tp, locout, F, *args)
-  return tp
 
 # Recupere les coords, applique _F dessus sans changement topologique
 def __TZGCX(api, t, _F, *args):
@@ -1847,7 +1831,7 @@ def __TZGC2(t, _F, *args):
 def __TZGC3(t, _F, *args):
     return __TZGCX(3, t, _F, *args)
 
-# Recupere les coords, applique F qui renvoie une copie, fait un setFields
+# Recupere les coords, applique F qui renvoie une copie, fait un setFields a locout
 def _TZGCX(api, t, locout, writeDim, F, *args):
   zones = Internal.getZones(t)
   for z in zones:
@@ -2342,7 +2326,7 @@ def _TZAX(api, t, locin, locout, writeDim, F, *args):
       fa = getFields(Internal.__FlowSolutionNodes__, z, api=api)[0]
       ret = None
       if fc != [] and fa != []:
-         if api == 1: fc = Converter.addVars([fc, fa])
+         if api == 1: Converter._addVars([fc, fa])
          else:
            fc[0] = fc[0]+','+fa[0]
            fc[1] = fc[1]+fa[1]
@@ -2355,14 +2339,37 @@ def _TZAX(api, t, locin, locout, writeDim, F, *args):
       if fa != []:
         ret = F(fa, *args)
         setFields([ret], z, locout, writeDim)
+    else: # both
+      # Dans ce cas, on suppose que F ne change pas la localisation
+      # les nodes restent en nodes, les centres restent en centres par F
+      fc = getFields(Internal.__GridCoordinates__, z, api=api)[0]
+      fa = getFields(Internal.__FlowSolutionNodes__, z, api=api)[0]
+      fb = getFields(Internal.__FlowSolutionCenters__, z, api=api)[0]
+      if fc != [] and fa != []:
+        if api == 1: Converter._addVars([fc, fa]) # modifie fc
+        else:
+           fc[0] = fc[0]+','+fa[0]
+           fc[1] = fc[1]+fa[1]
+        fp = F(fc, *args)
+        setFields([fp], z, 'nodes', writeDim)
+      elif fa != []:
+        fp = F(fa, *args)
+        setFields([fp], z, 'nodes', writeDim)
+      elif fc != []:
+        fp = F(fc, *args)
+        setFields([fp], z, 'nodes', writeDim)
+      fa = None
+      if fb != []:
+        if locout != 'nodes': fb = F(fb, *args)
+        setFields([fb], z, 'centers', writeDim)
   return None
 
 def _TZA1(t, locin, locout, writeDim, F, *args):
-  return _TZAX(1, locin, locout, writeDim, F, *args)
+  return _TZAX(1, t, locin, locout, writeDim, F, *args)
 def _TZA2(t, locin, locout, writeDim, F, *args):
-  return _TZAX(2, locin, locout, writeDim, F, *args)
+  return _TZAX(2, t, locin, locout, writeDim, F, *args)
 def _TZA3(t, locin, locout, writeDim, F, *args):
-  return _TZAX(3, locin, locout, writeDim, F, *args)
+  return _TZAX(3, t, locin, locout, writeDim, F, *args)
 
 # Fait une ref copie en +
 def TZAX(api, t, locin, locout, writeDim, F, *args):
@@ -2790,7 +2797,6 @@ def _randomizeVar(t, var, deltaMin, deltaMax):
   if len(spl) != 1:
     if spl[0] == 'centers': loc = 'centers'
     varname = spl[1]
-
   _TZA(t, loc, loc, Converter.randomizeVar, Converter.randomizeVar, varname, deltaMin, deltaMax)
   return None
 
@@ -2804,7 +2810,7 @@ def _orderVariables(t, varsn=[], varsc=[]):
         for v in varsn:
           if v == var: found = 1
         if found == 0: varsn.append(var)
-  if varsc==[]:
+  if varsc == []:
     for z in nodes:
       vars = getVarNames(z, excludeXYZ=True, loc='centers')[0]
       for var in vars:
@@ -3162,9 +3168,9 @@ def _magnitude(t, vars):
       raise ValueError("magnitude: invalid vector component.")
 
   if loc == 'nodes':
-    _TZA(t, loc, loc, Converter.magnitude, Converter.magnitude, vars)
+    _TZA1(t, loc, loc, True, Converter.magnitude, vars)
   else:
-    _TZA(t, loc, loc, Converter.magnitude, Converter.magnitude, vars2)
+    _TZA1(t, loc, loc, True, Converter.magnitude, vars2)
   return None
 
 # -- normL0
@@ -3283,10 +3289,10 @@ def getMeanRangeValue(t, var, rmin, rmax):
 def convertBAR2Struct(t):
   """Convert a BAR array without branches, closed into an i-array.
   Usage: convertBAR2Struct(t)"""
-  return TZA(t, 'both', 'both', Converter.convertBAR2Struct, None)
+  return TZA1(t, 'both', 'nodes', True, Converter.convertBAR2Struct)
 
 def _convertBAR2Struct(t):
-  _TZA(t, 'both', 'both', Converter.convertBAR2Struct, None)
+  _TZA1(t, 'both', 'nodes', True, Converter.convertBAR2Struct)
   return None
 
 # -- convertArray2Tetra
@@ -3334,7 +3340,7 @@ def convertArray2Hexa(t):
 def _convertArray2Hexa(t):
   _deleteZoneBC__(t)
   _deleteGridConnectivity__(t)
-  _TZA(t, 'both', 'both', Converter.convertArray2Hexa, None)
+  _TZA1(t, 'both', 'nodes', True, Converter.convertArray2Hexa)
   return None
 
 # -- convertArray2NGon
@@ -3355,7 +3361,7 @@ def _convertArray2NGon(t, recoverBC=True):
       else: gbcs.append(getBCs(z, extrapFlow=False))
   else: _deleteZoneBC__(t)
   _deleteGridConnectivity__(t)
-  _TZA(t, 'both', 'both', Converter.convertArray2NGon, None)
+  _TZA1(t, 'both', 'nodes', True, Converter.convertArray2NGon)
   Internal._fixNGon(t)
 
   # Recover BCs for NGon
@@ -6135,9 +6141,9 @@ def node2Center(t, var=''):
               try: import Transform
               except: pass
               else:
-                z = TZA(z, 'nodes', 'nodes', Transform.dual, 0, 0)
+                z = TZA1(z, 'nodes', 'nodes', True, Transform.dual, 0)
             else:
-              z = TZA(z, 'nodes', 'nodes', Converter.node2Center, None)
+              z = TZA1(z, 'nodes', 'nodes', True, Converter.node2Center)
             setFields(fieldc, z, 'nodes', writeDim=False)
             if p is None: la[i] = z
             else: p[2][pos] = z
@@ -6254,7 +6260,7 @@ def center2Node(t, var=None, cellNType=0, api=2):
 
       # destruction
       t = deleteFlowSolutions__(t, 'centers')
-      t = TZA(t, 'nodes', 'nodes', Converter.center2Node, None, cellNType, None, api)
+      t = TZA1(t, 'nodes', 'nodes', True, Converter.center2Node, cellNType, None, api)
       if fieldsc != []: setFields(fieldsc, t, 'centers', writeDim=False)
       return t
 

@@ -143,7 +143,7 @@ def getFirstPointsInfo__(z, wallRanges, loc='nodes', ghostCells=False):
 # Pour traiter les surfaces de projection en centres etendus issues de BCWall splittees
 # ----------------------------------------------------------------------------------------
 def modifyBorders__(a, iminL, imaxL, jminL, jmaxL):  
-    return C.TZGC(a, 'nodes', Connector.modifyBorders__, iminL, imaxL, jminL, jmaxL)
+    return C.TZGC1(a, 'nodes', True, Connector.modifyBorders__, iminL, imaxL, jminL, jmaxL)
 
 # ----------------------------------------------------------------------------------------
 # determination de toutes les sous fenetres definissant une frontiere i=imax par ex 

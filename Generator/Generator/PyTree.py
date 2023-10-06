@@ -552,7 +552,7 @@ def checkPointInCEBB(t, P):
 def bboxOfCells(t):
     """Compute the bounding box of all cells of a mesh.
     Usage: getBBoxOfCells(t)"""
-    return C.TZGC1(t, 'centers', False, Generator.bboxOfCells)
+    return C.TZGC1(t, 'centers', True, Generator.bboxOfCells)
 
 def _bboxOfCells(t):
     return C._TZGC1(t, 'centers', False, Generator.bboxOfCells)
@@ -560,7 +560,7 @@ def _bboxOfCells(t):
 def getVolumeMap(t):
     """Return the volume map in an array.
     Usage: getVolumeMap(t)"""
-    return C.TZGC1(t, 'centers', False, Generator.getVolumeMap)
+    return C.TZGC1(t, 'centers', True, Generator.getVolumeMap)
 
 def _getVolumeMap(t):
     """Return the volume map in an array.
@@ -570,7 +570,7 @@ def _getVolumeMap(t):
 def getNormalMap(t):
     """Return the map of surface normals in an array.
     Usage: getNormalMap(t)""" 
-    return C.TZGC1(t, 'centers', False, Generator.getNormalMap)
+    return C.TZGC1(t, 'centers', True, Generator.getNormalMap)
 
 def _getNormalMap(t):
     return C._TZGC1(t, 'centers', False, Generator.getNormalMap)
@@ -579,7 +579,7 @@ def getSmoothNormalMap(t, niter=2, eps=0.4):
     """Return the map of smoothed and non-normalized surface normals in an array.
     eps is the smoothing factor.
     Usage: getSmoothNormalMap(t, niter, eps)"""
-    return C.TZGC1(t, 'nodes', False, Generator.getSmoothNormalMap, niter, eps)
+    return C.TZGC1(t, 'nodes', True, Generator.getSmoothNormalMap, niter, eps)
 
 def _getSmoothNormalMap(t, niter=2, eps=0.4):
     return C._TZGC1(t, 'nodes', False, Generator.getSmoothNormalMap, niter, eps)
@@ -587,7 +587,7 @@ def _getSmoothNormalMap(t, niter=2, eps=0.4):
 def getCellPlanarity(t):
     """Return the cell planarity of a surface mesh in an array.
     Usage: getCellPlanarity(t)"""
-    return C.TZGC1(t, 'centers', False, Generator.getCellPlanarity)
+    return C.TZGC1(t, 'centers', True, Generator.getCellPlanarity)
 
 def _getCellPlanarity(t):
     return C._TZGC1(t, 'centers', False, Generator.getCellPlanarity)
@@ -595,7 +595,7 @@ def _getCellPlanarity(t):
 def getCircumCircleMap(t):
     """Return the map of circum circle radius of a 'TRI' array.
     Usage: getCircumCircleMap(t)""" 
-    return C.TZGC1(t, 'centers', False, Generator.getCircumCircleMap)
+    return C.TZGC1(t, 'centers', True, Generator.getCircumCircleMap)
 
 def _getCircumCircleMap(t):
     return C._TZGC1(t, 'centers', False, Generator.getCircumCircleMap)
@@ -603,7 +603,7 @@ def _getCircumCircleMap(t):
 def getInCircleMap(t):
     """Return the map of inscribed circle radius of a 'TRI' array.
     Usage: getInCircleMap(t)""" 
-    return C.TZGC1(t, 'centers', False, Generator.getInCircleMap)
+    return C.TZGC1(t, 'centers', True, Generator.getInCircleMap)
 
 def _getInCircleMap(t):
     return C._TZGC1(t, 'centers', False, Generator.getInCircleMap)
@@ -612,7 +612,7 @@ def getEdgeRatio(t):
     """Compute the ratio between the max and min lengths of all the edges of
     cells in an array.
     Usage: getEdgeRatio(t)"""
-    return C.TZGC1(t, 'centers', False, Generator.getEdgeRatio)
+    return C.TZGC1(t, 'centers', True, Generator.getEdgeRatio)
 
 def _getEdgeRatio(t):
     return C._TZGC1(t, 'centers', False, Generator.getEdgeRatio)
@@ -620,7 +620,7 @@ def _getEdgeRatio(t):
 def getMaxLength(t):
     """Compute the max length of all the edges of cells in a zone.
     Usage: getMaxLength(t)"""
-    return C.TZGC1(t, 'centers', False, Generator.getMaxLength)
+    return C.TZGC1(t, 'centers', True, Generator.getMaxLength)
 
 def _getMaxLength(t):
     return C._TZGC1(t, 'centers', False, Generator.getMaxLength)
@@ -1487,7 +1487,7 @@ def mapSplit(z, d, split_crit, dens_max=1000):
 def getOrthogonalityMap(t):
     """Return the orthogonality map in an array.
     Usage: getOrthogonalityMap(t)"""
-    return C.TZGC1(t, 'centers', False, Generator.getOrthogonalityMap)
+    return C.TZGC1(t, 'centers', True, Generator.getOrthogonalityMap)
 
 def _getOrthogonalityMap(t):
     return C._TZGC1(t, 'centers', False, Generator.getOrthogonalityMap)
@@ -1502,7 +1502,7 @@ def getRegularityMap(t, addGC=False):
     """Return the regularity map in an array.
     Usage: getRegularityMap(t)"""
     if addGC: t = Internal.addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
-    t = C.TZGC1(t, 'centers', False, Generator.getRegularityMap)
+    t = C.TZGC1(t, 'centers', True, Generator.getRegularityMap)
     if addGC: t = Internal.rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return t
 
@@ -1523,7 +1523,7 @@ def getAngleRegularityMap(t, addGC=False):
     """Return the regularity map in an array (wrt angles).
     Usage: getAngleRegularityMap(t)"""
     if addGC: t = Internal.addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
-    t = C.TZGC1(t, 'centers', False, Generator.getAngleRegularityMap)
+    t = C.TZGC1(t, 'centers', True, Generator.getAngleRegularityMap)
     if addGC: t = Internal.rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return t
 
@@ -1539,7 +1539,7 @@ def _getAngleRegularityMap(t, addGC=False):
 def getTriQualityMap(t):
     """Return the quality map of a TRI array (0. for a degenerated triangle, 1. for an equilateral one).
     Usage: getTriQualityMap(t)"""
-    return C.TZGC1(t, 'centers', False, Generator.getTriQualityMap)
+    return C.TZGC1(t, 'centers', True, Generator.getTriQualityMap)
 
 def _getTriQualityMap(t):
     return C._TZGC1(t, 'centers', False, Generator.getTriQualityMap)

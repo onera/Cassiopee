@@ -211,7 +211,7 @@ def getNearestPointIndex(t, pointList):
 def getCurvatureHeight(t):
     """Return the curvature height for each point.
     Usage: getCurvatureHeight(t)"""
-    return C.TZGC1(t, 'nodes', False, Geom.getCurvatureHeight)
+    return C.TZGC1(t, 'nodes', True, Geom.getCurvatureHeight)
 
 def _getCurvatureHeight(t):
     """Return the curvature height for each point."""
@@ -220,7 +220,7 @@ def _getCurvatureHeight(t):
 def getCurvatureRadius(t):
     """Return the curvature radius for each point.
     Usage: getCurvatureRadius(t)"""
-    return C.TZGC1(t, 'nodes', False, Geom.getCurvatureRadius)
+    return C.TZGC1(t, 'nodes', True, Geom.getCurvatureRadius)
     
 def _getCurvatureRadius(t):
     """Return the curvature radius for each point.""" 
@@ -229,7 +229,7 @@ def _getCurvatureRadius(t):
 def getCurvatureAngle(t):
     """Return the curvature angle for each point.
     Usage: getCurvatureAngle(t)"""
-    return C.TZGC1(t, 'nodes', False, Geom.getCurvatureAngle)
+    return C.TZGC1(t, 'nodes', True, Geom.getCurvatureAngle)
 
 def _getCurvatureAngle(t):
     """Return the curvature angle for each point."""
@@ -239,7 +239,7 @@ def getSharpestAngle(t):
     """Return the sharpest angle for each point of a surface based on the sharpest angle
     between adjacent element to which the point belongs to.
     Usage: getSharpestAngle(a)"""
-    return C.TZGC1(t, 'nodes', False, Geom.getSharpestAngle)
+    return C.TZGC1(t, 'nodes', True, Geom.getSharpestAngle)
 
 def _getSharpestAngle(t):
     """Return the sharpest angle for each point of a surface based on the sharpest angle."""
@@ -248,7 +248,7 @@ def _getSharpestAngle(t):
 def getCurvilinearAbscissa(t):
     """Return the curvilinear abscissa for each point.
     Usage: getCurvilinearAbscissa(t)"""
-    return C.TZGC1(t, 'nodes', False, Geom.getCurvilinearAbscissa)
+    return C.TZGC1(t, 'nodes', True, Geom.getCurvilinearAbscissa)
 
 def _getCurvilinearAbscissa(t):
     """Return the curvilinear abscissa for each point.
@@ -258,7 +258,7 @@ def _getCurvilinearAbscissa(t):
 def getDistribution(t):
     """Return the curvilinear abscissa for each point as coordinates.
     Usage: getDistribution(t)"""
-    return C.TZGC(t, 'nodes', Geom.getDistribution)
+    return C.TZGC1(t, 'nodes', True, Geom.getDistribution)
 
 def getTangent(t):
     """
@@ -268,7 +268,7 @@ def getTangent(t):
     Usage: b = getTangent(t)"""
     tp = Internal.copyRef(t)
     C._deleteFlowSolutions__(tp)
-    C._TZGC(tp, 'nodes', Geom.getTangent)
+    C._TZGC1(tp, 'nodes', True, Geom.getTangent)
     return tp
 
 def addSeparationLine(t, line0):
