@@ -1623,7 +1623,7 @@ def _replaceFaces(z, face_soup):
 def triangulateExteriorFaces(t, in_or_out=2, improve_qual=0):
   """Triangulates exterior polygons of a volume mesh.
   Usage: triangulateExteriorFaces(t)"""
-  return C.TZA(t, 'nodes', 'nodes', XOR.triangulateExteriorFaces, t, in_or_out, improve_qual)
+  return C.TZA1(t, 'nodes', 'nodes', True, XOR.triangulateExteriorFaces, in_or_out, improve_qual)
 
 #==============================================================================
 # _triangulateExteriorFaces
@@ -1635,7 +1635,7 @@ def triangulateExteriorFaces(t, in_or_out=2, improve_qual=0):
 def _triangulateExteriorFaces(t, in_or_out=2, improve_qual=0):
   """Triangulates exterior polygons of a volume mesh (in-place).
   Usage: triangulateExteriorFaces(t)"""
-  return C._TZA(t, 'nodes', 'nodes', XOR.triangulateExteriorFaces, t, in_or_out, improve_qual)
+  return C._TZA1(t, 'nodes', 'nodes', True, XOR.triangulateExteriorFaces, in_or_out, improve_qual)
 
 
 #==============================================================================
@@ -1861,10 +1861,10 @@ def externalFaces(t, discard_joins=False, geo_dim=-1):
 def reorient(t, dir=1):
     """Reorients outward the external polygons of a mesh.
     Usage: reorient(t)"""
-    return C.TZA(t, 'nodes', 'nodes', XOR.reorient, t, dir)
+    return C.TZA1(t, 'nodes', 'nodes', True, XOR.reorient, dir)
 
 def _reorient(t, dir=1):
-    return C._TZA(t, 'nodes', 'nodes', XOR.reorient, t, dir)
+    return C._TZA1(t, 'nodes', 'nodes', True, XOR.reorient, dir)
 
 #==============================================================================
 # triangulateBC
@@ -3282,31 +3282,31 @@ def extractOverConnectedCells(t, nneighs=0):
 def detectIdenticalCells(t, TOL=1.e-15, clean=0):
     """Detects (and optionannly removes) geometrically identical cells.
     Usage: detectIdenticalCells(t)"""
-    return C.TZA(t, 'nodes', 'nodes', XOR.detectIdenticalCells, t, TOL, clean)
+    return C.TZA1(t, 'nodes', 'nodes', True, XOR.detectIdenticalCells, TOL, clean)
 
 def _detectIdenticalCells(t, TOL=1.e-15, clean=0):
-    return C._TZA(t, 'nodes', 'nodes', XOR.detectIdenticalCells, t, TOL, clean)
+    return C._TZA1(t, 'nodes', 'nodes', True, XOR.detectIdenticalCells, TOL, clean)
 
 #==============================================================================
 # detectOverConnectedFaces : detects Faces that belong to more than 2 cells in a mesh.
 #======================================================================
 def detectOverConnectedFaces(t):
     """Detects Faces that belong to more than 2 cells in a mesh."""
-    return C.TZA(t, 'nodes', 'nodes', XOR.detectOverConnectedFaces, t)
+    return C.TZA1(t, 'nodes', 'nodes', True, XOR.detectOverConnectedFaces)
 
 def _detectOverConnectedFaces(t, TOL=1.e-15, clean=0):
-    return C._TZA(t, 'nodes', 'nodes', XOR.detectOverConnectedFaces, t, TOL, clean)
+    return C._TZA1(t, 'nodes', 'nodes', True, XOR.detectOverConnectedFaces, TOL, clean)
 
 #==============================================================================
 # collapseMicroRegions : XXX
 #======================================================================
 def collapseSmallEdges(t, eratio, lmax=-1.):
-    """XXX."""
-    return C.TZA(t, 'nodes', 'nodes', XOR.collapseSmallEdges, t, eratio, lmax)
+    """Collapse small edges."""
+    return C.TZA1(t, 'nodes', 'nodes', True, XOR.collapseSmallEdges, eratio, lmax)
 
 
 def _collapseSmallEdges(t, eratio, lmax=-1.):
-    return C._TZA(t, 'nodes', 'nodes', XOR.collapseSmallEdges, t, eratio, lmax)
+    return C._TZA1(t, 'nodes', 'nodes', True, XOR.collapseSmallEdges, eratio, lmax)
 
 #==============================================================================
 # getOverlappingFaces   : returns the list of polygons in a1 and a2 that are overlapping.
@@ -3925,22 +3925,22 @@ def extrudeBC(t, height = 0.25, mean_or_min = 1, create_ghost = 1, bndType = 'Us
 #==============================================================================
 # extrudeSurf : XXX
 #==============================================================================
-def extrudeSurf(t, layer_height, nlayers = 1, strategy = 1):
+def extrudeSurf(t, layer_height, nlayers=1, strategy=1):
     """XXX"""
-    return C.TZA(t, 'nodes', 'nodes', XOR.extrudeSurf, t, layer_height, nlayers, strategy)
+    return C.TZA1(t, 'nodes', 'nodes', True, XOR.extrudeSurf, layer_height, nlayers, strategy)
 
-def _extrudeSurf(t, layer_height, nlayers = 1, strategy = 1):
-    return C._TZA(t, 'nodes', 'nodes', XOR.extrudeSurf, t, layer_height, nlayers, strategy)
+def _extrudeSurf(t, layer_height, nlayers=1, strategy=1):
+    return C._TZA1(t, 'nodes', 'nodes', True, XOR.extrudeSurf, layer_height, nlayers, strategy)
 
 #==============================================================================
 # extrudeRevolSurf : XXX
 #==============================================================================
-def extrudeRevolSurf(t, ax_pt, ax_dir, nlayers = 1):
+def extrudeRevolSurf(t, ax_pt, ax_dir, nlayers=1):
     """XXX"""
-    return C.TZA(t, 'nodes', 'nodes', XOR.extrudeRevolSurf, t, ax_pt, ax_dir, nlayers)
+    return C.TZA1(t, 'nodes', 'nodes', True, XOR.extrudeRevolSurf, ax_pt, ax_dir, nlayers)
 
-def _extrudeRevolSurf(t, ax_pt, ax_dir, nlayers = 1):
-    return C._TZA(t, 'nodes', 'nodes', XOR.extrudeRevolSurf, t, ax_pt, ax_dir, nlayers)
+def _extrudeRevolSurf(t, ax_pt, ax_dir, nlayers=1):
+    return C._TZA1(t, 'nodes', 'nodes', True, XOR.extrudeRevolSurf, ax_pt, ax_dir, nlayers)
 
 #==============================================================================
 # statsUncomputableFaces : XXX
@@ -3960,14 +3960,13 @@ def statsSize(t, compute_metrics=1):
 # removeBaffles : XXX
 #==============================================================================
 def removeBaffles(t):
-  return C.TZA(t, 'nodes', 'nodes', XOR.removeBaffles, t)
+  return C.TZA1(t, 'nodes', 'nodes', True, XOR.removeBaffles)
 
 #==============================================================================
 # removeBaffles : XXX
 #==============================================================================
 def _removeBaffles(t):
-  return C._TZA(t, 'nodes', 'nodes', XOR.removeBaffles, t)
-    
+  return C._TZA1(t, 'nodes', 'nodes', True, XOR.removeBaffles)
 
 #==============================================================================
 # convert2Polyhedron : XXX

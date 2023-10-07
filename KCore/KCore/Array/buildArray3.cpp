@@ -369,3 +369,50 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
 
     return tpl;
 }
+
+// Build an array identical to f and c in size (unstructured only)
+// but with nfld vars. Center and api can be changed.
+// This doesnt perform copy
+PyObject* K_ARRAY::buildArray3(E_Int nfld,
+                               const char* varString,
+                               FldArrayF& f,
+                               FldArrayI& cn,
+                               char* eltType,
+                               E_Int center, E_Int api)
+{
+    PyObject* tpl = NULL;
+    E_Int npts = f.getSize();
+    if (api == -1) // if not given, find api from f
+    {
+        api = f.getApi();
+        if (api == 2) api = 3;
+    }
+    if (center == -1) // find center from eltstring
+    { 
+        center = 0;
+        E_Int l = strlen(eltType);
+        if (eltType[l-2] == '*') center = 1;
+    }
+    if (strcmp(eltType, "NGON") == 0 || strcmp(eltType, "NGON*") == 0)
+    {
+        E_Int ngonType = cn.isNGon();
+        E_Int nelts = cn.getNElts();
+        E_Int nfaces = cn.getNFaces();
+        E_Int sizeNGon = cn.getSizeNGon();
+        E_Int sizeNFace = cn.getSizeNFace();
+        tpl = K_ARRAY::buildArray3(nfld, varString, npts, nelts, nfaces, 
+        eltType, sizeNGon, sizeNFace, ngonType, center, api);
+    }
+    else
+    {
+        E_Int ncon = cn.getNConnect();
+        vector< E_Int > neltsPerConnect(ncon);
+        E_Int nelts = 0;
+        for (E_Int i = 0; i < ncon; i++)
+        { FldArrayI& cm = *(cn.getConnect(i));
+        neltsPerConnect[i] = cm.getSize(); 
+        nelts += cm.getSize(); }
+        tpl = K_ARRAY::buildArray3(nfld, varString, npts, neltsPerConnect, eltType, center, api);
+    }
+    return tpl;
+}

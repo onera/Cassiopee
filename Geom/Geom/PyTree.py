@@ -405,7 +405,7 @@ def distrib1(a, h, normalized=True):
 
 def _distrib1(a, h, normalized=True):
     """Enforce h everywhere in line. Return distribution."""
-    C._TZA(a, 'nodes', 'nodes', Geom.distrib1, None, h, normalized)
+    C._TZA1(a, 'nodes', 'nodes', True, Geom.distrib1, h, normalized)
     return None
 
 def distrib2(a, h1, h2, add=20, forceAdd=False, normalized=True, algo=0):
@@ -416,7 +416,7 @@ def distrib2(a, h1, h2, add=20, forceAdd=False, normalized=True, algo=0):
 
 def _distrib2(a, h1, h2, add=20, forceAdd=False, normalized=True, algo=0):
     """Enforce h1,h2 in line. Return distribution."""
-    C._TZA(a, 'nodes', 'nodes', Geom.distrib2, None, h1, h2, add, forceAdd, normalized, algo)
+    C._TZA1(a, 'nodes', 'nodes', True, Geom.distrib2, h1, h2, add, forceAdd, normalized, algo)
     return None
 
 def enforceh(a, N=100, h=-1.):
@@ -427,7 +427,7 @@ def enforceh(a, N=100, h=-1.):
 
 def _enforceh(a, N=100, h=-1.):
     """Remesh a 1D curve with imposed steps."""
-    C._TZA(a, 'nodes', 'nodes', Geom.enforceh, None, N, h)
+    C._TZA1(a, 'nodes', 'nodes', True, Geom.enforceh, N, h)
     C._deleteFlowSolutions__(a, loc='centers')
     return None
 

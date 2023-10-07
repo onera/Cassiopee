@@ -301,8 +301,8 @@ def checkDelaunay(contour, tri):
     Usage: checkDelaunay(contour, tri)"""
     contour = C.deleteFlowSolutions__(contour, 'centers')
     tria = C.getFields(Internal.__GridCoordinates__, tri)[0]
-    return C.TZA(contour, 'nodes', 'nodes',
-                 Generator.checkDelaunay, None, tria)
+    return C.TZA1(contour, 'nodes', 'nodes', True,
+                  Generator.checkDelaunay, tria)
 
 def constrainedDelaunay(contour, tol=1.e-10, keepBB=0):
     """Create a constrained-Delaunay mesh starting from a BAR-array defining
@@ -406,13 +406,13 @@ def snapFront(t, surfs, optimized=1):
     """Adapt t to a given surface (cellN defined in t). 
     Usage: snapFront(t, surfs, step, angle, optimized)"""
     arrays = C.getFields(Internal.__GridCoordinates__, surfs)
-    return C.TZA(t, 'nodes', 'nodes', Generator.snapFront, None,
-                 arrays, optimized)
+    return C.TZA1(t, 'nodes', 'nodes', True, Generator.snapFront,
+                  arrays, optimized)
 
 def _snapFront(t, surfs, optimized=1):
     arrays = C.getFields(Internal.__GridCoordinates__, surfs)
-    return C._TZA(t, 'nodes', 'nodes', Generator.snapFront, None,
-                  arrays, optimized)
+    return C._TZA1(t, 'nodes', 'nodes', True, Generator.snapFront,
+                   arrays, optimized)
 
 #------------------------------------------------------------------------------
 # Deplacement de points de t sur ceux des surfaces surfs discretisees
@@ -421,14 +421,14 @@ def snapSharpEdges(t, surfs, step=None, angle=30.):
     """Adapt t to a given surface. 
     Usage: snapSharpEdges(t, surfs, step)"""
     arrays = C.getFields(Internal.__GridCoordinates__, surfs)
-    return C.TZA(t, 'nodes', 'nodes', Generator.snapSharpEdges, None, 
-                 arrays, step, angle)
+    return C.TZA1(t, 'nodes', 'nodes', True, Generator.snapSharpEdges, 
+                  arrays, step, angle)
     
 def _snapSharpEdges(t, surfs, step=None, angle=30.):
     """Adapt t to a given surface."""
     arrays = C.getFields(Internal.__GridCoordinates__, surfs)
-    return C._TZA(t, 'nodes', 'nodes', Generator.snapSharpEdges, None, 
-                  arrays, step, angle)
+    return C._TZA1(t, 'nodes', 'nodes', True, Generator.snapSharpEdges, 
+                   arrays, step, angle)
 
 def check(t):
     """Check a mesh for regularity, orthogonality...
@@ -799,7 +799,7 @@ def pointedHat(a, coord):
     """Create a structured surface defined by a contour and a point (x,y,z).
     Usage: pointedHat(array, (x,y,z))"""
     a = C.deleteFlowSolutions__(a, 'both')
-    return C.TZA(a, 'nodes', 'nodes', Generator.pointedHat, None, coord)
+    return C.TZA1(a, 'nodes', 'nodes', True, Generator.pointedHat, coord)
 
 def stitchedHat(a, offset, tol=1.e-6, tol2=1.e-5):
     """Create a structured surface defined by a contour and an offset (dx,dy,dz).
@@ -812,7 +812,7 @@ def selectInsideElts(a, curvesList):
     Usage: selectInsideElts(array, curvesList)"""
     a = C.deleteFlowSolutions__(a, 'centers')
     curves = C.getFields(Internal.__GridCoordinates__, curvesList)
-    return C.TZA(a, 'nodes', 'nodes', Generator.selectInsideElts, None, curves)
+    return C.TZA1(a, 'nodes', 'nodes', True, Generator.selectInsideElts, curves)
 
 def grow(t, vector):
     """Grow a surface array of one layer by moving points of vector.
@@ -839,7 +839,7 @@ def stack(t1, t2=None):
     Usage: stack(a1, a2)"""
     if t2 is not None:
         a2 = C.getAllFields(t2, 'nodes')[0]
-        return C.TZA(t1, 'nodes', 'nodes', Generator.stack, None, a2)
+        return C.TZA1(t1, 'nodes', 'nodes', True, Generator.stack, a2)
     else:
         a1 = C.getAllFields(t1, 'nodes')
         b = Generator.stack(a1)
@@ -1091,11 +1091,11 @@ def densify(z, h):
     """Return zone with densified mesh.
     Usage: densify(z, h)"""
     z = C.deleteFlowSolutions__(z)
-    return C.TZA(z, 'nodes', 'nodes', Generator.densify, None, h)
+    return C.TZA1(z, 'nodes', 'nodes', True, Generator.densify, h)
 
 def _densify(z, h):
     C._deleteFlowSolutions__(z)
-    return C._TZA(z, 'nodes', 'nodes', Generator.densify, None, h)
+    return C._TZA1(z, 'nodes', 'nodes', True, Generator.densify, h)
 
 def TFI(a):
     """Generate a transfinite interpolation mesh from boundaries.

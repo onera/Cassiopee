@@ -1899,6 +1899,7 @@ def TZA(t, locin, locout, F, Fc, *args):
   _TZA(tp, locin, locout, F, Fc, *args)
   return tp
 
+# obsolete : use _TZA1, _TZA3
 def _TZA(t, locin, locout, F, Fc, *args):
   zones = Internal.getZones(t)
   for z in zones:
@@ -1942,78 +1943,6 @@ def _TZA(t, locin, locout, F, Fc, *args):
         if Fc is not None: fb = Fc(fb, *args2)
         setFields([fb], z, 'centers')
   return None
-
-# -- TZA sans write dim = generique
-def _TZANWX(api, t, locin, locout, F, Fc, *args):
-  zones = Internal.getZones(t)
-  for z in zones:
-    if locin == 'nodes':
-      fc = getFields(Internal.__GridCoordinates__, z, api=api)[0]
-      fa = getFields(Internal.__FlowSolutionNodes__, z, api=api)[0]
-      if fc != [] and fa != []:
-        if api == 1:
-            Converter._addVars([fc, fa]) # modifie fc
-        else:
-            fc[0] = fc[0]+','+fa[0]
-            fc[1] = fc[1]+fa[1]
-        fp = F(fc, *args)
-        setFields([fp], z, locout, writeDim=False)
-      elif fa != []:
-        fp = F(fa, *args)
-        setFields([fp], z, locout, writeDim=False)
-      elif fc != []:
-        fp = F(fc, *args)
-        setFields([fp], z, locout, writeDim=False)
-    elif locin == 'centers':
-      fa = getFields(Internal.__FlowSolutionCenters__, z)[0]
-      if fa != []:
-        fp = Fc(fa, *args)
-        setFields([fp], z, locout, writeDim=False)
-    else: # both
-      # Dans ce cas, on suppose que F ne change pas la localisation
-      l = len(args)//2
-      args1 = args[0:l]; args2 = args[l:]
-      fc = getFields(Internal.__GridCoordinates__, z, api=api)[0]
-      fa = getFields(Internal.__FlowSolutionNodes__, z, api=api)[0]
-      fb = getFields(Internal.__FlowSolutionCenters__, z, api=api)[0]
-      if fc != [] and fa != []:
-        if api == 1:
-            Converter._addVars([fc, fa]) # modifie fc
-        else:
-            fc[0] = fc[0]+','+fa[0]
-            fc[1] = fc[1]+fa[1]
-        fp = F(fc, *args1)
-        setFields([fp], z, 'nodes')
-      elif fa != []:
-        fp = F(fa, *args1)
-        setFields([fp], z, 'nodes', writeDim=False)
-      elif fc != []:
-        fp = F(fc, *args1)
-        setFields([fp], z, 'nodes', writeDim=False)
-      fa = None
-      if fb != []:
-        if Fc is not None: fb = Fc(fb, *args2)
-        setFields([fb], z, 'centers', writeDim=False)
-  return None
-
-def _TZANW1(t, locin, locout, F, Fc, *args):
-  return _TZANWX(1, t, locin, locout, F, Fc, *args)
-def _TZANW2(t, locin, locout, F, Fc, *args):
-  return _TZANWX(2, t, locin, locout, F, Fc, *args)
-def _TZANW3(t, locin, locout, F, Fc, *args):
-  return _TZANWX(3, t, locin, locout, F, Fc, *args)
-
-def TZANWX(api, t, locin, locout, F, Fc, *args):
-  tp = Internal.copyRef(t)
-  _TZANWX(api, tp, locin, locout, F, Fc, *args)
-  return tp
-def TZANW1(t, locin, locout, F, Fc, *args):
-  return TZANWX(1, t, locin, locout, F, Fc, *args)
-def TZANW2(t, locin, locout, F, Fc, *args):
-  return TZANWX(2, t, locin, locout, F, Fc, *args)
-def TZANW3(t, locin, locout, F, Fc, *args):
-  return TZANWX(3, t, locin, locout, F, Fc, *args)
-
 
 # -- TZAGC
 # Traitement effectue pour tous les champs + coord. memes pour les centres.
@@ -2282,7 +2211,7 @@ def __TZAX(api, t, locin, _F, *args):
       fc = getFields(Internal.__GridCoordinates__, z, api=api)[0]
       fa = getFields(Internal.__FlowSolutionNodes__, z, api=api)[0]
       if fc != [] and fa != []:
-         if api == 1: fc = Converter.addVars([fc, fa])
+         if api == 1: Converter._addVars([fc, fa])
          else:
             fc[0] = fc[0]+','+fa[0]
             fc[1] = fc[1]+fa[1]
@@ -6796,21 +6725,21 @@ def getBCFaces(t, nameType=0):
     for b in BCs:
       name = b[0]
       BCtype = Internal.getValue(b)
-      n = Internal.getNodesFromName1(b, 'PointList')
-      p = Internal.getNodesFromType1(b, 'GridLocation_t')
-      if p != []:
-        loc = Internal.getValue(p[0])
-        if n != [] and (loc == 'FaceCenter' or loc == 'CellCenter'):
+      p = Internal.getNodeFromType1(b, 'GridLocation_t')
+      n = Internal.getNodeFromName1(b, 'PointList')
+      if p is not None:
+        loc = Internal.getValue(p)
+        if n is not None and (loc == 'FaceCenter' or loc == 'CellCenter'):
           if BCtype == 'FamilySpecified':
             familyName = Internal.getNodeFromType1(b, 'FamilyName_t')
             if familyName is not None:
               ft = Internal.getValue(familyName)
-              if nameType == 1: BCFZ += [name+Internal.SEP2+ft, n[0][1]]
-              else: BCFZ += [ft, n[0][1]]
-            else: BCFZ += [name, n[0][1]]
+              if nameType == 1: BCFZ += [name+Internal.SEP2+ft, n[1]]
+              else: BCFZ += [ft, n[1]]
+            else: BCFZ += [name, n[1]]
           else: 
-            if nameType == 1: BCFZ += [name+Internal.SEP2+BCtype, n[0][1]]
-            else: BCFZ += [name, n[0][1]]
+            if nameType == 1: BCFZ += [name+Internal.SEP2+BCtype, n[1]]
+            else: BCFZ += [name, n[1]]
     BCFaces.append(BCFZ)
   return BCFaces
 

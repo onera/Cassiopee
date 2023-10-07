@@ -79,10 +79,9 @@ def rotate(a, center, arg1, arg2=None,
                 else: vectname.append(spl[0]); loc += 4
             if loc == 3: vectorsC += [vectname]
             elif loc == 12: vectorsN += [vectname]
-    return C.TZANW1(a, 'both', 'both',
-                   Transform.rotate, Transform.rotate,
-                   center, arg1, arg2, vectorsN,
-                   center, arg1, arg2, vectorsC)
+    tp = C.TZA1(a, 'nodes', 'nodes', True, Transform.rotate, center, arg1, arg2, vectorsN)
+    C._TZA1(tp, 'centers', 'centers', False, Transform.rotate, center, arg1, arg2, vectorsC)
+    return tp
 
 def _rotate(a, center, arg1, arg2=None,
             vectors=[['VelocityX','VelocityY','VelocityZ'],['MomentumX','MomentumY','MomentumZ']]):
@@ -100,10 +99,9 @@ def _rotate(a, center, arg1, arg2=None,
                 else: vectname.append(spl[0]); loc += 4
             if loc == 3: vectorsC += [vectname]
             elif loc == 12: vectorsN += [vectname]
-    return C._TZANW1(a, 'both', 'both',
-                    Transform.rotate, Transform.rotate,
-                    center, arg1, arg2, vectorsN,
-                    center, arg1, arg2, vectorsC)
+    C._TZA1(a, 'nodes', 'nodes', False, Transform.rotate, center, arg1, arg2, vectorsN)
+    C._TZA1(a, 'centers', 'centers', False, Transform.rotate, center, arg1, arg2, vectorsC)
+    return None
 
 # Really in place - on coordinates only
 def _rotate2(t, center, arg1, arg2=None):
@@ -161,12 +159,12 @@ def _symetrize(a, point, vector1, vector2):
 def perturbate(a, radius, dim=3):
     """Perturbate a mesh randomly of radius
     Usage: perturbate(a, radius, dim)"""
-    return C.TZANW1(a, 'nodes', 'nodes', Transform.perturbate, None, radius, dim)
+    return C.TZA1(a, 'nodes', 'nodes', False, Transform.perturbate, radius, dim)
 
 def _perturbate(a, radius, dim=3):
     """Perturbate a mesh randomly of radius
     Usage: perturbate(a, radius, dim)"""
-    return C._TZANW1(a, 'nodes', 'nodes', Transform.perturbate, None, radius, dim)
+    return C._TZA1(a, 'nodes', 'nodes', False, Transform.perturbate, radius, dim)
 
 def smoothField(t, eps=0.1, niter=1, type=0, varNames=[]):
     """Smooth given fields."""
@@ -228,7 +226,7 @@ def _deform(t, vector=['dx','dy','dz']):
     """Deform surface by moving surface of the vector (dx, dy, dz).
     Usage: deform(t, vector=['dx','dy','dz'])"""
     if len(vector) != 3: raise ValueError("deform: 3 variables are required.")
-    return C._TZANW1(t, 'nodes', 'nodes', Transform.deform, None, vector)
+    return C._TZA1(t, 'nodes', 'nodes', False, Transform.deform, vector)
 
 def deformNormals(t, alpha, niter=1):
     """Deform a a surface of alpha times the surface normals.
@@ -258,12 +256,12 @@ def deformMesh(a, surfDelta, beta=4., type='nearest'):
     """Deform a mesh a wrt surfDelta defining surface grids and deformation vector on it.
     Usage: deformMesh(a, surfDelta, beta, type)"""
     info = C.getAllFields(surfDelta, 'nodes')
-    return C.TZA(a, 'nodes', 'nodes', Transform.deformMesh, None, info, beta, type)
+    return C.TZA1(a, 'nodes', 'nodes', True, Transform.deformMesh, info, beta, type)
 
 def _deformMesh(a, surfDelta, beta=4., type='nearest'):
     """Deform a mesh a wrt surfDelta defining surface grids and deformation vector on it."""
     info = C.getAllFields(surfDelta, 'nodes')
-    return C._TZA(a, 'nodes', 'nodes', Transform.deformMesh, None, info, beta, type)
+    return C._TZA1(a, 'nodes', 'nodes', True, Transform.deformMesh, info, beta, type)
 
 def join(t, t2=None, tol=1.e-10):
     """Join two zones in one or join a list of zones in one.
@@ -375,7 +373,7 @@ def _patch(t1, t2, position=None, nodes=None, order=None):
     zones2 = Internal.getZones(t2)
     for z1,z2 in zip(zones1, zones2):
       a2 = C.getAllFields(z2, 'nodes')[0]
-      C._TZA(z1, 'nodes', 'nodes', Transform.patch, None, a2, position, nodes, order)
+      C._TZA1(z1, 'nodes', 'nodes', True, Transform.patch, a2, position, nodes, order)
     return None
 
 #===============
@@ -450,10 +448,8 @@ def oneovern(t, N):
 
 def _oneovern(t, N):
     """Take one over N points from mesh."""
-    C._TZA(t, 'both', 'both',
-           Transform.oneovern, Transform.oneovern, N, 1, N, 0)
-    #C._TZA2(t, Transform.oneovern, 'nodes', 'nodes',  1, N)
-    #C._TZA2(t, Transform.oneovern, 'centers', 'centers', 0, N)
+    C._TZA1(t, 'nodes', 'nodes', True, Transform.oneovern, N, 1)
+    C._TZA1(t, 'centers', 'centers', False, Transform.oneovern, N, 0)
     _oneovernBC__(t, N)
     return None
 
@@ -1715,19 +1711,19 @@ def _reorderStruct__(t, order, topTree):
         for z in zones: zoneNames.append(z[0])
         _reorderBCMatch__(t, order, zoneNames)
         _reorderBCNearMatch__(t, order, zoneNames)
-        C._TZA(t, loc, loc, Transform.reorder, Transform.reorder, order, order)
+        C._TZA1(t, loc, loc, True, Transform.reorder, order)
         return None
     else:
         istoptree = Internal.isTopTree(topTree)
         if not istoptree: # pas de modif des zoneDonors dans les BCMatch !
             _reorderBC__(t, order)
             _reorderGC__(t, order)
-            C._TZA(t, loc, loc, Transform.reorder, Transform.reorder, order, order)
+            C._TZA1(t, loc, loc, True, Transform.reorder, order)
             return None
         else: # toptree fourni
             _reorderBC__(t, order)
             _reorderBCOverlap__(t, order)
-            C._TZA(t, loc, loc, Transform.reorder, Transform.reorder, order, order)
+            C._TZA1(t, loc, loc, True, Transform.reorder, order)
             zones = Internal.getZones(t)
             zoneNames = []
             for z in zones: zoneNames.append(z[0])
@@ -1736,7 +1732,7 @@ def _reorderStruct__(t, order, topTree):
             return None
 
 def _reorderUnstruct__(t, order):
-    C._TZA(t, 'nodes', 'nodes', Transform.reorder, None, order)
+    C._TZA1(t, 'nodes', 'nodes', True, Transform.reorder, order)
     return None
 
 #=============================================================
@@ -2698,11 +2694,11 @@ def dual(t, extraPoints=1):
     """Return the dual mesh of a conformal mesh.
     Usage: dual(t, extraPoints)"""
     t = C.deleteFlowSolutions__(t, 'centers')
-    return C.TZA(t, 'nodes', 'nodes', Transform.dual, extraPoints, extraPoints)
+    return C.TZA1(t, 'nodes', 'nodes', True, Transform.dual, extraPoints)
 
 def _dual(t, extraPoints=1):
     C._deleteFlowSolutions__(t, 'centers')
-    return C._TZA(t, 'nodes', 'nodes', Transform.dual, extraPoints, extraPoints)
+    return C._TZA1(t, 'nodes', 'nodes', True, Transform.dual, extraPoints)
 
 def splitSharpEdges(t, alphaRef=30.):
     """Split zone into smooth zones.

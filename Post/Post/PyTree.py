@@ -577,7 +577,7 @@ def interiorFaces(t, strict=0):
     that interior faces with only interior nodes are taken into account.
     Usage: interiorFaces( t, strict)"""
     t = C.deleteFlowSolutions__(t, 'centers')
-    t = C.TZA(t, 'nodes', 'nodes', Post.interiorFaces, None, strict )
+    t = C.TZA1(t, 'nodes', 'nodes', True, Post.interiorFaces, strict)
     bases = Internal.getBases(t)
     for b in bases: b[1][0] = 1
     return t
@@ -608,7 +608,7 @@ def exteriorFaces(t, indices=None):
 def _exteriorFaces(t, indices=None):
     C._deleteZoneBC__(t)
     C._deleteFlowSolutions__(t, 'centers')
-    return C._TZA(t, 'nodes', 'nodes', Post.exteriorFaces, None, indices)
+    return C._TZA1(t, 'nodes', 'nodes', True, Post.exteriorFaces, indices)
 
 def exteriorElts(t):
     """Exterior (border) elts of a mesh.
@@ -620,7 +620,7 @@ def exteriorElts(t):
 def _exteriorElts(t):
     """Exterior (border) elts of a mesh."""
     C._deleteFlowSolutions__(t, 'centers')
-    return C._TZA(t, 'nodes', 'nodes', Post.exteriorElts, None)
+    return C._TZA1(t, 'nodes', 'nodes', True, Post.exteriorElts)
 
 def exteriorEltsStructured(t, depth=1):
     """Exterior (border) elts of a mesh as a structured grid.

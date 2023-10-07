@@ -1102,7 +1102,7 @@ E_Int K_IO::GenIO::su2write(
       FldArrayI& cn = *connect[i];
       E_Int elt = eltType[i];
       //E_Int ne = cn.getSize();
-      // nf: nbre de faces, nn : nbre de noeud par face
+      // nf: nbre de faces, nn: nbre de noeuds par face
       E_Int eltBnd = 1; E_Int nf = 1; E_Int nn = 1;
       switch (elt)
       {
@@ -1162,7 +1162,7 @@ E_Int K_IO::GenIO::su2write(
 #endif
       for (E_Int j = 0; j < size/2; j++) // marker differents
       {
-        char* name = NULL; 
+        char* name = NULL;
         PyObject* o = PyList_GetItem(BCs, 2*j);
         if (PyString_Check(o)) name = PyString_AsString(o);
 #if PY_VERSION_HEX >= 0x03000000

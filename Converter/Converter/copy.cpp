@@ -279,7 +279,7 @@ PyObject* K_CONVERTER::copy(PyObject* self, PyObject* args)
         {
           E_Int* indPGp = cn->getIndPG();
           E_Int* indPG2p = cn2->getIndPG();
-          if (indPGp == NULL) { printf("indPG is null\n"); fflush(stdout); }
+          //if (indPGp == NULL) { printf("indPG is null\n"); fflush(stdout); }
           if (ngonType == 2) dim = nfaces;
           else dim = nfaces+1;
           #pragma omp for
