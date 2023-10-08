@@ -219,7 +219,7 @@ def barycenter(array, weight=None):
             if weight is not None:
                 X = generator.barycenter(a, weight[i])
             else: X = generator.barycenter(a, None)
-            if isinstance(a[1], list): # array2
+            if isinstance(a[1], list): # array2/3
                n = a[1][0].size
             else: n = a[1].shape[1]
             xb += X[0]*n

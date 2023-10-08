@@ -18,7 +18,8 @@ __all__ = ['_translate', 'translate', 'addkplane', 'breakElements', 'cart2Cyl', 
     'computeDeformationVector', '_contract', 'contract', 'cyl2Cart', '_cyl2Cart','deform', 'deformNormals', 'deformPoint', 
     'dual', '_homothety', 'homothety', 'join', 'makeCartesianXYZ', 'makeDirect', 'merge', 'mergeCart', 
     'mergeCartByRefinementLevel', 'oneovern', 'patch', 'perturbate', 'projectAllDirs', 'projectDir', 
-    'projectOrtho', 'projectOrthoSmooth', 'projectRay', 'reorder', 'reorderAll', 'rotate', '_rotate', '_scale', 'scale', 
+    'projectOrtho', 'projectOrthoSmooth', 'projectRay', 'reorder', 'reorderAll', 'rotate', 
+    'rotate2', '_rotate2', '_scale', 'scale', 
     'smooth', 'splitBAR', 'splitConnexity', 'splitCurvatureAngle', 'splitCurvatureRadius', 'splitManifold', 
     'splitMultiplePts', 'splitNParts', 'splitSharpEdges', 'splitSize', 'splitTBranches', 
     'splitTRI', 'subzone', '_symetrize', 'symetrize', 'deformMesh', 'kround', 'smoothField', '_smoothField',
@@ -249,8 +250,8 @@ def rotate3__(array, center, angles, vectors): # centre+3 angles+ champs vectori
     else:
         return transform.rotateA3(array, center, angles, vectors)
 
-# in place, array2, only on coordinates
-def _rotate(array, center, arg1, arg2=None):
+# in place, array2/3, only on coordinates
+def _rotate2(array, center, arg1, arg2=None):
     """Rotate a grid."""
     if arg2 is None: # kind of euler angles
         if isinstance(array[0], list):
@@ -265,6 +266,12 @@ def _rotate(array, center, arg1, arg2=None):
             for a in array: transform._rotateA2(a, center, arg1, arg2)
         else: transform._rotateA2(array, center, arg1, arg2)
     return None
+
+def rotate2(a, center, arg1, arg2=None):
+    """Rotate a grid."""
+    b = Converter.copy(a)
+    _rotate2(b, center, arg1, arg2)
+    return b
 
 def homothety(a, center, alpha):
     """Make for a mesh defined by an array an homothety of center Xc and

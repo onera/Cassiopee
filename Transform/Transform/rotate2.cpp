@@ -54,8 +54,8 @@ PyObject* K_TRANSFORM::_rotateA1(PyObject* self, PyObject* args)
     return NULL; 
   }
 
-  res = K_ARRAY::getFromArray2(array, varString, f, nil, njl, nkl, 
-                              cn, eltType); 
+  res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
+                               cn, eltType); 
   
   if (res != 1 && res != 2)
   {
@@ -189,7 +189,7 @@ PyObject* K_TRANSFORM::_rotateA2(PyObject* self, PyObject* args)
   f2x = f2x * f2; f2y = f2y * f2; f2z = f2z * f2;
   f3x = f3x * f3; f3y = f3y * f3; f3z = f3z * f3;
 
-  res = K_ARRAY::getFromArray2(array, varString, f, nil, njl, nkl, 
+  res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
                                cn, eltType); 
   
   if (res != 1 && res != 2)
@@ -265,8 +265,8 @@ PyObject* K_TRANSFORM::_rotateA3(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res;
-  res = K_ARRAY::getFromArray2(array, varString, f, nil, njl, nkl, 
-                               cn, eltType); 
+  res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
+                               cn, eltType);
   
   if (res != 1 && res != 2)
   {

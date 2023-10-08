@@ -465,9 +465,9 @@ def _BB(t, method='AABB', weighting=0, tol=0.):
 def barycenter(t, weight='None'):
     """Get the barycenter of a pyTree.
     Usage: barycenter(t)"""
-    A = C.getFields(Internal.__GridCoordinates__, t, api=2)
+    A = C.getFields(Internal.__GridCoordinates__, t, api=3)
     if weight != 'None':
-        W = C.getField(weight, t, api=2)
+        W = C.getField(weight, t, api=3)
         return Generator.barycenter(A, W)
     else: return Generator.barycenter(A)
 

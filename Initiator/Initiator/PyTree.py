@@ -93,7 +93,7 @@ def _initLamb(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):
     for z in nodes:
         coordn = C.getFields(Internal.__GridCoordinates__, z)
         if coordn == []:
-            print ('Warning: initLamb: zone '+z[0]+' has no coordinates. Skipped...')
+            print('Warning: initLamb: zone '+z[0]+' has no coordinates. Skipped...')
             continue
         coordn = coordn[0]
         if loc == 'nodes':

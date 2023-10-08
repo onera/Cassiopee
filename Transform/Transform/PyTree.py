@@ -84,7 +84,10 @@ def rotate(a, center, arg1, arg2=None,
     return tp
 
 def _rotate(a, center, arg1, arg2=None,
-            vectors=[['VelocityX','VelocityY','VelocityZ'],['MomentumX','MomentumY','MomentumZ']]):
+            vectors=[['VelocityX','VelocityY','VelocityZ'],
+                     ['MomentumX','MomentumY','MomentumZ'],
+                     ['centers:VelocityX','centers:VelocityY','centers:VelocityZ'],
+                     ['centers:MomentumX','centers:MomentumY','centers:MomentumZ']]):
     """Rotate a mesh defined by an array around vector n of center Xc and of angle teta."""    
     vectorsN = []; vectorsC = []
     for vect in vectors:
@@ -104,29 +107,67 @@ def _rotate(a, center, arg1, arg2=None,
     return None
 
 # Really in place - on coordinates only
-def _rotate2(t, center, arg1, arg2=None):
-    """Rotate only coordinates."""
-    return C.__TZGC2(t, Transform._rotate, center, arg1, arg2)
+def _rotate2(t, center, arg1, arg2=None,
+             vectors=[['VelocityX','VelocityY','VelocityZ'],
+                     ['MomentumX','MomentumY','MomentumZ'],
+                     ['centers:VelocityX','centers:VelocityY','centers:VelocityZ'],
+                     ['centers:MomentumX','centers:MomentumY','centers:MomentumZ']]):
+    """Rotate a zone."""
+    vectorsN = []; vectorsC = []
+    for vect in vectors:
+        if len(vect) == 3:
+            loc = 0; vectname=[]
+            for nov in range(3):
+                spl = vect[nov].split(':')
+                if len(spl) == 2:
+                    vectname.append(spl[1])
+                    if spl[0] == 'centers': loc += 1
+                    else: loc += 4
+                else: vectname.append(spl[0]); loc += 4
+            if loc == 3: vectorsC += [vectname]
+            elif loc == 12: vectorsN += [vectname]
+    return C.__TZGC3(t, Transform._rotate2, center, arg1, arg2)
+
+def rotate2(t, center, arg1, arg2=None,
+             vectors=[['VelocityX','VelocityY','VelocityZ'],
+                     ['MomentumX','MomentumY','MomentumZ'],
+                     ['centers:VelocityX','centers:VelocityY','centers:VelocityZ'],
+                     ['centers:MomentumX','centers:MomentumY','centers:MomentumZ']]):
+    """Rotate a zone."""
+    vectorsN = []; vectorsC = []
+    for vect in vectors:
+        if len(vect) == 3:
+            loc = 0; vectname=[]
+            for nov in range(3):
+                spl = vect[nov].split(':')
+                if len(spl) == 2:
+                    vectname.append(spl[1])
+                    if spl[0] == 'centers': loc += 1
+                    else: loc += 4
+                else: vectname.append(spl[0]); loc += 4
+            if loc == 3: vectorsC += [vectname]
+            elif loc == 12: vectorsN += [vectname]
+    return C.TZGC3(t, 'nodes', False, Transform.rotate2, center, arg1, arg2)
 
 def homothety(a, center, alpha):
     """Make for a mesh defined by an array an homothety of center Xc and
     of factor alpha.
     Usage: homothety(a, (xc,yc,zc), alpha)"""
-    return C.TZGC2(a, 'nodes', False, Transform.homothety, center, alpha)
+    return C.TZGC3(a, 'nodes', False, Transform.homothety, center, alpha)
 
 def _homothety(a, center, alpha):
     """Make for a mesh defined by an array an homothety of center Xc and of factor alpha."""    
-    return C.__TZGC2(a, Transform._homothety, center, alpha)
+    return C.__TZGC3(a, Transform._homothety, center, alpha)
 
 def contract(a, center, dir1, dir2, alpha):
     """Contract a mesh around a plane defined by (center, dir1, dir2) and of factor alpha.
     Usage: contract(a, (xc,yc,zc), dir1, dir2, alpha)"""
-    return C.TZGC2(a, 'nodes', False, Transform.contract, center, dir1, dir2, alpha)
+    return C.TZGC3(a, 'nodes', False, Transform.contract, center, dir1, dir2, alpha)
 
 def _contract(a, center, dir1, dir2, alpha):
     """Contract a mesh around a plane defined by (center, dir1, dir2) and of factor alpha.
     Usage: contract(a, (xc,yc,zc), dir1, dir2, alpha)"""
-    return C.__TZGC2(a, Transform._contract, center, dir1, dir2, alpha)
+    return C.__TZGC3(a, Transform._contract, center, dir1, dir2, alpha)
 
 def scale(a, factor=1., X=None):
     """Scale a mesh of given factor."""
@@ -135,16 +176,16 @@ def scale(a, factor=1., X=None):
             import Generator.PyTree as G
             X = G.barycenter(a)
         except: pass
-    return C.TZGC2(a, 'nodes', False, Transform.scale, factor, X)
+    return C.TZGC3(a, 'nodes', False, Transform.scale, factor, X)
 
 def _scale(a, factor=1., X=None):
     """Scale a mesh of given factor."""
-    if X is None: 
+    if X is None:
         try: 
             import Generator.PyTree as G
             X = G.barycenter(a)
         except: pass
-    return C.__TZGC2(a, Transform._scale, factor, X)
+    return C.__TZGC3(a, Transform._scale, factor, X)
 
 def symetrize(a, point, vector1, vector2):
     """Make a symetry of mesh from plane passing by point and of director vector: vector1 and vector2.

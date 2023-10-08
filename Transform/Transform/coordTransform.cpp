@@ -122,9 +122,9 @@ PyObject* K_TRANSFORM::contract(PyObject* self, PyObject* args)
     return NULL;
   }
   
-  E_Int posx = K_ARRAY::isCoordinateXPresent( varString);
-  E_Int posy = K_ARRAY::isCoordinateYPresent( varString);
-  E_Int posz = K_ARRAY::isCoordinateZPresent( varString);
+  E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
+  E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
+  E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
   if (posx == -1 || posy == -1 || posz == -1)
   {
     RELEASESHAREDB(res, array, f, cn);
