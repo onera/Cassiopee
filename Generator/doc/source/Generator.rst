@@ -1521,22 +1521,22 @@ Operation on surface meshes
 
 .. py:function:: Generator.fittingPlaster(a, bumpFactor=0.)
 
-    Fit a surface structured patch to a curve a. BumpFactor controls the curvature of the patch. 
+    Create a structured surface patch that fits a curve a. BumpFactor controls the curvature of the patch. 
 
-    :param a:  curve to deform the structured patch
+    :param a:  curve to fit
     :type  a:  array
     :param bumpFactor:  amplitude of the bump
     :type  bumpFactor:  float
-    :return: new structured mesh
+    :return: created 2D structured mesh
     :rtype: array or pyTree
 
     *Example of use:*
 
-    * `Cartesian mesh deformation by a curve (array) <Examples/Generator/fittingPlaster.py>`_:
+    * `Creation of patch that fits a curve (array) <Examples/Generator/fittingPlaster.py>`_:
 
     .. literalinclude:: ../build/Examples/Generator/fittingPlaster.py
 
-    * `Cartesian mesh deformation by a curve (pyTree) <Examples/Generator/fittingPlasterPT.py>`_:
+    * `Creation of patch that fits a curve (pyTree) <Examples/Generator/fittingPlasterPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Generator/fittingPlasterPT.py
 
@@ -1544,7 +1544,8 @@ Operation on surface meshes
 
 .. py:function:: Generator.gapfixer(a, c, hardPoints=None, refine=1)
 
-    Fill a gap defined by a BAR contour a drawn on a surface c. You can force the generated mesh to pass through hardPoints (NODES). If refine=0, no inside points are added. 
+    Fill a surface defined by a BAR contour a drawn on a surface c. You can force the generated mesh to pass 
+    through given hardPoints (NODES). If refine=0, no inside points are added. 
 
     :param a:  contour of the gap
     :type  a:  BAR array
@@ -1554,7 +1555,7 @@ Operation on surface meshes
     :type  hardPoints:  array or list of arrays
     :param refine:  activation key for including points in the gap mesh (0 or 1)
     :type  refine:  integer
-    :return: new surface mesh
+    :return: TRI surface mesh
     :rtype: array or pyTree
 
     *Example of use:*

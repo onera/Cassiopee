@@ -31,5 +31,5 @@ c = T.rotate(a, (0.,0.,0.), ((1.,0.,0.),(0,1,0),(0,0,1)),
 test.testT(c,2)
 
 # Rotate with three angles
-d = T.rotate(a, (0.,0.,0.), (0.,0.,90.),  vectors=vectnames)
+d = T.rotate(a, (0.,0.,0.), (0.,0.,90.), vectors=vectnames)
 test.testT(d,3)

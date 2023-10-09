@@ -60,58 +60,8 @@ def _translate(t, transvect):
     C.__TZGC3(t, Transform._translate, transvect)
     return None
 
-def rotate(a, center, arg1, arg2=None,
-           vectors=[['VelocityX','VelocityY','VelocityZ'],['MomentumX','MomentumY','MomentumZ']]):
-    """Rotate a mesh defined by an array around vector n of center Xc
-    and of angle teta.
-    vectors is a list of type [['vx','vy','vz']] where the vector components are modified.
-    Usage: rotate(a, (xc,yc,zc), (nx,ny,nz), angle=teta, vectors=[])"""
-    vectorsN = []; vectorsC = []
-    for vect in vectors:
-        if len(vect) == 3:
-            loc = 0; vectname=[]
-            for nov in range(3):
-                spl = vect[nov].split(':')
-                if len(spl) == 2:
-                    vectname.append(spl[1])
-                    if spl[0] == 'centers': loc += 1
-                    else: loc += 4
-                else: vectname.append(spl[0]); loc += 4
-            if loc == 3: vectorsC += [vectname]
-            elif loc == 12: vectorsN += [vectname]
-    tp = C.TZA1(a, 'nodes', 'nodes', True, Transform.rotate, center, arg1, arg2, vectorsN)
-    C._TZA1(tp, 'centers', 'centers', False, Transform.rotate, center, arg1, arg2, vectorsC)
-    return tp
-
-def _rotate(a, center, arg1, arg2=None,
-            vectors=[['VelocityX','VelocityY','VelocityZ'],
-                     ['MomentumX','MomentumY','MomentumZ'],
-                     ['centers:VelocityX','centers:VelocityY','centers:VelocityZ'],
-                     ['centers:MomentumX','centers:MomentumY','centers:MomentumZ']]):
-    """Rotate a mesh defined by an array around vector n of center Xc and of angle teta."""    
-    vectorsN = []; vectorsC = []
-    for vect in vectors:
-        if len(vect) == 3:
-            loc = 0; vectname=[]
-            for nov in range(3):
-                spl = vect[nov].split(':')
-                if len(spl) == 2:
-                    vectname.append(spl[1])
-                    if spl[0] == 'centers': loc += 1
-                    else: loc += 4
-                else: vectname.append(spl[0]); loc += 4
-            if loc == 3: vectorsC += [vectname]
-            elif loc == 12: vectorsN += [vectname]
-    C._TZA1(a, 'nodes', 'nodes', False, Transform.rotate, center, arg1, arg2, vectorsN)
-    C._TZA1(a, 'centers', 'centers', False, Transform.rotate, center, arg1, arg2, vectorsC)
-    return None
-
 # Really in place - on coordinates only
-def _rotate2(t, center, arg1, arg2=None,
-             vectors=[['VelocityX','VelocityY','VelocityZ'],
-                     ['MomentumX','MomentumY','MomentumZ'],
-                     ['centers:VelocityX','centers:VelocityY','centers:VelocityZ'],
-                     ['centers:MomentumX','centers:MomentumY','centers:MomentumZ']]):
+def _rotate(t, center, arg1, arg2=None, vectors=[]):
     """Rotate a zone."""
     vectorsN = []; vectorsC = []
     for vect in vectors:
@@ -126,16 +76,11 @@ def _rotate2(t, center, arg1, arg2=None,
                 else: vectname.append(spl[0]); loc += 4
             if loc == 3: vectorsC += [vectname]
             elif loc == 12: vectorsN += [vectname]
-    C.__TZA3(t, 'nodes', Transform._rotate2, center, arg1, arg2, vectorsN)
-    C.__TZA3(t, 'centers', Transform._rotate2, center, arg1, arg2, vectorsC)
+    C.__TZA3(t, 'nodes', Transform._rotate, center, arg1, arg2, vectorsN)
+    C.__TZA3(t, 'centers', Transform._rotate, center, arg1, arg2, vectorsC)
     return None
-    #return C.__TZGC3(t, Transform._rotate2, center, arg1, arg2)
     
-def rotate2(t, center, arg1, arg2=None,
-             vectors=[['VelocityX','VelocityY','VelocityZ'],
-                     ['MomentumX','MomentumY','MomentumZ'],
-                     ['centers:VelocityX','centers:VelocityY','centers:VelocityZ'],
-                     ['centers:MomentumX','centers:MomentumY','centers:MomentumZ']]):
+def rotate(t, center, arg1, arg2=None, vectors=[]):
     """Rotate a zone."""
     vectorsN = []; vectorsC = []
     for vect in vectors:
@@ -150,10 +95,9 @@ def rotate2(t, center, arg1, arg2=None,
                 else: vectname.append(spl[0]); loc += 4
             if loc == 3: vectorsC += [vectname]
             elif loc == 12: vectorsN += [vectname]
-    tp = C.TZA3(t, 'nodes', True, Transform.rotate2, center, arg1, arg2, vectorsN)
-    C.__TZA3(tp, 'centers', Transform._rotate2, center, arg1, arg2, vectorsC)
+    tp = C.TZA3(t, 'nodes', 'nodes', True, Transform.rotate, center, arg1, arg2, vectorsN)
+    C.__TZA3(tp, 'centers', Transform._rotate, center, arg1, arg2, vectorsC)
     return tp
-    #return C.TZGC3(t, 'nodes', False, Transform.rotate2, center, arg1, arg2)
     
 def homothety(a, center, alpha):
     """Make for a mesh defined by an array an homothety of center Xc and
@@ -984,8 +928,6 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
             wini1 = intersectWins__(winz1, winz, ret=0)
             wini = intersectWins__(winz1, winz, ret=1)
             
-            #print('raccord ',winz,winDonor)
-
             # Point de cut
             if wini is not None: # point de cut sur winz? Pt de cut sur winDonor
                 

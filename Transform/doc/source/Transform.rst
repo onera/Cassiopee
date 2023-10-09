@@ -352,13 +352,17 @@ Mesh positioning
 ------------------------
 
 
-.. py:function:: Transform.rotate(a, C, arg1, arg2=None, vectors=[['VelocityX','VelocityY','VelocityZ'],['MomentumX','MomentumY','MomentumZ']])
+.. py:function:: Transform.rotate(a, C, arg1, arg2=None, vectors=[])
 
     .. A2.O1.D1
     
     Rotate a mesh. Rotation can be also applied on some vector fields (e.g. velocity and momentum). 
     If the vector field is located at cell centers, then each vector component name must be 
-    prefixed by 'centers:'.
+    prefixed by 'centers:'. For instance:
+    vectors = [['VelocityX', 'VelocityY', 'VelocityZ']] -or-
+    vectors = [['centers:VelocityX', 'centers:VelocityY', 'centers:VelocityZ']] -or-
+    vectors = [['centers:MomentumX', 'centers:MomentumY', 'centers:MomentumZ']]
+    
 
     Exists also as an in-place version (_rotate) which modifies a and returns None.
 

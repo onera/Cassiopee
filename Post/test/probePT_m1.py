@@ -41,6 +41,7 @@ for i in range(20):
 p2.flush()
 
 if Cmpi.rank == 0: test.testT(p2._probeZones, 2)
+Cmpi.barrier()
 
 # create a probe from zones
 p3 = Probe.Probe(LOCAL+'/probe3.cgns', fields=['centers:F'], append=False, bufferSize=15)
@@ -62,3 +63,4 @@ for i in range(20):
 p3.flush()
 
 if Cmpi.rank == 0: test.testT(p3._probeZones, 3)
+Cmpi.barrier()

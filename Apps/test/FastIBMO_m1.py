@@ -28,9 +28,11 @@ if Cmpi.rank == 0:
     Internal._rmNodesByName(t, '.Solver#ownData')
     Internal._rmNodesByName(t, '.Solver#dtloc')
     test.testT(t,2)
+Cmpi.barrier()
         
 t = T.subzone(t,(1,1,1),(-1,-1,1))
 for nob in range(len(t[2])):
-    if t[2][nob][0] != 'CARTESIAN' and t[2][nob][3]=='CGNSBase_t':
+    if t[2][nob][0] != 'CARTESIAN' and t[2][nob][3] == 'CGNSBase_t':
         Internal._rmGhostCells(t,t[2][nob],2, adaptBCs=1)
 if Cmpi.rank == 0: test.testT(t,3)
+Cmpi.barrier()

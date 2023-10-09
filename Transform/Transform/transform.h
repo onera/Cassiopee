@@ -298,9 +298,9 @@ namespace K_TRANSFORM
   PyObject* _cyl2CartZ(PyObject* self, PyObject* args);
   PyObject* _cyl2CartA(PyObject* self, PyObject* args);
   PyObject* translate(PyObject* self, PyObject* args);
-  PyObject* rotateA1(PyObject* self, PyObject* args);
-  PyObject* rotateA2(PyObject* self, PyObject* args);
-  PyObject* rotateA3(PyObject* self, PyObject* args);
+  //PyObject* rotateA1(PyObject* self, PyObject* args);
+  //PyObject* rotateA2(PyObject* self, PyObject* args);
+  //PyObject* rotateA3(PyObject* self, PyObject* args);
   PyObject* _rotateA1(PyObject* self, PyObject* args);
   PyObject* _rotateA2(PyObject* self, PyObject* args);
   PyObject* _rotateA3(PyObject* self, PyObject* args);

@@ -24,6 +24,76 @@ using namespace std;
 using namespace K_FUNC;
 using namespace K_FLD;
 
+//==============================================================================
+E_Int K_TRANSFORM::extractVectorComponents(char* varString, 
+                                           PyObject* listOfFieldVectors, 
+                                           vector<E_Int>& posvx, vector<E_Int>& posvy, vector<E_Int>& posvz)
+{
+  if (PyList_Check(listOfFieldVectors) == 0) 
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "rotate: last argument must be a list.");
+    return -1;
+  }
+  E_Int nvectors = PyList_Size(listOfFieldVectors);
+  if (nvectors == 0) return 0;
+
+  for (E_Int novar = 0; novar < nvectors; novar++)
+  {
+    PyObject* tpl0 = PyList_GetItem(listOfFieldVectors, novar);
+    if (PyList_Check(tpl0) == 0)
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "rotate: vector fields must be a list.");
+      return -1;
+    }
+    E_Int sizeVect = PyList_Size(tpl0);
+    if (sizeVect != 3)
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "rotate: vector fields must be defined by 3 components.");
+      return -1;       
+    }
+    // Check if each component is a string
+    vector<char*> vars;
+    for (E_Int noc = 0; noc < 3; noc++)
+    {
+      PyObject* tpl1 = PyList_GetItem(tpl0, noc);
+      char* vect;
+      if (PyString_Check(tpl1))
+      {
+        vect = PyString_AsString(tpl1); 
+      }
+#if PY_VERSION_HEX >= 0x03000000
+      else if (PyUnicode_Check(tpl1))
+      {
+        vect = (char*)PyUnicode_AsUTF8(tpl1); 
+      }
+#endif 
+      else 
+      {
+        PyErr_SetString(PyExc_TypeError,
+                        "rotate: vector component name must be a string.");
+        return -1;
+      }
+      vars.push_back(vect);
+    }
+    E_Int posu = K_ARRAY::isNamePresent(vars[0], varString);
+    E_Int posv = K_ARRAY::isNamePresent(vars[1], varString);
+    E_Int posw = K_ARRAY::isNamePresent(vars[2], varString);
+    if (posu == -1 || posv == -1 || posw == -1) 
+    {
+      // printf("Warning: rotate: vector field (%s,%s,%s) not found in array.\n",vars[0],vars[1],vars[2]);
+      ;
+    }
+    else 
+    {
+      posvx.push_back(posu+1); posvy.push_back(posv+1); posvz.push_back(posw+1); 
+    }
+  }
+  return 0;
+}
+
 // ============================================================================
 /* Rotate an array describing a mesh - array2 in place */
 // ============================================================================
@@ -249,9 +319,6 @@ PyObject* K_TRANSFORM::_rotateA2(PyObject* self, PyObject* args)
   }
   
   E_Int npts = f->getSize();
-  E_Float* xt = f->begin(posx);
-  E_Float* yt = f->begin(posy);
-  E_Float* zt = f->begin(posz);
   
   // rotate
   E_Float m11 = f1x*e1x+f2x*e2x+f3x*e3x;
@@ -264,21 +331,53 @@ PyObject* K_TRANSFORM::_rotateA2(PyObject* self, PyObject* args)
   E_Float m23 = f1y*e1z+f2y*e2z+f3y*e3z;
   E_Float m33 = f1z*e1z+f2z*e2z+f3z*e3z;
 
-#pragma omp parallel default(shared)
+  if (posx>0 && posy>0 && posz> 0)
   {
-    E_Float x,y,z;
-#pragma omp for nowait
-    for (E_Int i = 0; i < npts; i++)
+    E_Float* xt = f->begin(posx);
+    E_Float* yt = f->begin(posy);
+    E_Float* zt = f->begin(posz);
+
+    #pragma omp parallel default(shared)
     {
-      x = xt[i]-xc;
-      y = yt[i]-yc;
-      z = zt[i]-zc;
-      xt[i] = xc + m11*x + m12*y + m13*z;
-      yt[i] = yc + m21*x + m22*y + m23*z;
-      zt[i] = zc + m31*x + m32*y + m33*z;      
+      E_Float x,y,z;
+      #pragma omp for
+      for (E_Int i = 0; i < npts; i++)
+      {
+        x = xt[i]-xc;
+        y = yt[i]-yc;
+        z = zt[i]-zc;
+        xt[i] = xc + m11*x + m12*y + m13*z;
+        yt[i] = yc + m21*x + m22*y + m23*z;
+        zt[i] = zc + m31*x + m32*y + m33*z;      
+      }
     }
   }
-  
+
+  // idem for vectors
+  E_Int nvect = posvx.size();
+  if (nvect > 0)
+  {
+    #pragma omp parallel default(shared)
+    {
+      E_Float x,y,z;
+      for (E_Int nov = 0; nov < nvect; nov++)
+      {
+        E_Float* xt = f->begin(posvx[nov]);
+        E_Float* yt = f->begin(posvy[nov]);
+        E_Float* zt = f->begin(posvz[nov]);
+      
+        #pragma omp for
+        for (E_Int i = 0; i < npts; i++)
+        {
+          x = xt[i]; y = yt[i]; z = zt[i];
+          xt[i] = m11*x + m12*y + m13*z;
+          yt[i] = m21*x + m22*y + m23*z;
+          zt[i] = m31*x + m32*y + m33*z;      
+        }
+      }
+    }
+  }
+
   RELEASESHAREDB(res, array, f, cn);
   Py_INCREF(Py_None);
   return Py_None;
@@ -343,37 +442,79 @@ PyObject* K_TRANSFORM::_rotateA3(PyObject* self, PyObject* args)
   E_Float cgamma = cos(gamma);
   E_Float sgamma = sin(gamma);
     
-  E_Float* x = f->begin(posx);
-  E_Float* y = f->begin(posy);
-  E_Float* z = f->begin(posz);
-  
-#pragma omp parallel default(shared)
+  if (posx>0 && posy>0 && posz>0)
   {
-    E_Float dx, dy, dz;
-    E_Float x1, y1, z1, x2, y2, z2;
-#pragma omp for
-    for (E_Int i = 0; i < npts; i++)
-    {
-      // Rotation autour de Oz (Ox->Ox1, Oy->Oy1, Oz->Oz)
-      dx = x[i]-xc; dy = y[i]-yc; dz = z[i]-zc;
-      x1 = xc + cgamma*dx - sgamma*dy;
-      y1 = yc + sgamma*dx + cgamma*dy;
-      z1 = zc + dz;
-      
-      // Rotation autour de Oy1 (Ox1->Ox2, Oy1->Oy1, Oz1->Oz2)
-      dx = x1-xc; dy = y1-yc; dz = z1-zc;
-      x2 = xc + cbeta*dx - sbeta*dz;
-      y2 = yc + dy;
-      z2 = zc + sbeta*dx + cbeta*dz;
-      
-      // Rotation autour de Oz2 (Ox2->Ox3, Oy2->Oy3, Oz2->Oz2)
-      dx = x2-xc; dy = y2-yc; dz = z2-zc;
-      x[i] = xc + dx;
-      y[i] = yc + calpha*dy - salpha*dz;
-      z[i] = zc + salpha*dy + calpha*dz;
-    } 
-  }
+    E_Float* x = f->begin(posx);
+    E_Float* y = f->begin(posy);
+    E_Float* z = f->begin(posz);
   
+    #pragma omp parallel default(shared)
+    {
+      E_Float dx, dy, dz;
+      E_Float x1, y1, z1, x2, y2, z2;
+      #pragma omp for
+      for (E_Int i = 0; i < npts; i++)
+      {
+        // Rotation autour de Oz (Ox->Ox1, Oy->Oy1, Oz->Oz)
+        dx = x[i]-xc; dy = y[i]-yc; dz = z[i]-zc;
+        x1 = xc + cgamma*dx - sgamma*dy;
+        y1 = yc + sgamma*dx + cgamma*dy;
+        z1 = zc + dz;
+      
+        // Rotation autour de Oy1 (Ox1->Ox2, Oy1->Oy1, Oz1->Oz2)
+        dx = x1-xc; dy = y1-yc; dz = z1-zc;
+        x2 = xc + cbeta*dx - sbeta*dz;
+        y2 = yc + dy;
+        z2 = zc + sbeta*dx + cbeta*dz;
+      
+        // Rotation autour de Oz2 (Ox2->Ox3, Oy2->Oy3, Oz2->Oz2)
+        dx = x2-xc; dy = y2-yc; dz = z2-zc;
+        x[i] = xc + dx;
+        y[i] = yc + calpha*dy - salpha*dz;
+        z[i] = zc + salpha*dy + calpha*dz;
+      } 
+    }
+  }
+
+  // idem vectors
+  E_Int nvect = posvx.size();
+  if (nvect > 0)
+  {
+    #pragma omp parallel default(shared)
+    {
+      E_Float dx, dy, dz;
+      E_Float x1, y1, z1, x2, y2, z2;
+      for (E_Int nov = 0; nov < nvect; nov++)
+      {
+        E_Float* x = f->begin(posvx[nov]);
+        E_Float* y = f->begin(posvy[nov]);
+        E_Float* z = f->begin(posvz[nov]);
+  
+        #pragma omp for
+        for (E_Int i = 0; i < npts; i++)
+        {
+          // Rotation autour de Oz (Ox->Ox1, Oy->Oy1, Oz->Oz)
+          dx = x[i]; dy = y[i]; dz = z[i];
+          x1 = cgamma*dx - sgamma*dy;
+          y1 = sgamma*dx + cgamma*dy;
+          z1 = dz;
+      
+          // Rotation autour de Oy1 (Ox1->Ox2, Oy1->Oy1, Oz1->Oz2)
+          dx = x1; dy = y1; dz = z1;
+          x2 = cbeta*dx - sbeta*dz;
+          y2 = dy;
+          z2 = sbeta*dx + cbeta*dz;
+      
+          // Rotation autour de Oz2 (Ox2->Ox3, Oy2->Oy3, Oz2->Oz2)
+          dx = x2; dy = y2; dz = z2;
+          x[i] = dx;
+          y[i] = calpha*dy - salpha*dz;
+          z[i] = salpha*dy + calpha*dz;
+        }
+      }
+    }
+  } 
+
   RELEASESHAREDB(res, array, f, cn);
   Py_INCREF(Py_None);
   return Py_None;

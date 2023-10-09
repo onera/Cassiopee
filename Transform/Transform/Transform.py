@@ -18,8 +18,8 @@ __all__ = ['_translate', 'translate', 'addkplane', 'breakElements', 'cart2Cyl', 
     'computeDeformationVector', '_contract', 'contract', 'cyl2Cart', '_cyl2Cart','deform', 'deformNormals', 'deformPoint', 
     'dual', '_homothety', 'homothety', 'join', 'makeCartesianXYZ', 'makeDirect', 'merge', 'mergeCart', 
     'mergeCartByRefinementLevel', 'oneovern', 'patch', 'perturbate', 'projectAllDirs', 'projectDir', 
-    'projectOrtho', 'projectOrthoSmooth', 'projectRay', 'reorder', 'reorderAll', 'rotate', 
-    'rotate2', '_rotate2', '_scale', 'scale', 
+    'projectOrtho', 'projectOrthoSmooth', 'projectRay', 'reorder', 'reorderAll', 
+    'rotate', '_rotate', '_scale', 'scale', 
     'smooth', 'splitBAR', 'splitConnexity', 'splitCurvatureAngle', 'splitCurvatureRadius', 'splitManifold', 
     'splitMultiplePts', 'splitNParts', 'splitSharpEdges', 'splitSize', 'splitTBranches', 
     'splitTRI', 'subzone', '_symetrize', 'symetrize', 'deformMesh', 'kround', 'smoothField', '_smoothField',
@@ -205,54 +205,8 @@ def _translate(a, transvect):
     else: transform.translate(a, transvect)
     return None
 
-def rotate(a, center, arg1, arg2=None, 
-           vectors=[['VelocityX','VelocityY','VelocityZ'],['MomentumX','MomentumY','MomentumZ']]):
-    """Rotate a grid."""
-    if arg2 is None: # kind of euler angles
-        return rotate3__(a, center, arg1, vectors)
-    elif isinstance(arg2, float) or isinstance(arg2, int):
-        return rotate1__(a, center, arg1, arg2, vectors)
-    else: return rotate2__(a, center, arg1, arg2, vectors)
-    
-def rotate1__(array, center, rotvect, angle, vectors): # centre+axe+angle+vecteurs a modifier
-    """Rotate a mesh defined by an array around vector n of center Xc
-    and of angle teta.
-    Usage: rotate(a, (xc,yc,zc), (nx,ny,nz), teta, vectors)"""
-    if isinstance(array[0], list): 
-        b = []
-        for i in array:
-            b.append(transform.rotateA1(i, center, rotvect, angle, vectors))
-        return b
-    else:
-        return transform.rotateA1(array, center, rotvect, angle, vectors)
-
-def rotate2__(array, center, e1, e2, vectors): # centre+axe1->axe2
-    """Rotate a mesh defined by an array of center Xc
-    transforming a unitary vector e1 into e2.
-    Usage: rotate2(a, (xc,yc,zc), (e1x,e1y,e1z), (e2x,e2y,e2z), vectors)"""
-    if isinstance(array[0], list): 
-        b = []
-        for i in array:
-            b.append(transform.rotateA2(i, center, e1, e2, vectors))
-        return b
-    else:
-        return transform.rotateA2(array, center, e1, e2, vectors)
-
-def rotate3__(array, center, angles, vectors): # centre+3 angles+ champs vectoriels a modifier
-    """Rotate a mesh defined by an array of center Xc
-    and a set of euler angles.
-    Usage: rotate3(a, (xc,yc,zc), (alpha,beta,gamma), vectors)"""
-    if isinstance(array[0], list): 
-        b = []
-        for i in array:
-            b.append(transform.rotateA3(i, center, angles, vectors))
-        return b
-    else:
-        return transform.rotateA3(array, center, angles, vectors)
-
 # in place, array2/3, only on coordinates
-def _rotate2(array, center, arg1, arg2=None,
-             vectors=[['VelocityX','VelocityY','VelocityZ'],['MomentumX','MomentumY','MomentumZ']]):
+def _rotate(array, center, arg1, arg2=None, vectors=[]):
     """Rotate a grid."""
     if arg2 is None: # kind of euler angles
         if isinstance(array[0], list):
@@ -268,11 +222,10 @@ def _rotate2(array, center, arg1, arg2=None,
         else: transform._rotateA2(array, center, arg1, arg2, vectors)
     return None
 
-def rotate2(a, center, arg1, arg2=None,            
-            vectors=[['VelocityX','VelocityY','VelocityZ'],['MomentumX','MomentumY','MomentumZ']]):
+def rotate(a, center, arg1, arg2=None, vectors=[]):
     """Rotate a grid."""
     b = Converter.copy(a)
-    _rotate2(b, center, arg1, arg2, vectors)
+    _rotate(b, center, arg1, arg2, vectors)
     return b
 
 def homothety(a, center, alpha):

@@ -194,7 +194,6 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
     return tpl;
 }
 
-
 //=============================================================================
 /* Build an empty BE array 
    IN: nfld: number of fields

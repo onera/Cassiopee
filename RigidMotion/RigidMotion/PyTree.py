@@ -319,7 +319,7 @@ def _moveZone__(z, time):
                 T._translate(z, (tx,ty,tz))
                 if angle != 0:
                     angle = angle #*__RAD2DEG__
-                    T._rotate2(z, (cx,cy,cz), (ex-cx,ey-cy,ez-cz), angle, vectors=[])
+                    T._rotate(z, (cx,cy,cz), (ex-cx,ey-cy,ez-cz), angle, vectors=[])
                     
             elif dtype == 2: # type 2: rotor_motion for helicopters in FF                
                 transl_speed = Internal.getValue(Internal.getNodeFromName(m, 'transl_speed'))
@@ -391,7 +391,7 @@ def _moveZone__(z, time):
                 ey = axis_vct[1]
                 ez = axis_vct[2]
                 angle = omega[0]*time*__RAD2DEG__
-                T._rotate2(z, (cx,cy,cz), (ex,ey,ez), angle, vectors=[])
+                T._rotate(z, (cx,cy,cz), (ex,ey,ez), angle, vectors=[])
                 T._translate(z, (transl_speed[0]*time,transl_speed[1]*time,transl_speed[2]*time))
             else:
                 print("Warning: Motion type not found. Nothing done.")
