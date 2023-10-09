@@ -163,8 +163,10 @@ def checkPyTree(t, level=-20):
         # check field dimension
         #errors += checkFieldConformity(t)
     if level <= -11 or level == 11:
+        # check NAN or infinite in fields
         errors += checkNAN(t)
     if level <= -12 or level == 12:
+        # check if some names are longer than 32 chars
         errors += checkNameLength(t)
     # Ne retourne que le noeud et le message dans les erreurs
     retErrors = []
@@ -225,9 +227,10 @@ def _correctPyTree(t, level=-20):
         _correctCGNSVarNames(t)
         #_correctCoordinatesInFields(t)
         #_correctFieldConformity(t)
-    # Corrige les noms > 32 chars
+    # Supprime les NAN dans les champs
     if level <= -11 or level == 11:
         _correctNAN(t)
+    # Tronque les noms > 32 chars
     if level <= -12 or level == 12:
         _correctNameLength(t)
     C.registerAllNames(t)

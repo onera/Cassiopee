@@ -251,26 +251,28 @@ def rotate3__(array, center, angles, vectors): # centre+3 angles+ champs vectori
         return transform.rotateA3(array, center, angles, vectors)
 
 # in place, array2/3, only on coordinates
-def _rotate2(array, center, arg1, arg2=None):
+def _rotate2(array, center, arg1, arg2=None,
+             vectors=[['VelocityX','VelocityY','VelocityZ'],['MomentumX','MomentumY','MomentumZ']]):
     """Rotate a grid."""
     if arg2 is None: # kind of euler angles
         if isinstance(array[0], list):
-            for a in array: transform._rotateA3(a, center, arg1)
-        else: transform._rotateA3(array, center, arg1)
+            for a in array: transform._rotateA3(a, center, arg1, vectors)
+        else: transform._rotateA3(array, center, arg1, vectors)
     elif isinstance(arg2, float) or isinstance(arg2, int):
         if isinstance(array[0], list):
-            for a in array: transform._rotateA1(a, center, arg1, arg2)
-        else: transform._rotateA1(array, center, arg1, arg2)
+            for a in array: transform._rotateA1(a, center, arg1, arg2, vectors)
+        else: transform._rotateA1(array, center, arg1, arg2, vectors)
     else:
         if isinstance(array[0], list):
-            for a in array: transform._rotateA2(a, center, arg1, arg2)
-        else: transform._rotateA2(array, center, arg1, arg2)
+            for a in array: transform._rotateA2(a, center, arg1, arg2, vectors)
+        else: transform._rotateA2(array, center, arg1, arg2, vectors)
     return None
 
-def rotate2(a, center, arg1, arg2=None):
+def rotate2(a, center, arg1, arg2=None,            
+            vectors=[['VelocityX','VelocityY','VelocityZ'],['MomentumX','MomentumY','MomentumZ']]):
     """Rotate a grid."""
     b = Converter.copy(a)
-    _rotate2(b, center, arg1, arg2)
+    _rotate2(b, center, arg1, arg2, vectors)
     return b
 
 def homothety(a, center, alpha):

@@ -505,12 +505,12 @@ namespace K_ARRAY
                         E_Int nvertex, std::vector<E_Int>& neltsPerConnect,
                         const char* etString,
                         E_Boolean center=false, E_Int api=1);
-  PyObject* K_ARRAY::buildArray3(E_Int nfld,
-                               const char* varString,
-                               FldArrayF& f, // provides nvertex
-                               FldArrayI& cn, // provides ncells, ...
-                               char* eltType,
-                               E_Int center=-1, E_Int api=-1);
+  PyObject* buildArray3(E_Int nfld,
+                        const char* varString,
+                        FldArrayF& f, // provides nvertex
+                        FldArrayI& cn, // provides ncells, ...
+                        char* eltType,
+                        E_Int center=-1, E_Int api=-1);
 
   /* Construit un array structure a partir d'un DynArray
      IN: field: Dyn champ structure

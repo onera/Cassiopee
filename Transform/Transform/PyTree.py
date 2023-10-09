@@ -126,8 +126,11 @@ def _rotate2(t, center, arg1, arg2=None,
                 else: vectname.append(spl[0]); loc += 4
             if loc == 3: vectorsC += [vectname]
             elif loc == 12: vectorsN += [vectname]
-    return C.__TZGC3(t, Transform._rotate2, center, arg1, arg2)
-
+    C.__TZA3(t, 'nodes', Transform._rotate2, center, arg1, arg2, vectorsN)
+    C.__TZA3(t, 'centers', Transform._rotate2, center, arg1, arg2, vectorsC)
+    return None
+    #return C.__TZGC3(t, Transform._rotate2, center, arg1, arg2)
+    
 def rotate2(t, center, arg1, arg2=None,
              vectors=[['VelocityX','VelocityY','VelocityZ'],
                      ['MomentumX','MomentumY','MomentumZ'],
@@ -147,8 +150,11 @@ def rotate2(t, center, arg1, arg2=None,
                 else: vectname.append(spl[0]); loc += 4
             if loc == 3: vectorsC += [vectname]
             elif loc == 12: vectorsN += [vectname]
-    return C.TZGC3(t, 'nodes', False, Transform.rotate2, center, arg1, arg2)
-
+    tp = C.TZA3(t, 'nodes', True, Transform.rotate2, center, arg1, arg2, vectorsN)
+    C.__TZA3(tp, 'centers', Transform._rotate2, center, arg1, arg2, vectorsC)
+    return tp
+    #return C.TZGC3(t, 'nodes', False, Transform.rotate2, center, arg1, arg2)
+    
 def homothety(a, center, alpha):
     """Make for a mesh defined by an array an homothety of center Xc and
     of factor alpha.
@@ -190,12 +196,12 @@ def _scale(a, factor=1., X=None):
 def symetrize(a, point, vector1, vector2):
     """Make a symetry of mesh from plane passing by point and of director vector: vector1 and vector2.
     Usage: symetrize(a, (xc,yc,zc), (v1x,v1y,v1z), (v2x,v2y,v2z))"""
-    return C.TZGC2(a, 'nodes', False, Transform.symetrize, point, vector1, vector2)
+    return C.TZGC3(a, 'nodes', False, Transform.symetrize, point, vector1, vector2)
 
 def _symetrize(a, point, vector1, vector2):
     """Make a symetry of mesh from plane passing by point and of director vector: vector1 and vector2.
     Usage: symetrize(a, (xc,yc,zc), (v1x,v1y,v1z), (v2x,v2y,v2z))"""
-    return C.__TZGC2(a, Transform._symetrize, point, vector1, vector2)
+    return C.__TZGC3(a, Transform._symetrize, point, vector1, vector2)
 
 def perturbate(a, radius, dim=3):
     """Perturbate a mesh randomly of radius

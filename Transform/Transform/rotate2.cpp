@@ -30,10 +30,11 @@ using namespace K_FLD;
 PyObject* K_TRANSFORM::_rotateA1(PyObject* self, PyObject* args)
 {
   PyObject* array;
+  PyObject* listOfFieldVectors;
   E_Float xc, yc, zc;
   E_Float nx, ny, nz, teta;
-  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ R_,
-                    &array, &xc, &yc, &zc, &nx, &ny, &nz, &teta))
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ R_ O_,
+                    &array, &xc, &yc, &zc, &nx, &ny, &nz, &teta, &listOfFieldVectors))
   {
       return NULL;
   }
@@ -67,23 +68,20 @@ PyObject* K_TRANSFORM::_rotateA1(PyObject* self, PyObject* args)
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
-  if (posx == -1 || posy == -1 || posz == -1)
+  posx++; posy++; posz++;
+  vector<E_Int> posvx; vector<E_Int> posvy; vector<E_Int> posvz;
+  E_Int ok = extractVectorComponents(varString, listOfFieldVectors, posvx, posvy, posvz);
+  if (ok == -1) 
   {
     RELEASESHAREDB(res, array, f, cn);
-    PyErr_SetString(PyExc_TypeError,
-                    "rotate: can't find coordinates in array.");
     return NULL;
   }
-  posx++; posy++; posz++;
-
+  
   // Transformation en radians
   E_Float pi = 4.*atan(1.);
   teta = teta*pi/180.;
     
   E_Int npts = f->getSize();
-  E_Float* xt = f->begin(posx);
-  E_Float* yt = f->begin(posy);
-  E_Float* zt = f->begin(posz);
 
   // rotate
   E_Float norm, unx, uny, unz;
@@ -91,7 +89,7 @@ PyObject* K_TRANSFORM::_rotateA1(PyObject* self, PyObject* args)
   E_Float e0,e1,e2,e3,a1;
 
   norm = nx*nx+ny*ny+nz*nz;
-  norm = K_FUNC::E_max(norm, 1.e-20);  
+  norm = K_FUNC::E_max(norm, 1.e-20);
   norm = 1./sqrt(norm);
   unx = nx*norm;
   uny = ny*norm;
@@ -106,26 +104,64 @@ PyObject* K_TRANSFORM::_rotateA1(PyObject* self, PyObject* args)
   e2 = -uny*sinteta5;
   e3 = -unz*sinteta5;
   a1 = e0*e0-e1*e1-e2*e2-e3*e3;
-  
-#pragma omp parallel default(shared)
+
+  if (posx>0 && posy>0 && posz>0)
   {
-    E_Float rx,ry,rz,a2,px,py,pz;
-#pragma omp for 
-    for (E_Int ind = 0; ind < npts; ind++)
+    E_Float* xt = f->begin(posx);
+    E_Float* yt = f->begin(posy);
+    E_Float* zt = f->begin(posz);
+
+    #pragma omp parallel default(shared)
     {
-      rx = xt[ind]-xc;
-      ry = yt[ind]-yc;
-      rz = zt[ind]-zc;
-      a2 = e1*rx+e2*ry+e3*rz;
-      px = a1*rx+2*e1*a2-(ry*unz-rz*uny)*sinteta;
-      py = a1*ry+2*e2*a2-(rz*unx-rx*unz)*sinteta;
-      pz = a1*rz+2*e3*a2-(rx*uny-ry*unx)*sinteta;
-      xt[ind] = xc+px;
-      yt[ind] = yc+py;
-      zt[ind] = zc+pz;
+      E_Float rx,ry,rz,a2,px,py,pz;
+      #pragma omp for 
+      for (E_Int ind = 0; ind < npts; ind++)
+      {
+        rx = xt[ind]-xc;
+        ry = yt[ind]-yc;
+        rz = zt[ind]-zc;
+        a2 = e1*rx+e2*ry+e3*rz;
+        px = a1*rx+2*e1*a2-(ry*unz-rz*uny)*sinteta;
+        py = a1*ry+2*e2*a2-(rz*unx-rx*unz)*sinteta;
+        pz = a1*rz+2*e3*a2-(rx*uny-ry*unx)*sinteta;
+        xt[ind] = xc+px;
+        yt[ind] = yc+py;
+        zt[ind] = zc+pz;
+      }
     }
   }
 
+  // idem for vectors
+  E_Int nvect = posvx.size();
+  if (nvect > 0)
+  {
+    #pragma omp parallel default(shared)
+    {
+      E_Float rx,ry,rz,a2,px,py,pz;
+      for (E_Int nov = 0; nov < nvect; nov++)
+      {
+        E_Float* xt = f->begin(posvx[nov]);
+        E_Float* yt = f->begin(posvy[nov]);
+        E_Float* zt = f->begin(posvz[nov]);
+        #pragma omp for
+        for (E_Int ind = 0; ind < npts; ind++)
+        {
+          rx = xt[ind];
+          ry = yt[ind];
+          rz = zt[ind];
+          a2 = e1*rx+e2*ry+e3*rz;
+          px = a1*rx+2*e1*a2-(ry*unz-rz*uny)*sinteta;
+          py = a1*ry+2*e2*a2-(rz*unx-rx*unz)*sinteta;
+          pz = a1*rz+2*e3*a2-(rx*uny-ry*unx)*sinteta;
+          xt[ind] = px;
+          yt[ind] = py;
+          zt[ind] = pz;
+        }
+      }
+    }
+  }
+
+  // release
   RELEASESHAREDB(res, array, f, cn);
   Py_INCREF(Py_None);
   return Py_None;
@@ -140,8 +176,9 @@ PyObject* K_TRANSFORM::_rotateA2(PyObject* self, PyObject* args)
   E_Float xc, yc, zc;
   E_Float e1x, e1y, e1z, e2x, e2y, e2z, e3x, e3y, e3z;
   E_Float f1x, f1y, f1z, f2x, f2y, f2z, f3x, f3y, f3z;
+  PyObject* listOfFieldVectors;
 
-  if (!PYPARSETUPLE_(args, O_ TRRR_ "(" TRRR_ TRRR_ TRRR_ ")" "(" TRRR_ TRRR_ TRRR_ ")",
+  if (!PYPARSETUPLE_(args, O_ TRRR_ "(" TRRR_ TRRR_ TRRR_ ")" "(" TRRR_ TRRR_ TRRR_ ")" O_,
                      &array,
                      &xc, &yc, &zc, 
                      &e1x, &e1y, &e1z,
@@ -149,7 +186,8 @@ PyObject* K_TRANSFORM::_rotateA2(PyObject* self, PyObject* args)
                      &e3x, &e3y, &e3z,
                      &f1x, &f1y, &f1z,
                      &f2x, &f2y, &f2z,
-                     &f3x, &f3y, &f3z))
+                    &f3x, &f3y, &f3z, 
+                    &listOfFieldVectors))
   {
       return NULL;
   }
@@ -201,14 +239,14 @@ PyObject* K_TRANSFORM::_rotateA2(PyObject* self, PyObject* args)
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
-  if (posx == -1 || posy == -1 || posz == -1)
+  posx++; posy++; posz++;
+  vector<E_Int> posvx; vector<E_Int> posvy; vector<E_Int> posvz;
+  E_Int ok = extractVectorComponents(varString, listOfFieldVectors, posvx, posvy, posvz);
+  if (ok == -1) 
   {
     RELEASESHAREDB(res, array, f, cn);
-    PyErr_SetString(PyExc_TypeError,
-                    "rotate: can't find coordinates in array.");
     return NULL;
   }
-  posx++; posy++; posz++;
   
   E_Int npts = f->getSize();
   E_Float* xt = f->begin(posx);
@@ -254,8 +292,10 @@ PyObject* K_TRANSFORM::_rotateA3(PyObject* self, PyObject* args)
   PyObject* array;
   E_Float xc, yc, zc;
   E_Float alpha, beta, gamma;
-  if (!PYPARSETUPLE_(args, O_ TRRR_, TRRR_,
-                    &array, &xc, &yc, &zc, &alpha, &beta, &gamma))
+  PyObject* listOfFieldVectors;
+
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ O_,
+                    &array, &xc, &yc, &zc, &alpha, &beta, &gamma, &listOfFieldVectors))
   {
       return NULL;
   }
@@ -278,14 +318,14 @@ PyObject* K_TRANSFORM::_rotateA3(PyObject* self, PyObject* args)
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
-  if (posx == -1 || posy == -1 || posz == -1)
+  posx++; posy++; posz++;
+  vector<E_Int> posvx; vector<E_Int> posvy; vector<E_Int> posvz;
+  E_Int ok = extractVectorComponents(varString, listOfFieldVectors, posvx, posvy, posvz);
+  if (ok == -1) 
   {
     RELEASESHAREDB(res, array, f, cn);
-    PyErr_SetString(PyExc_TypeError,
-                    "rotate: can't find coordinates in array.");
     return NULL;
   }
-  posx++; posy++; posz++;
   
   // Transformation en radians
   E_Float pi = 4*atan(1.);
