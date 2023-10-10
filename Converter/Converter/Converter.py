@@ -1294,33 +1294,37 @@ def convertArray2NGon(array):
         return b
     else: return convertArray2NGon1__(array)
 
-def node2Center(array, accurate=0):
+def node2Center(array, accurate=0, api=3):
     """Convert array defined on nodes to array defined on centers.
     Usage: node2Center(array, accurate=0)"""
     if isinstance(array[0], list):
         b = []
         for i in array:
-            b.append(converter.node2Center(i, accurate))
+            if api == 2: b.append(converter.node2Center_OLD(i, accurate))
+            else: b.append(converter.node2Center(i, accurate))
         return b
     else:
-        return converter.node2Center(array, accurate)
+        if api == 2:
+            return converter.node2Center_OLD(array, accurate)
+        else:
+            return converter.node2Center(array, accurate)
 
-def center2Node(array, cellNType=0, BCFields=None, api=2):
+def center2Node(array, cellNType=0, BCFields=None, api=3):
     """Convert array defined on centers to array defined on nodes.
     Usage: center2Node(array)"""
     if isinstance(array[0], list):
         b = []
         for i in array:
-            if api == 2: b.append(converter.center2Node(i, cellNType, BCFields))
-            else: b.append(converter.center2Node2(i, cellNType, BCFields))
+            if api == 2: b.append(converter.center2Node_OLD(i, cellNType, BCFields))
+            else: b.append(converter.center2Node(i, cellNType, BCFields))
         for nob in range(len(b)):
             if len(b[nob]) == 4:
                 eltType = b[nob][3]
                 b[nob][3] = eltType.split('*')[0]
         return b
     else:
-        if api == 2: b = converter.center2Node(array, cellNType, BCFields)
-        else: b = converter.center2Node2(array, cellNType, BCFields)
+        if api == 2: b = converter.center2Node_OLD(array, cellNType, BCFields)
+        else: b = converter.center2Node(array, cellNType, BCFields)
         if len(b) == 4:
             eltType = b[3]; b[3] = eltType.split('*')[0]
         return b

@@ -38,8 +38,7 @@ namespace K_LOC
                           K_FLD::FldArrayF& FNode,
                           E_Int& nin, E_Int& njn, E_Int& nkn,
                           E_Int algo=0);
-
-  E_Int center2nodeStruct2(K_FLD::FldArrayF& FCenter, 
+  E_Int center2nodeStruct_OLD(K_FLD::FldArrayF& FCenter, 
                           E_Int ni, E_Int nj, E_Int nk,
                           E_Int cellN, E_Int mod,
                           E_Int posx, E_Int posy, E_Int posz,
@@ -53,8 +52,7 @@ namespace K_LOC
                             E_Int posx, E_Int posy, E_Int posz,
                             K_FLD::FldArrayF& FNode,
                             E_Int algo=0);
-  
-  E_Int center2nodeUnstruct2(K_FLD::FldArrayF& FCenter, 
+  E_Int center2nodeUnstruct_OLD(K_FLD::FldArrayF& FCenter, 
                             K_FLD::FldArrayI& c,
                             E_Int cellN, E_Int mod,
                             E_Int posx, E_Int posy, E_Int posz,
@@ -65,18 +63,30 @@ namespace K_LOC
                           E_Int ni, E_Int nj, E_Int nk,
                           E_Int cellN, E_Int mod, 
                           K_FLD::FldArrayF& FCenter);
+  E_Int node2centerStruct_OLD(K_FLD::FldArrayF& FNode, 
+                          E_Int ni, E_Int nj, E_Int nk,
+                          E_Int cellN, E_Int mod, 
+                          K_FLD::FldArrayF& FCenter);
+
   E_Int node2centerUnstruct(K_FLD::FldArrayF& FNode, 
                             K_FLD::FldArrayI& c,
                             E_Int cellN, E_Int mod, 
                             K_FLD::FldArrayF& FCenter);
+  E_Int node2centerUnstruct_OLD(K_FLD::FldArrayF& FNode, 
+                            K_FLD::FldArrayI& c,
+                            E_Int cellN, E_Int mod, 
+                            K_FLD::FldArrayF& FCenter);
+
   E_Int node2centerNGon(K_FLD::FldArrayF& FNode, K_FLD::FldArrayI& cNG,
+                        K_FLD::FldArrayF& FCenter, E_Int sorted=0);
+  E_Int node2centerNGon_OLD(K_FLD::FldArrayF& FNode, K_FLD::FldArrayI& cNG,
                         K_FLD::FldArrayF& FCenter, E_Int sorted=0);
 
   E_Int center2nodeNGon(K_FLD::FldArrayF& FCenter, K_FLD::FldArrayI& cNG,
                         std::vector< std::vector<E_Int> >& cEV, 
                         K_FLD::FldArrayF& FNode, E_Int cellN, E_Int mod, 
                         E_Int algo=0);
-  E_Int center2nodeNGon2(K_FLD::FldArrayF& FCenter, K_FLD::FldArrayI& cNG,
+  E_Int center2nodeNGon_OLD(K_FLD::FldArrayF& FCenter, K_FLD::FldArrayI& cNG,
                         std::vector< std::vector<E_Int> >& cEV, 
                         K_FLD::FldArrayF& FNode, E_Int cellN, E_Int mod, 
                         E_Int algo=0);

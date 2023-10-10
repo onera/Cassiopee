@@ -6048,7 +6048,7 @@ def _addFamily2Base(a, familyName, bndType=None):
 #==============================================================================
 
 # -- node2Center
-def node2Center(t, var=''):
+def node2Center(t, var='', accurate=0, api=3):
     """Convert zone defined at nodes to a zone defined at centers.
     Usage: node2Center(t, varname)"""
     a = Internal.copyRef(t)
@@ -6072,7 +6072,7 @@ def node2Center(t, var=''):
               else:
                 z = TZA1(z, 'nodes', 'nodes', True, Transform.dual, 0)
             else:
-              z = TZA1(z, 'nodes', 'nodes', True, Converter.node2Center)
+              z = TZA1(z, 'nodes', 'nodes', True, Converter.node2Center, accurate, api)
             setFields(fieldc, z, 'nodes', writeDim=False)
             if p is None: la[i] = z
             else: p[2][pos] = z
@@ -6085,7 +6085,7 @@ def node2Center(t, var=''):
       fieldn = getFields(Internal.__GridCoordinates__, a)
       for i in fieldn:
         if i != []:
-          b = Converter.node2Center(i)
+          b = Converter.node2Center(i, accurate, api)
           fieldc.append(b)
         else:
           fieldc.append([])
@@ -6096,7 +6096,7 @@ def node2Center(t, var=''):
       fieldn = getFields(Internal.__FlowSolutionNodes__, a)
       for i in fieldn:
         if i != []:
-          b = Converter.node2Center(i)
+          b = Converter.node2Center(i, accurate, api)
           fieldc.append(b)
         else:
           fieldc.append([])
@@ -6104,25 +6104,25 @@ def node2Center(t, var=''):
       return a
     else:
       if isinstance(var, list):
-        for v in var: _node2Center__(a, v)
-      else: _node2Center__(a, var)
+        for v in var: _node2Center__(a, v, accurate, api)
+      else: _node2Center__(a, var, accurate, api)
       return a
 
 # commentaire SP : mauvais fonctionnement : modifie a et retourne a 
 # est appele par etc tel quel...
-def node2Center__(a, var):
+def node2Center__(a, var, accurate=0, api=3):
   var, loc = Internal.fixVarName(var)
   if loc == 1: return a
   fieldn = getField(var, a)
-  fieldc = Converter.node2Center(fieldn)
+  fieldc = Converter.node2Center(fieldn, accurate, api)
   setFields(fieldc, a, 'centers')
   return a
 
-def _node2Center__(a, var):
+def _node2Center__(a, var, accurate=0, api=3):
   var, loc = Internal.fixVarName(var)
   if loc == 1: return None
   fieldn = getField(var, a)
-  fieldc = Converter.node2Center(fieldn)
+  fieldc = Converter.node2Center(fieldn, accurate, api)
   setFields(fieldc, a, 'centers')
   return None
 
@@ -6147,7 +6147,7 @@ def _patchArrayForCenter2NodeNK1__(fields, a):
 # -- center2Node
 # Convert a zone defining centers to nodes or convert a field in a
 # base/tree/zone located at centers to nodes
-def center2Node(t, var=None, cellNType=0, api=2):
+def center2Node(t, var=None, cellNType=0, api=3):
     """Converts array defined at centers to an array defined at nodes.
     Usage: center2Node(t, var, cellNType)"""
 
@@ -6238,11 +6238,11 @@ def center2Node(t, var=None, cellNType=0, api=2):
 
 # mauvais fonctionnement : modifie a et retourne a 
 # mais appele dans etc tel quel.
-def center2Node__(a, var, cellNType, api=2):
+def center2Node__(a, var, cellNType, api=3):
   _center2Node__(a, var, cellNType, api)
   return a
 
-def _center2Node__(a, var, cellNType, api=2):
+def _center2Node__(a, var, cellNType, api=3):
   fieldc = getField(var, a)
   fieldn = []
   for i in fieldc:

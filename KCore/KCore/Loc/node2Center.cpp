@@ -22,36 +22,9 @@
 # include <vector>
 # include <algorithm> 
 
+using namespace std;
 using namespace K_FLD;
-
-extern "C"
-{
-  void k6conv2center1_(const E_Int& ni, const E_Int& nj, const E_Int& nk, 
-                       const E_Int& nfld, E_Float* fieldnode, 
-                       E_Float* fieldcenter);
-  void k6conv2center21_(const E_Int& ni, const E_Int& nj, const E_Int& nk, 
-                        E_Float* fieldnode, 
-                        E_Float* fieldcenter);
-  void k6conv2center22_(const E_Int& ni, const E_Int& nj, const E_Int& nk, 
-                        E_Float* fieldnode, 
-                        E_Float* fieldcenter);
-  void k6conv2center12d_(const E_Int& ni, const E_Int& nj, 
-                         const E_Int& nfld, E_Float* fieldnode, 
-                         E_Float* fieldcenter);
-  void k6conv2center212d_(const E_Int& ni, const E_Int& nj, 
-                          E_Float* fieldnode, 
-                          E_Float* fieldcenter);
-  void k6conv2center222d_(const E_Int& ni, const E_Int& nj,
-                          E_Float* fieldnode, 
-                          E_Float* fieldcenter);
-  void k6conv2center11d_(const E_Int& ni, const E_Int& nfld, 
-                         E_Float* fieldnode, 
-                         E_Float* fieldcenter);
-  void k6conv2center211d_(const E_Int& ni, E_Float* fieldnode, 
-                          E_Float* fieldcenter);
-  void k6conv2center221d_(const E_Int& ni, E_Float* fieldnode, 
-                          E_Float* fieldcenter);
-}
+using namespace K_FUNC;
 
 //=============================================================================
 // Convertit un array noeuds en array centres en structure
@@ -105,14 +78,73 @@ E_Int K_LOC::node2centerStruct(FldArrayF& FNode,
   // In of each "block" i, converts field defined in nodes to field 
   // defined in centers
   if (dim == 1)
-    k6conv2center11d_(im, nv, FNode.begin(), FCenter.begin());
-  
+  {
+    E_Int imc = im-1;
+    #pragma omp parallel
+    {
+      E_Int ind0, ind1;
+      #pragma omp for 
+      for (E_Int i = 0; i < imc; i++)
+      {
+        ind0 = i;
+        ind1 = i+1;
+        for (E_Int n = 1; n <= nv; n++)
+          FCenter(i,n) = 0.5*(FNode(ind0,n)+FNode(ind1,n));
+      }
+    }
+  }
   else if (dim == 2)
-    k6conv2center12d_(im, jm, nv, 
-                      FNode.begin(), FCenter.begin());
+  {
+    E_Int imc = im-1; E_Int jmc = jm-1;
+    #pragma omp parallel
+    {
+      E_Int i, j, ind0, ind1, ind2, ind3;
+      #pragma omp for
+      for (E_Int ind = 0; ind < imc*jmc; ind++)
+      {
+        j = ind / imc;
+        i = ind - j*imc;
+
+        ind0 = i + j*im;
+        ind1 = ind0+1;
+        ind2 = ind0+im;
+        ind3 = ind2+1;
+
+        for (E_Int n = 1; n <= nv; n++)
+            FCenter(ind,n) = 0.25*(FNode(ind0,n)+FNode(ind1,n)+FNode(ind2,n)+FNode(ind3,n));
+      }
+    }
+  }
   else
-    k6conv2center1_(im, jm, km, nv, 
-                    FNode.begin(), FCenter.begin());
+  {
+    E_Int imc = im-1; E_Int jmc = jm-1; E_Int kmc = km-1;
+    E_Int ijm = im*jm; E_Int ijmc= imc*jmc;
+    #pragma omp parallel
+    {
+      E_Int i, j, k;
+      E_Int ind0, ind1, ind2, ind3, ind4, ind5, ind6, ind7;
+      #pragma omp for
+      for (E_Int ind = 0; ind < imc*jmc*kmc; ind++)
+      {
+        k = ind / ijmc;
+        j = (ind - k*ijmc) / imc;
+        i = ind - j*imc - k*ijmc;
+        
+        ind0 = i + j*im + k*ijm;
+        ind1 = ind0 + 1;
+        ind2 = ind0 + im;
+        ind3 = ind2 + 1;
+        ind4 = ind0 + ijm;
+        ind5 = ind4 + 1;
+        ind6 = ind4 + im;
+        ind7 = ind6 + 1;
+
+        for (E_Int n = 1; n <= nv; n++)
+            FCenter(ind,n) = 0.125*(FNode(ind0,n)+FNode(ind1,n)+FNode(ind2,n)+FNode(ind3,n)+
+                                    FNode(ind4,n)+FNode(ind5,n)+FNode(ind6,n)+FNode(ind7,n));
+      }
+    }
+  }
   
   // If field contains "cellnaturefield"
   if (cellN != -1)
@@ -121,24 +153,422 @@ E_Int K_LOC::node2centerStruct(FldArrayF& FNode,
     {
       case 1:
         if (dim == 1)
-          k6conv2center211d_(im, FNode.begin(cellN), FCenter.begin(cellN));
+        {
+          E_Float* cellNpc = FCenter.begin(cellN);
+          E_Float* cellNpn = FNode.begin(cellN);
+          E_Int imc = im-1;
+          #pragma omp parallel
+          {
+            E_Int ind0, ind1;
+            #pragma omp for 
+            for (E_Int i = 0; i < imc; i++)
+            {
+              ind0 = i;
+              ind1 = i+1;
+              cellNpc[i] = E_min(cellNpn[ind0],cellNpn[ind1]);
+            }
+          }
+        }
         else if (dim == 2)
-          k6conv2center212d_(im, jm, FNode.begin(cellN), 
-                             FCenter.begin(cellN));
+        {
+          E_Float* cellNpc = FCenter.begin(cellN);
+          E_Float* cellNpn = FNode.begin(cellN);
+          E_Int imc = im-1; E_Int jmc = jm-1;
+          #pragma omp parallel
+          {
+            E_Int i, j, ind0, ind1, ind2, ind3;
+            #pragma omp for
+            for (E_Int ind = 0; ind < imc*jmc; ind++)
+            {
+              j = ind / imc;
+              i = ind - j*imc;
+
+              ind0 = i + j*im;
+              ind1 = ind0+1;
+              ind2 = ind0+im;
+              ind3 = ind2+1;
+
+              cellNpc[ind] = E_min(E_min(E_min(cellNpn[ind0],cellNpn[ind1]),cellNpn[ind2]),cellNpn[ind3]);
+            }
+          }
+        }
         else
-          k6conv2center21_(im, jm, nk, FNode.begin(cellN), 
-                           FCenter.begin(cellN));
+        {
+          E_Float* cellNpc = FCenter.begin(cellN);
+          E_Float* cellNpn = FNode.begin(cellN);
+          E_Int imc = im-1; E_Int jmc = jm-1; E_Int kmc = km-1;
+          E_Int ijm = im*jm; E_Int ijmc= imc*jmc;
+          #pragma omp parallel
+          {
+            E_Int i, j, k;
+            E_Int ind0, ind1, ind2, ind3, ind4, ind5, ind6, ind7;
+            #pragma omp for
+            for (E_Int ind = 0; ind < imc*jmc*kmc; ind++)
+            {
+              k = ind / ijmc;
+              j = (ind - k*ijmc) / imc;
+              i = ind - j*imc - k*ijmc;
+              
+              ind0 = i + j*im + k*ijm;
+              ind1 = ind0 + 1;
+              ind2 = ind0 + im;
+              ind3 = ind2 + 1;
+              ind4 = ind0 + ijm;
+              ind5 = ind4 + 1;
+              ind6 = ind4 + im;
+              ind7 = ind6 + 1;
+
+              cellNpc[ind] = E_min(E_min(E_min(E_min(E_min(E_min(E_min(cellNpn[ind0],cellNpn[ind1]),cellNpn[ind2]),cellNpn[ind3]),cellNpn[ind4]),cellNpn[ind5]),cellNpn[ind5]),cellNpn[ind7]);
+            }
+          }
+        }
         break;
         
       case 2:
         if (dim == 1)
-          k6conv2center221d_(im, FNode.begin(cellN), FCenter.begin(cellN));
+        {
+          E_Float* cellNpc = FCenter.begin(cellN);
+          E_Float* cellNpn = FNode.begin(cellN);
+          E_Int imc = im-1;
+          #pragma omp parallel
+          {
+            E_Int ind0, ind1;
+            E_Float somme;
+            #pragma omp for 
+            for (E_Int i = 1; i < imc-1; i++)
+            {
+              ind0 = i;
+              ind1 = i+1;
+              somme = cellNpn[ind0]+cellNpn[ind1];
+              if (somme == 0.)
+                cellNpc[i] = 0.;
+              else if (cellNpn[ind0] == 2. || cellNpn[ind1] == 2.)
+                cellNpc[i] = 2.;
+              else
+                cellNpc[i] = 1.;
+            }
+            // i = 0
+            somme = cellNpn[0]+cellNpn[1];
+            if (somme == 0.)
+              cellNpc[0] = 0.;
+            else if (somme == 4.)
+              cellNpc[0] = 2.;
+            else
+              cellNpc[0] = 1.;
+            // i = imc-1
+            somme = cellNpn[imc-1]+cellNpn[imc];
+            if (somme == 0.)
+              cellNpc[imc-1] = 0.;
+            else if (somme == 4.)
+              cellNpc[imc-1] = 2.;
+            else
+              cellNpc[imc-1] = 1.;
+          }
+        }
         else if (dim == 2)
-          k6conv2center222d_(im, jm, FNode.begin(cellN), 
-                             FCenter.begin(cellN));
+        {
+          E_Float* cellNpc = FCenter.begin(cellN);
+          E_Float* cellNpn = FNode.begin(cellN);
+          E_Int imc = im-1; E_Int jmc = jm-1;
+          #pragma omp parallel
+          {
+            E_Int i, j, ind, ind0, ind1, ind2, ind3;
+            E_Float somme;
+            // main loop
+            #pragma omp for
+            for (E_Int ind = 0; ind < imc*jmc; ind++)
+            {
+              j = ind / imc;
+              i = ind - j*imc;
+
+              ind0 = i + j*im;
+              ind1 = ind0+1;
+              ind2 = ind0+im;
+              ind3 = ind2+1;
+
+              somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3];
+
+              if (somme == 0.)
+                cellNpc[ind] = 0.;
+              else if (cellNpn[ind0] == 2. || cellNpn[ind1] == 2. || cellNpn[ind2] == 2. || cellNpn[ind3] == 2.)
+                cellNpc[ind] = 2.;
+              else
+                cellNpc[ind] = 1.;
+            }
+            // edges imin, imax
+            #pragma omp for
+            for (E_Int j = 0; j < jmc; j++)
+            {
+              // i = 0
+              i = 0;
+              ind = i + j*imc;
+              ind0 = i + j*im;
+              ind1 = ind0+1;
+              ind2 = ind0+im;
+              ind3 = ind2+1;
+
+              somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3];
+
+              if (somme == 0.)
+                cellNpc[ind] = 0.;
+              else if (somme == 8.)
+                cellNpc[ind] = 2.;
+              else
+                cellNpc[ind] = 1.;
+
+              // i = imc-1
+              i = imc-1;
+              ind = i + j*imc;
+              ind0 = i + j*im;
+              ind1 = ind0+1;
+              ind2 = ind0+im;
+              ind3 = ind2+1;
+
+              somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3];
+
+              if (somme == 0.)
+                cellNpc[ind] = 0.;
+              else if (somme == 8.)
+                cellNpc[ind] = 2.;
+              else
+                cellNpc[ind] = 1.;
+            }
+            // edges jmin, jmax
+            #pragma omp for
+            for (E_Int i = 0; i < imc; i++)
+            {
+              // j = 0
+              j = 0;
+              ind = i + j*imc;
+              ind0 = i + j*im;
+              ind1 = ind0+1;
+              ind2 = ind0+im;
+              ind3 = ind2+1;
+
+              somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3];
+
+              if (somme == 0.)
+                cellNpc[ind] = 0.;
+              else if (somme == 8.)
+                cellNpc[ind] = 2.;
+              else
+                cellNpc[ind] = 1.;
+
+              // j = jmc-1
+              j = jmc-1;
+              ind = i + j*imc;
+              ind0 = i + j*im;
+              ind1 = ind0+1;
+              ind2 = ind0+im;
+              ind3 = ind2+1;
+
+              somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3];
+
+              if (somme == 0.)
+                cellNpc[ind] = 0.;
+              else if (somme == 8.)
+                cellNpc[ind] = 2.;
+              else
+                cellNpc[ind] = 1.;
+            }
+          }
+        }
         else
-          k6conv2center22_(im, jm, nk, FNode.begin(cellN), 
-                           FCenter.begin(cellN));
+        {
+          E_Float* cellNpc = FCenter.begin(cellN);
+          E_Float* cellNpn = FNode.begin(cellN);
+          E_Int imc = im-1; E_Int jmc = jm-1; E_Int kmc = km-1;
+          E_Int ijm = im*jm; E_Int ijmc= imc*jmc;
+          #pragma omp parallel
+          {
+            E_Int i, j, k;
+            E_Int ind, ind0, ind1, ind2, ind3, ind4, ind5, ind6, ind7;
+            E_Float somme, somme2;
+            // main loop
+            #pragma omp for
+            for (E_Int ind = 0; ind < imc*jmc*kmc; ind++)
+            {
+              k = ind / ijmc;
+              j = (ind - k*ijmc) / imc;
+              i = ind - j*imc - k*ijmc;
+              
+              ind0 = i + j*im + k*ijm;
+              ind1 = ind0 + 1;
+              ind2 = ind0 + im;
+              ind3 = ind2 + 1;
+              ind4 = ind0 + ijm;
+              ind5 = ind4 + 1;
+              ind6 = ind4 + im;
+              ind7 = ind6 + 1;
+
+              somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3]+cellNpn[ind4]+cellNpn[ind5]+cellNpn[ind6]+cellNpn[ind7];
+
+              if (somme == 0.)
+                cellNpc[ind] = 0.;
+              else
+              {
+                somme2 = E_max(cellNpn[ind0],1.)+E_max(cellNpn[ind1],1.)+E_max(cellNpn[ind2],1.)+E_max(cellNpn[ind3],1.)+E_max(cellNpn[ind4],1.)+E_max(cellNpn[ind5],1.)+E_max(cellNpn[ind6],1.)+E_max(cellNpn[ind7],1.);
+                if (somme2 > 8.5)
+                  cellNpc[ind] = 2.;
+                else
+                  cellNpc[ind] = 1.;
+              }
+            }
+            //faces imin & imax
+            #pragma omp for
+            for (E_Int k = 0; k < kmc; k++)
+            {
+              for (E_Int j = 0; j < jmc; j++)
+              {
+                // imin --------------------------------------------------
+                i = 0;
+
+                ind = i + j*imc + k*ijmc;
+                ind0 = i + j*im + k*ijm;
+                ind1 = ind0 + 1;
+                ind2 = ind0 + im;
+                ind3 = ind2 + 1;
+                ind4 = ind0 + ijm;
+                ind5 = ind4 + 1;
+                ind6 = ind4 + im;
+                ind7 = ind6 + 1;
+
+                somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3]+cellNpn[ind4]+cellNpn[ind5]+cellNpn[ind6]+cellNpn[ind7];
+
+                if (somme == 0.)
+                  cellNpc[ind] = 0.;
+                else if (somme == 16.)
+                  cellNpc[ind] = 2.;
+                else
+                  cellNpc[ind] = 1.;
+
+                // imax --------------------------------------------------
+                i = imc-1;
+
+                ind = i + j*imc + k*ijmc;
+                ind0 = i + j*im + k*ijm;
+                ind1 = ind0 + 1;
+                ind2 = ind0 + im;
+                ind3 = ind2 + 1;
+                ind4 = ind0 + ijm;
+                ind5 = ind4 + 1;
+                ind6 = ind4 + im;
+                ind7 = ind6 + 1;
+
+                somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3]+cellNpn[ind4]+cellNpn[ind5]+cellNpn[ind6]+cellNpn[ind7];
+
+                if (somme == 0.)
+                  cellNpc[ind] = 0.;
+                else if (somme == 16.)
+                  cellNpc[ind] = 2.;
+                else
+                  cellNpc[ind] = 1.;
+              }
+            }
+            //faces jmin & jmax
+            #pragma omp for
+            for (E_Int k = 0; k < kmc; k++)
+            {
+              for (E_Int i = 0; i < imc; i++)
+              {
+                // jmin --------------------------------------------------
+                j = 0;
+
+                ind = i + j*imc + k*ijmc;
+                ind0 = i + j*im + k*ijm;
+                ind1 = ind0 + 1;
+                ind2 = ind0 + im;
+                ind3 = ind2 + 1;
+                ind4 = ind0 + ijm;
+                ind5 = ind4 + 1;
+                ind6 = ind4 + im;
+                ind7 = ind6 + 1;
+
+                somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3]+cellNpn[ind4]+cellNpn[ind5]+cellNpn[ind6]+cellNpn[ind7];
+
+                if (somme == 0.)
+                  cellNpc[ind] = 0.;
+                else if (somme == 16.)
+                  cellNpc[ind] = 2.;
+                else
+                  cellNpc[ind] = 1.;
+
+                // jmax --------------------------------------------------
+                j = jmc-1;
+
+                ind = i + j*imc + k*ijmc;
+                ind0 = i + j*im + k*ijm;
+                ind1 = ind0 + 1;
+                ind2 = ind0 + im;
+                ind3 = ind2 + 1;
+                ind4 = ind0 + ijm;
+                ind5 = ind4 + 1;
+                ind6 = ind4 + im;
+                ind7 = ind6 + 1;
+
+                somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3]+cellNpn[ind4]+cellNpn[ind5]+cellNpn[ind6]+cellNpn[ind7];
+
+                if (somme == 0.)
+                  cellNpc[ind] = 0.;
+                else if (somme == 16.)
+                  cellNpc[ind] = 2.;
+                else
+                  cellNpc[ind] = 1.;
+              }
+            }
+            //faces kmin & kmax
+            #pragma omp for
+            for (E_Int j = 0; j < jmc; j++)
+            {
+              for (E_Int i = 0; i < imc; i++)
+              {
+                // kmin --------------------------------------------------
+                k = 0;
+
+                ind = i + j*imc + k*ijmc;
+                ind0 = i + j*im + k*ijm;
+                ind1 = ind0 + 1;
+                ind2 = ind0 + im;
+                ind3 = ind2 + 1;
+                ind4 = ind0 + ijm;
+                ind5 = ind4 + 1;
+                ind6 = ind4 + im;
+                ind7 = ind6 + 1;
+
+                somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3]+cellNpn[ind4]+cellNpn[ind5]+cellNpn[ind6]+cellNpn[ind7];
+
+                if (somme == 0.)
+                  cellNpc[ind] = 0.;
+                else if (somme == 16.)
+                  cellNpc[ind] = 2.;
+                else
+                  cellNpc[ind] = 1.;
+
+                // kmax --------------------------------------------------
+                k = kmc-1;
+
+                ind = i + j*imc + k*ijmc;
+                ind0 = i + j*im + k*ijm;
+                ind1 = ind0 + 1;
+                ind2 = ind0 + im;
+                ind3 = ind2 + 1;
+                ind4 = ind0 + ijm;
+                ind5 = ind4 + 1;
+                ind6 = ind4 + im;
+                ind7 = ind6 + 1;
+
+                somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3]+cellNpn[ind4]+cellNpn[ind5]+cellNpn[ind6]+cellNpn[ind7];
+
+                if (somme == 0.)
+                  cellNpc[ind] = 0.;
+                else if (somme == 16.)
+                  cellNpc[ind] = 2.;
+                else
+                  cellNpc[ind] = 1.;
+              }
+            }
+          }
+        }
         break;
         
       case 3:
@@ -232,7 +662,7 @@ E_Int K_LOC::node2centerNGon(FldArrayF& FNode, FldArrayI& cNG,
     FldArrayI posFace; K_CONNECT::getPosFaces(cNG, posFace);
     FldArrayI posElt; K_CONNECT::getPosElts(cNG, posElt);
 
-# pragma omp parallel for default(shared)
+    # pragma omp parallel for default(shared)
     for (E_Int i = 0; i < ncells; i++)
     {
       E_Int pose = posElt[i];

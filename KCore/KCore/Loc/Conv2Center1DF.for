@@ -108,7 +108,8 @@ C_LOCAL
          IF (somme .EQ. 0.) THEN
             fieldcenter(indcenter) = 0.D0
          ELSE
-            IF (somme .GE. 2.) THEN
+            IF ((fieldnode(ind0) .EQ. 2.) 
+     &              .OR. (fieldnode(ind1) .EQ. 2.))  THEN
                fieldcenter(indcenter) = 2.D0
             ELSE
                fieldcenter(indcenter) = 1.D0
@@ -119,7 +120,7 @@ C_LOCAL
       somme = fieldnode(0)+fieldnode(1)
       IF (somme .EQ. 0) THEN
          fieldcenter(0) = 0.D0
-      ELSE IF (somme .EQ. 2.) THEN 
+      ELSE IF (somme .EQ. 4.) THEN 
          fieldcenter(0) = 2.D0
       ELSE
          fieldcenter(0) = 1.D0
@@ -128,7 +129,7 @@ C_LOCAL
       somme = fieldnode(nic)+fieldnode(nic-1)
       IF (somme .EQ. 0) THEN
          fieldcenter(nic-1) = 0.D0
-      ELSE IF (somme .EQ. 2.) THEN 
+      ELSE IF (somme .EQ. 4.) THEN 
          fieldcenter(nic-1) = 2.D0
       ELSE
          fieldcenter(nic-1) = 1.D0
