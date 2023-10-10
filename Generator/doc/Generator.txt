@@ -1,4 +1,14 @@
 ===============================================================================
+Generator 3.7 [10/2023]
+Requires: C++ compiler, f77 compiler, python > 2.7, numpy > 1.0, KCore 3.7
+Optional: pyTree interface requires Converter 3.7
+Optional: bbox requires Converter 3.7
+Optional: addNormalLayers, gencartmb, map require Converter, Transform 3.7
+Optional: stitchedHat requires Transform 3.7
+Optional: mapSplit requires Converter, Transform, Geom 3.7
+- checkMesh: check mesh quality
+- getAngleRegularityMap
+===============================================================================
 Generator 3.6 [03/2023]
 Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.6
 Optional: pyTree interface requires Converter 3.6

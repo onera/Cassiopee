@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Rotate functions - code obsolete -> rotate2
+// Rotate functions - code obsolete -> voir rotate2
 # include "transform.h"
 
 using namespace std;

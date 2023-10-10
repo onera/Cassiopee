@@ -1300,7 +1300,7 @@ all the points of the geometry.
 
 ---------------------------------------
 
-.. py:function:: Geom.getUV(a, normalDeviationWeight=2., texelsPerUnit=0)
+.. py:function:: Geom.getUV(a, normalDeviationWeight=2., texResolution=1920)
   
     Return the UV map of a TRI surface. Return also color and bumpmap atlas as Zone image.
     The number of points of returned zone can be greater than the one of input zone because
@@ -1310,8 +1310,8 @@ all the points of the geometry.
     :type a: [array] or [zone]
     :param normalDeviationWeight: weight for normal deviation to form a chart
     :type normalDeviationWeight: float
-    :param texelsPerUnit: number of pixels for each texel (set image resolution)
-    :type texelsPerUnit: float (if 0, automatic setting)
+    :param texResolution: approx resolution of textures
+    :type texResolution: float
     :return: The UV map of a, color atlas, bumpmap atlas
     :rtype: three zones
 

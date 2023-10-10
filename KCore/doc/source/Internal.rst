@@ -70,6 +70,15 @@ List of functions
    Converter.Internal.isValue
    Converter.Internal.isChild
 
+**-- Adapt NGON meshes**
+
+.. autosummary::
+
+    Converter.Internal.adaptNGon32NGon4
+    Converter.Internal.adaptNGon42NGon3
+    Converter.Internal.adaptNFace2PE
+    Converter.Internal.adaptPE2NFace
+
 **-- Set/create generic nodes**
 
 .. autosummary::
@@ -362,6 +371,83 @@ Node tests
     .. literalinclude:: ../build/Examples/Converter/isChildPT.py
 
     .. note:: new in version 2.7.
+    
+Adapt NGON meshes
+--------------------------
+
+.. py:function:: Converter.Internal.adaptNGon32NGon4(t, shiftPE=True)
+
+    Adapts a NGON mesh from the CGNSv3 standard to the CGNSv4 standard. Exists also as in-place (_adaptNGon32NGon4). 
+
+    :param t:  NGON mesh
+    :type  t:  pyTree node or list of pyTree nodes
+    :param shiftPE: if True and Parent Element reference element starting at 0, shift of the total face number.  
+    :type shiftPE: boolean
+    :return: Same as input
+
+    *Example of use:*
+
+    * `Adapt a NGON mesh CGNSv3 -> CGNSv4 (pyTree) <Examples/Converter/adaptNGon32NGon4PT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/adaptNGon32NGon4PT.py
+    
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.adaptNGon42NGon3(t, shiftPE=True, absFace=True)
+
+    Adapts a NGON mesh from the CGNSv4 standard to the CGNSv3 standard. Exists also as in-place (_adaptNGon42NGon3). 
+
+    :param t:  NGON mesh
+    :type  t:  pyTree node or list of pyTree nodes
+    :param shiftPE: if True and Parent Element reference element number shifted of the total face number, shift back to get the elements start at 0.  
+    :type shiftPE: boolean
+    :param absFace: if True, faces in NFACE are made positive.
+    :type absFace: boolean 
+    :return: Same as input
+
+    *Example of use:*
+
+    * `Adapt a NGON mesh CGNSv4 -> CGNSv3 (pyTree) <Examples/Converter/adaptNGon42NGon3PT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/adaptNGon42NGon3PT.py
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.adaptNFace2PE(t, remove=True, shiftPE=False)
+
+    Adapts a NGON mesh to create ParentElements arrays from NFaceElements nodes in each zone. Exists also as in-place (_adaptNFace2PE). 
+
+    :param t:  NGON mesh
+    :type  t:  pyTree node or list of pyTree nodes
+    :param remove: if True, removes all NFaceElements nodes
+    :type check: boolean
+    :param shiftPE: if True, Parent Element reference element shift from the total number of faces.
+    :type shiftPE: boolean
+    :return: Same as input
+
+    *Example of use:*
+
+    * `Creates ParentElements arrays (pyTree) <Examples/Converter/adaptNFace2PEPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/adaptNFace2PEPT.py
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.adaptPE2NFace(t, remove=True)
+
+    Adapts a NGON mesh to create NFaceElements nodes from ParentElements arrays in each zone. Exists also as in-place (_adaptPE2NFace). 
+
+    :param t:  NGON mesh
+    :type  t:  pyTree node or list of pyTree nodes
+    :param remove: if True, removes all ParentElements arrays
+    :type check: boolean
+    :return: Same as input
+
+    *Example of use:*
+
+    * `Creates NFaceElements nodes (pyTree) <Examples/Converter/adaptPE2NFacePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/adaptPE2NFacePT.py
     
 Set/create generic nodes
 --------------------------
@@ -1320,7 +1406,7 @@ Check nodes
     3: unique zone name, 4: unique BC name, 5: valid BC range, 6: valid
     opposite BC range for match and nearmatch, 7: referenced familyZone and
     familyBCs must be defined in bases, 8: valid CGNS types, 9: valid connectivity,
-    10: valid CGNS flowfield name and dimension).
+    10: valid CGNS flowfield name and dimension, 11: check if NAN or INFINITE in fields).
     If level=-20, all previous checks are performed.
     
     Return a list of pairs of invalid nodes and error message.
@@ -1347,7 +1433,7 @@ Check nodes
     3: unique zone name, 4: unique BC name, 5: valid BC range, 6: valid
     opposite BC range for match and nearmatch, 7: referenced familyZone and
     familyBCs must be defined in bases, 8: valid CGNS types, 9: valid connectivity,
-    10: valid CGNS flowfield name and dimension). 
+    10: valid CGNS flowfield name and dimension, 11: supress NAN or INFINITE in fields). 
 
     Generally invalid nodes are suppressed.
     If level=-20, all previous checks are performed.

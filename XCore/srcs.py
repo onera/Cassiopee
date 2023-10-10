@@ -20,7 +20,6 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             ]
 if mpi: # source that requires mpi
     cpp_srcs += [
-            'XCore/zoltan1.cpp',
             'XCore/SplitElement/splitter.cpp',
             'XCore/chunk2partNGon.cpp',
             'XCore/chunk2partElt.cpp',

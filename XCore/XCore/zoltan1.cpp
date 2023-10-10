@@ -20,10 +20,10 @@
 
 #include <stdio.h>
 #include <memory.h>
-#include "zoltan/zz/zz_const.h"
-#include "zoltan/zz/zz_rand.h"
-#include "zoltan/params/params_const.h"
-#include "zoltan/all/all_allo_const.h"
+//#include "zoltan/zz/zz_const.h"
+//#include "zoltan/zz/zz_rand.h"
+//#include "zoltan/params/params_const.h"
+//#include "zoltan/all/all_allo_const.h"
 
 /* local function prototypes */
 //static void block_part(ZZ *zz, int num_obj, int wtflag, float *wgts, 
@@ -202,7 +202,6 @@ PyObject* K_XCORE::zoltan1(PyObject* self, PyObject* args)
 {
   //PyObject* array;
   //if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
-
 
   return NULL;
 }

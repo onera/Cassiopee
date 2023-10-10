@@ -1,4 +1,10 @@
 ===============================================================================
+Connector 3.7 [10/2023]
+Require: C++ compiler, f77 compiler, python > 2.7, numpy > 1.0, KCore 3.7
+Optional: pyTree interface requires Converter 3.7
+Optional: preconditionning requires Generator, Transform 3.7
+- setHoleInterpolated point + octahedron stencil
+===============================================================================
 Connector 3.6 [03/2023]
 Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.6
 Optional: pyTree interface requires Converter 3.6

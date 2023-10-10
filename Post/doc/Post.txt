@@ -1,4 +1,10 @@
 ===============================================================================
+Post 3.7 [10/2023]
+Requires: C++ compiler, f77 compiler, python > 2.7, numpy > 1.0, KCore 3.7
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 3.7
+Optional: extraction functions features require Generator, Transform 3.7
+===============================================================================
 Post 3.6 [03/2023]
 Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.6
 Optional: usurp function requires f90 compiler

@@ -45,6 +45,8 @@ PyObject* K_CONVERTER::signNGonFaces(PyObject* self, PyObject* args)
     return NULL; 
   }
 
+  // 
+
   RELEASESHAREDU(o, f, c);
 
   return NULL;

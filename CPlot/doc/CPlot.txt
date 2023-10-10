@@ -1,5 +1,20 @@
 ===============================================================================
-CPlot 3.56[03/2023]
+CPlot 3.7 [10/2023]
+Require: C++ compiler, python > 2.7, numpy > 1.0, 3.1 > GL > 1.1, GLU > 1.3, KCore 3.7
+Optional: png output requires libpng > 3.0
+Optional: mpeg output requires ffmpeg > 1.0
+Optional: offscreen rendering requires OSMesa > 7.0
+Optional: tkCassiopee (Tk interface) requires Tkinter in python install
+Optional: pyTree interface requires Converter 3.7
+- update of envmaps
+- gamma correction + toneMapping
+- kcgnsview : improved node edit
+- kcgnsview : can view compressed nodes
+- rewrite keyboard, new icons
+- add jpeg texture load
+- simplifyOnDrag: display BBox when dragging (set in tkPrefs)
+===============================================================================
+CPlot 3.6 [03/2023]
 Require: C++ compiler, python > 2.4, numpy > 1.0, 3.1 > GL > 1.1, GLU > 1.3, KCore 3.6
 Optional: png output requires libpng > 3.0
 Optional: mpeg output requires ffmpeg > 1.0

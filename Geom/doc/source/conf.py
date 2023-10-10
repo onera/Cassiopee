@@ -193,7 +193,7 @@ html_show_copyright = True
 #html_file_suffix = None
 
 # Suppress permalinks
-html_add_permalinks = ""
+html_permalinks = False
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'Geomdoc'

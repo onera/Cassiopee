@@ -42,6 +42,7 @@ probe.flush()
 if Cmpi.rank == 0: 
     test.testT(probe._probeZones, 1)
     test.testT(probe._ts, 4)
+Cmpi.barrier()
 
 # Reread
 #out = probe.read(ind=1)
