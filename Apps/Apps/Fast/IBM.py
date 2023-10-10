@@ -1684,8 +1684,8 @@ class IBM(Common):
                                         else:
                                             if zname not in interDictIBM2[zrname]: interDictIBM2[zrname].append(zname)
         else: graph={}
-        allGraph = Cmpi.allgather(graph)
 
+        allGraph = KCOMM.allgather(graph)
         graph = {}
         for i in allGraph:
             for k in i:
@@ -1694,7 +1694,7 @@ class IBM(Common):
                     if not j in graph[k]: graph[k][j] = []
                     graph[k][j] += i[k][j]
                     graph[k][j] = list(set(graph[k][j])) # pas utile?
-    
+
         # keyword subr=False to avoid memory overflow
         Cmpi._addXZones(tc, graph, variables=['cellN'], cartesian=self.input_var.cartesian, subr=False)
         test.printMem(">>> Interpolating IBM [after addXZones]")

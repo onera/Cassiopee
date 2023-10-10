@@ -672,6 +672,29 @@ def _correctDonorRanges(t, ntype):
     return None
 
 #==============================================================================
+# modify PointRange min/max into max/min for 1to1 GC if Transform index
+# is negative - to be compliant by the standard (connectMatch always do min/max)
+#==============================================================================
+def _reorderBCMatchPointRange(t):
+    for z in Internal.getZones(t):
+        for gc in Internal.getNodesFromType(z,'GridConnectivity1to1_t'):
+            TR = Internal.getNodeFromName(gc,"Transform")
+            TR = Internal.getValue(TR)
+            trirac1 = TR[0]; trirac2 = TR[1]; trirac3 = TR[2]
+            PRN = Internal.getNodeFromName(gc,'PointRange')
+            win = Internal.range2Window(Internal.getValue(PRN))
+            [imin, imax, jmin, jmax, kmin, kmax] = win
+            if imin != imax and trirac1<0:
+                win[0] = imax; win[1] = imin
+            if jmin != jmax and trirac2<0:
+                win[2] = jmax; win[3] = jmin
+            if kmin != kmax and trirac3<0:
+                win[4] = kmax; win[5] = kmin
+            PR = Internal.window2Range(win)
+            PRN[1] = PR
+    return None
+
+#==============================================================================
 # Verifie les ranges des fenetres opposees
 # Le donneur doit exister et les ranges etre coherents
 # IN: ntype: GridConnectivity1to1_t ou GridConnectivity_t

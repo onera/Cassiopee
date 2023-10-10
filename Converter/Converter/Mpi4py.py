@@ -253,7 +253,7 @@ def allgather(data):
     ret = KCOMM.allgather(data)
     # Si dictionnaire de listes, on fusionne les listes
     # Si dictionnaire d'autre chose, on append dans des listes
-    if isinstance(data, dict):
+    if isinstance(data, dict):        
         out = {}
         for r in ret:
             for k in r:
@@ -819,7 +819,7 @@ def getMatchSubZones__(z, procDict, oppNode, depth):
                 out.append(oppZone)
     return out
 
-def updateGridConnectivity(a):
+def _updateGridConnectivity(a):
     # Update grid connectivities to be consistent with XZone (just after using addMXZones)
     zones     = Internal.getZones(a)
     zonesReal = []
@@ -871,7 +871,7 @@ def updateGridConnectivity(a):
                     pr     = Internal.getNodeFromName1(match, 'PointRange')
                     Internal.setValue(pr, p) 
                                   
-    return a
+    return None
 
 def _revertMXGridConnectivity(a):
     # Restore grid connectivities with respect to real zone (after using addMXZones)
@@ -1020,7 +1020,7 @@ def _addMXZones(a, depth=2, variables=None, noCoordinates=False, keepOldNodes=Tr
                 b[2].append(d)
     MPI.Request.Waitall(reqs)
 
-    a = updateGridConnectivity(a)
+    _updateGridConnectivity(a)
 
     return None
     
