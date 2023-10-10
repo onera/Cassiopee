@@ -35,7 +35,7 @@ if [ "$PYTHONEXE" != "" ]; then
 fi
 
 # set production mode (0: scons+setup, 1: scons+pip, 2: setup legacy)
-if [ "$PRODMODE" == "" ]; then
+if [ "$PRODMODE" = "" ]; then
     PRODMODE=0
 fi
 

@@ -25,7 +25,7 @@ using namespace std;
 
 //=============================================================================
 /* Change a NGON connectivity cNG where are stored two connectivities:
-  cFV=face/vertex connectivity 
+  cFV=face/vertex connectivity
   cEF=elt/face connectivity 
   IN: cNG: NGON connectivity
   OUT: cEV: elt/vertex connectivity: numerotation des vertices demarre a 1 
@@ -33,6 +33,8 @@ using namespace std;
 //=============================================================================
 void K_CONNECT::connectNG2EV(FldArrayI& cNG, vector< vector<E_Int> >& cEV)
 {
+  //E_Int nfaces = cNG.getNFaces();
+  //E_Int ncells = cNG.getNElts();
   E_Int* cnp = cNG.begin();
   E_Int nfaces = cnp[0];
   E_Int sizeFN = cnp[1];

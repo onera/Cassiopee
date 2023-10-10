@@ -1465,7 +1465,7 @@ def _computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
 
     # Compute fields on BCMatch (for all match connectivities)
     if not ghostCells:
-        allMatch    = C.extractAllBCMatch(t, vare)
+        allMatch = C.extractAllBCMatch(t, vare)
         if withTNC:
             allMatchTNC = C.extractAllBCMatchTNC(t,vare)
         else:
@@ -1545,10 +1545,10 @@ def _computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
                 for fgc in fldFaceTNC:
                     fgc = fgc[1][0]
                     if fldp is None: fldp = fgc
-                    else: fldp = numpy.concatenate((fldp,fgc))
+                    else: fldp = numpy.concatenate((fldp, fgc))
 
-                indp    = indFaceTNC.ravel(order='K')
-                fldp    = fldp.ravel(order='K')
+                indp = indFaceTNC.ravel(order='K')
+                fldp = fldp.ravel(order='K')
 
                 if indices is None: indices = indp
                 else: indices = numpy.concatenate((indices, indp))
@@ -1708,7 +1708,7 @@ def _computeDiv2(t, var, ghostCells=False, withTNC=False, rmVar=False):
 
         # Compute field on BCMatch for current zone
         if allMatch:
-            indFace, fldFace = C.computeBCMatchField(z,allMatch,varList)
+            indFace, fldFace = C.computeBCMatchField(z, allMatch, varList)
 
             if fldFace is not None:
 
@@ -1821,7 +1821,7 @@ def _computeDiv2(t, var, ghostCells=False, withTNC=False, rmVar=False):
         # =================================================================================
         # Compute field on TNC match for current zone
         if allMatchTNC:
-            indFaceTNC, fldFaceTNC = C.computeBCMatchField(z, allMatch, varList)
+            indFaceTNC, fldFaceTNC = C.computeBCMatchField(z, allMatchTNC, varList)
 
             if fldFaceTNC is not None:
 
