@@ -237,12 +237,12 @@ PyObject* K_CONNECTOR::setInterpDataCons(PyObject* self, PyObject* args)
     vector<E_Float> dcoeffs;
     // Interpolation de (xr,yr,zr) par le donneur
     E_Int err = 0;
-#ifndef E_DOUBLEINT
+
     // Nuga ne compile pas en DOUBLE_INT
     err = NUGA::P1_CONSERVATIVE::compute_chimera_coeffs(*fr, posxr, posyr, poszr, *cnr, 
                                                         *fd, posxd[noz], posyd[noz], poszd[noz], *cnd, cellNt,
                                                         dindices, dcoeffs, xr, roids);
-#endif
+
     if (err)
     {
       FldArrayI* donorInd1D = new FldArrayI(0);

@@ -244,7 +244,7 @@ def _connectMatchStruct__(a, tol, dim, glob):
             # addBC2Zone...
             name1 = 'match%d_%d'%(noz1+1,glob); glob += 1
             name2 = 'match%d_%d'%(noz2+1,glob); glob += 1
-            C._addBC2Zone(zones[noz1],name1,'BCMatch',range1,zones[noz2],range2,topp0)
+            C._addBC2Zone(zones[noz1],name1,'BCMatch',range1,zones[noz2],range2,topp0) 
             C._addBC2Zone(zones[noz2],name2,'BCMatch',range2,zones[noz1],range1,topp)
 
             # couplage RANS/laminar ou euler
@@ -256,16 +256,16 @@ def _connectMatchStruct__(a, tol, dim, glob):
 
             if model_z1 == 'NSTurbulent' and model_z1 != model_z2:
                 # creation flag pour tranfert rans/LES
-                datap1 = numpy.ones(1, dtype=numpy.int32)
-                datap2 = numpy.ones(1, dtype=numpy.int32)
+                datap1 = numpy.ones(1, dtype=Internal.E_NpyInt)
+                datap2 = numpy.ones(1, dtype=Internal.E_NpyInt)
                 Internal.createUniqueChild(Internal.getNodeFromName2(zones[noz1], name1), 'RANSLES', 'DataArray_t', datap1)
                 Internal.createUniqueChild(Internal.getNodeFromName2(zones[noz2], name2), 'RANSLES', 'DataArray_t', datap2)
                 name_extrap = 'RANS_LES%d_%d'%(noz1,noz2)
                 C._addBC2Zone(zones[noz1],name_extrap,'BCExtrapolateRANS',range1)
 
             if model_z2 == 'NSTurbulent' and model_z1 != model_z2:
-                datap1 = numpy.ones(1, dtype=numpy.int32)
-                datap2 = numpy.ones(1, dtype=numpy.int32)
+                datap1 = numpy.ones(1, dtype=Internal.E_NpyInt)
+                datap2 = numpy.ones(1, dtype=Internal.E_NpyInt)
                 Internal.createUniqueChild(Internal.getNodeFromName2(zones[noz2], name2), 'RANSLES', 'DataArray_t', datap2)
                 Internal.createUniqueChild(Internal.getNodeFromName2(zones[noz1], name1), 'RANSLES', 'DataArray_t', datap1)
                 name_extrap = 'RANS_LES%d_%d'%(noz2,noz1)
@@ -895,16 +895,16 @@ def connectNearMatch(t, ratio=2, tol=1.e-6, dim=3):
 
                 if model_z1 == 'NSTurbulent' and  model_z1 != model_z2:
                    #creation flag pour tranfert rans/LES
-                   datap1 = numpy.ones(1, dtype=numpy.int32)
-                   datap2 = numpy.ones(1, dtype=numpy.int32)
+                   datap1 = numpy.ones(1, dtype=Internal.E_NpyInt)
+                   datap2 = numpy.ones(1, dtype=Internal.E_NpyInt)
                    Internal.createUniqueChild( Internal.getNodeFromName2(zones[noz1], name1) , 'RANSLES', 'DataArray_t', datap1)
                    Internal.createUniqueChild( Internal.getNodeFromName2(zones[noz2], name2) , 'RANSLES', 'DataArray_t', datap2)
                    name1 = 'RANS_LES%d_%d'%(noz1,noz2)
                    C._addBC2Zone(zones[noz1],name1,'BCExtrapolateRANS',rangenm1)
 
                 if model_z2 =='NSTurbulent' and  model_z1 != model_z2:
-                   datap1 = numpy.ones(1, dtype=numpy.int32)
-                   datap2 = numpy.ones(1, dtype=numpy.int32)
+                   datap1 = numpy.ones(1, dtype=Internal.E_NpyInt)
+                   datap2 = numpy.ones(1, dtype=Internal.E_NpyInt)
                    Internal.createUniqueChild( Internal.getNodeFromName2(zones[noz2], name2) , 'RANSLES', 'DataArray_t', datap2)
                    Internal.createUniqueChild( Internal.getNodeFromName2(zones[noz1], name1) , 'RANSLES', 'DataArray_t', datap1)
                    name2 = 'RANS_LES%d_%d'%(noz2,noz1)
@@ -1347,6 +1347,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
     # 4-Donor cell search: bbox intersection + adt creation
     #=======================================================
     # on cree par zone de chq base la liste des noms des domaines intersectants
+    print("la (0)")
     nobOfIntersectBasesAndZones=[]; allHooks=[]
     for nob1 in range(nbases):
         nobOfIntersectBasesAndZonesForBase1=[]
@@ -1371,7 +1372,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
             allHooksForBase1.append(hook)
         allHooks.append(allHooksForBase1)
         nobOfIntersectBasesAndZones.append(nobOfIntersectBasesAndZonesForBase1)
-
+        print("la (1)")
     #=====================================================
     # 5-optimisation du recouvrement
     #=====================================================
@@ -1953,8 +1954,8 @@ def connectNSLBM(t, tol=1.e-6, dim=3, type='all'):
 
             if model_z1 == 'LBMLaminar' and model_z1 != model_z2:
                 # creation flag pour transfert LBM/NS
-                datap1 = numpy.ones(1, numpy.int32)
-                datap2 = numpy.ones(1, numpy.int32)
+                datap1 = numpy.ones(1, Internal.E_NpyInt)
+                datap2 = numpy.ones(1, Internal.E_NpyInt)
                 Internal.createUniqueChild(Internal.getNodeFromName2(zones[noz1],name1), 'NSLBM', 'DataArray_t', datap1)
                 Internal.createUniqueChild(Internal.getNodeFromName2(zones[noz2],name2), 'NSLBM', 'DataArray_t', datap2)
                 name_extrap = 'NS_LBM%d_%d'%(noz1,noz2)
@@ -1962,8 +1963,8 @@ def connectNSLBM(t, tol=1.e-6, dim=3, type='all'):
                 C._addBC2Zone(zones[noz2],name_extrap,'BCdimNS',range2)     #Permet de gerer l'adim cote NS
 
             if model_z2 == 'LBMLaminar' and model_z1 != model_z2:
-                datap1 = numpy.ones(1, numpy.int32)
-                datap2 = numpy.ones(1, numpy.int32)
+                datap1 = numpy.ones(1, Internal.E_NpyInt)
+                datap2 = numpy.ones(1, Internal.E_NpyInt)
                 Internal.createUniqueChild(Internal.getNodeFromName2(zones[noz2], name2), 'NSLBM', 'DataArray_t', datap2)
                 Internal.createUniqueChild(Internal.getNodeFromName2(zones[noz1], name1), 'NSLBM', 'DataArray_t', datap1)
                 name_extrap = 'NS_LBM%d_%d'%(noz2,noz1)
