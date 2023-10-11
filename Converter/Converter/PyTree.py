@@ -1162,6 +1162,7 @@ def convertPyTree2File(t, fileName, format=None, isize=4, rsize=8,
   """Write a pyTree to a file.
   Usage: convertPyTree2File(t, fileName, format, options)"""
   if t == []: print('Warning: convertPyTree2File: nothing to write.'); return
+  Internal._correctBaseZonesDim(t, fullCorr=False)
   if links is not None: links = checkLinks__(links, t)
   if format is None:
     format = Converter.convertExt2Format__(fileName)

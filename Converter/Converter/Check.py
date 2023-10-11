@@ -168,6 +168,8 @@ def checkPyTree(t, level=-20):
     if level <= -12 or level == 12:
         # check if some names are longer than 32 chars
         errors += checkNameLength(t)
+    if level <= -13 or level == 13:
+        errors += checkBaseZonesDim(t)
     # Ne retourne que le noeud et le message dans les erreurs
     retErrors = []
     for i in range(len(errors)//3): retErrors += [errors[3*i], errors[3*i+2]]
@@ -233,6 +235,9 @@ def _correctPyTree(t, level=-20):
     # Tronque les noms > 32 chars
     if level <= -12 or level == 12:
         _correctNameLength(t)
+    # Corrige la dim de la base
+    if level <= -13 or level == 13:
+        _correctBaseZonesDim(t)
     C.registerAllNames(t)
 
     return None
@@ -902,31 +907,51 @@ def checkBaseZonesDim(t):
         zones = Internal.getNodesFromType1(b, 'Zone_t')
         for z in zones:
             dim = Internal.getZoneDim(z)
-            if dim[4] != dimBase: errors += [b, b, "Zone %s cellDim is inconsistent with base %s cellDim."%(z[0],b[0])] 
+            if dim[4] != dimBase: errors += [b, b, "Zone %s cellDim (%d) is inconsistent with base %s cellDim (%d)."%(z[0],dim[4],b[0],dimBase)] 
     return errors
 
 #==============================================================================
-# Correct: update la dim de la base si toutes les zones ont le meme
-# cellDim
-# sinon, emmet un warning
-# Ceci est important pour la CGNS lib.
+# Update all bases with the max dim found in their zones
+# if fullCorr: enforce homogenous bases in pyTree 
 #==============================================================================
-def _correctBaseZonesDim(t):
+def _correctBaseZonesDim(t, fullCorr=True):
     bases = Internal.getBases(t)
     for b in bases:
         zones = Internal.getNodesFromType1(b, 'Zone_t')
-        z1 = []; z2 = []; z3 = [] # zones de dim 1,2,3                   
+        z1 = []; z2 = []; z3 = [] # zones de dim 1,2,3
+        listOfAddBases = []
+        listOfRmBases = []                  
         for z in zones:
             dim = Internal.getZoneDim(z)
             if dim[4] <= 1: z1.append(z)
             elif dim[4] == 2: z2.append(z)
             elif dim[4] == 3: z3.append(z)
         lz1 = len(z1); lz2 = len(z2); lz3 = len(z3)
-        if lz1 == 0 and lz2 == 0: Internal.setValue(b, 3)
-        elif lz1 == 0 and lz3 == 0: Internal.setValue(b, 2)
-        elif lz2 == 0 and lz3 == 0: Internal.setValue(b, 1)
-        else: print("Warning: all zones in base %s have not the same dimension."%b[0])
-    
+        lzmax = max(lz1, lz2, lz3)
+        # put max dim in base node
+        if lz3 > 0: b[1][0] = 3
+        elif lz2 > 0: b[1][0] = 2
+        elif lz1 > 0: b[1][0] = 1
+        else: pass
+
+        if lz1+lz2+lz3 > lzmax and fullCorr:
+            listOfRmBases.append(b[0])
+            if lz1 != 0:
+                listOfAddBases.append([1, b[0]+'.1', z1])
+            if lz2 != 0:
+                listOfAddBases.append([2, b[0]+'.2', z2])
+            if lz3 != 0: 
+                listOfAddBases.append([3, b[0]+'.3', z3])
+
+    if fullCorr:
+        for baseName in listOfRmBases:
+            Internal._rmNodeByPath(t, baseName)
+
+        for b in listOfAddBases:
+            cellDim, baseName, zones = b
+            base = Internal.newCGNSBase(baseName, cellDim=cellDim, physDim=3, parent=t)
+            base[2] += Internal.getZones(zones)
+                
     return None
 
 #===============================================================================

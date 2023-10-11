@@ -3753,6 +3753,12 @@ def _correctBCElementNodes(t):
     from . import Check
     return Check._correctBCElementNodes(t)
 
+# -- correctBaseZonesDim
+def _correctBaseZonesDim(t, fullCorr=True):
+    """Correct base dimensions according to their zones."""
+    from . import Check
+    return Check._correctBaseZonesDim(t, fullCorr)
+
 #==============================================================================
 # -- BC management --
 #==============================================================================
