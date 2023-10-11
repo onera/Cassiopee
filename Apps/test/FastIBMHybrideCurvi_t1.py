@@ -135,6 +135,10 @@ numz={"time_step": 0.0001, "scheme":"roe","slope":"minmod", "time_step_nature":"
 
 Fast._setNum2Zones(t_final, numz); Fast._setNum2Base(t_final, numb)
 
+t2 = Internal.copyTree(t_final)
+test.testT(t2, 8)
+t2 = Internal.copyTree(tc_final)
+test.testT(t2, 9)
 
 (t_final, tc_final, metrics) = FastS.warmup(t_final, tc_final,verbose=1)
 

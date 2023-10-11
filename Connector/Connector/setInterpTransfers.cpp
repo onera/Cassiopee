@@ -1245,10 +1245,10 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
                 else             { pt_deb = ideb; pt_fin = ideb;}
               }
 
+
               noi       = shiftDonor;                             // compteur sur le tableau d indices donneur
               indCoef   = (pt_deb-ideb)*sizecoefs +  shiftCoef;
     
-        
               E_Int linterp =1;
               E_Int shiftv  =0;
               if      ( isWireModel == 2 ) linterp = 0;
@@ -1299,6 +1299,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 #          include "includeTransfers_rotation.h"
             }
             
+
             // ibc
             if (ibc == 1)
             {
@@ -1336,7 +1337,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
                 }
               }//ibc
             
-            ideb       = ideb + ifin;
+            ideb       =  ideb + ntype[ 1 + ndtyp];
             shiftCoef  = shiftCoef  +  ntype[1+ndtyp]*sizecoefs; //shift coef   entre 2 types successif
             shiftDonor = shiftDonor +  ntype[1+ndtyp];           //shift donor entre 2 types successif
               }// type
@@ -1858,7 +1859,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers4GradP(PyObject* self, PyObject* arg
             //        } //chunk
             //*/
 
-            ideb       = ideb + ifin;
+            ideb       =  ideb + ntype[ 1 + ndtyp];
             shiftCoef  = shiftCoef  +  ntype[1+ndtyp]*sizecoefs; //shift coef   entre 2 types successif
             shiftDonor = shiftDonor +  ntype[1+ndtyp];           //shift donor entre 2 types successif
               }// type

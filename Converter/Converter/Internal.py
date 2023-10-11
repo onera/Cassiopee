@@ -607,11 +607,11 @@ def newPointRange(name='PointRange', value=None, parent=None):
     return node
 
 # -- newRind
-def newRind(value=None, parent=None):
+def newRind(value=None, parent=None, name='Rind'):
     """Create a new Rind node."""
     if parent is None:
-        node = createNode('Rind', 'Rind_t', value=value)
-    else: node = createUniqueChild(parent, 'Rind', 'Rind_t', value=value)
+        node = createNode(name, 'Rind_t', value=value)
+    else: node = createUniqueChild(parent, name, 'Rind_t', value=value)
     return node
 
 # -- newSimulation

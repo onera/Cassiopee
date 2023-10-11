@@ -1056,7 +1056,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
                         }  // ibc
 
 		      //        } //chunk
-		      ideb        = ideb + ifin;
+		      ideb        =  ideb + ntype[ 1 + ndtyp];
 		      shiftCoef   = shiftCoef + ntype[1 + ndtyp] * sizecoefs;  // shift coef   entre 2 types successif
 		      shiftDonor = shiftDonor + ntype[1 + ndtyp];            // shift donor entre 2 types successif
                     }                                                            // type
@@ -1747,7 +1747,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD4GradP(PyObject* self, PyObject* arg
                         }  // ibc
 
 		      //        } //chunk
-		      ideb        = ideb + ifin;
+		      ideb        =  ideb + ntype[ 1 + ndtyp];
 		      shiftCoef   = shiftCoef + ntype[1 + ndtyp] * sizecoefs;  // shift coef   entre 2 types successif
 		      shiftDonor = shiftDonor + ntype[1 + ndtyp];            // shift donor entre 2 types successif
                     }                                                            // type
