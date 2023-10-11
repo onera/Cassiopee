@@ -99,7 +99,7 @@ typedef enum {
 */
 
 #ifndef SCOTCH_H                                  /* In case "scotch.h" not included before */
-typedef int SCOTCH_Num;
+typedef int64_t SCOTCH_Num;
 #endif /* SCOTCH_H */
 
 /*

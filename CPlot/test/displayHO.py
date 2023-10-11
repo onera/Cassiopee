@@ -2,7 +2,7 @@
 import Geom.PyTree as D
 import Converter.PyTree as C
 import Transform.PyTree as T
-import Converter.Internal as Ci
+import Converter.Internal as Internal
 import CPlot.PyTree as CPlot
 
 from math import sqrt
@@ -97,19 +97,19 @@ tsph02 = T.translate(tsph02, (0.,3,0))
 tsph03 = T.translate(tsph03, (6.,3,0))
 tsph13 = T.translate(tsph13, (9.,3,0))
 t = C.newPyTree(['Quadrangle 0 2', 'Quadrangle 1 2', 'Quadrangle 0 3', 'Quadrangle 1 3', 'Triangle 0 2', 'Triangle 0 3', 'Triangle 1 3'])
-t[2][1][2] += Ci.getZones(qsph02)
-t[2][2][2] += Ci.getZones(qsph12)
-t[2][3][2] += Ci.getZones(qsph03)
-t[2][4][2] += Ci.getZones(qsph13)
+t[2][1][2] += Internal.getZones(qsph02)
+t[2][2][2] += Internal.getZones(qsph12)
+t[2][3][2] += Internal.getZones(qsph03)
+t[2][4][2] += Internal.getZones(qsph13)
 
-t[2][5][2] += Ci.getZones(tsph02)
-t[2][6][2] += Ci.getZones(tsph03)
-t[2][7][2] += Ci.getZones(tsph13)
+t[2][5][2] += Internal.getZones(tsph02)
+t[2][6][2] += Internal.getZones(tsph03)
+t[2][7][2] += Internal.getZones(tsph13)
 
 for shader in ["Chrome","Glass", "Wood", 'Marble', 'XRay', 'Metal', 'Granite', 'Brick', 'Cloud', 'Gooch']:
     s = CPlot.addRender2Zone(t, material=shader, color='White')    
     CPlot.display(s, mode="Render")
     l = ''
-    while(l != 'n'):
+    while l != 'n':
         l = CPlot.getKeyboard()
         CPlot.resetKeyboard()

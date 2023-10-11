@@ -27,8 +27,7 @@
 static PyMethodDef Pyxcore [] =
 {
   {"test_all", xcore::test_all, METH_VARARGS}, // all xmpi tests
-  {"split_elements", split_elements, METH_VARARGS},
-  //{"zoltan1", K_XCORE::zoltan1, METH_VARARGS},
+  {"splitElements", splitElements, METH_VARARGS},
   {"adaptMesh", K_XCORE::adaptMesh, METH_VARARGS},
   {"chunk2partNGon", K_XCORE::chunk2partNGon, METH_VARARGS},
   {"chunk2partElt", K_XCORE::chunk2partElt, METH_VARARGS},

@@ -1,11 +1,11 @@
-Terminaux inutilisés dans la grammaire
+Terminals unused in grammar
 
    VALSTRAT
    VALPARAM
    VALTEST
 
 
-Grammaire
+Grammar
 
     0 $accept: STRAT $end
 
@@ -111,7 +111,7 @@ Grammaire
    64        | VALINT
 
 
-Terminaux, suivis des règles où ils apparaissent
+Terminals, with rules where they appear
 
 $end (0) 0
 '!' (33) 38
@@ -145,1096 +145,1096 @@ VALPARAM (265)
 VALTEST (266)
 
 
-Non-terminaux, suivis des règles où ils apparaissent
+Nonterminals, with rules where they appear
 
 $accept (31)
-    à gauche: 0
+    on left: 0
 STRAT (32)
-    à gauche: 1, à droite: 0
+    on left: 1, on right: 0
 STRATSELECT (33)
-    à gauche: 2 3, à droite: 1 2 10 12 14 31
+    on left: 2 3, on right: 1 2 10 12 14 31
 STRATEMPTY (34)
-    à gauche: 4 5, à droite: 2 3
+    on left: 4 5, on right: 2 3
 STRATCONCAT (35)
-    à gauche: 6 7, à droite: 4 6
+    on left: 6 7, on right: 4 6
 STRATTEST (36)
-    à gauche: 10 11, à droite: 6 7
+    on left: 10 11, on right: 6 7
 $@1 (37)
-    à gauche: 8, à droite: 10
+    on left: 8, on right: 10
 $@2 (38)
-    à gauche: 9, à droite: 10
+    on left: 9, on right: 10
 STRATTESTELSE (39)
-    à gauche: 12 13, à droite: 10
+    on left: 12 13, on right: 10
 STRATGROUP (40)
-    à gauche: 14 15, à droite: 11
+    on left: 14 15, on right: 11
 STRATMETHOD (41)
-    à gauche: 17, à droite: 15
+    on left: 17, on right: 15
 $@3 (42)
-    à gauche: 16, à droite: 17
+    on left: 16, on right: 17
 METHODPARAM (43)
-    à gauche: 20 21, à droite: 17
+    on left: 20 21, on right: 17
 $@4 (44)
-    à gauche: 18, à droite: 20
+    on left: 18, on right: 20
 $@5 (45)
-    à gauche: 19, à droite: 20
+    on left: 19, on right: 20
 PARAMLIST (46)
-    à gauche: 22 23, à droite: 20 22
+    on left: 22 23, on right: 20 22
 PARAMPARAM (47)
-    à gauche: 25, à droite: 22 23
+    on left: 25, on right: 22 23
 @6 (48)
-    à gauche: 24, à droite: 25
+    on left: 24, on right: 25
 PARAMVAL (49)
-    à gauche: 26 27 28 29 31 32, à droite: 25
+    on left: 26 27 28 29 31 32, on right: 25
 @7 (50)
-    à gauche: 30, à droite: 31
+    on left: 30, on right: 31
 TEST (51)
-    à gauche: 33, à droite: 10
+    on left: 33, on right: 10
 TESTOR (52)
-    à gauche: 34 35, à droite: 33 34 39
+    on left: 34 35, on right: 33 34 39
 TESTAND (53)
-    à gauche: 36 37, à droite: 34 35 36
+    on left: 36 37, on right: 34 35 36
 TESTNOT (54)
-    à gauche: 38 39 40, à droite: 36 37 38
+    on left: 38 39 40, on right: 36 37 38
 TESTREL (55)
-    à gauche: 41, à droite: 40
+    on left: 41, on right: 40
 TESTRELOP (56)
-    à gauche: 42 43 44, à droite: 41
+    on left: 42 43 44, on right: 41
 TESTEXPR1 (57)
-    à gauche: 45 46, à droite: 41 45 55
+    on left: 45 46, on right: 41 45 55
 TESTEXPR1OP (58)
-    à gauche: 47 48, à droite: 45 61 63
+    on left: 47 48, on right: 45 61 63
 TESTEXPR2 (59)
-    à gauche: 49 50, à droite: 45 46 49
+    on left: 49 50, on right: 45 46 49
 TESTEXPR2OP (60)
-    à gauche: 51, à droite: 49
+    on left: 51, on right: 49
 TESTEXPR3 (61)
-    à gauche: 52 53, à droite: 49 50 52
+    on left: 52 53, on right: 49 50 52
 TESTEXPR3OP (62)
-    à gauche: 54, à droite: 52
+    on left: 54, on right: 52
 TESTEXPR4 (63)
-    à gauche: 55 56 57, à droite: 52 53
+    on left: 55 56 57, on right: 52 53
 TESTVAL (64)
-    à gauche: 58 59, à droite: 56
+    on left: 58 59, on right: 56
 TESTVAR (65)
-    à gauche: 60, à droite: 57
+    on left: 60, on right: 57
 VALSDOUBLE (66)
-    à gauche: 61 62, à droite: 27 58
+    on left: 61 62, on right: 27 58
 VALSINT (67)
-    à gauche: 63 64, à droite: 28 59
+    on left: 63 64, on right: 28 59
 
 
-État 0
+State 0
 
     0 $accept: . STRAT $end
 
-    METHODNAME  décalage et aller à l'état 1
-    '('         décalage et aller à l'état 2
+    METHODNAME  shift, and go to state 1
+    '('         shift, and go to state 2
 
-    '/'       réduction par utilisation de la règle 8 ($@1)
-    $défaut  réduction par utilisation de la règle 5 (STRATEMPTY)
+    '/'       reduce using rule 8 ($@1)
+    $default  reduce using rule 5 (STRATEMPTY)
 
-    STRAT        aller à l'état 3
-    STRATSELECT  aller à l'état 4
-    STRATEMPTY   aller à l'état 5
-    STRATCONCAT  aller à l'état 6
-    STRATTEST    aller à l'état 7
-    $@1          aller à l'état 8
-    STRATGROUP   aller à l'état 9
-    STRATMETHOD  aller à l'état 10
+    STRAT        go to state 3
+    STRATSELECT  go to state 4
+    STRATEMPTY   go to state 5
+    STRATCONCAT  go to state 6
+    STRATTEST    go to state 7
+    $@1          go to state 8
+    STRATGROUP   go to state 9
+    STRATMETHOD  go to state 10
 
 
-État 1
+State 1
 
    17 STRATMETHOD: METHODNAME . $@3 METHODPARAM
 
-    $défaut  réduction par utilisation de la règle 16 ($@3)
+    $default  reduce using rule 16 ($@3)
 
-    $@3  aller à l'état 11
+    $@3  go to state 11
 
 
-État 2
+State 2
 
    14 STRATGROUP: '(' . STRATSELECT ')'
 
-    METHODNAME  décalage et aller à l'état 1
-    '('         décalage et aller à l'état 2
+    METHODNAME  shift, and go to state 1
+    '('         shift, and go to state 2
 
-    '/'       réduction par utilisation de la règle 8 ($@1)
-    $défaut  réduction par utilisation de la règle 5 (STRATEMPTY)
+    '/'       reduce using rule 8 ($@1)
+    $default  reduce using rule 5 (STRATEMPTY)
 
-    STRATSELECT  aller à l'état 12
-    STRATEMPTY   aller à l'état 5
-    STRATCONCAT  aller à l'état 6
-    STRATTEST    aller à l'état 7
-    $@1          aller à l'état 8
-    STRATGROUP   aller à l'état 9
-    STRATMETHOD  aller à l'état 10
+    STRATSELECT  go to state 12
+    STRATEMPTY   go to state 5
+    STRATCONCAT  go to state 6
+    STRATTEST    go to state 7
+    $@1          go to state 8
+    STRATGROUP   go to state 9
+    STRATMETHOD  go to state 10
 
 
-État 3
+State 3
 
     0 $accept: STRAT . $end
 
-    $end  décalage et aller à l'état 13
+    $end  shift, and go to state 13
 
 
-État 4
+State 4
 
     1 STRAT: STRATSELECT .
     2 STRATSELECT: STRATSELECT . '|' STRATEMPTY
 
-    '|'  décalage et aller à l'état 14
+    '|'  shift, and go to state 14
 
-    $défaut  réduction par utilisation de la règle 1 (STRAT)
+    $default  reduce using rule 1 (STRAT)
 
 
-État 5
+State 5
 
     3 STRATSELECT: STRATEMPTY .
 
-    $défaut  réduction par utilisation de la règle 3 (STRATSELECT)
+    $default  reduce using rule 3 (STRATSELECT)
 
 
-État 6
+State 6
 
     4 STRATEMPTY: STRATCONCAT .
     6 STRATCONCAT: STRATCONCAT . STRATTEST
 
-    METHODNAME  décalage et aller à l'état 1
-    '('         décalage et aller à l'état 2
+    METHODNAME  shift, and go to state 1
+    '('         shift, and go to state 2
 
-    '/'       réduction par utilisation de la règle 8 ($@1)
-    $défaut  réduction par utilisation de la règle 4 (STRATEMPTY)
+    '/'       reduce using rule 8 ($@1)
+    $default  reduce using rule 4 (STRATEMPTY)
 
-    STRATTEST    aller à l'état 15
-    $@1          aller à l'état 8
-    STRATGROUP   aller à l'état 9
-    STRATMETHOD  aller à l'état 10
+    STRATTEST    go to state 15
+    $@1          go to state 8
+    STRATGROUP   go to state 9
+    STRATMETHOD  go to state 10
 
 
-État 7
+State 7
 
     7 STRATCONCAT: STRATTEST .
 
-    $défaut  réduction par utilisation de la règle 7 (STRATCONCAT)
+    $default  reduce using rule 7 (STRATCONCAT)
 
 
-État 8
+State 8
 
    10 STRATTEST: $@1 . '/' TEST $@2 '?' STRATSELECT STRATTESTELSE ';'
 
-    '/'  décalage et aller à l'état 16
+    '/'  shift, and go to state 16
 
 
-État 9
+State 9
 
    11 STRATTEST: STRATGROUP .
 
-    $défaut  réduction par utilisation de la règle 11 (STRATTEST)
+    $default  reduce using rule 11 (STRATTEST)
 
 
-État 10
+State 10
 
    15 STRATGROUP: STRATMETHOD .
 
-    $défaut  réduction par utilisation de la règle 15 (STRATGROUP)
+    $default  reduce using rule 15 (STRATGROUP)
 
 
-État 11
+State 11
 
    17 STRATMETHOD: METHODNAME $@3 . METHODPARAM
 
-    '{'       réduction par utilisation de la règle 18 ($@4)
-    $défaut  réduction par utilisation de la règle 21 (METHODPARAM)
+    '{'       reduce using rule 18 ($@4)
+    $default  reduce using rule 21 (METHODPARAM)
 
-    METHODPARAM  aller à l'état 17
-    $@4          aller à l'état 18
+    METHODPARAM  go to state 17
+    $@4          go to state 18
 
 
-État 12
+State 12
 
     2 STRATSELECT: STRATSELECT . '|' STRATEMPTY
    14 STRATGROUP: '(' STRATSELECT . ')'
 
-    '|'  décalage et aller à l'état 14
-    ')'  décalage et aller à l'état 19
+    '|'  shift, and go to state 14
+    ')'  shift, and go to state 19
 
 
-État 13
+State 13
 
     0 $accept: STRAT $end .
 
-    $défaut  accepter
+    $default  accept
 
 
-État 14
+State 14
 
     2 STRATSELECT: STRATSELECT '|' . STRATEMPTY
 
-    METHODNAME  décalage et aller à l'état 1
-    '('         décalage et aller à l'état 2
+    METHODNAME  shift, and go to state 1
+    '('         shift, and go to state 2
 
-    '/'       réduction par utilisation de la règle 8 ($@1)
-    $défaut  réduction par utilisation de la règle 5 (STRATEMPTY)
+    '/'       reduce using rule 8 ($@1)
+    $default  reduce using rule 5 (STRATEMPTY)
 
-    STRATEMPTY   aller à l'état 20
-    STRATCONCAT  aller à l'état 6
-    STRATTEST    aller à l'état 7
-    $@1          aller à l'état 8
-    STRATGROUP   aller à l'état 9
-    STRATMETHOD  aller à l'état 10
+    STRATEMPTY   go to state 20
+    STRATCONCAT  go to state 6
+    STRATTEST    go to state 7
+    $@1          go to state 8
+    STRATGROUP   go to state 9
+    STRATMETHOD  go to state 10
 
 
-État 15
+State 15
 
     6 STRATCONCAT: STRATCONCAT STRATTEST .
 
-    $défaut  réduction par utilisation de la règle 6 (STRATCONCAT)
+    $default  reduce using rule 6 (STRATCONCAT)
 
 
-État 16
+State 16
 
    10 STRATTEST: $@1 '/' . TEST $@2 '?' STRATSELECT STRATTESTELSE ';'
 
-    PARAMNAME  décalage et aller à l'état 21
-    VALDOUBLE  décalage et aller à l'état 22
-    VALINT     décalage et aller à l'état 23
-    '('        décalage et aller à l'état 24
-    '!'        décalage et aller à l'état 25
-    '+'        décalage et aller à l'état 26
-    '-'        décalage et aller à l'état 27
+    PARAMNAME  shift, and go to state 21
+    VALDOUBLE  shift, and go to state 22
+    VALINT     shift, and go to state 23
+    '('        shift, and go to state 24
+    '!'        shift, and go to state 25
+    '+'        shift, and go to state 26
+    '-'        shift, and go to state 27
 
-    TEST         aller à l'état 28
-    TESTOR       aller à l'état 29
-    TESTAND      aller à l'état 30
-    TESTNOT      aller à l'état 31
-    TESTREL      aller à l'état 32
-    TESTEXPR1    aller à l'état 33
-    TESTEXPR1OP  aller à l'état 34
-    TESTEXPR2    aller à l'état 35
-    TESTEXPR3    aller à l'état 36
-    TESTEXPR4    aller à l'état 37
-    TESTVAL      aller à l'état 38
-    TESTVAR      aller à l'état 39
-    VALSDOUBLE   aller à l'état 40
-    VALSINT      aller à l'état 41
+    TEST         go to state 28
+    TESTOR       go to state 29
+    TESTAND      go to state 30
+    TESTNOT      go to state 31
+    TESTREL      go to state 32
+    TESTEXPR1    go to state 33
+    TESTEXPR1OP  go to state 34
+    TESTEXPR2    go to state 35
+    TESTEXPR3    go to state 36
+    TESTEXPR4    go to state 37
+    TESTVAL      go to state 38
+    TESTVAR      go to state 39
+    VALSDOUBLE   go to state 40
+    VALSINT      go to state 41
 
 
-État 17
+State 17
 
    17 STRATMETHOD: METHODNAME $@3 METHODPARAM .
 
-    $défaut  réduction par utilisation de la règle 17 (STRATMETHOD)
+    $default  reduce using rule 17 (STRATMETHOD)
 
 
-État 18
+State 18
 
    20 METHODPARAM: $@4 . '{' PARAMLIST $@5 '}'
 
-    '{'  décalage et aller à l'état 42
+    '{'  shift, and go to state 42
 
 
-État 19
+State 19
 
    14 STRATGROUP: '(' STRATSELECT ')' .
 
-    $défaut  réduction par utilisation de la règle 14 (STRATGROUP)
+    $default  reduce using rule 14 (STRATGROUP)
 
 
-État 20
+State 20
 
     2 STRATSELECT: STRATSELECT '|' STRATEMPTY .
 
-    $défaut  réduction par utilisation de la règle 2 (STRATSELECT)
+    $default  reduce using rule 2 (STRATSELECT)
 
 
-État 21
+State 21
 
    60 TESTVAR: PARAMNAME .
 
-    $défaut  réduction par utilisation de la règle 60 (TESTVAR)
+    $default  reduce using rule 60 (TESTVAR)
 
 
-État 22
+State 22
 
    62 VALSDOUBLE: VALDOUBLE .
 
-    $défaut  réduction par utilisation de la règle 62 (VALSDOUBLE)
+    $default  reduce using rule 62 (VALSDOUBLE)
 
 
-État 23
+State 23
 
    64 VALSINT: VALINT .
 
-    $défaut  réduction par utilisation de la règle 64 (VALSINT)
+    $default  reduce using rule 64 (VALSINT)
 
 
-État 24
+State 24
 
    39 TESTNOT: '(' . TESTOR ')'
    55 TESTEXPR4: '(' . TESTEXPR1 ')'
 
-    PARAMNAME  décalage et aller à l'état 21
-    VALDOUBLE  décalage et aller à l'état 22
-    VALINT     décalage et aller à l'état 23
-    '('        décalage et aller à l'état 24
-    '!'        décalage et aller à l'état 25
-    '+'        décalage et aller à l'état 26
-    '-'        décalage et aller à l'état 27
+    PARAMNAME  shift, and go to state 21
+    VALDOUBLE  shift, and go to state 22
+    VALINT     shift, and go to state 23
+    '('        shift, and go to state 24
+    '!'        shift, and go to state 25
+    '+'        shift, and go to state 26
+    '-'        shift, and go to state 27
 
-    TESTOR       aller à l'état 43
-    TESTAND      aller à l'état 30
-    TESTNOT      aller à l'état 31
-    TESTREL      aller à l'état 32
-    TESTEXPR1    aller à l'état 44
-    TESTEXPR1OP  aller à l'état 34
-    TESTEXPR2    aller à l'état 35
-    TESTEXPR3    aller à l'état 36
-    TESTEXPR4    aller à l'état 37
-    TESTVAL      aller à l'état 38
-    TESTVAR      aller à l'état 39
-    VALSDOUBLE   aller à l'état 40
-    VALSINT      aller à l'état 41
+    TESTOR       go to state 43
+    TESTAND      go to state 30
+    TESTNOT      go to state 31
+    TESTREL      go to state 32
+    TESTEXPR1    go to state 44
+    TESTEXPR1OP  go to state 34
+    TESTEXPR2    go to state 35
+    TESTEXPR3    go to state 36
+    TESTEXPR4    go to state 37
+    TESTVAL      go to state 38
+    TESTVAR      go to state 39
+    VALSDOUBLE   go to state 40
+    VALSINT      go to state 41
 
 
-État 25
+State 25
 
    38 TESTNOT: '!' . TESTNOT
 
-    PARAMNAME  décalage et aller à l'état 21
-    VALDOUBLE  décalage et aller à l'état 22
-    VALINT     décalage et aller à l'état 23
-    '('        décalage et aller à l'état 24
-    '!'        décalage et aller à l'état 25
-    '+'        décalage et aller à l'état 26
-    '-'        décalage et aller à l'état 27
+    PARAMNAME  shift, and go to state 21
+    VALDOUBLE  shift, and go to state 22
+    VALINT     shift, and go to state 23
+    '('        shift, and go to state 24
+    '!'        shift, and go to state 25
+    '+'        shift, and go to state 26
+    '-'        shift, and go to state 27
 
-    TESTNOT      aller à l'état 45
-    TESTREL      aller à l'état 32
-    TESTEXPR1    aller à l'état 33
-    TESTEXPR1OP  aller à l'état 34
-    TESTEXPR2    aller à l'état 35
-    TESTEXPR3    aller à l'état 36
-    TESTEXPR4    aller à l'état 37
-    TESTVAL      aller à l'état 38
-    TESTVAR      aller à l'état 39
-    VALSDOUBLE   aller à l'état 40
-    VALSINT      aller à l'état 41
+    TESTNOT      go to state 45
+    TESTREL      go to state 32
+    TESTEXPR1    go to state 33
+    TESTEXPR1OP  go to state 34
+    TESTEXPR2    go to state 35
+    TESTEXPR3    go to state 36
+    TESTEXPR4    go to state 37
+    TESTVAL      go to state 38
+    TESTVAR      go to state 39
+    VALSDOUBLE   go to state 40
+    VALSINT      go to state 41
 
 
-État 26
+State 26
 
    47 TESTEXPR1OP: '+' .
 
-    $défaut  réduction par utilisation de la règle 47 (TESTEXPR1OP)
+    $default  reduce using rule 47 (TESTEXPR1OP)
 
 
-État 27
+State 27
 
    48 TESTEXPR1OP: '-' .
 
-    $défaut  réduction par utilisation de la règle 48 (TESTEXPR1OP)
+    $default  reduce using rule 48 (TESTEXPR1OP)
 
 
-État 28
+State 28
 
    10 STRATTEST: $@1 '/' TEST . $@2 '?' STRATSELECT STRATTESTELSE ';'
 
-    $défaut  réduction par utilisation de la règle 9 ($@2)
+    $default  reduce using rule 9 ($@2)
 
-    $@2  aller à l'état 46
+    $@2  go to state 46
 
 
-État 29
+State 29
 
    33 TEST: TESTOR .
    34 TESTOR: TESTOR . '|' TESTAND
 
-    '|'  décalage et aller à l'état 47
+    '|'  shift, and go to state 47
 
-    $défaut  réduction par utilisation de la règle 33 (TEST)
+    $default  reduce using rule 33 (TEST)
 
 
-État 30
+State 30
 
    35 TESTOR: TESTAND .
    36 TESTAND: TESTAND . '&' TESTNOT
 
-    '&'  décalage et aller à l'état 48
+    '&'  shift, and go to state 48
 
-    $défaut  réduction par utilisation de la règle 35 (TESTOR)
+    $default  reduce using rule 35 (TESTOR)
 
 
-État 31
+State 31
 
    37 TESTAND: TESTNOT .
 
-    $défaut  réduction par utilisation de la règle 37 (TESTAND)
+    $default  reduce using rule 37 (TESTAND)
 
 
-État 32
+State 32
 
    40 TESTNOT: TESTREL .
 
-    $défaut  réduction par utilisation de la règle 40 (TESTNOT)
+    $default  reduce using rule 40 (TESTNOT)
 
 
-État 33
+State 33
 
    41 TESTREL: TESTEXPR1 . TESTRELOP TESTEXPR1
    45 TESTEXPR1: TESTEXPR1 . TESTEXPR1OP TESTEXPR2
 
-    '='  décalage et aller à l'état 49
-    '<'  décalage et aller à l'état 50
-    '>'  décalage et aller à l'état 51
-    '+'  décalage et aller à l'état 26
-    '-'  décalage et aller à l'état 27
+    '='  shift, and go to state 49
+    '<'  shift, and go to state 50
+    '>'  shift, and go to state 51
+    '+'  shift, and go to state 26
+    '-'  shift, and go to state 27
 
-    TESTRELOP    aller à l'état 52
-    TESTEXPR1OP  aller à l'état 53
+    TESTRELOP    go to state 52
+    TESTEXPR1OP  go to state 53
 
 
-État 34
+State 34
 
    61 VALSDOUBLE: TESTEXPR1OP . VALDOUBLE
    63 VALSINT: TESTEXPR1OP . VALINT
 
-    VALDOUBLE  décalage et aller à l'état 54
-    VALINT     décalage et aller à l'état 55
+    VALDOUBLE  shift, and go to state 54
+    VALINT     shift, and go to state 55
 
 
-État 35
+State 35
 
    46 TESTEXPR1: TESTEXPR2 .
    49 TESTEXPR2: TESTEXPR2 . TESTEXPR2OP TESTEXPR3
 
-    '*'  décalage et aller à l'état 56
+    '*'  shift, and go to state 56
 
-    $défaut  réduction par utilisation de la règle 46 (TESTEXPR1)
+    $default  reduce using rule 46 (TESTEXPR1)
 
-    TESTEXPR2OP  aller à l'état 57
+    TESTEXPR2OP  go to state 57
 
 
-État 36
+State 36
 
    50 TESTEXPR2: TESTEXPR3 .
    52 TESTEXPR3: TESTEXPR3 . TESTEXPR3OP TESTEXPR4
 
-    '%'  décalage et aller à l'état 58
+    '%'  shift, and go to state 58
 
-    $défaut  réduction par utilisation de la règle 50 (TESTEXPR2)
+    $default  reduce using rule 50 (TESTEXPR2)
 
-    TESTEXPR3OP  aller à l'état 59
+    TESTEXPR3OP  go to state 59
 
 
-État 37
+State 37
 
    53 TESTEXPR3: TESTEXPR4 .
 
-    $défaut  réduction par utilisation de la règle 53 (TESTEXPR3)
+    $default  reduce using rule 53 (TESTEXPR3)
 
 
-État 38
+State 38
 
    56 TESTEXPR4: TESTVAL .
 
-    $défaut  réduction par utilisation de la règle 56 (TESTEXPR4)
+    $default  reduce using rule 56 (TESTEXPR4)
 
 
-État 39
+State 39
 
    57 TESTEXPR4: TESTVAR .
 
-    $défaut  réduction par utilisation de la règle 57 (TESTEXPR4)
+    $default  reduce using rule 57 (TESTEXPR4)
 
 
-État 40
+State 40
 
    58 TESTVAL: VALSDOUBLE .
 
-    $défaut  réduction par utilisation de la règle 58 (TESTVAL)
+    $default  reduce using rule 58 (TESTVAL)
 
 
-État 41
+State 41
 
    59 TESTVAL: VALSINT .
 
-    $défaut  réduction par utilisation de la règle 59 (TESTVAL)
+    $default  reduce using rule 59 (TESTVAL)
 
 
-État 42
+State 42
 
    20 METHODPARAM: $@4 '{' . PARAMLIST $@5 '}'
 
-    PARAMNAME  décalage et aller à l'état 60
+    PARAMNAME  shift, and go to state 60
 
-    PARAMLIST   aller à l'état 61
-    PARAMPARAM  aller à l'état 62
+    PARAMLIST   go to state 61
+    PARAMPARAM  go to state 62
 
 
-État 43
+State 43
 
    34 TESTOR: TESTOR . '|' TESTAND
    39 TESTNOT: '(' TESTOR . ')'
 
-    '|'  décalage et aller à l'état 47
-    ')'  décalage et aller à l'état 63
+    '|'  shift, and go to state 47
+    ')'  shift, and go to state 63
 
 
-État 44
+State 44
 
    41 TESTREL: TESTEXPR1 . TESTRELOP TESTEXPR1
    45 TESTEXPR1: TESTEXPR1 . TESTEXPR1OP TESTEXPR2
    55 TESTEXPR4: '(' TESTEXPR1 . ')'
 
-    ')'  décalage et aller à l'état 64
-    '='  décalage et aller à l'état 49
-    '<'  décalage et aller à l'état 50
-    '>'  décalage et aller à l'état 51
-    '+'  décalage et aller à l'état 26
-    '-'  décalage et aller à l'état 27
+    ')'  shift, and go to state 64
+    '='  shift, and go to state 49
+    '<'  shift, and go to state 50
+    '>'  shift, and go to state 51
+    '+'  shift, and go to state 26
+    '-'  shift, and go to state 27
 
-    TESTRELOP    aller à l'état 52
-    TESTEXPR1OP  aller à l'état 53
+    TESTRELOP    go to state 52
+    TESTEXPR1OP  go to state 53
 
 
-État 45
+State 45
 
    38 TESTNOT: '!' TESTNOT .
 
-    $défaut  réduction par utilisation de la règle 38 (TESTNOT)
+    $default  reduce using rule 38 (TESTNOT)
 
 
-État 46
+State 46
 
    10 STRATTEST: $@1 '/' TEST $@2 . '?' STRATSELECT STRATTESTELSE ';'
 
-    '?'  décalage et aller à l'état 65
+    '?'  shift, and go to state 65
 
 
-État 47
+State 47
 
    34 TESTOR: TESTOR '|' . TESTAND
 
-    PARAMNAME  décalage et aller à l'état 21
-    VALDOUBLE  décalage et aller à l'état 22
-    VALINT     décalage et aller à l'état 23
-    '('        décalage et aller à l'état 24
-    '!'        décalage et aller à l'état 25
-    '+'        décalage et aller à l'état 26
-    '-'        décalage et aller à l'état 27
+    PARAMNAME  shift, and go to state 21
+    VALDOUBLE  shift, and go to state 22
+    VALINT     shift, and go to state 23
+    '('        shift, and go to state 24
+    '!'        shift, and go to state 25
+    '+'        shift, and go to state 26
+    '-'        shift, and go to state 27
 
-    TESTAND      aller à l'état 66
-    TESTNOT      aller à l'état 31
-    TESTREL      aller à l'état 32
-    TESTEXPR1    aller à l'état 33
-    TESTEXPR1OP  aller à l'état 34
-    TESTEXPR2    aller à l'état 35
-    TESTEXPR3    aller à l'état 36
-    TESTEXPR4    aller à l'état 37
-    TESTVAL      aller à l'état 38
-    TESTVAR      aller à l'état 39
-    VALSDOUBLE   aller à l'état 40
-    VALSINT      aller à l'état 41
+    TESTAND      go to state 66
+    TESTNOT      go to state 31
+    TESTREL      go to state 32
+    TESTEXPR1    go to state 33
+    TESTEXPR1OP  go to state 34
+    TESTEXPR2    go to state 35
+    TESTEXPR3    go to state 36
+    TESTEXPR4    go to state 37
+    TESTVAL      go to state 38
+    TESTVAR      go to state 39
+    VALSDOUBLE   go to state 40
+    VALSINT      go to state 41
 
 
-État 48
+State 48
 
    36 TESTAND: TESTAND '&' . TESTNOT
 
-    PARAMNAME  décalage et aller à l'état 21
-    VALDOUBLE  décalage et aller à l'état 22
-    VALINT     décalage et aller à l'état 23
-    '('        décalage et aller à l'état 24
-    '!'        décalage et aller à l'état 25
-    '+'        décalage et aller à l'état 26
-    '-'        décalage et aller à l'état 27
+    PARAMNAME  shift, and go to state 21
+    VALDOUBLE  shift, and go to state 22
+    VALINT     shift, and go to state 23
+    '('        shift, and go to state 24
+    '!'        shift, and go to state 25
+    '+'        shift, and go to state 26
+    '-'        shift, and go to state 27
 
-    TESTNOT      aller à l'état 67
-    TESTREL      aller à l'état 32
-    TESTEXPR1    aller à l'état 33
-    TESTEXPR1OP  aller à l'état 34
-    TESTEXPR2    aller à l'état 35
-    TESTEXPR3    aller à l'état 36
-    TESTEXPR4    aller à l'état 37
-    TESTVAL      aller à l'état 38
-    TESTVAR      aller à l'état 39
-    VALSDOUBLE   aller à l'état 40
-    VALSINT      aller à l'état 41
+    TESTNOT      go to state 67
+    TESTREL      go to state 32
+    TESTEXPR1    go to state 33
+    TESTEXPR1OP  go to state 34
+    TESTEXPR2    go to state 35
+    TESTEXPR3    go to state 36
+    TESTEXPR4    go to state 37
+    TESTVAL      go to state 38
+    TESTVAR      go to state 39
+    VALSDOUBLE   go to state 40
+    VALSINT      go to state 41
 
 
-État 49
+State 49
 
    43 TESTRELOP: '=' .
 
-    $défaut  réduction par utilisation de la règle 43 (TESTRELOP)
+    $default  reduce using rule 43 (TESTRELOP)
 
 
-État 50
+State 50
 
    42 TESTRELOP: '<' .
 
-    $défaut  réduction par utilisation de la règle 42 (TESTRELOP)
+    $default  reduce using rule 42 (TESTRELOP)
 
 
-État 51
+State 51
 
    44 TESTRELOP: '>' .
 
-    $défaut  réduction par utilisation de la règle 44 (TESTRELOP)
+    $default  reduce using rule 44 (TESTRELOP)
 
 
-État 52
+State 52
 
    41 TESTREL: TESTEXPR1 TESTRELOP . TESTEXPR1
 
-    PARAMNAME  décalage et aller à l'état 21
-    VALDOUBLE  décalage et aller à l'état 22
-    VALINT     décalage et aller à l'état 23
-    '('        décalage et aller à l'état 68
-    '+'        décalage et aller à l'état 26
-    '-'        décalage et aller à l'état 27
+    PARAMNAME  shift, and go to state 21
+    VALDOUBLE  shift, and go to state 22
+    VALINT     shift, and go to state 23
+    '('        shift, and go to state 68
+    '+'        shift, and go to state 26
+    '-'        shift, and go to state 27
 
-    TESTEXPR1    aller à l'état 69
-    TESTEXPR1OP  aller à l'état 34
-    TESTEXPR2    aller à l'état 35
-    TESTEXPR3    aller à l'état 36
-    TESTEXPR4    aller à l'état 37
-    TESTVAL      aller à l'état 38
-    TESTVAR      aller à l'état 39
-    VALSDOUBLE   aller à l'état 40
-    VALSINT      aller à l'état 41
+    TESTEXPR1    go to state 69
+    TESTEXPR1OP  go to state 34
+    TESTEXPR2    go to state 35
+    TESTEXPR3    go to state 36
+    TESTEXPR4    go to state 37
+    TESTVAL      go to state 38
+    TESTVAR      go to state 39
+    VALSDOUBLE   go to state 40
+    VALSINT      go to state 41
 
 
-État 53
+State 53
 
    45 TESTEXPR1: TESTEXPR1 TESTEXPR1OP . TESTEXPR2
 
-    PARAMNAME  décalage et aller à l'état 21
-    VALDOUBLE  décalage et aller à l'état 22
-    VALINT     décalage et aller à l'état 23
-    '('        décalage et aller à l'état 68
-    '+'        décalage et aller à l'état 26
-    '-'        décalage et aller à l'état 27
+    PARAMNAME  shift, and go to state 21
+    VALDOUBLE  shift, and go to state 22
+    VALINT     shift, and go to state 23
+    '('        shift, and go to state 68
+    '+'        shift, and go to state 26
+    '-'        shift, and go to state 27
 
-    TESTEXPR1OP  aller à l'état 34
-    TESTEXPR2    aller à l'état 70
-    TESTEXPR3    aller à l'état 36
-    TESTEXPR4    aller à l'état 37
-    TESTVAL      aller à l'état 38
-    TESTVAR      aller à l'état 39
-    VALSDOUBLE   aller à l'état 40
-    VALSINT      aller à l'état 41
+    TESTEXPR1OP  go to state 34
+    TESTEXPR2    go to state 70
+    TESTEXPR3    go to state 36
+    TESTEXPR4    go to state 37
+    TESTVAL      go to state 38
+    TESTVAR      go to state 39
+    VALSDOUBLE   go to state 40
+    VALSINT      go to state 41
 
 
-État 54
+State 54
 
    61 VALSDOUBLE: TESTEXPR1OP VALDOUBLE .
 
-    $défaut  réduction par utilisation de la règle 61 (VALSDOUBLE)
+    $default  reduce using rule 61 (VALSDOUBLE)
 
 
-État 55
+State 55
 
    63 VALSINT: TESTEXPR1OP VALINT .
 
-    $défaut  réduction par utilisation de la règle 63 (VALSINT)
+    $default  reduce using rule 63 (VALSINT)
 
 
-État 56
+State 56
 
    51 TESTEXPR2OP: '*' .
 
-    $défaut  réduction par utilisation de la règle 51 (TESTEXPR2OP)
+    $default  reduce using rule 51 (TESTEXPR2OP)
 
 
-État 57
+State 57
 
    49 TESTEXPR2: TESTEXPR2 TESTEXPR2OP . TESTEXPR3
 
-    PARAMNAME  décalage et aller à l'état 21
-    VALDOUBLE  décalage et aller à l'état 22
-    VALINT     décalage et aller à l'état 23
-    '('        décalage et aller à l'état 68
-    '+'        décalage et aller à l'état 26
-    '-'        décalage et aller à l'état 27
+    PARAMNAME  shift, and go to state 21
+    VALDOUBLE  shift, and go to state 22
+    VALINT     shift, and go to state 23
+    '('        shift, and go to state 68
+    '+'        shift, and go to state 26
+    '-'        shift, and go to state 27
 
-    TESTEXPR1OP  aller à l'état 34
-    TESTEXPR3    aller à l'état 71
-    TESTEXPR4    aller à l'état 37
-    TESTVAL      aller à l'état 38
-    TESTVAR      aller à l'état 39
-    VALSDOUBLE   aller à l'état 40
-    VALSINT      aller à l'état 41
+    TESTEXPR1OP  go to state 34
+    TESTEXPR3    go to state 71
+    TESTEXPR4    go to state 37
+    TESTVAL      go to state 38
+    TESTVAR      go to state 39
+    VALSDOUBLE   go to state 40
+    VALSINT      go to state 41
 
 
-État 58
+State 58
 
    54 TESTEXPR3OP: '%' .
 
-    $défaut  réduction par utilisation de la règle 54 (TESTEXPR3OP)
+    $default  reduce using rule 54 (TESTEXPR3OP)
 
 
-État 59
+State 59
 
    52 TESTEXPR3: TESTEXPR3 TESTEXPR3OP . TESTEXPR4
 
-    PARAMNAME  décalage et aller à l'état 21
-    VALDOUBLE  décalage et aller à l'état 22
-    VALINT     décalage et aller à l'état 23
-    '('        décalage et aller à l'état 68
-    '+'        décalage et aller à l'état 26
-    '-'        décalage et aller à l'état 27
+    PARAMNAME  shift, and go to state 21
+    VALDOUBLE  shift, and go to state 22
+    VALINT     shift, and go to state 23
+    '('        shift, and go to state 68
+    '+'        shift, and go to state 26
+    '-'        shift, and go to state 27
 
-    TESTEXPR1OP  aller à l'état 34
-    TESTEXPR4    aller à l'état 72
-    TESTVAL      aller à l'état 38
-    TESTVAR      aller à l'état 39
-    VALSDOUBLE   aller à l'état 40
-    VALSINT      aller à l'état 41
+    TESTEXPR1OP  go to state 34
+    TESTEXPR4    go to state 72
+    TESTVAL      go to state 38
+    TESTVAR      go to state 39
+    VALSDOUBLE   go to state 40
+    VALSINT      go to state 41
 
 
-État 60
+State 60
 
    25 PARAMPARAM: PARAMNAME . @6 '=' PARAMVAL
 
-    $défaut  réduction par utilisation de la règle 24 (@6)
+    $default  reduce using rule 24 (@6)
 
-    @6  aller à l'état 73
+    @6  go to state 73
 
 
-État 61
+State 61
 
    20 METHODPARAM: $@4 '{' PARAMLIST . $@5 '}'
    22 PARAMLIST: PARAMLIST . ',' PARAMPARAM
 
-    ','  décalage et aller à l'état 74
+    ','  shift, and go to state 74
 
-    $défaut  réduction par utilisation de la règle 19 ($@5)
+    $default  reduce using rule 19 ($@5)
 
-    $@5  aller à l'état 75
+    $@5  go to state 75
 
 
-État 62
+State 62
 
    23 PARAMLIST: PARAMPARAM .
 
-    $défaut  réduction par utilisation de la règle 23 (PARAMLIST)
+    $default  reduce using rule 23 (PARAMLIST)
 
 
-État 63
+State 63
 
    39 TESTNOT: '(' TESTOR ')' .
 
-    $défaut  réduction par utilisation de la règle 39 (TESTNOT)
+    $default  reduce using rule 39 (TESTNOT)
 
 
-État 64
+State 64
 
    55 TESTEXPR4: '(' TESTEXPR1 ')' .
 
-    $défaut  réduction par utilisation de la règle 55 (TESTEXPR4)
+    $default  reduce using rule 55 (TESTEXPR4)
 
 
-État 65
+State 65
 
    10 STRATTEST: $@1 '/' TEST $@2 '?' . STRATSELECT STRATTESTELSE ';'
 
-    METHODNAME  décalage et aller à l'état 1
-    '('         décalage et aller à l'état 2
+    METHODNAME  shift, and go to state 1
+    '('         shift, and go to state 2
 
-    '/'       réduction par utilisation de la règle 8 ($@1)
-    $défaut  réduction par utilisation de la règle 5 (STRATEMPTY)
+    '/'       reduce using rule 8 ($@1)
+    $default  reduce using rule 5 (STRATEMPTY)
 
-    STRATSELECT  aller à l'état 76
-    STRATEMPTY   aller à l'état 5
-    STRATCONCAT  aller à l'état 6
-    STRATTEST    aller à l'état 7
-    $@1          aller à l'état 8
-    STRATGROUP   aller à l'état 9
-    STRATMETHOD  aller à l'état 10
+    STRATSELECT  go to state 76
+    STRATEMPTY   go to state 5
+    STRATCONCAT  go to state 6
+    STRATTEST    go to state 7
+    $@1          go to state 8
+    STRATGROUP   go to state 9
+    STRATMETHOD  go to state 10
 
 
-État 66
+State 66
 
    34 TESTOR: TESTOR '|' TESTAND .
    36 TESTAND: TESTAND . '&' TESTNOT
 
-    '&'  décalage et aller à l'état 48
+    '&'  shift, and go to state 48
 
-    $défaut  réduction par utilisation de la règle 34 (TESTOR)
+    $default  reduce using rule 34 (TESTOR)
 
 
-État 67
+State 67
 
    36 TESTAND: TESTAND '&' TESTNOT .
 
-    $défaut  réduction par utilisation de la règle 36 (TESTAND)
+    $default  reduce using rule 36 (TESTAND)
 
 
-État 68
+State 68
 
    55 TESTEXPR4: '(' . TESTEXPR1 ')'
 
-    PARAMNAME  décalage et aller à l'état 21
-    VALDOUBLE  décalage et aller à l'état 22
-    VALINT     décalage et aller à l'état 23
-    '('        décalage et aller à l'état 68
-    '+'        décalage et aller à l'état 26
-    '-'        décalage et aller à l'état 27
+    PARAMNAME  shift, and go to state 21
+    VALDOUBLE  shift, and go to state 22
+    VALINT     shift, and go to state 23
+    '('        shift, and go to state 68
+    '+'        shift, and go to state 26
+    '-'        shift, and go to state 27
 
-    TESTEXPR1    aller à l'état 77
-    TESTEXPR1OP  aller à l'état 34
-    TESTEXPR2    aller à l'état 35
-    TESTEXPR3    aller à l'état 36
-    TESTEXPR4    aller à l'état 37
-    TESTVAL      aller à l'état 38
-    TESTVAR      aller à l'état 39
-    VALSDOUBLE   aller à l'état 40
-    VALSINT      aller à l'état 41
+    TESTEXPR1    go to state 77
+    TESTEXPR1OP  go to state 34
+    TESTEXPR2    go to state 35
+    TESTEXPR3    go to state 36
+    TESTEXPR4    go to state 37
+    TESTVAL      go to state 38
+    TESTVAR      go to state 39
+    VALSDOUBLE   go to state 40
+    VALSINT      go to state 41
 
 
-État 69
+State 69
 
    41 TESTREL: TESTEXPR1 TESTRELOP TESTEXPR1 .
    45 TESTEXPR1: TESTEXPR1 . TESTEXPR1OP TESTEXPR2
 
-    '+'  décalage et aller à l'état 26
-    '-'  décalage et aller à l'état 27
+    '+'  shift, and go to state 26
+    '-'  shift, and go to state 27
 
-    $défaut  réduction par utilisation de la règle 41 (TESTREL)
+    $default  reduce using rule 41 (TESTREL)
 
-    TESTEXPR1OP  aller à l'état 53
+    TESTEXPR1OP  go to state 53
 
 
-État 70
+State 70
 
    45 TESTEXPR1: TESTEXPR1 TESTEXPR1OP TESTEXPR2 .
    49 TESTEXPR2: TESTEXPR2 . TESTEXPR2OP TESTEXPR3
 
-    '*'  décalage et aller à l'état 56
+    '*'  shift, and go to state 56
 
-    $défaut  réduction par utilisation de la règle 45 (TESTEXPR1)
+    $default  reduce using rule 45 (TESTEXPR1)
 
-    TESTEXPR2OP  aller à l'état 57
+    TESTEXPR2OP  go to state 57
 
 
-État 71
+State 71
 
    49 TESTEXPR2: TESTEXPR2 TESTEXPR2OP TESTEXPR3 .
    52 TESTEXPR3: TESTEXPR3 . TESTEXPR3OP TESTEXPR4
 
-    '%'  décalage et aller à l'état 58
+    '%'  shift, and go to state 58
 
-    $défaut  réduction par utilisation de la règle 49 (TESTEXPR2)
+    $default  reduce using rule 49 (TESTEXPR2)
 
-    TESTEXPR3OP  aller à l'état 59
+    TESTEXPR3OP  go to state 59
 
 
-État 72
+State 72
 
    52 TESTEXPR3: TESTEXPR3 TESTEXPR3OP TESTEXPR4 .
 
-    $défaut  réduction par utilisation de la règle 52 (TESTEXPR3)
+    $default  reduce using rule 52 (TESTEXPR3)
 
 
-État 73
+State 73
 
    25 PARAMPARAM: PARAMNAME @6 . '=' PARAMVAL
 
-    '='  décalage et aller à l'état 78
+    '='  shift, and go to state 78
 
 
-État 74
+State 74
 
    22 PARAMLIST: PARAMLIST ',' . PARAMPARAM
 
-    PARAMNAME  décalage et aller à l'état 60
+    PARAMNAME  shift, and go to state 60
 
-    PARAMPARAM  aller à l'état 79
+    PARAMPARAM  go to state 79
 
 
-État 75
+State 75
 
    20 METHODPARAM: $@4 '{' PARAMLIST $@5 . '}'
 
-    '}'  décalage et aller à l'état 80
+    '}'  shift, and go to state 80
 
 
-État 76
+State 76
 
     2 STRATSELECT: STRATSELECT . '|' STRATEMPTY
    10 STRATTEST: $@1 '/' TEST $@2 '?' STRATSELECT . STRATTESTELSE ';'
 
-    '|'  décalage et aller à l'état 14
-    ':'  décalage et aller à l'état 81
+    '|'  shift, and go to state 14
+    ':'  shift, and go to state 81
 
-    $défaut  réduction par utilisation de la règle 13 (STRATTESTELSE)
+    $default  reduce using rule 13 (STRATTESTELSE)
 
-    STRATTESTELSE  aller à l'état 82
+    STRATTESTELSE  go to state 82
 
 
-État 77
+State 77
 
    45 TESTEXPR1: TESTEXPR1 . TESTEXPR1OP TESTEXPR2
    55 TESTEXPR4: '(' TESTEXPR1 . ')'
 
-    ')'  décalage et aller à l'état 64
-    '+'  décalage et aller à l'état 26
-    '-'  décalage et aller à l'état 27
+    ')'  shift, and go to state 64
+    '+'  shift, and go to state 26
+    '-'  shift, and go to state 27
 
-    TESTEXPR1OP  aller à l'état 53
+    TESTEXPR1OP  go to state 53
 
 
-État 78
+State 78
 
    25 PARAMPARAM: PARAMNAME @6 '=' . PARAMVAL
 
-    error      décalage et aller à l'état 83
-    VALCASE    décalage et aller à l'état 84
-    VALDOUBLE  décalage et aller à l'état 22
-    VALINT     décalage et aller à l'état 23
-    VALSTRING  décalage et aller à l'état 85
-    '+'        décalage et aller à l'état 26
-    '-'        décalage et aller à l'état 27
+    error      shift, and go to state 83
+    VALCASE    shift, and go to state 84
+    VALDOUBLE  shift, and go to state 22
+    VALINT     shift, and go to state 23
+    VALSTRING  shift, and go to state 85
+    '+'        shift, and go to state 26
+    '-'        shift, and go to state 27
 
-    METHODNAME  réduction par utilisation de la règle 30 (@7)
-    '|'         réduction par utilisation de la règle 30 (@7)
-    '/'         réduction par utilisation de la règle 30 (@7)
-    '('         réduction par utilisation de la règle 30 (@7)
-    '}'         réduction par utilisation de la règle 30 (@7)
-    ','         réduction par utilisation de la règle 30 (@7)
+    METHODNAME  reduce using rule 30 (@7)
+    '|'         reduce using rule 30 (@7)
+    '/'         reduce using rule 30 (@7)
+    '('         reduce using rule 30 (@7)
+    '}'         reduce using rule 30 (@7)
+    ','         reduce using rule 30 (@7)
 
-    PARAMVAL     aller à l'état 86
-    @7           aller à l'état 87
-    TESTEXPR1OP  aller à l'état 34
-    VALSDOUBLE   aller à l'état 88
-    VALSINT      aller à l'état 89
+    PARAMVAL     go to state 86
+    @7           go to state 87
+    TESTEXPR1OP  go to state 34
+    VALSDOUBLE   go to state 88
+    VALSINT      go to state 89
 
 
-État 79
+State 79
 
    22 PARAMLIST: PARAMLIST ',' PARAMPARAM .
 
-    $défaut  réduction par utilisation de la règle 22 (PARAMLIST)
+    $default  reduce using rule 22 (PARAMLIST)
 
 
-État 80
+State 80
 
    20 METHODPARAM: $@4 '{' PARAMLIST $@5 '}' .
 
-    $défaut  réduction par utilisation de la règle 20 (METHODPARAM)
+    $default  reduce using rule 20 (METHODPARAM)
 
 
-État 81
+State 81
 
    12 STRATTESTELSE: ':' . STRATSELECT
 
-    METHODNAME  décalage et aller à l'état 1
-    '('         décalage et aller à l'état 2
+    METHODNAME  shift, and go to state 1
+    '('         shift, and go to state 2
 
-    '/'       réduction par utilisation de la règle 8 ($@1)
-    $défaut  réduction par utilisation de la règle 5 (STRATEMPTY)
+    '/'       reduce using rule 8 ($@1)
+    $default  reduce using rule 5 (STRATEMPTY)
 
-    STRATSELECT  aller à l'état 90
-    STRATEMPTY   aller à l'état 5
-    STRATCONCAT  aller à l'état 6
-    STRATTEST    aller à l'état 7
-    $@1          aller à l'état 8
-    STRATGROUP   aller à l'état 9
-    STRATMETHOD  aller à l'état 10
+    STRATSELECT  go to state 90
+    STRATEMPTY   go to state 5
+    STRATCONCAT  go to state 6
+    STRATTEST    go to state 7
+    $@1          go to state 8
+    STRATGROUP   go to state 9
+    STRATMETHOD  go to state 10
 
 
-État 82
+State 82
 
    10 STRATTEST: $@1 '/' TEST $@2 '?' STRATSELECT STRATTESTELSE . ';'
 
-    ';'  décalage et aller à l'état 91
+    ';'  shift, and go to state 91
 
 
-État 83
+State 83
 
    32 PARAMVAL: error .
 
-    $défaut  réduction par utilisation de la règle 32 (PARAMVAL)
+    $default  reduce using rule 32 (PARAMVAL)
 
 
-État 84
+State 84
 
    26 PARAMVAL: VALCASE .
 
-    $défaut  réduction par utilisation de la règle 26 (PARAMVAL)
+    $default  reduce using rule 26 (PARAMVAL)
 
 
-État 85
+State 85
 
    29 PARAMVAL: VALSTRING .
 
-    $défaut  réduction par utilisation de la règle 29 (PARAMVAL)
+    $default  reduce using rule 29 (PARAMVAL)
 
 
-État 86
+State 86
 
    25 PARAMPARAM: PARAMNAME @6 '=' PARAMVAL .
 
-    $défaut  réduction par utilisation de la règle 25 (PARAMPARAM)
+    $default  reduce using rule 25 (PARAMPARAM)
 
 
-État 87
+State 87
 
    31 PARAMVAL: @7 . STRATSELECT
 
-    METHODNAME  décalage et aller à l'état 1
-    '('         décalage et aller à l'état 2
+    METHODNAME  shift, and go to state 1
+    '('         shift, and go to state 2
 
-    '/'       réduction par utilisation de la règle 8 ($@1)
-    $défaut  réduction par utilisation de la règle 5 (STRATEMPTY)
+    '/'       reduce using rule 8 ($@1)
+    $default  reduce using rule 5 (STRATEMPTY)
 
-    STRATSELECT  aller à l'état 92
-    STRATEMPTY   aller à l'état 5
-    STRATCONCAT  aller à l'état 6
-    STRATTEST    aller à l'état 7
-    $@1          aller à l'état 8
-    STRATGROUP   aller à l'état 9
-    STRATMETHOD  aller à l'état 10
+    STRATSELECT  go to state 92
+    STRATEMPTY   go to state 5
+    STRATCONCAT  go to state 6
+    STRATTEST    go to state 7
+    $@1          go to state 8
+    STRATGROUP   go to state 9
+    STRATMETHOD  go to state 10
 
 
-État 88
+State 88
 
    27 PARAMVAL: VALSDOUBLE .
 
-    $défaut  réduction par utilisation de la règle 27 (PARAMVAL)
+    $default  reduce using rule 27 (PARAMVAL)
 
 
-État 89
+State 89
 
    28 PARAMVAL: VALSINT .
 
-    $défaut  réduction par utilisation de la règle 28 (PARAMVAL)
+    $default  reduce using rule 28 (PARAMVAL)
 
 
-État 90
+State 90
 
     2 STRATSELECT: STRATSELECT . '|' STRATEMPTY
    12 STRATTESTELSE: ':' STRATSELECT .
 
-    '|'  décalage et aller à l'état 14
+    '|'  shift, and go to state 14
 
-    $défaut  réduction par utilisation de la règle 12 (STRATTESTELSE)
+    $default  reduce using rule 12 (STRATTESTELSE)
 
 
-État 91
+State 91
 
    10 STRATTEST: $@1 '/' TEST $@2 '?' STRATSELECT STRATTESTELSE ';' .
 
-    $défaut  réduction par utilisation de la règle 10 (STRATTEST)
+    $default  reduce using rule 10 (STRATTEST)
 
 
-État 92
+State 92
 
     2 STRATSELECT: STRATSELECT . '|' STRATEMPTY
    31 PARAMVAL: @7 STRATSELECT .
 
-    '|'  décalage et aller à l'état 14
+    '|'  shift, and go to state 14
 
-    $défaut  réduction par utilisation de la règle 31 (PARAMVAL)
+    $default  reduce using rule 31 (PARAMVAL)

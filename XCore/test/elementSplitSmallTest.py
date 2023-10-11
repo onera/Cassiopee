@@ -18,7 +18,7 @@ if nb_procs == 1:
     zone = ("TETRA", elt2vert, coord)
     zones = [([zone,], 5, 2),]
     #
-    splitted = xcore.split_elements(zones)
+    splitted = xcore.splitElements(zones)
 else:
     elt2vert_glob = np.empty(8*nb_procs, np.int32)
     for i in range(0,2*nb_procs):
@@ -47,6 +47,6 @@ else:
     zone = ("TETRA", elt2vert, coords)
     zones = [([zone,], elt2vert_glob[-1], 2*  nb_procs),]
     #
-    splitted = xcore.split_elements(zones)
+    splitted = xcore.splitElements(zones)
 fich.write("Splitted data :\n{}".format(splitted))
 fich.close()

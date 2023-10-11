@@ -1,4 +1,4 @@
-!* Copyright 2004,2007,2009,2010,2012,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+!* Copyright 2004,2007,2009,2010,2012 IPB, Universite de Bordeaux, INRIA & CNRS
 !*
 !* This file is part of the Scotch software package for static mapping,
 !* graph partitioning and sparse matrix ordering.
@@ -31,13 +31,13 @@
 !*
 !***********************************************************
 !*                                                        **
-!*   NAME       : scotchf.h                               **
+!*   NAME       : ptscotchf.h                             **
 !*                                                        **
 !*   AUTHOR     : Francois PELLEGRINI                     **
 !*                                                        **
 !*   FUNCTION   : FORTRAN declaration file for the        **
-!*                LibScotch static mapping and sparse     **
-!*                matrix block ordering sequential        **
+!*                LibPtscotch parallel static mapping and **
+!*                sparse matrix block ordering sequential **
 !*                library.                                **
 !*                                                        **
 !*   DATES      : # Version 3.4  : from : 04 feb 2000     **
@@ -49,20 +49,14 @@
 !*                # Version 5.1  : from : 26 mar 2009     **
 !*                                 to     12 feb 2011     **
 !*                # Version 6.0  : from : 22 oct 2011     **
-!*                                 to     10 jul 2018     **
+!*                                 to     27 nov 2012     **
 !*                                                        **
 !***********************************************************
 
 !* Flag definitions for the coarsening
 !* routines.
 
-        INTEGER SCOTCH_COARSENNONE
-        INTEGER SCOTCH_COARSENFOLD
-        INTEGER SCOTCH_COARSENFOLDDUP
         INTEGER SCOTCH_COARSENNOMERGE
-        PARAMETER (SCOTCH_COARSENNONE    = 0)
-        PARAMETER (SCOTCH_COARSENFOLD    = 256)
-        PARAMETER (SCOTCH_COARSENFOLDDUP = 768)
         PARAMETER (SCOTCH_COARSENNOMERGE = 16384)
 
 !* Flag definitions for the strategy
@@ -80,21 +74,18 @@
         INTEGER SCOTCH_STRATLEVELMIN
         INTEGER SCOTCH_STRATLEAFSIMPLE
         INTEGER SCOTCH_STRATSEPASIMPLE
-        INTEGER SCOTCH_STRATDISCONNECTED
-
-        PARAMETER (SCOTCH_STRATDEFAULT      = 0)
-        PARAMETER (SCOTCH_STRATQUALITY      = 1)
-        PARAMETER (SCOTCH_STRATSPEED        = 2)
-        PARAMETER (SCOTCH_STRATBALANCE      = 4)
-        PARAMETER (SCOTCH_STRATSAFETY       = 8)
-        PARAMETER (SCOTCH_STRATSCALABILITY  = 16)
-        PARAMETER (SCOTCH_STRATRECURSIVE    = 256)
-        PARAMETER (SCOTCH_STRATREMAP        = 512)
-        PARAMETER (SCOTCH_STRATLEVELMAX     = 4096)
-        PARAMETER (SCOTCH_STRATLEVELMIN     = 8192)
-        PARAMETER (SCOTCH_STRATLEAFSIMPLE   = 16384)
-        PARAMETER (SCOTCH_STRATSEPASIMPLE   = 32768)
-        PARAMETER (SCOTCH_STRATDISCONNECTED = 65536)
+        PARAMETER (SCOTCH_STRATDEFAULT     = 0)
+        PARAMETER (SCOTCH_STRATQUALITY     = 1)
+        PARAMETER (SCOTCH_STRATSPEED       = 2)
+        PARAMETER (SCOTCH_STRATBALANCE     = 4)
+        PARAMETER (SCOTCH_STRATSAFETY      = 8)
+        PARAMETER (SCOTCH_STRATSCALABILITY = 16)
+        PARAMETER (SCOTCH_STRATRECURSIVE   = 256)
+        PARAMETER (SCOTCH_STRATREMAP       = 512)
+        PARAMETER (SCOTCH_STRATLEVELMAX    = 4096)
+        PARAMETER (SCOTCH_STRATLEVELMIN    = 8192)
+        PARAMETER (SCOTCH_STRATLEAFSIMPLE  = 16384)
+        PARAMETER (SCOTCH_STRATSEPASIMPLE  = 32768)
 
 !* Size definitions for the SCOTCH opaque
 !* structures. These structures must be
@@ -104,6 +95,9 @@
 !* program "dummysizes".
 
         INTEGER SCOTCH_ARCHDIM
+        INTEGER SCOTCH_DGRAPHDIM
+        INTEGER SCOTCH_DGRAPHHALOREQDIM
+        INTEGER SCOTCH_DORDERDIM
         INTEGER SCOTCH_GEOMDIM
         INTEGER SCOTCH_GRAPHDIM
         INTEGER SCOTCH_MAPDIM
@@ -111,6 +105,9 @@
         INTEGER SCOTCH_ORDERDIM
         INTEGER SCOTCH_STRATDIM
         PARAMETER (SCOTCH_ARCHDIM          = 12)
+        PARAMETER (SCOTCH_DGRAPHDIM        = 36)
+        PARAMETER (SCOTCH_DGRAPHHALOREQDIM = 1)
+        PARAMETER (SCOTCH_DORDERDIM        = 6)
         PARAMETER (SCOTCH_GEOMDIM          = 2)
         PARAMETER (SCOTCH_GRAPHDIM         = 16)
         PARAMETER (SCOTCH_MAPDIM           = 4)

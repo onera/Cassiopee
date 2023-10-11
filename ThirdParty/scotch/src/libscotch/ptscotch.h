@@ -95,11 +95,7 @@ objects, computed at compile-time by program
 proper padding                               +*/
 
 typedef struct {
-#ifdef G_DOUBLEINT
   double                    dummy[36];
-#else
-  double                    dummy[30];
-#endif
 } SCOTCH_Dgraph;
 
 typedef struct {
@@ -107,11 +103,7 @@ typedef struct {
 } SCOTCH_DgraphHaloReq;
 
 typedef struct {
-#ifdef G_DOUBLEINT
   double                    dummy[17];
-#else
-  double                    dummy[15];
-#endif
 } SCOTCH_Dmapping;
 
 typedef struct {

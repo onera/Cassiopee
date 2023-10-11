@@ -7,7 +7,7 @@ using std::unordered_map;
 using std::unordered_set;
 
 // stub
-PyObject *split_elements(PyObject *self, PyObject *args)
+PyObject *splitElements(PyObject *self, PyObject *args)
 {
     return Py_None;
 }
@@ -626,7 +626,7 @@ PyObject *split_elements(PyObject *self, PyObject *args)
 //     return Py_BuildValue( "O", splt_zone );
 // }
 // // ----------------------------------------------------------------------------------------
-// PyObject *split_elements( PyObject *self, PyObject *args )
+// PyObject *splitElements( PyObject *self, PyObject *args )
 // {
 // #if defined( SPLITTER_TRACE )
 //     std::cout << __PRETTY_FUNCTION__ << std::endl;
@@ -924,4 +924,4 @@ PyObject *split_elements(PyObject *self, PyObject *args)
 //     delete [] dVtxTag;
 //     PDM_DMesh_nodal_free( hdl_dmesh );
 //     return py_part_list;
-// }  // Fin fonction split_elements
+// }  // Fin fonction splitElements

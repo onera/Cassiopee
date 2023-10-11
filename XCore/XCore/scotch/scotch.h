@@ -72,12 +72,12 @@ typedef int64_t SCOTCH_Idx;
 
 #ifdef G_DOUBLEINT
 typedef int64_t SCOTCH_Num;
-#define SCOTCH_NUMMAX               ((int64_t) (((unsigned int64_t) 1 << ((sizeof (int64_t) << 3) - 1)) - 1))
-#define SCOTCH_NUMSTRING            "%d"
+#define SCOTCH_NUMMAX               ((int64_t) (((uint64_t) 1 << ((sizeof (int64_t) << 3) - 1)) - 1))
+#define SCOTCH_NUMSTRING            "%lld"
 #else
 typedef int SCOTCH_Num;
 #define SCOTCH_NUMMAX               ((int) (((unsigned int) 1 << ((sizeof (int) << 3) - 1)) - 1))
-#define SCOTCH_NUMSTRING            "%ld"
+#define SCOTCH_NUMSTRING            "%d"
 #endif
 
 
@@ -132,7 +132,11 @@ typedef unsigned char       SCOTCH_GraphPart2;
 #endif /* SCOTCH_H_UNIQUE */
 
 typedef struct {
+#ifdef G_DOUBLEINT
+  double                    dummy[12];
+#else
   double                    dummy[11];
+#endif
 } SCOTCH_Arch;
 
 typedef struct {
@@ -140,11 +144,19 @@ typedef struct {
 } SCOTCH_Geom;
 
 typedef struct {
+#ifdef G_DOUBLEINT
+  double                    dummy[16];
+#else
   double                    dummy[13];
+#endif
 } SCOTCH_Graph;
 
 typedef struct {
+#ifdef G_DOUBLEINT
+  double                    dummy[20];
+#else
   double                    dummy[15];
+#endif
 } SCOTCH_Mesh;
 
 typedef struct {
@@ -152,7 +164,11 @@ typedef struct {
 } SCOTCH_Mapping;
 
 typedef struct {
+#ifdef G_DOUBLEINT
+  double                    dummy[15];
+#else
   double                    dummy[12];
+#endif
 } SCOTCH_Ordering;
 
 typedef struct {

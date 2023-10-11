@@ -24,6 +24,7 @@ t, tc = myApp.prepare('naca1DEuler.cgns', t_out=LOCAL+'/t.cgns', tc_out=LOCAL+'/
 Internal._rmNodesFromName(tc,Internal.__GridCoordinates__)
 Internal._rmNodesFromType(tc, 'Rind_t')
 if Cmpi.rank == 0: test.testT(tc, 1)
+Cmpi.barrier()
 
 # Compute
 t,tc = myApp.compute(LOCAL+'/t.cgns', LOCAL+'/tc.cgns', t_out=LOCAL+'/restart.cgns', tc_out=LOCAL+'/tc_restart.cgns', nit=300)
@@ -35,3 +36,4 @@ if Cmpi.rank == 0:
     Internal._rmNodesByName(t, '.Solver#ownData')
     Internal._rmNodesByName(t, '.Solver#dtloc')
     test.testT(t, 2)
+Cmpi.barrier()

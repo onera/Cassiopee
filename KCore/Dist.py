@@ -1525,6 +1525,8 @@ def checkMpi(additionalLibPaths=[], additionalIncludePaths=[]):
 # Retourne: (True/False, chemin des includes, chemin de la librairie)
 #=============================================================================
 def checkMpi4py(additionalLibPaths=[], additionalIncludePaths=[]):
+    #print("INFO: dependance to MPI STUBED.")
+    #return (False, None, None, None)
     try: import mpi4py
     except:
         print('Info: mpi4py or mpi4py.MPI.h was not found on your system. No Mpi support.')

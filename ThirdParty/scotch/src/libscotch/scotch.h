@@ -69,23 +69,23 @@
 
 typedef int64_t SCOTCH_Idx;
 
-typedef int SCOTCH_Num;
+typedef int64_t SCOTCH_Num;
 
-#define SCOTCH_NUMMAX               ((int) (((unsigned int) 1 << ((sizeof (int) << 3) - 1)) - 1))
-#define SCOTCH_NUMSTRING            "%d"
+#define SCOTCH_NUMMAX               ((int64_t) (((uint64_t) 1 << ((sizeof (int64_t) << 3) - 1)) - 1))
+#define SCOTCH_NUMSTRING            "%lld"
 
 /*+ Version flags. +*/
 
 #if ((! defined SCOTCH_H_UNIQUE) && (! defined SCOTCH_RENAME_ALL))
-#define SCOTCH_VERSION 6
-#define SCOTCH_RELEASE 0
-#define SCOTCH_PATCHLEVEL 6
+#define SCOTCH_VERSION 
+#define SCOTCH_RELEASE 
+#define SCOTCH_PATCHLEVEL 
 #else /* ((! defined SCOTCH_H_UNIQUE) && (! defined SCOTCH_RENAME_ALL)) */
-#if ((SCOTCH_VERSION != 6) || (SCOTCH_RELEASE != 0) || (SCOTCH_PATCHLEVEL != 6))
+#if ((SCOTCH_VERSION != ) || (SCOTCH_RELEASE != ) || (SCOTCH_PATCHLEVEL != ))
 #ifndef SCOTCH_WARNING_RENAME_UNSAFE
 #define SCOTCH_WARNING_RENAME_UNSAFE
 #endif /* SCOTCH_WARNING_RENAME_UNSAFE */
-#endif /* ((SCOTCH_VERSION != 6) || (SCOTCH_RELEASE != 0) || (SCOTCH_PATCHLEVEL != 6)) */
+#endif /* ((SCOTCH_VERSION != ) || (SCOTCH_RELEASE != ) || (SCOTCH_PATCHLEVEL != )) */
 #endif /* SCOTCH_H_UNIQUE */
 
 /*+ Coarsening flags +*/
@@ -125,7 +125,7 @@ typedef unsigned char       SCOTCH_GraphPart2;
 #endif /* SCOTCH_H_UNIQUE */
 
 typedef struct {
-  double                    dummy[11];
+  double                    dummy[12];
 } SCOTCH_Arch;
 
 typedef struct {
@@ -133,11 +133,11 @@ typedef struct {
 } SCOTCH_Geom;
 
 typedef struct {
-  double                    dummy[13];
+  double                    dummy[16];
 } SCOTCH_Graph;
 
 typedef struct {
-  double                    dummy[15];
+  double                    dummy[20];
 } SCOTCH_Mesh;
 
 typedef struct {
@@ -145,7 +145,7 @@ typedef struct {
 } SCOTCH_Mapping;
 
 typedef struct {
-  double                    dummy[12];
+  double                    dummy[15];
 } SCOTCH_Ordering;
 
 typedef struct {

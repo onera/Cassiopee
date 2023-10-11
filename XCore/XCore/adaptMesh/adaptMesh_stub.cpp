@@ -18,11 +18,10 @@
 */
 
 #include "xcore.h"
-#include "SplitElement/splitter.h"
 
-PyObject* splitElements(PyObject *self, PyObject *args)
+PyObject* K_XCORE::adaptMesh(PyObject *self, PyObject *args)
 {
   PyErr_SetString(PyExc_TypeError,
-                  "splitElements: not available (no mpi).");
+                  "adaptMesh: not available (no mpi).");
   return NULL;
 }
