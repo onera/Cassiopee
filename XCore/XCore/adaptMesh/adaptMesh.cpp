@@ -160,7 +160,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   }
 
   E_Int gncells = 0;
-  MPI_Allreduce(&M->ncells, &gncells, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(&M->ncells, &gncells, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
   if (M->pid == 0)
     printf("Total number of cells: %d\n", gncells);
@@ -329,7 +329,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
       assert(ct.enabled[cell] == 0);
       E_Int *pr = &rM->ref_data[3*cell];
       for (E_Int j = 0; j < 3; j++)
-        pr[j] = std::max(0, pr[j]-1);
+        pr[j] = std::max((E_Int)0, pr[j]-1);
 
       if (is_cell_to_refine(pr)) {
         E_Int nchildren = tree_get_nchildren(&ct, cell);
@@ -365,7 +365,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   E_Float adapt_time = ((E_Float)(toc-tic)) / CLOCKS_PER_SEC;
 
   E_Int gnc = 0;
-  MPI_Allreduce(&rM->ncells, &gnc, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(&rM->ncells, &gnc, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
   E_Float meshmem = mesh_memsize(rM);
   E_Float ftmem = tree_memsize(&ft);
@@ -435,7 +435,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   }
 
   E_Int nleaves = 0;
-  MPI_Allreduce(&cM.necells, &nleaves, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(&cM.necells, &nleaves, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
   toc = clock();
   E_Float extract_time = ((E_Float)(toc-tic)) / CLOCKS_PER_SEC;

@@ -65,9 +65,9 @@ void comm_interface_data_i(mesh *M, E_Int *data, E_Int stride,
     }
     assert(l == stride*nfaces);
 
-    MPI_Irecv(recv_data[i], stride*nfaces, MPI_INT, dest, 0,
+    MPI_Irecv(recv_data[i], (int)stride*nfaces, XMPI_INT, dest, 0,
       MPI_COMM_WORLD, &M->req[M->nreq++]);
-    MPI_Isend(M->ppatches[i].send_buf_i, stride*nfaces, MPI_INT, dest, 0,
+    MPI_Isend(M->ppatches[i].send_buf_i, (int)stride*nfaces, XMPI_INT, dest, 0,
       MPI_COMM_WORLD, &M->req[M->nreq++]);
 
     assert(M->nreq < 2*M->npc);

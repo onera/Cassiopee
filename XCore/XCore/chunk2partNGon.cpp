@@ -76,7 +76,8 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
   E_Float *X, *Y, *Z;
   E_Int npoints, ncells, nfaces;
   E_Int faces_size, cells_size, *faces, *cells, *xfaces, *xcells;
-  E_Int rank, nproc, res;
+  int rank, nproc;
+  E_Int res;
 
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &nproc);
@@ -125,7 +126,7 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
   E_Int *cells_dist = (E_Int *)XCALLOC((nproc+1), sizeof(E_Int));
   cells_dist[0] = 0;
  
-  MPI_Allgather(&ncells, 1, MPI_INT, cells_dist+1, 1, MPI_INT, MPI_COMM_WORLD);
+  MPI_Allgather(&ncells, 1, XMPI_INT, cells_dist+1, 1, XMPI_INT, MPI_COMM_WORLD);
 
   for (E_Int i = 0; i < nproc; i++)
     cells_dist[i+1] += cells_dist[i];
@@ -134,7 +135,7 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
   E_Int *faces_dist = (E_Int *)XCALLOC((nproc+1), sizeof(E_Int));
   faces_dist[0] = 0;
  
-  MPI_Allgather(&nfaces, 1, MPI_INT, faces_dist+1, 1, MPI_INT, MPI_COMM_WORLD);
+  MPI_Allgather(&nfaces, 1, XMPI_INT, faces_dist+1, 1, XMPI_INT, MPI_COMM_WORLD);
 
   for (E_Int i = 0; i < nproc; i++)
     faces_dist[i+1] += faces_dist[i];
@@ -143,7 +144,7 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
   E_Int *points_dist = (E_Int *)XCALLOC((nproc+1), sizeof(E_Int));
   points_dist[0] = 0;
  
-  MPI_Allgather(&npoints, 1, MPI_INT, points_dist+1, 1, MPI_INT, MPI_COMM_WORLD);
+  MPI_Allgather(&npoints, 1, XMPI_INT, points_dist+1, 1, XMPI_INT, MPI_COMM_WORLD);
 
   for (E_Int i = 0; i < nproc; i++)
       points_dist[i+1] += points_dist[i];
@@ -193,17 +194,17 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
   }
 
   // filter faces that need completing
-  std::vector<E_Int> scount(nproc, 0);
+  std::vector<int> scount(nproc, 0);
   for (const auto& face : PE) {
     E_Int target = get_proc(face.first, faces_dist, nproc);
     scount[target] += 1 + 1 + face.second.size(); // id + size + own/nei
   }
 
-  std::vector<E_Int> rcount(nproc);
+  std::vector<int> rcount(nproc);
   MPI_Alltoall(&scount[0], 1, MPI_INT, &rcount[0], 1, MPI_INT, MPI_COMM_WORLD);
 
-  std::vector<E_Int> sdist(nproc+1);
-  std::vector<E_Int> rdist(nproc+1);
+  std::vector<int> sdist(nproc+1);
+  std::vector<int> rdist(nproc+1);
   sdist[0] = rdist[0] = 0;
   for (E_Int i = 0; i < nproc; i++) {
     sdist[i+1] = sdist[i] + scount[i];
@@ -225,8 +226,8 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
   
   std::vector<E_Int> rdata(rdist[nproc]);
 
-  MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], MPI_INT,
-                &rdata[0], &rcount[0], &rdist[0], MPI_INT,
+  MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], XMPI_INT,
+                &rdata[0], &rcount[0], &rdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
  
   PE.clear();
@@ -290,8 +291,8 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
       sdata[idx[target]++] = elem;
   }
 
-  MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], MPI_INT,
-                &rdata[0], &rcount[0], &rdist[0], MPI_INT,
+  MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], XMPI_INT,
+                &rdata[0], &rcount[0], &rdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
 
   E_Int first_cell = cells_dist[rank];
@@ -369,8 +370,8 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
     printf("Graph map OK\n");
 
   // Send cells to their target proc!
-  std::vector<E_Int> c_scount(nproc, 0);
-  std::vector<E_Int> c_rcount(nproc, 0);
+  std::vector<int> c_scount(nproc, 0);
+  std::vector<int> c_rcount(nproc, 0);
 
   for (E_Int i = 0; i < ncells; i++) {
     E_Int where = part[i];
@@ -379,8 +380,8 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
 
   MPI_Alltoall(&c_scount[0], 1, MPI_INT, &c_rcount[0], 1, MPI_INT, MPI_COMM_WORLD);
 
-  std::vector<E_Int> c_sdist(nproc+1, 0);
-  std::vector<E_Int> c_rdist(nproc+1, 0);
+  std::vector<int> c_sdist(nproc+1, 0);
+  std::vector<int> c_rdist(nproc+1, 0);
   for (E_Int i = 0; i < nproc; i++) {
     c_sdist[i+1] = c_sdist[i] + c_scount[i];
     c_rdist[i+1] = c_rdist[i] + c_rcount[i];
@@ -401,12 +402,12 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
     idx[where]++;
   }
 
-  MPI_Alltoallv(&scells[0], &c_scount[0], &c_sdist[0], MPI_INT,
-                &rcells[0], &c_rcount[0], &c_rdist[0], MPI_INT,
+  MPI_Alltoallv(&scells[0], &c_scount[0], &c_sdist[0], XMPI_INT,
+                &rcells[0], &c_rcount[0], &c_rdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
   
-  MPI_Alltoallv(&c_stride[0], &c_scount[0], &c_sdist[0], MPI_INT,
-                &nxcells[0]+1, &c_rcount[0], &c_rdist[0], MPI_INT,
+  MPI_Alltoallv(&c_stride[0], &c_scount[0], &c_sdist[0], XMPI_INT,
+                &nxcells[0]+1, &c_rcount[0], &c_rdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
   
   nxcells[0] = 0;
@@ -456,8 +457,8 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
     }
   }
 
-  MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], MPI_INT,
-                &NFACE[0], &rcount[0], &rdist[0], MPI_INT,
+  MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], XMPI_INT,
+                &NFACE[0], &rcount[0], &rdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
 
   if (rank == 0)
@@ -484,7 +485,7 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
   // hash and request faces
   E_Int nnfaces = 0;
   std::unordered_map<E_Int, E_Int> FT; // to avoid face duplication
-  std::vector<E_Int> f_rcount(nproc, 0), f_scount(nproc, 0);
+  std::vector<int> f_rcount(nproc, 0), f_scount(nproc, 0);
 
   for (E_Int i = 0; i < nproc; i++) {
     E_Int *pc = &rcells[c_rdist[i]];
@@ -503,8 +504,8 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
 
   MPI_Alltoall(&f_rcount[0], 1, MPI_INT, &f_scount[0], 1, MPI_INT, MPI_COMM_WORLD);
   
-  std::vector<E_Int> f_rdist(nproc+1);
-  std::vector<E_Int> f_sdist(nproc+1);
+  std::vector<int> f_rdist(nproc+1);
+  std::vector<int> f_sdist(nproc+1);
   f_rdist[0] = f_sdist[0] = 0;
   for (E_Int i = 0; i < nproc; i++) {
     f_rdist[i+1] = f_rdist[i] + f_rcount[i];
@@ -534,8 +535,8 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
     }
   }
 
-  MPI_Alltoallv(&rfaces[0], &f_rcount[0], &f_rdist[0], MPI_INT,
-                &sfaces[0], &f_scount[0], &f_sdist[0], MPI_INT,
+  MPI_Alltoallv(&rfaces[0], &f_rcount[0], &f_rdist[0], XMPI_INT,
+                &sfaces[0], &f_scount[0], &f_sdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
 
   FT.clear();
@@ -559,8 +560,8 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
     }
   }
 
-  MPI_Alltoallv(&f_stride[0], &f_scount[0], &f_sdist[0], MPI_INT,
-                &nxfaces[0]+1, &f_rcount[0], &f_rdist[0], MPI_INT,
+  MPI_Alltoallv(&f_stride[0], &f_scount[0], &f_sdist[0], XMPI_INT,
+                &nxfaces[0]+1, &f_rcount[0], &f_rdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
   
   nxfaces[0] = 0;
@@ -589,8 +590,8 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
     }
   }
 
-  MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], MPI_INT,
-                &NGON[0], &rcount[0], &rdist[0], MPI_INT,
+  MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], XMPI_INT,
+                &NGON[0], &rcount[0], &rdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
   
   if (rank == 0)
@@ -599,8 +600,8 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
   // request points
   std::unordered_map<E_Int, E_Int> PT; // avoid point repetition
   E_Int nnpoints = 0;
-  std::vector<E_Int> p_rcount(nproc, 0);
-  std::vector<E_Int> p_scount(nproc);
+  std::vector<int> p_rcount(nproc, 0);
+  std::vector<int> p_scount(nproc);
   for (E_Int i = 0; i < nproc; i++) {
     E_Int *pf = &rfaces[f_rdist[i]];
     for (E_Int j = 0; j < f_rcount[i]; j++) {
@@ -619,8 +620,8 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
   MPI_Alltoall(&p_rcount[0], 1, MPI_INT, &p_scount[0], 1, MPI_INT,
     MPI_COMM_WORLD);
 
-  std::vector<E_Int> p_sdist(nproc+1);
-  std::vector<E_Int> p_rdist(nproc+1);
+  std::vector<int> p_sdist(nproc+1);
+  std::vector<int> p_rdist(nproc+1);
   p_sdist[0] = p_rdist[0] = 0;
   for (E_Int i = 0; i < nproc; i++) {
     p_sdist[i+1] = p_sdist[i] + p_scount[i];
@@ -649,8 +650,8 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
     }
   }
 
-  MPI_Alltoallv(&rpoints[0], &p_rcount[0], &p_rdist[0], MPI_INT,
-                &spoints[0], &p_scount[0], &p_sdist[0], MPI_INT,
+  MPI_Alltoallv(&rpoints[0], &p_rcount[0], &p_rdist[0], XMPI_INT,
+                &spoints[0], &p_scount[0], &p_sdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
 
   // renumber points
@@ -717,15 +718,15 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
     }
   }
 
-  MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], MPI_INT,
-                &rdata[0], &rcount[0], &rdist[0], MPI_INT,
+  MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], XMPI_INT,
+                &rdata[0], &rcount[0], &rdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
 
   std::vector<E_Int> pneis; 
 
   E_Int nif = 0;
 
-  std::vector<E_Int> rncount(nproc,0);
+  std::vector<int> rncount(nproc,0);
   for (E_Int i = 0; i < nproc; i++) {
     E_Int *ptr = &rdata[rdist[i]];
     E_Int j = 0;
@@ -764,11 +765,11 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
     assert(j == rcount[i]);
   }
 
-  std::vector<E_Int> sncount(nproc);
+  std::vector<int> sncount(nproc);
   MPI_Alltoall(&rncount[0], 1, MPI_INT, &sncount[0], 1, MPI_INT, MPI_COMM_WORLD);
 
-  std::vector<E_Int> sndist(nproc+1);
-  std::vector<E_Int> rndist(nproc+1);
+  std::vector<int> sndist(nproc+1);
+  std::vector<int> rndist(nproc+1);
   sndist[0] = rndist[0] = 0;
   for (E_Int i = 0; i < nproc; i++) {
     rndist[i+1] = rndist[i] + rncount[i];
@@ -824,8 +825,8 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
     }
   }
 
-  MPI_Alltoallv(&rncells[0], &rncount[0], &rndist[0], MPI_INT,
-                &sncells[0], &sncount[0], &sndist[0], MPI_INT,
+  MPI_Alltoallv(&rncells[0], &rncount[0], &rndist[0], XMPI_INT,
+                &sncells[0], &sncount[0], &sndist[0], XMPI_INT,
                 MPI_COMM_WORLD);
 
   for (E_Int i = 0; i < nproc; i++) {
@@ -840,8 +841,8 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
   }
 
   std::vector<E_Int> nei2proc(rndist[nproc]);
-  MPI_Alltoallv(&sncells[0], &sncount[0], &sndist[0], MPI_INT,
-                &nei2proc[0], &rncount[0], &rndist[0], MPI_INT,
+  MPI_Alltoallv(&sncells[0], &sncount[0], &sndist[0], XMPI_INT,
+                &nei2proc[0], &rncount[0], &rndist[0], XMPI_INT,
                 MPI_COMM_WORLD);
 
   // we have a one to one map between pfaces, pneis and nei2proc via rndist and rncount

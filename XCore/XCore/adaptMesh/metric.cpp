@@ -690,9 +690,9 @@ void smooth_ref_data(mesh *M)
 		}
 		assert(l == 3*npfaces);
 
-		MPI_Irecv(pnei_topo_data[i], 3*npfaces, MPI_INT, dest, 0,
+		MPI_Irecv(pnei_topo_data[i], (int)3*npfaces, XMPI_INT, dest, 0,
 			MPI_COMM_WORLD, &M->req[M->nreq++]);
-		MPI_Isend(send_buf[i], 3*npfaces, MPI_INT, dest, 0,
+		MPI_Isend(send_buf[i], (int)3*npfaces, XMPI_INT, dest, 0,
 			MPI_COMM_WORLD, &M->req[M->nreq++]);
 
 		assert(M->nreq < 2*M->npc);
@@ -888,7 +888,7 @@ void smooth_ref_data(mesh *M)
 
     // stop condition is nothing to smooth anywhere
     E_Int gstop;
-    MPI_Allreduce(&lstop, &gstop, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&lstop, &gstop, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
     if (gstop == 0)
       break;
   }

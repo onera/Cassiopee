@@ -96,8 +96,8 @@ struct mesh {
   proc_patch *ppatches;
   E_Int nppatches;
 
-  E_Int pid;
-  E_Int npc;
+  int pid;
+  int npc;
   E_Int nreq;
   MPI_Request *req;
 

@@ -134,8 +134,8 @@ mesh *redistribute_mesh(mesh *M)
   mesh *m = new mesh;
 
   // send cell ids and strides
-  std::vector<E_Int> c_scount(nproc, 0);
-  std::vector<E_Int> c_rcount(nproc);
+  std::vector<int> c_scount(nproc, 0);
+  std::vector<int> c_rcount(nproc);
   for (E_Int i = 0; i < M->ncells; i++) {
     E_Int where = part[i];
     assert(where < m->npc && where >= 0);
@@ -152,8 +152,8 @@ mesh *redistribute_mesh(mesh *M)
   MPI_Alltoall(&c_scount[0], 1, MPI_INT, &c_rcount[0], 1, MPI_INT,
     MPI_COMM_WORLD);
 
-  std::vector<E_Int> c_sdist(nproc+1);
-  std::vector<E_Int> c_rdist(nproc+1);
+  std::vector<int> c_sdist(nproc+1);
+  std::vector<int> c_rdist(nproc+1);
   c_sdist[0] = c_rdist[0] = 0;
   for (E_Int i = 0; i < nproc; i++) {
     c_sdist[i+1] = c_sdist[i] + c_scount[i];
@@ -178,13 +178,13 @@ mesh *redistribute_mesh(mesh *M)
     idx[where]++;
   }
 
-  MPI_Alltoallv(&scells[0], &c_scount[0], &c_sdist[0], MPI_INT,
-                m->gcells, &c_rcount[0], &c_rdist[0], MPI_INT,
+  MPI_Alltoallv(&scells[0], &c_scount[0], &c_sdist[0], XMPI_INT,
+                m->gcells, &c_rcount[0], &c_rdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
 
   m->xcells = (E_Int *)XCALLOC((nncells+1), sizeof(E_Int));
-  MPI_Alltoallv(&c_stride[0], &c_scount[0], &c_sdist[0], MPI_INT,
-                m->xcells+1, &c_rcount[0], &c_rdist[0], MPI_INT,
+  MPI_Alltoallv(&c_stride[0], &c_scount[0], &c_sdist[0], XMPI_INT,
+                m->xcells+1, &c_rcount[0], &c_rdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
 
   m->xcells[0] = 0;
@@ -194,17 +194,17 @@ mesh *redistribute_mesh(mesh *M)
   assert(m->xcells[m->ncells] == 6*m->ncells);
 
   // send NFACE connectivity
-  std::vector<E_Int> scount(nproc, 0);
+  std::vector<int> scount(nproc, 0);
   for (E_Int i = 0; i < M->ncells; i++) {
     E_Int where = part[i];
     scount[where] += M->xcells[i+1] - M->xcells[i];
   }
 
-  std::vector<E_Int> rcount(nproc);
+  std::vector<int> rcount(nproc);
   MPI_Alltoall(&scount[0], 1, MPI_INT, &rcount[0], 1, MPI_INT, MPI_COMM_WORLD);
 
-  std::vector<E_Int> sdist(nproc+1);
-  std::vector<E_Int> rdist(nproc+1);
+  std::vector<int> sdist(nproc+1);
+  std::vector<int> rdist(nproc+1);
   sdist[0] = rdist[0] = 0;
   for (E_Int i = 0; i < nproc; i++) {
     sdist[i+1] = sdist[i] + scount[i];
@@ -225,8 +225,8 @@ mesh *redistribute_mesh(mesh *M)
       sdata[idx[where]++] = M->gfaces[M->NFACE[j]];
   }
 
-  MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], MPI_INT,
-                m->NFACE, &rcount[0], &rdist[0], MPI_INT,
+  MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], XMPI_INT,
+                m->NFACE, &rcount[0], &rdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
 
   // hash cells
@@ -235,8 +235,8 @@ mesh *redistribute_mesh(mesh *M)
 
   // hash and request faces
   E_Int nnfaces = 0;
-  std::vector<E_Int> f_rcount(nproc, 0);
-  std::vector<E_Int> f_scount(nproc);
+  std::vector<int> f_rcount(nproc, 0);
+  std::vector<int> f_scount(nproc);
 
   for (E_Int i = 0; i < nproc; i++) {
     E_Int *pc = &m->gcells[c_rdist[i]];
@@ -255,8 +255,8 @@ mesh *redistribute_mesh(mesh *M)
   MPI_Alltoall(&f_rcount[0], 1, MPI_INT, &f_scount[0], 1, MPI_INT,
     MPI_COMM_WORLD);
 
-  std::vector<E_Int> f_rdist(nproc+1);
-  std::vector<E_Int> f_sdist(nproc+1);
+  std::vector<int> f_rdist(nproc+1);
+  std::vector<int> f_sdist(nproc+1);
   f_rdist[0] = f_sdist[0] = 0;
   for (E_Int i = 0; i < nproc; i++) {
     f_rdist[i+1] = f_rdist[i] + f_rcount[i];
@@ -289,8 +289,8 @@ mesh *redistribute_mesh(mesh *M)
     }
   }
           
-  MPI_Alltoallv(m->gfaces, &f_rcount[0], &f_rdist[0], MPI_INT,
-                &sfaces[0], &f_scount[0], &f_sdist[0], MPI_INT,
+  MPI_Alltoallv(m->gfaces, &f_rcount[0], &f_rdist[0], XMPI_INT,
+                &sfaces[0], &f_scount[0], &f_sdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
 
   // send face strides
@@ -311,8 +311,8 @@ mesh *redistribute_mesh(mesh *M)
     }
   }
 
-  MPI_Alltoallv(&f_stride[0], &f_scount[0], &f_sdist[0], MPI_INT,
-                m->xfaces+1, &f_rcount[0], &f_rdist[0], MPI_INT,
+  MPI_Alltoallv(&f_stride[0], &f_scount[0], &f_sdist[0], XMPI_INT,
+                m->xfaces+1, &f_rcount[0], &f_rdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
 
   m->xfaces[0] = 0;
@@ -343,14 +343,14 @@ mesh *redistribute_mesh(mesh *M)
     }
   }
 
-  MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], MPI_INT,
-                m->NGON, &rcount[0], &rdist[0], MPI_INT,
+  MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], XMPI_INT,
+                m->NGON, &rcount[0], &rdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
   
   // request points
   E_Int nnpoints = 0;
-  std::vector<E_Int> p_rcount(nproc, 0);
-  std::vector<E_Int> p_scount(nproc);
+  std::vector<int> p_rcount(nproc, 0);
+  std::vector<int> p_scount(nproc);
   for (E_Int i = 0; i < nproc; i++) {
     E_Int *pf = &m->gfaces[f_rdist[i]];
     for (E_Int j = 0; j < f_rcount[i]; j++) {
@@ -368,8 +368,8 @@ mesh *redistribute_mesh(mesh *M)
   MPI_Alltoall(&p_rcount[0], 1, MPI_INT, &p_scount[0], 1, MPI_INT,
     MPI_COMM_WORLD);
 
-  std::vector<E_Int> p_sdist(nproc+1);
-  std::vector<E_Int> p_rdist(nproc+1);
+  std::vector<int> p_sdist(nproc+1);
+  std::vector<int> p_rdist(nproc+1);
   p_sdist[0] = p_rdist[0] = 0;
   for (E_Int i = 0; i < nproc; i++) {
     p_sdist[i+1] = p_sdist[i] + p_scount[i];
@@ -399,8 +399,8 @@ mesh *redistribute_mesh(mesh *M)
     }
   }
 
-  MPI_Alltoallv(m->gpoints, &p_rcount[0], &p_rdist[0], MPI_INT,
-                &spoints[0], &p_scount[0], &p_sdist[0], MPI_INT,
+  MPI_Alltoallv(m->gpoints, &p_rcount[0], &p_rdist[0], XMPI_INT,
+                &spoints[0], &p_scount[0], &p_sdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
 
   // send coordinates
@@ -454,8 +454,8 @@ mesh *redistribute_mesh(mesh *M)
 
   assert(rdist[nproc] == 3*m->ncells);
 
-  MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], MPI_INT,
-                m->ref_data, &rcount[0], &rdist[0], MPI_INT,
+  MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], XMPI_INT,
+                m->ref_data, &rcount[0], &rdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
 
   // init parent elements

@@ -19,6 +19,12 @@
 #ifndef _XCORE_XCORE_H_
 #define _XCORE_XCORE_H_
 
+#ifdef E_DOUBLEINT
+#define XMPI_INT MPI_INT64_T
+#else
+#define XMPI_INT MPI_INT
+#endif
+
 # include "kcore.h"
 namespace K_XCORE
 {
