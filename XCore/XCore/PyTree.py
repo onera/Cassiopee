@@ -79,7 +79,20 @@ def loadAndSplitNGon(fileName):
       if f[3] == 'DataArray_t': 
         soln.append(f[1]); solNames.append(f[0]) 
 
-  arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,solc,soln])
+  zonebc = I.getNodeFromType(z, 'ZoneBC_t')
+  bcs = []
+  bcnames = []
+  familyNames = []
+  if zonebc is not None:
+    BCs = I.getNodesFromType(zonebc, 'BC_t')
+    for bc in BCs:
+      bcnames.append(bc[0])
+      plist = I.getNodeFromName1(bc, 'PointList')
+      fn = I.getNodeFromName(bc, 'FamilyName')
+      familyNames.append(fn[1])
+      bcs.append(plist[1][0])
+
+  arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,solc,soln,bcs])
 
   RES = XCore.xcore.chunk2partNGon(arrays)
 
@@ -87,15 +100,17 @@ def loadAndSplitNGon(fileName):
   comm_data = RES[1]
   solc = RES[2]
   sol = RES[3]
-  cells = RES[4]
-  faces = RES[5]
-  points = RES[6]
+  bcs = RES[4]
+  cells = RES[5]
+  faces = RES[6]
+  points = RES[7]
+
+  assert(len(bcnames) == len(bcs))
 
   Cmpi.barrier()
 
   # create zone
   zo = I.createZoneNode('Zone_' + '%d'%Cmpi.rank, mesh)
-  t = C.newPyTree(['Base', zo])
 
   # add solutions
   for n, name in enumerate(solNames):
@@ -106,7 +121,14 @@ def loadAndSplitNGon(fileName):
     cont = I.createUniqueChild(zo, I.__FlowSolutionCenters__, 'FlowSolution_t')
     I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter', )
     I.newDataArray(name, value=solc[n], parent=cont)
+  
+  cont = I.newZoneBC(zo)
+  for i in range(len(bcs)):
+    if len(bcs[i]) != 0:
+      I.newBC(name=bcnames[i], pointList=bcs[i], btype='FamilySpecified', family=familyNames[i], parent=cont)
 
+
+  t = C.newPyTree(['Base', zo])
   Cmpi._setProc(t, Cmpi.rank)
 
   return t, RES

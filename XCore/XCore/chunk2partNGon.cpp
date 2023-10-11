@@ -30,6 +30,9 @@
     exit(0); \
   } while (0);
 
+#define INTMAX E_IDX_NONE
+#define INTMIN -(E_IDX_NONE-1)
+
 static
 E_Int get_proc(E_Int element, E_Int *distribution, E_Int nproc)
 {
@@ -55,16 +58,72 @@ struct proc_patch {
   {}
 };
 
+void paraSort(E_Int *arr, int size, std::vector<E_Int> &plist_out,
+  std::vector<E_Int> &pivots)
+{
+  int rank, nproc;
+  MPI_Comm_size(MPI_COMM_WORLD, &nproc);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+  // sort local segment
+  std::sort(arr, arr+size);
+
+  // select regularly spaced samples
+  std::vector<E_Int> lsamples(nproc);
+  E_Int jump = size/(nproc*nproc);
+  for (E_Int i = 0; i < nproc; i++) {
+    lsamples[i] = arr[i*jump];
+  }
+
+  // gather and sort all the samples
+  std::vector<E_Int> gsamples(nproc*nproc);
+  MPI_Allgather(&lsamples[0], nproc, XMPI_INT, &gsamples[0], nproc, XMPI_INT,
+    MPI_COMM_WORLD);
+  std::sort(gsamples.begin(), gsamples.end());
+
+  // select nproc-1 pivots
+  pivots.resize(nproc+1);
+  for (E_Int i = 1; i < nproc; i++) {
+    pivots[i] = gsamples[i*gsamples.size()/nproc];
+  }
+  pivots[0] = INTMIN;
+  pivots[nproc] = INTMAX;
+
+  std::vector<int> scount(nproc, 0), rcount(nproc);
+
+  E_Int j = 0;
+  for (E_Int i = 0; i < size; ) {
+    if (arr[i] < pivots[j+1]) {
+      scount[j]++;
+      i++;
+    } else {
+      j++;
+    }
+  }
+  
+  MPI_Alltoall(&scount[0], 1, MPI_INT, &rcount[0], 1, MPI_INT, MPI_COMM_WORLD);
+
+  std::vector<int> sdist(nproc+1), rdist(nproc+1);
+  sdist[0] = rdist[0] = 0;
+  for (E_Int i = 0; i < nproc; i++) {
+    sdist[i+1] = sdist[i] + scount[i];
+    rdist[i+1] = rdist[i] + rcount[i];
+  }
+
+  plist_out.resize(rdist[nproc]);
+  MPI_Alltoallv(arr, &scount[0], &sdist[0], XMPI_INT,
+                &plist_out[0], &rcount[0], &rdist[0], XMPI_INT,
+                MPI_COMM_WORLD);
+  
+  std::sort(plist_out.begin(), plist_out.end());
+
+  assert(plist_out[rdist[nproc]-1] < pivots[rank+1]);
+}
+
 PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
 {
   PyObject *array;
   if (!PyArg_ParseTuple(args, "O", &array)) {
-    return NULL;
-  }
-
-  E_Int nzones = PyList_Size(array);
-  if (nzones != 1) {
-    fprintf(stderr, "chunk2partNGon(): should be one zone per chunk for now.\n");
     return NULL;
   }
 
@@ -1070,6 +1129,140 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
 
     PyList_Append(out, plist);
     Py_DECREF(plist);
+  }
+
+  // 10 must be an array of PointList chunks
+  o = PyList_GetItem(l, 9);
+  E_Int nbc = PyList_Size(o);
+  if (nbc == 0) {
+    PyList_Append(out, PyList_New(0));
+  } else {
+    E_Int **plists = (E_Int **)XCALLOC(nbc, sizeof(E_Int *));
+    int *bcsize = (int *)XMALLOC(nbc * sizeof(int));
+    std::vector<std::vector<E_Int>> myptlists(nbc);
+    std::vector<std::vector<E_Int>> pivots(nbc);
+
+    for (E_Int i = 0; i < nbc; i++) {
+      PyObject *plist = PyList_GetItem(o, i);
+      res = K_NUMPY::getFromNumpyArray(plist, plists[i], bcsize[i], nfld, true);
+      assert(res == 1);
+
+      auto& list = plists[i];
+      paraSort(&list[0], bcsize[i], myptlists[i], pivots[i]);
+
+      // Note(Imad): we could free up plists[i] and bcsize[i] here
+    }
+
+    // make local PE
+    std::unordered_map<E_Int, std::vector<E_Int>> lPE;
+    for (E_Int i = 0; i < nncells; i++) {
+      for (E_Int j = nxcells[i]; j < nxcells[i+1]; j++) {
+        E_Int face = NFACE[j];
+        lPE[face].push_back(i);
+      }
+    }
+
+    // isolate bfaces
+    std::set<E_Int> pfaces_set(pfaces.begin(), pfaces.end());
+    std::vector<E_Int> bfaces;
+
+    for (auto& f : lPE) {
+      if (f.second.size() == 1) {
+        if (pfaces_set.find(f.first) == pfaces_set.end()) {
+          // not a pface
+          bfaces.push_back(f.first);
+        }
+      }
+    }
+
+    // request bface info for each bc
+    PyObject *bclist_out = PyList_New(0);
+    for (E_Int bc = 0; bc < nbc; bc++) {
+      std::vector<int> scount(nproc, 0), rcount(nproc, 0), sdist(nproc+1), rdist(nproc+1);
+      
+      auto& pivot = pivots[bc];
+      for (auto bface : bfaces) {
+        E_Int src = get_proc(bface, &pivot[0], nproc);
+        scount[src]++;
+      }
+      
+      MPI_Alltoall(&scount[0], 1, MPI_INT, &rcount[0], 1, MPI_INT, MPI_COMM_WORLD);
+      
+      sdist[0] = rdist[0] = 0;
+      for (E_Int i = 0; i < nproc; i++) {
+        sdist[i+1] = sdist[i] + scount[i];
+        rdist[i+1] = rdist[i] + rcount[i];
+      }
+
+      std::vector<E_Int> sdata(sdist[nproc]), rdata(rdist[nproc]);
+      std::vector<int> idx(sdist);
+      
+      for (auto bface : bfaces) {
+        E_Int src = get_proc(bface, &pivot[0], nproc);
+        sdata[idx[src]++] = bface;
+      }
+
+      MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], XMPI_INT,
+                    &rdata[0], &rcount[0], &rdist[0], XMPI_INT,
+                    MPI_COMM_WORLD);
+      
+      auto& myptlist = myptlists[bc];
+      std::set<E_Int> pointlist_set(myptlist.begin(), myptlist.end());
+
+      std::vector<int> bscount(nproc, 0), brcount(nproc), bsdist(nproc+1), brdist(nproc+1);
+
+      for (E_Int i = 0; i < nproc; i++) {
+        E_Int *pf = &rdata[rdist[i]];
+        for (E_Int j = 0; j < rcount[i]; j++) {
+          E_Int bface = pf[j];
+          // is bface in pointlist_set?
+          if (pointlist_set.find(bface) != pointlist_set.end())
+            bscount[i]++;
+        }
+      }
+
+      MPI_Alltoall(&bscount[0], 1, MPI_INT, &brcount[0], 1, MPI_INT, MPI_COMM_WORLD);
+
+      bsdist[0] = brdist[0] = 0;
+      for (E_Int i = 0; i < nproc; i++) {
+        bsdist[i+1] = bsdist[i] + bscount[i];
+        brdist[i+1] = brdist[i] + brcount[i];
+      }
+
+      std::vector<E_Int> bsdata(bsdist[nproc]);
+
+      for (E_Int i = 0; i < nproc; i++) idx[i] = bsdist[i];
+
+      for (E_Int i = 0; i < nproc; i++) {
+        E_Int *pf = &rdata[rdist[i]];
+        for (E_Int j = 0; j < rcount[i]; j++) {
+          E_Int bface = pf[j];
+          if (pointlist_set.find(bface) != pointlist_set.end())
+            bsdata[idx[i]++] = bface;
+        }
+      }
+
+      int nrecv = brdist[nproc];
+      dims[1] = 1;
+      dims[0] = (npy_intp)nrecv;
+      PyArrayObject *pa = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_INT);
+
+      MPI_Alltoallv(&bsdata[0], &bscount[0], &bsdist[0], XMPI_INT,
+                    PyArray_DATA(pa), &brcount[0], &brdist[0], XMPI_INT,
+                    MPI_COMM_WORLD);
+
+      E_Int *ppa = (E_Int*)PyArray_DATA(pa);
+      for (E_Int i = 0; i < nrecv; i++) {
+        assert(FT.find(ppa[i]) != FT.end());
+        ppa[i] = FT[ppa[i]]+1;
+      }
+
+      PyList_Append(bclist_out, (PyObject *)pa);
+      Py_DECREF(pa);
+    }
+
+    PyList_Append(out, bclist_out);
+    Py_DECREF(bclist_out);
   }
 
   // my global cells
