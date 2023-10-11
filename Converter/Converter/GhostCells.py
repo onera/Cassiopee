@@ -668,13 +668,13 @@ def getJoinDonorIndicesStruct__(prange,prangedonor,dimdonor,dirdonor,trirac,d,lo
     [arrayborder, dim1border, dim2border] = getBorderIndicesStruct__(prangedonor,dimdonor,dirdonor,d,loc,dimZone, shift)
     if dimZone == 3:
         dim1 = 3
-        array = numpy.zeros((dim1,2), dtype=numpy.int32, order='F')
+        array = numpy.zeros((dim1,2), dtype=Internal.E_NpyInt, order='F')
         array[0,1] = wimax-wimin+1
         array[1,1] = wjmax-wjmin+1
         array[2,1] = wkmax-wkmin+1
     else:
         dim1 = 2
-        array = numpy.zeros((dim1,2), dtype=numpy.int32, order='F')
+        array = numpy.zeros((dim1,2), dtype=Internal.E_NpyInt, order='F')
         array[0,1] = wimax-wimin+1
         array[1,1] = wjmax-wjmin+1
     # reorder indices of opposite (donor) matching join wrt the trirac
@@ -1587,7 +1587,7 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
                                      if fbingo+1 not in ptlistR: 
 
                                        sizeR   = numpy.size(ptlistR)
-                                       datap   = numpy.empty(sizeR+1, dtype=numpy.int32)
+                                       datap   = numpy.empty(sizeR+1, dtype=Internal.E_NpyInt)
                                        datap[0:sizeR] = ptlistR[0:sizeR]
                                        datap[sizeR]   = fbingo +1
                                        Internal.getNodeFromName1(bc_R[c], 'PointList')[1] = datap
@@ -1601,7 +1601,7 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
                               if not ldone:
                                   print('type BC inconnu: creation from scratch',gD)
                                   #ptlistR = Internal.getNodeFromName1(tmp, 'PointList')[1]
-                                  datap = numpy.empty(1, dtype=numpy.int32)
+                                  datap = numpy.empty(1, dtype=Internal.E_NpyInt)
                                   datap[0] = fbingo +1
                                   tmp = [ gD[0],  gD[1], [ gD[2][0] ], gD[3]]
                                   tmp[2].append( [ 'PointList',  datap, [], 'IndexArray_t'] )
@@ -1782,7 +1782,7 @@ def adapt2FastP(t, nlayers=2):
         Nelts = z[1][0][1]
         dims_woghost.append( [ Nvtx , Nelts,  nface_tot, 0, nface_bc ] )
 
-        data_ng = numpy.zeros(6, dtype=numpy.int32)
+        data_ng = numpy.zeros(6, dtype=Internal.E_NpyInt)
         data_ng[0] = dims_woghost[c][2] - dims_woghost[c][3] - dims_woghost[c][4] # couche 0: faceInterne= nbface tot(0) -nface_rac(0)-nfacebc(0)
         data_ng[1] = dims_woghost[c][3]                                           # couche 0: nbface_rac(0)
         data_ng[2] = dims_woghost[c][4]                                           # couche 0: nbfacebc(0)
@@ -1796,7 +1796,7 @@ def adapt2FastP(t, nlayers=2):
         node =  Internal.getNodeFromName1(z, 'NGonElements')
         Internal.createUniqueChild(node, 'IntExt', 'DataArray_t', data_ng)
 
-        data_nf = numpy.zeros(3, dtype=numpy.int32)
+        data_nf = numpy.zeros(3, dtype=Internal.E_NpyInt)
         data_nf[0] = dims_woghost[c][1]                                           # couche 0: nombre element
         l1 = c + nbzone
         l2 = c + nbzone*2
@@ -1986,7 +1986,7 @@ def addGhostCellsNG(t, nlayers=2):
                #print("minmax", min_face, max_face, size_fen)
              #bc contigu
              if min_face + size_fen - 1 ==  max_face:
-               ptlistNew = numpy.arange(min_face, min_face + size_fen, dtype=numpy.int32).reshape((1,size_fen))
+               ptlistNew = numpy.arange(min_face, min_face + size_fen, dtype=Internal.E_NpyInt).reshape((1,size_fen))
                #on supprime les noeuds merger et on gonfle le numpy du premier noeud
                c=0
                for bc in bc_type[key]:
@@ -1997,7 +1997,7 @@ def addGhostCellsNG(t, nlayers=2):
                  c+=1
              else:
                 print(key,": cette CL n'est pas contigue et doit etre mergee")
-                ptlistNew = numpy.empty((1,size_fen), dtype=numpy.int32)
+                ptlistNew = numpy.empty((1,size_fen), dtype=Internal.E_NpyInt)
                 c = 0
                 ipt_ptlist = 0
                 for bc in bc_type[key]:
@@ -2062,9 +2062,9 @@ def addGhostCellsNG(t, nlayers=2):
       z_PointLists    = []
       z_PointListsD   = []
       z_bc_PointLists = []
-      z_donIds        = numpy.empty(nb_racs, numpy.int32)
-      z_ptL_sizes     = numpy.empty(nb_racs, numpy.int32)
-      z_bc_ptL_sizes  = numpy.empty(nb_bcs, numpy.int32)
+      z_donIds        = numpy.empty(nb_racs, Internal.E_NpyInt)
+      z_ptL_sizes     = numpy.empty(nb_racs, Internal.E_NpyInt)
+      z_bc_ptL_sizes  = numpy.empty(nb_bcs,  Internal.E_NpyInt)
 
       j=0
       for rac in raccords:

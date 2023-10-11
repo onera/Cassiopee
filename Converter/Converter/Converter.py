@@ -15,6 +15,11 @@ try: from . import converter
 except: import converter
 import KCore
 
+# INT size for numpys connectivities
+from KCore.Dist import EDOUBLEINT
+if EDOUBLEINT: E_NpyInt = numpy.int64
+else: E_NpyInt = numpy.int32
+
 __all__ = ['array', 'getApi', 'addVars', '_addVars', 'addVars2', 'center2ExtCenter', 
     'center2Node', 'conformizeNGon', 'convertArray2Hexa', 'convertArray2NGon', 'convertArray2Node', 
     'convertArray2Tetra', 'convertBAR2Struct', 'convertTri2Quad',
@@ -111,8 +116,8 @@ def arrayNS(vars, npoints, nelts, eltType, api=1):
                 else: 
                     a.append(numpy.zeros((npoints), numpy.float64))
 
-    if api == 1: c = numpy.ones((nt, nelts), numpy.int32)
-    else: c = [numpy.ones((nelts, nt), numpy.int32)]
+    if api == 1: c = numpy.ones((nt, nelts), E_NpyInt)
+    else: c = [numpy.ones((nelts, nt), E_NpyInt)]
 
     return [vars, a, c, eltType]
 
