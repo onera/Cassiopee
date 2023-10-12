@@ -104,7 +104,7 @@ def getState():
     if UInf is not None and VInf is not None and WInf is not None:
         Vit = UInf*UInf+VInf*VInf+WInf*WInf
         Vit = math.sqrt(Vit)
-        VARS[12].set(str(math.sqrt(Vit)))
+        VARS[12].set(str(Vit))
     else: Vit = None
 
     # TInf
@@ -277,7 +277,7 @@ def setState(event=None):
     elif fullBase > 0: CTK.TXT.insert('START', 'State set in selected base.\n')
     else: CTK.TXT.insert('START', 'State set in selected zones.\n')
     
-# Called when adim is switch -> change buttons
+# Called when adim is switched -> change buttons
 def switchAdim(event=None):
     adim = VARS[11].get()
     if adim == 'adim1(Ro,A,T)' or adim == 'adim2(Ro,U,T)':
@@ -385,7 +385,7 @@ def createApp(win):
     # -14- PInf
     V = TK.StringVar(win); V.set('101325.'); VARS.append(V)
     # -15- LInf
-    V = TK.StringVar(win); V.set('12.'); VARS.append(V)
+    V = TK.StringVar(win); V.set('1.'); VARS.append(V)
     # -16- RoInf
     V = TK.StringVar(win); V.set('1.225'); VARS.append(V)
     # -17- MachTip
@@ -499,23 +499,23 @@ def createApp(win):
     B = TTK.Entry(F, textvariable=VARS[14], background='White', width=6)
     BB = CTK.infoBulle(parent=B, text='Reference (infinite) pressure (Pa).')
     WIDGETS['PInf'] += [B]
-
-    # - RoInf -
-    B = TTK.Label(F, text="RoInf (kg/m3)")
-    BB = CTK.infoBulle(parent=B, text='Reference (infinite) density (kg/m3).')
-    WIDGETS['RoInf'] = [B]
-    B = TTK.Entry(F, textvariable=VARS[15], background='White', width=6)
-    BB = CTK.infoBulle(parent=B, text='Reference (infinite) density (kg/m3).')
-    WIDGETS['RoInf'] += [B]
     
     # - LInf -
     B = TTK.Label(F, text="LInf (m)")
     BB = CTK.infoBulle(parent=B, text='Reference length (m).')
     WIDGETS['LInf'] = [B]
-    B = TTK.Entry(F, textvariable=VARS[16], background='White', width=6)
+    B = TTK.Entry(F, textvariable=VARS[15], background='White', width=6)
     BB = CTK.infoBulle(parent=B, text='Reference length (m).')
     WIDGETS['LInf'] += [B]
-    
+
+    # - RoInf -
+    B = TTK.Label(F, text="RoInf (kg/m3)")
+    BB = CTK.infoBulle(parent=B, text='Reference (infinite) density (kg/m3).')
+    WIDGETS['RoInf'] = [B]
+    B = TTK.Entry(F, textvariable=VARS[16], background='White', width=6)
+    BB = CTK.infoBulle(parent=B, text='Reference (infinite) density (kg/m3).')
+    WIDGETS['RoInf'] += [B]
+
     # - Modele de turbulence -
     B = TTK.Label(F, text="TurbModel")
     B.grid(row=6, column=0, sticky=TK.EW)

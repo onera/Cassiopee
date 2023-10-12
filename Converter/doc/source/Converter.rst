@@ -410,7 +410,7 @@ pyTree creation and manipulation
     attached zones eventually. See below example for all possibilities of input.
 
     :param args: input
-    :type args: [list of baseNames, list of baseNames and dimension, list of zones]
+    :type args: [list of baseNames, list of baseNames and list of zones]
     :rtype: a new pyTree
 
     *Example of use:*

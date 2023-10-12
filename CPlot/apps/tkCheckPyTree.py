@@ -41,7 +41,7 @@ def runCheckPyTree():
         errors += Internal.checkPyTree(CTK.t, level=11)
     if v == 'Node name length < 32':
         errors += Internal.checkPyTree(CTK.t, level=12)
-    if v == 'Homogeneous bases (same dim in zones)':
+    if v == 'Zones of homogeneous cellDim in bases':
         errors += Internal.checkPyTree(CTK.t, level=13)
         
     if v == 'Multigrid compatibility':
@@ -102,7 +102,7 @@ def correctPyTree():
         Internal._correctPyTree(CTK.t, level=11)
     if v == 'Node name length < 32':
         Internal._correctPyTree(CTK.t, level=12)
-    if v == 'Homogeneous bases (same dim in zones)':
+    if v == 'Zones of homogeneous cellDim in bases':
         Internal._correctPyTree(CTK.t, level=13)
         
     #C._fillMissingVariables(CTK.t)
@@ -172,7 +172,7 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[3], 'All conformity', ' > Node conformity', ' > Unique base name', ' > Unique zone name', ' > Unique BC name', 
                        ' > Valid BC ranges', ' > Valid BC match', ' > Referenced families', ' > Valid CGNS types', ' > Valid element nodes',
                        ' > Valid CGNS flowfield name',  ' > NAN in fields',
-                       'Node name length < 32', 'Homogeneous bases (same dim in zones)', 'Multigrid compatibility', 'Maximum number of nodes')
+                       'Node name length < 32', 'Zones of homogeneous cellDim in bases', 'Multigrid compatibility', 'Maximum number of nodes')
     B.grid(row=1, column=0, columnspan=8, sticky=TK.EW)
 
     # - Buttons -

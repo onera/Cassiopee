@@ -912,7 +912,7 @@ def checkBaseZonesDim(t):
 
 #==============================================================================
 # Update all bases with the max dim found in their zones
-# if fullCorr: enforce homogenous bases in pyTree 
+# if fullCorr: enforce bases to have homogenous cellDims by splitting base 
 #==============================================================================
 def _correctBaseZonesDim(t, fullCorr=True):
     bases = Internal.getBases(t)

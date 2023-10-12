@@ -636,17 +636,17 @@ def getIndexField(t):
 # -- newPyTree
 def newPyTree(args=[]):
   """Create a new PyTree.
-  Usage: newPyTree(['Base',3, z1, ...])"""
+  Usage: newPyTree(['Base', z1, z2,  ...])"""
   t = Internal.createRootNode()
   t[2].append(Internal.createCGNSVersionNode())
   l = len(args)
-  base = None; cellDim = 3; name = 'Base'
+  base = None; cellDim = 3; name = 'Base'; noforce = []
   for i in args:
     if isinstance(i, str): # a baseName
       name = i
       base = Internal.createBaseNode(name, cellDim); t[2].append(base)
-    elif isinstance(i, int): # base dim
-      if base is not None: base[1][0] = i
+    elif isinstance(i, int): # base dim explicitely given
+      if base is not None: base[1][0] = i; noforce.append(base[0])
     else:
       if len(i) == 4: # maybe a standard node
         if i[3] == 'Zone_t':
@@ -669,6 +669,9 @@ def newPyTree(args=[]):
               if base is None:
                 base = Internal.createBaseNode(name, cellDim); t[2].append(base)
               base[2].append(z)
+  #for b in Internal.getBases(t):
+  #  if b[0] not in noforce:
+  #    Internal._correctBaseZonesDim(b, fullCorr=False) # force the zones cellDim if cellDim not specified
   return t
 
 # -- addBase2PyTree
@@ -1162,7 +1165,6 @@ def convertPyTree2File(t, fileName, format=None, isize=4, rsize=8,
   """Write a pyTree to a file.
   Usage: convertPyTree2File(t, fileName, format, options)"""
   if t == []: print('Warning: convertPyTree2File: nothing to write.'); return
-  Internal._correctBaseZonesDim(t, fullCorr=False)
   if links is not None: links = checkLinks__(links, t)
   if format is None:
     format = Converter.convertExt2Format__(fileName)
@@ -1170,6 +1172,7 @@ def convertPyTree2File(t, fileName, format=None, isize=4, rsize=8,
   if format == 'bin_cgns' or format == 'bin_adf' or format == 'bin_hdf':
     tp, ntype = Internal.node2PyTree(t)
     Internal._adaptZoneNamesForSlash(tp)
+    Internal._correctBaseZonesDim(t, fullCorr=False)
     Converter.converter.convertPyTree2File(tp[2], fileName, format, links)
   elif format == 'bin_pickle':
     try: import cPickle as pickle
