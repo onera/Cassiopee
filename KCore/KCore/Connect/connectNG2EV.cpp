@@ -25,7 +25,7 @@ using namespace std;
 
 //=============================================================================
 /* Change a NGON connectivity cNG where are stored two connectivities:
-  cFV=face/vertex connectivity
+  cFV=face/vertex connectivity 
   cEF=elt/face connectivity 
   IN: cNG: NGON connectivity
   OUT: cEV: elt/vertex connectivity: numerotation des vertices demarre a 1 
@@ -33,36 +33,36 @@ using namespace std;
 //=============================================================================
 void K_CONNECT::connectNG2EV(FldArrayI& cNG, vector< vector<E_Int> >& cEV)
 {
-  //E_Int nfaces = cNG.getNFaces();
-  //E_Int ncells = cNG.getNElts();
-  E_Int* cnp = cNG.begin();
-  E_Int nfaces = cnp[0];
-  E_Int sizeFN = cnp[1];
-  E_Int ncells = cnp[sizeFN+2];
-  E_Int* ptr = cnp+sizeFN+4; // debut connectivite EF
-  E_Int nf, nv, vert;
-  FldArrayI posFaces(nfaces); // tableau de position des faces dans la connectivite
-  K_CONNECT::getPosFaces(cNG, posFaces);
-  E_Int* posFacesp = posFaces.begin(); // pointeur sur posFace
-  E_Int pos; // position d'une face donnee dans la connectivite
+  // Acces non universel sur le ptrs
+  E_Int* ngon = cNG.getNGon();
+  E_Int* nface = cNG.getNFace();
+  E_Int* indPG = cNG.getIndPG();
+  E_Int* indPH = cNG.getIndPH();
+  // Acces universel nbre d'elements
+  E_Int ncells = cNG.getNElts();
 
-  for (E_Int et = 0; et < ncells; et++)
+  #pragma omp parallel
   {
-    vector<E_Int>& vertices = cEV[et]; // noeuds associes a l'element et
-    nf = ptr[0]; // nb de faces pour l'elt
-    for (E_Int j = 1; j <= nf; j++)
+    E_Int nf, nv;
+    
+    #pragma omp for
+    for (E_Int et = 0; et < ncells; et++)
     {
-      pos = posFacesp[ptr[j]-1];
-      nv = cnp[pos]; //nb de noeuds pour la face courante 
-      for (E_Int nov = 1; nov <= nv; nov++)
+      vector<E_Int>& vertices = cEV[et]; // noeuds associes a l'element et
+      // Acces universel element et
+      E_Int* elt = cNG.getElt(et, nf, nface, indPH);
+      for (E_Int j = 0; j < nf; j++)
       {
-        vert = cnp[pos+nov]; //demarre a 1
-        vertices.push_back(vert);
+        // Acces universel face elt[j]-1
+        E_Int* face = cNG.getFace(elt[j]-1, nv, ngon, indPG);
+        for (E_Int nov = 0; nov < nv; nov++)
+        {
+          vertices.push_back(face[nov]);
+        }
       }
-    }    
-    ptr += nf+1;
-  }  
-  vector<E_Int>::iterator it;  
+    }
+  }
+  vector<E_Int>::iterator it;
   for (E_Int et = 0; et < ncells; et++)
   {
     sort(cEV[et].begin(), cEV[et].end()); 
