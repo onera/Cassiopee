@@ -46,6 +46,7 @@ def loadAndSplitElt(fileName):
 
   return t
 
+BCType_l = set(I.KNOWNBCS)
 
 def loadAndSplitNGon(fileName):
   dt = Filter2.loadAsChunks(fileName)
@@ -81,16 +82,25 @@ def loadAndSplitNGon(fileName):
 
   zonebc = I.getNodeFromType(z, 'ZoneBC_t')
   bcs = []
-  bcnames = []
-  familyNames = []
+  bcNames = []
+  bcTypes = {}
+  familyNames = {}
   if zonebc is not None:
     BCs = I.getNodesFromType(zonebc, 'BC_t')
     for bc in BCs:
-      bcnames.append(bc[0])
+      bcname = bc[0]
+      bctype = I.getValue(bc)
+
+      if bctype == 'FamilySpecified':
+        fname = I.getNodeFromType(bc, 'FamilyName_t')
+        fn = I.getValue(fname)
+        bcTypes[bcname] = fn
+      else:
+        bcTypes[bcname] = bctype
+
+      bcNames.append(bcname)
+
       plist = I.getNodeFromName1(bc, 'PointList')
-      fn = I.getNodeFromName(bc, 'FamilyName')
-      if fn is not None:
-        familyNames.append(fn[1])
       bcs.append(plist[1][0])
 
   arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,solc,soln,bcs])
@@ -105,8 +115,6 @@ def loadAndSplitNGon(fileName):
   cells = RES[5]
   faces = RES[6]
   points = RES[7]
-
-  assert(len(bcnames) == len(bcs))
 
   Cmpi.barrier()
 
@@ -123,13 +131,19 @@ def loadAndSplitNGon(fileName):
     I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter', )
     I.newDataArray(name, value=solc[n], parent=cont)
   
-  cont = I.newZoneBC(zo)
+
   for i in range(len(bcs)):
     if len(bcs[i]) != 0:
-      I.newBC(name=bcnames[i], pointList=bcs[i], btype='FamilySpecified', family=familyNames[i], parent=cont)
+      cont = I.createUniqueChild(zo, 'ZoneBC', 'ZoneBC_t')
+      val = bcTypes[bcNames[i]]
+      if val not in BCType_l:
+        I.newBC(name=bcNames[i], pointList=bcs[i], family=val, parent=cont)
+      else:
+        I.newBC(name=bcNames[i], pointList=bcs[i], btype=val, parent=cont)
 
 
   t = C.newPyTree(['Base', zo])
   Cmpi._setProc(t, Cmpi.rank)
+  #I._correctPyTree(t, level=7)
 
   return t, RES

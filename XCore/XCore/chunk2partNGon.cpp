@@ -995,7 +995,6 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
     }
   }
 
-
   PyList_Append(out, m);  
   Py_DECREF(m);
 
