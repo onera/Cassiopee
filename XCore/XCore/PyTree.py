@@ -89,7 +89,8 @@ def loadAndSplitNGon(fileName):
       bcnames.append(bc[0])
       plist = I.getNodeFromName1(bc, 'PointList')
       fn = I.getNodeFromName(bc, 'FamilyName')
-      familyNames.append(fn[1])
+      if fn is not None:
+        familyNames.append(fn[1])
       bcs.append(plist[1][0])
 
   arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,solc,soln,bcs])
