@@ -1,4 +1,4 @@
-# - setFluidInsides (pyTree) -
+# - setFluidInside (pyTree) -
 import Converter.PyTree as C
 import Geom.IBM as D_IBM
 import Geom.PyTree as D

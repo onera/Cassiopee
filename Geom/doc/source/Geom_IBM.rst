@@ -219,7 +219,27 @@ Setting IBC Type
     
     .. literalinclude:: ../build/Examples/Geom/setFluidInsidePT.py
 
-                        
+---------------------------------------
+
+.. py:function:: Geom.IBM.symetrizePb(tb)
+
+    Add a symmetry plane and symmetrize the body base; input surface must be y>=0 if the symmetry plane is at y=0.
+    Creates the geometry for the symmetry plane, the snear and slip IBC type.
+    :param tb: geometry tree 
+    :type  tb: [zone, list of zones, tree]
+    :param bodyNameSym: name of the base where
+    :type bodyNameSym: string
+    :param snear_sym: mesh resolution at the symmetry plane
+    :type snear_sym: float
+    :param dir_sym: direction of the symmetry plane
+    :type dir_sym: integer (1:x,2:y,3:z)                    
+    :return: same as input
+
+    *Example of use:*
+    
+    * `Symmetrize the surface (pyTree) <Examples/Geom/symetrizePbPT.py>`_:
+    
+    .. literalinclude:: ../build/Examples/Geom/symetrizePbPT.py                        
 ---------------------------------------
 
 .. py:function:: Geom.IBM.initOutflow(tc, familyName, Pstatic, InterpolPlane=None, PressureVar=0,isDensityConstant=False)

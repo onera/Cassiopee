@@ -6,7 +6,7 @@ import Converter
 import numpy
 import copy
 import Generator.IBMmodelHeight as G_IBM_Height
-
+from . import PyTree as D
 varsDeleteIBM = ['utau','StagnationEnthalpy','StagnationPressure',
                 'dirx'          ,'diry'          ,'dirz',
                 'gradxPressure' ,'gradyPressure' ,'gradzPressure' ,
@@ -14,7 +14,67 @@ varsDeleteIBM = ['utau','StagnationEnthalpy','StagnationPressure',
                 'gradxVelocityY','gradyVelocityY','gradzVelocityY',
                 'gradxVelocityZ','gradyVelocityZ','gradzVelocityZ',
                 'KCurv'         ,'yplus']        
+#==============================================================================
+# Creation of a case with a symmetry plane
+#==============================================================================
+def _symetrizePb(t, bodySymName, snear_sym, dir_sym=2):
+    base = Internal.getNodeFromName(t, bodySymName)
+    _symetrizeBody(base, dir_sym=dir_sym)
+    _addSymPlane(t, snear_sym, dir_sym=dir_sym)
+    return None
 
+def _symetrizeBody(base, dir_sym=2):
+    import Transform.PyTree as T
+    zones = Internal.getZones(base)
+    C._initVars(zones,'centers:cellN',1.)
+    if dir_sym==2:
+        v1 = (1,0,0); v2=(0,0,1)
+    elif dir_sym==1:
+        v1 = (0,1,0); v2=(0,0,1)
+    elif dir_sym==3:
+        v1 = (1,0,0); v2=(0,1,0)
+
+    zones_dup = T.symetrize(zones,(0,0,0),v1, v2)
+    for z in zones_dup: z[0]+='_sym'
+    T._reorder(zones_dup,(-1,2,3))
+    C._initVars(zones_dup,'centers:cellN',0.)
+    base[2]+= zones_dup
+    return None
+
+def _addSymPlane(tb, snear_sym, dir_sym=2):
+    import Generator.PyTree as G
+    snearList=[]; dfarList=[]
+    snearFactor=50
+    bodies = Internal.getZones(tb)
+    for nos, s in enumerate(bodies):
+        sdd = Internal.getNodeFromName1(s, ".Solver#define")
+        snearl = Internal.getNodeFromName1(sdd, "snear")
+        if snearl is not None:
+            snearl = Internal.getValue(snearl)
+            snearList.append(snearl*snearFactor)
+        
+        dfarl = Internal.getNodeFromName1(sdd,"dfar")
+        if dfarl is not None:
+            dfarl = Internal.getValue(dfarl)
+            dfarList.append(dfarl)
+            
+    o = G.octree(tb, snearList=snearList, dfarList=dfarList)
+
+    [xmin,ymin,zmin,xmax,ymax,zmax] = G.bbox(o)
+    L = 0.5*(xmax+xmin); eps = 0.2*L
+    xmin = xmin-eps; ymin = ymin-eps; zmin = zmin-eps
+    xmax = xmax+eps; ymax = ymax+eps; zmax = zmax+eps
+    if dir_sym==1: coordsym = 'CoordinateX'; xmax=0
+    elif dir_sym==2: coordsym = 'CoordinateY'; ymax=0
+    elif dir_sym==3: coordsym = 'CoordinateZ'; zmax=0
+    a = D.box((xmin,ymin,zmin),(xmax,ymax,zmax))
+    C._initVars(a,'{centers:cellN}=({centers:%s}>-1e-8)'%coordsym)
+    C._addBase2PyTree(tb,"SYM")
+    base = Internal.getNodeFromName(tb,"SYM"); base[2]+=a
+    _setSnear(base,snear_sym)
+    _setDfar(base,-1.)
+    _setIBCType(base, "slip")
+    return None
 #==============================================================================
 # compute the near wall spacing in agreement with the yplus target at image points - front42
 #==============================================================================
