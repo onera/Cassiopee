@@ -164,7 +164,7 @@ def check_output(cmd, shell, stderr):
         PROCESS = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, cwd=wdir, shell=shell, preexec_fn=ossid)
         try:
-            stdout, stderr = PROCESS.communicate(None, timeout=60.*2.*0.01) # max accepted time is 2 minutes for one test
+            stdout, stderr = PROCESS.communicate(None, timeout=60.*2.) # max accepted time is 2 minutes for one test
         except subprocess.TimeoutExpired:
             stdout = b'FAILED: hangs. '
             stderr = b'FAILED: time out.'

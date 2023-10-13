@@ -75,7 +75,7 @@ namespace K_CONNECT
   
     /* Detecte le couple de faces coincidentes d'arrays 1 et 2
      IN: im1,jm1,km1: dimensions de l'array 1
-     IN: f1: champs de1 : coordonnees incluses
+     IN: f1: champs de1: coordonnees incluses
      IN: posx1, posy1, posz1: positions des coordonnees ds f1
      IN: im2,jm2,km2: dimensions de l'array 2
      IN: f2: champs de 2: coordonnees incluses
