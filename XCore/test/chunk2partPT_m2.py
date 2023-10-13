@@ -3,8 +3,8 @@ import Converter.PyTree as C
 import Generator.PyTree as G
 import Converter.Internal as Internal
 import Converter.Mpi as Cmpi
-import Converter.Filter2 as Filter2
 import KCore.test as test
+import XCore.PyTree as X
 
 LOCAL = test.getLocal()
 
@@ -23,9 +23,7 @@ if rank == 0:
 Cmpi.barrier()
 
 # 2 - Load
-dt = Filter2.loadAsChunks(fileName)
-t, res = Filter2.chunk2part(dt)
+t, res = X.loadAndSplitNGon(fileName)
 
-#if Cmpi.rank == 0: print(t, flush=True)
 Cmpi.convertPyTree2File(t, 'out.cgns')
 if Cmpi.rank == 0: test.testT(t, 1)
