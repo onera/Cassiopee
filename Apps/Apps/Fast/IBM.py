@@ -1080,10 +1080,13 @@ class IBM(Common):
         zones = Internal.getZones(t)
         coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
 
+        #print("extension LOCAL=", ext_local)
+        #coords, rinds = Generator.extendCartGrids(coords, ext=ext_local, optimized=1, extBnd=0)
         coords, rinds = Generator.extendCartGrids(coords, ext=ext_local, optimized=self.input_var.optimized, extBnd=0)
 
         C.setFields(coords, zones, 'nodes')
         for noz in range(len(zones)):
+            #print("Rind", rinds[noz], "No zone=", noz)
             Internal.newRind(value=rinds[noz], parent=zones[noz])
         Cmpi._rmXZones(t)
         coords = None; zones = None
@@ -1414,121 +1417,158 @@ class IBM(Common):
         self.procDict = Cmpi.getProcDict(tc)
         datas = {}
 
-        '''
-        #modif Ivan pour limiter recouvrement en ordre 5
-        ##  etape1 : interp ordre2 nature 1 entre grille de meme niveau
-        ##  etape2 : modif cellN=0 pour les points interpole dans etape 1
-        ##  etape3 : interp ordre5 nature 0 entre grille de niveau N (Receveur) et N-1, N+1 (Donneur)
 
-        ## determine dx=dy for each zone & store per zone
-        levelZone_loc={}
-        hmin = 1.e30
-        for z in Internal.getZones(t):
-           h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
-           #print("dx=",h)
-           levelZone_loc[z[0]]=h
-           if h < hmin : hmin = h
+        if self.input_var.order != 2:
+           #modif Ivan pour limiter recouvrement en ordre 5
+           ##  etape1 : interp ordre2 nature 1 entre grille de meme niveau
+           ##  etape2 : modif cellN=0 pour les points interpole dans etape 1
+           ##  etape3 : interp ordre5 nature 0 entre grille de niveau N (Receveur) et N-1, N+1 (Donneur)
 
-        ## go from dx to dx/dx_min
-        Nlevels=1
-        for i in levelZone_loc:
-          levelZone_loc[i]= math.log( int(levelZone_loc[i]/hmin + 0.00000001)  , 2)
-          if levelZone_loc[i] +1  > Nlevels : Nlevels = int(levelZone_loc[i]) +1
-
-        ## partage des info level en mpi
-        levelZone = Cmpi.allgather(levelZone_loc) 
-
-        #
-        #etape1: calcul interpolation entre grille de meme niveau (ordre2, nature1, pas d'extrap)a
-        #
-        for level in range(Nlevels):
-           print("Interp level=",level)
-           #filtre les zones par niveau de resolution
-           zones=[]
+           ## determine dx=dy for each zone & store per zone
+           levelZone_loc={}
+           hmin = 1.e30
            for z in Internal.getZones(t):
-             if levelZone[z[0]]==level:
-                zones.append(z)
-                print("level=", level,"zone In", z[0])
+              h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
+              #print("dx=",h)
+              levelZone_loc[z[0]]=h
+              if h < hmin : hmin = h
 
-           for zrcv in zones:
-               zrname = zrcv[0]
+           ## go from dx to dx/dx_min
+           Nlevels=1
+           for i in levelZone_loc:
+             levelZone_loc[i]= math.log( int(levelZone_loc[i]/hmin + 0.00000001)  , 2)
+             if levelZone_loc[i] +1  > Nlevels : Nlevels = int(levelZone_loc[i]) +1
 
-               dnrZones = []
-               for zdname in interDict[zrname]:
-                   zd = Internal.getNodeFromName2(tc, zdname)
-                   if levelZone[zd[0]]==level: dnrZones.append(zd)
-               if dnrZones:
-                   X._setInterpData(zrcv, dnrZones, nature=1, penalty=1, extrap=0,loc='centers', storage='inverse',
-                                    sameName=1, interpDataType=self.input_var.interpDataType, order=2, itype='chimera')
-               #
-               #etape 2 : modif CellN=0 pour les points interpoles a l'etape ci dessus et on vire info orphelin
-               #
-               for zd in dnrZones:
-                   zdname = zd[0]
-                   destProc = self.procDict[zdname]
+           ## partage des info level en mpi
+           levelZone = Cmpi.allgather(levelZone_loc) 
+
+           #
+           #etape1: calcul interpolation entre grille de meme niveau (ordre2, nature1, pas d'extrap)a
+           #
+           for level in range(Nlevels):
+              print("Interp level=",level)
+              #filtre les zones par niveau de resolution
+              zones=[]
+              for z in Internal.getZones(t):
+                if levelZone[z[0]]==level:
+                   zones.append(z)
+                   print("level=", level,"zone In", z[0])
+
+              for zrcv in zones:
+                  zrname = zrcv[0]
+
+                  dnrZones = []
+                  for zdname in interDict[zrname]:
+                      zd = Internal.getNodeFromName2(tc, zdname)
+                      if levelZone[zd[0]]==level: dnrZones.append(zd)
+                  if dnrZones:
+                      X._setInterpData(zrcv, dnrZones, nature=1, penalty=1, extrap=0,loc='centers', storage='inverse',
+                                       sameName=1, interpDataType=self.input_var.interpDataType, order=2, itype='chimera')
+                  #
+                  #etape 2 : modif CellN=0 pour les points interpoles a l'etape ci dessus et on vire info orphelin
+                  #
+                  for zd in dnrZones:
+                      zdname = zd[0]
+                      destProc = self.procDict[zdname]
     
-                   IDs = []
-                   for i in zd[2]:
-                       modif=0
-                       if i[0][0:2] == 'ID':
-                         Internal.rmNodesByName(i,'OrphanPointList')
-
-                         if Internal.getValue(i)==zrname: 
-                           IDs.append(i)
-                           PtlistD = Internal.getNodeFromName(i, "PointListDonor")[1]
-
-                           for zR in zones:
-                              if zR[0]==zrname: break
-                           print("zone receveuse", zrname, 'zD=', zdname)
-                           cellN_R = Internal.getNodeFromName(zR, "cellN")[1]
-                           sh_R    = numpy.shape(cellN_R)
-
-                           if len(sh_R)==2:
-                              for l in range(numpy.size(PtlistD)):
-                                  jR = (PtlistD[l])//sh_R[0]
-                                  iR =  PtlistD[l] -jR*sh_R[0]
-                                  cellN_R[iR,jR]=0
-                           else:
-                              for l in range(numpy.size(PtlistD)):
-                                  kR =  PtlistD[l]//(sh_R[0]*sh_R[1])
-                                  jR = (PtlistD[l] -kR*sh_R[0]*sh_R[1])//sh_R[0]
-                                  iR =  PtlistD[l] -kR*sh_R[0]*sh_R[1] -jR*sh_R[0]
-                                  cellN_R[iR,jR,kR]=0
-
-                   if IDs != []:
-                       if destProc == self.rank:
-                           zD = Internal.getNodeFromName2(tc, zdname)
-                           zD[2] += IDs
-                       else:
-                           if destProc not in datas: datas[destProc] = [[zdname,IDs]]
-                           else: datas[destProc].append([zdname,IDs])
-                   else:
-                       if destProc not in datas: datas[destProc] = []
+                      IDs = []
+                      for i in zd[2]:
+                          modif=0
+                          if i[0][0:2] == 'ID':
+                            Internal.rmNodesByName(i,'OrphanPointList')
    
-        #
-        #etape 3: calcul interpolation entre grille de niveau N (Receveur) et N+1, N-1 (donneurs)
-        #
-        for level in range(Nlevels):
-           print("Interp level=",level)
-           #filtre les zones par niveau de resolution
-           zones=[]
-           for z in Internal.getZones(t):
-             if levelZone[z[0]]==level:
-                zones.append(z)
-                print("level=", level,"zone In", z[0])
+                            if Internal.getValue(i)==zrname: 
+                              IDs.append(i)
+                              PtlistD = Internal.getNodeFromName(i, "PointListDonor")[1]
 
-           for zrcv in zones:
+                              for zR in zones:
+                                 if zR[0]==zrname: break
+                              print("zone receveuse", zrname, 'zD=', zdname)
+                              cellN_R = Internal.getNodeFromName(zR, "cellN")[1]
+                              sh_R    = numpy.shape(cellN_R)
+
+                              if len(sh_R)==2:
+                                 for l in range(numpy.size(PtlistD)):
+                                     jR = (PtlistD[l])//sh_R[0]
+                                     iR =  PtlistD[l] -jR*sh_R[0]
+                                     cellN_R[iR,jR]=0
+                              else:
+                                 for l in range(numpy.size(PtlistD)):
+                                     kR =  PtlistD[l]//(sh_R[0]*sh_R[1])
+                                     jR = (PtlistD[l] -kR*sh_R[0]*sh_R[1])//sh_R[0]
+                                     iR =  PtlistD[l] -kR*sh_R[0]*sh_R[1] -jR*sh_R[0]
+                                     cellN_R[iR,jR,kR]=0
+
+                      if IDs != []:
+                          if destProc == self.rank:
+                              zD = Internal.getNodeFromName2(tc, zdname)
+                              zD[2] += IDs
+                          else:
+                              if destProc not in datas: datas[destProc] = [[zdname,IDs]]
+                              else: datas[destProc].append([zdname,IDs])
+                      else:
+                          if destProc not in datas: datas[destProc] = []
+           '''
+           #t4 = X.getOversetInfo(t, tc, loc='center',type='extrapolated')
+           #t = X.getOversetInfo(t, tc, loc='center',type='orphan')
+           #C.convertPyTree2File(t,'t_prep.cgns')
+           #C.convertPyTree2File(tc,'tc2_prep.cgns')
+           #stop
+           '''
+   
+           #
+           #etape 3: calcul interpolation entre grille de niveau N (Receveur) et N+1, N-1 (donneurs)
+           #
+           for level in range(Nlevels):
+              print("Interp level=",level)
+              #filtre les zones par niveau de resolution
+              zones=[]
+              for z in Internal.getZones(t):
+                if levelZone[z[0]]==level:
+                   zones.append(z)
+                   print("level=", level,"zone In", z[0])
+
+              for zrcv in zones:
+                  zrname = zrcv[0]
+                  print("ZoneR=", zrname)
+                  dnrZones = []
+                  for zdname in interDict[zrname]:
+                      zd = Internal.getNodeFromName2(tc, zdname)
+                      if levelZone[zd[0]]==level+1 or  levelZone[zd[0]]==level-1 : 
+                         dnrZones.append(zd)
+                         print("ZoneD=", zd[0], levelZone[zd[0]])
+                  if dnrZones:
+                      X._setInterpData(zrcv, dnrZones, nature=self.input_var.nature, penalty=1, loc='centers', storage='inverse',
+                                       sameName=1, interpDataType=self.input_var.interpDataType, order=self.input_var.order, itype='chimera')
+                  for zd in dnrZones:
+                      zdname = zd[0]
+                      destProc = self.procDict[zdname]
+    
+                      IDs = []
+                      for i in zd[2]:
+                          if i[0][0:2] == 'ID':
+                              if Internal.getValue(i)==zrname: 
+                                IDs.append(i)
+                      if IDs != []:
+                          if destProc == self.rank:
+                              zD = Internal.getNodeFromName2(tc, zdname)
+                              zD[2] += IDs
+                          else:
+                              if destProc not in datas: datas[destProc] = [[zdname,IDs]]
+                              else: datas[destProc].append([zdname,IDs])
+                      else:
+                          if destProc not in datas: datas[destProc] = []
+           #Fin modif Ivan
+        else:
+           for zrcv in Internal.getZones(t):
                zrname = zrcv[0]
-               print("ZoneR=", zrname)
                dnrZones = []
                for zdname in interDict[zrname]:
                    zd = Internal.getNodeFromName2(tc, zdname)
-                   if levelZone[zd[0]]==level+1 or  levelZone[zd[0]]==level-1 : 
-                      dnrZones.append(zd)
-                      print("ZoneD=", zd[0], levelZone[zd[0]])
+                   dnrZones.append(zd)
                if dnrZones:
                    X._setInterpData(zrcv, dnrZones, nature=self.input_var.nature, penalty=1, loc='centers', storage='inverse',
-                                    sameName=1, interpDataType=self.input_var.interpDataType, order=self.input_var.order, itype='chimera')
+                                 sameName=1, interpDataType=self.input_var.interpDataType, order=self.input_var.order, itype='chimera')
                for zd in dnrZones:
                    zdname = zd[0]
                    destProc = self.procDict[zdname]
@@ -1536,8 +1576,8 @@ class IBM(Common):
                    IDs = []
                    for i in zd[2]:
                        if i[0][0:2] == 'ID':
-                           if Internal.getValue(i)==zrname: 
-                             IDs.append(i)
+                           if Internal.getValue(i)==zrname: IDs.append(i)
+    
                    if IDs != []:
                        if destProc == self.rank:
                            zD = Internal.getNodeFromName2(tc, zdname)
@@ -1547,37 +1587,7 @@ class IBM(Common):
                            else: datas[destProc].append([zdname,IDs])
                    else:
                        if destProc not in datas: datas[destProc] = []
-        #Fin modif Ivan
-        '''
-        for zrcv in Internal.getZones(t):
-            zrname = zrcv[0]
-            dnrZones = []
-            for zdname in interDict[zrname]:
-                zd = Internal.getNodeFromName2(tc, zdname)
-                dnrZones.append(zd)
-            if dnrZones:
-                X._setInterpData(zrcv, dnrZones, nature=self.input_var.nature, penalty=1, loc='centers', storage='inverse',
-                                 sameName=1, interpDataType=self.input_var.interpDataType, order=self.input_var.order, itype='chimera')
-            for zd in dnrZones:
-                zdname = zd[0]
-                destProc = self.procDict[zdname]
-    
-                IDs = []
-                for i in zd[2]:
-                    if i[0][0:2] == 'ID':
-                        if Internal.getValue(i)==zrname: IDs.append(i)
-    
-                if IDs != []:
-                    if destProc == self.rank:
-                        zD = Internal.getNodeFromName2(tc, zdname)
-                        zD[2] += IDs
-                    else:
-                        if destProc not in datas: datas[destProc] = [[zdname,IDs]]
-                        else: datas[destProc].append([zdname,IDs])
-                else:
-                    if destProc not in datas: datas[destProc] = []
         #Fin Interp classique
-        
 
 
         Cmpi._rmXZones(tc)
@@ -1593,6 +1603,15 @@ class IBM(Common):
         datas = {}; destDatas = None; graph={}
         test.printMem(">>> Interpdata [after free]")
         test.printMem(">>> Interpdata [end]")
+ 
+        #tmp = Internal.copyTree(t)   
+        #t4 = X.getOversetInfo(tmp, tc, loc='center',type='extrapolated')
+        #t5 = X.getOversetInfo(tmp, tc, loc='center',type='orphan')
+        #C.convertPyTree2File(tc,'tc3_old.cgns')
+        #C.convertPyTree2File(t4,'extrapolated.cgns')
+        #C.convertPyTree2File(t5,'orphan.cgns')
+        #stop
+
 
         # fin interpData
         C._initVars(t,'{centers:cellNIBCDnr}=minimum(2.,abs({centers:cellNIBC}))')
@@ -2537,11 +2556,11 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 # IBM prepare - parallel
 def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None, yplus=100., Lref=1.,
-             vmin=21, check=False, format='single', interpDataType=0, order=2, ext=2, nature=1, optimized=1,
+             vmin=21, check=False, format='single', interpDataType=0, order=2, ext=2, nature=1,optimized=1,
              frontType=1, extrusion=None, smoothing=False, balancing=False, recomputeDist=False,
              distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, yplusAdapt=100., dfarDir=0, 
              correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False, redistribute=False, IBCType=1,
-             height_in=-1.0, isFilamentOnly=False, isWireModel=False, cleanCellN=True, check_snear=False):
+             height_in=-1.0,isFilamentOnly=False,isWireModel=False, cleanCellN=True, check_snear=False):
     prep_local=IBM()
     prep_local.input_var.t_in                   =t_in
     prep_local.input_var.to                     =to
