@@ -1407,7 +1407,7 @@ Check nodes
     opposite BC range for match and nearmatch, 7: referenced familyZone and
     familyBCs must be defined in bases, 8: valid CGNS types, 9: valid connectivity,
     10: valid CGNS flowfield name and dimension, 11: check if NAN or INFINITE in fields,
-    12: node name length < 32 chars, 13: Homogeneous bases (same dim in zones)).
+    12: node name length < 32 chars, 13: all zones of same cellDim in bases).
     If level=-20, all previous checks are performed.
     
     Return a list of pairs of invalid nodes and error message.
@@ -1435,8 +1435,7 @@ Check nodes
     opposite BC range for match and nearmatch, 7: referenced familyZone and
     familyBCs must be defined in bases, 8: valid CGNS types, 9: valid connectivity,
     10: valid CGNS flowfield name and dimension, 11: supress NAN or INFINITE in fields, 
-    12: truncate node name length (<= 32 chars), 
-    13: Enforce homogenous bases in pyTree). 
+    12: truncate node name length (<= 32 chars), 13: enforce zones of same cellDim in bases). 
 
     Generally invalid nodes are suppressed.
     If level=-20, all previous checks are performed.

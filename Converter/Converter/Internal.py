@@ -501,6 +501,13 @@ def newGridCoordinates(name=__GridCoordinates__, parent=None):
 # -- newDataArray
 def newDataArray(name='Data', value=None, parent=None):
     """Create a new DataArray node."""
+    if 'Pointers' in name: # Specific for iterative pointers
+        if isinstance(value, list):
+            out = []
+            for v in value:
+                if isinstance(v, str): out.append(v.ljust(32))
+                else: out.append(v)
+            value = out
     if parent is None:
         node = createNode(name, 'DataArray_t', value=value)
     else: node = createUniqueChild(parent, name, 'DataArray_t', value=value)
@@ -607,11 +614,11 @@ def newPointRange(name='PointRange', value=None, parent=None):
     return node
 
 # -- newRind
-def newRind(value=None, parent=None, name='Rind'):
+def newRind(value=None, parent=None):
     """Create a new Rind node."""
     if parent is None:
-        node = createNode(name, 'Rind_t', value=value)
-    else: node = createUniqueChild(parent, name, 'Rind_t', value=value)
+        node = createNode('Rind', 'Rind_t', value=value)
+    else: node = createUniqueChild(parent, 'Rind', 'Rind_t', value=value)
     return node
 
 # -- newSimulation

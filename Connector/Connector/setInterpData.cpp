@@ -380,7 +380,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
       a2, a3, a4, a5, posxs, posys, poszs, poscs,
       vol, indi, cf, tmpIndi, tmpCf, type, noblk, interpType, nature, penalty);   
     isExtrapolated = 0;
-    if (ok != 1 and enableExtrap==1)
+    if (ok != 1 && enableExtrap == 1)
     {
       ok = K_INTERP::getExtrapolationCell(
         x, y, z, interpDatas, fields,

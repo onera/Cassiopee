@@ -1080,13 +1080,10 @@ class IBM(Common):
         zones = Internal.getZones(t)
         coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
 
-        #print("extension LOCAL=", ext_local)
-        #coords, rinds = Generator.extendCartGrids(coords, ext=ext_local, optimized=1, extBnd=0)
         coords, rinds = Generator.extendCartGrids(coords, ext=ext_local, optimized=self.input_var.optimized, extBnd=0)
 
         C.setFields(coords, zones, 'nodes')
         for noz in range(len(zones)):
-            #print("Rind", rinds[noz], "No zone=", noz)
             Internal.newRind(value=rinds[noz], parent=zones[noz])
         Cmpi._rmXZones(t)
         coords = None; zones = None
@@ -1417,7 +1414,7 @@ class IBM(Common):
         self.procDict = Cmpi.getProcDict(tc)
         datas = {}
 
-
+        '''
         #modif Ivan pour limiter recouvrement en ordre 5
         ##  etape1 : interp ordre2 nature 1 entre grille de meme niveau
         ##  etape2 : modif cellN=0 pour les points interpole dans etape 1
@@ -1507,14 +1504,6 @@ class IBM(Common):
                            else: datas[destProc].append([zdname,IDs])
                    else:
                        if destProc not in datas: datas[destProc] = []
-        '''
-        #t4 = X.getOversetInfo(t, tc, loc='center',type='extrapolated')
-        #t = X.getOversetInfo(t, tc, loc='center',type='orphan')
-     
-        #C.convertPyTree2File(t,'t_prep.cgns')
-        #C.convertPyTree2File(tc,'tc2_prep.cgns')
-        #stop
-        '''
    
         #
         #etape 3: calcul interpolation entre grille de niveau N (Receveur) et N+1, N-1 (donneurs)
@@ -1588,7 +1577,7 @@ class IBM(Common):
                 else:
                     if destProc not in datas: datas[destProc] = []
         #Fin Interp classique
-        '''
+        
 
 
         Cmpi._rmXZones(tc)
@@ -1604,15 +1593,6 @@ class IBM(Common):
         datas = {}; destDatas = None; graph={}
         test.printMem(">>> Interpdata [after free]")
         test.printMem(">>> Interpdata [end]")
- 
-        #tmp = Internal.copyTree(t)   
-        #t4 = X.getOversetInfo(tmp, tc, loc='center',type='extrapolated')
-        #t5 = X.getOversetInfo(tmp, tc, loc='center',type='orphan')
-        #C.convertPyTree2File(tc,'tc3_old.cgns')
-        #C.convertPyTree2File(t4,'extrapolated.cgns')
-        #C.convertPyTree2File(t5,'orphan.cgns')
-        #stop
-
 
         # fin interpData
         C._initVars(t,'{centers:cellNIBCDnr}=minimum(2.,abs({centers:cellNIBC}))')
@@ -2557,11 +2537,11 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 # IBM prepare - parallel
 def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., dfarList=[],
              tbox=None, snearsf=None, yplus=100., Lref=1.,
-             vmin=21, check=False, format='single', interpDataType=0, order=2, ext=2, nature=1,optimized=1,
+             vmin=21, check=False, format='single', interpDataType=0, order=2, ext=2, nature=1, optimized=1,
              frontType=1, extrusion=None, smoothing=False, balancing=False, recomputeDist=False,
              distrib=True, expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, yplusAdapt=100., dfarDir=0, 
              correctionMultiCorpsF42=False, blankingF42=False, twoFronts=False, redistribute=False, IBCType=1,
-             height_in=-1.0,isFilamentOnly=False,isWireModel=False, cleanCellN=True, check_snear=False):
+             height_in=-1.0, isFilamentOnly=False, isWireModel=False, cleanCellN=True, check_snear=False):
     prep_local=IBM()
     prep_local.input_var.t_in                   =t_in
     prep_local.input_var.to                     =to

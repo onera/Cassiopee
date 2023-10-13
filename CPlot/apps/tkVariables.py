@@ -204,8 +204,8 @@ def renameVar():
     CTK.saveTree()
     varp = VARS[11].get()
     varn = VARS[10].get()
-    CTK.t = P.renameVars(CTK.t,[varp],[varn])
-    CTK.TXT.insert('START', 'Variable %s replaced.\n'%varp)
+    CTK.t = P.renameVars(CTK.t, [varp], [varn])
+    CTK.TXT.insert('START', 'Variable %s replaced in all tree.\n'%varp)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
 
@@ -217,7 +217,7 @@ def center2NodeVar():
     if var == 'FlowSolutionCenters':
         CTK.t = C.center2Node(CTK.t, Internal.__FlowSolutionCenters__)
     else: CTK.t = C.center2Node(CTK.t, var)
-    CTK.TXT.insert('START', 'Variable %s put to nodes.\n'%var)
+    CTK.TXT.insert('START', 'Variable %s put to nodes in all tree.\n'%var)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
 
@@ -229,7 +229,7 @@ def node2CenterVar():
     if var == 'FlowSolutionNodes':
         CTK.t = C.node2Center(CTK.t, Internal.__FlowSolutionNodes__)
     else: CTK.t = C.node2Center(CTK.t, var)
-    CTK.TXT.insert('START', 'Variable %s put to centers.\n'%var)
+    CTK.TXT.insert('START', 'Variable %s put to centers in all tree.\n'%var)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
     
@@ -394,8 +394,7 @@ def computeVariables():
             except Exception as e:
                 Panels.displayErrors([0,str(e)], header='Error: computeVariables')
                 CTK.TXT.insert('START', 'Computation of variable %s failed.\n'%varloc)
-                CTK.TXT.insert('START', 'Error: ', 'Error')
-                
+                CTK.TXT.insert('START', 'Error: ', 'Error')   
         else:
             fail = False; errors = []
             for nz in nzs:
@@ -425,7 +424,7 @@ def addVar(event=None):
     nzs = CPlot.getSelectedZones()
     varname = VARS[1].get()
     CTK.saveTree()
-    s = varname.split('=')    
+    s = varname.split('=')
     if CTK.__MAINTREE__ <= 0 or nzs == []:
         if len(s) > 1: C._initVars(CTK.t, varname)
         else: C._addVars(CTK.t, varname)
@@ -451,7 +450,7 @@ def computeGrad():
         Panels.displayErrors([0,str(e)], header='Error: computeGrad')
         CTK.TXT.insert('START', 'Gradient computation failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    CTK.TXT.insert('START', 'Gradient of %s computed.\n'%varname)
+    CTK.TXT.insert('START', 'Gradient of %s computed on all tree.\n'%varname)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
     if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
@@ -466,7 +465,7 @@ def computeNormGrad():
         Panels.displayErrors([0,str(e)], header='Error: computeNormGrad')
         CTK.TXT.insert('START', 'Gradient\'s norm computation failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    CTK.TXT.insert('START', 'Gradient\'s norm of %s computed.\n'%varname)
+    CTK.TXT.insert('START', 'Gradient\'s norm of %s computed on all tree.\n'%varname)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
     if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
@@ -483,7 +482,7 @@ def computeNormCurl():
         Panels.displayErrors([0,str(e)], header='Error: computeNormCurl')
         CTK.TXT.insert('START', 'Curl\'s norm computation failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    CTK.TXT.insert('START', 'Curl\'s norm computed.\n')
+    CTK.TXT.insert('START', 'Curl\'s norm computed on all tree.\n')
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
     if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
@@ -500,7 +499,7 @@ def computeCurl():
         Panels.displayErrors([0,str(e)], header='Error: computeCurl')
         CTK.TXT.insert('START', 'Curl computation failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    CTK.TXT.insert('START', 'Curl computed.\n')
+    CTK.TXT.insert('START', 'Curl computed on all tree.\n')
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
     if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
