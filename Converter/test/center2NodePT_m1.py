@@ -37,3 +37,4 @@ a = Cmpi.center2Node(a, 'centers:Density')
 a = C.rmVars(a, 'centers:Density')
 
 if Cmpi.rank == 0: test.testT(a, 1)
+Cmpi.barrier()

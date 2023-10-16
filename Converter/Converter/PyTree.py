@@ -5098,17 +5098,17 @@ def extractBCOfName(t, bndName, reorder=True, extrapFlow=True, shift=0):
 def extractBCOfSubRegionName__(t, zsrName, reorder=True, extrapFlow=True, shift=0):
   zones = []
   for z in Internal.getZones(t):
-    zsr = Internal.getNodeFromName(z,zsrName)
-    gl = Internal.getNodeFromType(zsr,'GridLocation_t')
+    zsr = Internal.getNodeFromName(z, zsrName)
+    gl = Internal.getNodeFromType(zsr, 'GridLocation_t')
     bcname = Internal.getValue(Internal.getNodeFromName(zsr,'BCRegionName'))
-    z_surf = C.extractBCOfName(z, bcname, reorder=reorder, extrapFlow=extrapFlow, shift=shift)[0]
+    z_surf = extractBCOfName(z, bcname, reorder=reorder, extrapFlow=extrapFlow, shift=shift)[0]
     glname = 'Vertex'
-    if Internal.getValue(gl)=='FaceCenter': glname = 'CellCenter'
+    if Internal.getValue(gl) == 'FaceCenter': glname = 'CellCenter'
     
     Internal._rmNodesFromType(z_surf,'FlowSolution_t')
-    FS=Internal.newFlowSolution(name='FlowSolution#Centers',gridLocation=glname, parent=z_surf)
-    for var in lvar:
-      datan = Internal.getNodeFromName(zsr,var)
+    FS = Internal.newFlowSolution(name='FlowSolution#Centers', gridLocation=glname, parent=z_surf)
+    for var in lvar: # BUGGED
+      datan = Internal.getNodeFromName(zsr, var)
       FS[2].append(datan)
       
     Internal._rmNodesFromType(z_surf,"ZoneSubRegion_t")

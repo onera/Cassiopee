@@ -1576,7 +1576,7 @@ class IBM(Common):
                    IDs = []
                    for i in zd[2]:
                        if i[0][0:2] == 'ID':
-                           if Internal.getValue(i)==zrname: IDs.append(i)
+                           if Internal.getValue(i) == zrname: IDs.append(i)
     
                    if IDs != []:
                        if destProc == self.rank:

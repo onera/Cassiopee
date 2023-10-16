@@ -152,18 +152,19 @@ class GenIOHdf
     PyObject* getArrayI4Raw(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
     PyObject* getArrayI42I8(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
     PyObject* getArrayI82I4(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    PyObject* getArrayI82I4C(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
     PyObject* getArrayI8Raw(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
-    #ifdef E_DOUBLEINT
-      #define getArrayI8 getArrayI8Raw
-      #define getArrayI4 getArrayI42I8
-    #else
-      #define getArrayI8 getArrayI82I4
-      #define getArrayI4 getArrayI4Raw
-    #endif
+    PyObject* getArrayI8(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    PyObject* getArrayI4(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
     
-    // force
-    //#define getArrayI8 getArrayI8Raw
-      
+    //#ifdef E_DOUBLEINT
+    //  #define getArrayI8 getArrayI8Raw
+    //  #define getArrayI4 getArrayI42I8      
+    //#else
+    //  #define getArrayI8 getArrayI82I4
+    //  #define getArrayI4 getArrayI4Raw
+    //#endif
+          
     char* getArrayC1(hid_t node, hid_t tid, int dim, hsize_t* dims);
 
     /* Method for contiguous array **/
@@ -181,6 +182,8 @@ class GenIOHdf
     hid_t setArrayI1(hid_t node, char*   data, int dim, hsize_t *dims);
     hid_t setArrayI4(hid_t node, int*    data, int dim, hsize_t *dims);
     hid_t setArrayI8(hid_t node, E_LONG* data, int dim, hsize_t *dims);
+    hid_t setArrayI8Raw(hid_t node, E_LONG* data, int dim, hsize_t *dims);
+    hid_t setArrayI8B(hid_t node, E_LONG* data, int dim, hsize_t *dims);
     hid_t setArrayC1(hid_t node, char*   data, char* label=(char*)L3S_DATA);
     hid_t setArrayC1(hid_t node, char*   data, int dim, hsize_t *dims);
 
@@ -202,6 +205,12 @@ class GenIOHdf
     /* Fill some attributes */
     _skeleton=0; _maxFloatSize=1e6; _maxDepth=1e6;
 
+    /* read mode. 0: convert int to Cassiopee compilation type, 1: return what is in the file. */
+    _readMode = 0; 
+
+    /* write mode. 0: write what we have in memory, 1: write int32 if possible without loss. */
+    _writeMode = 0;
+
     /* Create basic data types used everywhere */
     _NATIVE_FLOAT  = H5Tcopy(H5T_NATIVE_FLOAT ); H5Tset_precision(_NATIVE_FLOAT , 32);
     _NATIVE_DOUBLE = H5Tcopy(H5T_NATIVE_DOUBLE); H5Tset_precision(_NATIVE_DOUBLE, 64);
@@ -211,8 +220,6 @@ class GenIOHdf
     /* Group creation */
     _group = H5Pcreate(H5P_GROUP_CREATE);
     H5Pset_link_creation_order(_group, H5P_CRT_ORDER_TRACKED | H5P_CRT_ORDER_INDEXED);
-
-    /* Prepare DataSpace for partial load  */
 
   }
 
@@ -229,6 +236,8 @@ class GenIOHdf
 
   /* Public attributes   */
   public:
+    int _readMode;
+    int _writeMode;
     std::list<hid_t> _fatherStack;
     std::list<std::string> _stringStack;
     std::map<std::string, bool> _skipTypes;

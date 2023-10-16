@@ -286,7 +286,7 @@ def plOrPrSize(node):
   for ind in index:
     return ind
     
-def apply_dataspace_to_arrays(node, node_path, data_space, hdf_filter):
+def applyDataspaceToArrays(node, node_path, data_space, hdf_filter):
   """
   Fill the hdf_filter with the specified data_space for all the DataArray_t nodes
   below the parent node node
@@ -295,7 +295,7 @@ def apply_dataspace_to_arrays(node, node_path, data_space, hdf_filter):
     path = node_path+"/"+data_array[0]
     hdf_filter[path] = data_space
 
-def apply_dataspace_to_pointlist(node, node_path, data_space, hdf_filter):
+def applyDataspaceToPointlist(node, node_path, data_space, hdf_filter):
   """
   Fill the hdf_filter with the specified data_space for PointList and PointListDonor nodes
   (if existing) below the parent node node
@@ -391,7 +391,7 @@ def compute_slabs(array_shape, gnum_interval):
 
   return hslab_list
 
-def create_combined_dataspace(data_shape, distrib):
+def createCombinedDataspace(data_shape, distrib):
   """
   Create a dataspace from a flat distribution, but for arrays having a 3d (resp. 2d) stucture
   ie (Nx, Ny, Nz) (resp. (Nx, Ny)) numpy arrays.
@@ -418,7 +418,7 @@ def create_combined_dataspace(data_shape, distrib):
   DSFORMDA = [[0]]
   return DSMMRYDA + DSFILEDA + DSGLOBDA + DSFORMDA
 
-def create_flat_dataspace(distrib):
+def createFlatDataspace(distrib):
   """
   Create the most basic dataspace (1d / flat) for a given
   distribution.
@@ -430,7 +430,7 @@ def create_flat_dataspace(distrib):
   DSFORMDA = [[0]]
   return DSMMRYDA + DSFILEDA + DSGLOBDA + DSFORMDA
 
-def create_pe_dataspace(distrib):
+def createPeDataspace(distrib):
   """
   Create a dataspace from a flat distribution, of elements,
   but adapted to "ParentElements" arrays ie (N,2) numpy arrays.
@@ -442,7 +442,7 @@ def create_pe_dataspace(distrib):
   DSFORMPE = [[1]]
   return DSMMRYPE + DSFILEPE + DSGLOBPE + DSFORMPE
 
-def create_pointlist_dataspace(distrib):
+def createPointlistDataspace(distrib):
   """
   Create a dataspace from a flat distribution, but adapted to "fake 2d" arrays
   ie (1,N) numpy arrays.
@@ -455,7 +455,7 @@ def create_pointlist_dataspace(distrib):
   DSFORMPL = [[0]]
   return DSMMRYPL + DSFILEPL + DSGLOBPL + DSFORMPL
 
-def create_data_array_filter(distrib, data_shape=None):
+def createDataArrayFilter(distrib, data_shape=None):
   """
   Create an hdf dataspace for the given distribution. The kind of
   dataspace depends of the data_shape optional argument, representing
@@ -466,11 +466,11 @@ def create_data_array_filter(distrib, data_shape=None):
     dataspace is create from combine method (flat in memory, block in file).
   """
   if data_shape is None or len(data_shape) == 1: #Unstructured
-    hdf_data_space = create_flat_dataspace(distrib)
+    hdf_data_space = createFlatDataspace(distrib)
   elif len(data_shape) == 2 and data_shape[0] == 1:
-    hdf_data_space = create_pointlist_dataspace(distrib)
+    hdf_data_space = createPointlistDataspace(distrib)
   else: #Structured
-    hdf_data_space = create_combined_dataspace(data_shape, distrib)
+    hdf_data_space = createCombinedDataspace(data_shape, distrib)
 
   return hdf_data_space
 
@@ -497,14 +497,14 @@ def getSubregionExtent(sub_region_node, zone):
   #else:
   return I.getName(sub_region_node)
   
-def create_zone_eso_elements_filter(elmt, zone_path, hdf_filter, mode):
+def createZoneEsoElementsFilter(elmt, zone_path, hdf_filter, mode):
   distrib_elmt = I.getVal(getDistribution(elmt, 'Element'))
   dn_elmt      = distrib_elmt[1] - distrib_elmt[0]
 
   # > For NGon only
   pe = I.getNodeFromName1(elmt, 'ParentElements')
   if pe:
-    data_space = create_pe_dataspace(distrib_elmt)
+    data_space = createPeDataspace(distrib_elmt)
     #hdf_filter[f"{zone_path}/{I.getName(elmt)}/ParentElements"] = data_space
     hdf_filter["%s/%s/ParentElements"%(zone_path,I.getName(elmt))] = data_space
     if I.getNodeFromName1(elmt, 'ParentElementsPosition'):
@@ -578,7 +578,7 @@ def load_element_connectivity_from_eso(elmt, zone_path, hdf_filter):
     distrib[2] = n_face_vtx
     I.newDataArray("ElementConnectivity", value=distrib, parent=distrib_ud)
 
-def create_zone_std_elements_filter(elmt, zone_path, hdf_filter):
+def createZoneStdElementsFilter(elmt, zone_path, hdf_filter):
   distrib_elmt = I.getVal(getDistribution(elmt, 'Element'))
   dn_elmt      = distrib_elmt[1] - distrib_elmt[0]
 
@@ -594,7 +594,7 @@ def create_zone_std_elements_filter(elmt, zone_path, hdf_filter):
 
   pe = I.getNodeFromName1(elmt, 'ParentElements')
   if pe:
-    data_space = create_pe_dataspace(distrib_elmt)
+    data_space = createPeDataspace(distrib_elmt)
     #hdf_filter[f"{zone_path}/{I.getName(elmt)}/ParentElements"] = data_space
     hdf_filter["%s/%s/ParentElements"%(zone_path,I.getName(elmt))] = data_space
     
@@ -602,20 +602,20 @@ def create_zone_std_elements_filter(elmt, zone_path, hdf_filter):
       #hdf_filter[f"{zone_path}/{I.getName(elmt)}/ParentElementsPosition"] = data_space
       hdf_filter["%s/%s/ParentElementsPosition"%(zone_path,I.getName(elmt))] = data_space
 
-def create_zone_elements_filter(zone_tree, zone_path, hdf_filter, mode):
+def createZoneElementsFilter(zone_tree, zone_path, hdf_filter, mode):
   """
   Prepare the hdf_filter for all the Element_t nodes found in the zone.
   """
   zone_elmts = gen_elemts(zone_tree)
   for elmt in zone_elmts:
     if elmt[1][0] == 22 or elmt[1][0] == 23:
-      create_zone_eso_elements_filter(elmt, zone_path, hdf_filter, mode)
+      createZoneEsoElementsFilter(elmt, zone_path, hdf_filter, mode)
     elif elmt[1][0] == 20:
       raise ValueError('MIXED elements not implemented.')
     else:
-      create_zone_std_elements_filter(elmt, zone_path, hdf_filter)
+      createZoneStdElementsFilter(elmt, zone_path, hdf_filter)
 
-def create_zone_bc_filter(zone, zone_path, hdf_filter):
+def createZoneBcFilter(zone, zone_path, hdf_filter):
   """
   Fill up the hdf filter for the BC_t nodes present in
   the zone.
@@ -637,8 +637,8 @@ def create_zone_bc_filter(zone, zone_path, hdf_filter):
       distrib_bc = I.getVal(getDistribution(bc, 'Index'))
 
       bc_shape = plOrPrSize(bc)
-      data_space = create_data_array_filter(distrib_bc, bc_shape)
-      apply_dataspace_to_pointlist(bc, bc_path, data_space, hdf_filter)
+      data_space = createDataArrayFilter(distrib_bc, bc_shape)
+      applyDataspaceToPointlist(bc, bc_path, data_space, hdf_filter)
 
       for bcds in I.getNodesFromType1(bc, "BCDataSet_t"):
         bcds_path = bc_path + "/" + bcds[0]
@@ -651,16 +651,16 @@ def create_zone_bc_filter(zone, zone_path, hdf_filter):
           distrib_data = I.getNodeFromName1(distrib_bcds_n, 'Index')[1]
           data_shape = plOrPrSize(bcds)
 
-        data_space_pl = create_data_array_filter(distrib_data, data_shape)
+        data_space_pl = createDataArrayFilter(distrib_data, data_shape)
         #BCDataSet always use flat data array
-        data_space_array = create_data_array_filter(distrib_data, [data_shape.prod()])
-        apply_dataspace_to_pointlist(bcds, bcds_path, data_space_pl, hdf_filter)
+        data_space_array = createDataArrayFilter(distrib_data, [data_shape.prod()])
+        applyDataspaceToPointlist(bcds, bcds_path, data_space_pl, hdf_filter)
         for bcdata in I.getNodesFromType1(bcds, 'BCData_t'):
           bcdata_path = bcds_path + "/" + bcdata[0]
-          apply_dataspace_to_arrays(bcdata, bcdata_path, data_space_array, hdf_filter)
+          applyDataspaceToArrays(bcdata, bcdata_path, data_space_array, hdf_filter)
 
 
-def create_zone_grid_connectivity_filter(zone, zone_path, hdf_filter):
+def createZoneGridConnectivityFilter(zone, zone_path, hdf_filter):
   """
   Fill up the hdf filter for the GC_t nodes present in the zone.
   For unstructured GC (GridConnectivity_t), the filter is set up for
@@ -675,10 +675,10 @@ def create_zone_grid_connectivity_filter(zone, zone_path, hdf_filter):
       distrib_ia = I.getVal(getDistribution(gc, 'Index'))
 
       gc_shape   = plOrPrSize(gc)
-      data_space = create_data_array_filter(distrib_ia, gc_shape)
-      apply_dataspace_to_pointlist(gc, gc_path, data_space, hdf_filter)
+      data_space = createDataArrayFilter(distrib_ia, gc_shape)
+      applyDataspaceToPointlist(gc, gc_path, data_space, hdf_filter)
 
-def create_flow_solution_filter(zone, zone_path, hdf_filter):
+def createFlowSolutionFilter(zone, zone_path, hdf_filter):
   """
   Fill up the hdf filter for the FlowSolution_t nodes present in the
   zone. The size of the dataspace are computed from the pointList node
@@ -696,18 +696,18 @@ def create_flow_solution_filter(zone, zone_path, hdf_filter):
     if distrib_ud_n:
       distrib_data = I.getNodeFromName1(distrib_ud_n, 'Index')[1]
       data_shape = plOrPrSize(flow_solution)
-      data_space_pl = create_data_array_filter(distrib_data, data_shape)
-      data_space = create_data_array_filter(distrib_data, [data_shape.prod()])
-      apply_dataspace_to_pointlist(flow_solution, flow_solution_path, data_space_pl, hdf_filter)
+      data_space_pl = createDataArrayFilter(distrib_data, data_shape)
+      data_space = createDataArrayFilter(distrib_data, [data_shape.prod()])
+      applyDataspaceToPointlist(flow_solution, flow_solution_path, data_space_pl, hdf_filter)
     elif grid_location == 'CellCenter':
-      data_space = create_data_array_filter(distrib_cell, zone[1][:,1])
+      data_space = createDataArrayFilter(distrib_cell, zone[1][:,1])
     elif grid_location == 'Vertex':
-      data_space = create_data_array_filter(distrib_vtx, zone[1][:,0])
+      data_space = createDataArrayFilter(distrib_vtx, zone[1][:,0])
     else:
       raise RuntimeError("GridLocation %s is not allowed without PL"%grid_location)
-    apply_dataspace_to_arrays(flow_solution, flow_solution_path, data_space, hdf_filter)
+    applyDataspaceToArrays(flow_solution, flow_solution_path, data_space, hdf_filter)
 
-def create_zone_subregion_filter(zone, zone_path, hdf_filter):
+def createZoneSubregionFilter(zone, zone_path, hdf_filter):
   """
   Fill up the hdf filter for the ZoneSubRegion_t nodes present in
   the zone.
@@ -734,11 +734,11 @@ def create_zone_subregion_filter(zone, zone_path, hdf_filter):
     distrib_data = I.getNodeFromName1(distrib_ud_n, 'Index')[1]
 
     data_shape = plOrPrSize(matching_region)
-    data_space_pl = create_data_array_filter(distrib_data, data_shape)
-    data_space_ar = create_data_array_filter(distrib_data, [data_shape.prod()])
+    data_space_pl = createDataArrayFilter(distrib_data, data_shape)
+    data_space_ar = createDataArrayFilter(distrib_data, [data_shape.prod()])
 
-    apply_dataspace_to_pointlist(zone_subregion, zone_subregion_path, data_space_pl, hdf_filter)
-    apply_dataspace_to_arrays(zone_subregion, zone_subregion_path, data_space_ar, hdf_filter)
+    applyDataspaceToPointlist(zone_subregion, zone_subregion_path, data_space_pl, hdf_filter)
+    applyDataspaceToArrays(zone_subregion, zone_subregion_path, data_space_ar, hdf_filter)
 
 def createZoneFilter(zone, zone_path, hdf_filter, mode):
   """
@@ -752,15 +752,15 @@ def createZoneFilter(zone, zone_path, hdf_filter, mode):
   """
   # Coords
   distrib_vtx  = I.getVal(getDistribution(zone, 'Vertex'))
-  all_vtx_dataspace = create_data_array_filter(distrib_vtx, zone[1][:,0])
+  all_vtx_dataspace = createDataArrayFilter(distrib_vtx, zone[1][:,0])
   for grid_c in I.getNodesFromType1(zone, 'GridCoordinates_t'):
     grid_coord_path = zone_path + "/" + I.getName(grid_c)
-    apply_dataspace_to_arrays(grid_c, grid_coord_path, all_vtx_dataspace, hdf_filter)
-  create_zone_elements_filter(zone, zone_path, hdf_filter, mode)
-  create_zone_bc_filter(zone, zone_path, hdf_filter)
-  create_zone_grid_connectivity_filter(zone, zone_path, hdf_filter)
-  create_flow_solution_filter(zone, zone_path, hdf_filter)
-  create_zone_subregion_filter(zone, zone_path, hdf_filter)
+    applyDataspaceToArrays(grid_c, grid_coord_path, all_vtx_dataspace, hdf_filter)
+  createZoneElementsFilter(zone, zone_path, hdf_filter, mode)
+  createZoneBcFilter(zone, zone_path, hdf_filter)
+  createZoneGridConnectivityFilter(zone, zone_path, hdf_filter)
+  createFlowSolutionFilter(zone, zone_path, hdf_filter)
+  createZoneSubregionFilter(zone, zone_path, hdf_filter)
 
 def createTreeHdfFilter(dist_tree, hdf_filter, mode='read'):
   for base in I.getNodesFromType1(dist_tree, 'CGNSBase_t'):

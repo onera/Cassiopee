@@ -163,22 +163,18 @@ def check_output(cmd, shell, stderr):
         else: ossid = os.setsid
         PROCESS = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, cwd=wdir, shell=shell, preexec_fn=ossid)
-        try:
-            stdout, stderr = PROCESS.communicate(None, timeout=60.*2.) # max accepted time is 2 minutes for one test
-        except subprocess.TimeoutExpired:
-            stdout = b'FAILED: hangs. '
-            stderr = b'FAILED: time out.'
-            if PROCESS is not None:
-                if mySystem == 'mingw' or mySystem == 'windows':
-                    subprocess.call(['taskkill', '/F', '/T', '/PID', str(PROCESS.pid)])
+        stdout, stderr = PROCESS.communicate(None, timeout=60.*1.) # max accepted time is 1 minute for one test
+ 
+        if PROCESS is not None and PROCESS.wait(timeout=60.*1.) != 0: stderr += b'\nError: process FAILED (Segmentation Fault or floating point exception).'
+        if PROCESS is not None and PROCESS.poll() is None:
+            if mySystem == 'mingw' or mySystem == 'windows':
+                subprocess.call(['taskkill', '/F', '/T', '/PID', str(PROCESS.pid)])
             else: # unix
                 # try soft, then hard
                 os.killpg(os.getpgid(PROCESS.pid), signal.SIGTERM)
                 os.kill(PROCESS.pid, signal.SIGTERM)
                 os.killpg(os.getpgid(PROCESS.pid), signal.SIGKILL)
                 os.kill(PROCESS.pid, signal.SIGKILL)
- 
-        if PROCESS is not None and PROCESS.wait() != 0: stderr += b'\nError: process FAILED (Segmentation Fault or floating point exception).'
         PROCESS = None # fini!
         return stdout+stderr
 

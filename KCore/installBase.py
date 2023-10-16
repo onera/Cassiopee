@@ -564,9 +564,9 @@ False, # useCuda
 ],
 ##############################################################################
 'visung': [ 'Machine de post gfx (Onera)',
-'ifort', # f77compiler
-'ifort', # f90compiler
-'icc', # Cppcompiler
+'gfortran', # f77compiler
+'gfortran', # f90compiler
+'gcc', # Cppcompiler
 [], # CppAdditionalOptions
 [], # f77AdditionalOptions
 True, # useOMP
