@@ -609,6 +609,7 @@ E_Int K_LOC::node2centerUnstruct(FldArrayF& FNode,
     for (E_Int n = 1; n <= nt; n++)
     {
       E_Int* cn = c.begin(n);
+      #pragma omp parallel for
       for (E_Int e = 0; e < ne; e++)
       {
         fcen[e] += fnode[cn[e]-1];
@@ -627,9 +628,7 @@ E_Int K_LOC::node2centerUnstruct(FldArrayF& FNode,
 E_Int K_LOC::node2centerNGon(FldArrayF& FNode, FldArrayI& cNG,
                              FldArrayF& FCenter, E_Int sorted)
 {
-  E_Int* cnp = cNG.begin();
-  E_Int sizeFN = cnp[1];
-  E_Int ncells = cnp[sizeFN+2]; 
+  E_Int ncells = cNG.getNElts();
   E_Int nfld = FNode.getNfld();
   FCenter.setAllValuesAtNull();
 
@@ -642,64 +641,75 @@ E_Int K_LOC::node2centerNGon(FldArrayF& FNode, FldArrayI& cNG,
     {
       E_Float* fnode = FNode.begin(v);
       E_Float* fcen = FCenter.begin(v);
-      for (E_Int et = 0; et < ncells; et++)
+
+      #pragma omp parallel
       {
-        std::vector<E_Int>& vertices = cEV[et]; // noeuds associes a l'element et
-        E_Int nvert = vertices.size();
-        E_Float ntinv = 1./nvert;
-        for (E_Int nv = 0; nv < nvert; nv++)
+        E_Int nvert, indv;
+        E_Float ntinv;
+        
+        #pragma omp for
+        for (E_Int et = 0; et < ncells; et++)
         {
-          E_Int indv = vertices[nv]-1;
-          fcen[et] += fnode[indv];
-        }
-        fcen[et] *= ntinv;
-      }// loop on elts
+          std::vector<E_Int>& vertices = cEV[et]; // noeuds associes a l'element et
+          nvert = vertices.size();
+          ntinv = 1./nvert;
+          for (E_Int nv = 0; nv < nvert; nv++)
+          {
+            indv = vertices[nv]-1;
+            fcen[et] += fnode[indv];
+          }
+          fcen[et] *= ntinv;
+        }// loop on elts
+      }
     }
   }
   else
   {
-    E_Int* ptr = cNG.begin();
-    FldArrayI posFace; K_CONNECT::getPosFaces(cNG, posFace);
-    FldArrayI posElt; K_CONNECT::getPosElts(cNG, posElt);
+    // Acces non universel sur le ptrs
+    E_Int* ngon = cNG.getNGon();
+    E_Int* nface = cNG.getNFace();
+    E_Int* indPG = cNG.getIndPG();
+    E_Int* indPH = cNG.getIndPH();
 
-    # pragma omp parallel for default(shared)
-    for (E_Int i = 0; i < ncells; i++)
+    #pragma omp parallel
     {
-      E_Int pose = posElt[i];
-      E_Int* ptrElt = &ptr[pose];
-      E_Int nfaces = ptrElt[0]; 
-
-      std::vector<E_Int> vertices; vertices.reserve(1024);
-      for (E_Int n=1; n <= nfaces; n++)
-      {
-        E_Int ind = ptrElt[n]-1;
-        E_Int pos = posFace[ind];
-        E_Int* ptrFace = &ptr[pos];
-        E_Int nv = ptrFace[0];
+      std::vector<E_Int> vertices;
+      E_Int indv, nfaces, nv;
+      vertices.reserve(1024);
       
-        for (E_Int p = 1; p <= nv; p++)
-        {
-          E_Int indv = ptrFace[p]-1;
-          vertices.push_back(indv);
-        }//loop on vertices
-      }
-      std::sort(vertices.begin(), vertices.end());
-      vertices.erase(std::unique(vertices.begin(), vertices.end()), vertices.end() );
-
-      std::vector<E_Float> fsort(vertices.size());
-      for (E_Int nofld = 1; nofld <= nfld; nofld++)
+      #pragma omp for
+      for (E_Int i = 0; i < ncells; i++)
       {
-        E_Float* fnode = FNode.begin(nofld);
-        for (size_t nov = 0; nov < vertices.size(); nov++)
+        // Acces universel element i
+        E_Int* elt = cNG.getElt(i, nfaces, nface, indPH);
+        for (E_Int n=0; n < nfaces; n++)
         {
-          E_Int indv = vertices[nov]; fsort[nov] = fnode[indv];
+          // Acces universel face elt[n]-1
+          E_Int* face = cNG.getFace(elt[n]-1, nv, ngon, indPG);
+          for (E_Int p = 0; p < nv; p++)
+          {
+            indv = face[p];
+            vertices.push_back(indv);
+          }//loop on vertices
         }
-        std::sort(fsort.begin(), fsort.end());
-        E_Float* fcen = FCenter.begin(nofld);
-        for (size_t nov = 0; nov < fsort.size(); nov++) {fcen[i] += fsort[nov];}
-        E_Float inv = 1./E_Float(fsort.size()); fcen[i] *= inv;   
+        std::sort(vertices.begin(), vertices.end());
+        vertices.erase(std::unique(vertices.begin(), vertices.end()), vertices.end() );
+
+        std::vector<E_Float> fsort(vertices.size());
+        for (E_Int nofld = 1; nofld <= nfld; nofld++)
+        {
+          E_Float* fnode = FNode.begin(nofld);
+          for (size_t nov = 0; nov < vertices.size(); nov++)
+          {
+            E_Int indv = vertices[nov]; fsort[nov] = fnode[indv];
+          }
+          std::sort(fsort.begin(), fsort.end());
+          E_Float* fcen = FCenter.begin(nofld);
+          for (size_t nov = 0; nov < fsort.size(); nov++) {fcen[i] += fsort[nov];}
+          E_Float inv = 1./E_Float(fsort.size()); fcen[i] *= inv;   
+        }
       }
-    } 
+    }
   }
   return 1;
 }
