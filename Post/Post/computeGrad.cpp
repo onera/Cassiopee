@@ -441,7 +441,7 @@ E_Int K_POST::computeGradNGon(E_Float* xt, E_Float* yt, E_Float* zt,
   E_Float xbf, ybf, zbf; // coordonnees du barycentre d une face
   E_Float  sens, sx, sy, sz;
   FldArrayI dimElt(nelts); // tableau de la dimension des elements
-  K_CONNECT::getDimElts(cn, posFace, dimElt);
+  K_CONNECT::getDimElts(cn, dimElt);
   // parcours des elements
   for (E_Int et = 0; et < nelts; et++)
   { 

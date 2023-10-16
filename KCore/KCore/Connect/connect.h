@@ -75,7 +75,7 @@ namespace K_CONNECT
   
     /* Detecte le couple de faces coincidentes d'arrays 1 et 2
      IN: im1,jm1,km1: dimensions de l'array 1
-     IN: f1: champs de1: coordonnees incluses
+     IN: f1: champs de1 : coordonnees incluses
      IN: posx1, posy1, posz1: positions des coordonnees ds f1
      IN: im2,jm2,km2: dimensions de l'array 2
      IN: f2: champs de 2: coordonnees incluses
@@ -421,6 +421,7 @@ namespace K_CONNECT
      IN: posFaces: position of each face in cNG
      OUT: dimElts: tableau donnant pour chaque element sa dimension (1,2 ou 3)
   */
+  void getDimElts(K_FLD::FldArrayI& cNG, K_FLD::FldArrayI& dimElts);
   void getDimElts(K_FLD::FldArrayI& cNG, K_FLD::FldArrayI& posFaces, 
                   K_FLD::FldArrayI& dimElts);
   void getDimElts(K_FLD::FldArrayI& cNG, E_Int* indPG, E_Int* indPH, 
@@ -431,6 +432,9 @@ namespace K_CONNECT
      les indices commencent a 1 */
   E_Int getVertexIndices(const E_Int* connect, const E_Int* posFaces,
                          E_Int eltPos, 
+                         std::vector<E_Int>& ind);
+  E_Int getVertexIndices(K_FLD::FldArrayI& cNG, E_Int* ngon, E_Int* nface,
+                         E_Int* indPG, E_Int* indPH, E_Int eltPos,
                          std::vector<E_Int>& ind);
 }
 #endif

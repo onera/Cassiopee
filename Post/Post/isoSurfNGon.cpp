@@ -159,7 +159,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
 
   // Dimension du NGON
   //FldArrayI dimElts;
-  //K_CONNECT::getDimElts(cn, indPG, indPH, dimElts);
+  //K_CONNECT::getDimElts(cn, dimElts);
   /*
   printf("dimElts\n");
   for (E_Int i = 0; i < dimElts.getSize(); i++) printf("%d ", dimElts[i]);

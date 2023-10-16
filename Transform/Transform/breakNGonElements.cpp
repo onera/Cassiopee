@@ -117,7 +117,7 @@ void K_TRANSFORM::breakNGonElements(
   FldArrayI posElt(ncells);
   K_CONNECT::getPosElts(cNG, posElt);
   FldArrayI dimElt(ncells);
-  K_CONNECT::getDimElts(cNG, posFace, dimElt);
+  K_CONNECT::getDimElts(cNG, dimElt);
 
   vector< vector<E_Int> > cEVNGon(ncells);
   K_CONNECT::connectNG2EV(cNG, cEVNGon);

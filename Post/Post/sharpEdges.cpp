@@ -294,7 +294,7 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
     // tableau des positions des faces dans la connectivite
     FldArrayI posFaces; K_CONNECT::getPosFaces(*cn, posFaces);
     FldArrayI dimElts; // tableau donnant pour chaque element sa dimension
-    K_CONNECT::getDimElts(*cn, posFaces, dimElts);
+    K_CONNECT::getDimElts(*cn, dimElts);
     E_Int* dimEltsp = dimElts.begin();
     // taille du champ f
     E_Int nfld = f->getNfld();

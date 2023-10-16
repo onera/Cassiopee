@@ -436,7 +436,7 @@ PyObject* K_CONVERTER::convertNGon2TetraBaryBoth(PyObject* self, PyObject* args)
 
   // tableau donnant pour chaque element sa dimension
   FldArrayI dimElts;
-  K_CONNECT::getDimElts(*cn, posFace, dimElts);
+  K_CONNECT::getDimElts(*cn, dimElts);
   // dimension des elements (dimension unique dans l array)
   E_Int dim = dimElts[0];
   // Type d element de la nouvelle connectivite

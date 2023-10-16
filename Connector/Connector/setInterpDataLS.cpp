@@ -266,7 +266,7 @@ PyObject* K_CONNECTOR::setInterpDataLS(PyObject* self, PyObject* args)
       vectOfPosElt.push_back(posElt);
       // tableau de la dimension des elements
       FldArrayI dimElt(npts); 
-      K_CONNECT::getDimElts(cNG, posFace, dimElt);
+      K_CONNECT::getDimElts(cNG, dimElt);
       vectOfDimElt.push_back(dimElt);
     }
     else //si la zone est structuree

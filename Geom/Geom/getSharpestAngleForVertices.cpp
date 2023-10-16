@@ -110,7 +110,7 @@ PyObject* K_GEOM::getSharpestAngleForVertices(PyObject* self, PyObject* args)
       //E_Int* posFacesp = posFaces.begin();
       vector< vector<E_Int> > cVF(npts); K_CONNECT::connectNG2VF(*cn, cVF);
       FldArrayI cFE; K_CONNECT::connectNG2FE(*cn, cFE);
-      FldArrayI dimElts(npts); K_CONNECT::getDimElts(*cn, posFaces, dimElts);
+      FldArrayI dimElts(npts); K_CONNECT::getDimElts(*cn, dimElts);
       E_Int dim = dimElts[0]; // dimension de la zone
       E_Int indf, e1, e2, ind1, ind2, indl;
       E_Int* pt; E_Float dalphamin, alpha;
