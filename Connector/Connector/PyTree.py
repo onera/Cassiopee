@@ -1347,7 +1347,6 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
     # 4-Donor cell search: bbox intersection + adt creation
     #=======================================================
     # on cree par zone de chq base la liste des noms des domaines intersectants
-    print("la (0)")
     nobOfIntersectBasesAndZones=[]; allHooks=[]
     for nob1 in range(nbases):
         nobOfIntersectBasesAndZonesForBase1=[]
