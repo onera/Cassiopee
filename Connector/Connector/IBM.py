@@ -71,7 +71,8 @@ def getIBCDName(proposedName):
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=None,
-                    snears=0.01, snearsf=None, dfar=10., dfarDir=0, dfarList=[], vmin=21, depth=2, expand=3, frontType=1, IBCType=1,
+                    snears=0.01, snearsf=None, dfar=10., dfarDir=0, dfarList=[], vmin=21, depth=2, expand=3, frontType=1, 
+                    IBCType=1,
                     check=False, balancing=False, distribute=False, twoFronts=False, cartesian=False,
                     yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.):
     
@@ -114,14 +115,8 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
                     snearsf=snearsf, check=check, symmetry=0, to=to, ext=3,
                     expand=expand, dfarDir=dfarDir, check_snear=False)
         
-        if balancing and Cmpi.size > 1:
-            import Distributor2.Mpi as D2mpi
-            ts     = Cmpi.allgatherTree(Cmpi.convert2SkeletonTree(t))
-            stats  = D2._distribute(ts, Cmpi.size, algorithm='graph')
-            D2._copyDistribution(t , ts)
-            D2mpi._redispatch(t)
-            del ts
-
+        if balancing and Cmpi.size > 1: _redispatch__(t=t)
+        
     else: 
         t = t_in
         
@@ -131,7 +126,7 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
         
     #===================
     # STEP 2 : DIST2WALL
-    #===================
+    #=================== 
     _dist2wallIBM(t, tb, dimPb=dimPb, frontType=frontType, Reynolds=Reynolds, yplus=yplus, Lref=Lref,
                 correctionMultiCorpsF42=correctionMultiCorpsF42, heightMaxF42=heightMaxF42)
 
@@ -142,6 +137,8 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
                 Reynolds=Reynolds, yplus=yplus, Lref=Lref, twoFronts=twoFronts, 
                 heightMaxF42=heightMaxF42, correctionMultiCorpsF42=correctionMultiCorpsF42, 
                 wallAdaptF42=wallAdaptF42, blankingF42=blankingF42)
+    Cmpi.barrier()
+    _redispatch__(t=t)    
 
     #===================
     # STEP 4 : INTERP DATA CHIM
@@ -170,17 +167,7 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
     #===================
     t, tc, tc2 = initializeIBM(t, tc, tb, tinit=tinit, dimPb=dimPb, twoFronts=twoFronts)
 
-    if distribute and Cmpi.size > 1:
-        import Distributor2.Mpi as D2mpi
-        tcs    = Cmpi.allgatherTree(Cmpi.convert2SkeletonTree(tc))
-        stats  = D2._distribute(tcs, Cmpi.size, algorithm='graph')
-        D2._copyDistribution(t, tcs)
-        D2._copyDistribution(tc, tcs)
-        if twoFronts: D2._copyDistribution(tc2, tcs)
-        D2mpi._redispatch(t)
-        D2mpi._redispatch(tc)
-        if twoFronts: D2mpi._redispatch(tc2)
-        del tcs
+    if distribute and Cmpi.size > 1: _redispatch__(t=t, tc=tc, tc2=tc2, twoFronts=twoFronts)
     
     if isinstance(tc_out, str):
         tcp = Compressor.compressCartesian(tc)
@@ -194,10 +181,40 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
     if isinstance(t_out, str):
         tp = Compressor.compressCartesian(t)
         Cmpi.convertPyTree2File(tp, t_out, ignoreProcNodes=True)
-        
+      
     if Cmpi.size > 1: Cmpi.barrier()
 
     return t, tc, tc2
+
+def _redispatch__(t=None, tc=None, tc2=None, twoFronts=False):
+    import Distributor2.Mpi as D2mpi
+
+    if tc is not None: 
+        algo = 'graph'
+        tskel = Cmpi.convert2SkeletonTree(tc)
+        tcs    = Cmpi.allgatherTree(tskel)
+        stats  = D2._distribute(tcs, Cmpi.size, algorithm=algo)
+
+        D2._copyDistribution(tc, tcs)
+        D2mpi._redispatch(tc)
+
+        if t is not None: 
+            D2._copyDistribution(t, tcs)
+            D2mpi._redispatch(t)
+        if twoFronts: 
+            D2._copyDistribution(tc2, tcs)
+            D2mpi._redispatch(tc2)
+        del tcs       
+    else: 
+        algo = 'fast'
+        tskel = Cmpi.convert2SkeletonTree(t)
+        ts    = Cmpi.allgatherTree(tskel)
+        stats = D2._distribute(ts, Cmpi.size, algorithm=algo)
+        D2._copyDistribution(t, ts)
+        del ts
+        D2mpi._redispatch(t)
+
+    return None
 
 #=========================================================================
 # Compute the wall distance for IBM pre-processing.
@@ -445,8 +462,7 @@ def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e
         # Only keep the layer of target points useful for solver iterations, particularly useful in 3D
         if blankingF42: X._maximizeBlankedCells(t, depth=2, addGC=False)
 
-    _removeBlankedGrids(t, loc='centers')
-            
+    _removeBlankedGrids(t, loc='centers')            
     return None
 
 def blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6, yplus=100, Lref=1., twoFronts=False,
@@ -1067,7 +1083,6 @@ def _removeBlankedGrids(t, loc='centers'):
     #elif poschim != -1 and posibc==-1: flag=varc
     #elif poschim == -1 and posibc!=-1: flag=vari
     #else: return None
-
     for z in Internal.getZones(t):
         if C.getMaxValue(z,flag) < 0.5:
             (parent,noz) = Internal.getParentOfNode(t, z)
@@ -1159,6 +1174,7 @@ def _blankByIBCBodies(t, tb, loc, dim, cellNName='cellN'):
 
             for body in bodies:
                 tc = X.blankCells(tc, [body], BM, blankingType='node_in', XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=DIM, cellNName=cellNName)
+
             C._cpVars(tc,'%s'%cellNName,t,'centers:%s'%cellNName)
         else:
             X._blankCells(t, bodies, BM, blankingType=typeb, delta=TOLDIST, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=DIM, cellNName=cellNName)
@@ -1168,8 +1184,9 @@ def _blankByIBCBodies(t, tb, loc, dim, cellNName='cellN'):
             print('Info: blankByIBCBodies: reverse blanking for body.')
             X._blankCellsTri(t, [body], BM2, blankingType=typeb, cellNName=cellNName)
             C._initVars(t,'{centers:%s}=1-{centers:%s}'%(cellNName,cellNName)) # ecoulement interne
-        for body in bodies:
+        for body in bodies:           
             X._blankCellsTri(t, [body], BM2, blankingType=typeb, cellNName=cellNName)
+
     return None
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -2529,12 +2546,13 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
         if blankingF42: X._maximizeBlankedCells(t, depth=2, addGC=False)
 
     _removeBlankedGrids(t, loc='centers')
-    print('Nb of Cartesian grids=%d.'%len(Internal.getZones(t)))
+
+    print('Nb of Cartesian grids=%d for rank %d.'%(len(Internal.getZones(t)), Cmpi.rank), flush=True)
     npts = 0
     for i in Internal.getZones(t):
        dims = Internal.getZoneDim(i)
        npts += dims[1]*dims[2]*dims[3]
-    print('Final number of points=%5.4f millions.'%(npts/1000000.))
+    print('Final number of points=%5.4f millions for rank %d.'%(npts/1000000., Cmpi.rank), flush=True)
 
     C._initVars(t,'{centers:cellNIBC}={centers:cellN}')
 
@@ -2771,9 +2789,6 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None
 
 
             for nod in range(len(dnrZones)):
-
-                print('zdnr= ', dnrZones[nod][0])
-
                 dim__ = Internal.getZoneDim(dnrZones[nod])
                 prange = numpy.zeros(6,dtype=numpy.int32)
                 prangedonor = numpy.zeros(6,dtype=numpy.int32)
@@ -2924,8 +2939,6 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None
                         info[2].append(['NMratio', NMratio , [], 'IndexArray_t'])
                         info[2].append(['LevelZRcv', levelrcv , [], 'IndexArray_t'])
                         info[2].append(['LevelZDnr', leveldnr , [], 'IndexArray_t'])
-
-                        print('LEVELS= ', levelrcv, leveldnr)
 
 
         if dictOfADT is not None:

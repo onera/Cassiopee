@@ -226,7 +226,7 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
     argv[8] = new char [20]; strcpy(argv[8], vals[3]);
     argv[9] = new char [20]; strcpy(argv[9], "-hgrad");
     argv[10] = new char [20]; strcpy(argv[10], vals[4]);
-    printf("INFO: hausd=%s hmin=%s hmax=%s hgrad=%s\n", vals[0], vals[1], vals[2], vals[3]);
+    printf("INFO: hausd=%s hmin=%s hmax=%s hgrad=%s\n", vals[0], vals[2], vals[3], vals[4]);
   }
   // anisotropy
   // if anisotropy == 1

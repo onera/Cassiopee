@@ -246,36 +246,36 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
                 dimPb=3, vmin=15, balancing=2, symmetry=0, fileout=None, rank=0, expand=2, dfarDir=0):
     import Converter.Mpi as Cmpi
     i = 0; surfaces=[]; snearso=[] # pas d'espace sur l'octree
+    dfarListL = []
     bodies = Internal.getZones(tb)
     if not isinstance(snears, list): snears = len(bodies)*[snears]
     if len(bodies) != len(snears):
         raise ValueError('buildOctree: Number of bodies is not equal to the size of snears.')
     dxmin0 = 1.e10
-    for s in bodies:
-        sdd = Internal.getNodeFromName1(s, ".Solver#define")
-        if sdd is not None:
-            snearl = Internal.getNodeFromName1(sdd, "snear")
-            if snearl is not None:
-                snearl = Internal.getValue(snearl)
-                snears[i] = snearl*snearFactor
-        dhloc = snears[i]*(vmin-1)
-        # if C.isNamePresent(s,'centers:cellN') != -1:
-        #     s2 = P.selectCells(s,'{centers:cellN}>0.')
-        #     surfaces.append(s2)
-        # else: surfaces += [s]
-        surfaces += [s]
-        snearso += [dhloc]
-        dxmin0 = min(dxmin0, dhloc)
-        i += 1
+    for nos, s in enumerate(bodies):
+        if dfarList[nos] > -1:
+            sdd = Internal.getNodeFromName1(s, ".Solver#define")
+            if sdd is not None:
+                snearl = Internal.getNodeFromName1(sdd, "snear")
+                if snearl is not None:
+                    snearl = Internal.getValue(snearl)
+                    snears[i] = snearl*snearFactor
+            dhloc = snears[i]*(vmin-1)
+            surfaces += [s]
+            snearso += [dhloc]
+            dfarListL.append(dfarList[nos])
+            dxmin0 = min(dxmin0, dhloc)
+            i += 1
+
     if to is not None:
         o = Internal.getZones(to)[0]
     else:
-        o = G.octree(surfaces, snearList=snearso, dfar=dfar, dfarList=dfarList, balancing=balancing,dfarDir=dfarDir)
+        o = G.octree(surfaces, snearList=snearso, dfar=dfar, dfarList=dfarListL, balancing=balancing,dfarDir=dfarDir)
         G._getVolumeMap(o); volmin = C.getMinValue(o, 'centers:vol')
         dxmin = (volmin)**(1./dimPb)
         if dxmin < 0.65*dxmin0:
             snearso = [2.*i for i in snearso]
-            o = G.octree(surfaces, snearList=snearso, dfar=dfar, dfarList=dfarList, balancing=balancing, dfarDir=dfarDir)
+            o = G.octree(surfaces, snearList=snearso, dfar=dfar, dfarList=dfarListL, balancing=balancing, dfarDir=dfarDir)
         # Adaptation avant expandLayer (pour corriger eventuellement les sauts de maille)
         if tbox is not None and snearsf is not None:
             o = addRefinementZones(o, tb, tbox, snearsf, vmin, dimPb)
