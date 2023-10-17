@@ -32,7 +32,7 @@ __all__ = ['array', 'getApi', 'addVars', '_addVars', 'addVars2', 'center2ExtCent
     'identifySolutions', 'initVars', '_initVars', 'isNamePresent', 'listen', 'magnitude',
     'nearestElements', 'nearestFaces', 'nearestNodes', 'node2Center', 'node2ExtCenter', 'normL0', 'normL2',
     'normalize', '_normalize', 'randomizeVar', 'rmVars', 'send', 'setPartialFields', 'setValue', 'addGhostCellsNGon',
-    'checkFileType', 'convertHO2LO', 'convertLO2HO', 'convertExt2Format__', 'mergeConnectivity']
+    'checkFileType', 'convertHO2LO', 'convertLO2HO', 'convertExt2Format__', 'mergeConnectivity', '_signNGonFaces']
 
 # -- Create an array --
 # Les champs sont mis a zero, sauf si pour les champs cellN et cellNF
@@ -1718,6 +1718,12 @@ def isNamePresent(a, varname):
         p = KCore.isNamePresent(a, varname)
         if p == -1: return -1
         else: return 1
+
+def _signNGonFaces(a):
+  if isinstance(a[0], list):
+      for i in a: converter.signNGonFaces(i)
+  else: converter.signNGonFaces(a)
+  return None
 
 # convert to low order mesh
 def convertHO2LO(a, mode=0):

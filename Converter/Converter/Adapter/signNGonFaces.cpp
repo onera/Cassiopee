@@ -45,9 +45,23 @@ PyObject* K_CONVERTER::signNGonFaces(PyObject* self, PyObject* args)
     return NULL; 
   }
 
-  // 
+  E_Int *indPH = c->getIndPH();
+  E_Int *nface = c->getNFace();
+  E_Int nfaces = c->getNFaces();
+  E_Int ncells = c->getNElts();
+  std::vector<E_Int> visited(nfaces, 0);
+
+  E_Int stride;
+  for (E_Int i = 0; i < ncells; i++) {
+    E_Int *cell = c->getElt(i, stride, nface, indPH);
+    for (E_Int j = 0; j < stride; j++) {
+      E_Int &face = cell[j];
+      if (visited[face-1]) face = -face;
+      else visited[face-1]++;
+    }
+  }
 
   RELEASESHAREDU(o, f, c);
 
-  return NULL;
+  return Py_None;
 }

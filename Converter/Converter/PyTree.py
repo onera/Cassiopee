@@ -7493,6 +7493,15 @@ def convertPyTree2FFD(zone, RefStat, FlowEq, nd):
                                         Internal.__FlowSolutionCenters__)
   return None
 
+def signNGonFaces(t):
+  tc = Internal.copyRef(t)
+  _signNGonFaces(tc)
+  return tc
+
+def _signNGonFaces(t):
+  __TZGC3(t, Converter._signNGonFaces)
+  return None
+
 # Convert to low order mesh
 def convertHO2LO(t, mode=0):
     """Convert a HO element mesh to linear mesh.
