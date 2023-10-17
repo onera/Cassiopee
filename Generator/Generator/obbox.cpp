@@ -32,7 +32,8 @@ PyObject* K_GENERATOR::obbox(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Int Weighting;
-  if (!PyArg_ParseTuple(args, "Oi", &array, &Weighting)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &array, &Weighting))return NULL;
+  
   // Check array
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
@@ -84,7 +85,6 @@ PyObject* K_GENERATOR::obbox(PyObject* self, PyObject* args)
   // Initializes the mean point vector and covariance matrix
   FldArrayF mu(3); mu.setAllValuesAtNull();
   FldArrayF Cov(3,3); Cov.setAllValuesAtNull();
-
   if (Weighting == 0)// no weighting by triangle surfaces : cloud used
   {
     // METHOD 1: point cloud (Weighting=0)
