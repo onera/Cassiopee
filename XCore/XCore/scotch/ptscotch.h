@@ -96,7 +96,7 @@ proper padding                               +*/
 
 typedef struct {
 #ifdef G_DOUBLEINT
-  double                    dummy[36];
+  double                    dummy[37];
 #else
   double                    dummy[30];
 #endif
