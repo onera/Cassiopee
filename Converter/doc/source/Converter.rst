@@ -201,6 +201,7 @@ List of functions
     Converter.center2Node
     Converter.PyTree.addGhostCells
     Converter.PyTree.rmGhostCells
+    Converter.PyTree.signNGonFaces
 
 **-- Array / PyTree analysis**
 
@@ -1803,6 +1804,22 @@ Array / PyTree common manipulations
     * `Remove ghost cells (pyTree) <Examples/Converter/rmGhostCellsPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/rmGhostCellsPT.py
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.PyTree.signNGonFaces(t)
+
+    Make signed faces within NGon connectivity.
+
+    :param t: tree
+    :type t: pyTree
+    :rtype: t with signed faces
+
+    *Example of use:*
+
+    * `Sign NGon faces (pyTree) <Examples/Converter/signNGonFacesPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/signNGonFacesPT.py
 
 
 Array / PyTree analysis
