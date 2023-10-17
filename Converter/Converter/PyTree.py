@@ -3350,6 +3350,43 @@ def _conformizeNGon(a, tol=1.e-6):
     _TZGC1(a, 'nodes', True, Converter.conformizeNGon, tol)
     return None
 
+# -- convertSurfaceNGon
+def convertSurfaceNGon(a, rmEmptyNFaceElements=True):
+    """Convert a surface NGon from one type (A: NGON=bars, NFACE=polygon)
+    to another (B: NGON=polygon, NFACE=NULL).
+    Usage: convertSurfaceNGon(a)"""
+
+    # add NFace node if necessary
+    for z in Internal.getZones(a):
+        nFace = Internal.getNodeFromName(z, 'NFaceElements')
+        if nFace is None:
+            nGon = Internal.getNodeFromName(z, 'NGonElements')
+            offset = Internal.getNodeFromName(nGon, 'ElementStartOffset')
+            api = 3 if offset is not None else 2
+
+            rnGon = Internal.getNodeFromName(nGon, 'ElementRange')[1]
+
+            nface = Internal.createNode('NFaceElements', 'Elements_t', parent=z, value=numpy.array([23,0], dtype='int32', order='F'))
+
+            value = numpy.array([rnGon[1]+1, rnGon[1]+1], dtype='int32', order='F')
+            Internal.createNode('ElementRange', 'IndexRange_t', parent=nface, value=value)
+
+            value = numpy.array([], dtype='int32', order='F')
+            Internal.createNode('ElementConnectivity', 'DataArray_t', parent=nface, value=value)
+
+            value = numpy.array([0], dtype='int32', order='F') if api == 3 else numpy.array([], dtype='int32', order='F')
+            Internal.createNode('ElementStartOffset', 'DataArray_t', parent=nface, value=value)
+
+    a = TZGC3(a, 'nodes', True, Converter.convertSurfaceNGon)
+
+    if rmEmptyNFaceElements: 
+      for z in Internal.getZones(a):
+        nFace = Internal.getNodeFromName(z, 'NFaceElements')
+        cnFace = Internal.getNodeFromName(nFace, 'ElementConnectivity')[1]
+        if cnFace.size == 0: Internal._rmNodesByName(z, 'NFaceElements')
+        
+    return a
+
 #=============================================================================
 # -- Create BC(s) to a zone node --
 #=============================================================================

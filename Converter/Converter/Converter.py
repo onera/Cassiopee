@@ -1151,6 +1151,17 @@ def conformizeNGon(array, tol=1.e-6):
         return converter.conformizeNGon(array, tol)
     else: return array
 
+def convertSurfaceNGon(array):
+    """Convert a surface NGon from one type (A: NGON=bars, NFACE=polygon)
+    to another (B: NGON=polygon, NFACE=NULL).
+    Usage: convertSurfaceNGon(array)"""
+    if isinstance(array[0], list):
+        b = []
+        for i in array:
+            b.append(converter.convertSurfaceNGon(i))
+        return b
+    else:
+        return converter.convertSurfaceNGon(array)
 
 # -- interne --
 def convertArray2Tetra1__(array, arrayC=[], split='simple'):

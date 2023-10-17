@@ -2844,7 +2844,7 @@ def array2PyTreeDim(a):
     elif len(a) == 4: # non structure
         if isinstance(a[2], list): # Array2/Array3
             if a[3] == 'NGON':
-                if a[2][3][-1] == a[2][1].size: nelts = a[2][3].size-1
+                if a[2][3].size > 0 and a[2][3][-1] == a[2][1].size: nelts = a[2][3].size-1
                 else: nelts = a[2][3].size
                 d = numpy.empty((1,3), dtype=E_NpyInt, order='F')
                 d[0,0] = a[1][0].size; d[0,1] = nelts; d[0,2] = 0
@@ -4063,7 +4063,7 @@ def setElementConnectivity2(z, array):
       info.append(['NFaceElements', i2, [], 'Elements_t'])
       info2 = info[len(info)-1][2]
       # Size of ElementRange
-      if array[2][3][-1] == array[2][1].size: nelts = array[2][3].size-1
+      if array[2][3].size > 0 and array[2][3][-1] == array[2][1].size: nelts = array[2][3].size-1
       else: nelts = array[2][3].size
       i = numpy.empty((2), E_NpyInt)
       i[0] = nfaces+1; i[1] = nfaces+nelts
@@ -4071,7 +4071,7 @@ def setElementConnectivity2(z, array):
       # Tableau de connectivite Elements/Faces
       info2.append(['ElementConnectivity', array[2][1], [], 'DataArray_t'])
       # Tableau ElementIndex (PH)
-      if array[2][3][-1] == array[2][1].size:
+      if array[2][3].size > 0 and array[2][3][-1] == array[2][1].size:
         info2.append(['ElementStartOffset', array[2][3], [], 'DataArray_t'])
       else:
         info2.append(['ElementIndex', array[2][3], [], 'DataArray_t'])
