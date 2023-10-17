@@ -5639,11 +5639,11 @@ def computeBCMatchTNC(zoneA,zoneB,gcA,gcB, varList):
   # ================
   dim = Internal.getZoneDim(zoneB)
     
-  if dim[0]=='Structured':
-    zoneType=1
+  if dim[0] == 'Structured':
+    zoneType = 1
   else: 
     zoneType = 2; eltName = dim[3]
-    if eltName=='NGON':
+    if eltName == 'NGON':
       raise ValueError("computeBCMatchTNC: not yet implement for Ngon elements.")
     else:
       raise ValueError("computeBCMatchTNC: not yet implement for basic elements.")
@@ -5677,8 +5677,7 @@ def computeBCMatchTNC(zoneA,zoneB,gcA,gcB, varList):
 
   (ancA, ancB, weight, isMatch) = XOR.superMesh2(surfA, clipB, tol=-1.e-4, proj_on_first=True) 
 
-  if (isMatch):
-    return [[],[]]
+  if isMatch: return [[],[]]
 
   fields = []
 
@@ -5696,8 +5695,8 @@ def computeBCMatchTNC(zoneA,zoneB,gcA,gcB, varList):
     if fld != []:
       fields.append(fld)
 
-    if fields != [] :
-        if zoneType==1: connects = []
+    if fields != []:
+        if zoneType == 1: connects = []
         else: connects = Internal.getElementNodes(zoneB)
 
         fields = Internal.convertDataNodes2Array2(fields, dim, connects, loc=1)

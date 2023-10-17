@@ -771,7 +771,7 @@ def createTreeHdfFilter(dist_tree, hdf_filter, mode='read'):
 #==========================================================
 # load
 #==========================================================
-def update_tree_with_partial_load_dict(dist_tree, partial_dict_load):
+def updateTreeWithPartialLoadDict(dist_tree, partial_dict_load):
   for path, data in partial_dict_load.items():
     Node = I.getNodeFromPath(dist_tree, path)
     Node[1] = data
@@ -782,7 +782,7 @@ def loadTreeFromFilter(filename, dist_tree, comm, hdf_filter):
       if isinstance(value, (list, tuple))}
 
   partial_dict_load = C.convertFile2PartialPyTreeFromPath(filename, hdf_filter_with_dim, comm)
-  update_tree_with_partial_load_dict(dist_tree, partial_dict_load)
+  updateTreeWithPartialLoadDict(dist_tree, partial_dict_load)
 
   # > Match with callable
   hdf_filter_with_func = {key: value for (key, value) in hdf_filter.items() \
@@ -799,15 +799,14 @@ def loadTreeFromFilter(filename, dist_tree, comm, hdf_filter):
       except RuntimeError: # Not ready yet
         pass
     partial_dict_load = C.convertFile2PartialPyTreeFromPath(filename, next_hdf_filter, comm)
-
-    update_tree_with_partial_load_dict(dist_tree, partial_dict_load)
+    updateTreeWithPartialLoadDict(dist_tree, partial_dict_load)
     hdf_filter_with_func = {key: value for (key, value) in next_hdf_filter.items() \
         if not isinstance(value, (list, tuple))}
 
   if unlock_at_least_one is False:
     raise RuntimeError("Something strange in the loading process")
 
-def clean_distribution_info(dist_tree):
+def cleanDistributionInfo(dist_tree):
   for base in I.getNodesFromType1(dist_tree, 'CGNSBase_t'):
     for zone in I.getNodesFromType1(base, 'Zone_t'):
       I._rmNodesByName1(zone, ':CGNS#Distribution')
@@ -840,7 +839,7 @@ def saveTreeFromFilter(filename, dist_tree, comm, hdf_filter):
 
   #Dont save distribution info, but work on a copy to keep it for further use
   saving_dist_tree = I.copyRef(dist_tree)
-  clean_distribution_info(saving_dist_tree)
+  cleanDistributionInfo(saving_dist_tree)
 
   C.convertPyTree2FilePartial(saving_dist_tree, filename, comm, hdf_filter_with_dim, ParallelHDF=True)
 

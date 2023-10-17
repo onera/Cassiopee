@@ -816,10 +816,10 @@ PyObject* K_IO::GenIOHdf::getArrayI8(hid_t node, hid_t tid,
                                      hid_t mid,
                                      hid_t sid)
 {
-#ifdef EDOUBLEINT
+#ifdef E_DOUBLEINT
   if (_readMode == 0) return getArrayI8Raw(node, tid, dim, dims, mid, sid);
   else return getArrayI8Raw(node, tid, dim, dims, mid, sid);
-#else
+#else  
   if (_readMode == 0) return getArrayI82I4C(node, tid, dim, dims, mid, sid);
   else return getArrayI8Raw(node, tid, dim, dims, mid, sid);
 #endif
@@ -830,7 +830,7 @@ PyObject* K_IO::GenIOHdf::getArrayI4(hid_t node, hid_t tid,
                                      hid_t mid,
                                      hid_t sid)
 {
-#ifdef EDOUBLEINT
+#ifdef E_DOUBLEINT
   if (_readMode == 0) return getArrayI42I8(node, tid, dim, dims, mid, sid);
   else return getArrayI4Raw(node, tid, dim, dims, mid, sid);
 #else

@@ -1300,7 +1300,7 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
     bool is_multiple_data_space = false;
     // On doit recuperer seulement la list imbrique
     E_Int litem_size = PyList_Size(item);
-    for (int i_sub_list = 0; i_sub_list < litem_size; ++i_sub_list)
+    for (E_Int i_sub_list = 0; i_sub_list < litem_size; ++i_sub_list)
     {
       PyObject* subitem = PyList_GetItem(item, i_sub_list);
       if (PyList_Check(subitem) == true)
@@ -1330,8 +1330,8 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
           DataSpace.Src_Block [il] = -1;
         }
 
-        int shift = 0;
-        for (int i_data_space = 0; i_data_space < n_data_space; ++i_data_space)
+        E_Int shift = 0;
+        for (E_Int i_data_space = 0; i_data_space < n_data_space; ++i_data_space)
         {
           fillArrayLongWithList(item, 0+shift, DataSpace.List_Src_Offset[i_data_space].data());
           fillArrayLongWithList(item, 1+shift, DataSpace.List_Src_Stride[i_data_space].data());
@@ -1352,7 +1352,7 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
         flags_src_or_dst = 2; // Multiple data_space in destination
         // printf("flags_src_or_dst ---> %i \n", flags_src_or_dst);
 
-        // Ok le DataSpace d'entré reste le même
+        // Ok le DataSpace d'entrée reste le même
         fillArrayLongWithList(Filter, 0, DataSpace.Src_Offset);
         fillArrayLongWithList(Filter, 1, DataSpace.Src_Stride);
         fillArrayLongWithList(Filter, 2, DataSpace.Src_Count );
@@ -1371,8 +1371,8 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
         DataSpace.List_Dst_Count .resize(n_data_space);
         DataSpace.List_Dst_Block .resize(n_data_space);
 
-        int shift = 0;
-        for (int i_data_space = 0; i_data_space < n_data_space; ++i_data_space)
+        E_Int shift = 0;
+        for (E_Int i_data_space = 0; i_data_space < n_data_space; ++i_data_space)
         {
           fillArrayLongWithList(item, 0+shift, DataSpace.List_Dst_Offset[i_data_space].data());
           fillArrayLongWithList(item, 1+shift, DataSpace.List_Dst_Stride[i_data_space].data());
@@ -1403,9 +1403,9 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
   /** Better make reverse that in interface **/
   DataSpace_t DataSpaceSave = DataSpace;
 
-  int i=0; int j=0;
+  E_Int i=0; E_Int j=0;
   hsize_t sentry = -1;
-  for (int n=0; n<L3C_MAX_DIMS; n++)
+  for (E_Int n=0; n<L3C_MAX_DIMS; n++)
   {
     DataSpace.Src_Offset[n] = sentry;
     DataSpace.Src_Count[n]  = sentry;

@@ -131,7 +131,7 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
   clock_t tic = clock();
   
   PyObject *o, *l;
-  E_Int nfld;
+  E_Int nfld=1;
   E_Float *X, *Y, *Z;
   E_Int npoints, ncells, nfaces;
   E_Int faces_size, cells_size, *faces, *cells, *xfaces, *xcells;
@@ -1012,13 +1012,13 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
     dims[1] = 1;
     dims[0] = (npy_intp)faces.size();
  
-    PyArrayObject *f = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_INT);
+    PyArrayObject *f = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
     E_Int *pf = (E_Int *)PyArray_DATA(f);
     for (size_t j = 0; j < faces.size(); j++)
       pf[j] = faces[j];
 
     // neis array
-    PyArrayObject *n = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_INT);
+    PyArrayObject *n = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
     E_Int *pn = (E_Int *)PyArray_DATA(n);
     for (size_t j = 0; j < neis.size(); j++)
       pn[j] = neis[j];
@@ -1133,6 +1133,7 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
   // 10 must be an array of PointList chunks
   o = PyList_GetItem(l, 9);
   E_Int nbc = PyList_Size(o);
+
   if (nbc == 0) {
     PyList_Append(out, PyList_New(0));
   } else {
@@ -1140,10 +1141,12 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
     int *bcsize = (int *)XMALLOC(nbc * sizeof(int));
     std::vector<std::vector<E_Int>> myptlists(nbc);
     std::vector<std::vector<E_Int>> pivots(nbc);
+    E_Int size;
 
     for (E_Int i = 0; i < nbc; i++) {
       PyObject *plist = PyList_GetItem(o, i);
-      res = K_NUMPY::getFromNumpyArray(plist, plists[i], bcsize[i], nfld, true);
+      res = K_NUMPY::getFromNumpyArray(plist, plists[i], size, nfld, true);
+      bcsize[i] = int(size);
       assert(res == 1);
 
       auto& list = plists[i];
@@ -1244,7 +1247,7 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
       int nrecv = brdist[nproc];
       dims[1] = 1;
       dims[0] = (npy_intp)nrecv;
-      PyArrayObject *pa = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_INT);
+      PyArrayObject *pa = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
 
       MPI_Alltoallv(&bsdata[0], &bscount[0], &bsdist[0], XMPI_INT,
                     PyArray_DATA(pa), &brcount[0], &brdist[0], XMPI_INT,
@@ -1267,21 +1270,21 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
   // my global cells
   dims[1] = 1;
   dims[0] = (npy_intp)nncells;
-  PyArrayObject *mycells = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_INT);
+  PyArrayObject *mycells = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
   E_Int *pc = (E_Int *)PyArray_DATA(mycells);
   for (E_Int i = 0; i < nncells; i++)
     pc[i] = rcells[i];
 
   // my global faces
   dims[0] = (npy_intp)nnfaces;
-  PyArrayObject *myfaces = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_INT);
+  PyArrayObject *myfaces = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
   E_Int *pf = (E_Int *)PyArray_DATA(myfaces);
   for (E_Int i = 0; i < nnfaces; i++)
     pf[i] = rfaces[i];
  
   // my global points
   dims[0] = (npy_intp)nnpoints;
-  PyArrayObject *mypoints = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_INT);
+  PyArrayObject *mypoints = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
   E_Int *pp = (E_Int *)PyArray_DATA(mypoints);
   for (E_Int i = 0; i < nnpoints; i++)
     pp[i] = rpoints[i];

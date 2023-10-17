@@ -156,15 +156,7 @@ class GenIOHdf
     PyObject* getArrayI8Raw(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
     PyObject* getArrayI8(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
     PyObject* getArrayI4(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
-    
-    //#ifdef E_DOUBLEINT
-    //  #define getArrayI8 getArrayI8Raw
-    //  #define getArrayI4 getArrayI42I8      
-    //#else
-    //  #define getArrayI8 getArrayI82I4
-    //  #define getArrayI4 getArrayI4Raw
-    //#endif
-          
+              
     char* getArrayC1(hid_t node, hid_t tid, int dim, hsize_t* dims);
 
     /* Method for contiguous array **/
