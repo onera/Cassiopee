@@ -9,6 +9,7 @@ import Geom.PyTree as D
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import Converter.Internal as Internal
+import Geom.IBM as D_IBM
 import CPlot.iconics as iconics
 
 # local widgets list
@@ -38,6 +39,43 @@ def _setDataInZone(z, snear, ibctype, dfar, inv):
     if dim[0] == 'Unstructured' and dim[3] == 'BAR': remesh = True
     if remesh: D._uniformize(z, h=float(snear))
     return None
+
+
+#==============================================================================
+# Creates a symmetry plane
+#==============================================================================
+def symmetrize():
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
+        CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    axis = VARS[7].get()
+
+    nzs = CPlot.getSelectedZones()
+    if nzs == []:
+        CTK.TXT.insert('START', 'Selection is empty.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    CTK.saveTree()
+        
+    bodySymName=None
+    snear_sym = 0
+
+    nob = CTK.Nb[0]+1
+    noz = CTK.Nz[0]
+    bodySymName = CTK.t[2][nob][0]
+    z = CTK.t[2][nob][2][noz]
+    snear_sym = Internal.getValue(Internal.getNodeFromName(z,'snear'))
+    
+    if axis == 'Around XY-': dir_sym = 1
+    elif axis == 'Around XZ-': dir_sym = 2
+    elif axis == 'Around YZ-': dir_sym = 3    
+
+    D_IBM._symetrizePb(CTK.t, bodySymName, snear_sym, dir_sym=dir_sym)
+    CTK.TXT.insert('START', 'Symmetry plane has been created with snear=%f.\n'%snear_sym)
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
+    CTK.display(CTK.t)
+    CPlot.render()
 
 #==============================================================================
 # Set data in selected zones
@@ -257,6 +295,8 @@ def createApp(win):
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
     # -6- Zones missing IBC info -
     V = TK.StringVar(win); V.set(''); VARS.append(V)
+    # -7- Symmetry plane -
+    V = TK.StringVar(win); V.set('Around XZ-'); VARS.append(V)
 
     # - Snear settings -
     B = TTK.Label(Frame, text="snear")
@@ -285,40 +325,48 @@ def createApp(win):
     B = TTK.OptionMenu(Frame, VARS[3], 'out', 'in')
     B.grid(row=3, column=1, columnspan=2, sticky=TK.EW)
 
+    # - Symmetry plane -
+    B = TTK.Button(Frame, text="Set symmetry plane", command=symmetrize)
+    B.grid(row=4, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B,
+                       text='Create a symmetry plane.')    
+    B = TTK.OptionMenu(Frame, VARS[7], 'Around YZ-', 'Around XZ-', 'Around XY-')
+    B.grid(row=4, column=1, columnspan=2, sticky=TK.EW)
+
     # - Extract fields on surface
     B = TTK.Label(Frame, text="Extract")
-    B.grid(row=4, column=0, sticky=TK.EW)
+    B.grid(row=5, column=0, sticky=TK.EW)
     B = TTK.Checkbutton(Frame, text='Wall Fields', variable=VARS[4])
     BB = CTK.infoBulle(parent=B, text='Extract various fields on surface.')
-    B.grid(row=4, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=5, column=1, columnspan=2, sticky=TK.EW)
 
     # - Extract loads on components
     B = TTK.Label(Frame, text="Extract")
-    B.grid(row=5, column=0, sticky=TK.EW)
+    B.grid(row=6, column=0, sticky=TK.EW)
     B = TTK.Checkbutton(Frame, text='Loads', variable=VARS[5])
     BB = CTK.infoBulle(parent=B, text='Extract loads for each component.')
-    B.grid(row=5, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=6, column=1, columnspan=2, sticky=TK.EW)
 
     # - Set data -
     B = TTK.Button(Frame, text="Set data", command=setData)
     BB = CTK.infoBulle(parent=B, text='Set data into selected zone.')
-    B.grid(row=6, column=0, columnspan=1, sticky=TK.EW)
+    B.grid(row=7, column=0, columnspan=1, sticky=TK.EW)
 
     # - Get data -
     B = TTK.Button(Frame, text="Get data", command=getData,
                    image=iconics.PHOTO[8], padx=0, pady=0, compound=TK.RIGHT)
     BB = CTK.infoBulle(parent=B, text='Get data from selected zone.')
-    B.grid(row=6, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=7, column=1, columnspan=2, sticky=TK.EW)
 
     # - View type de IBC -
     B = TTK.Button(Frame, text="View IBC", command=ViewIBC)
-    B.grid(row=7, column=0, sticky=TK.EW)
+    B.grid(row=8, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B,
                        text='View specified IBC.\nTree is NOT modified.')
 
     # - Type of IBC - ListBox Frame -
     LBFrame = TTK.Frame(Frame)
-    LBFrame.grid(row=7, column=1, rowspan=4, columnspan=2, sticky=TK.EW)
+    LBFrame.grid(row=8, column=1, rowspan=4, columnspan=2, sticky=TK.EW)
     LBFrame.rowconfigure(0, weight=1)
     LBFrame.columnconfigure(0, weight=1)
     LBFrame.columnconfigure(1, weight=0)
@@ -337,7 +385,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="View Undefined\n     IBC", command=ViewUndefinedIBC)
     WIDGETS['ViewUndefinedIBC'] = B
     BB = CTK.infoBulle(parent=B, text='View Undefined IBC.')
-    B.grid(row=8, column=0, sticky=TK.EW)
+    B.grid(row=9, column=0, sticky=TK.EW)
 
     ## - Zones that are missing IBC info  -
     #B = TTK.Label(Frame, text="No IBC (Zones)")
