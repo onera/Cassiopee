@@ -37,37 +37,47 @@ using namespace std;
 void K_CONNECT::connectEV2VNbrs(FldArrayI& cEV,
                                 vector< vector<E_Int> >& cVN, E_Int corners)
 {
-  E_Int ne = cEV.getSize();
-  E_Int ns = cEV.getNfld();
-  E_Int nv = cVN.size();
+  // Acces universel sur BE/ME
+  E_Int nc = cEV.getNConnect();
+  E_Int nv = cVN.size(); // Nombre de points du maillage
   E_Int vertex1, vertex2;
-
-  if (corners == 0)
+  
+  // Boucle sur toutes les connectivites
+  for (E_Int ic = 0; ic < nc; ic++)
   {
-    for (E_Int i = 0; i < ne; i++)
+    FldArrayI& cm = *(cEV.getConnect(ic));
+    E_Int ne = cm.getSize(); // Nbre elements de cette connectivite
+    E_Int ns = cm.getNfld(); // Nombre de points par elements de cette connectivite
+  
+    if (corners == 0)
     {
-      for (E_Int j = 1; j < ns; j++)
+      for (E_Int i = 0; i < ne; i++)
       {
-        vertex1 = cEV(i, j);
-        vertex2 = cEV(i, j+1);
+        for (E_Int j = 1; j < ns; j++)
+        {
+          vertex1 = cm(i, j);
+          vertex2 = cm(i, j+1);
+          cVN[vertex1-1].push_back(vertex2);
+          cVN[vertex2-1].push_back(vertex1);
+        }
+        vertex1 = cm(i, ns);
+        vertex2 = cm(i, 1);
         cVN[vertex1-1].push_back(vertex2);
         cVN[vertex2-1].push_back(vertex1);
       }
-      cVN[cEV(i, ns)-1].push_back(cEV(i, 1));
-      cVN[cEV(i, 1)-1].push_back(cEV(i, ns));
     }
-  }
-  else // corners = 1
-  {
-    for (E_Int i = 0; i < ne; i++)
-    { 
-      for (E_Int j = 1; j <= ns; j++)
-      {
-        vertex1 = cEV(i, j);
-        for (E_Int j2 = 1; j2 <= ns; j2++)
+    else // corners = 1
+    {
+      for (E_Int i = 0; i < ne; i++)
+      { 
+        for (E_Int j = 1; j <= ns; j++)
         {
-          vertex2 = cEV(i, j2);
-          if (vertex2 != vertex1) cVN[vertex1-1].push_back(vertex2);
+          vertex1 = cm(i, j);
+          for (E_Int j2 = 1; j2 <= ns; j2++)
+          {
+            vertex2 = cm(i, j2);
+            if (vertex2 != vertex1) cVN[vertex1-1].push_back(vertex2);
+          }
         }
       }
     }

@@ -32,30 +32,34 @@ using namespace std;
   Attention: cVE doit deja etre alloue au nombre de noeuds.
 */
 //=============================================================================
-void K_CONNECT::connectEV2VE(FldArrayI& cEV,
-                             vector< vector<E_Int> >& cVE)
+void K_CONNECT::connectEV2VE(FldArrayI& cEV, vector< vector<E_Int> >& cVE)
 {
-  E_Int ne = cEV.getSize();
-  E_Int ns = cEV.getNfld();
-  E_Int nv = cVE.size();
-  E_Int stride = cEV.getStride();
-  E_Int vertex;
+  // Acces universel sur BE/ME
+  E_Int nc = cEV.getNConnect();
 
+  E_Int nv = cVE.size(); // Nombre de points du maillage
   // Calcul du nombre d'elements attaches a chaque noeud
   FldArrayI nve(nv); nve.setAllValuesAtNull();
   E_Int* nvep = nve.begin();
+  E_Int vertex;
+  E_Int el_offset = 0; // decalage
 
-//#pragma omp parallel default (shared)
+  // Boucle sur toutes les connectivites pour pre-calculer la valence de
+  // chaque noeud
+  for (E_Int ic = 0; ic < nc; ic++)
   {
+    FldArrayI& cm = *(cEV.getConnect(ic));
+    // Nbre elements de cette connectivite
+    E_Int ne = cm.getSize();
+    // Nombre de points par elements de cette connectivite
+    E_Int ns = cm.getNfld();
+
     for (E_Int j = 1; j <= ns; j++)
     {
-      E_Int* cEVp = cEV.begin(j);
-//#pragma omp for
       for (E_Int i = 0; i < ne; i++)
       {
-        vertex = cEVp[i*stride]-1;
-//#pragma omp atomic update
-        nvep[vertex]++;
+        vertex = cm(i, j);
+        nvep[vertex-1]++;
       }
     }
   }
@@ -63,14 +67,23 @@ void K_CONNECT::connectEV2VE(FldArrayI& cEV,
 #pragma omp parallel for default (shared)
   for (E_Int i = 0; i < nv; i++) cVE[i].reserve(nvep[i]);
 
-  for (E_Int j = 1; j <= ns; j++)
+  // Boucle sur toutes les connectivites pour remplir cVE
+  for (E_Int ic = 0; ic < nc; ic++)
   {
-    E_Int* cEVp = cEV.begin(j);
-    for (E_Int i = 0; i < ne; i++)
+    FldArrayI& cm = *(cEV.getConnect(ic));
+    E_Int ne = cm.getSize();
+    E_Int ns = cm.getNfld();
+    
+    for (E_Int j = 1; j <= ns; j++)
     {
-      vertex = cEVp[i*stride]-1;
-      cVE[vertex].push_back(i);
+      for (E_Int i = 0; i < ne; i++)
+      {
+        vertex = cm(i, j);
+        cVE[vertex-1].push_back(el_offset + i);
+      }
     }
+
+    el_offset += ne; // increment element offset
   }
 }
 
