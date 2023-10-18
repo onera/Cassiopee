@@ -3,12 +3,12 @@
 
 [Setup]
 AppName=Cassiopee
-AppVersion=3.6
+AppVersion=3.7
 DefaultDirName={code:DefDirRoot}\Cassiopee
 DefaultGroupName=Cassiopee
 Compression=lzma2
 SolidCompression=yes
-OutputBaseFilename=Cassiopee-3.6-win64
+OutputBaseFilename=Cassiopee-3.7-win64
 PrivilegesRequired=lowest
 AppPublisher=ONERA
 
@@ -77,7 +77,7 @@ begin
   StringChangeEx(CassiopeeVar, '\', '/', True)
   SetArrayLength(lines, 3);
   lines[0] := 'installPath = "'+CassiopeeVar+'/Dist/bin/win64/lib/python3.8/site-packages"';
-  lines[1] := 'libpath = "'+CassiopeeVar+'/Dist/bin/win64/Lib"';
+  lines[1] := 'libPath = "'+CassiopeeVar+'/Dist/bin/win64/Lib"';
   lines[2] := 'includePath = "'+CassiopeeVar+'/Apps/Modules/KCore"';
   Result := SaveStringsToFile(filename,lines,false);
   exit;

@@ -913,7 +913,7 @@ case 559932868ul:
 //=============================================================================
 int K_KCORE::activation(const char* name)
 {
-  char filePath[256];
+  char filePath[1024];
   int ret;
   char key[128];
   FILE* f=NULL;
@@ -926,6 +926,7 @@ int K_KCORE::activation(const char* name)
     strcat(filePath, "/.CassiopeeKey");
     f = fopen(filePath, "r");
   }
+  
   if (f != NULL)
   {
     while (!feof(f))
@@ -940,7 +941,7 @@ int K_KCORE::activation(const char* name)
     }
     fclose(f);
   }
-  
+
   // try to open installPath/.CassiopeeKey
   char* path = installPath();
   if (path == NULL) return 0; // FAIL
