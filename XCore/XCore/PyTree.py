@@ -144,6 +144,6 @@ def loadAndSplitNGon(fileName):
 
   t = C.newPyTree(['Base', zo])
   Cmpi._setProc(t, Cmpi.rank)
-  #I._correctPyTree(t, level=7)
+  I._correctPyTree(t, level=7)
 
   return t, RES
