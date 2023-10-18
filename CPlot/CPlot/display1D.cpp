@@ -39,7 +39,8 @@ PyObject* K_CPLOT::display1D(PyObject* self, PyObject* args)
   E_Float bgBlend;
   char* var1; char* var2;
   E_Float r1min, r1max, r2min, r2max;
-  if (!PyArg_ParseTuple(args, "Oi(ii)(ii)dss(dd)(dd)", 
+    
+  if (!PYPARSETUPLE_(args, "O_ I_ TII_ TII_ R_ SS_ TRR_ TRR_", 
                         &arrays, &slot, 
                         &gridPosI, &gridPosJ, &gridSizeI, &gridSizeJ,
                         &bgBlend, &var1, &var2,

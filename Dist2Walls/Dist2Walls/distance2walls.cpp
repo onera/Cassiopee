@@ -31,7 +31,7 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
 {
   PyObject *blks, *bodiesC;
   E_Int isminortho;
-  if (!PyArg_ParseTuple(args, "OOi", &blks, &bodiesC, &isminortho)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ I_, &blks, &bodiesC, &isminortho)) return NULL;
   
   if (PyList_Check(blks) == 0)
   {

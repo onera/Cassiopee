@@ -295,7 +295,7 @@ PyObject* K_CPLOT::getActiveZones(PyObject* self, PyObject* args)
 PyObject* K_CPLOT::getSelectedStatus(PyObject* self, PyObject* args)
 {
   int zone;
-  if (!PyArg_ParseTuple(args, "i", &zone)) return NULL;
+  if (!PYPARSETUPLE_(args, I_, &zone)) return NULL;
 
   Data* d = Data::getInstance();
   if (zone < 0 || zone >= d->_numberOfZones)
@@ -312,7 +312,7 @@ PyObject* K_CPLOT::getSelectedStatus(PyObject* self, PyObject* args)
 PyObject* K_CPLOT::getActiveStatus(PyObject* self, PyObject* args)
 {
   int zone;
-  if (!PyArg_ParseTuple(args, "i", &zone)) return NULL;
+  if (!PYPARSETUPLE_(args, I_, &zone)) return NULL;
 
   Data* d = Data::getInstance();
   if (zone < 0 || zone >= d->_numberOfZones)

@@ -183,8 +183,9 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
 {
   PyObject *arrs, *if2es, *z_j_ptlist, *z_j_ptlistD, *z_j_ptlist_sizes, *z_j_donnorIDs, *z_bc_ptlist_sizes, *z_bc_ptlist;
   E_Int NLAYERS(1);
-    
-  if (!PyArg_ParseTuple(args, "OOOOOOOOi", &arrs, &if2es, &z_j_ptlist_sizes, &z_j_ptlist, &z_j_ptlistD, &z_j_donnorIDs, &z_bc_ptlist_sizes, &z_bc_ptlist, &NLAYERS)) return NULL;
+  
+  if (!PYPARSETUPLE_(args, OOOO_ OOOO_ I_, &arrs, &if2es, &z_j_ptlist_sizes, &z_j_ptlist, &z_j_ptlistD, &z_j_donnorIDs, &z_bc_ptlist_sizes, &z_bc_ptlist, &NLAYERS))return NULL;
+  
 
   E_Int nb_zones = PyList_Size(arrs);
   //std::cout << "K_CONVERTER::addGhostCellsNG : " << nb_zones << std::endl;
