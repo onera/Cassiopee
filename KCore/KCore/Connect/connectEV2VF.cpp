@@ -17,6 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "kcore.h"
 #include "Connect/connect.h"
 
 using namespace K_FLD;
@@ -33,100 +34,129 @@ using namespace std;
 void K_CONNECT::connectEV2VF(FldArrayI& cEV, const char* eltType,
                              vector< vector<E_Int> >& cVF)
 {
-  E_Int face[6][4];
-  E_Int nfaces = 0; E_Int nof = 0;
-  if (strcmp(eltType, "BAR") == 0) 
-  { 
-    nfaces = 2; nof = 1;
-    face[0][0] = 1; face[1][0] = 2;
-  }
-  else if (strcmp(eltType, "QUAD") == 0) 
-  {
-    nfaces = 4; nof = 2;
-    face[0][0] = 1; face[0][1] = 2;
-    face[1][0] = 2; face[1][1] = 3;
-    face[2][0] = 3; face[2][1] = 4;
-    face[3][0] = 4; face[3][1] = 1;
-  }
-  else if (strcmp(eltType, "TRI") == 0) 
-  {
-    nfaces = 3; nof = 2;
-    face[0][0] = 1; face[0][1] = 2;
-    face[1][0] = 2; face[1][1] = 3;
-    face[2][0] = 3; face[2][1] = 1;
-  }
-  else if (strcmp(eltType, "HEXA") == 0) 
-  {
-    nfaces = 6; nof = 4;
-    face[0][0] = 1; face[0][1] = 4; face[0][2] = 3; face[0][3] = 2;
-    face[1][0] = 1; face[1][1] = 2; face[1][2] = 6; face[1][3] = 5;
-    face[2][0] = 2; face[2][1] = 3; face[2][2] = 7; face[2][3] = 6;
-    face[3][0] = 3; face[3][1] = 4; face[3][2] = 8; face[3][3] = 7;
-    face[4][0] = 1; face[4][1] = 5; face[4][2] = 8; face[4][3] = 4;
-    face[5][0] = 5; face[5][1] = 6; face[5][2] = 7; face[5][3] = 8;
-  }
-  else if (strcmp(eltType, "TETRA") == 0) 
-  {
-    nfaces = 4; nof = 3;
-    face[0][0] = 1; face[0][1] = 3; face[0][2] = 2;
-    face[1][0] = 1; face[1][1] = 2; face[1][2] = 4;
-    face[2][0] = 2; face[2][1] = 3; face[2][2] = 4;
-    face[3][0] = 3; face[3][1] = 1; face[3][2] = 4;
-  }
-  else if (strcmp(eltType, "PYRA") == 0) 
-  {
-    nfaces = 5; nof = 3; // 2 TRIs pour la base
-    face[0][0] = 1; face[0][1] = 4; face[0][2] = 3;
-    face[1][0] = 3; face[1][1] = 2; face[1][2] = 1;
-    face[2][0] = 1; face[2][1] = 2; face[2][2] = 5; 
-    face[3][0] = 2; face[3][1] = 3; face[3][2] = 5;
-    face[4][0] = 3; face[4][1] = 4; face[4][2] = 5;
-    face[5][0] = 4; face[5][1] = 1; face[5][2] = 5;
-  }
-  else if (strcmp(eltType, "PENTA") == 0) 
-  {
-    nfaces = 5; nof = 4; // TRI degen
-    face[0][0] = 1; face[0][1] = 2; face[0][2] = 5; face[0][3] = 4;
-    face[1][0] = 2; face[1][1] = 3; face[1][2] = 6; face[1][3] = 5;
-    face[2][0] = 3; face[2][1] = 1; face[2][2] = 4; face[2][3] = 6;
-    face[3][0] = 1; face[3][1] = 3; face[3][2] = 2; face[3][3] = 2;
-    face[4][0] = 4; face[4][1] = 5; face[4][2] = 6; face[4][3] = 6;
-  }
-  E_Int nelts = cEV.getSize();
+  // Acces universel sur BE/ME
+  E_Int nc = cEV.getNConnect();
+  // Acces universel aux eltTypes
+  vector<char*> eltTypes;
+  K_ARRAY::extractVars(eltType, eltTypes);
+  E_Int el_offset = 0; // element offset for subsequent connectivities
+  // Number of elements and faces per connectivity
+  vector<E_Int> nelts(nc);
+  vector<E_Int> nfaces(nc);
+  vector<E_Int> nof(nc);
+  vector<vector<vector<E_Int> > > face;
   E_Int npts = cVF.size();
 
   // Size
   FldArrayI size(npts); size.setAllValuesAtNull();
   E_Int* sizep = size.begin();
   E_Int ind, indN;
-
-  for (E_Int e = 0; e < nelts; e++)
+    
+  // Boucle sur toutes les connectivites pour remplir face et pre-evaluer
+  // le nombre de faces connectees a chaque noeud
+  for (E_Int ic = 0; ic < nc; ic++)
   {
-    for (E_Int f = 0; f < nfaces; f++)
+    FldArrayI& cm = *(cEV.getConnect(ic));
+    char* eltTypConn = eltTypes[ic];
+    nelts[ic] = cm.getSize();
+
+    vector<vector<E_Int> > facec(6);
+    for (size_t ifc = 0; ifc < facec.size(); ifc++) facec[ifc].reserve(4);
+
+    if (strcmp(eltTypConn, "BAR") == 0) 
+    { 
+      nfaces[ic] = 2; nof[ic] = 1;
+      facec[0][0] = 1; facec[1][0] = 2;
+    }
+    else if (strcmp(eltTypConn, "QUAD") == 0) 
     {
-      for (E_Int i = 0; i < nof; i++) 
+      nfaces[ic] = 4; nof [ic]= 2;
+      facec[0][0] = 1; facec[0][1] = 2;
+      facec[1][0] = 2; facec[1][1] = 3;
+      facec[2][0] = 3; facec[2][1] = 4;
+      facec[3][0] = 4; facec[3][1] = 1;
+    }
+    else if (strcmp(eltTypConn, "TRI") == 0) 
+    {
+      nfaces[ic] = 3; nof[ic] = 2;
+      facec[0][0] = 1; facec[0][1] = 2;
+      facec[1][0] = 2; facec[1][1] = 3;
+      facec[2][0] = 3; facec[2][1] = 1;
+    }
+    else if (strcmp(eltTypConn, "HEXA") == 0) 
+    {
+      nfaces[ic] = 6; nof[ic] = 4;
+      facec[0][0] = 1; facec[0][1] = 4; facec[0][2] = 3; facec[0][3] = 2;
+      facec[1][0] = 1; facec[1][1] = 2; facec[1][2] = 6; facec[1][3] = 5;
+      facec[2][0] = 2; facec[2][1] = 3; facec[2][2] = 7; facec[2][3] = 6;
+      facec[3][0] = 3; facec[3][1] = 4; facec[3][2] = 8; facec[3][3] = 7;
+      facec[4][0] = 1; facec[4][1] = 5; facec[4][2] = 8; facec[4][3] = 4;
+      facec[5][0] = 5; facec[5][1] = 6; facec[5][2] = 7; facec[5][3] = 8;
+    }
+    else if (strcmp(eltTypConn, "TETRA") == 0) 
+    {
+      nfaces[ic] = 4; nof[ic] = 3;
+      facec[0][0] = 1; facec[0][1] = 3; facec[0][2] = 2;
+      facec[1][0] = 1; facec[1][1] = 2; facec[1][2] = 4;
+      facec[2][0] = 2; facec[2][1] = 3; facec[2][2] = 4;
+      facec[3][0] = 3; facec[3][1] = 1; facec[3][2] = 4;
+    }
+    else if (strcmp(eltTypConn, "PYRA") == 0) 
+    {
+      nfaces[ic] = 5; nof[ic] = 3; // 2 TRIs pour la base
+      facec[0][0] = 1; facec[0][1] = 4; facec[0][2] = 3;
+      facec[1][0] = 3; facec[1][1] = 2; facec[1][2] = 1;
+      facec[2][0] = 1; facec[2][1] = 2; facec[2][2] = 5; 
+      facec[3][0] = 2; facec[3][1] = 3; facec[3][2] = 5;
+      facec[4][0] = 3; facec[4][1] = 4; facec[4][2] = 5;
+      facec[5][0] = 4; facec[5][1] = 1; facec[5][2] = 5;
+    }
+    else if (strcmp(eltTypConn, "PENTA") == 0) 
+    {
+      nfaces[ic] = 5; nof[ic] = 4; // TRI degen
+      facec[0][0] = 1; facec[0][1] = 2; facec[0][2] = 5; facec[0][3] = 4;
+      facec[1][0] = 2; facec[1][1] = 3; facec[1][2] = 6; facec[1][3] = 5;
+      facec[2][0] = 3; facec[2][1] = 1; facec[2][2] = 4; facec[2][3] = 6;
+      facec[3][0] = 1; facec[3][1] = 3; facec[3][2] = 2; facec[3][3] = 2;
+      facec[4][0] = 4; facec[4][1] = 5; facec[4][2] = 6; facec[4][3] = 6;
+    }
+
+    face.push_back(facec);
+  
+    // Determine the number of faces connected to each vertex
+    for (E_Int e = 0; e < nelts[ic]; e++)
+    {
+      for (E_Int f = 0; f < nfaces[ic]; f++)
       {
-        indN = cEV(e,face[f][i])-1;
-        sizep[indN]++;
+        for (E_Int i = 0; i < nof[ic]; i++) 
+        {
+          indN = cm(e,facec[f][i]);
+          sizep[indN-1]++;
+        }
       }
     }
   }
-  
-#pragma omp parallel for default (shared)
-  for (E_Int i = 0; i < npts; i++) cVF[i].reserve(sizep[i]);  
 
-  // cVF
-  for (E_Int e = 0; e < nelts; e++)
+  // Boucle sur toutes les connectivites pour remplir cVF
+  for (E_Int ic = 0; ic < nc; ic++)
   {
-    for (E_Int f = 0; f < nfaces; f++)
+    FldArrayI& cm = *(cEV.getConnect(ic));
+#pragma omp parallel for default (shared)
+    for (E_Int i = 0; i < npts; i++) cVF[i].reserve(sizep[i]);  
+
+    // cVF
+    for (E_Int e = 0; e < nelts[ic]; e++)
     {
-      ind = f + 1 + e*nfaces;
-      //printf("ind=%d\n", ind);
-      for (E_Int i = 0; i < nof; i++) 
+      for (E_Int f = 0; f < nfaces[ic]; f++)
       {
-        indN = cEV(e,face[f][i])-1;
-        cVF[indN].push_back(ind);
+        ind = f + 1 + (el_offset + e)*nfaces[ic];
+        for (E_Int i = 0; i < nof[ic]; i++) 
+        {
+          indN = cm(e,face[ic][f][i]);
+          cVF[indN-1].push_back(ind);
+        }
       }
     }
+    el_offset += nelts[ic]; // increment element offset
   }
 }

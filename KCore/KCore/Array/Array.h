@@ -175,7 +175,7 @@ namespace K_ARRAY
      IN: varString: chaine des variables
      OUT: vars: vecteur contenant chaque chaine de variable.
      C'est la responsabilite de l'appelant de liberer la memoire des vars. */
-  void extractVars(char* varString, std::vector<char*>& vars);
+  void extractVars(const char* varString, std::vector<char*>& vars);
 
   /* Construit la chaine de variables varString a partir d'une liste python
      de noms de variables.

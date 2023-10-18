@@ -195,7 +195,7 @@ namespace K_CONNECT
    ou nfaces est le nbre de faces de l'elements, nelt le no de l'element
    (commencant a 0) et nof la numero local de la face 0,1,2,...
   */
-  void connectEV2FV(K_FLD::FldArrayI& cEV, char* eltType, 
+  void connectEV2FV(K_FLD::FldArrayI& cEV, const char* eltType, 
                     K_FLD::FldArrayI& cFV);
   /* Change un connectivite Elts-Vertex (basic elements) en une connectivite
    Vertex->Faces. L'indice des faces est global, soit : nof + nelt*nfaces
@@ -386,6 +386,10 @@ namespace K_CONNECT
   void orderNGONElement(E_Int noe, std::vector<E_Int>& indices, 
                         K_FLD::FldArrayI& posElts, K_FLD::FldArrayI& posFaces,
                         K_FLD::FldArrayI& cNG);
+
+  void orderNGONElement(E_Int noe, std::vector<E_Int>& indices, 
+                        E_Int* ngon, E_Int* nface, E_Int* indPG,
+                        E_Int* indPH, K_FLD::FldArrayI& cn);
 
   /* 
      Suppression des points doubles, des faces doubles et des elements 
