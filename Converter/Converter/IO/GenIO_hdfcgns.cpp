@@ -1122,10 +1122,13 @@ PyObject* K_IO::GenIOHdf::getArrayContigous(hid_t     node,
    IN: skeleton: 0 (full), 1 (only skeleton loaded)
    IN: maxFloatSize: si skeleton=1, load si shape < maxFloatSize
    IN: maxDepth: profondeur max de load
+   IN: readMode: 0: convert int to Cassiopee compile type, 1: read as in file
+   IN: skipTypes: types to skip
 */
 //=============================================================================
 E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape, PyObject* links, 
-                               int skeleton, int maxFloatSize, int maxDepth, PyObject* skipTypes)
+                               int skeleton, int maxFloatSize, int maxDepth, int readMode,
+                               PyObject* skipTypes)
 {
   tree = PyList_New(4);
 
@@ -1144,6 +1147,7 @@ E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape,
   }
   hid_t gid = H5Gopen(fid, "/", H5P_DEFAULT);
   GenIOHdf HDF;
+  HDF._readMode = readMode;
 
   /* Prepare skip types */
   if (skipTypes != NULL)
@@ -1312,6 +1316,7 @@ hid_t K_IO::GenIOHdf::openGroupWithLinks(hid_t start, char* path)
 //=============================================================================
 PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
                                             E_Int maxFloatSize, E_Int maxDepth,
+                                            E_Int readMode, 
                                             PyObject* dataShape,
                                             PyObject* skipTypes,
                                             PyObject* mpi4pyCom)
@@ -1330,6 +1335,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
   
   PyObject* ret = PyList_New(0);
   GenIOHdf HDF;
+  HDF._readMode = readMode;
   HDF._ismpi = 0;
   HDF._skeleton = 0;
   PyObject* node;

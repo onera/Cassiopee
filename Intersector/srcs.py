@@ -3,6 +3,8 @@ import KCore.Dist as Dist
 from KCore.config import *
 (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
                                                      additionalIncludePaths)
+(mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py(additionalLibPaths,
+                                                        additionalIncludePaths)
 
 #==============================================================================
 # Fichiers C++
@@ -23,7 +25,7 @@ cpp_srcs = ["Intersector/conformUnstr.cpp",
             "PolyMeshTools/utils.cpp"
             ]
 
-if mpi:
+if mpi and mpi4py:
     cpp_srcs += ["PolyMeshTools/adaptCells_mpi.cpp",
                  "PolyMeshTools/utils_mpi.cpp"]
 else:

@@ -18,7 +18,7 @@
 */
 
 // Lecture partielle des noeuds decrits dans Filter (chemins et filtre)
-PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
+PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file, E_Int readMode,
                                                    PyObject* Filter,
                                                    PyObject* mpi4pyCom)
 {
@@ -48,6 +48,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file,
 
   /* Group Level */
   GenIOHdf HDF;
+  HDF._readMode = readMode;
   HDF._skeleton = 0;
 
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)

@@ -51,7 +51,7 @@ def readNodesFromFilter(fileName, filter, format='bin_hdf', com=None):
     b = fixPaths__([i])[0]
     val = filter[i]
     filter2[b] = val
-  ret = Converter.converter.convertFile2PartialPyTree(fileName, format, None, com, filter2)
+  ret = Converter.converter.convertFile2PartialPyTree(fileName, format, None, com, filter2, 0)
   return ret
 
 # Ecrit des tableaux ou des morceaux de tableau a certains endroits du fichier

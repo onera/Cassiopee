@@ -992,7 +992,8 @@ def hackCenters(a):
 def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
                        density=-1., skeletonData=None, dataShape=None, 
                        links=None, skipTypes=None, uncompress=True, 
-                       hmax=0.0, hausd=1., grow=0.0, mergeTol=-1, occAlgo=0, oldcompress=False):
+                       hmax=0.0, hausd=1., grow=0.0, mergeTol=-1, occAlgo=0, 
+                       oldcompress=False, readMode=0):
   """Read a file and return a pyTree containing file data.
   Usage: convertFile2PyTree(fileName, format, options)"""
   if format is None:
@@ -1006,34 +1007,34 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
 
   if format == 'bin_cgns' or format == 'bin_adf' or format == 'bin_hdf':  
     try:
-      t = Converter.converter.convertFile2PyTree(fileName, format, skeletonData, dataShape, links, skipTypes)
+      t = Converter.converter.convertFile2PyTree(fileName, format, skeletonData, dataShape, links, skipTypes, readMode)
       t = Internal.createRootNode(children=t[2])
       _upgradeTree(t, uncompress, oldcompress)
       return t
     except:
       if format == 'bin_cgns' or format == 'bin_adf':
         try:
-          t = Converter.converter.convertFile2PyTree(fileName, 'bin_hdf', skeletonData, dataShape, links, skipTypes)
+          t = Converter.converter.convertFile2PyTree(fileName, 'bin_hdf', skeletonData, dataShape, links, skipTypes, readMode)
           t = Internal.createRootNode(children=t[2])
           _upgradeTree(t, uncompress, oldcompress)
           return t
         except: pass
       else: # adf par defaut
         try:
-          t = Converter.converter.convertFile2PyTree(fileName, 'bin_adf', skeletonData, dataShape, links, skipTypes)
+          t = Converter.converter.convertFile2PyTree(fileName, 'bin_adf', skeletonData, dataShape, links, skipTypes, readMode)
           t = Internal.createRootNode(children=t[2])
           _upgradeTree(t)
           return t
         except: pass
   elif format == 'unknown':
     try:
-      t = Converter.converter.convertFile2PyTree(fileName, 'bin_adf', skeletonData, dataShape, links, skipTypes)
+      t = Converter.converter.convertFile2PyTree(fileName, 'bin_adf', skeletonData, dataShape, links, skipTypes, readMode)
       t = Internal.createRootNode(children=t[2])
       _upgradeTree(t)
       return t
     except: pass
     try:
-      t = Converter.converter.convertFile2PyTree(fileName, 'bin_hdf', skeletonData, dataShape, links, skipTypes)
+      t = Converter.converter.convertFile2PyTree(fileName, 'bin_hdf', skeletonData, dataShape, links, skipTypes, readMode)
       t = Internal.createRootNode(children=t[2])
       _upgradeTree(t)
       return t
@@ -1203,7 +1204,7 @@ def convertFile2PartialPyTreeFromPath(fileName, Filter, comm=None,
   try: file = open(fileName, 'r')
   except: raise IOError("convertFile2PartialPyTreeFromPath: file %s not found."%fileName)
   file.close()
-  t = Converter.converter.convertFile2PartialPyTree(fileName, format, skeletonData, comm, Filter)
+  t = Converter.converter.convertFile2PartialPyTree(fileName, format, skeletonData, comm, Filter, 0)
   return t
 
 # Fonction utilisee dans PPart

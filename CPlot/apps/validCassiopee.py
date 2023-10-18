@@ -163,18 +163,10 @@ def check_output(cmd, shell, stderr):
         else: ossid = os.setsid
         PROCESS = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, cwd=wdir, shell=shell, preexec_fn=ossid)
+        
         stdout, stderr = PROCESS.communicate(None, timeout=60.*1.) # max accepted time is 1 minute for one test
- 
-        if PROCESS is not None and PROCESS.wait(timeout=60.*1.) != 0: stderr += b'\nError: process FAILED (Segmentation Fault or floating point exception).'
-        if PROCESS is not None and PROCESS.poll() is None:
-            if mySystem == 'mingw' or mySystem == 'windows':
-                subprocess.call(['taskkill', '/F', '/T', '/PID', str(PROCESS.pid)])
-            else: # unix
-                # try soft, then hard
-                os.killpg(os.getpgid(PROCESS.pid), signal.SIGTERM)
-                os.kill(PROCESS.pid, signal.SIGTERM)
-                os.killpg(os.getpgid(PROCESS.pid), signal.SIGKILL)
-                os.kill(PROCESS.pid, signal.SIGKILL)
+        
+        if PROCESS.wait() != 0: stderr += b'\nError: process FAILED (Segmentation Fault or floating point exception).'
         PROCESS = None # fini!
         return stdout+stderr
 
@@ -540,6 +532,20 @@ def runSingleUnitaryTest(no, module, test):
             i1 = sub.find('%')
             coverage = sub[:i1+1]
             coverage = coverage.strip()
+
+    except subprocess.TimeoutExpired:
+        # killed here because timeout of communicate doesnt kill child processes
+        if mySystem == 'mingw' or mySystem == 'windows':
+            subprocess.call(['taskkill', '/F', '/T', '/PID', str(PROCESS.pid)])
+        else: # unix
+            # try soft, then hard
+            os.killpg(os.getpgid(PROCESS.pid), signal.SIGTERM)
+            os.kill(PROCESS.pid, signal.SIGTERM)
+            os.killpg(os.getpgid(PROCESS.pid), signal.SIGKILL)
+            os.kill(PROCESS.pid, signal.SIGKILL)
+        print('\nError: process TIMED OUT (killed).')
+        success = False; CPUtime = 'Unknown'; coverage='0%' # Core dump/error
+
     except Exception as e:
         print(e)
         success = False; CPUtime = 'Unknown'; coverage='0%' # Core dump/error

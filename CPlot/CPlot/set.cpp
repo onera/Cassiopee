@@ -395,7 +395,7 @@ PyObject* K_CPLOT::changeBlanking(PyObject* self, PyObject* args)
 PyObject* K_CPLOT::setDim(PyObject* self, PyObject* args)
 {
   int dim;
-  if (!PYPARSETUPLE_(args, I_, &dim)) return NULL;
+  if (!PYPARSETUPLE_(args, "i", &dim)) return NULL;
   
   if (dim < 1 || dim > 3)
   {

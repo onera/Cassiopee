@@ -39,8 +39,9 @@ PyObject* K_CONVERTER::convertFile2PyTree(PyObject* self, PyObject* args)
   char* fileName; char* format; 
   PyObject* skeletonData; PyObject* dataShape; 
   PyObject* links; PyObject* skipTypes;
-  if (!PyArg_ParseTuple(args, "ssOOOO", &fileName, &format, &skeletonData, 
-                        &dataShape, &links, &skipTypes))
+  E_Int readMode;
+  if (!PYPARSETUPLE_(args, SS_ OOOO_ I_, &fileName, &format, &skeletonData, 
+                     &dataShape, &links, &skipTypes, &readMode))
     return NULL;
   
   if (dataShape == Py_None) { dataShape = NULL; }
@@ -75,7 +76,7 @@ PyObject* K_CONVERTER::convertFile2PyTree(PyObject* self, PyObject* args)
     ret = K_IO::GenIO::getInstance()->adfcgnsread(fileName, tree, skeleton, maxFloatSize, maxDepth);
   else if (strcmp(myFormat, "bin_hdf") == 0)
     ret = K_IO::GenIO::getInstance()->hdfcgnsread(fileName, tree, dataShape, links, skeleton, maxFloatSize, 
-                                                  maxDepth, skipTypes);
+                                                  maxDepth, readMode, skipTypes);
   else
     ret = K_IO::GenIO::getInstance()->adfcgnsread(fileName, tree, skeleton, maxFloatSize, maxDepth);
   printf("done.\n");
@@ -97,8 +98,8 @@ PyObject* K_CONVERTER::convertFile2PyTree(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::convertFile2PyTreeFromPath(PyObject* self, PyObject* args)
 {
   char* fileName;
-  char* format; PyObject* Filter;
-  if (!PyArg_ParseTuple(args, "ssO", &fileName, &format, &Filter))
+  char* format; PyObject* paths; E_Int readMode;
+  if (!PYPARSETUPLE_(args, SS_ O_ I_, &fileName, &format, &paths, &readMode))
     return NULL;
 
   E_Int l = strlen(format);
@@ -106,7 +107,7 @@ PyObject* K_CONVERTER::convertFile2PyTreeFromPath(PyObject* self, PyObject* args
   if (strcmp(myFormat, "bin_cgns") == 0) strcpy(myFormat, "bin_adf");
   
   PyObject* ret = NULL;
-  ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, Filter);
+  ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, 1.e6, -1, readMode);
   printf("done.\n");
  
   delete [] myFormat;
@@ -121,7 +122,7 @@ PyObject* K_CONVERTER::convertPyTree2File(PyObject* self, PyObject* args)
 {
   char* fileName; char* format;
   PyObject* t; PyObject* links;
-  if (!PyArg_ParseTuple(args, "OssO", &t, &fileName, &format, &links)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ SS_ O_, &t, &fileName, &format, &links)) return NULL;
 
   printf("Writing %s (%s)...", fileName, format);
   fflush(stdout);
@@ -150,8 +151,9 @@ PyObject* K_CONVERTER::convertFile2PartialPyTree(PyObject* self, PyObject* args)
   PyObject* skeletonData;
   PyObject* mpi4pyCom;
   PyObject* filter; // dictionnaire des slices
-  if (!PyArg_ParseTuple(args, "ssOOO", &fileName, &format, &skeletonData,
-                        &mpi4pyCom, &filter))
+  E_Int readMode;
+  if (!PYPARSETUPLE_(args, SS_ OOO_ I_, &fileName, &format, &skeletonData,
+                        &mpi4pyCom, &filter, &readMode))
     return NULL;
   
   E_Int l = strlen(format);
@@ -166,7 +168,7 @@ PyObject* K_CONVERTER::convertFile2PartialPyTree(PyObject* self, PyObject* args)
   printf("Reading %s (%s, partial)...", fileName, myFormat);
 
   PyObject* ret;
-  ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPathsPartial(fileName, filter, mpi4pyCom);
+  ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPathsPartial(fileName, readMode, filter, mpi4pyCom);
   printf("done.\n");
   delete [] myFormat;
   return ret;
@@ -185,7 +187,7 @@ PyObject* K_CONVERTER::convertPyTree2FilePartial(PyObject* self, PyObject* args)
   PyObject* Filter;
   PyObject* t;
   PyObject* skeletonData;
-  if (!PyArg_ParseTuple(args, "OssOOO", &t, &fileName, &format, &skeletonData, &mpi4pyCom, &Filter)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ SS_ OOO_, &t, &fileName, &format, &skeletonData, &mpi4pyCom, &Filter)) return NULL;
 
   //printf("Writing (partial) %s (%s)...", fileName, format);
   //fflush(stdout); 

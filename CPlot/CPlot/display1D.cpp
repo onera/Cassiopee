@@ -33,9 +33,9 @@ using namespace std;
 PyObject* K_CPLOT::display1D(PyObject* self, PyObject* args)
 {
   PyObject* arrays;
-  int slot;
-  int gridPosI, gridPosJ;
-  int gridSizeI, gridSizeJ;
+  E_Int slot;
+  E_Int gridPosI, gridPosJ;
+  E_Int gridSizeI, gridSizeJ;
   E_Float bgBlend;
   char* var1; char* var2;
   E_Float r1min, r1max, r2min, r2max;

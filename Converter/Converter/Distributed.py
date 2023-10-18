@@ -38,7 +38,7 @@ def readNodesFromPaths(fileName, paths, format=None, maxFloatSize=-1, maxDepth=-
   if skipTypes is not None and isinstance(skipTypes, str): skipTypes = [skipTypes]
   if skipTypes is not None and isinstance(skipTypes, (str, tuple)): skipTypes = [skipTypes]
   
-  ret = Converter.converter.readPyTreeFromPaths(fileName, p, format, maxFloatSize, maxDepth, dataShape, skipTypes, com)
+  ret = Converter.converter.readPyTreeFromPaths(fileName, p, format, maxFloatSize, maxDepth, 0, dataShape, skipTypes, com)
   if not isinstance(paths, list): return ret[0]
   else: return ret 
 
@@ -268,7 +268,7 @@ def _readZones(t, fileName, format=None, rank=None, zoneNames=None):
   if format is None: format = Converter.convertExt2Format__(fileName)
   if format == 'bin_cgns' or format == 'unknown': format = Converter.checkFileType(fileName)
 
-  loadedZones = Converter.converter.readPyTreeFromPaths(fileName, paths, format, -1, -1, None, None, None)
+  loadedZones = Converter.converter.readPyTreeFromPaths(fileName, paths, format, -1, -1, 0, None, None, None)
 
   import Compressor.PyTree as Compressor
   for z in loadedZones: 
