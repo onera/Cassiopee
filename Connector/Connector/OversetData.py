@@ -536,10 +536,10 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
         # direct: on stocke dans aR
         # inverse: on stocke dans aD
         #----------------------------------
-        PL = numpy.array([],Internal.E_NpyInt)
-        PLD = numpy.array([],Internal.E_NpyInt)
-        EXTRAP = numpy.array([],Internal.E_NpyInt)
-        INTERPTYPE = numpy.array([],Internal.E_NpyInt)
+        PL = numpy.array([],numpy.int32)
+        PLD = numpy.array([],numpy.int32)
+        EXTRAP = numpy.array([],numpy.int32)
+        INTERPTYPE = numpy.array([],numpy.int32)
         CFS = numpy.array([],numpy.float64)
         VOL = numpy.array([],numpy.float64)
         ORPHAN = resInterp[5]
@@ -706,10 +706,10 @@ def _setIBCDataForZone2__(z, zonesDnr, correctedPts, wallPts, interpPts, interpP
         # direct: on stocke dans aR
         # inverse: on stocke dans aD
         #----------------------------------
-        PL = numpy.array([],Internal.E_NpyInt)
-        PLD = numpy.array([],Internal.E_NpyInt)
-        EXTRAP = numpy.array([],Internal.E_NpyInt)
-        INTERPTYPE = numpy.array([],Internal.E_NpyInt)
+        PL = numpy.array([],numpy.int32)
+        PLD = numpy.array([],numpy.int32)
+        EXTRAP = numpy.array([],numpy.int32)
+        INTERPTYPE = numpy.array([],numpy.int32)
         CFS = numpy.array([],numpy.float64)
         VOL = numpy.array([],numpy.float64)
         ORPHAN = resInterp[5]
@@ -823,10 +823,10 @@ def _setIBCDataForZone2__(z, zonesDnr, correctedPts, wallPts, interpPts, interpP
         # direct: on stocke dans aR
         # inverse: on stocke dans aD
         #----------------------------------
-        PL = numpy.array([],Internal.E_NpyInt)
-        PLD = numpy.array([],Internal.E_NpyInt)
-        EXTRAP = numpy.array([],Internal.E_NpyInt)
-        INTERPTYPE = numpy.array([],Internal.E_NpyInt)
+        PL = numpy.array([],numpy.int32)
+        PLD = numpy.array([],numpy.int32)
+        EXTRAP = numpy.array([],numpy.int32)
+        INTERPTYPE = numpy.array([],numpy.int32)
         CFS = numpy.array([],numpy.float64)
         VOL = numpy.array([],numpy.float64)
         ORPHAN = resInterp2[5]
@@ -1272,18 +1272,18 @@ def _setInterpDataChimera(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                     ninterploc = resInterp[0][noz].size
                     if ninterploc>0: # domaine d'interpolation
                         if storage == 'direct':
-                            if resInterp[4][noz].size == 0: extrapPts = numpy.array([],Internal.E_NpyInt)
+                            if resInterp[4][noz].size == 0: extrapPts = numpy.array([],numpy.int32)
                             else: extrapPts = resInterp[4][noz]
-                            if resInterp[6] == []: EXdir = numpy.array([],Internal.E_NpyInt)
+                            if resInterp[6] == []: EXdir = numpy.array([],numpy.int32)
                             else: EXdir = resInterp[6][noz]
                             _createInterpRegion__(z, zonesDnr[noz][0], resInterp[0][noz], resInterp[1][noz], resInterp[3][noz], \
                                                   resInterp[2][noz], numpy.array([],numpy.float64), \
                                                   extrapPts, resInterp[5], tag='Receiver', loc=locR, EXDir=EXdir)
 
                         else: # inverse
-                            if resInterp[4][noz].size == 0: extrapPts = numpy.array([],Internal.E_NpyInt)
+                            if resInterp[4][noz].size == 0: extrapPts = numpy.array([],numpy.int32)
                             else: extrapPts = resInterp[4][noz]
-                            if resInterp[6] == []: EXdir = numpy.array([],Internal.E_NpyInt)
+                            if resInterp[6] == []: EXdir = numpy.array([],numpy.int32)
                             else: EXdir = resInterp[6][noz]
                             _createInterpRegion__(zonesDnr[noz], z[0], resInterp[1][noz], resInterp[0][noz], resInterp[3][noz], \
                                                   resInterp[2][noz], numpy.array([],numpy.float64), \
@@ -1366,10 +1366,10 @@ def _setInterpDataConservative__(aR, aD, storage='direct'):
                         index = resInterp[4][noi]
                         resInterp[4][noi]=indicesRcvOrig[index]
                     orphanPts = resInterp[4]
-                else: orphanPts = numpy.array([],Internal.E_NpyInt)
+                else: orphanPts = numpy.array([],numpy.int32)
 
-                extrapPts = numpy.array([],Internal.E_NpyInt)
-                EXdir = numpy.array([],Internal.E_NpyInt)
+                extrapPts = numpy.array([],numpy.int32)
+                EXdir = numpy.array([],numpy.int32)
 
                 # 3. stockage dans l'arbre
                 # on recupere les bons indices de pts interpoles (indcell ds interpPts)
@@ -1384,8 +1384,8 @@ def _setInterpDataConservative__(aR, aD, storage='direct'):
                                                   extrapPts, orphanPts, tag='Receiver', loc=locR, EXDir=EXdir)
 
                         else: # inverse
-                            extrapPts = numpy.array([],Internal.E_NpyInt)
-                            EXdir = numpy.array([],Internal.E_NpyInt)
+                            extrapPts = numpy.array([],numpy.int32)
+                            EXdir = numpy.array([],numpy.int32)
                             zd = allDnrZones[dnrname]
                             _createInterpRegion__(zd, zr[0], resInterp[1][noz], resInterp[0][noz], resInterp[3][noz], \
                                                   resInterp[2][noz], numpy.array([],numpy.float64), \
@@ -1413,10 +1413,10 @@ def _setInterpDataForGhostCellsNGon__(aR, aD, storage='inverse', loc='centers'):
     if storage!='inverse':
         print("WARNING: Connector.OversetData.__setInterpDataForGhostCellsNGon__: only valid for storage='inverse'.")
 
-    indicesExtrap = numpy.array([],Internal.E_NpyInt)
-    indicesOrphan = numpy.array([],Internal.E_NpyInt)
+    indicesExtrap = numpy.array([],numpy.int32)
+    indicesOrphan = numpy.array([],numpy.int32)
     vols =  numpy.array([],numpy.float64)
-    EXdir = numpy.array([],Internal.E_NpyInt)
+    EXdir = numpy.array([],numpy.int32)
     prefix = 'ID_'
     for zp in Internal.getZones(aR):
         zname = zp[0]
@@ -1491,10 +1491,10 @@ def _setInterpDataForGhostCellsStruct__(aR, aD, storage='direct', loc='nodes'):
     try: import Converter.GhostCells as GhostCells
     except: raise ImportError("setInterpDataForGhostCellsStruct__ requires Converter.GhostCells module.")
     # empty numpy arrays for zonesubregion nodes
-    indicesExtrap = numpy.array([],Internal.E_NpyInt)
-    indicesOrphan = numpy.array([],Internal.E_NpyInt)
+    indicesExtrap = numpy.array([],numpy.int32)
+    indicesOrphan = numpy.array([],numpy.int32)
     vols =  numpy.array([],numpy.float64)
-    EXdir = numpy.array([],Internal.E_NpyInt)
+    EXdir = numpy.array([],numpy.int32)
 
     if loc == 'nodes': locR = 0; locS = 'Vertex'
     else: locR = 1; locS = 'CellCenter'
@@ -1663,11 +1663,11 @@ def _adaptForRANSLES__(tR, tD):
                 if a is not None: model_z2 = Internal.getValue(a)
 
                 if (model_z2=='NSturbulent' or model_z1=='NSturbulent') and  model_z1 != model_z2:
-                   datap = numpy.ones(1, Internal.E_NpyInt)
+                   datap = numpy.ones(1, numpy.int32)
                    Internal.createUniqueChild(s, 'RANSLES', 'DataArray_t', datap)
 
                 if (model_z2=='LBMLaminar' or model_z1=='LBMLaminar') and model_z1 != model_z2:
-                    datap = numpy.ones(1, Internal.E_NpyInt)
+                    datap = numpy.ones(1, numpy.int32)
                     Internal.createUniqueChild(s, 'NSLBM', 'DataArray_t', datap)
 
             except: pass
@@ -2594,7 +2594,7 @@ def oversetDonorAspect__(aR, topTreeD):
 #==============================================================================
 def globalIndex__(ni, nj, nk, pointList):
     s = pointList.shape[1]
-    a = numpy.empty((s), dtype=Internal.E_NpyInt)
+    a = numpy.empty((s), dtype=numpy.int32)
     nij = ni*nj
     a[:] = (pointList[0,:]-1) + (pointList[1,:]-1)*ni + (pointList[2,:]-1)*nij
     return a
@@ -2628,14 +2628,14 @@ def cellN2OversetHoles(t, append=False):
             nb = 0
             for i in range(cellN.size):
                 if cellN[i] == 0: nb += 1
-            pointList = numpy.empty((cellDim,nb), dtype=Internal.E_NpyInt, order='F' )
+            pointList = numpy.empty((cellDim,nb), dtype=numpy.int32, order='F' )
             connector.cellN2OversetHolesStruct(pointList, cellN, im, jm, cellDim, cellN.size)
         # Unstructured zone
         else:
             nb = 0
             for i in range(cellN.size):
                 if cellN[i] == 0: nb += 1
-            pointList = numpy.empty((1,nb), dtype=Internal.E_NpyInt)
+            pointList = numpy.empty((1,nb), dtype=numpy.int32)
             connector.cellN2OversetHolesUnStruct(pointList, cellN, cellN.size)
         if nb != 0:
             # Push OversetHoles Node
@@ -2702,11 +2702,11 @@ def setOversetHoles(z, indices):
 
     # cree la deltaList
     if type == 1: pointList = indices
-    elif type == 2: pointList = numpy.array(indices, dtype=Internal.E_NpyInt)
+    elif type == 2: pointList = numpy.array(indices, dtype=numpy.int32)
     elif type == 3: pointList = numpy.concatenate(indices)
     elif type == 4:
         b = []
-        for i in indices: b.append(numpy.array(indices, dtype=Internal.E_NpyInt))
+        for i in indices: b.append(numpy.array(indices, dtype=numpy.int32))
         pointList = numpy.concatenate(b)
 
     # Push OversetHoles Node
@@ -3676,7 +3676,7 @@ def _setIBCTransfers4FULLTBLE2(aR, topTreeD, variables=[], cellNVariable='',
 #==============================================================================
 def getTransfo(zdonor, zrcv):
 
-    transfo = numpy.zeros(3, dtype=Internal.E_NpyInt)
+    transfo = numpy.zeros(3, dtype=numpy.int32)
     a = C.getFields(Internal.__GridCoordinates__, zdonor)[0]
     ni = a[2]; nj=a[3]; nk=a[4]
 

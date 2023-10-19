@@ -237,7 +237,7 @@ def setValue(node, value=None):
         elif isinstance(value, numpy.ndarray): 
             if value.flags.f_contiguous: node[1] = value
             else: node[1] = numpy.asfortranarray(value)
-        elif isinstance(value, int) or isinstance(value, numpy.int32) or isinstance(value,numpy.int64) or isinstance(value,numpy.intc): node[1] = numpy.array([value], dtype=E_NpyInt)
+        elif isinstance(value, int) or isinstance(value, numpy.int32) or isinstance(value,numpy.int64) or isinstance(value,numpy.intc): node[1] = numpy.array([value], dtype=numpy.int32)
         elif isinstance(value, float) or isinstance(value, numpy.float32) or isinstance(value, numpy.float64): node[1] = numpy.array([value], dtype=numpy.float64)
         elif isinstance(value, str):
             node[1] = numpy.array([c for c in value], 'c')
