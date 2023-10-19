@@ -1429,7 +1429,7 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
     ptFaceD = faceListD.flat
     ptFaceR = faceListR.flat
 
-    one = numpy.int32(1)
+    one = Internal.E_NpyInt(1)
 
     elts = set()
     for i in range(n):
@@ -1921,7 +1921,7 @@ def adapt2FastP2(t, nlayers=2):
         Nelts = z[1][0][1]
         dims_woghost.append( [ Nvtx , Nelts,  nface_tot, 0, nface_bc ] )
 
-        data_ng = numpy.zeros(6, numpy.int32)
+        data_ng = numpy.zeros(6, Internal.E_NpyInt)
         data_ng[0] = dims_woghost[c][2] - dims_woghost[c][3] - dims_woghost[c][4] # couche 0: faceInterne= nbface tot(0) -nface_rac(0)-nfacebc(0)
         data_ng[1] = dims_woghost[c][3]                                           # couche 0: nbface_rac(0)
         data_ng[2] = dims_woghost[c][4]                                           # couche 0: nbfacebc(0)
@@ -1935,7 +1935,7 @@ def adapt2FastP2(t, nlayers=2):
         node =  Internal.getNodeFromName1(z, 'NGonElements')
         Internal.createUniqueChild(node, 'IntExt', 'DataArray_t', data_ng)
 
-        data_nf = numpy.zeros(3, numpy.int32)
+        data_nf = numpy.zeros(3, Internal.E_NpyInt)
         data_nf[0] = dims_woghost[c][1]                                           # couche 0: nombre element
         l1 = c + nbzone
         l2 = c + nbzone*2

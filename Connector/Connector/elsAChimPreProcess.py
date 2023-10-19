@@ -136,9 +136,9 @@ def computeUnsteadyInterp(tp, hook, ite,loc='cell', nGhostCells=2):
             for rcvId in ref[donorName]:
                 if rcvId not in interpData:
                     if FaceDirection is None:
-                        data=[numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.float64)]
+                        data=[numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= numpy.float64)]
                     else:
-                        data=[numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.float64), numpy.array([], dtype= numpy.int32)]
+                        data=[numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= numpy.float64), numpy.array([], dtype= Internal.E_NpyInt)]
                     delta = Co.deltaInterpolations(data, ref[donorName][rcvId],loc)
                     interpData[rcvId]=delta
                     ref[donorName][rcvId] = data
@@ -147,9 +147,9 @@ def computeUnsteadyInterp(tp, hook, ite,loc='cell', nGhostCells=2):
         elif donorName in listInterpData:
             for rcvId in ref[donorName]:
                 if FaceDirection is None:
-                    data=[numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.float64)]
+                    data=[numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= numpy.float64)]
                 else:
-                    data=[numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.int32), numpy.array([], dtype= numpy.float64), numpy.array([], dtype= numpy.int32)]
+                    data=[numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= Internal.E_NpyInt), numpy.array([], dtype= numpy.float64), numpy.array([], dtype= Internal.E_NpyInt)]
                 delta = Co.deltaInterpolations(data, ref[donorName][rcvId],loc)
                 interpData[rcvId]=delta
                 ref[donorName][rcvId] = data
@@ -190,7 +190,7 @@ def globalIndex(dim, array1,ghostcells):
     ni = dim[1]-1+2*ghostcells ; nj = dim[2]-1+2*ghostcells; nk = dim[3]-1+2*ghostcells ;
     nij = ni*nj
     s = array1.shape[1]
-    a = numpy.empty( (s), dtype=numpy.int32 )
+    a = numpy.empty( (s), dtype=Internal.E_NpyInt )
     for i in range(s):
         a[i] = (array1[0,i]-1+ghostcells) + (array1[1,i]-1+ghostcells)*ni + (array1[2,i]-1+ghostcells)*nij
     return a
@@ -234,7 +234,7 @@ def convertIndices2File(hook,fileName,iteration,format):
 def convertIndices2File__(iteration,indices,nbTotalIterations,fileName,format):
     fileName=fileName+"_%d"%nbTotalIterations
     if format == 'bin_raw':
-        tt = numpy.empty( (1,), dtype=numpy.int32)
+        tt = numpy.empty( (1,), dtype=Internal.E_NpyInt)
         f = open(fileName, "w") # open file for writing
         tt[0] = 1 # for endian test
         f.write(tt.tobytes())
@@ -247,7 +247,7 @@ def convertIndices2File__(iteration,indices,nbTotalIterations,fileName,format):
             f.write(i.tobytes())
         f.close()
     else:
-        tt = numpy.empty( (1,), dtype=numpy.int32)
+        tt = numpy.empty( (1,), dtype=Internal.E_NpyInt)
         f = open(fileName, "w") # open file for writing
         
         tt[0] = iteration # write first iteration of reading

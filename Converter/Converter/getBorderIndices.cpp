@@ -43,7 +43,7 @@ PyObject* K_CONVERTER::getJoinBorderIndices(PyObject* self, PyObject* args)
 
   // Get array
   PyArrayObject* arI = (PyArrayObject*)arrayI;
-  int* arrayIndices = (int*)PyArray_DATA(arI);
+  E_Int* arrayIndices = (E_Int*)PyArray_DATA(arI);
 
   E_Int im = Im;
   E_Int jm = Jm;

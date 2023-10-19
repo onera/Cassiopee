@@ -41,9 +41,9 @@ PyObject* K_CONVERTER::getJoinDonorIndices(PyObject* self, PyObject* args)
 
   // Get arrays
   PyArrayObject* ar = (PyArrayObject*)arrayI;
-  int* array = (int*)PyArray_DATA(ar);
+  E_Int* array = (E_Int*)PyArray_DATA(ar);
   PyArrayObject* arB = (PyArrayObject*)arrayBorderI;
-  int* arrayborder = (int*)PyArray_DATA(arB);
+  E_Int* arrayborder = (E_Int*)PyArray_DATA(arB);
   
   // Get integer values
   E_Int t1 = T1;

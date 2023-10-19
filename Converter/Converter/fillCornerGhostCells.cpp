@@ -92,9 +92,9 @@ PyObject* K_CONVERTER::fillCornerGhostCells(PyObject* self, PyObject* args)
   PyArrayObject* arR = (PyArrayObject*)arrayR;
   PyArrayObject* arD = (PyArrayObject*)arrayD;
   PyArrayObject* arI = (PyArrayObject*)arrayIR;
-  double* dataR = (double*)PyArray_DATA(arR);
-  double* dataD = (double*)PyArray_DATA(arD);
-  int* arrayBorder = (int*)PyArray_DATA(arI);
+  E_Float* dataR = (E_Float*)PyArray_DATA(arR);
+  E_Float* dataD = (E_Float*)PyArray_DATA(arD);
+  E_Int* arrayBorder = (E_Int*)PyArray_DATA(arI);
 
   // local values
   E_Int indadj;                 // cell index of reciever block cell adjacent to the join border

@@ -295,7 +295,7 @@ def _readZones(t, fileName, format=None, rank=None, zoneNames=None):
               else:
                   param = ['.Solver#Param', None, [], 'UserDefinedData_t']
                   zr[2].append(param)
-              v = numpy.zeros((1,1), numpy.int32); v[0,0] = nproc
+              v = numpy.zeros((1,1), Internal.E_NpyInt); v[0,0] = nproc
               node = Internal.getNodeFromName(param, 'proc')
               if node is not None:
                   node[1] = v
@@ -959,7 +959,7 @@ def _setProc(t, nproc):
         else:
             param = ['.Solver#Param', None, [], 'UserDefinedData_t']
             z[2].append(param)
-        v = numpy.zeros((1,1), numpy.int32); v[0,0] = nproc
+        v = numpy.zeros((1,1), Internal.E_NpyInt); v[0,0] = nproc
         node = Internal.getNodeFromName(param, 'proc')
         if node is not None: node[1] = v
         else:

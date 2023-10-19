@@ -706,7 +706,7 @@ def _reorderBCMatchPointRange(t):
 #==============================================================================
 def checkOppositRanges(t, ntype):
     errors = []
-    delta = numpy.empty(3, numpy.int32); deltaopp = numpy.empty(3, numpy.int32)
+    delta = numpy.empty(3, Internal.E_NpyInt); deltaopp = numpy.empty(3, Internal.E_NpyInt)
     zones = Internal.getZones(t)
     for z in zones:
         zname = z[0]
@@ -786,7 +786,7 @@ def checkOppositRanges(t, ntype):
                                         if transform != []: # not mandatory, [+1,+2,+3] by default.
                                             transform = transform[0][1]
                                         else:
-                                            transform = numpy.empty(3, numpy.int32)
+                                            transform = numpy.empty(3, Internal.E_NpyInt)
                                             transform[0] = 1; transform[1] = 2; transform[2] = 3
                                         delta[0] = abs(win[1] - win[0]) # delta i for win
                                         if dimZone > 1: delta[1] = abs(win[3] - win[2]) # delta j for win

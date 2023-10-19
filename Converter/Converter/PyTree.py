@@ -2242,7 +2242,7 @@ def __TZAX(api, t, locin, _F, *args):
   return None
 
 def __TZA1(t, locin, _F, *args):
-    return __TZAX(2, t, locin, _F, *args)
+    return __TZAX(1, t, locin, _F, *args)
 def __TZA2(t, locin, _F, *args):
     return __TZAX(2, t, locin, _F, *args)
 def __TZA3(t, locin, _F, *args):
@@ -3701,7 +3701,7 @@ def _addBC2StructZone__(z, bndName, bndType, wrange=[], faceList=[],
     Internal._createChild(zoneGC, bndName, 'GridConnectivity_t', value=v)
 
     info = zoneGC[2][len(zoneGC[2])-1]
-    d = numpy.ones((3,1), dtype=numpy.int32)
+    d = numpy.ones((3,1), dtype=Internal.E_NpyInt)
     c = numpy.ones((3,1), dtype=numpy.float64)
     r = Internal.window2Range(wrange)
     info[2].append(['PointRange', r, [], 'IndexRange_t'])
@@ -3711,7 +3711,7 @@ def _addBC2StructZone__(z, bndName, bndType, wrange=[], faceList=[],
     if rangeDonor == 'doubly_defined':
       info[2].append(['UserDefinedData', None, [], 'UserDefinedData_t'])
       l = len(info[2])-1; info = info[2][l]
-      dd = numpy.ones((1), dtype=numpy.int32)
+      dd = numpy.ones((1), dtype=Internal.E_NpyInt)
       info[2].append(['doubly_defined', dd, [], 'DataArray_t'])
 
   elif (bndType1 == 'FamilySpecified' and fnmatch.fnmatch(bndType2, 'BCStage*')) or (bndType1 == 'BCStage'):
@@ -3829,12 +3829,12 @@ def _addBC2NGonZone__(z, bndName, bndType, faceList, data, subzone,
     # v = numpy.fromstring('FaceCenter', 'c')
     # info[2].append(['GridLocation', v, [], 'GridLocation_t'])
     # if isinstance(faceList, numpy.ndarray): r = faceList
-    # else: r = numpy.array(faceList, dtype=numpy.int32)
+    # else: r = numpy.array(faceList, dtype=Internal.E_NpyInt)
     # info[2].append(['PointList', r, [], 'IndexArray_t'])
     # v = numpy.fromstring('Overset', 'c')
     # info[2].append(['GridConnectivityType', v, [], 'GridConnectivityType_t'])
 
-    # d = numpy.ones((3,1), numpy.int32)
+    # d = numpy.ones((3,1), Internal.E_NpyInt)
     # c = numpy.ones((3,1), numpy.float64)
     # info[2].append(['PointListDonor', d, [], 'IndexArray_t'])
     # info[2].append(['InterpolantsDonor', c, [], 'DataArray_t'])
@@ -6662,7 +6662,7 @@ def _addChimera2Base(base, setting, value):
 
   # Priority
   if setting == 'Priority':
-    v = numpy.empty((1,1), dtype=numpy.int32); v[0,0] = value
+    v = numpy.empty((1,1), dtype=Internal.E_NpyInt); v[0,0] = value
     node = Internal.getNodeFromName1(chimera, 'Priority')
     if node is not None:
       node[1] = v

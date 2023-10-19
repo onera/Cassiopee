@@ -1154,7 +1154,7 @@ def _blankByIBCBodies(t, tb, loc, dim, cellNName='cellN'):
             bodiesInv.append(body)
 
     if blankalgo == 'xray' or DIM == 2:
-        BM = numpy.ones((nbases,nbodies),dtype=numpy.int32)
+        BM = numpy.ones((nbases,nbodies),dtype=Internal.E_NpyInt)
         dh_min = G_IBM_Height.getMinimumCartesianSpacing(t)
         XRAYDIM1 = 2000; XRAYDIM2 = XRAYDIM1
         if dh_min > 0.:
@@ -1179,7 +1179,7 @@ def _blankByIBCBodies(t, tb, loc, dim, cellNName='cellN'):
         else:
             X._blankCells(t, bodies, BM, blankingType=typeb, delta=TOLDIST, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=DIM, cellNName=cellNName)
     else:
-        BM2 = numpy.ones((nbases,1),dtype=numpy.int32)
+        BM2 = numpy.ones((nbases,1),dtype=Internal.E_NpyInt)
         for body in bodiesInv:
             print('Info: blankByIBCBodies: reverse blanking for body.')
             X._blankCellsTri(t, [body], BM2, blankingType=typeb, cellNName=cellNName)
@@ -1873,7 +1873,7 @@ def createWallAdapt(tc):
         pointListNP = numpy.concatenate(DictOfZones[zname]["PointListDonor"])
 
         # Creation d une seule zone
-        zsize = numpy.empty((1,3), numpy.int32, order='F')
+        zsize = numpy.empty((1,3), Internal.E_NpyInt, order='F')
         zsize[0,0] = xcNP.shape[0]; zsize[0,1] = 0; zsize[0,2] = 0
         z = Internal.newZone(name=zname,zsize=zsize,ztype='Unstructured')
         gc = Internal.newGridCoordinates(parent=z)
@@ -2790,11 +2790,11 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None
 
             for nod in range(len(dnrZones)):
                 dim__ = Internal.getZoneDim(dnrZones[nod])
-                prange = numpy.zeros(6,dtype=numpy.int32)
-                prangedonor = numpy.zeros(6,dtype=numpy.int32)
-                profondeur=numpy.zeros(1,dtype=numpy.int32)
-                dirD=numpy.zeros(1,dtype=numpy.int32)
-                dirR=numpy.zeros(1,dtype=numpy.int32)
+                prange = numpy.zeros(6,dtype=Internal.E_NpyInt)
+                prangedonor = numpy.zeros(6,dtype=Internal.E_NpyInt)
+                profondeur=numpy.zeros(1,dtype=Internal.E_NpyInt)
+                dirD=numpy.zeros(1,dtype=Internal.E_NpyInt)
+                dirR=numpy.zeros(1,dtype=Internal.E_NpyInt)
 
                 plist = dnrZones[nod][2][len(dnrZones[nod][2])-1][2][2][1]
                 plistdnr = dnrZones[nod][2][len(dnrZones[nod][2])-1][2][3][1]
@@ -2812,14 +2812,14 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None
                 info = dnrZones[nod][2][len(dnrZones[nod][2])-1]
                 info[2].append(['PointRange', prangebis , [], 'IndexArray_t'])
 
-                transfo=numpy.zeros(3,dtype=numpy.int32)#XOD.getTransfo(dnrZones[nod],zrcv)
+                transfo=numpy.zeros(3,dtype=Internal.E_NpyInt)#XOD.getTransfo(dnrZones[nod],zrcv)
 
                 connector.indiceToCoord2(plist,prangedonor,transfo,profondeur,dirD,typ,dirR,plist.size,dim__[1]+1,dim__[2]+1,dim__[3]+1)
 
 
                 #connector.correctCoeffList(plist, coeff, typ, plist.size , dim__[1]+1 , dim__[2]+1 , dim__[3]+1)
 
-                NMratio = numpy.zeros(3,dtype=numpy.int32)
+                NMratio = numpy.zeros(3,dtype=Internal.E_NpyInt)
                 NMratio[0]=1
                 NMratio[1]=1
                 NMratio[2]=1
@@ -2895,11 +2895,11 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None
                     for nod in range(len(dnrZones)):
 
                         dim__ = Internal.getZoneDim(dnrZones[nod])
-                        prange = numpy.zeros(6,dtype=numpy.int32)
-                        prangedonor = numpy.zeros(6,dtype=numpy.int32)
-                        profondeur=numpy.zeros(1,dtype=numpy.int32)
-                        dirD=numpy.zeros(1,dtype=numpy.int32)
-                        dirR=numpy.zeros(1,dtype=numpy.int32)
+                        prange = numpy.zeros(6,dtype=Internal.E_NpyInt)
+                        prangedonor = numpy.zeros(6,dtype=Internal.E_NpyInt)
+                        profondeur=numpy.zeros(1,dtype=Internal.E_NpyInt)
+                        dirD=numpy.zeros(1,dtype=Internal.E_NpyInt)
+                        dirR=numpy.zeros(1,dtype=Internal.E_NpyInt)
 
                         plist = dnrZones[nod][2][len(dnrZones[nod][2])-1][2][2][1]
                         plistdnr = dnrZones[nod][2][len(dnrZones[nod][2])-1][2][3][1]
@@ -2919,13 +2919,13 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None
                         info = dnrZones[nod][2][len(dnrZones[nod][2])-1]
                         info[2].append(['PointRange', prangebis , [], 'IndexArray_t'])
 
-                        transfo=numpy.zeros(3,dtype=numpy.int32)#XOD.getTransfo(dnrZones[nod],zrcv)
+                        transfo=numpy.zeros(3,dtype=Internal.E_NpyInt)#XOD.getTransfo(dnrZones[nod],zrcv)
 
                         connector.indiceToCoord2(plist,prangedonor,transfo,profondeur,dirD,typ,dirR,plist.size,dim__[1]+1,dim__[2]+1,dim__[3]+1)
 
                         #connector.correctCoeffList(plist, coeff, typ, plist.size , dim__[1]+1 , dim__[2]+1 , dim__[3]+1)
 
-                        NMratio = numpy.zeros(3,dtype=numpy.int32)
+                        NMratio = numpy.zeros(3,dtype=Internal.E_NpyInt)
                         NMratio[0]=1
                         NMratio[1]=1
                         NMratio[2]=1
@@ -3271,11 +3271,11 @@ def doInterp3(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
             for nod in range(len(dnrZones)):
 
                 dim__ = Internal.getZoneDim(dnrZones[nod])
-                prange = numpy.zeros(6,dtype=numpy.int32)
-                prangedonor = numpy.zeros(6,dtype=numpy.int32)
-                profondeur=numpy.zeros(1,dtype=numpy.int32)
-                dirD=numpy.zeros(1,dtype=numpy.int32)
-                dirR=numpy.zeros(1,dtype=numpy.int32)
+                prange = numpy.zeros(6,dtype=Internal.E_NpyInt)
+                prangedonor = numpy.zeros(6,dtype=Internal.E_NpyInt)
+                profondeur=numpy.zeros(1,dtype=Internal.E_NpyInt)
+                dirD=numpy.zeros(1,dtype=Internal.E_NpyInt)
+                dirR=numpy.zeros(1,dtype=Internal.E_NpyInt)
 
                 plist = dnrZones[nod][2][len(dnrZones[nod][2])-1][2][2][1]
                 plistdnr = dnrZones[nod][2][len(dnrZones[nod][2])-1][2][3][1]
@@ -3302,7 +3302,7 @@ def doInterp3(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
 
                 #connector.correctCoeffList(plist, coeff, typ, plist.size , dim__[1]+1 , dim__[2]+1 , dim__[3]+1)
 
-                NMratio = numpy.zeros(3,dtype=numpy.int32)
+                NMratio = numpy.zeros(3,dtype=Internal.E_NpyInt)
                 NMratio[0]=1
                 NMratio[1]=1
                 NMratio[2]=1
@@ -3378,11 +3378,11 @@ def doInterp3(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
                     for nod in range(len(dnrZones)):
 
                         dim__ = Internal.getZoneDim(dnrZones[nod])
-                        prange = numpy.zeros(6,dtype=numpy.int32)
-                        prangedonor = numpy.zeros(6,dtype=numpy.int32)
-                        profondeur=numpy.zeros(1,dtype=numpy.int32)
-                        dirD=numpy.zeros(1,dtype=numpy.int32)
-                        dirR=numpy.zeros(1,dtype=numpy.int32)
+                        prange = numpy.zeros(6,dtype=Internal.E_NpyInt)
+                        prangedonor = numpy.zeros(6,dtype=Internal.E_NpyInt)
+                        profondeur=numpy.zeros(1,dtype=Internal.E_NpyInt)
+                        dirD=numpy.zeros(1,dtype=Internal.E_NpyInt)
+                        dirR=numpy.zeros(1,dtype=Internal.E_NpyInt)
 
                         plist = dnrZones[nod][2][len(dnrZones[nod][2])-1][2][2][1]
                         plistdnr = dnrZones[nod][2][len(dnrZones[nod][2])-1][2][3][1]
@@ -3408,7 +3408,7 @@ def doInterp3(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
 
                         #connector.correctCoeffList(plist, coeff, typ, plist.size , dim__[1]+1 , dim__[2]+1 , dim__[3]+1)
 
-                        NMratio = numpy.zeros(3,dtype=numpy.int32)
+                        NMratio = numpy.zeros(3,dtype=Internal.E_NpyInt)
                         NMratio[0]=1
                         NMratio[1]=1
                         NMratio[2]=1
