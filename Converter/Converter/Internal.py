@@ -3885,17 +3885,17 @@ def adaptConnect__(connects, dim):
           elif i[0] == 'ElementRange': nelts = i[1][1]-i[1][0]+1
           elif i[0] == 'ElementStartOffset': offset2 = i[1]
         if c1 is not None and c2 is not None and offset1 is None: # NGON1
-            if not isinstance(c1, E_NpyInt): c1 = c1.astype(E_NpyInt, order='K')
-            if not isinstance(c2, E_NpyInt): c2 = c2.astype(E_NpyInt, order='K')
+            if c1.dtype != E_NpyInt: c1 = c1.astype(E_NpyInt, order='K')
+            if c2.dtype != E_NpyInt: c2 = c2.astype(E_NpyInt, order='K')
             st1 = c1.size; st2 = c2.size
             st = st1 + st2 + 4
             cr = numpy.empty((1, st), E_NpyInt)
             converter.cpyConnectP2ConnectA(cr, c1, c2, stype, ne, nfaces, nelts)
         if c1 is not None and c2 is not None and offset1 is not None and offset2 is not None: # NGON2 (v4)
-            if not isinstance(c1, E_NpyInt): c1 = c1.astype(E_NpyInt, order='K')
-            if not isinstance(c2, E_NpyInt): c2 = c2.astype(E_NpyInt, order='K')
-            if not isinstance(offset1, E_NpyInt): offset1 = offset1.astype(E_NpyInt, order='K')
-            if not isinstance(offset2, E_NpyInt): offset2 = offset2.astype(E_NpyInt, order='K')
+            if c1.dtype != E_NpyInt: c1 = c1.astype(E_NpyInt, order='K')
+            if c2.dtype != E_NpyInt: c2 = c2.astype(E_NpyInt, order='K')
+            if offset1.dtype != E_NpyInt: offset1 = offset1.astype(E_NpyInt, order='K')
+            if offset2.dtype != E_NpyInt: offset2 = offset2.astype(E_NpyInt, order='K')
             st1 = c1.size+offset1.size-1; st2 = c2.size+offset2.size-1
             st = st1 + st2 + 4
             cr = numpy.empty((1, st), E_NpyInt)
@@ -3910,7 +3910,7 @@ def adaptConnect__(connects, dim):
             if c is None: # a NODE
                 cr = numpy.empty((stype, 0), E_NpyInt)
             else:
-                if not isinstance(c, E_NpyInt): c = c.astype(E_NpyInt, order='K')
+                if c.dtype != E_NpyInt: c = c.astype(E_NpyInt, order='K')
                 nelts = c.size // stype # elts = ne sauf si MULTIPLE
                 cr = numpy.empty((stype, nelts), E_NpyInt)
                 c2 = None
