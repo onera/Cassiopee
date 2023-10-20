@@ -16,6 +16,50 @@ toler = 5.e-2
 toldist = 1.e-12 # tolerance pour distance entre deux surfaces representant la meme frontiere
 tol_match_perio = 1.e-6 # tolerance pour la perio entre les deux frontieres perios
 
+# REMAILLAGE DE LA SURFACE ISSUE DE LEVELSET
+def remeshLevelSet(z, X=0, dir=1):
+    z = Internal.getZones(z)[0]
+    zname = z[0]
+    z = C.convertArray2Tetra(z)
+    z = T.reorder(z,(1,))
+    COORD = '{CoordinateX}'
+    if dir==2 or dir==-2:
+        COORD = '{CoordinateY}'
+    elif dir==3 or dir==-3:
+        COORD = '{CoordinateZ}'
+    formula = '({centers:tag}>%g)'%X
+    formulaopp = '({centers:tag}<%g)'%X
+   
+    C._initVars(z,'{tag}=%s'%COORD)
+    z = C.node2Center(z,["tag"])
+    if dir >0:
+        z2 = P.selectCells(z, formula,strict=0)
+        z3 = P.selectCells(z, formulaopp,strict=0)
+    else:
+        z2 = P.selectCells(z, formulaopp,strict=0)
+        z3 = P.selectCells(z, formula,strict=0)
+    edges3 = P.exteriorFaces(z3); del z3
+    G._getVolumeMap(z2)
+    smax = C.getMaxValue(z2,'centers:vol'); hmax = math.sqrt(smax)
+    smin = C.getMinValue(z2,'centers:vol'); hmin = math.sqrt(smin)
+    Internal._rmNodesFromType(z2,"FlowSolution_t")
+    SCALED = False
+    # il faut rescaler pour la tolerance du hausdorf
+    if hmax < 1e-2 or hmin < 1e-4:
+        SCALED = True
+        T._homothety(z, (0.,0.,0.), 1.e3)
+        T._homothety(z2, (0.,0.,0.), 1.e3)
+        hmin = 1e3*hmin; hmax = 1e3*hmax
+    z2 = G.mmgs(z2, ridgeAngle=60, hmin=hmin, hmax=hmax, hausd=0.01, grow=1.1, 
+                anisotropy=1, optim=0, fixedConstraints=[], sizeConstraints=[])
+    edges = P.exteriorFaces(z2); del z2
+    z = G.mmgs(z, ridgeAngle=60, hmin=hmin, hmax=hmax, hausd=0.01, grow=1.1, 
+               anisotropy=1, optim=0, fixedConstraints=[], sizeConstraints=[edges3])
+    if SCALED:
+            T._homothety(z, (0.,0.,0.), 1.e-3)
+    z[0]=zname
+    return z
+
 def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='./'):
     if 'sym_plane_axis' in dictOfParams: sym = dictOfParams['sym_plane_axis'] # symmetry plane at x,y,z constant
     else: sym = None
@@ -118,6 +162,7 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
     for i in range(0,nlayer): C.setValue(distrib, 'CoordinateX', i, hWall*(1.-raison**i)/(1.-raison))
     hLast = C.getValue(distrib, 'CoordinateX', nlayer-1)-C.getValue(distrib, 'CoordinateX', nlayer-2) ; 
     print('hauteur de la derniere couche de prisme = ',hLast)
+    #C.convertPyTree2File(body,"surface.cgns")
     lay1 = G.addNormalLayers(body, distrib, check=1, niter=smoothIter)
     lay.append(lay1); # layy = lay[0]  ? 
     if check: C.convertPyTree2File(lay, directory_tmp_files+'layer.cgns')
@@ -981,7 +1026,6 @@ def orderExteriorEdges__(surf, lineb):
     DTW._distance2Walls(lines_ext, lineb,type='ortho',loc='nodes')  
     dmax = -1e10
     line_ext = None; line_in = None
-    C.convertPyTree2File(lines_ext,"ext.cgns")
     if len(lines_ext) != 2: 
         raise ValueError("DRAGON: more than two curves defined to generate the TRI mesh.Case not taken into account.")
 
