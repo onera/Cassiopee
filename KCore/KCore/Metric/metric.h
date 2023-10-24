@@ -55,11 +55,25 @@ namespace K_METRIC
     E_Float* sxp, E_Float* syp,  E_Float* szp, E_Float* snp, 
     K_FLD::FldArrayI* cFE=NULL);  
 
-  /* Calcule l aire d'une cellule d un maillage surfacique nk=1. N'est pas nécessairement dans le plan 
+  /* Calcule l aire d'une cellule d un maillage surfacique nk=1. N'est pas nï¿½cessairement dans le plan 
   On rentre soit l indice de la cellule indcell, soit indnode l indice du premier point
   d indices i et j min de la cellule. Si indnode est different de -1, c'est lui qui prime
   */
   E_Float compVolOfStructCell2D(E_Int ni, E_Int nj, E_Float* xt, E_Float* yt, E_Float* zt,
                                 E_Int indcell=-1, E_Int indnode=-1);
+
+  // Orient boundary polygons outwards for NGons
+  void orient_boundary_ngon(E_Float *x, E_Float *y, E_Float *z, K_FLD::FldArrayI &cn,
+    E_Float tol = 1e-12);
+
+  // Build parent elements for NGons
+  void build_parent_elements_ngon(K_FLD::FldArrayI &cn, std::vector<E_Int> &owner,
+    std::vector<E_Int> &neigh);
+
+  // Compute cell volumes for NGons
+  E_Int compute_volumes_ngon(E_Float *x, E_Float *y, E_Float *z,
+    K_FLD::FldArrayI &cn, E_Float *cellVols, E_Float tol = 1e-12);
+  
+  E_Int colorConnexParts(E_Int *neis, E_Int *xadj, E_Int nelts, E_Int *colors);
 }
 #endif

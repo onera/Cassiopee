@@ -236,6 +236,7 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh( PyObject* self,
         
         // compute array vol which store volume at element centers
         E_Int err = K_METRIC::CompNGonVol(xt,yt,zt,*cn,volp);
+        //E_Int err = K_METRIC::compute_volumes_ngon(xt, yt, zt, *cn, volp);
 
         // sortie si une erreur a ete trouvee
         if (err == 1)

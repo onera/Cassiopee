@@ -31,9 +31,9 @@ PyObject* K_CONVERTER::signNGonFaces(PyObject* self, PyObject* args)
 
   // Check array
   E_Int ni, nj, nk;
-  K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
+  K_FLD::FldArrayF* f; K_FLD::FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int ret = K_ARRAY::getFromArray3(o, varString, f, ni, nj, nk, c, eltType);
+  E_Int ret = K_ARRAY::getFromArray3(o, varString, f, ni, nj, nk, cn, eltType);
   
   if (ret <= 0)
   { PyErr_SetString(PyExc_TypeError, "signNGonFaces: only for NGons."); return NULL; }
@@ -45,23 +45,42 @@ PyObject* K_CONVERTER::signNGonFaces(PyObject* self, PyObject* args)
     return NULL; 
   }
 
-  E_Int *indPH = c->getIndPH();
-  E_Int *nface = c->getNFace();
-  E_Int nfaces = c->getNFaces();
-  E_Int ncells = c->getNElts();
-  std::vector<E_Int> visited(nfaces, 0);
+  E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
+  E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
+  E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
+  if (posx == -1 || posy == -1 || posz == -1)
+  {
+    RELEASESHAREDB(ret, o, f, cn);
+    PyErr_SetString(PyExc_ValueError,
+                    "signNGonFaces: can't find coordinates in array.");
+    return NULL;
+  }
+  posx++; posy++; posz++;
 
-  E_Int stride;
+  // Coordonnees
+  E_Float* x = f->begin(posx);
+  E_Float* y = f->begin(posy);
+  E_Float* z = f->begin(posz);
+
+  E_Int *nface = cn->getNFace();
+  E_Int *indPH = cn->getIndPH();
+  E_Int ncells = cn->getNElts();
+
+  K_METRIC::orient_boundary_ngon(x, y, z, *cn);
+  std::vector<E_Int> owner, neigh;
+  K_METRIC::build_parent_elements_ngon(*cn, owner, neigh);
+
   for (E_Int i = 0; i < ncells; i++) {
-    E_Int *cell = c->getElt(i, stride, nface, indPH);
+    E_Int stride = -1;
+    E_Int *pf = cn->getElt(i, stride, nface, indPH);
     for (E_Int j = 0; j < stride; j++) {
-      E_Int &face = cell[j];
-      if (visited[face-1]) face = -face;
-      else visited[face-1]++;
+      E_Int face = pf[j];
+      if (owner[face-1] != i)
+        pf[j] = -face;
     }
   }
 
-  RELEASESHAREDU(o, f, c);
+  RELEASESHAREDU(o, f, cn);
 
   Py_INCREF(Py_None);
   return Py_None;
