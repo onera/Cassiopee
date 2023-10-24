@@ -27,9 +27,9 @@ PyObject *parse_dictionary(PyObject *dict, const char *key, const char *func)
 #endif
 
   PyObject *obj = PyDict_GetItem(dict, strObj);
-  if (obj == NULL) {
-    PyErr_Format(PyExc_KeyError, "%s: Missing key %s in dictionary", func, key);
-  }
+  //if (obj == NULL) {
+  //  PyErr_Format(PyExc_KeyError, "%s: Missing key %s in dictionary", func, key);
+  //}
   Py_DECREF(strObj);
   return obj;
 }
@@ -63,6 +63,77 @@ void make_ref_data(mesh *M, E_Float *sol)
 
   // process refinement data
   smooth_ref_data(M);
+}
+
+// Returns 0 if freeze vector applied
+// Returns 1 if fail
+E_Int apply_freeze_vector(mesh *M, E_Float *fvec)
+{
+  if (!fvec) return 0;
+
+  // In order to freeze refinement in a certain direction,
+  // all refinement cells should have a dimension that's parallel to fvec
+  // Otherwise, inconsistencies might happen
+  E_Float TOL = 1e-12;
+
+  // Normalized freeze vector
+  E_Float fNorm = norm(fvec, 3);
+  if (fabs(fNorm) < TOL) {
+    if (M->pid == 0)
+      fprintf(stderr, "adaptMesh(): null freeze vector. Not applied.\n");
+    return 0;
+  }
+
+  E_Float fvec_n[3] = {fvec[0]/fNorm, fvec[1]/fNorm, fvec[2]/fNorm};
+  if (M->pid == 0) {
+    printf("Normalized freeze vector: %f %f %f\n",
+      fvec_n[0], fvec_n[1], fvec_n[2]);
+  }
+
+  for (E_Int i = 0; i < M->ncells; i++) {
+    E_Int *pr = &M->ref_data[3*i];
+    if (pr[0] == 0 && pr[1] == 0 && pr[2] == 0) continue;
+
+    E_Int *pf = &M->NFACE[6*i];
+    E_Float d[3], dp, NORM;
+    E_Float *p0, *p1;
+
+		p0 = &M->fc[3*pf[2]];
+		p1 = &M->fc[3*pf[3]];
+		for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
+    NORM = norm(d, 3);
+    dp = dot(d, fvec_n, 3) / NORM;
+    if (fabs(fabs(dp)-1.0) < TOL) {
+      pr[0] = 0;
+      continue;
+    }
+			
+
+		p0 = &M->fc[3*pf[4]];
+		p1 = &M->fc[3*pf[5]];
+		for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
+    NORM = norm(d, 3);
+    dp = dot(d, fvec_n, 3) / NORM;
+    if (fabs(fabs(dp)-1.0) < TOL) {
+      pr[1] = 0;
+      continue;
+    }
+
+			
+		p0 = &M->fc[3*pf[0]];
+		p1 = &M->fc[3*pf[1]];
+		for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
+    NORM = norm(d, 3);
+    dp = dot(d, fvec_n, 3) / NORM;
+    if (fabs(fabs(dp)-1.0) < TOL) {
+      pr[2] = 0;
+      continue;
+    }
+
+    return 1;
+  }
+
+  return 0;
 }
 
 PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
@@ -106,6 +177,21 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   obj = PARSE_DICT(adaptDict, "sensor");
   if (obj == NULL) return NULL;
   sensor = PyLong_AsLong(obj);
+
+  // freeze vector
+  E_Float *freezeVector = NULL;
+  obj = PARSE_DICT(adaptDict, "freezeVector");
+  if (obj) {
+    E_Int size, nfld, ret;
+    ret = K_NUMPY::getFromNumpyArray(obj, freezeVector, size, nfld, true);
+    if (ret == 0) {
+      PyErr_SetString(PyExc_ValueError, "adaptMesh(): bad freezeVector.");
+      return NULL;
+    }
+    assert(nfld == 1);
+    assert(size == 3);
+  }
+
 
   FldArrayI *cn;
   FldArrayF *f;
@@ -252,7 +338,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   for (E_Int i = 0; i < csize; i++) {
     PyObject *csol = PyList_GetItem(solc, i);
     E_Int nfld;
-    res = K_NUMPY::getFromNumpyArray(csol, csols[i], M->ncells, nfld, true); 
+    res = K_NUMPY::getFromNumpyArray(csol, csols[i], M->ncells, nfld, true);
     assert(res == 1);
   }
 
@@ -260,6 +346,13 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   // Later, implement metric interpolation
 
   make_ref_data(M, csols[0]);
+
+  E_Int ret = apply_freeze_vector(M, freezeVector);
+  if (ret == 1) {
+    PyErr_SetString(PyExc_ValueError,
+      "adaptMesh(): refinement cells not aligned with freezeVector. Aborting.");
+    return NULL;
+  }
 
   // redistribute
   mesh *rM = redistribute_mesh(M);
