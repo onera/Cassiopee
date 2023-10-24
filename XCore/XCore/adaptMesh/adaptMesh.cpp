@@ -34,108 +34,6 @@ PyObject *parse_dictionary(PyObject *dict, const char *key, const char *func)
   return obj;
 }
 
-void make_ref_data(mesh *M, E_Float *sol)
-{
-  if (M->sensor == 0) { // metric sensor
-    // compute hessians
-    E_Float *H = compute_hessian(M, sol);
-
-    // process hessians
-    hessian_to_metric(H, M);
-  
-    // compute refinement data
-    compute_ref_data(M, H);
-
-    XFREE(H);
-  } else if (M->sensor == 1) { // cell sensor
-    M->ref_data = (E_Int *)XMALLOC((3*M->ncells) * sizeof(E_Int));
-    for (E_Int i = 0; i < M->ncells; i++) {
-      E_Int *pr = &M->ref_data[3*i];
-      if (sol[i] == 0) {
-        for (E_Int j = 0; j < 3; j++)
-          pr[j] = M->Gmax;
-      } else {
-        for (E_Int j = 0; j < 3; j++)
-          pr[j] = 0;
-      }
-    }
-  }
-
-  // process refinement data
-  smooth_ref_data(M);
-}
-
-// Returns 0 if freeze vector applied
-// Returns 1 if fail
-E_Int apply_freeze_vector(mesh *M, E_Float *fvec)
-{
-  if (!fvec) return 0;
-
-  // In order to freeze refinement in a certain direction,
-  // all refinement cells should have a dimension that's parallel to fvec
-  // Otherwise, inconsistencies might happen
-  E_Float TOL = 1e-12;
-
-  // Normalized freeze vector
-  E_Float fNorm = norm(fvec, 3);
-  if (fabs(fNorm) < TOL) {
-    if (M->pid == 0)
-      fprintf(stderr, "adaptMesh(): null freeze vector. Not applied.\n");
-    return 0;
-  }
-
-  E_Float fvec_n[3] = {fvec[0]/fNorm, fvec[1]/fNorm, fvec[2]/fNorm};
-  if (M->pid == 0) {
-    printf("Normalized freeze vector: %f %f %f\n",
-      fvec_n[0], fvec_n[1], fvec_n[2]);
-  }
-
-  for (E_Int i = 0; i < M->ncells; i++) {
-    E_Int *pr = &M->ref_data[3*i];
-    if (pr[0] == 0 && pr[1] == 0 && pr[2] == 0) continue;
-
-    E_Int *pf = &M->NFACE[6*i];
-    E_Float d[3], dp, NORM;
-    E_Float *p0, *p1;
-
-		p0 = &M->fc[3*pf[2]];
-		p1 = &M->fc[3*pf[3]];
-		for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
-    NORM = norm(d, 3);
-    dp = dot(d, fvec_n, 3) / NORM;
-    if (fabs(fabs(dp)-1.0) < TOL) {
-      pr[0] = 0;
-      continue;
-    }
-			
-
-		p0 = &M->fc[3*pf[4]];
-		p1 = &M->fc[3*pf[5]];
-		for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
-    NORM = norm(d, 3);
-    dp = dot(d, fvec_n, 3) / NORM;
-    if (fabs(fabs(dp)-1.0) < TOL) {
-      pr[1] = 0;
-      continue;
-    }
-
-			
-		p0 = &M->fc[3*pf[0]];
-		p1 = &M->fc[3*pf[1]];
-		for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
-    NORM = norm(d, 3);
-    dp = dot(d, fvec_n, 3) / NORM;
-    if (fabs(fabs(dp)-1.0) < TOL) {
-      pr[2] = 0;
-      continue;
-    }
-
-    return 1;
-  }
-
-  return 0;
-}
-
 PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
 {
   PyObject *arr, *comm_data, *solc, *gcells, *gfaces, *gpoints;
@@ -342,11 +240,10 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
     assert(res == 1);
   }
 
-  // TODO(Imad): for now, assume only one solution field.
-  // Later, implement metric interpolation
+  // Metric interpolation
+  make_ref_data(M, csols, csize);
 
-  make_ref_data(M, csols[0]);
-
+  // Freeze refinement in one direction if needed
   E_Int ret = apply_freeze_vector(M, freezeVector);
   if (ret == 1) {
     PyErr_SetString(PyExc_ValueError,
@@ -354,7 +251,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
     return NULL;
   }
 
-  // redistribute
+  // Redistribute
   mesh *rM = redistribute_mesh(M);
 
   mesh_free(M);
@@ -369,7 +266,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   MPI_Barrier(MPI_COMM_WORLD);
   clock_t tic = clock();
 
-  // isolate refinement cells
+  // Isolate refinement cells
   std::vector<E_Int> ref_cells = get_ref_cells(rM);
   E_Int nref_cells = ref_cells.size();
 
@@ -378,14 +275,14 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
 
   tree ct(rM->ncells, 8);
   tree ft(rM->nfaces, 4);
-  // resize data structures (isotropic resizing, faster)
+  // Resize data structures (isotropic resizing, faster)
   resize_data_for_refinement(rM, &ct, &ft, nref_cells);
 
   while (nref_cells > 0) {
     if (++rM->ref_iter > max_ref_iter)
       break;
 
-    // refine cells
+    // Refine cells
     for (E_Int i = 0; i < nref_cells; i++) {
       E_Int cell = ref_cells[i];
       E_Int *pr = &rM->ref_data[3*cell];
@@ -412,7 +309,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
     //tree_save_memory(&ct, rM->ncells);
     //tree_save_memory(&ft, rM->nfaces);
 
-    // update refinement data
+    // Update refinement data
     rM->ref_data = (E_Int *)XRESIZE(rM->ref_data, 3*rM->ncells * sizeof(E_Int));
     std::vector<E_Int> new_ref_cells(8*nref_cells);
     E_Int nref_cells_next_gen = 0;

@@ -247,8 +247,8 @@ E_Float *compute_grad(mesh *M, E_Float *fld)
       M->pnei_flds[i] = (E_Float *)XCALLOC(
         M->ppatches[i].nfaces, sizeof(E_Float));
     }
-    comm_interface_data_d(M, fld, 1, M->pnei_flds);
   }
+  comm_interface_data_d(M, fld, 1, M->pnei_flds);
 
   for (E_Int i = 0; i < M->nppatches; i++) {
     E_Float *pnei_fld = M->pnei_flds[i];
@@ -493,7 +493,7 @@ E_Float *compute_hessian(mesh* M, E_Float *fld)
   return H;
 }
 
-void symmat_dot_vec(E_Float *a, E_Float *b, E_Float *c)
+void symmat_dot_vec(const E_Float *a, const E_Float *b, E_Float *c)
 {
   c[0] = a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
   c[1] = a[1]*b[0] + a[3]*b[1] + a[4]*b[2];

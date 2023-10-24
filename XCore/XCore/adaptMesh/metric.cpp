@@ -33,36 +33,57 @@ void hessian_to_metric(E_Float *H, mesh *M)
   }
 }
 
-void compute_ref_data(mesh *M, E_Float *H)
+typedef struct principalDirs {
+  E_Float I[3];
+  E_Float J[3];
+  E_Float K[3];
+} pDirs;
+
+static
+void compute_principal_vecs(mesh *M, std::vector<pDirs> &Dvec)
+{
+  for (E_Int i = 0; i < M->ncells; i++) {
+    E_Int *pf = &M->NFACE[6*i];
+    E_Float *p0, *p1;
+    auto& dirI = Dvec[i].I;
+    auto& dirJ = Dvec[i].J;
+    auto& dirK = Dvec[i].K;
+
+		p0 = &M->fc[3*pf[2]];
+		p1 = &M->fc[3*pf[3]];
+		for (E_Int j = 0; j < 3; j++) dirI[j] = p1[j] - p0[j];
+
+		p0 = &M->fc[3*pf[4]];
+		p1 = &M->fc[3*pf[5]];
+		for (E_Int j = 0; j < 3; j++) dirJ[j] = p1[j] - p0[j];
+		
+		p0 = &M->fc[3*pf[0]];
+		p1 = &M->fc[3*pf[1]];
+		for (E_Int j = 0; j < 3; j++) dirK[j] = p1[j] - p0[j];
+  }
+}
+
+#define MINREF 0
+
+static
+void compute_ref_data(mesh *M, E_Float *H, const std::vector<pDirs> &Dirs,
+  std::vector<std::array<int, 3>> &refData)
 {
   compute_face_centers(M);
 
-  M->ref_data = (E_Int *)XCALLOC((3*M->ncells), sizeof(E_Int));
-  E_Float d[3], dd[3], *p0, *p1;
-
-	if (!M->iso_mode) {
+	if (M->iso_mode == 0) {
 		for (E_Int i = 0; i < M->ncells; i++) {
-			E_Int *pf = &M->NFACE[6*i];
 			E_Float *pH = &H[6*i];
-			E_Int *pref = &M->ref_data[3*i];
-			E_Float L0, L1, L2;
+      auto &pref = refData[i];
+			E_Float L0, L1, L2, dd[3];
 
-			p0 = &M->fc[3*pf[2]];
-			p1 = &M->fc[3*pf[3]];
-			for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
-			symmat_dot_vec(pH, d, dd);
+			symmat_dot_vec(pH, Dirs[i].I, dd);
 			L0 = norm(dd, 3);
 
-			p0 = &M->fc[3*pf[4]];
-			p1 = &M->fc[3*pf[5]];
-			for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
-			symmat_dot_vec(pH, d, dd);
+			symmat_dot_vec(pH, Dirs[i].J, dd);
 			L1 = norm(dd, 3);
-			
-			p0 = &M->fc[3*pf[0]];
-			p1 = &M->fc[3*pf[1]];
-			for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
-			symmat_dot_vec(pH, d, dd);
+
+			symmat_dot_vec(pH, Dirs[i].K, dd);
 			L2 = norm(dd, 3);
 
 			// get max stretch
@@ -77,27 +98,17 @@ void compute_ref_data(mesh *M, E_Float *H)
 		}
 	} else {
 		for (E_Int i = 0; i < M->ncells; i++) {
-			E_Int *pf = &M->NFACE[6*i];
 			E_Float *pH = &H[6*i];
-			E_Int *pref = &M->ref_data[3*i];
-			E_Float L0, L1, L2;
+      auto &pref = refData[i];
+			E_Float L0, L1, L2, dd[3];
 
-			p0 = &M->fc[3*pf[2]];
-			p1 = &M->fc[3*pf[3]];
-			for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
-			symmat_dot_vec(pH, d, dd);
+			symmat_dot_vec(pH, Dirs[i].I, dd);
 			L0 = norm(dd, 3);
 
-			p0 = &M->fc[3*pf[4]];
-			p1 = &M->fc[3*pf[5]];
-			for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
-			symmat_dot_vec(pH, d, dd);
+			symmat_dot_vec(pH, Dirs[i].J, dd);
 			L1 = norm(dd, 3);
-			
-			p0 = &M->fc[3*pf[0]];
-			p1 = &M->fc[3*pf[1]];
-			for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
-			symmat_dot_vec(pH, d, dd);
+
+			symmat_dot_vec(pH, Dirs[i].K, dd);
 			L2 = norm(dd, 3);
 
 			E_Float MAX = std::max(std::max(L0, L1), L2);
@@ -108,6 +119,127 @@ void compute_ref_data(mesh *M, E_Float *H)
 			pref[2] = M->Gmax;
 		}
 	}
+}
+
+void make_ref_data(mesh *M, E_Float **sols, E_Int csize)
+{
+  // Allocate final ref data
+  M->ref_data = (E_Int *)XMALLOC((3*M->ncells) * sizeof(E_Int));
+  for (E_Int i = 0; i < 3*M->ncells; i++) M->ref_data[i] = MINREF;
+
+  // Compute temp data
+  std::vector<pDirs> D_(M->ncells);
+  compute_principal_vecs(M, D_);
+
+  if (M->sensor == 0) { // metric sensor
+    for (E_Int i = 0; i < csize; i++) {
+      // compute hessians
+      E_Float *H = compute_hessian(M, sols[i]);
+
+      // process hessians
+      hessian_to_metric(H, M);
+  
+      // compute refinement data
+      std::vector<std::array<int, 3>> partialRefData(M->ncells);
+      compute_ref_data(M, H, D_, partialRefData);
+
+      for (E_Int i = 0; i < M->ncells; i++) {
+        E_Int *pr = &M->ref_data[3*i];
+        pr[0] = std::max(pr[0], partialRefData[i][0]);
+        pr[1] = std::max(pr[1], partialRefData[i][1]);
+        pr[2] = std::max(pr[2], partialRefData[i][2]);
+      }
+
+      XFREE(H);
+    }
+  } else if (M->sensor == 1) { // cell sensor
+    // Marked cells: consider only the first sol
+    E_Float *sol = sols[0];
+    for (E_Int i = 0; i < M->ncells; i++) {
+      E_Int *pr = &M->ref_data[3*i];
+      if (sol[i] == 0) {
+        for (E_Int j = 0; j < 3; j++)
+          pr[j] = M->Gmax;
+      } else {
+        for (E_Int j = 0; j < 3; j++)
+          pr[j] = 0;
+      }
+    }
+  }
+
+  // process refinement data
+  smooth_ref_data(M);
+}
+
+// Returns 0 if freeze vector applied
+// Returns 1 if fail
+E_Int apply_freeze_vector(mesh *M, E_Float *fvec)
+{
+  if (!fvec) return 0;
+
+  // In order to freeze refinement in a certain direction,
+  // all refinement cells should have a dimension that's parallel to fvec
+  // Otherwise, inconsistencies might happen
+  E_Float TOL = 1e-12;
+
+  // Normalized freeze vector
+  E_Float fNorm = norm(fvec, 3);
+  if (fabs(fNorm) < TOL) {
+    if (M->pid == 0)
+      fprintf(stderr, "adaptMesh(): null freeze vector. Not applied.\n");
+    return 0;
+  }
+
+  E_Float fvec_n[3] = {fvec[0]/fNorm, fvec[1]/fNorm, fvec[2]/fNorm};
+  if (M->pid == 0) {
+    printf("Normalized freeze vector: %f %f %f\n",
+      fvec_n[0], fvec_n[1], fvec_n[2]);
+  }
+
+  for (E_Int i = 0; i < M->ncells; i++) {
+    E_Int *pr = &M->ref_data[3*i];
+    if (pr[0] == 0 && pr[1] == 0 && pr[2] == 0) continue;
+
+    E_Int *pf = &M->NFACE[6*i];
+    E_Float d[3], dp, NORM;
+    E_Float *p0, *p1;
+
+		p0 = &M->fc[3*pf[2]];
+		p1 = &M->fc[3*pf[3]];
+		for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
+    NORM = norm(d, 3);
+    dp = dot(d, fvec_n, 3) / NORM;
+    if (fabs(fabs(dp)-1.0) < TOL) {
+      pr[0] = 0;
+      continue;
+    }
+			
+
+		p0 = &M->fc[3*pf[4]];
+		p1 = &M->fc[3*pf[5]];
+		for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
+    NORM = norm(d, 3);
+    dp = dot(d, fvec_n, 3) / NORM;
+    if (fabs(fabs(dp)-1.0) < TOL) {
+      pr[1] = 0;
+      continue;
+    }
+
+			
+		p0 = &M->fc[3*pf[0]];
+		p1 = &M->fc[3*pf[1]];
+		for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
+    NORM = norm(d, 3);
+    dp = dot(d, fvec_n, 3) / NORM;
+    if (fabs(fabs(dp)-1.0) < TOL) {
+      pr[2] = 0;
+      continue;
+    }
+
+    return 1;
+  }
+
+  return 0;
 }
 
 std::vector<E_Int> compute_canon_info(E_Int cell, mesh *M, E_Int *ps)

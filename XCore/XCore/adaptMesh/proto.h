@@ -24,11 +24,13 @@ mesh_leaves mesh_get_leaves(mesh *, tree *, tree *, E_Int);
 
 /* metric */
 void hessian_to_metric(E_Float *, mesh *);
-void compute_ref_data(mesh *, E_Float *);
+//void compute_ref_data(mesh *, E_Float *);
 void smooth_ref_data(mesh *);
 std::vector<E_Int> compute_canon_info(E_Int, mesh *, E_Int *);
 void deduce_nei_ref_data(E_Int, E_Int, E_Int, E_Int, E_Int *);
 E_Int is_metric_valid(E_Float *);
+void make_ref_data(mesh *, E_Float **, E_Int);
+E_Int apply_freeze_vector(mesh *M, E_Float *);
 
 /* topo */
 void reorder_hexa(mesh *);
@@ -51,7 +53,7 @@ E_Int feq(E_Float, E_Float);
 E_Float dot(E_Float *, E_Float *, E_Int);
 E_Float norm(E_Float *, E_Int);
 void cross(E_Float *, E_Float *, E_Float *);
-void symmat_dot_vec(E_Float *, E_Float *, E_Float *c);
+void symmat_dot_vec(const E_Float *, const E_Float *, E_Float *c);
 
 /* cut */
 void cut_face_x(E_Int, mesh *, tree *, E_Int, E_Int);
