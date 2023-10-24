@@ -1730,10 +1730,12 @@ def isNamePresent(a, varname):
         if p == -1: return -1
         else: return 1
 
-def _signNGonFaces(a):
+def _signNGonFaces(a, tol=1e-12):
+  """Return a consistently oriented pyTree with signed faces.
+  Usage: _signNGonFaces(a, tol)"""
   if isinstance(a[0], list):
-      for i in a: converter.signNGonFaces(i)
-  else: converter.signNGonFaces(a)
+      for i in a: converter.signNGonFaces(i, tol)
+  else: converter.signNGonFaces(a, tol)
   return None
 
 # convert to low order mesh

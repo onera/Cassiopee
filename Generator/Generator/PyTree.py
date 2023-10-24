@@ -557,15 +557,15 @@ def bboxOfCells(t):
 def _bboxOfCells(t):
     return C._TZGC1(t, 'centers', False, Generator.bboxOfCells)
 
-def getVolumeMap(t):
+def getVolumeMap(t, method=0, tol=1e-12):
     """Return the volume map in an array.
     Usage: getVolumeMap(t)"""
-    return C.TZGC1(t, 'centers', True, Generator.getVolumeMap)
+    return C.TZGC1(t, 'centers', True, Generator.getVolumeMap, method, tol)
 
-def _getVolumeMap(t):
+def _getVolumeMap(t, method=0, tol=1e-12):
     """Return the volume map in an array.
     Usage: _getVolumeMap(t)"""
-    return C._TZGC1(t, 'centers', False, Generator.getVolumeMap)
+    return C._TZGC1(t, 'centers', False, Generator.getVolumeMap, method, tol)
 
 def getNormalMap(t):
     """Return the map of surface normals in an array.

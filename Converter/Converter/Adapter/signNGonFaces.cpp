@@ -26,8 +26,9 @@ using namespace K_FLD;
 //=============================================================================
 PyObject* K_CONVERTER::signNGonFaces(PyObject* self, PyObject* args)
 {
-  PyObject* o; 
-  if (!PYPARSETUPLE_(args, O_, &o)) return NULL;
+  PyObject* o;
+  E_Float tol;
+  if (!PYPARSETUPLE_(args, O_ R_, &o, &tol)) return NULL;
 
   // Check array
   E_Int ni, nj, nk;
@@ -66,7 +67,7 @@ PyObject* K_CONVERTER::signNGonFaces(PyObject* self, PyObject* args)
   E_Int *indPH = cn->getIndPH();
   E_Int ncells = cn->getNElts();
 
-  K_METRIC::orient_boundary_ngon(x, y, z, *cn);
+  K_METRIC::orient_boundary_ngon(x, y, z, *cn, tol);
   std::vector<E_Int> owner, neigh;
   K_METRIC::build_parent_elements_ngon(*cn, owner, neigh);
 

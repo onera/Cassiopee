@@ -1833,7 +1833,7 @@ Information on generated meshes
 
 ---------------------------------------
 
-.. py:function:: Generator.getVolumeMap(a)
+.. py:function:: Generator.getVolumeMap(a, method=0, tol=1e-12)
 
     Return the volume field of an array. Volume is located at centers of cells. 
     
@@ -1841,6 +1841,10 @@ Information on generated meshes
 
     :param a:  input volume or surface mesh
     :type  a:  array or pyTree
+    :param method: method of volumes computation (0 or 1). method = 1 only for 3D NGons
+    :type method: int
+    :param tol: tolerance used within internal routines when method = 1
+    :type tol: float
     :return: modified reference copy of a
     :rtype: array or pyTree
 

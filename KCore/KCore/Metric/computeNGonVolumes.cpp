@@ -840,7 +840,6 @@ E_Int K_METRIC::compute_volumes_ngon(E_Float *x, E_Float *y, E_Float *z,
   
   std::vector<E_Int> owner, neigh;
   build_parent_elements_ngon(cn, owner, neigh);
-  
 
   // make face center and area vectors
   std::vector<E_Float> faceCenters(3*nfaces, 0);

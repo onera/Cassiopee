@@ -64,7 +64,7 @@ namespace K_METRIC
 
   // Orient boundary polygons outwards for NGons
   void orient_boundary_ngon(E_Float *x, E_Float *y, E_Float *z, K_FLD::FldArrayI &cn,
-    E_Float tol = 1e-12);
+    E_Float tol);
 
   // Build parent elements for NGons
   void build_parent_elements_ngon(K_FLD::FldArrayI &cn, std::vector<E_Int> &owner,
@@ -72,7 +72,7 @@ namespace K_METRIC
 
   // Compute cell volumes for NGons
   E_Int compute_volumes_ngon(E_Float *x, E_Float *y, E_Float *z,
-    K_FLD::FldArrayI &cn, E_Float *cellVols, E_Float tol = 1e-12);
+    K_FLD::FldArrayI &cn, E_Float *cellVols, E_Float tol);
   
   E_Int colorConnexParts(E_Int *neis, E_Int *xadj, E_Int nelts, E_Int *colors);
 }

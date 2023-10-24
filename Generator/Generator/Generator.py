@@ -955,16 +955,16 @@ def getCellPlanarity(array):
     else:
         return generator.getCellPlanarity(array)
 
-def getVolumeMap(array):
+def getVolumeMap(array, method=0, tol=1e-12):
     """Return the volume map in an array.
-    Usage: getVolumeMap(array)"""
+    Usage: getVolumeMap(array, method, tol)"""
     if isinstance(array[0], list): 
         b = []
         for i in array:
-            b.append(generator.getVolumeMap(i))
+            b.append(generator.getVolumeMap(i, method, tol))
         return b
     else:
-        return generator.getVolumeMap(array)
+        return generator.getVolumeMap(array, method, tol)
 
 def getNormalMap(array):
     """Return the map of surface normals in an array.

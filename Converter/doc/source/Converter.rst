@@ -1827,12 +1827,16 @@ Array / PyTree common manipulations
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.PyTree.signNGonFaces(t)
+.. py:function:: Converter.PyTree.signNGonFaces(t, tol=1e-12)
 
     Make signed faces within NGon connectivity.
 
+    Exists also as in place version (_signNGonFaces) that modifies t and returns None.
+
     :param t: tree
     :type t: pyTree
+    :param tol: tolerance used within internal routines
+    :type tol: float
     :rtype: t with signed faces
 
     *Example of use:*

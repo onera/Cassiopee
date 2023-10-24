@@ -7531,13 +7531,13 @@ def convertPyTree2FFD(zone, RefStat, FlowEq, nd):
                                         Internal.__FlowSolutionCenters__)
   return None
 
-def signNGonFaces(t):
+def signNGonFaces(t, tol=1e-12):
   tc = Internal.copyRef(t)
-  _signNGonFaces(tc)
+  _signNGonFaces(tc, tol)
   return tc
 
-def _signNGonFaces(t):
-  __TZGC3(t, Converter._signNGonFaces)
+def _signNGonFaces(t, tol=1e-12):
+  __TZGC3(t, Converter._signNGonFaces, tol)
   return None
 
 # Convert to low order mesh

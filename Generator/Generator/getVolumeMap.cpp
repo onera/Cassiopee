@@ -61,8 +61,10 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh( PyObject* self,
                                            PyObject* args )
 {
   PyObject* array;
+  E_Int method;
+  E_Float tol;
 
-  if ( !PyArg_ParseTuple(args, "O", &array) ) return NULL;
+  if ( !PYPARSETUPLE_(args, O_ I_ R_, &array, &method, &tol) ) return NULL;
   
   // Check array
   E_Int im, jm, km;
@@ -235,8 +237,17 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh( PyObject* self,
         FldArrayI cnn(cn->getSize(), 1, cnnp, true); cnn = *cn;
         
         // compute array vol which store volume at element centers
-        E_Int err = K_METRIC::CompNGonVol(xt,yt,zt,*cn,volp);
-        //E_Int err = K_METRIC::compute_volumes_ngon(xt, yt, zt, *cn, volp);
+        E_Int err;
+        if (method == 0)
+          err = K_METRIC::CompNGonVol(xt,yt,zt,*cn,volp);
+        else if (method == 1)
+          err = K_METRIC::compute_volumes_ngon(xt, yt, zt, *cn, volp, tol);
+        else {
+          PyErr_SetString(PyExc_ValueError,
+                          "getVolumeMap: wrong method (should be 0 or 1).");
+          RELEASESHAREDU(array, f, cn);
+          return NULL;
+        }
 
         // sortie si une erreur a ete trouvee
         if (err == 1)
