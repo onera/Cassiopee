@@ -39,7 +39,7 @@ C_IN
       REAL_E    z(0:nz-1)       ! pierce points
       INTEGER_E isnot           ! inverse mask
 C_OUT
-      INTEGER_E cellNatureField(0:(ni-1)*(nj-1)*(nk-1)-1) ! nature of the cells ( masked or not )
+      INTEGER_E cellNatureField(0:(ni-1)*(nj-1)*nk-1) ! nature of the cells ( masked or not )
       INTEGER_E isMasked
 C_LOCAL
       INTEGER_E i, j, k, l, d
@@ -84,7 +84,7 @@ C
 
       ELSE
 !$OMP DO REDUCTION(MAX:isMasked)
-      DO d = 0, nicnjc
+      DO d = 0, nicnjc-1
           j = d/nic
           i = d - j*nic
           cellN = 0
