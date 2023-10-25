@@ -14,11 +14,27 @@ void shift_data(mesh *M)
   }
 }
 
-#define PARSE_DICT(dict, key) parse_dictionary((dict), (key), __FUNCTION__)
+#define MANDATORY 0
+#define OPTIONAL 1
 
+/*
+  Returns 0 if:
+   - mandatory key found in dict
+   - optional key not found in dict
+  Returns 1 if:
+   - unknown key mode (not mandatory and not optional)
+   - mandatory key not found in dict
+*/
 static
-PyObject *parse_dictionary(PyObject *dict, const char *key, const char *func)
+E_Int parse_dict(PyObject *dict, const char *key, E_Int mode,
+  PyObject **obj)
 {
+  if (mode != MANDATORY && mode != OPTIONAL) {
+    PyErr_Format(PyExc_ValueError,
+      "adaptMesh(): unknown mode for key %s.", key);
+    return 1;
+  }
+
   PyObject *strObj;
 #if PY_VERSION_HEX >= 0x03000000
   strObj = PyUnicode_FromString(key);
@@ -26,83 +42,114 @@ PyObject *parse_dictionary(PyObject *dict, const char *key, const char *func)
   strObj = PyString_FromString(key);
 #endif
 
-  PyObject *obj = PyDict_GetItem(dict, strObj);
-  //if (obj == NULL) {
-  //  PyErr_Format(PyExc_KeyError, "%s: Missing key %s in dictionary", func, key);
-  //}
+  E_Int ret = 0;
+  *obj = PyDict_GetItem(dict, strObj);
+  if (*obj == NULL && mode == MANDATORY) {
+    PyErr_Format(PyExc_KeyError, "Missing mandatory key %s in dictionary", key);
+    ret = 1;
+  }
+
   Py_DECREF(strObj);
-  return obj;
+  return ret;
 }
 
 PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
 {
-  PyObject *arr, *comm_data, *solc, *gcells, *gfaces, *gpoints;
-  E_Int Gmax, iso_mode, conformize, sensor;
-  E_Float Tr;
-  PyObject *adaptDict;
+  PyObject *arr, *comm_data, *solc, *gcells, *gfaces, *gpoints, *adaptDict;
 
-  if (!PyArg_ParseTuple(args, "OOOOOOO", &arr, &comm_data, &solc, &gcells, &gfaces, &gpoints, &adaptDict)) {
+  if (!PyArg_ParseTuple(args, "OOOOOOO", &arr,
+    &comm_data, &solc, &gcells, &gfaces, &gpoints, &adaptDict)) {
     PyErr_SetString(PyExc_ValueError, "adaptMesh(): wrong input.");
     return NULL;
   }
 
-  assert(PyDict_Check(adaptDict));
+  if (!PyDict_Check(adaptDict)) {
+    PyErr_SetString(PyExc_ValueError,
+      "adaptMesh(): adaptDict should be a python dictionary.");
+      return NULL;
+  }
 
-  // parse dictionary
-  PyObject *obj;
+  // Input parameters
+  E_Int   Gmax;           // Mandatory
+  E_Float Tr;             // Mandatory
+  E_Int   conformize;     // Optional
+  E_Int   sensor;         // Optional
+  E_Int   iso_mode;       // Optional
+  E_Float *freezeVector;  // Optional
+
+  // Default values for optional parameters
+  conformize   = 1;     // Conformal final mesh
+  sensor       = 0;     // Metric sensor
+  iso_mode     = 0;     // Directional adaptation
+  freezeVector = NULL;  // Allow refinement in every direction
+
+  // Parse dictionary
+  PyObject *obj = NULL;
+  E_Int ret;
 
   // Gmax
-  obj = PARSE_DICT(adaptDict, "Gmax");
-  if (obj == NULL) return NULL;
+  ret = parse_dict(adaptDict, "Gmax", MANDATORY, &obj);
+  if (ret) return NULL;
   Gmax = PyLong_AsLong(obj);
 
   // Tr
-  obj = PARSE_DICT(adaptDict, "Tr");
-  if (obj == NULL) return NULL;
+  ret = parse_dict(adaptDict, "Tr", MANDATORY, &obj);
+  if (ret) return NULL;
   Tr = PyFloat_AsDouble(obj);
 
   // iso_mode
-  obj = PARSE_DICT(adaptDict, "iso_mode");
-  if (obj == NULL) return NULL;
-  iso_mode = PyLong_AsLong(obj);
+  parse_dict(adaptDict, "iso_mode", OPTIONAL, &obj);
+  if (obj) iso_mode = PyLong_AsLong(obj);
 
   // conformize
-  obj = PARSE_DICT(adaptDict, "conformize");
-  if (obj == NULL) return NULL;
-  conformize = PyLong_AsLong(obj);
+  parse_dict(adaptDict, "conformize", OPTIONAL, &obj);
+  if (obj) conformize = PyLong_AsLong(obj);
 
   // sensor
-  obj = PARSE_DICT(adaptDict, "sensor");
-  if (obj == NULL) return NULL;
-  sensor = PyLong_AsLong(obj);
+  parse_dict(adaptDict, "sensor", OPTIONAL, &obj);
+  if (obj) sensor = PyLong_AsLong(obj);
 
   // freeze vector
-  E_Float *freezeVector = NULL;
-  obj = PARSE_DICT(adaptDict, "freezeVector");
+  parse_dict(adaptDict, "freezeVector", OPTIONAL, &obj);
   if (obj) {
     E_Int size, nfld, ret;
     ret = K_NUMPY::getFromNumpyArray(obj, freezeVector, size, nfld, true);
-    if (ret == 0) {
+    if (ret == 0 || nfld != 1 || size != 3) {
       PyErr_SetString(PyExc_ValueError, "adaptMesh(): bad freezeVector.");
       return NULL;
     }
-    assert(nfld == 1);
-    assert(size == 3);
   }
 
-
-  FldArrayI *cn;
-  FldArrayF *f;
-  E_Int res = K_ARRAY::getFromArray3(arr, f, cn);
-
-  // TODO(Imad): more input error checking
-  if (res != 2) {
-    PyErr_SetString(PyExc_TypeError,
-      "adaptMesh(): input array should be NGON2.");
+  // Check array
+  E_Int ni, nj, nk;
+  K_FLD::FldArrayF* f; K_FLD::FldArrayI* cn;
+  char* varString; char* eltType;
+  ret = K_ARRAY::getFromArray3(arr, varString, f, ni, nj, nk, cn, eltType);
+  
+  if (ret <= 0) {
+    PyErr_SetString(PyExc_TypeError, "adaptMesh(): only for NGons.");
     return NULL;
   }
 
-  // init mesh
+  if (ret == 1) { 
+    PyErr_SetString(PyExc_TypeError, "adaptMesh(): only for NGons."); 
+    RELEASESHAREDS(arr, f);
+    return NULL; 
+  }
+
+  E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
+  E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
+  E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
+  if (posx == -1 || posy == -1 || posz == -1)
+  {
+    RELEASESHAREDB(ret, arr, f, cn);
+    PyErr_SetString(PyExc_ValueError,
+                    "adaptMesh(): can't find coordinates in array.");
+    return NULL;
+  }
+  posx++; posy++; posz++;
+
+  // Init mesh
   mesh *M = new mesh();
   M->NGON = cn->getNGon();
   M->NFACE = cn->getNFace();
@@ -113,7 +160,8 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   M->iso_mode = iso_mode;
   M->sensor = sensor;
 
-  // coordinates
+  // TODO(Imad): avoid copying
+  // Coordinates
   M->npoints = f->getSize();
   M->xyz = (E_Float *)XCALLOC(3*M->npoints, sizeof(E_Float));
   E_Float *X = f->begin(1);
@@ -126,7 +174,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
     px[2] = Z[i];
   }
 
-  // parse my global cells, faces and points
+  // Parse my global cells, faces and points
   E_Int nfld;
   K_NUMPY::getFromNumpyArray(gcells, M->gcells, M->ncells, nfld, true);
   for (E_Int i = 0; i < M->ncells; i++) {
@@ -151,7 +199,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
 
   shift_data(M);
 
-  // init parent elements
+  // Init parent elements
   M->owner = (E_Int *)XCALLOC(M->nfaces, sizeof(E_Int));
   M->neigh = (E_Int *)XCALLOC(M->nfaces, sizeof(E_Int));
   for (E_Int i = 0; i < M->nfaces; i++) {
@@ -166,34 +214,34 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
     }
   }
 
-  // init mesh connectivity
+  // TODO(Imad): replace with K_METRIC functions
+  // Init mesh connectivity
   topo_init_mesh(M);
 
-  // parse comm data
+  // Parse comm data
   M->nppatches = PyList_Size(comm_data);
-  //M->ppatches = (proc_patch *)XMALLOC(M->nppatches * sizeof(proc_patch));
   M->ppatches = new proc_patch[M->nppatches];
   for (E_Int i = 0; i < M->nppatches; i++) {
-    // comm array
+    // Comm array
     PyObject *o = PyList_GetItem(comm_data, i);
     E_Int nfld, nneis;
 
-    // neighbour proc
+    // Neighbour proc
     PyObject *nei_proc = PyList_GetItem(o, 0);
     M->ppatches[i].nei_proc = PyLong_AsLong(nei_proc);
 
-    // patch faces
+    // Patch faces
     PyObject *farr = PyList_GetItem(o, 1);
     E_Int npfaces;
     K_NUMPY::getFromNumpyArray(farr, M->ppatches[i].faces, npfaces, nfld, true);
     M->ppatches[i].nfaces = npfaces;
    
-    // corresponding neighbours
+    // Corresponding neighbours
     PyObject *narr = PyList_GetItem(o, 2);
     K_NUMPY::getFromNumpyArray(narr, M->ppatches[i].gneis, nneis, nfld, true);
     assert(nneis == M->ppatches[i].nfaces);
 
-    // indices
+    // Indices
     std::vector<E_Int> indices(M->ppatches[i].nfaces);
     for (E_Int j = 0; j < npfaces; j++)
       indices[j] = j;
@@ -217,34 +265,49 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
     M->ppatches[i].faces = sorted_pfaces;
     M->ppatches[i].gneis = sorted_gneis;
 
-    // replace with local ids
-    for (E_Int j = 0; j < npfaces; j++) {
-      assert(M->FT.find(M->ppatches[i].faces[j]) != M->FT.end());
-      assert(M->ppatches[i].faces[j] > 0);
+    // Replace with local face ids
+    for (E_Int j = 0; j < npfaces; j++)
       M->ppatches[i].faces[j] = M->FT[M->ppatches[i].faces[j]];
-    }
   }
 
-  // process solution fields
+  // Process solution fields
   E_Int csize = PyList_Size(solc);
   if (csize == 0) {
-    PyErr_SetString(PyExc_ValueError, "adaptMesh(): empty solution.");
+    RELEASESHAREDU(arr, f, cn);
+    mesh_free(M);
+    PyErr_SetString(PyExc_ValueError,
+      "adaptMesh(): empty list of solution fields.");
     return NULL;
   }
   
+  E_Int ok_sols = 1;
   E_Float **csols = (E_Float **)XCALLOC(csize, sizeof(E_Float *));
   for (E_Int i = 0; i < csize; i++) {
     PyObject *csol = PyList_GetItem(solc, i);
-    E_Int nfld;
-    res = K_NUMPY::getFromNumpyArray(csol, csols[i], M->ncells, nfld, true);
-    assert(res == 1);
+    E_Int nfld, nc;
+    ret = K_NUMPY::getFromNumpyArray(csol, csols[i], nc, nfld, true);
+    ok_sols = (ret == 1) && (nfld == 1) && (nc == M->ncells);
+    if (!ok_sols) {
+      PyErr_Format(PyExc_ValueError,
+      "adaptMesh(): bad %d-th solution field.", i);
+      break;
+    }
+  }
+
+  if (!ok_sols) {
+    mesh_free(M);
+    for (E_Int i = 0; i < csize; i++)
+      XFREE(csols[i]);
+    XFREE(csols);
+    RELEASESHAREDU(arr, f, cn);
+    return NULL;
   }
 
   // Metric interpolation
   make_ref_data(M, csols, csize);
 
   // Freeze refinement in one direction if needed
-  E_Int ret = apply_freeze_vector(M, freezeVector);
+  ret = apply_freeze_vector(M, freezeVector);
   if (ret == 1) {
     PyErr_SetString(PyExc_ValueError,
       "adaptMesh(): refinement cells not aligned with freezeVector. Aborting.");
@@ -379,9 +442,9 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
 
   mesh_leaves cM = mesh_get_leaves(rM, &ct, &ft, conformize);
 
-  const char *varString = "CoordinateX,CoordinateY,CoordinateZ";
+  const char *varStringOut = "CoordinateX,CoordinateY,CoordinateZ";
 
-  PyObject* m = K_ARRAY::buildArray3(3, varString, cM.nepoints, cM.necells,
+  PyObject* m = K_ARRAY::buildArray3(3, varStringOut, cM.nepoints, cM.necells,
     cM.nefaces, "NGON", cM.XFACES[cM.nefaces], cM.XCELLS[cM.necells], 3, 
     false, 3);
 
