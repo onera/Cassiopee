@@ -92,9 +92,8 @@ PyObject* K_GEOM::nacaMesh(PyObject* self, PyObject* args)
     if (sharpte == 1) npt++;
 
     FldArrayF xl(npt);
-    FldArrayF coord(N, 3);
-    //printf("sharpte=%d, size N=%d, npt=%d\n",sharpte, N, npt);
-    //printf("type = %d %d %d %d %d\n", im, ip, iq, it, ith);
+    FldArrayF coord(2*npt, 3);
+    coord.setAllValuesAtNull();
 
     // determination de la serie
     if (im > -0.5 && ip > -0.5 && ith > -0.5 && it > -0.5 && iq > -0.5)
@@ -114,7 +113,7 @@ PyObject* K_GEOM::nacaMesh(PyObject* self, PyObject* args)
       k6nacas4g_(im, ip, it, sharpte,
                  npt, coord.begin(1), coord.begin(2), coord.begin(3), xl.begin());
     }
-    
+    coord.reAllocMat(N, 3);
     tpl = K_ARRAY::buildArray(coord, "x,y,z", N, 1, 1);
   }
 
