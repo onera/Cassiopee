@@ -755,6 +755,23 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
         except:
             raise TypeError("convertFile2Arrays: file %s can not be read."%fileName)
         else:
+            # convert i8/i4 types if necessary
+            if isinstance(a[0], list):
+                for i in a:
+                    if len(i) == 4:
+                        if isinstance(i[2], list): # array2/3 
+                            for c, k in enumerate(i[2]): 
+                                if k.dtype != E_NpyInt: i[2][c] = k.astype(E_NpyInt, order='K') 
+                        else: # array1
+                            if i[2].dtype != E_NpyInt: i[2] = i[2].astype(E_NpyInt, order='K')
+            else:
+                if len(a) == 4:
+                    if isinstance(a[2], list): # array2/3 
+                        for c, k in enumerate(a[2]): 
+                            if k.dtype != E_NpyInt: a[2][c] = k.astype(E_NpyInt, order='K') 
+                    else: # array1
+                        if a[2].dtype != E_NpyInt: a[2] = a[2].astype(E_NpyInt, order='K')
+
             print('done.')
             return a
     elif format == 'fmt_iges' or format == 'fmt_step':

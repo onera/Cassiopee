@@ -41,29 +41,29 @@ E_Int K_LOC::node2centerStruct(FldArrayF& FNode,
 
   if (ni != 1 && nj == 1 && nk == 1 )
   {
-    size = ni-1; dim = 1; im = ni; 
+    size = ni-1; dim = 1; im = ni;  jm = 1; km = 1;
   }
   else if (ni == 1 && nj != 1 && nk == 1) 
   {
-    size = nj-1; dim = 1; im = nj;
+    size = nj-1; dim = 1; im = nj; jm = 1; km = 1;
   }
   else if (ni == 1 && nj == 1 && nk != 1)
   {
-    size = nk-1; dim = 1; im = nk;
+    size = nk-1; dim = 1; im = nk; jm = 1; km = 1;
   }
   else
   {
     if (ni == 1)
     {
-      size = (nj-1)*(nk-1); dim = 2; im = nj; jm = nk;
+      size = (nj-1)*(nk-1); dim = 2; im = nj; jm = nk; km = 1;
     }
     else if (nj == 1)
     {
-      size = (ni-1)*(nk-1); dim = 2; im = ni; jm = nk;
+      size = (ni-1)*(nk-1); dim = 2; im = ni; jm = nk; km = 1;
     }
     else if (nk == 1)
     {
-      size = (ni-1)*(nj-1); dim = 2; im = ni; jm = nj;
+      size = (ni-1)*(nj-1); dim = 2; im = ni; jm = nj; km = 1;
     }
     else
     {
@@ -197,7 +197,7 @@ E_Int K_LOC::node2centerStruct(FldArrayF& FNode,
           E_Float* cellNpc = FCenter.begin(cellN);
           E_Float* cellNpn = FNode.begin(cellN);
           E_Int imc = im-1; E_Int jmc = jm-1; E_Int kmc = km-1;
-          E_Int ijm = im*jm; E_Int ijmc= imc*jmc;
+          E_Int ijm = im*jm; E_Int ijmc = imc*jmc;
           #pragma omp parallel
           {
             E_Int i, j, k;

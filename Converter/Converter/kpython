@@ -80,7 +80,6 @@ then
             if [ $? -ne 0 ]; then
                 cat $SCRIPT | grep "offscreen=5" > /dev/null
                 if [ $? -ne 0 ]; then
-                    echo 'vglrun'
                     PYTHONEXE='vglrun '$PYTHONEXE
                 fi
             fi

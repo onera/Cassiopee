@@ -309,7 +309,7 @@ def testO(objet, number=1):
                 elif isinstance(ai, float):
                     diff = abs(ai-objet[i])
                     if diff > TOLERANCE:
-                        print("DIFF: object value differs from %s (%g)."%(reference, diff)) 
+                        print("DIFF: object value differs from %s (diff=%g)."%(reference, diff)) 
                         return False
                 elif ai != objet[i]:      # liste d'autres objets
                     print("DIFF: object differs from "+reference+'.')
@@ -318,7 +318,12 @@ def testO(objet, number=1):
         elif isinstance(a, float):
             diff = abs(a-objet)
             if diff > TOLERANCE:
-                print("DIFF: object value differs from %s (%g)."%(reference, diff))
+                print("DIFF: object value differs from %s (diff=%g)."%(reference, diff))
+                return False
+        elif isinstance(a, int):
+            diff = abs(a-objet)
+            if diff > 0:
+                print("DIFF: object value differs from %s (diff=%g)."%(reference, diff))
                 return False
         elif isinstance(a, dict):
             for k in a.keys():

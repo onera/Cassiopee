@@ -202,7 +202,7 @@ namespace K_CONNECTOR
       std::vector<E_Float>* tempZ; // temporary storage of Z
   };
 
-/* C est a l appelant de detruire les planes*/
+/* C'est a l'appelant de detruire les planes */
   E_Int compCharacteristics(E_Int isNot, E_Int elevationDir,
                             E_Int dim1, E_Int dim2,
                             E_Float tol, E_Float delta,

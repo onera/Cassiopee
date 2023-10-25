@@ -54,7 +54,6 @@ E_Int check_is_NGON(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1
 {
 
   E_Int ni, nj, nk;
-  
   E_Int res = K_ARRAY::getFromArray(arr, varString, f1, ni, nj, nk,
                                     cn1, eltType);
 
@@ -141,7 +140,7 @@ PyObject* K_OCC::linkNodes2CAD(PyObject* self, PyObject* args)
   // array (mesh)
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
-  char* varString;  char* eltType;
+  char* varString; char* eltType;
   E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
   if (err) return NULL;
 

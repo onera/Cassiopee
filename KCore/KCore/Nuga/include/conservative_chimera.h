@@ -7,7 +7,7 @@
 
 
 */
-//Authors : S�m Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_CONSERVATIVE_CHIMERA_H
 #define NUGA_CONSERVATIVE_CHIMERA_H
@@ -76,7 +76,7 @@ namespace NUGA
       dcoeffs.clear();
       xr.clear();
 
-      int ret(0);
+      E_Int ret(0);
       ngon_unit pgsR(cntR.begin()), pgsD(cntD.begin());
 
       E_Int npgsD = pgsD.size();
@@ -91,17 +91,17 @@ namespace NUGA
       K_SEARCH::KdTree<K_FLD::FloatArray> treeD(aiso);
 
       // 2. Loop through receivers ang get closest
-      int npgsR = pgsR.size();
+      E_Int npgsR = pgsR.size();
 
       dindices.resize(npgsR, IDX_NONE);
 
 #pragma omp parallel for if(do_omp)
-      for (int i = 0; i < npgsR; ++i)
+      for (E_Int i = 0; i < npgsR; ++i)
       {
         E_Float isoGR[3];
         K_MESH::Polygon::iso_barycenter<acrd_t, 3>(crdR, pgsR.get_facets_ptr(i), pgsR.stride(i), 1, isoGR);
 
-        double d2;
+        E_Float d2;
         dindices[i] = treeD.getClosest(isoGR, d2);
       }
 
@@ -126,7 +126,7 @@ namespace NUGA
       dcoeffs.clear();
       xr.clear();
 
-      int ret(0);
+      E_Int ret(0);
       ngon_unit pgsR(cntR.begin()), pgsD(cntD.begin());
 
       NUGA::pg_smesh_t m0, m1;

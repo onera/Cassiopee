@@ -1052,7 +1052,11 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
       file.close()
     except:
       raise TypeError("convertFile2PyTree: file %s can not be read."%fileName)
-    else: print('done.')
+    else: 
+      # modify i8/i4 types
+      if Internal.E_NpyInt == numpy.int32: Internal._adaptTypes(a, convertI82I4=True, convertI42I8=False)
+      elif Internal.E_NpyInt == numpy.int64: Internal._adaptTypes(a, convertI82I4=False, convertI42I8=True)
+      print('done.')
 
     if Internal.isTopTree(a): # top tree
       registerAllNames(a)

@@ -4823,9 +4823,9 @@ def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
 
 # order nodes in FSC
 def _orderFlowSolution(t, loc='both'):
-    if loc=='nodes': loci=0
-    elif loc=='centers': loci=1
-    else: loci=2
+    if loc == 'nodes': loci=0
+    elif loc == 'centers': loci=1
+    else: loci = 2
 
     noz = 0; orderedNodesC=[]; orderedNodesN=[]
     for z in getZones(t):
