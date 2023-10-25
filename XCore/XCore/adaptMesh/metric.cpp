@@ -154,33 +154,9 @@ E_Int apply_freeze_vector(mesh *M, const std::vector<pDirs> &Dirs,
 
     dp = dot(Dirs[i].K, fvec_n, 3) / norm(Dirs[i].K, 3);
     if (fabs(fabs(dp)-1.0) < TOL) {
-      pr[1] = 0;
-      continue;
-    }
-
-
-
-    /*
-    p0 = &M->fc[3*pf[4]];
-    p1 = &M->fc[3*pf[5]];
-    for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
-    NORM = norm(d, 3);
-    dp = dot(d, fvec_n, 3) / NORM;
-    if (fabs(fabs(dp)-1.0) < TOL) {
-      pr[1] = 0;
-      continue;
-    }
-
-    p0 = &M->fc[3*pf[0]];
-    p1 = &M->fc[3*pf[1]];
-    for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
-    NORM = norm(d, 3);
-    dp = dot(d, fvec_n, 3) / NORM;
-    if (fabs(fabs(dp)-1.0) < TOL) {
       pr[2] = 0;
       continue;
     }
-    */
     
     return 1;
   }
