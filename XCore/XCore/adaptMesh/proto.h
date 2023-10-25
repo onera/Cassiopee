@@ -29,8 +29,8 @@ void smooth_ref_data(mesh *);
 std::vector<E_Int> compute_canon_info(E_Int, mesh *, E_Int *);
 void deduce_nei_ref_data(E_Int, E_Int, E_Int, E_Int, E_Int *);
 E_Int is_metric_valid(E_Float *);
-void make_ref_data(mesh *, E_Float **, E_Int);
-E_Int apply_freeze_vector(mesh *M, E_Float *);
+E_Int make_ref_data(mesh *, E_Float **, E_Int, E_Float *);
+//E_Int apply_freeze_vector(mesh *M, E_Float *);
 
 /* topo */
 void reorder_hexa(mesh *);
@@ -50,8 +50,8 @@ E_Float *compute_hessian(mesh *, E_Float *);
 E_Int BiCGStab(E_Float *, E_Float *, E_Float *, E_Int);
 void eigen(E_Float *, E_Float *, E_Float *, E_Float *, E_Float *);
 E_Int feq(E_Float, E_Float);
-E_Float dot(E_Float *, E_Float *, E_Int);
-E_Float norm(E_Float *, E_Int);
+E_Float dot(const E_Float *, const E_Float *, E_Int);
+E_Float norm(const E_Float *, E_Int);
 void cross(E_Float *, E_Float *, E_Float *);
 void symmat_dot_vec(const E_Float *, const E_Float *, E_Float *c);
 

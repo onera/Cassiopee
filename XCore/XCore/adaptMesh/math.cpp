@@ -1,6 +1,6 @@
 #include "proto.h"
 
-E_Float dot(E_Float *a, E_Float *b, E_Int n)
+E_Float dot(const E_Float *a, const E_Float *b, E_Int n)
 {
   E_Float res = 0;
   for (E_Int i = 0; i < n; i++)
@@ -15,7 +15,7 @@ void cross(E_Float a[3], E_Float b[3], E_Float c[3])
   c[2] = a[0]*b[1] - a[1]*b[0];
 }
 
-E_Float norm(E_Float *a, E_Int n)
+E_Float norm(const E_Float *a, E_Int n)
 {
   return sqrt(dot(a, a, n));
 }

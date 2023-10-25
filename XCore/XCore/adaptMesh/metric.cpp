@@ -108,7 +108,87 @@ void compute_ref_data(mesh *M, E_Float *H, const std::vector<pDirs> &Dirs,
   }
 }
 
-void make_ref_data(mesh *M, E_Float **sols, E_Int csize)
+// Returns 0 if freeze vector applied or not needed
+// Returns 1 if fail
+static
+E_Int apply_freeze_vector(mesh *M, const std::vector<pDirs> &Dirs,
+  E_Float *fvec)
+{
+  if (!fvec) return 0;
+
+  // In order to freeze refinement in direction fvec,
+  // all refinement cells should have a dimension that's parallel to fvec
+  // Otherwise, inconsistencies might happen
+  E_Float TOL = 1e-12;
+
+  // Normalized freeze vector
+  E_Float fNorm = norm(fvec, 3);
+  if (fabs(fNorm) < TOL) {
+    if (M->pid == 0)
+      fprintf(stderr, "adaptMesh(): null freeze vector. Not applied.\n");
+    return 0;
+  }
+
+  E_Float fvec_n[3] = {fvec[0]/fNorm, fvec[1]/fNorm, fvec[2]/fNorm};
+  if (M->pid == 0) {
+    printf("Normalized freeze vector: %.3f %.3f %.3f\n",
+      fvec_n[0], fvec_n[1], fvec_n[2]);
+  }
+
+  for (E_Int i = 0; i < M->ncells; i++) {
+    E_Int *pr = &M->ref_data[3*i];
+    if (pr[0] == 0 && pr[1] == 0 && pr[2] == 0) continue;
+    E_Float dp;
+    
+    dp = dot(Dirs[i].I, fvec_n, 3) / norm(Dirs[i].I, 3);
+    if (fabs(fabs(dp)-1.0) < TOL) {
+      pr[0] = 0;
+      continue;
+    }
+
+    dp = dot(Dirs[i].J, fvec_n, 3) / norm(Dirs[i].J, 3);
+    if (fabs(fabs(dp)-1.0) < TOL) {
+      pr[1] = 0;
+      continue;
+    }
+
+    dp = dot(Dirs[i].K, fvec_n, 3) / norm(Dirs[i].K, 3);
+    if (fabs(fabs(dp)-1.0) < TOL) {
+      pr[1] = 0;
+      continue;
+    }
+
+
+
+    /*
+    p0 = &M->fc[3*pf[4]];
+    p1 = &M->fc[3*pf[5]];
+    for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
+    NORM = norm(d, 3);
+    dp = dot(d, fvec_n, 3) / NORM;
+    if (fabs(fabs(dp)-1.0) < TOL) {
+      pr[1] = 0;
+      continue;
+    }
+
+    p0 = &M->fc[3*pf[0]];
+    p1 = &M->fc[3*pf[1]];
+    for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
+    NORM = norm(d, 3);
+    dp = dot(d, fvec_n, 3) / NORM;
+    if (fabs(fabs(dp)-1.0) < TOL) {
+      pr[2] = 0;
+      continue;
+    }
+    */
+    
+    return 1;
+  }
+  
+  return 0;
+}
+
+E_Int make_ref_data(mesh *M, E_Float **sols, E_Int csize, E_Float *fvec)
 {
   // Allocate final ref data
   M->ref_data = (E_Int *)XMALLOC((3*M->ncells) * sizeof(E_Int));
@@ -154,76 +234,13 @@ void make_ref_data(mesh *M, E_Float **sols, E_Int csize)
     }
   }
 
-  // process refinement data
+  // Smooth out refinement data
   smooth_ref_data(M);
-}
 
-// Returns 0 if freeze vector applied
-// Returns 1 if fail
-E_Int apply_freeze_vector(mesh *M, E_Float *fvec)
-{
-  if (!fvec) return 0;
+  // Block refinement in fvec direction if needed
+  E_Int ret = apply_freeze_vector(M, D_, fvec);
 
-  // In order to freeze refinement in a certain direction,
-  // all refinement cells should have a dimension that's parallel to fvec
-  // Otherwise, inconsistencies might happen
-  E_Float TOL = 1e-12;
-
-  // Normalized freeze vector
-  E_Float fNorm = norm(fvec, 3);
-  if (fabs(fNorm) < TOL) {
-    if (M->pid == 0)
-      fprintf(stderr, "adaptMesh(): null freeze vector. Not applied.\n");
-    return 0;
-  }
-
-  E_Float fvec_n[3] = {fvec[0]/fNorm, fvec[1]/fNorm, fvec[2]/fNorm};
-  if (M->pid == 0) {
-    printf("Normalized freeze vector: %f %f %f\n",
-      fvec_n[0], fvec_n[1], fvec_n[2]);
-  }
-
-  for (E_Int i = 0; i < M->ncells; i++) {
-    E_Int *pr = &M->ref_data[3*i];
-    if (pr[0] == 0 && pr[1] == 0 && pr[2] == 0) continue;
-    E_Int *pf = &M->NFACE[6*i];
-    E_Float d[3], dp, NORM;
-    E_Float *p0, *p1;
-    
-    p0 = &M->fc[3*pf[2]];
-    p1 = &M->fc[3*pf[3]];
-    for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
-    NORM = norm(d, 3);
-    dp = dot(d, fvec_n, 3) / NORM;
-    if (fabs(fabs(dp)-1.0) < TOL) {
-      pr[0] = 0;
-      continue;
-    }
-
-    p0 = &M->fc[3*pf[4]];
-    p1 = &M->fc[3*pf[5]];
-    for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
-    NORM = norm(d, 3);
-    dp = dot(d, fvec_n, 3) / NORM;
-    if (fabs(fabs(dp)-1.0) < TOL) {
-      pr[1] = 0;
-      continue;
-    }
-
-    p0 = &M->fc[3*pf[0]];
-    p1 = &M->fc[3*pf[1]];
-    for (E_Int j = 0; j < 3; j++) d[j] = p1[j] - p0[j];
-    NORM = norm(d, 3);
-    dp = dot(d, fvec_n, 3) / NORM;
-    if (fabs(fabs(dp)-1.0) < TOL) {
-      pr[2] = 0;
-      continue;
-    }
-    
-    return 1;
-  }
-  
-  return 0;
+  return ret;
 }
 
 std::vector<E_Int> compute_canon_info(E_Int cell, mesh *M, E_Int *ps)

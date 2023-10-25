@@ -303,11 +303,8 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
     return NULL;
   }
 
-  // Metric interpolation
-  make_ref_data(M, csols, csize);
-
-  // Freeze refinement in one direction if needed
-  ret = apply_freeze_vector(M, freezeVector);
+  // Compute cell refinement levels
+  ret = make_ref_data(M, csols, csize, freezeVector);
   if (ret == 1) {
     PyErr_SetString(PyExc_ValueError,
       "adaptMesh(): refinement cells not aligned with freezeVector. Aborting.");
