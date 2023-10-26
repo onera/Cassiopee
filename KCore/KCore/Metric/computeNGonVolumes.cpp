@@ -92,18 +92,14 @@ E_Int check_cell_closed(E_Int cell, K_FLD::FldArrayI &cn)
 #define DSMALL 1e-15
 
 static
-void compute_face_area_and_center(E_Int id, K_FLD::FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z, E_Float *fa, E_Float *fc)
+void compute_face_area_and_center(E_Int id, E_Int stride, E_Int *pn, E_Float *x,
+  E_Float *y, E_Float *z, E_Float *fa, E_Float *fc)
 {
-  E_Int *ngon = cn.getNGon();
-  E_Int *indPG = cn.getIndPG();
-
   // Init
   fa[0] = fa[1] = fa[2] = 0.0;
   fc[0] = fc[1] = fc[2] = 0.0;
 
   // Approximate face center
-  E_Int stride = -1;
-  E_Int *pn = cn.getFace(id, stride, ngon, indPG);
   E_Float fcenter[3] = {0,0,0};
 
   for (E_Int i = 0; i < stride; i++) {
@@ -393,7 +389,9 @@ void compute_cell_volume(E_Int cell, K_FLD::FldArrayI &cn, E_Float *x, E_Float *
     E_Int face = pf[i]-1;
     E_Float *fa = &faceAreas[3*i];
     E_Float *fc = &faceCenters[3*i];
-    compute_face_area_and_center(face, cn, x, y, z, fa, fc);
+    E_Int np = INDPG[i+1]-INDPG[i];
+    E_Int *pn = &NGON[INDPG[i]];
+    compute_face_area_and_center(face, np, pn, x, y, z, fa, fc);
   }
 
   // Estimate cell centroid as average of face centers
@@ -415,7 +413,8 @@ void compute_cell_volume(E_Int cell, K_FLD::FldArrayI &cn, E_Float *x, E_Float *
     
     // Compute 3*face-pyramid volume contribution
     E_Float d[3] = {fc[0]-cc[0], fc[1]-cc[1], fc[2]-cc[2]};
-    E_Float pyr3Vol = dot(fa, fc, 3);
+    //E_Float pyr3Vol = dot(fa, fc, 3);
+    E_Float pyr3Vol = dot(fa, d, 3);
 
     vol += pyr3Vol;
   }
@@ -986,6 +985,24 @@ E_Int K_METRIC::compute_volumes_ngon(E_Float *x, E_Float *y, E_Float *z,
   }
 
   puts("Done computing volumes.");
+
+  E_Float vmin = vols[0];
+  E_Float vmax = vols[0];
+  E_Int cmin = 0, cmax = 0;
+  for (E_Int i = 0; i < ncells; i++) {
+    if (vols[i] == 0.0) continue;
+    if (vols[i] > vmax) {
+      vmax = vols[i];
+      cmax = i;
+    }
+    if (vols[i] < vmin) {
+      vmin = vols[i];
+      cmin = i;
+    }
+  }
+
+  printf("Min non-zero volume: %.4e at cell %d\n", vmin, cmin);
+  printf("Max non-zero volume: %.4e at cell %d\n", vmax, cmax);
 
   return ret;
 }
