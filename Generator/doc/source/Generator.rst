@@ -1841,7 +1841,7 @@ Information on generated meshes
 
     :param a:  input volume or surface mesh
     :type  a:  array or pyTree
-    :param method: method of volumes computation (0 or 1). method = 1 only for 3D NGons
+    :param method: method of volumes computation (0 or 1). method = 1 is usually more robust on NGons
     :type method: int
     :param tol: tolerance used within internal routines when method = 1
     :type tol: float
