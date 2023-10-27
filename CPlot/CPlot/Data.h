@@ -428,12 +428,12 @@ public:
   virtual void renderGPUUSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet) = 0;
   virtual void createGPUUSolidHOZone(UnstructZone* zonep, E_Int zone, E_Int zonet) = 0;
   virtual void renderGPUUSolidHOZone(UnstructZone* zonep, E_Int zone, E_Int zonet) = 0;
-  void createGPUSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield);
-  void createGPUSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield1,
-                              E_Int nofield2, E_Int nofield3);
-  void createGPUUIsoSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet, E_Int nofield);
-  void createGPUUIsoSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet, 
-                              E_Int nofield1, E_Int nofield2, E_Int nofield3);
+  virtual void createGPUSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield) = 0;
+  virtual void createGPUSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield1,
+                                      E_Int nofield2, E_Int nofield3) = 0;
+  virtual void createGPUUIsoSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet, E_Int nofield) = 0;
+  virtual void createGPUUIsoSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet, 
+                                      E_Int nofield1, E_Int nofield2, E_Int nofield3) = 0;
   virtual void renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield) = 0;
   virtual void renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield1,
                                    E_Int nofield2, E_Int nofield3) = 0;

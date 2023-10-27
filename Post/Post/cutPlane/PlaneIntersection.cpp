@@ -450,7 +450,7 @@ void K_POST::computeUnstrIntersectionWithPlane(
 //===========================================================================
 /* Etant donnes 2 pts indA et indB formant un segment de la grille non struct
    calcule l'intersection de ce segment avec le plan. Si intersection,
-   cnt est incremente et le pt d intersection est insere dans intersectPts*/
+   cnt est incremente et le pt d'intersection est insere dans intersectPts*/
 //===========================================================================
 void K_POST::searchUnstrIntersectForSegment(
   E_Float coefa, E_Float coefb, E_Float coefc, E_Float coefd,
@@ -693,7 +693,7 @@ void K_POST::searchStructIntersectForSegment(
                                volOfIntersectPts[cnt]);
         cnt++;
       }
-      else if ( k >= 1.-eps)
+      else if (k >= 1.-eps)
       {
         for (E_Int v = 1; v <= nfld; v++)
           intersectPts(cnt,v) = field(indB,v);

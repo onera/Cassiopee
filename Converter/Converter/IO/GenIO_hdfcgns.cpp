@@ -950,7 +950,7 @@ PyObject* K_IO::GenIOHdf::getArrayR8Skel(hid_t node, hid_t tid,
   hsize_t sizem;
   sizem = 1;
   for (s = 0; s < dim; s++) sizem = sizem*dims[s];
-  if (sizem < _maxFloatSize) return getArrayR8(node, tid, dim, dims);
+  if (sizem < (hsize_t)_maxFloatSize) return getArrayR8(node, tid, dim, dims);
   else { Py_INCREF(Py_None); return Py_None; }
 }
 
@@ -963,7 +963,7 @@ PyObject* K_IO::GenIOHdf::getArrayI1Skel(hid_t node, hid_t tid,
   hsize_t sizem;
   sizem = 1;
   for (s = 0; s < dim; s++) sizem = sizem*dims[s];
-  if (sizem < _maxFloatSize) return getArrayI1(node, tid, dim, dims);
+  if (sizem < (hsize_t)_maxFloatSize) return getArrayI1(node, tid, dim, dims);
   else { Py_INCREF(Py_None); return Py_None; }
 }
 
@@ -976,7 +976,7 @@ PyObject* K_IO::GenIOHdf::getArrayI8Skel(hid_t node, hid_t tid,
   hsize_t sizem;
   sizem = 1;
   for (s = 0; s < dim; s++) sizem = sizem*dims[s];
-  if (sizem < _maxFloatSize) return getArrayI8(node, tid, dim, dims);
+  if (sizem < (hsize_t)_maxFloatSize) return getArrayI8(node, tid, dim, dims);
   else { Py_INCREF(Py_None); return Py_None; }
 }
 
@@ -989,7 +989,7 @@ PyObject* K_IO::GenIOHdf::getArrayI4Skel(hid_t node, hid_t tid,
   hsize_t sizem;
   sizem = 1;
   for (s = 0; s < dim; s++) sizem = sizem*dims[s];
-  if (sizem < _maxFloatSize) return getArrayI4(node, tid, dim, dims);
+  if (sizem < (hsize_t)_maxFloatSize) return getArrayI4(node, tid, dim, dims);
   else { Py_INCREF(Py_None); return Py_None; }
 }
 
