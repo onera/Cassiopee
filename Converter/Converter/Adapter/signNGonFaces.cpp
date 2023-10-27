@@ -67,10 +67,24 @@ PyObject* K_CONVERTER::signNGonFaces(PyObject* self, PyObject* args)
   E_Int *indPH = cn->getIndPH();
   E_Int ncells = cn->getNElts();
 
+  // Reset sign of all faces
+  for (E_Int i = 0; i < ncells; i++) {
+    E_Int stride = -1;
+    E_Int *pf = cn->getElt(i, stride, nface, indPH);
+    for (E_Int j = 0; j < stride; j++) {
+      E_Int face = pf[j];
+      if (face < 0) pf[j] = -face;
+    }
+  }
+
+  // Orient external faces outwards
   K_METRIC::orient_boundary_ngon(x, y, z, *cn, tol);
+  
+  // Deduce parent elements
   std::vector<E_Int> owner, neigh;
   K_METRIC::build_parent_elements_ngon(*cn, owner, neigh);
 
+  // Left element: +1; Right element: -1
   for (E_Int i = 0; i < ncells; i++) {
     E_Int stride = -1;
     E_Int *pf = cn->getElt(i, stride, nface, indPH);
