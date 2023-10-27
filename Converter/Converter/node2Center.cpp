@@ -83,8 +83,7 @@ PyObject* K_CONVERTER::node2Center(PyObject* self, PyObject* args)
       if (nj != 1) njl = nj-1;
       if (nk != 1) nkl = nk-1;
     }
-    tpl = K_ARRAY::buildArray(nfld, varString, 
-                              nil, njl, nkl);
+    tpl = K_ARRAY::buildArray(nfld, varString, nil, njl, nkl);
 
     E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
     FldArrayF FCenter(nil*njl*nkl, nfld, fnp, true);

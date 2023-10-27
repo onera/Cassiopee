@@ -595,27 +595,44 @@ E_Int K_LOC::node2centerUnstruct(FldArrayF& FNode,
                                  E_Int cellN, E_Int mod, 
                                  FldArrayF& FCenter)
 {
-  E_Int ne = c.getSize(); // nombre de centres = nombre d'elements
-  E_Int nt = c.getNfld();
-  E_Float ntinv = 1./nt;
+  // Acces universel sur BE/ME
+  E_Int nc = c.getNConnect();
   E_Int nfld = FNode.getNfld();
   FCenter.setAllValuesAtNull();
-  // Les centres sont numerotes comme les elements
-  for (E_Int v = 1; v <= nfld; v++)
+  E_Int elOffset = 0; // element offset
+
+  // Boucle sur toutes les connectivites
+  for (E_Int ic = 0; ic < nc; ic++)
   {
-    E_Float* fnode = FNode.begin(v);
-    E_Float* fcen = FCenter.begin(v);
+    FldArrayI& cm = *(c.getConnect(ic));
+    E_Int ne = cm.getSize(); // nombre de centres = nombre d'elements
+    E_Int nt = cm.getNfld(); // nombre de points par elements de cette connectivite
+    E_Float ntinv = 1./nt;
     
-    for (E_Int n = 1; n <= nt; n++)
-    {
-      E_Int* cn = c.begin(n);
-      #pragma omp parallel for
-      for (E_Int e = 0; e < ne; e++)
+    // Boucle sur tous les champs
+    #pragma omp parallel
+    {      
+      E_Int ind;
+      for (E_Int v = 1; v <= nfld; v++)
       {
-        fcen[e] += fnode[cn[e]-1];
+        E_Float* fnode = FNode.begin(v);
+        E_Float* fcen = FCenter.begin(v);
+
+        for (E_Int n = 1; n <= nt; n++)
+        {
+          #pragma omp for
+          for (E_Int e = 0; e < ne; e++)
+          {
+            ind = cm(e, n) - 1;
+            fcen[elOffset+e] += fnode[ind];
+          }
+        }
+        #pragma omp for
+        for (E_Int e = 0; e < ne; e++) fcen[elOffset+e] *= ntinv;
       }
     }
-    for (E_Int e = 0; e < ne; e++) fcen[e] *= ntinv;
+
+    elOffset += ne; // increment offset
   }
   return 1;
 }

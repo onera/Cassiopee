@@ -7536,11 +7536,13 @@ def convertPyTree2FFD(zone, RefStat, FlowEq, nd):
   return None
 
 def signNGonFaces(t, tol=1e-12):
+  """Sign NFACE connectivity in NGON zones."""
   tc = Internal.copyRef(t)
   _signNGonFaces(tc, tol)
   return tc
 
 def _signNGonFaces(t, tol=1e-12):
+  """Sign NFACE connectivity in NGON zones."""
   __TZGC3(t, Converter._signNGonFaces, tol)
   return None
 

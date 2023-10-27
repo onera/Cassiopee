@@ -2743,7 +2743,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
 }
 
 //=============================================================================
-// Convertit un array centres en array noeuds (elements basiques)
+// Convertit un array centres en array noeuds (BE et ME)
 // Retourne 1 en cas de succes, 0 en cas d'echec.
 // IN: mod: mod du cellN (0,1 ou 0,1,2)
 // IN: algo: type de traitement pour le cellN
@@ -2755,118 +2755,140 @@ E_Int K_LOC::center2nodeUnstruct(FldArrayF& FCenter,
                                  FldArrayF& FNode,
                                  E_Int algo)
 {
-  // c'est la connectivite duale
-  E_Int ne = c.getSize(); // nombre de centres = nombre d'elements
-  E_Int nt = c.getNfld();
+  // Acces universel sur BE/ME
+  E_Int nc = c.getNConnect();
   E_Int nfld = FCenter.getNfld();
   E_Int nb = FNode.getSize();
   FNode.setAllValuesAtNull();
   FldArrayI count(nb); count.setAllValuesAtNull();
   E_Int* countp = count.begin();
-  E_Int ind; E_Float inv;
+  
+  E_Int elOffset = 0; // element offset
 
-  for (E_Int n = 1; n <= nt; n++)
+  // Boucle sur toutes les connectivites une premiere fois
+  for (E_Int ic = 0; ic < nc; ic++)
   {
-    E_Int* cn = c.begin(n);
-    for (E_Int e = 0; e < ne; e++)
+    FldArrayI& cm = *(c.getConnect(ic));
+    E_Int ne = cm.getSize(); // nombre de centres = nombre d'elements
+    E_Int nt = cm.getNfld(); // nombre de points par elements de cette connectivite
+
+    // Boucle sur tous les champs
+    for (E_Int v = 1; v <= nfld; v++)
     {
-      ind = cn[e]-1;
-      for (E_Int v = 1; v <= nfld; v++)
-        FNode(ind, v) += FCenter(e, v);
-      
-      countp[ind]++;
-    }
-  }
-  for (E_Int v = 1; v <= nfld; v++)
-  {
-    E_Float* fnode = FNode.begin(v);
-    for (E_Int e = 0; e < nb; e++)
-    {
-      if (countp[e] > 0)
+      E_Float* fnode = FNode.begin(v);
+      E_Float* fcen = FCenter.begin(v);
+    
+      for (E_Int n = 1; n <= nt; n++)
       {
-        inv = 1./countp[e];
-        fnode[e] = fnode[e] * inv;
+        for (E_Int e = 0; e < ne; e++)
+        {
+          E_Int ind = cm(e, n) - 1;
+          fnode[ind] += fcen[elOffset+e];
+          // Increment the number of centers connected to vertex ind
+          // Must loop over all connectivities to get the right countp
+          // for vertices that share several types of basic elements 
+          if (v == 1) countp[ind]++;
+        }
       }
     }
+    elOffset += ne; // increment offset
   }
 
-  // Traitement special pour le champ "cellnaturefield"
-  /* algo=0:
-     Si au moins un 0 ==> 0
-     Sinon 1
-  */
-  if (cellN != -1 && algo == 0)
+  elOffset = 0; // reset element offset for the second loop over connectivities
+
+  // Boucle sur toutes les connectivites une second fois pour diviser les
+  // champs aux noeuds par countp et traiter le cas special du champs cellN
+  for (E_Int ic = 0; ic < nc; ic++)
   {
-    // champs "cellnaturefield" aux centres et aux noeuds
-    E_Float* cellNCenter = FCenter.begin(cellN);
-    E_Float* cellNNode = FNode.begin(cellN);
-    // tableau temporaire pour stocker les sommes ou produits de cellN
-    FldArrayF temp(nb); 
-    switch (mod)
+    FldArrayI& cm = *(c.getConnect(ic));
+    E_Int ne = cm.getSize(); // nombre de centres = nombre d'elements
+    E_Int nt = cm.getNfld(); // nombre de points par elements de cette connectivite
+    
+    // Boucle sur tous les champs
+    #pragma omp parallel
     {
-      case 1: // cellN=0 (blanked or interpolated) or 1 (normal) 
-      case 2: // cellN=0 (blanked), 1 (normal) or 2 (interpoled)
-        temp.setAllValuesAt(1.);
-        for (E_Int n = 1; n <= nt; n++)
+      E_Float inv;
+      for (E_Int v = 1; v <= nfld; v++)
+      {
+        E_Float* fnode = FNode.begin(v);
+
+        #pragma omp for
+        for (E_Int n = 0; n < nb; n++)
         {
-          E_Int* cn = c.begin(n); 
-          for (E_Int e = 0; e < ne; e++)
+          if (countp[n] > 0)
           {
-            ind = cn[e]-1;
-            temp[ind] =  temp[ind]*cellNCenter[e];
+            inv = 1./countp[n];
+            fnode[n] *= inv;
           }
         }
-        for (E_Int indn = 0; indn < nb; indn++)
-          cellNNode[indn] = K_FUNC::E_min(temp[indn],K_CONST::ONE);
-        break;
-      case 3: // cellN=0 (blanked), cellN=1 (normal), cellN=-interpolationblock (interpoled)
-        printf("Warning: center2node: this case is not implemented yet.\n");
-        return 0;
-        
-      default:
-        printf("Warning: center2node: unknown cellnaturefield format.\n");
-        return 0;
+      }
     }
-  }
-  /* algo=1:
-     Si toutes les valeurs des cellN voisins = 0 ==> 0
-     Sinon 1
-  */
-  if (cellN != -1 && algo == 1)
-  {
-    // champs "cellnaturefield" aux centres et aux noeuds
-    E_Float* cellNCenter = FCenter.begin(cellN);
-    E_Float* cellNNode = FNode.begin(cellN);
-    // tableau temporaire pour stocker les sommes ou produits de cellN
-    FldArrayF temp(nb); 
-    switch (mod)
+
+    // Traitement special pour le champ "cellnaturefield" - reecriture
+    // de fnode(cellN), ie, cellNNode
+    if (cellN != -1)
     {
-      case 1: // cellN=0 (blanked or interpolated) or 1 (normal)
-      case 2: // cellN=0 (blanked), 1 (normal) or 2 (interpoled)
-        temp.setAllValuesAt(0.);
-        for (E_Int n = 1; n <= nt; n++)
-        {
-          E_Int* cn = c.begin(n); 
-          for (E_Int e = 0; e < ne; e++)
+      // champs "cellnaturefield" aux centres et aux noeuds
+      E_Float* cellNCenter = FCenter.begin(cellN);
+      E_Float* cellNNode = FNode.begin(cellN);
+      // tableau temporaire pour stocker les sommes ou produits de cellN
+      FldArrayF temp(nb); 
+      switch (mod)
+      {
+        case 1: // cellN=0 (blanked or interpolated) or 1 (normal) 
+        case 2: // cellN=0 (blanked), 1 (normal) or 2 (interpoled)
+          if (algo == 0)
           {
-            ind = cn[e]-1;
-            temp[ind] = temp[ind]+cellNCenter[e];
+            /* algo=0 - produits de cellN:
+              Si au moins un 0 ==> 0
+              Sinon 1
+            */
+            temp.setAllValuesAt(1.);
+            for (E_Int n = 1; n <= nt; n++)
+            {
+              for (E_Int e = 0; e < ne; e++)
+              {
+                E_Int ind = cm(e, n) - 1;
+                temp[ind] *= cellNCenter[elOffset+e];
+              }
+            }
+            #pragma omp parallel for
+            for (E_Int n = 0; n < nb; n++)
+              cellNNode[n] = K_FUNC::E_min(temp[n], K_CONST::ONE);
           }
-        }
-        for (E_Int indn = 0; indn < nb; indn++)
-        {
-          if (temp[indn] > 0.) cellNNode[indn] = 1.;
-          else cellNNode[indn] = 0.;
-        }
-        break;
-      case 3: // cellN=0 (blanked), cellN=1 (normal), cellN=-interpolationblock (interpoled)
-        printf("Warning: center2node: this case is not implemented yet.\n");
-        return 0;
-        
-      default:
-        printf("Warning: center2node: unknown cellnaturefield format.\n");
-        return 0;
+          else if (algo == 1)
+          {
+            /* algo=1 - somme des cellN:
+              Si toutes les valeurs des cellN voisins = 0 ==> 0
+              Sinon 1
+            */
+            temp.setAllValuesAt(0.);
+            for (E_Int n = 1; n <= nt; n++)
+            {
+              for (E_Int e = 0; e < ne; e++)
+              {
+                E_Int ind = cm(e, n) - 1;
+                temp[ind] += cellNCenter[elOffset+e];
+              }
+            }
+            #pragma omp parallel for
+            for (E_Int n = 0; n < nb; n++)
+            {
+              if (temp[n] > 0.) cellNNode[n] = 1.;
+              else cellNNode[n] = 0.;
+            }
+          }
+          break;
+        case 3: // cellN=0 (blanked), cellN=1 (normal), cellN=-interpolationblock (interpoled)
+          printf("Warning: center2node: this case is not implemented yet.\n");
+          return 0;
+          
+        default:
+          printf("Warning: center2node: unknown cellnaturefield format.\n");
+          return 0;
+      }
     }
+    elOffset += ne; // increment element offset
   }
 
   return 1;

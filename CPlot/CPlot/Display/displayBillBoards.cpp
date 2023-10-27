@@ -166,7 +166,7 @@ void Data::displayBillBoards(Zone* zonep, E_Int zone)
   // compute cam distance
   double* di = new double [npts];
   double* ran = new double [npts];
-  double dmin, dmax;
+  double dmin = 1.e30, dmax = -1.e30;
   double randConst = 1./99.;
 
   // look for billBoard field (field to choose image in multi-image billboards)

@@ -1829,7 +1829,7 @@ Array / PyTree common manipulations
 
 .. py:function:: Converter.PyTree.signNGonFaces(t, tol=1e-12)
 
-    Make signed faces within NGon connectivity.
+    For NGON zones, sign the NFACE connectivity with cell external normals.
 
     Exists also as in place version (_signNGonFaces) that modifies t and returns None.
 
@@ -1837,7 +1837,7 @@ Array / PyTree common manipulations
     :type t: pyTree
     :param tol: tolerance used within internal routines
     :type tol: float
-    :rtype: t with signed faces
+    :rtype: t with signed NFACE
 
     *Example of use:*
 
