@@ -1,4 +1,4 @@
-# - close (pyTree) -
+# - zip (pyTree) -
 import Converter.PyTree as C
 import Generator.PyTree as G
 import KCore.test as test
@@ -18,6 +18,19 @@ for z in zones:
 
 zones = C.addVars(zones,'Density'); zones = C.addVars(zones,'centers:cellN')
 
-# Close une liste de maillages structures
-zones = G.close(zones, 1e-1)
-test.testT(zones, 1)
+# Close une liste de maillages sur leurs frontieres 
+C.convertPyTree2File(zones,"out.cgns")
+zones2 = G.zip(zones, 1e-1)
+test.testT(zones2, 1)
+
+zones2 = C.convertArray2Hexa(zones)
+zones2 = G.zip(zones2, 1e-1)
+test.testT(zones2,2)
+
+zones2 = C.convertArray2Tetra(zones)
+zones2 = G.zip(zones2, 1e-1)
+test.testT(zones2,3)
+
+zones2 = C.convertArray2NGon(zones)
+zones2 = G.zip(zones2, 1e-1)
+test.testT(zones2,4)

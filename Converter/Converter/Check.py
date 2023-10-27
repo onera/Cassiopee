@@ -686,7 +686,7 @@ def _reorderBCMatchPointRange(t):
             TR = Internal.getNodeFromName(gc,"Transform")
             TR = Internal.getValue(TR)
             trirac1 = TR[0]; trirac2 = TR[1]; trirac3 = TR[2]
-            PRN = Internal.getNodeFromName(gc,'PointRange')
+            PRN = Internal.getNodeFromName(gc,'PointRangeDonor')
             win = Internal.range2Window(Internal.getValue(PRN))
             [imin, imax, jmin, jmax, kmin, kmax] = win
             if imin != imax and trirac1<0:

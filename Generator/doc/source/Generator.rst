@@ -83,6 +83,7 @@ List of functions
 .. autosummary::
 
    Generator.close
+   Generator.zip
    Generator.selectInsideElts
    Generator.map
    Generator.mapSplit
@@ -1190,9 +1191,10 @@ Cartesian grid generators
 Operations on meshes
 ---------------------------------------
 
-.. py:function:: Generator.close(a, tol=1.e-12)
+.. py:function:: Generator.close(a, tol=1.e-12, suppressDegeneratedNGons=False)
 
-    Close a mesh defined by array a. Points that are distant of tol maximum to one another are merged.
+    Close a mesh defined by array a. Points of that mesh which are distant of tol maximum to one another are merged. For unstructured zones, connectivity is
+    cleaned (removal of unreferenced vertices, multiply defined elements and faces)
     
     Exists also as in place version (_close) that modifies a and returns None. 
 
@@ -1200,6 +1202,8 @@ Operations on meshes
     :type  a:  array or pyTree
     :param tol:  merging points tolerance
     :type  tol:  float
+    :param suppressDegeneratedNGons: enables the removal of degenerated ngons
+    :type suppressDegeneratedNGons: boolean
     :return: modified reference copy of t
     :rtype: array or pyTree
 
@@ -1212,6 +1216,30 @@ Operations on meshes
     * `Mesh closing (pyTree) <Examples/Generator/closePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Generator/closePT.py
+---------------------------------------
+
+.. py:function:: Generator.zip(a, tol=1.e-12)
+
+    Zip a set of zones defined by a at their borders, if they are at a distance less than tol (mean value of coordinates is set).
+    
+    Exists also as in place version (_zip) that modifies a and returns None. 
+
+    :param a:  input mesh
+    :type  a:  array or pyTree
+    :param tol:  merging points tolerance
+    :type  tol:  float
+    :return: modified reference copy of t
+    :rtype: array or pyTree
+
+    *Example of use:*
+
+    * `Border closing (array) <Examples/Generator/zip.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/zip.py
+
+    * `Mesh closing (pyTree) <Examples/Generator/zipPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/zipPT.py
 
 ---------------------------------------
 

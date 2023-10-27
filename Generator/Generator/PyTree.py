@@ -781,12 +781,10 @@ def addPointInDistribution(a, ind):
     return C.TZGC1(a, 'nodes', True, Generator.addPointInDistribution, ind)
 
 def close(a, tol=1.e-12, suppressDegeneratedNGons=False):
-    """Close a mesh defined by an array gathering points nearer than tol.
-    Usage: close(array, tol)"""
+    """Merge vertices distant of tol and remove multiply defined vertices/faces/elements.
+    Usage: close(array, tol, suppressDegeneratedNGons)"""
     t = Internal.copyRef(a)
-    fields = C.getAllFields(t, 'nodes')
-    fields = Generator.close(fields, tol, suppressDegeneratedNGons)
-    C.setFields(fields, t, 'nodes')
+    _close(t, tol=tol, suppressDegeneratedNGons=suppressDegeneratedNGons)
     return t
 
 def _close(t, tol=1.e-12, suppressDegeneratedNGons=False):
@@ -794,6 +792,19 @@ def _close(t, tol=1.e-12, suppressDegeneratedNGons=False):
     fields = Generator.close(fields, tol, suppressDegeneratedNGons)
     C.setFields(fields, t, 'nodes')
     return None
+
+def zip(a, tol=1.e-12):
+    """Zip zones if they are distant of tol.
+    Usage: closeBorders(a, tol)"""
+    t = Internal.copyRef(a)
+    _zip(t, tol=tol)
+    return t
+
+def _zip(t, tol=1e-12):
+    fields = C.getAllFields(t, 'nodes')
+    fields = Generator.zip(fields, tol)
+    C.setFields(fields, t, 'nodes')
+    return None   
 
 def pointedHat(a, coord):
     """Create a structured surface defined by a contour and a point (x,y,z).

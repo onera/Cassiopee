@@ -17,7 +17,7 @@ __all__ = ['cart', 'cartr1', 'cartr2', 'cartHexa', 'cartTetra',
     'enforceCurvature', 'enforceCurvature2', 'addPointInDistribution', 'map',
     'map1d', 'map1dpl', 'map2d', 'mapCurvature', 'refine', 'defineSizeMapForMMGs',
     'mmgs', 'densify', 'hyper2D', 'hyper2D2', 'hyper2D3', 'hyper2D4',
-    'close', 'pointedHat', 'stitchedHat', 'plaster', 'selectInsideElts',
+    'close', 'zip', 'pointedHat', 'stitchedHat', 'plaster', 'selectInsideElts',
     'grow', 'stack', 'TFI', 'TFITri', 'TFIO', 'TFIHalfO', 'TFIMono', 'TFIStar', 'TFIStar2',
     'TTM', 'bboxOfCells', 'getCellPlanarity', 'getVolumeMap', 'getNormalMap',
     'getSmoothNormalMap', 'getEdgeRatio', 'getMaxLength', 'collarMesh',
@@ -811,12 +811,34 @@ def hyper2D4(array, arrayd, type):
     return generator.hyper2D4(array, arrayd, type)
 
 def close(array, tol=1.e-12, suppressDegeneratedNGons=False):
-    """Close a mesh defined by an array gathering points closer than tol.
+    """Close an unstructured mesh defined by an array gathering points closer than tol.
     Usage: close(array, tol)"""
     if isinstance(array[0], list):
-        return generator.closeAll(array, tol, suppressDegeneratedNGons)
+        out = []
+        for a in array:
+            if len(a)==5: # merge intra-borders (C-type meshes)
+                outl = generator.closeBorders([a], [], tol)[0]
+            else:
+                outl = generator.closeMesh(a, tol, suppressDegeneratedNGons)
+            out.append(outl)
+        return out
     else:
-        return generator.close(array, tol, suppressDegeneratedNGons)
+        return generator.closeMesh(array, tol, suppressDegeneratedNGons)
+
+def zip(array, tol=1e-12):
+    """Zip a set of meshes defined by gathering exterior points closer than tol.
+    Usage: zip(array, tol)"""
+    if isinstance(array[0], list):
+        extFaces=[]
+        try: 
+            import Post as P  
+            for a in array: 
+                if len(a)==4: extFaces.append(P.exteriorFaces(a))
+        except:
+            pass
+        return generator.closeBorders(array, extFaces, tol)
+    else:
+        return array
 
 def pointedHat(array, coord):
     """Create a structured surface defined by a contour and a point (x,y,z).

@@ -77,7 +77,7 @@ namespace K_GENERATOR
   PyObject* hyper2D3Mesh(PyObject* self, PyObject* args);
   PyObject* hyper2D4Mesh(PyObject* self, PyObject* args);
   PyObject* closeMesh(PyObject* self, PyObject* args);
-  PyObject* closeAllMeshes(PyObject* self, PyObject* args);
+  PyObject* closeBorders(PyObject* self, PyObject* args);
   PyObject* pointedHat(PyObject* self, PyObject* args);
   PyObject* stitchedHat(PyObject* self, PyObject* args);
   PyObject* growMesh(PyObject* self, PyObject* args);
@@ -385,21 +385,18 @@ namespace K_GENERATOR
                              FldArrayIS& dejaVu, FldArrayI& cn,
                              std::vector<E_Int>& candidats);
   /* close */
-  void closeOneWindow(
-    FldArrayF& f1, E_Int ni1, E_Int nj1, E_Int nk1,
-    E_Int posx1, E_Int posy1, E_Int posz1,
-    E_Int im1, E_Int im2, E_Int jm1, E_Int jm2, E_Int km1, E_Int km2,
-    FldArrayF& f2, E_Int ni2, E_Int nj2, E_Int nk2,
-    E_Int posx2, E_Int posy2, E_Int posz2,
-    E_Int is1, E_Int is2, E_Int js1, E_Int js2, E_Int ks1, E_Int ks2,
-    E_Float eps, E_Boolean check);
-
   void closeAllStructuredMeshes(
     std::vector<FldArrayF*>& structF,
     std::vector<E_Int>& nit, std::vector<E_Int>& njt, std::vector<E_Int>& nkt,
     std::vector<E_Int>& posx, std::vector<E_Int>& posy, std::vector<E_Int>& posz,
     E_Float eps);
 
+void closeAllUnstructuredMeshes(
+  std::vector<FldArrayF*>& unstructF,  std::vector<FldArrayI*>& connectsEV,
+  std::vector<E_Int>& posxt, std::vector<E_Int>& posyt, std::vector<E_Int>& poszt,
+  std::vector<FldArrayF*>& exteriorFacesF,  std::vector<FldArrayI*>& connectsEF,
+  std::vector<E_Int>& posxe, std::vector<E_Int>& posye, std::vector<E_Int>& posze,
+  E_Float eps);
 /* determination des blocs intersectants noz1 ds bboxes
    IN : noz1 : numero de la zone dans bboxes
    IN : minB : xmin(z1), ymin(z1), zmin(z1) 

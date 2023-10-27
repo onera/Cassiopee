@@ -15,6 +15,56 @@ import Generator.PyTree as G
 WIDGETS = {}; VARS = []
 
 #==============================================================================
+# close: connects zones if points at their borders are distant from tol
+# IN: t, cplot.selectedZones, eps
+# OUT: t with modified zones and displayed
+#==============================================================================
+def zip():
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
+        CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    eps = CTK.varsFromWidget(VARS[4].get(), type=1)
+    if len(eps) != 1:
+        CTK.TXT.insert('START', 'Join tolerance is incorrect.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    eps = eps[0]
+    
+    nzs = CPlot.getSelectedZones()
+    if nzs == []:
+        CTK.TXT.insert('START', 'Selection is empty.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    CTK.saveTree()
+    
+    fail = False
+    zones = []; errors = []
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        z = CTK.t[2][nob][2][noz]
+        zones.append(z)
+    try: zones = G.zip(zones, eps)
+    except Exception as e:
+        fail = True; errors += [0,str(e)]
+        
+    if not fail:
+        c = 0
+        for nz in nzs:
+            nob = CTK.Nb[nz]+1
+            noz = CTK.Nz[nz]
+            a = zones[c]; c += 1
+            CTK.replace(CTK.t, nob, noz, a)
+            CTK.TXT.insert('START', 'Zones zipped.\n')
+    else:
+        Panels.displayErrors(errors, header='Error: zip')
+        CTK.TXT.insert('START', 'Zip fails at least for one zone.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error')
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
+    CPlot.render()
+
+
+#==============================================================================
 # Join la selection
 # IN: t, cplot.selectedZones
 # OUT: t modifie et affiche
@@ -667,9 +717,12 @@ def createApp(win):
     B = TTK.Button(Frame, text="Join", command=join)
     B.grid(row=5, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Join selection into a single zone.\nReplaced in tree.')
+    B = TTK.Button(Frame, text="Zip", command=zip)
+    B.grid(row=5, column=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Zip zones.\nTree is modified.')
     B = TTK.Entry(Frame, textvariable=VARS[4], background='White', width=4)
-    B.grid(row=5, column=1, columnspan=2, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Join tolerance.')
+    B.grid(row=5, column=2, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Join/zip tolerance.')
 
     # - Merge surface grids by Rigby -
     B = TTK.Button(Frame, text="Merge", command=merge)
