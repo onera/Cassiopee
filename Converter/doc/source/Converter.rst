@@ -1827,7 +1827,7 @@ Array / PyTree common manipulations
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.PyTree.signNGonFaces(t, tol=1e-12)
+.. py:function:: Converter.PyTree.signNGonFaces(t)
 
     For NGON zones, sign the NFACE connectivity with cell external normals.
 
@@ -1835,8 +1835,6 @@ Array / PyTree common manipulations
 
     :param t: tree
     :type t: pyTree
-    :param tol: tolerance used within internal routines
-    :type tol: float
     :rtype: t with signed NFACE
 
     *Example of use:*
@@ -1844,6 +1842,25 @@ Array / PyTree common manipulations
     * `Sign NGon faces (pyTree) <Examples/Converter/signNGonFacesPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/signNGonFacesPT.py
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.PyTree.makeParentElements(t)
+
+    For NGON zones, construct parent elements array from NFACE connectivity.
+    Always checks the validity of input mesh. Raises error if mesh is invalid.
+
+    Exists also as in place version (_makeParentElements) that modifies t and returns None.
+
+    :param t: tree
+    :type t: pyTree
+    :rtype: t with parent elements array
+
+    *Example of use:*
+
+    * `Construct parent elements array from NFACE connectivity (pyTree) <Examples/Converter/makeParentElementsPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/makeParentElementsPT.py
 
 
 Array / PyTree analysis
