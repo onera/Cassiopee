@@ -139,6 +139,7 @@ static PyMethodDef Pyconverter [] =
   {"adaptNGon42NGon3", K_CONVERTER::adaptNGon42NGon3, METH_VARARGS},
   {"adaptNGon32NGon4", K_CONVERTER::adaptNGon32NGon4, METH_VARARGS},
   {"signNGonFaces", K_CONVERTER::signNGonFaces, METH_VARARGS},
+  {"makeParentElements", K_CONVERTER::makeParentElements, METH_VARARGS},
   {"convertSurfaceNGon", K_CONVERTER::convertSurfaceNGon, METH_VARARGS},
   {"adapt2FastP", K_CONVERTER::adapt2FastP, METH_VARARGS},
   {"createElsaHybrid", K_CONVERTER::createElsaHybrid, METH_VARARGS},

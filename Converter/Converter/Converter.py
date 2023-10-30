@@ -32,7 +32,7 @@ __all__ = ['array', 'getApi', 'addVars', '_addVars', 'addVars2', 'center2ExtCent
     'identifySolutions', 'initVars', '_initVars', 'isNamePresent', 'listen', 'magnitude',
     'nearestElements', 'nearestFaces', 'nearestNodes', 'node2Center', 'node2ExtCenter', 'normL0', 'normL2',
     'normalize', '_normalize', 'randomizeVar', 'rmVars', 'send', 'setPartialFields', 'setValue', 'addGhostCellsNGon',
-    'checkFileType', 'convertHO2LO', 'convertLO2HO', 'convertExt2Format__', 'mergeConnectivity', '_signNGonFaces']
+    'checkFileType', 'convertHO2LO', 'convertLO2HO', 'convertExt2Format__', 'mergeConnectivity', '_signNGonFaces', 'makeParentElements']
 
 # -- Create an array --
 # Les champs sont mis a zero, sauf si pour les champs cellN et cellNF
@@ -1747,13 +1747,23 @@ def isNamePresent(a, varname):
         if p == -1: return -1
         else: return 1
 
-def _signNGonFaces(a, tol=1e-12):
+def _signNGonFaces(a):
   """Return a consistently oriented pyTree with signed faces.
   Usage: _signNGonFaces(a, tol)"""
   if isinstance(a[0], list):
-      for i in a: converter.signNGonFaces(i, tol)
-  else: converter.signNGonFaces(a, tol)
+      for i in a: converter.signNGonFaces(i)
+  else: converter.signNGonFaces(a)
   return None
+
+def makeParentElements(a):
+  PEs = []
+  if isinstance(a[0], list):
+      for i in a:
+          PEs.append(converter.makeParentElements(i))
+  else:
+      PEs.append(converter.makeParentElements(a))
+  return PEs
+
 
 # convert to low order mesh
 def convertHO2LO(a, mode=0):

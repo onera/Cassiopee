@@ -18,7 +18,6 @@
 */
 #include "converter.h"
 #include "Connect/connect.h"
-#include <unordered_map>
 
 using namespace K_FLD;
 
@@ -26,7 +25,7 @@ using namespace K_FLD;
 /* Sign faces in an NGon */
 /* IN: NGonv3 or NGonv4 */
 //=============================================================================
-PyObject* K_CONVERTER::signNGonFaces(PyObject* self, PyObject* args)
+PyObject* K_CONVERTER::makeParentElements(PyObject* self, PyObject* args)
 {
   PyObject* o;
   if (!PYPARSETUPLE_(args, O_, &o)) return NULL;
@@ -38,11 +37,11 @@ PyObject* K_CONVERTER::signNGonFaces(PyObject* self, PyObject* args)
   E_Int ret = K_ARRAY::getFromArray3(o, varString, f, ni, nj, nk, cn, eltType);
   
   if (ret <= 0)
-  { PyErr_SetString(PyExc_TypeError, "signNGonFaces: only for NGons."); return NULL; }
+  { PyErr_SetString(PyExc_TypeError, "makeParentElements: only for NGons."); return NULL; }
 
   if (ret == 1)
   { 
-    PyErr_SetString(PyExc_TypeError, "signNGonFaces: only for NGons."); 
+    PyErr_SetString(PyExc_TypeError, "makeParentElements: only for NGons."); 
     RELEASESHAREDS(o, f);
     return NULL; 
   }
@@ -54,11 +53,11 @@ PyObject* K_CONVERTER::signNGonFaces(PyObject* self, PyObject* args)
   {
     RELEASESHAREDB(ret, o, f, cn);
     PyErr_SetString(PyExc_ValueError,
-                    "signNGonFaces: can't find coordinates in array.");
+                    "makeParentElements: can't find coordinates in array.");
     return NULL;
   }
   posx++; posy++; posz++;
-  
+
   // Coordonnees
   E_Float* x = f->begin(posx);
   E_Float* y = f->begin(posy);
@@ -78,12 +77,11 @@ PyObject* K_CONVERTER::signNGonFaces(PyObject* self, PyObject* args)
     }
   }
 
-
   // Check mesh
   ret = K_CONNECT::check_overlapping_cells(*cn);
   if (ret == 1) {
     PyErr_SetString(PyExc_ValueError,
-                    "signNGonFaces: non-valid mesh.");
+                    "makeParentElements: non-valid mesh.");
     return NULL;
   }
 
@@ -107,6 +105,14 @@ PyObject* K_CONVERTER::signNGonFaces(PyObject* self, PyObject* args)
 
   RELEASESHAREDU(o, f, cn);
 
-  Py_INCREF(Py_None);
-  return Py_None;
+  // Copy
+  E_Int nfaces = cn->getNFaces();
+  PyObject *tpl = K_NUMPY::buildNumpyArray(nfaces, 2, 1, 1);
+  E_Int *cFE = K_NUMPY::getNumpyPtrI(tpl);
+  for (E_Int i = 0; i < nfaces; i++) {
+    cFE[i] = owner[i] + 1;
+    cFE[i+nfaces] = neigh[i] + 1;
+  }
+
+  return tpl;
 }

@@ -7535,16 +7535,30 @@ def convertPyTree2FFD(zone, RefStat, FlowEq, nd):
                                         Internal.__FlowSolutionCenters__)
   return None
 
-def signNGonFaces(t, tol=1e-12):
+def signNGonFaces(t):
   """Sign NFACE connectivity in NGON zones."""
   tc = Internal.copyRef(t)
-  _signNGonFaces(tc, tol)
+  _signNGonFaces(tc)
   return tc
 
-def _signNGonFaces(t, tol=1e-12):
+def _signNGonFaces(t):
   """Sign NFACE connectivity in NGON zones."""
-  __TZGC3(t, Converter._signNGonFaces, tol)
+  __TZGC3(t, Converter._signNGonFaces)
   return None
+
+def makeParentElements(t):
+  tc = Internal.copyRef(t)
+  _makeParentElements(tc)
+  return tc
+
+def _makeParentElements(t):
+    zones = Internal.getZones(t)
+    for z in zones:
+        fc = getFields(Internal.__GridCoordinates__, z, api=3)[0]
+        if fc != []:
+            pe = Converter.makeParentElements(fc)
+            Internal._createUniqueChild(z, 'ParentElements', 'DataArray_t', pe[0])
+    return None
 
 # Convert to low order mesh
 def convertHO2LO(t, mode=0):

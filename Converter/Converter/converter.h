@@ -151,6 +151,7 @@ namespace K_CONVERTER
   PyObject* adaptNGon2Index(PyObject* self, PyObject* args);
   PyObject* adaptNFace2Index(PyObject* self, PyObject* args);
   PyObject* signNGonFaces(PyObject* self, PyObject* args);
+  PyObject* makeParentElements(PyObject* self, PyObject* args);
   PyObject* convertSurfaceNGon(PyObject* self, PyObject* args);
   PyObject* adaptBCFace2BCC(PyObject* self, PyObject* args);
   PyObject* adaptBCC2BCFace(PyObject* self, PyObject* args);
@@ -179,7 +180,7 @@ namespace K_CONVERTER
   PyObject* intersect(PyObject* self, PyObject* args);
   PyObject* intersect2(PyObject* self, PyObject* args);
   PyObject* deleteBBTree(PyObject* self, PyObject* args);
-  
+
   // addGhostCells NGON
   void addGhostCellsNGon2D(E_Int depth,
                            K_FLD::FldArrayF& f, K_FLD::FldArrayI& cn,

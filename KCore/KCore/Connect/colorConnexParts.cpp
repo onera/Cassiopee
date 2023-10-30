@@ -1,8 +1,8 @@
-#include "metric.h"
+#include "connect.h"
 #include <stack>
 #include <unordered_map>
 
-E_Int K_METRIC::colorConnexParts(E_Int *neis, E_Int *xadj, E_Int nelts, E_Int *colors)
+E_Int K_CONNECT::colorConnexParts(E_Int *neis, E_Int *xadj, E_Int nelts, E_Int *colors)
 {
   memset(colors, -1, nelts*sizeof(E_Int));
   std::stack<E_Int> pool;
