@@ -32,6 +32,9 @@ if mpi: # source that requires mpi
             'XCore/adaptMesh/metric.cpp',
             'XCore/adaptMesh/topo.cpp',
             'XCore/adaptMesh/distribute.cpp',
+            'XCore/adaptMesh/adaptMeshSeq.cpp',
+            'XCore/adaptMesh/createAdaptMesh.cpp',
+            'XCore/adaptMesh/extractLeafMesh.cpp',
             'XCore/common/mem.cpp'
             ]
 else:

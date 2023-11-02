@@ -64,6 +64,29 @@ struct edge {
   }
 };
 
+struct tree {
+  std::vector<E_Int> enabled;
+  std::vector<E_Int> level;
+  std::vector<E_Int> children;
+  std::vector<E_Int> indir;
+  std::vector<E_Int> parent;
+  E_Int last; // fill next at children[last]
+  E_Int size; // size of enabled, level, indir
+  E_Int stride;
+  E_Int nleaves; // number of enabled entities
+  std::unordered_map<E_Int, E_Int> l2g; // leave index to hmesh index
+
+  tree()
+  {}
+
+  tree(E_Int, E_Int); // init with nelem and stride
+
+  tree(E_Int); // init empty tree with stride
+
+  void setSizeAndStride(E_Int, E_Int);
+};
+
+
 struct mesh {
   E_Int ncells;
   E_Int nfaces;
@@ -123,6 +146,10 @@ struct mesh {
   E_Int predicted_nfaces;
   E_Int predicted_npoints;
 
+  tree ctree;
+  tree ftree;
+  std::unordered_map<E_Int, E_Int> pointMap;
+  
   mesh()
   :
   ncells(-1), nfaces(-1), npoints(-1), xyz(NULL), owner(NULL), neigh(NULL),
@@ -132,7 +159,7 @@ struct mesh {
   pnei_coords(NULL), pnei_flds(NULL), pnei_grads(NULL), gcells(NULL),
   gfaces(NULL), gpoints(NULL), ref_data(NULL), Gmax(-1), Tr(-1.),
   iso_mode(-1), sensor(-1), ref_iter(0), nconnex(0), predicted_ncells(0),
-  predicted_nfaces(0), predicted_npoints(0)
+  predicted_nfaces(0), predicted_npoints(0), ctree(), ftree(), pointMap()
   {
     MPI_Comm_rank(MPI_COMM_WORLD, &pid);
     MPI_Comm_size(MPI_COMM_WORLD, &npc);
@@ -140,16 +167,21 @@ struct mesh {
   }
 };
 
-struct tree {
-  std::vector<E_Int> enabled;
-  std::vector<E_Int> level;
-  std::vector<E_Int> children;
-  std::vector<E_Int> indir;
-  std::vector<E_Int> parent;
-  E_Int last; // fill next at children[last]
-  E_Int size; // size of enabled, level, indir
-  E_Int stride;
-  tree(E_Int, E_Int);
+typedef struct principalDirs {
+  E_Float I[3];
+  E_Float J[3];
+  E_Float K[3];
+} pDirs;
+
+struct adaptTree {
+  tree cellTree;
+  tree faceTree;
+  std::unordered_map<E_Int, E_Int> pointMap;
+
+  adaptTree(E_Int nc, E_Int sc, E_Int nf, E_Int sf)
+  :
+  cellTree(nc, sc), faceTree(nf, sf), pointMap()
+  {}
 };
 
 struct mesh_leaves {

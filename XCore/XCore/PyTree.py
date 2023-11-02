@@ -4,6 +4,17 @@ import Converter.Internal as I
 import Converter.PyTree as C
 import XCore.xcore
 
+def initAdaptTree(t):
+  zones = I.getZones(t)
+  adaptTrees = []
+  for z in zones:
+    fc = C.getFields(I.__GridCoordinates__, z, api=3)[0]
+    if fc != []:
+      adaptTrees.append(XCore.xcore.initAdaptTree(fc))
+    else:
+      adaptTrees.append(None)
+  return adaptTrees
+
 def loadAndSplitElt(fileName):
   dt = Filter2.loadAsChunks(fileName)
   zones = I.getZones(dt)
@@ -147,3 +158,37 @@ def loadAndSplitNGon(fileName):
   I._correctPyTree(t, level=7)
 
   return t, RES
+
+
+def _adaptMeshSeq(h, fld, fv=None):
+    if isinstance(h, list):
+        if len(h) != len(fld): raise ValueError('mesh hooks and fields not the same size')
+        for i in range(len(h)):
+            XCore.xcore.adaptMeshSeq(h[i], fld[i], fv)
+    else:
+        XCore.xcore.adaptMeshSeq(h, fld, fv)
+    return None
+
+def extractLeafMesh(h):
+    if isinstance(h, list):
+        leaves = []
+        for i in range(len(h)):
+            m = XCore.xcore.extractLeafMesh(h[i])
+            leaves.append(I.createZoneNode('Leaves' + '%d'%i, m))
+        T = C.newPyTree(['Base', leaves])
+        return T
+    else:
+        m = XCore.xcore.extractLeafMesh(h)
+        leaf = I.createZoneNode('Leaves', m)
+        T = C.newPyTree(['Base', leaves])
+        return T
+
+def createAdaptMesh(t):
+    I._adaptNGon32NGon4(t)
+    zones = I.getZones(t)
+    AMs = []
+    for z in zones:
+        fc = C.getFields(I.__GridCoordinates__, z, api=3)[0]
+        if fc != []:
+            AMs.append(XCore.xcore.createAdaptMesh(fc))
+    return AMs

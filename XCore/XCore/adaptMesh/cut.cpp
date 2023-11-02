@@ -24,7 +24,7 @@ void resize_data_for_refinement(mesh *M, tree *ct, tree *ft, E_Int nref_cells)
 
   E_Int new_nfaces = M->nfaces + face_increment;
   E_Int new_ncells = M->ncells + cell_increment;
-	E_Int new_npoints = M->npoints + cell_increment*19; // 27 - 8
+	E_Int new_npoints = M->npoints + nref_cells*19; // 27 - 8
 
   M->NGON  = (E_Int *)   XRESIZE(M->NGON,   (4*new_nfaces)  * sizeof(E_Int));
   M->NFACE  = (E_Int *)  XRESIZE(M->NFACE,  (6*new_ncells)  * sizeof(E_Int));

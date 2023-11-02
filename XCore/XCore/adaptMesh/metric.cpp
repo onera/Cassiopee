@@ -33,17 +33,33 @@ void hessian_to_metric(E_Float *H, mesh *M)
   }
 }
 
-typedef struct principalDirs {
-  E_Float I[3];
-  E_Float J[3];
-  E_Float K[3];
-} pDirs;
-
-static
 void compute_principal_vecs(mesh *M, std::vector<pDirs> &Dvec)
 {
   for (E_Int i = 0; i < M->ncells; i++) {
     E_Int *pf = &M->NFACE[6*i];
+    E_Float *p0, *p1;
+    auto& dirI = Dvec[i].I;
+    auto& dirJ = Dvec[i].J;
+    auto& dirK = Dvec[i].K;
+    p0 = &M->fc[3*pf[2]];
+    p1 = &M->fc[3*pf[3]];
+    for (E_Int j = 0; j < 3; j++) dirI[j] = p1[j] - p0[j];
+    
+    p0 = &M->fc[3*pf[4]];
+    p1 = &M->fc[3*pf[5]];
+    for (E_Int j = 0; j < 3; j++) dirJ[j] = p1[j] - p0[j];
+    
+    p0 = &M->fc[3*pf[0]];
+    p1 = &M->fc[3*pf[1]];
+    for (E_Int j = 0; j < 3; j++) dirK[j] = p1[j] - p0[j];
+  }
+}
+
+void compute_cells_principal_vecs(mesh *M, const std::vector<E_Int> &cells, std::vector<pDirs> &Dvec)
+{
+  for (size_t i = 0; i < cells.size(); i++) {
+    E_Int cell = cells[i];
+    E_Int *pf = &M->NFACE[6*cell];
     E_Float *p0, *p1;
     auto& dirI = Dvec[i].I;
     auto& dirJ = Dvec[i].J;
@@ -763,7 +779,7 @@ void smooth_ref_data(mesh *M)
   ncells = M->ncells;
   owner = M->owner;
 
-  // first, exchange topological info (doesn't change during smoothing) 
+  // first, exchange topological info (doesn't change during smoothing)
   E_Int **pnei_topo_data = (E_Int **)XCALLOC(M->nppatches, sizeof(E_Int *));
 
   E_Int dest, l;

@@ -31,6 +31,8 @@ void deduce_nei_ref_data(E_Int, E_Int, E_Int, E_Int, E_Int *);
 E_Int is_metric_valid(E_Float *);
 E_Int make_ref_data(mesh *, E_Float **, E_Int, E_Float *);
 //E_Int apply_freeze_vector(mesh *M, E_Float *);
+void compute_principal_vecs(mesh *, std::vector<pDirs> &);
+void compute_cells_principal_vecs(mesh *, const std::vector<E_Int> &, std::vector<pDirs> &);
 
 /* topo */
 void reorder_hexa(mesh *);

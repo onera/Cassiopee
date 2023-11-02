@@ -1,14 +1,17 @@
 #include "proto.h"
 
-tree::tree(E_Int n, E_Int stride)
+tree::tree(E_Int n, E_Int s)
 :
 	enabled(n),
 	level(n),
-	children((1+stride)*n),
+	children((1+s)*n),
 	indir(n),
 	parent(n),
 	last(0),
-	size(n)
+	size(n),
+  stride(s),
+  nleaves(n),
+  l2g()
 {
 	for (E_Int i = 0; i < n; i++) {
 		enabled[i] = 1;
@@ -19,6 +22,49 @@ tree::tree(E_Int n, E_Int stride)
 
 	for (E_Int i = 0; i < (1+stride)*n; i++)
 		children[i] = -1;
+  
+  for (E_Int i = 0; i < n; i++)
+    l2g[i] = i;
+}
+
+tree::tree(E_Int s)
+:
+	enabled(),
+	level(),
+	children(),
+	indir(),
+	parent(),
+	last(0),
+	size(0),
+  stride(s),
+  nleaves(0),
+  l2g()
+{}
+
+void tree::setSizeAndStride(E_Int n, E_Int s)
+{
+  enabled.resize(n);
+  level.resize(n);
+  children.resize((1+s)*n);
+  indir.resize(n);
+  parent.resize(n);
+  last = 0;
+  size = n;
+  stride = s;
+  nleaves = n;
+
+  for (E_Int i = 0; i < n; i++) {
+		enabled[i] = 1;
+		level[i] = 0;
+		indir[i] = -1;
+		parent[i] = -1;
+	}
+
+	for (E_Int i = 0; i < (1+stride)*n; i++)
+		children[i] = -1;
+  
+  for (E_Int i = 0; i < n; i++)
+    l2g[i] = i;
 }
 
 void tree_insert_children(tree *T, E_Int id, E_Int start, E_Int n)
@@ -30,6 +76,8 @@ void tree_insert_children(tree *T, E_Int id, E_Int start, E_Int n)
 	pt = &T->enabled[start];
 	for (i = 0; i < n; i++)
 		pt[i] = 1;
+  
+  T->nleaves += n - 1;
 	
 	pt = &T->level[start];
 	E_Int lvl = T->level[id]+1;
@@ -105,6 +153,18 @@ E_Int *tree_get_children(tree *T, E_Int id)
 
 void tree_print(tree *T)
 {
+  printf("size: %d\n", T->size);
+  printf("last: %d\n", T->size);
+  assert((E_Int)T->enabled.size() == T->size);
+  assert((E_Int)T->level.size() == T->size);
+  assert((E_Int)T->parent.size() == T->size);
+  assert((E_Int)T->indir.size() == T->size);
+  printf("enabled:\n");
+  for (E_Int i = 0; i < T->size; i++) {printf("%d ", T->enabled[i]);} puts("");
+  printf("level:\n");
+  for (E_Int i = 0; i < T->size; i++) {printf("%d ", T->level[i]);} puts("");
+  printf("parent:\n");
+  for (E_Int i = 0; i < T->size; i++) {printf("%d ", T->parent[i]);} puts("");
 	for (E_Int i = 0; i < T->size; i++) {
 		E_Int where = T->indir[i];
 		if (where == -1) continue;

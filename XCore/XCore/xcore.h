@@ -33,5 +33,9 @@ namespace K_XCORE
   PyObject *chunk2partNGon(PyObject *self, PyObject *args);
   PyObject *adaptMesh(PyObject *self, PyObject *args);
   PyObject *chunk2partElt(PyObject *self, PyObject *args);
+  
+  PyObject *adaptMeshSeq(PyObject *self, PyObject *args);
+  PyObject *extractLeafMesh(PyObject *self, PyObject *args);
+  PyObject *createAdaptMesh(PyObject *self, PyObject *args);
 }
 #endif
