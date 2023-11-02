@@ -319,6 +319,10 @@ class FldArray
 
     void setitem(int i, T value);
     void setitems(int i, int j, T value);
+    void setNGonType(int i) {
+      if (i < 1 && i > 3) return;
+      _ngon = i;
+    };
 
   private:
     // set all elements to val

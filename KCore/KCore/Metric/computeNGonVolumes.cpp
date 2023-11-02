@@ -299,15 +299,17 @@ E_Int K_METRIC::compute_volumes_ngon(E_Float *x, E_Float *y, E_Float *z,
 
   if (!bad_cells && !bad_faces) {
     K_CONNECT::orient_boundary_ngon(x, y, z, cn);
-    std::vector<E_Int> owner, neigh;
-    K_CONNECT::build_parent_elements_ngon(cn, owner, neigh);
+    E_Int nfaces = cn.getNFaces();
+    std::vector<E_Int> owner(nfaces), neigh(nfaces);
+    K_CONNECT::build_parent_elements_ngon(cn, &owner[0], &neigh[0]);
     compute_volumes(cn, x, y, z, owner, neigh, vols);
   } else {  
     // Compute closed cells volumes
     for (E_Int i = 0; i < ncells; i++) {
       if (is_cell_open[i]) {
         ret = 2;
-        fprintf(stderr, "Warning: Cell %d is not closed. Setting its volume to zero\n", i);
+        fprintf(stderr,
+          "Warning: Cell %d is not closed. Setting its volume to zero\n", i);
         continue;
       }
       K_METRIC::compute_cell_volume(i, cn, x, y, z, vols[i]);

@@ -446,9 +446,10 @@ namespace K_CONNECT
   E_Int check_overlapping_cells(K_FLD::FldArrayI &cn);
   E_Int orient_boundary_ngon(E_Float *x, E_Float *y, E_Float *z,
     K_FLD::FldArrayI &cn);
-  E_Int build_parent_elements_ngon(K_FLD::FldArrayI &cn, std::vector<E_Int> &owner,
-    std::vector<E_Int> &neigh);
-  void reversi_connex(E_Int *, E_Int *, E_Int, E_Int *, E_Int, std::vector<E_Int> &);
+  E_Int build_parent_elements_ngon(K_FLD::FldArrayI &cn, E_Int *owner,
+    E_Int *neigh);
+  void reversi_connex(E_Int *, E_Int *, E_Int, E_Int *,
+    E_Int, std::vector<E_Int> &);
   void build_face_neighbourhood(std::vector<E_Int> &, std::vector<E_Int> &,
     std::vector<E_Int> &);
   E_Int colorConnexParts(E_Int *, E_Int *, E_Int, E_Int *);

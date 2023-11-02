@@ -72,16 +72,24 @@ E_Int check_open_cell(E_Int cell, K_FLD::FldArrayI &cn)
 // Returns 0 if all cells are closed, returns 1 otherwise
 E_Int K_CONNECT::check_open_cells(K_FLD::FldArrayI& cn, E_Int *is_cell_open)
 {
-  // Up to the caller to allocate is_cell_open
   E_Int ncells = cn.getNElts();
-  for (E_Int i = 0; i < ncells; i++)
-    is_cell_open[i] = check_open_cell(i, cn);
+  
+  if (is_cell_open) {
+    // Up to the caller to allocate is_cell_open
+    for (E_Int i = 0; i < ncells; i++)
+      is_cell_open[i] = check_open_cell(i, cn);
 
-  for (E_Int i = 0; i < ncells; i++) {
-    if (is_cell_open[i])
-      return 1;
+    for (E_Int i = 0; i < ncells; i++) {
+      if (is_cell_open[i])
+        return 1;
+    }
+  } else {
+    for (E_Int i = 0; i < ncells; i++) {
+      if (check_open_cell(i, cn))
+        return 1;
+    }
   }
-
+  
   return 0;
 }
 
@@ -616,10 +624,10 @@ void build_cell_neighbourhood(K_FLD::FldArrayI &cn, std::vector<E_Int>& neighbou
 }
 
 // Assumes external faces have been properly oriented outwards
-E_Int K_CONNECT::build_parent_elements_ngon(K_FLD::FldArrayI &cn, std::vector<E_Int> &owner,
-  std::vector<E_Int> &neigh)
+// Arrays owner and neigh should be allocated by caller
+E_Int K_CONNECT::build_parent_elements_ngon(K_FLD::FldArrayI &cn, E_Int *owner,
+  E_Int *neigh)
 {
-  E_Int nfaces = cn.getNFaces();
   E_Int ncells = cn.getNElts();
   E_Int *nface = cn.getNFace();
   E_Int *ngon = cn.getNGon();
@@ -628,9 +636,6 @@ E_Int K_CONNECT::build_parent_elements_ngon(K_FLD::FldArrayI &cn, std::vector<E_
   
   std::vector<E_Int> neighbours, xadj;
   build_cell_neighbourhood(cn, neighbours, xadj);
-
-  owner.resize(nfaces, -1);
-  neigh.resize(nfaces, -1);
 
   std::vector<E_Int> exPH(ncells, -1);
   for (E_Int i = 0; i < ncells; i++) {
