@@ -89,7 +89,11 @@ PyObject* K_CONVERTER::makeParentElements(PyObject* self, PyObject* args)
   K_CONNECT::orient_boundary_ngon(x, y, z, *cn);
   
   // Deduce parent elements
-  std::vector<E_Int> owner, neigh;
+  E_Int nfaces = cn->getNFaces();
+  PyObject *tpl = K_NUMPY::buildNumpyArray(nfaces, 2, 1, 1);
+  E_Int *cPE = K_NUMPY::getNumpyPtrI(tpl);
+  E_Int *owner = cPE;
+  E_Int *neigh = cPE + nfaces;
   K_CONNECT::build_parent_elements_ngon(*cn, owner, neigh);
 
   // Left element: +1; Right element: -1
@@ -102,17 +106,13 @@ PyObject* K_CONVERTER::makeParentElements(PyObject* self, PyObject* args)
         pf[j] = -face;
     }
   }
+  
+  for (E_Int i = 0; i < nfaces; i++) {
+    owner[i]++;
+    neigh[i]++;
+  }
 
   RELEASESHAREDU(o, f, cn);
-
-  // Copy
-  E_Int nfaces = cn->getNFaces();
-  PyObject *tpl = K_NUMPY::buildNumpyArray(nfaces, 2, 1, 1);
-  E_Int *cFE = K_NUMPY::getNumpyPtrI(tpl);
-  for (E_Int i = 0; i < nfaces; i++) {
-    cFE[i] = owner[i] + 1;
-    cFE[i+nfaces] = neigh[i] + 1;
-  }
 
   return tpl;
 }

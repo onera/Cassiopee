@@ -91,8 +91,9 @@ PyObject* K_CONVERTER::signNGonFaces(PyObject* self, PyObject* args)
   K_CONNECT::orient_boundary_ngon(x, y, z, *cn);
   
   // Deduce parent elements
-  std::vector<E_Int> owner, neigh;
-  K_CONNECT::build_parent_elements_ngon(*cn, owner, neigh);
+  E_Int nfaces = cn->getNFaces();
+  std::vector<E_Int> owner(nfaces), neigh(nfaces);
+  K_CONNECT::build_parent_elements_ngon(*cn, &owner[0], &neigh[0]);
 
   // Left element: +1; Right element: -1
   for (E_Int i = 0; i < ncells; i++) {
