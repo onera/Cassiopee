@@ -51,7 +51,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                                E_Int algo)
 {
   E_Int nv = FCenter.getNfld();
-  E_Int size = 0, dim = 3, im;
+  E_Int size = 0, dim = 3, im = 1;
   E_Int jm = 1; E_Int km = 1;
 
   if (ni == 1)

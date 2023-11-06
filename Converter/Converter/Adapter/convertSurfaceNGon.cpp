@@ -22,6 +22,8 @@ using namespace K_FLD;
 using namespace K_FUNC;
 using namespace std;
 
+//define PRINTINFO
+
 //=============================================================================
 /* Convert a surface NGon */
 /* if INPUT is a NGON=bars, NFACE=polygon (Type A) -> OUTPUT is NGON=polygon, NFACE=NULL (Type B)
@@ -73,8 +75,9 @@ PyObject* K_CONVERTER::convertSurfaceNGon(PyObject* self, PyObject* args)
     E_Int neltsA = nfaces;
     E_Int sizeNGonA = 0;
     E_Int sizeNFaceA = sizeNGon;
-    printf("Info adaptSurfaceNGon: convert type B to type A\n");
-
+    #ifdef PRINTINFO
+    printf("Info: convertSurfaceNGon: convert type B to type A\n");
+    #endif
     // Initialize sizeNGonA & sizeNFaceA
     std::set<vector<E_Int>> ngonSetsA;
     std::vector<E_Int> edge{0,0};
@@ -102,9 +105,10 @@ PyObject* K_CONVERTER::convertSurfaceNGon(PyObject* self, PyObject* args)
     if (isNGon < 3) sizeNGonA = sizeNGonA+nfacesA;
 
     // TYPE B
-    printf("Info adaptSurfaceNGon: universel NGON (type B): nbre de faces=%d, nbre d'elements=%d\n", nfaces, nelts);
-    printf("Info adaptSurfaceNGon: universel NGON (type B): sizeNGon=%d, sizeNFace=%d\n", sizeNGon, sizeNFace);
-
+    #ifdef PRINTINFO
+    printf("Info: convertSurfaceNGon: universel NGON (type B): nbre de faces=%d, nbre d'elements=%d\n", nfaces, nelts);
+    printf("Info: convertSurfaceNGon: universel NGON (type B): sizeNGon=%d, sizeNFace=%d\n", sizeNGon, sizeNFace);
+    #endif
     tpl = K_ARRAY::buildArray3(f->getNfld(), varString, f->getSize(), neltsA, nfacesA, 
                                "NGON", sizeNGonA, sizeNFaceA, isNGon, false, 3);
     K_FLD::FldArrayF* fo; K_FLD::FldArrayI* co;
@@ -117,9 +121,10 @@ PyObject* K_CONVERTER::convertSurfaceNGon(PyObject* self, PyObject* args)
     E_Int* indPHA = co->getIndPH();
 
     // TYPE A
-    printf("Info adaptSurfaceNGon: universel NGON (type A): nbre de faces=%d, nbre d'elements=%d\n", nfacesA, neltsA);
-    printf("Info adaptSurfaceNGon: universel NGON (type A): sizeNGon=%d, sizeNFace=%d\n", sizeNGonA, sizeNFaceA);
-
+    #ifdef PRINTINFO
+    printf("Info: convertSurfaceNGon: universel NGON (type A): nbre de faces=%d, nbre d'elements=%d\n", nfacesA, neltsA);
+    printf("Info: conertSurfaceNGon: universel NGON (type A): sizeNGon=%d, sizeNFace=%d\n", sizeNGonA, sizeNFaceA);
+    #endif
     // fill ngonA
     E_Int shiftNGonA = 0;
     E_Int cptNGonA = 1;
@@ -197,12 +202,13 @@ PyObject* K_CONVERTER::convertSurfaceNGon(PyObject* self, PyObject* args)
     E_Int neltsB = 0;
     E_Int sizeNGonB = sizeNFace;
     E_Int sizeNFaceB = 0;
-    printf("Info adaptSurfaceNGon: convert type A to type B\n");
 
     // TYPE A
-    printf("Info adaptSurfaceNGon: universel NGON (type A): nbre de faces=%d, nbre d'elements=%d\n", nfaces, nelts);
-    printf("Info adaptSurfaceNGon: universel NGON (type A): sizeNGon=%d, sizeNFace=%d\n", sizeNGon, sizeNFace);
-
+    #ifdef PRINTINFO
+    printf("Info: convertSurfaceNGon: convert type A to type B\n");
+    printf("Info: convertSurfaceNGon: universel NGON (type A): nbre de faces=%d, nbre d'elements=%d\n", nfaces, nelts);
+    printf("Info: convertSurfaceNGon: universel NGON (type A): sizeNGon=%d, sizeNFace=%d\n", sizeNGon, sizeNFace);
+    #endif
     tpl = K_ARRAY::buildArray3(f->getNfld(), varString, f->getSize(), neltsB, nfacesB, 
                                "NGON", sizeNGonB, sizeNFaceB, isNGon, false, 3);
     K_FLD::FldArrayF* fo; K_FLD::FldArrayI* co;
@@ -213,9 +219,10 @@ PyObject* K_CONVERTER::convertSurfaceNGon(PyObject* self, PyObject* args)
     E_Int* indPGB = co->getIndPG(); 
 
     // TYPE B
-    printf("Info adaptSurfaceNGon: universel NGON (type B): nbre de faces=%d, nbre d'elements=%d\n", nfacesB, neltsB);
-    printf("Info adaptSurfaceNGon: universel NGON (type B): sizeNGon=%d, sizeNFace=%d\n", sizeNGonB, sizeNFaceB);
-
+    #ifdef PRINTINFO
+    printf("Info: convertSurfaceNGon: universel NGON (type B): nbre de faces=%d, nbre d'elements=%d\n", nfacesB, neltsB);
+    printf("Info: convertSurfaceNGon: universel NGON (type B): sizeNGon=%d, sizeNFace=%d\n", sizeNGonB, sizeNFaceB);
+    #endif
     // fill indPGB & ngonB
     E_Int shift = 0;
     indPGB[0] = 0;

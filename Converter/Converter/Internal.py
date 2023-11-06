@@ -3637,7 +3637,7 @@ def getZoneDim(zone):
                 eltName = 'NGON'
         return [gtype, np, ne, eltName, cellDim]
       else:
-        raise TypeError("getZoneDim: cannot find zone type for zone '%s'."%zone[0])
+        raise TypeError("getZoneDim: cannot find a valid zone type for zone '%s'."%zone[0])
       break
   raise TypeError("getZoneDim: cannot find zone type for zone '%s'."%zone[0])
 
@@ -3761,10 +3761,10 @@ def _correctBCElementNodes(t):
     return Check._correctBCElementNodes(t)
 
 # -- correctBaseZonesDim
-def _correctBaseZonesDim(t, fullCorr=True):
+def _correctBaseZonesDim(t, splitBases=False):
     """Correct base dimensions according to their zones."""
     from . import Check
-    return Check._correctBaseZonesDim(t, fullCorr)
+    return Check._correctBaseZonesDim(t, splitBases)
 
 #==============================================================================
 # -- BC management --

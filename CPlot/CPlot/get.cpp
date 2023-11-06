@@ -169,13 +169,15 @@ PyObject* K_CPLOT::getState(PyObject* self, PyObject* args)
     return Py_BuildValue("(ii)", d->_view.w, d->_view.h);
   else if (K_STRING::cmp(mode, "posCam") == 0)
     return Py_BuildValue("(fff)", d->_view.xcam,
-                         d->_view.ycam, d->_view.zcam );
+                         d->_view.ycam, d->_view.zcam);
   else if (K_STRING::cmp(mode, "posEye") == 0)
     return Py_BuildValue("(fff)", d->_view.xeye,
-                         d->_view.yeye, d->_view.zeye );
+                         d->_view.yeye, d->_view.zeye);
   else if (K_STRING::cmp(mode, "dirCam") == 0)
     return Py_BuildValue("(fff)", d->_view.dirx,
-                         d->_view.diry, d->_view.dirz );
+                         d->_view.diry, d->_view.dirz);
+  else if (K_STRING::cmp(mode, "viewAngle") == 0)
+    return Py_BuildValue("f", d->_view.angle);
   else if (K_STRING::cmp(mode, "ghostifyDeactivatedZones") == 0)
     return Py_BuildValue("i", d->ptrState->ghostifyDeactivatedZones);
   else if (K_STRING::cmp(mode, "niso") == 0)

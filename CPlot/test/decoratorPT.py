@@ -16,7 +16,7 @@ CPlot.display(a, mode='Scalar',
 
 fig, ax = Decorator.createSubPlot()
 ax.set_title('Computation of the year', size=40)
-Decorator.createText(ax, "Fast LES", 0.02, 0.9, size=40, box=True)
+Decorator.createText(ax, 0.02, 0.9, "Fast LES", size=40, box=True)
 cbar = Decorator.createColorBar(fig, ax, title=r'$\mu_t / \mu$')
 cbar.ax.tick_params(labelcolor='tab:red')
 

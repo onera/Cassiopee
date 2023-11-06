@@ -671,7 +671,7 @@ def newPyTree(args=[]):
               base[2].append(z)
   #for b in Internal.getBases(t):
   #  if b[0] not in noforce:
-  #    Internal._correctBaseZonesDim(b, fullCorr=False) # force the zones cellDim if cellDim not specified
+  #    Internal._correctBaseZonesDim(b, splitBases=False) # force the zones cellDim if cellDim not specified
   return t
 
 # -- addBase2PyTree
@@ -1177,7 +1177,7 @@ def convertPyTree2File(t, fileName, format=None, isize=4, rsize=8,
   if format == 'bin_cgns' or format == 'bin_adf' or format == 'bin_hdf':
     tp, ntype = Internal.node2PyTree(t)
     Internal._adaptZoneNamesForSlash(tp)
-    Internal._correctBaseZonesDim(t, fullCorr=False)
+    Internal._correctBaseZonesDim(t, splitBases=False)
     Converter.converter.convertPyTree2File(tp[2], fileName, format, links)
   elif format == 'bin_pickle':
     try: import cPickle as pickle

@@ -31,10 +31,9 @@ List of functions
     CPlot.Decorator.createSubPlot
     CPlot.Decorator.createColorBar
     CPlot.Decorator.createText
+    CPlot.Decorator.createArrow
     CPlot.Decorator.savefig
     CPlot.Decorator.show
-
-
 
 Contents
 #########
@@ -110,7 +109,7 @@ Actions
     :param size: size of text
     :type size: int
     :param color: text color
-    :type color: string    
+    :type color: string
     :param box: if True, display a box around text
     :type box: boolean
     :param boxColor: box color
@@ -118,12 +117,45 @@ Actions
     :param boxBackColor: box background color
     :type boxBackColor: string
     
+    *Example of use:*
+    
+    * `Create text on figure (pyTree) <Examples/CPlot/createTextPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/CPlot/createTextPT.py
+
+--------------------------
+
+
+.. py:function:: CPlot.Decorator.createArrow(ax, X1, X2, width=0.001, text=None, textSize=10, shiftText=(0,0))
+    
+    Create an arrow on figure.
+
+    :param X1: 3D position of arrow tail
+    :type X1: tuple of 3 floats
+    :param X2: 3D position of arrow head
+    :type X2: tuple of 3 floats
+    :param width: width of arrow
+    :type width: float
+    :param color: arrow color
+    :type color: string
+    :param text: text to be displayed at arrow tail
+    :type text: string or None
+    :param textSize: size of text
+    :type textSize: int
+    :param shiftText: text offset in pixel units
+    :type shiftText: tuple of 2 floats
+    
+    *Example of use:*
+    
+    * `Create arrow on figure (pyTree) <Examples/CPlot/createArrowPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/CPlot/createArrowPT.py
 
 --------------------------
     
 .. py:function:: CPlot.Decorator.savefig(fileName, pad=0.)
     
-    Save figure in fileName. A padding space can be added.
+    Save figure in fileName. A padding space around image can be added.
 
     :param fileName: name of the file to export to
     :type fileName: string

@@ -388,7 +388,7 @@ Surface fields
 
 .. py:function:: Post.ExtraVariables2.extractFrictionVector(teff)
 
-    Compute the friciton vector on teff from ShearStress in centers
+    Compute the friction vector on teff from ShearStress in centers
     with taut = tau.n - (n. tau.n) n.
     Exists also as in place function (_extractFrictionVector) that modifies t and returns None.
 
@@ -408,7 +408,7 @@ Surface fields
 
 .. py:function:: Post.ExtraVariables2.extractFrictionMagnitude(teff)
 
-    Compute the friciton vector magnitude on teff from ShearStress in centers
+    Compute the friction vector magnitude on teff from ShearStress in centers
     with norm of taut = tau.n - (n. tau.n) n.
     Exists also as in place function (_extractFrictionMagnitude) that modifies t and returns None.
 

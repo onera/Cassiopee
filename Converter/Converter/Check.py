@@ -237,7 +237,7 @@ def _correctPyTree(t, level=-20):
         _correctNameLength(t)
     # Corrige la dim de la base
     if level <= -13 or level == 13:
-        _correctBaseZonesDim(t)
+        _correctBaseZonesDim(t, splitBases=True)
     C.registerAllNames(t)
 
     return None
@@ -912,20 +912,22 @@ def checkBaseZonesDim(t):
 
 #==============================================================================
 # Update all bases with the max dim found in their zones
-# if fullCorr: enforce bases to have homogenous cellDims by splitting base 
+# if splitBases: enforce bases to have homogenous cellDims by splitting base 
 #==============================================================================
-def _correctBaseZonesDim(t, fullCorr=True):
+def _correctBaseZonesDim(t, splitBases=False):
     bases = Internal.getBases(t)
     for b in bases:
-        zones = Internal.getNodesFromType1(b, 'Zone_t')
+        zones = Internal.getZones(b)
         z1 = []; z2 = []; z3 = [] # zones de dim 1,2,3
         listOfAddBases = []
-        listOfRmBases = []                  
+        listOfRmBases = []
         for z in zones:
-            dim = Internal.getZoneDim(z)
-            if dim[4] <= 1: z1.append(z)
-            elif dim[4] == 2: z2.append(z)
-            elif dim[4] == 3: z3.append(z)
+            try:
+                dim = Internal.getZoneDim(z)
+                if dim[4] <= 1: z1.append(z)
+                elif dim[4] == 2: z2.append(z)
+                elif dim[4] == 3: z3.append(z)
+            except: pass
         lz1 = len(z1); lz2 = len(z2); lz3 = len(z3)
         lzmax = max(lz1, lz2, lz3)
         # put max dim in base node
@@ -934,7 +936,7 @@ def _correctBaseZonesDim(t, fullCorr=True):
         elif lz1 > 0: b[1][0] = 1
         else: pass
 
-        if lz1+lz2+lz3 > lzmax and fullCorr:
+        if lz1+lz2+lz3 > lzmax and splitBases:
             listOfRmBases.append(b[0])
             if lz1 != 0:
                 listOfAddBases.append([1, b[0]+'.1', z1])
@@ -943,7 +945,7 @@ def _correctBaseZonesDim(t, fullCorr=True):
             if lz3 != 0: 
                 listOfAddBases.append([3, b[0]+'.3', z3])
 
-    if fullCorr:
+    if splitBases:
         for baseName in listOfRmBases:
             Internal._rmNodeByPath(t, baseName)
 

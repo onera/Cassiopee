@@ -140,7 +140,7 @@ def createColorBar(fig, ax, levels=None, title=None, cmap=None, valueFormat='%0.
     return cbar
 
 #==========================================================
-# Return a numpy image size
+# Return a numpy image from a file
 def getImage(fileName):
     """Read image from file."""
     img = plt.imread(fileName)
@@ -168,21 +168,21 @@ def createSubPlot(img='.decorator.png', title=None, box=False):
 #==========================================================
 # Create a text 
 #==========================================================
-def createText(ax, text='', posx=0, posy=0, size=20, color="black",
-               box=False, boxColor="black", boxBackColor="white"):
+def createText(ax, posx=0, posy=0, text='', size=20, color="black",
+               box=False, boxColor="black", boxBackColor="white", **kwargs):
     """Create text."""
     if not box:
-        ax.text(posx, posy, text, size=size, ha='left', va='bottom', color=color, transform=ax.transAxes)
+        ax.text(posx, posy, text, size=size, ha='left', va='bottom', color=color, transform=ax.transAxes, **kwargs)
     else:
         ax.text(posx, posy, text, size=size, ha='left', va='bottom', color=color, transform=ax.transAxes,
-                bbox=dict(boxstyle="round, pad=0.2, rounding_size=0.02", ec=boxColor, fc=boxBackColor))
+                bbox=dict(boxstyle="round, pad=0.2, rounding_size=0.02", ec=boxColor, fc=boxBackColor), **kwargs)
     return ax
 
 #==========================================================
 # Save current figure to fileName
 #==========================================================
 def savefig(fileName, pad=0.):
-    """Save current figure."""
+    """Save current figure in a file."""
     print("Write %s"%fileName)
     plt.savefig(fileName, dpi=dpi, bbox_inches='tight', pad_inches=pad)
 
@@ -196,7 +196,7 @@ def show():
 #==============================================================
 # Change xyz (3D) to image position (written by Luis Bernardos)
 #==============================================================
-def xyz2Pixel(points, win, posCam, posEye, dirCam, viewAngle):
+def xyz2Pixel__(points, win, posCam, posEye, dirCam, viewAngle):
     """Return the two-component image-pixel positions of a set of points located in the 3D world of CPlot."""
 
     # ------------------------------- #
@@ -262,3 +262,28 @@ def xyz2Pixel(points, win, posCam, posEye, dirCam, viewAngle):
 
         pixels += [[pxP_w, pxP_h]]
     return pixels
+
+def xyz2Pixel(Xs):
+    """Transform 3D coordinates in pixel image coordinates for a set of points."""
+    posCam = CPlot.getState("posCam")
+    posEye = CPlot.getState("posEye")
+    dirCam = CPlot.getState("dirCam")
+    viewAngle = CPlot.getState("viewAngle")
+    win = CPlot.getState("win")
+    return xyz2Pixel__(Xs, win, posCam, posEye, dirCam, viewAngle)
+
+#==========================================================
+# Draw an arrow. X2 is the arrow head.
+#==========================================================
+def createArrow(ax, X1, X2, width=0.001, text=None, textSize=10, shiftText=(0,0), **kwargs):
+    poss = xyz2Pixel([X1,X2])
+    pos1x, pos1y = poss[0]; pos2x, pos2y = poss[1]
+    ax.arrow(pos1x, pos1y, pos2x-pos1x, pos2y-pos1y, width=width, length_includes_head=True, **kwargs)
+    if text is not None:
+        sx = shiftText[0]
+        sy = shiftText[1]
+        if 'color' in kwargs:
+            color = kwargs['color']
+        else: color = 'black'
+        ax.text(pos1x+sx, pos1y+sy, s=text, size=textSize, color=color)
+    return ax

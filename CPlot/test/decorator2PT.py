@@ -17,7 +17,7 @@ CPlot.display(a, mode='scalar',
 CPlot.finalizeExport()
 
 fig, ax = Decorator.createSubPlot()
-Decorator.createText(ax, "Fast LES", 0.4, 0.95, size=40, box=True)
+Decorator.createText(ax, 0.4, 0.95, "Fast LES", size=40, box=True)
 cbar = Decorator.createColorBar(fig, ax, title=r'$\mu_t / \mu$', location="right", color="black", fontSize=10, pad=-2.)
 
 Decorator.savefig('out.png')
