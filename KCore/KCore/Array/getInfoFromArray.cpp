@@ -181,7 +181,7 @@ E_Int K_ARRAY::getInfoFromArray(PyObject* o, char*& varString,
       else // array
       {
         PyArrayObject* ac = (PyArrayObject*)c; Py_INCREF(ac);
-        int* ptr = (int*)PyArray_DATA(ac);
+        E_Int* ptr = (E_Int*)PyArray_DATA(ac);
         nelt = ptr[ptr[1]+2];
         sizeConnect = PyArray_DIM(ac, 1);
         Py_DECREF(ac);

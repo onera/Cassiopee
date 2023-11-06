@@ -15,7 +15,7 @@ import Generator.PyTree as G
 WIDGETS = {}; VARS = []
 
 #==============================================================================
-# close: connects zones if points at their borders are distant from tol
+# zip: connects zones if points at their borders are distant from tol
 # IN: t, cplot.selectedZones, eps
 # OUT: t with modified zones and displayed
 #==============================================================================

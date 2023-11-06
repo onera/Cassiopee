@@ -431,12 +431,14 @@ namespace K_ARRAY
      IN: field: Fld champ structure
      IN: varString: variable string
      IN: ni,nj,nk: nombre de points dans field
-     IN: api: 1 (array), 2 (array2)
+     IN: api: 1 (array), 2 (array2), 3 (array3), -1 (prend l'api de f)
      OUT: PyObject cree. */
   PyObject* buildArray(FldArrayF& f, const char* varString,
                        E_Int ni, E_Int nj, E_Int nk);
   PyObject* buildArray2(FldArrayF& f, const char* varString,
-                         E_Int ni, E_Int nj, E_Int nk, E_Int api=1);
+                        E_Int ni, E_Int nj, E_Int nk, E_Int api=1);
+  PyObject* buildArray3(FldArrayF& f, const char* varString,
+                        E_Int ni, E_Int nj, E_Int nk, E_Int api=-1);
 
   /* Construit un array structure vide suivant les differentes api
      IN: nfld: nombre de champ dans varString
@@ -454,7 +456,7 @@ namespace K_ARRAY
   /* Construit un array non structure a partir d'un FldArray
      IN: field: Fld champ non structure
      IN: varString: variable string
-     IN: c: connectivite elements->noeuds (commence a 1)
+     IN: cn: connectivite elements->noeuds (commence a 1)
      IN: et: type d'elements: 0 (NODE), 1 (BAR), 2 (TRI), 3 (QUAD)
      4 (TETRA), 5 (PYRA), 6 (PENTA), 7 (HEXA), 8 (NGON) ou star.
      IN: etString: si et=-1, utilise pour le type d'element.
@@ -462,11 +464,13 @@ namespace K_ARRAY
          sinon false.
      OUT: PyObject cree. */
   PyObject* buildArray(FldArrayF& f, const char* varString,
-                       FldArrayI& c, E_Int et, 
+                       FldArrayI& cn, E_Int et, 
                        const char* etString=NULL, 
                        E_Boolean center=false);
   PyObject* buildArray2(FldArrayF& f, const char* varString, 
                         FldArrayI& cn, const char* eltType, E_Int api=1);
+  PyObject* buildArray3(FldArrayF& f, const char* varString, 
+                        FldArrayI& cn, const char* eltType, E_Int api=-1);
 
   /* Construit un array non structure vide 
      IN: nfld: nombre de champs dans varString
