@@ -210,6 +210,8 @@
 #define PT_INTERP     133
 #define NONZ          134
 
+/* stockage pointer volume pour ale deformable*/
+#define PT_VOL       135
 
 
 /*BC types*/
