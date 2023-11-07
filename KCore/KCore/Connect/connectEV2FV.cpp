@@ -38,13 +38,13 @@ void K_CONNECT::connectEV2FV(FldArrayI& cEV, const char* eltType,
   // Acces universel aux eltTypes
   vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
-  E_Int nftot = 0; // total number of faces
-  E_Int el_offset = 0; // element offset for subsequent connectivities
   // Number of elements and faces per connectivity
   vector<E_Int> nelts(nc);
   vector<E_Int> nfaces(nc);
   vector<E_Int> nof(nc);
-  vector<vector<vector<E_Int> > > face;
+  // Accumulated number of faces over connectivities
+  vector<E_Int> ntotfaces(nc+1); ntotfaces[0] = 0;
+  vector<vector<E_Int> > face(nc);
     
   // Boucle sur toutes les connectivites pour remplir face et determiner
   // la taille de cFV
@@ -53,75 +53,82 @@ void K_CONNECT::connectEV2FV(FldArrayI& cEV, const char* eltType,
     FldArrayI& cm = *(cEV.getConnect(ic));
     char* eltTypConn = eltTypes[ic];
     nelts[ic] = cm.getSize();
+    std::cout << "eltTypConn " << eltTypConn << std::endl;
 
-    vector<vector<E_Int> > facec(6);
-    for (size_t ifc = 0; ifc < facec.size(); ifc++) facec[ifc].reserve(4);
-
-    if (strcmp(eltTypConn, "BAR") == 0)
-    { 
-      nfaces[ic] = 2; nof[ic] = 1;
-      facec[0][0] = 1; facec[1][0] = 2;
-    }
-    else if (strcmp(eltTypConn, "QUAD") == 0) 
+    if (strcmp(eltTypConn, "BAR") == 0) 
     {
-      nfaces[ic] = 4; nof[ic] = 2;
-      facec[0][0] = 1; facec[0][1] = 2;
-      facec[1][0] = 2; facec[1][1] = 3;
-      facec[2][0] = 3; facec[2][1] = 4;
-      facec[3][0] = 4; facec[3][1] = 1;
+      nfaces[ic] = 2; nof[ic] = 1;
+      face[ic].reserve(nfaces[ic] * nof[ic]);
+      face[ic][0 + 0*nfaces[ic]] = 1;
+      face[ic][1 + 0*nfaces[ic]] = 2;
     }
     else if (strcmp(eltTypConn, "TRI") == 0) 
     {
       nfaces[ic] = 3; nof[ic] = 2;
-      facec[0][0] = 1; facec[0][1] = 2;
-      facec[1][0] = 2; facec[1][1] = 3;
-      facec[2][0] = 3; facec[2][1] = 1;
+      face[ic].reserve(nfaces[ic] * nof[ic]);
+      face[ic][0 + 0*nfaces[ic]] = 1; face[ic][0 + 1*nfaces[ic]] = 2;
+      face[ic][1 + 0*nfaces[ic]] = 2; face[ic][1 + 1*nfaces[ic]] = 3;
+      face[ic][2 + 0*nfaces[ic]] = 3; face[ic][2 + 1*nfaces[ic]] = 1;
     }
-    else if (strcmp(eltTypConn, "HEXA") == 0) 
+    else if (strcmp(eltTypConn, "QUAD") == 0) 
     {
-      nfaces[ic] = 6; nof[ic] = 4;
-      facec[0][0] = 1; facec[0][1] = 4; facec[0][2] = 3; facec[0][3] = 2;
-      facec[1][0] = 1; facec[1][1] = 2; facec[1][2] = 6; facec[1][3] = 5;
-      facec[2][0] = 2; facec[2][1] = 3; facec[2][2] = 7; facec[2][3] = 6;
-      facec[3][0] = 3; facec[3][1] = 4; facec[3][2] = 8; facec[3][3] = 7;
-      facec[4][0] = 1; facec[4][1] = 5; facec[4][2] = 8; facec[4][3] = 4;
-      facec[5][0] = 5; facec[5][1] = 6; facec[5][2] = 7; facec[5][3] = 8;
+      nfaces[ic] = 4; nof[ic] = 2;
+      face[ic].reserve(nfaces[ic] * nof[ic]);
+      face[ic][0 + 0*nfaces[ic]] = 1; face[ic][0 + 1*nfaces[ic]] = 2;
+      face[ic][1 + 0*nfaces[ic]] = 2; face[ic][1 + 1*nfaces[ic]] = 3;
+      face[ic][2 + 0*nfaces[ic]] = 3; face[ic][2 + 1*nfaces[ic]] = 4;
+      face[ic][3 + 0*nfaces[ic]] = 4; face[ic][3 + 1*nfaces[ic]] = 1;
     }
     else if (strcmp(eltTypConn, "TETRA") == 0) 
     {
       nfaces[ic] = 4; nof[ic] = 3;
-      facec[0][0] = 1; facec[0][1] = 3; facec[0][2] = 2;
-      facec[1][0] = 1; facec[1][1] = 2; facec[1][2] = 4;
-      facec[2][0] = 2; facec[2][1] = 3; facec[2][2] = 4;
-      facec[3][0] = 3; facec[3][1] = 1; facec[3][2] = 4;
+      face[ic].reserve(nfaces[ic] * nof[ic]);
+      face[ic][0 + 0*nfaces[ic]] = 1; face[ic][0 + 1*nfaces[ic]] = 2; face[ic][0 + 2*nfaces[ic]] = 3;
+      face[ic][1 + 0*nfaces[ic]] = 1; face[ic][1 + 1*nfaces[ic]] = 2; face[ic][1 + 2*nfaces[ic]] = 4;
+      face[ic][2 + 0*nfaces[ic]] = 2; face[ic][2 + 1*nfaces[ic]] = 3; face[ic][2 + 2*nfaces[ic]] = 4;
+      face[ic][3 + 0*nfaces[ic]] = 3; face[ic][3 + 1*nfaces[ic]] = 1; face[ic][3 + 2*nfaces[ic]] = 4;
     }
     else if (strcmp(eltTypConn, "PYRA") == 0) 
     {
-      nfaces[ic] = 5; nof[ic] = 3; // 2 TRIs pour la base
-      facec[0][0] = 1; facec[0][1] = 4; facec[0][2] = 3;
-      facec[1][0] = 3; facec[1][1] = 2; facec[1][2] = 1;
-      facec[2][0] = 1; facec[2][1] = 2; facec[2][2] = 5; 
-      facec[3][0] = 2; facec[3][1] = 3; facec[3][2] = 5;
-      facec[4][0] = 3; facec[4][1] = 4; facec[4][2] = 5;
-      facec[5][0] = 4; facec[5][1] = 1; facec[5][2] = 5;
+      nfaces[ic] = 6; nof[ic] = 3; // 2 TRIs pour la base
+      face[ic].reserve(nfaces[ic] * nof[ic]);
+      face[ic][0 + 0*nfaces[ic]] = 1; face[ic][0 + 1*nfaces[ic]] = 4; face[ic][0 + 2*nfaces[ic]] = 3;
+      face[ic][1 + 0*nfaces[ic]] = 3; face[ic][1 + 1*nfaces[ic]] = 2; face[ic][1 + 2*nfaces[ic]] = 1;
+      face[ic][2 + 0*nfaces[ic]] = 1; face[ic][2 + 1*nfaces[ic]] = 2; face[ic][2 + 2*nfaces[ic]] = 5;
+      face[ic][3 + 0*nfaces[ic]] = 2; face[ic][3 + 1*nfaces[ic]] = 3; face[ic][3 + 2*nfaces[ic]] = 5;
+      face[ic][4 + 0*nfaces[ic]] = 3; face[ic][4 + 1*nfaces[ic]] = 4; face[ic][4 + 2*nfaces[ic]] = 5;
+      face[ic][5 + 0*nfaces[ic]] = 4; face[ic][5 + 1*nfaces[ic]] = 1; face[ic][5 + 2*nfaces[ic]] = 5;
     }
     else if (strcmp(eltTypConn, "PENTA") == 0) 
     {
       nfaces[ic] = 5; nof[ic] = 4; // TRI degen
-      facec[0][0] = 1; facec[0][1] = 2; facec[0][2] = 5; facec[0][3] = 4;
-      facec[1][0] = 2; facec[1][1] = 3; facec[1][2] = 6; facec[1][3] = 5;
-      facec[2][0] = 3; facec[2][1] = 1; facec[2][2] = 4; facec[2][3] = 6;
-      facec[3][0] = 1; facec[3][1] = 3; facec[3][2] = 2; facec[3][3] = 2;
-      facec[4][0] = 4; facec[4][1] = 5; facec[4][2] = 6; facec[4][3] = 6;
+      face[ic].reserve(nfaces[ic] * nof[ic]);
+      face[ic][0 + 0*nfaces[ic]] = 1; face[ic][0 + 1*nfaces[ic]] = 2; face[ic][0 + 2*nfaces[ic]] = 5; face[ic][0 + 3*nfaces[ic]] = 4;
+      face[ic][1 + 0*nfaces[ic]] = 2; face[ic][1 + 1*nfaces[ic]] = 3; face[ic][1 + 2*nfaces[ic]] = 6; face[ic][1 + 3*nfaces[ic]] = 5;
+      face[ic][2 + 0*nfaces[ic]] = 3; face[ic][2 + 1*nfaces[ic]] = 1; face[ic][2 + 2*nfaces[ic]] = 4; face[ic][2 + 3*nfaces[ic]] = 6;
+      face[ic][3 + 0*nfaces[ic]] = 1; face[ic][3 + 1*nfaces[ic]] = 3; face[ic][3 + 2*nfaces[ic]] = 2; face[ic][3 + 3*nfaces[ic]] = 1;
+      face[ic][4 + 0*nfaces[ic]] = 4; face[ic][4 + 1*nfaces[ic]] = 5; face[ic][4 + 2*nfaces[ic]] = 6; face[ic][4 + 3*nfaces[ic]] = 4;
     }
-    
-    face.push_back(facec);
+    else if (strcmp(eltTypConn, "HEXA") == 0) 
+    {
+      nfaces[ic] = 6; nof[ic] = 4;
+      face[ic].reserve(nfaces[ic] * nof[ic]);
+      face[ic][0 + 0*nfaces[ic]] = 1; face[ic][0 + 1*nfaces[ic]] = 4; face[ic][0 + 2*nfaces[ic]] = 3; face[ic][0 + 3*nfaces[ic]] = 2;
+      face[ic][1 + 0*nfaces[ic]] = 1; face[ic][1 + 1*nfaces[ic]] = 2; face[ic][1 + 2*nfaces[ic]] = 6; face[ic][1 + 3*nfaces[ic]] = 5;
+      face[ic][2 + 0*nfaces[ic]] = 2; face[ic][2 + 1*nfaces[ic]] = 3; face[ic][2 + 2*nfaces[ic]] = 7; face[ic][2 + 3*nfaces[ic]] = 6;
+      face[ic][3 + 0*nfaces[ic]] = 3; face[ic][3 + 1*nfaces[ic]] = 4; face[ic][3 + 2*nfaces[ic]] = 8; face[ic][3 + 3*nfaces[ic]] = 7;
+      face[ic][4 + 0*nfaces[ic]] = 1; face[ic][4 + 1*nfaces[ic]] = 5; face[ic][4 + 2*nfaces[ic]] = 8; face[ic][4 + 3*nfaces[ic]] = 4;
+      face[ic][5 + 0*nfaces[ic]] = 5; face[ic][5 + 1*nfaces[ic]] = 6; face[ic][5 + 2*nfaces[ic]] = 7; face[ic][5 + 3*nfaces[ic]] = 8;
+    }
+
     // Update total face count
-    nftot += nelts[ic]*nfaces[ic];
+    ntotfaces[ic+1] = ntotfaces[ic] + nelts[ic]*nfaces[ic];
   }
 
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+
   E_Int nofmax = *max_element(begin(nof), end(nof));
-  cFV.malloc(nftot, nofmax);
+  cFV.malloc(ntotfaces[nc], nofmax);
 
   // Boucle sur toutes les connectivites pour remplir cFV
   for (E_Int ic = 0; ic < nc; ic++)
@@ -133,10 +140,9 @@ void K_CONNECT::connectEV2FV(FldArrayI& cEV, const char* eltType,
       E_Int ind;
       for (E_Int f = 0; f < nfaces[ic]; f++)
       {
-        ind = f + (el_offset + e)*nfaces[ic];
-        for (E_Int i = 0; i < nof[ic]; i++) cFV(ind,i+1) = cm(e,face[ic][f][i]);
+        ind = f + e*nfaces[ic] + ntotfaces[ic];
+        for (E_Int i = 0; i < nof[ic]; i++) cFV(ind,i+1) = cm(e,face[ic][f + i*nfaces[ic]]);
       }
     }
-    el_offset += nelts[ic]; // increment element offset
   }
 }

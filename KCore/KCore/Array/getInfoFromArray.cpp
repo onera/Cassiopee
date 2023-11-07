@@ -65,7 +65,7 @@ E_Int K_ARRAY::getInfoFromArray(PyObject* o, char*& varString,
     PyArrayObject* ac = (PyArrayObject*)c; Py_INCREF(ac);
     if (K_STRING::cmp(eltType, "NGON") == 0)
     {
-      int* ptr = (int*)PyArray_DATA(ac);
+      E_Int* ptr = (E_Int*)PyArray_DATA(ac);
       nelt = ptr[ptr[1]+2];
       sizeConnect = PyArray_DIM(ac, 1);
       Py_DECREF(ac);

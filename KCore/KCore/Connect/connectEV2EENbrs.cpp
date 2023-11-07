@@ -61,8 +61,9 @@ E_Int K_CONNECT::connectEV2EENbrs(const char* eltType, E_Int nv,
   // Number of face per element and node per face for each connectivity
   vector<E_Int> nfpe(nc);
   vector<E_Int> nnpf(nc);
-
   vector<vector<E_Int> > f(nc);
+
+  E_Int ierr = 1; // error index, 1 is nominal
 
   // Boucle sur toutes les connectivites pour remplir face et pre-calculer
   // le nombre de faces connectees a chaque noeud
@@ -73,10 +74,19 @@ E_Int K_CONNECT::connectEV2EENbrs(const char* eltType, E_Int nv,
     nelts[ic] = cm.getSize();
     nvertex[ic] = cm.getNfld(); // nb de noeuds par element
 
-    if (nelts[ic] == 0) return 0;
+    if (ierr == 0) continue; // error - skip the rest of the connectivities
+    if (nelts[ic] == 0) ierr = 0;
   
     // Tableau de facettes (conforme a CGNS)
-    if (K_STRING::cmp(eltTypConn, "TRI") == 0 || 
+    if (K_STRING::cmp(eltTypConn, "BAR") == 0 || 
+             K_STRING::cmp(eltTypConn, "BAR*") == 0)
+    {
+      nfpe[ic] = 2; nnpf[ic] = 1;
+      f[ic].reserve(nfpe[ic] * nnpf[ic]);
+      f[ic][0 + 0*nfpe[ic]] = 1; 
+      f[ic][1 + 0*nfpe[ic]] = 2;
+    }
+    else if (K_STRING::cmp(eltTypConn, "TRI") == 0 || 
         K_STRING::cmp(eltTypConn, "TRI*") == 0)
     {
       nfpe[ic] = 3; nnpf[ic] = 2;
@@ -86,7 +96,7 @@ E_Int K_CONNECT::connectEV2EENbrs(const char* eltType, E_Int nv,
       f[ic][2 + 0*nfpe[ic]] = 3; f[ic][2 + 1*nfpe[ic]] = 1;
     }
     else if (K_STRING::cmp(eltTypConn, "QUAD") == 0 || 
-            K_STRING::cmp(eltTypConn, "QUAD*") == 0)
+             K_STRING::cmp(eltTypConn, "QUAD*") == 0)
     {
       nfpe[ic] = 4; nnpf[ic] = 2;
       f[ic].reserve(nfpe[ic] * nnpf[ic]);
@@ -96,7 +106,7 @@ E_Int K_CONNECT::connectEV2EENbrs(const char* eltType, E_Int nv,
       f[ic][3 + 0*nfpe[ic]] = 4; f[ic][3 + 1*nfpe[ic]] = 1;
     }
     else if (K_STRING::cmp(eltTypConn, "TETRA") == 0 || 
-            K_STRING::cmp(eltTypConn, "TETRA*") == 0)
+             K_STRING::cmp(eltTypConn, "TETRA*") == 0)
     {
       nfpe[ic] = 4; nnpf[ic] = 3;
       f[ic].reserve(nfpe[ic] * nnpf[ic]);
@@ -105,28 +115,8 @@ E_Int K_CONNECT::connectEV2EENbrs(const char* eltType, E_Int nv,
       f[ic][2 + 0*nfpe[ic]] = 2; f[ic][2 + 1*nfpe[ic]] = 3; f[ic][2 + 2*nfpe[ic]] = 4;
       f[ic][3 + 0*nfpe[ic]] = 3; f[ic][3 + 1*nfpe[ic]] = 1; f[ic][3 + 2*nfpe[ic]] = 4;
     }
-    else if (K_STRING::cmp(eltTypConn, "HEXA") == 0 || 
-            K_STRING::cmp(eltTypConn, "HEXA*") == 0) 
-    {
-      nfpe[ic] = 6; nnpf[ic] = 4;
-      f[ic].reserve(nfpe[ic] * nnpf[ic]);
-      f[ic][0 + 0*nfpe[ic]] = 1; f[ic][0 + 1*nfpe[ic]] = 4; f[ic][0 + 2*nfpe[ic]] = 3; f[ic][0 + 3*nfpe[ic]] = 2;
-      f[ic][1 + 0*nfpe[ic]] = 1; f[ic][1 + 1*nfpe[ic]] = 2; f[ic][1 + 2*nfpe[ic]] = 6; f[ic][1 + 3*nfpe[ic]] = 5;
-      f[ic][2 + 0*nfpe[ic]] = 2; f[ic][2 + 1*nfpe[ic]] = 3; f[ic][2 + 2*nfpe[ic]] = 7; f[ic][2 + 3*nfpe[ic]] = 6;
-      f[ic][3 + 0*nfpe[ic]] = 3; f[ic][3 + 1*nfpe[ic]] = 4; f[ic][3 + 2*nfpe[ic]] = 8; f[ic][3 + 3*nfpe[ic]] = 7;
-      f[ic][4 + 0*nfpe[ic]] = 1; f[ic][4 + 1*nfpe[ic]] = 5; f[ic][4 + 2*nfpe[ic]] = 8; f[ic][4 + 3*nfpe[ic]] = 4;
-      f[ic][5 + 0*nfpe[ic]] = 5; f[ic][5 + 1*nfpe[ic]] = 6; f[ic][5 + 2*nfpe[ic]] = 7; f[ic][5 + 3*nfpe[ic]] = 8;
-    }
-    else if (K_STRING::cmp(eltTypConn, "BAR") == 0 || 
-            K_STRING::cmp(eltTypConn, "BAR*") == 0)
-    {
-      nfpe[ic] = 2; nnpf[ic] = 1;
-      f[ic].reserve(nfpe[ic] * nnpf[ic]);
-      f[ic][0 + 0*nfpe[ic]] = 1; 
-      f[ic][1 + 0*nfpe[ic]] = 2;
-    }
     else if (K_STRING::cmp(eltTypConn, "PYRA") == 0 || 
-            K_STRING::cmp(eltTypConn, "PYRA*") == 0)
+             K_STRING::cmp(eltTypConn, "PYRA*") == 0)
     {
       nfpe[ic] = 5; nnpf[ic] = 4;
       f[ic].reserve(nfpe[ic] * nnpf[ic]);
@@ -137,9 +127,9 @@ E_Int K_CONNECT::connectEV2EENbrs(const char* eltType, E_Int nv,
       f[ic][4 + 0*nfpe[ic]] = 4; f[ic][4 + 1*nfpe[ic]] = 1; f[ic][4 + 2*nfpe[ic]] = 5; f[ic][4 + 3*nfpe[ic]] = 4;
     }
     else if (K_STRING::cmp(eltTypConn, "PENTA") == 0 || 
-            K_STRING::cmp(eltTypConn, "PENTA*") == 0)
+             K_STRING::cmp(eltTypConn, "PENTA*") == 0)
     {
-      nfpe[ic] = 5; nnpf[ic] = 4;
+      nfpe[ic] = 5; nnpf[ic] = 4; // TRI degen
       f[ic].reserve(nfpe[ic] * nnpf[ic]);
       f[ic][0 + 0*nfpe[ic]] = 1; f[ic][0 + 1*nfpe[ic]] = 2; f[ic][0 + 2*nfpe[ic]] = 5; f[ic][0 + 3*nfpe[ic]] = 4;
       f[ic][1 + 0*nfpe[ic]] = 2; f[ic][1 + 1*nfpe[ic]] = 3; f[ic][1 + 2*nfpe[ic]] = 6; f[ic][1 + 3*nfpe[ic]] = 5;
@@ -147,8 +137,23 @@ E_Int K_CONNECT::connectEV2EENbrs(const char* eltType, E_Int nv,
       f[ic][3 + 0*nfpe[ic]] = 1; f[ic][3 + 1*nfpe[ic]] = 3; f[ic][3 + 2*nfpe[ic]] = 2; f[ic][3 + 3*nfpe[ic]] = 1;
       f[ic][4 + 0*nfpe[ic]] = 4; f[ic][4 + 1*nfpe[ic]] = 5; f[ic][4 + 2*nfpe[ic]] = 6; f[ic][4 + 3*nfpe[ic]] = 4;
     }
-    else return 0;
+    else if (K_STRING::cmp(eltTypConn, "HEXA") == 0 || 
+             K_STRING::cmp(eltTypConn, "HEXA*") == 0) 
+    {
+      nfpe[ic] = 6; nnpf[ic] = 4;
+      f[ic].reserve(nfpe[ic] * nnpf[ic]);
+      f[ic][0 + 0*nfpe[ic]] = 1; f[ic][0 + 1*nfpe[ic]] = 4; f[ic][0 + 2*nfpe[ic]] = 3; f[ic][0 + 3*nfpe[ic]] = 2;
+      f[ic][1 + 0*nfpe[ic]] = 1; f[ic][1 + 1*nfpe[ic]] = 2; f[ic][1 + 2*nfpe[ic]] = 6; f[ic][1 + 3*nfpe[ic]] = 5;
+      f[ic][2 + 0*nfpe[ic]] = 2; f[ic][2 + 1*nfpe[ic]] = 3; f[ic][2 + 2*nfpe[ic]] = 7; f[ic][2 + 3*nfpe[ic]] = 6;
+      f[ic][3 + 0*nfpe[ic]] = 3; f[ic][3 + 1*nfpe[ic]] = 4; f[ic][3 + 2*nfpe[ic]] = 8; f[ic][3 + 3*nfpe[ic]] = 7;
+      f[ic][4 + 0*nfpe[ic]] = 1; f[ic][4 + 1*nfpe[ic]] = 5; f[ic][4 + 2*nfpe[ic]] = 8; f[ic][4 + 3*nfpe[ic]] = 4;
+      f[ic][5 + 0*nfpe[ic]] = 5; f[ic][5 + 1*nfpe[ic]] = 6; f[ic][5 + 2*nfpe[ic]] = 7; f[ic][5 + 3*nfpe[ic]] = 8;
+    }
+    else ierr = 0;
   }
+
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+  if (ierr == 0) return ierr;
 
   // Elts voisin d'un noeud
   vector< vector<E_Int> > cVE(nv);
@@ -204,7 +209,7 @@ E_Int K_CONNECT::connectEV2EENbrs(const char* eltType, E_Int nv,
     }
   }
 
-  return 1;
+  return ierr;
 }
 
 // identique mais retourne aussi le no local de la face commune
@@ -225,8 +230,9 @@ E_Int K_CONNECT::connectEV2EENbrs(const char* eltType, E_Int nv,
   // Number of face per element and node per face for each connectivity
   vector<E_Int> nfpe(nc);
   vector<E_Int> nnpf(nc);
-
   vector<vector<E_Int> > f(nc);
+
+  E_Int ierr = 1; // error index, 1 is nominal
 
   // Boucle sur toutes les connectivites pour remplir face et pre-calculer
   // le nombre de faces connectees a chaque noeud
@@ -237,7 +243,8 @@ E_Int K_CONNECT::connectEV2EENbrs(const char* eltType, E_Int nv,
     nelts[ic] = cm.getSize();
     nvertex[ic] = cm.getNfld(); // nb de noeuds par element
 
-    if (nelts[ic] == 0) return 0;
+    if (ierr == 0) continue; // error - skip the rest of the connectivities
+    if (nelts[ic] == 0) ierr = 0;
   
     // Tableau de facettes (conforme a CGNS)
     if (K_STRING::cmp(eltTypConn, "TRI") == 0 || 
@@ -250,7 +257,7 @@ E_Int K_CONNECT::connectEV2EENbrs(const char* eltType, E_Int nv,
       f[ic][2 + 0*nfpe[ic]] = 3; f[ic][2 + 1*nfpe[ic]] = 1;
     }
     else if (K_STRING::cmp(eltTypConn, "QUAD") == 0 || 
-            K_STRING::cmp(eltTypConn, "QUAD*") == 0)
+             K_STRING::cmp(eltTypConn, "QUAD*") == 0)
     {
       nfpe[ic] = 4; nnpf[ic] = 2;
       f[ic].reserve(nfpe[ic] * nnpf[ic]);
@@ -260,7 +267,7 @@ E_Int K_CONNECT::connectEV2EENbrs(const char* eltType, E_Int nv,
       f[ic][3 + 0*nfpe[ic]] = 4; f[ic][3 + 1*nfpe[ic]] = 1;
     }
     else if (K_STRING::cmp(eltTypConn, "TETRA") == 0 || 
-            K_STRING::cmp(eltTypConn, "TETRA*") == 0)
+             K_STRING::cmp(eltTypConn, "TETRA*") == 0)
     {
       nfpe[ic] = 4; nnpf[ic] = 3;
       f[ic].reserve(nfpe[ic] * nnpf[ic]);
@@ -270,7 +277,7 @@ E_Int K_CONNECT::connectEV2EENbrs(const char* eltType, E_Int nv,
       f[ic][3 + 0*nfpe[ic]] = 3; f[ic][3 + 1*nfpe[ic]] = 1; f[ic][3 + 2*nfpe[ic]] = 4;
     }
     else if (K_STRING::cmp(eltTypConn, "HEXA") == 0 || 
-            K_STRING::cmp(eltTypConn, "HEXA*") == 0) 
+             K_STRING::cmp(eltTypConn, "HEXA*") == 0) 
     {
       nfpe[ic] = 6; nnpf[ic] = 4;
       f[ic].reserve(nfpe[ic] * nnpf[ic]);
@@ -282,7 +289,7 @@ E_Int K_CONNECT::connectEV2EENbrs(const char* eltType, E_Int nv,
       f[ic][5 + 0*nfpe[ic]] = 5; f[ic][5 + 1*nfpe[ic]] = 6; f[ic][5 + 2*nfpe[ic]] = 7; f[ic][5 + 3*nfpe[ic]] = 8;
     }
     else if (K_STRING::cmp(eltTypConn, "BAR") == 0 || 
-            K_STRING::cmp(eltTypConn, "BAR*") == 0)
+             K_STRING::cmp(eltTypConn, "BAR*") == 0)
     {
       nfpe[ic] = 2; nnpf[ic] = 1;
       f[ic].reserve(nfpe[ic] * nnpf[ic]);
@@ -290,7 +297,7 @@ E_Int K_CONNECT::connectEV2EENbrs(const char* eltType, E_Int nv,
       f[ic][1 + 0*nfpe[ic]] = 2;
     }
     else if (K_STRING::cmp(eltTypConn, "PYRA") == 0 || 
-            K_STRING::cmp(eltTypConn, "PYRA*") == 0)
+             K_STRING::cmp(eltTypConn, "PYRA*") == 0)
     {
       nfpe[ic] = 5; nnpf[ic] = 4;
       f[ic].reserve(nfpe[ic] * nnpf[ic]);
@@ -301,7 +308,7 @@ E_Int K_CONNECT::connectEV2EENbrs(const char* eltType, E_Int nv,
       f[ic][4 + 0*nfpe[ic]] = 4; f[ic][4 + 1*nfpe[ic]] = 1; f[ic][4 + 2*nfpe[ic]] = 5; f[ic][4 + 3*nfpe[ic]] = 4;
     }
     else if (K_STRING::cmp(eltTypConn, "PENTA") == 0 || 
-            K_STRING::cmp(eltTypConn, "PENTA*") == 0)
+             K_STRING::cmp(eltTypConn, "PENTA*") == 0)
     {
       nfpe[ic] = 5; nnpf[ic] = 4;
       f[ic].reserve(nfpe[ic] * nnpf[ic]);
@@ -311,8 +318,11 @@ E_Int K_CONNECT::connectEV2EENbrs(const char* eltType, E_Int nv,
       f[ic][3 + 0*nfpe[ic]] = 1; f[ic][3 + 1*nfpe[ic]] = 3; f[ic][3 + 2*nfpe[ic]] = 2; f[ic][3 + 3*nfpe[ic]] = 1;
       f[ic][4 + 0*nfpe[ic]] = 4; f[ic][4 + 1*nfpe[ic]] = 5; f[ic][4 + 2*nfpe[ic]] = 6; f[ic][4 + 3*nfpe[ic]] = 4;
     }
-    else return 0;
+    else ierr = 0;
   }
+
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+  if (ierr == 0) return ierr;
 
   // Elts voisin d'un noeud
   vector< vector<E_Int> > cVE(nv);
@@ -375,7 +385,7 @@ E_Int K_CONNECT::connectEV2EENbrs(const char* eltType, E_Int nv,
     }
   }
 
-  return 1;
+  return ierr;
 }
 
 //=============================================================================
