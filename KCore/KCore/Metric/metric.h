@@ -63,10 +63,14 @@ namespace K_METRIC
                                 E_Int indcell=-1, E_Int indnode=-1);
 
   // Compute cell volumes for NGons
+  void compute_face_center_and_area(E_Int id, E_Int stride, E_Int *pn,
+    E_Float *x, E_Float *y, E_Float *z, E_Float *fc, E_Float *fa);
+  
   E_Int compute_volumes_ngon(E_Float *x, E_Float *y, E_Float *z,
-    K_FLD::FldArrayI &cn, E_Float *cellVols);  
-  void compute_cell_volume(E_Int, K_FLD::FldArrayI &, E_Float *, E_Float *, E_Float *,
-    E_Float &, E_Int refIdx=0);
+    K_FLD::FldArrayI &cn, E_Float *cellVols);
+
+  void compute_cell_volume(E_Int, K_FLD::FldArrayI &, E_Float *, E_Float *,
+    E_Float *, E_Float &, E_Int refIdx=0);
 
 }
 #endif

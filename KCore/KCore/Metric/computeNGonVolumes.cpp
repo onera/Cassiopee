@@ -54,9 +54,8 @@ E_Float norm(E_Float *a, E_Int n)
 
 #define DSMALL 1e-15
 
-static
-void compute_face_area_and_center(E_Int id, E_Int stride, E_Int *pn, E_Float *x,
-  E_Float *y, E_Float *z, E_Float *fa, E_Float *fc)
+void K_METRIC::compute_face_center_and_area(E_Int id, E_Int stride,
+  E_Int *pn, E_Float *x, E_Float *y, E_Float *z, E_Float *fc, E_Float *fa)
 {
   // Init
   fa[0] = fa[1] = fa[2] = 0.0;
@@ -180,7 +179,7 @@ void K_METRIC::compute_cell_volume(E_Int cell, K_FLD::FldArrayI &cn, E_Float *x,
     E_Float *fc = &faceCenters[3*i];
     E_Int np = INDPG[i+1]-INDPG[i];
     E_Int *pn = &NGON[INDPG[i]];
-    compute_face_area_and_center(face, np, pn, x, y, z, fa, fc);
+    K_METRIC::compute_face_center_and_area(face, np, pn, x, y, z, fc, fa);
   }
 
   // Estimate cell centroid as average of face centers
@@ -231,7 +230,8 @@ void compute_volumes(K_FLD::FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z,
   for (E_Int i = 0; i < nfaces; i++) {
     E_Int np = -1;
     E_Int *pn = cn.getFace(i, np, ngon, indPG);
-    compute_face_area_and_center(i, np, pn, x, y, z, &fA[3*i], &fC[3*i]);
+    K_METRIC::compute_face_center_and_area(i, np, pn, x, y, z,
+      &fC[3*i], &fA[3*i]);
   }
 
   // Estimate cell centers as average of face centers
