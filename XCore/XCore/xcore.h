@@ -37,5 +37,7 @@ namespace K_XCORE
   PyObject *adaptMeshSeq(PyObject *self, PyObject *args);
   PyObject *extractLeafMesh(PyObject *self, PyObject *args);
   PyObject *createAdaptMesh(PyObject *self, PyObject *args);
+
+  PyObject *adaptMeshDir(PyObject *self, PyObject *args);
 }
 #endif

@@ -142,7 +142,6 @@ PyObject *K_XCORE::adaptMeshSeq(PyObject *self, PyObject *args)
       stk.push(cell_to_mod);
       rcells.insert(cell_to_mod);
     }
-
   }
 
   // Resize data structures

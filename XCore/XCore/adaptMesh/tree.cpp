@@ -29,7 +29,7 @@ tree::tree(E_Int n, E_Int s)
 	size(n),
   stride(s),
   nleaves(n),
-  l2g()
+  l2g(n)
 {
 	for (E_Int i = 0; i < n; i++) {
 		enabled[i] = 1;
@@ -70,6 +70,7 @@ void tree::setSizeAndStride(E_Int n, E_Int s)
   size = n;
   stride = s;
   nleaves = n;
+  l2g.resize(n);
 
   for (E_Int i = 0; i < n; i++) {
 		enabled[i] = 1;
@@ -130,7 +131,6 @@ E_Float tree_memsize(tree *T)
 
 void tree_resize(tree *T, E_Int increment, E_Int stride)
 {
-
 	E_Int new_size = T->size + increment;
 
 	T->enabled.resize(new_size);

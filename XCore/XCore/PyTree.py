@@ -159,6 +159,11 @@ def loadAndSplitNGon(fileName):
 
   return t, RES
 
+def _adaptMeshDir(h, l, fld):
+    zone = I.getZones(l)[0]
+    arr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
+    XCore.xcore.adaptMeshDir(h, arr, fld)
+    return None
 
 def _adaptMeshSeq(h, fld, fv=None):
     if isinstance(h, list):
@@ -180,7 +185,7 @@ def extractLeafMesh(h):
     else:
         m = XCore.xcore.extractLeafMesh(h)
         leaf = I.createZoneNode('Leaves', m)
-        T = C.newPyTree(['Base', leaves])
+        T = C.newPyTree(['Base', leaf])
         return T
 
 def createAdaptMesh(t):

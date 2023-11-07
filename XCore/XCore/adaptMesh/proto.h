@@ -41,9 +41,10 @@ void mesh_save_memory(mesh *);
 mesh_leaves mesh_get_leaves(mesh *, tree *, tree *, E_Int);
 
 /* metric */
-void hessian_to_metric(E_Float *, mesh *);
+void hessian_to_metric(E_Float *, E_Int);
 //void compute_ref_data(mesh *, E_Float *);
 void smooth_ref_data(mesh *);
+void smooth_ref_data_seq(mesh *);
 std::vector<E_Int> compute_canon_info(E_Int, mesh *, E_Int *);
 void deduce_nei_ref_data(E_Int, E_Int, E_Int, E_Int, E_Int *);
 E_Int is_metric_valid(E_Float *);
@@ -74,6 +75,17 @@ E_Float dot(const E_Float *, const E_Float *, E_Int);
 E_Float norm(const E_Float *, E_Int);
 void cross(E_Float *, E_Float *, E_Float *);
 void symmat_dot_vec(const E_Float *, const E_Float *, E_Float *c);
+E_Int compute_hessians_ngon(K_FLD::FldArrayI &, E_Float *, E_Float *,
+  E_Float *, E_Int *, E_Int *, E_Float *, const std::vector<E_Float *> &,
+  const std::vector<E_Float *> &, std::vector<E_Float *> &);
+E_Int compute_gradients_ngon(K_FLD::FldArrayI &, E_Float *, E_Float *,
+  E_Float *, E_Int *, E_Int *, E_Float *,
+  const std::vector<E_Float *> &, std::vector<E_Float *> &);
+void compute_cell_centers_and_vols(K_FLD::FldArrayI &, E_Float *,
+  E_Float *, E_Float *, E_Int *, E_Int *, E_Float *, E_Float *,
+  E_Float *, E_Float *);
+void compute_face_centers_and_areas(K_FLD::FldArrayI &, E_Float *,
+  E_Float *, E_Float *, E_Float *, E_Float *);
 
 /* cut */
 void cut_face_x(E_Int, mesh *, tree *, E_Int, E_Int);

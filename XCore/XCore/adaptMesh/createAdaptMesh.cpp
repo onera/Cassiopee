@@ -18,20 +18,6 @@
 */
 #include "proto.h"
 
-static
-void shift_data(mesh *M)
-{
-  for (E_Int i = 0; i < M->nfaces; i++) {
-    for (E_Int j = M->xfaces[i]; j < M->xfaces[i+1]; j++)
-      M->NGON[j] -= 1;
-  }
-
-  for (E_Int i = 0; i < M->ncells; i++) {
-    for (E_Int j = M->xcells[i]; j < M->xcells[i+1]; j++)
-      M->NFACE[j] -= 1;
-  }
-}
-
 PyObject *K_XCORE::createAdaptMesh(PyObject *self, PyObject *args)
 {
   PyObject *arr;

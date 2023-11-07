@@ -39,10 +39,10 @@ PyObject *K_XCORE::extractLeafMesh(PyObject *self, PyObject *args)
 
   auto &ecells = CT.l2g;
   ecells.clear();
-  E_Int necells = 0;
   for (E_Int i = 0; i < M->ncells; i++) {
-    if (CT.enabled[i]) ecells[necells++] = i;
+    if (CT.enabled[i]) ecells.push_back(i);
   }
+  E_Int necells = ecells.size();
 
   std::unordered_map<E_Int, E_Int> efaces;
   std::unordered_map<E_Int, E_Int> epoints;
@@ -58,7 +58,6 @@ PyObject *K_XCORE::extractLeafMesh(PyObject *self, PyObject *args)
     E_Int cell = ecells[i];
     for (E_Int j = M->xcells[cell]; j < M->xcells[cell+1]; j++) {
       E_Int face = M->NFACE[j];
-      assert(face >= 0 && face < M->nfaces);
       NFACE.push_back(face);
     }
     XCELLS.push_back(M->xcells[cell+1]-M->xcells[cell]);
@@ -68,16 +67,16 @@ PyObject *K_XCORE::extractLeafMesh(PyObject *self, PyObject *args)
     XCELLS[i+1] += XCELLS[i];
 
   // Make NGON
+  FT.l2g.clear();
   for (E_Int i = 0; i < necells; i++) {
     for (E_Int j = XCELLS[i]; j < XCELLS[i+1]; j++) {
       E_Int face = NFACE[j];
       if (efaces.find(face) == efaces.end()) {
-        FT.l2g[nefaces] = face;
+        FT.l2g.push_back(face);
         efaces[face] = nefaces++;
 
         for (E_Int k = M->xfaces[face]; k < M->xfaces[face+1]; k++) {
           E_Int point = M->NGON[k];
-          assert(point >= 0 && point < M->npoints);
           NGON.push_back(point);
 
           if (epoints.find(point) == epoints.end()) {
@@ -103,7 +102,6 @@ PyObject *K_XCORE::extractLeafMesh(PyObject *self, PyObject *args)
   FldArrayF *fo;
   FldArrayI *cno;
   K_ARRAY::getFromArray3(m, fo, cno);
-  cno->setNGonType(3);
 
   E_Float *pxo = fo->begin(1);
   E_Float *pyo = fo->begin(2);
@@ -123,13 +121,13 @@ PyObject *K_XCORE::extractLeafMesh(PyObject *self, PyObject *args)
   for (E_Int i = 0; i < nefaces+1; i++) indPGo[i] = XFACES[i];
 
   E_Int *ngono = cno->getNGon();
+  E_Int *ptr = ngono;
   for (E_Int i = 0; i < nefaces; i++) {
-    E_Int np = -1;
-    E_Int *pn = cno->getFace(i, np, ngono, indPGo);
+    E_Int start = XFACES[i];
+    E_Int end = XFACES[i+1];
     
-    E_Int *points = &NGON[XFACES[i]];
-    for (E_Int j = 0; j < np; j++)
-      pn[j] = epoints[points[j]]+1;
+    for (E_Int j = start; j < end; j++)
+      *ptr++ = epoints[NGON[j]]+1;
   }
 
   // Fill out indPH and NFACE
@@ -137,12 +135,12 @@ PyObject *K_XCORE::extractLeafMesh(PyObject *self, PyObject *args)
   for (E_Int i = 0; i < necells+1; i++) indPHo[i] = XCELLS[i];
 
   E_Int *nfaceo = cno->getNFace();
+  ptr = nfaceo;
   for (E_Int i = 0; i < necells; i++) {
-    E_Int stride = -1;
-    E_Int *pf = cno->getFace(i, stride, nfaceo, indPHo);
-    E_Int *faces = &NFACE[XCELLS[i]];
-    for (E_Int j = 0; j < stride; j++)
-      pf[j] = efaces[faces[j]]+1;
+    E_Int start = XCELLS[i];
+    E_Int end = XCELLS[i+1];
+    for (E_Int j = start; j < end; j++)
+      *ptr++ = efaces[NFACE[j]]+1;
   }
 
   return m;

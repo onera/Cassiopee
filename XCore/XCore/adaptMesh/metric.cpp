@@ -33,11 +33,10 @@ E_Int is_metric_valid(E_Float *M)
   return (a > 0.) && (a*d > b*b) && (det > 0.);
 }
 
-void hessian_to_metric(E_Float *H, mesh *M)
+void hessian_to_metric(E_Float *H, E_Int ncells)
 {
   E_Float L[3], v0[3], v1[3], v2[3];
   E_Float L0, L1, L2, *pt;
-  E_Int ncells = M->ncells;
   for (E_Int i = 0; i < ncells; i++) {
     pt = &H[6*i];
     eigen(pt, L, v0, v1, v2);
@@ -214,7 +213,7 @@ E_Int make_ref_data(mesh *M, E_Float **sols, E_Int csize, E_Float *fvec)
       E_Float *H = compute_hessian(M, sols[i]);
 
       // process hessians
-      hessian_to_metric(H, M);
+      hessian_to_metric(H, M->ncells);
   
       // compute refinement data
       std::vector<std::array<int, 3>> partialRefData(M->ncells);
@@ -1047,3 +1046,134 @@ void smooth_ref_data(mesh *M)
   XFREE(pnei_ref_data);
   XFREE(send_buf);
 }
+
+void smooth_ref_data_seq(mesh *M)
+{}
+/*
+  std::vector<E_Int> start_nodes(6*M->ncells, -1);
+
+  E_Int i, j, k, cell, ncells, *pf, *pn, *pr, *ps, *prn, face, ac, bc, gc,
+  an, bn, gn, has_changed, reorient_c, reorient_n, nei, fpos, i0, ac_orig,
+  bc_orig, gc_orig, An_orig[6][3], an_orig, bn_orig, gn_orig, npfaces,
+  *pfaces, *owner;
+  
+  ncells = M->ncells;
+  owner = M->owner;
+
+  // init refinement stack
+  std::stack<E_Int> stk;
+  auto &CT = M->ctree;
+  for (const auto cell : CT.l2g) {
+    if (is_cell_to_refine(&M->ref_data[3*cell]))
+      stk.push(cell);
+  }
+
+  // smooth locally
+  while (!stk.empty()) {
+    cell = stk.top();
+    stk.pop();
+
+    ps = &start_nodes[6*cell];
+    compute_canon_info(cell, M, ps);
+
+    pf = &M->NFACE[6*cell];
+
+    pr = &M->ref_data[3*cell];
+    ac = pr[0];
+    bc = pr[1];
+    gc = pr[2];
+
+    // deduce ref_data for all neighbours
+    for (i = 0; i < 6; i++) {
+      face = pf[i];
+      reorient_c = get_reorient(face, cell, normalIn[i], M);
+      nei = get_neighbour(cell, face, M);
+      if (nei == -1) continue;
+      deduce_nei_incr();
+
+      
+      
+      compute_canon_info(nei, M, &start_nodes[6*nei]);
+      pn = &M->NFACE[6*nei];
+      fpos = get_pos(face, pn, 6);
+      assert(fpos != -1);
+      reorient_n = get_reorient(face, nei, normalIn[fpos], M);
+      i0 = abs(start_nodes[6*nei+fpos] - ps[i]);
+      prn = &M->ref_data[3*nei];
+      for (j = 0; j < 3; j++) An_orig[i][j] = prn[j];
+      deduce_nei_ref_data(i, fpos, i0, reorient_c != reorient_n, prn);
+    }
+
+    do {
+      has_changed = 0;
+
+      for (i = 0; i < 6; i++) {
+        ac_orig = ac;
+        bc_orig = bc;
+        gc_orig = gc;
+
+        nei = get_neighbour(cell, pf[i], M);
+        if (nei == -1)
+          continue;
+
+        prn = &M->ref_data[3*nei];
+        an = prn[0];
+        bn = prn[1];
+        gn = prn[2];
+
+        an_orig = an;
+        bn_orig = bn;
+        gn_orig = gn;
+
+        // alpha
+        if (an > ac + 1) ac = an - 1;
+        else if (ac > an + 1) an = ac - 1;
+        // beta
+        if (bn > bc + 1) bc = bn - 1;
+        else if (bc > bn + 1) bn = bc - 1;
+        // gamma
+        if (gn > gc + 1) gc = gn - 1;
+        else if (gc > gn + 1) gn = gc - 1;
+
+        if (i == 0 || i == 1)
+          fix_conflict(&ac, &bc, &an, &bn);
+        else if (i == 2 || i == 3)
+          fix_conflict(&bc, &gc, &bn, &gn);
+        else if (i == 4 || i == 5)
+          fix_conflict(&ac, &gc, &an, &gn);
+
+        pr[0] = ac; pr[1] = bc; pr[2] = gc;
+        prn[0] = an; prn[1] = bn; prn[2] = gn;
+
+        has_changed |=
+          !((ac == ac_orig) && (bc == bc_orig) && (gc == gc_orig));
+        has_changed |=
+          !((an == an_orig) && (bn == bn_orig) && (gn == gn_orig));
+      }
+    } while (has_changed);
+
+    // reverse
+    for (i = 0; i < 6; i++) {
+      face = pf[i];
+      reorient_c = get_reorient(face, cell, normalIn[i], M);
+      nei = get_neighbour(cell, face, M);
+      if (nei == -1) continue;
+      pn = &M->NFACE[6*nei];
+      fpos = get_pos(face, pn, 6);
+      assert(fpos != -1);
+      reorient_n = get_reorient(face, nei, normalIn[fpos], M);
+      i0 = abs(start_nodes[6*nei+fpos] - ps[i]);
+      prn = &M->ref_data[3*nei];
+
+      deduce_nei_ref_data(fpos, i, i0, reorient_c != reorient_n, prn);
+
+      for (j = 0; j < 3; j++) {
+        if (prn[j] != An_orig[i][j]) {
+          stk.push(nei);
+          break;
+        }
+      }
+    }
+  }
+}
+*/

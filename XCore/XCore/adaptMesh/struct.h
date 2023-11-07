@@ -92,7 +92,7 @@ struct tree {
   E_Int size; // size of enabled, level, indir
   E_Int stride;
   E_Int nleaves; // number of enabled entities
-  std::unordered_map<E_Int, E_Int> l2g; // leave index to hmesh index
+  std::vector<E_Int> l2g; // leave index to hmesh index
 
   tree()
   {}

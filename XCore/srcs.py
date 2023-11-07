@@ -35,6 +35,10 @@ if mpi: # source that requires mpi
             'XCore/adaptMesh/adaptMeshSeq.cpp',
             'XCore/adaptMesh/createAdaptMesh.cpp',
             'XCore/adaptMesh/extractLeafMesh.cpp',
+            'XCore/adaptMesh/adaptMeshDir.cpp',
+            'XCore/adaptMesh/computeHessianNGon.cpp',
+            'XCore/adaptMesh/computeGradientNGon.cpp',
+            'XCore/adaptMesh/computeCellCentersAndVolumes.cpp',
             'XCore/common/mem.cpp'
             ]
 else:
