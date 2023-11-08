@@ -71,7 +71,8 @@ elif cc == 'nvc': opt1 += []
 else: opt1 += ['-restrict']
 
 # Specific options for paradigma - paradigma install path
-PPATH = srcs_paradigma.PPATH
+if srcs.PARADIGMA != 0: PPATH = srcs_paradigma.PPATH
+else: PPATH = 'paradigma'
 opt2 = ['-I%s'%PPATH,'-I%s/mpi_wrapper'%PPATH,'-I%s/mesh'%PPATH,'-I%s/util'%PPATH,'-I%s/io'%PPATH,'-I%s/ppart'%PPATH,'-I%s/struct'%PPATH,'-I%s/pario'%PPATH,'-I%s/ext_wrapper'%PPATH]
 opt2 += ['-IXCore/scotch']
 opt2 += ['-std=c99', '-DSCOTCH_RENAME']
@@ -135,6 +136,7 @@ if srcs.PARADIGMA != 0:
                          CFLAGS=Dist.getCArgs()+ADDITIONALCPPFLAGS+opt1+opt2)
         myMod2 = env2.StaticLibrary('pdm', srcs_pdm)
     deps.append('libpdm.a')
+else: src_paradigma = []
 
 # Scotch
 if srcs.SCOTCH:

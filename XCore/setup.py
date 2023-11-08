@@ -88,9 +88,10 @@ if cython and mpi and mpi4py:
     elif srcs.PARADIGMA == 1:
       import srcs_paradigma
       paradigmaDir = "XCore/paradigma23"
-    PPATH = srcs_paradigma.PPATH
-    from Cython.Build import cythonize
-    for c in srcs_paradigma.pyx_srcs:
+    if srcs.PARADIGMA != 0:
+      PPATH = srcs_paradigma.PPATH
+      from Cython.Build import cythonize
+      for c in srcs_paradigma.pyx_srcs:
         name = c.replace('.pyx', '')
         names = name.split('/')
         name = names[0]+'.'+names[-1]
@@ -104,6 +105,9 @@ if cython and mpi and mpi4py:
                     extra_link_args=[],
                     language='c++'
                     ) )
+    else:
+      def cythonize(srcs, include_path): return []
+      paradigmaDir = '' 
 else:
     def cythonize(srcs, include_path): return []
     paradigmaDir = ''
