@@ -162,9 +162,11 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   E_Int* cFE2 = cFE.begin(2);
 
   // Compute field on element faces
-  E_Int* cnp = cn->begin();
-  E_Int nfaces = cnp[0];
-  E_Int nelts = cnp[cnp[1]+2];
+  // E_Int* cnp = cn->begin();
+  
+  // Acces universel nbres de faces et d'elements
+  E_Int nfaces = cn->getNFaces();
+  E_Int nelts = cn->getNElts();
   // printf("nfaces=%d\n", nfaces);
   //printf("nelts=%d\n", nelts);
 

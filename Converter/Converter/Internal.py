@@ -3607,13 +3607,28 @@ def getZoneDim(zone):
                 if i[1][0] == 22: NGON = 1; NGONp = i
                 elif i[1][0] == 23: NFACE = 1
             if NGON == 1 and NFACE == 1:
+
+                data = getNodeFromName1(NGONp, 'ElementStartOffset')
+                
+                if data is not None and len(data)>0:
+                    datar = data[1]
+                else:
+                    datar = None
+                if datar is not None and datar.size > 0:
+                    if datar[1] == 1 : cellDim = 1 
+                    elif datar[1] == 2 : cellDim = 2
+                    return [gtype, np, ne, 'NGON', cellDim]
+
+                
                 data = getNodeFromName1(NGONp, 'ElementConnectivity')
                 if data is not None and len(data)>0: datar = data[1]
                 else: datar = None
                 if datar is not None and datar.size > 0:
                     if datar[0] == 1: cellDim = 1
                     elif datar[0] == 2: cellDim = 2
+                
                 return [gtype, np, ne, 'NGON', cellDim]
+            
             else: return [gtype, np, ne, 'MULTIPLE', 3]
         eltName,stype = eltNo2EltName(c[0][1][0])
         if lc == 2 and eltName != 'NGON' and eltName != 'NFACE':

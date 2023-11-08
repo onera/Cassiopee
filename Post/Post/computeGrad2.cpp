@@ -132,11 +132,12 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   E_Int* cFE2 = cFE.begin(2);
 
   // Calcul du champ aux faces
-  E_Int* cnp = cn->begin();
-  E_Int nfaces = cnp[0];
-  E_Int nelts = cnp[cnp[1]+2];
-  //printf("nfaces=%d\n", nfaces);
-  //printf("nelts=%d\n", nelts);
+      
+  // Acces universel nbres de faces et d'elements
+  E_Int nfaces = cn->getNFaces();
+  E_Int nelts = cn->getNElts();
+  
+  
   FldArrayF faceField(nfaces, nfld);
   E_Int i1, i2;
   if (cellNp == NULL)
