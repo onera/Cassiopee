@@ -4897,7 +4897,64 @@ def _reorderSubzone__(z, w, T):
 #==============================================================================
 # -- Extract all BC of type or name --
 #==============================================================================
+# keep the bcdataset of bc from original zone in the subzone zbc
+# extracted from the bc
+def _keepBCDataSet(zbc, zorig, bc, extrapFlow=True):
+  datas = Internal.getBCDataSet(zorig, bc)
+  if datas == [] and not extrapFlow: 
+    Internal._rmNodesByName(zbc, Internal.__FlowSolutionCenters__)
+  elif datas != []:
+    if not extrapFlow:
+      Internal._rmNodesByName(zbc, Internal.__FlowSolutionCenters__)
+    f = Internal.createUniqueChild(zbc, Internal.__FlowSolutionCenters__,
+                                    'FlowSolution_t')
+    Internal.newGridLocation(value='CellCenter', parent=f)
+    for d in datas: Internal.createUniqueChild(f, d[0], d[3], value=d[1])
+  return None 
 
+# extract bc defined by zbc node as a subzone of z for BE zones
+# with BCs defined by a PointList/FaceCenter refering to a connectivity 
+# of BC (TRI for TETRA for instance)
+def getBC2__(zbc, z, T, res, extrapFlow=True):
+  zdim = Internal.getZoneDim(z)
+  if zdim[0] == 'Unstructured':
+    ztype = zdim[3]
+    if ztype != 'NGON':
+      bndName = Internal.getName(zbc)
+      bndType = Internal.getValue(zbc)                    
+      gcl = Internal.getNodeFromType(zbc, 'GridLocation_t')
+      PL = Internal.getNodeFromName(zbc, 'PointList')
+      if PL is not None:
+        if Internal.getValue(gcl) == 'FaceCenter':
+          PL = Internal.getValue(PL)
+          ermin = numpy.amin(PL)
+          ermax = numpy.amax(PL)
+          zp = Internal.copyRef(z)
+          connects = Internal.getNodesFromType(z,'Elements_t')
+          for cn in connects:
+            ERLoc = Internal.getNodeFromName(cn,'ElementRange')
+            ER_min = Internal.getValue(ERLoc)[0]
+            ER_max = Internal.getValue(ERLoc)[1]
+            if ermin >= ER_min and ermax <= ER_max:
+              for cn2 in connects:
+                if cn2[0] != cn[0]:
+                  Internal._rmNodesFromName(zp,cn2[0])
+              etype=Internal.getValue(cn)
+              if etype[1]!= 0: etype[1]=0
+              nfaces  = PL[0].shape[0]
+              facelist = numpy.zeros(nfaces, dtype=Internal.E_NpyInt)
+              for noet in range(nfaces): facelist[noet] = PL[0][noet]-ER_min
+              Internal._rmNodesFromType(zp,"ZoneBC_t")
+              Internal._rmNodesFromType(zp,"ZoneGridConnectivity_t")
+              Internal._rmNodesFromType(zp,"Family_t")
+              Internal._rmNodesFromType(zp,"FamilyName_t")
+              Internal._rmNodesFromName(zp,"ParentElement*")
+              zp=T.subzone(zp,facelist,type='elements')
+              zp[0] = z[0]+Internal.SEP1+zbc[0]
+              _keepBCDataSet(zp, z, zbc, extrapFlow=extrapFlow)
+              res.append(zp)
+              break
+  return None
 # Get the geometrical BC and append it to res
 # IN: i: BC_t node or GridConnectivity_t node
 # IN: z: zone owning BC
@@ -4906,6 +4963,10 @@ def _reorderSubzone__(z, w, T):
 # IN: extrapFlow: if True, get the BCDataSet field
 # IN: shift: if not 0, shift BC of index for structured grids only
 def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0):
+  
+  connects = Internal.getNodesFromType(z,"Elements_t")#BE + BC en connect TRI
+  zdim = Internal.getZoneDim(z)
+  if zdim[0] == 'Unstructured': ztype = zdim[3]  
   # IndexRange
   r = Internal.getNodeFromType1(i, 'IndexRange_t')
   if r is not None and r[1].shape[0] > 1: # structure - suppose range in nodes
@@ -4925,19 +4986,8 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0):
     zp = T.subzone(z, (imin,jmin,kmin), (imax,jmax,kmax))
     zp[0] = z[0]+Internal.SEP1+i[0]
     # Get BCDataSet if any
-    datas = Internal.getBCDataSet(z, i)
-    if datas == [] and not extrapFlow: 
-      Internal._rmNodesByName(zp, Internal.__FlowSolutionCenters__)
-      # Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
-    elif datas != []:
-      if not extrapFlow:
-        Internal._rmNodesByName(zp, Internal.__FlowSolutionCenters__)
-        # Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
-      f = Internal.createUniqueChild(zp, Internal.__FlowSolutionCenters__,
-                                     'FlowSolution_t')
-      Internal.newGridLocation(value='CellCenter', parent=f)
-      for d in datas: Internal.createUniqueChild(f, d[0], d[3], value=d[1])
-  
+    _keepBCDataSet(zp, z, i, extrapFlow=extrapFlow)  
+
     if reorder: _reorderSubzone__(zp, w, T) # normales ext
     _deleteZoneBC__(zp)
     _deleteGridConnectivity__(zp)
@@ -4950,19 +5000,9 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0):
     _deleteZoneBC__(zp)
     _deleteGridConnectivity__(zp)
     _deleteSolverNodes__(zp)
+
     # Get BCDataSet if any
-    datas = Internal.getBCDataSet(z, i)
-    if datas == [] and not extrapFlow: 
-      Internal._rmNodesByName(zp, Internal.__FlowSolutionCenters__)
-      # Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
-    elif datas != []:
-      if not extrapFlow:
-        Internal._rmNodesByName(zp, Internal.__FlowSolutionCenters__)
-        # Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
-      f = Internal.createUniqueChild(zp, Internal.__FlowSolutionCenters__,
-                                     'FlowSolution_t')
-      Internal.newGridLocation(value='CellCenter', parent=f)
-      for d in datas: Internal.createUniqueChild(f, d[0], d[3], value=d[1])
+    _keepBCDataSet(zp, z, i, extrapFlow=extrapFlow)  
     res.append(zp)
 
   # IndexArray
@@ -4973,33 +5013,25 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0):
     loc = Internal.getNodeFromName1(i, 'GridLocation')
     if loc is not None:
       val = Internal.getValue(loc)
-      if val == 'FaceCenter' or val == 'CellCenter': # Face list (BE ou NGON)
+      if val == 'FaceCenter' or val == 'CellCenter': # Face list (BE ou NGON)        
         faceList = r[1]
-
         rf = Internal.getElementRange(z, type='NGON')
         if rf is not None and rf[0] != 1: # decalage possible du NGON
           faceList2 = numpy.copy(faceList)
           faceList2[:] = faceList[:]-rf[0]+1
           zp = T.subzone(z, faceList2, type='faces')
-        else: zp = T.subzone(z, faceList, type='faces') # BE
+        else: 
+          if len(connects)>1 and ztype != 'NGON':
+            return getBC2__(i, z, T, res, extrapFlow=extrapFlow)
+          else:
+            zp = T.subzone(z, faceList, type='faces') # BE
         
         zp[0] = z[0]+Internal.SEP1+i[0]
         _deleteZoneBC__(zp)
         _deleteGridConnectivity__(zp)
         _deleteSolverNodes__(zp)
         # Get BCDataSet if any
-        datas = Internal.getBCDataSet(z, i)
-        if datas == [] and not extrapFlow: 
-          Internal._rmNodesByName(zp, Internal.__FlowSolutionCenters__)
-          # Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
-        elif datas != []:
-          if not extrapFlow:
-            Internal._rmNodesByName(zp, Internal.__FlowSolutionCenters__)
-            # Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
-          f = Internal.createUniqueChild(zp, Internal.__FlowSolutionCenters__,
-                                         'FlowSolution_t')
-          Internal.newGridLocation(value='CellCenter', parent=f)
-          for d in datas: Internal.createUniqueChild(f, d[0], d[3], value=d[1])
+        _keepBCDataSet(zp, z, i, extrapFlow=extrapFlow)        
         res.append(zp)
       elif val == 'Vertex': # vertex indices
         pointList = r[1]
@@ -5009,18 +5041,7 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0):
         _deleteGridConnectivity__(zp)
         _deleteSolverNodes__(zp)
         # Get BCDataSet if any
-        datas = Internal.getBCDataSet(z, i)
-        if datas == [] and not extrapFlow: 
-          Internal._rmNodesByName(zp, Internal.__FlowSolutionCenters__)
-          # Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
-        elif datas != []:
-          if not extrapFlow:
-            Internal._rmNodesByName(zp, Internal.__FlowSolutionCenters__)
-            # Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
-          f = Internal.createUniqueChild(zp, Internal.__FlowSolutionCenters__,
-                                         'FlowSolution_t')
-          Internal.newGridLocation(value='Vertex', parent=f)
-          for d in datas: Internal.createUniqueChild(f, d[0], d[3], value=d[1])
+        _keepBCDataSet(zp, z, i, extrapFlow=extrapFlow)        
         res.append(zp)
     else: # suppose FaceList
       faceList = r[1]
@@ -5035,19 +5056,9 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0):
       _deleteGridConnectivity__(zp)
       _deleteSolverNodes__(zp)
       # Get BCDataSet if any
-      datas = Internal.getBCDataSet(z, i)
-      if datas == [] and not extrapFlow: 
-        Internal._rmNodesByName(zp, Internal.__FlowSolutionCenters__)
-        # Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
-      elif datas != []:
-        if not extrapFlow:
-          Internal._rmNodesByName(zp, Internal.__FlowSolutionCenters__)
-          # Internal._rmNodesByName(zp, Internal.__FlowSolutionNodes__)
-        f = Internal.createUniqueChild(zp, Internal.__FlowSolutionCenters__,
-                                       'FlowSolution_t')
-        Internal.newGridLocation(value='CellCenter', parent=f)
-        for d in datas: Internal.createUniqueChild(f, d[0], d[3], value=d[1])
+      _keepBCDataSet(zp, z, i, extrapFlow=extrapFlow)        
       res.append(zp)
+  return None
 
 # -- extractBCOfType
 # Extract all BC of a given type
