@@ -7,7 +7,7 @@
 
 
 */
-//Authors : S�m Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef NUGALIB
 #include "parallel.h"

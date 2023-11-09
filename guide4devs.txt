@@ -31,3 +31,32 @@ Tests :
 - parallel test finishes by _m1, _m2 and are run on 2 procs.
 - in tests, dont use input files, create the test case in the script.
 - a test must run in less than 10 seconds (ideally 1 sec).
+
+OpenMP :
+--------
+- when a computationaly intensive loops exist, if the treatment is independant, you must use
+omp for parallelisation. For example :
+
+#pragma omp parallel
+{
+    E_Int localInt;
+    E_Float localFloat;
+    #pragma omp for
+    for (E_Int i = 0; i < ncells; i++)
+    {
+        localInt = i;
+        localFloat = 12./i;
+       /* ... */
+    }
+}
+
+- the pragma omp parallel creates threads and as a slight cost.
+- the pragma omp for only split the for loop into equal pieces
+- for more complex creation, you can access the thread id like this :
+
+#pragma omp parallel
+{
+  E_Int ithread = __CURRENT_THREAD__;
+  E_Int numThreads = __NUMTHREADS__; 
+  /* ... */
+}

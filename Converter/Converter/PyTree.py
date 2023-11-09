@@ -4964,9 +4964,10 @@ def getBC2__(zbc, z, T, res, extrapFlow=True):
 # IN: shift: if not 0, shift BC of index for structured grids only
 def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0):
   
-  connects = Internal.getNodesFromType(z,"Elements_t")#BE + BC en connect TRI
+  connects = Internal.getNodesFromType(z, "Elements_t")
   zdim = Internal.getZoneDim(z)
-  if zdim[0] == 'Unstructured': ztype = zdim[3]  
+  if zdim[0] == 'Unstructured': ztype = zdim[3]
+
   # IndexRange
   r = Internal.getNodeFromType1(i, 'IndexRange_t')
   if r is not None and r[1].shape[0] > 1: # structure - suppose range in nodes

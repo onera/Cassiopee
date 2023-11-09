@@ -120,8 +120,7 @@ def bbox(arrays):
     """Returns the bounding box of a list of arrays.
     Usage: bbox(arrays)"""
     import KCore
-    if len(arrays) == 0:
-        raise ValueError("bbox: array list is empty.")
+    if len(arrays) == 0: return [1.e256, 1.e256, 1.e256, -1.e256, -1.e256, -1.e256]
     if not isinstance(arrays[0], list): ars = [arrays]
     else: ars = arrays
     xmin = 1.e256; ymin = 1.e256; zmin = 1.e256
