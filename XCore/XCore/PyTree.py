@@ -132,6 +132,17 @@ def loadAndSplitNGon(fileName):
   # create zone
   zo = I.createZoneNode('Zone_' + '%d'%Cmpi.rank, mesh)
 
+  # add ZoneGridConnectivity
+  ZGC = I.newZoneGridConnectivity(parent=zo)
+
+  for data in comm_data:
+    Name = 'Match_'+str(data[0])
+    I.newGridConnectivity1to1(name=Name, donorName='Proc_'+str(data[0]), pointList=data[1], parent=ZGC)
+  
+  I.newUserDefinedData(name='CellLoc2Glob', value=RES[5], parent=ZGC)
+  I.newUserDefinedData(name='FaceLoc2Glob', value=RES[6], parent=ZGC)
+  I.newUserDefinedData(name='PointLoc2Glob', value=RES[7], parent=ZGC)
+
   # add solutions
   for n, name in enumerate(solNames):
     cont = I.createUniqueChild(zo, I.__FlowSolutionNodes__, 'FlowSolution_t')
