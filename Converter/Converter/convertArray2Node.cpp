@@ -40,14 +40,14 @@ PyObject* K_CONVERTER::convertArray2Node(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res;
-  res = K_ARRAY::getFromArray(array, varString, 
-                              f, nil, njl, nkl, cn, eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, 
+                               f, nil, njl, nkl, cn, eltType);
   
   // Building numpy arrays and return it.
   if (res == 1)      // Structured
   {
     FldArrayI* cnl = new FldArrayI();
-    tpl = K_ARRAY::buildArray(*f, varString, *cnl, 0);
+    tpl = K_ARRAY::buildArray3(*f, varString, *cnl, "NODE");
     delete cnl;
     RELEASESHAREDS(array, f);
     return tpl;
@@ -55,7 +55,7 @@ PyObject* K_CONVERTER::convertArray2Node(PyObject* self, PyObject* args)
   else if (res == 2) // Unstructured
   {
     FldArrayI* cnl = new FldArrayI();
-    tpl = K_ARRAY::buildArray(*f, varString, *cnl, 0);
+    tpl = K_ARRAY::buildArray3(*f, varString, *cnl, "NODE");
     delete cnl;
     RELEASESHAREDU(array, f, cn);
     return tpl;
