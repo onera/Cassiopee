@@ -51,8 +51,8 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   E_Int ni, nj, nk; // number of points of array
   E_Int posx = -1; E_Int posy = -1; E_Int posz = -1;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn,
-                                    eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn,
+                                     eltType);
 
   if (res != 1 && res != 2)
   {
@@ -83,15 +83,13 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   char* varStringc; char* eltTypec;
   FldArrayF* fc; FldArrayI* cnc;
   E_Int nic, njc, nkc; // number of points of array
-  res = K_ARRAY::getFromArray(arrayc, varStringc, fc, nic, njc, nkc, cnc,
-                              eltTypec, true);
+  res = K_ARRAY::getFromArray3(arrayc, varStringc, fc, nic, njc, nkc, cnc,
+                               eltTypec);
 
   // Extract cellN if any
   E_Float* cellNp = NULL;
   E_Int ncells = fc->getSize();
   if (cellNc != Py_None) K_NUMPY::getFromNumpyArray(cellNc, cellNp, ncells, true);
-
-  E_Int npts = f->getSize();
 
   // Nombre de variable dont il faut calculer le gradient
   E_Int nfld = fc->getNfld();
@@ -132,11 +130,8 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   E_Int* cFE2 = cFE.begin(2);
 
   // Calcul du champ aux faces
-      
-  // Acces universel nbres de faces et d'elements
   E_Int nfaces = cn->getNFaces();
   E_Int nelts = cn->getNElts();
-  
   
   FldArrayF faceField(nfaces, nfld);
   E_Int i1, i2;
@@ -207,15 +202,10 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
     RELEASESHAREDN(field, bfield);
   }
 
-  // Build
-  PyObject* tpl = K_ARRAY::buildArray(nfld*3, varStringOut, npts,
-                                      nelts, -1, eltType, true,
-                                      cn->getSize()*cn->getNfld());
-
-  E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-  K_KCORE::memcpy__(cnnp, cn->begin(), cn->getSize()*cn->getNfld());
-  E_Float* gnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF gp(nelts, 3*nfld, gnp, true); gp.setAllValuesAtNull();
+  // Build unstructured NGON array from existing connectivity & empty fields
+  FldArrayF* gp = new FldArrayF(nelts, nfld*3, true); gp->setAllValuesAtNull();
+  PyObject* tpl = K_ARRAY::buildArray3(*gp, varStringOut, *cn, "NGON");
+  delete gp; K_ARRAY::getFromArray3(tpl, gp);
 
   FldArrayF surf(nfaces, 4);
   E_Float* sxp = surf.begin(1);
@@ -229,9 +219,9 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   E_Float ff;
   for (E_Int n = 0; n < nfld; n++)
   {
-    E_Float* gpx = gp.begin(3*n+1);
-    E_Float* gpy = gp.begin(3*n+2);
-    E_Float* gpz = gp.begin(3*n+3);
+    E_Float* gpx = gp->begin(3*n+1);
+    E_Float* gpy = gp->begin(3*n+2);
+    E_Float* gpz = gp->begin(3*n+3);
     E_Float* fp = faceField.begin(n+1);
     for (E_Int i = 0; i < nfaces; i++)
     {
@@ -280,9 +270,9 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   E_Float voli;
   for (E_Int n = 0; n < nfld; n++)
   {
-    E_Float* gpx = gp.begin(3*n+1);
-    E_Float* gpy = gp.begin(3*n+2);
-    E_Float* gpz = gp.begin(3*n+3);
+    E_Float* gpx = gp->begin(3*n+1);
+    E_Float* gpy = gp->begin(3*n+2);
+    E_Float* gpz = gp->begin(3*n+3);
     for (E_Int i = 0; i < nelts; i++)
     {
       //printf("vol=%f\n", volp[i]);
@@ -318,8 +308,8 @@ PyObject* K_POST::computeGrad2Struct(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   E_Int ni, nj, nk; // number of points of array
   E_Int posx = -1; E_Int posy = -1; E_Int posz = -1;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn,
-                                    eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn,
+                                     eltType);
   if (res != 1)
   {
     if (res == 2) RELEASESHAREDB(res,array,f,cn);
@@ -353,8 +343,8 @@ PyObject* K_POST::computeGrad2Struct(PyObject* self, PyObject* args)
   char* varStringc; char* eltTypec;
   FldArrayF* fc; FldArrayI* cnc;
   E_Int nic, njc, nkc; // number of points of array
-  res = K_ARRAY::getFromArray(arrayc, varStringc, fc, nic, njc, nkc, cnc,
-                              eltTypec, true);
+  res = K_ARRAY::getFromArray3(arrayc, varStringc, fc, nic, njc, nkc, cnc,
+                               eltTypec);
 
 
   // Extract cellN if any
@@ -652,7 +642,7 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
     RELEASESHAREDN(field, bfield);
   }
 
-  PyObject* tpl = K_ARRAY::buildArray(nfldg,varStringOut, nic, njc, nkc);
+  PyObject* tpl = K_ARRAY::buildArray3(nfldg,varStringOut, nic, njc, nkc);
   E_Float* gnp = K_ARRAY::getFieldPtr(tpl);
   FldArrayF gp(ncells, nfldg, gnp, true); gp.setAllValuesAtNull();
   FldArrayF surf(nbIntTot,3);
@@ -911,7 +901,7 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
     RELEASESHAREDN(indices, inds);
     RELEASESHAREDN(field, bfield);
   }
-  PyObject* tpl = K_ARRAY::buildArray(nfldg,varStringOut, nic, njc, nkc);
+  PyObject* tpl = K_ARRAY::buildArray3(nfldg,varStringOut, nic, njc, nkc);
   E_Float* gnp = K_ARRAY::getFieldPtr(tpl);
   FldArrayF gp(ncells, nfldg, gnp, true); gp.setAllValuesAtNull();
 
