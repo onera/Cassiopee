@@ -101,18 +101,20 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
   for (int i = 0; i < n; i++)
   {
     tpl = PyList_GetItem(o, i);
-    /*
-    if (PyList_Check(PyList_GetItem(tpl,1)) == true)
-    {
-      resl = K_ARRAY::getFromArray2(tpl, varString, f,
-                                    nil, njl, nkl, cn, eltT);
-    }
-    else
-      resl = K_ARRAY::getFromArray(tpl, varString, f,
-                                   nil, njl, nkl, cn, eltT, shared);
-    */
-    resl = K_ARRAY::getFromArray2(tpl, varString, f,
+    resl = K_ARRAY::getFromArray3(tpl, varString, f,
                                   nil, njl, nkl, cn, eltT);
+    // /*
+    // if (PyList_Check(PyList_GetItem(tpl,1)) == true)
+    // {
+    //   resl = K_ARRAY::getFromArray2(tpl, varString, f,
+    //                                 nil, njl, nkl, cn, eltT);
+    // }
+    // else
+    //   resl = K_ARRAY::getFromArray(tpl, varString, f,
+    //                                nil, njl, nkl, cn, eltT, shared);
+    // */
+    // resl = K_ARRAY::getFromArray2(tpl, varString, f,
+    //                               nil, njl, nkl, cn, eltT);
 
     if (skipNoCoord == true)
     {
@@ -260,16 +262,18 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
   for (int i = 0; i < n; i++)
   {
     tpl = PyList_GetItem(o, i);
-    if (PyList_Check(PyList_GetItem(tpl,1)) == true)
-    {
-      resl = K_ARRAY::getFromArray2(tpl, varStringl, f, 
-                                    nil, njl, nkl, cn, eltT);
-    }
-    else
-    {
-      resl = K_ARRAY::getFromArray(tpl, varStringl, f, 
-                                   nil, njl, nkl, cn, eltT, shared); 
-    }
+    resl = K_ARRAY::getFromArray3(tpl, varStringl, f, 
+                                  nil, njl, nkl, cn, eltT);
+    // if (PyList_Check(PyList_GetItem(tpl,1)) == true)
+    // {
+    //   resl = K_ARRAY::getFromArray2(tpl, varStringl, f, 
+    //                                 nil, njl, nkl, cn, eltT);
+    // }
+    // else
+    // {
+    //   resl = K_ARRAY::getFromArray(tpl, varStringl, f, 
+    //                                nil, njl, nkl, cn, eltT, shared); 
+    // }
     if (skipNoCoord == true)
     {
       posx = K_ARRAY::isCoordinateXPresent(varStringl);
