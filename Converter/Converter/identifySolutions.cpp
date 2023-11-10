@@ -135,7 +135,7 @@ PyObject* K_CONVERTER::identifySolutions(PyObject* self, PyObject* args)
   E_Int sizeP = 0;
   for (E_Int nod = 0; nod < nDnrFields; nod++)
   { 
-    sizeP+= fields[nod]->getSize();
+    sizeP += fields[nod]->getSize();
     indirZones[nod] = sizeP;
   }
   E_Int posx1, posy1, posz1;
@@ -149,37 +149,22 @@ PyObject* K_CONVERTER::identifySolutions(PyObject* self, PyObject* args)
     E_Float* xR = coordsR[nor]->begin(posx1);
     E_Float* yR = coordsR[nor]->begin(posy1);
     E_Float* zR = coordsR[nor]->begin(posz1);
+    FldArrayF* fout = new FldArrayF(nptsR, nfldout); fout->setAllValuesAtNull();
     if (resR[nor] == 1)
     {
       E_Int nir = *(E_Int*)aR2[nor];
       E_Int njr = *(E_Int*)aR3[nor];
       E_Int nkr = *(E_Int*)aR4[nor];
-      tpl = K_ARRAY::buildArray(nfldout, varStringOut, nir, njr, nkr);
+      tpl = K_ARRAY::buildArray3(nfldout, varStringOut, nir, njr, nkr);
     }
-    else //unstr
+    else // unstr: NGON or BE/ME
     {
       FldArrayI* cnR = (FldArrayI*)aR2[nor];
       char* eltTypeR = (char*)aR3[nor];
-      E_Boolean iscenter = false;
-      if (strchr(eltTypeR,'*') != NULL) iscenter = true;
-      if (strcmp(eltTypeR,"NGON") == 0 ||  strcmp(eltTypeR,"NGON*") == 0) 
-      {
-        E_Int* cnpR = cnR->begin();
-        E_Int sizeFN = cnpR[1];
-        E_Int nelts = cnpR[sizeFN+2];  // nombre total d elements
-        tpl = K_ARRAY::buildArray(nfldout, varStringOut,
-                                  nptsR, nelts,
-                                  -1, "NGON", iscenter, cnR->getSize()*cnR->getNfld());
-      }
-      else
-        tpl = K_ARRAY::buildArray(nfldout, varStringOut,
-                                  nptsR, cnR->getSize(),
-                                  -1, eltTypeR);
-      E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-      K_KCORE::memcpy__(cnnp, cnR->begin(), cnR->getSize()*cnR->getNfld());
+      tpl = K_ARRAY::buildArray3(*fout, varStringOut, *cnR, eltTypeR);
     }
-    E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF fp(nptsR, nfldout, fnp, true); fp.setAllValuesAtNull();
+    FldArrayI* cnout;
+    K_ARRAY::getFromArray3(tpl, fout, cnout);
     
     // identification
 #pragma omp parallel default(shared)
@@ -209,7 +194,7 @@ PyObject* K_CONVERTER::identifySolutions(PyObject* self, PyObject* args)
           }
           FldArrayF& fieldD = *fields[noblkD];
           for (E_Int eq = 1; eq <= nfldout; eq++)
-            fp(indR,eq) = fieldD(indD,eq); 
+            (*fout)(indR,eq) = fieldD(indD,eq); 
         }
       }
     }

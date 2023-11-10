@@ -40,11 +40,10 @@ void K_CONVERTER::conformizeNGon(
   E_Float* py = f.begin(posy);
   E_Float* pz = f.begin(posz);
 
-  // Calcul de posFaces
-  E_Int* cnp = cn.begin();
-  E_Int nfaces = cnp[0];
-  FldArrayI posFaces;
-  K_CONNECT::getPosFaces(cn, posFaces);
+  // Acces non universel sur les ptrs
+  E_Int* ngon = cn.getNGon();
+  E_Int* indPG = cn.getIndPG();
+  E_Int nfaces = cn.getNFaces();
  
   typedef K_SEARCH::BoundingBox<3>  BBox3DType;
   K_SEARCH::BbTree3D* bbtree;
@@ -52,18 +51,19 @@ void K_CONVERTER::conformizeNGon(
 
 #pragma omp parallel default(shared)
   {
-    E_Int* ptr; E_Int np; E_Int ind;
+    E_Int np; E_Int ind;
     E_Float minB[3]; E_Float maxB[3];
     E_Float x, y, z;
+#pragma omp for schedule(static)
     for (E_Int i = 0; i < nfaces; i++)
     {
-      ptr = cnp+posFaces[i];
-      np = ptr[0];
+      // Acces universel face i
+      E_Int* face = cn.getFace(i, np, ngon, indPG);
       minB[0] = K_CONST::E_MAX_FLOAT; minB[1] = K_CONST::E_MAX_FLOAT; minB[2] = K_CONST::E_MAX_FLOAT;
       maxB[0] = -K_CONST::E_MAX_FLOAT; maxB[1] = -K_CONST::E_MAX_FLOAT; maxB[2] = -K_CONST::E_MAX_FLOAT;
       for (E_Int j = 0; j < np; j++)
       {
-        ind = ptr[j+1]-1;
+        ind = face[j]-1;
         x = px[ind]; y = py[ind]; z = pz[ind];
         minB[0] = std::min(minB[0], x);
         minB[1] = std::min(minB[1], y);
@@ -91,13 +91,12 @@ void K_CONVERTER::conformizeNGon(
   {
   E_Int size, initFrontSize;
   E_Float* edge;
-  E_Int nof1, nof2, match, pos;
+  E_Int nof1, nof2, match;
   list<E_Float*>::iterator it; 
   list<E_Float*>::iterator it1; list<E_Float*>::iterator it2;
   list<E_Int>::iterator iti;
   E_Int frontSize;
   E_Float minB[3]; E_Float maxB[3];
-  E_Int* ptr; E_Int* ptr2;
   E_Int np, np2, ind, ret3, ret4;
   E_Float x, y, z, xp, yp, zp;
   E_Float pt1[3]; E_Float pt2[3]; E_Float pt3[3]; E_Float pt4[3];
@@ -107,14 +106,13 @@ void K_CONVERTER::conformizeNGon(
   {
     //printf("face %d over %d faces.\n", nof1, nfaces);
     // BB de la face courante
-    ptr = cnp+posFaces[nof1];
-    np = ptr[0];
+    E_Int* face = cn.getFace(nof1, np, ngon, indPG);
     /*
     minB[0] = K_CONST::E_MAX_FLOAT; minB[1] = K_CONST::E_MAX_FLOAT; minB[2] = K_CONST::E_MAX_FLOAT;
     maxB[0] = -K_CONST::E_MAX_FLOAT; maxB[1] = -K_CONST::E_MAX_FLOAT; maxB[2] = -K_CONST::E_MAX_FLOAT;
     for (E_Int j = 0; j < np; j++)
     {
-      ind = ptr[j+1]-1;
+      ind = face[j]-1;
       x = px[ind]; y = py[ind]; z = pz[ind];
       minB[0] = std::min(minB[0], x);
       minB[1] = std::min(minB[1], y);
@@ -144,11 +142,11 @@ void K_CONVERTER::conformizeNGon(
     // Formation du front de F1 (front)
     list<E_Float*> front; list<E_Float*> newFront;
     list<E_Int> replacement; // indices des faces remplacant F1
-    ind = ptr[np]-1;
+    ind = face[np-1]-1;
     xp = px[ind]; yp = py[ind]; zp = pz[ind];
     for (E_Int j = 0; j < np; j++)
     {
-      ind = ptr[j+1]-1;
+      ind = face[j]-1;
       x = px[ind]; y = py[ind]; z = pz[ind];
       edge = new E_Float[7];
       edge[0] = x; edge[1] = y; edge[2] = z;
@@ -159,14 +157,14 @@ void K_CONVERTER::conformizeNGon(
     }
     initFrontSize = front.size();
 
-    if (nof1 == 16649)
-    {
-      for (it1 = front.begin(); it1 != front.end(); it1++)
-      {
-        edge = *it1;
-        /* printf("QUAD edge %f %f %f -> %f %f %f\n", edge[0],edge[1],edge[2],edge[3],edge[4],edge[5]); */
-      }
-    }
+    // if (nof1 == 16649)
+    // {
+    //   for (it1 = front.begin(); it1 != front.end(); it1++)
+    //   {
+    //     edge = *it1;
+    //     /* printf("QUAD edge %f %f %f -> %f %f %f\n", edge[0],edge[1],edge[2],edge[3],edge[4],edge[5]); */
+    //   }
+    // }
 
     // Recherche des faces intersectant la face (au sens BB Tree)
     // indicesBB est la liste des facettes candidates (contient elle-meme)
@@ -180,17 +178,15 @@ void K_CONVERTER::conformizeNGon(
       {
         // liste des edges de F2
         list<E_Float*> F2edges;
-        pos = posFaces[nof2];
-        ptr2 = cnp+pos;
-        np2 = ptr2[0];
+        E_Int* face2 = cn.getFace(nof2, np2, ngon, indPG);
         /*
         if (nof1 == 16649 && np2 == 3) printf("Testing face nof1=%d with nof2=%d\n", nof1, nof2);
         */
-        ind = ptr2[np2]-1;
+        ind = face2[np2-1]-1;
         xp = px[ind]; yp = py[ind]; zp = pz[ind];
         for (E_Int j = 0; j < np2; j++)
         {
-          ind = ptr2[j+1]-1;
+          ind = face2[j]-1;
           x = px[ind]; y = py[ind]; z = pz[ind];
           edge = new E_Float[7];
           edge[0] = x; edge[1] = y; edge[2] = z;
@@ -388,58 +384,84 @@ void K_CONVERTER::conformizeNGon(
   delete bbtree;
 
   // reconstruction de la connectivite elt->faces
-  E_Int* ptr = cn.begin();
-  E_Int sizeEF = 0;
-  E_Int sizeFN = ptr[1];
-  ptr += 2+sizeFN;
-  E_Int nelts = ptr[0];
-  E_Int nf, nf2; 
+  E_Int* nface = cn.getNFace();
+  E_Int* indPH = cn.getIndPH();
+  E_Int sizeFN = cn.getSizeNGon();
+  E_Int nelts = cn.getNElts();
+
+  E_Int nf; 
   E_Int* addr;
-  ptr += 2;
+  E_Int api = f.getApi();
+  E_Int shift = 1; if (api == 3) shift = 0;
+  E_Int sizeEF = 0;
+  if (api == 1 || api == 2) sizeEF = nelts;
+
   for (E_Int i = 0; i < nelts; i++)
   {
-    nf = ptr[0]; sizeEF++;
+    E_Int* elem = cn.getElt(i, nf, nface, indPH);
     for (E_Int j = 0; j < nf; j++) 
     { 
-      addr = indir[ptr[j+1]-1];
+      addr = indir[elem[j]-1];
       if (addr == NULL) sizeEF++;
       else sizeEF += addr[0];
     }
-    ptr += nf+1;
   }
-  //printf("sizeEF=%d, nelts=%d\n", sizeEF, nelts);
-  
-  cno = new FldArrayI(4 + sizeFN + sizeEF);
-  E_Int* cnop = cno->begin();
-  
-  ptr = cn.begin();
-  cnp = cn.begin();
-  
+  //printf("sizeFN=%d, sizeEF=%d, nfaces=%d, nelts=%d\n", sizeFN, sizeEF, nfaces, nelts);
+
+  // Create new NGON connectivity
+  E_Int npts = f.getSize();
+  E_Int nfld = f.getNfld();
+  E_Int ngonType = cn.isNGon();
+  E_Boolean center = false;
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, "x,y,z", npts, nelts, nfaces, "NGON",
+                                       sizeFN, sizeEF, ngonType, center, api);
+  FldArrayF* f2;
+  K_ARRAY::getFromArray3(tpl, f2, cno);
+
+  // Acces non universel sur les pointeurs de la nouvelle connectivite cno
+  E_Int* ngon2 = cno->getNGon();
+  E_Int* nface2 = cno->getNFace();
+  E_Int *indPG2 = NULL, *indPH2 = NULL;
+  if (api == 2 || api == 3) // array2 ou array3
+  {
+    indPG2 = cno->getIndPG(); indPH2 = cno->getIndPH();
+  }
+
   // Recopie la connectivite faces/noeuds
-  for (E_Int i = 0; i < sizeFN+2; i++) cnop[i] = ptr[i];
+#pragma omp parallel
+  {
+#pragma omp for
+    for (E_Int i = 0; i < sizeFN; i++) ngon2[i] = ngon[i];
+
+    if (api == 2 || api == 3)
+    {
+#pragma omp for
+      for (E_Int i = 0; i < nfaces; i++) indPG2[i] = indPG[i];
+    }
+  }
+  if (api == 3) indPG2[nfaces] = indPG[nfaces];
   
-  ptr = cnp+4+sizeFN; // pointe sur EF
-  E_Int* ptr2 = cnop+sizeFN+2;
-  ptr2[0] = nelts;
-  ptr2[1] = sizeEF;
-  ptr2 += 2;
- 
+  // Connectivite elements/faces
+  E_Int nf2 = 0, c = 0;
   for (E_Int i = 0; i < nelts; i++)
   {
-    nf = ptr[0]; nf2 = 0; 
-    for (E_Int j = 0; j < nf; j++) 
+    if (api == 2 || api == 3) indPH2[i] = nf2;
+    nf2 = 0;
+    E_Int* elem = cn.getElt(i, nf, nface, indPH);
+    for (E_Int j = 0; j < nf; j++)
     {
-      addr = indir[ptr[j+1]-1];
-      if (addr == NULL) { ptr2[nf2+1] = ptr[j+1]; nf2++; }
-      else 
+      addr = indir[elem[j]-1];
+      if (addr == NULL) { nface2[c+shift+nf2] = elem[j]; nf2++; }
+      else
       {
         for (E_Int k = 0; k < addr[0]; k++)
-        { ptr2[nf2+1] = addr[k+1]+1; nf2++; }
+        { nface2[c+shift+nf2] = addr[k+1]+1; nf2++; }
       }
     }
-    ptr2[0] = nf2;
-    ptr2 += nf2+1; ptr += nf+1;
+    if (api == 1 || api == 2) nface2[c] = nf2;
+    c += nf2+shift;
   }
+  if (api == 3) indPH2[nelts] = nf2;
   
   // free indir
   for (E_Int i = 0; i < nfaces; i++)
@@ -456,5 +478,4 @@ void K_CONVERTER::conformizeNGon(
   printf("final2 %d %d\n", cFE(13971,1), cFE(13971,2));
   printf("final3 %d %d\n", cFE(13969,1), cFE(13969,2));
   */
-  
 }

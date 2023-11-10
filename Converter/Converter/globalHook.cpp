@@ -83,11 +83,10 @@ PyObject* K_CONVERTER::registerAllFaces(PyObject* self, PyObject* args)
   }
 
   // Parcours les faces, calcule les centres, les enregistre dans le KdTree
-  E_Int nfacesTot=0;
+  E_Int nfacesTot = 0;
   for (E_Int noz = 0; noz < nzones; noz++)
   {
-    FldArrayI& cnl = *cnt[noz];
-    nfacesTot+= cnl[0];
+    nfacesTot += cnt[noz]->getNFaces();
   }
   
   FldArrayF* centers = new FldArrayF(nfacesTot, 3);
@@ -103,21 +102,27 @@ PyObject* K_CONVERTER::registerAllFaces(PyObject* self, PyObject* args)
   {
     for (E_Int noz = 0; noz < nzones; noz++)
     {
+      // Acces non universel sur les ptrs
+      E_Int* ngon = cnt[noz]->getNGon();
+      E_Int* indPG = cnt[noz]->getIndPG();
+
+      E_Int nfaces = cnt[noz]->getNFaces();
       E_Float* xp = unstrF[noz]->begin(posxu[noz]);
       E_Float* yp = unstrF[noz]->begin(posyu[noz]);
-      E_Float* zp = unstrF[noz]->begin(poszu[noz]);        
-      E_Int* ptr = cnt[noz]->begin(); ptr += 2;
-      E_Int nfaces = (*cnt[noz])[0];
+      E_Float* zp = unstrF[noz]->begin(poszu[noz]); 
+
+# pragma omp parallel for
       for (E_Int i = 0; i < nfaces; i++)
       {
-        nv = ptr[0]; 
+        // Acces universel face i
+        E_Int* face = cnt[noz]->getFace(i, nv, ngon, indPG);
         xf = 0.; yf = 0.; zf = 0.;
-        for (E_Int n = 1; n <= nv; n++)
-        { ind = ptr[n]-1; xf += xp[ind]; yf += yp[ind]; zf += zp[ind]; }
+        for (E_Int n = 0; n < nv; n++)
+        { ind = face[n]-1; xf += xp[ind]; yf += yp[ind]; zf += zp[ind]; }
         inv = 1./nv; xf *= inv; yf *= inv; zf *= inv;
-        cx[ig] = xf; cy[ig] = yf; cz[ig] = zf;
-        ptr += nv+1; ig++; 
+        cx[ig+i] = xf; cy[ig+i] = yf; cz[ig+i] = zf;
       }
+      ig += nfaces;
     }
   }
   else 
@@ -127,22 +132,27 @@ PyObject* K_CONVERTER::registerAllFaces(PyObject* self, PyObject* args)
 
     for (E_Int noz = 0; noz < nzones; noz++)
     {
+      // Acces non universel sur les ptrs
+      E_Int* ngon = cnt[noz]->getNGon();
+      E_Int* indPG = cnt[noz]->getIndPG();      
+      E_Int nfaces = cnt[noz]->getNFaces();
       E_Float* xp = unstrF[noz]->begin(posxu[noz]);
       E_Float* yp = unstrF[noz]->begin(posyu[noz]);
       E_Float* zp = unstrF[noz]->begin(poszu[noz]);        
-      E_Int* ptr = cnt[noz]->begin(); ptr += 2;
-      E_Int nfaces = (*cnt[noz])[0];
+
+# pragma omp parallel for      
       for (E_Int i = 0; i < nfaces; i++)
       {
-        nv = ptr[0]; 
+        // Acces universel face i
+        E_Int* face = cnt[noz]->getFace(i, nv, ngon, indPG);
         xf = 0.; yf = 0.; zf = 0.;
-        for (E_Int n = 1; n <= nv; n++)
-        { ind = ptr[n]-1; xf += xp[ind]; yf += yp[ind]; zf += zp[ind]; }
+        for (E_Int n = 0; n < nv; n++)
+        { ind = face[n]-1; xf += xp[ind]; yf += yp[ind]; zf += zp[ind]; }
         inv = 1./nv; xf *= inv; yf *= inv; zf *= inv;
-        cx[ig] = xf; cy[ig] = yf; cz[ig] = zf;
-        ptrNumZones[ig] = noz;
-        ptr += nv+1; ig++; 
+        cx[ig+i] = xf; cy[ig+i] = yf; cz[ig+i] = zf;
+        ptrNumZones[ig+i] = noz;
       }
+      ig += nfaces;
     }
     indirZones = K_NUMPY::buildNumpyArray(*numZones);
   }
@@ -248,11 +258,12 @@ PyObject* K_CONVERTER::registerAllNodes(PyObject* self, PyObject* args)
       E_Float* xp = fields[noz]->begin(posxt[noz]);
       E_Float* yp = fields[noz]->begin(posyt[noz]);
       E_Float* zp = fields[noz]->begin(poszt[noz]);
+# pragma omp parallel for  
       for (E_Int i = 0; i < npts; i++)
       {
-        cx[ig] = xp[i]; cy[ig] = yp[i]; cz[ig] = zp[i];
-        ig++;
+        cx[ig+i] = xp[i]; cy[ig+i] = yp[i]; cz[ig+i] = zp[i];
       }
+      ig += npts;
     }
   }
   else
@@ -265,12 +276,13 @@ PyObject* K_CONVERTER::registerAllNodes(PyObject* self, PyObject* args)
       E_Float* xp = fields[noz]->begin(posxt[noz]);
       E_Float* yp = fields[noz]->begin(posyt[noz]);
       E_Float* zp = fields[noz]->begin(poszt[noz]);
+# pragma omp parallel for  
       for (E_Int i = 0; i < npts; i++)
       {
-        cx[ig] = xp[i]; cy[ig] = yp[i]; cz[ig] = zp[i];
-        ptrNumZones[ig] = noz;
-        ig++;
+        cx[ig+i] = xp[i]; cy[ig+i] = yp[i]; cz[ig+i] = zp[i];
+        ptrNumZones[ig+i] = noz;
       }
+      ig += npts;
     }
     indirZones = K_NUMPY::buildNumpyArray(*numZones);
   }
@@ -370,8 +382,7 @@ PyObject* K_CONVERTER::registerAllElements(PyObject* self, PyObject* args)
   E_Int neltsTot = 0;
   for (E_Int noz = 0; noz < nzones; noz++)
   {
-    E_Int* ptr0 = cnt[noz]->begin();
-    neltsTot+= ptr0[ptr0[1]+2];
+    neltsTot += cnt[noz]->getNElts();
   }
   
   // Parcours les elements, calcule les centres, les enregistre dans le KdTree
@@ -380,43 +391,42 @@ PyObject* K_CONVERTER::registerAllElements(PyObject* self, PyObject* args)
   E_Float* cy = centers->begin(2);
   E_Float* cz = centers->begin(3);
   E_Int ig = 0;
-  E_Int nv, ind, nf, pos, c;
+  E_Int nv, ind, nf, c;
   E_Float xf, yf, zf, inv;
-  FldArrayI posFace;
-  E_Int* ptrFace;
   PyObject* indirZones=NULL;
 
   if (extended == 0) 
   {
     for (E_Int noz = 0; noz < nzones; noz++)
     {    
-      E_Int* ptr = cnt[noz]->begin();
-      E_Int nelts = ptr[ptr[1]+2]; 
+      // Acces non universel sur les ptrs
+      E_Int* ngon = cnt[noz]->getNGon();
+      E_Int* nface = cnt[noz]->getNFace();
+      E_Int* indPG = cnt[noz]->getIndPG();
+      E_Int* indPH = cnt[noz]->getIndPH();
+      E_Int nelts = cnt[noz]->getNElts();
       E_Float* xp = unstrF[noz]->begin(posxt[noz]);
       E_Float* yp = unstrF[noz]->begin(posyt[noz]);
       E_Float* zp = unstrF[noz]->begin(poszt[noz]);
-      E_Int* ptrElt = cnt[noz]->begin(); ptrElt += ptrElt[1]+4;
-      K_CONNECT::getPosFaces(*cnt[noz], posFace);
-    
+  
       for (E_Int i = 0; i < nelts; i++)
       {
-        nf = ptrElt[0];
+        // Acces universel element i
+        E_Int* elem = cnt[noz]->getElt(i, nf, nface, indPH);
         xf = 0.; yf = 0.; zf = 0.; c = 0;
 
-        for (E_Int n = 1; n <= nf; n++)
+        for (E_Int n = 0; n < nf; n++)
         { 
-          ind = ptrElt[n]-1;
-          pos = posFace[ind];
-          ptrFace = &ptr[pos];
-          nv = ptrFace[0];
-          for (E_Int p = 1; p <= nv; p++)
+          // Acces universel face elem[n]-1
+          E_Int* face = cnt[noz]->getFace(elem[n]-1, nv, ngon, indPG);
+          for (E_Int p = 0; p < nv; p++)
           {
-            ind = ptrFace[p]-1; xf += xp[ind]; yf += yp[ind]; zf += zp[ind]; c++;
+            ind = face[p]-1; xf += xp[ind]; yf += yp[ind]; zf += zp[ind]; c++;
           }
         }
         inv = 1./c; xf *= inv; yf *= inv; zf *= inv;
         cx[ig] = xf; cy[ig] = yf; cz[ig] = zf;
-        ptrElt += nf+1; ig++;
+        ig++;
       }
     }
   }
@@ -427,34 +437,35 @@ PyObject* K_CONVERTER::registerAllElements(PyObject* self, PyObject* args)
 
     for (E_Int noz = 0; noz < nzones; noz++)
     {    
-      E_Int* ptr = cnt[noz]->begin();
-      E_Int nelts = ptr[ptr[1]+2]; 
+      // Acces non universel sur les ptrs
+      E_Int* ngon = cnt[noz]->getNGon();
+      E_Int* nface = cnt[noz]->getNFace();
+      E_Int* indPG = cnt[noz]->getIndPG();
+      E_Int* indPH = cnt[noz]->getIndPH();
+      E_Int nelts = cnt[noz]->getNElts();
       E_Float* xp = unstrF[noz]->begin(posxt[noz]);
       E_Float* yp = unstrF[noz]->begin(posyt[noz]);
       E_Float* zp = unstrF[noz]->begin(poszt[noz]);
-      E_Int* ptrElt = cnt[noz]->begin(); ptrElt += ptrElt[1]+4;
-      K_CONNECT::getPosFaces(*cnt[noz], posFace);
     
       for (E_Int i = 0; i < nelts; i++)
       {
-        nf = ptrElt[0];
+        // Acces universel element i
+        E_Int* elem = cnt[noz]->getElt(i, nf, nface, indPH);
         xf = 0.; yf = 0.; zf = 0.; c = 0;
 
-        for (E_Int n = 1; n <= nf; n++)
+        for (E_Int n = 0; n < nf; n++)
         { 
-          ind = ptrElt[n]-1;
-          pos = posFace[ind];
-          ptrFace = &ptr[pos];
-          nv = ptrFace[0];
-          for (E_Int p = 1; p <= nv; p++)
+          // Acces universel face elem[n]-1
+          E_Int* face = cnt[noz]->getFace(elem[n]-1, nv, ngon, indPG);
+          for (E_Int p = 0; p < nv; p++)
           {
-            ind = ptrFace[p]-1; xf += xp[ind]; yf += yp[ind]; zf += zp[ind]; c++;
+            ind = face[p]-1; xf += xp[ind]; yf += yp[ind]; zf += zp[ind]; c++;
           }
         }
         inv = 1./c; xf *= inv; yf *= inv; zf *= inv;
         cx[ig] = xf; cy[ig] = yf; cz[ig] = zf;
         ptrNumZones[ig] = noz;
-        ptrElt += nf+1; ig++;
+        ig++;
       }
     }
     indirZones = K_NUMPY::buildNumpyArray(*numZones);
