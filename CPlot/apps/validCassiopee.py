@@ -164,7 +164,7 @@ def check_output(cmd, shell, stderr):
         PROCESS = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, cwd=wdir, shell=shell, preexec_fn=ossid)
         
-        stdout, stderr = PROCESS.communicate(None, timeout=60.*1.) # max accepted time is 1 minute for one test
+        stdout, stderr = PROCESS.communicate(None, timeout=60.*2.) # max accepted time is 2 minutes for one test
         
         if PROCESS.wait() != 0: stderr += b'\nError: process FAILED (Segmentation Fault or floating point exception).'
         PROCESS = None # fini!

@@ -298,7 +298,7 @@ hid_t* K_IO::GenIOHdf::getChildren(hid_t nodeid)
     H5Literate(nodeid, H5_INDEX_CRT_ORDER, H5_ITER_INC,
                NULL, feed_children_ids, (void *)idlist);
 #else
-    H5Literate2(nodeid, H5_INDEX_NAME, H5_ITER_INC,
+    H5Literate2(nodeid, H5_INDEX_CRT_ORDER, H5_ITER_INC,
                NULL, feed_children_ids, (void *)idlist);
 #endif
   }

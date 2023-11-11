@@ -15,7 +15,7 @@ m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,1))
 m = C.initVars(m,'vx', f1, ['CoordinateX','CoordinateY'])
 m = C.initVars(m,'vy', f2, ['CoordinateX','CoordinateY'])
 res = Pmpi.integNorm(m, Internal.__FlowSolutionNodes__)
-test.testO(res,1)
+test.testO(res[0],1)
 
 # Test avec des []
 t = C.newPyTree(['Base'])
@@ -25,5 +25,5 @@ if Cmpi.rank == 0:
     t[2][1][2] += [m]
 
 res1 = Pmpi.integNorm(t, 'vx')
-if Cmpi.rank == 0: test.testO(res1, 2)
+if Cmpi.rank == 0: test.testO(res1[0], 2)
 

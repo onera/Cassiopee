@@ -69,21 +69,21 @@ C     Warning : here i,j,k start from 0
             endif
       endif
 
-C       k = ind/ninj
-C       j = ind/ni - k*nj
-C       i = ind - k*ninj - j*ni
-      
-C C     Decalages a gauche
-C       if (i .eq. nic) then 
-C          i = i-1
-C       endif
-C       if (j .eq. njc) then
-C          j = j-1
-C       endif
-C       if (k .eq. nkc) then 
-C          k = k-1
-C       endif
+      k = indnode/ninj
+      j = indnode/ni - k*nj
+      i = indnode - k*ninj - j*ni      
+C     Decalages a gauche
+      if (i .eq. ni-1) then 
+        indnode = indnode-1
+      endif
+      if (j .eq. nj-1) then
+        indnode = indnode-ni
+      endif
+      if (k .eq. nk-1) then 
+        indnode = indnode-ninj
+      endif
 
+      
       indA = indnode
       indB = indA + 1           !(i+1,j,k)
       indC = indB + ni          !(i+1,j+1,k)

@@ -22,7 +22,7 @@
 
 using namespace K_FLD;
 
-E_Int __check_array(PyObject*o, PyArrayObject*& a, char*& varString)
+E_Int __check_array(PyObject* o, PyArrayObject*& a, char*& varString)
 {
   PyObject* tpl;
   if (PyList_Check(o) == false)

@@ -753,12 +753,11 @@ def getCArgs():
     if Cppcompiler == "icpc" or Cppcompiler == "icc" or Cppcompiler == "icx":
         v = getCppVersion()
         if DEBUG:
-            options += ['-g', '-O0', '-wd47', '-wd1224']
-            #options += ['-g', '-O0', '-wd47', '-wd1224', '-check-pointers=rw']
+            options += ['-g', '-O0', '-wd47', '-wd1224', '-fp-trap=divzero,overflow,invalid']
         else: options += ['-DNDEBUG', '-O2', '-wd47', '-wd1224']
          
         # hack pour intel 19
-        if v[0] == 19: 
+        if v[0] == 19:
             for c, o in enumerate(options):
                 if o == '-O2': options[c] = '-O1'
              

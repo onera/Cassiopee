@@ -29,7 +29,7 @@ PyObject* K_GENERATOR::gapfixer(PyObject* self, PyObject* args)
 {
   PyObject* arrC, *arrB0, *arrHP(0);
   E_Int refine=0;
-  if (!PyArg_ParseTuple(args, "OOOl", &arrB0, &arrC, &arrHP, &refine)) return NULL;
+  if (!PYPARSETUPLE_(args, OOO_ I_, &arrB0, &arrC, &arrHP, &refine)) return NULL;
 
   E_Int ni, nj, nk;
   K_FLD::FloatArray *fC, *fB0;
