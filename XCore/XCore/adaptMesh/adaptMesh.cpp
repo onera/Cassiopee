@@ -251,14 +251,20 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
     // Patch faces
     PyObject *farr = PyList_GetItem(o, 1);
     E_Int npfaces;
-    K_NUMPY::getFromNumpyArray(farr, M->ppatches[i].faces, npfaces, nfld, true);
+    K_NUMPY::getFromNumpyArray(farr, M->ppatches[i].faces, npfaces, nfld, false);
+    assert(nfld == 1);
     M->ppatches[i].nfaces = npfaces;
-   
+    
+    // Make them 0-based
+    for (E_Int j = 0; j < npfaces; j++)
+      M->ppatches[i].faces[j] -= 1;
+
     // Corresponding neighbours
     PyObject *narr = PyList_GetItem(o, 2);
     K_NUMPY::getFromNumpyArray(narr, M->ppatches[i].gneis, nneis, nfld, true);
     assert(nneis == M->ppatches[i].nfaces);
 
+    /*
     // Indices
     std::vector<E_Int> indices(M->ppatches[i].nfaces);
     for (E_Int j = 0; j < npfaces; j++)
@@ -286,6 +292,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
     // Replace with local face ids
     for (E_Int j = 0; j < npfaces; j++)
       M->ppatches[i].faces[j] = M->FT[M->ppatches[i].faces[j]];
+    */
   }
 
   // Process solution fields

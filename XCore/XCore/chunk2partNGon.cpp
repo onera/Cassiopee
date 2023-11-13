@@ -21,6 +21,7 @@
 #include <mpi.h>
 #include <unordered_map>
 #include "common/mem.h"
+#include <numeric>
 
 #include "scotch/ptscotch.h"
 
@@ -932,6 +933,32 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
         ppatches[ppatch->second]->faces.push_back(face);
         ppatches[ppatch->second]->neis.push_back(nei);
       }
+    }
+  }
+
+  // Sort pfaces in ascending order, then replace them with local indices
+  // Note(Imad): this is in order to get rid of huge FaceLoc2Glob array
+  // TODO(Imad): is gneis ever useful?
+  for (E_Int i = 0; i < npatches; i++) {
+    auto &pfaces = ppatches[i]->faces;
+    auto &gneis = ppatches[i]->neis;
+
+    std::vector<E_Int> indices(pfaces.size());
+    std::iota(indices.begin(), indices.end(), 0);
+    std::sort(indices.begin(), indices.end(),
+      [&](E_Int a, E_Int b) { return pfaces[a] < pfaces[b]; });
+    
+    std::vector<E_Int> sorted_pfaces(pfaces.size());
+    std::vector<E_Int> sorted_gneis(pfaces.size());
+    for (size_t j = 0; j < pfaces.size(); j++) {
+      sorted_pfaces[j] = pfaces[indices[j]];
+      sorted_gneis[j] = gneis[indices[j]];
+    }
+
+    for (size_t j = 0; j < pfaces.size(); j++) {
+      pfaces[j] = FT[sorted_pfaces[j]] + 1;
+      gneis[j] = sorted_gneis[j];
+
     }
   }
 
