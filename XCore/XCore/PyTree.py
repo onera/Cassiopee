@@ -4,6 +4,32 @@ import Converter.Internal as I
 import Converter.PyTree as C
 import XCore.xcore
 
+def exchangeFields(t, fldnames):
+    zones = I.getZones(t)
+    for zone in zones:
+        arr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
+        pe = I.getNodeFromName(zone, 'ParentElements')
+        if pe == None: raise ValueError('ParentElements not found.')
+        fsolc = I.getNodeFromName2(zone, I.__FlowSolutionCenters__)
+        if fsolc == None: raise ValueError('FlowSolutionCenters not found.')
+        flds = []
+        for fldname in fldnames:
+            fld = I.getNodeFromName2(fsolc, fldname)
+            if fld == None: raise ValueError(fldname + 'not found.')
+            flds.append(fld[1])
+        zgc = I.getNodeFromType(zone, 'ZoneGridConnectivity_t')
+        if zgc == None: raise ValueError('ZoneGridConnectivity not found')
+        comms = I.getNodesFromType(zgc, 'GridConnectivity1to1_t')
+        if comms == None: raise ValueError('GridConnectivity1to1 not found')
+        comm_list = []
+        for comm in comms:
+            nei_proc = int(I.getValue(comm))
+            ptlist = I.getNodeFromName(comm, 'PointList')[1]
+            comm_list.append([nei_proc, ptlist])
+        rfields = XCore.xcore.exchangeFields(arr, pe[1], flds, comm_list)
+    
+    return t
+
 def initAdaptTree(t):
   zones = I.getZones(t)
   adaptTrees = []
@@ -137,7 +163,7 @@ def loadAndSplitNGon(fileName):
 
   for data in comm_data:
     Name = 'Match_'+str(data[0])
-    I.newGridConnectivity1to1(name=Name, donorName='Proc_'+str(data[0]), pointList=data[1], parent=ZGC)
+    I.newGridConnectivity1to1(name=Name, donorName=str(data[0]), pointList=data[1], parent=ZGC)
   
   I.newUserDefinedData(name='CellLoc2Glob', value=RES[5], parent=ZGC)
   I.newUserDefinedData(name='FaceLoc2Glob', value=RES[6], parent=ZGC)

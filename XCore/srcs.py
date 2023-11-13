@@ -39,7 +39,8 @@ if mpi: # source that requires mpi
             'XCore/adaptMesh/computeHessianNGon.cpp',
             'XCore/adaptMesh/computeGradientNGon.cpp',
             'XCore/adaptMesh/computeCellCentersAndVolumes.cpp',
-            'XCore/common/mem.cpp'
+            'XCore/common/mem.cpp',
+            'XCore/exchangeFields.cpp'
             ]
 else:
     cpp_srcs += [
