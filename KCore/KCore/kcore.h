@@ -33,6 +33,7 @@
 #include "Loc/loc.h"
 #include "Linear/linear.h"
 #include "Metric/metric.h"
+#include "Math/math.h"
 #include "Nuga/include/KdTree.h"
 //#include "Memory/unique_ptr.hpp"
 //#include "Memory/shared_ptr.hpp"

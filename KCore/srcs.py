@@ -131,7 +131,11 @@ cpp_srcs = ['KCore/isNamePresent.cpp',
             'KCore/Logger/log_to_std_output.cpp',
             'KCore/Logger/log_to_std_error.cpp',
             'KCore/Logger/log_to_file.cpp',
-            'KCore/Logger/log_from_distributed_file.cpp'
+            'KCore/Logger/log_from_distributed_file.cpp',
+
+            'KCore/Math/math.cpp',
+            'KCore/Math/eigen.cpp',
+            'KCore/Math/BiCGStab.cpp'
             ]
 if PNG:
     cpp_srcs += [       

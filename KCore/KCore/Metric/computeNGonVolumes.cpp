@@ -17,6 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "metric.h"
+#include "Math/math.h"
 #include <vector>
 #include <map>
 #include <unordered_map>
@@ -27,32 +28,6 @@
 
 #define INTERNAL 0
 #define EXTERNAL 1
-#define ONE_THIRD 0.3333333333333333
-
-static
-E_Float dot(E_Float *a, E_Float *b, E_Int n)
-{
-  E_Float res = 0;
-  for (E_Int i = 0; i < n; i++)
-    res += a[i]*b[i];
-  return res;
-}
-
-static
-void cross(E_Float a[3], E_Float b[3], E_Float c[3])
-{
-  c[0] = a[1]*b[2] - a[2]*b[1];
-  c[1] = a[2]*b[0] - a[0]*b[2];
-  c[2] = a[0]*b[1] - a[1]*b[0];
-}
-
-static
-E_Float norm(E_Float *a, E_Int n)
-{
-  return sqrt(dot(a, a, n));
-}
-
-#define DSMALL 1e-15
 
 void K_METRIC::compute_face_center_and_area(E_Int id, E_Int stride,
   E_Int *pn, E_Float *x, E_Float *y, E_Float *z, E_Float *fc, E_Float *fa)
@@ -97,10 +72,10 @@ void K_METRIC::compute_face_center_and_area(E_Int id, E_Int stride,
     E_Float n[3];
     E_Float v10[3] = {x[p1]-x[p0], y[p1]-y[p0], z[p1]-z[p0]};
     E_Float v20[3] = {x[p2]-x[p0], y[p2]-y[p0], z[p2]-z[p0]};
-    cross(v10, v20, n);
+    K_MATH::cross(v10, v20, n);
 
     // Area
-    E_Float a = norm(n, 3);
+    E_Float a = K_MATH::norm(n, 3);
 
     for (E_Int j = 0; j < 3; j++) {
       sumN[j] += n[j];
@@ -110,8 +85,9 @@ void K_METRIC::compute_face_center_and_area(E_Int id, E_Int stride,
   }
 
   // Deal with zero-area faces
-  if (sumA < DSMALL) {
-    fprintf(stderr, "compute_face_area_and_center(): Warning: Face: %d - Area: %f - Tol: %.2e\n", id, sumA, DSMALL);
+  if (sumA < K_MATH::SMALL) {
+    fprintf(stderr, "compute_face_area_and_center(): "
+      "Warning: Face: %d - Area: %f - Tol: %.2e\n", id, sumA, K_MATH::SMALL);
     for (E_Int i = 0; i < 3; i++) {
       fc[i] = fcenter[i];
       fa[i] = 0.0;
@@ -201,13 +177,13 @@ void K_METRIC::compute_cell_volume(E_Int cell, K_FLD::FldArrayI &cn, E_Float *x,
     
     // Compute 3*face-pyramid volume contribution
     E_Float d[3] = {fc[0]-cc[0], fc[1]-cc[1], fc[2]-cc[2]};
-    //E_Float pyr3Vol = dot(fa, fc, 3);
-    E_Float pyr3Vol = dot(fa, d, 3);
+    //E_Float pyr3Vol = K_MATH::dot(fa, fc, 3);
+    E_Float pyr3Vol = K_MATH::dot(fa, d, 3);
 
     vol += pyr3Vol;
   }
 
-  vol /= 3.0;
+  vol *= K_MATH::ONE_THIRD;
 }
 
 // Assumes external faces oriented outwards + parent elements computed
@@ -271,7 +247,7 @@ void compute_volumes(K_FLD::FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z,
     E_Int own = owner[i];
     cc = &cC[3*own];
     for (E_Int j = 0; j < 3; j++) d[j] = fc[j]-cc[j];
-    pyr3vol = dot(fa, d, 3);
+    pyr3vol = K_MATH::dot(fa, d, 3);
     vols[own] += pyr3vol;
 
     E_Int nei = neigh[i];
@@ -279,12 +255,12 @@ void compute_volumes(K_FLD::FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z,
 
     cc = &cC[3*nei];
     for (E_Int j = 0; j < 3; j++) d[j] = cc[j]-fc[j];
-    pyr3vol = dot(fa, d, 3);
+    pyr3vol = K_MATH::dot(fa, d, 3);
     vols[nei] += pyr3vol;
   }
 
   for (E_Int i = 0; i < ncells; i++) {
-    vols[i] /= 3.0;
+    vols[i] *= K_MATH::ONE_THIRD;
     if (vols[i] < 0.0)
       fprintf(stderr, "Warning: cell %d has negative volume %.4e\n", i, vols[i]);
   }
@@ -337,4 +313,111 @@ E_Int K_METRIC::compute_volumes_ngon(E_Float *x, E_Float *y, E_Float *z,
   }
 
   return ret;
+}
+
+void K_METRIC::compute_face_centers_and_areas(K_FLD::FldArrayI &cn, E_Float *x,
+  E_Float *y, E_Float *z, E_Float *fcenters, E_Float *fareas)
+{
+  E_Int nfaces = cn.getNFaces();
+  E_Int *ngon = cn.getNGon();
+  E_Int *indPG = cn.getIndPG();
+
+  for (E_Int i = 0; i < nfaces; i++) {
+    E_Int np = -1;
+    E_Int *pn = cn.getFace(i, np, ngon, indPG);
+    K_METRIC::compute_face_center_and_area(i, np, pn, x, y, z, &fcenters[3*i],
+      &fareas[3*i]);
+  }
+}
+
+void K_METRIC::compute_cell_centers_and_vols
+(
+  K_FLD::FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z,
+  E_Int *owner, E_Int *neigh, E_Float *fcenters, E_Float *fareas,
+  E_Float *cx, E_Float *cy, E_Float *cz, E_Float *volumes
+)
+{
+  E_Int *nface = cn.getNFace();
+  E_Int *indPH = cn.getIndPH();
+  E_Int ncells = cn.getNElts();
+  E_Int nfaces = cn.getNFaces();
+  
+  E_Float *vols;
+  if (volumes) vols = volumes;
+  else vols = (E_Float *)malloc(ncells * sizeof(E_Float)); 
+
+  // Estimate cell centers as average of face centers
+  std::vector<E_Float> cEst(3*ncells, 0);
+  for (E_Int i = 0; i < nfaces; i++) {
+    E_Float *fc = &fcenters[3*i];
+    E_Float *cE;
+    
+    E_Int own = owner[i]-1;
+    assert(own < ncells);
+    cE = &cEst[3*own];
+
+    for (E_Int j = 0; j < 3; j++) cE[j] += fc[j];
+
+    E_Int nei = neigh[i]-1;
+    assert(nei < ncells);
+    if (nei == -1) continue;
+    
+    cE = &cEst[3*nei];
+
+    for (E_Int j = 0; j < 3; j++) cE[j] += fc[j];
+  }
+
+  for (E_Int i = 0; i < ncells; i++) {
+    E_Int stride = -1;
+    cn.getElt(i, stride, nface, indPH);
+    E_Float *cE = &cEst[3*i];
+    for (E_Int j = 0; j < 3; j++)
+      cE[j] /= stride;
+  }
+
+  memset(vols, 0, ncells*sizeof(E_Float));
+  memset(cx,   0, ncells*sizeof(E_Float));
+  memset(cy,   0, ncells*sizeof(E_Float));
+  memset(cz,   0, ncells*sizeof(E_Float));
+
+  for (E_Int i = 0; i < nfaces; i++) {
+    E_Float *fa = &fareas[3*i];
+    E_Float *fc = &fcenters[3*i];
+    E_Float pyr3vol, pc[3], *cE, d[3];
+
+    E_Int own = owner[i]-1;
+    assert(own < ncells);
+    cE = &cEst[3*own];
+    for (E_Int j = 0; j < 3; j++) d[j] = fc[j]-cE[j];
+    pyr3vol = K_MATH::dot(fa, d, 3);
+    for (E_Int j = 0; j < 3; j++) pc[j]= 0.75*fc[j] + 0.25*cE[j];
+    cx[own] += pyr3vol*pc[0];
+    cy[own] += pyr3vol*pc[1];
+    cz[own] += pyr3vol*pc[2];
+    vols[own] += pyr3vol;
+
+    E_Int nei = neigh[i]-1;
+    assert(nei < ncells);
+    if (nei == -1) continue;
+
+    cE = &cEst[3*nei];
+    for (E_Int j = 0; j < 3; j++) d[j] = cE[j]-fc[j];
+    pyr3vol = K_MATH::dot(fa, d, 3);
+    for (E_Int j = 0; j < 3; j++) pc[j]= 0.75*fc[j] + 0.25*cE[j];
+    cx[nei] += pyr3vol*pc[0];
+    cy[nei] += pyr3vol*pc[1];
+    cz[nei] += pyr3vol*pc[2];
+    vols[nei] += pyr3vol;
+  }
+
+  for (E_Int i = 0; i < ncells; i++) {
+    E_Float coeff = 1.0/vols[i];
+    cx[i] *= coeff;
+    cy[i] *= coeff;
+    cz[i] *= coeff;
+    vols[i] /= 3.0;
+    assert(vols[i] > 0.0);
+  }
+
+  if (!volumes) free(vols);
 }

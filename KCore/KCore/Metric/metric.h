@@ -71,6 +71,17 @@ namespace K_METRIC
 
   void compute_cell_volume(E_Int, K_FLD::FldArrayI &, E_Float *, E_Float *,
     E_Float *, E_Float &, E_Int refIdx=0);
+  
+  void compute_face_centers_and_areas(K_FLD::FldArrayI &cn, E_Float *x,
+    E_Float *y, E_Float *z, E_Float *fcenters, E_Float *fareas);
+  
+  void compute_cell_centers_and_vols(K_FLD::FldArrayI &cn, E_Float *x,
+    E_Float *y, E_Float *z, E_Int *owner, E_Int *neigh, E_Float *fcenters,
+    E_Float *fareas, E_Float *cx, E_Float *cy, E_Float *cz, E_Float *volumes);
+  
+  E_Int compute_gradients_ngon(K_FLD::FldArrayI &cn, E_Float *x, E_Float *y,
+    E_Float *z, E_Int *owner, E_Int *neigh, E_Float *centers,
+    const std::vector<E_Float *> &flds, std::vector<E_Float *> &Gs);
 
 }
 #endif
