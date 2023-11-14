@@ -36,11 +36,12 @@ PyObject* K_CONVERTER::makeParentElements(PyObject* self, PyObject* args)
   char* varString; char* eltType;
   E_Int ret = K_ARRAY::getFromArray3(o, varString, f, ni, nj, nk, cn, eltType);
   
-  if (ret <= 0)
-  { PyErr_SetString(PyExc_TypeError, "makeParentElements: only for NGons."); return NULL; }
+  if (ret <= 0) {
+    PyErr_SetString(PyExc_TypeError, "makeParentElements: bad mesh.");
+    return NULL;
+  }
 
-  if (ret == 1)
-  { 
+  if (ret == 1) { 
     PyErr_SetString(PyExc_TypeError, "makeParentElements: only for NGons."); 
     RELEASESHAREDS(o, f);
     return NULL; 
@@ -90,29 +91,15 @@ PyObject* K_CONVERTER::makeParentElements(PyObject* self, PyObject* args)
   
   // Deduce parent elements
   E_Int nfaces = cn->getNFaces();
-  PyObject *tpl = K_NUMPY::buildNumpyArray(nfaces, 2, 1, 1);
-  E_Int *cPE = K_NUMPY::getNumpyPtrI(tpl);
-  E_Int *owner = cPE;
-  E_Int *neigh = cPE + nfaces;
+  PyObject *pe = K_NUMPY::buildNumpyArray(nfaces, 2, 1, 1);
+  E_Int *ptr = K_NUMPY::getNumpyPtrI(pe);
+  E_Int *owner = ptr;
+  E_Int *neigh = ptr + nfaces;
   K_CONNECT::build_parent_elements_ngon(*cn, owner, neigh);
-
-  // Left element: +1; Right element: -1
-  for (E_Int i = 0; i < ncells; i++) {
-    E_Int stride = -1;
-    E_Int *pf = cn->getElt(i, stride, nface, indPH);
-    for (E_Int j = 0; j < stride; j++) {
-      E_Int face = pf[j];
-      if (owner[face-1] != i)
-        pf[j] = -face;
-    }
-  }
-  
-  for (E_Int i = 0; i < nfaces; i++) {
-    owner[i]++;
-    neigh[i]++;
-  }
+ 
+  for (E_Int i = 0; i < 2*nfaces; i++) ptr[i] += 1;
 
   RELEASESHAREDU(o, f, cn);
 
-  return tpl;
+  return (PyObject *)pe;
 }
