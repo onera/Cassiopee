@@ -56,6 +56,8 @@ namespace K_GENERATOR
   PyObject* barycenter(PyObject* self, PyObject* args);
   PyObject* getCEBBIntersectionOfArrays(PyObject* self, PyObject* args);
   PyObject* getVolumeMapOfMesh(PyObject* self, PyObject* args);
+  PyObject* getCellCenters(PyObject* self, PyObject* args);
+  PyObject* getFaceCentersAndAreas(PyObject* self, PyObject* args);
   PyObject* getOrthogonalityMap(PyObject* self, PyObject* args);
   PyObject* getRegularityMap(PyObject* self, PyObject* args);
   PyObject* getAngleRegularityMap(PyObject* self, PyObject* args);

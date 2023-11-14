@@ -7,27 +7,29 @@ from . import generator
 import numpy
 import Converter as C
 
-__all__ = ['cart', 'cartr1', 'cartr2', 'cartHexa', 'cartTetra', 
-    'cartPenta', 'cartPyra', 'cartNGon',
-    'cylinder', 'cylinder2', 'cylinder3', 'delaunay', 'checkDelaunay', 
-    'constrainedDelaunay', 'check', 'bbox', 'BB', 'barycenter', 'CEBBIntersection',
-    'bboxIntersection', 'checkPointInCEBB', 'enforceX', 'enforceY', 'enforceZ',
-    'enforcePlusX', 'enforcePlusY', 'enforcePlusZ', 'enforceMoinsX',
-    'enforceMoinsY', 'enforceMoinsZ', 'enforceLine', 'enforcePoint',
-    'enforceCurvature', 'enforceCurvature2', 'addPointInDistribution', 'map',
-    'map1d', 'map1dpl', 'map2d', 'mapCurvature', 'refine', 'defineSizeMapForMMGs',
-    'mmgs', 'densify', 'hyper2D', 'hyper2D2', 'hyper2D3', 'hyper2D4',
-    'close', 'zip', 'pointedHat', 'stitchedHat', 'plaster', 'selectInsideElts',
-    'grow', 'stack', 'TFI', 'TFITri', 'TFIO', 'TFIHalfO', 'TFIMono', 'TFIStar', 'TFIStar2',
-    'TTM', 'bboxOfCells', 'getCellPlanarity', 'getVolumeMap', 'getNormalMap',
+__all__ = ['cart', 'cartr1', 'cartr2', 'cartHexa', 'cartTetra', 'cartPenta',
+    'cartPyra', 'cartNGon', 'cylinder', 'cylinder2', 'cylinder3', 'delaunay',
+    'checkDelaunay', 'constrainedDelaunay', 'check', 'bbox', 'BB',
+    'barycenter', 'CEBBIntersection', 'bboxIntersection', 'checkPointInCEBB',
+    'enforceX', 'enforceY', 'enforceZ', 'enforcePlusX', 'enforcePlusY',
+    'enforcePlusZ', 'enforceMoinsX', 'enforceMoinsY', 'enforceMoinsZ',
+    'enforceLine', 'enforcePoint', 'enforceCurvature', 'enforceCurvature2',
+    'addPointInDistribution', 'map', 'map1d', 'map1dpl', 'map2d',
+    'mapCurvature', 'refine', 'defineSizeMapForMMGs', 'mmgs', 'densify',
+    'hyper2D', 'hyper2D2', 'hyper2D3', 'hyper2D4', 'close', 'zip',
+    'pointedHat', 'stitchedHat', 'plaster', 'selectInsideElts', 'grow',
+    'stack', 'TFI', 'TFITri', 'TFIO', 'TFIHalfO', 'TFIMono', 'TFIStar',
+    'TFIStar2', 'TTM', 'bboxOfCells', 'getCellPlanarity', 'getVolumeMap',
+    'getCellCenters', 'getFaceCentersAndAreas', 'getNormalMap',
     'getSmoothNormalMap', 'getEdgeRatio', 'getMaxLength', 'collarMesh',
     'surfaceWalk', 'buildExtension', 'getCircumCircleMap', 'getInCircleMap',
     'addNormalLayers', 'gencartmb', 'mapSplit', 'T3mesher2D', 'tetraMesher',
     'fittingPlaster', 'gapfixer', 'gapsmanager', 'front2Hexa', 'front2Struct',
-    'snapFront', 'snapSharpEdges', 'fillWithStruct', 'octree2Struct', 'cutOctant',
-    'octree', 'conformOctree3', 'adaptOctree', 'expandLayer', 'forceMatch',
-    '_forceMatch', 'getOrthogonalityMap', 'getRegularityMap', 'getAngleRegularityMap', 'getTriQualityMap',
-    'getTriQualityStat', 'quad2Pyra', 'extendCartGrids', 'checkMesh']
+    'snapFront', 'snapSharpEdges', 'fillWithStruct', 'octree2Struct',
+    'cutOctant', 'octree', 'conformOctree3', 'adaptOctree', 'expandLayer',
+    'forceMatch', '_forceMatch', 'getOrthogonalityMap', 'getRegularityMap',
+    'getAngleRegularityMap', 'getTriQualityMap', 'getTriQualityStat',
+    'quad2Pyra', 'extendCartGrids', 'checkMesh']
 
 def cart(Xo, H, N, api=1):
     """Create a cartesian mesh defined by a structured array.
@@ -978,7 +980,7 @@ def getCellPlanarity(array):
 
 def getVolumeMap(array, method=0):
     """Return the volume map in an array.
-    Usage: getVolumeMap(array, method, tol)"""
+    Usage: getVolumeMap(array, method)"""
     if isinstance(array[0], list): 
         b = []
         for i in array:
@@ -986,6 +988,32 @@ def getVolumeMap(array, method=0):
         return b
     else:
         return generator.getVolumeMap(array, method)
+
+def getFaceCentersAndAreas(array):
+    """Return the face centers and areas in an NGon array.
+    Usage: getFaceCentersAndAreas(array)"""
+    if isinstance(array[0], list):
+        b = []
+        for i in array:
+            b.append(generator.getFaceCentersAndAreas(i))
+        return b
+    else:
+        return generator.getFaceCentersAndAreas(array)
+
+def getCellCenters(array, pe):
+    """Return the cell centers in an NGon array.
+    Usage: getCellCenters(array, pe)"""
+    if isinstance(array[0], list): 
+        if not isinstance(pe[0], list):
+            raise ValueError("If input is list of arrays, pe must be a list")
+        if len(pe) != len(array):
+            raise ValueError("List of arrays and pes must have the same size")
+        b = []
+        for i in range(len(array)):
+            b.append(generator.getCellCenters(array[i], pe[i]))
+        return b
+    else:
+        return generator.getCellCenters(array, pe)
 
 def getNormalMap(array):
     """Return the map of surface normals in an array.
