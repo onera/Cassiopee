@@ -13,8 +13,9 @@ try:
     import Converter.PyTree as C
     import Converter.Internal as Internal
     import numpy
+    import Generator.PyTree as G
 except ImportError:
-    raise ImportError("Post.PyTree: requires Converter.PyTree module.")
+    raise ImportError("Post.PyTree: requires Converter.PyTree and Generator.PyTree modules.")
 
 # Extraction de la liste des pts
 def extractPoint(t, Pts, order=2, extrapOrder=1,
@@ -1384,62 +1385,62 @@ def computeGrad(t, var):
     C.setFields(centers, tp, 'centers')
     return tp
 
-def computeHessian(t, var, dim):
-    """Compute hessian of fields defined in var."""
+def computeGradLSQ(t, fldNames, parRun=0, fcenters=None, ptlists=None,
+    rfields=None):
     tp = Internal.copyRef(t)
-    _computeHessian(tp, var, dim)
+    _computeGradLSQ(tp, fldNames, parRun, fcenters, ptlists, rfields)
     return tp
 
-def _computeHessian(t, var, dim):
-    """Compute hessian of fields defined in var."""
-    if type(var) == list:
-        raise ValueError("_computeHessian: not available for lists of variables.")
-    vare = var.split(':')
-    if len(vare) > 1: vare = vare[1]
-
-    # Test if field exist
-    solc = C.getFields(Internal.__FlowSolutionCenters__, t)[0]
-    if solc == []:
-        raise ValueError("_computeHessian: no field detected (check container).")
+def _computeGradLSQ(t, fldNames, parRun=0, fcenters=None, ptlists=None,
+    rfields=None):
+    fc = None
+    if parRun == 0:
+        fc, fa = G.getFaceCentersAndAreas(t)
+        centers = G.getCellCenters(t, fc, fa)
 
     zones = Internal.getZones(t)
-    for z in zones:
-        f = C.getField(var, z)[0]
-        x = C.getFields(Internal.__GridCoordinates__, z)[0]
+
+    for i in range(len(zones)):
+        zone = zones[i]
         
-        if f != []:
-            centers = Post.computeHessian(x, f, dim)
-            C.setFields([centers], z, 'centers')
+        arr = C.getFields(Internal.__GridCoordinates__, zone, api=3)[0]
+        if arr == None: continue
 
-    return None
+        fsolc = Internal.getNodeFromName(zone,
+            Internal.__FlowSolutionCenters__)
+        if fsolc == None: raise ValueError("FlowSolutionCenters not found.")
 
-def computeGradLSQ(t, var, dim):
-    """Compute grad of var by least mean square."""
-    tp = Internal.copyRef(t)
-    _computeGradLSQ(tp, var, dim)
-    return tp
+        flds = []
+        for fldName in fldNames:
+            fsol = Internal.getNodeFromName2(fsolc, fldName)
+            if fsol == None:
+                raise ValueError('Field ' + fldName + ' not found.')
+            flds.append(fsol[1])
 
-def _computeGradLSQ(t, var, dim):
-    """Compute grad of var by least mean square."""
-    if type(var) == list:
-        raise ValueError("_computeGradLSQ: not available for lists of variables.")
-    vare = var.split(':')
-    if len(vare) > 1: vare = vare[1]
+        pe = Internal.getNodeFromName(zone, 'ParentElements')[1]
 
-    # Test if field exist
-    solc = C.getFields(Internal.__FlowSolutionCenters__, t)[0]
-    if solc == []:
-        raise ValueError("_computeGradLSQ: no field detected (check container).")
-
-    zones = Internal.getZones(t)
-    for z in zones:
-        f = C.getField(var, z)[0]
-        x = C.getFields(Internal.__GridCoordinates__, z)[0]
+        rflds = None
+        if parRun == 0:
+            cc = centers[i]
+            Grads = post.computeGradLSQ(arr, flds, pe, cc[0], cc[1], cc[2], fc[i],
+              None, rflds)
+        else:
+            rflds = rfields[i]
+            cx = Internal.getNodeFromName(fsolc, 'CCx')[1]
+            cy = Internal.getNodeFromName(fsolc, 'CCy')[1]
+            cz = Internal.getNodeFromName(fsolc, 'CCz')[1]
+            Grads = post.computeGradLSQ(arr, flds, pe, cx, cy, cz, fcenters[0],
+                ptlists, rflds)
         
-        if f != []:
-            centers = Post.computeGradLSQ(x, f, dim)
-            C.setFields([centers], z, 'centers')
-
+        for j in range(len(fldNames)-3):
+            Grad = Grads[j]
+            Internal.createNode('grad' + fldNames[j] + 'x', 'DataArray_t',
+                Grad[0], None, fsolc)
+            Internal.createNode('grad' + fldNames[j] + 'y', 'DataArray_t',
+                Grad[1], None, fsolc)
+            Internal.createNode('grad' + fldNames[j] + 'z', 'DataArray_t',
+                Grad[2], None, fsolc)
+    
     return None
 
 def computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):

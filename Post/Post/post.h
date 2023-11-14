@@ -89,6 +89,10 @@ namespace K_POST
   PyObject* sharpEdges(PyObject* self, PyObject* args);
   PyObject* silhouette(PyObject* self, PyObject* args);
 
+  E_Int compute_gradients_ngon(FldArrayI &cn, E_Float *x,
+    E_Float *y, E_Float *z, E_Int *owner, E_Int *neigh, E_Float *centers,
+    const std::vector<E_Float *> &flds, std::vector<E_Float *> &Gs);
+
 /*
   Compute the surface integral of field F
   posx, posy, posz : positions de x,y,z dans coord

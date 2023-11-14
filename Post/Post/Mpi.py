@@ -6,6 +6,47 @@ import Converter.Internal as Internal
 import Converter.PyTree as C
 import KCore.Vector as Vector
 import numpy
+import XCore.PyTree as X
+import Generator.PyTree as G
+
+def computeGradLSQ(t, fldNames):
+    if Cmpi.size == 1: return P.computeGradLSQ(t, fldNames)
+
+    fcenters, fareas = G.getFaceCentersAndAreas(t)
+    centers = G.getCellCenters(t, fcenters, fareas)
+    zones = Internal.getZones(t)
+    for i in range(len(zones)):
+        cc = centers[i]
+        if cc == None: continue
+        zone = zones[i]
+        fsolc = Internal.getNodeFromName(zone, Internal.__FlowSolutionCenters__)
+        Internal.createNode('CCx', 'DataArray_t', cc[0], None, fsolc)
+        Internal.createNode('CCy', 'DataArray_t', cc[1], None, fsolc)
+        Internal.createNode('CCz', 'DataArray_t', cc[2], None, fsolc)
+
+    # exchange fields and cell centers
+    allNames = fldNames
+    allNames.append('CCx')
+    allNames.append('CCy')
+    allNames.append('CCz')
+    rfields = X.exchangeFields(t, fldNames)
+
+    # get comm list
+    zgc = Internal.getNodeFromType(zone, 'ZoneGridConnectivity_t')
+    if zgc == None: raise ValueError('ZoneGridConnectivity not found')
+    comms = Internal.getNodesFromType(zgc, 'GridConnectivity1to1_t')
+    if comms == None: raise ValueError('GridConnectivity1to1 not found')
+    ptlists = []
+    for comm in comms:
+        ptlist = Internal.getNodeFromName(comm, 'PointList')[1]
+        ptlists.append(ptlist)
+
+    # compute lsq gradients
+    parRun = 1
+    t = P.computeGradLSQ(t, fldNames, parRun, fcenters, ptlists, rfields)
+
+    # TODO(Imad): delete cell centers from tree
+    return t
 
 #==============================================================================
 # extractMesh

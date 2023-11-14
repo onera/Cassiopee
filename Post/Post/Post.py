@@ -11,19 +11,22 @@ try: range = xrange
 except: pass
 
 ## [AJ - KEEP FOR NOW - FROM MASTER]
-__all__ = ['coarsen', 'computeCurl', 'computeDiff', 'computeExtraVariable', 'computeGrad',
-'computeGrad2', 'computeGradLSQ', 'computeHessian', 'computeDiv', 'computeDiv2', 
-'computeIndicatorField', 'computeIndicatorFieldForBounds',
-'computeIndicatorValue', 'computeNormCurl', 'computeNormGrad', 'computeVariables',
-'computeVariables2', '_computeVariables2', 'enforceIndicatorForCoarsestLevel',
-'enforceIndicatorForFinestLevel', 'enforceIndicatorNearBodies', 'exteriorElts',
-'exteriorEltsStructured', 'exteriorFaces', 'exteriorFacesStructured', 'extractMesh', 
-'extractPlane', 'extractPoint', 'frontFaces', 'integ', 'integMoment', 'integMomentNorm',
-'integNorm', 'integNormProduct', 'interiorFaces', 'isoLine', 'isoSurf', 'isoSurfMC',
-'isoSurfMC_opt', 'perlinNoise', 'projectCloudSolution', 'refine', 'renameVars',
-'selectCells', 'selectCells2', 'selectCells3', 'sharpEdges', 'silhouette', 'slice',
-'streamLine', 'streamLine2', 'streamRibbon', 'streamRibbon2', 
-'streamSurf', 'usurp', 'zip', 'zipper', 'growOfEps__','computeIndicatorField_AMR']
+__all__ = ['coarsen', 'computeCurl', 'computeDiff', 'computeExtraVariable',
+    'computeGrad', 'computeGrad2', 'computeGradLSQ', 'computeHessian',
+    'computeDiv', 'computeDiv2', 'computeIndicatorField',
+    'computeIndicatorFieldForBounds', 'computeIndicatorValue',
+    'computeNormCurl', 'computeNormGrad', 'computeVariables',
+    'computeVariables2', '_computeVariables2',
+    'enforceIndicatorForCoarsestLevel', 'enforceIndicatorForFinestLevel',
+    'enforceIndicatorNearBodies', 'exteriorElts', 'exteriorEltsStructured',
+    'exteriorFaces', 'exteriorFacesStructured', 'extractMesh', 'extractPlane',
+    'extractPoint', 'frontFaces', 'integ', 'integMoment', 'integMomentNorm',
+    'integNorm', 'integNormProduct', 'interiorFaces', 'isoLine', 'isoSurf',
+    'isoSurfMC', 'isoSurfMC_opt', 'perlinNoise', 'projectCloudSolution',
+    'refine', 'renameVars', 'selectCells', 'selectCells2', 'selectCells3',
+    'sharpEdges', 'silhouette', 'slice', 'streamLine', 'streamLine2',
+    'streamRibbon', 'streamRibbon2', 'streamSurf', 'usurp', 'zip', 'zipper',
+    'growOfEps__','computeIndicatorField_AMR']
 
 #==============================================================================
 # Add two layers to surface arrays
@@ -427,9 +430,9 @@ def computeNormGrad(array, varname):
     else:
         return post.computeNormGrad(array, varname)
 
-def computeGradLSQ(array, arrayc, dim):
+def computeGradLSQ(array, arrayc):
     """Compute gradient by least mean square."""
-    return post.computeGradLSQ(array, arrayc, dim)
+    return post.computeGradLSQ(array, arrayc)
 
 def computeHessian(array, arrayc, dim):
     """Compute hessian of array."""
