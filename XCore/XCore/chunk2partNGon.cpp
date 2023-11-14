@@ -118,7 +118,8 @@ void paraSort(E_Int *arr, int size, std::vector<E_Int> &plist_out,
   
   std::sort(plist_out.begin(), plist_out.end());
 
-  assert(plist_out[rdist[nproc]-1] < pivots[rank+1]);
+  if (plist_out.size() > 0)
+    assert(plist_out[rdist[nproc]-1] < pivots[rank+1]);
 }
 
 PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)

@@ -4,8 +4,10 @@ import Converter.Internal as I
 import Converter.PyTree as C
 import XCore.xcore
 
-def exchangeFields(t, fldnames):
+# Returns for each zone, exchanged fields
+def exchangeFields(t, fldNames):
     zones = I.getZones(t)
+    rfields = []
     for zone in zones:
         arr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
         pe = I.getNodeFromName(zone, 'ParentElements')
@@ -13,9 +15,9 @@ def exchangeFields(t, fldnames):
         fsolc = I.getNodeFromName2(zone, I.__FlowSolutionCenters__)
         if fsolc == None: raise ValueError('FlowSolutionCenters not found.')
         flds = []
-        for fldname in fldnames:
-            fld = I.getNodeFromName2(fsolc, fldname)
-            if fld == None: raise ValueError(fldname + 'not found.')
+        for fldName in fldNames:
+            fld = I.getNodeFromName2(fsolc, fldName)
+            if fld == None: raise ValueError(fldName, 'not found.')
             flds.append(fld[1])
         zgc = I.getNodeFromType(zone, 'ZoneGridConnectivity_t')
         if zgc == None: raise ValueError('ZoneGridConnectivity not found')
@@ -26,9 +28,8 @@ def exchangeFields(t, fldnames):
             nei_proc = int(I.getValue(comm))
             ptlist = I.getNodeFromName(comm, 'PointList')[1]
             comm_list.append([nei_proc, ptlist])
-        rfields = XCore.xcore.exchangeFields(arr, pe[1], flds, comm_list)
-    
-    return t
+        rfields.append(XCore.xcore.exchangeFields(arr, pe[1], flds, comm_list))
+    return rfields
 
 def initAdaptTree(t):
   zones = I.getZones(t)

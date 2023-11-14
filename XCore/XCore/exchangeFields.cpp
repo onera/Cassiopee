@@ -76,7 +76,6 @@ PyObject *K_XCORE::exchangeFields(PyObject *self, PyObject *args)
   }
 
   // Exchange fields one by one
-
   E_Float *send_buf = NULL;
   E_Int *owner = PE;
   E_Int req_size = fsize*psize*2;
@@ -104,7 +103,6 @@ PyObject *K_XCORE::exchangeFields(PyObject *self, PyObject *args)
       for (E_Int k = 0; k < npf; k++) {
         E_Int face = pfaces[k]-1;
         E_Int own = owner[face]-1;
-        assert(own >= 0 && own < cn->getNElts());
         E_Float val = data[own];
         send_buf[k] = val;
       }
@@ -117,7 +115,6 @@ PyObject *K_XCORE::exchangeFields(PyObject *self, PyObject *args)
       PyList_Append(proc_rdata, (PyObject *)recv);
       Py_DECREF(recv);
     }
-  
 
     PyList_Append(out, proc_rdata);
     Py_DECREF(proc_rdata);
