@@ -376,7 +376,6 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
 #pragma omp for nowait
       for (E_Int i = 0; i < ncells; i++) indPH[i] = (2*dim0+shift)*i;  
     }
-    if (api == 3) { indPG[nfaces] = pow(2,dim0-1)*nfaces; indPH[ncells] = 2*dim0*ncells; }
   }
   //RELEASESHAREDU(tpl, f, cn);
   delete f; delete cn;

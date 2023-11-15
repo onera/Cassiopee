@@ -439,7 +439,6 @@ void K_CONVERTER::conformizeNGon(
       for (E_Int i = 0; i < nfaces; i++) indPG2[i] = indPG[i];
     }
   }
-  if (api == 3) indPG2[nfaces] = indPG[nfaces];
   
   // Connectivite elements/faces
   E_Int nf2 = 0, c = 0;
@@ -461,7 +460,6 @@ void K_CONVERTER::conformizeNGon(
     if (api == 1 || api == 2) nface2[c] = nf2;
     c += nf2+shift;
   }
-  if (api == 3) indPH2[nelts] = nf2;
   
   // free indir
   for (E_Int i = 0; i < nfaces; i++)

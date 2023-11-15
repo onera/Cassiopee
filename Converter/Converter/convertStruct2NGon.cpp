@@ -369,7 +369,6 @@ PyObject* K_CONVERTER::convertStruct2NGon(PyObject* self, PyObject* args)
 #pragma omp for nowait
       for (E_Int i = 0; i < ncells; i++) indPH2[i] = (2*dim0+shift)*i;
     }
-    if (api == 3) { indPG2[nfaces] = pow(2,dim0-1)*nfaces; indPH2[ncells] = 2*dim0*ncells; }
 
     // Copy fields to f2
     for (E_Int n = 1; n <= nfld; n++)

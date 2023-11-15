@@ -174,11 +174,13 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
         dim[0] = nface+1;
         ar = PyArray_EMPTY(1, dim, E_NPY_INT, 0);
         E_Int* pt = (E_Int*)PyArray_DATA((PyArrayObject*)ar);
-        pt[nface-1] = sizeNGon; 
+        pt[nface] = sizeNGon; 
         PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
         // NFACE - startOffset
         dim[0] = nelt+1;
         ar = PyArray_EMPTY(1, dim, E_NPY_INT, 0);
+        pt = (E_Int*)PyArray_DATA((PyArrayObject*)ar);
+        pt[nelt] = sizeNFace;
         PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
         // Eventuellement PE - 2*nface
         //dim[0] = nface; dim[1] = 2;

@@ -324,7 +324,6 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
             indPG2[c] = (3+shift)*c; c++;
             indPG2[c] = (3+shift)*c;
           }
-          if (api == 3) indPG2[nfaces[ic]] = (3+shift)*nfaces[ic];
         }
         if (strcmp(eltTypConn, "PYRA") == 0)
         {
@@ -336,18 +335,15 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
             indPG2[c] = (3+shift)*c; c++;
             indPG2[c] = (3+shift)*c;
           }
-          if (api == 3) indPG2[nfaces[ic]] = (3+shift)*nfaces[ic];
         }
         else
         {
 #pragma omp for
           for (E_Int i = 0; i < nfaces[ic]; i++) indPG2[i] = (nv[ic]+shift)*i;
-          if (api == 3) indPG2[nfaces[ic]] = (nv[ic]+shift)*nfaces[ic];
         }
 
 #pragma omp for
         for (E_Int i = 0; i < nelts[ic]; i++) indPH2[i] = (nf[ic]+shift)*i; 
-        if (api == 3) indPH2[nelts[ic]] = (nf[ic]+shift)*nelts[ic];
       }
     }
 
