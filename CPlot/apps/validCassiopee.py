@@ -4,6 +4,7 @@ except: import tkinter as TK
 try: import tkFont as Font
 except: import tkinter.font as Font
 import os, sys, re, signal, platform
+import numpy as np
 import subprocess 
 import threading
 import time
@@ -17,13 +18,13 @@ CASSIOPEE = os.getenv('CASSIOPEE_SOURCES')
 if CASSIOPEE is None or CASSIOPEE == '':
     CASSIOPEE = os.getenv('CASSIOPEE')
     if CASSIOPEE is None or CASSIOPEE == '':
-        print('Error: CASSIOPEE must be present in your environement.')
+        print('Error: CASSIOPEE must be present in your environment.')
         sys.exit()
 
 # CFD Base
 CFDBASEPATH = '/Validation/Cases'
 
-# Systeme
+# System
 mySystem = Dist.getSystem()[0]
 
 # Machine name
@@ -195,7 +196,7 @@ def ljust(text, size):
 # IN: status: nouveau status
 # Recupere les anciennes donnees dans le fichier time
 #==============================================================================
-def buildString(module, test, CPUtime, coverage, status):
+def buildString(module, test, CPUtime='...', coverage='...%', status='...'):
     if module == 'CFDBase':
         path = CASSIOPEE+CFDBASEPATH
         fileTime = '%s/%s/Data/%s.time'%(path, test, test)
@@ -760,15 +761,41 @@ def rmFile(path, fileName):
 # Construit la liste des tests
 # Update TESTS et la listBox
 #==============================================================================
-def buildTestList():
+def buildTestList(loadSession=False):
     global TESTS
     TESTS = []
     listbox.delete(0, TK.END)
     modules = getModules()
+    # Read sessionLog
+    logname = CASSIOPEE+'/Apps/Modules/ValidData/lastSession.log'
+    ncolumns = 7
+    if loadSession and os.path.isfile(logname):
+        with open(logname, "r") as g:
+            sessionLog = [line.rstrip().split(':') for line in g.readlines()]
+        # Remove header from logfile
+        sessionLog = [testLog for testLog in sessionLog
+            if (isinstance(testLog, list) and len(testLog) == ncolumns)]         
+        # Create array and remove leading and trailing white spaces
+        arr = np.array([entry.strip() for testLog in sessionLog for entry in testLog],
+                       dtype=object)
+        arr = arr.reshape(-1, ncolumns)
+    else:
+        # Build an empty array
+        arr = np.array([], dtype=object)
+        
     for m in modules:
         tests = getTests(m)
         for t in tests:
-            s = buildString(m, t, '...', '...%', '...')
+            if loadSession and arr.size:
+                testArr = arr[np.logical_and(arr[:,0] == m, arr[:,1] == t)]
+                if testArr.size:
+                    # Args are CPU time, Coverage, and Status
+                    args = testArr[0][[2,5,6]]
+                    s = buildString(m, t, *args)
+                else:
+                    s = buildString(m, t)
+            else:
+                s = buildString(m, t)
             TESTS.append(s)
             listbox.insert(TK.END, s)
     listbox.config(yscrollcommand=scrollbar.set)
@@ -1159,7 +1186,14 @@ def notifyValidOK():
     
 #==============================================================================
 def Quit(event=None):
-    import os; os._exit(0)
+    import os
+    import shutil
+    logname = CASSIOPEE+"/Apps/Modules/ValidData/session.log"
+    # The session log is copied if it is not empty
+    if not os.path.getsize(logname) == 0:
+        dst = CASSIOPEE+"/Apps/Modules/ValidData/lastSession.log"
+        shutil.copyfile(logname, dst)
+    os._exit(0)
 
 #==============================================================================
 # Ajoute une etoile a la selection
@@ -1286,6 +1320,10 @@ menu.add_cascade(label='Tools', menu=tools)
 view = TK.Menu(menu, tearoff=0)
 menu.add_cascade(label='View', menu=view)
 
+from functools import partial
+loadSessionWithArgs = partial(buildTestList, True)
+file.add_command(label='Load last session', command=loadSessionWithArgs)
+file.add_command(label='Purge session', command=buildTestList)
 file.add_command(label='Export to text file', command=export2Text)
 file.add_command(label='Notify Ready for commit', command=notifyValidOK)
 file.add_command(label='Quit', command=Quit, accelerator='Ctrl+Q')
@@ -1322,6 +1360,7 @@ tools.add_command(label='Switch to local data base', command=setupLocal)
 
 master.config(menu=menu)
 master.bind_all("<Control-q>", Quit)
+master.protocol("WM_DELETE_WINDOW", Quit)
 master.bind_all("<Control-a>", selectAll)
 
 # Main frame
