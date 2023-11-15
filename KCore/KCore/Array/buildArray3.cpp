@@ -437,10 +437,9 @@ PyObject* K_ARRAY::buildArray3(FldArrayF& f,
     E_Int sizeNGon = cn.getSizeNGon();
     E_Int sizeNFace = cn.getSizeNFace();
     E_Boolean center = false;
-    
     E_Int l = strlen(eltType);
     if (eltType[l-2] == '*') center = true;
-
+    
     PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, nelts, nfaces, 
         eltType, sizeNGon, sizeNFace, ngonType, center, api);
     FldArrayF* f2; FldArrayI* cn2;
@@ -469,17 +468,18 @@ PyObject* K_ARRAY::buildArray3(FldArrayF& f,
       {
         E_Int* indPGp = cn.getIndPG();
         E_Int* indPG2p = cn2->getIndPG();
-        if (ngonType == 2) dim = nfaces;
-        else dim = nfaces+1;
+        E_Int dim2;
+        if (ngonType == 2) dim2 = nfaces;
+        else dim2 = nfaces+1;
         #pragma omp for
-        for (E_Int i = 0; i < dim; i++) indPG2p[i] = indPGp[i];
+        for (E_Int i = 0; i < dim2; i++) indPG2p[i] = indPGp[i];
         E_Int* indPHp = cn.getIndPH();
         E_Int* indPH2p = cn2->getIndPH();
-        if (ngonType == 2) dim = nelts;
-        else dim = nelts+1;
+        if (ngonType == 2) dim2 = nelts;
+        else dim2 = nelts+1;
         #pragma omp for
-        for (E_Int i = 0; i < dim; i++) indPH2p[i] = indPHp[i];
-      } 
+        for (E_Int i = 0; i < dim2; i++) indPH2p[i] = indPHp[i];
+      }
     }
     return tpl;
   }
