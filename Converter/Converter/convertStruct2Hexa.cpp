@@ -31,22 +31,18 @@ PyObject* K_CONVERTER::convertStruct2Hexa(PyObject* self, PyObject* args)
   if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
 
   // Check array
-  PyObject* tpl = NULL;
+  PyObject* tpl = NULL; // array de sortie en noeuds
   E_Int nil, njl, nkl;
   FldArrayF* f; FldArrayI* cnl;
-  char* varString; char* eltType;
-  E_Int res;
-
-  E_Int dim0 = -1;
-  E_Int elt = 0;
-
-  res = K_ARRAY::getFromArray(array, varString, 
-                              f, nil, njl, nkl, cnl, eltType, true);
+  char* varString; char* eltType; string eltType2;
+  E_Int res, dim0 = -1;
+  res = K_ARRAY::getFromArray3(array, varString, f,
+                               nil, njl, nkl, cnl, eltType);
   
   if (res == 1)
   {   
     // 1D, 2D or 3D ?
-    dim0 = 3;
+    dim0 = 3; eltType2 = "HEXA";
     if (nil == 1)
     {
       if (njl == 1 || nkl == 1) dim0 = 1;
@@ -62,196 +58,155 @@ PyObject* K_CONVERTER::convertStruct2Hexa(PyObject* self, PyObject* args)
       if (nil == 1 || njl == 1) dim0 = 1;
       else dim0 = 2;
     }
+    if (dim0 == 1) eltType2 = "BAR";
+    else if (dim0 == 2) eltType2 = "QUAD";
       
     // Build the unstructured mesh
     E_Int ni1 = E_max(1, E_Int(nil)-1);
     E_Int nj1 = E_max(1, E_Int(njl)-1);
     E_Int nk1 = E_max(1, E_Int(nkl)-1);
     E_Int ninj = nil*njl;
-    E_Int ncells = ni1*nj1*nk1;// nb de cellules structurees
-    E_Int nelts; // nb d elements non structures
-    
-    switch (dim0)
+    E_Int ncells = ni1*nj1*nk1; // nb de cellules structurees
+    E_Int nelts = ncells; // nb d elements non structures
+    E_Int npts = f->getSize(), api = f->getApi(), nfld = f->getNfld();
+
+    tpl = K_ARRAY::buildArray3(nfld, varString, npts, nelts,
+                               eltType2.c_str(), false, api);
+    FldArrayF* f2; FldArrayI* cnl2;
+    K_ARRAY::getFromArray3(tpl, f2, cnl2);
+    FldArrayI& cm = *(cnl2->getConnect(0));
+
+#pragma omp parallel
     {
-      case 1:
+      if (dim0 == 1)
       {
-        nelts = ncells;
-        elt = 1; // BAR
-        tpl = K_ARRAY::buildArray(f->getNfld(), varString,
-                                  f->getSize(), nelts,
-                                  elt, NULL);
-        E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-        FldArrayF fn(f->getSize(), f->getNfld(), fnp, true); fn = *f;
-        E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-        FldArrayI cn(nelts, 2, cnnp, true);
-        E_Int* cn1 = cn.begin(1);
-        E_Int* cn2 = cn.begin(2);
         E_Int ind1, ind2;
         if (nk1 == 1 && nj1 == 1)
         {
+#pragma omp for
           for (E_Int i = 0; i < ni1; i++)
           {
             ind1 = i + 1;
             ind2 = ind1 + 1;
-            cn1[i] = ind1;
-            cn2[i] = ind2;
+            cm(i,1) = ind1;
+            cm(i,2) = ind2;
           }
         }
         else if (ni1 == 1 && nj1 == 1)
         {
+#pragma omp for
           for (E_Int k = 0; k < nk1; k++)
           {
             ind1 = k*nil*njl + 1;
             ind2 = ind1 + nil*njl;
-            cn1[k] = ind1;
-            cn2[k] = ind2;
+            cm(k,1) = ind1;
+            cm(k,2) = ind2;
           }
         }
         else if (ni1 == 1 && nk1 == 1)
         {
+#pragma omp for
           for (E_Int j = 0; j < nj1; j++)
           {
             ind1 = j*nil + 1;
             ind2 = ind1 + nil;
-            cn1[j] = ind1;
-            cn2[j] = ind2;
+            cm(j,1) = ind1;
+            cm(j,2) = ind2;
           }
         }
       }
-      break;
-
-      case 2:
+      else if (dim0 == 2)
       {
-        nelts = ncells;
-        elt = 3; // QUAD
-        tpl = K_ARRAY::buildArray(f->getNfld(), varString,
-                                  f->getSize(), nelts,
-                                  elt, NULL);
-        E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-        FldArrayF fn(f->getSize(), f->getNfld(), fnp, true); fn = *f;
-        E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-        FldArrayI cn(nelts, 4, cnnp, true);
-        E_Int* cn1 = cn.begin(1);
-        E_Int* cn2 = cn.begin(2);
-        E_Int* cn3 = cn.begin(3);
-        E_Int* cn4 = cn.begin(4);
-
+        E_Int ind, ind1, ind2, ind3, ind4;
         if (nk1 == 1)
         {
-          #pragma omp parallel
-          {
-            E_Int ind, ind1, ind2, ind3, ind4;
-            for (E_Int j = 0; j < nj1; j++)
-              #pragma omp for
-              for (E_Int i = 0; i < ni1; i++)
-              {
-                //starts from 1
-                ind1 = i + j*nil + 1; //(i,j,1)
-                ind2 = ind1 + 1;  //(i+1,j,1)
-                ind3 = ind2 + nil;//(i+1,j+1,1)
-                ind4 = ind3 - 1; //(i,j+1,1)
-                ind = i + j*ni1;
-                cn1[ind] = ind1;
-                cn2[ind] = ind2;
-                cn3[ind] = ind3;
-                cn4[ind] = ind4;
-              }
-          }
+          for (E_Int j = 0; j < nj1; j++)
+#pragma omp for
+            for (E_Int i = 0; i < ni1; i++)
+            {
+              //starts from 1
+              ind1 = i + j*nil + 1; //(i,j,1)
+              ind2 = ind1 + 1;      //(i+1,j,1)
+              ind3 = ind2 + nil;    //(i+1,j+1,1)
+              ind4 = ind3 - 1;      //(i,j+1,1)
+              ind = i + j*ni1;
+              cm(ind,1) = ind1;
+              cm(ind,2) = ind2;
+              cm(ind,3) = ind3;
+              cm(ind,4) = ind4;
+            }
         }
         else if (nj1 == 1)
         {
-          #pragma omp parallel
-          {
-            E_Int ind, ind1, ind2, ind3, ind4;
-            for (E_Int k = 0; k < nk1; k++)
-              #pragma omp for
-              for (E_Int i = 0; i < ni1; i++)
-              {
-                ind1 = i + k*ninj + 1;  //(i,1,k)
-                ind2 = ind1 + ninj; //(i,1,k+1)
-                ind3 = ind2 + 1;    //(i+1,1,k+1)
-                ind4 = ind1 + 1;    //(i+1,1,k)
-                ind = i + k*ni1;
-                cn1[ind] = ind1;
-                cn2[ind] = ind2;
-                cn3[ind] = ind3;
-                cn4[ind] = ind4;      
-              }
-          }
+          for (E_Int k = 0; k < nk1; k++)
+#pragma omp for
+            for (E_Int i = 0; i < ni1; i++)
+            {
+              ind1 = i + k*ninj + 1;  //(i,1,k)
+              ind2 = ind1 + ninj;     //(i,1,k+1)
+              ind3 = ind2 + 1;        //(i+1,1,k+1)
+              ind4 = ind1 + 1;        //(i+1,1,k)
+              ind = i + k*ni1;
+              cm(ind,1) = ind1;
+              cm(ind,2) = ind2;
+              cm(ind,3) = ind3;
+              cm(ind,4) = ind4;      
+            }
         }
         else // i1 = 1 
         {
-          #pragma omp parallel
-          {
-            E_Int ind, ind1, ind2, ind3, ind4;
-            for (E_Int k = 0; k < nk1; k++)
-              #pragma omp for
-              for (E_Int j = 0; j < nj1; j++)
-              {
-                ind1 = 1 + j*nil + k*ninj; //(1,j,k)
-                ind2 = ind1 + nil;  //(1,j+1,k)
-                ind3 = ind2 + ninj;//(1,j+1,k+1)
-                ind4 = ind3 - nil;   //(1,j,k+1)
-                ind = j+k*nj1;
-                cn1[ind] = ind1;
-                cn2[ind] = ind2;
-                cn3[ind] = ind3;
-                cn4[ind] = ind4;
-              }
-          }// i1 = 1
-        }
-      }
-      break;
-
-      case 3:
-      {
-        nelts = ncells;
-        elt = 7; //HEXA
-        tpl = K_ARRAY::buildArray(f->getNfld(), varString,
-                                  f->getSize(), nelts,
-                                  elt, NULL);
-        E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-        FldArrayF fn(f->getSize(), f->getNfld(), fnp, true); fn = *f;
-        E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-        FldArrayI cn(nelts, 8, cnnp, true);
-        E_Int* cn1 = cn.begin(1);
-        E_Int* cn2 = cn.begin(2);
-        E_Int* cn3 = cn.begin(3);
-        E_Int* cn4 = cn.begin(4);
-        E_Int* cn5 = cn.begin(5);
-        E_Int* cn6 = cn.begin(6);
-        E_Int* cn7 = cn.begin(7);
-        E_Int* cn8 = cn.begin(8);
-
-        #pragma omp parallel
-        {
-          E_Int ind, ind1, ind2, ind3, ind4, ind5, ind6, ind7, ind8;
           for (E_Int k = 0; k < nk1; k++)
+#pragma omp for
             for (E_Int j = 0; j < nj1; j++)
-              #pragma omp for
-              for (E_Int i = 0; i < ni1; i++)
-              {
-                ind1 = 1 + i + j*nil + k*ninj; //A(  i,  j,k)
-                ind2 = ind1 + 1;              //B(i+1,  j,k)
-                ind3 = ind2 + nil;            //C(i+1,j+1,k)
-                ind4 = ind3 - 1;              //D(  i,j+1,k)
-                ind5 = ind1 + ninj;           //E(  i,  j,k+1)
-                ind6 = ind2 + ninj;           //F(i+1,  j,k+1)
-                ind7 = ind3 + ninj;           //G(i+1,j+1,k+1)
-                ind8 = ind4 + ninj;           //H(  i,j+1,k+1) 
-                ind = i+j*ni1+k*ni1*nj1;
-                cn1[ind] = ind1;
-                cn2[ind] = ind2;
-                cn3[ind] = ind3;
-                cn4[ind] = ind4;
-                cn5[ind] = ind5;
-                cn6[ind] = ind6;
-                cn7[ind] = ind7;
-                cn8[ind] = ind8;
-              }
-        }
+            {
+              ind1 = 1 + j*nil + k*ninj; //(1,j,k)
+              ind2 = ind1 + nil;         //(1,j+1,k)
+              ind3 = ind2 + ninj;        //(1,j+1,k+1)
+              ind4 = ind3 - nil;         //(1,j,k+1)
+              ind = j+k*nj1;
+              cm(ind,1) = ind1;
+              cm(ind,2) = ind2;
+              cm(ind,3) = ind3;
+              cm(ind,4) = ind4;
+            }
+        }// i1 = 1
       }
-      break;
+      else
+      {
+        E_Int ind, ind1, ind2, ind3, ind4, ind5, ind6, ind7, ind8;
+        for (E_Int k = 0; k < nk1; k++)
+          for (E_Int j = 0; j < nj1; j++)
+#pragma omp for
+            for (E_Int i = 0; i < ni1; i++)
+            {
+              ind1 = 1 + i + j*nil + k*ninj; //A(  i,  j,k)
+              ind2 = ind1 + 1;               //B(i+1,  j,k)
+              ind3 = ind2 + nil;             //C(i+1,j+1,k)
+              ind4 = ind3 - 1;               //D(  i,j+1,k)
+              ind5 = ind1 + ninj;            //E(  i,  j,k+1)
+              ind6 = ind2 + ninj;            //F(i+1,  j,k+1)
+              ind7 = ind3 + ninj;            //G(i+1,j+1,k+1)
+              ind8 = ind4 + ninj;            //H(  i,j+1,k+1) 
+              ind = i+j*ni1+k*ni1*nj1;
+              cm(ind,1) = ind1;
+              cm(ind,2) = ind2;
+              cm(ind,3) = ind3;
+              cm(ind,4) = ind4;
+              cm(ind,5) = ind5;
+              cm(ind,6) = ind6;
+              cm(ind,7) = ind7;
+              cm(ind,8) = ind8;
+            }
+      }
+
+      // Copy fields to f2
+      for (E_Int n = 1; n <= nfld; n++)
+      {
+        E_Float* fp = f->begin(n);
+        E_Float* f2p = f2->begin(n);
+  #pragma omp for
+        for (E_Int i = 0; i < npts; i++) f2p[i] = fp[i];
+      }
     }
   }  
   else if (res == 2)
