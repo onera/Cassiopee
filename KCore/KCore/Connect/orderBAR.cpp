@@ -31,8 +31,7 @@ void K_CONNECT::orderBAR2Struct(E_Int posx, E_Int posy, E_Int posz,
                                 FldArrayF& f, FldArrayI& cn, 
                                 FldArrayF& fout)
 {
-  E_Int nelts = cn.getSize();
-  E_Int* cn1 = cn.begin(1); E_Int* cn2 = cn.begin(2);
+  E_Int nelts = cn.getSize(); // connectivite BAR recuperee avec getConnect
   E_Int nfld = f.getNfld();
   FldArrayIS dejaVu(nelts); dejaVu.setAllValuesAtNull();
   E_Int n=0;
@@ -43,12 +42,12 @@ void K_CONNECT::orderBAR2Struct(E_Int posx, E_Int posy, E_Int posz,
   for (E_Int et1 = 0; et1 < nelts; et1++)
   {
     found1 = 0; found2 = 0;
-    E_Int ind11 = cn1[et1]; E_Int ind21 = cn2[et1];
+    E_Int ind11 = cn(et1,1); E_Int ind21 = cn(et1,2);
     for (E_Int et2 = 0; et2 < nelts; et2++)
     {
       if (et1 != et2) 
       {
-        E_Int ind12 = cn1[et2]; E_Int ind22 = cn2[et2];
+        E_Int ind12 = cn(et2,1); E_Int ind22 = cn(et2,2);
         if (ind11 == ind12 || ind11 == ind22) found1 = 1;   
         if (ind21 == ind12 || ind21 == ind22) found2 = 1;   
       }
@@ -57,7 +56,7 @@ void K_CONNECT::orderBAR2Struct(E_Int posx, E_Int posy, E_Int posz,
     if (found1 == 0){indp = ind11-1; indn = ind21-1; dejaVu[et1]=1; break;}
     else if (found2 == 0) {indp = ind21-1; indn = ind11-1; dejaVu[et1]=1; break;}
   }
-  if (found1 == 1 && found2 == 1) {indp = cn1[0]-1;indn = cn2[0]-1; dejaVu[0] = 1;}// boucle
+  if (found1 == 1 && found2 == 1) {indp = cn(0,1)-1;indn = cn(0,2)-1; dejaVu[0] = 1;}// boucle
   for (E_Int eq = 1; eq <= nfld; eq++)
   {fout(n,eq) = f(indp,eq); fout(n+1,eq) = f(indn,eq);}
   n = n+2;
@@ -72,16 +71,16 @@ void K_CONNECT::orderBAR2Struct(E_Int posx, E_Int posy, E_Int posz,
     {
       if (dejaVu[et] == 0) 
       {
-        if (cn1[et] == indp+1)  
+        if (cn(et,1) == indp+1)  
         {
-          indn = cn2[et]-1; indp = indn; found = 1; dejaVu[et]=1; 
+          indn = cn(et,2)-1; indp = indn; found = 1; dejaVu[et]=1; 
           for (E_Int eq = 1; eq <= nfld; eq++) fout(n,eq) = f(indn,eq); 
           n++;
           goto next;
         }
-        else if (cn2[et] == indp+1)
+        else if (cn(et,2) == indp+1)
         {
-          indn = cn1[et]-1; indp = indn; found = 1; dejaVu[et]=1; 
+          indn = cn(et,1)-1; indp = indn; found = 1; dejaVu[et]=1; 
           for (E_Int eq = 1; eq <= nfld; eq++) fout(n,eq) = f(indn,eq); 
           n++;
           goto next;
@@ -191,6 +190,5 @@ void K_CONNECT::orderBAR(FldArrayF& field, FldArrayI& cBN,
         }
       }
     } // fin de recherche de ramification
-  
   }
 }

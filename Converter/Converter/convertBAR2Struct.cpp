@@ -31,8 +31,8 @@ PyObject* K_CONVERTER::convertBAR2Struct(PyObject* self, PyObject* args)
   E_Int nil, njl, nkl;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, nil, njl, nkl, 
-                                    cn, eltType);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
+                                     cn, eltType);
   if (res != 2)
   {
     if (res == 1) delete f;
@@ -52,15 +52,16 @@ PyObject* K_CONVERTER::convertBAR2Struct(PyObject* self, PyObject* args)
     delete f; delete cn; return NULL;
   }
   K_CONNECT::cleanConnectivity(posx, posy, posz, eps, "BAR", *f, *cn);
-  E_Int npts = f->getSize(); E_Int nelts = cn->getSize();
+  FldArrayI& cm = *(cn->getConnect(0));
+  E_Int npts = f->getSize(); E_Int nelts = cm.getSize();
   E_Int nfld = f->getNfld();
   E_Int ni = npts; E_Int nj = 1; E_Int nk = 1;
   if (nelts != npts-1) ni = ni+1; // BAR = loop
   FldArrayF* fout = new FldArrayF(ni, nfld);
-  K_CONNECT::orderBAR2Struct(posx, posy, posz, *f, *cn, *fout);
+  K_CONNECT::orderBAR2Struct(posx, posy, posz, *f, cm, *fout);
   delete f; delete cn;
   ni = fout->getSize();
-  PyObject* tpl = K_ARRAY::buildArray(*fout, varString, ni,nj,nk);
+  PyObject* tpl = K_ARRAY::buildArray3(*fout, varString, ni, nj, nk);
   delete fout; 
   return tpl;
 }
