@@ -57,19 +57,22 @@ PyObject* K_GENERATOR::cartPyra(PyObject* self, PyObject* args)
   E_Int ncells = ni1*nj1*nk1; // nb de cellules structurees
   E_Int npts = ninj*nk+ncells;
   E_Int nelts = 6*ncells; // 6 pyra par cellule structuree
+  E_Int shift = ninj*nk;
 
-  PyObject* tpl = K_ARRAY::buildArray2(3, "x,y,z", npts, nelts, -1, "PYRA", 0, 0, 0, 0, api);
+  PyObject* tpl = K_ARRAY::buildArray3(3, "x,y,z", npts, nelts, "PYRA", false, api);
   K_FLD::FldArrayF* f; K_FLD::FldArrayI* cn;
-  K_ARRAY::getFromArray2(tpl, f, cn);
-  E_Int stride = cn->getStride();
+  K_ARRAY::getFromArray3(tpl, f, cn);
 
+  K_FLD::FldArrayI& cm = *(cn->getConnect(0));
   E_Float* xt = f->begin(1);
   E_Float* yt = f->begin(2);
   E_Float* zt = f->begin(3);
-  E_Int ind, indp, indcell, ind1, ind2, ind3, ind4, ind5, ind6, ind7, ind8;
-  E_Int shift = ninj*nk;
 
-#pragma omp parallel for default(shared) private(ind) if (nk > 50)
+  // Build the unstructured mesh (BE connectivity and fields)
+#pragma omp parallel if (nelts > __MIN_SIZE_MEAN__)
+  {
+    E_Int ind, indp, indcell, ind1, ind2, ind3, ind4, ind5, ind6, ind7, ind8, c;
+#pragma omp for
   for (E_Int k = 0; k < nk; k++)
     for (E_Int j = 0; j < nj; j++)
       for (E_Int i = 0; i < ni; i++)
@@ -79,28 +82,24 @@ PyObject* K_GENERATOR::cartPyra(PyObject* self, PyObject* args)
         yt[ind] = yo + j*hj;
         zt[ind] = zo + k*hk;        
       }
+
+#pragma omp for
   for (E_Int kc = 0; kc < nk1; kc++)
     for (E_Int jc = 0; jc < nj1; jc++)
       for (E_Int ic = 0; ic < ni1; ic++)
       {
-        indcell = ic + jc*ni1 + kc*ni1*nj1 + shift;
-        xt[indcell] = xo + (ic+1./2.)*hi;
-        yt[indcell] = yo + (jc+1./2.)*hj;
-        zt[indcell] = zo + (kc+1./2.)*hk;        
+        indcell = (kc*nj1 + jc)*ni1 + ic + shift;
+        xt[indcell] = xo + (ic+0.5)*hi;
+        yt[indcell] = yo + (jc+0.5)*hj;
+        zt[indcell] = zo + (kc+0.5)*hk;        
       } 
 
-  // Build the unstructured mesh
-  E_Int c = 0;
-  E_Int* cn1 = cn->begin(1);
-  E_Int* cn2 = cn->begin(2);
-  E_Int* cn3 = cn->begin(3);
-  E_Int* cn4 = cn->begin(4);
-  E_Int* cn5 = cn->begin(5);
+#pragma omp for
   for (E_Int k = 0; k < nk1; k++)
     for (E_Int j = 0; j < nj1; j++)
       for (E_Int i = 0; i < ni1; i++)
       {
-        indcell = i + j*ni1 + k*ni1*nj1;
+        indcell = (k*nj1 + j)*ni1 + i;
         ind1 = i+j*ni+k*ninj;
         ind2 = ind1+1;
         ind3 = ind2+ni;
@@ -110,55 +109,52 @@ PyObject* K_GENERATOR::cartPyra(PyObject* self, PyObject* args)
         ind7 = ind3+ninj;
         ind8 = ind4+ninj;
         indp = indcell+shift;
+        c = 6*indcell;
 
         //pyra a base 1234
-        cn1[c] = ind1+1;
-        cn2[c] = ind2+1;
-        cn3[c] = ind3+1;
-        cn4[c] = ind4+1;
-        cn5[c] = indp+1;
-        c += stride;
+        cm(c,1) = ind1+1;
+        cm(c,2) = ind2+1;
+        cm(c,3) = ind3+1;
+        cm(c,4) = ind4+1;
+        cm(c,5) = indp+1;
 
         //pyra a base 5876
-        cn1[c] = ind5+1;
-        cn2[c] = ind8+1;
-        cn3[c] = ind7+1;
-        cn4[c] = ind6+1;
-        cn5[c] = indp+1;
-        c += stride;
+        cm(c+1,1) = ind5+1;
+        cm(c+1,2) = ind8+1;
+        cm(c+1,3) = ind7+1;
+        cm(c+1,4) = ind6+1;
+        cm(c+1,5) = indp+1;
 
         //pyra a base 1485
-        cn1[c] = ind1+1;
-        cn2[c] = ind4+1;
-        cn3[c] = ind8+1;
-        cn4[c] = ind5+1;
-        cn5[c] = indp+1;
-        c += stride;
+        cm(c+2,1) = ind1+1;
+        cm(c+2,2) = ind4+1;
+        cm(c+2,3) = ind8+1;
+        cm(c+2,4) = ind5+1;
+        cm(c+2,5) = indp+1;
 
         //pyra a base 2673
-        cn1[c] = ind2+1;
-        cn2[c] = ind6+1;
-        cn3[c] = ind7+1;
-        cn4[c] = ind3+1;
-        cn5[c] = indp+1;
-        c += stride;
+        cm(c+3,1) = ind2+1;
+        cm(c+3,2) = ind6+1;
+        cm(c+3,3) = ind7+1;
+        cm(c+3,4) = ind3+1;
+        cm(c+3,5) = indp+1;
         
         // pyra a base 1652
-        cn1[c] = ind1+1;
-        cn2[c] = ind5+1;
-        cn3[c] = ind6+1;
-        cn4[c] = ind2+1;
-        cn5[c] = indp+1;
-        c += stride;
+        cm(c+4,1) = ind1+1;
+        cm(c+4,2) = ind5+1;
+        cm(c+4,3) = ind6+1;
+        cm(c+4,4) = ind2+1;
+        cm(c+4,5) = indp+1;
 
         //pyra a base4378
-        cn1[c] = ind4+1;
-        cn2[c] = ind3+1;
-        cn3[c] = ind7+1;
-        cn4[c] = ind8+1;
-        cn5[c] = indp+1;
-        c += stride;
+        cm(c+5,1) = ind4+1;
+        cm(c+5,2) = ind3+1;
+        cm(c+5,3) = ind7+1;
+        cm(c+5,4) = ind8+1;
+        cm(c+5,5) = indp+1;
       }
+  }
+
   RELEASESHAREDU(tpl, f, cn);
   return tpl;
 }

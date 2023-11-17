@@ -50,14 +50,13 @@ PyObject* K_GENERATOR::cartStruct(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  E_Int i, j, k, ind;
   // Create cartesian mesh
   PyObject* tpl;
-  tpl = K_ARRAY::buildArray2(3, "x,y,z", ni, nj, nk, api);
+  tpl = K_ARRAY::buildArray3(3, "x,y,z", ni, nj, nk, api);
   
   K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
   char* varString; char* eltType;
-  K_ARRAY::getFromArray2(tpl, varString, f, ni, nj, nk, c, eltType);
+  K_ARRAY::getFromArray3(tpl, varString, f, ni, nj, nk, c, eltType);
 
   E_Int nij = ni*nj;
   E_Int nijk = ni*nj*nk;
@@ -66,15 +65,19 @@ PyObject* K_GENERATOR::cartStruct(PyObject* self, PyObject* args)
   E_Float* yt = f->begin(2);
   E_Float* zt = f->begin(3);
 
-#pragma omp parallel for default(shared) private(k,j,i,ind)
-  for (ind = 0; ind < nijk; ind++)
+#pragma omp parallel
   {
-    k = ind/nij;
-    j = (ind-k*nij)/ni;
-    i = ind-j*ni-k*nij;
-    xt[ind] = xo + i * hi;
-    yt[ind] = yo + j * hj;
-    zt[ind] = zo + k * hk;
+    E_Int i, j, k;
+#pragma omp for
+    for (E_Int ind = 0; ind < nijk; ind++)
+    {
+      k = ind/nij;
+      j = (ind-k*nij)/ni;
+      i = ind-j*ni-k*nij;
+      xt[ind] = xo + i * hi;
+      yt[ind] = yo + j * hj;
+      zt[ind] = zo + k * hk;
+    }
   }
 
   // Return array

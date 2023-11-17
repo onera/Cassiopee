@@ -125,12 +125,12 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
   E_Int nintj = ni1*nj*nk1;
   //E_Int nintk = ni1*nj1*nk;
 
-#pragma omp parallel
+#pragma omp parallel if (ncells > __MIN_SIZE_MEAN__)
   {
-    E_Int ind, i, j, k, c;
+    E_Int i, j, k, c;
 
 #pragma omp for
-    for (ind = 0; ind < nijk; ind++)
+    for (E_Int ind = 0; ind < nijk; ind++)
     {
       k = ind/nij;
       j = (ind-k*nij)/ni;
