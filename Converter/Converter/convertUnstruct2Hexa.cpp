@@ -94,14 +94,12 @@ PyObject* K_CONVERTER::convertUnstruct2Hexa(PyObject* self, PyObject* args)
   else if (loc == nc) center = true;
 
   // Build empty ME connectivity
-  std::cout << neltsConn[0]<<std::endl;
-  std::cout << nc << "  before buildArray3: "<<eltType2<<std::endl;
   PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, neltsConn,
                                        eltType2.c_str(), center, api);
   FldArrayF* f2; FldArrayI* cnl2;
   K_ARRAY::getFromArray3(tpl, f2, cnl2);
 
-  // Boucle sur toutes les connectivites pour remplir les connectivites
+  // Boucle sur toutes les connectivites pour les remplir
   for (E_Int ic = 0; ic < nc; ic++)
   {
     FldArrayI& cm = *(cnl->getConnect(ic));

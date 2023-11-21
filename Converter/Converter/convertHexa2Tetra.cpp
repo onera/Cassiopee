@@ -81,7 +81,7 @@ PyObject* K_CONVERTER::convertHexa2Tetra(PyObject* self, PyObject* args)
   E_Int ncells = cm.getSize();
 
   // build array (shared)
-  E_Int nelts, nvert;
+  E_Int nelts;
   if (dim0 == 2) nelts = 2*ncells; // TRI
   else {nelts = 5*ncells;} // TETRA
   E_Int npts = f->getSize(), api = f->getApi(), nfld = f->getNfld();
