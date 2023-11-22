@@ -120,7 +120,13 @@ PyObject* K_CONVERTER::node2Center(PyObject* self, PyObject* args)
     }
     else // autres elements basiques
     { 
-      ncells = c->getSize(); 
+      E_Int nc = c->getNConnect();
+      ncells = 0;
+      for (E_Int ic = 0; ic < nc; ic++)
+      { 
+        FldArrayI& cm = *(c->getConnect(ic));
+        ncells += cm.getSize();
+      }
       FCenter = new FldArrayF(ncells, nfld, compact);
       ret = K_LOC::node2centerUnstruct(*FNode, *c, cellN, mod, *FCenter);
     }

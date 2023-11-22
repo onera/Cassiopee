@@ -1337,7 +1337,6 @@ def getField(name, t, api=1):
       connects = Internal.getElementNodes(z)
 
     info = z[2]; a = None
-
     if loc == 'nodes': # regarde les containeurs GridCoordinates et Nodes
       for i in info:
         if i[0] == Internal.__GridCoordinates__ or i[0] == Internal.__FlowSolutionNodes__:
@@ -1346,7 +1345,8 @@ def getField(name, t, api=1):
             if j[0] == name and j[3] == 'DataArray_t':
               if api==1: r = Internal.convertDataNode2Array(j, dim, connects, 0)
               elif api==2: r = Internal.convertDataNode2Array2(j, dim, connects, 0)
-              else: r = Internal.convertDataNode2Array3(j, dim, connects, 0)
+              elif api==3: r = Internal.convertDataNode2Array3(j, dim, connects, 0)
+              else: raise ValueError('getField: unknow api.')
               a = r[1]
               if a is not None: break
 
@@ -1358,7 +1358,8 @@ def getField(name, t, api=1):
             if j[0] == name and j[3] == 'DataArray_t':
               if api==1: r = Internal.convertDataNode2Array(j, dim, connects, 1)
               elif api==2: r = Internal.convertDataNode2Array2(j, dim, connects, 1)
-              else: r = Internal.convertDataNode2Array3(j, dim, connects, 1)
+              elif api==3: r = Internal.convertDataNode2Array3(j, dim, connects, 1)
+              else: raise ValueError('getField: unknow api.')
               a = r[1]
               if a is not None: break
 
@@ -6125,11 +6126,11 @@ def _addFamily2Base(a, familyName, bndType=None):
 #==============================================================================
 
 # -- node2Center
-def node2Center(t, var='', accurate=0, api=3):
+def node2Center(t, var='', accurate=0):
     """Convert zone defined at nodes to a zone defined at centers.
     Usage: node2Center(t, varname)"""
     a = Internal.copyRef(t)
-    if var == '':
+    if var == '': # all grid
       if Internal.isStdNode(a) == 0: la = a
       else: la = [a] # noeud standard => liste de noeuds standards
       for i in range(len(la)):
@@ -6149,58 +6150,57 @@ def node2Center(t, var='', accurate=0, api=3):
               else:
                 z = TZA1(z, 'nodes', 'nodes', True, Transform.dual, 0)
             else:
-              z = TZA1(z, 'nodes', 'nodes', True, Converter.node2Center, accurate, api)
+              z = TZA1(z, 'nodes', 'nodes', True, Converter.node2Center, accurate)
             setFields(fieldc, z, 'nodes', writeDim=False)
             if p is None: la[i] = z
             else: p[2][pos] = z
       if Internal.isStdNode(a) == 0: a = la
       else: a = la[0] # liste de noeuds standards => noeud standard
       return a
-
-    elif var == Internal.__GridCoordinates__:
+    elif var == Internal.__GridCoordinates__: # coordinates
       fieldc = []
-      fieldn = getFields(Internal.__GridCoordinates__, a)
+      fieldn = getFields(Internal.__GridCoordinates__, a, api=3)
       for i in fieldn:
         if i != []:
-          b = Converter.node2Center(i, accurate, api)
+          b = Converter.node2Center(i, accurate)
           fieldc.append(b)
         else:
           fieldc.append([])
       setFields(fieldc, a, 'centers')
       return a
-    elif var == Internal.__FlowSolutionNodes__:
+    elif var == Internal.__FlowSolutionNodes__: # all node fields
       fieldc = []
-      fieldn = getFields(Internal.__FlowSolutionNodes__, a)
+      fieldn = getFields(Internal.__FlowSolutionNodes__, a, api=3)
       for i in fieldn:
         if i != []:
-          b = Converter.node2Center(i, accurate, api)
+          b = Converter.node2Center(i, accurate)
           fieldc.append(b)
         else:
           fieldc.append([])
-      setFields(fieldc, a, 'centers')
+      setFields(fieldc, a, 'centers', writeDim=False)
       return a
-    else:
+    else: # var lists
       if isinstance(var, list):
-        for v in var: _node2Center__(a, v, accurate, api)
-      else: _node2Center__(a, var, accurate, api)
+        for v in var: _node2Center__(a, v, accurate)
+      else: _node2Center__(a, var, accurate)
       return a
 
 # commentaire SP : mauvais fonctionnement : modifie a et retourne a 
 # est appele par etc tel quel...
-def node2Center__(a, var, accurate=0, api=3):
+def node2Center__(a, var, accurate=0):
   var, loc = Internal.fixVarName(var)
   if loc == 1: return a
-  fieldn = getField(var, a)
-  fieldc = Converter.node2Center(fieldn, accurate, api)
-  setFields(fieldc, a, 'centers')
+  fieldn = getField(var, a, api=3)
+  fieldc = Converter.node2Center(fieldn, accurate)
+  setFields(fieldc, a, 'centers', writeDim=False)
   return a
 
-def _node2Center__(a, var, accurate=0, api=3):
+def _node2Center__(a, var, accurate=0):
   var, loc = Internal.fixVarName(var)
   if loc == 1: return None
-  fieldn = getField(var, a)
-  fieldc = Converter.node2Center(fieldn, accurate, api)
-  setFields(fieldc, a, 'centers')
+  fieldn = getField(var, a, api=3)
+  fieldc = Converter.node2Center(fieldn, accurate)
+  setFields(fieldc, a, 'centers', writeDim=False)
   return None
 
 # Adapte les arrays pour les cas nk=1 => passe en nk=2 si la zone est nk=2
@@ -6213,24 +6213,36 @@ def _patchArrayForCenter2NodeNK1__(fields, a):
       dim = Internal.getZoneDim(z)
       ni = dim[1]; nj = dim[2]; nk = dim[3]
       fp = f[1]
-      nfld = fp.shape[0]; s = fp.shape[1]
+      if isinstance(fp, list): # array2/3
+        nfld = len(fp); s = fp[0].size
+      else: # array1
+        nfld = fp.shape[0]; s = fp.shape[1]
+
       if dim[0] == 'Structured' and nk == 2 and s == ni*nj:
-        b = numpy.empty( (nfld, ni*nj*2) )
-        b[:,0:ni*nj] = fp[:,0:ni*nj]
-        b[:,ni*nj:2*ni*nj] = fp[:,0:ni*nj]
-        f[1] = b; f[4] = 2
+        if isinstance(fp, list): # array2/3
+          for n, fl in enumerate(fp):
+            b = numpy.empty( (ni*nj*2) )
+            b[0:ni*nj] = fl[0:ni*nj]
+            b[ni*nj:2*ni*nj] = fl[0:ni*nj]
+            fp[n] = b
+        else:
+          b = numpy.empty( (nfld, ni*nj*2) )
+          b[:,0:ni*nj] = fp[:,0:ni*nj]
+          b[:,ni*nj:2*ni*nj] = fp[:,0:ni*nj]
+          f[1] = b; f[4] = 2
     c += 1
 
 # -- center2Node
 # Convert a zone defining centers to nodes or convert a field in a
 # base/tree/zone located at centers to nodes
-def center2Node(t, var=None, cellNType=0, api=3):
+# if useGhost: first addGhostCells before center2Node
+def center2Node(t, var=None, cellNType=0, useGhost=True):
     """Converts array defined at centers to an array defined at nodes.
     Usage: center2Node(t, var, cellNType)"""
 
 # Preparation pour le topTree
 #     istoptree = Internal.isTopTree(t)
-#     if istoptree == False and topTree != []:
+#     if not istoptree and topTree != []:
 #       zones = C.getConnectedZones(t, topTree=topTree)
 #       tp = C.newPyTree(['Base'])
 #       zonest = Internal.getZones(t)
@@ -6239,13 +6251,13 @@ def center2Node(t, var=None, cellNType=0, api=3):
 #       zone = tp[2][1][2][0]
 
     ghost = Internal.getNodeFromName(t, 'ZoneRind')
-    if var is None:
+    if var is None: # all grid
       # solution en centres
       res = Internal.getNodesFromName3(t, Internal.__FlowSolutionCenters__)
       fieldsc = []
       if res != []:
         if Internal.getNodesFromType1(res[0], 'DataArray_t') != []:
-          if ghost is None:
+          if ghost is None and useGhost:
             a = Internal.addGhostCells(t, t, 1, adaptBCs=0, modified=[Internal.__FlowSolutionCenters__])
           else: a = Internal.copyRef(t)
           fieldc = getFields(Internal.__FlowSolutionCenters__, a)
@@ -6253,58 +6265,58 @@ def center2Node(t, var=None, cellNType=0, api=3):
           listVar = []
           for i in fieldc:
             if i != []:
-              b = Converter.center2Node(i, cellNType, api=api); fieldn.append(b)
+              b = Converter.center2Node(i, cellNType); fieldn.append(b)
               for va in b[0].split(','):
                 if va not in listVar: listVar.append(va)
             else: fieldn.append([])
           _patchArrayForCenter2NodeNK1__(fieldn, a)
           setFields(fieldn, a, 'nodes', writeDim=False)
-          if ghost is None:
+          if ghost is None and useGhost:
             a = Internal.rmGhostCells(a, a, 1, adaptBCs=0, 
                                       modified=[listVar, Internal.__FlowSolutionCenters__])
           fieldsc = getFields(Internal.__FlowSolutionNodes__, a)
 
       # destruction
       t = deleteFlowSolutions__(t, 'centers')
-      t = TZA1(t, 'nodes', 'nodes', True, Converter.center2Node, cellNType, None, api)
+      t = TZA1(t, 'nodes', 'nodes', True, Converter.center2Node, cellNType, None)
       if fieldsc != []: setFields(fieldsc, t, 'centers', writeDim=False)
       return t
 
-    elif var == Internal.__FlowSolutionCenters__:
+    elif var == Internal.__FlowSolutionCenters__: # all center fields
       res = Internal.getNodesFromName3(t, Internal.__FlowSolutionCenters__)
       if res == []: return t
       if Internal.getNodesFromType1(res[0], 'DataArray_t') == []: return t
-      if ghost is None:
+      if ghost is None and useGhost:
         a = Internal.addGhostCells(t, t, 1, adaptBCs=0,
                                    modified=[Internal.__FlowSolutionCenters__])
       else: a = Internal.copyRef(t)
-      fieldc = getFields(Internal.__FlowSolutionCenters__, a)
+      fieldc = getFields(Internal.__FlowSolutionCenters__, a, api=3)
       fieldn = []
       listVar = []
       for i in fieldc:
         if i != []:
-          b = Converter.center2Node(i, cellNType, api=api); fieldn.append(b)
+          b = Converter.center2Node(i, cellNType); fieldn.append(b)
           for va in b[0].split(','):
             if va not in listVar: listVar.append(va)
         else: fieldn.append([])
       _patchArrayForCenter2NodeNK1__(fieldn, a)
       setFields(fieldn, a, 'nodes', writeDim=False)
-      if ghost is None:
+      if ghost is None and useGhost:
         a = Internal.rmGhostCells(a, a, 1, adaptBCs=0, 
                                   modified=[listVar,Internal.__FlowSolutionCenters__])
       return a
     
-    else:
+    else: # var list
       if isinstance(var, list): vars = var
       else: vars = [var]
-      if ghost is None:
+      if ghost is None and useGhost:
         a = Internal.addGhostCells(t, t, 1, adaptBCs=0, modified=vars)
       else: a = Internal.copyRef(t)
-      for v in vars: _center2Node__(a, v, cellNType, api=api)
+      for v in vars: _center2Node__(a, v, cellNType)
       # if there are center vars in the list, add equivalent node vars because
       # they have been created by center2Node
       ghost2 = Internal.getNodeFromName(a, 'ZoneRind')
-      if ghost is None and ghost2 is not None:
+      if ghost is None and ghost2 is not None and useGhost:
         var2 = vars[:]
         for v in vars:
           variable = v.split(':')
@@ -6315,15 +6327,15 @@ def center2Node(t, var=None, cellNType=0, api=3):
 
 # mauvais fonctionnement : modifie a et retourne a 
 # mais appele dans etc tel quel.
-def center2Node__(a, var, cellNType, api=3):
-  _center2Node__(a, var, cellNType, api)
+def center2Node__(a, var, cellNType):
+  _center2Node__(a, var, cellNType)
   return a
 
-def _center2Node__(a, var, cellNType, api=3):
-  fieldc = getField(var, a)
+def _center2Node__(a, var, cellNType):
+  fieldc = getField(var, a, api=3)
   fieldn = []
   for i in fieldc:
-    if i != []: i = Converter.center2Node(i, cellNType, api=api)
+    if i != []: i = Converter.center2Node(i, cellNType)
     fieldn.append(i)
   _patchArrayForCenter2NodeNK1__(fieldn, a)
   setFields(fieldn, a, 'nodes', writeDim=False)

@@ -3216,7 +3216,7 @@ def convertDataNode2Array3(node, dim, connects, loc=-1):
         crOut = []; iBE = 0
         for c in cr:
             if c is not None:
-                ettype, stype = eltNo2EltName(eltType)
+                ettype, stype = eltNo2EltName(et[iBE])
                 eltString += ettype+","
                 size = c.size//stype
                 b = c.reshape((size,stype)) # reshape needed
