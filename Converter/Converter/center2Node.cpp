@@ -217,14 +217,20 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
         {
           FldArrayI& cm = *(c->getConnect(ic));
           char* eltTypConn = eltTypes[ic];
-
-          if (not (K_STRING::cmp(eltTypConn, "BAR*") == 0   || 
+          if (not (K_STRING::cmp(eltTypConn, "BAR*") == 0   ||
+                   K_STRING::cmp(eltTypConn, "BAR") == 0   ||
                    K_STRING::cmp(eltTypConn, "TRI*") == 0   ||
+                   K_STRING::cmp(eltTypConn, "TRI") == 0   ||
                    K_STRING::cmp(eltTypConn, "QUAD*") == 0  ||
+                   K_STRING::cmp(eltTypConn, "QUAD") == 0  ||
                    K_STRING::cmp(eltTypConn, "TETRA*") == 0 ||
+                   K_STRING::cmp(eltTypConn, "TETRA") == 0 ||
                    K_STRING::cmp(eltTypConn, "HEXA*") == 0  ||
+                   K_STRING::cmp(eltTypConn, "HEXA") == 0  ||
                    K_STRING::cmp(eltTypConn, "PENTA*") == 0 ||
-                   K_STRING::cmp(eltTypConn, "PYRA*") == 0 ))
+                   K_STRING::cmp(eltTypConn, "PENTA") == 0 ||
+                   K_STRING::cmp(eltTypConn, "PYRA*") == 0 ||
+                   K_STRING::cmp(eltTypConn, "PYRA") == 0 ))
           {
             PyErr_SetString(PyExc_TypeError, 
                             "center2Node: BE eltType does not exist.");
@@ -244,7 +250,7 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
         E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
         E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
         E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
-        FNode = new FldArrayF(nb, nfld);
+        FNode = new FldArrayF(nb, nfld, compact);
         ret = K_LOC::center2nodeUnstruct(*FCenter, *c, cellN, mod, posx, posy, posz, *FNode, type);
       }
       

@@ -1908,7 +1908,7 @@ def TZA(t, locin, locout, F, Fc, *args):
   _TZA(tp, locin, locout, F, Fc, *args)
   return tp
 
-# obsolete : use _TZA1, _TZA3
+# obsolete : use _TZA1, _TZA3 instead
 def _TZA(t, locin, locout, F, Fc, *args):
   zones = Internal.getZones(t)
   for z in zones:
@@ -2492,7 +2492,7 @@ def _initVars(t, varNameString, v1=[], v2=[], mode=0, isVectorized=False):
     if v1 == []:
       # Initialisation by string
       _addVars(t, varName)
-      __TZA2(t, loc, Converter._initVars, varNameString, v1, v2, mode)
+      __TZA3(t, loc, Converter._initVars, varNameString, v1, v2, mode)
     else:
       # Initialisation(s) ...
       [_addVars(t, varName) for varName in varNameString]
@@ -2501,7 +2501,7 @@ def _initVars(t, varNameString, v1=[], v2=[], mode=0, isVectorized=False):
         __TZA2(t, loc, Converter._initVars, varNames, v1, v2, mode, isVectorized)
       else:
         # ... by constant
-        __TZA2(t, loc, Converter._initVars, varNames, v1, v2, mode)
+        __TZA3(t, loc, Converter._initVars, varNames, v1, v2, mode)
   return None
 
 # Merge BCDataSets
@@ -6230,7 +6230,7 @@ def center2Node(t, var=None, cellNType=0, api=3):
 
 # Preparation pour le topTree
 #     istoptree = Internal.isTopTree(t)
-#     if (istoptree == False and topTree != []):
+#     if istoptree == False and topTree != []:
 #       zones = C.getConnectedZones(t, topTree=topTree)
 #       tp = C.newPyTree(['Base'])
 #       zonest = Internal.getZones(t)

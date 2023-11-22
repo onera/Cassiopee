@@ -316,7 +316,7 @@ def cell_to_indexes(i_cell, plan_size, line_size):
   i = i_cell - k*plan_size - j*line_size
   return i,j,k
 
-def compute_slabs(array_shape, gnum_interval):
+def computeSlabs(array_shape, gnum_interval):
   """ Compute HDF HyperSlabs to be used in order to contiguously load a part
   of a structured tridimensionnal array.
 
@@ -406,7 +406,7 @@ def createCombinedDataspace(data_shape, distrib):
 
   Mostly usefull for structured blocks.
   """
-  slab_list  = compute_slabs(data_shape, distrib[0:2])
+  slab_list  = computeSlabs(data_shape, distrib[0:2])
   dn_da    = distrib[1] - distrib[0]
   DSFILEDA = []
   for slab in slab_list:

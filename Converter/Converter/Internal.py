@@ -3497,14 +3497,14 @@ def convertDataNodes2Array3(nodes, dim, connects, loc=-1):
             no = getNodeFromName1(iNGon, 'ElementRange')[1]
             nfaces = no[1]-no[0]+1
             n = converter.adaptNGon2Index(cr[0], nfaces)
-            g = createUniqueChild(connects[0], 'FaceIndex', 'DataArray_t', value=n)
+            g = createUniqueChild(iNGon, 'FaceIndex', 'DataArray_t', value=n)
             cr[2] = g[1]
         if cr[3] is None:
             # forcement Array2 old ngon
             no = getNodeFromName1(iNFace, 'ElementRange')[1]
             nelts = no[1]-no[0]+1
             n = converter.adaptNGon2Index(cr[1], nelts)
-            g = createUniqueChild(connects[0], 'ElementIndex', 'DataArray_t', value=n)
+            g = createUniqueChild(iNFace, 'ElementIndex', 'DataArray_t', value=n)
             cr[3] = g[1]
 
     # tag *

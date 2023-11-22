@@ -528,8 +528,7 @@ E_Int Polygon::full_agglomerate
       continue;
 
     E_Int err = get_boundary(crd, PGS, ids, PG, ori, w_oe_set, w_n_map);
-    if (err)
-      continue;
+    if (err) continue;
 
     size_t sz = PG[0].size();
     PG[0].push_front(sz);
