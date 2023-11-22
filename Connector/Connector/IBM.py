@@ -184,7 +184,8 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
       
     if Cmpi.size > 1: Cmpi.barrier()
 
-    return t, tc, tc2
+    if tc2 is not None: return t, tc, tc2
+    else: return t, tc
 
 def _redispatch__(t=None, tc=None, tc2=None, twoFronts=False):
     import Distributor2.Mpi as D2mpi
@@ -428,13 +429,15 @@ def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e
             # Use previous computation to adapt the positioning of IB points around the geometry (impose y+PC <= y+ref)
             # Warning: the wallAdapt file has to be obtained with TIBM.createWallAdapt(tc)
             C._initVars(t,'{centers:yplus}=100000.')
-            w = C.convertFile2PyTree(wallAdaptF42)
+            if isinstance(wallAdaptF42, str): w = C.convertFile2PyTree(wallAdaptF42)
+            else: w = wallAdaptF42
             total = len(Internal.getZones(t))
             cpt = 1
             for z in Internal.getZones(t):
-                print("%d / %d"%(cpt, total))
+                print("Info: blankingIBM: modeling height adaptation: zone %d / %d"%(cpt, total))
                 cellN = Internal.getNodeFromName(z,'cellN')[1]
                 if 2 in cellN:
+                    hloc = abs(C.getValue(z,'CoordinateX',1)-C.getValue(z,'CoordinateX',0))
                     zname = z[0]
                     zd = Internal.getNodeFromName(w, zname)
                     if zd is not None:
@@ -446,6 +449,7 @@ def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e
                         yplusA[1][:] = yplus_w
 
                         C._setPartialFields(z, [yplusA], [listIndices], loc='centers')
+                        C._initVars(z,'{centers:yplus}={centers:yplus}*(1-%20.16g/{centers:TurbulentDistance})'%(hloc)) #safety measure
 
                 cpt += 1
             
@@ -460,7 +464,9 @@ def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e
         yplus = Cmpi.allreduce(yplus, op=Cmpi.MAX)[0]
 
         # Only keep the layer of target points useful for solver iterations, particularly useful in 3D
-        if blankingF42: X._maximizeBlankedCells(t, depth=2, addGC=False)
+        if blankingF42: 
+            if wallAdaptF42 is None: X._maximizeBlankedCells(t, depth=2, addGC=False)
+            else: print("Info: blankingIBM: blankingF42 cannot operate with a local modeling height")
 
     _removeBlankedGrids(t, loc='centers')            
     return None
