@@ -30,7 +30,7 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PyArg_ParseTuple(args, O_, &array)) return NULL;
 
   // Check array
   E_Int ni, nj, nk, res;
@@ -330,7 +330,7 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
 #pragma omp for
           for (E_Int i = 0; i < nelts[ic]; i += nf[ic])
           {
-            c = i;
+            c = fcOffset + i;
             indPG2[c] = (4+shift)*c; c++;
             indPG2[c] = (3+shift)*c; c++;
             indPG2[c] = (3+shift)*c;
@@ -339,11 +339,19 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
         else
         {
 #pragma omp for
-          for (E_Int i = 0; i < nfaces[ic]; i++) indPG2[i] = (nv[ic]+shift)*i;
+          for (E_Int i = 0; i < nfaces[ic]; i++)
+          {
+            c = fcOffset + i;
+            indPG2[c] = (nv[ic]+shift)*c;
+          }
         }
 
 #pragma omp for
-        for (E_Int i = 0; i < nelts[ic]; i++) indPH2[i] = (nf[ic]+shift)*i; 
+        for (E_Int i = 0; i < nelts[ic]; i++)
+        {
+          c = elOffset + i;
+          indPH2[c] = (nf[ic]+shift)*c;
+        } 
       }
     }
 

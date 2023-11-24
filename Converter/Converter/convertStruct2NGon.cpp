@@ -30,7 +30,7 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::convertStruct2NGon(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PyArg_ParseTuple(args, O_, &array)) return NULL;
 
   // Check array
   E_Int ni, nj, nk, res;
@@ -296,10 +296,10 @@ PyObject* K_CONVERTER::convertStruct2NGon(PyObject* self, PyObject* args)
             ind3 = ind2+ninj;
             ind4 = ind1+ninj;
             ngon2[c] = 4;
-            ngon2[c+1] = ind1+1;
-            ngon2[c+2] = ind2+1;
-            ngon2[c+3] = ind3+1;
-            ngon2[c+4] = ind4+1;
+            ngon2[c+shift] = ind1+1;
+            ngon2[c+shift+1] = ind2+1;
+            ngon2[c+shift+2] = ind3+1;
+            ngon2[c+shift+3] = ind4+1;
           }
   
       // Faces en j
@@ -314,10 +314,10 @@ PyObject* K_CONVERTER::convertStruct2NGon(PyObject* self, PyObject* args)
             ind3 = ind2+ninj;
             ind4 = ind1+ninj;
             ngon2[c] = 4;
-            ngon2[c+1] = ind1+1;
-            ngon2[c+2] = ind2+1;
-            ngon2[c+3] = ind3+1;
-            ngon2[c+4] = ind4+1;
+            ngon2[c+shift] = ind1+1;
+            ngon2[c+shift+1] = ind2+1;
+            ngon2[c+shift+2] = ind3+1;
+            ngon2[c+shift+3] = ind4+1;
           }
   
       // Faces en k
