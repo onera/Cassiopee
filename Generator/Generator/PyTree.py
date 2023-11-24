@@ -439,7 +439,7 @@ def check(t):
 def bbox(t):
     """Returns the bounding box of a pytree.
     Usage: bbox(t)"""
-    A = C.getFields(Internal.__GridCoordinates__, t)
+    A = C.getFields(Internal.__GridCoordinates__, t, api=3)
     return Generator.bbox(A)
 
 def BB(t, method='AABB', weighting=0, tol=0.):

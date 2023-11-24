@@ -116,7 +116,7 @@ def getData__(t, NProc, prescribed=None, weight=None, useCom='match', mode='node
         if weight is not None: weightlist.append(weight.get(zname, 1))
         else: weightlist.append(1)
 
-        a = C.getFields(Internal.__GridCoordinates__, z, api=2)
+        a = C.getFields(Internal.__GridCoordinates__, z, api=3)
         if a == [[]]: arrays.append(None)
         else: arrays.append(a[0])
 
@@ -136,8 +136,6 @@ def getData__(t, NProc, prescribed=None, weight=None, useCom='match', mode='node
         #    else: arrays.append(C.getNPts(z))
 
     Nb = len(nbPts)
-    #com = numpy.zeros((Nb, Nb), dtype=Internal.E_NpyInt); comd = None
-    #com = numpy.zeros((Nb, Nb), dtype=Internal.E_NpyInt); comd = {}
     com = None; comd = {}
     
     if useCom == 'match' or useCom == 'all':
@@ -162,7 +160,6 @@ def getData__(t, NProc, prescribed=None, weight=None, useCom='match', mode='node
                         win = node[1]
                         w = Internal.range2Window(win)
                         vol = (w[1]-w[0]+1)*(w[3]-w[2]+1)*(w[5]-w[4]+1)
-                        #if d != -1: com[c, d] += vol
                         if d != -1: addCom__(comd, c, d, Nb, vol)
                 match = Internal.getNodesFromType2(z, 'GridConnectivity_t') # non structure
                 for m in match:
@@ -172,7 +169,6 @@ def getData__(t, NProc, prescribed=None, weight=None, useCom='match', mode='node
                     node = Internal.getNodeFromName1(m, 'PointList')
                     if node is not None and node[1] is not None:
                         vol = node[1].size
-                        #if d != -1: com[c, d] += vol
                         if d != -1: addCom__(comd, c, d, Nb, vol)
                 c += 1
             zc += len(zones)
@@ -207,7 +203,6 @@ def getData__(t, NProc, prescribed=None, weight=None, useCom='match', mode='node
                                 if (xmax1 > xmin2-tol and xmin1 < xmax2+tol and
                                     ymax1 > ymin2-tol and ymin1 < ymax2+tol and
                                     zmax1 > zmin2-tol and zmin1 < zmax2+tol):
-                                    #com[c, d] += vol
                                     addCom__(comd, c, d, Nb, vol)
                             d += 1
             c += 1
@@ -249,7 +244,6 @@ def getData__(t, NProc, prescribed=None, weight=None, useCom='match', mode='node
                     if (xmax1 > xmin2-tol and xmin1 < xmax2+tol and
                         ymax1 > ymin2-tol and ymin1 < ymax2+tol and
                         zmax1 > zmin2-tol and zmin1 < zmax2+tol):
-                        #com[c, d] += np
                         addCom__(comd, c, d, Nb, np)
                 d += 1
             c += 1
@@ -265,10 +259,8 @@ def getData__(t, NProc, prescribed=None, weight=None, useCom='match', mode='node
                 oppname = Internal.getValue(s)
                 PL = Internal.getNodeFromName1(s, 'PointList')
                 if PL is not None and PL[1] is not None:
-                    #com[mdict[zname],mdict[oppname]] = PL[1].size
                     addCom__(comd, mdict[zname], mdict[oppname], Nb, PL[1].size)
                 else:
-                    #com[mdict[zname],dict[oppname]] = 1.
                     addCom__(comd, mdict[zname], mdict[oppname], Nb, 1)
     return (nbPts, aset, com, comd, weightlist)
 

@@ -159,7 +159,7 @@ def add(t, nob, noz, zone):
     if __LOCATION__ == 'nodes': # ajouter le toptree
         zone = C.center2Node(zone, Internal.__FlowSolutionCenters__)
     else: zone = C.node2Center(zone)
-    array = C.getAllFields(zone, 'nodes', api=2)[0]
+    array = C.getAllFields(zone, 'nodes', api=3)[0]
     
     from . import cplot
     cplot.add(array, (nzs, nzu), zoneName, renderTag)
@@ -178,7 +178,7 @@ def replace(t, nob, noz, zone):
     if __LOCATION__ == 'nodes': # ajouter le toptree
         zone = C.center2Node(zone, Internal.__FlowSolutionCenters__)
     else: zone = C.node2Center(zone)
-    array = C.getAllFields(zone, 'nodes', api=2)[0]
+    array = C.getAllFields(zone, 'nodes', api=3)[0]
     from . import cplot
     cplot.replace(array, (nzs, nzu, oldType), zoneName, renderTag)
     

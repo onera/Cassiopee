@@ -187,10 +187,10 @@ def BB(array, method='AABB', weighting=0, tol=0.):
                 C.setValue(ar, (2,2,2), [sbb[3]+tol, sbb[4]+tol, sbb[5]+tol])
                 out.append(ar)
             elif method == 'OBB':  # Computes OBB
-                out.append(generator.obbox(a,weighting))
+                out.append(generator.obbox(a, weighting))
             else:
                 print('BB: Warning, method=%s not implemented, making an OBB.'%method)
-                out.append(generator.obbox(a,weighting))
+                out.append(generator.obbox(a, weighting))
         return out
     else:
         if method == 'AABB':  # Computes AABB
@@ -205,10 +205,10 @@ def BB(array, method='AABB', weighting=0, tol=0.):
             C.setValue(ar, (2,1,2), [sbb[3]+tol, sbb[1]-tol, sbb[5]+tol])
             C.setValue(ar, (2,2,2), [sbb[3]+tol, sbb[4]+tol, sbb[5]+tol])
         elif method == 'OBB':  # Computes OBB
-            ar = generator.obbox(array,weighting)
+            ar = generator.obbox(array, weighting)
         else:
             print('BB: Warning, method=%s not implemented, making an OBB.'%method)
-            ar = generator.obbox(array,weighting)
+            ar = generator.obbox(array, weighting)
         return ar       
      
 def barycenter(array, weight=None):

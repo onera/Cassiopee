@@ -40,28 +40,8 @@ def distribute(arrays, NProc, prescribed=None, perfo=None, weight=None, com=None
        nbPts = arrays
     else: # sinon, on calcule nbPts a partir des arrays
         for a in arrays:
-            c = 0
-            if len(a) == 5:
-                if mode == 'cells':
-                    c = max(a[2]-1-nghost,1)*max(a[3]-1-nghost,1)*max(a[4]-1-nghost,1)
-                else: # nodes
-                    c = max(a[2]-nghost,1)*max(a[3]-nghost,1)*max(a[4]-nghost,1)
-            elif len(a) == 4:
-                if mode == 'cells':
-                    if a[3] == 'NGON' or a[3] == 'NGON*':
-                        if isinstance(a[1], list): c = a[2][3].size
-                        else: c = a[2][0,2+a[2][0,1]]
-                    else:
-                        if isinstance(a[1], list): c = a[2][0].shape[0]
-                        else: c = a[2][0].shape[0]
-                else: # nodes
-                    if a[3][-1] != '*': 
-                        if isinstance(a[1], list): c = a[1][0].size
-                        else: c = a[1].shape[1]
-                    else: c = 0 # dont know
-            
-            #if mode == 'cells': c = Converter.getNCells(a)
-            #else: c = Converter.getNPts(a)
+            if mode == 'cells': c = Converter.getNCells(a)
+            else: c = Converter.getNPts(a)
             nbPts.append(c)
 
     # Liste des arrays deja distribues
