@@ -1,9 +1,9 @@
 import KCore.Dist as Dist
 from KCore.config import *
 
-SCOTCH=True; ZOLTAN=True
+SCOTCH=True; ZOLTAN=False
 # 0: None, 1: paradigma, 2: paradigma23
-PARADIGMA=2
+PARADIGMA=0
 
 (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
                                                      additionalIncludePaths)

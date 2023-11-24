@@ -365,9 +365,13 @@ def writeSetupCfg():
     if Cppcompiler == "None" or Cppcompiler == "":
         a = os.access("./setup.cfg", os.F_OK)
         if a: os.remove("./setup.cfg")
-    elif Cppcompiler == 'icc' or Cppcompiler == 'icpc' or Cppcompiler == 'icx':
+    elif Cppcompiler == 'icc' or Cppcompiler == 'icpc':
         p = open("./setup.cfg", 'w')
         p.write('[build_ext]\ncompiler=intel\n')
+        p.close()
+    elif Cppcompiler == 'icx' or Cppcompiler == 'icpx':
+        p = open("./setup.cfg", 'w')
+        p.write('[build_ext]\ncompiler=unix\n')
         p.close()
     elif Cppcompiler == 'gcc' or Cppcompiler == 'g++':
         p = open("./setup.cfg", 'w')
@@ -420,6 +424,10 @@ def getDistUtilsCompilers():
             vars[0] = Cppcompiler.replace('icpc', 'icc'); vars[1] = Cppcompiler
         elif Cppcompiler == 'icc':
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('icc', 'icpc')
+        elif Cppcompiler == 'icpx':
+            vars[0] = Cppcompiler.replace('icpx', 'icx'); vars[1] = Cppcompiler
+        elif Cppcompiler == 'icx':
+            vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('icx', 'icpx')
 
     (cc, cxx, opt, basecflags, ccshared, ldshared, so_ext) = vars
     cc = cc.split(' ') # enleve les options si mises dans cc
@@ -750,7 +758,7 @@ def getCArgs():
     options = getCppAdditionalOptions()[:]
     if EDOUBLEINT: options += ['-DE_DOUBLEINT']
     if GDOUBLEINT: options += ['-DG_DOUBLEINT']
-    if Cppcompiler == "icpc" or Cppcompiler == "icc" or Cppcompiler == "icx":
+    if Cppcompiler == "icpc" or Cppcompiler == "icc":
         v = getCppVersion()
         if DEBUG:
             options += ['-g', '-O0', '-wd47', '-wd1224', '-fp-trap=divzero,overflow,invalid']
@@ -788,6 +796,15 @@ def getCArgs():
     elif Cppcompiler == "icl.exe":
         options += ['/EHsc', '/MT']
         if useOMP() == 1: options += ['/Qopenmp']
+        return options
+    elif Cppcompiler == "icx" or Cppcompiler == "icpx":
+        if DEBUG: options += ['-g', '-O0', '-fp-trap=divzero,overflow,invalid']
+        else: options += ['-DNDEBUG', '-O2',]
+        options += ['-fp-model=precise'] # existe encore?
+        if useOMP() == 1: options += ['-qopenmp']
+        if useStatic() == 1: options += ['-static']
+        else: options += ['-fPIC']
+        options += getSimdOptions()
         return options
     elif Cppcompiler == "pgcc" or Cppcompiler == "pgc++":
         if DEBUG: options += ['-g', '-O0']
@@ -949,10 +966,11 @@ def getLinkArgs():
     out = []
     if Cppcompiler == 'gcc' or Cppcompiler == 'g++':
         if useStatic() == 1: out += ['--static']
-    elif Cppcompiler == 'icc':
+    elif Cppcompiler == 'icc' or Cppcompiler == 'icpc':
          if useStatic() == 1: out += ['-static']
-    elif Cppcompiler == 'icx':
+    elif Cppcompiler == 'icx' or Cppcompiler == 'icpx':
          if useStatic() == 1: out += ['-static']
+         else: out += ['-shared']
     elif Cppcompiler == "x86_64-w64-mingw32-gcc":
          if useStatic() == 1: out += ['--static']
     elif Cppcompiler == 'pgcc' or Cppcompiler == 'pgc++':
@@ -1817,6 +1835,43 @@ def checkFortranLibs(additionalLibs=[], additionalLibPaths=[],
                     libs += ['iomp5']; paths += [l]
                 else: ret = False
 
+    # ifx (ifcore, svml, irc, guide, iomp5)
+    if f77compiler == 'ifx':
+        l = checkLibFile__('libifcore.so*', additionalLibPaths)
+        if l is None:
+            l = checkLibFile__('libifcore.a', additionalLibPaths)
+
+        if l is not None:
+            libs += ['ifcore']; paths += [l]
+
+        l = checkLibFile__('libsvml.so*', additionalLibPaths)
+        if l is None:
+            l = checkLibFile__('libsvml.a', additionalLibPaths)
+        if l is not None:
+            libs += ['svml']; paths += [l]
+
+        l = checkLibFile__('libirc.so*', additionalLibPaths)
+        if l is None:
+            l = checkLibFile__('libirc.a', additionalLibPaths)
+        if l is not None:
+            libs += ['irc']; paths += [l]
+
+        if useOMP:
+            # check guide
+            l = checkLibFile__('libguide.so*', additionalLibPaths)
+            if l is None:
+                l = checkLibFile__('libguide.a', additionalLibPaths)
+            if l is not None:
+                libs += ['guide']; paths += [l]
+            # check iomp5
+            if l is None:
+                l = checkLibFile__('libiomp5.so*', additionalLibPaths)
+                if l is None:
+                    l = checkLibFile__('libiomp5.a', additionalLibPaths)
+                if l is not None:
+                    libs += ['iomp5']; paths += [l]
+                else: ret = False
+
     # pgfortran
     if f77compiler == 'pgfortran':
         l = checkLibFile__('libnvf.so*', additionalLibPaths)
@@ -1901,7 +1956,7 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
             else: ret = False
 
     # icc (stdc++, guide ou iomp5)
-    if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0 or Cppcompiler.find('icx') == 0:
+    if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
         l = checkLibFile__('libstdc++.so*', additionalLibPaths)
         if l is None:
             l = checkLibFile__('libstdc++.a', additionalLibPaths)
@@ -1911,6 +1966,35 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
         #    l = checkLibFile__('libchkpwrap.a', additionalLibPaths)
         #    if l is not None:
         #        libs += ['chkpwrap', 'chkp']; paths += [l]
+               
+        if useOMP:
+            l = checkLibFile__('libguide.so*', additionalLibPaths)
+            if l is None:
+                l = checkLibFile__('libguide.a', additionalLibPaths)
+            if l is not None:
+                libs += ['guide']; paths += [l]
+            if l is None:
+                l = checkLibFile__('libiomp5.so*', additionalLibPaths)
+                if l is None:
+                    l = checkLibFile__('libiomp5.a', additionalLibPaths)
+                if l is not None:
+                    libs += ['iomp5']; paths += [l]
+                else: ret = False
+
+    # icx
+    if Cppcompiler == 'icx' or Cppcompiler == 'icpx':
+        os.environ['CC'] = 'icx' # forced to overide setup.cfg
+        os.environ['CXX'] = 'icpx'
+        os.environ['LDSHARED'] = 'ifx'
+        from distutils import sysconfig
+        cflags = sysconfig.get_config_var('CFLAGS')
+        sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
+        sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
+        l = checkLibFile__('libstdc++.so*', additionalLibPaths)
+        if l is None:
+            l = checkLibFile__('libstdc++.a', additionalLibPaths)
+        if l is not None:
+            libs += ['stdc++']; paths += [l]
                
         if useOMP:
             l = checkLibFile__('libguide.so*', additionalLibPaths)

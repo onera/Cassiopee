@@ -68,7 +68,9 @@ else: opt1 += ['-DINTSIZE32']
 if cc == 'gcc': opt1 += [] # ['-Wrestrict']
 elif cc == 'pgcc': opt1 += []
 elif cc == 'nvc': opt1 += []
-else: opt1 += ['-restrict']
+elif cc == 'icx': opt1 += []
+elif cc == 'icc': opt1 += ['-restrict'] 
+else: opt1 += []
 
 # Specific options for paradigma - paradigma install path
 if srcs.PARADIGMA != 0: PPATH = srcs_paradigma.PPATH

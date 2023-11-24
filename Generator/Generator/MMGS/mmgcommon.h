@@ -253,8 +253,7 @@ void * myrealloc(void * ptr_in, size_t s, size_t oldsize) {
 static inline
 size_t myfree(void *ptr) {
   size_t s;
-  void * ptr_c = (char*)ptr;
-
+  char* ptr_c = (char*)ptr;
   ptr_c = ptr_c-sizeof(size_t);
   s = *((size_t*)ptr_c);
   free(ptr_c);

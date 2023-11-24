@@ -16,6 +16,9 @@ Dist.writeSetupCfg()
 
 from KCore.config import *
 
+# Get compilers from Distutils ================================================
+(cc, cxx, opt, basecflags, ccshared, ldshared, so_ext) = Dist.getDistUtilsCompilers()
+
 # Python ======================================================================
 (pythonVersion, pythonIncDir, pythonLibDir, pythonLibs) = Dist.checkPython()
 
@@ -53,7 +56,12 @@ mySystem = Dist.getSystem()
 if mySystem[0] == 'mingw': 
   libraries += ["wsock32"]
 
-ADDITIONALCPPFLAGS = ['-fpermissive']
+if cc == 'icc':
+    ADDITIONALCPPFLAGS = ['-fpermissive']
+elif cc == 'gcc':
+    ADDITIONALCPPFLAGS = ['-fpermissive']
+else: ADDITIONALCPPFLAGS = []
+
 if mpi:
     libraryDirs.append(mpiLibDir)
     includeDirs.append(mpiIncDir)

@@ -5,6 +5,7 @@ __author__ = "Christophe Benoit, Xavier Juvigny, Stephanie Peron, Pascal Raud"
 
 from . import distributor2
 from Converter.Internal import E_NpyInt
+import Converter
 import numpy
 
 #==============================================================================
@@ -58,6 +59,9 @@ def distribute(arrays, NProc, prescribed=None, perfo=None, weight=None, com=None
                         if isinstance(a[1], list): c = a[1][0].size
                         else: c = a[1].shape[1]
                     else: c = 0 # dont know
+            
+            #if mode == 'cells': c = Converter.getNCells(a)
+            #else: c = Converter.getNPts(a)
             nbPts.append(c)
 
     # Liste des arrays deja distribues

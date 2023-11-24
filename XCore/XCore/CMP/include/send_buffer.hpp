@@ -45,7 +45,7 @@ namespace CMP {
             template <typename K>
             PackedData( const std::size_t nbElts, const K* pt_data )
                 : m_nbBytes( nbElts * sizeof( K ) ), m_pt_data( (value_t*)pt_data ), m_is_owner( pt_data == NULL ), m_must_copy(true) {
-                if ( m_is_owner ) m_pt_data = (char*)new K[nbElts];
+                if ( m_is_owner ) m_pt_data = (unsigned char*)new K[nbElts];
             }
 
             PackedData( const std::size_t nbElts )
