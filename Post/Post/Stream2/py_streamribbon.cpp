@@ -42,7 +42,7 @@ PyObject* K_POST::comp_streamribbon(PyObject* self, PyObject* args)
             PyErr_SetString(PyExc_TypeError, "streamRibbon: third argument must be a point or a list of point [(x0,y0,z0),(x1,y1,z1),...]");
             return NULL;
         }
-        if (! PyArg_ParseTuple(listOfPoints, "ddd", &x0, &y0, &z0) )
+        if (! PYPARSETUPLE_(listOfPoints, RRR_, &x0, &y0, &z0) )
         {
             PyErr_SetString(PyExc_TypeError, "streamRibbon: a point must be a triplet of doubles");
             return NULL;
@@ -63,8 +63,7 @@ PyObject* K_POST::comp_streamribbon(PyObject* self, PyObject* args)
                 return NULL;
             }
             //std::cout << "on depiote tple at " << (void*)tple << std::flush << std::endl;
-            //if (!PYPARSETUPLE(tple, "ddd", "fff", &x0, &y0, &z0))
-            if (! PyArg_ParseTuple(tple, "ddd", &x0, &y0, &z0) )
+            if (! PYPARSETUPLE_(tple, RRR_, &x0, &y0, &z0) )
             {
                 PyErr_SetString(PyExc_TypeError, "streamRibbon: a point must be a triplet of reals");
                 return NULL;

@@ -26,7 +26,7 @@ using namespace K_FLD;
 PyObject* K_GENERATOR::stitchedHat(PyObject* self, PyObject* args)
 {
   PyObject* array; E_Float epsilon;
-  if (!PyArg_ParseTuple(args, "Od", &array, &epsilon)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ R_, &array, &epsilon)) return NULL;
  
   // Check array
   E_Int im, jm, km;

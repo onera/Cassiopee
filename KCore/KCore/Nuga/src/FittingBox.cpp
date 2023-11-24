@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/FittingBox.h"
 #include "Nuga/include/defs.h"
@@ -27,7 +27,7 @@ FittingBox::computeNormalToContour
 (const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, E_Float* W)
 {
   NUGA::int_vector_type nodes;
-  E_Int                       nb_nodes, nb_elts(connect.cols()), Ni, Nj;
+  E_Int nb_nodes, nb_elts(connect.cols()), Ni, Nj;
 
   K_FLD::FloatArray wPos(pos);
 
@@ -44,8 +44,7 @@ FittingBox::computeNormalToContour
 
   // Compute an approximate normal W to the contour's surface (oriented toward outside).
   E_Float V1[3], V2[3], w[3];
-  for (E_Int i = 0; i < 3; ++i)
-    W[i] = 0.;
+  for (E_Int i = 0; i < 3; ++i) W[i] = 0.;
 
   for (E_Int c = 0; c < nb_elts; ++c)
   {
@@ -98,7 +97,7 @@ E_Int
 FittingBox::computeOptimalViewFrame
 (const K_FLD::FloatArray& posE2, const K_FLD::IntArray& connectE2, K_FLD::FloatArray& P)
 {
-  K_FLD::FloatArray       posFrame, iP(3,3), R(3, 3);
+  K_FLD::FloatArray posFrame, iP(3,3), R(3, 3);
   E_Float W[3];
   E_Int err;
   E_Float alphamax = NUGA::PI_2;
@@ -123,8 +122,7 @@ FittingBox::computeOptimalViewFrame
     R(0, 2) = - R(1, 0);
     err = __computeOptimalViewFrame(posE2, connectE2, W, R, P); // Try rotating around y-axis
   }
-  if (err)
-    return err;
+  if (err) return err;
 
   for (E_Int k = 0; k < 3; ++k) // Best direction found.
     W[k] = P(k,2);
@@ -148,8 +146,7 @@ FittingBox::__computeOptimalViewFrame
   mode.mesh_mode = mode.TRIANGULATION_MODE;
   DELAUNAY::T3Mesher<E_Float> mesher(mode);
 
-  for (E_Int k = 0; k < 3; ++k)
-    W[k] = W0[k];
+  for (E_Int k = 0; k < 3; ++k) W[k] = W0[k];
 
   while (carry_on)
   {
@@ -158,7 +155,7 @@ FittingBox::__computeOptimalViewFrame
     NUGA::computeAFrame(W, P);
     iP = P;
     K_FLD::FloatArray::inverse3(iP);
-    NUGA::transform(posFrame, iP);// Transform to computed frame.
+    NUGA::transform(posFrame, iP); // Transform to computed frame.
 
 #ifdef DEBUG_FITTINGBOX
     K_CONVERTER::DynArrayIO::write("transformed.mesh", posFrame, connectE2, "BAR");

@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/Plaster.h"
 #include "Nuga/include/Triangle.h"
@@ -65,7 +65,7 @@ Plaster::make
 
   if (pos.cols() == 0 || connect.cols() < 3 )
   {
-    ni=1; // to prevent floating point exception (dividin by it) in fittinPlaster.cpp)
+    ni = 1; // to prevent floating point exception (dividing by it) in fittinPlaster.cpp)
     return 0;
   }
 
@@ -83,10 +83,10 @@ Plaster::make
   //nb_nodes = nodesE2.size();
 
   /* Computes the fitting box coordinate system optimizing the view over the contour*/
+  // cela fait appel au mailleur ??
   err = FittingBox::computeOptimalViewFrame(posE2, connectE2, P);
-  if (err)
-    return err;
-
+  if (err) return err;
+  
   iP = P;
   K_FLD::FloatArray::inverse3(iP);
   NUGA::transform(posE2, iP);// Now we are in the fitting coordinate system.
@@ -105,9 +105,9 @@ Plaster::make
   z0 = maxB[2];
   std::vector<E_Float> zE2(*std::max_element(nodesE2.begin(), nodesE2.end())+1, 0.);
   pos2D = posE2;
-  pos2D.resize(2, pos2D.cols());  
-  double devmin(NUGA::FLOAT_MAX);
-  double devmax(0.);        // pos2D is the projection on any plane normal to z.
+  pos2D.resize(2, pos2D.cols());
+  E_Float devmin(NUGA::FLOAT_MAX);
+  E_Float devmax(0.);        // pos2D is the projection on any plane normal to z.
   for (E_Int i = 0; i < posE2.cols(); ++i){ // Set the z for the contour nodes.
     zE2[i] = z0 - posE2(2,i);
     devmax = ( devmax < zE2[i] )? zE2[i] : devmax;
@@ -118,7 +118,7 @@ Plaster::make
   //std::cout << "devmax : " << devmax << std::endl;
   bool is_planar = (std::max(::fabs(devmin), ::fabs(devmax)) < EPSILON);
   //std::cout << "is planar ? " << is_planar << std::endl;
-
+  
   //std::cout << "plaster 8" << std::endl;
 
   // if the contour is planar no need for a fine patch
@@ -135,8 +135,7 @@ Plaster::make
   std::cout << "dx0 : " << maxB[0] - minB[0] << std::endl;
   std::cout << "dy0 : " << maxB[1] - minB[1] << std::endl;*/
   
-  // Compute ni and nj;
-  //
+  // Compute ni and nj
   maxB[0] += 2. * dx; // Enlarge the plaster to ensure to have to rank of nodes outside the domain.
   maxB[1] += 2. * dx;
   minB[0] -= 2. * dx;
@@ -170,8 +169,7 @@ Plaster::make
   //data.hardNodes = hN;
   mesher.seed_random(1);
   err = mesher.run(dataTmp);
-  if (err)
-    return err;
+  if (err) return err;
 
   // Initialize the plaster field.
   std::vector<E_Float> z(ni*nj, -NUGA::FLOAT_MAX);
@@ -328,8 +326,7 @@ Plaster::__smooth_1
 
     for (ind = 0; ind < NBPOINTS; ++ind)
     {
-      if (processed[ind])
-        continue;
+      if (processed[ind]) continue;
 
       J = ind % (ni);
 
@@ -370,8 +367,7 @@ Plaster::__smooth_2
   for (E_Int i = 0; i < NBPOINTS; ++i)
   {
     processed[i] = (z[i] != -NUGA::FLOAT_MAX);
-    if (!processed[i])
-      z[i] = 0.;
+    if (!processed[i]) z[i] = 0.;
   }
 
   while (carry_on)
@@ -500,8 +496,7 @@ Plaster::__bumpPlaster
   bump_factor = std::max(bump_factor, -1.); // factor must be in [-1., 1.]
   bump_factor = std::min(bump_factor, 1.);
 
-  if (bump_factor == 0.)
-    return;
+  if (bump_factor == 0.) return;
 
   const E_Float BUMP_ANGLE_MAX =  1.5 * NUGA::PI_4; //3PI/8
   E_Float ta = ::tan(bump_factor * BUMP_ANGLE_MAX);
@@ -531,16 +526,13 @@ bool Plaster::__IsStrictlyInT3
   E_Float s;
   
   s = K_MESH::Triangle::surface(P0, P1, P, 2);
-  if (s < -EPSILON)
-    return false;
+  if (s < -EPSILON) return false;
 
   s = K_MESH::Triangle::surface(P1, P2, P, 2);
-  if (s < -EPSILON)
-    return false;
+  if (s < -EPSILON) return false;
   
   s = K_MESH::Triangle::surface(P2, P0, P, 2);
-  if (s < -EPSILON)
-    return false;
+  if (s < -EPSILON) return false;
 
   return true;
 }
@@ -592,8 +584,7 @@ Plaster::__mask
   }
 
   // Final cleaning.
-  for (size_t i = 0; i < boxes.size(); ++i)
-    delete boxes[i];
+  for (size_t i = 0; i < boxes.size(); ++i) delete boxes[i];
 
 #ifdef WIN32
 #ifdef E_DEBUG
@@ -617,8 +608,7 @@ Plaster::__getPlasterBoundary
   E_Int ind, indH, indB, indG, indD, J, NB_POINTS(mask.size());
   for (ind = 0; ind < NB_POINTS; ++ind)
   {
-    if (mask[ind] == outside)
-      continue;
+    if (mask[ind] == outside) continue;
 
     J = ind % (ni);
 

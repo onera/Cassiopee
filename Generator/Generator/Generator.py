@@ -834,9 +834,8 @@ def zip(array, tol=1e-12):
         try: 
             import Post as P  
             for a in array: 
-                if len(a)==4: extFaces.append(P.exteriorFaces(a))
-        except:
-            pass
+                if len(a) == 4: extFaces.append(P.exteriorFaces(a))
+        except: pass
         return generator.closeBorders(array, extFaces, tol)
     else:
         return array

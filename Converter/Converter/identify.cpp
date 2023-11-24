@@ -270,7 +270,7 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
 { 
   PyObject* array; PyObject* hook;
   E_Float tol;
-  if (!PyArg_ParseTuple(args, "OOd", &hook, &array, &tol)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ R_, &hook, &array, &tol)) return NULL;
 
   // recupere le hook
   void** packet = NULL;

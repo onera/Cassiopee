@@ -470,6 +470,55 @@ def _switchGridAndGridInit(t):
       gc2[0] = 'GridCoordinates#Init'
   return None
 
+# eval position by deformation: 
+# ajoute Displacement#0 dans Coordinates#Init
+def _evalDeformationPosition(t):
+    zones = Internal.getZones(t)
+    for z in zones:
+        defcont = Internal.getNodeFromName1(z, "Displacement#0")
+        if defcont is not None:
+            cont = Internal.getNodeFromName1(z, "GridCoordinates#Init")
+            XA1 = Internal.getNodeFromName1(cont, "CoordinateX")[1]
+            XA2 = Internal.getNodeFromName1(cont, "CoordinateY")[1]
+            XA3 = Internal.getNodeFromName1(cont, "CoordinateZ")[1]
+    
+            cont = Internal.getNodeFromName1(z, "GridCoordinates")
+            XB1 = Internal.getNodeFromName1(cont, "CoordinateX")[1]
+            XB2 = Internal.getNodeFromName1(cont, "CoordinateY")[1]
+            XB3 = Internal.getNodeFromName1(cont, "CoordinateZ")[1]
+        
+            DA1 = Internal.getNodeFromName1(defcont, "DisplacementX")[1]
+            DA2 = Internal.getNodeFromName1(defcont, "DisplacementY")[1]
+            DA3 = Internal.getNodeFromName1(defcont, "DisplacementZ")[1]
+        
+            XB1[:] = XA1 + DA1
+            XB2[:] = XA2 + DA2
+            XB3[:] = XA3 + DA3
+    return None
+
+# copie Displacement#0/GridVelocityX dans Motion/VelocityX
+def _evalDeformationSpeed(t):
+    zones = Internal.getZones(t)
+    for z in zones:
+        defcont = Internal.getNodeFromName1(z, "Displacement#0")
+        if defcont is not None:
+            DA1 = Internal.getNodeFromName1(defcont, "VelocityX")[1]
+            DA2 = Internal.getNodeFromName1(defcont, "VelocityY")[1]
+            DA3 = Internal.getNodeFromName1(defcont, "VelocityZ")[1]
+            motion = Internal.getNodeFromName1(z, "Displacement#0")
+            if motion is None:
+                motion = Internal.createNode('Motion', 'UserDefined_t', parent=z)
+            sx = Internal.getNodeFromName1(motion, 'VelocityX')
+            if sx is None: sx = Internal.copyNode(DA1); sx[0] = 'VelocityX'; motion[2].append(sx); sx[1] = sx[1].reshape((sx[1].size))
+            sy = Internal.getNodeFromName1(motion, 'VelocityY')
+            if sy is None: sy = Internal.copyNode(DA1); sy[0] = 'VelocityY'; motion[2].append(sy); sy[1] = sy[1].reshape((sy[1].size))
+            sz = Internal.getNodeFromName1(motion, 'VelocityZ')
+            if sz is None: sz = Internal.copyNode(DA1); sz[0] = 'VelocityZ'; motion[2].append(sz); sz[1] = sz[1].reshape((sz[1].size))
+            sx[1][:] = DA1[1][:]
+            sy[1][:] = DA2[1][:]
+            sz[1][:] = DA3[1][:]
+    return None
+
 #==============================================================================
 # Evalue la position reelle de la zone a l'instant t
 # Le mouvement est stocke dans chaque zone.
@@ -652,9 +701,8 @@ def _evalGridSpeed(a, time, out=0):
     cont = Internal.getNodeFromName1(z, 'TimeMotion')
     if cont is not None:
       # Get speed pointers
-      name  = 'Motion'
-      mmo = Internal.getNodeFromName1(z, name)
-      if mmo is None: mmo = Internal.createNode(name, 'UserDefined_t', parent=z)  
+      mmo = Internal.getNodeFromName1(z, 'Motion')
+      if mmo is None: mmo = Internal.createNode('Motion', 'UserDefined_t', parent=z)  
       sx = Internal.getNodeFromName1(mmo, 'VelocityX')
       if sx is None: sx = Internal.copyNode(xcoord); sx[0] = 'VelocityX'; mmo[2].append(sx); sx[1] = sx[1].reshape((sx[1].size))
       sy = Internal.getNodeFromName1(mmo, 'VelocityY')

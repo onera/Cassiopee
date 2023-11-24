@@ -311,7 +311,7 @@ def frictionLines(teff):
 # IN: delta: mean mesh step on blade in the span wise direction
 # IN: rotationCenter: center of rotation
 # IN: coordDir: axis of rotation ('CoordinateX', 'CooridnateY' or 'CoordinateZ')
-# IN: coordSlice: slicing direction ('CoordinateX', 'CooridnateY' or 'CoordinateZ')
+# IN: coordSlice: slicing direction ('CoordinateX', 'CoordinateY' or 'CoordinateZ')
 # IN: sliceNature: if 'straight', slices the blade(s) in the slicing direction coordSlice. If 'curved', slices at constant radii.
 
 # OUT: dictionnaire des slices, slices[rad] est une zone

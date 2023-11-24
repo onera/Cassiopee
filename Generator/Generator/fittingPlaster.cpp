@@ -57,7 +57,7 @@ PyObject* K_GENERATOR::fittingPlaster(PyObject* self, PyObject* args)
                     "fittingPlaster: array must define a BAR.");
     delete fB0; return NULL;
   }
-  if ( res == 2 ) 
+  if (res == 2) 
   {
     if (strcmp(eltType, "BAR") != 0)
     {
@@ -81,7 +81,7 @@ PyObject* K_GENERATOR::fittingPlaster(PyObject* self, PyObject* args)
   
   K_FLD::FloatArray &posB0(*fB0), plaster; 
   K_FLD::IntArray &connectB0(*cn);
-  E_Int ni1;//SP : pas initialise ????
+  E_Int ni1;
   Plaster p;
   E_Int err = p.make(posB0, connectB0, plaster, ni1, pump_factor);
   

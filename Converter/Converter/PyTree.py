@@ -6904,7 +6904,7 @@ def freeHook(hook):
 def identifyNodes(hook, a, tol=1.e-11):
   """Find in a hook nearest points of nodes of a. return identified node indices.
   Usage: identifyNodes(hook, a)"""
-  fields = getFields(Internal.__GridCoordinates__, a, api=2)
+  fields = getFields(Internal.__GridCoordinates__, a, api=3)
   if len(fields) == 1: return Converter.identifyNodes(hook, fields[0], tol)
   else: return Converter.identifyNodes(hook, fields, tol)
 
@@ -6920,7 +6920,7 @@ def identifyFaces(hook, a, tol=1.e-11):
 def identifyElements(hook, a, tol=1.e-11):
   """Find in a hook nearest points of element centers of a. return identified element indices.
   Usage: identifyElements(hook, a)"""
-  fields = getFields(Internal.__GridCoordinates__, a, api=1)
+  fields = getFields(Internal.__GridCoordinates__, a, api=3)
   if len(fields) == 1: return Converter.identifyElements(hook, fields[0], tol)
   else: return Converter.identifyElements(hook, fields, tol)
 

@@ -195,11 +195,7 @@ PyObject* K_CONVERTER::registerAllNodes(PyObject* self, PyObject* args)
 {
   PyObject* arrays;
   E_Int extended;
-#ifdef E_DOUBLEINT 
-  if (!PyArg_ParseTuple(args, "Ol", &arrays, &extended)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Oi", &arrays, &extended)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, O_ I_, &arrays, &extended)) return NULL;
   if (PyList_Check(arrays) == false)
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -324,11 +320,7 @@ PyObject* K_CONVERTER::registerAllElements(PyObject* self, PyObject* args)
 {
   PyObject* arrays;
   E_Int extended;
-#ifdef E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Ol", &arrays, &extended)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Oi", &arrays, &extended)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, O_ I_, &arrays, &extended)) return NULL;
   if (PyList_Check(arrays) == false)
   {
     PyErr_SetString(PyExc_TypeError, 

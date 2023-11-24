@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef __GENERATOR_PLASTER_H__
 #define __GENERATOR_PLASTER_H__
@@ -27,7 +27,7 @@ public:
 
 private:
 
-  void __cartesian (const E_Float* minB, const E_Float* maxB, E_Int ni, E_Int nj, K_FLD::FloatArray& cart);
+  void __cartesian(const E_Float* minB, const E_Float* maxB, E_Int ni, E_Int nj, K_FLD::FloatArray& cart);
 
   void __smooth(std::vector<E_Float>& z, E_Int ni, E_Float bump_factor, E_Float tol = EPSILON);
 
