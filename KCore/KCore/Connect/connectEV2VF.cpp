@@ -61,7 +61,6 @@ void K_CONNECT::connectEV2VF(FldArrayI& cEV, const char* eltType,
     FldArrayI& cm = *(cEV.getConnect(ic));
     char* eltTypConn = eltTypes[ic];
     nelts[ic] = cm.getSize();
-    std::cout << "eltTypConn " << eltTypConn << std::endl;
 
     if (strcmp(eltTypConn, "BAR") == 0) 
     {

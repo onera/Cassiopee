@@ -206,6 +206,29 @@ namespace K_ARRAY
   void addPrefixInVarString(char* varString, const char* prefix,
                             char* varStringOut);
 
+  /* Ajoute un suffixe a tous les noms de variables contenu dans varString. 
+     IN: varString: la chaine des variables
+     IN: suffix: la chaine de suffix a ajouter aux noms des variables
+     OUT: varStringOut: le resultat. */
+  void addSuffixInVarString(const char* varString, const char* suffix,
+                            char* varStringOut);
+
+  /* Ajoute une etoile a tous les noms de variables contenu dans varString. 
+     IN: varString: la chaine des variables aux noeuds
+     OUT: varStringOut: le resultat aux centres. */
+  void starVarString(const char* varString, char* varStringOut);
+
+  /* Retire un suffixe a tous les noms de variables contenu dans varString. 
+     IN: varString: la chaine des variables
+     IN: suffix: la chaine de suffix a retirer aux noms des variables
+     OUT: varStringOut: le resultat. */
+  void rmSuffixInVarString(const char* varString, const char* suffix,
+                           char* varStringOut);
+  /* Retire l'etoile de tous les noms de variables contenu dans varString. 
+     IN: varString: la chaine des variables aux centres
+     OUT: varStringOut: le resultat aux noeuds. */
+  void unstarVarString(const char* varString, char* varStringOut);
+
   /* Extrait les donnees utiles d'un objet python struct array
      defini par: [ 'vars', a, ni, nj, nk ]
      ou d'un objet python unstruct array
