@@ -29,7 +29,7 @@ libraryDirs += paths; libraries += libs
 import srcs
 setup(
     name="Distributor2",
-    version="3.7",
+    version="4.0",
     description="Distributor for arrays and pyTrees.",
     author="Onera",
     package_dir={"":"."},

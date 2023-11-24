@@ -55,7 +55,7 @@ listExtensions.append(
 # setup ======================================================================
 setup(
     name="Connector",
-    version="3.7",
+    version="4.0",
     description="Connector for *Cassiopee* modules.",
     author="Onera",
     package_dir={"":"."},

@@ -45,7 +45,7 @@ libraryDirs += paths; libraries += libs
 import srcs
 setup(
     name="RigidMotion",
-    version="3.7",
+    version="4.0",
     description="Rigid motion module.",
     author="Onera",
     package_dir={"":"."},

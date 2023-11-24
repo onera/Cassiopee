@@ -64,7 +64,7 @@ listExtensions.append(
 # setup ======================================================================
 setup(
     name="XCore",
-    version="3.7",
+    version="4.0",
     description="Parallel core for *Cassiopee* modules.",
     author="Onera",
     package_dir={"":"."},

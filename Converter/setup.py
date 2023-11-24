@@ -86,7 +86,7 @@ if srcs.EXPRESSION:
 # setup ======================================================================
 setup(
     name="Converter",
-    version="3.7",
+    version="4.0",
     description="Converter for *Cassiopee* modules.",
     author="ONERA",
     url="https://cassiopee.onera.fr",

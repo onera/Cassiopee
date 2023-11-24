@@ -1,6 +1,6 @@
 """Geometry definition module.
 """
-__version__ = '3.7'
+__version__ = '4.0'
 __author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud, Sam Landier"
 
 from . import geom
