@@ -100,12 +100,9 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
 
     IMPORTNUMPY;
 
-    // element string - ajoute * pour les centres
-    strcpy(eltType, etString);
-    E_Int pos = strlen(eltType)-1;
-    pos = 0;
-    if (eltType[pos] != '*' && center == true) strcat(eltType, "*");
-    else if (eltType[pos] == '*') eltType[pos] = '\0';
+    // Corrige eventuellement etString si contradictoire avec center
+    if (center) K_ARRAY::starVarString(etString, eltType);
+    else K_ARRAY::unstarVarString(etString, eltType);
 
     // Build array of fields
     if (api == 1) // Array1
@@ -221,7 +218,9 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
     npy_intp dim[2];
     PyObject* a; PyObject* ac; PyObject* tpl;
     char eltType[256];
-    strcpy(eltType, etString);
+    // Corrige eventuellement etString si contradictoire avec center
+    if (center) K_ARRAY::starVarString(etString, eltType);
+    else K_ARRAY::unstarVarString(etString, eltType);
 
     // taille de f
     E_Int fSize;
@@ -302,7 +301,9 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
     npy_intp dim[2];
     PyObject* a; PyObject* ac; PyObject* tpl;
     char eltType[256];
-    strcpy(eltType, etString);
+    // Corrige eventuellement etString si contradictoire avec center
+    if (center) K_ARRAY::starVarString(etString, eltType);
+    else K_ARRAY::unstarVarString(etString, eltType);
 
     // taille de f
     E_Int nelt = 0;
@@ -393,8 +394,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld,
     if (center == -1) // find center from eltstring
     { 
         center = 0;
-        E_Int l = strlen(eltType);
-        if (eltType[l-2] == '*') center = 1;
+        if (strchr(eltType, '*') != NULL) center = 1;
     }
     if (strcmp(eltType, "NGON") == 0 || strcmp(eltType, "NGON*") == 0)
     {
@@ -439,8 +439,7 @@ PyObject* K_ARRAY::buildArray3(FldArrayF& f,
     E_Int sizeNGon = cn.getSizeNGon();
     E_Int sizeNFace = cn.getSizeNFace();
     E_Boolean center = false;
-    E_Int l = strlen(eltType);
-    if (eltType[l-2] == '*') center = true;
+    if (strchr(eltType, '*') != NULL) center = true;
     
     PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, nelts, nfaces, 
         eltType, sizeNGon, sizeNFace, ngonType, center, api);
@@ -485,12 +484,11 @@ PyObject* K_ARRAY::buildArray3(FldArrayF& f,
     }
     return tpl;
   }
-  else // BE
+  else // BE/ME
   {
     E_Int ncon = cn.getNConnect();
     E_Boolean center = false;
-    E_Int l = strlen(eltType);
-    if (eltType[l-2] == '*') center = true;
+    if (strchr(eltType, '*') != NULL) center = true;
     vector< E_Int > neltsPerConnect(ncon);
     E_Int nelts = 0;
     for (E_Int i = 0; i < ncon; i++)

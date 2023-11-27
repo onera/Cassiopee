@@ -38,7 +38,7 @@ PyObject* K_CONVERTER::node2Center(PyObject* self, PyObject* args)
 
   PyObject* tpl;
   E_Int ni, nj, nk;
-  char* varString; char* eltType; string eltType2;
+  char* varString; char* eltType;
   E_Int res; 
   FldArrayF* FNode; FldArrayI* c;
   res = K_ARRAY::getFromArray3(array, varString, FNode, ni, nj, nk,
@@ -97,10 +97,11 @@ PyObject* K_CONVERTER::node2Center(PyObject* self, PyObject* args)
   }
   else if (res == 2)
   {
-    E_Int ncells;
+    char* eltType2 = new char[K_ARRAY::VARSTRINGLENGTH];
+    K_ARRAY::starVarString(eltType, eltType2);
+    E_Int ncells = 0;
     E_Boolean compact = false;
     if (api == 1) compact = true;
-    eltType2.assign(eltType); eltType2 += '*';
     if (strcmp(eltType, "NGON") == 0)
     {
       ncells = c->getNElts();
@@ -121,12 +122,12 @@ PyObject* K_CONVERTER::node2Center(PyObject* self, PyObject* args)
     else // autres elements basiques
     { 
       E_Int nc = c->getNConnect();
-      ncells = 0;
       for (E_Int ic = 0; ic < nc; ic++)
       { 
         FldArrayI& cm = *(c->getConnect(ic));
         ncells += cm.getSize();
       }
+
       FCenter = new FldArrayF(ncells, nfld, compact);
       ret = K_LOC::node2centerUnstruct(*FNode, *c, cellN, mod, *FCenter);
     }
@@ -136,8 +137,8 @@ PyObject* K_CONVERTER::node2Center(PyObject* self, PyObject* args)
       delete FCenter; RELEASESHAREDU(array, FNode, c); 
       return NULL;
     }
-    tpl = K_ARRAY::buildArray3(*FCenter, varString, *c, eltType2.c_str());
-    delete FCenter; RELEASESHAREDU(array, FNode, c);
+    tpl = K_ARRAY::buildArray3(*FCenter, varString, *c, eltType2);
+    delete[] eltType2; delete FCenter; RELEASESHAREDU(array, FNode, c);
     return tpl;
   }
   else return NULL;

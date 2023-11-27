@@ -76,22 +76,23 @@ void K_ARRAY::rmSuffixInVarString(const char* varString, const char* suffix,
   strcpy(varStringOut, "");
   for (E_Int v = 0; v < size; v++)
   {
-    char *p = strstr(vars[v], suffix);
-    if (p)
+    E_Int lenvar = strlen(vars[v]);
+    E_Int lennewvar = lenvar - lensuffix;
+    // Check if the input string ends with the specified suffix
+    if (lennewvar < 0 || strcmp(vars[v] + lennewvar, suffix) != 0)
     {
-      // pattern found
-      E_Int pos = p - vars[v];
-      E_Int lenvar = strlen(vars[v]);
-      // check if pattern is a suffix
-      if (pos + lensuffix == lenvar) 
-      {
-        char* buffer = new char[VARNAMELENGTH];
-        strncpy(buffer, vars[v], pos);
-        strcat(varStringOut, buffer);
-      }
-      else strcat(varStringOut, vars[v]);
+        // It does not, copy the input string
+        strcat(varStringOut, vars[v]);
     }
-    else strcat(varStringOut, vars[v]);
+    else
+    {
+        // It does, copy the portion of the input string without the suffix
+        char* newVarString = new char[lennewvar+1];
+        strncpy(newVarString, vars[v], lennewvar);
+        newVarString[lennewvar] = '\0';
+        strcat(varStringOut, newVarString);
+        delete[] newVarString;
+    }
     if (v < size-1) strcat(varStringOut, ",");
   } 
 

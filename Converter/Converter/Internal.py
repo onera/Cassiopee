@@ -3045,11 +3045,13 @@ def convertDataNode2Array(node, dim, connects, loc=-1):
         a = numpy.reshape(ar, (1, s), order='F')
         locout = 'nodes'
         if dim[1] != dim[2]: # on peut decider
-            if s == dim[2]: ettype += '*'; locout = 'centers'
+            if s == dim[2]:
+                ettype = ettype.replace(',', '*,') + '*'; locout = 'centers'
             elif s != dim[1]:
                 print("Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0])
         else: # force + no check
-            if loc == 1: ettype += '*'; locout = 'centers'
+            if loc == 1:
+                ettype = ettype.replace(',', '*,') + '*'; locout = 'centers'
 
         array = [node[0], a, cr, ettype]
         return [locout, array]
@@ -3138,11 +3140,13 @@ def convertDataNode2Array2(node, dim, connects, loc=-1):
     locout = 'nodes'
     s = ar.size
     if dim[1] != dim[2]: # on peut decider
-        if s == dim[2]: ettype += '*'; locout = 'centers'
+        if s == dim[2]:
+            ettype = ettype.replace(',', '*,') + '*'; locout = 'centers'
         elif s != dim[1]:
             print("Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0])
     else: # force + no check
-        if loc == 1: ettype += '*'; locout = 'centers'
+        if loc == 1:
+            ettype = ettype.replace(',', '*,') + '*'; locout = 'centers'
 
     array = [node[0], [ar], cr, ettype]
     return [locout, array]
@@ -3250,12 +3254,13 @@ def convertDataNode2Array3(node, dim, connects, loc=-1):
     locout = 'nodes'
     s = ar.size
     if dim[1] != dim[2]: # on peut decider
-        if s == dim[2]: eltString += '*'; locout = 'centers'
+        if s == dim[2]:
+            eltString = eltString.replace(',', '*,') + '*'; locout = 'centers'
         elif s != dim[1]:
             print("Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0])
     else: # force + no check
-        if loc == 1: eltString += '*'; locout = 'centers'
-
+        if loc == 1:
+            eltString = eltString.replace(',', '*,') + '*'; locout = 'centers'
     array = [node[0], [ar], cr, eltString]
     return [locout, array]
 
@@ -3311,11 +3316,11 @@ def convertDataNodes2Array(nodes, dim, connects, loc=-1):
     cr, ettype = adaptConnect__(connects, dim)
 
     if dim[1] != dim[2]: # on peut decider
-        if s == dim[2]: ettype += '*'
+        if s == dim[2]: ettype = ettype.replace(',', '*,') + '*'
         elif s != dim[1]:
             print("Warning: convertDataNodes2Array: incoherency zone (%d,%d)/array (%s,%d)."%(dim[1],dim[2],nodes[0][0],s))
     else: # force + no check
-        if loc == 1: ettype += '*'
+        if loc == 1: ettype = ettype.replace(',', '*,') + '*'
     return [vars, a, cr, ettype]
 
 # Pour array2
@@ -3401,11 +3406,11 @@ def convertDataNodes2Array2(nodes, dim, connects, loc=-1):
 
     # tag *
     if dim[1] != dim[2]: # on peut decider
-        if s == dim[2]: ettype += '*'
+        if s == dim[2]: ettype = ettype.replace(',', '*,') + '*'
         elif s != dim[1]:
             print("Warning: convertDataNodes2Array: incoherency zone/array.")
     else: # force + no check
-        if loc == 1: ettype += '*'
+        if loc == 1: ettype = ettype.replace(',', '*,') + '*'
     return [vars, field, cr, ettype]
 
 # Pour array3
@@ -3509,11 +3514,11 @@ def convertDataNodes2Array3(nodes, dim, connects, loc=-1):
 
     # tag *
     if dim[1] != dim[2]: # on peut decider
-        if s == dim[2]: eltString += '*'
+        if s == dim[2]: eltString = eltString.replace(',', '*,') + '*'
         elif s != dim[1]:
             print("Warning: convertDataNodes2Array: incoherency zone/array.")
     else: # force + no check
-        if loc == 1: eltString += '*'
+        if loc == 1: eltString = eltString.replace(',', '*,') + '*'
     return [vars, field, cr, eltString]
 
 def _groupByFamily(t, familyChilds=None, unique=False):

@@ -1345,15 +1345,9 @@ def center2Node(array, cellNType=0, BCFields=None):
         b = []
         for i in array:
             b.append(converter.center2Node(i, cellNType, BCFields))
-        for nob in range(len(b)):
-            if len(b[nob]) == 4:
-                eltType = b[nob][3]
-                b[nob][3] = eltType.split('*')[0]
         return b
     else:
         b = converter.center2Node(array, cellNType, BCFields)
-        if len(b) == 4:
-            eltType = b[3]; b[3] = eltType.split('*')[0]
         return b
 
 def node2ExtCenter(array):

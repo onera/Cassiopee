@@ -184,7 +184,7 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
     
       for (E_Int et = 0; et < nelts; et++) cEV[et].clear();
       cEV.clear();
-      PyObject* tpl = K_ARRAY::buildArray3(*FNode, varString, *c, eltType);
+      PyObject* tpl = K_ARRAY::buildArray3(*FNode, varString, *c, "NGON");
       delete FNode;
       RELEASESHAREDU(array, FCenter, c);
       if (ret == 0) return NULL;
@@ -192,6 +192,9 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
     }
     else // BE/ME
     {    
+      char* eltType2 = new char[K_ARRAY::VARSTRINGLENGTH];
+      K_ARRAY::unstarVarString(eltType, eltType2);
+
       FldArrayF* FNode;
 
       if (K_STRING::cmp(eltType, "NODE*") == 0)
@@ -218,19 +221,12 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
           FldArrayI& cm = *(c->getConnect(ic));
           char* eltTypConn = eltTypes[ic];
           if (not (K_STRING::cmp(eltTypConn, "BAR*") == 0   ||
-                   K_STRING::cmp(eltTypConn, "BAR") == 0   ||
                    K_STRING::cmp(eltTypConn, "TRI*") == 0   ||
-                   K_STRING::cmp(eltTypConn, "TRI") == 0   ||
                    K_STRING::cmp(eltTypConn, "QUAD*") == 0  ||
-                   K_STRING::cmp(eltTypConn, "QUAD") == 0  ||
                    K_STRING::cmp(eltTypConn, "TETRA*") == 0 ||
-                   K_STRING::cmp(eltTypConn, "TETRA") == 0 ||
                    K_STRING::cmp(eltTypConn, "HEXA*") == 0  ||
-                   K_STRING::cmp(eltTypConn, "HEXA") == 0  ||
                    K_STRING::cmp(eltTypConn, "PENTA*") == 0 ||
-                   K_STRING::cmp(eltTypConn, "PENTA") == 0 ||
-                   K_STRING::cmp(eltTypConn, "PYRA*") == 0 ||
-                   K_STRING::cmp(eltTypConn, "PYRA") == 0 ))
+                   K_STRING::cmp(eltTypConn, "PYRA*") == 0))
           {
             PyErr_SetString(PyExc_TypeError, 
                             "center2Node: BE eltType does not exist.");
@@ -254,8 +250,8 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
         ret = K_LOC::center2nodeUnstruct(*FCenter, *c, cellN, mod, posx, posy, posz, *FNode, type);
       }
       
-      PyObject* tpl = K_ARRAY::buildArray3(*FNode, varString, *c, eltType);
-      delete FNode;
+      PyObject* tpl = K_ARRAY::buildArray3(*FNode, varString, *c, eltType2);
+      delete FNode; delete[] eltType2;
       RELEASESHAREDU(array, FCenter, c);
       return tpl;
     }
