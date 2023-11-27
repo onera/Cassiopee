@@ -17,7 +17,7 @@ print("ngon close cells...")
 t = XOR.closeCells(t)
 #t = XOR.reorientExternalFaces(t)
 
-s = C.convertArray2NGon(s)
+s = C.convertArray2NGon(s); s = G.close(s, 1.e-12)
 s = XOR.convertNGON2DToNGON3D(s)
 #s = XOR.reorientExternalFaces(s)
 

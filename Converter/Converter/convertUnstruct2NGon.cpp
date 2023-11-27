@@ -30,7 +30,8 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, O_, &array)) return NULL;
+  E_Int api = 1;
+  if (!PyArg_ParseTuple(args, O_ I_, &array, &api)) return NULL;
 
   // Check array
   E_Int ni, nj, nk, res;
@@ -63,7 +64,6 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
   E_Int ntotelts = 0, ntotfaces = 0;
   E_Int sizeFN = 0, sizeEF = 0;
 
-  E_Int api = f->getApi();
   E_Int shift = 1; if (api == 3) shift = 0;
 
   // Boucle sur toutes les connectivites une premiere fois pour savoir si elles

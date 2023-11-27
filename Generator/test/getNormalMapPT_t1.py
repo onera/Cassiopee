@@ -25,7 +25,7 @@ test.testT(n,3)
 
 # test NGon surfacique
 a = D.sphere((0,0,0), 1, 10)
-a = C.convertArray2NGon(a)
+a = C.convertArray2NGon(a); a = G.close(a, 1.e-12)
 a = C.initVars(a,'Density',2.); a = C.initVars(a,'centers:cellN',1.)
 a = G.getNormalMap(a)
 test.testT(a,4)

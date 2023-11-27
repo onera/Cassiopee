@@ -1309,23 +1309,23 @@ def convertArray2Hexa(array):
         return b
     else: return convertArray2Hexa1__(array)
 
-def convertArray2NGon1__(array):
+def convertArray2NGon__(array, api=1):
     try: sub = array[3]
     except: raise TypeError("convertArray2NGon: arg must be an array.")
     if isinstance(sub, str): t = sub
     else: t = 'STRUCT'
-    if t == 'STRUCT': return converter.convertStruct2NGon(array)
+    if t == 'STRUCT': return converter.convertStruct2NGon(array, api)
     elif t == 'NGON': return array
-    else: return converter.convertUnstruct2NGon(array)
+    else: return converter.convertUnstruct2NGon(array, api)
 
-def convertArray2NGon(array):
+def convertArray2NGon(array, api=1):
     """Convert a array in a NGON array.
-    Usage: convertArray2NGon( array ) """
+    Usage: convertArray2NGon( array, api ) """
     if isinstance(array[0], list):
         b = []
-        for i in array: b.append(convertArray2NGon1__(i))
+        for i in array: b.append(convertArray2NGon__(i, api))
         return b
-    else: return convertArray2NGon1__(array)
+    else: return convertArray2NGon__(array, api)
 
 def node2Center(array, accurate=0):
     """Convert array defined on nodes to array defined on centers.

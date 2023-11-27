@@ -3283,14 +3283,14 @@ def _convertArray2Hexa(t):
   return None
 
 # -- convertArray2NGon
-def convertArray2NGon(t, recoverBC=True):
+def convertArray2NGon(t, recoverBC=True, api=1):
   """Convert a zone to a NGON zone.
   Usage: convertArray2NGon(t)"""
   tp = Internal.copyRef(t)
-  _convertArray2NGon(tp, recoverBC=recoverBC)
+  _convertArray2NGon(tp, recoverBC=recoverBC, api=api)
   return tp
 
-def _convertArray2NGon(t, recoverBC=True):
+def _convertArray2NGon(t, recoverBC=True, api=1):
   zones = Internal.getZones(t)
   if recoverBC:
     gbcs = []

@@ -1522,7 +1522,7 @@ Array / PyTree common manipulations
 
 -----------------------------------------------------------------------------------
 
-.. py:function:: Converter.convertArray2NGon(a,recoverBC=1)
+.. py:function:: Converter.convertArray2NGon(a, recoverBC=1, api=1)
 
     Create NGON array from an any type of mesh.
 
@@ -1530,6 +1530,8 @@ Array / PyTree common manipulations
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param recoverBC: BCs can be recovered (=1) or not(=0) on the NGON a (not valid for arrays).
     :type recoverBC: integer (0 or 1)
+    :param api: CGNSv3 compact (=1), CGNSv3 (=2) or CGNSv4 (=3).
+    :type api: integer (1, 2 or 3)
     :rtype: Identical to input
 
     *Example of use:*
