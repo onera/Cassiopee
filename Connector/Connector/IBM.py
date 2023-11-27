@@ -452,7 +452,7 @@ def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e
                         C._initVars(z,'{centers:yplus}={centers:yplus}*(1-%20.16g/{centers:TurbulentDistance})'%(hloc)) #safety measure
 
                 cpt += 1
-            
+
             C._initVars(t,'{centers:cellN}=({centers:cellN}>0) * ( (({centers:cellN}) * ({centers:yplus}<=%20.16g)) + ({centers:yplus}>%20.16g) )'%(yplus,yplus))
         
         # final security gate, we ensure that we have at least to layers of target points
@@ -976,11 +976,11 @@ def _tcInitialize__(tc, tc2=None, twoFronts=False, ibctypes=[]):
     import Geom.IBM as D_IBM
 
     if twoFronts:
-        tc2 = Internal.rmNodesByName(tc2, 'IBCD*')
-        tc  = Internal.rmNodesByName(tc, '2_IBCD*')
+        Internal._rmNodesByName(tc2, 'IBCD*')
+        Internal._rmNodesByName(tc, '2_IBCD*')
         
         D_IBM._transformTc2(tc2)
-    
+
     if RENAMEIBCNODES:
         for zc in Internal.getZones(tc):
             for ibcd in Internal.getNodesFromName1(zc,'IBCD_*'):            
@@ -989,7 +989,7 @@ def _tcInitialize__(tc, tc2=None, twoFronts=False, ibctypes=[]):
         
         if twoFronts:
             for zc in Internal.getZones(tc2):
-                for ibcd in Internal.getNodesFromName1(zc,'2_IBCD_*'):            
+                for ibcd in Internal.getNodesFromName1(zc,'IBCD_*'):            
                     proposedName = Internal.getName(ibcd)[0:8]+'_X%d'%(Cmpi.rank)
                     ibcd[0] = getIBCDName(proposedName)
 

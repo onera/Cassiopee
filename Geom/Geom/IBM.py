@@ -460,7 +460,7 @@ def _transformTc2(tc2):
                 
                 vars_delete = ['Density','VelocityX','VelocityY','VelocityZ']+varsDeleteIBM
                 for var_local in vars_delete:
-                    Internal._rmNodesByName(zsr,vars_delete)
+                    Internal._rmNodesByName(zsr, var_local)
 
                 Nlength = numpy.zeros((nIBC),numpy.float64)
                 zsr[2].append(['Density'   , copy.copy(Nlength) , [], 'DataArray_t'])
