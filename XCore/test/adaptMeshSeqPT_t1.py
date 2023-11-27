@@ -6,6 +6,7 @@ import XCore.PyTree as X
 import XCore.xcore
 import numpy as np
 import KCore.test as test
+LOCAL = test.getLocal()
 
 # Tag cells between two ellipses
 def F(x, y):
@@ -45,6 +46,6 @@ for i in range(niter):
 # Output
 l = X.extractLeafMesh(h)
 print('Leaves:', C.getNCells(l))
-C.convertPyTree2File(l, 'refined.cgns')
+C.convertPyTree2File(l, LOCAL+'refined.cgns')
 
 test.testT(l, 1)
