@@ -30,7 +30,8 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::convertStruct2NGon(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, O_, &array)) return NULL;
+  E_Int api = 1;
+  if (!PyArg_ParseTuple(args, O_ I_, &array, &api)) return NULL;
 
   // Check array
   E_Int ni, nj, nk, res;
@@ -38,7 +39,6 @@ PyObject* K_CONVERTER::convertStruct2NGon(PyObject* self, PyObject* args)
   char* varString; char* dummy;
   res = K_ARRAY::getFromArray3(array, varString, 
                                f, ni, nj, nk, cnl, dummy);
-  E_Int api = f->getApi();
   E_Int shift = 1; if (api == 3) shift = 0;
 
   if (res == 2)
@@ -102,10 +102,9 @@ PyObject* K_CONVERTER::convertStruct2NGon(PyObject* self, PyObject* args)
   }
 
   // Build an empty NGON array
-  E_Int ngonType = 1;
-  if (api == 1) ngonType = 1; // CGNSv3 compact array1
-  else if (api == 3) ngonType = 3; // force CGNSv4, array3
-  else if (api == 2) ngonType = 2; // CGNSv3, array2
+  E_Int ngonType = 1; // CGNSv3 compact array1
+  if (api == 2) ngonType = 2; // CGNSv3, array2
+  else if (api == 3) ngonType = 3; // force CGNSv4, array3 
   E_Boolean center = false;
   PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, ncells, nfaces, 
                                        "NGON", sizeFN, sizeEF, ngonType,
@@ -380,14 +379,5 @@ PyObject* K_CONVERTER::convertStruct2NGon(PyObject* self, PyObject* args)
     }
   }
   RELEASESHAREDS(array, f);
-
-  /* clean connectivity */
-  E_Int posx = K_ARRAY::isCoordinateXPresent(varString)+1;
-  E_Int posy = K_ARRAY::isCoordinateYPresent(varString)+1;
-  E_Int posz = K_ARRAY::isCoordinateZPresent(varString)+1;
-  E_Float tol = 1.e-12;
-  if (posx > 0 && posy > 0 && posz > 0)
-    K_CONNECT::cleanConnectivityNGon(posx, posy, posz, tol, *f2, *cn2);
-  tpl = K_ARRAY::buildArray3(*f2, varString, *cn2, "NGON");
   return tpl;
 }
