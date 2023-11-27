@@ -5166,7 +5166,7 @@ def extractBCOfSubRegionName__(t, zsrName, reorder=True, extrapFlow=True, shift=
       datan = Internal.getNodeFromName(zsr, var)
       FS[2].append(datan)
       
-    Internal._rmNodesFromType(z_surf,"ZoneSubRegion_t")
+    Internal._rmNodesFromType(z_surf, "ZoneSubRegion_t")
     zones.append(z_surf)
     return zones
   
@@ -6887,7 +6887,7 @@ def createHookAdtCyl(a, center=(0,0,0), axis=(0,0,1), depth=0, thetaShift=0.):
 def createGlobalHook(a, function='None', indir=0):
   """Create a global hook for all zones in a.
   Usage: hook = createGlobalHook(a, function)"""
-  fields = getFields(Internal.__GridCoordinates__, a, api=2)
+  fields = getFields(Internal.__GridCoordinates__, a, api=3)
   return Converter.createGlobalHook(fields, function, indir)
 
 # -- freeHook
@@ -6975,7 +6975,7 @@ def _identifySolutions(tRcv, tDnr, hookN=None, hookC=None, vars=[], tol=1.e6):
 def nearestNodes(hook, a):
   """Identify nearest nodes to a in hook. return identified face indices.
   Usage: nearestNodes(hook, a)"""
-  fields = getFields(Internal.__GridCoordinates__, a, api=2)
+  fields = getFields(Internal.__GridCoordinates__, a, api=3)
   if len(fields) == 1: return Converter.nearestNodes(hook, fields[0])
   else: return Converter.nearestNodes(hook, fields)
 
@@ -6983,7 +6983,7 @@ def nearestNodes(hook, a):
 def nearestFaces(hook, a):
   """Identify nearest face centers to a in hook. return identified face indices.
   Usage: nearestFaces(hook, a)"""
-  fields = getFields(Internal.__GridCoordinates__, a, api=2)
+  fields = getFields(Internal.__GridCoordinates__, a, api=1)
   if len(fields) == 1: return Converter.nearestFaces(hook, fields[0])
   else: return Converter.nearestFaces(hook, fields)
 

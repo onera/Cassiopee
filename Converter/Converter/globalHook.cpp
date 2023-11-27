@@ -111,7 +111,7 @@ PyObject* K_CONVERTER::registerAllFaces(PyObject* self, PyObject* args)
       E_Float* yp = unstrF[noz]->begin(posyu[noz]);
       E_Float* zp = unstrF[noz]->begin(poszu[noz]); 
 
-# pragma omp parallel for
+      # pragma omp parallel for
       for (E_Int i = 0; i < nfaces; i++)
       {
         // Acces universel face i
@@ -140,7 +140,7 @@ PyObject* K_CONVERTER::registerAllFaces(PyObject* self, PyObject* args)
       E_Float* yp = unstrF[noz]->begin(posyu[noz]);
       E_Float* zp = unstrF[noz]->begin(poszu[noz]);        
 
-# pragma omp parallel for      
+      # pragma omp parallel for      
       for (E_Int i = 0; i < nfaces; i++)
       {
         // Acces universel face i
@@ -254,7 +254,7 @@ PyObject* K_CONVERTER::registerAllNodes(PyObject* self, PyObject* args)
       E_Float* xp = fields[noz]->begin(posxt[noz]);
       E_Float* yp = fields[noz]->begin(posyt[noz]);
       E_Float* zp = fields[noz]->begin(poszt[noz]);
-# pragma omp parallel for  
+      # pragma omp parallel for  
       for (E_Int i = 0; i < npts; i++)
       {
         cx[ig+i] = xp[i]; cy[ig+i] = yp[i]; cz[ig+i] = zp[i];
@@ -272,7 +272,7 @@ PyObject* K_CONVERTER::registerAllNodes(PyObject* self, PyObject* args)
       E_Float* xp = fields[noz]->begin(posxt[noz]);
       E_Float* yp = fields[noz]->begin(posyt[noz]);
       E_Float* zp = fields[noz]->begin(poszt[noz]);
-# pragma omp parallel for  
+      # pragma omp parallel for  
       for (E_Int i = 0; i < npts; i++)
       {
         cx[ig+i] = xp[i]; cy[ig+i] = yp[i]; cz[ig+i] = zp[i];

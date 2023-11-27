@@ -34,7 +34,7 @@ using namespace ExtendedArithmetics;
 PyObject* K_CONVERTER::nearestNodes(PyObject* self, PyObject* args)
 { 
   PyObject* array; PyObject* hook;
-  if (!PyArg_ParseTuple(args, "OO", &hook, &array)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &hook, &array)) return NULL;
 
   // recupere le hook
   void** packet = NULL;
@@ -132,7 +132,7 @@ PyObject* K_CONVERTER::nearestNodes(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::nearestFaces(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* hook;
-  if (!PyArg_ParseTuple(args, "OO", &hook, &array)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &hook, &array)) return NULL;
 
   // recupere le hook
   void** packet = NULL;
@@ -527,6 +527,6 @@ PyObject* K_CONVERTER::nearestElements(PyObject* self, PyObject* args)
       elOffset += nelts;
     }
     RELEASESHAREDU(array, f, cnl);
-    return Py_BuildValue("[OO]",ac,dist);
+    return Py_BuildValue("[OO]", ac, dist);
   } // BE/ME
 }

@@ -926,7 +926,9 @@ def renderSelect(event=None):
 def fitZone(i, event=None):
     myList = WIDGETS['myLists'][i]
     list0 = WIDGETS['myLists'][0]
-    sel = myList.curselection()[0]
+    sel = myList.curselection()
+    if len(sel) == 0: return
+    sel = sel[0]
     name = list0.get(sel)
     name = name.strip(); name = name.split('/')
     baseName = name[0]; zoneName = name[1]
