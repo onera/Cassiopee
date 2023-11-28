@@ -5,7 +5,7 @@ import Converter.Internal as I
 import KCore.test as test
 
 a = G.cartHexa((0.,0.,0.), (1./10.,1./10.,1./10.), (11,11,3))
-a = C.convertArray2NGon(a)
+a = C.convertArray2NGon(a); a = G.close(a)
 I._adaptNGon32NGon4(a)
 
 def f(x, y, z): return 3.*x + 2.*y + z

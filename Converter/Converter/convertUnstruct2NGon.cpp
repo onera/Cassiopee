@@ -375,14 +375,5 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
   }
 
   RELEASESHAREDU(array, f, cnl);
-  
-  /* clean connectivity */
-  E_Int posx = K_ARRAY::isCoordinateXPresent(varString)+1;
-  E_Int posy = K_ARRAY::isCoordinateYPresent(varString)+1;
-  E_Int posz = K_ARRAY::isCoordinateZPresent(varString)+1;
-  E_Float tol = 1.e-12;
-  if (posx > 0 && posy > 0 && posz > 0)
-    K_CONNECT::cleanConnectivityNGon(posx, posy, posz, tol, *f2, *cn2, false);
-  tpl = K_ARRAY::buildArray3(*f2, varString, *cn2, "NGON");
   return tpl;  
 }
