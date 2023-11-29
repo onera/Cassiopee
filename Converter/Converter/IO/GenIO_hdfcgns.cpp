@@ -1847,7 +1847,7 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
 #endif
     else cur_path = NULL;
     
-    // > Dramatic verbose 
+    // > Dramatic verbose
     //printf(" tgt_file_all : %s \n", tgt_file_all);
     //printf(" tgt_path : %s \n", tgt_path);
     //printf(" cur_path : %s \n", cur_path);
@@ -2262,14 +2262,23 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
        {
          setArrayI1(child, (char*)PyArray_DATA(ar), dim, dims);
        }
-       else
+       else if (elSize == 8)
        {
-         setArrayI8(child, (E_LONG*)PyArray_DATA(ar), dim, dims);
-         //E_Int s = PyArray_Size(v);
-         //int* buf = new int [s];
-         //for (int i = 0; i < s; i++) buf[i] = (int)PyArray_DATA(ar)[i];
-         //setArrayI4(child, buf, dim, dims);
-         //delete [] buf;
+         if (strcmp(label, "CGNSBase_t") == 0 ||
+             strcmp(label, "Elements_t") == 0) // to comply with paraview
+         {
+          // convert to i4
+          E_Int s = PyArray_SIZE(ar);
+          int* buf = new int [s];
+          int* ptr = (int*)PyArray_DATA(ar);
+          for (E_Int i = 0; i < s; i++) buf[i] = ptr[i];
+          setArrayI4(child, buf, dim, dims); // raw
+          delete [] buf;
+         }
+         else
+         {
+          setArrayI8(child, (E_LONG*)PyArray_DATA(ar), dim, dims); // driver best/raw
+         }
        }
       }
       else if (typeNum == NPY_BYTE)
@@ -2512,11 +2521,11 @@ hid_t K_IO::GenIOHdf::setArrayI4(hid_t node, int* data, int idim, hsize_t* idims
 }
 
 //=============================================================================
-// write raw or best.
+// write a i8 array raw or best.
 hid_t K_IO::GenIOHdf::setArrayI8(hid_t node, E_LONG* data, int idim, hsize_t* idims)
 {
-    if (_writeMode == 0) return setArrayI8Raw(node, data, idim, idims);
-    else return setArrayI8B(node, data, idim, idims);
+  if (_writeMode == 0) return setArrayI8Raw(node, data, idim, idims);
+  else return setArrayI8B(node, data, idim, idims);
 }
 
 //=============================================================================

@@ -1067,6 +1067,7 @@ def setMaterial(event=None):
     CPlot.render()
 
 def setColor(event=None):
+    nzs = CPlot.getSelectedZones()
     color = VARS[1].get()
     if color == 'Custom>':
         try: import tkinter.colorchooser as tkColorChooser
@@ -1075,7 +1076,6 @@ def setColor(event=None):
         color = ret[1]
     VARS[1].set(color)
     
-    nzs = CPlot.getSelectedZones()
     if nzs == []: return
     for nz in nzs:
         nob = CTK.Nb[nz]+1

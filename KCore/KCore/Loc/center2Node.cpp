@@ -2794,6 +2794,27 @@ E_Int K_LOC::center2nodeUnstruct(FldArrayF& FCenter,
     elOffset += ne; // increment offset
   }
 
+  
+  // Adim fields by countp
+  #pragma omp parallel
+  {
+    E_Float inv;
+    for (E_Int v = 1; v <= nfld; v++)
+    {
+      E_Float* fnode = FNode.begin(v);
+
+      #pragma omp for
+      for (E_Int n = 0; n < nb; n++)
+      {
+        if (countp[n] > 0)
+        {
+          inv = 1./countp[n];
+          fnode[n] *= inv;
+        }
+      }
+    }
+  }
+
   elOffset = 0; // reset element offset for the second loop over connectivities
 
   // Boucle sur toutes les connectivites une second fois pour diviser les
@@ -2804,25 +2825,6 @@ E_Int K_LOC::center2nodeUnstruct(FldArrayF& FCenter,
     E_Int ne = cm.getSize(); // nombre de centres = nombre d'elements
     E_Int nt = cm.getNfld(); // nombre de points par elements de cette connectivite
     
-    // Boucle sur tous les champs
-    #pragma omp parallel
-    {
-      E_Float inv;
-      for (E_Int v = 1; v <= nfld; v++)
-      {
-        E_Float* fnode = FNode.begin(v);
-
-        #pragma omp for
-        for (E_Int n = 0; n < nb; n++)
-        {
-          if (countp[n] > 0)
-          {
-            inv = 1./countp[n];
-            fnode[n] *= inv;
-          }
-        }
-      }
-    }
 
     // Traitement special pour le champ "cellnaturefield" - reecriture
     // de fnode(cellN), ie, cellNNode

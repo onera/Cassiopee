@@ -34,7 +34,7 @@ PyObject* K_POST::selectExteriorFaces(PyObject* self, PyObject* args)
 {
   PyObject* array;
   PyObject* indices;
-  if (!PyArg_ParseTuple(args, "OO", &array, &indices)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &indices)) return NULL;
   
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
@@ -97,7 +97,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       indir = K_NUMPY::buildNumpyArray(2, 1, 1, 0);
       indirp = K_NUMPY::getNumpyPtrI(indir);
       indirp[0] = 1; indirp[1] = s;
-      PyList_Append(indices, indir);  Py_DECREF(indir);
+      PyList_Append(indices, indir); Py_DECREF(indir);
     }
 
     delete fnodes; delete connect;

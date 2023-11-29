@@ -46,6 +46,6 @@ for i in range(niter):
 # Output
 l = X.extractLeafMesh(h)
 print('Leaves:', C.getNCells(l))
-C.convertPyTree2File(l, LOCAL+'refined.cgns')
+#C.convertPyTree2File(l, 'refined.cgns')
 
 test.testT(l, 1)

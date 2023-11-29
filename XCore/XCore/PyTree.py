@@ -144,16 +144,7 @@ def loadAndSplitNGon(fileName):
   arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,solc,soln,bcs])
 
   RES = XCore.xcore.chunk2partNGon(arrays)
-
-  mesh = RES[0]
-  comm_data = RES[1]
-  solc = RES[2]
-  sol = RES[3]
-  bcs = RES[4]
-  cells = RES[5]
-  faces = RES[6]
-  points = RES[7]
-
+  (mesh, comm_data, solc, sol, bcs, cells, faces, points) = RES
   Cmpi.barrier()
 
   # create zone
@@ -180,7 +171,6 @@ def loadAndSplitNGon(fileName):
     I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter', )
     I.newDataArray(name, value=solc[n], parent=cont)
   
-
   for i in range(len(bcs)):
     if len(bcs[i]) != 0:
       cont = I.createUniqueChild(zo, 'ZoneBC', 'ZoneBC_t')
@@ -189,7 +179,6 @@ def loadAndSplitNGon(fileName):
         I.newBC(name=bcNames[i], pointList=bcs[i], family=val, parent=cont)
       else:
         I.newBC(name=bcNames[i], pointList=bcs[i], btype=val, parent=cont)
-
 
   t = C.newPyTree(['Base', zo])
   Cmpi._setProc(t, Cmpi.rank)

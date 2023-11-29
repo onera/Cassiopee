@@ -25,5 +25,5 @@ Cmpi.barrier()
 # 2 - Load
 t, res = X.loadAndSplitNGon(fileName)
 
-Cmpi.convertPyTree2File(t, LOCAL+'out.cgns')
+#Cmpi.convertPyTree2File(t, 'out.cgns')
 if Cmpi.rank == 0: test.testT(t, 1)

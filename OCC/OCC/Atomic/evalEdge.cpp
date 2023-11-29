@@ -35,13 +35,13 @@ void evalEdge__(E_Int npts, E_Float* u, const TopoDS_Edge& E,
   
 #pragma omp parallel
 {
-    gp_Pnt Pt;
+  gp_Pnt Pt;
 #pragma omp for
-    for (E_Int i = 0; i < npts; i++)
-    {
-        C0.D0(u[i], Pt);
-        x[i] = Pt.X(); y[i] = Pt.Y(); z[i] = Pt.Z();
-    }
+  for (E_Int i = 0; i < npts; i++)
+  {
+    C0.D0(u[i], Pt);
+    x[i] = Pt.X(); y[i] = Pt.Y(); z[i] = Pt.Z();
+  }
 }
 }
 
@@ -52,7 +52,7 @@ PyObject* K_OCC::evalEdge(PyObject* self, PyObject* args)
   PyObject* hook;
   PyObject* arrayU;
   E_Int edgeNo; // No de la face 
-  if (!PYPARSETUPLE_(args, OO_ I_, &hook, &arrayU, &edgeNo)) return NULL;  
+  if (!PYPARSETUPLE_(args, OO_ I_, &hook, &arrayU, &edgeNo)) return NULL;
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)

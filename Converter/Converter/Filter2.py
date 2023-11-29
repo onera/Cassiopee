@@ -218,11 +218,21 @@ def computePlistOrPrangeDistribution(node, comm):
   PointList#Size arrays, which store the size of the PL in each direction.
   """
   pr_n = I.getNodeFromName1(node, 'PointRange')
+  pr_n2 = I.getNodeFromName1(node, 'ElementRange')
   pl_n = I.getNodeFromName1(node, 'PointList')
+  print("ici bien sur!!", node[0], flush=True)
+      
   if pr_n:
     # CBX
     #pr_lenght = SIDS.PointRange.n_elem(pr_n)
-    pr_length = pr_n[1][1] - pr_n[1][0] + 1
+    pr_n = pr_n[1].ravel('k')
+    pr_length = pr_n[1] - pr_n[0] + 1
+    createDistributionNode(pr_length, comm, 'Index', node)
+
+  if pr_n2:
+    pr_n2 = pr_n2[1].ravel('k')
+    print(pr_n2, flush=True)
+    pr_length = pr_n2[1] - pr_n2[0] + 1
     createDistributionNode(pr_length, comm, 'Index', node)
 
   if pl_n:
@@ -282,9 +292,10 @@ def plOrPrSize(node):
     #No PL#Size, try to get info from :CGNS#Distribution and suppose size = 1,N
     distri = I.getVal(getDistribution(node, 'Index'))
     return numpy.array([1, distri[2]])
-  index = I.getNodesFromType(ind, 'IndexRange_t')
+  index = I.getNodesFromType(node, 'IndexRange_t')
   for ind in index:
-    return ind
+    # pas necessairement a plat?
+    return ind[1].ravel('k')
     
 def applyDataspaceToArrays(node, node_path, data_space, hdf_filter):
   """
@@ -635,7 +646,6 @@ def createZoneBcFilter(zone, zone_path, hdf_filter):
       bc_path = zone_bc_path+"/"+bc[0]
 
       distrib_bc = I.getVal(getDistribution(bc, 'Index'))
-
       bc_shape = plOrPrSize(bc)
       data_space = createDataArrayFilter(distrib_bc, bc_shape)
       applyDataspaceToPointlist(bc, bc_path, data_space, hdf_filter)
@@ -829,7 +839,7 @@ def cleanDistributionInfo(dist_tree):
         I._rmNodesByName1(zone_sol, ':CGNS#Distribution')
         I._rmNodesByName1(zone_sol, 'PointList#Size')
 
-def saveTreeFromFilter(filename, dist_tree, comm, hdf_filter):
+def saveTreeFromFilter(fileName, dist_tree, comm, hdf_filter):
   hdf_filter_with_dim  = {key: value for (key, value) in hdf_filter.items() if isinstance(value, list)}
   hdf_filter_with_func = {key: value for (key, value) in hdf_filter.items() if not isinstance(value, list)}
 
@@ -841,7 +851,7 @@ def saveTreeFromFilter(filename, dist_tree, comm, hdf_filter):
   saving_dist_tree = I.copyRef(dist_tree)
   cleanDistributionInfo(saving_dist_tree)
 
-  C.convertPyTree2FilePartial(saving_dist_tree, filename, comm, hdf_filter_with_dim, ParallelHDF=True)
+  C.convertPyTree2FilePartial(saving_dist_tree, fileName, comm, hdf_filter_with_dim, ParallelHDF=True)
 
 #========================================================
 # resume
@@ -849,17 +859,17 @@ def saveTreeFromFilter(filename, dist_tree, comm, hdf_filter):
 def loadAsChunks(fileName):
   distTree = loadCollectiveSizeTree(fileName)
   _addDistributionInfo(distTree)
-  hdf_filter = {}
-  createTreeHdfFilter(distTree, hdf_filter)
+  hdfFilter = {}
+  createTreeHdfFilter(distTree, hdfFilter)
   #skip_type_ancestors = [["Zone_t", "FlowSolution#EndOfRun", "Momentum*"],
   #                       ["Zone_t", "ZoneSubRegion_t", "Velocity*"]]
-  loadTreeFromFilter(fileName, distTree, Cmpi.KCOMM, hdf_filter)
+  loadTreeFromFilter(fileName, distTree, Cmpi.KCOMM, hdfFilter)
   Cmpi._setProc(distTree, Cmpi.rank)
   return distTree
 
-BCType_l = set(I.KNOWNBCS)
-
+#========================================================
 def chunk2part(dt):
+  BCType_l = set(I.KNOWNBCS)
   arrays = []
   zones = I.getZones(dt)
 
@@ -892,14 +902,12 @@ def chunk2part(dt):
 
   zonebc = I.getNodeFromType(z, 'ZoneBC_t')
   bcs = []
-  bcNames = []
-  bcTypes = {}
+  bcNames = []; bcTypes = {}
   familyNames = {}
   if zonebc is not None:
     BCs = I.getNodesFromType(zonebc, 'BC_t')
     for bc in BCs:
-      bcname = bc[0]
-      bctype = I.getValue(bc)
+      bcname = bc[0]; bctype = I.getValue(bc)
 
       if bctype == 'FamilySpecified':
         fname = I.getNodeFromType(bc, 'FamilyName_t')
@@ -907,25 +915,14 @@ def chunk2part(dt):
         bcTypes[bcname] = fn
       else:
         bcTypes[bcname] = bctype
-
       bcNames.append(bcname)
-
       plist = I.getNodeFromName1(bc, 'PointList')
       bcs.append(plist[1][0])
 
   arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,solc,soln,bcs])
 
   RES = XCore.xcore.chunk2partNGon(arrays)
-
-  mesh = RES[0]
-  comm_data = RES[1]
-  solc = RES[2]
-  sol = RES[3]
-  bcs = RES[4]
-  cells = RES[5]
-  faces = RES[6]
-  points = RES[7]
-
+  (mesh, comm_data, solc, sol, bcs, cells, faces, points) = RES
   Cmpi.barrier()
 
   # create zone
@@ -941,7 +938,6 @@ def chunk2part(dt):
     I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter', )
     I.newDataArray(name, value=solc[n], parent=cont)
   
-
   for i in range(len(bcs)):
     if len(bcs[i]) != 0:
       cont = I.createUniqueChild(zo, 'ZoneBC', 'ZoneBC_t')
@@ -951,14 +947,24 @@ def chunk2part(dt):
       else:
         I.newBC(name=bcNames[i], pointList=bcs[i], btype=val, parent=cont)
 
-
   t = C.newPyTree(['Base', zo])
   Cmpi._setProc(t, Cmpi.rank)
   I._correctPyTree(t, level=7)
 
   return t, RES
 
+#========================================================
 def loadAndSplit(fileName):
+  """Load and split a file containing one NGON."""
   dt = loadAsChunks(fileName)
   t, RES = chunk2part(dt)
   return t, RES
+
+#========================================================
+def mergeAndSave(distTree, fileName):
+  """Save a distributed tree in one NGON zone."""
+  hdfFilter = {}
+  createTreeHdfFilter(distTree, hdfFilter)
+  
+  saveTreeFromFilter(fileName, distTree, Cmpi.KCOMM, hdfFilter)
+  return None
