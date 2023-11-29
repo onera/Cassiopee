@@ -62,7 +62,6 @@ namespace K_POST
   PyObject* computeGrad(PyObject* self,PyObject* args);
   PyObject* computeGrad2NGon(PyObject* self,PyObject* args);
   PyObject* computeGrad2Struct(PyObject* self,PyObject* args);
-  PyObject* computeHessian(PyObject *self, PyObject *args);
   PyObject* computeGradLSQ(PyObject *self, PyObject *args);
   PyObject* computeNormGrad(PyObject* self,PyObject* args);
   PyObject* computeDiv(PyObject* self,PyObject* args);

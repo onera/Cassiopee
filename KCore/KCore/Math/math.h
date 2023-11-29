@@ -37,11 +37,9 @@ namespace K_MATH
   
   E_Int feq(const E_Float, const E_Float, const E_Float tol = SMALL);
   
-  void sqrmat_dot_vec(const E_Float *, const E_Float *, const E_Int, E_Float *);
-  
-  E_Int BiCGStab(const E_Float *, const E_Float *, const E_Int, E_Float *,
-    const E_Float tol = 1e-6);
-  
+  void sqrmat_dot_vec(const E_Float *, const E_Float *, const E_Int,
+    E_Float *);
+    
   void sym3mat_dot_vec(const E_Float *, const E_Float *, E_Float *);
   
   E_Float sign(const E_Float, const E_Float tol = 1e-15);
@@ -55,9 +53,6 @@ namespace K_MATH
   E_Float sym3mat_second_invariant(const E_Float *);
   
   E_Float sym3mat_third_invariant(const E_Float *);
-  
-  void sym3mat_eigen(const E_Float [6], E_Float L[3], E_Float v1[3],
-    E_Float v2[3], E_Float v3[3], const E_Float tol = SMALL);
 }
 
 #endif

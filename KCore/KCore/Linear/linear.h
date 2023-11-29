@@ -19,10 +19,11 @@
 
 #ifndef _KCORE_LINEAR_H
 #define _KCORE_LINEAR_H
-# include "Def/DefTypes.h"
-# include "Fld/FldArray.h"
-# include "Def/DefFunction.h"
-# include <vector>
+#include "Def/DefTypes.h"
+#include "Fld/FldArray.h"
+#include "Def/DefFunction.h"
+#include <vector>
+#include "Math/math.h"
 
 // Les matrices n x m (n lignes, m colonnes) sont numerotes : i + j*n 
 
@@ -126,7 +127,21 @@ namespace K_LINEAR
      OUT: ok 1: back substitution completed
              0: A is singular  */
   E_Int backSubstitution(E_Int n, E_Float* A, E_Float* b);
-  
 
+
+  /* Solve linear system A.x = b within tolerance tol
+     IN: A: n x n matrix
+     IN: b: n vector
+     IN: n: size of square matrix A
+     OUT: x: n solution vector
+  */
+  E_Int BiCGStab(const E_Float *, const E_Float *, const E_Int, E_Float *, const E_Float tol = 1e-6);
+  
+  /* Eigenvalues and eigenvectors of 3x3 symmetric matrix
+     IN: A: 3x3 symmetric matrix
+     OUT: L: eigenvalues
+     OUT: v1, v2, v3: eigenvectors
+  */
+  void sym3mat_eigen(const E_Float [6], E_Float L[3], E_Float v1[3], E_Float v2[3], E_Float v3[3], const E_Float tol = K_MATH::SMALL);
 }
 #endif

@@ -43,7 +43,6 @@ List of functions
     Post.computeGrad
     Post.computeGrad2
     Post.computeGradLSQ
-    Post.computeHessian
     Post.computeNormGrad
     Post.computeDiv
     Post.computeDiv2
@@ -339,53 +338,26 @@ Modifying/creating variables
 
 ---------------------------------------
 
-.. py:function:: Post.computeGradLSQ(a, varname, dim)
+.. py:function:: Post.computeGradLSQ(a, varNames)
 
-    Compute the gradient (:math:`\nabla x, \nabla y, \nabla z`) at cell centers for a field of name *varname* located at cell centers. Only supports NGon meshes.
+    Compute the gradient (:math:`\nabla x, \nabla y, \nabla z`) at cell centers for a list of fields of names *varNames* located at cell centers. Only supports NGon meshes.
 
     Using the pyTree version:
     ::
 
-        a = P.computeGradLSQ(a, varname, dim)
+        a = P.computeGradLSQ(a, varNames)
 
     :param a: Input data
     :type  a: [pyTree, base, zone, list of zones]
-    :param varname: variable name (must be preceded by 'centers:')
+    :param varname: list of variable names
     :type varname: string
-    :param dim: dimension (2 for pure 2D, 3 for extruded 2D or 3D)
-    :type  dim: integer
-    :rtype:  identical to input
+    :rtype: identical to input
 
     *Example of use:*
 
-    * `Gradient of field F with computeGradLSQ (pyTree) <Examples/Post/computeGradLSQPT.py>`_:
+    * `Gradient of fields f and g defined by functions F and G with computeGradLSQ (pyTree) <Examples/Post/computeGradLSQPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Post/computeGradLSQPT.py
-
----------------------------------------
-
-.. py:function:: Post.computeHessian(a, varname, dim)
-
-    Computes the hessian (:math:`\frac{\partial^{2} f}{\partial x_{i} \partial x_{j}}`) at cell centers for a field of name *varname* located at cell centers. Only supports NGon meshes and 2D geometry.
-
-    Using the pyTree version:
-    ::
-
-        a = P.computeHessian(a, varname, dim)
-
-    :param a: Input data
-    :type  a: [pyTree, base, zone, list of zones]
-    :param varname: variable name (must be preceded by 'centers:')
-    :type varname: string
-    :param dim: dimension (must be 2 for now)
-    :type  dim: integer
-    :rtype:  identical to input
-
-    *Example of use:*
-
-    * `Hessian of field F with computeHessian (pyTree) <Examples/Post/computeHessianPT.py>`_:
-
-    .. literalinclude:: ../build/Examples/Post/computeHessianPT.py
 
 ---------------------------------------
 

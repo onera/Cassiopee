@@ -16,11 +16,11 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "math.h"
+#include "linear.h"
 #include <cstring>
 #include <cassert>
 
-E_Int K_MATH::BiCGStab(const E_Float *A, const E_Float *b, const E_Int n,
+E_Int K_LINEAR::BiCGStab(const E_Float *A, const E_Float *b, const E_Int n,
   E_Float *x, const E_Float tol)
 {
   for (E_Int i = 0; i < n; i++) x[i] = 0.0;
@@ -36,7 +36,7 @@ E_Int K_MATH::BiCGStab(const E_Float *A, const E_Float *b, const E_Int n,
   K_MATH::sqrmat_dot_vec(A, x, n, Ax);
   for (E_Int i = 0; i < n; i++) r[i] = b[i] - Ax[i];
 
-  E_Float err = norm(r, n);
+  E_Float err = K_MATH::norm(r, n);
   if (err < tol) {
     free(r);
     free(Ax);
@@ -100,7 +100,7 @@ E_Int K_MATH::BiCGStab(const E_Float *A, const E_Float *b, const E_Int n,
     }
 
     rho0 = rho;
-    assert(!feq(omega, 0.0));
+    assert(!K_MATH::feq(omega, 0.0));
   }
 
   free(r);

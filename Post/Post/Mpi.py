@@ -17,7 +17,7 @@ def computeGradLSQ(t, fldNames):
     zones = Internal.getZones(t)
     for i in range(len(zones)):
         cc = centers[i]
-        if cc == None: continue
+        if cc is None: continue
         zone = zones[i]
         fsolc = Internal.getNodeFromName(zone, Internal.__FlowSolutionCenters__)
         Internal.createNode('CCx', 'DataArray_t', cc[0], None, fsolc)
@@ -46,6 +46,7 @@ def computeGradLSQ(t, fldNames):
     t = P.computeGradLSQ(t, fldNames, parRun, fcenters, ptlists, rfields)
 
     # TODO(Imad): delete cell centers from tree
+
     return t
 
 #==============================================================================

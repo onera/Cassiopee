@@ -196,7 +196,7 @@ E_Int make_gradient(K_FLD::FldArrayI &cn, E_Int *count_neis, E_Float *b,
     }
 
     // Solve
-    E_Int converged = K_MATH::BiCGStab(&lsqGG[9*i], B, 3, G);
+    E_Int converged = K_LINEAR::BiCGStab(&lsqGG[9*i], B, 3, G);
 
     // Copy
     gx[i] = G[0];

@@ -16,11 +16,11 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "math.h"
+#include "linear.h"
 #include <cmath>
 #include <cstring>
 
-void K_MATH::sym3mat_eigen(const E_Float M[6], E_Float L[3],
+void K_LINEAR::sym3mat_eigen(const E_Float M[6], E_Float L[3],
   E_Float v1[3], E_Float v2[3], E_Float v3[3], const E_Float tol)
 {
   // Init

@@ -113,6 +113,8 @@ cpp_srcs = ['KCore/isNamePresent.cpp',
             'KCore/Linear/inv.cpp',
             'KCore/Linear/eigen.cpp',
             'KCore/Linear/cholesky.cpp',
+            'KCore/Linear/BiCGStab.cpp',
+            'KCore/Linear/Eigen.cpp',
             'KCore/Search/OctreeNode.cpp',
             'KCore/Noise/random.cpp',
             'KCore/Noise/perlin.cpp',
@@ -133,10 +135,7 @@ cpp_srcs = ['KCore/isNamePresent.cpp',
             'KCore/Logger/log_to_std_error.cpp',
             'KCore/Logger/log_to_file.cpp',
             'KCore/Logger/log_from_distributed_file.cpp',
-
-            'KCore/Math/math.cpp',
-            'KCore/Math/eigen.cpp',
-            'KCore/Math/BiCGStab.cpp'
+            'KCore/Math/math.cpp'
             ]
 if PNG:
     cpp_srcs += [       

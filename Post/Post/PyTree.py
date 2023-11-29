@@ -1406,13 +1406,13 @@ def _computeGradLSQ(t, fldNames, parRun=0, fcenters=None, ptlists=None,
         arr = C.getFields(Internal.__GridCoordinates__, zone, api=3)[0]
         if arr == None: continue
 
-        fsolc = Internal.getNodeFromName(zone,
+        fsolc = Internal.getNodeFromName1(zone,
             Internal.__FlowSolutionCenters__)
         if fsolc == None: raise ValueError("FlowSolutionCenters not found.")
 
         flds = []
         for fldName in fldNames:
-            fsol = Internal.getNodeFromName2(fsolc, fldName)
+            fsol = Internal.getNodeFromName1(fsolc, fldName)
             if fsol == None:
                 raise ValueError('Field ' + fldName + ' not found.')
             flds.append(fsol[1])
@@ -1426,9 +1426,9 @@ def _computeGradLSQ(t, fldNames, parRun=0, fcenters=None, ptlists=None,
               None, rflds)
         else:
             rflds = rfields[i]
-            cx = Internal.getNodeFromName(fsolc, 'CCx')[1]
-            cy = Internal.getNodeFromName(fsolc, 'CCy')[1]
-            cz = Internal.getNodeFromName(fsolc, 'CCz')[1]
+            cx = Internal.getNodeFromName1(fsolc, 'CCx')[1]
+            cy = Internal.getNodeFromName1(fsolc, 'CCy')[1]
+            cz = Internal.getNodeFromName1(fsolc, 'CCz')[1]
             Grads = post.computeGradLSQ(arr, flds, pe, cx, cy, cz, fcenters[0],
                 ptlists, rflds)
         

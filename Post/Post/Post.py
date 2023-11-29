@@ -12,7 +12,7 @@ except: pass
 
 ## [AJ - KEEP FOR NOW - FROM MASTER]
 __all__ = ['coarsen', 'computeCurl', 'computeDiff', 'computeExtraVariable',
-    'computeGrad', 'computeGrad2', 'computeGradLSQ', 'computeHessian',
+    'computeGrad', 'computeGrad2', 'computeGradLSQ',
     'computeDiv', 'computeDiv2', 'computeIndicatorField',
     'computeIndicatorFieldForBounds', 'computeIndicatorValue',
     'computeNormCurl', 'computeNormGrad', 'computeVariables',
@@ -431,12 +431,8 @@ def computeNormGrad(array, varname):
         return post.computeNormGrad(array, varname)
 
 def computeGradLSQ(array, arrayc):
-    """Compute gradient by least mean square."""
+    """Compute gradient using least-squares method."""
     return post.computeGradLSQ(array, arrayc)
-
-def computeHessian(array, arrayc, dim):
-    """Compute hessian of array."""
-    return post.computeHessian(array, arrayc, dim)
 
 def computeDiv(array, vector):
     """Compute the divergence of the given vector, whose components are defined in array
