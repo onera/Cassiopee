@@ -50,17 +50,17 @@ def extrudeLayer__(i, nlayers, planarity, eps, dplus, dmoins):
     else: # other
         j = Converter.convertArray2Tetra(i)
         for k in range(nlayers+1): dplus[1][0,k] = k*epsmax; dmoins[1][0,k] =-k*epsmax
-        j = Transform.reorder(j, (1.,))
+        j = Transform.reorder(j, (1,))
         b = Generator.addNormalLayers(j, dplus)
-        j = Transform.reorder(j, (-1.,))
+        j = Transform.reorder(j, (-1,))
         c = Generator.addNormalLayers(j, dplus)
         p = Transform.join(b, c); p = Generator.close(p)
         p = Converter.convertArray2Tetra(p)    
         
     if p[3] == 'TRI': # une BAR au depart
-        p = Transform.reorder(p, (1.,))
+        p = Transform.reorder(p, (1,))
         b = Generator.addNormalLayers(p, dplus)
-        p = Transform.reorder(p, (-1.,))
+        p = Transform.reorder(p, (-1,))
         c = Generator.addNormalLayers(p, dplus)    
         p = Transform.join(b, c); p = Generator.close(p)
         p = Converter.convertArray2Tetra(p)
