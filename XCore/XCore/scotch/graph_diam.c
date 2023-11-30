@@ -1,4 +1,4 @@
-/* Copyright 2017,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2017,2018,2019,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,15 +40,17 @@
 /**                routines.                               **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 17 jan 2017     **/
-/**                                 to     22 feb 2018     **/
+/**                                 to   : 22 feb 2018     **/
+/**                # Version 6.1  : from : 31 mar 2021     **/
+/**                                 to   : 31 mar 2021     **/
+/**                # Version 7.0  : from : 12 sep 2019     **/
+/**                                 to   : 19 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The defines and includes.
 */
-
-#define GRAPH
 
 #include "module.h"
 #include "common.h"
@@ -93,7 +95,8 @@ const FiboNode *            nod1ptr)
 
 Gnum
 graphDiamPV (
-const Graph * const         grafptr)
+const Graph * const         grafptr,
+Context * restrict const    contptr)
 {
   FiboHeap                    fibodat;
   GraphDiamVertex * restrict  vexxtax;            /* Extended vertex array */
@@ -108,6 +111,9 @@ const Graph * const         grafptr)
   const Gnum * restrict const edgetax = grafptr->edgetax;
   const Gnum * restrict const edlotax = grafptr->edlotax;
 
+  if (grafptr->vertnbr <= 0)                      /* Diameter of empty graphs is zero */
+    return (0);
+
   if ((vexxtax = (GraphDiamVertex *) memAlloc (grafptr->vertnbr * sizeof (GraphDiamVertex))) == NULL) {
     errorPrint ("graphWdiam: out of memory");
     return     (-1);
@@ -119,7 +125,7 @@ const Graph * const         grafptr)
   }
   vexxtax -= grafptr->baseval;
 
-  rootnum = intRandVal (grafptr->vertnbr) + grafptr->baseval;
+  rootnum = contextIntRandVal (contptr, grafptr->vertnbr) + grafptr->baseval;
   diammax = 0;                                    /* Ensure at least one pass */
 
   do {

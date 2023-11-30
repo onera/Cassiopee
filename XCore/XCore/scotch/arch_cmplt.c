@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2010,2011,2015 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2010,2011,2015,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -50,27 +50,27 @@
 /**                # Version 2.1  : from : 07 apr 1995     **/
 /**                                 to   : 29 jun 1995     **/
 /**                # Version 3.0  : from : 01 jul 1995     **/
-/**                                 to     08 sep 1995     **/
+/**                                 to   : 08 sep 1995     **/
 /**                # Version 3.1  : from : 11 jun 1996     **/
-/**                                 to     11 jun 1996     **/
+/**                                 to   : 11 jun 1996     **/
 /**                # Version 3.2  : from : 21 sep 1996     **/
-/**                                 to     13 may 1998     **/
+/**                                 to   : 13 may 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 4.0  : from : 09 jan 2004     **/
-/**                                 to     10 mar 2005     **/
+/**                                 to   : 10 mar 2005     **/
 /**                # Version 5.1  : from : 19 jan 2008     **/
-/**                                 to     11 aug 2010     **/
+/**                                 to   : 11 aug 2010     **/
 /**                # Version 6.0  : from : 14 feb 2011     **/
-/**                                 to     02 may 2015     **/
+/**                                 to   : 02 may 2015     **/
+/**                # Version 7.0  : from : 17 jan 2023     **/
+/**                                 to   : 17 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The defines and includes.
 */
-
-#define ARCH_CMPLT
 
 #include "module.h"
 #include "common.h"
@@ -282,7 +282,7 @@ const ArchDomNum            domnnum)
 ** elements in the complete domain.
 */
 
-Anum 
+Anum
 archCmpltDomSize (
 const ArchCmplt * const     archptr,
 const ArchCmpltDom * const  domnptr)
@@ -295,7 +295,7 @@ const ArchCmpltDom * const  domnptr)
 ** subdomains.
 */
 
-Anum 
+Anum
 archCmpltDomDist (
 const ArchCmplt * const     archptr,
 const ArchCmpltDom * const  dom0ptr,

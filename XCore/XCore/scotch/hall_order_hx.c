@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2008,2020,2021,2023 Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -44,14 +44,16 @@
 /**                                 to   : 28 dec 2004     **/
 /**                # Version 5.0  : from : 25 jul 2007     **/
 /**                                 to   : 29 may 2008     **/
+/**                # Version 6.1  : from : 18 jan 2020     **/
+/**                                 to   : 18 jan 2020     **/
+/**                # Version 7.0  : from : 26 apr 2021     **/
+/**                                 to   : 10 aug 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The defines and includes.
 */
-
-#define HALL_ORDER_HX
 
 #include "module.h"
 #include "common.h"
@@ -111,19 +113,19 @@ Order * restrict const      ordeptr,              /*+ Ordering to update        
 OrderCblk * restrict const  cblkptr,              /*+ Multiple column-block of ordering               +*/
 Gnum * restrict const       nvartax,
 Gnum * restrict const       sizetax,
-Gnum * restrict const       fathtax,              /*+ Was petab +*/
+Gnum * restrict const       cwgttax,              /*+ Array of column weights (may be NULL)           +*/
+Gnum * restrict const       fathtax,              /*+ Was petab                                       +*/
 Gnum * restrict const       frsttax,
 Gnum * restrict const       nexttax,
 Gnum * restrict const       secntax,
-Gnum * restrict const       desctax,              /*+ Was iwtab                            +*/
-Gnum * restrict const       permtax,              /*+ Based direct permutation array       +*/
-Gnum * restrict const       peritab,              /*+ Un-based inverse permutation array   +*/
-Gnum * restrict const       leaftab,              /*+ Un-based array for storage of leaves +*/
+Gnum * restrict const       desctax,              /*+ Was iwtab                                       +*/
+Gnum * restrict const       permtax,              /*+ Based direct permutation array                  +*/
+Gnum * restrict const       peritab,              /*+ Un-based inverse permutation array              +*/
+Gnum * restrict const       leaftab,              /*+ Un-based array for storage of leaves            +*/
 const Gnum                  colmin,
 const Gnum                  colmax,
 const float                 fillrat)
 {
-  Gnum                vnohnnd;
   Gnum                cblknbr;
   Gnum                cblknum;
   Gnum                leafnbr;
@@ -132,33 +134,37 @@ const float                 fillrat)
   Gnum                ordetmp;
   Gnum                i, j, k;
 
+  const Gnum                vnohnnd = vnohnbr + baseval;
+
   memSet (desctax + baseval,  0, vertnbr * sizeof (Gnum));
   memSet (sizetax + baseval,  0, vertnbr * sizeof (Gnum));
   memSet (frsttax + baseval, ~0, vertnbr * sizeof (Gnum));
   memSet (secntax + baseval, ~0, vertnbr * sizeof (Gnum));
 
-  vnohnnd = vnohnbr + baseval;
-
 #ifdef SCOTCH_DEBUG_ORDER2
   for (i = baseval; i < vnohnnd; i ++) {
     if ((fathtax[i] > 0) || (fathtax[i] < - vertnbr)) {
       errorPrint ("hallOrderHxBuild: elimination tree out of bounds");
-      return     (1);
+      return (1);
     }
   }
 #endif /* SCOTCH_DEBUG_ORDER2 */
-  
+
   for (i = baseval, cblknbr = 0, rootnum = ~0;    /* Assume no root found yet */
        i < vnohnnd; i ++) {
-    if (nvartax[i] != 0) {                        /* If principal variable         */
-      cblknbr ++;                                 /* One more column block         */
-      sizetax[i] ++;                              /* One more column               */
-      if ((fathtax[i] < 0) &&                     /* If not root of tree           */
-          (fathtax[i] > - (vnohnbr + 1))) {       /* And father not in halo        */
-        fathtax[i]          = baseval - (fathtax[i] + 1); /* Re-base father number */
-        nexttax[i]          = frsttax[fathtax[i]]; /* Link vertex to tree          */
-        frsttax[fathtax[i]] = i;                  /* Variable is first son         */
-        desctax[fathtax[i]] ++;                   /* Father has one more son       */
+    if (nvartax[i] != 0) {                        /* If principal variable */
+      Gnum                fathval;                /* Index of father       */
+
+      cblknbr ++;                                 /* One more column block */
+      sizetax[i] ++;                              /* One more column       */
+      fathval = fathtax[i];
+      if ((fathval < 0) &&                        /* If not root of tree    */
+          (fathval > - (vnohnbr + 1))) {          /* And father not in halo */
+        fathval = baseval - (fathval + 1);        /* Re-base father number  */
+        fathtax[i] = fathval;
+        nexttax[i] = frsttax[fathval];            /* Link vertex to tree     */
+        frsttax[fathval] = i;                     /* Variable is first son   */
+        desctax[fathval] ++;                      /* Father has one more son */
       }
       else {
         fathtax[i] = ~0;                          /* Father is (pseudo-)root */
@@ -166,25 +172,33 @@ const float                 fillrat)
       }
     }
     else {                                        /* If secondary variable */
-      fathtax[i] = baseval - (fathtax[i] + 1);    /* Re-base father number */
-      if (fathtax[i] >= vnohnnd) {                /* If father in halo     */
-        if (frsttax[fathtax[i]] == ~0) {          /* If first such vertex  */
+      Gnum                fathval;                /* Index of father       */
+      Gnum                cwgtval;                /* Weight of column      */
+
+      cwgtval = (cwgttax != NULL) ? cwgttax[i] : 1;
+      fathval = baseval - (fathtax[i] + 1);       /* Re-base father number */
+      fathtax[i] = fathval;
+      if (fathval >= vnohnnd) {                   /* If father in halo     */
+        if (frsttax[fathval] == ~0) {             /* If first such vertex  */
           cblknbr ++;                             /* One more column block */
           sizetax[i] = 1;                         /* One more column       */
-          nvartax[i] = 1;                         /* Make it principal     */
-          frsttax[fathtax[i]] = i;                /* Record it as root     */
+          nvartax[i] = cwgtval;                   /* Make it principal     */
+          frsttax[fathval] = i;                   /* Record it as root     */
           fathtax[i] = ~0;                        /* Make it (pseudo-)root */
           rootnum    = i;                         /* Record (last) root    */
           continue;                               /* Skip to next vertex   */
         }
         else {
-          fathtax[i] = frsttax[fathtax[i]];       /* Get first such vertex as root   */
-          nvartax[fathtax[i]] ++;                 /* Record us as secondary variable */
+          fathval = frsttax[fathval];             /* Get first such vertex as root */
+          fathtax[i] = fathval;
+          nvartax[fathval] += cwgtval;            /* Record us as secondary variable */
         }
       }
-      sizetax[fathtax[i]] ++;                     /* One more column         */
-      secntax[i] = secntax[fathtax[i]];           /* Link secondary variable */
-      secntax[fathtax[i]] = i;
+      sizetax[fathval] ++;                        /* One more column */
+      if (cwgttax != NULL)
+        cwgttax[fathval] += cwgtval;
+      secntax[i] = secntax[fathval];              /* Link secondary variable */
+      secntax[fathval] = i;
     }
   }
 
@@ -197,23 +211,30 @@ const float                 fillrat)
   }
 
   for (leafnum = 0; leafnum < leafnbr; leafnum ++) { /* As long as candidate leaves exist */
+    Gnum                cwgtvali;
+    Gnum                cwgtvalj;
+
     i = leaftab[leafnum];
     j = fathtax[i];
+    cwgtvali = (cwgttax != NULL) ? cwgttax[i] : sizetax[i];
+    cwgtvalj = (cwgttax != NULL) ? cwgttax[j] : sizetax[j];
 
-    if ((sizetax[i] + sizetax[j]) <= colmax) {    /* If will not be too large  */
-      if ((sizetax[i] < colmin) ||                /* If column block too small */
-          (((float) (2 * sizetax[i]) * (float) (nvartax[j] - nvartax[i] + sizetax[i])) <
+    if ((cwgtvali + cwgtvalj) <= colmax) {        /* If will not be too large  */
+      if ((cwgtvali < colmin) ||                  /* If column block too small */
+          (((float) (2 * cwgtvali) * (float) (nvartax[j] - nvartax[i] + cwgtvali)) <
            (float) nvartax[j] * (float) nvartax[j] * fillrat)) {
-        nvartax[j] += sizetax[i];
-        sizetax[j] += sizetax[i];
         nvartax[i]  = 0;
+        nvartax[j] += cwgtvali;
+        sizetax[j] += sizetax[i];
+        if (cwgttax != NULL)
+          cwgttax[j] += cwgtvali;
         if (secntax[i] == ~0)                     /* If node had no secondary variables   */
-          secntax[i] = secntax[j];                /* Make it take the ones of its father  */
+          secntax[i] = secntax[j];                /* Make it take those of its father     */
         else if (secntax[j] != ~0) {              /* Else if there is something to append */
           for (k = secntax[i]; secntax[k] != ~0; k = secntax[k]) ; /* Find last node      */
           secntax[k] = secntax[j];                /* Append father list to node list      */
         }
-        secntax[j] = i;                           /* Now he is a secondary variable of it */
+        secntax[j] = i;                           /* Now it is a secondary variable of it */
         if (frsttax[j] == i) {                    /* If node is first son of father       */
           if (frsttax[i] == ~0)                   /* If node has no sons                  */
             frsttax[j] = nexttax[i];              /* First son is now next node           */
@@ -258,7 +279,7 @@ const float                 fillrat)
 #ifdef SCOTCH_DEBUG_ORDER2
   if (ordetmp != vnohnbr) {
     errorPrint ("hallOrderHxBuild: incomplete elimination tree");
-    return     (1);
+    return (1);
   }
 
   memSet (permtax + baseval, ~0, vnohnbr * sizeof (Gnum));
@@ -266,18 +287,18 @@ const float                 fillrat)
   for (i = 0; i < vnohnbr; i ++) {
     if ((peritab[i] < baseval) || (peritab[i] >= vnohnnd)) {
       errorPrint ("hallOrderHxBuild: permutation out of bounds");
-      return     (1);
-    } 
+      return (1);
+    }
     if (permtax[peritab[i]] != ~0) {
       errorPrint ("hallOrderHxBuild: duplicate permutation index");
-      return     (1);
+      return (1);
     }
     permtax[peritab[i]] = i;
   }
   for (i = baseval; i < vnohnnd; i ++) {
     if (permtax[i] == ~0) {
       errorPrint ("hallOrderHxBuild: unused permutation index");
-      return     (1);
+      return (1);
     }
   }
 #endif /* SCOTCH_DEBUG_ORDER2 */
@@ -285,16 +306,23 @@ const float                 fillrat)
   if (cblknbr != 1) {                             /* If more than one column block in the end, create subtree */
     if ((cblkptr->cblktab = (OrderCblk *) memAlloc (cblknbr * sizeof (OrderCblk))) == NULL) {
       errorPrint ("hallOrderHxBuild: out of memory");
-      return     (1);
+      return (1);
     }
-    cblkptr->cblknbr  = cblknbr;
+    cblkptr->typeval = ORDERCBLKSEQU;             /* Node is a sequence of blocks */
+    cblkptr->cblknbr = cblknbr;
+#ifdef SCOTCH_PTHREAD
+    pthread_mutex_lock (&ordeptr->mutedat);
+#endif /* SCOTCH_PTHREAD */
     ordeptr->cblknbr += cblknbr - 1;              /* These more column blocks created */
     ordeptr->treenbr += cblknbr;                  /* These more tree nodes created    */
+#ifdef SCOTCH_PTHREAD
+    pthread_mutex_unlock (&ordeptr->mutedat);
+#endif /* SCOTCH_PTHREAD */
 
     for (i = 0, cblknum = 0; i < vnohnbr; i ++) {
       if (nvartax[peritab[i]] == 0)               /* If secondary variable      */
         continue;                                 /* Skip to next vertex        */
-      cblkptr->cblktab[cblknum].typeval = ORDERCBLKOTHR; /* Build column blocks */
+      cblkptr->cblktab[cblknum].typeval = ORDERCBLKLEAF; /* Build column blocks */
       cblkptr->cblktab[cblknum].vnodnbr = sizetax[peritab[i]];
       cblkptr->cblktab[cblknum].cblknbr = 0;
       cblkptr->cblktab[cblknum].cblktab = NULL;

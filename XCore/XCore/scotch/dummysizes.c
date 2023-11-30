@@ -1,4 +1,4 @@
-/* Copyright 2004,2007-2010,2012,2014,2018 Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007-2010,2012,2014,2018,2019,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -52,15 +52,17 @@
 /**                # Version 5.1  : from : 16 jun 2008     **/
 /**                                 to   : 15 aug 2010     **/
 /**                # Version 6.0  : from : 01 dec 2012     **/
-/**                                 to   : 10 jul 2018     **/
+/**                                 to   : 26 oct 2019     **/
+/**                # Version 6.1  : from : 09 feb 2021     **/
+/**                                 to   : 22 jun 2021     **/
+/**                # Version 7.0  : from : 25 aug 2019     **/
+/**                                 to   : 19 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The defines and includes.
 */
-
-#define DUMMYSIZES
 
 #define CHARMAX                     2048          /* Maximum line size */
 
@@ -85,7 +87,9 @@
                                     }
 #define subsSuffix(a)               subsFill (a, subsSuffix2 (a, suffptr))
 
+#ifdef SCOTCH_NAME_SUFFIX
 #include <regex.h>
+#endif /* SCOTCH_NAME_SUFFIX */
 #include "module.h"
 #include "common.h"
 #include "parser.h"
@@ -133,6 +137,18 @@ int                         subsval)
 }
 
 char *
+subsSizeByte (
+int                         subsval)
+{
+  char *              subsptr;
+
+  subsptr = malloc (16 * sizeof (char));
+  sprintf (subsptr, "%d", (int) subsval);
+
+  return (subsptr);
+}
+
+char *
 subsSuffix2 (
 char *                      nameptr,
 char *                      suffptr)
@@ -156,8 +172,10 @@ main (
 int                         argc,
 char *                      argv[])
 {
+#ifdef SCOTCH_NAME_SUFFIX
   regex_t             regedat;                    /* Regular expression for function names */
   regmatch_t          matcdat;                    /* Matching structure                    */
+#endif /* SCOTCH_NAME_SUFFIX */
   char                chartab[CHARMAX];
   char                chartmp[CHARMAX];
   char *              substab[SUBSMAX][2];        /* Substitution array                    */
@@ -181,7 +199,7 @@ char *                      argv[])
         C_fileTab[C_fileNum ++].nameptr = argv[i];
       else {
         fprintf (stderr, "dummysizes: ERROR: main: too many file names given");
-        exit    (1);
+        exit    (EXIT_FAILURE);
       }
     }
     else {                                        /* If found an option name */
@@ -189,7 +207,7 @@ char *                      argv[])
         case 'H' :                                /* Give the usage message */
         case 'h' :
           printf ("Usage is:\ndummysizes [<input pattern header file> [<output header file>]]\n");
-          exit       (0);
+          exit   (EXIT_SUCCESS);
         case 'S' :
         case 's' :
           suffptr = &argv[i][2];
@@ -201,7 +219,7 @@ char *                      argv[])
           return  (0);
         default :
           fprintf (stderr, "dummysizes: ERROR: main: unprocessed option (\"%s\")", argv[i]);
-          exit    (1);
+          exit    (EXIT_FAILURE);
       }
     }
   }
@@ -211,7 +229,7 @@ char *                      argv[])
         (C_fileTab[i].nameptr[1] != '\0')) {
       if ((C_fileTab[i].fileptr = fopen (C_fileTab[i].nameptr, ((C_fileTab[i].flagval & FILEMODE) == FILEMODER) ? "r" : "w")) == NULL) { /* Open the file */
           fprintf (stderr, "dummysizes: ERROR: main: cannot open file (%d)", i);
-          exit    (1);
+          exit    (EXIT_FAILURE);
       }
     }
   }
@@ -233,8 +251,12 @@ char *                      argv[])
   subsFill ("DUMMYVERSION", EXPAND (SCOTCH_VERSION_NUM));
   subsFill ("DUMMYRELEASE", EXPAND (SCOTCH_RELEASE_NUM));
   subsFill ("DUMMYPATCHLEVEL", EXPAND (SCOTCH_PATCHLEVEL_NUM));
+  subsFill ("DUMMYSIZEBYTEIDX", subsSizeByte (sizeof (IDX)));
+  subsFill ("DUMMYSIZEBYTENUM", subsSizeByte (sizeof (INT)));
+  subsFill ("DUMMYSIZEARCHDOM", subsSize (sizeof (ArchDom)));
   subsFill ("DUMMYSIZEARCH", subsSize (sizeof (Arch)));
   subsFill ("DUMMYSIZEGEOM", subsSize (sizeof (Geom)));
+  subsFill ("DUMMYSIZECONTEXT", subsSize (sizeof (Context)));
   subsFill ("DUMMYSIZEGRAPH", subsSize (sizeof (Graph)));
   subsFill ("DUMMYSIZEMESH",  subsSize (sizeof (Mesh)));
   subsFill ("DUMMYSIZEMAP", subsSize (sizeof (LibMapping)));
@@ -288,10 +310,12 @@ char *                      argv[])
     subsSuffix ("SCOTCH_Ordering");
     subsSuffix ("SCOTCH_Strat");
 #endif /* SCOTCH_PTSCOTCH */
+#ifdef SCOTCH_NAME_SUFFIX
     if (regcomp (&regedat, " SCOTCH_[a-z][0-9a-zA-Z_]*", 0) != 0) {
       fprintf (stderr, "dummysizes: ERROR: cannot compile regular expression\n");
-      exit    (1);
+      exit    (EXIT_FAILURE);
     }
+#endif /* SCOTCH_NAME_SUFFIX */
   }
 
   while (fgets (chartab, CHARMAX, C_filepntrhedinp) != NULL) { /* Loop on file lines */
@@ -301,7 +325,7 @@ char *                      argv[])
     if (((charnbr = strlen (chartab)) >= (CHARMAX - 1)) && /* If line read is at least as long as maximum size     */
         (chartab[CHARMAX - 1] != '\n')) {         /* And last character is not a newline, that is, some is missing */
       fprintf (stderr, "dummysizes: ERROR: line too long\n");
-      exit    (1);
+      exit    (EXIT_FAILURE);
     }
 
     for (subsnum = 0; subsnum < subsnbr; subsnum ++) { /* Perform substitutions */
@@ -322,18 +346,22 @@ char *                      argv[])
         charptr += strlen (substab[subsnum][1]);  /* Restart search from end of substituted token                    */
       }
     }
+#ifdef SCOTCH_NAME_SUFFIX
     if (suffptr[0] != '\0') {                     /* If suffix provided                     */
       if (regexec (&regedat, chartab, 1, &matcdat, 0) == 0) { /* If matched a function name */
         strcpy (chartmp, chartab + matcdat.rm_eo); /* Save remaining of line                */
         sprintf (chartab + matcdat.rm_eo, "%s%s", suffptr, chartmp); /* Add suffix to name  */
       }
     }
+#endif /* SCOTCH_NAME_SUFFIX */
 
     fputs (chartab, C_filepntrhedout);            /* Output possibly updated line */
   }
 
+#ifdef SCOTCH_NAME_SUFFIX
   if (suffptr[0] != '\0')                         /* If suffix provided      */
     regfree (&regedat);                           /* Free regular expression */
+#endif /* SCOTCH_NAME_SUFFIX */
 
 #ifdef SCOTCH_DEBUG_MAIN1
   for (i = 0; i < C_FILENBR; i ++) {              /* For all file names     */
@@ -344,5 +372,5 @@ char *                      argv[])
   }
 #endif /* SCOTCH_DEBUG_MAIN1 */
 
-  exit (0);
+  exit (EXIT_SUCCESS);
 }

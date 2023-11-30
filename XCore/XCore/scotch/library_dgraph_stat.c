@@ -1,4 +1,4 @@
-/* Copyright 2007,2008,2012,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2008,2012,2014,2018,2019,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,9 +40,13 @@
 /**                libSCOTCH library.                      **/
 /**                                                        **/
 /**   DATES      : # Version 5.0  : from : 23 jun 2007     **/
-/**                                 to     03 apr 2008     **/
+/**                                 to   : 03 apr 2008     **/
 /**                # Version 6.0  : from : 29 nov 2012     **/
-/**                                 to     21 may 2018     **/
+/**                                 to   : 21 may 2018     **/
+/**                # Version 6.1  : from : 05 apr 2021     **/
+/**                                 to   : 05 apr 2021     **/
+/**                # Version 7.0  : from : 20 sep 2019     **/
+/**                                 to   : 21 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -50,10 +54,9 @@
 **  The defines and includes.
 */
 
-#define LIBRARY
-
 #include "module.h"
 #include "common.h"
+#include "context.h"
 #include "dgraph.h"
 #include "library_dgraph_stat.h"
 #include "ptscotch.h"
@@ -147,7 +150,7 @@ double *                    edlodltptr)
   double              edlolocdlt;
   int                 o;
 
-  srcgrafptr = (Dgraph *) grafptr;
+  srcgrafptr = (Dgraph *) CONTEXTOBJECT (grafptr);
 
   velolocdlt = 0.0L;
   if (srcgrafptr->vertglbnbr > 0) {
@@ -268,22 +271,22 @@ double *                    edlodltptr)
   }
   srclstadat.edlodlt = edlolocdlt;
 
-#if ((defined COMMON_MPI_VERSION) && (COMMON_MPI_VERSION <= 100))
-  MPI_Address (&srclstadat.velomin, &srcdisptab[0]);
-  MPI_Address (&srclstadat.velodlt, &srcdisptab[1]);
-#else /* ((defined COMMON_MPI_VERSION) && (COMMON_MPI_VERSION <= 100)) */
+#if ((defined MPI_VERSION) && (MPI_VERSION >= 3))
   MPI_Get_address (&srclstadat.velomin, &srcdisptab[0]);
   MPI_Get_address (&srclstadat.velodlt, &srcdisptab[1]);
-#endif /* ((defined COMMON_MPI_VERSION) && (COMMON_MPI_VERSION <= 100)) */
+#else /* ((defined MPI_VERSION) && (MPI_VERSION >= 3)) */
+  MPI_Address (&srclstadat.velomin, &srcdisptab[0]);
+  MPI_Address (&srclstadat.velodlt, &srcdisptab[1]);
+#endif /* ((defined MPI_VERSION) && (MPI_VERSION >= 3)) */
   srcdisptab[1] -= srcdisptab[0];
   srcdisptab[0]  = 0;
 
   o = 1;                                          /* Assume something will go wrong */
-#if ((defined COMMON_MPI_VERSION) && (COMMON_MPI_VERSION <= 100))
-  if ((MPI_Type_struct (2, dgraphstatblentab, srcdisptab, dgraphstattypetab, &srctypedat) == MPI_SUCCESS) &&
-#else /* ((defined COMMON_MPI_VERSION) && (COMMON_MPI_VERSION <= 100)) */
+#if ((defined MPI_VERSION) && (MPI_VERSION >= 3))
   if ((MPI_Type_create_struct (2, dgraphstatblentab, srcdisptab, dgraphstattypetab, &srctypedat) == MPI_SUCCESS) &&
-#endif /* ((defined COMMON_MPI_VERSION) && (COMMON_MPI_VERSION <= 100)) */
+#else /* ((defined MPI_VERSION) && (MPI_VERSION >= 3)) */
+  if ((MPI_Type_struct (2, dgraphstatblentab, srcdisptab, dgraphstattypetab, &srctypedat) == MPI_SUCCESS) &&
+#endif /* ((defined MPI_VERSION) && (MPI_VERSION >= 3)) */
       (MPI_Type_commit (&srctypedat) == MPI_SUCCESS)) {
     if (MPI_Op_create ((MPI_User_function *) dgraphStatReduceAll, 0, &srcoperdat) == MPI_SUCCESS) {
       if (MPI_Allreduce (&srclstadat, &srcgstadat, 1, srctypedat, srcoperdat, srcgrafptr->proccomm) == MPI_SUCCESS)

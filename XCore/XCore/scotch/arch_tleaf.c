@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010-2012,2015,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010-2012,2015,2018,2019,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -50,21 +50,23 @@
 /**                # Version 2.1  : from : 07 apr 1995     **/
 /**                                 to   : 29 jun 1995     **/
 /**                # Version 3.0  : from : 01 jul 1995     **/
-/**                                 to     08 sep 1995     **/
+/**                                 to   : 08 sep 1995     **/
 /**                # Version 3.1  : from : 20 jul 1996     **/
-/**                                 to     20 jul 1996     **/
+/**                                 to   : 20 jul 1996     **/
 /**                # Version 3.2  : from : 10 oct 1996     **/
-/**                                 to     14 may 1998     **/
+/**                                 to   : 14 may 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 3.4  : from : 07 jun 2001     **/
-/**                                 to     07 jun 2001     **/
+/**                                 to   : 07 jun 2001     **/
 /**                # Version 4.0  : from : 10 dec 2003     **/
-/**                                 to     10 mar 2005     **/
+/**                                 to   : 10 mar 2005     **/
 /**                # Version 5.1  : from : 21 jan 2008     **/
-/**                                 to     11 aug 2010     **/
+/**                                 to   : 11 aug 2010     **/
 /**                # Version 6.0  : from : 14 feb 2011     **/
-/**                                 to     31 may 2018     **/
+/**                                 to   : 03 may 2019     **/
+/**                # Version 7.0  : from : 17 jan 2023     **/
+/**                                 to   : 17 jan 2023     **/
 /**                                                        **/
 /**   NOTES      : # The ltleaf architecture was proposed  **/
 /**                  by Emmanuel Jeannot and Francois      **/
@@ -75,8 +77,6 @@
 /*
 **  The defines and includes.
 */
-
-#define ARCH_TLEAF
 
 #include "module.h"
 #include "common.h"
@@ -413,7 +413,7 @@ const ArchDomNum            domnnum)
 ** elements in the subtree domain.
 */
 
-Anum 
+Anum
 archTleafDomSize (
 const ArchTleaf * const     archptr,
 const ArchTleafDom * const  domnptr)
@@ -433,7 +433,7 @@ const ArchTleafDom * const  domnptr)
 ** subdomains.
 */
 
-Anum 
+Anum
 archTleafDomDist (
 const ArchTleaf * const     archptr,
 const ArchTleafDom * const  dom0ptr,
@@ -447,6 +447,7 @@ const ArchTleafDom * const  dom1ptr)
   Anum                idx1nbr;
   Anum                distval;
 
+  const Anum * const  linktab = archptr->linktab;
   const Anum * const  sizetab = archptr->sizetab;
 
   lev0num = dom0ptr->levlnum;
@@ -455,13 +456,15 @@ const ArchTleafDom * const  dom1ptr)
   idx1min = dom1ptr->indxmin;
   idx0nbr = dom0ptr->indxnbr;
   idx1nbr = dom1ptr->indxnbr;
+  distval = 0;
 
-  if (lev0num != lev1num) {
+  if (lev0num != lev1num) {                       /* Get enclosing domain level */
     if (lev0num > lev1num) {
       idx0nbr = 1;
       do {
         lev0num --;
         idx0min /= sizetab[lev0num];
+        distval += linktab[lev0num];
       } while (lev0num > lev1num);
     }
     else {
@@ -469,14 +472,34 @@ const ArchTleafDom * const  dom1ptr)
       do {
         lev1num --;
         idx1min /= sizetab[lev1num];
+        distval += linktab[lev1num];
       } while (lev1num > lev0num);
     }
   }
 
-  distval = archptr->linktab[lev0num - 1];        /* Get cost at this level */
+  if (idx0min <= idx1min) {                       /* Test for equality or inclusion */
+    if ((idx0min + idx0nbr) >= (idx1min + idx1nbr)) /* If dom1 included in dom0     */
+      return (distval / 2);
+  }
+  else {
+    if ((idx0min + idx0nbr) <= (idx1min + idx1nbr)) /* If dom0 included in dom1 */
+      return (distval / 2);
+  }
 
-  return (((idx0min >= (idx1min + idx1nbr)) ||    /* If inclusion, only half of the distance */
-           (idx1min >= (idx0min + idx0nbr))) ? distval : ((idx0nbr == idx1nbr) ? 0 : (distval >> 1)));
+  do {
+#ifdef SCOTCH_DEBUG_ARCH2
+    if (lev0num == 0) {
+      errorPrint ("archTleafDomDist: internal error");
+      return     (0);
+    }
+#endif /* SCOTCH_DEBUG_ARCH2 */
+    lev0num --;
+    idx0min /= sizetab[lev0num];
+    idx1min /= sizetab[lev0num];
+    distval += linktab[lev0num];
+  } while (idx0min != idx1min);
+
+  return (distval);
 }
 
 /* This function sets the biggest
@@ -565,7 +588,7 @@ ArchTleafDom * restrict const dom1ptr)
 {
   Anum                sizeval;
 
-  if (domnptr->indxnbr <= 1) {                    /* If dubdomain has only one node at this level */
+  if (domnptr->indxnbr <= 1) {                    /* If subdomain has only one node at this level */
     if (domnptr->levlnum >= archptr->levlnbr)     /* Return if cannot bipartition more            */
       return (1);
 

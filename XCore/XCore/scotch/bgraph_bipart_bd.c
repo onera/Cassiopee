@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010,2011,2014,2016,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2011,2014,2016,2018,2019,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -45,15 +45,15 @@
 /**                # Version 5.1  : from : 09 nov 2008     **/
 /**                                 to   : 26 mar 2011     **/
 /**                # Version 6.0  : from : 07 nov 2011     **/
-/**                                 to   : 15 may 2018     **/
+/**                                 to   : 31 aug 2019     **/
+/**                # Version 7.0  : from : 28 aug 2019     **/
+/**                                 to   : 17 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The defines and includes.
 */
-
-#define BGRAPH_BIPART_BD
 
 #include "module.h"
 #include "common.h"
@@ -266,7 +266,9 @@ const BgraphBipartBdParam * const paraptr)        /*+ Method parameters +*/
   bndedlotax = bndgrafdat.s.edlotax;
   bndvnumtax = bndgrafdat.s.vnumtax;
 
-  for (bndvertnum = bndedgenum = orggrafptr->s.baseval, bnddegrmax = bndedlosum = bndcommgainextn = bndcommgainextn1 = 0;
+  bndvlvlnum += orggrafptr->s.baseval;            /* Now bndvlvlnum is based */
+  for (bndvertnum = bndedgenum = orggrafptr->s.baseval,
+       bnddegrmax = bndedlosum = bndcommgainextn = bndcommgainextn1 = 0;
        bndvertnum < bndvlvlnum; bndvertnum ++) {  /* Fill index array for vertices not belonging to last level */
     Gnum                orgvertnum;
     GraphPart           orgpartval;
@@ -480,6 +482,7 @@ const BgraphBipartBdParam * const paraptr)        /*+ Method parameters +*/
   bndgrafdat.vfixload[1]   = orggrafptr->vfixload[1];
   bndgrafdat.bbalval       = orggrafptr->bbalval;
   bndgrafdat.levlnum       = orggrafptr->levlnum;
+  bndgrafdat.contptr       = orggrafptr->contptr;
 
 #ifdef SCOTCH_DEBUG_BGRAPH2
   if ((graphCheck (&bndgrafdat.s) != 0) ||        /* Check band graph consistency */

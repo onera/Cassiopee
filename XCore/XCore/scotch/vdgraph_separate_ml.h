@@ -1,4 +1,4 @@
-/* Copyright 2007-2009,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007-2009,2014,2018,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -46,6 +46,8 @@
 /**                                 to   : 29 may 2009     **/
 /**                # Version 6.0  : from : 28 sep 2014     **/
 /**                                 to   : 06 jun 2018     **/
+/**                # Version 7.0  : from : 20 jan 2023     **/
+/**                                 to   : 20 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -70,11 +72,11 @@ typedef struct VdgraphSeparateMlParam_ {
 **  The function prototypes.
 */
 
-#ifdef VDGRAPH_SEPARATE_ML
+#ifdef SCOTCH_VDGRAPH_SEPARATE_ML
 static int                  vdgraphSeparateMlCoarsen (Vdgraph * const, Vdgraph * const, DgraphCoarsenMulti * restrict * const, const VdgraphSeparateMlParam * const);
 static int                  vdgraphSeparateMlUncoarsen (Vdgraph *, const Vdgraph * const, const DgraphCoarsenMulti * restrict const);
 static void                 vdgraphSeparateMlOpBest (const Gnum * const, Gnum * const, const int * const, const MPI_Datatype * const);
 static int                  vdgraphSeparateMl2  (Vdgraph * const, const VdgraphSeparateMlParam * const);
-#endif /* VDGRAPH_SEPARATE_ML */
+#endif /* SCOTCH_VDGRAPH_SEPARATE_ML */
 
 int                         vdgraphSeparateMl   (Vdgraph * const, const VdgraphSeparateMlParam * const);

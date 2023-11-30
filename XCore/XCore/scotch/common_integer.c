@@ -1,4 +1,4 @@
-/* Copyright 2004,2007-2012,2014-2016,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007-2012,2014-2016,2018,2019,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,9 +40,9 @@
 /**                type.                                   **/
 /**                                                        **/
 /**   DATES      : # Version 0.0  : from : 07 sep 1998     **/
-/**                                 to     22 sep 1998     **/
+/**                                 to   : 22 sep 1998     **/
 /**                # Version 0.1  : from : 07 jan 2002     **/
-/**                                 to     17 jan 2003     **/
+/**                                 to   : 17 jan 2003     **/
 /**                # Version 1.0  : from : 23 aug 2005     **/
 /**                                 to   : 19 dec 2006     **/
 /**                # Version 2.0  : from : 26 feb 2008     **/
@@ -50,7 +50,9 @@
 /**                # Version 5.1  : from : 09 nov 2008     **/
 /**                                 to   : 16 jul 2010     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     03 jun 2018     **/
+/**                                 to   : 03 jun 2018     **/
+/**                # Version 7.0  : from : 03 jun 2018     **/
+/**                                 to   : 19 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -58,11 +60,7 @@
 **  The defines and includes.
 */
 
-#define COMMON_INTEGER
-
-#ifndef COMMON_NOMODULE
 #include "module.h"
-#endif /* COMMON_NOMODULE */
 #include "common.h"
 
 /********************************/
@@ -171,7 +169,8 @@ const INT                   baseval)              /*+ Base value                
 void
 intPerm (
 INT * const                 permtab,              /*+ Permutation array to build +*/
-const INT                   permnbr)              /*+ Number of entries in array +*/
+const INT                   permnbr,              /*+ Number of entries in array +*/
+Context * restrict const    contptr)
 {
   INT *               permptr;
   UINT                permrmn;
@@ -181,8 +180,8 @@ const INT                   permnbr)              /*+ Number of entries in array
     UINT                permnum;
     INT                 permtmp;
 
-    permnum          = intRandVal (permrmn);      /* Select index to swap       */
-    permtmp          = permptr[0];                /* Swap it with current index */
+    permnum          = intRandVal (contptr->randptr, permrmn); /* Select index to swap */
+    permtmp          = permptr[0];                /* Swap it with current index        */
     permptr[0]       = permptr[permnum];
     permptr[permnum] = permtmp;
   }
@@ -194,9 +193,7 @@ const INT                   permnbr)              /*+ Number of entries in array
 /*                                   */
 /*************************************/
 
-static volatile int         intrandflag = 0;      /*+ Flag set if generator already initialized +*/
-static UINT32               intrandproc = 0;      /*+ Process number                            +*/
-static UINT32               intrandseed = 1;      /*+ Pseudo-random seed                        +*/
+IntRandContext              intranddat = { 0, 0 }; /*+ Global context: not initialized, process number is 0 +*/
 
 /* This routine sets the process number that is
 ** used to generate a different seed across all
@@ -210,70 +207,54 @@ static UINT32               intrandseed = 1;      /*+ Pseudo-random seed        
 
 void
 intRandProc (
+IntRandContext * const      randptr,
 int                         procnum)
 {
-  intrandproc = (UINT32) procnum;                 /* Set process number */
+  randptr->procval = procnum;                     /* Set process number */
 }
 
-/* This routine initializes the seed used by Scotch
-** with the provided value. Hence, all subsequent
-** calls to intRandInit() will start from this seed.
+/* These routines initialize and/or reset the seed
+** used by the given pseudo-random generator.
 ** It returns:
 ** - VOID  : in all cases.
 */
 
-#ifndef COMMON_RANDOM_SYSTEM
-static IntRandState         intrandstat;          /*+ Pseudo-random state value +*/
-
-static
-void
-intRandSeed3 (
-IntRandState * restrict     randptr,
-UINT32                      randval)
-{
-  UINT32              randtmp;
-  UINT32              i;
-
-  UINT32 * restrict const randtab = randptr->randtab; /* Fast access */
-
-  randtmp    = (UINT32) randval;
-  randtab[0] = randtmp;                           /* Reset array contents */
-  for (i = 1; i < 623; i ++) {
-    randtmp = (0x6c078965 * randtmp) ^ ((randtmp >> 30) + i);
-    randtab[i] = randtmp;
-  }
-  randptr->randnum = 0;                           /* Reset array index */
-}
-#endif /* COMMON_RANDOM_SYSTEM */
-
 static
 void
 intRandSeed2 (
-UINT32                      seedval)
+IntRandState * restrict     statptr,
+UINT                        randval)
 {
-  UINT32              randtmp;
+  UINT64              seedval;
 
-  randtmp = seedval * (intrandproc + 1);          /* Account for process index */
+  UINT64 * restrict const randtab = statptr->randtab; /* Fast access */
 
-#ifdef COMMON_RANDOM_SYSTEM
-#ifdef COMMON_RANDOM_RAND
-  srand ((unsigned int) randtmp);
-#else /* COMMON_RANDOM_RAND */
-  srandom ((unsigned int) randtmp);
-#endif /* COMMON_RANDOM_RAND */
-#else /* COMMON_RANDOM_SYSTEM */
-  intRandSeed3 (&intrandstat, randtmp);           /* Initialize state vector from random seed */
-#endif /* COMMON_RANDOM_SYSTEM */
+  seedval = (UINT64) (randval | 1);               /* Never have a zero state */
+
+  randtab[0] = seedval ^ (seedval << 15);         /* In case of 32-bit INTs */
+  randtab[1] = seedval ^ (seedval << 24);
+}
+
+void
+intRandReset (
+IntRandContext * const      randptr)
+{
+  INT                 randval;
+
+  randptr->flagval = 1;                           /* Generator has been initialized */
+
+  randval = (((UINT64) randptr->seedval) | 1) * (((UINT64) randptr->procval) + 1); /* Account for process index */
+  intRandSeed2 (&randptr->statdat, randval);      /* Initialize state vector from random seed                   */
 }
 
 void
 intRandSeed (
+IntRandContext * const      randptr,
 INT                         seedval)
 {
-  intrandflag = 1;                                /* Generator has been initialized */
-  intrandseed = (UINT32) seedval;                 /* Save new seed                  */
+  randptr->seedval = seedval;                     /* Save new seed */
 
-  intRandSeed2 (intrandseed);                     /* Initialize pseudo-random seed */
+  intRandReset (randptr);                         /* Initialize pseudo-random seed */
 }
 
 /* This routine initializes the pseudo-random
@@ -288,96 +269,67 @@ INT                         seedval)
 */
 
 void
-intRandInit (void)
+intRandInit (
+IntRandContext * const      contptr)              /*+ Random context to initialize +*/
 {
-  if (intrandflag == 0) {                         /* Non thread-safe check          */
-    intrandflag = 1;                              /* Generator has been initialized */
-
+  if (contptr->flagval == 0) {                    /* Non thread-safe check */
 #if ! ((defined COMMON_DEBUG) || (defined COMMON_RANDOM_FIXED_SEED))
-    intrandseed = (UINT32) time (NULL);           /* Set random seed if needed */
+    contptr->seedval = (INT) time (NULL);         /* Set random seed if needed */
+#else /* ((defined COMMON_DEBUG) || (defined COMMON_RANDOM_FIXED_SEED)) */
+    contptr->seedval = 1;
 #endif /* ((defined COMMON_DEBUG) || (defined COMMON_RANDOM_FIXED_SEED)) */
-    intRandSeed2 (intrandseed);                   /* Initialize state vector from seed */
+    intRandReset (contptr);                       /* Initialize state vector from seed */
   }
-}
-
-/* This routine reinitializes the pseudo-random
-** generator to its initial value. This routine
-** is not thread-safe.
-** It returns:
-** - VOID  : in all cases.
-*/
-
-void
-intRandReset (void)
-{
-  if (intrandflag == 0)                           /* Keep seed computed during first initialization */
-    intRandInit ();
-
-  intRandSeed2 (intrandseed);
 }
 
 /* This routine loads the random state.
 ** It returns:
 ** - 0  : on success.
-** - 1  : state cannot be loaded.
 ** - 2  : on error.
 */
-
-#ifndef COMMON_RANDOM_SYSTEM
 
 static
 int
 intRandLoad2 (
-IntRandState * restrict const randptr,            /*+ Random state to load +*/
+IntRandState * restrict const statptr,            /*+ Random state to load +*/
 FILE * restrict const         stream)             /*+ Stream to read from  +*/
 {
-  INT                 versval;
-  INT                 randnum;
-  int                 i;
-
-  if (intLoad (stream, &versval) != 1) {          /* Read version number */
-    errorPrint ("intRandLoad2: bad input (1)");
+  if (fscanf (stream, "%" PRIu64 "%" PRIu64,
+              &statptr->randtab[0],
+              &statptr->randtab[1]) != 2) {
+    errorPrint ("intRandLoad2: bad input");
     return     (2);
   }
-  if (versval != 0) {                             /* If version not zero */
-    errorPrint ("intRandLoad2: invalid version number");
-    return     (2);
-  }
-
-  for (i = 0; i < 624; i ++) {
-    INT                 randval;
-
-    if (intLoad (stream, &randval) != 1) {        /* Read state vector */
-      errorPrint ("intRandLoad2: bad input (2)");
-      return     (2);
-    }
-    randptr->randtab[i] = (UINT32) randval;
-  }
-
-  if (intLoad (stream, &randnum) != 1) {          /* Read state index */
-    errorPrint ("intRandLoad2: bad input (3)");
-    return     (2);
-  }
-  if ((randnum < 0) || (randnum >= 624)) {
-    errorPrint ("intRandLoad2: invalid array index");
-    return     (2);
-  }
-  randptr->randnum = randnum;
 
   return (0);
 }
 
-#endif /* COMMON_RANDOM_SYSTEM */
-
 int
 intRandLoad (
-FILE * restrict const         stream)             /*+ Stream to read from  +*/
+IntRandContext * restrict const randptr,          /*+ Random context to load +*/
+FILE * restrict const           stream)           /*+ Stream to read from    +*/
 {
-#ifndef COMMON_RANDOM_SYSTEM
-  return (intRandLoad2 (&intrandstat, stream));
-#else /* COMMON_RANDOM_SYSTEM */
-  return (1);
-#endif /* COMMON_RANDOM_SYSTEM */
+  INT                 versval;
+
+  if (intLoad (stream, &versval) != 1) {          /* Read version number */
+    errorPrint ("intRandLoad: bad input (1)");
+    return (2);
+  }
+  if (versval != 1) {                             /* If version not one */
+    errorPrint ("intRandLoad: invalid version number");
+    return (2);
+  }
+
+  if (fscanf (stream, "%d%" PRIu64,
+              &randptr->procval,
+              &randptr->seedval) != 2) {
+    errorPrint ("intRandLoad: bad input (2)");
+    return (2);
+  }
+
+  randptr->flagval = 1;                           /* Assume state has been initialized */
+
+  return (intRandLoad2 (&randptr->statdat, stream));
 }
 
 /* This routine saves the random state.
@@ -387,52 +339,44 @@ FILE * restrict const         stream)             /*+ Stream to read from  +*/
 ** - 2  : on error.
 */
 
-#ifndef COMMON_RANDOM_SYSTEM
-
 static
 int
 intRandSave2 (
-IntRandState * restrict const randptr,            /*+ Random state to load +*/
+IntRandState * restrict const statptr,            /*+ Random state to load +*/
 FILE * restrict const         stream)             /*+ Stream to read from  +*/
 {
-  int                 i;
-
-  if (fprintf (stream, "0\n") == EOF) {
-    errorPrint ("intRandSave2: bad output (1)");
-    return     (2);
-  }
-
-  for (i = 0; i < 624; i ++) {
-    if (fprintf (stream, UINTSTRING "\n", (UINT) randptr->randtab[i]) == EOF) {
-      errorPrint ("intRandLoad2: bad output (2)");
-      return     (2);
-    }
-  }
-
-  if (fprintf (stream, INTSTRING "\n", (INT) randptr->randnum) == EOF) {
-    errorPrint ("intRandLoad2: bad output (3)");
+  if (fprintf (stream, "%" PRIu64 "\t%" PRIu64 "\n",
+               statptr->randtab[0],
+               statptr->randtab[1]) < 0) {
+    errorPrint ("intRandSave2: bad output");
     return     (2);
   }
 
   return (0);
 }
 
-#endif /* COMMON_RANDOM_SYSTEM */
-
 int
 intRandSave (
-FILE * restrict const         stream)             /*+ Stream to read from  +*/
+IntRandContext * restrict const randptr,          /*+ Random state to load +*/
+FILE * restrict const           stream)           /*+ Stream to read from  +*/
 {
-#ifndef COMMON_RANDOM_SYSTEM
-  return (intRandSave2 (&intrandstat, stream));
-#else /* COMMON_RANDOM_SYSTEM */
-  return (1);
-#endif /* COMMON_RANDOM_SYSTEM */
+  if (randptr->flagval == 0) {
+    errorPrint ("intRandSave: context not initialized");
+    return (1);
+  }
+
+  if (fprintf (stream, "1\n%d\t%" PRIu64 "\n",
+               randptr->procval,
+               randptr->seedval) < 0) {
+    errorPrint ("intRandSave: bad output");
+    return (2);
+  }
+
+  return (intRandSave2 (&randptr->statdat, stream));
 }
 
 /* This routine computes a new pseudo-random
-** 32bit value from the state that is passed
-** to it.
+** INT value from the state that is passed to it.
 ** For speed and reproducibility reasons,
 ** this routine is not thread-safe. Providing
 ** a thread-safe routine would mean determinism
@@ -445,50 +389,23 @@ FILE * restrict const         stream)             /*+ Stream to read from  +*/
 ** - x  : pseudo-random value.
 */
 
-#ifndef COMMON_RANDOM_SYSTEM
-static
-UINT32
-intRandVal2 (
-IntRandState * restrict     randptr)
+UINT
+intRandVal3 (
+IntRandState * restrict     statptr)
 {
-  int                 randnum;
-  UINT32              randval;
+  UINT64              x, y;                       /* State variables */
 
-  UINT32 * restrict const randtab = randptr->randtab; /* Fast access */
+  UINT64 * restrict const randtab = statptr->randtab; /* Fast access */
 
-#ifdef COMMON_DEBUG
-  if (intrandflag == 0) {
-    errorPrint ("intRandVal2: random generator not initialized");
-    return     (~0);
-  }
-#endif /* COMMON_DEBUG */
+  x = randtab[0];
+  y = randtab[1];
+  randtab[0] = y;
+  x ^= x << 23;
+  x  = x ^ y ^ (x >> 17) ^ (y >> 26);
+  randtab[1] = x;
 
-  randnum = randptr->randnum;
-  if (randnum == 0) {
-    int                 i;
-
-    for (i = 0; i < 624; i ++) {
-      UINT32              randtmp;
-
-      randtmp = (randtab[i] & 0x80000000) + (randtab[(i + 1) % 624] & 0x7FFFFFFF);
-      randtmp = randtab[(i + 397) % 624] ^ (randtmp >> 1);
-      if ((randtmp & 1) != 0)
-        randtmp ^= 0x9908B0DF;
-
-      randtab[i] = randtmp;
-    }
-  }
-
-  randval  = randtab[randnum];
-  randval ^= (randval >> 11);
-  randval ^= (randval >> 7) & 0x9D2C5680;
-  randval ^= (randval >> 15) & 0xEFC60000;
-  randval ^= (randval >> 18);
-  randptr->randnum = (randnum + 1) % 624;
-
-  return (randval);
+  return ((UINT) (x + y));
 }
-#endif /* COMMON_RANDOM_SYSTEM */
 
 /* This routine returns a pseudo-random integer
 ** value in the range [0..randmax[. This routine
@@ -498,14 +415,27 @@ IntRandState * restrict     randptr)
 ** - x  : pseudo-random value.
 */
 
-#ifndef COMMON_RANDOM_SYSTEM
 UINT
 intRandVal (
+IntRandContext * const      contptr,              /*+ Random context to load +*/
 UINT                        randmax)
 {
-  return (((UINT) intRandVal2 (&intrandstat)) % randmax);
+#ifdef COMMON_DEBUG
+  if (contptr->flagval == 0) {
+    errorPrint ("intRandVal: random generator not initialized");
+    return     (~0);
+  }
+#endif /* COMMON_DEBUG */
+
+  return (((UINT) intRandVal3 (&contptr->statdat)) % randmax);
 }
-#endif /* COMMON_RANDOM_SYSTEM */
+
+UINT
+intRandVal2 (
+IntRandContext * const      contptr)              /*+ Random context to load +*/
+{
+  return (intRandVal3 (&contptr->statdat));
+}
 
 /*********************/
 /*                   */
@@ -599,6 +529,31 @@ UINT                        randmax)
 #undef INTSORTSIZE
 #undef INTSORTSWAP
 #undef INTSORTCMP
+
+/*****************************/
+/*                           */
+/* Partial sorting routines. */
+/*                           */
+/*****************************/
+
+/* This routine partially sorts an array of
+** pairs of INT values in ascending order by
+** their first value, used as key.
+** It returns:
+** - VOID  : in all cases.
+*/
+
+#define INTSORTNAME                 intPsort2asc1
+#define INTSORTSIZE                 (2 * sizeof (INT))
+#define INTSORTSWAP(p,q)            do { INT t, u; t = *((INT *) (p)); u = *((INT *) (p) + 1); *((INT *) (p)) = *((INT *) (q)); *((INT *) (p) + 1) = *((INT *) (q) + 1); *((INT *) (q)) = t; *((INT *) (q) + 1) = u; } while (0)
+#define INTSORTCMP(p,q)             (*((INT *) (p)) < *((INT *) (q)))
+#include "common_psort.c"
+#undef INTSORTNAME
+#undef INTSORTSIZE
+#undef INTSORTSWAP
+#undef INTSORTCMP
+
+
 
 /* This routine computes the greatest common
 ** divisor of two non-negative integers u and v.

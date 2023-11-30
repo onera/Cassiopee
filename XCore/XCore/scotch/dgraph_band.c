@@ -1,4 +1,4 @@
-/* Copyright 2007-2012,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007-2012,2018,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -42,9 +42,12 @@
 /**                                 to   : 20 feb 2011     **/
 /**                # Version 6.0  : from : 03 apr 2012     **/
 /**                                 to   : 22 may 2018     **/
+/**                # Version 7.0  : from : 08 oct 2021     **/
+/**                                 to   : 17 jan 2023     **/
 /**                                                        **/
 /**   NOTES      : # This code derives from the code of    **/
-/**                  vdgraph_separate_bd.c in version 5.0. **/
+/**                  vdgraph_separate_bd.c in version      **/
+/**                  5.0.                                  **/
 /**                                                        **/
 /************************************************************/
 
@@ -52,10 +55,9 @@
 **  The defines and includes.
 */
 
-#define DGRAPH_BAND
-
 #include "module.h"
 #include "common.h"
+#include "context.h"
 #include "dgraph.h"
 
 /**********************************/
@@ -113,8 +115,9 @@ Dgraph * restrict const             bandgrafptr,  /*+ Pointer to band graph stru
 Gnum * restrict * const             bandfronlocptr, /*+ Pointer to bandfronloctab                            +*/
 GraphPart * restrict * const        bandpartgstptr, /*+ Pointer to bandpartgsttax                            +*/
 Gnum * const                        bandvertlvlptr, /*+ Pointer to based start index of last level           +*/
-Gnum * const                        bandvertlocptr1, /*+ Pointer to number of band vertices in part 1        +*/
-Gnum * const                        bandvertlocancptr) /*+ Pointer to flag set if anchor vertices overloaded +*/
+Gnum * const                        bandver1locptr, /*+ Pointer to number of band vertices in part 1         +*/
+Gnum * const                        bandvertlocancptr, /*+ Pointer to flag set if anchor vertices overloaded +*/
+Context *                           contptr)      /*+ Execution context                                      +*/
 {
   Gnum                    bandvertlocnnd;         /* End of local band vertex array, (without anchor vertices) */
   Gnum                    bandvertlocnbr;         /* Number of local band vertices (including anchor vertices) */
@@ -146,7 +149,7 @@ Gnum * const                        bandvertlocancptr) /*+ Pointer to flag set i
 
   if (dgraphGhst (grafptr) != 0) {                /* Compute ghost edge array if not already present */
     errorPrint ("dgraphBand: cannot compute ghost edge array");
-    return     (1);
+    return (1);
   }
 
   cheklocval = 0;
@@ -159,7 +162,7 @@ Gnum * const                        bandvertlocancptr) /*+ Pointer to flag set i
   }
 
   if ((((grafptr->flagval & DGRAPHCOMMPTOP) != 0) ? dgraphBand2Ptop : dgraphBand2Coll)
-      (grafptr, fronlocnbr, fronloctab, distmax, bandvnumgsttax, &bandvertlvlnum, &bandvertlocnbr, &bandedgelocnbr) != 0) {
+      (grafptr, fronlocnbr, fronloctab, distmax, bandvnumgsttax, &bandvertlvlnum, &bandvertlocnbr, &bandedgelocnbr, contptr) != 0) {
     if (bandvnumgsttax != NULL)
       memFree (bandvnumgsttax + grafptr->baseval);
     return (1);
@@ -221,21 +224,21 @@ Gnum * const                        bandvertlocancptr) /*+ Pointer to flag set i
     bandgrafptr->procdsptab[0] = -1;
     if (MPI_Allgather (&bandgrafptr->procdsptab[0], 1, GNUM_MPI, /* Send received data to dummy array */
                        bandvnumgsttax + bandgrafptr->baseval, 1, GNUM_MPI, grafptr->proccomm) != MPI_SUCCESS) {
-      errorPrint ("dgraphBand: communication error (2)");
-      return     (1);
+      errorPrint ("dgraphBand: communication error (1)");
+      return (1);
     }
     if (bandfronloctab != NULL)
       memFree (bandfronloctab);
     dgraphFree (bandgrafptr);
     memFree    (bandvnumgsttax + bandgrafptr->baseval);
-    return     (1);
+    return (1);
   }
   else {
     bandgrafptr->procdsptab[0] = bandvertlocnbr;
     if (MPI_Allgather (&bandgrafptr->procdsptab[0], 1, GNUM_MPI,
                        &bandgrafptr->procdsptab[1], 1, GNUM_MPI, grafptr->proccomm) != MPI_SUCCESS) {
-      errorPrint ("dgraphBand: communication error (3)");
-      return     (1);
+      errorPrint ("dgraphBand: communication error (2)");
+      return (1);
     }
   }
   bandgrafptr->procdsptab[0] = bandgrafptr->baseval; /* Build vertex-to-process array */
@@ -251,7 +254,7 @@ Gnum * const                        bandvertlocancptr) /*+ Pointer to flag set i
         memFree (bandfronloctab);
       dgraphFree (bandgrafptr);
       memFree    (bandvnumgsttax + bandgrafptr->baseval);
-      return     (1);
+      return (1);
     }
     bandgrafptr->procdsptab[procngbnum]    += bandgrafptr->procdsptab[procngbnum - 1];
     bandgrafptr->proccnttab[procngbnum - 1] = bandgrafptr->procdsptab[procngbnum] - bandgrafptr->procdsptab[procngbnum - 1];
@@ -279,7 +282,7 @@ Gnum * const                        bandvertlocancptr) /*+ Pointer to flag set i
 
   if (dgraphHaloSync (grafptr, (byte *) (bandvnumgsttax + bandgrafptr->baseval), GNUM_MPI) != 0) { /* Share global indexing of halo vertices */
     errorPrint ("dgraphBand: cannot perform halo exchange");
-    return     (1);
+    return (1);
   }
 
   edgegsttax = grafptr->edgegsttax;
@@ -303,7 +306,7 @@ Gnum * const                        bandvertlocancptr) /*+ Pointer to flag set i
 #ifdef SCOTCH_DEBUG_DGRAPH2
     if (partval > 2) {
       errorPrint ("dgraphBand: internal error (1)");
-      return     (1);
+      return (1);
     }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
     partval1 = partval & 1;
@@ -326,7 +329,7 @@ Gnum * const                        bandvertlocancptr) /*+ Pointer to flag set i
 #ifdef SCOTCH_DEBUG_DGRAPH2
       if (bandvnumgsttax[edgegsttax[edgelocnum]] == ~0) { /* All ends should belong to the band graph too */
         errorPrint ("dgraphBand: internal error (2)");
-        return     (1);
+        return (1);
       }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
       bandedgeloctax[bandedgelocnum ++] = bandvnumgsttax[edgegsttax[edgelocnum]];
@@ -344,7 +347,7 @@ Gnum * const                        bandvertlocancptr) /*+ Pointer to flag set i
 #ifdef SCOTCH_DEBUG_DGRAPH2
     if (partval > 2) {
       errorPrint ("dgraphBand: internal error (3)");
-      return     (1);
+      return (1);
     }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
     partval1 = partval & 1;
@@ -414,7 +417,7 @@ Gnum * const                        bandvertlocancptr) /*+ Pointer to flag set i
     Gnum              edgelocnnd;
 
     for (bandvertlocnum = bandgrafptr->baseval;   /* For all vertices that do not belong to the last level */
-         bandvertlocnum < bandvertlvlnum; bandvertlocnum ++) { 
+         bandvertlocnum < bandvertlvlnum; bandvertlocnum ++) {
       Gnum              vertlocnum;
       Gnum              bandedgelocnum;
 
@@ -458,18 +461,18 @@ Gnum * const                        bandvertlocancptr) /*+ Pointer to flag set i
   bandgrafptr->degrglbmax = banddegrlocmax;       /* Local maximum degree will be turned into global maximum degree */
   if (dgraphBuild4 (bandgrafptr) != 0) {
     errorPrint ("dgraphBand: cannot build band graph");
-    return     (1);
+    return (1);
   }
 #ifdef SCOTCH_DEBUG_DGRAPH2
   if (dgraphCheck (bandgrafptr) != 0) {
     errorPrint ("dgraphBand: internal error (4)");
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
 
   *bandfronlocptr    = bandfronloctab;
   *bandpartgstptr    = bandpartgsttax;
-  *bandvertlocptr1   = bandvertlocnbr1;
+  *bandver1locptr    = bandvertlocnbr1;
   *bandvertlocancptr = bandvertlocancadj;
 
   return (0);

@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2009,2014,2015,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2009,2014,2015,2018,2020,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,21 +40,23 @@
 /**                structure.                              **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 29 aug 1998     **/
-/**                                 to     12 sep 1998     **/
+/**                                 to   : 12 sep 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     03 jan 1999     **/
+/**                                 to   : 03 jan 1999     **/
 /**                # Version 4.0  : from : 01 jan 2003     **/
-/**                                 to     05 jan 2005     **/
+/**                                 to   : 05 jan 2005     **/
 /**                # Version 5.0  : from : 29 dec 2006     **/
-/**                                 to     22 may 2008     **/
+/**                                 to   : 22 may 2008     **/
 /**                # Version 5.1  : from : 01 oct 2009     **/
 /**                                 to   : 01 oct 2009     **/
 /**                # Version 6.0  : from : 04 aug 2014     **/
-/**                                 to   : 06 jun 2018     **/
+/**                                 to   : 27 jan 2020     **/
+/**                # Version 7.0  : from : 05 may 2019     **/
+/**                                 to   : 22 mar 2023     **/
 /**                                                        **/
 /**   NOTES      : # Pre-hashing proves itself extremely   **/
 /**                  efficient, since for graphs that      **/
-/**                  will be compressed very few writes    **/
+/**                  will be compressed, very few writes   **/
 /**                  will be performed in the pre-hashing  **/
 /**                  array, and for others, for which pre- **/
 /**                  hashing costs much more, it will save **/
@@ -66,7 +68,7 @@
 **  The defines and includes.
 */
 
-#define HGRAPH_ORDER_CP
+#define SCOTCH_HGRAPH_ORDER_CP
 
 #include "module.h"
 #include "common.h"
@@ -159,7 +161,7 @@ const HgraphOrderCpParam * const  paraptr)
        finehaspmsk = finehaspmsk * 2 + 1) ;
   finehaspmsk >>= 1;                              /* Ensure masked data will always fit into finecoartab array */
   finehaspmsk = (finehaspmsk * (sizeof (Gnum) / sizeof (int))) + ((sizeof (Gnum) / sizeof (int)) - 1);
-  if (finehaspmsk >= ((sizeof (int) << (3 + 1)) - 1)) /* Only use 1/8 of array for pre-hashing, for increased cache locality */
+  if (finehaspmsk >= (Gnum) ((sizeof (int) << (3 + 1)) - 1)) /* Only use 1/8 of array for pre-hashing, for increased cache locality */
     finehaspmsk >>= 3;
   memSet (finehasptab, 0, (finehaspmsk + 1) * sizeof (int)); /* Initialize pre-hash table */
 
@@ -288,7 +290,7 @@ loop_failed: ;
   if ((double) (coarvertnbr - coargrafdat.s.baseval) > ((double) finegrafptr->vnohnbr * paraptr->comprat)) { /* If graph needs not be compressed */
     memFree (finehashtab);
     memFree (finecoartax + finegrafptr->s.baseval);
-    return (hgraphOrderSt (finegrafptr, fineordeptr, ordenum, cblkptr, paraptr->stratunc));
+    return  (hgraphOrderSt (finegrafptr, fineordeptr, ordenum, cblkptr, paraptr->stratunc));
   }
 
   for ( ; finevertnum < finegrafptr->s.vertnnd; finevertnum ++) /* For all halo vertices */
@@ -317,7 +319,7 @@ loop_failed: ;
     hgraphExit (&coargrafdat);
     memFree    (finehashtab);
     memFree    (finecoartax + finegrafptr->s.baseval);
-    return     (1);
+    return (1);
   }
   coargrafdat.s.verttax -= coargrafdat.s.baseval;
   coargrafdat.s.vendtax  = coargrafdat.s.verttax + 1; /* Use compact representation of arrays */
@@ -376,7 +378,7 @@ loop_failed: ;
 #ifdef SCOTCH_DEBUG_ORDER2
     if (finecoartax[finevertnum] != coarvertnum) {
       errorPrint ("hgraphOrderCp: internal error (1)");
-      return     (1);
+      return (1);
     }
 #endif /* SCOTCH_DEBUG_ORDER2 */
 
@@ -392,7 +394,7 @@ loop_failed: ;
 #ifdef SCOTCH_DEBUG_ORDER2
       if (finecoartax[finevertend] == coarvertnum) { /* No neighbor can be merged into us since halo vertices are unique */
         errorPrint ("hgraphOrderCp: internal error (2)");
-        return     (1);
+        return (1);
       }
 #endif /* SCOTCH_DEBUG_ORDER2 */
       for (finehashnum = (finecoartax[finevertend] * HGRAPHORDERCPHASHPRIME) & finehashmsk; ; /* Search for end vertex in hash table */
@@ -414,6 +416,8 @@ loop_failed: ;
   coargrafdat.s.edgenbr = coaredgenum - coargrafdat.s.baseval;
   coargrafdat.enlosum   =
   coargrafdat.enohnbr   = coargrafdat.s.edgenbr - 2 * (coaredgenum - coarenohnnd);
+  coargrafdat.levlnum   = finegrafptr->levlnum;   /* Keep level  */
+  coargrafdat.contptr   = finegrafptr->contptr;   /* Use context */
 
   if (finevelotax != NULL) {                      /* If fine graph has vertex loads */
     memSet (coargrafdat.s.velotax + coargrafdat.s.baseval, 0, coargrafdat.s.vertnbr * sizeof (Gnum));
@@ -429,7 +433,7 @@ loop_failed: ;
 #ifdef SCOTCH_DEBUG_ORDER2
   if (hgraphCheck (&coargrafdat) != 0) {
     errorPrint ("hgraphOrderCp: internal error (3)");
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_ORDER2 */
 
@@ -437,14 +441,14 @@ loop_failed: ;
     errorPrint ("hgraphOrderCp: out of memory (3)");
     hgraphExit (&coargrafdat);
     memFree    (finecoartax + finegrafptr->s.baseval);
-    return     (1);
+    return (1);
   }
   orderInit (&coarordedat, coargrafdat.s.baseval, coargrafdat.vnohnbr, coarperitab); /* Build ordering of compressed subgraph */
   if (hgraphOrderSt (&coargrafdat, &coarordedat, 0, &coarordedat.cblktre, paraptr->stratcpr) != 0) {
     memFree    (coarperitab);
     hgraphExit (&coargrafdat);
     memFree    (finecoartax + finegrafptr->s.baseval);
-    return     (1);
+    return (1);
   }
 
   *cblkptr = coarordedat.cblktre;                 /* Link sub-tree to ordering         */
@@ -456,11 +460,17 @@ loop_failed: ;
 #ifdef SCOTCH_DEBUG_ORDER2
   if (finevertnbr != finegrafptr->vnohnbr) {
     errorPrint ("hgraphOrderCp: internal error (4)");
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_ORDER2 */
+#ifdef SCOTCH_PTHREAD
+  pthread_mutex_lock (&fineordeptr->mutedat);
+#endif /* SCOTCH_PTHREAD */
   fineordeptr->treenbr += coarordedat.treenbr - 1; /* Adjust number of tree nodes    */
   fineordeptr->cblknbr += coarordedat.cblknbr - 1; /* Adjust number of column blocks */
+#ifdef SCOTCH_PTHREAD
+  pthread_mutex_unlock (&fineordeptr->mutedat);
+#endif /* SCOTCH_PTHREAD */
 
   coarvpostax = coargrafdat.s.verttax;            /* Re-cycle verttab (not velotab as may be merged with coarvsiztab) */
   coarperitax = coarperitab - coargrafdat.s.baseval;

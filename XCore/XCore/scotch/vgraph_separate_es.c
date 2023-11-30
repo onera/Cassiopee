@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2013 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2013,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -43,13 +43,17 @@
 /**   DATES      : # Version 3.2  : from : 17 oct 1996     **/
 /**                                 to   : 07 sep 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 4.0  : from : 18 aug 2004     **/
-/**                                 to     20 aug 2004     **/
+/**                                 to   : 20 aug 2004     **/
 /**                # Version 5.0  : from : 24 jan 2007     **/
-/**                                 to     12 sep 2007     **/
+/**                                 to   : 12 sep 2007     **/
 /**                # Version 5.1  : from : 09 nov 2008     **/
-/**                                 to     09 nov 2008     **/
+/**                                 to   : 09 nov 2008     **/
+/**                # Version 6.1  : from : 01 nov 2021     **/
+/**                                 to   : 01 nov 2021     **/
+/**                # Version 7.0  : from : 16 jan 2023     **/
+/**                                 to   : 16 jan 2023     **/
 /**                                                        **/
 /**   NOTES      : # This algorithm comes from:            **/
 /**                  "Computing the Block Triangular form  **/
@@ -84,7 +88,7 @@
 **  The defines and includes.
 */
 
-#define VGRAPH_SEPARATE_ES
+#define SCOTCH_VGRAPH_SEPARATE_ES
 
 #include "module.h"
 #include "common.h"
@@ -476,7 +480,7 @@ vgraphSeparateEs (
 Vgraph * restrict const             grafptr,      /*+ Active graph      +*/
 const VgraphSeparateEsParam * const paraptr)      /*+ Method parameters +*/
 {
-  Bgraph            actgrafdat;                   /* Active graph  structure   */
+  Bgraph            actgrafdat;                   /* Active graph structure    */
   Graph             bipgrafdat;                   /* Bipartite graph structure */
 
   actgrafdat.s         = grafptr->s;              /* Initialize active graph */
@@ -486,7 +490,7 @@ const VgraphSeparateEsParam * const paraptr)      /*+ Method parameters +*/
   actgrafdat.veextax   = NULL;                    /* No external gains                           */
   actgrafdat.parttax   = grafptr->parttax;        /* Inherit arrays from vertex separation graph */
   actgrafdat.frontab   = grafptr->frontab;
-  bgraphInit2 (&actgrafdat, 1, 1, 1, 0, 0);       /* Complete initialization and set all vertices to part 0 */
+  bgraphInit2 (&actgrafdat, 1, grafptr->dwgttab[0], grafptr->dwgttab[1], 0, 0); /* Complete initialization and set all vertices to part 0 */
 
   if (bgraphBipartSt (&actgrafdat, paraptr->strat) != 0) { /* Bipartition active subgraph */
     errorPrint ("vgraphSeparateEs: cannot bipartition active graph");
@@ -611,7 +615,7 @@ const VgraphSeparateEsParam * const paraptr)      /*+ Method parameters +*/
           actpartend = grafptr->parttax[actvertend];
           if (actpartend != actpartval) {
             Gnum              bipedgenum;
-            
+           
 #ifdef SCOTCH_DEBUG_VGRAPH2
             if (actvnumtax[actvertend] == ~0) {
               errorPrint ("vgraphSeparateEs: internal error (1)");

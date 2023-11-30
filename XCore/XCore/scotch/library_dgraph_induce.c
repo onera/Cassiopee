@@ -1,4 +1,4 @@
-/* Copyright 2012,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2012,2018,2019,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,7 +40,9 @@
 /**                the libSCOTCH library.                  **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 30 aug 2012     **/
-/**                                 to     25 apr 2018     **/
+/**                                 to   : 25 apr 2018     **/
+/**                # Version 7.0  : from : 27 aug 2019     **/
+/**                                 to   : 21 jan 2023     **/
 /**                                                        **/
 /**   NOTES      : # This code is directly derived from    **/
 /**                  the code of dgraphInducePart() and    **/
@@ -54,10 +56,9 @@
 **  The defines and includes.
 */
 
-#define LIBRARY
-
 #include "module.h"
 #include "common.h"
+#include "context.h"
 #include "dgraph.h"
 #include "ptscotch.h"
 
@@ -127,19 +128,20 @@ Gnum * restrict const       orgindxgsttax)
 
 int
 SCOTCH_dgraphInducePart (
-SCOTCH_Dgraph * const       orggrafptr,           /* Original graph                   */
+SCOTCH_Dgraph * const       liborggrafptr,        /* Original graph                   */
 const SCOTCH_Num * const    orgpartloctab,        /* Partition array                  */
 const SCOTCH_Num            indpartval,           /* Part value of induced subgraph   */
 const SCOTCH_Num            indvertlocnbr,        /* Number of local vertices in part */
-SCOTCH_Dgraph * const       indgrafptr)           /* Induced subgraph                 */
+SCOTCH_Dgraph * const       libindgrafptr)        /* Induced subgraph                 */
 {
   _SCOTCHDgraphInducePartData orgdatadat;
   Gnum                        indvertloctmp;
   int                         o;
 
+  Dgraph * restrict const orggrafptr = (Dgraph *) CONTEXTOBJECT (liborggrafptr);
+  Dgraph * restrict const indgrafptr = (Dgraph *) CONTEXTOBJECT (libindgrafptr);
 #ifdef SCOTCH_DEBUG_LIBRARY1
-  MPI_Comm_compare (((Dgraph * restrict const) orggrafptr)->proccomm,
-                    ((Dgraph * restrict const) indgrafptr)->proccomm, &o);
+  MPI_Comm_compare (orggrafptr->proccomm, indgrafptr->proccomm, &o);
   if ((o != MPI_IDENT) && (o != MPI_CONGRUENT)) {
     errorPrint (STRINGIFY (SCOTCH_dgraphInducePart) ": communicators are not congruent");
     return     (1);
@@ -150,7 +152,7 @@ SCOTCH_Dgraph * const       indgrafptr)           /* Induced subgraph           
     Gnum                orgvertlocnum;
     Gnum                orgvertlocnbr;
 
-    for (orgvertlocnum = indvertloctmp = 0, orgvertlocnbr = ((Dgraph * restrict const) orggrafptr)->vertlocnbr;
+    for (orgvertlocnum = indvertloctmp = 0, orgvertlocnbr = orggrafptr->vertlocnbr;
          orgvertlocnum < orgvertlocnbr; orgvertlocnum ++) {
       if (orgpartloctab[orgvertlocnum] == indpartval)
         indvertloctmp ++;
@@ -159,10 +161,10 @@ SCOTCH_Dgraph * const       indgrafptr)           /* Induced subgraph           
   else
     indvertloctmp = indvertlocnbr;
 
-  orgdatadat.orgpartloctax = orgpartloctab - ((Dgraph *) orggrafptr)->baseval;
+  orgdatadat.orgpartloctax = orgpartloctab - orggrafptr->baseval;
   orgdatadat.indpartval    = indpartval;
 
-  o = dgraphInduce2 ((Dgraph *) orggrafptr, _SCOTCHdgraphInducePart2, &orgdatadat, indvertloctmp, NULL, (Dgraph *) indgrafptr);
-  ((Dgraph *) indgrafptr)->vnumloctax = NULL;     /* Do not impact subsequent inductions */
+  o = dgraphInduce2 (orggrafptr, _SCOTCHdgraphInducePart2, &orgdatadat, indvertloctmp, NULL, indgrafptr);
+  indgrafptr->vnumloctax = NULL;                  /* Do not impact subsequent inductions */
   return (o);
 }

@@ -1,4 +1,4 @@
-/* Copyright 2008 ENSEIRB, INRIA & CNRS
+/* Copyright 2008,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -41,7 +41,9 @@
 /**                ordering strategy.                      **/
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 11 nov 2008     **/
-/**                                 to     11 nov 2008     **/
+/**                                 to   : 11 nov 2008     **/
+/**                # Version 7.0  : from : 19 jan 2023     **/
+/**                                 to   : 10 aug 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -49,7 +51,7 @@
 **  The defines and includes.
 */
 
-#define HDGRAPH_ORDER_SQ
+#define SCOTCH_HDGRAPH_ORDER_SQ
 
 #include "module.h"
 #include "common.h"
@@ -88,7 +90,7 @@ const HdgraphOrderSqParam * restrict const  paraptr)
   cgrfptr = (grafptr->s.proclocnum == 0) ? &cgrfdat : NULL; /* Set root process */
   if (hdgraphGather (grafptr, cgrfptr) != 0) { /* Gather centralized subgraph   */
     errorPrint ("hdgraphOrderSq: cannot create centralized graph");
-    return     (1);
+    return (1);
   }
 
   o = 0;
@@ -113,7 +115,7 @@ const Strat * restrict const    stratptr)
 
   if (orderInit (&corddat, grafptr->s.baseval, cblkptr->vnodglbnbr, NULL) != 0) {
     errorPrint ("hdgraphOrderSq2: cannot initialize centralized ordering");
-    return     (1);
+    return (1);
   }
 
   vnumtax = grafptr->s.vnumtax;                   /* Save number array of subgraph to order               */
@@ -121,13 +123,13 @@ const Strat * restrict const    stratptr)
 
   if (hgraphOrderSt (grafptr, &corddat, 0, &corddat.cblktre, stratptr) != 0) { /* Compute sequential ordering */
     orderExit (&corddat);
-    return    (1);
+    return (1);
   }
 #ifdef SCOTCH_DEBUG_HDGRAPH2
   if (orderCheck (&corddat) != 0) {
     errorPrint ("hdgraphOrderSq2: invalid centralized ordering");
     orderExit  (&corddat);
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_HDGRAPH2 */
 
@@ -141,7 +143,6 @@ const Strat * restrict const    stratptr)
       peritab[perinum] = vnumtax[peritab[perinum]];
   }
 
-  cblkptr->typeval = DORDERCBLKLEAF;              /* Fill node as leaf */
   cblkptr->data.leaf.ordelocval = cblkptr->ordeglbval;
   cblkptr->data.leaf.vnodlocnbr = cblkptr->vnodglbnbr;
   cblkptr->data.leaf.periloctab = peritab;
@@ -153,11 +154,12 @@ const Strat * restrict const    stratptr)
       errorPrint ("hdgraphOrderSq2: cannot import centralized separation tree");
       o = 1;
     }
-    if (corddat.cblktre.typeval == ORDERCBLKNEDI) /* If root of centralized tree is a nested dissection node */
-      cblkptr->typeval |= DORDERCBLKNEDI;         /* Distributed leaf is also a nested dissection node       */
+    cblkptr->typeval = DORDERCBLKLEAF | corddat.cblktre.typeval; /* Preserve type of root node of centralized ordering */
   }
-  else
+  else {
+    cblkptr->typeval = DORDERCBLKLEAF;            /* Fill node as distributed leaf */
     cblkptr->data.leaf.nodeloctab = NULL;
+  }
 
   corddat.flagval = ORDERNONE;                    /* Do not free permutation array */
   orderExit (&corddat);                           /* Free permutation tree         */

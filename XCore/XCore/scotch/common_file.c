@@ -1,4 +1,4 @@
-/* Copyright 2007,2008,2010,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2008,2010,2018,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -41,9 +41,11 @@
 /**   DATES      : # Version 5.0  : from : 21 may 2007     **/
 /**                                 to   : 16 mar 2008     **/
 /**                # Version 5.1  : from : 27 jun 2010     **/
-/**                                 to     27 jun 2010     **/
+/**                                 to   : 27 jun 2010     **/
 /**                # Version 6.0  : from : 10 nov 2014     **/
-/**                                 to     14 jul 2018     **/
+/**                                 to   : 14 jul 2018     **/
+/**                # Version 7.0  : from : 19 jan 2023     **/
+/**                                 to   : 19 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -51,11 +53,7 @@
 **  The defines and includes.
 */
 
-#define COMMON_FILE
-
-#ifndef COMMON_NOMODULE
 #include "module.h"
-#endif /* COMMON_NOMODULE */
 #include "common.h"
 #include "common_file.h"
 
@@ -177,7 +175,7 @@ const int                   filenbr)
   for (i = 0; i < filenbr; i ++) {                /* For all file names     */
     filetab[i].nameptr = "-";                     /* Assume standard stream */
     filetab[i].fileptr = ((filetab[i].flagval & FILEMODE) == FILEMODER) ? stdin : stdout;
-    filetab[i].compptr = NULL;                    /* No (un)compression yet */
+    filetab[i].compptr = NULL;                    /* No (de)compression yet */
   }
 }
 
@@ -186,7 +184,7 @@ const int                   filenbr)
 ** It returns:
 ** - 0  : on success.
 ** - 1  : if could not open a stream.
-** - 2  : if (un)compression method not implemented.
+** - 2  : if (de)compression method not implemented.
 */
 
 int
@@ -209,8 +207,8 @@ const int                   filenbr)
         break;
       }
     }
-    if (j == i) {                                 /* If original stream                */
-      int                 compval;                /* Compression type */
+    if (j == i) {                                 /* If original stream */
+      int                 compval;                /* Compression type   */
 
       if (filetab[i].nameptr[0] != '-') {         /* If not standard stream, open it */
         if ((filetab[i].fileptr = fopen (filetab[i].nameptr, ((filetab[i].flagval & FILEMODE) == FILEMODER) ? "r" : "w")) == NULL) { /* Open the file */
@@ -220,11 +218,11 @@ const int                   filenbr)
       }
       compval = (((filetab[i].flagval & FILEMODE) == FILEMODER) ? fileDecompressType : fileCompressType) (filetab[i].nameptr);
       if (compval < 0) {
-        errorPrint ("fileBlockOpen: (un)compression method not implemented");
+        errorPrint ("fileBlockOpen: (de)compression method not implemented");
         return     (2);
       }
       if ((((filetab[i].flagval & FILEMODE) == FILEMODER) ? fileDecompress : fileCompress) (&filetab[i], compval) != 0) {
-        errorPrint ("fileBlockOpen: cannot create (un)compression subprocess");
+        errorPrint ("fileBlockOpen: cannot create (de)compression subprocess");
         return     (1);
       }
     }
@@ -299,6 +297,6 @@ const int                   filenbr)
         memFree (filetab[i].nameptr);
     }
 
-    fileCompressExit (&filetab[i]);               /* After stream closed, if there is (un)compression data to free */
+    fileCompressExit (&filetab[i]);               /* After stream closed, if there is (de)compression data to free */
   }
 }

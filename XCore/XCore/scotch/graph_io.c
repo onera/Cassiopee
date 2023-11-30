@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2010,2016 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2010,2016,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -39,33 +39,33 @@
 /**                input/output functions.                 **/
 /**                                                        **/
 /**   DATES      : # Version 0.0  : from : 01 dec 1992     **/
-/**                                 to     18 may 1993     **/
+/**                                 to   : 18 may 1993     **/
 /**                # Version 1.3  : from : 30 apr 1994     **/
-/**                                 to     18 may 1994     **/
+/**                                 to   : 18 may 1994     **/
 /**                # Version 2.0  : from : 06 jun 1994     **/
-/**                                 to     31 oct 1994     **/
+/**                                 to   : 31 oct 1994     **/
 /**                # Version 3.0  : from : 07 jul 1995     **/
-/**                                 to     28 sep 1995     **/
+/**                                 to   : 28 sep 1995     **/
 /**                # Version 3.1  : from : 28 nov 1995     **/
-/**                                 to     08 jun 1996     **/
+/**                                 to   : 08 jun 1996     **/
 /**                # Version 3.2  : from : 07 sep 1996     **/
-/**                                 to     15 mar 1999     **/
+/**                                 to   : 15 mar 1999     **/
 /**                # Version 4.0  : from : 25 nov 2001     **/
-/**                                 to     21 jan 2004     **/
+/**                                 to   : 21 jan 2004     **/
 /**                # Version 5.0  : from : 13 dec 2006     **/
-/**                                 to     10 sep 2007     **/
+/**                                 to   : 10 sep 2007     **/
 /**                # Version 5.1  : from : 11 aug 2010     **/
-/**                                 to     11 aug 2010     **/
+/**                                 to   : 11 aug 2010     **/
 /**                # Version 6.0  : from : 03 aug 2016     **/
-/**                                 to     03 aug 2016     **/
+/**                                 to   : 03 aug 2016     **/
+/**                # Version 7.0  : from : 19 jan 2023     **/
+/**                                 to   : 12 mar 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The defines and includes.
 */
-
-#define GRAPH_IO
 
 #include "module.h"
 #include "common.h"
@@ -112,11 +112,11 @@ const GraphFlag             flagval)              /* Graph loading flags        
 
   if (intLoad (stream, &versval) != 1) {          /* Read version number */
     errorPrint ("graphLoad: bad input (1)");
-    return     (1);
+    return (1);
   }
   if (versval != 0) {                             /* If version not zero */
     errorPrint ("graphLoad: old-style graph format no longer supported");
-    return     (1);
+    return (1);
   }
 
   if ((intLoad (stream, &grafptr->vertnbr) != 1) || /* Read rest of header */
@@ -126,7 +126,16 @@ const GraphFlag             flagval)              /* Graph loading flags        
       (propval < 0)                              ||
       (propval > 111)) {
     errorPrint ("graphLoad: bad input (2)");
-    return     (1);
+    return (1);
+  }
+  if (grafptr->vertnbr < 0) {
+    errorPrint ("graphLoad: invalid number of vertices");
+    return (1);
+  }
+  if ((grafptr->edgenbr < 0) ||
+      ((grafptr->edgenbr & 1) != 0)) {
+    errorPrint ("graphLoad: invalid number of edges");
+    return (1);
   }
   sprintf (proptab, "%3.3d", (int) propval);      /* Compute file properties */
   proptab[0] -= '0';                              /* Vertex labels flag      */
@@ -160,7 +169,7 @@ const GraphFlag             flagval)              /* Graph loading flags        
       memFree (grafptr->verttax);
     errorPrint ("graphLoad: out of memory");
     graphFree  (grafptr);
-    return     (1);
+    return (1);
   }
   grafptr->vertnnd  = grafptr->vertnbr + grafptr->baseval;
   grafptr->verttax -= grafptr->baseval;
@@ -185,7 +194,7 @@ const GraphFlag             flagval)              /* Graph loading flags        
       if (intLoad (stream, &vlblval) != 1) {      /* Read label data */
         errorPrint ("graphLoad: bad input (3)");
         graphFree  (grafptr);
-        return     (1);
+        return (1);
       }
       grafptr->vlbltax[vertnum] = vlblval;
       if (grafptr->vlbltax[vertnum] > vlblmax)    /* Get maximum vertex label */
@@ -197,7 +206,7 @@ const GraphFlag             flagval)              /* Graph loading flags        
       if (intLoad (stream, &veloval) != 1) {      /* Read vertex load data */
         errorPrint ("graphLoad: bad input (4)");
         graphFree  (grafptr);
-        return     (1);
+        return (1);
       }
       if (grafptr->velotax != NULL)
         velosum                  +=
@@ -206,7 +215,7 @@ const GraphFlag             flagval)              /* Graph loading flags        
     if (intLoad (stream, &degrval) != 1) {        /* Read vertex degree */
       errorPrint ("graphLoad: bad input (5)");
       graphFree  (grafptr);
-      return     (1);
+      return (1);
     }
     if (degrmax < degrval)                        /* Set maximum degree */
       degrmax = degrval;
@@ -216,17 +225,17 @@ const GraphFlag             flagval)              /* Graph loading flags        
     if (degrval > edgennd) {                      /* Check if edge array overflows */
       errorPrint ("graphLoad: invalid arc count (1)");
       graphFree  (grafptr);
-      return     (1);
+      return (1);
     }
 
     for ( ; edgenum < degrval; edgenum ++) {
       if (proptab[1] != 0) {                      /* If must read edge load        */
         Gnum                edloval;              /* Value where to read edge load */
 
-        if (intLoad (stream, &edloval) != 1) {    /* Read edge load data    */
+        if (intLoad (stream, &edloval) != 1) {    /* Read edge load data */
           errorPrint ("graphLoad: bad input (6)");
           graphFree  (grafptr);
-          return     (1);
+          return (1);
         }
         if (grafptr->edlotax != NULL)
           edlosum                  +=
@@ -235,16 +244,16 @@ const GraphFlag             flagval)              /* Graph loading flags        
       if (intLoad (stream, &edgeval) != 1) {      /* Read edge data */
         errorPrint ("graphLoad: bad input (7)");
         graphFree  (grafptr);
-        return     (1);
+        return (1);
       }
       grafptr->edgetax[edgenum] = edgeval + baseadj;
     }
   }
-  grafptr->verttax[vertnum] = edgenum;            /* Set end of edge array */
+  grafptr->verttax[vertnum] = edgenum;            /* Set end of edge array             */
   if (edgenum != edgennd) {                       /* Check if number of edges is valid */
     errorPrint ("graphLoad: invalid arc count (2)");
     graphFree  (grafptr);
-    return     (1);
+    return (1);
   }
   grafptr->velosum = velosum;
   grafptr->edlosum = edlosum;
@@ -255,7 +264,7 @@ const GraphFlag             flagval)              /* Graph loading flags        
                     grafptr->vendtax, grafptr->edgetax, vlblmax, grafptr->vlbltax) != 0) {
       errorPrint ("graphLoad: cannot relabel vertices");
       graphFree  (grafptr);
-      return     (1);
+      return (1);
     }
   }
 
@@ -263,7 +272,7 @@ const GraphFlag             flagval)              /* Graph loading flags        
   if (graphCheck (grafptr) != 0) {                /* Check graph consistency */
     errorPrint ("graphLoad: inconsistent graph data");
     graphFree  (grafptr);
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_GRAPH2 */
 
@@ -285,7 +294,7 @@ const Gnum * const          vlbltax)
 
   if ((indxtab = (Gnum *) memAlloc ((vlblmax + 1) * sizeof (Gnum))) == NULL) {
     errorPrint  ("graphLoad2: out of memory");
-    return      (1);
+    return (1);
   }
 
   memSet (indxtab, ~0, (vlblmax + 1) * sizeof (Gnum)); /* Assume labels not used */
@@ -293,7 +302,7 @@ const Gnum * const          vlbltax)
     if (indxtab[vlbltax[vertnum]] != ~0) {        /* If vertex label already used */
       errorPrint  ("graphLoad2: duplicate vertex label");
       memFree     (indxtab);
-      return      (1);
+      return (1);
     }
     indxtab[vlbltax[vertnum]] = vertnum;          /* Set vertex number index */
   }
@@ -304,12 +313,12 @@ const Gnum * const          vlbltax)
       if (edgetax[edgenum] > vlblmax) {           /* If invalid edge end number */
         errorPrint ("graphLoad2: invalid arc end number (1)");
         memFree    (indxtab);
-        return     (1);
+        return (1);
       }
       if (indxtab[edgetax[edgenum]] == ~0) {      /* If unused edge end number */
         errorPrint ("graphLoad2: invalid arc end number (2)");
         memFree    (indxtab);
-        return     (1);
+        return (1);
       }
       edgetax[edgenum] = indxtab[edgetax[edgenum]]; /* Replace label by number */
     }
@@ -348,7 +357,7 @@ FILE * const                stream)
                (Gnum) grafptr->baseval,
                propstr) == EOF) {
     errorPrint ("graphSave: bad output (1)");
-    return     (1);
+    return (1);
   }
 
   for (vertnum = grafptr->baseval, o = 0;

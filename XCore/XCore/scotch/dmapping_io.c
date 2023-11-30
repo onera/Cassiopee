@@ -1,4 +1,4 @@
-/* Copyright 2008,2010,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2008,2010,2014,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -39,17 +39,19 @@
 /**                mappings.                               **/
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 13 jun 2008     **/
-/**                                 to     11 aug 2010     **/
+/**                                 to   : 11 aug 2010     **/
 /**                # Version 6.0  : from : 29 oct 2014     **/
-/**                                 to     29 oct 2014     **/
+/**                                 to   : 29 oct 2014     **/
+/**                # Version 6.1  : from : 05 apr 2021     **/
+/**                                 to   : 05 apr 2021     **/
+/**                # Version 7.0  : from : 18 jan 2023     **/
+/**                                 to   : 18 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The defines and includes.
 */
-
-#define DORDER
 
 #include "module.h"
 #include "common.h"
@@ -253,22 +255,22 @@ FILE * restrict const           stream)
         termloctab[fraglocnum] = archDomNum (&dmapptr->archdat, &fragptr->domntab[fragptr->parttab[fraglocnum]]);
       }
 
-#if ((defined COMMON_MPI_VERSION) && (COMMON_MPI_VERSION <= 100))
-      MPI_Address (termloctab, &typedsptab[0]);
-      MPI_Address (fragptr->vnumtab, &typedsptab[1]);
-#else /* ((defined COMMON_MPI_VERSION) && (COMMON_MPI_VERSION <= 100)) */
+#if ((defined MPI_VERSION) && (MPI_VERSION >= 3))
       MPI_Get_address (termloctab, &typedsptab[0]);
       MPI_Get_address (fragptr->vnumtab, &typedsptab[1]);
-#endif /* ((defined COMMON_MPI_VERSION) && (COMMON_MPI_VERSION <= 100)) */
+#else /* ((defined MPI_VERSION) && (MPI_VERSION >= 3)) */
+      MPI_Address (termloctab, &typedsptab[0]);
+      MPI_Address (fragptr->vnumtab, &typedsptab[1]);
+#endif /* ((defined MPI_VERSION) && (MPI_VERSION >= 3)) */
       typedsptab[1] -= typedsptab[0];
       typedsptab[0] = 0;
       typecnttab[0] =
       typecnttab[1] = (int) fragptr->vertnbr;
-#if ((defined COMMON_MPI_VERSION) && (COMMON_MPI_VERSION <= 100))
-      MPI_Type_hindexed (2, typecnttab, typedsptab, GNUM_MPI, &typedat);
-#else /* ((defined COMMON_MPI_VERSION) && (COMMON_MPI_VERSION <= 100)) */
+#if ((defined MPI_VERSION) && (MPI_VERSION >= 3))
       MPI_Type_create_hindexed (2, typecnttab, typedsptab, GNUM_MPI, &typedat);
-#endif /* ((defined COMMON_MPI_VERSION) && (COMMON_MPI_VERSION <= 100)) */
+#else /* ((defined MPI_VERSION) && (MPI_VERSION >= 3)) */
+      MPI_Type_hindexed (2, typecnttab, typedsptab, GNUM_MPI, &typedat);
+#endif /* ((defined MPI_VERSION) && (MPI_VERSION >= 3)) */
       MPI_Type_commit   (&typedat);
 
       if (MPI_Send (termloctab, 1, typedat, protnum, 0, grafptr->proccomm) != MPI_SUCCESS) {

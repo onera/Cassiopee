@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2018,2020,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -39,13 +39,15 @@
 /**                the generic gain tables.                **/
 /**                                                        **/
 /**   DATES      : # Version 0.0  : from : 26 oct 1996     **/
-/**                                 to     17 nov 1997     **/
+/**                                 to   : 17 nov 1997     **/
 /**                # Version 0.1  : from : 10 may 1999     **/
-/**                                 to     18 mar 2005     **/
+/**                                 to   : 18 mar 2005     **/
 /**                # Version 5.0  : from : 24 mar 2008     **/
-/**                                 to     01 jun 2008     **/
+/**                                 to   : 01 jun 2008     **/
 /**                # Version 6.0  : from : 07 jun 2018     **/
-/**                                 to     07 jun 2018     **/
+/**                                 to   : 20 aug 2020     **/
+/**                # Version 7.0  : from : 18 jan 2023     **/
+/**                                 to   : 18 jan 2023     **/
 /**                                                        **/
 /**   NOTES      : # Most of the contents of this module   **/
 /**                  comes from "map_b_fm" of the SCOTCH   **/
@@ -92,7 +94,7 @@ typedef struct GainTabl_ {
   INT                       totsize;              /*+ Total table size                       +*/
   GainEntr *                tmin;                 /*+ Non-empty entry of minimum gain        +*/
   GainEntr *                tmax;                 /*+ Non-empty entry of maximum gain        +*/
-  GainEntr *                tend;                 /*+ Point after last valid gain entry      +*/
+  GainEntr *                tend;                 /*+ Last valid gain entry                  +*/
   GainEntr *                tabl;                 /*+ Gain table structure is.. [SIZE - ADJ] +*/
   GainEntr                  tabk[1];              /*+ Split in two for relative access [ADJ] +*/
 } GainTabl;
@@ -109,11 +111,12 @@ void                        gainTablAddLog      (GainTabl * const, GainLink * co
 void                        gainTablDel         (GainTabl * const, GainLink * const);
 GainLink *                  gainTablFrst        (GainTabl * const);
 GainLink *                  gainTablNext        (GainTabl * const, const GainLink * const);
+void                        gainTablMove        (GainTabl * const, const ptrdiff_t);
 #ifdef SCOTCH_DEBUG_GAIN3
-#ifdef GAIN
+#ifdef SCOTCH_GAIN
+static int                  gainTablCheck       (GainEntr * const);
 static int                  gainTablCheck2      (GainEntr * const, GainLink * const);
-#endif /* GAIN */
-int                         gainTablCheck       (GainEntr * const);
+#endif /* SCOTCH_GAIN */
 #endif /* SCOTCH_DEBUG_GAIN3 */
 
 /*
@@ -122,7 +125,7 @@ int                         gainTablCheck       (GainEntr * const);
 
 #define gainTablEmpty(tabl)         ((tabl)->tmin == (tabl)->tend)
 #define gainTablAdd(tabl,link,gain) ((tabl)->tablAdd  ((tabl), (link), (gain)))
-#if ((! defined GAIN) && (! defined SCOTCH_DEBUG_GAIN1))
+#if ((! defined SCOTCH_GAIN) && (! defined SCOTCH_DEBUG_GAIN1))
 #define gainTablDel(tabl,link)      (((GainLink *) (link))->next->prev = ((GainLink *) (link))->prev, \
                                      ((GainLink *) (link))->prev->next = ((GainLink *) (link))->next)
-#endif /* ((! defined GAIN) && (! defined SCOTCH_DEBUG_GAIN1)) */
+#endif /* ((! defined SCOTCH_GAIN) && (! defined SCOTCH_DEBUG_GAIN1)) */

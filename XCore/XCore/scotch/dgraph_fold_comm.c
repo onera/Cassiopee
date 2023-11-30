@@ -1,4 +1,4 @@
-/* Copyright 2007,2009-2011 ENSEIRB, INRIA & CNRS
+/* Copyright 2007,2009-2011,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -43,13 +43,69 @@
 /**                                 to   : 10 sep 2007     **/
 /**                # Version 5.1  : from : 18 jan 2009     **/
 /**                                 to   : 10 sep 2011     **/
+/**                # Version 7.0  : from : 18 jun 2023     **/
+/**                                 to   : 12 aug 2023     **/
 /**                                                        **/
 /************************************************************/
+
+/*
+** The defines and includes.
+*/
 
 #include "module.h"
 #include "common.h"
 #include "dgraph.h"
+#include "dgraph_coarsen.h"
 #include "dgraph_fold_comm.h"
+
+/* This routine computes an upper bound on the size of
+** local vertex arrays that have to be allocated before
+** coarsening (and possibly folding) take place, notably
+** the multinode array.
+** Since this value depends on the folding distribution
+** algorithm, it is placed in the same source file.
+** The extreme case is when vertglbmax receivers have
+** (coarvertlocavg - 1) vertices, and a sender has
+** vertglbmax vertices as well. Only DGRAPHFOLDCOMMNBR
+** vertices will be transferred to achieve balance, and
+** (vertglbmax - DGRAPHFOLDCOMMNBR) vertices will have
+** to be spread across DGRAPHFOLDCOMMNBR processes.
+** It returns:
+** - >= 0  : size of vertex arrays
+*/
+
+Gnum
+dgraphCoarsenVertLocMax (
+const Dgraph * restrict const finegrafptr,        /*+ Graph to coarsen and possibly fold +*/
+const int                     flagval)            /*+ Coarsening type                    +*/
+{
+  Gnum                coarvertlocavg;             /* Average load on all processes if perfect balance achieved */
+  Gnum                coarvertlocmax;             /* Possible Maximum load on a specific process               */
+  int                 foldval;                    /* Type of folding (do not consider merging)                 */
+
+  const int                         procglbnbr = finegrafptr->procglbnbr;
+  const Gnum                        vertlocnbr = finegrafptr->vertlocnbr;
+  const Gnum                        vertglbnbr = finegrafptr->vertglbnbr;
+  const Gnum                        vertglbmax = finegrafptr->vertglbmax;
+
+  foldval = flagval & (DGRAPHCOARSENFOLD | DGRAPHCOARSENFOLDDUP); /* Only consider folding flags */
+
+  if ((foldval == DGRAPHCOARSENNONE) ||           /* If plain coarsening                                                      */
+      (procglbnbr == 1))                          /* Or user called the routine with a mono-process context                   */
+    return (vertlocnbr);                          /* Local number of vertices may not change if all local matchings succeeded */
+
+  if (foldval == DGRAPHCOARSENFOLD)               /* If simple folding, with coarsening ratio 1.0              */
+    coarvertlocavg = ((vertglbnbr * 2) / procglbnbr) + 1; /* Max ratio for FOLD is 2 -> 1                      */
+  else                                            /* Folding with duplication with coarsening ratio 1.0        */
+    coarvertlocavg = ((vertglbnbr * 2) / (procglbnbr - (procglbnbr % 2))) + 1; /* Max ratio FOLD-DUP is 3 -> 1 */
+
+  if (procglbnbr < (2 * DGRAPHFOLDCOMMNBR))       /* If there is always enough communications to spread the load of a single process */
+    coarvertlocmax = coarvertlocavg;              /* No overload is possible in this case                                            */
+  else
+    coarvertlocmax = coarvertlocavg + ((vertglbmax - DGRAPHFOLDCOMMNBR + (DGRAPHFOLDCOMMNBR - 1)) / DGRAPHFOLDCOMMNBR); /* Add possible overload */
+
+  return (coarvertlocmax);
+}
 
 /* This routine computes an optimized communication
 ** scheme for folding the data of a distributed graph.
@@ -63,372 +119,473 @@
 
 int
 dgraphFoldComm (
-const Dgraph * restrict const                 grafptr,
-const int                                     partval, /* 0 for first half, 1 for second half                        */
-int * restrict const                          commptr, /* Pointer to maximum number of communications per process    */
-int * restrict const                          commtypval, /* Process will be sender or receiver                      */
-DgraphFoldCommData *restrict * restrict const commdatptr, /* Slots for communication                                 */
-Gnum *restrict * restrict const               commvrtptr, /* Slots of starting global vertex send indices            */
-Gnum * restrict const                         proccnttab, /* Receive count array, for receivers                      */
-int * restrict const                          vertadjnbrptr, /* Number of adjustment ranges, for receivers           */
-Gnum * restrict * restrict const              vertadjptr, /* Pointer to global index adjustment array, for receivers */
-Gnum * restrict * restrict const              vertdltptr) /* Pointer to global delta adjustment array, for receivers */
+const Dgraph * restrict const                   grafptr,
+const int                                       partval, /* 0 for first half, 1 for second half                           */
+int * restrict const                            commmaxptr, /* Pointer to maximum number of communications per process    */
+int * restrict const                            commtypvalptr, /* Process will be sender or receiver                      */
+DgraphFoldCommData * restrict * restrict const  commdattabptr, /* Slots for communication                                 */
+Gnum * restrict * restrict const                commvrttabptr, /* Slots of starting global vertex send indices            */
+Gnum * restrict const                           proccnttab, /* Receive count array, for receivers                         */
+int * restrict const                            vertadjnbrptr, /* Number of adjustment ranges, for receivers              */
+Gnum * restrict * restrict const                vertadjtabptr, /* Pointer to global index adjustment array, for receivers */
+Gnum * restrict * restrict const                vertdlttabptr) /* Pointer to global delta adjustment array, for receivers */
 {
-  int                           commmax;          /* Maximum number of communications per process        */
-  int                           procnum;
-  Gnum * restrict               commvrttab;
-  DgraphFoldCommData * restrict commdattab;
-  DgraphFoldCommData * restrict procsrttab;       /* Sort array                                          */
-  int                           procsndbas;
-  int                           procsndmnd;
-  int                           procsndidx;
+  Gnum * restrict               fldproccnttab;    /* Sanitized access to proccnttab of folded graph (used as flag)  */
+  DgraphFoldCommData * restrict commdattab;       /* Array of communication slots for current process               */
+  Gnum * restrict               commvrttab;       /* Adday of starting global vertex indices of communication slots */
+  DgraphFoldCommData * restrict procsrttab;       /* Sort array for sender and receiver processes                   */
+  int                           procfldnbr;       /* Number of processes in folded part                             */
   int                           procrcvbas;
   int                           procrcvnnd;
-  int                           procrcvidx;
-  int                           fldprocnbr;
-  Gnum * restrict               vertadjtab;
+  int                           procsndbas;
+  int                           procsndnnd;
+  int                           sortsndbas;       /* Start index of first non-empty sender in sort array            */
+  int * restrict                slotsndtab;       /* Array of send slot indices for adjustment range computations   */
+  Gnum * restrict               vertadjtab;       /* Arrays of global index ajustments for all receiver slots       */
   Gnum * restrict               vertdlttab;
-  int * restrict                vertprmtab;       /* Permutation array for adjustment range computations */
-  int                           i;
+  int                           commmax;          /* Current maximum number of communications per process           */
+  int                           procnum;
 #ifdef SCOTCH_DEBUG_DGRAPH2
   DgraphFoldCommData * restrict procchktab;
   int                           chekloctab[2];
   int                           chekglbtab[2];
-
-  if (grafptr->procglbnbr < 2) {
-    errorPrint ("dgraphFoldComm: invalid parameters");
-    return     (1);
-  }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
 
-  if ((procsrttab = memAlloc (grafptr->procglbnbr * sizeof (DgraphFoldCommData))) == NULL) {
-    errorPrint ("dgraphFoldComm: out of memory (1)");
-    return     (1);
-  }
+  const int                         orgprocglbnbr = grafptr->procglbnbr;
+  const int                         orgproclocnum = grafptr->proclocnum;
+  const Gnum * restrict const       orgproccnttab = grafptr->proccnttab;
+  const Gnum * restrict const       orgprocvrttab = grafptr->procvrttab;
 
-  for (procnum = 0; procnum < grafptr->procglbnbr; procnum ++) {
-    procsrttab[procnum].procnum = procnum;
-    procsrttab[procnum].vertnbr = grafptr->proccnttab[procnum];
-  }
-  fldprocnbr = (grafptr->procglbnbr + 1) / 2;     /* Get number of processes in part 0 (always more than in part 1) */
-
-  intSort2asc1 (procsrttab, fldprocnbr);          /* Sort both parts of processor array */
-  intSort2asc1 (procsrttab + fldprocnbr, grafptr->procglbnbr - fldprocnbr);
-
-  if (partval == 0) {                             /* If part 0 will receive the data                 */
-    procrcvbas = 0;                               /* Receive by ascending weight order in first part */
-    procrcvnnd = fldprocnbr;
-    procsndbas = grafptr->procglbnbr;             /* Send by descending weight order in other part */
-    procsndmnd = fldprocnbr;
-  }
-  else {                                          /* Part 1 will receive the data                    */
-    procrcvbas = fldprocnbr;                      /* Receive by ascending weight order in first part */
-    procrcvnnd = grafptr->procglbnbr;
-    procsndbas = fldprocnbr;                      /* Send by descending weight order in other part */
-    procsndmnd = 0;
-    fldprocnbr = grafptr->procglbnbr - fldprocnbr;
-  }
-  *commtypval = ((grafptr->proclocnum >= procrcvbas) && (grafptr->proclocnum < procrcvnnd)) ? DGRAPHFOLDCOMMRECV : DGRAPHFOLDCOMMSEND;
 #ifdef SCOTCH_DEBUG_DGRAPH2
-  if ((*commtypval == DGRAPHFOLDCOMMRECV) &&
-      ((proccnttab == NULL) || (vertadjptr == NULL) || (vertdltptr == NULL))) {
-    errorPrint ("dgraphFoldComm: internal error (1)");
-    memFree    (procsrttab);                      /* Free group leader */
-    return     (1);
+  if (orgprocglbnbr < 2) {                        /* Folding is useless when graph is on a single process */
+    errorPrint ("dgraphFoldComm: invalid parameters (1)");
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
 
-  for (commmax = DGRAPHFOLDCOMMNBR, commdattab = NULL; ; commmax ++) { /* Start with small number of communications per process */
-    int                   procrcvnum;
-    int                   procsndnum;
-    int                   procsndnxt;             /* Index of next sender to process after current sender                */
-    Gnum                  vertglbsum;             /* Global number of vertices already sent from all previous senders    */
-    Gnum                  vertglbavg;             /* Global average value of sent vertices to reach during current round */
-    Gnum                  vertsndrmn;             /* Remaining number of vertices to send from current sending process   */
-    int                   flagrcvval;             /* Number of messages already sent by receiver and sender              */
-    int                   flagsndval;
-    int                   commtmp;
+  if ((procsrttab = memAlloc (orgprocglbnbr * sizeof (DgraphFoldCommData))) == NULL) {
+    errorPrint ("dgraphFoldComm: out of memory (1)");
+    return (1);
+  }
 
-    if (commdattab != NULL)
+  procfldnbr = (orgprocglbnbr + 1) / 2;           /* Get number of processes in part 0 (always more than in part 1) */
+  if (partval == 0) {                             /* If part 0 will receive the data                                */
+    procrcvbas = 0;                               /* Receive by ascending weight order in first part                */
+    procrcvnnd =
+    procsndbas = procfldnbr;                      /* Send by descending weight order in second part */
+    procsndnnd = orgprocglbnbr;
+  }
+  else {                                          /* Part 1 will receive the data                  */
+    procsndbas = 0;                               /* Send by descending weight order in first part */
+    procsndnnd =
+    procrcvbas = procfldnbr;                      /* Receive by ascending weight order in second part */
+    procrcvnnd = orgprocglbnbr;
+    procfldnbr = orgprocglbnbr - procfldnbr;      /* Number of processes in folded graph is in fact the smaller half */
+  }
+
+  if ((orgproclocnum >= procrcvbas) && (orgproclocnum < procrcvnnd)) { /* If calling process is a receiver          */
+    fldproccnttab  = proccnttab;                  /* Point to vertex count array of receiver process                */
+    *commtypvalptr = DGRAPHFOLDCOMMRECV;          /* Set local process type as receiver (pure receiver, by default) */
+  }
+  else {
+    fldproccnttab  = NULL;                        /* Flag process as a sender */
+    *commtypvalptr = DGRAPHFOLDCOMMSEND;
+  }
+#ifdef SCOTCH_DEBUG_DGRAPH2
+  if ((*commtypvalptr == DGRAPHFOLDCOMMRECV) &&   /* Check that a receiver has the proper receiver array locations */
+      ((proccnttab == NULL) || (vertadjtabptr == NULL) || (vertdlttabptr == NULL))) {
+    errorPrint ("dgraphFoldComm: invalid parameters (2)");
+    memFree    (procsrttab);                      /* Free group leader */
+    return (1);
+  }
+#endif /* SCOTCH_DEBUG_DGRAPH2 */
+
+  for (procnum = procsndbas; procnum < procsndnnd; procnum ++) { /* Senders will not be changed in loop  */
+    procsrttab[procnum].vertnbr = orgproccnttab[procnum]; /* All vertices of senders must be disposed of */
+    procsrttab[procnum].procnum = (Gnum) procnum;
+  }
+  intSort2asc1 (procsrttab + procsndbas, procsndnnd - procsndbas); /* Sort sender part once for good */
+
+  commdattab = NULL;                              /* Vertex redistribution arrays not allocated yet                        */
+  for (commmax = DGRAPHFOLDCOMMNBR; ; commmax ++) { /* Start with small number of communications per process               */
+    int * restrict      slotsndtax;               /* Based access to slot array, with respect to (procrcvbas * commsiz)    */
+    int                 sortsndnnd;               /* Index of current end of send sub-array in sort array                  */
+    int                 sortrcvnnd;               /* Index of current end of receive sub-array in sort array               */
+    int                 sortrcvnum;               /* Index of current receiver process in sort array                       */
+    Gnum                vertglbdlt;               /* Global overload accepted for receiver vertices                        */
+    int                 commrcvnum;               /* Number of communications already performed by current receiver        */
+    int                 commsiz;                  /* Size of receiver communication arrays for local process (commmax + 1) */
+    int                 commnum;
+
+    for (procnum = procrcvbas; procnum < procrcvnnd; procnum ++) { /* Compute difference with respect to average for receivers */
+      procsrttab[procnum].vertnbr = orgproccnttab[procnum] - DATASIZE (grafptr->vertglbnbr, procfldnbr, procnum - procrcvbas);
+      procsrttab[procnum].procnum = (Gnum) procnum;
+    }
+    intSort2asc1 (procsrttab + procrcvbas, procrcvnnd - procrcvbas); /* (Re)sort receiver part as may have been modified by previous loop */
+
+    for (sortsndbas = procsndbas; sortsndbas < procsndnnd; sortsndbas ++) { /* Discard empty senders */
+      if (procsrttab[sortsndbas].vertnbr != 0)    /* Stop at first non-empty sender                  */
+        break;
+    }
+
+    if (commdattab != NULL)                       /* If retry, delete old arrays before rebuilding them */
       memFree (commdattab);
 
-    commtmp = (proccnttab == NULL) ? 0 : commmax;
+    commsiz = (fldproccnttab != NULL) ? (commmax + 1) : 0; /* Receiver-side arrays only necessary if process is a receiver */
     if (memAllocGroup ((void **) (void *)
                        &commdattab, (size_t) (commmax * sizeof (DgraphFoldCommData)),
                        &commvrttab, (size_t) (commmax * sizeof (Gnum)),
-                       &vertadjtab, (size_t) (commtmp * grafptr->procglbnbr * sizeof (Gnum)),
-                       &vertdlttab, (size_t) (commtmp * grafptr->procglbnbr * sizeof (Gnum)),
+                       &vertadjtab, (size_t) (commsiz * orgprocglbnbr * sizeof (Gnum)),
+                       &vertdlttab, (size_t) (commsiz * orgprocglbnbr * sizeof (Gnum)),
 #ifdef SCOTCH_DEBUG_DGRAPH2
-                       &procchktab, (size_t) (commmax * grafptr->procglbnbr * sizeof (DgraphFoldCommData)),
+                       &procchktab, (size_t) (commmax * orgprocglbnbr * sizeof (DgraphFoldCommData)),
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
-                       &vertprmtab, (size_t) ((commmax + 1) * fldprocnbr * sizeof (int)), NULL) == NULL) {
+                       &slotsndtab, (size_t) (commsiz * procfldnbr * sizeof (int)), NULL) == NULL) {
       errorPrint ("dgraphFoldComm: out of memory (2)");
       memFree    (procsrttab);
-      return     (1);
+      return (1);
     }
 
-    for (i = 0; i < commmax; i ++) {              /* Assume we will perform no communication at all */
-      commdattab[i].procnum = -1;
-      commdattab[i].vertnbr = 0;
+    for (commnum = 0; commnum < commmax; commnum ++) { /* Assume we will perform no communication at all */
+      commdattab[commnum].vertnbr = 0;
+      commdattab[commnum].procnum = -1;
     }
-    if (proccnttab != NULL) {                     /* If we are a receiver process, start filling count and adjustment arrays */
-      int                   procrcvtmp;
+    if (fldproccnttab != NULL) {                  /* If we are a receiver process, initialize count and adjustment arrays */
+      int                 procrcvnum;
 
-      memSet (vertprmtab, ~0, (commmax + 1) * fldprocnbr * sizeof (int)); /* Reset adjustment index arrays */
-      memSet (vertadjtab, ~0, commmax * grafptr->procglbnbr * sizeof (Gnum));
+      memSet (vertadjtab, ~0, commsiz * orgprocglbnbr * sizeof (Gnum)); /* Initialize index adjustment arrays */
+      memSet (slotsndtab, ~0, commsiz * procfldnbr * sizeof (int));
+      slotsndtax = slotsndtab - (procrcvbas * commsiz); /* Base access to slot array for receivers */
 
-      for (procrcvtmp = procrcvbas; procrcvtmp < procrcvnnd; procrcvtmp ++) { /* Fill count and adjustment arrays for receiver processes slots */
-        vertadjtab[procrcvtmp * commmax]    = grafptr->procvrttab[procrcvtmp];
-        vertdlttab[procrcvtmp * commmax]    =
-        proccnttab[procrcvtmp - procrcvbas] = grafptr->proccnttab[procrcvtmp];
-        vertprmtab[(procrcvtmp - procrcvbas) * (commmax + 1)] = procrcvtmp * commmax;
+      for (procrcvnum = procrcvbas; procrcvnum < procrcvnnd; procrcvnum ++) { /* For all slots of receiver processes */
+        int                 slotrcvnum;           /* First index in slot array for receiver process                  */
+
+        slotrcvnum = procrcvnum * commsiz;
+        vertadjtab[slotrcvnum] = orgprocvrttab[procrcvnum]; /* Set global start index of local chunk            */
+        vertdlttab[slotrcvnum] = orgproccnttab[procrcvnum]; /* Set number of vertices to be kept in local chunk */
+        slotsndtax[slotrcvnum] = slotrcvnum;      /* First slot of receiver is active                           */
       }
     }
 
-    for (procrcvidx = procrcvbas; procrcvidx < (procrcvnnd - 1); procrcvidx ++, procrcvnnd --) { /* Overloaded receiver vertices will re-send some of their load */
-      Gnum                  vertsndnbr;           /* Potential overload of receiver process */
+    sortsndnnd = procsndnnd - 1;                  /* TRICK: point to end processes in arrays rather than just after them */
+    sortrcvnnd = procrcvnnd - 1;
+    sortrcvnum = procrcvbas;                      /* First receiver to start with is receiver of smallest load               */
+    commrcvnum = 0;                               /* Current receiver has not started any remote communication               */
+    vertglbdlt = 0;                               /* No overload yet among receiver processes                                */
+    while (1) {                                   /* Loop on candidate processes for setting up communications               */
+      int                 flagsndval;             /* Type of current sender: pure sender or sender receiver                  */
+      int                 procsndnum;             /* Index of current sender process                                         */
+      int                 slotsndnum;             /* Index of first slot of current sender                                   */
+      int                 sortrcvtmp;             /* Temporary receive index for aggregating receiver capacities             */
+      int                 sortsndnum;             /* Index of sender process in sort array (either send or receive)          */
+      Gnum                vertsndnbr;             /* Number of vertices to send from current sender process                  */
+      Gnum                vertadjval;             /* Global index of first vertex to send in a chunk                         */
+      Gnum                vertrcvnbr;             /* Number of vertices a receiver can/will take at a time                   */
+      Gnum                vertrcvdlt;             /* Room available to interleave pure senders with receiver sender messages */
+      int                 commsndnum;             /* Number of communications already performed by current sender            */
+      int                 commnbr;                /* Number of elementary communcations to achive vertex transfer            */
 
-      procsndidx = procrcvnnd - 1;
-      vertsndnbr = procsrttab[procsndidx].vertnbr - DATASIZE (grafptr->vertglbnbr, fldprocnbr, procsndidx - procrcvbas);
-      if (vertsndnbr <= 0)                        /* If no further overload to improve, exit loop */
-        break;
+      vertsndnbr = 0;                             /* Nothing sent yet                  */
+      if (sortsndnnd >= sortsndbas) {             /* If a sender process remains       */
+        sortsndnum = sortsndnnd --;               /* Select and remove it              */
+        vertsndnbr = procsrttab[sortsndnum].vertnbr; /* Get number of vertices to send */
+        flagsndval = DGRAPHFOLDCOMMSEND;          /* Sender is a true sender           */
+      }
+      if (sortrcvnnd >= sortrcvnum) {             /* If a receiver process remains */
+        Gnum                vertsndtmp;
 
-      procrcvnum = procsrttab[procrcvidx].procnum;
-      procsndnum = procsrttab[procsndidx].procnum;
+        vertsndtmp = procsrttab[sortrcvnnd].vertnbr; /* Get number of vertices possibly to send                       */
+        if ((vertsndtmp > vertsndnbr) &&          /* If receiver has something to send (> 0) and would be prioritary  */
+            (vertsndtmp > vertglbdlt)) {          /* And sending it would contribute not to degrade imbalance further */
+          if (vertsndnbr > 0)                     /* If a sender vertex was chosen before                             */
+            sortsndnnd ++;                        /* Restore it                                                       */
 
-      procsrttab[procrcvidx].vertnbr = - (procsrttab[procrcvidx].vertnbr + vertsndnbr); /* Flag as having had a communication */
-      if (proccnttab != NULL) {                   /* If we are a receiver process, fill count and adjustment arrays           */
-        proccnttab[procrcvnum - procrcvbas] += vertsndnbr;
-        proccnttab[procsndnum - procrcvbas] -= vertsndnbr; /* Vertices are transferred between receiver processes */
-        vertadjtab[procsndnum * commmax + 1] = grafptr->procvrttab[procsndnum] + grafptr->proccnttab[procsndnum] - vertsndnbr;
-        vertdlttab[procsndnum * commmax + 1] = vertsndnbr;
-        vertdlttab[procsndnum * commmax]    -= vertsndnbr;
-        vertprmtab[(procrcvnum - procrcvbas) * (commmax + 1) + 1] = procsndnum * commmax + 1;
-
-        if (procsndnum == grafptr->proclocnum) {  /* If we are the sender receiver process */
-          *commtypval = DGRAPHFOLDCOMMSEND | DGRAPHFOLDCOMMRECV; /* Indicate it            */
-          commdattab[0].procnum = procrcvnum;     /* Record communication                  */
-          commdattab[0].vertnbr = vertsndnbr;
-          commvrttab[0] = grafptr->procvrttab[procsndnum] + grafptr->proccnttab[procsndnum] - vertsndnbr; /* Set starting global index of vertices to be sent */
-        }
-        else if (procrcvnum == grafptr->proclocnum) { /* If we are the receiver receiver process */
-          commdattab[0].procnum = procsndnum;     /* Record communication                        */
-          commdattab[0].vertnbr = vertsndnbr;
-          commvrttab[0] = grafptr->procvrttab[procsndnum] + grafptr->proccnttab[procsndnum] - vertsndnbr; /* Set starting global index of vertices to be sent */
+          sortsndnum = sortrcvnnd --;             /* Select and remove sender receiver              */
+          vertsndnbr = vertsndtmp - vertglbdlt;   /* Number of vertices to send, keeping local part */
+          flagsndval = DGRAPHFOLDCOMMSEND | DGRAPHFOLDCOMMRECV; /* Sender is a sender receiver      */
         }
       }
-    }
+      else {                                      /* No more receiver processes available               */
+        if (vertsndnbr > 0)                       /* If a sender was willing to communicate             */
+          goto redo;                              /* We could not compute a valid communication pattern */
+      }
+      if (vertsndnbr <= 0)                        /* If no more communications to perform          */
+        goto done;                                /* We have computed a valid communcation pattern */
 
-    while ((procsndmnd < procsndbas) && (procsrttab[procsndmnd].vertnbr == 0)) /* Do not account for empty sender processes */
-      procsndmnd ++;
+      vertrcvdlt = 0;                             /* Assume we will not be able to interleave pure senders      */
+      for (commnbr = 0, vertrcvnbr = 0, sortrcvtmp = sortrcvnum; /* Compute maximum available room on receivers */
+           (commnbr < commmax) && (sortrcvtmp <= sortrcvnnd); commnbr ++, sortrcvtmp ++)
+        vertrcvnbr += vertglbdlt - procsrttab[sortrcvtmp].vertnbr;
+      if (vertrcvnbr < vertsndnbr) {              /* If receiver processes cannot hold the data without additional overload */
+        if (flagsndval == DGRAPHFOLDCOMMSEND)     /* If sender is a true sender                                             */
+          vertglbdlt += (vertsndnbr - vertrcvnbr + (commnbr - 1)) / commnbr; /* Spread extra overload across receivers      */
+        else {                                    /* Sender is a sender receiver                                            */
+          Gnum                vertglbtmp;
 
-    if (procsndmnd >= procsndbas)                 /* If there are no more sender processes       */
-      break;                                      /* We have completed communication computation */
+          vertglbtmp  = (vertsndnbr - vertrcvnbr + commnbr) / (commnbr + 1); /* Compute overload including sender process */
+          vertglbdlt += vertglbtmp;               /* Add extra overload to current overload                               */
+          vertsndnbr -= vertglbtmp;               /* Extra overload vertices will not be sent by sender receiver process  */
+        }
+      }
+      else {                                      /* There is room for adding messages       */
+        if (flagsndval != DGRAPHFOLDCOMMSEND)     /* If selected sender is a sender receiver */
+          vertrcvdlt = vertrcvnbr - vertsndnbr;   /* Compute remaining space among receivers */
+      }
 
-    procsndidx = procsndbas - 1;
-    procsndnxt = procsndidx - 1;
-    vertsndrmn = procsrttab[procsndidx].vertnbr;
-    flagsndval = 0;
-    procrcvidx = procrcvbas;
-    procrcvnum = procsrttab[procrcvidx].procnum;
-    flagrcvval = 0;
-    vertglbavg = DATASIZE (grafptr->vertglbnbr, fldprocnbr, 0);
-    vertglbsum = procsrttab[procrcvidx].vertnbr;  /* Account for vertices already present in receiver process */
-    if (vertglbsum < 0) {                         /* If first receiver has already received a communication   */
-      flagrcvval = 1;
-      vertglbsum = - vertglbsum;
-      procsrttab[procrcvidx].vertnbr = vertglbsum; /* Un-flag */
-    }
+      procsndnum = (int) procsrttab[sortsndnum].procnum; /* Get rank of sender process                                             */
+      slotsndnum = procsndnum * commsiz;          /* Get first slot of sender process                                              */
+      commsndnum = 0;                             /* Sender has not communicated yet                                               */
+      vertadjval = orgprocvrttab[procsndnum] + orgproccnttab[procsndnum] - vertsndnbr; /* Get global index of first vertex to send */
 
-    while (1) {
-      Gnum                vertrcvrmn;             /* Remaining number of vertices to receive           */
-      Gnum                vertsndnbr;             /* Number of vertices actually sent and received     */
-      Gnum                vertsndnxt;             /* Adjustment to add to vertex count of next sender  */
-      int                 mesgrcvrmn;             /* Number of message slots to receive small messages */
-      int                 flagsndnxt;
+      do {                                        /* Loop on communications to exchange chunks of vertices */
+        int                 procrcvnum;
+        int                 slotrcvnum;           /* Index of first slot in receiver part */
+        int                 flagrcvval;           /* Flag set if receiver will be full    */
 
 #ifdef SCOTCH_DEBUG_DGRAPH2
-      if (flagrcvval + flagsndval >= (commmax * 2)) {
-        errorPrint ("dgraphFoldComm: internal error (2)");
-        memFree    (commdattab);                  /* Free group leader */
-        memFree    (procsrttab);
-        return     (1);
-      }
+        if (commsndnum >= commmax) {              /* Overload should have been computed so that this never happens */
+          errorPrint ("dgraphFoldComm: internal error (1)");
+          return (1);
+        }
+        if (sortrcvnum > sortrcvnnd) {            /* Overload should have been computed so that this never happens */
+          errorPrint ("dgraphFoldComm: internal error (2)");
+          return (1);
+        }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
 
-      vertrcvrmn = (vertglbavg > vertglbsum) ? (vertglbavg - vertglbsum) : 0; /* Remaining space on receiver */
-      mesgrcvrmn = (vertsndrmn >= vertrcvrmn) ? (commmax - 1) : (commmax - 2);
-      if ((procsndidx > procsndmnd) &&            /* If there remains small messages to be considered          */
-          (((flagsndval == 0) &&                  /* If sender has not sent anything yet or just started       */
-            (flagrcvval < mesgrcvrmn)) ||         /* And receiver has space for larger messages to come        */
-           ((flagrcvval == 0) &&                  /* Or if receiver has not received anything yet              */
-            (flagsndval < (commmax - 2)))) &&     /* And sender has enough slots to send                       */
-          (vertrcvrmn >= procsrttab[procsndmnd].vertnbr)) { /* And if receiver can hold small message entirely */
-        procsndnxt = procsndidx;                  /* Current large message will be processed next time         */
-        procsndidx = procsndmnd;                  /* Process smallest message available to date                */
-        flagsndnxt = flagsndval;                  /* Record location of next message to send                   */
-        flagsndval = 0;
-        vertsndnxt = procsrttab[procsndnxt].vertnbr - vertsndrmn; /* Record vertices already sent  */
-        vertsndnbr =                              /* All of its contents will be sent in one piece */
-        vertsndrmn = procsrttab[procsndmnd].vertnbr;
-        procsndmnd ++;                            /* Small message has been processed */
-      }
-      else {
-        flagsndnxt = 0;
-        vertsndnxt = 0;                           /* Next sender will not have been interrupted by a small message */
-        vertsndnbr = ((flagsndval >= (commmax - 1)) || /* If last chance to send for this process                  */
-                      (((procrcvnnd - procrcvidx) * (commmax - 1) - flagrcvval) <= (procsndidx - procsndmnd))) /* Or if too few communications remain with sender receivers accounted for */
-                     ? vertsndrmn                 /* Send all of the vertices to be sent       */
-                     : MIN (vertsndrmn, vertrcvrmn); /* Else just send what the receiver needs */
-      }
-      procsndnum = procsrttab[procsndidx].procnum;
+        procrcvnum = (int) procsrttab[sortrcvnum].procnum; /* Get receiver index                                    */
+        slotrcvnum = procrcvnum * commsiz + 1;        /* Start slot of receiver is after local slot (even if empty) */
+        vertrcvnbr = vertglbdlt - procsrttab[sortrcvnum].vertnbr; /* Compute capacity of receiver process           */
 
-      if (vertsndnbr > 0) {                       /* If useful communication can take place                         */
-        if (proccnttab != NULL) {                 /* If we are a receiver process, fill count and adjustment arrays */
-          proccnttab[procrcvnum - procrcvbas] += vertsndnbr;
-          vertadjtab[procsndnum * commmax + flagsndval] = grafptr->procvrttab[procsndnum] + grafptr->proccnttab[procsndnum] - vertsndrmn;
-          vertdlttab[procsndnum * commmax + flagsndval] = vertsndnbr;
-          vertprmtab[(procrcvnum - procrcvbas) * (commmax + 1) + 1 + flagrcvval] = procsndnum * commmax + flagsndval;
+        if ((vertrcvdlt >  0) &&                  /* If there is a possibility to interleave a pure sender */
+            (commrcvnum == 0) &&                  /* And we are considering a new receiver process         */
+            (sortsndbas <= sortsndnnd) &&         /* And there is a pure sender available                  */
+            (vertrcvdlt >= procsrttab[sortsndbas].vertnbr) && /* And it can fit in the available space     */
+            (vertrcvnbr >= procsrttab[sortsndbas].vertnbr)) { /* And it will not overload the receiver     */
+          int                 procsndtmp;
+          int                 slotsndtmp;
+          Gnum                vertrcvtmp;
+          Gnum                vertadjtmp;
 
-          if (procrcvnum == grafptr->proclocnum) { /* If we are the receiver process */
-            commdattab[flagrcvval].procnum = procsndnum; /* Record communication     */
-            commdattab[flagrcvval].vertnbr = vertsndnbr;
-            commvrttab[flagrcvval] = grafptr->procvrttab[procsndnum] + grafptr->proccnttab[procsndnum] - vertsndrmn; /* Set starting global index of vertices to be sent */
+          procsndtmp = (int) procsrttab[sortsndbas].procnum; /* Sender process for communication is interleaved sender */
+          slotsndtmp = procsndtmp * commsiz;      /* Interleaved sender will use only its first communication          */
+          vertrcvtmp = procsrttab[sortsndbas].vertnbr; /* Receive all of its vertices in one chunk                     */
+          vertadjtmp = orgprocvrttab[procsndtmp]; /* Send all of its vertices in one chunk                             */
+          sortsndbas ++;                          /* Discard interleaved sender                                        */
+          vertrcvdlt -= vertrcvtmp;               /* Reduce interleaving capacity                                      */
+
+          if (fldproccnttab != NULL) {            /* If we are a receiver process, fill count and adjustment arrays */
+            if (procrcvnum == orgproclocnum) {    /* If we are the receiver process                                 */
+              commdattab[commrcvnum].vertnbr = vertrcvtmp; /* Record receive communication                          */
+              commdattab[commrcvnum].procnum = (Gnum) procsndtmp; /* Sender is interleaved sender                   */
+              commvrttab[commrcvnum] = vertadjtmp;
+            }
+
+            vertadjtab[slotsndtmp] = vertadjtmp;  /* Record communication in slot */
+            vertdlttab[slotsndtmp] = vertrcvtmp;
+            slotsndtax[slotrcvnum + commrcvnum] = slotsndtmp; /* Receiver slot points to sender slot */
+          }
+          else {                                  /* We are a sender process      */
+            if (procsndtmp == orgproclocnum) {    /* If we are the sender process */
+              commdattab[0].vertnbr = vertrcvtmp;   /* Record communication         */
+              commdattab[0].procnum = (Gnum) procrcvnum;
+              commvrttab[0] = vertadjtmp;
+            }
+          }
+
+          commrcvnum ++;                          /* One more communication performed for receiver processes */
+          vertrcvnbr -= vertrcvtmp;               /* Receiver's capacity has been reduced                    */
+          if (vertrcvnbr <= 0) {                  /* If receiver's capacity has been exhausted               */
+            sortrcvnum ++;                        /* Switch to next receiver                                 */
+            commrcvnum = 0;
+
+            procrcvnum = (int) procsrttab[sortrcvnum].procnum; /* Get receiver index                                    */
+            slotrcvnum = procrcvnum * commsiz + 1;        /* Start slot of receiver is after local slot (even if empty) */
+            vertrcvnbr = vertglbdlt - procsrttab[sortrcvnum].vertnbr; /* Compute capacity of receiver process           */
           }
         }
-        else if (procsndnum == grafptr->proclocnum) { /* If we are the sending process */
-          commdattab[flagsndval].procnum = procrcvnum; /* Record communication         */
-          commdattab[flagsndval].vertnbr = vertsndnbr;
-          commvrttab[flagsndval] = grafptr->procvrttab[procsndnum] + grafptr->proccnttab[procsndnum] - vertsndrmn; /* Set starting global index of vertices to be sent */
-        }
-        vertglbsum += vertsndnbr;                 /* Account for vertices sent and received */
-        vertsndrmn -= vertsndnbr;
-        flagsndval ++;
-        flagrcvval ++;
-      }
-      if (vertsndrmn <= 0) {                      /* If sending process has sent everything */
-        procsndidx = procsndnxt;                  /* Process next vertex to send            */
-        if (procsndidx < procsndmnd)              /* If was last sending process, end loop  */
-          break;
-        procsndnxt = procsndidx - 1;              /* Prepare next sender process  */
-        flagsndval = flagsndnxt;                  /* Skip to next sending process */
-        vertsndrmn = procsrttab[procsndidx].vertnbr - vertsndnxt;
-      }
-      if ((flagrcvval >= commmax) ||              /* If receiver cannot receive more                                 */
-          ((vertglbsum >= vertglbavg) &&          /* Or has received what it needed and is not forced to accept more */
-           (((procrcvnnd - procrcvidx) * (commmax - 1) - flagrcvval) > (procsndidx - procsndmnd)))) {
-        if (++ procrcvidx >= procrcvnnd)          /* If was last receiver, exit loop and go finalizing communication arrays */
-          break;
 
-        procrcvnum  = procsrttab[procrcvidx].procnum; /* Skip to next receiver process */
-        vertglbavg += DATASIZE (grafptr->vertglbnbr, fldprocnbr, procrcvidx - procrcvbas);
-        if (procsrttab[procrcvidx].vertnbr >= 0) { /* If receiver did not receive from a sender receiver */
-          flagrcvval  = 0;
-          vertglbsum += procsrttab[procrcvidx].vertnbr; /* Account for vertices already present in receiver process */
+        flagrcvval = 1;                           /* Assume receiver will be full                       */
+        if (vertsndnbr < vertrcvnbr) {            /* If less vertices (remaining) to send than capacity */
+          vertrcvnbr = vertsndnbr;                /* Only send and receive the given amount             */
+          flagrcvval = 0;                         /* Receiver will not be considered full               */
         }
-        else {                                    /* Receiver already received from a sender receiver */
-          flagrcvval  = 1;                        /* Already a communication performed                */
-          vertglbsum -= procsrttab[procrcvidx].vertnbr; /* Use negative value                         */
+        vertsndnbr -= vertrcvnbr;                 /* Remove number of received vertices from amount to send */
+
+        if (fldproccnttab != NULL) {              /* If we are a receiver process, fill count and adjustment arrays */
+          int                 slotsndtmp;         /* Index of current slot for communication send                   */
+
+          slotsndtmp = 0;                         /* Assume sender is a pure sender                               */
+          if (flagsndval != DGRAPHFOLDCOMMSEND) { /* If sender is a sender receiver                               */
+            vertdlttab[slotsndnum] -= vertrcvnbr; /* Remove vertices from the initial slot of the sender receiver */
+            slotsndtmp = 1;                       /* Send slots will be created after local receiver slot         */
+
+            if (procsndnum == orgproclocnum) {    /* If we are the sender receiver process */
+              *commtypvalptr = flagsndval;        /* Indicate it (maybe multiple times!)   */
+              commdattab[commsndnum].vertnbr = vertrcvnbr; /* Record send communication    */
+              commdattab[commsndnum].procnum = (Gnum) procrcvnum;
+              commvrttab[commsndnum] = vertadjval;
+            }
+          }
+          if (procrcvnum == orgproclocnum) {      /* If we are the receiver process      */
+            commdattab[commrcvnum].vertnbr = vertrcvnbr; /* Record receive communication */
+            commdattab[commrcvnum].procnum = (Gnum) procsndnum;
+            commvrttab[commrcvnum] = vertadjval;
+          }
+
+          slotsndtmp += slotsndnum + commsndnum;  /* Compute actual send slot index */
+          vertadjtab[slotsndtmp] = vertadjval;    /* Record communication in slot   */
+          vertdlttab[slotsndtmp] = vertrcvnbr;
+          slotsndtax[slotrcvnum + commrcvnum] = slotsndtmp; /* Receiver slot points to sender slot */
+        }
+        else {                                    /* We are a sender process      */
+          if (procsndnum == orgproclocnum) {      /* If we are the sender process */
+            commdattab[commsndnum].vertnbr = vertrcvnbr; /* Record communication  */
+            commdattab[commsndnum].procnum = (Gnum) procrcvnum;
+            commvrttab[commsndnum] = vertadjval;
+          }
+        }
+
+        commrcvnum ++;                            /* One more communication performed for receiver and sender processes */
+        commsndnum ++;
+        if ((flagrcvval != 0) ||                  /* If receiver has been filled by previous communication    */
+            (commrcvnum == commmax)) {            /* Or maximum number of communications reached for receiver */
+          sortrcvnum ++;                          /* Switch to next receiver                                  */
+          commrcvnum = 0;
+        }
+        vertadjval += vertrcvnbr;                 /* Update start global vertex index of next chunk  */
+      } while (vertsndnbr > 0);                   /* As long as there are vertices to send           */
+      if (commrcvnum > 0) {                       /* If current receiver may receive more messages   */
+        Gnum                vertrcvtmp;
+
+        vertrcvtmp = procsrttab[sortrcvnum].vertnbr + vertrcvnbr; /* Update its capacity from last communication */
+        if (vertrcvtmp < 0)                       /* If vertex has not been overloaded by previous communication */
+          procsrttab[sortrcvnum].vertnbr = vertrcvtmp; /* Update capacity to be taken into account in next round */
+        else {                                    /* Else switch to next receiver                                */
+          sortrcvnum ++;
+          commrcvnum = 0;
         }
       }
     }
-
-    if ((procsndidx <= procsndmnd) && (vertsndrmn <= 0)) /* If no sender vertex which has something to send remains */
-      break;                                      /* Exit the loop on increasing number of communications           */
+redo: ;                                           /* Increase maximum number of communications and retry */
   }
+done:                                             /* A valid communication pattern has been produced */
+
+  memFree (procsrttab);                           /* Sort array is no longer necessary */
 
 #ifdef SCOTCH_DEBUG_DGRAPH2
   chekloctab[0] = - commmax;
   chekloctab[1] =   commmax;
   if (MPI_Allreduce (chekloctab, chekglbtab, 2, MPI_INT, MPI_MAX, grafptr->proccomm) != MPI_SUCCESS) {
-    errorPrint ("dgraphFoldComm: communication error");
+    errorPrint ("dgraphFoldComm: communication error (1)");
     memFree    (commdattab);                      /* Free group leader */
-    return     (1);
+    return (1);
   }
   if ((chekglbtab[0] != chekloctab[0]) ||
       (chekglbtab[1] != chekloctab[1])) {
     errorPrint ("dgraphFoldComm: internal error (3)");
     memFree    (commdattab);                      /* Free group leader */
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
 
-  if (proccnttab != NULL) {                       /* If we are a receiver process                  */
-    int                   vertadjnbr;             /* Number of adjustment slots                    */
-    Gnum                  vertadjsum;             /* Current new starting position of current slot */
+  if (fldproccnttab != NULL) {                    /* If we are a receiver process, finalize arrays  */
+    Gnum *              fldproccntptr;            /* Pointer to current cell of proccnttab to fill  */
+    Gnum                fldvertlocnbr;            /* Number of vertices in folded receiver process  */
+    int                 vertadjnbr;               /* Number of adjustment slots                     */
+    Gnum                vertadjsum;               /* Current new starting position of current slot  */
+    int                 slotglbnbr;               /* Number of slots in the full slot array         */
+    int                 slotglbnum;               /* Index of current slot in the full slot array   */
+    int                 slotrcvnbr;               /* Number of slots in the receiver part of arrays */
+    int                 slotrcvnum;               /* Index of current slot in receiver part         */
+    int                 commsiz;                  /* Number of communication slots per process      */
+    int                 commnum;                  /* Index of communication for current receiver    */
 
-    for (procnum = 0, vertadjsum = grafptr->baseval; procnum < ((commmax + 1) * fldprocnbr); procnum ++) {
-      int                   vertprmnum;
-      Gnum                  vertadjtmp;
+    commsiz = commmax + 1;
+    for (slotrcvnum = 0, commnum = 0, fldvertlocnbr = 0, fldproccntptr = fldproccnttab, /* For all receiver processes and slots */
+         slotrcvnbr = commsiz * procfldnbr, vertadjsum = grafptr->baseval; /* Compute slot adjustments and number of vertices   */
+         slotrcvnum < slotrcvnbr; slotrcvnum ++, commnum ++) {
+      Gnum                vertadjtmp;
+      int                 slotsndnum;             /* Index of sender slot matching the receiver slot */
 
-      vertprmnum = vertprmtab[procnum];
-      if (vertprmnum == ~0)                       /* Skip empty slots */
+      if (commnum == commsiz) {                   /* If reached the slots of a new receiver process */
+        *(fldproccntptr ++) = fldvertlocnbr;      /* Record number of vertices in proccnttab        */
+        fldvertlocnbr = 0;                        /* Reset number of vertices and of communications */
+        commnum = 0;
+      }
+
+      slotsndnum = slotsndtab[slotrcvnum];        /* Get index of matching sender slot */
+      if (slotsndnum == -1)                       /* Skip empty slots                  */
         continue;
 
-      vertadjtmp = vertdlttab[vertprmnum];        /* Accumulate new slot indices and compute adjustments */
-      vertdlttab[vertprmnum] = vertadjsum - vertadjtab[vertprmnum];
+      vertadjtmp = vertdlttab[slotsndnum];        /* Accumulate sender slot indices and compute adjustments */
+      vertdlttab[slotsndnum] = vertadjsum - vertadjtab[slotsndnum];
       vertadjsum += vertadjtmp;
+      fldvertlocnbr += vertadjtmp;
     }
+    *fldproccntptr = fldvertlocnbr;               /* Record last cell in proccnttab */
 
-    for (procnum = vertadjnbr = 0; procnum < (commmax * grafptr->procglbnbr); procnum ++) { /* Compact vertex adjustment arrays */
-      if (vertadjtab[procnum] != -1) {
-        vertadjtab[vertadjnbr] = vertadjtab[procnum];
-        vertdlttab[vertadjnbr] = vertdlttab[procnum];
+    for (slotglbnum = vertadjnbr = 0, slotglbnbr = (commmax + 1) * orgprocglbnbr; /* Compact vertex adjustment arrays */
+         slotglbnum < slotglbnbr; slotglbnum ++) {
+      if (vertadjtab[slotglbnum] != -1) {         /* If slot is not empty, compact it */
+        vertadjtab[vertadjnbr] = vertadjtab[slotglbnum];
+        vertdlttab[vertadjnbr] = vertdlttab[slotglbnum];
         vertadjnbr ++;
       }
     }
-    vertadjtab[vertadjnbr] = grafptr->procvrttab[grafptr->procglbnbr]; /* Set upper bound on global vertex indices */
+    vertadjtab[vertadjnbr] = orgprocvrttab[orgprocglbnbr]; /* Set upper bound on global vertex indices */
 
     *vertadjnbrptr = vertadjnbr;
-    *vertadjptr    = vertadjtab;
-    *vertdltptr    = vertdlttab;
+    *vertadjtabptr = vertadjtab;
+    *vertdlttabptr = vertdlttab;
   }
-  *commdatptr = commdattab;                       /* Set group leader */
-  *commvrtptr = commvrttab;
-  *commptr    = commmax;
-
-  memFree (procsrttab);
+  *commdattabptr = commdattab;                    /* Set group leader */
+  *commvrttabptr = commvrttab;
+  *commmaxptr    = commmax;
 
 #ifdef SCOTCH_DEBUG_DGRAPH2
-  if (proccnttab == NULL) {                       /* If we are a sender process       */
-    Gnum                  vertsndnbr;             /* Number of vertices actually sent */
-    int                   i;
+  if (fldproccnttab == NULL) {                    /* If we are a sender process       */
+    Gnum                vertsndnbr;               /* Number of vertices actually sent */
+    int                 commnum;
 
-    for (i = 0, vertsndnbr = 0; (i < commmax) && (commdattab[i].procnum >= 0); i ++)
-      vertsndnbr += commdattab[i].vertnbr;
-    if (vertsndnbr != grafptr->vertlocnbr) {
+    for (commnum = 0, vertsndnbr = 0;             /* Accumulate number of vertices sent */
+         (commnum < commmax) && (commdattab[commnum].procnum >= 0); commnum ++)
+      vertsndnbr += commdattab[commnum].vertnbr;
+    if (vertsndnbr != grafptr->vertlocnbr) {      /* All vertices should have been sent */
       errorPrint ("dgraphFoldComm: internal error (4)");
-      memFree    (commdattab);                    /* Free group leader */
-      return     (1);
+      commdattab[0].procnum = -2;                 /* Set collective error flag */
     }
   }
   if (MPI_Allgather (commdattab, 2 * commmax, GNUM_MPI,
                      procchktab, 2 * commmax, GNUM_MPI, grafptr->proccomm) != MPI_SUCCESS) {
-    errorPrint ("dgraphFoldComm: communication error");
-    memFree    (commdattab);                      /* Free group leader */
-    return     (1);
+    errorPrint ("dgraphFoldComm: communication error (2)");
+    goto fail;
   }
 
-  for (procnum = 0; procnum < grafptr->procglbnbr; procnum ++) {
-    int                   commnum;
+  for (procnum = 0; procnum < orgprocglbnbr; procnum ++) { /* For all processes in initial graph */
+    int                 commnum;
 
-    for (commnum = 0; (commnum < commmax) && (procchktab[commmax * procnum + commnum].procnum != -1); commnum ++) {
-      Gnum                  procend;
-      Gnum                  vertnbr;
-      int                   commend;
+    if (commdattab[0].procnum == -2)              /* Delayed error handling */
+      goto fail;
 
-      procend = procchktab[commmax * procnum + commnum].procnum;
+    for (commnum = 0; (commnum < commmax) && (procchktab[commmax * procnum + commnum].procnum != -1); commnum ++) { /* For all communications */
+      Gnum                procend;
+      Gnum                vertnbr;
+      int                 commend;
+
+      procend = procchktab[commmax * procnum + commnum].procnum; /* Get communication parameters */
       vertnbr = procchktab[commmax * procnum + commnum].vertnbr;
 
-      for (commend = 0; commend < commmax; commend ++) {
-        if ((procchktab[commmax * procend + commend].procnum == procnum) &&
-            (procchktab[commmax * procend + commend].vertnbr == vertnbr))
-          break;
+      for (commend = 0; commend < commmax; commend ++) { /* Search for matching communication */
+        if ((procchktab[procend * commmax + commend].procnum == procnum) &&
+            (procchktab[procend * commmax + commend].vertnbr == vertnbr))
+          break;                                  /* If matching communication found, terminate search */
       }
-      if (commend >= commmax) {
+      if (commend >= commmax) {                   /* If no matching communication found */
         errorPrint ("dgraphFoldComm: internal error (5)");
-        memFree    (commdattab);                  /* Free group leader */
-        return     (1);
+fail:
+        memFree (commdattab);                     /* Free group leader */
+        return  (1);
       }
     }
   }

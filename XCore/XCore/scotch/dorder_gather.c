@@ -1,4 +1,4 @@
-/* Copyright 2007,2008,2013 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2008,2013,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -39,19 +39,19 @@
 /**                orderings.                              **/
 /**                                                        **/
 /**   DATES      : # Version 5.0  : from : 19 jul 2007     **/
-/**                                 to     10 sep 2007     **/
+/**                                 to   : 10 sep 2007     **/
 /**                # Version 5.1  : from : 28 sep 2008     **/
-/**                                 to     28 sep 2008     **/
+/**                                 to   : 28 sep 2008     **/
 /**                # Version 6.0  : from : 10 oct 2013     **/
-/**                                 to     10 oct 2013     **/
+/**                                 to   : 10 oct 2013     **/
+/**                # Version 7.0  : from : 18 jan 2023     **/
+/**                                 to   : 10 aug 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The defines and includes.
 */
-
-#define DORDER
 
 #include "module.h"
 #include "common.h"
@@ -101,13 +101,6 @@ Order * restrict const        cordptr)
   int                         cheklocval;
   int                         chekglbval;
 
-#ifdef SCOTCH_DEBUG_DORDER2
-  if ((DORDERCBLKNEDI == 0) || (DORDERCBLKNEDI != ORDERCBLKNEDI)) {
-    errorPrint ("dorderGather: internal error (1)");
-    return     (1);
-  }
-#endif /* SCOTCH_DEBUG_DORDER2 */
-
   for (linklocptr = dordptr->linkdat.nextptr, leaflocnbr = vnodlocnbr = 0; /* For all nodes in local ordering structure */
        linklocptr != &dordptr->linkdat; linklocptr = linklocptr->nextptr) {
     const DorderCblk * restrict cblklocptr;
@@ -120,7 +113,7 @@ Order * restrict const        cordptr)
 #ifdef SCOTCH_DEBUG_DORDER2
     else if (cblklocptr->typeval != DORDERCBLKNEDI) {
       errorPrint ("dorderGather: invalid parameters");
-      return     (1);
+      return (1);
     }
 #endif /* SCOTCH_DEBUG_DORDER2 */
   }
@@ -152,7 +145,7 @@ Order * restrict const        cordptr)
   }
   if (dgraphAllreduceMaxSum (reduloctab, reduglbtab, 1, 1, dordptr->proccomm) != 0) {
     errorPrint ("dorderGather: communication error (1)");
-    return     (1);
+    return (1);
   }
   if (reduglbtab[1] != 1) {
     errorPrint ("dorderGather: should have only one root");
@@ -169,7 +162,7 @@ Order * restrict const        cordptr)
   reduloctab[1] = vnodlocnbr;
   if (MPI_Gather (reduloctab, 2, GNUM_MPI, perircvtab, 2, GNUM_MPI, protnum, dordptr->proccomm) != MPI_SUCCESS) {
     errorPrint ("dorderGather: communication error (2)");
-    return     (1);
+    return (1);
   }
 
   if (dordptr->proclocnum == protnum) {
@@ -202,7 +195,7 @@ Order * restrict const        cordptr)
 #ifdef SCOTCH_DEBUG_DORDER1                       /* Communication cannot be merged with a useful one */
   if (MPI_Allreduce (&cheklocval, &chekglbval, 1, MPI_INT, MPI_MAX, dordptr->proccomm) != MPI_SUCCESS) {
     errorPrint ("dorderGather: communication error (3)");
-    return     (1);
+    return (1);
   }
 #else /* SCOTCH_DEBUG_DORDER1 */
   chekglbval = cheklocval;
@@ -221,8 +214,8 @@ Order * restrict const        cordptr)
     for (linklocptr = dordptr->linkdat.nextptr; linklocptr != &dordptr->linkdat; linklocptr = linklocptr->nextptr) { /* For all nodes */
       const DorderCblk * restrict cblklocptr;
 
-      cblklocptr = (DorderCblk *) linklocptr;     /* TRICK: FIRST                              */
-      if ((cblklocptr->typeval & DORDERCBLKLEAF) != 0)  /* If tree node is leaf, copy fragment */
+      cblklocptr = (DorderCblk *) linklocptr;     /* TRICK: FIRST                             */
+      if ((cblklocptr->typeval & DORDERCBLKLEAF) != 0) /* If tree node is leaf, copy fragment */
         memCpy (cordptr->peritab + cblklocptr->data.leaf.ordelocval, cblklocptr->data.leaf.periloctab, cblklocptr->data.leaf.vnodlocnbr * sizeof (Gnum));
     }
   }
@@ -248,7 +241,7 @@ Order * restrict const        cordptr)
 
   if (MPI_Gatherv (leafsndtab, leafsndnbr, GNUM_MPI, leafrcvtab, recvcnttab, recvdsptab, GNUM_MPI, protnum, dordptr->proccomm) != MPI_SUCCESS) {
     errorPrint ("dorderGather: communication error (4)");
-    return     (1);
+    return (1);
   }
 
   if (dordptr->proclocnum == protnum) {
@@ -264,14 +257,14 @@ Order * restrict const        cordptr)
 #ifdef SCOTCH_DEBUG_DORDER2
     if (((Gnum) vnodglbnbr + vnodlocnbr) != dordptr->vnodglbnbr) {
       errorPrint ("dorderGather: internal error (2)");
-      return     (1);
+      return (1);
     }
 #endif /* SCOTCH_DEBUG_DORDER2 */
   }
 
   if (MPI_Gatherv (perisndtab, perisndnbr, GNUM_MPI, perircvtab, recvcnttab, recvdsptab, GNUM_MPI, protnum, dordptr->proccomm) != MPI_SUCCESS) {
     errorPrint ("dorderGather: communication error (5)");
-    return     (1);
+    return (1);
   }
 
   if (dordptr->proclocnum == protnum) {           /* If root process */
@@ -294,7 +287,7 @@ Order * restrict const        cordptr)
   if (dordptr->proclocnum == protnum) {
     if (orderCheck (cordptr) != 0) {
       errorPrint ("dorderGather: invalid centralized ordering");
-      return     (1);
+      return (1);
     }
   }
 #endif /* SCOTCH_DEBUG_DORDER2 */
@@ -341,7 +334,7 @@ const int                     protnum)
         ((cblklocptr->typeval & DORDERCBLKLEAF) != 0)           &&
         (cblklocptr->data.leaf.nodelocnbr != 0)) {
       errorPrint ("dorderGatherTree: not implemented");
-      return     (1);
+      return (1);
     }
 #endif /* SCOTCH_DEBUG_DORDER2 */
 
@@ -366,7 +359,7 @@ const int                     protnum)
 #ifdef SCOTCH_DEBUG_DORDER1                       /* Communication cannot be merged with a useful one */
   if (MPI_Allreduce (&cheklocval, &chekglbval, 1, MPI_INT, MPI_MAX, dordptr->proccomm) != MPI_SUCCESS) {
     errorPrint ("dorderGatherTree: communication error (1)");
-    return     (1);
+    return (1);
   }
 #else /* SCOTCH_DEBUG_DORDER1 */
   chekglbval = cheklocval;
@@ -379,7 +372,7 @@ const int                     protnum)
 
   if (MPI_Allgather (&treelocnbr, 1, MPI_INT, treecnttab, 1, MPI_INT, dordptr->proccomm) != MPI_SUCCESS) {
     errorPrint ("dorderGatherTree: communication error (2)");
-    return     (1);
+    return (1);
   }
 
   for (procnum = 0, treeglbnbr = 0; procnum < procglbnbr; procnum ++) { /* Compute prefix sum of local numbers for global numbering */
@@ -405,7 +398,7 @@ const int                     protnum)
 #ifdef SCOTCH_DEBUG_DORDER1                       /* Communication cannot be merged with a useful one */
   if (MPI_Allreduce (&cheklocval, &chekglbval, 1, MPI_INT, MPI_MAX, dordptr->proccomm) != MPI_SUCCESS) {
     errorPrint ("dorderGather: communication error (3)");
-    return     (1);
+    return (1);
   }
 #else /* SCOTCH_DEBUG_DORDER1 */
   chekglbval = cheklocval;
@@ -423,12 +416,12 @@ const int                     protnum)
       continue;
 
     treesndptr->fathnum = treedsptab[cblklocptr->fathnum.proclocnum] + cblklocptr->fathnum.cblklocnum; /* If node is (part of) the root node */
-    treesndptr->typeval = (Gnum) (((cblklocptr->typeval & DORDERCBLKNEDI) != 0) ? ORDERCBLKNEDI : ORDERCBLKOTHR);
+    treesndptr->typeval = (Gnum) ((cblklocptr->typeval == DORDERCBLKLEAF) ? ORDERCBLKLEAF : (cblklocptr->typeval & ~DORDERCBLKLEAF));
     treesndptr->vnodnbr = cblklocptr->vnodglbnbr;
     treesndptr->cblknum = cblklocptr->cblkfthnum;
     treesndptr ++;
 
-    if ((cblklocptr->typeval & DORDERCBLKLEAF) != 0) {  /* If node is a distributed leaf */
+    if ((cblklocptr->typeval & DORDERCBLKLEAF) != 0) { /* If node is a distributed leaf */
       Gnum                        cblkglbnum;
       Gnum                        cblkglbadj;
       const DorderNode * restrict nodelocptr;
@@ -449,14 +442,14 @@ const int                     protnum)
 #ifdef SCOTCH_DEBUG_DORDER2
     else if (cblklocptr->typeval != DORDERCBLKNEDI) {
       errorPrint ("dorderGatherTree: invalid column block type");
-      return     (1);
+      return (1);
     }
 #endif /* SCOTCH_DEBUG_DORDER2 */
   }
 #ifdef SCOTCH_DEBUG_DORDER2
   if (treesndptr != ((dordptr->proclocnum == protnum) ? (treercvtab + treedsptab[protnum]) : treesndtab) + treelocnbr) {
     errorPrint ("dorderGatherTree: internal error (1)");
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_DORDER2 */
 
@@ -469,7 +462,7 @@ const int                     protnum)
   if (MPI_Gatherv (treesndtab, treesndnbr * DORDERGATHERNODESIZE, GNUM_MPI,
                    treercvtab, treecnttab, treedsptab, GNUM_MPI, protnum, dordptr->proccomm) != MPI_SUCCESS) {
     errorPrint ("dorderGatherTree: communication error (4)");
-    return     (1);
+    return (1);
   }
 
   if (dordptr->proclocnum == protnum) {
@@ -486,7 +479,7 @@ const int                     protnum)
       if ((cblkfthnum < 0) ||                     /* Father of non-root node cannot be -1                 */
           (cblkfthnum >= treeglbnum)) {           /* Father should always have smaller global node number */
         errorPrint ("dorderGatherTree: internal error (2)");
-        return     (1);
+        return (1);
       }
 #endif /* SCOTCH_DEBUG_DORDER2 */
       cblkglbtab[cblkfthnum].cblknbr ++;          /* Add a son to its father */
@@ -497,7 +490,7 @@ const int                     protnum)
 #ifdef SCOTCH_DEBUG_DORDER2
         if (cblkglbtab[treeglbnum].cblknbr < 2) { /* Descendent nodes should comprise at least two column block slots */
           errorPrint ("dorderGatherTree: internal error (3)");
-          return     (1);
+          return (1);
         }
 #endif /* SCOTCH_DEBUG_DORDER2 */
         cblkglbnbr --;                            /* One new subblock means one more shared frontier, so one less column block than nodes */
@@ -509,7 +502,7 @@ const int                     protnum)
           }
           memFree (treercvtab);
           memFree (treecnttab);
-          return (1);
+          return  (1);
         }
       }
     }
@@ -518,7 +511,7 @@ const int                     protnum)
     cordptr->cblktre.typeval = (int) treercvtab[0].typeval; /* Process root node of separator tree */
     cordptr->cblktre.vnodnbr = treercvtab[0].vnodnbr;
     cordptr->cblktre.cblknbr = cblkglbtab[0].cblknbr;
-    cordptr->cblktre.cblktab = cblkglbtab[0].cblktab; /* Link its sons array  */
+    cordptr->cblktre.cblktab = cblkglbtab[0].cblktab; /* Link its sons array */
 
     for (treeglbnum = 1; treeglbnum < treeglbnbr; treeglbnum ++) { /* For all nodes except the root */
       Gnum                  cblkfthnum;
@@ -528,7 +521,7 @@ const int                     protnum)
 #ifdef SCOTCH_DEBUG_DORDER2
       if ((cblkfthnum < 0) || (cblkfthnum >= cblkglbtab[treercvtab[treeglbnum].fathnum].cblknbr)) {
         errorPrint ("dorderGatherTree: internal error (4)");
-        return     (1);
+        return (1);
       }
 #endif /* SCOTCH_DEBUG_DORDER2 */
       cblksonptr = &cblkglbtab[treercvtab[treeglbnum].fathnum].cblktab[cblkfthnum]; /* Point to son's slot in father array */

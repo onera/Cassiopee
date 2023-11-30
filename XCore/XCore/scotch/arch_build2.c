@@ -1,4 +1,4 @@
-/* Copyright 2015,2016,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2015,2016,2018,2019,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,7 +40,9 @@
 /**                from a source graph.                    **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 02 may 2015     **/
-/**                                 to     22 feb 2018     **/
+/**                                 to   : 22 feb 2018     **/
+/**                # Version 7.0  : from : 22 aug 2019     **/
+/**                                 to   : 17 jan 2023     **/
 /**                                                        **/
 /**   NOTES      : # The code of the main routine derives  **/
 /**                  from that of archSubArchBuild().      **/
@@ -51,8 +53,8 @@
 **  The defines and includes.
 */
 
-#define ARCH_DECO2
-#define ARCH_BUILD2
+#define SCOTCH_ARCH_DECO2
+#define SCOTCH_ARCH_BUILD2
 
 #include "module.h"
 #include "common.h"
@@ -121,7 +123,8 @@ static
 int
 archDeco2BuildMatchInit (
 ArchDeco2BuildMatch * restrict const  matcptr,
-const Graph * restrict const          grafptr)
+const Graph * restrict const          grafptr,
+Context * const                       contptr)
 {
   Gnum                verttmp;
   Gnum                levlmax;                    /* Estimated upper bound on number of coarsening levels */
@@ -137,6 +140,8 @@ const Graph * restrict const          grafptr)
     return     (1);
   }
 #endif /* SCOTCH_DEBUG_ARCH1 */
+
+  matcptr->contptr = contptr;
 
   for (hashsiz = 32, hashmax = grafptr->degrmax * 4; /* Compute size of hash table */
        hashsiz < hashmax; hashsiz *= 2) ;
@@ -280,7 +285,7 @@ ArchCoarsenMulti * restrict * restrict const  multptr)
   coargrafptr = &coarlevlptr->grafdat;
   if (graphCoarsen (&finelevlptr->grafdat, coargrafptr,
                     (Gnum **) &finecoartax, (GraphCoarsenMulti **) &coarmulttax,
-                    0, 1.0, GRAPHCOARSENNONE, NULL, NULL, 0, NULL) != 0) {
+                    0, 1.0, GRAPHCOARSENNONE, NULL, NULL, 0, matcptr->contptr) != 0) {
     errorPrint ("archDeco2BuildMatchMate: cannot coarsen graph");
     return     (-1);
   }
@@ -515,7 +520,8 @@ archDeco2ArchBuild (
 Arch * restrict const       archptr,              /*+ Decomposition architecture to build    +*/
 const Graph * const         grafptr,              /*+ Source graph modeling the architecture +*/
 const Gnum                  vnumnbr,              /*+ Number of vertices in list             +*/
-const Gnum * restrict const vnumtab)              /*+ vertex array                           +*/
+const Gnum * restrict const vnumtab,              /*+ vertex array                           +*/
+Context * const             contptr)              /*+ Execution context                      +*/
 {
   ArchDeco2Build3     datadat;                    /* Data for building decomposition tree */
   ArchDeco2BuildMatch matcdat;                    /* Data for successive matchings        */
@@ -618,7 +624,7 @@ const Gnum * restrict const vnumtab)              /*+ vertex array              
     treetab[vertnum].termnum = vnumnum;           /* Sub-architecture terminal number in original architecture */
   }
 
-  if (archDeco2BuildMatchInit (&matcdat, grafptr) != 0) { /* Initialize matching structure */
+  if (archDeco2BuildMatchInit (&matcdat, grafptr, contptr) != 0) { /* Initialize matching structure */
     errorPrint ("archDeco2ArchBuild: cannot initialize matching structure");
     if (velotmp != NULL)
       memFree (velotmp);
@@ -641,8 +647,6 @@ const Gnum * restrict const vnumtab)              /*+ vertex array              
 #ifdef SCOTCH_DEBUG_ARCH1
   decoptr->vnumtab = NULL;
 #endif /* SCOTCH_DEBUG_ARCH1 */
-
-  intRandInit ();                                 /* Initialize random generator for coarsening */
 
   matcdat.vertsum = vnumnbr;                      /* Account for kept vertices of original graph */
   rootptr = archSubArchBuild2 (&matcdat, (Anum (*) (void *, ArchCoarsenMulti * restrict *)) archDeco2BuildMatchMate, treetab, vnumnbr);
@@ -692,7 +696,7 @@ const Gnum * restrict const vnumtab)              /*+ vertex array              
       return     (1);
     }
 #endif /* SCOTCH_DEBUG_ARCH2 */
-    if ((levlptr->wdiaval = graphDiamPV (&levlptr->grafdat)) < 0) {
+    if ((levlptr->wdiaval = graphDiamPV (&levlptr->grafdat, matcdat.contptr)) < 0) {
       errorPrint ("archDeco2ArchBuild: cannot compute graph diameter");
       return     (1);
     }

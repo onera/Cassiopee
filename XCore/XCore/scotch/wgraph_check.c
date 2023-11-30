@@ -1,4 +1,4 @@
-/* Copyright 2007-2010,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007-2010,2018,2020,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -35,15 +35,20 @@
 /**                                                        **/
 /**   AUTHOR     : Jun-Ho HER (v6.0)                       **/
 /**                Charles-Edmond BICHOT (v5.1b)           **/
+/**                Francois PELLEGRINI                     **/
 /**                                                        **/
-/**   FUNCTION   : This module check the graph consistency **/
-/**                for the vertex overlapped graph partit- **/
-/**                ioning.                                 **/
+/**   FUNCTION   : This module checks the graph consist-   **/
+/**                ency for the vertex overlapped graph    **/
+/**                partitioning module.                    **/
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 01 dec 2007     **/
 /**                                 to   : 01 jul 2008     **/
 /**                # Version 6.0  : from : 05 nov 2009     **/
 /**                                 to   : 31 may 2018     **/
+/**                # Version 6.1  : from : 09 aug 2020     **/
+/**                                 to   : 02 dec 2021     **/
+/**                # Version 7.0  : from : 16 jan 2023     **/
+/**                                 to   : 16 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -51,18 +56,11 @@
 **  The defines and includes.
 */
 
-#define WGRAPH_CHECK
-
 #include "module.h"
 #include "common.h"
 #include "graph.h"
+#include "arch.h"
 #include "wgraph.h"
-
-/*
-**  The static variables.
-*/
-
-static const Gnum           wgraphcheckloadone = 1;
 
 /*************************/
 /*                       */
@@ -82,105 +80,114 @@ int
 wgraphCheck (
 const Wgraph * const        grafptr)
 {
-  Gnum                      vertnum;              /* Number of current vertex             */
-  const Gnum * restrict     velobax;              /* Data for handling of optional arrays */
-  Gnum                      velomsk;
-  Gnum                      edgenum;
+  Gnum                      vertnum;
   Gnum                      partnum;
-  Gnum                      fronnum;              /* Current number of frontier vertex    */
-  Gnum                      fronload;
-  Gnum * restrict           compload;
-  Gnum * restrict           compsize;
+  Gnum                      fronnbr;
+  Gnum                      fronnum;
+  Gnum                      frlosum;
+  Gnum * restrict           comploadtab;
+  Gnum * restrict           compsizetab;
   Gnum * restrict           flagtab;
+  int                       o;
 
   if (memAllocGroup ((void **) (void *)
-                     &flagtab,  (size_t) (grafptr->partnbr * sizeof (Gnum)),
-                     &compload, (size_t) (grafptr->partnbr * sizeof (Gnum)),
-                     &compsize, (size_t) (grafptr->partnbr * sizeof (Gnum)), NULL) == NULL) {
-    errorPrint ("wgraphCheck: out of memory (1)");
-    return     (1);
+                     &flagtab,     (size_t) (grafptr->partnbr * sizeof (Gnum)),
+                     &comploadtab, (size_t) (grafptr->partnbr * sizeof (Gnum)),
+                     &compsizetab, (size_t) (grafptr->partnbr * sizeof (Gnum)), NULL) == NULL) {
+    errorPrint ("wgraphCheck: out of memory");
+    return (1);
   }
 
-  if (grafptr->s.velotax == NULL) {               /* Set accesses to optional arrays             */
-    velobax = &wgraphcheckloadone;                /* In case vertices not weighted (least often) */
-    velomsk = 0;
-  }
-  else {
-    velobax = grafptr->s.velotax;
-    velomsk = ~((Gnum) 0);
+  o = 1;                                          /* Assume an error */
+  fronnbr =
+  frlosum = 0;
+  memSet (comploadtab, 0, grafptr->partnbr * sizeof (Gnum)); /* Reset loads */
+  memSet (compsizetab, 0, grafptr->partnbr * sizeof (Gnum));
+  memSet (flagtab,    ~0, grafptr->partnbr * sizeof (Gnum)); /* Reset flag array */
+
+  for (vertnum = grafptr->s.baseval; vertnum < grafptr->s.vertnnd; vertnum ++) { /* Check part array */
+    Anum                partnum;
+
+    partnum = grafptr->parttax[vertnum];
+
+    if ((partnum >= grafptr->partnbr) ||
+        (partnum <  -1)) {
+      errorPrint ("wgraphCheck: invalid part array");
+      goto abort;
+    }
   }
 
-  fronnum  =
-  fronload = 0;
-  memSet (compload, 0, grafptr->partnbr * sizeof (Gnum)); /* Reset loads */
-  memSet (compsize, 0, grafptr->partnbr * sizeof (Gnum));
-  memSet (flagtab, ~0, grafptr->partnbr * sizeof (Gnum)); /* Reset flag array */
+  if (grafptr->fronnbr < 0) {
+    errorPrint ("wgraphCheck: invalid frontier size");
+    goto abort;
+  }
+  for (fronnum = 0; fronnum < grafptr->fronnbr; fronnum ++) {
+    Gnum                vertnum;
+
+    vertnum = grafptr->frontab[fronnum];
+    if (grafptr->parttax[vertnum] != -1) {
+      errorPrint ("wgraphCheck: invalid frontier array");
+      goto abort;
+    }
+  }
 
   for (vertnum = grafptr->s.baseval; vertnum < grafptr->s.vertnnd; vertnum ++) {
-    if ((grafptr->parttax[vertnum] >= grafptr->partnbr) ||
-       	(grafptr->parttax[vertnum] < -1)) {
-      errorPrint ("wgraphCheck: invalid part array");
-      memFree    (flagtab);                       /* Free group leader */
-      return     (1);
-    }
+    Anum                partnum;
+    Gnum                veloval;
 
-    if (grafptr->parttax[vertnum] == -1) {
-      fronnum ++;
-      fronload += velobax[vertnum & velomsk];
+    veloval = (grafptr->s.velotax != NULL) ? grafptr->s.velotax[vertnum] : 1;
+    partnum = grafptr->parttax[vertnum];
+
+    if (partnum == -1) {
+      Gnum                edgenum;
+
+      frlosum += veloval;
+      fronnbr ++;
 
       for (edgenum = grafptr->s.verttax[vertnum];
            edgenum < grafptr->s.vendtax[vertnum]; edgenum ++) {
-        Gnum               vertend;
+        Gnum                vertend;
+        Anum                partend;
 
         vertend = grafptr->s.edgetax[edgenum];
-        if ((grafptr->parttax[vertend] != -1) &&
-            (flagtab[grafptr->parttax[vertend]] != vertnum)) {
-          compload[grafptr->parttax[vertend]] += velobax[vertnum & velomsk];
-          compsize[grafptr->parttax[vertend]] ++;
-          flagtab[grafptr->parttax[vertend]] = vertnum;
+        partend = grafptr->parttax[vertend];
+        if ((partend != -1) &&
+            (flagtab[partend] != vertnum)) {
+          comploadtab[partend] += veloval;
+          compsizetab[partend] ++;
+          flagtab[partend] = vertnum;
         }
       }
     }
     else {
-      compload[grafptr->parttax[vertnum]] += velobax[vertnum & velomsk];
-      compsize[grafptr->parttax[vertnum]] ++;
+      comploadtab[partnum] += veloval;
+      compsizetab[partnum] ++;
     }
   }
 
   for (partnum = 0; partnum < grafptr->partnbr; partnum ++) {
-    if (grafptr->compsize[partnum] != compsize[partnum]) {
-      errorPrint ("wgraphCheck: invalid part size %d %d %d", grafptr->compsize[partnum], compsize[partnum], partnum);
-      memFree    (flagtab);
-      return     (1);
+    if (grafptr->compsize[partnum] != compsizetab[partnum]) {
+      errorPrint ("wgraphCheck: invalid part size array");
+      goto abort;
     }
-    if (grafptr->compload[partnum] != compload[partnum]) {
-      errorPrintW ("wgraphCheck: invalid part load %d %d %d", grafptr->compload[partnum], compload[partnum], partnum);
-      memFree     (flagtab);
-      return      (1);
+    if (grafptr->compload[partnum] != comploadtab[partnum]) {
+      errorPrint ("wgraphCheck: invalid part load array");
+      goto abort;
     }
   }
 
-  if (grafptr->fronload != fronload) {
-    errorPrint ("wgraphCheck: invalid frontier load %d %d", grafptr->fronload, fronload);
-    memFree    (flagtab);
-    return     (1);
+  if (grafptr->fronload != frlosum) {
+    errorPrint ("wgraphCheck: invalid frontier load");
+    goto abort;
   }
-  if (grafptr->fronnbr != fronnum) {
-    errorPrint ("wgraphCheck: invalid frontier size %d %d", grafptr->fronnbr, fronnum);
-    memFree    (flagtab);
-    return     (1);
+  if (grafptr->fronnbr != fronnbr) {
+    errorPrint ("wgraphCheck: invalid frontier size");
+    goto abort;
   }
 
-  for(fronnum = 0; fronnum < grafptr->fronnbr; fronnum++) {
-    vertnum = grafptr->frontab[fronnum];
-    if (grafptr->parttax[vertnum] != -1) {
-      errorPrint ("wgraphCheck: invalid frontab");
-      memFree    (flagtab);
-      return     (1);
-    }
-  } 
-  
-  memFree (flagtab);
+  o = 0;                                          /* Everything went all right */
+abort :
+  memFree (flagtab);                              /* Free group leader */
 
-  return (0);
+  return (o);
 }

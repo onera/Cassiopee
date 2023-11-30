@@ -1,4 +1,4 @@
-/* Copyright 2007-2010,2012,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007-2010,2012,2014,2018,2019,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,11 +40,15 @@
 /**                libSCOTCH library.                      **/
 /**                                                        **/
 /**   DATES      : # Version 5.0  : from : 25 apr 2006     **/
-/**                                 to     11 nov 2008     **/
+/**                                 to   : 11 nov 2008     **/
 /**                # Version 5.1  : from : 29 mar 2010     **/
-/**                                 to     14 aug 2010     **/
+/**                                 to   : 14 aug 2010     **/
 /**                # Version 6.0  : from : 08 jan 2012     **/
-/**                                 to     25 apr 2018     **/
+/**                                 to   : 25 apr 2018     **/
+/**                # Version 6.1  : from : 24 sep 2021     **/
+/**                                 to   : 25 sep 2021     **/
+/**                # Version 7.0  : from : 27 aug 2019     **/
+/**                                 to   : 21 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -52,10 +56,9 @@
 **  The defines and includes.
 */
 
-#define LIBRARY
-
 #include "module.h"
 #include "common.h"
+#include "context.h"
 #include "parser.h"
 #include "dgraph.h"
 #include "dorder.h"
@@ -81,21 +84,19 @@
 
 int
 SCOTCH_dgraphOrderInit (
-const SCOTCH_Dgraph * const grafptr,              /*+ Distributed graph to order         +*/
-SCOTCH_Dordering * const    ordeptr)              /*+ Ordering structure to initialize   +*/
+const SCOTCH_Dgraph * const libgrafptr,           /*+ Distributed graph to order         +*/
+SCOTCH_Dordering * const    libordeptr)           /*+ Ordering structure to initialize   +*/
 {
   Dgraph *            srcgrafptr;
   Dorder *            srcordeptr;
 
-#ifdef SCOTCH_DEBUG_LIBRARY1
   if (sizeof (SCOTCH_Dordering) < sizeof (Dorder)) {
     errorPrint (STRINGIFY (SCOTCH_graphDorderInit) ": internal error");
-    return     (1);
+    return (1);
   }
-#endif /* SCOTCH_DEBUG_LIBRARY1 */
 
-  srcgrafptr = (Dgraph *) grafptr;                /* Use structure as source graph */
-  srcordeptr = (Dorder *) ordeptr;
+  srcgrafptr = (Dgraph *) CONTEXTOBJECT (libgrafptr); /* Use structure as source graph */
+  srcordeptr = (Dorder *) libordeptr;
   return (dorderInit (srcordeptr, srcgrafptr->baseval, srcgrafptr->vertglbnbr, srcgrafptr->proccomm));
 }
 
@@ -106,10 +107,10 @@ SCOTCH_Dordering * const    ordeptr)              /*+ Ordering structure to init
 
 void
 SCOTCH_dgraphOrderExit (
-const SCOTCH_Dgraph * const grafptr,
-SCOTCH_Dordering * const    ordeptr)
+const SCOTCH_Dgraph * const libgrafptr,
+SCOTCH_Dordering * const    libordeptr)
 {
-  dorderExit ((Dorder *) ordeptr);
+  dorderExit ((Dorder *) libordeptr);
 }
 
 /*+ This routine saves the contents of
@@ -121,11 +122,11 @@ SCOTCH_Dordering * const    ordeptr)
 
 int
 SCOTCH_dgraphOrderSave (
-const SCOTCH_Dgraph * const     grafptr,          /*+ Graph to order   +*/
-const SCOTCH_Dordering * const  ordeptr,          /*+ Ordering to save +*/
+const SCOTCH_Dgraph * const     libgrafptr,       /*+ Graph to order   +*/
+const SCOTCH_Dordering * const  libordeptr,       /*+ Ordering to save +*/
 FILE * const                    stream)           /*+ Output stream    +*/
 {
-  return (dorderSave ((Dorder *) ordeptr, (Dgraph *) grafptr, stream));
+  return (dorderSave ((Dorder *) libordeptr, (Dgraph *) CONTEXTOBJECT (libgrafptr), stream));
 }
 
 /*+ This routine computes an ordering
@@ -140,9 +141,9 @@ int
 SCOTCH_dgraphOrderCompute (
 SCOTCH_Dgraph * const       grafptr,              /*+ Graph to order      +*/
 SCOTCH_Dordering * const    ordeptr,              /*+ Ordering to compute +*/
-SCOTCH_Strat * const        stratptr)             /*+ Ordering strategy   +*/
+SCOTCH_Strat * const        straptr)              /*+ Ordering strategy   +*/
 {
-  return (SCOTCH_dgraphOrderComputeList (grafptr, ordeptr, 0, NULL, stratptr));
+  return (SCOTCH_dgraphOrderComputeList (grafptr, ordeptr, 0, NULL, straptr));
 }
 
 /*+ This routine computes a partial ordering
@@ -156,11 +157,11 @@ SCOTCH_Strat * const        stratptr)             /*+ Ordering strategy   +*/
 
 int
 SCOTCH_dgraphOrderComputeList (
-SCOTCH_Dgraph * const       grafptr,              /*+ Graph to order                  +*/
-SCOTCH_Dordering * const    ordeptr,              /*+ Ordering to compute             +*/
+SCOTCH_Dgraph * const       libgrafptr,           /*+ Graph to order                  +*/
+SCOTCH_Dordering * const    libordeptr,           /*+ Ordering to compute             +*/
 const SCOTCH_Num            listnbr,              /*+ Number of vertices in list      +*/
 const SCOTCH_Num * const    listtab,              /*+ List of vertex indices to order +*/
-SCOTCH_Strat * const        stratptr)             /*+ Ordering strategy               +*/
+SCOTCH_Strat * const        straptr)              /*+ Ordering strategy               +*/
 {
   Dorder *            srcordeptr;                 /* Pointer to ordering          */
   DorderCblk *        srccblkptr;                 /* Initial column block         */
@@ -168,56 +169,63 @@ SCOTCH_Strat * const        stratptr)             /*+ Ordering strategy         
   Hdgraph             srcgrafdat;                 /* Halo source graph structure  */
   Gnum                srclistnbr;                 /* Number of items in list      */
   Gnum * restrict     srclisttab;                 /* Subgraph vertex list         */
-  const Strat *       ordstratptr;                /* Pointer to ordering strategy */
+  const Strat *       ordstraptr;                 /* Pointer to ordering strategy */
+  CONTEXTDECL        (libgrafptr);
+  int                 o;
 
-  srcgrafptr = (Dgraph *) grafptr;
+  o = 1;                                          /* Assume an error */
+
+  if (CONTEXTINIT (libgrafptr)) {
+    errorPrint (STRINGIFY (SCOTCH_dgraphOrderComputeList) ": cannot initialize context");
+    return (o);
+  }
+
+  srcgrafptr = (Dgraph *) CONTEXTGETOBJECT (libgrafptr);
 
 #ifdef SCOTCH_DEBUG_DGRAPH2
   if (dgraphCheck (srcgrafptr) != 0) {
     errorPrint (STRINGIFY (SCOTCH_dgraphOrderComputeList) ": invalid input graph");
-    return     (1);
+    goto abort;
   }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
 
-  if (*((Strat **) stratptr) == NULL)             /* Set default ordering strategy if necessary */
-    SCOTCH_stratDgraphOrderBuild (stratptr, SCOTCH_STRATQUALITY, srcgrafptr->procglbnbr, 0, 0.2);
+  if (*((Strat **) straptr) == NULL)              /* Set default ordering strategy if necessary */
+    SCOTCH_stratDgraphOrderBuild (straptr, SCOTCH_STRATQUALITY, srcgrafptr->procglbnbr, 0, 0.2);
 
-  ordstratptr = *((Strat **) stratptr);
-  if (ordstratptr->tabl != &hdgraphorderststratab) {
+  ordstraptr = *((Strat **) straptr);
+  if (ordstraptr->tabl != &hdgraphorderststratab) {
     errorPrint (STRINGIFY (SCOTCH_dgraphOrderComputeList) ": not a distributed ordering strategy");
-    return     (1);
+    goto abort;
   }
 
   srcgrafdat.s            = *srcgrafptr;          /* Copy non-halo graph data       */
+  srcgrafdat.s.flagval   &= ~DGRAPHFREEALL;       /* Do not free anything from it   */
   srcgrafdat.s.edloloctax = NULL;                 /* Never mind about edge loads    */
   srcgrafdat.s.vlblloctax = NULL;                 /* Do not propagate vertex labels */
   srcgrafdat.vhallocnbr   = 0;                    /* No halo on graph               */
   srcgrafdat.vhndloctax   = srcgrafdat.s.vendloctax;
   srcgrafdat.ehallocnbr   = 0;
   srcgrafdat.levlnum      = 0;
+  srcgrafdat.contptr      = CONTEXTGETDATA (libgrafptr);
 
-  srcordeptr = (Dorder *) ordeptr;                /* Get ordering */
+  srcordeptr = (Dorder *) libordeptr;             /* Get ordering */
 
   srclistnbr = (Gnum)   listnbr;                  /* Build vertex list */
   srclisttab = (Gnum *) listtab;
-
-  intRandInit ();                                 /* Check that random number generator is initialized */
 
 /* TODO: Take list into account */
   dorderFree (srcordeptr);                        /* Clean all existing ordering data */
   if ((srccblkptr = dorderFrst (srcordeptr)) == NULL) {
     errorPrint (STRINGIFY (SCOTCH_dgraphOrderComputeList) ": cannot create root column block");
-    return     (1);
+    goto abort;
   }
-  hdgraphOrderSt (&srcgrafdat, srccblkptr, ordstratptr);
-  dorderDispose  (srccblkptr);
+  o = hdgraphOrderSt (&srcgrafdat, srccblkptr, ordstraptr);
+  hdgraphExit   (&srcgrafdat);                   /* Free ghost arrays if allocated internally */
+  dorderDispose (srccblkptr);
 
-  srcgrafptr->flagval   |= srcgrafdat.s.flagval & (DGRAPHFREEEDGEGST | DGRAPHHASEDGEGST);
-  srcgrafptr->edgegsttax = srcgrafdat.s.edgegsttax; /* Get edge ghost array from working graph if it gained one */
-
-  *srcgrafptr = srcgrafdat.s;                     /* Get back Dgraph structure, possibly updated (additional ghost data arrays) */
-
-  return (0);
+abort:
+  CONTEXTEXIT (libgrafptr);
+  return (o);
 }
 
 /*+ This routine parses the given
@@ -229,15 +237,15 @@ SCOTCH_Strat * const        stratptr)             /*+ Ordering strategy         
 
 int
 SCOTCH_stratDgraphOrder (
-SCOTCH_Strat * const        stratptr,
+SCOTCH_Strat * const        straptr,
 const char * const          string)
 {
-  if (*((Strat **) stratptr) != NULL)
-    stratExit (*((Strat **) stratptr));
+  if (*((Strat **) straptr) != NULL)
+    stratExit (*((Strat **) straptr));
 
-  if ((*((Strat **) stratptr) = stratInit (&hdgraphorderststratab, string)) == NULL) {
+  if ((*((Strat **) straptr) = stratInit (&hdgraphorderststratab, string)) == NULL) {
     errorPrint (STRINGIFY (SCOTCH_stratDgraphOrder) ": error in ordering strategy");
-    return     (1);
+    return (1);
   }
 
   return (0);
@@ -252,7 +260,7 @@ const char * const          string)
 
 int
 SCOTCH_stratDgraphOrderBuild (
-SCOTCH_Strat * const        stratptr,             /*+ Strategy to create                 +*/
+SCOTCH_Strat * const        straptr,              /*+ Strategy to create                 +*/
 const SCOTCH_Num            flagval,              /*+ Desired characteristics            +*/
 const SCOTCH_Num            procnbr,              /*+ Number of processes for running    +*/
 const SCOTCH_Num            levlnbr,              /*+ Number of nested dissection levels +*/
@@ -313,9 +321,9 @@ const double                balrat)               /*+ Desired imbalance ratio   
   stringSubst (bufftab, "<BBAL>", bbaltab);
   stringSubst (bufftab, "<VERT>", verttab);
 
-  if (SCOTCH_stratDgraphOrder (stratptr, bufftab) != 0) {
+  if (SCOTCH_stratDgraphOrder (straptr, bufftab) != 0) {
     errorPrint (STRINGIFY (SCOTCH_stratDgraphOrderBuild) ": error in parallel ordering strategy");
-    return     (1);
+    return (1);
   }
 
   return (0);

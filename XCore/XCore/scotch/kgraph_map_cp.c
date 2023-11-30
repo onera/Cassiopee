@@ -1,4 +1,4 @@
-/* Copyright 2012,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2012,2014,2018,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -36,18 +36,18 @@
 /**   AUTHOR     : Sebastien FOURESTIER (v6.0)             **/
 /**                                                        **/
 /**   FUNCTION   : This method copies a given old mapping  **/
-/**                as a mapping result.                    **/ 
+/**                as a mapping result.                    **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 16 jan 2012     **/
-/**                                 to     31 may 2018     **/
+/**                                 to   : 31 may 2018     **/
+/**                # Version 7.0  : from : 20 jan 2023     **/
+/**                                 to   : 20 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The defines and includes.
 */
-
-#define KGRAPH_MAP_CP
 
 #include "module.h"
 #include "common.h"
@@ -81,18 +81,18 @@ Kgraph * restrict const     grafptr)              /*+ Graph +*/
 
   if (grafptr->r.m.parttax == NULL) {             /* If we do not have an old partition */
     errorPrint ("kgraphMapCp: inconsistent old mapping data");
-    return     (1);
+    return (1);
   }
 
   if (mapCopy (&grafptr->m, &grafptr->r.m) != 0) {
     errorPrint ("kgraphMapCp: cannot copy old mapping");
-    return     (1);
+    return (1);
   }
 
   if (pfixtax != NULL) {                          /* If we have fixed vertices */
     if (mapMerge (&grafptr->m, pfixtax) != 0) {
       errorPrint ("kgraphMapCp: cannot merge with fixed vertices");
-      return     (1);
+      return (1);
     }
   }
 
@@ -102,11 +102,9 @@ Kgraph * restrict const     grafptr)              /*+ Graph +*/
 #ifdef SCOTCH_DEBUG_KGRAPH2
   if (kgraphCheck (grafptr) != 0) {
     errorPrint ("kgraphMapCp: inconsistent graph data");
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_KGRAPH2 */
 
   return (0);
 }
-
-

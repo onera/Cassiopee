@@ -1,4 +1,4 @@
-/* Copyright 2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2018,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -41,14 +41,14 @@
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 04 apr 2018     **/
 /**                                 to   : 06 jun 2018     **/
+/**                # Version 7.0  : from : 26 apr 2021     **/
+/**                                 to   : 10 aug 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The defines and includes.
 */
-
-#define HGRAPH_ORDER_CC
 
 #include "module.h"
 #include "common.h"
@@ -99,7 +99,7 @@ const HgraphOrderCcParam * restrict const paraptr)
                      &roottab, (size_t) ((grafptr->vnohnbr + 1) * sizeof (Gnum)), /* TRICK: +1 to store end index */
                      &flagtax, (size_t) ( grafptr->vnohnbr      * sizeof (Gnum)), NULL) == NULL) {
     errorPrint ("hgraphOrderCc: out of memory");
-    return     (1);
+    return (1);
   }
   memSet (flagtax, ~0, grafptr->vnohnbr * sizeof (Gnum)); /* Initialize flag array */
   flagtax -= grafptr->s.baseval;
@@ -123,7 +123,7 @@ const HgraphOrderCcParam * restrict const paraptr)
 #ifdef SCOTCH_DEBUG_ORDER2
       if ((vertnum < grafptr->s.baseval) || (vertnum >= grafptr->vnohnnd)) {
         errorPrint ("hgraphOrderCc: internal error (1)");
-        return     (1);
+        return (1);
       }
 #endif /* SCOTCH_DEBUG_ORDER2 */
 
@@ -139,7 +139,7 @@ const HgraphOrderCcParam * restrict const paraptr)
         else {
           if (flagtax[vertend] != rootnbr) {
             errorPrint ("hgraphOrderCc: internal error (2)");
-            return     (1);
+            return (1);
           }
         }
 #endif /* SCOTCH_DEBUG_ORDER2 */
@@ -158,14 +158,20 @@ const HgraphOrderCcParam * restrict const paraptr)
   if ((cblkptr->cblktab = (OrderCblk *) memAlloc (rootnbr * sizeof (OrderCblk))) == NULL) {
     errorPrint ("hgraphOrderCc: out of memory");
     memFree    (queutab);
-    return     (1);
+    return (1);
   }
+#ifdef SCOTCH_PTHREAD
+  pthread_mutex_lock (&ordeptr->mutedat);
+#endif /* SCOTCH_PTHREAD */
   ordeptr->treenbr += rootnbr;                    /* These more number of tree nodes    */
   ordeptr->cblknbr += rootnbr - 1;                /* These more number of column blocks */
-  cblkptr->cblknbr  = rootnbr;
-  cblkptr->typeval  = ORDERCBLKDICO;              /* Disconnected components node  */
+#ifdef SCOTCH_PTHREAD
+  pthread_mutex_unlock (&ordeptr->mutedat);
+#endif /* SCOTCH_PTHREAD */
+  cblkptr->typeval = ORDERCBLKDICO;               /* Node becomes a set of disconnected components */
+  cblkptr->cblknbr = rootnbr;
   for (rootnum = 0; rootnum < rootnbr; rootnum ++) { /* Initialize tree node array */
-    cblkptr->cblktab[rootnum].typeval = ORDERCBLKOTHR;
+    cblkptr->cblktab[rootnum].typeval = ORDERCBLKLEAF;
     cblkptr->cblktab[rootnum].vnodnbr = roottab[rootnum + 1] - roottab[rootnum];
     cblkptr->cblktab[rootnum].cblknbr = 0;
     cblkptr->cblktab[rootnum].cblktab = NULL;
@@ -180,7 +186,7 @@ const HgraphOrderCcParam * restrict const paraptr)
     if (hgraphInduceList (grafptr, indvnohnbr, &queutab[roottab[rootnum]], grafptr->s.vertnbr - grafptr->vnohnbr, &indgrafdat) != 0) {
       errorPrint ("hgraphOrderCc: cannot create induced graph");
       memFree    (queutab);
-      return     (1);
+      return (1);
     }
 
     o = hgraphOrderSt (&indgrafdat, ordeptr, indordenum, &cblkptr->cblktab[rootnum], paraptr->straptr); /* Perform strategy on induced subgraph */
@@ -190,7 +196,7 @@ const HgraphOrderCcParam * restrict const paraptr)
     if (o != 0) {
       errorPrint ("hgraphOrderCc: cannot compute ordering on induced graph");
       memFree    (queutab);
-      return     (1);
+      return (1);
     }
 
     indordenum += indvnohnbr;

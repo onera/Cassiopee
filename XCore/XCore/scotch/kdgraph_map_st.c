@@ -1,4 +1,4 @@
-/* Copyright 2008-2011 ENSEIRB, INRIA & CNRS
+/* Copyright 2008-2011,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -41,15 +41,15 @@
 /**                multi-way static mapping routines.      **/
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 16 jun 2008     **/
-/**                                 to     14 apr 2011     **/
+/**                                 to   : 14 apr 2011     **/
+/**                # Version 7.0  : from : 20 jan 2023     **/
+/**                                 to   : 20 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The defines and includes.
 */
-
-#define KDGRAPH_MAP_ST
 
 #include "module.h"
 #include "common.h"

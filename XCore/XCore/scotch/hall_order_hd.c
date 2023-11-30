@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2012,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2012,2018-2020,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -33,7 +33,7 @@
 /**                                                        **/
 /**   NAME       : hall_order_hd.c                         **/
 /**                                                        **/
-/**   AUTHOR     : Patrick AMESTOY                         **/
+/**   AUTHOR     : Patrick AMESTOY & al.                   **/
 /**                Francois PELLEGRINI                     **/
 /**                                                        **/
 /**   FUNCTION   : This module orders a halo graph or mesh **/
@@ -43,13 +43,17 @@
 /**                accounting (HaloAMD v2.0).              **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 09 aug 1998     **/
-/**                                 to     18 aug 1998     **/
+/**                                 to   : 18 aug 1998     **/
 /**                # Version 3.3  : from : 02 oct 1998     **/
 /**                                 to   : 05 jan 1999     **/
 /**                # Version 4.0  : from : 14 jan 2003     **/
 /**                                 to   : 29 aug 2007     **/
 /**                # Version 6.0  : from : 08 mar 2012     **/
 /**                                 to   : 30 apr 2018     **/
+/**                # Version 6.1  : from : 01 nov 2019     **/
+/**                                 to   : 11 feb 2020     **/
+/**                # Version 7.0  : from : 19 jan 2023     **/
+/**                                 to   : 19 jan 2023     **/
 /**                                                        **/
 /**   NOTES      : # This module contains pieces of code   **/
 /**                  that belong to other people; see      **/
@@ -61,14 +65,13 @@
 **  The defines and includes.
 */
 
-#define HALL_ORDER_HD
-
 #include "module.h"
 #include "common.h"
 #include "graph.h"
 #include "hall_order_hd.h"
 
-/*  -- translated by f2c (version 19970219). */
+/*  -- translated by f2c (version 19970219).    */
+/*  -- hand-made adaptation (version 20191101). */
 
 /** -------------------------------------------------------------------- **/
 /** December 8th 2003                                                    **/
@@ -88,7 +91,7 @@
 /**       All 3 sets are disjoint, Ve and V1 can be empty                **/
 /**                                                                      **/
 /**  Modifications w.r.t. previous version :                             **/
-/**                                                                      **/  
+/**                                                                      **/
 /**  New Input:                                                          **/
 /**  ---------                                                           **/
 /**         nbelts : integer holding size of Ve                          **/
@@ -121,7 +124,8 @@
 /** ---------------------------------------------------------------------**/
 
 void
-hallOrderHdHalmd (
+hallOrderHdR2Halmd (
+const Gnum          norig,                        /* Uncompressed matrix order                */
 const Gnum          n,                            /* Matrix order                             */
 const Gnum          nbelts,                       /* Number of elements                       */
 const Gnum          iwlen,                        /* Length of array iw                       */
@@ -132,10 +136,10 @@ Gnum * restrict     iw,                           /* Adjacency list array       
 Gnum * restrict     nv,                           /* Array of element degrees                 */
 Gnum * restrict     elen,                         /* Array that holds the inverse permutation */
 Gnum * restrict     last,                         /* Array that holds the permutation         */
-Gnum * restrict     ncmpa,                        /* Number of times array iw was compressed  */
+Gnum * restrict     ncmpaptr,                     /* Number of times array iw was compressed  */
 Gnum * restrict     degree,                       /* Array that holds degree data             */
-Gnum * restrict     head,                         /* Linked list structure                    */
-Gnum * restrict     next,                         /* Linked list structure                    */
+Gnum * restrict     head,                         /* Linked list structure [norig]            */
+Gnum * restrict     next,                         /* Linked list structure [n]                */
 Gnum * restrict     w)                            /* Flag array                               */
 {
   Gnum                deg, degme, dext, dmax, e, elenme, eln, hash, hmod, i,
@@ -144,6 +148,7 @@ Gnum * restrict     w)                            /* Flag array                 
                       nleft, nvi, nvj, nvpiv, slenme, we, wflg, wnvi, x,
                       nbflag, nreal, lastd, nelme;
   Gnum                p, p1, p2, p3, pdst, pend, pj, pme, pme1, pme2, pn, psrc;
+  Gnum                ncmpa, totel;
 
 /** -------------------------------------------------------------------- **/
 /** HALOAMD_V6: (January 1999, P. Amestoy)                               **/
@@ -365,7 +370,7 @@ Gnum * restrict     w)                            /* Flag array                 
 
   -- w;                                           /* Parameter adjustments */
   -- next;
-  -- head;
+/*  -- head;                                      As starts from zero */
   -- degree;
   -- last;
   -- elen;
@@ -375,46 +380,54 @@ Gnum * restrict     w)                            /* Flag array                 
   -- iw;
 
   wflg = 2;
-  mindeg = 1;
-  *ncmpa = 0;
+  mindeg = 0;
+  ncmpa = 0;
   nel = 0;
-  hmod = MAX (1, (n - 1));
+  totel = 0;
+  hmod = MAX (1, (norig - 1));
   dmax = 0;
   mem = pfree - 1;
   nbflag = 0;
   lastd = 0;
 
-  memSet (last + 1, 0, n * sizeof (Gnum));
-  memSet (head + 1, 0, n * sizeof (Gnum));
-  
+  memSet (head, 0, (norig + 1) * sizeof (Gnum));  /* Head array indexed by degree, hence norig */
+  memSet (last + 1, 0, n * sizeof (Gnum));        /* Last arrat indexed by variable, hence n   */
+
   if (nbelts == 0) {                              /* Patch 8/12/03 <PA> */
-    memSet (elen + 1, 0, n * sizeof (Gnum));      
     for (i = 1; i <= n; i ++) {
       w[i] = 1;
       if (len[i] < 0) {
-        degree[i] = n + 1;
+        degree[i] = norig + 1;
         nbflag ++;
-        if (len[i] == - (n + 1)) {                /* Patch 09/08/98 <PA+FP> */
+        if (len[i] == (-1 - norig)) {             /* Patch 09/08/98 <PA+FP> */
           len[i] = 0;
           pe[i]  = 0;                             /* Patch 12/12/03 <PA>: Because of compress, we force skipping those entries (which are anyway empty) */
         }
         else
           len[i] = - len[i];
       }
-      else
-        degree[i] = len[i];
+      else {
+        totel += nv[i];
+        if (n == norig)                           /* If graph not compressed */
+          degree[i] = len[i];
+        else {
+          degree[i] = 0;
+          for (p = pe[i]; p < pe[i] + len[i]; p ++)
+            degree[i] += nv[iw[p]];
+        }
+      }
     }
   }
-  else  {                                         /* Patch 08/12/03 <PA>: Duplicate part of previous loop to avoid sytematic testing for elements */
+  else {                                          /* Patch 08/12/03 <PA>: Duplicate part of previous loop to avoid sytematic testing for elements */
     for (i = 1; i <= n; i ++) {
       w[i] = 1;
       if (len[i] < 0) {                           /* i \in V1 */
-        degree[i] = n + 1;
+        degree[i] = norig + 1;
         nbflag ++;
-        if (len[i] == - (n + 1)) {                /* Patch 09/08/98 <PA+FP> */
+        if (len[i] == (-1 - norig)) {             /* Patch 09/08/98 <PA+FP> */
           len[i]  = 0;
           pe[i]   = 0;                            /* Patch 12/12/03 <PA>: because of compress, we force skipping those entries (which are anyway empty) */
-          elen[i] = 0;                            /* Patch 16/12/03 <PA> */
+/*        elen[i] = 0;                               Patch 16/12/03 <PA>; already done before calling                                                   */
         }
         else {
           len[i]  = - len[i];
@@ -422,13 +435,21 @@ Gnum * restrict     w)                            /* Flag array                 
         }
       }
       else {                                      /* i \in Ve or V0 */
-        if (elen[i] < 0) {                        /* i \in Ve       */
-          nel ++;
-          degree[i] = len[i];
-          elen[i]   = - nel;
-          dmax      = MAX (dmax, degree[i]);      /* Patch 11/03/04 <PA> */
+        if (elen[i] < 0) {                        /* If i \in Ve    */
+          nel    += nv[i];
+          elen[i] = - nel;
+          if (n == norig)
+            degree[i] = len[i];
+          else {
+            degree[i] = 0;
+            for (p = pe[i]; p < pe[i] + len[i]; p ++)
+              degree[i] += nv[iw[p]];
+          }
+          if (degree[i] > dmax)                   /* Patch 11/03/04 <PA> */
+            dmax = degree[i];
         }
         else {
+          totel    += nv[i];
           degree[i] = elen[i];
           elen[i]   = len[i];                     /* Patch 16/12/03 <PA>: only elements are adjacent to a variable */
         }
@@ -437,19 +458,22 @@ Gnum * restrict     w)                            /* Flag array                 
   }
 
 #ifdef SCOTCH_DEBUG_ORDER2
-  if (nbelts != nel)                              /* Temporary Patch 8/12/03 <PA> */
-    printf ("error 8Dec2003\n");
+  if (nbelts != nel) {                            /* Temporary Patch 8/12/03 <PA> */
+    errorPrint ("hallOrderHdR2Halmd: internal error (1)");
+    *ncmpaptr = - norig;
+    return;
+  }
 #endif /* SCOTCH_DEBUG_ORDER2 */
 
   nreal = n - nbflag;
 
   for (i = 1; i <= n; i ++) {
-    if (elen[i] < 0 )                             /* Patch 16/12/03 <PA>: Skip elements */
+    if (elen[i] < 0)                              /* Patch 16/12/03 <PA>: Skip elements */
       continue;
 
     deg = degree[i];
-    if (deg == (n + 1)) {
-      deg = n;
+    if (deg == (norig + 1)) {
+      deg = norig;
       if (lastd == 0) {
         lastd     = i;
         head[deg] = i;
@@ -478,17 +502,18 @@ Gnum * restrict     w)                            /* Flag array                 
     }
   }                                               /* L20: */
 
-  nleft = n - nel;                                /* Patch v5 12/12/98 <PA+FP> */
+  nleft = totel - nel;                            /* Patch v5 12/12/98 <PA+FP> */
 
-  while (nel < nreal) {                           /* WHILE (selecting pivots) DO */
-    for (deg = mindeg; deg <= n; deg ++) {        /* Patch 17/11/97 <PA+FP>      */
+  while (nel < totel) {                           /* WHILE (selecting pivots) DO */
+    for (deg = mindeg; deg <= norig; deg ++) {    /* Patch 17/11/97 <PA+FP>      */
        me = head[deg];
        if (me > 0)
          break;                                   /* GO to 50 */
     }                                             /* L40:     */
     mindeg = deg;
     if (me <= 0) {                                /* Error 1 */
-      *ncmpa = -n;
+      errorPrint ("hallOrderHdR2Halmd: internal error (2)");
+      *ncmpaptr = - (norig + 1);
       return;
     }
 
@@ -517,7 +542,7 @@ Gnum * restrict     w)                            /* Flag array                 
           pme2 ++;
           iw[pme2] = i;
 
-          if (degree[i] <= n) {
+          if (degree[i] <= norig) {
             ilast = last[i];
             inext = next[i];
             if (inext != 0)
@@ -561,7 +586,7 @@ Gnum * restrict     w)                            /* Flag array                 
               len[e] = ln - knt2;
               if (len[e] == 0)
                 pe[e] = 0;
-              (*ncmpa) ++;
+              ncmpa ++;
 
               for (j = 1; j <= n; j ++) {
                 pn = pe[j];
@@ -602,7 +627,7 @@ Gnum * restrict     w)                            /* Flag array                 
             iw[pfree] = i;
             pfree ++;
 
-            if (degree[i] <= n) {
+            if (degree[i] <= norig) {
               ilast = last[i];
               inext = next[i];
               if (inext != 0)
@@ -630,7 +655,7 @@ Gnum * restrict     w)                            /* Flag array                 
     pe[me]     = pme1;
     len[me]    = pme2 - pme1 + 1;
 
-    if (wflg + n <= wflg) {
+    if (wflg + norig <= wflg) {
       for (x = 1; x <= n; x ++) {
         if (w[x] != 0)
           w[x] = 1;
@@ -690,8 +715,8 @@ Gnum * restrict     w)                            /* Flag array                 
         }
       }                                           /* L170: */
 
-      if (degree[i] == (n + 1))
-        deg = n + 1;
+      if (degree[i] == (norig + 1))
+        deg = (norig + 1);
       if (deg == 0) {
         pe[i]   = - me;
         nvi     = - nv[i];
@@ -702,7 +727,7 @@ Gnum * restrict     w)                            /* Flag array                 
         elen[i] = 0;
       }
       else {
-        if (degree[i] != (n + 1)) {               /* Patch v6 05/01/99 <PA+FP> */
+        if (degree[i] != (norig + 1)) {           /* Patch v6 05/01/99 <PA+FP> */
           deg       = MIN (nleft,     deg);       /* Patch v5 12/12/98 <PA+FP> */
           degree[i] = MIN (degree[i], deg);
         }
@@ -712,7 +737,7 @@ Gnum * restrict     w)                            /* Flag array                 
         iw[p1] = me;
         len[i] = pn - p1 + 1;
 
-        if (deg <= n) {
+        if (deg <= norig) {
           hash = (hash % hmod) + 1;
           j = head[hash];
           if (j <= 0) {
@@ -732,7 +757,7 @@ Gnum * restrict     w)                            /* Flag array                 
     dmax  = MAX (dmax, degme);
     wflg += dmax;
 
-    if (wflg + n <= wflg) {
+    if (wflg + norig <= wflg) {
       for (x = 1; x <= n; x ++) {
         if (w[x] != 0)
           w[x] = 1;
@@ -742,7 +767,7 @@ Gnum * restrict     w)                            /* Flag array                 
 
     for (pme = pme1; pme <= pme2; pme ++) {
       i = iw[pme];
-      if ((nv[i] < 0) && (degree[i] <= n)) {
+      if ((nv[i] < 0) && (degree[i] <= norig)) {
         hash = last[i];
         j    = head[hash];
         if (j == 0)
@@ -804,13 +829,13 @@ L240:
     }
 
     p     = pme1;
-    nleft = n - nel;
+    nleft = totel - nel;
     for (pme = pme1; pme <= pme2; pme ++) {
       i   = iw[pme];
       nvi = - nv[i];
       if (nvi > 0) {
         nv[i] = nvi;
-        if (degree[i] <= n) {
+        if (degree[i] <= norig) {
           deg = MIN (degree[i] + degme, nleft) - nvi;
 
           inext = head[deg];
@@ -820,7 +845,8 @@ L240:
           last[i]   = 0;
           head[deg] = i;
 
-          mindeg    = MIN (mindeg, deg);
+          if (deg < mindeg)
+            mindeg = deg;
           degree[i] = deg;
         }
 
@@ -840,8 +866,8 @@ L240:
     }
   }                                             /* END WHILE (selecting pivots) */
 
-  if (nel < n) {                                /* Patch 12/12/98 <PA+FP> (old: nreal < n) */
-    for (deg = mindeg; deg <= n; deg ++) {
+  if (nel < norig) {                            /* Patch 12/12/98 <PA+FP> (old: nreal < n) */
+    for (deg = mindeg; deg <= norig; deg ++) {
       me = head[deg];
       if (me > 0)
         break;
@@ -852,7 +878,7 @@ L240:
     for (x = 1; x <= n; x ++) {
       if ((pe[x] > 0) && (elen[x] < 0))
         pe[x] = - me;
-      else if (degree[x] == (n + 1)) {
+      else if (degree[x] == (norig + 1)) {
         nel    += nv[x];
         pe[x]   = - me;
         elen[x] = 0;
@@ -861,12 +887,16 @@ L240:
     }
 
     elen[me] = nelme;
-    nv[me]   = n - nreal;                         /* Patch 12/12/98 <PA+FP> (old: n + 1) */
+    nv[me]   = norig - nreal;                     /* Patch 12/12/98 <PA+FP> (old: n + 1) */
     pe[me]   = 0;
-    if (nel != n) {                               /* Error 2 */
-      *ncmpa = - (n + 1);
+
+#ifdef SCOTCH_DEBUG_ORDER2
+    if (nel != norig) {                           /* Error 2 */
+      errorPrint ("hallOrderHdR2Halmd: internal error (3)");
+      *ncmpaptr = - (norig + 2);
       return;
     }
+#endif /* SCOTCH_DEBUG_ORDER2 */
   }
 
   for (i = 1; i <= n; i ++) {
@@ -891,11 +921,5 @@ L240:
     }
   }                                               /* L290: */
 
-#ifdef DEAD_CODE                                  /* No need for permutations */
-  for (i = 1; i <= n; i ++) {                     /* Patch 19/10/98 <PA+FP>   */
-    k = abs (elen[i]);
-    last[k] = i;
-    elen[i] = k;
-  }                                               /* L300: */
-#endif /* DEAD_CODE */
+  *ncmpaptr = ncmpa;
 }

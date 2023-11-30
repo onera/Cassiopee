@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2010,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2010,2018,2019,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -39,11 +39,13 @@
 /**                for the source mesh functions.          **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 29 dec 2001     **/
-/**                                 to     11 may 2004     **/
+/**                                 to   : 11 may 2004     **/
 /**                # Version 5.1  : from : 04 nov 2010     **/
-/**                                 to     04 nov 2010     **/
+/**                                 to   : 04 nov 2010     **/
 /**                # Version 6.0  : from : 06 jun 2018     **/
-/**                                 to     06 jun 2018     **/
+/**                                 to   : 06 jun 2018     **/
+/**                # Version 7.0  : from : 03 may 2019     **/
+/**                                 to   : 18 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -65,7 +67,7 @@
 
 /*+ The Mesh flag type. +*/
 
-typedef int MeshFlag;                             /*+ Mesh property flags +*/
+typedef unsigned int MeshFlag;                    /*+ Mesh property flags +*/
 
 /*+ Mesh structure. It is basically a graph
     structure. It is a bipartite graph in the
@@ -134,14 +136,15 @@ int                         meshLoad            (Mesh * restrict const, FILE * r
 int                         meshSave            (const Mesh * restrict const, FILE * restrict const);
 Gnum                        meshBase            (Mesh * const, const Gnum);
 int                         meshGraph           (const Mesh * restrict const, Graph * restrict const);
+int                         meshGraphDual       (const Mesh * restrict const, Graph * restrict const, const Gnum );
 int                         meshInduceList      (const Mesh *, Mesh *, const VertList *);
 int                         meshInducePart      (const Mesh *, Mesh *, const Gnum, const GraphPart *, const GraphPart);
 int                         meshInduceSepa      (const Mesh * restrict const, const GraphPart * restrict const, const Gnum, const Gnum * restrict const, Mesh * restrict const);
 int                         meshCheck           (const Mesh * const);
 int                         meshReorder         (const Mesh * restrict const, Mesh * restrict const);
 
-#ifdef GEOM_H
+#ifdef SCOTCH_GEOM_H
 int                         meshGeomLoadHabo    (Mesh * restrict const, Geom * restrict const, FILE * const, FILE * const, const char * const);
 int                         meshGeomLoadScot    (Mesh * restrict const, Geom * restrict const, FILE * const, FILE * const, const char * const);
 int                         meshGeomSaveScot    (const Mesh * restrict const, const Geom * restrict const, FILE * const, FILE * const, const char * const);
-#endif /* GEOM_H */
+#endif /* SCOTCH_GEOM_H */

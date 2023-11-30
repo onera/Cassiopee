@@ -1,4 +1,4 @@
-/* Copyright 2004,2007-2011,2013-2015,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007-2011,2013-2015,2018,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -51,25 +51,25 @@
 /**                # Version 2.1  : from : 07 apr 1995     **/
 /**                                 to   : 30 jun 1995     **/
 /**                # Version 3.0  : from : 01 jul 1995     **/
-/**                                 to     08 sep 1995     **/
+/**                                 to   : 08 sep 1995     **/
 /**                # Version 3.1  : from : 02 may 1996     **/
-/**                                 to     20 jul 1996     **/
+/**                                 to   : 20 jul 1996     **/
 /**                # Version 3.2  : from : 07 sep 1996     **/
-/**                                 to     13 may 1998     **/
+/**                                 to   : 13 may 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     07 oct 1998     **/
+/**                                 to   : 07 oct 1998     **/
 /**                # Version 3.4  : from : 08 nov 2001     **/
-/**                                 to     08 nov 2001     **/
+/**                                 to   : 08 nov 2001     **/
 /**                # Version 4.0  : from : 01 jan 2002     **/
-/**                                 to     07 dec 2004     **/
+/**                                 to   : 07 dec 2004     **/
 /**                # Version 5.1  : from : 11 dec 2007     **/
-/**                                 to     11 aug 2010     **/
+/**                                 to   : 11 aug 2010     **/
 /**                # Version 6.0  : from : 14 feb 2011     **/
-/**                                 to     28 may 2018     **/
+/**                                 to   : 28 may 2018     **/
+/**                # Version 7.0  : from : 17 jan 2023     **/
+/**                                 to   : 17 jan 2023     **/
 /**                                                        **/
 /************************************************************/
-
-#define ARCH_H
 
 /*
 ** The defines.
@@ -112,7 +112,7 @@ typedef struct ArchCoarsenMulti_ {
 
 /*+ The sub-includes for structure size computations. +*/
 
-#define ARCH_NOPROTO 
+#define ARCH_NOPROTO
 #include "arch_cmplt.h"
 #include "arch_cmpltw.h"
 #include "arch_deco.h"

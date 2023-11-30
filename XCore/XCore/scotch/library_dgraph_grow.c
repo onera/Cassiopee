@@ -1,4 +1,4 @@
-/* Copyright 2012,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2012,2018,2019,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,7 +40,9 @@
 /**                the libScotch library.                  **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 26 sep 2012     **/
-/**                                 to     21 may 2018     **/
+/**                                 to   : 21 may 2018     **/
+/**                # Version 7.0  : from : 27 aug 2019     **/
+/**                                 to   : 21 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -48,10 +50,9 @@
 **  The defines and includes.
 */
 
-#define LIBRARY
-
 #include "module.h"
 #include "common.h"
+#include "context.h"
 #include "dgraph.h"
 #include "dgraph_halo.h"
 #include "ptscotch.h"
@@ -106,16 +107,32 @@ SCOTCH_Num * const          partgsttab)
   Gnum                bandvertlocnbr;             /* Not used */
   Gnum                bandvertlvlnum;             /* Not used */
   Gnum                bandedgelocsiz;             /* Not used */
+  CONTEXTDECL        (orggrafptr);
+  Dgraph              grafdat;
+  int                 o;
 
-  Dgraph * restrict const grafptr = (Dgraph *) orggrafptr;
+  o = 1;                                          /* Assume an error */
 
-  if (dgraphGhst (grafptr) != 0) {                /* Compute ghost edge array if not already present */
-    errorPrint (STRINGIFY (SCOTCH_dgraphGrow) ": cannot compute ghost edge array");
-    return     (1);
+  if (CONTEXTINIT (orggrafptr)) {
+    errorPrint (STRINGIFY (SCOTCH_dgraphBand) ": cannot initialize context");
+    goto abort;
   }
 
-  bandpartgsttax = (partgsttab != NULL) ? (Gnum *) partgsttab - grafptr->baseval : NULL;
+  grafdat = *((Dgraph *) CONTEXTGETOBJECT (orggrafptr)); /* Clone original graph */
+  grafdat.flagval &= ~DGRAPHFREEALL;              /* Never free existing fields  */
 
-  return ((((grafptr->flagval & DGRAPHCOMMPTOP) != 0) ? dgraphGrow2Ptop : dgraphGrow2Coll)
-          (grafptr, seedlocnbr, seedloctab, distval, bandpartgsttax, &bandvertlvlnum, &bandvertlocnbr, &bandedgelocsiz));
+  if (dgraphGhst (&grafdat) != 0) {               /* Compute ghost edge array if not already present */
+    errorPrint (STRINGIFY (SCOTCH_dgraphGrow) ": cannot compute ghost edge array");
+    return (1);
+  }
+
+  bandpartgsttax = (partgsttab != NULL) ? (Gnum *) partgsttab - grafdat.baseval : NULL;
+
+  o = (((grafdat.flagval & DGRAPHCOMMPTOP) != 0) ? dgraphGrow2Ptop : dgraphGrow2Coll)
+        (&grafdat, seedlocnbr, seedloctab, distval, bandpartgsttax, &bandvertlvlnum, &bandvertlocnbr, &bandedgelocsiz, CONTEXTGETDATA (orggrafptr));
+
+  dgraphExit (&grafdat);                          /* Free ghost edge arrays if any */
+abort:
+  CONTEXTEXIT (orggrafptr);
+  return (o);
 }

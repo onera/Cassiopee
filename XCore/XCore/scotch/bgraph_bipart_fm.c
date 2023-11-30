@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2011,2014,2016 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2011,2014,2016,2019,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -41,31 +41,33 @@
 /**                Fiduccia-Mattheyses heuristics.         **/
 /**                                                        **/
 /**   DATES      : # Version 1.0  : from : 30 sep 1993     **/
-/**                                 to     09 oct 1993     **/
+/**                                 to   : 09 oct 1993     **/
 /**                # Version 1.1  : from : 15 oct 1993     **/
-/**                                 to     15 oct 1993     **/
+/**                                 to   : 15 oct 1993     **/
 /**                # Version 1.2  : from : 07 feb 1994     **/
-/**                                 to     15 feb 1994     **/
+/**                                 to   : 15 feb 1994     **/
 /**                # Version 1.3  : from : 06 apr 1994     **/
-/**                                 to     30 apr 1994     **/
+/**                                 to   : 30 apr 1994     **/
 /**                # Version 2.0  : from : 06 jun 1994     **/
-/**                                 to     03 nov 1994     **/
+/**                                 to   : 03 nov 1994     **/
 /**                # Version 3.1  : from : 06 nov 1995     **/
-/**                                 to     07 jun 1996     **/
+/**                                 to   : 07 jun 1996     **/
 /**                # Version 3.2  : from : 21 sep 1996     **/
-/**                                 to     13 sep 1998     **/
+/**                                 to   : 13 sep 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     12 mar 1999     **/
+/**                                 to   : 12 mar 1999     **/
 /**                # Version 3.4  : from : 01 jun 2001     **/
-/**                                 to     01 jun 2001     **/
+/**                                 to   : 01 jun 2001     **/
 /**                # Version 4.0  : from : 20 dec 2003     **/
-/**                                 to     05 may 2006     **/
+/**                                 to   : 05 may 2006     **/
 /**                # Version 5.0  : from : 24 mar 2008     **/
 /**                                 to   : 22 may 2008     **/
 /**                # Version 5.1  : from : 30 oct 2008     **/
 /**                                 to   : 14 apr 2011     **/
 /**                # Version 6.0  : from : 23 feb 2011     **/
-/**                                 to     27 aug 2016     **/
+/**                                 to   : 20 aug 2019     **/
+/**                # Version 7.0  : from : 17 jan 2023     **/
+/**                                 to   : 17 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -73,7 +75,7 @@
 **  The defines and includes.
 */
 
-#define BGRAPH_BIPART_FM
+#define SCOTCH_BGRAPH_BIPART_FM
 
 #define SCOTCH_TABLE_GAIN
 
@@ -325,7 +327,7 @@ const BgraphBipartFmParam * const paraptr)        /*+ Method parameters +*/
 
   if (typeval == BGRAPHBIPARTFMTYPEALL)           /* Take maximum space so that hashmax will fit */
     hashnbr = grafptr->s.vertnbr * 4;
-    
+
   for (hashsiz = 256; hashsiz < hashnbr; hashsiz <<= 1) ; /* Get upper power of two */
   hashmsk = hashsiz - 1;
   hashmax = hashsiz >> 2;
@@ -333,7 +335,7 @@ const BgraphBipartFmParam * const paraptr)        /*+ Method parameters +*/
   if (bgraphBipartFmTablInit (&tabldat) != 0) {
     errorPrint ("bgraphBipartFm: internal error (1)"); /* Unable to do proper initialization */
     bgraphBipartFmTablExit (&tabldat);
-    return (1);  
+    return (1);
   }
 
   tablptr = &tabldat;
@@ -575,17 +577,17 @@ const BgraphBipartFmParam * const paraptr)        /*+ Method parameters +*/
             hashtab[hashnum].commgain += (domndist * 2) * edloval * partdlt;
             hashtab[hashnum].commcut  -= partdlt;
 
-            if (! bgraphBipartFmIsUsed(&hashtab[hashnum])) {        /* If vertex is of use      */
-              if (bgraphBipartFmIsTabl(&hashtab[hashnum])) {        /* If vertex is linked      */
-                bgraphBipartFmTablDel (tablptr, &hashtab[hashnum]); /* Remove it from table     */
-                bgraphBipartFmSetFree (&hashtab[hashnum]);          /* Mark it as free anyway   */
+            if (! bgraphBipartFmIsUsed(&hashtab[hashnum])) { /* If vertex is of use         */
+              if (bgraphBipartFmIsTabl(&hashtab[hashnum])) { /* If vertex is linked         */
+                bgraphBipartFmTablDel (tablptr, &hashtab[hashnum]); /* Remove it from table */
+                bgraphBipartFmSetFree (&hashtab[hashnum]); /* Mark it as free anyway        */
               }
               if (hashtab[hashnum].commcut > 0)   /* If vertex belongs to the frontier */
                 bgraphBipartFmTablAdd (tablptr, &hashtab[hashnum]); /* Re-link it      */
             }
             break;
           }
-          if (hashtab[hashnum].vertnum == ~0) {   /* If hash slot empty */
+          if (hashtab[hashnum].vertnum == ~0) {   /* If hash slot empty                       */
             Gnum                commgain;         /* Communication gain of current vertex     */
             Gnum                commgainold;      /* Old communication gain of current vertex */
             Gnum                veloval;
@@ -661,7 +663,8 @@ const BgraphBipartFmParam * const paraptr)        /*+ Method parameters +*/
         movenbr         =
         savenbr         = 0;
         mswpnum ++;
-      } else if (commload == commloadbst) {
+      }
+      else if (commload == commloadbst) {
         if (abs (compload0dlt) < abs (compload0dltbst)) {
           compload0dltbst = compload0dlt;         /* This move was effective */
           commgainextnbst = commgainextn;
@@ -675,25 +678,27 @@ const BgraphBipartFmParam * const paraptr)        /*+ Method parameters +*/
           compload0dltbst = compload0dlt;         /* Forget backtracking */
           commgainextnbst = commgainextn;
           swapvalbst      = swapval;
-          savenbr         = 0;                   
-          mswpnum ++;
-        }
-      }
-      if ((compload0dltmin < compload0dltmit) ||  /* If must restrict distance bounds */
-          (compload0dltmax > compload0dltmat)) {
-        if ((compload0dlt > compload0dltmin) &&   /* If we have done something useful */
-            (compload0dlt < compload0dltmax)) {
-          compload0dltmin = MIN (compload0dltmit, compload0dlt); /* Update bounds */
-          compload0dltmax = MAX (compload0dltmat, compload0dlt);
-          compload0dltbst = compload0dlt;         /* Record best move done */
-          commloadbst     = commload;
-          commgainextnbst = commgainextn;
-          swapvalbst      = swapval;
-          moveflag        = 1;
-          movenbr         =
           savenbr         = 0;
           mswpnum ++;
         }
+      }
+
+      if (((compload0dltmin <  compload0dltmit) && /* If must restrict distance bounds  */
+           (compload0dlt    >  compload0dltmin) && /* And we have done something useful */
+           (compload0dlt    <= compload0dltmax)) ||
+          ((compload0dltmax >  compload0dltmat) &&
+           (compload0dlt    <  compload0dltmax) &&
+           (compload0dlt    >= compload0dltmin))) {
+        compload0dltmin = MIN (compload0dltmit, compload0dlt); /* Update bounds */
+        compload0dltmax = MAX (compload0dltmat, compload0dlt);
+        compload0dltbst = compload0dlt;           /* Record best move done */
+        commloadbst     = commload;
+        commgainextnbst = commgainextn;
+        swapvalbst      = swapval;
+        moveflag        = 1;
+        movenbr         =
+        savenbr         = 0;
+        mswpnum ++;
       }
 #ifdef SCOTCH_DEBUG_BGRAPH2
 #ifdef SCOTCH_DEBUG_BGRAPH3
@@ -998,6 +1003,13 @@ const Gnum                                  commgainextn)
   Gnum                  commloaddlttmp;           /* Difference between old and current communication load */
   Gnum                  commloadextndlttmp;
   Gnum                  commgainextntmp;
+
+  const Gnum * restrict const verttax = grafptr->s.verttax; /* Fast accesses */
+  const Gnum * restrict const vendtax = grafptr->s.vendtax;
+  const Gnum * restrict const velotax = grafptr->s.velotax;
+  const Gnum * restrict const edgetax = grafptr->s.edgetax;
+  const Gnum * restrict const edlotax = grafptr->s.edlotax;
+  const Gnum * restrict const veextax = grafptr->veextax;
 
   domndist           = grafptr->domndist;
   compload0tmp       = (swapval == 0) ? grafptr->compload0 : (grafptr->s.velosum - grafptr->compload0);

@@ -1,4 +1,4 @@
-/* Copyright 2007,2008 ENSEIRB, INRIA & CNRS
+/* Copyright 2007,2008,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -42,14 +42,14 @@
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 05 nov 2007     **/
 /**                                 to   : 09 nov 2008     **/
+/**                # Version 7.0  : from : 20 jan 2023     **/
+/**                                 to   : 20 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The defines and includes.
 */
-
-#define VDGRAPH_SEPARATE_DF
 
 #include "module.h"
 #include "common.h"
@@ -113,7 +113,7 @@ const VdgraphSeparateDfParam * const  paraptr)    /*+ Method parameters +*/
   reduloctab[0] = grafptr->s.vendloctax[grafptr->s.vertlocnnd - 2] - grafptr->s.vertloctax[grafptr->s.vertlocnnd - 2] - (grafptr->s.procglbnbr - 1);
   reduloctab[1] = grafptr->s.vendloctax[grafptr->s.vertlocnnd - 1] - grafptr->s.vertloctax[grafptr->s.vertlocnnd - 1] - (grafptr->s.procglbnbr - 1);
   if (grafptr->s.veloloctax == NULL)
-    reduloctab[2] = 
+    reduloctab[2] =
     reduloctab[3] = 1;
   else {
     reduloctab[2] = grafptr->s.veloloctax[grafptr->s.vertlocnnd - 2];
@@ -360,13 +360,6 @@ abort :                                           /* If overflow occured, resume
     return     (1);
   }
 #endif /* SCOTCH_DEBUG_VDGRAPH2 */
-
-if (grafptr->s.proclocnum == 0)
-fprintf (stderr, "BROL " GNUMSTRING "," GNUMSTRING "," GNUMSTRING "(" GNUMSTRING ")\n",
-         (Gnum) grafptr->compglbload[0],
-         (Gnum) grafptr->compglbload[1],
-         (Gnum) grafptr->compglbload[2],
-         (Gnum) grafptr->compglbloaddlt);
 
   return (0);
 }

@@ -1,4 +1,4 @@
-/* Copyright 2007-2012,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007-2012,2018,2021 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -45,6 +45,8 @@
 /**                                 to   : 20 feb 2011     **/
 /**                # Version 6.0  : from : 03 apr 2012     **/
 /**                                 to   : 21 may 2018     **/
+/**                # Version 7.0  : from : 01 oct 2021     **/
+/**                                 to   : 08 oct 2021     **/
 /**                                                        **/
 /**   NOTES      : # This code derives from the code of    **/
 /**                  vdgraph_separate_bd.c in version      **/
@@ -84,7 +86,8 @@ const Gnum                        distmax,        /*+ Maximum distance from sepa
 Gnum * restrict const             vnumgsttax,     /*+ Flag or index array to fill                              +*/
 Gnum * restrict const             bandvertlvlptr, /*+ Pointer to based start index of last level               +*/
 Gnum * restrict const             bandvertlocptr, /*+ Pointer to bandvertlocnnd                                +*/
-Gnum * restrict const             bandedgelocptr) /*+ Pointer to bandedgelocnbr                                +*/
+Gnum * restrict const             bandedgelocptr, /*+ Pointer to bandedgelocnbr                                +*/
+Context *                         contptr)        /*+ Execution context                                        +*/
 {
   Gnum                    vertlocnnd;
   Gnum                    vrcvdatsiz;             /* Sizes of data send and receive arrays */
@@ -319,7 +322,8 @@ const Gnum                        distmax,        /*+ Maximum distance from sepa
 Gnum * restrict const             vnumgsttax,     /*+ Flag or index array to fill                              +*/
 Gnum * restrict const             bandvertlvlptr, /*+ Pointer to based start index of last level               +*/
 Gnum * restrict const             bandvertlocptr, /*+ Pointer to bandvertlocnnd                                +*/
-Gnum * restrict const             bandedgelocptr) /*+ Pointer to bandedgelocnbr                                +*/
+Gnum * restrict const             bandedgelocptr, /*+ Pointer to bandedgelocnbr                                +*/
+Context *                         contptr)        /*+ Execution context                                        +*/
 {
   Gnum                    vertlocnnd;
   Gnum                    vrcvdatsiz;             /* Sizes of data send and receive arrays */
@@ -343,6 +347,7 @@ Gnum * restrict const             bandedgelocptr) /*+ Pointer to bandedgelocnbr 
   Gnum                    bandvertlocnnd;
   Gnum                    bandedgelocnbr;
   Gnum                    distval;
+  Gnum                    deteval;                /* Flag set if deterministic behavior    */
 #ifdef SCOTCH_DEBUG_DGRAPH1
   Gnum                    reduloctab[3];
   Gnum                    reduglbtab[3];
@@ -394,6 +399,8 @@ Gnum * restrict const             bandedgelocptr) /*+ Pointer to bandedgelocnbr 
     }
     return (1);
   }
+
+  contextValuesGetInt (contptr, CONTEXTOPTIONNUMDETERMINISTIC, &deteval);
 
   for (procngbnum = 0, nrcvdspnum = nsnddspnum = procngbnxt = 0; /* Build communication index arrays */
        procngbnum < procngbnbr; procngbnum ++) {
@@ -522,12 +529,13 @@ Gnum * restrict const             bandedgelocptr) /*+ Pointer to bandedgelocnbr 
       int               statsiz;
       int               o;
 
-#ifdef SCOTCH_DETERMINISTIC
-      procngbnum = vrcvreqnbr - 1;
-      o = MPI_Wait (&nrcvreqtab[procngbnum], &statdat);
-#else /* SCOTCH_DETERMINISTIC */
-      o = MPI_Waitany (procngbnbr, nrcvreqtab, &procngbnum, &statdat);
-#endif /* SCOTCH_DETERMINISTIC */
+      if (deteval) {
+        procngbnum = vrcvreqnbr - 1;
+        o = MPI_Wait (&nrcvreqtab[procngbnum], &statdat);
+      }
+      else
+        o = MPI_Waitany (procngbnbr, nrcvreqtab, &procngbnum, &statdat);
+
       if ((o != MPI_SUCCESS) ||
           (MPI_Get_count (&statdat, GNUM_MPI, &statsiz) != MPI_SUCCESS)) {
         errorPrint (DGRAPHBANDGROWNSTR "Ptop: communication error (5)");

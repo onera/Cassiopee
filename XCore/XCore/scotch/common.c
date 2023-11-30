@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2010 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2010,2018,2022,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -44,13 +44,15 @@
 /**                by all modules.                         **/
 /**                                                        **/
 /**   DATES      : # Version 0.0  : from : 08 may 1998     **/
-/**                                 to     14 sep 1998     **/
+/**                                 to   : 14 sep 1998     **/
 /**                # Version 2.0  : from : 27 sep 2004     **/
-/**                                 to     27 sep 2004     **/
+/**                                 to   : 27 sep 2004     **/
 /**                # Version 5.1  : from : 27 jun 2010     **/
-/**                                 to     23 nov 2010     **/
+/**                                 to   : 23 nov 2010     **/
 /**                # Version 6.0  : from : 21 sep 2013     **/
-/**                                 to     21 sep 2013     **/
+/**                                 to   : 21 sep 2013     **/
+/**                # Version 7.0  : from : 10 jun 2018     **/
+/**                                 to   : 27 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -58,12 +60,42 @@
 **  The defines and includes.
 */
 
-#define COMMON
-
-#ifndef COMMON_NOMODULE
 #include "module.h"
-#endif /* COMMON_NOMODULE */
 #include "common.h"
+
+/*********************************/
+/*                               */
+/* Environment reading routines. */
+/*                               */
+/*********************************/
+
+int
+envGetInt (
+const char * const          nameptr,              /*+ Variable name +*/
+const int                   defaval)              /*+ Default value +*/
+{
+  char *              envvptr;                    /* Pointer to environment value */
+  char *              envvend;
+  long                envvval;
+
+  envvptr = getenv (nameptr);
+  if ((envvptr == NULL) || (*envvptr == '\0'))
+    return (defaval);
+
+  envvval = strtol (envvptr, &envvend, 0);
+  return ((*envvend == '\0') ? (int) envvval : defaval);
+}
+
+const char *
+envGetStr (
+const char * const          nameptr,              /*+ Variable name +*/
+const char *  const         defaval)              /*+ Default value +*/
+{
+  const char *        envvptr;                    /* Pointer to environment value */
+
+  envvptr = getenv (nameptr);
+  return ((envvptr == NULL) ? defaval : envvptr);
+}
 
 /*******************/
 /*                 */
@@ -77,7 +109,7 @@ clockGet (void)
 #ifdef MPI_INT
   return (MPI_Wtime ());
 #else /* MPI_INT */
-#if defined COMMON_WINDOWS
+#if defined COMMON_OS_WINDOWS
   double              res = 0.0;
   LARGE_INTEGER       fq;
   if (QueryPerformanceFrequency (&fq) == 0) {
@@ -117,7 +149,7 @@ clockGet (void)
 
  return ((double) tv.tv_sec + (double) tv.tv_usec * 1.0e-6L);
 #endif /* defined (_POSIX_TIMERS) && (_POSIX_TIMERS >= 200112L) */
-#endif /* COMMON_TIMING_OLD */
+#endif /* COMMON_OS_WINDOWS / COMMON_TIMING_OLD */
 #endif /* MPI_INT */
 }
 

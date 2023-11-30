@@ -1,4 +1,4 @@
-!* Copyright 2004,2007,2009,2010,2012,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+!* Copyright 2004,2007,2009,2010,2012,2014,2018,2019,2021 IPB, Universite de Bordeaux, INRIA & CNRS
 !*
 !* This file is part of the Scotch software package for static mapping,
 !* graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 !* use, modify and/or redistribute the software under the terms of the
 !* CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 !* URL: "http://www.cecill.info".
-!* 
+!*
 !* As a counterpart to the access to the source code and rights to copy,
 !* modify and redistribute granted by the license, users are provided
 !* only with a limited warranty and the software's author, the holder of
 !* the economic rights, and the successive licensors have only limited
 !* liability.
-!* 
+!*
 !* In this respect, the user's attention is drawn to the risks associated
 !* with loading, using, modifying and/or developing or reproducing the
 !* software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 !* their requirements in conditions enabling the security of their
 !* systems and/or data to be ensured and, more generally, to use and
 !* operate it in the same conditions as regards security.
-!* 
+!*
 !* The fact that you are presently reading this means that you have had
 !* knowledge of the CeCILL-C license and that you accept its terms.
 !*
@@ -41,17 +41,38 @@
 !*                library.                                **
 !*                                                        **
 !*   DATES      : # Version 3.4  : from : 04 feb 2000     **
-!*                                 to     22 oct 2001     **
+!*                                 to   : 22 oct 2001     **
 !*                # Version 4.0  : from : 16 jan 2004     **
-!*                                 to     16 jan 2004     **
+!*                                 to   : 16 jan 2004     **
 !*                # Version 5.0  : from : 26 apr 2006     **
-!*                                 to     26 apr 2006     **
+!*                                 to   : 26 apr 2006     **
 !*                # Version 5.1  : from : 26 mar 2009     **
-!*                                 to     12 feb 2011     **
+!*                                 to   : 12 feb 2011     **
 !*                # Version 6.0  : from : 22 oct 2011     **
-!*                                 to     10 jul 2018     **
+!*                                 to   : 16 apr 2019     **
+!*                # Version 6.1  : from : 22 jun 2021     **
+!*                                 to   : 22 jun 2021     **
+!*                # Version 7.0  : from : 25 aug 2019     **
+!*                                 to   : 23 oct 2021     **
 !*                                                        **
 !***********************************************************
+
+!* Size definitions for the SCOTCH integer
+!* and index types.
+
+        INTEGER SCOTCH_IDXSIZE
+        INTEGER SCOTCH_NUMSIZE
+        PARAMETER (SCOTCH_IDXSIZE = 8)
+        PARAMETER (SCOTCH_NUMSIZE = 4)
+
+!* Flag definitions for the context options
+
+        INTEGER SCOTCH_OPTIONNUMDETERMINISTIC
+        INTEGER SCOTCH_OPTIONNUMRANDOMFIXEDSEED
+        INTEGER SCOTCH_OPTIONNUMNBR
+        PARAMETER (SCOTCH_OPTIONNUMDETERMINISTIC   = 0)
+        PARAMETER (SCOTCH_OPTIONNUMRANDOMFIXEDSEED = 1)
+        PARAMETER (SCOTCH_OPTIONNUMNBR             = 2)
 
 !* Flag definitions for the coarsening
 !* routines.
@@ -104,16 +125,20 @@
 !* program "dummysizes".
 
         INTEGER SCOTCH_ARCHDIM
+        INTEGER SCOTCH_ARCHDOMDIM
+        INTEGER SCOTCH_CONTEXTDIM
         INTEGER SCOTCH_GEOMDIM
         INTEGER SCOTCH_GRAPHDIM
         INTEGER SCOTCH_MAPDIM
         INTEGER SCOTCH_MESHDIM
         INTEGER SCOTCH_ORDERDIM
         INTEGER SCOTCH_STRATDIM
-        PARAMETER (SCOTCH_ARCHDIM          = 11)
-        PARAMETER (SCOTCH_GEOMDIM          = 2)
-        PARAMETER (SCOTCH_GRAPHDIM         = 13)
-        PARAMETER (SCOTCH_MAPDIM           = 4)
-        PARAMETER (SCOTCH_MESHDIM          = 15)
-        PARAMETER (SCOTCH_ORDERDIM         = 12)
-        PARAMETER (SCOTCH_STRATDIM         = 1)
+        PARAMETER (SCOTCH_ARCHDIM    = 11)
+        PARAMETER (SCOTCH_ARCHDOMDIM = 5)
+        PARAMETER (SCOTCH_CONTEXTDIM = 3)
+        PARAMETER (SCOTCH_GEOMDIM    = 2)
+        PARAMETER (SCOTCH_GRAPHDIM   = 12)
+        PARAMETER (SCOTCH_MAPDIM     = 4)
+        PARAMETER (SCOTCH_MESHDIM    = 15)
+        PARAMETER (SCOTCH_ORDERDIM   = 17)
+        PARAMETER (SCOTCH_STRATDIM   = 1)

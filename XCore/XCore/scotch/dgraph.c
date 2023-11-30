@@ -1,4 +1,4 @@
-/* Copyright 2007,2010,2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2010,2012,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -38,30 +38,32 @@
 /**                Sebastien FOUCAULT (P0.0)               **/
 /**                Nicolas GICQUEL (P0.1)                  **/
 /**                Jerome LACOSTE (P0.1)                   **/
-/**                Cedric CHEVALIER                        **/
+/**                Cedric CHEVALIER (v5.0)                 **/
 /**                                                        **/
 /**   FUNCTION   : This module contains the distributed    **/
 /**                graph data structure handling           **/
 /**                routines.                               **/
 /**                                                        **/
 /**    DATES     : # Version P0.0 : from : 01 apr 1997     **/
-/**                                 to     01 apr 1997     **/
+/**                                 to   : 01 apr 1997     **/
 /**                # Version P0.1 : from : 12 apr 1998     **/
-/**                                 to     20 jun 1998     **/
+/**                                 to   : 20 jun 1998     **/
 /**                # Version 5.0  : from : 16 feb 2005     **/
 /**                                 to   : 17 jul 2008     **/
 /**                # Version 5.1  : from : 21 jun 2008     **/
 /**                                 to   : 30 jul 2010     **/
 /**                # Version 6.0  : from : 12 sep 2012     **/
 /**                                 to   : 12 sep 2012     **/
+/**                # Version 6.1  : from : 24 sep 2021     **/
+/**                                 to   : 24 sep 2021     **/
+/**                # Version 7.0  : from : 17 jan 2023     **/
+/**                                 to   : 17 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 ** The defines and includes.
 */
-
-#define DGRAPH
 
 #include "module.h"
 #include "common.h"
@@ -193,12 +195,16 @@ void
 dgraphExit (
 Dgraph * restrict const     grafptr)
 {
-  if ((grafptr->flagval & DGRAPHFREECOMM) != 0)   /* If communicator has to be freed */
+  DgraphFlag          flagval;
+
+  flagval = grafptr->flagval;
+  if ((flagval & DGRAPHFREECOMM) != 0)            /* If communicator has to be freed */
     MPI_Comm_free (&grafptr->proccomm);           /* Free it                         */
 
   dgraphFree2 (grafptr);
 
 #ifdef SCOTCH_DEBUG_DGRAPH1
-  memSet (grafptr, 0, sizeof (Dgraph));
+  memSet (grafptr, ~0, sizeof (Dgraph));
 #endif /* SCOTCH_DEBUG_DGRAPH1 */
+  grafptr->flagval = flagval & ~DGRAPHBITSUSED;   /* A subsequent dgraphExit() will have no effect */
 }

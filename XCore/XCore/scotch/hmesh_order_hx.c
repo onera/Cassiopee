@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2018-2020,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -43,14 +43,16 @@
 /**                                 to   : 24 jan 2004     **/
 /**                # Version 6.0  : from : 30 apr 2018     **/
 /**                                 to   : 25 jun 2018     **/
+/**                # Version 6.1  : from : 29 oct 2019     **/
+/**                                 to   : 26 jan 2020     **/
+/**                # Version 7.0  : from : 20 jan 2023     **/
+/**                                 to   : 20 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The defines and includes.
 */
-
-#define HMESH_ORDER_HX
 
 #include "module.h"
 #include "common.h"
@@ -77,7 +79,7 @@ const Hmesh * restrict const  meshptr,
 Gnum * restrict const         petab,
 Gnum * restrict const         lentab,
 Gnum * restrict const         iwtab,
-Gnum * restrict const         nvartab,
+Gnum * restrict const         nvtab,
 Gnum * restrict const         elentab,
 Gnum * restrict const         pfreptr)
 {
@@ -85,6 +87,7 @@ Gnum * restrict const         pfreptr)
   Gnum                        hashsiz;
   Gnum                        hashmsk;
   Gnum                        n;                  /* Number of nodes to order             */
+  Gnum                        norig;              /* Sum of degrees                       */
   Gnum                        velmadj;            /* Index adjustment for element indices */
   Gnum                        vnodadj;            /* Index adjustment for node indices    */
   Gnum                        velmnum;
@@ -96,16 +99,15 @@ Gnum * restrict const         pfreptr)
   Gnum * restrict const       petax   = petab   - 1; /* Base HAMF arrays at base 1 */
   Gnum * restrict const       iwtax   = iwtab   - 1;
   Gnum * restrict const       lentax  = lentab  - 1;
-  Gnum * restrict const       nvartax = nvartab - 1;
+  Gnum * restrict const       nvtax   = nvtab   - 1;
   Gnum * restrict const       elentax = elentab - 1;
   const Gnum * restrict const verttax = meshptr->m.verttax;
   const Gnum * restrict const vendtax = meshptr->m.vendtax;
-#if 0 /* TODO when weighted vertices will be managed */
   const Gnum * restrict const velotax = meshptr->m.velotax;
-#endif
   const Gnum * restrict const edgetax = meshptr->m.edgetax;
 
-  n = meshptr->m.velmnbr + meshptr->m.vnodnbr;
+  n     = meshptr->m.velmnbr + meshptr->m.vnodnbr;
+  norig = meshptr->m.velmnbr + meshptr->m.vnodnbr; /* Elements always have load 1                        */
   for (hashsiz = 16, degrval = meshptr->m.degrmax * (meshptr->m.degrmax - 1); /* Compute hash table size */
        hashsiz < degrval; hashsiz <<= 1) ;
   hashsiz <<= 1;
@@ -123,13 +125,9 @@ Gnum * restrict const         pfreptr)
     Gnum                      enodnum;
     Gnum                      nghbnbr;
 
-    petax[vertnum]   = edgenum;
-    lentax[vertnum]  = vendtax[vnodnum] - verttax[vnodnum];
-#if 0 /* TODO when weighted vertices will be managed */
-    nvartax[vertnum] = (velotax != NULL) ? velotax[vnodnum] : 1;
-#else
-    nvartax[vertnum] = 1;
-#endif
+    petax[vertnum]  = edgenum;
+    lentax[vertnum] = vendtax[vnodnum] - verttax[vnodnum];
+    nvtax[vertnum]  = (velotax != NULL) ? velotax[vnodnum] : 1;
 
     for (enodnum = verttax[vnodnum], nghbnbr = -1; /* -1 since loop edge will be processed in the main loop */
          enodnum < vendtax[vnodnum]; enodnum ++) {
@@ -163,15 +161,11 @@ Gnum * restrict const         pfreptr)
     Gnum                      degrval;
     Gnum                      enodnum;
 
-    degrval = verttax[vnodnum] - vendtax[vnodnum];
+    degrval = verttax[vnodnum] - vendtax[vnodnum]; /* Compute opposite of degree */
     petax[vertnum]   = edgenum;
-    lentax[vertnum]  = (degrval != 0) ? degrval : - (n + 1);
+    lentax[vertnum]  = (degrval != 0) ? degrval : (-1 - norig);
     elentax[vertnum] = 0;
-#if 0 /* TODO when weighted vertices will be managed */
-    nvartax[vertnum] = (velotax != NULL) ? velotax[vnodnum] : 1;
-#else
-    nvartax[vertnum] = 1;
-#endif
+    nvtax[vertnum]   = (velotax != NULL) ? velotax[vnodnum] : 1;
 
     for (enodnum = verttax[vnodnum];
          enodnum < vendtax[vnodnum]; enodnum ++)
@@ -185,11 +179,7 @@ Gnum * restrict const         pfreptr)
     petax[vertnum]   = edgenum;
     lentax[vertnum]  = meshptr->m.vendtax[velmnum] - meshptr->m.verttax[velmnum];
     elentax[vertnum] = - (n + 1);
-#if 0 /* TODO when weighted vertices will be managed */
-    nvartax[vertnum] = (velotax != NULL) ? velotax[vnodnum] : 1;
-#else
-    nvartax[vertnum] = 1;
-#endif
+    nvtax[vertnum]   = 1;                         /* Elements always have weight 1 */
 
     for (eelmnum = verttax[velmnum];
          eelmnum < vendtax[velmnum]; eelmnum ++)

@@ -1,4 +1,4 @@
-/* Copyright 2007-2011,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007-2011,2014,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -44,14 +44,16 @@
 /**                                 to   : 04 jan 2011     **/
 /**                # Version 6.0  : from : 28 sep 2014     **/
 /**                                 to   : 28 sep 2014     **/
+/**                # Version 6.1  : from : 18 jun 2021     **/
+/**                                 to   : 19 jun 2021     **/
+/**                # Version 7.0  : from : 14 sep 2021     **/
+/**                                 to   : 14 aug 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The defines and includes.
 */
-
-#define DGRAPH
 
 #include "module.h"
 #include "common.h"
@@ -79,10 +81,10 @@
 int
 dgraphFold (
 const Dgraph * restrict const orggrafptr,
-const int                     partval,            /* 0 for first half, 1 for second half */
+const int                     partval,            /*+ 0 for first half, 1 for second half                                        +*/
 Dgraph * restrict const       fldgrafptr,
-const void * restrict const   orgdataptr,         /* Un-based array of data which must be folded, e.g. coarmulttab */
-void ** restrict const        flddataptr,         /* Un-based array of data which must be folded, e.g. coarmulttab */
+const void * restrict const   orgdataptr,         /*+ Un-based array of data which must be folded, e.g. coarmulttab              +*/
+void ** const                 flddataptr,         /*+ Un-based array of data which must be folded, e.g. coarmulttab [norestrict] +*/
 MPI_Datatype                  datatype)
 {
   int               fldprocnbr;
@@ -101,11 +103,11 @@ MPI_Datatype                  datatype)
 
   if (MPI_Comm_split (orggrafptr->proccomm, fldproccol, fldprocnum, &fldproccomm) != MPI_SUCCESS) {
     errorPrint ("dgraphFold: communication error");
-    return     (1);
+    return (1);
   }
 
   o = dgraphFold2 (orggrafptr, partval, fldgrafptr, fldproccomm, orgdataptr, flddataptr, datatype);
-  fldgrafptr->prockeyval = fldproccol;            /* Key of folded communicator is always zero if no duplication occurs */
+  fldgrafptr->pkeyglbval = fldproccol;            /* Key of folded communicator is always zero if no duplication occurs */
 
   return (o);
 }
@@ -113,42 +115,52 @@ MPI_Datatype                  datatype)
 int
 dgraphFold2 (
 const Dgraph * restrict const orggrafptr,
-const int                     partval,            /* 0 for first half, 1 for second half */
-Dgraph * restrict const       fldgrafptr,
+const int                     partval,            /*+ 0 for first half, 1 for second half                          +*/
+Dgraph * const                fldgrafptr,         /*+ Folded graph structure to fill [norestrict:async]            +*/
 MPI_Comm                      fldproccomm,
-const void * restrict const   orgdataptr,         /* Un-based array of data which must be kept, e.g. coarmulttab */
-void ** restrict const        flddataptr,         /* Un-based array of data which must be kept, e.g. coarmulttab */
+const void * restrict const   orgdataptr,         /*+ Un-based array of data which must be kept, e.g. coarmulttab  +*/
+void ** const                 flddataptr,         /*+ Un-based array of data which must be kept, e.g. coarmulttab  +*/
 MPI_Datatype                  datatype)
 {
-  int                           fldcommtypval;    /* Type of communication for this process                 */
-  DgraphFoldCommData * restrict fldcommdattab;    /* Array of two communication data                        */
-  Gnum * restrict               fldcommvrttab;    /* Starting global send indices of communications         */
-  Gnum * restrict               fldvertidxtab;    /* Start indices of vertex arrays                         */
-  Gnum * restrict               fldedgeidxtab;    /* Start indices of edge arrays                           */
-  Gnum * restrict               fldedgecnttab;    /* Number of edges exchanged during each communication    */
-  Gnum * restrict               fldedgecnptab;    /* Temporary save for fldedgecnttab for MPI standard      */
-  Gnum                          fldvertlocnbr;    /* Number of vertices in local folded part                */
-  Gnum                          fldedgelocsiz;    /* (Upper bound of) number of edges in folded graph       */
-  Gnum                          fldedlolocsiz;    /* (Upper bound of) number of edge loads in folded graph  */
+  Gnum * restrict               orgvertloctax;    /* Pointer to (possible compacted) vertex array                     */ 
+  Gnum * restrict               orgedgeloctax;    /* Pointer to (possible compacted) edge array                       */
+  Gnum * restrict               orgedloloctax;    /* Pointer to (possible compacted) edge load array                  */
+  int                           fldcommtypval;    /* Type of communication for this process                           */
+  DgraphFoldCommData * restrict fldcommdattab;    /* Array of two communication data                                  */
+  Gnum *                        fldcommvrttab;    /* Starting global send indices of communications [norestrict]      */
+  Gnum *                        fldvertidxtab;    /* Start indices of vertex arrays [norestrict]                      */
+  Gnum *                        fldedgeidxtab;    /* Start indices of edge arrays [norestrict]                        */
+  Gnum *                        fldedgecnttab;    /* Number of edges exchanged during each communication [norestrict] */
+  Gnum *                        fldedgecnptab;    /* Temporary save for fldedgecnttab for MPI standard [norestrict]   */
+  Gnum                          fldvertlocnbr;    /* Number of vertices in local folded part                          */
+  Gnum                          fldedgelocsiz;    /* (Upper bound of) number of edges in folded graph                 */
+  Gnum                          fldedlolocsiz;    /* (Upper bound of) number of edge loads in folded graph            */
   int                           fldprocglbnbr;
-  int                           fldproclocnum;    /* Index of local process in folded communicator          */
+  int                           fldproclocnum;    /* Index of local process in folded communicator                    */
   int                           fldvertadjnbr;
-  Gnum * restrict               fldvertadjtab;    /* Array of global start indices for adjustment slots     */
-  Gnum * restrict               fldvertdlttab;    /* Array of index adjustments for original global indices */
+  Gnum * restrict               fldvertadjtab;    /* Array of global start indices for adjustment slots               */
+  Gnum * restrict               fldvertdlttab;    /* Array of index adjustments for original global indices           */
   int                           cheklocval;
   int                           chekglbval;
   int                           commmax;
   int                           commnbr;
   int                           requnbr;
   MPI_Request * restrict        requtab;
-  int                           infosiz;          /* Size of one information                                */
+  int                           infosiz;          /* Size of one information                                          */
 
-#ifdef SCOTCH_DEBUG_DGRAPH2
-  if (orggrafptr->vendloctax != (orggrafptr->vertloctax + 1)) {
-    errorPrint ("dgraphFold2: graph must be compact");
-    return     (1);
+  const Gnum                    orgprocvrtbas = orggrafptr->procvrttab[orggrafptr->proclocnum];
+
+  if (orggrafptr->vendloctax != (orggrafptr->vertloctax + 1)) { /* If graph is not compact */
+    if (dgraphCompact2 (orggrafptr, &orgvertloctax, &orgedgeloctax, &orgedloloctax) != 0) {
+      errorPrint ("dgraphFold2: cannot compact graph");
+      return (1);
+    }
   }
-#endif /* SCOTCH_DEBUG_DGRAPH2 */
+  else {                                          /* Graph is compact; take arrays as is */
+    orgvertloctax = orggrafptr->vertloctax;
+    orgedgeloctax = orggrafptr->edgeloctax;
+    orgedloloctax = orggrafptr->edloloctax;
+  }
 
   fldprocglbnbr = (orggrafptr->procglbnbr + 1) / 2;
   if (partval == 1) {
@@ -169,11 +181,11 @@ MPI_Datatype                  datatype)
 #ifdef SCOTCH_DEBUG_DGRAPH2
     if (fldgrafptr == NULL) {
       errorPrint ("dgraphFold2: invalid parameters (1)");
-      return     (1);
+      return (1);
     }
     if (fldproccomm == MPI_COMM_NULL) {
       errorPrint ("dgraphFold2: invalid parameters (2)");
-      return     (1);
+      return (1);
     }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
 
@@ -215,9 +227,9 @@ MPI_Datatype                  datatype)
         fldedgelocsiz += orggrafptr->edgelocnbr;  /* Add local edges and vertices */
         fldvertlocnbr += orggrafptr->vertlocnbr;
       }
-      else {                                      /* Process is a sender receiver */
-        fldvertlocnbr = fldcommvrttab[0] - orggrafptr->procvrttab[orggrafptr->proclocnum]; /* Communications will remove vertices   */
-        fldedgelocsiz = orggrafptr->vertloctax[fldvertlocnbr + orggrafptr->baseval] - orggrafptr->baseval; /* Exact number of edges */
+      else {                                      /* Process is a sender receiver                */
+        fldvertlocnbr = fldcommvrttab[0] - orgprocvrtbas; /* Communications will remove vertices */
+        fldedgelocsiz = orgvertloctax[fldvertlocnbr + orggrafptr->baseval] - orggrafptr->baseval; /* Exact number of edges */
 
         fldgrafptr->edgelocnbr =
         fldgrafptr->edgelocsiz = fldedgelocsiz;
@@ -235,7 +247,7 @@ MPI_Datatype                  datatype)
                fldgrafptr->vnumloctax -= orggrafptr->baseval,
                fldgrafptr->vendloctax  = fldgrafptr->vertloctax + 1, /* Folded graph is compact */
                fldgrafptr->veloloctax  = ((orggrafptr->veloloctax != NULL) ? (fldgrafptr->veloloctax - orggrafptr->baseval) : NULL),
-               fldedlolocsiz = ((orggrafptr->edloloctax != NULL) ? fldedgelocsiz : 0),
+               fldedlolocsiz = ((orgedloloctax != NULL) ? fldedgelocsiz : 0),
                (fldgrafptr->edgeloctax = memAlloc ((fldedgelocsiz + fldedlolocsiz) * sizeof (Gnum))) == NULL) { /* Allocate single array for both edge arrays */
         errorPrint ("dgraphFold2: out of memory (3)");
         cheklocval = 1;
@@ -255,7 +267,7 @@ MPI_Datatype                  datatype)
 #ifdef SCOTCH_DEBUG_HDGRAPH2
     if (fldproccomm != MPI_COMM_NULL) {
       errorPrint ("dgraphFold2: invalid parameters (3)");
-      return     (1);
+      return (1);
     }
 #endif /* SCOTCH_DEBUG_HDGRAPH2 */
 
@@ -302,7 +314,7 @@ MPI_Datatype                  datatype)
     Gnum              vertsndnbr;
     int               i;
 
-    vertsndnbr = ((fldcommtypval & DGRAPHFOLDCOMMRECV) != 0) ? (fldcommvrttab[0] - orggrafptr->procvrttab[orggrafptr->proclocnum]) : 0; /* If process is also a receiver, start sending after kept vertices */
+    vertsndnbr = ((fldcommtypval & DGRAPHFOLDCOMMRECV) != 0) ? (fldcommvrttab[0] - orgprocvrtbas) : 0; /* If process is also a receiver, start sending after kept vertices */
 
     for (i = 0, vertsndbas = orggrafptr->baseval; /* For all send communications to perform */
          (i < commmax) && (fldcommdattab[i].procnum != -1) && (cheklocval == 0); i ++) {
@@ -310,9 +322,9 @@ MPI_Datatype                  datatype)
       vertsndnbr  = fldcommdattab[i].vertnbr;
 
       fldvertidxtab[i] = vertsndbas;
-      fldedgeidxtab[i] = orggrafptr->vertloctax[vertsndbas];
+      fldedgeidxtab[i] = orgvertloctax[vertsndbas];
       fldedgecnptab[i] =                          /* Save fldedgecnttab in temporary array to read it while MPI communication in progress */
-      fldedgecnttab[i] = orggrafptr->vertloctax[vertsndbas + vertsndnbr] - orggrafptr->vertloctax[vertsndbas]; /* Graph is compact        */
+      fldedgecnttab[i] = orgvertloctax[vertsndbas + vertsndnbr] - orgvertloctax[vertsndbas]; /* Graph is compact        */
       if (MPI_Isend (&fldedgecnptab[i], 1, GNUM_MPI, fldcommdattab[i].procnum,
                      TAGFOLD + TAGVLBLLOCTAB, orggrafptr->proccomm, &requtab[requnbr ++]) != MPI_SUCCESS) {
         errorPrint ("dgraphFold2: communication error (2)");
@@ -322,14 +334,14 @@ MPI_Datatype                  datatype)
     commnbr = i;
 
     for (i = 0; (i < commnbr) && (cheklocval == 0); i ++) {
-      if (MPI_Isend (orggrafptr->vertloctax + fldvertidxtab[i], fldcommdattab[i].vertnbr, GNUM_MPI, fldcommdattab[i].procnum,
+      if (MPI_Isend (orgvertloctax + fldvertidxtab[i], fldcommdattab[i].vertnbr, GNUM_MPI, fldcommdattab[i].procnum,
                      TAGFOLD + TAGVERTLOCTAB, orggrafptr->proccomm, &requtab[requnbr ++]) != MPI_SUCCESS) {
         errorPrint ("dgraphFold2: communication error (3)");
         cheklocval = 1;
       }
     }
     for (i = 0; (i < commnbr) && (cheklocval == 0); i ++) {
-      if (MPI_Isend (orggrafptr->edgeloctax + fldedgeidxtab[i], fldedgecnttab[i], GNUM_MPI, fldcommdattab[i].procnum,
+      if (MPI_Isend (orgedgeloctax + fldedgeidxtab[i], fldedgecnttab[i], GNUM_MPI, fldcommdattab[i].procnum,
                      TAGFOLD + TAGEDGELOCTAB, orggrafptr->proccomm, &requtab[requnbr ++]) != MPI_SUCCESS) {
         errorPrint ("dgraphFold2: communication error (4)");
         cheklocval = 1;
@@ -348,8 +360,8 @@ MPI_Datatype                  datatype)
       int               procsndnum;               /* Rank of process to send to */
 
       procsndnum = fldcommdattab[i].procnum;
-      if ((orggrafptr->edloloctax != NULL) &&
-          (MPI_Isend (orggrafptr->edloloctax + fldedgeidxtab[i], fldedgecnttab[i], GNUM_MPI, procsndnum,
+      if ((orgedloloctax != NULL) &&
+          (MPI_Isend (orgedloloctax + fldedgeidxtab[i], fldedgecnttab[i], GNUM_MPI, procsndnum,
                       TAGFOLD + TAGEDLOLOCTAB, orggrafptr->proccomm, &requtab[requnbr ++]) != MPI_SUCCESS)) {
         errorPrint ("dgraphFold2: communication error (6)");
         cheklocval = 1;
@@ -376,6 +388,7 @@ MPI_Datatype                  datatype)
     Gnum                orgvertlocmax;
     Gnum                fldvertlocadj;
     Gnum                fldvelolocsum;
+    Gnum * restrict     fldedgeloctax;
     Gnum                fldedgelocnum;
     Gnum                fldedgelocnnd;
     int                 fldprocnum;
@@ -383,13 +396,11 @@ MPI_Datatype                  datatype)
     int                 procngbmax;
     int                 i;
 
-    const Gnum * restrict const orgedgeloctax = orggrafptr->edgeloctax;
-    Gnum * restrict const       fldedgeloctax = fldgrafptr->edgeloctax;
-
-    fldgrafptr->procvrttab = fldgrafptr->procdsptab; /* Graph does not have holes                               */
-    fldgrafptr->procdsptab[0] = orggrafptr->baseval; /* Build private data of folded graph and array            */
-    for (fldprocnum = 0; fldprocnum < fldprocglbnbr; fldprocnum ++) /* New subdomain indices start from baseval */
+    fldgrafptr->procvrttab = fldgrafptr->procdsptab; /* Graph does not have holes                                 */
+    fldgrafptr->procdsptab[0] = orggrafptr->baseval; /* Build private data of folded graph and array              */
+    for (fldprocnum = 0; fldprocnum < fldprocglbnbr; fldprocnum ++) { /* New subdomain indices start from baseval */
       fldgrafptr->procdsptab[fldprocnum + 1] = fldgrafptr->procdsptab[fldprocnum] + fldgrafptr->proccnttab[fldprocnum];
+    }
 
     if ((fldcommtypval & DGRAPHFOLDCOMMSEND) == 0) { /* If process is a normal receiver */
       Gnum                fldedgelocbas;
@@ -419,7 +430,7 @@ MPI_Datatype                  datatype)
 
       MPI_Waitall (commnbr, &requtab[DGRAPHFOLDTAGENBR * commmax], MPI_STATUSES_IGNORE);
 
-      for (i = 0, fldedgelocbas = orggrafptr->vertloctax[orggrafptr->vertlocnnd]; (i < commnbr) && (cheklocval == 0); i ++) {
+      for (i = 0, fldedgelocbas = orgvertloctax[orggrafptr->vertlocnnd]; (i < commnbr) && (cheklocval == 0); i ++) {
         fldedgeidxtab[i] = fldedgelocbas;
         fldedgelocbas += fldedgecnttab[i];
 
@@ -441,7 +452,7 @@ MPI_Datatype                  datatype)
           }
         }
       }
-      if (orggrafptr->edloloctax != NULL) {
+      if (orgedloloctax != NULL) {
         fldgrafptr->edloloctax = fldgrafptr->edgeloctax + fldgrafptr->edgelocnbr; /* Set start index of edge load array */
 
         for (i = 0; (i < commnbr) && (cheklocval == 0); i ++) {
@@ -491,7 +502,7 @@ MPI_Datatype                  datatype)
         }
       }
 
-      fldedgelocnnd = orggrafptr->vertloctax[orggrafptr->vertlocnnd];
+      fldedgelocnnd = orgvertloctax[orggrafptr->vertlocnnd];
       fldvelolocsum = orggrafptr->velolocsum;     /* In case there are vertex loads, we keep all of existing load */
     }
     else {                                        /* Receiver process is also a sender     */
@@ -505,8 +516,8 @@ MPI_Datatype                  datatype)
              fldvertlocnum < orgvertlocnnd; fldvertlocnum ++)
           fldvelolocsum += orggrafptr->veloloctax[fldvertlocnum];
       }
-      fldedgelocnnd = orggrafptr->vertloctax[orgvertlocnnd]; /* Reorder remaining local part of edge array */
-      if (orggrafptr->edloloctax != NULL)
+      fldedgelocnnd = orgvertloctax[orgvertlocnnd]; /* Reorder remaining local part of edge array */
+      if (orgedloloctax != NULL)
         fldgrafptr->edloloctax = fldgrafptr->edgeloctax + fldgrafptr->edgelocnbr; /* Set start index of edge load array */
 
       commnbr = 0;                                /* Turn sender-receiver into normal receiver without any communications to perform */
@@ -517,7 +528,7 @@ MPI_Datatype                  datatype)
       int               procngbmed;
 
       procngbmed = (procngbmax + procngbmin) / 2;
-      if (fldvertadjtab[procngbmed] <= orggrafptr->procvrttab[orggrafptr->proclocnum])
+      if (fldvertadjtab[procngbmed] <= orgprocvrtbas)
         procngbmin = procngbmed;
       else
         procngbmax = procngbmed;
@@ -525,6 +536,7 @@ MPI_Datatype                  datatype)
     orgvertlocmin = fldvertadjtab[procngbmin];
     orgvertlocmax = fldvertadjtab[procngbmax];
     fldvertlocadj = fldvertdlttab[procngbmin];
+    fldedgeloctax = fldgrafptr->edgeloctax;
     for (fldedgelocnum = orggrafptr->baseval; fldedgelocnum < fldedgelocnnd; fldedgelocnum ++) {
       Gnum              orgvertlocend;
 
@@ -555,10 +567,9 @@ MPI_Datatype                  datatype)
       memCpy (fldgrafptr->veloloctax + orggrafptr->baseval, /* Copy local part of vertex load array */
               orggrafptr->veloloctax + orggrafptr->baseval, orgvertlocnbr * sizeof (Gnum));
 
-    if (orggrafptr->edloloctax != NULL)           /* If original graph has edge loads             */
+    if (orgedloloctax != NULL)                    /* If original graph has edge loads             */
       memCpy (fldgrafptr->edloloctax + orggrafptr->baseval, /* Copy local part of edge load array */
-              orggrafptr->edloloctax + orggrafptr->baseval,
-              (orggrafptr->vertloctax[orgvertlocnnd] - orggrafptr->baseval) * sizeof (Gnum));
+              orgedloloctax + orggrafptr->baseval, (orgvertloctax[orgvertlocnnd] - orggrafptr->baseval) * sizeof (Gnum));
 
     if (orggrafptr->vnumloctax != NULL)           /* If original graph has vertex numbers             */
       memCpy (fldgrafptr->vnumloctax + orggrafptr->baseval, /* Copy local part of vertex number array */
@@ -567,13 +578,13 @@ MPI_Datatype                  datatype)
       Gnum              fldvertlocnum;
       Gnum              fldvertlocadj;
 
-      for (fldvertlocnum = orggrafptr->baseval, fldvertlocadj = orggrafptr->procvrttab[orggrafptr->proclocnum];
+      for (fldvertlocnum = orggrafptr->baseval, fldvertlocadj = orgprocvrtbas;
            fldvertlocnum < orgvertlocnnd; fldvertlocnum ++)
         fldgrafptr->vnumloctax[fldvertlocnum] = fldvertlocadj ++;
     }
 
-    memCpy (fldgrafptr->vertloctax + orggrafptr->baseval, /* Copy local part of vertex array, since it is compact     */
-            orggrafptr->vertloctax + orggrafptr->baseval, orgvertlocnbr * sizeof (Gnum)); /* Last value is not copied */
+    memCpy (fldgrafptr->vertloctax + orggrafptr->baseval, /* Copy local part of vertex array, since it is compact */
+            orgvertloctax + orggrafptr->baseval, orgvertlocnbr * sizeof (Gnum)); /* Last value is not copied      */
     fldgrafptr->vertloctax[fldvertlocnbr + orggrafptr->baseval] = fldgrafptr->edgelocnbr + orggrafptr->baseval;
 
     if (orgdataptr != NULL)                       /* If additional data present */
@@ -613,10 +624,9 @@ MPI_Datatype                  datatype)
         Gnum              orgvertlocmin;
         Gnum              orgvertlocmax;
         Gnum              fldvertlocadj;
+        Gnum * restrict   fldedgeloctax;
         int               procngbnum;
         int               procngbmax;
-
-        Gnum * restrict const fldedgeloctax = fldgrafptr->edgeloctax;
 
 #ifdef SCOTCH_DEBUG_DGRAPH2
         int               fldedgercvnbr;
@@ -624,10 +634,10 @@ MPI_Datatype                  datatype)
         MPI_Get_count (&statdat, GNUM_MPI, &fldedgercvnbr);
         if (fldedgercvnbr != fldedgecnttab[j]) {
           errorPrint  ("dgraphFold2: internal error (1)");
-          return      (1);
+          return (1);
         }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
-        
+
         for (procngbnum = 0, procngbmax = fldvertadjnbr; /* Initialize search accelerator */
              procngbmax - procngbnum > 1; ) {
           int               procngbmed;
@@ -641,6 +651,7 @@ MPI_Datatype                  datatype)
         orgvertlocmin = fldvertadjtab[procngbnum];
         orgvertlocmax = fldvertadjtab[procngbmax];
         fldvertlocadj = fldvertdlttab[procngbnum];
+        fldedgeloctax = fldgrafptr->edgeloctax;
         for (fldedgelocnum = fldedgeidxtab[j], fldedgelocnnd = fldedgelocnum + fldedgecnttab[j];
              fldedgelocnum < fldedgelocnnd; fldedgelocnum ++) { /* Reorder end vertices */
           Gnum              orgvertlocend;
@@ -648,7 +659,7 @@ MPI_Datatype                  datatype)
 #ifdef SCOTCH_DEBUG_DGRAPH2
           if (fldedgelocnum >= (fldgrafptr->edgelocnbr + orggrafptr->baseval)) {
             errorPrint  ("dgraphFold2: internal error (2)");
-            return      (1);
+            return (1);
           }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
 
@@ -702,7 +713,7 @@ MPI_Datatype                  datatype)
       Gnum                fldedgeloctmp;
 
       fldedgeloctmp = fldgrafptr->edgelocnbr;
-      if (orggrafptr->edloloctax != NULL) {
+      if (orgedloloctax != NULL) {
         fldedgeloctmp *= 2;
         if (MPI_Waitall (commnbr, &requtab[DGRAPHFOLDTAGEDLO * commmax], MPI_STATUSES_IGNORE) != MPI_SUCCESS) { /* Wait for edge load sub-arrays */
           errorPrint ("dgraphFold2: communication error (19)");
@@ -712,7 +723,7 @@ MPI_Datatype                  datatype)
 
       fldgrafptr->edgeloctax  = memRealloc (fldgrafptr->edgeloctax + orggrafptr->baseval, fldedgeloctmp * sizeof (Gnum));
       fldgrafptr->edgeloctax -= orggrafptr->baseval;
-      if (orggrafptr->edloloctax != NULL)
+      if (orgedloloctax != NULL)
         fldgrafptr->edloloctax = fldgrafptr->edgeloctax + fldgrafptr->edgelocnbr;
     }
 
@@ -724,14 +735,14 @@ MPI_Datatype                  datatype)
     if (dgraphBuild4 (fldgrafptr) != 0) {
       errorPrint ("dgraphFold2: cannot build folded graph");
       dgraphExit (fldgrafptr);
-      return     (1);
+      return (1);
     }
 
 #ifdef SCOTCH_DEBUG_DGRAPH2
     if (dgraphCheck (fldgrafptr) != 0) {          /* Check graph consistency; vnumloctab is not checked so no need to wait for it */
       errorPrint ("dgraphFold2: internal error (3)");
       dgraphExit (fldgrafptr);
-      return     (1);
+      return (1);
     }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
   }
@@ -744,6 +755,8 @@ MPI_Datatype                  datatype)
   }
 
   memFree (fldvertidxtab);                        /* Free group leader including request array */
+  if (orgvertloctax != orggrafptr->vertloctax)
+    memFree (orgvertloctax + orggrafptr->baseval);
 
 #ifdef SCOTCH_DEBUG_DGRAPH1                       /* Communication cannot be merged with a useful one */
   if (MPI_Allreduce (&cheklocval, &chekglbval, 1, MPI_INT, MPI_MAX, orggrafptr->proccomm) != MPI_SUCCESS) {

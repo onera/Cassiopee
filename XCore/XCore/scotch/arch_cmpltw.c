@@ -1,4 +1,4 @@
-/* Copyright 2007,2008,2010,2011,2014,2015 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2008,2010,2011,2014,2015,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,17 +40,17 @@
 /**                complete graph target architecture.     **/
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 11 dec 2007     **/
-/**                                 to     11 aug 2010     **/
+/**                                 to   : 11 aug 2010     **/
 /**                # Version 6.0  : from : 14 feb 2011     **/
-/**                                 to     12 apr 2015     **/
+/**                                 to   : 12 apr 2015     **/
+/**                # Version 7.0  : from : 17 jan 2023     **/
+/**                                 to   : 17 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The defines and includes.
 */
-
-#define ARCH_CMPLTW
 
 #include "module.h"
 #include "common.h"
@@ -146,7 +146,7 @@ ArchCmpltw * restrict const archptr)
   }
 
   intSort2asc2 (archptr->velotab, archptr->vertnbr); /* Sort load array by both keys to be portable across sorting implementations */
-  
+
   archCmpltwArchBuild3 (archptr->velotab, vesotab, archptr->vertnbr, archptr->velosum);
 
   memFree (vesotab);
@@ -347,7 +347,7 @@ const ArchCmpltwDom * const domnptr)
 
 /* This function returns the terminal domain associated
 ** with the given terminal number in the architecture.
-** 
+**
 ** It returns:
 ** - 0  : if label is valid and domain has been updated.
 ** - 1  : if label is invalid.
@@ -388,7 +388,7 @@ const ArchDomNum            domnnum)
 ** elements in the complete domain.
 */
 
-Anum 
+Anum
 archCmpltwDomSize (
 const ArchCmpltw * const    archptr,
 const ArchCmpltwDom * const domnptr)
@@ -400,7 +400,7 @@ const ArchCmpltwDom * const domnptr)
 ** the complete domain.
 */
 
-Anum 
+Anum
 archCmpltwDomWght (
 const ArchCmpltw * const    archptr,
 const ArchCmpltwDom * const domnptr)
@@ -413,7 +413,7 @@ const ArchCmpltwDom * const domnptr)
 ** subdomains.
 */
 
-Anum 
+Anum
 archCmpltwDomDist (
 const ArchCmpltw * const    archptr,
 const ArchCmpltwDom * const dom0ptr,

@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010,2011,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2011,2014,2018,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -41,29 +41,33 @@
 /**                mapping algorithm.                      **/
 /**                                                        **/
 /**   DATES      : # Version 0.0  : from : 23 mar 1993     **/
-/**                                 to     12 may 1993     **/
+/**                                 to   : 12 may 1993     **/
 /**                # Version 1.3  : from : 06 apr 1994     **/
-/**                                 to     09 apr 1994     **/
+/**                                 to   : 09 apr 1994     **/
 /**                # Version 2.0  : from : 06 jun 1994     **/
-/**                                 to     04 nov 1994     **/
+/**                                 to   : 04 nov 1994     **/
 /**                # Version 2.1  : from : 07 apr 1995     **/
-/**                                 to     30 jun 1995     **/
+/**                                 to   : 30 jun 1995     **/
 /**                # Version 3.0  : from : 01 jul 1995     **/
-/**                                 to     28 sep 1995     **/
+/**                                 to   : 28 sep 1995     **/
 /**                # Version 3.1  : from : 15 nov 1995     **/
-/**                                 to     15 nov 1995     **/
+/**                                 to   : 15 nov 1995     **/
 /**                # Version 3.2  : from : 01 oct 1996     **/
-/**                                 to     10 jun 1998     **/
+/**                                 to   : 10 jun 1998     **/
 /**                # Version 3.3  : from : 19 oct 1998     **/
-/**                                 to     17 may 1999     **/
+/**                                 to   : 17 may 1999     **/
 /**                # Version 3.4  : from : 12 sep 2001     **/
-/**                                 to     06 nov 2001     **/
+/**                                 to   : 06 nov 2001     **/
 /**                # Version 4.0  : from : 29 nov 2003     **/
-/**                                 to     05 may 2006     **/
+/**                                 to   : 05 may 2006     **/
 /**                # Version 5.1  : from : 30 sep 2008     **/
-/**                                 to     04 nov 2010     **/
+/**                                 to   : 04 nov 2010     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     07 jun 2018     **/
+/**                                 to   : 07 jun 2018     **/
+/**                # Version 6.1  : from : 28 jun 2021     **/
+/**                                 to   : 28 jun 2021     **/
+/**                # Version 7.0  : from : 14 jan 2020     **/
+/**                                 to   : 20 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -102,6 +106,7 @@ typedef struct KgraphMapRbMapJob_ {
   Graph                     grafdat;              /*+ Job graph data (may be clone of another) +*/
   Anum                      vflonbr;              /*+ Number of fixed vertex load slots        +*/
   KgraphMapRbVflo *         vflotab;              /*+ Partial array of fixed vertex load slots +*/
+  Gnum                      levlnum;              /*+ Level of this job                        +*/
 } KgraphMapRbMapJob;
 
 /*+ This structure defines the working data,
@@ -117,14 +122,15 @@ typedef struct KgraphMapRbMapPoolData_ {
   ArchDom *                 domntab[2];           /*+ Pointer to domain arrays (same if tied)    +*/
   KgraphMapRbMapJob *       jobtab;               /*+ Job table                                  +*/
   Mapping *                 mappptr;              /*+ Pointer to original mapping: current state +*/
+  Context *                 contptr;
 } KgraphMapRbMapPoolData;
 
 /*
 **  The function prototypes.
 */
 
-#ifdef KGRAPH_MAP_RB_MAP
-static int                  kgraphMapRbMapPoolInit (KgraphMapRbMapPoolData * restrict const, const KgraphMapRbData * restrict const);
+#ifdef SCOTCH_KGRAPH_MAP_RB_MAP
+static int                  kgraphMapRbMapPoolInit (KgraphMapRbMapPoolData * restrict const, const KgraphMapRbData * restrict const, Context * const);
 static void                 kgraphMapRbMapPoolExit (KgraphMapRbMapPoolData * restrict const poolptr);
 static void                 kgraphMapRbMapPoolAdd (KgraphMapRbMapPoolLink * restrict const, KgraphMapRbMapJob * const);
 static KgraphMapRbMapJob *  kgraphMapRbMapPoolGet (KgraphMapRbMapPoolData * restrict const);
@@ -132,9 +138,9 @@ static void                 kgraphMapRbMapPoolFrst (KgraphMapRbMapPoolData * con
 static void                 kgraphMapRbMapPoolUpdt1 (KgraphMapRbMapPoolData * const, const KgraphMapRbMapJob * const, const GraphPart * const, KgraphMapRbMapJob * const, const GraphPart);
 static void                 kgraphMapRbMapPoolUpdt2 (KgraphMapRbMapPoolData * const, const KgraphMapRbMapJob * const, const GraphPart * const, KgraphMapRbMapJob * const, KgraphMapRbMapJob * const);
 static int                  kgraphMapRbMapPoolResize (KgraphMapRbMapPoolData * restrict const);
-#endif /* KGRAPH_MAP_RB_MAP */
+#endif /* SCOTCH_KGRAPH_MAP_RB_MAP */
 
-int                         kgraphMapRbMap      (const KgraphMapRbData * restrict const, const Graph * restrict const, const Anum, KgraphMapRbVflo * restrict const);
+int                         kgraphMapRbMap      (const KgraphMapRbData * restrict const, const Graph * restrict const, const Anum, KgraphMapRbVflo * restrict const, Context * const);
 
 /*
 **  The macro definitions.

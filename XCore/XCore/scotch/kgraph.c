@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010-2012,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010-2012,2014,2018,2020,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -42,23 +42,23 @@
 /**                routines.                               **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 03 oct 1997     **/
-/**                                 to     26 may 1998     **/
+/**                                 to   : 26 may 1998     **/
 /**                # Version 3.4  : from : 30 oct 2001     **/
-/**                                 to     30 oct 2001     **/
+/**                                 to   : 30 oct 2001     **/
 /**                # Version 4.0  : from : 24 jun 2004     **/
-/**                                 to     16 feb 2005     **/
+/**                                 to   : 16 feb 2005     **/
 /**                # Version 5.1  : from : 28 sep 2008     **/
-/**                                 to     31 aug 2011     **/
+/**                                 to   : 31 aug 2011     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     26 feb 2018     **/
+/**                                 to   : 27 aug 2020     **/
+/**                # Version 7.0  : from : 22 jun 2021     **/
+/**                                 to   : 20 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The defines and includes.
 */
-
-#define KGRAPH
 
 #include "module.h"
 #include "common.h"
@@ -83,79 +83,61 @@
 
 int
 kgraphInit (
-Kgraph * restrict const         actgrafptr,       /*+ Active graph                         +*/
-const Graph * restrict const    srcgrafptr,       /*+ Source graph                         +*/
-const Arch * restrict const     archptr,          /*+ Target architecture                  +*/
-const ArchDom * restrict const  domnptr,          /*+ Target architecture initial domain   +*/
+Kgraph * const                  actgrafptr,       /*+ Active graph                         +*/
+const Graph * const             srcgrafptr,       /*+ Source graph                         +*/
+Arch * restrict const           archptr,          /*+ Target architecture                  +*/
+const ArchDom * restrict        domnptr,          /*+ Target architecture initial domain   +*/
 const Gnum                      vfixnbr,          /*+ Number of fixed vertices in array    +*/
 const Anum * restrict const     pfixtax,          /*+ Fixed vertex part array              +*/
-const Anum * restrict const     parotax,          /*+ Pointer to old part array            +*/
 const Gnum                      crloval,          /*+ Coefficient load for regular edges   +*/
 const Gnum                      cmloval,          /*+ Coefficient load for migration edges +*/
 const Gnum * restrict const     vmlotax)          /*+ Vertex migration cost array          +*/
 {
-  ArchDom                   domndat;              /* First, largest domain */
+  ArchDom                   domndat;
 
 #ifdef SCOTCH_DEBUG_KGRAPH2
-  if ((crloval < 1) || (cmloval < 0)) {
+  if (((crloval < 1)) || ((vmlotax != NULL) && (cmloval < 0))) {
     errorPrint ("kgraphInit: invalid parameters");
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_KGRAPH2 */
 
-  archDomFrst (archptr, &domndat);                /* Get first, largest domain */
-
-  if (srcgrafptr != &actgrafptr->s) {             /* If graph not already in place                                           */ 
+  if (srcgrafptr != &actgrafptr->s) {             /* If graph not already in place                                           */
     actgrafptr->s          = *srcgrafptr;         /* Clone source graph                                                      */
     actgrafptr->s.flagval &= (GRAPHBITSUSED & ~GRAPHFREETABS); /* Remove extended graph class flags and do not allow freeing */
   }
-  if (archptr != &actgrafptr->a)                  /* If architecture not already in place */ 
-    actgrafptr->a = *archptr;                     /* Clone it                             */
 
-  mapInit (&actgrafptr->m, &actgrafptr->s, &actgrafptr->a,
-           ((domnptr == NULL) ? &domndat : domnptr)); /* Use largest domain if none provided */
-
-  mapInit (&actgrafptr->r.m, &actgrafptr->s, &actgrafptr->a,
-           ((domnptr == NULL) ? &domndat : domnptr));
-  if (parotax != NULL) {                          /* If old part array provided */
-    if ((mapAlloc (&actgrafptr->r.m)          != 0) ||
-        (mapBuild (&actgrafptr->r.m, parotax) != 0)) {
-      errorPrint ("kgraphInit: cannot initialize remapping");
-      return (1);
-    }
-  }
-  actgrafptr->r.crloval = crloval;
-  actgrafptr->r.cmloval = cmloval;
-  actgrafptr->r.vmlotax = vmlotax;                /* Set vertex migration load array or NULL */
-
-  actgrafptr->vfixnbr   = vfixnbr;
-  actgrafptr->pfixtax   = pfixtax;
-
-  if (mapAlloc (&actgrafptr->m) != 0) {
-    errorPrint ("kgraphInit: cannot initialize mapping");
-    return     (1);
+  if (domnptr == NULL) {                          /* If domain not provided, use first domain */
+    archDomFrst (archptr, &domndat);
+    domnptr = &domndat;
   }
 
-  if (((actgrafptr->frontab = memAlloc (actgrafptr->s.vertnbr * sizeof (Gnum))) == NULL) || /* Allocation and initialization of imbalance arrays */
+  mapInit  (&actgrafptr->m,   &actgrafptr->s, archptr, domnptr); /* Compute m.domnmax */
+  mapInit2 (&actgrafptr->r.m, &actgrafptr->s, archptr, domnptr, actgrafptr->m.domnmax, 0);
+
+  actgrafptr->s.flagval  |= KGRAPHFREECOMP | KGRAPHFREEFRON; /* Load arrays always grouped */
+  actgrafptr->comploadavg = NULL;                 /* In case of allocation error           */
+  if (((actgrafptr->frontab = memAlloc (actgrafptr->s.vertnbr * sizeof (Gnum))) == NULL) ||
       (memAllocGroup ((void **) (void *)
                       &actgrafptr->comploadavg, (size_t) (actgrafptr->m.domnmax * sizeof (Gnum)), /* TRICK: can send both compload arrays in one piece */
                       &actgrafptr->comploaddlt, (size_t) (actgrafptr->m.domnmax * sizeof (Gnum)), NULL) == NULL)) {
     errorPrint ("kgraphInit: out of memory");
-    if (actgrafptr->frontab != NULL)
-      memFree (actgrafptr->frontab);
+    kgraphExit (actgrafptr);                      /* Free frontab if needed */
     return (1);
   }
 
-  actgrafptr->s.flagval |= KGRAPHFREECOMP | KGRAPHFREEFRON; /* comploadavg and comploaddlt are always grouped */
-
+  actgrafptr->r.crloval      = crloval;
+  actgrafptr->r.cmloval      = cmloval;
+  actgrafptr->r.vmlotax      = vmlotax;           /* Set vertex migration load array or NULL */
+  actgrafptr->vfixnbr        = vfixnbr;
+  actgrafptr->pfixtax        = pfixtax;
+  actgrafptr->fronnbr        = 0;                 /* No frontier yet */
   actgrafptr->comploadavg[0] = actgrafptr->s.velosum;
   actgrafptr->comploaddlt[0] = 0;
-
-  actgrafptr->fronnbr     = 0;                    /* No frontier yet */
-  actgrafptr->comploadrat = (double) srcgrafptr->velosum / (double) archDomWght (archptr, &domndat); /* Always balance with respect to whole original graph */
-  actgrafptr->commload    = 0;
-  actgrafptr->levlnum     = 0;
-  actgrafptr->kbalval     = 1;                    /* No information on imbalance yet */
+  actgrafptr->comploadrat    = (double) srcgrafptr->velosum / (double) archDomWght (archptr, domnptr); /* Always balance with respect to whole original graph */
+  actgrafptr->commload       = 0;
+  actgrafptr->levlnum        = 0;
+  actgrafptr->kbalval        = 1.0;               /* No information on imbalance yet */
 
   return (0);
 }
@@ -171,10 +153,7 @@ void
 kgraphExit (
 Kgraph * restrict const     grafptr)
 {
-  mapExit (&grafptr->m);
-  mapExit (&grafptr->r.m);
-
-  if (((grafptr->s.flagval & KGRAPHFREEVMLO) != 0) && /* If vmlotax must be freed */ 
+  if (((grafptr->s.flagval & KGRAPHFREEVMLO) != 0) && /* If vmlotax must be freed */
       (grafptr->r.vmlotax != NULL))               /* And if it exists             */
     memFree (grafptr->r.vmlotax + grafptr->s.baseval); /* Free it                 */
 
@@ -182,13 +161,16 @@ Kgraph * restrict const     grafptr)
       (grafptr->pfixtax != NULL))                 /* And if it exists             */
     memFree (grafptr->pfixtax + grafptr->s.baseval); /* Free it                   */
 
+  if (((grafptr->s.flagval & KGRAPHFREECOMP) != 0) && /* If comptabs must be freed */
+      (grafptr->comploadavg != NULL))             /* And if they exist             */
+    memFree (grafptr->comploadavg);               /* Free group leader             */
+
   if (((grafptr->s.flagval & KGRAPHFREEFRON) != 0) && /* If frontab must be freed */
       (grafptr->frontab != NULL))                 /* And if it exists             */
     memFree (grafptr->frontab);                   /* Free it                      */
 
-  if (((grafptr->s.flagval & KGRAPHFREECOMP) != 0) && /* If comptabs must be freed */
-      (grafptr->comploadavg != NULL))             /* And if it exists              */
-    memFree (grafptr->comploadavg);               /* Free it                       */
+  mapExit (&grafptr->m);
+  mapExit (&grafptr->r.m);
 
   graphExit (&grafptr->s);
 
@@ -239,14 +221,14 @@ Kgraph * restrict const     grafptr)
   ArchDom                       domndat;
   double                        domnrat;
 
-  const Arch * restrict const     archptr = &grafptr->a;
-  const ArchDom * restrict const  domntab = grafptr->m.domntab;
-  Anum * restrict const           parttax = grafptr->m.parttax;
   const Gnum * restrict const     verttax = grafptr->s.verttax;
   const Gnum * restrict const     velotax = grafptr->s.velotax;
   const Gnum * restrict const     vendtax = grafptr->s.vendtax;
   const Gnum * restrict const     edlotax = grafptr->s.edlotax;
   const Gnum * restrict const     edgetax = grafptr->s.edgetax;
+  const Arch * restrict const     archptr = grafptr->m.archptr;
+  const ArchDom * restrict const  domntab = grafptr->m.domntab;
+  Anum * restrict const           parttax = grafptr->m.parttax;
   const Anum                      domnnbr = grafptr->m.domnnbr;
 
   commload = 0;
@@ -295,7 +277,7 @@ Kgraph * restrict const     grafptr)
         distval = (partend != partlst) ? archDomDist (archptr, &domntab[partval], &domntab[partend]) : distlst;
         distlst = distval;
         partlst = partend;
-          
+         
         commload += (Gnum) distval * ((edlotax != NULL) ? edlotax[edgenum] : 1);
       }
     }
@@ -316,10 +298,10 @@ Kgraph * restrict const     grafptr)
       for (domnnum = 0; domnnum < domnnbr; domnnum ++) {
         if ((grafptr->s.verttax[vertancnnd + domnnum + 1] - grafptr->s.verttax[vertancnnd + domnnum]) == 0) {
           veloval = grafptr->s.velotax[vertancnnd + domnnum];
-  
-          fdomwgt += (double) archDomWght (archptr, &grafptr->m.domntab[domnnum]);
+ 
+          fdomwgt += (double) archDomWght (archptr, &domntab[domnnum]);
           fvelsum += veloval;
-          compload[domnnum] -= 
+          compload[domnnum] -=
           grafptr->comploadavg[domnnum] = veloval;
 #ifdef SCOTCH_DEBUG_KGRAPH2
           if (compload[domnnum] != 0) {
@@ -337,7 +319,7 @@ Kgraph * restrict const     grafptr)
   velosum = grafptr->s.velosum - fvelsum;
   for (domnnum = 0; domnnum < domnnbr; domnnum ++) {
     compload[domnnum]            -=
-    grafptr->comploadavg[domnnum] = (Gnum) ((double) velosum * ((double) archDomWght (archptr, &grafptr->m.domntab[domnnum]) / domnrat));
+    grafptr->comploadavg[domnnum] = (Gnum) ((double) velosum * ((double) archDomWght (archptr, &domntab[domnnum]) / domnrat));
   }
 }
 

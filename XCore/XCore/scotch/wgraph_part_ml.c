@@ -1,4 +1,4 @@
-/* Copyright 2007-2011,2014,2015 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007-2011,2014,2015,2019,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -45,7 +45,9 @@
 /**   DATES      : # Version 5.1  : from : 01 dec 2007     **/
 /**                                 to   : 01 jul 2008     **/
 /**                # Version 6.0  : from : 05 nov 2009     **/
-/**                                 to     16 aug 2015     **/
+/**                                 to   : 16 aug 2015     **/
+/**                # Version 7.0  : from : 23 aug 2019     **/
+/**                                 to   : 17 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -53,7 +55,7 @@
 **  The defines and includes.
 */
 
-#define WGRAPH_PART_ML
+#define SCOTCH_WGRAPH_PART_ML
 
 #include "module.h"
 #include "common.h"
@@ -64,7 +66,7 @@
 #include "graph_coarsen.h"
 #include "wgraph.h"
 #include "wgraph_part_ml.h"
-#include "wgraph_part_st.h" 
+#include "wgraph_part_st.h"
 
 /*
 **  The static variables.
@@ -99,13 +101,14 @@ const WgraphPartMlParam * const       paraptr)     /*+ Method parameters        
   *coarmultptr = NULL;                            /* Allocate coarmulttab along with coarse graph */
   if (graphCoarsen (&finegrafptr->s, &coargrafptr->s, NULL, coarmultptr,
                     (paraptr->coarnbr * finegrafptr->partnbr), paraptr->coarval, GRAPHCOARSENNONE,
-                    NULL, NULL, 0, NULL) != 0)
+                    NULL, NULL, 0, finegrafptr->contptr) != 0)
     return (1);                                   /* Return if coarsening failed */
 
   coargrafptr->parttax  = NULL;                   /* Do not allocate partition data yet */
   coargrafptr->compload = NULL;
   coargrafptr->partnbr  = finegrafptr->partnbr;
   coargrafptr->levlnum  = finegrafptr->levlnum + 1; /* Graph level is coarsening level */
+  coargrafptr->contptr  = finegrafptr->contptr;
 
   return (0);
 }
@@ -163,7 +166,7 @@ const GraphCoarsenMulti * restrict const  coarmulttab) /*+ Un-based multinode ar
     errorPrint ("wgraphPartMlUncoarsen: out of memory (2)");
     return     (1);
   }
-  finelisttab ++;                                 /* TRICK: Trim array so that finelisttab[-1] is valid */
+  finelisttab ++;                                 /* TRICK: trim array so that finelisttab[-1] is valid */
   memSet (finelisttab, ~0, finegrafptr->partnbr * sizeof (WgraphPartList)); /* Set vertex indices to ~0 */
 
   memSet (finecompload, 0, finegrafptr->partnbr * sizeof (Gnum)); /* Reset load arrays to 0 */
@@ -299,8 +302,8 @@ const WgraphPartMlParam * const paraptr)
 
 /* This routine performs the muti-level separation.
 ** It returns:
-** - 0 : if separator could be computed.
-** - 1 : on error.
+** - 0  : if separator could be computed.
+** - 1  : on error.
 */
 
 int

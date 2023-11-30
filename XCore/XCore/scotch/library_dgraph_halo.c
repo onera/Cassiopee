@@ -1,4 +1,4 @@
-/* Copyright 2007,2009,2010,2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2009,2010,2012,2019,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,11 +40,13 @@
 /**                the libSCOTCH library.                  **/
 /**                                                        **/
 /**   DATES      : # Version 5.0  : from : 17 jul 2007     **/
-/**                                 to     02 aug 2007     **/
+/**                                 to   : 02 aug 2007     **/
 /**                # Version 5.1  : from : 02 jul 2008     **/
-/**                                 to     17 nov 2010     **/
+/**                                 to   : 17 nov 2010     **/
 /**                # Version 6.0  : from : 29 nov 2012     **/
-/**                                 to     29 nov 2012     **/
+/**                                 to   : 29 nov 2012     **/
+/**                # Version 7.0  : from : 27 aug 2019     **/
+/**                                 to   : 21 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -52,10 +54,9 @@
 **  The defines and includes.
 */
 
-#define LIBRARY
-
 #include "module.h"
 #include "common.h"
+#include "context.h"
 #include "graph.h"
 #include "dgraph.h"
 #include "dgraph_halo.h"
@@ -77,9 +78,9 @@
 
 int
 SCOTCH_dgraphGhst (
-SCOTCH_Dgraph * const       grafptr)
+SCOTCH_Dgraph * const       libgrafptr)
 {
-  return (dgraphGhst ((Dgraph *) grafptr));
+  return (dgraphGhst ((Dgraph *) CONTEXTOBJECT (libgrafptr)));
 }
 
 /*+ This routine requests the computation of the
@@ -92,13 +93,13 @@ SCOTCH_Dgraph * const       grafptr)
 
 int
 SCOTCH_dgraphGhstReplace (
-SCOTCH_Dgraph * const       grafptr)
+SCOTCH_Dgraph * const       libgrafptr)
 {
   Dgraph * restrict   srcgrafptr;                 /* Pointer to scotch graph */
   DgraphFlag          srcflagval;                 /* Graph properties        */
   int                 o;
 
-  srcgrafptr = (Dgraph *) grafptr;
+  srcgrafptr = (Dgraph *) CONTEXTOBJECT (libgrafptr);
   srcflagval = srcgrafptr->flagval;
   srcgrafptr->flagval |= DGRAPHFREETABS;          /* If edge array was not allocated internally, assume it was */
 
@@ -119,11 +120,11 @@ SCOTCH_Dgraph * const       grafptr)
 
 int
 SCOTCH_dgraphHalo (
-SCOTCH_Dgraph * const       grafptr,
+SCOTCH_Dgraph * const       libgrafptr,
 void * const                datatab,
 const MPI_Datatype          typeval)
 {
-  return (dgraphHaloSync ((Dgraph *) grafptr, (byte *) datatab, typeval));
+  return (dgraphHaloSync ((Dgraph *) CONTEXTOBJECT (libgrafptr), (byte *) datatab, typeval));
 }
 
 /*+ This routine spreads local information
@@ -137,12 +138,12 @@ const MPI_Datatype          typeval)
 
 int
 SCOTCH_dgraphHaloAsync (
-SCOTCH_Dgraph * const         grafptr,
+SCOTCH_Dgraph * const         libgrafptr,
 void * const                  datatab,
 const MPI_Datatype            typeval,
 SCOTCH_DgraphHaloReq * const  requptr)
 {
-  dgraphHaloAsync ((Dgraph *) grafptr, (byte *) datatab, typeval, (DgraphHaloRequest *) requptr);
+  dgraphHaloAsync ((Dgraph *) CONTEXTOBJECT (libgrafptr), (byte *) datatab, typeval, (DgraphHaloRequest *) requptr);
   return (0);
 }
 

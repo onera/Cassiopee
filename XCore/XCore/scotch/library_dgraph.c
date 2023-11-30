@@ -1,4 +1,4 @@
-/* Copyright 2007,2009,2010,2012,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2009,2010,2012,2018-2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,11 +40,15 @@
 /**                the libSCOTCH library.                  **/
 /**                                                        **/
 /**   DATES      : # Version 5.0  : from : 26 apr 2006     **/
-/**                                 to     14 apr 2008     **/
+/**                                 to   : 14 apr 2008     **/
 /**                # Version 5.1  : from : 26 mar 2009     **/
-/**                                 to     17 nov 2010     **/
+/**                                 to   : 17 nov 2010     **/
 /**                # Version 6.0  : from : 27 nov 2012     **/
-/**                                 to     25 apr 2018     **/
+/**                                 to   : 25 apr 2018     **/
+/**                # Version 6.1  : from : 15 mar 2021     **/
+/**                                 to   : 15 mar 2021     **/
+/**                # Version 7.0  : from : 20 sep 2019     **/
+/**                                 to   : 21 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -52,10 +56,9 @@
 **  The defines and includes.
 */
 
-#define LIBRARY
-
 #include "module.h"
 #include "common.h"
+#include "context.h"
 #include "graph.h"                                /* For graphPtscotch() */
 #include "dgraph.h"
 #include "ptscotch.h"
@@ -69,9 +72,9 @@
 
 /*+ This routine reserves a memory area
 *** of a size sufficient to store a
-*** distributed graph structure.
+*** SCOTCH_Dgraph structure.
 *** It returns:
-*** - !NULL  : if the initialization succeeded.
+*** - !NULL  : if the allocation succeeded.
 *** - NULL   : on error.
 +*/
 
@@ -79,6 +82,18 @@ SCOTCH_Dgraph *
 SCOTCH_dgraphAlloc ()
 {
   return ((SCOTCH_Dgraph *) memAlloc (sizeof (SCOTCH_Dgraph)));
+}
+
+/*+ This routine returns the size, in bytes,
+*** of a SCOTCH_Dgraph structure.
+*** It returns:
+*** - > 0  : in all cases.
++*/
+
+int
+SCOTCH_dgraphSizeof ()
+{
+  return (sizeof (SCOTCH_Dgraph));
 }
 
 /*+ This routine initializes the opaque
@@ -95,18 +110,7 @@ SCOTCH_dgraphInit (
 SCOTCH_Dgraph * const       grafptr,
 MPI_Comm                    proccomm)             /* Communicator to be used for all communications */
 {
-#ifdef SCOTCH_PTHREAD
-  int                 thrdlvlval;
-#endif /* SCOTCH_PTHREAD */
-
-#ifdef SCOTCH_PTHREAD
-  MPI_Query_thread (&thrdlvlval);
-  if (thrdlvlval < MPI_THREAD_MULTIPLE) {
-    errorPrint (STRINGIFY (SCOTCH_dgraphInit) ": Scotch compiled with SCOTCH_PTHREAD and program not launched with MPI_THREAD_MULTIPLE");
-    return     (1);
-  }
-#endif /* SCOTCH_PTHREAD */
-
+#ifdef SCOTCH_DEBUG_DGRAPH2
   if (sizeof (SCOTCH_Num) != sizeof (Gnum)) {
     errorPrint (STRINGIFY (SCOTCH_dgraphInit) ": internal error (1)");
     return     (1);
@@ -115,6 +119,7 @@ MPI_Comm                    proccomm)             /* Communicator to be used for
     errorPrint (STRINGIFY (SCOTCH_dgraphInit) ": internal error (2)");
     return     (1);
   }
+#endif /* SCOTCH_DEBUG_DGRAPH2 */
 
   return (dgraphInit ((Dgraph *) grafptr, proccomm));
 }
@@ -129,7 +134,8 @@ void
 SCOTCH_dgraphExit (
 SCOTCH_Dgraph * const       grafptr)
 {
-  dgraphExit ((Dgraph *) grafptr);
+  if (! contextContainerTrue (grafptr))
+    dgraphExit ((Dgraph *) grafptr);
 }
 
 /*+ This routine frees the contents of the
@@ -143,7 +149,8 @@ void
 SCOTCH_dgraphFree (
 SCOTCH_Dgraph * const       grafptr)
 {
-  dgraphFree ((Dgraph *) grafptr);
+  if (! contextContainerTrue (grafptr))
+    dgraphFree ((Dgraph *) grafptr);
 }
 
 /*+ This routine accesses graph size data.
@@ -155,15 +162,13 @@ SCOTCH_Dgraph * const       grafptr)
 
 void
 SCOTCH_dgraphSize (
-const SCOTCH_Dgraph * const grafptr,
+const SCOTCH_Dgraph * const libgrafptr,
 SCOTCH_Num * const          vertglbnbr,
 SCOTCH_Num * const          vertlocnbr,
 SCOTCH_Num * const          edgeglbnbr,
 SCOTCH_Num * const          edgelocnbr)
 {
-  const Dgraph *      srcgrafptr;
-
-  srcgrafptr = (Dgraph *) grafptr;
+  const Dgraph * const      srcgrafptr = (Dgraph *) CONTEXTOBJECT (libgrafptr);
 
   if (vertglbnbr != NULL)
     *vertglbnbr = (SCOTCH_Num) (srcgrafptr->vertglbnbr);
@@ -185,7 +190,7 @@ SCOTCH_Num * const          edgelocnbr)
 
 void
 SCOTCH_dgraphData (
-const SCOTCH_Dgraph * const grafptr,              /* Graph structure to read          */
+const SCOTCH_Dgraph * const libgrafptr,           /* Graph structure to read          */
 SCOTCH_Num * const          baseptr,              /* Base value                       */
 SCOTCH_Num * const          vertglbptr,           /* Number of global vertices        */
 SCOTCH_Num * const          vertlocptr,           /* Number of local vertices         */
@@ -203,9 +208,7 @@ SCOTCH_Num ** const         edgegsttab,           /* Ghost edge array [edgelocsi
 SCOTCH_Num ** const         edloloctab,           /* Edge load array [edgelocsiz]     */
 MPI_Comm * const            comm)                 /* MPI Communicator                 */
 {
-  const Dgraph *      srcgrafptr;                 /* Pointer to source graph structure */
-
-  srcgrafptr = (const Dgraph *) grafptr;
+  const Dgraph * const      srcgrafptr = (Dgraph *) CONTEXTOBJECT (libgrafptr);
 
   if (baseptr != NULL)
     *baseptr = srcgrafptr->baseval;

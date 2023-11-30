@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2010,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2010,2018,2019,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,17 +40,19 @@
 /**                the strategy strings syntactic parser.  **/
 /**                                                        **/
 /**   DATES      : # Version 3.1  : from : 07 nov 1995     **/
-/**                                 to     30 may 1996     **/
+/**                                 to   : 30 may 1996     **/
 /**                # Version 3.2  : from : 03 oct 1996     **/
-/**                                 to     19 oct 1996     **/
+/**                                 to   : 19 oct 1996     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 4.0  : from : 20 dec 2001     **/
-/**                                 to     21 dec 2001     **/
+/**                                 to   : 21 dec 2001     **/
 /**                # Version 5.1  : from : 09 jun 2009     **/
-/**                                 to     07 aug 2010     **/
+/**                                 to   : 07 aug 2010     **/
 /**                # Version 6.0  : from : 27 apr 2018     **/
-/**                                 to     27 apr 2018     **/
+/**                                 to   : 26 oct 2019     **/
+/**                # Version 7.0  : from : 02 mar 2018     **/
+/**                                 to   : 20 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -58,27 +60,25 @@
 **  The defines.
 */
 
-/* Change some function names. */
+/* Parser token limits. */
 
-#if ((defined SCOTCH_RENAME_PARSER) || (defined yylex)) /* If prefix renaming    */
-#define scotchyyparse               stratParserParse2 /* Parser function name    */
-#ifndef yylval
-#define yylval                      SCOTCH_NAME_MACRO3 (scotchyy, SCOTCH_NAME_SUFFIX, lval) /* It should be Yacc/Bison's job to redefine it! */
-#endif /* yylval              */
-#else /* SCOTCH_RENAME_PARSER */
-#define yylex                       stratParserLex /* Lexical analyzer           */
-#define yyparse                     stratParserParse2 /* Parser function name    */
-#endif /* SCOTCH_RENAME_PARSER */
+#define PARSERSTRINGLEN             256           /*+ Length of parser strings +*/
+
+/* Preliminary declaration. */
+
+extern unsigned int         stratmethtokentab[];
+
+/* Backward compatibility with un-pure Flex or Bison. */
+
+#define PARSERLLBEGIN(s)            stratParserBegin (scanptr, s)
+#define PARSERYYLVAL(s)             yylval_param->s
 
 /*
 **  The function prototypes.
 */
 
+#ifdef SCOTCH_PARSER_YY
+static void                 scotchyyerror       (const ParserLocation * const, void * const, const ParserEnv * const, const char * const);
+#endif /* SCOTCH_PARSER_YY */
+
 Strat *                     stratParserParse    (const StratTab * const, const char * const);
-
-int                         yylex               (void);
-int                         yyparse             (void);
-
-#ifdef PARSER_YY
-static int                  yyerror             (const char * const);
-#endif /* PARSER_YY */

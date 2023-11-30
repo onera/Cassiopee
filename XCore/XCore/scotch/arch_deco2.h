@@ -1,4 +1,4 @@
-/* Copyright 2015,2016,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2015,2016,2018,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,7 +40,9 @@
 /**                target architecture functions.          **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 01 may 2015     **/
-/**                                 to     28 may 2018     **/
+/**                                 to   : 28 may 2018     **/
+/**                # Version 7.0  : from : 17 jan 2023     **/
+/**                                 to   : 17 jan 2023     **/
 /**                                                        **/
 /**   NOTES      : # The internals of the "deco2"          **/
 /**                  architecture derive from those of     **/
@@ -81,7 +83,7 @@
 **  The internal type and structure definitions.
 */
 
-#ifdef ARCH_DECO2
+#ifdef SCOTCH_ARCH_DECO2
 
 typedef struct ArchDeco2Levl_ {
   Graph                     grafdat;              /*+ Graph at this level     +*/
@@ -98,7 +100,7 @@ typedef struct ArchDeco2Data_ {
   Anum                      vnumidx;              /*+ Index to vertex number index array     +*/
 } ArchDeco2Data;
 
-#endif /* ARCH_DECO2 */
+#endif /* SCOTCH_ARCH_DECO2 */
 
 /*
 **  The type and structure definitions.

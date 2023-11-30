@@ -1,4 +1,4 @@
-/* Copyright 2007,2008,2010,2011,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2008,2010,2011,2014,2018,2019,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -44,6 +44,8 @@
 /**                                 to   : 14 apr 2011     **/
 /**                # Version 6.0  : from : 11 sep 2011     **/
 /**                                 to   : 07 jun 2018     **/
+/**                # Version 7.0  : from : 27 aug 2019     **/
+/**                                 to   : 18 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -83,6 +85,7 @@ typedef struct Bdgraph_ {
   Anum                      domndist;             /*+ Distance between subdomains                        +*/
   Anum                      domnwght[2];          /*+ Weights for each subdomain                         +*/
   INT                       levlnum;              /*+ Graph coarsening level                             +*/
+  Context *                 contptr;              /*+ Execution context                                  +*/
 } Bdgraph;
 
 /*+ The distributed save graph structure. +*/
@@ -91,7 +94,7 @@ typedef struct BdgraphStore_ {
   Gnum                      fronlocnbr;           /*+ Number of local frontier vertices   +*/
   Gnum                      fronglbnbr;           /*+ Number of frontier vertices         +*/
   Gnum                      complocload0;         /*+ Local load in part 0                +*/
-  Gnum                      compglbload0;         /*+ Load in part 0                      +*/ 
+  Gnum                      compglbload0;         /*+ Load in part 0                      +*/
   Gnum                      compglbload0dlt;      /*+ Difference from the average         +*/
   Gnum                      complocsize0;         /*+ Number of local vertices in part 0  +*/
   Gnum                      compglbsize0;         /*+ Number of global vertices in part 0 +*/
@@ -104,20 +107,20 @@ typedef struct BdgraphStore_ {
 **  The function prototypes.
 */
 
-#ifdef DMAPPING_H
+#ifdef SCOTCH_DMAPPING_H
 int                         bdgraphInit         (Bdgraph * const, const Dgraph * const, const Dgraph * const, const Arch * const, const ArchDom[]);
-#endif /* DMAPPING_H */
+#endif /* SCOTCH_DMAPPING_H */
 void                        bdgraphInit2        (Bdgraph * const, const Anum, const Anum, const Anum);
-#ifdef DMAPPING_H
+#ifdef SCOTCH_DMAPPING_H
 int                         bdgraphInit3        (Bdgraph * const, const Dgraph * const, const Dmapping * const, const ArchDom[]);
-#endif /* DMAPPING_H */
+#endif /* SCOTCH_DMAPPING_H */
 void                        bdgraphExit         (Bdgraph * restrict const);
 void                        bdgraphFree         (Bdgraph * restrict const);
 void                        bdgraphZero         (Bdgraph * restrict const);
 int                         bdgraphCheck        (const Bdgraph * restrict const);
-#ifdef BGRAPH_H
+#ifdef SCOTCH_BGRAPH_H
 int                         bdgraphGatherAll    (const Bdgraph * restrict const, Bgraph * restrict);
-#endif /* BGRAPH_H */
+#endif /* SCOTCH_BGRAPH_H */
 
 int                         bdgraphStoreInit    (const Bdgraph * const, BdgraphStore * const);
 void                        bdgraphStoreExit    (BdgraphStore * const);

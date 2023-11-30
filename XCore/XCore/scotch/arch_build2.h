@@ -1,4 +1,4 @@
-/* Copyright 2015,2016,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2015,2016,2018,2019,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,7 +40,9 @@
 /**                architecture building routine.          **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 02 may 2015     **/
-/**                                 to     31 may 2018     **/
+/**                                 to   : 31 may 2018     **/
+/**                # Version 7.0  : from : 22 aug 2019     **/
+/**                                 to   : 17 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -48,7 +50,7 @@
 **  The internal type and structure definitions.
 */
 
-#ifdef ARCH_BUILD2
+#ifdef SCOTCH_ARCH_BUILD2
 
 /*+ Ancillary structure to avoid passing
     too many parameters recursively in
@@ -98,18 +100,19 @@ typedef struct ArchDeco2BuildMatch_ {
   Gnum                      levlmax;              /*+ Maximum number of levels in array        +*/
   Gnum                      levlnum;              /*+ Current number of levels in array        +*/
   Gnum                      vertsum;              /*+ Sum of all vertices at all levels        +*/
+  Context *                 contptr;              /*+ Execution context                        +*/
 } ArchDeco2BuildMatch;
 
-#endif /* ARCH_BUILD2 */
+#endif /* SCOTCH_ARCH_BUILD2 */
 
 /*
 **  The function prototypes.
 */
 
-#ifdef ARCH_BUILD2
-static int                  archDeco2BuildMatchInit (ArchDeco2BuildMatch * restrict const, const Graph * restrict const);
+#ifdef SCOTCH_ARCH_BUILD2
+static int                  archDeco2BuildMatchInit (ArchDeco2BuildMatch * restrict const, const Graph * restrict const, Context * const);
 static void                 archDeco2BuildMatchExit (ArchDeco2BuildMatch * restrict const);
 static Anum                 archDeco2BuildMatchMate (ArchDeco2BuildMatch * restrict const, ArchCoarsenMulti * restrict * restrict const);
-#endif /* ARCH_BUILD2 */
+#endif /* SCOTCH_ARCH_BUILD2 */
 
-int                         archDeco2ArchBuild  (Arch * const, const Graph * const, const Gnum, const Gnum * restrict const);
+int                         archDeco2ArchBuild  (Arch * const, const Graph * const, const Gnum, const Gnum * restrict const, Context * restrict const);

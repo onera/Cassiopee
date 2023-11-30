@@ -1,4 +1,4 @@
-/* Copyright 2004,2007-2009,2011,2013-2016,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007-2009,2011,2013-2016,2018,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,25 +40,27 @@
 /**                subgraph-making functions.              **/
 /**                                                        **/
 /**   DATES      : # Version 0.0  : from : 01 dec 1992     **/
-/**                                 to     18 may 1993     **/
+/**                                 to   : 18 may 1993     **/
 /**                # Version 1.3  : from : 30 apr 1994     **/
-/**                                 to     18 may 1994     **/
+/**                                 to   : 18 may 1994     **/
 /**                # Version 2.0  : from : 06 jun 1994     **/
-/**                                 to     31 oct 1994     **/
+/**                                 to   : 31 oct 1994     **/
 /**                # Version 3.0  : from : 07 jul 1995     **/
-/**                                 to     28 sep 1995     **/
+/**                                 to   : 28 sep 1995     **/
 /**                # Version 3.1  : from : 28 nov 1995     **/
-/**                                 to     08 jun 1996     **/
+/**                                 to   : 08 jun 1996     **/
 /**                # Version 3.2  : from : 07 sep 1996     **/
-/**                                 to     17 sep 1998     **/
+/**                                 to   : 17 sep 1998     **/
 /**                # Version 4.0  : from : 28 nov 2001     **/
-/**                                 to     17 apr 2006     **/
+/**                                 to   : 17 apr 2006     **/
 /**                # Version 5.0  : from : 14 dec 2006     **/
-/**                                 to     11 jun 2008     **/
+/**                                 to   : 11 jun 2008     **/
 /**                # Version 5.1  : from : 01 jan 2009     **/
-/**                                 to     01 jan 2009     **/
+/**                                 to   : 01 jan 2009     **/
 /**                # Version 6.0  : from : 29 mar 2011     **/
-/**                                 to     05 apr 2018     **/
+/**                                 to   : 05 apr 2018     **/
+/**                # Version 7.0  : from : 19 jan 2023     **/
+/**                                 to   : 19 jan 2023     **/
 /**                                                        **/
 /**   NOTES      : # Several algorithms, such as the       **/
 /**                  active graph building routine of      **/
@@ -73,8 +75,7 @@
 **  The defines and includes.
 */
 
-#define GRAPH
-#define GRAPH_INDUCE
+#define SCOTCH_GRAPH_INDUCE
 
 #include "module.h"
 #include "common.h"

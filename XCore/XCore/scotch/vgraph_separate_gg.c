@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2012,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2012,2018,2019,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,25 +40,27 @@
 /**                of the Greedy Graph Growing algorithm.  **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 10 nov 1997     **/
-/**                                 to     15 jul 1998     **/
+/**                                 to   : 15 jul 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 4.0  : from : 19 dec 2001     **/
-/**                                 to     22 jan 2004     **/
+/**                                 to   : 22 jan 2004     **/
 /**                # Version 5.0  : from : 02 jan 2007     **/
-/**                                 to     24 mar 2008     **/
+/**                                 to   : 24 mar 2008     **/
 /**                # Version 5.1  : from : 09 nov 2008     **/
-/**                                 to     09 nov 2008     **/
+/**                                 to   : 09 nov 2008     **/
 /**                # Version 6.0  : from : 04 feb 2012     **/
-/**                                 to     26 feb 2018     **/
+/**                                 to   : 26 feb 2018     **/
+/**                # Version 6.1  : from : 21 nov 2021     **/
+/**                                 to   : 21 nov 2021     **/
+/**                # Version 7.0  : from : 12 sep 2019     **/
+/**                                 to   : 16 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The defines and includes.
 */
-
-#define VGRAPH_SEPARATE_GG
 
 #include "module.h"
 #include "common.h"
@@ -109,6 +111,8 @@ const VgraphSeparateGgParam * const paraptr)      /*+ Method parameters +*/
   const Gnum * restrict const edgetax = grafptr->s.edgetax;
   GraphPart * restrict const  parttax = grafptr->parttax;
   Gnum * restrict const       frontab = grafptr->frontab;
+  const Gnum                  dwg0val = grafptr->dwgttab[0]; /* Part weights */
+  const Gnum                  dwg1val = grafptr->dwgttab[1];
 
   if (((tablptr = gainTablInit (GAIN_LINMAX, VGRAPHSEPAGGSUBBITS)) == NULL) || /* Use logarithmic array only */
       ((vexxtax = (VgraphSeparateGgVertex *) memAlloc (grafptr->s.vertnbr * sizeof (VgraphSeparateGgVertex))) == NULL)) {
@@ -135,10 +139,10 @@ const VgraphSeparateGgParam * const paraptr)      /*+ Method parameters +*/
     memSet (vexxtax + grafptr->s.baseval, 0, grafptr->s.vertnbr * sizeof (VgraphSeparateGgVertex)); /* All vertices to part 0 */
     gainTablFree (tablptr);                       /* Reset gain table            */
     permnum     = 0;                              /* No permutation built yet    */
-    comploaddlt = grafptr->s.velosum;             /* Reset separation parameters */
+    comploaddlt = grafptr->s.velosum * dwg1val;   /* Reset separation parameters */
     compload2   = 0;
 
-    vexxptr = vexxtax + (grafptr->s.baseval + intRandVal (grafptr->s.vertnbr)); /* Randomly select first root vertex */
+    vexxptr = vexxtax + (grafptr->s.baseval + contextIntRandVal (grafptr->contptr, grafptr->s.vertnbr)); /* Randomly select first root vertex */
 
     do {                                          /* Loop on root vertices    */
       Gnum                        vertnum;        /* Number of current vertex */
@@ -165,26 +169,28 @@ const VgraphSeparateGgParam * const paraptr)      /*+ Method parameters +*/
           compgain2 += velobax[edgetax[edgenum]];
       }
       vexxptr->compgain2 = compgain2;             /* Set root gain (root not in separator) */
-      comploaddlt -= veloval;                     /* Move vertex from part 0 to separator  */
+      comploaddlt -= veloval * dwg1val;           /* Move vertex from part 0 to separator  */
       compload2   += veloval;
 
       do {                                        /* While vertices can be retrieved */
         VgraphSeparateGgVertex *    sepaptr;      /* List of vertices in separator   */
         Gnum                        veloval;      /* Load of selected vertex         */
         Gnum                        edgenum;
+        Gnum                        cmpldlt;      /* Temporary delta value */
 
         vertnum = vexxptr - vexxtax;              /* Get number of selected vertex */
         veloval = velobax[vertnum & velomsk];
+        cmpldlt = comploaddlt - veloval * dwg0val;
 
-        if (comploaddlt < abs (comploaddlt - veloval)) { /* If swapping would cause imbalance */
-          permnum = grafptr->s.vertnbr;           /* Terminate swapping process               */
+        if (comploaddlt < abs (cmpldlt)) {        /* If swapping would cause imbalance */
+          permnum = grafptr->s.vertnbr;           /* Terminate swapping process        */
           vexxptr = NULL;
           break;
         }
         gainTablDel (tablptr, (GainLink *) vexxptr); /* Remove vertex from table */
         vexxptr->gainlink.next = VGRAPHSEPAGGSTATEPART1; /* Put vertex in part 1 */
-        compload2   += vexxptr->compgain2;        /* Update partition parameters */
-        comploaddlt -= vexxptr->compgain2 + 2 * veloval;           
+        compload2  += vexxptr->compgain2;         /* Update partition parameters */
+        comploaddlt = cmpldlt - (vexxptr->compgain2 + veloval) * dwg1val;
 
         sepaptr = NULL;                           /* No separator vertices to relink yet */
         for (edgenum = verttax[vertnum];          /* (Re-)link neighbor vertices         */
@@ -240,11 +246,11 @@ const VgraphSeparateGgParam * const paraptr)      /*+ Method parameters +*/
             errorPrint   ("vgraphSeparateGg: out of memory (2)");
             memFree      (vexxtax + grafptr->s.baseval);
             gainTablExit (tablptr);
-            return       (1);
+            return (1);
           }
           intAscn (permtab, grafptr->s.vertnbr, grafptr->s.baseval); /* Initialize based permutation array */
         }
-        intPerm (permtab, grafptr->s.vertnbr);    /* Build random permutation */
+        intPerm (permtab, grafptr->s.vertnbr, grafptr->contptr); /* Build random permutation */
       }
       for ( ; permnum < grafptr->s.vertnbr; permnum ++) { /* Find next root vertex */
         if (vexxtax[permtab[permnum]].gainlink.next == VGRAPHSEPAGGSTATEPART0) {
@@ -273,7 +279,7 @@ const VgraphSeparateGgParam * const paraptr)      /*+ Method parameters +*/
   memFree      (vexxtax + grafptr->s.baseval);
   gainTablExit (tablptr);
 
-  grafptr->compload[0] = (grafptr->s.velosum + grafptr->comploaddlt - grafptr->compload[2]) / 2;
+  grafptr->compload[0] = (grafptr->comploaddlt + (grafptr->s.velosum - grafptr->compload[2]) * dwg0val) / (dwg0val + dwg1val);
   grafptr->compload[1] = grafptr->s.velosum - grafptr->compload[2] - grafptr->compload[0];
   compsize1 =
   compsize2 = 0;
@@ -294,7 +300,7 @@ const VgraphSeparateGgParam * const paraptr)      /*+ Method parameters +*/
 #ifdef SCOTCH_DEBUG_VGRAPH2
   if (vgraphCheck (grafptr) != 0) {
     errorPrint ("vgraphSeparateGg: inconsistent graph data");
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_VGRAPH2 */
 

@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2018,2019,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,17 +40,21 @@
 /**                libSCOTCH library.                      **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 18 aug 1998     **/
-/**                                 to     18 aug 1998     **/
+/**                                 to   : 18 aug 1998     **/
 /**                # Version 3.3  : from : 02 oct 1998     **/
-/**                                 to     01 nov 2001     **/
+/**                                 to   : 01 nov 2001     **/
 /**                # Version 4.0  : from : 11 dec 2001     **/
-/**                                 to     09 dec 2005     **/
+/**                                 to   : 09 dec 2005     **/
 /**                # Version 5.0  : from : 10 sep 2006     **/
-/**                                 to     03 apr 2008     **/
+/**                                 to   : 03 apr 2008     **/
 /**                # Version 5.1  : from : 17 nov 2010     **/
-/**                                 to     17 nov 2010     **/
+/**                                 to   : 17 nov 2010     **/
 /**                # Version 6.0  : from : 04 dec 2012     **/
-/**                                 to     25 apr 2018     **/
+/**                                 to   : 24 jul 2019     **/
+/**                # Version 6.1  : from : 15 mar 2021     **/
+/**                                 to   : 31 may 2021     **/
+/**                # Version 7.0  : from : 07 may 2019     **/
+/**                                 to   : 21 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -58,10 +62,9 @@
 **  The defines and includes.
 */
 
-#define LIBRARY
-
 #include "module.h"
 #include "common.h"
+#include "context.h"
 #include "graph.h"
 #include "graph_io.h"
 #include "scotch.h"
@@ -75,9 +78,9 @@
 
 /*+ This routine reserves a memory area
 *** of a size sufficient to store a
-*** centralized graph structure.
+*** SCOTCH_Graph structure.
 *** It returns:
-*** - !NULL  : if the initialization succeeded.
+*** - !NULL  : if the allocation succeeded.
 *** - NULL   : on error.
 +*/
 
@@ -85,6 +88,18 @@ SCOTCH_Graph *
 SCOTCH_graphAlloc ()
 {
   return ((SCOTCH_Graph *) memAlloc (sizeof (SCOTCH_Graph)));
+}
+
+/*+ This routine returns the size, in bytes,
+*** of a SCOTCH_Graph structure.
+*** It returns:
+*** - > 0  : in all cases.
++*/
+
+int
+SCOTCH_graphSizeof ()
+{
+  return (sizeof (SCOTCH_Graph));
 }
 
 /*+ This routine initializes the opaque
@@ -121,7 +136,8 @@ void
 SCOTCH_graphExit (
 SCOTCH_Graph * const        grafptr)
 {
-  graphExit ((Graph *) grafptr);
+  if (! contextContainerTrue (grafptr))
+    graphExit ((Graph *) grafptr);
 }
 
 /*+ This routine frees the contents of the
@@ -134,7 +150,8 @@ void
 SCOTCH_graphFree (
 SCOTCH_Graph * const        grafptr)
 {
-  graphFree ((Graph *) grafptr);
+  if (! contextContainerTrue (grafptr))
+    graphFree ((Graph *) grafptr);
 }
 
 /*+ This routine loads the given opaque graph
@@ -159,19 +176,23 @@ const SCOTCH_Num            flagval)
 {
   GraphFlag           srcgrafflag;                /* Graph flags */
 
-  if ((baseval < -1) || (baseval > 1)) {
-    errorPrint (STRINGIFY (SCOTCH_graphLoad) ": invalid base parameter");
-    return     (1);
-  }
   if ((flagval < 0) || (flagval > 3)) {
     errorPrint (STRINGIFY (SCOTCH_graphLoad) ": invalid flag parameter");
-    return     (1);
+    return (1);
   }
+  if (baseval < -1) {
+    errorPrint (STRINGIFY (SCOTCH_graphLoad) ": invalid base parameter");
+    return (1);
+  }
+#ifdef SCOTCH_DEBUG_GRAPH1
+  if (baseval > 1)
+    errorPrintW (STRINGIFY (SCOTCH_graphLoad) ": unusual base parameter");
+#endif /* SCOTCH_DEBUG_GRAPH1 */
 
   srcgrafflag = (((flagval & 1) != 0) ? GRAPHIONOLOADVERT : 0) +
                 (((flagval & 2) != 0) ? GRAPHIONOLOADEDGE : 0);
 
-  return (graphLoad ((Graph * const) grafptr, stream, (Gnum) baseval, srcgrafflag));
+  return (graphLoad ((Graph * const) CONTEXTOBJECT (grafptr), stream, (Gnum) baseval, srcgrafflag));
 }
 
 /*+ This routine saves the contents of the given
@@ -186,7 +207,7 @@ SCOTCH_graphSave (
 const SCOTCH_Graph * const  grafptr,
 FILE * const                stream)
 {
-  return (graphSave ((const Graph * const) grafptr, stream));
+  return (graphSave ((const Graph * const) CONTEXTOBJECT (grafptr), stream));
 }
 
 /*+ This routine fills the contents of the given
@@ -220,13 +241,11 @@ const SCOTCH_Num * const    edlotab)              /* Edge load array            
     errorPrint (STRINGIFY (SCOTCH_graphBuild) ": internal error");
     return     (1);
   }
+  if ((baseval < 0) || (baseval > 1))
+    errorPrintW (STRINGIFY (SCOTCH_graphBuild) ": non-standard base parameter");
 #endif /* SCOTCH_DEBUG_LIBRARY1 */
-  if ((baseval < 0) || (baseval > 1)) {
-    errorPrint (STRINGIFY (SCOTCH_graphBuild) ": invalid base parameter");
-    return     (1);
-  }
 
-  srcgrafptr = (Graph *) grafptr;                 /* Use structure as source graph */
+  srcgrafptr = (Graph *) CONTEXTOBJECT (grafptr); /* Use structure as source graph */
   srcgrafptr->flagval = GRAPHNONE;
   srcgrafptr->baseval = baseval;
   srcgrafptr->vertnbr = vertnbr;
@@ -298,7 +317,7 @@ SCOTCH_Num * const          edgenbr)
 {
   const Graph *       srcgrafptr;
 
-  srcgrafptr = (Graph *) grafptr;
+  srcgrafptr = (Graph *) CONTEXTOBJECT (grafptr);
 
   if (vertnbr != NULL)
     *vertnbr = (SCOTCH_Num) (srcgrafptr->vertnbr);
@@ -329,7 +348,7 @@ SCOTCH_Num ** const         edlotab)              /* Edge load array          */
 {
   const Graph *       srcgrafptr;                 /* Pointer to source graph structure */
 
-  srcgrafptr = (const Graph *) grafptr;
+  srcgrafptr = (const Graph *) CONTEXTOBJECT (grafptr);
 
   if (baseptr != NULL)
     *baseptr = srcgrafptr->baseval;
@@ -394,7 +413,7 @@ double *                    edlodltptr)
   double              edloavg;
   double              edlodlt;
 
-  srcgrafptr = (Graph *) grafptr;
+  srcgrafptr = (Graph *) CONTEXTOBJECT (grafptr);
 
   vertnbr = srcgrafptr->vertnnd - srcgrafptr->baseval;
 
@@ -483,7 +502,7 @@ double *                    edlodltptr)
         }
       }
       edloavg = (double) edlosum /
-                (double) (2 * srcgrafptr->edgenbr);
+                (double) srcgrafptr->edgenbr;
 
       for (vertnum = srcgrafptr->baseval; vertnum < srcgrafptr->vertnnd; vertnum ++) {
         for (edgenum = srcgrafptr->verttax[vertnum]; edgenum < srcgrafptr->vendtax[vertnum]; edgenum ++) /* For all edges */

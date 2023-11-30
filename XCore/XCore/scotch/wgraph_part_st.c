@@ -1,4 +1,4 @@
-/* Copyright 2007-2011,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007-2011,2018,2020,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -38,21 +38,23 @@
 /**                Charles-Edmond BICHOT (v5.1b)           **/
 /**                                                        **/
 /**   FUNCTION   : This module contains the global         **/
-/**                vertex overlapped graph partitioning    **/ 
+/**                vertex overlapped graph partitioning    **/
 /**                strategy and method tables.             **/
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 01 dec 2007     **/
 /**                                 to   : 01 jul 2008     **/
 /**                # Version 6.0  : from : 05 nov 2009     **/
-/**                                 to     26 feb 2018     **/
+/**                                 to   : 26 feb 2018     **/
+/**                # Version 6.1  : from : 25 aug 2020     **/
+/**                                 to   : 26 nov 2021     **/
+/**                # Version 7.0  : from : 17 jan 2023     **/
+/**                                 to   : 17 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The defines and includes.
 */
-
-#define WGRAPH_PART_ST
 
 #include "module.h"
 #include "common.h"
@@ -62,12 +64,13 @@
 #include "arch.h"
 #include "mapping.h"
 #include "graph_coarsen.h"
+#include "kgraph.h"
+#include "kgraph_map_st.h"
 #include "vgraph.h"
 #include "vgraph_separate_st.h"
 #include "wgraph.h"
+#include "wgraph_part_es.h"
 #include "wgraph_part_fm.h"
-#include "wgraph_part_gg.h"
-#include "wgraph_part_gp.h"
 #include "wgraph_part_ml.h"
 #include "wgraph_part_rb.h"
 #include "wgraph_part_st.h"
@@ -77,24 +80,17 @@
 **  The static and global variables.
 */
 
-#if 0 /* Not used */
 static Wgraph               wgraphdummy;          /* Dummy overlap graph for offset computations */
-#endif
+
+static union {
+  WgraphPartEsParam         param;
+  StratNodeMethodData       padding;
+} wgraphpartdefaultes = { { &stratdummy } };
 
 static union {
   WgraphPartFmParam         param;
   StratNodeMethodData       padding;
 } wgraphpartdefaultfm = { { 10, 40, 0.1L } };
-
-static union {
-  WgraphPartGgParam         param;
-  StratNodeMethodData       padding;
-} wgraphpartdefaultgg = { { 10 } };
-
-static union {
-  WgraphPartGpParam         param;
-  StratNodeMethodData       padding;
-} wgraphpartdefaultgp = { { 5 } };
 
 static union {
   WgraphPartMlParam         param;
@@ -107,59 +103,66 @@ static union {
 } wgraphpartdefaultrb = { { &stratdummy } };
 
 static StratMethodTab       wgraphpartstmethtab[] = { /* Graph overlap partitioning methods array */
-                              { WGRAPHSEPASTMETHGG, "h",  wgraphPartGg, &wgraphpartdefaultgg },
-                              { WGRAPHSEPASTMETHGP, "g",  wgraphPartGp, &wgraphpartdefaultgp },
-                              { WGRAPHSEPASTMETHFM, "f",  wgraphPartFm, &wgraphpartdefaultfm },
-                              { WGRAPHSEPASTMETHML, "m",  wgraphPartMl, &wgraphpartdefaultml },
-                              { WGRAPHSEPASTMETHRB, "r",  wgraphPartRb, &wgraphpartdefaultrb },
-                              { WGRAPHSEPASTMETHZR, "z",  wgraphPartZr, NULL },
-                              { -1,                NULL,  NULL,         NULL } };
+                              { WGRAPHPARTSTMETHES, "e",  wgraphPartEs, &wgraphpartdefaultes },
+                              { WGRAPHPARTSTMETHFM, "f",  wgraphPartFm, &wgraphpartdefaultfm },
+                              { WGRAPHPARTSTMETHML, "m",  wgraphPartMl, &wgraphpartdefaultml },
+                              { WGRAPHPARTSTMETHRB, "r",  wgraphPartRb, &wgraphpartdefaultrb },
+                              { WGRAPHPARTSTMETHZR, "z",  wgraphPartZr, NULL },
+                              { -1,                 NULL, NULL,         NULL } };
 
 static StratParamTab        wgraphpartstparatab[] = { /* Method parameter list */
-                              { WGRAPHSEPASTMETHFM,  STRATPARAMINT,    "pass",
+                              { WGRAPHPARTSTMETHES,  STRATPARAMSTRAT,  "strat",
+                                (byte *) &wgraphpartdefaultes.param,
+                                (byte *) &wgraphpartdefaultes.param.strat,
+                                (void *) &kgraphmapststratab },
+                              { WGRAPHPARTSTMETHFM,  STRATPARAMINT,    "pass",
                                 (byte *) &wgraphpartdefaultfm.param,
                                 (byte *) &wgraphpartdefaultfm.param.passnbr,
                                 NULL },
-                              { WGRAPHSEPASTMETHFM,  STRATPARAMINT,    "move",
+                              { WGRAPHPARTSTMETHFM,  STRATPARAMINT,    "move",
                                 (byte *) &wgraphpartdefaultfm.param,
                                 (byte *) &wgraphpartdefaultfm.param.movenbr,
                                 NULL },
-                              { WGRAPHSEPASTMETHFM,  STRATPARAMDOUBLE, "bal",
+                              { WGRAPHPARTSTMETHFM,  STRATPARAMDOUBLE, "bal",
                                 (byte *) &wgraphpartdefaultfm.param,
                                 (byte *) &wgraphpartdefaultfm.param.deltrat,
                                 NULL },
-                              { WGRAPHSEPASTMETHGG,  STRATPARAMINT,    "pass",
-                                (byte *) &wgraphpartdefaultgg.param,
-                                (byte *) &wgraphpartdefaultgg.param.passnbr,
-                                NULL },
-                              { WGRAPHSEPASTMETHGP,  STRATPARAMINT,    "pass",
-                                (byte *) &wgraphpartdefaultgp.param,
-                                (byte *) &wgraphpartdefaultgp.param.passnbr,
-                                NULL },
-                              { WGRAPHSEPASTMETHML,  STRATPARAMSTRAT,  "asc",
+                              { WGRAPHPARTSTMETHML,  STRATPARAMSTRAT,  "asc",
                                 (byte *) &wgraphpartdefaultml.param,
                                 (byte *) &wgraphpartdefaultml.param.stratasc,
                                 (void *) &wgraphpartststratab },
-                              { WGRAPHSEPASTMETHML,  STRATPARAMSTRAT,  "low",
+                              { WGRAPHPARTSTMETHML,  STRATPARAMSTRAT,  "low",
                                 (byte *) &wgraphpartdefaultml.param,
                                 (byte *) &wgraphpartdefaultml.param.stratlow,
                                 (void *) &wgraphpartststratab },
-                              { WGRAPHSEPASTMETHML,  STRATPARAMINT,    "vert",
+                              { WGRAPHPARTSTMETHML,  STRATPARAMINT,    "vert",
                                 (byte *) &wgraphpartdefaultml.param,
                                 (byte *) &wgraphpartdefaultml.param.coarnbr,
                                 NULL },
-                              { WGRAPHSEPASTMETHML,  STRATPARAMDOUBLE, "rat",
+                              { WGRAPHPARTSTMETHML,  STRATPARAMDOUBLE, "rat",
                                 (byte *) &wgraphpartdefaultml.param,
                                 (byte *) &wgraphpartdefaultml.param.coarval,
                                 NULL },
-                              { WGRAPHSEPASTMETHRB,  STRATPARAMSTRAT,  "sep",
+                              { WGRAPHPARTSTMETHRB,  STRATPARAMSTRAT,  "sep",
                                 (byte *) &wgraphpartdefaultrb.param,
-                                (byte *) &wgraphpartdefaultrb.param.stratptr,
+                                (byte *) &wgraphpartdefaultrb.param.straptr,
                                 (void *) &vgraphseparateststratab },
-                              { WGRAPHSEPASTMETHNBR, STRATPARAMINT,    NULL,
+                              { WGRAPHPARTSTMETHNBR, STRATPARAMINT,    NULL,
                                 NULL, NULL, NULL } };
 
-static StratParamTab        wgraphpartstcondtab[] = { /* Overlap graph condition parameter table*/
+static StratParamTab        wgraphpartstcondtab[] = { /* Overlap graph condition parameter table */
+                              { STRATNODECOND,       STRATPARAMINT,    "edge",
+                                (byte *) &wgraphdummy,
+                                (byte *) &wgraphdummy.s.edgenbr,
+                                NULL },
+                              { STRATNODECOND,       STRATPARAMINT,    "part",
+                                (byte *) &wgraphdummy,
+                                (byte *) &wgraphdummy.partnbr,
+                                NULL },
+                              { STRATNODECOND,       STRATPARAMINT,    "vert",
+                                (byte *) &wgraphdummy,
+                                (byte *) &wgraphdummy.s.vertnbr,
+                                NULL },
                               { STRATNODENBR,        STRATPARAMINT,    NULL,
                                 NULL, NULL, NULL } };
 
@@ -198,8 +201,6 @@ const Strat * restrict const strat)              /*+ Overlap partitioning strate
     return     (1);
   }
   if ((sizeof (WgraphPartFmParam) > sizeof (StratNodeMethodData)) ||
-      (sizeof (WgraphPartGgParam) > sizeof (StratNodeMethodData)) ||
-      (sizeof (WgraphPartGpParam) > sizeof (StratNodeMethodData)) ||
       (sizeof (WgraphPartMlParam) > sizeof (StratNodeMethodData)) ||
       (sizeof (WgraphPartRbParam) > sizeof (StratNodeMethodData))) {
     errorPrint ("wgraphPartSt: invalid type specification");

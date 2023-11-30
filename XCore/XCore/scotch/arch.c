@@ -1,4 +1,4 @@
-/* Copyright 2004,2007-2013,2015,2016 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007-2013,2015,2016,2018-2021 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -50,21 +50,23 @@
 /**                # Version 2.1  : from : 07 apr 1995     **/
 /**                                 to   : 29 jun 1995     **/
 /**                # Version 3.0  : from : 01 jul 1995     **/
-/**                                 to     16 aug 1995     **/
+/**                                 to   : 16 aug 1995     **/
 /**                # Version 3.1  : from : 02 may 1996     **/
-/**                                 to     17 jul 1996     **/
+/**                                 to   : 17 jul 1996     **/
 /**                # Version 3.2  : from : 07 sep 1996     **/
-/**                                 to     28 sep 1998     **/
+/**                                 to   : 28 sep 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 3.4  : from : 08 nov 2001     **/
-/**                                 to     08 nov 2001     **/
+/**                                 to   : 08 nov 2001     **/
 /**                # Version 4.0  : from : 04 nov 2003     **/
-/**                                 to     09 jan 2004     **/
+/**                                 to   : 09 jan 2004     **/
 /**                # Version 5.1  : from : 11 dec 2007     **/
-/**                                 to     25 jun 2010     **/
+/**                                 to   : 25 jun 2010     **/
 /**                # Version 6.0  : from : 14 feb 2011     **/
-/**                                 to     22 feb 2016     **/
+/**                                 to   : 24 aug 2020     **/
+/**                # Version 6.1  : from : 05 apr 2021     **/
+/**                                 to   : 05 apr 2021     **/
 /**                                                        **/
 /************************************************************/
 
@@ -104,10 +106,6 @@ static const ArchClass      archClassTab[] = { ARCHCLASSBLOCK ("cmplt",    Cmplt
                                                ARCHCLASSBLOCK ("tleaf",    Tleaf,  ARCHNONE),
                                                ARCHCLASSBLOCK ("ltleaf",   Ltleaf, ARCHNONE),
                                                ARCHCLASSBLOCK ("mesh2D",   Mesh2,  ARCHNONE),
-#ifdef SCOTCH_DEBUG_ARCH3
-                                               ARCHCLASSBLOCK ("mesh2O",   Mesh2o, ARCHNONE),
-                                               ARCHCLASSBLOCK ("mesh2U",   Mesh2u, ARCHNONE),
-#endif /* SCOTCH_DEBUG_ARCH3 */
                                                ARCHCLASSBLOCK ("mesh3D",   Mesh3,  ARCHNONE),
                                                ARCHCLASSBLOCK ("meshXD",   MeshX,  ARCHNONE),
                                                ARCHCLASSBLOCK ("sub",      Sub,    ARCHNONE),
@@ -170,8 +168,8 @@ Arch * restrict const       archptr)
 
   o = 0;                                          /* Assume everything will be all right */
   if ((archptr->class           != NULL) &&
-      (archptr->class->archFree != NULL))         /* If there is a specific freeing routine                */
-    o = archptr->class->archFree (&archptr->data); /* Call it                                              */
+      (archptr->class->archFree != NULL))         /* If there is a specific freeing routine */
+    o = archptr->class->archFree (&archptr->data); /* Call it                               */
 
 #ifdef SCOTCH_DEBUG_GRAPH2
   memSet (archptr, ~0, sizeof (Arch));            /* Purge graph fields */
@@ -297,9 +295,9 @@ const int                   num)
 ArchDomNum
 archDomNum (
 const Arch * const          archptr,
-const ArchDom * const       domptr)
+const ArchDom * const       domnptr)
 {
-  return (archDomNum2 (archptr, domptr));         /* Call proper routine */
+  return (archDomNum2 (archptr, domnptr));        /* Call proper routine */
 }
 
 #endif /* SCOTCH_DEBUG_ARCH2 */
@@ -317,10 +315,10 @@ const ArchDom * const       domptr)
 int
 archDomTerm (
 const Arch * const          archptr,
-ArchDom * restrict const    domptr,
-const ArchDomNum            domnum)
+ArchDom * restrict const    domnptr,
+const ArchDomNum            domnnum)
 {
-  return (archDomTerm2 (archptr, domptr, domnum)); /* Call proper routine */
+  return (archDomTerm2 (archptr, domnptr, domnnum)); /* Call proper routine */
 }
 
 #endif /* SCOTCH_DEBUG_ARCH2 */
@@ -337,9 +335,9 @@ const ArchDomNum            domnum)
 Anum
 archDomSize (
 const Arch * const          archptr,
-const ArchDom * const       domptr)
+const ArchDom * const       domnptr)
 {
-  return (archDomSize2 (archptr, domptr));        /* Call proper routine */
+  return (archDomSize2 (archptr, domnptr));       /* Call proper routine */
 }
 
 #endif /* SCOTCH_DEBUG_ARCH2 */
@@ -356,9 +354,9 @@ const ArchDom * const       domptr)
 Anum
 archDomWght (
 const Arch * const          archptr,
-const ArchDom * const       domptr)
+const ArchDom * const       domnptr)
 {
-  return (archDomWght2 (archptr, domptr));        /* Call proper routine */
+  return (archDomWght2 (archptr, domnptr));       /* Call proper routine */
 }
 
 #endif /* SCOTCH_DEBUG_ARCH2 */
@@ -396,9 +394,9 @@ const ArchDom * const       dom1ptr)
 int
 archDomFrst (
 const Arch * const          archptr,
-ArchDom * const             domptr)
+ArchDom * const             domnptr)
 {
-  return (archDomFrst2 (archptr, domptr));        /* Call proper routine */
+  return (archDomFrst2 (archptr, domnptr));       /* Call proper routine */
 }
 
 #endif /* SCOTCH_DEBUG_ARCH2 */
@@ -413,11 +411,11 @@ ArchDom * const             domptr)
 int
 archDomLoad (
 const Arch * const          archptr,
-ArchDom * const             domptr,
+ArchDom * const             domnptr,
 FILE * const                stream)
 {
   return (archptr->class->domLoad (&archptr->data, /* Call proper routine */
-                                   &domptr->data,
+                                   &domnptr->data,
                                    stream));
 }
 
@@ -431,11 +429,11 @@ FILE * const                stream)
 int
 archDomSave (
 const Arch * const          archptr,
-const ArchDom * const       domptr,
+const ArchDom * const       domnptr,
 FILE * const                stream)
 {
   return (archptr->class->domSave (&archptr->data, /* Call proper routine */
-                                   &domptr->data,
+                                   &domnptr->data,
                                    stream));
 }
 
@@ -454,22 +452,11 @@ FILE * const                stream)
 int
 archDomBipart (
 const Arch * const          archptr,
-const ArchDom * const       domptr,
+const ArchDom * const       domnptr,
 ArchDom * const             dom0ptr,
 ArchDom * const             dom1ptr)
 {
-  int                 o;
-
-  o = archDomBipart2 (archptr, domptr, dom0ptr, dom1ptr); /* Call proper routine */
-
-  if ((o == 0) &&                                 /* Check domain number consistency for fixed-sized architectures */
-      (strncmp (archName (archptr), "var", 3) != 0) &&
-      (archDomNum (archptr, dom0ptr) != archDomNum (archptr, domptr))) {
-    errorPrint ("archDomBipart: domain number mismatch");
-    return     (2);
-  }
-
-  return (o);
+  return (archDomBipart2 (archptr, domnptr, dom0ptr, dom1ptr)); /* Call proper routine */
 }
 
 #endif /* SCOTCH_DEBUG_ARCH2 */
@@ -509,10 +496,19 @@ archDomMpiType (
 const Arch * const          archptr,
 MPI_Datatype * const        typeptr)
 {
-  int                 bloktab[2];
   MPI_Aint            disptab[2];
-  MPI_Datatype        typetab[2];
   int                 o;
+#if ((defined MPI_VERSION) && (MPI_VERSION >= 3))
+  MPI_Datatype        typedat;
+
+  disptab[0] = 0;                                 /* Displacement of real datatype is base of array */
+  disptab[1] = sizeof (ArchDom);                  /* Displacement of upper bound is size of ArchDom */
+  o = ((int (*) (const void * const, const void * const)) archptr->class->domMpiType) ((const void * const) &archptr->data, &typedat);
+  if (o == 0)
+    o = MPI_Type_create_resized (typedat, disptab[0], disptab[1] - disptab[0], typeptr);
+#else /* ((defined MPI_VERSION) && (MPI_VERSION >= 3)) */
+  int                 bloktab[2];
+  MPI_Datatype        typetab[2];
 
   bloktab[0] =                                    /* Build structured type to set up upper bound of domain datatype */
   bloktab[1] = 1;
@@ -522,6 +518,7 @@ MPI_Datatype * const        typeptr)
   o = ((int (*) (const void * const, const void * const)) archptr->class->domMpiType) ((const void * const) &archptr->data, &typetab[0]);
   if (o == 0)
     o = (MPI_Type_struct (2, bloktab, disptab, typetab, typeptr) != MPI_SUCCESS);
+#endif /* ((defined MPI_VERSION) && (MPI_VERSION >= 3)) */
   if (o == 0)
     o = (MPI_Type_commit (typeptr) != MPI_SUCCESS); /* Created MPI types have to be committed */
 

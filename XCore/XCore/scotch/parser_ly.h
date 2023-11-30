@@ -30,8 +30,8 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-#ifndef YY_SCOTCHYY_Y_TAB_H_INCLUDED
-# define YY_SCOTCHYY_Y_TAB_H_INCLUDED
+#ifndef YY_SCOTCHYY_PARSER_LY_H_INCLUDED
+# define YY_SCOTCHYY_PARSER_LY_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -56,23 +56,13 @@ extern int scotchyydebug;
     VALTEST = 266
   };
 #endif
-/* Tokens.  */
-#define METHODNAME 258
-#define PARAMNAME 259
-#define VALCASE 260
-#define VALDOUBLE 261
-#define VALINT 262
-#define VALSTRING 263
-#define VALSTRAT 264
-#define VALPARAM 265
-#define VALTEST 266
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 
 union YYSTYPE
 {
-#line 92 "parser_yy.y" /* yacc.c:1909  */
+#line 122 "parser_yy.y" /* yacc.c:1909  */
 
   char                      CASEVAL;              /* Case value          */
   StratTest *               TEST;                 /* Test type           */
@@ -83,11 +73,11 @@ union YYSTYPE
   struct {
     const StratTab *        tabl;                 /* Current tables    */
     Strat *                 strat;                /* Current method    */
-    StratParamTab *         param;                /* Current parameter */
+    const StratParamTab *   param;                /* Current parameter */
   } SAVE;                                         /* Parameter type    */
   Strat *                   STRAT;                /* Strategy tree     */
 
-#line 91 "y.tab.h" /* yacc.c:1909  */
+#line 81 "parser_ly.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -95,9 +85,22 @@ typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_DECLARED 1
 #endif
 
+/* Location type.  */
+#if ! defined YYLTYPE && ! defined YYLTYPE_IS_DECLARED
+typedef struct YYLTYPE YYLTYPE;
+struct YYLTYPE
+{
+  int first_line;
+  int first_column;
+  int last_line;
+  int last_column;
+};
+# define YYLTYPE_IS_DECLARED 1
+# define YYLTYPE_IS_TRIVIAL 1
+#endif
 
-extern YYSTYPE scotchyylval;
 
-int scotchyyparse (void);
 
-#endif /* !YY_SCOTCHYY_Y_TAB_H_INCLUDED  */
+int scotchyyparse (void * scanptr, ParserEnv * penvptr);
+
+#endif /* !YY_SCOTCHYY_PARSER_LY_H_INCLUDED  */

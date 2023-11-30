@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2009-2016,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2009-2016,2018,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -53,15 +53,17 @@
 /**                # Version 5.1  : from : 05 jun 2009     **/
 /**                                 to   : 13 feb 2011     **/
 /**                # Version 6.0  : from : 14 feb 2011     **/
-/**                                 to     05 jun 2018     **/
+/**                                 to   : 05 jun 2018     **/
+/**                # Version 6.1  : from : 15 mar 2021     **/
+/**                                 to   : 15 mar 2021     **/
+/**                # Version 7.0  : from : 21 jan 2023     **/
+/**                                 to   : 21 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The defines and includes.
 */
-
-#define LIBRARY
 
 #include "module.h"
 #include "common.h"
@@ -87,9 +89,35 @@
 
 /*+ This routine reserves a memory area
 *** of a size sufficient to store a
-*** target architecture.
+*** SCOTCH_ArchDom structure.
 *** It returns:
-*** - !NULL  : if the initialization succeeded.
+*** - !NULL  : if the allocation succeeded.
+*** - NULL   : on error.
++*/
+
+SCOTCH_ArchDom *
+SCOTCH_archDomAlloc ()
+{
+  return ((SCOTCH_ArchDom *) memAlloc (sizeof (SCOTCH_ArchDom)));
+}
+
+/*+ This routine returns the size, in bytes,
+*** of a SCOTCH_ArchDom structure.
+*** It returns:
+*** - > 0  : in all cases.
++*/
+
+int
+SCOTCH_archDomSizeof ()
+{
+  return (sizeof (SCOTCH_ArchDom));
+}
+
+/*+ This routine reserves a memory area
+*** of a size sufficient to store a
+*** SCOTCH_Arch structure.
+*** It returns:
+*** - !NULL  : if the allocation succeeded.
 *** - NULL   : on error.
 +*/
 
@@ -97,6 +125,18 @@ SCOTCH_Arch *
 SCOTCH_archAlloc ()
 {
   return ((SCOTCH_Arch *) memAlloc (sizeof (SCOTCH_Arch)));
+}
+
+/*+ This routine returns the size, in bytes,
+*** of a SCOTCH_Arch structure.
+*** It returns:
+*** - > 0  : in all cases.
++*/
+
+int
+SCOTCH_archSizeof ()
+{
+  return (sizeof (SCOTCH_Arch));
 }
 
 /*+ This routine initializes the opaque

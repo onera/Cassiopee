@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2011,2013,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2011,2013,2014,2018,2019,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -41,41 +41,41 @@
 /**                It is now a branching routine.          **/
 /**                                                        **/
 /**   DATES      : # Version 0.0  : from : 31 mar 1993     **/
-/**                                 to     31 mar 1993     **/
+/**                                 to   : 31 mar 1993     **/
 /**                # Version 1.0  : from : 04 oct 1993     **/
-/**                                 to     06 oct 1993     **/
+/**                                 to   : 06 oct 1993     **/
 /**                # Version 1.1  : from : 15 oct 1993     **/
-/**                                 to     15 oct 1993     **/
+/**                                 to   : 15 oct 1993     **/
 /**                # Version 1.3  : from : 09 apr 1994     **/
-/**                                 to     11 may 1994     **/
+/**                                 to   : 11 may 1994     **/
 /**                # Version 2.0  : from : 06 jun 1994     **/
-/**                                 to     17 nov 1994     **/
+/**                                 to   : 17 nov 1994     **/
 /**                # Version 2.1  : from : 07 apr 1995     **/
-/**                                 to     18 jun 1995     **/
+/**                                 to   : 18 jun 1995     **/
 /**                # Version 3.0  : from : 01 jul 1995     **/
-/**                                 to     19 oct 1995     **/
+/**                                 to   : 19 oct 1995     **/
 /**                # Version 3.1  : from : 30 oct 1995     **/
-/**                                 to     14 jun 1996     **/
+/**                                 to   : 14 jun 1996     **/
 /**                # Version 3.2  : from : 23 aug 1996     **/
-/**                                 to     07 sep 1998     **/
+/**                                 to   : 07 sep 1998     **/
 /**                # Version 3.3  : from : 19 oct 1998     **/
-/**                                 to     08 dec 1998     **/
+/**                                 to   : 08 dec 1998     **/
 /**                # Version 3.4  : from : 01 jun 2001     **/
-/**                                 to     07 nov 2001     **/
+/**                                 to   : 07 nov 2001     **/
 /**                # Version 4.0  : from : 12 jan 2004     **/
-/**                                 to     06 mar 2005     **/
+/**                                 to   : 06 mar 2005     **/
 /**                # Version 5.1  : from : 22 nov 2007     **/
-/**                                 to     07 oct 2008     **/
+/**                                 to   : 07 oct 2008     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     31 may 2018     **/
+/**                                 to   : 21 jun 2019     **/
+/**                # Version 7.0  : from : 23 aug 2019     **/
+/**                                 to   : 20 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The defines and includes.
 */
-
-#define KGRAPH_MAP_RB
 
 #include "module.h"
 #include "common.h"
@@ -110,12 +110,20 @@ kgraphMapRb (
 Kgraph * const                          grafptr,
 const KgraphMapRbParam * restrict const paraptr)
 {
-  KgraphMapRbData               datadat;          /* Data passed to each bipartitioning job            */
-  Graph                         indgrafdat;       /* Induced graph without fixed vertices              */
-  Graph * restrict              indgrafptr;       /* Pointer to top-level graph without fixed vertices */
-  KgraphMapRbVflo * restrict    vflotab;          /* Array of fixed vertex load slots                  */
-  Anum                          vflonbr;          /* Number of fixed vertex load slots                 */
-  int                           o;
+  KgraphMapRbData             datadat;            /* Data passed to each bipartitioning job            */
+  Graph                       indgrafdat;         /* Induced graph without fixed vertices              */
+  Graph * restrict            indgrafptr;         /* Pointer to top-level graph without fixed vertices */
+  KgraphMapRbVflo * restrict  vflotab;            /* Array of fixed vertex load slots                  */
+  Anum                        vflonbr;            /* Number of fixed vertex load slots                 */
+#ifdef SCOTCH_DEBUG_KGRAPH2
+  Anum                        domnnum;
+#endif /* SCOTCH_DEBUG_KGRAPH2 */
+  int                         o;
+
+  if (mapAlloc (&grafptr->m) != 0) {
+    errorPrint ("kgraphMapRb: cannot allocate mapping arrays");
+    return (1);
+  }
 
   grafptr->kbalval = paraptr->kbalval;            /* Store last k-way imbalance ratio */
 
@@ -141,12 +149,12 @@ const KgraphMapRbParam * restrict const paraptr)
     if (kgraphMapRbVfloBuild (grafptr->m.archptr, &grafptr->s, grafptr->vfixnbr, grafptr->pfixtax,
                               &indgrafdat, &vflonbr, &vflotab) != 0) {
       errorPrint ("kgraphMapRb: cannot create induced graph");
-      return     (1);
+      return (1);
     }
     indgrafptr = &indgrafdat;
   }
 
-  o = ((archPart (grafptr->m.archptr) != 0) ? kgraphMapRbPart : kgraphMapRbMap) (&datadat, indgrafptr, vflonbr, vflotab); /* Compute recursive bipartitioning */
+  o = ((archPart (grafptr->m.archptr) != 0) ? kgraphMapRbPart : kgraphMapRbMap) (&datadat, indgrafptr, vflonbr, vflotab, grafptr->contptr); /* Compute recursive bipartitioning */
 
   if (grafptr->pfixtax != NULL) {                 /* If fixed vertices   */
     memFree (vflotab);                            /* Not used any longer */
@@ -154,7 +162,7 @@ const KgraphMapRbParam * restrict const paraptr)
     graphExit (&indgrafdat);
     if (kgraphMapRbVfloMerge (&grafptr->m, grafptr->vfixnbr, grafptr->pfixtax, vflonbr) != 0) {
       errorPrint ("kgraphMapRb: cannot merge fixed vertex domains");
-      return     (1);
+      return (1);
     }
   }
 
@@ -162,15 +170,22 @@ const KgraphMapRbParam * restrict const paraptr)
                        &grafptr->comploadavg, (size_t) (grafptr->m.domnmax * sizeof (Gnum)), /* TRICK: can send both compload arrays in one piece */
                        &grafptr->comploaddlt, (size_t) (grafptr->m.domnmax * sizeof (Gnum)), NULL) == NULL) {
     errorPrint ("kgraphMapRb: out of memory (3)");
-    return     (1);
+    return (1);
   }
   kgraphFron (grafptr);
   kgraphCost (grafptr);                           /* Compute cost of full k-way partition */
 
 #ifdef SCOTCH_DEBUG_KGRAPH2
+  for (domnnum = 0; domnnum < grafptr->m.domnnbr; domnnum ++) {
+    if (archDomSize (grafptr->m.archptr, &grafptr->m.domntab[domnnum]) != 1) {
+      errorPrint ("kgraphMapRb: invalid mapping");
+      return (1);
+    }
+  }
+
   if (kgraphCheck (grafptr) != 0) {
     errorPrint ("kgraphMapRb: inconsistent graph data");
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_KGRAPH2 */
 
@@ -232,7 +247,7 @@ KgraphMapRbVflo * restrict * restrict const vflotabptr) /*+ Pointer to fixed ver
                      &hashtab,    (size_t) (hashsiz             * sizeof (KgraphMapRbVflo)), /* Use fixed vertex load slots as hash slots */
                      &orgparttax, (size_t) (orggrafptr->vertnbr * sizeof (GraphPart)), NULL) == NULL) {
     errorPrint ("kgraphMapRbVfloBuild: out of memory");
-    return     (1);
+    return (1);
   }
   orgparttax -= orggrafptr->baseval;
 
@@ -270,7 +285,7 @@ KgraphMapRbVflo * restrict * restrict const vflotabptr) /*+ Pointer to fixed ver
   if (graphInducePart (orggrafptr, orgparttax, orggrafptr->vertnbr - orgvfixnbr, 0, indgrafptr) != 0) { /* Keep non-fixed vertices in induced graph */
     errorPrint ("kgraphMapRbVfloBuild: cannot build induced subgraph");
     memFree    (hashtab);
-    return     (1);
+    return (1);
   }
 
   if (velomsk == 0) {                             /* If all fixed vertex loads are zero */
@@ -456,7 +471,7 @@ const Anum                  vflonbr)              /*+ Number of fixed vertex loa
 
   if ((hashtab = memAlloc (hashsiz * sizeof (KgraphMapRbVfloHash))) == NULL) { /* Use fixed vertex load slots as hash slots */
     errorPrint ("kgraphMapRbVfloMerge: out of memory (1)");
-    return     (1);
+    return (1);
   }
   memSet (hashtab, ~0, hashsiz * sizeof (KgraphMapRbVfloHash)); /* Set all vertex numbers to ~0 */
 
@@ -483,7 +498,7 @@ const Anum                  vflonbr)              /*+ Number of fixed vertex loa
 #ifdef SCOTCH_DEBUG_KGRAPH2
       if (mappptr->parttax[vertnum] < 0) {        /* If vertex has not been mapped */
         errorPrint ("kgraphMapRbVfloMerge: internal error (1)");
-        return     (1);
+        return (1);
       }
 #endif /* SCOTCH_DEBUG_KGRAPH2 */
       continue;                                   /* Skip to next vertex */
@@ -492,7 +507,7 @@ const Anum                  vflonbr)              /*+ Number of fixed vertex loa
 #ifdef SCOTCH_DEBUG_KGRAPH2
     if (mappptr->parttax[vertnum] >= 0) {         /* If fixed vertex has been mapped */
       errorPrint ("kgraphMapRbVfloMerge: internal error (2)");
-      return     (1);
+      return (1);
     }
 #endif /* SCOTCH_DEBUG_KGRAPH2 */
 
@@ -503,7 +518,7 @@ const Anum                  vflonbr)              /*+ Number of fixed vertex loa
         if (domnnum >= mappptr->domnmax) {
           if (mapResize (mappptr, mappptr->domnmax + (mappptr->domnmax >> 2) + 8) != 0) { /* Increase size by 25% */
             errorPrint ("kgraphMapRbVfloMerge: out of memory (2)");
-            return     (1);
+            return (1);
           }
         }
         archDomTerm (archptr, &mappptr->domntab[domnnum], pfixval); /* Add new domain to domain array */
@@ -546,7 +561,8 @@ Bgraph * restrict const                 actgrafptr, /*+ Graph to build          
 const Graph * restrict const            srcgrafptr, /*+ Source graph                  +*/
 const Mapping * restrict const          srcmappptr, /*+ Current mapping               +*/
 const ArchDom * restrict const          domnsubtab, /*+ Array of the two subdomains   +*/
-const Gnum * restrict const             vflowgttab) /*+ Array of vertex weight biases +*/
+const Gnum * restrict const             vflowgttab, /*+ Array of vertex weight biases +*/
+Context * const                         contptr)  /*+ Execution context               +*/
 {
   Gnum                  actvertnum;               /* Number of current active vertex   */
   Gnum                  commloadextn0;            /* External communication load       */
@@ -573,6 +589,7 @@ const Gnum * restrict const             vflowgttab) /*+ Array of vertex weight b
     errorPrint ("kgraphMapRbBgraph: cannot create bipartition graph");
     return     (1);
   }
+  actgrafptr->contptr = contptr;
 
   flagval = KGRAPHMAPRBVEEXNONE;                  /* Assume no processing */
   if ((! archPart (archptr)) && (actvnumtax != NULL))
@@ -587,7 +604,7 @@ const Gnum * restrict const             vflowgttab) /*+ Array of vertex weight b
 
   if ((veextax = (Gnum *) memAlloc (actgrafptr->s.vertnbr * sizeof (Gnum))) == NULL) {
     errorPrint ("kgraphMapRbBgraph: out of memory");
-    return     (1);
+    return (1);
   }
   veextax -= actgrafptr->s.baseval;
 

@@ -1,4 +1,4 @@
-/* Copyright 2004,2007-2009,2011,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007-2009,2011,2014,2018,2019,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,33 +40,37 @@
 /**                Bipartitioning mapping algorithm.       **/
 /**                                                        **/
 /**   DATES      : # Version 0.0  : from : 31 mar 1993     **/
-/**                                 to     31 mar 1993     **/
+/**                                 to   : 31 mar 1993     **/
 /**                # Version 1.0  : from : 04 oct 1993     **/
-/**                                 to     06 oct 1993     **/
+/**                                 to   : 06 oct 1993     **/
 /**                # Version 1.1  : from : 15 oct 1993     **/
-/**                                 to     15 oct 1993     **/
+/**                                 to   : 15 oct 1993     **/
 /**                # Version 1.3  : from : 09 apr 1994     **/
-/**                                 to     11 may 1994     **/
+/**                                 to   : 11 may 1994     **/
 /**                # Version 2.0  : from : 06 jun 1994     **/
-/**                                 to     17 nov 1994     **/
+/**                                 to   : 17 nov 1994     **/
 /**                # Version 2.1  : from : 07 apr 1995     **/
-/**                                 to     18 jun 1995     **/
+/**                                 to   : 18 jun 1995     **/
 /**                # Version 3.0  : from : 01 jul 1995     **/
-/**                                 to     19 oct 1995     **/
+/**                                 to   : 19 oct 1995     **/
 /**                # Version 3.1  : from : 30 oct 1995     **/
-/**                                 to     14 jun 1996     **/
+/**                                 to   : 14 jun 1996     **/
 /**                # Version 3.2  : from : 23 aug 1996     **/
-/**                                 to     07 sep 1998     **/
+/**                                 to   : 07 sep 1998     **/
 /**                # Version 3.3  : from : 19 oct 1998     **/
-/**                                 to     08 dec 1998     **/
+/**                                 to   : 08 dec 1998     **/
 /**                # Version 3.4  : from : 01 jun 2001     **/
-/**                                 to     07 nov 2001     **/
+/**                                 to   : 07 nov 2001     **/
 /**                # Version 4.0  : from : 12 jan 2004     **/
-/**                                 to     06 mar 2005     **/
+/**                                 to   : 06 mar 2005     **/
 /**                # Version 5.1  : from : 22 nov 2007     **/
-/**                                 to     04 feb 2009     **/
+/**                                 to   : 04 feb 2009     **/
 /**                # Version 6.0  : from : 03 mar 2011     **/
-/**                                 to     25 feb 2018     **/
+/**                                 to   : 21 jun 2019     **/
+/**                # Version 6.1  : from : 28 jun 2021     **/
+/**                                 to   : 28 jun 2021     **/
+/**                # Version 7.0  : from : 25 aug 2019     **/
+/**                                 to   : 22 mar 2023     **/
 /**                                                        **/
 /**   NOTES      : # This code is a complete rewrite of    **/
 /**                  the original code of kgraphMapRb(),   **/
@@ -78,7 +82,7 @@
 **  The defines and includes.
 */
 
-#define KGRAPH_MAP_RB_MAP
+#define SCOTCH_KGRAPH_MAP_RB_MAP
 
 #include "module.h"
 #include "common.h"
@@ -115,7 +119,8 @@ static
 int
 kgraphMapRbMapPoolInit (
 KgraphMapRbMapPoolData * restrict const poolptr,
-const KgraphMapRbData * restrict const  dataptr)
+const KgraphMapRbData * restrict const  dataptr,
+Context * const                         contptr)
 {
   int                 flagval;
 
@@ -144,7 +149,7 @@ const KgraphMapRbData * restrict const  dataptr)
 
   if ((poolptr->jobtab = (KgraphMapRbMapJob *) memAlloc (mappptr->domnmax * sizeof (KgraphMapRbMapJob))) == NULL) {
     errorPrint ("kgraphMapRbMapPoolInit: out of memory (2)");
-    return     (1);
+    return (1);
   }
   poolptr->jobtab[0].poolflag = 0;                /* In case kgraphMapRbPoolExit() is called just afterwards on single-domain mapping */
 
@@ -159,11 +164,12 @@ const KgraphMapRbData * restrict const  dataptr)
     if ((poolptr->domntab[1] = (ArchDom *) memAlloc (mappptr->domnmax * sizeof (ArchDom))) == NULL) {
       errorPrint ("kgraphMapRbMapPoolInit: out of memory (3)");
       memFree    (poolptr->jobtab);
-      return     (1);
+      return (1);
     }
   }
 
   poolptr->flagval = flagval;
+  poolptr->contptr = contptr;
 
   return (0);
 }
@@ -199,7 +205,7 @@ KgraphMapRbMapPoolData * restrict const poolptr)
     if ((mappptr->flagval & MAPPINGFREEDOMN) != 0) /* If mapping domain array was privately owned, free it        */
       memFree (mappptr->domntab);
     mappptr->flagval |= MAPPINGFREEDOMN;          /* Keep current domain array as private mapping domain array */
-    mappptr->domntab  = poolptr->domntab[1];      
+    mappptr->domntab  = poolptr->domntab[1];
   }
 
   memFree (poolptr->jobtab);
@@ -252,7 +258,7 @@ KgraphMapRbMapPoolData * restrict const poolptr)
 
   if ((jobtab = (KgraphMapRbMapJob *) memRealloc (poolptr->jobtab, domnmax * sizeof (KgraphMapRbMapJob))) == NULL) {
     errorPrint ("kgraphMapRbMapPoolResize: out of memory (1)");
-    return     (1);
+    return (1);
   }
   if (jobtab != poolptr->jobtab) {                /* If job array moved                */
     KgraphMapRbMapJob *       joboldtab;          /* Pointer to start of old job array */
@@ -285,7 +291,7 @@ KgraphMapRbMapPoolData * restrict const poolptr)
   i = (poolptr->domntab[1] == poolptr->mappptr->domntab) ? 1 : 0; /* Find which domain array is that of the mapping */
   if (mapResize (poolptr->mappptr, domnmax) != 0) {
     errorPrint ("kgraphMapRbMapPoolResize: out of memory (2)");
-    return     (1);
+    return (1);
   }
   if (poolptr->domntab[1] != poolptr->domntab[0]) { /* If two domain arrays present */
     ArchDom *           domntab;
@@ -378,7 +384,7 @@ KgraphMapRbMapJob * const       jobptr)           /* Job to be added */
   switch (poolptr->polival) {                     /* Set job priority value */
     case KGRAPHMAPRBPOLIRANDOM :
       jobptr->prioval =
-      jobptr->priolvl = intRandVal (INTVALMAX);
+      jobptr->priolvl = contextIntRandVal (poolptr->contptr, INTVALMAX);
       break;
     case KGRAPHMAPRBPOLILEVEL   :
     case KGRAPHMAPRBPOLINGLEVEL :
@@ -429,25 +435,25 @@ const GraphPart                 partval)
   switch (poolptr->polival) {                     /* Set job priority value */
     case KGRAPHMAPRBPOLIRANDOM :
       prioval =
-      priolvl = intRandVal (INTVALMAX);
+      priolvl = contextIntRandVal (poolptr->contptr, INTVALMAX);
       break;
     case KGRAPHMAPRBPOLILEVEL :
       priolvl = joboldptr->priolvl + 1;
+      /* FALL THROUGH */
     case KGRAPHMAPRBPOLINGLEVEL :
       prioval = joboldptr->prioval - 1;
       break;
     case KGRAPHMAPRBPOLISIZE :
       priolvl = jobnewptr->grafdat.vertnbr;
+      /* FALL THROUGH */
     case KGRAPHMAPRBPOLINGSIZE :
       prioval = jobnewptr->grafdat.vertnbr;
       break;
-#ifdef SCOTCH_DEBUG_KGRAPH2
     default :
       errorPrint ("kgraphMapRbMapPoolUpdt1: unknown job selection policy");
       jobnewptr->prioval = 0;
       jobnewptr->priolvl = 0;
       return;
-#endif /* SCOTCH_DEBUG_KGRAPH2 */
   }
 
   jobnewptr->prioval = prioval;
@@ -595,25 +601,25 @@ KgraphMapRbMapJob * const       jobnewptr1)
     switch (poolptr->polival) {                   /* Set job priority value */
       case KGRAPHMAPRBPOLIRANDOM :
         prioval =
-        priolvl = intRandVal (INTVALMAX);
+        priolvl = contextIntRandVal (poolptr->contptr, INTVALMAX);
         break;
       case KGRAPHMAPRBPOLILEVEL :
         priolvl = joboldptr->priolvl + 1;
+        /* FALL THROUGH */
       case KGRAPHMAPRBPOLINGLEVEL :
         prioval = joboldptr->prioval - 1;
         break;
       case KGRAPHMAPRBPOLISIZE :
         priolvl = jobnewptr->grafdat.vertnbr;
+        /* FALL THROUGH */
       case KGRAPHMAPRBPOLINGSIZE :
         prioval = jobnewptr->grafdat.vertnbr;
         break;
-#ifdef SCOTCH_DEBUG_KGRAPH2
       default :
         errorPrint ("kgraphMapRbMapPoolUpdt2: unknown job selection policy");
         jobnewptr->prioval = 0;
         jobnewptr->priolvl = 0;
         return;
-#endif /* SCOTCH_DEBUG_KGRAPH2 */
     }
 
     jobnewptr0->prioval = prioval + 1;            /* TRICK: when processing subdomain 1, subdomain 0 has higher priority value */
@@ -862,7 +868,8 @@ kgraphMapRbMap (
 const KgraphMapRbData * restrict const  dataptr,  /*+ Global mapping data                  +*/
 const Graph * restrict const            grafptr,  /*+ Graph to map, without fixed vertices +*/
 const Anum                              vflonbr,  /*+ Number of fixed vertex load slots    +*/
-KgraphMapRbVflo * restrict const        vflotab)  /*+ Array of fixed vertex load slots     +*/
+KgraphMapRbVflo * restrict const        vflotab,  /*+ Array of fixed vertex load slots     +*/
+Context * const                         contptr)  /*+ Execution context                    +*/
 {
   KgraphMapRbMapPoolData  pooldat;                /* Data for handling jobs and job pools */
   ArchDom                 domnsubtab[2];          /* Subdomains of current job domain     */
@@ -893,7 +900,7 @@ KgraphMapRbVflo * restrict const        vflotab)  /*+ Array of fixed vertex load
   mappptr->domnmax = 1;                           /* Force resizing of job arrays, for debugging */
 #endif /* SCOTCH_DEBUG_KGRAPH2 */
 
-  if (kgraphMapRbMapPoolInit (&pooldat, dataptr) != 0) /* Initialize pool data; done first for kgraphMapRbMapPoolExit() to succeed afterwards */
+  if (kgraphMapRbMapPoolInit (&pooldat, dataptr, contptr) != 0) /* Initialize pool data; done first for kgraphMapRbMapPoolExit() to succeed afterwards */
     return (1);
 
   if ((((pooldat.flagval & KGRAPHMAPRBMAPARCHVAR) == 0) && (archDomSize (mappptr->archptr, &mappptr->domnorg) <= 1)) || /* If single-vertex domain   */
@@ -907,7 +914,9 @@ KgraphMapRbVflo * restrict const        vflotab)  /*+ Array of fixed vertex load
   pooldat.jobtab[0].grafdat.flagval &= ~GRAPHFREETABS; /* Do not free its arrays on exit     */
   pooldat.jobtab[0].vflonbr = vflonbr;            /* Record initial list of fixed load slots */
   pooldat.jobtab[0].vflotab = vflotab;
-  kgraphMapRbMapPoolFrst (&pooldat, &pooldat.jobtab[0]); /* Add initial job */
+  pooldat.jobtab[0].vflotab = vflotab;
+  pooldat.jobtab[0].levlnum = 0;                  /* Initial recursion level is 0 */
+  kgraphMapRbMapPoolFrst (&pooldat, &pooldat.jobtab[0]); /* Add initial job       */
 
   comploadmin = (1.0 - dataptr->paraptr->kbalval) * dataptr->comploadrat; /* Ratio can have been tilted when working on subgraph */
   comploadmax = (1.0 + dataptr->paraptr->kbalval) * dataptr->comploadrat;
@@ -918,6 +927,7 @@ KgraphMapRbVflo * restrict const        vflotab)  /*+ Array of fixed vertex load
     while ((joborgptr = kgraphMapRbMapPoolGet (&pooldat)) != NULL) { /* For all jobs in pool */
       Gnum                vflonbrtab[2];
       Gnum                vflowgttab[2];
+      Gnum                levlnum;
       int                 partval;
 
       jobsubnum[0] = joborgptr - pooldat.jobtab;  /* Get current (and first son) job slot number before possible move of pointers */
@@ -931,7 +941,7 @@ KgraphMapRbVflo * restrict const        vflotab)  /*+ Array of fixed vertex load
 
       kgraphMapRbVfloSplit (mappptr->archptr, domnsubtab, /* Split fixed vertex load slots, if any */
                             joborgdat.vflonbr, joborgdat.vflotab, vflonbrtab, vflowgttab);
-      if (kgraphMapRbBgraph (dataptr, &actgrafdat, &joborgdat.grafdat, pooldat.mappptr, domnsubtab, vflowgttab) != 0) { /* Create bipartition graph */
+      if (kgraphMapRbBgraph (dataptr, &actgrafdat, &joborgdat.grafdat, pooldat.mappptr, domnsubtab, vflowgttab, contptr) != 0) { /* Create bipartition graph */
         errorPrint ("kgraphMapRbMap: cannot create bipartition graph");
         kgraphMapRbMapPoolExit (&pooldat);        /* Copied graph will be freed as not yet removed */
         return (1);
@@ -956,35 +966,37 @@ KgraphMapRbVflo * restrict const        vflotab)  /*+ Array of fixed vertex load
         errorPrint             ("kgraphMapRbMap: cannot bipartition job");
         bgraphExit             (&actgrafdat);
         kgraphMapRbMapPoolExit (&pooldat);
-        return                 (1);
+        return (1);
       }
 
       if ((partval = 1, actgrafdat.compsize0 == 0) || /* If no bipartition found */
           (partval = 0, actgrafdat.compsize0 == actgrafdat.s.vertnbr)) {
-        if (((pooldat.flagval & KGRAPHMAPRBMAPARCHVAR) != 0) || /* If architecture is variable-sized     */
-            (archDomSize (mappptr->archptr, &domnsubtab[partval]) <= 1)) { /* Or if domain is terminal   */
-          pooldat.domntab[0][jobsubnum[0]] = joborgdat.domnorg; /* Update domain in next pool            */
+        if ((pooldat.flagval & KGRAPHMAPRBMAPARCHVAR) != 0) { /* If architecture is variable-sized       */
+          pooldat.domntab[0][jobsubnum[0]] = joborgdat.domnorg; /* Propagate domain in next pool         */
           kgraphMapRbMapPoolRemv (&pooldat, &joborgdat); /* Remove job from pool as long as graph exists */
-          bgraphExit (&actgrafdat);               /* Free bipartitioning data as well as current graph   */
-          continue;                               /* Process next job in current pool                    */
+        }
+        else if (archDomSize (mappptr->archptr, &domnsubtab[partval]) <= 1) { /* If domain is terminal   */
+          pooldat.domntab[0][jobsubnum[0]] = domnsubtab[partval]; /* Refine domain in next pool          */
+          kgraphMapRbMapPoolRemv (&pooldat, &joborgdat); /* Remove job from pool as long as graph exists */
         }
         else {                                    /* Re-use job slot and graph for further bipartitioning */
           pooldat.domntab[0][jobsubnum[0]] =      /* Update domain in next pool                           */
           joborgptr->domnorg = domnsubtab[partval]; /* New job takes same graph and non-empty subdomain   */
           joborgptr->vflonbr = vflonbrtab[partval];
-          joborgptr->vflotab = joborgdat.vflotab + (partval * vflonbrtab[0]); /* Point to proper sub-array           */
+          joborgptr->vflotab = joborgdat.vflotab + (partval * vflonbrtab[0]); /* Point to proper sub-array */
+          joborgptr->levlnum ++;
           kgraphMapRbMapPoolUpdt1 (&pooldat, &joborgdat, actgrafdat.parttax, joborgptr, partval); /* Add job to pool */
           actgrafdat.s.flagval &= ~GRAPHFREETABS; /* Since graph will be re-used, never free its internal arrays     */
-          bgraphExit (&actgrafdat);               /* Free bipartitioning data                                        */
-          continue;                               /* Process next job in current pool                                */
         }
+        bgraphExit (&actgrafdat);                 /* Free bipartitioning data as well as current graph */
+        continue;                                 /* Process next job in current pool                  */
       }
 
       if ((pooldat.mappptr->domnnbr == pooldat.mappptr->domnmax) && /* If all job slots busy and if cannot resize */
-          (kgraphMapRbMapPoolResize (&pooldat) != 0)) {
+          (kgraphMapRbMapPoolResize (&pooldat) != 0)) { /* From this point, joborgptr may no longer be valid      */
         errorPrint             ("kgraphMapRbMap: cannot resize structures");
         kgraphMapRbMapPoolExit (&pooldat);
-        return                 (1);
+        return (1);
       }
 
       jobsubnum[1] = pooldat.mappptr->domnnbr ++; /* Get slot number of new subdomain */
@@ -1001,6 +1013,7 @@ KgraphMapRbVflo * restrict const        vflotab)  /*+ Array of fixed vertex load
       else
         kgraphMapRbMapPartBoth (&pooldat, &actgrafdat, jobsubnum);
 
+      levlnum = joborgdat.levlnum + 1;
       for (i = 1; i >= 0; i --) {                 /* For both subdomains */
         KgraphMapRbMapJob * jobsubptr;
 
@@ -1022,12 +1035,13 @@ KgraphMapRbVflo * restrict const        vflotab)  /*+ Array of fixed vertex load
           errorPrint             ("kgraphMapRbMap: cannot create induced subgraph");
           bgraphExit             (&actgrafdat);
           kgraphMapRbMapPoolExit (&pooldat);
-          return                 (1);
+          return (1);
         }
         jobsubptr->poolflag = 1;                  /* So that graph is freed in case of error on other part */
         jobsubptr->domnorg  = domnsubtab[i];
         jobsubptr->vflonbr  = vflonbrtab[i];
         jobsubptr->vflotab  = joborgdat.vflotab + (i * vflonbrtab[0]); /* Point to proper sub-array */
+        jobsubptr->levlnum  = levlnum;            /* Set new level */
       }
 
       if ((jobsubsiz[0] | jobsubsiz[1]) == 0)     /* If both subjobs do not need further processing */

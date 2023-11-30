@@ -1,4 +1,4 @@
-/* Copyright 2011,2013,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2011,2013,2014,2018,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,7 +40,9 @@
 /**                it can.                                 **/
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 27 may 2011     **/
-/**                                 to     06 jun 2018     **/
+/**                                 to   : 06 jun 2018     **/
+/**                # Version 7.0  : from : 11 jul 2021     **/
+/**                                 to   : 20 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -48,7 +50,7 @@
 **  The defines and includes.
 */
 
-#define KGRAPH_MAP_EX
+#define SCOTCH_KGRAPH_MAP_EX
 
 #include "module.h"
 #include "common.h"
@@ -83,9 +85,7 @@ const KgraphMapExParam * const  paraptr)          /*+ Method parameters +*/
   Anum * restrict             parttax;
   Anum                        treemax;            /* Maximum number of nodes in tree structure */
   Anum                        treenbr;            /* Number of nodes in tree structure         */
-  const Arch * restrict       archptr;
   ArchDom                     domndat;            /* Root domain                               */
-  Anum                        domnnbr;
   Anum                        domnnum;
   Gnum                        sortnbr;            /* Number of non-fixed vertices              */
   Gnum                        sortnum;
@@ -98,14 +98,14 @@ const KgraphMapExParam * const  paraptr)          /*+ Method parameters +*/
   int                         flagval;            /* Flag unset if load imbalance to fix       */
 
   const Gnum * restrict const velotax = grafptr->s.velotax;
+  const Arch * restrict const archptr = grafptr->m.archptr;
+  const Anum                  domnnbr = grafptr->m.domnnbr;
   const Anum * restrict const pfixtax = grafptr->pfixtax;
 
-  archptr = grafptr->m.archptr;
   archDomFrst (archptr, &domndat);
 
   grafptr->kbalval = paraptr->kbalval;            /* Store last k-way imbalance ratio */
-  domnnbr = grafptr->m.domnnbr;
-  sortnbr = grafptr->s.vertnbr - grafptr->vfixnbr; /* Only sort non-fixed vertices */
+  sortnbr = grafptr->s.vertnbr - grafptr->vfixnbr; /* Only sort non-fixed vertices    */
   treemax = 2 * ((archVar (archptr)) ? domnnbr : archDomSize (archptr, &domndat)); /* At most twice the number of terminals in last rank */
   if (memAllocGroup ((void **) (void *)
                      &doextab, (size_t) (domnnbr * sizeof (KgraphMapExDom)),
@@ -113,7 +113,7 @@ const KgraphMapExParam * const  paraptr)          /*+ Method parameters +*/
                      &termtab, (size_t) (domnnbr * sizeof (KgraphMapExTerm)),
                      &treetab, (size_t) (treemax * sizeof (KgraphMapExTree)), NULL) == NULL) {
     errorPrint ("kgraphMapEx: out of memory");
-    return     (1);
+    return (1);
   }
 
   wghtsum = (double) archDomWght (archptr, &domndat);
@@ -150,7 +150,7 @@ const KgraphMapExParam * const  paraptr)          /*+ Method parameters +*/
 
       domnnum = termtab[termnum].domnnum;
       doextab[domnnum].comploadmax = ((double) doextab[domnnum].domnwght * velosum * (1.0 + paraptr->kbalval)) / wghtsum;
-      
+     
       if ((grafptr->comploadavg[domnnum] + grafptr->comploaddlt[domnnum]) > doextab[domnnum].comploadmax)
         flagval = 0;                              /* Set flag if at least one domain is imbalanced */
     }
@@ -168,7 +168,7 @@ const KgraphMapExParam * const  paraptr)          /*+ Method parameters +*/
 #ifdef SCOTCH_DEBUG_KGRAPH2
   if (treenbr >= treemax) {
     errorPrint ("kgraphMapEx: internal error (1)");
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_KGRAPH2 */
 
@@ -189,7 +189,7 @@ const KgraphMapExParam * const  paraptr)          /*+ Method parameters +*/
 #ifdef SCOTCH_DEBUG_KGRAPH2
   if (sortnbr != (grafptr->s.vertnbr - grafptr->vfixnbr)) {
     errorPrint ("kgraphMapEx: internal error (2)");
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_KGRAPH2 */
   if (velotax != NULL)                            /* If vertices are weighted, sort them in ascending order */
@@ -224,7 +224,7 @@ const KgraphMapExParam * const  paraptr)          /*+ Method parameters +*/
 #ifdef SCOTCH_DEBUG_KGRAPH2
   if (kgraphCheck (grafptr) != 0) {
     errorPrint ("kgraphMapEx: inconsistent graph data");
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_KGRAPH2 */
 
@@ -263,7 +263,7 @@ const ArchDom * restrict const          domnptr)  /*+ Pointer to subdomain to co
 #ifdef SCOTCH_DEBUG_KGRAPH2
     if (o != 0) {
       errorPrint ("kgraphMapExTree: internal error");
-      return     (-1);
+      return (-1);
     }
 #endif /* SCOTCH_DEBUG_KGRAPH2 */
     sonstab[0] = kgraphMapExTree (archptr, termtab, termnbr, doextab, treetab, treeptr, &domntab[0]);
@@ -296,7 +296,7 @@ const ArchDom * restrict const          domnptr)  /*+ Pointer to subdomain to co
 #ifdef SCOTCH_DEBUG_KGRAPH2
     if (archVar (archptr)) {
       errorPrint ("kgraphMapExTree: not implemented");
-      return     (-1);
+      return (-1);
     }
 #endif /* SCOTCH_DEBUG_KGRAPH2 */
 

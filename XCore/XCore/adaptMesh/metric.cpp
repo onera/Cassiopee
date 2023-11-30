@@ -221,9 +221,9 @@ E_Int make_ref_data(mesh *M, E_Float **sols, E_Int csize, E_Float *fvec)
 
       for (E_Int i = 0; i < M->ncells; i++) {
         E_Int *pr = &M->ref_data[3*i];
-        pr[0] = std::max(pr[0], partialRefData[i][0]);
-        pr[1] = std::max(pr[1], partialRefData[i][1]);
-        pr[2] = std::max(pr[2], partialRefData[i][2]);
+        pr[0] = std::max((E_Int)pr[0], (E_Int)partialRefData[i][0]);
+        pr[1] = std::max((E_Int)pr[1], (E_Int)partialRefData[i][1]);
+        pr[2] = std::max((E_Int)pr[2], (E_Int)partialRefData[i][2]);
       }
 
       XFREE(H);

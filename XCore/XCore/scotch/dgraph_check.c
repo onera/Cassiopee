@@ -1,4 +1,4 @@
-/* Copyright 2007-2010,2012,2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007-2010,2012,2014,2019,2020,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -45,25 +45,25 @@
 /**                graph consistency checking routine.     **/
 /**                                                        **/
 /**                # Version P0.0 : from : 01 apr 1997     **/
-/**                                 to     20 jun 1997     **/
+/**                                 to   : 20 jun 1997     **/
 /**                # Version P0.1 : from : 14 apr 1998     **/
-/**                                 to     20 jun 1998     **/
+/**                                 to   : 20 jun 1998     **/
 /**                # Version P0.2 : from : 11 may 1999     **/
-/**                                 to     02 feb 2000     **/
+/**                                 to   : 02 feb 2000     **/
 /**                # Version 5.0  : from : 04 jul 2005     **/
 /**                                 to   : 10 sep 2007     **/
 /**                # Version 5.1  : from : 20 nov 2008     **/
 /**                                 to   : 30 jul 2010     **/
 /**                # Version 6.0  : from : 29 sep 2012     **/
-/**                                 to   : 09 feb 2014     **/
+/**                                 to   : 31 aug 2019     **/
+/**                # Version 7.0  : from : 03 may 2019     **/
+/**                                 to   : 17 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 ** The defines and includes.
 */
-
-#define DGRAPH_CHECK
 
 #include "module.h"
 #include "common.h"
@@ -214,8 +214,7 @@ const Dgraph * restrict const grafptr)
   }
   memFree (procngbtab);
 
-  if ((grafptr->baseval < 0) ||                   /* Elementary constraints on graph fields */
-      (grafptr->baseval > 1) ||                   /* Strong limitation on base value        */
+  if ((grafptr->baseval    < 0) ||                /* Elementary constraints on graph fields */
       (grafptr->vertlocnbr < 0) ||
       (grafptr->vertlocnnd != (grafptr->vertlocnbr + grafptr->baseval)) ||
       (((grafptr->flagval & DGRAPHHASEDGEGST) != 0) &&
@@ -227,8 +226,8 @@ const Dgraph * restrict const grafptr)
     cheklocval = 1;
   }
 
-  reduloctab[ 0] =   grafptr->flagval;
-  reduloctab[ 1] = - grafptr->flagval;
+  reduloctab[ 0] =   (Gnum) grafptr->flagval;
+  reduloctab[ 1] = - (Gnum) grafptr->flagval;
   reduloctab[ 2] =   grafptr->baseval;
   reduloctab[ 3] = - grafptr->baseval;
   reduloctab[ 4] =   grafptr->vertglbnbr;

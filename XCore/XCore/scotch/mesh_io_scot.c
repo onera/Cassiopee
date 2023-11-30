@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2019,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -39,11 +39,15 @@
 /**                for handling the Scotch mesh format.    **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 19 jan 2004     **/
-/**                                 to     19 jan 2004     **/
+/**                                 to   : 19 jan 2004     **/
 /**                # Version 5.0  : from : 13 sep 2006     **/
-/**                                 to     27 feb 2008     **/
+/**                                 to   : 27 feb 2008     **/
 /**                # Version 5.1  : from : 11 aug 2010     **/
-/**                                 to     11 aug 2010     **/
+/**                                 to   : 11 aug 2010     **/
+/**                # Version 6.0  : from : 28 apr 2019     **/
+/**                                 to   : 28 apr 2019     **/
+/**                # Version 7.0  : from : 20 jan 2023     **/
+/**                                 to   : 20 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -51,13 +55,12 @@
 **  The defines and includes.
 */
 
-#define MESH_IO_SCOT
-
 #include "module.h"
 #include "common.h"
 #include "geom.h"
 #include "graph.h"
 #include "mesh.h"
+#include "mesh_io_scot.h"
 
 /* This routine loads the geometrical mesh
 ** in the Scotch graph format, and allocates
@@ -74,20 +77,19 @@ FILE * const                filesrcptr,           /* Topological data */
 FILE * const                filegeoptr,           /* No use           */
 const char * const          dataptr)              /* No use           */
 {
-#ifdef DEAD_CODE /* TODO */
-  double * restrict             coorfiletab;      /* Pointer to geometric data read from file   */
-  MeshGeomScotSort * restrict   coorsorttab;      /* Pointer to geometric data sorting array    */
-  int                           coorsortflag;     /* Flag set if geometric data sorted by label */
-  Gnum                          coornbr;          /* Number of geometric coordinates in file    */
-  Gnum                          coornum;          /* Number of current coordinate               */
-  MeshGeomScotSort * restrict   vertsorttab;      /* Pointer to graph sorting array             */
-  int                           vertsortflag;     /* Flag set if graph data sorted by label     */
-  Gnum                          vertnum;          /* Current graph vertex                       */
-  Gnum                          dimnnbr;          /* Dimension of geometry file                 */
-  int                           o;
+  double * restrict           coorfiletab;        /* Pointer to geometric data read from file   */
+  MeshGeomScotSort * restrict coorsorttab;        /* Pointer to geometric data sorting array    */
+  int                         coorsortflag;       /* Flag set if geometric data sorted by label */
+  Gnum                        coornbr;            /* Number of geometric coordinates in file    */
+  Gnum                        coornum;            /* Number of current coordinate               */
+  MeshGeomScotSort * restrict vnodsorttab;        /* Pointer to graph sorting array             */
+  int                         vnodsortflag;       /* Flag set if graph data sorted by label     */
+  Gnum                        vnodnum;            /* Current graph vertex                       */
+  Gnum                        dimnnbr;            /* Dimension of geometry file                 */
+  int                         o;
 
   if (filesrcptr != NULL) {
-    if (graphLoad (meshptr, filesrcptr, -1, 0) != 0)
+    if (meshLoad (meshptr, filesrcptr, -1) != 0)
       return (1);
   }
 
@@ -97,21 +99,20 @@ const char * const          dataptr)              /* No use           */
   if ((intLoad (filegeoptr, &dimnnbr) != 1) ||    /* Read type and number of geometry items */
       (intLoad (filegeoptr, &coornbr) != 1) ||
       (dimnnbr < 1)                         ||
-      (dimnnbr > 3)                         ||
-      (dimnnbr < 1)) {
+      (dimnnbr > 3)) {
     errorPrint ("meshGeomLoadScot: bad input (1)");
     return     (1);
   }
-  if ((filesrcptr != NULL) && (meshptr->vertnbr != coornbr)) {
+  if ((filesrcptr != NULL) && (meshptr->vnodnbr != coornbr)) {
     errorPrint ("meshGeomLoadScot: inconsistent number of vertices");
     return     (1);
   }
 
-  if (meshptr->vertnbr == 0)
+  if (meshptr->vnodnbr == 0)
     return (0);
 
   if ((geomptr->geomtab == NULL) &&               /* Allocate geometry if necessary */
-      ((geomptr->geomtab = (double *) memAlloc (meshptr->vertnbr * dimnnbr * sizeof (double))) == NULL)) {
+      ((geomptr->geomtab = (double *) memAlloc (meshptr->vnodnbr * dimnnbr * sizeof (double))) == NULL)) {
     errorPrint ("meshGeomLoadScot: out of memory (1)");
     return     (1);
   }
@@ -119,7 +120,7 @@ const char * const          dataptr)              /* No use           */
   if (memAllocGroup ((void **)
                      &coorfiletab, (size_t) (coornbr * dimnnbr * sizeof (double)),
                      &coorsorttab, (size_t) (coornbr           * sizeof (MeshGeomScotSort)),
-                     &vertsorttab, (size_t) (meshptr->vertnbr  * sizeof (MeshGeomScotSort)), NULL) == NULL) {
+                     &vnodsorttab, (size_t) (meshptr->vnodnbr  * sizeof (MeshGeomScotSort)), NULL) == NULL) {
     errorPrint ("meshGeomLoadScot: out of memory (2)");
     return     (1);
   }
@@ -154,7 +155,7 @@ const char * const          dataptr)              /* No use           */
 
   if (coorsortflag != 1)                          /* If geometry data not sorted        */
     intSort2asc1 (coorsorttab, coornbr);          /* Sort sort area by ascending labels */
-  for (coornum = 1; coornum < coornbr; coornum ++) { /* Check geometric data integrity */
+  for (coornum = 1; coornum < coornbr; coornum ++) { /* Check geometric data integrity  */
     if (coorsorttab[coornum].labl == coorsorttab[coornum - 1].labl) {
       errorPrint ("meshGeomLoadScot: duplicate vertex label");
       memFree    (coorfiletab);                   /* Free group leader */
@@ -163,37 +164,37 @@ const char * const          dataptr)              /* No use           */
   }
 
   if (meshptr->vlbltax != NULL) {                 /* If graph has vertex labels */
-    vertsortflag = 1;                             /* Assume graph data sorted   */
-    for (vertnum = 0; vertnum < meshptr->vertnbr; vertnum ++) {
-      vertsorttab[vertnum].labl = meshptr->vlbltax[vertnum + meshptr->baseval];
-      vertsorttab[vertnum].num  = vertnum;
-      if ((vertnum > 0) &&                        /* Check if graph data sorted */
-          (vertsorttab[vertnum].labl < vertsorttab[vertnum - 1].labl))
-        vertsortflag = 0;                         /* Graph data not sorted */
+    vnodsortflag = 1;                             /* Assume graph data sorted   */
+    for (vnodnum = 0; vnodnum < meshptr->vnodnbr; vnodnum ++) {
+      vnodsorttab[vnodnum].labl = meshptr->vlbltax[vnodnum + meshptr->baseval];
+      vnodsorttab[vnodnum].num  = vnodnum;
+      if ((vnodnum > 0) &&                        /* Check if graph data sorted */
+          (vnodsorttab[vnodnum].labl < vnodsorttab[vnodnum - 1].labl))
+        vnodsortflag = 0;                         /* Graph data not sorted */
     }
-    if (vertsortflag != 1)                        /* If graph data not sorted             */
-      intSort2asc1 (vertsorttab, meshptr->vertnbr); /* Sort sort area by ascending labels */
+    if (vnodsortflag != 1)                        /* If graph data not sorted             */
+      intSort2asc1 (vnodsorttab, meshptr->vnodnbr); /* Sort sort area by ascending labels */
   }
   else {                                          /* Graph does not have vertex labels */
-    for (vertnum = 0; vertnum < meshptr->vertnbr; vertnum ++)
-      vertsorttab[vertnum].labl =
-      vertsorttab[vertnum].num  = vertnum;
+    for (vnodnum = 0; vnodnum < meshptr->vnodnbr; vnodnum ++)
+      vnodsorttab[vnodnum].labl =
+      vnodsorttab[vnodnum].num  = vnodnum;
   }
 
-  for (coornum = vertnum = 0; vertnum < meshptr->vertnbr; vertnum ++) { /* For all vertices in graph */
-    while ((coornum < coornbr) && (coorsorttab[coornum].labl < vertsorttab[vertnum].labl))
+  for (coornum = vnodnum = 0; vnodnum < meshptr->vnodnbr; vnodnum ++) { /* For all vertices in graph */
+    while ((coornum < coornbr) && (coorsorttab[coornum].labl < vnodsorttab[vnodnum].labl))
       coornum ++;                                 /* Search geometry vertex with same label                           */
-    if ((coornum >= coornbr) || (coorsorttab[coornum].labl > vertsorttab[vertnum].labl)) { /* If label does not exist */
+    if ((coornum >= coornbr) || (coorsorttab[coornum].labl > vnodsorttab[vnodnum].labl)) { /* If label does not exist */
       errorPrint ("meshGeomLoadScot: vertex geometry data not found (%d)",
-                  vertsorttab[vertnum].labl);
+                  vnodsorttab[vnodnum].labl);
       memFree    (coorfiletab);                   /* Free group leader */
       return     (1);
     }
-    memCpy (&geomptr->geomtab[vertsorttab[vertnum].num * dimnnbr], &coorfiletab[coorsorttab[coornum ++].num * dimnnbr], dimnnbr * sizeof (double));
+    memCpy (&geomptr->geomtab[vnodsorttab[vnodnum].num * dimnnbr], &coorfiletab[coorsorttab[coornum ++].num * dimnnbr], dimnnbr * sizeof (double));
   }
 
   memFree (coorfiletab);                          /* Free group leader */
-#endif /* DEAD_CODE */
+
   return (0);
 }
 

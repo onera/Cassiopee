@@ -973,12 +973,24 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
     fprintf(stderr, "SCOTCH_startInit(): Failed to init strat\n");
   }
 
+  SCOTCH_Arch arch;
+  ret = SCOTCH_archInit(&arch);
+  if (ret != 0) fprintf(stderr, "Bad SCOTCH_archInit");
+
+  ret = SCOTCH_archCmplt(&arch, nproc);
+  if (ret != 0) fprintf(stderr, "Bad archCmplt");
+
   std::vector<E_Int> part(ncells);
-  ret = SCOTCH_dgraphPart(&graph, nproc, &strat, &part[0]); 
+  //ret = SCOTCH_dgraphPart(&graph, nproc, &strat, &part[0]); 
+  ret = SCOTCH_dgraphMap(&graph, &arch, &strat, &part[0]);
 
   if (ret != 0) {
     fprintf(stderr, "SCOTCH_dgraphPart(): Failed to map graph\n");
   }
+
+  SCOTCH_dgraphExit(&graph);
+  SCOTCH_stratExit(&strat);
+  SCOTCH_archExit(&arch);
 
   if (rank == 0)
     printf("Graph map OK\n");

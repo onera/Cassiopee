@@ -1,4 +1,4 @@
-/* Copyright 2004,2007-2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007-2012,2019,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -42,19 +42,23 @@
 /**                matrix block ordering library.          **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 07 sep 1996     **/
-/**                                 to     22 aug 1998     **/
+/**                                 to   : 22 aug 1998     **/
 /**                # Version 3.3  : from : 02 oct 1998     **/
-/**                                 to     31 may 1999     **/
+/**                                 to   : 31 may 1999     **/
 /**                # Version 3.4  : from : 10 oct 1999     **/
-/**                                 to     15 nov 2001     **/
+/**                                 to   : 15 nov 2001     **/
 /**                # Version 4.0  : from : 11 dec 2001     **/
-/**                                 to     20 dec 2005     **/
+/**                                 to   : 20 dec 2005     **/
 /**                # Version 5.0  : from : 26 apr 2006     **/
 /**                                 to   : 20 feb 2008     **/
 /**                # Version 5.1  : from : 30 nov 2007     **/
 /**                                 to   : 07 aug 2011     **/
 /**                # Version 6.0  : from : 12 sep 2008     **/
-/**                                 to     29 apr 2018     **/
+/**                                 to   : 29 apr 2018     **/
+/**                # Version 6.1  : from : 15 mar 2021     **/
+/**                                 to   : 15 mar 2021     **/
+/**                # Version 7.0  : from : 27 aug 2019     **/
+/**                                 to   : 12 aug 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -118,7 +122,10 @@ typedef struct {
 extern "C" {
 #endif /* __cplusplus */
 
+int                         SCOTCH_contextBindDgraph (SCOTCH_Context * const, const SCOTCH_Dgraph * const, SCOTCH_Dgraph * const);
+
 SCOTCH_Dgraph *             SCOTCH_dgraphAlloc  (void);
+int                         SCOTCH_dgraphSizeof (void);
 int                         SCOTCH_dgraphInit   (SCOTCH_Dgraph * const, MPI_Comm);
 void                        SCOTCH_dgraphExit   (SCOTCH_Dgraph * const);
 void                        SCOTCH_dgraphFree   (SCOTCH_Dgraph * const);
@@ -129,6 +136,7 @@ int                         SCOTCH_dgraphBand   (SCOTCH_Dgraph * const, const SC
 int                         SCOTCH_dgraphBuild  (SCOTCH_Dgraph * const, const SCOTCH_Num, const SCOTCH_Num, const SCOTCH_Num, SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const, const SCOTCH_Num, const SCOTCH_Num, SCOTCH_Num * const, SCOTCH_Num * const, SCOTCH_Num * const);
 int                         SCOTCH_dgraphBuildGrid3D (SCOTCH_Dgraph * const, const SCOTCH_Num, const SCOTCH_Num, const SCOTCH_Num, const SCOTCH_Num, const SCOTCH_Num, const int);
 int                         SCOTCH_dgraphCoarsen (SCOTCH_Dgraph * const, const SCOTCH_Num, const double, const SCOTCH_Num, SCOTCH_Dgraph * const, SCOTCH_Num * const);
+SCOTCH_Num                  SCOTCH_dgraphCoarsenVertLocMax (const SCOTCH_Dgraph * const, const SCOTCH_Num);
 int                         SCOTCH_dgraphGather (const SCOTCH_Dgraph * const, SCOTCH_Graph * const);
 int                         SCOTCH_dgraphGrow   (SCOTCH_Dgraph * const, const SCOTCH_Num, SCOTCH_Num * const, const SCOTCH_Num, SCOTCH_Num * const);
 int                         SCOTCH_dgraphInducePart (SCOTCH_Dgraph * const, const SCOTCH_Num * const, const SCOTCH_Num, const SCOTCH_Num, SCOTCH_Dgraph * const);
@@ -166,8 +174,10 @@ int                         SCOTCH_dgraphOrderComputeList (SCOTCH_Dgraph * const
 int                         SCOTCH_dgraphOrderGather (const SCOTCH_Dgraph * const, const SCOTCH_Dordering * const, SCOTCH_Ordering * const);
 
 SCOTCH_Dmapping *           SCOTCH_dmapAlloc    (void);
+int                         SCOTCH_dmapSizeof   (void);
 
 SCOTCH_Dordering *          SCOTCH_dorderAlloc  (void);
+int                         SCOTCH_dorderSizeof (void);
 
 int                         SCOTCH_stratDgraphMap (SCOTCH_Strat * const, const char * const);
 int                         SCOTCH_stratDgraphMapBuild (SCOTCH_Strat * const, const SCOTCH_Num, const SCOTCH_Num, const SCOTCH_Num, const double);

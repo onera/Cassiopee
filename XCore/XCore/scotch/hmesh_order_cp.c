@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2018,2020,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,11 +40,13 @@
 /**                adjacency structure.                    **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 08 feb 2004     **/
-/**                                 to     05 jan 2005     **/
+/**                                 to   : 05 jan 2005     **/
 /**                # Version 5.0  : from : 25 jul 2007     **/
 /**                                 to   : 12 sep 2007     **/
 /**                # Version 6.0  : from : 06 jun 2018     **/
-/**                                 to   : 06 jun 2018     **/
+/**                                 to   : 09 feb 2020     **/
+/**                # Version 7.0  : from : 28 aug 2020     **/
+/**                                 to   : 22 mar 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -52,7 +54,7 @@
 **  The defines and includes.
 */
 
-#define HMESH_ORDER_CP
+#define SCOTCH_HMESH_ORDER_CP
 
 #include "module.h"
 #include "common.h"
@@ -119,7 +121,7 @@ const HmeshOrderCpParam * restrict const  paraptr)
 
   if (finemeshptr->vnohnbr != finemeshptr->m.vnodnbr) {
     errorPrint ("hmeshOrderCp: halo meshes not supported yet");
-    return     (1);
+    return (1);
   }
 
   coarvelmnbr = finemeshptr->m.velmnbr;           /* To date, keep isolated elements */
@@ -144,7 +146,7 @@ const HmeshOrderCpParam * restrict const  paraptr)
                      &coarperitab, (size_t) (coarvnodmax            * sizeof (Gnum)), /* TODO: move after resize */
                      &coarfinetax, (size_t) (coarvnodmax            * sizeof (Gnum)), NULL) == NULL) {
     errorPrint ("hmeshOrderCp: out of memory (1)");
-    return     (1);
+    return (1);
   }
 /* TODO : resize after success */
 
@@ -155,7 +157,7 @@ const HmeshOrderCpParam * restrict const  paraptr)
        finehaspmsk = finehaspmsk * 2 + 1) ;
   finehaspmsk >>= 1;                              /* Ensure masked data will always fit into finecoartab array */
   finehaspmsk = (finehaspmsk * (sizeof (Gnum) / sizeof (int))) + ((sizeof (Gnum) / sizeof (int)) - 1);
-  if (finehaspmsk >= ((sizeof (int) << (3 + 1)) - 1)) /* Only use 1/8 of array for pre-hashing, for increased cache locality */
+  if (finehaspmsk >= (Gnum) ((sizeof (int) << (3 + 1)) - 1)) /* Only use 1/8 of array for pre-hashing, for increased cache locality */
     finehaspmsk >>= 3;
   memSet (finehasptab, 0, (finehaspmsk + 1) * sizeof (int)); /* Initialize pre-hash table */
 
@@ -226,7 +228,7 @@ const HmeshOrderCpParam * restrict const  paraptr)
 #ifdef SCOTCH_DEBUG_ORDER2
     if (coarvertnum >= coarmeshdat.m.velmnnd) {   /* If too many elements declared   */
       errorPrint ("hmeshOrderCp: internal error (1)"); /* Maybe problem with veisnbr */
-      return     (1);
+      return (1);
     }
 #endif /* SCOTCH_DEBUG_ORDER2 */
 
@@ -320,7 +322,7 @@ loop_failed: ;
 #ifdef SCOTCH_DEBUG_ORDER2
   if (coarvertnum != coarmeshdat.m.velmnnd) {     /* If too many elements declared */
     errorPrint ("hmeshOrderCp: internal error (2)"); /* Maybe problem with veisnbr */
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_ORDER2 */
   coarmeshdat.m.vnodnnd = coarvnodnnd;
@@ -331,7 +333,7 @@ loop_failed: ;
        finevnodnum < finemeshptr->m.vnodnnd; finevnodnum ++) {
     if (finecoartax[finevnodnum] == ~0) {
       errorPrint ("hmeshOrderCp: internal error (3)");
-      return     (1);
+      return (1);
     }
   }
 #endif /* SCOTCH_DEBUG_ORDER2 */
@@ -361,6 +363,8 @@ loop_failed: ;
   coarmeshdat.vehdtax   = coarmeshdat.m.vendtax;  /* Only element part of vendtab will be accessed through vehdtab */
   coarmeshdat.vnhlsum   = coarmeshdat.m.vnlosum;
   coarmeshdat.enohnbr   = coarmeshdat.m.edgenbr;
+  coarmeshdat.levlnum   = finemeshptr->levlnum;   /* Compression does not change level */
+  coarmeshdat.contptr   = finemeshptr->contptr;
 
   if (finemeshptr->m.vnlotax != NULL) {           /* If fine mesh has node vertex loads */
     memSet (coarmeshdat.m.vnlotax + coarmeshdat.m.vnodbas, 0, coarmeshdat.m.vnodnbr * sizeof (Gnum));
@@ -374,14 +378,14 @@ loop_failed: ;
   if (hmeshCheck (&coarmeshdat) != 0) {
     errorPrint ("hmeshOrderCp: internal error (4)");
     hmeshExit  (&coarmeshdat);
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_ORDER2 */
 
   orderInit (&coarordedat, coarmeshdat.m.baseval, coarmeshdat.m.vnodnbr, coarperitab); /* Build ordering of compressed submesh */
   if (hmeshOrderSt (&coarmeshdat, &coarordedat, 0, &coarordedat.cblktre, paraptr->stratcpr) != 0) {
     hmeshExit (&coarmeshdat);
-    return    (1);
+    return (1);
   }
 
   coarvsiztax += (coarmeshdat.m.vnodbas - coarmeshdat.m.baseval); /* Adjust array to match permutation bounds */
@@ -397,11 +401,17 @@ loop_failed: ;
   if (finevertnbr != finemeshptr->m.vnodnbr) {
     errorPrint ("hmeshOrderCp: internal error (5)");
     hmeshExit  (&coarmeshdat);
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_ORDER2 */
-  fineordeptr->treenbr += coarordedat.cblknbr;    /* Adjust number of tree nodes     */
+#ifdef SCOTCH_PTHREAD
+  pthread_mutex_lock (&fineordeptr->mutedat);
+#endif /* SCOTCH_PTHREAD */
+  fineordeptr->treenbr += coarordedat.treenbr - 1; /* Adjust number of tree nodes    */
   fineordeptr->cblknbr += coarordedat.cblknbr - 1; /* Adjust number of column blocks */
+#ifdef SCOTCH_PTHREAD
+  pthread_mutex_unlock (&fineordeptr->mutedat);
+#endif /* SCOTCH_PTHREAD */
 
   coarvpostax = coarmeshdat.m.verttax;            /* Recycle verttab (not velotab as may be merged with coarvsiztab) */
   coarperitax = coarperitab - coarmeshdat.m.vnodbas;

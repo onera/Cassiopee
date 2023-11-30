@@ -1,4 +1,4 @@
-/* Copyright 2004,2007-2011,2014,2015 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007-2011,2014,2015,2018,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -41,19 +41,21 @@
 /**                graph using a multi-level scheme.       **/
 /**                                                        **/
 /**   DATES      : # Version 3.1  : from : 24 oct 1995     **/
-/**                                 to     19 sep 1996     **/
+/**                                 to   : 19 sep 1996     **/
 /**                # Version 3.2  : from : 20 sep 1996     **/
-/**                                 to     13 sep 1998     **/
+/**                                 to   : 13 sep 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     12 mar 1999     **/
+/**                                 to   : 12 mar 1999     **/
 /**                # Version 3.4  : from : 01 jun 2001     **/
-/**                                 to     01 jun 2001     **/
+/**                                 to   : 01 jun 2001     **/
 /**                # Version 4.0  : from : 12 dec 2003     **/
-/**                                 to     20 mar 2005     **/
+/**                                 to   : 20 mar 2005     **/
 /**                # Version 5.1  : from : 28 sep 2008     **/
-/**                                 to     27 mar 2011     **/
+/**                                 to   : 27 mar 2011     **/
 /**                # Version 6.0  : from : 09 mar 2011     **/
-/**                                 to     16 aug 2015     **/
+/**                                 to   : 16 aug 2015     **/
+/**                # Version 7.0  : from : 08 jun 2018     **/
+/**                                 to   : 17 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -61,7 +63,7 @@
 **  The defines and includes.
 */
 
-#define BGRAPH_BIPART_ML
+#define SCOTCH_BGRAPH_BIPART_ML
 
 #include "module.h"
 #include "common.h"
@@ -102,8 +104,8 @@ const BgraphBipartMlParam * const     paraptr)    /*+ Method parameters         
 
   *coarmultptr = NULL;                            /* Allocate multloctab along with coarse graph */
   if (graphCoarsen (&finegrafptr->s, &coargrafptr->s, NULL, coarmultptr,
-                    paraptr->coarnbr, paraptr->coarrat, GRAPHCOARSENNONE,
-                    NULL, NULL, 0, NULL) != 0)
+                    paraptr->coarnbr, paraptr->coarrat, GRAPHCOARSENNOCOMPACT,
+                    NULL, NULL, 0, finegrafptr->contptr) != 0)
     return (1);                                   /* Return if coarsening failed */
 
   if (finegrafptr->veextax != NULL) {             /* Merge external gains for coarsened vertices */
@@ -157,6 +159,7 @@ const BgraphBipartMlParam * const     paraptr)    /*+ Method parameters         
   coargrafptr->vfixload[0]   = finegrafptr->vfixload[0];
   coargrafptr->vfixload[1]   = finegrafptr->vfixload[1];
   coargrafptr->levlnum       = finegrafptr->levlnum + 1;
+  coargrafptr->contptr       = finegrafptr->contptr;
 
   return (0);
 }
@@ -245,7 +248,7 @@ const GraphCoarsenMulti * const coarmulttab)      /*+ Pointer to un-based multin
     coarvertnum  = coarfrontab[coarfronnum];
     finevertnum0 = coarmulttax[coarvertnum].vertnum[0];
     finevertnum1 = coarmulttax[coarvertnum].vertnum[1];
-      
+
     if (finevertnum0 != finevertnum1) {           /* If multinode is made of two distinct vertices */
       GraphPart           coarpartval;
       Gnum                fineedgenum;

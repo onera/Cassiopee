@@ -1,4 +1,4 @@
-/* Copyright 2008-2012,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2008-2012,2018,2019,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,9 +40,11 @@
 /**                libSCOTCH library.                      **/
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 12 jun 2008     **/
-/**                                 to     31 aug 2011     **/
+/**                                 to   : 31 aug 2011     **/
 /**                # Version 6.0  : from : 14 nov 2012     **/
-/**                                 to     25 apr 2018     **/
+/**                                 to   : 25 apr 2018     **/
+/**                # Version 7.0  : from : 27 aug 2019     **/
+/**                                 to   : 21 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -50,10 +52,9 @@
 **  The defines and includes.
 */
 
-#define LIBRARY
-
 #include "module.h"
 #include "common.h"
+#include "context.h"
 #include "parser.h"
 #include "dgraph.h"
 #include "arch.h"
@@ -80,23 +81,23 @@
 
 int
 SCOTCH_dgraphMapInit (
-const SCOTCH_Dgraph * const grafptr,              /*+ Graph to map                    +*/
-SCOTCH_Dmapping * const     mappptr,              /*+ Mapping structure to initialize +*/
+const SCOTCH_Dgraph * const libgrafptr,           /*+ Graph to map                    +*/
+SCOTCH_Dmapping * const     libmappptr,           /*+ Mapping structure to initialize +*/
 const SCOTCH_Arch * const   archptr,              /*+ Target architecture used to map +*/
 SCOTCH_Num * const          termloctab)           /*+ Mapping array                   +*/
 {
-  LibDmapping * restrict  srcmappptr;
-
-#ifdef SCOTCH_DEBUG_LIBRARY1
   if (sizeof (SCOTCH_Dmapping) < sizeof (LibDmapping)) {
     errorPrint (STRINGIFY (SCOTCH_dgraphMapInit) ": internal error");
-    return     (1);
+    return (1);
   }
-#endif /* SCOTCH_DEBUG_LIBRARY1 */
 
-  srcmappptr = (LibDmapping *) mappptr;
-  srcmappptr->termloctab = ((termloctab == NULL) || ((void *) termloctab == (void *) grafptr)) ? NULL : termloctab;
-  return (dmapInit (&srcmappptr->m, (Arch *) archptr));
+  Dgraph * restrict const       grafptr = (Dgraph *) CONTEXTOBJECT (libgrafptr);
+  LibDmapping * restrict const  mappptr = (LibDmapping *) libmappptr;
+
+  mappptr->termloctab = ((termloctab == NULL) ||
+                         ((void *) termloctab == (void *) grafptr) ||
+                         ((void *) termloctab == (void *) libgrafptr)) ? NULL : termloctab;
+  return (dmapInit (&mappptr->m, (Arch *) archptr));
 }
 
 /*+ This routine frees an API mapping.
@@ -121,11 +122,11 @@ SCOTCH_Dmapping * const     mappptr)
 
 int
 SCOTCH_dgraphMapSave (
-const SCOTCH_Dgraph * const   grafptr,            /*+ Graph to map    +*/
-const SCOTCH_Dmapping * const mappptr,            /*+ Mapping to save +*/
+const SCOTCH_Dgraph * const   libgrafptr,         /*+ Graph to map    +*/
+const SCOTCH_Dmapping * const libmappptr,         /*+ Mapping to save +*/
 FILE * const                  stream)             /*+ Output stream   +*/
 {
-  return (dmapSave (&((LibDmapping *) mappptr)->m, (Dgraph *) grafptr, stream));
+  return (dmapSave (&((LibDmapping *) libmappptr)->m, (Dgraph *) CONTEXTOBJECT (libgrafptr), stream));
 }
 
 /*+ This routine computes a mapping
@@ -138,53 +139,62 @@ FILE * const                  stream)             /*+ Output stream   +*/
 
 int
 SCOTCH_dgraphMapCompute (
-SCOTCH_Dgraph * const       grafptr,              /*+ Graph to map       +*/
-SCOTCH_Dmapping * const     mappptr,              /*+ Mapping to compute +*/
-SCOTCH_Strat * const        stratptr)             /*+ Mapping strategy   +*/
+SCOTCH_Dgraph * const       libgrafptr,           /*+ Graph to map       +*/
+SCOTCH_Dmapping * const     libmappptr,           /*+ Mapping to compute +*/
+SCOTCH_Strat * const        straptr)              /*+ Mapping strategy   +*/
 {
   Kdgraph                 mapgrafdat;             /* Effective mapping graph     */
   Kdmapping               mapmappdat;             /* Initial mapping domain      */
-  const Strat *           mapstratptr;            /* Pointer to mapping strategy */
+  const Strat *           mapstraptr;             /* Pointer to mapping strategy */
   LibDmapping * restrict  srcmappptr;
   Dgraph *                srcgrafptr;
+  CONTEXTDECL            (libgrafptr);
   int                     o;
 
-  srcgrafptr = (Dgraph *) grafptr;
-  srcmappptr = (LibDmapping *) mappptr;
+  o = 1;                                          /* Assume an error */
+
+  if (CONTEXTINIT (libgrafptr)) {
+    errorPrint (STRINGIFY (SCOTCH_dgraphMapCompute) ": cannot initialize context");
+    return (o);
+  }
+
+  srcgrafptr = (Dgraph *) CONTEXTGETOBJECT (libgrafptr);
+  srcmappptr = (LibDmapping *) libmappptr;
 
 #ifdef SCOTCH_DEBUG_DGRAPH2
   if (dgraphCheck (srcgrafptr) != 0) {
     errorPrint (STRINGIFY (SCOTCH_dgraphMapCompute) ": invalid input graph");
-    return     (1);
+    goto abort;
   }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
 
-  if (*((Strat **) stratptr) == NULL) {           /* Set default mapping strategy if necessary */
+  if (*((Strat **) straptr) == NULL) {            /* Set default mapping strategy if necessary */
     ArchDom             archdomnorg;
 
     archDomFrst (&srcmappptr->m.archdat, &archdomnorg);
     if (archVar (&srcmappptr->m.archdat))
-      SCOTCH_stratDgraphClusterBuild (stratptr, 0, srcgrafptr->procglbnbr, 1, 1.0, 0.05);
+      SCOTCH_stratDgraphClusterBuild (straptr, 0, srcgrafptr->procglbnbr, 1, 1.0, 0.05);
     else
-      SCOTCH_stratDgraphMapBuild (stratptr, 0, srcgrafptr->procglbnbr, archDomSize (&srcmappptr->m.archdat, &archdomnorg), 0.05);
+      SCOTCH_stratDgraphMapBuild (straptr, 0, srcgrafptr->procglbnbr, archDomSize (&srcmappptr->m.archdat, &archdomnorg), 0.05);
   }
-  mapstratptr = *((Strat **) stratptr);
-  if (mapstratptr->tabl != &kdgraphmapststratab) {
+  mapstraptr = *((Strat **) straptr);
+  if (mapstraptr->tabl != &kdgraphmapststratab) {
     errorPrint (STRINGIFY (SCOTCH_dgraphMapCompute) ": not a parallel graph mapping strategy");
-    return     (1);
+    goto abort;
   }
-
-  intRandInit ();                                 /* Check that random number generator is initialized */
 
   if (kdgraphInit (&mapgrafdat, srcgrafptr, &srcmappptr->m) != 0)
-    return (1);
+    goto abort;
+  mapgrafdat.contptr = CONTEXTGETDATA (libgrafptr);
   mapmappdat.mappptr = &srcmappptr->m;
 
-  if (((o = kdgraphMapSt (&mapgrafdat, &mapmappdat, mapstratptr)) == 0) && /* Perform mapping */
+  if (((o = kdgraphMapSt (&mapgrafdat, &mapmappdat, mapstraptr)) == 0) && /* Perform mapping */
       (srcmappptr->termloctab != NULL))
     o = dmapTerm (&srcmappptr->m, &mapgrafdat.s, srcmappptr->termloctab); /* Use "&mapgrafdat.s" to take advantage of ghost arrays */
   kdgraphExit (&mapgrafdat);
 
+abort:
+  CONTEXTEXIT (libgrafptr);
   return (o);
 }
 
@@ -201,14 +211,14 @@ int
 SCOTCH_dgraphMap (
 SCOTCH_Dgraph * const       grafptr,              /*+ Graph to map        +*/
 const SCOTCH_Arch * const   archptr,              /*+ Target architecture +*/
-SCOTCH_Strat * const        stratptr,             /*+ Mapping strategy    +*/
+SCOTCH_Strat * const        straptr,              /*+ Mapping strategy    +*/
 SCOTCH_Num * const          termloctab)           /*+ Mapping array       +*/
 {
   SCOTCH_Dmapping     mappdat;
   int                 o;
 
   SCOTCH_dgraphMapInit (grafptr, &mappdat, archptr, termloctab);
-  o = SCOTCH_dgraphMapCompute (grafptr, &mappdat, stratptr);
+  o = SCOTCH_dgraphMapCompute (grafptr, &mappdat, straptr);
   SCOTCH_dgraphMapExit (grafptr, &mappdat);
 
   return (o);
@@ -226,7 +236,7 @@ int
 SCOTCH_dgraphPart (
 SCOTCH_Dgraph * const       grafptr,              /*+ Graph to map     +*/
 const SCOTCH_Num            partnbr,              /*+ Number of parts  +*/
-SCOTCH_Strat * const        stratptr,             /*+ Mapping strategy +*/
+SCOTCH_Strat * const        straptr,              /*+ Mapping strategy +*/
 SCOTCH_Num * const          termloctab)           /*+ Mapping array    +*/
 {
   SCOTCH_Arch         archdat;
@@ -234,7 +244,7 @@ SCOTCH_Num * const          termloctab)           /*+ Mapping array    +*/
 
   SCOTCH_archInit  (&archdat);
   SCOTCH_archCmplt (&archdat, partnbr);
-  o = SCOTCH_dgraphMap (grafptr, &archdat, stratptr, termloctab);
+  o = SCOTCH_dgraphMap (grafptr, &archdat, straptr, termloctab);
   SCOTCH_archExit  (&archdat);
 
   return (o);
@@ -249,15 +259,15 @@ SCOTCH_Num * const          termloctab)           /*+ Mapping array    +*/
 
 int
 SCOTCH_stratDgraphMap (
-SCOTCH_Strat * const        stratptr,
+SCOTCH_Strat * const        straptr,
 const char * const          string)
 {
-  if (*((Strat **) stratptr) != NULL)
-    stratExit (*((Strat **) stratptr));
+  if (*((Strat **) straptr) != NULL)
+    stratExit (*((Strat **) straptr));
 
-  if ((*((Strat **) stratptr) = stratInit (&kdgraphmapststratab, string)) == NULL) {
+  if ((*((Strat **) straptr) = stratInit (&kdgraphmapststratab, string)) == NULL) {
     errorPrint (STRINGIFY (SCOTCH_stratDgraphMap) ": error in parallel mapping strategy");
-    return     (1);
+    return (1);
   }
 
   return (0);
@@ -272,7 +282,7 @@ const char * const          string)
 
 int
 SCOTCH_stratDgraphMapBuild (
-SCOTCH_Strat * const        stratptr,             /*+ Strategy to create              +*/
+SCOTCH_Strat * const        straptr,              /*+ Strategy to create              +*/
 const SCOTCH_Num            flagval,              /*+ Desired characteristics         +*/
 const SCOTCH_Num            procnbr,              /*+ Number of processes for running +*/
 const SCOTCH_Num            partnbr,              /*+ Number of expected parts        +*/
@@ -332,9 +342,9 @@ const double                kbalval)              /*+ Desired imbalance ratio   
   stringSubst (bufftab, "<KBAL>", kbaltab);
   stringSubst (bufftab, "<VERT>", verttab);
 
-  if (SCOTCH_stratDgraphMap (stratptr, bufftab) != 0) {
+  if (SCOTCH_stratDgraphMap (straptr, bufftab) != 0) {
     errorPrint (STRINGIFY (SCOTCH_stratDgraphMapBuild) ": error in parallel mapping strategy");
-    return     (1);
+    return (1);
   }
 
   return (0);
@@ -349,7 +359,7 @@ const double                kbalval)              /*+ Desired imbalance ratio   
 
 int
 SCOTCH_stratDgraphClusterBuild (
-SCOTCH_Strat * const        stratptr,             /*+ Strategy to create              +*/
+SCOTCH_Strat * const        straptr,              /*+ Strategy to create              +*/
 const SCOTCH_Num            flagval,              /*+ Desired characteristics         +*/
 const SCOTCH_Num            procnbr,              /*+ Number of processes for running +*/
 const SCOTCH_Num            pwgtval,              /*+ Threshold part load             +*/
@@ -413,9 +423,9 @@ const double                bbalval)              /*+ Maximum imbalance ratio   
   stringSubst (bufftab, "<PWGT>", pwgttab);
   stringSubst (bufftab, "<VERT>", verttab);
 
-  if (SCOTCH_stratDgraphMap (stratptr, bufftab) != 0) {
+  if (SCOTCH_stratDgraphMap (straptr, bufftab) != 0) {
     errorPrint (STRINGIFY (SCOTCH_stratDgraphClusterBuild) ": error in parallel mapping strategy");
-    return     (1);
+    return (1);
   }
 
   return (0);

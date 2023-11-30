@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2011-2014 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2011-2014,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,25 +40,25 @@
 /**                separation strategy and method tables.  **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 25 oct 1996     **/
-/**                                 to     14 nov 1997     **/
+/**                                 to   : 14 nov 1997     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     31 may 1999     **/
+/**                                 to   : 31 may 1999     **/
 /**                # Version 4.0  : from : 06 jan 2002     **/
-/**                                 to     28 mar 2006     **/
+/**                                 to   : 28 mar 2006     **/
 /**                # Version 5.0  : from : 12 sep 2006     **/
 /**                                 to   : 02 oct 2007     **/
 /**                # Version 5.1  : from : 30 oct 2007     **/
 /**                                 to   : 01 jul 2008     **/
 /**                # Version 6.0  : from : 09 mar 2011     **/
-/**                                 to     01 may 2014     **/
+/**                                 to   : 01 may 2014     **/
+/**                # Version 7.0  : from : 16 jan 2023     **/
+/**                                 to   : 16 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The defines and includes.
 */
-
-#define VGRAPH_SEPARATE_ST
 
 #include "module.h"
 #include "common.h"
@@ -245,21 +245,21 @@ const Strat * restrict const  strat)              /*+ Separation strategy +*/
 #ifdef SCOTCH_DEBUG_VGRAPH2
   if (sizeof (Gnum) != sizeof (INT)) {
     errorPrint ("vgraphSeparateSt: invalid type specification for parser variables");
-    return     (1);
+    return (1);
   }
   if ((sizeof (VgraphSeparateFmParam) > sizeof (StratNodeMethodData)) ||
       (sizeof (VgraphSeparateGgParam) > sizeof (StratNodeMethodData)) ||
       (sizeof (VgraphSeparateGpParam) > sizeof (StratNodeMethodData)) ||
       (sizeof (VgraphSeparateMlParam) > sizeof (StratNodeMethodData))) {
     errorPrint ("vgraphSeparateSt: invalid type specification");
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_VGRAPH2 */
 #ifdef SCOTCH_DEBUG_VGRAPH1
   if ((strat->tabl != &vgraphseparateststratab) &&
       (strat       != &stratdummy)) {
     errorPrint ("vgraphSeparateSt: invalid parameter (1)");
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_VGRAPH1 */
 
@@ -296,7 +296,7 @@ const Strat * restrict const  strat)              /*+ Separation strategy +*/
           ((vgraphStoreInit (grafptr, &savetab[1])) != 0)) {
         errorPrint      ("vgraphSeparateSt: out of memory");
         vgraphStoreExit (&savetab[0]);
-        return          (1);
+        return (1);
       }
 
       vgraphStoreSave (grafptr, &savetab[1]);     /* Save initial bipartition                              */
@@ -329,7 +329,7 @@ const Strat * restrict const  strat)              /*+ Separation strategy +*/
 #ifdef SCOTCH_DEBUG_VGRAPH1
     default :
       errorPrint ("vgraphSeparateSt: invalid parameter (2)");
-      return     (1);
+      return (1);
 #endif /* SCOTCH_DEBUG_VGRAPH1 */
   }
   return (o);

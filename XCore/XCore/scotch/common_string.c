@@ -1,4 +1,4 @@
-/* Copyright 2010 ENSEIRB, INRIA & CNRS
+/* Copyright 2010,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,7 +40,9 @@
 /**                by all modules.                         **/
 /**                                                        **/
 /**   DATES      : # Version 5.1  : from : 23 jul 2010     **/
-/**                                 to     23 jul 2010     **/
+/**                                 to   : 23 jul 2010     **/
+/**                # Version 7.0  : from : 19 jan 2023     **/
+/**                                 to   : 22 mar 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -48,11 +50,7 @@
 **  The defines and includes.
 */
 
-#define COMMON
-
-#ifndef COMMON_NOMODULE
 #include "module.h"
-#endif /* COMMON_NOMODULE */
 #include <time.h>
 #include "common.h"
 
@@ -73,10 +71,10 @@ const int                   pattsiz,
 const int                   replsiz)
 {
   char *              pattptr;
-  int                 pattidx;
+  size_t              pattidx;
 
-  pattptr = strstr (bsrcptr, pattstr);            /* Search for the pattern in the remaining source string   */
-  pattidx = (pattptr == NULL) ? (strlen (bsrcptr) + 1): (pattptr - bsrcptr); /* Get length of unchanged part */
+  pattptr = strstr (bsrcptr, pattstr);            /* Search for the pattern in the remaining source string             */
+  pattidx = (pattptr == NULL) ? (strlen (bsrcptr) + 1) : (size_t) (pattptr - bsrcptr); /* Get length of unchanged part */
 
   if (replsiz < pattsiz)                          /* If replacement is smaller, pre-move unchanged part */
     memMov (bdstptr, bsrcptr, pattidx * sizeof (char));
@@ -89,8 +87,6 @@ const int                   replsiz)
 
   if (pattptr != NULL)                            /* If there is something to replace         */
     memCpy (bdstptr + pattidx, replstr, replsiz * sizeof (char)); /* Write replacement string */
-
-  return;
 }
 
 void

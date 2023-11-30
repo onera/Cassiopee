@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2011,2016,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2011,2016,2018,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -42,15 +42,17 @@
 /**                growing bipartitioning method.          **/
 /**                                                        **/
 /**   DATES      : # Version 3.1  : from : 07 jan 1996     **/
-/**                                 to     29 apr 1996     **/
+/**                                 to   : 29 apr 1996     **/
 /**                # Version 3.2  : from : 20 sep 1996     **/
-/**                                 to     13 sep 1998     **/
+/**                                 to   : 13 sep 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 4.0  : from : 09 jan 2004     **/
-/**                                 to     09 jan 2004     **/
+/**                                 to   : 09 jan 2004     **/
 /**                # Version 6.0  : from : 23 feb 2011     **/
-/**                                 to     05 apr 2018     **/
+/**                                 to   : 05 apr 2018     **/
+/**                # Version 7.0  : from : 17 jan 2023     **/
+/**                                 to   : 17 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -64,7 +66,7 @@ typedef struct BgraphBipartGgParam_ {
   INT                       passnbr;              /*+ Number of passes to do +*/
 } BgraphBipartGgParam;
 
-#ifdef BGRAPH_BIPART_GG                           /* Private part of the module */
+#ifdef SCOTCH_BGRAPH_BIPART_GG                    /* Private part of the module */
 
 /*+ The complementary vertex structure. For
     trick reasons, the gain table data structure
@@ -88,7 +90,7 @@ typedef struct BgraphBipartGgVertex_ {
   Gnum                      commgain;             /*+ Gain value                             +*/
 } BgraphBipartGgVertex;
 
-#endif /* BGRAPH_BIPART_GG */
+#endif /* SCOTCH_BGRAPH_BIPART_GG */
 
 /*
 **  The function prototypes.

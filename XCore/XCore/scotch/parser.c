@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010,2012,2014,2016 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2012,2014,2016,2018,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,19 +40,21 @@
 /**                syntactic analyzer.                     **/
 /**                                                        **/
 /**   DATES      : # Version 3.1  : from : 07 nov 1995     **/
-/**                                 to     02 may 1996     **/
+/**                                 to   : 02 may 1996     **/
 /**                # Version 3.2  : from : 07 oct 1996     **/
-/**                                 to     19 oct 1996     **/
+/**                                 to   : 19 oct 1996     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     10 sep 2001     **/
+/**                                 to   : 10 sep 2001     **/
 /**                # Version 4.0  : from : 20 dec 2001     **/
-/**                                 to     02 feb 2004     **/
+/**                                 to   : 02 feb 2004     **/
 /**                # Version 5.0  : from : 20 feb 2008     **/
-/**                                 to     20 feb 2008     **/
+/**                                 to   : 20 feb 2008     **/
 /**                # Version 5.1  : from : 22 oct 2008     **/
-/**                                 to     11 aug 2010     **/
+/**                                 to   : 11 aug 2010     **/
 /**                # Version 6.0  : from : 01 jun 2012     **/
-/**                                 to     30 dec 2016     **/
+/**                                 to   : 30 dec 2016     **/
+/**                # Version 7.0  : from : 02 mar 2018     **/
+/**                                 to   : 20 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -60,7 +62,7 @@
 **  The defines and includes.
 */
 
-#define PARSER
+#define SCOTCH_PARSER
 
 #include "module.h"
 #include "common.h"
@@ -70,6 +72,7 @@
 
 #include "parser.h"
 #include "parser_yy.h"
+#include "parser_ly.h"
 
 /*
 **  The static and global variables.
@@ -77,11 +80,6 @@
 
 static StratTab             stratdummytab = { NULL, NULL, NULL }; /* Dummy strategy table for the dummy empty object       */
 Strat                       stratdummy = { &stratdummytab, STRATNODEEMPTY }; /* Dummy empty object for offset computations */
-
-#ifdef COMMON_PTHREAD_MEMORY
-static int                  muteflag = 1;         /*+ Flag for mutex initialization +*/
-static pthread_mutex_t      mutelocdat;           /*+ Local mutex for parsing       +*/
-#endif /* COMMON_PTHREAD_MEMORY */
 
 /**************************/
 /*                        */
@@ -111,19 +109,7 @@ const char * const          string)               /*+ Strategy string to parse  
   }
 #endif /* SCOTCH_DEBUG_PARSER1 */
 
-#ifdef COMMON_PTHREAD_MEMORY
-  if (muteflag != 0) {                            /* Unsafe code with respect to race conditions but should work; portable TSL needed */
-    muteflag = 0;
-    pthread_mutex_init (&mutelocdat, NULL);       /* Initialize local mutex */
-  }
-  pthread_mutex_lock (&mutelocdat);               /* Lock local mutex */
-#endif /* COMMON_PTHREAD_MEMORY */
-
   o = stratParserParse (strattab, string);        /* Parse strategy string */
-
-#ifdef COMMON_PTHREAD_MEMORY
-  pthread_mutex_unlock (&mutelocdat);             /* Unlock local mutex */
-#endif /* COMMON_PTHREAD_MEMORY */
 
   return (o);
 }
@@ -178,12 +164,10 @@ Strat * const               strat)
         }
       }
       break;
-#ifdef SCOTCH_DEBUG_PARSER2
     default :
       errorPrint ("stratExit: invalid strategy node");
       o = 1;
       break;
-#endif /* SCOTCH_DEBUG_PARSER2 */
   }
 
   memFree (strat);                                /* Free strategy structure itself */
@@ -274,11 +258,9 @@ FILE * const                stream)
             case STRATPARAMSTRING :               /* String value */
               o = (fprintf (stream, "%s", (char *) paraofft) == EOF);
               break;
-#ifdef SCOTCH_DEBUG_PARSER2
             default :
               errorPrint ("stratSave: invalid parameter type");
               return     (1);
-#endif /* SCOTCH_DEBUG_PARSER2 */
           }
         }
         if (o != 0)                               /* If an error has occured */
@@ -287,11 +269,9 @@ FILE * const                stream)
       if ((o == 0) && (paraflag != 0))            /* If there is a parameter list */
         o |= (fprintf (stream, "}") == EOF);      /* Close it                     */
       break;
-#ifdef SCOTCH_DEBUG_PARSER2
     default :
       errorPrint ("stratSave: invalid strategy node");
       return     (1);
-#endif /* SCOTCH_DEBUG_PARSER2 */
   }
   if (o != 0) {
     errorPrint ("stratSave: bad output");
@@ -394,12 +374,10 @@ const void * restrict const       data)           /*+ Pointer to data structure 
         case STRATPARAMINT :
           sign = (val[0].data.val.valint < val[1].data.val.valint) ? STRATTESTLT : ((val[0].data.val.valint > val[1].data.val.valint) ? STRATTESTGT : STRATTESTEQ);
           break;
-#ifdef SCOTCH_DEBUG_PARSER2
         default :
           errorPrint ("stratTestEval: internal error (6)");
           o = 1;
           break;
-#endif /* SCOTCH_DEBUG_PARSER2 */
       }
       eval->typenode        = STRATPARAMLOG;      /* Build test result */
       eval->data.val.vallog = (sign == test->typetest);
@@ -463,21 +441,17 @@ const void * restrict const       data)           /*+ Pointer to data structure 
         case STRATPARAMINT :
           eval->data.val.valint = *((INT *) ((byte *) data + test->data.var.datadisp));
           break;
-#ifdef SCOTCH_DEBUG_PARSER1
         default :
           errorPrint ("stratTestEval: internal error (7)");
           o = 1;
           break;
-#endif /* SCOTCH_DEBUG_PARSER1 */
       }
       eval->typenode = test->typenode;
       break;
-#ifdef SCOTCH_DEBUG_PARSER1
     default :
       errorPrint ("stratTestEval: invalid condition type (%u)", test->typetest);
       o = 1;
       break;
-#endif /* SCOTCH_DEBUG_PARSER1 */
   }
   eval->typetest = STRATTESTVAL;
 
@@ -559,12 +533,10 @@ StratTest * const           test)
     case STRATTESTVAL :                           /* Constant value */
     case STRATTESTVAR :                           /* Variable       */
       break;
-#ifdef SCOTCH_DEBUG_PARSER1
     default :
       errorPrint ("stratTestExit: invalid condition type (%u)", test->typetest);
       o = 1;
       break;
-#endif /* SCOTCH_DEBUG_PARSER1 */
   }
 
   memFree (test);                                 /* Free the structure */
@@ -633,11 +605,9 @@ FILE * const                stream)
         case STRATPARAMINT :
           o = (fprintf (stream, INTSTRING, (INT) test->data.val.valint) == EOF);
           break;
-#ifdef SCOTCH_DEBUG_PARSER2
         default :
           errorPrint ("stratTestSave: invalid value type");
           o = 1;
-#endif /* SCOTCH_DEBUG_PARSER2 */
       }
       break;
     case STRATTESTVAR :                           /* Variable */
@@ -652,12 +622,39 @@ FILE * const                stream)
       }
       o = (fprintf (stream, "%s", test->data.var.datatab->condtab[i].name) == EOF);
       break;
-#ifdef SCOTCH_DEBUG_PARSER2
     default :
       errorPrint ("stratTestSave: invalid condition type (%u)", test->typetest);
       o = 1;
-#endif /* SCOTCH_DEBUG_PARSER2 */
   }
 
   return (o);
+}
+
+/*********************************/
+/*                               */
+/* The parser location routines. */
+/*                               */
+/*********************************/
+
+void
+parserLocationUpdate (
+ParserLocation * const      locaptr,
+const char * const          textptr)
+{
+  int                 textidx;
+
+  locaptr->cobenum = locaptr->coennum;
+  locaptr->libenum = locaptr->liennum;
+  locaptr->tebeptr = locaptr->teenptr;
+
+  for (textidx = 0; textptr[textidx] != '\0'; textidx ++) {
+    if (*textptr == '\n') {
+      locaptr->coennum = 0;
+      locaptr->liennum ++;
+    }
+    else
+      locaptr->coennum ++;
+  }
+
+  locaptr->teenptr += textidx;
 }

@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2014,2018,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,25 +40,21 @@
 /**                analyzer.                               **/
 /**                                                        **/
 /**   DATES      : # Version 3.1  : from : 07 nov 1995     **/
-/**                                 to     02 may 1996     **/
+/**                                 to   : 02 may 1996     **/
 /**                # Version 3.2  : from : 07 oct 1996     **/
-/**                                 to     19 oct 1996     **/
+/**                                 to   : 19 oct 1996     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 4.0  : from : 20 dec 2001     **/
-/**                                 to     11 jun 2004     **/
+/**                                 to   : 11 jun 2004     **/
 /**                # Version 5.1  : from : 20 feb 2008     **/
-/**                                 to     20 feb 2008     **/
+/**                                 to   : 20 feb 2008     **/
 /**                # Version 6.0  : from : 30 sep 2014     **/
-/**                                 to     30 sep 2014     **/
+/**                                 to   : 30 sep 2014     **/
+/**                # Version 7.0  : from : 02 mar 2018     **/
+/**                                 to   : 20 jan 2023     **/
 /**                                                        **/
 /************************************************************/
-
-/*
-**  The defines.
-*/
-
-#define PARSERSTRINGLEN             256           /*+ Length of parser strings +*/
 
 /*
 **  The type definitions.
@@ -206,6 +202,45 @@ typedef struct Strat_ {
   } data;
 } Strat;
 
+/*+ The parser environment structure. +*/
+
+typedef struct ParserEnv_ {
+  const StratTab *          stratab;              /*+ Pointer to parsing tables        +*/
+  Strat *                   straptr;              /*+ Pointer to current strategy node +*/
+  const StratParamTab *     paraptr;              /*+ Pointer to current parameter     +*/
+  const char *              textptr;              /*+ Pointer to strategy string       +*/
+} ParserEnv;
+
+/*+ The text parsing location structure. +*/
+
+typedef struct ParserLocation_ {
+  int                       cobenum;              /*+ Column of beginning of area  +*/
+  int                       libenum;              /*+ Line of beginning of area    +*/
+  const char *              tebeptr;              /*+ Pointer to beginning of area +*/
+  int                       coennum;              /*+ Column of end of area        +*/
+  int                       liennum;              /*+ Line of end of area          +*/
+  const char *              teenptr;              /*+ Pointer to end of area       +*/
+} ParserLocation;
+
+#define YYLTYPE                     ParserLocation /* Trigger use of locations in parser */
+
+#define YYLLOC_DEFAULT(Current, Rhs, N)                                  \
+  do {                                                                   \
+    if (N) {                                                             \
+      (Current).cobenum = YYRHSLOC (Rhs, 1).cobenum;                     \
+      (Current).libenum = YYRHSLOC (Rhs, 1).libenum;                     \
+      (Current).tebeptr = YYRHSLOC (Rhs, 1).tebeptr;                     \
+      (Current).coennum = YYRHSLOC (Rhs, N).coennum;                     \
+      (Current).liennum = YYRHSLOC (Rhs, N).liennum;                     \
+      (Current).teenptr = YYRHSLOC (Rhs, N).teenptr;                     \
+    }                                                                    \
+    else {                                                               \
+      (Current).cobenum = (Current).coennum = YYRHSLOC (Rhs, 0).coennum; \
+      (Current).libenum = (Current).liennum = YYRHSLOC (Rhs, 0).liennum; \
+      (Current).tebeptr = (Current).teenptr = YYRHSLOC (Rhs, 0).teenptr; \
+    }                                                                    \
+  } while (0)
+
 /*
 **  The external declarations.
 */
@@ -216,9 +251,9 @@ extern Strat                stratdummy;           /*+ Dummy empty strategy node 
 **  The function prototypes.
 */
 
-#ifdef PARSER
+#ifdef SCOTCH_PARSER
 static int                  stratTestEvalCast   (StratTest * const, StratTest * const);
-#endif /* PARSER */
+#endif /* SCOTCH_PARSER */
 
 Strat *                     stratInit           (const StratTab * const , const char * const);
 int                         stratExit           (Strat * const);
@@ -227,3 +262,5 @@ int                         stratSave           (const Strat * const, FILE * con
 int                         stratTestEval       (const StratTest * const, StratTest * const, const void * const);
 int                         stratTestExit       (StratTest * const);
 int                         stratTestSave       (const StratTest * const, FILE * const);
+
+void                        parserLocationUpdate (ParserLocation * const, const char * const);

@@ -1,4 +1,4 @@
-/* Copyright 2007,2008,2012 ENSEIRB, INRIA & CNRS
+/* Copyright 2007,2008,2012,2019,2022,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -39,11 +39,13 @@
 /**                using the nested dissection algorithm.  **/
 /**                                                        **/
 /**   DATES      : # Version 5.0  : from : 16 apr 2006     **/
-/**                                 to     01 mar 2008     **/
+/**                                 to   : 01 mar 2008     **/
 /**                # Version 5.1  : from : 27 sep 2008     **/
-/**                                 to     11 nov 2008     **/
+/**                                 to   : 11 nov 2008     **/
 /**                # Version 6.0  : from : 12 sep 2012     **/
-/**                                 to     12 sep 2012     **/
+/**                                 to   : 01 may 2019     **/
+/**                # Version 7.0  : from : 27 aug 2019     **/
+/**                                 to   : 03 jul 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -51,7 +53,7 @@
 **  The defines and includes.
 */
 
-#define HDGRAPH_ORDER_ND
+#define SCOTCH_HDGRAPH_ORDER_ND
 
 #include "module.h"
 #include "common.h"
@@ -83,39 +85,53 @@
 */
 
 static
-void *
+int
 hdgraphOrderNdFold2 (
-void * const                    dataptr)          /* Pointer to thread data */
+HdgraphOrderNdData * const  fldthrdptr)           /* Pointer to thread data */
 {
-  HdgraphOrderNdData *            fldthrdptr;     /* Thread input parameters        */
   HdgraphOrderNdGraph * restrict  fldgrafptr;     /* Pointer to folded graph area   */
   Hdgraph                         indgrafdat;     /* Induced distributed halo graph */
-  void *                          o;
+  int                             o;
 
-  fldthrdptr = (HdgraphOrderNdData *) dataptr;
   fldgrafptr = fldthrdptr->fldgrafptr;
 
   if (hdgraphInduceList (fldthrdptr->orggrafptr, fldthrdptr->indlistnbr, /* Compute unfinished induced subgraph on all processes */
                          fldthrdptr->indlisttab, &indgrafdat) != 0)
-    return ((void *) 1);
+    return (1);
 
-  o = ((void *) 0);
+  o = 0;
   if (fldthrdptr->fldprocnbr > 1) {               /* If subpart has several processes, fold a distributed graph  */
     if (hdgraphFold2 (&indgrafdat, fldthrdptr->fldpartval, /* Fold temporary induced subgraph from all processes */
                       &fldgrafptr->data.dgrfdat, fldthrdptr->fldproccomm) != 0)
-      o = ((void *) 1);
+      o = 1;
   }
   else {                                          /* Create a centralized graph */
     Hgraph * restrict         fldcgrfptr;
 
     fldcgrfptr = (fldthrdptr->fldprocnum == 0) ? &fldgrafptr->data.cgrfdat : NULL; /* See if we are the receiver */
     if (hdgraphGather (&indgrafdat, fldcgrfptr) != 0) /* Gather centralized subgraph from all other processes    */
-      o = ((void *) 1);
+      o = 1;
   }
   hdgraphExit (&indgrafdat);                      /* Free temporary induced graph */
 
   return (o);
 }
+
+#ifdef SCOTCH_PTHREAD_MPI
+static
+void
+hdgraphOrderNdFold3 (
+ThreadDescriptor * restrict const   descptr,
+HdgraphOrderNdData * restrict const fldthrdtab)
+{
+  const int           thrdnum = threadNum (descptr);
+
+  if (thrdnum < 2) {
+    if (hdgraphOrderNdFold2 (&fldthrdtab[thrdnum]) != 0)
+      fldthrdtab[thrdnum].orggrafptr = NULL;      /* Indicate an error */
+  }
+}
+#endif /* SCOTCH_PTHREAD_MPI */
 
 static
 int
@@ -127,22 +143,23 @@ const Gnum                            indlistnbr1, /* Number of vertices in subg
 const Gnum * restrict const           indlisttab1, /* List of vertices in subgraph 1   */
 HdgraphOrderNdGraph * restrict const  fldgrafptr)
 {
-  HdgraphOrderNdData        fldthrdtab[2];
-  MPI_Comm                  fldproccomm;
-  int                       fldprocnbr;
-  int                       fldprocnum;
-  int                       fldproccol;
-  int                       fldpartval;
-#ifdef SCOTCH_PTHREAD
-  Hdgraph                   orggrafdat;           /* Structure for copying graph fields except communicator */
-  pthread_t                 thrdval;              /* Data of second thread                                  */
-#endif /* SCOTCH_PTHREAD */
-  int                       o;
+#ifdef SCOTCH_PTHREAD_MPI
+  int                 thrdprolvl;
+#endif /* SCOTCH_PTHREAD_MPI */
+  HdgraphOrderNdData  fldthrdtab[2];
+  MPI_Comm            fldproccomm;
+  int                 fldprocnbr;
+  int                 fldprocnum;
+  int                 fldproccol;
+  int                 fldpartval;
+  int                 o;
 
-  if (dgraphGhst (&orggrafptr->s) != 0) {         /* Compute ghost edge array if not already present, before copying graph fields */
-    errorPrint ("hdgraphOrderNdFold: cannot compute ghost edge array");
-    return     (1);
+#ifdef SCOTCH_DEBUG_HDGRAPH2
+  if ((orggrafptr->s.flagval & DGRAPHHASEDGEGST) == 0) { /* Ghost edge array must have been already computed */
+    errorPrint ("hdgraphOrderNdFold: internal error");
+    return (1);
   }
+#endif /* SCOTCH_DEBUG_HDGRAPH2 */
 
   fldprocnbr = (orggrafptr->s.procglbnbr + 1) / 2; /* Median cut on number of processors */
   fldthrdtab[0].fldprocnbr = fldprocnbr;
@@ -170,8 +187,8 @@ HdgraphOrderNdGraph * restrict const  fldgrafptr)
   }
 
   if (MPI_Comm_split (orggrafptr->s.proccomm, fldproccol, fldprocnum, &fldproccomm) != MPI_SUCCESS) {
-    errorPrint  ("hdgraphOrderNdFold: communication error");
-    return      (1);
+    errorPrint ("hdgraphOrderNdFold: communication error (1)");
+    return (1);
   }
   fldthrdtab[fldpartval].fldproccomm = fldproccomm; /* Assign folded communicator to proper part */
 
@@ -185,29 +202,35 @@ HdgraphOrderNdGraph * restrict const  fldgrafptr)
   fldthrdtab[1].fldgrafptr  = fldgrafptr;
   fldthrdtab[1].fldpartval  = 1;
 
-#ifdef SCOTCH_PTHREAD
-  orggrafdat = *orggrafptr;                       /* Create a separate graph structure to change its communicator */
-  fldthrdtab[1].orggrafptr = &orggrafdat;
-  MPI_Comm_dup (orggrafptr->s.proccomm, &orggrafdat.s.proccomm); /* Duplicate communicator to avoid interferences in communications */
+#ifdef SCOTCH_PTHREAD_MPI
+  MPI_Query_thread (&thrdprolvl);                 /* Get thread level of MPI implementation                 */
+  if ((thrdprolvl >= MPI_THREAD_MULTIPLE) &&      /* If we can use multiple threads                         */
+      (contextThreadNbr (orggrafptr->contptr) > 1)) { /* And there is a need to                             */
+    Hdgraph             orggrafdat;               /* Structure for copying graph fields except communicator */
 
-  if (pthread_create (&thrdval, NULL, hdgraphOrderNdFold2, (void *) &fldthrdtab[1]) != 0) /* If could not create thread */
-    o = ((int) (intptr_t) hdgraphOrderNdFold2 ((void *) &fldthrdtab[0])) || /* Perform inductions in sequence           */
-        ((int) (intptr_t) hdgraphOrderNdFold2 ((void *) &fldthrdtab[1]));
-  else {                                          /* Newly created thread is processing subgraph 1, so let's process subgraph 0 */
-    void *                    o2;
+    orggrafdat = *orggrafptr;                     /* Create a separate graph structure to change its communicator */
+    fldthrdtab[1].orggrafptr = &orggrafdat;
 
-    o = (int) (intptr_t) hdgraphOrderNdFold2 ((void *) &fldthrdtab[0]); /* Work on copy with private communicator */
+    if (MPI_Comm_dup (orggrafptr->s.proccomm, &orggrafdat.s.proccomm) != MPI_SUCCESS) { /* Duplicate communicator to avoid interferences in communications */
+      errorPrint ("hdgraphOrderNdFold: communication error (2)");
+      return (1);
+    }
 
-    pthread_join (thrdval, &o2);
-    o |= (int) (intptr_t) o2;
+    contextThreadLaunch (orggrafptr->contptr, (ThreadFunc) hdgraphOrderNdFold3, (void *) fldthrdtab); /* Only threads 0 and 1 will work */
+
+    MPI_Comm_free (&orggrafdat.s.proccomm);
+
+    o = ((fldthrdtab[0].orggrafptr == NULL) ||    /* See if an error occured */
+         (fldthrdtab[1].orggrafptr == NULL));
   }
-  MPI_Comm_free (&orggrafdat.s.proccomm);
-#else /* SCOTCH_PTHREAD */
-  fldthrdtab[1].orggrafptr = orggrafptr;
+  else
+#endif /* SCOTCH_PTHREAD_MPI */
+  {
+    fldthrdtab[1].orggrafptr = orggrafptr;
 
-  o = ((int) (intptr_t) hdgraphOrderNdFold2 ((void *) &fldthrdtab[0])) || /* Perform inductions in sequence */
-      ((int) (intptr_t) hdgraphOrderNdFold2 ((void *) &fldthrdtab[1]));
-#endif /* SCOTCH_PTHREAD */
+    o = hdgraphOrderNdFold2 (&fldthrdtab[0]) ||   /* Perform inductions in sequence */
+        hdgraphOrderNdFold2 (&fldthrdtab[1]);
+  }
 
   return (o);
 }
@@ -219,7 +242,7 @@ HdgraphOrderNdGraph * restrict const  fldgrafptr)
 */
 
 int
-hdgraphOrderNd (
+hdgraphOrderNd2 (
 Hdgraph * restrict const                    grafptr,
 DorderCblk * restrict const                 cblkptr,
 const HdgraphOrderNdParam * restrict const  paraptr)
@@ -242,8 +265,8 @@ const HdgraphOrderNdParam * restrict const  paraptr)
 
 #ifdef SCOTCH_DEBUG_HDGRAPH2
   if (cblkptr->vnodglbnbr != grafptr->s.vertglbnbr) {
-    errorPrint ("hdgraphOrderNd: inconsistent parameters");
-    return     (1);
+    errorPrint ("hdgraphOrderNd2: inconsistent parameters");
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_HDGRAPH2 */
 
@@ -251,12 +274,15 @@ const HdgraphOrderNdParam * restrict const  paraptr)
     HdgraphOrderSqParam   paradat;
 
     paradat.ordstratseq = paraptr->ordstratseq;
-    return (hdgraphOrderSq (grafptr, cblkptr, &paradat)); /* Run sequentially */
+    o = hdgraphOrderSq (grafptr, cblkptr, &paradat); /* Run sequentially      */
+    hdgraphExit (grafptr);                        /* Free graph at this level */
+    return (o);
   }
 
-  if (dgraphGhst (&grafptr->s) != 0) {            /* Compute ghost edge array if not already present, to have vertgstnbr (and procsidtab) */
-    errorPrint ("hdgraphOrderNd: cannot compute ghost edge array");
-    return     (1);
+  if (dgraphGhst (&grafptr->s) != 0) {            /* Compute ghost edge array if not already present, to have vertgstnbr and procsidtab */
+    errorPrint  ("hdgraphOrderNd2: cannot compute ghost edge array");
+    hdgraphExit (grafptr);                        /* Free graph at this level */
+    return (1);
   }
 
   vspgrafdat.s            = grafptr->s;           /* Get non-halo part of halo distributed graph  */
@@ -264,40 +290,32 @@ const HdgraphOrderNdParam * restrict const  paraptr)
   vspgrafdat.s.vlblloctax = NULL;                 /* Never mind about vertex labels in the future */
   cheklocval = 0;
   if ((vspgrafdat.fronloctab = (Gnum *) memAlloc (vspgrafdat.s.vertlocnbr * sizeof (Gnum))) == NULL) {
-    errorPrint ("hdgraphOrderNd: out of memory (1)");
+    errorPrint ("hdgraphOrderNd2: out of memory (1)");
     vspgrafdat.partgsttax = NULL;
-    cheklocval            = 1;
+    cheklocval = 1;
   }
   else if ((vspgrafdat.partgsttax = (GraphPart *) memAlloc (vspgrafdat.s.vertgstnbr * sizeof (GraphPart))) == NULL) {
-    errorPrint ("hdgraphOrderNd: out of memory (2)");
+    errorPrint ("hdgraphOrderNd2: out of memory (2)");
     cheklocval = 1;
   }
 #ifdef SCOTCH_DEBUG_HDGRAPH1                      /* Communication cannot be merged with a useful one */
   if (MPI_Allreduce (&cheklocval, &chekglbval, 1, MPI_INT, MPI_MAX, grafptr->s.proccomm) != MPI_SUCCESS) {
-    errorPrint ("hdgraphOrderNd: communication error (1)");
-    return     (1);
+    errorPrint  ("hdgraphOrderNd2: communication error (1)");
+    goto abort;
   }
 #else /* SCOTCH_DEBUG_HDGRAPH1 */
   chekglbval = cheklocval;
 #endif /* SCOTCH_DEBUG_HDGRAPH1 */
-  if (chekglbval != 0) {
-    if (vspgrafdat.fronloctab != NULL) {
-      if (vspgrafdat.partgsttax != NULL)
-        memFree (vspgrafdat.partgsttax);
-      memFree (vspgrafdat.fronloctab);
-    }
-    return (1);
-  }
+  if (chekglbval != 0)
+    goto abort;
 
   vspgrafdat.partgsttax -= vspgrafdat.s.baseval;
   vspgrafdat.levlnum     = grafptr->levlnum;      /* Set level of separation graph as level of halo graph */
-  vdgraphZero (&vspgrafdat);                      /* Set all local vertices to part 0                     */
+  vspgrafdat.contptr     = grafptr->contptr;
+  vdgraphZero (&vspgrafdat);                      /* Set all local vertices to part 0 */
 
-  if (vdgraphSeparateSt (&vspgrafdat, paraptr->sepstrat) != 0) { /* Separate vertex-separation graph */
-    memFree (vspgrafdat.partgsttax + vspgrafdat.s.baseval);
-    memFree (vspgrafdat.fronloctab);
-    return  (1);
-  }
+  if (vdgraphSeparateSt (&vspgrafdat, paraptr->sepstrat) != 0) /* Separate vertex-separation graph */
+    goto abort;
 
   if ((vspgrafdat.compglbsize[0] == 0) ||         /* If could not separate more */
       (vspgrafdat.compglbsize[1] == 0)) {
@@ -305,10 +323,11 @@ const HdgraphOrderNdParam * restrict const  paraptr)
     memFree (vspgrafdat.fronloctab);
 
     hdgraphOrderSt (grafptr, cblkptr, paraptr->ordstratlea); /* Order this leaf */
+    hdgraphExit    (grafptr);                     /* Free graph at this level   */
     return (0);                                   /* Leaf has been processed    */
   }
 
-  vspvnumtab[0] = vspgrafdat.fronloctab + vspgrafdat.complocsize[2]; /* Build vertex lists within frontier array */
+  vspvnumtab[0] = vspgrafdat.fronloctab + vspgrafdat.complocsize[2]; /* TRICK: build vertex lists within frontier array */
   vspvnumtab[1] = vspvnumtab[0] + vspgrafdat.complocsize[0];
   vspvnumptr0   = vspvnumtab[0];
   vspvnumptr1   = vspvnumtab[1];
@@ -317,25 +336,24 @@ const HdgraphOrderNdParam * restrict const  paraptr)
 
     partval = vspgrafdat.partgsttax[vspvertlocnum];
     if (partval == 0)
-      *vspvnumptr0 ++ = vspvertlocnum;
+      *(vspvnumptr0 ++) = vspvertlocnum;
     else if (partval == 1)
-      *vspvnumptr1 ++ = vspvertlocnum;
+      *(vspvnumptr1 ++) = vspvertlocnum;
   }
-  memFree (vspgrafdat.partgsttax + vspgrafdat.s.baseval); /* Free useless space */
-#ifdef SCOTCH_DEBUG_HDGRAPH2
-  vspgrafdat.partgsttax = NULL;                   /* Will cause bug if re-read */
 
+  memFree (vspgrafdat.partgsttax + vspgrafdat.s.baseval); /* Free useless space */
+  vspgrafdat.partgsttax = NULL;                   /* Will not be freed again    */
+
+#ifdef SCOTCH_DEBUG_HDGRAPH2
   if ((vspvnumptr0 != vspvnumtab[0] + vspgrafdat.complocsize[0]) ||
       (vspvnumptr1 != vspvnumtab[1] + vspgrafdat.complocsize[1])) {
-    errorPrint  ("hdgraphOrderNd: internal error (1)");
-    memFree     (vspgrafdat.fronloctab);          /* Free useless space */
-    return      (1);
+    errorPrint  ("hdgraphOrderNd2: internal error (1)");
+    goto abort;
   }
 #endif /* SCOTCH_DEBUG_HDGRAPH2 */
 
   cblkptr->typeval = DORDERCBLKNEDI;              /* Node becomes a nested dissection node */
 
-  o = 0;
   if (vspgrafdat.compglbsize[2] != 0) {           /* If separator not empty */
     DorderCblk *        cblkptr2;
     Hdgraph             indgrafdat2;
@@ -350,22 +368,20 @@ const HdgraphOrderNdParam * restrict const  paraptr)
     dgraphInit (&indgrafdat2.s, grafptr->s.proccomm); /* Re-use original graph communicator                                                   */
     if (dgraphInduceList (&grafptr->s, vspgrafdat.complocsize[2], /* Perform non-halo induction for separator, as it will get highest numbers */
                           vspgrafdat.fronloctab, &indgrafdat2.s) != 0) {
-      errorPrint ("hdgraphOrderNd: cannot build induced subgraph (1)");
-      memFree    (vspgrafdat.fronloctab);         /* Free remaining space */
-      return     (1);
+      errorPrint ("hdgraphOrderNd2: cannot build induced subgraph (1)");
+      goto abort;
     }
     indgrafdat2.vhallocnbr = 0;                   /* No halo on graph */
     indgrafdat2.vhndloctax = indgrafdat2.s.vendloctax;
     indgrafdat2.ehallocnbr = 0;
     indgrafdat2.levlnum    = 0;                   /* Separator graph is at level zero not to be suppressed as an intermediate graph */
+    indgrafdat2.contptr    = grafptr->contptr;
 
     o = hdgraphOrderSt (&indgrafdat2, cblkptr2, paraptr->ordstratsep);
     hdgraphExit   (&indgrafdat2);
     dorderDispose (cblkptr2);                     /* Dispose of separator column block (may be kept as leaf) */
-    if (o != 0) {
-      memFree (vspgrafdat.fronloctab);            /* Free remaining space */
-      return  (1);
-    }
+    if (o != 0)
+      goto abort;
   }
   else                                            /* Separator is empty         */
     cblkptr->data.nedi.cblkglbnbr = 2;            /* It is a two-cell tree node */
@@ -384,53 +400,83 @@ const HdgraphOrderNdParam * restrict const  paraptr)
     cblkfthnum = 1;
   }
 
-  o = hdgraphOrderNdFold (grafptr, vspgrafdat.complocsize[partmax], vspvnumtab[partmax],
-                          vspgrafdat.complocsize[partmax ^ 1], vspvnumtab[partmax ^ 1], &indgrafdat01);
+  if (hdgraphOrderNdFold (grafptr, vspgrafdat.complocsize[partmax], vspvnumtab[partmax],
+                          vspgrafdat.complocsize[partmax ^ 1], vspvnumtab[partmax ^ 1], &indgrafdat01) != 0)
+    goto abort;
 
-  if (o == 0) {
-    switch (indgrafdat01.typeval) {
-      case HDGRAPHORDERNDTYPECENT :
-        if ((cblkptr01 = dorderNewSequ (cblkptr)) == NULL) {
-          o = 1;
-          break;
-        }
-        if (grafptr->levlnum > 0) {              /* If intermediate level nested dissection graph */
-          hdgraphExit   (grafptr);               /* Free graph before going to next level         */
-          dorderDispose (cblkptr);               /* Dispose of column block node too              */
-        }
-        cblkptr01->ordeglbval = ordeglbval;
-        cblkptr01->vnodglbnbr = vnodglbnbr;
-        cblkptr01->cblkfthnum = cblkfthnum;
-        o = hdgraphOrderSq2 (&indgrafdat01.data.cgrfdat, cblkptr01, paraptr->ordstratseq);
-        hgraphExit (&indgrafdat01.data.cgrfdat);  /* Free centralized graph here as it is last level                              */
-        break;                                    /* No need to dispose of final column block as locally created by dorderNewSequ */
+  switch (indgrafdat01.typeval) {
+    case HDGRAPHORDERNDTYPECENT :
+      if ((cblkptr01 = dorderNewSequ (cblkptr)) == NULL)
+        goto abort;
+      if (grafptr->levlnum > 0) {                 /* If intermediate level nested dissection graph */
+        hdgraphExit   (grafptr);                  /* Free graph before going to next level         */
+        dorderDispose (cblkptr);                  /* Dispose of column block node too              */
+      }
+      cblkptr01->ordeglbval = ordeglbval;
+      cblkptr01->vnodglbnbr = vnodglbnbr;
+      cblkptr01->cblkfthnum = cblkfthnum;
+      o = hdgraphOrderSq2 (&indgrafdat01.data.cgrfdat, cblkptr01, paraptr->ordstratseq);
+      hgraphExit (&indgrafdat01.data.cgrfdat);    /* Free centralized graph here as it is last level                              */
+      break;                                      /* No need to dispose of final column block as locally created by dorderNewSequ */
 #ifdef SCOTCH_DEBUG_HDGRAPH2
-      case HDGRAPHORDERNDTYPEDIST :
+    case HDGRAPHORDERNDTYPEDIST :
 #else /* SCOTCH_DEBUG_HDGRAPH2 */
-      default :
+    default :
 #endif /* SCOTCH_DEBUG_HDGRAPH2 */
-        if ((cblkptr01 = dorderNew (cblkptr, indgrafdat01.data.dgrfdat.s.proccomm)) == NULL) {
-          o = 1;
-          break;
-        }
-        if (grafptr->levlnum > 0) {              /* If intermediate level nested dissection graph */
-          hdgraphExit   (grafptr);               /* Free graph before going to next level         */
-          dorderDispose (cblkptr);               /* Dispose of column block node too              */
-        }
-        cblkptr01->ordeglbval = ordeglbval;
-        cblkptr01->vnodglbnbr = vnodglbnbr;
-        cblkptr01->cblkfthnum = cblkfthnum;
-        o = hdgraphOrderNd (&indgrafdat01.data.dgrfdat, cblkptr01, paraptr);
-        break;
+      if ((cblkptr01 = dorderNew (cblkptr, indgrafdat01.data.dgrfdat.s.proccomm)) == NULL)
+        goto abort;
+      if (grafptr->levlnum > 0) {                 /* If intermediate level nested dissection graph */
+        hdgraphExit   (grafptr);                  /* Free graph before going to next level         */
+        dorderDispose (cblkptr);                  /* Dispose of column block node too              */
+      }
+      cblkptr01->ordeglbval = ordeglbval;
+      cblkptr01->vnodglbnbr = vnodglbnbr;
+      cblkptr01->cblkfthnum = cblkfthnum;
+      o = hdgraphOrderNd2 (&indgrafdat01.data.dgrfdat, cblkptr01, paraptr);
+      break;
 #ifdef SCOTCH_DEBUG_HDGRAPH2
-      default :
-        errorPrint ("hdgraphOrderNd: internal error (2)");
-        o = 1;
+    default :
+      errorPrint ("hdgraphOrderNd2: internal error (2)");
+      goto abort;
 #endif /* SCOTCH_DEBUG_HDGRAPH2 */
-    }
   }
 
   memFree (vspgrafdat.fronloctab);                /* Free remaining space */
+  return  (o);
 
-  return (o);
+abort :
+  if (vspgrafdat.partgsttax != NULL)
+    memFree (vspgrafdat.partgsttax + vspgrafdat.s.baseval);
+  if (vspgrafdat.fronloctab != NULL)
+    memFree (vspgrafdat.fronloctab);
+  hdgraphExit (grafptr);                          /* Free graph at this level */
+
+  return (1);
+}
+
+/* This routine performs the nested dissection
+** ordering.
+** It returns:
+** - 0   : if the ordering could be computed.
+** - !0  : on error.
+*/
+
+int
+hdgraphOrderNd (
+Hdgraph * restrict const                    grafptr,
+DorderCblk * restrict const                 cblkptr,
+const HdgraphOrderNdParam * restrict const  paraptr)
+{
+  Hdgraph             grafdat;                    /* Cloned graph */
+
+  if (dgraphGhst (&grafptr->s) != 0) {            /* Compute ghost edge array on un-cloned graph */
+    errorPrint ("hdgraphOrderNd: cannot compute ghost edge array");
+    return (1);
+  }
+
+  grafdat = *grafptr;                             /* Clone imput graph                             */
+  grafdat.s.flagval &= ~HDGRAPHFREEALL;           /* Avoid freeing their data in nested dissection */
+  grafdat.levlnum    = 0;                         /* Nested dissection level 0                     */
+
+  return (hdgraphOrderNd2 (&grafdat, cblkptr, paraptr));
 }

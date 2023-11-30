@@ -1,4 +1,4 @@
-/* Copyright 2008,2009,2012 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2008,2009,2012,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -44,6 +44,10 @@
 /**                                 to   : 22 apr 2009     **/
 /**                # Version 6.0  : from : 03 apr 2012     **/
 /**                                 to   : 03 apr 2012     **/
+/**                # Version 6.1  : from : 27 dec 2021     **/
+/**                                 to   : 27 dec 2021     **/
+/**                # Version 7.0  : from : 22 oct 2021     **/
+/**                                 to   : 30 mar 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -51,10 +55,9 @@
 ** The defines and includes.
 */
 
-#define DGRAPH_MATCH
-
 #include "module.h"
 #include "common.h"
+#include "context.h"
 #include "dgraph.h"
 #include "dgraph_coarsen.h"
 #include "dgraph_match.h"
@@ -76,7 +79,7 @@
 
 int
 dgraphMatchSyncPtop (
-DgraphMatchData * restrict const  mateptr)
+DgraphMatchData * const     mateptr)              /* [norestrict:async] */
 {
   Gnum                queulocnbr;
   Gnum                queulocnum;
@@ -88,8 +91,9 @@ DgraphMatchData * restrict const  mateptr)
   int                 procngbidx;
   int                 procngbnum;
   int                 vrcvreqnbr;
+  Gnum                deteval;                    /* Flag set if deterministic behavior */
 
-  Dgraph * restrict const             grafptr    = mateptr->c.finegrafptr;
+  Dgraph * const                      grafptr    = mateptr->c.finegrafptr; /* [norestrict:async] */
   const int * restrict const          procngbtab = grafptr->procngbtab;
   int * restrict const                procgsttax = mateptr->c.procgsttax;
   const Gnum * restrict const         procvgbtab = mateptr->procvgbtab;
@@ -108,11 +112,11 @@ DgraphMatchData * restrict const  mateptr)
 #ifdef SCOTCH_DEBUG_DGRAPH2
   if (edgeloctax == NULL) {
     errorPrint ("dgraphMatchSyncPtop: not implemented");
-    return     (1);
+    return (1);
   }
   if (MPI_Barrier (grafptr->proccomm) != MPI_SUCCESS) {
     errorPrint ("dgraphMatchSyncPtop: communication error (1)");
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
 
@@ -141,7 +145,7 @@ DgraphMatchData * restrict const  mateptr)
         (edgelocnum >= (grafptr->edgelocsiz + grafptr->baseval)) ||
         (mategsttax[edgegsttax[edgelocnum]] != -1)) {
       errorPrint ("dgraphMatchSyncPtop: internal error (1)");
-      return     (1);
+      return (1);
     }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
     mateglbnum = edgeloctax[edgelocnum];
@@ -168,7 +172,7 @@ DgraphMatchData * restrict const  mateptr)
     if ((grafptr->procvrttab[procngbtab[procngbnum]]     >  mateglbnum) ||
         (grafptr->procvrttab[procngbtab[procngbnum] + 1] <= mateglbnum)) {
       errorPrint ("dgraphMatchSyncPtop: internal error (2)");
-      return     (1);
+      return (1);
     }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
 
@@ -176,7 +180,7 @@ DgraphMatchData * restrict const  mateptr)
 #ifdef SCOTCH_DEBUG_DGRAPH2
     if (vsndidxnum >= mateptr->c.vsnddsptab[procngbtab[procngbnum] + 1]) {
       errorPrint ("dgraphMatchSyncPtop: internal error (3)");
-      return     (1);
+      return (1);
     }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
     vsnddattab[vsndidxnum].datatab[0] = vertlocnum + vertlocadj;
@@ -193,7 +197,7 @@ DgraphMatchData * restrict const  mateptr)
                    2 * (mateptr->c.vrcvdsptab[procglbnum + 1] - mateptr->c.vrcvdsptab[procglbnum]), GNUM_MPI,
                    procglbnum, TAGMATCH, grafptr->proccomm, &mateptr->c.nrcvreqtab[procngbnum]) != MPI_SUCCESS) {
       errorPrint ("dgraphMatchSyncPtop: communication error (2)");
-      return     (1);
+      return (1);
     }
   }
 
@@ -207,13 +211,15 @@ DgraphMatchData * restrict const  mateptr)
                    2 * (nsndidxtab[procngbnum] - mateptr->c.vsnddsptab[procglbnum]), GNUM_MPI,
                    procglbnum, TAGMATCH, grafptr->proccomm, &mateptr->c.nsndreqtab[procngbnum]) != MPI_SUCCESS) {
       errorPrint ("dgraphMatchSyncPtop: communication error (3)");
-      return     (1);
+      return (1);
     }
   }
 
   matelocnbr = mateptr->matelocnbr;
   multlocnbr = mateptr->c.multlocnbr;
   edgekptnbr = mateptr->c.edgekptnbr;
+
+  contextValuesGetInt (mateptr->c.contptr, CONTEXTOPTIONNUMDETERMINISTIC, &deteval);
 
   for (vrcvreqnbr = procngbnbr; vrcvreqnbr > 0; vrcvreqnbr --) { /* For all pending receive requests */
     int                 procglbnum;
@@ -225,21 +231,22 @@ DgraphMatchData * restrict const  mateptr)
     int                 statsiz;
     int                 o;
 
-#ifdef SCOTCH_DETERMINISTIC
-    procngbnum = vrcvreqnbr - 1;
-    o = MPI_Wait (&mateptr->c.nrcvreqtab[procngbnum], &statdat);
-#else /* SCOTCH_DETERMINISTIC */
-    o = MPI_Waitany (procngbnbr, mateptr->c.nrcvreqtab, &procngbnum, &statdat);
-#endif /* SCOTCH_DETERMINISTIC */
+    if (deteval) {
+      procngbnum = vrcvreqnbr - 1;
+      o = MPI_Wait (&mateptr->c.nrcvreqtab[procngbnum], &statdat);
+    }
+    else
+      o = MPI_Waitany (procngbnbr, mateptr->c.nrcvreqtab, &procngbnum, &statdat);
+
     if ((o != MPI_SUCCESS) ||
         (MPI_Get_count (&statdat, GNUM_MPI, &statsiz) != MPI_SUCCESS)) {
       errorPrint ("dgraphMatchSyncPtop: communication error (4)");
-      return     (1);
+      return (1);
     }
 #ifdef SCOTCH_DEBUG_DGRAPH2
     if (statdat.MPI_SOURCE != procngbtab[procngbnum]) {
       errorPrint ("dgraphMatchSyncPtop: internal error (4)");
-      return     (1);
+      return (1);
     }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
 
@@ -271,7 +278,7 @@ DgraphMatchData * restrict const  mateptr)
         if ((vertlocnum <  grafptr->baseval) ||   /* If matching request is not directed towards our process */
             (vertlocnum >= grafptr->vertlocnnd)) {
           errorPrint ("dgraphMatchSyncPtop: internal error (5)");
-          return     (1);
+          return (1);
         }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
 
@@ -283,7 +290,7 @@ DgraphMatchData * restrict const  mateptr)
 #ifdef SCOTCH_DEBUG_DGRAPH2
             if (edgelocnum >= vendloctax[vertlocnum]) {
               errorPrint ("dgraphMatchSyncPtop: internal error (6)");
-              return     (1);
+              return (1);
             }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
           }
@@ -308,9 +315,9 @@ DgraphMatchData * restrict const  mateptr)
             flagval = ((mateglbnum + (mateglbnum - vertglbnum) * flagval) & 1) ^ flagval;
             if (flagval == 0) {                   /* If flag is even, create multinode */
               multloctab[multlocnbr].vertglbnum[0] = vertglbnum;
-              multloctab[multlocnbr].vertglbnum[1] = mategstnum; /* Remote mate: negative value */
-              multlocnbr ++;                      /* One more coarse vertex created             */
-            edgekptnbr += vendloctax[vertlocnum] - vertloctax[vertlocnum];
+              multloctab[multlocnbr].vertglbnum[1] = mategstnum; /* Remote mate: negative value         */
+              multlocnbr ++;                      /* One more coarse vertex created                     */
+              edgekptnbr += vendloctax[vertlocnum] - vertloctax[vertlocnum] - 1; /* "-1" for ghost edge */
             }
             else {                                /* If flag is odd, prepare to send vertex data at build time */
               vertsndnbr ++;
@@ -341,13 +348,13 @@ DgraphMatchData * restrict const  mateptr)
 
   if (MPI_Waitall (procngbnbr, mateptr->c.nsndreqtab, MPI_STATUSES_IGNORE) != MPI_SUCCESS) { /* Wait for send requests of mating requests to complete */
     errorPrint ("dgraphMatchSyncPtop: communication error (5)");
-    return     (1);
+    return (1);
   }
 
 #ifdef SCOTCH_DEBUG_DGRAPH2
   if (MPI_Barrier (grafptr->proccomm) != MPI_SUCCESS) {
     errorPrint ("dgraphMatchSyncPtop: communication error (6)");
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
 
@@ -369,7 +376,7 @@ DgraphMatchData * restrict const  mateptr)
                    2 * (mateptr->c.vsnddsptab[procglbnum + 1] - mateptr->c.vsnddsptab[procglbnum]), GNUM_MPI,
                    procglbnum, TAGMATCH + 1, grafptr->proccomm, &mateptr->c.nrcvreqtab[procngbnum]) != MPI_SUCCESS) {
       errorPrint ("dgraphMatchSyncPtop: communication error (7)");
-      return     (1);
+      return (1);
     }
   }
 
@@ -408,22 +415,22 @@ DgraphMatchData * restrict const  mateptr)
       if (MPI_Isend (vrcvdattab + mateptr->c.vrcvdsptab[procglbnum], 2 * (vsndidxnnd - mateptr->c.vrcvdsptab[procglbnum]), GNUM_MPI,
                      procglbnum, TAGMATCH + 1, grafptr->proccomm, &mateptr->c.nsndreqtab[procngbnum]) != MPI_SUCCESS) {
         errorPrint ("dgraphMatchSyncPtop: communication error (8)");
-        return     (1);
+        return (1);
       }
     }
 #ifdef SCOTCH_DEBUG_DGRAPH2
     else {
       if (mateptr->c.nsndreqtab[procngbnum] != MPI_REQUEST_NULL) { /* Should have been set by previous MPI_Waitall() */
         errorPrint ("dgraphMatchSyncPtop: internal error (7)");
-        return     (1);
+        return (1);
       }
     }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
   }
 
-#ifdef SCOTCH_DETERMINISTIC
-  vrcvreqnbr = procngbnbr;                        /* For deterministic behavior, consider all neighbors in order, whether communicating or not */
-#endif /* SCOTCH_DETERMINISTIC */
+  if (deteval)
+    vrcvreqnbr = procngbnbr;                      /* For deterministic behavior, consider all neighbors in order, whether communicating or not */
+
   for ( ; vrcvreqnbr > 0; vrcvreqnbr --) {        /* For all pending receive requests */
     int                 vrcvidxnnd;
     int                 vrcvidxnum;
@@ -432,18 +439,19 @@ DgraphMatchData * restrict const  mateptr)
     int                 statsiz;
     int                 o;
 
-#ifdef SCOTCH_DETERMINISTIC
-    procngbnum = vrcvreqnbr - 1;
-    if (mateptr->c.nrcvreqtab[procngbnum] == MPI_REQUEST_NULL) /* If we do not expect this message, skip it */
-      continue;
-    o = MPI_Wait (&mateptr->c.nrcvreqtab[procngbnum], &statdat);
-#else /* SCOTCH_DETERMINISTIC */
-    o = MPI_Waitany (procngbnbr, mateptr->c.nrcvreqtab, &procngbnum, &statdat);
-#endif /* SCOTCH_DETERMINISTIC */
+    if (deteval) {
+      procngbnum = vrcvreqnbr - 1;
+      if (mateptr->c.nrcvreqtab[procngbnum] == MPI_REQUEST_NULL) /* If we do not expect this message, skip it */
+        continue;
+      o = MPI_Wait (&mateptr->c.nrcvreqtab[procngbnum], &statdat);
+    }
+    else
+      o = MPI_Waitany (procngbnbr, mateptr->c.nrcvreqtab, &procngbnum, &statdat);
+
     if ((o != MPI_SUCCESS) ||
         (MPI_Get_count (&statdat, GNUM_MPI, &statsiz) != MPI_SUCCESS)) {
       errorPrint ("dgraphMatchSyncPtop: communication error (9)");
-      return     (1);
+      return (1);
     }
 
     for (vrcvidxnum = mateptr->c.vsnddsptab[procngbtab[procngbnum]], vrcvidxnnd = vrcvidxnum + (statsiz / 2); /* TRICK: each message item costs 2 Gnum's */
@@ -461,7 +469,7 @@ DgraphMatchData * restrict const  mateptr)
       if ((vertlocnum <  grafptr->baseval) ||     /* If matching reply is not directed towards our process */
           (vertlocnum >= grafptr->vertlocnnd)) {
         errorPrint ("dgraphMatchSyncPtop: internal error (8)");
-        return     (1);
+        return (1);
       }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
 
@@ -473,7 +481,7 @@ DgraphMatchData * restrict const  mateptr)
            (mategsttax[edgegsttax[edgelocnum]] != vertglbnum) && /* And this message is not the positive reply which acknowledges this mating     */
            (mategsttax[edgegsttax[edgelocnum]] != vmatglbnum))) { /* Or an informative negative reply which gives again the mate of the ghost     */
         errorPrint ("dgraphMatchSyncPtop: internal error (9)");
-        return     (1);
+        return (1);
       }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
       if (edgeloctax[edgelocnum] == vmatglbnum) { /* If positive answer from the mate we wanted */
@@ -483,7 +491,7 @@ DgraphMatchData * restrict const  mateptr)
         multloctab[multlocnbr].vertglbnum[1] = mategstnum; /* Remote mate: negative value */
         multlocnbr ++;                            /* One more coarse vertex created       */
         matelocnbr ++;
-        edgekptnbr += vendloctax[vertlocnum] - vertloctax[vertlocnum];
+        edgekptnbr += vendloctax[vertlocnum] - vertloctax[vertlocnum] - 1; /* "-1" for ghost edge */
       }
       else {                                      /* If negative answer from the mate we wanted  */
         mategsttax[vertlocnum] = -1;              /* Reset local vertex as free for mating       */
@@ -498,13 +506,13 @@ DgraphMatchData * restrict const  mateptr)
 
   if (MPI_Waitall (procngbnbr, mateptr->c.nsndreqtab, MPI_STATUSES_IGNORE) != MPI_SUCCESS) { /* Wait for send requests of mating requests to complete */
     errorPrint ("dgraphMatchSyncPtop: communication error (10)");
-    return     (1);
+    return (1);
   }
 
 #ifdef SCOTCH_DEBUG_DGRAPH2
   if (MPI_Barrier (grafptr->proccomm) != MPI_SUCCESS) {
     errorPrint ("dgraphMatchSyncPtop: communication error (11)");
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_DGRAPH2 */
 

@@ -1,4 +1,4 @@
-/* Copyright 2007,2008,2010,2011,2014,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2007,2008,2010,2011,2014,2018,2019,2021,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -47,6 +47,8 @@
 /**                                 to   : 14 apr 2011     **/
 /**                # Version 6.0  : from : 11 sep 2011     **/
 /**                                 to   : 15 may 2018     **/
+/**                # Version 7.0  : from : 27 aug 2019     **/
+/**                                 to   : 17 jan 2023     **/
 /**                                                        **/
 /**   NOTES      : # Since only edges from local vertices  **/
 /**                  to local anchors are created in       **/
@@ -63,8 +65,6 @@
 /*
 **  The defines and includes.
 */
-
-#define BDGRAPH_BIPART_BD
 
 #include "module.h"
 #include "common.h"
@@ -131,7 +131,7 @@ const BdgraphBipartBdParam * const  paraptr)      /*+ Method parameters +*/
   if (dgraphBand (&orggrafptr->s, orggrafptr->fronlocnbr, orggrafptr->fronloctab, orggrafptr->partgsttax,
                   orggrafptr->complocload0, orggrafptr->s.velolocsum - orggrafptr->complocload0, paraptr->distmax,
                   &bndgrafdat.s, &bndgrafdat.fronloctab, &bndgrafdat.partgsttax,
-                  &bndvertlvlnum, &bndvertlocnbr1, &bndvertlocancadj) != 0) {
+                  &bndvertlvlnum, &bndvertlocnbr1, &bndvertlocancadj, orggrafptr->contptr) != 0) {
     errorPrint ("bdgraphBipartBd: cannot create band graph");
     return     (1);
   }
@@ -204,6 +204,7 @@ const BdgraphBipartBdParam * const  paraptr)      /*+ Method parameters +*/
   bndgrafdat.domnwght[0]      = orggrafptr->domnwght[0];
   bndgrafdat.domnwght[1]      = orggrafptr->domnwght[1];
   bndgrafdat.levlnum          = orggrafptr->levlnum;
+  bndgrafdat.contptr          = orggrafptr->contptr;
 
   if (bndgrafdat.veexloctax != NULL) {
     Gnum                bndveexglbanc0;
@@ -398,11 +399,11 @@ const BdgraphBipartBdParam * const  paraptr)      /*+ Method parameters +*/
   orgvertlocnum = orggrafptr->s.baseval;
   orgprocsidnum = 0;
   orgprocsidtab = orggrafptr->s.procsidtab;
-  orgprocsidval = orgprocsidtab[orgprocsidnum ++];  
+  orgprocsidval = orgprocsidtab[orgprocsidnum ++];
   while (1) {             /* Scan all vertices which have foreign neighbors */
     while (orgprocsidval < 0) {
       orgvertlocnum -= (Gnum) orgprocsidval;
-      orgprocsidval  = orgprocsidtab[orgprocsidnum ++];  
+      orgprocsidval  = orgprocsidtab[orgprocsidnum ++];
     }
 
     if (flagVal (orgflagloctab, orgvertlocnum) == 0) { /* If vertex not already processed */

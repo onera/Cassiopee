@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2018,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -42,11 +42,13 @@
 /**   DATES      : # Version 3.2  : from : 24 oct 1996     **/
 /**                                 to   : 07 sep 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     01 oct 1998     **/
+/**                                 to   : 01 oct 1998     **/
 /**                # Version 4.0  : from : 18 aug 2004     **/
-/**                                 to     19 aug 2004     **/
+/**                                 to   : 19 aug 2004     **/
 /**                # Version 6.0  : from : 30 apr 2018     **/
 /**                                 to   : 30 apr 2018     **/
+/**                # Version 7.0  : from : 16 jan 2023     **/
+/**                                 to   : 16 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -102,13 +104,13 @@ typedef enum VgraphSeparateEsTrav_ {
 **  The function prototypes.
 */
 
-#ifdef VGRAPH_SEPARATE_ES
+#ifdef SCOTCH_VGRAPH_SEPARATE_ES
 
 static int                  vgraphSeparateEsCover (const Graph * const, const Gnum, Gnum * const, Gnum * const);
 static int                  vgraphSeparateEsCoverAugment (const Gnum * restrict const, const Gnum, Gnum * restrict const, VgraphSeparateEsTrav * restrict const, const Gnum * restrict const, const Gnum * restrict const, const Gnum * restrict const, const Gnum);
 static void                 vgraphSeparateEsCoverCol (const Gnum * restrict const, VgraphSeparateEsType * restrict const, const Gnum * restrict const, const Gnum * restrict const, const Gnum * restrict const, const Gnum);
 static void                 vgraphSeparateEsCoverRow (const Gnum * restrict const, VgraphSeparateEsType * restrict const, const Gnum * restrict const, const Gnum * restrict const, const Gnum * restrict const, const Gnum);
 
-#endif /* VGRAPH_SEPARATE_ES */
+#endif /* SCOTCH_VGRAPH_SEPARATE_ES */
 
 int                         vgraphSeparateEs    (Vgraph * const, const VgraphSeparateEsParam * const);

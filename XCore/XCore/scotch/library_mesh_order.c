@@ -1,4 +1,4 @@
-/* Copyright 2004,2007,2008,2010,2012,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2004,2007,2008,2010,2012,2018,2019,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -40,17 +40,19 @@
 /**                library.                                **/
 /**                                                        **/
 /**   DATES      : # Version 3.2  : from : 19 aug 1998     **/
-/**                                 to     22 aug 1998     **/
+/**                                 to   : 22 aug 1998     **/
 /**                # Version 3.3  : from : 01 oct 1998     **/
-/**                                 to     27 mar 1999     **/
+/**                                 to   : 27 mar 1999     **/
 /**                # Version 4.0  : from : 29 jan 2002     **/
-/**                                 to     20 dec 2005     **/
+/**                                 to   : 20 dec 2005     **/
 /**                # Version 5.0  : from : 04 aug 2007     **/
-/**                                 to     31 may 2008     **/
+/**                                 to   : 31 may 2008     **/
 /**                # Version 5.1  : from : 29 mar 2010     **/
-/**                                 to     14 aug 2010     **/
+/**                                 to   : 14 aug 2010     **/
 /**                # Version 6.0  : from : 14 nov 2012     **/
-/**                                 to     25 apr 2018     **/
+/**                                 to   : 25 apr 2018     **/
+/**                # Version 7.0  : from : 12 sep 2019     **/
+/**                                 to   : 21 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
@@ -58,10 +60,9 @@
 **  The defines and includes.
 */
 
-#define LIBRARY
-
 #include "module.h"
 #include "common.h"
+#include "context.h"
 #include "parser.h"
 #include "graph.h"
 #include "mesh.h"
@@ -208,36 +209,26 @@ SCOTCH_Strat * const        stratptr)             /*+ Ordering strategy   +*/
 
 int
 SCOTCH_meshOrderComputeList (
-SCOTCH_Mesh * const         meshptr,              /*+ Mesh to order                   +*/
+SCOTCH_Mesh * const         libmeshptr,           /*+ Mesh to order                   +*/
 SCOTCH_Ordering * const     ordeptr,              /*+ Ordering to compute             +*/
 const SCOTCH_Num            listnbr,              /*+ Number of vertices in list      +*/
 const SCOTCH_Num * const    listtab,              /*+ List of vertex indices to order +*/
 SCOTCH_Strat * const        stratptr)             /*+ Ordering strategy               +*/
 {
-  LibOrder *          libordeptr;                 /* Pointer to ordering             */
-  Mesh *              srcmeshptr;                 /* Pointer to source mesh          */
+  CONTEXTDECL        (libmeshptr);
   Hmesh               srcmeshdat;                 /* Halo source mesh structure      */
   VertList            srclistdat;                 /* Subgraph vertex list            */
   VertList *          srclistptr;                 /* Pointer to subgraph vertex list */
   const Strat *       ordstratptr;                /* Pointer to ordering strategy    */
+  int                 o;
 
-  srcmeshptr = (Mesh *) meshptr;
-
-#ifdef SCOTCH_DEBUG_MESH2
-  if (meshCheck (srcmeshptr) != 0) {
-    errorPrint (STRINGIFY (SCOTCH_meshOrderComputeList) ": invalid input mesh");
+  if (CONTEXTINIT (libmeshptr)) {
+    errorPrint (STRINGIFY (SCOTCH_meshOrderComputeList) ": cannot initialize context");
     return     (1);
   }
-#endif /* SCOTCH_DEBUG_MESH2 */
 
-  if (*((Strat **) stratptr) == NULL)             /* Set default ordering strategy if necessary */
-    SCOTCH_stratMeshOrderBuild (stratptr, SCOTCH_STRATQUALITY, 0.1);
-
-  ordstratptr = *((Strat **) stratptr);
-  if (ordstratptr->tabl != &hmeshorderststratab) {
-    errorPrint (STRINGIFY (SCOTCH_meshOrderComputeList) ": not a mesh ordering strategy");
-    return     (1);
-  }
+  const Mesh * const  srcmeshptr = (Mesh *) CONTEXTGETOBJECT (libmeshptr);
+  LibOrder * const    libordeptr = (LibOrder *) ordeptr;
 
   memCpy (&srcmeshdat.m, srcmeshptr, sizeof (Mesh)); /* Copy non-halo mesh data  */
   srcmeshdat.m.flagval &= ~MESHFREETABS;          /* Do not allow to free arrays */
@@ -248,24 +239,42 @@ SCOTCH_Strat * const        stratptr)             /*+ Ordering strategy         
   srcmeshdat.vnhlsum    = srcmeshdat.m.vnlosum;   /* Sum of node vertex weights  */
   srcmeshdat.enohnbr    = srcmeshdat.m.edgenbr;   /* All edges are non-halo      */
   srcmeshdat.levlnum    = 0;                      /* Start from level zero       */
+  srcmeshdat.contptr    = CONTEXTGETDATA (libmeshptr);
 
-  libordeptr         = (LibOrder *) ordeptr;      /* Get ordering      */
+  o = 1;                                          /* Assume an error */
+
+#ifdef SCOTCH_DEBUG_MESH2
+  if (meshCheck (srcmeshptr) != 0) {
+    errorPrint (STRINGIFY (SCOTCH_meshOrderComputeList) ": invalid input mesh");
+    goto abort;
+  }
+#endif /* SCOTCH_DEBUG_MESH2 */
+
+  if (*((Strat **) stratptr) == NULL)             /* Set default ordering strategy if necessary */
+    SCOTCH_stratMeshOrderBuild (stratptr, SCOTCH_STRATQUALITY, 0.1);
+
+  ordstratptr = *((Strat **) stratptr);
+  if (ordstratptr->tabl != &hmeshorderststratab) {
+    errorPrint (STRINGIFY (SCOTCH_meshOrderComputeList) ": not a mesh ordering strategy");
+    goto abort;
+  }
+
   srclistdat.vnumnbr = (Gnum)   listnbr;          /* Build vertex list */
   srclistdat.vnumtab = (Gnum *) listtab;
   srclistptr = ((srclistdat.vnumnbr == 0) ||
                 (srclistdat.vnumnbr == srcmeshdat.m.vnodnbr))
-               ? NULL : &srclistdat;              /* Is the list really necessary */
+                ? NULL : &srclistdat;             /* Is the list really necessary */
   if (srclistptr != NULL) {
     errorPrint (STRINGIFY (SCOTCH_meshOrderComputeList) ": node lists not yet implemented");
-    return     (1);
+    goto abort;
   }
 
-  intRandInit ();                                 /* Check that random number generator is initialized */
-
-  hmeshOrderSt (&srcmeshdat, &libordeptr->o, 0, &libordeptr->o.cblktre, ordstratptr);
+  if ((o = hmeshOrderSt (&srcmeshdat, &libordeptr->o, 0, &libordeptr->o.cblktre, ordstratptr)) != 0)
+    goto abort;
 
 #ifdef SCOTCH_DEBUG_LIBRARY2
-  orderCheck (&libordeptr->o);
+  if (orderCheck (&libordeptr->o) != 0)
+    goto abort;
 #endif /* SCOTCH_DEBUG_LIBRARY2 */
 
   if (libordeptr->permtab != NULL)                 /* Build direct permutation if wanted */
@@ -277,9 +286,11 @@ SCOTCH_Strat * const        stratptr)             /*+ Ordering strategy         
   if (libordeptr->cblkptr != NULL)                /* Set number of column blocks if wanted */
     *(libordeptr->cblkptr) = libordeptr->o.cblknbr;
 
+abort:
   meshExit (&srcmeshdat.m);                       /* Free in case mesh had been reordered */
 
-  return (0);
+  CONTEXTEXIT (libmeshptr);
+  return (o);
 }
 
 /*+ This routine computes an ordering

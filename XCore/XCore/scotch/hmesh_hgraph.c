@@ -1,4 +1,4 @@
-/* Copyright 2004,2007 ENSEIRB, INRIA & CNRS
+/* Copyright 2004,2007,2019,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -39,9 +39,13 @@
 /**                mesh to halo graph conversion function. **/
 /**                                                        **/
 /**   DATES      : # Version 4.0  : from : 30 nov 2003     **/
-/**                                 to     05 may 2004     **/
+/**                                 to   : 05 may 2004     **/
 /**                # Version 5.0  : from : 10 sep 2007     **/
 /**                                 to   : 10 sep 2007     **/
+/**                # Version 6.0  : from : 28 apr 2019     **/
+/**                                 to   : 28 apr 2019     **/
+/**                # Version 7.0  : from : 20 jan 2023     **/
+/**                                 to   : 20 jan 2023     **/
 /**                                                        **/
 /**   NOTES      : # From a given halo mesh is created a   **/
 /**                  halo graph, such that all vertices of **/
@@ -65,8 +69,6 @@
 /*
 **  The defines and includes.
 */
-
-#define HMESH_HGRAPH
 
 #include "module.h"
 #include "common.h"
@@ -235,6 +237,7 @@ Hgraph * restrict const       grafptr)            /*+ Graph to build +*/
     if ((edgenum - grafptr->s.verttax[vertnum]) > degrmax) /* Compute maximum degree */
       degrmax = (edgenum - grafptr->s.verttax[vertnum]);
   }
+  grafptr->enlosum =                              /* Graph edges are not weighted       */
   grafptr->enohnbr = enohnbr;                     /* All other edges will be halo edges */
 
   for ( ; vertnum < grafptr->s.vertnnd; vertnum ++) { /* Build graph edges for halo vertices */
@@ -302,7 +305,8 @@ Hgraph * restrict const       grafptr)            /*+ Graph to build +*/
     if ((edgenum - grafptr->s.verttax[vertnum]) > degrmax) /* Compute maximum degree */
       degrmax = (edgenum - grafptr->s.verttax[vertnum]);
   }
-  grafptr->s.verttax[vertnum] = edgenum;          /* Set end of vertex array */
+  grafptr->s.verttax[vertnum] = edgenum;          /* Set end of vertex array      */
+  grafptr->s.edlosum =                            /* Graph edges are not weighted */
   grafptr->s.edgenbr = edgenum - grafptr->s.baseval;
   grafptr->s.degrmax = degrmax;
 

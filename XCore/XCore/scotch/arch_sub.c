@@ -1,4 +1,4 @@
-/* Copyright 2015,2016,2018 IPB, Universite de Bordeaux, INRIA & CNRS
+/* Copyright 2015,2016,2018,2019,2023 IPB, Universite de Bordeaux, INRIA & CNRS
 **
 ** This file is part of the Scotch software package for static mapping,
 ** graph partitioning and sparse matrix ordering.
@@ -8,13 +8,13 @@
 ** use, modify and/or redistribute the software under the terms of the
 ** CeCILL-C license as circulated by CEA, CNRS and INRIA at the following
 ** URL: "http://www.cecill.info".
-** 
+**
 ** As a counterpart to the access to the source code and rights to copy,
 ** modify and redistribute granted by the license, users are provided
 ** only with a limited warranty and the software's author, the holder of
 ** the economic rights, and the successive licensors have only limited
 ** liability.
-** 
+**
 ** In this respect, the user's attention is drawn to the risks associated
 ** with loading, using, modifying and/or developing or reproducing the
 ** software by the user in light of its specific status of free software,
@@ -25,7 +25,7 @@
 ** their requirements in conditions enabling the security of their
 ** systems and/or data to be ensured and, more generally, to use and
 ** operate it in the same conditions as regards security.
-** 
+**
 ** The fact that you are presently reading this means that you have had
 ** knowledge of the CeCILL-C license and that you accept its terms.
 */
@@ -41,14 +41,14 @@
 /**                                                        **/
 /**   DATES      : # Version 6.0  : from : 13 mar 2015     **/
 /**                                 to   : 15 may 2018     **/
+/**                # Version 7.0  : from : 13 sep 2019     **/
+/**                                 to   : 17 jan 2023     **/
 /**                                                        **/
 /************************************************************/
 
 /*
 **  The defines and includes.
 */
-
-#define ARCH_SUB
 
 #include "module.h"
 #include "common.h"
@@ -84,32 +84,32 @@ FILE * restrict const       stream)
   if ((sizeof (ArchSub)    > sizeof (ArchDummy)) ||
       (sizeof (ArchSubDom) > sizeof (ArchDomDummy))) {
     errorPrint ("archSubArchLoad: invalid type specification");
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_ARCH1 */
 
   if (intLoad (stream, &termnbr) != 1) {
     errorPrint ("archSubArchLoad: bad input (1)");
-    return     (1);
+    return (1);
   }
 
   if ((termtab = memAlloc (termnbr * sizeof (Anum))) == NULL) {
     errorPrint ("archSubArchLoad: out of memory (1)");
-    return     (1);
+    return (1);
   }
 
   for (termnum = 0; termnum < termnbr; termnum ++) {
     if (intLoad (stream, &termtab[termnum]) != 1) {
       errorPrint ("archSubArchLoad: bad input (2)");
       memFree    (termtab);
-      return     (1);
+      return (1);
     }
   }
 
   if ((orgarchptr = memAlloc (sizeof (Arch))) == NULL) {
     errorPrint ("archSubArchLoad: out of memory (2)");
     memFree    (termtab);
-    return     (1);
+    return (1);
   }
 
   o = archLoad (orgarchptr, stream);
@@ -144,7 +144,7 @@ FILE * restrict const       stream)
 #ifdef SCOTCH_DEBUG_ARCH1
   if (sizeof (ArchSub) > sizeof (ArchDummy)) {
     errorPrint ("archSubArchSave: invalid type specification");
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_ARCH1 */
 
@@ -152,7 +152,7 @@ FILE * restrict const       stream)
   if (fprintf (stream, ANUMSTRING,
                (Anum) termnbr) == EOF) {
     errorPrint ("archSubArchSave: bad output (1)");
-    return     (1);
+    return (1);
   }
 
   for (termnum = 0, termtab = archptr->termtab;
@@ -160,13 +160,13 @@ FILE * restrict const       stream)
     if (fprintf (stream, " " ANUMSTRING,
                  (Anum) termtab[termnum].termnum) == EOF) {
       errorPrint ("archSubArchSave: bad output (2)");
-      return     (1);
+      return (1);
     }
   }
 
   if (fprintf (stream, "\n") == EOF) {
     errorPrint ("archSubArchSave: bad output (3)");
-    return     (1);
+    return (1);
   }
 
   return (archSave (archptr->archptr, stream));
@@ -186,7 +186,7 @@ ArchSub * const             archptr)
   if ((sizeof (ArchSub)    > sizeof (ArchDummy)) ||
       (sizeof (ArchSubDom) > sizeof (ArchDomDummy))) {
     errorPrint ("archSubArchFree: invalid type specification");
-    return     (1);
+    return (1);
   }
 #endif /* SCOTCH_DEBUG_ARCH1 */
 
@@ -352,7 +352,7 @@ const Anum                          domnidx)      /*+ Current first free slot in
 ** original architecture.
 ** It returns:
 ** - 0  : if the sub-architecture has been successfully built.
-** - 1  : if the 
+** - 1  : if the initial architecture does not support sub architectures.
 ** - 2  : on error.
 */
 
@@ -380,11 +380,11 @@ const Anum * const          vnumtab)              /* Ordered list of remaining t
 
   if ((orgarchptr->class->flagval & ARCHVAR) != 0) {
     errorPrint ("archSubArchBuild: variable-sized architectures not supported");
-    return     (1);
+    return (1);
   }
   if (orgarchptr->class->matchInit == NULL) {
     errorPrint ("archSubArchBuild: architecture not supported");
-    return     (1);
+    return (1);
   }
 
   archDomFrst (orgarchptr, &orgdomndat);          /* Get number of terminal domains in original architecture */
@@ -393,7 +393,7 @@ const Anum * const          vnumtab)              /* Ordered list of remaining t
 #ifdef SCOTCH_DEBUG_ARCH1
   if ((vnumnbr < 0) || (vnumnbr > orgtermnbr)) {
     errorPrint ("archSubArchBuild: invalid number of terminal domains");
-    return     (2);
+    return (2);
   }
   messptr = NULL;
 #endif /* SCOTCH_DEBUG_ARCH1 */
@@ -403,21 +403,19 @@ const Anum * const          vnumtab)              /* Ordered list of remaining t
                      &termtab, (size_t) (vnumnbr * sizeof (ArchSubTerm)),
                      &domntab, (size_t) (domnnbr * sizeof (ArchSubData)), NULL) == NULL) {
     errorPrint ("archSubArchBuild: out of memory (1)");
-    return     (2);
+    return (2);
   }
   if ((treetab = memAlloc ((orgtermnbr + 1) * sizeof (ArchSubTree))) == NULL) { /* TRICK: One more slot to link to coarser array */
     errorPrint ("archSubArchBuild: out of memory (2)");
     memFree    (termtab);
-    return     (2);
+    return (2);
   }
-
-  intRandInit ();                                 /* Initialize random generator for coarsening */
 
   if (orgarchptr->class->matchInit (&matcdat, &orgarchptr->data) != 0) { /* Initialize matching structure with original architecture data */
     errorPrint ("archSubArchBuild: cannot initialize matching structure");
     memFree    (treetab);
     memFree    (termtab);
-    return     (2);
+    return (2);
   }
 
   treetab ++;                                     /* TRICK: Hide first slot */
@@ -458,13 +456,15 @@ const Anum * const          vnumtab)              /* Ordered list of remaining t
     }
 #endif /* SCOTCH_DEBUG_ARCH1 */
 #ifdef SCOTCH_DEBUG_ARCH2
-    o = 
+    o =
 #endif /* SCOTCH_DEBUG_ARCH2 */
     archDomTerm (orgarchptr, &orgdomndat, orgtermnum);
 #ifdef SCOTCH_DEBUG_ARCH2
     if (o != 0) {
       errorPrint ("archSubArchBuild: internal error (1)");
-      return     (2);
+      memFree    (treetab - 1);
+      memFree    (termtab);
+      return (2);
     }
 #endif /* SCOTCH_DEBUG_ARCH2 */
     termtab[vnumnum].termnum = vnumtab[vnumnum];  /* Record number of original terminal number */
@@ -482,19 +482,19 @@ const Anum * const          vnumtab)              /* Ordered list of remaining t
   if (rootptr == NULL) {
     errorPrint ("archSubArchBuild: cannot create sub-architecture (1)");
     memFree    (treetab - 1);
-    return     (2);
+    return (2);
   }
 #ifdef SCOTCH_DEBUG_ARCH2
   if (rootptr->domnsiz != vnumnbr) {
     errorPrint ("archSubArchBuild: internal error (2)");
-    return     (2);
+    return (2);
   }
 #endif /* SCOTCH_DEBUG_ARCH2 */
 
   if (archSubArchBuild3 (domntab, termtab, rootptr, 1, 0) != domnnbr) {
     errorPrint ("archSubArchBuild: cannot create sub-architecture (2)");
     memFree    (treetab - 1);
-    return     (2);
+    return (2);
   }
   domntab[0].dfatidx = -1;                        /* Set index of root father as -1 */
 
@@ -543,7 +543,7 @@ const ArchSub * restrict const  archptr)
   multnbr = 1 << levlnbr;                         /* Maximum number of multinodes is the size of last level */
   if ((matcptr->multtab = memAlloc (multnbr * sizeof (ArchCoarsenMulti))) == NULL) {
     errorPrint ("archSubMatchInit: out of memory");
-    return     (1);
+    return (1);
   }
 
   matcptr->domntab = archptr->domntab;            /* Keep pointer to sub-architecture domain array */
@@ -686,7 +686,7 @@ const ArchDomNum            termnum)
 ** elements in the domain.
 */
 
-Anum 
+Anum
 archSubDomSize (
 const ArchSub * const       archptr,
 const ArchSubDom * const    domnptr)
@@ -698,7 +698,7 @@ const ArchSubDom * const    domnptr)
 ** the given distance domain.
 */
 
-Anum 
+Anum
 archSubDomWght (
 const ArchSub * const       archptr,
 const ArchSubDom * const    domnptr)
@@ -711,7 +711,7 @@ const ArchSubDom * const    domnptr)
 ** subdomains.
 */
 
-Anum 
+Anum
 archSubDomDist (
 const ArchSub * const       archptr,
 const ArchSubDom * const    dom0ptr,
@@ -761,7 +761,7 @@ FILE * const                stream)
       (domnptr->domnidx < 0)                     ||
       (domnptr->domnidx >= archptr->domnnbr)) {
     errorPrint ("archSubDomLoad: bad input");
-    return     (1);
+    return (1);
   }
 
   return (0);
@@ -783,7 +783,7 @@ FILE * const                stream)
   if (fprintf (stream, ANUMSTRING " ",
                (Anum) domnptr->domnidx) == EOF) {
     errorPrint ("archSubDomSave: bad output");
-    return     (1);
+    return (1);
   }
 
   return (0);
