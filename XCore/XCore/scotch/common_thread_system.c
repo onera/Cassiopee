@@ -54,7 +54,7 @@
 #include "module.h"
 #include "common.h"
 #include "common_thread_system.h"
-
+#include <omp.h>
 /*
 **  The static variables.
 */
@@ -94,6 +94,8 @@ threadSystemCoreNbr ()
   pthread_mutex_lock (&threadsystemmutedat);
 
   if (threadsystemflagval == 0) {
+
+
 #if (defined (COMMON_OS_MACOS))
     int                 maibtab[4];
     size_t              corelen;
@@ -111,11 +113,12 @@ threadSystemCoreNbr ()
     }
 #elif (defined (COMMON_OS_WINDOWS))
     SYSTEM_INFO         sinfdat;
-
     GetSystemInfo (&sinfdat);
     corenbr = sinfdat.dwNumberOfProcessors;
 #else /* (defined (COMMON_OS_LINUX) || defined (COMMON_OS_FREEBSD) || defined (COMMON_OS_AIX)) */
-    corenbr = sysconf (_SC_NPROCESSORS_ONLN);
+    //corenbr = sysconf (_SC_NPROCESSORS_ONLN);
+    // CBX
+    corenbr = omp_get_max_threads();
 #endif
 
     threadsystemcorenbr = corenbr;
@@ -123,6 +126,7 @@ threadSystemCoreNbr ()
   }
   else
     corenbr = threadsystemcorenbr;
+  
 
   pthread_mutex_unlock (&threadsystemmutedat);
 
