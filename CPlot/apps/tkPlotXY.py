@@ -10111,8 +10111,11 @@ class Graph():
         self.fig.saveFigure(path, format=format)
     # ------------------------------------------------------------------ setName
     def setName(self, name):
-        # DBX EVO
-        (self.getFig()).canvas.set_window_title(name)
+        if (self.getFig()).canvas.manager is not None:
+            (self.getFig()).canvas.manager.set_window_title(name)
+        else:
+            # Deprecated in Matplotlib 3.4
+            (self.getFig()).canvas.set_window_title(name)
         
     # --------------------------------------------------------------- drawFigure
     def drawFigure(self):
