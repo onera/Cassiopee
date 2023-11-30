@@ -47,4 +47,5 @@ else:
         'XCore/chunk2partNGon_stub.cpp',
         'XCore/chunk2partElt_stub.cpp',
         'XCore/adaptMesh/adaptMesh_stub.cpp',
+        'XCore/exchangeFields_stub',
         'XCore/SplitElement/splitter_stub.cpp']
