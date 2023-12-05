@@ -43,6 +43,7 @@ set MAC0=`echo $KC | grep 'mangrove'`; if ($%MAC0 != 0) set MAC="mangrove"
 set MAC0=`echo $KC | grep 'irene'`; if ($%MAC0 != 0) set MAC="irene"
 set MAC0=`echo $KC | grep 'jean-zay'`; if ($%MAC0 != 0) set MAC="jean-zay"
 set MAC0=`echo $KC | grep 'node6.cluster'`; if ($%MAC0 != 0) set MAC="macosx"
+set MAC0=`echo $KC | grep 'topaze'`; if ($%MAC0 != 0) set MAC="topaze"
 
 if ($?MACHINE != 0) then
     set MAC=$MACHINE
@@ -396,7 +397,9 @@ else if ($MAC == "austri") then
         setenv ELSAPROD aus_r8
         # Nombre de threads
         setenv OMP_NUM_THREADS 24
-        setenv KMP_AFFINITY "verbose,granularity=fine,proclist=[0,2,4,6,8,10,12,14,16,18,20,22,1,3,5,7,9,11,13,15,17,19,21,23],explicit"
+        #setenv KMP_AFFINITY "verbose,granularity=fine,proclist=[0,2,4,6,8,10,12,14,16,18,20,22,1,3,5,7,9,11,13,15,17,19,21,23],explicit"
+        #setenv KMP_AFFINITY "verbose"
+        setenv OMP_PLACES cores
         #setenv KMP_AFFINITY "verbose,granularity=fine,proclist=[0,2,4,6,8,10,12,14,16,18,20,22,1,3,5,7,9,11,13,15,17,19,21,23,24,26,28,30,32,34,36,38,40,42,44,46,25,27,29,31,33,35,37,39,41,43,45,47],explicit"
         #setenv KMP_AFFINITY "verbose,granularity=fine,proclist=[1,3,5,7,9,11,13,15,17,19,21,23,0,2,4,6,8,10,12,14,16,18,20,22,25,27,29,31,33,35,37,39,41,43,45,47,24,26,28,30,32,34,36,38,40,42,44,46],explicit"
         setenv PROC_NAME "HASWELL"
@@ -604,13 +607,15 @@ else if ($MAC == "spiro") then
         foreach x (`(echo "" ; module -t list) | & grep intel`)
             module unload $x
         end
-        module unload impi/17
+
+	module unload impi/17
         module load intel/17.0.4
         module load impi/17
         module load hdf5/1.8.17-intel-17
         module load python/3.6.1
         module unload hdf5/1.8.8
         module load subversion/1.14.1-gnu830
+
         # Set next two lines only if python is not python
         setenv PYTHONEXE python3
         alias python python3
@@ -662,6 +667,28 @@ else if ($MAC == "spiro_cas") then
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL /stck/benoit/opencascade/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.17/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
+
+else if ($MAC == "topaze") then
+#------------------------------- topaze ccrt proc amd milan --------------------------------------
+        setenv ELSAPROD topaze_r8
+        # Number of threads
+        foreach x (`(echo "" ; module -t list) | & grep intel`)
+            module unload $x
+        end
+        module purge
+        module load intel/20 mpi/openmpi/4 flavor/hdf5/parallel hdf5/1.8.20
+        module load python3/3.8.10
+        module load scons/4.4.0
+        setenv LD_PRELOAD /ccc/products2/icc-20.0.0/Rhel_8__x86_64/system/default/compilers_and_libraries_2020.0.166/linux/compiler/lib/intel64_lin/libiomp5.so
+        # Set next two lines only if python is not python
+        setenv OMP_NUM_THREADS 64
+        setenv PYTHONEXE python3
+        alias python python3
+        set path=($path $CASSIOPEE/Dist/bin)
+        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
+        setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.8/site-packages
+
 
 else if ($MAC == "spiro_amdRM") then
 #------------------------------- spiro --------------------------------------
@@ -912,19 +939,17 @@ else if ($MAC == "spiro_pgi") then
 else if ($MAC == "sator_brw") then
 #------------------------------- sator for broadwell ----------------------------------
         setenv ELSAPROD sat_r8
+
+        echo "Pour compiler sur skylake, setenv MACHINE sator_sky, puis sourcer env_Cassiopee_r8"
+
         module purge
-        #module load intel/21.2.0
-        #module load python/2.7.18-gnu831
-        #module load socle-cfd/5.0-intel2120-impi
         module load python/3.7.4-intel2120
         module load hdf5/1.10.5-intel2120-impi
         module load subversion/1.14.1-gnu831
         module load emacs/27.2-gnu831
         module load occt/7.6.1-gnu831
         unsetenv I_MPI_PMI_LIBRARY
-        # Set next two lines only if python is not python
-        setenv PYTHONEXE python3
-        alias python python3
+
         # Other aliases
         alias ffmpeg /opt/tools/altair/2021.1/altair/hwdesktop/hw/bin/linux64/ffmpeg
         # Number of threads
@@ -933,6 +958,10 @@ else if ($MAC == "sator_brw") then
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.7/site-packages
+
+        # Set next two lines only if python is not python
+        setenv PYTHONEXE python3
+        alias python python3
 
 else if ($MAC == "sator_sky") then
 #------------------------------- sator for skylake ------------------------------------

@@ -668,11 +668,11 @@ False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
-'topaze': [ 'CCRT machine Topaze',
+'topaze': [ 'CCRT machine Topaze-milan-partition',
 'ifort', # f77compiler
 'ifort', # f90compiler
 'icc', # Cppcompiler
-['-DCACHELINE=32'], # CppAdditionalOptions
+['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=64','-axCORE-AVX2','-mavx2'], # CppAdditionalOptions
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
