@@ -305,3 +305,121 @@ class CAD:
     else: name = zone[0]
     no = self.linkFaceNo[name]
     return self.faces[no-1]
+
+#========================
+#=== nouvelle vision ====
+#========================
+def readCAD(fileName, format='fmt_iges'):
+  """Read CAD and return a CAD hook."""
+  return OCC.occ.readCAD(fileName, format)
+
+def _linkCAD2Tree(hook, t):
+  """Put hook in CAD/hook for each zone."""
+  zones = Internal.getZones(t)
+  for z in zones:
+    r = Internal.getNodeFromName1(z, "CAD")
+    if r is not None:
+      l = Internal.getNodeFromName1(r, "hook")
+      if l is not None: l[1] = hook
+  return None
+
+def _unlinkCAD2Tree(t):
+  """Suppress hook in CAD/hook for each zone."""
+  zones = Internal.getZones(t)
+  for z in zones:
+    r = Internal.getNodeFromName1(z, "CAD")
+    if r is not None:
+      l = Internal.getNodeFromName1(r, "hook")
+      if l is not None: l[1] = 0
+  return None
+
+# a mettre en convertCAD2PyTree?
+def getTree(hook, N=11):
+  """Get a first meshed tree linked to CAD."""
+  
+  t = C.newPyTree(['EDGES', 'SURFACES'])
+
+  # Edges
+  edges = OCC.occ.meshGlobalEdges2(hook, N)
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  for c, e in enumerate(edges):
+    z = Internal.createZoneNode('edge%03d'%(c+1), e, [],
+                                Internal.__GridCoordinates__,
+                                Internal.__FlowSolutionNodes__,
+                                Internal.__FlowSolutionCenters__)
+    # Conserve hook, name, type et no de l'edge dans la CAD
+    r = Internal.createChild(z, "CAD", "UserDefined_t")
+    Internal._createChild(r, "name", "UserDefined_t", value="edge%03d"%(c+1))
+    Internal._createChild(r, "type", "UserDefined_t", value="edge")
+    Internal._createChild(r, "no", "UserDefined_t", value=(c+1))
+    Internal._createChild(r, "hook", "UserDefined_t", value=hook)
+    b[2].append(z)
+
+  # Faces
+  b = Internal.getNodeFromName1(t, 'SURFACES')
+  faceNo = []
+  m = OCC.meshTRI__(hook, N=N, faceNo=faceNo)
+  for c, f in enumerate(m):
+    noface = faceNo[c]
+    z = Internal.createZoneNode(C.getZoneName('face%03d'%noface), f, [],
+                                Internal.__GridCoordinates__,
+                                Internal.__FlowSolutionNodes__,
+                                Internal.__FlowSolutionCenters__)
+    edgeNo = OCC.occ.getEdgeNoByFace(hook, noface)
+    # conserve hook, name, type
+    r = Internal.createChild(z, "CAD", "UserDefined_t")
+    Internal._createChild(r, "name", "UserDefined_t", value="face%03d"%noface)
+    Internal._createChild(r, "type", "UserDefined_t", value="face")
+    Internal._createChild(r, "no", "UserDefined_t", value=noface)
+    Internal._createChild(r, "edgeList", "UserDefined_t", value=edgeNo)
+    Internal._createChild(r, "hook", "UserDefined_t", value=hook)
+    b[2].append(z)
+
+  return t
+
+# remesh tree from edges with new ue from EDGES
+def remeshTreeFromEdges(hook, tp):
+
+  t = C.newPyTree(['EDGES', 'SURFACES'])
+
+  # Edges
+  b = Internal.getNodeFromName1(tp, 'EDGES')
+  prevEdges = Internal.getZones(b)
+  arrays = C.getAllFields(prevEdges, 'nodes', api=3)
+  edges = OCC.occ.meshGlobalEdges3(hook, arrays)
+
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  for c, e in enumerate(edges):
+    z = Internal.createZoneNode('edge%03d'%(c+1), e, [],
+                                Internal.__GridCoordinates__,
+                                Internal.__FlowSolutionNodes__,
+                                Internal.__FlowSolutionCenters__)
+    # Conserve hook, name, type et no de l'edge dans la CAD
+    r = Internal.createChild(z, "CAD", "UserDefined_t")
+    Internal._createChild(r, "name", "UserDefined_t", value="edge%03d"%(c+1))
+    Internal._createChild(r, "type", "UserDefined_t", value="edge")
+    Internal._createChild(r, "no", "UserDefined_t", value=(c+1))
+    Internal._createChild(r, "hook", "UserDefined_t", value=hook)
+    b[2].append(z)
+
+  # Faces
+  b = Internal.getNodeFromName1(t, 'SURFACES')
+  faceNo = []
+  m = OCC.meshTRIU__(hook, arrays, faceNo=faceNo)
+  for c, f in enumerate(m):
+    noface = faceNo[c]
+    z = Internal.createZoneNode(C.getZoneName('face%03d'%noface), f, [],
+                                Internal.__GridCoordinates__,
+                                Internal.__FlowSolutionNodes__,
+                                Internal.__FlowSolutionCenters__)
+    edgeNo = OCC.occ.getEdgeNoByFace(hook, noface)
+    # conserve hook, name, type
+    r = Internal.createChild(z, "CAD", "UserDefined_t")
+    Internal._createChild(r, "name", "UserDefined_t", value="face%03d"%noface)
+    Internal._createChild(r, "type", "UserDefined_t", value="face")
+    Internal._createChild(r, "no", "UserDefined_t", value=noface)
+    Internal._createChild(r, "edgeList", "UserDefined_t", value=edgeNo)
+    Internal._createChild(r, "hook", "UserDefined_t", value=hook)
+    b[2].append(z)
+
+  return t

@@ -31,7 +31,10 @@ namespace K_OCC
   PyObject* getNbEdges(PyObject* self, PyObject* args);
   PyObject* meshGlobalEdges(PyObject* self, PyObject* args);
   PyObject* meshGlobalEdges2(PyObject* self, PyObject* args);
+  PyObject* meshGlobalEdges3(PyObject* self, PyObject* args);
   PyObject* meshEdgesByFace(PyObject* self, PyObject* args);
+  PyObject* meshEdgesByFace2(PyObject* self, PyObject* args);
+  PyObject* getEdgeNoByFace(PyObject* self, PyObject* args);
   PyObject* identifyLoopsInEdges(PyObject* self, PyObject* args);
   PyObject* evalEdge(PyObject* self, PyObject* args);
   PyObject* evalFace(PyObject* self, PyObject* args);

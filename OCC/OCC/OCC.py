@@ -9,7 +9,7 @@ import Converter
 import KCore
 
 __all__ = ['convertCAD2Arrays', 'switch2UV', '_scaleUV', '_unscaleUV',
-'allTFI', 'meshSTRUCT', 'meshSTRUCT__', 'meshTRI', 'meshTRI__', 
+'allTFI', 'meshSTRUCT', 'meshSTRUCT__', 'meshTRI', 'meshTRI__', 'meshTRIU__', 
 'meshTRIHO', 'meshQUAD', 'meshQUAD__', 'meshQUADHO', 'meshQUADHO__']
 
 # algo=0: mailleur open cascade (chordal_error)
@@ -133,7 +133,7 @@ def meshSTRUCT__(hook, N=11, faceSubset=None, faceNo=None):
         edges = switch2UV(edges)
         # scale uv
         T = _scaleUV(edges)
-        # force la fermeture de la boucle
+        # force la fermeture des boucles
         edges = Generator.close(edges, 1.e-6) # the weakness
         # TFI dans espace uv
         try:
@@ -169,6 +169,50 @@ def meshTRI__(hook, N=11, hmax=-1., order=1, faceSubset=None, faceNo=None):
     else: out = meshTRIN__(hook, N, order, faceSubset, faceNo)
     return out
 
+# reordonne les edges par face pour que le mailleur TRI puisse mailler l'entre deux
+# les edges interieur sont numerotes dans le sens inverse de l'edge exterieur
+def reorderEdgesByFace__(edges):
+    import Transform, Converter, Generator, Post
+    import KCore.Vector as Vector
+    from operator import itemgetter, attrgetter
+    splitEdges = Transform.splitConnexity(edges)
+    if len(splitEdges) == 1:
+        print("Single closed curve ==============================", flush=True)
+        return edges
+    print("Multiple closed curves ==============================", flush=True)
+    # classe les edges par surface englobee
+    sortedEdges = []
+    for c, e in enumerate(splitEdges):
+        a = Generator.close(e, 1.e-4)
+        try:
+            a = Generator.T3mesher2D(e, triangulateOnly=1) # must not fail!
+            v = Generator.getVolumeMap(a)
+            surf = Post.integ([a], [v], [])[0]
+        except: surf = 0.
+        sortedEdges.append((e, surf))
+    sorted(sortedEdges, key=itemgetter(1), reverse=True)
+    #for i in sortedEdges: print('surf', i[1])
+    # reorder
+    edgesOut = []
+    for c, se in enumerate(sortedEdges):
+        e = se[0]
+        b = Converter.convertBAR2Struct(e)
+        PG = Generator.barycenter(b) # must be in curve
+        P0 = Converter.getValue(b, 0)
+        P1 = Converter.getValue(b, 1)
+        P01 = Vector.sub(P1, P0)
+        PG0 = Vector.sub(P0, PG)
+        cross = Vector.cross(PG0, P01)[2]
+        if cross < 0 and c == 0:  # must be exterior curve
+            b = Transform.reorder(b, (-1,2,3))
+        elif cross > 0 and c != 0: # must be interior curves
+            b = Transform.reorder(b, (-1,2,3))
+        edgesOut.append(b)
+    edgesOut = Converter.convertArray2Tetra(edgesOut)
+    edgesOut = Transform.join(edgesOut)
+    edgesOut = Generator.close(edgesOut, 1.e-6)
+    return edgesOut
+
 # mesh with constant N
 def meshTRIN__(hook, N=11, order=1, faceSubset=None, faceNo=None):
     import Generator, Converter, Transform
@@ -187,6 +231,40 @@ def meshTRIN__(hook, N=11, order=1, faceSubset=None, faceNo=None):
         # Delaunay dans espace uv
         edges = Converter.convertArray2Tetra(edges)
         edges = Transform.join(edges)
+        edges = Generator.close(edges, 1.e-6)
+        edges = reorderEdgesByFace__(edges)
+        try:
+            a = Generator.T3mesher2D(edges, grading=1.)
+            _unscaleUV([a], T)
+            if order > 1: a = Converter.convertLO2HO(a, order=order)
+            # evaluation sur la CAD
+            o = occ.evalFace(hook, a, i+1)
+            out.append(o)
+            if faceNo is not None: faceNo.append(i+1)
+        except Exception as e:
+            print(str(e))
+            Converter.convertArrays2File(edges, 'edges%d.plt'%i)
+    return out
+
+# prend le Ue des edges dans globalEdges
+def meshTRIU__(hook, globalEdges, order=1, faceSubset=None, faceNo=None):
+    import Generator, Converter, Transform
+    nbFaces = occ.getNbFaces(hook)
+    if faceSubset is None: flist = list(range(nbFaces))
+    else: flist = faceSubset
+    out = []
+    for i in flist:
+        # maille les edges de la face i avec le U de l'edge
+        edges = occ.meshEdgesByFace2(hook, i+1, globalEdges)
+        # edges dans espace uv
+        edges = switch2UV(edges)
+        T = _scaleUV(edges)
+        # force la fermeture de la boucle
+        edges = Generator.close(edges, 1.e-4) # the weakness
+        # Delaunay dans espace uv
+        edges = Converter.convertArray2Tetra(edges)
+        edges = Transform.join(edges)
+        edges = Generator.close(edges, 1.e-6)
         try:
             a = Generator.T3mesher2D(edges, grading=1.)
             _unscaleUV([a], T)

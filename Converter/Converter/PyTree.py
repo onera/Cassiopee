@@ -1954,19 +1954,7 @@ def _TZA(t, locin, locout, F, Fc, *args):
         setFields([fb], z, 'centers')
   return None
 
-# -- TZAGC
-# Traitement effectue pour tous les champs + coord. memes pour les centres.
-# Dans ce cas, on reconstruit un maillage en centres qui sera associe
-# au champ en centres.
-# IN: t: arbre a traiter
-# IN: locin: nodes, centers, both
-# IN: locout: nodes, centers, both
-# IN: F: fonction a appliquer pour les noeuds
-# IN: Fc: fonction a appliquer pour les centres
-# IN: args: arguments de F pour les noeuds + arguments de Fc pour les centres
-# dans le cas both.
-# La fonction F est appelee une fois pour les noeuds, Fc une fois pour les
-# centres.
+# obsolete : use _TZAGC1, _TZAGC3 instead 
 def _TZAGC(t, locin, locout, writeDim, F, Fc, *args):
   zones = Internal.getZones(t)
   for z in zones:
@@ -2256,7 +2244,7 @@ def __TZA3(t, locin, _F, *args):
 # -- _TZA = generique
 # Recupere les champs locin en shared
 # Applique F qui rend une copie
-# Remet cet array2 dans t a locout
+# Remet cet array1/2 dans t a locout
 def _TZAX(api, t, locin, locout, writeDim, F, *args):
   zones = Internal.getZones(t)
   for z in zones:
@@ -2322,6 +2310,150 @@ def TZA2(t, locin, locout, writeDim, F, *args):
   return TZAX(2, t, locin, locout, writeDim, F, *args)
 def TZA3(t, locin, locout, writeDim, F, *args):
   return TZAX(3, t, locin, locout, writeDim, F, *args)
+
+# -- TZAGC generique
+# Traitement effectue pour tous les champs + coord. memes pour les centres.
+# Dans ce cas, on reconstruit un maillage en centres qui sera associe
+# aux champs en centres.
+# IN: t: arbre a traiter
+# IN: locin: nodes, centers, both
+# IN: locout: nodes, centers, both
+# IN: F: fonction a appliquer pour les noeuds
+# IN: Fc: fonction a appliquer pour les centres
+# IN: args: arguments de F pour les noeuds + arguments de Fc pour les centres
+# dans le cas both.
+# La fonction F est appelee une fois pour les noeuds, Fc une fois pour les
+# centres.
+def _TZAGCX(api, t, locin, locout, writeDim, F, Fc, *args):
+  zones = Internal.getZones(t)
+  for z in zones:
+    if locin == 'nodes':
+      fc = getFields(Internal.__GridCoordinates__, z, api)[0]
+      fa = getFields(Internal.__FlowSolutionNodes__, z, api)[0]
+      if fc != [] and fa != []:
+        if api == 1: Converter._addVars([fc, fa])
+        else:
+          fc[0] = fc[0]+','+fa[0]
+          fc[1] = fc[1]+fa[1]
+        fp = F(fc, *args)
+        setFields([fp], z, locout, writeDim)
+      elif fa != []:
+        fp = F(fa, *args)
+        setFields([fp], z, locout, writeDim)
+      elif fc != []:
+        fp = Fc(fc, *args)
+        setFields([fp], z, locout, writeDim)
+    elif locin == 'centers':
+      fc = getFields(Internal.__GridCoordinates__, z, api=api)[0]
+      fa = getFields(Internal.__FlowSolutionCenters__, z, api=api)[0]
+      if fc != [] and fa != []:
+        posx = KCore.isNamePresent(fa, 'CoordinateX')
+        posy = KCore.isNamePresent(fa, 'CoordinateY')
+        posz = KCore.isNamePresent(fa, 'CoordinateZ')
+        if posx == -1 or posy == -1 or posz == -1:
+          f = Converter.node2Center(fc)
+          if api == 1: Converter._addVars([f, fa])
+          else:
+            f[0] = f[0]+','+fa[0]
+            f[1] = f[1]+fa[1]
+        else: f = fa
+
+        fp = Fc(f, *args)
+        st = fp[0].split(',')
+        vars = []
+        for i in st:
+          if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
+            vars.append(i)
+        if vars != []:
+          if api == 1: fp2 = Converter.extractVars(fp, vars)
+          else:
+            fp2 = fp[:]; fp2[1] = []
+            for i in vars:
+              p = KCore.isNamePresent(fp, i) 
+              fp2[1].append(fp[1][p])
+          setFields([fp2], z, locout, writeDim)
+      elif fc != []:
+        fc2 = Converter.node2Center(fc)
+        fp = Fc(fc2, *args)
+        st = fp[0].split(',')
+        vars = []
+        for i in st:
+          if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
+            vars.append(i)
+        if vars != []:
+          if api == 1: fp2 = Converter.extractVars(fp, vars)
+          else:
+            fp2 = fp[:]; fp2[1] = []
+            for i in vars:
+              p = KCore.isNamePresent(fp, i) 
+              fp2[1].append(fp[1][p])
+          setFields([fp2], z, locout, writeDim)
+      elif fa != []:
+        fp = Fc(fa, *args)
+        setFields([fp], z, locout)
+    else: # both
+      l = len(args)//2
+      args1 = args[0:l]; args2 = args[l:]
+      fc = getFields(Internal.__GridCoordinates__, z, api=api)[0]
+      fa = getFields(Internal.__FlowSolutionNodes__, z, api=api)[0]
+      fb = getFields(Internal.__FlowSolutionCenters__, z, api=api)[0]
+      if fc != [] and fa != []:
+        if api == 1: f = Converter.addVars([fc, fa])
+        else:
+          f = [fc[0]+','+fa[0], fc[1]+fa[1], fc[2]]          
+        fp = F(f, *args1)
+        setFields([fp], z, 'nodes', writeDim)
+      elif fa != []:
+        fp = F(fa, *args1)
+        setFields([fp], z, 'nodes', writeDim)
+      elif fc != []:
+        fp = F(fc, *args1)
+        setFields([fp], z, 'nodes', writeDim)
+      fa = None
+      if fc != [] and fb != []:
+        f = Converter.node2Center(fc)
+        if api == 1: Converter._addVars([f, fb])
+        else:
+          f[0] = f[0]+','+fb[0]
+          f[1] = f[1]+fb[1]
+        fp = Fc(f, *args2)
+        st = fp[0].split(',')
+        vars = []
+        for i in st:
+          if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
+            vars.append(i)
+        if vars != []:
+          if api == 1: fp2 = Converter.extractVars(fp, vars)
+          else:
+            fp2 = fp[:]; fp2[1] = []
+            for i in vars:
+              p = KCore.isNamePresent(fp, i) 
+              fp2[1].append(fp[1][p])
+          setFields([fp2], z, 'centers', writeDim)
+      elif fb != []:
+        fp = Fc(fb, *args2)
+        setFields([fp], z, 'centers', writeDim)
+  return None
+
+def _TZAGC1(t, locin, locout, writeDim, F, Fc, *args):
+  return _TZAGCX(1, t, locin, locout, writeDim, F, Fc, *args)
+def _TZAGC2(t, locin, locout, writeDim, F, Fc, *args):
+  return _TZAGCX(2, t, locin, locout, writeDim, F, Fc, *args)
+def _TZAGC3(t, locin, locout, writeDim, F, Fc, *args):
+  return _TZAGCX(3, t, locin, locout, writeDim, F, Fc, *args)
+
+# Fait une ref copie en +
+def TZAGCX(api, t, locin, locout, writeDim, F, Fc, *args):
+  tp = Internal.copyRef(t)
+  _TZAGCX(api, tp, locin, locout, writeDim, F, Fc, *args)
+  return tp
+
+def TZAGC1(t, locin, locout, writeDim, F, Fc, *args):
+  return TZAGCX(1, t, locin, locout, writeDim, F, Fc, *args)
+def TZAGC2(t, locin, locout, writeDim, F, Fc, *args):
+  return TZAGCX(2, t, locin, locout, writeDim, F, Fc, *args)
+def TZAGC3(t, locin, locout, writeDim, F, Fc, *args):
+  return TZAGCX(3, t, locin, locout, writeDim, F, Fc, *args)
 
 #==============================================================================
 # -- Fields / Vars management --
@@ -2499,7 +2631,7 @@ def _initVars(t, varNameString, v1=[], v2=[], mode=0, isVectorized=False):
       [_addVars(t, varName) for varName in varNameString]
       if callable(v1):
         # ... by function
-        __TZA2(t, loc, Converter._initVars, varNames, v1, v2, mode, isVectorized)
+        __TZA3(t, loc, Converter._initVars, varNames, v1, v2, mode, isVectorized)
       else:
         # ... by constant
         __TZA3(t, loc, Converter._initVars, varNames, v1, v2, mode)
@@ -5160,7 +5292,7 @@ def extractBCOfSubRegionName__(t, zsrName, reorder=True, extrapFlow=True, shift=
     glname = 'Vertex'
     if Internal.getValue(gl) == 'FaceCenter': glname = 'CellCenter'
     
-    Internal._rmNodesFromType(z_surf,'FlowSolution_t')
+    Internal._rmNodesFromType(z_surf, 'FlowSolution_t')
     FS = Internal.newFlowSolution(name='FlowSolution#Centers', gridLocation=glname, parent=z_surf)
     for var in lvar: # BUGGED
       datan = Internal.getNodeFromName(zsr, var)

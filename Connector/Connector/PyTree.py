@@ -1175,7 +1175,7 @@ def blankCellsTri(t, mT3, blankingMatrix=[], blankingType='node_in',
                     bc.append(c)
                 i += 1
         if bc == []:
-            #print('Warning : nothing to mask for base %d'%(nb))
+            #print('Warning: nothing to mask for base %d'%(nb))
             continue
         bc = Converter.convertArray2Tetra(bc); bc = T.join(bc)
         cellN = Connector.blankCellsTri(coords, cellN, bc, blankingType=blankType, tol=tol, \
@@ -1371,7 +1371,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
             allHooksForBase1.append(hook)
         allHooks.append(allHooksForBase1)
         nobOfIntersectBasesAndZones.append(nobOfIntersectBasesAndZonesForBase1)
-        print("la (1)")
+
     #=====================================================
     # 5-optimisation du recouvrement
     #=====================================================
@@ -1919,7 +1919,6 @@ def connectNSLBM(t, tol=1.e-6, dim=3, type='all'):
                                          dimsI, dimsJ, dimsK, dim, tol)
 
         for info in infos:
-            #print(info)
             noz1 = info[0][0]; noz2 = info[0][1]
             range1 = info[1]; range2 = info[2]
             topp0 = info[3]

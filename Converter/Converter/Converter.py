@@ -246,6 +246,7 @@ def rmVars__(a, var):
     return extractVars(a, eVars)
 
 # -- Extract a list of variables from an array --
+# only for array1
 def extractVars(array, vars):
     """Extract variables from a.
     Usage: a = extractVars(array, ['x','ro'])"""
@@ -564,7 +565,6 @@ def _initVarByFunction__(a, var, F, fargs=[], isVectorized=False):
                     for i, posvar in enumerate(posvars):
                         varFlatten = a[1][posvar].ravel(order='K')
                         varFlatten[:] = res[i]
-                    
         else:
             if len(fargs):
                 nelems = a[1].shape[1]

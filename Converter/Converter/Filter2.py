@@ -212,15 +212,13 @@ def computePlistOrPrangeDistribution(node, comm):
   """
   Compute the distribution for a given node using its PointList or PointRange child
   If a PointRange node is found, the total lenght is getted from the product
-  of the differences for each direction (cgns convention (cgns convention :
-  first and last are included).
+  of the differences for each direction (cgns convention : first and last are included).
   If a PointList node is found, the total lenght is getted from the product of
   PointList#Size arrays, which store the size of the PL in each direction.
   """
   pr_n = I.getNodeFromName1(node, 'PointRange')
   pr_n2 = I.getNodeFromName1(node, 'ElementRange')
   pl_n = I.getNodeFromName1(node, 'PointList')
-  print("ici bien sur!!", node[0], flush=True)
       
   if pr_n:
     # CBX

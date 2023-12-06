@@ -35,16 +35,13 @@
 //Handle(Geom2d_Curve) aPCurve = BRep_Tool::CurveOnSurface(anEdge, aFace, aPFirst, aPLast);
 
 // ============================================================================
-// Mesh an edge uniformly with nbPoints
+// Mesh an edge with uniform param with nbPoints
 // If edge is degenerated, return two identical points
 // Return 1 if fails, 0 otherwise
 // ============================================================================
 E_Int __meshEdge(const TopoDS_Edge& E, 
-E_Int& nbPoints, K_FLD::FldArrayF& coords)
+                 E_Int& nbPoints, K_FLD::FldArrayF& coords)
 {
-  //std::string shapeName = BRep_Tool::Name(E);
-  //std::cout << "Edge name is " << shapeName << std::endl;
-
   BRepAdaptor_Curve C0(E);
   GeomAdaptor_Curve geomAdap(C0.Curve()); // Geometric Interface <=> access to discretizations tool
   Standard_Real u0 = geomAdap.FirstParameter();
@@ -65,15 +62,13 @@ E_Int& nbPoints, K_FLD::FldArrayF& coords)
     return 1;
   }
 
-  // non degenrated
+  // non degenerated
   GCPnts_UniformAbscissa unifAbs(geomAdap, int(nbPoints), u0, u1);
   if (!unifAbs.IsDone()) return 1;
   if (nbPoints != unifAbs.NbPoints()) return 1;
     
-#pragma omp parallel
   {
     gp_Pnt Pt;
-#pragma omp for
     for (Standard_Integer i = 1; i <= nbPoints; i++)
     {
       C0.D0(unifAbs.Parameter(i), Pt);
@@ -84,9 +79,12 @@ E_Int& nbPoints, K_FLD::FldArrayF& coords)
 }
 
 // ============================================================================
+// Maille un edge avec NbPoints et une parametrisation reguliere sur une face F
+// retourne les coords des edges et le u,v sur la face
+// ============================================================================
 E_Int __meshEdge2(const TopoDS_Edge& E, const TopoDS_Face& F,  
-E_Int& nbPoints, K_FLD::FldArrayF& coords)
-{
+                  E_Int& nbPoints, K_FLD::FldArrayF& coords)
+{  
   BRepAdaptor_Curve C0(E);
   Handle(Geom_Surface) surf = BRep_Tool::Surface(F);
   Standard_Real aFirst=C0.FirstParameter(), aEnd=C0.LastParameter();
@@ -104,7 +102,7 @@ E_Int& nbPoints, K_FLD::FldArrayF& coords)
     gp_Pnt Pt; gp_Pnt2d Puv; 
     E_Float u = pFirst;
     C0.D0(u, Pt);
-      
+
     for (E_Int i = 0; i < nbPoints; i++)
     {
       u = i*1./(nbPoints-1);
@@ -117,10 +115,8 @@ E_Int& nbPoints, K_FLD::FldArrayF& coords)
   }
 
   // non degenerated case
-#pragma omp parallel
-{
+  {
     gp_Pnt Pt; gp_Pnt2d Puv; E_Float u;
-#pragma omp for
     for (E_Int i = 0; i < nbPoints; i++)
     {
         u = i*1./(nbPoints-1);
@@ -130,7 +126,100 @@ E_Int& nbPoints, K_FLD::FldArrayF& coords)
         px[i] = Pt.X(); py[i] = Pt.Y(); pz[i] = Pt.Z();
         pu[i] = Puv.X(); pv[i] = Puv.Y();
     }
+  }
+  return 0;
 }
+
+// ============================================================================
+// Maille un edge avec la parametrisation donnee dans ue input sur une face F
+// retourne les coords des edges et le u,v sur la face
+// ============================================================================
+E_Int __meshEdge3(const TopoDS_Edge& E, const TopoDS_Face& F,  
+                  E_Int ni, E_Float* ue, K_FLD::FldArrayF& coords)
+{
+  BRepAdaptor_Curve C0(E);
+  Standard_Real aFirst=C0.FirstParameter(), aEnd=C0.LastParameter();
+  Standard_Real pFirst=aFirst, pEnd=aEnd;
+  Handle(Geom_Curve) aCurve = BRep_Tool::Curve(E, aFirst, aEnd);
+  Handle(Geom_Surface) surf = BRep_Tool::Surface(F);
+  Handle(Geom2d_Curve) pCurve = BRep_Tool::CurveOnSurface(E, F, pFirst, pEnd);
+  E_Float* px = coords.begin(1);
+  E_Float* py = coords.begin(2);
+  E_Float* pz = coords.begin(3);
+  E_Float* pu = coords.begin(4);
+  E_Float* pv = coords.begin(5);
+  
+  if (BRep_Tool::Degenerated(E))
+  {
+    gp_Pnt Pt; gp_Pnt2d Puv; 
+    E_Float u = pFirst;
+    C0.D0(u, Pt);
+
+    for (E_Int i = 0; i < ni; i++)
+    {
+      u = ue[i];
+      pCurve->D0(u, Puv);
+      px[i] = Pt.X(); py[i] = Pt.Y(); pz[i] = Pt.Z();
+      pu[i] = Puv.X(); pv[i] = Puv.Y();
+    }
+    return 0;
+  }
+
+  // non degenerated case
+  {
+    gp_Pnt Pt; gp_Pnt2d Puv; E_Float u;
+    for (E_Int i = 0; i < ni; i++)
+    {
+        u = ue[i];
+        u = u*(aEnd-aFirst)+aFirst;
+        C0.D0(u, Pt);
+        pCurve->D0(u, Puv);
+        px[i] = Pt.X(); py[i] = Pt.Y(); pz[i] = Pt.Z();
+        pu[i] = Puv.X(); pv[i] = Puv.Y();
+    }
+  }
+  return 0;
+}
+
+// ============================================================================
+// Maille un edge avec la parametrisation donnee dans ue input
+// retourne les coords des edges
+// ============================================================================
+E_Int __meshEdge4(const TopoDS_Edge& E,  
+                  E_Int ni, E_Float* ue, K_FLD::FldArrayF& coords)
+{
+  BRepAdaptor_Curve C0(E);
+  Standard_Real aFirst=C0.FirstParameter(), aEnd=C0.LastParameter();
+  Standard_Real pFirst=aFirst, pEnd=aEnd;
+  Handle(Geom_Curve) aCurve = BRep_Tool::Curve(E, aFirst, aEnd);
+  E_Float* px = coords.begin(1);
+  E_Float* py = coords.begin(2);
+  E_Float* pz = coords.begin(3);
+  
+  if (BRep_Tool::Degenerated(E))
+  {
+    gp_Pnt Pt; 
+    E_Float u = pFirst;
+    C0.D0(u, Pt);
+
+    for (E_Int i = 0; i < ni; i++)
+    {
+      px[i] = Pt.X(); py[i] = Pt.Y(); pz[i] = Pt.Z();
+    }
+    return 0;
+  }
+
+  // non degenerated case
+  {
+    gp_Pnt Pt; E_Float u;
+    for (E_Int i = 0; i < ni; i++)
+    {
+        u = ue[i];
+        u = u*(aEnd-aFirst)+aFirst;
+        C0.D0(u, Pt);
+        px[i] = Pt.X(); py[i] = Pt.Y(); pz[i] = Pt.Z();
+    }
+  }
   return 0;
 }
 
@@ -153,7 +242,7 @@ E_Int __getNbPts(const TopoDS_Edge& E, E_Float hmax, E_Int& nbPoints)
 }
 
 // ============================================================================
-/* Mesh global edges of CAD, regular hmax, return STRUCT */
+/* Mesh global edges of CAD, regular param corresponding to hmax, return STRUCT */
 // ============================================================================
 PyObject* K_OCC::meshGlobalEdges(PyObject* self, PyObject* args)
 {
@@ -189,7 +278,7 @@ PyObject* K_OCC::meshGlobalEdges(PyObject* self, PyObject* args)
 }
 
 // ============================================================================
-/* Mesh global edges of CAD, fixed number of points, return STRUCT */
+/* Mesh global edges of CAD, regular param, given number of points, return STRUCT */
 // ============================================================================
 PyObject* K_OCC::meshGlobalEdges2(PyObject* self, PyObject* args)
 {
@@ -222,7 +311,50 @@ PyObject* K_OCC::meshGlobalEdges2(PyObject* self, PyObject* args)
 }
 
 // ============================================================================
-/* Mesh and param global edges of CAD, fixed number of points, return STRUCT */
+/* Mesh global edges of CAD, given edges ue, return STRUCT */
+// ============================================================================
+PyObject* K_OCC::meshGlobalEdges3(PyObject* self, PyObject* args)
+{
+  PyObject* hook; PyObject* globalEdges;
+  if (!PYPARSETUPLE_(args, O_ O_, &hook, &globalEdges)) return NULL;
+
+  void** packet = NULL;
+#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
+  packet = (void**) PyCObject_AsVoidPtr(hook);
+#else
+  packet = (void**) PyCapsule_GetPointer(hook, NULL);
+#endif
+
+  PyObject* out = PyList_New(0);
+  TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
+  for (E_Int i=1; i <= edges.Extent(); i++)
+  {
+    const TopoDS_Edge& E = TopoDS::Edge(edges(i));
+    
+    PyObject* ge = PyList_GetItem(globalEdges, i-1);
+    E_Int ni, nj, nk;
+    K_FLD::FldArrayF* fe; K_FLD::FldArrayI* ce;
+    char* varString; char* eltType;
+    K_ARRAY::getFromArray3(ge, varString, fe, ni, nj, nk, ce, eltType);
+    E_Float* ue = fe->begin(4);
+
+    // create array
+    PyObject* o = K_ARRAY::buildArray2(3, "x,y,z", ni, 1, 1, 1);
+    FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+
+    // fill array
+    __meshEdge4(E, ni, ue, *f);
+    RELEASESHAREDS(o, f);
+    RELEASESHAREDS(ge, fe);
+    PyList_Append(out, o); Py_DECREF(o);
+  }
+  return out;
+}
+
+// ============================================================================
+/* Mesh and param global edges of CAD, 
+   given number of points or nb of points by hmax on faces
+   return STRUCT + uv Face */
 // ============================================================================
 PyObject* K_OCC::meshEdgesByFace(PyObject* self, PyObject* args)
 {
@@ -238,14 +370,14 @@ PyObject* K_OCC::meshEdgesByFace(PyObject* self, PyObject* args)
 
   PyObject* out = PyList_New(0);
   TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
-  //TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
   TopExp_Explorer expl;
 
   const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
+
   for (expl.Init(surfaces(noFace), TopAbs_EDGE); expl.More(); expl.Next())
   {
     const TopoDS_Edge& E = TopoDS::Edge(expl.Current());
-      
+
     if (hmax > 0) __getNbPts(E, hmax, nbPoints);
 
     // create array
@@ -256,6 +388,101 @@ PyObject* K_OCC::meshEdgesByFace(PyObject* self, PyObject* args)
     __meshEdge2(E, F, nbPoints, *f);
     RELEASESHAREDS(o, f);
     PyList_Append(out, o); Py_DECREF(o);
+  }
+  return out;
+}
+
+// ============================================================================
+/* Mesh and param global edges of CAD, 
+   ue given in global edges list on faces
+   return STRUCT + uv Face */
+// ============================================================================
+PyObject* K_OCC::meshEdgesByFace2(PyObject* self, PyObject* args)
+{
+  PyObject* hook; E_Int noFace;
+  PyObject* globalEdges;
+  if (!PYPARSETUPLE_(args, O_ I_ O_, &hook, &noFace, &globalEdges)) return NULL;
+
+  void** packet = NULL;
+#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
+  packet = (void**) PyCObject_AsVoidPtr(hook);
+#else
+  packet = (void**) PyCapsule_GetPointer(hook, NULL);
+#endif
+
+  PyObject* out = PyList_New(0);
+  TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
+  TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
+  TopExp_Explorer expl;
+
+  const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
+  E_Int npts = 0; PyObject* ge;
+
+  for (expl.Init(surfaces(noFace), TopAbs_EDGE); expl.More(); expl.Next())
+  {
+    const TopoDS_Edge& E = TopoDS::Edge(expl.Current());
+
+    // find no of corresponding global edge
+    E_Int noedge = 0;
+    for (noedge=1; noedge <= edges.Extent(); noedge++)
+    {
+        const TopoDS_Edge& El = TopoDS::Edge(edges(noedge));
+        if (El.TShape() == E.TShape()) break;
+    }
+    ge = PyList_GetItem(globalEdges, noedge-1);
+    E_Int ni, nj, nk;
+    K_FLD::FldArrayF* fe; K_FLD::FldArrayI* ce;
+    char* varString; char* eltType;
+    K_ARRAY::getFromArray3(ge, varString, fe, ni, nj, nk, ce, eltType);
+    E_Float* ue = fe->begin(4); 
+
+    // create array
+    PyObject* o = K_ARRAY::buildArray2(5, "x,y,z,u,v", ni, 1, 1, 1);
+    FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+
+    // fill array
+    __meshEdge3(E, F, ni, ue, *f);
+    RELEASESHAREDS(o, f);
+    RELEASESHAREDS(ge, fe);
+    PyList_Append(out, o); Py_DECREF(o);
+  }
+  return out;
+}
+
+//========================================
+/* Get global edges number list by face */
+//========================================
+PyObject* K_OCC::getEdgeNoByFace(PyObject* self, PyObject* args)
+{
+  PyObject* hook; E_Int noFace;
+  if (!PYPARSETUPLE_(args, O_ I_, &hook, &noFace)) return NULL;
+
+  void** packet = NULL;
+#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
+  packet = (void**) PyCObject_AsVoidPtr(hook);
+#else
+  packet = (void**) PyCapsule_GetPointer(hook, NULL);
+#endif
+
+  TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
+  TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
+  TopExp_Explorer expl;
+
+  PyObject* out = PyList_New(0);
+
+  const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
+  for (expl.Init(surfaces(noFace), TopAbs_EDGE); expl.More(); expl.Next())
+  {
+    const TopoDS_Edge& E = TopoDS::Edge(expl.Current());
+      
+    /* find edge number in global edge list */
+    E_Int i = 0;
+    for (i=1; i <= edges.Extent(); i++)
+    {
+        const TopoDS_Edge& El = TopoDS::Edge(edges(i));
+        if (El.TShape() == E.TShape()) break;
+    }
+    PyList_Append(out, Py_BuildValue("l", i));
   }
   return out;
 }

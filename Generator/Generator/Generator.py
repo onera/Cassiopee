@@ -1506,7 +1506,7 @@ def tetraMesher(a, maxh=-1., grading=0.4, triangulateOnly=0,
             vol = getVolumeMap(a)
             maxh = C.getMeanValue(vol, 'vol')
             maxh = math.sqrt(2*maxh)
-        if algo == 0:
+        if algo == 0: # netgen
             if remeshBoundaries == 0:
                 if maxh < 0: maxh = 1.e6
                 return generator.netgen1(a, maxh, grading)
@@ -1514,7 +1514,7 @@ def tetraMesher(a, maxh=-1., grading=0.4, triangulateOnly=0,
                 C.convertArrays2File([a], 'netgen.0120.stl', 'fmt_stl')
                 if maxh < 0: maxh = 1.e6
                 return generator.netgen2(a, maxh, grading)
-        else:
+        else: # tetgen
             # find holes coords
             holes = []
             try: 

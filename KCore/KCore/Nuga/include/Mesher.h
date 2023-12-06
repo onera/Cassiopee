@@ -7,7 +7,7 @@
 
 
 */
-//Authors : S�m Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef __DELAUNAY_MESHER_H__
 #define __DELAUNAY_MESHER_H__
@@ -1219,17 +1219,17 @@ namespace DELAUNAY
   ///
   template <typename T, typename MetricType>
   E_Int
-    Mesher<T, MetricType>::clean_data(MeshData& data, const bool_vector_type& mask)
+  Mesher<T, MetricType>::clean_data(MeshData& data, const bool_vector_type& mask)
   {
     std::vector<size_type> newIds;
 
     // Remove invalidated elements
     K_FLD::IntArray::compact (_data->connectM, mask, newIds);
-    //Update neighbors
+    // Update neighbors
     K_FLD::IntArray::compact (_data->neighbors, newIds);
     K_FLD::IntArray::changeIndices (_data->neighbors, newIds);
     
-    //Update colors
+    // Update colors
     size_type cols(data.connectM.cols()), nb_nodes(data.ancestors.size());
     if (!_data->colors.empty())
     {
@@ -1243,11 +1243,11 @@ namespace DELAUNAY
       _data->colors.resize(cols);
     }
 
-    //Update mask
+    // Update mask
     _data->mask.clear();
     _data->mask.resize(_data->connectM.cols(), true);
 
-    //Update ancestors
+    // Update ancestors
     for (size_type i = 0; i < nb_nodes; ++i)
     {
       if (_data->ancestors[i] != IDX_NONE)
@@ -1272,7 +1272,7 @@ namespace DELAUNAY
   {
     size_type cols(data.connectM.cols());
 
-    data.mask.resize(cols);
+    data.mask.resize(cols); // ???
 
     for (size_type i = 0; i < cols; ++i) // mask box elements in top of invalidated ones.
     {
@@ -1283,7 +1283,7 @@ namespace DELAUNAY
     clean_data(data, data.mask);
 
     if (cols && data.connectM.cols() == 0) // all the elements are masked
-      return 77;
+      return 77; // error finalize
 
     std::vector<E_Int> new_IDs;
     _tool->compact_to_mesh(*data.pos, data.connectM, new_IDs, &N0); // Remove unused nodes above N0.
