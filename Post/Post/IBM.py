@@ -875,8 +875,14 @@ def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref
     # Extraction des grandeurs a la paroi
     #====================================
     if tc is None: 
-        zw = Internal.getZones(tb)
-        zw = T.join(zw)
+        zw = Internal.copyRef(tb)
+        for b in Internal.getBases(zw):
+            zones = Internal.getZones(b)
+            if zones != []:
+                zones = T.join(zones)
+                zones[0] = 'IBCD_{}'.format(Cmpi.rank)
+                Cmpi._setProc(zones, Cmpi.rank)
+                b[2] = [zones]
     else:
         zw = extractIBMWallFields(tc, tb=tb, coordRef='wall', famZones=famZones, extractIBMInfo=extractIBMInfo, extractYplusAtImage=True)
     
@@ -890,7 +896,9 @@ def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref
 
     dimPb = Internal.getValue(Internal.getNodeFromName(tb, 'EquationDimension'))
 
-    if dimPb == 2: T._addkplane(zw)
+    if dimPb == 2: 
+        C._initVars(zw, '{CoordinateZ}=0.')
+        T._addkplane(zw)
 
     # save basenames for the final tree
     baseNames = []
@@ -1171,3 +1179,217 @@ def _computeSkinVariables(ts, tc, tl, graphWPOST,famZones=[], ProjectOldVersion=
                         
     return None
 
+
+#==========================================================================================
+# Post para, nouvelle version
+#==========================================================================================
+def createCloudIBM__(tc):
+    tl = C.newPyTree(['CLOUD_IBCW'])
+    for zc in Internal.getZones(tc):
+        allIBCD = Internal.getNodesFromType(zc,"ZoneSubRegion_t")
+        allIBCD = Internal.getNodesFromName(allIBCD,"IBCD_*")
+        for IBCD in allIBCD:
+            zname = Internal.getValue(IBCD)
+            XW = Internal.getNodeFromName(IBCD,'CoordinateX_PW')[1]
+            YW = Internal.getNodeFromName(IBCD,'CoordinateY_PW')[1]
+            ZW = Internal.getNodeFromName(IBCD,'CoordinateZ_PW')[1]
+            zsize = numpy.empty((1,3), numpy.int32, order='F')
+            zsize[0,0] = XW.shape[0]; zsize[0,1] = 0; zsize[0,2] = 0
+            z = Internal.newZone(name='IBW_Wall_%s_%s_%d'%(zc[0].replace('Cart.',''),zname.replace('Cart.',''),Cmpi.rank),zsize=zsize,
+                                 ztype='Unstructured')
+            gc = Internal.newGridCoordinates(parent=z)
+            coordx = ['CoordinateX',XW,[],'DataArray_t']
+            coordy = ['CoordinateY',YW,[],'DataArray_t']
+            coordz = ['CoordinateZ',ZW,[],'DataArray_t']
+            gc[2] = [coordx,coordy,coordz]
+            n = Internal.createChild(z, 'GridElements', 'Elements_t', [2,0])
+            Internal.createChild(n, 'ElementRange', 'IndexRange_t', [1,0])
+            Internal.createChild(n, 'ElementConnectivity', 'DataArray_t', None)
+            FSN = Internal.newFlowSolution(name=Internal.__FlowSolutionNodes__,
+                                           gridLocation='Vertex', parent=z)
+            pressNP = []; utauNP = []; yplusNP = []; densNP = []
+            vxNP = []; vyNP = []; vzNP = []
+
+            PW = Internal.getNodeFromName1(IBCD,XOD.__PRESSURE__)
+            if PW is not None: pressNP.append(PW[1])
+            RHOW = Internal.getNodeFromName1(IBCD,XOD.__DENSITY__)
+            if RHOW is not None: densNP.append(RHOW[1])
+            UTAUW = Internal.getNodeFromName1(IBCD,XOD.__UTAU__)
+            if UTAUW is not None: utauNP.append(UTAUW[1])
+            YPLUSW = Internal.getNodeFromName1(IBCD, XOD.__YPLUS__)
+            if YPLUSW is not None: yplusNP.append(YPLUSW[1])
+
+            VXW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYX__)
+            if VXW is not None: vxNP.append(VXW[1])
+            VYW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYY__)
+            if VYW is not None: vyNP.append(VYW[1])
+            VZW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYZ__)
+            if VZW is not None: vzNP.append(VZW[1])
+
+            FSN[2].append([XOD.__PRESSURE__,pressNP[0], [],'DataArray_t'])
+            FSN[2].append([XOD.__DENSITY__,densNP[0], [],'DataArray_t'])
+            if utauNP != []:
+                utauPresent = 1
+                FSN[2].append([XOD.__UTAU__,utauNP[0], [],'DataArray_t'])
+            if yplusNP != []:
+                yplusPresent = 1
+                FSN[2].append([XOD.__YPLUS__,yplusNP[0], [],'DataArray_t'])
+
+            if vxNP != []:
+                vxPresent = 1
+                FSN[2].append([XOD.__VELOCITYX__,vxNP[0], [],'DataArray_t'])
+                FSN[2].append([XOD.__VELOCITYY__,vyNP[0], [],'DataArray_t'])
+                FSN[2].append([XOD.__VELOCITYZ__,vzNP[0], [],'DataArray_t'])
+
+            Cmpi._setProc(z,Cmpi.rank)
+            tl[2][1][2].append(z)
+    return tl
+
+def extendBBox__(tbb, hloc):
+    xmin = C.getMinValue(tbb,'CoordinateX'); xmax = C.getMaxValue(tbb,'CoordinateX')
+    ymin = C.getMinValue(tbb,'CoordinateY'); ymax = C.getMaxValue(tbb,'CoordinateY')
+    zmin = C.getMinValue(tbb,'CoordinateZ'); zmax = C.getMaxValue(tbb,'CoordinateZ')
+
+    for k in range(2):
+        for j in range(2):
+            for i in range(2):
+                ind = i+j*2+k*4
+                if i==0: xl = xmin-hloc
+                else: xl = xmax+hloc
+                if j==0: yl = ymin-hloc
+                else: yl = ymax+hloc
+                if k==0: zl = zmin-hloc
+                else: zl = zmax+hloc
+
+                C.setValue(tbb,'CoordinateX',ind,xl)
+                C.setValue(tbb,'CoordinateY',ind,yl)
+                C.setValue(tbb,'CoordinateZ',ind,zl)
+
+    return tbb
+
+def allGatherGraph__(graph):
+    g = Cmpi.KCOMM.allgather(graph)
+    graph = {}
+    for i in g:
+        for k in i:
+            if not k in graph: graph[k] = {}
+            for j in i[k]:
+                if not j in graph[k]: graph[k][j] = []
+                graph[k][j] += i[k][j]
+                graph[k][j] = list(set(graph[k][j]))
+
+    return graph
+
+def setIBCTransfersPost__(graphIBCDPost, tl):
+    datas = {}
+
+    for dest in graphIBCDPost[Cmpi.rank]:
+        if Cmpi.rank != dest:
+            for zname in graphIBCDPost[Cmpi.rank][dest]:
+                zd = Internal.getNodeFromName(tl, zname)
+
+                dim = Internal.getZoneDim(zd)
+                zsize = numpy.empty((1,3), numpy.int32, order='F')
+                zsize[0,0] = dim[1]; zsize[0,1] = dim[2]; zsize[0,2] = 0
+
+                coords = Internal.getNodeFromName(zd, 'GridCoordinates')[2]
+                fields = Internal.getNodeFromName(zd, 'FlowSolution')[2]
+
+                infos = [zname, zsize, coords, fields]
+
+                if dest not in datas: datas[dest] = [infos]
+                else: datas[dest] += [infos]
+
+    rcvDatas = Cmpi.sendRecv(datas, graphIBCDPost)
+
+    for rcv in rcvDatas:
+        for [zname, zsize, coords, fields] in rcvDatas[rcv]:
+            z = Internal.newZone(name=zname,ztype='Unstructured',zsize=zsize)
+            gc = Internal.newGridCoordinates(parent=z)
+            gc[2] = coords
+            n = Internal.createChild(z, 'GridElements', 'Elements_t', [2,0])
+            Internal.createChild(n, 'ElementRange', 'IndexRange_t', [1,0])
+            Internal.createChild(n, 'ElementConnectivity', 'DataArray_t', None)
+            FSN = Internal.newFlowSolution(name=Internal.__FlowSolutionNodes__,
+                                           gridLocation='Vertex', parent=z)
+            FSN[2] = fields
+
+            tl[2][1][2].append(z)
+
+    for zname in graphIBCDPost[Cmpi.rank][Cmpi.rank]: Internal._rmNodesByName(tl, zname)
+
+    return tl
+
+def prepareSkinReconstruction2(ts, tc):
+    alphah=2.2
+
+    tl = createCloudIBM__(tc)
+    
+    # CREATE graphIBCDPost 
+    graph = {i:{} for i in range(Cmpi.size)}
+    listOfDeletedZones = []
+    for zl in Internal.getZones(tl):
+        deleteZone = True
+        zname = zl[0]
+        zlBB = G.BB(zl)
+
+        hx = C.getValue(tl,'CoordinateX',1)-C.getValue(tl,'CoordinateX',0)
+        hy = C.getValue(tl,'CoordinateY',1)-C.getValue(tl,'CoordinateY',0)
+        hz = C.getValue(tl,'CoordinateZ',1)-C.getValue(tl,'CoordinateZ',0)
+        hmin = max(abs(hx),abs(hy),abs(hz))
+        hloc = hmin*alphah
+
+        zlBB = extendBBox__(zlBB, hloc)
+
+        for zs in Internal.getZones(ts):
+            tsBB = G.BB(zs)
+            tsBB = extendBBox__(tsBB, hloc)
+            dest = Cmpi.getProc(zs)
+            if G.bboxIntersection(tsBB, zlBB, isBB=True):
+                if dest != Cmpi.rank: Distributed.updateGraph__(graph, Cmpi.rank, dest, zname)
+                else: deleteZone = False
+
+        if deleteZone: listOfDeletedZones.append(zname)
+
+    graph[Cmpi.rank][Cmpi.rank] = listOfDeletedZones
+    graphIBCDPost = allGatherGraph__(graph)
+
+    # CREATE ts 
+    refstate = Internal.getNodeFromType(ts, 'ReferenceState_t')
+    flowEqn  = Internal.getNodeFromName(ts, 'FlowEquationSet')          
+
+    td = Internal.copyRef(ts)
+    for b in Internal.getBases(td):
+        zones = Internal.getZones(b)
+        zones = [z for z in zones if Cmpi.getProc(z) == Cmpi.rank] 
+        if zones != []:
+            zones = C.convertArray2Tetra(zones)
+            zones = T.join(zones); zones = G.close(zones)
+            zones[0] = "SURF_{}".format(Cmpi.rank) 
+            b[2] = [zones]
+        Cmpi._setProc(b, Cmpi.rank)
+        Internal.addChild(b, refstate, pos=0)
+        Internal.addChild(b, flowEqn , pos=0)
+
+    C._initVars(td,XOD.__PRESSURE__,0.)
+    C._initVars(td,XOD.__DENSITY__,0.)
+    C._initVars(td,XOD.__UTAU__,0.)
+    C._initVars(td,XOD.__YPLUS__,0.)
+    C._initVars(td,"yplusIP",0.)
+
+    C._initVars(td,XOD.__VELOCITYX__,0.)
+    C._initVars(td,XOD.__VELOCITYY__,0.)
+    C._initVars(td,XOD.__VELOCITYZ__,0.)
+
+    return graphIBCDPost, td
+
+def _computeSkinVariables2(ts, tc, graphIBCDPost):
+    tl = createCloudIBM__(tc)
+    tl = setIBCTransfersPost__(graphIBCDPost, tl)
+    tl = T.join(tl)
+
+    dimPb = Internal.getNodeFromName(ts,'EquationDimension')
+    dimPb = Internal.getValue(dimPb)
+
+    P._projectCloudSolution(tl, ts, dim=dimPb, oldVersion=True)   
+    return None
