@@ -1,5 +1,4 @@
 #include "Proto.h"
-#include "../common/mem.h"
 
 static
 void make_gradient(AMesh *M, E_Int *count_neis, E_Float *b, E_Float *G)

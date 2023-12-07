@@ -54,6 +54,7 @@ void resize_data_for_refinement(mesh *M, tree *ct, tree *ft, E_Int nref_cells)
   M->xfaces = (E_Int *)  XRESIZE(M->xfaces, (new_nfaces+1)  * sizeof(E_Int));
   M->xcells = (E_Int *)  XRESIZE(M->xcells, (new_ncells+1)  * sizeof(E_Int));
 
+  // WARNING(Imad): predicted cells = new_ncells instead?
   M->predicted_ncells = M->ncells;
   M->predicted_nfaces = M->nfaces;
   M->predicted_npoints = M->npoints;

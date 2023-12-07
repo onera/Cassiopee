@@ -33,6 +33,8 @@ struct Edge {
   E_Int p0_;
   E_Int p1_;
 
+  Edge();
+
   Edge(E_Int p0, E_Int p1);
 
   void set(E_Int p0, E_Int p1);
@@ -49,10 +51,11 @@ struct Patch {
 
 struct Element {
   E_Int *children;
+  E_Int nchildren;
   E_Int parent;
-  uint8_t position;
-  uint8_t type;
-  uint8_t level;
+  E_Int position;
+  E_Int type;
+  E_Int level;
 };
 
 struct AMesh {
@@ -101,7 +104,19 @@ struct AMesh {
   E_Float *lsqH;
   E_Float *lsqHH;
 
-  short *ref_data;
+  int *ref_data;
+  E_Float ref_Tr;
+  E_Float unref_Tr;
+
+  E_Int nref_hexa;
+  E_Int nref_tetra;
+  E_Int nref_penta;
+  E_Int nref_pyra;
+
+  E_Int nunref_hexa;
+  E_Int nunref_tetra;
+  E_Int nunref_penta;
+  E_Int nunref_pyra;
 
   AMesh();
 };

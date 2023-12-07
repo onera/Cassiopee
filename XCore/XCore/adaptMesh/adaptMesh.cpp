@@ -263,36 +263,6 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
     PyObject *narr = PyList_GetItem(o, 2);
     K_NUMPY::getFromNumpyArray(narr, M->ppatches[i].gneis, nneis, nfld, true);
     assert(nneis == M->ppatches[i].nfaces);
-
-    /*
-    // Indices
-    std::vector<E_Int> indices(M->ppatches[i].nfaces);
-    for (E_Int j = 0; j < npfaces; j++)
-      indices[j] = j;
-
-    std::sort(indices.begin(), indices.end(),
-      [&](E_Int a, E_Int b)
-      {
-        return M->ppatches[i].faces[a] < M->ppatches[i].faces[b];
-      });
-
-    E_Int *sorted_pfaces = (E_Int *)XCALLOC(npfaces, sizeof(E_Int));
-    E_Int *sorted_gneis = (E_Int *)XCALLOC(npfaces, sizeof(E_Int));
-    for (E_Int j = 0; j < npfaces; j++) {
-      sorted_pfaces[j] = M->ppatches[i].faces[indices[j]];
-      sorted_gneis[j] = M->ppatches[i].gneis[indices[j]];
-    }
-
-    XFREE(M->ppatches[i].faces);
-    XFREE(M->ppatches[i].gneis);
-
-    M->ppatches[i].faces = sorted_pfaces;
-    M->ppatches[i].gneis = sorted_gneis;
-
-    // Replace with local face ids
-    for (E_Int j = 0; j < npfaces; j++)
-      M->ppatches[i].faces[j] = M->FT[M->ppatches[i].faces[j]];
-    */
   }
 
   // Process solution fields

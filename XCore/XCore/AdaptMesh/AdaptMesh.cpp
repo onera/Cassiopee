@@ -1,5 +1,4 @@
 #include "Proto.h"
-#include "../common/mem.h"
 
 #define MINREF -10
 #define RAISE(error) PyErr_SetString(PyExc_ValueError, (error))
@@ -7,7 +6,8 @@
 PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
 {
   PyObject *ARRAY, *COMM;
-  if (!PYPARSETUPLE_(args, OO_, &ARRAY, &COMM)) {
+  E_Float Tr;
+  if (!PYPARSETUPLE_(args, OO_ R_, &ARRAY, &COMM, &Tr)) {
     RAISE("Wrong input.");
     return NULL;
   }
@@ -149,6 +149,9 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
   for (E_Int i = 0; i < M->nfaces; i++)
     M->faceTree[i] = (Element *)XCALLOC(1, sizeof(Element));
 
+  M->ref_Tr = Tr;
+  M->unref_Tr = Tr/2.5;
+
   // Set face types
   set_faces_type(M);
 
@@ -203,8 +206,24 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
   // Compute cell refinement levels
   compute_ref_data(M, fields, nfields);
 
+  for (E_Int i = 0; i < nfields; i++) XFREE(fields[i]);
+  XFREE(fields);
+
   // Redistribute
   //AMesh *rM = redistribute_mesh(M);
+
+  // Isolate refinement cells and faces
+  
+  std::vector<E_Int> ref_faces, ref_cells;
+  get_ref_cells_and_faces(M, ref_cells, ref_faces);
+
+  // Resize structures for refinement
+  E_Int nref_cells = ref_cells.size();
+  E_Int nref_faces = ref_faces.size();
+  resize_data_for_refinement(M, nref_cells, nref_faces);
+
+  refine_faces(ref_faces, M);
+  refine_cells(ref_cells, M);
 
   return Py_None;
 }

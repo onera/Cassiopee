@@ -51,7 +51,8 @@ if mpi: # source that requires mpi
             'XCore/AdaptMesh/AdaptMesh.cpp',
             'XCore/AdaptMesh/Hessian.cpp',
             'XCore/AdaptMesh/Comm.cpp',
-            'XCore/AdaptMesh/Metric.cpp'
+            'XCore/AdaptMesh/Metric.cpp',
+            'XCore/AdaptMesh/Refine.cpp'
             ]
 else:
     cpp_srcs += [

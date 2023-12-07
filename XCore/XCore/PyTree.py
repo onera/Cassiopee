@@ -227,7 +227,7 @@ def createAdaptMesh(t):
 
 ############################################################################
 
-def CreateAdaptMesh(t):
+def CreateAdaptMesh(t, Tr=0.05):
   zones = I.getZones(t)
   z = zones[0]
   fc = C.getFields(I.__GridCoordinates__, z, api=3)[0]
@@ -239,7 +239,7 @@ def CreateAdaptMesh(t):
     pfaces = I.getNodeFromName(data, 'PointList')[1]
     comm_list.append([nei_proc, pfaces])
 
-  return XCore.xcore.CreateAdaptMesh(fc, comm_list)
+  return XCore.xcore.CreateAdaptMesh(fc, comm_list, Tr)
 
 # 1 - Based on sensor type, do the following:
 #       sensor=0: MARKERS = array of size ncells with cells to refine/unrefine

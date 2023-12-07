@@ -1,5 +1,4 @@
 #include "Proto.h"
-#include "../common/mem.h"
 
 static
 void comm_waitall(AMesh *M)

@@ -1,9 +1,11 @@
 #include "Proto.h"
-#include "../common/mem.h"
 #include <cassert>
 
 const E_Int normalIn_T[4] = {1, 1, 0, 0};
 const E_Int normalIn_H[6] = {1, 0, 1, 0, 1, 0};
+
+Edge::Edge()
+{}
 
 Edge::Edge(E_Int p0, E_Int p1) :
   p0_(std::min(p0, p1)), p1_(std::max(p0, p1))
@@ -21,18 +23,20 @@ bool Edge::operator<(const Edge &e) const
 }
 
 AMesh::AMesh() :
-   ncells(-1), nfaces(-1), npoints(-1),
-   x(NULL), y(NULL), z(NULL),
-   owner(NULL), neigh(NULL),
-   nface(NULL), indPH(NULL), ngon(NULL), indPG(NULL),
-   ecenter(),
-   patches(NULL), npatches(-1),
-   pid(-1), npc(-1), nreq(-1), req(NULL),
-   cellTree(NULL), faceTree(NULL),
-   fc(NULL), fa(NULL), cx(NULL), cy(NULL), cz(NULL),
-   xn(NULL), yn(NULL), zn(NULL), fn(NULL),
-   lsqG(NULL), lsqGG(NULL), lsqH(NULL), lsqHH(NULL),
-   ref_data(NULL)
+  ncells(-1), nfaces(-1), npoints(-1),
+  x(NULL), y(NULL), z(NULL),
+  owner(NULL), neigh(NULL),
+  nface(NULL), indPH(NULL), ngon(NULL), indPG(NULL),
+  ecenter(),
+  patches(NULL), npatches(-1),
+  pid(-1), npc(-1), nreq(-1), req(NULL),
+  cellTree(NULL), faceTree(NULL),
+  fc(NULL), fa(NULL), cx(NULL), cy(NULL), cz(NULL),
+  xn(NULL), yn(NULL), zn(NULL), fn(NULL),
+  lsqG(NULL), lsqGG(NULL), lsqH(NULL), lsqHH(NULL),
+  ref_data(NULL), ref_Tr(-1.0), unref_Tr(-1.0),
+  nref_hexa(-1), nref_tetra(-1), nref_penta(-1), nref_pyra(-1),
+  nunref_hexa(-1), nunref_tetra(-1), nunref_penta(-1), nunref_pyra(-1)
 {
   MPI_Comm_rank(MPI_COMM_WORLD, &pid);
   MPI_Comm_size(MPI_COMM_WORLD, &npc);
@@ -52,19 +56,16 @@ E_Int *get_cell(E_Int i, E_Int &nf, E_Int *nface, E_Int *indPH)
   return &nface[indPH[i]];
 }
 
-inline
 E_Int get_stride(E_Int i, E_Int *indir)
 {
   return indir[i+1] - indir[i];
 }
 
-inline
-E_Int *get_ptr(E_Int i, E_Int *cn, E_Int *indir)
+E_Int *get_facets(E_Int i, E_Int *cn, E_Int *indir)
 {
   return &cn[indir[i]];
 }
 
-static
 void compute_face_center_and_area(E_Int id, E_Int stride,
   E_Int *pn, E_Float *x, E_Float *y, E_Float *z, E_Float *fc, E_Float *fa)
 {
@@ -282,6 +283,7 @@ E_Int set_cells_type(AMesh *M)
 
 E_Int get_reorient(E_Int face, E_Int cell, E_Int normalIn, AMesh *M)
 {
+  assert(M->owner[face] == cell || M->neigh[face] == cell);
   if (M->neigh[face] == cell && normalIn == 1) return 0;
   else if (M->owner[face] == cell && normalIn == 0) return 0;
   else return 1;
@@ -292,7 +294,7 @@ void reorder_tetra(E_Int i, E_Int nf, E_Int *pf, AMesh *M)
 {
   E_Int common[3], map[3];
   E_Int bot = pf[0];
-  E_Int *pn = get_ptr(bot, M->ngon, M->indPG);
+  E_Int *pn = get_facets(bot, M->ngon, M->indPG);
 
   for (E_Int j = 0; j < 3; j++) map[j] = pn[j];
   E_Int reorient = get_reorient(bot, i, normalIn_T[0], M);
@@ -306,7 +308,7 @@ void reorder_tetra(E_Int i, E_Int nf, E_Int *pf, AMesh *M)
 
     for (E_Int k = 0; k < 3; k++) common[k] = 0;
 
-    E_Int *pnn = get_ptr(face, M->ngon, M->indPG);
+    E_Int *pnn = get_facets(face, M->ngon, M->indPG);
 
     for (E_Int k = 0; k < 3; k++) {
       E_Int point = pnn[k];
@@ -344,7 +346,7 @@ void reorder_hexa(E_Int i, E_Int nf, E_Int *pf, AMesh *M)
 {
   E_Int common[4], map[4];
   E_Int bot = pf[0];
-  E_Int *pn = get_ptr(bot, M->ngon, M->indPG);
+  E_Int *pn = get_facets(bot, M->ngon, M->indPG);
   
   for (E_Int i = 0; i < 4; i++) map[i] = pn[i];
   E_Int reorient = get_reorient(bot, i, normalIn_H[0], M);
@@ -358,7 +360,7 @@ void reorder_hexa(E_Int i, E_Int nf, E_Int *pf, AMesh *M)
 
     for (E_Int k = 0; k < 4; k++) common[k] = 0;
 
-    E_Int *pn = get_ptr(face, M->ngon, M->indPG);
+    E_Int *pn = get_facets(face, M->ngon, M->indPG);
 
     for (E_Int k = 0; k < 4; k++) {
       E_Int point = pn[k];
