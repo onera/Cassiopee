@@ -120,13 +120,13 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
   E_Int nijk = ni*nj*nk;
 
   // Build the NGon connectivity
-  E_Int ind1, ind2, ind3, ind4, ind5, ind6;
   E_Int ninti = ni*nj1*nk1;
   E_Int nintj = ni1*nj*nk1;
   //E_Int nintk = ni1*nj1*nk;
 
 #pragma omp parallel if (ncells > __MIN_SIZE_MEAN__)
   {
+    E_Int ind1, ind2, ind3, ind4, ind5, ind6;
     E_Int i, j, k, c;
 
 #pragma omp for
