@@ -21,8 +21,14 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
 if mpi: # source that requires mpi
     cpp_srcs += [
             'XCore/SplitElement/splitter.cpp',
+
+            'XCore/exchangeFields.cpp',
+
+            'XCore/common/mem.cpp',
+
             'XCore/chunk2partNGon.cpp',
             'XCore/chunk2partElt.cpp',
+
             'XCore/adaptMesh/cut.cpp',
             'XCore/adaptMesh/tree.cpp',
             'XCore/adaptMesh/mesh.cpp',
@@ -32,6 +38,7 @@ if mpi: # source that requires mpi
             'XCore/adaptMesh/metric.cpp',
             'XCore/adaptMesh/topo.cpp',
             'XCore/adaptMesh/distribute.cpp',
+
             'XCore/adaptMesh/adaptMeshSeq.cpp',
             'XCore/adaptMesh/createAdaptMesh.cpp',
             'XCore/adaptMesh/extractLeafMesh.cpp',
@@ -39,8 +46,12 @@ if mpi: # source that requires mpi
             'XCore/adaptMesh/computeHessianNGon.cpp',
             'XCore/adaptMesh/computeGradientNGon.cpp',
             'XCore/adaptMesh/computeCellCentersAndVolumes.cpp',
-            'XCore/common/mem.cpp',
-            'XCore/exchangeFields.cpp'
+            
+            'XCore/AdaptMesh/Mesh.cpp',
+            'XCore/AdaptMesh/AdaptMesh.cpp',
+            'XCore/AdaptMesh/Hessian.cpp',
+            'XCore/AdaptMesh/Comm.cpp',
+            'XCore/AdaptMesh/Metric.cpp'
             ]
 else:
     cpp_srcs += [

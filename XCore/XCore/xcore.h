@@ -30,15 +30,21 @@ namespace K_XCORE
 {
   //PyObject* setBCDataInGhostCellsStruct(PyObject* self, PyObject* args);
   PyObject *zoltan1(PyObject *self, PyObject *args);
+
   PyObject *chunk2partNGon(PyObject *self, PyObject *args);
-  PyObject *adaptMesh(PyObject *self, PyObject *args);
   PyObject *chunk2partElt(PyObject *self, PyObject *args);
+
   PyObject *exchangeFields(PyObject *self, PyObject *args);
+
+  PyObject *adaptMesh(PyObject *self, PyObject *args);
   
   PyObject *adaptMeshSeq(PyObject *self, PyObject *args);
   PyObject *extractLeafMesh(PyObject *self, PyObject *args);
   PyObject *createAdaptMesh(PyObject *self, PyObject *args);
 
   PyObject *adaptMeshDir(PyObject *self, PyObject *args);
+
+  PyObject *AdaptMesh(PyObject *self, PyObject *args);
+  PyObject *CreateAdaptMesh(PyObject *self, PyObject *args);
 }
 #endif

@@ -38,6 +38,9 @@ static PyMethodDef Pyxcore [] =
   {"extractLeafMesh", K_XCORE::extractLeafMesh, METH_VARARGS},
   
   {"adaptMeshDir", K_XCORE::adaptMeshDir, METH_VARARGS},
+
+  {"CreateAdaptMesh", K_XCORE::CreateAdaptMesh, METH_VARARGS},
+  {"AdaptMesh", K_XCORE::AdaptMesh, METH_VARARGS},
   {NULL, NULL}
 };
 

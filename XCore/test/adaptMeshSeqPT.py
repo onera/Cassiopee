@@ -17,7 +17,9 @@ def F(x, y):
 
 # Make initial mesh
 nc = 50
-t = G.cartNGon((0,0,0),(1./nc,1./nc,1./nc),(nc+1,nc+1,2))
+t = G.cartHexa((0,0,0),(1./nc,1./nc,1./nc),(nc+1,nc+1,2))
+t = C.convertArray2NGon(t)
+t = G.close(t)
 print("Initial cells:", C.getNCells(t))
 
 # Make adaptMesh

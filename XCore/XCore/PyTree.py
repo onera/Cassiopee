@@ -224,3 +224,39 @@ def createAdaptMesh(t):
         if fc != []:
             AMs.append(XCore.xcore.createAdaptMesh(fc))
     return AMs
+
+############################################################################
+
+def CreateAdaptMesh(t):
+  zones = I.getZones(t)
+  z = zones[0]
+  fc = C.getFields(I.__GridCoordinates__, z, api=3)[0]
+  zgc = I.getNodeFromType(z, 'ZoneGridConnectivity_t')
+  comm_data = I.getNodesFromType(zgc, 'GridConnectivity1to1_t')
+  comm_list = []
+  for data in comm_data:
+    nei_proc = int(I.getValue(data))
+    pfaces = I.getNodeFromName(data, 'PointList')[1]
+    comm_list.append([nei_proc, pfaces])
+
+  return XCore.xcore.CreateAdaptMesh(fc, comm_list)
+
+# 1 - Based on sensor type, do the following:
+#       sensor=0: MARKERS = array of size ncells with cells to refine/unrefine
+#       sensor=1: compute hessian of fields, make MARKERS
+# 2 - Smooth MARKERS
+def AdaptMesh(AM, fields):
+  return XCore.xcore.AdaptMesh(AM, fields)
+
+
+
+
+
+
+
+
+
+
+
+
+
