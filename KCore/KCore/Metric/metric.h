@@ -82,6 +82,9 @@ namespace K_METRIC
   E_Int compute_gradients_ngon(K_FLD::FldArrayI &cn, E_Float *x, E_Float *y,
     E_Float *z, E_Int *owner, E_Int *neigh, E_Float *centers,
     const std::vector<E_Float *> &flds, std::vector<E_Float *> &Gs);
-
+  
+  void compute_cell_center_and_volume(E_Int id, E_Int stride,
+    E_Int *pf, E_Float *x, E_Float *y, E_Float *z, E_Float *fc, E_Float *fa,
+    E_Int *owner, E_Float &cx, E_Float &cy, E_Float &cz, E_Float &vol);
 }
 #endif

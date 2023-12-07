@@ -100,6 +100,68 @@ void K_METRIC::compute_face_center_and_area(E_Int id, E_Int stride,
   }
 }
 
+// Assumes well-oriented mesh
+void K_METRIC::compute_cell_center_and_volume(E_Int id, E_Int stride,
+  E_Int *pf, E_Float *x, E_Float *y, E_Float *z, E_Float *fc, E_Float *fa,
+  E_Int *owner, E_Float &cx, E_Float &cy, E_Float &cz, E_Float &vol)
+{
+  // Estimate cell centers as average of face centers
+  E_Float cEst[3] = {0.0, 0.0, 0.0};
+
+  for (E_Int i = 0; i < stride; i++) {
+    E_Int face = pf[i]-1;
+    E_Float *fcenter = &fc[3*face];
+    
+    for (E_Int j = 0; j < 3; j++)
+      cEst[j] += fcenter[j];
+  }
+  for (E_Int i = 0; i < 3; i++) cEst[i] /= stride;
+
+  // Init
+  vol = 0.0;
+  cx = cy = cz = 0.0;
+
+  for (E_Int i = 0; i < stride; i++) {
+    E_Int face = pf[i]-1;
+    E_Float *fcenter = &fc[3*face];
+    E_Float *farea = &fa[3*face];
+
+    E_Float d[3] = {fcenter[0]-cEst[0], fcenter[1]-cEst[1], fcenter[2]-cEst[2]};
+    
+    // Tree times the face-pyramid volume
+    E_Float pyr3Vol = K_MATH::dot(farea, d, 3);
+
+    // Negate it if current cell is not the owner of face
+    if (id != owner[face]-1) pyr3Vol = -pyr3Vol;
+
+    // Face-pyramid center
+    E_Float pyrCenter[3];
+    for (E_Int j = 0; j < 3; j++)
+      pyrCenter[j] = 0.75*fcenter[j] + 0.25*cEst[j];
+    
+    // Accumulate cell center and volume
+    cx += pyr3Vol * pyrCenter[0];
+    cy += pyr3Vol * pyrCenter[1];
+    cz += pyr3Vol * pyrCenter[2];
+    vol += pyr3Vol;
+  }
+
+  if (fabs(vol) < K_MATH::SMALL) {
+    cx /= vol;
+    cy /= vol;
+    cz /= vol;
+  } else {
+    cx = cEst[0];
+    cy = cEst[1];
+    cz = cEst[2];
+  }
+  
+  vol *= K_MATH::ONE_THIRD;
+
+  if (vol < 0.0)
+    fprintf(stderr, "Warning: cell %d has negative volume %.4e\n", id, vol);
+}
+
 // Assumes closed cell
 // Does not assume faces pointing outwards: volume might be negative
 void K_METRIC::compute_cell_volume(E_Int cell, K_FLD::FldArrayI &cn, E_Float *x, E_Float *y,

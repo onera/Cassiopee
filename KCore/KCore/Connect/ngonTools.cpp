@@ -274,6 +274,7 @@ void get_boundary(E_Int *pn0, E_Int s0, E_Int *pn1, E_Int s1, E_Int *m,
 void K_CONNECT::reversi_connex(E_Int *pgs, E_Int *xpgs, E_Int npgs, E_Int *neighbours, E_Int kseed,
   std::vector<E_Int> &orient)
 {
+  assert(kseed < npgs);
   std::vector<E_Int> cpool;
   cpool.push_back(kseed);
   
@@ -290,7 +291,7 @@ void K_CONNECT::reversi_connex(E_Int *pgs, E_Int *xpgs, E_Int npgs, E_Int *neigh
 
     for (E_Int i = xpgs[K]; i < xpgs[K+1]; i++) {
       E_Int nei = neighbours[i];
-      if (processed[nei])
+      if (processed[nei] || nei == -1)
         continue;
 
       // get the shared edge between face K and face nei
@@ -319,7 +320,7 @@ E_Int _orient_boundary
 (
   K_FLD::FldArrayI &cn,
   E_Float *x, E_Float *y, E_Float *z,
-  E_Int *nface, E_Int *indPH, E_Int ncells,
+  E_Int ncells,
   E_Int *efadj, E_Int *efxadj, E_Int nefaces,
   E_Int *fneis, E_Int *efaces, std::vector<E_Int> &forient,
   const std::vector<E_Int> &cflags, const std::vector<E_Int> &fflags,
@@ -330,17 +331,19 @@ E_Int _orient_boundary
   E_Int seed = -1;
   E_Int refPG = -1;
   E_Int refIdx = -1;
+
   while (++seed < ncells) { 
     if (cflags[seed] != EXTERNAL) continue;
 
-    E_Int cid = cells ? cells[seed] : seed;
+    E_Int cid = (cells != NULL) ? cells[seed] : seed;
+
     if (check_open_cell(cid, cn)) {
       fprintf(stderr, "_orient_boundary(): non-closed cell found. Aborting.\n");
       return 1;
     }
     
     E_Int stride = -1;
-    E_Int *pf = cn.getElt(seed, stride, nface, indPH);
+    E_Int *pf = cn.getElt(cid, stride, cn.getNFace(), cn.getIndPH());
     refPG = -1;
     E_Int local_idx = -1;
     for (E_Int j = 0; j < stride; j++) {
@@ -353,7 +356,7 @@ E_Int _orient_boundary
     }
 
     if (refPG == -1) {
-      fprintf(stderr, "orient_boundary(): couldn't find an external polygon within external polyhedron %d\n", seed);
+      fprintf(stderr, "orient_boundary(): couldn't find an external face within external cell %d\n", cid);
       return 1;
     }
 
@@ -367,7 +370,7 @@ E_Int _orient_boundary
     }
 
     if (refIdx == -1) {
-      fprintf(stderr, "orient_boundary(): couldn't find reference polygon %d in external faces list\n", refPG);
+      fprintf(stderr, "orient_boundary(): couldn't find reference face %d in external faces list\n", refPG);
       return 1;
     }
 
@@ -377,10 +380,7 @@ E_Int _orient_boundary
     // If cvol > 0, orientation of all faces including refPG, is outwards
     // Otherwise, set orientation of refPG to -1.
 
-    if (cells)
-      K_METRIC::compute_cell_volume(cells[seed], cn, x, y, z, cvol, local_idx);
-    else
-      K_METRIC::compute_cell_volume(seed, cn, x, y, z, cvol, local_idx);
+    K_METRIC::compute_cell_volume(cid, cn, x, y, z, cvol, local_idx);
 
     if (fabs(cvol) < DSMALL) continue;
     
@@ -391,6 +391,7 @@ E_Int _orient_boundary
   }
   
   if (seed >= ncells) {
+    assert(0);
     fprintf(stderr, "orient_boundary_ngon(): couldn't find reference polyhedron\n");
     return 1;
   }
@@ -469,7 +470,7 @@ void flag_marked_external_cells(K_FLD::FldArrayI &cn, const std::vector<E_Int> &
   E_Int *nface = cn.getNFace();
   E_Int *indPH = cn.getIndPH();
 
-  // External cells are those with at least on external face
+  // External cells are those with at least one external face
   cflags.resize(cells.size(), INTERNAL);
   for (size_t i = 0; i < cells.size(); i++) {
     E_Int cell = cells[i];
@@ -493,7 +494,7 @@ void flag_all_external_cells(K_FLD::FldArrayI &cn, const std::vector<E_Int> &ffl
   E_Int *indPH = cn.getIndPH(); 
   E_Int ncells = cn.getNElts();
 
-  // External cells are those with at least on external face
+  // External cells are those with at least one external face
   cflags.resize(ncells, INTERNAL);
   for (E_Int i = 0; i < ncells; i++) {
     E_Int stride = -1;
@@ -560,8 +561,9 @@ E_Int K_CONNECT::orient_boundary_ngon(E_Float *x, E_Float *y, E_Float *z,
     // extract nconnex nface-ngon for separate orientation
     for (E_Int color = 0; color < nconnex; color++) {
       std::vector<bool> keep_pgs(nfaces, false);
-      for (E_Int i = 0; i < nefaces; i++)
+      for (E_Int i = 0; i < nefaces; i++) {
         keep_pgs[efaces[i]] = (colors[i] == color);
+      }
       // extract nface corresponding to kept faces
       std::vector<E_Int> NFACE, cxadj(1, 0), cells;
       extract_nface_of_kept_pgs(cn, keep_pgs, NFACE, cxadj, cells);
@@ -569,14 +571,15 @@ E_Int K_CONNECT::orient_boundary_ngon(E_Float *x, E_Float *y, E_Float *z,
       std::vector<E_Int> cflags;
       flag_marked_external_cells(cn, cells, fflags, cflags);
 
-      ret |= _orient_boundary(cn, x, y, z, &NFACE[0], &cxadj[0], (E_Int)cells.size(), 
+      ret |= _orient_boundary(cn, x, y, z, (E_Int)cells.size(), 
         &fadj[0], &xadj[0], nefaces, &fneighbours[0], &efaces[0], forient, cflags,
         fflags, &cells[0]);
     }
   } else {
     std::vector<E_Int> cflags;
     flag_all_external_cells(cn, fflags, cflags);
-    ret = _orient_boundary(cn, x, y, z, nface, indPH, ncells, &fadj[0], &xadj[0], nefaces, &fneighbours[0], &efaces[0], forient, cflags, fflags, NULL);
+    ret = _orient_boundary(cn, x, y, z, ncells, &fadj[0], &xadj[0],
+      nefaces, &fneighbours[0], &efaces[0], forient, cflags, fflags, NULL);
   }
   
   // Apply orientation
