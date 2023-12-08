@@ -334,13 +334,16 @@ def _unlinkCAD2Tree(t):
   return None
 
 # a mettre en convertCAD2PyTree?
-def getTree(hook, N=11):
-  """Get a first meshed tree linked to CAD."""
+def getTree(hook, N=11, hmax=-1, hausd=-1.):
+  """Get a first TRI meshed tree linked to CAD."""
   
   t = C.newPyTree(['EDGES', 'SURFACES'])
 
   # Edges
-  edges = OCC.occ.meshGlobalEdges2(hook, N)
+  if hmax > 0.: edges = OCC.occ.meshGlobalEdges1(hook, hmax)
+  elif hausd > 0.: edges = OCC.occ.meshGlobalEdges4(hook, hausd)
+  else: edges = OCC.occ.meshGlobalEdges2(hook, N)
+
   b = Internal.getNodeFromName1(t, 'EDGES')
   for c, e in enumerate(edges):
     z = Internal.createZoneNode('edge%03d'%(c+1), e, [],
@@ -358,7 +361,8 @@ def getTree(hook, N=11):
   # Faces
   b = Internal.getNodeFromName1(t, 'SURFACES')
   faceNo = []
-  m = OCC.meshTRI__(hook, N=N, faceNo=faceNo)
+  m = OCC.meshTRI__(hook, N=N, hmax=hmax, hausd=hausd, faceNo=faceNo)
+
   for c, f in enumerate(m):
     noface = faceNo[c]
     z = Internal.createZoneNode(C.getZoneName('face%03d'%noface), f, [],

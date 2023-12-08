@@ -146,7 +146,7 @@ E_Int K_OCC::CADread
    eltType.resize(nmeshes, 0);
    zoneNames.resize(nmeshes, nullptr);
  
-   for (unsigned int i=0; i < connectMs.size(); i++)
+   for (size_t i=0; i < connectMs.size(); i++)
    {
      if (connectMs[i].cols() == 0) continue; //failed to mesh it
      

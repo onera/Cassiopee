@@ -29,9 +29,10 @@ namespace K_OCC
   PyObject* readCAD(PyObject* self, PyObject* args);
   PyObject* getNbFaces(PyObject* self, PyObject* args);
   PyObject* getNbEdges(PyObject* self, PyObject* args);
-  PyObject* meshGlobalEdges(PyObject* self, PyObject* args);
+  PyObject* meshGlobalEdges1(PyObject* self, PyObject* args);
   PyObject* meshGlobalEdges2(PyObject* self, PyObject* args);
   PyObject* meshGlobalEdges3(PyObject* self, PyObject* args);
+  PyObject* meshGlobalEdges4(PyObject* self, PyObject* args);
   PyObject* meshEdgesByFace(PyObject* self, PyObject* args);
   PyObject* meshEdgesByFace2(PyObject* self, PyObject* args);
   PyObject* getEdgeNoByFace(PyObject* self, PyObject* args);

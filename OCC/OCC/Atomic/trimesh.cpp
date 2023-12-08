@@ -47,7 +47,6 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
     const TopoDS_Face& F = TopoDS::Face(surfaces(faceNo));
     const OCCSurface& occ_surf = K_OCC::OCCSurface(F, edges, 0);
     
-    
     // Get from array
     FldArrayF* fi; E_Int ni, nj, nk;
     char* varString; FldArrayI* ci; char* eltType;
@@ -97,9 +96,6 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
 
     DELAUNAY::SurfaceMesherMode mode;
     mode.chordal_error = hausd; // chordal error set
-    //if (aniso) mode.metric_mode = mode.ANISO;
-    //else mode.metric_mode = mode.ISO_CST;
-    // ANISO mode ne marche pas!!!!!!!!!!
     mode.metric_mode = mode.ISO_CST;
     mode.symmetrize = false;
     mode.hmax = hmax; // h moyen

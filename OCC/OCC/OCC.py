@@ -127,7 +127,7 @@ def meshSTRUCT__(hook, N=11, faceSubset=None, faceNo=None):
     out = []
     for i in flist:
         # edges de la face i
-        edges = occ.meshEdgesByFace(hook, i+1, N, -1.)
+        edges = occ.meshEdgesByFace(hook, i+1, N, -1., -1.)
         #print("Face %d has %d edges."%(i+1,len(edges)))
         # edges dans espace uv
         edges = switch2UV(edges)
@@ -163,9 +163,10 @@ def meshTRI(fileName, format="fmt_step", N=11, hmax=-1., order=1):
 # IN: faceSubSet: a list of faces to mesh
 # OUT: faceNo: keep the CAD face number for each zone
 # OUT: one mesh per CAD face 
-def meshTRI__(hook, N=11, hmax=-1., order=1, faceSubset=None, faceNo=None):
+def meshTRI__(hook, N=11, hmax=-1., hausd=-1., order=1, faceSubset=None, faceNo=None):
     """Return a TRI discretisation of CAD."""
-    if hmax > 0: out = meshTRIH__(hook, hmax, faceSubset, faceNo)
+    if hmax > 0 and hausd > 0: out = meshTRIH2__(hook, hmax, hausd, order, faceSubset, faceNo)
+    elif hmax > 0 or hausd > 0: out = meshTRIH__(hook, hmax, hausd, order, faceSubset, faceNo)
     else: out = meshTRIN__(hook, N, order, faceSubset, faceNo)
     return out
 
@@ -222,13 +223,12 @@ def meshTRIN__(hook, N=11, order=1, faceSubset=None, faceNo=None):
     out = []
     for i in flist:
         # maille les edges de la face i avec N pt et parametres
-        edges = occ.meshEdgesByFace(hook, i+1, N, -1.)
+        edges = occ.meshEdgesByFace(hook, i+1, N, -1., -1.)
         # edges dans espace uv
         edges = switch2UV(edges)
         T = _scaleUV(edges)
         # force la fermeture de la boucle
         edges = Generator.close(edges, 1.e-4) # the weakness
-        # Delaunay dans espace uv
         edges = Converter.convertArray2Tetra(edges)
         edges = Transform.join(edges)
         edges = Generator.close(edges, 1.e-6)
@@ -278,26 +278,57 @@ def meshTRIU__(hook, globalEdges, order=1, faceSubset=None, faceNo=None):
             Converter.convertArrays2File(edges, 'edges%d.plt'%i)
     return out
 
-# mesh with hmax
-def meshTRIH__(hook, hmax=1., faceSubset=None, faceNo=None):
+# mesh with hmax or hausd
+def meshTRIH__(hook, hmax=-1., hausd=-1, order=1, faceSubset=None, faceNo=None):
     import Generator, Converter, Transform
     nbFaces = occ.getNbFaces(hook)
     if faceSubset is None: flist = list(range(nbFaces))
     else: flist = faceSubset
     out = []
-    for i in range(nbFaces):
+    for i in flist:
         # edges de la face i mailles avec hmax et parametres
-        edges = occ.meshEdgesByFace(hook, i+1, -1, hmax)
+        edges = occ.meshEdgesByFace(hook, i+1, -1, hmax, hausd)
+        # edges dans espace uv
+        edges = switch2UV(edges)
+        T = _scaleUV(edges)
+        edges = Generator.close(edges, 1.e-4) # the weakness
+        edges = Converter.convertArray2Tetra(edges)
+        edges = Transform.join(edges)
+        edges = Generator.close(edges, 1.e-6)
+        edges = reorderEdgesByFace__(edges)
+        try:    
+            a = Generator.T3mesher2D(edges, grading=1.)
+            _unscaleUV([a], T)
+            if order > 1: a = Converter.convertLO2HO(a, order=order)
+            # evaluation sur la CAD
+            o = occ.evalFace(hook, a, i+1)
+            out.append(o)
+            if faceNo is not None: faceNo.append(i+1)
+        except Exception as e:
+            print(str(e))
+            Converter.convertArrays2File(edges, 'edges%d.plt'%i)
+        
+    return out
+
+# using trimesh
+def meshTRIH2__(hook, hmax=-1., hausd=-1, order=1, faceSubset=None, faceNo=None):
+    import Generator, Converter, Transform
+    nbFaces = occ.getNbFaces(hook)
+    if faceSubset is None: flist = list(range(nbFaces))
+    else: flist = faceSubset
+    out = []
+    for i in flist:
+        edges = occ.meshEdgesByFace(hook, i+1, -1, hmax, hausd)
         _scaleUV(edges, vu='u', vv='v')
         edges = Converter.convertArray2Tetra(edges)
         edges = Transform.join(edges)
-        edges = Generator.close(edges, 1.e-4)
-        #edges = Transform.reorder(edges, (-1,))
-        #Converter.convertArrays2File(edges, "edges.plt")
-        #edges doit contenir les coords + uv normalises pour entrer dans trimesh
+        edges = Generator.close(edges, 1.e-6)
+        #edges = reorderEdgesByFace__(edges)
         try:
-            a = occ.trimesh(hook, edges, i+1, hmax, 0.02)
+            #edges doit contenir les coords + uv normalises pour entrer dans trimesh
+            a = occ.trimesh(hook, edges, i+1, hmax, hausd)
             out.append(a)
+            if faceNo is not None: faceNo.append(i+1)
         except Exception as e:
             print(str(e))
             Converter.convertArrays2File(edges, 'edges%d.plt'%i)
@@ -352,7 +383,7 @@ def meshQUAD__(hook, N=11, order=1, faceSubset=None, faceNo=None):
     out = []
     for i in flist:
         # edges de la face i
-        edges = occ.meshEdgesByFace(hook, i+1, N, -1.)
+        edges = occ.meshEdgesByFace(hook, i+1, N, -1., -1.)
         #print("Face %d has %d edges."%(i+1,len(edges)))
         # edges dans espace uv
         edges = switch2UV(edges)
