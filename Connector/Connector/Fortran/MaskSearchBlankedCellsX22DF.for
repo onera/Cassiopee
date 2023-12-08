@@ -41,7 +41,7 @@ C_IN
       REAL_E    z(0:nz-1)       ! pierce points
 
 C_OUT
-      INTEGER_E cellNatureField(0:(ni-1)*(nj-1)*(nk-1)-1) 
+      INTEGER_E cellNatureField(0:MAX(ni-1,1)*MAX(nj-1,1)*MAX(nk-1,1)-1) 
       INTEGER_E isMasked
 C_LOCAL
       INTEGER_E i, j, k, l       ! For loop in the three directions
