@@ -67,7 +67,7 @@ E_Int K_IO::GenIO::stlread(
   { fclose(ptrFile); return 1;} // cette valeur est arbitraire
   
 
-  // Champ
+  // Champ des vertex
   float buf[12];
   short count;
   FldArrayF* f = new FldArrayF(3*nd, 3);

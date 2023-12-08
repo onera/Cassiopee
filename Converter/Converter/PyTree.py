@@ -2332,7 +2332,7 @@ def _TZAGCX(api, t, locin, locout, writeDim, F, Fc, *args):
       fa = getFields(Internal.__FlowSolutionNodes__, z, api)[0]
       if fc != [] and fa != []:
         if api == 1: Converter._addVars([fc, fa])
-        else:
+        else: # array2/3
           fc[0] = fc[0]+','+fa[0]
           fc[1] = fc[1]+fa[1]
         fp = F(fc, *args)
@@ -2353,7 +2353,7 @@ def _TZAGCX(api, t, locin, locout, writeDim, F, Fc, *args):
         if posx == -1 or posy == -1 or posz == -1:
           f = Converter.node2Center(fc)
           if api == 1: Converter._addVars([f, fa])
-          else:
+          else: # array2/3
             f[0] = f[0]+','+fa[0]
             f[1] = f[1]+fa[1]
         else: f = fa
@@ -2367,10 +2367,12 @@ def _TZAGCX(api, t, locin, locout, writeDim, F, Fc, *args):
         if vars != []:
           if api == 1: fp2 = Converter.extractVars(fp, vars)
           else:
-            fp2 = fp[:]; fp2[1] = []
+            fp2 = fp[:]; fp2[1] = []; vs = ''
             for i in vars:
-              p = KCore.isNamePresent(fp, i) 
+              vs += i+','
+              p = KCore.isNamePresent(fp, i)
               fp2[1].append(fp[1][p])
+            fp2[0] = vs[:-1]
           setFields([fp2], z, locout, writeDim)
       elif fc != []:
         fc2 = Converter.node2Center(fc)
@@ -2382,11 +2384,13 @@ def _TZAGCX(api, t, locin, locout, writeDim, F, Fc, *args):
             vars.append(i)
         if vars != []:
           if api == 1: fp2 = Converter.extractVars(fp, vars)
-          else:
-            fp2 = fp[:]; fp2[1] = []
+          else: # array2/3
+            fp2 = fp[:]; fp2[1] = []; vs = ''
             for i in vars:
+              vs += i+','
               p = KCore.isNamePresent(fp, i) 
               fp2[1].append(fp[1][p])
+            fp2[0] = vs[:-1]
           setFields([fp2], z, locout, writeDim)
       elif fa != []:
         fp = Fc(fa, *args)
@@ -2400,7 +2404,9 @@ def _TZAGCX(api, t, locin, locout, writeDim, F, Fc, *args):
       if fc != [] and fa != []:
         if api == 1: f = Converter.addVars([fc, fa])
         else:
-          f = [fc[0]+','+fa[0], fc[1]+fa[1], fc[2]]          
+          f = fc[:]
+          f[0] = fc[0]+','+fa[0]
+          f[1] = fc[1]+fa[1] 
         fp = F(f, *args1)
         setFields([fp], z, 'nodes', writeDim)
       elif fa != []:
@@ -2413,7 +2419,7 @@ def _TZAGCX(api, t, locin, locout, writeDim, F, Fc, *args):
       if fc != [] and fb != []:
         f = Converter.node2Center(fc)
         if api == 1: Converter._addVars([f, fb])
-        else:
+        else: # array2/3
           f[0] = f[0]+','+fb[0]
           f[1] = f[1]+fb[1]
         fp = Fc(f, *args2)
@@ -2425,10 +2431,12 @@ def _TZAGCX(api, t, locin, locout, writeDim, F, Fc, *args):
         if vars != []:
           if api == 1: fp2 = Converter.extractVars(fp, vars)
           else:
-            fp2 = fp[:]; fp2[1] = []
+            fp2 = fp[:]; fp2[1] = []; vs = ''
             for i in vars:
+              vs += i+','
               p = KCore.isNamePresent(fp, i) 
               fp2[1].append(fp[1][p])
+            fp2[0] = vs[:-1]
           setFields([fp2], z, 'centers', writeDim)
       elif fb != []:
         fp = Fc(fb, *args2)
