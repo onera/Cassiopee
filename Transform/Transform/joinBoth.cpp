@@ -31,8 +31,8 @@ PyObject* K_TRANSFORM::joinBoth(PyObject* self, PyObject* args)
 {
   PyObject *array1, *array2, *arrayc1, *arrayc2;
   E_Float tol;
-  if (!PYPARSETUPLE_(args, OOOO_ R_,
-                    &array1, &array2, &arrayc1, &arrayc2, &tol))
+  if (!PYPARSETUPLE_(args, OOOO_ R_, &array1, &array2, &arrayc1, &arrayc2,
+                     &tol))
     return NULL;
 
   // Check array: coordinates and fields of zone 1 and 2 at nodes
@@ -41,10 +41,10 @@ PyObject* K_TRANSFORM::joinBoth(PyObject* self, PyObject* args)
   FldArrayI* cn1; FldArrayI* cn2;
   char *varString1; char *varString2;
   char* eltType1; char* eltType2;
-  E_Int res1 = K_ARRAY::getFromArray(array1, varString1, f1, im1, jm1, km1, 
-				     cn1, eltType1, true);
-  E_Int res2 = K_ARRAY::getFromArray(array2, varString2, f2, im2, jm2, km2, 
-				     cn2, eltType2, true);
+  E_Int res1 = K_ARRAY::getFromArray3(array1, varString1, f1, im1, jm1, km1, 
+				                              cn1, eltType1);
+  E_Int res2 = K_ARRAY::getFromArray3(array2, varString2, f2, im2, jm2, km2, 
+				                              cn2, eltType2);
 
   // Check array: fields located at centers of zone 1 and 2
   E_Int imc1, jmc1, kmc1, imc2, jmc2, kmc2;
@@ -52,22 +52,18 @@ PyObject* K_TRANSFORM::joinBoth(PyObject* self, PyObject* args)
   FldArrayI* cnc1; FldArrayI* cnc2;
   char *varStringc1; char *varStringc2;
   char* eltTypec1; char* eltTypec2;
-  E_Int resc1 = K_ARRAY::getFromArray(arrayc1, varStringc1, fc1, 
-				      imc1, jmc1, kmc1, cnc1, eltTypec1, true);
-  E_Int resc2 = K_ARRAY::getFromArray(arrayc2, varStringc2, fc2, 
-				      imc2, jmc2, kmc2, cnc2, eltTypec2, true);
+  E_Int resc1 = K_ARRAY::getFromArray3(arrayc1, varStringc1, fc1, 
+				                               imc1, jmc1, kmc1, cnc1, eltTypec1);
+  E_Int resc2 = K_ARRAY::getFromArray3(arrayc2, varStringc2, fc2, 
+				                               imc2, jmc2, kmc2, cnc2, eltTypec2);
 
   vector<E_Int> pos1; vector<E_Int> posc1;
   vector<E_Int> pos2; vector<E_Int> posc2;
   E_Int im, jm, km, imc, jmc, kmc;
-  FldArrayF* an = new FldArrayF();
-  FldArrayF& field = *an;
-  FldArrayF* ac = new FldArrayF();
-  FldArrayF& fieldc = *ac;
   PyObject* l = PyList_New(0);
   E_Int res = 0;
   E_Int resprod = res1*res2*resc1*resc2;
-  if (resprod <=0)
+  if (resprod <= 0)
   {
     if ( res1 > 0 ) RELEASESHAREDB(res1,  array1,   f1, cn1); 
     if (resc1 > 0 ) RELEASESHAREDB(resc1, arrayc1, fc1, cnc1); 
@@ -84,7 +80,8 @@ PyObject* K_TRANSFORM::joinBoth(PyObject* self, PyObject* args)
     RELEASESHAREDB(res2, array2, f2, cn2); 
     RELEASESHAREDB(resc2, arrayc2, fc2, cnc2);
     PyErr_SetString(PyExc_TypeError,
-                    "joinBoth: cannot be used with one structured and one unstructured array.");
+                    "joinBoth: cannot be used with one structured and one "
+                    "unstructured array.");
     return NULL;
   }
   else 
@@ -99,11 +96,12 @@ PyObject* K_TRANSFORM::joinBoth(PyObject* self, PyObject* args)
       RELEASESHAREDB(res2, array2, f2, cn2); 
       RELEASESHAREDB(resc2, arrayc2, fc2, cnc2);
       PyErr_SetString(PyExc_TypeError,
-                      "joinBoth:  one array is empty.");
+                      "joinBoth: one array is empty.");
       return NULL;
     }
     if (pos1.size() != (size_t)f1->getNfld() || pos2.size() != (size_t)f2->getNfld())
-      printf("Warning: joinBoth: some variables located at nodes are different. Only variables %s are kept.\n",varString);
+      printf("Warning: joinBoth: some variables located at nodes are different. "
+             "Only variables %s are kept.\n", varString);
 
     char* varStringc = new char[strlen(varStringc1)+strlen(varStringc2)+4];
     res0 = K_ARRAY::getPosition(varStringc1, varStringc2, posc1, posc2, 
@@ -142,8 +140,10 @@ PyObject* K_TRANSFORM::joinBoth(PyObject* self, PyObject* args)
     }
     posx1++; posy1++; posz1++; posx2++; posy2++; posz2++; 
 
-    if (resprod==1)//structure
+    if (resprod == 1) //structure
     {
+      FldArrayF* an = new FldArrayF(); FldArrayF& field = *an;
+      FldArrayF* ac = new FldArrayF(); FldArrayF& fieldc = *ac;
       res = joinBothStructured(*f1, im1, jm1, km1, posx1, posy1, posz1,
                                *f2, im2, jm2, km2, posx2, posy2, posz2,
                                *fc1, imc1, jmc1, kmc1, *fc2, imc2, jmc2, kmc2, 
@@ -160,53 +160,35 @@ PyObject* K_TRANSFORM::joinBoth(PyObject* self, PyObject* args)
       }
       RELEASESHAREDS(array1, f1); RELEASESHAREDS(arrayc1, fc1);
       RELEASESHAREDS(array2, f2); RELEASESHAREDS(arrayc2, fc2);
-      PyObject* tpl1 = K_ARRAY::buildArray(*an, varString, im, jm, km);
+      PyObject* tpl1 = K_ARRAY::buildArray3(*an, varString, im, jm, km);
       PyList_Append(l, tpl1); Py_DECREF(tpl1); delete an;
-      PyObject* tpl2 = K_ARRAY::buildArray(*ac, varStringc,imc, jmc, kmc);
+      PyObject* tpl2 = K_ARRAY::buildArray3(*ac, varStringc, imc, jmc, kmc);
       PyList_Append(l, tpl2); Py_DECREF(tpl2); delete ac;
       delete [] varString; delete [] varStringc;
       return l;
     }
-    else// if (resprod==16)
+    else // if (resprod==16)
     {
-      if (strcmp(eltType1,eltType2) != 0 || strcmp(eltTypec1,eltTypec2) != 0)
+      if ( strcmp(eltType1, "NGON") == 0 && strcmp(eltType2, "NGON") == 0 )
       {
-        RELEASESHAREDU(array1, f1, cn1); RELEASESHAREDU(arrayc1, fc1, cnc1);
-        RELEASESHAREDU(array2, f2, cn2); RELEASESHAREDU(arrayc2, fc2, cnc2);
-        printf("Error: joinBoth: %s %s and %s %s.\n", eltType1,eltType2,eltTypec1,eltTypec2);
-        PyErr_SetString(PyExc_ValueError,
-                        "joinBoth: unstructured arrays must be of same element type.");
-        delete [] varString; delete [] varStringc;
-        return NULL;
+        l = joinBothNGON(*f1, *fc1, *cn1, *f2, *fc2, *cn2,
+                         posx1, posy1, posz1, varString, varStringc, tol);
       }
-
-      FldArrayI* cn = new FldArrayI(); FldArrayI* cnc = new FldArrayI();
-      if ( strcmp(eltType1,"NGON") == 0 &&  strcmp(eltType2,"NGON") == 0 )
-        res =  joinBothNGON(*f1, *cn1, *fc1, *cnc1, posx1, posy1, posz1,
-                            *f2, *cn2, *fc2, *cnc2, posx2, posy2, posz2,
-                            pos1, pos2, posc1, posc2, field, *cn, fieldc, *cnc, tol);
-
-      else if ( strcmp(eltType1,"NGON") != 0 &&  strcmp(eltType2,"NGON") != 0 )
-        res = joinBothUnstructured(*f1, *cn1, *fc1, *cnc1, posx1, posy1, posz1,
-                                   *f2, *cn2, *fc2, *cnc2, posx2, posy2, posz2,
-                                   pos1, pos2, posc1, posc2, eltType1,
-                                   field, *cn, fieldc, *cnc, tol);
-      else //res==0
+      else if ( strcmp(eltType1, "NGON") != 0 && strcmp(eltType2, "NGON") != 0 )
       {
-        RELEASESHAREDU(array1, f1, cn1); RELEASESHAREDU(arrayc1, fc1, cnc1);
-        RELEASESHAREDU(array2, f2, cn2); RELEASESHAREDU(arrayc2, fc2, cnc2);
+        l = joinBothUnstructured(*f1, *fc1, *cn1, *f2, *fc2, *cn2,
+                                 posx1, posy1, posz1, eltType1, eltType2,
+                                 varString, varStringc, tol);
+      }
+      else
+      {
         PyErr_SetString(PyExc_TypeError,
-                        "joinBoth: cannot join!");
-        delete [] varString; delete [] varStringc;
-        return NULL;
+                        "joinBoth: can only join NGON array with another "
+                        "NGON array");
+        l = NULL;
       }
       RELEASESHAREDU(array1, f1, cn1); RELEASESHAREDU(arrayc1, fc1, cnc1);
       RELEASESHAREDU(array2, f2, cn2); RELEASESHAREDU(arrayc2, fc2, cnc2);
-      PyObject* tpl1 = K_ARRAY::buildArray(*an, varString, *cn, -1, eltType1);
-      PyList_Append(l, tpl1); Py_DECREF(tpl1); delete an; delete cn;
-      PyObject* tpl2 = K_ARRAY::buildArray(*ac, varStringc, *cnc, -1, eltType1,
-                                           true);
-      PyList_Append(l, tpl2); Py_DECREF(tpl2); delete ac; delete cnc;
       delete [] varString; delete [] varStringc;
       return l;
     }
@@ -839,194 +821,290 @@ E_Int K_TRANSFORM::joinbothstructured1d(
    Join topologique: somme des vertex et de la connectivite aux noeuds
    idem en centres
    + cleanConnectivity de la connectivite en noeuds
-   field, fieldc, cn, cnc sont alloues ici 
 */
 //=============================================================================
-E_Int K_TRANSFORM::joinBothUnstructured(
-  FldArrayF& f1, FldArrayI& cn1,
-  FldArrayF& fc1, FldArrayI& cnc1,
-  E_Int posx1, E_Int posy1, E_Int posz1,
-  FldArrayF& f2, FldArrayI& cn2,
-  FldArrayF& fc2, FldArrayI& cnc2,
-  E_Int posx2, E_Int posy2, E_Int posz2,
-  vector<E_Int>& pos1, vector<E_Int>& pos2,
-  vector<E_Int>& posc1, vector<E_Int>& posc2,
-  char* eltType,
-  FldArrayF& field, FldArrayI& cn, FldArrayF& fieldc, FldArrayI& cnc,
+PyObject* K_TRANSFORM::joinBothUnstructured(
+  FldArrayF& f1, FldArrayF& fc1, FldArrayI& cn1,
+  FldArrayF& f2, FldArrayF& fc2, FldArrayI& cn2,
+  E_Int posx, E_Int posy, E_Int posz,
+  char* eltType1, char* eltType2,
+  char* varString, char* varStringc,
   E_Float tol)
 {
-  if (cn1.getNfld() != cn2.getNfld()) return 0;
-  if (cnc1.getNfld() != cnc2.getNfld()) return 0;
-  if (cnc1.getNfld() != cn1.getNfld() || cnc1.getNfld() != cn1.getNfld())
-  {
-    printf("joinBoth: type of elements must be the same for fields at nodes and at centers.\n");
-    return 0;
-  }
-  E_Int nvert = cn1.getNfld();  
-  E_Int nfld = pos1.size(); E_Int nfldc = posc1.size();
-  field.malloc(f1.getSize()+f2.getSize(), nfld);
-  fieldc.malloc(fc1.getSize()+fc2.getSize(), nfldc);
-  cn.malloc(cn1.getSize()+cn2.getSize(), nvert);
+  // Acces universel sur BE/ME
+  E_Int nc1 = cn1.getNConnect(), nc2 = cn2.getNConnect();
+  E_Int nc = nc1;
+  E_Int nfld = f1.getNfld(), nfldc = fc1.getNfld();
+  E_Int npts1 = f1.getSize(), npts2 = f2.getSize();
+  E_Int npts = npts1 + npts2;
 
-  /* Fusion des connectivites */
-  E_Int nelts1 = cn1.getSize();
-  E_Int nelts2 = cn2.getSize();
-  E_Int nf1 = f1.getSize();E_Int nfc1 = fc1.getSize();
-  E_Int c;
-  for (E_Int n = 1; n <= nvert; n++)
+  // Acces universel aux eltTypes
+  vector<char*> eltTypes, eltTypes2;
+  K_ARRAY::extractVars(eltType2, eltTypes2);
+  // Concatenate elttypes, discard duplicates
+  char eltType[K_ARRAY::VARSTRINGLENGTH]; eltType[0] = '\0';
+  strcpy(eltType, eltType1);
+  for (E_Int ic = 0; ic < nc2; ic++)
   {
-    E_Int* cn1n = cn1.begin(n);
-    E_Int* cn2n = cn2.begin(n);
-    E_Int* cnn = cn.begin(n);
-    for (E_Int i = 0; i < nelts1; i++) cnn[i] = cn1n[i];
-    c = nelts1;
-    for (E_Int i = 0; i < nelts2; i++){cnn[c] = cn2n[i]+nf1; c++;}
-  }
-  /* champs en noeuds */
-  E_Int count = 1;
-  for (E_Int eq = 0 ; eq < nfld; eq++)
-  {
-    E_Int eq1 = pos1[eq]; E_Int eq2 = pos2[eq];
-    //E_Float* floc1 = f1.begin(eq1);
-    E_Float* floc2 = f2.begin(eq2);
-    field.setOneField(f1, eq1, count);
-    E_Float* fn = field.begin(count);
-    c = nf1;
-    for (E_Int i = 0; i < f2.getSize(); i++)
-    {fn[c] = floc2[i]; c++;}
-    count++;
-  }
-
-  /* champs en centres */
-  count = 1;
-  for (E_Int eq = 0 ; eq < nfldc; eq++)
-  {
-    E_Int eq1 = posc1[eq]; E_Int eq2 = posc2[eq];
-    //E_Float* floc1 = fc1.begin(eq1);
-    E_Float* floc2 = fc2.begin(eq2);
-    fieldc.setOneField(fc1, eq1, count);
-    E_Float* fc = fieldc.begin(count);
-    c = nfc1;
-    for (E_Int i = 0; i < fc2.getSize(); i++){fc[c] = floc2[i]; c++;}
-    count++;
-  }
-
-  /* Clean connectivity */
-  K_CONNECT::cleanConnectivity(posx1, posy1, posz1, tol, eltType, 
-                               field, cn);
-  cnc = cn;
-  return 1;
-}
-//=============================================================================
-/* Join topologique : somme des vertex et de la connectivite 
-   + cleanConnectivity
-   field est alloue ici 
-   Il faut que les champs soient ranges dans le meme ordre */
-//=============================================================================
-E_Int K_TRANSFORM::joinBothNGON(FldArrayF& f1, FldArrayI&  cn1,
-                                FldArrayF& fc1, FldArrayI&  cnc1,
-                                E_Int posx1, E_Int posy1, E_Int posz1,
-                                FldArrayF& f2, FldArrayI& cn2,
-                                FldArrayF& fc2, FldArrayI& cnc2,
-                                E_Int posx2, E_Int posy2, E_Int posz2,
-                                vector<E_Int>& pos1, vector<E_Int>& pos2,
-                                vector<E_Int>& posc1, vector<E_Int>& posc2,
-                                FldArrayF& field, FldArrayI& cn,
-                                FldArrayF& fieldc, FldArrayI& cnc,
-                                E_Float tol)
-{
-  E_Int* cn1p = cn1.begin(); E_Int* cn2p = cn2.begin();
-  E_Int nfaces1 = cn1p[0]; E_Int sizeFN1 = cn1p[1];
-  E_Int nfaces2 = cn2p[0]; E_Int sizeFN2 = cn2p[1];
-  E_Int nelts1 = cn1p[sizeFN1+2]; E_Int sizeEF1 = cn1p[sizeFN1+3];
-  E_Int nelts2 = cn2p[sizeFN2+2]; E_Int sizeEF2 = cn2p[sizeFN2+3];
-  E_Int* cFN1 = cn1.begin()+2; E_Int* cEF1 = cn1.begin()+sizeFN1+4;  
-  E_Int* cFN2 = cn2.begin()+2; E_Int* cEF2 = cn2.begin()+sizeFN2+4;
-
-  E_Int npts1 = f1.getSize();
-  E_Int npts2 = f2.getSize();
-  E_Int nfld = pos1.size(); E_Int nfldc = posc1.size();
-
-  // Fusion des vertex
-  field.malloc(f1.getSize() + f2.getSize(), nfld);
-  for (E_Int n = 1; n <= nfld; n++)
-    field.setOneField(f1, n, n);
-  E_Int c = 0;
-  for (E_Int n = 1; n <= nfld; n++)
-  {
-    E_Float* f2n = f2.begin(n);
-    E_Float* fn = field.begin(n);
-    c = npts1;
-    for (E_Int i = 0; i < npts2; i++)
+    char* eltTypConn2 = eltTypes2[ic];
+    if (strstr(eltType, eltTypConn2) == NULL)
     {
-      fn[c] = f2n[i]; c++;
+      strcat(eltType, ",");
+      strcat(eltType, eltTypConn2);
+      nc += 1;
     }
   }
-  // Fusion des centres
-  fieldc.malloc(fc1.getSize() + fc2.getSize(), nfldc);
-  for (E_Int n = 1; n <= nfldc; n++)
-    fieldc.setOneField(fc1, n, n);
-  c = 0;
-  for (E_Int n = 1; n <= nfldc; n++)
+
+  // ME: api = 3 only
+  E_Int api = f1.getApi();
+  if (nc > 1) api = 3;
+
+  K_ARRAY::extractVars(eltType, eltTypes);
+  vector<E_Int> nelts(nc, 0);
+  E_Int neltstot = 0;
+  // Table d'indirection pour la seconde connectivite ME
+  vector<E_Int> indir2(nc2, -1);
+
+  // Calcule le nombre d'elements par type de connectivite et
+  // rempli la table d'indirection
+  for (E_Int ic = 0; ic < nc; ic++)
   {
-    E_Float* f2c = fc2.begin(n);
-    E_Float* fc = fieldc.begin(n);
-    c = fc1.getSize();
-    for (E_Int i = 0; i < fc2.getSize(); i++)
+    char* eltTypConn = eltTypes[ic];
+    if (ic < nc1)
     {
-      fc[c] = f2c[i]; c++;
+      FldArrayI& cm1 = *(cn1.getConnect(ic));
+      nelts[ic] += cm1.getSize();
+      neltstot += nelts[ic];
+    }
+
+    for (E_Int ic2 = 0; ic2 < nc2; ic2++)
+    {
+      char* eltTypConn2 = eltTypes2[ic2];
+      if (K_STRING::cmp(eltTypConn, eltTypConn2) == 0)
+      {
+        FldArrayI& cm2 = *(cn2.getConnect(ic2));
+        nelts[ic] += cm2.getSize();
+        neltstot += nelts[ic];
+        indir2[ic2] = ic;
+      }
     }
   }
 
   // Fusion des connectivites
-  E_Int nfaces = nfaces1+nfaces2;
-  E_Int sizeFN = sizeFN1+sizeFN2;
-  E_Int nelts = nelts1+nelts2;
-  E_Int sizeEF = sizeEF1+sizeEF2;
-  cn.malloc(4+sizeFN+sizeEF,1);
-  E_Int* cnp = cn.begin();
-  cnp[0] = nfaces; cnp[1] = sizeFN;
-  cnp[2+sizeFN] = nelts;
-  cnp[3+sizeFN] = sizeEF;
-  E_Int* cFN = cn.begin()+2; E_Int* cEF = cn.begin()+sizeFN+4;
-  
-  //connectivite faces/noeuds
-  c = 0;
-  E_Int i = 0;
-  while(i < sizeFN1) 
+  PyObject* tpln = K_ARRAY::buildArray3(nfld, varString, npts, nelts,
+                                        eltType, false, api);
+  FldArrayF* f; FldArrayI* cn;
+  K_ARRAY::getFromArray3(tpln, f, cn);
+
+  // Nouveaux champs aux centres (la connectivite sera identique a cn)
+  E_Boolean compact = false;
+  if (api == 1) compact = true;
+  FldArrayF* fc = new FldArrayF(neltstot, nfldc, compact);
+
+  #pragma omp parallel
   {
-    cFN[i] = cFN1[i];// nb de noeuds pour la face
-    for (E_Int i2 = 1; i2 <= cFN[i]; i2++)
-    {cFN[i+i2] = cFN1[i+i2]; c = K_FUNC::E_max(cFN[i+i2],c);}
-    i+=cFN[i]+1;
-  }
-  i = 0;
-  while (i < sizeFN2)
-  {
-    cFN[i+sizeFN1] = cFN2[i];// nb de noeuds pour la face
-    for (E_Int i2 = 1; i2 <= cFN2[i]; i2++)
-    {cFN[i+i2+sizeFN1] = cFN2[i+i2]+c;}
-    i+=cFN2[i]+1;
-  }
-  //connectivite elts/faces
-  c = 0; i = 0;
-  while(i < sizeEF1) 
-  {
-    cEF[i] = cEF1[i];// nb de faces par elt
-    for (E_Int i2 = 1; i2 <= cEF1[i]; i2++)
-    {cEF[i+i2] = cEF1[i+i2]; c = K_FUNC::E_max(cEF[i+i2],c);}
-    i+=cEF[i]+1;
-  }
-  i = 0;
-  while (i < sizeEF2)
-  {
-    cEF[i+sizeEF1] = cEF2[i];// nb de faces par elt
-    for (E_Int i2 = 1; i2 <= cEF2[i]; i2++)
-    {cEF[i+i2+sizeEF1] = cEF2[i+i2]+c;}
-    i += cEF2[i]+1;
+    // Copie des champs aux noeuds
+    for (E_Int n = 1; n <= nfld; n++)
+    {
+      E_Float* f1n = f1.begin(n);
+      E_Float* f2n = f2.begin(n);
+      E_Float* fn = f->begin(n);
+      #pragma omp for
+      for (E_Int i = 0; i < npts1; i++) fn[i] = f1n[i];
+      #pragma omp for
+      for (E_Int i = 0; i < npts2; i++) fn[i+npts1] = f2n[i];
+    }
+    
+    // Copie des champs aux centres
+    for (E_Int n = 1; n <= nfldc; n++)
+    {
+      E_Float* fc1n = fc1.begin(n);
+      E_Float* fc2n = fc2.begin(n);
+      E_Float* fcn = fc->begin(n);
+      E_Int nelts1 = fc1.getSize();
+      #pragma omp for
+      for (E_Int i = 0; i < nelts1; i++) fcn[i] = fc1n[i];
+      #pragma omp for
+      for (E_Int i = 0; i < fc2.getSize(); i++) fcn[i+nelts1] = fc2n[i];
+    }
+
+    // Boucle sur toutes les connectivites du premier ME
+    for (E_Int ic = 0; ic < nc1; ic++)
+    {
+      FldArrayI& cm1 = *(cn1.getConnect(ic));
+      FldArrayI& cm = *(cn->getConnect(ic));
+      #pragma omp for
+      for (E_Int i = 0; i < cm1.getSize(); i++)
+        for (E_Int j = 1; j <= cm1.getNfld(); j++)
+          cm(i,j) = cm1(i,j);
+    }
+
+    // Boucle sur toutes les connectivites du second ME
+    for (E_Int ic = 0; ic < nc2; ic++)
+    {
+      FldArrayI& cm2 = *(cn2.getConnect(ic));
+      FldArrayI& cm = *(cn->getConnect(indir2[ic]));
+      E_Int nelts2 = cm2.getSize();
+      E_Int offsetElts = cm.getSize() - nelts2;
+      #pragma omp for
+      for (E_Int i = 0; i < nelts2; i++)
+        for (E_Int j = 1; j <= cm2.getNfld(); j++)
+          // Add offsets
+          cm(i+offsetElts,j) = cm2(i,j) + npts1;
+    }
   }
 
-//   K_CONNECT::cleanConnectivity(posx1, posy1, posz1, tol, "NGON", field, cn);
-  cnc = cn;
-  return 1;
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+  for (size_t ic = 0; ic < eltTypes2.size(); ic++) delete [] eltTypes2[ic];
+  // Clean connectivity
+  if (posx > 0 && posy > 0 && posz > 0)
+  {
+    K_CONNECT::cleanConnectivity(posx, posy, posz, tol, eltType, *f, *cn);
+    tpln = K_ARRAY::buildArray3(*f, varString, *cn, eltType);
+  }
+
+  PyObject* l = PyList_New(0);
+  PyList_Append(l, tpln); Py_DECREF(tpln);
+  char eltTypec[K_ARRAY::VARSTRINGLENGTH];
+  K_ARRAY::starVarString(eltType, eltTypec);
+  PyObject* tplc = K_ARRAY::buildArray3(*fc, varStringc, *cn, eltTypec);
+  PyList_Append(l, tplc); Py_DECREF(tplc); delete fc;
+  return l;
+}
+//=============================================================================
+/* Join topologique : somme des vertex et de la connectivite 
+   + cleanConnectivity de la connectivite en noeuds
+   Il faut que les champs soient ranges dans le meme ordre */
+//=============================================================================
+PyObject* K_TRANSFORM::joinBothNGON(FldArrayF& f1, FldArrayF& fc1,
+                                    FldArrayI& cn1, FldArrayF& f2,
+                                    FldArrayF& fc2, FldArrayI& cn2,
+                                    E_Int posx, E_Int posy, E_Int posz,
+                                    char* varString, char* varStringc,
+                                    E_Float tol)
+{
+  E_Int nfaces1 = cn1.getNFaces(), sizeFN1 = cn1.getSizeNGon();
+  E_Int nfaces2 = cn2.getNFaces(), sizeFN2 = cn2.getSizeNGon();
+  E_Int nelts1 = cn1.getNElts(), sizeEF1 = cn1.getSizeNFace();
+  E_Int nelts2 = cn2.getNElts(), sizeEF2 = cn2.getSizeNFace();
+
+  E_Int nfld = f1.getNfld(); E_Int nfldc = fc1.getNfld();
+  E_Int npts1 = f1.getSize();
+  E_Int npts2 = f2.getSize();
+
+  // Fusion des connectivites
+  E_Int nfaces = nfaces1 + nfaces2;
+  E_Int sizeFN = sizeFN1 + sizeFN2;
+  E_Int nelts = nelts1 + nelts2;
+  E_Int sizeEF = sizeEF1 + sizeEF2;
+  E_Int npts = npts1 + npts2;
+
+  E_Int api = f1.getApi();
+  E_Int ngonType = 1; // CGNSv3 compact array1
+  if (api == 2) ngonType = 2; // CGNSv3, array2
+  else if (api == 3) ngonType = 3; // force CGNSv4, array3
+  PyObject* tpln = K_ARRAY::buildArray3(nfld, varString, npts, nelts,
+                                        nfaces, "NGON", sizeFN, sizeEF,
+                                        ngonType, false, api);
+  FldArrayF* f; FldArrayI* cn;
+  K_ARRAY::getFromArray3(tpln, f, cn);
+
+  // Nouveaux champs aux centres (la connectivite sera identique a cn)
+  E_Boolean compact = false;
+  if (api == 1) compact = true;
+  FldArrayF* fc = new FldArrayF(nelts, nfldc, compact);
+
+  // Acces non universel sur les ptrs
+  E_Int *ngon1 = cn1.getNGon(), *ngon2 = cn2.getNGon(), *ngon = cn->getNGon();
+  E_Int *nface1 = cn1.getNFace(), *nface2 = cn2.getNFace(), *nface = cn->getNFace();
+  E_Int *indPG1 = NULL, *indPG2 = NULL, *indPG = NULL;
+  E_Int *indPH1 = NULL, *indPH2 = NULL, *indPH = NULL;
+  if (api == 2 || api == 3)
+  {
+    indPG1 = cn1.getIndPG(); indPG2 = cn2.getIndPG(); indPG = cn->getIndPG();
+    indPH1 = cn1.getIndPH(); indPH2 = cn2.getIndPH(); indPH = cn->getIndPH();
+  }
+
+  #pragma omp parallel
+  {
+    // Copie des champs aux noeuds
+    for (E_Int n = 1; n <= nfld; n++)
+    {
+      E_Float* f1n = f1.begin(n);
+      E_Float* f2n = f2.begin(n);
+      E_Float* fn = f->begin(n);
+      #pragma omp for
+      for (E_Int i = 0; i < npts1; i++) fn[i] = f1n[i];
+      #pragma omp for
+      for (E_Int i = 0; i < npts2; i++) fn[i+npts1] = f2n[i];
+    }
+
+    // Copie des champs aux centres
+    for (E_Int n = 1; n <= nfldc; n++)
+    {
+      E_Float* fc1n = fc1.begin(n);
+      E_Float* fc2n = fc2.begin(n);
+      E_Float* fcn = fc->begin(n);
+      #pragma omp for
+      for (E_Int i = 0; i < nelts1; i++) fcn[i] = fc1n[i];
+      #pragma omp for
+      for (E_Int i = 0; i < nelts2; i++) fcn[i+nelts1] = fc2n[i];
+    }
+
+    // Copie des connectivites (add offset to all elements of the second
+    // connectivity and correct outside the parallel block)
+    #pragma omp for
+    for (E_Int i = 0; i < sizeFN1; i++) ngon[i] = ngon1[i];
+    #pragma omp for
+    for (E_Int i = 0; i < sizeFN2; i++) ngon[i+sizeFN1] = ngon2[i] + npts1;
+
+    #pragma omp for
+    for (E_Int i = 0; i < sizeEF1; i++) nface[i] = nface1[i];
+    #pragma omp for
+    for (E_Int i = 0; i < sizeEF2; i++) nface[i+sizeEF1] = nface2[i] + nfaces1;
+
+    if (api == 2 || api == 3)
+    {
+      #pragma omp for
+      for (E_Int i = 0; i < nfaces1; i++) indPG[i] = indPG1[i];
+      #pragma omp for
+      for (E_Int i = 0; i < nfaces2; i++) indPG[i+nfaces1] = indPG2[i] + nfaces1;
+
+      #pragma omp for
+      for (E_Int i = 0; i < nelts1; i++) indPH[i] = indPH1[i];
+      #pragma omp for
+      for (E_Int i = 0; i < nelts2; i++) indPH[i+nelts1] = indPH2[i] + nelts1;
+    }
+  }
+
+  // Correction for number of vertices per face and number of faces per element
+  // for the second connectivity
+  if (api != 3)
+  {
+    E_Int ind = 0;
+    for (E_Int i = 0; i < nfaces2; i++)
+    {
+      ngon[sizeFN1+ind] = ngon2[ind];
+      ind += ngon2[ind]+1;
+    }
+    ind = 0;
+    for (E_Int i = 0; i < nelts2; i++)
+    {
+      nface[sizeEF1+ind] = nface2[ind];
+      ind += nface2[ind]+1;
+    }
+  }
+
+  // TODO VINCENT: connectivity not cleaned in the original code
+  // if (posx > 0 && posy > 0 && posz > 0)
+  // {
+  //   K_CONNECT::cleanConnectivityNGon(posx, posy, posz, tol, *f, *cn);
+  //   tpln = K_ARRAY::buildArray3(*f, varString, *cn, "NGON");
+  // }
+  
+  PyObject* l = PyList_New(0);
+  PyList_Append(l, tpln); Py_DECREF(tpln);
+  PyObject* tplc = K_ARRAY::buildArray3(*fc, varStringc, *cn, "NGON*");
+  PyList_Append(l, tplc); Py_DECREF(tplc); delete fc;
+  return l;
 }

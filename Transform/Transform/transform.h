@@ -131,42 +131,27 @@ namespace K_TRANSFORM
                              FldArrayF& fieldc, E_Int& imc, E_Int& jmc, E_Int& kmc, E_Float tol);
 
   /* Join 2 arrays non structures */
-  E_Int joinUnstructured(FldArrayF& f1, FldArrayI& cn1,
-                         E_Int posx1, E_Int posy1, E_Int posz1,
-                         FldArrayF& f2, FldArrayI& cn2,
-                         E_Int posx2, E_Int posy2, E_Int posz2,
-                         E_Int nfld, char* eltType,
-                         FldArrayF& field, FldArrayI& cn, E_Float tol);
-  E_Int joinBothUnstructured(FldArrayF& f1, FldArrayI& cn1,
-                             FldArrayF& fc1, FldArrayI& cnc1,
-                             E_Int posx1, E_Int posy1, E_Int posz1,
+  PyObject* joinUnstructured(FldArrayF& f1, FldArrayI& cn1,
                              FldArrayF& f2, FldArrayI& cn2,
-                             FldArrayF& fc2, FldArrayI& cnc2,
-                             E_Int posx2, E_Int posy2, E_Int posz2,
-                             std::vector<E_Int>& pos1, std::vector<E_Int>& pos2,
-                             std::vector<E_Int>& posc1, std::vector<E_Int>& posc2,
-                             char* eltType,
-                             FldArrayF& field, FldArrayI& cn, 
-                             FldArrayF& fieldc, FldArrayI& cnc,
-                             E_Float tol);
+                             E_Int posx, E_Int posy, E_Int posz,
+                             char* eltType1, char* eltType2,
+                             char* varString, E_Float tol);
+  PyObject* joinBothUnstructured(FldArrayF& f1, FldArrayF& fc1, FldArrayI& cn1,
+                                 FldArrayF& f2, FldArrayF& fc2, FldArrayI& cn2,
+                                 E_Int posx, E_Int posy, E_Int posz,
+                                 char* eltType1, char* eltType2,
+                                 char* varString, char* varStringc,
+                                 E_Float tol);
 
   /* Join 2 arrays NGON */
-  E_Int joinNGON(FldArrayF& f1, FldArrayI& cn1,
-                 E_Int posx1, E_Int posy1, E_Int posz1,
-                 FldArrayF& f2, FldArrayI& cn2,
-                 E_Int posx2, E_Int posy2, E_Int posz2,
-                 E_Int nfld, FldArrayF& field, FldArrayI& cn, E_Float tol);
-  E_Int joinBothNGON(FldArrayF& f1, FldArrayI&  cn1,
-                     FldArrayF& fc1, FldArrayI&  cnc1,
-                     E_Int posx1, E_Int posy1, E_Int posz1,
+  PyObject* joinNGON(FldArrayF& f1, FldArrayI& cn1,
                      FldArrayF& f2, FldArrayI& cn2,
-                     FldArrayF& fc2, FldArrayI& cnc2,
-                     E_Int posx2, E_Int posy2, E_Int posz2,
-                     std::vector<E_Int>& pos1,  std::vector<E_Int>& pos2,
-                     std::vector<E_Int>& posc1,  std::vector<E_Int>& posc2,
-                     FldArrayF& field, FldArrayI& cn,
-                     FldArrayF& fieldc, FldArrayI& cnc,
-                     E_Float tol);
+                     E_Int posx, E_Int posy, E_Int posz,
+                     char* varString, E_Float tol);
+  PyObject* joinBothNGON(FldArrayF& f1, FldArrayF& fc1, FldArrayI& cn1,
+                         FldArrayF& f2, FldArrayF& fc2, FldArrayI& cn2,
+                         E_Int posx, E_Int posy, E_Int posz,
+                         char* varString, char* varStringc, E_Float tol);
 
   /* Split d'une courbe structuree  definie par f */
   void splitSplineStruct(E_Float dmax, E_Float cvmax,
