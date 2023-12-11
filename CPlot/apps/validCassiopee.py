@@ -1188,9 +1188,11 @@ def notifyValidOK():
 def Quit(event=None):
     import os
     import shutil
-    logname = CASSIOPEE+"/Apps/Modules/ValidData/session.log"
-    # The session log is copied if it is not empty
-    if not os.path.getsize(logname) == 0:
+    dirname = CASSIOPEE+"/Apps/Modules/ValidData/"
+    logname = dirname+"session.log"
+    # The session log is copied if it is not empty and if we have write
+    # permissions
+    if os.access(dirname, os.W_OK) and (not os.path.getsize(logname) == 0):
         dst = CASSIOPEE+"/Apps/Modules/ValidData/lastSession.log"
         shutil.copyfile(logname, dst)
     os._exit(0)
