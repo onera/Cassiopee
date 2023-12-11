@@ -59,7 +59,6 @@ E_Int K_IO::GenIO::fstlread(
 
   // lecture par zone solid
   E_Int resz = 1; E_LONG pos = 0;
-  E_Int rese = 1; E_LONG pose = 0;
   while (resz == 1)
   {
     resz = readGivenKeyword(ptrFile, "SOLID ");

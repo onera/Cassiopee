@@ -75,12 +75,12 @@ Zone::~Zone()
   
   delete [] _voxelArray;
   ptr_impl->freeGPURes(ptrState);
-  delete ptr_impl;
+  delete ptr_impl; ptr_impl = NULL;
 }
 // ------------------------------------------------------------------------
 void Zone::freeGPURessources(bool useGPURessources, bool freeIso)
 {
-  ptr_impl->freeGPURes(ptrState, freeIso);
+  if (ptr_impl != NULL) ptr_impl->freeGPURes(ptrState, freeIso);
   if (useGPURessources) setUseGPURessources();
   else unsetUseGPURessources();
 }

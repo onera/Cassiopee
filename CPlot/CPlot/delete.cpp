@@ -38,7 +38,7 @@ using namespace K_FLD;
 PyObject* K_CPLOT::deletez(PyObject* self, PyObject* args)
 {
   PyObject* l;
-  if (!PyArg_ParseTuple(args, "O", &l)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &l)) return NULL;
   
   Data* d = Data::getInstance();
   FldArrayI deleted;
@@ -57,21 +57,33 @@ PyObject* K_CPLOT::deletez(PyObject* self, PyObject* args)
       else if (PyString_Check(tpl))
       {
         char* name = PyString_AsString(tpl);
+        deleted[i] = -1;
         for (E_Int j = 0; j < d->_numberOfZones; j++)
         {
           if (strcmp(d->_zones[j]->zoneName, name) == 0) 
           { deleted[i] = j; break; }
         }
+        if (deleted[i] == -1) 
+        {
+          printf("Warning: delete: zone to delete was not found.\n"); fflush(stdout);
+          deleted[i] = 0; // may be a pb
+        }
       }
 #if PY_VERSION_HEX >= 0x03000000
       else if (PyUnicode_Check(tpl))
       {
+        deleted[i] = -1;
         const char* name = PyUnicode_AsUTF8(tpl);
         for (E_Int j = 0; j < d->_numberOfZones; j++)
         {
           if (strcmp(d->_zones[j]->zoneName, name) == 0) 
           { deleted[i] = j; break; }
         } 
+        if (deleted[i] == -1) 
+        {
+          printf("Warning: delete: zone to delete was not found.\n"); fflush(stdout);
+          deleted[i] = 0; // may be a pb
+        }
       }
 #endif
       else

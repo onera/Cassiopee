@@ -65,8 +65,7 @@ C_LOCAL
       INTEGER_E i, j, indcenter
       INTEGER_E ind0, ind1
       INTEGER_E nic
-      REAL_E f
-
+      
       nic = ni-1
       DO i = 0, nic-1
          indcenter = i
@@ -96,8 +95,8 @@ C_OUT
       
 C_LOCAL
       INTEGER_E i, indcenter
-      INTEGER_E ind0, ind1, nic, njc
-      REAL_E f, somme
+      INTEGER_E ind0, ind1, nic
+      REAL_E somme
 
       nic = ni-1
       DO i = 1, nic-1

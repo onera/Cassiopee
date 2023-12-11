@@ -47,10 +47,8 @@ C_OUT
       INTEGER_E cellNatureField(0:npts-1) ! Give the nature of the cells ( masked or not )
       INTEGER_E isMasked
 C_LOCAL
-      INTEGER_E i, j, k, l       
-      INTEGER_E ip, jp, kp
+      INTEGER_E l       
       INTEGER_E et, indray
-      REAL_E    dx1, dy1, dz1
       REAL_E    xp1, yp1, zp1, xp2, yp2, zp2
       REAL_E    xp3, yp3, zp3, xp4, yp4, zp4
       REAL_E    xp5, yp5, zp5, xp6, yp6, zp6

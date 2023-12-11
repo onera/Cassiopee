@@ -516,8 +516,8 @@ E_Int K_CONNECT::orient_boundary_ngon(E_Float *x, E_Float *y, E_Float *z,
   E_Int *indPG = cn.getIndPG();
   E_Int *ngon = cn.getNGon();
   E_Int ncells = cn.getNElts();
-  E_Int *indPH = cn.getIndPH();
-  E_Int *nface = cn.getNFace();
+  //E_Int *indPH = cn.getIndPH();
+  //E_Int *nface = cn.getNFace();
   
   // flag external cells and faces
   std::vector<E_Int> fflags, efaces;

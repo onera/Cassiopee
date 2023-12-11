@@ -41,7 +41,6 @@ C_LOCAL
       INTEGER_E ind1, ind2, ind3
       REAL_E l1x, l1y, l1z
       REAL_E l2x, l2y, l2z
-      REAL_E l3x, l3y, l3z
       REAL_E surfx, surfy, surfz
 C==============================================================================
 !$OMP PARALLEL PRIVATE(i,ind1,ind2,ind3,l1x,l1y,l1z,l2x,l2y,l2z)
@@ -92,7 +91,6 @@ C_LOCAL
       INTEGER_E ind1, ind2, ind3
       REAL_E l1x, l1y, l1z
       REAL_E l2x, l2y, l2z
-      REAL_E l3x, l3y, l3z
       REAL_E surfx, surfy, surfz
 C==============================================================================
 !$OMP PARALLEL PRIVATE(i,ind1,ind2,ind3,l1x,l1y,l1z,l2x,l2y,l2z)

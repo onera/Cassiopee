@@ -460,7 +460,7 @@ gk_graph_t *gk_graph_ExtractSubgraph(gk_graph_t *graph, int vstart, int nvtxs)
 gk_graph_t *gk_graph_Reorder(gk_graph_t *graph, int32_t *perm, int32_t *iperm)
 {
   ssize_t j, jj, *xadj;
-  int i, k, u, v, nvtxs;
+  int i, u, v, nvtxs;
   int freeperm=0, freeiperm=0;
   int32_t *adjncy;
   gk_graph_t *ngraph;
