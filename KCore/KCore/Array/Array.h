@@ -537,7 +537,8 @@ namespace K_ARRAY
                         FldArrayF& f, // provides nvertex
                         FldArrayI& cn, // provides ncells, ...
                         char* eltType,
-                        E_Int center=-1, E_Int api=-1);
+                        E_Int center=-1, E_Int api=-1,
+                        E_Boolean copyConnect=false);
 
   /* Construit un array structure a partir d'un DynArray
      IN: field: Dyn champ structure

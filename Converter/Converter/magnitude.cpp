@@ -30,14 +30,13 @@ using namespace std;
 PyObject* K_CONVERTER::magnitude(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* varsO;
-  if (!PyArg_ParseTuple(args, "OO", &array, &varsO)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &varsO)) return NULL;
 
   FldArrayF* f; FldArrayI* cn;
   char* eltType; char* varString;
   E_Int res;
   E_Int ni, nj, nk; // number of points of array
-  res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, eltType, 
-                              true);
+  res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
   
   if (res == -1)
   {
@@ -132,35 +131,34 @@ PyObject* K_CONVERTER::magnitude(PyObject* self, PyObject* args)
   E_Int npts = f->getSize();
   if (res == 1) //structured
   {
-    tpl = K_ARRAY::buildArray(1, varStringOut, 
-                              ni, nj, nk);
+    tpl = K_ARRAY::buildArray3(1, varStringOut, ni, nj, nk);
   } 
   else //unstructured 
   {
-    tpl = K_ARRAY::buildArray(1, varStringOut,
-                              npts, cn->getSize(),
-                              -1, eltType, false, cn->getSize()*cn->getNfld());
+    tpl = K_ARRAY::buildArray3(1, varStringOut, *f, *cn,
+                              eltType, -1, -1, true); // copy connect
   }
-  E_Float* normp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF norm(npts, 1, normp, true);
-  if (res == 2)
-  {
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    K_KCORE::memcpy__(cnnp, cn->begin(), cn->getSize()*cn->getNfld());
-  }
+  FldArrayF* norm;
+  K_ARRAY::getFromArray3(tpl, norm);
+  E_Float* normp = norm->begin();
 
   FldArrayF& fp = *f;
 
-#pragma omp parallel for shared (npts, normp) if (npts > 100)
-  for (E_Int i = 0; i < npts; i++)
+#pragma omp parallel
   {
-    E_Float norm = 0.;
-    for (E_Int v  = 0; v < n; v++)
+    E_Float norm;
+    #pragma omp for
+    for (E_Int i = 0; i < npts; i++)
     {
-      norm += fp(i, pos[v]) * fp(i, pos[v]);
+      norm = 0.;
+      for (E_Int v  = 0; v < n; v++)
+      {
+        norm += fp(i, pos[v]) * fp(i, pos[v]);
+      }
+      normp[i] = sqrt(norm);
     }
-    normp[i] = sqrt(norm);
   }
+
   RELEASESHAREDB(res, array, f, cn);
   delete [] varStringOut;
   delete [] commonVariable;

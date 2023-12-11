@@ -291,7 +291,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
 
    OUT: PyObject created. */
 //=============================================================================
-// build pour les Multiple Element (ME)
+// build pour les Multiple Elements (ME)
 PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
                                E_Int nvertex,
                                std::vector<E_Int>& neltsPerConnect,
@@ -376,13 +376,15 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
 
 // Build an array identical to f and c in size (unstructured only)
 // but with nfld vars. Center and api can be changed.
-// This doesnt perform copy
+// This doesnt perform copy on f
+// if copyConnect is true, performs copy on cn
 PyObject* K_ARRAY::buildArray3(E_Int nfld,
                                const char* varString,
                                FldArrayF& f,
                                FldArrayI& cn,
                                char* eltType,
-                               E_Int center, E_Int api)
+                               E_Int center, E_Int api,
+                               E_Boolean copyConnect)
 {
     PyObject* tpl = NULL;
     E_Int npts = f.getSize();
@@ -405,6 +407,39 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld,
         E_Int sizeNFace = cn.getSizeNFace();
         tpl = K_ARRAY::buildArray3(nfld, varString, npts, nelts, nfaces, 
         eltType, sizeNGon, sizeNFace, ngonType, center, api);
+    
+        if (copyConnect)
+        {
+          FldArrayF* f2; FldArrayI* cn2;
+          K_ARRAY::getFromArray3(tpl, f2, cn2);
+          E_Int* ngonp = cn.getNGon();
+          E_Int* ngon2p = cn2->getNGon();
+          #pragma omp parallel
+          {
+            #pragma omp for
+            for (E_Int i = 0; i < sizeNGon; i++) ngon2p[i] = ngonp[i];
+            E_Int* nfacep = cn.getNFace();
+            E_Int* nface2p = cn2->getNFace();
+            #pragma omp for
+            for (E_Int i = 0; i < sizeNFace; i++) nface2p[i] = nfacep[i];
+            if (api > 1)
+            {
+                E_Int* indPGp = cn.getIndPG();
+                E_Int* indPG2p = cn2->getIndPG();
+                E_Int dim2;
+                if (ngonType == 2) dim2 = nfaces;
+                else dim2 = nfaces+1;
+                #pragma omp for
+                for (E_Int i = 0; i < dim2; i++) indPG2p[i] = indPGp[i];
+                E_Int* indPHp = cn.getIndPH();
+                E_Int* indPH2p = cn2->getIndPH();
+                if (ngonType == 2) dim2 = nelts;
+                else dim2 = nelts+1;
+                #pragma omp for
+                for (E_Int i = 0; i < dim2; i++) indPH2p[i] = indPHp[i];
+            }
+          }
+        }
     }
     else
     {
@@ -416,6 +451,24 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld,
         neltsPerConnect[i] = cm.getSize(); 
         nelts += cm.getSize(); }
         tpl = K_ARRAY::buildArray3(nfld, varString, npts, neltsPerConnect, eltType, center, api);
+    
+        if (copyConnect)
+        {
+          FldArrayF* f2; FldArrayI* cn2;  
+          K_ARRAY::getFromArray3(tpl, f2, cn2);
+          #pragma omp parallel
+          {
+            for (E_Int i = 0; i < ncon; i++)
+            { 
+              FldArrayI& cm = *(cn.getConnect(i));
+              FldArrayI& cm2 = *(cn2->getConnect(i));
+              E_Int* cmp = cm.begin();
+              E_Int* cm2p = cm2.begin();
+              #pragma omp for
+              for (E_Int i = 0; i < cm.getSize()*cm.getNfld(); i++) cm2p[i] = cmp[i];
+            }
+          }
+        }
     }
     return tpl;
 }

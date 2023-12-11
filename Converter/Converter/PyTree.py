@@ -2244,7 +2244,7 @@ def __TZA3(t, locin, _F, *args):
 # -- _TZA = generique
 # Recupere les champs locin en shared
 # Applique F qui rend une copie
-# Remet cet array1/2 dans t a locout
+# Remet cet array1/2/3 dans t a locout
 def _TZAX(api, t, locin, locout, writeDim, F, *args):
   zones = Internal.getZones(t)
   for z in zones:
@@ -3204,7 +3204,7 @@ def normalize(t, vars):
       if len(s) == 2: vars2.append(s[1])
       else: vars2.append(s[0])
     else: raise ValueError("normalize: invalid vector component.")
-  return TZA2(t, loc, loc, False, Converter.normalize, vars2)
+  return TZA3(t, loc, loc, False, Converter.normalize, vars2)
 
 def _normalize(t, vars):
   loc = ''; vars2 = []
@@ -3220,7 +3220,7 @@ def _normalize(t, vars):
       if len(s) == 2: vars2.append(s[1])
       else: vars2.append(s[0])
     else: raise ValueError("normalize: invalid vector component.")
-  __TZA2(t, loc, Converter._normalize, vars2)
+  __TZA3(t, loc, Converter._normalize, vars2)
   return None
 
 # -- magnitude: calcul la norme d'un jeu de variables
@@ -3247,9 +3247,9 @@ def _magnitude(t, vars):
       raise ValueError("magnitude: invalid vector component.")
 
   if loc == 'nodes':
-    _TZA1(t, loc, loc, True, Converter.magnitude, vars)
+    _TZA3(t, loc, loc, False, Converter.magnitude, vars)
   else:
-    _TZA1(t, loc, loc, True, Converter.magnitude, vars2)
+    _TZA3(t, loc, loc, False, Converter.magnitude, vars2)
   return None
 
 # -- normL0
