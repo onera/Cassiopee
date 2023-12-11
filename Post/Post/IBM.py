@@ -1281,42 +1281,36 @@ def allGatherGraph__(graph):
     return graph
 
 def setIBCTransfersPost__(graphIBCDPost, tl):
-    datas = {}
-
+    datas = {x:[] for x in range(Cmpi.size) if x != Cmpi.rank}
     for dest in graphIBCDPost[Cmpi.rank]:
         if Cmpi.rank != dest:
             for zname in graphIBCDPost[Cmpi.rank][dest]:
-                zd = Internal.getNodeFromName(tl, zname)
+                zd = Internal.getNodeByPath(tl, 'CLOUD_IBCW/'+zname)
 
-                dim = Internal.getZoneDim(zd)
-                zsize = numpy.empty((1,3), numpy.int32, order='F')
-                zsize[0,0] = dim[1]; zsize[0,1] = dim[2]; zsize[0,2] = 0
+                dim = int(zd[1][0,0])
+                coords = Internal.getNodeByPath(zd, 'GridCoordinates')[2]
+                fields = Internal.getNodeByPath(zd, 'FlowSolution')[2]
 
-                coords = Internal.getNodeFromName(zd, 'GridCoordinates')[2]
-                fields = Internal.getNodeFromName(zd, 'FlowSolution')[2]
-
-                infos = [zname, zsize, coords, fields]
-
-                if dest not in datas: datas[dest] = [infos]
-                else: datas[dest] += [infos]
+                datas[dest] += [[zname, dim, coords, fields]]
 
     rcvDatas = Cmpi.sendRecv(datas, graphIBCDPost)
 
     for rcv in rcvDatas:
-        for [zname, zsize, coords, fields] in rcvDatas[rcv]:
+        for [zname, dim, coords, fields] in rcvDatas[rcv]:
+            zsize = numpy.empty((1,3), numpy.int32, order='F')
+            zsize[0,0] = dim; zsize[0,1] = 0; zsize[0,2] = 0
             z = Internal.newZone(name=zname,ztype='Unstructured',zsize=zsize)
             gc = Internal.newGridCoordinates(parent=z)
             gc[2] = coords
             n = Internal.createChild(z, 'GridElements', 'Elements_t', [2,0])
             Internal.createChild(n, 'ElementRange', 'IndexRange_t', [1,0])
             Internal.createChild(n, 'ElementConnectivity', 'DataArray_t', None)
-            FSN = Internal.newFlowSolution(name=Internal.__FlowSolutionNodes__,
-                                           gridLocation='Vertex', parent=z)
+            FSN = Internal.newFlowSolution(name=Internal.__FlowSolutionNodes__,gridLocation='Vertex', parent=z)
             FSN[2] = fields
 
             tl[2][1][2].append(z)
 
-    for zname in graphIBCDPost[Cmpi.rank][Cmpi.rank]: Internal._rmNodesByName(tl, zname)
+    for zname in graphIBCDPost[Cmpi.rank][Cmpi.rank]: Internal._rmNodeByPath(tl, 'CLOUD_IBCW/'+zname)
 
     return tl
 
@@ -1383,13 +1377,10 @@ def prepareSkinReconstruction2(ts, tc):
 
     return graphIBCDPost, td
 
-def _computeSkinVariables2(ts, tc, graphIBCDPost):
+def _computeSkinVariables2(ts, tc, graphIBCDPost, dimPb=3): 
     tl = createCloudIBM__(tc)
     tl = setIBCTransfersPost__(graphIBCDPost, tl)
     tl = T.join(tl)
 
-    dimPb = Internal.getNodeFromName(ts,'EquationDimension')
-    dimPb = Internal.getValue(dimPb)
-
-    P._projectCloudSolution(tl, ts, dim=dimPb, oldVersion=True)   
+    P._projectCloudSolution(tl, ts, dim=dimPb, oldVersion=True)
     return None
