@@ -2388,13 +2388,13 @@ def _TZAGCX(api, t, locin, locout, writeDim, F, Fc, *args):
             fp2 = fp[:]; fp2[1] = []; vs = ''
             for i in vars:
               vs += i+','
-              p = KCore.isNamePresent(fp, i) 
+              p = KCore.isNamePresent(fp, i)
               fp2[1].append(fp[1][p])
             fp2[0] = vs[:-1]
           setFields([fp2], z, locout, writeDim)
       elif fa != []:
         fp = Fc(fa, *args)
-        setFields([fp], z, locout)
+        setFields([fp], z, locout, writeDim)
     else: # both
       l = len(args)//2
       args1 = args[0:l]; args2 = args[l:]
@@ -2406,7 +2406,7 @@ def _TZAGCX(api, t, locin, locout, writeDim, F, Fc, *args):
         else:
           f = fc[:]
           f[0] = fc[0]+','+fa[0]
-          f[1] = fc[1]+fa[1] 
+          f[1] = fc[1]+fa[1]
         fp = F(f, *args1)
         setFields([fp], z, 'nodes', writeDim)
       elif fa != []:
@@ -2618,16 +2618,16 @@ def _initVars(t, varNameString, v1=[], v2=[], mode=0, isVectorized=False):
   #centerCoordNeeded = True # for DBX
   if centerCoordNeeded:
     if callable(v1):
-      # Initialisation(s) by function
-      _TZAGC(t, loc, loc, False, Converter.initVars,
+      # Initialisation(s) by function # Reg
+      _TZAGC3(t, loc, loc, False, Converter.initVars,
               Converter.initVars, varNames, v1, v2, mode, isVectorized)
     elif isinstance(v1, (int, float, numpy.float64)):
       # Initialisation(s) by constant
-      _TZAGC(t, loc, loc, False, Converter.initVars, Converter.initVars,
+      _TZAGC3(t, loc, loc, False, Converter.initVars, Converter.initVars,
               varNames, v1, v2, mode)
     else:
       # Initialisation by string
-      _TZAGC(t, loc, loc, False, Converter.initVars, Converter.initVars,
+      _TZAGC3(t, loc, loc, False, Converter.initVars, Converter.initVars,
               varNameString, v1, v2, mode)
   else:               
     if v1 == []:

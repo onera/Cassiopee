@@ -347,7 +347,7 @@ def _addVars__(a, varNames):
             if KCore.isNamePresent(a, v) == -1:
                 a[0] += ','+v
                 s = a[1][0].shape
-                a[1].append(numpy.zeros(s, dtype=numpy.float64))
+                a[1].append(numpy.zeros(s, dtype=numpy.float64, order='F'))
     else: # array1
         lg = 0
         for v in varNames:
@@ -364,7 +364,7 @@ def _addVars__(a, varNames):
 # a est une liste d'arrays qu'il faut concatener dans le premier
 # modifie le premier array in place
 def _addVars2__(a):
-    if isinstance(a[0][1], list): # array2
+    if isinstance(a[0][1], list): # array2/3
         a0 = a[0]
         rest = a[1:]
         for i in rest: a0[0] += ','+i[0]
@@ -626,7 +626,7 @@ def _initVarByEq__(a, eq):
                 loc = loc.replace('{%s}'%v, 'ap[%d,:]'%c); c += 1
             ap = a[1]
             ap[varp,:] = eval(loc)
-        else: # array2
+        else: # array2/3
             loc = s[1]; ap = a[1]
             ap1 = [ ap[c].ravel(order='K') for c in range(len(ap)) ]
             c = 0
