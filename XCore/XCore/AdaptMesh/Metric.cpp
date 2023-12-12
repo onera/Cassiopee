@@ -1,5 +1,6 @@
 #include "Proto.h"
 #include <cassert>
+#include <stack>
 
 #define MINREF -10
 
@@ -19,13 +20,6 @@ void Right_shift(E_Int *pn, E_Int pos, E_Int size)
   for (E_Int i = 0; i < size; i++) tmp[i] = pn[i];
   for (E_Int i = 0; i < size; i++)
     pn[i] = tmp[(i+pos)%size];
-}
-
-void Order_quad(E_Int *local, E_Int *pn, E_Int reorient, E_Int i0)
-{
-  for (E_Int i = 0; i < 4; i++) local[i] = pn[i];
-  Right_shift(local, i0, 4);
-  if (reorient) std::swap(local[1], local[3]);
 }
 
 static
@@ -260,8 +254,95 @@ void make_ref_data(AMesh *M, E_Float *H, const std::vector<pDirs> &Dirs,
 }
 
 static
+E_Int get_neighbour(E_Int cell, E_Int face, AMesh *M)
+{
+  assert(cell == M->owner[face] || cell == M->neigh[face]);
+  if (cell == M->owner[face]) return M->neigh[face];
+  return M->owner[face];
+}
+
+static
+void get_neighbours(E_Int cell, E_Int face, AMesh *M, std::vector<E_Int> &neis)
+{
+  E_Int nei = get_neighbour(cell, face, M);
+  if (nei == -1) return;
+
+  neis.push_back(nei);
+
+  assert(M->cellTree[cell]->level == 0);
+  assert(M->cellTree[nei]->level == 0);
+
+  if (M->cellTree[cell]->level >= M->cellTree[nei]->level) return;
+  puts("never here");
+
+  E_Int nchildren = M->faceTree[face]->nchildren;
+  E_Int *children = M->faceTree[face]->children;
+  assert(nchildren == 3);
+  for (E_Int i = 0; i < nchildren; i++) {
+    E_Int small_face = children[i];
+    E_Int nei = get_neighbour(cell, small_face, M);
+    if (nei != -1) neis.push_back(nei);
+  }
+}
+
+static
 void smooth_ref_data(AMesh *M)
-{}
+{
+  std::stack<E_Int> stk;
+  for (E_Int i = 0; i < M->ncells; i++) {
+    if (M->ref_data[3*i] != 0)
+      stk.push(i);
+  }
+
+  while (!stk.empty()) {
+    E_Int cell = stk.top();
+    stk.pop();
+
+    std::vector<E_Int> neis;
+    
+    for (E_Int i = M->indPH[cell]; i < M->indPH[cell+1]; i++) {
+      E_Int face = M->nface[i];
+      get_neighbours(cell, face, M, neis);
+    }
+
+    E_Int incr_cell = M->ref_data[3*cell];
+    incr_cell += M->cellTree[cell]->level;
+    
+    E_Int *pr = &M->ref_data[3*cell];
+
+    for (size_t i = 0; i < neis.size(); i++) {
+      E_Int nei = neis[i];
+      E_Int incr_nei = M->ref_data[3*nei];
+      incr_nei += M->cellTree[nei]->level;
+      if (abs(incr_nei - incr_cell) <= 1) continue;
+
+      E_Int cell_to_mod = incr_cell > incr_nei ? nei : cell;
+
+      E_Int *pr_mod = &M->ref_data[3*cell_to_mod];
+      if (pr_mod[0] >= 0) {
+        pr_mod[0] += 1;
+        pr_mod[1] += 1;
+        pr_mod[2] += 1;
+        stk.push(cell_to_mod);
+      } else {
+        E_Int parent = M->cellTree[cell_to_mod]->parent;
+        E_Int *children = M->cellTree[parent]->children;
+        E_Int nchildren = M->cellTree[parent]->nchildren;
+        
+        E_Int *prp = &M->ref_data[3*parent];
+        prp[0] += 1; prp[1] += 1; prp[2] += 1;
+        stk.push(parent);
+        
+        for (E_Int j = 0; j < nchildren; j++) {
+          E_Int *prc = &M->ref_data[3*children[j]];
+          prc[0] += 1; prc[1] += 1; prc[2] += 1;
+          stk.push(children[j]);
+        }
+      }
+    }
+  }
+}
+
 
 void compute_ref_data(AMesh *M, E_Float **fields, E_Int nfields)
 {
@@ -291,8 +372,9 @@ void compute_ref_data(AMesh *M, E_Float **fields, E_Int nfields)
   }
 
   // Smooth out refinement data
-  smooth_ref_data(M);
+  //smooth_ref_data(M);
 
+  /*
   // Count numbers of cells to refine/unrefine by element type
   M->nref_hexa = M->nref_tetra = M->nref_penta = M->nref_pyra = 0;
   M->nunref_hexa = M->nunref_tetra = M->nunref_penta = M->nunref_pyra = 0;
@@ -339,4 +421,5 @@ void compute_ref_data(AMesh *M, E_Float **fields, E_Int nfields)
       }
     }
   }
+  */
 }

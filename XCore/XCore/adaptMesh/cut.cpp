@@ -1536,7 +1536,7 @@ void cut_cell_xyz(E_Int cell, mesh *M, tree *ct, tree *ft)
   	X[k] = cx[k];
   M->npoints++;
   
-  // E_Internal faces
+  // Internal faces
   E_Int nfaces = M->nfaces;
   E_Int *new_face_0 = &faces[4*nfaces];
   E_Int *new_face_1 = &faces[4*(nfaces+1)];
@@ -1630,7 +1630,7 @@ void cut_cell_xyz(E_Int cell, mesh *M, tree *ct, tree *ft)
   // set external faces M->owner and M->neighbours
   update_external_own_nei(cell, M, ct, ft);
   
-  // set E_Internal faces M->owners and M->neighbours
+  // set internal faces M->owners and M->neighbours
   M->owner[nfaces] = ncells;      M->owner[nfaces+1] = ncells+2;
   M->neigh[nfaces] = ncells+1;    M->neigh[nfaces+1] = ncells+3;
 

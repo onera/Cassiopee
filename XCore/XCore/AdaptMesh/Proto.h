@@ -6,7 +6,6 @@
 
 // Metric
 void compute_ref_data(AMesh *M, E_Float **fields, E_Int nfields);
-void Order_quad(E_Int *local, E_Int *pn, E_Int reorient, E_Int i0);
 void Right_shift(E_Int *pn, E_Int pos, E_Int size);
 E_Int Get_pos(E_Int e, E_Int *pn, E_Int size);
 
@@ -28,6 +27,11 @@ E_Int get_reorient(E_Int face, E_Int cell, E_Int normalIn, AMesh *M);
 void reorder_cells(AMesh *M);
 void compute_face_center_and_area(E_Int id, E_Int stride,
   E_Int *pn, E_Float *x, E_Float *y, E_Float *z, E_Float *fc, E_Float *fa);
+void Order_tri(E_Int *local, E_Int *pn, E_Int reorient, E_Int i0);
+void Order_quad(E_Int *local, E_Int *pn, E_Int reorient, E_Int i0);
+void check_canon_tetra(E_Int cell, AMesh *M);
+void check_canon_hexa(E_Int cell, AMesh *M);
+void check_canon_cells(AMesh *M);
 
 // Refine
 void get_ref_cells_and_faces(AMesh *, std::vector<E_Int> &ref_cells,
@@ -35,5 +39,6 @@ void get_ref_cells_and_faces(AMesh *, std::vector<E_Int> &ref_cells,
 void resize_data_for_refinement(AMesh *M, E_Int nref_cells, E_Int nref_faces);
 void refine_faces(const std::vector<E_Int> &ref_faces, AMesh *M);
 void refine_cells(const std::vector<E_Int> &ref_cells, AMesh *M);
+
 
 #endif

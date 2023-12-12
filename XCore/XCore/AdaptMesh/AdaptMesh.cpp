@@ -144,10 +144,26 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
   // Adaptation trees
   M->cellTree = (Element **)XMALLOC(M->ncells * sizeof(Element *));
   M->faceTree = (Element **)XMALLOC(M->nfaces * sizeof(Element *));
-  for (E_Int i = 0; i < M->ncells; i++)
-    M->cellTree[i] = (Element *)XCALLOC(1, sizeof(Element));
-  for (E_Int i = 0; i < M->nfaces; i++)
-    M->faceTree[i] = (Element *)XCALLOC(1, sizeof(Element));
+  for (E_Int i = 0; i < M->ncells; i++) {
+    M->cellTree[i] = (Element *)XMALLOC(sizeof(Element));
+    Element *Elem = M->cellTree[i];
+    Elem->children = NULL;
+    Elem->nchildren = 0;
+    Elem->parent = i;
+    Elem->position = 0;
+    Elem->type = -1;
+    Elem->level = 0;
+  }
+  for (E_Int i = 0; i < M->nfaces; i++) {
+    M->faceTree[i] = (Element *)XMALLOC(sizeof(Element));
+    Element *Elem = M->faceTree[i];
+    Elem->children = NULL;
+    Elem->nchildren = 0;
+    Elem->parent = i;
+    Elem->position = 0;
+    Elem->type = -1;
+    Elem->level = 0;
+  }
 
   M->ref_Tr = Tr;
   M->unref_Tr = Tr/2.5;
@@ -158,8 +174,11 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
   // Set cell types
   set_cells_type(M);
 
-  // Reorder cells to follow CGNS norm config
+  // Reorder cells
   reorder_cells(M);
+
+  // Check everything is in place
+  check_canon_cells(M);
 
   // Make hook
   // TODO(Imad): Python2
@@ -168,6 +187,20 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
   RELEASESHAREDU(ARRAY, f, cn);
 
   return hook;
+}
+
+static
+void get_face_leaves(Element **faceTree, E_Int face, std::vector<E_Int> &leaves)
+{
+  E_Int nchildren = faceTree[face]->nchildren;
+  if (nchildren == 0) {
+    leaves.push_back(face);
+    return;
+  }
+
+  E_Int *children = faceTree[face]->children;
+  for (E_Int i = 0; i < nchildren; i++)
+    get_face_leaves(faceTree, children[i], leaves);
 }
 
 PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
@@ -205,16 +238,15 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
   
   // Compute cell refinement levels
   compute_ref_data(M, fields, nfields);
-
-  for (E_Int i = 0; i < nfields; i++) XFREE(fields[i]);
+  
   XFREE(fields);
 
   // Redistribute
   //AMesh *rM = redistribute_mesh(M);
 
   // Isolate refinement cells and faces
-  
   std::vector<E_Int> ref_faces, ref_cells;
+
   get_ref_cells_and_faces(M, ref_cells, ref_faces);
 
   // Resize structures for refinement
@@ -222,8 +254,133 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
   E_Int nref_faces = ref_faces.size();
   resize_data_for_refinement(M, nref_cells, nref_faces);
 
+  printf("nref_cells: %d\n", nref_cells);
+
+/*
+  ref_faces.clear();
+  ref_cells.clear();
+  for (E_Int i = 0; i < M->nfaces; i++) ref_faces.push_back(i);
+  ref_cells.push_back(0);
+
+  E_Int nref_cells = ref_cells.size();
+  E_Int nref_faces = ref_faces.size();
+  resize_data_for_refinement(M, nref_cells, nref_faces);
+*/
+
   refine_faces(ref_faces, M);
   refine_cells(ref_cells, M);
 
-  return Py_None;
+  printf("leaves: %d\n", M->ncells);
+
+  std::map<E_Int, E_Int> epoints, efaces;
+
+  std::vector<E_Int> ecells;
+  for (E_Int i = 0; i < M->ncells; i++) {
+    if (M->cellTree[i]->nchildren == 0)
+      ecells.push_back(i);
+  }
+
+  E_Int necells = ecells.size();
+
+  std::vector<E_Int> XCELLS(1, 0);
+  std::vector<E_Int> XFACES(1, 0);
+
+  std::vector<E_Int> NFACE, NGON;
+
+  E_Int nefaces = 0;
+  E_Int nepoints = 0;
+
+  for (E_Int i = 0; i < necells; i++) {
+    E_Int cell = ecells[i];
+    E_Int stride = 0;
+    for (E_Int j = M->indPH[cell]; j < M->indPH[cell+1]; j++) {
+      E_Int face = M->nface[j];
+      std::vector<E_Int> leaves;
+      get_face_leaves(M->faceTree, face, leaves);
+      assert(leaves.size() == 1 || leaves.size() == 4);
+      stride += leaves.size();
+      for (auto leaf : leaves)
+        NFACE.push_back(leaf);
+    }
+    XCELLS.push_back(stride);
+  }
+
+  for (E_Int i = 0; i < necells; i++) XCELLS[i+1] += XCELLS[i];
+
+  for (E_Int i = 0; i < necells; i++) {
+    for (E_Int j = XCELLS[i]; j < XCELLS[i+1]; j++) {
+      E_Int face = NFACE[j];
+      if (efaces.find(face) == efaces.end()) {
+        efaces[face] = nefaces++;
+        for (E_Int k = M->indPG[face]; k < M->indPG[face+1]; k++) {
+          E_Int point = M->ngon[k];
+          NGON.push_back(point);
+        }
+        XFACES.push_back(M->indPG[face+1] - M->indPG[face]);
+      }
+    }
+  }
+
+  for (E_Int i = 0; i < nefaces; i++) XFACES[i+1] += XFACES[i];
+  
+  for (E_Int i = 0; i < nefaces; i++) {
+    for (E_Int j = XFACES[i]; j < XFACES[i+1]; j++) {
+      E_Int point = NGON[j];
+      if (epoints.find(point) == epoints.end())
+        epoints[point] = nepoints++;
+    }
+  }
+
+  // Export
+  const char *varStringOut = "CoordinateX,CoordinateY,CoordinateZ";
+
+  PyObject *m = K_ARRAY::buildArray3(3, varStringOut, nepoints, necells,
+    nefaces, "NGON", XFACES[nefaces], XCELLS[necells], 3, false, 3);
+
+  FldArrayF *fo;
+  FldArrayI *cno;
+  K_ARRAY::getFromArray3(m, fo, cno);
+
+  E_Int *ngono  = cno->getNGon();
+  E_Int *nfaceo = cno->getNFace();
+  E_Int *indPGo = cno->getIndPG();
+  E_Int *indPHo = cno->getIndPH();
+
+  E_Float *px = fo->begin(1);
+  E_Float *py = fo->begin(2);
+  E_Float *pz = fo->begin(3);
+  for (auto pt: epoints) {
+    E_Int lp = pt.second;
+    assert(lp < nepoints);
+    px[lp] = M->x[pt.first];
+    py[lp] = M->y[pt.first];
+    pz[lp] = M->z[pt.first];
+  }
+
+  for (E_Int i = 0; i < nefaces+1; i++) indPGo[i] = XFACES[i];
+  for (E_Int i = 0; i < necells+1; i++) indPHo[i] = XCELLS[i];
+
+  E_Int *ptr = ngono;
+
+  for (E_Int i = 0; i < nefaces; i++) {
+    E_Int start = XFACES[i];
+    E_Int end = XFACES[i+1];
+    for (E_Int j = start; j < end; j++) {
+      *ptr = epoints[NGON[j]]+1;
+      ptr++;
+    }
+  }
+  
+  ptr = nfaceo;
+
+  for (E_Int i = 0; i < necells; i++) {
+    E_Int start = XCELLS[i];
+    E_Int end = XCELLS[i+1];
+    for (E_Int j = start; j < end; j++) {
+      *ptr = efaces[NFACE[j]]+1;
+      ptr++;
+    }
+  }
+
+  return m;
 }

@@ -1,7 +1,7 @@
 #include "Proto.h"
 #include <cassert>
 
-const E_Int normalIn_T[4] = {1, 1, 0, 0};
+const E_Int normalIn_T[4] = {1, 0, 1, 0};
 const E_Int normalIn_H[6] = {1, 0, 1, 0, 1, 0};
 
 Edge::Edge()
@@ -136,6 +136,8 @@ void compute_face_center_and_area(E_Int id, E_Int stride,
     }
   }
 }
+
+
 
 void make_cell_centers(AMesh *M)
 {
@@ -300,8 +302,8 @@ void reorder_tetra(E_Int i, E_Int nf, E_Int *pf, AMesh *M)
   E_Int reorient = get_reorient(bot, i, normalIn_T[0], M);
   if (reorient) std::swap(map[1], map[2]);
 
-  E_Int lft, rgt, bck;
-  lft = rgt = bck = -1;
+  E_Int lft, rgt, fro;
+  lft = rgt = fro = -1;
 
   for (E_Int j = 1; j < 4; j++) {
     E_Int face = pf[j];
@@ -322,15 +324,15 @@ void reorder_tetra(E_Int i, E_Int nf, E_Int *pf, AMesh *M)
     }
 
     if      (common[0] && common[2]) lft = face;
-    else if (common[0] && common[1]) rgt = face;
-    else if (common[1] && common[2]) bck = face;
+    else if (common[1] && common[2]) rgt = face;
+    else if (common[1] && common[0]) fro = face;
     else assert(0);
   }
-  assert(lft != -1 && rgt != -1 && bck != -1);
+  assert(lft != -1 && rgt != -1 && fro != -1);
 
   pf[1] = lft;
   pf[2] = rgt;
-  pf[3] = bck;
+  pf[3] = fro;
 }
 
 static
@@ -417,3 +419,214 @@ void reorder_cells(AMesh *M)
     }
   }
 }
+
+void check_canon_cells(AMesh *M)
+{
+  for (E_Int i = 0; i < M->ncells; i++) {
+    E_Int type = M->cellTree[i]->type;
+    switch (type) {
+      case HEXA:
+        check_canon_hexa(i, M);
+        break;
+      case TETRA:
+        check_canon_tetra(i, M);
+        break;
+      default:
+        assert(0);
+        break;
+    }
+  }
+}
+
+void Order_tri(E_Int *local, E_Int *pn, E_Int reorient, E_Int i0)
+{
+  for (E_Int i = 0; i < 3; i++) local[i] = pn[i];
+  Right_shift(local, i0, 3);
+  if (reorient) std::swap(local[1], local[2]);
+}
+
+void Order_quad(E_Int *local, E_Int *pn, E_Int reorient, E_Int i0)
+{
+  for (E_Int i = 0; i < 4; i++) local[i] = pn[i];
+  Right_shift(local, i0, 4);
+  if (reorient) std::swap(local[1], local[3]);
+}
+
+void check_canon_tetra(E_Int cell, AMesh *M)
+{
+  E_Int NODES[4] = {-1, -1, -1, -1};
+
+  E_Int *pf = get_facets(cell, M->nface, M->indPH);
+
+  E_Int face, i0, reorient, *pn, local[3];
+
+  // BOT
+  face = pf[0];
+  pn = get_facets(face, M->ngon, M->indPG);
+  i0 = 0;
+  reorient = get_reorient(face, cell, normalIn_T[0], M);
+  Order_tri(local, pn, reorient, i0);
+  for (E_Int i = 0; i < 3; i++) NODES[i] = local[i];
+
+  // LFT
+  face = pf[1];
+  pn = get_facets(face, M->ngon, M->indPG);
+  i0 = Get_pos(NODES[0], pn, 3);
+  reorient = get_reorient(face, cell, normalIn_T[1], M);
+  Order_tri(local, pn, reorient, i0);
+  assert(local[0] == NODES[0]);
+  assert(local[2] == NODES[2]);
+  NODES[3] = local[1];
+
+  // RGT
+  face = pf[2];
+  pn = get_facets(face, M->ngon, M->indPG);
+  i0 = Get_pos(NODES[1], pn, 3);
+  reorient = get_reorient(face, cell, normalIn_T[2], M);
+  Order_tri(local, pn, reorient, i0);
+  assert(local[0] == NODES[1]);
+  assert(local[1] == NODES[3]);
+  assert(local[2] == NODES[2]);
+
+  // FRO
+  face = pf[3];
+  pn = get_facets(face, M->ngon, M->indPG);
+  i0 = Get_pos(NODES[0], pn, 3);
+  reorient = get_reorient(face, cell, normalIn_T[3], M);
+  Order_tri(local, pn, reorient, i0);
+  assert(local[0] == NODES[0]);
+  assert(local[1] == NODES[1]);
+  assert(local[2] == NODES[3]);
+}
+
+void check_canon_hexa(E_Int cell, AMesh *M)
+{
+  E_Int NODES[8] = {-1, -1, -1, -1, -1, -1, -1, -1};
+
+  E_Int *pf = get_facets(cell, M->nface, M->indPH);
+
+  E_Int face, i0, reorient, *pn, local[4];
+
+  // BOT
+  face = pf[0];
+  pn = get_facets(face, M->ngon, M->indPG);
+  i0 = 0;
+  reorient = get_reorient(face, cell, normalIn_H[0], M);
+  Order_quad(local, pn, reorient, i0);
+  for (E_Int i = 0; i < 4; i++) NODES[i] = local[i];
+
+  // LFT
+  face = pf[2];
+  pn = get_facets(face, M->ngon, M->indPG);
+  i0 = Get_pos(NODES[0], pn, 4);
+  reorient = get_reorient(face, cell, normalIn_H[2], M);
+  Order_quad(local, pn, reorient, i0);
+  assert(local[0] == NODES[0]);
+  assert(local[1] == NODES[3]);
+  NODES[7] = local[2];
+  NODES[4] = local[3];
+
+  // RGT
+  face = pf[3];
+  pn = get_facets(face, M->ngon, M->indPG);
+  i0 = Get_pos(NODES[1], pn, 4);
+  reorient = get_reorient(face, cell, normalIn_H[3], M);
+  Order_quad(local, pn, reorient, i0);
+  assert(local[0] == NODES[1]);
+  assert(local[1] == NODES[2]);
+  NODES[6] = local[2];
+  NODES[5] = local[3];
+
+  // FRO
+  face = pf[4];
+  pn = get_facets(face, M->ngon, M->indPG);
+  i0 = Get_pos(NODES[1], pn, 4);
+  reorient = get_reorient(face, cell, normalIn_H[4], M);
+  Order_quad(local, pn, reorient, i0);
+  assert(local[0] == NODES[1]);
+  assert(local[1] == NODES[0]);
+  assert(local[2] == NODES[4]);
+  assert(local[3] == NODES[5]);
+
+  // BCK
+  face = pf[5];
+  pn = get_facets(face, M->ngon, M->indPG);
+  i0 = Get_pos(NODES[2], pn, 4);
+  reorient = get_reorient(face, cell, normalIn_H[5], M);
+  Order_quad(local, pn, reorient, i0);
+  assert(local[0] == NODES[2]);
+  assert(local[1] == NODES[3]);
+  assert(local[2] == NODES[7]);
+  assert(local[3] == NODES[6]);
+
+  // TOP
+  face = pf[1];
+  pn = get_facets(face, M->ngon, M->indPG);
+  i0 = Get_pos(NODES[4], pn, 4);
+  reorient = get_reorient(face, cell, normalIn_H[1], M);
+  Order_quad(local, pn, reorient, i0);
+  assert(local[0] == NODES[4]);
+  assert(local[1] == NODES[5]);
+  assert(local[2] == NODES[6]);
+  assert(local[3] == NODES[7]);
+}
+
+/*
+static
+void compute_tetra_vol(E_Int cell, AMesh *M)
+{
+  // Make nodes
+  E_Int *pf = &M->nface[M->indPH[cell]];
+  E_Int bot = pf[0];
+  E_Int *pn = &M->ngon[M->indPG[bot]];
+  E_Int n[4] = {pn[0], pn[1], pn[2], -1};
+
+  E_Int lft = pf[1];
+  pn = &M->ngon[M->indPG[lft]];
+
+  for (E_Int i = 0; i < 3; i++) {
+    E_Int pt = pn[i];
+
+    E_Int found = 0;
+    // pt must not be in n
+    for (E_Int j = 0; j < 3; j++) {
+      if (pt == n[j]) {
+        found = 1;
+        break;
+      }
+    }
+
+    if (!found) {
+      n[3] = pt;
+      break;
+    }
+  }
+
+  E_Float xa = M->x[n[0]]; 
+  E_Float ya = M->y[n[0]]; 
+  E_Float za = M->z[n[0]]; 
+  E_Float xb = M->x[n[1]]; 
+  E_Float yb = M->y[n[1]]; 
+  E_Float zb = M->z[n[1]]; 
+  E_Float xc = M->x[n[2]]; 
+  E_Float yc = M->y[n[2]]; 
+  E_Float zc = M->z[n[2]]; 
+  E_Float xd = M->x[n[3]]; 
+  E_Float yd = M->y[n[3]]; 
+  E_Float zd = M->z[n[3]]; 
+  E_Float ad[3] = {xa-xd, ya-yd, za-zd};
+  E_Float bd[3] = {xb-xd, yb-yd, zb-zd};
+  E_Float cd[3] = {xc-xd, yc-yd, zc-zd};
+  E_Float tmp[3];
+  K_MATH::cross(bd, cd, tmp);
+  E_Float V = fabs(K_MATH::dot(ad, tmp, 3))/6.0;
+  printf("vol %d: %.4e\n", cell, V);
+}
+
+static
+void compute_tetra_vols(AMesh *M)
+{
+  for (E_Int i = 0; i < M->ncells; i++)
+    compute_tetra_vol(i, M);
+}
+*/
