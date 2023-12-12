@@ -4789,7 +4789,9 @@ def _sortNodesInZone(z):
   c = 1
   for l in lo:
     if l[3] == 'Elements_t':
-      r = getNodeFromType1(l, 'IndexRange_t')[1]
+      r = getNodeFromType1(l, 'IndexRange_t')
+      r[1] = numpy.copy(r[1])
+      r = r[1]
       oranges[l[0]] = (r[0],r[1])
       nr0 = c; nr1 = c+r[1]-r[0]
       nranges[l[0]] = (nr0, nr1)
@@ -4799,6 +4801,7 @@ def _sortNodesInZone(z):
   for b in BCs:
     r = getNodeFromType1(b, 'IndexRange_t')
     if r is not None:
+        r[1] = numpy.copy(r[1])
         r = r[1]
         r = r.ravel('k')
         for i in oranges:
@@ -4807,6 +4810,7 @@ def _sortNodesInZone(z):
             r[1] = nranges[i][0]+r[1]-oranges[i][0]
     r = getNodeFromType1(b, 'PointRange_t')
     if r is not None:
+        r[1] = numpy.copy(r[1])
         r = r[1]
         r = r.ravel('k')
         rmin = r[0]; rmax = r[-1]
