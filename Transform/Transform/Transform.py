@@ -832,7 +832,7 @@ def subzone(array, minIndex, maxIndex=None, type=None):
             return transform.subzoneElements(array, minIndex)
         elif type == 'faces':
             if len(array) == 5:
-                return transform.subzoneStructInt(array,minIndex)
+                return transform.subzoneStructInt(array, minIndex)
             else:
                 return transform.subzoneFaces(array, minIndex)
         elif type == 'nodes':

@@ -3903,7 +3903,7 @@ def _addBC2NGonZone__(z, bndName, bndType, faceList, data, subzone,
     hook = createHook(z, 'faceCenters')
     faceList = identifyElements(hook, subzone, tol)
     freeHook(hook)
-
+  
   if bndType1 == 'BCMatch' or bndType1 == 'Abutting1to1':
     if (zoneDonor == [] or (faceListDonor is None and subzone is None)):
       raise ValueError("addBC2Zone: NGON match connectivity requires a donor and a faceListDonor or a subzone.")
@@ -5096,6 +5096,7 @@ def getBC2__(zbc, z, T, res, extrapFlow=True):
               res.append(zp)
               break
   return None
+
 # Get the geometrical BC and append it to res
 # IN: i: BC_t node or GridConnectivity_t node
 # IN: z: zone owning BC
@@ -5105,11 +5106,11 @@ def getBC2__(zbc, z, T, res, extrapFlow=True):
 # IN: shift: if not 0, shift BC of index for structured grids only
 def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0):
   
-  connects = Internal.getNodesFromType(z, "Elements_t")
+  connects = Internal.getNodesFromType1(z, "Elements_t")
   zdim = Internal.getZoneDim(z)
   if zdim[0] == 'Unstructured': ztype = zdim[3]
 
-  # IndexRange
+  # IndexRange (PointRange)
   r = Internal.getNodeFromType1(i, 'IndexRange_t')
   if r is not None and r[1].shape[0] > 1: # structure - suppose range in nodes
     wrange = r[1]
@@ -5147,7 +5148,7 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0):
     _keepBCDataSet(zp, z, i, extrapFlow=extrapFlow)  
     res.append(zp)
 
-  # IndexArray
+  # IndexArray (PointList)
   if r is None: r = Internal.getNodeFromName(i, Internal.__FACELIST__)
   else: r = None
 
@@ -7011,7 +7012,7 @@ def createHook(a, function='None'):
   if function == 'extractMesh': # growOfEps pas pret pour Array2
     fields = getFields(Internal.__GridCoordinates__, a, api=1)
   else:
-    fields = getFields(Internal.__GridCoordinates__, a, api=2)
+    fields = getFields(Internal.__GridCoordinates__, a, api=3)
   if function == 'extractMesh' or function == 'adt':
     return Converter.createHook(fields, function)
   else:
@@ -7132,7 +7133,7 @@ def nearestFaces(hook, a):
 def nearestElements(hook, a):
   """Identify nearest element centers to a in hook. return identified face indices.
   Usage: nearestFaces(hook, a)"""
-  fields = getFields(Internal.__GridCoordinates__, a, api=1)
+  fields = getFields(Internal.__GridCoordinates__, a, api=3)
   if len(fields) == 1: return Converter.nearestElements(hook, fields[0])
   else: return Converter.nearestElements(hook, fields)
 

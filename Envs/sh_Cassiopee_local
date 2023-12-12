@@ -710,6 +710,8 @@ elif [ "$MAC" = "spiro_el8" ]; then
     unset I_MPI_FABRICS
     unset I_MPI_TCP_NETMASK
     unset I_MPI_PMI_LIBRARY
+    unset SLURM_CPU_BIND
+    unset SLURM_CPU_BIND_TYPE
     export OMP_PLACES=cores
         
     # Chemin de l'executable python

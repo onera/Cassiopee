@@ -143,7 +143,7 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
 {
   PyObject* array;
   PyObject* listOfNodes;
-  if (!PyArg_ParseTuple(args, "OO",
+  if (!PYPARSETUPLE_(args, OO_,
                         &array, &listOfNodes))
   {
     return NULL;
@@ -283,7 +283,7 @@ PyObject* K_TRANSFORM::subzoneUnstructBoth(PyObject* self, PyObject* args)
 {
   PyObject *arrayNodes, *arrayCenters;
   PyObject* listOfNodes;
-  if (!PyArg_ParseTuple(args, "OOO",
+  if (!PYPARSETUPLE_(args, OOO_,
                         &arrayNodes, &arrayCenters, &listOfNodes))
   {
       return NULL;
@@ -494,7 +494,7 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
 {
   PyObject* array;
   PyObject* listOfElts;
-  if (!PyArg_ParseTuple(args, "OO",
+  if (!PYPARSETUPLE_(args, OO_,
                         &array, &listOfElts))
   {
       return NULL;
@@ -717,7 +717,7 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
 {
   PyObject *arrayNodes, *arrayCenters;
   PyObject* listOfElts;
-  if (!PyArg_ParseTuple(args, "OOO",
+  if (!PYPARSETUPLE_(args, OOO_,
                         &arrayNodes, &arrayCenters, &listOfElts))
   {
       return NULL;
@@ -859,7 +859,7 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
     }
     posFace.malloc(0); origIndicesOfFaces.clear();      
 
-    // construit l array de sortie
+    // construit l'array de sortie
     E_Int csize = sizeFN2+sizeEF2+4;
     char eltType[10]; strcpy(eltType,"NGON");
     FldArrayF* f2 = new FldArrayF(numNode,nfld);
@@ -991,7 +991,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
 {
   PyObject* array;
   PyObject* listOfFaces;
-  if (!PyArg_ParseTuple(args, "OO",
+  if (!PYPARSETUPLE_(args, OO_,
                         &array, &listOfFaces))
   {
     return NULL;
@@ -1333,7 +1333,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
 {
   PyObject *arrayNodes, *arrayCenters;
   PyObject* listOfFaces;
-  if (!PyArg_ParseTuple(args, "OOO",
+  if (!PYPARSETUPLE_(args, OOO_,
                         &arrayNodes, &arrayCenters, &listOfFaces))
   {
     return NULL;

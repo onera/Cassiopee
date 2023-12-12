@@ -281,7 +281,7 @@ PyObject* K_CONVERTER::nearestFaces(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::nearestElements(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* hook;
-  if (!PyArg_ParseTuple(args, "OO", &hook, &array)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &hook, &array)) return NULL;
 
   // recupere le hook
   void** packet = NULL;
