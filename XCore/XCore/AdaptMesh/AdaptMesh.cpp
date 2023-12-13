@@ -63,9 +63,6 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
   E_Float *py = f->begin(posy);
   E_Float *pz = f->begin(posz);
 
-  int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
   ret = K_CONNECT::orient_boundary_ngon(px, py, pz, *cn);
 
   if (ret != 0) {
@@ -265,7 +262,7 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
   E_Int nref_cells = ref_cells.size();
   E_Int nref_faces = ref_faces.size();
   resize_data_for_refinement(M, nref_cells, nref_faces);
-*/
+  */
 
   refine_faces(ref_faces, M);
   refine_cells(ref_cells, M);

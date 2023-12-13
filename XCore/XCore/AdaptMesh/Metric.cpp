@@ -41,12 +41,79 @@ void hessian_to_metric(E_Float *H, E_Int ncells)
 }
 
 static
-void make_pdirs_penta(E_Int cell, AMesh *M, pDirs &Dirs)
+void make_pdirs_pyra(E_Int cell, AMesh *M, pDirs &Dirs)
 {}
 
 static
-void make_pdirs_pyra(E_Int cell, AMesh *M, pDirs &Dirs)
-{}
+void make_pdirs_penta(E_Int cell, AMesh *M, pDirs &Dirs)
+{
+  // Setup bot
+  E_Int *pf = get_facets(cell, M->nface, M->indPH);
+  E_Int face = pf[0];
+  E_Int *pn = get_facets(face, M->ngon, M->indPG);
+  E_Int NODES[6] = {pn[0], pn[1], pn[2], -1, -1, -1};
+  E_Int reorient = get_reorient(face, cell, normalIn_P[0], M);
+  if (reorient) std::swap(NODES[1], NODES[2]);
+
+  // Deduce left and right
+  face = pf[2];
+  pn = get_facets(face, M->ngon, M->indPG);
+  E_Int i0 = Get_pos(NODES[0], pn, 4);
+  reorient = get_reorient(face, cell, normalIn_P[2], M);
+  E_Int local[4];
+  Order_quad(local, pn, reorient, i0);
+  assert(local[0] == NODES[0]);
+  assert(local[1] == NODES[2]);
+  NODES[5] = local[2];
+  NODES[3] = local[3];
+
+  face = pf[3];
+  pn = get_facets(face, M->ngon, M->indPG);
+  i0 = Get_pos(NODES[0], pn, 4);
+  reorient = get_reorient(face, cell, normalIn_P[3], M);
+  Order_quad(local, pn, reorient, i0);
+  assert(local[0] == NODES[0]);
+  assert(local[1] == NODES[1]);
+  assert(local[3] == NODES[3]);
+  NODES[4] = local[2];
+
+  E_Float *fc, *fcc;
+  E_Float ec[3];
+
+  // First dir: Edge(0,3) - BCK
+  ec[0] = 0.5*(M->x[NODES[0]]+M->x[NODES[3]]);
+  ec[1] = 0.5*(M->y[NODES[0]]+M->y[NODES[3]]);
+  ec[2] = 0.5*(M->z[NODES[0]]+M->z[NODES[3]]);
+  fc = &M->fc[3*pf[4]];
+  Dirs.I[0] = ec[0] - fc[0];
+  Dirs.I[1] = ec[1] - fc[1];
+  Dirs.I[2] = ec[2] - fc[2];
+  
+  // Second dir: Edge(2,5) - RGT
+  ec[0] = 0.5*(M->x[NODES[2]]+M->x[NODES[5]]);
+  ec[1] = 0.5*(M->y[NODES[2]]+M->y[NODES[5]]);
+  ec[2] = 0.5*(M->z[NODES[2]]+M->z[NODES[5]]);
+  fc = &M->fc[3*pf[3]];
+  Dirs.J[0] = ec[0] - fc[0];
+  Dirs.J[1] = ec[1] - fc[1];
+  Dirs.J[2] = ec[2] - fc[2];
+
+  // Third dir: Edge(1,4) - LFT
+  ec[0] = 0.5*(M->x[NODES[1]]+M->x[NODES[4]]);
+  ec[1] = 0.5*(M->y[NODES[1]]+M->y[NODES[4]]);
+  ec[2] = 0.5*(M->z[NODES[1]]+M->z[NODES[4]]);
+  fc = &M->fc[3*pf[2]];
+  Dirs.K[0] = ec[0] - fc[0];
+  Dirs.K[1] = ec[1] - fc[1];
+  Dirs.K[2] = ec[2] - fc[2];
+
+  // Fourth dir: BOT - TOP
+  fc =  &M->fc[3*pf[0]];
+  fcc = &M->fc[3*pf[1]];
+  Dirs.L[0] = fc[0] - fcc[0];
+  Dirs.L[1] = fc[1] - fcc[1];
+  Dirs.L[2] = fc[2] - fcc[2];
+}
 
 static
 void make_pdirs_tetra(E_Int cell, AMesh *M, pDirs &Dirs)
@@ -154,11 +221,6 @@ void compute_principal_vecs(AMesh *M, std::vector<pDirs> &Dirs)
 }
 
 static
-void make_ref_data_penta()
-{
-}
-
-static
 void make_ref_data_pyra()
 {
 }
@@ -226,6 +288,35 @@ void make_ref_data_tetra(AMesh *M, E_Float *pH, const pDirs &Dirs,
 }
 
 static
+void make_ref_data_penta(AMesh *M, E_Float *pH, const pDirs &Dirs,
+  E_Int *pref)
+{
+  E_Float L0, L1, L2, L3, dd[3];
+
+  K_MATH::sym3mat_dot_vec(pH, Dirs.I, dd);
+  L0 = K_MATH::norm(dd, 3);
+  K_MATH::sym3mat_dot_vec(pH, Dirs.J, dd);
+  L1 = K_MATH::norm(dd, 3);
+  K_MATH::sym3mat_dot_vec(pH, Dirs.K, dd);
+  L2 = K_MATH::norm(dd, 3);
+  K_MATH::sym3mat_dot_vec(pH, Dirs.L, dd);
+  L3 = K_MATH::norm(dd, 3);
+
+  if (L0 >= M->ref_Tr || L1 >= M->ref_Tr ||
+      L2 >= M->ref_Tr || L3 >= M->ref_Tr) {
+    pref[0] = 1; pref[1] = 1; pref[2] = 1;
+    return;
+  }
+
+  if (L0 <= M->unref_Tr && L1 <= M->unref_Tr &&
+      L2 <= M->unref_Tr && L3 <= M->unref_Tr) {
+    pref[0] = -1;
+    pref[1] = -1;
+    pref[2] = -1;
+  }
+}
+
+static
 void make_ref_data(AMesh *M, E_Float *H, const std::vector<pDirs> &Dirs,
   std::vector<E_Int> &partialRefData)
 {
@@ -241,7 +332,7 @@ void make_ref_data(AMesh *M, E_Float *H, const std::vector<pDirs> &Dirs,
         make_ref_data_tetra(M, pH, Dirs[i], pref);
         break;
       case PENTA:
-        //make_ref_data_penta(M, pH, Dirs[i], pref);
+        make_ref_data_penta(M, pH, Dirs[i], pref);
         break;
       case PYRA:
         //make_ref_data_pyra(M, pH, Dirs[i], pref);

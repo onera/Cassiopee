@@ -5,13 +5,13 @@
 #include <map>
 #include <mpi.h>
 
-#define TETRA 0
-#define PENTA 1
-#define PYRA 2
-#define HEXA 3
+#define HEXA 0
+#define TETRA 1
+#define PENTA 2
+#define PYRA 3
 
-#define TRI 0
-#define QUAD 1
+#define QUAD 0
+#define TRI 1
 
 #define EXIT \
   do { \
@@ -21,6 +21,7 @@
 
 extern const E_Int normalIn_T[4];
 extern const E_Int normalIn_H[6];
+extern const E_Int normalIn_P[5];
 
 struct pDirs {
   E_Float I[3];
