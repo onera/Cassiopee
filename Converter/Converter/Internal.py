@@ -28,8 +28,7 @@ __POINTLIST__ = 'PointList' # Vertex list
 
 # Separators
 # Separateur intra-nom (pour le reperage des BCs qui deviennent des zones)
-#SEP1 = '\\'
-SEP1 = '/'
+SEP1 = '\\'
 # Separateur intra-BCs (pour les exports getBCFaces et addBCFaces)
 SEP2 = '@'
 
