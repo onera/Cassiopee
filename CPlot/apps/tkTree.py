@@ -566,7 +566,6 @@ class Node:
             bases = Internal.getBases(pid)
             activated = []
             s = -1
-            
             for b in bases:
                 baseName = b[0]
                 nodes = Internal.getNodesFromType1(b, 'Zone_t')
@@ -577,10 +576,8 @@ class Node:
                         if sp == 0: s = 1
                         else: s = 0
                         break
-                    
             nodes = Internal.getZones(CTK.t)
             for no in range(len(nodes)): activated.append((no, s))
-           
             if s == 0: CTK.TXT.insert('START', 'Tree deactivated.\n')
             elif s == 1: CTK.TXT.insert('START', 'Tree activated.\n')
             CPlot.setActiveZones(activated)

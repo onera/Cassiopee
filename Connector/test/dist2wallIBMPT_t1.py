@@ -30,8 +30,7 @@ test.testT(t, 2)
 N = 50; h = 1./(N-1)
 c1 = G.cylinder((-0.5,-0.5,0.), 0.2, 1., 360., 0., 10., (2*N,1,1)); c1[0] = 'cyl1'
 c2 = G.cylinder((0.5,0.5,0.), 0.2, 1., 360., 0., 10., (2*N,1,1)); c2[0] = 'cyl2'
-tb = C.newPyTree(['CYL1',Internal.getZones(c1),
-                  'CYL2',Internal.getZones(c2)])
+tb = C.newPyTree(['CYL1', c1, 'CYL2', c2])
 DIBM._setIBCType(tb, 'Musker')
 
 t = G.cart((-1,-1,0), (h,h,1), (2*N,2*N,1)); t[0] = 'cart'

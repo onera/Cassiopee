@@ -516,12 +516,12 @@ def updateCPlotNumbering(t):
 #==============================================================================
 def getCPlotNumber(t, baseName, zoneName):
     """Return the CPlot number of zone defined by baseName/zoneName."""
-    base = Internal.getNodeFromName1(t, baseName) # must be unique
-    z = Internal.getNodeFromName1(base, zoneName) # must be unique
+    base = Internal.getChildFromName(t, baseName) # must be unique
+    z = Internal.getChildFromName(base, zoneName) # must be unique
     type = Internal.getZoneType(z)
     bases = Internal.getBases(t)
    
-    if type == 1:
+    if type == 1: # zoneName is structured
         nstr = 0
         for b in bases:
             nodes = Internal.getNodesFromType1(b, 'Zone_t')
@@ -535,7 +535,7 @@ def getCPlotNumber(t, baseName, zoneName):
                     if type == 1: nstr += 1
                     if z[0] == zoneName: return nstr-1
         return nstr-1
-    else:
+    else: # zoneName is unstructured
         nstr = 0
         for b in bases:
             nodes = Internal.getNodesFromType1(b, 'Zone_t')

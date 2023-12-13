@@ -81,8 +81,8 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = Internal.copyTree(t_case)
 
-    refstate = Internal.getNodeFromName(tb,'ReferenceState')
-    flowEqn  = Internal.getNodeFromName(tb,'FlowEquationSet')          
+    refstate = Internal.getNodeFromName(tb, 'ReferenceState')
+    flowEqn  = Internal.getNodeFromName(tb, 'FlowEquationSet')          
 
     Reynolds = Internal.getNodeFromName(tb, 'Reynolds')
     if Reynolds is not None:
@@ -418,9 +418,9 @@ def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e
                 for i in range(1, cptBody):
                     for j in range(1, cptBody):
                         if j != i:
-                            C._initVars(z,'centers:cellNFrontIso', findIsoFront, ['centers:cellNFrontIso', 'centers:TurbulentDistance_body%i'%i, 'centers:TurbulentDistance_body%i'%j])
+                            C._initVars(z, 'centers:cellNFrontIso', findIsoFront, ['centers:cellNFrontIso', 'centers:TurbulentDistance_body%i'%i, 'centers:TurbulentDistance_body%i'%j])
 
-                C._initVars(z,'centers:cellN', correctionMultiCorps, ['centers:cellN', 'centers:cellNFrontIso'])
+                C._initVars(z, 'centers:cellN', correctionMultiCorps, ['centers:cellN', 'centers:cellNFrontIso'])
 
                 for i in range(1, cptBody):
                     C._rmVars(z,['centers:cellN_body%i'%i, 'centers:TurbulentDistance_body%i'%i])
@@ -431,11 +431,12 @@ def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e
             C._initVars(t,'{centers:yplus}=100000.')
             if isinstance(wallAdaptF42, str): w = C.convertFile2PyTree(wallAdaptF42)
             else: w = wallAdaptF42
-            total = len(Internal.getZones(t))
+            zones = Internal.getZones(t)
+            total = len(zones)
             cpt = 1
-            for z in Internal.getZones(t):
+            for z in zones:
                 print("Info: blankingIBM: modeling height adaptation: zone %d / %d"%(cpt, total))
-                cellN = Internal.getNodeFromName(z,'cellN')[1]
+                cellN = Internal.getNodeFromName(z, 'cellN')[1]
                 if 2 in cellN:
                     hloc = abs(C.getValue(z,'CoordinateX',1)-C.getValue(z,'CoordinateX',0))
                     zname = z[0]
@@ -586,7 +587,7 @@ def _pushBackImageFront2__(t, tc, tbbc, cartesian=False):
 
     # Transfers the information at each grid connection
     for z in Internal.getZones(t):
-        cellNFront = Internal.getNodeFromName2(z,'cellNFront2')
+        cellNFront = Internal.getNodeFromName2(z, 'cellNFront2')
         if cellNFront != []:
             cellNFront = cellNFront[1]
             sizeTot = cellNFront.shape[0]*cellNFront.shape[1]*cellNFront.shape[2]
@@ -613,7 +614,7 @@ def _pushBackImageFront2__(t, tc, tbbc, cartesian=False):
 
     # Update the cellNFront, cellNIBC and cellNIBCDnr fields
     for z in Internal.getZones(t):
-        cellNFront = Internal.getNodeFromName2(z,'cellNFront2')
+        cellNFront = Internal.getNodeFromName2(z, 'cellNFront2')
         if cellNFront != []:
             cellNFront = cellNFront[1]
             sizeTot = cellNFront.shape[0]*cellNFront.shape[1]*cellNFront.shape[2]
@@ -858,7 +859,7 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
 
                         if IDs != []:
                             if destProc == Cmpi.rank:
-                                zD = Internal.getNodeFromName2(tc,zdname)
+                                zD = Internal.getNodeFromName2(tc, zdname)
                                 zD[2] += IDs
                             else:
                                 if destProc not in datas: datas[destProc]=[[zdname,IDs]]
@@ -897,7 +898,7 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
         
                         if IDs != []:
                             if destProc == Cmpi.rank:
-                                zD = Internal.getNodeFromName2(tc,zdname)
+                                zD = Internal.getNodeFromName2(tc, zdname)
                                 zD[2] += IDs
                             else:
                                 if destProc not in datas: datas[destProc]=[[zdname,IDs]]
@@ -955,7 +956,7 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
 def _recomputeDistForViscousWall__(t, tb, dimPb=3):
 
     for z in Internal.getZones(tb):
-        ibc = Internal.getNodeFromName(z,'ibctype')
+        ibc = Internal.getNodeFromName(z, 'ibctype')
         if Internal.getValue(ibc)=='outpress' or Internal.getValue(ibc)=='inj' or Internal.getValue(ibc)=='slip':
             Internal._rmNode(tb,z)    
 
@@ -1745,9 +1746,9 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
                 if IBCType == -1: ibctype = 'slip'
                 else: ibctype = 'Musker'
 	    #Over ride as LBM only supports no slip at the moment
-            if isLBM==True:
+            if isLBM:
                 ibctype = 'noslip'
-            famName = Internal.getNodeFromType1(s,'FamilyName_t')
+            famName = Internal.getNodeFromType1(s, 'FamilyName_t')
             if famName is not None:
                famName = Internal.getValue(famName)
 
@@ -3145,7 +3146,7 @@ def prepareIBMData2(t, tbody, DEPTH=2, loc='centers', frontType=1, inv=False, in
 def doInterp3(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=0, depth=2, IBCType=1, interpDataType=1, Reynolds=6.e6, yplus=100., Lref=1.):
 
 
-    ReferenceState = Internal.getNodeFromType2(t,'ReferenceState_t')
+    ReferenceState = Internal.getNodeFromType2(t, 'ReferenceState_t')
 
     bases  = Internal.getNodesFromType1(t     , 'CGNSBase_t')
     dimmm  = Internal.getNodeFromName2(bases[0], 'EquationDimension')
