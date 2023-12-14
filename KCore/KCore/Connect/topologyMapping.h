@@ -71,7 +71,7 @@ struct Topology
 };
 
 // Same as Topology but optimised (no dynamic allocation)
-const int nmaxitems = 8;
+const std::size_t nmaxitems = 8;
 struct TopologyOpt
 {
   std::size_t n_ = 0; // actual number of items contained in the Topology

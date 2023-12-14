@@ -21,6 +21,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <map>
+#include <unordered_map>
 #include "post.h"
 
 using namespace std;
@@ -52,8 +54,12 @@ PyObject* K_POST::selectExteriorFaces(PyObject* self, PyObject* args)
   {
     if (strcmp(eltType, "NGON") == 0)
     {
-      if ((*cn)[2] == 2) tpl = selectExteriorFacesNGon2D(varString, *f, *cn, indices);
-      else  tpl = selectExteriorFacesNGon3D(varString, *f, *cn, indices);
+      E_Int nv;
+      E_Int* ngon = cn->getNGon();
+      E_Int* indPG = cn->getIndPG();
+      cn->getFace(0, nv, ngon, indPG);
+      if (nv == 2) tpl = selectExteriorFacesNGon2D(varString, *f, *cn, indices);
+      else tpl = selectExteriorFacesNGon3D(varString, *f, *cn, indices);
     }
     else tpl = exteriorFacesBasic(varString, *f, *cn, eltType, indices);
     RELEASESHAREDU(array, f, cn); 
@@ -71,6 +77,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
                                           E_Int ni, E_Int nj, E_Int nk, 
                                           PyObject* indices)
 {
+  E_Int api = 1;
   E_Int nfld = f.getNfld();
   PyObject* tpl = NULL;
   bool boolIndir = false;
@@ -82,17 +89,16 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
   // 1D arrays
   if ((ni == 1 && nj == 1) || (nj == 1 && nk == 1) || (ni == 1 && nk == 1))
   {
-    FldArrayF* fnodes = new FldArrayF(2, nfld);
-    FldArrayI* connect = new FldArrayI(0, 1);
+    tpl = K_ARRAY::buildArray3(nfld, varString, 2, 0, "NODE", 0, api);
+    FldArrayF* fnodes; K_ARRAY::getFromArray3(tpl, fnodes);
     E_Int s = f.getSize();
     for (E_Int i = 1; i <= nfld; i++)
     {
       (*fnodes)(0,i) = f(0,i);
       (*fnodes)(1,i) = f(s-1,i);
     }
-    tpl = K_ARRAY::buildArray(*fnodes, varString, 
-                              *connect, -1, "NODE");
-    if (boolIndir == true)
+    
+    if (boolIndir)
     {
       indir = K_NUMPY::buildNumpyArray(2, 1, 1, 0);
       indirp = K_NUMPY::getNumpyPtrI(indir);
@@ -100,7 +106,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       PyList_Append(indices, indir); Py_DECREF(indir);
     }
 
-    delete fnodes; delete connect;
+    delete fnodes;
     return tpl;
   }
   else if (ni == 1 || nj == 1 || nk == 1)//arrays 2D
@@ -120,84 +126,99 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       return NULL;
     }
 
-    FldArrayF* fnodes = new FldArrayF(nfacesExt,nfld);
-    FldArrayI* connect = new FldArrayI(nfacesExt,2);      
-    E_Int* cn1 = connect->begin(1);
-    E_Int* cn2 = connect->begin(2);
-    E_Int n = 0;
+    tpl = K_ARRAY::buildArray3(nfld, varString, nfacesExt, nfacesExt, newEltType, 0, api);
+    FldArrayF* fnodes; FldArrayI* connect;
+    K_ARRAY::getFromArray3(tpl, fnodes, connect);
+    FldArrayI& cm = *(connect->getConnect(0));
 
-    for (E_Int nv = 1; nv <= nfld; nv++)
+    if (boolIndir)
     {
-      E_Float* fv = f.begin(nv);
-      E_Float* fnv = fnodes->begin(nv);
-      n = 0;
-      // Border j=1, i=1..p-1
-      for (E_Int i = 0; i < p-1; i++)
-      { 
-        fnv[n] = fv[i]; 
-        n++;
-      }
-      // Border i=p,j=0..q-1
-      for (E_Int j = 0; j < q-1; j++)
-      { 
-        fnv[n] = fv[p-1+j*p];
-        n++;
-      }
-      // Border j=jmax,i=p,0
-      for (E_Int i = p-1; i > 0; i--)
-      { 
-        fnv[n] = fv[i+(q-1)*p]; 
-        n++;
-      }
-      // Border i=1,j=q,1
-      for (E_Int j = q-1; j > 0; j--)
-      { 
-        fnv[n] = fv[j*ni]; 
-        n++;
-      }
-    }
-    n = 1;
-    for (E_Int noe=0; noe < nfacesExt-1; noe++)
-    {
-      cn1[noe]=n; cn2[noe]=n+1; n++;
-    }
-    if (boolIndir == true)
-    {
-      E_Int nbinti = p*(q-1);
-      //E_Int nbintj = q*(p-1);
       indir = K_NUMPY::buildNumpyArray(nfacesExt, 1, 1, 0);
-      indirp = K_NUMPY::getNumpyPtrI(indir);        
-      E_Int noind = 0;
-      // j=1 interfaces
-      for (E_Int i = 0; i < p-1; i++)
-      {
-        indirp[noind] = nbinti+i;
-        noind++;
-      }
-      // i=imax interfaces
-      for (E_Int j = 0; j < q-1; j++)
-      {
-        indirp[noind] = (p-1)+ j*p;
-        noind++;
-      }
-
-      // j=jmax interfaces
-      for (E_Int i = 0; i < p-1; i++)
-      { 
-        indirp[noind] = nbinti+(p-2-i)+(q-1)*(p-1);
-        noind++;
-      }
-
-      // i=0 interface
-      for (E_Int j = 0; j <q-1; j++)
-      { 
-        indirp[noind] = (q-2-j)*p;
-        noind++;
-      }
-      PyList_Append(indices, indir);  Py_DECREF(indir);
+      indirp = K_NUMPY::getNumpyPtrI(indir);
     }
-    cn1[nfacesExt-1]=nfacesExt; cn2[nfacesExt-1]=1;
-    PyObject* tpl = K_ARRAY::buildArray(*fnodes, varString, *connect, -1, newEltType);
+
+    #pragma omp parallel
+    {
+      E_Int e;
+      #pragma omp for
+      for (E_Int noe = 0; noe < nfacesExt-1; noe++)
+      {
+        cm(noe,1) = noe+1; cm(noe,2) = noe+2;
+      }
+
+      for (E_Int nv = 1; nv <= nfld; nv++)
+      {
+        E_Float* fv = f.begin(nv);
+        E_Float* fnv = fnodes->begin(nv);
+        // Border j=1, i=1..p-1
+        #pragma omp for
+        for (E_Int i = 0; i < p-1; i++)
+        { 
+          fnv[i] = fv[i];
+        }
+        // Border i=p,j=0..q-1
+        #pragma omp for
+        for (E_Int j = 0; j < q-1; j++)
+        { 
+          e = p-1+j;
+          fnv[e] = fv[p-1+j*p];
+        }
+        // Border j=jmax,i=p,0
+        #pragma omp for
+        for (E_Int i = p-1; i > 0; i--)
+        { 
+          e = nintj+q-1-i;
+          fnv[e] = fv[i+(q-1)*p];
+        }
+        // Border i=1,j=q,1
+        #pragma omp for
+        for (E_Int j = q-1; j > 0; j--)
+        { 
+          e = nfacesExt-j;
+          fnv[e] = fv[j*ni];
+        }
+      }
+
+      if (boolIndir)
+      {
+        E_Int nbinti = p*(q-1);
+        // j=1 interfaces
+        #pragma omp for
+        for (E_Int i = 0; i < p-1; i++)
+        {
+          indirp[i] = nbinti+i;
+        }
+        // i=imax interfaces
+        #pragma omp for
+        for (E_Int j = 0; j < q-1; j++)
+        {
+          e = p-1+j;
+          indirp[e] = (p-1)+ j*p;
+        }
+
+        // j=jmax interfaces
+        #pragma omp for
+        for (E_Int i = 0; i < p-1; i++)
+        { 
+          e = p+q-2+i;
+          indirp[e] = nbinti+(p-2-i)+(q-1)*(p-1);
+        }
+
+        // i=0 interface
+        #pragma omp for
+        for (E_Int j = 0; j < q-1; j++)
+        { 
+          e = nintj+q-1+j;
+          indirp[e] = (q-2-j)*p;
+        }
+      }
+    }
+
+    cm(nfacesExt-1, 1) = nfacesExt; cm(nfacesExt-1, 2) = 1;
+    if (boolIndir)
+    {
+      PyList_Append(indices, indir); Py_DECREF(indir);
+    }
     delete fnodes; delete connect;
     return tpl;
   }
@@ -205,227 +226,263 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
   {
     strcpy(newEltType, "QUAD");
     E_Int ni1 = ni-1; E_Int nj1 = nj-1; E_Int nk1 = nk-1;
-    //E_Int ni1nj1 = ni1*nj1;
+    E_Int ni1nj1 = ni1*nj1;
     E_Int nPtsExt = 2*(ni*nj+ni*nk+nj*nk);
-    E_Int nfacesExt = 2*(ni1*nj1+nj1*nk1+ni1*nk1);
-    FldArrayF* fnodes = new FldArrayF(nPtsExt, nfld);
-    FldArrayI* connect = new FldArrayI(nfacesExt, 4);
-    E_Int ninti = 0, nintj = 0, nintij = 0;
-    if (boolIndir == true)
+    E_Int nfacesExt = 2*(ni1nj1+nj1*nk1+ni1*nk1);
+
+    tpl = K_ARRAY::buildArray3(nfld, varString, nPtsExt, nfacesExt, newEltType, 0, api);
+    FldArrayF* fnodes; FldArrayI* connect;
+    K_ARRAY::getFromArray3(tpl, fnodes, connect);
+    FldArrayI& cm = *(connect->getConnect(0));
+
+    if (boolIndir)
     {
-      ninti  = ni*nj1*nk1;
-      nintj  = ni1*nj*nk1; 
-      nintij = ninti+nintj;
       indir  = K_NUMPY::buildNumpyArray(nfacesExt, 1, 1, 0);
       indirp = K_NUMPY::getNumpyPtrI(indir);       
     }
-    E_Int ns = 0; E_Int n = 0; 
-    E_Int noint = 0;
-    E_Int e = 0; E_Int ind, indint;
-    for (E_Int nv = 1; nv <= nfld; nv++)
+
+    #pragma omp parallel
     {
-      E_Float* fv = f.begin(nv);
-      E_Float* fnv = fnodes->begin(nv);
-      for (n = 0; n < ni*nj; n++) fnv[n] = fv[n];
-    }
-    E_Int* cn1 = connect->begin(1);
-    E_Int* cn2 = connect->begin(2);
-    E_Int* cn3 = connect->begin(3);
-    E_Int* cn4 = connect->begin(4);
+      E_Int ninti  = ni*nj1*nk1;
+      E_Int nintj  = ni1*nj*nk1; 
+      E_Int nintij = ninti+nintj;
+      E_Int e, ne, ind, indint, ns, n, noint;
+      
+      for (E_Int nv = 1; nv <= nfld; nv++)
+      {
+        E_Float* fv = f.begin(nv);
+        E_Float* fnv = fnodes->begin(nv);
+        #pragma omp for
+        for (n = 0; n < ni*nj; n++) fnv[n] = fv[n];
+      }
     
-    for (E_Int j = 0; j < nj1; j++)
-      for (E_Int i = 0; i < ni1; i++)
-      {
-        ind = ns + i+j*ni + 1;
-        cn1[e] = ind;
-        cn2[e] = ind+1;
-        cn3[e] = ind+1+ni;
-        cn4[e] = ind+ni;
-        e++;
-      }
-
-    ns = n;
-    for (E_Int nv = 1; nv <= nfld; nv++)
-    {
-      n = ns;
-      E_Float* fv = f.begin(nv);
-      E_Float* fnv = fnodes->begin(nv);
-      for (E_Int j = 0; j < nj; j++)
-        for (E_Int i = 0; i < ni; i++)
-        { 
-          fnv[n] = fv[i+j*ni+(nk-1)*ni*nj]; n++;
-        }
-    }
-    for (E_Int j = 0; j < nj1; j++)
-      for (E_Int i = 0; i < ni1; i++)
-      {
-        ind = ns + i+j*ni + 1;
-        cn1[e] = ind;
-        cn2[e] = ind+1;
-        cn3[e] = ind+1+ni;
-        cn4[e] = ind+ni; 
-        e++;
-      }
-
-    if (boolIndir == true)
-    {
-      // k = 0 followed by k=nk
+      #pragma omp for
       for (E_Int j = 0; j < nj1; j++)
         for (E_Int i = 0; i < ni1; i++)
         {
-          indint = i+j*ni1+nintij;
-          indirp[noint] = indint;
-          noint++;
+          e = j*ni1 + i;
+          ind = i+j*ni + 1;
+          cm(e,1) = ind;
+          cm(e,2) = ind+1;
+          cm(e,3) = ind+1+ni;
+          cm(e,4) = ind+ni;
         }
+
+      ns = ni*nj;
+      for (E_Int nv = 1; nv <= nfld; nv++)
+      {
+        E_Float* fv = f.begin(nv);
+        E_Float* fnv = fnodes->begin(nv);
+        #pragma omp for
+        for (E_Int j = 0; j < nj; j++)
+          for (E_Int i = 0; i < ni; i++)
+          { 
+            n = ns + j*ni + i;
+            fnv[n] = fv[i+j*ni+nk1*ni*nj];
+          }
+      }
+      
+      #pragma omp for
       for (E_Int j = 0; j < nj1; j++)
         for (E_Int i = 0; i < ni1; i++)
         {
-          indint = i+j*ni1+nk1*ni1*nj1+nintij;
-          indirp[noint] = indint;
-          noint++;
+          e = ni1nj1 + j*ni1 + i;
+          ind = ns + i+j*ni + 1;
+          cm(e,1) = ind;
+          cm(e,2) = ind+1;
+          cm(e,3) = ind+1+ni;
+          cm(e,4) = ind+ni;
         }
-    }
-    ns = n;
-    for (E_Int nv = 1; nv <= nfld; nv++)
-    {
-      n = ns;
-      E_Float* fv = f.begin(nv);
-      E_Float* fnv = fnodes->begin(nv);
-      for (E_Int j = 0; j < nk; j++)
-        for (E_Int i = 0; i < ni; i++)
-        { 
-          fnv[n] = fv[i+j*ni*nj]; n++;
-        }
-    }
-    for (E_Int j = 0; j < nk1; j++)
-      for (E_Int i = 0; i < ni1; i++)
+
+      if (boolIndir)
       {
-        ind = ns + i+j*ni + 1;
-        cn1[e] = ind;
-        cn2[e] = ind+1;
-        cn3[e] = ind+1+ni;
-        cn4[e] = ind+ni;
-        e++;
+        // k = 0 followed by k=nk
+        #pragma omp for
+        for (E_Int j = 0; j < nj1; j++)
+          for (E_Int i = 0; i < ni1; i++)
+          {
+            noint = j*ni1 + i;
+            indint = i+j*ni1+nintij;
+            indirp[noint] = indint;
+          }
+        #pragma omp for
+        for (E_Int j = 0; j < nj1; j++)
+          for (E_Int i = 0; i < ni1; i++)
+          {
+            noint = ni1nj1 + j*ni1 + i;
+            indint = i+j*ni1+nk1*ni1nj1+nintij;
+            indirp[noint] = indint;
+          }
       }
-    
-    ns = n;
-    for (E_Int nv = 1; nv <= nfld; nv++)
-    {
-      n = ns;
-      E_Float* fv = f.begin(nv);
-      E_Float* fnv = fnodes->begin(nv);
-      for (E_Int j = 0; j < nk; j++)
-        for (E_Int i = 0; i < ni; i++)
-        {
-          fnv[n] = fv[i+(nj-1)*ni+j*ni*nj]; n++;
-        }
-    }
-    for (E_Int j = 0; j < nk1; j++)
-      for (E_Int i = 0; i < ni1; i++)
+
+      ns = 2*ni*nj;
+      for (E_Int nv = 1; nv <= nfld; nv++)
       {
-        ind = ns + i+j*ni + 1;
-        cn1[e] = ind;
-        cn2[e] = ind+1;
-        cn3[e] = ind+1+ni;
-        cn4[e] = ind+ni; 
-        e++;
-      } 
-    if (boolIndir == true)
-    {
-      // j = 0 followed by j=nj
-      for (E_Int k = 0; k < nk1; k++)
+        E_Float* fv = f.begin(nv);
+        E_Float* fnv = fnodes->begin(nv);
+        #pragma omp for
+        for (E_Int j = 0; j < nk; j++)
+          for (E_Int i = 0; i < ni; i++)
+          { 
+            n = ns + j*ni + i;
+            fnv[n] = fv[i+j*ni*nj];
+          }
+      }
+      
+      ne = 2*ni1nj1;
+      for (E_Int j = 0; j < nk1; j++)
         for (E_Int i = 0; i < ni1; i++)
         {
-          indint = i+k*ni1*nj+ninti;
-          indirp[noint] = indint;
-          noint++;
+          e = ne + j*ni1 + i;
+          ind = ns + i+j*ni + 1;
+          cm(e,1) = ind;
+          cm(e,2) = ind+1;
+          cm(e,3) = ind+1+ni;
+          cm(e,4) = ind+ni;
         }
-      for (E_Int k = 0; k < nk1; k++)
+      
+      ns = 2*ni*nj + ni*nk;
+      for (E_Int nv = 1; nv <= nfld; nv++)
+      {
+        E_Float* fv = f.begin(nv);
+        E_Float* fnv = fnodes->begin(nv);
+        #pragma omp for
+        for (E_Int j = 0; j < nk; j++)
+          for (E_Int i = 0; i < ni; i++)
+          {
+            n = ns + j*ni + i;
+            fnv[n] = fv[i+(nj-1)*ni+j*ni*nj];
+          }
+      }
+
+      ne = 2*ni1nj1 + ni1*nk1;
+      #pragma omp for
+      for (E_Int j = 0; j < nk1; j++)
         for (E_Int i = 0; i < ni1; i++)
         {
-          indint = i+nj1*ni1+k*ni1*nj+ninti;
-          indirp[noint] = indint;
-          noint++;
-        }
-    }
-    ns = n;
-    for (E_Int nv = 1; nv <= nfld; nv++)
-    {
-      n = ns;
-      E_Float* fv = f.begin(nv);
-      E_Float* fnv = fnodes->begin(nv);
-      for (E_Int j = 0; j < nk; j++)
-        for (E_Int i = 0; i < nj; i++)
-        { 
-          fnv[n] = fv[i*ni+j*ni*nj]; n++;
-        }
-    }
-    for (E_Int j = 0; j < nk1; j++)
-      for (E_Int i = 0; i < nj1; i++)
+          e = ne + j*ni1 + i;
+          ind = ns + i+j*ni + 1;
+          cm(e,1) = ind;
+          cm(e,2) = ind+1;
+          cm(e,3) = ind+1+ni;
+          cm(e,4) = ind+ni;
+        } 
+
+      if (boolIndir)
       {
-        ind = ns + i+j*nj + 1; 
-        cn1[e] = ind;
-        cn2[e] = ind+1;
-        cn3[e] = ind+1+nj;
-        cn4[e] = ind+nj; 
-        e++;
+        // j = 0 followed by j=nj
+        ne = 2*ni1nj1;
+        #pragma omp for
+        for (E_Int k = 0; k < nk1; k++)
+          for (E_Int i = 0; i < ni1; i++)
+          {
+            noint = ne + k*ni1 + i;
+            indint = i+k*ni1*nj+ninti;
+            indirp[noint] = indint;
+          }
+        ne = 2*ni1nj1 + ni1*nk1;
+        #pragma omp for
+        for (E_Int k = 0; k < nk1; k++)
+          for (E_Int i = 0; i < ni1; i++)
+          {
+            noint = ne + k*ni1 + i;
+            indint = i+nj1*ni1+k*ni1*nj+ninti;
+            indirp[noint] = indint;
+          }
       }
 
-    ns = n;
-    for (E_Int nv = 1; nv <= nfld; nv++)
-    {
-      n = ns;
-      E_Float* fv = f.begin(nv);
-      E_Float* fnv = fnodes->begin(nv);
-      for (E_Int j = 0; j < nk; j++)
-        for (E_Int i = 0; i < nj; i++)
-        { 
-          fnv[n] = fv[ni-1+i*ni+j*ni*nj]; n++;
-        }
-    }
-    for (E_Int j = 0; j < nk1; j++)
-      for (E_Int i = 0; i < nj1; i++)
+      ns = 2*(ni*nj + ni*nk);
+      for (E_Int nv = 1; nv <= nfld; nv++)
       {
-        ind = ns + i+j*nj + 1; 
-        cn1[e] = ind;
-        cn2[e] = ind+1;
-        cn3[e] = ind+1+nj;
-        cn4[e] = ind+nj;
-        e++;
+        E_Float* fv = f.begin(nv);
+        E_Float* fnv = fnodes->begin(nv);
+        #pragma omp for
+        for (E_Int j = 0; j < nk; j++)
+          for (E_Int i = 0; i < nj; i++)
+          { 
+            n = ns + j*nj + i;
+            fnv[n] = fv[i*ni+j*ni*nj];
+          }
       }
 
-    if (boolIndir == true)
-    {
-      // i = 0 followed by i=ni
-      for (E_Int k = 0; k < nk1; k++)
-        for (E_Int j = 0; j < nj1; j++)
+      ne = 2*(ni1nj1 + ni1*nk1);
+      #pragma omp for
+      for (E_Int j = 0; j < nk1; j++)
+        for (E_Int i = 0; i < nj1; i++)
         {
-          indint = j*ni+k*ni*nj1;
-          indirp[noint] = indint;
-          noint++;
+          e = ne + j*nj1 + i;
+          ind = ns + i+j*nj + 1; 
+          cm(e,1) = ind;
+          cm(e,2) = ind+1;
+          cm(e,3) = ind+1+nj;
+          cm(e,4) = ind+nj;
         }
-      for (E_Int k = 0; k < nk1; k++)
-        for (E_Int j = 0; j < nj1; j++)
-        {
-          indint = ni1+j*ni+k*ni*nj1;
-          indirp[noint] = indint;
-          noint++;
-        }
-    }      
 
+      ns = 2*(ni*nj + ni*nk) + nj*nk;
+      for (E_Int nv = 1; nv <= nfld; nv++)
+      {
+        E_Float* fv = f.begin(nv);
+        E_Float* fnv = fnodes->begin(nv);
+        #pragma omp for
+        for (E_Int j = 0; j < nk; j++)
+          for (E_Int i = 0; i < nj; i++)
+          { 
+            n = ns + j*nj + i;
+            fnv[n] = fv[ni-1+i*ni+j*ni*nj];
+          }
+      }
+      
+      ne = 2*(ni1nj1 + ni1*nk1) + nj1*nk1;
+      #pragma omp for
+      for (E_Int j = 0; j < nk1; j++)
+        for (E_Int i = 0; i < nj1; i++)
+        {
+          e = ne + j*nj1 + i;
+          ind = ns + i+j*nj + 1; 
+          cm(e,1) = ind;
+          cm(e,2) = ind+1;
+          cm(e,3) = ind+1+nj;
+          cm(e,4) = ind+nj;
+        }
+
+      if (boolIndir)
+      {
+        // i = 0 followed by i=ni
+        ne = 2*(ni1nj1 + ni1*nk1);
+        #pragma omp for
+        for (E_Int k = 0; k < nk1; k++)
+          for (E_Int j = 0; j < nj1; j++)
+          {
+            noint = ne + k*nj1 + j;
+            indint = j*ni+k*ni*nj1;
+            indirp[noint] = indint;
+          }
+        ne = 2*(ni1nj1 + ni1*nk1) + nj1*nk1;
+        #pragma omp for
+        for (E_Int k = 0; k < nk1; k++)
+          for (E_Int j = 0; j < nj1; j++)
+          {
+            noint = ne + k*nj1 + j;
+            indint = ni1+j*ni+k*ni*nj1;
+            indirp[noint] = indint;
+          }
+      }
+    }
+
+    // Clean connectivity
     E_Int posx = K_ARRAY::isCoordinateXPresent(varString)+1;
     E_Int posy = K_ARRAY::isCoordinateYPresent(varString)+1;
     E_Int posz = K_ARRAY::isCoordinateZPresent(varString)+1;
     if (posx != 0 && posy != 0 && posz != 0)
       K_CONNECT::cleanConnectivity(posx, posy, posz, 
-                                   1.e-12, "QUAD", 
+                                   1.e-12, newEltType, 
                                    *fnodes, *connect);
+    tpl = K_ARRAY::buildArray3(*fnodes, varString, *connect, newEltType);
 
-    if (boolIndir==true)
+    if (boolIndir)
     {
-      PyList_Append(indices, indir);  Py_DECREF(indir);
+      PyList_Append(indices, indir); Py_DECREF(indir);
     }
-    PyObject* tpl = K_ARRAY::buildArray(*fnodes, varString, *connect, -1, newEltType);
     delete fnodes; delete connect;
     return tpl;
   }
@@ -685,7 +742,7 @@ short K_POST::exteriorFacesBasic3(FldArrayF& f, FldArrayI& cn,
   E_Int* indicesf = NULL;
   vector<E_Int> posFacesV(nthreads);
   E_Int sizeL = 0; 
-  if (boolIndir == true)
+  if (boolIndir)
   {
     indicesFaces = K_NUMPY::buildNumpyArray(nntot, 1, 1, 0);
     indicesf = K_NUMPY::getNumpyPtrI(indicesFaces);
@@ -707,7 +764,7 @@ short K_POST::exteriorFacesBasic3(FldArrayF& f, FldArrayI& cn,
       E_Int* cnp = cnnl->begin(n);
       for (E_Int e = 0; e < ne; e++) cnnp[e+p] = cnp[e];
     }
-    if (boolIndir == true)
+    if (boolIndir)
     {
       vector<E_Int>& vectOfFacesL = vectOfFaces[ithread];
       E_Int shiftIndices = posFacesV[ithread];
@@ -719,7 +776,7 @@ short K_POST::exteriorFacesBasic3(FldArrayF& f, FldArrayI& cn,
   }
   for (E_Int i = 0; i < nthreads; i++) delete cnnls[i];
   delete [] prev; delete [] nes; delete [] cnnls;
-  if (boolIndir == true) 
+  if (boolIndir) 
   {
     PyList_Append(indices, indicesFaces);  
     Py_DECREF(indicesFaces);
@@ -741,170 +798,162 @@ PyObject* K_POST::selectExteriorFacesNGon3D(char* varString, FldArrayF& f,
   bool boolIndir = false;
   if (indices != Py_None) boolIndir = true;
 
+  // Acces non universel sur le ptrs
+  E_Int* ngon = cn.getNGon();
+  E_Int* indPG = cn.getIndPG();
+  E_Int nfaces = cn.getNFaces();
+  E_Int npts = f.getSize(), nfld = f.getNfld();
+  E_Int shift = 1, api = f.getApi();
+  if (api == 3) shift = 0;
+
   // cFE: connectivite face/elements.
   // Si une face n'a pas d'element gauche ou droit, retourne 0 pour 
   // cet element. 
   FldArrayI cFE; K_CONNECT::connectNG2FE(cn, cFE);
   E_Int* cFE1 = cFE.begin(1);
   E_Int* cFE2 = cFE.begin(2);
-  E_Int* ptr = cn.begin();
-  E_Int sizeFN = ptr[1]; ptr += 2; // sizeFN: taille du tableau de connectivite Face/Noeuds
-  E_Int next1=0; // nbre de faces exterieures pour la nouvelle connectivite 
-  E_Int next2=0; // nbre d'elements exterieurs pour la nouvelle connectivite
-  E_Int sizeco1=0; // taille de la nouvelle connectivite de faces exterieures
-  E_Int sizeco2=0; // taille de la nouvelle connectivite d'elements exterieurs
-  E_Int e1, e2, nbnodes;
+  E_Int sizeFN2, sizeEF2 = 0;
+  E_Int fidx, e1, e2, nbnodes, nptsExt;
+  E_Int indvertn = 1, indedgen = 1;
 
-  FldArrayI posFaces;
-  K_CONNECT::getPosFaces(cn, posFaces);
-  E_Int* posFacep = posFaces.begin();
-
-  // calcul du nombre d'elements et de faces pour la nouvelle connectivite
-  E_Int fa = 0; E_Int numFace = 0; E_Int nfaceExt = 0;
+  // Calcul du nombre de points uniques, aretes uniques, et faces dans la
+  // nouvelle connectivite 2D
+  E_Int nedgesExt = 0, nfacesExt = 0;
+  vector<E_Int> indirVertices(npts, -1);
   vector<E_Int> exteriorFaces;
-  PyObject* indir = NULL;
-  E_Int* indirp = NULL;
 
-  while (fa < sizeFN) // parcours de la connectivite face/noeuds
+  // Les vertices sont mappes pour calculer leur table d'indirection sachant 
+  // que leur nombre n'est pas connu a priori et qu'ils ne sont pas parcourus
+  // dans l'ordre.
+  std::unordered_map<E_Int, E_Int> vertexMap;
+  // Les aretes sont hashees pour determiner le nombre unique d'aretes et
+  // construire la nouvelle connectivite 2D
+  vector<E_Int> edge(2);
+  std::pair<E_Int, E_Bool> initEdge(-1, false);
+  //TopologyOpt E; std::map<TopologyOpt, std::pair<E_Int, E_Bool> > edgeMap;
+  TopologyOpt E; std::unordered_map<TopologyOpt, std::pair<E_Int, E_Bool>, JenkinsHash<TopologyOpt> > edgeMap;
+
+  for (E_Int i = 0; i < nfaces; i++)
   {
-    e1 = cFE1[numFace];  // element voisin 1
-    e2 = cFE2[numFace];  // element voisin 2
-    nbnodes = ptr[0];
-
+    e1 = cFE1[i]; // element voisin 1
+    e2 = cFE2[i]; // element voisin 2
+    E_Int* face = cn.getFace(i, nbnodes, ngon, indPG);
     if ((e1 == 0 && e2 != 0) || (e2 == 0 && e1 != 0))
     {
-      sizeco1 += 3*nbnodes; next1 += nbnodes;
-      sizeco2 += nbnodes+1; next2++;
-      nfaceExt++;
-      exteriorFaces.push_back(numFace);
+      sizeEF2 += nbnodes+shift; nfacesExt++;
+      exteriorFaces.push_back(i+1);
+      
+      for (E_Int p = 0; p < nbnodes; p++)
+      {
+        edge[0] = face[p]-1;
+        edge[1] = face[(p+1)%nbnodes]-1;
+        //E.set(edge); // version with Topology
+        E.set(edge.data(), 2); // version with TopologyOpt
+        // Ensure V and E are initially mapped to an initial value if either
+        // doesn't exist
+        auto resV = vertexMap.insert(std::make_pair(edge[0], 0));
+        auto resE = edgeMap.insert(std::make_pair(E, initEdge));
+        // Increment the value associated with V. If it is 1, then first
+        // time this vertex is met, set indirVertices
+        if (++resV.first->second == 1)
+        {
+          indirVertices[edge[0]] = indvertn;
+          indvertn++;
+        }
+        // If the value associated with E is -1, then first time this edge
+        // is met, set to current unique edge count
+        if (resE.first->second.first == -1)
+        {
+          resE.first->second.first = indedgen;
+          indedgen++;
+        }
+      }
     }
-    ptr += nbnodes+1; fa += nbnodes+1; numFace++;
   }
-  if (boolIndir == true)
+
+  nptsExt = vertexMap.size();
+  sizeFN2 = (2+shift)*edgeMap.size();
+  nedgesExt = edgeMap.size();
+  
+  PyObject* indir = NULL;
+  E_Int* indirp = NULL;
+  if (boolIndir)
   {
-    indir = K_NUMPY::buildNumpyArray(nfaceExt, 1, 1, 0);
+    indir = K_NUMPY::buildNumpyArray(nfacesExt, 1, 1, 0);
     indirp = K_NUMPY::getNumpyPtrI(indir);
   }
   cFE.malloc(0);
   // Calcul des nouvelles connectivites Elmt/Faces et Face/Noeuds
-  FldArrayI c2n(sizeco1+sizeco2+4);
-  E_Int* ptro1 = c2n.begin()+2;
-  E_Int* ptro2 = c2n.begin()+sizeco1+4;
-
-  E_Int npts = f.getSize(); E_Int nfld = f.getNfld();
-  FldArrayI indirNodes(npts); indirNodes.setAllValuesAt(-1);
-  E_Int* indirNp = indirNodes.begin();
-  E_Int indnewface = 1;
-  E_Int indvertp1, indvertp2;
-  E_Int indvertn = 0;
-  vector< vector<E_Int> > indicesFaces(npts);// faces creees associees aux noeuds 
-  E_Int pos, ind;
-  E_Int n = exteriorFaces.size();
-
-  for (E_Int i = 0; i < n; i++)
+  E_Int ngonType = 1; // CGNSv3 compact array1
+  if (api == 2) ngonType = 2; // CGNSv3, array2
+  else if (api == 3) ngonType = 3; // force CGNSv4, array3
+  E_Boolean center = false;
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, nptsExt, nfacesExt,
+                                       nedgesExt, "NGON", sizeFN2, sizeEF2,
+                                       ngonType, center, api);
+  FldArrayF* f2; FldArrayI* cn2;
+  K_ARRAY::getFromArray3(tpl, f2, cn2);
+  E_Int* ngon2 = cn2->getNGon();
+  E_Int* nface2 = cn2->getNFace();
+  E_Int *indPG2 = NULL, *indPH2 = NULL;
+  if (api == 2 || api == 3)
   {
-    ind = exteriorFaces[i];
-    pos = posFacep[ind];
-    ptr = cn.begin()+pos;
-    nbnodes = ptr[0];
-    if (boolIndir == true) indirp[i] = ind+1;
+    indPG2 = cn2->getIndPG(); indPH2 = cn2->getIndPH();
+  }
 
-    ptro2[0] = nbnodes;
+  E_Int c1 = 0, c2 = 0; // positions in ngon2 and nface2
+  for (E_Int i = 0; i < nfacesExt; i++)
+  {
+    fidx = exteriorFaces[i];
+    E_Int* face = cn.getFace(fidx-1, nbnodes, ngon, indPG);
+    if (boolIndir) indirp[i] = fidx;
+
+    nface2[c2] = nbnodes;
+    if (api == 2 || api == 3) indPH2[c2] = nbnodes;
     for (E_Int p = 0; p < nbnodes; p++)
-    { 
-      ptro1[0] = 2;
-      indvertp1 = ptr[p+1]-1;
-      indvertp2 = ptr[(p+1)%(nbnodes)+1]-1;
-      vector<E_Int>& facesp1 = indicesFaces[indvertp1];
-      vector<E_Int>& facesp2 = indicesFaces[indvertp2];
-
-      //creation de la face P1P2 
-      E_Int foundFace = -1; 
-      if (facesp1.size() > 0 && facesp2.size() > 0 ) 
-      {
-        for (size_t fi = 0; fi < facesp1.size(); fi++)
-          for (size_t fj = 0; fj < facesp2.size(); fj++)
-          {
-            if (facesp1[fi] == facesp2[fj] ) 
-            {
-              foundFace = facesp1[fi]; 
-              break;
-            }
-            if (foundFace != -1) break;
-          }        
-      }
-      if (foundFace == -1)
-      { 
-        if (indirNp[indvertp1] == -1) 
-        {
-          indvertn += 1;
-          indirNp[indvertp1] = indvertn;
-          ptro1[1] = indvertn;
-        }
-        else 
-        {
-          ptro1[1] = indirNp[indvertp1];
-        }
-        
-        if (indirNp[indvertp2] == -1) 
-        {
-          indvertn += 1;
-          indirNp[indvertp2] = indvertn;
-          ptro1[2] = indvertn;
-        }
-        else 
-        {
-          ptro1[2] = indirNp[indvertp2];
-        }
-        ptro1 += 3;
-
-        facesp1.push_back(indnewface); facesp2.push_back(indnewface);
-        ptro2[p+1] = indnewface; indnewface++;
-      }
-      else 
-      {
-        ptro2[p+1] = foundFace;
-      }
-    }
-    ptro2 += nbnodes+1;
-  }
-  FldArrayF* f2 = new FldArrayF(indvertn,nfld);
-  E_Int indf;
-  for(E_Int eq = 1; eq <= nfld; eq++)
-  {
-    E_Float* fp = f.begin(eq);
-    E_Float* fnp = f2->begin(eq);
-    for (E_Int ind = 0; ind < npts; ind++)
     {
-      indf = indirNp[ind]-1;
-      if (indf > -1) fnp[indf] = fp[ind];
+      edge[0] = face[p]-1;
+      edge[1] = face[(p+1)%nbnodes]-1;
+      //E.set(edge); // version with Topology
+      E.set(edge.data(), 2); // version with TopologyOpt
+      // Find the edge in the edge map
+      auto resE = edgeMap.find(E);
+      if (not resE->second.second)
+      {
+        resE->second.second = true;
+        ngon2[c1] = 2;
+        ngon2[c1+shift] = indirVertices[edge[0]];
+        ngon2[c1+1+shift] = indirVertices[edge[1]];
+        c1 += 2+shift;
+      }
+      nface2[c2+p+shift] = resE->second.first;
+    }
+    c2 += nbnodes+shift;
+  }
+
+  #pragma omp parallel
+  {
+    E_Int indf;
+    if (api == 2 || api == 3)
+    {
+      #pragma omp for
+      for(E_Int i = 0; i < nedgesExt; i++) indPG2[i] = 2;
+    }
+  
+    for(E_Int eq = 1; eq <= nfld; eq++)
+    {
+      E_Float* fp = f.begin(eq);
+      E_Float* f2p = f2->begin(eq);
+      #pragma omp for
+      for (E_Int ind = 0; ind < npts; ind++)
+      {
+        indf = indirVertices[ind]-1;
+        if (indf > -1) f2p[indf] = fp[ind];
+      }
     }
   }
-  // Cree la nouvelle connectivite complete
-  E_Int nbFaces = indnewface-1;
-  sizeFN = nbFaces*3;
-  E_Int nbElts = next2;
-  E_Int sizeEF = sizeco2;
-  FldArrayI* cnout = new FldArrayI(sizeFN+sizeEF+4);
-  E_Int* cnoutp = cnout->begin();
-  ptro1 = c2n.begin()+2;
-  ptro2 = c2n.begin()+4+sizeco1;
-  cnoutp[0] = nbFaces; // nombre de faces
-  cnoutp[1] = sizeFN; // taille du tableau de faces
-  cnoutp += 2;
-  for(E_Int i = 0; i < sizeFN; i++) cnoutp[i] = ptro1[i];
-  cnoutp += sizeFN;
-    
-  cnoutp[0] = nbElts; 
-  cnoutp[1] = sizeEF;
-  cnoutp += 2;
-  for (E_Int i = 0; i < sizeEF; i++) cnoutp[i] = ptro2[i];
-  // Build array 
-  char eltTypeFaces[10]; strcpy(eltTypeFaces, "NGON");
-  PyObject* tpl = K_ARRAY::buildArray(*f2, varString, 
-                                      *cnout, -1, eltTypeFaces);
-  delete f2; delete cnout;
-  if (boolIndir == true)
+
+  if (boolIndir)
   {
     PyList_Append(indices, indir); Py_DECREF(indir);
   }
@@ -934,10 +983,10 @@ PyObject* K_POST::selectExteriorFacesNGon2D(char* varString, FldArrayF& f,
   E_Int* cFE2 = cFE.begin(2);
   E_Int* ptr = cn.begin();
   E_Int sizeFN = ptr[1]; ptr += 2; // sizeFN: taille du tableau de connectivite Face/Noeuds
-  E_Int next1=0; // nbre de faces exterieures pour la nouvelle connectivite 
+  E_Int nedgesExt=0; // nbre de faces exterieures pour la nouvelle connectivite 
   E_Int next2=0; // nbre d'elements exterieurs pour la nouvelle connectivite
-  E_Int sizeco1=0; // taille de la nouvelle connectivite de faces exterieures
-  E_Int sizeco2=0; // taille de la nouvelle connectivite d'elements exterieurs
+  E_Int sizeFN2=0; // taille de la nouvelle connectivite de faces exterieures
+  E_Int sizeEF2=0; // taille de la nouvelle connectivite d'elements exterieurs
   E_Int e1, e2, nbnodes;
 
   FldArrayI posFaces;
@@ -945,7 +994,7 @@ PyObject* K_POST::selectExteriorFacesNGon2D(char* varString, FldArrayF& f,
   E_Int* posFacep = posFaces.begin();
 
   // calcul du nombre d'elements et de faces pour la nouvelle connectivite
-  E_Int fa = 0; E_Int numFace = 0; E_Int nfaceExt = 0;
+  E_Int fa = 0; E_Int numFace = 0; E_Int nfacesExt = 0;
   vector<E_Int> exteriorFaces;
   PyObject* indir = NULL;
   E_Int* indirp = NULL;
@@ -958,29 +1007,29 @@ PyObject* K_POST::selectExteriorFacesNGon2D(char* varString, FldArrayF& f,
 
     if ( (e1 == 0 && e2 != 0) || (e2 == 0 && e1 != 0) )
     {
-      sizeco1 += 2*nbnodes; next1 += nbnodes;
-      sizeco2 += nbnodes+1; next2++;
-      nfaceExt++;
+      sizeFN2 += 2*nbnodes; nedgesExt += nbnodes;
+      sizeEF2 += nbnodes+1; next2++;
+      nfacesExt++;
       exteriorFaces.push_back(numFace);
     }
     ptr += nbnodes+1; fa += nbnodes+1; numFace++;
   }
-  if (boolIndir == true)
+  if (boolIndir)
   {
-    indir = K_NUMPY::buildNumpyArray(nfaceExt, 1, 1, 0);
+    indir = K_NUMPY::buildNumpyArray(nfacesExt, 1, 1, 0);
     indirp = K_NUMPY::getNumpyPtrI(indir);
   }
   cFE.malloc(0);
   // Calcul des nouvelles connectivites Elmt/Faces et Face/Noeuds
-  FldArrayI c2n(sizeco1+sizeco2+4);
+  FldArrayI c2n(sizeFN2+sizeEF2+4);
   E_Int* ptro1 = c2n.begin()+2;
-  E_Int* ptro2 = c2n.begin()+sizeco1+4;
+  E_Int* ptro2 = c2n.begin()+sizeFN2+4;
 
   E_Int npts = f.getSize(); E_Int nfld = f.getNfld();
   FldArrayI indirNodes(npts); indirNodes.setAllValuesAt(-1);
-  E_Int* indirNp = indirNodes.begin();
+  E_Int* indirVertices = indirNodes.begin();
   E_Int indnewface = 1;
-  E_Int indvertp1;
+  E_Int v1;
   E_Int indvertn = 0;
   FldArrayI indicesFaces(npts);// faces creees associees aux noeuds 
   indicesFaces.setAllValuesAt(-1);
@@ -994,28 +1043,28 @@ PyObject* K_POST::selectExteriorFacesNGon2D(char* varString, FldArrayF& f,
     pos = posFacep[ind];
     ptr = cn.begin()+pos;
     nbnodes = ptr[0];
-    if (boolIndir == true) indirp[i] = ind+1;
+    if (boolIndir) indirp[i] = ind+1;
 
     ptro2[0] = nbnodes;
     for (E_Int p = 0; p < nbnodes; p++)
     { 
       ptro1[0] = 1;
-      indvertp1 = ptr[p+1]-1;
-      foundFace = indicesFacesp[indvertp1];
+      v1 = ptr[p+1]-1;
+      foundFace = indicesFacesp[v1];
       if (foundFace == -1)
       { 
-        if (indirNp[indvertp1] == -1) 
+        if (indirVertices[v1] == -1) 
         {
           indvertn += 1;
-          indirNp[indvertp1] = indvertn;
+          indirVertices[v1] = indvertn;
           ptro1[1] = indvertn;
         }
         else 
         {
-          ptro1[1] = indirNp[indvertp1];
+          ptro1[1] = indirVertices[v1];
         }             
         ptro1 += 2;
-        indicesFacesp[indvertp1] = indnewface;
+        indicesFacesp[v1] = indnewface;
         ptro2[p+1] = indnewface; indnewface++;
       }
       else 
@@ -1032,7 +1081,7 @@ PyObject* K_POST::selectExteriorFacesNGon2D(char* varString, FldArrayF& f,
     E_Float* fnp = f2->begin(eq);
     for (E_Int ind = 0; ind < npts; ind++)
     {
-      E_Int indf = indirNp[ind]-1;
+      E_Int indf = indirVertices[ind]-1;
       if (indf> -1) fnp[indf] = fp[ind];
     }
   }
@@ -1040,11 +1089,11 @@ PyObject* K_POST::selectExteriorFacesNGon2D(char* varString, FldArrayF& f,
   E_Int nbFaces = indnewface-1;
   sizeFN = nbFaces*2;
   E_Int nbElts = next2;
-  E_Int sizeEF = sizeco2;
+  E_Int sizeEF = sizeEF2;
   FldArrayI* cnout = new FldArrayI(sizeFN+sizeEF+4);
   E_Int* cnoutp = cnout->begin();
   ptro1 = c2n.begin()+2;
-  ptro2 = c2n.begin()+4+sizeco1;
+  ptro2 = c2n.begin()+4+sizeFN2;
   cnoutp[0] = nbFaces; // nombre de faces
   cnoutp[1] = sizeFN; // taille du tableau de faces
   cnoutp+=2;
@@ -1063,7 +1112,7 @@ PyObject* K_POST::selectExteriorFacesNGon2D(char* varString, FldArrayF& f,
   PyObject* tpl = K_ARRAY::buildArray(*f2, varString, 
                                       *cnout, -1, eltTypeFaces);
   delete f2; delete cnout;
-  if ( boolIndir == true) 
+  if (boolIndir) 
   {
     PyList_Append(indices, indir);  Py_DECREF(indir);
   }
@@ -1346,7 +1395,7 @@ short K_POST::exteriorFacesBasic2(E_Int nfaces, E_Int nvertex,
   E_Int ind, indp;
   short* tag = new short [nfacesmax];
   for (E_Int i = 0; i < nfacesmax; i++) tag[i] = 0;
-  E_Int nfaceExt = 0;
+  E_Int nfacesExt = 0;
   for (E_Int et = 0; et < ne; et++)
   {
     for (E_Int j = 0; j < nfaces; j++)
@@ -1362,14 +1411,14 @@ short K_POST::exteriorFacesBasic2(E_Int nfaces, E_Int nvertex,
       dz = interfacez[indp]-interfacez[ind];
       if (dx*dx + dy*dy + dz*dz > 1.e-24) // exterieur
       {
-        tag[ff] = 1; nfaceExt++;
+        tag[ff] = 1; nfacesExt++;
       }
     }
   }
   interfaceCenters.malloc(0);
   
-  connect.malloc(nfaceExt, nvertex);
-  fnodes.malloc(nfaceExt*nvertex, nfld);
+  connect.malloc(nfacesExt, nvertex);
+  fnodes.malloc(nfacesExt*nvertex, nfld);
   E_Int ee = 0; E_Int nn = 0;
 
   for (E_Int et = 0; et < ne; et++)
