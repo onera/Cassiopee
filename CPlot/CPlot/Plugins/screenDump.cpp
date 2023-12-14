@@ -432,7 +432,7 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
 //=============================================================================
 void Data::dumpWindow() 
 {
-  char fileName[2056];
+  char fileName[2556];
   if (_pref.screenDump == NULL) return;
 
   // File name

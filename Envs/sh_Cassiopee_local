@@ -258,6 +258,7 @@ elif [ "$MAC" = "visung" ]; then
     #module load intel/21.2.0
     module load gcc/10.2.0
     module load hdf5/1.10.5-gnu831-ompi405
+    module load lapack/3.9.1-gnu831
     export PRODMODE=1
     export PYTHONEXE=python3
     alias python=python3
@@ -692,7 +693,7 @@ elif [ "$MAC" = "spiro_el8" ]; then
     # Nbre de threads
     export OMP_NUM_THREADS=24
     # modules
-    #. /usr/local/Modules/init/bash
+    source /opt/tools/Modules/init/bash
     module purge
     module load socle-cfd/5.0-intel2120-impi
     #module load socle-cfd/6.0-intel2220-impi
@@ -713,7 +714,6 @@ elif [ "$MAC" = "spiro_el8" ]; then
     unset SLURM_CPU_BIND
     unset SLURM_CPU_BIND_TYPE
     export OMP_PLACES=cores
-        
     # Chemin de l'executable python
     export PATH=$PATH:$CASSIOPEE/Dist/bin
     export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PATH

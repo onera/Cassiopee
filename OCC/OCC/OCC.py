@@ -178,9 +178,9 @@ def reorderEdgesByFace__(edges):
     from operator import itemgetter, attrgetter
     splitEdges = Transform.splitConnexity(edges)
     if len(splitEdges) == 1:
-        print("Single closed curve ==============================", flush=True)
+        print("Single closed curve ==============================")
         return edges
-    print("Multiple closed curves ==============================", flush=True)
+    print("Multiple closed curves ==============================")
     # classe les edges par surface englobee
     sortedEdges = []
     for c, e in enumerate(splitEdges):

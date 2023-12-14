@@ -294,7 +294,7 @@ intRandLoad2 (
 IntRandState * restrict const statptr,            /*+ Random state to load +*/
 FILE * restrict const         stream)             /*+ Stream to read from  +*/
 {
-  if (fscanf (stream, "%" PRIu64 "%" PRIu64,
+  if (fscanf (stream, UINTSTRING UINTSTRING,
               &statptr->randtab[0],
               &statptr->randtab[1]) != 2) {
     errorPrint ("intRandLoad2: bad input");
@@ -320,7 +320,7 @@ FILE * restrict const           stream)           /*+ Stream to read from    +*/
     return (2);
   }
 
-  if (fscanf (stream, "%d%" PRIu64,
+  if (fscanf (stream, "%d" UINTSTRING,
               &randptr->procval,
               &randptr->seedval) != 2) {
     errorPrint ("intRandLoad: bad input (2)");
@@ -345,7 +345,7 @@ intRandSave2 (
 IntRandState * restrict const statptr,            /*+ Random state to load +*/
 FILE * restrict const         stream)             /*+ Stream to read from  +*/
 {
-  if (fprintf (stream, "%" PRIu64 "\t%" PRIu64 "\n",
+  if (fprintf (stream, UINTSTRING "\t" UINTSTRING "\n",
                statptr->randtab[0],
                statptr->randtab[1]) < 0) {
     errorPrint ("intRandSave2: bad output");
@@ -365,7 +365,7 @@ FILE * restrict const           stream)           /*+ Stream to read from  +*/
     return (1);
   }
 
-  if (fprintf (stream, "1\n%d\t%" PRIu64 "\n",
+  if (fprintf (stream, "1\n%d\t" UINTSTRING "\n",
                randptr->procval,
                randptr->seedval) < 0) {
     errorPrint ("intRandSave: bad output");
