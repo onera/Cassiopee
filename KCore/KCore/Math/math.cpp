@@ -59,7 +59,7 @@ void K_MATH::sqrmat_dot_vec(const E_Float *A, const E_Float *x, const E_Int n,
   }
 }
 
-void K_MATH::sym3mat_dot_vec(const E_Float a[6], const E_Float b[6],
+void K_MATH::sym3mat_dot_vec(const E_Float a[6], const E_Float b[3],
   E_Float c[3])
 {
   c[0] = a[0]*b[0] + a[1]*b[1] + a[2]*b[2];

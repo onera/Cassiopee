@@ -146,7 +146,7 @@ void K_METRIC::compute_cell_center_and_volume(E_Int id, E_Int stride,
     vol += pyr3Vol;
   }
 
-  if (fabs(vol) < K_MATH::SMALL) {
+  if (fabs(vol) >= K_MATH::SMALL) {
     cx /= vol;
     cy /= vol;
     cz /= vol;
@@ -351,7 +351,7 @@ E_Int K_METRIC::compute_volumes_ngon(E_Float *x, E_Float *y, E_Float *z,
   // Check mesh
   std::vector<E_Int> is_cell_open(ncells, 0);
   E_Int bad_faces = K_CONNECT::check_overlapping_cells(cn);
-  E_Int bad_cells = K_CONNECT::check_open_cells(cn, &is_cell_open[0]); 
+  E_Int bad_cells = K_CONNECT::check_open_cells(cn, &is_cell_open[0]);
 
   if (!bad_cells && !bad_faces) {
     K_CONNECT::orient_boundary_ngon(x, y, z, cn);
@@ -359,7 +359,7 @@ E_Int K_METRIC::compute_volumes_ngon(E_Float *x, E_Float *y, E_Float *z,
     std::vector<E_Int> owner(nfaces), neigh(nfaces);
     K_CONNECT::build_parent_elements_ngon(cn, &owner[0], &neigh[0]);
     compute_volumes(cn, x, y, z, owner, neigh, vols);
-  } else {  
+  } else {
     // Compute closed cells volumes
     for (E_Int i = 0; i < ncells; i++) {
       if (is_cell_open[i]) {
