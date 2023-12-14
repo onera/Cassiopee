@@ -42,7 +42,59 @@ void hessian_to_metric(E_Float *H, E_Int ncells)
 
 static
 void make_pdirs_pyra(E_Int cell, AMesh *M, pDirs &Dirs)
-{}
+{
+  // Setup bot
+  E_Int *pf = get_facets(cell, M->nface, M->indPH);
+  E_Int face = pf[0];
+  E_Int *pn = get_facets(face, M->ngon, M->indPG);
+  E_Int NODES[5] = {pn[0], pn[1], pn[2], pn[3], -1,};
+  E_Int reorient = get_reorient(face, cell, normalIn_Py[0], M);
+  if (reorient) std::swap(NODES[1], NODES[3]);
+
+  E_Int lft = pf[1];
+  pn = &M->ngon[M->indPG[lft]];
+
+  for (E_Int i = 0; i < 3; i++) {
+    E_Int pt = pn[i];
+
+    E_Int found = 0;
+    // pt must not be in n
+    for (E_Int j = 0; j < 4; j++) {
+      if (pt == NODES[j]) {
+        found = 1;
+        break;
+      }
+    }
+
+    if (!found) {
+      NODES[4] = pt;
+      break;
+    }
+  }
+
+  assert(NODES[4] != NODES[0]);
+  assert(NODES[4] != NODES[1]);
+  assert(NODES[4] != NODES[2]);
+  assert(NODES[4] != NODES[3]);
+
+  E_Float *f0, *f1;
+
+  // Face 0 (bot) <-> n4
+  f0 = &M->fc[3*pf[0]];
+  Dirs.I[0] = M->x[NODES[4]] - f0[0];
+  Dirs.I[1] = M->y[NODES[4]] - f0[1];
+  Dirs.I[2] = M->z[NODES[4]] - f0[2];
+
+  // LFT - RGT
+  f0 = &M->fc[3*pf[1]];
+  f1 = &M->fc[3*pf[2]];
+  for (E_Int i = 0; i < 3; i++) Dirs.J[i] = f1[i] - f0[i];
+
+  // FRO - BCK
+  f0 = &M->fc[3*pf[3]];
+  f1 = &M->fc[3*pf[4]];
+  for (E_Int i = 0; i < 3; i++) Dirs.K[i] = f1[i] - f0[i];
+}
 
 static
 void make_pdirs_penta(E_Int cell, AMesh *M, pDirs &Dirs)
@@ -52,14 +104,14 @@ void make_pdirs_penta(E_Int cell, AMesh *M, pDirs &Dirs)
   E_Int face = pf[0];
   E_Int *pn = get_facets(face, M->ngon, M->indPG);
   E_Int NODES[6] = {pn[0], pn[1], pn[2], -1, -1, -1};
-  E_Int reorient = get_reorient(face, cell, normalIn_P[0], M);
+  E_Int reorient = get_reorient(face, cell, normalIn_Pe[0], M);
   if (reorient) std::swap(NODES[1], NODES[2]);
 
   // Deduce left and right
   face = pf[2];
   pn = get_facets(face, M->ngon, M->indPG);
   E_Int i0 = Get_pos(NODES[0], pn, 4);
-  reorient = get_reorient(face, cell, normalIn_P[2], M);
+  reorient = get_reorient(face, cell, normalIn_Pe[2], M);
   E_Int local[4];
   Order_quad(local, pn, reorient, i0);
   assert(local[0] == NODES[0]);
@@ -70,7 +122,7 @@ void make_pdirs_penta(E_Int cell, AMesh *M, pDirs &Dirs)
   face = pf[3];
   pn = get_facets(face, M->ngon, M->indPG);
   i0 = Get_pos(NODES[0], pn, 4);
-  reorient = get_reorient(face, cell, normalIn_P[3], M);
+  reorient = get_reorient(face, cell, normalIn_Pe[3], M);
   Order_quad(local, pn, reorient, i0);
   assert(local[0] == NODES[0]);
   assert(local[1] == NODES[1]);
@@ -220,11 +272,6 @@ void compute_principal_vecs(AMesh *M, std::vector<pDirs> &Dirs)
   }
 }
 
-static
-void make_ref_data_pyra()
-{
-}
-
 // We refine if metric length of one dir is bigger than ref threshold
 // We unrefine if metric length of all dirs is smaller than unref threshold
 static
@@ -317,6 +364,37 @@ void make_ref_data_penta(AMesh *M, E_Float *pH, const pDirs &Dirs,
 }
 
 static
+void make_ref_data_pyra(AMesh *M, E_Float *pH, const pDirs &Dirs,
+  E_Int *pref)
+{
+  E_Float L0, L1, L2, dd[3];
+
+  K_MATH::sym3mat_dot_vec(pH, Dirs.I, dd);
+  L0 = K_MATH::norm(dd, 3);
+  K_MATH::sym3mat_dot_vec(pH, Dirs.J, dd);
+  L1 = K_MATH::norm(dd, 3);
+  K_MATH::sym3mat_dot_vec(pH, Dirs.K, dd);
+  L2 = K_MATH::norm(dd, 3);
+
+  //printf("%f %f %f\n", L0, L1, L2);
+
+  if      (L0 >= M->ref_Tr) { pref[0] = 1; }
+  else if (L1 >= M->ref_Tr) { pref[1] = 1; }
+  else if (L2 >= M->ref_Tr) { pref[2] = 1; }
+
+  if (pref[0] || pref[1] || pref[2]) {
+    pref[0] = pref[1] = pref[2] = 1;
+    return;
+  }
+
+  if (L0 < M->unref_Tr && L1 < M->unref_Tr && L2 < M->unref_Tr) {
+    pref[0] = -1;
+    pref[1] = -1;
+    pref[2] = -1;
+  }
+}
+
+static
 void make_ref_data(AMesh *M, E_Float *H, const std::vector<pDirs> &Dirs,
   std::vector<E_Int> &partialRefData)
 {
@@ -335,7 +413,7 @@ void make_ref_data(AMesh *M, E_Float *H, const std::vector<pDirs> &Dirs,
         make_ref_data_penta(M, pH, Dirs[i], pref);
         break;
       case PYRA:
-        //make_ref_data_pyra(M, pH, Dirs[i], pref);
+        make_ref_data_pyra(M, pH, Dirs[i], pref);
         break;
       default:
         assert(0);

@@ -244,21 +244,18 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
   // Isolate refinement cells and faces
   std::vector<E_Int> ref_faces, ref_cells;
 
-  get_ref_cells_and_faces(M, ref_cells, ref_faces);
-
   // Resize structures for refinement
+  get_ref_cells_and_faces(M, ref_cells, ref_faces);
   E_Int nref_cells = ref_cells.size();
   E_Int nref_faces = ref_faces.size();
   resize_data_for_refinement(M, nref_cells, nref_faces);
+  printf("Refined cells: %d\n", nref_cells);
 
-  printf("nref_cells: %d\n", nref_cells);
-
-/*
+  /*
   ref_faces.clear();
   ref_cells.clear();
   for (E_Int i = 0; i < M->nfaces; i++) ref_faces.push_back(i);
   ref_cells.push_back(0);
-
   E_Int nref_cells = ref_cells.size();
   E_Int nref_faces = ref_faces.size();
   resize_data_for_refinement(M, nref_cells, nref_faces);
@@ -267,7 +264,7 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
   refine_faces(ref_faces, M);
   refine_cells(ref_cells, M);
 
-  printf("leaves: %d\n", M->ncells);
+  printf("Leaves: %d\n", M->ncells);
 
   std::map<E_Int, E_Int> epoints, efaces;
 

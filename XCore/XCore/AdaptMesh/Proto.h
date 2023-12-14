@@ -32,6 +32,7 @@ void Order_quad(E_Int *local, E_Int *pn, E_Int reorient, E_Int i0);
 void check_canon_tetra(E_Int cell, AMesh *M);
 void check_canon_hexa(E_Int cell, AMesh *M);
 void check_canon_penta(E_Int cell, AMesh *M);
+void check_canon_pyra(E_Int cell, AMesh *M);
 void check_canon_cells(AMesh *M);
 
 // Refine

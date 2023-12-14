@@ -2,7 +2,8 @@
 #include <cassert>
 
 const E_Int normalIn_T[4] = {1, 0, 1, 0};
-const E_Int normalIn_P[5] = {1, 0, 1, 0, 1};
+const E_Int normalIn_Pe[5] = {1, 0, 1, 0, 1};
+const E_Int normalIn_Py[5] = {1, 1, 0, 1, 0};
 const E_Int normalIn_H[6] = {1, 0, 1, 0, 1, 0};
 
 Edge::Edge()
@@ -337,24 +338,22 @@ void reorder_tetra(E_Int i, E_Int nf, E_Int *pf, AMesh *M)
 static
 void reorder_penta(E_Int i, E_Int nf, E_Int *pf, AMesh *M)
 {
-  E_Int common[4], map[3];
+  E_Int common[3], map[3];
   E_Int bot = pf[0];
   E_Int *pn = get_facets(bot, M->ngon, M->indPG);
   
   for (E_Int i = 0; i < 3; i++) map[i] = pn[i];
-  E_Int reorient = get_reorient(bot, i, normalIn_P[0], M);
+  E_Int reorient = get_reorient(bot, i, normalIn_Pe[0], M);
   if (reorient) std::swap(map[1], map[2]);
 
   E_Int top, lft, rgt, bck;
   top = lft = rgt = bck = -1;
 
   for (E_Int j = 1; j < 5; j++) {
+    for (E_Int k = 0; k < 3; k++) common[k] = 0;
+
     E_Int face = pf[j];
-
     E_Int stride = get_stride(face, M->indPG);
-
-    for (E_Int k = 0; k < stride; k++) common[k] = 0;
-
     E_Int *pn = get_facets(face, M->ngon, M->indPG);
 
     for (E_Int k = 0; k < stride; k++) {
@@ -386,7 +385,51 @@ void reorder_penta(E_Int i, E_Int nf, E_Int *pf, AMesh *M)
 
 static
 void reorder_pyra(E_Int i, E_Int nf, E_Int *pf, AMesh *M)
-{}
+{
+  E_Int common[4], map[4];
+  E_Int bot = pf[0];
+  E_Int *pn = get_facets(bot, M->ngon, M->indPG);
+  
+  for (E_Int i = 0; i < 4; i++) map[i] = pn[i];
+  E_Int reorient = get_reorient(bot, i, normalIn_Py[0], M);
+  if (reorient) std::swap(map[1], map[3]);
+
+  E_Int lft, rgt, fro, bck;
+  lft = rgt = fro = bck = -1;
+
+  for (E_Int j = 1; j < 5; j++) {
+    for (E_Int k = 0; k < 4; k++) common[k] = 0;
+
+    E_Int face = pf[j];
+    E_Int *pn = get_facets(face, M->ngon, M->indPG);
+
+    for (E_Int k = 0; k < 3; k++) {
+      E_Int point = pn[k];
+
+      for (E_Int l = 0; l < 4; l++) {
+        if (map[l] == point) {
+          common[l] = 1;
+          break;
+        }
+      }
+    }
+
+    if      (common[0] && common[3]) lft = face;
+    else if (common[1] && common[2]) rgt = face;
+    else if (common[1] && common[0]) fro = face;
+    else                             bck = face;
+  }
+
+  assert(lft != -1);
+  assert(rgt != -1);
+  assert(fro != -1);
+  assert(bck != -1);
+
+  pf[1] = lft;
+  pf[2] = rgt;
+  pf[3] = fro;
+  pf[4] = bck;
+}
 
 static
 void reorder_hexa(E_Int i, E_Int nf, E_Int *pf, AMesh *M)
@@ -479,6 +522,9 @@ void check_canon_cells(AMesh *M)
       case PENTA:
         check_canon_penta(i, M);
         break;
+      case PYRA:
+        check_canon_pyra(i, M);
+        break;
       default:
         assert(0);
         break;
@@ -508,7 +554,7 @@ void check_canon_tetra(E_Int cell, AMesh *M)
 
   E_Int face, i0, reorient, *pn, local[3];
 
-  // BOT
+  // BOT (In)
   face = pf[0];
   pn = get_facets(face, M->ngon, M->indPG);
   i0 = 0;
@@ -516,7 +562,7 @@ void check_canon_tetra(E_Int cell, AMesh *M)
   Order_tri(local, pn, reorient, i0);
   for (E_Int i = 0; i < 3; i++) NODES[i] = local[i];
 
-  // LFT
+  // LFT (Out)
   face = pf[1];
   pn = get_facets(face, M->ngon, M->indPG);
   i0 = Get_pos(NODES[0], pn, 3);
@@ -526,7 +572,7 @@ void check_canon_tetra(E_Int cell, AMesh *M)
   assert(local[2] == NODES[2]);
   NODES[3] = local[1];
 
-  // RGT
+  // RGT (In)
   face = pf[2];
   pn = get_facets(face, M->ngon, M->indPG);
   i0 = Get_pos(NODES[1], pn, 3);
@@ -536,7 +582,7 @@ void check_canon_tetra(E_Int cell, AMesh *M)
   assert(local[1] == NODES[3]);
   assert(local[2] == NODES[2]);
 
-  // FRO
+  // FRO (Out)
   face = pf[3];
   pn = get_facets(face, M->ngon, M->indPG);
   i0 = Get_pos(NODES[0], pn, 3);
@@ -631,7 +677,7 @@ void check_canon_penta(E_Int cell, AMesh *M)
   face = pf[0];
   pn = get_facets(face, M->ngon, M->indPG);
   i0 = 0;
-  reorient = get_reorient(face, cell, normalIn_P[0], M);
+  reorient = get_reorient(face, cell, normalIn_Pe[0], M);
   Order_tri(local, pn, reorient, i0);
   for (E_Int i = 0; i < 3; i++) NODES[i] = local[i];
 
@@ -640,7 +686,7 @@ void check_canon_penta(E_Int cell, AMesh *M)
   pn = get_facets(face, M->ngon, M->indPG);
   i0 = Get_pos(NODES[0], pn, 4);
   assert(i0 != -1);
-  reorient = get_reorient(face, cell, normalIn_P[2], M);
+  reorient = get_reorient(face, cell, normalIn_Pe[2], M);
   Order_quad(local, pn, reorient, i0);
   assert(local[0] == NODES[0]);
   assert(local[1] == NODES[2]);
@@ -651,7 +697,7 @@ void check_canon_penta(E_Int cell, AMesh *M)
   face = pf[3];
   pn = get_facets(face, M->ngon, M->indPG);
   i0 = Get_pos(NODES[0], pn, 4);
-  reorient = get_reorient(face, cell, normalIn_P[3], M);
+  reorient = get_reorient(face, cell, normalIn_Pe[3], M);
   Order_quad(local, pn, reorient, i0);
   assert(local[0] == NODES[0]);
   assert(local[1] == NODES[1]);
@@ -662,7 +708,7 @@ void check_canon_penta(E_Int cell, AMesh *M)
   face = pf[4];
   pn = get_facets(face, M->ngon, M->indPG);
   i0 = Get_pos(NODES[2], pn, 4);
-  reorient = get_reorient(face, cell, normalIn_P[4], M);
+  reorient = get_reorient(face, cell, normalIn_Pe[4], M);
   Order_quad(local, pn, reorient, i0);
   assert(local[0] == NODES[2]);
   assert(local[1] == NODES[1]);
@@ -673,11 +719,68 @@ void check_canon_penta(E_Int cell, AMesh *M)
   face = pf[1];
   pn = get_facets(face, M->ngon, M->indPG);
   i0 = Get_pos(NODES[3], pn, 3);
-  reorient = get_reorient(face, cell, normalIn_P[1], M);
+  reorient = get_reorient(face, cell, normalIn_Pe[1], M);
   Order_tri(local, pn, reorient, i0);
   assert(local[0] == NODES[3]);
   assert(local[1] == NODES[4]);
   assert(local[2] == NODES[5]);
+}
+
+void check_canon_pyra(E_Int cell, AMesh *M)
+{
+  E_Int NODES[5] = {-1, -1, -1, -1, -1};
+
+  E_Int *pf = get_facets(cell, M->nface, M->indPH);
+
+  E_Int face, i0, reorient, *pn, local[4];
+
+  // BOT (in)
+  face = pf[0];
+  pn = get_facets(face, M->ngon, M->indPG);
+  i0 = 0;
+  reorient = get_reorient(face, cell, normalIn_Py[0], M);
+  Order_quad(local, pn, reorient, i0);
+  for (E_Int i = 0; i < 4; i++) NODES[i] = local[i];
+
+  // LFT (in)
+  face = pf[1];
+  pn = get_facets(face, M->ngon, M->indPG);
+  i0 = Get_pos(NODES[0], pn, 3);
+  reorient = get_reorient(face, cell, normalIn_Py[1], M);
+  Order_tri(local, pn, reorient, i0);
+  assert(local[0] == NODES[0]);
+  assert(local[1] == NODES[3]);
+  NODES[4] = local[2];
+
+  // RGT (out)
+  face = pf[2];
+  pn = get_facets(face, M->ngon, M->indPG);
+  i0 = Get_pos(NODES[1], pn, 3);
+  reorient = get_reorient(face, cell, normalIn_Py[2], M);
+  Order_tri(local, pn, reorient, i0);
+  assert(local[0] == NODES[1]);
+  assert(local[1] == NODES[2]);
+  assert(local[2] == NODES[4]);
+
+  // FRO (in)
+  face = pf[3];
+  pn = get_facets(face, M->ngon, M->indPG);
+  i0 = Get_pos(NODES[1], pn, 3);
+  reorient = get_reorient(face, cell, normalIn_Py[3], M);
+  Order_tri(local, pn, reorient, i0);
+  assert(local[0] == NODES[1]);
+  assert(local[1] == NODES[0]);
+  assert(local[2] == NODES[4]);
+
+  // BCK (out)
+  face = pf[4];
+  pn = get_facets(face, M->ngon, M->indPG);
+  i0 = Get_pos(NODES[2], pn, 3);
+  reorient = get_reorient(face, cell, normalIn_Py[4], M);
+  Order_tri(local, pn, reorient, i0);
+  assert(local[0] == NODES[2]);
+  assert(local[1] == NODES[3]);
+  assert(local[2] == NODES[4]);
 }
 
 

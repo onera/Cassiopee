@@ -850,7 +850,7 @@ void refine_penta(E_Int cell, AMesh *M)
   face = pf[0];
   pn = get_facets(face, M->ngon, M->indPG);
   i0 = 0;
-  reorient = get_reorient(face, cell, normalIn_P[0], M);
+  reorient = get_reorient(face, cell, normalIn_Pe[0], M);
   children = faceTree[face]->children;
   assert(children);
   nchildren = faceTree[face]->nchildren;
@@ -866,7 +866,7 @@ void refine_penta(E_Int cell, AMesh *M)
   face = pf[2];
   pn = get_facets(face, M->ngon, M->indPG);
   i0 = Get_pos(NODES[0], pn, 4);
-  reorient = get_reorient(face, cell, normalIn_P[2], M);
+  reorient = get_reorient(face, cell, normalIn_Pe[2], M);
   children = faceTree[face]->children;
   assert(children);
   nchildren = faceTree[face]->nchildren;
@@ -887,7 +887,7 @@ void refine_penta(E_Int cell, AMesh *M)
   face = pf[3];
   pn = get_facets(face, M->ngon, M->indPG);
   i0 = Get_pos(NODES[0], pn, 4);
-  reorient = get_reorient(face, cell, normalIn_P[3], M);
+  reorient = get_reorient(face, cell, normalIn_Pe[3], M);
   children = faceTree[face]->children;
   assert(children);
   nchildren = faceTree[face]->nchildren;
@@ -908,7 +908,7 @@ void refine_penta(E_Int cell, AMesh *M)
   face = pf[4];
   pn = get_facets(face, M->ngon, M->indPG);
   i0 = Get_pos(NODES[2], pn, 4);
-  reorient = get_reorient(face, cell, normalIn_P[4], M);
+  reorient = get_reorient(face, cell, normalIn_Pe[4], M);
   children = faceTree[face]->children;
   assert(children);
   nchildren = faceTree[face]->nchildren;
@@ -929,7 +929,7 @@ void refine_penta(E_Int cell, AMesh *M)
   face = pf[1];
   pn = get_facets(face, M->ngon, M->indPG);
   i0 = Get_pos(NODES[3], pn, 4);
-  reorient = get_reorient(face, cell, normalIn_P[1], M);
+  reorient = get_reorient(face, cell, normalIn_Pe[1], M);
   children = faceTree[face]->children;
   assert(children);
   nchildren = faceTree[face]->nchildren;
@@ -1148,7 +1148,353 @@ void refine_penta(E_Int cell, AMesh *M)
 
 static
 void refine_pyra(E_Int cell, AMesh *M)
-{}
+{
+  E_Int NODES[14], FACES[20];
+  for (E_Int i = 0; i < 14; i++) NODES[i] = -1;
+  E_Int *BOT = FACES;
+  E_Int *LFT = FACES + 4;
+  E_Int *RGT = FACES + 8;
+  E_Int *FRO = FACES + 12;
+  E_Int *BCK = FACES + 16;
+  E_Int *pf = get_facets(cell, M->nface, M->indPH);
+
+  E_Int face, i0, reorient, *children, nchildren, *pn, local[9];
+  Element **faceTree = M->faceTree;
+
+  // BOT (In)
+  face = pf[0];
+  pn = get_facets(face, M->ngon, M->indPG);
+  i0 = 0;
+  reorient = get_reorient(face, cell, normalIn_Py[0], M);
+  children = faceTree[face]->children;
+  assert(children);
+  nchildren = faceTree[face]->nchildren;
+  assert(nchildren == 4);
+  for (E_Int i = 0; i < nchildren; i++) BOT[i] = children[i]; 
+  Q9_get_ordered_data(M, i0, reorient, BOT, pn, local);
+  for (E_Int i = 0; i < 4; i++) NODES[i] = local[i];
+  NODES[5] = local[4];
+  NODES[6] = local[5];
+  NODES[7] = local[6];
+  NODES[8] = local[7];
+  NODES[9] = local[8];
+
+  // LFT (In)
+  face = pf[1];
+  pn = get_facets(face, M->ngon, M->indPG);
+  i0 = Get_pos(NODES[0], pn, 3);
+  reorient = get_reorient(face, cell, normalIn_Py[1], M);
+  children = faceTree[face]->children;
+  assert(children);
+  nchildren = faceTree[face]->nchildren;
+  assert(nchildren == 4);
+  for (E_Int i = 0; i < nchildren; i++) LFT[i] = children[i]; 
+  T6_get_ordered_data(M, i0, reorient, LFT, pn, local);
+  assert(local[0] == NODES[0]);
+  assert(local[1] == NODES[3]);
+  assert(local[3] == NODES[8]);
+  NODES[4] = local[2];
+  NODES[10] = local[4];
+  NODES[11] = local[5];
+
+  // RGT (Out)
+  face = pf[2];
+  pn = get_facets(face, M->ngon, M->indPG);
+  i0 = Get_pos(NODES[1], pn, 3);
+  reorient = get_reorient(face, cell, normalIn_Py[2], M);
+  children = faceTree[face]->children;
+  assert(children);
+  nchildren = faceTree[face]->nchildren;
+  assert(nchildren == 4);
+  for (E_Int i = 0; i < nchildren; i++) RGT[i] = children[i]; 
+  T6_get_ordered_data(M, i0, reorient, RGT, pn, local);
+  assert(local[0] == NODES[1]);
+  assert(local[1] == NODES[2]);
+  assert(local[2] == NODES[4]);
+  assert(local[3] == NODES[6]);
+  NODES[12] = local[4];
+  NODES[13] = local[5];
+
+  // FRO (In)
+  face = pf[3];
+  pn = get_facets(face, M->ngon, M->indPG);
+  i0 = Get_pos(NODES[1], pn, 3);
+  reorient = get_reorient(face, cell, normalIn_Py[3], M);
+  children = faceTree[face]->children;
+  assert(children);
+  nchildren = faceTree[face]->nchildren;
+  assert(nchildren == 4);
+  for (E_Int i = 0; i < nchildren; i++) FRO[i] = children[i]; 
+  T6_get_ordered_data(M, i0, reorient, FRO, pn, local);
+  assert(local[0] == NODES[1]);
+  assert(local[1] == NODES[0]);
+  assert(local[2] == NODES[4]);
+  assert(local[3] == NODES[5]);
+  assert(local[4] == NODES[11]);
+  assert(local[5] == NODES[13]);
+
+  // BCK (Out)
+  face = pf[4];
+  pn = get_facets(face, M->ngon, M->indPG);
+  i0 = Get_pos(NODES[2], pn, 3);
+  reorient = get_reorient(face, cell, normalIn_Py[4], M);
+  children = faceTree[face]->children;
+  assert(children);
+  nchildren = faceTree[face]->nchildren;
+  assert(nchildren == 4);
+  for (E_Int i = 0; i < nchildren; i++) BCK[i] = children[i]; 
+  T6_get_ordered_data(M, i0, reorient, BCK, pn, local);
+  assert(local[0] == NODES[2]);
+  assert(local[1] == NODES[3]);
+  assert(local[2] == NODES[4]);
+  assert(local[3] == NODES[7]);
+  assert(local[4] == NODES[10]);
+  assert(local[5] == NODES[12]);
+  
+  // Set internal faces in ngon
+  E_Int *ptr = &M->indPG[M->nfaces];
+
+  // nfaces (RGT of ncells)
+  ptr[1] = ptr[0] + 3;
+  M->ngon[*ptr  ] = NODES[5];
+  M->ngon[*ptr+1] = NODES[9];
+  M->ngon[*ptr+2] = NODES[11];
+  ptr++;
+
+  // nfaces+1 (BCK of ncells)
+  ptr[1] = ptr[0] + 3;
+  M->ngon[*ptr  ] = NODES[9];
+  M->ngon[*ptr+1] = NODES[8];
+  M->ngon[*ptr+2] = NODES[11];
+  ptr++;
+
+  // nfaces+2 (LFT of ncells+1)
+  ptr[1] = ptr[0] + 3;
+  M->ngon[*ptr  ] = NODES[5];
+  M->ngon[*ptr+1] = NODES[9];
+  M->ngon[*ptr+2] = NODES[13];
+  ptr++;
+
+  // nfaces+3 (BCK of ncells+1)
+  ptr[1] = ptr[0] + 3;
+  M->ngon[*ptr  ] = NODES[6];
+  M->ngon[*ptr+1] = NODES[9];
+  M->ngon[*ptr+2] = NODES[13];
+  ptr++;
+
+  // nfaces+4 (LFT of ncells+2)
+  ptr[1] = ptr[0] + 3;
+  M->ngon[*ptr  ] = NODES[9];
+  M->ngon[*ptr+1] = NODES[7];
+  M->ngon[*ptr+2] = NODES[12];
+  ptr++;
+
+  // nfaces+5 (FRO of ncells+2)
+  ptr[1] = ptr[0] + 3;
+  M->ngon[*ptr  ] = NODES[6];
+  M->ngon[*ptr+1] = NODES[9];
+  M->ngon[*ptr+2] = NODES[12];
+  ptr++;
+
+  // nfaces+6 (RGT of ncells+3)
+  ptr[1] = ptr[0] + 3;
+  M->ngon[*ptr  ] = NODES[9];
+  M->ngon[*ptr+1] = NODES[7];
+  M->ngon[*ptr+2] = NODES[10];
+  ptr++;
+
+  // nfaces+7 (FRO of ncells+3)
+  ptr[1] = ptr[0] + 3;
+  M->ngon[*ptr  ] = NODES[9];
+  M->ngon[*ptr+1] = NODES[8];
+  M->ngon[*ptr+2] = NODES[10];
+  ptr++;
+
+  // nfaces+8 (BOT of ncells+4)
+  ptr[1] = ptr[0] + 4;
+  M->ngon[*ptr  ] = NODES[11];
+  M->ngon[*ptr+1] = NODES[13];
+  M->ngon[*ptr+2] = NODES[12];
+  M->ngon[*ptr+3] = NODES[10];
+  ptr++;
+
+  /*************/
+  // nfaces+9 (LFT of ncells+5)
+  ptr[1] = ptr[0] + 3;
+  M->ngon[*ptr  ] = NODES[11];
+  M->ngon[*ptr+1] = NODES[13];
+  M->ngon[*ptr+2] = NODES[9];
+  ptr++;
+
+  // nfaces+10 (RGT of ncells+5)
+  ptr[1] = ptr[0] + 3;
+  M->ngon[*ptr  ] = NODES[10];
+  M->ngon[*ptr+1] = NODES[12];
+  M->ngon[*ptr+2] = NODES[9];
+  ptr++;
+
+  // nfaces+11 (FRO of ncells+5)
+  ptr[1] = ptr[0] + 3;
+  M->ngon[*ptr  ] = NODES[10];
+  M->ngon[*ptr+1] = NODES[11];
+  M->ngon[*ptr+2] = NODES[9];
+  ptr++;
+
+  // nfaces+12 (BCK of ncells+5)
+  ptr[1] = ptr[0] + 3;
+  M->ngon[*ptr  ] = NODES[12];
+  M->ngon[*ptr+1] = NODES[13];
+  M->ngon[*ptr+2] = NODES[9];
+  ptr++;
+
+  // Assemble children
+  ptr = &M->indPH[M->ncells];
+
+  /*************/
+
+  // ncells
+  ptr[1] = ptr[0] + 5;
+  M->nface[*ptr  ] = BOT[0];
+  M->nface[*ptr+1] = LFT[0];
+  M->nface[*ptr+2] = M->nfaces;
+  M->nface[*ptr+3] = FRO[1];
+  M->nface[*ptr+4] = M->nfaces+1;
+  ptr++;
+
+  // ncells+1
+  ptr[1] = ptr[0] + 5;
+  M->nface[*ptr  ] = BOT[1];
+  M->nface[*ptr+1] = M->nfaces+2;
+  M->nface[*ptr+2] = RGT[0];
+  M->nface[*ptr+3] = FRO[0];
+  M->nface[*ptr+4] = M->nfaces+3;
+  ptr++;
+
+  // ncells+2
+  ptr[1] = ptr[0] + 5;
+  M->nface[*ptr  ] = BOT[2];
+  M->nface[*ptr+1] = M->nfaces+4;
+  M->nface[*ptr+2] = RGT[1];
+  M->nface[*ptr+3] = M->nfaces+5;
+  M->nface[*ptr+4] = BCK[0];
+  ptr++;
+
+  // ncells+3
+  ptr[1] = ptr[0] + 5;
+  M->nface[*ptr  ] = BOT[3];
+  M->nface[*ptr+1] = LFT[1];
+  M->nface[*ptr+2] = M->nfaces+6;
+  M->nface[*ptr+3] = M->nfaces+7;
+  M->nface[*ptr+4] = BCK[1];
+  ptr++;
+
+  // ncells+4
+  ptr[1] = ptr[0] + 5;
+  M->nface[*ptr  ] = M->nfaces+8;
+  M->nface[*ptr+1] = LFT[2];
+  M->nface[*ptr+2] = RGT[2];
+  M->nface[*ptr+3] = FRO[2];
+  M->nface[*ptr+4] = BCK[2];
+  ptr++;
+
+  // ncells+5
+  ptr[1] = ptr[0] + 5;
+  M->nface[*ptr  ] = M->nfaces+8;
+  M->nface[*ptr+1] = M->nfaces+9;
+  M->nface[*ptr+2] = M->nfaces+10;
+  M->nface[*ptr+3] = M->nfaces+11;
+  M->nface[*ptr+4] = M->nfaces+12;
+  ptr++;
+
+  /*************/
+
+  // ncells+6
+  ptr[1] = ptr[0] + 4;
+  M->nface[*ptr  ] = M->nfaces;
+  M->nface[*ptr+1] = FRO[3];
+  M->nface[*ptr+2] = M->nfaces+9;
+  M->nface[*ptr+3] = M->nfaces+2;
+  ptr++;
+
+  // ncells+7
+  ptr[1] = ptr[0] + 4;
+  M->nface[*ptr  ] = M->nfaces+3;
+  M->nface[*ptr+1] = RGT[3];
+  M->nface[*ptr+2] = M->nfaces+12;
+  M->nface[*ptr+3] = M->nfaces+5;
+  ptr++;
+
+  // ncells+8
+  ptr[1] = ptr[0] + 4;
+  M->nface[*ptr  ] = M->nfaces+4;
+  M->nface[*ptr+1] = M->nfaces+6;
+  M->nface[*ptr+2] = BCK[3];
+  M->nface[*ptr+3] = M->nfaces+10;
+  ptr++;
+
+  // ncells+9
+  ptr[1] = ptr[0] + 4;
+  M->nface[*ptr  ] = M->nfaces+11;
+  M->nface[*ptr+1] = LFT[3];
+  M->nface[*ptr+2] = M->nfaces+1;
+  M->nface[*ptr+3] = M->nfaces+7;
+  ptr++;
+
+  // Set new cells in tree
+  E_Int next_level = M->cellTree[cell]->level + 1;
+  set_parent_elem(M->cellTree, cell, 10, M->ncells);
+  for (E_Int i = 0; i < 6; i++)
+    set_child_elem(M->cellTree, cell, i, PYRA, next_level, M->ncells);
+  for (E_Int i = 6; i < 10; i++)
+    set_child_elem(M->cellTree, cell, i, TETRA, next_level, M->ncells);
+
+  // Set external faces owns and neis
+  update_external_own_nei(cell, M);
+
+  // tetras: ncells+6, ncells+7, ncells+8, ncells+9
+
+  // Set owns and neis of internal faces
+  M->owner[M->nfaces]     = M->ncells;   
+  M->neigh[M->nfaces]     = M->ncells+6;       
+  M->owner[M->nfaces+1]   = M->ncells;
+  M->neigh[M->nfaces+1]   = M->ncells+9;
+
+  M->owner[M->nfaces+2]   = M->ncells+6; 
+  M->neigh[M->nfaces+2]   = M->ncells+1; 
+  M->owner[M->nfaces+3]   = M->ncells+1;
+  M->neigh[M->nfaces+3]   = M->ncells+7;
+  
+  M->owner[M->nfaces+4]   = M->ncells+8; 
+  M->neigh[M->nfaces+4]   = M->ncells+2; 
+  M->owner[M->nfaces+5]   = M->ncells+7;
+  M->neigh[M->nfaces+5]   = M->ncells+2;
+  
+  M->owner[M->nfaces+6]   = M->ncells+3;
+  M->neigh[M->nfaces+6]   = M->ncells+8;
+  M->owner[M->nfaces+7]   = M->ncells+9;
+  M->neigh[M->nfaces+7]   = M->ncells+3;
+
+  M->owner[M->nfaces+8]   = M->ncells+5;
+  M->neigh[M->nfaces+8]   = M->ncells+4;
+
+  M->owner[M->nfaces+9]   = M->ncells+6;
+  M->neigh[M->nfaces+9]   = M->ncells+5;
+  M->owner[M->nfaces+10]  = M->ncells+5;
+  M->neigh[M->nfaces+10]  = M->ncells+8;
+  M->owner[M->nfaces+11]  = M->ncells+9;
+  M->neigh[M->nfaces+11]  = M->ncells+5;
+  M->owner[M->nfaces+12]  = M->ncells+5;
+  M->neigh[M->nfaces+12]  = M->ncells+7;
+
+  for (E_Int i = 0; i < 6; i++)
+    check_canon_pyra(M->ncells+i, M);
+
+  for (E_Int i = 6; i < 10; i++)
+    check_canon_tetra(M->ncells+i, M);
+
+  M->ncells += 10;
+  M->nfaces += 13;
+}
 
 void refine_faces(const std::vector<E_Int> &ref_faces, AMesh *M)
 {
@@ -1188,9 +1534,9 @@ void refine_cells(const std::vector<E_Int> &ref_cells, AMesh *M)
 
 void resize_data_for_refinement(AMesh *M, E_Int nref_cells, E_Int nref_faces)
 {
-  E_Int cell_incr = nref_cells * 8;
+  E_Int cell_incr = nref_cells * 10;
   E_Int face_incr = nref_faces * 4 // OK for quads and tris
-                  + cell_incr * 12; // max 12 internal faces per refined cell
+                  + cell_incr * 13; // max 13 internal faces per refined cell
   E_Int nnew_cells = M->ncells + cell_incr;
   E_Int nnew_faces = M->nfaces + face_incr;
   // max 5 new points per refined quad + nref_cells centroids

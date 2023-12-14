@@ -21,7 +21,8 @@
 
 extern const E_Int normalIn_T[4];
 extern const E_Int normalIn_H[6];
-extern const E_Int normalIn_P[5];
+extern const E_Int normalIn_Pe[5];
+extern const E_Int normalIn_Py[5];
 
 struct pDirs {
   E_Float I[3];
