@@ -23,6 +23,8 @@
 # include "Def/DefTypes.h"
 # include "Fld/FldArray.h"
 # include "Def/DefFunction.h"
+# include "topologyMapping.h"
+# include "hashFunctions.h"
 
 namespace K_CONNECT
 {

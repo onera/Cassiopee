@@ -69,17 +69,9 @@ PyObject* K_INITIATOR::initLamb(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Float x0, y0, Gam, MInf;
-
-#ifdef E_DOUBLEREAL
-  if (!PyArg_ParseTuple(args, "O(dd)dd", &array,
-                        &x0, &y0, &Gam, &MInf) )
-#else
-    if (!PyArg_ParseTuple(args, "O(ff)ff", &array,
-                          &x0, &y0, &Gam, &MInf))
-#endif
-    {
-      return NULL;
-    }
+  
+  if (!PYPARSETUPLE_(args, O_ TRR_ RR_, &array, &x0, &y0, &Gam, &MInf))
+    return NULL;
 
   // Check array
   E_Int im, jm, km;
@@ -206,17 +198,9 @@ PyObject* K_INITIATOR::initVisbal(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Float x0, y0, Gam, MInf;
-
-#ifdef E_DOUBLEREAL
-  if (!PyArg_ParseTuple(args, "O(dd)dd", &array,
-                        &x0, &y0, &Gam, &MInf))
-#else
-    if (!PyArg_ParseTuple(args, "O(ff)ff", &array,
-                          &x0, &y0, &Gam, &MInf))
-#endif
-    {
-      return NULL;
-    }
+  
+  if (!PYPARSETUPLE_(args, O_ TRR_ RR_, &array, &x0, &y0, &Gam, &MInf))
+    return NULL;
 
   // Check array
   E_Int im, jm, km;
@@ -346,20 +330,10 @@ PyObject* K_INITIATOR::initScully(PyObject* self, PyObject* args)
   PyObject* array;
   E_Float x0, y0, Gam, coreRadius, MInf;
   E_Int model=0;
-
-#if defined E_DOUBLEREAL && defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "O(dd)dddl", &array,
-                        &x0, &y0, &Gam, &coreRadius, &MInf, &model)) return NULL;
-#elif defined E_DOUBLEREAL && !defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "O(dd)dddi", &array,
-                        &x0, &y0, &Gam, &coreRadius, &MInf, &model)) return NULL;
-#elif !defined E_DOUBLEREAL && defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "O(ff)fffl", &array,
-                        &x0, &y0, &Gam, &coreRadius, &MInf, &model)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "O(ff)fffi", &array,
-                        &x0, &y0, &Gam, &coreRadius, &MInf, &model)) return NULL;
-#endif
+  
+  if (!PYPARSETUPLE_(args, O_ TRR_ RRR_ I_,
+                     &array, &x0, &y0, &Gam, &coreRadius, &MInf, &model))
+    return NULL;
 
   // Check array
   E_Int im, jm, km;
@@ -498,17 +472,9 @@ K_INITIATOR::initYee(PyObject* self,
 {
   PyObject* array;
   E_Float x0, y0, Gam, Minf;
-
-#ifdef E_DOUBLEREAL
-  if (!PyArg_ParseTuple(args, "O(dd)dd", &array,
-                        &x0, &y0, &Gam, &Minf))
-#else
-    if (!PyArg_ParseTuple(args, "O(ff)ff", &array,
-                          &x0, &y0, &Gam, &Minf))
-#endif
-    {
-      return NULL;
-    }
+  
+  if (!PYPARSETUPLE_(args, O_ TRR_ RR_, &array, &x0, &y0, &Gam, &Minf))
+    return NULL;
 
   // Check array
   E_Int im, jm, km;
@@ -638,17 +604,9 @@ PyObject* K_INITIATOR::initWissocq(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Float x0, y0, Gam, MInf;
-
-#ifdef E_DOUBLEREAL
-  if (!PyArg_ParseTuple(args, "O(dd)dd", &array,
-                        &x0, &y0, &Gam, &MInf) )
-#else
-    if (!PyArg_ParseTuple(args, "O(ff)ff", &array,
-                          &x0, &y0, &Gam, &MInf))
-#endif
-    {
-      return NULL;
-    }
+  
+  if (!PYPARSETUPLE_(args, O_ TRR_ RR_, &array, &x0, &y0, &Gam, &MInf))
+    return NULL;
 
   // Check array
   E_Int im, jm, km;
