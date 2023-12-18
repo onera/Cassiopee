@@ -20,7 +20,7 @@ void main (void)
   vec4 col2 = texture2D(Texmat0, vec2((color.r-0.5)*2., (color.g-0.5)*2.));
   
   vec3 N = normalize(Nv);
-  if (hasBump == 1) 
+  if (hasBump == 1)
   {
       vec4 D = texture2D(Texbump0, vec2((color.r-0.5)*2., (color.g-0.5)*2.));
       N += 2.5*vec3( (D.r-0.5)*2., (D.g-0.5)*2., (D.b-0.5)*2. );
@@ -55,8 +55,13 @@ void main (void)
   float s = shadowCoordinateW.s;
   float t = shadowCoordinateW.t;      
   if (ShadowCoord.w > 0.0 && s > 0.001 && s < 0.999 && t > 0.001 && t < 0.999)
-      shadowValue = distanceFromLight < shadowCoordinateW.z ? 0.5 : 1.0;
+  {
+    //shadowValue = distanceFromLight < shadowCoordinateW.z ? 0.5 : 1.0;
+    if (distanceFromLight < shadowCoordinateW.z - 0.001) shadowValue = 0.5;
+    else if (distanceFromLight >= shadowCoordinateW.z) shadowValue = 1.;
+    else shadowValue = 500.*distanceFromLight-499.*shadowCoordinateW.z;
   }
+}
 
   gl_FragColor = shadowValue * col;
   gl_FragColor.a = col2.a * blend;

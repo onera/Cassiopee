@@ -276,7 +276,7 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
         shader = 35;
         SHADOWTEXTURE;
         // choix de la texture
-        t = (int)( (z.shaderParam2)*((_nMaterials-1)*0.5) );
+        t = (int)round( (z.shaderParam2)*((_nMaterials-1)*0.5) );
         t = std::max(t, 0);
         t = std::min(t, (int)_nMaterials-1);
         glActiveTexture(GL_TEXTURE1);

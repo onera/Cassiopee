@@ -304,7 +304,12 @@ void Data::triggerShader(Zone& z, int material, float scale, float* color)
           }
           glBindTexture(GL_TEXTURE_2D, _bumpMapTexs[t]);
         }
-        
+        if (hasBump)
+        {
+          glActiveTexture(GL_TEXTURE2);
+          glBindTexture(GL_TEXTURE_2D, _bumpMapTexs[t]);
+        }
+
         if (_shaders.currentShader() != shader) _shaders.activate(shader);
         _shaders[shader]->setUniform("specularFactor", (float)z.shaderParam1);
         _shaders[shader]->setUniform("shadow", (int)ptrState->shadow);

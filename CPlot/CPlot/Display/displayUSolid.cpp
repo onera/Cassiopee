@@ -47,7 +47,7 @@ void DataDL::displayUSolid()
         // if zone is active and in frustum
         if ((zonep->active == 1 ||
                (zonep->active == 0 && ptrState->ghostifyDeactivatedZones == 1)) &&
-             isInFrustum( zonep, _view ) == 1 ) 
+             isInFrustum( zonep, _view ) == 1 )
         {
             if (ptrState->mode == RENDER && zonep->meshOverlay == 1)
             {
@@ -112,7 +112,7 @@ void DataDL::displayUSolid()
                         if (zoneImpl->_DLsolid != 0) renderGPUUSolidZone(zonep, zone, zonet);
                         else displayUSolidZone(zonep, zone, zonet);  // Direct
                     } 
-                    else 
+                    else // High-order
                     {
                         if (zoneImpl->_DLsolid != 0) renderGPUUSolidHOZone(zonep, zone, zonet);
                         else displayUSolidHOZone(zonep, zone, zonet);  // Direct

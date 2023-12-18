@@ -1023,7 +1023,7 @@ def loadView(t, slot=0):
 #==============================================================================
 # loadGlobalFiles (material, bumpmaps, billboards)
 #==============================================================================
-def loadImageFiles(t):
+def loadImageFiles(t, offscreen=0):
     """Load image files (texture, billboards, bumpmaps) in CPlot."""
     if t == []: return
     renderInfo = Internal.getNodeFromName1(t, '.RenderInfo')
@@ -1032,15 +1032,15 @@ def loadImageFiles(t):
     if pos is not None:
         out = []
         for i in pos[2]: out.append(Internal.getValue(i))
-        CPlot.setState(materials=out)
+        CPlot.setState(materials=out, offscreen=offscreen)
     pos = Internal.getNodeFromName1(renderInfo, 'bumpMaps')
     if pos is not None:
         out = []
         for i in pos[2]: out.append(Internal.getValue(i))
-        CPlot.setState(bumpMaps=out)
+        CPlot.setState(bumpMaps=out, offscreen=offscreen)
     pos = Internal.getNodeFromName1(renderInfo, 'billBoards')
     if pos is not None:
         out = []
         for i in pos[2]: out.append(Internal.getValue(i))
-        CPlot.setState(billBoards=out)
+        CPlot.setState(billBoards=out, offscreen=offscreen)
     return None

@@ -69,10 +69,11 @@ E_Int Data::createNodeTexture(void)
     }
   }
   
-  gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, texWidth, texHeight, GL_RGBA, 
-                    GL_UNSIGNED_BYTE, texPixels);
-  
-  
+  //gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, texWidth, texHeight, GL_RGBA, 
+  //                  GL_UNSIGNED_BYTE, texPixels);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texWidth, texHeight, 0, GL_RGBA, 
+               GL_UNSIGNED_BYTE, texPixels);
+
   free(texPixels);
   return 1;
 }

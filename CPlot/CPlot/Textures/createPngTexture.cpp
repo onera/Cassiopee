@@ -52,7 +52,7 @@ E_Int Data::createPngTexture(const char* filename, GLuint &tex,
   strcpy(path2, lpn);
   strcat(path2, "/");
   strcat(path2, filename);
-
+  
   FILE* ptrFile = fopen(path, "rb"); // shader path
   if (!ptrFile) 
   { ptrFile = fopen(filename, "rb"); } // local cassiopee path
@@ -141,6 +141,7 @@ E_Int Data::createPngTexture(const char* filename, GLuint &tex,
   png_read_image(png_ptr, rows);
 
   //printf("reading file %s\n", filename);
+
   if (tex == 0)
   {
     glGenTextures(1, &tex);

@@ -89,6 +89,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   {
     return NULL;
   }
+  
   Data* d = Data::getInstance();
   E_Int mode = getMode(modeObject);
   E_Int scalarField = getScalarField(scalarFieldObject);
@@ -209,12 +210,21 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
     delete [] d->_materialWidths;
     delete [] d->_materialHeights;
     E_Int nb = PyList_Size(materials);
-    
     d->_nMaterials = nb;
-    d->_materialFiles = new char* [nb];
-    d->_materialWidths = new E_Int [nb];
-    d->_materialHeights = new E_Int [nb];
-    d->_materialTexs = new GLuint [nb];
+    if (nb > 0)
+    {
+        d->_materialFiles = new char* [nb];
+        d->_materialWidths = new E_Int [nb];
+        d->_materialHeights = new E_Int [nb];
+        d->_materialTexs = new GLuint [nb];
+    }
+    else
+    {
+        d->_materialFiles = NULL;
+        d->_materialWidths = NULL;
+        d->_materialHeights = NULL;
+        d->_materialTexs = NULL;
+    }
     for (E_Int i = 0; i < nb; i++)
     {
       PyObject* o = PyList_GetItem(materials, i);
@@ -241,11 +251,21 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
     delete [] d->_bumpMapWidths;
     delete [] d->_bumpMapHeights;
     E_Int nb = PyList_Size(bumpMaps);
-    d->_nBumpMaps = nb;
-    d->_bumpMapFiles = new char* [nb];
-    d->_bumpMapWidths = new E_Int [nb];
-    d->_bumpMapHeights = new E_Int [nb];
-    d->_bumpMapTexs = new GLuint [nb];
+    d->_nBumpMaps = nb; 
+    if (nb > 0)
+    {
+      d->_bumpMapFiles = new char* [nb];
+      d->_bumpMapWidths = new E_Int [nb];
+      d->_bumpMapHeights = new E_Int [nb];
+      d->_bumpMapTexs = new GLuint [nb];
+    }
+    else
+    {
+      d->_bumpMapFiles = NULL;
+      d->_bumpMapWidths = NULL;
+      d->_bumpMapHeights = NULL;
+      d->_bumpMapTexs = NULL;
+    }
     for (E_Int i = 0; i < nb; i++)
     {
       PyObject* o = PyList_GetItem(bumpMaps, i);
@@ -260,7 +280,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
 #if PY_VERSION_HEX >= 0x03000000
         else if (PyUnicode_Check(o)) file = (char*)PyUnicode_AsUTF8(o); 
 #endif
-        d->_bumpMapFiles[i] = new char [128];  
+        d->_bumpMapFiles[i] = new char [128];
         strcpy(d->_bumpMapFiles[i], file);
       }
       d->_bumpMapTexs[i] = 0;
