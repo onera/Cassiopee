@@ -1669,7 +1669,7 @@ struct ngon_t
   template <typename CoordAccType>
   bool replace_duplicated_pgs (const CoordAccType& coord, Vector_t<E_Int>& pgnids, bool do_omp)
   { 
-    if (PHs.size()*PGs.size() == 0)
+    if (PHs.size()==0 || PGs.size() == 0)
       return false;
 
     pgnids.clear(); 
