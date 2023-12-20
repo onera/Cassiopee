@@ -238,5 +238,6 @@ PyObject* K_CONVERTER::convertHexa2Tetra(PyObject* self, PyObject* args)
   }
   
   RELEASESHAREDU(array, f, cnl);
+  RELEASESHAREDU(tpl, f2, cnl2);
   return tpl;
 }

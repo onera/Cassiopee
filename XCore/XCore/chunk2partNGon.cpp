@@ -1025,6 +1025,7 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
 
   PyList_Append(out, m);  
   Py_DECREF(m);
+  RELEASESHAREDU(m, f, cn);
 
   PyObject* comm_data = PyList_New(0);
 

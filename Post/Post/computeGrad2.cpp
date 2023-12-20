@@ -285,6 +285,7 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
 
   RELEASESHAREDB(res, array, f, cn);
   RELEASESHAREDB(res, arrayc, fc, cnc);
+  RELEASESHAREDS(tpl, gp);
 
   if (cellNc != Py_None) Py_DECREF(cellNc);
 

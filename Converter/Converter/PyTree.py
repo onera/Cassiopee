@@ -1330,10 +1330,10 @@ def getField(name, t, api=1):
   for z in zones:
     dim = Internal.getZoneDim(z)
     if dim[0] == 'Structured':
-      np = dim[1]*dim[2]*dim[3]
+      #np = dim[1]*dim[2]*dim[3]
       connects = []
     else:
-      np = dim[1]
+      #np = dim[1]
       connects = Internal.getElementNodes(z)
 
     info = z[2]; a = None
@@ -1390,10 +1390,10 @@ def getFields(containerName, t, vars=None, api=1):
   for z in zones:
     dim = Internal.getZoneDim(z)
     if dim[0] == 'Structured':
-      np = dim[1]*dim[2]*dim[3]
+      #np = dim[1]*dim[2]*dim[3]
       connects = []
     else:
-      np = dim[1]
+      #np = dim[1]
       connects = Internal.getElementNodes(z)
     
     info = z[2]; out = []; loc = 0
@@ -6541,8 +6541,8 @@ def diffArrays(A, B, removeCoordinates=True):
     raise ValueError("diffArrays: different number of zones (A=%d; B=%d)."%(nz,len(zones2)))
   for no in range(nz):
     # noeuds
-    A1 = getAllFields(zones1[no], 'nodes'); A1 = Internal.clearList(A1)
-    A2 = getAllFields(zones2[no], 'nodes'); A2 = Internal.clearList(A2)
+    A1 = getAllFields(zones1[no], 'nodes', api=3); A1 = Internal.clearList(A1)
+    A2 = getAllFields(zones2[no], 'nodes', api=3); A2 = Internal.clearList(A2)
     # elimination des solutions aux noeuds
     node = Internal.getNodesFromName1(zones1[no], Internal.__FlowSolutionNodes__)
     if node != []:
@@ -6554,8 +6554,8 @@ def diffArrays(A, B, removeCoordinates=True):
       setFields(diff, zones1[no], 'nodes')
 
     # centres
-    A1 = getAllFields(zones1[no], 'centers'); A1 = Internal.clearList(A1)
-    A2 = getAllFields(zones2[no], 'centers'); A2 = Internal.clearList(A2)
+    A1 = getAllFields(zones1[no], 'centers', api=3); A1 = Internal.clearList(A1)
+    A2 = getAllFields(zones2[no], 'centers', api=3); A2 = Internal.clearList(A2)
     node = Internal.getNodesFromName1(zones1[no], Internal.__FlowSolutionCenters__)
     if node != []:
       (parent, d) = Internal.getParentOfNode(t1, node[0])

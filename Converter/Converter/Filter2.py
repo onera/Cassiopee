@@ -182,8 +182,8 @@ def uniformDistributionAt(n_elt, i, n_interval):
 
 def uniformDistribution(n_elt, comm):
   int_type = type(n_elt)
-  i_rank = int_type(comm.Get_rank())
-  n_rank = int_type(comm.Get_size())
+  i_rank = int_type(Cmpi.rank)
+  n_rank = int_type(Cmpi.size)
   u_dist = uniformDistributionAt(n_elt, i_rank, n_rank)
   proc_indices = numpy.empty(3, dtype=type(n_elt))
   proc_indices[0] = u_dist[0]
@@ -470,20 +470,22 @@ def createDataArrayFilter(distrib, data_shape=None):
   dataspace depends of the data_shape optional argument, representing
   the size of the array for which the dataspace is created in each dimension:
   - If data_shape is None or a single value, dataspace is 1d/flat
-  - If data_shape is a 2d list [1, N], a dataspace adpated to pointlist is created
+  - If data_shape is a 2d list [1, N], a dataspace adapted to pointlist is created
   - In other cases (which should correspond to true 2d array or 3d array), the
-    dataspace is create from combine method (flat in memory, block in file).
+    dataspace is created from combine method (flat in memory, block in file).
   """
   if data_shape is None or len(data_shape) == 1: #Unstructured
     hdf_data_space = createFlatDataspace(distrib)
   elif len(data_shape) == 2 and data_shape[0] == 1:
     hdf_data_space = createPointlistDataspace(distrib)
+  elif len(data_shape) == 2:
+    hdf_data_space = createFlatDataspace(distrib) # for pointrange (CB)
   else: #Structured
     hdf_data_space = createCombinedDataspace(data_shape, distrib)
 
   return hdf_data_space
 
-def gen_elemts(zone_tree):
+def genElemts(zone_tree):
   elmts_ini = I.getNodesFromType1(zone_tree, 'Elements_t')
   for elmt in elmts_ini:
     yield elmt
@@ -615,7 +617,7 @@ def createZoneElementsFilter(zone_tree, zone_path, hdf_filter, mode):
   """
   Prepare the hdf_filter for all the Element_t nodes found in the zone.
   """
-  zone_elmts = gen_elemts(zone_tree)
+  zone_elmts = genElemts(zone_tree)
   for elmt in zone_elmts:
     if elmt[1][0] == 22 or elmt[1][0] == 23:
       createZoneEsoElementsFilter(elmt, zone_path, hdf_filter, mode)

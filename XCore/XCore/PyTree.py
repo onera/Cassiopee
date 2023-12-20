@@ -122,7 +122,6 @@ def loadAndSplitNGon(fileName):
   bcs = []
   bcNames = []
   bcTypes = {}
-  familyNames = {}
   if zonebc is not None:
     BCs = I.getNodesFromType(zonebc, 'BC_t')
     for bc in BCs:

@@ -82,7 +82,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
    api=3 (array3, ngonType=2 ou 3)
    OUT: PyObject created. */
 //=============================================================================
-// build pour les NGONS
+// build empty pour les NGONS
 PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
                                E_Int nvertex, E_Int nelt, E_Int nface,
                                const char* etString,
@@ -208,7 +208,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
 
    OUT: PyObject created. */
 //=============================================================================
-// build pour les single Element (BE)
+// build empty pour les single Element (BE)
 PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
                                E_Int nvertex,
                                E_Int nelts,
@@ -291,7 +291,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
 
    OUT: PyObject created. */
 //=============================================================================
-// build pour les Multiple Elements (ME)
+// build empty pour les Multiple Elements (ME)
 PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
                                E_Int nvertex,
                                std::vector<E_Int>& neltsPerConnect,
@@ -439,6 +439,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld,
                 for (E_Int i = 0; i < dim2; i++) indPH2p[i] = indPHp[i];
             }
           }
+          RELEASESHAREDU(tpl, f2, cn2);
         }
     }
     else
@@ -468,6 +469,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld,
               for (E_Int i = 0; i < cm.getSize()*cm.getNfld(); i++) cm2p[i] = cmp[i];
             }
           }
+          RELEASESHAREDU(tpl, f2, cn2);
         }
     }
     return tpl;
@@ -535,6 +537,7 @@ PyObject* K_ARRAY::buildArray3(FldArrayF& f,
         for (E_Int i = 0; i < dim2; i++) indPH2p[i] = indPHp[i];
       }
     }
+    RELEASESHAREDU(tpl, f2, cn2);
     return tpl;
   }
   else // BE/ME
@@ -550,8 +553,7 @@ PyObject* K_ARRAY::buildArray3(FldArrayF& f,
       nelts += cm.getSize(); }
     PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, neltsPerConnect, eltType, center, api);
     FldArrayF* f2; FldArrayI* cn2;  
-    K_ARRAY::getFromArray3(tpl, f2, cn2);
-      
+    K_ARRAY::getFromArray3(tpl, f2, cn2);  
     // copie des champs
     E_Int dim;
     if (center == true) dim = nelts;
@@ -576,6 +578,7 @@ PyObject* K_ARRAY::buildArray3(FldArrayF& f,
         for (E_Int i = 0; i < cm.getSize()*cm.getNfld(); i++) cm2p[i] = cmp[i];
       }
     }
+    RELEASESHAREDU(tpl, f2, cn2);
     return tpl;
   }
 }
@@ -590,9 +593,8 @@ PyObject* K_ARRAY::buildArray3(FldArrayF& f, const char* varString,
   if (api == 2) api = 3;
   E_Int nfld = f.getNfld(); E_Int npts = f.getSize();
   PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, ni, nj, nk, api);
-  FldArrayF* f2; FldArrayI* cn2;
-  K_ARRAY::getFromArray3(tpl, f2, cn2);
-
+  FldArrayF* f2;
+  K_ARRAY::getFromArray3(tpl, f2);
   #pragma omp parallel
   {
     for (E_Int n = 1; n <= nfld; n++)
@@ -603,5 +605,6 @@ PyObject* K_ARRAY::buildArray3(FldArrayF& f, const char* varString,
       for (E_Int i = 0; i < npts; i++) f2p[i] = fp[i];
     }
   }
+  RELEASESHAREDS(tpl, f2);
   return tpl;
 }

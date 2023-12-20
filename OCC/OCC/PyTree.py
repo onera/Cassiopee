@@ -362,6 +362,7 @@ def getTree(hook, N=11, hmax=-1, hausd=-1.):
   b = Internal.getNodeFromName1(t, 'SURFACES')
   faceNo = []
   m = OCC.meshTRI__(hook, N=N, hmax=hmax, hausd=hausd, faceNo=faceNo)
+  #m = OCC.meshSTRUCT__(hook, N=N, faceNo=faceNo)
 
   for c, f in enumerate(m):
     noface = faceNo[c]

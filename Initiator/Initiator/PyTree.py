@@ -43,7 +43,7 @@ def _initConst(t, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8,
     else: # recuperation des arguments
         nodes = Internal.getZones(t)
         for z in nodes:
-            a = C.getFields(Internal.__GridCoordinates__, z)[0]
+            a = C.getFields(Internal.__GridCoordinates__, z, api=3)[0]
             if loc == 'nodes':
                 a = Initiator.initConst(a, adim, MInf, alphaZ, alphaY, ReInf)
                 z = C.setFields([a], z, 'nodes')
@@ -91,20 +91,20 @@ def _initLamb(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):
     """Init the pyTree with a Lamb vortex of intensity Gamma and position (x0,y0)."""
     nodes = Internal.getZones(t)
     for z in nodes:
-        coordn = C.getFields(Internal.__GridCoordinates__, z)
+        coordn = C.getFields(Internal.__GridCoordinates__, z, api=3)
         if coordn == []:
             print('Warning: initLamb: zone '+z[0]+' has no coordinates. Skipped...')
             continue
         coordn = coordn[0]
         if loc == 'nodes':
-            a = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
+            a = C.getFields(Internal.__FlowSolutionNodes__, z, api=3)[0]
             if a == []: a = coordn
             else: Converter._addVars([a, coordn])
             a = Initiator.initLamb(a, position, Gamma, MInf)
             z = C.setFields([a], z, 'nodes')
         else:
             coordc = Converter.node2Center(coordn)
-            ac = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+            ac = C.getFields(Internal.__FlowSolutionCenters__, z, api=3)[0]
             if ac == []: ac = coordc
             else: Converter._addVars([ac, coordc])
             ac = Initiator.initLamb(ac, position, Gamma, MInf)

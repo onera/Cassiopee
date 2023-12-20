@@ -137,7 +137,7 @@ E_Int K_ARRAY::getFromArray3(PyObject* o,
   }
   else if (PyList_Check(tpl) == true) // -- Array2 or Array3 --
   {  
-    E_Int nfld = PyList_Size(tpl);  
+    E_Int nfld = PyList_Size(tpl);
     E_Float** acu = new E_Float* [nfld];
     E_Int s = 0;
     for (E_Int i = 0; i < nfld; i++)

@@ -31,7 +31,7 @@ PyObject* K_CONVERTER::convertStruct2NGon(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Int api = 1;
-  if (!PyArg_ParseTuple(args, O_ I_, &array, &api)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &array, &api)) return NULL;
 
   // Check array
   E_Int ni, nj, nk, res;
@@ -379,5 +379,6 @@ PyObject* K_CONVERTER::convertStruct2NGon(PyObject* self, PyObject* args)
     }
   }
   RELEASESHAREDS(array, f);
+  RELEASESHAREDU(tpl, f2, cn2);
   return tpl;
 }

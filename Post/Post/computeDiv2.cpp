@@ -315,8 +315,9 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
     RELEASESHAREDN(fieldZ, bfieldZ);
   }
 
-  RELEASESHAREDB(res,array,f,cn);
-  RELEASESHAREDB(res,arrayc,fc,cnc);
+  RELEASESHAREDB(res, array, f, cn);
+  RELEASESHAREDB(res, arrayc, fc, cnc);
+  RELEASESHAREDS(tpl, gp);
 
   if (cellNc != Py_None) Py_DECREF(cellNc);
 

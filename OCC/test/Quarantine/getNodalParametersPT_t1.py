@@ -145,16 +145,16 @@ ncadid =  C.getFields('CADData', C.extractVars(z, ['ncadid']))
 u = C.getFields('CADData', C.extractVars(z, ['u']))
 v = C.getFields('CADData', C.extractVars(z, ['v']))
 
-occ.getNodalParameters( c, wall_face_ids, hook, u, v, hx, hy, hz, ncadid)
+occ.getNodalParameters(c, wall_face_ids, hook, u, v, hx, hy, hz, ncadid)
 
 
 # Mettre a jour des variables
-t = C.setFields(hx,t, 'nodes')
-t = C.setFields(hy,t, 'nodes')
-t = C.setFields(hz,t, 'nodes')
+t = C.setFields(hx, t, 'nodes')
+t = C.setFields(hy, t, 'nodes')
+t = C.setFields(hz, t, 'nodes')
 t = C.setFields(ncadid,t, 'nodes')
-t = C.setFields(u,t, 'nodes')
-t = C.setFields(v,t, 'nodes')
+t = C.setFields(u, t, 'nodes')
+t = C.setFields(v, t, 'nodes')
 
 test.testT(t,1)
 #C.convertPyTree2File(t, 'out.cgns')

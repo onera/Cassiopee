@@ -170,6 +170,7 @@ PyObject* K_POST::computeGrad(PyObject* self,PyObject* args)
                         "computeGrad: gradient can only be computed for 3D NGONs.");
         RELEASESHAREDB(res,array,f,cn); return NULL;         
       }
+      RELEASESHAREDS(tpl, fp);
     }
     else 
     {
@@ -182,7 +183,7 @@ PyObject* K_POST::computeGrad(PyObject* self,PyObject* args)
       {
         PyErr_SetString(PyExc_TypeError,
                         "computeGrad: not a valid element type.");
-        RELEASESHAREDU(array,f, cn); return NULL;
+        RELEASESHAREDU(array, f, cn); return NULL;
       }
       E_Int npts = f->getSize();
       tpl = K_ARRAY::buildArray(3, varStringOut, npts, cn->getSize(), -1, eltType, true, 
@@ -199,7 +200,7 @@ PyObject* K_POST::computeGrad(PyObject* self,PyObject* args)
                     fp.begin(1), fp.begin(2), fp.begin(3));    
     }
   }
-  RELEASESHAREDB(res,array,f,cn);
+  RELEASESHAREDB(res, array, f, cn);
   delete [] varStringOut;
   return tpl;
 }

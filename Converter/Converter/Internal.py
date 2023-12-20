@@ -2850,7 +2850,11 @@ def array2PyTreeDim(a):
                 d[0,0] = a[1][0].size; d[0,1] = nelts; d[0,2] = 0
             else:
                 d = numpy.empty((1,3), dtype=E_NpyInt, order='F')
-                d[0,0] = a[1][0].size; d[0,1] = a[2][0].shape[0]; d[0,2] = 0 
+                #cn = a[2]; nelts = 0
+                #for i in cn: nelts += i.shape[0]
+                #print("nelts=", nelts, flush=True)
+                nelts = a[2][0].shape[0]
+                d[0,0] = a[1][0].size; d[0,1] = nelts; d[0,2] = 0 
         else:   # Array1
             if a[3] == 'NGON':
                 sizeFN = a[2][0,1]; nelts = a[2][0,2+sizeFN]
@@ -3422,10 +3426,12 @@ def convertDataNodes2Array3(nodes, dim, connects, loc=-1):
     if ar is None: return []
     s = ar.size
 
-    vars = nodes[0][0]
-    for n in nodes[1:]: vars += ','+n[0]
-    field = []
-    for n in nodes: field.append(n[1])
+    field = []; vars = ''
+    for n in nodes:
+        if n[1] is not None:
+            field.append(n[1])
+            vars += n[0]+','
+    if vars[-1] == ',': vars = vars[0:-1]
 
     if gtype == 'Structured':
         ni = dim[1]; nj = dim[2]; nk = dim[3]

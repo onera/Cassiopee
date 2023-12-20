@@ -174,6 +174,7 @@ PyObject* K_CONVERTER::convertPenta2Tetra(PyObject* self, PyObject* args)
   }
   
   RELEASESHAREDU(array, f, cn);
+  RELEASESHAREDU(tpl, f2, cn2);
   return tpl;
 }
 

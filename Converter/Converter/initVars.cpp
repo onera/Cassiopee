@@ -77,5 +77,6 @@ PyObject* K_CONVERTER::initVars(PyObject* self, PyObject* args)
   }
 
   RELEASESHAREDB(res, array, f, cn);
+  RELEASESHAREDS(tpl, f2);
   return tpl;
 }

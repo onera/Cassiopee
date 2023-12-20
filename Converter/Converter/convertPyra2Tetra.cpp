@@ -39,7 +39,7 @@ using namespace K_FUNC;
 PyObject* K_CONVERTER::convertPyra2Tetra(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
   
   // Check array
   E_Int ni, nj, nk;
@@ -169,5 +169,6 @@ PyObject* K_CONVERTER::convertPyra2Tetra(PyObject* self, PyObject* args)
   }
 
   RELEASESHAREDU(array, f, cn);
+  RELEASESHAREDU(tpl, f2, cn2);
   return tpl;
 }

@@ -468,6 +468,8 @@ void K_CONVERTER::conformizeNGon(
   }
   delete [] indir;
 
+  RELEASESHAREDS(tpl, f2); // cno is returned
+
   // DEBUG
   /*
   FldArrayI cFE;

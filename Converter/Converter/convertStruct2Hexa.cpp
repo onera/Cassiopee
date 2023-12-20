@@ -208,6 +208,7 @@ PyObject* K_CONVERTER::convertStruct2Hexa(PyObject* self, PyObject* args)
         for (E_Int i = 0; i < npts; i++) f2p[i] = fp[i];
       }
     }
+    RELEASESHAREDU(tpl, f2, cnl2);
   }  
   else if (res == 2)
   {

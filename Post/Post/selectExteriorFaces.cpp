@@ -106,7 +106,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       PyList_Append(indices, indir); Py_DECREF(indir);
     }
 
-    delete fnodes;
+    RELEASESHAREDS(tpl, fnodes);
     return tpl;
   }
   else if (ni == 1 || nj == 1 || nk == 1)//arrays 2D
@@ -219,7 +219,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
     {
       PyList_Append(indices, indir); Py_DECREF(indir);
     }
-    delete fnodes; delete connect;
+    RELEASESHAREDU(tpl, fnodes, connect);
     return tpl;
   }
   else
@@ -477,14 +477,14 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       K_CONNECT::cleanConnectivity(posx, posy, posz, 
                                    1.e-12, newEltType, 
                                    *fnodes, *connect);
-    tpl = K_ARRAY::buildArray3(*fnodes, varString, *connect, newEltType);
 
+    PyObject* tpl2 = K_ARRAY::buildArray3(*fnodes, varString, *connect, newEltType);
+    RELEASESHAREDU(tpl, fnodes, connect);
     if (boolIndir)
     {
       PyList_Append(indices, indir); Py_DECREF(indir);
     }
-    delete fnodes; delete connect;
-    return tpl;
+    return tpl2;
   }
   return NULL;
 }
@@ -957,6 +957,7 @@ PyObject* K_POST::selectExteriorFacesNGon3D(char* varString, FldArrayF& f,
   {
     PyList_Append(indices, indir); Py_DECREF(indir);
   }
+  RELEASESHAREDU(tpl, f2, cn2);
   return tpl;
 }
 

@@ -204,5 +204,6 @@ PyObject* K_CONVERTER::convertUnstruct2Hexa(PyObject* self, PyObject* args)
   }
   
   RELEASESHAREDU(array, f, cnl);
+  RELEASESHAREDU(tpl, f2, cnl2);
   return tpl;
 }

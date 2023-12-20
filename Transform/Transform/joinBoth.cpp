@@ -956,19 +956,25 @@ PyObject* K_TRANSFORM::joinBothUnstructured(
 
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
   for (size_t ic = 0; ic < eltTypes2.size(); ic++) delete [] eltTypes2[ic];
+  
+  PyObject* l = PyList_New(0);
   // Clean connectivity
   if (posx > 0 && posy > 0 && posz > 0)
   {
     K_CONNECT::cleanConnectivity(posx, posy, posz, tol, eltType, *f, *cn);
-    tpln = K_ARRAY::buildArray3(*f, varString, *cn, eltType);
+    PyObject* tpln2 = K_ARRAY::buildArray3(*f, varString, *cn, eltType);
+    PyList_Append(l, tpln2); Py_DECREF(tpln2);
+  }
+  else
+  {
+    PyList_Append(l, tpln); Py_DECREF(tpln);
   }
 
-  PyObject* l = PyList_New(0);
-  PyList_Append(l, tpln); Py_DECREF(tpln);
   char eltTypec[K_ARRAY::VARSTRINGLENGTH];
   K_ARRAY::starVarString(eltType, eltTypec);
   PyObject* tplc = K_ARRAY::buildArray3(*fc, varStringc, *cn, eltTypec);
   PyList_Append(l, tplc); Py_DECREF(tplc); delete fc;
+  RELEASESHAREDU(tpln, f, cn);
   return l;
 }
 //=============================================================================
@@ -1095,16 +1101,18 @@ PyObject* K_TRANSFORM::joinBothNGON(FldArrayF& f1, FldArrayF& fc1,
     }
   }
 
+  //Py_DECREF(tpln); // to fix
   // TODO VINCENT: connectivity not cleaned in the original code
   // if (posx > 0 && posy > 0 && posz > 0)
   // {
   //   K_CONNECT::cleanConnectivityNGon(posx, posy, posz, tol, *f, *cn);
   //   tpln = K_ARRAY::buildArray3(*f, varString, *cn, "NGON");
   // }
-  
+    
   PyObject* l = PyList_New(0);
   PyList_Append(l, tpln); Py_DECREF(tpln);
   PyObject* tplc = K_ARRAY::buildArray3(*fc, varStringc, *cn, "NGON*");
   PyList_Append(l, tplc); Py_DECREF(tplc); delete fc;
+  RELEASESHAREDU(tpln, f, cn);
   return l;
 }

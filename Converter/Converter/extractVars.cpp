@@ -127,5 +127,6 @@ PyObject* K_CONVERTER::extractVars(PyObject* self, PyObject* args)
   }
   delete [] fstring;
   RELEASESHAREDB(res, array, f, cn);
+  RELEASESHAREDS(tpl, f2);
   return tpl;
 }

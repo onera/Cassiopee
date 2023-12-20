@@ -327,5 +327,6 @@ PyObject* K_CONVERTER::convertStruct2Tetra(PyObject* self, PyObject* args)
   
   // Building numpy array
   RELEASESHAREDB(res, array, f, cnl);
+  RELEASESHAREDU(tpl, f2, cnl2);
   return tpl;
 }

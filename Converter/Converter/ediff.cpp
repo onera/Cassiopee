@@ -64,7 +64,7 @@ PyObject* K_CONVERTER::diffArrays(PyObject* self, PyObject* args)
   PyObject* arrays1; PyObject* arrays2; PyObject* arrays3;
 
   E_Int narrays = 3;
-  if (!PyArg_ParseTuple(args, "OOO", &arrays1, &arrays2, &arrays3))
+  if (!PYPARSETUPLE_(args, OOO_, &arrays1, &arrays2, &arrays3))
     return NULL;
 
   // Check every arrays
@@ -126,7 +126,7 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   for (int i = 0; i < n1; i++)
   {
     tpl = PyList_GetItem(arrays1, i);
-    res = K_ARRAY::getFromArray2(tpl, varString1, f, ni, nj, nk, cn, eltType1);
+    res = K_ARRAY::getFromArray3(tpl, varString1, f, ni, nj, nk, cn, eltType1);
     object1.push_back(tpl);
     if (res == 1)
     {
@@ -162,7 +162,7 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
     }
   }
 
-  // Extract info from arrays2
+  // Extract info from arrays2/3
   vector<E_Int> ni2; vector<E_Int> nj2; vector<E_Int> nk2;
   vector<FldArrayF*> field2;
   vector<PyObject*> object2;
@@ -172,7 +172,7 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   for (int i = 0; i < n2; i++)
   {
     tpl = PyList_GetItem(arrays2, i);
-    res = K_ARRAY::getFromArray2(tpl, varString2, f, ni, nj, nk, cn, eltType2);
+    res = K_ARRAY::getFromArray3(tpl, varString2, f, ni, nj, nk, cn, eltType2);
     object2.push_back(tpl);
 
     if (res == 1)
@@ -264,37 +264,39 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   posx2++; posy2++; posz2++;
   
   // We now try to identify the blocks by sizes and position  
-  int sizefield1 = field1.size();
-
+  
   /*------------------------------*/
   /* Return errors as a py object */
   /*------------------------------*/
   PyObject* l = PyList_New(0);
-  vector<E_Float*> errors;
-  for (int i = 0; i < sizefield1; i++)
+  vector<FldArrayF*> errors;
+  for (size_t i = 0; i < field1.size(); i++)
   {
     if (ni1[i] != -1)
     {
-      tpl = K_ARRAY::buildArray2(pos1.size(), varString, 
+      tpl = K_ARRAY::buildArray3(pos1.size(), varString, 
                                  ni1[i], nj1[i], nk1[i]);
     }
     else
     {
-      E_Int csize = cn1[i]->getSize()*cn1[i]->getNfld(); 
-      tpl = K_ARRAY::buildArray2(pos1.size(), varString, field1[i]->getSize(),
-                                 cn1[i]->getSize(), -1, elt1[i], false, csize);
-      E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-      K_KCORE::memcpy__(cnnp, cn1[i]->begin(), csize);
+      tpl = K_ARRAY::buildArray3(pos1.size(), varString, *field1[i],
+                                 *cn1[i], elt1[i], 0, -1, true);
+      
     }
-    errors.push_back(K_ARRAY::getFieldPtr(tpl));
+    //errors.push_back(K_ARRAY::getFieldPtr(tpl));
+    FldArrayF* f2;
+    K_ARRAY::getFromArray3(tpl, f2); 
+    errors.push_back(f2);
     PyList_Append(l, tpl); Py_DECREF(tpl);
+    //RELEASESHAREDS(tpl, f2); // to fix
   }
 
-  for (int i1 = 0; i1 < sizefield1; i1++)
+  for (size_t i1 = 0; i1 < field1.size(); i1++)
   {
     FldArrayF& f1 = *field1[i1];
-    E_Int n1 = f1.getSize();
-    FldArrayF error(n1, pos1.size(), errors[i1], true);
+    //E_Int n1 = f1.getSize();
+    //FldArrayF error(n1, pos1.size(), errors[i1], true);
+    FldArrayF& error = *(errors[i1]);
     error.setAllValuesAt(1.e6);
     E_Boolean found = false;
     
@@ -320,13 +322,12 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   /*------------------*/
   /* Little cleaning  */
   /*------------------*/
-  int sizefield2 = field2.size();
-  for (int i = 0; i < sizefield1; i++) 
+  for (size_t i = 0; i < field1.size(); i++) 
   { 
     if (ni1[i] == -1) { RELEASESHAREDU(object1[i], field1[i], cn1[i]); }
     else { RELEASESHAREDS(object1[i], field1[i]); } 
   }
-  for (int i = 0; i < sizefield2; i++) 
+  for (size_t i = 0; i < field2.size(); i++) 
   {
     if (ni2[i] == -1) { RELEASESHAREDU(object2[i], field2[i], cn2[i]); }
     else { RELEASESHAREDS(object2[i], field2[i]); } 
@@ -335,6 +336,10 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   object1.clear(); object2.clear();
   ni2.clear(); nj2.clear(); nk2.clear();
   
+  for (size_t i = 0; i < errors.size(); i++)
+  {
+    RELEASESHAREDS(PyList_GetItem(l, i), errors[i]); 
+  }
   return l;
 }
 

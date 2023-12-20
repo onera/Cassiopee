@@ -131,7 +131,7 @@ PyObject* K_CONVERTER::node2Center(PyObject* self, PyObject* args)
       FCenter = new FldArrayF(ncells, nfld, compact);
       ret = K_LOC::node2centerUnstruct(*FNode, *c, cellN, mod, *FCenter);
     }
-    
+        
     if (ret == 0) 
     {
       delete FCenter; RELEASESHAREDU(array, FNode, c); 

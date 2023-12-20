@@ -160,6 +160,7 @@ PyObject* K_CONVERTER::magnitude(PyObject* self, PyObject* args)
   }
 
   RELEASESHAREDB(res, array, f, cn);
+  RELEASESHAREDS(tpl, norm);
   delete [] varStringOut;
   delete [] commonVariable;
   delete [] start;
