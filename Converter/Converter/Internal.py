@@ -2850,10 +2850,8 @@ def array2PyTreeDim(a):
                 d[0,0] = a[1][0].size; d[0,1] = nelts; d[0,2] = 0
             else:
                 d = numpy.empty((1,3), dtype=E_NpyInt, order='F')
-                #cn = a[2]; nelts = 0
-                #for i in cn: nelts += i.shape[0]
-                #print("nelts=", nelts, flush=True)
-                nelts = a[2][0].shape[0]
+                cn = a[2]; nelts = 0
+                for i in cn: nelts += i.shape[0]
                 d[0,0] = a[1][0].size; d[0,1] = nelts; d[0,2] = 0 
         else:   # Array1
             if a[3] == 'NGON':

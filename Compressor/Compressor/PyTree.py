@@ -490,9 +490,9 @@ def _compressFields(t, tol=1.e-8, ctype=0, varNames=None):
                 container = Internal.__FlowSolutionNodes__
                 if len(varname) == 2 and varname[0] == 'centers': 
                     container = Internal.__FlowSolutionCenters__
-                    varname = v[1]
+                    varname = varname[1]
                 elif len(varname) == 2 and varname[0] == 'nodes': 
-                    varname = v[1]
+                    varname = varname[1]
                 else: varname = v
                 FS = Internal.getNodeFromName1(z, container)
                 f = Internal.getNodeFromName1(FS, varname)
