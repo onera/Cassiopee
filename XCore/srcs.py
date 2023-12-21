@@ -47,12 +47,12 @@ if mpi: # source that requires mpi
             'XCore/adaptMesh/computeGradientNGon.cpp',
             'XCore/adaptMesh/computeCellCentersAndVolumes.cpp',
             
-            'XCore/AdaptMesh/Mesh.cpp',
-            'XCore/AdaptMesh/AdaptMesh.cpp',
-            'XCore/AdaptMesh/Hessian.cpp',
-            'XCore/AdaptMesh/Comm.cpp',
-            'XCore/AdaptMesh/Metric.cpp',
-            'XCore/AdaptMesh/Refine.cpp'
+            'XCore/adaptMesh2/Mesh.cpp',
+            'XCore/adaptMesh2/AdaptMesh.cpp',
+            'XCore/adaptMesh2/Hessian.cpp',
+            'XCore/adaptMesh2/Comm.cpp',
+            'XCore/adaptMesh2/Metric.cpp',
+            'XCore/adaptMesh2/Refine.cpp'
             ]
 else:
     cpp_srcs += [
