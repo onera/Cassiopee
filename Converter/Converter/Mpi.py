@@ -193,7 +193,8 @@ def isFinite(t, var=None):
 # si mem=True, ecrit l'etat de la mem du noeud
 # si stdout=True, ecrit a l'ecran
 # si reset, vide le fichier log
-def trace(text=">>> IN XXX: ", cpu=True, mem=True, stdout=False, reset=False):
+# si filename="proc", ecrit a l'ecran, sinon ecrit dans le fichier filename >>> TODO stdout soon deprecated: filename="stdout"
+def trace(text=">>> IN XXX: ", cpu=True, mem=True, stdout=False, reset=False, filename="proc"):
     """Write a trace of cpu and memory in a file or to stdout for current node."""
     global PREVFULLTIME
     msg = text
@@ -226,12 +227,20 @@ def trace(text=">>> IN XXX: ", cpu=True, mem=True, stdout=False, reset=False):
         else: msg += '[%f kB]'%(tot)
     msg += '\n'
 
-    if stdout: # ecriture a l'ecran
+    if stdout: # ecriture a l'ecran >>> TODO soon deprecated: condition will be: filename == "stdout"
         print('%d: %s'%(rank, msg)) 
         sys.stdout.flush()
     else: # dans des fichiers
-        if reset: f = open('proc%03d.out'%rank, "w")
-        else: f = open('proc%03d.out'%rank, "a")
+        filename = filename.split('.')
+        if '%' in filename[0]:
+            filename[0] = filename[0]%rank
+        else:
+            filename[0] += '%03d'%rank
+        if len(filename) == 1:
+            filename[0] += '.out'
+        filename = '.'.join(s for s in filename)
+        if reset: f = open(filename, "w")
+        else: f = open(filename, "a")
         f.write(msg)
         f.flush()
         f.close()
