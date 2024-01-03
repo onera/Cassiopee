@@ -338,8 +338,18 @@ void reorder_tetra(E_Int i, E_Int nf, E_Int *pf, AMesh *M)
 static
 void reorder_penta(E_Int i, E_Int nf, E_Int *pf, AMesh *M)
 {
+  // First tri is bottom
+  E_Int bot = -1;
+  for (E_Int i = 0; i < nf; i++) {
+    if (get_stride(pf[i], M->indPG) == 3) {
+      bot = pf[i];
+      Right_shift(pf, i, 5);
+      break;
+    }
+  }
+  assert(bot != -1);
+
   E_Int common[3], map[3];
-  E_Int bot = pf[0];
   E_Int *pn = get_facets(bot, M->ngon, M->indPG);
   
   for (E_Int i = 0; i < 3; i++) map[i] = pn[i];
