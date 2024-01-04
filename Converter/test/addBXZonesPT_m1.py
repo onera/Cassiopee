@@ -21,6 +21,8 @@ if Cmpi.rank == 0:
 
     C.convertPyTree2File(t, LOCAL+'/case.cgns')
 
+Cmpi.barrier()
+
 # Load 
 h = Filter.Handle(LOCAL+'/case.cgns')
 a = h.loadAndDistribute()
