@@ -56,6 +56,7 @@ E_Int K_IO::GenIO::matchInString(char* buf, const char* word)
 //=============================================================================
 /* Lit un mot.
    On appelle separateur le dernier caractere lu apres le mot.
+   Retourne 3 si un mot a ete lu et ; est le separateur
    Retourne 2 si un mot a ete lu et blank ou tab est le separateur
    Retourne 1 si un mot a ete lu et \n ou \r est le separateur 
    Retourne 0 si la fin du fichier a ete atteinte mais qu'un mot a pu etre lu
@@ -72,14 +73,15 @@ E_Int K_IO::GenIO::readWord(FILE* ptrFile, char* buf)
   E_Int c = 0;
   while (t != EOF && c < BUFSIZE && (c == 0 || t != ' ') 
          && (c == 0 || t != '\n') 
-         && (c == 0 || t != '\r'))
+         && (c == 0 || t != '\r')
+         && (c == 0 || t != ';'))
   {
     if (t == '#') // skip comment
     {
       while (t != EOF && t != '\n' && t != '\r') t = fgetc(ptrFile);
       if (t == EOF) { buf[c] = '\0' ; return 0; }
     }
-    if (t != ' ' && t != '\n' && t != '\r') { buf[c] = t; c++; }
+    if (t != ' ' && t != '\n' && t != '\r' && t != ';') { buf[c] = t; c++; }
     t = fgetc(ptrFile);
   }
   buf[c] = '\0';
@@ -88,6 +90,7 @@ E_Int K_IO::GenIO::readWord(FILE* ptrFile, char* buf)
   else if (t == EOF) return -1;
   else if (t == ' ') return 2;
   else if (t == '\t') return 2;
+  else if (t == ';') return 3;
   else return 1;
 }
 

@@ -1068,11 +1068,12 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
       return t # OK
     # sinon, c'est un arrays (traite dans la suite)
 
-  zn = []; bcfaces = []; centerArrays = []
+  zn = []; bcfaces = []; centerArrays = []; bcfields = []
   if format != 'bin_pickle': # autres formats
     if autoTry: format = None
     a = Converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine,
                                      density, zoneNames=zn, BCFaces=bcfaces,
+                                     BCFields=bcfields,
                                      hmax=hmax, hausd=hausd, grow=grow, 
                                      mergeTol=mergeTol, occAlgo=occAlgo,
                                      centerArrays=centerArrays)
@@ -1141,6 +1142,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
   Internal._correctPyTree(t, level=10) # force CGNS names
   Internal._correctPyTree(t, level=2) # force unique name
   _addBCFaces(t, bcfaces)
+  #_addBCFields(t, bcfields)
   Internal._correctPyTree(t, level=7) # create familyNames
   registerAllNames(t)
   return t
@@ -7000,6 +7002,16 @@ def _addBCFaces(t, BCFaces):
       _addBC2Zone(z, name, bctype, faceList=faces)
     c += 1
   return None
+
+# Ajoute les BCFields dans l'arbre
+#def addBCFields(t, BCFields):
+#    tp = Internal.copyRef(t)
+#    _addBCFields(t, BCFields)
+#    return tp
+#
+#def _addBCFields(t, BCFields):
+#    if BCFields == []: return None
+#    return None
 
 #==============================================================================
 # -- Fonctions de preconditionnement (hook) --

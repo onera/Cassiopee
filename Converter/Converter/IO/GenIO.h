@@ -280,6 +280,7 @@ class GenIO
       std::vector<FldArrayI*>& connectivity,
       std::vector<E_Int>& eltType, std::vector<char*>& zoneNames,
       std::vector<FldArrayI*>& BCFaces, std::vector<char*>& BCNames,
+      std::vector<FldArrayF*>& BCFields,
       char*& varStringc,
       std::vector<FldArrayF*>& centerStructField,
       std::vector<FldArrayF*>& centerUnstructField);
@@ -295,19 +296,36 @@ class GenIO
       PyObject* BCFaces);
     E_Int foamWritePoints(char* file, FldArrayF& f);
     E_Int foamReadPoints(char* file, FldArrayF& f);
-    E_Int foamReadFields(char* file, std::vector<FldArrayF*>& centerUnstructField, E_Int ncells, char*& varStringc);
-    E_Int foamWriteFaces(char* file, const ngon_t<K_FLD::IntArray>& NG, const std::vector<E_Int>& faces);
+    E_Int foamReadFields(char* file,
+      std::vector<FldArrayF*>& centerUnstructField, E_Int ncells,
+      char*& varStringc,
+      const std::vector<char *> &BCNames,
+      const std::vector<FldArrayI *> &BCFaces,
+      std::vector<FldArrayF *> &BCFields, E_Int *owner,
+      const std::vector<E_Float> &delta, E_Int nifaces,
+      const std::vector<E_Int> &indir);
+    E_Int foamWriteFaces(char* file, FldArrayI& cn,
+      const std::vector<E_Int>& faces);
     E_Int foamReadFaces(char* file, E_Int& nfaces, FldArrayI& cn);
-    E_Int foamWriteOwner(char* file, const K_FLD::IntArray& F2E, const std::vector<E_Int>& faces);
+    E_Int foamWriteOwner(char* file, const std::vector<E_Int> &owner,
+      const std::vector<E_Int> &faces);
     E_Int foamReadOwner(char* file, FldArrayI& PE);
-    E_Int foamWriteNeighbour(char* file, const K_FLD::IntArray& F2E, const std::vector<E_Int>& faces, 
-      const E_Int ninternal_faces);
+    E_Int foamWriteNeighbour(char* file, const std::vector<E_Int> &neigh,
+      const std::vector<E_Int> &faces);
     E_Int foamReadNeighbour(char* file, FldArrayI& PE);
     E_Int foamWriteBoundary(char* file, const std::vector<char*>& bc_names, 
-      const std::vector<E_Int>& bc_nfaces, const std::vector<E_Int>& bc_startfaces);
-    E_Int foamReadBoundary(char* file, std::vector<FldArrayI*>& BCFaces, std::vector<char*>& BCNames);
-    E_Int readScalarField(char *file, FldArrayF& f, E_Int idx);
-    E_Int readVectorField(char *file, FldArrayF& f, E_Int idx);
+      const std::vector<E_Int>& bc_nfaces,
+      const std::vector<E_Int>& bc_startfaces);
+    E_Int foamReadBoundary(char* file, std::vector<FldArrayI*>& BCFaces,
+      std::vector<char*>& BCNames, std::vector<E_Int> &indir);
+    E_Int readScalarField(char *file, FldArrayF& f, E_Int idx, E_Int *owner,
+      const std::vector<FldArrayI *> &BCFaces,
+      std::vector<FldArrayF *> &BCFields, const std::vector<E_Float> &delta,
+      E_Int nifaces, const std::vector<E_Int> &indir);
+    E_Int readVectorField(char *file, FldArrayF& f, E_Int idx, E_Int *owner,
+      const std::vector<FldArrayI *> &BCFaces,
+      std::vector<FldArrayF *> &BCFields, const std::vector<E_Float> &delta,
+      E_Int nifaces, const std::vector<E_Int> &indir);
     E_Int readTensorField(char *file, FldArrayF& f, E_Int idx);
     ///-
 
@@ -624,7 +642,8 @@ class GenIO
     ///+ SVG functions
     /** svg read */
     E_Int svgread(
-      char* file, char*& varString, E_Float density, E_Int NptsCurve, E_Int NptsLine,
+      char* file, char*& varString, E_Float density, E_Int NptsCurve,
+      E_Int NptsLine,
       std::vector<FldArrayF*>& structField,
       std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
       std::vector<FldArrayF*>& unstructField,
@@ -724,7 +743,8 @@ class GenIO
     PyObject* adfcgnsReadFromPaths(char* file, PyObject* paths, 
                                    E_Int maxFloatSize=1.e6, E_Int maxDepth=-1);
     /* Ecrit des parties d'un arbre python */
-    E_Int adfcgnsWritePaths(char* file, PyObject* nodeList, PyObject* paths, E_Int maxDepth=-1, E_Int mode=0);
+    E_Int adfcgnsWritePaths(char* file, PyObject* nodeList, PyObject* paths,
+      E_Int maxDepth=-1, E_Int mode=0);
     void getABFromPath(char* path, std::vector<char*>& pelts);
     /* Efface un chemin d'un fichier */
     E_Int adfcgnsDeletePaths(char* file, PyObject* paths);
@@ -732,22 +752,26 @@ class GenIO
 
     ///+ HDF functions
     /* Lecture dans un arbre */
-    E_Int hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape, PyObject* links, 
-                      int skeleton=0, int maxFloatSize=5, int maxDepth=-1, int readMode=0,
-                      PyObject* skipTypes=NULL);
+    E_Int hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape,
+                      PyObject* links, 
+                      int skeleton=0, int maxFloatSize=5, int maxDepth=-1,
+                      int readMode=0, PyObject* skipTypes=NULL);
     /* Ecriture d'un arbre */
     E_Int hdfcgnswrite(char* file, PyObject* tree, PyObject* links=NULL);
 
     /* Lecture a partir de chemins donnes */
     PyObject* hdfcgnsReadFromPaths(char* file, PyObject* paths,
-                                   E_Int maxFloatSize=1.e6, E_Int maxDepth=-1, E_Int readMode=0,
-                                   PyObject* dataShape=NULL, PyObject* skipTypes=NULL, 
+                                   E_Int maxFloatSize=1.e6, E_Int maxDepth=-1,
+                                   E_Int readMode=0, PyObject* dataShape=NULL,
+                                   PyObject* skipTypes=NULL, 
                                    PyObject* mpi4pyCom=NULL);
-    PyObject* hdfcgnsReadFromPathsPartial(char* file, E_Int readMode, PyObject* Filters,
+    PyObject* hdfcgnsReadFromPathsPartial(char* file, E_Int readMode,
+                                          PyObject* Filters,
                                           PyObject* mpi4pyCom=NULL);
     /* Ecrit des parties d'un arbre python */
-    E_Int hdfcgnsWritePaths(char* file, PyObject* nodeList, PyObject* paths, PyObject* links=NULL, 
-                            E_Int maxDepth=-1, E_Int mode=0);
+    E_Int hdfcgnsWritePaths(char* file, PyObject* nodeList, PyObject* paths,
+                            PyObject* links=NULL, E_Int maxDepth=-1,
+                            E_Int mode=0);
     E_Int hdfcgnsWritePathsPartial(char* file, PyObject* tree,
                                    PyObject* Filter,
                                    int skeleton=0,
@@ -820,7 +844,8 @@ class GenIO
       std::vector<E_Int>& loc,
       std::vector<FldArrayF*>& geom);
     /* bin_tp: read data */
-    E_Int readData108(E_Int version, FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
+    E_Int readData108(E_Int version, FILE* ptrFile, E_Int ni, E_Int nj,
+                      E_Int nk,
                       E_Int dataPacking, std::vector<E_Int>& loc,
                       FldArrayF* f, FldArrayF* fc);
     E_Int readData108(E_Int version, FILE* ptrFile,
@@ -829,7 +854,8 @@ class GenIO
                       E_Int numBoundaryFaces, E_Int numBoundaryConnections,
                       E_Int ne, E_Int rawlocal,
                       FldArrayF* f, FldArrayI& c, FldArrayF* fc);
-    E_Int readData108CE(E_Int version, FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
+    E_Int readData108CE(E_Int version, FILE* ptrFile, E_Int ni, E_Int nj,
+                        E_Int nk,
                         E_Int dataPacking, std::vector<E_Int>& loc,
                         FldArrayF* f, FldArrayF* fc);
     E_Int readData108CE(E_Int version, FILE* ptrFile,
@@ -865,7 +891,8 @@ class GenIO
                   E_Int sizeInt, E_Int sizeLong);
     E_Int readIntTuple(FILE* ptrFile, E_Int& value);
     E_Int readIntTuple2(FILE* ptrFile, E_Int& value1, E_Int& value2);
-    E_Int readIntTuple3(FILE* ptrFile, E_Int& value1, E_Int& value2, E_Int& value3);
+    E_Int readIntTuple3(FILE* ptrFile, E_Int& value1, E_Int& value2,
+      E_Int& value3);
 
     E_Int convertString2Int(char* str);
 
@@ -904,8 +931,10 @@ class GenIO
       E_Boolean convertEndian, E_Boolean writeConservative);
     E_Int readWord(FILE* ptrFile, char* buf);
     E_Int readGivenKeyword(FILE* ptrFile, const char* keyword);
-    E_Int readGivenKeyword(FILE* ptrFile, const char* keyword1, const char* keyword2);
-    E_Int readGivenKeyword(FILE* ptrFile, const char* keyword1, const char* keyword2, const char* keyword3);
+    E_Int readGivenKeyword(FILE* ptrFile, const char* keyword1,
+      const char* keyword2);
+    E_Int readGivenKeyword(FILE* ptrFile, const char* keyword1,
+      const char* keyword2, const char* keyword3);
     E_Int readKeyword(FILE* ptrFile, char* buf);
     E_Int readDataAndKeyword(
       FILE* ptrFile, char* buf,

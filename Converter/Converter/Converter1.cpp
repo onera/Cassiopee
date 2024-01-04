@@ -43,11 +43,12 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
   E_Int nLine; E_Int nCurve; E_Float density;
   char* fileName; char* fileFmt;
   PyObject* zoneNamesO; PyObject* BCFacesO; PyObject* centerArrays;
+  PyObject *BCFieldsO;
 
-  if (!PYPARSETUPLE_(args, SS_ II_ R_ OOO_,
+  if (!PYPARSETUPLE_(args, SS_ II_ R_ OOOO_,
                     &fileName, &fileFmt, 
                     &nCurve, &nLine, &density, &zoneNamesO,
-                    &BCFacesO, &centerArrays)) return NULL;
+                    &BCFacesO, &BCFieldsO, &centerArrays)) return NULL;
 
   E_Int NptsLine = nLine;
   E_Int NptsCurve = nCurve;
@@ -97,6 +98,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
   vector<char*> zoneNames; // zone names
   vector<FldArrayI*> BCFaces;
   vector<char*> BCNames;
+  vector<FldArrayF*> BCFields;
   E_Int ret = 1;
 
   printf("Reading %s (%s)...", fileName, fileFmt);
@@ -293,7 +295,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     ret = K_IO::GenIO::getInstance()->foamread(fileName, varString, 
                                                field, im, jm, km, 
                                                ufield, c, et, zoneNames,
-                                               BCFaces, BCNames,
+                                               BCFaces, BCNames, BCFields,
                                                varStringc,
                                                fieldc,
                                                ufieldc);
@@ -331,6 +333,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     {
       char* myBCNames = BCNames[j];
       FldArrayI& myBCFaces = *BCFaces[j];
+
       vector<char*> names; // unique BC names
       E_Int np = myBCFaces.getSize();
       FldArrayI indir(np);
@@ -343,7 +346,6 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
         l = 0;
         while (myBCNames[c] != '\0') { n[l] = myBCNames[c]; c++; l++; }
         n[l] = '\0'; c++;
-        //printf("%s\n", myBCNames);
         // BC deja existante?
         exist = false;
         for (unsigned int k = 0; k < names.size(); k++)
