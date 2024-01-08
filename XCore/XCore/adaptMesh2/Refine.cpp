@@ -25,7 +25,7 @@ void get_ref_cells_and_faces(AMesh *M, std::vector<E_Int> &ref_cells,
 
   for (E_Int i = 0; i < M->nfaces; i++) {
     E_Int own = M->owner[i];
-    if (M->ref_data[3*own] > 0) {
+    if (M->ref_data[3*own] != 0) {
       ref_faces.push_back(i);
       if (!vcells[own]) {
         vcells[own] = 1;
@@ -37,7 +37,7 @@ void get_ref_cells_and_faces(AMesh *M, std::vector<E_Int> &ref_cells,
     E_Int nei = M->neigh[i];
     if (nei == -1) continue;
 
-    if (M->ref_data[3*nei] > 0) {
+    if (M->ref_data[3*nei] != 0) {
       ref_faces.push_back(i);
       if (!vcells[nei]) {
         vcells[nei] = 1;
@@ -1529,6 +1529,13 @@ void refine_cells(const std::vector<E_Int> &ref_cells, AMesh *M)
         assert(0);
         break;
     }
+  }
+}
+
+void unrefine_cells(const std::vector<E_Int> &ref_cells, AMesh *M)
+{
+  for (size_t i = 0; i < ref_cells.size(); i++) {
+    E_Int cell = ref_cells[i];
   }
 }
 

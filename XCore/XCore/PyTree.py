@@ -230,15 +230,31 @@ def CreateAdaptMesh(t, Tr=0.05):
   zones = I.getZones(t)
   z = zones[0]
   fc = C.getFields(I.__GridCoordinates__, z, api=3)[0]
-  zgc = I.getNodeFromType(z, 'ZoneGridConnectivity_t')
-  comm_data = I.getNodesFromType(zgc, 'GridConnectivity1to1_t')
   comm_list = []
-  for data in comm_data:
-    nei_proc = int(I.getValue(data))
-    pfaces = I.getNodeFromName(data, 'PointList')[1]
-    comm_list.append([nei_proc, pfaces])
+  zgc = I.getNodeFromType(z, 'ZoneGridConnectivity_t')
+  if zgc is not None:
+    comm_data = I.getNodesFromType(zgc, 'GridConnectivity1to1_t')
+    
+    for data in comm_data:
+      nei_proc = int(I.getValue(data))
+      pfaces = I.getNodeFromName(data, 'PointList')[1]
+      comm_list.append([nei_proc, pfaces])
+  
+  bcs = []
+  zonebc = I.getNodeFromType(z, 'ZoneBC_t')
+  if zonebc is not None:
+    zbc = I.getNodesFromType(zonebc, 'BC_t')
+  
+    for bc in zbc:
+      plist = I.getNodeFromName(bc, 'PointList')
+      print(plist)
+      #name = I.getNodeFromName(bc, 'FamilyName')
+      name = bc[0]
+      #name = str(I.getValue(name))
+      print(name + '!')
+      bcs.append([plist[1], name])
 
-  return XCore.xcore.CreateAdaptMesh(fc, comm_list, Tr)
+  return XCore.xcore.CreateAdaptMesh(fc, comm_list, bcs, Tr)
 
 # 1 - Based on sensor type, do the following:
 #       sensor=0: MARKERS = array of size ncells with cells to refine/unrefine

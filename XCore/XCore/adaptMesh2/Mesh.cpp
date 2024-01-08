@@ -38,12 +38,21 @@ AMesh::AMesh() :
   lsqG(NULL), lsqGG(NULL), lsqH(NULL), lsqHH(NULL),
   ref_data(NULL), ref_Tr(-1.0), unref_Tr(-1.0),
   nref_hexa(-1), nref_tetra(-1), nref_penta(-1), nref_pyra(-1),
-  nunref_hexa(-1), nunref_tetra(-1), nunref_penta(-1), nunref_pyra(-1)
+  nunref_hexa(-1), nunref_tetra(-1), nunref_penta(-1), nunref_pyra(-1),
+  nbc(-1), ptlists(NULL), bcsizes(NULL), bcnames(NULL),
+  nif(-1), nbf(-1)
 {
   MPI_Comm_rank(MPI_COMM_WORLD, &pid);
   MPI_Comm_size(MPI_COMM_WORLD, &npc);
   nreq = 0;
   req = (MPI_Request *)XMALLOC(2*npc * sizeof(MPI_Request));
+}
+
+E_Int get_neighbour(E_Int cell, E_Int face, AMesh *M)
+{
+  assert(cell == M->owner[face] || cell == M->neigh[face]);
+  if (cell == M->owner[face]) return M->neigh[face];
+  return M->owner[face];
 }
 
 E_Int *get_face(E_Int i, E_Int &np, E_Int *ngon, E_Int *indPG)
@@ -793,63 +802,62 @@ void check_canon_pyra(E_Int cell, AMesh *M)
   assert(local[2] == NODES[4]);
 }
 
-
-/*
-static
-void compute_tetra_vol(E_Int cell, AMesh *M)
+E_Int is_internal_face(E_Int face, AMesh *M)
 {
-  // Make nodes
-  E_Int *pf = &M->nface[M->indPH[cell]];
-  E_Int bot = pf[0];
-  E_Int *pn = &M->ngon[M->indPG[bot]];
-  E_Int n[4] = {pn[0], pn[1], pn[2], -1};
+  return M->neigh[face] != -1;
+}
 
-  E_Int lft = pf[1];
-  pn = &M->ngon[M->indPG[lft]];
+AMesh *init_mesh(K_FLD::FldArrayI &cn, E_Float *px, E_Float *py,
+  E_Float *pz, E_Int npts)
+{
+  E_Int *ngon = cn.getNGon();
+  E_Int *indPG = cn.getIndPG();
+  E_Int *nface = cn.getNFace();
+  E_Int *indPH = cn.getIndPH();
+  E_Int ncells = cn.getNElts();
+  E_Int nfaces = cn.getNFaces();
 
-  for (E_Int i = 0; i < 3; i++) {
-    E_Int pt = pn[i];
+  AMesh *M = new AMesh;
 
-    E_Int found = 0;
-    // pt must not be in n
-    for (E_Int j = 0; j < 3; j++) {
-      if (pt == n[j]) {
-        found = 1;
-        break;
-      }
-    }
+  M->npoints = npts;
+  M->nfaces = nfaces;
+  M->ncells = ncells;
 
-    if (!found) {
-      n[3] = pt;
-      break;
-    }
+  M->x = (E_Float *)XMALLOC(M->npoints * sizeof(E_Float));
+  M->y = (E_Float *)XMALLOC(M->npoints * sizeof(E_Float));
+  M->z = (E_Float *)XMALLOC(M->npoints * sizeof(E_Float));
+
+  memcpy(M->x, px, M->npoints * sizeof(E_Float));
+  memcpy(M->y, py, M->npoints * sizeof(E_Float));
+  memcpy(M->z, pz, M->npoints * sizeof(E_Float));
+
+  M->indPH = (E_Int *)XMALLOC((M->ncells+1) * sizeof(E_Int));
+  M->indPG = (E_Int *)XMALLOC((M->nfaces+1) * sizeof(E_Int));
+
+  memcpy(M->indPH, indPH, (M->ncells+1) * sizeof(E_Int));
+  memcpy(M->indPG, indPG, (M->nfaces+1) * sizeof(E_Int));
+
+  M->nface = (E_Int *)XMALLOC(M->indPH[M->ncells] * sizeof(E_Int));
+  M->ngon  = (E_Int *)XMALLOC(M->indPG[M->nfaces] * sizeof(E_Int));
+
+  E_Int *ptr = M->nface;
+
+  for (E_Int i = 0; i < M->ncells; i++) {
+    E_Int nf = -1;
+    E_Int *pf = cn.getElt(i, nf, nface, indPH);
+    for (E_Int j = 0; j < nf; j++)
+      *ptr++ = pf[j]-1;
   }
 
-  E_Float xa = M->x[n[0]]; 
-  E_Float ya = M->y[n[0]]; 
-  E_Float za = M->z[n[0]]; 
-  E_Float xb = M->x[n[1]]; 
-  E_Float yb = M->y[n[1]]; 
-  E_Float zb = M->z[n[1]]; 
-  E_Float xc = M->x[n[2]]; 
-  E_Float yc = M->y[n[2]]; 
-  E_Float zc = M->z[n[2]]; 
-  E_Float xd = M->x[n[3]]; 
-  E_Float yd = M->y[n[3]]; 
-  E_Float zd = M->z[n[3]]; 
-  E_Float ad[3] = {xa-xd, ya-yd, za-zd};
-  E_Float bd[3] = {xb-xd, yb-yd, zb-zd};
-  E_Float cd[3] = {xc-xd, yc-yd, zc-zd};
-  E_Float tmp[3];
-  K_MATH::cross(bd, cd, tmp);
-  E_Float V = fabs(K_MATH::dot(ad, tmp, 3))/6.0;
-  printf("vol %d: %.4e\n", cell, V);
+  ptr = M->ngon;
+
+  for (E_Int i = 0; i < M->nfaces; i++) {
+    E_Int np = -1;
+    E_Int *pn = cn.getFace(i, np, ngon, indPG);
+    for (E_Int j = 0; j < np; j++)
+      *ptr++ = pn[j]-1;
+  }
+
+  return M;
 }
 
-static
-void compute_tetra_vols(AMesh *M)
-{
-  for (E_Int i = 0; i < M->ncells; i++)
-    compute_tetra_vol(i, M);
-}
-*/

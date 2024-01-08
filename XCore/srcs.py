@@ -52,7 +52,9 @@ if mpi: # source that requires mpi
             'XCore/adaptMesh2/Hessian.cpp',
             'XCore/adaptMesh2/Comm.cpp',
             'XCore/adaptMesh2/Metric.cpp',
-            'XCore/adaptMesh2/Refine.cpp'
+            'XCore/adaptMesh2/Refine.cpp',
+            'XCore/adaptMesh2/RenumberMesh.cpp',
+            'XCore/adaptMesh2/Topo.cpp'
             ]
 else:
     cpp_srcs += [

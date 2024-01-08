@@ -423,14 +423,6 @@ void make_ref_data(AMesh *M, E_Float *H, const std::vector<pDirs> &Dirs,
 }
 
 static
-E_Int get_neighbour(E_Int cell, E_Int face, AMesh *M)
-{
-  assert(cell == M->owner[face] || cell == M->neigh[face]);
-  if (cell == M->owner[face]) return M->neigh[face];
-  return M->owner[face];
-}
-
-static
 void get_neighbours(E_Int cell, E_Int face, AMesh *M, std::vector<E_Int> &neis)
 {
   E_Int nei = get_neighbour(cell, face, M);
@@ -540,55 +532,30 @@ void compute_ref_data(AMesh *M, E_Float **fields, E_Int nfields)
     XFREE(H);
   }
 
-  // Smooth out refinement data
-  //smooth_ref_data(M);
-
-  /*
-  // Count numbers of cells to refine/unrefine by element type
-  M->nref_hexa = M->nref_tetra = M->nref_penta = M->nref_pyra = 0;
-  M->nunref_hexa = M->nunref_tetra = M->nunref_penta = M->nunref_pyra = 0;
-
+  // Fix unrefinement data
   for (E_Int i = 0; i < M->ncells; i++) {
     E_Int *pr = &M->ref_data[3*i];
-    E_Int type = M->cellTree[i]->type;
+    if (pr[0] >= 0) continue;
 
-    if (pr[0] > 0) {
-      switch (type) {
-        case HEXA:
-          M->nref_hexa++;
-          break;
-        case TETRA:
-          M->nref_tetra++;
-          break;
-        case PENTA:
-          M->nref_penta++;
-          break;
-        case PYRA:
-          M->nref_pyra++;
-          break;
-        default:
-          assert(0);
-          break;
-      }
-    } else if (pr[0] < 0) {
-      switch (type) {
-        case HEXA:
-          M->nunref_hexa++;
-          break;
-        case TETRA:
-          M->nunref_tetra++;
-          break;
-        case PENTA:
-          M->nunref_penta++;
-          break;
-        case PYRA:
-          M->nunref_pyra++;
-          break;
-        default:
-          assert(0);
-          break;
-      }
+    // For a cell to be unrefined, all its siblings must be tagged for
+    // unrefinement
+    E_Int parent = M->cellTree[i]->parent;
+    if (parent == i) {
+      pr[0] = pr[1] = pr[2] = 0;
+      continue;
+    }
+
+    E_Int nchildren = M->cellTree[parent]->nchildren;
+    E_Int *children = M->cellTree[parent]->children;
+    assert(children);
+    
+    for (E_Int j = 0; j < nchildren; j++) {
+      E_Int child = children[j];
+      E_Int *prc = &M->ref_data[3*child];
+      if (prc[0] < 0) prc[0] = prc[1] = prc[2] = 0;
     }
   }
-  */
+
+  // Smooth out refinement data
+  //smooth_ref_data(M);
 }

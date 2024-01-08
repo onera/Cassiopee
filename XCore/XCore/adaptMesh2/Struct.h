@@ -13,6 +13,8 @@
 #define QUAD 0
 #define TRI 1
 
+#define MAXCHAR 1024
+
 #define EXIT \
   do { \
     MPI_Finalize(); \
@@ -119,6 +121,14 @@ struct AMesh {
   E_Int nunref_tetra;
   E_Int nunref_penta;
   E_Int nunref_pyra;
+
+  E_Int nbc;
+  E_Int **ptlists;
+  E_Int *bcsizes;
+  char **bcnames;
+
+  E_Int nif;
+  E_Int nbf;
 
   AMesh();
 };
