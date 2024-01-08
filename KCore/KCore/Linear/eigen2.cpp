@@ -73,10 +73,10 @@ void K_LINEAR::sym3mat_eigen(const E_Float M[6], E_Float L[3],
   else if (tmp < -1.0) tmp = -1.0;
   alpha = acos(tmp) / 3.0;
   
-  if (alpha < M_PI/6.0)
+  if (alpha < K_CONST::E_PI/6.0)
     L[0] = 2.0*sqrt(J2/3.0)*cos(alpha);
   else
-    L[0] = 2.0*sqrt(J2/3.0)*cos(alpha + 4.0*M_PI/3.0);
+    L[0] = 2.0*sqrt(J2/3.0)*cos(alpha + 4.0*K_CONST::E_PI/3.0);
   
   // Find eigenvector corresponding to L[0]
   B[0] = Ap[0] - L[0];
