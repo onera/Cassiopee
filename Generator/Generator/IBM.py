@@ -118,7 +118,7 @@ def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, sizeMax=4000000,
 def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tbox=None,
                     snearsf=None, check=True, sizeMax=4000000,
                     symmetry=0, externalBCType='BCFarfield', to=None,
-                    fileo=None, expand=2, dfarDir=0):
+                    fileo=None, expand=2, dfarDir=0, mode=0):
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
     if dimPb is None: raise ValueError('generateIBMMesh: EquationDimension is missing in input body tree.')
     dimPb = Internal.getValue(dimPb)
@@ -138,21 +138,21 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tb
 
     o = buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
                     dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileo, rank=0,
-                    expand=expand, dfarDir=dfarDir)
+                    expand=expand, dfarDir=dfarDir, mode=mode)
 
     if check: C.convertPyTree2File(o, "octree.cgns")
 
     # retourne les 4 quarts (en 2D) de l'octree parent 2 niveaux plus haut
     # et les 8 octants en 3D sous forme de listes de zones non structurees
     parento = buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
-                                   dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=0, dfarDir=dfarDir)
+                                   dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=0, dfarDir=dfarDir, mode=mode)
     res = generateCartMesh__(o, parento=parento, dimPb=dimPb, vmin=vmin, DEPTH=DEPTH, sizeMax=sizeMax,
                              check=check, symmetry=symmetry, externalBCType=externalBCType)
     return res
 
 def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[], tbox=None,
                     snearsf=None, check=True, symmetry=0, to=None, ext=2,
-                    expand=3, dfarDir=0, check_snear=False):    
+                    expand=3, dfarDir=0, check_snear=False, mode=0):    
     # list of dfars
     if dfarList == []:
         zones = Internal.getZones(tb)
@@ -187,13 +187,13 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
         o = buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList,
                                 to=to, tbox=tbox, snearsf=snearsf,
                                 dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=Cmpi.rank,
-                                expand=expand, dfarDir=dfarDir)
+                                expand=expand, dfarDir=dfarDir, mode=mode)
 
     if Cmpi.rank==0 and check: C.convertPyTree2File(o,fileout)
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
     parento = buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
-                                        dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=Cmpi.rank)
+                                        dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=Cmpi.rank, mode=mode)
 
     if check_snear: exit()
     
@@ -243,7 +243,7 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
 
 
 def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None, tbox=None, snearsf=None,
-                dimPb=3, vmin=15, balancing=2, symmetry=0, fileout=None, rank=0, expand=2, dfarDir=0):
+                dimPb=3, vmin=15, balancing=2, symmetry=0, fileout=None, rank=0, expand=2, dfarDir=0, mode=0):
     import Converter.Mpi as Cmpi
     i = 0; surfaces=[]; snearso=[] # pas d'espace sur l'octree
     dfarListL = []
@@ -270,12 +270,12 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
     if to is not None:
         o = Internal.getZones(to)[0]
     else:
-        o = G.octree(surfaces, snearList=snearso, dfar=dfar, dfarList=dfarListL, balancing=balancing,dfarDir=dfarDir)
+        o = G.octree(surfaces, snearList=snearso, dfar=dfar, dfarList=dfarListL, balancing=balancing,dfarDir=dfarDir, mode=mode)
         G._getVolumeMap(o); volmin = C.getMinValue(o, 'centers:vol')
         dxmin = (volmin)**(1./dimPb)
         if dxmin < 0.65*dxmin0:
             snearso = [2.*i for i in snearso]
-            o = G.octree(surfaces, snearList=snearso, dfar=dfar, dfarList=dfarListL, balancing=balancing, dfarDir=dfarDir)
+            o = G.octree(surfaces, snearList=snearso, dfar=dfar, dfarList=dfarListL, balancing=balancing, dfarDir=dfarDir, mode=mode)
         # Adaptation avant expandLayer (pour corriger eventuellement les sauts de maille)
         if tbox is not None and snearsf is not None:
             o = addRefinementZones(o, tb, tbox, snearsf, vmin, dimPb)
@@ -421,6 +421,16 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
         nelts = Internal.getZoneDim(o)[2]
         if nelts > 20000:
             print('Warning: number of zones (%d) on rank %d is high (block merging might last a long time).'%(nelts, rank))
+
+    #sym = Internal.getNodeFromPath(tb, 'SYM')
+    #if sym is not None: # sym plan exists
+    #    tbsym = G.BB(sym)
+    #    xmin = C.getMinValue(tbsym,'CoordinateX'); xmax = C.getMaxValue(tbsym,'CoordinateX')
+    #    ymin = C.getMinValue(tbsym,'CoordinateY'); ymax = C.getMaxValue(tbsym,'CoordinateY')
+    #    zmin = C.getMinValue(tbsym,'CoordinateZ'); zmax = C.getMaxValue(tbsym,'CoordinateZ')
+    #    o = P.selectCells(o, '({CoordinateX}<=%g)*({CoordinateX}>=%g)'%(xmax,xmin), strict=1)
+    #    o = P.selectCells(o, '({CoordinateY}<=%g)*({CoordinateY}>=%g)'%(ymax,ymin), strict=1)
+    #    o = P.selectCells(o, '({CoordinateZ}<=%g)*({CoordinateZ}>=%g)'%(zmax,zmin), strict=1)
 
     if fileout is not None:
         if Cmpi.size==1: C.convertPyTree2File(o, fileout)
@@ -657,12 +667,12 @@ def mergeByParent__(zones, parent, sizeMax):
 
 # only in generateIBMMeshPara and generateIBMMesh
 def buildParentOctrees__(o, tb, snears=None, snearFactor=4., dfar=10., dfarList=[], to=None, tbox=None, snearsf=None,
-                         dimPb=3, vmin=15, symmetry=0, fileout=None, rank=0, dfarDir=0):
+                         dimPb=3, vmin=15, symmetry=0, fileout=None, rank=0, dfarDir=0, mode=0):
     nzones0 = Internal.getZoneDim(o)[2]
     if nzones0 < 1000: return None
 
     parento = buildOctree(tb, snears=snears, snearFactor=snearFactor, dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
-                          dimPb=dimPb, vmin=vmin, symmetry=symmetry, balancing=0, rank=rank, expand=-1, dfarDir=dfarDir)
+                          dimPb=dimPb, vmin=vmin, symmetry=symmetry, balancing=0, rank=rank, expand=-1, dfarDir=dfarDir, mode=mode)
 
     bbo = G.bbox(parento)
     xmino=bbo[0]; xmaxo=bbo[3]; xmeano=0.5*(xmino+xmaxo)

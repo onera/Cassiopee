@@ -76,11 +76,11 @@ PyObject* octree(PyObject* self, PyObject* args)
   E_Float __DFARTOL__ = -0.5;// dfar=-1 par defaut = pas pris en compte
   PyObject* stlArrays; PyObject* listOfSnears;
   PyObject* listOfDfars;
-  E_Float dfar; E_Int levelMax; E_Int dfarDir;
+  E_Float dfar; E_Int levelMax; E_Int dfarDir; E_Int mode;
   PyObject* octant;
-  if (!PYPARSETUPLE_(args, OOO_ R_ I_ O_ I_,
+  if (!PYPARSETUPLE_(args, OOO_ R_ I_ O_ I_ I_,
                     &stlArrays, &listOfSnears, &listOfDfars,
-                    &dfar, &levelMax, &octant, &dfarDir)) return NULL;
+                    &dfar, &levelMax, &octant, &dfarDir, &mode)) return NULL;
   
   if (PyList_Size(stlArrays) == 0)
   {
@@ -385,6 +385,19 @@ PyObject* octree(PyObject* self, PyObject* args)
     d = ymaxo-ymino;
   else if (dfarDir == 3)
     d = zmaxo-zmino;
+
+  if (mode == 1)
+  {
+    printf("size domain before octree size adaptation = %f\n",d);
+    E_Float dd = d;
+    E_Float snear_target = 1.e6;
+    for (E_Int v = 0; v < nzones; v++) snear_target = K_FUNC::E_min(snears[v], snear_target);
+    while (dd > snear_target) dd = dd/2.;
+    d = d*snear_target/(2*dd);
+    d = d*2; // better having a bigger domain than a lower one...
+    printf("size domain after octree size adaptation = %f\n",d);
+  }
+  
   xc = 0.5*(xmino+xmaxo);
   yc = 0.5*(ymino+ymaxo);
   xmino = xc-0.5*d; ymino = yc-0.5*d;
@@ -462,7 +475,7 @@ PyObject* octree(PyObject* self, PyObject* args)
       {
         //regarder si dh > snear ? 
         snear = K_FUNC::E_min(snears[v], snear);
-        if (dh > snear-tol) found = 1;
+        if (dh > snear-tol && dh != snear) found = 1;
       }
       indicesBB.clear();
     }

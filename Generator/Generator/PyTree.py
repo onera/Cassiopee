@@ -90,7 +90,7 @@ def cartRxHollow(XC0, XC1, HC, XH0, XH1, XF0, XF1, R, dim=3, rank=None, size=Non
 # Generation d'un quadtree en 2D ou octree en 3D a partir d'une liste
 # de contours ou surfaces
 #------------------------------------------------------------------------------
-def octree(surfaces, snearList=[], dfarList=[], dfar=-1., balancing=0, levelMax=1000, ratio=2, octant=None, dfarDir=0):
+def octree(surfaces, snearList=[], dfarList=[], dfar=-1., balancing=0, levelMax=1000, ratio=2, octant=None, dfarDir=0, mode=0):
     """Generate an octree (or a quadtree) mesh starting from a list of TRI
     (or BAR) arrays defining bodies, a list of corresponding snears,
     and the extension dfar of the mesh.
@@ -98,7 +98,7 @@ def octree(surfaces, snearList=[], dfarList=[], dfar=-1., balancing=0, levelMax=
     surfaces = C.convertArray2Tetra(surfaces)
     stlArrays = C.getFields(Internal.__GridCoordinates__, surfaces, api=2)
     #stlArrays = Converter.convertArray2Tetra(stlArrays)
-    a = Generator.octree(stlArrays, snearList, dfarList, dfar, balancing, levelMax, ratio, octant, dfarDir)
+    a = Generator.octree(stlArrays, snearList, dfarList, dfar, balancing, levelMax, ratio, octant, dfarDir, mode)
     return C.convertArrays2ZoneNode('octree', [a])
 
 #------------------------------------------------------------------------------

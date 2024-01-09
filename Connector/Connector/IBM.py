@@ -18,6 +18,7 @@ import Converter.Internal as Internal
 import Compressor.PyTree as Compressor
 import Dist2Walls.PyTree as DTW
 import Distributor2.PyTree as D2
+import KCore.test as test
 import Post.PyTree as P
 import Converter
 import Generator
@@ -69,14 +70,24 @@ def getIBCDName(proposedName):
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## MACRO FUNCTIONS
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+def printTimeAndMemory__(message, time=-1):
+    Cmpi.barrier()
+    test.printMem("Info: prepareIBMDataPara: %s [%s]"%(message, 'end' if time > 0 else 'start'))
+    Cmpi.barrier()
+    if time > 0 and Cmpi.rank == 0: print("Info: prepareIBMDataPara: %s running time = %4.4fs"%(message, time))
+    Cmpi.barrier()
+
+    return None
+
 
 def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=None,
-                    snears=0.01, snearsf=None, dfar=10., dfarDir=0, dfarList=[], vmin=21, depth=2, expand=3, frontType=1, 
-                    IBCType=1,
+                    snears=0.01, snearsf=None, dfar=10., dfarDir=0, dfarList=[], vmin=21, depth=2, expand=3, frontType=1, mode=0,
+                    IBCType=1, verbose=True,
                     check=False, balancing=False, distribute=False, twoFronts=False, cartesian=False,
                     yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.):
     
     import Generator.IBM as G_IBM
+    import time as python_time
 
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = Internal.copyTree(t_case)
@@ -111,11 +122,14 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
     # STEP 1 : GENERATE MESH
     #===================
     if t_in is None:
+        if verbose: pt0 = python_time.time(); printTimeAndMemory__('generate Cartesian mesh', time=-1)
+        test.printMem("Info: prepareIBMDataPara: generate Cartesian mesh [start]")
         t = G_IBM.generateIBMMeshPara(tb, vmin=vmin, snears=snears, dimPb=dimPb, dfar=dfar, dfarList=dfarList, tbox=tbox,
                     snearsf=snearsf, check=check, symmetry=0, to=to, ext=3,
-                    expand=expand, dfarDir=dfarDir, check_snear=False)
+                    expand=expand, dfarDir=dfarDir, check_snear=False, mode=mode)
         
         if balancing and Cmpi.size > 1: _redispatch__(t=t)
+        if verbose: printTimeAndMemory__('generate Cartesian mesh', time=python_time.time()-pt0)
         
     else: 
         t = t_in
@@ -127,44 +141,55 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
     #===================
     # STEP 2 : DIST2WALL
     #=================== 
+    if verbose: pt0 = python_time.time(); printTimeAndMemory__('compute wall distance', time=-1)
     _dist2wallIBM(t, tb, dimPb=dimPb, frontType=frontType, Reynolds=Reynolds, yplus=yplus, Lref=Lref,
                 correctionMultiCorpsF42=correctionMultiCorpsF42, heightMaxF42=heightMaxF42)
+    if verbose: printTimeAndMemory__('compute wall distance', time=python_time.time()-pt0)
 
     #===================
     # STEP 3 : BLANKING IBM
     #===================
+    if verbose: pt0 = python_time.time(); printTimeAndMemory__('blank by IBC bodies', time=-1)
     _blankingIBM(t, tb, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth, 
                 Reynolds=Reynolds, yplus=yplus, Lref=Lref, twoFronts=twoFronts, 
                 heightMaxF42=heightMaxF42, correctionMultiCorpsF42=correctionMultiCorpsF42, 
                 wallAdaptF42=wallAdaptF42, blankingF42=blankingF42)
     Cmpi.barrier()
-    _redispatch__(t=t)    
+    _redispatch__(t=t)
+    if verbose: printTimeAndMemory__('blank by IBC bodies', time=python_time.time()-pt0)
 
     #===================
     # STEP 4 : INTERP DATA CHIM
     #===================
+    if verbose: pt0 = python_time.time(); printTimeAndMemory__('compute interpolation data (Abutting & Chimera)', time=-1)
     tc = C.node2Center(t)
 
     if Internal.getNodeFromType(t, "GridConnectivity1to1_t") is not None:
         Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, dim=dimPb, itype='abutting', order=2, cartesian=cartesian)
     Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, itype='chimera', order=2, cartesian=cartesian)
-    
+    if verbose: printTimeAndMemory__('compute interpolation data (Abutting & Chimera)', time=python_time.time()-pt0)
+
     #===================
     # STEP 4 : BUILD FRONT
     #===================
+    if verbose: pt0 = python_time.time(); printTimeAndMemory__('build IBM front', time=-1)
     t, tc, front, front2 = buildFrontIBM(t, tc, dimPb=dimPb, frontType=frontType, 
                                         cartesian=cartesian, twoFronts=twoFronts, check=check)
+    if verbose: printTimeAndMemory__('build IBM front', time=python_time.time()-pt0)
 
     #===================
     # STEP 5 : INTERP DATA IBM
     #===================
+    if verbose: pt0 = python_time.time(); printTimeAndMemory__('compute interpolation data (IBM)', time=-1)
     _setInterpDataIBM(t, tc, tb, front, front2=front2, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth, 
                     Reynolds=Reynolds, yplus=yplus, Lref=Lref, 
                     cartesian=cartesian, twoFronts=twoFronts, check=check)
+    if verbose: printTimeAndMemory__('compute interpolation data (IBM)', time=python_time.time()-pt0)
 
     #===================
     # STEP 6 : INIT IBM
     #===================
+    if verbose: pt0 = python_time.time(); printTimeAndMemory__('initialize and clean', time=-1)
     t, tc, tc2 = initializeIBM(t, tc, tb, tinit=tinit, dimPb=dimPb, twoFronts=twoFronts)
 
     if distribute and Cmpi.size > 1: _redispatch__(t=t, tc=tc, tc2=tc2, twoFronts=twoFronts)
@@ -183,6 +208,7 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
         Cmpi.convertPyTree2File(tp, t_out, ignoreProcNodes=True)
       
     if Cmpi.size > 1: Cmpi.barrier()
+    if verbose: printTimeAndMemory__('initialize and clean', time=python_time.time()-pt0)
 
     if tc2 is not None: return t, tc, tc2
     else: return t, tc

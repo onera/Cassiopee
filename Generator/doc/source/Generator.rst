@@ -988,7 +988,7 @@ Cartesian grid generators
 
 ---------------------------------------
 
-.. py:function:: Generator.octree(surfs, snearList=[], dfarList=[], dfar=-1., balancing=0, levelMax=1000, ratio=2, octant=None)
+.. py:function:: Generator.octree(surfs, snearList=[], dfarList=[], dfar=-1., balancing=0, levelMax=1000, ratio=2, octant=None, mode=0)
 
     Create a QUAD quadtree mesh in 2D or an HEXA octree mesh in 3D starting from a list of bodies and snears. Each parameter snear is the required spatial step of the octree near the corresponding body; 
     the extension of the domaine can be provided by dfar, starting from the global bounding box of all surfaces defined by surfs.
@@ -996,7 +996,7 @@ Cartesian grid generators
     It must be set to -1 for the surface that must not be taken into account.
     Parameter balancing=1 means that the octree is balanced, i.e. adjacent elements are at worst twice as big/small; levelMax is the maximum number of levels required. If ratio=2, then a classical octree mesh is built. If ratio=3, a 27-tree mesh is built, in which case the spacing ratio is 3 (and not 2) between two adjacent elements. 
     Parameter balancing enables to balance the octree; balancing=0 means no balancing; balancing=1 means a classical balancing, whereas
-    balancing=2 takes also into account elements sharing a common vertex.
+    balancing=2 takes also into account elements sharing a common vertex. Paramater mode=1 expands the domain size to get exactly the minimum snear set as input, otherwise the real minimum snear might be slightly lower than expected to comply with the dfar parameter.
 
     :param surfs:  body grids
     :type  surfs:  list of arrays/pyTrees
@@ -1010,6 +1010,8 @@ Cartesian grid generators
     :type  levelMax:  integer
     :param ratio:  spacing ratio between two adjacent elements
     :type  ratio:  integer
+    :param mode:  activation key (0 or 1)
+    :type  mode:  integer
     :return: 2D/3D unstructured mesh
     :rtype: array or pyTree
 
