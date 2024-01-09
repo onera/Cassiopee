@@ -28,13 +28,12 @@ struct Topology
   std::vector<E_Int> p_;
 
   Topology() {}
-  Topology(const E_Int* p) { set(p); }
+  Topology(const E_Int* p, std::size_t n) { set(p, n); }
   Topology(const std::vector<E_Int>& p) { set(p); }
   
-  void set(const E_Int* p)
+  void set(const E_Int* p, std::size_t n)
   {
-    n_ = 0;
-    for (const E_Int* tmp_p = p; *tmp_p != 0; ++tmp_p) n_++;
+    n_ = n;
     p_.assign(p, p+n_);
     std::sort(p_.begin(), p_.end());
   }
