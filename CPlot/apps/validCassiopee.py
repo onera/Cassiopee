@@ -4,6 +4,7 @@ except: import tkinter as TK
 try: import tkFont as Font
 except: import tkinter.font as Font
 import os, sys, re, signal, platform
+from functools import partial
 import numpy as np
 import subprocess 
 import threading
@@ -57,6 +58,8 @@ expTest4 = re.compile("_m[0-9]+") # distributed tests
 # Liste des tous les tests obtenue en listant les repertoires
 # Un element de la liste est une string comme affichee dans la listbox
 TESTS = []
+# Test filter: 0 (no filter), 1: sequential tests only, 2: distributed tests only
+TESTS_FILTER = 0
 # Repertoire 'module' des modules
 MODULESDIR = {}
 
@@ -165,7 +168,9 @@ def check_output(cmd, shell, stderr):
         PROCESS = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, cwd=wdir, shell=shell, preexec_fn=ossid)
         
-        stdout, stderr = PROCESS.communicate(None, timeout=60.*2.) # max accepted time is 2 minutes for one test
+        # max accepted time is 2 minutes for one repetition of a test
+        nreps = Repeats.get()
+        stdout, stderr = PROCESS.communicate(None, timeout=60.*2.*nreps)
         
         if PROCESS.wait() != 0: stderr += b'\nError: process FAILED (Segmentation Fault or floating point exception).'
         PROCESS = None # fini!
@@ -311,6 +316,8 @@ def getTests(module):
 #==============================================================================
 # Retourne la liste des tests unitaires pour un module donne
 # Les tests unitaires doivent etre dans module/test
+# La variable globale TESTS_FILTER permet de filtrer tests sequentiels et tests
+# distribues
 #==============================================================================
 def getUnitaryTests(module):
     modulesDir = MODULESDIR[module]
@@ -325,9 +332,9 @@ def getUnitaryTests(module):
         if f[0] == '#': continue
         m1 = expTest1.search(f)
         m4 = expTest4.search(f)
-        if m1 is not None: tests.append(f) # test seq
-        elif isMpi and m4 is not None: tests.append(f) # test mpi
-    return tests
+        if m1 is not None and TESTS_FILTER != 2: tests.append(f) # test seq
+        elif isMpi and m4 is not None and TESTS_FILTER != 1: tests.append(f) # test mpi
+    return sorted(tests)
 
 #==============================================================================
 # Retourne la liste des cas de validation CFD (CFDBase)
@@ -346,7 +353,7 @@ def getCFDBaseTests():
         elif r == 'RAE2822': out.append(r) # MB 2D SA
         elif r == 'RAE2822_IBC': out.append(r) # IBC 2D SA
         elif r == 'CUBE_IBC': out.append(r) # IBC 3D SA
-    return out
+    return sorted(out)
 
 #==============================================================================
 # Ecrit un fichier contenant date, CPUtime, coverage
@@ -402,8 +409,9 @@ def runSingleTest(no, module, test):
 #==============================================================================
 # extrait le temps CPU d'un chaine output (utile sur windows)
 # retourne le temps CPU comme une chaine
+# moyenne si plusieurs repetitions d'un meme cas unitaire
 #==============================================================================
-def extractCPUTime(output1, output2):
+def extractCPUTime(output1, output2, nreps=1):
     CPUtime = 'Unknown'
     split1 = output1.split(':')
     h1 = int(split1[0])
@@ -419,7 +427,7 @@ def extractCPUTime(output1, output2):
     ms2 = int(s2[1])
     s2 = int(s2[0])
     t2 = h2*3600. + m2*60. + s2 + 0.01*ms2
-    tf = t2-t1
+    tf = (t2-t1)/float(nreps)
     hf = int(tf/3600.)
     tf = tf - 3600*hf
     mf = int(tf/60.)
@@ -431,8 +439,9 @@ def extractCPUTime(output1, output2):
 
 #=============================================================================
 # Extrait le temps CPU d'une sortie time -p (unix)
+# Moyenne si plusieurs repetitions d'un meme cas unitaire
 #=============================================================================
-def extractCPUTime2(output):
+def extractCPUTime2(output, nreps=1):
     i1 = output.find('real')
     output = output[i1+4:]
     output = output.replace(',', '.')
@@ -457,7 +466,7 @@ def extractCPUTime2(output):
     sf = output.replace('s', '')
     try: sf = float(sf)
     except: sf = 0.
-    tf = hf*3600.+mf*60.+sf
+    tf = (hf*3600.+mf*60.+sf)/float(nreps)
     hf = int(tf/3600.)
     tf = tf - 3600*hf
     mf = int(tf/60.)
@@ -479,6 +488,8 @@ def runSingleUnitaryTest(no, module, test):
 
     pythonExec = os.getenv('PYTHONEXE', 'python')
     nthreads = KCore.kcore.getOmpMaxThreads()
+    nreps = Repeats.get()
+    bktest = "bk_{0}".format(test) # backup
 
     if mySystem == 'mingw' or mySystem == 'windows':
         # Commande Dos (sans time)
@@ -489,8 +500,20 @@ def runSingleUnitaryTest(no, module, test):
     else:
         # Unix - le shell doit avoir l'environnement cassiopee
         #sformat = r'"real\t%E\nuser\t%U\nsys\t%S"'
-        if m1 is not None: cmd = 'cd %s; time %s %s'%(path, pythonExec, test)
-        else: cmd = 'cd %s; time kpython -n 2 -t %d %s'%(path, nthreads//2, test)
+        cmdReps = ""; test2 = test
+        if nreps > 1:
+          test2 = "tmp_{0}".format(test)
+          cmpiImport = '\nimport Converter.Mpi as Cmpi\n'
+          cmpiTrace = '\nCmpi.trace(">>> Iteration: ", cpu=False, stdout=False, filename="proc_{0}.txt")\n\n'.format(test[:-3])
+          cmdReps = "rm -f proc_{5}???.txt tmp_{0} tmp2_{0}; cp {0} {4}; cp {0} tmp2_{0}; "\
+                    "sed -i '/^test\.test/d' tmp2_{0}; sed -i 's/test\.test.*/pass/g' tmp2_{0};"\
+                    "echo '{1}' > tmp_{0}; cat {0} >> tmp_{0}; echo '{2}' >> tmp_{0}; "\
+                    "for i in {{2..{3}}}; do echo '{1}'; cat tmp2_{0}; echo '{2}'; done >> tmp_{0};"\
+                    "mv tmp_{0} {0};".format(test, cmpiImport, cmpiTrace, nreps, bktest, test[:-3])
+                
+        if m1 is not None: cmd = 'cd %s; %s time %s %s'%(path, cmdReps, pythonExec, test)
+        else: cmd = 'cd %s; %s time kpython -n 2 -t %d %s'%(path, cmdReps, nthreads//2, test)
+
     try:
         if mySystem == 'mingw' or mySystem == 'windows':
             output1 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)
@@ -505,23 +528,38 @@ def runSingleUnitaryTest(no, module, test):
         print(output)
         
         # Recupere success/failed
-        success = True
-        if regDiff.search(output) is not None: success = False
-        if regFailed.search(output) is not None: success = False
-        if regError.search(output) is not None: success = False
-        if regErreur.search(output) is not None: success = False
-        if regAbort.search(output) is not None: success = False
-        if regSegmentation.search(output) is not None: success = False
+        success = 1
+        if regDiff.search(output) is not None: success = 0
+        if regFailed.search(output) is not None: success = 0
+        if regError.search(output) is not None: success = 0
+        if regErreur.search(output) is not None: success = 0
+        if regAbort.search(output) is not None: success = 0
+        if regSegmentation.search(output) is not None: success = 0
+        
+        # Recupere l'utilisation memoire lors des runs successifs d'un meme cas
+        # unitaire si celui-ci est OK. Pas de check memoire sur les cas FAILED
+        if nreps > 1:
+            if success == 1:
+                tolMem = 0.1
+                getMemCmd = "cd {0}; ls; cut -f 2 -d '[' proc_{1}000.txt | cut -f 1 -d ' ' > tmp2_{2};".format(path, test[:-3], test)
+                _ = check_output(getMemCmd, shell=True, stderr=subprocess.STDOUT)
+                memData = np.loadtxt("{0}/tmp2_{1}".format(path, test))
+                if memData.size > 0:
+                    # MEMFAILED if the delta mem if greater than a tolerance
+                    # for each successive rerun
+                    relDMem = np.diff(memData)/memData[:-1]*100.
+                    print("Successive relative MEM increments (%)", relDMem)
+                    if np.all(relDMem > tolMem): success = -1
 
         # Recupere le CPU time
         if mySystem == 'mingw' or mySystem == 'windows':
-            try: CPUtime = extractCPUTime(output1, output2)
+            try: CPUtime = extractCPUTime(output1, output2, nreps=nreps)
             except: CPUtime = 'Unknown'
         else:
             i1 = output.find('\nreal')
             if i1 == -1: CPUtime = 'Unknown'
             else:
-                try: CPUtime = extractCPUTime2(output)
+                try: CPUtime = extractCPUTime2(output, nreps=nreps)
                 except: CPUtime = 'Unknown'
                 #CPUtime = output[i1+5:i1+15]; CPUtime = CPUtime.strip()
 
@@ -545,11 +583,17 @@ def runSingleUnitaryTest(no, module, test):
             os.killpg(os.getpgid(PROCESS.pid), signal.SIGKILL)
             os.kill(PROCESS.pid, signal.SIGKILL)
         print('\nError: process TIMED OUT (killed).')
-        success = False; CPUtime = 'Unknown'; coverage='0%' # Core dump/error
+        success = 0; CPUtime = 'Unknown'; coverage='0%' # Core dump/error
 
     except Exception as e:
         print(e)
-        success = False; CPUtime = 'Unknown'; coverage='0%' # Core dump/error
+        success = 0; CPUtime = 'Unknown'; coverage='0%' # Core dump/error
+        
+    finally:
+        if nreps > 1 and not (mySystem == 'mingw' or mySystem == 'windows'):
+            cleanCmd = "cd {0}; mv {1} {2}; rm -f tmp_{2} tmp2_{2} proc_{3}*.txt;".format(
+                path, bktest, test, test[:-3])
+            _ = check_output(cleanCmd, shell=True, stderr=subprocess.STDOUT)
 
     # update le fichier .time (si non present)
     fileTime = '%s/Data/%s.time'%(path, testr[0])
@@ -557,7 +601,8 @@ def runSingleUnitaryTest(no, module, test):
         writeTime(fileTime, CPUtime, coverage)
 
     # update status
-    if success: status = 'OK'
+    if success == 1: status = 'OK'
+    elif success == -1: status = 'MEMFAILED'
     else: status = 'FAILED'
     s = buildString(module, test, CPUtime, coverage, status)
     c = 0
@@ -733,8 +778,13 @@ def updateTests():
             pathl = '%s/%s/test'%(path,module)
         rmFile(pathl, test)
         rmFile(pathl, test2)
+    # Set le nombre de fois qu'un cas unitaire doit etre execute a 1
+    nreps = Repeats.get()
+    Repeats.set(1)
     # Run les tests
     runTests()
+    # Reset le nombre de fois qu'un cas unitaire doit etre execute a sa valeur initiale
+    Repeats.set(nreps)
 
 def updateTestsInThread():
     global THREAD
@@ -761,13 +811,16 @@ def rmFile(path, fileName):
 # Construit la liste des tests
 # Update TESTS et la listBox
 #==============================================================================
-def buildTestList(loadSession=False):
+def buildTestList(loadSession=False, modules=[]):
     global TESTS
     TESTS = []
     listbox.delete(0, TK.END)
-    modules = getModules()
+    if not modules:
+        modules = getModules()
     # Read sessionLog
-    logname = CASSIOPEE+'/Apps/Modules/ValidData/lastSession.log'
+    logname = CASSIOPEE+'/Apps/Modules/ValidData/session.log'
+    if os.path.getsize(logname) == 0:
+        logname = CASSIOPEE+'/Apps/Modules/ValidData/lastSession.log'
     ncolumns = 7
     if loadSession and os.path.isfile(logname):
         with open(logname, "r") as g:
@@ -851,10 +904,9 @@ def selectAll(event=None):
     displayProgress(0, total, remaining, 0.)
 
 #==============================================================================
-# Affiche les test FAILED dans la listbox
+# Affiche les test FAILED ou MEMFAILED dans la listbox
 #==============================================================================
-def showFailed():
-    filter = 'FAILED'
+def showFilter(filter='FAILED'):
     listbox.delete(0, TK.END)
     for s in TESTS:
         if re.search(filter, s) is not None:
@@ -1075,7 +1127,24 @@ def displayProgress(current, total, remaining, elapsed):
     Progress.set("%3d/%3d [%s/%s]"%
                  (current,total,time2String(remaining),time2String(elapsed)))
     progressLabel.update()
-
+        
+#==============================================================================
+# Modifie le nbre de fois qu'un test unitaire doit etre execute.
+# De multiples repetitions permettent de detecter d'eventuelles fuites memoire
+#==============================================================================
+def setNRepeats(event=None):
+    if mySystem == 'mingw' or mySystem == 'windows':
+      # Feature not implemented for non-Unix OS
+      Repeats.set(1)
+    else:
+      nr = Repeats.get()
+      try:
+          nri = int(nr)
+          print('Info: Number of times each test gets executed set to %d.\n'%nri)
+      except:
+          Repeats.set(1)
+          print('Info: Bad unit test repetition number.\n')
+        
 #==============================================================================
 # Modifie le nbre de threads utilises pour la valid
 #==============================================================================
@@ -1295,6 +1364,107 @@ def setupLocal():
     WIDGETS['updateButton'].configure(state=TK.NORMAL)
     buildTestList()
 
+#===================================================================================
+# Filter modules and tests to display. Tests can either be Sequential or Distributed
+#===================================================================================
+def filterModulesTests(master, event=None):
+    def _onDeselectAllModules(modSwitches):
+        [sw.set(0) for sw in modSwitches]
+    def _onDeselectPModules(modules, modSwitches):
+        [sw.set(0) for m, sw in zip(modules, modSwitches)
+            if (m.startswith("Fast") or m.startswith("Apps") or m.startswith("FF"))]
+    def _onSelectAllModules(modSwitches):
+        [sw.set(1) for sw in modSwitches]
+    def _onUpdating(modules, modSwitches, testSwitches):
+        global TESTS_FILTER
+        values = [testSwitches[i].get() for i in range(2)]
+        if sum(values) == 2:
+            TESTS_FILTER = 0
+        elif values[1] == 1:
+            TESTS_FILTER = 2
+        else:
+            TESTS_FILTER = 1
+        modules = [m for i, m in enumerate(modules) if modSwitches[i].get() == 1]
+        buildTestList(modules=modules)
+        newWin.destroy()
+    
+    newWin = TK.Toplevel(master)
+    newWin.title('Filter Modules and Tests')
+    newWin.geometry("460x775")
+
+    # Define new frame with lists of modules and tests to load as sub-frames
+    newFrame = TK.LabelFrame(newWin)
+    newFrame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+    
+    leftFrame = TK.LabelFrame(newFrame, text="Modules to load:")
+    leftFrame.grid(row=0, column=0, padx=5, pady=10, sticky="nsew")
+    rightFrame = TK.LabelFrame(newFrame, text="Tests to load:")
+    rightFrame.grid(row=0, column=1, padx=5, pady=10, sticky="nsew")
+    
+    # > Modules
+    modules = sorted(getModules())
+    nmodules = len(modules)
+    modSwitches = [TK.IntVar(value=1) for _ in range(nmodules)]
+    
+    for i in range(nmodules):
+        label = TK.Label(leftFrame, text=modules[i], anchor="w")
+        label.grid(row=i, column=1, sticky="w")
+        button = TK.Checkbutton(leftFrame, variable=modSwitches[i],
+                                onvalue=1, offvalue=0, height=1, width=5)
+        button.grid(row=i, column=0, sticky="w")
+        
+    for i in range(nmodules):
+        leftFrame.grid_rowconfigure(i, weight=1)
+    leftFrame.grid_columnconfigure(0, weight=1)
+    leftFrame.grid_columnconfigure(1, weight=1)
+        
+    # > Tests
+    if not isMpi or TESTS_FILTER == 1: values = [1, 0]
+    elif TESTS_FILTER == 2: values = [0, 1]
+    else: values = [1, 1]
+    testSwitches = [TK.IntVar(value=values[i]) for i in range(2)]
+    labels = ["Sequential", "Distributed"]
+    
+    for i in range(2):
+        label = TK.Label(rightFrame, text=labels[i], anchor="w")
+        label.grid(row=i, column=1, sticky="nsew")
+        button = TK.Checkbutton(rightFrame, variable=testSwitches[i],
+                                onvalue=1, offvalue=0, height=1, width=5)
+        if i == 1 and not isMpi: button.configure(state='disabled')
+        button.grid(row=i, column=0, sticky="nsew")
+    
+    rightFrame.grid_columnconfigure(0, weight=1)
+    rightFrame.grid_columnconfigure(1, weight=1)
+        
+    # > Buttons at the bottom of the new frame
+    deselectAllModulesWithArgs = partial(_onDeselectAllModules, modSwitches)
+    deselectPModulesWithArgs = partial(_onDeselectPModules, modules, modSwitches)
+    selectAllModulesWithArgs = partial(_onSelectAllModules, modSwitches)
+    
+    updateWithArgs = partial(_onUpdating, modules, modSwitches, testSwitches)
+    
+    button = TK.Button(newFrame, text='Deselect All',
+                       command=deselectAllModulesWithArgs,
+                       height=1, fg='black', bg='white')
+    button.grid(row=1, column=0, padx=5, pady=1, sticky="nsew")
+    button = TK.Button(newFrame, text='Deselect PModules',
+                       command=deselectPModulesWithArgs,
+                       height=1, fg='black', bg='white')
+    button.grid(row=1, column=1, padx=5, pady=1, sticky="nsew")
+    button = TK.Button(newFrame, text='Select All',
+                       command=selectAllModulesWithArgs,
+                       height=1, fg='black', bg='white')
+    button.grid(row=2, column=0, padx=5, pady=1, sticky="nsew")
+    button = TK.Button(newFrame, text='Update', command=updateWithArgs,
+                       height=1, fg='blue', bg='white')
+    button.grid(row=2, column=1, padx=5, pady=1, sticky="nsew")
+    
+    for i in range(2):
+        newFrame.grid_columnconfigure(i, weight=1, minsize=220)
+                             
+    newWin.protocol("WM_DELETE_WINDOW", newWin.destroy)
+    newWin.mainloop()
+    
 #==============================================================================
 # Main
 #==============================================================================
@@ -1322,14 +1492,15 @@ menu.add_cascade(label='Tools', menu=tools)
 view = TK.Menu(menu, tearoff=0)
 menu.add_cascade(label='View', menu=view)
 
-from functools import partial
 loadSessionWithArgs = partial(buildTestList, True)
 file.add_command(label='Load last session', command=loadSessionWithArgs)
 file.add_command(label='Purge session', command=buildTestList)
 file.add_command(label='Export to text file', command=export2Text)
 file.add_command(label='Notify Ready for commit', command=notifyValidOK)
 file.add_command(label='Quit', command=Quit, accelerator='Ctrl+Q')
-view.add_command(label='Show FAILED', command=showFailed)
+view.add_command(label='Show FAILED', command=showFilter)
+showFilterWithArgs = partial(showFilter, "MEMFAILED")
+view.add_command(label='Show MEMFAILED', command=showFilterWithArgs)
 view.add_command(label='Show ALL tests', command=showAll)
 view.add_separator()
 view.add_command(label='Show run cases', command=showRunCases)
@@ -1348,8 +1519,14 @@ view.add_separator()
 view.add_command(label='Select all visible tests', command=selectAll,
                  accelerator='Ctrl+A')
 
+filterModulesTestsWithArgs = partial(filterModulesTests, master)
+#filterTestsWithArgs = partial(filterSeqParTests, master)
+#tools.add_command(label='Filter tests', command=filterTestsWithArgs)
+tools.add_command(label='Filter modules and tests', command=filterModulesTestsWithArgs)
+tools.add_separator()
 tools.add_command(label='Tag selection', command=tagSelection)
 tools.add_command(label='Untag selection', command=untagSelection)
+tools.add_separator()
 
 try:
     file = open('/stck/benoit/Cassiopee/Apps/Modules/ValidData/base.time')
@@ -1374,10 +1551,10 @@ frame.grid(row=0, column=0, sticky=TK.EW)
 
 listbox = TK.Listbox(frame, selectmode=TK.EXTENDED, width=120, height=39,
                      background='White')
-listbox.grid(row=0, column=0, columnspan=10, sticky=TK.NSEW)
+listbox.grid(row=0, column=0, columnspan=11, sticky=TK.NSEW)
 
 scrollbar = TK.Scrollbar(frame, orient=TK.VERTICAL)
-scrollbar.grid(row=0, column=10, sticky=TK.NSEW)
+scrollbar.grid(row=0, column=11, sticky=TK.NSEW)
 
 Status = TK.StringVar(master)
 label = TK.Label(frame, textvariable=Status)
@@ -1411,8 +1588,18 @@ Threads = TK.StringVar(master)
 text = TK.Entry(frame, textvariable=Threads, background='White', width=3)
 text.grid(row=1, column=9, sticky=TK.EW)
 text.bind('<Return>', setThreads)
+text.bind('<KP_Enter>', setThreads)
 getThreads()
 BB = CTK.infoBulle(parent=text, text='Number of threads.')
+
+Repeats = TK.IntVar(master, value=1)
+repeatsEntry = TK.Entry(frame, textvariable=Repeats, background='White',
+                        width=3)
+repeatsEntry.grid(row=1, column=10, sticky=TK.EW)
+repeatsEntry.bind('<Return>', setNRepeats)
+repeatsEntry.bind('<KP_Enter>', setNRepeats)
+BB = CTK.infoBulle(parent=repeatsEntry,
+                   text='Number of times each unit test gets executed.')
 frame.grid(sticky=TK.NSEW)
 
 buildTestList()
