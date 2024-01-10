@@ -93,21 +93,40 @@ namespace K_FLD
     inline E_Int posX(E_Int i) const { return _posX[i]+NUMFIELD0;}
 #endif
 
-    /// Returns the i-th field of the j-th entry.
-    inline value_type getVal(const E_Int& j, const E_Int& i) const {return *((_arr->_data+((_posX[i])*_arr->_sizeMax)) + j) + _shift;}
+    /// Returns the j-th entry's pointer to the i-th field.
+    inline value_type* getValPtr(const E_Int& j, const E_Int& i) const
+    {
+        if (_arr->_compact) // array1
+        {
+          return _arr->_data + _posX[i]*_arr->_sizeMax + j;
+        }
+        else // array2/3
+        {
+          return _arr->_rake[i] + j;
+        }
+    }
+    
+    /// Returns the j-th entry to the i-th field.
+    inline value_type getVal(const E_Int& j, const E_Int& i) const
+    {
+        return *getValPtr(j,i) + _shift;
+    }
 
     /// Returns the j-th entry.
     inline void getEntry(const E_Int& j, value_type* entry) const
-    {for (E_Int k = 0; k < _stride; ++k)entry[k] =*((_arr->_data+((_posX[k])*_arr->_sizeMax)) + j) + _shift;}
+    {
+      for (E_Int k = 0; k < _stride; ++k) entry[k] = getVal(j,k);
+    }
+    
     /// Returns the j-th entry's pointer to the first field.
-    inline const value_type* getEntry(const E_Int& j) const { return _arr->_data+j+(_posX[0])*_arr->_sizeMax;}
+    inline const value_type* getEntry(const E_Int& j) const {return getValPtr(j,0);}
     
     /// Returns the j-th entry : MUST BE A FIXED STRIDE (i.e E2N element)
     template <typename ELT>
     inline void getEntry(const E_Int& j, ELT& PHj) const
     {
       E_Int* p = PHj.nodes();
-      for (E_Int k = 0; k < _stride; ++k)p[k] =*((_arr->_data+((_posX[k])*_arr->_sizeMax)) + j) + _shift;
+      for (E_Int k = 0; k < _stride; ++k) p[k] = getVal(j,k);
     }
 
     pt_t col(E_Int j) const { 
@@ -117,7 +136,7 @@ namespace K_FLD
     }
 
     /// Checks whether the index is out of range or not.
-    inline bool isOutOfRange(const E_Int& j) const {return (j >= _arr->getSize());}
+    inline E_Bool isOutOfRange(const E_Int& j) const {return (j >= _arr->getSize());}
 
     /// square of the distance between two nodes.
     inline E_Float dist2(E_Int n, E_Int m) const
@@ -125,7 +144,7 @@ namespace K_FLD
       E_Float d2 = 0.;
       for (E_Int k = 0; k < _stride; ++k)
       {
-        const E_Float* X = (_arr->_data+((_posX[k])*_arr->_sizeMax));
+        const E_Float* X = getValPtr(0,k);
         d2 += (*(X+n) - *(X+m))*(*(X+n) - *(X+m));
       }
       return d2;
@@ -137,7 +156,7 @@ namespace K_FLD
       E_Float d2 = 0.;
       for (E_Int k = 0; k < _stride; ++k)
       {
-        const E_Float* X = (_arr->_data+((_posX[k])*_arr->_sizeMax))+j;
+        const E_Float* X = getValPtr(j,k);
         d2 += (*X - pt[k])*(*X - pt[k]);
       }
       return d2;
@@ -209,7 +228,7 @@ namespace K_FLD
     inline const T* getEntry(const E_Int& j) const { return (_arr->begin() + _arr->_rowsMax*j);}
 
     /// Checks whether the index is out of range or not.
-    inline bool isOutOfRange(const E_Int& j) const {return (j >= _arr->cols());}
+    inline E_Bool isOutOfRange(const E_Int& j) const {return (j >= _arr->cols());}
 
     /// square of the distance between two nodes.
     inline E_Float dist2(E_Int n, E_Int m) const
