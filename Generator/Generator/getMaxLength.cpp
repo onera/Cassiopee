@@ -33,17 +33,14 @@ PyObject* K_GENERATOR::getMaxLength(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Int dimPb;
-#ifdef E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Ol", &array, &dimPb)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Oi", &array, &dimPb)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, O_ I_, &array, &dimPb)) return NULL;
+  
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, 
-                                    eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, 
+                                     eltType);
   PyObject* tpl = NULL;
   E_Int dim = E_Int(dimPb);
   if (dim != 2 && dim != 3) 
@@ -84,7 +81,7 @@ PyObject* K_GENERATOR::getMaxLength(PyObject* self, PyObject* args)
     if (jm == 1) jm1 = 1;
     if (km == 1) km1 = 1;
       
-    tpl = K_ARRAY::buildArray(1, "MaxLength", im1, jm1, km1);
+    tpl = K_ARRAY::buildArray3(1, "MaxLength", im1, jm1, km1);
     E_Float* fieldp = K_ARRAY::getFieldPtr(tpl);
 
     E_Int ret = K_COMPGEOM::getEdgeLength(xt, yt, zt,
@@ -96,24 +93,40 @@ PyObject* K_GENERATOR::getMaxLength(PyObject* self, PyObject* args)
     if (ret == 0)
     {
       PyErr_SetString(PyExc_TypeError,
-                        "getMaxLength: failed.");
+                      "getMaxLength: failed.");
       return NULL;
     }
     return tpl;
   }
   else
   {
-    E_Int nelts;
-    if (strcmp(eltType,"NGON") == 0) 
-    { E_Int* cnp = cn->begin(); E_Int sizeFN = cnp[1]; nelts = cnp[sizeFN+2]; }
-    else nelts = cn->getSize();
-    tpl = K_ARRAY::buildArray(1, "MaxLength",
-                              f->getSize(), nelts, -1, eltType, true,
-                              cn->getSize());
+    E_Int api = f->getApi();
+    E_Bool center = true;
+    if (strcmp(eltType, "NGON") == 0) // NGON
+    {
+      E_Int nelts = cn->getNElts();
+      E_Int nfaces = cn->getNFaces();
+      E_Int sizeFN = cn->getSizeNGon();
+      E_Int sizeEF = cn->getSizeNFace();
+      E_Int ngonType = 1; // CGNSv3 compact array1
+      if (api == 2) ngonType = 2; // CGNSv3, array2
+      else if (api == 3) ngonType = 3; // force CGNSv4, array3
+      tpl = K_ARRAY::buildArray3(1, "MaxLength", f->getSize(), nelts, nfaces,
+                                 eltType, sizeFN, sizeEF, ngonType, center, api);
+    }
+    else // BE/ME
+    {
+      E_Int nc = cn->getNConnect();
+      std::vector<E_Int> nelts(nc);
+      for (E_Int ic = 0; ic < nc; ic++)
+      {
+        FldArrayI& cm = *(cn->getConnect(ic));
+        nelts[ic] = cm.getSize();
+      }
+      tpl = K_ARRAY::buildArray3(1, "MaxLength", f->getSize(), nelts,
+                                 eltType, center, api);
+    }
     E_Float* fieldp = K_ARRAY::getFieldPtr(tpl);
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    FldArrayI cnn(nelts, cn->getNfld(), cnnp, true); cnn = *cn;
-    
     E_Int ret = K_COMPGEOM::getEdgeLength(xt, yt, zt,
                                           -1, -1, -1, 
                                           cn, eltType,
@@ -123,7 +136,7 @@ PyObject* K_GENERATOR::getMaxLength(PyObject* self, PyObject* args)
     if (ret == 0)
     {
       PyErr_SetString(PyExc_TypeError,
-                        "getMaxLength: failed.");
+                      "getMaxLength: failed.");
       return NULL;          
     }
     return tpl;
