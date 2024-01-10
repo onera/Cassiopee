@@ -6,6 +6,76 @@
 
 #define DSMALL 1e-14
 
+void close_mesh(AMesh *M)
+{
+  Edge e;
+
+  E_Int closed_ngon_size = 0;
+
+  for (E_Int i = 0; i < M->nfaces; i++) {
+    E_Int np = -1;
+    E_Int *pn = get_face(i, np, M->ngon, M->indPG);
+    
+    for (E_Int j = 0; j < np; j++) {
+      e.set(pn[j], pn[(j+1)%np]);
+
+      // Was this edge refined?
+      auto search = M->ecenter.find(e);
+
+      if (search != M->ecenter.end()) {
+        // Yes
+        closed_ngon_size += 2;
+      } else {
+        closed_ngon_size += 1;
+      }
+    }
+  }
+
+  M->closed_ngon = (E_Int *)XMALLOC(closed_ngon_size * sizeof(E_Int));
+
+  M->closed_indPG = (E_Int *)XMALLOC((M->nfaces+1) * sizeof(E_Int));
+
+  E_Int *closed_ngon = M->closed_ngon;
+  E_Int *closed_indPG = M->closed_indPG;
+
+  closed_indPG[0] = 0;
+
+  E_Int *ptr = closed_ngon;
+
+  for (E_Int i = 0; i < M->nfaces; i++) {
+    E_Int np = -1;
+    E_Int *pn = get_face(i, np, M->ngon, M->indPG);
+
+    E_Int stride = 0;
+
+    for (E_Int j = 0; j < np; j++) {
+      E_Int p0 = pn[j];
+      E_Int p1 = pn[(j+1)%np];
+
+      e.set(p0, p1);
+
+      auto search = M->ecenter.find(e);
+
+      if (search != M->ecenter.end()) {
+        *ptr++ = p0;
+        *ptr++ = search->second;
+        stride += 2;
+      } else {
+        *ptr++ = p0;
+        stride += 1;
+      }
+    }
+
+    closed_indPG[i+1] = stride;
+  }
+
+  for (E_Int i = 0; i < M->nfaces; i++)
+    closed_indPG[i+1] += closed_indPG[i];
+  
+  assert(closed_indPG[M->nfaces] == closed_ngon_size);
+}
+
+
 static
 void Compute_cell_volume(E_Int cell, AMesh *M, E_Float *x, E_Float *y,
   E_Float *z, E_Float &vol, E_Int refIdx)
@@ -60,6 +130,7 @@ void Compute_cell_volume(E_Int cell, AMesh *M, E_Float *x, E_Float *y,
     E_Float *fc = &faceCenters[3*i];
     E_Int np = INDPG[i+1]-INDPG[i];
     E_Int *pn = &NGON[INDPG[i]];
+    for (E_Int j = 0; j < np; j++) pn[j] += 1;
     K_METRIC::compute_face_center_and_area(face, np, pn, x, y, z, fc, fa);
   }
   
@@ -225,8 +296,8 @@ E_Int _Orient_boundary
   }
 
    if (seed >= ncells) {
-    assert(0);
     fprintf(stderr, "orient_boundary_ngon(): couldn't find reference polyhedron\n");
+    assert(0);
     return 1;
   }
 

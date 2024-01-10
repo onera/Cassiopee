@@ -4,6 +4,10 @@
 #include "Struct.h"
 #include "../common/mem.h"
 
+// Tree
+void tree_init(Element **tree, E_Int nelem);
+void tree_print(Element **tree, E_Int nelem);
+
 // Metric
 void compute_ref_data(AMesh *M, E_Float **fields, E_Int nfields);
 void Right_shift(E_Int *pn, E_Int pos, E_Int size);
@@ -38,6 +42,10 @@ void check_canon_pyra(E_Int cell, AMesh *M);
 void check_canon_cells(AMesh *M);
 AMesh *init_mesh(K_FLD::FldArrayI& cn, E_Float *px, E_Float *py, E_Float *pz,
   E_Int npts);
+void get_full_cell(E_Int cell, AMesh *M, E_Int &nf, E_Int *pf);
+void update_boundary_faces(AMesh *M);
+void ngon_print(AMesh *M);
+void nface_print(AMesh *M);
 
 // Refine
 void get_ref_cells_and_faces(AMesh *, std::vector<E_Int> &ref_cells,
@@ -51,9 +59,22 @@ std::vector<E_Int> renumber_cells(AMesh *M);
 std::vector<E_Int> renumber_faces(AMesh *M,
   const std::vector<E_Int> &new_cells);
 void renumber_mesh(AMesh *M);
+void renumber_indPG(AMesh *M, const std::vector<E_Int> &new_faces,
+  E_Int *new_indPG);
+void renumber_ngon(AMesh *M, const std::vector<E_Int> &new_faces,
+  E_Int *new_indPG, E_Int *new_ngon);
+void renumber_indPH(AMesh *M, const std::vector<E_Int> &new_cells,
+  E_Int *new_indPH);
+void renumber_nface(AMesh *M, const std::vector<E_Int> &new_cells,
+  E_Int *new_indPH, E_Int *new_nface);
+void renumber_nface_shallow(AMesh *M, const std::vector<E_Int> &new_faces);
+void renumber_boundary(AMesh *M, const std::vector<E_Int> &new_faces);
+void renumber_comm_patches(AMesh *M, const std::vector<E_Int> &new_faces);
+void init_mesh_numbering(AMesh *M);
 
 // Topo
 E_Int Orient_boundary(AMesh *M);
 E_Int Build_own_nei(AMesh *M);
+void close_mesh(AMesh *M);
 
 #endif

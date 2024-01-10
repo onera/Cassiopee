@@ -130,6 +130,9 @@ struct AMesh {
   E_Int nif;
   E_Int nbf;
 
+  E_Int *closed_indPG;
+  E_Int *closed_ngon;
+
   AMesh();
 };
 

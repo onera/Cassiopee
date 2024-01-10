@@ -1,6 +1,28 @@
 #include "Proto.h"
 #include <cassert>
 
+void ngon_print(AMesh *M)
+{
+  puts("");
+  for (E_Int i = 0; i < M->nfaces; i++) {
+    for (E_Int j = M->indPG[i]; j < M->indPG[i+1]; j++)
+      printf("%d ", M->ngon[j]);
+    puts("");
+  }
+  puts("");
+}
+
+void nface_print(AMesh *M)
+{
+  puts("");
+  for (E_Int i = 0; i < M->ncells; i++) {
+    for (E_Int j = M->indPH[i]; j < M->indPH[i+1]; j++)
+      printf("%d ", M->nface[j]);
+    puts("");
+  }
+  puts("");
+}
+
 const E_Int normalIn_T[4] = {1, 0, 1, 0};
 const E_Int normalIn_Pe[5] = {1, 0, 1, 0, 1};
 const E_Int normalIn_Py[5] = {1, 1, 0, 1, 0};
@@ -40,7 +62,8 @@ AMesh::AMesh() :
   nref_hexa(-1), nref_tetra(-1), nref_penta(-1), nref_pyra(-1),
   nunref_hexa(-1), nunref_tetra(-1), nunref_penta(-1), nunref_pyra(-1),
   nbc(-1), ptlists(NULL), bcsizes(NULL), bcnames(NULL),
-  nif(-1), nbf(-1)
+  nif(-1), nbf(-1),
+  closed_indPG(NULL), closed_ngon(NULL)
 {
   MPI_Comm_rank(MPI_COMM_WORLD, &pid);
   MPI_Comm_size(MPI_COMM_WORLD, &npc);
@@ -861,3 +884,88 @@ AMesh *init_mesh(K_FLD::FldArrayI &cn, E_Float *px, E_Float *py,
   return M;
 }
 
+static inline
+E_Int Tree_get_nchildren(E_Int id, Element **tree)
+{
+  return tree[id]->nchildren;
+}
+
+static inline
+E_Int *Tree_get_children(E_Int id, Element **tree)
+{
+  return tree[id]->children;
+}
+
+static inline
+E_Int Tree_get_level(E_Int id, Element **tree)
+{
+  return tree[id]->level;
+}
+
+
+void get_full_cell(E_Int cell, AMesh *M, E_Int &nf, E_Int *pf)
+{
+  E_Int stride = -1;
+  E_Int *FACES = get_cell(cell, stride, M->nface, M->indPH);
+  nf = 0;
+  E_Int clvl = Tree_get_level(cell, M->cellTree);
+
+  for (E_Int i = 0; i < stride; i++) {
+    E_Int face = FACES[i];
+    E_Int flvl = Tree_get_level(face, M->faceTree);
+    
+    if (flvl == clvl) {
+      pf[nf++] = face;
+    } else {
+      E_Int nchildren = Tree_get_nchildren(face, M->faceTree);
+      if (nchildren == 0) {
+        pf[nf++] = face;
+      } else {
+        E_Int *children = Tree_get_children(face, M->faceTree);
+        for (E_Int j = 0; j < nchildren; j++)
+          pf[nf++] = children[j];
+      }
+    }
+  }
+}
+
+// TODO(Imad): update comm patch faces
+
+void update_boundary_faces(AMesh *M)
+{
+  M->nbf = 0;
+  for (E_Int i = 0; i < M->nbc; i++) {
+    E_Int *ptlist = M->ptlists[i];
+    
+    // How many faces on current boundary have been refined?
+    E_Int new_bcsize = 0;
+    for (E_Int j = 0; j < M->bcsizes[i]; j++) {
+      E_Int face = ptlist[j];
+      E_Int nchildren = Tree_get_nchildren(face, M->faceTree);
+      new_bcsize = nchildren == 0 ? new_bcsize + 1 : new_bcsize + nchildren;
+    }
+
+    M->nbf += new_bcsize;
+
+    E_Int *new_ptlist = (E_Int *)XMALLOC(new_bcsize * sizeof(E_Int));
+    E_Int *ptr = new_ptlist;
+
+    for (E_Int j = 0; j < M->bcsizes[i]; j++) {
+      E_Int face = ptlist[j];
+      E_Int nchildren = Tree_get_nchildren(face, M->faceTree);
+      if (nchildren == 0) {
+        *ptr++ = face;
+      } else {
+        E_Int *children = Tree_get_children(face, M->faceTree);
+        for (E_Int k = 0; k < nchildren; k++) *ptr++ = children[k];
+      }
+    }
+
+    XFREE(M->ptlists[i]);
+
+    M->ptlists[i] = new_ptlist;
+    M->bcsizes[i] = new_bcsize;
+  }
+
+  M->nif = M->nfaces - M->nbf;
+}

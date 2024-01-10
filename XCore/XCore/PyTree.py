@@ -247,11 +247,9 @@ def CreateAdaptMesh(t, Tr=0.05):
   
     for bc in zbc:
       plist = I.getNodeFromName(bc, 'PointList')
-      print(plist)
       #name = I.getNodeFromName(bc, 'FamilyName')
       name = bc[0]
       #name = str(I.getValue(name))
-      print(name + '!')
       bcs.append([plist[1], name])
 
   return XCore.xcore.CreateAdaptMesh(fc, comm_list, bcs, Tr)

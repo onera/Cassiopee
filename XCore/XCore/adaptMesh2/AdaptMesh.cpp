@@ -18,6 +18,18 @@
 #define MINREF -10
 #define RAISE(error) PyErr_SetString(PyExc_ValueError, (error))
 
+static inline
+E_Int Tree_get_nchildren(E_Int id, Element **tree)
+{
+  return tree[id]->nchildren;
+}
+
+static inline
+E_Int *Tree_get_children(E_Int id, Element **tree)
+{
+  return tree[id]->children;
+}
+
 PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
 {
   PyObject *ARRAY, *COMM, *BCS;
@@ -131,71 +143,14 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
     }
   }
 
-  M->nbf = M->nif;
+  // Adaptation trees
+  M->cellTree = (Element **)XMALLOC(M->ncells * sizeof(Element *));
+  M->faceTree = (Element **)XMALLOC(M->nfaces * sizeof(Element *));
+  tree_init(M->cellTree, M->ncells);
+  tree_init(M->faceTree, M->nfaces);
 
-  // Renumber boundary faces
-  // Map[old bface] -> nif + i
-  std::vector<E_Int> new_faces(M->nfaces, -1);
-
-  for (E_Int i = 0; i < M->nbc; i++) {
-    E_Int *bfaces = M->ptlists[i];
-    for (E_Int j = 0; j < M->bcsizes[i]; j++) {
-      E_Int bface = bfaces[j];
-      new_faces[bface] = M->nbf++;
-    }
-  }
-  M->nbf -= M->nif;
-
-  // Renumber internal faces
-  M->nif = 0;
-  for (E_Int i = 0; i < M->nfaces; i++) {
-    if (new_faces[i] == -1)
-      new_faces[i] = M->nif++;
-  }
-
-  assert(M->nif + M->nbf == M->nfaces);
-
-  E_Int *new_indPG = (E_Int *)XMALLOC((M->nfaces+1) * sizeof(E_Int));
-  new_indPG[0] = 0;
-  for (E_Int i = 0; i < M->nfaces; i++)
-    new_indPG[new_faces[i]+1] = get_stride(i, M->indPG);
-  for (E_Int i = 0; i < M->nfaces; i++) new_indPG[i+1] += new_indPG[i]; 
-  assert(new_indPG[M->nfaces] == M->indPG[M->nfaces]);
-
-  E_Int *new_ngon = (E_Int *)XMALLOC(new_indPG[M->nfaces] * sizeof(E_Int));
-  for (E_Int i = 0; i < M->nfaces; i++) {
-    E_Int new_face = new_faces[i];
-    E_Int *ptr = &new_ngon[new_indPG[new_face]];
-    for (E_Int j = M->indPG[i]; j < M->indPG[i+1]; j++)
-      *ptr++ = M->ngon[j];
-  }
-
-  XFREE(M->indPG);
-  XFREE(M->ngon);
-  M->indPG = new_indPG;
-  M->ngon = new_ngon;
-  
-  for (E_Int i = 0; i < M->ncells; i++) {
-    for (E_Int j = M->indPH[i]; j < M->indPH[i+1]; j++)
-      M->nface[j] = new_faces[M->nface[j]];
-  }
-
-  // Renumber boundary pointlists
-  for (E_Int i = 0; i < M->nbc; i++) {
-    E_Int *ptlist = M->ptlists[i];
-    for (E_Int j = 0; j < M->bcsizes[i]; j++) {
-      ptlist[j] = new_faces[ptlist[j]];
-    }
-  }
-
-  // Renumber comm patches
-  for (E_Int i = 0; i < M->npatches; i++) {
-    Patch *p = &M->patches[i];
-    for (E_Int j = 0; j < p->nfaces; j++)
-      p->faces[j] = new_faces[p->faces[j]];
-  }
-
-  // Check mesh validity
+  // TODO(Imad): Check mesh validity
+  /*
   ret = K_CONNECT::check_overlapping_cells(*cn);
   if (ret != 0) {
     RELEASESHAREDU(ARRAY, f, cn);
@@ -209,6 +164,9 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
     RAISE("Cells should be closed.");
     return NULL;
   }
+  */
+
+  init_mesh_numbering(M);
 
   // Build owner and neigh
   ret = Orient_boundary(M);
@@ -222,43 +180,12 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
 
   Build_own_nei(M);
 
-  /*
-  // Renumber cells: Cuthill-Mckee sort
-  std::vector<E_Int> new_cells = renumber_cells(M);
-
-  // Renumber internal faces: upper triangular order
-  std::vector<E_Int> new_faces = renumber_faces(M, new_cells);
-
-    // Renumber mesh data
-  renumber_mesh(M, new_cells, new_faces);
-  */
-
-  // Adaptation trees
-  M->cellTree = (Element **)XMALLOC(M->ncells * sizeof(Element *));
-  M->faceTree = (Element **)XMALLOC(M->nfaces * sizeof(Element *));
-  for (E_Int i = 0; i < M->ncells; i++) {
-    M->cellTree[i] = (Element *)XMALLOC(sizeof(Element));
-    Element *Elem = M->cellTree[i];
-    Elem->children = NULL;
-    Elem->nchildren = 0;
-    Elem->parent = i;
-    Elem->position = 0;
-    Elem->type = -1;
-    Elem->level = 0;
-  }
-  for (E_Int i = 0; i < M->nfaces; i++) {
-    M->faceTree[i] = (Element *)XMALLOC(sizeof(Element));
-    Element *Elem = M->faceTree[i];
-    Elem->children = NULL;
-    Elem->nchildren = 0;
-    Elem->parent = i;
-    Elem->position = 0;
-    Elem->type = -1;
-    Elem->level = 0;
-  }
-
   M->ref_Tr = Tr;
   M->unref_Tr = Tr/2.5;
+
+  // Renumber
+  // TODO(Imad): optional
+  //renumber_mesh(M);
 
   // Set face types
   set_faces_type(M);
@@ -282,21 +209,33 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
 }
 
 static
-void get_face_leaves(Element **faceTree, E_Int face, std::vector<E_Int> &leaves)
+const char *TYPE(E_Int type)
 {
-  E_Int nchildren = faceTree[face]->nchildren;
-  if (nchildren == 0) {
-    leaves.push_back(face);
-    return;
+  switch (type) {
+    case HEXA: return "HEXA";
+    case TETRA: return "TETRA";
+    case PENTA: return "PENTA";
+    case PYRA: return "PYRA";
+    default: assert(0);
   }
-
-  E_Int *children = faceTree[face]->children;
-  for (E_Int i = 0; i < nchildren; i++)
-    get_face_leaves(faceTree, children[i], leaves);
 }
 
 static
-PyObject *export_mesh_and_bcs(AMesh *M);
+void print_elem(E_Int id, Element **tree)
+{
+  Element *E = tree[id];
+  printf("%d [%s, %d]", id, TYPE(E->type), E->parent);
+}
+
+static
+void print_elem_type(E_Int id, Element **tree)
+{
+  Element *E = tree[id];
+  printf("[%s]", TYPE(E->type));
+}
+
+static
+PyObject *export_mesh_and_bcs(AMesh *M, E_Int closed_mesh);
 
 PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
 {
@@ -344,6 +283,10 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
 
   // Resize structures for refinement
   get_ref_cells_and_faces(M, ref_cells, ref_faces);
+  //for (E_Int i = M->indPH[0]; i < M->indPH[1]; i++)
+  //  ref_faces.push_back(M->nface[i]);
+  //ref_cells.push_back(0);
+  
   E_Int nref_cells = ref_cells.size();
   E_Int nref_faces = ref_faces.size();
   resize_data_for_refinement(M, nref_cells, nref_faces);
@@ -354,130 +297,48 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
 
   printf("Leaves: %d\n", M->ncells);
 
-  PyObject *out = export_mesh_and_bcs(M);
+  update_boundary_faces(M);
+
+  init_mesh_numbering(M);
+
+  //renumber_mesh(M);
+
+  E_Int closed_mesh = 1;
+
+  PyObject *out = export_mesh_and_bcs(M, closed_mesh);
 
   return out;
 }
 
-static inline
-E_Int Tree_get_nchildren(E_Int id, Element **tree)
-{
-  return tree[id]->nchildren;
-}
-
-static inline
-E_Int *Tree_get_children(E_Int id, Element **tree)
-{
-  return tree[id]->children;
-}
-
 static
-PyObject *export_mesh_and_bcs(AMesh *M)
+PyObject *export_mesh_and_bcs(AMesh *M, E_Int closed_mesh)
 {
-  std::map<E_Int, E_Int> epoints, efaces;
+  // Count nface size
+  E_Int nface_size = 0;
 
-  std::vector<E_Int> ecells;
   for (E_Int i = 0; i < M->ncells; i++) {
-    if (M->cellTree[i]->nchildren == 0)
-      ecells.push_back(i);
+    E_Int nf = -1;
+    E_Int pf[24];
+    // TODO(Imad): a function that returns nf only
+    get_full_cell(i, M, nf, pf);
+    nface_size += nf;
   }
 
-  E_Int necells = ecells.size();
+  E_Int ngon_size = -1;
 
-  std::vector<E_Int> XCELLS(1, 0);
-  std::vector<E_Int> XFACES(1, 0);
-
-  std::vector<E_Int> NFACE, NGON;
-
-  E_Int nefaces = 0;
-  E_Int nepoints = 0;
-
-  for (E_Int i = 0; i < necells; i++) {
-    E_Int cell = ecells[i];
-    E_Int stride = 0;
-    for (E_Int j = M->indPH[cell]; j < M->indPH[cell+1]; j++) {
-      E_Int face = M->nface[j];
-      std::vector<E_Int> leaves;
-      get_face_leaves(M->faceTree, face, leaves);
-      assert(leaves.size() == 1 || leaves.size() == 4);
-      stride += leaves.size();
-      for (auto leaf : leaves)
-        NFACE.push_back(leaf);
-    }
-    XCELLS.push_back(stride);
+  if (closed_mesh) {
+    puts("Exporting closed mesh");
+    close_mesh(M);
+    ngon_size = M->closed_indPG[M->nfaces];
+  } else {
+    puts("Exporting non-closed mesh");
+    ngon_size = M->indPG[M->nfaces];
   }
 
-  for (E_Int i = 0; i < necells; i++) XCELLS[i+1] += XCELLS[i];
-
-  for (E_Int i = 0; i < necells; i++) {
-    for (E_Int j = XCELLS[i]; j < XCELLS[i+1]; j++) {
-      E_Int face = NFACE[j];
-      if (efaces.find(face) == efaces.end()) {
-        efaces[face] = nefaces++;
-        for (E_Int k = M->indPG[face]; k < M->indPG[face+1]; k++) {
-          E_Int point = M->ngon[k];
-          NGON.push_back(point);
-        }
-        XFACES.push_back(M->indPG[face+1] - M->indPG[face]);
-      }
-    }
-  }
-
-  for (E_Int i = 0; i < nefaces; i++) XFACES[i+1] += XFACES[i];
-  
-  for (E_Int i = 0; i < nefaces; i++) {
-    for (E_Int j = XFACES[i]; j < XFACES[i+1]; j++) {
-      E_Int point = NGON[j];
-      if (epoints.find(point) == epoints.end())
-        epoints[point] = nepoints++;
-    }
-  }
-
-  // Update BCs
-  PyObject *BCS = PyList_New(0);
-
-  std::vector<E_Int> new_bcsizes(M->nbc, 0);
-
-  for (E_Int i = 0; i < M->nbc; i++) {
-    E_Int *ptr = M->ptlists[i];
-    for (E_Int j = 0; j < M->bcsizes[i]; j++) {
-      E_Int nchildren = Tree_get_nchildren(ptr[j], M->faceTree);
-      if (nchildren == 0) new_bcsizes[i] += 1;
-      else new_bcsizes[i] += nchildren;
-    }
-  }
-
-  for (E_Int i = 0; i < M->nbc; i++) {
-    npy_intp dims[2];
-    dims[0] = (npy_intp)new_bcsizes[i];
-    dims[1] = 1;
-
-    PyArrayObject *PL = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
-    E_Int *op = M->ptlists[i];
-    E_Int *np = (E_Int *)PyArray_DATA(PL);
-    for (E_Int j = 0; j < M->bcsizes[i]; j++) {
-      E_Int nchildren = Tree_get_nchildren(op[j], M->faceTree);
-      if (nchildren == 0) {
-        *np++ = efaces[op[j]] + 1;
-      } else {
-        E_Int *children = Tree_get_children(op[j], M->faceTree);
-        for (E_Int k = 0; k < nchildren; k++)
-          *np++ = efaces[children[k]] + 1;
-      }
-    }
-
-    puts(M->bcnames[i]);
-    PyObject *tpl = Py_BuildValue("[Os]", (PyObject *)PL, M->bcnames[i]);
-    Py_DECREF(PL);
-    PyList_Append(BCS, tpl);
-    Py_DECREF(tpl);
-  }
-
-  // Export
   const char *varStringOut = "CoordinateX,CoordinateY,CoordinateZ";
 
-  PyObject *m = K_ARRAY::buildArray3(3, varStringOut, nepoints, necells,
-    nefaces, "NGON", XFACES[nefaces], XCELLS[necells], 3, false, 3);
+  PyObject *m = K_ARRAY::buildArray3(3, varStringOut, M->npoints, M->ncells,
+    M->nfaces, "NGON", ngon_size, nface_size, 3, false, 3);
 
   FldArrayF *fo;
   FldArrayI *cno;
@@ -488,40 +349,57 @@ PyObject *export_mesh_and_bcs(AMesh *M)
   E_Int *indPGo = cno->getIndPG();
   E_Int *indPHo = cno->getIndPH();
 
+  E_Int *ptr = nfaceo;
+
+  for (E_Int i = 0; i < M->ncells; i++) {
+    get_full_cell(i, M, indPHo[i+1], ptr);
+    ptr += indPHo[i+1];
+  }
+
+  for (E_Int i = 0; i < nface_size; i++) nfaceo[i] += 1;
+
+  indPHo[0] = 0;
+  for (E_Int i = 0; i < M->ncells; i++) indPHo[i+1] += indPHo[i];
+
+  assert(indPHo[M->ncells] == nface_size);
+
+  if (close_mesh) {
+    for (E_Int i = 0; i < ngon_size; i++)
+      ngono[i] = M->closed_ngon[i] + 1;
+    
+    memcpy(indPGo, M->closed_indPG, (M->nfaces+1) * sizeof(E_Int));
+  } else {
+    for (E_Int i = 0; i < ngon_size; i++)
+      ngono[i] = M->ngon[i] + 1;
+    
+    memcpy(indPGo, M->indPG, (M->nfaces+1) * sizeof(E_Int));
+  }
+
   E_Float *px = fo->begin(1);
   E_Float *py = fo->begin(2);
   E_Float *pz = fo->begin(3);
-  for (auto pt: epoints) {
-    E_Int lp = pt.second;
-    assert(lp < nepoints);
-    px[lp] = M->x[pt.first];
-    py[lp] = M->y[pt.first];
-    pz[lp] = M->z[pt.first];
-  }
+  memcpy(px, M->x, M->npoints * sizeof(E_Float));
+  memcpy(py, M->y, M->npoints * sizeof(E_Float));
+  memcpy(pz, M->z, M->npoints * sizeof(E_Float));
 
-  for (E_Int i = 0; i < nefaces+1; i++) indPGo[i] = XFACES[i];
-  for (E_Int i = 0; i < necells+1; i++) indPHo[i] = XCELLS[i];
+  // BCs
+  PyObject *BCS = PyList_New(0);
 
-  E_Int *ptr = ngono;
+  for (E_Int i = 0; i < M->nbc; i++) {
+    npy_intp dims[2];
+    dims[0] = (npy_intp)M->bcsizes[i];
+    dims[1] = 1;
 
-  for (E_Int i = 0; i < nefaces; i++) {
-    E_Int start = XFACES[i];
-    E_Int end = XFACES[i+1];
-    for (E_Int j = start; j < end; j++) {
-      *ptr = epoints[NGON[j]]+1;
-      ptr++;
-    }
-  }
-  
-  ptr = nfaceo;
+    PyArrayObject *PL = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
+    E_Int *op = M->ptlists[i];
+    E_Int *np = (E_Int *)PyArray_DATA(PL);
+    for (E_Int j = 0; j < M->bcsizes[i]; j++)
+      *np++ = op[j] + 1;
 
-  for (E_Int i = 0; i < necells; i++) {
-    E_Int start = XCELLS[i];
-    E_Int end = XCELLS[i+1];
-    for (E_Int j = start; j < end; j++) {
-      *ptr = efaces[NFACE[j]]+1;
-      ptr++;
-    }
+    PyObject *tpl = Py_BuildValue("[Os]", (PyObject *)PL, M->bcnames[i]);
+    Py_DECREF(PL);
+    PyList_Append(BCS, tpl);
+    Py_DECREF(tpl);
   }
 
   PyObject *out = PyList_New(0);
