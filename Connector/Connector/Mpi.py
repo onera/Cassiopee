@@ -652,7 +652,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
     #rcvDatas = Cmpi.sendRecv(transferedDatas, graph)
 
     # 7. remise des donnees interpolees chez les zones receveuses
-    # une fois que tous les donneurs potentiels ont calcule et envoye leurs donnees
+    # une fois que tous les donneurs potentiels on calcule et envoye leurs donnees
     #Cmpi.trace("7. transfer2")
     for i in rcvDatas:
         for n in rcvDatas[i]:
@@ -670,11 +670,10 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
         noz = dictOfNozOfRcvZones[zrcvname]
         z = t[2][nob][2][noz]
         allInterpFields = dictOfFields[zrcvname]
-        indicesI = dictOfIndices[zrcvname]
-        
+        indicesI = dictOfIndices[zrcvname]        
         C._filterPartialFields(z, allInterpFields, indicesI, loc='centers', startFrom=0, 
                                filterName='donorVol', verbose=verbose)
-        
+
     #Cmpi.trace("8. transfer2 end")
     return None
 

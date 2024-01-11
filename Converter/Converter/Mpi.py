@@ -190,11 +190,11 @@ def isFinite(t, var=None):
 
 # Ecrit une trace dans un fichier proc0.out
 # si cpu=True, ecrit le temps depuis le trace precedent
-# si mem=True, ecrit l'etat de la mem du noeud
+# si mem=True, ecrit l'etat de la memoire du noeud
 # si stdout=True, ecrit a l'ecran
 # si reset, vide le fichier log
-# si filename="proc", ecrit a l'ecran, sinon ecrit dans le fichier filename >>> TODO stdout soon deprecated: filename="stdout"
-def trace(text=">>> IN XXX: ", cpu=True, mem=True, stdout=False, reset=False, filename="proc"):
+# si filename="stdout", ecrit a l'ecran, sinon ecrit dans le fichier filename
+def trace(text=">>> IN XXX: ", cpu=True, mem=True, stdout=False, reset=False, fileName="proc"):
     """Write a trace of cpu and memory in a file or to stdout for current node."""
     global PREVFULLTIME
     msg = text
@@ -227,20 +227,21 @@ def trace(text=">>> IN XXX: ", cpu=True, mem=True, stdout=False, reset=False, fi
         else: msg += '[%f kB]'%(tot)
     msg += '\n'
 
-    if stdout: # ecriture a l'ecran >>> TODO soon deprecated: condition will be: filename == "stdout"
+    if stdout:
+        #print("Warning: trace: arg. stdout is obsolete. Please use fileName='stdout' instead.")
+        fileName = "stdout"
+
+    if fileName == "stdout":
         print('%d: %s'%(rank, msg)) 
         sys.stdout.flush()
-    else: # dans des fichiers
-        filename = filename.split('.')
-        if '%' in filename[0]:
-            filename[0] = filename[0]%rank
-        else:
-            filename[0] += '%03d'%rank
-        if len(filename) == 1:
-            filename[0] += '.out'
-        filename = '.'.join(s for s in filename)
-        if reset: f = open(filename, "w")
-        else: f = open(filename, "a")
+    else: # dans des fichiers par processes
+        fileName = fileName.split('.')
+        if '%' in fileName[0]: fileName[0] = fileName[0]%rank
+        else: fileName[0] += '%03d'%rank
+        if len(fileName) == 1: fileName[0] += '.out'
+        fileName = '.'.join(s for s in fileName)
+        if reset: f = open(fileName, "w")
+        else: f = open(fileName, "a")
         f.write(msg)
         f.flush()
         f.close()

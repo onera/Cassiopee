@@ -366,5 +366,5 @@ void main()
   }
   //res.rgb = vec3(1.-occlusion);
   
-	gl_FragColor = res;
+  gl_FragColor = res;
 }
