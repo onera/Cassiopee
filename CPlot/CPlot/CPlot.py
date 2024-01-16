@@ -770,7 +770,7 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
     if offscreen > 0: daemon = True
     else: daemon = False
     from . import cplot
-    if version_info == 2: # python 2 - no daemon
+    if version_info[0] == 2: # python 2 - no daemon
         a = threading.Thread(None, cplot.displayNew, None,
                          (arrays, dim, mode, scalarField, vectorField1,
                           vectorField2, vectorField3, displayBB, displayInfo,

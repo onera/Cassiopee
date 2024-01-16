@@ -9,7 +9,7 @@ import Converter.Internal as Internal
 import Converter.PyTree as C
 from . import PyTree as CPlot
 from . import Ttk as TTK
-import CPlot.iconics as iconics
+from . import iconics
 import time
 
 try: range = xrange
