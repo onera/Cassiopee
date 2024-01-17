@@ -470,15 +470,15 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
   PyObject* tpl;
   for (E_Int nos = 0; nos < ns0; nos++)
   {
-    tpl = K_ARRAY::buildArray(*structFields[nos], varStringOut,
-                              nit0[nos], njt0[nos], nkt0[nos]);
+    tpl = K_ARRAY::buildArray3(*structFields[nos], varStringOut,
+                               nit0[nos], njt0[nos], nkt0[nos]);
     delete structFields[nos]; 
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
   for (E_Int nou = 0; nou < nu0; nou++)
   {
-    tpl = K_ARRAY::buildArray(*unstructFields[nou], varStringOut, *cnout[nou],
-                              -1, eltType0[nou]);
+    tpl = K_ARRAY::buildArray3(*unstructFields[nou], varStringOut, *cnout[nou],
+                               eltType0[nou]);
     
     delete unstructFields[nou]; delete cnout[nou];
     PyList_Append(l, tpl); Py_DECREF(tpl);
