@@ -18,30 +18,53 @@
 */
 #include <vector>
 #include <algorithm>
+#include <unordered_set>
 
 /* Topology structs */
 // Topology object designed to work with std::map and std::unordered_map
 // No explicit limit on the number of items contained in the Topology
 struct Topology
 {
-  std::size_t n_ = 0; // actual number of items contained in the Topology
+  E_Bool isDegen_ = false; // whether the Topology is degenerated
+  std::size_t n_ = 0; // number of items contained in the Topology
+  std::size_t size_ = -1; // number of unique items contained in the Topology
   std::vector<E_Int> p_;
 
   Topology() {}
-  Topology(const E_Int* p, std::size_t n) { set(p, n); }
-  Topology(const std::vector<E_Int>& p) { set(p); }
-  
-  void set(const E_Int* p, std::size_t n)
+  Topology(const E_Int* p, std::size_t n, E_Bool search4Degen=false)
   {
-    n_ = n;
-    p_.assign(p, p+n_);
-    std::sort(p_.begin(), p_.end());
+    set(p, n, search4Degen);
+  }
+  Topology(const std::vector<E_Int>& p, E_Bool search4Degen=false)
+  {
+    set(p, search4Degen);
   }
   
-  void set(const std::vector<E_Int>& p)
+  void set(const E_Int* p, std::size_t n, E_Bool search4Degen=false)
   {
+    size_ = -1; isDegen_ = false;
+    n_ = n; p_.assign(p, p+n_);
+    std::sort(p_.begin(), p_.end());
+    if (search4Degen) countUnique();
+  }
+  
+  void set(const std::vector<E_Int>& p, E_Bool search4Degen=false)
+  {
+    size_ = -1; isDegen_ = false;
     n_ = p.size(); p_ = p;
     std::sort(p_.begin(), p_.end());
+    if (search4Degen) countUnique();
+  }
+
+  void countUnique()
+  {
+    size_ = 0; isDegen_ = false;
+    std::unordered_set<E_Int> pSet;
+    for (std::size_t i = 0; i < n_; i++)
+    {
+      if (pSet.insert(p_[i]).second) size_++;
+    }
+    if (size_ != n_) isDegen_ = true;
   }
 
   E_Bool operator<(const Topology& other) const
@@ -73,25 +96,48 @@ struct Topology
 const std::size_t nmaxitems = 8;
 struct TopologyOpt
 {
-  std::size_t n_ = 0; // actual number of items contained in the Topology
+  E_Bool isDegen_ = false; // whether the Topology is degenerated
+  std::size_t n_ = 0; // number of items contained in the Topology
+  std::size_t size_ = -1; // number of unique items contained in the Topology
   E_Int p_[nmaxitems];
 
   TopologyOpt() {}
-  TopologyOpt(const E_Int* p, const std::size_t n) { set(p, n); }
-  TopologyOpt(const std::vector<E_Int>& p, const std::size_t n) { set(p, n); }
-  
-  void set(const E_Int* p, const std::size_t n)
+  TopologyOpt(const E_Int* p, const std::size_t n, E_Bool search4Degen=false)
   {
-    n_ = n; assert(n_ <= nmaxitems);
-    for (std::size_t i = 0; i < n_; i++) p_[i] = p[i];
-    std::sort(p_, p_ + n_);
+    set(p, n, search4Degen);
+  }
+  TopologyOpt(const std::vector<E_Int>& p, const std::size_t n,
+              E_Bool search4Degen=false)
+  {
+    set(p, n, search4Degen);
   }
   
-  void set(const std::vector<E_Int>& p, const std::size_t n)
+  void set(const E_Int* p, const std::size_t n, E_Bool search4Degen=false)
   {
     n_ = n; assert(n_ <= nmaxitems);
     for (std::size_t i = 0; i < n_; i++) p_[i] = p[i];
     std::sort(p_, p_ + n_);
+    if (search4Degen) countUnique();
+  }
+  
+  void set(const std::vector<E_Int>& p, const std::size_t n,
+           E_Bool search4Degen=false)
+  {
+    n_ = n; assert(n_ <= nmaxitems);
+    for (std::size_t i = 0; i < n_; i++) p_[i] = p[i];
+    std::sort(p_, p_ + n_);
+    if (search4Degen) countUnique();
+  }
+
+  void countUnique()
+  {
+    size_ = 0;
+    std::unordered_set<E_Int> pSet;
+    for (std::size_t i = 0; i < n_; i++)
+    {
+      if (pSet.insert(p_[i]).second) size_++;
+    }
+    if (size_ != n_) isDegen_ = true;
   }
 
   E_Bool operator<(const TopologyOpt& other) const
