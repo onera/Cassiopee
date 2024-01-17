@@ -79,9 +79,68 @@ def printTimeAndMemory__(message, time=-1):
 
     return None
 
+def computeMeshInfo__(z, dim):
+    if dim[0] == 'Structured':
+        # Compute nodes number
+        np = dim[1]*dim[2]*dim[3]
+        # Compute cell number
+        if dim[4] == 1:
+            ncells = dim[1]-1
+        elif dim[4] == 2:
+            ncells = (dim[1]-1)*(dim[2]-1)
+        else:
+            ncells = (dim[1]-1)*(dim[2]-1)*(dim[3]-1)
+        # Compute face number
+        if dim[4] == 1:
+            nfaces = dim[1]
+        elif dim[4] == 2:
+            nfaces = dim[1]*(dim[2]-1)+dim[2]*(dim[1]-1)
+        elif dim[4] == 3:
+            nfaces = dim[1]*(dim[2]-1)*(dim[3]-1)+ \
+                     dim[2]*(dim[3]-1)*(dim[1]-1)+ \
+                     dim[3]*(dim[1]-1)*(dim[2]-1)
+        return np, ncells, nfaces
+    return 0, 0, 0
+
+def _computeMeshInfo(t):
+    np_total, nc_total, nf_total, nzones = 0,0,0,0
+    nc0, nc1, nc2 = 0,0,0
+
+    for z in Internal.getZones(t):
+        cellN = Internal.getNodeFromName(z, 'cellN')[1]
+        c0 = numpy.count_nonzero(cellN == 0); nc0 += c0
+        c1 = numpy.count_nonzero(cellN == 1); nc1 += c1
+        c2 = numpy.count_nonzero(cellN == 2); nc2 += c2
+
+        dim = Internal.getZoneDim(z)
+        np, nc, nf = computeMeshInfo__(z, dim)
+        np_total += np
+        nc_total += nc
+        nf_total += nf
+        nzones += 1
+
+    Cmpi.barrier()
+    print("Info: mesh info for rank {}: number of points: {:.2f}M / number of cells: {:.2f}M".format(Cmpi.rank, np_total/1.e6, nc_total/1.e6))
+    Cmpi.barrier()
+
+    np_total = Cmpi.allreduce(np_total, op=Cmpi.SUM)
+    nc_total = Cmpi.allreduce(nc_total, op=Cmpi.SUM)
+    nc0 = Cmpi.allreduce(nc0, op=Cmpi.SUM)
+    nc1 = Cmpi.allreduce(nc1, op=Cmpi.SUM)
+    nc2 = Cmpi.allreduce(nc2, op=Cmpi.SUM)
+
+    natures = [ncx/float(nc_total)*100. for ncx in [nc2, nc1, nc0]]
+
+    if Cmpi.rank == 0:
+        print("Info: global mesh info: Interpolated cells (cellN 2): {:.2f}%, Computed cells (cellN 1): {:.2f}%, Blanked cells (cellN 0): {:.2f}%".format(*natures))
+        print("Info: global mesh info: total number of points: {:.2f}M / total number of cells: {:.2f}M".format(np_total/1.e6, nc_total/1.e6))
+    
+    Cmpi.barrier()
+
+    return None
 
 def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=None,
-                    snears=0.01, snearsf=None, dfar=10., dfarDir=0, dfarList=[], vmin=21, depth=2, expand=3, frontType=1, mode=0,
+                    snears=0.01, snearsf=None, dfar=10., dfarDir=0, dfarList=[], vmin=21, depth=2, frontType=1, mode=0,
                     IBCType=1, verbose=True,
                     check=False, balancing=False, distribute=False, twoFronts=False, cartesian=False,
                     yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.):
@@ -100,6 +159,8 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
         Reynolds = Internal.getValue(Reynolds)
         if Reynolds < 1.e5: frontType = 1
     else: Reynolds = 1.e6
+
+    expand = 3 if frontType != 42 else 4
     
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
     if dimPb is None: raise ValueError('prepareIBMDataPara: EquationDimension is missing in input geometry tree.')
@@ -206,7 +267,9 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
     if isinstance(t_out, str):
         tp = Compressor.compressCartesian(t)
         Cmpi.convertPyTree2File(tp, t_out, ignoreProcNodes=True)
-      
+
+    _computeMeshInfo(t)
+
     if Cmpi.size > 1: Cmpi.barrier()
     if verbose: printTimeAndMemory__('initialize and clean', time=python_time.time()-pt0)
 
