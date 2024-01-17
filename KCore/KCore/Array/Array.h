@@ -534,6 +534,13 @@ namespace K_ARRAY
                         E_Boolean center=false, E_Int api=1);
   PyObject* buildArray3(E_Int nfld,
                         const char* varString,
+                        E_Int nvertex,
+                        FldArrayI& cn, // provides ncells, ...
+                        char* eltType,
+                        E_Int center=-1, E_Int api=1,
+                        E_Bool copyConnect=false); 
+  PyObject* buildArray3(E_Int nfld,
+                        const char* varString,
                         FldArrayF& f, // provides nvertex
                         FldArrayI& cn, // provides ncells, ...
                         char* eltType,
