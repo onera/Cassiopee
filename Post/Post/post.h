@@ -34,6 +34,8 @@ namespace K_POST
   PyObject* extractPlane(PyObject* self, PyObject* args);
   PyObject* extractMesh(PyObject* self, PyObject* args);
   PyObject* projectCloudSolution2Triangle(PyObject* self, PyObject* args);
+  PyObject* prepareProjectCloudSolution2Triangle(PyObject* self, PyObject* args);
+  PyObject* projectCloudSolution2TriangleWithInterpData(PyObject* self, PyObject* args);
   PyObject* coarsen(PyObject* self, PyObject* args);
   PyObject* refine(PyObject* self, PyObject* args);
   PyObject* refineButterfly(PyObject* self, PyObject* args);

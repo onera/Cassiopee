@@ -30,6 +30,8 @@ static PyMethodDef Pypost [] =
   {"extractPoint", K_POST::extractPoint, METH_VARARGS},
   {"extractPlane", K_POST::extractPlane, METH_VARARGS},
   {"projectCloudSolution2Triangle", K_POST::projectCloudSolution2Triangle, METH_VARARGS},
+  {"prepareProjectCloudSolution2Triangle", K_POST::prepareProjectCloudSolution2Triangle, METH_VARARGS},
+  {"projectCloudSolution2TriangleWithInterpData", K_POST::projectCloudSolution2TriangleWithInterpData, METH_VARARGS},
   {"extractMesh", K_POST::extractMesh, METH_VARARGS},
   {"coarsen", K_POST::coarsen, METH_VARARGS},
   {"refine", K_POST::refine, METH_VARARGS},

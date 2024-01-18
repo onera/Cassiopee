@@ -97,9 +97,49 @@ def _projectCloudSolution(cloud, surf, dim=3, loc='nodes', oldVersion=False):
     fc = C.getAllFields(cloud, 'nodes')[0]
     zones = Internal.getZones(surf)
     for noz in range(len(zones)):
+        interpData = Internal.getNodeFromName(zones[noz], 'POST_MLS')
+        if interpData is not None:
+            offset = Internal.getNodeFromName(interpData, 'offset')[1]
+            interpDonor = Internal.getNodeFromName(interpData, 'interpDonor')[1]
+            interpCoef = Internal.getNodeFromName(interpData, 'interpCoef')[1]
+            fs = C.getAllFields(zones[noz], 'nodes')[0]
+            res = Post.projectCloudSolutionWithInterpData(fc, fs, offset, interpDonor, interpCoef, dim=dim)
+            C.setFields([res], zones[noz], 'nodes')
+        else:
+            fs = C.getAllFields(zones[noz], 'nodes')[0]
+            res = Post.projectCloudSolution(fc, fs, dim=dim, oldVersion=oldVersion)
+            C.setFields([res], zones[noz], 'nodes')
+    return None
+
+def prepareProjectCloudSolution(cloud, surf, dim=3, loc='nodes'):
+    """Compute the MLS interpolation data for projectCloudSolutionWithInterpData."""
+    surf2 = Internal.copyRef(surf)
+    _prepareProjectCloudSolution(cloud, surf2, dim=dim, loc=loc)
+    return surf2
+
+def _prepareProjectCloudSolution(cloud, surf, dim=3, loc='nodes'):
+    """Compute the MLS interpolation data for projectCloudSolutionWithInterpData."""
+    fc = C.getAllFields(cloud, 'nodes')[0]
+    zones = Internal.getZones(surf)
+    for noz in range(len(zones)):
         fs = C.getAllFields(zones[noz], 'nodes')[0]
-        res = Post.projectCloudSolution(fc, fs, dim=dim, oldVersion=oldVersion)
-        C.setFields([res], zones[noz], 'nodes')
+        res = Post.prepareProjectCloudSolution(fc, fs, dim=dim)
+
+        interpDonor, interpCoef = res
+        offset = [0]; cpt = 0
+        for listOfDonorPoints in interpDonor:
+            cpt += len(listOfDonorPoints)
+            offset.append(cpt)
+        offset = numpy.array(offset, dtype=numpy.int32)
+        interpDonor = numpy.concatenate(interpDonor)
+        interpCoef = numpy.concatenate(interpCoef)
+
+        children = []
+        children.append(Internal.createNode('offset' , 'DataArray_t', offset))
+        children.append(Internal.createNode('interpDonor' , 'DataArray_t', interpDonor))
+        children.append(Internal.createNode('interpCoef' , 'DataArray_t', interpCoef))
+        Internal._createChild(zones[noz], 'POST_MLS', 'ZoneSubRegion_t', value=None, children=children)
+
     return None
     
 # hook is a list of pointers on ADT for donor zones of t - created by C.createHook(a,'extractMesh')

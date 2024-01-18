@@ -822,8 +822,8 @@ def _loads0(ts, Sref=None, Pref=None, Qref=None, alpha=0., beta=0., dimPb=3, ver
 
         infoTime = ' (time = %.4e)'%time if time >= 0 else ''
         print("******************************************")
-        print("Total Drag%s: %.4e"%(infoTime,(cdp+cdf)))
-        print("Total Lift%s: %.4e"%(infoTime,(clp+clf)))
+        print("Total Drag%s: %.12e"%(infoTime,(cdp+cdf)))
+        print("Total Lift%s: %.12e"%(infoTime,(clp+clf)))
         print("******************************************")
 
     FSC = Internal.getNodesFromName(ts,Internal.__FlowSolutionCenters__)
@@ -1119,7 +1119,6 @@ def _prepareSkinReconstruction(ts, tc,famZones=[]):
         tl[2][1][2].append(FES)
     return tl, graphWPOST
 
-
 def _computeSkinVariables(ts, tc, tl, graphWPOST,famZones=[], ProjectOldVersion=False):
     for zc in Internal.getZones(tc):
         allIBCD = Internal.getNodesFromType(zc,"ZoneSubRegion_t")
@@ -1179,17 +1178,18 @@ def _computeSkinVariables(ts, tc, tl, graphWPOST,famZones=[], ProjectOldVersion=
                         
     return None
 
-
 #==========================================================================================
 # Post para, nouvelle version
 #==========================================================================================
-def createCloudIBM__(tc):
+def createCloudIBM__(tc, ibctypes=[]):
     tl = C.newPyTree(['CLOUD_IBCW'])
     for zc in Internal.getZones(tc):
         allIBCD = Internal.getNodesFromType(zc,"ZoneSubRegion_t")
         allIBCD = Internal.getNodesFromName(allIBCD,"IBCD_*")
         for IBCD in allIBCD:
             zname = Internal.getValue(IBCD)
+            ztype = int(IBCD[0].split("_")[1])
+            if ibctypes != [] and ztype not in ibctypes: continue
             XW = Internal.getNodeFromName(IBCD,'CoordinateX_PW')[1]
             YW = Internal.getNodeFromName(IBCD,'CoordinateY_PW')[1]
             ZW = Internal.getNodeFromName(IBCD,'CoordinateZ_PW')[1]
@@ -1276,7 +1276,7 @@ def allGatherGraph__(graph):
             for j in i[k]:
                 if not j in graph[k]: graph[k][j] = []
                 graph[k][j] += i[k][j]
-                graph[k][j] = list(set(graph[k][j]))
+                graph[k][j] = sorted(list(set(graph[k][j])))
 
     return graph
 
@@ -1314,10 +1314,10 @@ def setIBCTransfersPost__(graphIBCDPost, tl):
 
     return tl
 
-def prepareSkinReconstruction2(ts, tc):
-    alphah=2.2
+def prepareSkinReconstruction2(ts, tc, dimPb=3, ibctypes=[], prepareMLS=False):
+    alphah=2.2 # to extend the bboxes
 
-    tl = createCloudIBM__(tc)
+    tl = createCloudIBM__(tc, ibctypes=ibctypes)
     
     # CREATE graphIBCDPost 
     graph = {i:{} for i in range(Cmpi.size)}
@@ -1375,12 +1375,97 @@ def prepareSkinReconstruction2(ts, tc):
     C._initVars(td,XOD.__VELOCITYY__,0.)
     C._initVars(td,XOD.__VELOCITYZ__,0.)
 
+    # CREATE interpdata for MLS
+    if prepareMLS:
+        tl = setIBCTransfersPost__(graphIBCDPost, tl)
+        tl = T.join(tl)
+        P._prepareProjectCloudSolution(tl, td, dim=dimPb)
+
+    Cmpi.barrier()
+
     return graphIBCDPost, td
 
-def _computeSkinVariables2(ts, tc, graphIBCDPost, dimPb=3): 
-    tl = createCloudIBM__(tc)
+def _computeSkinVariables2(ts, tc, graphIBCDPost, dimPb=3, ibctypes=[]): 
+    tl = createCloudIBM__(tc, ibctypes)
     tl = setIBCTransfersPost__(graphIBCDPost, tl)
     tl = T.join(tl)
+    P._projectCloudSolution(tl, ts, dim=dimPb)
+    Cmpi.barrier()
+    return None
 
-    P._projectCloudSolution(tl, ts, dim=dimPb, oldVersion=True)
+#==========================================================================================
+# Post para, test de dev avec cloud totalement partage
+#==========================================================================================
+def allGatherCloud__(tl):
+    tl = T.join(tl)
+    z = Internal.getZones(tl)[0]; z[0] = 'cloud_rank%s'%Cmpi.rank
+    variables = [z[0] for z in Internal.getNodeByPath(tl, 'FlowSolution')[2]]
+    clouds = Cmpi.allgatherZones(z, coord=True, variables=variables)
+    clouds = T.join([Internal.getNodeFromName(clouds, 'cloud_rank%s'%i) for i in range(Cmpi.size)])
+    tl = C.newPyTree(['Base', clouds])
+
+    return tl
+
+def prepareSkinReconstruction3(ts, tc, dimPb=3, ibctypes=[], prepareMLS=False):
+    # CREATE tl
+    tl = createCloudIBM__(tc, ibctypes=ibctypes)
+    tl = allGatherCloud__(tl)
+
+    # CREATE ts 
+    refstate = Internal.getNodeFromType(ts, 'ReferenceState_t')
+    flowEqn  = Internal.getNodeFromName(ts, 'FlowEquationSet')          
+
+    td = Internal.copyRef(ts)
+    for b in Internal.getBases(td):
+        zones = Internal.getZones(b)
+        zones = [z for z in zones if Cmpi.getProc(z) == Cmpi.rank] 
+        if zones != []:
+            zones = C.convertArray2Tetra(zones)
+            zones = T.join(zones); zones = G.close(zones)
+            zones[0] = "SURF_{}".format(Cmpi.rank) 
+            b[2] = [zones]
+        Cmpi._setProc(b, Cmpi.rank)
+        Internal.addChild(b, refstate, pos=0)
+        Internal.addChild(b, flowEqn , pos=0)
+
+    # td = Internal.copyRef(ts)
+    # for b in Internal.getBases(td):
+    #     zones = Internal.getZones(b)
+    #     found = False
+    #     for z in zones:
+    #         if Cmpi.getProc(z) == Cmpi.rank: found = True; C._initVars(z, '{cellN}=0')
+    #         else: C._initVars(z, '{cellN}=1')
+    #     if zones != [] and found:
+    #         zones = C.convertArray2Tetra(zones)
+    #         zones = X.setHoleInterpolatedPoints(zones,depth=2,dir=0,loc='nodes',cellNName='cellN')
+    #         zones = P.selectCells(zones, '({cellN}<0.5)+({cellN}>1.5)', strict=1)
+    #         zones = T.join(zones); zones = G.close(zones)
+    #         zones[0] = "SURF_{}".format(Cmpi.rank) 
+    #         b[2] = [zones]
+    #     Cmpi._setProc(b, Cmpi.rank)
+    #     Internal.addChild(b, refstate, pos=0)
+    #     Internal.addChild(b, flowEqn , pos=0)
+
+    C._initVars(td,XOD.__PRESSURE__,0.)
+    C._initVars(td,XOD.__DENSITY__,0.)
+    C._initVars(td,XOD.__UTAU__,0.)
+    C._initVars(td,XOD.__YPLUS__,0.)
+    C._initVars(td,"yplusIP",0.)
+
+    C._initVars(td,XOD.__VELOCITYX__,0.)
+    C._initVars(td,XOD.__VELOCITYY__,0.)
+    C._initVars(td,XOD.__VELOCITYZ__,0.)
+
+    # CREATE interpdata for MLS
+    if prepareMLS: P._prepareProjectCloudSolution(tl, td, dim=dimPb)
+
+    Cmpi.barrier()
+
+    return td
+
+def _computeSkinVariables3(ts, tc, dimPb=3, ibctypes=[]): 
+    tl = createCloudIBM__(tc, ibctypes)
+    tl = allGatherCloud__(tl)
+    P._projectCloudSolution(tl, ts, dim=dimPb)
+    Cmpi.barrier()
     return None
