@@ -142,6 +142,7 @@ namespace K_LINEAR
      OUT: L: eigenvalues
      OUT: v1, v2, v3: eigenvectors
   */
-  void sym3mat_eigen(const E_Float [6], E_Float L[3], E_Float v1[3], E_Float v2[3], E_Float v3[3], const E_Float tol = K_MATH::SMALL);
+  void sym3mat_eigen(const E_Float [6], E_Float L[3], E_Float v1[3],
+    E_Float v2[3], E_Float v3[3], const E_Float tol = 1e-12);
 }
 #endif

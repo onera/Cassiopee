@@ -43,7 +43,8 @@ void K_LINEAR::sym3mat_eigen(const E_Float M[6], E_Float L[3],
     valm = fabs(M[i]);
     if (valm > maxm) maxm = valm;
   }
-  if (maxm < tol) return;
+  if (maxm < 5e-6) return;
+  //if (maxm < tol) return;
   
   // Normalize matrix
   E_Float dd = 1. / maxm;
@@ -57,7 +58,8 @@ void K_LINEAR::sym3mat_eigen(const E_Float M[6], E_Float L[3],
   if (valm > maxd) maxd = valm;
   valm = fabs(A[4]);
   if (valm > maxd) maxd = valm;
-  if (maxd < tol) return; // Off-diagonal coeffs are smaller than tol
+  if (maxd < 1e-13) return;
+  //if (maxd < tol) return; // Off-diagonal coeffs are smaller than tol
 
   thirdTrA = (A[0] + A[3] + A[5]) / 3.0;
   Ap[0] = A[0] - thirdTrA;
@@ -152,6 +154,8 @@ void K_LINEAR::sym3mat_eigen(const E_Float M[6], E_Float L[3],
   }
 
   K_MATH::cross(s1, s2, v1);
+  norm1 = K_MATH::norm(v1, 3);
+  v1[0] = v1[0] / norm1; v1[1] = v1[1] / norm1; v1[2] = v1[2] / norm1;
   
   // Reduced form of Ap
   K_MATH::sym3mat_dot_vec(Ap, s1, tmp1);
@@ -193,7 +197,16 @@ void K_LINEAR::sym3mat_eigen(const E_Float M[6], E_Float L[3],
   }
 
   K_MATH::cross(w1, v1, v2);
+  norm2 = K_MATH::norm(v2, 3);
+  v2[0] = v2[0] / norm2;
+  v2[1] = v2[1] / norm2;
+  v2[2] = v2[2] / norm2;
+
   K_MATH::cross(v1, v2, v3);
+  norm3 = K_MATH::norm(v3, 3);
+  v3[0] = v3[0] / norm3;
+  v3[1] = v3[1] / norm3;
+  v3[2] = v3[2] / norm3;
 
   for (E_Int i = 0; i < 3; i++)
     L[i] = (L[i] + thirdTrA) * maxm;

@@ -414,14 +414,14 @@ void K_METRIC::compute_cell_centers_and_vols
     E_Float *fc = &fcenters[3*i];
     E_Float *cE;
     
-    E_Int own = owner[i]-1;
-    assert(own < ncells);
+    E_Int own = owner[i];
+    assert(own >= 0 && own < ncells);
     cE = &cEst[3*own];
 
     for (E_Int j = 0; j < 3; j++) cE[j] += fc[j];
 
-    E_Int nei = neigh[i]-1;
-    assert(nei < ncells);
+    E_Int nei = neigh[i];
+    assert(nei >= -1 && nei < ncells);
     if (nei == -1) continue;
     
     cE = &cEst[3*nei];
@@ -447,8 +447,8 @@ void K_METRIC::compute_cell_centers_and_vols
     E_Float *fc = &fcenters[3*i];
     E_Float pyr3vol, pc[3], *cE, d[3];
 
-    E_Int own = owner[i]-1;
-    assert(own < ncells);
+    E_Int own = owner[i];
+    assert(own >= 0 && own < ncells);
     cE = &cEst[3*own];
     for (E_Int j = 0; j < 3; j++) d[j] = fc[j]-cE[j];
     pyr3vol = K_MATH::dot(fa, d, 3);
@@ -458,8 +458,8 @@ void K_METRIC::compute_cell_centers_and_vols
     cz[own] += pyr3vol*pc[2];
     vols[own] += pyr3vol;
 
-    E_Int nei = neigh[i]-1;
-    assert(nei < ncells);
+    E_Int nei = neigh[i];
+    assert(nei >= -1 && nei < ncells);
     if (nei == -1) continue;
 
     cE = &cEst[3*nei];
@@ -478,6 +478,10 @@ void K_METRIC::compute_cell_centers_and_vols
     cy[i] *= coeff;
     cz[i] *= coeff;
     vols[i] /= 3.0;
+    if (vols[i] <= 0.0) {
+      fprintf(stderr, "Warning: cell %d has negative volume %f\n",
+        i, vols[i]);
+    }
     assert(vols[i] > 0.0);
   }
 

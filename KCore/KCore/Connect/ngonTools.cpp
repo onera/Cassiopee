@@ -271,8 +271,8 @@ void get_boundary(E_Int *pn0, E_Int s0, E_Int *pn1, E_Int s1, E_Int *m,
 }
 
 // Deduce orientation of connected faces based on orientation of seed face
-void K_CONNECT::reversi_connex(E_Int *pgs, E_Int *xpgs, E_Int npgs, E_Int *neighbours, E_Int kseed,
-  std::vector<E_Int> &orient)
+void K_CONNECT::reversi_connex(E_Int *pgs, E_Int *xpgs, E_Int npgs,
+  E_Int *neighbours, E_Int kseed, std::vector<E_Int> &orient)
 {
   assert(kseed < npgs);
   std::vector<E_Int> cpool;
@@ -583,17 +583,17 @@ E_Int K_CONNECT::orient_boundary_ngon(E_Float *x, E_Float *y, E_Float *z,
   }
   
   // Apply orientation
-  //E_Int nrev = 0;
+  E_Int nrev = 0;
   for (E_Int i = 0; i < nefaces; i++) {
     if (forient[i] == -1) {
       E_Int face = efaces[i]; // 0-based
       E_Int stride = -1;
       E_Int *pn = cn.getFace(face, stride, ngon, indPG);
       std::reverse(pn+1, pn+stride);
-      //nrev++;
+      nrev++;
     }
   }
-  //printf("orient_boundary(): reversed %d faces\n", nrev);
+  printf("Orient_boundary(): flipped %d faces\n", nrev);
 
   return ret;
 }
