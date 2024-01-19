@@ -6,6 +6,24 @@
 
 #define DSMALL 1e-14
 
+E_Int Get_pos(E_Int e, E_Int *pn, E_Int size)
+{
+  for (E_Int i = 0; i < size; i++) {
+    if (pn[i] == e)
+      return i;
+  }
+  return -1;
+}
+
+void Right_shift(E_Int *pn, E_Int pos, E_Int size)
+{
+  E_Int tmp[10];
+  assert(size <= 10);
+  for (E_Int i = 0; i < size; i++) tmp[i] = pn[i];
+  for (E_Int i = 0; i < size; i++)
+    pn[i] = tmp[(i+pos)%size];
+}
+
 void close_mesh(AMesh *M)
 {
   Edge e;
@@ -13,6 +31,8 @@ void close_mesh(AMesh *M)
   E_Int closed_ngon_size = 0;
 
   for (E_Int i = 0; i < M->nfaces; i++) {
+    assert(M->faceTree->state(i) != GONE);
+
     E_Int np = -1;
     E_Int *pn = get_face(i, np, M->ngon, M->indPG);
     
@@ -20,9 +40,9 @@ void close_mesh(AMesh *M)
       e.set(pn[j], pn[(j+1)%np]);
 
       // Was this edge refined?
-      auto search = M->ecenter.find(e);
+      auto search = M->ecenter->find(e);
 
-      if (search != M->ecenter.end()) {
+      if (search != M->ecenter->end()) {
         // Yes
         closed_ngon_size += 2;
       } else {
@@ -31,9 +51,10 @@ void close_mesh(AMesh *M)
     }
   }
 
-  M->closed_ngon = (E_Int *)XMALLOC(closed_ngon_size * sizeof(E_Int));
-
-  M->closed_indPG = (E_Int *)XMALLOC((M->nfaces+1) * sizeof(E_Int));
+  M->closed_ngon = (E_Int *)XRESIZE(M->closed_ngon, closed_ngon_size * sizeof(E_Int));
+  M->closed_indPG = (E_Int *)XRESIZE(M->closed_indPG, (M->nfaces+1) * sizeof(E_Int));
+  memset(M->closed_ngon,  -1, closed_ngon_size * sizeof(E_Int));
+  memset(M->closed_indPG, -1, (M->nfaces+1) * sizeof(E_Int));
 
   E_Int *closed_ngon = M->closed_ngon;
   E_Int *closed_indPG = M->closed_indPG;
@@ -54,9 +75,9 @@ void close_mesh(AMesh *M)
 
       e.set(p0, p1);
 
-      auto search = M->ecenter.find(e);
+      auto search = M->ecenter->find(e);
 
-      if (search != M->ecenter.end()) {
+      if (search != M->ecenter->end()) {
         *ptr++ = p0;
         *ptr++ = search->second;
         stride += 2;
@@ -189,43 +210,6 @@ void Flag_and_get_external_faces(AMesh *M, std::vector<E_Int> &fflags,
 }
 
 static
-E_Int get_orientation(E_Int *pn, E_Int stride, E_Int ni, E_Int nj,
-  E_Int *same_orient)
-{
-  *same_orient = 0;
-  for (E_Int i = 0; i < stride; i++) {
-    if (pn[i] == ni && pn[(i+1)%stride] == nj) {
-      *same_orient = 1;
-      return 0;
-    }
-    if (pn[i] == nj && pn[(i+1)%stride] == ni) {
-      *same_orient = 0;
-      return 0;
-    }
-  }
-  return -1;
-}
-
-static
-void get_boundary(E_Int *pn0, E_Int s0, E_Int *pn1, E_Int s1, E_Int *m,
-  E_Int *n)
-{
-  for (E_Int i = 0; i < s0; i++) {
-    E_Int n00 = pn0[i];
-    E_Int n01 = pn0[(i+1)%s0];
-    for (E_Int j = 0; j < s1; j++) {
-      E_Int n10 = pn1[j];
-      E_Int n11 = pn1[(j+1)%s1];
-      if ((n00 == n10 || n00 == n11) && (n01 == n10 || n01 == n11)) {
-        *m = i;
-        *n = j;
-        return;
-      }
-    }
-  }
-}
-
-static
 E_Int _Orient_boundary
 (
   AMesh *M,
@@ -336,37 +320,6 @@ void Extract_nface_of_kept_pgs(AMesh *M, const std::vector<bool> &kept_pgs,
 
   for (size_t i = 0; i < xadj.size(); i++)
     xadj[i+1] += xadj[i];
-}
-
-static
-void flag_and_get_external_faces(AMesh *M, std::vector<E_Int> &fflags,
-  std::vector<E_Int> &efaces)
-{
-  E_Int nfaces = M->nfaces;
-  E_Int ncells = M->ncells;
-  E_Int *indPH = M->indPH;
-  E_Int *nface = M->nface;
-
-  std::vector<E_Int> face_count(nfaces, 0);
-
-  // Loop through the elements and increment face_count
-  for (E_Int i = 0; i < ncells; i++) {
-    E_Int stride = -1;
-    E_Int *pf = get_cell(i, stride, nface, indPH);
-    for (E_Int j = 0; j < stride; ++j)
-      face_count[pf[j]]++;
-  }
-
-  // External faces are those with a count equal to 1
-  fflags.resize(nfaces);
-  for (E_Int i = 0; i < nfaces; i++) {
-    if (face_count[i] == 1) {
-      fflags[i] = EXTERNAL;
-      efaces.push_back(i);
-    } else {
-      fflags[i] = INTERNAL;
-    }
-  }
 }
 
 static
@@ -685,4 +638,31 @@ E_Int Build_own_nei(AMesh *M)
   //printf("build_parent_elements(): connex parts: %d\n", nconnex);
 
   return 0;
+}
+
+E_Int check_closed_cell(E_Int cell, E_Int *pf, E_Int stride, AMesh *M)
+{
+  // Closed cell: edge count = 2 for all edges
+  Edge E;
+  std::map<Edge, E_Int> edgeCount;
+  for (E_Int i = 0; i < stride; i++) {
+    E_Int face = pf[i];
+    E_Int np = -1;
+    E_Int *pn = get_face(face, np, M->ngon, M->indPG);
+    for (E_Int j = 0; j < np; j++) {
+      E_Int p0 = pn[j];
+      E_Int p1 = pn[(j+1)%np];
+      E.set(p0, p1);
+      edgeCount[E]++;
+    }
+  }
+
+  for (auto& ec : edgeCount) {
+    if (ec.second != 2) {
+      fprintf(stderr, "Warning: Cell %d is not closed.\n", cell); 
+      return 0;
+    }
+  }
+
+  return 1;
 }

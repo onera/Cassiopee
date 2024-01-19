@@ -1,6 +1,36 @@
 #include "Proto.h"
 #include <cassert>
 
+E_Int master_face(E_Int face, AMesh *M)
+{
+  return M->faceTree->children(face) ? face : M->faceTree->parent(face);
+}
+
+//E_Int master_cell(E_Int cell, AMesh *M)
+//{
+//  return cell == -1 ? cell : 
+//    (M->cellTree->children(cell) ? cell : M->cellTree->parent(cell)); 
+//}
+
+E_Int master_cell(E_Int cell, AMesh *M)
+{
+  if (cell == -1) return -1;
+  return M->cellTree->children(cell) ? cell : M->cellTree->parent(cell);
+}
+
+const char *type_to_string(E_Int type)
+{
+  switch (type) {
+    case HEXA: return "HEXA";
+    case TETRA: return "TETRA";
+    case PENTA: return "PENTA";
+    case PYRA: return "PYRA";
+    default:
+      assert(0);
+      return NULL;
+  }
+}
+
 void ngon_print(AMesh *M)
 {
   puts("");
@@ -47,23 +77,18 @@ bool Edge::operator<(const Edge &e) const
 }
 
 AMesh::AMesh() :
-  ncells(-1), nfaces(-1), npoints(-1),
+  ncells(-1), nfaces(-1), npoints(-1), nif(-1), nbf(-1),
   x(NULL), y(NULL), z(NULL),
-  owner(NULL), neigh(NULL),
   nface(NULL), indPH(NULL), ngon(NULL), indPG(NULL),
-  ecenter(),
+  owner(NULL), neigh(NULL),
+  nbc(-1), ptlists(NULL), bcsizes(NULL), bcnames(NULL),
   patches(NULL), npatches(-1),
   pid(-1), npc(-1), nreq(-1), req(NULL),
+  ecenter(NULL),
   cellTree(NULL), faceTree(NULL),
-  fc(NULL), fa(NULL), cx(NULL), cy(NULL), cz(NULL),
-  xn(NULL), yn(NULL), zn(NULL), fn(NULL),
-  lsqG(NULL), lsqGG(NULL), lsqH(NULL), lsqHH(NULL),
-  ref_data(NULL), ref_Tr(-1.0), unref_Tr(-1.0),
-  nref_hexa(-1), nref_tetra(-1), nref_penta(-1), nref_pyra(-1),
-  nunref_hexa(-1), nunref_tetra(-1), nunref_penta(-1), nunref_pyra(-1),
-  nbc(-1), ptlists(NULL), bcsizes(NULL), bcnames(NULL),
-  nif(-1), nbf(-1),
-  closed_indPG(NULL), closed_ngon(NULL)
+  ref_data(NULL), Tr(-1.0), Tu(-1.0),
+  closed_indPG(NULL), closed_ngon(NULL),
+  fc(NULL), cx(NULL), cy(NULL), cz(NULL)
 {
   MPI_Comm_rank(MPI_COMM_WORLD, &pid);
   MPI_Comm_size(MPI_COMM_WORLD, &npc);
@@ -171,107 +196,16 @@ void compute_face_center_and_area(E_Int id, E_Int stride,
   }
 }
 
-void make_cell_centers(AMesh *M)
-{
-  // Make face centers and areas
-  M->fc = (E_Float *)XRESIZE(M->fc, M->nfaces*3 * sizeof(E_Float));
-  M->fa = (E_Float *)XRESIZE(M->fa, M->nfaces*3 * sizeof(E_Float));
-  
-  for (E_Int i = 0; i < M->nfaces; i++) {
-    E_Int np = -1;
-    E_Int *pn = get_face(i, np, M->ngon, M->indPG);
-    compute_face_center_and_area(i, np, pn, M->x, M->y, M->z,
-      &M->fc[3*i], &M->fa[3*i]);
-  }
-
-  // Estimate cell centers as average of face centers
-  E_Float *cEst = (E_Float *)XCALLOC(M->ncells*3, sizeof(E_Float));
-  for (E_Int i = 0; i < M->nfaces; i++) {
-    E_Float *fc = &M->fc[3*i];
-    E_Float *cE;
-
-    E_Int own = M->owner[i];
-    assert(own < M->ncells);
-    cE = &cEst[3*own];
-
-    for (E_Int j = 0; j < 3; j++) cE[j] += fc[j];
-
-    E_Int nei = M->neigh[i];
-    assert(nei < M->ncells);
-    if (nei == -1) continue;
-
-    cE = &cEst[3*nei];
-
-    for (E_Int j = 0; j < 3; j++) cE[j] += fc[j];
-  }
-
-  for (E_Int i = 0; i < M->ncells; i++) {
-    E_Int nf = -1;
-    get_cell(i, nf, M->nface, M->indPH);
-    E_Float *cE = &cEst[3*i];
-    for (E_Int j = 0; j < 3; j++)
-      cE[j] /= nf;
-  }
-
-  E_Float *vols = (E_Float *)XMALLOC(M->ncells * sizeof(E_Float));
-  M->cx = (E_Float *)XRESIZE(M->cx, M->ncells * sizeof(E_Float));
-  M->cy = (E_Float *)XRESIZE(M->cy, M->ncells * sizeof(E_Float));
-  M->cz = (E_Float *)XRESIZE(M->cz, M->ncells * sizeof(E_Float));
-   
-  memset(vols,  0, M->ncells*sizeof(E_Float));
-  memset(M->cx, 0, M->ncells*sizeof(E_Float));
-  memset(M->cy, 0, M->ncells*sizeof(E_Float));
-  memset(M->cz, 0, M->ncells*sizeof(E_Float));
-
-  for (E_Int i = 0; i < M->nfaces; i++) {
-    E_Float *fa = &M->fa[3*i];
-    E_Float *fc = &M->fc[3*i];
-    E_Float pyr3vol, pc[3], *cE, d[3];
-
-    E_Int own = M->owner[i];
-    cE = &cEst[3*own];
-    for (E_Int j = 0; j < 3; j++) d[j] = fc[j]-cE[j];
-    pyr3vol = K_MATH::dot(fa, d, 3);
-    for (E_Int j = 0; j < 3; j++) pc[j]= 0.75*fc[j] + 0.25*cE[j];
-    M->cx[own] += pyr3vol*pc[0];
-    M->cy[own] += pyr3vol*pc[1];
-    M->cz[own] += pyr3vol*pc[2];
-    vols[own] += pyr3vol;
-
-    E_Int nei = M->neigh[i];
-    if (nei == -1) continue;
-
-    cE = &cEst[3*nei];
-    for (E_Int j = 0; j < 3; j++) d[j] = cE[j]-fc[j];
-    pyr3vol = K_MATH::dot(fa, d, 3);
-    for (E_Int j = 0; j < 3; j++) pc[j]= 0.75*fc[j] + 0.25*cE[j];
-    M->cx[nei] += pyr3vol*pc[0];
-    M->cy[nei] += pyr3vol*pc[1];
-    M->cz[nei] += pyr3vol*pc[2];
-    vols[nei] += pyr3vol;
-  }
-
-  for (E_Int i = 0; i < M->ncells; i++) {
-    E_Float coeff = 1.0/vols[i];
-    M->cx[i] *= coeff;
-    M->cy[i] *= coeff;
-    M->cz[i] *= coeff;
-  }
-
-  XFREE(cEst);
-  XFREE(vols);
-}
-
 E_Int set_faces_type(AMesh *M)
 {
   for (E_Int i = 0; i < M->nfaces; i++) {
     E_Int np = get_stride(i, M->indPG);
     switch (np) {
       case 3:
-        M->faceTree[i]->type = TRI;
+        M->faceTree->type_[i] = TRI;
         break;
       case 4:
-        M->faceTree[i]->type = QUAD;
+        M->faceTree->type_[i] = QUAD;
         break;
       default:
         return 1;
@@ -287,7 +221,7 @@ E_Int set_cells_type(AMesh *M)
     E_Int nf = get_stride(i, M->indPH);
     switch (nf) {
       case 4:
-        M->cellTree[i]->type = TETRA;
+        M->cellTree->type_[i] = TETRA;
         break;
       case 5: {
         // Prism: 2 TRI + 3 QUAD
@@ -296,15 +230,16 @@ E_Int set_cells_type(AMesh *M)
         ntri = nquad = 0;
         E_Int *pf = &M->nface[M->indPH[i]];
         for (E_Int j = 0; j < nf; j++)
-          M->faceTree[pf[j]]->type == TRI ? ntri++ : nquad++;
+          M->faceTree->type_[pf[j]] == TRI ? ntri++ : nquad++;
         E_Int is_penta = ntri == 2 && nquad == 3;
         E_Int is_pyra = ntri == 4 && nquad == 1;
-        if (is_penta) M->cellTree[i]->type = PENTA;
-        else M->cellTree[i]->type = PYRA;
+        if (is_penta) M->cellTree->type_[i] = PENTA;
+        else if (is_pyra) M->cellTree->type_[i] = PYRA;
+        else assert(0);
         break;
       }
       case 6:
-        M->cellTree[i]->type = HEXA;
+        M->cellTree->type_[i] = HEXA;
         break;
       default:
         assert(0);
@@ -529,7 +464,7 @@ void reorder_cells(AMesh *M)
   for (E_Int i = 0; i < M->ncells; i++) {
     E_Int nf = -1;
     E_Int *pf = get_cell(i, nf, M->nface, M->indPH);
-    E_Int ctype = M->cellTree[i]->type;
+    E_Int ctype = M->cellTree->type_[i];
 
     switch (ctype) {
       case TETRA:
@@ -546,32 +481,35 @@ void reorder_cells(AMesh *M)
         break;
       default:
         assert(0);
+        break;
     }
   }
 }
 
-void check_canon_cells(AMesh *M)
+E_Int check_canon_cells(AMesh *M)
 {
   for (E_Int i = 0; i < M->ncells; i++) {
-    E_Int type = M->cellTree[i]->type;
+    E_Int type = M->cellTree->type_[i];
     switch (type) {
       case HEXA:
-        check_canon_hexa(i, M);
+        assert(check_canon_hexa(i, M));
         break;
       case TETRA:
-        check_canon_tetra(i, M);
+        assert(check_canon_tetra(i, M));
         break;
       case PENTA:
-        check_canon_penta(i, M);
+        assert(check_canon_penta(i, M));
         break;
       case PYRA:
-        check_canon_pyra(i, M);
+        assert(check_canon_pyra(i, M));
         break;
       default:
         assert(0);
         break;
     }
   }
+
+  return 1;
 }
 
 void Order_tri(E_Int *local, E_Int *pn, E_Int reorient, E_Int i0)
@@ -588,7 +526,7 @@ void Order_quad(E_Int *local, E_Int *pn, E_Int reorient, E_Int i0)
   if (reorient) std::swap(local[1], local[3]);
 }
 
-void check_canon_tetra(E_Int cell, AMesh *M)
+E_Int check_canon_tetra(E_Int cell, AMesh *M)
 {
   E_Int NODES[4] = {-1, -1, -1, -1};
 
@@ -633,9 +571,11 @@ void check_canon_tetra(E_Int cell, AMesh *M)
   assert(local[0] == NODES[0]);
   assert(local[1] == NODES[1]);
   assert(local[2] == NODES[3]);
+
+  return 1;
 }
 
-void check_canon_hexa(E_Int cell, AMesh *M)
+E_Int check_canon_hexa(E_Int cell, AMesh *M)
 {
   E_Int NODES[8] = {-1, -1, -1, -1, -1, -1, -1, -1};
 
@@ -705,9 +645,11 @@ void check_canon_hexa(E_Int cell, AMesh *M)
   assert(local[1] == NODES[5]);
   assert(local[2] == NODES[6]);
   assert(local[3] == NODES[7]);
+
+  return 1;
 }
 
-void check_canon_penta(E_Int cell, AMesh *M)
+E_Int check_canon_penta(E_Int cell, AMesh *M)
 {
   E_Int NODES[6] = {-1, -1, -1, -1, -1, -1};
 
@@ -766,9 +708,11 @@ void check_canon_penta(E_Int cell, AMesh *M)
   assert(local[0] == NODES[3]);
   assert(local[1] == NODES[4]);
   assert(local[2] == NODES[5]);
+
+  return 1;
 }
 
-void check_canon_pyra(E_Int cell, AMesh *M)
+E_Int check_canon_pyra(E_Int cell, AMesh *M)
 {
   E_Int NODES[5] = {-1, -1, -1, -1, -1};
 
@@ -823,6 +767,8 @@ void check_canon_pyra(E_Int cell, AMesh *M)
   assert(local[0] == NODES[2]);
   assert(local[1] == NODES[3]);
   assert(local[2] == NODES[4]);
+
+  return 1;
 }
 
 E_Int is_internal_face(E_Int face, AMesh *M)
@@ -881,55 +827,61 @@ AMesh *init_mesh(K_FLD::FldArrayI &cn, E_Float *px, E_Float *py,
       *ptr++ = pn[j]-1;
   }
 
+  M->ecenter = new std::map<Edge, E_Int>;
+
   return M;
 }
-
-static inline
-E_Int Tree_get_nchildren(E_Int id, Element **tree)
-{
-  return tree[id]->nchildren;
-}
-
-static inline
-E_Int *Tree_get_children(E_Int id, Element **tree)
-{
-  return tree[id]->children;
-}
-
-static inline
-E_Int Tree_get_level(E_Int id, Element **tree)
-{
-  return tree[id]->level;
-}
-
 
 void get_full_cell(E_Int cell, AMesh *M, E_Int &nf, E_Int *pf)
 {
   E_Int stride = -1;
   E_Int *FACES = get_cell(cell, stride, M->nface, M->indPH);
   nf = 0;
-  E_Int clvl = Tree_get_level(cell, M->cellTree);
 
   for (E_Int i = 0; i < stride; i++) {
     E_Int face = FACES[i];
-    E_Int flvl = Tree_get_level(face, M->faceTree);
-    
+
+    E_Int flvl = M->faceTree->level(face);
+    E_Int clvl = M->cellTree->level(cell);
+
+    assert(flvl >= clvl);
+
     if (flvl == clvl) {
       pf[nf++] = face;
     } else {
-      E_Int nchildren = Tree_get_nchildren(face, M->faceTree);
-      if (nchildren == 0) {
+      assert(master_face(face, M) == face);
+      Children *children = M->faceTree->children(face);
+      for (E_Int j = 0; j < children->n; j++)
+        pf[nf++] = children->pc[j];
+    }
+
+    /*
+    if (flvl == clvl) {
+      pf[nf++] = face;
+    } else {
+      assert(master_face(face, M) == face);
+      E_Int master = master_face(face, M);
+      if (M->faceTree->state(face) == UNREFINED) {
         pf[nf++] = face;
       } else {
-        E_Int *children = Tree_get_children(face, M->faceTree);
-        for (E_Int j = 0; j < nchildren; j++)
-          pf[nf++] = children[j];
+        Children *children = M->faceTree->children(master);
+        if (children == NULL) {
+          assert(0);
+          pf[nf++] = master;
+        } else {
+          for (E_Int j = 0; j < children->n; j++)
+            pf[nf++] = children->pc[j];
+        }
       }
     }
+    */
   }
 }
 
 // TODO(Imad): update comm patch faces
+
+// Keep refined faces and their children, untouched faces and unrefined
+// faces
 
 void update_boundary_faces(AMesh *M)
 {
@@ -937,12 +889,18 @@ void update_boundary_faces(AMesh *M)
   for (E_Int i = 0; i < M->nbc; i++) {
     E_Int *ptlist = M->ptlists[i];
     
-    // How many faces on current boundary have been refined?
+    // How many faces on current boundary have been refined/unrefined?
     E_Int new_bcsize = 0;
     for (E_Int j = 0; j < M->bcsizes[i]; j++) {
       E_Int face = ptlist[j];
-      E_Int nchildren = Tree_get_nchildren(face, M->faceTree);
-      new_bcsize = nchildren == 0 ? new_bcsize + 1 : new_bcsize + nchildren;
+      E_Int state = M->faceTree->state(face);
+
+      if (state == UNTOUCHED)
+        new_bcsize += 1;
+      else if (state == REFINED)
+        new_bcsize += M->faceTree->children(face)->n;
+      else if (state == UNREFINED)
+        new_bcsize += 1;
     }
 
     M->nbf += new_bcsize;
@@ -952,12 +910,13 @@ void update_boundary_faces(AMesh *M)
 
     for (E_Int j = 0; j < M->bcsizes[i]; j++) {
       E_Int face = ptlist[j];
-      E_Int nchildren = Tree_get_nchildren(face, M->faceTree);
-      if (nchildren == 0) {
+      E_Int state = M->faceTree->state(face);
+      
+      if (state == UNTOUCHED || state == UNREFINED) {
         *ptr++ = face;
-      } else {
-        E_Int *children = Tree_get_children(face, M->faceTree);
-        for (E_Int k = 0; k < nchildren; k++) *ptr++ = children[k];
+      } else if (state == REFINED) {
+        Children *children = M->faceTree->children(face);
+        for (E_Int k = 0; k < children->n; k++) *ptr++ = children->pc[k];
       }
     }
 
@@ -968,4 +927,220 @@ void update_boundary_faces(AMesh *M)
   }
 
   M->nif = M->nfaces - M->nbf;
+}
+
+void renumber_mesh(AMesh *M, const std::vector<E_Int> &new_cells,
+  const std::vector<E_Int> &new_faces, E_Int new_ncells, E_Int new_nfaces,
+  E_Int sizeNFace, E_Int sizeNGon)
+{
+  // ngon
+  E_Int *indPG = (E_Int *)XMALLOC((new_nfaces+1) * sizeof(E_Int));
+  indPG[0] = 0;
+  
+  for (E_Int i = 0; i < M->nfaces; i++) {
+    E_Int new_face = new_faces[i];
+    if (new_face == -1) continue;
+
+    indPG[new_face+1] = get_stride(i, M->indPG);
+  }
+
+  for (E_Int i = 0; i < new_nfaces; i++) indPG[i+1] += indPG[i];
+  assert(indPG[new_nfaces] == sizeNGon);
+
+  E_Int *ngon = (E_Int *)XMALLOC(sizeNGon * sizeof(E_Int));
+  
+  for (E_Int i = 0; i < M->nfaces; i++) {
+    E_Int new_face = new_faces[i];
+    if (new_face == -1) continue;
+
+    E_Int np = -1;
+    E_Int *pn = get_face(i, np, M->ngon, M->indPG);
+
+    E_Int *ptr = &ngon[indPG[new_face]];
+
+    for (E_Int j = 0; j < np; j++)
+      *ptr++ = pn[j];
+  }
+
+
+
+  // nface
+  E_Int *indPH = (E_Int *)XMALLOC((new_ncells+1) * sizeof(E_Int));
+  indPH[0] = 0;
+  
+  for (E_Int i = 0; i < M->ncells; i++) {
+    E_Int new_cell = new_cells[i];
+    if (new_cell == -1) continue;
+
+    indPH[new_cell+1] = get_stride(i, M->indPH);
+  }
+
+  for (E_Int i = 0; i < new_ncells; i++) indPH[i+1] += indPH[i];
+  assert(indPH[new_ncells] == sizeNFace);
+
+  E_Int *nface = (E_Int *)XMALLOC(sizeNFace * sizeof(E_Int));
+  
+  for (E_Int i = 0; i < M->ncells; i++) {
+    E_Int new_cell = new_cells[i];
+    if (new_cell == -1) {
+      continue;
+    }
+
+    E_Int nf = -1;
+    E_Int *pf = get_cell(i, nf, M->nface, M->indPH);
+
+    E_Int *ptr = &nface[indPH[new_cell]];
+
+    for (E_Int j = 0; j < nf; j++) {
+      *ptr++ = new_faces[pf[j]];
+    }
+  }
+
+  // points
+  E_Int new_npoints = 0;
+  std::vector<E_Int> new_points(M->npoints, -1);
+  for (E_Int i = 0; i < sizeNGon; i++) {
+    E_Int point = ngon[i];
+    if (new_points[point] == -1)
+      new_points[point] = new_npoints++;
+  }
+
+  // ecenter
+  Edge E;
+  std::map<Edge, E_Int> *ecenter = new std::map<Edge, E_Int>;
+
+  for (auto& e : *(M->ecenter)) {
+    E_Int ec = e.second;
+    
+    // Delete GONE edge centers
+    if (new_points[ec] == -1)
+      continue;
+    
+    E_Int n0 = e.first.p0_;
+    E_Int n1 = e.first.p1_;
+    assert(new_points[n0] != -1);
+    assert(new_points[n1] != -1);
+    
+    E.set(new_points[n0], new_points[n1]);
+
+    ecenter->insert({E, new_points[ec]});
+  }
+
+  for (E_Int i = 0; i < sizeNGon; i++) {
+    ngon[i] = new_points[ngon[i]];
+  }
+
+  // xyz
+  E_Float *x = (E_Float *)XMALLOC(new_npoints * sizeof(E_Float));
+  E_Float *y = (E_Float *)XMALLOC(new_npoints * sizeof(E_Float));
+  E_Float *z = (E_Float *)XMALLOC(new_npoints * sizeof(E_Float));
+
+  for (E_Int i = 0; i < M->npoints; i++) {
+    if (new_points[i] == -1) continue;
+    x[new_points[i]] = M->x[i];
+    y[new_points[i]] = M->y[i];
+    z[new_points[i]] = M->z[i];
+  }
+
+  // owner and neigh
+  E_Int *owner = (E_Int *)XMALLOC(new_nfaces * sizeof(E_Int));
+  E_Int *neigh = (E_Int *)XMALLOC(new_nfaces * sizeof(E_Int));
+  
+  for (E_Int i = 0; i < M->nfaces; i++) {
+    if (new_faces[i] == -1) continue;
+
+    owner[new_faces[i]] = new_cells[M->owner[i]];
+
+    if (M->neigh[i] == -1) neigh[new_faces[i]] = -1;
+    else {
+      neigh[new_faces[i]] = new_cells[M->neigh[i]];
+    }
+  }
+
+  // patches
+  for (E_Int i = 0; i < M->nbc; i++) {
+    E_Int *ptlist = M->ptlists[i];
+
+    // Replace
+    for (E_Int j = 0; j < M->bcsizes[i]; j++) {
+      ptlist[j] = new_faces[ptlist[j]];
+    }
+  }
+
+  // ref_data
+  //puts("Warning: ref data is not renumbered");
+  int *ref_data = (E_Int *)XMALLOC(new_ncells * sizeof(int));
+  for (E_Int i = 0; i < M->ncells; i++) {
+    if (new_cells[i] != -1)
+      ref_data[new_cells[i]] = M->ref_data[i];
+  }
+
+  /*
+  for (E_Int i = 0; i < new_ncells; i++) {
+    for (E_Int j = indPH[i]; j < indPH[i+1]; j++)
+      printf("%d ", nface[j]);
+    printf("| ");
+  }
+  puts("");
+  */
+
+  // face/cell centers
+  E_Float *fc = (E_Float *)XMALLOC(3*new_nfaces * sizeof(E_Float));
+  E_Float *cx = (E_Float *)XMALLOC(new_ncells * sizeof(E_Float));
+  E_Float *cy = (E_Float *)XMALLOC(new_ncells * sizeof(E_Float));
+  E_Float *cz = (E_Float *)XMALLOC(new_ncells * sizeof(E_Float));
+
+  for (E_Int i = 0; i < M->nfaces; i++) {
+    if (new_faces[i] == -1) continue;
+
+    E_Int new_face = new_faces[i];
+    E_Float *np = &fc[3*new_face];
+    E_Float *op = &M->fc[3*i];
+    for (E_Int j = 0; j < 3; j++)
+      np[j] = op[j];
+  }
+
+  for (E_Int i = 0; i < M->ncells; i++) {
+    if (new_cells[i] == -1) continue;
+    E_Int new_cell = new_cells[i];
+    cx[new_cell] = M->cx[i];
+    cy[new_cell] = M->cy[i];
+    cz[new_cell] = M->cz[i];
+  }
+
+  // Free and replace
+  XFREE(M->x);
+  XFREE(M->y);
+  XFREE(M->z);
+  XFREE(M->nface);
+  XFREE(M->indPH);
+  XFREE(M->ngon);
+  XFREE(M->indPG);
+  XFREE(M->owner);
+  XFREE(M->neigh);
+  XFREE(M->ref_data); 
+  delete M->ecenter;
+  XFREE(M->fc);
+  XFREE(M->cx);
+  XFREE(M->cy);
+  XFREE(M->cz);
+
+  M->ncells = new_ncells;
+  M->nfaces = new_nfaces;
+  M->npoints = new_npoints;
+  M->x = x;
+  M->y = y;
+  M->z = z;
+  M->nface = nface;
+  M->indPH = indPH;
+  M->ngon = ngon;
+  M->indPG = indPG;
+  M->owner = owner;
+  M->neigh = neigh;
+  M->ref_data = ref_data;
+  M->ecenter = ecenter; 
+  M->fc = fc;
+  M->cx = cx;
+  M->cy = cy;
+  M->cz = cz;
 }

@@ -15,26 +15,11 @@
 
 // 10. Repeat steps 3 to 9 until end time
 
-#define MINREF -10
-#define RAISE(error) PyErr_SetString(PyExc_ValueError, (error))
-
-static inline
-E_Int Tree_get_nchildren(E_Int id, Element **tree)
-{
-  return tree[id]->nchildren;
-}
-
-static inline
-E_Int *Tree_get_children(E_Int id, Element **tree)
-{
-  return tree[id]->children;
-}
-
 PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
 {
-  PyObject *ARRAY, *COMM, *BCS;
-  E_Float Tr;
-  if (!PYPARSETUPLE_(args, OOO_ R_, &ARRAY, &COMM, &BCS, &Tr)) {
+  PyObject *ARRAY, *OWN, *NEI, *COMM, *BCS;
+  E_Float Tr, Tu;
+  if (!PYPARSETUPLE_(args, OOO_ OO_ RR_, &ARRAY, &OWN, &NEI, &COMM, &BCS, &Tr, &Tu)) {
     RAISE("Wrong input.");
     return NULL;
   }
@@ -76,6 +61,13 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
 
   // Init mesh
   AMesh *M = init_mesh(*cn, px, py, pz, f->getSize());
+
+  // Parse parent elements
+  E_Int size, nfld;
+  ret = K_NUMPY::getFromNumpyArray(OWN, M->owner, size, nfld, false);
+  assert(ret == 1 && size == M->nfaces && nfld == 1);
+  ret = K_NUMPY::getFromNumpyArray(NEI, M->neigh, size, nfld, false);
+  assert(ret == 1 && size == M->nfaces && nfld == 1);
  
   // Parse boundary conditions
   M->nbc = PyList_Size(BCS);
@@ -83,11 +75,14 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
   M->ptlists = (E_Int **)XCALLOC(M->nbc, sizeof(E_Int *));
   M->bcsizes = (E_Int *)XCALLOC(M->nbc, sizeof(E_Int));
   M->bcnames = (char **)XMALLOC(M->nbc * sizeof(char *));
+  M->nbf = 0;
   for (E_Int i = 0; i < M->nbc; i++) {
     PyObject *BC = PyList_GetItem(BCS, i);
     PyObject *PTLIST = PyList_GetItem(BC, 0);
     PyObject *BCNAME = PyList_GetItem(BC, 1);
     K_NUMPY::getFromNumpyArray(PTLIST, M->ptlists[i], M->bcsizes[i], false);
+
+    M->nbf += M->bcsizes[i];
 
     // Zero-based
     E_Int *ptr = M->ptlists[i];
@@ -104,6 +99,7 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
     strcpy(M->bcnames[i], tmp);
     printf("    %s\n", M->bcnames[i]);
   }
+  M->nif = M->nfaces - M->nbf;
 
   // Parse comm data
   assert(PyList_Check(COMM));
@@ -125,67 +121,16 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
       sizeof(E_Float));
   }
 
-  // Init owner and neigh
-  M->owner = (E_Int *)XMALLOC(M->nfaces * sizeof(E_Int));
-  M->neigh = (E_Int *)XMALLOC(M->nfaces * sizeof(E_Int));
-  memset(M->owner, -1, M->nfaces * sizeof(E_Int));
-  memset(M->neigh, -1, M->nfaces * sizeof(E_Int));
-  M->nif = 0;
-  for (E_Int i = 0; i < M->ncells; i++) {
-    for (E_Int j = M->indPH[i]; j < M->indPH[i+1]; j++) {
-      E_Int face = M->nface[j];
-      if (M->owner[face] == -1) {
-        M->owner[face] = i;
-      } else {
-        M->neigh[face] = i;
-        M->nif++;
-      }
-    }
-  }
-
   // Adaptation trees
-  M->cellTree = (Element **)XMALLOC(M->ncells * sizeof(Element *));
-  M->faceTree = (Element **)XMALLOC(M->nfaces * sizeof(Element *));
-  tree_init(M->cellTree, M->ncells);
-  tree_init(M->faceTree, M->nfaces);
+  M->cellTree = new Tree(M->ncells);
+  M->faceTree = new Tree(M->nfaces);
 
-  // TODO(Imad): Check mesh validity
-  /*
-  ret = K_CONNECT::check_overlapping_cells(*cn);
-  if (ret != 0) {
-    RELEASESHAREDU(ARRAY, f, cn);
-    RAISE("Cells should not overlap.");
-    return NULL;
-  }
+  //printf("Boundary faces: %d\n", M->nbf);
+  //printf("Internal faces: %d\n", M->nif);
+  //init_mesh_numbering(M);
 
-  ret = K_CONNECT::check_open_cells(*cn, NULL);
-  if (ret != 0) {
-    RELEASESHAREDU(ARRAY, f, cn);
-    RAISE("Cells should be closed.");
-    return NULL;
-  }
-  */
-
-  init_mesh_numbering(M);
-
-  // Build owner and neigh
-  ret = Orient_boundary(M);
-
-  if (ret != 0) {
-    RELEASESHAREDU(ARRAY, f, cn);
-    // TODO(Imad): XFREE(M)
-    RAISE("Failed boundary orientation.");
-    return NULL;
-  }
-
-  Build_own_nei(M);
-
-  M->ref_Tr = Tr;
-  M->unref_Tr = Tr/2.5;
-
-  // Renumber
-  // TODO(Imad): optional
-  //renumber_mesh(M);
+  M->Tr = Tr;
+  M->Tu = Tu;
 
   // Set face types
   set_faces_type(M);
@@ -197,7 +142,7 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
   reorder_cells(M);
 
   // Check everything is in place
-  check_canon_cells(M);
+  assert(check_canon_cells(M));
 
   // Make hook
   // TODO(Imad): Python2
@@ -209,39 +154,13 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
 }
 
 static
-const char *TYPE(E_Int type)
-{
-  switch (type) {
-    case HEXA: return "HEXA";
-    case TETRA: return "TETRA";
-    case PENTA: return "PENTA";
-    case PYRA: return "PYRA";
-    default: assert(0);
-  }
-}
-
-static
-void print_elem(E_Int id, Element **tree)
-{
-  Element *E = tree[id];
-  printf("%d [%s, %d]", id, TYPE(E->type), E->parent);
-}
-
-static
-void print_elem_type(E_Int id, Element **tree)
-{
-  Element *E = tree[id];
-  printf("[%s]", TYPE(E->type));
-}
-
-static
 PyObject *export_mesh_and_bcs(AMesh *M, E_Int closed_mesh);
 
 PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
 {
-  PyObject *AMESH, *FIELDS;
+  PyObject *AMESH, *FC, *CX, *CY, *CZ;
   
-  if (!PYPARSETUPLE_(args, OO_, &AMESH, &FIELDS)) {
+  if (!PYPARSETUPLE_(args, OOO_ OO_, &AMESH, &FC, &CX, &CY, &CZ)) {
     RAISE("Wrong input.");
     return NULL;
   }
@@ -254,54 +173,259 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
 
   AMesh *M = (AMesh *)PyCapsule_GetPointer(AMESH, "AMesh");
 
-  // Parse fields
-  assert(PyList_Check(FIELDS));
-  E_Int nfields = PyList_Size(FIELDS);
-  E_Float **fields = (E_Float **)XMALLOC(nfields * sizeof(E_Float *));
-  for (E_Int i = 0; i < nfields; i++) {
-    PyObject *FIELD = PyList_GetItem(FIELDS, i);
-    E_Int nfld, nc;
-    E_Int ret = K_NUMPY::getFromNumpyArray(FIELD, fields[i], nc, nfld, true);
-    assert(ret == 1 && nfld == 1 && nc == M->ncells);
-  }
+  E_Int fsize, csize, nfld;
+  E_Int *ptr;
 
-  make_cell_centers(M);
-  exchange_proc_data_d(M, M->cx, &M->xn);
-  exchange_proc_data_d(M, M->cy, &M->yn);
-  exchange_proc_data_d(M, M->cz, &M->zn);
-  
-  // Compute cell refinement levels
-  compute_ref_data(M, fields, nfields);
-  
-  XFREE(fields);
+  M->fc = (E_Float *)XRESIZE(M->fc, 3*M->nfaces * sizeof(E_Float));
+  M->cx = (E_Float *)XRESIZE(M->cx, M->ncells * sizeof(E_Float));
+  M->cy = (E_Float *)XRESIZE(M->cy, M->ncells * sizeof(E_Float));
+  M->cz = (E_Float *)XRESIZE(M->cz, M->ncells * sizeof(E_Float));
 
-  // Redistribute
-  //AMesh *rM = redistribute_mesh(M);
+  K_NUMPY::getFromNumpyArray(FC, ptr, fsize, nfld, true);
+  assert(fsize == 3*M->nfaces);
+  memcpy(M->fc, ptr, 3*M->nfaces * sizeof(E_Float));
+  
+  K_NUMPY::getFromNumpyArray(CX, ptr, csize, nfld, true);
+  assert(csize == M->ncells);
+  memcpy(M->cx, ptr, M->ncells * sizeof(E_Float));
+  
+  K_NUMPY::getFromNumpyArray(CY, ptr, csize, nfld, true);
+  assert(csize == M->ncells);
+  memcpy(M->cy, ptr, M->ncells * sizeof(E_Float));
+  
+  K_NUMPY::getFromNumpyArray(CZ, ptr, csize, nfld, true);
+  assert(csize == M->ncells);
+  memcpy(M->cz, ptr, M->ncells * sizeof(E_Float));
+
+  printf("    Initial cells: %d\n", M->ncells);
 
   // Isolate refinement cells and faces
   std::vector<E_Int> ref_faces, ref_cells;
+  std::vector<E_Int> unref_faces, unref_cells;
 
-  // Resize structures for refinement
-  get_ref_cells_and_faces(M, ref_cells, ref_faces);
+  get_ref_cells_and_faces(M, ref_cells, ref_faces, unref_cells, unref_faces);
+
+  //for (E_Int i = 0; i < M->nfaces; i++) M->faceTree->state_[i] = UNTOUCHED;
+  //for (E_Int i = 0; i < M->ncells; i++) M->cellTree->state_[i] = UNTOUCHED;
+
   //for (E_Int i = M->indPH[0]; i < M->indPH[1]; i++)
   //  ref_faces.push_back(M->nface[i]);
   //ref_cells.push_back(0);
+
+  size_t nref_cells = ref_cells.size();
+  size_t nref_faces = ref_faces.size();
+  size_t nunref_cells = unref_cells.size();
+  size_t nunref_faces = unref_faces.size();
+
+  printf("    Cells tagged for refinement: %d\n", (E_Int)nref_cells);
+  printf("    Cells tagged for unrefinement: %d\n", (E_Int)nunref_cells);
   
-  E_Int nref_cells = ref_cells.size();
-  E_Int nref_faces = ref_faces.size();
-  resize_data_for_refinement(M, nref_cells, nref_faces);
-  printf("Refined cells: %d\n", nref_cells);
+  if (nunref_cells > 0) {
 
-  refine_faces(ref_faces, M);
-  refine_cells(ref_cells, M);
+    // Sort unref cells/faces by decreasing level
+    std::sort(unref_faces.begin(), unref_faces.end(), [&] (E_Int i, E_Int j)
+    {
+      return M->faceTree->level(i) > M->faceTree->level(j);
+    });
 
-  printf("Leaves: %d\n", M->ncells);
+    std::sort(unref_cells.begin(), unref_cells.end(), [&] (E_Int i, E_Int j)
+    {
+      return M->cellTree->level(i) > M->cellTree->level(j);
+    });
 
-  update_boundary_faces(M);
+    std::vector<E_Int> face_distrib(1, 0), cell_distrib(1, 0);
+    std::vector<E_Int> face_lvl, cell_lvl;
+
+    E_Int max_lvl = M->faceTree->level(unref_faces[0]);
+    face_lvl.push_back(max_lvl);
+    for (size_t i = 1; i < unref_faces.size(); i++) {
+      if (M->faceTree->level(unref_faces[i]) < max_lvl) {
+        max_lvl = M->faceTree->level(unref_faces[i]);
+        face_distrib.push_back(i);
+        face_lvl.push_back(max_lvl);
+      }
+    }
+    face_distrib.push_back(unref_faces.size());
+
+    max_lvl = M->cellTree->level(unref_cells[0]);
+    cell_lvl.push_back(max_lvl);
+    for (size_t i = 1; i < unref_cells.size(); i++) {
+      if (M->cellTree->level(unref_cells[i]) < max_lvl) {
+        max_lvl = M->cellTree->level(unref_cells[i]);
+        cell_distrib.push_back(i);
+        cell_lvl.push_back(max_lvl);
+      }
+    }
+    cell_distrib.push_back(unref_cells.size());
+
+    assert(face_distrib.size() == cell_distrib.size());
+    
+    /*
+    size_t cell_start = 0;
+    while (cell_lvl[cell_start] > face_lvl[0]) {
+      unrefine_cells(unref_cells, cell_distrib[cell_start],
+        cell_distrib[cell_start+1], M);
+      cell_start++;
+    }
+    */
+
+    for (size_t i = 0; i < face_distrib.size()-1; i++) {
+      unrefine_cells(unref_cells, cell_distrib[i], cell_distrib[i+1], M);
+      unrefine_faces(unref_faces, face_distrib[i], face_distrib[i+1], M);
+      
+      for (E_Int j = cell_distrib[i]; j < cell_distrib[i+1]; j++) {
+        E_Int ucell = unref_cells[j];
+
+        Children *cur = M->cellTree->children(ucell);
+        Children *prev = cur->next;
+        M->cellTree->children_[ucell] = prev;
+  
+        // free
+        XFREE(cur);
+      }
+      
+      for (E_Int j = face_distrib[i]; j < face_distrib[i+1]; j++) {
+        E_Int uface = unref_faces[j];
+
+        Children *cur = M->faceTree->children(uface);
+        if (cur == NULL) {
+          assert(M->owner[uface] == -1);
+          assert(M->neigh[uface] == -1);
+          continue;
+        }
+        Children *prev = cur->next;
+        M->faceTree->children_[uface] = prev;
+  
+        // free
+        XFREE(cur);
+      }
+    }
+
+    update_boundary_faces(M);
+
+    // Renumber cells
+    E_Int nc = 0;
+    E_Int sizeNFace = 0;
+    Tree *CT = M->cellTree;
+    std::vector<E_Int> new_cells(M->ncells, -1);
+    for (E_Int i = 0; i < M->ncells; i++) {
+      if (CT->state(i) != GONE) {
+        new_cells[i] = nc++;
+        sizeNFace += get_stride(i, M->indPH);
+      }
+    }
+
+    // Renumber faces
+    E_Int nf = 0;
+    E_Int sizeNGon = 0;
+    Tree *FT = M->faceTree;
+    std::vector<E_Int> new_faces(M->nfaces, -1);
+    for (E_Int i = 0; i < M->nfaces; i++) {
+      if (FT->state(i) != GONE) {
+        new_faces[i] = nf++;
+        sizeNGon += get_stride(i, M->indPG);
+      }
+    }
+
+    renumber_mesh(M, new_cells, new_faces, nc, nf, sizeNFace, sizeNGon);
+
+    CT->compress(new_cells, nc);
+    
+    FT->compress(new_faces, nf);
+
+    std::vector<E_Int> tmp_cells(ref_cells);
+
+    // Renumber ref cells/faces
+    for (size_t i = 0; i < ref_cells.size(); i++) {
+      E_Int cell = tmp_cells[i];
+      ref_cells[i] = new_cells[cell];
+      assert(ref_cells[i] != -1);
+      assert(M->cellTree->state(ref_cells[i]) == UNTOUCHED);
+    }
+
+    std::vector<E_Int> tmp_faces(ref_faces);
+
+    for (size_t i = 0; i < ref_faces.size(); i++) {
+      E_Int face = tmp_faces[i];
+      ref_faces[i] = new_faces[face];
+      assert(ref_faces[i] != -1);
+      assert(M->faceTree->state(ref_faces[i]) == UNTOUCHED);
+    }
+
+    printf("    Cells after unrefinement: %d\n", M->ncells);
+
+    //goto finish;
+  }
+ 
+ 
+  if (nref_cells > 0) {
+
+    resize_data_for_refinement(M, nref_cells, nref_faces);
+
+    // Sort ref cells/faces by increasing level
+    std::sort(ref_faces.begin(), ref_faces.end(), [&] (E_Int i, E_Int j)
+    {
+      return M->faceTree->level(i) < M->faceTree->level(j);
+    });
+
+    std::sort(ref_cells.begin(), ref_cells.end(), [&] (E_Int i, E_Int j)
+    {
+      return M->cellTree->level(i) < M->cellTree->level(j);
+    });
+
+    std::vector<E_Int> face_distrib(1, 0), cell_distrib(1, 0);
+    std::vector<E_Int> face_lvl, cell_lvl;
+
+    E_Int min_lvl = M->faceTree->level(ref_faces[0]);
+    face_lvl.push_back(min_lvl);
+    for (size_t i = 1; i < ref_faces.size(); i++) {
+      if (M->faceTree->level(ref_faces[i]) > min_lvl) {
+        min_lvl = M->faceTree->level(ref_faces[i]);
+        face_distrib.push_back(i);
+        face_lvl.push_back(min_lvl);
+      }
+    }
+    face_distrib.push_back(ref_faces.size());
+
+    min_lvl = M->cellTree->level(ref_cells[0]);
+    cell_lvl.push_back(min_lvl);
+    for (size_t i = 1; i < ref_cells.size(); i++) {
+      if (M->cellTree->level(ref_cells[i]) > min_lvl) {
+        min_lvl = M->cellTree->level(ref_cells[i]);
+        cell_distrib.push_back(i);
+        cell_lvl.push_back(min_lvl);
+      }
+    }
+    cell_distrib.push_back(ref_cells.size());
+
+    size_t cell_start = 0;
+    while (cell_lvl[cell_start] < face_lvl[0]) {
+      refine_cells(ref_cells, cell_distrib[cell_start],
+        cell_distrib[cell_start+1], M);
+      cell_start++;
+    }
+
+    for (size_t i = 0; i < face_distrib.size()-1; i++) {
+      refine_faces(ref_faces, face_distrib[i], face_distrib[i+1], M);
+      refine_cells(ref_cells, cell_distrib[cell_start],
+        cell_distrib[cell_start+1], M);
+      cell_start++;
+    }
+
+    assert(cell_start == cell_distrib.size()-1);
+
+    printf("    Cells after refinement: %d\n", M->ncells);
+
+    update_boundary_faces(M);
+
+  }
 
   init_mesh_numbering(M);
 
-  //renumber_mesh(M);
+  //finish:
+
+  for (E_Int i = 0; i < M->ncells; i++) M->cellTree->state_[i] = UNTOUCHED;
+  for (E_Int i = 0; i < M->nfaces; i++) M->faceTree->state_[i] = UNTOUCHED;
 
   E_Int closed_mesh = 1;
 
@@ -321,6 +445,7 @@ PyObject *export_mesh_and_bcs(AMesh *M, E_Int closed_mesh)
     E_Int pf[24];
     // TODO(Imad): a function that returns nf only
     get_full_cell(i, M, nf, pf);
+
     nface_size += nf;
   }
 
@@ -349,21 +474,26 @@ PyObject *export_mesh_and_bcs(AMesh *M, E_Int closed_mesh)
   E_Int *indPGo = cno->getIndPG();
   E_Int *indPHo = cno->getIndPH();
 
-  E_Int *ptr = nfaceo;
-
-  for (E_Int i = 0; i < M->ncells; i++) {
-    get_full_cell(i, M, indPHo[i+1], ptr);
-    ptr += indPHo[i+1];
-  }
-
-  for (E_Int i = 0; i < nface_size; i++) nfaceo[i] += 1;
-
   indPHo[0] = 0;
+  for (E_Int i = 0; i < M->ncells; i++) {
+    E_Int nf = -1;
+    E_Int pf[24];
+    get_full_cell(i, M, nf, pf);
+    indPHo[i+1] = nf;
+  }
   for (E_Int i = 0; i < M->ncells; i++) indPHo[i+1] += indPHo[i];
-
   assert(indPHo[M->ncells] == nface_size);
 
-  if (close_mesh) {
+  for (E_Int i = 0; i < M->ncells; i++) {
+    E_Int nf = -1;
+    E_Int pf[24];
+    get_full_cell(i, M, nf, pf);
+    E_Int *ptr = &nfaceo[indPHo[i]];
+    for (E_Int j = 0; j < nf; j++)
+      ptr[j] = pf[j]+1;
+  }
+
+  if (closed_mesh) {
     for (E_Int i = 0; i < ngon_size; i++)
       ngono[i] = M->closed_ngon[i] + 1;
     
@@ -382,11 +512,15 @@ PyObject *export_mesh_and_bcs(AMesh *M, E_Int closed_mesh)
   memcpy(py, M->y, M->npoints * sizeof(E_Float));
   memcpy(pz, M->z, M->npoints * sizeof(E_Float));
 
+  assert(K_CONNECT::check_open_cells(*cno, NULL) == 0);
+  assert(K_CONNECT::check_overlapping_cells(*cno) == 0);
+
   // BCs
   PyObject *BCS = PyList_New(0);
 
+  npy_intp dims[2];
+  
   for (E_Int i = 0; i < M->nbc; i++) {
-    npy_intp dims[2];
     dims[0] = (npy_intp)M->bcsizes[i];
     dims[1] = 1;
 
@@ -402,11 +536,27 @@ PyObject *export_mesh_and_bcs(AMesh *M, E_Int closed_mesh)
     Py_DECREF(tpl);
   }
 
+  // parent elements
+  dims[0] = (npy_intp)M->nfaces;
+  dims[1] = 1;
+
+  PyArrayObject *OWN = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
+  PyArrayObject *NEI = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
+  E_Int *owner = (E_Int *)PyArray_DATA(OWN);
+  E_Int *neigh = (E_Int *)PyArray_DATA(NEI);
+
+  memcpy(owner, M->owner, M->nfaces*sizeof(E_Int));
+  memcpy(neigh, M->neigh, M->nfaces*sizeof(E_Int));
+
   PyObject *out = PyList_New(0);
   PyList_Append(out, m);
   PyList_Append(out, BCS);
+  PyList_Append(out, (PyObject *)OWN);
+  PyList_Append(out, (PyObject *)NEI);
   Py_DECREF(m);
   Py_DECREF(BCS);
+  Py_DECREF(OWN);
+  Py_DECREF(NEI);
 
   return out;
 }

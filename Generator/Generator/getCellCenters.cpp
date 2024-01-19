@@ -23,9 +23,9 @@
 
 PyObject *K_GENERATOR::getCellCenters(PyObject *self, PyObject *args)
 {
-  PyObject* arr, *PE;
+  PyObject *ARR, *FC, *FA, *OWN, *NEI;
 
-  if (!PYPARSETUPLE_(args, OO_, &arr, &PE)) return NULL;
+  if (!PYPARSETUPLE_(args, OOOO_ O_, &ARR, &FC, &FA, &OWN, &NEI)) return NULL;
 
   E_Int ret;
 
@@ -33,7 +33,7 @@ PyObject *K_GENERATOR::getCellCenters(PyObject *self, PyObject *args)
   E_Int ni, nj, nk;
   K_FLD::FldArrayF* f; K_FLD::FldArrayI* cn;
   char* varString; char* eltType;
-  ret = K_ARRAY::getFromArray3(arr, varString, f, ni, nj, nk, cn, eltType);
+  ret = K_ARRAY::getFromArray3(ARR, varString, f, ni, nj, nk, cn, eltType);
 
   if (ret <= 0) {
     PyErr_SetString(PyExc_TypeError, "Bad mesh.");
@@ -42,7 +42,7 @@ PyObject *K_GENERATOR::getCellCenters(PyObject *self, PyObject *args)
 
   if (ret == 1) {
     PyErr_SetString(PyExc_TypeError, "Only for NGons.");
-    RELEASESHAREDS(arr, f);
+    RELEASESHAREDS(ARR, f);
     return NULL;
   }
 
@@ -51,7 +51,7 @@ PyObject *K_GENERATOR::getCellCenters(PyObject *self, PyObject *args)
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
   if (posx == -1 || posy == -1 || posz == -1)
   {
-    RELEASESHAREDB(ret, arr, f, cn);
+    RELEASESHAREDB(ret, ARR, f, cn);
     PyErr_SetString(PyExc_ValueError, "Coordinates not found.");
     return NULL;
   }
@@ -61,26 +61,22 @@ PyObject *K_GENERATOR::getCellCenters(PyObject *self, PyObject *args)
   E_Float *y = f->begin(posy);
   E_Float *z = f->begin(posz);
 
-  // Parent Elements
-  E_Int nfaces = cn->getNFaces();
-  E_Int nf, nfld;
-  E_Int *pe;
-  ret = K_NUMPY::getFromNumpyArray(PE, pe, nf, nfld, true);
-  if (ret != 1 || nf != nfaces || nfld != 2) {
-    RELEASESHAREDU(arr, f, cn);
-    PyErr_SetString(PyExc_ValueError, "Bad PE.");
-    return NULL;
-  }
-
-  E_Int *owner = pe;
-  E_Int *neigh = pe + nfaces;
-
   // Face centers and areas
-  E_Float *fcenters = (E_Float *)malloc(3*nfaces * sizeof(E_Float));
-  E_Float *fareas = (E_Float *)malloc(3*nfaces * sizeof(E_Float));
+  E_Int nfaces = cn->getNFaces();
+  E_Float *fc, *fa;
+  E_Int size, nfld;
+  ret = K_NUMPY::getFromNumpyArray(FC, fc, size, nfld, true);
+  assert(ret == 1 && size == nfaces*3 && nfld == 1);
+  ret = K_NUMPY::getFromNumpyArray(FA, fa, size, nfld, true);
+  assert(ret == 1 && size == nfaces*3 && nfld == 1);
 
-  K_METRIC::compute_face_centers_and_areas(*cn, x, y, z, fcenters, fareas);
-
+  // Parent elements
+  E_Int *owner, *neigh;
+  ret = K_NUMPY::getFromNumpyArray(OWN, owner, size, nfld, true);
+  assert(ret == 1 && size == nfaces && nfld == 1);
+  ret = K_NUMPY::getFromNumpyArray(NEI, neigh, size, nfld, true);
+  assert(ret == 1 && size == nfaces && nfld == 1);
+  
   // Cell centers
   E_Int ncells = cn->getNElts();
   PyObject *Cx = K_NUMPY::buildNumpyArray(ncells, 1, 0, 1);
@@ -90,11 +86,8 @@ PyObject *K_GENERATOR::getCellCenters(PyObject *self, PyObject *args)
   E_Float *cy = K_NUMPY::getNumpyPtrF(Cy);
   E_Float *cz = K_NUMPY::getNumpyPtrF(Cz);
 
-  K_METRIC::compute_cell_centers_and_vols(*cn, x, y, z, owner, neigh, fcenters,
-    fareas, cx, cy, cz, NULL);
-
-  free(fcenters);
-  free(fareas);
+  K_METRIC::compute_cell_centers_and_vols(*cn, x, y, z, owner, neigh, fc, fa,
+    cx, cy, cz, NULL);
 
   PyObject *out = PyList_New(0);
   PyList_Append(out, Cx);

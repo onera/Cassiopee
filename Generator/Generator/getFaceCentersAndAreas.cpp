@@ -62,18 +62,21 @@ PyObject *K_GENERATOR::getFaceCentersAndAreas(PyObject *self, PyObject *args)
 
   // Face centers and areas
   E_Int nfaces = cn->getNFaces();
-  PyObject *fcenters = K_NUMPY::buildNumpyArray(3*nfaces, 1, 0, 0);
-  PyObject *fareas = K_NUMPY::buildNumpyArray(3*nfaces, 1, 0, 0);
-  E_Float *fc = K_NUMPY::getNumpyPtrF(fcenters);
-  E_Float *fa = K_NUMPY::getNumpyPtrF(fareas);
+  npy_intp dims[2];
+  dims[0] = (npy_intp)(3*nfaces);
+  dims[1] = 1;
+  PyArrayObject *fcenters = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+  PyArrayObject *fareas   = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+  E_Float *fc = (E_Float *)PyArray_DATA(fcenters);
+  E_Float *fa = (E_Float *)PyArray_DATA(fareas);
 
   K_METRIC::compute_face_centers_and_areas(*cn, x, y, z, fc, fa);
 
   PyObject *out = PyList_New(0);
-  PyList_Append(out, fcenters);
-  PyList_Append(out, fareas);
-  Py_DECREF(fc);
-  Py_DECREF(fa);
+  PyList_Append(out, (PyObject *)fcenters);
+  PyList_Append(out, (PyObject *)fareas);
+  Py_DECREF(fcenters);
+  Py_DECREF(fareas);
 
   return out;
 }

@@ -991,28 +991,12 @@ def getVolumeMap(array, method=0):
 def getFaceCentersAndAreas(array):
     """Return the face centers and areas in an NGon array.
     Usage: getFaceCentersAndAreas(array)"""
-    if isinstance(array[0], list):
-        b = []
-        for i in array:
-            b.append(generator.getFaceCentersAndAreas(i))
-        return b
-    else:
-        return generator.getFaceCentersAndAreas(array)
+    return generator.getFaceCentersAndAreas(array)
 
-def getCellCenters(array, pe):
+def getCellCenters(array, fc, fa, own, nei):
     """Return the cell centers in an NGon array.
-    Usage: getCellCenters(array, pe)"""
-    if isinstance(array[0], list): 
-        if not isinstance(pe[0], list):
-            raise ValueError("If input is list of arrays, pe must be a list")
-        if len(pe) != len(array):
-            raise ValueError("List of arrays and pes must have the same size")
-        b = []
-        for i in range(len(array)):
-            b.append(generator.getCellCenters(array[i], pe[i]))
-        return b
-    else:
-        return generator.getCellCenters(array, pe)
+    Usage: getCellCenters(array, fc, fa, own, nei)"""
+    return generator.getCellCenters(array, fc, fa, own, nei)
 
 def getNormalMap(array):
     """Return the map of surface normals in an array.

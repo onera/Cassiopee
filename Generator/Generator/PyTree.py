@@ -573,36 +573,20 @@ def getFaceCentersAndAreas(t):
     zones = Internal.getZones(t)
     for zone in zones:
         arr = C.getFields(Internal.__GridCoordinates__, zone, api=3)[0]
-        if arr == None:
-            fcenters.append(None)
-            fareas.append(None)
-        else:
-            [fc, fa] = Generator.getFaceCentersAndAreas(arr)
-            fcenters.append(fc)
-            fareas.append(fa)
+        [fc, fa] = Generator.getFaceCentersAndAreas(arr)
+        fcenters.append(fc)
+        fareas.append(fa)
     return fcenters, fareas
 
-def getCellCenters(t, fc, fa):
-    if fc == None or fa == None:
-        fc, fa = getFaceCentersAndAreas(t)
+def getCellCenters(t, fc, fa, own, nei):
     zones = Internal.getZones(t)
     nzones = len(zones)
     centers = []
     for i in range(nzones):
-        if fc == None:
-            centers.append(None)
-            continue
-        
         zone = zones[i]
         arr = C.getFields(Internal.__GridCoordinates__, zone, api=3)[0]
 
-        pe = Internal.getNodeFromName(zone, 'ParentElements')
-        if pe == None:
-            pe = Converter.makeParentElements(arr)[0]
-        else:
-            pe = pe[1]
-
-        cx, cy, cz = Generator.getCellCenters(arr, pe)
+        cx, cy, cz = Generator.getCellCenters(arr, fc[i], fa[i], own[i], nei[i])
         centers.append([cx, cy, cz])
 
     return centers
