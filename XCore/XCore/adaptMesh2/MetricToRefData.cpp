@@ -7,8 +7,9 @@ static
 void make_ref_data_hexa(E_Int cell, AMesh *M, E_Float *pM, const pDirs &Dirs)
 {
   E_Float L0, L1, L2, dd[3];
-  //E_Float l[3];
+  E_Float l[3];
 
+  // Compute length in metric space
 
   K_MATH::sym3mat_dot_vec(pM, Dirs.I, dd);
   L0 = K_MATH::norm(dd, 3);
@@ -23,7 +24,7 @@ void make_ref_data_hexa(E_Int cell, AMesh *M, E_Float *pM, const pDirs &Dirs)
 
   if (L0 >= M->Tr || L1 >= M->Tr || L2 >= M->Tr) {
     M->ref_data[cell] = 1;
-  } else if (L0 < M->Tu && L1 < M->Tu && L2 < M->Tu) {
+  } else if (L0 <= M->Tu && L1 <= M->Tu && L2 <= M->Tu) {
     if (M->cellTree->level(cell) != 0)
       M->ref_data[cell] = -1;
   }
@@ -105,7 +106,10 @@ void smooth_ref_data(AMesh *M)
       if (M->ref_data[i] < 0) cells_to_agglo += 1;
     }
 
-    assert(cells_to_agglo % 8 == 0);
+    if (!M->mode_2D)
+      assert(cells_to_agglo % 8 == 0);
+    else
+      assert(cells_to_agglo % 4 == 0);
 
 
     std::stack<E_Int> stk;
@@ -175,7 +179,10 @@ void smooth_ref_data(AMesh *M)
     if (M->ref_data[i] < 0) cells_to_agglo += 1;
   }
 
-  assert(cells_to_agglo % 8 == 0);
+  if (!M->mode_2D)
+    assert(cells_to_agglo % 8 == 0);
+  else
+    assert(cells_to_agglo % 4 == 0);
   
 
   // Note(Imad): should we?
@@ -237,6 +244,13 @@ void compute_ref_data(AMesh *M, E_Float *metric, const std::vector<pDirs> &Dirs)
         break;
     }
   }
+
+  if (!M->unrefine) {
+    for (E_Int i = 0; i < M->ncells; i++) {
+      if (M->ref_data[i] < 0)
+        M->ref_data[i] = 0;
+    }
+  }
 }
 
 static
@@ -258,10 +272,19 @@ void reconstruct_parent_quad(E_Int face, AMesh *M, E_Int pn[4])
   if (children == NULL) {
     memcpy(pn, &M->ngon[M->indPG[face]], 4*sizeof(E_Int));
   } else {
-    pn[0] = get_facets(children->pc[0], M->ngon, M->indPG)[0];
-    pn[1] = get_facets(children->pc[1], M->ngon, M->indPG)[1];
-    pn[2] = get_facets(children->pc[2], M->ngon, M->indPG)[2];
-    pn[3] = get_facets(children->pc[3], M->ngon, M->indPG)[3];
+    if (children->n == 2) {
+      E_Int *pn0 = get_facets(children->pc[0], M->ngon, M->indPG);
+      E_Int *pn1 = get_facets(children->pc[1], M->ngon, M->indPG);
+      E_Int dir = pn0[1] == pn1[0] ? DIRX : DIRY;
+      if (dir == DIRX) {
+        pn[0] = pn0[0]; pn[1] = pn1[1]; pn[2] = pn1[2]; pn[3] = pn0[3];
+      } else {
+        pn[0] = pn0[0]; pn[1] = pn0[1]; pn[2] = pn1[2]; pn[3] = pn1[3];
+      }
+    } else {
+      for (E_Int i = 0; i < children->n; i++)
+        pn[i] = get_facets(children->pc[i], M->ngon, M->indPG)[i];
+    }
   }
 }
 
@@ -377,6 +400,81 @@ PyObject *K_XCORE::_metricToRefData(PyObject *self, PyObject *args)
 
   // Compute ref data
   compute_ref_data(M, metric, Dirs);
+
+  // Smooth ref data
+  smooth_ref_data(M);
+
+  return Py_None;
+}
+
+static
+E_Float hessian_norm(E_Float M[6])
+{
+  E_Float row0 = fabs(M[0]) + fabs(M[1]) + fabs(M[2]);
+  E_Float row1 = fabs(M[1]) + fabs(M[3]) + fabs(M[4]);
+  E_Float row2 = fabs(M[2]) + fabs(M[4]) + fabs(M[5]);
+
+  return std::max(row0, std::max(row1, row2));
+}
+
+static
+E_Float gradient_norm(E_Float G[3])
+{
+  return fabs(G[0]) + fabs(G[1]) + fabs(G[2]);
+}
+
+PyObject *K_XCORE::_makeRefDataFromGradAndHess(PyObject *self, PyObject *args)
+{
+  PyObject *ARRAY, *FIELD, *GRAD, *HESS, *AMESH;
+
+  if (!PYPARSETUPLE_(args, OOOO_ O_, &ARRAY, &FIELD, &GRAD, &HESS, &AMESH)) {
+    RAISE("Wrong input.");
+    return NULL;
+  }
+
+  AMesh *M = (AMesh *)PyCapsule_GetPointer(AMESH, "AMesh");
+
+  // Parse field/grad/hess
+  E_Float *field, *grad, *hess;
+  E_Int nfld, size, ret;
+  ret = K_NUMPY::getFromNumpyArray(FIELD, field, size, nfld, true);
+  assert(ret == 1 && nfld == 1 && size == M->ncells);
+  ret = K_NUMPY::getFromNumpyArray(GRAD, grad, size, nfld, true);
+  assert(ret == 1 && nfld == 1 && size == M->ncells*3);
+  ret = K_NUMPY::getFromNumpyArray(HESS, hess, size, nfld, true);
+  assert(ret == 1 && nfld == 1 && size == M->ncells*6);
+
+  // Init ref data
+  M->ref_data = (int *)XRESIZE(M->ref_data, M->ncells*sizeof(int));
+  memset(M->ref_data, 0, M->ncells*sizeof(int));
+
+  // Compute cells principal directions
+  std::vector<pDirs> Dirs(M->ncells);
+  compute_principal_vecs(M, Dirs);
+
+  // Compute ref data
+  E_Float mean = 0.0;
+  for (E_Int i = 0; i < M->ncells; i++) {
+    mean += field[i];
+  }
+
+  mean /= M->ncells;
+  mean = fabs(mean);
+
+  for (E_Int i = 0; i < M->ncells; i++) {
+    
+    // Ref length
+    E_Float hi = K_MATH::norm(Dirs[i].I, 3);
+    E_Float hj = K_MATH::norm(Dirs[i].J, 3);
+    E_Float hk = K_MATH::norm(Dirs[i].K, 3);
+    E_Float h = std::min(hi, std::min(hj, hk));
+
+    E_Float val = h*h*hessian_norm(&hess[6*i]);
+    val /= h*gradient_norm(&grad[3*i]) + M->eps*mean;
+
+    if (val >= M->Tr && h > M->hmin) M->ref_data[i] = 1;
+    else if (val <= M->Tu && h < M->hmax) M->ref_data[i] = -1;
+  }
 
   // Smooth ref data
   smooth_ref_data(M);

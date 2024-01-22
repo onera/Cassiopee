@@ -32,24 +32,29 @@ a = G.close(a)
 a = C.fillEmptyBCWith(a, 'wall', 'BCWall', dim=3)
 I._adaptNGon32NGon4(a)
 
-# Placeholders for now
+# Max cell size
 hmax = XOR.edgeLengthExtrema(a)
-hmin = hmax / 4.0
-eps = 1e-1
-
+# Min cell size
+hmin = XOR.edgeLengthExtrema(a) / 4.0
+# Noise parameter
+eps = 0.3
 # Refinement threshold
-Tr = 0.1
+Tr = 0.15
 # Unrefinement threshold
-Tu = Tr/2.5
+Tu = 0.07
 # Max iterations for first adaptation run
 itermax1 = 2
 # Max iterations for second adaptation run
 itermax2 = 3
+# Do unrefinement
+unrefine = True
+# Block adaptation in this direction
+mode_2D = np.array([0.0, 0.0, 1.0])
 
 # Next two functions must be called before adaptation cycles
 own, nei = X._prepareMeshForAdaptation(a)
 
-AM = X.CreateAdaptMesh(a, own, nei, Tr, Tu)
+AM = X.CreateAdaptMesh(a, own, nei, Tr, Tu, eps, hmin, hmax, unrefine, mode_2D)
 
 ncells = C.getNCells(a)
 
@@ -66,16 +71,16 @@ for it in range(itermax1):
     cx = centers[0]; cy = centers[1]; cz = centers[2]
    
     print("Making sensor")
-    field = make_field(cx, cy, cz, F1)
+    f = make_field(cx, cy, cz, F1)
 
+    print("Computing gradient")
+    g = X.computeGradient(a, f, cx, cy, cz, own, nei)
+    
     print("Computing hessian")
-    H = X.computeHessian(a, field, cx, cy, cz, own, nei)
+    h = X.computeHessian(a, f, g, cx, cy, cz, own, nei)
 
-    print("Making metric")
-    M = X.hessianToMetric(H, hmin, hmax, eps)
-
-    print("Making refinement data")
-    X._metricToRefData(a, M, AM)
+    print("Making ref data")
+    M = X._makeRefDataFromGradAndHess(a, f, g, h, AM)
 
     print("Adapting")
 
@@ -97,7 +102,6 @@ for it in range(itermax1):
     if ncells == new_ncells: break
     ncells = new_ncells
 
-
 for it in range(itermax2):
     print('\n*******************************')
     print('Iteration', it) 
@@ -111,16 +115,16 @@ for it in range(itermax2):
     cx = centers[0]; cy = centers[1]; cz = centers[2]
    
     print("Making sensor")
-    field = make_field(cx, cy, cz, F2)
+    f = make_field(cx, cy, cz, F2)
 
+    print("Computing gradient")
+    g = X.computeGradient(a, f, cx, cy, cz, own, nei)
+    
     print("Computing hessian")
-    H = X.computeHessian(a, field, cx, cy, cz, own, nei)
+    h = X.computeHessian(a, f, g, cx, cy, cz, own, nei)
 
-    print("Making metric")
-    M = X.hessianToMetric(H, hmin, hmax, eps)
-
-    print("Making refinement data")
-    X._metricToRefData(a, M, AM)
+    print("Making ref data")
+    X._makeRefDataFromGradAndHess(a, f, g, h, AM)
 
     print("Adapting")
 
@@ -141,3 +145,4 @@ for it in range(itermax2):
     new_ncells = C.getNCells(a)
     if ncells == new_ncells: break
     ncells = new_ncells
+

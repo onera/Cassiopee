@@ -5,6 +5,12 @@
 #include <map>
 #include <mpi.h>
 
+#define ISO 0
+#define DIR 1
+
+#define DIRX 0
+#define DIRY 1
+
 #define TYPE_UNKNOWN -1
 #define HEXA 0
 #define TETRA 1
@@ -164,6 +170,10 @@ struct AMesh {
   int *ref_data;
   E_Float Tr;
   E_Float Tu;
+  E_Float eps;
+  E_Float hmin;
+  E_Float hmax;
+  E_Int unrefine;
 
   E_Int *closed_indPG;
   E_Int *closed_ngon;
@@ -172,6 +182,8 @@ struct AMesh {
   E_Float *cx;
   E_Float *cy;
   E_Float *cz;
+
+  E_Float *mode_2D;
 
   AMesh();
 };

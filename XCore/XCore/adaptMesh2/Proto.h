@@ -53,21 +53,24 @@ void get_ref_cells_and_faces_orig(AMesh *, std::vector<E_Int> &ref_cells,
 void get_ref_cells_and_faces(AMesh *, std::vector<E_Int> &ref_cells,
   std::vector<E_Int> &ref_faces, std::vector<E_Int> &unref_cells,
   std::vector<E_Int> &unref_faces);
-void resize_data_for_refinement(AMesh *M, size_t nref_cells, size_t nref_faces);
-void refine_faces(const std::vector<E_Int> &ref_faces, size_t start,
-  size_t stop, AMesh *M);
+void resize_data_for_refinement(AMesh *M, size_t nref_cells,
+  size_t nref_faces);
+void refine_faces(const std::vector<E_Int> &ref_faces,
+  const std::vector<E_Int> &ref_patterns, size_t start, size_t stop, AMesh *M);
 void refine_cells(const std::vector<E_Int> &ref_cells, size_t start,
   size_t stop, AMesh *M);
 void update_external_pe_after_ref(E_Int cell, AMesh *M);
 void update_external_pe_after_unref(E_Int cell, AMesh *M);
 
 // Unrefine
-void unrefine_faces(const std::vector<E_Int> &unref_faces, size_t start,
-  size_t stop, AMesh *M);
+void unrefine_faces(const std::vector<E_Int> &unref_faces,
+  const std::vector<E_Int> &patterns, size_t start, size_t stop, AMesh *M);
 void unrefine_cells(const std::vector<E_Int> &unref_cells, size_t start,
   size_t stop, AMesh *M);
-void unrefine_hexa(E_Int cell, AMesh *M);
-void unrefine_face(E_Int face, AMesh *M);
+void assign_pattern_to_adapt_faces(const std::vector<E_Int> &adapt_faces,
+  std::vector<E_Int> &patterns, AMesh *M);
+void unrefine_tetra(E_Int cell, AMesh *M);
+void unrefine_pyra(E_Int cell, AMesh *M);
 
 // RenumberMesh
 //std::vector<E_Int> renumber_cells(AMesh *M);
@@ -94,13 +97,36 @@ void close_mesh(AMesh *M);
 void Right_shift(E_Int *pn, E_Int pos, E_Int size);
 E_Int Get_pos(E_Int e, E_Int *pn, E_Int size);
 E_Int check_closed_cell(E_Int cell, E_Int *pf, E_Int nf, AMesh *M);
+void set_cells_for_2D(AMesh *M);
 
 // Hexa
-void refine_hexa(E_Int cell, AMesh *M);
+void H18_refine(E_Int cell, AMesh *M);
+void H18_unrefine(E_Int cell, AMesh *M);
+void H27_refine(E_Int cell, AMesh *M);
+void H27_unrefine(E_Int cell, AMesh *M);
+
+// Penta
+void Pe12_refine(E_Int cell, AMesh *M);
+void Pe12_unrefine(E_Int cell, AMesh *M);
+void Pe18_refine(E_Int cell, AMesh *M);
+void Pe18_unrefine(E_Int cell, AMesh *M);
+
 
 // Quad
+void Q6_get_ordered_data(AMesh *M, E_Int NODE, E_Int reorient,
+  E_Int *children, E_Int *local);
+void Q6_refine(E_Int face, AMesh *M);
+void Q6_unrefine(E_Int face, AMesh *M);
+
 void Q9_get_ordered_data(AMesh *M, E_Int NODE, E_Int reorient,
   E_Int *children, E_Int *local);
-void refine_quad(E_Int face, AMesh *M);
+void Q9_refine(E_Int face, AMesh *M);
+void Q9_unrefine(E_Int face, AMesh *M);
+
+// Tri
+void T6_get_ordered_data(AMesh *M, E_Int NODE, E_Int reorient,
+  E_Int *children, E_Int *local);
+void T6_refine(E_Int face, AMesh *);
+void T6_unrefine(E_Int face, AMesh *);
 
 #endif

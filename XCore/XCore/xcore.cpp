@@ -42,8 +42,10 @@ static PyMethodDef Pyxcore [] =
   {"CreateAdaptMesh", K_XCORE::CreateAdaptMesh, METH_VARARGS},
   {"AdaptMesh", K_XCORE::AdaptMesh, METH_VARARGS},
   {"computeHessian", K_XCORE::computeHessian, METH_VARARGS},
+  {"computeGradient", K_XCORE::computeGradient, METH_VARARGS},
   {"hessianToMetric", K_XCORE::hessianToMetric, METH_VARARGS},
   {"_metricToRefData", K_XCORE::_metricToRefData, METH_VARARGS},
+  {"_makeRefDataFromGradAndHess", K_XCORE::_makeRefDataFromGradAndHess, METH_VARARGS},
   {"_prepareMeshForAdaptation", K_XCORE::_prepareMeshForAdaptation, METH_VARARGS},
   {NULL, NULL}
 };

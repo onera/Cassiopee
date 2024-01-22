@@ -25,9 +25,9 @@ PyObject *K_XCORE::hessianToMetric(PyObject *self, PyObject *args)
   PyArrayObject *METRIC = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_DOUBLE);
   E_Float *M = (E_Float *)PyArray_DATA(METRIC);
 
-  //E_Float cd_by_eps = 0.28125 / eps;
-  //E_Float lmin = 1.0/(hmax*hmax);
-  //E_Float lmax = 1.0/(hmin*hmin);
+  E_Float cd_by_eps = 0.28125 / eps;
+  E_Float lmin = 1.0/(hmax*hmax);
+  E_Float lmax = 1.0/(hmin*hmin);
 
   for (E_Int i = 0; i < ncells; i++) {
     E_Float *pH = &H[6*i];
@@ -35,14 +35,14 @@ PyObject *K_XCORE::hessianToMetric(PyObject *self, PyObject *args)
     E_Float L[3], v0[3], v1[3], v2[3];
     K_LINEAR::sym3mat_eigen(pH, L, v0, v1, v2);
     
-    //E_Float L0 = sqrt(std::min(std::max(cd_by_eps*fabs(L[0]), lmin), lmax));
-    //E_Float L1 = sqrt(std::min(std::max(cd_by_eps*fabs(L[1]), lmin), lmax));
-    //E_Float L2 = sqrt(std::min(std::max(cd_by_eps*fabs(L[2]), lmin), lmax));
+    E_Float L0 = std::min(std::max(cd_by_eps*fabs(L[0]), lmin), lmax);
+    E_Float L1 = std::min(std::max(cd_by_eps*fabs(L[1]), lmin), lmax);
+    E_Float L2 = std::min(std::max(cd_by_eps*fabs(L[2]), lmin), lmax);
     
    
-    E_Float L0 = sqrt(fabs(L[0]));
-    E_Float L1 = sqrt(fabs(L[1]));
-    E_Float L2 = sqrt(fabs(L[2]));
+    //E_Float L0 = sqrt(fabs(L[0]));
+    //E_Float L1 = sqrt(fabs(L[1]));
+    //E_Float L2 = sqrt(fabs(L[2]));
 
     E_Float *pM = &M[6*i];
     pM[0] = L0*v0[0]*v0[0] + L1*v1[0]*v1[0] + L2*v2[0]*v2[0];

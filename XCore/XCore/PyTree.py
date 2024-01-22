@@ -226,7 +226,7 @@ def createAdaptMesh(t):
 
 ############################################################################
 
-def CreateAdaptMesh(t, own, nei, Tr, Tu):
+def CreateAdaptMesh(t, own, nei, Tr, Tu, eps, hmin, hmax, unrefine=False, mode_2D=None):
   zones = I.getZones(t)
   z = zones[0]
   fc = C.getFields(I.__GridCoordinates__, z, api=3)[0]
@@ -251,17 +251,23 @@ def CreateAdaptMesh(t, own, nei, Tr, Tu):
       name = bc[0]
       #name = str(I.getValue(name))
       bcs.append([plist[1], name])
-
-  return XCore.xcore.CreateAdaptMesh(fc, own, nei, comm_list, bcs, Tr, Tu)
+    
+  return XCore.xcore.CreateAdaptMesh(fc, own, nei, comm_list, bcs, Tr, Tu, eps, hmin, hmax, unrefine, mode_2D)
 
 def AdaptMesh(AM, fc, cx, cy, cz):
   return XCore.xcore.AdaptMesh(AM, fc, cx, cy, cz)
 
-def computeHessian(t, field, cx, cy, cz, own, nei):
+def computeGradient(t, field, cx, cy, cz, own, nei):
   zones = I.getZones(t)
   zone = zones[0]
   arr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
-  return XCore.xcore.computeHessian(arr, field, cx, cy, cz, own, nei)
+  return XCore.xcore.computeGradient(arr, field, cx, cy, cz, own, nei)
+
+def computeHessian(t, field, grad, cx, cy, cz, own, nei):
+  zones = I.getZones(t)
+  zone = zones[0]
+  arr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
+  return XCore.xcore.computeHessian(arr, field, grad, cx, cy, cz, own, nei)
 
 def hessianToMetric(H, hmin, hmax, eps):
   return XCore.xcore.hessianToMetric(H, hmin, hmax, eps)
@@ -273,15 +279,15 @@ def _metricToRefData(t, M, AM):
   XCore.xcore._metricToRefData(arr, M, AM)
   return None
 
+def _makeRefDataFromGradAndHess(t, f, g, h, AM):
+  zones = I.getZones(t)
+  zone = zones[0]
+  arr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
+  XCore.xcore._makeRefDataFromGradAndHess(arr, f, g, h, AM)
+  return None
+
 def _prepareMeshForAdaptation(t):
     zones = I.getZones(t)
     zone = zones[0]
     arr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
     return XCore.xcore._prepareMeshForAdaptation(arr)
-
-
-
-
-
-
-

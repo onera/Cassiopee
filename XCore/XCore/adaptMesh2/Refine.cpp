@@ -7,20 +7,20 @@ void update_external_pe_after_ref(E_Int cell, AMesh *M)
 
   for (E_Int i = 0; i < children->n; i++) {
     E_Int child = children->pc[i];
-    E_Int shell_faces = 0;
+    //E_Int shell_faces = 0;
 
     for (E_Int j = M->indPH[child]; j < M->indPH[child+1]; j++) {
       E_Int face = M->nface[j];
       if (M->owner[face] == cell) {
         M->owner[face] = child;
-        shell_faces++;
+        //shell_faces++;
       } else if (M->neigh[face] == cell) {
         M->neigh[face] = child;
-        shell_faces++;
+        //shell_faces++;
       }
     }
 
-    assert(shell_faces == 3);
+    //assert(shell_faces == 3);
   }
 }
 
@@ -112,9 +112,7 @@ void get_ref_cells_and_faces(AMesh *M, std::vector<E_Int> &ref_cells,
   }
 
   if (ucset.empty()) {
-    // HACK
     assert(ufset.empty());
-    //ufset.clear();
   }
 
   /*for (auto uface : ufset) {
@@ -1153,40 +1151,72 @@ void refine_pyra(E_Int cell, AMesh *M)
   */
 }
 
-void refine_faces(const std::vector<E_Int> &ref_faces, size_t start,
+void refine_faces(const std::vector<E_Int> &ref_faces, 
+  const std::vector<E_Int> &ref_patterns, size_t start,
   size_t stop, AMesh *M)
 {
-  for (size_t i = start; i < stop; i++) {
-    E_Int face = ref_faces[i];
-    E_Int type = M->faceTree->type(face);
-    if      (type == TRI)  refine_tri(face, M);
-    else if (type == QUAD) refine_quad(face, M);
-    else assert(0);
+  if (!M->mode_2D) {
+    for (size_t i = start; i < stop; i++) {
+      E_Int face = ref_faces[i];
+      E_Int type = M->faceTree->type(face);
+      if (type == TRI) T6_refine(face, M);
+      else if (type == QUAD) Q9_refine(face, M);
+    }
+  } else {
+    for (size_t i = start; i < stop; i++) {
+      E_Int face = ref_faces[i];
+      E_Int type = M->faceTree->type(face);
+      if      (type == TRI)             T6_refine(face, M);
+      else if (type == QUAD) {
+        if      (ref_patterns[i] == DIR) Q6_refine(face, M);
+        else if (ref_patterns[i] == ISO) Q9_refine(face, M);
+        else    assert(0);
+      }
+      else assert(0);
+    }
   }
 }
 
 void refine_cells(const std::vector<E_Int> &ref_cells, size_t start,
   size_t stop, AMesh *M)
 {
-  for (size_t i = start; i < stop; i++) {
-    E_Int cell = ref_cells[i];
-    E_Int type = M->cellTree->type(cell);
-    switch (type) {
-      case HEXA:
-        refine_hexa(cell, M);
-        break;
-      case TETRA:
-        refine_tetra(cell, M);
-        break;
-      case PENTA:
-        refine_penta(cell, M);
-        break;
-      case PYRA:
-        refine_pyra(cell, M);
-        break;
-      default:
-        assert(0);
-        break;
+  if (M->mode_2D) {
+    for (size_t i = start; i < stop; i++) {
+      E_Int cell = ref_cells[i];
+      E_Int type = M->cellTree->type(cell);
+      switch (type) {
+        case HEXA:
+          H18_refine(cell, M);
+          break;
+        case PENTA:
+          Pe12_refine(cell, M);
+          break;
+        default:
+          assert(0);
+          break;
+      }
+    }
+  } else {
+    for (size_t i = start; i < stop; i++) {
+      E_Int cell = ref_cells[i];
+      E_Int type = M->cellTree->type(cell);
+      switch (type) {
+        case HEXA:
+          H27_refine(cell, M);
+          break;
+        case TETRA:
+          refine_tetra(cell, M);
+          break;
+        case PENTA:
+          Pe18_refine(cell, M);
+          break;
+        case PYRA:
+          refine_pyra(cell, M);
+          break;
+        default:
+          assert(0);
+          break;
+      }
     }
   }
 }

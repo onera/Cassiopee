@@ -6,6 +6,176 @@
 
 #define DSMALL 1e-14
 
+static
+void set_PENTA_for_2D(E_Int cell, AMesh *M)
+{
+  E_Int nf = -1;
+  E_Int *pf = get_cell(cell, nf, M->nface, M->indPH);
+  assert(nf == 5);
+
+  E_Int start = 0;
+  for (; start < nf; start++) {
+    E_Int face = pf[start];
+    E_Int np = -1;
+    E_Int *pn = get_face(cell, nf, M->ngon, M->indPG);
+
+    // Compute normal to the triangle formed by the first 3 points
+    E_Float e0[3] = {M->x[pn[1]] - M->x[pn[0]],
+                     M->y[pn[1]] - M->y[pn[0]],
+                     M->z[pn[1]] - M->z[pn[0]]};
+
+    E_Float e1[3] = {M->x[pn[2]] - M->x[pn[0]],
+                     M->y[pn[2]] - M->y[pn[0]],
+                     M->z[pn[2]] - M->z[pn[0]]};
+
+    E_Float n[3];
+    K_MATH::cross(e0, e1, n);
+    
+    if (fabs(K_MATH::dot(n, M->mode_2D, 3) - 1.0) <= K_MATH::SMALL) {
+      break;
+    }
+  }
+
+  if (start == nf) {
+    fprintf(stderr, "Couldn't align PENTA %d with prescribed 2D normal.\n",
+      cell);
+    exit(1);
+  }
+
+  if (M->faceTree->type(pf[start]) != TRI) {
+    fprintf(stderr, "PENTA %d is aligned with prescribed 2D normal at"
+      "face %d but it is not a triangle. This is weird.\n", cell, pf[start]);
+    exit(1);
+  }
+
+  Right_shift(pf, start, nf);
+}
+
+static
+void set_HEXA_for_2D(E_Int cell, AMesh *M)
+{
+  E_Int nf = -1;
+  E_Int *pf = get_cell(cell, nf, M->nface, M->indPH);
+
+  E_Int start = 0;
+  for (; start < nf; start++) {
+    E_Int face = pf[start];
+    E_Int np = -1;
+    E_Int *pn = get_face(face, np, M->ngon, M->indPG);
+
+    // Compute normal to the triangle formed by the first 3 points
+    E_Float e0[3] = {M->x[pn[1]] - M->x[pn[0]],
+                     M->y[pn[1]] - M->y[pn[0]],
+                     M->z[pn[1]] - M->z[pn[0]]};
+
+    E_Float e1[3] = {M->x[pn[2]] - M->x[pn[0]],
+                     M->y[pn[2]] - M->y[pn[0]],
+                     M->z[pn[2]] - M->z[pn[0]]};
+
+    E_Float n[3];
+    K_MATH::cross(e0, e1, n);
+
+    E_Float dp = fabs(K_MATH::dot(n, M->mode_2D, 3)) / K_MATH::norm(n, 3);
+
+    if (fabs(dp - 1.0) <= 1.0e-6) {
+      break;
+    }
+  }
+
+  if (start == nf) {
+    fprintf(stderr, "Couldn't align HEXA %d with prescribed 2D normal.\n",
+      cell);
+    assert(0);
+    exit(1);
+  }
+
+  Right_shift(pf, start, nf);
+}
+
+void set_cells_for_2D(AMesh *M)
+{
+  for (E_Int i = 0; i < M->ncells; i++) {
+    E_Int type = M->cellTree->type(i);
+    switch (type) {
+      case HEXA:
+        set_HEXA_for_2D(i, M);
+        break;
+      case PENTA:
+        set_PENTA_for_2D(i, M);
+        break;
+      default:
+        assert(0);
+        break;
+    }
+  }
+}
+
+E_Int set_faces_type(AMesh *M)
+{
+  for (E_Int i = 0; i < M->nfaces; i++) {
+    E_Int np = get_stride(i, M->indPG);
+    switch (np) {
+      case 3:
+        M->faceTree->type_[i] = TRI;
+        break;
+      case 4:
+        M->faceTree->type_[i] = QUAD;
+        break;
+      default:
+        return 1;
+    }
+  }
+
+  return 0;
+}
+
+E_Int set_cells_type(AMesh *M)
+{
+  for (E_Int i = 0; i < M->ncells; i++) {
+    E_Int nf = get_stride(i, M->indPH);
+    switch (nf) {
+      case 4:
+        M->cellTree->type_[i] = TETRA;
+        break;
+      case 5: {
+        // Prism: 2 TRI + 3 QUAD
+        // Pyra: 4 TRI + 1 QUAD
+        E_Int ntri, nquad;
+        ntri = nquad = 0;
+        E_Int *pf = &M->nface[M->indPH[i]];
+        for (E_Int j = 0; j < nf; j++)
+          M->faceTree->type_[pf[j]] == TRI ? ntri++ : nquad++;
+        E_Int is_penta = ntri == 2 && nquad == 3;
+        E_Int is_pyra = ntri == 4 && nquad == 1;
+        if (is_penta) M->cellTree->type_[i] = PENTA;
+        else if (is_pyra) M->cellTree->type_[i] = PYRA;
+        else assert(0);
+        break;
+      }
+      case 6:
+        M->cellTree->type_[i] = HEXA;
+        break;
+      default:
+        assert(0);
+        return 1;
+    }
+  }
+
+  if (M->mode_2D) {
+    for (E_Int i = 0; i < M->ncells; i++) {
+      E_Int type = M->cellTree->type(i);
+      if (type != HEXA && type != PENTA) {
+        fprintf(stderr, "AdaptMesh: 2D mode incompatible with cell type %s.\n",
+          type_to_string(type));
+        exit(1);
+      }
+    }
+  }
+
+  return 0;
+}
+
+
 E_Int Get_pos(E_Int e, E_Int *pn, E_Int size)
 {
   for (E_Int i = 0; i < size; i++) {

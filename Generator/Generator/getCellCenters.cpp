@@ -19,8 +19,6 @@
 
 #include "generator.h"
 
-/* Returns cell centers of a well-oriented NGon */
-
 PyObject *K_GENERATOR::getCellCenters(PyObject *self, PyObject *args)
 {
   PyObject *ARR, *FC, *FA, *OWN, *NEI;
@@ -72,10 +70,21 @@ PyObject *K_GENERATOR::getCellCenters(PyObject *self, PyObject *args)
 
   // Parent elements
   E_Int *owner, *neigh;
-  ret = K_NUMPY::getFromNumpyArray(OWN, owner, size, nfld, true);
-  assert(ret == 1 && size == nfaces && nfld == 1);
-  ret = K_NUMPY::getFromNumpyArray(NEI, neigh, size, nfld, true);
-  assert(ret == 1 && size == nfaces && nfld == 1);
+  if (OWN != Py_None && NEI != Py_None) {
+    ret = K_NUMPY::getFromNumpyArray(OWN, owner, size, nfld, true);
+    assert(ret == 1 && size == nfaces && nfld == 1);
+    ret = K_NUMPY::getFromNumpyArray(NEI, neigh, size, nfld, true);
+    assert(ret == 1 && size == nfaces && nfld == 1);
+  } else if (OWN == Py_None && NEI == Py_None) {
+    K_CONNECT::orient_boundary_ngon(x, y, z, *cn);
+    owner = (E_Int *)malloc(nfaces * sizeof(E_Int));
+    assert(owner);
+    neigh = (E_Int *)malloc(nfaces * sizeof(E_Int));
+    assert(neigh);
+    K_CONNECT::build_parent_elements_ngon(*cn, &owner[0], &neigh[0]);
+  } else {
+    assert(0);
+  }
   
   // Cell centers
   E_Int ncells = cn->getNElts();
@@ -96,6 +105,11 @@ PyObject *K_GENERATOR::getCellCenters(PyObject *self, PyObject *args)
   Py_DECREF(Cx);
   Py_DECREF(Cy);
   Py_DECREF(Cz);
+
+  if (OWN == Py_None && NEI == Py_None) {
+    free(owner);
+    free(neigh);
+  }
 
   return out;
 }

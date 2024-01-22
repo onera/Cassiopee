@@ -17,9 +17,11 @@
 
 PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
 {
-  PyObject *ARRAY, *OWN, *NEI, *COMM, *BCS;
-  E_Float Tr, Tu;
-  if (!PYPARSETUPLE_(args, OOO_ OO_ RR_, &ARRAY, &OWN, &NEI, &COMM, &BCS, &Tr, &Tu)) {
+  PyObject *ARRAY, *OWN, *NEI, *COMM, *BCS, *NORMAL_2D;
+  E_Float Tr, Tu, eps, hmin, hmax;
+  E_Int UNREF;
+  if (!PYPARSETUPLE_(args, OOOO_ O_ RRRR_ R_ I_ O_, &ARRAY, &OWN, &NEI, &COMM,
+    &BCS, &Tr, &Tu, &eps, &hmin, &hmax, &UNREF, &NORMAL_2D)) {
     RAISE("Wrong input.");
     return NULL;
   }
@@ -131,6 +133,20 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
 
   M->Tr = Tr;
   M->Tu = Tu;
+  M->eps = eps;
+  M->hmin = hmin;
+  M->hmax = hmax;
+  M->unrefine = (E_Int)UNREF;
+  
+  // Normal to 2D plane
+  if (NORMAL_2D != Py_None) {
+    K_NUMPY::getFromNumpyArray(NORMAL_2D, M->mode_2D, size, nfld, false);
+    assert(size == 3 && nfld == 1);
+    if (M->mode_2D) {
+      printf("2D mode normal to (%f %f %f)\n", M->mode_2D[0], M->mode_2D[1],
+        M->mode_2D[2]);
+    }
+  }
 
   // Set face types
   set_faces_type(M);
@@ -204,24 +220,12 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
   std::vector<E_Int> unref_faces, unref_cells;
 
   get_ref_cells_and_faces(M, ref_cells, ref_faces, unref_cells, unref_faces);
-
-  //for (E_Int i = 0; i < M->nfaces; i++) M->faceTree->state_[i] = UNTOUCHED;
-  //for (E_Int i = 0; i < M->ncells; i++) M->cellTree->state_[i] = UNTOUCHED;
-
-  //for (E_Int i = M->indPH[0]; i < M->indPH[1]; i++)
-  //  ref_faces.push_back(M->nface[i]);
-  //ref_cells.push_back(0);
-
-  size_t nref_cells = ref_cells.size();
-  size_t nref_faces = ref_faces.size();
-  size_t nunref_cells = unref_cells.size();
-  size_t nunref_faces = unref_faces.size();
-
-  printf("    Cells tagged for refinement: %d\n", (E_Int)nref_cells);
-  printf("    Cells tagged for unrefinement: %d\n", (E_Int)nunref_cells);
   
-  if (nunref_cells > 0) {
+  if (unref_cells.size()) {
 
+    size_t nunref_cells = unref_cells.size();
+    printf("    Cells tagged for unrefinement: %d\n", (E_Int)nunref_cells);
+    
     // Sort unref cells/faces by decreasing level
     std::sort(unref_faces.begin(), unref_faces.end(), [&] (E_Int i, E_Int j)
     {
@@ -260,18 +264,15 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
 
     assert(face_distrib.size() == cell_distrib.size());
     
-    /*
-    size_t cell_start = 0;
-    while (cell_lvl[cell_start] > face_lvl[0]) {
-      unrefine_cells(unref_cells, cell_distrib[cell_start],
-        cell_distrib[cell_start+1], M);
-      cell_start++;
-    }
-    */
-
+    // Assign unref pattern to faces if 2D mode
+    std::vector<E_Int> patterns;
+    assign_pattern_to_adapt_faces(unref_faces, patterns, M);
+    
     for (size_t i = 0; i < face_distrib.size()-1; i++) {
       unrefine_cells(unref_cells, cell_distrib[i], cell_distrib[i+1], M);
-      unrefine_faces(unref_faces, face_distrib[i], face_distrib[i+1], M);
+      
+      unrefine_faces(unref_faces, patterns, face_distrib[i],
+        face_distrib[i+1], M);
       
       for (E_Int j = cell_distrib[i]; j < cell_distrib[i+1]; j++) {
         E_Int ucell = unref_cells[j];
@@ -356,10 +357,22 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
 
     //goto finish;
   }
- 
- 
-  if (nref_cells > 0) {
 
+  /*
+    ref_cells.clear();
+    ref_faces.clear();
+
+    ref_cells.push_back(0);
+    for (E_Int i = 0; i < M->nfaces; i++) ref_faces.push_back(i); 
+  */
+
+  if (ref_cells.size() > 0) {
+ 
+    size_t nref_cells = ref_cells.size();
+    size_t nref_faces = ref_faces.size();
+    
+    printf("    Cells tagged for refinement: %d\n", (E_Int)nref_cells);
+    
     resize_data_for_refinement(M, nref_cells, nref_faces);
 
     // Sort ref cells/faces by increasing level
@@ -405,8 +418,11 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
       cell_start++;
     }
 
+    std::vector<E_Int> patterns;
+    assign_pattern_to_adapt_faces(ref_faces, patterns, M);
+    
     for (size_t i = 0; i < face_distrib.size()-1; i++) {
-      refine_faces(ref_faces, face_distrib[i], face_distrib[i+1], M);
+      refine_faces(ref_faces, patterns, face_distrib[i], face_distrib[i+1], M);
       refine_cells(ref_cells, cell_distrib[cell_start],
         cell_distrib[cell_start+1], M);
       cell_start++;
@@ -418,6 +434,10 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
 
     update_boundary_faces(M);
 
+    if (M->ncells < M->cellTree->nelem_)
+        M->cellTree->resize(M->ncells);
+    if (M->nfaces < M->faceTree->nelem_)
+        M->faceTree->resize(M->nfaces);
   }
 
   init_mesh_numbering(M);

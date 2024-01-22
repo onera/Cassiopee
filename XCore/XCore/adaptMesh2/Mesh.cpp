@@ -6,12 +6,6 @@ E_Int master_face(E_Int face, AMesh *M)
   return M->faceTree->children(face) ? face : M->faceTree->parent(face);
 }
 
-//E_Int master_cell(E_Int cell, AMesh *M)
-//{
-//  return cell == -1 ? cell : 
-//    (M->cellTree->children(cell) ? cell : M->cellTree->parent(cell)); 
-//}
-
 E_Int master_cell(E_Int cell, AMesh *M)
 {
   if (cell == -1) return -1;
@@ -86,9 +80,11 @@ AMesh::AMesh() :
   pid(-1), npc(-1), nreq(-1), req(NULL),
   ecenter(NULL),
   cellTree(NULL), faceTree(NULL),
-  ref_data(NULL), Tr(-1.0), Tu(-1.0),
+  ref_data(NULL), Tr(-1.0), Tu(-1.0), eps(-1.0),
+  hmin(0.0), hmax(0.0), unrefine(1),
   closed_indPG(NULL), closed_ngon(NULL),
-  fc(NULL), cx(NULL), cy(NULL), cz(NULL)
+  fc(NULL), cx(NULL), cy(NULL), cz(NULL),
+  mode_2D(NULL)
 {
   MPI_Comm_rank(MPI_COMM_WORLD, &pid);
   MPI_Comm_size(MPI_COMM_WORLD, &npc);
@@ -194,60 +190,6 @@ void compute_face_center_and_area(E_Int id, E_Int stride,
       fa[i] = 0.5*sumN[i];
     }
   }
-}
-
-E_Int set_faces_type(AMesh *M)
-{
-  for (E_Int i = 0; i < M->nfaces; i++) {
-    E_Int np = get_stride(i, M->indPG);
-    switch (np) {
-      case 3:
-        M->faceTree->type_[i] = TRI;
-        break;
-      case 4:
-        M->faceTree->type_[i] = QUAD;
-        break;
-      default:
-        return 1;
-    }
-  }
-
-  return 0;
-}
-
-E_Int set_cells_type(AMesh *M)
-{
-  for (E_Int i = 0; i < M->ncells; i++) {
-    E_Int nf = get_stride(i, M->indPH);
-    switch (nf) {
-      case 4:
-        M->cellTree->type_[i] = TETRA;
-        break;
-      case 5: {
-        // Prism: 2 TRI + 3 QUAD
-        // Pyra: 4 TRI + 1 QUAD
-        E_Int ntri, nquad;
-        ntri = nquad = 0;
-        E_Int *pf = &M->nface[M->indPH[i]];
-        for (E_Int j = 0; j < nf; j++)
-          M->faceTree->type_[pf[j]] == TRI ? ntri++ : nquad++;
-        E_Int is_penta = ntri == 2 && nquad == 3;
-        E_Int is_pyra = ntri == 4 && nquad == 1;
-        if (is_penta) M->cellTree->type_[i] = PENTA;
-        else if (is_pyra) M->cellTree->type_[i] = PYRA;
-        else assert(0);
-        break;
-      }
-      case 6:
-        M->cellTree->type_[i] = HEXA;
-        break;
-      default:
-        assert(0);
-        return 1;
-    }
-  }
-
-  return 0;
 }
 
 E_Int get_reorient(E_Int face, E_Int cell, E_Int normalIn, AMesh *M)
@@ -461,6 +403,9 @@ void reorder_hexa(E_Int i, E_Int nf, E_Int *pf, AMesh *M)
 
 void reorder_cells(AMesh *M)
 {
+  if (M->mode_2D)
+    set_cells_for_2D(M);
+
   for (E_Int i = 0; i < M->ncells; i++) {
     E_Int nf = -1;
     E_Int *pf = get_cell(i, nf, M->nface, M->indPH);
