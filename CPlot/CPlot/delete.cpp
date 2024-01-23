@@ -199,17 +199,32 @@ PyObject* K_CPLOT::deletez(PyObject* self, PyObject* args)
     }
     
     chain_int* c = d->ptrState->deactivatedZones;
-    chain_int* c2;
+    chain_int* cp = NULL;
+    chain_int* cn = c;
     E_Int oldn, newn;
     while (c != NULL)
     {
       oldn = c->value-1;
+      oldn = MIN(oldn, d->_numberOfZones-1); // securite
       newn = old2new[oldn];
-      if (newn == -1) { c2 = c->next; free(c); c = c2;}
-      else { c->value = newn+1; c = c->next; }
+      if (newn == -1) 
+      { 
+        if (cp == NULL) d->ptrState->deactivatedZones = c->next;
+        else cp->next = c->next;
+        cn = c;
+        free(c);
+        c = cn->next;
+      }
+      else 
+      { 
+        cp = c;
+        c->value = newn+1; 
+        c = c->next; 
+      }
     }
       
     delete [] old2new;
+    //d->ptrState->printDeactivatedZones();
   }
   
   // Switch - Dangerous zone protegee par _state.lock

@@ -53,6 +53,8 @@ void Data::displaySSolidZone(StructZone* zonep, E_Int zone)
   else if (is1D == true) glLineWidth(3.);
   else glLineWidth(1.);
 
+  if (is1D == true && ptrState->mode == MESH) return; // already drawn in mesh
+
   // scale
   E_Float s = MAX(zonep->xmax-zonep->xmin, zonep->ymax-zonep->ymin);
   s = MAX(s, zonep->zmax-zonep->zmin);

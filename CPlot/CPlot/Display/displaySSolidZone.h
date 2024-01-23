@@ -72,38 +72,38 @@
   glTexCoord3f(1,1,1);                                          \
   glVertex3d(x[n7], y[n7], z[n7]);                              \
   glTexCoord3f(0,1,1);                                          \
-  glVertex3d(x[n8], y[n8], z[n8]);                                \
+  glVertex3d(x[n8], y[n8], z[n8]);                              \
   glTexCoord3f(0,0,0);                                          \
-  glVertex3d(x[n1], y[n1], z[n1]);                            \
-  glTexCoord3f(1,0,0);                                     \
-  glVertex3d(x[n2], y[n2], z[n2]);                        \
-  glTexCoord3f(1,0,1);                                     \
-  glVertex3d(x[n6], y[n6], z[n6]);                        \
-  glTexCoord3f(0,0,1);                                     \
-  glVertex3d(x[n5], y[n5], z[n5]);                             \
+  glVertex3d(x[n1], y[n1], z[n1]);                              \
+  glTexCoord3f(1,0,0);                                          \
+  glVertex3d(x[n2], y[n2], z[n2]);                              \
+  glTexCoord3f(1,0,1);                                          \
+  glVertex3d(x[n6], y[n6], z[n6]);                              \
+  glTexCoord3f(0,0,1);                                          \
+  glVertex3d(x[n5], y[n5], z[n5]);                              \
   glTexCoord3f(0,1,0);                                          \
-  glVertex3d(x[n4], y[n4], z[n4]);                            \
-  glTexCoord3f(0,1,1);                                     \
-  glVertex3d(x[n8], y[n8], z[n8]);                        \
-  glTexCoord3f(1,1,1);                                     \
-  glVertex3d(x[n7], y[n7], z[n7]);                        \
-  glTexCoord3f(1,1,0);                                     \
-  glVertex3d(x[n3], y[n3], z[n3]); \
+  glVertex3d(x[n4], y[n4], z[n4]);                              \
+  glTexCoord3f(0,1,1);                                          \
+  glVertex3d(x[n8], y[n8], z[n8]);                              \
+  glTexCoord3f(1,1,1);                                          \
+  glVertex3d(x[n7], y[n7], z[n7]);                              \
+  glTexCoord3f(1,1,0);                                          \
+  glVertex3d(x[n3], y[n3], z[n3]);                              \
   glTexCoord3f(0,0,0);                                          \
-  glVertex3d(x[n1], y[n1], z[n1]);                            \
-  glTexCoord3f(0,0,1);                                     \
-  glVertex3d(x[n5], y[n5], z[n5]);                        \
-  glTexCoord3f(0,1,1);                                     \
-  glVertex3d(x[n8], y[n8], z[n8]);                        \
-  glTexCoord3f(0,1,0);                                     \
-  glVertex3d(x[n4], y[n4], z[n4]);                            \
-  glTexCoord3f(1,0,0);                                        \
-  glVertex3d(x[n2], y[n2], z[n2]);                            \
-  glTexCoord3f(1,1,0);                                     \
-  glVertex3d(x[n3], y[n3], z[n3]);                        \
-  glTexCoord3f(1,1,1);                                     \
-  glVertex3d(x[n7], y[n7], z[n7]);                        \
-  glTexCoord3f(1,0,1);                                     \
+  glVertex3d(x[n1], y[n1], z[n1]);                              \
+  glTexCoord3f(0,0,1);                                          \
+  glVertex3d(x[n5], y[n5], z[n5]);                              \
+  glTexCoord3f(0,1,1);                                          \
+  glVertex3d(x[n8], y[n8], z[n8]);                              \
+  glTexCoord3f(0,1,0);                                          \
+  glVertex3d(x[n4], y[n4], z[n4]);                              \
+  glTexCoord3f(1,0,0);                                          \
+  glVertex3d(x[n2], y[n2], z[n2]);                              \
+  glTexCoord3f(1,1,0);                                          \
+  glVertex3d(x[n3], y[n3], z[n3]);                              \
+  glTexCoord3f(1,1,1);                                          \
+  glVertex3d(x[n7], y[n7], z[n7]);                              \
+  glTexCoord3f(1,0,1);                                          \
   glVertex3d(x[n6], y[n6], z[n6]);
 
   // Grid dimensions

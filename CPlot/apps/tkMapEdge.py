@@ -992,6 +992,9 @@ def copyDistrib():
             source = T.subzone(source, (pt[0],1,pt[2]),(pt[0],nj,pt[2]))
         else:
             source = T.subzone(source, (pt[0],pt[1],1),(pt[0],pt[1],nk))
+    else: # source is 1D
+        source = Internal.copyTree(source)
+
     # Extrait la distribution en i
     source = D.getCurvilinearAbscissa(source)
     C._initVars(source, '{CoordinateX}={s}')

@@ -251,7 +251,7 @@ PyObject* K_CPLOT::replace(PyObject* self, PyObject* args)
   // update de la liste des deactivatedZones
   if (oldType != res && d->ptrState->deactivatedZones != NULL) // la numerotation change que si la zone change de type
   {
-    int* old2new = new int [d->_numberOfZones];
+    int* old2new = new E_Int [d->_numberOfZones];
     if (oldType == 1) // structure qui est maintenant a la fin en non-structure
     {
       for (E_Int i = 0; i < nzs; i++) old2new[i] = i;
@@ -273,6 +273,7 @@ PyObject* K_CPLOT::replace(PyObject* self, PyObject* args)
       c->value = newn+1; c = c->next;
     }
     delete [] old2new;
+    //d->ptrState->printDeactivatedZones();
     //d->ptrState->clearDeactivatedZones();
   }
   

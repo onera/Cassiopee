@@ -34,7 +34,7 @@
 /* Define a chained integer list */
 struct chain_int 
 {
-    E_Int        value;
+    E_Int      value;
     chain_int* next;
 };
 
@@ -191,17 +191,11 @@ struct CPlotState
     int inner_tesselation; // Degre de raffinement pour les triangles internes
     int outer_tesselation; // Degre de raffinement pour les triangles au bord.
 
-    void clearDeactivatedZones() {
-        chain_int* c = deactivatedZones;
-        if (c == NULL) return;
-        E_Int size = 0; while (c->next != NULL) { c = c->next; size++; }
-        chain_int** ptrs = new chain_int* [size];
-        c = deactivatedZones;
-        size = 0; while (c->next != NULL) { ptrs[size] = c; c = c->next; size++; }
-        for (E_Int i = 0; i < size; i++) free(ptrs[i]);
-        delete [] ptrs;
-        deactivatedZones = NULL;}
-    
+    void clearDeactivatedZones();
+    void insertDeactivatedZones(E_Int i);
+    void removeDeactivatedZones(E_Int i);
+    void printDeactivatedZones();
+
     CPlotState() : lock(0), _lockGPURes(0), _mustExport(0), _isExporting(0) {}
 
     virtual ~CPlotState( ) {

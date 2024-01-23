@@ -336,6 +336,7 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
     {
       _zones[ptrState->selectedZone-1]->active = 0;
       _zones[ptrState->selectedZone-1]->selected = 0;
+      /*
       if (ptrState->deactivatedZones == NULL)
       {
         struct chain_int* ci;
@@ -352,7 +353,10 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
         ci = ci->next;
         ci->value = ptrState->selectedZone;
         ci->next = NULL;
-      }
+      } */
+      ptrState->insertDeactivatedZones(ptrState->selectedZone);
+      //ptrState->printDeactivatedZones();
+
       ptrState->selectedZone = ptrState->selectedZone+1;
       if (ptrState->selectedZone == _numberOfZones+1) 
         ptrState->selectedZone = 0;
@@ -378,7 +382,7 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
     if (ptrState->deactivatedZones != NULL)
     {
       struct chain_int* ci = ptrState->deactivatedZones;
-      struct chain_int* cip = ptrState->deactivatedZones;
+      struct chain_int* cip = NULL;
       while (ci->next != NULL)
       {
         cip = ci;
@@ -388,10 +392,11 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
       _zones[ci->value-1]->active = 1;
       //ptrState->selectedZone = ci->value;
       if (ptrState->selectedZone != 0) _zones[ptrState->selectedZone-1]->selected = 1;
-      if (cip == ci) ptrState->deactivatedZones = ci->next;
+      if (cip == NULL) ptrState->deactivatedZones = NULL;
       else cip->next = NULL;
       free(ci);
     }
+    ptrState->printDeactivatedZones();
     break;
   }
 

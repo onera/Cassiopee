@@ -756,7 +756,17 @@ PyObject* K_CPLOT::setActiveZones(PyObject* self, PyObject* args)
       printf("Warning: setActiveZones: status of zone is invalid (%d).\n",
              status);
     } 
-    else d->_zones[noz]->active = status;
+    else
+    {
+      // activate/deactivate zone
+      d->_zones[noz]->active = status;
+      // modify deactivatedZones
+      if (status == 0) // add noz to deactivatedZones
+        d->ptrState->insertDeactivatedZones(noz+1);
+      else // remove noz from deactivatedZones
+        d->ptrState->removeDeactivatedZones(noz+1);
+      //d->ptrState->printDeactivatedZones();
+    }
   }
   d->ptrState->render = 1;
   return Py_BuildValue("i", KSUCCESS);

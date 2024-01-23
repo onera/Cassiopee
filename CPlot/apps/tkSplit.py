@@ -26,7 +26,7 @@ def zip():
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     eps = CTK.varsFromWidget(VARS[4].get(), type=1)
     if len(eps) != 1:
-        CTK.TXT.insert('START', 'Join tolerance is incorrect.\n')
+        CTK.TXT.insert('START', 'Zip tolerance is incorrect.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     eps = eps[0]
     

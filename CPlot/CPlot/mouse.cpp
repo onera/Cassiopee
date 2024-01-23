@@ -459,6 +459,7 @@ void Data::mouseDrag(E_Int x, E_Int y)
         if (z->active == 1)
         {
           z->active = 0;
+          /*
           if (ptrState->deactivatedZones == NULL)
           {
             struct chain_int* ci;
@@ -476,6 +477,9 @@ void Data::mouseDrag(E_Int x, E_Int y)
             ci->value = zone+1;
             ci->next = NULL;
           }
+          */
+          ptrState->insertDeactivatedZones(zone+1);
+          //ptrState->printDeactivatedZones();
         }
       }
     }
