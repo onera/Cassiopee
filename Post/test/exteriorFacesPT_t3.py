@@ -37,3 +37,18 @@ test.testT(b,6)
 a = G.cartHexa((0,0,0), (1,1,1), (3,3,3))
 b = P.exteriorFaces(a)
 test.testT(b,7)
+
+# BAR
+a = G.cartTetra((0,0,0), (1,1,1), (5,1,1))
+b = P.exteriorFaces(a)
+test.testT(b, 8)
+
+# NGON3D
+a = G.cartNGon((0,0,0), (1,1,1), (5,5,5))
+b = P.exteriorFaces(a)
+test.testT(b, 9)
+
+# NGON2D
+a = G.cartNGon((0,0,0), (1,1,1), (5,5,1))
+b = P.exteriorFaces(a)
+test.testT(b, 10)
