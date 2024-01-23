@@ -1,11 +1,20 @@
-/*
+/*    
+    Copyright 2013-2024 Onera.
 
+    This file is part of Cassiopee.
 
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
---------- NUGA v1.0
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-
-
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 //Authors : Sam Landier (sam.landier@onera.fr)
 
@@ -27,8 +36,6 @@
 #include "eberly_eigen.h"
 #endif
 
-
-//#include<list>
 
 namespace DELAUNAY{
 
@@ -1045,7 +1052,8 @@ namespace DELAUNAY{
     const auto& Mj = _field[Nj];
 	   auto& M = _field[N];
 
-    if (Mi == Mj) {
+    if (Mi == Mj) 
+    {
       M = Mi;
       return;
     }
@@ -1216,7 +1224,8 @@ namespace DELAUNAY{
 
     assert(isValidMetric(Mji));
 
-    if (Mj != Mji) {
+    if (Mj != Mji) 
+    {
       Mj = Mji;
       return true;
     }
@@ -1598,7 +1607,7 @@ namespace DELAUNAY{
  
   }
   
-  ///
+  /// pour un edge, threshold doit etre hmax
   template <typename T>
   void
   VarMetric<T>::__compute_refine_points
@@ -1606,19 +1615,21 @@ namespace DELAUNAY{
    std::vector<std::pair<E_Float, size_type> >& length_to_points, std::vector<size_type>& tmpNodes)
   {
     tmpNodes.clear();
-    E_Float   d = length(Ni, Nj, threshold, tmpNodes);
+    E_Float   d = length(Ni, Nj, threshold, tmpNodes); // decoupe de l'edge
     size_type n = std::max(size_type(d), size_type(1));
 
-    if ((n * (n + 1)) < (d * d))
-      ++n;
+    // CBX: est-ce qu'il ne faudrait pas limiter la decoupe de l'edge?
+    // quel est l'effet?
+    //n = std::min(n, 30);
 
-    if (n == 1) // Saturated
-      return;
+    if ((n * (n + 1)) < (d * d)) ++n;
+
+    if (n == 1) return; // edge deja assez fin
 
     size_type ni = 0, ii = 0, dim(pos.rows()), nb_nodes;
     E_Float l = 0.;
     size_type Nstart = Ni, Nk = Ni, Nl = Ni;
-    E_Float x = 1.;//fixme
+    E_Float x = 1.;
     std::vector<std::pair<E_Float, size_type> > length_to_point;
     length_to_point.push_back(std::make_pair(0., Ni));
     E_Float* pNi = pos.col(Ni);
@@ -1642,17 +1653,13 @@ namespace DELAUNAY{
       {
         Nk = (l == 0.) ? Nstart : length_to_point[ii].second;
         Nl = length_to_point[++ii].second;
-        if (Nl == Nj)
-          break;
+        if (Nl == Nj) break;
         x = lengthEval(Nk, /*metric*/(*this)[Nk], Nl, /*metric*/(*this)[Nl]);
-        if ((l+x) < 1.)
-          l += x;
-        else
-          break;
+        if ((l+x) < 1.) l += x;
+        else break;
       }
 
-      if (Nl == Nj)
-        break;
+      if (Nl == Nj) break;
 
       r = ((1 - l)/x);
       
@@ -1672,9 +1679,6 @@ namespace DELAUNAY{
       length_to_points.push_back(std::make_pair(-n, Nstart));
     }
   }
-
-
-
 
 } // End namespace DELAUNAY
 

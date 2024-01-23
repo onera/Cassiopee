@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/UBSSurface.h"
 #include <algorithm>
@@ -80,6 +80,21 @@ void UBSSurface::DV2(E_Float u, E_Float v, E_Float* P) const
 void UBSSurface::DUV(E_Float u, E_Float v, E_Float* P) const
 {
   __eval (u, _baseD1, v, _baseD1, P);
+}
+
+void UBSSurface::DAUV1(E_Float u, E_Float v, E_Float* P) const
+{
+  __eval (u, _baseD1, v, _base, P); // DU1
+  __eval (u, _base, v, _baseD1, P+3); // DV1
+}
+
+void UBSSurface::DAUV2(E_Float u, E_Float v, E_Float* P) const
+{
+  __eval (u, _baseD1, v, _base,   P); // DU1
+  __eval (u,  _base,  v, _baseD1, P+3); // DV1
+  __eval (u, _baseD2, v, _base,   P+6); // DU2
+  __eval (u, _base,   v, _baseD2, P+9); // DV2
+  __eval (u, _baseD1, v, _baseD1, P+12); // DUV
 }
 
 void UBSSurface::__eval (E_Float u, const std::vector<pBaseFunc>& FUs, 

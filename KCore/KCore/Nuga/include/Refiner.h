@@ -1,13 +1,22 @@
-/*
+/*    
+    Copyright 2013-2024 Onera.
 
+    This file is part of Cassiopee.
 
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
---------- NUGA v1.0
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-
-
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef __DELAUNAY_REFINER_H__
 #define __DELAUNAY_REFINER_H__
@@ -34,8 +43,8 @@ namespace DELAUNAY
     typedef NUGA::size_type                  size_type;
     typedef NUGA::int_vector_type            int_vector_type;
     typedef NUGA::int_set_type               int_set_type;
-    typedef K_SEARCH::KdTree<>                     tree_type;
-    typedef K_MESH::Triangle                       element_type;
+    typedef K_SEARCH::KdTree<>               tree_type;
+    typedef K_MESH::Triangle                 element_type;
     typedef NUGA::non_oriented_edge_set_type non_oriented_edge_set_type;
 
   public:
@@ -61,7 +70,7 @@ namespace DELAUNAY
     E_Int                   _nb_smooth_iter;
     E_Bool                  _symmetrize;
   public:
-    E_Bool                  _debug;    
+    E_Bool                  _debug;
   };
 
   ///
@@ -91,13 +100,11 @@ namespace DELAUNAY
         const size_type& Ni = *(pS+i);
         const size_type& Nj = *(pS + (i+1) % element_type::NB_NODES);
 
-        if (IS_IN(box_nodes, Ni) || IS_IN(box_nodes, Nj))
-          continue;
+        if (IS_IN(box_nodes, Ni) || IS_IN(box_nodes, Nj)) continue;
 
         K_MESH::NO_Edge Ei(Ni, Nj);
 
-        if (IS_IN(hard_edges, Ei))
-          continue;
+        if (IS_IN(hard_edges, Ei)) continue;
 
         all_edges.insert(Ei);
       }
@@ -111,7 +118,7 @@ namespace DELAUNAY
     bool do_smooth  = (_nb_smooth_iter > 0) && (iter > 1);
          do_smooth |= (_symmetrize && (iter == 1)); // T3 Mesher use : always smooth at first iter for skeleton nodes.
 
-    if(do_smooth)
+    if (do_smooth)
     {
     
 #ifdef DEBUG_METRIC
@@ -135,17 +142,20 @@ namespace DELAUNAY
     }
 
     std::vector<std::pair<E_Float, size_type> > length_to_points;
-    if (_symmetrize && iter== 0)
+    if (_symmetrize && iter == 0)
+    {
       // Compute the bone mesh (for a 2D mesh, not a Geom Mesh)
       for (const auto& Ei : all_edges)
         _metric.__init_refine_points(*data.pos, Ei.node(0), Ei.node(1), _threshold, length_to_points, _tmpNodes);
+    }
     else
+    {
       for (const auto& Ei : all_edges)
         _metric.__compute_refine_points(*data.pos, Ei.node(0), Ei.node(1), _threshold, length_to_points, _tmpNodes);
-
+    }
     std::sort(ALL(length_to_points));
 
-    size_type sz = (size_type)length_to_points.size();
+    size_type sz = (size_type)length_to_points.size(); // peut devenir trop grand
     for (size_type i = 0; i < sz; ++i)
       refine_nodes.push_back(length_to_points[i].second);
 
@@ -166,11 +176,13 @@ namespace DELAUNAY
     refine_nodes.clear();
 
     sz = (size_type) tmp.size();
+    //printf("filter sz=%d\n", sz); fflush(stdout);
+
     for (size_type i = 0; i < sz; ++i)
     {
       Ni = tmp[i];
       const typename MetricType::value_type& Mi = _metric[Ni];
-      Ri = coeff * _metric.getRadius(Ni);//fixme
+      Ri = coeff * _metric.getRadius(Ni); //fixme
 
       for (size_type j = 0; j < 2; ++j)
       {
@@ -183,6 +195,8 @@ namespace DELAUNAY
 
       bool discard = false;
       nb_nodes = (size_type)nodes.size();
+      //printf("%d -> nb nodes=%d\n", i, nb_nodes);
+
       for (size_type n = 0; (n < nb_nodes) && !discard; ++n)
       {
         if (IS_IN(box_nodes, nodes[n]))// skip box nodes

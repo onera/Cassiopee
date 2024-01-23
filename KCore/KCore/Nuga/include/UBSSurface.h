@@ -7,7 +7,7 @@
 
 
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef __UBS_SURFACE_H__
 #define __UBS_SURFACE_H__
@@ -41,6 +41,10 @@ public:
 
   /// Computes the first crossed UV-derivative at P(u,v) on the surface.
   void DUV(E_Float u, E_Float v, E_Float* P) const;
+
+  /// Compute all derivatives in one go
+  void DAUV1(E_Float u, E_Float v, E_Float* P) const;
+  void DAUV2(E_Float u, E_Float v, E_Float* P) const;
 
   /// Gets the Umax.
   inline E_Float getUmax() const { return _Umax;}

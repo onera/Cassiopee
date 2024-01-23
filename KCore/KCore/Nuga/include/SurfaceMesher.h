@@ -7,7 +7,7 @@
 
 
 */
-//Authors : S�m Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef __SURFACE_MESHER_H__
 #define __SURFACE_MESHER_H__
@@ -111,8 +111,8 @@ void
 SurfaceMesher<SurfaceType>::__mapToSurface
 (const SurfaceType& surface, const K_FLD::FloatArray& pos2D, K_FLD::FloatArray& pos3D)
 {
-  E_Float          pt[3];
-  size_type        COLS = pos2D.cols(), col0 = pos3D.cols();
+  E_Float      pt[3];
+  size_type    COLS = pos2D.cols(), col0 = pos3D.cols();
 
   //pos3D.clear();
 

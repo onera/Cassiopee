@@ -1,11 +1,20 @@
-/*
+/*    
+    Copyright 2013-2024 Onera.
 
+    This file is part of Cassiopee.
 
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
---------- NUGA v1.0
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-
-
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 //Authors : Sam Landier (sam.landier@onera.fr)
 
@@ -13,7 +22,6 @@
 #define __GENERATOR_GEOM_METRIC_H__
 
 #include "Metric.h"
-
 
 namespace DELAUNAY
 {
@@ -30,15 +38,15 @@ namespace DELAUNAY
       ANISO    ///< both local principal curvature radii are used to compute the metric.
     };
 
-    typedef     VarMetric<T>            parent_type;
-    typedef     NUGA::size_type   size_type;
+    typedef     VarMetric<T>     parent_type;
+    typedef     NUGA::size_type  size_type;
 
   public:
 
     /// Constructor for ISO mode : mesh size is specified.
     GeomMetric(K_FLD::FloatArray& pos, const SurfaceType& surface, E_Float h0, E_Float gr)
       :parent_type (pos, h0, h0),
-      _mode(ISO_CST), _surface(surface), _hmax2(h0*h0),_unbounded_h(false),
+      _mode(ISO_CST), _surface(surface), _hmax2(h0*h0), _unbounded_h(false),
       _h0(h0), _chordal_error(1.), _gr(gr)
     {}
 
@@ -98,7 +106,7 @@ namespace DELAUNAY
     if (!hard_nodes.empty())
       maxID = std::max(maxID, *std::max_element(ALL(hard_nodes)));
 
-    T m;// invalid by default
+    T m; // invalid by default
     parent_type::_field.resize(parent_type::_pos->cols(), m);
 
     E_Int max = std::min(maxID+1, metric.cols());
@@ -146,12 +154,6 @@ namespace DELAUNAY
     // Only relevant in aniso case (in iso just assign it) //fixme
     this->convertIsoToAniso(m_iso, parent_type::_field);
     
-#ifdef DEBUG_METRIC
-//      {
-//        parent_type::draw_ellipse_field("ellipse_init_metric.mesh", pos3D, connectB); // iso on real space : always the same
-//      }
-#endif
-
     // Transform the metric in the parameter space.
     E_Float E,F,G;
     for (size_t Ni = 0; Ni < parent_type::_field.size(); ++Ni)
@@ -254,9 +256,7 @@ namespace DELAUNAY
     // Only the first row of the input matrix is taken into account.
     //compute_intersection(_metric, metric);
     
-/*
-    __update_boundary_metric_with_surface(connectB);
-    */
+    //__update_boundary_metric_with_surface(connectB);
 
 #ifdef DEBUG_METRIC
     std:: cout << "Is metric valid ? " << parent_type::is_valid() << std::endl;
@@ -275,24 +275,29 @@ namespace DELAUNAY
     E_Float  v = Q[1];
     E_Float  E, F, G; // Tangential plane's first fundamental form coefficients.
     E_Float  L, M, N; // Tangential plane's second fundamental form coefficients.
-    E_Float  dU1[3], dU2[3], dV1[3], dV2[3], dUV[3], n[3];
-    E_Float  hmin2 = parent_type::_hmin*parent_type::_hmin;
+    //E_Float  dU1[3], dU2[3], dV1[3], dV2[3], dUV[3];
+    E_Float dA[15];
+    E_Float* dU1 = dA; E_Float* dV1 = dA+3;
+    E_Float* dU2 = dA+6; E_Float* dV2 = dA+9; E_Float* dUV = dA+12;
+    E_Float n[3];
+    E_Float hmin2 = parent_type::_hmin*parent_type::_hmin;
     
     // Ask the surface.
-    _surface.DU1(u,v, dU1); // First base vector of the tangential plane.
-    _surface.DU2(u,v, dU2);
-    _surface.DV1(u,v, dV1); // Second base vector of the tangential plane.
-    _surface.DV2(u,v, dV2);
-    _surface.DUV(u,v, dUV);
-
-    NUGA::crossProduct<3> (dU1, dV1, n); // Normal to the tangential plane.
-    E_Float l = NUGA::normalize<3>(n);
+    //_surface.DU1(u,v, dU1); // First base vector of the tangential plane.
+    //_surface.DU2(u,v, dU2);
+    //_surface.DV1(u,v, dV1); // Second base vector of the tangential plane.
+    //_surface.DV2(u,v, dV2);
+    //_surface.DUV(u,v, dUV);
+    _surface.DAUV2(u,v, dA);
     
-    bool singular = (::fabs(l) < EPSILON); //undefined plane : dU1 and dV2 are colinear !
+    NUGA::crossProduct<3> (dU1, dV1, n); // Normal to the tangential plane.
+    E_Float ln = NUGA::normalize<3>(n);
+    
+    bool singular = (::fabs(ln) < EPSILON); //undefined plane : dU1 and dV2 are colinear !
 
     if (!singular)
     {
-      // First form.
+      // First form. = metric tensor
       E = NUGA::sqrNorm<3> (dU1);
       F = NUGA::dot<3> (dU1, dV1);
       G = NUGA::sqrNorm<3> (dV1);
@@ -302,16 +307,15 @@ namespace DELAUNAY
     
     if (singular) return;
 
-    if (_mode == ISO_CST) // but not singular
+    if (_mode == ISO_CST) // impose hmin
     {
       Mout(0,0) *= E;
       Mout(1,1) *= G;
       Mout(1,0) = Mout(0,1) *= F;
-      
       return;
     }
 
-    // Second form.
+    // Second form. = shape tensor
     L = NUGA::dot<3>(n, dU2);
     M = NUGA::dot<3>(n, dUV);
     N = NUGA::dot<3>(n, dV2);
@@ -324,8 +328,8 @@ namespace DELAUNAY
     {
       E_Float R2 = E/L;
       R2 *= R2;
-      E_Float h2 = std::min( hmax2, _alpha2*R2);
-      h2 = std::max( h2, hmin2);//fixme!!
+      E_Float h2 = std::min(hmax2, _alpha2*R2);
+      h2 = std::max(h2, hmin2); //fixme!!
       h2 = 1./h2;
 
       Mout(0,0) = E*h2;
@@ -337,25 +341,31 @@ namespace DELAUNAY
 
     K_FLD::FloatArray M1(2,2), M2(2,2), NN(2,2);
 
+    // matrice du tenseur metrique
     M1(0,0) = E;
     M1(0,1) = M1(1,0) = F;
     M1(1,1) = G;
+    // matrice du tenseur de forme
     M2(0,0) = L;
     M2(0,1) = M2(1,0) = M;
     M2(1,1) = N;
 
-    E_Float v1[2], v2[2];
-    E_Float *V1(v1), *V2(v2);
-
+    // vecteurs propres de inv(M1) * M2
+    E_Float V1[2], V2[2];
+    
     // Simultaneous reduction. NN = inv(M1) * M2
-    K_LINEAR::DelaunayMath::simultaneous_reduction (M1, M2, V1, V2);
+    K_LINEAR::DelaunayMath::simultaneous_reduction(M1, M2, V1, V2);
 
+    // CB : gaussian curvature pour verification (K = K1*K2)
+    //E_Float K = (L*N - M*M) / (E*G - M*M);
+
+    // principal curvatures
     E_Float rho1 = (E*V1[0]*V1[0] + 2*F*V1[0]*V1[1] + G*V1[1]*V1[1]) /
       (L*V1[0]*V1[0] + 2*M*V1[0]*V1[1] + N*V1[1]*V1[1]);
     E_Float rho2 = (E*V2[0]*V2[0] + 2*F*V2[0]*V2[1] + G*V2[1]*V2[1]) /
       (L*V2[0]*V2[0] + 2*M*V2[0]*V2[1] + N*V2[1]*V2[1]);
 
-    rho1 = (rho1 < 0.) ? -rho1 : rho1;
+    rho1 = (rho1 < 0.) ? -rho1 : rho1; // valeur absolue
     rho2 = (rho2 < 0.) ? -rho2 : rho2;
 
     if (rho2 < rho1)
@@ -363,13 +373,14 @@ namespace DELAUNAY
       std::swap(rho1, rho2);
       std::swap(V1, V2);
     }
+    // rho1, V1 est maintenant le plus petit rayon de courbure
 
     E_Float rho1_2 = rho1 * rho1;
 
-    if (_mode == ISO_RHO) //use min rho
+    if (_mode == ISO_RHO) // use min curvature in all directions + impose hmin
     {
-      E_Float h2 = std::min( hmax2, _alpha2*rho1_2);
-      h2 = std::max( h2, hmin2);//fixme!!
+      E_Float h2 = std::min(hmax2, _alpha2*rho1_2);
+      h2 = std::max(h2, hmin2);
       h2 = 1./h2;
 
       Mout(0,0) = E*h2;
@@ -383,8 +394,7 @@ namespace DELAUNAY
       const E_Float& a11 = Mout(0,0);
       const E_Float& a12 = Mout(0,1);
       const E_Float& a22 = Mout(1,1);
-      E_Float det = (a11*a22) - (a12*a12);  
-      
+      E_Float det = (a11*a22) - (a12*a12);
       assert ((a11 > 0.) && (a22 > 0.) && (det > 0.)); //i.e. isValidMetric
       }
 #endif
@@ -392,15 +402,15 @@ namespace DELAUNAY
       return;
     }
 
-    E_Float rho2_2 = rho2 * rho2;
+    E_Float rho2_2 = rho2 * rho2; // plus grand rayon de courbure
 
-    rho1_2 = std::min (hmax2/_alpha2, rho1_2);
-    rho2_2 = std::min (hmax2/_alpha2, rho2_2);
-    rho1_2 = std::max (hmin2/_alpha2, rho1_2);//fixme
-    rho2_2 = std::max (hmin2/_alpha2, rho2_2);//fixme
+    rho1_2 = std::min(hmax2/_alpha2, rho1_2); // impose hmax et hmin
+    rho2_2 = std::min(hmax2/_alpha2, rho2_2);
+    rho1_2 = std::max(hmin2/_alpha2, rho1_2); //fixme
+    rho2_2 = std::max(hmin2/_alpha2, rho2_2); //fixme
 
     E_Float q = 1. - ::sqrt(rho1_2/rho2_2);
-    E_Float rho2_2c = rho2_2*(1.-(q*q));// reduce the largest according to q
+    E_Float rho2_2c = rho2_2*(1.-q*q); // reduce the largest according to q
 
     E_Float h1_2 = _alpha2*rho1_2;
     E_Float h2_2 = _alpha2*rho2_2c;
@@ -490,12 +500,15 @@ namespace DELAUNAY
     E_Float* Q = parent_type::_pos->col(N0);
     E_Float  u = Q[0];
     E_Float  v = Q[1];
-    E_Float  dU1[3], dV1[3];
+    //E_Float  dU1[3], dV1[3];
+    E_Float dA[6];
+    E_Float* dU1 = dA; E_Float* dV1 = dA+3;
     
     // Ask the surface.
-    _surface.DU1(u,v, dU1); // First base vector of the tangential plane.
-    _surface.DV1(u,v, dV1);
-    
+    //_surface.DU1(u,v, dU1); // First base vector of the tangential plane.
+    //_surface.DV1(u,v, dV1);
+    _surface.DAUV1(u,v, dA);
+
     // First form.
     E = NUGA::sqrNorm<3> (dU1);
     F = NUGA::dot<3> (dU1, dV1);
@@ -511,7 +524,7 @@ namespace DELAUNAY
     connectB.uniqueVals(Bnodes);
 
     K_FLD::FloatArray M1(2,2), M2(2,2), ID(2,2);
-    E_Int Ni ;
+    E_Int Ni;
     std::vector<E_Float> s(3);
     
     for (size_t i = 0; i < Bnodes.size(); ++i)
@@ -524,12 +537,7 @@ namespace DELAUNAY
       __computeMetric(Ni, M2, 1./parent_type::_metric[Ni][0]); // Metric obtained by the geometry (reduced by the edge length.fixme)
 
       //fixme : should update somehow hmin and hmax here. ?
-
-//      std::cout << M1 << std::endl;
- //     std::cout << M2 << std::endl;
-
       //K_LINEAR::DelaunayMath::intersect(M1, M2, I);
-
       //std::cout << I << std::endl;
 
       s[0] = M2(0,0);
@@ -547,7 +555,7 @@ namespace DELAUNAY
     
     // Diagonalization
     E_Float lambda0, lambda1, v0[2], v1[2];
-    K_LINEAR::DelaunayMath::eigen_vectors (parent_type::_field[Ni][0], parent_type::_field[Ni][2], parent_type::_field[Ni][1], lambda0, lambda1, v0, v1);
+    K_LINEAR::DelaunayMath::eigen_vectors(parent_type::_field[Ni][0], parent_type::_field[Ni][2], parent_type::_field[Ni][1], lambda0, lambda1, v0, v1);
     K_FLD::FloatArray D(2,2, 0.);
     D(0,0) = lambda0;
     D(1,1) = lambda1;
@@ -599,7 +607,7 @@ namespace DELAUNAY
     {
       _surface.point(P0[0], P0[1], P0r);
       E_Float dPiP02 = NUGA::sqrDistance(Pi, P0r, 3);
-      k02 =  dPiP02 / _hmax2;
+      k02 = dPiP02 / _hmax2;
     }
     
     E_Float k12 = 1.;

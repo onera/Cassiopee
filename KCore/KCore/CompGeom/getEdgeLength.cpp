@@ -150,32 +150,44 @@ E_Int K_COMPGEOM::getEdgeLength(E_Float* xt, E_Float* yt, E_Float* zt,
     {
       E_Int edges1[12]; E_Int edges2[12];
       imcjmc = im1*jm1; imc = im1;
-      if (type == 0)
+      if (type == 0) // max
       {
-        for (E_Int k = 0; k < km-1; k++)
+        if (jm == 1 && km == 1) // 1D lines 
+        {
+          for (E_Int i = 0; i < im-1; i++)
+          {
+            indcell = i;
+            indA = i; indB = indA+1;
+            edges1[0] = indA; edges2[0] = indB; //AB
+              
+            lout =-K_CONST::E_MAX_FLOAT;
+            for (E_Int ii = 0; ii < 1; ii++)
+            {
+              ind1 = edges1[ii]; ind2 = edges2[ii];
+              dx = xt[ind1]-xt[ind2];
+              dy = yt[ind1]-yt[ind2];
+              dz = zt[ind1]-zt[ind2];
+              l = dx*dx+dy*dy+dz*dz;
+              lout = K_FUNC::E_max(l,lout);
+            }
+            out[indcell] = std::sqrt(lout);        
+          }
+        }
+        else if (km == 1) // surface
+        {
           for (E_Int j = 0; j < jm-1; j++)
             for (E_Int i = 0; i < im-1; i++)
             {
-              indcell = i + j*imc + k*imcjmc;
-              indA = i+j*im+k*imjm; indB = indA+1;
+              indcell = i + j*imc;
+              indA = i+j*im; indB = indA+1;
               indC = indB+im; indD = indA+im;
-              indE = indA + imjm; indF = indB + imjm;
-              indG = indC + imjm; indH = indD + imjm;        
               edges1[0] = indA; edges2[0] = indB; //AB
               edges1[1] = indD; edges2[1] = indC; //DC
               edges1[2] = indA; edges2[2] = indD; //AD
               edges1[3] = indB; edges2[3] = indC; //BC              
-              edges1[4] = indE; edges2[4] = indF; //EF
-              edges1[5] = indG; edges2[5] = indH; //GH
-              edges1[6] = indE; edges2[6] = indH; //EH
-              edges1[7] = indF; edges2[7] = indG; //FG
-              edges1[8] = indA; edges2[8] = indE; //AE
-              edges1[9] = indD; edges2[9] = indH; //DH
-              edges1[10] = indB; edges2[10] = indF; //BF
-              edges1[11] = indC; edges2[11] = indG; //CG
               
               lout =-K_CONST::E_MAX_FLOAT;
-              for (E_Int ii = 0; ii < 12; ii++)
+              for (E_Int ii = 0; ii < 4; ii++)
               {
                 ind1 = edges1[ii]; ind2 = edges2[ii];
                 dx = xt[ind1]-xt[ind2];
@@ -186,33 +198,81 @@ E_Int K_COMPGEOM::getEdgeLength(E_Float* xt, E_Float* yt, E_Float* zt,
               }
               out[indcell] = std::sqrt(lout);        
             }
+        }
+        else
+        {
+          for (E_Int k = 0; k < km-1; k++)
+            for (E_Int j = 0; j < jm-1; j++)
+              for (E_Int i = 0; i < im-1; i++)
+              {
+                indcell = i + j*imc + k*imcjmc;
+                indA = i+j*im+k*imjm; indB = indA+1;
+                indC = indB+im; indD = indA+im;
+                indE = indA + imjm; indF = indB + imjm;
+                indG = indC + imjm; indH = indD + imjm;        
+                edges1[0] = indA; edges2[0] = indB; //AB
+                edges1[1] = indD; edges2[1] = indC; //DC
+                edges1[2] = indA; edges2[2] = indD; //AD
+                edges1[3] = indB; edges2[3] = indC; //BC              
+                edges1[4] = indE; edges2[4] = indF; //EF
+                edges1[5] = indG; edges2[5] = indH; //GH
+                edges1[6] = indE; edges2[6] = indH; //EH
+                edges1[7] = indF; edges2[7] = indG; //FG
+                edges1[8] = indA; edges2[8] = indE; //AE
+                edges1[9] = indD; edges2[9] = indH; //DH
+                edges1[10] = indB; edges2[10] = indF; //BF
+                edges1[11] = indC; edges2[11] = indG; //CG
+              
+                lout =-K_CONST::E_MAX_FLOAT;
+                for (E_Int ii = 0; ii < 12; ii++)
+                {
+                  ind1 = edges1[ii]; ind2 = edges2[ii];
+                  dx = xt[ind1]-xt[ind2];
+                  dy = yt[ind1]-yt[ind2];
+                  dz = zt[ind1]-zt[ind2];
+                  l = dx*dx+dy*dy+dz*dz;
+                  lout = K_FUNC::E_max(l,lout);
+                }
+                out[indcell] = std::sqrt(lout);        
+              }
+        }
       }
-      else if (type == 1)
+      else if (type == 1) // min
       {
-        for (E_Int k = 0; k < km-1; k++)
+        if (km == 1 && jm == 1)
+        {
+          for (E_Int i = 0; i < im-1; i++)
+          {
+            indcell = i;
+            indA = i; indB = indA+1;
+            edges1[0] = indA; edges2[0] = indB; //AB              
+            lout = +K_CONST::E_MAX_FLOAT;
+            for (E_Int ii = 0; ii < 1; ii++)
+            {
+              ind1 = edges1[ii]; ind2 = edges2[ii];
+              dx = xt[ind1]-xt[ind2];
+              dy = yt[ind1]-yt[ind2];
+              dz = zt[ind1]-zt[ind2];
+              l = dx*dx+dy*dy+dz*dz;
+              lout = K_FUNC::E_min(l,lout);
+            }
+            out[indcell] = std::sqrt(lout);        
+          }
+        }
+        else if (km == 1)
+        {
           for (E_Int j = 0; j < jm-1; j++)
             for (E_Int i = 0; i < im-1; i++)
             {
-              indcell = i + j*imc + k*imcjmc;
-              indA = i+j*im+k*imjm; indB = indA+1;
+              indcell = i + j*imc;
+              indA = i+j*im; indB = indA+1;
               indC = indB+im; indD = indA+im;
-              indE = indA + imjm; indF = indB + imjm;
-              indG = indC + imjm; indH = indD + imjm;        
               edges1[0] = indA; edges2[0] = indB; //AB
               edges1[1] = indD; edges2[1] = indC; //DC
               edges1[2] = indA; edges2[2] = indD; //AD
-              edges1[3] = indB; edges2[3] = indC; //BC              
-              edges1[4] = indE; edges2[4] = indF; //EF
-              edges1[5] = indG; edges2[5] = indH; //GH
-              edges1[6] = indE; edges2[6] = indH; //EH
-              edges1[7] = indF; edges2[7] = indG; //FG
-              edges1[8] = indA; edges2[8] = indE; //AE
-              edges1[9] = indD; edges2[9] = indH; //DH
-              edges1[10] = indB; edges2[10] = indF; //BF
-              edges1[11] = indC; edges2[11] = indG; //CG
-              
-              lout =+K_CONST::E_MAX_FLOAT;
-              for (E_Int ii = 0; ii < 12; ii++)
+              edges1[3] = indB; edges2[3] = indC; //BC                            
+              lout = +K_CONST::E_MAX_FLOAT;
+              for (E_Int ii = 0; ii < 4; ii++)
               {
                 ind1 = edges1[ii]; ind2 = edges2[ii];
                 dx = xt[ind1]-xt[ind2];
@@ -223,12 +283,50 @@ E_Int K_COMPGEOM::getEdgeLength(E_Float* xt, E_Float* yt, E_Float* zt,
               }
               out[indcell] = std::sqrt(lout);        
             }
+        }
+        else
+        {
+          for (E_Int k = 0; k < km-1; k++)
+            for (E_Int j = 0; j < jm-1; j++)
+              for (E_Int i = 0; i < im-1; i++)
+              {
+                indcell = i + j*imc + k*imcjmc;
+                indA = i+j*im+k*imjm; indB = indA+1;
+                indC = indB+im; indD = indA+im;
+                indE = indA + imjm; indF = indB + imjm;
+                indG = indC + imjm; indH = indD + imjm;        
+                edges1[0] = indA; edges2[0] = indB; //AB
+                edges1[1] = indD; edges2[1] = indC; //DC
+                edges1[2] = indA; edges2[2] = indD; //AD
+                edges1[3] = indB; edges2[3] = indC; //BC              
+                edges1[4] = indE; edges2[4] = indF; //EF
+                edges1[5] = indG; edges2[5] = indH; //GH
+                edges1[6] = indE; edges2[6] = indH; //EH
+                edges1[7] = indF; edges2[7] = indG; //FG
+                edges1[8] = indA; edges2[8] = indE; //AE
+                edges1[9] = indD; edges2[9] = indH; //DH
+                edges1[10] = indB; edges2[10] = indF; //BF
+                edges1[11] = indC; edges2[11] = indG; //CG
+              
+                lout = +K_CONST::E_MAX_FLOAT;
+                for (E_Int ii = 0; ii < 12; ii++)
+                {
+                  ind1 = edges1[ii]; ind2 = edges2[ii];
+                  dx = xt[ind1]-xt[ind2];
+                  dy = yt[ind1]-yt[ind2];
+                  dz = zt[ind1]-zt[ind2];
+                  l = dx*dx+dy*dy+dz*dz;
+                  lout = K_FUNC::E_min(l,lout);
+                }
+                out[indcell] = std::sqrt(lout);        
+              }
+        }
       }
-      else if (type == 2)
+      else if (type == 2) // ratio
       {
-        for (E_Int k = 0; k < km-1; k++)
-          for (E_Int j = 0; j < jm-1; j++)
-            for (E_Int i = 0; i < im-1; i++)
+        for (E_Int k = 0; k < km1; k++)
+          for (E_Int j = 0; j < jm1; j++)
+            for (E_Int i = 0; i < im1; i++)
             {
               indcell = i + j*imc + k*imcjmc;
               indA = i+j*im+k*imjm; indB = indA+1;
@@ -260,7 +358,7 @@ E_Int K_COMPGEOM::getEdgeLength(E_Float* xt, E_Float* yt, E_Float* zt,
                 lout = K_FUNC::E_max(l,lout);
                 lout2 = K_FUNC::E_min(l,lout2);
               }
-              out[indcell] = std::sqrt(lout/lout2);        
+              out[indcell] = std::sqrt(lout/lout2);
             }
       }
     }
@@ -956,7 +1054,46 @@ E_Int K_COMPGEOM::getEdgeLength(E_Float* xt, E_Float* yt, E_Float* zt,
       }
     }
 
-    else if (strcmp(eltTypes[ic], "BAR") == 0 || strcmp(eltTypes[ic], "NODE") == 0)
+    else if (strcmp(eltTypes[ic], "BAR") == 0)
+    {
+      nedges = 2;
+      if (type == 0)
+      {
+        for (E_Int et = 0; et < nelts; et++)
+        {
+          indA = cm(et,1)-1; indB = cm(et,2)-1;
+          dx = xt[indB]-xt[indA]; dy = yt[indB]-yt[indA]; // AB
+          dz = zt[indB]-zt[indA]; l = dx*dx+dy*dy+dz*dz;
+          lout = l;          
+          out[elOffset+et] = std::sqrt(lout);
+        }
+      }
+      else if (type == 1)
+      {
+        for (E_Int et = 0; et < nelts; et++)
+        {
+          indA = cm(et,1)-1; indB = cm(et,2)-1;
+          dx = xt[indB]-xt[indA]; dy = yt[indB]-yt[indA]; // AB
+          dz = zt[indB]-zt[indA]; l = dx*dx+dy*dy+dz*dz;
+          lout = l;          
+          lout = K_FUNC::E_min(l,lout);
+          out[elOffset+et] = std::sqrt(lout);
+        }
+      }
+      else if (type == 2)
+      {
+        for (E_Int et = 0; et < nelts; et++)
+        {
+          indA = cm(et,1)-1; indB = cm(et,2)-1;
+          dx = xt[indB]-xt[indA]; dy = yt[indB]-yt[indA]; // AB
+          dz = zt[indB]-zt[indA]; l = dx*dx+dy*dy+dz*dz;
+          lout = l; lout2 = l;          
+          lout = K_FUNC::E_max(l,lout); lout2 = K_FUNC::E_min(l,lout2);
+          out[elOffset+et] = std::sqrt(lout/lout2);
+        }
+      }
+    }
+    else if (strcmp(eltTypes[ic], "NODE") == 0)
     {
       printf("Error: getEdgeLength: not valid for NODE or BAR elements.");
       return 0;

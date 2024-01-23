@@ -1,11 +1,20 @@
-/*
+/*    
+    Copyright 2013-2024 Onera.
 
+    This file is part of Cassiopee.
 
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
---------- NUGA v1.0
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-
-
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 //Authors : Sâm Landier (sam.landier@onera.fr)
 
@@ -508,7 +517,7 @@ E_Int Polygon::full_agglomerate
   {
     ids.clear();
     ori.clear();
-    E_Int id0=IDX_NONE;
+    E_Int id0 = IDX_NONE;
     
     for (E_Int i = 0; i < nb_pgs; ++i)
     {
@@ -533,7 +542,7 @@ E_Int Polygon::full_agglomerate
     size_t sz = PG[0].size();
     PG[0].push_front(sz);
     agg_pgs.add(PG[0]);
-    E_Int shft=agg_pgs.size()-1;
+    E_Int shft = agg_pgs.size()-1;
 
     // we set the first to hold the aggregate, other agglomerated are discarded by setting them to NONE
     for (E_Int i=0; i < nb_pgs; ++i)

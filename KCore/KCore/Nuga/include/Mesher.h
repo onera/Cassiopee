@@ -1,11 +1,20 @@
-/*
+/*    
+    Copyright 2013-2024 Onera.
 
+    This file is part of Cassiopee.
 
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
---------- NUGA v1.0
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-
-
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 //Authors : Sam Landier (sam.landier@onera.fr)
 
@@ -66,18 +75,18 @@ namespace DELAUNAY
   {
 
   public:
-    typedef NUGA::size_type                                        size_type;
-    typedef NUGA::int_set_type                                     int_set_type;
-    typedef NUGA::int_vector_type                                  int_vector_type;
-    typedef NUGA::bool_vector_type                                 bool_vector_type;
-    typedef NUGA::int_pair_type                                    int_pair_type;
-    typedef NUGA::int_pair_vector_type                             int_pair_vector_type;
-    typedef NUGA::non_oriented_edge_set_type                       non_oriented_edge_set_type;
-    typedef K_MESH::Triangle                                             element_type;
-    typedef K_MESH::Edge                                                 edge_type;
-    typedef K_FLD::ArrayAccessor<K_FLD::FloatArray>                      coord_access_type;
-    typedef K_SEARCH::KdTree<>                                           tree_type;
-    typedef typename DELAUNAY::Kernel<T>                                 kernel_type;
+    typedef NUGA::size_type                                   size_type;
+    typedef NUGA::int_set_type                                int_set_type;
+    typedef NUGA::int_vector_type                             int_vector_type;
+    typedef NUGA::bool_vector_type                            bool_vector_type;
+    typedef NUGA::int_pair_type                               int_pair_type;
+    typedef NUGA::int_pair_vector_type                        int_pair_vector_type;
+    typedef NUGA::non_oriented_edge_set_type                  non_oriented_edge_set_type;
+    typedef K_MESH::Triangle                                  element_type;
+    typedef K_MESH::Edge                                      edge_type;
+    typedef K_FLD::ArrayAccessor<K_FLD::FloatArray>           coord_access_type;
+    typedef K_SEARCH::KdTree<>                                tree_type;
+    typedef typename DELAUNAY::Kernel<T>                      kernel_type;
 
 
   public:
@@ -89,7 +98,7 @@ namespace DELAUNAY
     void clear();
     void seed_random(long int s);
 
-    E_Int run (MeshData& data);
+    E_Int run(MeshData& data);
 
   private:
 
@@ -228,7 +237,7 @@ namespace DELAUNAY
 
   //
   template <typename T, typename MetricType>
-  E_Int Mesher<T, MetricType>::run (MeshData& data)
+  E_Int Mesher<T, MetricType>::run(MeshData& data)
   {
     _err = 0;
     _data = &data;
@@ -294,7 +303,7 @@ namespace DELAUNAY
 #endif
 
     // Find out the subdomains.
-    _err = setColors(data.pos->cols()-1, data);//fixme : Nbox
+    _err = setColors(data.pos->cols()-1, data); //fixme : Nbox
     if (_err)
     {
       if (!mode.silent_errors) std::cout << "Warning: mesher: error setting colors." << std::endl;
@@ -305,7 +314,7 @@ namespace DELAUNAY
     //if (dbg_flag)
       medith::write("triangulationC_color",*_data->pos, _data->connectM, "TRI", &_data->mask, &data.colors);
 #endif
-
+    
     if (mode.mesh_mode == MesherMode::REFINE_MODE)
     {
 #ifdef E_TIME
@@ -791,8 +800,9 @@ namespace DELAUNAY
 #endif
 
     float contrained;
-    E_Int iter(0);
+    E_Int iter = 0;
     bool carry_on = false;
+    
     do
     {
       carry_on = false;
@@ -823,7 +833,6 @@ namespace DELAUNAY
     }
     //if (iter == 5) saturator._debug = true;
 #endif
-
       saturator.filterRefinePoints(*_data, _box_nodes, refine_nodes, filter_tree);
 
 #ifdef E_TIME
@@ -845,33 +854,15 @@ namespace DELAUNAY
         _tree->insert(Ni);
       }
 
-      if (_err)
-        return _err;
+      if (_err) return _err;
 
 #ifdef E_TIME
       std::cout << "insertion : " << c.elapsed() << std::endl;
       c.start();
 #endif
 
-      this->clean_data(*_data, _data->mask);// Clean the current mesh by removing invalidated elements.
+      this->clean_data(*_data, _data->mask); // Clean the current mesh by removing invalidated elements.
       
-#ifdef DEBUG_MESHER
-      /*{
-        
-        std::ostringstream o;
-        o << "mesh_iter_" << iter << ".mesh";
-        
-        std::vector<bool> tmask = _data->mask;
-        E_Int cols = _data->connectM.cols();
-        tmask.resize(cols);
-        for (size_type i = 0; i < cols; ++i) // mask box elements in top of invalidated ones.
-        {
-          if (tmask[i])
-            tmask[i] = (_data->colors[i] != 0);
-        }
-        medith::write(o.str().c_str(), *_data->pos, _data->connectM, "TRI", &tmask);
-      }*/
-#endif
 #ifdef DEBUG_METRIC
     {
       std::ostringstream o;
@@ -885,6 +876,14 @@ namespace DELAUNAY
       std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
 #endif
       ++iter;
+
+      //printf("iterating %d\n", iter); fflush(stdout);  
+      if (iter > 12) 
+      {
+        printf("Warning: too much iterations: stopped\n"); fflush(stdout);
+        carry_on = false; // hard break
+      }
+    
     }
     while (carry_on);
 
@@ -932,9 +931,8 @@ namespace DELAUNAY
     pipe.clear();
     X_edges.clear();
     
-    E_Int err=__get_xedge_on_shell(N0, N1, pos, connect, neighbors, ancestors, S, n, tolerance);
-    if (err || S==IDX_NONE)
-      return err;
+    E_Int err = __get_xedge_on_shell(N0, N1, pos, connect, neighbors, ancestors, S, n, tolerance);
+    if (err || S==IDX_NONE) return err;
     
     X_edges.push_back(int_pair_type(S,n));
     pipe.insert(S);
@@ -1007,8 +1005,7 @@ namespace DELAUNAY
     E_Float dum1,dum2,dum3;
     E_Bool dum4;
             
-    if (ancestors[N0] == IDX_NONE)
-      return 4;
+    if (ancestors[N0] == IDX_NONE) return 4;
     
     const E_Float* P0=pos.col(N0);
     const E_Float* P1=pos.col(N1);
@@ -1035,11 +1032,10 @@ namespace DELAUNAY
         return 0; // N0N1 is already in, so return OK
       }
       
-      if (neighbors(ni, Si) == IDX_NONE)
-        continue;
+      if (neighbors(ni, Si) == IDX_NONE) continue;
         
-      SIGNi=sign2D(P0,P1, pos.col(Ni));
-      SIGNip1=sign2D(P0,P1, pos.col(Nj));
+      SIGNi = sign2D(P0,P1, pos.col(Ni));
+      SIGNip1 = sign2D(P0,P1, pos.col(Nj));
       
       if (SIGNi*SIGNip1 <= 0)
       {
@@ -1146,8 +1142,7 @@ namespace DELAUNAY
       // Remove the edge.
       E = Xedges.back(); // compacting : put the last in the current for the next pass
       Xedges.pop_back(); // and remove the last.
-      if (--Xnb == 0)
-        return 0;
+      if (--Xnb == 0) return 0;
 
       // Update (if they exist) the intersecting edge references:
       // (Sn, (bn+1)) -> (S,b)

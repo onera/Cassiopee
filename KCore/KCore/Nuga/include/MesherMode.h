@@ -1,13 +1,22 @@
-/*
+/*    
+    Copyright 2013-2024 Onera.
 
+    This file is part of Cassiopee.
 
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
---------- NUGA v1.0
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-
-
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef _DELAUNAY_MESHER_MODE_H_
 #define _DELAUNAY_MESHER_MODE_H_
@@ -22,7 +31,8 @@ namespace DELAUNAY
     enum eInterpolType {LINEAR = 0, GEOMETRIC};
 
     MesherMode():mesh_mode(REFINE_MODE), hmin(NUGA::FLOAT_MAX), hmax(-NUGA::FLOAT_MAX),
-                 do_not_shuffle(false), remove_holes(true), silent_errors(false), ignore_coincident_nodes(false), ignore_unforceable_edges(false),
+                 do_not_shuffle(false), remove_holes(true), silent_errors(false), ignore_coincident_nodes(false), 
+                 ignore_unforceable_edges(false),
                  metric_interpol_type(LINEAR), growth_ratio(1.2), nb_smooth_iter(0), symmetrize(false){}
 
     eMeshMode     mesh_mode;
