@@ -6,6 +6,7 @@ import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
+import CPlot as CP
 import Generator.PyTree as G
 import Transform.PyTree as T
 import Converter.Internal as Internal
@@ -27,17 +28,23 @@ def initCanvas(event=None):
     if zdir == 'None' and CTK.t == []: return
     global CANVASSIZE, XC, YC, ZC, UX, UY, UZ, LX, LY, LZ, DIRX, DIRY, DIRZ
     if CANVASSIZE == -1:
-        try:
+        if CTK.t == []:
+            CANVASSIZE = 1
+            dx = 1
+            VARS[2].set(str(dx))
+            VARS[3].set(str(dx))
+            XC = 0.
+            YC = 0.
+            ZC = 0.
+        else:
             bb = G.bbox(CTK.t)
             CANVASSIZE = max(bb[3]-bb[0], bb[4]-bb[1], bb[5]-bb[2])
             dx = (bb[3]-bb[0] + bb[4]-bb[1] + bb[5]-bb[2])/30.
             VARS[2].set(str(dx))
             VARS[3].set(str(dx))
-        
             XC = 0.5*(bb[3]+bb[0])
             YC = 0.5*(bb[4]+bb[1])
             ZC = 0.5*(bb[5]+bb[2])
-        except: CANVASSIZE = 1
 
     nzs = CPlot.getSelectedZones()
     if nzs != [] and dir != 'None':
@@ -129,7 +136,9 @@ def setCanvas(event=None):
     nodes = Internal.getNodesFromName1(CTK.t, 'CANVAS')
     base = nodes[0]
     nob = C.getNobOfBase(base, CTK.t)
-    CTK.add(CTK.t, nob, -1, a)
+    if CP.__slot__ is None:
+        CTK.t[2][nob][2].append(a); CTK.display(CTK.t)
+    else: CTK.add(CTK.t, nob, -1, a)
     
     #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
@@ -199,7 +208,7 @@ def reduce():
     try: step = float(step)
     except: step = 1.
     CANVASSIZE = CANVASSIZE - step
-    if CANVASSIZE < 1.e-10: CANVASSIZE = 1.e-10
+    if CANVASSIZE < 1.e-3: CANVASSIZE = 1.e-3
     CTK.TXT.insert('START', 'Reduce canvas.\n')
     setCanvas()
 

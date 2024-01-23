@@ -123,8 +123,10 @@ void Data::computeSteps(StructZone* zonep,
   Dy = K_FUNC::E_abs(winY-winY3);
   Dz = K_FUNC::E_abs(winZ-winZ3);
   DD = MAX(DD, Dx); DD = MAX(DD, Dy); DD = MAX(DD, Dz);
-  //printf("%f \n", DD);
-  stepi = E_Int(0.8/DD)+1; stepi = MIN(stepi, E_Int(20));
+  //printf("DD=%f \n", DD);
+  stepi = E_Int(0.8/DD)+1; 
+  stepi = MIN(stepi, E_Int(20));
+  stepi = MAX(stepi, 1);
   stepj = stepi; stepk = stepi;
   //if (stepi >= 2) printf("%d\n", stepi);
 }

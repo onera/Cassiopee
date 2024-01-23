@@ -199,12 +199,13 @@ PyObject* K_CPLOT::deletez(PyObject* self, PyObject* args)
     }
     
     chain_int* c = d->ptrState->deactivatedZones;
+    chain_int* c2;
     E_Int oldn, newn;
     while (c != NULL)
     {
       oldn = c->value-1;
       newn = old2new[oldn];
-      if (newn == -1) { free(c); c = c->next;}  
+      if (newn == -1) { c2 = c->next; free(c); c = c2;}
       else { c->value = newn+1; c = c->next; }
     }
       
