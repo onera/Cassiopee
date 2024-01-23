@@ -87,12 +87,12 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
   printf("INFO: Nb faces=%d\n", surfs->Extent());
   
   // Extract compounds and solids
-  //TopTools_IndexedMapOfShape* compounds = new TopTools_IndexedMapOfShape();
-  //TopExp::MapShapes(*shp, TopAbs_COMPOUND, *compounds);
-  //printf("INFO: Nb compounds=%d\n", compounds->Extent());
-  //TopTools_IndexedMapOfShape* solids = new TopTools_IndexedMapOfShape();
-  //TopExp::MapShapes(*shp, TopAbs_SOLID, *solids);
-  //printf("INFO: Nb solids=%d\n", solids->Extent());
+  TopTools_IndexedMapOfShape* compounds = new TopTools_IndexedMapOfShape();
+  TopExp::MapShapes(*shp, TopAbs_COMPOUND, *compounds);
+  printf("INFO: Nb compounds=%d\n", compounds->Extent());
+  TopTools_IndexedMapOfShape* solids = new TopTools_IndexedMapOfShape();
+  TopExp::MapShapes(*shp, TopAbs_SOLID, *solids);
+  printf("INFO: Nb solids=%d\n", solids->Extent());
 
   // capsule 
   PyObject* hook;

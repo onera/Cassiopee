@@ -35,6 +35,7 @@ namespace K_OCC
   PyObject* meshGlobalEdges4(PyObject* self, PyObject* args);
   PyObject* meshEdgesByFace(PyObject* self, PyObject* args);
   PyObject* meshEdgesByFace2(PyObject* self, PyObject* args);
+  PyObject* meshEdgesByFace3(PyObject* self, PyObject* args);
   PyObject* getEdgeNoByFace(PyObject* self, PyObject* args);
   PyObject* identifyLoopsInEdges(PyObject* self, PyObject* args);
   PyObject* evalEdge(PyObject* self, PyObject* args);
@@ -46,6 +47,10 @@ namespace K_OCC
   PyObject* updateNcadidFromFcadid(PyObject* self, PyObject* args);
   PyObject* getNodalParameters(PyObject* self, PyObject* args);
   PyObject* trimesh(PyObject* self, PyObject* args);
+
+  PyObject* meshOneEdge(PyObject* self, PyObject* args);
+  PyObject* meshEdgesOfFace(PyObject* self, PyObject* args);
+
 }
 
 #endif

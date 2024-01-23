@@ -84,6 +84,10 @@ public:
   /// Computes the first crossed UV-derivative at P(u,v) on the surface.
   void DUV(E_Float u, E_Float v, E_Float* P) const;
   
+  /// Compute all derivatives in one go
+  void DAUV1(E_Float u, E_Float v, E_Float* P) const;
+  void DAUV2(E_Float u, E_Float v, E_Float* P) const;
+
   /// Checks whether input parameters are in the bounds for this surface
   bool in_bounds(E_Float u, E_Float v) const ;
   

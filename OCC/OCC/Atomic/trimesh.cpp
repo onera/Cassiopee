@@ -31,9 +31,9 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
     PyObject* hook;
     E_Int faceNo; // no de la face
     PyObject* arrayUV;
-    E_Float hmax, hausd;
-    if (!PYPARSETUPLE_(args, OO_ I_ RR_, 
-                      &hook, &arrayUV, &faceNo, &hmax, &hausd)) return NULL;  
+    E_Float hmin, hmax, hausd, grading;
+    if (!PYPARSETUPLE_(args, OO_ I_ RRRR_, 
+                      &hook, &arrayUV, &faceNo, &hmin, &hmax, &hausd, &grading)) return NULL;  
     void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
     packet = (void**) PyCObject_AsVoidPtr(hook);
@@ -95,19 +95,49 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
     DELAUNAY::SurfaceMeshData<OCCSurface> data(UVcontour, pos3D, connectB, occ_surf);
 
     DELAUNAY::SurfaceMesherMode mode;
-    mode.chordal_error = hausd; // chordal error set
-    mode.metric_mode = mode.ISO_CST;
-    mode.symmetrize = false;
-    mode.hmax = hmax; // h moyen
-    mode.growth_ratio = -1;
+    
+    if (hausd < 0 && hmax > 0)
+    {
+      // mode pure hmax
+      mode.hmax = hmax; // h moyen
+      mode.hmin = hmin; // h moyen
+      mode.metric_mode = mode.ISO_CST;
+      //mode.metric_mode = mode.ISO_RHO;
+      printf("trimesh hmin=%f hmax=%f grading=%f\n", hmin, hmax, grading);
+    }
+    else if (hausd > 0 && hmax < 0)
+    {
+      // mode pure hausd
+      mode.hmax = 1.e6; // h moyen
+      mode.hmin = 0; // h moyen
+      mode.chordal_error = hausd; // chordal error set
+      mode.metric_mode = mode.ANISO; //ISO_RHO impose la courbure minimum dans les deux directions;
+    }
+    else if (hausd > 0 && hmax > 0)
+    {
+        // mode mix
+      mode.hmax = hmax; // h moyen
+      mode.hmin = hmin; // h moyen
+      mode.chordal_error = hausd; // chordal error set
+      mode.metric_mode = mode.ISO_RHO; //ISO_RHO impose la courbure minimum dans les deux directions;
+    }
+
+    mode.growth_ratio = grading; // grading
+    mode.nb_smooth_iter = 5; // iter de lissage de la metrique
+    //mode.metric_interpol_type = LINEAR; // hum
+    mode.symmetrize = true;
+    
     //mode.ignore_coincident_nodes = true; // pour bypasser les pbs d'insertion 
     mesher.mode = mode;
 
     E_Int err = 0;
+    mesher.clear(); // landier
     err = mesher.run(data);
     if (err || (data.connectM.cols() == 0))
     {
         // connectM doit etre la sortie
+        printf("error = %d\n", err);
+        printf("cols = %d\n", data.connectM.cols());
         RELEASESHAREDB(ret, arrayUV, fi, ci);
         PyErr_SetString(PyExc_TypeError, "trimesh: mesher has failed.");
         return NULL;

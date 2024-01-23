@@ -160,7 +160,7 @@ E_Int K_OCC::CADread
      char* zoneName = new char [128];
      sprintf(zoneName, "Zone%d",i);
 
-    int row = connectMs[i].rows();
+    E_Int row = connectMs[i].rows();
 
     zoneNames[i] = zoneName;
 

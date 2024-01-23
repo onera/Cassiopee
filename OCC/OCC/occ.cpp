@@ -36,6 +36,7 @@ static PyMethodDef Pyocc [] =
   {"meshGlobalEdges4", K_OCC::meshGlobalEdges4, METH_VARARGS},
   {"meshEdgesByFace", K_OCC::meshEdgesByFace, METH_VARARGS},
   {"meshEdgesByFace2", K_OCC::meshEdgesByFace2, METH_VARARGS},
+  {"meshEdgesByFace3", K_OCC::meshEdgesByFace3, METH_VARARGS},
   {"getEdgeNoByFace", K_OCC::getEdgeNoByFace, METH_VARARGS},
   {"identifyLoopsInEdges", K_OCC::identifyLoopsInEdges, METH_VARARGS},
   {"evalEdge", K_OCC::evalEdge, METH_VARARGS},
@@ -47,6 +48,10 @@ static PyMethodDef Pyocc [] =
   {"updateNcadidFromFcadid", K_OCC::updateNcadidFromFcadid, METH_VARARGS},
   {"getNodalParameters", K_OCC::getNodalParameters, METH_VARARGS},
   {"trimesh", K_OCC::trimesh, METH_VARARGS},
+
+  {"meshOneEdge", K_OCC::meshOneEdge, METH_VARARGS},
+  {"meshEdgesOfFace", K_OCC::meshEdgesOfFace, METH_VARARGS},
+
   {NULL, NULL}
 };
 

@@ -2,13 +2,17 @@
 """
 try:
     import OCC
+    import OCC.occ as occ
     import Converter
     import Converter.PyTree as C
     import Converter.Internal as Internal
+    import Converter.Mpi as Cmpi
 except ImportError: 
   raise ImportError("OCC.PyTree: requires Converter module.")
 
 __version__ = OCC.__version__
+import numpy
+import base64
 
 #==============================================================================
 # -- convertCAD2PyTree --
@@ -428,3 +432,159 @@ def remeshTreeFromEdges(hook, tp):
     b[2].append(z)
 
   return t
+
+#====================================================================================
+# ULTIMATE FUNCTIONS
+#====================================================================================
+
+# return the cad no of entity (edge or face)
+def getNo(e):
+    cad = Internal.getNodeFromName1(e, 'CAD')
+    no = Internal.getNodeFromName1(cad, 'no')
+    no = Internal.getValue(no)
+    return no
+
+# return the edge position in base by number
+def getPos(t, baseName):
+  pos = {}; posi = {}
+  b = Internal.getNodeFromName1(t, baseName)
+  for c, e in enumerate(b[2]):
+    cad = Internal.getNodeFromName1(e, 'CAD')
+    if cad is not None: # this is a CAD edge
+      no = Internal.getNodeFromName1(cad, 'no')
+      no = Internal.getValue(no)
+      pos[no] = c
+      posi[c] = no
+  return pos, posi
+
+# return the position of edges
+def getPosEdges(t):
+  return getPos(t, 'EDGES')
+
+# return the position of faces
+def getPosFaces(t):
+  return getPos(t, 'FACES')
+
+# get the first tree from CAD
+# hook: hook on CAD
+# hmax: hmax
+# hausd: hausd
+# OUT: meshed CAD with CAD links
+def getFirstTree(hook, hmax=-1, hausd=-1.):
+  """Get a first TRI meshed tree linked to CAD."""
+  
+  t = C.newPyTree(['EDGES', 'FACES'])
+
+  # Edges
+  edges = OCC.meshAllEdges(hook, hmax, hausd)
+
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  for c, e in enumerate(edges):
+    z = Internal.createZoneNode('edge%03d'%(c+1), e, [],
+                                Internal.__GridCoordinates__,
+                                Internal.__FlowSolutionNodes__,
+                                Internal.__FlowSolutionCenters__)
+    # Conserve hook, name, type et no de l'edge dans la CAD
+    r = Internal.createChild(z, "CAD", "UserDefined_t")
+    Internal._createChild(r, "name", "UserDefined_t", value="edge%03d"%(c+1))
+    Internal._createChild(r, "type", "UserDefined_t", value="edge")
+    Internal._createChild(r, "no", "UserDefined_t", value=(c+1))
+    #Internal._createChild(r, "hook", "UserDefined_t", value=hook)
+    b[2].append(z)
+
+  # Faces
+  b = Internal.getNodeFromName1(t, 'FACES')
+  nbFaces = occ.getNbFaces(hook)
+  N = nbFaces // Cmpi.size
+  nstart = Cmpi.rank*N
+  nend = nstart+N
+  if Cmpi.rank == Cmpi.size-1: nend = nbFaces
+  faceList = range(nstart+1, nend+1)
+
+  faces = OCC.meshAllFaces(hook, hmax, hausd, edges, True, faceList)
+  
+  for c, f in enumerate(faces):
+    noface = faceList[c]
+    z = Internal.createZoneNode(C.getZoneName('face%03d'%(noface)), f, [],
+                                Internal.__GridCoordinates__,
+                                Internal.__FlowSolutionNodes__,
+                                Internal.__FlowSolutionCenters__)
+    edgeNo = OCC.occ.getEdgeNoByFace(hook, noface)
+    # conserve hook, name, type
+    r = Internal.createChild(z, "CAD", "UserDefined_t")
+    Internal._createChild(r, "name", "UserDefined_t", value="face%03d"%(noface))
+    Internal._createChild(r, "type", "UserDefined_t", value="face")
+    Internal._createChild(r, "no", "UserDefined_t", value=noface)
+    Internal._createChild(r, "edgeList", "UserDefined_t", value=edgeNo)
+    #Internal._createChild(r, "hook", "UserDefined_t", value=hook)
+    b[2].append(z)
+
+  # build face list of edges
+  edgeOfFaces = {}
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  for e in Internal.getZones(b):
+    edgeno = getNo(e)
+    edgeOfFaces[edgeno] = []
+    
+  b = Internal.getNodeFromName1(t, 'FACES')
+  for f in Internal.getZones(b):
+    faceno = getNo(f)
+    cad = Internal.getNodeFromName1(f, 'CAD')
+    edgeList = Internal.getNodeFromName1(cad, 'edgeList')
+    edgeList = edgeList[1]
+    for i in edgeList: edgeOfFaces[i].append(faceno)
+
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  for e in Internal.getZones(b):
+    edgeno = getNo(e)
+    cad = Internal.getNodeFromName1(e, 'CAD')
+    faces = edgeOfFaces[edgeno]
+    n = numpy.array(faces, dtype=Internal.E_NpyInt)
+    Internal._createChild(cad, 'faceList', 'UserDefined_t', value=n)
+  return t
+
+# remesh faces from an external modified edges
+# edges is a list of externally remeshed edges
+def _remeshTree(hook, t, hmax, hausd, edges):
+  
+  # find impacted faces by edges
+  faceList = set()
+  for edge in edges:
+    cad = Internal.getNodeFromName1(edge, 'CAD')
+    #hook = Internal.getNodeFromName1(cad, 'hook')[1]
+    facel = Internal.getNodeFromName1(cad, 'faceList')[1]
+    facel = list(facel)
+    faceList.update(facel)
+  faceList = list(faceList)
+
+  # get dedges (all CAD edges - suppose CAD order)
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  dedges = []
+  for e in Internal.getZones(b):
+    dedges.append(C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], e, api=2)[0])
+  
+  # set edge in dedges
+  for edge in edges:
+    edgeno = getNo(edge)
+    edge = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], edge, api=2)[0]
+    e = occ.meshOneEdge(hook, edgeno, -1, -1, edge)
+    dedges[edgeno-1] = e
+  
+  # eval the impacted faces
+  faces = OCC.meshAllFaces(hook, hmax, hausd, dedges, metric=True, faceList=faceList)
+  
+  # replace faces in t
+  pos, posi = getPosFaces(t)
+  b = Internal.getNodeFromName1(t, 'FACES')
+  for c, f in enumerate(faceList):
+    cd = pos[f]
+    zp = b[2][cd]
+    cad = Internal.getNodeFromName1(zp, 'CAD')
+    noface = getNo(zp)
+    z = Internal.createZoneNode(C.getZoneName('face%03d'%(noface)), faces[c], [],
+                                Internal.__GridCoordinates__,
+                                Internal.__FlowSolutionNodes__,
+                                Internal.__FlowSolutionCenters__)
+    z[2].append(cad)
+    b[2][cd] = z
+  return None

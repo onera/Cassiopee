@@ -290,7 +290,8 @@ void K_OCC::OCCSurface::point(E_Float u, E_Float v, E_Float* P) const
 }
 
 /// Computes the first U-derivative at P(u,v) on the surface.
-void K_OCC::OCCSurface::DU1(E_Float u, E_Float v, E_Float* P) const{
+void K_OCC::OCCSurface::DU1(E_Float u, E_Float v, E_Float* P) const
+{
   gp_Pnt Pt;
   gp_Vec DU1, DV1;
   
@@ -308,13 +309,14 @@ void K_OCC::OCCSurface::DU1(E_Float u, E_Float v, E_Float* P) const{
 }
 
 /// Computes the second U-derivative at P(u,v) on the surface.
-void K_OCC::OCCSurface::DU2(E_Float u, E_Float v, E_Float* P) const{
+void K_OCC::OCCSurface::DU2(E_Float u, E_Float v, E_Float* P) const
+{
   gp_Pnt  Pt;
   gp_Vec  DU1, DV1, DU2, DV2, DUV;
   
   __denormalize(u,v);
   
-  _surface->D2 (u, v, Pt, DU1, DV1, DU2, DV2, DUV);
+  _surface->D2(u, v, Pt, DU1, DV1, DU2, DV2, DUV);
   
   P[0]=DU2.X(); P[1]=DU2.Y(); P[2]=DU2.Z();
   
@@ -327,7 +329,8 @@ void K_OCC::OCCSurface::DU2(E_Float u, E_Float v, E_Float* P) const{
 }
 
 /// Computes the first V-derivative at P(u,v) on the surface.
-void K_OCC::OCCSurface::DV1(E_Float u, E_Float v, E_Float* P) const{
+void K_OCC::OCCSurface::DV1(E_Float u, E_Float v, E_Float* P) const
+{
   gp_Pnt Pt;
   gp_Vec DU1, DV1;
   
@@ -335,7 +338,7 @@ void K_OCC::OCCSurface::DV1(E_Float u, E_Float v, E_Float* P) const{
   
   _surface->D1(u, v, Pt, DU1, DV1);
   
-  P[0]=DV1.X();P[1]=DV1.Y();P[2]=DV1.Z();
+  P[0]=DV1.X(); P[1]=DV1.Y(); P[2]=DV1.Z();
   
   if (!_normalize_domain) return;
   
@@ -345,15 +348,16 @@ void K_OCC::OCCSurface::DV1(E_Float u, E_Float v, E_Float* P) const{
 }
 
 /// Computes the second U-derivative at P(u,v) on the surface.
-void K_OCC::OCCSurface::DV2(E_Float u, E_Float v, E_Float* P) const{
-  gp_Pnt            Pt;
-  gp_Vec            DU1, DV1, DU2, DV2, DUV;
+void K_OCC::OCCSurface::DV2(E_Float u, E_Float v, E_Float* P) const
+{
+  gp_Pnt Pt;
+  gp_Vec DU1, DV1, DU2, DV2, DUV;
   
   __denormalize(u,v);
   
-  _surface->D2 (u, v, Pt, DU1, DV1, DU2, DV2, DUV);
+  _surface->D2(u, v, Pt, DU1, DV1, DU2, DV2, DUV);
   
-  P[0]=DV2.X();P[1]=DV2.Y();P[2]=DV2.Z();
+  P[0]=DV2.X(); P[1]=DV2.Y(); P[2]=DV2.Z();
   
   if (!_normalize_domain) return;
   
@@ -364,21 +368,79 @@ void K_OCC::OCCSurface::DV2(E_Float u, E_Float v, E_Float* P) const{
 }
 
 /// Computes the first crossed UV-derivative at P(u,v) on the surface.
-void K_OCC::OCCSurface::DUV(E_Float u, E_Float v, E_Float* P) const{
-  gp_Pnt            Pt;
-  gp_Vec            DU1, DV1, DU2, DV2, DUV;
+void K_OCC::OCCSurface::DUV(E_Float u, E_Float v, E_Float* P) const
+{
+  gp_Pnt Pt;
+  gp_Vec DU1, DV1, DU2, DV2, DUV;
   
   __denormalize(u,v);
   
   _surface->D2(u, v, Pt, DU1, DV1, DU2, DV2, DUV);
   
-  P[0]=DUV.X();P[1]=DUV.Y();P[2]=DUV.Z();
+  P[0]=DUV.X(); P[1]=DUV.Y(); P[2]=DUV.Z();
   
   if (!_normalize_domain) return;
 
   P[0] *= (_U1 - _U0)*(_V1 - _V0);
   P[1] *= (_U1 - _U0)*(_V1 - _V0);
   P[2] *= (_U1 - _U0)*(_V1 - _V0);
+}
+
+void K_OCC::OCCSurface::DAUV1(E_Float u, E_Float v, E_Float* P) const
+{
+  gp_Pnt Pt;
+  gp_Vec DU1, DV1;
+  
+  __denormalize(u,v);
+  
+  _surface->D1(u, v, Pt, DU1, DV1);
+
+  P[0]=DU1.X(); P[1]=DU1.Y(); P[2]=DU1.Z();
+  P[3]=DV1.X(); P[4]=DV1.Y(); P[5]=DV1.Z();
+  
+  if (!_normalize_domain) return;
+
+  P[0] *= (_U1 - _U0);
+  P[1] *= (_U1 - _U0);
+  P[2] *= (_U1 - _U0);
+  P[3] *= (_V1 - _V0);
+  P[4] *= (_V1 - _V0);
+  P[5] *= (_V1 - _V0);
+}
+
+void K_OCC::OCCSurface::DAUV2(E_Float u, E_Float v, E_Float* P) const
+{
+  gp_Pnt Pt;
+  gp_Vec DU1, DV1, DU2, DV2, DUV;
+  
+  __denormalize(u,v);
+  
+  _surface->D2(u, v, Pt, DU1, DV1, DU2, DV2, DUV);
+  
+  P[0] =DU1.X(); P[1] =DU1.Y(); P[2] =DU1.Z();
+  P[3] =DV1.X(); P[4] =DV1.Y(); P[5] =DV1.Z();
+  P[6] =DU2.X(); P[7] =DU2.Y(); P[8] =DU2.Z();
+  P[9] =DV2.X(); P[10]=DV2.Y(); P[11]=DV2.Z();
+  P[12]=DUV.X(); P[13]=DUV.Y(); P[14]=DUV.Z();
+
+  if (!_normalize_domain) return;
+
+  P[0] *= (_U1 - _U0);
+  P[1] *= (_U1 - _U0);
+  P[2] *= (_U1 - _U0);
+  P[3] *= (_V1 - _V0);
+  P[4] *= (_V1 - _V0);
+  P[5] *= (_V1 - _V0);
+
+  P[6]  *= (_U1 - _U0)*(_U1 - _U0);
+  P[7]  *= (_U1 - _U0)*(_U1 - _U0);
+  P[8]  *= (_U1 - _U0)*(_U1 - _U0);
+  P[9]  *= (_V1 - _V0)*(_V1 - _V0);
+  P[10] *= (_V1 - _V0)*(_V1 - _V0);
+  P[11] *= (_V1 - _V0)*(_V1 - _V0);
+  P[12] *= (_U1 - _U0)*(_V1 - _V0);
+  P[13] *= (_U1 - _U0)*(_V1 - _V0);
+  P[14] *= (_U1 - _U0)*(_V1 - _V0);
 }
 
 /// Checks whether input parameters are in the bounds for this surface
@@ -404,7 +466,6 @@ void K_OCC::OCCSurface::__normalize(E_Float& u, E_Float& v) const
 
 void K_OCC::OCCSurface::__denormalize(E_Float& u, E_Float& v) const 
 {
-
   if (!_normalize_domain) return;
   
   u = u*(_U1-_U0) + _U0; // put in [U0,U1]
@@ -413,17 +474,7 @@ void K_OCC::OCCSurface::__denormalize(E_Float& u, E_Float& v) const
   u = std::max(_U0, u);
   u = std::min(_U1, u);
   v = std::max(_V0, v);
-  v = std::min(_V1, v);
-  
-  //assert(u <= _U1 && u >= _U0);
-  //assert(v <= _V1 && v >= _V0);
-  
-  // put in [eps,1-eps] : to avoid problems at seam with revolution surface
-  
-  //u = std::max(u, EPSILON);
-  //u = std::min(u, _U1 - EPSILON);
-  //v = std::max(v, EPSILON);
-  // v = std::min(v, _V1 - EPSILON);
+  v = std::min(_V1, v);  
 }
 
 

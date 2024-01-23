@@ -798,16 +798,15 @@ E_Int K_OCC::CADviaOCC::mesh_faces
             else ++nu;
           }
           
-          E_Int nmin = std::min(nu, nv) / 2; // nu and nv are accumlation for "2" sides
-          E_Int nmax = std::max(nu, nv) / 2; // nu and nv are accumlation for "2" sides
+          E_Int nmin = std::min(nu, nv) / 2; // nu and nv are accumulation for "2" sides
+          E_Int nmax = std::max(nu, nv) / 2; // nu and nv are accumulation for "2" sides
           
-          if (nmin > 0.5*nmax) // rougly iso domain
+          if (nmin > 0.5*nmax) // roughly iso domain
           {
             mode.symmetrize = true;
             mode.nb_smooth_iter = 2;
           }
-          if (_gr == 1.)
-            mode.hmax = _h;
+          if (_gr == 1.) mode.hmax = _h;
         }
       }
 
