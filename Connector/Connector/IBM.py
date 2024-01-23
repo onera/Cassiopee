@@ -10,7 +10,6 @@ import Connector.Mpi as Xmpi
 import Post.Mpi as Pmpi
 import Generator.PyTree as G
 import Initiator.PyTree as I
-import Geom.PyTree as D
 import Converter.Distributed as Distributed
 import Generator.IBMmodelHeight as G_IBM_Height
 import Transform.PyTree as T
@@ -18,8 +17,8 @@ import Converter.Internal as Internal
 import Compressor.PyTree as Compressor
 import Dist2Walls.PyTree as DTW
 import Distributor2.PyTree as D2
-import KCore.test as test
 import Post.PyTree as P
+import KCore.test as test
 import Converter
 import Generator
 import Transform

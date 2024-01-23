@@ -54,7 +54,7 @@ List of functions
 
 .. autosummary::
 
-    MeshSize.meshSize
+   MeshSize.meshSize
 
 Contents
 #########

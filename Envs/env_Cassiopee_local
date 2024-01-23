@@ -21,23 +21,18 @@ set MAC0=`echo $KC | grep 'clausius'`; if ($%MAC0 != 0) set MAC="ld"
 set MAC0=`echo $KC | grep 'eos'`; if ($%MAC0 != 0) set MAC="eos"
 set MAC0=`echo $KC | grep 'ubuntu'`; if ($%MAC0 != 0) set MAC="ubuntu"
 set MAC0=`echo $KC | grep 'fulvio'`; if ($%MAC0 != 0) set MAC="fulvio"
-set MAC0=`echo $KC | grep 'daapuv'`; if ($%MAC0 != 0) set MAC="daapuv"
 set MAC0=`echo $KC | grep 'visio'`; if ($%MAC0 != 0) set MAC="visio"
-set MAC0=`echo $KC | grep 'tiamat'`; if ($%MAC0 != 0) set MAC="tiamat"
 set MAC0=`echo $KC | grep 'austri'`; if ($%MAC0 != 0) set MAC="austri"
 set MAC0=`echo $KC | grep 'laura'`; if ($%MAC0 != 0) set MAC="laura"
 set MAC0=`echo $KC | grep 'celeste'`; if ($%MAC0 != 0) set MAC="visio"
-set MAC0=`echo $KC | grep 'elmer'`; if ($%MAC0 != 0) set MAC="visio"
-set MAC0=`echo $KC | grep 'dumbo'`; if ($%MAC0 != 0) set MAC="visio"
-set MAC0=`echo $KC | grep 'ganesh'`; if ($%MAC0 != 0) set MAC="visio"
 set MAC0=`echo $KC | grep 'visung'`; if ($%MAC0 != 0) set MAC="visung"
 set MAC0=`echo $KC | grep 'linux64'`; if ($%MAC0 != 0) set MAC="linux64"
 set MAC0=`echo $KC | grep 'moloch'`; if ($%MAC0 != 0) set MAC="moloch"
 set MAC0=`echo $KC | grep 'giulia'`; if ($%MAC0 != 0) set MAC="giulia"
-set MAC0=`echo $KC | grep 'westri'`; if ($%MAC0 != 0) set MAC="westri"
 set MAC0=`echo $KC | grep 'sator'`; if ($%MAC0 != 0) set MAC="sator_brw"
 set MAC0=`echo $KC | grep 'xdaap'`; if ($%MAC0 != 0) set MAC="xdaap"
 set MAC0=`echo $KC | grep 'spiro'`; if ($%MAC0 != 0) set MAC="spiro_el8"
+set MAC0=`echo $KC | grep 'f03'`; if ($%MAC0 != 0) set MAC="juno"
 set MAC0=`echo $KC | grep 'cobalt'`; if ($%MAC0 != 0) set MAC="cobalt"
 set MAC0=`echo $KC | grep 'mangrove'`; if ($%MAC0 != 0) set MAC="mangrove"
 set MAC0=`echo $KC | grep 'irene'`; if ($%MAC0 != 0) set MAC="irene"
@@ -284,15 +279,6 @@ else if ($MAC == "fulvio") then
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/gtk+3/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
-else if ($MAC == "daapuv") then
-#------------------------------- daapuv --------------------------------------
-        setenv ELSAPROD uv_r8
-        setenv OMP_NUM_THREADS 4
-        set path=($path $CASSIOPEE/Dist/bin)
-        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
-        setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-1.8.7/lib
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.6/site-packages
-
 else if ($MAC == "visio_python3") then
 #------------------------------- visio ---------------------------------------
         setenv ELSAPROD vis_r8
@@ -377,22 +363,6 @@ else if ($MAC == "visung_el8") then
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.7/site-packages
 
-else if ($MAC == "tiamat") then
-#------------------------------- tiamat ---------------------------------------
-        setenv ELSAPROD tia_r8
-        # Nombre de threads
-        setenv OMP_NUM_THREADS 12
-        setenv KMP_AFFINITY "verbose,granularity=fine,proclist=[0,1,2,3,4,5,6,7,8,9,10,11],explicit"
-        # modules
-        foreach x (`(echo "" ; module -t list) | & grep intel`)
-            module unload $x
-        end
-        module load intel/16.0.4
-        set path=(/home/tools/local/tiamat/bin $path $CASSIOPEE/Dist/bin)
-        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
-        setenv LD_LIBRARY_PATHL /home/tools/local/tiamat/lib:$CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib64:/stck/benoit/x86_64t/lib
-        setenv PYTHONPATHL /home/tools/local/tiamat/lib/python2.7:$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib64/python2.7/site-packages
-
 else if ($MAC == "austri") then
 #------------------------------- austri ---------------------------------------
         setenv ELSAPROD aus_r8
@@ -416,23 +386,6 @@ else if ($MAC == "austri") then
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL /stck/benoit/aus/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
-
-else if ($MAC == "laura") then
-#------------------------------- laura ----------------------------------------
-        setenv ELSAPROD laura_r8
-        # chargement des modules
-        #source /usr/share/modules/init/csh
-        module load python/2.7.3.icc-mpt
-        module load hdf5/1.8.7
-        module load intel-mkl-10/10.3.1
-        module load intel-cce-12/12.0.1.107
-        module load intel-fce-12/12.0.1.107
-        module load mpt/2.02
-        setenv OMP_NUM_THREADS 12
-        set path=($path $CASSIOPEE/Dist/bin)
-        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
-        setenv LD_LIBRARY_PATHL $CASSIOPEE/Kernel/lib/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/stck/benoit/laura/lib:/usr/local/lib64:/opt/intel/composerxe-2011.1.107/compiler/lib/intel64
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
 else if ($MAC == "linux64") then
@@ -480,26 +433,6 @@ else if ($MAC == "giulia") then
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL /usr/lib64:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
-
-else if ($MAC == "westri") then
-#------------------------------- westri (KNL) ---------------------------------------
-        setenv ELSAPROD wes_r8
-        # Nombre de threads
-        setenv OMP_NUM_THREADS 64
-        setenv KMP_AFFINITY "verbose,granularity=fine,proclist=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63],explicit"
-        setenv PROC_NAME "KNL"
-        # modules
-        foreach x (`(echo "" ; module -t list) | & grep intel`)
-            module unload $x
-        end
-        module purge
-        module load intel/18.0.0 impi/18
-        module load hdf5/1.8.8-intel-16
-        module load python/2.7.8
-        set path=($path $CASSIOPEE/Dist/bin)
-        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
-        setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
 else if ($MAC == "cobalt") then
@@ -937,6 +870,38 @@ else if ($MAC == "spiro_pgi") then
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
+
+else if ($MAC == "juno") then
+#------------------------------- juno --------------------------------------
+        setenv ELSAPROD juno
+        # Number of threads
+        setenv OMP_NUM_THREADS 96
+        # Set next two lines only if python is not python
+        setenv PYTHONEXE python3
+        alias python python3
+        setenv PRODMODE 1
+        source /etc/profile.d/modules-onera.csh
+        module purge
+        #module load socle-cfd/5.0-intel2120-impi
+        #module load gcc/12.1.0 # added to compile with gcc
+        module load socle-cfd/6.0-intel2220-impi
+        module load occt/7.6.1-gnu831
+        module load subversion/1.14.1-gnu831
+        module load emacs/27.2-gnu831
+        unsetenv I_MPI_FABRICS_LIST
+        unsetenv I_MPI_FABRICS
+        unsetenv I_MPI_PMI_LIBRARY
+        unsetenv I_MPI_TCP_NETMASK
+        unsetenv SLURM*
+        setenv OMP_PLACES cores
+        alias inspxe-cl "/opt/tools/intel/oneapi/inspector/2021.2.0/bin64/inspxe-cl -r result -collect mi3 -- python3 "
+        alias inspxe-cl2 "/opt/tools/intel/oneapi/inspector/2021.2.0/bin64/inspxe-cl -r result -collect ti3 -- python3 "
+        alias inspxe-gui "/opt/tools/intel/oneapi/inspector/2021.2.0/bin64/inspxe-gui result"
+        alias vtune "vtune -collect hotspots -result-dir result -quiet" 
+        set path=($path $CASSIOPEE/Dist/bin)
+        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
+        setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.8/site-packages
 
 else if ($MAC == "sator_brw") then
 #------------------------------- sator for broadwell ----------------------------------

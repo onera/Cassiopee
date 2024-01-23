@@ -2,7 +2,6 @@
 """
 import Converter.PyTree as C
 import Converter.Internal as Internal
-import Converter
 import numpy
 import copy
 import Generator.IBMmodelHeight as G_IBM_Height
@@ -27,15 +26,15 @@ def _symetrizeBody(base, dir_sym=2):
     import Transform.PyTree as T
     zones = Internal.getZones(base)
     C._initVars(zones,'centers:cellN',1.)
-    if dir_sym==2:
+    if dir_sym == 2:
         v1 = (1,0,0); v2=(0,0,1)
-    elif dir_sym==1:
+    elif dir_sym == 1:
         v1 = (0,1,0); v2=(0,0,1)
-    elif dir_sym==3:
+    elif dir_sym == 3:
         v1 = (1,0,0); v2=(0,1,0)
 
     zones_dup = T.symetrize(zones,(0,0,0),v1, v2)
-    for z in zones_dup: z[0]+='_sym'
+    for z in zones_dup: z[0] += '_sym'
     T._reorder(zones_dup,(-1,2,3))
     C._initVars(zones_dup,'centers:cellN',0.)
     base[2]+= zones_dup
