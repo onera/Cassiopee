@@ -1201,7 +1201,7 @@ def convertPyTree2File(t, fileName, format=None, isize=4, rsize=8,
 # Fonction utilisee dans PPart
 def convertFile2PartialPyTreeFromPath(fileName, Filter, comm=None,
                                       format=None, nptsCurve=20, nptsLine=2,
-                                      density=-1., skeletonData=None):
+                                      density=-1., skeletonData=None, readMode=0):
   """Convert a file to pyTree.
   Usage: convertFile2PartialPyTree(fileName, format, options)"""
   if format is None:
@@ -1210,7 +1210,7 @@ def convertFile2PartialPyTreeFromPath(fileName, Filter, comm=None,
   try: file = open(fileName, 'r')
   except: raise IOError("convertFile2PartialPyTreeFromPath: file %s not found."%fileName)
   file.close()
-  t = Converter.converter.convertFile2PartialPyTree(fileName, format, skeletonData, comm, Filter, 0)
+  t = Converter.converter.convertFile2PartialPyTree(fileName, format, skeletonData, comm, Filter, readMode)
   return t
 
 # Fonction utilisee dans PPart
