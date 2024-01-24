@@ -4367,7 +4367,12 @@ def _recoverBCs2(t, BCInfo, tol):
                           for node in Internal.getChildren(fsc):
                             if Internal.isType(node, 'DataArray_t'):
                               val0 = Internal.getValue(node)
-                              val0 = numpy.reshape(val0, val0.size, order='F')
+
+                              if isinstance(val0,numpy.ndarray) or isinstance(val0,list):
+                                val0 = numpy.reshape(val0, val0.size, order='F')
+                              else:
+                                val0 = numpy.array([val0]) 
+                              
                               val1 = val0[ids0>-1]
                               Internal._createUniqueChild(d, node[0], 'DataArray_t', value=val1)
           freeHook(hook)
