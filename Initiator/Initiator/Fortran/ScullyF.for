@@ -23,7 +23,7 @@ C ============================================================================
       SUBROUTINE k6scully(x0, y0, Gamma, a, MInf,
      &                    npts,      
      &                    xc, yc, zc,
-     &                    u)
+     &                    u1, u2, u3, u4, u5)
 C
       IMPLICIT NONE
 C
@@ -39,7 +39,11 @@ C_IN
       REAL_E yc(0:npts-1)    ! y cooord of centers
       REAL_E zc(0:npts-1)    ! z cooord of centers
 C_OUT
-      REAL_E u(0:npts-1, 5)     ! field to be initialized
+      REAL_E u1(0:npts-1) ! field to be initialized
+      REAL_E u2(0:npts-1) ! field to be initialized
+      REAL_E u3(0:npts-1) ! field to be initialized
+      REAL_E u4(0:npts-1) ! field to be initialized
+      REAL_E u5(0:npts-1) ! field to be initialized      
 C_LOCAL
       INTEGER_E ind
       REAL_E r, p, pa, ptmp, roa, T
@@ -83,11 +87,11 @@ C     Initialisation
             ro = p/(287.D0*T)
          ENDIF
 
-         u(ind,1) = ro
-         u(ind,2) = ro*uinf+ro*cos_teta*va
-         u(ind,3) = ro*sin_teta*va
-         u(ind,4) = 0.D0
-         u(ind,5) = p/0.4D0+0.5D0*(u(ind,2)**2+u(ind,3)**2)/ro
+         u1(ind) = ro
+         u2(ind) = ro*uinf+ro*cos_teta*va
+         u3(ind) = ro*sin_teta*va
+         u4(ind) = 0.D0
+         u5(ind) = p/0.4D0+0.5D0*(u2(ind)**2+u3(ind)**2)/ro
       ENDDO
       
       RETURN

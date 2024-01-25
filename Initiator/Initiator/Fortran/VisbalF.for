@@ -22,7 +22,7 @@ C ============================================================================
       SUBROUTINE k6visbal(x0, y0, Gamma, MInf,
      &                    npts,    
      &                    xc, yc, zc,
-     &                    u)
+     &                    u1, u2, u3, u4, u5)
 C
       IMPLICIT NONE
 C
@@ -37,7 +37,12 @@ C_IN
       REAL_E yc(0:npts-1)    ! y cooord of centers
       REAL_E zc(0:npts-1)    ! z cooord of centers
 C_OUT
-      REAL_E u(0:npts-1,5)     ! field to be initialized
+      REAL_E u1(0:npts-1) ! field to be initialized
+      REAL_E u2(0:npts-1) ! field to be initialized
+      REAL_E u3(0:npts-1) ! field to be initialized
+      REAL_E u4(0:npts-1) ! field to be initialized
+      REAL_E u5(0:npts-1) ! field to be initialized
+
 C_LOCAL  
       
       REAL_E  ro0, ainf,hinf,ar,ardr
@@ -103,11 +108,11 @@ C==============================================================================
          pp = ss*p0
          ro = (1.4*pp)/(0.4*(hinf-0.5*va**2))
                
-         u(ind,1) = ro
-         u(ind,2) = ro*uinf+ro*cos_teta*va
-         u(ind,3) = ro*sin_teta*va
-         u(ind,4) = 0.
-         u(ind,5) = pp/0.4+0.5*(u(ind,2)**2+u(ind,3)**2)/ro
+         u1(ind) = ro
+         u2(ind) = ro*uinf+ro*cos_teta*va
+         u3(ind) = ro*sin_teta*va
+         u4(ind) = 0.
+         u5(ind) = pp/0.4+0.5*(u2(ind)**2+u3(ind)**2)/ro
       ENDDO
       
       RETURN

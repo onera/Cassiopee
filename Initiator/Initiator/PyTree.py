@@ -123,20 +123,20 @@ def initWissocq(t, position=(0.5,0.5), Gamma=0.07, MInf=0.5, loc='nodes'):
 def _initWissocq(t, position=(0.5,0.5), Gamma=0.07, MInf=0.5, loc='nodes'):
     nodes = Internal.getZones(t)
     for z in nodes:
-        coordn = C.getFields(Internal.__GridCoordinates__, z)
+        coordn = C.getFields(Internal.__GridCoordinates__, z, api=3)
         if coordn == []:
             print ('Warning: initWissocq: zone '+z[0]+' has no coordinates. Skipped...')
             continue
         coordn = coordn[0]
         if loc == 'nodes':
-            a = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
+            a = C.getFields(Internal.__FlowSolutionNodes__, z, api=3)[0]
             if a == []: a = coordn
             else: Converter._addVars([a, coordn])
             a = Initiator.initWissocq(a, position, Gamma, MInf)
             z = C.setFields([a], z, 'nodes')
         else:
             coordc = Converter.node2Center(coordn)
-            ac = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+            ac = C.getFields(Internal.__FlowSolutionCenters__, z, api=3)[0]
             if ac == []: ac = coordc
             else: Converter._addVars([ac, coordc])
             ac = Initiator.initWissocq(ac, position, Gamma, MInf)
@@ -157,20 +157,20 @@ def _initVisbal(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):
     """Init the array defining a grid with a Visbal vortex of intensity Gamma and position (x0,y0)."""
     nodes = Internal.getZones(t)
     for z in nodes:
-        coordn = C.getFields(Internal.__GridCoordinates__, z)
+        coordn = C.getFields(Internal.__GridCoordinates__, z, api=3)
         if coordn == []:
             print ('Warning: initVisbal: zone '+z[0]+' has no coordinates. Skipped...')
             continue
         coordn = coordn[0]
         if loc == 'nodes':
-            a = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
+            a = C.getFields(Internal.__FlowSolutionNodes__, z, api=3)[0]
             if a == []: a = coordn
             else: Converter._addVars([a, coordn])
             a = Initiator.initVisbal(a, position, Gamma, MInf)
             z = C.setFields([a], z, 'nodes')
         else:
             coordc = Converter.node2Center(coordn)
-            ac = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+            ac = C.getFields(Internal.__FlowSolutionCenters__, z, api=3)[0]
             if ac == []: ac = coordc
             else: Converter._addVars([ac, coordc])
             ac = Initiator.initVisbal(ac, position, Gamma, MInf)
@@ -190,20 +190,20 @@ def _initYee(t, position=(0.,0.), Gamma=2., MInf=0.5, loc='nodes'):
     """Init the array defining a grid with a Yee vortex of intensity Gamma and position (x0,y0)."""
     nodes = Internal.getZones(t)
     for z in nodes:
-        coordn = C.getFields(Internal.__GridCoordinates__, z)
+        coordn = C.getFields(Internal.__GridCoordinates__, z, api=3)
         if coordn == []:
             print ('Warning: initYee: zone '+z[0]+' has no coordinates. Skipped...')
             continue
         coordn = coordn[0]
         if loc == 'nodes':
-            a = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
+            a = C.getFields(Internal.__FlowSolutionNodes__, z, api=3)[0]
             if a == []: a = coordn
             else: Converter._addVars([a, coordn])
             a = Initiator.initYee(a, position, Gamma, MInf)
             z = C.setFields([a], z, 'nodes')
         else:
             coordc = Converter.node2Center(coordn)
-            ac = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+            ac = C.getFields(Internal.__FlowSolutionCenters__, z, api=3)[0]
             if ac == []: ac = coordc
             else: Converter._addVars([ac, coordc])
             ac = Initiator.initYee(ac, position, Gamma, MInf)
@@ -226,13 +226,13 @@ def _initScully(t, position=(0.,0.), Gamma=2.,
     of intensity Gamma, core radius coreRadius and position (x0,y0)."""
     nodes = Internal.getZones(t)
     for z in nodes:
-        coordn = C.getFields(Internal.__GridCoordinates__, z)
+        coordn = C.getFields(Internal.__GridCoordinates__, z, api=3)
         if coordn == []:
             print ('Warning: initScully: zone '+z[0]+' has no coordinates. Skipped...')
             continue
         coordn = coordn[0]
         if loc == 'nodes':
-            a = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
+            a = C.getFields(Internal.__FlowSolutionNodes__, z, api=3)[0]
             if a == []: a = coordn
             else: Converter._addVars([a, coordn])
             a = Initiator.initScully(a, position, Gamma, coreRadius, MInf,
@@ -240,7 +240,7 @@ def _initScully(t, position=(0.,0.), Gamma=2.,
             C.setFields([a], z, 'nodes')
         else:
             coordc = Converter.node2Center(coordn)
-            ac = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+            ac = C.getFields(Internal.__FlowSolutionCenters__, z, api=3)[0]
             if ac == []: ac = coordc
             else: Converter._addVars([ac, coordc])
             ac = Initiator.initScully(ac, position, Gamma, coreRadius, MInf,
