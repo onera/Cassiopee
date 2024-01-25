@@ -16,6 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <iostream>
 #include <vector>
 #include <algorithm>
 #include <unordered_set>
@@ -25,9 +26,9 @@
 // No explicit limit on the number of items contained in the Topology
 struct Topology
 {
-  E_Bool isDegen_ = false; // whether the Topology is degenerated
-  std::size_t n_ = 0; // number of items contained in the Topology
-  std::size_t size_ = -1; // number of unique items contained in the Topology
+  E_Bool isDegen_; // whether the Topology is degenerated
+  std::size_t n_; // number of items contained in the Topology
+  std::size_t size_; // number of unique items contained in the Topology
   std::vector<E_Int> p_;
 
   Topology() {}
@@ -90,15 +91,27 @@ struct Topology
     }
     return true;
   }
+
+  friend std::ostream& operator<<(std::ostream& os, const Topology& T)
+  {
+    os << "Topology: \n";
+    os << "  - number of items: " << T.n_ << "\n";
+    os << "  - number of unique items: " << T.size_ << "\n";
+    os << "  - is degenerated?: " << T.isDegen_ << "\n";
+    os << "  - data: ";
+    for (std::size_t i = 0; i < T.n_; i++) os << T.p_[i] << " ";
+    os << "\n";
+    return os;
+  }
 };
 
 // Same as Topology but optimised (no dynamic allocation)
 const std::size_t nmaxitems = 8;
 struct TopologyOpt
 {
-  E_Bool isDegen_ = false; // whether the Topology is degenerated
-  std::size_t n_ = 0; // number of items contained in the Topology
-  std::size_t size_ = -1; // number of unique items contained in the Topology
+  E_Bool isDegen_; // whether the Topology is degenerated
+  std::size_t n_; // number of items contained in the Topology
+  std::size_t size_; // number of unique items contained in the Topology
   E_Int p_[nmaxitems];
 
   TopologyOpt() {}
@@ -114,6 +127,7 @@ struct TopologyOpt
   
   void set(const E_Int* p, const std::size_t n, E_Bool search4Degen=false)
   {
+    size_ = -1; isDegen_ = false;
     n_ = n; assert(n_ <= nmaxitems);
     for (std::size_t i = 0; i < n_; i++) p_[i] = p[i];
     std::sort(p_, p_ + n_);
@@ -123,6 +137,7 @@ struct TopologyOpt
   void set(const std::vector<E_Int>& p, const std::size_t n,
            E_Bool search4Degen=false)
   {
+    size_ = -1; isDegen_ = false;
     n_ = n; assert(n_ <= nmaxitems);
     for (std::size_t i = 0; i < n_; i++) p_[i] = p[i];
     std::sort(p_, p_ + n_);
@@ -131,7 +146,7 @@ struct TopologyOpt
 
   void countUnique()
   {
-    size_ = 0;
+    size_ = 0; isDegen_ = false;
     std::unordered_set<E_Int> pSet;
     for (std::size_t i = 0; i < n_; i++)
     {
@@ -161,5 +176,17 @@ struct TopologyOpt
       if (p_[i] != other.p_[i]) return false;
     }
     return true;
+  }
+
+  friend std::ostream& operator<<(std::ostream& os, const TopologyOpt& T)
+  {
+    os << "TopologyOpt: \n";
+    os << "  - number of items: " << T.n_ << "\n";
+    os << "  - number of unique items: " << T.size_ << "\n";
+    os << "  - is degenerated?: " << T.isDegen_ << "\n";
+    os << "  - data: ";
+    for (std::size_t i = 0; i < T.n_; i++) os << T.p_[i] << " ";
+    os << "\n";
+    return os;
   }
 };
