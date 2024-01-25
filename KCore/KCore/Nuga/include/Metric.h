@@ -658,10 +658,8 @@ namespace DELAUNAY{
      MeshUtils1D::compute_iso_metric(pos, connectB, hard_nodes, m_iso, hmin1, hmax1);
      
      // Set _hmin and _hmax if not done nor correct.
-     if (_hmax <= 0.)
-       _hmax = NUGA::FLOAT_MAX;
-     if ((_hmin <= 0.) || (_hmin > _hmax) || (_hmin == NUGA::FLOAT_MAX) )
-       _hmin = hmin1;
+     if (_hmax <= 0.) _hmax = NUGA::FLOAT_MAX;
+     if ((_hmin <= 0.) || (_hmin > _hmax) || (_hmin == NUGA::FLOAT_MAX)) _hmin = hmin1;
      
      if (_hmax != NUGA::FLOAT_MAX)
      {
@@ -693,8 +691,7 @@ namespace DELAUNAY{
       // a number of bits such all the bits are smaller than the treshold.
 
       E_Float L = lengthEval(Ni, _field[Ni], Nj, _field[Nj]);
-      if (L <= threshold)
-        return L;
+      if (L <= threshold) return L;
 
       // Split
       size_type dim = _pos->rows();
@@ -1240,8 +1237,7 @@ namespace DELAUNAY{
     void
     VarMetric<T>::setMetric(E_Int N, const T& m)
   {
-    if (N >= (E_Int)_field.size())
-      _field.resize(N+1);
+    if (N >= (E_Int)_field.size()) _field.resize(N+1);
     _field[N] = m;
   }
   
@@ -1274,7 +1270,8 @@ namespace DELAUNAY{
     do
     {
       has_changed = false;
-      for (const auto& Ei : edges) {
+      for (const auto& Ei : edges) 
+      {
         has_changed |= this->aniso_smooth(Ei.node(0), Ei.node(1), gr);
       }
     }
@@ -1312,10 +1309,12 @@ namespace DELAUNAY{
     K_MESH::NO_Edge e;
     E_Int stride, n0, n1, PGi, i;
 
-   for (PGi = 0; PGi < PGs.size(); PGi++) {
+   for (PGi = 0; PGi < PGs.size(); PGi++) 
+   {
      stride = PGs.stride(PGi);
      const E_Int *pN = PGs.get_facets_ptr(PGi);
-     for (i = 0; i < stride; i++) {
+     for (i = 0; i < stride; i++) 
+     {
        n0 = pN[i]-1; n1 = pN[(i+1)%stride]-1;
        e.setNodes(n0, n1);
        edges.insert(e);
@@ -1323,8 +1322,7 @@ namespace DELAUNAY{
    }
     
    //std::cout << "nedges: " << edges.size() << std::endl;
-
-    smoothing_loop(edges, gr, itermax, N0);
+   smoothing_loop(edges, gr, itermax, N0);
   }
   
   ///
@@ -1338,7 +1336,7 @@ namespace DELAUNAY{
     {
       m = metric2(0,i);
       if ((m > 0.) && (m < NUGA::FLOAT_MAX))
-        metric1[i] = std::min(m, metric1[i]) ;
+        metric1[i] = std::min(m, metric1[i]);
     }
   }
 
@@ -1439,8 +1437,7 @@ namespace DELAUNAY{
     {
       m = Umetric.col(i);
 
-      if (isValidMetric(m))
-        metric[i] = m;
+      if (isValidMetric(m)) metric[i] = m;
     }
   }
 
@@ -1452,26 +1449,23 @@ namespace DELAUNAY{
     E_Int max = std::min(Umetric.cols(), (E_Int)metric.size());
     for (E_Int i = 0; i < max; ++i)
     {
-      if (isValidMetric(Umetric(0, i)))
-        metric[i] = Umetric(0, i);
+      if (isValidMetric(Umetric(0, i))) metric[i] = Umetric(0, i);
     }
   }
   
-  ///
+  /// smooth E_Float
   template<> inline
     bool VarMetric<E_Float>::smooth(size_type Ni, size_type Nj, E_Float gr, E_Int N0 /* threshold for metric changes*/)
   {
-    //WARNING : assume growth ratio gr > 1.
-    
+    // WARNING : assume growth ratio gr > 1.
     // The smaller might smooth the bigger
-    
     E_Float hi0 = _field[Ni];
     E_Float hj0 = _field[Nj];
-
+    
     if (::fabs(hj0 - hi0) < EPSILON) return false; //same metric so nothing to smooth
     if (hj0 < hi0)
     {
-      std::swap(Ni,Nj);
+      std::swap(Ni, Nj);
       std::swap(hi0, hj0);
     }
     
@@ -1496,12 +1490,11 @@ namespace DELAUNAY{
     
   }
   
-  ///
+  /// smooth aniso2D (celui qui est branche dans surfaceMesher)
   template<> inline
     bool VarMetric<Aniso2D>::smooth(size_type Ni, size_type Nj, E_Float gr, E_Int N0 /* threshold for metric changes*/)
   {
-    //WARNING : assume growth ratio gr > 1.
-    
+    // WARNING : assume growth ratio gr > 1.
     // The smaller might smooth the bigger. Discuss on the spectral radius
     
     const Aniso2D& mi0 = _field[Ni];
@@ -1512,14 +1505,15 @@ namespace DELAUNAY{
        
     E_Float hi02 = get_h2_along_dir(Ni, NiNj); // trace on NiNj of the ellipse centered at Ni
     E_Float hj02 = get_h2_along_dir(Nj, NiNj); // trace on NiNj of the ellipse centered at Nj
-    
+    //printf("hi=%g hj=%g\n", hi02, hj02);
+
     const Aniso2D* pmi0 = &mi0;
     
     if (::fabs(hj02 - hi02) < EPSILON*EPSILON) return false; //same metric so nothing to smooth
     
-    if (hj02 < hi02) // by conventtion, "i" refers to the smallest (hence driving) metric, "j" for the one to modify
+    if (hj02 < hi02) // by convention, "i" refers to the smallest (hence driving) metric, "j" for the one to modify
     {
-      std::swap(Ni,Nj);
+      std::swap(Ni, Nj);
       std::swap(hi02, hj02);
       pmi0 = &mj0;
     }
@@ -1537,14 +1531,13 @@ namespace DELAUNAY{
     return true;
   }
 
-  ///
+  /// smooth aniso3D
   template<> inline
     bool VarMetric<Aniso3D>::smooth(size_type Ni, size_type Nj, E_Float gr, E_Int N0 /* threshold for metric changes*/)
   {
-    //WARNING : assume growth ratio gr > 1.
-
+    // WARNING : assume growth ratio gr > 1.
     // The smaller might smooth the bigger. Discuss on the spectral radius
-
+    
     const Aniso3D& mi0 = _field[Ni];
     const Aniso3D& mj0 = _field[Nj];
 
@@ -1596,7 +1589,7 @@ namespace DELAUNAY{
     pos.pushBack(newP, newP+dim);
     size_type N = pos.cols()-1;
     
-    E_Float   d = ::sqrt(NUGA::sqrDistance(pos.col(Ni), pos.col(Nj), pos.rows()));
+    E_Float d = ::sqrt(NUGA::sqrDistance(pos.col(Ni), pos.col(Nj), pos.rows()));
     
     // set the metric as a large valid value : half of the initial edge length
     E_Float factor = 0.5;

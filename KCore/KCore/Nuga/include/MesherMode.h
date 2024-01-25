@@ -67,7 +67,7 @@ namespace DELAUNAY
       silent_errors = rhs.silent_errors;
       ignore_coincident_nodes = rhs.ignore_coincident_nodes;
       ignore_unforceable_edges = rhs.ignore_unforceable_edges;
-      if (ignore_unforceable_edges)ignore_coincident_nodes=true;
+      if (ignore_unforceable_edges) ignore_coincident_nodes=true;
     
       metric_interpol_type = rhs.metric_interpol_type;
       growth_ratio = rhs.growth_ratio;

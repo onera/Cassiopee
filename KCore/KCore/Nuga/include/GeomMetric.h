@@ -38,14 +38,14 @@ namespace DELAUNAY
       ANISO    ///< both local principal curvature radii are used to compute the metric.
     };
 
-    typedef     VarMetric<T>     parent_type;
-    typedef     NUGA::size_type  size_type;
+    typedef  VarMetric<T>     parent_type;
+    typedef  NUGA::size_type  size_type;
 
   public:
 
     /// Constructor for ISO mode : mesh size is specified.
     GeomMetric(K_FLD::FloatArray& pos, const SurfaceType& surface, E_Float h0, E_Float gr)
-      :parent_type (pos, h0, h0),
+      : parent_type (pos, h0, h0),
       _mode(ISO_CST), _surface(surface), _hmax2(h0*h0), _unbounded_h(false),
       _h0(h0), _chordal_error(1.), _gr(gr)
     {}
@@ -53,7 +53,7 @@ namespace DELAUNAY
     /// Constructor for adaptive mode (ISO_RHO, ANISO) : mode and relative chordal error is specified.
     GeomMetric(K_FLD::FloatArray& pos, const SurfaceType& surface, GMmode mode, 
                E_Float chordal_error, E_Float hmin, E_Float hmax, E_Float gr)
-      :parent_type (pos, hmin, hmax), _mode(mode), _surface(surface),
+      : parent_type (pos, hmin, hmax), _mode(mode), _surface(surface),
       _h0(NUGA::FLOAT_MAX), _chordal_error(chordal_error),
       _alpha2(4. * chordal_error*(2. - chordal_error)), _gr(gr), _unbounded_h(false)  
     {}

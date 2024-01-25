@@ -111,12 +111,12 @@ namespace DELAUNAY
     }
 
     //smooth the metric at each nodes.
-    // so do it at leat once whatever the user ask for to impovre the overall
+    // so do it at leat once whatever the user ask for to improve the overall
     // mesh quality by setting the right metrics at skeleton nodes (__init_refine_points)
     _metric._N0 = N0;
 
     bool do_smooth  = (_nb_smooth_iter > 0) && (iter > 1);
-         do_smooth |= (_symmetrize && (iter == 1)); // T3 Mesher use : always smooth at first iter for skeleton nodes.
+    do_smooth |= (_symmetrize && (iter == 1)); // T3 Mesher use : always smooth at first iter for skeleton nodes.
 
     if (do_smooth)
     {

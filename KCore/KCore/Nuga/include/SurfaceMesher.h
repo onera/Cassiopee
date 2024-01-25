@@ -1,11 +1,20 @@
-/*
+/*    
+    Copyright 2013-2024 Onera.
 
+    This file is part of Cassiopee.
 
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
---------- NUGA v1.0
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-
-
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 //Authors : Sam Landier (sam.landier@onera.fr)
 
@@ -29,16 +38,16 @@ public:
 public:
   SurfaceMesher(){}
 
-  SurfaceMesher(const SurfaceMesherMode& mod):mode(mod)
+  SurfaceMesher(const SurfaceMesherMode& mod): mode(mod)
   {
 #ifdef DEBUG_MESHER
     dbg_flag = false;
 #endif
   };
   ~SurfaceMesher(void){}
-  E_Int run (SurfaceMeshData<SurfaceType>& data);
+  E_Int run(SurfaceMeshData<SurfaceType>& data);
   
-  SurfaceMesherMode  mode;
+  SurfaceMesherMode mode;
 
 private:
   void __mapToSurface(const SurfaceType& surface, const K_FLD::FloatArray& pos2D, K_FLD::FloatArray& pos3D);
@@ -76,14 +85,10 @@ SurfaceMesher<SurfaceType>::run(SurfaceMeshData<SurfaceType>& data)
 
   E_Int err = parent_t::run(data);
 
-  //std::cout << "run 2" << std::endl;
-
   if (!err && (data.connectM.cols() != 0))//fixme : pos3D might have data upon entry so need to preserve them
   {
-    //std::cout << "run 3" << std::endl;
     __mapToSurface(data.surface, *data.pos, data.pos3D);
-    //std::cout << "run 4" << std::endl;
-
+    
     // Replace the real contour coordinates.
     /*std::vector<E_Int> Bnodes;
     data.connectB.uniqueVals(Bnodes);
@@ -95,8 +100,7 @@ SurfaceMesher<SurfaceType>::run(SurfaceMeshData<SurfaceType>& data)
         data.pos3D(j, Ni) = data.surface._pos(j,Ni);
     }*/
   }
-  //std::cout << "run 5" << std::endl;
-
+  
 #ifdef WIN32
 #ifdef E_DEBUG
   medith::write("param.mesh", data.pos, data.connectM);
