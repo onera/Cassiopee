@@ -301,7 +301,7 @@ def getModules():
     # Validation CFD
     modules.append('CFDBase')
     MODULESDIR['CFDBase'] = ''
-    return modules
+    return sorted(modules)
 
 #==============================================================================
 # Retourne la liste des tests unitaires d'un module
@@ -859,11 +859,98 @@ def buildTestList(loadSession=False, modules=[]):
 # Update la listbox
 #==============================================================================
 def filterTestList(event=None):
-    filter = Filter.get()
+    def _rmSubstrings(filters):
+        """Remove filters that are a substring of another filter and that as a
+           first measure to prevent tests from appearing multiple times in the
+           listbox"""
+        outFilters = set()
+        for str1 in filters:
+            # Append if string is not part of a longer string in filters
+            if not any(str1 != str2 and str1 in str2 for str2 in filters):
+                outFilters.add(str1)
+        return outFilters
+        
+    def _substituteCustomFilters(filters):
+        """Substitute custom keyworded filters comprised between angle brackets
+        by their regular expression"""
+        outFilters = []
+        for filtr in filters:
+            if not filtr: continue
+            pos1 = filtr.find('<')
+            pos2 = filtr.find('>')
+            if pos1 != -1 and pos2 != -1 and pos1 < pos2:
+                tmpFiltr = filtr[pos1+1:pos2]
+                if filtr[0] == '!':
+                    if tmpFiltr == 'SEQ': outFilters.append('&m.$')
+                    elif tmpFiltr == 'DIST': outFilters.append('&t.$')
+                    elif tmpFiltr == 'RUN': outFilters.extend(['&/!FAILED', '&/!FAILEDMEM', '&/!OK'])
+                    elif tmpFiltr == 'UNRUN': outFilters.extend(['/FAILED', '/FAILEDMEM', '/OK'])
+                else:
+                    if tmpFiltr == 'SEQ': outFilters.append('&t.$')
+                    elif tmpFiltr == 'DIST': outFilters.append('&m.$')
+                    elif tmpFiltr == 'RUN': outFilters.extend(['/FAILED', '/FAILEDMEM', '/OK'])
+                    elif tmpFiltr == 'UNRUN': outFilters.extend(['&/!FAILED', '&/!FAILEDMEM', '&/!OK'])
+            else: outFilters.append(filtr)
+        return outFilters
+        
+    filters = Filter.get()
+    filters = _rmSubstrings(filters.split(' '))
+    filters = _substituteCustomFilters(filters)
+    if filters and len(filters[0]) > 1:
+        if all(filt[0] == '&' for filt in filters): filters[0] = filters[0][1:]
+    
+    # Apply filters with an OR gate and append strings to set
+    filteredTests = set()
+    for entry in filters:
+        if (not entry) or (entry in ['#', '/', '!']) or (entry[0] in ['&', '*']):
+            continue
+        if entry[0] in ['#', '/']: # filter modules or status
+            pos = 0 if entry[0] == '#' else 6
+            for s in TESTS:
+                strg = s.split(':')[pos].strip()
+                if entry[1] == '!':
+                    if re.search(entry[2:], strg) is None:
+                        filteredTests.add(s)
+                elif re.search(entry[1:], strg) is not None:
+                    filteredTests.add(s)
+        else: # filter test names
+            for s in TESTS:
+                strg = s.split(':')[1].strip()[:-3]
+                if entry[0] == '!':
+                    if re.search(entry[1:], strg) is None:
+                        filteredTests.add(s)
+                elif re.search(entry, strg) is not None:
+                    filteredTests.add(s)
+    
+    # Apply filters with an AND gate to remove strings from set
+    insertedTests = filteredTests.copy()
+    for entry in filters:
+        if len(entry) > 1 and entry[0] == '&':
+            if entry[1] in ['#', '/']: # filter modules or status
+                pos = 0 if entry[1] == '#' else 6
+                for s in filteredTests:
+                    strg = s.split(':')[pos].strip()
+                    if len(entry) < 3: continue
+                    if entry[2] == '!':
+                        if len(entry) > 3 and re.search(entry[3:], strg) is not None:
+                            insertedTests.discard(s)
+                    elif re.search(entry[2:], strg) is None:
+                        insertedTests.discard(s)
+            else:
+                for s in filteredTests: # filter test names
+                    strg = s.split(':')[1].strip()[:-3]
+                    if entry[1] == '!':
+                        if len(entry) < 3: continue
+                        if re.search(entry[2:], strg) is not None:
+                            insertedTests.discard(s)
+                    elif re.search(entry[1:], strg) is None:
+                        insertedTests.discard(s)
+        
     listbox.delete(0, TK.END)
-    for s in TESTS:
-        if re.search(filter, s) is not None:
-            listbox.insert(TK.END, s)
+    if filters:
+        for s in sorted(insertedTests): listbox.insert(TK.END, s)
+    else:
+        for s in TESTS: listbox.insert(TK.END, s)
     listbox.config(yscrollcommand=scrollbar.set)
     scrollbar.config(command=listbox.yview)
     return True
@@ -1402,7 +1489,7 @@ def filterModulesTests(master, event=None):
     rightFrame.grid(row=0, column=1, padx=5, pady=10, sticky="nsew")
     
     # > Modules
-    modules = sorted(getModules())
+    modules = getModules()
     nmodules = len(modules)
     modSwitches = [TK.IntVar(value=1) for _ in range(nmodules)]
     
@@ -1570,7 +1657,22 @@ Filter = TK.StringVar(master)
 text = TK.Entry(frame, textvariable=Filter, background='White', width=50)
 text.bind('<KeyRelease>', filterTestList)
 text.grid(row=1, column=2, columnspan=3, sticky=TK.EW)
-BB = CTK.infoBulle(parent=text, text='Filter tests by this regexp.')
+filterInfoBulle = 'Filter tests by this regexp.\n'+'-'*70+'\n'\
+  '1) Filters are separated by a white space, for ex.\n'\
+  '    ^cylinder ^sphere\nselects tests whose names start with either cylinder or sphere.\n'\
+  '2) Filters can be applied on modules by prefixing their names\nwith the symbol #, for ex.\n'\
+  '    #Fast #FF #Apps\nwill load all PModules.\n'\
+  '3) Filters can be applied on statuses by prefixing their names\nwith the symbol /, for ex.\n'\
+  '    /FAILED /FAILEDMEM\nwill select all tests that failed because of bugs or memory leaks.\n'\
+  '4) Logical OR operations are performed unless a filter is \n'\
+  'prefixed with the symbol & to force an AND operation.\n'\
+  '    #Converter &/FAILED\nwill select all buggy tests in the Converter module.\n'\
+  '5) Negation of an expression with symbol ! should be the innermost\noperator, for ex.\n'\
+  '    #Fast &#!FastC\nwill load Fast modules but FastC.\n'\
+  '6) A few keyworded filters exist and can be called using angle brackets, for ex.\n'\
+  '    <SEQ> &<UNRUN>\nselects all sequential tests that have not been run yet.\n'\
+  'These keyworded filters are: <SEQ>, <DIST>, <RUN>, <UNRUN>.'
+BB = CTK.infoBulle(parent=text, text=filterInfoBulle)
 
 button = TK.Button(frame, text='Run', command=runTestsInThread, fg='blue')
 BB = CTK.infoBulle(parent=button, text='Run selected tests.')
