@@ -490,6 +490,7 @@ def extractCPUTime2(output, nreps=1):
 # Lance un seul test unitaire de module
 #==============================================================================
 def runSingleUnitaryTest(no, module, test):
+    global TESTS
     testr = os.path.splitext(test)
     modulesDir = MODULESDIR[module]
     path = '%s/Apps/%s/%s/test'%(CASSIOPEE, modulesDir, module)
@@ -621,13 +622,11 @@ def runSingleUnitaryTest(no, module, test):
     elif success == -1: status = 'MEMFAILED'
     else: status = 'FAILED'
     s = buildString(module, test, CPUtime, coverage, status, tag)
-    c = 0
     regTest = re.compile(' '+test+' ')
     regModule = re.compile(module+' ')
-    for tt in TESTS:
-        if regTest.search(tt) is not None:
-            if regModule.search(tt) is not None: TESTS[c] = s
-        c += 1
+    for c, tt in enumerate(TESTS):
+        if regModule.search(tt) is not None:
+            if regTest.search(tt) is not None: TESTS[c] = s; break
     listbox.delete(no, no)
     listbox.insert(no, s)
     listbox.update()
@@ -640,7 +639,7 @@ def runSingleUnitaryTest(no, module, test):
 # test = nom du repertoire du cas CFD
 #==============================================================================
 def runSingleCFDTest(no, module, test):
-
+    global TESTS
     print('Info: Running CFD test %s.'%test)
     path = CASSIOPEE+CFDBASEPATH+'/'+test
 
@@ -711,13 +710,11 @@ def runSingleCFDTest(no, module, test):
     if success: status = 'OK'
     else: status = 'FAILED'
     s = buildString(module, test, CPUtime, coverage, status, tag)
-    c = 0
     regTest = re.compile(' '+test+' ')
     regModule = re.compile(module+' ')
-    for tt in TESTS:
-        if regTest.search(tt) is not None:
-            if regModule.search(tt) is not None: TESTS[c] = s
-        c += 1
+    for c, tt in enumerate(TESTS):
+        if regModule.search(tt) is not None:
+            if regTest.search(tt) is not None: TESTS[c] = s; break
     listbox.delete(no, no)
     listbox.insert(no, s)
     listbox.update()
@@ -1382,6 +1379,7 @@ def Quit(event=None):
 # Ajoute une etoile a la selection
 #==============================================================================
 def tagSelection(event=None):
+    global TESTS
     selection = listbox.curselection()
     for s in selection:
         no = int(s)
@@ -1396,12 +1394,18 @@ def tagSelection(event=None):
         writeStar(fileStar, '*')
         splits[7] = ' *'.ljust(4)
         s = separator.join(i for i in splits)
+        regTest = re.compile(' '+test+' ')
+        regModule = re.compile(module+' ')
+        for c, tt in enumerate(TESTS):
+            if regModule.search(tt) is not None:
+                if regTest.search(tt) is not None: TESTS[c] = s; break
         listbox.delete(no, no)
         listbox.insert(no, s)
         listbox.update()
     return
 
 def untagSelection(event=None):
+    global TESTS
     selection = listbox.curselection()
     for s in selection:
         no = int(s)
@@ -1416,6 +1420,11 @@ def untagSelection(event=None):
         rmFile(path, testr[0]+'.star')
         splits[7] = ' '*5
         s = separator.join(i for i in splits)
+        regTest = re.compile(' '+test+' ')
+        regModule = re.compile(module+' ')
+        for c, tt in enumerate(TESTS):
+            if regModule.search(tt) is not None:
+                if regTest.search(tt) is not None: TESTS[c] = s; break
         listbox.delete(no, no)
         listbox.insert(no, s)
         listbox.update()
@@ -1674,7 +1683,7 @@ filterInfoBulle = 'Filter tests by this regexp.\n'+'-'*70+'\n'\
   '    <SEQ> &<UNRUN>\nselects all sequential tests that have not been run yet.\n'\
   'These keyworded filters are:\n    <SEQ>, <DIST>, <RUN>, <UNRUN>, <TAG>, <UNTAG>.\n'\
   '7) Tests can be filtered by coverage using the % symbol, for ex.\n'\
-  '    <TAG> &/FAILED &%100\nselects all tagged tests with bugs that have 100% coverage.'
+  '    <TAG> &/OK &%100\nselects all bug-free tagged tests that have 100% coverage.'
 BB = CTK.infoBulle(parent=text, text=filterInfoBulle)
 
 button = TK.Button(frame, text='Run', command=runTestsInThread, fg='blue')
