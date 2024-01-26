@@ -36,7 +36,8 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
   E_Int strict; E_Int cleanConnectivity;
   
   if (!PYPARSETUPLE_(args, OOO_ I_ O_ I_,
-		     &arrayNodes, &arrayCenters, &tag, &strict, &PE, &cleanConnectivity))
+		                 &arrayNodes, &arrayCenters, &tag, &strict, &PE,
+                     &cleanConnectivity))
   {
       return NULL;
   }
@@ -44,8 +45,8 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cnp;
   E_Int ni, nj, nk;
-  E_Int res = K_ARRAY::getFromArray(arrayNodes, varString, f, ni, nj, nk, 
-                                    cnp, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(arrayNodes, varString, f,
+                                     ni, nj, nk, cnp, eltType);
   
   if (res != 1 && res != 2)
   {
@@ -58,8 +59,8 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
   char* varStringC; char* eltTypeC;
   FldArrayF* fC; FldArrayI* cnpC;
   E_Int resC, niC, njC, nkC;
-  resC = K_ARRAY::getFromArray(arrayCenters, varStringC, fC, niC, njC, nkC, cnpC, 
-  				   eltTypeC, true);
+  resC = K_ARRAY::getFromArray3(arrayCenters, varStringC, fC,
+  				                      niC, njC, nkC, cnpC, eltTypeC);
   
   if (resC != 1 && resC != 2)
   {
@@ -72,9 +73,8 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
   char* varString2; char* eltType2;
   FldArrayF* f2; FldArrayI* cnp2;
   E_Int ni2, nj2, nk2;
-  E_Int res2 = 
-    K_ARRAY::getFromArray(tag, varString2, f2, ni2, nj2, nk2, cnp2, eltType2, 
-                          true);
+  E_Int res2 = K_ARRAY::getFromArray3(tag, varString2, f2,
+                                      ni2, nj2, nk2, cnp2, eltType2);
 
   if (res2 != 1 && res2 != 2)
   {
@@ -589,123 +589,120 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
       {
         for (E_Int i = 0; i < nbElements; i++)
         {
-	  new_ph_ids[i] = -1;
+	        new_ph_ids[i] = -1;
           nbfaces       = cnEFp[0];
           for (E_Int n = 1; n <= nbfaces; n++)
           {
-              if (selectedFacesp[cnEFp[n]-1] == 1) 
-              { 
-                cn2p[0] = nbfaces; size2 += 1;
-                for (E_Int n = 1; n <= nbfaces; n++)
-		            {
-		              cn2p[n] = cnEFp[n];
-		              keep_pg[cnEFp[n]-1] = +1;
-		            }
-                size2 += nbfaces; cn2p += nbfaces+1; next++;
-    	    
-		            for (E_Int k = 1; k <= nfldC; k++)
-		              fcenter(ii,k) = fcenter0(i,k);
-	    
-		            new_ph_ids[i] = ii;
-		            ii++;  
-                break; 
+            if (selectedFacesp[cnEFp[n]-1] == 1) 
+            { 
+              cn2p[0] = nbfaces; size2 += 1;
+              for (E_Int n = 1; n <= nbfaces; n++)
+              {
+                cn2p[n] = cnEFp[n];
+                keep_pg[cnEFp[n]-1] = +1;
               }
+              size2 += nbfaces; cn2p += nbfaces+1; next++;
+        
+              for (E_Int k = 1; k <= nfldC; k++)
+                fcenter(ii,k) = fcenter0(i,k);
+    
+              new_ph_ids[i] = ii;
+              ii++;  
+              break; 
             }
-            cnEFp += nbfaces+1; 
-          }	  
-	  
-        }
-        else //strict=1, cell selectionnee si tous les sommets sont tag
+          }
+          cnEFp += nbfaces+1; 
+        }	  
+      }
+      else //strict=1, cell selectionnee si tous les sommets sont tag
+      {
+        for (E_Int i = 0; i < nbElements; i++)
         {
-          for (E_Int i = 0; i < nbElements; i++)
+          isSel         = 0;
+          new_ph_ids[i] = -1;
+          nbfaces       = cnEFp[0];
+          for (E_Int n = 1; n <= nbfaces; n++)
           {
-            isSel         = 0;
-	    new_ph_ids[i] = -1;
-            nbfaces       = cnEFp[0];
+            if (selectedFacesp[cnEFp[n]-1] == 1) isSel++;
+          }
+          if (isSel == nbfaces) //cell selectionnee si tous les sommets sont tag
+          {
+            cn2p[0] = nbfaces; size2 +=1;
             for (E_Int n = 1; n <= nbfaces; n++)
             {
-              if (selectedFacesp[cnEFp[n]-1] == 1) isSel++;
+              cn2p[n] = cnEFp[n];
+              keep_pg[cnEFp[n]-1] = +1;	
             }
-            if (isSel == nbfaces) //cell selectionnee si tous les sommets sont tag
-            {
-              cn2p[0] = nbfaces; size2 +=1;
-              for (E_Int n = 1; n <= nbfaces; n++)
-	            {
-		            cn2p[n] = cnEFp[n];
-		            keep_pg[cnEFp[n]-1] = +1;	
-	            }
-              size2 += nbfaces; cn2p += nbfaces+1; next++;
-    	  
-	            for (E_Int k = 1; k <= nfldC; k++) fcenter(ii,k) = fcenter0(i,k);
-		
-	            new_ph_ids[i] = ii;
-		
-	            ii++;
-            }
-            cnEFp += nbfaces+1; 
-          } 
-        }
-        cn2.reAlloc(size2);
-        foutC->reAllocMat(ii,nfldC);
+            size2 += nbfaces; cn2p += nbfaces+1; next++;
+      
+            for (E_Int k = 1; k <= nfldC; k++) fcenter(ii,k) = fcenter0(i,k);
+  
+            new_ph_ids[i] = ii;
+  
+            ii++;
+          }
+          cnEFp += nbfaces+1; 
+        } 
+      }
+      cn2.reAlloc(size2);
+      foutC->reAllocMat(ii,nfldC);
 
-	   E_Int nn = 0; 
-	   for (E_Int n = 0; n<new_pg_ids.getSize(); n++)
-	   {
-	     if (keep_pg[n]>0){ new_pg_ids[n] = nn; nn++; newNumFace++;}
-	   }	
+      E_Int nn = 0; 
+      for (E_Int n = 0; n<new_pg_ids.getSize(); n++)
+      {
+        if (keep_pg[n]>0){ new_pg_ids[n] = nn; nn++; newNumFace++;}
+      }	
     }
     else  // PE == Py_None - pas de creation de tab d'indirection 
     {
-    
-        // Selection des elements en fonction des faces valides
-        if (strict == 0)  // cell selectionnee des qu'un sommet est tag=1
+      // Selection des elements en fonction des faces valides
+      if (strict == 0)  // cell selectionnee des qu'un sommet est tag=1
+      {
+        for (E_Int i = 0; i < nbElements; i++)
         {
-          for (E_Int i = 0; i < nbElements; i++)
+          nbfaces = cnEFp[0];
+          for (E_Int n = 1; n <= nbfaces; n++)
           {
-            nbfaces = cnEFp[0];
-            for (E_Int n = 1; n <= nbfaces; n++)
-            {
-              if (selectedFacesp[cnEFp[n]-1] == 1) 
-              { 
-                cn2p[0] = nbfaces; size2 += 1;
-                for (E_Int n = 1; n <= nbfaces; n++) cn2p[n] = cnEFp[n];
-                size2 += nbfaces; cn2p += nbfaces+1; next++;
-    	    
-          		  for (E_Int k = 1; k <= nfldC; k++)
-		              fcenter(ii,k) = fcenter0(i,k);
-		            ii++;
-    	    	      
-                break; 
-              }
-            }
-            cnEFp += nbfaces+1; 
-          }
-        }
-        else //strict=1, cell selectionnee si tous les sommets sont tag
-        {
-          for (E_Int i = 0; i < nbElements; i++)
-          {
-            isSel = 0;
-            nbfaces = cnEFp[0];
-            for (E_Int n = 1; n <= nbfaces; n++)
-            {
-              if (selectedFacesp[cnEFp[n]-1] == 1) isSel++;
-            }
-            if (isSel == nbfaces) //cell selectionnee si tous les sommets sont tag
-            {
-              cn2p[0] = nbfaces; size2 +=1;
+            if (selectedFacesp[cnEFp[n]-1] == 1) 
+            { 
+              cn2p[0] = nbfaces; size2 += 1;
               for (E_Int n = 1; n <= nbfaces; n++) cn2p[n] = cnEFp[n];
               size2 += nbfaces; cn2p += nbfaces+1; next++;
-    	  
-    	        for (E_Int k = 1; k <= nfldC; k++) fcenter(ii,k) = fcenter0(i,k);
-    	        ii++;
+        
+              for (E_Int k = 1; k <= nfldC; k++)
+                fcenter(ii,k) = fcenter0(i,k);
+              ii++;
+                
+              break; 
             }
-            cnEFp += nbfaces+1; 
-          } 
+          }
+          cnEFp += nbfaces+1; 
         }
-        cn2.reAlloc(size2);
-        foutC->reAllocMat(ii,nfldC);
- 
+      }
+      else //strict=1, cell selectionnee si tous les sommets sont tag
+      {
+        for (E_Int i = 0; i < nbElements; i++)
+        {
+          isSel = 0;
+          nbfaces = cnEFp[0];
+          for (E_Int n = 1; n <= nbfaces; n++)
+          {
+            if (selectedFacesp[cnEFp[n]-1] == 1) isSel++;
+          }
+          if (isSel == nbfaces) //cell selectionnee si tous les sommets sont tag
+          {
+            cn2p[0] = nbfaces; size2 +=1;
+            for (E_Int n = 1; n <= nbfaces; n++) cn2p[n] = cnEFp[n];
+            size2 += nbfaces; cn2p += nbfaces+1; next++;
+      
+            for (E_Int k = 1; k <= nfldC; k++) fcenter(ii,k) = fcenter0(i,k);
+            ii++;
+          }
+          cnEFp += nbfaces+1; 
+        } 
+      }
+      cn2.reAlloc(size2);
+      foutC->reAllocMat(ii,nfldC);
     }
 
     // Cree la nouvelle connectivite complete
@@ -816,8 +813,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
 PyObject* K_POST::selectCells3(PyObject* self, PyObject* args)
 {
   PyObject* tag; E_Int flag;
-  if (!PYPARSETUPLE_(args, O_ I_,
-                    &tag, &flag))
+  if (!PYPARSETUPLE_(args, O_ I_, &tag, &flag))
   {
       return NULL;
   }
@@ -830,9 +826,8 @@ PyObject* K_POST::selectCells3(PyObject* self, PyObject* args)
 
   if (flag == 0) // array
   {
-    res2 = 
-      K_ARRAY::getFromArray(tag, varString2, f2, ni2, nj2, nk2, cn2, eltType2, 
-                            true);
+    res2 = K_ARRAY::getFromArray3(tag, varString2, f2,
+                                  ni2, nj2, nk2, cn2, eltType2);
     if (res2 != 1 && res2 != 2)
     {
       PyErr_SetString(PyExc_TypeError,
@@ -842,8 +837,7 @@ PyObject* K_POST::selectCells3(PyObject* self, PyObject* args)
   }
   else // numpy
   {
-    res2 = 
-      K_NUMPY::getFromNumpyArray(tag, f2, true);
+    res2 = K_NUMPY::getFromNumpyArray(tag, f2, true);
     if (res2 == 0)
     {
       PyErr_SetString(PyExc_TypeError,
@@ -1406,7 +1400,7 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
     }
 
     
-   // Si mise a jour du ParentElement, tab d'indirection des faces et des elmts
+    // Si mise a jour du ParentElement, tab d'indirection des faces et des elmts
     // ------------------------------------------------------------------------
     if (PE != Py_None)
     {      
@@ -1430,16 +1424,14 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
               { 
                 cn2p[0] = nbfaces; size2 += 1;
                 for (E_Int n = 1; n <= nbfaces; n++)
-		{
-		  cn2p[n] = cnEFp[n];
-		  keep_pg[cnEFp[n]-1] = +1;
-		}
+                {
+                  cn2p[n] = cnEFp[n];
+                  keep_pg[cnEFp[n]-1] = +1;
+                }
 		
                 size2 += nbfaces; cn2p += nbfaces+1; next++;
-
-		
-		new_ph_ids[i] = ii;
-		ii++;
+                new_ph_ids[i] = ii;
+                ii++;
 		
                 break; 
               }
@@ -1617,4 +1609,3 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
   
   return l;  
 }
-

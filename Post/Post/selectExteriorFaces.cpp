@@ -787,7 +787,7 @@ short K_POST::exteriorFacesBasic3(FldArrayF& f, FldArrayI& cn,
 // IN: varString: varString de f
 // IN: f: le champ
 // IN: cn: connectivite NGon
-// IN: outIndir: si true, sort un tableau d'indirection des faces en plus
+// IN: boolIndir: si true, sort un tableau d'indirection des faces en plus
 // OUT: array des faces exterieures
 // CAS NGON 3D : exterior faces are 2D zones
 //==============================================================================
@@ -861,7 +861,7 @@ PyObject* K_POST::selectExteriorFacesNGon3D(char* varString, FldArrayF& f,
           indvertn++;
         }
         // If the value associated with E is -1, then first time this edge
-        // is met, set to current unique edge count
+        // is encountered, set to current unique edge count
         if (resE.first->second.first == -1)
         {
           resE.first->second.first = indedgen;
@@ -872,8 +872,8 @@ PyObject* K_POST::selectExteriorFacesNGon3D(char* varString, FldArrayF& f,
   }
 
   nptsExt = vertexMap.size();
-  sizeFN2 = (2+shift)*edgeMap.size();
   nedgesExt = edgeMap.size();
+  sizeFN2 = (2+shift)*nedgesExt;
   
   PyObject* indir = NULL;
   E_Int* indirp = NULL;
@@ -965,7 +965,7 @@ PyObject* K_POST::selectExteriorFacesNGon3D(char* varString, FldArrayF& f,
 // IN: varString: varString de f
 // IN: f: le champ
 // IN: cn: connectivite NGon
-// IN: outIndir: si true, sort un tableau d'indirection des faces en plus
+// IN: boolIndir: si true, sort un tableau d'indirection des faces en plus
 // OUT: array des faces exterieures
 // CAS NGON 2D : exterior faces are 1D zones
 //==============================================================================
@@ -976,150 +976,158 @@ PyObject* K_POST::selectExteriorFacesNGon2D(char* varString, FldArrayF& f,
   bool boolIndir = false;
   if (indices != Py_None) boolIndir = true;
 
+  // Acces non universel sur le ptrs
+  E_Int* ngon = cn.getNGon();
+  E_Int* indPG = cn.getIndPG();
+  E_Int nfaces = cn.getNFaces();
+  E_Int npts = f.getSize(), nfld = f.getNfld();
+  E_Int shift = 1, api = f.getApi();
+  if (api == 3) shift = 0;
+
   // cFE: connectivite face/elements.
   // Si une face n'a pas d'element gauche ou droit, retourne 0 pour 
   // cet element. 
   FldArrayI cFE; K_CONNECT::connectNG2FE(cn, cFE);
   E_Int* cFE1 = cFE.begin(1);
   E_Int* cFE2 = cFE.begin(2);
-  E_Int* ptr = cn.begin();
-  E_Int sizeFN = ptr[1]; ptr += 2; // sizeFN: taille du tableau de connectivite Face/Noeuds
-  E_Int nedgesExt=0; // nbre de faces exterieures pour la nouvelle connectivite 
-  E_Int next2=0; // nbre d'elements exterieurs pour la nouvelle connectivite
-  E_Int sizeFN2=0; // taille de la nouvelle connectivite de faces exterieures
-  E_Int sizeEF2=0; // taille de la nouvelle connectivite d'elements exterieurs
-  E_Int e1, e2, nbnodes;
+  E_Int sizeFN2, sizeEF2 = 0;
+  E_Int e1, e2, dummy, nptsExt;
+  E_Int indvertn = 1;
 
-  FldArrayI posFaces;
-  K_CONNECT::getPosFaces(cn, posFaces);
-  E_Int* posFacep = posFaces.begin();
+  // Calcul du nombre de points uniques et aretes uniques dans la
+  // nouvelle connectivite 1D
+  vector<E_Int> indirVertices(npts, -1);
 
-  // calcul du nombre d'elements et de faces pour la nouvelle connectivite
-  E_Int fa = 0; E_Int numFace = 0; E_Int nfacesExt = 0;
-  vector<E_Int> exteriorFaces;
+  // Les vertices sont mappes pour calculer leur table d'indirection sachant 
+  // que leur nombre n'est pas connu a priori et qu'ils ne sont pas parcourus
+  // dans l'ordre.
+  std::unordered_map<E_Int, E_Int > vertexMap;
+  // Les aretes sont hashees pour determiner le nombre unique d'aretes et
+  // ainsi construire les "elements" de la nouvelle connectivite 1D
+  E_Int nedgesExt = 0;
+  vector<E_Int> edge(2);
+  vector<E_Int> exteriorEdges;
+  TopologyOpt E;
+  std::unordered_map<TopologyOpt, E_Int, JenkinsHash<TopologyOpt> > edgeMap;
+
+  for (E_Int i = 0; i < nfaces; i++)
+  {
+    e1 = cFE1[i]; // element voisin 1
+    e2 = cFE2[i]; // element voisin 2
+    E_Int* face = cn.getFace(i, dummy, ngon, indPG);
+    if ((e1 == 0 && e2 != 0) || (e2 == 0 && e1 != 0))
+    {
+      // Increment the value associated with V/E. If it is 1, then first
+      // time this vertex/edge is encountered
+      edge[0] = face[0]-1;
+      auto resV = vertexMap.insert(std::make_pair(edge[0], 0));
+      if (++resV.first->second == 1)
+      {
+        indirVertices[edge[0]] = indvertn;
+        indvertn++;
+      }
+
+      edge[1] = face[1]-1;
+      resV = vertexMap.insert(std::make_pair(edge[1], 0));
+      if (++resV.first->second == 1)
+      {
+        indirVertices[edge[1]] = indvertn;
+        indvertn++;
+      }
+
+      E.set(edge.data(), 2);
+      auto resE = edgeMap.insert(std::make_pair(E, 0));
+      if (++resE.first->second == 1)
+      {
+        exteriorEdges.push_back(i+1);
+      }
+    }
+  }
+
+  nptsExt = vertexMap.size();
+  sizeFN2 = (1+shift)*nptsExt;
+  nedgesExt = edgeMap.size();
+  sizeEF2 = (2+shift)*nedgesExt;
+
   PyObject* indir = NULL;
   E_Int* indirp = NULL;
-
-  while (fa < sizeFN) // parcours de la connectivite face/noeuds
-  {
-    e1 = cFE1[numFace];  // element voisin 1
-    e2 = cFE2[numFace];  // element voisin 2
-    nbnodes = ptr[0];
-
-    if ( (e1 == 0 && e2 != 0) || (e2 == 0 && e1 != 0) )
-    {
-      sizeFN2 += 2*nbnodes; nedgesExt += nbnodes;
-      sizeEF2 += nbnodes+1; next2++;
-      nfacesExt++;
-      exteriorFaces.push_back(numFace);
-    }
-    ptr += nbnodes+1; fa += nbnodes+1; numFace++;
-  }
   if (boolIndir)
   {
-    indir = K_NUMPY::buildNumpyArray(nfacesExt, 1, 1, 0);
+    indir = K_NUMPY::buildNumpyArray(nedgesExt, 1, 1, 0);
     indirp = K_NUMPY::getNumpyPtrI(indir);
   }
   cFE.malloc(0);
   // Calcul des nouvelles connectivites Elmt/Faces et Face/Noeuds
-  FldArrayI c2n(sizeFN2+sizeEF2+4);
-  E_Int* ptro1 = c2n.begin()+2;
-  E_Int* ptro2 = c2n.begin()+sizeFN2+4;
-
-  E_Int npts = f.getSize(); E_Int nfld = f.getNfld();
-  FldArrayI indirNodes(npts); indirNodes.setAllValuesAt(-1);
-  E_Int* indirVertices = indirNodes.begin();
-  E_Int indnewface = 1;
-  E_Int v1;
-  E_Int indvertn = 0;
-  FldArrayI indicesFaces(npts);// faces creees associees aux noeuds 
-  indicesFaces.setAllValuesAt(-1);
-  E_Int* indicesFacesp = indicesFaces.begin();
-  E_Int pos, ind, foundFace;
-  E_Int n = exteriorFaces.size();
-
-  for (E_Int i = 0; i < n; i++)
+  E_Int ngonType = 1; // CGNSv3 compact array1
+  if (api == 2) ngonType = 2; // CGNSv3, array2
+  else if (api == 3) ngonType = 3; // force CGNSv4, array3
+  E_Boolean center = false;
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, nptsExt, nedgesExt,
+                                       nptsExt, "NGON", sizeFN2, sizeEF2,
+                                       ngonType, center, api);
+  FldArrayF* f2; FldArrayI* cn2;
+  K_ARRAY::getFromArray3(tpl, f2, cn2);
+  E_Int* ngon2 = cn2->getNGon();
+  E_Int* nface2 = cn2->getNFace();
+  E_Int *indPG2 = NULL, *indPH2 = NULL;
+  if (api == 2 || api == 3)
   {
-    ind = exteriorFaces[i];
-    pos = posFacep[ind];
-    ptr = cn.begin()+pos;
-    nbnodes = ptr[0];
-    if (boolIndir) indirp[i] = ind+1;
-
-    ptro2[0] = nbnodes;
-    for (E_Int p = 0; p < nbnodes; p++)
-    { 
-      ptro1[0] = 1;
-      v1 = ptr[p+1]-1;
-      foundFace = indicesFacesp[v1];
-      if (foundFace == -1)
-      { 
-        if (indirVertices[v1] == -1) 
-        {
-          indvertn += 1;
-          indirVertices[v1] = indvertn;
-          ptro1[1] = indvertn;
-        }
-        else 
-        {
-          ptro1[1] = indirVertices[v1];
-        }             
-        ptro1 += 2;
-        indicesFacesp[v1] = indnewface;
-        ptro2[p+1] = indnewface; indnewface++;
-      }
-      else 
-      {
-        ptro2[p+1] = foundFace;
-      }
-    }
-    ptro2 += nbnodes+1;
+    indPG2 = cn2->getIndPG(); indPH2 = cn2->getIndPH();
   }
-  FldArrayF* f2 = new FldArrayF(indvertn,nfld);    
-  for(E_Int eq = 1; eq <= nfld; eq++)
+  
+  #pragma omp parallel
   {
-    E_Float* fp = f.begin(eq);
-    E_Float* fnp = f2->begin(eq);
-    for (E_Int ind = 0; ind < npts; ind++)
+    E_Int ind, fidx, v1, v2;
+
+    #pragma omp for
+    for(E_Int i = 0; i < nptsExt; i++)
     {
-      E_Int indf = indirVertices[ind]-1;
-      if (indf> -1) fnp[indf] = fp[ind];
+      ind = i*(1+shift);
+      ngon2[ind] = 1;
+      ngon2[ind+shift] = i+1;
+    }
+    #pragma omp for
+    for(E_Int i = 0; i < nedgesExt; i++)
+    {
+      fidx = exteriorEdges[i];
+      E_Int* face = cn.getFace(fidx-1, dummy, ngon, indPG);
+      if (boolIndir) indirp[i] = fidx;
+      v1 = face[0]-1; v2 = face[1]-1;
+
+      ind = i*(2+shift);
+      nface2[ind] = 2;
+      nface2[ind+shift] = indirVertices[v1];
+      nface2[ind+1+shift] = indirVertices[v2];
+    }
+
+    if (api == 2 || api == 3)
+    {
+      #pragma omp for
+      for(E_Int i = 0; i < nptsExt; i++) indPG2[i] = 1;
+      #pragma omp for
+      for(E_Int i = 0; i < nedgesExt; i++) indPH2[i] = 2;
+    }
+  
+    for(E_Int eq = 1; eq <= nfld; eq++)
+    {
+      E_Float* fp = f.begin(eq);
+      E_Float* f2p = f2->begin(eq);
+      #pragma omp for
+      for (E_Int i = 0; i < npts; i++)
+      {
+        ind = indirVertices[i]-1;
+        if (ind > -1) f2p[ind] = fp[i];
+      }
     }
   }
-  // Cree la nouvelle connectivite complete
-  E_Int nbFaces = indnewface-1;
-  sizeFN = nbFaces*2;
-  E_Int nbElts = next2;
-  E_Int sizeEF = sizeEF2;
-  FldArrayI* cnout = new FldArrayI(sizeFN+sizeEF+4);
-  E_Int* cnoutp = cnout->begin();
-  ptro1 = c2n.begin()+2;
-  ptro2 = c2n.begin()+4+sizeFN2;
-  cnoutp[0] = nbFaces; // nombre de faces
-  cnoutp[1] = sizeFN; // taille du tableau de faces
-  cnoutp+=2;
-  for(E_Int i = 0; i < sizeFN; i++)
-    cnoutp[i] = ptro1[i];
 
-  cnoutp+=sizeFN;
-    
-  cnoutp[0] = nbElts; 
-  cnoutp[1] = sizeEF;
-  cnoutp+=2;
-  for(E_Int i = 0; i < sizeEF; i++)
-    cnoutp[i] = ptro2[i];
-  // Build array 
-  char eltTypeFaces[10]; strcpy(eltTypeFaces, "NGON");
-  PyObject* tpl = K_ARRAY::buildArray(*f2, varString, 
-                                      *cnout, -1, eltTypeFaces);
-  delete f2; delete cnout;
   if (boolIndir) 
   {
     PyList_Append(indices, indir);  Py_DECREF(indir);
   }
   return tpl;
- 
 }
+
 //===========================================================================
 /* Creation du tableau des sommets de chaque face pour un element donne 
    ex: TRI: 1 face=1 arete=2 sommets
@@ -1298,37 +1306,42 @@ short K_POST::testCommonFaces(FldArrayI& face1, FldArrayI& face2,
   E_Int* face2p = face2.begin();
 
   short* tag1p = tag1.begin();
-  // parcours de toutes les facettes d'un elt1
-  short cnt;
   short found = 1;
-  E_Int t;
-  for (E_Int f1 = 0; f1 < nfaces; f1++)
+ 
+  #pragma omp parallel
   {
-    if (tag1p[f1] == 0)
+    E_Int t;
+    short cnt;
+    // parcours de toutes les facettes d'un elt1
+    #pragma omp for
+    for (E_Int f1 = 0; f1 < nfaces; f1++)
     {
-      // parcours de toutes les facettes des autres elts
-      for (E_Int f2 = 0; f2 < nfaces; f2++)
+      if (tag1p[f1] == 0)
       {
-        // test des sommets un par un
-        cnt = 0;
-        for (E_Int v1 = 0; v1 < nvertex; v1++)
+        // parcours de toutes les facettes des autres elts
+        for (E_Int f2 = 0; f2 < nfaces; f2++)
         {
-          t = face1p[f1+v1*nfaces];
-          for (E_Int v2 = 0; v2 < nvertex; v2++)
+          // test des sommets un par un
+          cnt = 0;
+          for (E_Int v1 = 0; v1 < nvertex; v1++)
           {
-            if (t == face2p[f2+v2*nfaces])
-            {cnt++; break;}
+            t = face1p[f1+v1*nfaces];
+            for (E_Int v2 = 0; v2 < nvertex; v2++)
+            {
+              if (t == face2p[f2+v2*nfaces])
+              {cnt++; break;}
+            }
+          }
+          
+          if (cnt == nvertex)
+          {
+            tag1p[f1] = 1; goto next;
           }
         }
-        
-        if (cnt == nvertex)
-        {
-          tag1p[f1] = 1; goto next;
-        }
+        found = 0;
       }
-      found = 0;
+      next: continue;
     }
-    next: continue;
   }
   
   return found;
