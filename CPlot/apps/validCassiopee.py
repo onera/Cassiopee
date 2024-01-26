@@ -199,9 +199,11 @@ def ljust(text, size):
 # IN: CPUtime: nouveau CPU time
 # IN: coverage: nouveau coverage
 # IN: status: nouveau status
-# Recupere les anciennes donnees dans le fichier time
+# IN: tag: nouveau tag
+# Recupere les anciennes donnees dans les fichiers time & star
 #==============================================================================
-def buildString(module, test, CPUtime='...', coverage='...%', status='...'):
+def buildString(module, test, CPUtime='...', coverage='...%', status='...',
+                tag=' '):
     if module == 'CFDBase':
         path = CASSIOPEE+CFDBASEPATH
         fileTime = '%s/%s/Data/%s.time'%(path, test, test)
@@ -210,6 +212,7 @@ def buildString(module, test, CPUtime='...', coverage='...%', status='...'):
         path = CASSIOPEE+'/Apps/'+modulesDir
         testr = os.path.splitext(test)
         fileTime = '%s/%s/test/Data/%s.time'%(path, module, testr[0])
+        fileStar = '%s/%s/test/Data/%s.star'%(path, module, testr[0])
     a = os.access(fileTime, os.F_OK)
     if a:
         f = open(fileTime, 'r')
@@ -227,33 +230,31 @@ def buildString(module, test, CPUtime='...', coverage='...%', status='...'):
         refCPUtime = '...'
         refCoverage = '...%'
 
-    # Not very useful
-    #fileStar = '%s/%s/test/Data%s.star'%(path, module, testr[0])
-    #a = os.access(fileStar, os.F_OK)
-    #if a:
-    #    f = open(fileStar, 'r')
-    #    list = f.read()
-    #    f.close()
-    #    list = list.split('\n')
-    #    if (len(list) > 0): refStar = list[0]
-    #    else: refStar = ' '
-    #else: refStar = ' '
-    refStar = ' '
+    a = os.access(fileStar, os.F_OK)
+    if a:
+        f = open(fileStar, 'r')
+        list = f.read()
+        f.close()
+        list = list.split('\n')
+        if (len(list) > 0): refTag = list[0]
+        else: refTag = ' '
+    else: refTag = ' '
 
     execTime = '../../.. ..h..'
     if status != '...': # Not First call
         execTime = time.strftime('%d/%m/%y %Hh%M', time.localtime())
 
     if coverage == '...%': coverage = refCoverage
+    if tag == ' ': tag = refTag
 
     #s = module.ljust(13)+separatorl+test.ljust(40)+separatorl+\
     #    CPUtime.ljust(10)+separatorl+refCPUtime.ljust(10)+separatorl+\
     #    refDate.ljust(16)+separatorl+coverage.ljust(5)+separatorl+\
-    #    status.ljust(7)+separatorl+refStar.ljust(5)
+    #    status.ljust(7)+separatorl+refTag.ljust(5)
     s = ljust(module, 13)+separatorl+ljust(test, 40)+separatorl+\
         ljust(CPUtime, 10)+separatorl+ljust(refCPUtime, 10)+separatorl+\
         ljust(refDate, 16)+separatorl+ljust(coverage, 5)+separatorl+' '+\
-        ljust(status, 7)
+        ljust(status, 10)+separatorl+tag.ljust(5)
     #s = '{}{}{}{}{}{}{}{}{}{}{}{}{}{}'.format(ljust(module, 13), separatorl,
     #    ljust(test, 40), separatorl, ljust(CPUtime, 10), separatorl,
     #    ljust(refCPUtime, 10), separatorl,
@@ -389,9 +390,17 @@ def writeFinal(file, svnVersion=None, logTxt=None, append=False):
     f.close()
 
 #==============================================================================
-# Update star dans un fichier star
-# Star est cense etre a la quatrieme et derniere ligne
+# Read and update star dans un fichier star
 #==============================================================================
+def readStar(file):
+    star = ' '
+    try:
+        f = open(file, 'r')
+        star = f.readline().rstrip('\n')
+        f.close()
+    except: pass
+    return star
+    
 def writeStar(file, star):
     try:
         f = open(file, 'w')
@@ -599,12 +608,18 @@ def runSingleUnitaryTest(no, module, test):
     fileTime = '%s/Data/%s.time'%(path, testr[0])
     if not os.access(fileTime, os.F_OK):
         writeTime(fileTime, CPUtime, coverage)
+        
+    # Recupere le tag
+    fileStar = '%s/Data/%s.star'%(path, testr[0])
+    tag = ' '
+    if os.access(fileStar, os.R_OK):
+        tag = readStar(fileStar)
 
     # update status
     if success == 1: status = 'OK'
     elif success == -1: status = 'MEMFAILED'
     else: status = 'FAILED'
-    s = buildString(module, test, CPUtime, coverage, status)
+    s = buildString(module, test, CPUtime, coverage, status, tag)
     c = 0
     regTest = re.compile(' '+test+' ')
     regModule = re.compile(module+' ')
@@ -684,11 +699,17 @@ def runSingleCFDTest(no, module, test):
     fileTime = '%s/Data/%s.time'%(path, test)
     if not os.access(fileTime, os.F_OK):
         writeTime(fileTime, CPUtime, coverage)
+        
+    # Recupere le tag
+    fileStar = '%s/Data/%s.star'%(path, test)
+    tag = ' '
+    if os.access(fileStar, os.R_OK):
+        tag = readStar(fileStar)
 
     # update status
     if success: status = 'OK'
     else: status = 'FAILED'
-    s = buildString(module, test, CPUtime, coverage, status)
+    s = buildString(module, test, CPUtime, coverage, status, tag)
     c = 0
     regTest = re.compile(' '+test+' ')
     regModule = re.compile(module+' ')
@@ -821,13 +842,17 @@ def buildTestList(loadSession=False, modules=[]):
     logname = CASSIOPEE+'/Apps/Modules/ValidData/session.log'
     if os.path.getsize(logname) == 0:
         logname = CASSIOPEE+'/Apps/Modules/ValidData/lastSession.log'
-    ncolumns = 7
+    ncolumns = 8
     if loadSession and os.path.isfile(logname):
         with open(logname, "r") as g:
             sessionLog = [line.rstrip().split(':') for line in g.readlines()]
         # Remove header from logfile
         sessionLog = [testLog for testLog in sessionLog
-            if (isinstance(testLog, list) and len(testLog) == ncolumns)]         
+            if (isinstance(testLog, list) and len(testLog) == ncolumns)]
+        if not sessionLog:
+            ncolumns = 7
+            sessionLog = [testLog for testLog in sessionLog
+                if (isinstance(testLog, list) and len(testLog) == ncolumns)]
         # Create array and remove leading and trailing white spaces
         arr = np.array([entry.strip() for testLog in sessionLog for entry in testLog],
                        dtype=object)
@@ -842,8 +867,9 @@ def buildTestList(loadSession=False, modules=[]):
             if loadSession and arr.size:
                 testArr = arr[np.logical_and(arr[:,0] == m, arr[:,1] == t)]
                 if testArr.size:
-                    # Args are CPU time, Coverage, and Status
-                    args = testArr[0][[2,5,6]]
+                    # Args are CPU time, Coverage, Status, and Tag if present
+                    if ncolumns == 8: args = testArr[0][[2,5,6,7]]
+                    else: args = testArr[0][[2,5,6]]
                     s = buildString(m, t, *args)
                 else:
                     s = buildString(m, t)
@@ -873,7 +899,7 @@ def filterTestList(event=None):
     def _substituteCustomFilters(filters):
         """Substitute custom keyworded filters comprised between angle brackets
         by their regular expression"""
-        outFilters = []
+        outFilters = set()
         for filtr in filters:
             if not filtr: continue
             pos1 = filtr.find('<')
@@ -881,70 +907,68 @@ def filterTestList(event=None):
             if pos1 != -1 and pos2 != -1 and pos1 < pos2:
                 tmpFiltr = filtr[pos1+1:pos2]
                 if filtr[0] == '!':
-                    if tmpFiltr == 'SEQ': outFilters.append('&m.$')
-                    elif tmpFiltr == 'DIST': outFilters.append('&t.$')
-                    elif tmpFiltr == 'RUN': outFilters.extend(['&/!FAILED', '&/!FAILEDMEM', '&/!OK'])
-                    elif tmpFiltr == 'UNRUN': outFilters.extend(['/FAILED', '/FAILEDMEM', '/OK'])
+                    if tmpFiltr == 'SEQ': outFilters.add('&m.$')
+                    elif tmpFiltr == 'DIST': outFilters.add('&t.$')
+                    elif tmpFiltr == 'RUN': outFilters.update(['&/!FAILED', '&/!FAILEDMEM', '&/!OK'])
+                    elif tmpFiltr == 'UNRUN': outFilters.update(['/FAILED', '/FAILEDMEM', '/OK'])
+                    elif tmpFiltr == 'TAG': outFilters.add('£^(?!\*)')
+                    elif tmpFiltr == 'UNTAG': outFilters.add('£\*')
                 else:
-                    if tmpFiltr == 'SEQ': outFilters.append('&t.$')
-                    elif tmpFiltr == 'DIST': outFilters.append('&m.$')
-                    elif tmpFiltr == 'RUN': outFilters.extend(['/FAILED', '/FAILEDMEM', '/OK'])
-                    elif tmpFiltr == 'UNRUN': outFilters.extend(['&/!FAILED', '&/!FAILEDMEM', '&/!OK'])
-            else: outFilters.append(filtr)
+                    if tmpFiltr == 'SEQ': outFilters.add('&t.$')
+                    elif tmpFiltr == 'DIST': outFilters.add('&m.$')
+                    elif tmpFiltr == 'RUN': outFilters.update(['/FAILED', '/FAILEDMEM', '/OK'])
+                    elif tmpFiltr == 'UNRUN': outFilters.update(['&/!FAILED', '&/!FAILEDMEM', '&/!OK'])
+                    elif tmpFiltr == 'TAG': outFilters.add('£\*')
+                    elif tmpFiltr == 'UNTAG': outFilters.add('£^(?!\*)')
+            else: outFilters.add(filtr)
         return outFilters
         
     filters = Filter.get()
     filters = _rmSubstrings(filters.split(' '))
     filters = _substituteCustomFilters(filters)
-    if filters and len(filters[0]) > 1:
-        if all(filt[0] == '&' for filt in filters): filters[0] = filters[0][1:]
+    if filters and all(filtr[0] == '&' for filtr in filters):
+        filtr0 = filters.pop()
+        if len(filtr0) > 1: filters.add(filtr0[1:])
     
     # Apply filters with an OR gate and append strings to set
     filteredTests = set()
-    for entry in filters:
-        if (not entry) or (entry in ['#', '/', '!']) or (entry[0] in ['&', '*']):
+    for filtr in filters:
+        if (not filtr) or (filtr in ['#', '/', '!', '£', '%']) or (filtr[0] in ['&', '*']):
             continue
-        if entry[0] in ['#', '/']: # filter modules or status
-            pos = 0 if entry[0] == '#' else 6
-            for s in TESTS:
-                strg = s.split(':')[pos].strip()
-                if entry[1] == '!':
-                    if re.search(entry[2:], strg) is None:
-                        filteredTests.add(s)
-                elif re.search(entry[1:], strg) is not None:
+        shift = 1; endidx = 0
+        if filtr[0] == '#': pos = 0 # filter modules
+        elif filtr[0] == '/': pos = 6 # filter statuses
+        elif filtr[0] == '£': pos = 7 # filter tags
+        elif filtr[0] == '%': pos = 5 # filter coverage
+        else: pos = 1; shift = 0; endidx = -3 # filter test names
+        for s in TESTS:
+            strg = s.split(':')[pos].strip()
+            if endidx != 0: strg = strg[:endidx]
+            if filtr[shift] == '!':
+                if re.search(filtr[1+shift:], strg) is None:
                     filteredTests.add(s)
-        else: # filter test names
-            for s in TESTS:
-                strg = s.split(':')[1].strip()[:-3]
-                if entry[0] == '!':
-                    if re.search(entry[1:], strg) is None:
-                        filteredTests.add(s)
-                elif re.search(entry, strg) is not None:
-                    filteredTests.add(s)
+            elif re.search(filtr[shift:], strg) is not None:
+                filteredTests.add(s)
     
     # Apply filters with an AND gate to remove strings from set
     insertedTests = filteredTests.copy()
-    for entry in filters:
-        if len(entry) > 1 and entry[0] == '&':
-            if entry[1] in ['#', '/']: # filter modules or status
-                pos = 0 if entry[1] == '#' else 6
-                for s in filteredTests:
-                    strg = s.split(':')[pos].strip()
-                    if len(entry) < 3: continue
-                    if entry[2] == '!':
-                        if len(entry) > 3 and re.search(entry[3:], strg) is not None:
-                            insertedTests.discard(s)
-                    elif re.search(entry[2:], strg) is None:
+    for filtr in filters:
+        if len(filtr) > 1 and filtr[0] == '&':
+            shift = 1; endidx = 0
+            if filtr[1] == '#': pos = 0 # filter modules
+            elif filtr[1] == '/': pos = 6 # filter statuses
+            elif filtr[1] == '£': pos = 7 # filter tags
+            elif filtr[1] == '%': pos = 5 # filter coverage
+            else: pos = 1; shift = 0; endidx = -3 # filter test names
+            for s in filteredTests:
+                strg = s.split(':')[pos].strip()
+                if endidx != 0: strg = strg[:endidx]
+                if len(filtr) < 3: continue
+                if filtr[1+shift] == '!':
+                    if len(filtr) > 3 and re.search(filtr[2+shift:], strg) is not None:
                         insertedTests.discard(s)
-            else:
-                for s in filteredTests: # filter test names
-                    strg = s.split(':')[1].strip()[:-3]
-                    if entry[1] == '!':
-                        if len(entry) < 3: continue
-                        if re.search(entry[2:], strg) is not None:
-                            insertedTests.discard(s)
-                    elif re.search(entry[1:], strg) is None:
-                        insertedTests.discard(s)
+                elif re.search(filtr[1+shift:], strg) is None:
+                    insertedTests.discard(s)
         
     listbox.delete(0, TK.END)
     if filters:
@@ -1669,9 +1693,11 @@ filterInfoBulle = 'Filter tests by this regexp.\n'+'-'*70+'\n'\
   '    #Converter &/FAILED\nwill select all buggy tests in the Converter module.\n'\
   '5) Negation of an expression with symbol ! should be the innermost\noperator, for ex.\n'\
   '    #Fast &#!FastC\nwill load Fast modules but FastC.\n'\
-  '6) A few keyworded filters exist and can be called using angle brackets, for ex.\n'\
+  '6) A few keyworded filters exist and can be called using angle\nbrackets, for ex.\n'\
   '    <SEQ> &<UNRUN>\nselects all sequential tests that have not been run yet.\n'\
-  'These keyworded filters are: <SEQ>, <DIST>, <RUN>, <UNRUN>.'
+  'These keyworded filters are:\n    <SEQ>, <DIST>, <RUN>, <UNRUN>, <TAG>, <UNTAG>.\n'\
+  '7) Tests can be filtered by coverage using the % symbol, for ex.\n'\
+  '    <TAG> &/FAILED &%100\nselects all tagged tests with bugs that have 100% coverage.'
 BB = CTK.infoBulle(parent=text, text=filterInfoBulle)
 
 button = TK.Button(frame, text='Run', command=runTestsInThread, fg='blue')
