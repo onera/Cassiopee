@@ -207,6 +207,7 @@ def buildString(module, test, CPUtime='...', coverage='...%', status='...',
     if module == 'CFDBase':
         path = CASSIOPEE+CFDBASEPATH
         fileTime = '%s/%s/Data/%s.time'%(path, test, test)
+        fileStar = '%s/%s/Data/%s.star'%(path, test, test)
     else:
         modulesDir = MODULESDIR[module]
         path = CASSIOPEE+'/Apps/'+modulesDir
@@ -942,7 +943,7 @@ def filterTestList(event=None):
         elif filtr[0] == '%': pos = 5 # filter coverage
         else: pos = 1; shift = 0; endidx = -3 # filter test names
         for s in TESTS:
-            strg = s.split(':')[pos].strip()
+            strg = s.split(separator)[pos].strip()
             if endidx != 0: strg = strg[:endidx]
             if filtr[shift] == '!':
                 if re.search(filtr[1+shift:], strg) is None:
@@ -961,7 +962,7 @@ def filterTestList(event=None):
             elif filtr[1] == '%': pos = 5 # filter coverage
             else: pos = 1; shift = 0; endidx = -3 # filter test names
             for s in filteredTests:
-                strg = s.split(':')[pos].strip()
+                strg = s.split(separator)[pos].strip()
                 if endidx != 0: strg = strg[:endidx]
                 if len(filtr) < 3: continue
                 if filtr[1+shift] == '!':
@@ -1382,28 +1383,19 @@ def Quit(event=None):
 #==============================================================================
 def tagSelection(event=None):
     selection = listbox.curselection()
-
     for s in selection:
         no = int(s)
         t = listbox.get(s)
         splits = t.split(separator)
-        star = splits[7]
-        star = star.strip()
-        star += '*'
-        test = splits[1]
-        test = test.strip()
-        module = splits[0]
-        module = module.strip()
+        module = splits[0].strip()
+        test = splits[1].strip()
         modulesDir = MODULESDIR[module]
         path = CASSIOPEE+'/Apps/'+modulesDir+'/'+module+'/test'
         testr = os.path.splitext(test)
         fileStar = path+'/Data/'+testr[0]+'.star'
-        writeStar(fileStar, star)
-        star = ' '+star
-        splits[7] = star.ljust(4)
-        s = ''
-        for i in splits[:-1]: s += i+separator
-        s += splits[-1]
+        writeStar(fileStar, '*')
+        splits[7] = ' *'.ljust(4)
+        s = separator.join(i for i in splits)
         listbox.delete(no, no)
         listbox.insert(no, s)
         listbox.update()
@@ -1415,30 +1407,15 @@ def untagSelection(event=None):
         no = int(s)
         t = listbox.get(s)
         splits = t.split(separator)
-        star = splits[7]
-        star = star.strip()
-        test = splits[1]
-        test = test.strip()
-        module = splits[0]
-        module = module.strip()
+        module = splits[0].strip()
+        test = splits[1].strip()
         modulesDir = MODULESDIR[module]
         path = CASSIOPEE+'/Apps/'+modulesDir+'/'+module+'/test'
         testr = os.path.splitext(test)
         fileStar = path+'/Data/'+testr[0]+'.star'
-        ls = len(star)
-        star = ''
-        if ls > 1:
-            for i in range(ls-1): star += '*'
-            writeStar(fileStar, star)
-        else:
-            rmFile(path, testr[0]+'.star')
-            star = ' '
-
-        star = ' '+star
-        splits[7] = star.ljust(4)
-        s = ''
-        for i in splits[:-1]: s += i+separator
-        s += splits[-1]
+        rmFile(path, testr[0]+'.star')
+        splits[7] = ' '*5
+        s = separator.join(i for i in splits)
         listbox.delete(no, no)
         listbox.insert(no, s)
         listbox.update()
