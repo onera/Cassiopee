@@ -817,7 +817,7 @@ def close(array, tol=1.e-12, suppressDegeneratedNGons=False):
     if isinstance(array[0], list):
         out = []
         for a in array:
-            if len(a)==5: # merge intra-borders (C-type meshes)
+            if len(a) == 5: # merge intra-borders (C-type meshes)
                 outl = generator.closeBorders([a], [], tol)[0]
             else:
                 outl = generator.closeMesh(a, tol, suppressDegeneratedNGons)
@@ -830,7 +830,7 @@ def zip(array, tol=1e-12):
     """Zip a set of meshes defined by gathering exterior points closer than tol.
     Usage: zip(array, tol)"""
     if isinstance(array[0], list):
-        extFaces=[]
+        extFaces = []
         try: 
             import Post as P  
             for a in array: 
@@ -838,7 +838,7 @@ def zip(array, tol=1e-12):
         except: pass
         return generator.closeBorders(array, extFaces, tol)
     else:
-        return array
+        return generator.closeBorders([array], [], tol)[0]
 
 def pointedHat(array, coord):
     """Create a structured surface defined by a contour and a point (x,y,z).

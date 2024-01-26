@@ -96,11 +96,11 @@ PyObject* K_GENERATOR::closeBorders(PyObject* self, PyObject* args)
   }
 
   // Structure
-  if (structF.size() >0)
+  if (structF.size() > 0)
     closeAllStructuredMeshes(structF, nit, njt, nkt, posxs, posys, poszs, eps);
   
   // Non structure
-  if (unstrF.size() >0)
+  if (unstrF.size() > 0)
   { 
     // Extract infos from extFaces
     vector<E_Int> rese;
@@ -141,7 +141,7 @@ PyObject* K_GENERATOR::closeBorders(PyObject* self, PyObject* args)
     }
     
     size = unstrEF.size();
-    if ( size > 0)
+    if (size > 0)
     {
       // Position des coordonnees
       vector<E_Int> posxe; vector<E_Int> posye; vector<E_Int> posze;
@@ -193,6 +193,7 @@ PyObject* K_GENERATOR::closeBorders(PyObject* self, PyObject* args)
   
   return l;
 }
+
 //=============================================================================
 /* closeAllUnstructuredMeshes */
 //=============================================================================
@@ -401,8 +402,9 @@ void K_GENERATOR::closeAllStructuredMeshes(
   E_Int sizemaxloc = 0;
   for (E_Int v1 = 0; v1 < nzones; v1++)
   {    
-    if (nkt[v1] > 1) sizemaxloc=2*njt[v1]*nkt[v1]+2*nit[v1]*nkt[v1]+2*nit[v1]*njt[v1];
-    else sizemaxloc = 2*njt[v1]+2*nit[v1];
+    if (nkt[v1] > 1) sizemaxloc = 2*njt[v1]*nkt[v1]+2*nit[v1]*nkt[v1]+2*nit[v1]*njt[v1];
+    else if (njt[v1] > 1) sizemaxloc = 2*njt[v1]+2*nit[v1];
+    else sizemaxloc = 2;
     sizemax += sizemaxloc;
   }
 
@@ -442,28 +444,31 @@ void K_GENERATOR::closeAllStructuredMeshes(
         xp[indt] = xt[ind]; yp[indt] = yt[ind]; zp[indt] = zt[ind];
         indirB[indt] = noz; indirI[indt] = ind;
         indt++;
-      }    
-    // j = 1
-    shiftj = 0;
-    for (E_Int k = 0; k < nk; k++)
-      for (E_Int i = 0; i < ni; i++)
-      {
-        ind = i + shiftj*ni + k*ninj;
-        xp[indt] = xt[ind]; yp[indt] = yt[ind]; zp[indt] = zt[ind];
-        indirB[indt] = noz; indirI[indt] = ind;
-        indt++;
       }
-    // j = nj
-    shiftj = nj-1;
-    for (E_Int k = 0; k < nk; k++)
-      for (E_Int i = 0; i < ni; i++)
-      {
-        ind = i + shiftj*ni + k*ninj;
-        xp[indt] = xt[ind]; yp[indt] = yt[ind]; zp[indt] = zt[ind];
-        indirB[indt] = noz; indirI[indt] = ind;
-        indt++;
-      }
-    if ( nk > 1)
+    if (nj > 1)
+    {
+      // j = 1
+      shiftj = 0;
+      for (E_Int k = 0; k < nk; k++)
+        for (E_Int i = 0; i < ni; i++)
+        {
+          ind = i + shiftj*ni + k*ninj;
+          xp[indt] = xt[ind]; yp[indt] = yt[ind]; zp[indt] = zt[ind];
+          indirB[indt] = noz; indirI[indt] = ind;
+          indt++;
+        }
+      // j = nj
+      shiftj = nj-1;
+      for (E_Int k = 0; k < nk; k++)
+        for (E_Int i = 0; i < ni; i++)
+        {
+          ind = i + shiftj*ni + k*ninj;
+          xp[indt] = xt[ind]; yp[indt] = yt[ind]; zp[indt] = zt[ind];
+          indirB[indt] = noz; indirI[indt] = ind;
+          indt++;
+        }
+    }
+    if (nk > 1)
     {
       // k = 1
       shiftk = 0;
@@ -509,7 +514,7 @@ void K_GENERATOR::closeAllStructuredMeshes(
     //indmin = -1; indtmin = -1;
     dmin.setAllValuesAt(K_CONST::E_MAX_FLOAT);
     indmin.setAllValuesAt(-1);
-    for (unsigned int cr = 0; cr < candidates.size(); cr++)
+    for (size_t cr = 0; cr < candidates.size(); cr++)
     {
       E_Int indkr = candidates[cr];
       E_Int nozr = indirB[indkr]; E_Int indr = indirI[indkr];
