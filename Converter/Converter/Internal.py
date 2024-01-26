@@ -3585,6 +3585,8 @@ def groupByFamily(t, familyChilds=None, unique=False):
 # EltsName: nom des elements (BAR, NODE, ..., NGON ou MULTI)
 def getZoneDim(zone):
   """Return dimension information from a Zone_t node."""
+  dimBE = {'NODE': 0, 'BAR': 1, 'TRI': 2, 'QUAD': 2, 'TETRA': 3,
+           'PYRA': 3, 'PENTA': 3, 'HEXA': 3}  
   if len(zone) < 4: raise TypeError("getZoneDim: not a zone node.")
   if zone[3] != 'Zone_t': raise TypeError("getZoneDim: '%s' is not a zone node."%(zone[0]))
   dims = zone[1]
@@ -3608,14 +3610,24 @@ def getZoneDim(zone):
         c = getElementNodes(zone)
         lc = len(c)
         if lc == 0: return [gtype, np, ne, 'UNKNOWN', 3]
-        if lc >= 2:
+        elif lc == 1:
+            eltName,stype = eltNo2EltName(c[0][1][0])
+            if eltName in dimBE: cellDim = dimBE[eltName]
+            elif eltName in ['NGON', 'NFACE']:
+                eltName = 'NGON'
+                data = getNodeFromName1(c[0], 'ElementConnectivity')
+                if data is not None and len(data)>0: datar = data[1]
+                if datar is not None and datar.size > 0:
+                    if datar[0] == 1: cellDim = 1
+                    elif datar[0] == 2: cellDim = 2
+            else: eltName = 'UNKNOWN'
+            return [gtype, np, ne, eltName, cellDim]
+        else: # lc >= 2:
             # Y a t-il NGON et NFACE? Si oui, renvoie NGON meme si il
             # y a des BEs
-            NGON = -1; NFACE = -1; NGONp = None
-            for i in c:
-                if i[1][0] == 22: NGON = 1; NGONp = i
-                elif i[1][0] == 23: NFACE = 1
-            if NGON == 1 and NFACE == 1:
+            eltNames = [eltNo2EltName(i[1][0])[0] for i in c]
+            if "NGON" in eltNames and "NFACE" in eltNames:
+                NGONp = c[eltNames.index("NGON")]
                 data = getNodeFromName1(NGONp, 'ElementStartOffset')
                 if data is not None and len(data)>0: datar = data[1]
                 else: datar = None
@@ -3632,29 +3644,10 @@ def getZoneDim(zone):
                     elif datar[0] == 2: cellDim = 2
                 
                 return [gtype, np, ne, 'NGON', cellDim]
-            
-            else: return [gtype, np, ne, 'MULTIPLE', 3]
-        eltName,stype = eltNo2EltName(c[0][1][0])
-        if lc == 2 and eltName != 'NGON' and eltName != 'NFACE':
-            return [gtype, np, ne, 'MULTIPLE', 3]
-        if eltName == 'NODE': cellDim = 0
-        elif eltName == 'BAR': cellDim = 1
-        elif eltName == 'TRI' or eltName == 'QUAD': cellDim = 2
-        elif eltName == 'NGON':
-            data = getNodeFromName1(c[0], 'ElementConnectivity')
-            if data is not None and len(data)>0: datar = data[1]
-            if datar is not None and datar.size > 0:
-                if datar[0] == 1: cellDim = 1
-                elif datar[0] == 2: cellDim = 2
-        elif eltName == 'NFACE':
-            if len(c) > 1:
-                data = getNodeFromName1(c[1], 'ElementConnectivity')
-                datar = data[1]
-                if datar is not None and datar.size > 0:
-                    if datar[0] == 1: cellDim = 1
-                    elif datar[0] == 2: cellDim = 2
-                eltName = 'NGON'
-        return [gtype, np, ne, eltName, cellDim]
+            else: # BE/ME
+                cellDim = 0
+                for elt in eltNames: cellDim = max(cellDim, dimBE[elt])
+                return [gtype, np, ne, 'MULTIPLE', cellDim]
       else:
         raise TypeError("getZoneDim: cannot find a valid zone type for zone '%s'."%zone[0])
       break
