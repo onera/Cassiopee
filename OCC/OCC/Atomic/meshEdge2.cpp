@@ -133,7 +133,7 @@ E_Int __meshEdge(const TopoDS_Edge& E,
 }
 
 // ============================================================================
-// Mesh an edge with [Equal distance] of nbPoints by face
+// Mesh an edge with fe by face
 // ============================================================================
 E_Int __meshEdgeByFace(const TopoDS_Edge& E, const TopoDS_Face& F,
                        E_Int& nbPoints, K_FLD::FldArrayF& fe, 
@@ -255,8 +255,14 @@ PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
   }
   else if (hmax > 0 && hausd > 0 && externalEdge == Py_None) // mix hmax + hausd
   {
-    // a faire
-    return NULL;
+    // pour l'instant on retourne hmax comme pour les mailleurs precedents
+    __getParamHmax(E, hmax, nbPoints, ue);
+    PyObject* o = K_ARRAY::buildArray2(4, "x,y,z,u", nbPoints, 1, 1, 1);
+    FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+    __meshEdge(E, nbPoints, ue, *f, false);
+    delete [] ue;
+    RELEASESHAREDS(o, f);
+    return o;
   }
   else if (externalEdge != Py_None)
   {
@@ -264,7 +270,16 @@ PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
     K_FLD::FldArrayF* fe; K_FLD::FldArrayI* ce;
     char* varString; char* eltType;
     K_ARRAY::getFromArray3(externalEdge, varString, fe, ni, nj, nk, ce, eltType);
-    E_Float* uext = fe->begin(4);
+    E_Int pos = K_ARRAY::isNamePresent("s", varString);
+    if (pos == -1) pos = K_ARRAY::isNamePresent("u", varString);
+    if (pos == -1)
+    {
+      RELEASESHAREDS(externalEdge, fe);
+      PyErr_SetString(PyExc_ValueError,
+                      "getParam: can't find parameter field (s or u) in array.");
+      return NULL;
+    }
+    E_Float* uext = fe->begin(pos+1);
     __getParamExt(E, ni, uext, ue);
     PyObject* o = K_ARRAY::buildArray2(4, "x,y,z,u", ni, 1, 1, 1);
     FldArrayF* f; K_ARRAY::getFromArray2(o, f);
@@ -309,8 +324,8 @@ PyObject* K_OCC::meshEdgesOfFace(PyObject* self, PyObject* args)
   const TopoDS_Wire& OW = ShapeAnalysis::OuterWire(F);
   
   TopAbs_Orientation forientation = F.Orientation();
-  if (forientation == TopAbs_FORWARD) printf("face orientation=forward\n");
-  else if (forientation == TopAbs_REVERSED) printf("face orientation=reversed\n");
+  //if (forientation == TopAbs_FORWARD) printf("face orientation=forward\n");
+  //else if (forientation == TopAbs_REVERSED) printf("face orientation=reversed\n");
 
   PyObject* out = PyList_New(0); // sortie par wire
   

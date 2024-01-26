@@ -505,7 +505,7 @@ def getFirstTree(hook, hmax=-1, hausd=-1.):
   
   for c, f in enumerate(faces):
     noface = faceList[c]
-    z = Internal.createZoneNode(C.getZoneName('face%03d'%(noface)), f, [],
+    z = Internal.createZoneNode('face%03d'%(noface), f, [],
                                 Internal.__GridCoordinates__,
                                 Internal.__FlowSolutionNodes__,
                                 Internal.__FlowSolutionCenters__)
@@ -563,13 +563,20 @@ def _remeshTree(hook, t, hmax, hausd, edges):
   for e in Internal.getZones(b):
     dedges.append(C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], e, api=2)[0])
   
-  # set edge in dedges
+  # set edge in dedges and in t
   for edge in edges:
     edgeno = getNo(edge)
-    edge = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], edge, api=2)[0]
-    e = occ.meshOneEdge(hook, edgeno, -1, -1, edge)
+    aedge = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], edge, api=2)[0]
+    e = occ.meshOneEdge(hook, edgeno, -1, -1, aedge)
     dedges[edgeno-1] = e
-  
+    cad = Internal.getNodeFromName1(edge, "CAD")
+    z = Internal.createZoneNode('edge%03d'%(edgeno), e, [],
+                                Internal.__GridCoordinates__,
+                                Internal.__FlowSolutionNodes__,
+                                Internal.__FlowSolutionCenters__)
+    z[2].append(cad)
+    b[2][edgeno-1] = z
+
   # eval the impacted faces
   faces = OCC.meshAllFaces(hook, hmax, hausd, dedges, metric=True, faceList=faceList)
   
@@ -581,7 +588,7 @@ def _remeshTree(hook, t, hmax, hausd, edges):
     zp = b[2][cd]
     cad = Internal.getNodeFromName1(zp, 'CAD')
     noface = getNo(zp)
-    z = Internal.createZoneNode(C.getZoneName('face%03d'%(noface)), faces[c], [],
+    z = Internal.createZoneNode('face%03d'%(noface), faces[c], [],
                                 Internal.__GridCoordinates__,
                                 Internal.__FlowSolutionNodes__,
                                 Internal.__FlowSolutionCenters__)

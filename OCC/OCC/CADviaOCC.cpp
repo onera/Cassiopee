@@ -809,6 +809,8 @@ E_Int K_OCC::CADviaOCC::mesh_faces
           if (_gr == 1.) mode.hmax = _h;
         }
       }
+      printf("selected sym=%d grading=%g hmax=%g hmin=%g smooth=%d\n", 
+        mode.symmetrize, mode.growth_ratio, mode.hmax, mode.hmin, mode.nb_smooth_iter);
 
       mesher.clear();
       mesher.seed_random(1);

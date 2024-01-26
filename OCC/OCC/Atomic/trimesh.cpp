@@ -99,33 +99,48 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
     if (hausd < 0 && hmax > 0)
     {
       // mode pure hmax
-      mode.hmax = hmax; // h moyen
-      mode.hmin = hmin; // h moyen
+      E_Float dx = (hmax-hmin)/hmax;
+      // uniform h
       mode.metric_mode = mode.ISO_CST;
-      //mode.metric_mode = mode.ISO_RHO;
-      printf("trimesh hmin=%f hmax=%f grading=%f\n", hmin, hmax, grading);
+      mode.hmax = 0.5*(hmin+hmax); // h moyen
+      mode.hmin = 0.5*(hmin+hmax); // h moyen
+      mode.chordal_error = 20000.; // not used
+      mode.growth_ratio = 1.; // grading forced
+      mode.nb_smooth_iter = 0; // iter de lissage de la metrique
+      mode.symmetrize = false;
+      if (dx > 0.2) mode.growth_ratio = 1.1;
+      //printf("trimesh uniform hmin=%f hmax=%f grading=%f\n", mode.hmin, mode.hmax, mode.growth_ratio);      
     }
     else if (hausd > 0 && hmax < 0)
     {
       // mode pure hausd
+      mode.metric_mode = mode.ANISO; //ISO_RHO impose la courbure minimum dans les deux directions
       mode.hmax = 1.e6; // h moyen
       mode.hmin = 0; // h moyen
       mode.chordal_error = hausd; // chordal error set
-      mode.metric_mode = mode.ANISO; //ISO_RHO impose la courbure minimum dans les deux directions;
+      mode.growth_ratio = grading; // grading forced
+      mode.nb_smooth_iter = 2; // iter de lissage pour assurer le grading
+      mode.symmetrize = true;
     }
     else if (hausd > 0 && hmax > 0)
     {
-        // mode mix
-      mode.hmax = hmax; // h moyen
-      mode.hmin = hmin; // h moyen
-      mode.chordal_error = hausd; // chordal error set
+      // mode mix
       mode.metric_mode = mode.ISO_RHO; //ISO_RHO impose la courbure minimum dans les deux directions;
+      mode.hmax = hmax; // h max
+      mode.hmin = hmin; // h min
+      //mode.hmin = K_CONST::E_MAX_FLOAT; // hmin as in landier
+      mode.chordal_error = hausd; // chordal error set
+      //mode.growth_ratio = grading; // grading forced (pas coherent avec hausd?)
+      mode.growth_ratio = 1.1; // grading ne sert pas si pas de lissage
+      mode.nb_smooth_iter = 0; // iter de lissage de la metrique
+      mode.symmetrize = false;
     }
 
-    mode.growth_ratio = grading; // grading
-    mode.nb_smooth_iter = 5; // iter de lissage de la metrique
-    //mode.metric_interpol_type = LINEAR; // hum
-    mode.symmetrize = true;
+    printf("selected sym=%d grading=%g hmax=%g hmin=%g smooth=%d\n", 
+        mode.symmetrize, mode.growth_ratio, mode.hmax, mode.hmin, mode.nb_smooth_iter);
+
+    mode.metric_interpol_type = mode.LINEAR;
+    //mode.metric_interpol_type = mode.GEOMETRIC;
     
     //mode.ignore_coincident_nodes = true; // pour bypasser les pbs d'insertion 
     mesher.mode = mode;

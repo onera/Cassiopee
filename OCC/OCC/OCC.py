@@ -477,13 +477,15 @@ def meshFaceWithMetric(hook, i, edges, hmax, hausd, mesh, FAILED1):
     edges[1][3,:] = pt[3,:]
     edges[1][4,:] = pt[4,:]
         
+    # supprime les edges collapsed
+    edges2 = Generator.close(edges, 1.e-6)
     # get hmax/hmin of edges
-    a = Generator.getMaxLength(edges)
-    hmine = Converter.getMinValue(a, 'MaxLength')    
+    a = Generator.getMaxLength(edges2)
+    hmine = Converter.getMinValue(a, 'MaxLength')
     hmaxe = Converter.getMaxValue(a, 'MaxLength')
-    hmine = 0.5*(hmaxe+hmine)
-    print('in hmax=', hmax, 'hmin=', hmine, 'hmax=', hmaxe)
-
+    if hmax > 0 and hausd < 0: hmine = hmax; hmaxe = hmax
+    print('in hmax=', hmax, 'hmine=', hmine, 'hmaxe=', hmaxe)
+    
     # Scale UV des edges
     _scaleUV([edges], vu='u', vv='v')
     try:

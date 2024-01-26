@@ -51,6 +51,8 @@ namespace K_OCC
   PyObject* meshOneEdge(PyObject* self, PyObject* args);
   PyObject* meshEdgesOfFace(PyObject* self, PyObject* args);
 
+  PyObject* analyseEdges(PyObject* self, PyObject* args);
+
 }
 
 #endif
