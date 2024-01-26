@@ -73,7 +73,7 @@ namespace DELAUNAY
     E_Bool                  _debug;
   };
 
-  ///
+  /// ajoute les points de raffinement
   template <typename MetricType>
   void
     Refiner<MetricType>::computeRefinePoints
@@ -110,7 +110,7 @@ namespace DELAUNAY
       }
     }
 
-    //smooth the metric at each nodes.
+    // smooth the metric at each nodes.
     // so do it at leat once whatever the user ask for to improve the overall
     // mesh quality by setting the right metrics at skeleton nodes (__init_refine_points)
     _metric._N0 = N0;
@@ -120,7 +120,6 @@ namespace DELAUNAY
 
     if (do_smooth)
     {
-    
 #ifdef DEBUG_METRIC
       {
         std::ostringstream o;
@@ -161,7 +160,7 @@ namespace DELAUNAY
 
   }
 
-  ///
+  /// supprime les points qui ne sont pas dans la box
   template <typename MetricType>
   void
     Refiner<MetricType>::filterRefinePoints

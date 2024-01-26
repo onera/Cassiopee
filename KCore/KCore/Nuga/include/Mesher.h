@@ -347,14 +347,13 @@ namespace DELAUNAY
 
   ///
   template <typename T, typename MetricType>
-  E_Int
-    Mesher<T, MetricType>::initialize()
+  E_Int Mesher<T, MetricType>::initialize()
   {
     // Fast returns.
-    if (_err)   return _err;
+    if (_err) return _err;
 
     const K_FLD::IntArray& connectB = *_data->connectB;
-    size_type       COLS(connectB.cols());
+    size_type COLS(connectB.cols());
     
     // Check that IDs in connect are referring to column in pos.
 
@@ -394,7 +393,7 @@ namespace DELAUNAY
 
     // Build the initial mesh.
     E_Float minX, minY, maxX, maxY, L;
-    __compute_bounding_box (_data->hardNodes, minX, minY, maxX, maxY);
+    __compute_bounding_box(_data->hardNodes, minX, minY, maxX, maxY);
 
     L = std::max(maxY-minY, maxX-minX);
 
@@ -431,7 +430,6 @@ namespace DELAUNAY
     _data->ancestors.resize(_data->pos->cols(), IDX_NONE);
     _data->ancestors[C1] = _data->ancestors[C2] = _data->ancestors[C4] = 0;
     _data->ancestors[C3] = 1;
-
 
     size_type def = IDX_NONE;
     _data->neighbors.resize(3, 2, &def);
@@ -471,8 +469,7 @@ namespace DELAUNAY
 
   ///
   template <typename T, typename MetricType>
-  E_Int
-    Mesher<T, MetricType>::triangulate()
+  E_Int Mesher<T, MetricType>::triangulate()
   {
     // Fast returns.
     if (_err) return _err;
@@ -489,7 +486,7 @@ namespace DELAUNAY
       Ni = _data->hardNodes[i];
 
       _err = _kernel->insertNode(Ni, (*_metric)[Ni], unconstrained);
-      if (_err == 0)_tree->insert(Ni);
+      if (_err == 0) _tree->insert(Ni);
       if (_err == 2 && mode.ignore_coincident_nodes)
       {
         _data->unsync_nodes = true;
@@ -535,8 +532,7 @@ namespace DELAUNAY
 
   ///
   template <typename T, typename MetricType>
-  E_Int
-    Mesher<T, MetricType>::restoreBoundaries
+  E_Int Mesher<T, MetricType>::restoreBoundaries
     (const K_FLD::FloatArray& pos, K_FLD::IntArray& connect,
     K_FLD::IntArray& neighbors, int_vector_type& ancestors)
   {
@@ -596,7 +592,7 @@ namespace DELAUNAY
         if (mode.ignore_unforceable_edges)
         {
           //store this edge and the faulty entities and carry on with other missing edges
-          __store_edge_error(Ni,Nj, connect, Xedges);
+          __store_edge_error(Ni, Nj, connect, Xedges);
           _err = 0;
           continue;
         }
@@ -632,10 +628,10 @@ namespace DELAUNAY
     
     return 0;
   }
+
   ///
   template <typename T, typename MetricType>
-  E_Int
-    Mesher<T, MetricType>::setColors(size_type Nbox, MeshData& data)
+  E_Int Mesher<T, MetricType>::setColors(size_type Nbox, MeshData& data)
   {
     size_type cols(data.connectM.cols()), Sseed(IDX_NONE), S, Sn, Ni, Nj;
     K_FLD::IntArray::const_iterator pS;
@@ -649,13 +645,11 @@ namespace DELAUNAY
       pS = data.connectM.col(i);
       for (size_type j = 0; (j < element_type::NB_NODES) && (Sseed == IDX_NONE); ++j)
       {
-        if (*(pS+j) == Nbox)
-          Sseed = i;
+        if (*(pS+j) == Nbox) Sseed = i;
       }
     }
 
-    if (Sseed == IDX_NONE) // Error
-      return 1;
+    if (Sseed == IDX_NONE) return 1; // Error
 
     std::vector<E_Int> cpool;
     size_type color = 0;
@@ -676,11 +670,9 @@ namespace DELAUNAY
         {
           Sn = data.neighbors(i, S);
 
-          if (Sn == IDX_NONE)
-            continue;
+          if (Sn == IDX_NONE) continue;
 
-          if (data.colors[Sn] != IDX_NONE)
-            continue;
+          if (data.colors[Sn] != IDX_NONE) continue;
 
           Ni = *(pS + (i+1) % element_type::NB_NODES);
           Nj = *(pS + (i+2) % element_type::NB_NODES);
@@ -718,8 +710,7 @@ namespace DELAUNAY
       {
         c = data.colors[Si];
         pS = data.connectM.col(Si);
-        if (c >= 1)
-          connects[c].pushBack(pS, pS+3);
+        if (c >= 1) connects[c].pushBack(pS, pS+3);
       }
 
       // Store the hard edges in an oriented set.
@@ -748,9 +739,12 @@ namespace DELAUNAY
           good_color &= (hard_edges.find(K_MESH::Edge(bound.col(Si))) != hard_edges.end());
 
         if (!good_color)
+        {
           for (Si = 0; Si < data.connectM.cols(); ++Si)
-            if (data.colors[Si] == c1)
-              data.colors[Si] = 0;
+          {
+            if (data.colors[Si] == c1) data.colors[Si] = 0;
+          }
+        }
       }
     }
 
@@ -759,8 +753,7 @@ namespace DELAUNAY
 
   ///
   template <typename T, typename MetricType>
-  E_Int
-    Mesher<T, MetricType>::refine()
+  E_Int Mesher<T, MetricType>::refine()
   {
     
 #ifdef DEBUG_METRIC
@@ -789,7 +782,7 @@ namespace DELAUNAY
     std::vector<size_type> refine_nodes;
 
     coord_access_type posAcc(pos);
-    tree_type filter_tree(posAcc);// fixme : should be only triangulation nodes.
+    tree_type filter_tree(posAcc); // fixme : should be only triangulation nodes.
 
     size_type Ni, nb_refine_nodes;
 

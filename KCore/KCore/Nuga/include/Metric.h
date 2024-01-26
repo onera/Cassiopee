@@ -76,9 +76,9 @@ namespace DELAUNAY{
 
     inline virtual void setMetric(E_Int N, const T& m);
 
-    inline E_Float lengthEval (size_type Ni, const T& mi, size_type Nj, const T& mj);
+    inline E_Float lengthEval(size_type Ni, const T& mi, size_type Nj, const T& mj);
 
-    inline E_Float length (size_type Ni, size_type Nj, const E_Float& threshold, NUGA::int_vector_type& tmpNodes);
+    inline E_Float length(size_type Ni, size_type Nj, const E_Float& threshold, NUGA::int_vector_type& tmpNodes);
 
     inline E_Float getRadius(size_type Ni);
     
@@ -719,7 +719,7 @@ namespace DELAUNAY{
  
 
   /** Anisotropic Variable field. */
-  ///
+  /// evaluation de la longeur d'un edge dans l'espace physique (avec la metrique)
   template <typename T> inline
     E_Float
     VarMetric<T>::lengthEval (size_type Ni, const T& mi, size_type Nj, const T& mj)
@@ -870,9 +870,7 @@ namespace DELAUNAY{
     // (h2, dir) => X => hnew, the one between h1new and h2new that maximize hnew/hold
     
     E_Float hdir = ::sqrt(hdir2);
-        
     E_Float NiX[] = {normed_dir[0]*hdir, normed_dir[1]*hdir};
-    
     
     // Diagonalization
     E_Float lambda0, lambda1, v0[2], v1[2];
@@ -1001,7 +999,7 @@ namespace DELAUNAY{
     }
   }
 
-  ///
+  /// calcule la metrique par interpolation
   template <typename T> inline
   void
     VarMetric<T>::computeMetric(size_type N, size_type Ni, size_type Nj, E_Float r)
@@ -1524,6 +1522,7 @@ namespace DELAUNAY{
 
     E_Float dij = lengthEval(Ni, *pmi0, Nj, *pmi0);
     
+    // critere prennant en compte le grading
     E_Float hs2 = hi02 * (1. + (gr-1.) * dij) * (1. + (gr-1.) * dij); // extrapolated h at Nj with respect to growth ratio
 
     metric_reduce(Nj, NiNj, hj02, hs2);

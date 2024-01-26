@@ -326,9 +326,9 @@ namespace DELAUNAY
 
     if (locally_iso)
     {
-      E_Float R2 = E/L;
+      E_Float R2 = E/L; // pourquoi cette valeur ? 
       R2 *= R2;
-      E_Float h2 = std::min(hmax2, _alpha2*R2);
+      E_Float h2 = std::min(hmax2, _alpha2*R2); // alpha2 prend en compte hausd
       h2 = std::max(h2, hmin2); //fixme!!
       h2 = 1./h2;
 
@@ -454,9 +454,10 @@ namespace DELAUNAY
     Mout = Base.transpose() * Mout;
   }
 
+  // N0 : calul la metrique au point N0
+  // Ni, Nj: points interpolants
   template <typename T, typename SurfaceType>
-  void
-    GeomMetric<T, SurfaceType>::computeMetric
+  void GeomMetric<T, SurfaceType>::computeMetric
     (size_type N0, size_type /*dummy*/Ni, size_type /*dummy*/Nj, E_Float /*dummy*/r)
   {
     
