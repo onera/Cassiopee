@@ -20,9 +20,11 @@ except: pass
 
 #==============================================================================
 # Variables globales partagees entre toutes les apps tk
-# Fichier de donnees lu (en cours), nom du fichier et/ou handle
+#==============================================================================
+# Fichier de donnees lu (en cours), nom du fichier et/ou Filter handle et/ou CAD hook
 FILE = ''
 HANDLE = None
+CADHOOK = None
 # Fichier pour les exports
 EXPORTFILE = ''
 # Update du menu Apps (semble poser pb sur certains linux)

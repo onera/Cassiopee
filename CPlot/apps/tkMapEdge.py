@@ -31,6 +31,8 @@ def copyDistrib1D(source):
         z = CTK.t[2][nob][2][noz]
         try:
             zp = G.map(z, source, 1)
+            cad = Internal.getNodeFromName1(z, 'CAD')
+            if cad is not None: zp[2].append(cad) 
             CTK.replace(CTK.t, nob, noz, zp)
         except Exception as e:
             fail = True; errors += [0,str(e)]
@@ -99,6 +101,8 @@ def stretch1D(h):
         else: distrib = G.enforceX(distrib, valf, h/l, N//10, 1)
     try:
         a1 = G.map(z, distrib)
+        cad = Internal.getNodeFromName1(z, 'CAD')
+        if cad is not None: a1[2].append(cad)
         CTK.replace(CTK.t, nob, noz, a1)
     except Exception as e:
         fail = True
@@ -187,7 +191,7 @@ def enforceH(event=None):
     npts = C.getNPts(zones)
     if VARS[9].get() == 'NFactor': N = v*npts
     else: N = v 
-    zones = D.enforceh(zones, N=N)
+    D._enforceh(zones, N=N)
     for c, nz in enumerate(nzs):
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
@@ -197,6 +201,10 @@ def enforceH(event=None):
     CPlot.render()
     CTK.TXT.insert('START', 'Spacings enforced.\n')
         
+    # add CAD remesh if possible
+    edges = getSelection(nzs)
+    remeshCAD(edges)
+
 #==============================================================================
 # Smooth pour les zones edges
 #==============================================================================
@@ -208,8 +216,8 @@ def smooth1D(niter, eps):
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
         try:
-            b = D.smooth(z, eps, niter)
-            CTK.replace(CTK.t, nob, noz, b)
+            D._smooth(z, eps, niter)
+            CTK.replace(CTK.t, nob, noz, z)
         except Exception as e:
             fail = True
             Panels.displayErrors([0,str(e)], header='Error: smooth1D')
@@ -231,8 +239,8 @@ def refine1D(density, npts, factor):
                 a = C.convertBAR2Struct(z); np = dims[1]
             else: a = z; np = dims[1]*dims[2]*dims[3]
             if factor < 0: factor = (npts-1.)/(np-1)
-            b = G.refine(a, factor, 1)
-            CTK.replace(CTK.t, nob, noz, b)
+            G._refine(a, factor, 1)
+            CTK.replace(CTK.t, nob, noz, a)
         except Exception as e:
             fail = True
             Panels.displayErrors([0,str(e)], header='Error: refine1D')
@@ -251,7 +259,7 @@ def uniformize1D(density, npts, factor):
         z = CTK.t[2][nob][2][noz]
         zones.append(z)
     try:
-        zones = D.uniformize(zones, npts, -1, factor, density)
+        D._uniformize(zones, npts, -1, factor, density)
         for c, nz in enumerate(nzs):
             nob = CTK.Nb[nz]+1
             noz = CTK.Nz[nz]
@@ -737,6 +745,7 @@ def uniformize(event=None):
             CTK.TXT.insert('START', 'Error: ', 'Error')
         factor = factor[0]
     CTK.saveTree()
+    CTK.setCursor(2, WIDGETS['frame'])
 
     # Get first selected zone
     nz = nzs[0]
@@ -762,6 +771,11 @@ def uniformize(event=None):
     CTK.TKTREE.updateApp()
     CPlot.render()
     
+    # add CAD remesh if possible
+    edges = getSelection(nzs)
+    remeshCAD(edges)
+    CTK.setCursor(0, WIDGETS['frame'])
+    
 #==============================================================================
 def enforce(event=None):
     if CTK.t == []: return
@@ -780,7 +794,8 @@ def enforce(event=None):
     h = h[0]
 
     CTK.saveTree()
-    
+    CTK.setCursor(2, WIDGETS['frame'])
+
     # Get first selected zone
     nz = nzs[0]
     nob = CTK.Nb[nz]+1
@@ -804,6 +819,7 @@ def enforce(event=None):
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
+    CTK.setCursor(0, WIDGETS['frame'])
 
 #==============================================================================
 def refine(event=None):
@@ -832,6 +848,7 @@ def refine(event=None):
         npts = npts[0]
 
     CTK.saveTree()
+    CTK.setCursor(2, WIDGETS['frame'])
 
     # Get first selected zone
     nz = nzs[0]
@@ -857,6 +874,11 @@ def refine(event=None):
     CTK.TKTREE.updateApp()
     CPlot.render()
 
+    # add CAD remesh if possible
+    edges = getSelection(nzs)
+    remeshCAD(edges)
+    CTK.setCursor(0, WIDGETS['frame'])
+
 #==============================================================================
 def smooth(event=None):
     if CTK.t == []: return
@@ -880,6 +902,7 @@ def smooth(event=None):
     niter = niter[0]
 
     CTK.saveTree()
+    CTK.setCursor(2, WIDGETS['frame'])
 
     # Get first selected zone
     nz = nzs[0]
@@ -905,6 +928,11 @@ def smooth(event=None):
     CTK.TKTREE.updateApp()
     CPlot.render()
     
+    # add CAD remesh if possible
+    edges = getSelection(nzs)
+    remeshCAD(edges)
+    CTK.setCursor(0, WIDGETS['frame'])
+
 #==============================================================================
 def setSourceEdge():
     if CTK.t == []: return
@@ -940,6 +968,8 @@ def copyDistrib():
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     CTK.saveTree()
+    CTK.setCursor(2, WIDGETS['frame'])
+
     # source edge
     v = VARS[3].get()
     v = v.split(';')
@@ -1021,6 +1051,41 @@ def copyDistrib():
     CTK.TKTREE.updateApp()
     CPlot.render()
     
+    # add CAD remesh if possible
+    edges = getSelection(nzs)
+    remeshCAD(edges)
+    CTK.setCursor(0, WIDGETS['frame'])
+
+
+# get selection from CTK.t
+def getSelection(nzs):
+    zones = []
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        zones.append(CTK.t[2][nob][2][noz])
+    return zones
+
+# remesh CAD when an edge is modified
+def remeshCAD(edges):
+    try: import OCC.PyTree as OCC
+    except: return
+    if CTK.CADHOOK is None: return
+    valids = []
+    for e in edges:
+        zdim = Internal.getZoneDim(e)
+        if zdim[0] != 'Structured': continue
+        if zdim[4] != 1: continue
+        CAD = Internal.getNodeFromName1(e, 'CAD')
+        no = Internal.getNodeFromName1(CAD, 'no')
+        if CAD is None: continue
+        D._getCurvilinearAbscissa(e)
+        valids.append(e)
+    [h,hmax,hausd] = CTK.CADHOOK
+    OCC._remeshTree(h, CTK.t, hmax, hausd, valids)
+    CTK.display(CTK.t)
+    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================

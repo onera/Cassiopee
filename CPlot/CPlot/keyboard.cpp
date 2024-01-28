@@ -396,7 +396,7 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
       else cip->next = NULL;
       free(ci);
     }
-    ptrState->printDeactivatedZones();
+    //ptrState->printDeactivatedZones();
     break;
   }
 
