@@ -1304,10 +1304,14 @@ class infoBulle(TK.Toplevel):
         else:
             posX = self.parent.winfo_rootx()+self.parent.winfo_width()
             posY = self.parent.winfo_rooty()+self.parent.winfo_height()
-        if posX + self.tipwidth > self.winfo_screenwidth():
-            posX = posX-self.winfo_width()-self.tipwidth
+        
+        if posX > self.winfo_screenwidth():
+            posX = self.winfo_screenwidth() - self.tipwidth
+        elif posX + self.tipwidth > self.winfo_screenwidth():
+            posX -= self.winfo_width()
         if posY + self.tipheight > self.winfo_screenheight():
-            posY = posY-self.winfo_height()-self.tipheight
+            posY -= self.parent.winfo_height() + self.winfo_height()
+            
         self.geometry('+%d+%d'%(posX,posY))
         self.deiconify()
     def efface(self, event):
