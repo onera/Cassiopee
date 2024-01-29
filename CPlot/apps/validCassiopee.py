@@ -193,13 +193,13 @@ def ljust(text, size):
     
 #==============================================================================
 # build a test string:
-# 0       1         2         3             4     5         6       7
-# module, testname, CPU time, ref CPU time, date, coverage, status, tag
+# 0       1         2         3             4     5         6    7
+# module, testname, CPU time, ref CPU time, date, coverage, tag, status
 # IN: module, test: test concerne
 # IN: CPUtime: nouveau CPU time
 # IN: coverage: nouveau coverage
-# IN: status: nouveau status
 # IN: tag: nouveau tag
+# IN: status: nouveau status
 # Recupere les anciennes donnees dans les fichiers time & star
 #==============================================================================
 def buildString(module, test, CPUtime='...', coverage='...%', status='...',
@@ -248,25 +248,10 @@ def buildString(module, test, CPUtime='...', coverage='...%', status='...',
     if coverage == '...%': coverage = refCoverage
     if tag == ' ': tag = refTag
 
-    #s = module.ljust(13)+separatorl+test.ljust(40)+separatorl+\
-    #    CPUtime.ljust(10)+separatorl+refCPUtime.ljust(10)+separatorl+\
-    #    refDate.ljust(16)+separatorl+coverage.ljust(5)+separatorl+\
-    #    status.ljust(7)+separatorl+refTag.ljust(5)
     s = ljust(module, 13)+separatorl+ljust(test, 40)+separatorl+\
         ljust(CPUtime, 10)+separatorl+ljust(refCPUtime, 10)+separatorl+\
-        ljust(refDate, 16)+separatorl+ljust(coverage, 5)+separatorl+' '+\
-        ljust(status, 10)+separatorl+tag.ljust(5)
-    #s = '{}{}{}{}{}{}{}{}{}{}{}{}{}{}'.format(ljust(module, 13), separatorl,
-    #    ljust(test, 40), separatorl, ljust(CPUtime, 10), separatorl,
-    #    ljust(refCPUtime, 10), separatorl,
-    #    ljust(refDate, 16), separatorl, ljust(coverage, 5), separatorl, ' ',
-    #    ljust(status, 7))
-    #s = '{:13}{}{:40}{}{:10}{}{:10}{}{:16}{}{:5}{}{}{:7}'.format(module, separatorl,
-    #    test, separatorl, CPUtime, separatorl,
-    #    refCPUtime, separatorl,
-    #    refDate, separatorl, coverage, separatorl, ' ',
-    #    status)
-    
+        ljust(refDate, 16)+separatorl+ljust(coverage, 5)+separatorl+\
+        tag.ljust(2)+separatorl+' '+ljust(status, 10)
     return s
 
 #==============================================================================
@@ -762,7 +747,7 @@ def runTests():
     displayStatus(0)
     THREAD=None
     if len(selection) == len(TESTS): notifyValidOK()
-    finalizeRun()
+    writeSessionLog()
     
 def runTestsInThread():
     global THREAD, STOP
@@ -836,12 +821,10 @@ def buildTestList(loadSession=False, modules=[]):
     listbox.delete(0, TK.END)
     if not modules:
         modules = getModules()
-    # Read sessionLog
-    logname = CASSIOPEE+'/Apps/Modules/ValidData/session.log'
-    if os.path.getsize(logname) == 0:
-        logname = CASSIOPEE+'/Apps/Modules/ValidData/lastSession.log'
+    # Read last sessionLog conditionally
     ncolumns = 8
-    if loadSession and os.path.isfile(logname):
+    logname = CASSIOPEE+'/Apps/Modules/ValidData/lastSession.log'
+    if loadSession and os.access(logname, os.R_OK) and os.path.getsize(logname) > 0:
         with open(logname, "r") as g:
             sessionLog = [line.rstrip().split(':') for line in g.readlines()]
         # Remove header from logfile
@@ -855,6 +838,32 @@ def buildTestList(loadSession=False, modules=[]):
         arr = np.array([entry.strip() for testLog in sessionLog for entry in testLog],
                        dtype=object)
         arr = arr.reshape(-1, ncolumns)
+        
+        # Read sessionLog and combine with lastSession. Priority given to
+        # data from current session
+        ncolumns = 8
+        logname = CASSIOPEE+'/Apps/Modules/ValidData/session.log'
+        if os.path.getsize(logname) > 0:
+            with open(logname, "r") as g:
+                sessionLog = [line.rstrip().split(':') for line in g.readlines()]
+            sessionLog = [testLog for testLog in sessionLog
+                if (isinstance(testLog, list) and len(testLog) == ncolumns)]
+            if not sessionLog:
+                ncolumns = 7
+                sessionLog = [testLog for testLog in sessionLog
+                    if (isinstance(testLog, list) and len(testLog) == ncolumns)]
+            arr2 = np.array([entry.strip() for testLog in sessionLog for entry in testLog],
+                            dtype=object)
+            arr2 = arr2.reshape(-1, ncolumns)
+            
+            testDict = {}
+            for t in arr2: testDict[tuple(t[:2])] = t[2:]
+            
+            for t in arr:
+                key = tuple(t[:2])
+                if (key not in testDict) or ('...' in testDict[key]):
+                    testDict[key] = t[2:]
+            arr = np.array([list(key) + list(data) for key, data in testDict.items()])
     else:
         # Build an empty array
         arr = np.array([], dtype=object)
@@ -866,7 +875,10 @@ def buildTestList(loadSession=False, modules=[]):
                 testArr = arr[np.logical_and(arr[:,0] == m, arr[:,1] == t)]
                 if testArr.size:
                     # Args are CPU time, Coverage, Status, and Tag if present
-                    if ncolumns == 8: args = testArr[0][[2,5,6,7]]
+                    if ncolumns == 8:
+                        if testArr[0][6].strip() in ['OK', 'FAILED', 'FAILEDMEM', '...']:
+                            args = testArr[0][[2,5,6,7]]
+                        else: args = testArr[0][[2,5,7,6]]
                     else: args = testArr[0][[2,5,6]]
                     s = buildString(m, t, *args)
                 else:
@@ -875,6 +887,7 @@ def buildTestList(loadSession=False, modules=[]):
                 s = buildString(m, t)
             TESTS.append(s)
             listbox.insert(TK.END, s)
+    if loadSession and arr.size: writeSessionLog()
     listbox.config(yscrollcommand=scrollbar.set)
     scrollbar.config(command=listbox.yview)
 
@@ -935,8 +948,8 @@ def filterTestList(event=None):
             continue
         shift = 1; endidx = 0
         if filtr[0] == '#': pos = 0 # filter modules
-        elif filtr[0] == '/': pos = 6 # filter statuses
-        elif filtr[0] == '£': pos = 7 # filter tags
+        elif filtr[0] == '/': pos = 7 # filter statuses
+        elif filtr[0] == '£': pos = 6 # filter tags
         elif filtr[0] == '%': pos = 5 # filter coverage
         else: pos = 1; shift = 0; endidx = -3 # filter test names
         for s in TESTS:
@@ -954,8 +967,8 @@ def filterTestList(event=None):
         if len(filtr) > 1 and filtr[0] == '&':
             shift = 1; endidx = 0
             if filtr[1] == '#': pos = 0 # filter modules
-            elif filtr[1] == '/': pos = 6 # filter statuses
-            elif filtr[1] == '£': pos = 7 # filter tags
+            elif filtr[1] == '/': pos = 7 # filter statuses
+            elif filtr[1] == '£': pos = 6 # filter tags
             elif filtr[1] == '%': pos = 5 # filter coverage
             else: pos = 1; shift = 0; endidx = -3 # filter test names
             for s in filteredTests:
@@ -1289,9 +1302,9 @@ def export2Text():
     file.close()
 
 #=======================================
-# Finalize run : write log and baseTime
+# writeSessionLog: write log and baseTime
 #=======================================
-def finalizeRun():
+def writeSessionLog():
     svnVersion = 'Unknown'
     if CHECKSVNVERSION:
         try:
@@ -1315,10 +1328,8 @@ def finalizeRun():
     if not os.path.exists(cassiopee+'/Apps/Modules/ValidData'):
         os.mkdir(cassiopee+'/Apps/Modules/ValidData')
     writeFinal(cassiopee+'/Apps/Modules/ValidData/base.time', svnVersion)
-
     writeFinal(cassiopee+'/Apps/Modules/ValidData/session.log', svnVersion, 
                messageText, append=True)
-
 
 #=======================================
 # Notify "Commit ready" 
@@ -1667,7 +1678,7 @@ Filter = TK.StringVar(master)
 text = TK.Entry(frame, textvariable=Filter, background='White', width=50)
 text.bind('<KeyRelease>', filterTestList)
 text.grid(row=1, column=2, columnspan=3, sticky=TK.EW)
-filterInfoBulle = 'Filter tests by this regexp.\n'+'-'*70+'\n'\
+"""Filter tests by this regexp.\n'+'-'*70+'\n'\
   '1) Filters are separated by a white space, for ex.\n'\
   '    ^cylinder ^sphere\nselects tests whose names start with either cylinder or sphere.\n'\
   '2) Filters can be applied on modules by prefixing their names\nwith the symbol #, for ex.\n'\
@@ -1683,7 +1694,16 @@ filterInfoBulle = 'Filter tests by this regexp.\n'+'-'*70+'\n'\
   '    <SEQ> &<UNRUN>\nselects all sequential tests that have not been run yet.\n'\
   'These keyworded filters are:\n    <SEQ>, <DIST>, <RUN>, <UNRUN>, <TAG>, <UNTAG>.\n'\
   '7) Tests can be filtered by coverage using the % symbol, for ex.\n'\
-  '    <TAG> &/OK &%100\nselects all bug-free tagged tests that have 100% coverage.'
+  '    <TAG> &/OK &%100\nselects all bug-free tagged tests that have 100% coverage."""
+  
+filterInfoBulle = 'Filter test database using a regexp.\n'+'-'*70+'\n'\
+  '1) White-spaced: ^cylinder ^sphere\n'\
+  '2) Module filter using #: #Fast #FF #Apps\n'\
+  '3) Status filter using /: /FAILED /FAILEDMEM\n'\
+  '4) Coverage filter using %: %100\n'\
+  '5) Keyworded filters: <SEQ>, <DIST>, <RUN>, <UNRUN>, <TAG>, <UNTAG>.\n'\
+  '6) Logical OR ops unless prefixed with & (AND): #Converter &/FAILED\n'\
+  '7) Negation of a filter using !: #Fast &#!FastC (innermost symbol)'
 BB = CTK.infoBulle(parent=text, text=filterInfoBulle)
 
 button = TK.Button(frame, text='Run', command=runTestsInThread, fg='blue')
