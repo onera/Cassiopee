@@ -305,7 +305,7 @@ void renumber_comm_patches(AMesh *M, const std::vector<E_Int> &new_faces)
 {
   for (E_Int i = 0; i < M->npatches; i++) {
     Patch *p = &M->patches[i];
-    for (E_Int j = 0; j < p->nfaces; j++)
-      p->faces[j] = new_faces[p->faces[j]];
+    for (E_Int j = 0; j < p->nf; j++)
+      p->pf[j] = new_faces[p->pf[j]];
   }
 }

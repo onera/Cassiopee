@@ -18,10 +18,14 @@
 PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
 {
   PyObject *ARRAY, *OWN, *NEI, *COMM, *BCS, *NORMAL_2D;
+  PyObject *GCELLS, *GFACES, *GPOINTS;
   E_Float Tr, Tu, eps, hmin, hmax;
-  E_Int UNREF;
-  if (!PYPARSETUPLE_(args, OOOO_ O_ RRRR_ R_ I_ O_, &ARRAY, &OWN, &NEI, &COMM,
-    &BCS, &Tr, &Tu, &eps, &hmin, &hmax, &UNREF, &NORMAL_2D)) {
+  E_Int unref;
+
+  if (!PYPARSETUPLE_(args, OOOO_ O_ RRRR_ R_ I_ O_ OOO_,
+    &ARRAY, &OWN, &NEI, &COMM, &BCS,
+    &Tr, &Tu, &eps, &hmin, &hmax, &unref, &NORMAL_2D,
+    &GCELLS, &GFACES, &GPOINTS)) {
     RAISE("Wrong input.");
     return NULL;
   }
@@ -73,7 +77,7 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
  
   // Parse boundary conditions
   M->nbc = PyList_Size(BCS);
-  printf("%d boundary conditions found:\n", M->nbc);
+  //printf("%d boundary conditions found:\n", M->nbc);
   M->ptlists = (E_Int **)XCALLOC(M->nbc, sizeof(E_Int *));
   M->bcsizes = (E_Int *)XCALLOC(M->nbc, sizeof(E_Int));
   M->bcnames = (char **)XMALLOC(M->nbc * sizeof(char *));
@@ -99,36 +103,54 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
 #endif
 
     strcpy(M->bcnames[i], tmp);
-    printf("    %s\n", M->bcnames[i]);
+    //printf("    %s\n", M->bcnames[i]);
   }
-  M->nif = M->nfaces - M->nbf;
 
   // Parse comm data
   assert(PyList_Check(COMM));
   M->npatches = PyList_Size(COMM);
   M->patches = (Patch *)XMALLOC(M->npatches * sizeof(Patch));
+  M->npf = 0;
   for (E_Int i = 0; i < M->npatches; i++) {
     PyObject *PATCH = PyList_GetItem(COMM, i);
 
-    M->patches[i].nei_proc = PyLong_AsLong(PyList_GetItem(PATCH, 0));
+    assert(PyList_Size(PATCH) == 3);
+
+    M->patches[i].nei = PyLong_AsLong(PyList_GetItem(PATCH, 0));
+    
     K_NUMPY::getFromNumpyArray(PyList_GetItem(PATCH, 1),
-      M->patches[i].faces, M->patches[i].nfaces, false);
+      M->patches[i].pf, M->patches[i].nf, false);
+    
+    K_NUMPY::getFromNumpyArray(PyList_GetItem(PATCH, 2),
+      M->patches[i].pn, M->patches[i].nf, false);
     
     // Zero-based
-    for (E_Int j = 0; j < M->patches[i].nfaces; j++)
-      M->patches[i].faces[j] -= 1;
+    for (E_Int j = 0; j < M->patches[i].nf; j++)
+      M->patches[i].pf[j] -= 1;
     
-    // Send buffer
-    M->patches[i].sbuf_d = (E_Float *)XCALLOC(M->patches[i].nfaces,
-      sizeof(E_Float));
+    M->npf += M->patches[i].nf;
+    
+    // Send buffers allocated on-demand
+    M->patches[i].sbuf_i = NULL;
+    M->patches[i].rbuf_i = NULL;
+    M->patches[i].sbuf_f = NULL;
+    M->patches[i].rbuf_f = NULL;
   }
+
+  M->nif = M->nfaces - M->nbf - M->npf;
+
+  // Interface buffers
+  M->px   = (E_Float **)XCALLOC(M->npatches, sizeof(E_Float *));
+  M->py   = (E_Float **)XCALLOC(M->npatches, sizeof(E_Float *));
+  M->pz   = (E_Float **)XCALLOC(M->npatches, sizeof(E_Float *));
+  M->pfld = (E_Float **)XCALLOC(M->npatches, sizeof(E_Float *));
+  M->pref = (E_Int **)  XCALLOC(M->npatches, sizeof(E_Int *));
+  M->plvl = (E_Int **)  XCALLOC(M->npatches, sizeof(E_Int *));
 
   // Adaptation trees
   M->cellTree = new Tree(M->ncells);
   M->faceTree = new Tree(M->nfaces);
 
-  //printf("Boundary faces: %d\n", M->nbf);
-  //printf("Internal faces: %d\n", M->nif);
   //init_mesh_numbering(M);
 
   M->Tr = Tr;
@@ -136,15 +158,44 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
   M->eps = eps;
   M->hmin = hmin;
   M->hmax = hmax;
-  M->unrefine = (E_Int)UNREF;
+  M->unrefine = unref;
   
   // Normal to 2D plane
   if (NORMAL_2D != Py_None) {
     K_NUMPY::getFromNumpyArray(NORMAL_2D, M->mode_2D, size, nfld, false);
     assert(size == 3 && nfld == 1);
-    if (M->mode_2D) {
-      printf("2D mode normal to (%f %f %f)\n", M->mode_2D[0], M->mode_2D[1],
-        M->mode_2D[2]);
+    //if (M->mode_2D) {
+    //  printf("2D mode normal to (%f %f %f)\n", M->mode_2D[0], M->mode_2D[1],
+    //    M->mode_2D[2]);
+    //}
+  }
+
+  // Parse global cells / faces / points
+  if (GCELLS != Py_None) {
+    ret = K_NUMPY::getFromNumpyArray(GCELLS, M->gcells, size, nfld, false);
+    assert(ret == 1 && size == M->ncells && nfld == 1);
+    for (E_Int i = 0; i < M->ncells; i++) {
+      M->CT->insert({M->gcells[i], i});
+    }
+  }
+
+  if (GFACES != Py_None) {
+    ret = K_NUMPY::getFromNumpyArray(GFACES, M->gfaces, size, nfld, false);
+    assert(ret == 1 && size == M->nfaces && nfld == 1);
+    for (E_Int i = 0; i < M->nfaces; i++) {
+      M->gfaces[i] -= 1;
+      assert(M->gfaces[i] >= 0);
+      M->FT->insert({M->gfaces[i], i});
+    }
+  }
+
+  if (GPOINTS != Py_None) {
+    ret = K_NUMPY::getFromNumpyArray(GPOINTS, M->gpoints, size, nfld, false);
+    assert(ret == 1 && size == M->npoints && nfld == 1);
+    for (E_Int i = 0; i < M->npoints; i++) {
+      M->gpoints[i] -= 1;
+      assert(M->gpoints[i] >= 0);
+      M->PT->insert({M->gpoints[i], i});
     }
   }
 
@@ -172,23 +223,10 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
 static
 PyObject *export_mesh_and_bcs(AMesh *M, E_Int closed_mesh);
 
-PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
+static
+void get_face_and_cell_centers(AMesh *M, PyObject *FC, PyObject *CX,
+  PyObject *CY, PyObject *CZ)
 {
-  PyObject *AMESH, *FC, *CX, *CY, *CZ;
-  
-  if (!PYPARSETUPLE_(args, OOO_ OO_, &AMESH, &FC, &CX, &CY, &CZ)) {
-    RAISE("Wrong input.");
-    return NULL;
-  }
-
-  // Unpack AMesh
-  if (!PyCapsule_IsValid(AMESH, "AMesh")) {
-    RAISE("Bad AMesh hook");
-    return NULL;
-  }
-
-  AMesh *M = (AMesh *)PyCapsule_GetPointer(AMESH, "AMesh");
-
   E_Int fsize, csize, nfld;
   E_Int *ptr;
 
@@ -212,237 +250,66 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
   K_NUMPY::getFromNumpyArray(CZ, ptr, csize, nfld, true);
   assert(csize == M->ncells);
   memcpy(M->cz, ptr, M->ncells * sizeof(E_Float));
+}
 
-  printf("    Initial cells: %d\n", M->ncells);
+static
+int FEQ(E_Float a, E_Float b)
+{
+  return fabs(a-b) < 1e-6;
+}
 
-  // Isolate refinement cells and faces
+int same_xyz(E_Float *A, E_Float *B, E_Int n)
+{
+  int same = 1;
+  for (E_Int i = 0; i < n && same; i++) {
+    if (!FEQ(A[i], B[i])){
+      same = 0;
+    }
+  }
+  return same;
+}
+
+PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
+{
+  PyObject *AMESH, *FC, *CX, *CY, *CZ;
+  
+  if (!PYPARSETUPLE_(args, OOO_ OO_, &AMESH, &FC, &CX, &CY, &CZ)) {
+    RAISE("Wrong input.");
+    return NULL;
+  }
+
+  // Unpack AMesh
+  if (!PyCapsule_IsValid(AMESH, "AMesh")) {
+    RAISE("Bad AMesh hook");
+    return NULL;
+  }
+
+  AMesh *M = (AMesh *)PyCapsule_GetPointer(AMESH, "AMesh");
+
+  get_face_and_cell_centers(M, FC, CX, CY, CZ);
+
+
+  //M = Redistribute_mesh(M);
+
   std::vector<E_Int> ref_faces, ref_cells;
-  std::vector<E_Int> unref_faces, unref_cells;
 
-  get_ref_cells_and_faces(M, ref_cells, ref_faces, unref_cells, unref_faces);
+  get_ref_faces_and_cells(M, ref_faces, ref_cells);
   
-  if (unref_cells.size()) {
+  M->prev_ncells = M->ncells;
+  M->prev_nfaces = M->nfaces;
+  M->prev_npoints = M->npoints;
 
-    size_t nunref_cells = unref_cells.size();
-    printf("    Cells tagged for unrefinement: %d\n", (E_Int)nunref_cells);
-    
-    // Sort unref cells/faces by decreasing level
-    std::sort(unref_faces.begin(), unref_faces.end(), [&] (E_Int i, E_Int j)
-    {
-      return M->faceTree->level(i) > M->faceTree->level(j);
-    });
+  refine_mesh(M, ref_faces, ref_cells);
 
-    std::sort(unref_cells.begin(), unref_cells.end(), [&] (E_Int i, E_Int j)
-    {
-      return M->cellTree->level(i) > M->cellTree->level(j);
-    });
+  update_patch_faces_after_ref(M);
 
-    std::vector<E_Int> face_distrib(1, 0), cell_distrib(1, 0);
-    std::vector<E_Int> face_lvl, cell_lvl;
+  MPI_Barrier(MPI_COMM_WORLD);
 
-    E_Int max_lvl = M->faceTree->level(unref_faces[0]);
-    face_lvl.push_back(max_lvl);
-    for (size_t i = 1; i < unref_faces.size(); i++) {
-      if (M->faceTree->level(unref_faces[i]) < max_lvl) {
-        max_lvl = M->faceTree->level(unref_faces[i]);
-        face_distrib.push_back(i);
-        face_lvl.push_back(max_lvl);
-      }
-    }
-    face_distrib.push_back(unref_faces.size());
+  E_Int gncells;
+  MPI_Allreduce(&M->ncells, &gncells, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
-    max_lvl = M->cellTree->level(unref_cells[0]);
-    cell_lvl.push_back(max_lvl);
-    for (size_t i = 1; i < unref_cells.size(); i++) {
-      if (M->cellTree->level(unref_cells[i]) < max_lvl) {
-        max_lvl = M->cellTree->level(unref_cells[i]);
-        cell_distrib.push_back(i);
-        cell_lvl.push_back(max_lvl);
-      }
-    }
-    cell_distrib.push_back(unref_cells.size());
-
-    assert(face_distrib.size() == cell_distrib.size());
-    
-    // Assign unref pattern to faces if 2D mode
-    std::vector<E_Int> patterns;
-    assign_pattern_to_adapt_faces(unref_faces, patterns, M);
-    
-    for (size_t i = 0; i < face_distrib.size()-1; i++) {
-      unrefine_cells(unref_cells, cell_distrib[i], cell_distrib[i+1], M);
-      
-      unrefine_faces(unref_faces, patterns, face_distrib[i],
-        face_distrib[i+1], M);
-      
-      for (E_Int j = cell_distrib[i]; j < cell_distrib[i+1]; j++) {
-        E_Int ucell = unref_cells[j];
-
-        Children *cur = M->cellTree->children(ucell);
-        Children *prev = cur->next;
-        M->cellTree->children_[ucell] = prev;
-  
-        // free
-        XFREE(cur);
-      }
-      
-      for (E_Int j = face_distrib[i]; j < face_distrib[i+1]; j++) {
-        E_Int uface = unref_faces[j];
-
-        Children *cur = M->faceTree->children(uface);
-        if (cur == NULL) {
-          assert(M->owner[uface] == -1);
-          assert(M->neigh[uface] == -1);
-          continue;
-        }
-        Children *prev = cur->next;
-        M->faceTree->children_[uface] = prev;
-  
-        // free
-        XFREE(cur);
-      }
-    }
-
-    update_boundary_faces(M);
-
-    // Renumber cells
-    E_Int nc = 0;
-    E_Int sizeNFace = 0;
-    Tree *CT = M->cellTree;
-    std::vector<E_Int> new_cells(M->ncells, -1);
-    for (E_Int i = 0; i < M->ncells; i++) {
-      if (CT->state(i) != GONE) {
-        new_cells[i] = nc++;
-        sizeNFace += get_stride(i, M->indPH);
-      }
-    }
-
-    // Renumber faces
-    E_Int nf = 0;
-    E_Int sizeNGon = 0;
-    Tree *FT = M->faceTree;
-    std::vector<E_Int> new_faces(M->nfaces, -1);
-    for (E_Int i = 0; i < M->nfaces; i++) {
-      if (FT->state(i) != GONE) {
-        new_faces[i] = nf++;
-        sizeNGon += get_stride(i, M->indPG);
-      }
-    }
-
-    renumber_mesh(M, new_cells, new_faces, nc, nf, sizeNFace, sizeNGon);
-
-    CT->compress(new_cells, nc);
-    
-    FT->compress(new_faces, nf);
-
-    std::vector<E_Int> tmp_cells(ref_cells);
-
-    // Renumber ref cells/faces
-    for (size_t i = 0; i < ref_cells.size(); i++) {
-      E_Int cell = tmp_cells[i];
-      ref_cells[i] = new_cells[cell];
-      assert(ref_cells[i] != -1);
-      assert(M->cellTree->state(ref_cells[i]) == UNTOUCHED);
-    }
-
-    std::vector<E_Int> tmp_faces(ref_faces);
-
-    for (size_t i = 0; i < ref_faces.size(); i++) {
-      E_Int face = tmp_faces[i];
-      ref_faces[i] = new_faces[face];
-      assert(ref_faces[i] != -1);
-      assert(M->faceTree->state(ref_faces[i]) == UNTOUCHED);
-    }
-
-    printf("    Cells after unrefinement: %d\n", M->ncells);
-
-    //goto finish;
-  }
-
-  /*
-    ref_cells.clear();
-    ref_faces.clear();
-
-    ref_cells.push_back(0);
-    for (E_Int i = 0; i < M->nfaces; i++) ref_faces.push_back(i); 
-  */
-
-  if (ref_cells.size() > 0) {
- 
-    size_t nref_cells = ref_cells.size();
-    size_t nref_faces = ref_faces.size();
-    
-    printf("    Cells tagged for refinement: %d\n", (E_Int)nref_cells);
-    
-    resize_data_for_refinement(M, nref_cells, nref_faces);
-
-    // Sort ref cells/faces by increasing level
-    std::sort(ref_faces.begin(), ref_faces.end(), [&] (E_Int i, E_Int j)
-    {
-      return M->faceTree->level(i) < M->faceTree->level(j);
-    });
-
-    std::sort(ref_cells.begin(), ref_cells.end(), [&] (E_Int i, E_Int j)
-    {
-      return M->cellTree->level(i) < M->cellTree->level(j);
-    });
-
-    std::vector<E_Int> face_distrib(1, 0), cell_distrib(1, 0);
-    std::vector<E_Int> face_lvl, cell_lvl;
-
-    E_Int min_lvl = M->faceTree->level(ref_faces[0]);
-    face_lvl.push_back(min_lvl);
-    for (size_t i = 1; i < ref_faces.size(); i++) {
-      if (M->faceTree->level(ref_faces[i]) > min_lvl) {
-        min_lvl = M->faceTree->level(ref_faces[i]);
-        face_distrib.push_back(i);
-        face_lvl.push_back(min_lvl);
-      }
-    }
-    face_distrib.push_back(ref_faces.size());
-
-    min_lvl = M->cellTree->level(ref_cells[0]);
-    cell_lvl.push_back(min_lvl);
-    for (size_t i = 1; i < ref_cells.size(); i++) {
-      if (M->cellTree->level(ref_cells[i]) > min_lvl) {
-        min_lvl = M->cellTree->level(ref_cells[i]);
-        cell_distrib.push_back(i);
-        cell_lvl.push_back(min_lvl);
-      }
-    }
-    cell_distrib.push_back(ref_cells.size());
-
-    size_t cell_start = 0;
-    while (cell_lvl[cell_start] < face_lvl[0]) {
-      refine_cells(ref_cells, cell_distrib[cell_start],
-        cell_distrib[cell_start+1], M);
-      cell_start++;
-    }
-
-    std::vector<E_Int> patterns;
-    assign_pattern_to_adapt_faces(ref_faces, patterns, M);
-    
-    for (size_t i = 0; i < face_distrib.size()-1; i++) {
-      refine_faces(ref_faces, patterns, face_distrib[i], face_distrib[i+1], M);
-      refine_cells(ref_cells, cell_distrib[cell_start],
-        cell_distrib[cell_start+1], M);
-      cell_start++;
-    }
-
-    assert(cell_start == cell_distrib.size()-1);
-
-    printf("    Cells after refinement: %d\n", M->ncells);
-
-    update_boundary_faces(M);
-
-    if (M->ncells < M->cellTree->nelem_)
-        M->cellTree->resize(M->ncells);
-    if (M->nfaces < M->faceTree->nelem_)
-        M->faceTree->resize(M->nfaces);
-  }
-
-  init_mesh_numbering(M);
-
-  //finish:
+  if (M->pid == 0)
+    printf("total leaves: %d\n", gncells);
 
   for (E_Int i = 0; i < M->ncells; i++) M->cellTree->state_[i] = UNTOUCHED;
   for (E_Int i = 0; i < M->nfaces; i++) M->faceTree->state_[i] = UNTOUCHED;
@@ -454,11 +321,16 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
   return out;
 }
 
+//#define PRINTPATCH
+
 static
 PyObject *export_mesh_and_bcs(AMesh *M, E_Int closed_mesh)
 {
   // Count nface size
   E_Int nface_size = 0;
+
+  M->closed_indPH = (E_Int *)XRESIZE(M->closed_indPH, (M->ncells+1)*sizeof(E_Int));
+  M->closed_indPH[0] = 0;
 
   for (E_Int i = 0; i < M->ncells; i++) {
     E_Int nf = -1;
@@ -467,7 +339,13 @@ PyObject *export_mesh_and_bcs(AMesh *M, E_Int closed_mesh)
     get_full_cell(i, M, nf, pf);
 
     nface_size += nf;
+    M->closed_indPH[i+1] = nf;
   }
+
+  for (E_Int i = 0; i < M->ncells; i++)
+    M->closed_indPH[i+1] += M->closed_indPH[i];
+
+  assert(M->closed_indPH[M->ncells] == nface_size);
 
   E_Int ngon_size = -1;
 
@@ -479,6 +357,8 @@ PyObject *export_mesh_and_bcs(AMesh *M, E_Int closed_mesh)
     puts("Exporting non-closed mesh");
     ngon_size = M->indPG[M->nfaces];
   }
+
+  //M->closed_nface = (E_Int *)XRESIZE(M->closed_nface, nface_size * sizeof(E_Int));
 
   const char *varStringOut = "CoordinateX,CoordinateY,CoordinateZ";
 
@@ -493,7 +373,8 @@ PyObject *export_mesh_and_bcs(AMesh *M, E_Int closed_mesh)
   E_Int *nfaceo = cno->getNFace();
   E_Int *indPGo = cno->getIndPG();
   E_Int *indPHo = cno->getIndPH();
-
+  
+  /*
   indPHo[0] = 0;
   for (E_Int i = 0; i < M->ncells; i++) {
     E_Int nf = -1;
@@ -502,6 +383,8 @@ PyObject *export_mesh_and_bcs(AMesh *M, E_Int closed_mesh)
     indPHo[i+1] = nf;
   }
   for (E_Int i = 0; i < M->ncells; i++) indPHo[i+1] += indPHo[i];
+  */
+  memcpy(indPHo, M->closed_indPH, (M->ncells+1)*sizeof(E_Int));
   assert(indPHo[M->ncells] == nface_size);
 
   for (E_Int i = 0; i < M->ncells; i++) {
@@ -509,8 +392,11 @@ PyObject *export_mesh_and_bcs(AMesh *M, E_Int closed_mesh)
     E_Int pf[24];
     get_full_cell(i, M, nf, pf);
     E_Int *ptr = &nfaceo[indPHo[i]];
-    for (E_Int j = 0; j < nf; j++)
+    //E_Int *p = &M->closed_nface[M->closed_indPH[i]];
+    for (E_Int j = 0; j < nf; j++) {
       ptr[j] = pf[j]+1;
+      //p[j] = pf[j];
+    }
   }
 
   if (closed_mesh) {
@@ -555,6 +441,30 @@ PyObject *export_mesh_and_bcs(AMesh *M, E_Int closed_mesh)
     PyList_Append(BCS, tpl);
     Py_DECREF(tpl);
   }
+
+#ifdef PRINTPATCH
+  // Patch faces as BCs
+  for (E_Int i = 0; i < M->npatches; i++) {
+    Patch *P = &M->patches[i];
+
+    dims[0] = (npy_intp)P->nf;
+    dims[1] = 1;
+
+    PyArrayObject *PL = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
+    E_Int *op = P->pf;
+    E_Int *np = (E_Int *)PyArray_DATA(PL);
+    for (E_Int j = 0; j < P->nf; j++)
+      *np++ = op[j] + 1;
+
+    char name[64];
+    sprintf(name, "proc%d-%d", M->pid, P->nei);
+
+    PyObject *tpl = Py_BuildValue("[Os]", (PyObject *)PL, name);
+    Py_DECREF(PL);
+    PyList_Append(BCS, tpl);
+    Py_DECREF(tpl);
+  }
+#endif
 
   // parent elements
   dims[0] = (npy_intp)M->nfaces;

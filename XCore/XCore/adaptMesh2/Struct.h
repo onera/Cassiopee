@@ -3,6 +3,7 @@
 
 #include "xcore.h"
 #include <map>
+#include <unordered_map>
 #include <mpi.h>
 
 #define ISO 0
@@ -64,10 +65,14 @@ struct Edge {
 };
 
 struct Patch {
-  E_Int *faces;
-  E_Int nfaces;
-  E_Int nei_proc;
-  E_Float *sbuf_d;
+  E_Int nf;
+  E_Int *pf;
+  E_Int *pn;
+  E_Int nei;
+  E_Int *sbuf_i;
+  E_Int *rbuf_i;
+  E_Float *sbuf_f;
+  E_Float *rbuf_f;
 };
 
 struct Children {
@@ -86,6 +91,10 @@ struct Tree {
 
   Tree(E_Int nelem);
 
+  void drop();
+  
+  int check_numbering(E_Int N);
+
   void compress(const std::vector<E_Int> &new_ids, E_Int new_size); 
 
   void renumber(const std::vector<E_Int> &new_ids);
@@ -93,6 +102,10 @@ struct Tree {
   void resize(E_Int new_nelem);
 
   void print_children();
+
+  void print_face_types();
+
+  void print_cell_types();
 
   void print_elem_histo(E_Int elem);
 
@@ -131,11 +144,15 @@ struct Tree {
 
 
 struct AMesh {
+
+  /* Mesh */
+
   E_Int ncells;
   E_Int nfaces;
   E_Int npoints;
   E_Int nif;
   E_Int nbf;
+  E_Int npf;
 
   E_Float *x;
   E_Float *y;
@@ -154,36 +171,64 @@ struct AMesh {
   E_Int *bcsizes;
   char **bcnames;
 
-  Patch *patches;
-  E_Int npatches;
+  E_Float *fc;
+  E_Float *cx;
+  E_Float *cy;
+  E_Float *cz;
 
-  int pid;
-  int npc;
-  int nreq;
-  MPI_Request *req;
-
-  std::map<Edge, E_Int> *ecenter;
+  /* Adaptation */
   
-  Tree *cellTree;
-  Tree *faceTree;
-
-  int *ref_data;
   E_Float Tr;
   E_Float Tu;
   E_Float eps;
   E_Float hmin;
   E_Float hmax;
   E_Int unrefine;
+  E_Float *mode_2D;
+
+  E_Int *ref_data;
+
+  std::map<Edge, E_Int> *ecenter;
+
+  Tree *cellTree;
+  Tree *faceTree;
+
+  E_Int prev_ncells;
+  E_Int prev_nfaces;
+  E_Int prev_npoints;
+
+  /* Parallel */
+
+  int pid;
+  int npc;
+  int nrq;
+  MPI_Request *req;
+
+  E_Int *gcells;
+  E_Int *gfaces;
+  E_Int *gpoints;
+
+  E_Int npatches;
+  Patch *patches;
+
+  std::unordered_map<E_Int, E_Int> *PT;
+  std::unordered_map<E_Int, E_Int> *FT;
+  std::unordered_map<E_Int, E_Int> *CT;
+
+  E_Float **px;
+  E_Float **py;
+  E_Float **pz;
+  E_Float **pfld;
+  E_Int **pref;
+  E_Int **plvl;
+
+
+  /* Export */
 
   E_Int *closed_indPG;
   E_Int *closed_ngon;
-
-  E_Float *fc;
-  E_Float *cx;
-  E_Float *cy;
-  E_Float *cz;
-
-  E_Float *mode_2D;
+  E_Int *closed_indPH;
+  E_Int *closed_nface;
 
   AMesh();
 };

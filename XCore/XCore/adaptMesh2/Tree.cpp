@@ -63,10 +63,10 @@ void Tree::print_elem_histo(E_Int elem)
 void Tree::print_children()
 {
   for (E_Int i = 0; i < nelem_; i++) {
-    printf("%d -> ", i);
     if (!children_[i]) {
-      printf("---");
+      //printf("---");
     } else {
+      printf("%d -> ", i);
       Children *cur = children_[i];
       while (cur != NULL) {
         print_children_node(cur);
@@ -74,8 +74,22 @@ void Tree::print_children()
           printf(" -> ");
         cur = cur->next;
       }
+      puts("");
     }
-    puts("");
+  }
+}
+
+void Tree::print_face_types()
+{
+  for (E_Int i = 0; i < nelem_; i++) {
+    printf("%d -> %d (%s) \n", i, type_[i], face_type_to_string(type_[i]));
+  }
+}
+
+void Tree::print_cell_types()
+{
+  for (E_Int i = 0; i < nelem_; i++) {
+    printf("%d -> %d (%s) \n", i, type_[i], cell_type_to_string(type_[i]));
   }
 }
 
@@ -168,6 +182,24 @@ void Tree::compress(const std::vector<E_Int> &new_ids, E_Int new_nelem)
   children_ = new_children;
 }
 
+void Tree::drop()
+{
+  XFREE(parent_);
+  for (E_Int i = 0; i < nelem_; i++) {
+    Children *cur = children_[i];
+
+    while (cur) {
+      Children *tmp = cur->next;
+      XFREE(cur);
+      cur = tmp;
+    }
+  }
+  XFREE(children_);
+  XFREE(state_);
+  XFREE(level_);
+  XFREE(type_);
+}
+
 void Tree::renumber(const std::vector<E_Int> &new_ids)
 {
   E_Int *parent = (E_Int *)XMALLOC(nelem_ * sizeof(E_Int));
@@ -208,4 +240,33 @@ void Tree::renumber(const std::vector<E_Int> &new_ids)
   state_ = state;
   type_ = type;
   children_ = children;
+}
+
+int Tree::check_numbering(E_Int N)
+{
+  E_Int *velems = (E_Int *)XCALLOC(nelem_, sizeof(E_Int));
+  //for (E_Int i = 0; i < N; i++) velems[i] = 1;
+
+  for (E_Int i = 0; i < N; i++) {
+    velems[i] = 1;
+    Children *C = children_[i];
+
+    while (C) {
+      for (E_Int j = 0; j < C->n; j++)
+        velems[C->pc[j]] = 1;
+      C = C->next;
+    }
+  }
+
+  E_Int ok = 1;
+  for (E_Int i = 0; i < N; i++) {
+    if (velems[i] != 1) {
+      ok = 0;
+      break;
+    }
+  }
+
+  XFREE(velems);
+
+  return ok;
 }

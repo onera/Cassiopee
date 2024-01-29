@@ -51,6 +51,28 @@ void set_PENTA_for_2D(E_Int cell, AMesh *M)
   Right_shift(pf, start, nf);
 }
 
+E_Int check_face_aligned_with_vector(E_Int face, E_Float vec[3], AMesh *M)
+{
+  E_Int np = -1;
+  E_Int *pn = get_face(face, np, M->ngon, M->indPG);
+
+  // Compute normal to the triangle formed by the first 3 points
+  E_Float e0[3] = {M->x[pn[1]] - M->x[pn[0]],
+                   M->y[pn[1]] - M->y[pn[0]],
+                   M->z[pn[1]] - M->z[pn[0]]};
+
+  E_Float e1[3] = {M->x[pn[2]] - M->x[pn[0]],
+                   M->y[pn[2]] - M->y[pn[0]],
+                   M->z[pn[2]] - M->z[pn[0]]};
+
+  E_Float n[3];
+  K_MATH::cross(e0, e1, n);
+
+  E_Float dp = fabs(K_MATH::dot(n, vec, 3)) / K_MATH::norm(n, 3);
+
+  return fabs(dp - 1.0) <= 1.0e-6;
+}
+
 static
 void set_HEXA_for_2D(E_Int cell, AMesh *M)
 {
@@ -60,26 +82,8 @@ void set_HEXA_for_2D(E_Int cell, AMesh *M)
   E_Int start = 0;
   for (; start < nf; start++) {
     E_Int face = pf[start];
-    E_Int np = -1;
-    E_Int *pn = get_face(face, np, M->ngon, M->indPG);
-
-    // Compute normal to the triangle formed by the first 3 points
-    E_Float e0[3] = {M->x[pn[1]] - M->x[pn[0]],
-                     M->y[pn[1]] - M->y[pn[0]],
-                     M->z[pn[1]] - M->z[pn[0]]};
-
-    E_Float e1[3] = {M->x[pn[2]] - M->x[pn[0]],
-                     M->y[pn[2]] - M->y[pn[0]],
-                     M->z[pn[2]] - M->z[pn[0]]};
-
-    E_Float n[3];
-    K_MATH::cross(e0, e1, n);
-
-    E_Float dp = fabs(K_MATH::dot(n, M->mode_2D, 3)) / K_MATH::norm(n, 3);
-
-    if (fabs(dp - 1.0) <= 1.0e-6) {
+    if (check_face_aligned_with_vector(face, M->mode_2D, M))
       break;
-    }
   }
 
   if (start == nf) {
@@ -166,7 +170,7 @@ E_Int set_cells_type(AMesh *M)
       E_Int type = M->cellTree->type(i);
       if (type != HEXA && type != PENTA) {
         fprintf(stderr, "AdaptMesh: 2D mode incompatible with cell type %s.\n",
-          type_to_string(type));
+          cell_type_to_string(type));
         exit(1);
       }
     }

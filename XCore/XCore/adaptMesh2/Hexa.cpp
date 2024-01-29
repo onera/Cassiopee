@@ -446,6 +446,8 @@ void H18_refine(E_Int cell, AMesh *M)
 
   // BOT
   face = pf[0];
+  if (M->mode_2D)
+    assert(check_face_aligned_with_vector(face, M->mode_2D, M));
   reorient = get_reorient(face, cell, normalIn_H[0], M);
   children = faceTree->children(face);
   assert(children->n == 4);
@@ -490,6 +492,8 @@ void H18_refine(E_Int cell, AMesh *M)
 
   // TOP
   face = pf[1];
+  if (M->mode_2D)
+    assert(check_face_aligned_with_vector(face, M->mode_2D, M));
   reorient = get_reorient(face, cell, normalIn_H[1], M);
   children = faceTree->children(face);
   assert(children->n == 4);

@@ -49,7 +49,7 @@ if mpi: # source that requires mpi
             
             'XCore/adaptMesh2/Mesh.cpp',
             'XCore/adaptMesh2/AdaptMesh.cpp',
-            #'XCore/adaptMesh2/Comm.cpp',
+            'XCore/adaptMesh2/Comm.cpp',
             'XCore/adaptMesh2/Refine.cpp',
             'XCore/adaptMesh2/RenumberMesh.cpp',
             'XCore/adaptMesh2/Topo.cpp',

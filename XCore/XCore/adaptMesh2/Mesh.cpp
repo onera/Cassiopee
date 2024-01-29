@@ -12,7 +12,7 @@ E_Int master_cell(E_Int cell, AMesh *M)
   return M->cellTree->children(cell) ? cell : M->cellTree->parent(cell);
 }
 
-const char *type_to_string(E_Int type)
+const char *cell_type_to_string(E_Int type)
 {
   switch (type) {
     case HEXA: return "HEXA";
@@ -20,8 +20,17 @@ const char *type_to_string(E_Int type)
     case PENTA: return "PENTA";
     case PYRA: return "PYRA";
     default:
-      assert(0);
-      return NULL;
+      return "UNKNOWN";
+  }
+}
+
+const char *face_type_to_string(E_Int type)
+{
+  switch (type) {
+    case HEXA: return "QUAD";
+    case TRI: return "TRI";
+    default:
+      return "UNKNOWN";
   }
 }
 
@@ -70,26 +79,97 @@ bool Edge::operator<(const Edge &e) const
   return (p0_ < e.p0_) || (p0_ == e.p0_ && p1_ < e.p1_);
 }
 
+void patch_drop(Patch *P)
+{
+  XFREE(P->pf);
+  XFREE(P->pn);
+  XFREE(P->sbuf_i);
+  XFREE(P->rbuf_i);
+  XFREE(P->sbuf_f);
+  XFREE(P->rbuf_f);
+}
+
 AMesh::AMesh() :
-  ncells(-1), nfaces(-1), npoints(-1), nif(-1), nbf(-1),
+  ncells(-1), nfaces(-1), npoints(-1), nif(-1), nbf(-1), npf(-1),
   x(NULL), y(NULL), z(NULL),
   nface(NULL), indPH(NULL), ngon(NULL), indPG(NULL),
   owner(NULL), neigh(NULL),
   nbc(-1), ptlists(NULL), bcsizes(NULL), bcnames(NULL),
-  patches(NULL), npatches(-1),
-  pid(-1), npc(-1), nreq(-1), req(NULL),
-  ecenter(NULL),
-  cellTree(NULL), faceTree(NULL),
-  ref_data(NULL), Tr(-1.0), Tu(-1.0), eps(-1.0),
-  hmin(0.0), hmax(0.0), unrefine(1),
-  closed_indPG(NULL), closed_ngon(NULL),
   fc(NULL), cx(NULL), cy(NULL), cz(NULL),
-  mode_2D(NULL)
+  Tr(-1.0), Tu(-1.0), eps(-1.0), hmin(-1.0), hmax(-1.0), unrefine(-1),
+  mode_2D(NULL), ref_data(NULL), ecenter(NULL),
+  cellTree(NULL), faceTree(NULL),
+  prev_ncells(-1), prev_nfaces(-1), prev_npoints(-1),
+  pid(-1), npc(-1), nrq(-1), req(NULL),
+  gcells(NULL), gfaces(NULL), gpoints(NULL),
+  npatches(-1), patches(NULL),
+  PT(NULL), FT(NULL), CT(NULL),
+  px(NULL), py(NULL), pz(NULL), pfld(NULL), pref(NULL), plvl(NULL),
+  closed_indPG(NULL), closed_ngon(NULL),
+  closed_indPH(NULL), closed_nface(NULL)
 {
   MPI_Comm_rank(MPI_COMM_WORLD, &pid);
   MPI_Comm_size(MPI_COMM_WORLD, &npc);
-  nreq = 0;
+  nrq = 0;
   req = (MPI_Request *)XMALLOC(2*npc * sizeof(MPI_Request));
+}
+
+void mesh_drop(AMesh *M)
+{
+  XFREE(M->x);
+  XFREE(M->y);
+  XFREE(M->z);
+
+  XFREE(M->nface);
+  XFREE(M->indPH);
+  XFREE(M->ngon);
+  XFREE(M->indPG);
+
+  XFREE(M->owner);
+  XFREE(M->neigh);
+
+  for (E_Int i = 0; i < M->nbc; i++) {
+    XFREE(M->ptlists[i]);
+    XFREE(M->bcnames[i]);
+  }
+  XFREE(M->ptlists);
+  XFREE(M->bcnames);
+  XFREE(M->bcsizes);
+
+  XFREE(M->fc);
+  XFREE(M->cx);
+  XFREE(M->cy);
+  XFREE(M->cz);
+
+  XFREE(M->mode_2D);
+  XFREE(M->ref_data);
+
+  delete M->ecenter;
+  
+  M->cellTree->drop();
+  M->faceTree->drop();
+  delete M->cellTree;
+  delete M->faceTree;
+
+  XFREE(M->req);
+  XFREE(M->gcells);
+  XFREE(M->gfaces);
+  XFREE(M->gpoints);
+
+  for (E_Int i = 0; i < M->npatches; i++)
+    patch_drop(&M->patches[i]);
+  XFREE(M->patches);
+
+  delete M->PT;
+  delete M->FT;
+  delete M->CT;
+  
+  XFREE(M->closed_indPG);
+  XFREE(M->closed_ngon);
+  XFREE(M->closed_indPH);
+  XFREE(M->closed_nface);
+
+  delete M;
 }
 
 E_Int get_neighbour(E_Int cell, E_Int face, AMesh *M)
@@ -774,6 +854,10 @@ AMesh *init_mesh(K_FLD::FldArrayI &cn, E_Float *px, E_Float *py,
 
   M->ecenter = new std::map<Edge, E_Int>;
 
+  M->CT = new std::unordered_map<E_Int, E_Int>;
+  M->FT = new std::unordered_map<E_Int, E_Int>;
+  M->PT = new std::unordered_map<E_Int, E_Int>;
+ 
   return M;
 }
 
@@ -799,27 +883,6 @@ void get_full_cell(E_Int cell, AMesh *M, E_Int &nf, E_Int *pf)
       for (E_Int j = 0; j < children->n; j++)
         pf[nf++] = children->pc[j];
     }
-
-    /*
-    if (flvl == clvl) {
-      pf[nf++] = face;
-    } else {
-      assert(master_face(face, M) == face);
-      E_Int master = master_face(face, M);
-      if (M->faceTree->state(face) == UNREFINED) {
-        pf[nf++] = face;
-      } else {
-        Children *children = M->faceTree->children(master);
-        if (children == NULL) {
-          assert(0);
-          pf[nf++] = master;
-        } else {
-          for (E_Int j = 0; j < children->n; j++)
-            pf[nf++] = children->pc[j];
-        }
-      }
-    }
-    */
   }
 }
 
@@ -872,6 +935,652 @@ void update_boundary_faces(AMesh *M)
   }
 
   M->nif = M->nfaces - M->nbf;
+}
+
+void update_global_cells_after_ref(AMesh *M)
+{
+  E_Int nnew_cells = M->ncells - M->prev_ncells;
+  
+  E_Int first_new_cell;
+
+  MPI_Scan(&nnew_cells, &first_new_cell, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+  E_Int gncells;
+  MPI_Allreduce(&M->prev_ncells, &gncells, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+  if (nnew_cells > 0) {
+    M->gcells = (E_Int *)XRESIZE(M->gcells, M->ncells * sizeof(E_Int));
+
+    for (E_Int i = 0; i < nnew_cells; i++)
+      M->gcells[M->prev_ncells + i] = gncells + first_new_cell - nnew_cells + i;
+  }
+}
+
+void update_global_faces_after_ref(AMesh *M)
+{
+  E_Int nnew_faces = M->nfaces - M->prev_nfaces;
+  E_Int first_new_face;
+
+  MPI_Scan(&nnew_faces, &first_new_face, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+  E_Int gnfaces;
+  MPI_Allreduce(&M->prev_nfaces, &gnfaces, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+  if (nnew_faces == 0) return;
+
+  M->gfaces = (E_Int *)XRESIZE(M->gfaces, M->nfaces * sizeof(E_Int));
+
+  // Init
+  for (E_Int i = M->prev_nfaces; i < M->nfaces; i++)
+    M->gfaces[i] = -1;
+
+  // Internal faces first
+  E_Int incr = first_new_face - nnew_faces;
+
+  for (E_Int i = 0; i < nnew_faces; i++) {
+    E_Int face = M->prev_nfaces + i;
+    if (M->neigh[face] == -1) continue;
+
+    M->gfaces[face] = gnfaces + incr++;
+    M->FT->insert({M->gfaces[face], face});
+  }
+
+  // Boundary faces next
+  for (E_Int i = 0; i < M->nbc; i++) {
+    E_Int *ptlist = M->ptlists[i];
+    
+    for (E_Int j = 0; j < M->bcsizes[i]; j++) {
+      E_Int face = ptlist[j];
+
+      if (M->gfaces[face] == -1) {
+        assert(face >= M->prev_nfaces);
+        M->gfaces[face] = gnfaces + incr++;
+        M->FT->insert({M->gfaces[face], face});
+      }
+    }
+  }
+
+  // Patch faces last as they might be renumbered and we wouldn't want to
+  // create holes in global face numbering
+
+  for (E_Int i = 0; i < M->npatches; i++) {
+    Patch *P = &M->patches[i];
+
+    for (E_Int j = 0; j < P->nf; j++) {
+      E_Int face = P->pf[j];
+
+      if (M->gfaces[face] == -1) {
+        M->gfaces[face] = gnfaces + incr++;
+        M->FT->insert({M->gfaces[face], face});
+      }
+    }
+  }
+}
+
+void update_global_points_after_ref(AMesh *M)
+{
+  E_Int nnew_points = M->npoints - M->prev_npoints;
+  E_Int first_new_point;
+
+  MPI_Scan(&nnew_points, &first_new_point, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+  E_Int gnpoints;
+  MPI_Allreduce(&M->prev_npoints, &gnpoints, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+  if (nnew_points == 0) return;
+
+  M->gpoints = (E_Int *)XRESIZE(M->gpoints, M->npoints * sizeof(E_Int));
+
+  // Init
+  for (E_Int i = M->prev_npoints; i < M->npoints; i++)
+    M->gpoints[i] = -1;
+
+  // Freeze points belonging to pfaces
+  E_Int *fpts = (E_Int *)XCALLOC(M->npoints, sizeof(E_Int));
+  
+  for (E_Int i = 0; i < M->npatches; i++) {
+    Patch *P = &M->patches[i];
+
+    for (E_Int j = 0; j < P->nf; j++) {
+      E_Int pface = P->pf[j];
+      assert(pface >= 0 && pface < M->nfaces);
+
+      E_Int np = -1;
+      E_Int *pn = get_face(pface, np, M->ngon, M->indPG);    
+  
+      for (E_Int k = 0; k < np; k++)
+        fpts[pn[k]] = 1;
+    }
+  }
+
+  E_Int incr = gnpoints + first_new_point - nnew_points;
+
+  // First pass: skip ppoints
+  for (E_Int i = 0; i < nnew_points; i++) {
+    E_Int point = M->prev_npoints + i;
+    if (fpts[point]) continue;
+    
+    M->gpoints[point] = incr++;
+    M->PT->insert({M->gpoints[point], point});
+  }
+
+  // Second pass: do ppoints
+  for (E_Int i = 0; i < nnew_points; i++) {
+    E_Int point = M->prev_npoints + i;
+    if (!fpts[point]) continue;
+    
+    M->gpoints[point] = incr++;
+    M->PT->insert({M->gpoints[point], point});
+  }
+
+  for (E_Int i = 0; i < M->npoints; i++)
+    assert(M->gpoints[i] != -1);
+ 
+  XFREE(fpts);
+}
+
+static
+void resize_for_synchro(AMesh *M, E_Int nrf)
+{
+  // Resize
+  E_Int nnew_faces = M->nfaces + nrf;
+  E_Int nnew_points = M->npoints + nrf*5; // Max 5 new points per refined face
+
+  M->faceTree->resize(nnew_faces);
+  M->ngon  = (E_Int *)  XRESIZE(M->ngon,  (4*nnew_faces) *sizeof(E_Int));
+  M->indPG = (E_Int *)  XRESIZE(M->indPG, (nnew_faces+1) *sizeof(E_Int));
+  M->owner = (E_Int *)  XRESIZE(M->owner, (nnew_faces)   *sizeof(E_Int));
+  M->neigh = (E_Int *)  XRESIZE(M->neigh, (nnew_faces)   *sizeof(E_Int));
+  M->x     = (E_Float *)XRESIZE(M->x,     (nnew_points)  *sizeof(E_Float));
+  M->y     = (E_Float *)XRESIZE(M->y,     (nnew_points)  *sizeof(E_Float));
+  M->z     = (E_Float *)XRESIZE(M->z,     (nnew_points)  *sizeof(E_Float));
+
+  for (E_Int i = M->nfaces; i < nnew_faces; i++) {
+    M->owner[i] = -1;
+    M->neigh[i] = -1;
+  }
+}
+
+void resize_data_for_synchronisation(AMesh *M)
+{
+  E_Int nrf = 0; // Total of remotely refined patch children
+
+  int *rcount = (int *)XMALLOC(M->npatches * sizeof(int));
+
+  for (E_Int i = 0; i < M->npatches; i++) {
+    Patch *P = &M->patches[i];
+
+    int scount = 0;
+
+    for (E_Int j = 0; j < P->nf; j++) {
+      E_Int face = P->pf[j];
+      E_Int state = M->faceTree->state(face);
+
+      if (state == REFINED) {
+        scount += M->faceTree->children(face)->n - 1; // do not count face
+      }
+    }
+
+    MPI_Irecv(rcount+i, 1, MPI_INT, P->nei, 0, MPI_COMM_WORLD, &M->req[M->nrq++]);
+    MPI_Isend(&scount, 1, MPI_INT, P->nei, 0, MPI_COMM_WORLD, &M->req[M->nrq++]);
+  }
+
+  Comm_waitall(M);
+
+  for (E_Int i = 0; i < M->npatches; i++)
+    nrf += rcount[i];
+
+  resize_for_synchro(M, nrf);
+
+  XFREE(rcount);
+}
+
+void update_patch_faces_after_ref(AMesh *M)
+{
+  for (E_Int i = 0; i < M->npatches; i++) {
+    Patch *P = &M->patches[i];
+    E_Int new_nf = 0;
+    
+    for (E_Int j = 0; j < P->nf; j++) {
+      E_Int face = P->pf[j];
+      E_Int state = M->faceTree->state(face);
+
+      if (state == UNTOUCHED)
+        new_nf += 1;
+      else if (state == REFINED)
+        new_nf += M->faceTree->children(face)->n;
+      else if (state == UNREFINED)
+        new_nf += 1;
+    }
+
+    E_Int *new_pf = (E_Int *)XMALLOC(new_nf * sizeof(E_Int));
+    E_Int *new_pn = (E_Int *)XMALLOC(new_nf * sizeof(E_Int));
+    E_Int *pf = new_pf;
+    E_Int *pn = new_pn;
+
+    // Children faces inherit pn of parent, will be updated later
+
+    for (E_Int j = 0; j < P->nf; j++) {
+      E_Int face = P->pf[j];
+      E_Int nei = P->pn[j];
+      E_Int state = M->faceTree->state(face);
+
+      if (state == UNTOUCHED || state == UNREFINED) {
+        *pf++ = face;
+        *pn++ = nei;
+      } else if (state == REFINED) {
+        Children *children = M->faceTree->children(face);
+        
+        for (E_Int k = 0; k < children->n; k++) {
+          *pf++ = children->pc[k];
+          *pn++ = nei;
+        }
+      }
+    }
+
+    XFREE(M->patches[i].pf);
+    XFREE(M->patches[i].pn);
+    M->patches[i].pf = new_pf;
+    M->patches[i].pn = new_pn;
+    M->patches[i].nf = new_nf;
+  }
+
+  if (M->mode_2D) return;
+
+  // Swap first and third children if iso refinement
+  for (E_Int i = 0; i < M->npatches; i++) {
+    Patch *P = &M->patches[i];
+
+    if (M->pid < P->nei) continue;
+
+    for (E_Int j = 0; j < P->nf; ) {
+      E_Int face = P->pf[j++];
+      E_Int state = M->faceTree->state(face);
+      if (state != REFINED) continue;
+
+      assert(M->faceTree->children(face)->n == 4);
+
+      std::swap(P->pf[j], P->pf[j+2]);
+      j += 3;
+    }
+  }
+}
+
+void synchronise_patches_after_ref(AMesh *M)
+{
+  // Goal: eliminate duplicate global patch face numbering
+  // Choice : lesser rank numbering wins
+
+  // Procs exchange their latest patch state
+  // Both procs replace refined faces with their global children number
+
+  for (E_Int i = 0; i < M->npatches; i++) {
+    Patch *P = &M->patches[i];
+
+    int scount = 0;
+
+    for (E_Int j = 0; j < P->nf;) {
+      E_Int face = P->pf[j++];
+      E_Int state = M->faceTree->state(face);
+
+      if (state == REFINED) {
+        // face | nc | c0 | n0 ...
+        E_Int np = M->indPG[face+1] - M->indPG[face];
+        E_Int nc = M->faceTree->children(face)->n;
+        
+        scount += 2; // face + nc
+
+        scount += nc * (np + 1); // (id + np) per children
+        
+        j += M->faceTree->children(face)->n-1; // skip children
+      } else {
+        scount += 2;
+      }
+    }
+
+    int rcount;
+
+    MPI_Send(&scount, 1, MPI_INT, P->nei, 0, MPI_COMM_WORLD);
+    MPI_Recv(&rcount, 1, MPI_INT, P->nei, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    M->patches[i].sbuf_i = (E_Int *)
+      XRESIZE(M->patches[i].sbuf_i, scount*sizeof(E_Int));
+    memset(M->patches[i].sbuf_i, -1, scount*sizeof(E_Int));
+
+    E_Int *f_it = M->patches[i].sbuf_i; // face iterator
+
+    // f0 | 2 | c0 | pn ... | c1 ... | f1 | 0 | f2 ...
+
+    for (E_Int j = 0; j < P->nf;) {
+      E_Int face = P->pf[j++];
+      E_Int state = M->faceTree->state(face);
+
+      *f_it++ = M->gfaces[face];
+
+      if (state == REFINED) {
+        Children *children = M->faceTree->children(face);
+
+        *f_it++ = children->n;
+
+        for (E_Int k = 0; k < children->n; k++) {
+          *f_it++ = M->gfaces[children->pc[k]];
+
+          E_Int np = -1;
+          E_Int *pn = get_face(children->pc[k], np, M->ngon, M->indPG);
+
+          for (E_Int l = 0; l < np; l++)
+            *f_it++ = M->gpoints[pn[l]];
+
+        }
+
+        j += children->n-1;
+      } else {
+        *f_it++ = 0;
+      }
+    }
+
+    assert(f_it - M->patches[i].sbuf_i == scount);
+    
+    M->patches[i].rbuf_i = (E_Int *)
+      XRESIZE(M->patches[i].rbuf_i, rcount*sizeof(E_Int));
+    
+    MPI_Send(M->patches[i].sbuf_i, scount, XMPI_INT, P->nei, 0, MPI_COMM_WORLD);
+    MPI_Recv(M->patches[i].rbuf_i, rcount, XMPI_INT, P->nei, 0, MPI_COMM_WORLD,
+      MPI_STATUS_IGNORE);
+
+    
+    // Deduce synchronized patch size
+    // Iterate through received and current states simultaneously
+
+    E_Int *r_it = M->patches[i].rbuf_i;
+    f_it = M->patches[i].sbuf_i;
+
+    // Count the synchronised patch total number of faces
+    E_Int N = 0;
+    
+    // f0 | 2 | c0 | pn ... | own | c1 ... | f1 | 0 | f2 ...
+    
+    for (;;) {
+
+      if (f_it - M->patches[i].sbuf_i == scount) break;
+
+      E_Int glf = *f_it++;
+      E_Int grf = *r_it++;
+
+      assert(glf == grf); // This face is not new: its gid should be the same
+
+      E_Int nl = *f_it++;
+      E_Int nr = *r_it++;
+
+      E_Int lf = (*(M->FT))[glf];
+      E_Int np = get_stride(lf, M->indPG);
+      assert(np == 3 || np == 4);
+
+      if (nl == nr) {
+        if (nl == 0) {
+          // Face was not refined
+          N += 1;
+        } else {
+          // Face was refined locally and remotely
+          N += nl;
+          f_it += (1+np)*nl;
+          r_it += (1+np)*nl;
+        }
+      } else if (nl > nr) {
+        // Only the local face was refined
+        N += nl;
+        f_it += (1+np)*nl;
+      } else if (nr > nl) {
+        // Only the remote face was refined
+        // I need the data of its children
+        N += nr;
+        r_it += (1+np)*nr;
+      }
+    }
+
+    assert(r_it - M->patches[i].rbuf_i == rcount);
+    assert(f_it - M->patches[i].sbuf_i == scount);
+    
+    E_Int *new_pf = (E_Int *)XMALLOC(N * sizeof(E_Int));
+
+    // Fill
+    f_it = M->patches[i].sbuf_i;
+    r_it = M->patches[i].rbuf_i;
+    E_Int *p_it = new_pf;
+
+    if (M->pid == 1) {
+      printf("sbuf: ");
+      for (E_Int j = 0; j < scount; j++)
+        printf("%d ", M->patches[i].sbuf_i[j]);
+      puts("");
+      printf("rbuf: ");
+      for (E_Int j = 0; j < rcount; j++)
+        printf("%d ", M->patches[i].rbuf_i[j]);
+      puts("");
+      fflush(stdout);
+    }
+
+    for (;;) {
+      if (f_it - M->patches[i].sbuf_i == scount) break;
+      E_Int glf = *f_it++;
+      E_Int grf = *r_it++;
+
+      if (M->pid == 1) printf("glf : %d\n", glf);
+
+      assert(glf == grf);
+
+      E_Int nl = *f_it++;
+      E_Int nr = *r_it++;
+
+      if (M->pid == 1) printf("nl: %d - nr: %d\n", nl, nr);
+
+      E_Int lf = (*(M->FT))[glf];
+      E_Int np = get_stride(lf, M->indPG);
+      assert(np == 3 || np == 4);
+
+      if (nl == nr) {
+        if (nl == 0) {
+
+          if (M->pid == 1) puts("no refinement");
+          
+          // No refinement took place for this place
+          *p_it++ = glf;
+        
+        } else {
+          // Replace with lesser rank global numbering
+
+          // c0 | pn ...
+
+          if (M->pid == 1) puts("local and remote refinement");
+
+          for (E_Int k = 0; k < nl; k++) {
+
+            // Iterate through the ids
+            E_Int glc = *f_it++;
+            E_Int grc = *r_it++;
+
+            if (M->pid == 1) printf("glc: %d - grc: %d\n", glc, grc);
+
+            E_Int gc = M->pid < P->nei ? glc : grc;
+           
+            // Insert in new patch
+            *p_it++ = gc;
+
+            // Replace gface with kept label
+            //auto search = M->FT->find(glc);
+            //assert(search != M->FT->end());
+            //E_Int lc = search->second;
+            //assert(lc >= 0 && lc < M->nfaces);
+
+            // Replace child and its points with lesser rank labels
+            //if (gc != glc) {
+            //  M->gfaces[lc] = gc;
+            //  M->FT->erase(search);
+            //  M->FT->insert({gc, lc});
+            //}
+            
+            for (E_Int l = 0; l < np; l++) {
+                E_Int glp = *f_it++;
+                E_Int grp = *r_it++;
+            
+                if (M->pid == 1) printf("glp: %d - grp: %d\n", glp, grp);
+
+                /*E_Int gp = M->pid < P->nei ? glp : grp;
+
+                // Local id of current point
+                auto search = M->PT->find(glp); 
+                assert(search != M->PT->end());
+                E_Int lp = search->second;
+
+                M->gpoints[lp] = gp;
+                M->PT->erase(search);
+                M->PT->insert({gp, lp});
+                */
+            }    
+          } // for child in children
+        } // nl > 0
+      } else if (nl > nr) {
+
+        // Face was refined only locally, all data should be okay
+
+        for (E_Int k = 0; k < nl; k++) {
+          *p_it++ = *f_it++;
+          f_it += np; // skip children points
+        }
+
+      } else if (nr > nl) {
+        
+        // c0 | pn ...
+        
+        // Insert this face in faceTree
+        /*
+        Children *new_children = (Children *)XMALLOC(sizeof(Children));
+        new_children->n = nr;
+    
+        new_children->next = M->faceTree->children_[lf];
+        M->faceTree->children_[lf] = new_children;
+
+        M->faceTree->level_[lf] += 1;
+        M->faceTree->state_[lf] = REFINED;
+        */
+        
+        // First pass: fill new patch + face siblings
+
+        //E_Int *t_it = r_it; // tmp iterator
+        
+        for (E_Int k = 0; k < nr; k++) {
+          // id
+          E_Int cid = *r_it++;
+
+          *p_it++ = cid;
+          
+          //new_children->pc[k] = cid;
+
+          // skip points
+          r_it += np;
+        }
+        
+        //assert(new_children->pc[0] == glf);
+
+        // c0 | pn ... | own
+        
+        // Second pass: fill indPG / ngon
+        
+        // First child is face, treat it separately
+        /*{
+          E_Int cid = *r_it++;
+          assert(cid == glf);
+
+          E_Int *pn = get_facets(lf, M->ngon, M->indPG);
+
+          for (E_Int k = 0; k < np; k++) {
+            E_Int gp = *r_it++;
+            
+            auto search = M->PT->find(gp);
+
+            if (search != M->PT->end()) {
+              pn[k] == search->second;
+              assert(pn[k] >= 0 && pn[k] < M->npoints);
+            } else {
+              pn[k] = M->npoints;
+              M->gpoints[M->npoints] = gp;
+              M->PT->insert({gp, M->npoints});
+              M->npoints++;
+            } 
+          }
+        }
+        */
+
+        // Do the rest of the children
+        /*
+        for (E_Int k = 1; k < nr; k++) {
+          E_Int cid = *r_it++;
+
+          // This child should new to me
+          assert(M->FT->find(cid) == M->FT->end());
+
+          // Register it in mesh
+          M->gfaces[M->nfaces] = cid;
+          M->FT->insert({cid, M->nfaces});
+
+          M->indPG[M->nfaces+1] = np + M->indPG[M->nfaces];
+          E_Int *pn = &M->ngon[M->indPG[M->nfaces]];
+
+          for (E_Int l = 0; l < np; l++) {
+            E_Int gp = *r_it++;
+
+            auto search = M->PT->find(gp);
+
+            if (search != M->PT->end()) {
+              pn[l] = search->second;
+            } else {
+
+              // New point, register it
+
+              M->gpoints[M->npoints] = gp;
+              M->PT->insert({gp, M->npoints});
+
+              pn[l] = M->npoints;
+  
+              M->npoints++;
+            }
+          }
+
+          // Register it in face tree
+
+          M->faceTree->state_[M->nfaces] = UNTOUCHED;
+          M->faceTree->level_[M->nfaces] = M->faceTree->level(lf);
+          M->faceTree->type_[M->nfaces] = M->faceTree->type(lf);
+          M->faceTree->parent_[M->nfaces] = lf;
+          M->nfaces++;
+        }
+        */
+      }
+    }
+
+    assert(p_it - new_pf == N);
+  
+    /*
+    M->patches[i].nf = N;
+    XFREE(M->patches[i].pf);
+    M->patches[i].pf = new_pf;
+
+    for (E_Int j = 0; j < P->nf; j++) {
+      P->pf[j] = (*(M->FT))[P->pf[j]];
+    }
+
+    // UPDATE OWNER AND NEIGH
+    for (E_Int j = 0; j < P->nf; j++) {
+      E_Int face = P->pf[j];
+      if (M->owner[face] == -1) {
+        assert(M->neigh[face] == -1);
+        M->owner[face] = M->owner[M->faceTree->parent(face)];
+      }
+    }
+    */
+  }
+
+  EXIT;
 }
 
 void renumber_mesh(AMesh *M, const std::vector<E_Int> &new_cells,
@@ -1020,15 +1729,6 @@ void renumber_mesh(AMesh *M, const std::vector<E_Int> &new_cells,
       ref_data[new_cells[i]] = M->ref_data[i];
   }
 
-  /*
-  for (E_Int i = 0; i < new_ncells; i++) {
-    for (E_Int j = indPH[i]; j < indPH[i+1]; j++)
-      printf("%d ", nface[j]);
-    printf("| ");
-  }
-  puts("");
-  */
-
   // face/cell centers
   E_Float *fc = (E_Float *)XMALLOC(3*new_nfaces * sizeof(E_Float));
   E_Float *cx = (E_Float *)XMALLOC(new_ncells * sizeof(E_Float));
@@ -1088,4 +1788,15 @@ void renumber_mesh(AMesh *M, const std::vector<E_Int> &new_cells,
   M->cx = cx;
   M->cy = cy;
   M->cz = cz;
+}
+
+void compress_mesh(AMesh *M, const std::vector<E_Int> &new_cells,
+  const std::vector<E_Int> &new_faces, E_Int nc, E_Int nf,
+  E_Int sizeNFace, E_Int sizeNGon)
+{
+  renumber_mesh(M, new_cells, new_faces, nc, nf, sizeNFace, sizeNGon);
+
+  M->cellTree->compress(new_cells, nc);
+    
+  M->faceTree->compress(new_faces, nf);
 }

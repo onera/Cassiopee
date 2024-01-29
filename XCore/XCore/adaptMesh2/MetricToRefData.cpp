@@ -24,12 +24,118 @@ void make_ref_data_hexa(E_Int cell, AMesh *M, E_Float *pM, const pDirs &Dirs)
 
   if (L0 >= M->Tr || L1 >= M->Tr || L2 >= M->Tr) {
     M->ref_data[cell] = 1;
-  } else if (L0 <= M->Tu && L1 <= M->Tu && L2 <= M->Tu) {
+  }/* else if (L0 <= M->Tu && L1 <= M->Tu && L2 <= M->Tu) {
     if (M->cellTree->level(cell) != 0)
       M->ref_data[cell] = -1;
-  }
+  }*/
 }
 
+static
+void smooth_ref_data_parallel(AMesh *M)
+{
+  E_Int exchange, max_exchanges;
+  exchange = 0;
+  max_exchanges = 10;
+
+  for (E_Int i = 0; i < M->npatches; i++) {
+    Patch *P = &M->patches[i];
+    P->sbuf_i = (E_Int *)XRESIZE(P->sbuf_i, P->nf*sizeof(E_Int));
+    P->rbuf_i = (E_Int *)XRESIZE(P->rbuf_i, P->nf*sizeof(E_Int));
+  }
+
+  while (++exchange <= max_exchanges) {
+    
+    // Init refinement stack
+    std::stack<E_Int> stk;
+    for (E_Int i = 0; i < M->ncells; i++) {
+      if (M->ref_data[i] > 0)
+        stk.push(i);
+    }
+
+    // Smooth locally
+    while (!stk.empty()) {
+      E_Int cell = stk.top();
+      stk.pop();
+
+      E_Int nf = -1;
+      E_Int pf[24];
+      get_full_cell(cell, M, nf, pf);
+
+      std::vector<E_Int> neis(nf);
+      for (E_Int i = 0; i < nf; i++)
+        neis[i] = get_neighbour(cell, pf[i], M);
+
+      E_Int incr_cell = M->ref_data[cell] + M->cellTree->level(cell);
+
+      for (E_Int i = 0; i < nf; i++) {
+        E_Int nei = neis[i];
+        if (nei == -1) continue;
+
+        E_Int incr_nei = M->ref_data[nei] + M->cellTree->level(nei);
+
+        E_Int diff = abs(incr_nei - incr_cell);
+
+        if (diff <= 1) continue;
+
+        E_Int cell_to_mod = incr_cell > incr_nei ? nei : cell;
+
+        E_Int &rmod = M->ref_data[cell_to_mod];
+
+        rmod += 1;
+        
+        stk.push(cell_to_mod);
+      }
+    }
+
+    // Exchange proc ref data
+    MPI_Barrier(MPI_COMM_WORLD);
+    E_Int lstop = 0; // No more smoothing required locally
+
+    for (E_Int i = 0; i < M->npatches; i++) {
+      Patch *P = &M->patches[i];
+
+      for (E_Int j = 0; j < P->nf; j++) {
+        E_Int own = M->owner[P->pf[j]];
+        P->sbuf_i[j] = M->ref_data[own] + M->cellTree->level(own);
+      }
+
+      MPI_Isend(P->sbuf_i, P->nf, XMPI_INT, P->nei, M->pid, MPI_COMM_WORLD, &M->req[M->nrq++]); 
+      MPI_Irecv(P->rbuf_i, P->nf, XMPI_INT, P->nei, P->nei, MPI_COMM_WORLD, &M->req[M->nrq++]); 
+    }
+    Comm_waitall(M);
+
+
+    for (E_Int i = 0; i < M->npatches; i++) {
+      Patch *P = &M->patches[i];
+
+      for (E_Int j = 0; j < P->nf; j++) {
+        E_Int own = M->owner[P->pf[j]];
+        E_Int oval = M->ref_data[own] + M->cellTree->level(own);
+        E_Int nval = P->rbuf_i[j];
+
+        E_Int diff = abs(nval-oval);
+
+        if (nval > oval + 1) {
+          M->ref_data[own] += 1;
+          lstop = 1;
+        }
+      }
+    }
+    
+    E_Int gstop;
+    MPI_Allreduce(&lstop, &gstop, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+    if (gstop == 0) // No more smoothing required globally
+      break;
+  }
+
+  //printf("%d -> exchanged %d times\n", M->pid, exchange);
+
+  if (exchange > max_exchanges)
+    fprintf(stderr, "Warning: smoothing exceeded max_exchanges!\n");
+}
+
+/*
 static
 void smooth_ref_data(AMesh *M)
 {
@@ -45,72 +151,73 @@ void smooth_ref_data(AMesh *M)
   E_Int iter = 0;
   E_Int changed = 1;
 
-  puts("Smoothing ref data");
+  //puts("Smoothing ref data");
 
   while (changed) {
-    printf("    Iter %d\n", iter++);
+    //printf("    Iter %d\n", iter++);
 
-    // Eliminate impossible refinement
+    if (M->unrefine) {
+      // Eliminate impossible refinement
 
-    std::vector<E_Int> tmp_ref_data(M->ncells, 0);
+      std::vector<E_Int> tmp_ref_data(M->ncells, 0);
 
-    for (E_Int i = 0; i < M->ncells; i++) {
-      if (M->ref_data[i] > 0)
-        tmp_ref_data[i] = M->ref_data[i];
-    }
+      for (E_Int i = 0; i < M->ncells; i++) {
+        if (M->ref_data[i] > 0)
+          tmp_ref_data[i] = M->ref_data[i];
+      }
 
-    for (E_Int i = 0; i < M->ncells; i++) {
-      Children *children = M->cellTree->children(i);
+      for (E_Int i = 0; i < M->ncells; i++) {
+        Children *children = M->cellTree->children(i);
 
-      if (children == NULL) continue;
+        if (children == NULL) continue;
 
-      E_Int skip = 0;
+        E_Int skip = 0;
 
-      for (E_Int j = 1; j < children->n; j++) {
-        E_Int child = children->pc[j];
+        for (E_Int j = 1; j < children->n; j++) {
+          E_Int child = children->pc[j];
 
-        if (M->cellTree->children(child)) {
-          skip = 1;
-          break;
+          if (M->cellTree->children(child)) {
+            skip = 1;
+            break;
+          }
+        }
+
+        if (skip) continue;
+
+        // This is a leaf node
+        // To unrefine, all siblings must have negative ref data
+        for (E_Int j = 0; j < children->n; j++) {
+          E_Int child = children->pc[j];
+          if (M->ref_data[child] >= 0) {
+            skip = 1;
+            break;
+          }
+        }
+
+        if (skip) {
+          continue;
+        }
+
+        for (E_Int j = 0; j < children->n; j++) {
+          E_Int child = children->pc[j];
+          assert(M->ref_data[child] < 0);
+
+          tmp_ref_data[child] = M->ref_data[child];
         }
       }
+      
+      for (E_Int i = 0; i < M->ncells; i++) M->ref_data[i] = tmp_ref_data[i];
 
-      if (skip) continue;
-
-      // This is a leaf node
-      // To unrefine, all siblings must have negative ref data
-      for (E_Int j = 0; j < children->n; j++) {
-        E_Int child = children->pc[j];
-        if (M->ref_data[child] >= 0) {
-          skip = 1;
-          break;
-        }
+      E_Int cells_to_agglo = 0;
+      for (E_Int i = 0; i < M->ncells; i++) {
+        if (M->ref_data[i] < 0) cells_to_agglo += 1;
       }
 
-      if (skip) {
-        continue;
-      }
-
-      for (E_Int j = 0; j < children->n; j++) {
-        E_Int child = children->pc[j];
-        assert(M->ref_data[child] < 0);
-
-        tmp_ref_data[child] = M->ref_data[child];
-      }
+      if (!M->mode_2D)
+        assert(cells_to_agglo % 8 == 0);
+      else
+        assert(cells_to_agglo % 4 == 0);
     }
-    
-    for (E_Int i = 0; i < M->ncells; i++) M->ref_data[i] = tmp_ref_data[i];
-
-    E_Int cells_to_agglo = 0;
-    for (E_Int i = 0; i < M->ncells; i++) {
-      if (M->ref_data[i] < 0) cells_to_agglo += 1;
-    }
-
-    if (!M->mode_2D)
-      assert(cells_to_agglo % 8 == 0);
-    else
-      assert(cells_to_agglo % 4 == 0);
-
 
     std::stack<E_Int> stk;
     for (E_Int i = 0; i < M->ncells; i++) {
@@ -192,21 +299,8 @@ void smooth_ref_data(AMesh *M)
     else if (M->ref_data[i] < 0) M->ref_data[i] = -1;
   }
 
-  puts("    Done.");
-  
-  // We still okay?
-  /*for (E_Int i = 0; i < M->nfaces; i++) {
-    E_Int nei = M->neigh[i];
-    if (nei == -1) continue;
-
-    E_Int own = M->owner[i];
-
-    E_Int oval = M->cellTree->level(own) + M->ref_data[own];
-    E_Int nval = M->cellTree->level(nei) + M->ref_data[nei];
-
-    assert(abs(oval-nval) <= 1);
-  }*/
 }
+*/
 
 static
 void make_ref_data_tetra(E_Int cell, AMesh *M, E_Float *pM, const pDirs &Dirs)
@@ -375,9 +469,9 @@ void compute_principal_vecs(AMesh *M, std::vector<pDirs> &Dirs)
 
 PyObject *K_XCORE::_metricToRefData(PyObject *self, PyObject *args)
 {
-  PyObject *ARRAY, *METRIC, *AMESH;
+  PyObject *METRIC, *AMESH;
 
-  if (!PYPARSETUPLE_(args, OOO_, &ARRAY, &METRIC, &AMESH)) {
+  if (!PYPARSETUPLE_(args, OO_, &METRIC, &AMESH)) {
     RAISE("Wrong input.");
     return NULL;
   }
@@ -402,7 +496,7 @@ PyObject *K_XCORE::_metricToRefData(PyObject *self, PyObject *args)
   compute_ref_data(M, metric, Dirs);
 
   // Smooth ref data
-  smooth_ref_data(M);
+  smooth_ref_data_parallel(M);
 
   return Py_None;
 }
@@ -458,8 +552,13 @@ PyObject *K_XCORE::_makeRefDataFromGradAndHess(PyObject *self, PyObject *args)
     mean += field[i];
   }
 
-  mean /= M->ncells;
-  mean = fabs(mean);
+  E_Float gmean;
+  MPI_Allreduce(&mean, &gmean, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+  E_Int gncells;
+  MPI_Allreduce(&M->ncells, &gncells, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+  mean = fabs(gmean / gncells);
 
   for (E_Int i = 0; i < M->ncells; i++) {
     
@@ -473,11 +572,15 @@ PyObject *K_XCORE::_makeRefDataFromGradAndHess(PyObject *self, PyObject *args)
     val /= h*gradient_norm(&grad[3*i]) + M->eps*mean;
 
     if (val >= M->Tr && h > M->hmin) M->ref_data[i] = 1;
-    else if (val <= M->Tu && h < M->hmax) M->ref_data[i] = -1;
+    //else if (val <= M->Tu && h < M->hmax) M->ref_data[i] = -1;
   }
 
+  /*for (E_Int i = 0; i < M->ncells; i++)
+    if (M->ref_data[i]) printf("%d\n", M->gcells[i]);
+  EXIT;*/
+
   // Smooth ref data
-  smooth_ref_data(M);
+  smooth_ref_data_parallel(M);
 
   return Py_None;
 }

@@ -8,7 +8,10 @@
 void compute_ref_data(AMesh *M, E_Float **fields, E_Int nfields);
 
 // Comm
-void exchange_proc_data_d(AMesh *M, E_Float *data, E_Float ***rbuf);
+void Comm_interface_data_i(AMesh *M, E_Int *data, E_Int stride, E_Int **rbuf);
+void Comm_interface_data_f(AMesh *M, E_Float *data, E_Int stride, E_Float **rbuf);
+AMesh *Redistribute_mesh(AMesh *M);
+void Comm_waitall(AMesh *M);
 
 // Hessian
 E_Float *compute_hessian(AMesh *M, E_Float *field);
@@ -42,17 +45,20 @@ void get_full_cell(E_Int cell, AMesh *M, E_Int &nf, E_Int *pf);
 void update_boundary_faces(AMesh *M);
 void ngon_print(AMesh *M);
 void nface_print(AMesh *M);
-const char *type_to_string(E_Int type);
+const char *cell_type_to_string(E_Int type);
+const char *face_type_to_string(E_Int type);
 void renumber_mesh(AMesh *M, const std::vector<E_Int> &new_cells,
   const std::vector<E_Int> &new_faces, E_Int nc, E_Int nf,
   E_Int sizeNFace, E_Int sizeNGon);
+void compress_mesh(AMesh *M, const std::vector<E_Int> &new_cells,
+  const std::vector<E_Int> &new_faces, E_Int nc, E_Int nf,
+  E_Int sizeNFace, E_Int sizeNGon);
+void mesh_drop(AMesh *M);
+void patch_drop(Patch *P);
 
 // Refine
-void get_ref_cells_and_faces_orig(AMesh *, std::vector<E_Int> &ref_cells,
-  std::vector<E_Int> &ref_faces);
-void get_ref_cells_and_faces(AMesh *, std::vector<E_Int> &ref_cells,
-  std::vector<E_Int> &ref_faces, std::vector<E_Int> &unref_cells,
-  std::vector<E_Int> &unref_faces);
+void get_ref_faces_and_cells(AMesh *, std::vector<E_Int> &ref_faces,
+  std::vector<E_Int> &ref_cells);
 void resize_data_for_refinement(AMesh *M, size_t nref_cells,
   size_t nref_faces);
 void refine_faces(const std::vector<E_Int> &ref_faces,
@@ -61,8 +67,18 @@ void refine_cells(const std::vector<E_Int> &ref_cells, size_t start,
   size_t stop, AMesh *M);
 void update_external_pe_after_ref(E_Int cell, AMesh *M);
 void update_external_pe_after_unref(E_Int cell, AMesh *M);
+void refine_mesh(AMesh *, std::vector<E_Int> &ref_faces,
+  std::vector<E_Int> &ref_cells);
+void update_global_cells_after_ref(AMesh *M);
+void resize_data_for_synchronisation(AMesh *M);
+void update_patch_faces_after_ref(AMesh *M);
+void update_global_faces_after_ref(AMesh *M);
+void update_global_points_after_ref(AMesh *M);
+void synchronise_patches_after_ref(AMesh *M);
 
 // Unrefine
+void get_unref_faces_and_cells(AMesh *, std::vector<E_Int> &unref_faces,
+  std::vector<E_Int> &unref_cells);
 void unrefine_faces(const std::vector<E_Int> &unref_faces,
   const std::vector<E_Int> &patterns, size_t start, size_t stop, AMesh *M);
 void unrefine_cells(const std::vector<E_Int> &unref_cells, size_t start,
@@ -71,20 +87,23 @@ void assign_pattern_to_adapt_faces(const std::vector<E_Int> &adapt_faces,
   std::vector<E_Int> &patterns, AMesh *M);
 void unrefine_tetra(E_Int cell, AMesh *M);
 void unrefine_pyra(E_Int cell, AMesh *M);
+void unrefine_mesh(AMesh *M, std::vector<E_Int> &unref_faces,
+  std::vector<E_Int> &unref_cells);
 
 // RenumberMesh
 //std::vector<E_Int> renumber_cells(AMesh *M);
 //std::vector<E_Int> renumber_faces(AMesh *M,
 //  const std::vector<E_Int> &new_cells);
 //void renumber_mesh(AMesh *M);
-void renumber_indPG(AMesh *M, const std::vector<E_Int> &new_faces,
-  E_Int *new_indPG);
-void renumber_ngon(AMesh *M, const std::vector<E_Int> &new_faces,
-  E_Int *new_indPG, E_Int *new_ngon);
 //void renumber_indPH(AMesh *M, const std::vector<E_Int> &new_cells,
 //  E_Int *new_indPH);
 //void renumber_nface(AMesh *M, const std::vector<E_Int> &new_cells,
 //  E_Int *new_indPH, E_Int *new_nface);
+void renumber_indPG(AMesh *M, const std::vector<E_Int> &new_faces,
+  E_Int *new_indPG);
+void renumber_ngon(AMesh *M, const std::vector<E_Int> &new_faces,
+  E_Int *new_indPG, E_Int *new_ngon);
+
 void renumber_nface_shallow(AMesh *M, const std::vector<E_Int> &new_faces);
 void renumber_boundary(AMesh *M, const std::vector<E_Int> &new_faces);
 //void renumber_comm_patches(AMesh *M, const std::vector<E_Int> &new_faces);
@@ -98,6 +117,7 @@ void Right_shift(E_Int *pn, E_Int pos, E_Int size);
 E_Int Get_pos(E_Int e, E_Int *pn, E_Int size);
 E_Int check_closed_cell(E_Int cell, E_Int *pf, E_Int nf, AMesh *M);
 void set_cells_for_2D(AMesh *M);
+E_Int check_face_aligned_with_vector(E_Int face, E_Float vec[3], AMesh *M);
 
 // Hexa
 void H18_refine(E_Int cell, AMesh *M);

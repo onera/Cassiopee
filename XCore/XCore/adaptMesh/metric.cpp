@@ -961,7 +961,7 @@ void smooth_ref_data(mesh *M)
           }
         }
       }
-    }
+    } // while (stk.empty)
 
     // exchange proc ref data
     MPI_Barrier(MPI_COMM_WORLD); 

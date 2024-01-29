@@ -226,10 +226,13 @@ def createAdaptMesh(t):
 
 ############################################################################
 
-def CreateAdaptMesh(t, own, nei, Tr, Tu, eps, hmin, hmax, unrefine=False, mode_2D=None):
+def CreateAdaptMesh(t, own, nei, comm, Tr, Tu, eps, hmin, hmax, unrefine=False,
+  mode_2D=None, gcells=None, gfaces=None, gpoints=None):
   zones = I.getZones(t)
   z = zones[0]
   fc = C.getFields(I.__GridCoordinates__, z, api=3)[0]
+
+  '''
   comm_list = []
   zgc = I.getNodeFromType(z, 'ZoneGridConnectivity_t')
   if zgc is not None:
@@ -239,6 +242,7 @@ def CreateAdaptMesh(t, own, nei, Tr, Tu, eps, hmin, hmax, unrefine=False, mode_2
       nei_proc = int(I.getValue(data))
       pfaces = I.getNodeFromName(data, 'PointList')[1]
       comm_list.append([nei_proc, pfaces])
+  '''
   
   bcs = []
   zonebc = I.getNodeFromType(z, 'ZoneBC_t')
@@ -252,31 +256,23 @@ def CreateAdaptMesh(t, own, nei, Tr, Tu, eps, hmin, hmax, unrefine=False, mode_2
       #name = str(I.getValue(name))
       bcs.append([plist[1], name])
     
-  return XCore.xcore.CreateAdaptMesh(fc, own, nei, comm_list, bcs, Tr, Tu, eps, hmin, hmax, unrefine, mode_2D)
+  return XCore.xcore.CreateAdaptMesh(fc, own, nei, comm, bcs, Tr, Tu, eps,
+    hmin, hmax, unrefine, mode_2D, gcells, gfaces, gpoints)
 
 def AdaptMesh(AM, fc, cx, cy, cz):
   return XCore.xcore.AdaptMesh(AM, fc, cx, cy, cz)
 
-def computeGradient(t, field, cx, cy, cz, own, nei):
-  zones = I.getZones(t)
-  zone = zones[0]
-  arr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
-  return XCore.xcore.computeGradient(arr, field, cx, cy, cz, own, nei)
+def computeGradient(AM, field, cx, cy, cz, own, nei):
+  return XCore.xcore.computeGradient(AM, field, cx, cy, cz, own, nei)
 
-def computeHessian(t, field, grad, cx, cy, cz, own, nei):
-  zones = I.getZones(t)
-  zone = zones[0]
-  arr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
-  return XCore.xcore.computeHessian(arr, field, grad, cx, cy, cz, own, nei)
+def computeHessian(AM, field, grad, cx, cy, cz, own, nei):
+  return XCore.xcore.computeHessian(AM, field, grad, cx, cy, cz, own, nei)
 
 def hessianToMetric(H, hmin, hmax, eps):
   return XCore.xcore.hessianToMetric(H, hmin, hmax, eps)
 
-def _metricToRefData(t, M, AM):
-  zones = I.getZones(t)
-  zone = zones[0]
-  arr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
-  XCore.xcore._metricToRefData(arr, M, AM)
+def _metricToRefData(M, AM):
+  XCore.xcore._metricToRefData(M, AM)
   return None
 
 def _makeRefDataFromGradAndHess(t, f, g, h, AM):

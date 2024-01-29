@@ -1,15 +1,13 @@
 #include "Proto.h"
 
 static
-void make_A_grad_matrices(K_FLD::FldArrayI &cn, E_Int *count_neis,
+void make_A_grad_matrices(AMesh *M, E_Int *indPH, E_Int *count_neis,
   E_Int *owner, E_Int *neigh, E_Float *cx, E_Float *cy, E_Float *cz,
   E_Float *lsqG)
 {
-  E_Int ncells = cn.getNElts();
-  E_Int nfaces = cn.getNFaces();
+  E_Int ncells = M->ncells;
+  E_Int nfaces = M->nfaces;
   memset(count_neis, 0, ncells*sizeof(E_Int));
-
-  E_Int *indPH = cn.getIndPH();
 
   // Internal faces
   for (E_Int i = 0; i < nfaces; i++) {
@@ -31,16 +29,35 @@ void make_A_grad_matrices(K_FLD::FldArrayI &cn, E_Int *count_neis,
     }
   }
 
+  for (E_Int i = 0; i < M->npatches; i++) {
+    Patch *P = &M->patches[i];
+
+    E_Float *it = P->rbuf_f;
+
+    for (E_Int j = 0; j < P->nf; j++) {
+      E_Int own = owner[P->pf[j]];
+      
+      E_Float d[3];
+      d[0] = *it++ - cx[own];
+      d[1] = *it++ - cy[own];
+      d[2] = *it++ - cz[own];
+      it++; // skip field
+
+      E_Float *lo = &lsqG[3*(indPH[own] + count_neis[own]++)];
+
+      for (E_Int k = 0; k < 3; k++)
+        lo[k] = d[k];
+    }
+  }
+
   // TODO(Imad): boundary contributions
-  // TODO(Imad): patch contributions
 }
 
 static
-void deduce_lsq_grad_matrices(K_FLD::FldArrayI &cn, E_Int *count_neis,
+void deduce_lsq_grad_matrices(AMesh *M, E_Int *indPH, E_Int *count_neis,
   E_Float *lsqG, E_Float *lsqGG)
 {
-  E_Int ncells = cn.getNElts();
-  E_Int *indPH = cn.getIndPH();
+  E_Int ncells = M->ncells;
 
   for (E_Int i = 0; i < ncells; i++) {
     E_Float *pGG = &lsqGG[9*i];
@@ -58,14 +75,13 @@ void deduce_lsq_grad_matrices(K_FLD::FldArrayI &cn, E_Int *count_neis,
 }
 
 static
-void make_grad_RHS_vector(K_FLD::FldArrayI &cn, E_Int *count_neis,
+void make_grad_RHS_vector(AMesh *M, E_Int *indPH, E_Int *count_neis,
   E_Float *field, E_Float *b, E_Int *owner, E_Int *neigh)
 {
-  E_Int ncells = cn.getNElts();
+  E_Int ncells = M->ncells;
   memset(count_neis, 0, ncells*sizeof(E_Int));
 
-  E_Int nfaces = cn.getNFaces();
-  E_Int *indPH = cn.getIndPH();
+  E_Int nfaces = M->nfaces;
 
   // Construct b vector
   for (E_Int i = 0; i < nfaces; i++) {
@@ -77,16 +93,28 @@ void make_grad_RHS_vector(K_FLD::FldArrayI &cn, E_Int *count_neis,
     b[indPH[nei] + count_neis[nei]++] = field[own] - field[nei];
   }
 
+  for (E_Int i = 0; i < M->npatches; i++) {
+    Patch *P = &M->patches[i];
+
+    E_Float *it = P->rbuf_f;
+
+    for (E_Int j = 0; j < P->nf; j++) {
+      E_Int own = owner[P->pf[j]];
+      
+      it += 3; // skip coordinates
+      
+      b[indPH[own] + count_neis[own]++] = *it++ - field[own];
+    }
+  }
+
   // TODO(Imad): boundary faces contributions
-  // TODO(Imad): proc contributions
 }
 
 static
-void make_gradient(K_FLD::FldArrayI &cn, E_Int *count_neis, E_Float *b,
+void make_gradient(AMesh *M, E_Int *indPH, E_Int *count_neis, E_Float *b,
   E_Float *G, E_Float *lsqG, E_Float *lsqGG)
 {
-  E_Int ncells = cn.getNElts();
-  E_Int *indPH = cn.getIndPH();
+  E_Int ncells = M->ncells;
   E_Float B[3];
 
   for (E_Int i = 0; i < ncells; i++) {
@@ -111,48 +139,24 @@ void make_gradient(K_FLD::FldArrayI &cn, E_Int *count_neis, E_Float *b,
 
 PyObject *K_XCORE::computeGradient(PyObject *self, PyObject *args)
 {
-  PyObject *ARRAY, *FIELD, *CX, *CY, *CZ, *OWN, *NEI;
-  if (!PYPARSETUPLE_(args, OOO_ OOO_ O_, &ARRAY, &FIELD, &CX, &CY,
+  PyObject *AMESH, *FIELD, *CX, *CY, *CZ, *OWN, *NEI;
+  if (!PYPARSETUPLE_(args, OOO_ OOO_ O_, &AMESH, &FIELD, &CX, &CY,
       &CZ, &OWN, &NEI)) {
     RAISE("Wrong input.");
     return NULL;
   }
 
-  // Check input
-  E_Int ret;
-  E_Int ni, nj, nk;
-  K_FLD::FldArrayF *f;
-  K_FLD::FldArrayI *cn;
-  char *varString, *eltType;
-  ret = K_ARRAY::getFromArray3(ARRAY, varString, f, ni, nj, nk, cn, eltType);
-
-  if (ret <= 0) {
-    RAISE("Bad mesh.");
+  if (!PyCapsule_IsValid(AMESH, "AMesh")) {
+    RAISE("Bad mesh capsule.");
     return NULL;
   }
 
-  if (ret == 1) {
-    RAISE("Mesh is not NGon.");
-    RELEASESHAREDS(ARRAY, f);
-    return NULL;
-  }
-
-  E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
-  E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
-  E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
-
-  if (posx == -1 || posy == -1 || posz == -1) {
-    RELEASESHAREDU(ARRAY, f, cn);
-    RAISE("Bad coordinates.");
-    return NULL;
-  }
-
-  posx++; posy++; posz++;
+  AMesh *M = (AMesh *)PyCapsule_GetPointer(AMESH, "AMesh");
 
   // Parse field
   E_Float *field = NULL;
-  E_Int nfld, size;
-  E_Int ncells = cn->getNElts();
+  E_Int nfld, size, ret;
+  E_Int ncells = M->ncells;
   ret = K_NUMPY::getFromNumpyArray(FIELD, field, size, nfld, true);
   assert(ret == 1 && nfld == 1 && size == ncells);
 
@@ -169,20 +173,53 @@ PyObject *K_XCORE::computeGradient(PyObject *self, PyObject *args)
 
   // Compute gradient
 
-  E_Int sizeNFace = cn->getSizeNFace();
+  E_Int sizeNFace, *indPH;
+  if (M->closed_indPH) {
+    sizeNFace = M->closed_indPH[M->ncells];
+    indPH = M->closed_indPH;
+  } else {
+    sizeNFace = M->indPH[M->ncells];
+    indPH = M->indPH;
+  }
 
   E_Int *count_neis = (E_Int *)XMALLOC(ncells * sizeof(E_Int));
 
   E_Float *lsqG = (E_Float *)XMALLOC(3*sizeNFace * sizeof(E_Float));
   E_Float *lsqGG = (E_Float *)XMALLOC(9*ncells * sizeof(E_Float));
 
-  make_A_grad_matrices(*cn, count_neis, owner, neigh, cx, cy, cz, lsqG);
+  // Pre-exchange
+  for (E_Int i = 0; i < M->npatches; i++) {
+    Patch *P = &M->patches[i];
+
+    P->sbuf_f = (E_Float *)XRESIZE(P->sbuf_f, 4*P->nf*sizeof(E_Float));
+    P->rbuf_f = (E_Float *)XRESIZE(P->rbuf_f, 4*P->nf*sizeof(E_Float));
+  }
+
+  for (E_Int i = 0; i < M->npatches; i++) {
+    Patch *P = &M->patches[i];
+
+    E_Float *it = P->sbuf_f;
+
+    for (E_Int j = 0; j < P->nf; j++) {
+      E_Int own = owner[P->pf[j]];
+      *it++ = cx[own]; 
+      *it++ = cy[own]; 
+      *it++ = cz[own]; 
+      *it++ = field[own];
+    }
+
+    MPI_Isend(P->sbuf_f, 4*P->nf, MPI_DOUBLE, P->nei, M->pid, MPI_COMM_WORLD, &M->req[M->nrq++]);
+    MPI_Irecv(P->rbuf_f, 4*P->nf, MPI_DOUBLE, P->nei, P->nei, MPI_COMM_WORLD, &M->req[M->nrq++]);
+  }
+  Comm_waitall(M);
+
+  make_A_grad_matrices(M, indPH, count_neis, owner, neigh, cx, cy, cz, lsqG);
   
-  deduce_lsq_grad_matrices(*cn, count_neis, lsqG, lsqGG);
+  deduce_lsq_grad_matrices(M, indPH, count_neis, lsqG, lsqGG);
 
   E_Float *b = (E_Float *)XMALLOC(sizeNFace * sizeof(E_Float));
 
-  make_grad_RHS_vector(*cn, count_neis, field, b, owner, neigh);
+  make_grad_RHS_vector(M, indPH, count_neis, field, b, owner, neigh);
 
   npy_intp dims[2];
   dims[0] = (npy_intp)(ncells*3);
@@ -191,7 +228,16 @@ PyObject *K_XCORE::computeGradient(PyObject *self, PyObject *args)
   PyArrayObject *G = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_DOUBLE);
   E_Float *pG = (E_Float *)PyArray_DATA(G);
 
-  make_gradient(*cn, count_neis, b, pG, lsqG, lsqGG);
+  make_gradient(M, indPH, count_neis, b, pG, lsqG, lsqGG);
+
+  /*
+  for (E_Int i = 0; i < M->ncells; i++) {
+    E_Float *ptr = &pG[3*i];
+    for (E_Int j = 0; j < 3; j++)
+      printf("%.2f ", ptr[j]);
+    puts("");
+  }
+  */
 
   XFREE(b);
   XFREE(count_neis);
