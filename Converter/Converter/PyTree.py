@@ -2576,7 +2576,7 @@ def initVars(t, varNameString, v1=[], v2=[], mode=0, isVectorized=False):
   or
   Usage: a = initVars(array, varNameString, F, [strings])"""
   tp = Internal.copyRef(t)
-  _initVars(tp, varNameString, v1, v2, isVectorized)
+  _initVars(tp, varNameString, v1, v2, mode, isVectorized)
   return tp
 
 def _initVars(t, varNameString, v1=[], v2=[], mode=0, isVectorized=False):
