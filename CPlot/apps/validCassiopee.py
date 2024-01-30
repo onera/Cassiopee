@@ -496,17 +496,17 @@ def runSingleUnitaryTest(no, module, test):
     else:
         # Unix - le shell doit avoir l'environnement cassiopee
         #sformat = r'"real\t%E\nuser\t%U\nsys\t%S"'
-        cmdReps = ""; test2 = test
+        cmdReps = ""
         if nreps > 1:
-          test2 = "tmp_{0}".format(test)
-          cmpiImport = '\nimport Converter.Mpi as Cmpi\n'
-          cmpiTrace = '\nCmpi.trace(">>> Iteration: ", cpu=False, stdout=False, filename="proc_{0}.txt")\n\n'.format(test[:-3])
-          cmdReps = "rm -f proc_{5}???.txt tmp_{0} tmp2_{0}; cp {0} {4}; cp {0} tmp2_{0}; "\
-                    "sed -i '/^test\.test/d' tmp2_{0}; sed -i 's/test\.test.*/pass/g' tmp2_{0};"\
-                    "echo '{1}' > tmp_{0}; cat {0} >> tmp_{0}; echo '{2}' >> tmp_{0}; "\
-                    "for i in {{2..{3}}}; do echo '{1}'; cat tmp2_{0}; echo '{2}'; done >> tmp_{0};"\
-                    "mv tmp_{0} {0};".format(test, cmpiImport, cmpiTrace, nreps, bktest, test[:-3])
-                
+          cmdCmpiImport = 'import Converter.Mpi as Cmpi'
+          cmdCmpiTrace = 'Cmpi.trace(">>> Iteration: ", cpu=False, stdout=False, fileName="proc_{0}.txt")'.format(test[:-3])
+          cmdConverterImport = 'import Converter.PyTree as CP'
+          cmdInitGlobalDicts = 'CP.__ZoneNameServer__ = {}; CP.__BCNameServer__ = {}; CP.__BaseNameServer__ = {}'
+          cmdReps = """rm -f proc_{7}???.txt tmp_{0}; cp {0} {6}; sed -i 's/^/  /' {0};
+              sed -i '1i\{1}\\nfor _ in range({5}):' {0}; sed -i '$a\  {2}\\n  {3}\\n  {4}' {0};""".format(
+              test, cmdCmpiImport, cmdCmpiTrace, cmdConverterImport,
+              cmdInitGlobalDicts, nreps, bktest, test[:-3])
+                    
         if m1 is not None: cmd = 'cd %s; %s time %s %s'%(path, cmdReps, pythonExec, test)
         else: cmd = 'cd %s; %s time kpython -n 2 -t %d %s'%(path, cmdReps, nthreads//2, test)
 
@@ -537,11 +537,11 @@ def runSingleUnitaryTest(no, module, test):
         if nreps > 1:
             if success == 1:
                 tolMem = 0.1
-                getMemCmd = "cd {0}; ls; cut -f 2 -d '[' proc_{1}000.txt | cut -f 1 -d ' ' > tmp2_{2};".format(path, test[:-3], test)
+                getMemCmd = "cd {0}; ls; cut -f 2 -d '[' proc_{1}000.txt | cut -f 1 -d ' ' > tmp_{2};".format(path, test[:-3], test)
                 _ = check_output(getMemCmd, shell=True, stderr=subprocess.STDOUT)
-                memData = np.loadtxt("{0}/tmp2_{1}".format(path, test))
+                memData = np.loadtxt("{0}/tmp_{1}".format(path, test))
                 if memData.size > 0:
-                    # MEMFAILED if the delta mem if greater than a tolerance
+                    # FAILEDMEM if the delta mem if greater than a tolerance
                     # for each successive rerun
                     relDMem = np.diff(memData)/memData[:-1]*100.
                     print("Successive relative MEM increments (%)", relDMem)
@@ -587,7 +587,7 @@ def runSingleUnitaryTest(no, module, test):
         
     finally:
         if nreps > 1 and not (mySystem == 'mingw' or mySystem == 'windows'):
-            cleanCmd = "cd {0}; mv {1} {2}; rm -f tmp_{2} tmp2_{2} proc_{3}*.txt;".format(
+            cleanCmd = "cd {0}; mv {1} {2}; rm -f tmp_{2} proc_{3}*.txt;".format(
                 path, bktest, test, test[:-3])
             _ = check_output(cleanCmd, shell=True, stderr=subprocess.STDOUT)
 
@@ -604,7 +604,7 @@ def runSingleUnitaryTest(no, module, test):
 
     # update status
     if success == 1: status = 'OK'
-    elif success == -1: status = 'MEMFAILED'
+    elif success == -1: status = 'FAILEDMEM'
     else: status = 'FAILED'
     s = buildString(module, test, CPUtime, coverage, status, tag)
     regTest = re.compile(' '+test+' ')
@@ -1026,7 +1026,7 @@ def selectAll(event=None):
     displayProgress(0, total, remaining, 0.)
 
 #==============================================================================
-# Affiche les test FAILED ou MEMFAILED dans la listbox
+# Affiche les test FAILED ou FAILEDMEM dans la listbox
 #==============================================================================
 def showFilter(filter='FAILED'):
     listbox.delete(0, TK.END)
@@ -1403,7 +1403,7 @@ def tagSelection(event=None):
         testr = os.path.splitext(test)
         fileStar = path+'/Data/'+testr[0]+'.star'
         writeStar(fileStar, '*')
-        splits[7] = ' *'.ljust(4)
+        splits[6] = ' * '
         s = separator.join(i for i in splits)
         regTest = re.compile(' '+test+' ')
         regModule = re.compile(module+' ')
@@ -1429,7 +1429,7 @@ def untagSelection(event=None):
         testr = os.path.splitext(test)
         fileStar = path+'/Data/'+testr[0]+'.star'
         rmFile(path, testr[0]+'.star')
-        splits[7] = ' '*5
+        splits[6] = ' '*3
         s = separator.join(i for i in splits)
         regTest = re.compile(' '+test+' ')
         regModule = re.compile(module+' ')
@@ -1607,8 +1607,8 @@ file.add_command(label='Export to text file', command=export2Text)
 file.add_command(label='Notify Ready for commit', command=notifyValidOK)
 file.add_command(label='Quit', command=Quit, accelerator='Ctrl+Q')
 view.add_command(label='Show FAILED', command=showFilter)
-showFilterWithArgs = partial(showFilter, "MEMFAILED")
-view.add_command(label='Show MEMFAILED', command=showFilterWithArgs)
+showFilterWithArgs = partial(showFilter, "FAILEDMEM")
+view.add_command(label='Show FAILEDMEM', command=showFilterWithArgs)
 view.add_command(label='Show ALL tests', command=showAll)
 view.add_separator()
 view.add_command(label='Show run cases', command=showRunCases)
@@ -1627,11 +1627,9 @@ view.add_separator()
 view.add_command(label='Select all visible tests', command=selectAll,
                  accelerator='Ctrl+A')
 
-filterModulesTestsWithArgs = partial(filterModulesTests, master)
-#filterTestsWithArgs = partial(filterSeqParTests, master)
-#tools.add_command(label='Filter tests', command=filterTestsWithArgs)
-tools.add_command(label='Filter modules and tests', command=filterModulesTestsWithArgs)
-tools.add_separator()
+#filterModulesTestsWithArgs = partial(filterModulesTests, master)
+#tools.add_command(label='Filter modules and tests', command=filterModulesTestsWithArgs)
+#tools.add_separator()
 tools.add_command(label='Tag selection', command=tagSelection)
 tools.add_command(label='Untag selection', command=untagSelection)
 tools.add_separator()
@@ -1703,7 +1701,7 @@ filterInfoBulle = 'Filter test database using a regexp.\n'+'-'*70+'\n'\
   '4) Coverage filter using %: %100\n'\
   '5) Keyworded filters: <SEQ>, <DIST>, <RUN>, <UNRUN>, <TAG>, <UNTAG>.\n'\
   '6) Logical OR ops unless prefixed with & (AND): #Converter &/FAILED\n'\
-  '7) Negation of a filter using !: #Fast &#!FastC (innermost symbol)'
+  '7) Negated using !: #Fast &#!FastC (innermost symbol)'
 BB = CTK.infoBulle(parent=text, text=filterInfoBulle)
 
 button = TK.Button(frame, text='Run', command=runTestsInThread, fg='blue')
@@ -1729,6 +1727,8 @@ BB = CTK.infoBulle(parent=text, text='Number of threads.')
 Repeats = TK.IntVar(master, value=1)
 repeatsEntry = TK.Entry(frame, textvariable=Repeats, background='White',
                         width=3)
+if mySystem == 'windows' or mySystem == 'mingw':
+    repeatsEntry["state"] = "disabled"
 repeatsEntry.grid(row=1, column=10, sticky=TK.EW)
 repeatsEntry.bind('<Return>', setNRepeats)
 repeatsEntry.bind('<KP_Enter>', setNRepeats)
