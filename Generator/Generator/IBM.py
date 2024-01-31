@@ -7,6 +7,8 @@ import Converter.PyTree as C
 import Transform.PyTree as T
 import Converter.Internal as Internal
 import Connector.IBM as X_IBM
+import Geom.IBM as D_IBM
+import Geom.PyTree as D
 import Post.PyTree as P
 import Converter
 import Transform
@@ -135,11 +137,12 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tb
                 ibctype = Internal.getValue(ibctype)
                 if ibctype == 'Musker' or ibctype == 'Log':
                     raise ValueError("In tb: governing equations (Euler) not consistent with ibc type (%s)"%(ibctype))
-
-    o = buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
-                    dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileo, rank=0,
-                    expand=expand, dfarDir=dfarDir, mode=mode)
-
+    if to is None:
+        o = buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
+                        dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileo, rank=0,
+                        expand=expand, dfarDir=dfarDir, mode=mode)
+    else:
+        o = Internal.getZones(to)[0]
     if check: C.convertPyTree2File(o, "octree.cgns")
 
     # retourne les 4 quarts (en 2D) de l'octree parent 2 niveaux plus haut
@@ -197,6 +200,32 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
 
     if check_snear: exit()
     
+    # adjust the extent of the box defining the symmetry plane if in tb
+    baseSYM = Internal.getNodeFromName1(tb,"SYM")
+    if baseSYM is not None:
+        [xmin,ymin,zmin,xmax,ymax,zmax] = G.bbox(baseSYM) 
+        if xmax==0.: coordsym = 'CoordinateX'; dir_sym=1
+        elif ymax==0.: coordsym = 'CoordinateY'; dir_sym=2
+        else: coordsym = 'CoordinateZ'; dir_sym=3
+        print(" dir_sym", dir_sym)
+        snear_sym = Internal.getValue(Internal.getNodeFromName(baseSYM,"snear"))
+        Internal._rmNodesFromType(baseSYM,"Zone_t")
+
+        [xmin,ymin,zmin,xmax,ymax,zmax] = G.bbox(o)
+        L = 0.5*(xmax+xmin); eps = 0.2*L
+        xmin = xmin-eps; ymin = ymin-eps; zmin = zmin-eps
+        xmax = xmax+eps; ymax = ymax+eps; zmax = zmax+eps        
+        if dir_sym==1: xmax=0.
+        elif dir_sym==2: ymax=0.
+        else: zmax=0.        
+        a = D.box((xmin,ymin,zmin),(xmax,ymax,zmax))
+        C._initVars(a,'{centers:cellN}=({centers:%s}>-1e-8)'%coordsym)
+        baseSYM[2]+=a
+        D_IBM._setSnear(baseSYM,snear_sym)
+        D_IBM._setDfar(baseSYM,-1.)
+        D_IBM._setIBCType(baseSYM, "slip")
+            
+
     # Split octree
     bb = G.bbox(o)
     NPI = Cmpi.size

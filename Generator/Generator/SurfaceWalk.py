@@ -23,7 +23,7 @@ except: raise ImportError("SurfaceWalk: requires Converter, Geom, Transform, Pos
 # starting from a curve c on the surface
 #=============================================================================
 def buildExtension__(c, surfaces, dh, niter=0):
-    #vars = c[0]
+    vars = c[0]
     c = C.convertBAR2Struct(c)
     imax = c[1].shape[1]
     for nos in range(len(surfaces)):
@@ -42,10 +42,11 @@ def buildExtension__(c, surfaces, dh, niter=0):
     coords[1][0,0:imax] = cp[1][0,:]
     coords[1][1,0:imax] = cp[1][1,:]
     coords[1][2,0:imax] = cp[1][2,:]
+    sn = ['sx','sy','sz']
     for j1 in range(1,jmax):
         hloc = dh[1][0,j1]-dh[1][0,j1-1]
         istart = j1*imax; iend = istart+imax
-        ht = G.getLocalStepFactor__(cp)
+        ht = G.getLocalStepFactor__(cp, sn, smoothType=0, nitLocal=0, kappaType=0, kappaS=0, algo=0)
         ht[1][0,:] = hloc*ht[1][0,:]
         n2 = C.copy(n1)
         n2[1][0,:] = ht[1][0,:]*n1[1][0,:]

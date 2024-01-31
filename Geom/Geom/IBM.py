@@ -56,7 +56,7 @@ def _addSymPlane(tb, snear_sym, dir_sym=2):
         if dfarl is not None:
             dfarl = Internal.getValue(dfarl)
             dfarList.append(dfarl)
-            
+
     o = G.octree(tb, snearList=snearList, dfarList=dfarList)
 
     [xmin,ymin,zmin,xmax,ymax,zmax] = G.bbox(o)
@@ -98,7 +98,7 @@ def _setSnear(t, value):
     for z in zones:
         Internal._createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
         n = Internal.getNodeFromName1(z, '.Solver#define')
-        Internal._createUniqueChild(n, 'snear', 'DataArray_t', value)
+        Internal._createUniqueChild(n, 'snear', 'DataArray_t', float(value))
     return None
 
 #==============================================================================
@@ -119,7 +119,7 @@ def _setDfar(t, value):
     for z in zones:
         Internal._createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
         n = Internal.getNodeFromName1(z, '.Solver#define')
-        Internal._createUniqueChild(n, 'dfar', 'DataArray_t', value)
+        Internal._createUniqueChild(n, 'dfar', 'DataArray_t', float(value))
     return None
 
 #==============================================================================

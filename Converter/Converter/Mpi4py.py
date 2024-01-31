@@ -533,7 +533,7 @@ def printA(A):
 #==============================================================================
 def createBboxDict(t):
     try: import Generator.PyTree as G
-    except: raise ImportError("createBBoxTree requires Generator module.")
+    except: raise ImportError("createBboxDict requires Generator module.")
     bboxDict = {}
     zones = Internal.getZones(t)
     for z in zones:
