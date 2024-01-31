@@ -35,8 +35,6 @@ E_Int get_reorient(E_Int face, E_Int cell, E_Int normalIn, AMesh *M);
 void reorder_cells(AMesh *M);
 void compute_face_center_and_area(E_Int id, E_Int stride,
   E_Int *pn, E_Float *x, E_Float *y, E_Float *z, E_Float *fc, E_Float *fa);
-void Order_tri(E_Int *local, E_Int *pn, E_Int reorient, E_Int i0);
-void Order_quad(E_Int *local, E_Int *pn, E_Int reorient, E_Int i0);
 E_Int check_canon_tetra(E_Int cell, AMesh *M);
 E_Int check_canon_hexa(E_Int cell, AMesh *M);
 E_Int check_canon_penta(E_Int cell, AMesh *M);
@@ -70,8 +68,8 @@ void refine_cells(const std::vector<E_Int> &ref_cells, size_t start,
   size_t stop, AMesh *M);
 void update_external_pe_after_ref(E_Int cell, AMesh *M);
 void update_external_pe_after_unref(E_Int cell, AMesh *M);
-void refine_mesh(AMesh *, std::vector<E_Int> &ref_faces,
-  std::vector<E_Int> &ref_cells);
+void refine_mesh(AMesh *, const std::vector<E_Int> &ref_faces,
+  const std::vector<E_Int> &ref_cells);
 void update_global_cells_after_ref(AMesh *M);
 void resize_data_for_synchronisation(AMesh *M);
 void update_patch_faces_after_ref(AMesh *M);
@@ -88,7 +86,6 @@ void unrefine_cells(const std::vector<E_Int> &unref_cells, size_t start,
   size_t stop, AMesh *M);
 void assign_pattern_to_adapt_faces(const std::vector<E_Int> &adapt_faces,
   std::vector<E_Int> &patterns, AMesh *M);
-void unrefine_tetra(E_Int cell, AMesh *M);
 void unrefine_pyra(E_Int cell, AMesh *M);
 void unrefine_mesh(AMesh *M, std::vector<E_Int> &unref_faces,
   std::vector<E_Int> &unref_cells);
@@ -127,29 +124,40 @@ void H18_refine(E_Int cell, AMesh *M);
 void H18_unrefine(E_Int cell, AMesh *M);
 void H27_refine(E_Int cell, AMesh *M);
 void H27_unrefine(E_Int cell, AMesh *M);
+void reorder_hexa(E_Int i, E_Int nf, E_Int *pf, AMesh *M);
+
 
 // Penta
 void Pe12_refine(E_Int cell, AMesh *M);
 void Pe12_unrefine(E_Int cell, AMesh *M);
 void Pe18_refine(E_Int cell, AMesh *M);
 void Pe18_unrefine(E_Int cell, AMesh *M);
-
+void reorder_penta(E_Int i, E_Int nf, E_Int *pf, AMesh *M);
 
 // Quad
 void Q6_get_ordered_data(AMesh *M, E_Int NODE, E_Int reorient,
   E_Int *children, E_Int *local);
 void Q6_refine(E_Int face, AMesh *M);
 void Q6_unrefine(E_Int face, AMesh *M);
-
 void Q9_get_ordered_data(AMesh *M, E_Int NODE, E_Int reorient,
   E_Int *children, E_Int *local);
 void Q9_refine(E_Int face, AMesh *M);
 void Q9_unrefine(E_Int face, AMesh *M);
+void reorder_quad(E_Int *local, E_Int *pn, E_Int reorient, E_Int i0);
 
 // Tri
 void T6_get_ordered_data(AMesh *M, E_Int NODE, E_Int reorient,
   E_Int *children, E_Int *local);
 void T6_refine(E_Int face, AMesh *);
 void T6_unrefine(E_Int face, AMesh *);
+void reorder_tri(E_Int *local, E_Int *pn, E_Int reorient, E_Int i0);
+
+// Tetra
+void reorder_tetra(E_Int i, E_Int nf, E_Int *pf, AMesh *M);
+void unrefine_tetra(E_Int cell, AMesh *M);
+void refine_tetra(E_Int cell, AMesh *M);
+
+// Pyra
+void reorder_pyra(E_Int i, E_Int nf, E_Int *pf, AMesh *M);
 
 #endif

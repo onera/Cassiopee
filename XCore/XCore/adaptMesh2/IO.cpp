@@ -90,7 +90,7 @@ PyObject *extract_conformal_mesh(AMesh *M, E_Int closed_mesh)
   assert(K_CONNECT::check_open_cells(*cno, NULL) == 0);
   assert(K_CONNECT::check_overlapping_cells(*cno) == 0);
 
-  return m;
+  //return m;
 
   // BCs
   PyObject *BCS = PyList_New(0);
@@ -327,7 +327,6 @@ PyObject *K_XCORE::_assignRefDataToAM(PyObject *self, PyObject *args)
 
   //smooth_ref_data(M);
   smooth_ref_data_parallel(M);
-
 
   return Py_None;
 }

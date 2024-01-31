@@ -438,3 +438,10 @@ void Q6_get_ordered_data(AMesh *M, E_Int NODE, E_Int reorient,
     }
   }
 }
+
+void reorder_quad(E_Int *local, E_Int *pn, E_Int reorient, E_Int i0)
+{
+  for (E_Int i = 0; i < 4; i++) local[i] = pn[i];
+  Right_shift(local, i0, 4);
+  if (reorient) std::swap(local[1], local[3]);
+}

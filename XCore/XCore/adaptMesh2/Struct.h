@@ -192,6 +192,10 @@ struct AMesh {
   E_Int prev_nfaces;
   E_Int prev_npoints;
 
+  E_Int onc;
+  E_Int onf;
+  E_Int onp;
+
   /* Parallel */
 
   int pid;
@@ -209,14 +213,6 @@ struct AMesh {
   std::unordered_map<E_Int, E_Int> *PT;
   std::unordered_map<E_Int, E_Int> *FT;
   std::unordered_map<E_Int, E_Int> *CT;
-
-  E_Float **px;
-  E_Float **py;
-  E_Float **pz;
-  E_Float **pfld;
-  E_Int **pref;
-  E_Int **plvl;
-
 
   /* Export */
 

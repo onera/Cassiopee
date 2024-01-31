@@ -397,9 +397,9 @@ E_Float gradient_norm(E_Float G[3])
 
 PyObject *K_XCORE::_makeRefDataFromGradAndHess(PyObject *self, PyObject *args)
 {
-  PyObject *ARRAY, *FIELD, *GRAD, *HESS, *AMESH;
+  PyObject *AMESH, *FIELD, *GRAD, *HESS;
 
-  if (!PYPARSETUPLE_(args, OOOO_ O_, &ARRAY, &FIELD, &GRAD, &HESS, &AMESH)) {
+  if (!PYPARSETUPLE_(args, OOOO_, &AMESH, &FIELD, &GRAD, &HESS)) {
     RAISE("Wrong input.");
     return NULL;
   }
@@ -416,9 +416,13 @@ PyObject *K_XCORE::_makeRefDataFromGradAndHess(PyObject *self, PyObject *args)
   ret = K_NUMPY::getFromNumpyArray(HESS, hess, size, nfld, true);
   assert(ret == 1 && nfld == 1 && size == M->ncells*6);
 
-  // Init ref data
-  M->ref_data = (int *)XRESIZE(M->ref_data, M->ncells*sizeof(int));
-  memset(M->ref_data, 0, M->ncells*sizeof(int));
+  npy_intp dims[2];
+  dims[0] = (npy_intp)M->ncells;
+  dims[1] = 1;
+
+  PyArrayObject *R = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
+  E_Int *ptr = (E_Int *)PyArray_DATA(R);
+  memset(ptr, 0, M->ncells*sizeof(E_Int));
 
   // Compute cells principal directions
   std::vector<pDirs> Dirs(M->ncells);
@@ -449,16 +453,8 @@ PyObject *K_XCORE::_makeRefDataFromGradAndHess(PyObject *self, PyObject *args)
     E_Float val = h*h*hessian_norm(&hess[6*i]);
     val /= h*gradient_norm(&grad[3*i]) + M->eps*mean;
 
-    if (val >= M->Tr && h > M->hmin) M->ref_data[i] = 1;
-    //else if (val <= M->Tu && h < M->hmax) M->ref_data[i] = -1;
+    if (val >= M->Tr && h > M->hmin) ptr[i] = 1;
   }
 
-  /*for (E_Int i = 0; i < M->ncells; i++)
-    if (M->ref_data[i]) printf("%d\n", M->gcells[i]);
-  EXIT;*/
-
-  // Smooth ref data
-  smooth_ref_data_parallel(M);
-
-  return Py_None;
+  return (PyObject *)R;
 }

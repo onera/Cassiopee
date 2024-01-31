@@ -323,6 +323,4 @@ void unrefine_mesh(AMesh *M, std::vector<E_Int> &unref_faces,
       sizeNGon += get_stride(i, M->indPG);
     }
   }
-
-  compress_mesh(M, new_cells, new_faces, nc, nf, sizeNFace, sizeNGon);
 }

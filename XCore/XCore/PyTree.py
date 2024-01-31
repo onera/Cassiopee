@@ -275,12 +275,8 @@ def _metricToRefData(M, AM):
   XCore.xcore._metricToRefData(M, AM)
   return None
 
-def _makeRefDataFromGradAndHess(t, f, g, h, AM):
-  zones = I.getZones(t)
-  zone = zones[0]
-  arr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
-  XCore.xcore._makeRefDataFromGradAndHess(arr, f, g, h, AM)
-  return None
+def _makeRefDataFromGradAndHess(AM, f, g, h):
+  return XCore.xcore._makeRefDataFromGradAndHess(AM, f, g, h)
 
 def _prepareMeshForAdaptation(t):
     zones = I.getZones(t)

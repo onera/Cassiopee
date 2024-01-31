@@ -1,20 +1,5 @@
 #include "Proto.h"
 
-// 1. Make a mesh with bcs
-// 2. Create AdaptMesh
-// 3. Renumber mesh: internal faces - boundary faces
-
-// 3. Convert to foam mesh
-// 4. Map prev solution onto current mesh
-// 5. Run for niters
-
-// 6. Convert to cgns
-// 7. Adapt (refine - unrefine)
-// 8. Shrink adapt data
-// 9. Renumber mesh: internal faces - boundary faces
-
-// 10. Repeat steps 3 to 9 until end time
-
 PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
 {
   PyObject *ARRAY, *OWN, *NEI, *COMM, *BCS, *NORMAL_2D;
@@ -139,13 +124,9 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
 
   M->nif = M->nfaces - M->nbf - M->npf;
 
-  // Interface buffers
-  M->px   = (E_Float **)XCALLOC(M->npatches, sizeof(E_Float *));
-  M->py   = (E_Float **)XCALLOC(M->npatches, sizeof(E_Float *));
-  M->pz   = (E_Float **)XCALLOC(M->npatches, sizeof(E_Float *));
-  M->pfld = (E_Float **)XCALLOC(M->npatches, sizeof(E_Float *));
-  M->pref = (E_Int **)  XCALLOC(M->npatches, sizeof(E_Int *));
-  M->plvl = (E_Int **)  XCALLOC(M->npatches, sizeof(E_Int *));
+  M->onc = M->ncells;
+  M->onf = M->nfaces;
+  M->onp = M->npoints;
 
   // Adaptation trees
   M->cellTree = new Tree(M->ncells);
@@ -164,10 +145,6 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
   if (NORMAL_2D != Py_None) {
     K_NUMPY::getFromNumpyArray(NORMAL_2D, M->mode_2D, size, nfld, false);
     assert(size == 3 && nfld == 1);
-    //if (M->mode_2D) {
-    //  printf("2D mode normal to (%f %f %f)\n", M->mode_2D[0], M->mode_2D[1],
-    //    M->mode_2D[2]);
-    //}
   }
 
   // Parse global cells / faces / points
@@ -250,6 +227,20 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
   M->prev_nfaces = M->nfaces;
   M->prev_npoints = M->npoints;
 
+  resize_data_for_refinement(M, ref_cells.size(), ref_faces.size());
+
+  if (ref_faces.size()) {
+    std::sort(ref_faces.begin(), ref_faces.end(), [&] (E_Int i, E_Int j) {
+      return M->faceTree->level(i) < M->faceTree->level(j);
+    });
+  }
+
+  if (ref_cells.size()) {
+    std::sort(ref_cells.begin(), ref_cells.end(), [&] (E_Int i, E_Int j) {
+      return M->cellTree->level(i) < M->cellTree->level(j);
+    });
+  }
+
   refine_mesh(M, ref_faces, ref_cells);
 
   update_patch_faces_after_ref(M);
@@ -258,7 +249,7 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
   MPI_Allreduce(&M->ncells, &gncells, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
   if (M->pid == 0)
-    printf("total leaves: %d\n", gncells);
+    printf("Total leaves: %d\n", gncells);
 
   for (E_Int i = 0; i < M->ncells; i++) M->cellTree->state_[i] = UNTOUCHED;
   for (E_Int i = 0; i < M->nfaces; i++) M->faceTree->state_[i] = UNTOUCHED;

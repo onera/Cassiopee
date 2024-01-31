@@ -838,3 +838,59 @@ E_Int check_closed_cell(E_Int cell, E_Int *pf, E_Int stride, AMesh *M)
 
   return 1;
 }
+
+void reorder_cells(AMesh *M)
+{
+  if (M->mode_2D)
+    set_cells_for_2D(M);
+
+  for (E_Int i = 0; i < M->ncells; i++) {
+    E_Int nf = -1;
+    E_Int *pf = get_cell(i, nf, M->nface, M->indPH);
+    E_Int ctype = M->cellTree->type_[i];
+
+    switch (ctype) {
+      case TETRA:
+        reorder_tetra(i, nf, pf, M);
+        break;
+      case PENTA:
+        reorder_penta(i, nf, pf, M);
+        break;
+      case PYRA:
+        reorder_pyra(i, nf, pf, M);
+        break;
+      case HEXA:
+        reorder_hexa(i, nf, pf, M);
+        break;
+      default:
+        assert(0);
+        break;
+    }
+  }
+}
+
+E_Int check_canon_cells(AMesh *M)
+{
+  for (E_Int i = 0; i < M->ncells; i++) {
+    E_Int type = M->cellTree->type_[i];
+    switch (type) {
+      case HEXA:
+        assert(check_canon_hexa(i, M));
+        break;
+      case TETRA:
+        assert(check_canon_tetra(i, M));
+        break;
+      case PENTA:
+        assert(check_canon_penta(i, M));
+        break;
+      case PYRA:
+        assert(check_canon_pyra(i, M));
+        break;
+      default:
+        assert(0);
+        break;
+    }
+  }
+
+  return 1;
+}

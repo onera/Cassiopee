@@ -47,24 +47,34 @@ if mpi: # source that requires mpi
             'XCore/adaptMesh/computeGradientNGon.cpp',
             'XCore/adaptMesh/computeCellCentersAndVolumes.cpp',
             
-            'XCore/adaptMesh2/Mesh.cpp',
+
+            'XCore/adaptMesh2/PrepareMeshForAdaptation.cpp',
+
             'XCore/adaptMesh2/AdaptMesh.cpp',
-            'XCore/adaptMesh2/Comm.cpp',
-            'XCore/adaptMesh2/Refine.cpp',
-            'XCore/adaptMesh2/RenumberMesh.cpp',
+            'XCore/adaptMesh2/Mesh.cpp',
             'XCore/adaptMesh2/Topo.cpp',
             'XCore/adaptMesh2/Tree.cpp',
-            'XCore/adaptMesh2/Hessian.cpp',
+            'XCore/adaptMesh2/Refine.cpp',
+            'XCore/adaptMesh2/Unrefine.cpp',
+            
+            'XCore/adaptMesh2/Comm.cpp',
+            
+            'XCore/adaptMesh2/RenumberMesh.cpp',
+
             'XCore/adaptMesh2/Gradient.cpp',
+            'XCore/adaptMesh2/Hessian.cpp',
             'XCore/adaptMesh2/HessianToMetric.cpp',
             'XCore/adaptMesh2/MetricToRefData.cpp',
-            'XCore/adaptMesh2/PrepareMeshForAdaptation.cpp',
-            'XCore/adaptMesh2/Hexa.cpp',
+            
+            'XCore/adaptMesh2/IO.cpp',
+
             'XCore/adaptMesh2/Quad.cpp',
-            'XCore/adaptMesh2/Unrefine.cpp',
             'XCore/adaptMesh2/Tri.cpp',
+
             'XCore/adaptMesh2/Penta.cpp',
-            'XCore/adaptMesh2/IO.cpp'
+            'XCore/adaptMesh2/Hexa.cpp',
+            'XCore/adaptMesh2/Tetra.cpp',
+            'XCore/adaptMesh2/Pyra.cpp'
             ]
 else:
     cpp_srcs += [
