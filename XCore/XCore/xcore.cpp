@@ -47,6 +47,8 @@ static PyMethodDef Pyxcore [] =
   {"_metricToRefData", K_XCORE::_metricToRefData, METH_VARARGS},
   {"_makeRefDataFromGradAndHess", K_XCORE::_makeRefDataFromGradAndHess, METH_VARARGS},
   {"_prepareMeshForAdaptation", K_XCORE::_prepareMeshForAdaptation, METH_VARARGS},
+  {"ExtractLeafMesh", K_XCORE::ExtractLeafMesh, METH_VARARGS},
+  {"_assignRefDataToAM", K_XCORE::_assignRefDataToAM, METH_VARARGS},
   {NULL, NULL}
 };
 

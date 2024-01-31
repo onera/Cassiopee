@@ -63,7 +63,8 @@ if mpi: # source that requires mpi
             'XCore/adaptMesh2/Quad.cpp',
             'XCore/adaptMesh2/Unrefine.cpp',
             'XCore/adaptMesh2/Tri.cpp',
-            'XCore/adaptMesh2/Penta.cpp'
+            'XCore/adaptMesh2/Penta.cpp',
+            'XCore/adaptMesh2/IO.cpp'
             ]
 else:
     cpp_srcs += [

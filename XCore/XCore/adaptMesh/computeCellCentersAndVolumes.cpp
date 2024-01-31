@@ -26,11 +26,9 @@ void compute_cell_centers_and_vols
 )
 {
   E_Int *nface = cn.getNFace();
-  E_Int *ngon = cn.getNGon();
   E_Int *indPH = cn.getIndPH();
-  E_Int *indPG = cn.getIndPG();
-  E_Int ncells = cn.getNElts();
   E_Int nfaces = cn.getNFaces();
+  E_Int ncells = cn.getNElts();
   
   E_Float *vols;
   if (volumes) vols = volumes;

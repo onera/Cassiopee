@@ -6,6 +6,9 @@
 
 // Metric
 void compute_ref_data(AMesh *M, E_Float **fields, E_Int nfields);
+void reconstruct_parent_quad(E_Int face, AMesh *M, E_Int pn[4]);
+void smooth_ref_data_parallel(AMesh *M);
+void smooth_ref_data(AMesh *M);
 
 // Comm
 void Comm_interface_data_i(AMesh *M, E_Int *data, E_Int stride, E_Int **rbuf);

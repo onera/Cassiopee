@@ -108,7 +108,13 @@ void Q9_refine(E_Int face, AMesh *M)
   }
 
   // Note(Imad): face center is supposed to be already computed
-  E_Float *fc = &M->fc[3*face];
+  E_Float fc[3] = {0., 0., 0.};
+  for (E_Int i = 0; i < 4; i++) {
+    fc[0] += M->x[pn[i]];
+    fc[1] += M->y[pn[i]];
+    fc[2] += M->z[pn[i]];
+  }
+  for (E_Int i = 0; i < 3; i++) fc[i] /= 4.0;
   M->x[M->npoints] = fc[0];
   M->y[M->npoints] = fc[1];
   M->z[M->npoints] = fc[2];

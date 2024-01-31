@@ -25,9 +25,9 @@ PyObject *K_XCORE::hessianToMetric(PyObject *self, PyObject *args)
   PyArrayObject *METRIC = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_DOUBLE);
   E_Float *M = (E_Float *)PyArray_DATA(METRIC);
 
-  E_Float cd_by_eps = 0.28125 / eps;
-  E_Float lmin = 1.0/(hmax*hmax);
-  E_Float lmax = 1.0/(hmin*hmin);
+  //E_Float cd_by_eps = 0.28125 / eps;
+  //E_Float lmin = 1.0/(hmax*hmax);
+  //E_Float lmax = 1.0/(hmin*hmin);
 
   for (E_Int i = 0; i < ncells; i++) {
     E_Float *pH = &H[6*i];

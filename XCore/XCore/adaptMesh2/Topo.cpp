@@ -15,8 +15,6 @@ void set_PENTA_for_2D(E_Int cell, AMesh *M)
 
   E_Int start = 0;
   for (; start < nf; start++) {
-    E_Int face = pf[start];
-    E_Int np = -1;
     E_Int *pn = get_face(cell, nf, M->ngon, M->indPG);
 
     // Compute normal to the triangle formed by the first 3 points

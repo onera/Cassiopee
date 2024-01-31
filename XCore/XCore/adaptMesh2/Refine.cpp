@@ -60,7 +60,6 @@ void get_ref_faces_and_cells(AMesh *M, std::vector<E_Int> &ref_faces,
   }
 
   // PROC FACES !!!!!!
-  
   for (E_Int i = 0; i < M->npatches; i++) {
     Patch *P = &M->patches[i];
 
@@ -97,29 +96,27 @@ void get_ref_faces_and_cells(AMesh *M, std::vector<E_Int> &ref_faces,
   }
 
   for (E_Int i = 0; i < M->nfaces; i++) {
-    if (M->neigh[i] == -1) continue;
-
-    E_Int flvl = M->faceTree->level(i);
-
-    E_Int own = M->owner[i];
     E_Int nei = M->neigh[i];
 
+    if (nei == -1) continue;
+    
+    E_Int flvl = M->faceTree->level(i);
+    
+    E_Int own = M->owner[i];
+    
     E_Int lo = M->cellTree->level(own);
-    E_Int ln = M->cellTree->level(nei);
-
     E_Int ro = M->ref_data[own];
-    E_Int rn = M->ref_data[nei];
-
     E_Int oval = lo + ro;
+    
+    E_Int ln = M->cellTree->level(nei);
+    E_Int rn = M->ref_data[nei];
     E_Int nval = ln + rn;
-
-    // Refine if oval or nval is greater than flvl
+    
     if (oval > flvl || nval > flvl) {
       ref_faces.push_back(i);
+      continue;
     }
   }
-
-  
 }
 
 /* BACKUP
@@ -207,6 +204,7 @@ void get_ref_cells_and_faces(AMesh *M, std::vector<E_Int> &ref_cells,
 }
 */
 
+/*
 static
 void refine_tri(E_Int face, AMesh *M)
 {
@@ -277,6 +275,7 @@ void refine_tri(E_Int face, AMesh *M)
 
   M->nfaces += 3;
 }
+*/
 
 //static
 void T6_get_ordered_data(AMesh *M, E_Int NODE, E_Int reorient,
@@ -536,10 +535,10 @@ void refine_tetra(E_Int cell, AMesh *M)
   */
 }
 
+/*
 static
 void refine_penta(E_Int cell, AMesh *M)
 {
-  /*
   E_Int NODES[18], FACES[20];
   for (E_Int i = 0; i < 18; i++) NODES[i] = -1;
   E_Int *BOT = FACES;
@@ -863,8 +862,8 @@ void refine_penta(E_Int cell, AMesh *M)
 
   M->ncells += 7;
   M->nfaces += 10;
-  */
 }
+*/
 
 static
 void refine_pyra(E_Int cell, AMesh *M)
@@ -1298,6 +1297,53 @@ void refine_cells(const std::vector<E_Int> &ref_cells, size_t start,
   }
 }
 
+static
+void assign_pattern_to_ref_face(E_Int face, E_Int &pattern, AMesh *M)
+{
+  if (!M->mode_2D) return;
+
+  E_Int own = M->owner[face];
+  E_Int nf = -1;
+  E_Int *pf = get_cell(own, nf, M->nface, M->indPH);
+
+  E_Int fpos = -1;
+    
+  E_Int flvl = M->faceTree->level(face);
+  E_Int olvl = M->cellTree->level(own);
+
+  if (flvl == olvl)
+    fpos = Get_pos(face, pf, nf);
+  else
+    fpos = Get_pos(master_face(face, M), pf, nf);
+    
+  assert(fpos != -1);
+
+  // BOT and TOP: ISO
+  // Other faces: DIR
+
+  if (fpos == 0 || fpos == 1) pattern = ISO;
+  else pattern = DIR;
+}
+
+static
+void refine_cell(E_Int cell, AMesh *M)
+{
+  if (M->mode_2D) H18_refine(cell, M);
+  else H27_refine(cell, M);
+}
+
+static
+void refine_face(E_Int face, E_Int pattern, AMesh *M)
+{
+  if (!M->mode_2D) {
+    Q9_refine(face, M);
+  } else {
+    if      (pattern == DIR) Q6_refine(face, M);
+    else if (pattern == ISO) Q9_refine(face, M);
+    else assert(0);
+  }
+}
+
 void resize_data_for_refinement(AMesh *M, size_t nref_cells, size_t nref_faces)
 {
   E_Int cell_incr = nref_cells * 7;
@@ -1331,97 +1377,101 @@ void resize_data_for_refinement(AMesh *M, size_t nref_cells, size_t nref_faces)
 void refine_mesh(AMesh *M, std::vector<E_Int> &ref_faces,
   std::vector<E_Int> &ref_cells)
 {
-  //M->prev_ncells = M->ncells;
-  //M->prev_nfaces = M->nfaces;
-  //M->prev_npoints = M->npoints;
+  if (ref_cells.size() == 0) {
+    assert(ref_faces.size() == 0);
+    return;
+  }
 
   resize_data_for_refinement(M, ref_cells.size(), ref_faces.size());
 
-  // Sort ref cells/faces by increasing level
-  std::sort(ref_faces.begin(), ref_faces.end(), [&] (E_Int i, E_Int j)
-  {
+  std::sort(ref_faces.begin(), ref_faces.end(), [&] (E_Int i, E_Int j) {
     return M->faceTree->level(i) < M->faceTree->level(j);
   });
 
-  std::sort(ref_cells.begin(), ref_cells.end(), [&] (E_Int i, E_Int j)
-  {
+  std::sort(ref_cells.begin(), ref_cells.end(), [&] (E_Int i, E_Int j) {
     return M->cellTree->level(i) < M->cellTree->level(j);
   });
 
-  std::vector<E_Int> face_distrib(1, 0), cell_distrib(1, 0);
-  std::vector<E_Int> face_lvl, cell_lvl;
-  E_Int min_flvl = 0;
+
+  for (size_t i = 0; i < ref_cells.size()-1; i++)
+    assert(M->cellTree->level(ref_cells[i]) <= M->cellTree->level(ref_cells[i+1]));
+
+  for (size_t i = 0; i < ref_faces.size()-1; i++)
+    assert(M->faceTree->level(ref_faces[i]) <= M->faceTree->level(ref_faces[i+1]));
   
-  if (ref_faces.size() > 0) {
-    min_flvl = M->faceTree->level(ref_faces[0]);
+  // First update the cells that do not need face refinement
+  if (ref_faces.size() == 0) {
+    for (auto cell: ref_cells) refine_cell(cell, M);
 
-    face_lvl.push_back(min_flvl);
+    update_boundary_faces(M);
 
-    for (size_t i = 1; i < ref_faces.size(); i++) {
-      if (M->faceTree->level(ref_faces[i]) > min_flvl) {
-        min_flvl = M->faceTree->level(ref_faces[i]);
-        face_distrib.push_back(i);
-        face_lvl.push_back(min_flvl);
-      }
+    // TODO(Imad): get rid of this resize
+    if (M->ncells < M->cellTree->nelem_)
+      M->cellTree->resize(M->ncells);
+    if (M->nfaces < M->faceTree->nelem_)
+      M->faceTree->resize(M->nfaces);
+
+    return;
+  }
+
+  // Now ensure cells with a smaller level than the smallest ref_face level
+  // get refined first
+
+  E_Int min_flvl = M->faceTree->level(ref_faces[0]);
+
+  E_Int cell_start = 0; // Eliminate 'lagging' cells
+
+  while (M->cellTree->level(ref_cells[cell_start]) < min_flvl) {
+    refine_cell(ref_cells[cell_start], M);
+    cell_start += 1;
+  }
+
+  // Now ref faces and cells should be at the same level
+  E_Int cur_clvl = M->cellTree->level(ref_cells[cell_start]);
+  E_Int cur_flvl = M->faceTree->level(ref_faces[0]);
+
+  assert(cur_flvl == cur_clvl);
+ 
+  E_Int cells_left = ref_cells.size() - cell_start;
+  E_Int faces_left = ref_faces.size();
+
+  E_Int face_start = 0;
+
+  E_Int cur_lvl = cur_clvl;
+
+  while (cells_left || faces_left) {
+
+    while (faces_left) {
+      if (M->faceTree->level(ref_faces[face_start]) > cur_lvl)
+        break;
+      
+      E_Int pattern;
+      E_Int face = ref_faces[face_start];
+      assign_pattern_to_ref_face(face, pattern, M);
+      refine_face(face, pattern, M);
+      face_start += 1;
+      faces_left -= 1;
     }
 
-    face_distrib.push_back(ref_faces.size());
-  }
+    while (cells_left) {
+      if (M->cellTree->level(ref_cells[cell_start]) > cur_lvl)
+        break;
 
-  if (ref_cells.size() > 0) {
-    E_Int min_lvl = M->cellTree->level(ref_cells[0]);
-    cell_lvl.push_back(min_lvl);
-
-    for (size_t i = 1; i < ref_cells.size(); i++) {
-      if (M->cellTree->level(ref_cells[i]) > min_lvl) {
-        min_lvl = M->cellTree->level(ref_cells[i]);
-        cell_distrib.push_back(i);
-        cell_lvl.push_back(min_lvl);
-      }
+      E_Int cell = ref_cells[cell_start];
+      refine_cell(cell, M);
+      cell_start += 1;
+      cells_left -= 1;
     }
 
-    cell_distrib.push_back(ref_cells.size());
+    cur_lvl += 1;
   }
-  
-  size_t cell_start = 0;
-
-  if (ref_cells.size() > 0) {
-    while (cell_lvl[cell_start] < face_lvl[0]) {
-      refine_cells(ref_cells, cell_distrib[cell_start],
-        cell_distrib[cell_start+1], M);
-      cell_start++;
-    }
-  }
-
-  std::vector<E_Int> patterns;
-  assign_pattern_to_adapt_faces(ref_faces, patterns, M);
-  
-  for (size_t i = 0; i < face_distrib.size()-1; i++) {
-    refine_faces(ref_faces, patterns, face_distrib[i], face_distrib[i+1], M);
-    refine_cells(ref_cells, cell_distrib[cell_start],
-      cell_distrib[cell_start+1], M);
-    cell_start++;
-  }
-
-  //assert(cell_start == cell_distrib.size()-1);
 
   update_boundary_faces(M);
 
-  //update_global_cells_after_ref(M);
-
-  //resize_data_for_synchronisation(M);
-
-  //update_patch_faces_after_ref(M);
-
-  //update_global_faces_after_ref(M);
-
-  //synchronise_patches_after_ref(M);
-
-  //puts("ok synchro patches after ref");
-
   // TODO(Imad): get rid of this resize
   if (M->ncells < M->cellTree->nelem_)
-      M->cellTree->resize(M->ncells);
+    M->cellTree->resize(M->ncells);
   if (M->nfaces < M->faceTree->nelem_)
-      M->faceTree->resize(M->nfaces);
+    M->faceTree->resize(M->nfaces);
+
 }

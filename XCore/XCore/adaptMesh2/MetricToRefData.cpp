@@ -7,7 +7,7 @@ static
 void make_ref_data_hexa(E_Int cell, AMesh *M, E_Float *pM, const pDirs &Dirs)
 {
   E_Float L0, L1, L2, dd[3];
-  E_Float l[3];
+  //E_Float l[3];
 
   // Compute length in metric space
 
@@ -30,7 +30,53 @@ void make_ref_data_hexa(E_Int cell, AMesh *M, E_Float *pM, const pDirs &Dirs)
   }*/
 }
 
-static
+void smooth_ref_data(AMesh *M)
+{
+    // Init refinement stack
+    std::stack<E_Int> stk;
+    for (E_Int i = 0; i < M->ncells; i++) {
+      if (M->ref_data[i] > 0)
+        stk.push(i);
+    }
+
+    // Smooth locally
+    while (!stk.empty()) {
+      E_Int cell = stk.top();
+      stk.pop();
+
+      E_Int nf = -1;
+      E_Int pf[24];
+      get_full_cell(cell, M, nf, pf);
+
+      std::vector<E_Int> neis(nf);
+      for (E_Int i = 0; i < nf; i++)
+        neis[i] = get_neighbour(cell, pf[i], M);
+
+      E_Int incr_cell = M->ref_data[cell] + M->cellTree->level(cell);
+
+      for (E_Int i = 0; i < nf; i++) {
+        E_Int nei = neis[i];
+        if (nei == -1) continue;
+
+        E_Int incr_nei = M->ref_data[nei] + M->cellTree->level(nei);
+
+        E_Int diff = abs(incr_nei - incr_cell);
+
+        if (diff <= 1) continue;
+
+        E_Int cell_to_mod = incr_cell > incr_nei ? nei : cell;
+
+        E_Int &rmod = M->ref_data[cell_to_mod];
+
+        rmod += 1;
+        
+        stk.push(cell_to_mod);
+      }
+    }
+
+}
+
+
 void smooth_ref_data_parallel(AMesh *M)
 {
   E_Int exchange, max_exchanges;
@@ -113,7 +159,7 @@ void smooth_ref_data_parallel(AMesh *M)
         E_Int oval = M->ref_data[own] + M->cellTree->level(own);
         E_Int nval = P->rbuf_i[j];
 
-        E_Int diff = abs(nval-oval);
+        //E_Int diff = abs(nval-oval);
 
         if (nval > oval + 1) {
           M->ref_data[own] += 1;
@@ -134,173 +180,6 @@ void smooth_ref_data_parallel(AMesh *M)
   if (exchange > max_exchanges)
     fprintf(stderr, "Warning: smoothing exceeded max_exchanges!\n");
 }
-
-/*
-static
-void smooth_ref_data(AMesh *M)
-{
-  //printf("init min ref: %d\n", *std::min_element(M->ref_data, M->ref_data+M->ncells));
-  //printf("init max ref: %d\n", *std::max_element(M->ref_data, M->ref_data+M->ncells));
-
-  // Test 2 strategies:
-  // 1 - first eliminate all impossible unrefinement, then smooth
-  // 2 - smooth, then eliminate impossible unrefinement
-
-  // Note(Imad): I think it should be recursive
-
-  E_Int iter = 0;
-  E_Int changed = 1;
-
-  //puts("Smoothing ref data");
-
-  while (changed) {
-    //printf("    Iter %d\n", iter++);
-
-    if (M->unrefine) {
-      // Eliminate impossible refinement
-
-      std::vector<E_Int> tmp_ref_data(M->ncells, 0);
-
-      for (E_Int i = 0; i < M->ncells; i++) {
-        if (M->ref_data[i] > 0)
-          tmp_ref_data[i] = M->ref_data[i];
-      }
-
-      for (E_Int i = 0; i < M->ncells; i++) {
-        Children *children = M->cellTree->children(i);
-
-        if (children == NULL) continue;
-
-        E_Int skip = 0;
-
-        for (E_Int j = 1; j < children->n; j++) {
-          E_Int child = children->pc[j];
-
-          if (M->cellTree->children(child)) {
-            skip = 1;
-            break;
-          }
-        }
-
-        if (skip) continue;
-
-        // This is a leaf node
-        // To unrefine, all siblings must have negative ref data
-        for (E_Int j = 0; j < children->n; j++) {
-          E_Int child = children->pc[j];
-          if (M->ref_data[child] >= 0) {
-            skip = 1;
-            break;
-          }
-        }
-
-        if (skip) {
-          continue;
-        }
-
-        for (E_Int j = 0; j < children->n; j++) {
-          E_Int child = children->pc[j];
-          assert(M->ref_data[child] < 0);
-
-          tmp_ref_data[child] = M->ref_data[child];
-        }
-      }
-      
-      for (E_Int i = 0; i < M->ncells; i++) M->ref_data[i] = tmp_ref_data[i];
-
-      E_Int cells_to_agglo = 0;
-      for (E_Int i = 0; i < M->ncells; i++) {
-        if (M->ref_data[i] < 0) cells_to_agglo += 1;
-      }
-
-      if (!M->mode_2D)
-        assert(cells_to_agglo % 8 == 0);
-      else
-        assert(cells_to_agglo % 4 == 0);
-    }
-
-    std::stack<E_Int> stk;
-    for (E_Int i = 0; i < M->ncells; i++) {
-      if (M->ref_data[i] != 0) stk.push(i);
-    }
-
-    for (E_Int i = 0; i < M->ncells; i++) {
-      M->ref_data[i] += M->cellTree->level(i);
-    }
-
-    changed = 0;
-
-    while (!stk.empty()) {
-      E_Int cell = stk.top();
-      stk.pop();
-
-      E_Int nf = -1;
-      E_Int pf[24];
-      get_full_cell(cell, M, nf, pf);
-
-      std::vector<E_Int> neis(nf);
-      for (E_Int i = 0; i < nf; i++) {
-        neis[i] = get_neighbour(cell, pf[i], M);
-      }
-
-      E_Int incr_cell = M->ref_data[cell];
-      //incr_cell += M->cellTree->level(cell);
-
-      for (E_Int i = 0; i < nf; i++) {
-        E_Int nei = neis[i];
-        if (nei == -1) continue;
-
-        E_Int incr_nei = M->ref_data[nei];
-        //incr_nei += M->cellTree->level(nei);
-
-        E_Int diff = abs(incr_nei - incr_cell);
-
-        if (diff <= 1) continue;
-
-        changed = 1;
-
-        E_Int cell_to_mod = incr_cell > incr_nei ? nei : cell;
-
-        E_Int &rmod = M->ref_data[cell_to_mod];
-
-        rmod += 1;
-        
-        //rmod += diff - 1;
-
-        stk.push(cell_to_mod);
-      }
-    }
-
-    for (E_Int i = 0; i < M->ncells; i++) {
-      M->ref_data[i] -= M->cellTree->level(i);
-    }
-
-    if (changed == 0) break;
-    
-    //printf("Min ref: %d\n", *std::min_element(M->ref_data, M->ref_data+M->ncells));
-    //printf("Max ref: %d\n", *std::max_element(M->ref_data, M->ref_data+M->ncells));
-  }
-
-  E_Int cells_to_agglo = 0;
-  for (E_Int i = 0; i < M->ncells; i++) {
-    if (M->ref_data[i] < 0) cells_to_agglo += 1;
-  }
-
-  if (!M->mode_2D)
-    assert(cells_to_agglo % 8 == 0);
-  else
-    assert(cells_to_agglo % 4 == 0);
-  
-
-  // Note(Imad): should we?
-  // Clip ref_data
-  for (E_Int i = 0; i < M->ncells; i++) {
-    if (M->ref_data[i] > 0) M->ref_data[i] = 1;
-    else if (M->ref_data[i] < 0) M->ref_data[i] = -1;
-  }
-
-}
-*/
 
 static
 void make_ref_data_tetra(E_Int cell, AMesh *M, E_Float *pM, const pDirs &Dirs)
@@ -359,7 +238,6 @@ static
 void make_pdirs_pyra(E_Int cell, AMesh *M, pDirs &Dirs)
 {}
 
-static
 void reconstruct_parent_quad(E_Int face, AMesh *M, E_Int pn[4])
 {
   Children *children = M->faceTree->children(face);

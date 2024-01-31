@@ -114,11 +114,25 @@ void H27_refine(E_Int cell, AMesh *M)
   NODES[25] = local[8];
 
   // Add cell centroid
-  // Note(Imad): supposed to be already computed
+  // TODO(Imad): for now, mean of point coordinates
+  E_Float cc[3] = {0., 0., 0.};
+  E_Int *pn = get_facets(pf[0], M->ngon, M->indPG);
+  for (E_Int i = 0; i < 4; i++) {
+    cc[0] += M->x[pn[i]];
+    cc[1] += M->y[pn[i]];
+    cc[2] += M->z[pn[i]];
+  }
+  pn = get_facets(pf[1], M->ngon, M->indPG);
+  for (E_Int i = 0; i < 4; i++) {
+    cc[0] += M->x[pn[i]];
+    cc[1] += M->y[pn[i]];
+    cc[2] += M->z[pn[i]];
+  }
+  for (E_Int i = 0; i < 3; i++) cc[i] /= 8.0;
   NODES[26] = M->npoints;
-  M->x[M->npoints] = M->cx[cell];
-  M->y[M->npoints] = M->cy[cell];
-  M->z[M->npoints] = M->cz[cell];
+  M->x[M->npoints] = cc[0];
+  M->y[M->npoints] = cc[1];
+  M->z[M->npoints] = cc[2];
   M->npoints++;
 
   // Set internal faces in ngon

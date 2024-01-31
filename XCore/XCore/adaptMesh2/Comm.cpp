@@ -1081,74 +1081,6 @@ AMesh *reconstruct_mesh(AMesh *M, E_Int *cmap)
     }
   }
 
-  //if (m->pid == 3)
-  //  ft->print_children();
-
-  /* FACE CENTERS */
-  m->fc = (E_Float *)XMALLOC(3*m->nfaces * sizeof(E_Float));
-
-  for (E_Int i = 0; i < npc; i++) {
-    scount[i] = 3*f_scount[i];
-    rcount[i] = 3*f_rcount[i];
-    sdist[i+1] = sdist[i] + scount[i];
-    rdist[i+1] = rdist[i] + rcount[i];
-  }
-
-  E_Float *sfc = (E_Float *)XMALLOC(sdist[npc] * sizeof(E_Float));
-
-  for (E_Int i = 0; i < npc; i++) {
-    E_Int *pf = &sfaces[f_sdist[i]];
-    E_Float *ptr = &sfc[sdist[i]];
-
-    for (E_Int j = 0; j < f_scount[i]; j++) {
-      E_Int face = MFT[pf[j]];
-      E_Float *fc = &M->fc[3*face];
-
-      for (E_Int k = 0; k < 3; k++)
-        *ptr++ = *fc++;
-    }
-  }
-
-  MPI_Alltoallv(sfc,   scount, sdist, MPI_DOUBLE,
-                m->fc, rcount, rdist, MPI_DOUBLE,
-                MPI_COMM_WORLD);
-  
-  /* CELL CENTERS */
-  m->cx = (E_Float *)XMALLOC(m->ncells * sizeof(E_Float));
-  m->cy = (E_Float *)XMALLOC(m->ncells * sizeof(E_Float));
-  m->cz = (E_Float *)XMALLOC(m->ncells * sizeof(E_Float));
-
-  E_Float *scx = (E_Float *)XMALLOC(c_sdist[npc] * sizeof(E_Float));
-  E_Float *scy = (E_Float *)XMALLOC(c_sdist[npc] * sizeof(E_Float));
-  E_Float *scz = (E_Float *)XMALLOC(c_sdist[npc] * sizeof(E_Float));
-
-  for (E_Int i = 0; i < npc; i++) {
-    E_Int *pc = &scells[c_sdist[i]];
-    E_Float *px = &scx[c_sdist[i]];
-    E_Float *py = &scy[c_sdist[i]];
-    E_Float *pz = &scz[c_sdist[i]];
-    
-    for (E_Int j = 0; j < c_scount[i]; j++) {
-      E_Int cell = MCT[pc[j]];
-
-      *px++ = M->cx[cell];
-      *py++ = M->cy[cell];
-      *pz++ = M->cz[cell];
-    }
-  }
-
-  MPI_Alltoallv(scx,  c_scount, c_sdist, MPI_DOUBLE,
-               m->cx, c_rcount, c_rdist, MPI_DOUBLE,
-               MPI_COMM_WORLD);
-  
-  MPI_Alltoallv(scy,  c_scount, c_sdist, MPI_DOUBLE,
-               m->cy, c_rcount, c_rdist, MPI_DOUBLE,
-               MPI_COMM_WORLD);
-  
-  MPI_Alltoallv(scz,  c_scount, c_sdist, MPI_DOUBLE,
-               m->cz, c_rcount, c_rdist, MPI_DOUBLE,
-               MPI_COMM_WORLD);
-
   // Copy parameters
   m->Tr = M->Tr;
   m->Tu = M->Tu;
@@ -1191,10 +1123,6 @@ AMesh *reconstruct_mesh(AMesh *M, E_Int *cmap)
   XFREE(sy);
   XFREE(sz);
   XFREE(sref);
-  XFREE(sfc);
-  XFREE(scx);
-  XFREE(scy);
-  XFREE(scz);
   XFREE(RCOUNT);
   XFREE(RDIST);
   XFREE(RECV);

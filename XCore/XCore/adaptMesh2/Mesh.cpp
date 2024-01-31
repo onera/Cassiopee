@@ -95,7 +95,6 @@ AMesh::AMesh() :
   nface(NULL), indPH(NULL), ngon(NULL), indPG(NULL),
   owner(NULL), neigh(NULL),
   nbc(-1), ptlists(NULL), bcsizes(NULL), bcnames(NULL),
-  fc(NULL), cx(NULL), cy(NULL), cz(NULL),
   Tr(-1.0), Tu(-1.0), eps(-1.0), hmin(-1.0), hmax(-1.0), unrefine(-1),
   mode_2D(NULL), ref_data(NULL), ecenter(NULL),
   cellTree(NULL), faceTree(NULL),
@@ -135,11 +134,6 @@ void mesh_drop(AMesh *M)
   XFREE(M->ptlists);
   XFREE(M->bcnames);
   XFREE(M->bcsizes);
-
-  XFREE(M->fc);
-  XFREE(M->cx);
-  XFREE(M->cy);
-  XFREE(M->cz);
 
   XFREE(M->mode_2D);
   XFREE(M->ref_data);
@@ -1729,30 +1723,6 @@ void renumber_mesh(AMesh *M, const std::vector<E_Int> &new_cells,
       ref_data[new_cells[i]] = M->ref_data[i];
   }
 
-  // face/cell centers
-  E_Float *fc = (E_Float *)XMALLOC(3*new_nfaces * sizeof(E_Float));
-  E_Float *cx = (E_Float *)XMALLOC(new_ncells * sizeof(E_Float));
-  E_Float *cy = (E_Float *)XMALLOC(new_ncells * sizeof(E_Float));
-  E_Float *cz = (E_Float *)XMALLOC(new_ncells * sizeof(E_Float));
-
-  for (E_Int i = 0; i < M->nfaces; i++) {
-    if (new_faces[i] == -1) continue;
-
-    E_Int new_face = new_faces[i];
-    E_Float *np = &fc[3*new_face];
-    E_Float *op = &M->fc[3*i];
-    for (E_Int j = 0; j < 3; j++)
-      np[j] = op[j];
-  }
-
-  for (E_Int i = 0; i < M->ncells; i++) {
-    if (new_cells[i] == -1) continue;
-    E_Int new_cell = new_cells[i];
-    cx[new_cell] = M->cx[i];
-    cy[new_cell] = M->cy[i];
-    cz[new_cell] = M->cz[i];
-  }
-
   // Free and replace
   XFREE(M->x);
   XFREE(M->y);
@@ -1765,10 +1735,6 @@ void renumber_mesh(AMesh *M, const std::vector<E_Int> &new_cells,
   XFREE(M->neigh);
   XFREE(M->ref_data); 
   delete M->ecenter;
-  XFREE(M->fc);
-  XFREE(M->cx);
-  XFREE(M->cy);
-  XFREE(M->cz);
 
   M->ncells = new_ncells;
   M->nfaces = new_nfaces;
@@ -1783,11 +1749,7 @@ void renumber_mesh(AMesh *M, const std::vector<E_Int> &new_cells,
   M->owner = owner;
   M->neigh = neigh;
   M->ref_data = ref_data;
-  M->ecenter = ecenter; 
-  M->fc = fc;
-  M->cx = cx;
-  M->cy = cy;
-  M->cz = cz;
+  M->ecenter = ecenter;
 }
 
 void compress_mesh(AMesh *M, const std::vector<E_Int> &new_cells,

@@ -259,8 +259,8 @@ def CreateAdaptMesh(t, own, nei, comm, Tr, Tu, eps, hmin, hmax, unrefine=False,
   return XCore.xcore.CreateAdaptMesh(fc, own, nei, comm, bcs, Tr, Tu, eps,
     hmin, hmax, unrefine, mode_2D, gcells, gfaces, gpoints)
 
-def AdaptMesh(AM, fc, cx, cy, cz):
-  return XCore.xcore.AdaptMesh(AM, fc, cx, cy, cz)
+def AdaptMesh(AM):
+  return XCore.xcore.AdaptMesh(AM)
 
 def computeGradient(AM, field, cx, cy, cz, own, nei):
   return XCore.xcore.computeGradient(AM, field, cx, cy, cz, own, nei)
@@ -287,3 +287,9 @@ def _prepareMeshForAdaptation(t):
     zone = zones[0]
     arr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
     return XCore.xcore._prepareMeshForAdaptation(arr)
+
+def ExtractLeafMesh(t, conformize=1):
+  return XCore.xcore.ExtractLeafMesh(t, conformize)
+
+def _assignRefDataToAM(AM, REF):
+  return XCore.xcore._assignRefDataToAM(AM, REF)

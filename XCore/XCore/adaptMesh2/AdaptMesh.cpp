@@ -220,60 +220,11 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
   return hook;
 }
 
-static
-PyObject *export_mesh_and_bcs(AMesh *M, E_Int closed_mesh);
-
-static
-void get_face_and_cell_centers(AMesh *M, PyObject *FC, PyObject *CX,
-  PyObject *CY, PyObject *CZ)
-{
-  E_Int fsize, csize, nfld;
-  E_Int *ptr;
-
-  M->fc = (E_Float *)XRESIZE(M->fc, 3*M->nfaces * sizeof(E_Float));
-  M->cx = (E_Float *)XRESIZE(M->cx, M->ncells * sizeof(E_Float));
-  M->cy = (E_Float *)XRESIZE(M->cy, M->ncells * sizeof(E_Float));
-  M->cz = (E_Float *)XRESIZE(M->cz, M->ncells * sizeof(E_Float));
-
-  K_NUMPY::getFromNumpyArray(FC, ptr, fsize, nfld, true);
-  assert(fsize == 3*M->nfaces);
-  memcpy(M->fc, ptr, 3*M->nfaces * sizeof(E_Float));
-  
-  K_NUMPY::getFromNumpyArray(CX, ptr, csize, nfld, true);
-  assert(csize == M->ncells);
-  memcpy(M->cx, ptr, M->ncells * sizeof(E_Float));
-  
-  K_NUMPY::getFromNumpyArray(CY, ptr, csize, nfld, true);
-  assert(csize == M->ncells);
-  memcpy(M->cy, ptr, M->ncells * sizeof(E_Float));
-  
-  K_NUMPY::getFromNumpyArray(CZ, ptr, csize, nfld, true);
-  assert(csize == M->ncells);
-  memcpy(M->cz, ptr, M->ncells * sizeof(E_Float));
-}
-
-static
-int FEQ(E_Float a, E_Float b)
-{
-  return fabs(a-b) < 1e-6;
-}
-
-int same_xyz(E_Float *A, E_Float *B, E_Int n)
-{
-  int same = 1;
-  for (E_Int i = 0; i < n && same; i++) {
-    if (!FEQ(A[i], B[i])){
-      same = 0;
-    }
-  }
-  return same;
-}
-
 PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
 {
-  PyObject *AMESH, *FC, *CX, *CY, *CZ;
+  PyObject *AMESH;
   
-  if (!PYPARSETUPLE_(args, OOO_ OO_, &AMESH, &FC, &CX, &CY, &CZ)) {
+  if (!PYPARSETUPLE_(args, O_, &AMESH)) {
     RAISE("Wrong input.");
     return NULL;
   }
@@ -286,14 +237,14 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
 
   AMesh *M = (AMesh *)PyCapsule_GetPointer(AMESH, "AMesh");
 
-  get_face_and_cell_centers(M, FC, CX, CY, CZ);
-
-
   //M = Redistribute_mesh(M);
 
   std::vector<E_Int> ref_faces, ref_cells;
 
   get_ref_faces_and_cells(M, ref_faces, ref_cells);
+
+  printf("%d -> nref_cells: %ld - nref_faces: %ld\n", M->pid, ref_cells.size(),
+    ref_faces.size());
   
   M->prev_ncells = M->ncells;
   M->prev_nfaces = M->nfaces;
@@ -302,8 +253,6 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
   refine_mesh(M, ref_faces, ref_cells);
 
   update_patch_faces_after_ref(M);
-
-  MPI_Barrier(MPI_COMM_WORLD);
 
   E_Int gncells;
   MPI_Allreduce(&M->ncells, &gncells, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
@@ -314,179 +263,5 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
   for (E_Int i = 0; i < M->ncells; i++) M->cellTree->state_[i] = UNTOUCHED;
   for (E_Int i = 0; i < M->nfaces; i++) M->faceTree->state_[i] = UNTOUCHED;
 
-  E_Int closed_mesh = 1;
-
-  PyObject *out = export_mesh_and_bcs(M, closed_mesh);
-
-  return out;
-}
-
-//#define PRINTPATCH
-
-static
-PyObject *export_mesh_and_bcs(AMesh *M, E_Int closed_mesh)
-{
-  // Count nface size
-  E_Int nface_size = 0;
-
-  M->closed_indPH = (E_Int *)XRESIZE(M->closed_indPH, (M->ncells+1)*sizeof(E_Int));
-  M->closed_indPH[0] = 0;
-
-  for (E_Int i = 0; i < M->ncells; i++) {
-    E_Int nf = -1;
-    E_Int pf[24];
-    // TODO(Imad): a function that returns nf only
-    get_full_cell(i, M, nf, pf);
-
-    nface_size += nf;
-    M->closed_indPH[i+1] = nf;
-  }
-
-  for (E_Int i = 0; i < M->ncells; i++)
-    M->closed_indPH[i+1] += M->closed_indPH[i];
-
-  assert(M->closed_indPH[M->ncells] == nface_size);
-
-  E_Int ngon_size = -1;
-
-  if (closed_mesh) {
-    puts("Exporting closed mesh");
-    close_mesh(M);
-    ngon_size = M->closed_indPG[M->nfaces];
-  } else {
-    puts("Exporting non-closed mesh");
-    ngon_size = M->indPG[M->nfaces];
-  }
-
-  //M->closed_nface = (E_Int *)XRESIZE(M->closed_nface, nface_size * sizeof(E_Int));
-
-  const char *varStringOut = "CoordinateX,CoordinateY,CoordinateZ";
-
-  PyObject *m = K_ARRAY::buildArray3(3, varStringOut, M->npoints, M->ncells,
-    M->nfaces, "NGON", ngon_size, nface_size, 3, false, 3);
-
-  FldArrayF *fo;
-  FldArrayI *cno;
-  K_ARRAY::getFromArray3(m, fo, cno);
-
-  E_Int *ngono  = cno->getNGon();
-  E_Int *nfaceo = cno->getNFace();
-  E_Int *indPGo = cno->getIndPG();
-  E_Int *indPHo = cno->getIndPH();
-  
-  /*
-  indPHo[0] = 0;
-  for (E_Int i = 0; i < M->ncells; i++) {
-    E_Int nf = -1;
-    E_Int pf[24];
-    get_full_cell(i, M, nf, pf);
-    indPHo[i+1] = nf;
-  }
-  for (E_Int i = 0; i < M->ncells; i++) indPHo[i+1] += indPHo[i];
-  */
-  memcpy(indPHo, M->closed_indPH, (M->ncells+1)*sizeof(E_Int));
-  assert(indPHo[M->ncells] == nface_size);
-
-  for (E_Int i = 0; i < M->ncells; i++) {
-    E_Int nf = -1;
-    E_Int pf[24];
-    get_full_cell(i, M, nf, pf);
-    E_Int *ptr = &nfaceo[indPHo[i]];
-    //E_Int *p = &M->closed_nface[M->closed_indPH[i]];
-    for (E_Int j = 0; j < nf; j++) {
-      ptr[j] = pf[j]+1;
-      //p[j] = pf[j];
-    }
-  }
-
-  if (closed_mesh) {
-    for (E_Int i = 0; i < ngon_size; i++)
-      ngono[i] = M->closed_ngon[i] + 1;
-    
-    memcpy(indPGo, M->closed_indPG, (M->nfaces+1) * sizeof(E_Int));
-  } else {
-    for (E_Int i = 0; i < ngon_size; i++)
-      ngono[i] = M->ngon[i] + 1;
-    
-    memcpy(indPGo, M->indPG, (M->nfaces+1) * sizeof(E_Int));
-  }
-
-  E_Float *px = fo->begin(1);
-  E_Float *py = fo->begin(2);
-  E_Float *pz = fo->begin(3);
-  memcpy(px, M->x, M->npoints * sizeof(E_Float));
-  memcpy(py, M->y, M->npoints * sizeof(E_Float));
-  memcpy(pz, M->z, M->npoints * sizeof(E_Float));
-
-  assert(K_CONNECT::check_open_cells(*cno, NULL) == 0);
-  assert(K_CONNECT::check_overlapping_cells(*cno) == 0);
-
-  // BCs
-  PyObject *BCS = PyList_New(0);
-
-  npy_intp dims[2];
-  
-  for (E_Int i = 0; i < M->nbc; i++) {
-    dims[0] = (npy_intp)M->bcsizes[i];
-    dims[1] = 1;
-
-    PyArrayObject *PL = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
-    E_Int *op = M->ptlists[i];
-    E_Int *np = (E_Int *)PyArray_DATA(PL);
-    for (E_Int j = 0; j < M->bcsizes[i]; j++)
-      *np++ = op[j] + 1;
-
-    PyObject *tpl = Py_BuildValue("[Os]", (PyObject *)PL, M->bcnames[i]);
-    Py_DECREF(PL);
-    PyList_Append(BCS, tpl);
-    Py_DECREF(tpl);
-  }
-
-#ifdef PRINTPATCH
-  // Patch faces as BCs
-  for (E_Int i = 0; i < M->npatches; i++) {
-    Patch *P = &M->patches[i];
-
-    dims[0] = (npy_intp)P->nf;
-    dims[1] = 1;
-
-    PyArrayObject *PL = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
-    E_Int *op = P->pf;
-    E_Int *np = (E_Int *)PyArray_DATA(PL);
-    for (E_Int j = 0; j < P->nf; j++)
-      *np++ = op[j] + 1;
-
-    char name[64];
-    sprintf(name, "proc%d-%d", M->pid, P->nei);
-
-    PyObject *tpl = Py_BuildValue("[Os]", (PyObject *)PL, name);
-    Py_DECREF(PL);
-    PyList_Append(BCS, tpl);
-    Py_DECREF(tpl);
-  }
-#endif
-
-  // parent elements
-  dims[0] = (npy_intp)M->nfaces;
-  dims[1] = 1;
-
-  PyArrayObject *OWN = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
-  PyArrayObject *NEI = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
-  E_Int *owner = (E_Int *)PyArray_DATA(OWN);
-  E_Int *neigh = (E_Int *)PyArray_DATA(NEI);
-
-  memcpy(owner, M->owner, M->nfaces*sizeof(E_Int));
-  memcpy(neigh, M->neigh, M->nfaces*sizeof(E_Int));
-
-  PyObject *out = PyList_New(0);
-  PyList_Append(out, m);
-  PyList_Append(out, BCS);
-  PyList_Append(out, (PyObject *)OWN);
-  PyList_Append(out, (PyObject *)NEI);
-  Py_DECREF(m);
-  Py_DECREF(BCS);
-  Py_DECREF(OWN);
-  Py_DECREF(NEI);
-
-  return out;
+  return Py_None;
 }

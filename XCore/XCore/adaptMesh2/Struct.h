@@ -171,11 +171,6 @@ struct AMesh {
   E_Int *bcsizes;
   char **bcnames;
 
-  E_Float *fc;
-  E_Float *cx;
-  E_Float *cy;
-  E_Float *cz;
-
   /* Adaptation */
   
   E_Float Tr;

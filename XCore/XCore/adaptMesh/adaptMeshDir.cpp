@@ -4,25 +4,6 @@
 #define TAG 1.0
 #define TOL 1e-12
 
-static
-E_Int FEQ(E_Float a, E_Float b)
-{
-  return fabs(a-b) < TOL;
-}
-
-static
-void get_higher_level_neighbours(E_Int cell, E_Int face, mesh *M, std::vector<E_Int> &neis)
-{
-  auto& FT = M->ftree;
-  E_Int nchild = tree_get_nchildren(&FT, face);
-  E_Int *children = tree_get_children(&FT, face);
-  for (E_Int i = 0; i < nchild; i++) {
-    E_Int fchild = children[i];
-    E_Int nei = M->owner[face] == cell ? M->neigh[fchild] : M->owner[fchild];
-    neis.push_back(nei);
-  }
-}
-
 PyObject *K_XCORE::adaptMeshDir(PyObject *self, PyObject *args)
 {
   PyObject *MESH, *arr, *FIELD;
