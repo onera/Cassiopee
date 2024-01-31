@@ -62,20 +62,14 @@ void get_ref_faces_and_cells(AMesh *, std::vector<E_Int> &ref_faces,
   std::vector<E_Int> &ref_cells);
 void resize_data_for_refinement(AMesh *M, size_t nref_cells,
   size_t nref_faces);
-void refine_faces(const std::vector<E_Int> &ref_faces,
-  const std::vector<E_Int> &ref_patterns, size_t start, size_t stop, AMesh *M);
-void refine_cells(const std::vector<E_Int> &ref_cells, size_t start,
-  size_t stop, AMesh *M);
 void update_external_pe_after_ref(E_Int cell, AMesh *M);
 void update_external_pe_after_unref(E_Int cell, AMesh *M);
 void refine_mesh(AMesh *, const std::vector<E_Int> &ref_faces,
   const std::vector<E_Int> &ref_cells);
-void update_global_cells_after_ref(AMesh *M);
-void resize_data_for_synchronisation(AMesh *M);
 void update_patch_faces_after_ref(AMesh *M);
+void update_global_cells_after_ref(AMesh *M);
 void update_global_faces_after_ref(AMesh *M);
 void update_global_points_after_ref(AMesh *M);
-void synchronise_patches_after_ref(AMesh *M);
 
 // Unrefine
 void get_unref_faces_and_cells(AMesh *, std::vector<E_Int> &unref_faces,
@@ -159,5 +153,6 @@ void refine_tetra(E_Int cell, AMesh *M);
 
 // Pyra
 void reorder_pyra(E_Int i, E_Int nf, E_Int *pf, AMesh *M);
+void refine_pyra(E_Int cell, AMesh *M);
 
 #endif

@@ -357,7 +357,7 @@ void refine_pyra(E_Int cell, AMesh *M)
     check_canon_tetra(M->ncells+i, M);
 
   M->ncells += 9;
-  M->nfaces += 13;
+  M->nfaces += 13; 
   */
 }
 
