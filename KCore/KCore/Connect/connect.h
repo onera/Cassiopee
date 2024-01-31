@@ -20,6 +20,7 @@
 #ifndef _KCORE_CONNECT_H
 #define _KCORE_CONNECT_H
 # include <utility>
+# include <kPython.h>
 # include "Def/DefTypes.h"
 # include "Fld/FldArray.h"
 # include "Def/DefFunction.h"

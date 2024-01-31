@@ -1064,20 +1064,28 @@ def _addBXZones(a, depth=2, allB=False):
         for z in zones:
             dim = Internal.getZoneDim(z)
             ni = dim[1]; nj = dim[2]; nk = dim[3]
-            # b1 = subzone(z, (1,1,1), (min(depth,ni),nj,nk), 'S1')
-            # b2 = subzone(z, (max(ni-depth+1,1),1,1), (ni,nj,nk), 'S2')
-            # b3 = subzone(z, (1,1,1), (ni,min(depth,nj),nk), 'S3')
-            # b4 = subzone(z, (1,max(nj-depth+1,1),1), (ni,nj,nk), 'S4')
-            # b5 = subzone(z, (1,1,1), (ni,nj,min(depth,nk)), 'S5')
-            # b6 = subzone(z, (1,1,max(nk-depth+1,1)), (ni,nj,nk), 'S6')
- 
+
+            ri1 = min(depth,ni)
+            ri2 = max(ni-depth+1,1)
+            rj1 = min(depth,nj)
+            rj2 = max(nj-depth+1,1)
+            rk1 = min(depth,nk)
+            rk2 = max(nk-depth+1,1)
+            
+            if ri2 - ri1 < 2: rip1 = int(ni/2)-1; rip2 = int(ni/2)+1
+            else: rip1 = ri1; rip2 = ri2
+            
+            if rj2 - rj1 < 2: rjp1 = int(nj/2)-1; rjp2 = int(nj/2)+1
+            else: rjp1 = rj1; rjp2 = rj2
+            
+
             # Bandelettes non recouvrantes
-            b1 = subzone(z, (1,1,1), (min(depth,ni),nj,nk), 'S1')
-            b2 = subzone(z, (max(ni-depth+1,1),1,1), (ni,nj,nk), 'S2')
-            b3 = subzone(z, (min(depth,ni),1,1), (max(ni-depth+1,1),min(depth,nj),nk), 'S3') # CW
-            b4 = subzone(z, (min(depth,ni),max(nj-depth+1,1),1), (max(ni-depth+1,1),nj,nk), 'S4') # CW 
-            b5 = subzone(z, (min(depth,ni),min(depth,nj),1), (max(ni-depth+1,1),max(nj-depth+1,1),min(depth,nk)), 'S5') # CW
-            b6 = subzone(z, (min(depth,ni),min(depth,nj),max(nk-depth+1,1)), (max(ni-depth+1,1),max(nj-depth+1,1),nk), 'S6') # CW
+            b1 = subzone(z, (1,1,1), (ri1,nj,nk), 'S1')
+            b2 = subzone(z, (ri2,1,1), (ni,nj,nk), 'S2')
+            b3 = subzone(z, (rip1,1,1), (rip2,rj1,nk), 'S3') 
+            b4 = subzone(z, (rip1,rj2,1), (rip2,nj,nk), 'S4') 
+            b5 = subzone(z, (rip1,rjp1,1), (rip2,rjp2,rk1), 'S5') 
+            b6 = subzone(z, (rip1,rjp1,rk2), (rip2,rjp2,nk), 'S6') 
             
             sz[b1[0]] = b1
             sz[b2[0]] = b2
