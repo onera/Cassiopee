@@ -40,6 +40,7 @@ TypesOfIBC["wiremodel"]=140 #wire mesh model
 __PRESSURE__= 'Pressure'
 __UTAU__    = 'utau'
 __YPLUS__   = 'yplus'
+__YPLUSIP__ = 'yplusIP'
 __DENSITY__ = 'Density'
 __VELOCITYX__ = 'VelocityX'
 __VELOCITYY__ = 'VelocityY'

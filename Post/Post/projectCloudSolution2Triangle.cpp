@@ -34,10 +34,10 @@ using namespace std;
 // ============================================================================
 PyObject* K_POST::projectCloudSolution2Triangle(PyObject* self, PyObject* args)
 {
-  E_Int dimPb, oldVersion;
+  E_Int dimPb, ibm;
   PyObject *arrayR, *arrayD;
   if (!PYPARSETUPLE_(args, OO_ II_,
-                    &arrayD, &arrayR, &dimPb, &oldVersion))
+                    &arrayD, &arrayR, &dimPb, &ibm))
   {
       return NULL;
   }
@@ -213,8 +213,7 @@ PyObject* K_POST::projectCloudSolution2Triangle(PyObject* self, PyObject* args)
                                               xo, yo, zo, p0, p1, p2, p);
       dist2proj = sqrt((pt[0]-xo)*(pt[0]-xo) + (pt[1]-yo)*(pt[1]-yo) + (pt[2]-zo)*(pt[2]-zo));
       indicesBB.clear();
-    //   if (indev != -1 && dist2proj < 1.e-6) // donor points should be already on the triangle or nearby
-      if (indev != -1)
+      if (indev != -1 && !(dist2proj>1.e-6 && ibm==1)) // donor points should be already on the triangle or nearby for IBMs
       {
         listOfCloudPtsPerTri[indev].push_back(indD);
       }
@@ -345,59 +344,32 @@ PyObject* K_POST::projectCloudSolution2Triangle(PyObject* self, PyObject* args)
           }
           else
           {
-            if (oldVersion==0)
+            E_Float sumCf = 0.;
+            E_Float minCf =  K_CONST::E_MAX_FLOAT;
+            E_Float maxCf = -K_CONST::E_MAX_FLOAT;
+            for(E_Int noind = 0; noind < sizeOfCloud; noind++)
             {
-              //BUG FIX - Interpolations BUT can lead to wrong values
-              E_Float sumCf = 0.;
-							E_Float minCf =  K_CONST::E_MAX_FLOAT;
-							E_Float maxCf = -K_CONST::E_MAX_FLOAT;
-              for(E_Int noind = 0; noind < sizeOfCloud; noind++)
-              {
-                sumCf += cfLoc[noind];
-								minCf = K_FUNC::E_min(cfLoc[noind],minCf);
-								maxCf = K_FUNC::E_max(cfLoc[noind],maxCf);
-              }
-              if (K_FUNC::E_abs(sumCf-1.)>5.e-2) indicesExtrap.push_back(indR);
-			//   else if (minCf<-2. || maxCf>2.) indicesExtrap.push_back(indR); // avoid huge weights
-              else // interpolate
-              {
-                for (E_Int posv = 0; posv < nbVars; posv++)
-                {
-                  E_Float* varD = fd->begin(posvarsD[posv]+1);
-                  E_Float* varR = fieldROut.begin(posvarsR[posv]+1);
-                  E_Float val = 0.;
-                  for(E_Int noind = 0; noind < sizeOfCloud; noind++)
-                  {
-                    E_Int indD = listOfCloudPtsPerVertex[noind];
-                    val += cfLoc[noind]*varD[indD];                  
-                  }
-                    varR[indR] = val;
-                }
-              }
+              sumCf += cfLoc[noind];
+              minCf = K_FUNC::E_min(cfLoc[noind],minCf);
+              maxCf = K_FUNC::E_max(cfLoc[noind],maxCf);
             }
-            else if (oldVersion==1)
+            if (K_FUNC::E_abs(sumCf-1.)>5.e-2) indicesExtrap.push_back(indR);
+            else if ((minCf<-2. || maxCf>2.) && ibm==1) indicesExtrap.push_back(indR); // avoid huge weights for IBMs
+            else // interpolate
             {
-              //PRE BUG FIX - Mostly extrapolations
               for (E_Int posv = 0; posv < nbVars; posv++)
               {
                 E_Float* varD = fd->begin(posvarsD[posv]+1);
                 E_Float* varR = fieldROut.begin(posvarsR[posv]+1);
-                E_Float sumCf = 0.;
                 E_Float val = 0.;
                 for(E_Int noind = 0; noind < sizeOfCloud; noind++)
                 {
                   E_Int indD = listOfCloudPtsPerVertex[noind];
-                  val += cfLoc[noind]*varD[indD];
-                  if ( posv == 0)
-                  {
-                    sumCf += cfLoc[noind];
-                  }
+                  val += cfLoc[noind]*varD[indD];                  
                 }
-                //varR[indR] = val;
-                if ( K_FUNC::E_abs(sumCf-1.)>5.e-2) indicesExtrap.push_back(indR);
-                else varR[indR] = val;
+                  varR[indR] = val;
               }
-            }	    
+            }   
           }          
         }
       }
@@ -449,10 +421,10 @@ PyObject* K_POST::projectCloudSolution2Triangle(PyObject* self, PyObject* args)
 // ============================================================================
 PyObject* K_POST::prepareProjectCloudSolution2Triangle(PyObject* self, PyObject* args)
 {
-  E_Int dimPb;
+  E_Int dimPb, ibm;
   PyObject *arrayR, *arrayD;
-  if (!PYPARSETUPLE_(args, OO_ I_,
-                    &arrayD, &arrayR, &dimPb))
+  if (!PYPARSETUPLE_(args, OO_ II_,
+                    &arrayD, &arrayR, &dimPb, &ibm))
   {
       return NULL;
   }
@@ -628,7 +600,7 @@ PyObject* K_POST::prepareProjectCloudSolution2Triangle(PyObject* self, PyObject*
                                               xo, yo, zo, p0, p1, p2, p);
       dist2proj = sqrt((pt[0]-xo)*(pt[0]-xo) + (pt[1]-yo)*(pt[1]-yo) + (pt[2]-zo)*(pt[2]-zo));
       indicesBB.clear();
-      if (indev != -1 && dist2proj < 1.e-6) // donor points should be already on the triangle or nearby for IBM wall points
+      if (indev != -1 && !(dist2proj>1.e-6 && ibm==1)) // donor points should be already on the triangle or nearby for IBMs
       {
         listOfCloudPtsPerTri[indev].push_back(indD);
       }
@@ -769,7 +741,7 @@ PyObject* K_POST::prepareProjectCloudSolution2Triangle(PyObject* self, PyObject*
 							maxCf = K_FUNC::E_max(cfLoc[noind],maxCf);
 						}
 						if (K_FUNC::E_abs(sumCf-1.)>5.e-2) indicesExtrap.push_back(indR);
-						else if (minCf<-2. || maxCf>2.) indicesExtrap.push_back(indR); // avoid huge weights
+						else if ((minCf<-2. || maxCf>2.) && ibm==1) indicesExtrap.push_back(indR); // avoid huge weights for IBMs
 						else // interpolate
 						{
 							E_Float* donorCf = listOfInterpCoefs[indR]->begin();

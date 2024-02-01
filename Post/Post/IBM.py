@@ -32,7 +32,7 @@ from . import IBM_OLDIES
 # IN: extractIBMInfo (boolean): if True, store IB coordinates (PC, PI and PW)
 # IN: extractYplusAtImage (boolean): if True, project the y+ values at the image points to the IBM surface mesh
 #=============================================================================
-def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IBCD_*", extractIBMInfo=False, extractYplusAtImage=False, ProjectOldVersion=False):
+def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IBCD_*", extractIBMInfo=False, extractYplusAtImage=False):
     """Extracts the flow field stored at IBM points onto the surface."""
 
     if extractYplusAtImage and not famZones: _extractYplusIP(tc)
@@ -79,7 +79,7 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IB
                 zones = dictOfZoneFamilies[famName]
                 if zones!=[]: tb2=C.newPyTree(['Base']); tb2[2][1][2]=zones
 
-            zd = extractIBMWallFields(zd, tb=tb2, coordRef=coordRef, famZones=[], extractYplusAtImage=extractYplusAtImage, ProjectOldVersion=ProjectOldVersion)
+            zd = extractIBMWallFields(zd, tb=tb2, coordRef=coordRef, famZones=[], extractYplusAtImage=extractYplusAtImage)
             out += Internal.getZones(zd)
         return out
 
@@ -326,7 +326,7 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IB
             C._initVars(td,XOD.__CONV1__,0.)
             C._initVars(td,XOD.__CONV2__,0.)
         #print("projectCloudSolution for dim {}".format(dimPb))
-        P._projectCloudSolution(z, td, dim=dimPb,oldVersion=ProjectOldVersion)
+        P._projectCloudSolution(z, td, dim=dimPb, ibm=False)
 
         return td
 
@@ -563,6 +563,8 @@ def _extractPressureHO2(tc, extractDensity=False):
                     bz = CoordinateZ_PI[i] - CoordinateZ[i]
                     beta = math.sqrt(bx*bx + by*by + bz*bz)
 
+                    if numpy.isnan(nnGradP): nnGradP = 0.
+
                     if extractDensity: Density[i]  = Density[i]/Pressure[i]*(Pressure[i] - nGradP*beta + 0.5*nnGradP*beta**2)
                     Pressure[i] = Pressure[i] - nGradP*beta + 0.5*nnGradP*beta**2
 
@@ -695,6 +697,534 @@ def _computeExtraVariables(ts, PInf, QInf,
         Internal._rmNodesFromName(FSC, 'ShearStress*')
     return None
 
+#==========================================================================================
+# Extract the wall surface solution from IBM wall points
+# IN:  tb (tree): geometry tree that contains the IBM bodies.
+# IN:  tc (tree): connectivity tree containing IBM information. 
+# IN:  dimPb (int): pb dimension.
+# IN:  ibctypes (list of strings): IBM conditions to extract. If empty, extract all IBCs.
+# IN:  prepareMLS (boolean): If True, store the MLS coefficients in POST_MLS subregions inside ts.
+# IN:  graphIBCDPost (graph): graph of comm between ts & tc
+
+# OUT: ts (tree): NODE-type zones of surface projection for IBM points. ts is Fully distributed among procs.
+# OUT: graphIBCDPost (graph): graph of comm between ts & tc
+#==========================================================================================
+def createCloudIBM__(tc, ibctypes=[]):
+    tp = Internal.copyRef(tc)
+
+    _extractYplusIP(tp)
+
+    cpt_name = 0
+    tl = C.newPyTree(['CLOUD_IBCW'])
+    for zc in Internal.getZones(tp):
+        allIBCD = Internal.getNodesFromType(zc,"ZoneSubRegion_t")
+        allIBCD = Internal.getNodesFromName(allIBCD,"IBCD_*")
+        for IBCD in allIBCD:
+            zname = Internal.getValue(IBCD)
+            ztype = int(IBCD[0].split("_")[1])
+            if ibctypes != [] and ztype not in ibctypes: continue
+            XW = Internal.getNodeFromName(IBCD,'CoordinateX_PW')[1]
+            YW = Internal.getNodeFromName(IBCD,'CoordinateY_PW')[1]
+            ZW = Internal.getNodeFromName(IBCD,'CoordinateZ_PW')[1]
+            zsize = numpy.empty((1,3), Internal.E_NpyInt, order='F')
+            zsize[0,0] = XW.shape[0]; zsize[0,1] = 0; zsize[0,2] = 0
+            newName = 'IBW_%sX%d'%(cpt_name, Cmpi.rank)
+            z = Internal.newZone(name=newName,zsize=zsize, ztype='Unstructured')
+            cpt_name += 1
+            gc = Internal.newGridCoordinates(parent=z)
+            coordx = ['CoordinateX',XW,[],'DataArray_t']
+            coordy = ['CoordinateY',YW,[],'DataArray_t']
+            coordz = ['CoordinateZ',ZW,[],'DataArray_t']
+            gc[2] = [coordx,coordy,coordz]
+            n = Internal.createChild(z, 'GridElements', 'Elements_t', [2,0])
+            Internal.createChild(n, 'ElementRange', 'IndexRange_t', [1,0])
+            Internal.createChild(n, 'ElementConnectivity', 'DataArray_t', None)
+            FSN = Internal.newFlowSolution(name=Internal.__FlowSolutionNodes__,
+                                           gridLocation='Vertex', parent=z)
+            pressNP = []; utauNP = []; yplusNP = []; yplusINP = []; densNP = []
+            vxNP = []; vyNP = []; vzNP = []
+            gradxPressureNP = []; gradyPressureNP = []; gradzPressureNP = []
+
+            PW = Internal.getNodeFromName1(IBCD,XOD.__PRESSURE__)
+            if PW is not None: pressNP.append(PW[1])
+            RHOW = Internal.getNodeFromName1(IBCD,XOD.__DENSITY__)
+            if RHOW is not None: densNP.append(RHOW[1])
+            UTAUW = Internal.getNodeFromName1(IBCD,XOD.__UTAU__)
+            if UTAUW is not None: utauNP.append(UTAUW[1])
+            YPLUSW = Internal.getNodeFromName1(IBCD, XOD.__YPLUS__)
+            if YPLUSW is not None: yplusNP.append(YPLUSW[1])
+
+            YPLUSIW = Internal.getNodeFromName1(IBCD, XOD.__YPLUSIP__)
+            if YPLUSIW is not None: yplusINP.append(YPLUSIW[1])
+
+            VXW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYX__)
+            if VXW is not None: vxNP.append(VXW[1])
+            VYW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYY__)
+            if VYW is not None: vyNP.append(VYW[1])
+            VZW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYZ__)
+            if VZW is not None: vzNP.append(VZW[1])
+
+            GRADXPW = Internal.getNodeFromName1(IBCD, XOD.__GRADXPRESSURE__)
+            if GRADXPW is not None: gradxPressureNP.append(GRADXPW[1])
+            GRADYPW = Internal.getNodeFromName1(IBCD, XOD.__GRADYPRESSURE__)
+            if GRADYPW is not None: gradyPressureNP.append(GRADYPW[1])
+            GRADZPW = Internal.getNodeFromName1(IBCD, XOD.__GRADZPRESSURE__)
+            if GRADZPW is not None: gradzPressureNP.append(GRADZPW[1])
+
+            FSN[2].append([XOD.__PRESSURE__,pressNP[0], [],'DataArray_t'])
+            FSN[2].append([XOD.__DENSITY__,densNP[0], [],'DataArray_t'])
+            if utauNP != []:
+                FSN[2].append([XOD.__UTAU__,utauNP[0], [],'DataArray_t'])
+            if yplusNP != []:
+                FSN[2].append([XOD.__YPLUS__,yplusNP[0], [],'DataArray_t'])
+
+            if yplusINP != []:
+                FSN[2].append([XOD.__YPLUSIP__,yplusINP[0], [],'DataArray_t'])
+
+            if vxNP != []:
+                FSN[2].append([XOD.__VELOCITYX__,vxNP[0], [],'DataArray_t'])
+                FSN[2].append([XOD.__VELOCITYY__,vyNP[0], [],'DataArray_t'])
+                FSN[2].append([XOD.__VELOCITYZ__,vzNP[0], [],'DataArray_t'])
+
+            if gradxPressureNP != []:
+                FSN[2].append([XOD.__GRADXPRESSURE__,gradxPressureNP[0], [],'DataArray_t'])
+                FSN[2].append([XOD.__GRADYPRESSURE__,gradyPressureNP[0], [],'DataArray_t'])
+                FSN[2].append([XOD.__GRADZPRESSURE__,gradzPressureNP[0], [],'DataArray_t'])
+
+            Cmpi._setProc(z,Cmpi.rank)
+            tl[2][1][2].append(z)
+    return tl
+
+def extendBBox__(tbb, hloc):
+    xmin = C.getMinValue(tbb,'CoordinateX'); xmax = C.getMaxValue(tbb,'CoordinateX')
+    ymin = C.getMinValue(tbb,'CoordinateY'); ymax = C.getMaxValue(tbb,'CoordinateY')
+    zmin = C.getMinValue(tbb,'CoordinateZ'); zmax = C.getMaxValue(tbb,'CoordinateZ')
+
+    for k in range(2):
+        for j in range(2):
+            for i in range(2):
+                ind = i+j*2+k*4
+                if i==0: xl = xmin-hloc
+                else: xl = xmax+hloc
+                if j==0: yl = ymin-hloc
+                else: yl = ymax+hloc
+                if k==0: zl = zmin-hloc
+                else: zl = zmax+hloc
+
+                C.setValue(tbb,'CoordinateX',ind,xl)
+                C.setValue(tbb,'CoordinateY',ind,yl)
+                C.setValue(tbb,'CoordinateZ',ind,zl)
+
+    return tbb
+
+def allGatherGraph__(graph):
+    g = Cmpi.KCOMM.allgather(graph)
+    graph = {}
+    for i in g:
+        for k in i:
+            if not k in graph: graph[k] = {}
+            for j in i[k]:
+                if not j in graph[k]: graph[k][j] = []
+                graph[k][j] += i[k][j]
+                graph[k][j] = sorted(list(set(graph[k][j])))
+
+    return graph
+
+def setIBCTransfersPost__(graphIBCDPost, tl):
+    datas = {x:[] for x in range(Cmpi.size) if x != Cmpi.rank}
+    for dest in graphIBCDPost[Cmpi.rank]:
+        if Cmpi.rank != dest:
+            for zname in graphIBCDPost[Cmpi.rank][dest]:
+                zd = Internal.getNodeByPath(tl, 'CLOUD_IBCW/'+zname)
+
+                dim = int(zd[1][0,0])
+                coords = Internal.getNodeByPath(zd, 'GridCoordinates')[2]
+                fields = Internal.getNodeByPath(zd, 'FlowSolution')[2]
+
+                datas[dest] += [[zname, dim, coords, fields]]
+
+    rcvDatas = Cmpi.sendRecv(datas, graphIBCDPost)
+
+    for rcv in rcvDatas:
+        for [zname, dim, coords, fields] in rcvDatas[rcv]:
+            zsize = numpy.empty((1,3), numpy.int32, order='F')
+            zsize[0,0] = dim; zsize[0,1] = 0; zsize[0,2] = 0
+            z = Internal.newZone(name=zname,ztype='Unstructured',zsize=zsize)
+            gc = Internal.newGridCoordinates(parent=z)
+            gc[2] = coords
+            n = Internal.createChild(z, 'GridElements', 'Elements_t', [2,0])
+            Internal.createChild(n, 'ElementRange', 'IndexRange_t', [1,0])
+            Internal.createChild(n, 'ElementConnectivity', 'DataArray_t', None)
+            FSN = Internal.newFlowSolution(name=Internal.__FlowSolutionNodes__,gridLocation='Vertex', parent=z)
+            FSN[2] = fields
+
+            tl[2][1][2].append(z)
+
+    for zname in graphIBCDPost[Cmpi.rank][Cmpi.rank]: Internal._rmNodeByPath(tl, 'CLOUD_IBCW/'+zname)
+
+    return tl
+
+def prepareSkinReconstruction(tb, tc, dimPb=3, ibctypes=[], prepareMLS=False):
+    import Distributor2.PyTree as D2
+
+    alphah=2.2 # to extend the bboxes
+
+    tl = createCloudIBM__(tc, ibctypes=ibctypes)
+
+    ts = Internal.copyRef(tb)
+
+    # SPLIT tb
+    if ibctypes:
+        listOfZones = []
+        for b in Internal.getBases(ts):
+            for z in Internal.getZones(b):
+                ztype = Internal.getNodeByName(z, 'ibctype')
+                if ztype is not None:
+                    ztype = Internal.getValue(ztype)
+                    if XOD.TypesOfIBC[ztype] not in ibctypes: listOfZones.append(b[0]+'/'+z[0])
+                else: listOfZones.append(b[0]+'/'+z[0])
+        for zpath in listOfZones: Internal._rmNodeByPath(ts, zpath)
+        zones = Internal.getNodesByType(ts, 'Zone_t')
+        if not zones: raise ValueError('prepareSkinReconstruction: no ibctypes {} in case tree.'.format(ibctypes))
+
+    ts = T.splitNParts(ts, Cmpi.size)
+    stats = D2._distribute(ts, Cmpi.size)
+    if dimPb == 2: C._initVars(ts, '{CoordinateZ}=0.005') # to match cloud of IBM points
+    
+    # CREATE graphIBCDPost 
+    graph = {i:{} for i in range(Cmpi.size)}
+    listOfDeletedZones = []
+    for zl in Internal.getZones(tl):
+        deleteZone = True
+        zname = zl[0]
+        zlBB = G.BB(zl)
+
+        hx = C.getValue(tl,'CoordinateX',1)-C.getValue(tl,'CoordinateX',0)
+        hy = C.getValue(tl,'CoordinateY',1)-C.getValue(tl,'CoordinateY',0)
+        hz = C.getValue(tl,'CoordinateZ',1)-C.getValue(tl,'CoordinateZ',0)
+        hmin = max(abs(hx),abs(hy),abs(hz))
+        hloc = hmin*alphah
+
+        zlBB = extendBBox__(zlBB, hloc)
+
+        for zs in Internal.getZones(ts):
+            tdBB = G.BB(zs)
+            tdBB = extendBBox__(tdBB, hloc)
+            dest = Cmpi.getProc(zs)
+            if G.bboxIntersection(tdBB, zlBB, isBB=True):
+                if dest != Cmpi.rank: Distributed.updateGraph__(graph, Cmpi.rank, dest, zname)
+                else: deleteZone = False
+
+        if deleteZone: listOfDeletedZones.append(zname)
+
+    graph[Cmpi.rank][Cmpi.rank] = listOfDeletedZones
+    graphIBCDPost = allGatherGraph__(graph)
+
+    # CREATE ts 
+    refstate = Internal.getNodeFromType(ts, 'ReferenceState_t')
+    flowEqn  = Internal.getNodeFromType(ts, 'FlowEquationSet_t')
+
+    listOfBases = []
+    for b in Internal.getBases(ts):
+        zones = Internal.getZones(b)
+        zones = [z for z in zones if Cmpi.getProc(z) == Cmpi.rank] 
+        if zones != []:
+            zones = C.convertArray2Tetra(zones)
+            zones = G.close(zones)
+            for z in zones: z[0] = z[0]+"_%s"%Cmpi.rank
+            b[2] = zones
+        else: listOfBases.append(b[0])
+    for bname in listOfBases: Internal._rmNodeByPath(ts, bname) # security
+    Internal.addChild(ts, refstate, pos=0)
+    Internal.addChild(ts, flowEqn , pos=0)
+
+    C._initVars(ts,XOD.__PRESSURE__,0.)
+    C._initVars(ts,XOD.__DENSITY__,0.)
+    C._initVars(ts,XOD.__UTAU__,0.)
+    C._initVars(ts,XOD.__YPLUS__,0.)
+    C._initVars(ts,XOD.__YPLUSIP__,0.)
+
+    C._initVars(ts,XOD.__VELOCITYX__,0.)
+    C._initVars(ts,XOD.__VELOCITYY__,0.)
+    C._initVars(ts,XOD.__VELOCITYZ__,0.)
+
+    C._initVars(ts,XOD.__GRADXPRESSURE__,0.)
+    C._initVars(ts,XOD.__GRADYPRESSURE__,0.)
+    C._initVars(ts,XOD.__GRADZPRESSURE__,0.)
+    
+
+    # CREATE interpdata for MLS
+    if prepareMLS:
+        tl = setIBCTransfersPost__(graphIBCDPost, tl)
+        tl = T.join(tl)
+        P._prepareProjectCloudSolution(tl, ts, dim=dimPb, ibm=True)
+
+    Cmpi.barrier()
+
+    return graphIBCDPost, ts
+
+def _computeSkinVariables(ts, tc, graphIBCDPost, dimPb=3, ibctypes=[]):
+    tl = createCloudIBM__(tc, ibctypes)
+    tl = setIBCTransfersPost__(graphIBCDPost, tl)
+    tl = T.join(tl)
+    P._projectCloudSolution(tl, ts, dim=dimPb, ibm=True)
+    Cmpi.barrier()
+    return None
+
+#==========================================================================================
+# Computes the aerodynamic loads on the immersed boundaries
+# IN: ts (tree): surface tree with skin variables (density, pressure, etc.).
+# IN: ts2 (tree, optional): second surface tree with better pressure information extracted from second image points.
+# IN: dimPb (int): pb dimension.
+# IN: famZones (list): if famZones is not empty, only extract some subregion families (['FAM1','FAM2,...])
+# IN: Pref (float): reference pressure for the pressure integration -> (p-pinf).
+# IN: center (tuple of floats): reference center for the integration of aerodynamic moments.
+# IN: verbose (int or boolean): If True or 1: print detailed integration information on screen.
+#
+# OUT: tw (tree): Surface tree with additional solution fields: shear stress, Cp, Cf, etc.
+# !WARNING! Cp & Cf are not normalized !WARNING!
+# OUT: aeroLoads (list of four lists): integration information in the body frame ([forcePressure, forceFriction, momentPressure, momentFriction])
+#==========================================================================================
+def extractPressureFromFront2__(tw, tw2, extractDensity=False):
+    zones_tw  = []
+    zones_tw2 = []
+    for zone in Internal.getZones(tw): zones_tw.append(zone[0])
+    for zone in Internal.getZones(tw2): zones_tw2.append(zone[0])
+    nbZones = len(zones_tw)
+
+    for i in range(nbZones): # for multi corps
+        szw  = Internal.getNodeFromName(tw, zones_tw[i])
+        szw2 = Internal.getNodeFromName(tw2, zones_tw2[i])
+
+        Internal.getNodeFromName(szw, 'Pressure')[1] = Internal.getNodeFromName(szw2, 'Pressure')[1]
+        if extractDensity: Internal.getNodeFromName(szw, 'Density')[1]  = Internal.getNodeFromName(szw2, 'Density')[1]
+
+        Internal.getNodeFromName(szw, 'gradxPressure')[1] = Internal.getNodeFromName(szw2, 'gradxPressure')[1]
+        Internal.getNodeFromName(szw, 'gradyPressure')[1] = Internal.getNodeFromName(szw2, 'gradyPressure')[1]
+        Internal.getNodeFromName(szw, 'gradzPressure')[1] = Internal.getNodeFromName(szw2, 'gradzPressure')[1]
+    
+    return tw
+
+def computeAerodynamicLoads(ts, ts2=None, dimPb=3, famZones=[], Pref=None, center=(0.,0.,0.), verbose=0):
+    """Computes the aerodynamic loads on the immersed boundaries"""
+
+    import Post.ExtraVariables2 as PE
+    import Connector.IBM as X_IBM
+    import Distributor2.PyTree as D2
+
+    tw = Internal.copyRef(ts)
+    if ts2 is not None:
+        tw2 = Internal.copyRef(ts2)
+        tw = extractPressureFromFront2__(tw, tw2, extractDensity=False)
+
+    if famZones:
+        listOfZones = []
+        for b in Internal.getBases(tw):
+            for z in Internal.getZones(b):
+                fname = Internal.getNodeFromType(z, 'FamilyName_t')
+                if fname is not None:
+                    fname = Internal.getValue(fname)
+                    if fname not in famZones: listOfZones.append(b[0]+'/'+z[0])
+                else: listOfZones.append(b[0]+'/'+z[0])
+        for zpath in listOfZones: Internal._rmNodeByPath(tw, zpath)
+        tw = Cmpi.allgatherTree(tw)
+        zones = Internal.getNodesByType(tw, 'Zone_t')
+        if not zones: raise ValueError('prepareSkinReconstruction: no famZones {} in case tree.'.format(famZones))
+        Internal._rmNodesFromType(tw, 'ZoneSubRegion_t')
+        tw = T.splitNParts(tw, Cmpi.size)
+        stats = D2._distribute(tw, Cmpi.size)
+        listOfBases = []
+        for b in Internal.getBases(tw):
+            zones = Internal.getZones(b)
+            zones = [z for z in zones if Cmpi.getProc(z) == Cmpi.rank] 
+            if zones != []:
+                for z in zones: z[0] = z[0]+"_%s"%Cmpi.rank
+                zones = G.close(zones)
+                b[2] = zones
+            else: listOfBases.append(b[0])
+        for bname in listOfBases: Internal._rmNodeByPath(tw, bname) # security
+
+    if dimPb == 2:
+        C._initVars(tw, '{CoordinateZ}=0.')
+        T._addkplane(tw)
+        C._convertArray2Tetra(tw)
+        T._reorder(tw, (-1,))
+    else:
+        C._convertArray2Tetra(tw)
+
+    flowSolCenter = Internal.getNodeFromName(tw, Internal.__FlowSolutionCenters__)
+    if flowSolCenter is None:
+        tw = C.node2Center(tw, 'FlowSolution')
+        C._rmVars(tw, 'FlowSolution')
+    
+    if Pref is None: 
+        RefState = Internal.getNodeFromType(tw, 'ReferenceState_t')
+        PInf = Internal.getValue(Internal.getNodeFromName(RefState,"Pressure"))
+        Pref = PInf
+
+    variables = ['Cp','Cf','frictionX','frictionY','frictionZ','frictionMagnitude','ShearStress']
+
+    if Internal.getNodeFromName(tw, 'gradxPressure') is not None: variables += ['gradnP', 'gradtP']
+    
+    _computeExtraVariables(tw, Pref, 1, variables=variables) #Cp & Cf are not normalized
+        
+    #===================================
+    # Compute aerodynamic forces (pressure & friction)
+    # R = int(F.n ds) where n is outward-pointing & F = -(p-pinf) + tau
+    #===================================
+    forcePressure = PE.integCp(tw)[0]
+    forcePressure = [-i for i in forcePressure]
+
+    forceFriction = PE.integTaun(tw)
+    forceFriction = [i for i in forceFriction]
+
+    #===================================
+    # Compute aerodynamic moments (pressure & friction)
+    # M = int(CM^F ds) where C is the center argument & F = -(p-pinf) + tau
+    #===================================
+    momentPressure = PE.integMomentCp(tw, center)[0]
+    momentPressure = [-i for i in momentPressure]
+
+    momentFriction = PE.integMomentTaun(tw, center)
+    momentFriction = [i for i in momentFriction]
+
+    FSC = Internal.getNodesFromName(tw, Internal.__FlowSolutionCenters__)
+    Internal._rmNodesFromName(FSC, 'ShearStress*')
+
+    if verbose and Cmpi.rank == 0:
+        print("Vector of pressure forces:  (Fx_P,Fy_P,Fz_P) = ({:.4e}, {:.4e}, {:.4e})".format(*forcePressure))
+        print("Vector of friction forces:  (Fx_F,Fy_F,Fz_F) = ({:.4e}, {:.4e}, {:.4e})".format(*forceFriction))
+
+        print("Vector of pressure moments: (Mx_P,My_P,Mz_P) = ({:.4e}, {:.4e}, {:.4e})".format(*momentPressure))
+        print("Vector of friction moments: (Mx_F,My_F,Mz_F) = ({:.4e}, {:.4e}, {:.4e})".format(*momentFriction))
+    
+    if dimPb == 2: # reextrait en 2D
+        for b in Internal.getBases(tw):
+            zones = Internal.getZones(b)
+            zones = P.isoSurfMC(zones, "CoordinateZ", 0.)
+            b[2] = zones
+
+    return tw, [forcePressure, forceFriction, momentPressure, momentFriction]
+
+#==========================================================================================
+# Computes the aerodynamic coefficients from the aeroLoads information obtained with computeAerodynamicLoads()
+# IN: tw (tree): Surface tree with additional solution fields: Cp, Cf
+# IN: aeroLoads (list of four lists): integration information in the body frame ([forcePressure, forceFriction, momentPressure, momentFriction])
+# IN: dimPb (int): pb dimension.
+# IN: alpha (float): angle of attack (x-z plane)
+# IN: beta (float): angle of sideslip (x-y plane)
+# IN: Sref (float): reference surface
+#       if Sref is None, Sref is computed as the integ of the surface
+# IN: Lref (float): reference length
+#       if Lref is None, Lref is set by default at Lref = 1
+# IN: Qref (float): adim paramater
+#       if Qref is None, Qref is computed using the reference state stored in tw (Qref=0.5*rho*u**2)
+# IN: verbose (int or boolean): If True or 1: print detailed coefficient information on screen.
+#
+# OUT: Surface tree with normalized Cp & Cf
+# OUT: Cx (Drag), Cz (Lift) and CMy (pitching moment) put in the wind frame
+#==========================================================================================
+def fromBodyFrameToWindFrame__(vector, dimPb=3, alpha=0., beta=0.):
+    alpha  = math.radians(alpha); beta = math.radians(beta)
+
+    calpha = math.cos(alpha); cbeta = math.cos(beta)
+    salpha = math.sin(alpha); sbeta = math.sin(beta)
+
+    ca, cl, cn = vector
+    if dimPb == 2: cl,cn = cn,cl
+
+    cx = (ca*calpha + cn*salpha)*cbeta - cl*sbeta
+    cy = cl*cbeta + (ca*calpha + cn*salpha)*sbeta
+    cz = cn*calpha - ca*salpha
+
+    return cx, cy, cz
+
+def computeAerodynamicCoefficients(ts, aeroLoads, dimPb=3, Sref=None, Lref=None, Qref=None, alpha=0., beta=0., verbose=0):
+    """Computes the normalized aerodynamic coefficients from the integration of aerodynamic forces and moments on the immsersed boundaries"""
+
+    tw = Internal.copyRef(ts)
+
+    forcePressure, forceFriction, momentPressure, momentFriction = aeroLoads
+
+    if Qref is None: 
+        RefState = Internal.getNodeFromType(tw,'ReferenceState_t')
+        RoInf    = Internal.getValue(Internal.getNodeFromName(RefState,"Density"))
+        VxInf    = Internal.getValue(Internal.getNodeFromName(RefState,"VelocityX"))
+        VyInf    = Internal.getValue(Internal.getNodeFromName(RefState,"VelocityY"))
+        VzInf    = Internal.getValue(Internal.getNodeFromName(RefState,"VelocityZ"))
+        VInf2    = VxInf*VxInf+VyInf*VyInf+VzInf*VzInf
+        q        = 0.5*RoInf*VInf2
+        Qref     = q
+
+    if Sref is None:
+        C._initVars(tw, '__ONE__',1.)
+        Sref = P.integ(tw, '__ONE__')[0]
+        C._rmVars(tw, ['__ONE__', 'centers:vol'])
+
+    if Lref is None:
+        Lref = 1.
+    
+    # Normalize Cp & Cf
+    if dimPb == 2:
+        C._initVars(tw, '{Cp}={Cp}/%20.16g'%(Qref))
+        C._initVars(tw, '{Cf}={Cf}/%20.16g'%(Qref))
+    else:
+        C._initVars(tw, '{centers:Cp}={centers:Cp}/%20.16g'%(Qref))
+        C._initVars(tw, '{centers:Cf}={centers:Cf}/%20.16g'%(Qref))
+
+    cfxp, cfyp, cfzp = [i/(Qref*Sref) for i in fromBodyFrameToWindFrame__(forcePressure, dimPb, alpha, beta)]
+    cfxf, cfyf, cfzf = [i/(Qref*Sref) for i in fromBodyFrameToWindFrame__(forceFriction, dimPb, alpha, beta)]
+
+    cmxp, cmyp, cmzp = [-i/(Qref*Sref*Lref) for i in fromBodyFrameToWindFrame__(momentPressure, dimPb, alpha, beta)]
+    cmxf, cmyf, cmzf = [-i/(Qref*Sref*Lref) for i in fromBodyFrameToWindFrame__(momentFriction, dimPb, alpha, beta)]
+
+    if verbose and Cmpi.rank == 0:
+        print("**********************************************************************************************")
+        print("Info IBM post : aerodynamic coefficients in wind frame (Drag, Lateral Force and Lift forces): ")
+        print("**********************************************************************************************")
+        print("Cx = %.12e | (Cxp, Cxf) = (%.12e, %.12e)"%(((cfxp+cfxf), cfxp, cfxf)))
+        print("Cy = %.12e | (Cyp, Cyf) = (%.12e, %.12e)"%(((cfyp+cfyf), cfyp, cfyf)))
+        print("Cz = %.12e | (Czp, Czf) = (%.12e, %.12e)"%(((cfzp+cfzf), cfzp, cfzf)))
+        print("**********************************************************************************************")
+        print("Info IBM post : aerodynamic coefficients in wind frame (Roll, Pitch and Yaw moments): ")
+        print("**********************************************************************************************")
+        print("Mx = %.12e | (Mxp, Mxf) = (%.12e, %.12e)"%(((cmxp+cmxf), cmxp, cmxf)))
+        print("My = %.12e | (Myp, Myf) = (%.12e, %.12e)"%(((cmyp+cmyf), cmyp, cmyf)))
+        print("Mz = %.12e | (Mzp, Mzf) = (%.12e, %.12e)"%(((cmzp+cmzf), cmzp, cmzf)))
+        print("**********************************************************************************************")
+
+    return tw, (cfxp+cfxf), (cfzp+cfzf), (cmyp+cmyf)
+
+##################
+# WORK IN PROGRESS
+##################
+
+#==============================================================================
+# Return ts, massflow 
+# A REFAIRE !!!  [AJ] KEEP FOR NOW
+#==============================================================================
+def extractMassFlowThroughSurface(tb, t, famZones=[]):
+    print("WARNING: fonction a reprendre !!!")
+    ts = Internal.copyRef(tb)
+    if famZones !=[]:
+        for zone in Internal.getZones(ts):
+            familyNode = Internal.getNodeFromName(zone, "FamilyName")
+            if familyNode is None or Internal.getValue(familyNode) not in famZones:
+                Internal._rmNodesByName(ts, zone[0])
+
+    C._initVars(t,'{centers:cellN}=minimum({centers:cellN},1.)')
+    P._extractMesh(t, ts, mode='robust')
+    C._rmVars(ts, 'cellN')
+    C._initVars(ts, '{MomentumX}={Density}*{VelocityX}')
+    C._initVars(ts, '{MomentumY}={Density}*{VelocityY}')
+    C._initVars(ts, '{MomentumZ}={Density}*{VelocityZ}')
+    massflow = P.integNormProduct(ts, vector=['MomentumX', 'MomentumY', 'MomentumZ'])
+    return massflow, ts
+
+##################
+# SOON TO BE DELETED...
+##################
+
 #=============================================================================
 # Computes the viscous and pressure forces on the immersed boundaries
 # IN: tb (tree): geometry tree (IBM bodies) 
@@ -730,26 +1260,6 @@ def _addGradxiP__(tc):
                     zsr[2].append(['gradyPressure' , copy.copy(Nlength) , [], 'DataArray_t'])
                     zsr[2].append(['gradzPressure' , copy.copy(Nlength) , [], 'DataArray_t'])
     return None
-
-def extractPressureFromFront2__(zw, zw2, extractDensity=False):
-    zones_zw  = []
-    zones_zw2 = []
-    for zone in Internal.getZones(zw): zones_zw.append(zone[0])
-    for zone in Internal.getZones(zw2): zones_zw2.append(zone[0])
-    nbZones = len(zones_zw)
-
-    for i in range(nbZones): # for multi corps
-        szw  = Internal.getNodeFromName(zw, zones_zw[i])
-        szw2 = Internal.getNodeFromName(zw2, zones_zw2[i])
-
-        Internal.getNodeFromName(szw, 'Pressure')[1] = Internal.getNodeFromName(szw2, 'Pressure')[1]
-        if extractDensity: Internal.getNodeFromName(szw, 'Density')[1]  = Internal.getNodeFromName(szw2, 'Density')[1]
-
-        Internal.getNodeFromName(szw, 'gradxPressure')[1] = Internal.getNodeFromName(szw2, 'gradxPressure')[1]
-        Internal.getNodeFromName(szw, 'gradyPressure')[1] = Internal.getNodeFromName(szw2, 'gradyPressure')[1]
-        Internal.getNodeFromName(szw, 'gradzPressure')[1] = Internal.getNodeFromName(szw2, 'gradzPressure')[1]
-    
-    return zw
 
 def _loads0(ts, Sref=None, Pref=None, Qref=None, alpha=0., beta=0., dimPb=3, verbose=0, time=-1):
     import Post.ExtraVariables2 as PE
@@ -884,14 +1394,14 @@ def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref
                 Cmpi._setProc(zones, Cmpi.rank)
                 b[2] = [zones]
     else:
-        zw = extractIBMWallFields(tc, tb=tb, coordRef='wall', famZones=famZones, extractIBMInfo=extractIBMInfo, extractYplusAtImage=True)
+        zw = extractIBMWallFields(tc, tb=tb, coordRef='wall', famZones=famZones, extractIBMInfo=extractIBMInfo, extractYplusAtImage=True, ProjectOldVersion=False)
     
     #====================================
     # Extract pressure info from tc2 to tc
     #====================================
     if tc2 is not None:
         print('Info: loads: pressure info come from tc2')
-        zw2 = extractIBMWallFields(tc2, tb=tb, famZones=famZones)
+        zw2 = extractIBMWallFields(tc2, tb=tb, famZones=famZones, ProjectOldVersion=False)
         zw = extractPressureFromFront2__(zw, zw2)
 
     dimPb = Internal.getValue(Internal.getNodeFromName(tb, 'EquationDimension'))
@@ -915,7 +1425,7 @@ def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref
         ts[2][1][2] = zw
         RefState = Internal.getNodeFromType(tb, 'ReferenceState_t')
         ts[2][1][2].append(RefState)
-        tp = C.node2Center(ts, 'FlowSolution')
+        ts = C.node2Center(ts, 'FlowSolution')
         C._rmVars(ts, 'FlowSolution')
         [res, res2, [clp, cdp], [clf, cdf]] = _loads0(ts, Sref=Sref, Pref=None, Qref=None, alpha=alpha, beta=beta, dimPb=dimPb, verbose=True)
 
@@ -959,30 +1469,6 @@ def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref
     if isinstance(wall_out, str): C.convertPyTree2File(ts, wall_out)
     return ts, CL, CD
 
-##################
-# WORK IN PROGRESS
-##################
-
-#==============================================================================
-# Return ts, massflow 
-# A REFAIRE !!!  [AJ] KEEP FOR NOW
-def extractMassFlowThroughSurface(tb, t, famZones=[]):
-    print("WARNING: fonction a reprendre !!!")
-    ts = Internal.copyRef(tb)
-    if famZones !=[]:
-        for zone in Internal.getZones(ts):
-            familyNode = Internal.getNodeFromName(zone, "FamilyName")
-            if familyNode is None or Internal.getValue(familyNode) not in famZones:
-                Internal._rmNodesByName(ts, zone[0])
-
-    C._initVars(t,'{centers:cellN}=minimum({centers:cellN},1.)')
-    P._extractMesh(t, ts, mode='robust')
-    C._rmVars(ts, 'cellN')
-    C._initVars(ts, '{MomentumX}={Density}*{VelocityX}')
-    C._initVars(ts, '{MomentumY}={Density}*{VelocityY}')
-    C._initVars(ts, '{MomentumZ}={Density}*{VelocityZ}')
-    massflow = P.integNormProduct(ts, vector=['MomentumX', 'MomentumY', 'MomentumZ'])
-    return massflow, ts
 
 #==========================================================================================
 # IN:  ts            : skin (TRI zones) distributed already (partial tree here)
@@ -991,7 +1477,7 @@ def extractMassFlowThroughSurface(tb, t, famZones=[]):
 # OUT: graphWPOST    : graph of coms between tc and tl
 # OUT: interDictWPOST: dictionary of intersection domains
 #==========================================================================================
-def _prepareSkinReconstruction(ts, tc,famZones=[]):
+def _prepareSkinReconstruction_old(ts, tc,famZones=[]):
     alphah=2.2
     tBBs=Cmpi.createBBoxTree(ts)
     procDictFUS = Cmpi.getProcDict(tBBs)
@@ -1119,7 +1605,7 @@ def _prepareSkinReconstruction(ts, tc,famZones=[]):
         tl[2][1][2].append(FES)
     return tl, graphWPOST
 
-def _computeSkinVariables(ts, tc, tl, graphWPOST,famZones=[], ProjectOldVersion=False):
+def _computeSkinVariables_old(ts, tc, tl, graphWPOST,famZones=[], ProjectOldVersion=False):
     for zc in Internal.getZones(tc):
         allIBCD = Internal.getNodesFromType(zc,"ZoneSubRegion_t")
         allIBCD = Internal.getNodesFromName(allIBCD,"IBCD_*")
@@ -1176,296 +1662,4 @@ def _computeSkinVariables(ts, tc, tl, graphWPOST,famZones=[], ProjectOldVersion=
                         cloud = T.join(cloud)
                         ts[2][nobs][2][nozs] = P.projectCloudSolution(cloud, zs, dim=3, oldVersion=ProjectOldVersion)
                         
-    return None
-
-#==========================================================================================
-# Post para, nouvelle version
-#==========================================================================================
-def createCloudIBM__(tc, ibctypes=[]):
-    tl = C.newPyTree(['CLOUD_IBCW'])
-    for zc in Internal.getZones(tc):
-        allIBCD = Internal.getNodesFromType(zc,"ZoneSubRegion_t")
-        allIBCD = Internal.getNodesFromName(allIBCD,"IBCD_*")
-        for IBCD in allIBCD:
-            zname = Internal.getValue(IBCD)
-            ztype = int(IBCD[0].split("_")[1])
-            if ibctypes != [] and ztype not in ibctypes: continue
-            XW = Internal.getNodeFromName(IBCD,'CoordinateX_PW')[1]
-            YW = Internal.getNodeFromName(IBCD,'CoordinateY_PW')[1]
-            ZW = Internal.getNodeFromName(IBCD,'CoordinateZ_PW')[1]
-            zsize = numpy.empty((1,3), numpy.int32, order='F')
-            zsize[0,0] = XW.shape[0]; zsize[0,1] = 0; zsize[0,2] = 0
-            z = Internal.newZone(name='IBW_Wall_%s_%s_%d'%(zc[0].replace('Cart.',''),zname.replace('Cart.',''),Cmpi.rank),zsize=zsize,
-                                 ztype='Unstructured')
-            gc = Internal.newGridCoordinates(parent=z)
-            coordx = ['CoordinateX',XW,[],'DataArray_t']
-            coordy = ['CoordinateY',YW,[],'DataArray_t']
-            coordz = ['CoordinateZ',ZW,[],'DataArray_t']
-            gc[2] = [coordx,coordy,coordz]
-            n = Internal.createChild(z, 'GridElements', 'Elements_t', [2,0])
-            Internal.createChild(n, 'ElementRange', 'IndexRange_t', [1,0])
-            Internal.createChild(n, 'ElementConnectivity', 'DataArray_t', None)
-            FSN = Internal.newFlowSolution(name=Internal.__FlowSolutionNodes__,
-                                           gridLocation='Vertex', parent=z)
-            pressNP = []; utauNP = []; yplusNP = []; densNP = []
-            vxNP = []; vyNP = []; vzNP = []
-
-            PW = Internal.getNodeFromName1(IBCD,XOD.__PRESSURE__)
-            if PW is not None: pressNP.append(PW[1])
-            RHOW = Internal.getNodeFromName1(IBCD,XOD.__DENSITY__)
-            if RHOW is not None: densNP.append(RHOW[1])
-            UTAUW = Internal.getNodeFromName1(IBCD,XOD.__UTAU__)
-            if UTAUW is not None: utauNP.append(UTAUW[1])
-            YPLUSW = Internal.getNodeFromName1(IBCD, XOD.__YPLUS__)
-            if YPLUSW is not None: yplusNP.append(YPLUSW[1])
-
-            VXW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYX__)
-            if VXW is not None: vxNP.append(VXW[1])
-            VYW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYY__)
-            if VYW is not None: vyNP.append(VYW[1])
-            VZW = Internal.getNodeFromName1(IBCD, XOD.__VELOCITYZ__)
-            if VZW is not None: vzNP.append(VZW[1])
-
-            FSN[2].append([XOD.__PRESSURE__,pressNP[0], [],'DataArray_t'])
-            FSN[2].append([XOD.__DENSITY__,densNP[0], [],'DataArray_t'])
-            if utauNP != []:
-                utauPresent = 1
-                FSN[2].append([XOD.__UTAU__,utauNP[0], [],'DataArray_t'])
-            if yplusNP != []:
-                yplusPresent = 1
-                FSN[2].append([XOD.__YPLUS__,yplusNP[0], [],'DataArray_t'])
-
-            if vxNP != []:
-                vxPresent = 1
-                FSN[2].append([XOD.__VELOCITYX__,vxNP[0], [],'DataArray_t'])
-                FSN[2].append([XOD.__VELOCITYY__,vyNP[0], [],'DataArray_t'])
-                FSN[2].append([XOD.__VELOCITYZ__,vzNP[0], [],'DataArray_t'])
-
-            Cmpi._setProc(z,Cmpi.rank)
-            tl[2][1][2].append(z)
-    return tl
-
-def extendBBox__(tbb, hloc):
-    xmin = C.getMinValue(tbb,'CoordinateX'); xmax = C.getMaxValue(tbb,'CoordinateX')
-    ymin = C.getMinValue(tbb,'CoordinateY'); ymax = C.getMaxValue(tbb,'CoordinateY')
-    zmin = C.getMinValue(tbb,'CoordinateZ'); zmax = C.getMaxValue(tbb,'CoordinateZ')
-
-    for k in range(2):
-        for j in range(2):
-            for i in range(2):
-                ind = i+j*2+k*4
-                if i==0: xl = xmin-hloc
-                else: xl = xmax+hloc
-                if j==0: yl = ymin-hloc
-                else: yl = ymax+hloc
-                if k==0: zl = zmin-hloc
-                else: zl = zmax+hloc
-
-                C.setValue(tbb,'CoordinateX',ind,xl)
-                C.setValue(tbb,'CoordinateY',ind,yl)
-                C.setValue(tbb,'CoordinateZ',ind,zl)
-
-    return tbb
-
-def allGatherGraph__(graph):
-    g = Cmpi.KCOMM.allgather(graph)
-    graph = {}
-    for i in g:
-        for k in i:
-            if not k in graph: graph[k] = {}
-            for j in i[k]:
-                if not j in graph[k]: graph[k][j] = []
-                graph[k][j] += i[k][j]
-                graph[k][j] = sorted(list(set(graph[k][j])))
-
-    return graph
-
-def setIBCTransfersPost__(graphIBCDPost, tl):
-    datas = {x:[] for x in range(Cmpi.size) if x != Cmpi.rank}
-    for dest in graphIBCDPost[Cmpi.rank]:
-        if Cmpi.rank != dest:
-            for zname in graphIBCDPost[Cmpi.rank][dest]:
-                zd = Internal.getNodeByPath(tl, 'CLOUD_IBCW/'+zname)
-
-                dim = int(zd[1][0,0])
-                coords = Internal.getNodeByPath(zd, 'GridCoordinates')[2]
-                fields = Internal.getNodeByPath(zd, 'FlowSolution')[2]
-
-                datas[dest] += [[zname, dim, coords, fields]]
-
-    rcvDatas = Cmpi.sendRecv(datas, graphIBCDPost)
-
-    for rcv in rcvDatas:
-        for [zname, dim, coords, fields] in rcvDatas[rcv]:
-            zsize = numpy.empty((1,3), numpy.int32, order='F')
-            zsize[0,0] = dim; zsize[0,1] = 0; zsize[0,2] = 0
-            z = Internal.newZone(name=zname,ztype='Unstructured',zsize=zsize)
-            gc = Internal.newGridCoordinates(parent=z)
-            gc[2] = coords
-            n = Internal.createChild(z, 'GridElements', 'Elements_t', [2,0])
-            Internal.createChild(n, 'ElementRange', 'IndexRange_t', [1,0])
-            Internal.createChild(n, 'ElementConnectivity', 'DataArray_t', None)
-            FSN = Internal.newFlowSolution(name=Internal.__FlowSolutionNodes__,gridLocation='Vertex', parent=z)
-            FSN[2] = fields
-
-            tl[2][1][2].append(z)
-
-    for zname in graphIBCDPost[Cmpi.rank][Cmpi.rank]: Internal._rmNodeByPath(tl, 'CLOUD_IBCW/'+zname)
-
-    return tl
-
-def prepareSkinReconstruction2(ts, tc, dimPb=3, ibctypes=[], prepareMLS=False):
-    alphah=2.2 # to extend the bboxes
-
-    tl = createCloudIBM__(tc, ibctypes=ibctypes)
-    
-    # CREATE graphIBCDPost 
-    graph = {i:{} for i in range(Cmpi.size)}
-    listOfDeletedZones = []
-    for zl in Internal.getZones(tl):
-        deleteZone = True
-        zname = zl[0]
-        zlBB = G.BB(zl)
-
-        hx = C.getValue(tl,'CoordinateX',1)-C.getValue(tl,'CoordinateX',0)
-        hy = C.getValue(tl,'CoordinateY',1)-C.getValue(tl,'CoordinateY',0)
-        hz = C.getValue(tl,'CoordinateZ',1)-C.getValue(tl,'CoordinateZ',0)
-        hmin = max(abs(hx),abs(hy),abs(hz))
-        hloc = hmin*alphah
-
-        zlBB = extendBBox__(zlBB, hloc)
-
-        for zs in Internal.getZones(ts):
-            tsBB = G.BB(zs)
-            tsBB = extendBBox__(tsBB, hloc)
-            dest = Cmpi.getProc(zs)
-            if G.bboxIntersection(tsBB, zlBB, isBB=True):
-                if dest != Cmpi.rank: Distributed.updateGraph__(graph, Cmpi.rank, dest, zname)
-                else: deleteZone = False
-
-        if deleteZone: listOfDeletedZones.append(zname)
-
-    graph[Cmpi.rank][Cmpi.rank] = listOfDeletedZones
-    graphIBCDPost = allGatherGraph__(graph)
-
-    # CREATE ts 
-    refstate = Internal.getNodeFromType(ts, 'ReferenceState_t')
-    flowEqn  = Internal.getNodeFromName(ts, 'FlowEquationSet')          
-
-    td = Internal.copyRef(ts)
-    for b in Internal.getBases(td):
-        zones = Internal.getZones(b)
-        zones = [z for z in zones if Cmpi.getProc(z) == Cmpi.rank] 
-        if zones != []:
-            zones = C.convertArray2Tetra(zones)
-            zones = T.join(zones); zones = G.close(zones)
-            zones[0] = "SURF_{}".format(Cmpi.rank) 
-            b[2] = [zones]
-        Cmpi._setProc(b, Cmpi.rank)
-        Internal.addChild(b, refstate, pos=0)
-        Internal.addChild(b, flowEqn , pos=0)
-
-    C._initVars(td,XOD.__PRESSURE__,0.)
-    C._initVars(td,XOD.__DENSITY__,0.)
-    C._initVars(td,XOD.__UTAU__,0.)
-    C._initVars(td,XOD.__YPLUS__,0.)
-    C._initVars(td,"yplusIP",0.)
-
-    C._initVars(td,XOD.__VELOCITYX__,0.)
-    C._initVars(td,XOD.__VELOCITYY__,0.)
-    C._initVars(td,XOD.__VELOCITYZ__,0.)
-
-    # CREATE interpdata for MLS
-    if prepareMLS:
-        tl = setIBCTransfersPost__(graphIBCDPost, tl)
-        tl = T.join(tl)
-        P._prepareProjectCloudSolution(tl, td, dim=dimPb)
-
-    Cmpi.barrier()
-
-    return graphIBCDPost, td
-
-def _computeSkinVariables2(ts, tc, graphIBCDPost, dimPb=3, ibctypes=[]): 
-    tl = createCloudIBM__(tc, ibctypes)
-    tl = setIBCTransfersPost__(graphIBCDPost, tl)
-    tl = T.join(tl)
-    P._projectCloudSolution(tl, ts, dim=dimPb)
-    Cmpi.barrier()
-    return None
-
-#==========================================================================================
-# Post para, test de dev avec cloud totalement partage
-#==========================================================================================
-def allGatherCloud__(tl):
-    tl = T.join(tl)
-    z = Internal.getZones(tl)[0]; z[0] = 'cloud_rank%s'%Cmpi.rank
-    variables = [z[0] for z in Internal.getNodeByPath(tl, 'FlowSolution')[2]]
-    clouds = Cmpi.allgatherZones(z, coord=True, variables=variables)
-    clouds = T.join([Internal.getNodeFromName(clouds, 'cloud_rank%s'%i) for i in range(Cmpi.size)])
-    tl = C.newPyTree(['Base', clouds])
-
-    return tl
-
-def prepareSkinReconstruction3(ts, tc, dimPb=3, ibctypes=[], prepareMLS=False):
-    # CREATE tl
-    tl = createCloudIBM__(tc, ibctypes=ibctypes)
-    tl = allGatherCloud__(tl)
-
-    # CREATE ts 
-    refstate = Internal.getNodeFromType(ts, 'ReferenceState_t')
-    flowEqn  = Internal.getNodeFromName(ts, 'FlowEquationSet')          
-
-    td = Internal.copyRef(ts)
-    for b in Internal.getBases(td):
-        zones = Internal.getZones(b)
-        zones = [z for z in zones if Cmpi.getProc(z) == Cmpi.rank] 
-        if zones != []:
-            zones = C.convertArray2Tetra(zones)
-            zones = T.join(zones); zones = G.close(zones)
-            zones[0] = "SURF_{}".format(Cmpi.rank) 
-            b[2] = [zones]
-        Cmpi._setProc(b, Cmpi.rank)
-        Internal.addChild(b, refstate, pos=0)
-        Internal.addChild(b, flowEqn , pos=0)
-
-    # td = Internal.copyRef(ts)
-    # for b in Internal.getBases(td):
-    #     zones = Internal.getZones(b)
-    #     found = False
-    #     for z in zones:
-    #         if Cmpi.getProc(z) == Cmpi.rank: found = True; C._initVars(z, '{cellN}=0')
-    #         else: C._initVars(z, '{cellN}=1')
-    #     if zones != [] and found:
-    #         zones = C.convertArray2Tetra(zones)
-    #         zones = X.setHoleInterpolatedPoints(zones,depth=2,dir=0,loc='nodes',cellNName='cellN')
-    #         zones = P.selectCells(zones, '({cellN}<0.5)+({cellN}>1.5)', strict=1)
-    #         zones = T.join(zones); zones = G.close(zones)
-    #         zones[0] = "SURF_{}".format(Cmpi.rank) 
-    #         b[2] = [zones]
-    #     Cmpi._setProc(b, Cmpi.rank)
-    #     Internal.addChild(b, refstate, pos=0)
-    #     Internal.addChild(b, flowEqn , pos=0)
-
-    C._initVars(td,XOD.__PRESSURE__,0.)
-    C._initVars(td,XOD.__DENSITY__,0.)
-    C._initVars(td,XOD.__UTAU__,0.)
-    C._initVars(td,XOD.__YPLUS__,0.)
-    C._initVars(td,"yplusIP",0.)
-
-    C._initVars(td,XOD.__VELOCITYX__,0.)
-    C._initVars(td,XOD.__VELOCITYY__,0.)
-    C._initVars(td,XOD.__VELOCITYZ__,0.)
-
-    # CREATE interpdata for MLS
-    if prepareMLS: P._prepareProjectCloudSolution(tl, td, dim=dimPb)
-
-    Cmpi.barrier()
-
-    return td
-
-def _computeSkinVariables3(ts, tc, dimPb=3, ibctypes=[]): 
-    tl = createCloudIBM__(tc, ibctypes)
-    tl = allGatherCloud__(tl)
-    P._projectCloudSolution(tl, ts, dim=dimPb)
-    Cmpi.barrier()
     return None

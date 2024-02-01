@@ -1,6 +1,6 @@
 """Toolbox for IBM preprocessing"""
 
-# This module is deprecated, please use Connecor.IBM instead
+# This module is deprecated, please use Connector.IBM instead
 
 from Connector.IBM import _blankClosestTargetCells, _removeBlankedGrids, blankByIBCBodies, _addBCOverlaps, _addExternalBCs, \
     _modifPhysicalBCs__, getIBMFront, getIBMFrontType1__, getIBMFrontType0__, getIBMFrontType0Old__, _pushBackImageFront2, \

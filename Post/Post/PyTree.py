@@ -86,13 +86,13 @@ def extractPlane(t, T, order=2, tol=1.e-6):
     a = Post.extractPlane(A, T, order, tol)
     return C.convertArrays2ZoneNode('extractedPlane', [a])
 
-def projectCloudSolution(cloud, surf, dim=3, loc='nodes', oldVersion=False):
+def projectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False):
     """Project the solution defined on a set of points to a TRI surface."""
     surf2 = Internal.copyRef(surf)
-    _projectCloudSolution(cloud, surf2, dim=dim, loc=loc, oldVersion=oldVersion)
+    _projectCloudSolution(cloud, surf2, dim=dim, loc=loc, ibm=ibm)
     return surf2
 
-def _projectCloudSolution(cloud, surf, dim=3, loc='nodes', oldVersion=False):
+def _projectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False):
     """Project the solution defined on a set of points to a TRI surface."""
     fc = C.getAllFields(cloud, 'nodes')[0]
     zones = Internal.getZones(surf)
@@ -107,23 +107,23 @@ def _projectCloudSolution(cloud, surf, dim=3, loc='nodes', oldVersion=False):
             C.setFields([res], zones[noz], 'nodes')
         else:
             fs = C.getAllFields(zones[noz], 'nodes')[0]
-            res = Post.projectCloudSolution(fc, fs, dim=dim, oldVersion=oldVersion)
+            res = Post.projectCloudSolution(fc, fs, dim=dim, ibm=ibm)
             C.setFields([res], zones[noz], 'nodes')
     return None
 
-def prepareProjectCloudSolution(cloud, surf, dim=3, loc='nodes'):
+def prepareProjectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False):
     """Compute the MLS interpolation data for projectCloudSolutionWithInterpData."""
     surf2 = Internal.copyRef(surf)
-    _prepareProjectCloudSolution(cloud, surf2, dim=dim, loc=loc)
+    _prepareProjectCloudSolution(cloud, surf2, dim=dim, loc=loc, ibm=ibm)
     return surf2
 
-def _prepareProjectCloudSolution(cloud, surf, dim=3, loc='nodes'):
+def _prepareProjectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False):
     """Compute the MLS interpolation data for projectCloudSolutionWithInterpData."""
     fc = C.getAllFields(cloud, 'nodes')[0]
     zones = Internal.getZones(surf)
     for noz in range(len(zones)):
         fs = C.getAllFields(zones[noz], 'nodes')[0]
-        res = Post.prepareProjectCloudSolution(fc, fs, dim=dim)
+        res = Post.prepareProjectCloudSolution(fc, fs, dim=dim, ibm=ibm)
 
         interpDonor, interpCoef = res
         offset = [0]; cpt = 0

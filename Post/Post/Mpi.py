@@ -119,9 +119,9 @@ def integMoment(t, center=(0.,0.,0.), vector=[]):
     return ret1.tolist()
 
 #==============================================================================
-def integNormMoment(t, center=(0.,0.,0.), vector=[]):
+def integMomentNorm(t, center=(0.,0.,0.), var=''):
     if t is not None:
-        ret = P.integNormMoment(t, center, vector)
+        ret = P.integMomentNorm(t, center, var)
     else:
         ret = 0.    
     ret = numpy.array(ret, dtype=numpy.float64)

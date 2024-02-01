@@ -8,6 +8,8 @@ import Converter.Internal as Internal
 import Geom.PyTree as D
 import FastC.PyTree as FastC
 
+import Post.IBM as P_IBM
+
 test.TOLERANCE = 1.e-8
 LOCAL = test.getLocal()
 
@@ -17,8 +19,9 @@ FILED = LOCAL+"/tcw.cgns"
 
 myApp = App.IBM(format='single')
 myApp.set(numb={"temporal_scheme": "implicit",
-                "ss_iteration":3,
-                "omp_mode":0})
+                "ss_iteration":1,
+                "omp_mode":0,
+                "modulo_verif":200})
 myApp.set(numz={"time_step": 0.0007,
                 "scheme":"roe_min",
                 "time_step_nature":"local",
@@ -26,7 +29,7 @@ myApp.set(numz={"time_step": 0.0007,
 # case
 a = D.sphere6((0.,0.,0.),1.,N=20)
 for z in a:
-    App._setSnear(z, 0.2)
+    App._setSnear(z, 0.1)
     App._setDfar(z, 10.)
     App._setIBCType(z, 'Musker')
     
@@ -41,11 +44,6 @@ for node in Internal.getNodesByName(tb,'FlowEquationSet'):
     Internal.addChild(node, turbmod)
     
 C._addState(tb, adim='adim1', MInf=0.1, alphaZ=0., alphaY=0., ReInf=40000., MutSMuInf=0.1, TurbLevelInf=1.e-4)
-tb = C.convertArray2Tetra(tb)
-noz = 0
-for z in Internal.getZones(tb):
-    Cmpi._setProc(z, noz%(Cmpi.size))
-    noz += 1
     
 if Cmpi.rank==0: C.convertPyTree2File(tb, FILEB)
 Cmpi.barrier()
@@ -69,14 +67,8 @@ if Cmpi.rank == 0:
     Internal._rmNodesByName(t, '.Solver#ownData')
     Internal._rmNodesByName(t, '.Solver#dtloc')
     test.testT(t,2)
-    
-procDictR = Cmpi.getProcDict(tb)
-Cmpi._convert2PartialTree(tb,rank=Cmpi.rank)
 
-tcw ,graphP = App._prepareSkinReconstruction(tb,tc)
-App._computeSkinVariables(tb,tc, tcw, graphP)
-Cmpi.convertPyTree2File(tb, LOCAL+'/wall.cgns')
+graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, tc, dimPb=3)
+P_IBM._computeSkinVariables(ts, tc, graphIBCDPost, dimPb=3)
 Cmpi.barrier()
-if Cmpi.rank==0:
-    tb = C.convertFile2PyTree(LOCAL+'/wall.cgns')
-    test.testT(tb,3)
+if Cmpi.rank==0: test.testT(ts,3)

@@ -525,6 +525,13 @@ def integCp(teff):
     ret = Pmpi.integNorm(teff, 'centers:Cp')
     return ret[0]
 
+# integration coefficient de pression Integ( CM x Cp.n ds )
+# IN: centers:Cp
+def integMomentCp(teff, center):
+    """Integ CM x Cp.n.ds"""
+    ret = Pmpi.integMomentNorm(teff, center, 'centers:Cp')
+    return ret
+
 # integration Integ ( tau.n ds )
 # IN: centers:ShearStress
 def integTaun(teff):
@@ -539,6 +546,20 @@ def integTaun(teff):
     retz = Pmpi.integ(teff, 'centers:taunz')
     C._rmVars(teff, ['centers:sx', 'centers:sy', 'centers:sz', 'centers:taunx', 'centers:tauny', 'centers:taunz'])
     return [retx[0],rety[0],retz[0]]
+
+# integration Integ ( CM x tau.n ds )
+# IN: centers:ShearStress
+def integMomentTaun(teff, center):
+    """Integ CM x tau.n.ds"""
+    G._getNormalMap(teff)
+    C._normalize(teff, ['centers:sx', 'centers:sy', 'centers:sz'])
+    C._initVars(teff, '{centers:taunx} = {centers:ShearStressXX}*{centers:sx}+{centers:ShearStressXY}*{centers:sy}+{centers:ShearStressXZ}*{centers:sz}')
+    C._initVars(teff, '{centers:tauny} = {centers:ShearStressXY}*{centers:sx}+{centers:ShearStressYY}*{centers:sy}+{centers:ShearStressYZ}*{centers:sz}')
+    C._initVars(teff, '{centers:taunz} = {centers:ShearStressXZ}*{centers:sx}+{centers:ShearStressYZ}*{centers:sy}+{centers:ShearStressZZ}*{centers:sz}')
+    ret = Pmpi.integMoment(teff, center, ['centers:taunx', 'centers:tauny', 'centers:taunz'])
+    C._rmVars(teff, ['centers:sx', 'centers:sy', 'centers:sz', 'centers:taunx', 'centers:tauny', 'centers:taunz'])
+    return ret
+
 
 # Integration des Cf Integ( Cf. ds )
 # IN: centers:Cf
