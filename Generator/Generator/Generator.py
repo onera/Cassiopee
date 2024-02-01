@@ -465,7 +465,7 @@ def map(array, d, dir=0, h1=None, h2=None, isAvg=False, nAvg=2):
     if len(d) == 5 and d[3] != 1 and d[4] == 1 and dir == 0:
         return map2d(array, d)
     elif len(d) == 5 and dir != 0:
-        return map1dpl(array, d, dir, h1, h2, isAvg,nAvg)
+        return map1dpl(array, d, dir, h1, h2, isAvg, nAvg)
     else: return map1d(array, d)
     
 # map sur une courbe
@@ -516,7 +516,7 @@ def map1dpl(array, d, dir, h1, h2, isAvg, pnts):
                             d_sum      += d_local_val[1][0]
                             d_local_val = d_local(m,j+i,k,ni,h1,h2,N)
                             d_sum      += d_local_val[1][0]
-                        d[1][0]=d_sum/(2*pnts+1)
+                        d[1][0] = d_sum/(2*pnts+1)
 
                 ind = j*ndi+k*ndi2
                 am = map1d(l, d)
