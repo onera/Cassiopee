@@ -43,13 +43,7 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
   {
     IGESControl_Reader reader;
     reader.ReadFile(fileName);
-      
-    // Transfer CAD faces (only) into a OCC list
-    //Handle(TColStd_HSequenceOfTransient) occ_list = reader.GiveList("iges-faces");
-    //if (occ_list.IsNull()) return 1;
-    //Standard_Integer nb_cad_faces = occ_list->Length();
-    //Standard_Integer nb_transfered_faces = reader.TransferList(occ_list);
-
+    
     // Transfer all
     reader.ClearShapes();
     reader.TransferRoots();

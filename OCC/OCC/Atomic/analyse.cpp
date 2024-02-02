@@ -38,7 +38,9 @@
 
 E_Float __getLength(const TopoDS_Edge& E);
 
+//=====================================================================
 // Return min / max /mean length of all edges
+//=====================================================================
 PyObject* K_OCC::analyseEdges(PyObject* self, PyObject* args)
 {
   PyObject* hook;
@@ -54,7 +56,7 @@ PyObject* K_OCC::analyseEdges(PyObject* self, PyObject* args)
   TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
   E_Float emin = K_CONST::E_MAX_FLOAT;
   E_Float emax = -K_CONST::E_MAX_FLOAT;
-  E_Float emean = 0;
+  E_Float ltot = 0.;
 
   for (E_Int i=1; i <= edges.Extent(); i++)
   {
@@ -62,14 +64,17 @@ PyObject* K_OCC::analyseEdges(PyObject* self, PyObject* args)
     E_Float l = __getLength(E);
     emax = std::max(emax, l);
     emin = std::min(emin, l);
-    emean += l;
+    ltot += l;
   }
-  emean = emean / edges.Extent();
+  E_Float emean = ltot / edges.Extent();
 
   // calcul hmax, hausd : 30 pts par edges moyen
-  E_Float hmin = emin / 30.;
   E_Float hmax = emean / 30.;
+  // calcul du nbre de points sur la longueur totale
+  E_Int Np = ltot / hmax;
+  if (Np > 20000) hmax = ltot / 20000.;
+  E_Float hmin = emin / 30.;
   E_Float hausd = hmax / 10.;
-
+  printf("INFO: suggested hmax=%g hausd=%g\n", hmax, hausd);
   return Py_BuildValue("ddd", hmax, hmin, hausd);
 }

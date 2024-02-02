@@ -484,7 +484,7 @@ def meshFaceWithMetric(hook, i, edges, hmax, hausd, mesh, FAILED1):
     hmine = Converter.getMinValue(a, 'MaxLength')
     hmaxe = Converter.getMaxValue(a, 'MaxLength')
     if hmax > 0 and hausd < 0: hmine = hmax; hmaxe = hmax
-    print('in hmax=', hmax, 'hmine=', hmine, 'hmaxe=', hmaxe)
+    #print('in hmax=', hmax, 'hmine=', hmine, 'hmaxe=', hmaxe)
     
     # Scale UV des edges
     _scaleUV([edges], vu='u', vv='v')

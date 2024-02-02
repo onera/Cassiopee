@@ -53,6 +53,7 @@ static PyMethodDef Pyocc [] =
   {"meshEdgesOfFace", K_OCC::meshEdgesOfFace, METH_VARARGS},
 
   {"analyseEdges", K_OCC::analyseEdges, METH_VARARGS},
+  {"splitFaces", K_OCC::splitFaces, METH_VARARGS},
 
   {NULL, NULL}
 };
