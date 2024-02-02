@@ -10,7 +10,7 @@ import KCore.test as test
 a = D.circle((0,0,0),1,N=40); a=C.convertArray2Tetra(a); a = G.close(a)
 tb = C.newPyTree(["Base",a])
 
-C.convertPyTree2File(tb, 'tb.cgns')
+#C.convertPyTree2File(tb, 'tb.cgns')
 
 x0 = -2; N = 41; h = 2*abs(x0)/(N-1)
 z = G.cart((x0,x0,x0),(h,h,h),(N,N,1))
@@ -37,7 +37,7 @@ zsr[2].append(['Density', DENS, [], 'DataArray_t'])
 z[2].append(zsr)
 tc = C.newPyTree(['CART']); tc[2][1][2].append(z)
 
-C.convertPyTree2File(tc, 'tc.cgns')
+#C.convertPyTree2File(tc, 'tc.cgns')
 
 graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, tc, dimPb=2)
 test.testT(ts, 1)
