@@ -5,6 +5,7 @@ try:
     import OCC.occ as occ
     import Converter
     import Converter.PyTree as C
+    import Generator.PyTree as G
     import Converter.Internal as Internal
     import Converter.Mpi as Cmpi
 except ImportError: 
@@ -465,17 +466,19 @@ def getPosEdges(t):
 def getPosFaces(t):
   return getPos(t, 'FACES')
 
+#=====================================
 # get the first tree from CAD
 # hook: hook on CAD
 # hmax: hmax
 # hausd: hausd
 # OUT: meshed CAD with CAD links
-def getFirstTree(hook, hmax=-1, hausd=-1.):
+#====================================
+def getFirstTree(hook, hmax=-1., hausd=-1.):
   """Get a first TRI meshed tree linked to CAD."""
   
   t = C.newPyTree(['EDGES', 'FACES'])
 
-  # Edges
+  # - Edges -
   edges = OCC.meshAllEdges(hook, hmax, hausd)
 
   b = Internal.getNodeFromName1(t, 'EDGES')
@@ -492,16 +495,22 @@ def getFirstTree(hook, hmax=-1, hausd=-1.):
     #Internal._createChild(r, "hook", "UserDefined_t", value=hook)
     b[2].append(z)
 
-  # Faces
+  # - Faces -
   b = Internal.getNodeFromName1(t, 'FACES')
   nbFaces = occ.getNbFaces(hook)
+  # distribution parallele (CAD already split)
   N = nbFaces // Cmpi.size
   nstart = Cmpi.rank*N
   nend = nstart+N
   if Cmpi.rank == Cmpi.size-1: nend = nbFaces
   faceList = range(nstart+1, nend+1)
 
-  faces = OCC.meshAllFaces(hook, hmax, hausd, edges, True, faceList)
+  if hausd < 0:
+    hList = [(hmax,hmax,hausd)]*len(faceList)
+  else:
+    hList = [(hmax*0.8,hmax*1.2,hausd)]*len(faceList)
+
+  faces = OCC.meshAllFaces(hook, edges, True, faceList, hList)
   
   for c, f in enumerate(faces):
     noface = faceList[c]
@@ -516,6 +525,7 @@ def getFirstTree(hook, hmax=-1, hausd=-1.):
     Internal._createChild(r, "type", "UserDefined_t", value="face")
     Internal._createChild(r, "no", "UserDefined_t", value=noface)
     Internal._createChild(r, "edgeList", "UserDefined_t", value=edgeNo)
+    Internal._createChild(r, "hsize", "UserDefined_t", value=hList[c])
     #Internal._createChild(r, "hook", "UserDefined_t", value=hook)
     b[2].append(z)
 
@@ -543,9 +553,11 @@ def getFirstTree(hook, hmax=-1, hausd=-1.):
     Internal._createChild(cad, 'faceList', 'UserDefined_t', value=n)
   return t
 
+#================================================
 # remesh faces from an external modified edges
 # edges is a list of externally remeshed edges
-def _remeshTree(hook, t, hmax, hausd, edges):
+#================================================
+def _remeshTreeFromEdges(hook, t, edges):
   
   # find impacted faces by edges
   faceList = set()
@@ -557,6 +569,31 @@ def _remeshTree(hook, t, hmax, hausd, edges):
     faceList.update(facel)
   faceList = list(faceList)
 
+  # build hList from CAD/hsize
+  hList = []
+  b = Internal.getNodeFromName1(t, 'FACES')
+  be = Internal.getNodeFromName1(t, 'EDGES')
+  for f in faceList:
+    z = b[2][f-1]
+    CAD = Internal.getNodeFromName1(z, "CAD")
+    hsize = Internal.getNodeFromName1(CAD, "hsize")
+    hsize = hsize[1]
+
+    # modify hmax/hmin from edge sizes
+    edgeList = Internal.getNodeFromName1(CAD, "edgeList")
+    edgeList = edgeList[1]
+    fedges = []
+    for e in edgeList:
+      ze = be[2][e-1]
+      fedges.append(ze)
+    a = G.getMaxLength(fedges)
+    hmine = C.getMinValue(a, 'centers:MaxLength')
+    hmaxe = C.getMaxValue(a, 'centers:MaxLength')
+    hausde = hsize[2]
+    #print("hsize=",hmine,hmaxe,hausde)
+    hsize = ( min(hmine, hsize[0]), max(hmaxe, hsize[1]), min(hausde, hsize[2]) )
+    hList.append(hsize)
+  
   # get dedges (all CAD edges - suppose CAD order)
   b = Internal.getNodeFromName1(t, 'EDGES')
   dedges = []
@@ -578,7 +615,7 @@ def _remeshTree(hook, t, hmax, hausd, edges):
     b[2][edgeno-1] = z
 
   # eval the impacted faces
-  faces = OCC.meshAllFaces(hook, hmax, hausd, dedges, metric=True, faceList=faceList)
+  faces = OCC.meshAllFaces(hook, dedges, metric=True, faceList=faceList, hList=hList)
   
   # replace faces in t
   pos, posi = getPosFaces(t)
@@ -594,4 +631,47 @@ def _remeshTree(hook, t, hmax, hausd, edges):
                                 Internal.__FlowSolutionCenters__)
     z[2].append(cad)
     b[2][cd] = z
+  return None
+
+# modify hsize for faces
+# IN: faceList: liste d'entiers start 1
+# IN: hList: liste de (hmin,hmax,hausd)
+def _modifyHSizeForFaces(t, faceList, hList):
+  b = Internal.getNodeFromName1(t, 'FACES')
+  for c, i in enumerate(faceList):
+    hsize = hList[c]
+    face = b[2][i-1]
+    CAD = Internal.getNodeFromName1(face, 'CAD')
+    node = Internal.getNodeFromName1(CAD, 'hsize')
+    Internal._setValue(node, hsize)
+  return None
+
+# from face hmin/hmax/hausd
+def _remeshTreeFromFaces(hook, t, faceList, hList):
+  _modifyHSizeForFaces(t, faceList, hList)
+
+  # get dedges (all CAD edges - suppose CAD order)
+  b = Internal.getNodeFromName1(t, 'EDGES')
+  dedges = []
+  for e in Internal.getZones(b):
+    dedges.append(C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], e, api=2)[0])
+  
+    # eval the impacted faces
+  faces = OCC.meshAllFaces(hook, dedges, metric=True, faceList=faceList, hList=hList)
+  
+  # replace faces in t
+  pos, posi = getPosFaces(t)
+  b = Internal.getNodeFromName1(t, 'FACES')
+  for c, f in enumerate(faceList):
+    cd = pos[f]
+    zp = b[2][cd]
+    cad = Internal.getNodeFromName1(zp, 'CAD')
+    noface = getNo(zp)
+    z = Internal.createZoneNode('face%03d'%(noface), faces[c], [],
+                                Internal.__GridCoordinates__,
+                                Internal.__FlowSolutionNodes__,
+                                Internal.__FlowSolutionCenters__)
+    z[2].append(cad)
+    b[2][cd] = z
+
   return None

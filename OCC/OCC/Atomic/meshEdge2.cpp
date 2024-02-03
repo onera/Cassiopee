@@ -101,7 +101,7 @@ E_Int __getParamExt(const TopoDS_Edge& E, E_Int nbPoints, E_Float* uext, E_Float
   Standard_Real u1 = geomAdap.LastParameter();
   ue = new E_Float [nbPoints];
   for (E_Int i = 0; i < nbPoints; i++) ue[i] = uext[i]*(u1-u0)+u0;
-  for (E_Int i = 0; i < nbPoints; i++) printf("%d : %f %f\n", i, ue[i], uext[i]);
+  //for (E_Int i = 0; i < nbPoints; i++) printf("%d : %f %f\n", i, ue[i], uext[i]);
   return 0;
 }
 

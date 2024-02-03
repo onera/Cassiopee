@@ -136,8 +136,9 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
       mode.symmetrize = false;
     }
 
-    printf("trimesh sym=%d grading=%g hmax=%g hmin=%g smooth=%d\n", 
-        mode.symmetrize, mode.growth_ratio, mode.hmax, mode.hmin, mode.nb_smooth_iter);
+    printf("trimesh hmin=%g hmax=%g hausd=%g sym=%d grading=%g  smooth=%d\n", 
+        mode.hmin, mode.hmax, mode.chordal_error, 
+        mode.symmetrize, mode.growth_ratio, mode.nb_smooth_iter);
 
     mode.metric_interpol_type = mode.LINEAR;
     //mode.metric_interpol_type = mode.GEOMETRIC;

@@ -458,11 +458,14 @@ def meshQUAD__(hook, N=11, order=1, faceSubset=None, faceNo=None):
 # hmax on all edges, hmax in physical space
 #===============================================================================
 
+#===============================================================================
+# Mesh Face no i of CAD with TRIs from parametrized edges
 # IN: hook; cad hook
 # IN: i: no de la face
 # IN: edges structured one per wire
-# hmax: hmax par face
-def meshFaceWithMetric(hook, i, edges, hmax, hausd, mesh, FAILED1):
+# hmax: hmin/hmax/hausd par face
+#===============================================================================
+def meshFaceWithMetric(hook, i, edges, hmin, hmax, hausd, mesh, FAILED):
     
     # must close in uv space
     edges = switch2UV2(edges)
@@ -479,26 +482,21 @@ def meshFaceWithMetric(hook, i, edges, hmax, hausd, mesh, FAILED1):
         
     # supprime les edges collapsed
     edges2 = Generator.close(edges, 1.e-6)
-    # get hmax/hmin of edges
-    a = Generator.getMaxLength(edges2)
-    hmine = Converter.getMinValue(a, 'MaxLength')
-    hmaxe = Converter.getMaxValue(a, 'MaxLength')
-    if hmax > 0 and hausd < 0: hmine = hmax; hmaxe = hmax
-    #print('in hmax=', hmax, 'hmine=', hmine, 'hmaxe=', hmaxe)
     
     # Scale UV des edges
     _scaleUV([edges], vu='u', vv='v')
     try:
-        a = occ.trimesh(hook, edges, i, hmine, hmaxe, hausd, 1.1)
+        a = occ.trimesh(hook, edges, i, hmin, hmax, hausd, 1.1)
         mesh.append(a)
         SUCCESS = True
     except Exception as e:
         SUCCESS = False
         Converter.convertArrays2File(edges, '%03d_edgeUV.plt'%i) # pas vraiment UV
-        FAILED1.append(i)
+        FAILED.append(i)
     return SUCCESS
 
-def meshFaceInUV(hook, i, edges, grading, mesh, FAILED2):
+
+def meshFaceInUV(hook, i, edges, grading, mesh, FAILED):
     # Passage des edges dans espace uv
     edges = switch2UV(edges)
     T = _scaleUV(edges)
@@ -515,7 +513,7 @@ def meshFaceInUV(hook, i, edges, grading, mesh, FAILED2):
     except Exception as e:
         SUCCESS = False
         Converter.convertArrays2File(edges, '%03d_edgeUV.plt'%i)
-        FAILED2.append(i)
+        FAILED.append(i)
     return SUCCESS
 
 # hmax: hmax sur les edges et dans les faces (constant)
@@ -579,17 +577,18 @@ def meshAllEdges(hook, hmax, hausd):
         dedges.append(e)
     return dedges
 
-# mesh some CAD faces from discrete edges
+# mesh some CAD faces from discrete edges + hList
 # IN: hook: hook of cad
 # IN: hmax: hmax size
 # IN: hausd: hausd size
 # IN: dedges: list of all discretized edges (all CAD edges)
 # IN: metric: if True use metric else mesh in uv
 # IN: faceList: list of faces to mesh (start 1)
-def meshAllFaces(hook, hmax, hausd, dedges, metric=True, faceList=[]):
+# IN: hList: list of (hmin, hmax, hausd) for each face to mesh
+def meshAllFaces(hook, dedges, metric=True, faceList=[], hList=[]):
     nbFaces = occ.getNbFaces(hook)
     FAILED1 = []; FAILED2 = []; dfaces = []
-    for i in faceList:
+    for c, i in enumerate(faceList):
 
         print("========== face %d / %d ==========="%(i,nbFaces), flush=True)
         
@@ -608,7 +607,8 @@ def meshAllFaces(hook, hmax, hausd, dedges, metric=True, faceList=[]):
         # TRIMESH METRIC TRY
         SUCCESS = False
         if metric:
-            SUCCESS = meshFaceWithMetric(hook, i, edges, hmax, hausd, dfaces, FAILED1)
+            hsize = hList[c]
+            SUCCESS = meshFaceWithMetric(hook, i, edges, hsize[0], hsize[1], hsize[2], dfaces, FAILED1)
             
         if not SUCCESS: # TRIMESH sans metric
             edges = edgesSav

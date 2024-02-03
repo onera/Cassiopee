@@ -67,19 +67,20 @@ PyObject* K_OCC::splitFaces(PyObject* self, PyObject* args)
   
   printf("splitting top shape\n");
 
+  // Closed Shape Divide
   //ShapeUpgrade_ShapeDivideClosed splitter(*shp);
   //splitter.SetNbSplitPoints(20); // cree num+1 faces
   //splitter.Perform(Standard_False);
 
+  // Shape Divide
   //ShapeUpgrade_ShapeDivide splitter(*shp);
   //splitter.SetNbSplitPoints(20); // cree num+1 faces
   //splitter.Perform(Standard_False);
 
-  // By area not ok in 7.6
+  // Shape Divide by Area (not ok in OCC 7.6)
   //ShapeUpgrade_ShapeDivideArea splitter(*shp);
   //splitter.MaxArea();
   //splitter.Perform(Standard_False);
-  
   
 
   TopExp_Explorer expl;
@@ -90,6 +91,7 @@ PyObject* K_OCC::splitFaces(PyObject* self, PyObject* args)
   {
     const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
 
+    // Closed Face Divide
     ShapeUpgrade_ClosedFaceDivide splitter(F);
     splitter.SetNbSplitPoints(5); // cree num+1 faces
     splitter.SplitSurface();
