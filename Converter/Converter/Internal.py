@@ -2646,14 +2646,14 @@ def node2PyTree(node):
 # -- Converti un pyTree en noeud de type fourni (avec les memes adresses)
 # IN: type=1 (zone), 2 (liste de zones), 3 (tree), 4 (base), 5 (liste de bases)
 def pyTree2Node(t, type):
-    if type == 1: # zone: renvoit une zone ou une liste de zones
+    if type == 1: # zone: renvoie une zone ou une liste de zones
         node = t[2][1][2]
         if len(node) == 1: node = node[0]
-    elif type == 2: # liste de zones: renvoit une liste de zones
+    elif type == 2: # liste de zones: renvoie une liste de zones
         node = t[2][1][2]
-    elif type == 4: # base: renvoit une base
+    elif type == 4: # base: renvoie une base
         node = t[2][1]
-    elif type == 5: # liste de bases: renvoit une liste de bases
+    elif type == 5: # liste de bases: renvoie une liste de bases
         node = t[2][1:]
     else: node = t
     return node

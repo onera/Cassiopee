@@ -273,7 +273,7 @@ def exteriorFacesStructured(a):
 #==============================================================================
 def exteriorFaces(a, indices=None):
     """Exterior faces of an array.
-    Usage: exteriorFaces(a,indices)"""
+    Usage: exteriorFaces(a, indices)"""
     if isinstance(a[0], list):
         b = []
         for i in a:

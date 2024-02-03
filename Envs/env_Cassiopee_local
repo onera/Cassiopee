@@ -783,6 +783,7 @@ else if ($MAC == "spiro_gcc") then
         setenv PYTHONEXE python3
         alias python python3
         setenv PRODMODE 1
+        unsetenv SLURM*
         setenv OMP_PLACES cores
         # Chemin de l'executable python
         set path=($path $CASSIOPEE/Dist/bin)

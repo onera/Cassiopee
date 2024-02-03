@@ -884,9 +884,59 @@ def convertArrays2File(arrays, fileName, format=None, isize=4, rsize=8,
                                      znames, BCFaces)
 
 def diffArrays(arrays1, arrays2, arrays3=[]):
-    """Diff arrays defining solutions.
-    Usage: diffArrays(arrays1, arrays2, [arrays3])"""
+    """Diff arrays defining solutions. Return the delta field."""
     return converter.diffArrays(arrays1, arrays2, arrays3)
+
+def diffArrayGeom(array1, array2, tol=1.e-10):
+    """Return true if array1 and array2 are geometrically identical."""
+    if isinstance(array1[0], list): 
+        for c, a in enumerate(array1):
+            ret = diffArrayGeom__(a, array2[c], tol)
+            if ret == False: return False
+    else:
+        return diffArrayGeom__(array1, array2, tol)
+    
+def diffArrayGeom__(array1, array2, tol=1.e-10):
+    hook = createHook(array2, 'nodes')
+    ids = identifyNodes(hook, array1, tol=tol)
+    ret = numpy.any(ids == -1)
+    if ret == True:
+        #print("Warning: some point of mesh a can not be found in b.")
+        freeHook(hook)
+        return False # one array is different on coordinates
+    ids[:] = ids[:] - 1
+    #print(ids)
+    pt = array1[1]
+    # renumerote a in place
+    if isinstance(pt, list): # array2/3
+        pt2 = []
+        for c, p in enumerate(pt):
+            p2 = numpy.copy(p)
+            pr2 = p2.ravel('k')
+            pr = pt[c].ravel('k')
+            pr2[:] = pr[ids[:]]
+            pt2.append(p2)
+    else: # array1
+        pt2 = numpy.copy(pt)
+        pt2[:,:] = pt[:, ids[:]]
+    #print(pt.flags)
+    #print(pt2.flags)
+    
+    array1[1] = pt2
+    #print(a)
+    #print(arrays2[c])
+    ret2 = diffArrays([array1], [array2])
+    freeHook(hook)
+    pt2 = ret2[0][1]
+    if isinstance(pt2, list): # array2/3
+        for p in pt2:
+            emax = numpy.any(p > tol)
+            if emax == True: return False # diff in fields
+    else:
+        emax = numpy.any(pt2 > tol)
+    if emax == True: return False # diff in fields
+    
+    return True
 
 def isFinite__(a, var=None):
     nfld = a[1].shape[0]

@@ -992,7 +992,7 @@ def hackCenters(a):
 def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
                        density=-1., skeletonData=None, dataShape=None, 
                        links=None, skipTypes=None, uncompress=True, 
-                       hmax=0.0, hausd=1., grow=0.0, mergeTol=-1, occAlgo=0, 
+                       hmax=0.0, hausd=1., grow=0.0, mergeTol=-1, occAlgo=4, 
                        oldcompress=False, readMode=0):
   """Read a file and return a pyTree containing file data.
   Usage: convertFile2PyTree(fileName, format, options)"""
@@ -1039,6 +1039,19 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
       _upgradeTree(t)
       return t
     except: pass
+
+  if occAlgo == 4 and (format == 'fmt_iges' or format == 'fmt_step'): # new cassiopee cad system
+    import OCC.PyTree as OCC
+    import CPlot.Tk as CTK
+    h = OCC.readCAD(fileName, format)
+    if hmax == 0.:
+        # auto setting 
+        (hmax,hmin,hausd) = OCC.occ.analyseEdges(h)
+        print('hmax=', hmax, 'hausd=', hausd)
+    CTK.CADHOOK = [h,hmax,hausd]
+    t = OCC.getFirstTree(h, hmax, hausd)
+    _upgradeTree(t)
+    return t
 
   if format == 'bin_pickle':
     try: import cPickle as pickle
@@ -6573,6 +6586,37 @@ def diffArrays(A, B, removeCoordinates=True):
       setFields(diff, zones1[no], 'centers')
   if removeCoordinates: t1 = rmNodes(t1, Internal.__GridCoordinates__)
   return t1
+
+def diffArrayGeom(t1, t2, tol=1.e-10):
+  """Return true if array1 and array2 are geometrically identical."""
+  zones1 = Internal.getZones(t1)
+  zones2 = Internal.getZones(t2)
+  for c, z1 in enumerate(zones1):
+    ret = diffArrayGeom__(z1, zones2[c], tol)
+    if ret == False: return False
+  return True 
+
+def diffArrayGeom__(z1, z2, tol):
+  # compare nodes
+  a1 = getFields(Internal.__GridCoordinates__, z1, api=3)[0]
+  f1 = getFields(Internal.__FlowSolutionNodes__, z1, api=3)[0]
+  if f1 != []: a1 = Converter.addVars2([a1,f1])
+  a2 = getFields(Internal.__GridCoordinates__, z2, api=3)[0]
+  f2 = getFields(Internal.__FlowSolutionNodes__, z2, api=3)[0]
+  if f2 != []: a2 = Converter.addVars2([a2,f2])
+  ret = Converter.diffArrayGeom__(a1, a2)
+  if ret == False: return False
+  # compare centers
+  z1c = node2Center(z1)
+  a1 = getFields(Internal.__GridCoordinates__, z1c, api=3)[0]
+  f1 = getFields(Internal.__FlowSolutionNodes__, z1c, api=3)[0]
+  if f1 != []: a1 = Converter.addVars2([a1,f1])
+  z2c = node2Center(z2)
+  a2 = getFields(Internal.__GridCoordinates__, z2c, api=3)[0]
+  f2 = getFields(Internal.__FlowSolutionNodes__, z2c, api=3)[0]
+  if f2 != []: a2 = Converter.addVars2([a2,f2])
+  ret = Converter.diffArrayGeom__(a1, a2)
+  return ret
 
 # Check if all fields are finite (no NAN no INF)
 def isFinite(a, var=None):
