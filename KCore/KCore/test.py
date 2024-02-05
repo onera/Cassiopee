@@ -9,6 +9,9 @@ import numpy, sys, os
 # global tolerance on float fields
 TOLERANCE = 1.e-11
 
+# whether to diffArrays geometrically or topologically. default is topologically.
+GEOMETRIC_DIFF = True
+
 # Data directory to store references
 if sys.version_info[0] == 2: DATA = 'Data2'
 else: DATA = 'Data'
@@ -53,6 +56,12 @@ def testA(arrays, number=1):
         return True
     else:
         old = C.convertFile2Arrays(reference, 'bin_pickle')
+        # geometrical check
+        if GEOMETRIC_DIFF:
+            ret = C.diffArrayGeom(arrays, old, tol=TOLERANCE)
+            if ret == False: print("DIFF: geometric difference.")
+            return ret
+        # topological check
         ret = C.diffArrays(arrays, old)
         varName = ret[0][0]
         mvars = varName.split(',')
@@ -114,6 +123,12 @@ def testT(t, number=1):
     else:
         old = C.convertFile2PyTree(reference, 'bin_pickle')
         checkTree(t, old)
+        # geometrical check
+        if GEOMETRIC_DIFF:
+            ret = C.diffArrayGeom(t, old, tol=TOLERANCE)
+            if ret == False: print("DIFF: geometric difference.")
+            return ret
+        # topological check
         ret = C.diffArrays(t, old)
         C._fillMissingVariables(ret)
         allvars = C.getVarNames(ret)
