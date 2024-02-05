@@ -10,7 +10,7 @@ import numpy, sys, os
 TOLERANCE = 1.e-11
 
 # whether to diffArrays geometrically or topologically. default is topologically.
-GEOMETRIC_DIFF = True
+GEOMETRIC_DIFF = False
 
 # Data directory to store references
 if sys.version_info[0] == 2: DATA = 'Data2'
