@@ -3338,6 +3338,432 @@ PyObject* K_CONNECTOR::_setIBCTransfers(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
+// 
+//=============================================================================
+PyObject* K_CONNECTOR::_setIBCTransfersForPressureGradientsOrder1(PyObject* self, PyObject* args)
+{
+  char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
+  PyObject *zoneR, *zoneD;
+  PyObject *pyVariables;
+  PyObject *pyIndRcv, *pyIndDonor;
+  PyObject *pyArrayTypes;
+  PyObject *pyArrayCoefs;
+  PyObject *pyArrayPressure;
+  PyObject *pyArrayGradxP , *pyArrayGradyP , *pyArrayGradzP;
+  E_Int loc;
+
+  if (!PYPARSETUPLE_(args,
+                    OOOO_ OOOO_ OOO_ I_ SSS_,
+                    &zoneR, &zoneD, &pyVariables,
+                    &pyIndRcv  , &pyIndDonor, &pyArrayTypes, &pyArrayCoefs,
+                    &pyArrayPressure,
+                    &pyArrayGradxP , &pyArrayGradyP , &pyArrayGradzP,
+                    &loc,
+                    &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters))
+    {
+      return NULL;
+    }
+
+  vector<PyArrayObject*> hook;
+
+  E_Int nvars = 4;
+
+  E_Int imdjmd, imd, jmd, kmd, cnNfldD, ndimdxR, ndimdxD, meshtype;
+  E_Float* iptroD; E_Float* iptroR;
+
+  # include "extract_interpD.h"
+  FldArrayI* rcvPtsI;
+  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  E_Int* rcvPts  = rcvPtsI->begin();
+  nbRcvPts       = rcvPtsI->getSize();
+
+  FldArrayF* pressF;
+  E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF, true);
+  E_Float* pressure = pressF->begin();
+
+  FldArrayF* gradxPressF; FldArrayF* gradyPressF; FldArrayF* gradzPressF;
+  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP , gradxPressF , true);
+  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP , gradyPressF , true);
+  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP , gradzPressF , true);
+  E_Float* gradxP = gradxPressF->begin();
+  E_Float* gradyP = gradyPressF->begin();
+  E_Float* gradzP = gradzPressF->begin();
+
+  vector<E_Float*> fieldsR;vector<E_Float*> fieldsD;
+  vector<E_Float*> vectOfDnrFields(nvars); vector<E_Float*> vectOfRcvFields(nvars);
+  E_Int* ptrcnd;
+  char* eltTypeR; char* eltTypeD;
+
+  // Data are not compacted beforehand
+  E_Int cnSizeD;
+  char* varStringD;
+  vector<E_Int> locsD;
+  vector<E_Int*> cnd;
+  E_Int resd = K_PYTREE::getFromZone(zoneD, 0, 0, varStringD,
+                                      fieldsD, locsD, imd, jmd, kmd,
+                                      cnd, cnSizeD, cnNfldD,
+                                      eltTypeD, hook,
+                                      GridCoordinates,
+                                      FlowSolutionNodes, FlowSolutionCenters);
+
+  if (cnd.size() > 0) ptrcnd = cnd[0];
+
+  meshtype = resd; // 1: structured, 2: unstructured
+  E_Int imr, jmr, kmr, cnSizeR, cnNfldR;
+  char* varStringR; vector<E_Int> locsR;
+  vector<E_Int*> cnr;
+  K_PYTREE::getFromZone(zoneR, 0, loc, varStringR,
+                        fieldsR, locsR, imr, jmr, kmr,
+                        cnr, cnSizeR, cnNfldR, eltTypeR, hook,
+                        GridCoordinates, FlowSolutionNodes, FlowSolutionCenters);
+
+  E_Int posvr, posvd;
+
+  E_Int nfoundvar = 0;
+  if (PyList_Check(pyVariables) != 0)
+	{
+	  int nvariables = PyList_Size(pyVariables);
+	  if (nvariables > 0)
+	  {
+	    for (int i = 0; i < nvariables; i++)
+		  {
+        PyObject* tpl0 = PyList_GetItem(pyVariables, i);
+        if (PyString_Check(tpl0))
+        {
+          char* varname = PyString_AsString(tpl0);
+          posvd = K_ARRAY::isNamePresent(varname, varStringD);
+          posvr = K_ARRAY::isNamePresent(varname, varStringR);
+          if (posvr != -1)
+          {
+            vectOfRcvFields[nfoundvar]= fieldsR[posvr];
+            vectOfDnrFields[nfoundvar]= fieldsD[posvd];
+            nfoundvar += 1;
+          }
+        }
+        #if PY_VERSION_HEX >= 0x03000000
+        else if (PyUnicode_Check(tpl0))
+        {
+          const char* varname = PyUnicode_AsUTF8(tpl0);
+          posvd = K_ARRAY::isNamePresent(varname, varStringD);
+          posvr = K_ARRAY::isNamePresent(varname, varStringR);
+          if (posvr != -1)
+          {
+            vectOfRcvFields[nfoundvar]= fieldsR[posvr];
+            vectOfDnrFields[nfoundvar]= fieldsD[posvd];
+            nfoundvar += 1;
+          }
+        }
+        #endif
+        else
+        {
+          PyErr_Warn(PyExc_Warning, "_setIBCTransfers: variable must be a string. Skipped.");
+        }
+		  }
+	  }
+	}
+
+  delete [] varStringR; delete [] varStringD; delete [] eltTypeR; delete [] eltTypeD;
+
+  # include "commonInterpTransfers_indirect.h"
+
+  # pragma omp parallel default(shared)
+  {
+    E_Int ideb, ifin;
+    #ifdef _OPENMP
+    E_Int  ithread           = omp_get_thread_num()+1;
+    E_Int  Nbre_thread_actif = omp_get_num_threads(); 
+    #else
+    E_Int ithread = 1;
+    E_Int Nbre_thread_actif = 1;
+    #endif
+    E_Int chunk = nbRcvPts/Nbre_thread_actif;
+    E_Int r = nbRcvPts - chunk*Nbre_thread_actif;
+    if (ithread <= r)
+    { 
+      ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); 
+    }
+    else 
+    { 
+      ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; 
+    }
+
+    // 0 : Pressure
+    // 1 / 2 / 3 : gradxPressure  / gradyPressure  / gradzPressure
+    // 4 / 5 / 6 : gradxxPressure / gradyxPressure / gradzxPressure
+    // 7 / 8 / 9 : gradxyPressure / gradyyPressure / gradyyPressure
+    // 10/11 /12 : gradxzPressure / gradyzPressure / gradzzPressure
+
+    #ifdef _OPENMP4
+    #pragma omp simd
+    #endif
+    for (E_Int noind = 0; noind < ifin-ideb; noind++)
+    {
+      E_Int indR = rcvPts[noind+ideb];
+      
+      pressure[noind+ideb] = vectOfRcvFields[0][indR];
+
+      gradxP[noind+ideb] = vectOfRcvFields[1][indR];
+      gradyP[noind+ideb] = vectOfRcvFields[2][indR];
+      gradzP[noind+ideb] = vectOfRcvFields[3][indR];
+    }
+  }
+
+  RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
+
+  RELEASESHAREDN(pyIndRcv, rcvPtsI);
+  RELEASESHAREDN(pyIndDonor, donorPtsI);
+  RELEASESHAREDN(pyArrayTypes, typesI);
+  RELEASESHAREDN(pyArrayCoefs, donorCoefsF);
+
+  RELEASESHAREDN(pyArrayPressure, pressF);
+  RELEASESHAREDN(pyArrayGradxP, gradxPressF);
+  RELEASESHAREDN(pyArrayGradyP, gradyPressF);
+  RELEASESHAREDN(pyArrayGradzP, gradzPressF);
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+//=============================================================================
+// 
+//=============================================================================
+PyObject* K_CONNECTOR::_setIBCTransfersForPressureGradientsOrder2(PyObject* self, PyObject* args)
+{
+  char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
+  PyObject *zoneR, *zoneD;
+  PyObject *pyVariables;
+  PyObject *pyIndRcv, *pyIndDonor;
+  PyObject *pyArrayTypes;
+  PyObject *pyArrayCoefs;
+  PyObject *pyArrayPressure;
+  PyObject *pyArrayGradxP , *pyArrayGradyP , *pyArrayGradzP;
+  PyObject *pyArrayGradxxP, *pyArrayGradxyP, *pyArrayGradxzP;
+  PyObject *pyArrayGradyxP, *pyArrayGradyyP, *pyArrayGradyzP;
+  PyObject *pyArrayGradzxP, *pyArrayGradzyP, *pyArrayGradzzP;
+  E_Int loc;
+
+  if (!PYPARSETUPLE_(args,
+                    OOOO_ OOOO_ OOOO_ OOOO_ OOOO_ I_ SSS_,
+                    &zoneR, &zoneD, &pyVariables,
+                    &pyIndRcv  , &pyIndDonor, &pyArrayTypes, &pyArrayCoefs,
+                    &pyArrayPressure,
+                    &pyArrayGradxP , &pyArrayGradyP , &pyArrayGradzP,
+                    &pyArrayGradxxP, &pyArrayGradxyP, &pyArrayGradxzP,
+                    &pyArrayGradyxP, &pyArrayGradyyP, &pyArrayGradyzP,
+                    &pyArrayGradzxP, &pyArrayGradzyP, &pyArrayGradzzP,
+                    &loc,
+                    &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters))
+    {
+      return NULL;
+    }
+
+  vector<PyArrayObject*> hook;
+
+  E_Int nvars = 13;
+
+  E_Int imdjmd, imd, jmd, kmd, cnNfldD, ndimdxR, ndimdxD, meshtype;
+  E_Float* iptroD; E_Float* iptroR;
+
+  # include "extract_interpD.h"
+  FldArrayI* rcvPtsI;
+  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  E_Int* rcvPts  = rcvPtsI->begin();
+  nbRcvPts       = rcvPtsI->getSize();
+
+  FldArrayF* pressF;
+  E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF, true);
+  E_Float* pressure = pressF->begin();
+
+  FldArrayF* gradxPressF; FldArrayF* gradyPressF; FldArrayF* gradzPressF;
+  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP , gradxPressF , true);
+  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP , gradyPressF , true);
+  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP , gradzPressF , true);
+  E_Float* gradxP = gradxPressF->begin();
+  E_Float* gradyP = gradyPressF->begin();
+  E_Float* gradzP = gradzPressF->begin();
+
+  FldArrayF* gradxxPressF; FldArrayF* gradxyPressF; FldArrayF* gradxzPressF;
+  E_Int okGxxP = K_NUMPY::getFromNumpyArray(pyArrayGradxxP , gradxxPressF , true);
+  E_Int okGxyP = K_NUMPY::getFromNumpyArray(pyArrayGradxyP , gradxyPressF , true);
+  E_Int okGxzP = K_NUMPY::getFromNumpyArray(pyArrayGradxzP , gradxzPressF , true);
+  E_Float* gradxxP = gradxxPressF->begin();
+  E_Float* gradxyP = gradxyPressF->begin();
+  E_Float* gradxzP = gradxzPressF->begin();
+
+  FldArrayF* gradyxPressF; FldArrayF* gradyyPressF; FldArrayF* gradyzPressF;
+  E_Int okGyxP = K_NUMPY::getFromNumpyArray(pyArrayGradyxP , gradyxPressF , true);
+  E_Int okGyyP = K_NUMPY::getFromNumpyArray(pyArrayGradyyP , gradyyPressF , true);
+  E_Int okGyzP = K_NUMPY::getFromNumpyArray(pyArrayGradyzP , gradyzPressF , true);
+  E_Float* gradyxP = gradyxPressF->begin();
+  E_Float* gradyyP = gradyyPressF->begin();
+  E_Float* gradyzP = gradyzPressF->begin();
+
+  FldArrayF* gradzxPressF; FldArrayF* gradzyPressF; FldArrayF* gradzzPressF;
+  E_Int okGzxP = K_NUMPY::getFromNumpyArray(pyArrayGradzxP , gradzxPressF , true);
+  E_Int okGzyP = K_NUMPY::getFromNumpyArray(pyArrayGradzyP , gradzyPressF , true);
+  E_Int okGzzP = K_NUMPY::getFromNumpyArray(pyArrayGradzzP , gradzzPressF , true);
+  E_Float* gradzxP = gradzxPressF->begin();
+  E_Float* gradzyP = gradzyPressF->begin();
+  E_Float* gradzzP = gradzzPressF->begin();
+
+  vector<E_Float*> fieldsR;vector<E_Float*> fieldsD;
+  vector<E_Float*> vectOfDnrFields(nvars); vector<E_Float*> vectOfRcvFields(nvars);
+  E_Int* ptrcnd;
+  char* eltTypeR; char* eltTypeD;
+
+  // Data are not compacted beforehand
+  E_Int cnSizeD;
+  char* varStringD;
+  vector<E_Int> locsD;
+  vector<E_Int*> cnd;
+  E_Int resd = K_PYTREE::getFromZone(zoneD, 0, 0, varStringD,
+                                      fieldsD, locsD, imd, jmd, kmd,
+                                      cnd, cnSizeD, cnNfldD,
+                                      eltTypeD, hook,
+                                      GridCoordinates,
+                                      FlowSolutionNodes, FlowSolutionCenters);
+
+  if (cnd.size() > 0) ptrcnd = cnd[0];
+
+  meshtype = resd; // 1: structured, 2: unstructured
+  E_Int imr, jmr, kmr, cnSizeR, cnNfldR;
+  char* varStringR; vector<E_Int> locsR;
+  vector<E_Int*> cnr;
+  K_PYTREE::getFromZone(zoneR, 0, loc, varStringR,
+                        fieldsR, locsR, imr, jmr, kmr,
+                        cnr, cnSizeR, cnNfldR, eltTypeR, hook,
+                        GridCoordinates, FlowSolutionNodes, FlowSolutionCenters);
+
+  E_Int posvr, posvd;
+
+  E_Int nfoundvar = 0;
+  if (PyList_Check(pyVariables) != 0)
+	{
+	  int nvariables = PyList_Size(pyVariables);
+	  if (nvariables > 0)
+	  {
+	    for (int i = 0; i < nvariables; i++)
+		  {
+        PyObject* tpl0 = PyList_GetItem(pyVariables, i);
+        if (PyString_Check(tpl0))
+        {
+          char* varname = PyString_AsString(tpl0);
+          posvd = K_ARRAY::isNamePresent(varname, varStringD);
+          posvr = K_ARRAY::isNamePresent(varname, varStringR);
+          if (posvr != -1)
+          {
+            vectOfRcvFields[nfoundvar]= fieldsR[posvr];
+            vectOfDnrFields[nfoundvar]= fieldsD[posvd];
+            nfoundvar += 1;
+          }
+        }
+        #if PY_VERSION_HEX >= 0x03000000
+        else if (PyUnicode_Check(tpl0))
+        {
+          const char* varname = PyUnicode_AsUTF8(tpl0);
+          posvd = K_ARRAY::isNamePresent(varname, varStringD);
+          posvr = K_ARRAY::isNamePresent(varname, varStringR);
+          if (posvr != -1)
+          {
+            vectOfRcvFields[nfoundvar]= fieldsR[posvr];
+            vectOfDnrFields[nfoundvar]= fieldsD[posvd];
+            nfoundvar += 1;
+          }
+        }
+        #endif
+        else
+        {
+          PyErr_Warn(PyExc_Warning, "_setIBCTransfers: variable must be a string. Skipped.");
+        }
+		  }
+	  }
+	}
+
+  delete [] varStringR; delete [] varStringD; delete [] eltTypeR; delete [] eltTypeD;
+
+  # include "commonInterpTransfers_indirect.h"
+
+  # pragma omp parallel default(shared)
+  {
+    E_Int ideb, ifin;
+    #ifdef _OPENMP
+    E_Int  ithread           = omp_get_thread_num()+1;
+    E_Int  Nbre_thread_actif = omp_get_num_threads(); 
+    #else
+    E_Int ithread = 1;
+    E_Int Nbre_thread_actif = 1;
+    #endif
+    E_Int chunk = nbRcvPts/Nbre_thread_actif;
+    E_Int r = nbRcvPts - chunk*Nbre_thread_actif;
+    if (ithread <= r)
+    { 
+      ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); 
+    }
+    else 
+    { 
+      ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; 
+    }
+
+    // 0 : Pressure
+    // 1 / 2 / 3 : gradxPressure  / gradyPressure  / gradzPressure
+    // 4 / 5 / 6 : gradxxPressure / gradyxPressure / gradzxPressure
+    // 7 / 8 / 9 : gradxyPressure / gradyyPressure / gradyyPressure
+    // 10/11 /12 : gradxzPressure / gradyzPressure / gradzzPressure
+
+    #ifdef _OPENMP4
+    #pragma omp simd
+    #endif
+    for (E_Int noind = 0; noind < ifin-ideb; noind++)
+    {
+      E_Int indR = rcvPts[noind+ideb];
+        
+      pressure[noind+ideb] = vectOfRcvFields[0][indR];
+
+      gradxP[noind+ideb] = vectOfRcvFields[1][indR];
+      gradyP[noind+ideb] = vectOfRcvFields[2][indR];
+      gradzP[noind+ideb] = vectOfRcvFields[3][indR];
+
+      gradxxP[noind+ideb] = vectOfRcvFields[4][indR];
+      gradxyP[noind+ideb] = vectOfRcvFields[7][indR];
+      gradxzP[noind+ideb] = vectOfRcvFields[10][indR];
+
+      gradyxP[noind+ideb] = vectOfRcvFields[5][indR];
+      gradyyP[noind+ideb] = vectOfRcvFields[8][indR];
+      gradyzP[noind+ideb] = vectOfRcvFields[11][indR];
+
+      gradzxP[noind+ideb] = vectOfRcvFields[6][indR];
+      gradzyP[noind+ideb] = vectOfRcvFields[9][indR];
+      gradzzP[noind+ideb] = vectOfRcvFields[12][indR];
+      }
+  }
+
+  RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
+
+  RELEASESHAREDN(pyIndRcv, rcvPtsI);
+  RELEASESHAREDN(pyIndDonor, donorPtsI);
+  RELEASESHAREDN(pyArrayTypes, typesI);
+  RELEASESHAREDN(pyArrayCoefs, donorCoefsF);
+
+  RELEASESHAREDN(pyArrayPressure, pressF);
+  RELEASESHAREDN(pyArrayGradxP, gradxPressF);
+  RELEASESHAREDN(pyArrayGradyP, gradyPressF);
+  RELEASESHAREDN(pyArrayGradzP, gradzPressF);
+
+  RELEASESHAREDN(pyArrayGradxxP, gradxxPressF);
+  RELEASESHAREDN(pyArrayGradxyP, gradxyPressF);
+  RELEASESHAREDN(pyArrayGradxzP, gradxzPressF);
+
+  RELEASESHAREDN(pyArrayGradyxP, gradyxPressF);
+  RELEASESHAREDN(pyArrayGradyyP, gradyyPressF);
+  RELEASESHAREDN(pyArrayGradyzP, gradyzPressF);
+
+  RELEASESHAREDN(pyArrayGradzxP, gradzxPressF);
+  RELEASESHAREDN(pyArrayGradzyP, gradzyPressF);
+  RELEASESHAREDN(pyArrayGradzzP, gradzzPressF);
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+//=============================================================================
 // Copy of _setIBCTransfers for gradP info
 // tc/tc2 -> RCV ZONES
 // Called by XOD._setIBCTransfers4GradP()
@@ -3363,9 +3789,9 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP(PyObject* self, PyObject* args)
                     &pyArrayGradxP, &pyArrayGradyP, &pyArrayGradzP,
                     &bctype    , &loc       , &vartype   , &compact   ,&gamma, &cv, &muS, &Cs, &Ts, &alpha,
                     &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters))
-    {
-      return NULL;
-    }
+  {
+    return NULL;
+  }
 
   vector<PyArrayObject*> hook;
 
@@ -3374,15 +3800,13 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP(PyObject* self, PyObject* args)
   E_Int nvars;
   E_Int varType = E_Int(vartype);
 
-  nvars = 8;
+  nvars = 4;
 
   // recupere les champs du donneur (nodes)
   E_Int imdjmd, imd, jmd, kmd, cnNfldD, ndimdxR, ndimdxD, meshtype;;
   E_Float* iptroD; E_Float* iptroR;
 
-# include "extract_interpD.h"
-
-  // std::cout << "COUCOU 3171" << std::endl;
+  # include "extract_interpD.h"
 
   /*--------------------------------------*/
   /* Extraction des indices des receveurs */
@@ -3391,8 +3815,6 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP(PyObject* self, PyObject* args)
   K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
   E_Int* rcvPts  = rcvPtsI->begin();
   nbRcvPts       = rcvPtsI->getSize();
-
-  // # include "IBC/extract_IBC.h"
 
   FldArrayF* pressF;
   E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF, true);
@@ -3405,8 +3827,6 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP(PyObject* self, PyObject* args)
   E_Float* gradxP = gradxPressF->begin();
   E_Float* gradyP = gradyPressF->begin();
   E_Float* gradzP = gradzPressF->begin();
-
-  // std::cout << "COUCOU 3188" << std::endl;
 
   vector<E_Float*> fieldsR;vector<E_Float*> fieldsD;
   vector<E_Float*> vectOfDnrFields(nvars); vector<E_Float*> vectOfRcvFields(nvars);
@@ -3471,7 +3891,7 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP(PyObject* self, PyObject* args)
 			  nfoundvar += 1;
 			}
 		    }
-#if PY_VERSION_HEX >= 0x03000000
+          #if PY_VERSION_HEX >= 0x03000000
 		  else if (PyUnicode_Check(tpl0))
 		    {
 		      const char* varname = PyUnicode_AsUTF8(tpl0);
@@ -3484,7 +3904,7 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP(PyObject* self, PyObject* args)
 			  nfoundvar += 1;
 			}
 		    }
-#endif
+          #endif
 		  else
 		    {
 		      PyErr_Warn(PyExc_Warning, "_setIBCTransfers: variable must be a string. Skipped.");
@@ -3502,7 +3922,7 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP(PyObject* self, PyObject* args)
   else
     {
       // std::cout << "coucou COMPACT" << std::endl;
-# include "getfromzonecompact.h"
+      # include "getfromzonecompact.h"
       for (E_Int eq = 0; eq < nvars; eq++)
 	{
 	  vectOfRcvFields[eq]= iptroR + eq*ndimdxR;
@@ -3510,20 +3930,20 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP(PyObject* self, PyObject* args)
 	}
     }
 
-# include "commonInterpTransfers_indirect.h"
+    # include "commonInterpTransfers_indirect.h"
 
-#    pragma omp parallel default(shared)
+  # pragma omp parallel default(shared)
   {
 
     //indice loop pour paralelisation omp
     E_Int ideb, ifin;
-#ifdef _OPENMP
+    #ifdef _OPENMP
     E_Int  ithread           = omp_get_thread_num()+1;
     E_Int  Nbre_thread_actif = omp_get_num_threads(); // nombre de thread actif dans cette zone
-#else
+    #else
     E_Int ithread = 1;
     E_Int Nbre_thread_actif = 1;
-#endif
+    #endif
     // Calcul du nombre de champs a traiter par chaque thread
     E_Int chunk = nbRcvPts/Nbre_thread_actif;
     E_Int r = nbRcvPts - chunk*Nbre_thread_actif;
@@ -3534,23 +3954,21 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP(PyObject* self, PyObject* args)
 
     E_Float cvgam = cv*(gamma-1.);
 
-    //0 : Density
-    //1 : Temperature
-    //2 / 3 / 4 : gradxDensity / gradyDensity / gradzDensity
-    //5 / 6 / 7 : gradxTemperature / gradyTemperature / gradzTemperature
+    // 0 : Pressure
+    // 1 / 2 / 3 : gradxPressure  / gradyPressure  / gradzPressure
 
-#ifdef _OPENMP4
-#pragma omp simd
-#endif
+    #ifdef _OPENMP4
+    #pragma omp simd
+    #endif
     for (E_Int noind = 0; noind < ifin-ideb; noind++)
       {
-	E_Int indR = rcvPts[noind+ideb];
-     
-	pressure[noind+ideb] = vectOfRcvFields[0][indR]*vectOfRcvFields[1][indR]*cvgam;
+        E_Int indR = rcvPts[noind+ideb];
+        
+        pressure[noind+ideb] = vectOfRcvFields[0][indR];
 
-	gradxP[noind+ideb] = ((vectOfRcvFields[1][indR]*vectOfRcvFields[2][indR]+vectOfRcvFields[0][indR]*vectOfRcvFields[5][indR])*cvgam)/alpha + gradxP[noind+ideb]*(alpha-1.)/alpha;
-	gradyP[noind+ideb] = ((vectOfRcvFields[1][indR]*vectOfRcvFields[3][indR]+vectOfRcvFields[0][indR]*vectOfRcvFields[6][indR])*cvgam)/alpha + gradyP[noind+ideb]*(alpha-1.)/alpha;
-	gradzP[noind+ideb] = ((vectOfRcvFields[1][indR]*vectOfRcvFields[4][indR]+vectOfRcvFields[0][indR]*vectOfRcvFields[7][indR])*cvgam)/alpha + gradzP[noind+ideb]*(alpha-1.)/alpha;
+        gradxP[noind+ideb] = vectOfRcvFields[1][indR];
+        gradyP[noind+ideb] = vectOfRcvFields[2][indR];
+        gradzP[noind+ideb] = vectOfRcvFields[3][indR];
       }
 
   } // Fin zone // omp

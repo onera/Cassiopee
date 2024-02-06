@@ -858,6 +858,10 @@ namespace K_CONNECTOR
   PyObject* gatherDegenerated(PyObject* self, PyObject* args);
   PyObject* setIBCTransfers(PyObject* self, PyObject* args);
   PyObject* _setIBCTransfers(PyObject* self, PyObject* args);
+  PyObject* _setIBCTransfersForPressureGradientsOrder1(PyObject* self, PyObject* args);
+  PyObject* _setIBCTransfersForPressureGradientsOrder2(PyObject* self, PyObject* args);
+  PyObject* _setIBCTransfersDForPressureGradientsOrder1(PyObject* self, PyObject* args);
+  PyObject* _setIBCTransfersDForPressureGradientsOrder2(PyObject* self, PyObject* args);
   PyObject* _setIBCTransfers4GradP(PyObject* self, PyObject* args);
   PyObject* _setIBCTransfers4GradP2(PyObject* self, PyObject* args);
   PyObject* _setIBCTransfers4GradP3(PyObject* self, PyObject* args);

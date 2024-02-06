@@ -1852,10 +1852,10 @@ def setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='cellN',
                        Gamma=1.4, Cv=1.7857142857142865, MuS=1.e-08,
                        Cs=0.3831337844872463, Ts=1.0):
     """Transfer variables once interpolation data has been computed."""
-    if variablesIBC is not None:
-        nvarIBC = len(variablesIBC)
-        if nvarIBC != 5 and nvarIBC != 6:
-            raise ValueError("setInterpTransfers: length of variablesIBC must be equal to 5.")
+    # if variablesIBC is not None:
+    #     nvarIBC = len(variablesIBC)
+    #     if nvarIBC != 5 and nvarIBC != 6:
+    #         raise ValueError("setInterpTransfers: length of variablesIBC must be equal to 5.")
     
     tR = Internal.copyRef(aR)
 
@@ -2191,8 +2191,6 @@ def _setInterpTransfersD(topTreeD, variables=[], cellNVariable='',
                                                              Internal.__FlowSolutionNodes__,
                                                              Internal.__FlowSolutionCenters__)
                         infos.append([dname,arrayT,ListRcv,loc])
-
-                                             
 
     # Sortie
     return infos
@@ -2778,6 +2776,156 @@ def extractChimeraInfo(a,type='interpolated',loc='centers'):
                     allChimPts.append(chimPts)
 
     return allChimPts
+
+#==============================================================================
+# setIBCTransfersD for pressure gradients information (compact = 0)
+# is secondOrder: update second order pressure gradients information as well
+#==============================================================================
+def _setIBCTransfersDForPressureGradients(topTreeD, ibctypes=[], secondOrder=False):
+    variables = ["Pressure"]
+    infos = []
+    loc = 1
+
+    print("_setIBCTransfersDForPressureGradients")
+
+    for direction in ["x", "y", "z"]:
+        var = "grad"+direction+"Pressure"
+        variables.append(var)
+
+    if secondOrder:
+        for direction1 in ["x", "y", "z"]:
+            for direction2 in ["x", "y", "z"]:
+                var = "grad"+direction2+"grad"+direction1+"Pressure"
+                variables.append(var)
+
+    zonesD = Internal.getZones(topTreeD)
+    for zd in zonesD:
+        allIBCD = Internal.getNodesFromType(zd,"ZoneSubRegion_t")
+        allIBCD = Internal.getNodesFromName(allIBCD,"IBCD_*")
+        for IBCD in allIBCD:
+            zrcvname = Internal.getValue(IBCD)
+            ztype = int(IBCD[0].split("_")[1])
+            if ibctypes != [] and ztype not in ibctypes: continue
+            Coefs = Internal.getNodeFromName1(IBCD, 'InterpolantsDonor')[1]
+            DonorType = Internal.getNodeFromName1(IBCD,'InterpolantsType')[1]
+            ListDonor = Internal.getNodeFromName1(IBCD,'PointList')[1]
+            ListRcv   = Internal.getNodeFromName1(IBCD,'PointListDonor')[1]
+
+            Pressure = Internal.getNodeFromName1(IBCD,'Pressure')[1]
+            nIBC = Pressure.shape[0]
+
+            dictOfNumpys = {var: None for x in variables}
+
+            for var in variables:
+                field = Internal.getNodeFromName1(IBCD, var)
+                if field is not None: 
+                    dictOfNumpys[var] = field[1]
+                else:
+                    fieldNP = numpy.zeros((nIBC),numpy.float64)
+                    IBCD[2].append([var , fieldNP , [], 'DataArray_t'])
+                    dictOfNumpys[var] = Internal.getNodeFromName1(IBCD, var)[1]
+            
+            if secondOrder:
+                    arrayT = connector._setIBCTransfersDForPressureGradientsOrder2(zd, variables, ListDonor, DonorType, Coefs,
+                                                            dictOfNumpys['Pressure'],
+                                                            dictOfNumpys['gradxPressure'] , dictOfNumpys['gradyPressure'] , dictOfNumpys['gradzPressure'],
+                                                            dictOfNumpys['gradxgradxPressure'], dictOfNumpys['gradxgradyPressure'], dictOfNumpys['gradxgradzPressure'],
+                                                            dictOfNumpys['gradygradxPressure'], dictOfNumpys['gradygradyPressure'], dictOfNumpys['gradygradzPressure'],
+                                                            dictOfNumpys['gradzgradxPressure'], dictOfNumpys['gradzgradyPressure'], dictOfNumpys['gradzgradzPressure'],
+                                                            Internal.__GridCoordinates__,
+                                                            Internal.__FlowSolutionNodes__,
+                                                            Internal.__FlowSolutionCenters__)
+            else:
+                    arrayT = connector._setIBCTransfersDForPressureGradientsOrder1(zd, variables, ListDonor, DonorType, Coefs,
+                                                            dictOfNumpys['Pressure'],
+                                                            dictOfNumpys['gradxPressure'] , dictOfNumpys['gradyPressure'] , dictOfNumpys['gradzPressure'],
+                                                            Internal.__GridCoordinates__,
+                                                            Internal.__FlowSolutionNodes__,
+                                                            Internal.__FlowSolutionCenters__)
+                    
+            infos.append([zrcvname,arrayT,ListRcv,loc])                                            
+
+    return infos
+
+#==============================================================================
+# setIBCTransfers for pressure gradients information (compact = 0)
+# is secondOrder: update second order pressure gradients information as well
+#==============================================================================
+def _setIBCTransfersForPressureGradients(aR, topTreeD, ibctypes=[], secondOrder=False):
+
+    variables = ["Pressure"]
+
+    print("_setIBCTransfersForPressureGradients")
+
+    for direction in ["x", "y", "z"]:
+        var = "grad"+direction+"Pressure"
+        variables.append(var)
+
+    if secondOrder:
+        for direction1 in ["x", "y", "z"]:
+            for direction2 in ["x", "y", "z"]:
+                var = "grad"+direction2+"grad"+direction1+"Pressure"
+                variables.append(var)
+
+    loc = 1
+
+    znr = {}
+    zones = Internal.getZones(aR)
+    for z in zones: znr[z[0]] = z
+
+    zonesD = Internal.getZones(topTreeD)
+    for zd in zonesD:
+        allIBCD = Internal.getNodesFromType(zd,"ZoneSubRegion_t")
+        allIBCD = Internal.getNodesFromName(allIBCD,"IBCD_*")
+        for IBCD in allIBCD:
+            zrcvname = Internal.getValue(IBCD)
+            ztype = int(IBCD[0].split("_")[1])
+            if ibctypes != [] and ztype not in ibctypes: continue
+            Coefs = Internal.getNodeFromName1(IBCD, 'InterpolantsDonor')[1]
+            DonorType = Internal.getNodeFromName1(IBCD,'InterpolantsType')[1]
+            ListDonor = Internal.getNodeFromName1(IBCD,'PointList')[1]
+            ListRcv   = Internal.getNodeFromName1(IBCD,'PointListDonor')[1]
+
+            zr = znr.get(zrcvname, None)
+            if zr is not None:
+                Pressure = Internal.getNodeFromName1(IBCD,'Pressure')[1]
+                nIBC = Pressure.shape[0]
+
+                dictOfNumpys = {var: None for x in variables}
+
+                for var in variables:
+                    field = Internal.getNodeFromName1(IBCD, var)
+                    if field is not None: 
+                        dictOfNumpys[var] = field[1]
+                    else:
+                        fieldNP = numpy.zeros((nIBC),numpy.float64)
+                        IBCD[2].append([var , fieldNP , [], 'DataArray_t'])
+                        dictOfNumpys[var] = Internal.getNodeFromName1(IBCD, var)[1]
+
+                if secondOrder:
+                    connector._setIBCTransfersForPressureGradientsOrder2(zr, zd, variables, ListRcv, ListDonor, DonorType, Coefs,
+                                                dictOfNumpys['Pressure'],
+                                                dictOfNumpys['gradxPressure'] , dictOfNumpys['gradyPressure'] , dictOfNumpys['gradzPressure'],
+                                                dictOfNumpys['gradxgradxPressure'], dictOfNumpys['gradxgradyPressure'], dictOfNumpys['gradxgradzPressure'],
+                                                dictOfNumpys['gradygradxPressure'], dictOfNumpys['gradygradyPressure'], dictOfNumpys['gradygradzPressure'],
+                                                dictOfNumpys['gradzgradxPressure'], dictOfNumpys['gradzgradyPressure'], dictOfNumpys['gradzgradzPressure'],
+                                                loc,
+                                                Internal.__GridCoordinates__,
+                                                Internal.__FlowSolutionNodes__,
+                                                Internal.__FlowSolutionCenters__)
+                else:
+                    connector._setIBCTransfersForPressureGradientsOrder1(zr, zd, variables, ListRcv, ListDonor, DonorType, Coefs,
+                                                dictOfNumpys['Pressure'],
+                                                dictOfNumpys['gradxPressure'] , dictOfNumpys['gradyPressure'] , dictOfNumpys['gradzPressure'],
+                                                loc,
+                                                Internal.__GridCoordinates__,
+                                                Internal.__FlowSolutionNodes__,
+                                                Internal.__FlowSolutionCenters__)
+    return None
+
+# NOTE !!
+## The functions below (_setIBCTransfers4GradP, _setIBCTransfers4GradP2, _setIBCTransfers4GradP3, _setIBCTransfers4FULLTBLE & _setIBCTransfers4FULLTBLE2)
+## will be replaced by _setIBCTransfersDForPressureGradients & _setIBCTransfersForPressureGradients
 
 #==============================================================================
 # Copy of _setIBCTransfers for gradP info

@@ -2,6 +2,7 @@
 from . import PyTree as P
 import Connector.OversetData as XOD
 import Connector.PyTree as X
+import Connector.Mpi as Xmpi
 import Connector.IBM as X_IBM
 import Connector.connector as connector
 import Converter
@@ -21,6 +22,61 @@ import numpy
 #=============================================================================
 from . import IBM_OLDIES
 #=============================================================================
+
+#=============================================================================
+# Update Pressure Gradient Info
+# if secondOrder: update second order pressure gradients information as well
+# -> works both with and without MPI
+# -> does not modify t
+# -> does not use compact information (FastS style)
+#=============================================================================
+def _updateGradPInfo(t, tc, ibctypes=[], secondOrder=False):
+    """Computes pressure gradient information at image points and store them in the tc"""
+    import Post.ExtraVariables2 as PE
+
+    t = PE.extractPressure(t)
+    variables = ["Pressure"]
+    
+    t = P.computeGrad2(t, 'centers:Pressure')
+
+    for direction in ["x", "y", "z"]:
+        var = "grad"+direction+"Pressure"
+        variables.append(var)
+
+    for b in Internal.getBases(t):
+        for z in Internal.getZones(b):
+            zc = Internal.getNodeFromPath(tc, b[0]+'/'+z[0])
+            for v in variables: C._cpVars(z, 'centers:'+v, zc, v)
+
+    if Cmpi.size > 1: t = Xmpi.setInterpTransfers(t, tc, variables=variables, variablesIBC=[])
+    else: t = XOD.setInterpTransfers(t, tc, variables=variables, variablesIBC=[], compact=0, compactD=0)
+
+    if secondOrder:
+        # need to transfers 1st order pressure gradient information first
+        variables2 = []
+
+        for direction1 in ["x", "y", "z"]:
+            var = "grad"+direction1+"Pressure"
+            t = P.computeGrad2(t, 'centers:'+var)
+            for direction2 in ["x", "y", "z"]:
+                var = "grad"+direction2+"grad"+direction1+"Pressure"
+                variables2.append(var)
+
+        for b in Internal.getBases(t):
+            for z in Internal.getZones(b):
+                zc = Internal.getNodeFromPath(tc, b[0]+'/'+z[0])
+                for v in variables2: C._cpVars(z, 'centers:'+v, zc, v)
+
+        if Cmpi.size > 1: t = Xmpi.setInterpTransfers(t, tc, variables=variables2, variablesIBC=[])
+        else: t = XOD.setInterpTransfers(t, tc, variables=variables2, variablesIBC=[], compact=0, compactD=0)
+
+    if Cmpi.size > 1: Xmpi._setInterpTransfersForPressureGradients(t, tc, ibctypes=ibctypes, secondOrder=secondOrder)
+    else: XOD._setIBCTransfersForPressureGradients(t, tc, ibctypes=ibctypes, secondOrder=secondOrder)
+
+    C._rmVars(tc, variables)
+    if secondOrder: C._rmVars(tc, variables2)
+
+    return None
 
 #=============================================================================
 # Extract the flow field at the IBM target points onto the surface.
@@ -438,15 +494,9 @@ def _extractYplusIP(tc):
     return None
 
 #=============================================================================
-# Extrapolate the wall pressure (1st order) using pressure gradient info
+# Extrapolate the wall pressure (1st or 2nd order) using pressure gradient info
 #=============================================================================
-def extractPressureHO(tc, extractDensity=False):
-    """Extrapolates the wall pressure (1st order) at the immersed boundaries and stores the solution in the tc."""
-    tp = Internal.copyRef(tc)
-    _extractPressureHO(tp, extractDensity=extractDensity)
-    return tp
-
-def _extractPressureHO(tc, extractDensity=False):
+def _extractPressureHO1__(tc, extractDensity=False):
     """Extrapolates the wall pressure (1st order) at the immersed boundaries and stores the solution in the tc."""
     for z in Internal.getZones(tc):
         subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
@@ -494,17 +544,7 @@ def _extractPressureHO(tc, extractDensity=False):
 
     return None
 
-#=============================================================================
-# Extrapolate the wall pressure (2nd order) using pressure gradient info
-#=============================================================================    
-def extractPressureHO2(tc, extractDensity=False):
-    """Extrapolates the wall pressure (2nd order) at the immersed boundaries and stores the solution in the tc."""
-    tp = Internal.copyRef(tc)
-    _extractPressureHO2(tp, extractDensity=extractDensity)
-    return tp
-
-def _extractPressureHO2(tc, extractDensity=False):
-    """Extrapolates the wall pressure (2nd order) at the immersed boundaries and stores the solution in the tc."""
+def _extractPressureHO2__(tc, extractDensity=False):
     for z in Internal.getZones(tc):
         subRegions = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
         for zsr in subRegions:
@@ -526,17 +566,30 @@ def _extractPressureHO2(tc, extractDensity=False):
                 gradyPressure  = Internal.getNodeFromName(zsr, 'gradyPressure')[1]
                 gradzPressure  = Internal.getNodeFromName(zsr, 'gradzPressure')[1]
 
-                gradxxPressure = Internal.getNodeFromName(zsr, 'gradxxPressure')[1]
-                gradxyPressure = Internal.getNodeFromName(zsr, 'gradxyPressure')[1]
-                gradxzPressure = Internal.getNodeFromName(zsr, 'gradxzPressure')[1]
+                try:
+                    gradxxPressure = Internal.getNodeFromName(zsr, 'gradxxPressure')[1]
+                    gradxyPressure = Internal.getNodeFromName(zsr, 'gradxyPressure')[1]
+                    gradxzPressure = Internal.getNodeFromName(zsr, 'gradxzPressure')[1]
 
-                gradyxPressure = Internal.getNodeFromName(zsr, 'gradyxPressure')[1]
-                gradyyPressure = Internal.getNodeFromName(zsr, 'gradyyPressure')[1]
-                gradyzPressure = Internal.getNodeFromName(zsr, 'gradyzPressure')[1]
+                    gradyxPressure = Internal.getNodeFromName(zsr, 'gradyxPressure')[1]
+                    gradyyPressure = Internal.getNodeFromName(zsr, 'gradyyPressure')[1]
+                    gradyzPressure = Internal.getNodeFromName(zsr, 'gradyzPressure')[1]
 
-                gradzxPressure = Internal.getNodeFromName(zsr, 'gradzxPressure')[1]
-                gradzyPressure = Internal.getNodeFromName(zsr, 'gradzyPressure')[1]
-                gradzzPressure = Internal.getNodeFromName(zsr, 'gradzzPressure')[1]
+                    gradzxPressure = Internal.getNodeFromName(zsr, 'gradzxPressure')[1]
+                    gradzyPressure = Internal.getNodeFromName(zsr, 'gradzyPressure')[1]
+                    gradzzPressure = Internal.getNodeFromName(zsr, 'gradzzPressure')[1]
+                except:
+                    gradxxPressure = Internal.getNodeFromName(zsr, 'gradxgradxPressure')[1]
+                    gradxyPressure = Internal.getNodeFromName(zsr, 'gradxgradyPressure')[1]
+                    gradxzPressure = Internal.getNodeFromName(zsr, 'gradxgradzPressure')[1]
+
+                    gradyxPressure = Internal.getNodeFromName(zsr, 'gradygradxPressure')[1]
+                    gradyyPressure = Internal.getNodeFromName(zsr, 'gradygradyPressure')[1]
+                    gradyzPressure = Internal.getNodeFromName(zsr, 'gradygradzPressure')[1]
+
+                    gradzxPressure = Internal.getNodeFromName(zsr, 'gradzgradxPressure')[1]
+                    gradzyPressure = Internal.getNodeFromName(zsr, 'gradzgradyPressure')[1]
+                    gradzzPressure = Internal.getNodeFromName(zsr, 'gradzgradzPressure')[1]
 
                 Pressure = Internal.getNodeFromName(zsr, 'Pressure')[1]
                 if extractDensity: Density  = Internal.getNodeFromName(zsr, 'Density')[1]
@@ -567,6 +620,18 @@ def _extractPressureHO2(tc, extractDensity=False):
 
                     if extractDensity: Density[i]  = Density[i]/Pressure[i]*(Pressure[i] - nGradP*beta + 0.5*nnGradP*beta**2)
                     Pressure[i] = Pressure[i] - nGradP*beta + 0.5*nnGradP*beta**2
+
+    return None
+
+def extractPressureHO(tc, order=1, extractDensity=False):
+    """Extrapolates the wall pressure (1st or 2nd order) at the immersed boundaries and stores the solution in the tc."""
+    tp = Internal.copyRef(tc)
+    _extractPressureHO(tp, order=order, extractDensity=extractDensity)
+    return tp
+
+def _extractPressureHO(tc, order=1, extractDensity=False):
+    if order == 2: _extractPressureHO2__(tc, extractDensity=extractDensity)
+    else: _extractPressureHO1__(tc, extractDensity=extractDensity)
 
     return None
 
@@ -1012,9 +1077,9 @@ def computeAerodynamicLoads(ts, ts2=None, dimPb=3, famZones=[], Pref=None, cente
     import Connector.IBM as X_IBM
     import Distributor2.PyTree as D2
 
-    tw = Internal.copyRef(ts)
+    tw = Internal.copyTree(ts)
     if ts2 is not None:
-        tw2 = Internal.copyRef(ts2)
+        tw2 = Internal.copyTree(ts2)
         tw = extractPressureFromFront2__(tw, tw2, extractDensity=False)
 
     if famZones:
@@ -1374,12 +1439,12 @@ def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref
 
         if tc2 is None:
             print('Info: loads: pressure gradients come from tc')
-            if order < 2: tc = extractPressureHO(tc)
-            else: tc = extractPressureHO2(tc)
+            if order < 2: tc = extractPressureHO(tc, order=1)
+            else: tc = extractPressureHO(tc, order=2)
         else:
             print('Info: loads: pressure gradients come from tc2')
-            if order < 2: tc2 = extractPressureHO(tc2)
-            else: tc2 = extractPressureHO2(tc2)
+            if order < 2: tc2 = extractPressureHO(tc2, order=1)
+            else: tc2 = extractPressureHO(tc2, order=2)
 
     #====================================
     # Extraction des grandeurs a la paroi
@@ -1468,7 +1533,6 @@ def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref
 
     if isinstance(wall_out, str): C.convertPyTree2File(ts, wall_out)
     return ts, CL, CD
-
 
 #==========================================================================================
 # IN:  ts            : skin (TRI zones) distributed already (partial tree here)

@@ -299,6 +299,45 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
     return None
 
 #===============================================================================
+# setInterpTransfers for pressure gradients information (compact = 0)
+#===============================================================================
+def _setInterpTransfersForPressureGradients(aR, aD, ibctypes=[], secondOrder=False, procDict=None, graph=None):
+
+    if procDict is None: procDict = Cmpi.getProcDict(aD)
+    if graph is None: graph = Cmpi.computeGraph(aD, type=type)
+
+    datas = {}
+    zonesD = Internal.getZones(aD)
+    for zD in zonesD:
+        infos = X._setIBCTransfersDForPressureGradients(aD, ibctypes=ibctypes, secondOrder=secondOrder)
+        for n in infos:
+            rcvName = n[0]
+            proc = procDict[rcvName]
+            if proc == Cmpi.rank:
+                field = n[1]
+                if field != []:
+                    listIndices = n[2]
+                    z = Internal.getNodeFromName2(aR, rcvName)
+                    C._setPartialFields(z, [field], [listIndices], loc=n[3])
+            else:
+                rcvNode = procDict[rcvName]
+                if rcvNode not in datas: datas[rcvNode] = [n]
+                else: datas[rcvNode] += [n]
+    # Envoie des numpys suivant le graph
+    rcvDatas = Cmpi.sendRecv(datas, graph)
+
+    # Remise des champs interpoles dans l'arbre receveur
+    for i in rcvDatas:
+        for n in rcvDatas[i]:
+            rcvName = n[0]
+            field = n[1]
+            if field != []:
+                listIndices = n[2]
+                z = Internal.getNodeFromName2(aR, rcvName)
+                C._setPartialFields(z, [field], [listIndices], loc=n[3])
+    return None
+
+#===============================================================================
 # __setInterpTransfers - version optimisee de _setInterpTransfers: arbre t et tc compact, 
 # moins de python + de C
 #

@@ -51,5 +51,5 @@ for z in Internal.getZones(a):
         zsr[2].append(['gradzyPressure', copy.copy(Nlength)+5, [], 'DataArray_t'])
         zsr[2].append(['gradzzPressure', copy.copy(Nlength)+5, [], 'DataArray_t'])
         
-a=P_IBM.extractPressureHO2(a)
+a=P_IBM.extractPressureHO(a, order=2)
 C.convertPyTree2File(a,'out.cgns')
