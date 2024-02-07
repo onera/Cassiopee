@@ -16,6 +16,17 @@ try:
 except ImportError:
     raise ImportError("Initiator.PyTree: requires Converter.PyTree module.")
 
+def _applyGaussianAL(t, listOfLoads, listOfALPositions, listOfRotMat,
+                    localEpsX, localEpsY, localEpsZ, NbBlades, NbPointsAL,
+                    TruncVar):
+    writeDim = False
+    # si besoin des coordonnees en centres
+    # C._TZAGCX(api, t, locin, locout, writeDim, F, Fc, *args)
+    C._TZAX(3, t, 'centers', 'centers', writeDim, Initiator.applyGaussianAL, 
+            listOfLoads, listOfALPositions, listOfRotMat,
+            localEpsX, localEpsY, localEpsZ, NbBlades, NbPointsAL, TruncVar)
+    return None
+
 def initConst(t, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8, 
               loc='nodes'):
     """Init the pyTree by the reference state if it is defined in t, else by input parameters.

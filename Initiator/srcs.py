@@ -2,7 +2,8 @@
 # Fichiers C++
 #==============================================================================
 cpp_srcs = ['Initiator/initByVortex.cpp',
-            'Initiator/initByOverlay.cpp']
+            'Initiator/initByOverlay.cpp',
+            "Initiator/applyGaussianAL.cpp"]
 
 #==============================================================================
 # Fichiers fortran

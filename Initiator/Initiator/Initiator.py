@@ -8,6 +8,20 @@ from . import initiator
 from .MeshSize import meshSize
 from .Adim import adim1, adim2, adim3, dim1, dim2, dim3, dim4
 
+def applyGaussianAL(a, listOfLoads, listOfALPositions, listOfRotMat,
+                    localEpsX, localEpsY, localEpsZ, NbBlades, NbPointsAL,
+                    TruncVar):
+    if isinstance(a[0], list):
+        for i in a:
+            initiator.applyGaussianAL(
+                i,listOfLoads,listOfALPositions,listOfRotMat,
+                localEpsX, localEpsY, localEpsZ, NbBlades, NbPointsAL, TruncVar)
+    else:
+        initiator.applyGaussianAL(
+            a,listOfLoads,listOfALPositions,listOfRotMat,
+            localEpsX, localEpsY, localEpsZ, NbBlades, NbPointsAL, TruncVar)
+    return a
+
 def initConst(a, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8):
     """Init a by a constant field.
     Usage: initConst(a, MInf, alphaZ, alphaY, ReInf)"""

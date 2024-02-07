@@ -30,7 +30,7 @@ static PyMethodDef Pyinitiator [] =
   {"initYee", K_INITIATOR::initYee, METH_VARARGS},
   {"initScully", K_INITIATOR::initScully, METH_VARARGS},
   {"overlayField", K_INITIATOR::overlayField, METH_VARARGS},
-  //  {"applyGaussianAL", K_INITIATOR::applyGaussianAL, METH_VARARGS},
+  {"applyGaussianAL", K_INITIATOR::applyGaussianAL, METH_VARARGS},
   {NULL, NULL}
 };
 
