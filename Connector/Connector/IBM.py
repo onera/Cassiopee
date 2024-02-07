@@ -2408,10 +2408,8 @@ def _pushBackImageFront2(t, tc, tbb, interpDataType=1):
 # IN: yplus: target y+. Need as this will be used to get the modelisation height for frontType 42
 # IN: Lref: reference length: Need as this will be used to get the modelisation height for frontType 42
 # IN: isLBM: is the case LBM?
-# IN: isIbmAle: are the IBMs moving? 
-# Note [AJ]: isIbmAle : set to false - will be used in subsequent commits for moving IBMs
 #=============================================================================
-def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None, frontType=0, depth=2, IBCType=1, interpDataType=1, Reynolds=6.e6, yplus=100., Lref=1., isLBM=False,isIbmAle=False):
+def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None, frontType=0, depth=2, IBCType=1, interpDataType=1, Reynolds=6.e6, yplus=100., Lref=1., isLBM=False):
     ReferenceState = Internal.getNodeFromType2(t, 'ReferenceState_t')
     if typeI == 'ID':
         # toutes les zones sont interpolables en Chimere
@@ -2510,7 +2508,7 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
 
     return tc
 
-def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType=0, smoothing=False, yplus=100., Lref=1., wallAdapt=None, blankingF42=False, isLBM=False,LBMQ=False,isPrintDebug=False,isIbmAle=False):
+def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType=0, smoothing=False, yplus=100., Lref=1., wallAdapt=None, blankingF42=False, isLBM=False,LBMQ=False,isPrintDebug=False):
     tb =  Internal.copyRef(tbody)
 
     # tb: fournit model et dimension
@@ -2703,7 +2701,7 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
     else: dictOfADT = None
     print('Interpolations Chimere.')
     tc = doInterp(t, tc, tbb, tb=None, typeI='ID', dim=dimPb,
-                  interpDataType=interpDataType, dictOfADT=dictOfADT,isIbmAle=isIbmAle)
+                  interpDataType=interpDataType, dictOfADT=dictOfADT)
     if dictOfADT is not None:
         for dnrname in dictOfADT: C.freeHook(dictOfADT[dnrname])
 
@@ -2755,11 +2753,11 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
         C.convertPyTree2File(front, 'IB_front.cgns')
     # C.convertPyTree2File(front, 'front.cgns')
     print('Interpolations IBM')
-    tc = doInterp(t, tc, tbb, tb=tb,typeI='IBCD', dim=dimPb, dictOfADT=None, front=front, frontType=frontType, depth=DEPTH, IBCType=IBCType, interpDataType=interpDataType, Reynolds=Reynolds, yplus=yplus, Lref=Lref, isLBM=isLBM,isIbmAle=isIbmAle)
+    tc = doInterp(t, tc, tbb, tb=tb,typeI='IBCD', dim=dimPb, dictOfADT=None, front=front, frontType=frontType, depth=DEPTH, IBCType=IBCType, interpDataType=interpDataType, Reynolds=Reynolds, yplus=yplus, Lref=Lref, isLBM=isLBM)
 
     # cleaning...
     Internal._rmNodesByName(tc, Internal.__FlowSolutionNodes__)
-    if not isIbmAle:
+    if not Internal.getNodeFromName(t,'TimeMotion'):
         Internal._rmNodesByName(tc, Internal.__GridCoordinates__)
     C._initVars(t,'{centers:cellN}=minimum({centers:cellNChim}*{centers:cellNIBCDnr},2.)')
     varsRM = ['centers:gradxTurbulentDistance','centers:gradyTurbulentDistance','centers:gradzTurbulentDistance','centers:cellNFront','centers:cellNIBCDnr']

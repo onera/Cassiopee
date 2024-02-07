@@ -1026,3 +1026,62 @@ def _evalGridSpeed2(a, time, dtime=1.e-6, out=0):
             Internal.getNodeFromName(z, 'GridVelocityY')[1][:] = speedY[:]
             Internal.getNodeFromName(z, 'GridVelocityZ')[1][:] = speedZ[:]
     return None
+
+
+#Updates the Coordinates of the immersed boundary points as the object rotates.
+#Changes the values of the Target, Image, and Walls points based on the motion of the object.
+#Only supports motion type 3 at the moment
+#Prelim. test show that using vectorial Python has a negligible impact on the total run time.
+#FastS.compute and the chimera blanking at each iteration require significantly more time.
+#This routine is on the order of the time needed for the standard position routins for chimera; e.g.
+#    R._evalPosition(tb, timeit)
+#    R._evalPosition(t, timeit)
+#    R._evalPosition(tc, timeit)
+#    R._evalGridSpeed(t, timeit)
+
+def _evalPositionIBC(tc,time):
+    list_vars= ['C','I','W']
+    for z in Internal.getZones(tc):
+        cont = Internal.getNodeFromName1(z, 'TimeMotion')
+        if cont is not None:
+            motions = Internal.getNodesFromType1(cont, 'TimeRigidMotion_t')
+            motions.reverse()
+            transl_speed = Internal.getNodeFromName(motions[0], 'transl_speed')[1]
+            axis_pnt     = Internal.getNodeFromName(motions[0], 'axis_pnt')[1]
+            axis_vct     = Internal.getNodeFromName(motions[0], 'axis_vct')[1]
+            omega        = Internal.getNodeFromName(motions[0], 'omega')[1]            
+            cx           = axis_pnt[0]
+            cy           = axis_pnt[1]
+            cz           = axis_pnt[2]
+            ex           = axis_vct[0]
+            ey           = axis_vct[1]
+            ez           = axis_vct[2]
+            angle        = omega[0]*time
+
+            a11         = numpy.cos(angle)            + ex**2*(1.-numpy.cos(angle))
+            a12         = ex*ey*(1.-numpy.cos(angle)) - ez*numpy.sin(angle)
+            a13         = ex*ez*(1.-numpy.cos(angle)) + ey*numpy.sin(angle)
+            
+            a21         = ex*ey*(1.-numpy.cos(angle)) + ez*numpy.sin(angle)
+            a22         = numpy.cos(angle)            + ey**2*(1.-numpy.cos(angle))
+            a23         = ey*ez*(1.-numpy.cos(angle)) - ex*numpy.sin(angle)
+            
+            a31         = ex*ez*(1.-numpy.cos(angle)) - ey*numpy.sin(angle)
+            a32         = ey*ez*(1.-numpy.cos(angle)) + ex*numpy.sin(angle)
+            a33         = numpy.cos(angle)            + ez**2*(1.-numpy.cos(angle))
+                
+            for subz in Internal.getNodesFromType(z,'ZoneSubRegion_t'):
+                if subz[0][0:3]=="IBC":
+                    for var in list_vars:
+                        coordX_PC     = Internal.getNodeFromName(subz,'CoordinateX_P'+var)[1]
+                        coordX_PCInit = Internal.getNodeFromName(subz,'CoordinateX_P'+var+'#Init')[1]
+                        coordY_PC     = Internal.getNodeFromName(subz,'CoordinateY_P'+var)[1]
+                        coordY_PCInit = Internal.getNodeFromName(subz,'CoordinateY_P'+var+'#Init')[1]
+                        coordZ_PC     = Internal.getNodeFromName(subz,'CoordinateZ_P'+var)[1]
+                        coordZ_PCInit = Internal.getNodeFromName(subz,'CoordinateZ_P'+var+'#Init')[1]
+                        
+                        coordX_PC[:] = transl_speed[0]*time + a11*(coordX_PCInit[:]-cx)+a12*(coordY_PCInit[:]-cy)+a13*(coordZ_PCInit[:]-cz)+cx
+                        coordY_PC[:] = transl_speed[1]*time + a21*(coordX_PCInit[:]-cx)+a22*(coordY_PCInit[:]-cy)+a23*(coordZ_PCInit[:]-cz)+cy
+                        coordZ_PC[:] = transl_speed[2]*time + a31*(coordX_PCInit[:]-cx)+a32*(coordY_PCInit[:]-cy)+a33*(coordZ_PCInit[:]-cz)+cz
+    return None
+

@@ -295,6 +295,9 @@
 #define DiameterWire 62  
 #define CtWire       63
 
+/*Rotation - IBM*/
+#define MotionType   64
+
 /*CONSTANTS*/
 #define SA_CKARM    0.41 
 #define SA_CB1      0.1355

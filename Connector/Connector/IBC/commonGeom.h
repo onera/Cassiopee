@@ -12,6 +12,8 @@ b2 = zPI[noind+ideb]-zPW[noind+ideb];
 
 normb = sqrt(b0*b0+b1*b1+b2*b2);
 normb = std::max(normb, 1.e-12);
+
+//@ Image Pnt
 n0 = b0/normb;
 n1 = b1/normb;
 n2 = b2/normb;

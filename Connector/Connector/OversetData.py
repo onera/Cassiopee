@@ -560,7 +560,7 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
                 else: # inverse
                     _createInterpRegion__(zonesDnr[noz],z[0],resInterp[1][noz],resInterp[0][noz],resInterp[3][noz],\
                                          resInterp[2][noz], VOL, EXTRAP, ORPHAN, \
-                                         tag='Donor', loc=loc,itype='ibc', prefix=prefixIBCD)
+                                          tag='Donor', loc=loc,itype='ibc', prefix=prefixIBCD)
                     # add coordinates of corrected point, wall point, interpolated point
                     _addIBCCoords__(zonesDnr[noz], z[0], allCorrectedPts[noz], allWallPts[noz], allMirrorPts[noz], bcType, \
                                     bcName=bcName, ReferenceState=ReferenceState, prefix=prefixIBCD)
@@ -867,6 +867,7 @@ def _setIBCDataForZone2__(z, zonesDnr, correctedPts, wallPts, interpPts, interpP
 
     return None
 
+
 def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bcName=None, ReferenceState=None, prefix='IBCD_'):
     nameSubRegion = prefix+zname
     zsr = Internal.getNodeFromName1(z, nameSubRegion)
@@ -983,6 +984,37 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bc
         zsr[2].append(['gradyVelocityZ' , gradyVelocityZNP , [], 'DataArray_t'])
         gradzVelocityZNP  = numpy.zeros((nIBC),numpy.float64)
         zsr[2].append(['gradzVelocityZ' , gradzVelocityZNP , [], 'DataArray_t'])
+
+    ##Moving IBM
+    timeMotion = Internal.getNodeByName(z,'TimeMotion')
+    if timeMotion:
+        zsr[2].append(['CoordinateX_PC#Init',coordsPC[1][0,:], [], 'DataArray_t'])
+        zsr[2].append(['CoordinateY_PC#Init',coordsPC[1][1,:], [], 'DataArray_t'])
+        zsr[2].append(['CoordinateZ_PC#Init',coordsPC[1][2,:], [], 'DataArray_t'])
+        zsr[2].append(['CoordinateX_PI#Init',coordsPI[1][0,:], [], 'DataArray_t'])
+        zsr[2].append(['CoordinateY_PI#Init',coordsPI[1][1,:], [], 'DataArray_t'])
+        zsr[2].append(['CoordinateZ_PI#Init',coordsPI[1][2,:], [], 'DataArray_t'])
+        zsr[2].append(['CoordinateX_PW#Init',coordsPW[1][0,:], [], 'DataArray_t'])
+        zsr[2].append(['CoordinateY_PW#Init',coordsPW[1][1,:], [], 'DataArray_t'])
+        zsr[2].append(['CoordinateZ_PW#Init',coordsPW[1][2,:], [], 'DataArray_t'])
+        
+        motionTypeLocal = numpy.ones((nIBC),numpy.float64)
+        zsr[2].append(['MotionType'   ,  Internal.getNodeFromName(timeMotion,'MotionType')[1][0]*motionTypeLocal, [], 'DataArray_t'])
+
+        zsr[2].append(['transl_speedX',  Internal.getNodeFromName(timeMotion,'transl_speed')[1][0]*motionTypeLocal, [], 'DataArray_t'])
+        zsr[2].append(['transl_speedY',  Internal.getNodeFromName(timeMotion,'transl_speed')[1][1]*motionTypeLocal, [], 'DataArray_t'])
+        zsr[2].append(['transl_speedZ',  Internal.getNodeFromName(timeMotion,'transl_speed')[1][2]*motionTypeLocal, [], 'DataArray_t'])
+
+        zsr[2].append(['axis_pntX'    ,  Internal.getNodeFromName(timeMotion,'axis_pnt')[1][0]*motionTypeLocal, [], 'DataArray_t'])
+        zsr[2].append(['axis_pntY'    ,  Internal.getNodeFromName(timeMotion,'axis_pnt')[1][1]*motionTypeLocal, [], 'DataArray_t'])
+        zsr[2].append(['axis_pntZ'    ,  Internal.getNodeFromName(timeMotion,'axis_pnt')[1][2]*motionTypeLocal, [], 'DataArray_t'])
+
+        zsr[2].append(['axis_vctX'    ,  Internal.getNodeFromName(timeMotion,'axis_vct')[1][0]*motionTypeLocal, [], 'DataArray_t'])
+        zsr[2].append(['axis_vctY'    ,  Internal.getNodeFromName(timeMotion,'axis_vct')[1][1]*motionTypeLocal, [], 'DataArray_t'])
+        zsr[2].append(['axis_vctZ'    ,  Internal.getNodeFromName(timeMotion,'axis_vct')[1][2]*motionTypeLocal, [], 'DataArray_t'])
+
+        zsr[2].append(['omega'        ,  Internal.getNodeFromName(timeMotion,'omega')[1][0]*motionTypeLocal, [], 'DataArray_t'])
+        
        
     if bcName is not None:
         Internal._createUniqueChild(zsr, 'FamilyName', 'FamilyName_t', value=bcName)

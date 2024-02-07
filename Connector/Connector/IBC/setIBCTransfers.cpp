@@ -500,11 +500,28 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Float Ct_WM        = param_real[ CtWire ];
   E_Float R_gas        = Pinf/(Roinf*Tinf);
 
+
+  
+  E_Int   motionType      = (int) param_real[MotionType];
+  //[AJ] Keep for now
+  //E_Float transpeed[3]    = {param_real[TransSpeed],param_real[TransSpeed+1],param_real[TransSpeed+2]};
+  //E_Float axispnt[3]      = {param_real[AxisPnt],param_real[AxisPnt+1],param_real[AxisPnt+2]};
+  //E_Float axisvec[3]      = {param_real[AxisVec],param_real[AxisVec+1],param_real[AxisVec+2]};
+  //E_Float omg             = param_real[OMG];  
+
+  E_Float cmx,cmy,cmz;
+  E_Float kvcmx,kvcmy,kvcmz;
+  E_Float tmp_x,tmp_y,tmp_z;
+  E_Float uGrid_local,vGrid_local,wGrid_local;
+  E_Float normalVelGrid_local;
+  E_Int c_ale;
+  c_ale = max(0,min(1,motionType));
+    
   E_Float* pressPtr = densPtr + 1*nbRcvPts;
   E_Float* vxPtr    = densPtr + 2*nbRcvPts;
   E_Float* vyPtr    = densPtr + 3*nbRcvPts; 
   E_Float* vzPtr    = densPtr + 4*nbRcvPts;
-  
+
   E_Float* utauPtr = NULL;
   E_Float* yplusPtr = NULL;
   E_Float* kcurvPtr = NULL;
@@ -534,6 +551,18 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Float* gradyWPtr = NULL;
   E_Float* gradzWPtr = NULL;
 
+  E_Float* motionPtr   = NULL;
+  E_Float* transpeedPtrX = NULL;
+  E_Float* transpeedPtrY = NULL;
+  E_Float* transpeedPtrZ = NULL;
+  E_Float* axispntPtrX = NULL;
+  E_Float* axispntPtrY = NULL;
+  E_Float* axispntPtrZ = NULL;
+  E_Float* axisvecPtrX = NULL;
+  E_Float* axisvecPtrY = NULL;
+  E_Float* axisvecPtrZ = NULL;
+  E_Float* omgPtr   = NULL;
+
   E_Float* y_linePtr = NULL;
   E_Float* u_linePtr = NULL;
   E_Float* nutilde_linePtr = NULL;
@@ -543,6 +572,28 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Float* matp_linePtr = NULL;
   E_Float* alphasbeta_linePtr = NULL;
   E_Float* index_linePtr = NULL;
+
+  if (motionType==3){
+    E_Int shift_var=0;
+    // log, Musker, TBLE, MuskerMob, Pohlhausen, Thwaites - also have utau & yplus - need the shift
+    if (bctype == 2 || bctype == 3 || bctype == 6 || bctype == 7 || bctype == 8 || bctype == 9) shift_var=2;
+      
+    motionPtr    =densPtr + (14+shift_var)*nbRcvPts;
+
+    transpeedPtrX=densPtr + (15+shift_var)*nbRcvPts;
+    transpeedPtrY=densPtr + (16+shift_var)*nbRcvPts;
+    transpeedPtrZ=densPtr + (17+shift_var)*nbRcvPts;
+
+    axispntPtrX=densPtr + (18+shift_var)*nbRcvPts;
+    axispntPtrY=densPtr + (19+shift_var)*nbRcvPts;
+    axispntPtrZ=densPtr + (20+shift_var)*nbRcvPts;
+
+    axisvecPtrX=densPtr + (21+shift_var)*nbRcvPts;
+    axisvecPtrY=densPtr + (22+shift_var)*nbRcvPts;
+    axisvecPtrZ=densPtr + (23+shift_var)*nbRcvPts;
+
+    omgPtr     =densPtr + (24+shift_var)*nbRcvPts;
+  }
 
   if (bctype == 11)
     {
@@ -682,7 +733,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   // ODE-based wall model
   //---------------------------------
   E_Float Cv1cube = pow(7.1,3);
-  E_Int nmax = 20;
+  E_Int nmax      = 20;
   
   E_Float L2norm ;
   E_Float L2norm0;
@@ -763,10 +814,19 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 	  u = uOut[indR];
 	  v = vOut[indR];
 	  w = wOut[indR];
+
+	  //[AJ]
+# include "IBC/commonIBCmotionAbs2Rel.h"  
+	  
 # include "IBC/commonBCType0.h"
+
 	  uOut[indR] = ucible;
 	  vOut[indR] = vcible;
 	  wOut[indR] = wcible;
+
+	  //[AJ]
+# include "IBC/commonIBCmotionRel2Abs.h"
+	  
 	  if (nvars == 6) varSAOut[indR] = varSAOut[indR]*alphasbeta;
 
 	  pressPtr[noind + ideb] = roOut[indR]* tOut[indR]*cvgam;
@@ -775,10 +835,6 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 	  vxPtr[noind+ideb] = uOut[indR];
 	  vyPtr[noind+ideb] = vOut[indR];
 	  vzPtr[noind+ideb] = wOut[indR];
-
-	  // vxPtr[noind+ideb] = ucible;
-	  // vyPtr[noind+ideb] = vcible;
-	  // vzPtr[noind+ideb] = wcible;
         }
     }
   else if (bctype == 1) // adherence (lineaire)
@@ -794,10 +850,19 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 	  u = uOut[indR];
 	  v = vOut[indR];
 	  w = wOut[indR];
+
+	  //[AJ]
+# include "IBC/commonIBCmotionAbs2Rel.h"  	    
+
 # include "IBC/commonBCType1.h"
+	  
 	  uOut[indR] = ucible;
 	  vOut[indR] = vcible;
 	  wOut[indR] = wcible;
+
+	  //[AJ]
+# include "IBC/commonIBCmotionRel2Abs.h"
+
 	  if (nvars == 6) varSAOut[indR] = varSAOut[indR]*alphasbeta;
 
 	  pressPtr[noind + ideb] = roOut[indR]* tOut[indR]*cvgam;
@@ -916,15 +981,17 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 	  //E_Int indR = rcvPts[noind];
 	  E_Int indR = rcvPts[noind+ideb];
  
-	  roext = roOut[indR]; // densite du point interpole
-	  text  = tOut[indR];  // pression du point interpole
+	  roext = roOut[indR]; // densite @ Image Pnt
+	  text  = tOut[indR];  // pression @ Image Pnt
 	  pext  = text*roext*cvgam;
 
-	  // vitesse du pt ext
+	  // vitesse @ Image Pnt
 	  u = uOut[indR];
 	  v = vOut[indR]; 
 	  w = wOut[indR];
-	  //printf("IN WALL LAW: %f %f %f %f %f \n",roext, text, u,v,w);
+	  
+# include "IBC/commonIBCmotionAbs2Rel.h"
+	  //Tangential and Normal velocities: need relative velocity 
 #       include "IBC/commonMuskerLaw_init.h"
 	  // out= utau  et err
 	}  
@@ -967,9 +1034,13 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 	      tOut[indR]     = tcible_vec[noind];
 	      varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind];  //nutilde*signibc
 
+# include "IBC/commonIBCmotionRel2Abs.h"  
+
 	      vxPtr[noind+ideb] = uOut[indR];
 	      vyPtr[noind+ideb] = vOut[indR];
 	      vzPtr[noind+ideb] = wOut[indR];
+
+	      
 
 	      // printf("OUT WALL LAW: %f %f %f %f\n",uOut[indR],vOut[indR],wOut[indR],varSAOut[indR]);
 	    }
@@ -994,6 +1065,8 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 	      vOut[indR]     = vcible_vec[noind];
 	      wOut[indR]     = wcible_vec[noind];
 	      tOut[indR]     = tcible_vec[noind];
+
+# include "IBC/commonIBCmotionRel2Abs.h"  
 
 	      vxPtr[noind+ideb] = uOut[indR];
 	      vyPtr[noind+ideb] = vOut[indR];
