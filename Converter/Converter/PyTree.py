@@ -1010,6 +1010,16 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
       t = Converter.converter.convertFile2PyTree(fileName, format, skeletonData, dataShape, links, skipTypes, readMode)
       t = Internal.createRootNode(children=t[2])
       _upgradeTree(t, uncompress, oldcompress)
+      CAD = Internal.getNodeFromName1(t, 'CAD')
+      if CAD is not None: # reload CAD
+        file = Internal.getNodeFromName1(CAD, 'file')
+        file = Internal.getValue(file)
+        fmt = Internal.getNodeFromName1(CAD, 'format')
+        fmt = Internal.getValue(fmt)
+        import OCC.PyTree as OCC
+        import CPlot.Tk as CTK
+        h = OCC.readCAD(file, fmt)
+        CTK.CADHOOK = [h,0.,0.]
       return t
     except:
       if format == 'bin_cgns' or format == 'bin_adf':

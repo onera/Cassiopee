@@ -81,6 +81,8 @@ namespace K_CONVERTER
   PyObject* convertLO2HO(PyObject* self, PyObject* args);
   PyObject* convertTri2Quad(PyObject* self, PyObject* args);
   PyObject* convertQuad2Tri(PyObject* self, PyObject* args);
+  PyObject* convertStrand2Penta(PyObject* self, PyObject* args);
+  PyObject* convertPenta2Strand(PyObject* self, PyObject* args);
   PyObject* center2Node(PyObject* self, PyObject* args);
   PyObject* center2Node_OLD(PyObject* self, PyObject* args);
   PyObject* node2Center(PyObject* self, PyObject* args);

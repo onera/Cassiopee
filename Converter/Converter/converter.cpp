@@ -73,6 +73,8 @@ static PyMethodDef Pyconverter [] =
   {"convertQuad2Tri", K_CONVERTER::convertQuad2Tri, METH_VARARGS},
   {"convertMix2BE", K_CONVERTER::convertMix2BE, METH_VARARGS},
   {"convertArray2Node", K_CONVERTER::convertArray2Node, METH_VARARGS},
+  {"convertStrand2Penta", K_CONVERTER::convertStrand2Penta, METH_VARARGS},
+  {"convertPenta2Strand", K_CONVERTER::convertPenta2Strand, METH_VARARGS},
   {"node2Center", K_CONVERTER::node2Center, METH_VARARGS},
   {"node2Center_OLD", K_CONVERTER::node2Center_OLD, METH_VARARGS},
   {"center2Node", K_CONVERTER::center2Node, METH_VARARGS},
