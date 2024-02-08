@@ -1087,7 +1087,7 @@ class IBM(Common):
     
         # fill vmin + merge in parallel
         test.printMem(">>> Octree struct [start]")
-        res = G_IBM.octree2StructLoc__(p, vmin=self.input_var.vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000,tbOneOver=self.input_var.tbOneOver)
+        res = G_IBM.octree2StructLoc__(p, vmin=self.input_var.vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000,tbOneOver=self.input_var.tbOneOver)
         del p
         if parento is not None:
             for po in parento: del po
