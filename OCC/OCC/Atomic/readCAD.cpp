@@ -88,13 +88,23 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
   TopExp::MapShapes(*shp, TopAbs_SOLID, *solids);
   printf("INFO: Nb solids=%d\n", solids->Extent());
 
+  // copy the CAD file name and format
+  E_Int l = strlen(fileName);
+  char* fileNameC = new char [l+1];
+  strcpy(fileNameC, fileName);
+  l = strlen(fileFmt);
+  char* fileFmtC = new char [l+1];
+  strcpy(fileFmtC, fileFmt);
+
   // capsule 
   PyObject* hook;
-  E_Int sizePacket = 3;
+  E_Int sizePacket = 5;
   void** packet = new void* [sizePacket];
-  packet[0] = shp;
-  packet[1] = surfs;
-  packet[2] = edges;
+  packet[0] = shp; // the top shape
+  packet[1] = surfs; // the face map
+  packet[2] = edges; // the edge map
+  packet[3] = fileNameC; // CAD file name
+  packet[4] = fileFmtC; // CAD file format
   
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
   hook = PyCObject_FromVoidPtr(packet, NULL);
@@ -125,6 +135,8 @@ PyObject* K_OCC::getNbFaces(PyObject* self, PyObject* args)
 }
 
 // ============================================================================
+// Retourne le nbre d'edges dans le hook
+// ============================================================================
 PyObject* K_OCC::getNbEdges(PyObject* self, PyObject* args)
 {
   PyObject* hook;
@@ -141,3 +153,20 @@ PyObject* K_OCC::getNbEdges(PyObject* self, PyObject* args)
   return Py_BuildValue("l", edges.Extent());
 }
 
+// ============================================================================
+// Retourne le nom du fichier et le format
+// ============================================================================
+PyObject* K_OCC::getFileAndFormat(PyObject* self, PyObject* args)
+{
+  PyObject* hook;
+  if (!PYPARSETUPLE_(args, O_, &hook)) return NULL;  
+
+  void** packet = NULL;
+#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
+  packet = (void**) PyCObject_AsVoidPtr(hook);
+#else
+  packet = (void**) PyCapsule_GetPointer(hook, NULL);
+#endif
+
+  return Py_BuildValue("ss", packet[3], packet[4]);
+}

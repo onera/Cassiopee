@@ -458,6 +458,19 @@ def meshQUAD__(hook, N=11, order=1, faceSubset=None, faceNo=None):
 # hmax on all edges, hmax in physical space
 #===============================================================================
 
+# enforce edges in face
+def _enforceEdgesInFace(a, edges):
+    xo = a[1] # array1
+    c = 0
+    for e in edges:
+        xe = e[1]
+        npts = xe.shape[1]-1
+        xo[0, c:c+npts] = xe[0, 0:npts]
+        xo[1, c:c+npts] = xe[1, 0:npts]
+        xo[2, c:c+npts] = xe[2, 0:npts]
+        c += npts
+    return None
+
 #===============================================================================
 # Mesh Face no i of CAD with TRIs from parametrized edges
 # IN: hook; cad hook
@@ -467,6 +480,10 @@ def meshQUAD__(hook, N=11, order=1, faceSubset=None, faceNo=None):
 #===============================================================================
 def meshFaceWithMetric(hook, i, edges, hmin, hmax, hausd, mesh, FAILED):
     
+    # save edges
+    edgesSav = []
+    for e in edges: edgesSav.append(Converter.copy(e))
+
     # must close in uv space
     edges = switch2UV2(edges)
     T = _scaleUV(edges)
@@ -481,22 +498,29 @@ def meshFaceWithMetric(hook, i, edges, hmin, hmax, hausd, mesh, FAILED):
     edges[1][4,:] = pt[4,:]
         
     # supprime les edges collapsed
-    edges2 = Generator.close(edges, 1.e-6)
+    #edges2 = Generator.close(edges, 1.e-6)
     
     # Scale UV des edges
     _scaleUV([edges], vu='u', vv='v')
     try:
         a = occ.trimesh(hook, edges, i, hmin, hmax, hausd, 1.1)
+        _enforceEdgesInFace(a, edgesSav)
         mesh.append(a)
         SUCCESS = True
     except Exception as e:
         SUCCESS = False
         Converter.convertArrays2File(edges, '%03d_edgeUV.plt'%i) # pas vraiment UV
         FAILED.append(i)
+
     return SUCCESS
 
 
 def meshFaceInUV(hook, i, edges, grading, mesh, FAILED):
+    
+    # save edges
+    edgesSav = []
+    for e in edges: edgesSav.append(Converter.copy(e))
+    
     # Passage des edges dans espace uv
     edges = switch2UV(edges)
     T = _scaleUV(edges)
@@ -508,12 +532,14 @@ def meshFaceInUV(hook, i, edges, grading, mesh, FAILED):
         a = Generator.T3mesher2D(edges, grading=grading)
         _unscaleUV([a], T)
         o = occ.evalFace(hook, a, i)
+        _enforceEdgesInFace(o, edgesSav)
         mesh.append(o)
         SUCCESS = True
     except Exception as e:
         SUCCESS = False
         Converter.convertArrays2File(edges, '%03d_edgeUV.plt'%i)
         FAILED.append(i)
+    
     return SUCCESS
 
 # hmax: hmax sur les edges et dans les faces (constant)

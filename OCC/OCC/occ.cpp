@@ -27,9 +27,12 @@ static PyMethodDef Pyocc [] =
   {"convertCAD2Arrays0", K_OCC::convertCAD2Arrays0, METH_VARARGS},
   {"convertCAD2Arrays1", K_OCC::convertCAD2Arrays1, METH_VARARGS},
   {"convertCAD2Arrays2", K_OCC::convertCAD2Arrays2, METH_VARARGS},
+
   {"readCAD", K_OCC::readCAD, METH_VARARGS},
   {"getNbFaces", K_OCC::getNbFaces, METH_VARARGS},
   {"getNbEdges", K_OCC::getNbEdges, METH_VARARGS},
+  {"getFileAndFormat", K_OCC::getFileAndFormat, METH_VARARGS},
+  
   {"meshGlobalEdges1", K_OCC::meshGlobalEdges1, METH_VARARGS},
   {"meshGlobalEdges2", K_OCC::meshGlobalEdges2, METH_VARARGS},
   {"meshGlobalEdges3", K_OCC::meshGlobalEdges3, METH_VARARGS},

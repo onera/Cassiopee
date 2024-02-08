@@ -356,11 +356,11 @@ def getTree(hook, N=11, hmax=-1, hausd=-1.):
                                 Internal.__FlowSolutionNodes__,
                                 Internal.__FlowSolutionCenters__)
     # Conserve hook, name, type et no de l'edge dans la CAD
-    r = Internal.createChild(z, "CAD", "UserDefined_t")
-    Internal._createChild(r, "name", "UserDefined_t", value="edge%03d"%(c+1))
-    Internal._createChild(r, "type", "UserDefined_t", value="edge")
-    Internal._createChild(r, "no", "UserDefined_t", value=(c+1))
-    Internal._createChild(r, "hook", "UserDefined_t", value=hook)
+    r = Internal.createChild(z, "CAD", "UserDefinedData_t")
+    Internal._createChild(r, "name", "DataArray_t", value="edge%03d"%(c+1))
+    Internal._createChild(r, "type", "DataArray_t", value="edge")
+    Internal._createChild(r, "no", "DataArray_t", value=(c+1))
+    #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
     b[2].append(z)
 
   # Faces
@@ -377,12 +377,12 @@ def getTree(hook, N=11, hmax=-1, hausd=-1.):
                                 Internal.__FlowSolutionCenters__)
     edgeNo = OCC.occ.getEdgeNoByFace(hook, noface)
     # conserve hook, name, type
-    r = Internal.createChild(z, "CAD", "UserDefined_t")
-    Internal._createChild(r, "name", "UserDefined_t", value="face%03d"%noface)
-    Internal._createChild(r, "type", "UserDefined_t", value="face")
-    Internal._createChild(r, "no", "UserDefined_t", value=noface)
-    Internal._createChild(r, "edgeList", "UserDefined_t", value=edgeNo)
-    Internal._createChild(r, "hook", "UserDefined_t", value=hook)
+    r = Internal.createChild(z, "CAD", "UserDefinedData_t")
+    Internal._createChild(r, "name", "DataArray_t", value="face%03d"%noface)
+    Internal._createChild(r, "type", "DataArray_t", value="face")
+    Internal._createChild(r, "no", "DataArray_t", value=noface)
+    Internal._createChild(r, "edgeList", "DataArray_t", value=edgeNo)
+    #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
     b[2].append(z)
 
   return t
@@ -405,11 +405,11 @@ def remeshTreeFromEdges(hook, tp):
                                 Internal.__FlowSolutionNodes__,
                                 Internal.__FlowSolutionCenters__)
     # Conserve hook, name, type et no de l'edge dans la CAD
-    r = Internal.createChild(z, "CAD", "UserDefined_t")
-    Internal._createChild(r, "name", "UserDefined_t", value="edge%03d"%(c+1))
-    Internal._createChild(r, "type", "UserDefined_t", value="edge")
-    Internal._createChild(r, "no", "UserDefined_t", value=(c+1))
-    Internal._createChild(r, "hook", "UserDefined_t", value=hook)
+    r = Internal.createChild(z, "CAD", "UserDefinedData_t")
+    Internal._createChild(r, "name", "DataArray_t", value="edge%03d"%(c+1))
+    Internal._createChild(r, "type", "DataArray_t", value="edge")
+    Internal._createChild(r, "no", "DataArray_t", value=(c+1))
+    #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
     b[2].append(z)
 
   # Faces
@@ -424,12 +424,12 @@ def remeshTreeFromEdges(hook, tp):
                                 Internal.__FlowSolutionCenters__)
     edgeNo = OCC.occ.getEdgeNoByFace(hook, noface)
     # conserve hook, name, type
-    r = Internal.createChild(z, "CAD", "UserDefined_t")
-    Internal._createChild(r, "name", "UserDefined_t", value="face%03d"%noface)
-    Internal._createChild(r, "type", "UserDefined_t", value="face")
-    Internal._createChild(r, "no", "UserDefined_t", value=noface)
-    Internal._createChild(r, "edgeList", "UserDefined_t", value=edgeNo)
-    Internal._createChild(r, "hook", "UserDefined_t", value=hook)
+    r = Internal.createChild(z, "CAD", "UserDefinedData_t")
+    Internal._createChild(r, "name", "DataArray_t", value="face%03d"%noface)
+    Internal._createChild(r, "type", "DataArray_t", value="face")
+    Internal._createChild(r, "no", "DataArray_t", value=noface)
+    Internal._createChild(r, "edgeList", "DataArray_t", value=edgeNo)
+    #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
     b[2].append(z)
 
   return t
@@ -445,7 +445,7 @@ def getNo(e):
     no = Internal.getValue(no)
     return no
 
-# return the edge position in base by number
+# return the edge position in base EDGES by number
 def getPos(t, baseName):
   pos = {}; posi = {}
   b = Internal.getNodeFromName1(t, baseName)
@@ -478,6 +478,13 @@ def getFirstTree(hook, hmax=-1., hausd=-1.):
   
   t = C.newPyTree(['EDGES', 'FACES'])
 
+  # Add CAD top container containing the CAD file name
+  fileName, fileFmt = OCC.occ.getFileAndFormat(hook)
+  print(fileName, fileFmt)
+  CAD = Internal.createChild(t, 'CAD', 'UserDefinedData_t')
+  Internal._createChild(CAD, 'file', 'DataArray_t', value=fileName)
+  Internal._createChild(CAD, 'format', 'DataArray_t', value=fileFmt)
+
   # - Edges -
   edges = OCC.meshAllEdges(hook, hmax, hausd)
 
@@ -488,11 +495,11 @@ def getFirstTree(hook, hmax=-1., hausd=-1.):
                                 Internal.__FlowSolutionNodes__,
                                 Internal.__FlowSolutionCenters__)
     # Conserve hook, name, type et no de l'edge dans la CAD
-    r = Internal.createChild(z, "CAD", "UserDefined_t")
-    Internal._createChild(r, "name", "UserDefined_t", value="edge%03d"%(c+1))
-    Internal._createChild(r, "type", "UserDefined_t", value="edge")
-    Internal._createChild(r, "no", "UserDefined_t", value=(c+1))
-    #Internal._createChild(r, "hook", "UserDefined_t", value=hook)
+    r = Internal.createChild(z, "CAD", "UserDefinedData_t")
+    Internal._createChild(r, "name", "DataArray_t", value="edge%03d"%(c+1))
+    Internal._createChild(r, "type", "DataArray_t_t", value="edge")
+    Internal._createChild(r, "no", "Data_Array_t", value=(c+1))
+    #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
     b[2].append(z)
 
   # - Faces -
@@ -520,13 +527,13 @@ def getFirstTree(hook, hmax=-1., hausd=-1.):
                                 Internal.__FlowSolutionCenters__)
     edgeNo = OCC.occ.getEdgeNoByFace(hook, noface)
     # conserve hook, name, type
-    r = Internal.createChild(z, "CAD", "UserDefined_t")
-    Internal._createChild(r, "name", "UserDefined_t", value="face%03d"%(noface))
-    Internal._createChild(r, "type", "UserDefined_t", value="face")
-    Internal._createChild(r, "no", "UserDefined_t", value=noface)
-    Internal._createChild(r, "edgeList", "UserDefined_t", value=edgeNo)
-    Internal._createChild(r, "hsize", "UserDefined_t", value=hList[c])
-    #Internal._createChild(r, "hook", "UserDefined_t", value=hook)
+    r = Internal.createChild(z, "CAD", "UserDefinedData_t")
+    Internal._createChild(r, "name", "DataArray_t", value="face%03d"%(noface))
+    Internal._createChild(r, "type", "DataArray_t", value="face")
+    Internal._createChild(r, "no", "DataArray_t", value=noface)
+    Internal._createChild(r, "edgeList", "DataArray_t", value=edgeNo)
+    Internal._createChild(r, "hsize", "DataArray_t", value=hList[c])
+    #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
     b[2].append(z)
 
   # build face list of edges
@@ -550,7 +557,7 @@ def getFirstTree(hook, hmax=-1., hausd=-1.):
     cad = Internal.getNodeFromName1(e, 'CAD')
     faces = edgeOfFaces[edgeno]
     n = numpy.array(faces, dtype=Internal.E_NpyInt)
-    Internal._createChild(cad, 'faceList', 'UserDefined_t', value=n)
+    Internal._createChild(cad, 'faceList', 'DataArray_t', value=n)
   return t
 
 #================================================
