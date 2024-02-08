@@ -532,7 +532,7 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
     return Internal.getNodeFromType2(to, 'Zone_t')
 
 # only in generateIBMMeshPara and generateCartMesh__
-def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6):
+def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6,tbOneOver=None):
     sizeMax=int(sizeMax)
     dim = Internal.getZoneDim(o)
     if dim[3] == 'QUAD': dimPb = 2
@@ -546,15 +546,58 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
         zones[noz] = C.convertArrays2ZoneNode('cartDummy'+str(c), [zones[noz]])
         c += 1
 
+    ## Rectilinear mesh modifications
+    listSavetbOneOver     = []    
+    if tbOneOver:
+        tzones = G.BB(zones)
+        if dimPb==2:
+            T._addkplane(tzones)
+            T._contract(tzones, (0,0,0), (1,0,0), (0,1,0), 0.01)
+
+        ##RECTILINEAR REGION
+        tbbB            = G.BB(tbOneOver)
+        interDict_scale = X.getIntersectingDomains(tbbB, tzones)
+        for i in interDict_scale:
+            for z in interDict_scale[i]:
+                listSavetbOneOver.append(z)
+                
     if parento is None:
-        zones = T.mergeCart(zones,sizeMax=sizeMax)
+        ## Rectilinear mesh modifications
+        if tbOneOver:
+            listSavetbOneOverZones = []
+            listPop                = []
+            ZONEStbOneOver         = None
+            countLocal             = 0
+            for z in zones:
+                if z[0] in listSavetbOneOver:
+                    listSavetbOneOverZones.append(z)
+                    listPop.append(countLocal)
+                countLocal +=1
+            listPop.reverse()
+            for i in listPop: zones.pop(i)
+            
+            zones          = T.mergeCart(zones,sizeMax=sizeMax)
+            ZONEStbOneOver = T.mergeCart(listSavetbOneOverZones,sizeMax=sizeMax)
+            zones         +=ZONEStbOneOver
+            del ZONEStbOneOver
+        else:
+            zones = T.mergeCart(zones,sizeMax=sizeMax)
     else:
-        eps=1.e-10
+        ## Rectilinear mesh modifications
+        ZONEStbOneOver = None
+        
+        eps = 1.e-10
         bbo = G.bbox(parento[0])# 1st octant lower left side
         xmeano=bbo[3]; ymeano=bbo[4]; zmeano=bbo[5]
         # gather zones by parent octant
-        if dimPb == 2: ZONES=[[],[],[],[]]; noct = 4
-        else: ZONES = [[],[],[],[],[],[],[],[]]; noct = 8
+        if dimPb == 2:
+            ZONES=[[],[],[],[]]; noct = 4;
+            ## Rectilinear mesh modifications
+            if tbOneOver: ZONEStbOneOver = [[],[],[],[]];
+        else:
+            ZONES = [[],[],[],[],[],[],[],[]]; noct = 8 ;
+            ## Rectilinear mesh modifications
+            if tbOneOver: ZONEStbOneOver = [[],[],[],[],[],[],[],[]];
         for z in zones:
             xminz = C.getValue(z,'CoordinateX',0)
             yminz = C.getValue(z,'CoordinateY',0)
@@ -591,7 +634,10 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
                 else:
                     if xmaxz < xmeano+eps: noo=2
                     else: noo=3
-            if noo > -1: ZONES[noo].append(z)
+                    
+            if noo > -1:
+                if z[0] not in listSavetbOneOver: ZONES[noo].append(z)
+                else: ZONEStbOneOver[noo].append(z)
         #-----------------------------------------------------------------------------
         zones=[]
         for noo in range(noct):
@@ -601,6 +647,13 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
                 ZONES[noo] = mergeByParent__(ZONES[noo], parento[noo], sizeMax)
                 print('Nb of merged zones: %d.'%len(ZONES[noo]))
 
+            ## Rectilinear mesh modifications
+            if tbOneOver:
+                nzones = len(ZONEStbOneOver[noo])
+                if nzones > 1:
+                    print('Merging %d Cartesian zones of subdomain %d - OneOverRegion.'%(nzones,noo))
+                    ZONEStbOneOver[noo] = mergeByParent__(ZONEStbOneOver[noo], parento[noo], sizeMax)
+                    print('Nb of merged zones - OneOverRegion : %d.' %len(ZONEStbOneOver[noo]))
         if dimPb == 3:
             ZONES0 = T.mergeCart(ZONES[0]+ZONES[4],sizeMax=sizeMax)# XM
             ZONES1 = T.mergeCart(ZONES[2]+ZONES[6],sizeMax=sizeMax)# XP
@@ -613,24 +666,37 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
             del ZONES3
             zones = T.mergeCart(ZONES0+ZONES2,sizeMax=sizeMax)
 
+            ## Rectilinear mesh modifications
+            if ZONEStbOneOver is not None:
+                ZONEStbOneOver = T.mergeCart(ZONEStbOneOver[0]+ZONEStbOneOver[1]+ZONEStbOneOver[2]+ \
+                                             ZONEStbOneOver[3]+ZONEStbOneOver[4]+ZONEStbOneOver[5]+ \
+                                             ZONEStbOneOver[6]+ZONEStbOneOver[7],sizeMax=sizeMax)
+                zones +=ZONEStbOneOver
+            del ZONEStbOneOver
+
         else: # dim=2
             ZONES[0] = T.mergeCart(ZONES[0]+ZONES[2],sizeMax=sizeMax)# XM
             ZONES[1] = T.mergeCart(ZONES[1]+ZONES[3],sizeMax=sizeMax)# XP
             ZONES=ZONES[0:2]
             zones = T.mergeCart(ZONES[0]+ZONES[1],sizeMax=sizeMax)
-            del ZONES
-    print('After merging: nb Cartesian zones=%d.'%(len(zones)))
 
+            ## Rectilinear mesh modifications
+            if ZONEStbOneOver is not None:
+                ZONEStbOneOver = T.mergeCart(ZONEStbOneOver[0]+ZONEStbOneOver[1]+ \
+                                             ZONEStbOneOver[2]+ZONEStbOneOver[3],sizeMax=sizeMax)
+                zones +=ZONEStbOneOver
+            del ZONEStbOneOver
+            del ZONES
+    print('After merging: nb Cartesian zones=%d (ext. =%d).'%(len(zones),ext))
     # Cas ext=-1, ne fait pas les extensions ni les BCs ou raccords
     if ext == -1: return zones
-
+    
     if ext > 0:
         coords = C.getFields(Internal.__GridCoordinates__, zones,api=2)
         coords,rinds = Generator.extendCartGrids(coords, ext=ext, optimized=optimized, extBnd=0)
         C.setFields(coords, zones, 'nodes')
         for noz in range(len(zones)):
             Internal.newRind(value=rinds[noz], parent=zones[noz])
-            
     # Creation des zones du pyTree
     for z in zones: z[0] = C.getZoneName('cart')
     if ext == 0:

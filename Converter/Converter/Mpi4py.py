@@ -121,9 +121,9 @@ def sendRecv(datas, graph):
             reqs.append(s)
     rcvDatas={}
     for node in graph:
-        #print(rank, graph[node].keys())
+        #print(rank, graph[node],graph[node].keys(),flush=True)
         if rank in graph[node]:
-            #print('%d: On doit recevoir de %d: %s'%(rank,node,graph[node][rank]))
+            #print('%d: On doit recevoir de %d: %s'%(rank,node,graph[node][rank]),flush=True)
             rec = KCOMM.recv(source=node)
             if rec is not None: rcvDatas[node] = rec
     MPI.Request.Waitall(reqs)

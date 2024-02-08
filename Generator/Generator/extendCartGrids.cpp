@@ -1060,7 +1060,19 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
     E_Float* yp = structF[v]->begin(posyt[v]);
     E_Float* zp = structF[v]->begin(poszt[v]);
     E_Int nfldo = structF[v]->getNfld();
-    E_Float dh = xp[1]-xp[0];
+    E_Float eps_local = 1.0e-12;
+    E_Float dh  = xp[1]-xp[0];
+    E_Float dh2 = yp[ni]-yp[0];
+    E_Float dh3 = dh;
+    if (dim == 3) dh3 = zp[ni*nj]-zp[0];
+
+    //Needed to guarantee the same indices in the tc (pointlist, pointlistdonor, etc.)
+    //when dh2 and dh3 are almost the same as dh. E.g. pointlist will be different when
+    //dh-dh2=~ 1e-16
+    if (abs(dh-dh2)<eps_local) dh2=dh;
+    if (abs(dh-dh3)<eps_local) dh3=dh;
+    
+
     if ( extBnd >0 ) 
     {
       if ( ext1[v] == 0 && extBnd>0) ext1[v]=extBnd;
@@ -1072,8 +1084,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
     }
 
     E_Float xxor = xp[0]-ext1[v]*dh;
-    E_Float yyor = yp[0]-ext3[v]*dh;
-    E_Float zzor = zp[0]-ext5[v]*dh;
+    E_Float yyor = yp[0]-ext3[v]*dh2;
+    E_Float zzor = zp[0]-ext5[v]*dh3;
     RELEASESHAREDS(objst[v], structF[v]);
     E_Int nio = ni+ext1[v]+ext2[v]; E_Int njo = nj+ext3[v]+ext4[v]; E_Int nko = nk+ext5[v]+ext6[v];
     E_Int npts = nio*njo*nko;
@@ -1091,8 +1103,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
         {
           E_Int ind = i + j*nio + k*nionjo; 
           xn[ind] = xxor + i*dh;
-          yn[ind] = yyor + j*dh;
-          zn[ind] = zzor + k*dh;
+          yn[ind] = yyor + j*dh2;
+          zn[ind] = zzor + k*dh3;
         }
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }

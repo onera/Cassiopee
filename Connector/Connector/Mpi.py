@@ -355,12 +355,13 @@ def _setInterpTransfersForPressureGradients(aR, aD, ibctypes=[], secondOrder=Fal
 def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type_transfert, it_target,
                          nstep, nitmax, rk, exploc, num_passage, varType=1, compact=1,
                          graph=None, procDict=None, isWireModel_int=0):
-			 
-    isWireModel_intv2      =isWireModel_int
-    isSetPartialFieldsCheck=isWireModel_int
-    if isWireModel_int==-1:
-        isSetPartialFieldsCheck=1
-        isWireModel_intv2=0
+
+    ##isWireModel_int: either -1, 0 , or 1
+    ## 1:: YES :wire model treatment
+    ## 0:: NO  :wire model treatment
+    ##-1:: NO  :wire model treatment BUT a treatment on locks for IBC for ___setInterpTransfers
+    isWireModel_intv2      =max(isWireModel_int,0)
+    isSetPartialFieldsCheck=max(abs(isWireModel_int),0)
 	
     # Transferts locaux/globaux
     # Calcul des solutions interpolees par arbre donneur
@@ -375,38 +376,34 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
 
         no_transfert = comm_P2P
         if dest == Cmpi.rank: #transfert intra_processus
-            #print('transfert local', type_transfert, dest, flush=True)
             connector.___setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, it_target, varType,
                                             type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage,
                                             isWireModel_intv2)
 
         else:
-            #print('transfert global', type_transfert, dest, flush=True)
-            rank = Cmpi.rank
+            rank  = Cmpi.rank
             infos = connector.__setInterpTransfersD(zones, zonesD, vars, dtloc, param_int, param_real, it_target, varType,
                                                     type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage, rank,
-						    isWireModel_int) 
-
+	    					    isWireModel_int) 
             if infos != []:
                for n in infos:
                   rcvNode = dest
-                  #print(Cmpi.rank, 'envoie a ',rcvNode, ' le paquet : ', n)
                   if rcvNode not in datas: datas[rcvNode] = [n]
                   else: datas[rcvNode] += [n]
 		  
 ##[AJ] Keep for Now
 ##if isWireModel_int==0 and isSetPartialFieldsCheck==1:
-##    for i in datas:
-##        for n in datas[i]:
-##            rcvName   = n[0]
-##            fieldname = n[1][0]
-##            field = n[1]
-##            #print(fieldname,flush=True)
-##            count=0
-##            dd=fieldname.split(',')
-##            for i in dd:
-##                print(i,field[1][count],'rank=',Cmpi.rank,flush=True)
-##                count+=1
+##for i in datas:
+##    for n in datas[i]:
+##        rcvName   = n[0]
+##        fieldname = n[1][0]
+##        field = n[1]
+##        #print(fieldname,flush=True)
+##        count=0
+##        dd=fieldname.split(',')
+##        for i in dd:
+##            print(i,field[1][count],'rank=',Cmpi.rank,flush=True)
+##            count+=1
 
     # Envoie des numpys suivant le graph
     if graph is not None: 
@@ -420,16 +417,14 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
         for n in rcvDatas[i]:
             rcvName = n[0]
             field = n[1]
-
+        
             isSetPartialFields = True
             if isSetPartialFieldsCheck==1 and field != [] and field[0] !='Nada':                
                 if (numpy.ndarray.max(field[1][0])==numpy.ndarray.min(field[1][0]) and \
-                    numpy.ndarray.max(field[1][5])==numpy.ndarray.min(field[1][5])):
+                    numpy.ndarray.max(field[1][0])< -1e05):
                     isSetPartialFields=False
-
-            #if Cmpi.rank==0: print('reception', Cmpi.rank, 'no zone', zones[ rcvName ][0], field[0])
-            if field != [] and field[0] != 'Nada' and isSetPartialFields==True:
-                # print(field[0])
+            
+            if isSetPartialFields==True:
                 listIndices = n[2]
                 z = zones[rcvName]
                 C._setPartialFields(z, [field], [listIndices], loc='centers')
@@ -960,8 +955,7 @@ def __setInterpTransfers_WireModel(zones, zonesD, vars, dtloc, param_int, param_
                                    graph=None, procDict=None, graphIBCD=None, graphInvIBCD_WM=None, nvars=5):
 
     variablesIBC=['Density_WM', 'VelocityX_WM', 'VelocityY_WM', 'VelocityZ_WM', 'Temperature_WM', 'TurbulentSANuTilde_WM']
-    if nvars == 5:
-        variablesIBC=['Density_WM', 'VelocityX_WM', 'VelocityY_WM', 'VelocityZ_WM', 'Temperature_WM']
+    if nvars == 5: variablesIBC=['Density_WM', 'VelocityX_WM', 'VelocityY_WM', 'VelocityZ_WM', 'Temperature_WM']
         
     # Transferts locaux/globaux
     # Calcul des solutions interpolees par arbre donneur
@@ -1005,40 +999,40 @@ def __setInterpTransfers_WireModel(zones, zonesD, vars, dtloc, param_int, param_
                 rcvNode = dest
                 if rcvNode not in datas: datas[rcvNode] = [infos]
                 else: datas[rcvNode] += [infos]
-    if datas:
-        rcvDatas = Cmpi.sendRecv(datas, graphIBCD)
-        datas = {}
-        for dest in rcvDatas:
-            for [name, zname, ListDonor, ListRcv, dens_wm, velx_wm, vely_wm, velz_wm, temp_wm, sanu_wm] in rcvDatas[dest]:
-                zr = znr[zname]
-                connector._WM_getVal2tc(zr, variablesIBC, ListRcv,  
-                                        dens_wm, velx_wm, vely_wm, velz_wm, temp_wm, sanu_wm,
-                                        1, nvars,
-                                        Internal.__GridCoordinates__,
-                                        Internal.__FlowSolutionNodes__,
-                                        Internal.__FlowSolutionCenters__)
-                rcvNode = dest
-                infos = [name, zname, dens_wm, velx_wm, vely_wm, velz_wm, temp_wm, sanu_wm]
-                if rcvNode not in datas: datas[rcvNode] = [infos]
-                else: datas[rcvNode] += [infos]
+
+    rcvDatas = Cmpi.sendRecv(datas, graphIBCD)
+    datas    = {}
+    for dest in rcvDatas:
+        for [name, zname, ListDonor, ListRcv, dens_wm, velx_wm, vely_wm, velz_wm, temp_wm, sanu_wm] in rcvDatas[dest]:
+            zr = znr[zname]
+            connector._WM_getVal2tc(zr, variablesIBC, ListRcv,  
+                                    dens_wm, velx_wm, vely_wm, velz_wm, temp_wm, sanu_wm,
+                                    1, nvars,
+                                    Internal.__GridCoordinates__,
+                                    Internal.__FlowSolutionNodes__,
+                                    Internal.__FlowSolutionCenters__)
+            rcvNode = dest
+            infos = [name, zname, dens_wm, velx_wm, vely_wm, velz_wm, temp_wm, sanu_wm]
+            if rcvNode not in datas: datas[rcvNode] = [infos]
+            else: datas[rcvNode] += [infos]
     
-        rcvDatas = Cmpi.sendRecv(datas, graphInvIBCD_WM)
-        for dest in rcvDatas:
-            for [name, zname, dens_wm_new, velx_wm_new, vely_wm_new, velz_wm_new, temp_wm_new, sanu_wm_new] in rcvDatas[dest]:
-                for zd in zonesD:
-                    if zd[0] == name:
-                        subRegions = Internal.getNodesFromType1(zd, 'ZoneSubRegion_t')
-                        for s in subRegions:
-                            sname = s[0].split('_')[1]
-                            znameD = s[0].split('_')[-1]
-                            if sname == '140' and znameD == zname:
-                                ListRcv   = Internal.getNodeFromName1(s, 'PointListDonor')[1]
-                                dens_wm    = Internal.getNodeFromName1(s, 'Density_WM')[1]
-                                velx_wm    = Internal.getNodeFromName1(s, 'VelocityX_WM')[1]
-                                vely_wm    = Internal.getNodeFromName1(s, 'VelocityY_WM')[1]
-                                velz_wm    = Internal.getNodeFromName1(s, 'VelocityZ_WM')[1]
-                                temp_wm    = Internal.getNodeFromName1(s, 'Temperature_WM')[1]
-                                sanu_wm    = Internal.getNodeFromName1(s, 'TurbulentSANuTilde_WM')[1]
-                                connector._WM_setVal2tc(dens_wm_new, velx_wm_new, vely_wm_new, velz_wm_new, temp_wm_new, sanu_wm_new,
-                                                        dens_wm    , velx_wm    , vely_wm    , velz_wm    , temp_wm    , sanu_wm    )
+    rcvDatas = Cmpi.sendRecv(datas, graphInvIBCD_WM)
+    for dest in rcvDatas:
+        for [name, zname, dens_wm_new, velx_wm_new, vely_wm_new, velz_wm_new, temp_wm_new, sanu_wm_new] in rcvDatas[dest]:
+            for zd in zonesD:
+                if zd[0] == name:
+                    subRegions = Internal.getNodesFromType1(zd, 'ZoneSubRegion_t')
+                    for s in subRegions:
+                        sname = s[0].split('_')[1]
+                        znameD = s[0].split('_')[-1]
+                        if sname == '140' and znameD == zname:
+                            ListRcv   = Internal.getNodeFromName1(s, 'PointListDonor')[1]
+                            dens_wm    = Internal.getNodeFromName1(s, 'Density_WM')[1]
+                            velx_wm    = Internal.getNodeFromName1(s, 'VelocityX_WM')[1]
+                            vely_wm    = Internal.getNodeFromName1(s, 'VelocityY_WM')[1]
+                            velz_wm    = Internal.getNodeFromName1(s, 'VelocityZ_WM')[1]
+                            temp_wm    = Internal.getNodeFromName1(s, 'Temperature_WM')[1]
+                            sanu_wm    = Internal.getNodeFromName1(s, 'TurbulentSANuTilde_WM')[1]
+                            connector._WM_setVal2tc(dens_wm_new, velx_wm_new, vely_wm_new, velz_wm_new, temp_wm_new, sanu_wm_new,
+                                                    dens_wm    , velx_wm    , vely_wm    , velz_wm    , temp_wm    , sanu_wm    )
     return None
