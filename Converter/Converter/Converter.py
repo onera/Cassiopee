@@ -20,9 +20,11 @@ from KCore.Dist import EDOUBLEINT
 if EDOUBLEINT: E_NpyInt = numpy.int64
 else: E_NpyInt = numpy.int32
 
-__all__ = ['array', 'getApi', 'addVars', '_addVars', 'addVars2', 'center2ExtCenter', 
-    'center2Node', 'conformizeNGon', 'convertArray2Hexa', 'convertArray2NGon', 'convertArray2Node', 
+__all__ = ['array', 'getApi', 'addVars', '_addVars', 'addVars2', 
+    'center2ExtCenter', 'center2Node', 'conformizeNGon', 
+    'convertArray2Hexa', 'convertArray2NGon', 'convertArray2Node', 
     'convertArray2Tetra', 'convertBAR2Struct', 'convertTri2Quad',
+    'convertStrand2Penta', 'convertPenta2Strand',
     'convertArrays2File', 'convertFile2Arrays', 'copy',
     'createGlobalHook', 'createHook', 
     'createGlobalIndex', '_createGlobalIndex', 'recoverGlobalIndex', '_recoverGlobalIndex',
@@ -33,7 +35,8 @@ __all__ = ['array', 'getApi', 'addVars', '_addVars', 'addVars2', 'center2ExtCent
     'identifySolutions', 'initVars', '_initVars', 'isNamePresent', 'listen', 'magnitude',
     'nearestElements', 'nearestFaces', 'nearestNodes', 'node2Center', 'node2ExtCenter', 'normL0', 'normL2',
     'normalize', '_normalize', 'randomizeVar', 'rmVars', 'send', 'setPartialFields', 'setValue', 'addGhostCellsNGon',
-    'checkFileType', 'convertHO2LO', 'convertLO2HO', 'convertExt2Format__', 'mergeConnectivity', '_signNGonFaces', 'makeParentElements']
+    'checkFileType', 'convertHO2LO', 'convertLO2HO', 'convertExt2Format__', 'mergeConnectivity', 
+    '_signNGonFaces', 'makeParentElements']
 
 # -- Create an array --
 # Les champs sont mis a zero, sauf si pour les champs cellN et cellNF
@@ -1372,12 +1375,28 @@ def convertArray2NGon__(array, api=1):
 
 def convertArray2NGon(array, api=1):
     """Convert a array in a NGON array.
-    Usage: convertArray2NGon( array, api ) """
+    Usage: convertArray2NGon(array, api)"""
     if isinstance(array[0], list):
         b = []
         for i in array: b.append(convertArray2NGon__(i, api))
         return b
     else: return convertArray2NGon__(array, api)
+
+def convertPenta2Strand(array):
+    """Convert a PENTA array to a STRAND array."""
+    if isinstance(array[0], list):
+        b = []
+        for i in array: b.append(converter.convertPenta2Strand(i))
+        return b
+    else: return converter.convertPenta2Strand(array)
+
+def convertStrand2Penta(array):
+    """Convert a STRAND array to a PENTA array."""
+    if isinstance(array[0], list):
+        b = []
+        for i in array: b.append(converter.convertStrand2Penta(i))
+        return b
+    else: return converter.convertStrand2Penta(array)
 
 def node2Center(array, accurate=0):
     """Convert array defined on nodes to array defined on centers.

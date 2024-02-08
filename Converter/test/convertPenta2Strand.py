@@ -4,6 +4,6 @@ import Generator as G
 
 a = G.cartPenta((0,0,0), (1,1,1), (3,3,3))
 
-b = C.converter.convertPenta2Strand(a)
+b = C.convertPenta2Strand(a)
 
 C.convertArrays2File(b, 'out.msh')

@@ -3476,6 +3476,36 @@ def _convertArray2NGon(t, recoverBC=True, api=1):
       c += 1
   return None
 
+# -- convertPenta2Strand
+def convertPenta2Strand(t):
+  """Convert PENTA to STRAND."""
+  tp = Internal.copyRef(t)
+  _convertPenta2Strand(tp)
+  return tp
+
+def _convertPenta2Strand(t):
+  """Convert PENTA to STRAND."""
+  _deleteFlowSolutions__(t, 'centers')
+  _deleteZoneBC__(t)
+  _deleteGridConnectivity__(t)
+  _TZA3(t, 'nodes', 'nodes', True, Converter.convertPenta2Strand)
+  return None
+
+def convertStrand2Penta(t):
+  """Convert STRAND to PENTA."""
+  tp = Internal.copyRef(t)
+  _convertStrand2Penta(tp)
+  return tp
+
+# -- convertStrand2Penta
+def _convertStrand2Penta(t):
+  """Convert STRAND to PENTA."""
+  _deleteFlowSolutions__(t, 'centers')
+  _deleteZoneBC__(t)
+  _deleteGridConnectivity__(t)
+  _TZA3(t, 'nodes', 'nodes', True, Converter.convertStrand2Penta)
+  return None
+
 # -- convertArray2Node
 def convertArray2Node(t):
   """Convert an array to a node array.
