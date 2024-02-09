@@ -128,7 +128,7 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
         return NULL;
     }
     posx++; posy++; posz++; posvol++; postrunc++; posgs++; 
-    posrou_src++; posrov_src; posrow_src; posroe_src;
+    posrou_src++; posrov_src++; posrow_src++; posroe_src++;
     posu++; posv++; posw++;
 
     //recuperation des composantes des efforts sur les pales
@@ -216,7 +216,6 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
                         "applyAL: 5th arg (eps local wrt z) must be a numpy of floats .");
         return NULL;
     }
-
     E_Int npts = f->getSize();
     E_Float* xt = f->begin(posx);
     E_Float* yt = f->begin(posy);
@@ -252,55 +251,53 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
     E_Float GaussianNormInv = 1.;//on ne normalise pas la gaussienne - cas le plus simple
     E_Int nsourcecells = npts;//on pourra ensuite filtrer en ne donnant que certains points sourceIndices
     E_Float alphaPi = 1./sqrt(K_CONST::E_PI*K_CONST::E_PI*K_CONST::E_PI);
-
- #pragma omp parallel default(shared)
-  {
-#pragma omp for 
-    for (E_Int noind = 0; noind < nsourcecells; noind++)
+    for (E_Int ind = 0; ind < npts; ind++)
     {
-        E_Int ind = noind;//sourceIndices[noind];
-        E_Float volCell = volt[ind];
-        E_Float truncCell = trunct[ind];
-        E_Float XCell = xt[ind];
-        E_Float YCell = yt[ind];
-        E_Float ZCell = zt[ind];
-        E_Float Vx_cell = vxt[ind];
-        E_Float Vy_cell = vyt[ind];
-        E_Float Vz_cell = vzt[ind];
-
-        E_Float gaussSum = 0.;
-        E_Float roE_src = 0.;
-        E_Float roVx_src = 0.;
-        E_Float roVy_src = 0.;
-        E_Float roVz_src = 0.;
-
-        E_Float coef = alphaPi * volCell * truncCell;
-        for (E_Int nob = 0; nob < NbBlades; nob++)
-        {
-            E_Float* x_AL = vectOfALPositions[nob]->begin(1);
-            E_Float* y_AL = vectOfALPositions[nob]->begin(2);
-            E_Float* z_AL = vectOfALPositions[nob]->begin(3);
-            E_Float* Fx = vectOfLoads[nob]->begin();
-            E_Float* Fy = vectOfLoads[nob]->begin()+NbPoints;
-            E_Float* Fz = vectOfLoads[nob]->begin()+2*NbPoints;
+        MomentumX_src[ind] = 0.;
+        MomentumY_src[ind] = 0.;
+        MomentumZ_src[ind] = 0.;
+        EnergyStagnationDensity_src[ind] = 0.;
+        gausssumt[ind]=0.;  
+    } 
+    for (E_Int nob = 0; nob < NbBlades; nob++)
+    {
+        E_Float* x_AL = vectOfALPositions[nob]->begin(1);
+        E_Float* y_AL = vectOfALPositions[nob]->begin(2);
+        E_Float* z_AL = vectOfALPositions[nob]->begin(3);
+        E_Float* Fx = vectOfLoads[nob]->begin();
+        E_Float* Fy = vectOfLoads[nob]->begin()+NbPoints;
+        E_Float* Fz = vectOfLoads[nob]->begin()+2*NbPoints;
             
-            for(E_Int nosec = 0; nosec < NbPoints; nosec++)
-            {
-                E_Int nomat = nosec + nob * NbPoints;
-                FldArrayF& RotMatLocal = *(vectOfRotMat2LocalFrame[nomat]);
-                E_Float RotMat11 = RotMatLocal(0,1);
-                E_Float RotMat12 = RotMatLocal(1,1);
-                E_Float RotMat13 = RotMatLocal(2,1);
-                E_Float RotMat21 = RotMatLocal(0,2);
-                E_Float RotMat22 = RotMatLocal(1,2);
-                E_Float RotMat23 = RotMatLocal(2,2);
-                E_Float RotMat31 = RotMatLocal(0,3);
-                E_Float RotMat32 = RotMatLocal(1,3);
-                E_Float RotMat33 = RotMatLocal(2,3);
+        for(E_Int nosec = 0; nosec < NbPoints; nosec++)
+        {
+            E_Int nomat = nosec + nob * NbPoints;
+            FldArrayF& RotMatLocal = *(vectOfRotMat2LocalFrame[nomat]);
+            E_Float RotMat11 = RotMatLocal(0,1);
+            E_Float RotMat12 = RotMatLocal(1,1);
+            E_Float RotMat13 = RotMatLocal(2,1);
+            E_Float RotMat21 = RotMatLocal(0,2);
+            E_Float RotMat22 = RotMatLocal(1,2);
+            E_Float RotMat23 = RotMatLocal(2,2);
+            E_Float RotMat31 = RotMatLocal(0,3);
+            E_Float RotMat32 = RotMatLocal(1,3);
+            E_Float RotMat33 = RotMatLocal(2,3);
 
-                E_Float Fx0 = Fx[nosec];
-                E_Float Fy0 = Fy[nosec];
-                E_Float Fz0 = Fz[nosec];
+            E_Float Fx0 = Fx[nosec];
+            E_Float Fy0 = Fy[nosec];
+            E_Float Fz0 = Fz[nosec];
+
+            for (E_Int noind = 0; noind < nsourcecells; noind++)
+            {
+                E_Int ind = noind;//sourceIndices[noind];
+                E_Float volCell = volt[ind];
+                E_Float truncCell = trunct[ind];
+                E_Float XCell = xt[ind];
+                E_Float YCell = yt[ind];
+                E_Float ZCell = zt[ind];
+                E_Float Vx_cell = vxt[ind];
+                E_Float Vy_cell = vyt[ind];
+                E_Float Vz_cell = vzt[ind];
+                E_Float coef = alphaPi * volCell * truncCell;
 
                 E_Float X_ind = 
                     RotMat11*(XCell-x_AL[nosec])+
@@ -324,21 +321,17 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
                 E_Float gaussFx = -gauss*Fx0 * GaussianNormInv;
                 E_Float gaussFy = -gauss*Fy0 * GaussianNormInv;
                 E_Float gaussFz = -gauss*Fz0 * GaussianNormInv;
-
-                roVx_src += gaussFx;
-                roVy_src += gaussFy;
-                roVz_src += gaussFz;
-                roE_src  = gaussFx*Vx_cell+gaussFy*Vy_cell+gaussFz*Vz_cell; 
-                gaussSum += gauss;
+                MomentumX_src[ind] += gaussFx;
+                MomentumY_src[ind] += gaussFy;
+                MomentumZ_src[ind] += gaussFz;
+                gausssumt[ind]+=gauss;       
             }   
-        }   
-        MomentumX_src[ind] = roVx_src;
-        MomentumY_src[ind] = roVy_src;
-        MomentumZ_src[ind] = roVz_src;
-        EnergyStagnationDensity_src[ind] = roE_src;
-        gausssumt[ind]=gaussSum;        
+        }
     }
-    }//omp
+    for (E_Int ind = 0; ind < npts; ind++)
+    {
+        EnergyStagnationDensity_src[ind]=MomentumX_src[ind]*vxt[ind]+MomentumY_src[ind]*vyt[ind]+MomentumZ_src[ind]*vzt[ind];
+    }
     RELEASEBLOCK1; 
     RELEASEBLOCK2;
     RELEASEROTMAT;      
