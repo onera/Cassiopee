@@ -239,7 +239,9 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
     FldArrayF epsYInvF(NbPoints); E_Float* epsYInv = epsYInvF.begin();  
     FldArrayF epsZInvF(NbPoints); E_Float* epsZInv = epsZInvF.begin();  
     FldArrayF eps3InvF(NbPoints);  E_Float* eps3Inv = eps3InvF.begin(); 
-
+ #pragma omp parallel default(shared)
+  {
+#pragma omp for 
     for (E_Int nosec = 0; nosec < NbPoints; nosec++)
     {
         epsXInv[nosec]= 1./epsX[nosec];
@@ -247,10 +249,14 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
         epsZInv[nosec]= 1./epsZ[nosec];
         eps3Inv[nosec]= epsXInv[nosec]*epsYInv[nosec]*epsZInv[nosec];
     }
-
+  }
     E_Float GaussianNormInv = 1.;//on ne normalise pas la gaussienne - cas le plus simple
     E_Int nsourcecells = npts;//on pourra ensuite filtrer en ne donnant que certains points sourceIndices
     E_Float alphaPi = 1./sqrt(K_CONST::E_PI*K_CONST::E_PI*K_CONST::E_PI);
+
+#pragma omp parallel default(shared)
+{
+#pragma omp for 
     for (E_Int ind = 0; ind < npts; ind++)
     {
         MomentumX_src[ind] = 0.;
@@ -258,7 +264,8 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
         MomentumZ_src[ind] = 0.;
         EnergyStagnationDensity_src[ind] = 0.;
         gausssumt[ind]=0.;  
-    } 
+    }
+}
     for (E_Int nob = 0; nob < NbBlades; nob++)
     {
         E_Float* x_AL = vectOfALPositions[nob]->begin(1);
@@ -270,25 +277,33 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
             
         for(E_Int nosec = 0; nosec < NbPoints; nosec++)
         {
-            E_Int nomat = nosec + nob * NbPoints;
-            FldArrayF& RotMatLocal = *(vectOfRotMat2LocalFrame[nomat]);
-            E_Float RotMat11 = RotMatLocal(0,1);
-            E_Float RotMat12 = RotMatLocal(1,1);
-            E_Float RotMat13 = RotMatLocal(2,1);
-            E_Float RotMat21 = RotMatLocal(0,2);
-            E_Float RotMat22 = RotMatLocal(1,2);
-            E_Float RotMat23 = RotMatLocal(2,2);
-            E_Float RotMat31 = RotMatLocal(0,3);
-            E_Float RotMat32 = RotMatLocal(1,3);
-            E_Float RotMat33 = RotMatLocal(2,3);
 
             E_Float Fx0 = Fx[nosec];
             E_Float Fy0 = Fy[nosec];
             E_Float Fz0 = Fz[nosec];
+            E_Float epsxi = epsXInv[nosec];
+            E_Float epsyi = epsYInv[nosec];
+            E_Float epszi = epsZInv[nosec];
+      
+            E_Int nomat = nosec + nob * NbPoints;
+            FldArrayF& RotMatLocal = *(vectOfRotMat2LocalFrame[nomat]);            
+            E_Float RotMat11 = epsxi*RotMatLocal(0,1);
+            E_Float RotMat12 = epsxi*RotMatLocal(1,1);
+            E_Float RotMat13 = epsxi*RotMatLocal(2,1);
+            E_Float RotMat21 = epsyi*RotMatLocal(0,2);
+            E_Float RotMat22 = epsyi*RotMatLocal(1,2);
+            E_Float RotMat23 = epsyi*RotMatLocal(2,2);
+            E_Float RotMat31 = epszi*RotMatLocal(0,3);
+            E_Float RotMat32 = epszi*RotMatLocal(1,3);
+            E_Float RotMat33 = epszi*RotMatLocal(2,3);
 
-            for (E_Int noind = 0; noind < nsourcecells; noind++)
+            E_Float coef = alphaPi * eps3Inv[nosec]; 
+
+            #pragma omp parallel default(shared)
             {
-                E_Int ind = noind;//sourceIndices[noind];
+            #pragma omp for 
+            for (E_Int ind = 0; ind < npts; ind++)
+            {
                 E_Float volCell = volt[ind];
                 E_Float truncCell = trunct[ind];
                 E_Float XCell = xt[ind];
@@ -297,8 +312,7 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
                 E_Float Vx_cell = vxt[ind];
                 E_Float Vy_cell = vyt[ind];
                 E_Float Vz_cell = vzt[ind];
-                E_Float coef = alphaPi * volCell * truncCell;
-
+                //(Xcell-X_AL)/epsX
                 E_Float X_ind = 
                     RotMat11*(XCell-x_AL[nosec])+
                     RotMat12*(YCell-y_AL[nosec])+
@@ -314,24 +328,26 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
                     RotMat32*(YCell-y_AL[nosec])+
                     RotMat33*(ZCell-z_AL[nosec]);
 
-                X_ind *= epsXInv[nosec]; //(Xcell-X_AL)/epsX
-                Y_ind *= epsYInv[nosec]; 
-                Z_ind *= epsZInv[nosec]; 
-                E_Float gauss = alphaPi*volCell*truncCell*eps3Inv[nosec]*exp(-X_ind*X_ind-Y_ind*Y_ind-Z_ind*Z_ind);
+                E_Float gauss = coef * volCell * truncCell * exp(-X_ind*X_ind-Y_ind*Y_ind-Z_ind*Z_ind);
                 E_Float gaussFx = -gauss*Fx0 * GaussianNormInv;
                 E_Float gaussFy = -gauss*Fy0 * GaussianNormInv;
                 E_Float gaussFz = -gauss*Fz0 * GaussianNormInv;
                 MomentumX_src[ind] += gaussFx;
                 MomentumY_src[ind] += gaussFy;
                 MomentumZ_src[ind] += gaussFz;
-                gausssumt[ind]+=gauss;       
+                gausssumt[ind]+=gauss;    
             }   
-        }
+            }
+        }         
     }
+#pragma omp parallel default(shared)
+{
+#pragma omp for     
     for (E_Int ind = 0; ind < npts; ind++)
     {
         EnergyStagnationDensity_src[ind]=MomentumX_src[ind]*vxt[ind]+MomentumY_src[ind]*vyt[ind]+MomentumZ_src[ind]*vzt[ind];
     }
+}
     RELEASEBLOCK1; 
     RELEASEBLOCK2;
     RELEASEROTMAT;      
