@@ -768,7 +768,7 @@ PyObject* K_TRANSFORM::joinUnstructured(FldArrayF& f1, FldArrayI& cn1,
   {
     K_CONNECT::cleanConnectivity(posx, posy, posz, tol, eltType, *f, *cn);
     PyObject* tpl2 = K_ARRAY::buildArray3(*f, varString, *cn, eltType);
-    RELEASESHAREDU(tpl, f, cn);
+    RELEASESHAREDU(tpl, f, cn); Py_DECREF(tpl);
     return tpl2;
   }
   else
@@ -886,7 +886,7 @@ PyObject* K_TRANSFORM::joinNGON(FldArrayF& f1, FldArrayI&  cn1,
   {
     K_CONNECT::cleanConnectivityNGon(posx, posy, posz, tol, *f, *cn);
     PyObject* tpl2 = K_ARRAY::buildArray3(*f, varString, *cn, "NGON");
-    RELEASESHAREDU(tpl, f, cn);
+    RELEASESHAREDU(tpl, f, cn); Py_DECREF(tpl);
     return tpl2;
   }
   else

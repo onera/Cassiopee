@@ -328,7 +328,7 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
     K_CONNECT::cleanConnectivity(posx, posy, posz, tol, newEltType, 
                                  *f, *cno);
     PyObject* tpl2 = K_ARRAY::buildArray3(*f, unstructVarString[0], *cno, newEltType);
-    RELEASESHAREDU(tpl, f, cno);
+    RELEASESHAREDU(tpl, f, cno); Py_DECREF(tpl);
     return tpl2;
   }
   else
