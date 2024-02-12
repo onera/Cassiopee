@@ -239,13 +239,15 @@ namespace K_TRANSFORM
                          std::vector<FldArrayF*>& fields, 
                          std::vector<E_Int>& eltType);
   
-  /* Cree le dual d un maillage NGON 2D ou 3D.
+  /* Cree le dual d un maillage NGON 1D, 2D ou 3D.
    IN: f: champs contenant les coordonnees localises aux noeuds du 
    maillage primal
    IN: cn: connectivite NGON  du primal
    OUT: fd: champs aux noeuds du maillage dual
    OUT: cNGD: connectivite NGON du dual 
    fd et cNGD sont alloues dans ces fonctions */
+  void dualNGON1D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
+                  FldArrayF& fd, FldArrayI& cNGD);
   void dualNGON2D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
                   FldArrayF& fd, FldArrayI& cNGD);
   void dualNGON3D(FldArrayF& f, FldArrayI& cn, 
