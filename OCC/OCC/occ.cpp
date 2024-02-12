@@ -29,6 +29,7 @@ static PyMethodDef Pyocc [] =
   {"convertCAD2Arrays2", K_OCC::convertCAD2Arrays2, METH_VARARGS},
 
   {"readCAD", K_OCC::readCAD, METH_VARARGS},
+  {"writeCAD", K_OCC::writeCAD, METH_VARARGS},
   {"getNbFaces", K_OCC::getNbFaces, METH_VARARGS},
   {"getNbEdges", K_OCC::getNbEdges, METH_VARARGS},
   {"getFileAndFormat", K_OCC::getFileAndFormat, METH_VARARGS},

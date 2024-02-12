@@ -40,6 +40,9 @@
 #include "ShapeUpgrade_ShapeDivideArea.hxx"
 #include "ShapeUpgrade_ShapeDivideClosed.hxx"
 #include "ShapeUpgrade_ClosedFaceDivide.hxx"
+#include "ShapeUpgrade_SplitSurfaceArea.hxx"
+#include "TColGeom_SequenceOfSurface.hxx"
+#include "ShapeExtend_CompositeSurface.hxx"
 
 #include "GProp_GProps.hxx"
 
@@ -92,16 +95,16 @@ PyObject* K_OCC::splitFaces(PyObject* self, PyObject* args)
     const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
 
     // Closed Face Divide
-    ShapeUpgrade_ClosedFaceDivide splitter(F);
-    splitter.SetNbSplitPoints(5); // cree num+1 faces
-    splitter.SplitSurface();
-    Standard_Integer status = splitter.Status(ShapeExtend_DONE2);
-    printf("status=%d\n", status);
-    TopoDS_Shape result = splitter.Result();
-    TopTools_IndexedMapOfShape* surfs = new TopTools_IndexedMapOfShape();
-    TopExp::MapShapes(result, TopAbs_FACE, *surfs);
-    TopTools_IndexedMapOfShape& surfaces2 = *surfs;
-    printf("splitted in %d faces.\n", surfaces2.Extent());
+    //ShapeUpgrade_ClosedFaceDivide splitter(F);
+    //splitter.SetNbSplitPoints(5); // cree num+1 faces
+    //splitter.SplitSurface();
+    //Standard_Integer status = splitter.Status(ShapeExtend_DONE2);
+    //printf("status=%d\n", status);
+    //TopoDS_Shape result = splitter.Result();
+    //TopTools_IndexedMapOfShape* surfs = new TopTools_IndexedMapOfShape();
+    //TopExp::MapShapes(result, TopAbs_FACE, *surfs);
+    //TopTools_IndexedMapOfShape& surfaces2 = *surfs;
+    //printf("splitted in %d faces.\n", surfaces2.Extent());
 
     //ShapeUpgrade_FaceDivide splitter(F);
     //splitter.SetNbSplitPoints(2); // split in 2
@@ -118,7 +121,30 @@ PyObject* K_OCC::splitFaces(PyObject* self, PyObject* args)
     //splitter.Build();
     //TopoDS_Shape result = splitter.Shape();
 
+    // Split a face in UV (snippet)
+    // Create a surface to split
+    Handle(Geom_Surface) aSurf = BRep_Tool::Surface(F);
+    // Create a splitter with default constructor
+    ShapeUpgrade_SplitSurfaceArea aSplitter;
+    // Set the number of parts to split the surface into
+    aSplitter.NbParts() = 4;
+    // Set the splitting mode to true (split into squares)
+    //aSplitter.SetSplittingIntoSquares(Standard_True);
+    // Initialize the splitter with the surface
+    aSplitter.Init(aSurf);
+    // Perform the splitting
+    aSplitter.Perform();
+    // Get the resulting surfaces as a sequence
+    Handle(ShapeExtend_CompositeSurface) aResSurfs = aSplitter.ResSurfaces();
+    // Comment reshaper?
+    // ShapeBuild_ReShape use replace, remove
+
+
   }
+
+  // repush and update shape
+  
+
   Py_INCREF(Py_None);
   return Py_None;
 }

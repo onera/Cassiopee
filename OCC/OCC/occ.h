@@ -28,6 +28,7 @@ namespace K_OCC
   PyObject* convertCAD2Arrays2(PyObject* self, PyObject* args); // with T3Mesher
   
   PyObject* readCAD(PyObject* self, PyObject* args);
+  PyObject* writeCAD(PyObject* self, PyObject* args);
   PyObject* getNbFaces(PyObject* self, PyObject* args);
   PyObject* getNbEdges(PyObject* self, PyObject* args);
   PyObject* getFileAndFormat(PyObject* self, PyObject* args);
