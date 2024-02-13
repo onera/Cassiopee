@@ -88,7 +88,7 @@ Contents
     :param perfo: list of performance for each processor
     :type perfo: list of tuples
     :param weight: list of weight for each block
-    :type weight: list of ints
+    :type weight: list of floats
     :param algorithm: ['gradient', 'genetic', 'fast', 'graph']
     :type algorithm: string
     :param nghost: number of ghost cells present in the mesh

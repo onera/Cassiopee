@@ -65,7 +65,7 @@ def distribute(arrays, NProc, prescribed=None, perfo=None, weight=None, com=None
 
     # Liste des poids du solveur pour chaque bloc
     Nb = len(arrays)
-    if weight is None: weight = [1]*Nb
+    if weight is None: weight = [1.]*Nb
 
     # Matrice du volume des coms (volCom ou volComd)
     volCom = None; volComd = None
