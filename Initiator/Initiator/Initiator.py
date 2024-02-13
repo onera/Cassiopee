@@ -22,6 +22,21 @@ def applyGaussianAL(a, listOfLoads, listOfALPositions, listOfRotMat,
             localEpsX, localEpsY, localEpsZ, NbBlades, NbPointsAL, TruncVar)
     return a
 
+def getGaussianVelocitiesAL(a, listOfALPositions, listOfRotMat,
+                            localEpsX, localEpsY, localEpsZ, NbBlades, NbPointsAL,
+                            TruncVar='TruncRind', RindVar='rindN'):
+    if isinstance(a[0], list):
+        out = []
+        for i in a:
+            out.append(initiator.applyGaussianAL(
+                i,listOfLoads,listOfALPositions,listOfRotMat,
+                localEpsX, localEpsY, localEpsZ, NbBlades, NbPointsAL, TruncVar, RindVar))
+        return out
+    else:
+        return initiator.getGaussianVelocitiesAL(
+                a,listOfALPositions,listOfRotMat,
+                localEpsX, localEpsY, localEpsZ, NbBlades, NbPointsAL, TruncVar, RindVar)
+    
 def initConst(a, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8):
     """Init a by a constant field.
     Usage: initConst(a, MInf, alphaZ, alphaY, ReInf)"""

@@ -31,5 +31,7 @@ namespace K_INITIATOR
   PyObject* initScully( PyObject* self, PyObject* args );
   PyObject* overlayField( PyObject* self, PyObject* args );
   PyObject* applyGaussianAL( PyObject* self, PyObject* args );
+  PyObject* getGaussianVelocitiesAL( PyObject* self, PyObject* args );
+
 }
 #endif

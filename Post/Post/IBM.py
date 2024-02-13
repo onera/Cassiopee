@@ -1094,7 +1094,7 @@ def computeAerodynamicLoads(ts, ts2=None, dimPb=3, famZones=[], Pref=None, cente
         for zpath in listOfZones: Internal._rmNodeByPath(tw, zpath)
         tw = Cmpi.allgatherTree(tw)
         zones = Internal.getNodesByType(tw, 'Zone_t')
-        if not zones: raise ValueError('prepareSkinReconstruction: no famZones {} in case tree.'.format(famZones))
+        if not zones: raise ValueError('computeAerodynamicLoads: no famZones {} in case tree.'.format(famZones))
         Internal._rmNodesFromType(tw, 'ZoneSubRegion_t')
         tw = T.splitNParts(tw, Cmpi.size)
         stats = D2._distribute(tw, Cmpi.size)
