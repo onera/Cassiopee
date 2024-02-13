@@ -56,6 +56,7 @@ namespace K_OCC
   PyObject* meshEdgesOfFace(PyObject* self, PyObject* args);
 
   PyObject* analyseEdges(PyObject* self, PyObject* args);
+  PyObject* getFaceArea(PyObject* self, PyObject* args);
   PyObject* splitFaces(PyObject* self, PyObject* args);
 
 }

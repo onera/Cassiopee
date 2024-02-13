@@ -28,15 +28,16 @@
 #include "TopExp.hxx"
 #include "TopExp_Explorer.hxx"
 
+#include "ShapeAnalysis.hxx"
+
 // ============================================================================
-/* Write CAD file from OpenCascade hook 
-   Modify fileName and fileFmt in hook */
+/* Return the face area of given face */
 // ============================================================================
-PyObject* K_OCC::writeCAD(PyObject* self, PyObject* args)
+PyObject* K_OCC::getFaceArea(PyObject* self, PyObject* args)
 {
   PyObject* hook;
-  char* fileName; char* fileFmt;
-  if (!PYPARSETUPLE_(args, O_ SS_, &hook, &fileName, &fileFmt)) return NULL;
+  E_Int noFace;
+  if (!PYPARSETUPLE_(args, O_ I_, &hook, &noFace)) return NULL;
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
@@ -46,37 +47,20 @@ PyObject* K_OCC::writeCAD(PyObject* self, PyObject* args)
 #endif
 
   TopoDS_Shape* shp = (TopoDS_Shape*) packet[0];
-  printf("write: %s %s\n", fileName, fileFmt);
+  TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
+  TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
+  TopExp_Explorer expl;
 
-  if (strcmp(fileFmt, "fmt_iges") == 0)
+  E_Float area = 0.;
+  const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
+
+  for (expl.Init(surfaces(noFace), TopAbs_WIRE); expl.More(); expl.Next())
   {
-    IGESControl_Writer writer;
-    writer.AddShape(*shp);
-    writer.Write(fileName);
+    const TopoDS_Wire& W = TopoDS::Wire(expl.Current());
+    E_Float surface = ShapeAnalysis::ContourArea(W);
+    //printf("wire surface=%f\n", surface);	
+    area = std::max(area, surface);
   }
-  else if (strcmp(fileFmt, "fmt_step") == 0)
-  {
-    // Read the file
-    STEPControl_Writer writer;
-    writer.Transfer(*shp, STEPControl_AsIs);
-    writer.Write(fileName);
-  }  
-
-  // Change le nom du fichier et le format dans le packet
-  char* old = (char*)packet[3];
-  delete [] old;
-  E_Int l = strlen(fileName);
-  char* fileNameC = new char [l+1];
-  strcpy(fileNameC, fileName);
-  packet[3] = fileNameC;
-
-  old = (char*)packet[4];
-  delete [] old;
-  l = strlen(fileFmt);
-  char* fileFmtC = new char [l+1];
-  strcpy(fileFmtC, fileFmt);
-  packet[4] = fileFmtC;
-
-  Py_INCREF(Py_None);
-  return Py_None;
+  
+  return Py_BuildValue("d", area);
 } 

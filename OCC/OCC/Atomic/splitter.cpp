@@ -43,18 +43,21 @@
 #include "ShapeUpgrade_SplitSurfaceArea.hxx"
 #include "TColGeom_SequenceOfSurface.hxx"
 #include "ShapeExtend_CompositeSurface.hxx"
+#include "ShapeBuild_ReShape.hxx"
+#include "BRep_Builder.hxx"
+#include "ShapeUpgrade_ShapeDivideClosedEdges.hxx"
 
 #include "GProp_GProps.hxx"
 
 //=====================================================================
-// Split every faces
+// Split shape by max area
 //=====================================================================
 PyObject* K_OCC::splitFaces(PyObject* self, PyObject* args)
 {
-  PyObject* hook;
-  if (!PYPARSETUPLE_(args, O_, &hook)) return NULL;
+  PyObject* hook; E_Float area;
+  if (!PYPARSETUPLE_(args, O_ R_, &hook, &area)) return NULL;
 
-    void** packet = NULL;
+  void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
   packet = (void**) PyCObject_AsVoidPtr(hook);
 #else
@@ -64,7 +67,6 @@ PyObject* K_OCC::splitFaces(PyObject* self, PyObject* args)
   TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
   TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
 
-
   // try on all shape
   TopoDS_Shape* shp = (TopoDS_Shape*)packet[0];
   
@@ -72,32 +74,43 @@ PyObject* K_OCC::splitFaces(PyObject* self, PyObject* args)
 
   // Closed Shape Divide
   //ShapeUpgrade_ShapeDivideClosed splitter(*shp);
-  //splitter.SetNbSplitPoints(20); // cree num+1 faces
-  //splitter.Perform(Standard_False);
+  //ShapeUpgrade_ShapeDivideClosedEdges splitter(*shp);
+  //splitter.SetNbSplitPoints(4); // cree num+1 faces
+  //Handle(ShapeUpgrade_ClosedFaceDivide) faceDivideTool = new ShapeUpgrade_ClosedFaceDivide();
+  //faceDivideTool->SetNbSplitPoints(4);
+  //splitter.SetSplitFaceTool(faceDivideTool);
+  //splitter.Perform();
+  //TopoDS_Shape newShape = splitter.Result();
 
   // Shape Divide
   //ShapeUpgrade_ShapeDivide splitter(*shp);
   //splitter.SetNbSplitPoints(20); // cree num+1 faces
   //splitter.Perform(Standard_False);
 
-  // Shape Divide by Area (not ok in OCC 7.6)
-  //ShapeUpgrade_ShapeDivideArea splitter(*shp);
-  //splitter.MaxArea();
-  //splitter.Perform(Standard_False);
+  // Shape Divide by Area
+  ShapeUpgrade_ShapeDivideArea splitter(*shp);
+  splitter.MaxArea() = area;
+  splitter.Perform();
+  TopoDS_Shape newShape = splitter.Result();
+
+  // ShapeBuild_ReShape use replace, remove
+  //ShapeBuild_ReShape builder;
+  // Brep builder to build face from geom
+  //BRep_Builder brepBuilder;
+    
+  //TopExp_Explorer expl;
+  //E_Int nbFaces = surfaces.Extent();
   
-
-  TopExp_Explorer expl;
-  E_Int nbFaces = surfaces.Extent();
-  printf("number of faces=%d\n", nbFaces);
-
-  for (E_Int noFace = 1; noFace <= nbFaces; noFace++)
-  {
-    const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
+  //for (E_Int noFace = 1; noFace <= nbFaces; noFace++)
+  //{
+    //const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
 
     // Closed Face Divide
     //ShapeUpgrade_ClosedFaceDivide splitter(F);
-    //splitter.SetNbSplitPoints(5); // cree num+1 faces
+    //splitter.SetNbSplitPoints(2); // cree num+1 faces
+    //splitter.SplitCurves();
     //splitter.SplitSurface();
+    //splitter.Perform();
     //Standard_Integer status = splitter.Status(ShapeExtend_DONE2);
     //printf("status=%d\n", status);
     //TopoDS_Shape result = splitter.Result();
@@ -123,27 +136,64 @@ PyObject* K_OCC::splitFaces(PyObject* self, PyObject* args)
 
     // Split a face in UV (snippet)
     // Create a surface to split
-    Handle(Geom_Surface) aSurf = BRep_Tool::Surface(F);
+    //Handle(Geom_Surface) aSurf = BRep_Tool::Surface(F);
     // Create a splitter with default constructor
-    ShapeUpgrade_SplitSurfaceArea aSplitter;
+    //ShapeUpgrade_SplitSurfaceArea aSplitter;
     // Set the number of parts to split the surface into
-    aSplitter.NbParts() = 4;
+    //aSplitter.NbParts() = 4;
     // Set the splitting mode to true (split into squares)
     //aSplitter.SetSplittingIntoSquares(Standard_True);
     // Initialize the splitter with the surface
-    aSplitter.Init(aSurf);
+    //aSplitter.Init(aSurf);
     // Perform the splitting
-    aSplitter.Perform();
+    //aSplitter.Perform();
     // Get the resulting surfaces as a sequence
-    Handle(ShapeExtend_CompositeSurface) aResSurfs = aSplitter.ResSurfaces();
-    // Comment reshaper?
-    // ShapeBuild_ReShape use replace, remove
+    //Handle(ShapeExtend_CompositeSurface) aResSurfs = aSplitter.ResSurfaces();
+    
+    //TopoDS_Shape fuse = builder.Merge(aResSurfs);
 
+    // Remove previous face
+    //builder.Remove(F);
+    
+    // Add new ones
+    
+    //TopoDS_Face F0, F1, F2, F3;
+    //Handle (Geom_Surface) patch0 = aResSurfs->Patch(0, 0);
+    //Handle (Geom_Surface) patch1 = aResSurfs->Patch(0, 1);
+    //Handle (Geom_Surface) patch2 = aResSurfs->Patch(1, 0);
+    //Handle (Geom_Surface) patch3 = aResSurfs->Patch(1, 1);
+    
+    //brepBuilder.MakeFace(F0, patch0, Precision::Confusion());
+    //brepBuilder.MakeFace(F1, patch1, Precision::Confusion());
+    //brepBuilder.MakeFace(F2, patch2, Precision::Confusion());
+    //brepBuilder.MakeFace(F3, patch3, Precision::Confusion());
 
-  }
+    //builder.Replace(F, F0);
+    //builder.Replace(F, F1);
+    //builder.Replace(F, F2);
+    //builder.Replace(F, F3);
+
+  //}
 
   // repush and update shape
-  
+  //TopoDS_Shape newShape = builder.Apply(*shp);
+  //TopoDS_Shape newShape = *shp;
+
+
+  packet[0] = &newShape;
+  // Extract surfaces
+  delete packet[1];
+  TopTools_IndexedMapOfShape* sf = new TopTools_IndexedMapOfShape();
+  TopExp::MapShapes(newShape, TopAbs_FACE, *sf);
+  packet[1] = sf;
+
+  // Extract edges
+  delete packet[2];
+  TopTools_IndexedMapOfShape* se = new TopTools_IndexedMapOfShape();
+  TopExp::MapShapes(newShape, TopAbs_EDGE, *se);
+  packet[2] = se;
+  printf("INFO: after split: Nb edges=%d\n", se->Extent());
+  printf("INFO: after split: Nb faces=%d\n", sf->Extent());
 
   Py_INCREF(Py_None);
   return Py_None;

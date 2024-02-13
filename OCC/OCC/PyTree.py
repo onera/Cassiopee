@@ -466,14 +466,15 @@ def getPosEdges(t):
 def getPosFaces(t):
   return getPos(t, 'FACES')
 
-#=====================================
-# get the first tree from CAD
+#========================================
+# get the first tree from CAD - mesh CAD
 # hook: hook on CAD
 # hmax: hmax
 # hausd: hausd
+# faceList: si fourni, ne maille que ces faces
 # OUT: meshed CAD with CAD links
-#====================================
-def getFirstTree(hook, hmax=-1., hausd=-1.):
+#========================================
+def getFirstTree(hook, hmax=-1., hausd=-1., faceList=None):
   """Get a first TRI meshed tree linked to CAD."""
   
   t = C.newPyTree(['EDGES', 'FACES'])
@@ -506,11 +507,12 @@ def getFirstTree(hook, hmax=-1., hausd=-1.):
   b = Internal.getNodeFromName1(t, 'FACES')
   nbFaces = occ.getNbFaces(hook)
   # distribution parallele (CAD already split)
-  N = nbFaces // Cmpi.size
-  nstart = Cmpi.rank*N
-  nend = nstart+N
-  if Cmpi.rank == Cmpi.size-1: nend = nbFaces
-  faceList = range(nstart+1, nend+1)
+  if faceList is None:
+    N = nbFaces // Cmpi.size
+    nstart = Cmpi.rank*N
+    nend = nstart+N
+    if Cmpi.rank == Cmpi.size-1: nend = nbFaces
+    faceList = range(nstart+1, nend+1)
 
   if hausd < 0:
     hList = [(hmax,hmax,hausd)]*len(faceList)
@@ -558,6 +560,39 @@ def getFirstTree(hook, hmax=-1., hausd=-1.):
     faces = edgeOfFaces[edgeno]
     n = numpy.array(faces, dtype=Internal.E_NpyInt)
     Internal._createChild(cad, 'faceList', 'DataArray_t', value=n)
+  return t
+
+# the first version of parallel CAD split and meshing
+def getFirstTreePara(hook, area, hmax=-1., hausd=-1.):
+  import Distributor2
+  import Distributor2.PyTree as D2
+
+  # split CAD with max area
+  OCC.occ.splitFaces(hook, area)
+
+  # write split CAD
+  #OCC.occ.writeCAD(hook, "cube_split.step", "fmt_step")
+
+  # distribute faces
+  nfaces = OCC.occ.getNbFaces(hook)
+
+  arrays = []; weights = []
+  for i in range(nfaces):
+    area = OCC.occ.getFaceArea(hook, i+1)
+    arrays.append(['x',None,1,1,1])
+    weights.append(area)
+
+  out = Distributor2.distribute(arrays, weight=weights, NProc=Cmpi.size)
+  dis = out['distrib']
+  if Cmpi.rank == 0: print(out['varMax'])
+
+  faceList = [] # list of face to mesh on this proc
+  for i in range(nfaces):
+    if dis[i] == Cmpi.rank: faceList.append(i+1)
+
+  #print(Cmpi.rank, faceList)
+  t = getFirstTree(hook, hmax, hausd, faceList=faceList)
+  D2._addProcNode(t, Cmpi.rank)
   return t
 
 #================================================
