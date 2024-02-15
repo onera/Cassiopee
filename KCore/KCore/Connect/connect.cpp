@@ -34,46 +34,49 @@ using namespace std;
 */
 //=============================================================================
 E_Int K_CONNECT::image(E_Int vert0, E_Int face0, E_Int et0, 
-                       vector<E_Int>& vertices,
-                       FldArrayI& posFaces, FldArrayI& posElt, FldArrayI& cNG)
+                       vector<E_Int>& vertices, FldArrayI& cNG)
 {
-  E_Int* cnp = cNG.begin();
-  E_Int sizeFN = cnp[1];
-  E_Int* cEFp = cnp+sizeFN+4;// debut connectivite EF
-  E_Int* ptr1 = cEFp;  
-  ptr1 = cnp+posElt[et0]; // pointeur sur l'element et0 dans cNG
-  E_Int nfacesl = ptr1[0];
-  E_Int* posFacesp = posFaces.begin();
-
-  // selectionne les faces de l'elements autre que face0
+  E_Int* ngon = cNG.getNGon(); E_Int* nface = cNG.getNFace();
+  E_Int* indPG = cNG.getIndPG(); E_Int* indPH = cNG.getIndPH(); 
+  return K_CONNECT::image(vert0, face0, et0, vertices, cNG,
+                          ngon, nface, indPG, indPH);
+}                     
+                       
+E_Int K_CONNECT::image(E_Int vert0, E_Int face0, E_Int et0, 
+                       vector<E_Int>& vertices, FldArrayI& cNG,
+                       E_Int* ngon, E_Int* nface, E_Int* indPG, E_Int* indPH)
+{
+  E_Int vert, vertm, vertp, nv, nfacesl;
+  E_Int* elem0 = cNG.getElt(et0, nfacesl, nface, indPH); // pointeur sur l'element et0 dans cNG
+  // selectionne les faces de l'element autre que face0
   vector<E_Int> faces;
-  for (E_Int i = 1; i <= nfacesl; i++)
-  {if (ptr1[i] != face0) faces.push_back(ptr1[i]-1);}
-  E_Int facesSize = faces.size();
-
-  E_Int vert, vertm, vertp, nv;
-  for (E_Int nof = 0; nof < facesSize; nof++)
+  
+  for (E_Int i = 0; i < nfacesl; i++)
   {
-    ptr1 = cnp+posFacesp[faces[nof]];
-    nv = ptr1[0]; // nombre de points de la face
+    if (elem0[i] != face0) faces.push_back(elem0[i]-1);
+  }
+  
+  for (size_t nof = 0; nof < faces.size(); nof++)
+  {
+    E_Int* face = cNG.getFace(faces[nof], nv, ngon, indPG);
     // recherche du pt vert0
-    for (E_Int nov = 1; nov <= nv; nov++)
+    for (E_Int nov = 0; nov < nv; nov++)
     {
-      vert = ptr1[nov]; // indice du point
+      vert = face[nov]; // indice du point
       vertm = -1; vertp = -1; // vertm : indice du point precedent, vertp : indice du point suivant
       if (vert == vert0)
       {
-        if (nov == 1) vertm = ptr1[nv];
-        else vertm = ptr1[nov-1];
-        if (nov == nv) vertp = ptr1[1];
-        else vertp = ptr1[nov+1];
+        if (nov == 0) vertm = face[nv-1];
+        else vertm = face[nov-1];
+        if (nov == nv-1) vertp = face[0];
+        else vertp = face[nov+1];
         goto fin;
       }
     }
   }
   fin:;
-  //recherche du bon candidat: 
-  for (unsigned int nov = 0; nov < vertices.size(); nov++)
+  // recherche du bon candidat: 
+  for (size_t nov = 0; nov < vertices.size(); nov++)
   {
     if (vertices[nov] == vertm) return vertm;
     else if (vertices[nov] == vertp) return vertp;
@@ -527,8 +530,8 @@ E_Int K_CONNECT::detectMatchInterface2(E_Int im1, E_Int jm1, E_Int km1,
 //=============================================================================
 /* Determine si un des coins de f2 coincident avec le coin (i1,j1,k1) de f1 
    attention: les indices demarrent a 1 en i j et k 
-   Si pas d'ambiguité, retourne 1 et les indices i2,j2,k2 correspondant
-   Si ambiguité (plusieurs points possibles), retourne le nb d'ambiguités, et 
+   Si pas d'ambiguitï¿½, retourne 1 et les indices i2,j2,k2 correspondant
+   Si ambiguitï¿½ (plusieurs points possibles), retourne le nb d'ambiguitï¿½s, et 
    retourne le dernier point coincident trouve
 */
 //=============================================================================

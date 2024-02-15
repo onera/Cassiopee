@@ -481,10 +481,12 @@ namespace K_CONNECT
      IN: face0: numero de la face a laquelle appartient le pt vert0: demarre a 1
      IN: vertices: liste des vertices appartenant a face0
      OUT: vert1: pt image: demarre a 1 */
-  E_Int image(E_Int vert0, E_Int face0, E_Int et0, 
-              std::vector<E_Int>& vertices, 
-              K_FLD::FldArrayI& posFace, K_FLD::FldArrayI& posElt,
+  E_Int image(E_Int vert0, E_Int face0, E_Int et0,
+              std::vector<E_Int>& vertices,
               K_FLD::FldArrayI& cNG);
+  E_Int image(E_Int vert0, E_Int face0, E_Int et0,
+              std::vector<E_Int>& vertices, K_FLD::FldArrayI& cNG,
+              E_Int* ngon, E_Int* nface, E_Int* indPG, E_Int* indPH);
 
   /* Retourne un tableau donnant pour chaque element sa dimension
      IN: cNG: connectivite NGON: Faces/Noeuds et Elts/Faces
