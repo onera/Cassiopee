@@ -922,15 +922,15 @@ def filterTestList(event=None):
                     elif tmpFiltr == 'DIST': outFilters.add('&t.$')
                     elif tmpFiltr == 'RUN': outFilters.update(['&/!FAILED', '&/!FAILEDMEM', '&/!OK'])
                     elif tmpFiltr == 'UNRUN': outFilters.update(['/FAILED', '/FAILEDMEM', '/OK'])
-                    elif tmpFiltr == 'TAG': outFilters.add('£^(?!\*)')
-                    elif tmpFiltr == 'UNTAG': outFilters.add('£\*')
+                    elif tmpFiltr == 'TAG': outFilters.add('£^(?![\*,+,r,g,b])')
+                    elif tmpFiltr == 'UNTAG': outFilters.add('£[\*,+,r,g,b]')
                 else:
                     if tmpFiltr == 'SEQ': outFilters.add('&t.$')
                     elif tmpFiltr == 'DIST': outFilters.add('&m.$')
                     elif tmpFiltr == 'RUN': outFilters.update(['/FAILED', '/FAILEDMEM', '/OK'])
                     elif tmpFiltr == 'UNRUN': outFilters.update(['&/!FAILED', '&/!FAILEDMEM', '&/!OK'])
-                    elif tmpFiltr == 'TAG': outFilters.add('£\*')
-                    elif tmpFiltr == 'UNTAG': outFilters.add('£^(?!\*)')
+                    elif tmpFiltr == 'TAG': outFilters.add('£[\*,+,r,g,b]')
+                    elif tmpFiltr == 'UNTAG': outFilters.add('£^(?![\*,+,r,g,b])')
             else: outFilters.add(filtr)
         return outFilters
         
@@ -1387,10 +1387,13 @@ def Quit(event=None):
     os._exit(0)
 
 #==============================================================================
-# Ajoute une etoile a la selection
+# Ajoute une etoile a la selection. Tagger plusieurs fois une selection permet
+# de changer de symbole: *, +, r, g, b
 #==============================================================================
 def tagSelection(event=None):
     global TESTS
+    tagSymbols = '* + r g b'.split()
+    ntags = len(tagSymbols)
     selection = listbox.curselection()
     for s in selection:
         no = int(s)
@@ -1402,8 +1405,11 @@ def tagSelection(event=None):
         path = CASSIOPEE+'/Apps/'+modulesDir+'/'+module+'/test'
         testr = os.path.splitext(test)
         fileStar = path+'/Data/'+testr[0]+'.star'
-        writeStar(fileStar, '*')
-        splits[6] = ' * '
+        tag = splits[6].strip()
+        if not tag: tag = '*'
+        else: tag = tagSymbols[(tagSymbols.index(tag)+1)%ntags]
+        writeStar(fileStar, tag)
+        splits[6] = ' {} '.format(tag)
         s = separator.join(i for i in splits)
         regTest = re.compile(' '+test+' ')
         regModule = re.compile(module+' ')
@@ -1412,7 +1418,7 @@ def tagSelection(event=None):
                 if regTest.search(tt) is not None: TESTS[c] = s; break
         listbox.delete(no, no)
         listbox.insert(no, s)
-        listbox.update()
+        listbox.selection_set(no)
     return
 
 def untagSelection(event=None):
@@ -1438,7 +1444,7 @@ def untagSelection(event=None):
                 if regTest.search(tt) is not None: TESTS[c] = s; break
         listbox.delete(no, no)
         listbox.insert(no, s)
-        listbox.update()
+        listbox.selection_set(no)
     return
 
 #===================================
