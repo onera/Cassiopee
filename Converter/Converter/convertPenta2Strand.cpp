@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "converter.h"
-#include <unordered_map>
+#include <unordered_set>
 
 // Find top vertex from vertex
 E_Int findTopVertex(E_Int vertex, FldArrayI& cm, std::vector< std::vector<E_Int> >& cVE)
@@ -27,9 +27,8 @@ E_Int findTopVertex(E_Int vertex, FldArrayI& cm, std::vector< std::vector<E_Int>
   for (size_t i = 0; i < elts.size(); i++)
   {
     elt = elts[i];
-    if (cm(elt, 1) == vertex) return cm(elt,4);
-    if (cm(elt, 3) == vertex) return cm(elt,6);
-    if (cm(elt, 2) == vertex) return cm(elt,5);
+    for (E_Int j = 1; j <= 3; j++)
+      if (cm(elt,j) == vertex) return cm(elt,j+3);
   }
   return -1;
 }
@@ -41,16 +40,15 @@ E_Int findBottomVertex(E_Int vertex, FldArrayI& cm, std::vector< std::vector<E_I
   for (size_t i = 0; i < elts.size(); i++)
   {
     elt = elts[i];
-    if (cm(elt, 4) == vertex) return cm(elt,1);
-    if (cm(elt, 6) == vertex) return cm(elt,3);
-    if (cm(elt, 5) == vertex) return cm(elt,2);
+    for (E_Int j = 1; j <= 3; j++)
+      if (cm(elt,j+3) == vertex) return cm(elt,j);
   }
   return -1;
 }
 
 E_Int findShellBottomVertex(E_Int vertex, FldArrayI& cm, std::vector< std::vector<E_Int> >& cVE, E_Int& k)
 {
-  E_Int vertexp;
+  E_Int vertexp = vertex;
   k = 0;
   while (vertex != -1) 
   {
@@ -98,7 +96,6 @@ PyObject* K_CONVERTER::convertPenta2Strand(PyObject* self, PyObject* args)
 
   // the strand grid is a TRI array with extra vertices
   FldArrayI& cm = *(cnl->getConnect(0));
-  E_Int nelts = cm.getSize();
   E_Int nfld = f->getNfld();
   E_Int npts = f->getSize();
 
@@ -123,37 +120,44 @@ PyObject* K_CONVERTER::convertPenta2Strand(PyObject* self, PyObject* args)
   nk = nk-1;
   //printf("I detected %d layers\n", nk);
   
-  E_Int nptsShell = npts / nk;
-  std::unordered_map<E_Int, E_Int> mapv; // tag of bottom shell vertex -> 1
-  std::unordered_map<E_Int, E_Int> mape; // tag of bottom shell triangles -> 1
-  
+  // Find bottom shell vertices
   E_Int* kk = new E_Int [npts]; // k of global vertex
   E_Int* shellVert = new E_Int [npts]; // shell vertex of global vertex
-
-  // Find bottom shell vertices
-  E_Int k;
-  for (E_Int i = 0; i < npts; i++)
+  
+  #pragma omp parallel
   {
-    vertex = findShellBottomVertex(i+1, cm, cVE, k);
-    mapv[vertex] = 1;
-    kk[i] = k;
-    shellVert[i] = vertex;
-    std::vector<E_Int>& elts = cVE[vertex-1];
-    for (E_Int e = 0; e < elts.size(); e++) mape[elts[e]] = 1;
+    E_Int k;
+    #pragma omp for
+    for (E_Int i = 0; i < npts; i++)
+    {
+      shellVert[i] = findShellBottomVertex(i+1, cm, cVE, k);
+      kk[i] = k;
+    }
   }
 
+  // Create point & element sets for the shell
+  E_Int nptsShell = npts / nk;
+  std::unordered_set<E_Int> setv; // set of bottom shell vertex
+  std::unordered_set<E_Int> sete; // set of bottom shell triangles
 
-  //printf("size of mapv = %ld, size of shell=%d\n", mapv.size(), nptsShell);
-  //printf("size of mape = %ld\n", mape.size());
-  E_Int nt = mape.size(); // nbre de triangles de la bottom shell
-
-  // numerote le shell localement suivant la map
-  E_Int* no = new E_Int [nptsShell]; // shell vertex -> local shell vertex
-  E_Int c = 0;
-  for (auto it=mapv.begin(); it != mapv.end(); it++) 
+  for (E_Int i = 0; i < npts; i++)
   {
-    no[it->first-1] = c;
-    //printf("no: %d %d\n", it->first-1, c);
+    vertex = shellVert[i]-1;
+    setv.insert(vertex);
+    std::vector<E_Int>& elts = cVE[vertex];
+    for (size_t e = 0; e < elts.size(); e++) sete.insert(elts[e]);
+  }
+  //printf("size of setv = %ld, size of shell=%d\n", setv.size(), nptsShell);
+  //printf("size of sete = %ld\n", sete.size());
+
+  // numerote le shell localement suivant le set
+  E_Int* no = new E_Int [nptsShell]; // shell vertex -> local shell vertex
+  E_Int nt = sete.size(); // nbre de triangles de la bottom shell
+  E_Int c = 0;
+  for (auto it = setv.begin(); it != setv.end(); it++) 
+  {
+    no[*it] = c;
+    //printf("no: %d %d\n", *it, c);
     c++;
   }
   
@@ -166,38 +170,43 @@ PyObject* K_CONVERTER::convertPenta2Strand(PyObject* self, PyObject* args)
   FldArrayI& cm2 = *(cnl2->getConnect(0));
 
   // copie du field avec renumerotation
-  E_Int ind;
-  for (E_Int n = 1; n <= nfld; n++)
+  #pragma omp parallel
   {
-    E_Float* fp = f->begin(n);
-    E_Float* f2p = f2->begin(n);
-    for (E_Int i = 0; i < npts; i++)
+    E_Int ind;
+    for (E_Int n = 1; n <= nfld; n++)
     {
-      //printf("nodes: %d: %d %d\n", i, shellVert[i], kk[i]);
-      ind = no[shellVert[i]-1]+(kk[i]-1)*nptsShell;
-      f2p[ind] = fp[i];
+      E_Float* fp = f->begin(n);
+      E_Float* f2p = f2->begin(n);
+
+      #pragma omp for
+      for (E_Int i = 0; i < npts; i++)
+      {
+        //printf("nodes: %d: %d %d\n", i, shellVert[i], kk[i]);
+        ind = no[shellVert[i]-1] + (kk[i]-1)*nptsShell;
+        f2p[ind] = fp[i];
+      }
     }
   }
 
   // copie de la connectivite
   E_Int i = 0;
   E_Int elt, v1, v2, v3, ind1, ind2, ind3;
-  for (auto it = mape.begin(); it != mape.end(); it++)
+
+  for (auto it = sete.begin(); it != sete.end(); it++)
   {
-    elt = it->first; // shell element
+    elt = *it; // shell element
     //printf("connect: %d: %d\n", i, elt);
     v1 = cm(elt, 1)-1; v2 = cm(elt, 2)-1; v3 = cm(elt, 3)-1;
     //printf("bottom vertices: %d %d %d\n", v1, v2, v3);
     
-    ind1 = no[shellVert[v1]-1]+(kk[v1]-1)*nptsShell+1;
-    ind2 = no[shellVert[v2]-1]+(kk[v2]-1)*nptsShell+1;
-    ind3 = no[shellVert[v3]-1]+(kk[v3]-1)*nptsShell+1;
+    ind1 = no[shellVert[v1]-1] + (kk[v1]-1)*nptsShell+1;
+    ind2 = no[shellVert[v2]-1] + (kk[v2]-1)*nptsShell+1;
+    ind3 = no[shellVert[v3]-1] + (kk[v3]-1)*nptsShell+1;
     
     //printf("bottom new vertices: %d %d %d\n", ind1, ind2, ind3);
-
-    cm2(i, 1) = ind1;
-    cm2(i, 2) = ind2;
-    cm2(i, 3) = ind3;
+    cm2(i,1) = ind1;
+    cm2(i,2) = ind2;
+    cm2(i,3) = ind3;
     i++;
   }
 

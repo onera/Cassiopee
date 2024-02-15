@@ -55,21 +55,40 @@ PyObject* K_CONVERTER::convertStrand2Penta(PyObject* self, PyObject* args)
   E_Int npts = f->getSize(); // np * nk
   E_Int nfld = f->getNfld(); // nbre de champs
 
-  E_Int api = f->getApi(); if (api == 2) api =3;
+  E_Int api = f->getApi(); if (api == 2) api = 3;
   
   // Get TRI connectivity
   FldArrayI& cm = *(cnl->getConnect(0));
   E_Int ne = cm.getSize();
   E_Int nvpe = cm.getNfld(); // must be 3
 
-  // Guess nk - connectivity reference the first vertices
-  E_Int vmax = 0;
-  for (E_Int i = 0; i < ne; i++)
+  if (nvpe != 3)
   {
-    vmax = std::max(vmax, cm(i,1));
-    vmax = std::max(vmax, cm(i,2));
-    vmax = std::max(vmax, cm(i,3));
+    RELEASESHAREDU(array, f, cnl);
+    PyErr_SetString(PyExc_TypeError, 
+                    "convertStrand2Penta: element type on the skin must be TRI.");
+    return NULL; 
   }
+
+  // Guess nk - connectivity reference the first vertices
+  const E_Int numThreads = omp_get_max_threads();
+  E_Int threadVmax [numThreads] = {0};
+
+  #pragma omp parallel num_threads(numThreads)
+  {
+    E_Int threadId = omp_get_thread_num();
+
+    #pragma omp for
+    for (E_Int i = 0; i < ne; i++)
+    {
+      threadVmax[threadId] = std::max(threadVmax[threadId], cm(i,1));
+      threadVmax[threadId] = std::max(threadVmax[threadId], cm(i,2));
+      threadVmax[threadId] = std::max(threadVmax[threadId], cm(i,3));
+    }
+  }
+
+  E_Int vmax = 0;
+  for (E_Int i = 0; i < numThreads; i++) vmax = std::max(vmax, threadVmax[i]);
 
   E_Int np = vmax;
   E_Int nk = npts / np;
@@ -91,35 +110,38 @@ PyObject* K_CONVERTER::convertStrand2Penta(PyObject* self, PyObject* args)
   K_ARRAY::getFromArray3(tpl, f2, cnl2);
   FldArrayI& cm2 = *(cnl2->getConnect(0));
 
-  // copy field
-  for (E_Int n = 1; n <= nfld; n++)
+  #pragma omp parallel
   {
-    E_Float* fp = f->begin(n);
-    E_Float* fp2 = f2->begin(n);
-
-    for (E_Int i = 0; i < npts; i++)
+    E_Int ind1, ind2, ind3;
+    
+    // copy fields
+    for (E_Int n = 1; n <= nfld; n++)
     {
-      fp2[i] = fp[i];
+      E_Float* fp = f->begin(n);
+      E_Float* fp2 = f2->begin(n);
+
+      #pragma omp for
+      for (E_Int i = 0; i < npts; i++) fp2[i] = fp[i];
     }
-  }
 
-  // copy connect
-  for (E_Int k = 0; k < nk-1; k++)
-  {
-    for (E_Int i = 0; i < ne; i++)
+    // copy connect
+    for (E_Int k = 0; k < nk-1; k++)
     {
-      cm2(i+k*ne,1) = cm(i,1)+k*np;
-      cm2(i+k*ne,2) = cm(i,2)+k*np;
-      cm2(i+k*ne,3) = cm(i,3)+k*np;
-      cm2(i+k*ne,4) = cm(i,1)+(k+1)*np;
-      cm2(i+k*ne,5) = cm(i,2)+(k+1)*np;
-      cm2(i+k*ne,6) = cm(i,3)+(k+1)*np;
-      
+      #pragma omp for
+      for (E_Int i = 0; i < ne; i++)
+      {
+        ind1 = i+k*ne; ind2 = k*np; ind3 = (k+1)*np;
+        cm2(ind1,1) = cm(i,1)+ind2;
+        cm2(ind1,2) = cm(i,2)+ind2;
+        cm2(ind1,3) = cm(i,3)+ind2;
+        cm2(ind1,4) = cm(i,1)+ind3;
+        cm2(ind1,5) = cm(i,2)+ind3;
+        cm2(ind1,6) = cm(i,3)+ind3;
+      }
     }
   }
 
   RELEASESHAREDU(array, f, cnl);
   RELEASESHAREDU(tpl, f2, cnl2);
   return tpl;
-
 }
