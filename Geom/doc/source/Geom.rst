@@ -34,6 +34,7 @@ List of functions
 .. autosummary::
 
    Geom.point
+   Geom.cloud
    Geom.line
    Geom.polyline
    Geom.circle
@@ -131,6 +132,27 @@ A polyline is defined as a C0 i-array which contains only the polyline points (w
     * `Creation of a point (pyTree) <Examples/Geom/pointPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Geom/pointPT.py
+    
+---------------------------------------
+
+.. py:function:: Geom.cloud(arr)
+
+    Create a point cloud of coordinates arr=(X,Y,Z) where X=[x1, x2, ..., xn]
+
+    :param arr: (x,y,z) of point cloud
+    :type arr: 3-tuple of lists/numpy.ndarrays
+    :return: a point cloud
+    :rtype: one array/zone (NODE)
+
+    *Example of use:*
+
+    * `Creation of a point cloud (array) <Examples/Geom/cloud.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/cloud.py
+
+    * `Creation of a point cloud (pyTree) <Examples/Geom/cloudPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/cloudPT.py
 
 ---------------------------------------
 

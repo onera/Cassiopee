@@ -20,6 +20,14 @@ def point(P):
     a[0,0] = P[0]; a[1,0] = P[1]; a[2,0] = P[2]
     c = numpy.ones((1, 0), numpy.int32)
     return ['x,y,z', a, c, 'NODE']
+    
+def cloud(arr):
+    """Create a point cloud. 
+    Usage: a = cloud([(x1,x2,...,xn),(y1,y2,...,yn),(z1,z2,...,zn)])"""
+    if not isinstance(arr, numpy.ndarray):
+        arr = numpy.asarray(arr, numpy.float64)
+    c = numpy.ones((arr.shape[1], 0), numpy.int32)
+    return ['x,y,z', arr, c, 'NODE']
 
 def naca(e, N=101, sharpte=True):
     """Create a NACA00xx profile of N points and thickness e. 

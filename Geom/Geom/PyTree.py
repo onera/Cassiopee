@@ -16,6 +16,12 @@ def point(P):
     Usage: point((x,y,z))"""
     a = Geom.point(P)
     return C.convertArrays2ZoneNode('point', [a])
+    
+def cloud(arr):
+    """Create a point cloud.
+    Usage: cloud([(x1,x2,...,xn),(y1,y2,...,yn),(z1,z2,...,zn)])"""
+    a = Geom.cloud(arr)
+    return C.convertArrays2ZoneNode('cloud', [a])
 
 def naca(e, N=101, sharpte=True):
     """Create a naca profile of N points.
