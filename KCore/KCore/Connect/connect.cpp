@@ -530,8 +530,8 @@ E_Int K_CONNECT::detectMatchInterface2(E_Int im1, E_Int jm1, E_Int km1,
 //=============================================================================
 /* Determine si un des coins de f2 coincident avec le coin (i1,j1,k1) de f1 
    attention: les indices demarrent a 1 en i j et k 
-   Si pas d'ambiguit�, retourne 1 et les indices i2,j2,k2 correspondant
-   Si ambiguit� (plusieurs points possibles), retourne le nb d'ambiguit�s, et 
+   Si pas d'ambiguite, retourne 1 et les indices i2,j2,k2 correspondant
+   Si ambiguite (plusieurs points possibles), retourne le nb d'ambiguites, et 
    retourne le dernier point coincident trouve
 */
 //=============================================================================
