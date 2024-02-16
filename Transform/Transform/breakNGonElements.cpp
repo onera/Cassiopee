@@ -569,13 +569,13 @@ void K_TRANSFORM::breakNGonElements(
               npts2++;
               indirn[indvert] = npts2; 
             }
-            cFN2[sizeFN2+novert] = indirn[indvert];
+            cFN2[sizeFN2+novert+shift] = indirn[indvert];
           }
           sizeFN2 += nv+shift;
           nfaces2++; 
           indirF[fidx] = nfaces2; // demarre a 1
         }
-        cEF2[sizeEF2+nf] = indirF[fidx];
+        cEF2[sizeEF2+nf+shift] = indirF[fidx];
       } // fin boucle sur les faces 
       sizeEF2 += nfacesl+shift;
       nelts2++;
