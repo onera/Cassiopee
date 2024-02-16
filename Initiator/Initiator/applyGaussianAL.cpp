@@ -24,6 +24,10 @@
 using namespace K_FLD;
 using namespace std;
 
+#define RELEASEARRAYS                                       \
+for (E_Int no = 0; no < nzones; no++)                       \
+    RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]); 
+
 #define RELEASEROTMAT                                       \
     for (E_Int nob = 0; nob < NbBlades; nob++)              \
         for (E_Int nosec = 0; nosec < NbPoints; nosec++)    \
@@ -77,52 +81,34 @@ PyObject* K_INITIATOR::getGaussianVelocitiesAL(PyObject* self, PyObject* args)
     E_Int NbPoints, NbBlades;
     PyObject *pyLocalEpsX, *pyLocalEpsY, *pyLocalEpsZ;//local epsilon dans chaque direction pour les pts de la section
     PyObject *listOfALPositions;//coordonnees de tous les pts des actuator lines de toutes les pales
-    PyObject* array; // champs en centres + coordonnees en centres
+    PyObject* arrays; // champs en centres + coordonnees en centres
     PyObject* listOfRotMat2SourceFrame;// matrice de rotation pour chaque pale & pour chaque section de pale
     // la liste est de longueur nbblades*nbPts : toutes les sections de la 1ere pale, puis toutes les sections de la 2e etc
-    if (!PYPARSETUPLE_(args, OOO_ OOO_ II_ S_, 
-                        &array, &listOfALPositions, 
+    if (!PYPARSETUPLE_(args, OOO_ OOO_ II_ SS_, 
+                        &arrays, &listOfALPositions, 
                         &listOfRotMat2SourceFrame,
                         &pyLocalEpsX, &pyLocalEpsY, &pyLocalEpsZ,
                         &NbBlades, &NbPoints, &TRUNCVAR, &RINDVAR)) 
         return NULL;  
 
-
-    // Check array
-    E_Int nil, njl, nkl;
-    FldArrayF* f; FldArrayI* cn;
-    char* varString; char* eltType;
-    E_Int res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
-                                         cn, eltType);  
-
-    if (res != 1 && res != 2)
-    { 
-        PyErr_SetString(PyExc_TypeError,
-                        "applyLoads: invalid array.");
-        return NULL;
-    }    
-    E_Int posx = K_ARRAY::isNamePresent("XCell", varString); //K_ARRAY::isCoordinateXPresent(varString);
-    E_Int posy = K_ARRAY::isNamePresent("YCell", varString);//K_ARRAY::isCoordinateYPresent(varString);
-    E_Int posz = K_ARRAY::isNamePresent("ZCell", varString);//K_ARRAY::isCoordinateZPresent(varString);
-    E_Int posvol = K_ARRAY::isNamePresent("vol", varString); 
-    E_Int postrunc = K_ARRAY::isNamePresent(TRUNCVAR, varString); 
-    E_Int posrind = K_ARRAY::isNamePresent(RINDVAR, varString); 
-    E_Float posu = K_ARRAY::isVelocityXPresent(varString);
-    E_Float posv = K_ARRAY::isVelocityYPresent(varString); 
-    E_Float posw = K_ARRAY::isVelocityZPresent(varString);   
-    E_Float posuo = K_ARRAY::isNamePresent("VelXOut", varString);
-    E_Float posvo = K_ARRAY::isNamePresent("VelYOut", varString); 
-    E_Float poswo = K_ARRAY::isNamePresent("VelZOut", varString);       
-    if (posx==-1 || posy==-1 || posz==-1 || posvol == -1 || posrind == -1 ||
-        posu==-1 || posv==-1 || posw==-1 || postrunc==-1 )
+    vector<E_Int> resl;  vector<char*> varString;
+    vector<FldArrayF*> fields;
+    vector<void*> a2; //ni,nj,nk ou cnt en NS
+    vector<void*> a3; //eltType en NS
+    vector<void*> a4;
+    vector<PyObject*> objs;
+    E_Boolean skipNoCoord = false; E_Boolean skipStructured = false;
+    E_Boolean skipUnstructured = false; E_Boolean skipDiffVars = false;
+    E_Int ok = K_ARRAY::getFromArrays(arrays, resl, varString, fields, a2, a3, a4, objs,  
+                                skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true); 
+    E_Int nzones = objs.size();
+    if (ok == -1 || nzones == 0)
     {
-        RELEASESHAREDB(res, array, f, cn);
+        RELEASEARRAYS;
         PyErr_SetString(PyExc_TypeError,
-                    "applyLoads: cannot find coordinates in array.");
+                        "applyLoads: 1st argument is not valid.");
         return NULL;
-    }
-    posx++; posy++; posz++; posvol++; postrunc++; posrind++;
-    posu++; posv++; posw++; posuo++; posvo++; poswo++;
+    }       
 
     //recuperation des positions des AL de toutes les pales
     vector<FldArrayF*> vectOfALPositions(NbBlades);
@@ -130,10 +116,10 @@ PyObject* K_INITIATOR::getGaussianVelocitiesAL(PyObject* self, PyObject* args)
     {
         PyObject* pyALPositionsForBlade = PyList_GetItem(listOfALPositions, i);
         FldArrayF* ALPositionsF;
-        E_Int resl = K_NUMPY::getFromNumpyArray(pyALPositionsForBlade, ALPositionsF, true);
-        if (resl == 0)
+        E_Int resn = K_NUMPY::getFromNumpyArray(pyALPositionsForBlade, ALPositionsF, true);
+        if (resn == 0)
         {
-            RELEASESHAREDB(res, array, f, cn);
+            RELEASEARRAYS;
             RELEASEBLOCKP1;        
             PyErr_SetString(PyExc_TypeError, 
                             "applyAL: 2nd arg (AL positions per blade) must be a numpy of floats.");
@@ -149,10 +135,10 @@ PyObject* K_INITIATOR::getGaussianVelocitiesAL(PyObject* self, PyObject* args)
             E_Int ind = nosec + nob*NbPoints;
             PyObject* tpl = PyList_GetItem(listOfRotMat2SourceFrame, ind);
             FldArrayF* RotMatLocal;
-            E_Int resl = K_NUMPY::getFromNumpyArray(tpl, RotMatLocal, true);
-            if (resl==0)
+            E_Int resn = K_NUMPY::getFromNumpyArray(tpl, RotMatLocal, true);
+            if (resn==0)
             {
-                RELEASESHAREDB(res, array, f, cn);  
+                RELEASEARRAYS;               
                 RELEASEBLOCK1; 
                 for (E_Int ind2 = 0; ind2 < ind; ind2++)
                 {
@@ -168,7 +154,7 @@ PyObject* K_INITIATOR::getGaussianVelocitiesAL(PyObject* self, PyObject* args)
     E_Int rese = K_NUMPY::getFromNumpyArray(pyLocalEpsX, localEps_X, true);
     if (rese == 0) 
     {
-        RELEASESHAREDB(res, array, f, cn);  
+        RELEASEARRAYS;
         RELEASEBLOCK1; RELEASEROTMAT;
         PyErr_SetString(PyExc_TypeError, 
                         "applyAL: 3rd arg (eps local wrt x) must be a numpy of floats .");
@@ -179,7 +165,7 @@ PyObject* K_INITIATOR::getGaussianVelocitiesAL(PyObject* self, PyObject* args)
     rese = K_NUMPY::getFromNumpyArray(pyLocalEpsY, localEps_Y, true);
     if (rese == 0) 
     {
-        RELEASESHAREDB(res, array, f, cn);  
+        RELEASEARRAYS;
         RELEASEBLOCK1; RELEASEROTMAT;
         RELEASESHAREDN(pyLocalEpsX, localEps_X);
         PyErr_SetString(PyExc_TypeError, 
@@ -191,7 +177,7 @@ PyObject* K_INITIATOR::getGaussianVelocitiesAL(PyObject* self, PyObject* args)
     rese = K_NUMPY::getFromNumpyArray(pyLocalEpsZ, localEps_Z, true);
     if (rese == 0) 
     {
-        RELEASESHAREDB(res, array, f, cn);  
+        RELEASEARRAYS;
         RELEASEBLOCK1; RELEASEROTMAT;
         RELEASESHAREDN(pyLocalEpsX, localEps_X);
         RELEASESHAREDN(pyLocalEpsY, localEps_Y);
@@ -199,19 +185,6 @@ PyObject* K_INITIATOR::getGaussianVelocitiesAL(PyObject* self, PyObject* args)
                         "applyAL: 5th arg (eps local wrt z) must be a numpy of floats .");
         return NULL;
     }
-    E_Int npts = f->getSize();
-    E_Float* xt = f->begin(posx);
-    E_Float* yt = f->begin(posy);
-    E_Float* zt = f->begin(posz);  
-    E_Float* vxt = f->begin(posu);
-    E_Float* vyt = f->begin(posv);
-    E_Float* vzt = f->begin(posw);  
-    E_Float* vxo = f->begin(posuo);
-    E_Float* vyo = f->begin(posvo);
-    E_Float* vzo = f->begin(poswo);          
-    E_Float* volt = f->begin(posvol);  
-    E_Float* trunct = f->begin(postrunc);  
-    E_Float* rindt = f->begin(posrind);  
     
     E_Float* epsX = localEps_X->begin();
     E_Float* epsY = localEps_Y->begin();
@@ -237,7 +210,6 @@ PyObject* K_INITIATOR::getGaussianVelocitiesAL(PyObject* self, PyObject* args)
     vector<FldArrayF*> listOfVelX_AL(NbBlades);
     vector<FldArrayF*> listOfVelY_AL(NbBlades);
     vector<FldArrayF*> listOfVelZ_AL(NbBlades);
-
     for (E_Int nob = 0; nob < NbBlades; nob++)
     {
         E_Float* x_AL = vectOfALPositions[nob]->begin(1);
@@ -277,49 +249,89 @@ PyObject* K_INITIATOR::getGaussianVelocitiesAL(PyObject* self, PyObject* args)
             E_Float* sumvy = sums.begin(2);
             E_Float* sumvz = sums.begin(3);
 
+            for ( E_Int noz = 0; noz < nzones; noz++)
+            {
+                E_Int posx = K_ARRAY::isNamePresent("XCell", varString[noz]); //K_ARRAY::isCoordinateXPresent(varString);
+                E_Int posy = K_ARRAY::isNamePresent("YCell", varString[noz]);//K_ARRAY::isCoordinateYPresent(varString);
+                E_Int posz = K_ARRAY::isNamePresent("ZCell", varString[noz]);//K_ARRAY::isCoordinateZPresent(varString);
+                E_Int posvol = K_ARRAY::isNamePresent("vol", varString[noz]); 
+                E_Int postrunc = K_ARRAY::isNamePresent(TRUNCVAR, varString[noz]); 
+                E_Int posrind = K_ARRAY::isNamePresent(RINDVAR, varString[noz]); 
+                E_Float posu = K_ARRAY::isVelocityXPresent(varString[noz]);
+                E_Float posv = K_ARRAY::isVelocityYPresent(varString[noz]); 
+                E_Float posw = K_ARRAY::isVelocityZPresent(varString[noz]);   
+                E_Float posuo = K_ARRAY::isNamePresent("VelXOut", varString[noz]);
+                E_Float posvo = K_ARRAY::isNamePresent("VelYOut", varString[noz]); 
+                E_Float poswo = K_ARRAY::isNamePresent("VelZOut", varString[noz]);       
+                if (posx==-1 || posy==-1 || posz==-1 || 
+                    posvol == -1 || posrind == -1 || postrunc == -1 || 
+                    posu==-1 || posv==-1 || posw==-1 || 
+                    posuo==-1 || posvo==-1 || poswo==-1)
+                {
+                    RELEASEARRAYS;
+                    PyErr_SetString(PyExc_TypeError,
+                        "applyLoads: cannot find coordinates in array.");
+                    return NULL;
+                }
+                posx++; posy++; posz++; posvol++; postrunc++; posrind++;
+                posu++; posv++; posw++; posuo++; posvo++; poswo++;                           
+                FldArrayF* f = fields[noz];
+                E_Int npts = f->getSize();
+                E_Float* xt = f->begin(posx);
+                E_Float* yt = f->begin(posy);
+                E_Float* zt = f->begin(posz);  
+                E_Float* vxt = f->begin(posu);
+                E_Float* vyt = f->begin(posv);
+                E_Float* vzt = f->begin(posw);  
+                E_Float* vxo = f->begin(posuo);
+                E_Float* vyo = f->begin(posvo);
+                E_Float* vzo = f->begin(poswo);          
+                E_Float* volt = f->begin(posvol);  
+                E_Float* trunct = f->begin(postrunc);  
+                E_Float* rindt = f->begin(posrind);  
+
             #pragma omp parallel default(shared)
             {
             #pragma omp for 
             for (E_Int ind = 0; ind < npts; ind++)
             {
                 vxo[ind]=0.; vyo[ind]=0.; vzo[ind]=0.;                   
-                if ( rindt[ind] > 0.)
-                {
-                    E_Int ithread = __CURRENT_THREAD__;
 
-                    E_Float volCell = volt[ind];
-                    E_Float truncCell = trunct[ind];
-                    E_Float XCell = xt[ind];
-                    E_Float YCell = yt[ind];
-                    E_Float ZCell = zt[ind];
+                E_Int ithread = __CURRENT_THREAD__;
 
-                    //(Xcell-X_AL)/epsX
-                    E_Float X_ind = 
-                        RotMat11*(XCell-x_AL[nosec])+
-                        RotMat12*(YCell-y_AL[nosec])+
-                        RotMat13*(ZCell-z_AL[nosec]);
+                E_Float volCell = volt[ind];
+                E_Float truncCell = trunct[ind];
+                E_Float XCell = xt[ind];
+                E_Float YCell = yt[ind];
+                E_Float ZCell = zt[ind];
+
+                //(Xcell-X_AL)/epsX
+                E_Float X_ind = 
+                RotMat11*(XCell-x_AL[nosec])+
+                RotMat12*(YCell-y_AL[nosec])+
+                RotMat13*(ZCell-z_AL[nosec]);
             
-                    E_Float Y_ind = 
+                E_Float Y_ind = 
                     RotMat21*(XCell-x_AL[nosec])+
                     RotMat22*(YCell-y_AL[nosec])+
                     RotMat23*(ZCell-z_AL[nosec]);
 
-                    E_Float Z_ind = 
+                E_Float Z_ind = 
                         RotMat31*(XCell-x_AL[nosec])+
                         RotMat32*(YCell-y_AL[nosec])+
                         RotMat33*(ZCell-z_AL[nosec]);
 
-                    E_Float gauss = coef * volCell * truncCell * exp(-X_ind*X_ind-Y_ind*Y_ind-Z_ind*Z_ind);
-                    vxo[ind] = vxt[ind]*gauss*GaussianNormInv;
-                    vyo[ind] = vyt[ind]*gauss*GaussianNormInv;
-                    vzo[ind] = vzt[ind]*gauss*GaussianNormInv;
-                    sumvx[ithread] += vxo[ind];
-                    sumvy[ithread] += vyo[ind];
-                    sumvz[ithread] += vzo[ind];
-                }//rind >0
+                E_Float gauss = coef*volCell*truncCell*exp(-X_ind*X_ind-Y_ind*Y_ind-Z_ind*Z_ind);
+                vxo[ind] = vxt[ind]*gauss*GaussianNormInv;
+                vyo[ind] = vyt[ind]*gauss*GaussianNormInv;
+                vzo[ind] = vzt[ind]*gauss*GaussianNormInv;
+                sumvx[ithread] += vxo[ind]*rindt[ind];
+                sumvy[ithread] += vyo[ind]*rindt[ind];
+                sumvz[ithread] += vzo[ind]*rindt[ind];
+         
             }   //npts
             }//omp
-        
+            }// nzones
             for (E_Int nt = 0; nt < nthreads; nt++)
             {
                 vx_AL[nosec] += sumvx[nt];
@@ -332,30 +344,31 @@ PyObject* K_INITIATOR::getGaussianVelocitiesAL(PyObject* self, PyObject* args)
         listOfVelZ_AL[nob]=VelZ_AL;    
 
     } // noblade
-    PyObject* PyListOfVelXAL = PyList_New(0);
-    PyObject* PyListOfVelYAL = PyList_New(0);
-    PyObject* PyListOfVelZAL = PyList_New(0);
-
+    PyObject* PyListOfOutputVelocities = PyList_New(0);
     for (E_Int noblade = 0; noblade < NbBlades; noblade++)
     {
+        PyObject* PyListOfVelForBlade = PyList_New(0);
+        
         PyObject* txout = K_NUMPY::buildNumpyArray(*listOfVelX_AL[noblade],1);
-        PyList_Append(PyListOfVelXAL, txout); Py_DECREF(txout);
+        PyList_Append(PyListOfVelForBlade, txout); Py_DECREF(txout);
         delete listOfVelX_AL[noblade];
+        
         PyObject* tyout = K_NUMPY::buildNumpyArray(*listOfVelY_AL[noblade],1);
-        PyList_Append(PyListOfVelYAL, tyout); Py_DECREF(tyout);
-        delete listOfVelY_AL[noblade];       
+        PyList_Append(PyListOfVelForBlade, tyout); Py_DECREF(tyout);
+        delete listOfVelY_AL[noblade];
+        
         PyObject* tzout = K_NUMPY::buildNumpyArray(*listOfVelZ_AL[noblade],1);
-        PyList_Append(PyListOfVelZAL, tzout); Py_DECREF(tzout);
-        delete listOfVelZ_AL[noblade];               
-    }
-    RELEASESHAREDB(res, array, f, cn);  
-    RELEASEBLOCK1; 
+        PyList_Append(PyListOfVelForBlade, tzout); Py_DECREF(tzout);
+        delete listOfVelZ_AL[noblade];        
+        
+        PyList_Append(PyListOfOutputVelocities, PyListOfVelForBlade); 
+        Py_DECREF(PyListOfVelForBlade);
+    }         
 
-    PyObject* tplout = Py_BuildValue("[OOO]", PyListOfVelXAL, PyListOfVelYAL, PyListOfVelZAL);
-    Py_DECREF(PyListOfVelXAL);
-    Py_DECREF(PyListOfVelYAL);
-    Py_DECREF(PyListOfVelZAL);
+    RELEASEBLOCK1; RELEASEARRAYS;
 
+    PyObject* tplout = Py_BuildValue("O", PyListOfOutputVelocities);
+    Py_DECREF(PyListOfOutputVelocities);
     return tplout; 
 }
 // ============================================================================
@@ -425,8 +438,8 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
     {
         PyObject* pyLoadsForBlade = PyList_GetItem(listOfAllLoads, i);
         FldArrayF* loadsF;
-        E_Int resl = K_NUMPY::getFromNumpyArray(pyLoadsForBlade, loadsF, true);
-        if (resl == 0)
+        E_Int resn = K_NUMPY::getFromNumpyArray(pyLoadsForBlade, loadsF, true);
+        if (resn == 0)
         {
             RELEASESHAREDB(res, array, f, cn);
             RELEASEBLOCKP0;
@@ -440,8 +453,8 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
     {
         PyObject* pyALPositionsForBlade = PyList_GetItem(listOfALPositions, i);
         FldArrayF* ALPositionsF;
-        E_Int resl = K_NUMPY::getFromNumpyArray(pyALPositionsForBlade, ALPositionsF, true);
-        if (resl == 0)
+        E_Int resn = K_NUMPY::getFromNumpyArray(pyALPositionsForBlade, ALPositionsF, true);
+        if (resn == 0)
         {
             RELEASESHAREDB(res, array, f, cn);  
             RELEASEBLOCK0;
@@ -459,8 +472,8 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
             E_Int ind = nosec + nob*NbPoints;
             PyObject* tpl = PyList_GetItem(listOfRotMat2SourceFrame, ind);
             FldArrayF* RotMatLocal;
-            E_Int resl = K_NUMPY::getFromNumpyArray(tpl, RotMatLocal, true);
-            if (resl==0)
+            E_Int resn = K_NUMPY::getFromNumpyArray(tpl, RotMatLocal, true);
+            if (resn==0)
             {
                 RELEASESHAREDB(res, array, f, cn);  
                 RELEASEBLOCK0;                
@@ -574,7 +587,6 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
             
         for(E_Int nosec = 0; nosec < NbPoints; nosec++)
         {
-
             E_Float Fx0 = Fx[nosec];
             E_Float Fy0 = Fy[nosec];
             E_Float Fz0 = Fz[nosec];

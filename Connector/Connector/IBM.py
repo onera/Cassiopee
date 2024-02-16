@@ -22,7 +22,6 @@ import KCore.test as test
 import Converter
 import Generator
 import Transform
-import Converter.GhostCells as CGC
 import KCore
 import numpy
 import math
@@ -185,9 +184,10 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
         if verbose: pt0 = python_time.time(); printTimeAndMemory__('generate Cartesian mesh', time=-1)
         test.printMem("Info: prepareIBMDataPara: generate Cartesian mesh [start]")
         t = G_IBM.generateIBMMeshPara(tb, vmin=vmin, snears=snears, dimPb=dimPb, dfar=dfar, dfarList=dfarList, tbox=tbox,
-                    snearsf=snearsf, check=check, symmetry=0, to=to, ext=3,
+                    snearsf=snearsf, check=check, to=to, ext=depth+1,
                     expand=expand, dfarDir=dfarDir, check_snear=False, mode=mode)
-        
+        Internal._rmNodesFromName(tb,"SYM")
+
         if balancing and Cmpi.size > 1: _redispatch__(t=t)
         if verbose: printTimeAndMemory__('generate Cartesian mesh', time=python_time.time()-pt0)
         
@@ -1282,91 +1282,6 @@ def _blankByIBCBodies(t, tb, loc, dim, cellNName='cellN'):
         for body in bodies:           
             X._blankCellsTri(t, [body], BM2, blankingType=typeb, cellNName=cellNName)
 
-    return None
-
-#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-## BC
-#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-#==============================================================================
-# IN: bbox: bbox des frontieres exterieures
-#
-# _modifPhysicalBCs__: Reduction de la taille des fenetres des BC physiques
-#  pour qu'elles soient traitees comme des ghost cells
-#==============================================================================
-def _modifPhysicalBCs__(zp, depth=2, dimPb=3):
-    dimZone = Internal.getZoneDim(zp)
-
-    # Physical BCs
-    bclist = Internal.getNodesFromType2(zp, 'BC_t')
-    for bc in bclist:
-        prange = Internal.getNodesFromName1(bc, 'PointRange')
-        if prange != []:
-            direction = CGC.getDirection__(dimPb, prange)
-            # change PointRange for extended mesh
-            pr = numpy.copy(prange[0][1])
-            ijk = int(direction/2)
-            minmax = direction%2
-            for dirl in range(dimZone[4]):
-                if dirl != ijk:
-                    if dimPb == 2 and dirl == 2: pass
-                    else:
-                        if dirl == 0: N = dimZone[1]
-                        elif dirl == 1: N = dimZone[2]
-                        else: N = dimZone[3]
-                        pr[dirl][0] += depth
-                        pr[dirl][1] -= depth
-            prange[0][1] = pr
-    return None
-
-def _addExternalBCs(t, bbox, DEPTH=2, externalBCType='BCFarfield', dimPb=3):
-    """Add external BCs of given type to BCs out of or on bbox."""
-    dirs = [0,1,2,3,4,5]
-    rangeDir=['imin','jmin','kmin','imax','jmax','kmax']
-    if dimPb == 2: dirs = [0,1,3,4]
-    nptsTot = 0
-    for zp in Internal.getZones(t):
-        dimZ = Internal.getZoneDim(zp)
-        niz = dimZ[1]; njz = dimZ[2]; nkz = dimZ[3]
-        nptsTot += niz*njz*nkz
-        indM = niz-1+(njz-1)*niz+(nkz-1)*niz*njz
-        x1 = C.getValue(zp,'CoordinateX',0)
-        y1 = C.getValue(zp,'CoordinateY',0)
-        z1 = C.getValue(zp,'CoordinateZ',0)
-        x2 = C.getValue(zp,'CoordinateX',indM)
-        y2 = C.getValue(zp,'CoordinateY',indM)
-        z2 = C.getValue(zp,'CoordinateZ',indM)
-        bbz=[x1,y1,z1,x2,y2,z2]
-        external = False
-        for idir in dirs:
-            if abs(bbz[idir]-bbox[idir])< 1.e-6:
-                C._addBC2Zone(zp, 'external', externalBCType, rangeDir[idir])
-                external = True
-        if externalBCType != 'BCOverlap' and externalBCType != 'BCDummy':
-            if external: _modifPhysicalBCs__(zp, depth=DEPTH, dimPb=dimPb)
-    return None
-
-def _addBCOverlaps(t, bbox):
-    """Add BCOverlap boundary condition to BCs entirely inside bbox."""
-    xmin = bbox[0]; ymin = bbox[1]; zmin = bbox[2]
-    xmax = bbox[3]; ymax = bbox[4]; zmax = bbox[5]
-    for z in Internal.getZones(t):
-        # [x1,y1,z1,x2,y2,z2] = G.bbox(z)
-        dimZ = Internal.getZoneDim(z)
-        niz = dimZ[1]; njz = dimZ[2]; nkz = dimZ[3]
-        indM = niz-1+(njz-1)*niz+(nkz-1)*niz*njz
-        x1 = C.getValue(z,'CoordinateX',0)
-        y1 = C.getValue(z,'CoordinateY',0)
-        z1 = C.getValue(z,'CoordinateZ',0)
-        x2 = C.getValue(z,'CoordinateX',indM)
-        y2 = C.getValue(z,'CoordinateY',indM)
-        z2 = C.getValue(z,'CoordinateZ',indM)
-        if x1 > xmin+EPSCART: C._addBC2Zone(z,'overlap1','BCOverlap','imin')
-        if x2 < xmax-EPSCART: C._addBC2Zone(z,'overlap2','BCOverlap','imax')
-        if y1 > ymin+EPSCART: C._addBC2Zone(z,'overlap3','BCOverlap','jmin')
-        if y2 < ymax-EPSCART: C._addBC2Zone(z,'overlap4','BCOverlap','jmax')
-        if z1 > zmin+EPSCART: C._addBC2Zone(z,'overlap5','BCOverlap','kmin')
-        if z2 < zmax-EPSCART: C._addBC2Zone(z,'overlap6','BCOverlap','kmax')
     return None
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

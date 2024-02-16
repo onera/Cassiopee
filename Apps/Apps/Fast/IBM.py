@@ -1048,7 +1048,7 @@ class IBM(Common):
                     sn = Internal.getNodeFromName2(z, 'snear')
                     if sn is not None: self.input_var.snearsf.append(Internal.getValue(sn))
                     else: self.input_var.snearsf.append(1.)
-        symmetry = 0
+     
         fileout = None
         if self.input_var.check: fileout = 'octree.cgns'
         # Octree identical on all procs
@@ -1063,7 +1063,7 @@ class IBM(Common):
         else:
             o = G_IBM.buildOctree(tb, snears=self.input_var.snears, snearFactor=1., dfar=self.input_var.dfar, dfarList=self.input_var.dfarList,
                                   to=self.input_var.to, tbox=self.input_var.tbox, snearsf=self.input_var.snearsf,
-                                  dimPb=self.dimPb, vmin=self.input_var.vmin, symmetry=symmetry, fileout=None, rank=self.rank,
+                                  dimPb=self.dimPb, vmin=self.input_var.vmin, fileout=None, rank=self.rank,
                                   expand=self.input_var.expand, dfarDir=self.input_var.dfarDir)
     
         if self.rank==0 and self.input_var.check: C.convertPyTree2File(o, fileout)
@@ -1071,7 +1071,7 @@ class IBM(Common):
         # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
         parento = G_IBM.buildParentOctrees__(o, tb, snears=self.input_var.snears, snearFactor=4., dfar=self.input_var.dfar, dfarList=self.input_var.dfarList, to=self.input_var.to,
                                              tbox=self.input_var.tbox, snearsf=self.input_var.snearsf,
-                                             dimPb=self.dimPb, vmin=self.input_var.vmin, symmetry=symmetry, fileout=None, rank=self.rank)
+                                             dimPb=self.dimPb, vmin=self.input_var.vmin, fileout=None, rank=self.rank)
         test.printMem(">>> Octree unstruct [end]")
 
         if self.input_var.check_snear: exit()
@@ -1154,8 +1154,8 @@ class IBM(Common):
         coords = None; zones = None
         test.printMem(">>> extended cart grids (after rmXZones) [end]")        
         
-        X_IBM._addBCOverlaps(t, bbox=bb)
-        X_IBM._addExternalBCs(t, bbox=bb, dimPb=self.dimPb)
+        G_IBM._addBCOverlaps(t, bbox=bb)
+        G_IBM._addExternalBCs(t, bbox=bb, dimPb=self.dimPb)
     
         if self.dimPb == 2:
             self.input_var.dz = 0.01

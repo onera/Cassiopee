@@ -30,11 +30,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
 {
   PyObject *arrays;
   E_Int ext, optimized, extBnd;
-#ifdef E_DOUBLEINT 
-  if (!PyArg_ParseTuple(args, "Olll", &arrays, &ext, &optimized, &extBnd)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Oiii", &arrays, &ext, &optimized, & extBnd)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, O_ III_, &arrays, &ext, &optimized, &extBnd)) return NULL;
+
   if (ext < 0) 
   {
    PyErr_SetString(PyExc_TypeError, 
@@ -1073,7 +1070,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
     if (abs(dh-dh3)<eps_local) dh3=dh;
     
 
-    if ( extBnd >0 ) 
+    if (extBnd > 0) 
     {
       if ( ext1[v] == 0 && extBnd>0) ext1[v]=extBnd;
       if ( ext2[v] == 0 && extBnd>0) ext2[v]=extBnd;

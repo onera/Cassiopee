@@ -420,7 +420,6 @@ def prepareOctree(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=
             tbox=None, snearsf=None, expand=3, check=False, fileout='octree.cgns'):
     recoverBC=False
     isHanging=False
-    symmetry=0
     dfarDir=0
     IBCType=1
     externalBCType = 'BCFarfield'
@@ -478,7 +477,7 @@ def prepareOctree(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=
 
     o = TIBM.buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList,
                          to=to, tbox=tbox, snearsf=snearsf,
-                         dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=rank,
+                         dimPb=dimPb, vmin=vmin, fileout=None, rank=rank,
                          expand=expand, dfarDir=dfarDir)
     if rank==0 and check: C.convertPyTree2File(o, fileout)
     bbo = G.bbox(o)
@@ -486,7 +485,7 @@ def prepareOctree(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
     parento = TIBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
-                                        dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=rank)
+                                        dimPb=dimPb, vmin=vmin, fileout=None, rank=rank)
     test.printMem(">>> Octree unstruct [end]")
 
     # Split octree

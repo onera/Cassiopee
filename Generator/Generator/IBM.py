@@ -15,11 +15,12 @@ import Transform
 import Converter.GhostCells as CGC
 import Connector.PyTree as X
 import Converter.Mpi as Cmpi
+import numpy
 
 EPSCART = 1.e-6
 
 def generateCartMesh__(o, parento=None, dimPb=3, vmin=11, DEPTH=2, sizeMax=4000000, check=True,
-                       symmetry=0, externalBCType='BCFarfield', bbox=None):
+                       externalBCType='BCFarfield', bbox=None):
 
     # Estimation du nb de pts engendres
     vminv0 = vmin+2*DEPTH
@@ -59,7 +60,7 @@ def generateCartMesh__(o, parento=None, dimPb=3, vmin=11, DEPTH=2, sizeMax=40000
 
 def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, sizeMax=4000000,
                  variables=None, refineFinestLevel=False, refineNearBodies=False,
-                 check=True, symmetry=0, externalBCType='BCFarfield', fileo='octree.cgns',
+                 check=True, externalBCType='BCFarfield', fileo='octree.cgns',
                  isAMR=False,valMin=0,valMax=1):
     import Converter.Mpi as Cmpi
     if fileo is None: raise ValueError("adaptIBMMesh: Octree mesh must be specified by a file.")
@@ -102,8 +103,7 @@ def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, sizeMax=4000000,
     if Cmpi.size==1: C.convertPyTree2File(o, fileo)
 
     t2 = generateCartMesh__(o, dimPb=dimPb, vmin=vmin, DEPTH=DEPTH,
-                            sizeMax=sizeMax, check=check, symmetry=symmetry,
-                            externalBCType=externalBCType)
+                            sizeMax=sizeMax, check=check, externalBCType=externalBCType)
 
     #C._initVars(t2,"centers:Density=%g"%(Internal.getValue(Internal.getNodeFromName(refstate,'Density'))))
     #C._initVars(t2,"centers:VelocityX=%g"%(Internal.getValue(Internal.getNodeFromName(refstate,'VelocityX'))))
@@ -119,7 +119,7 @@ def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, sizeMax=4000000,
 
 def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tbox=None,
                     snearsf=None, check=True, sizeMax=4000000,
-                    symmetry=0, externalBCType='BCFarfield', to=None,
+                    externalBCType='BCFarfield', to=None,
                     fileo=None, expand=2, dfarDir=0, mode=0):
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
     if dimPb is None: raise ValueError('generateIBMMesh: EquationDimension is missing in input body tree.')
@@ -139,7 +139,7 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tb
                     raise ValueError("In tb: governing equations (Euler) not consistent with ibc type (%s)"%(ibctype))
     if to is None:
         o = buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
-                        dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=fileo, rank=0,
+                        dimPb=dimPb, vmin=vmin, fileout=fileo, rank=0,
                         expand=expand, dfarDir=dfarDir, mode=mode)
     else:
         o = Internal.getZones(to)[0]
@@ -148,14 +148,223 @@ def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tb
     # retourne les 4 quarts (en 2D) de l'octree parent 2 niveaux plus haut
     # et les 8 octants en 3D sous forme de listes de zones non structurees
     parento = buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
-                                   dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=0, dfarDir=dfarDir, mode=mode)
+                                   dimPb=dimPb, vmin=vmin, fileout=None, rank=0, dfarDir=dfarDir, mode=mode)
     res = generateCartMesh__(o, parento=parento, dimPb=dimPb, vmin=vmin, DEPTH=DEPTH, sizeMax=sizeMax,
-                             check=check, symmetry=symmetry, externalBCType=externalBCType)
+                             check=check, externalBCType=externalBCType)
     return res
 
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+## BC
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+#==============================================================================
+# IN: bbox: bbox des frontieres exterieures
+#
+# _modifPhysicalBCs__: Reduction de la taille des fenetres des BC physiques
+#  pour qu'elles soient traitees comme des ghost cells
+#==============================================================================
+def _modifPhysicalBCs__(zp, depth=2, dimPb=3):
+    dimZone = Internal.getZoneDim(zp)
+
+    # Physical BCs
+    bclist = Internal.getNodesFromType2(zp, 'BC_t')
+    for bc in bclist:
+        prange = Internal.getNodesFromName1(bc, 'PointRange')
+        if prange != []:
+            direction = CGC.getDirection__(dimPb, prange)
+            # change PointRange for extended mesh
+            pr = numpy.copy(prange[0][1])
+            ijk = int(direction/2)
+            minmax = direction%2
+            for dirl in range(dimZone[4]):
+                if dirl != ijk:
+                    if dimPb == 2 and dirl == 2: pass
+                    else:
+                        if dirl == 0: N = dimZone[1]
+                        elif dirl == 1: N = dimZone[2]
+                        else: N = dimZone[3]
+                        pr[dirl][0] += depth
+                        pr[dirl][1] -= depth
+            prange[0][1] = pr
+    return None
+
+def _addExternalBCs(t, bbox, DEPTH=2, externalBCType='BCFarfield', dimPb=3):
+    """Add external BCs of given type to BCs out of or on bbox."""
+    dirs = [0,1,2,3,4,5]
+    rangeDir=['imin','jmin','kmin','imax','jmax','kmax']
+    if dimPb == 2: dirs = [0,1,3,4]
+    for zp in Internal.getZones(t):
+        dimZ = Internal.getZoneDim(zp)
+        niz = dimZ[1]; njz = dimZ[2]; nkz = dimZ[3]
+        indM = niz-1+(njz-1)*niz+(nkz-1)*niz*njz
+        x1 = C.getValue(zp,'CoordinateX',0)
+        y1 = C.getValue(zp,'CoordinateY',0)
+        z1 = C.getValue(zp,'CoordinateZ',0)
+        x2 = C.getValue(zp,'CoordinateX',indM)
+        y2 = C.getValue(zp,'CoordinateY',indM)
+        z2 = C.getValue(zp,'CoordinateZ',indM)
+        bbz=[x1,y1,z1,x2,y2,z2]
+        external = False
+        for idir in dirs:
+            if abs(bbz[idir]-bbox[idir])< 1.e-6:
+                C._addBC2Zone(zp, 'external', externalBCType, rangeDir[idir])
+                external = True
+        if externalBCType != 'BCOverlap' and externalBCType != 'BCDummy':
+            if external: _modifPhysicalBCs__(zp, depth=DEPTH, dimPb=dimPb)
+    return None
+
+def _addBCOverlaps(t, bbox):
+    """Add BCOverlap boundary condition to BCs entirely inside bbox."""
+    xmin = bbox[0]; ymin = bbox[1]; zmin = bbox[2]
+    xmax = bbox[3]; ymax = bbox[4]; zmax = bbox[5]
+    for z in Internal.getZones(t):
+        # [x1,y1,z1,x2,y2,z2] = G.bbox(z)
+        dimZ = Internal.getZoneDim(z)
+        niz = dimZ[1]; njz = dimZ[2]; nkz = dimZ[3]
+        indM = niz-1+(njz-1)*niz+(nkz-1)*niz*njz
+        x1 = C.getValue(z,'CoordinateX',0)
+        y1 = C.getValue(z,'CoordinateY',0)
+        z1 = C.getValue(z,'CoordinateZ',0)
+        x2 = C.getValue(z,'CoordinateX',indM)
+        y2 = C.getValue(z,'CoordinateY',indM)
+        z2 = C.getValue(z,'CoordinateZ',indM)
+        if x1 > xmin+EPSCART: C._addBC2Zone(z,'overlap1','BCOverlap','imin')
+        if x2 < xmax-EPSCART: C._addBC2Zone(z,'overlap2','BCOverlap','imax')
+        if y1 > ymin+EPSCART: C._addBC2Zone(z,'overlap3','BCOverlap','jmin')
+        if y2 < ymax-EPSCART: C._addBC2Zone(z,'overlap4','BCOverlap','jmax')
+        if z1 > zmin+EPSCART: C._addBC2Zone(z,'overlap5','BCOverlap','kmin')
+        if z2 < zmax-EPSCART: C._addBC2Zone(z,'overlap6','BCOverlap','kmax')
+    return None
+
+# on the other side of the sym plane using DEPTH ghost cells
+# BCOverlaps must not be defined on the other side of the symmetry plane
+def _addBCsForSymmetry(t, bbox=None, dimPb=3, dir_sym=0, X_SYM=0., depth=2):
+    if bbox is None: return None
+    dirs = [0,1,2,3,4,5]
+    rangeDir=['imin','jmin','kmin','imax','jmax','kmax']
+    if dimPb == 2: dirs = [0,1,3,4]
+
+    xmin = bbox[0]; ymin = bbox[1]; zmin = bbox[2]
+    xmax = bbox[3]; ymax = bbox[4]; zmax = bbox[5]
+
+    for zp in Internal.getZones(t):
+        dimZ = Internal.getZoneDim(zp)
+        niz = dimZ[1]; njz = dimZ[2]; nkz = dimZ[3]
+        indM = niz-1+(njz-1)*niz+(nkz-1)*niz*njz
+        x1 = C.getValue(zp,'CoordinateX',0)
+        y1 = C.getValue(zp,'CoordinateY',0)
+        z1 = C.getValue(zp,'CoordinateZ',0)
+        x2 = C.getValue(zp,'CoordinateX',indM)
+        y2 = C.getValue(zp,'CoordinateY',indM)
+        z2 = C.getValue(zp,'CoordinateZ',indM)
+        # blocs interieurs - tt en overlap
+        if (x1 > xmin-EPSCART and y1 > ymin-EPSCART and z1 > zmin-EPSCART and 
+            x2 < xmax+EPSCART and y2 < ymax+EPSCART and z2 < zmax+EPSCART):
+            C._fillEmptyBCWith(zp, 'overlap','BCOverlap',dim=dimPb)
+        else: # blocs frontieres
+            irange = None
+            isw = 1; jsw = 1; ksw = 1; iew = niz; jew = njz; kew = nkz
+            # ajout des CL physiques sur ghost cells
+            t_imin = False; t_imax = False; t_jmin = False; t_jmax = False; t_kmin = False; t_kmax = False
+            if dir_sym==1:
+                if x1<X_SYM:                 
+                    isw = depth+1
+                    t_imin = True
+                    C._addBC2Zone(zp,'sym','BCSymmetryPlane','imin')
+                if x2>xmax-EPSCART:
+                    iew = niz-depth
+                    t_imax = True
+                    C._addBC2Zone(zp,'nref','BCFarfield','imax')   
+                if y1<ymin-EPSCART:
+                    jsw = depth+1
+                    t_jmin = True
+                    C._addBC2Zone(zp,'nref','BCFarfield','jmin')
+                if y2>ymax+EPSCART:
+                    jew = njz-depth
+                    t_jmax = True
+                    C._addBC2Zone(zp,'nref','BCFarfield','jmax')
+                if dimPb==3:
+                    if z1 < zmin-EPSCART:
+                        ksw = depth+1
+                        t_kmin = True
+                        C._addBC2Zone(zp,'nref','BCFarfield','kmin')                        
+                    if z2 > zmax+EPSCART:
+                        kew = nkz-depth
+                        t_kmax = True
+                        C._addBC2Zone(zp,'nref','BCFarfield','kmax')
+
+            elif dir_sym==2:
+                if y1<X_SYM:                 
+                    jsw = depth+1
+                    t_jmin = True
+                    C._addBC2Zone(zp,'sym','BCSymmetryPlane','jmin')
+                if y2>ymax-EPSCART:
+                    jew = njz-depth
+                    t_jmax = True
+                    C._addBC2Zone(zp,'nref','BCFarfield','jmax')   
+                if x1<xmin-EPSCART:
+                    isw = depth+1
+                    t_imin = True
+                    C._addBC2Zone(zp,'nref','BCFarfield','imin')
+                if x2>xmax+EPSCART:
+                    iew = niz-depth
+                    t_imax = True
+                    C._addBC2Zone(zp,'nref','BCFarfield','imax')
+                if dimPb==3:
+                    if z1 < zmin-EPSCART:
+                        ksw = depth+1
+                        t_kmin = True
+                        C._addBC2Zone(zp,'nref','BCFarfield','kmin')                        
+                    if z2 > zmax+EPSCART:
+                        kew = nkz-depth
+                        t_kmax = True
+                        C._addBC2Zone(zp,'nref','BCFarfield','kmax')
+
+            elif dir_sym==3:
+                if z1<X_SYM:                 
+                    ksw = depth+1
+                    t_kmin = True
+                    C._addBC2Zone(zp,'sym','BCSymmetryPlane','kmin')
+                if z2>zmax-EPSCART:
+                    kew = nkz-depth
+                    t_kmax = True
+                    C._addBC2Zone(zp,'nref','BCFarfield','kmax')   
+                if x1<xmin-EPSCART:
+                    isw = depth+1
+                    t_imin = True
+                    C._addBC2Zone(zp,'nref','BCFarfield','imin')
+                if x2>xmax+EPSCART:
+                    iew = niz-depth
+                    t_imax = True
+                    C._addBC2Zone(zp,'nref','BCFarfield','imax')
+                if y1<ymin-EPSCART:
+                    jsw = depth+1
+                    t_jmin = True
+                    C._addBC2Zone(zp,'nref','BCFarfield','jmin')
+                if y2>ymax+EPSCART:
+                    jew = njz-depth
+                    t_jmax = True
+                    C._addBC2Zone(zp,'nref','BCFarfield','jmax')       
+
+            if not t_jmin:
+                C._addBC2Zone(zp,'overlap','BCOverlap',[isw, iew, jsw, jsw, ksw, kew])
+            if not t_jmax:
+                C._addBC2Zone(zp,'overlap','BCOverlap',[isw, iew, jew, jew, ksw, kew])
+            if not t_imin:
+                C._addBC2Zone(zp,'overlap','BCOverlap',[isw, isw, jsw, jew, ksw, kew])
+            if not t_imax:
+                C._addBC2Zone(zp,'overlap','BCOverlap',[iew, iew, jsw, jew, ksw, kew])
+            if not t_kmin and dimPb==3:
+                C._addBC2Zone(zp,'overlap','BCOverlap',[isw, iew, jsw, jew, ksw, ksw])
+            if not t_kmax and dimPb==3:
+                C._addBC2Zone(zp,'overlap','BCOverlap',[isw, iew, jsw, jew, kew, kew])     
+
+    return None
+
+
 def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[], tbox=None,
-                    snearsf=None, check=True, symmetry=0, to=None, ext=2,
-                    expand=3, dfarDir=0, check_snear=False, mode=0):    
+                        snearsf=None, check=True, to=None, ext=2,
+                        expand=3, dfarDir=0, check_snear=False, mode=0):    
     # list of dfars
     if dfarList == []:
         zones = Internal.getZones(tb)
@@ -189,42 +398,55 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
     else:
         o = buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList,
                                 to=to, tbox=tbox, snearsf=snearsf,
-                                dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=Cmpi.rank,
+                                dimPb=dimPb, vmin=vmin, fileout=None, rank=Cmpi.rank,
                                 expand=expand, dfarDir=dfarDir, mode=mode)
 
     if Cmpi.rank==0 and check: C.convertPyTree2File(o,fileout)
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
     parento = buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
-                                        dimPb=dimPb, vmin=vmin, symmetry=symmetry, fileout=None, rank=Cmpi.rank, mode=mode)
+                                        dimPb=dimPb, vmin=vmin, fileout=None, rank=Cmpi.rank, mode=mode)
 
     if check_snear: exit()
     
     # adjust the extent of the box defining the symmetry plane if in tb
     baseSYM = Internal.getNodeFromName1(tb,"SYM")
+    dir_sym = 0; X_SYM = 0.; coordsym =  None; symmetry=0
     if baseSYM is not None:
-        [xmin,ymin,zmin,xmax,ymax,zmax] = G.bbox(baseSYM) 
-        if xmax==0.: coordsym = 'CoordinateX'; dir_sym=1
-        elif ymax==0.: coordsym = 'CoordinateY'; dir_sym=2
-        else: coordsym = 'CoordinateZ'; dir_sym=3
-        print(" dir_sym", dir_sym)
-        snear_sym = Internal.getValue(Internal.getNodeFromName(baseSYM,"snear"))
-        Internal._rmNodesFromType(baseSYM,"Zone_t")
+        symmetry=1; symplane = []
+        for zsym in Internal.getZones(baseSYM):
+            if C.getMaxValue(zsym,'centers:cellN')>0.:
+                symplane.append(zsym)
+        [xmin,ymin,zmin,xmax,ymax,zmax] = G.bbox(symplane)
+        if abs(xmax-xmin) < 1e-6:
+            coordsym = 'CoordinateX'; dir_sym=1; X_SYM = xmin
+        elif abs(ymax-ymin) < 1e-6:
+            coordsym = 'CoordinateY'; dir_sym=2; X_SYM = ymin
+        elif abs(zmax-zmin)<1e-6: 
+            coordsym = 'CoordinateZ'; dir_sym=3; X_SYM = zmin
 
-        [xmin,ymin,zmin,xmax,ymax,zmax] = G.bbox(o)
-        L = 0.5*(xmax+xmin); eps = 0.2*L
-        xmin = xmin-eps; ymin = ymin-eps; zmin = zmin-eps
-        xmax = xmax+eps; ymax = ymax+eps; zmax = zmax+eps        
-        if dir_sym==1: xmax=0.
-        elif dir_sym==2: ymax=0.
-        else: zmax=0.        
-        a = D.box((xmin,ymin,zmin),(xmax,ymax,zmax))
-        C._initVars(a,'{centers:cellN}=({centers:%s}>-1e-8)'%coordsym)
-        baseSYM[2]+=a
-        D_IBM._setSnear(baseSYM,snear_sym)
-        D_IBM._setDfar(baseSYM,-1.)
-        D_IBM._setIBCType(baseSYM, "slip")
-            
+        if mode==1:
+            Internal._rmNodesFromType(baseSYM,"Zone_t")
+            [xmin,ymin,zmin,xmax,ymax,zmax] = G.bbox(o)
+            L = 0.5*(xmax+xmin); eps = 0.2*L
+            xmin = xmin-eps; ymin = ymin-eps; zmin = zmin-eps
+            xmax = xmax+eps; ymax = ymax+eps; zmax = zmax+eps        
+            if dir_sym==1: xmax=X_SYM
+            elif dir_sym==2: ymax=X_SYM
+            elif dir_sym==3: zmax = X_SYM
+            a = D.box((xmin,ymin,zmin),(xmax,ymax,zmax))
+            C._initVars(a,'{centers:cellN}=({centers:%s}>-1e-8)'%coordsym)
+            baseSYM[2]+=a
+        else: pass         
+        if coordsym is not None:
+            to = C.newPyTree(["OCTREE",o])
+            bodies = [Internal.getZones(baseSYM)]
+            BM2 = numpy.ones((2,1),dtype=Internal.E_NpyInt)        
+            to = X.blankCellsTri(to, bodies, BM2, blankingType='center_in', cellNName='cellN')
+            to = P.selectCells(to,'{centers:cellN}>0.')
+            o = Internal.getZones(to)[0]     
+
+        if Cmpi.rank==0 and check: C.convertPyTree2File(o,fileout)
 
     # Split octree
     bb = G.bbox(o)
@@ -251,18 +473,25 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
     graph = Cmpi.computeGraph(tbb, type='bbox', intersectionsDict=interDict, reduction=False)
     del tbb
     Cmpi._addXZones(t, graph, variables=[], cartesian=True)
+
     zones = Internal.getZones(t)
     coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
-    coords, rinds = Generator.extendCartGrids(coords, ext=ext, optimized=1, extBnd=0)
+    if symmetry==0: extBnd = 0
+    else: extBnd = ext-1 # nb de ghost cells = ext-1 
+    coords, rinds = Generator.extendCartGrids(coords, ext=ext, optimized=1, extBnd=extBnd)
     C.setFields(coords, zones, 'nodes')
     for noz in range(len(zones)):
         Internal.newRind(value=rinds[noz], parent=zones[noz])
     Cmpi._rmXZones(t)
     coords = None; zones = None
     
-    X_IBM._addBCOverlaps(t, bbox=bb)
-    X_IBM._addExternalBCs(t, bbox=bb, dimPb=dimPb)
+    if symmetry==0:
+        _addBCOverlaps(t, bbox=bb)
+        _addExternalBCs(t, bbox=bb, dimPb=dimPb)
+    else:
+        _addBCsForSymmetry(t, bbox=bb, dimPb=dimPb, dir_sym=dir_sym, X_SYM=X_SYM, depth=ext-1)
 
+    C.convertPyTree2File(t,"t_%d.cgns"%(Cmpi.rank))
     if dimPb == 2:
         dz = 0.01
         T._addkplane(t)
@@ -272,7 +501,7 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
 
 
 def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None, tbox=None, snearsf=None,
-                dimPb=3, vmin=15, balancing=2, symmetry=0, fileout=None, rank=0, expand=2, dfarDir=0, mode=0):
+                dimPb=3, vmin=15, balancing=2, fileout=None, rank=0, expand=2, dfarDir=0, mode=0):
     import Converter.Mpi as Cmpi
     i = 0; surfaces=[]; snearso=[] # pas d'espace sur l'octree
     dfarListL = []
@@ -762,12 +991,12 @@ def mergeByParent__(zones, parent, sizeMax):
 
 # only in generateIBMMeshPara and generateIBMMesh
 def buildParentOctrees__(o, tb, snears=None, snearFactor=4., dfar=10., dfarList=[], to=None, tbox=None, snearsf=None,
-                         dimPb=3, vmin=15, symmetry=0, fileout=None, rank=0, dfarDir=0, mode=0):
+                         dimPb=3, vmin=15, fileout=None, rank=0, dfarDir=0, mode=0):
     nzones0 = Internal.getZoneDim(o)[2]
     if nzones0 < 1000: return None
 
     parento = buildOctree(tb, snears=snears, snearFactor=snearFactor, dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
-                          dimPb=dimPb, vmin=vmin, symmetry=symmetry, balancing=0, rank=rank, expand=-1, dfarDir=dfarDir, mode=mode)
+                          dimPb=dimPb, vmin=vmin, balancing=0, rank=rank, expand=-1, dfarDir=dfarDir, mode=mode)
 
     bbo = G.bbox(parento)
     xmino=bbo[0]; xmaxo=bbo[3]; xmeano=0.5*(xmino+xmaxo)
