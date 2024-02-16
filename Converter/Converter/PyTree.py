@@ -1214,7 +1214,7 @@ def convertPyTree2File(t, fileName, format=None, isize=4, rsize=8,
   else:
     tp = fillMissingVariables(t) # force all zones to have the same variables 
     a = center2Node(tp, Internal.__FlowSolutionCenters__); tp = None
-    a = getAllFields(a, 'nodes')
+    a = getAllFields(a, 'nodes', api=3)
     a = Internal.clearList(a)
     zoneNames = getZoneNames(t, prefixByBase=False)
     BCFaces = getBCFaces(t)
@@ -1400,7 +1400,7 @@ def getField(name, t, api=1):
 # IN: containerName: GridCoordinates, FlowSolution, FlowSolution#Centers (conteneur)
 # ou liste de conteneurs homogenes en localisation
 # IN: vars: optionel, liste des variables a recuperer (sans centers: car deja specifie dans container)
-# IN: api=1, sortie array (avec copie), api=2, sortie array2 sans copie, api=3, dortie array3 sans copie
+# IN: api=1, sortie array (avec copie), api=2, sortie array2 sans copie, api=3, sortie array3 sans copie
 # OUT: arrays: solution (un par zone)
 # OUT: peut contenir des arrays vides ([])
 # Attention: il faut envoyer que des containeurs homogenes en localisation

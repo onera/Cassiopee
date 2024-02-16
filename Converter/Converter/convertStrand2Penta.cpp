@@ -71,12 +71,12 @@ PyObject* K_CONVERTER::convertStrand2Penta(PyObject* self, PyObject* args)
   }
 
   // Guess nk - connectivity reference the first vertices
-  const E_Int numThreads = omp_get_max_threads();
+  const E_Int numThreads = __NUMTHREADS__;
   E_Int threadVmax [numThreads] = {0};
 
   #pragma omp parallel num_threads(numThreads)
   {
-    E_Int threadId = omp_get_thread_num();
+    E_Int threadId = __CURRENT_THREAD__;
 
     #pragma omp for
     for (E_Int i = 0; i < ne; i++)

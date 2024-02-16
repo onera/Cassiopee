@@ -470,7 +470,7 @@ PyObject* K_TRANSFORM::subzoneUnstructBoth(PyObject* self, PyObject* args)
   }
 
   // Selectionne les elements subzones - BE/ME
-  const E_Int numThreads = omp_get_num_threads();
+  const E_Int numThreads = __NUMTHREADS__;
   vector<vector<vector<E_Int> > > threadEltList(numThreads);
 
   // Tag les points deja inseres dans un element
@@ -483,7 +483,7 @@ PyObject* K_TRANSFORM::subzoneUnstructBoth(PyObject* self, PyObject* args)
     #pragma omp for
     for (E_Int i = 0; i < n; i++) tmapP[indicesp[i]-1] = i;
 
-    E_Int threadId = omp_get_thread_num();
+    E_Int threadId = __CURRENT_THREAD__;
     vector<vector<E_Int> >& threadIdEltList = threadEltList[threadId];
     threadIdEltList.resize(nc);
   

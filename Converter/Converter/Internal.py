@@ -3106,7 +3106,7 @@ def convertDataNode2Array2(node, dim, connects, loc=-1):
     elif iBE != -1: # une connectivite BE existe -> on la prend
         connect = connects[iBE]; eltType = connect[1][0]
         if iBEMultiple == 1:
-            print('Warning: convertDataNode2Array: different connectivities in a single zone is not possible. Only first connectivity is kept.')
+            print('Warning: convertDataNode2Array2: different connectivities in a single zone is not possible. Only first connectivity is kept.')
     else:
         #raise ValueError("convertDataNode2Array: no valid connectivity found.")
         #print('Warning: convertDataNode2Array: no valid connectivity found (using NODE).')
@@ -3353,7 +3353,7 @@ def convertDataNodes2Array2(nodes, dim, connects, loc=-1):
             if lsize == 1: ni = size[0]; nj = 1; nk = 1
             elif lsize == 2: ni = size[0]; nj = size[1]; nk = 1
             elif lsize == 3: ni = size[0]; nj = size[1]; nk = size[2]
-            print("Warning: convertDataNodes2Array: incoherency zone/array.")
+            print("Warning: convertDataNodes2Array2: incoherency zone/array.")
             return [vars, field, ni, nj, nk]
 
     # unstructured
@@ -3372,7 +3372,7 @@ def convertDataNodes2Array2(nodes, dim, connects, loc=-1):
     elif iBE != -1: # une connectivite BE existe -> on la prend
         connect = connects[iBE]; eltType = connect[1][0]
         if iBEMultiple == 1:
-            print('Warning: convertDataNode2Array: different connectivities in a single zone is not possible. Only first connectivity is kept.')
+            print('Warning: convertDataNodes2Array2: different connectivities in a single zone is not possible. Only first connectivity is kept.')
     else:
         #raise ValueError("convertDataNode2Array: no valid connectivity found.")
         #print('Warning: convertDataNode2Array: no valid connectivity found (using NODE).')
@@ -3410,7 +3410,7 @@ def convertDataNodes2Array2(nodes, dim, connects, loc=-1):
     if dim[1] != dim[2]: # on peut decider
         if s == dim[2]: ettype = ettype.replace(',', '*,') + '*'
         elif s != dim[1]:
-            print("Warning: convertDataNodes2Array: incoherency zone/array.")
+            print("Warning: convertDataNodes2Array2: incoherency zone/array.")
     else: # force + no check
         if loc == 1: ettype = ettype.replace(',', '*,') + '*'
     return [vars, field, cr, ettype]
@@ -3445,7 +3445,7 @@ def convertDataNodes2Array3(nodes, dim, connects, loc=-1):
             if lsize == 1: ni = size[0]; nj = 1; nk = 1
             elif lsize == 2: ni = size[0]; nj = size[1]; nk = 1
             elif lsize == 3: ni = size[0]; nj = size[1]; nk = size[2]
-            print("Warning: convertDataNodes2Array: incoherency zone/array.")
+            print("Warning: convertDataNodes2Array3: incoherency zone/array.")
             return [vars, field, ni, nj, nk]
 
     # unstructured
@@ -3520,7 +3520,7 @@ def convertDataNodes2Array3(nodes, dim, connects, loc=-1):
     if dim[1] != dim[2]: # on peut decider
         if s == dim[2]: eltString = eltString.replace(',', '*,') + '*'
         elif s != dim[1]:
-            print("Warning: convertDataNodes2Array: incoherency zone/array.")
+            print("Warning: convertDataNodes2Array3: incoherency zone/array.")
     else: # force + no check
         if loc == 1: eltString = eltString.replace(',', '*,') + '*'
     return [vars, field, cr, eltString]

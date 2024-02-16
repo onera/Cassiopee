@@ -237,8 +237,9 @@ namespace K_CONVERTER
   // Method for building nodes indices by face
   void buildFaceIndices(char* eltType, std::vector< std::vector<E_Int> >& faces);
 
-  // Element Type's String to Id
+  // Element type String to Id for BE and ME
   E_Int getElementTypeId(const char* eltType);
+  std::vector<E_Int> getElementTypesId(const char* eltType);
 
   // Fonction pour FFD72
   void calculateMutsMu(E_Int nelmt, E_Float* MutsMu, E_Float* Mut, E_Float* Mu, E_Float* Density=NULL, E_Float* Densitym1=NULL);

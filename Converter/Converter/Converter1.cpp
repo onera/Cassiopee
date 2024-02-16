@@ -348,7 +348,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
         n[l] = '\0'; c++;
         // BC deja existante?
         exist = false;
-        for (unsigned int k = 0; k < names.size(); k++)
+        for (size_t k = 0; k < names.size(); k++)
         {
           if (K_STRING::cmp(n, names[k]) == 0) { indir[i] = k; exist = true; break; }
         }
@@ -411,14 +411,14 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     if (field[i] != NULL)
     {
       // Build array
-      tpl = K_ARRAY::buildArray2(*field[i], varString,
+      tpl = K_ARRAY::buildArray3(*field[i], varString,
                                  im[i], jm[i], km[i]);
       delete field[i];
     }
     else 
     {
       FldArrayF fl(0,1);
-      tpl = K_ARRAY::buildArray2(fl, varString,
+      tpl = K_ARRAY::buildArray3(fl, varString,
                                  im[i], jm[i], km[i]);
     }
     PyList_Append(l, tpl);
@@ -431,14 +431,14 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     K_ARRAY::typeId2eltString(et[i], 0, eltType, d);
     if (ufield[i] != NULL)
     {
-      tpl = K_ARRAY::buildArray2(*ufield[i], varString,
+      tpl = K_ARRAY::buildArray3(*ufield[i], varString,
                                  *c[i], eltType);
       delete ufield[i];
     }
     else 
     {
       FldArrayF fl(0,1);
-      tpl = K_ARRAY::buildArray2(fl, varString,
+      tpl = K_ARRAY::buildArray3(fl, varString,
                                  *c[i], eltType); 
     }
     delete c[i];
@@ -452,7 +452,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     {
       if (fieldc[i] != NULL)
       {
-        tpl = K_ARRAY::buildArray2(*fieldc[i], varStringc,
+        tpl = K_ARRAY::buildArray3(*fieldc[i], varStringc,
                                    std::max(im[i]-1,E_Int(1)), std::max(jm[i]-1,E_Int(1)), std::max(km[i]-1,E_Int(1)));
         delete fieldc[i];
       }
@@ -471,7 +471,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
       {
         FldArrayI* cnl = new FldArrayI();
         char eltType[28]; strcpy(eltType, "NODE"); // hack
-        tpl = K_ARRAY::buildArray2(*ufieldc[i], varStringc,
+        tpl = K_ARRAY::buildArray3(*ufieldc[i], varStringc,
                                    *cnl, eltType); // hack
         delete ufieldc[i]; delete cnl;
       }
@@ -597,11 +597,11 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   E_Int res;
   vector<FldArrayF*> fieldu; // non structure
   vector<FldArrayI*> connectu;
-  for (int i = 0; i < n; i++)
+  for (E_Int i = 0; i < n; i++)
   {
     tpl = PyList_GetItem(arrays, i);
-    res = K_ARRAY::getFromArray(tpl, varString, 
-                                f, nil, njl, nkl, cn, eltType);
+    res = K_ARRAY::getFromArray3(tpl, varString, 
+                                 f, nil, njl, nkl, cn, eltType);
       
     if (res == 1)
     {
@@ -617,21 +617,42 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
     {
       if (f->getSize() > 0)
       {
-        E_Int id = getElementTypeId(eltType);
+        vector<E_Int> ids = getElementTypesId(eltType);
+        E_Int nc = ids.size();
         // Ecriture non structuree
-        if (id == 0) // NODE-> structure
+        if (nc == 1)
         {
-          ni.push_back(f->getSize()); nj.push_back(1); nk.push_back(1);
-          fieldc.push_back(f); 
+          if (ids[0] == 0) // NODE -> structure
+          {
+            ni.push_back(f->getSize()); nj.push_back(1); nk.push_back(1);
+            fieldc.push_back(f); 
+          }
+          else if (ids[0] > 0)
+          {
+            fieldu.push_back(f);
+            connectu.push_back(cn);
+            elt.push_back(ids[0]);
+          }
+          else //id == -1
+            printf("Warning: convertArrays2File: element type %s not taken "
+                   "into account.\n", eltType);
         }
-        else if (id > 0)
+        else // Mixed Connectivity
         {
           fieldu.push_back(f);
-          connectu.push_back(cn);
-          elt.push_back(id);
+          for (E_Int ic = 0; ic < nc; ic++)
+          {
+            if (ids[ic] > 0)
+            {
+              FldArrayI* cm = cn->getConnect(ic);
+              connectu.push_back(cm);
+              elt.push_back(ids[ic]);
+            }
+            else //id == -1
+              printf("Warning: convertArrays2File: element type %s in position "
+                     "%d not taken into account.\n", eltType, ic);
+          }
         }
-        else //id == -1
-          printf("Warning: convertArrays2File: element type %s not taken into account.\n", eltType);
       }
       else 
         printf("Warning: convertArrays2File: one array is empty.\n");
@@ -979,6 +1000,20 @@ E_Int K_CONVERTER::getElementTypeId(const char* eltType)
   if (K_STRING::cmp(eltType, "NGON") == 0)
     return 8;
   return -1; //unknown
+}
+
+vector<E_Int> K_CONVERTER::getElementTypesId(const char* eltType)
+{
+  // Acces universel aux eltTypes
+  vector<char*> eltTypes;
+  K_ARRAY::extractVars(eltType, eltTypes);
+  vector<E_Int> eltIds;
+  for (size_t ic = 0; ic < eltTypes.size(); ic++)
+  {
+    eltIds.push_back(getElementTypeId(eltTypes[ic]));
+    delete [] eltTypes[ic];
+  }
+  return eltIds;
 }
 
 //=============================================================================
