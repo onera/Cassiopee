@@ -164,6 +164,7 @@ AMesh::AMesh() :
   gcells(NULL), gfaces(NULL), gpoints(NULL),
   npatches(-1), patches(NULL),
   PT(NULL), FT(NULL), CT(NULL),
+  XNEIS(NULL), CADJ(NULL),
   closed_indPG(NULL), closed_ngon(NULL),
   closed_indPH(NULL), closed_nface(NULL)
 {
@@ -217,6 +218,9 @@ void mesh_drop(AMesh *M)
   delete M->PT;
   delete M->FT;
   delete M->CT;
+
+  XFREE(M->XNEIS);
+  XFREE(M->CADJ);
   
   XFREE(M->closed_indPG);
   XFREE(M->closed_ngon);
@@ -289,6 +293,28 @@ void get_full_cell(E_Int cell, AMesh *M, E_Int &nf, E_Int *pf)
       Children *children = M->faceTree->children(face);
       for (E_Int j = 0; j < children->n; j++)
         pf[nf++] = children->pc[j];
+    }
+  }
+}
+
+void reconstruct_parent_quad(E_Int face, AMesh *M, E_Int pn[4])
+{
+  Children *children = M->faceTree->children(face);
+  if (children == NULL) {
+    memcpy(pn, &M->ngon[M->indPG[face]], 4*sizeof(E_Int));
+  } else {
+    if (children->n == 2) {
+      E_Int *pn0 = get_facets(children->pc[0], M->ngon, M->indPG);
+      E_Int *pn1 = get_facets(children->pc[1], M->ngon, M->indPG);
+      E_Int dir = pn0[1] == pn1[0] ? DIRX : DIRY;
+      if (dir == DIRX) {
+        pn[0] = pn0[0]; pn[1] = pn1[1]; pn[2] = pn1[2]; pn[3] = pn0[3];
+      } else {
+        pn[0] = pn0[0]; pn[1] = pn0[1]; pn[2] = pn1[2]; pn[3] = pn1[3];
+      }
+    } else {
+      for (E_Int i = 0; i < children->n; i++)
+        pn[i] = get_facets(children->pc[i], M->ngon, M->indPG)[i];
     }
   }
 }
@@ -491,4 +517,68 @@ void update_patch_faces_after_ref(AMesh *M)
       j += 3;
     }
   }
+}
+
+void make_dual_graph(AMesh *M)
+{
+  M->XNEIS = (E_Int *)XCALLOC((M->ncells+1), sizeof(E_Int));
+  E_Int *XNEIS = M->XNEIS;
+
+  // Internal faces
+  E_Int nif = 0;
+
+  for (E_Int i = 0; i < M->nfaces; i++) {
+    E_Int nei = M->neigh[i];
+    if (nei == -1) continue;
+
+    E_Int own = M->owner[i];
+    XNEIS[own+1] += 1;
+    XNEIS[nei+1] += 1;
+    nif += 1;
+  }
+
+  // Proc faces
+  E_Int npf = 0;
+
+  for (E_Int i = 0; i < M->npatches; i++) {
+    Patch *P = &M->patches[i];
+
+    npf += P->nf;
+
+    for (E_Int j = 0; j < P->nf; j++) {
+      E_Int face = P->pf[j];
+      XNEIS[M->owner[face]+1] += 1;
+    }
+  }
+
+  for (E_Int i = 0; i < M->ncells; i++) XNEIS[i+1] += XNEIS[i];
+
+  M->CADJ = (E_Int *)XMALLOC((2*nif + npf) * sizeof(E_Int));
+  E_Int *CADJ = M->CADJ;
+
+  E_Int *cneis = (E_Int *)XCALLOC(M->ncells, sizeof(E_Int));
+
+  // Internal edges first
+  for (E_Int i = 0; i < M->nfaces; i++) {
+    E_Int nei = M->neigh[i];
+    if (nei == -1) continue;
+
+    E_Int own = M->owner[i];
+
+    CADJ[XNEIS[own] + cneis[own]++] = M->gcells[nei];
+    CADJ[XNEIS[nei] + cneis[nei]++] = M->gcells[own];
+  }
+
+  // Proc edges
+  for (E_Int i = 0; i < M->npatches; i++) {
+    Patch *P = &M->patches[i];
+
+    for (E_Int j = 0; j < P->nf; j++) {
+      E_Int face = P->pf[j];
+      E_Int own = M->owner[face];
+      CADJ[XNEIS[own] + cneis[own]++] = M->patches[i].pn[j];
+    }
+  }
+
+  XFREE(cneis);
 }

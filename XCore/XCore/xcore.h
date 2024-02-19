@@ -49,10 +49,11 @@ namespace K_XCORE
   PyObject *computeHessian(PyObject *self, PyObject *args);
   PyObject *computeGradient(PyObject *self, PyObject *args);
   PyObject *hessianToMetric(PyObject *self, PyObject *args);
-  PyObject *_metricToRefData(PyObject *self, PyObject *args);
   PyObject *_makeRefDataFromGradAndHess(PyObject *self, PyObject *args);
   PyObject *_prepareMeshForAdaptation(PyObject *self, PyObject *args);
   PyObject *ExtractLeafMesh(PyObject *self, PyObject *args);
   PyObject *_assignRefDataToAM(PyObject *self, PyObject *args);
+
+  PyObject *intersectMesh(PyObject *self, PyObject *args);
 }
 #endif

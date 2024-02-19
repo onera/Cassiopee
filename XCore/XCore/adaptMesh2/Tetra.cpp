@@ -317,3 +317,9 @@ E_Int check_canon_tetra(E_Int cell, AMesh *M)
 
   return 1;
 }
+
+void make_ref_data_tetra(E_Int cell, AMesh *M, E_Float *pM, const pDirs &Dirs)
+{}
+
+void make_pdirs_tetra(E_Int cell, AMesh *M, pDirs &Dirs)
+{}

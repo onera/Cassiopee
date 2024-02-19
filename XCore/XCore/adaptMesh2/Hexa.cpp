@@ -841,3 +841,85 @@ E_Int check_canon_hexa(E_Int cell, AMesh *M)
 
   return 1;
 }
+
+void make_ref_data_hexa(E_Int cell, AMesh *M, E_Float *pM, const pDirs &Dirs)
+{
+  E_Float L0, L1, L2, dd[3];
+  //E_Float l[3];
+
+  // Compute length in metric space
+
+  K_MATH::sym3mat_dot_vec(pM, Dirs.I, dd);
+  L0 = K_MATH::norm(dd, 3);
+
+  K_MATH::sym3mat_dot_vec(pM, Dirs.J, dd);
+  L1 = K_MATH::norm(dd, 3);
+
+  K_MATH::sym3mat_dot_vec(pM, Dirs.K, dd);
+  L2 = K_MATH::norm(dd, 3);
+
+  M->ref_data[cell] = 0;
+
+  if (L0 >= M->Tr || L1 >= M->Tr || L2 >= M->Tr) {
+    M->ref_data[cell] = 1;
+  }
+}
+
+void make_pdirs_hexa(E_Int cell, AMesh *M, pDirs &Dirs)
+{
+  E_Int *pf = &M->nface[M->indPH[cell]];
+
+  E_Int p0[4], p1[4];
+  E_Float f0[3], f1[3];
+
+  // LFT && RGT
+  reconstruct_parent_quad(pf[2], M, p0);
+  reconstruct_parent_quad(pf[3], M, p1);
+  f0[0] = f0[1] = f0[2] = 0.0;
+  f1[0] = f1[1] = f1[2] = 0.0;
+
+  for (E_Int i = 0; i < 4; i++) {
+    f0[0] += M->x[p0[i]];
+    f0[1] += M->y[p0[i]];
+    f0[2] += M->z[p0[i]];
+    f1[0] += M->x[p1[i]];
+    f1[1] += M->y[p1[i]];
+    f1[2] += M->z[p1[i]];
+  }
+
+  for (E_Int i = 0; i < 3; i++) Dirs.I[i] = 0.25*(f1[i] - f0[i]);
+
+  // FRO && BCK
+  reconstruct_parent_quad(pf[4], M, p0);
+  reconstruct_parent_quad(pf[5], M, p1);
+  f0[0] = f0[1] = f0[2] = 0.0;
+  f1[0] = f1[1] = f1[2] = 0.0;
+
+  for (E_Int i = 0; i < 4; i++) {
+    f0[0] += M->x[p0[i]];
+    f0[1] += M->y[p0[i]];
+    f0[2] += M->z[p0[i]];
+    f1[0] += M->x[p1[i]];
+    f1[1] += M->y[p1[i]];
+    f1[2] += M->z[p1[i]];
+  }
+
+  for (E_Int i = 0; i < 3; i++) Dirs.J[i] = 0.25*(f1[i] - f0[i]);
+
+  // LFT && RGT
+  reconstruct_parent_quad(pf[0], M, p0);
+  reconstruct_parent_quad(pf[1], M, p1);
+  f0[0] = f0[1] = f0[2] = 0.0;
+  f1[0] = f1[1] = f1[2] = 0.0;
+
+  for (E_Int i = 0; i < 4; i++) {
+    f0[0] += M->x[p0[i]];
+    f0[1] += M->y[p0[i]];
+    f0[2] += M->z[p0[i]];
+    f1[0] += M->x[p1[i]];
+    f1[1] += M->y[p1[i]];
+    f1[2] += M->z[p1[i]];
+  }
+
+  for (E_Int i = 0; i < 3; i++) Dirs.K[i] = 0.25*(f1[i] - f0[i]);
+}

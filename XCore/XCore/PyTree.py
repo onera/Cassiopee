@@ -271,10 +271,6 @@ def computeHessian(AM, field, grad, cx, cy, cz, own, nei):
 def hessianToMetric(H, hmin, hmax, eps):
   return XCore.xcore.hessianToMetric(H, hmin, hmax, eps)
 
-def _metricToRefData(M, AM):
-  XCore.xcore._metricToRefData(M, AM)
-  return None
-
 def _makeRefDataFromGradAndHess(AM, f, g, h):
   return XCore.xcore._makeRefDataFromGradAndHess(AM, f, g, h)
 
@@ -289,3 +285,11 @@ def ExtractLeafMesh(t, conformize=1):
 
 def _assignRefDataToAM(AM, REF):
   return XCore.xcore._assignRefDataToAM(AM, REF)
+
+
+######################################################
+
+def intersectMesh(master, slave):
+  zm = I.getZones(master)[0]
+  zs = I.getZones(slave)[0]
+  return XCore.xcore.intersectMesh(zm, zs)

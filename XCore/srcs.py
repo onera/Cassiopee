@@ -56,6 +56,7 @@ if mpi: # source that requires mpi
             'XCore/adaptMesh2/Tree.cpp',
             'XCore/adaptMesh2/Refine.cpp',
             'XCore/adaptMesh2/Unrefine.cpp',
+            'XCore/adaptMesh2/Geom.cpp',
             
             'XCore/adaptMesh2/Comm.cpp',
             
@@ -74,7 +75,9 @@ if mpi: # source that requires mpi
             'XCore/adaptMesh2/Penta.cpp',
             'XCore/adaptMesh2/Hexa.cpp',
             'XCore/adaptMesh2/Tetra.cpp',
-            'XCore/adaptMesh2/Pyra.cpp'
+            'XCore/adaptMesh2/Pyra.cpp',
+
+            'XCore/intersectMesh/intersectMesh.cpp'
             ]
 else:
     cpp_srcs += [

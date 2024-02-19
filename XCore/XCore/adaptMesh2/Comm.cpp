@@ -1,125 +1,62 @@
 #include "Proto.h"
 #include "scotch/ptscotch.h"
 
+void Comm_interface_data_f(AMesh *M, E_Float *data, E_Int stride, E_Float **rbuf)
+{
+  for (E_Int i = 0; i < M->npatches; i++) {
+    Patch *P = &M->patches[i];
+
+    P->sbuf_f = (E_Float *)XRESIZE(P->sbuf_f, stride*P->nf*sizeof(E_Float));
+
+    E_Int l = 0;
+    for (E_Int j = 0; j < P->nf; j++) {
+      E_Int own = M->owner[P->pf[j]];
+      E_Float *ptr = &data[stride*own];
+      for (E_Int k = 0; k < stride; k++)
+        P->sbuf_f[l++] = ptr[k];
+    }
+
+    assert(l == stride*P->nf);
+
+    MPI_Irecv(rbuf[i], stride*P->nf, MPI_DOUBLE, P->nei, 0, MPI_COMM_WORLD, &M->req[M->nrq++]);
+    MPI_Isend(P->sbuf_f, stride*P->nf, MPI_DOUBLE, P->nei, 0, MPI_COMM_WORLD, &M->req[M->nrq++]);
+    
+    assert(M->nrq < 2*M->npc);
+  }
+
+  Comm_waitall(M);
+}
+
+void Comm_interface_data_i(AMesh *M, E_Int *data, E_Int stride, E_Int **rbuf)
+{
+  for (E_Int i = 0; i < M->npatches; i++) {
+    Patch *P = &M->patches[i];
+
+    P->sbuf_i = (E_Int *)XRESIZE(P->sbuf_i, stride*P->nf*sizeof(E_Int));
+
+    E_Int l = 0;
+    for (E_Int j = 0; j < P->nf; j++) {
+      E_Int own = M->owner[P->pf[j]];
+      E_Int *ptr = &data[stride*own];
+      for (E_Int k = 0; k < stride; k++)
+        P->sbuf_i[l++] = ptr[k];
+    }
+
+    assert(l == stride*P->nf);
+
+    MPI_Irecv(rbuf[i], stride*P->nf, XMPI_INT, P->nei, 0, MPI_COMM_WORLD, &M->req[M->nrq++]);
+    MPI_Isend(P->sbuf_i, stride*P->nf, XMPI_INT, P->nei, 0, MPI_COMM_WORLD, &M->req[M->nrq++]);
+    
+    assert(M->nrq < 2*M->npc);
+  }
+
+  Comm_waitall(M);
+}
+
 void Comm_waitall(AMesh *M)
 {
   MPI_Waitall(M->nrq, M->req, MPI_STATUSES_IGNORE);
   M->nrq = 0;
-}
-
-static
-E_Int *make_dual_graph(AMesh *M, E_Int *XNEIS)
-{
-  // Internal faces
-  E_Int nif = 0;
-  for (E_Int i = 0; i < M->nfaces; i++) {
-    E_Int nei = M->neigh[i];
-    if (nei == -1) continue;
-    E_Int own = M->owner[i];
-    XNEIS[own+1] += 1;
-    XNEIS[nei+1] += 1;
-    nif += 1;
-  }
-  assert(M->nif == nif);
-
-  // How many proc faces do we have
-  E_Int npf = 0;
-  
-  for (E_Int i = 0; i < M->npatches; i++) {
-    npf += M->patches[i].nf;
-
-    for (E_Int j = 0; j < M->patches[i].nf; j++) {
-      E_Int face = M->patches[i].pf[j];
-      XNEIS[M->owner[face]+1] += 1;
-    }
-  }
-
-  for (E_Int i = 0; i < M->ncells; i++) XNEIS[i+1] += XNEIS[i];
-
-  E_Int *CADJ = (E_Int *)XMALLOC((2*nif + npf) * sizeof(E_Int));
-
-  // Second pass: fill global adjacency array
-  E_Int *cneis = (E_Int *)XCALLOC(M->ncells, sizeof(E_Int));
-
-  // Internal faces first
-  for (E_Int i = 0; i < M->nfaces; i++) {
-    E_Int nei = M->neigh[i];
-    if (nei == -1) continue;
-    E_Int own = M->owner[i];
-
-    CADJ[XNEIS[own] + cneis[own]++] = M->gcells[nei];
-    CADJ[XNEIS[nei] + cneis[nei]++] = M->gcells[own];
-  }
-
-  // Proc faces
-  for (E_Int i = 0; i < M->npatches; i++) {
-    for (E_Int j = 0; j < M->patches[i].nf; j++) {
-      E_Int face = M->patches[i].pf[j];
-      E_Int own = M->owner[face];
-      CADJ[XNEIS[own] + cneis[own]++] = M->patches[i].pn[j];
-    }
-  }
-
-  XFREE(cneis);
-
-  return CADJ;
-}
-
-static
-E_Int *map_graph(AMesh *M, E_Int *XNEIS, E_Int *CADJ, E_Int *CWGT)
-{
-  SCOTCH_Dgraph graph;
-  SCOTCH_dgraphInit(&graph, MPI_COMM_WORLD);
-
-  E_Int ret;
-  ret = SCOTCH_dgraphBuild(
-    &graph,
-    0,                // 0-based
-    M->ncells,        // number of local cells
-    M->ncells,        // compact graph
-    XNEIS,            // local adjacency array
-    NULL,             // compact graph
-    CWGT,             // local cell weights
-    M->gcells,        // local cell labels
-    XNEIS[M->ncells], // local number of arcs (twice the number of edges)
-    XNEIS[M->ncells], // compact graph
-    CADJ,             // local adjacency array
-    NULL,
-    NULL
-  );
-
-  if (ret != 0) {
-    fprintf(stderr, "AdaptMesh: Error in remapping dual graph.\n");
-    assert(0);
-    exit(1);
-  }
-
-  ret = SCOTCH_dgraphCheck(&graph);
-  if (ret != 0) {
-    fprintf(stderr, "AdaptMesh: Error in checking dual graph.\n");
-    assert(0);
-    exit(1);
-  }
-
-  SCOTCH_Strat strat;
-  ret = SCOTCH_stratInit(&strat);
-  if (ret != 0) {
-    fprintf(stderr, "AdaptMesh: Failed to init strat\n");
-    assert(0);
-    exit(1);
-  }
-
-  E_Int *map = (E_Int *)XMALLOC(M->ncells * sizeof(E_Int));
-
-  ret = SCOTCH_dgraphPart(&graph, M->npc, &strat, map);
-
-  if (ret != 0) {
-    fprintf(stderr, "AdaptMesh: Failed to map dual graph\n");
-    assert(0);
-    exit(1);
-  }
-
-  return map;
 }
 
 static
@@ -142,8 +79,8 @@ AMesh *reconstruct_mesh(AMesh *M, E_Int *cmap)
   auto &MPT = *(M->PT);
 
   /* CELLS */
-  int *c_scount = (E_Int *)XCALLOC(npc, sizeof(int));
-  int *c_rcount = (E_Int *)XMALLOC(npc * sizeof(int));
+  int *c_scount = (int *)XCALLOC(npc, sizeof(int));
+  int *c_rcount = (int *)XMALLOC(npc * sizeof(int));
 
   for (E_Int i = 0; i < M->ncells; i++) {
     E_Int where = cmap[i];
@@ -1137,83 +1074,396 @@ AMesh *reconstruct_mesh(AMesh *M, E_Int *cmap)
   return m;
 }
 
-AMesh *Redistribute_mesh(AMesh *M)
+static
+E_Int *map_graph(AMesh *M, E_Int *CWGT)
+{
+  SCOTCH_Dgraph graph;
+  SCOTCH_dgraphInit(&graph, MPI_COMM_WORLD);
+
+  E_Int ret;
+  ret = SCOTCH_dgraphBuild(
+    &graph,
+    0,             // 0-based
+    M->onc,        // number of local cells
+    M->onc,        // compact graph
+    M->XNEIS,         // local adjacency array
+    NULL,          // compact graph
+    CWGT,          // local cell weights
+    M->gcells,     // local cell labels
+    M->XNEIS[M->onc], // local number of arcs (twice the number of edges)
+    M->XNEIS[M->onc], // compact graph
+    M->CADJ,          // local adjacency array
+    NULL,
+    NULL
+  );
+
+  if (ret != 0) {
+    fprintf(stderr, "AdaptMesh: Error in remapping dual graph.\n");
+    assert(0);
+    exit(1);
+  }
+
+  ret = SCOTCH_dgraphCheck(&graph);
+  if (ret != 0) {
+    fprintf(stderr, "AdaptMesh: Error in checking dual graph.\n");
+    assert(0);
+    exit(1);
+  }
+
+  SCOTCH_Strat strat;
+  ret = SCOTCH_stratInit(&strat);
+  if (ret != 0) {
+    fprintf(stderr, "AdaptMesh: Failed to init strat\n");
+    assert(0);
+    exit(1);
+  }
+
+  E_Int *map = (E_Int *)XMALLOC(M->onc * sizeof(E_Int));
+
+  ret = SCOTCH_dgraphPart(&graph, M->npc, &strat, map);
+
+  if (ret != 0) {
+    fprintf(stderr, "AdaptMesh: Failed to map dual graph\n");
+    assert(0);
+    exit(1);
+  }
+
+  // TODO(Imad): drop the graph
+
+  return map;
+}
+
+static
+void make_csr(E_Int *scount, E_Int *rcount, E_Int *sdist, E_Int *rdist,
+  E_Int npc)
+{
+  sdist[0] = rdist[0] = 0;
+  for (E_Int i = 0; i < npc; i++) {
+    sdist[i+1] = sdist[i] + scount[i];
+    rdist[i+1] = rdist[i] + rcount[i];
+  }
+}
+
+static
+AMesh *repartition_mesh(AMesh *M, E_Int *cmap)
+{
+  return (AMesh *)NULL;
+  /*
+  AMesh *m = new AMesh;
+  m->ecenter = new std::map<Edge, E_Int>;
+  m->CT = new std::unordered_map<E_Int, E_Int>;
+  m->FT = new std::unordered_map<E_Int, E_Int>;
+  m->PT = new std::unordered_map<E_Int, E_Int>;
+
+  E_Int npc = M->npc;
+
+  auto &mCT = *(m->CT);
+  auto &mFT = *(m->FT);
+  auto &mPT = *(m->PT);
+
+  auto &MCT = *(M->CT);
+  auto &MFT = *(M->FT);
+  auto &MPT = *(M->PT);
+
+  // CELLS
+
+  // ocells
+
+  int *o_scount = (int *)XCALLOC(npc, sizeof(int));
+  int *o_rcount = (int *)XMALLOC(npc * sizeof(int));
+
+  for (E_Int i = 0; i < M->onc; i++) {
+    assert(M->cellTree->parent(i) == i);
+    E_Int where = cmap[i];
+
+    o_scount[where] += 1;
+  }
+
+  MPI_Alltoall(o_scount, 1, MPI_INT, o_rcount, 1, MPI_INT, MPI_COMM_WORLD);
+
+  int *o_sdist = (E_Int *)XMALLOC((npc+1) * sizeof(int));
+  int *o_rdist = (E_Int *)XMALLOC((npc+1) * sizeof(int));
+
+  make_csr(o_scount, o_rcount, o_sdist, o_rdist, npc);
+
+  m->onc = o_rdist[npc];
+
+  // ncells
+
+  int *n_scount = (int *)XCALLOC(npc, sizeof(int));
+  int *n_rcount = (int *)XMALLOC(npc * sizeof(int));
+
+  for (E_Int i = M->onc; i < M->ncells; i++) {
+    assert(M->cellTree->parent(i) < M->onc);
+    E_Int where = cmap[M->cellTree->parent(i)];
+
+    n_scount[where] += 1;
+  }
+
+  MPI_Alltoall(n_scount, 1, MPI_INT, n_rcount, 1, MPI_INT, MPI_COMM_WORLD);
+
+  int *n_sdist = (E_Int *)XMALLOC((npc+1) * sizeof(int));
+  int *n_rdist = (E_Int *)XMALLOC((npc+1) * sizeof(int));
+
+  make_csr(n_scount, n_rcount, n_sdist, n_rdist, npc);
+
+  m->ncells = m->onc + n_rdist[npc];
+
+  // Send hierarchy of ocells
+
+  int *ngen = (int *)XCALLOC(M->ncells, sizeof(int));
+
+  memset(o_scount, 0, npc*sizeof(int));
+
+  for (E_Int i = 0; i < M->onc; i++) {
+    E_Int where = cmap[i];
+
+    // Count ngen
+    Children *cur = M->cellTree->children(i);
+    while (cur) {
+      ngen[i] += 1;
+      cur = cur->next;
+    }
+
+    E_Int stride = nchild_from_type(M->cellTree->type(i));
+
+    // Sending: type + level + state + ngen + ngen*stride children
+    o_scount[where] += 4 + ngen*stride;
+  }
+
+  MPI_Alltoall(o_scount, 1, MPI_INT, o_rcount, 1, MPI_INT, MPI_COMM_WORLD);
+
+  make_csr(o_scount, o_rcount, o_sdist, o_rdist, npc);
+
+  E_Int *o_sdata = (E_Int *)XMALLOC(o_sdist[npc] * sizeof(E_Int));
+  E_Int *o_rdata = (E_Int *)XMALLOC(o_rdist[npc] * sizeof(E_Int));
+
+  int *idx = (E_Int *)XMALLOC(npc * sizeof(int));
+
+  memcpy(idx, o_sdist, npc*sizeof(int));
+
+  for (E_Int i = 0; i < M->onc; i++) {
+    E_Int where = cmap[i];
+
+    // Type
+    o_sdata[idx[where]++] = M->cellTree->type(i);
+
+    // State
+    o_sdata[idx[where]++] = M->cellTree->state(i);
+
+    // Level
+    o_sdata[idx[where]++] = M->cellTree->level(i);
+
+    // Number of generations
+    o_sdata[idx[where]++] = ngen[i];
+
+    // Children
+
+    E_Int stride = nchild_from_type(M->cellTree->type(i));
+
+    Children *cur = M->cellTree->children(i);
+    while (cur) {
+      for (E_Int j = 0; j < cur->n; j++)
+        o_sdata[idx[where]++] = cur->pc[j];
+      
+      cur = cur->next;
+    }
+  }
+
+  MPI_Alltoallv(o_sdata, o_scount, o_sdist, XMPI_INT,
+                o_rdata, o_rcount, o_rdist, XMPI_INT,
+                MPI_COMM_WORLD);
+ 
+  // Send hierarchy of ncells
+
+  memset(n_scount, 0, npc*sizeof(int));
+
+  for (E_Int i = M->onc; i < M->ncells; i++) {
+    E_Int where = cmap[M->cellTree->parent(i)];
+
+    // Count ngen
+    Children *cur = M->cellTree->children(i);
+
+    while (cur) {
+      ngen[i] += 1;
+      cur = cur->next;
+    }
+
+    E_Int stride = nchild_from_type(M->cellTree->type(i));
+
+    // Sending: type + level + state + ngen + ngen*stride children
+    n_scount[where] += 4 + ngen*stride;
+  }
+
+  MPI_Alltoall(n_scount, 1, MPI_INT, n_rcount, 1, MPI_INT, MPI_COMM_WORLD);
+
+  make_csr(n_scount, n_rcount, n_sdist, n_rdist, npc);
+
+  E_Int *n_sdata = (E_Int *)XMALLOC(n_sdist[npc] * sizeof(E_Int));
+  E_Int *n_rdata = (E_Int *)XMALLOC(n_rdist[npc] * sizeof(E_Int));
+
+  memcpy(idx, n_sdist, npc*sizeof(int));
+
+  for (E_Int i = M->onc; i < M->ncells; i++) {
+    E_Int where = cmap[M->cellTree->parent(i)];
+
+    // Parent
+    n_sdata[idx[where]++] = M->cellTree->parent(i);
+
+    // Type
+    n_sdata[idx[where]++] = M->cellTree->type(i);
+
+    // State
+    n_sdata[idx[where]++] = M->cellTree->state(i);
+
+    // Level
+    n_sdata[idx[where]++] = M->cellTree->level(i);
+
+    // Number of generations
+    n_sdata[idx[where]++] = ngen[i];
+
+    // Children
+
+    E_Int stride = nchild_from_type(M->cellTree->type(i));
+
+    Children *cur = M->cellTree->children(i);
+    while (cur) {
+      for (E_Int j = 0; j < cur->n; j++)
+        n_sdata[idx[where]++] = cur->pc[j];
+      
+      cur = cur->next;
+    }
+  }
+
+  MPI_Alltoallv(n_sdata, n_scount, n_sdist, XMPI_INT,
+                n_rdata, n_rcount, n_rdist, XMPI_INT,
+                MPI_COMM_WORLD);
+
+  // Parse received data
+
+  // Init cell tree
+  m->cellTree = new Tree(m->ncells);
+
+  // First, register ocells
+
+  E_Int cell = 0;
+  for (E_Int i = 0; i < npc; i++) {
+    E_Int *ptr = &o_rdata[o_rdist[i]];
+
+    for (E_Int j = 0; j < o_rcount[i]; ) {
+      m->cellTree->parent_[cell] = cell;
+      m->cellTree->type_  [cell] = ptr[j++];
+      m->cellTree->state_ [cell] = ptr[j++];
+      m->cellTree->level_ [cell] = ptr[j++];
+      E_Int ngen = ptr[j++];
+
+      if (ngen == 0) continue;
+
+      E_Int stride = nchild_from_type(m->cellTree->type(cell));
+
+      m->cellTree->children_[cell] = (Children *)XCALLOC(1, sizeof(Children));
+      m->cellTree->children_[cell]->n = stride;
+      for (E_Int k = 0; k < stride; k++)
+        m->cellTree->children_[cell]->pc[k] = ptr[j++];
+      
+      m->cellTree->children_[cell]->pc[0] = cell;
+
+      for (E_Int k = 0; k < ngen-1; k++) {
+        Children *new_gen = (Children *)XCALLOC(1, sizeof(Children));
+        new_gen->n = stride;
+        for (E_Int l = 0; l < l++)
+          new_gen->pc[l] = ptr[j++];
+        
+        new_gen->pc[0] = cell;
+        
+        Children *tmp = m->cellTree->children_[cell]->next;
+
+        m->cellTree->children_[cell]->next = new_gen;
+        
+        new_gen->next = tmp;
+      }
+
+      cell++;
+    }
+  }
+
+  assert(cell == m->onc);
+
+  // Register ncells
+
+  for (E_Int i = 0; i < npc; i++) {
+    E_Int *ptr = &n_rdata[n_rdist[i]];
+
+    for (E_Int j = 0; j < n_rcount[i]; ) {
+      m->cellTree->parent_[cell] = ptr[j++];
+      m->cellTree->type_  [cell] = ptr[j++];
+      m->cellTree->state_ [cell] = ptr[j++];
+      m->cellTree->level_ [cell] = ptr[j++];
+      E_Int ngen = ptr[j++];
+
+      if (ngen == 0) continue;
+
+      m->cellTree->children_[cell] = (Children *)XCALLOC(1, sizeof(Children));
+
+      for (E_Int k = 0; k < ngen-1; k++) {
+        Children *new_gen = (Children *)XCALLOC(1, sizeof(Children));
+        
+        Children *tmp = m->cellTree->children_[cell]->next;
+
+        m->cellTree->children_[cell]->next = new_gen;
+        
+        new_gen->next = tmp;
+      }
+
+      cell++;
+    }
+  }
+
+
+  XFREE(ngen);
+  XFREE(idx);
+  XFREE(o_scount);
+  XFREE(o_rcount);
+  XFREE(o_sdist);
+  XFREE(o_rdist);
+  XFREE(o_sdata);
+  XFREE(o_rdata);
+  XFREE(n_scount);
+  XFREE(n_rcount);
+  XFREE(n_sdist);
+  XFREE(n_rdist);
+  XFREE(n_sdata);
+  XFREE(n_rdata);
+  */
+}
+
+AMesh *load_balance_mesh(AMesh *M)
 {
   // Cell weights
-  E_Int *CWGT = (E_Int *)XMALLOC(M->ncells * sizeof(E_Int));
-  
-  for (E_Int i = 0; i < M->ncells; i++) {
-    E_Int wgt = std::max(M->ref_data[i], 0);
+  E_Int *CWGT = (E_Int *)XCALLOC(0, M->onc*sizeof(E_Int));
+  for (E_Int i = 0; i < M->onc; i++) {
+    E_Int wgt = M->ref_data[i];
+
+    Children *cur = M->cellTree->children(i);
+
+    while (cur) {
+      for (E_Int j = 1; j < cur->n; j++)
+        wgt += M->ref_data[cur->pc[j]];
+      
+      cur = cur->next;
+    }
+
     CWGT[i] = 1 << wgt;
   }
 
-  // Construct dual graph
-  E_Int *XNEIS = (E_Int *)XCALLOC((M->ncells+1), sizeof(E_Int));
-
-  E_Int *CADJ = make_dual_graph(M, XNEIS);
-
-  // Get cell map
-  E_Int *cmap = map_graph(M, XNEIS, CADJ, CWGT);
+  // Make cell map
+  E_Int *cmap = map_graph(M, CWGT);
 
   // Produce a new mesh based on cell map
-  AMesh *new_mesh = reconstruct_mesh(M, cmap);
+  AMesh *new_mesh = repartition_mesh(M, cmap);
 
   XFREE(CWGT);
-  XFREE(XNEIS);
-  XFREE(CADJ);
   XFREE(cmap);
 
   return new_mesh;
-}
-
-void Comm_interface_data_f(AMesh *M, E_Float *data, E_Int stride, E_Float **rbuf)
-{
-  for (E_Int i = 0; i < M->npatches; i++) {
-    Patch *P = &M->patches[i];
-
-    P->sbuf_f = (E_Float *)XRESIZE(P->sbuf_f, stride*P->nf*sizeof(E_Float));
-
-    E_Int l = 0;
-    for (E_Int j = 0; j < P->nf; j++) {
-      E_Int own = M->owner[P->pf[j]];
-      E_Float *ptr = &data[stride*own];
-      for (E_Int k = 0; k < stride; k++)
-        P->sbuf_f[l++] = ptr[k];
-    }
-
-    assert(l == stride*P->nf);
-
-    MPI_Irecv(rbuf[i], stride*P->nf, MPI_DOUBLE, P->nei, 0, MPI_COMM_WORLD, &M->req[M->nrq++]);
-    MPI_Isend(P->sbuf_f, stride*P->nf, MPI_DOUBLE, P->nei, 0, MPI_COMM_WORLD, &M->req[M->nrq++]);
-    
-    assert(M->nrq < 2*M->npc);
-  }
-
-  Comm_waitall(M);
-}
-
-void Comm_interface_data_i(AMesh *M, E_Int *data, E_Int stride, E_Int **rbuf)
-{
-  for (E_Int i = 0; i < M->npatches; i++) {
-    Patch *P = &M->patches[i];
-
-    P->sbuf_i = (E_Int *)XRESIZE(P->sbuf_i, stride*P->nf*sizeof(E_Int));
-
-    E_Int l = 0;
-    for (E_Int j = 0; j < P->nf; j++) {
-      E_Int own = M->owner[P->pf[j]];
-      E_Int *ptr = &data[stride*own];
-      for (E_Int k = 0; k < stride; k++)
-        P->sbuf_i[l++] = ptr[k];
-    }
-
-    assert(l == stride*P->nf);
-
-    MPI_Irecv(rbuf[i], stride*P->nf, XMPI_INT, P->nei, 0, MPI_COMM_WORLD, &M->req[M->nrq++]);
-    MPI_Isend(P->sbuf_i, stride*P->nf, XMPI_INT, P->nei, 0, MPI_COMM_WORLD, &M->req[M->nrq++]);
-    
-    assert(M->nrq < 2*M->npc);
-  }
-
-  Comm_waitall(M);
 }

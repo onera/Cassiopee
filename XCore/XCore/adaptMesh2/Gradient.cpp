@@ -1,5 +1,10 @@
 #include "Proto.h"
 
+E_Float gradient_norm_inf(E_Float G[3])
+{
+  return fmax(fabs(G[0]), fmax(fabs(G[1]), fabs(G[2])));
+}
+
 static
 void make_A_grad_matrices(AMesh *M, E_Int *indPH, E_Int *count_neis,
   E_Int *owner, E_Int *neigh, E_Float *cx, E_Float *cy, E_Float *cz,

@@ -326,7 +326,7 @@ PyObject *K_XCORE::_assignRefDataToAM(PyObject *self, PyObject *args)
   }
 
   //smooth_ref_data(M);
-  smooth_ref_data_parallel(M);
+  smooth_ref_data(M);
 
   return Py_None;
 }

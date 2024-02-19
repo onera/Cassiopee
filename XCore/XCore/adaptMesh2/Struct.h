@@ -5,6 +5,7 @@
 #include <map>
 #include <unordered_map>
 #include <mpi.h>
+#include "../common/common.h"
 
 #define ISO 0
 #define DIR 1
@@ -25,8 +26,6 @@
 
 #define INTMAX E_IDX_NONE
 #define INTMIN -(E_IDX_NONE-1)
-
-#define RAISE(error) PyErr_SetString(PyExc_ValueError, (error))
 
 #define GONE -2
 #define UNREFINED -1
@@ -84,10 +83,10 @@ struct Children {
 struct Tree {
   E_Int nelem_;
   E_Int *parent_;
-  Children **children_;
   E_Int *level_;
   E_Int *type_;
   E_Int *state_;
+  Children **children_;
 
   Tree(E_Int nelem);
 
@@ -213,6 +212,9 @@ struct AMesh {
   std::unordered_map<E_Int, E_Int> *PT;
   std::unordered_map<E_Int, E_Int> *FT;
   std::unordered_map<E_Int, E_Int> *CT;
+
+  E_Int *XNEIS;
+  E_Int *CADJ;
 
   /* Export */
 

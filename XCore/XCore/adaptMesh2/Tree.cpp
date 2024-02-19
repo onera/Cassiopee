@@ -2,38 +2,38 @@
 
 Tree::Tree(E_Int nelem) :
   nelem_(nelem),
-  parent_(NULL), children_(NULL),
-  level_(NULL), type_(NULL), state_(NULL)
+  parent_(NULL), level_(NULL), type_(NULL), state_(NULL),
+  children_(NULL)
 {
   parent_ = (E_Int *)XMALLOC(nelem * sizeof(E_Int));
-  children_ = (Children **)XMALLOC(nelem * sizeof(Children *));
   level_ = (E_Int *)XMALLOC(nelem * sizeof(E_Int));
   type_ = (E_Int *)XMALLOC(nelem * sizeof(E_Int));
   state_ = (E_Int *)XMALLOC(nelem * sizeof(E_Int));
+  children_ = (Children **)XMALLOC(nelem * sizeof(Children *));
 
   for (E_Int i = 0; i < nelem; i++) {
     parent_[i] = i;
-    children_[i] = NULL;
     level_[i] = 0;
     type_[i] = TYPE_UNKNOWN;
     state_[i] = UNTOUCHED;
+    children_[i] = NULL;
   }
 }
 
 void Tree::resize(E_Int new_elem)
 {
   parent_ = (E_Int *)XRESIZE(parent_, new_elem * sizeof(E_Int));
-  children_ = (Children **)XRESIZE(children_, new_elem * sizeof(Children *));
   level_ = (E_Int *)XRESIZE(level_, new_elem * sizeof(E_Int));
   type_ = (E_Int *)XRESIZE(type_, new_elem * sizeof(E_Int));
   state_ = (E_Int *)XRESIZE(state_, new_elem * sizeof(E_Int));
+  children_ = (Children **)XRESIZE(children_, new_elem * sizeof(Children *));
 
   for (E_Int i = nelem_; i < new_elem; i++) {
     parent_[i] = i;
-    children_[i] = NULL;
     level_[i] = 0;
     type_[i] = TYPE_UNKNOWN;
     state_[i] = UNTOUCHED;
+    children_[i] = NULL;
   }
 
   nelem_ = new_elem;

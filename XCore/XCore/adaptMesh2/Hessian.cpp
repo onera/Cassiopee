@@ -1,5 +1,14 @@
 #include "Proto.h"
 
+E_Float hessian_norm_inf(E_Float M[6])
+{
+  E_Float row0 = fabs(M[0]) + fabs(M[1]) + fabs(M[2]);
+  E_Float row1 = fabs(M[1]) + fabs(M[3]) + fabs(M[4]);
+  E_Float row2 = fabs(M[2]) + fabs(M[4]) + fabs(M[5]);
+
+  return fmax(row0, fmax(row1, row2));
+}
+
 static
 void make_A_hess_matrices(AMesh *M, E_Int *indPH, E_Int *count_neis,
   E_Int *owner, E_Int *neigh, E_Float *cx, E_Float *cy, E_Float *cz,
