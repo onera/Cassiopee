@@ -317,7 +317,7 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
 #pragma omp for
           for (E_Int i = 0; i < nelts[ic]; i += nf[ic])
           {
-            c = i;
+            c = fcOffset + i;
             indPG2[c] = (4+shift)*c; c++;
             indPG2[c] = (4+shift)*c; c++;
             indPG2[c] = (4+shift)*c; c++;
@@ -325,7 +325,7 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
             indPG2[c] = (3+shift)*c;
           }
         }
-        if (strcmp(eltTypConn, "PYRA") == 0)
+        else if (strcmp(eltTypConn, "PYRA") == 0)
         {
 #pragma omp for
           for (E_Int i = 0; i < nelts[ic]; i += nf[ic])
