@@ -3466,6 +3466,7 @@ def _convertArray2NGon(t, recoverBC=True, api=1):
   else: _deleteZoneBC__(t)
   _deleteGridConnectivity__(t)
   _TZA1(t, 'both', 'nodes', True, Converter.convertArray2NGon)
+  #_TZAX(api, t, 'both', 'nodes', True, Converter.convertArray2NGon, api)
   Internal._fixNGon(t)
 
   # Recover BCs for NGon
@@ -6592,7 +6593,7 @@ def node2ExtCenter(t, var=''):
 # diff 2 pyTrees
 #==============================================================================
 def diffArrays(A, B, removeCoordinates=True):
-  """Compute the difference of two pyTrees."""
+  """Compute the difference of two pyTrees, topologically."""
   t1 = Internal.copyRef(A); t2 = Internal.copyRef(B)
   zones1 = Internal.getZones(t1)
   zones2 = Internal.getZones(t2)
@@ -6627,14 +6628,42 @@ def diffArrays(A, B, removeCoordinates=True):
   if removeCoordinates: t1 = rmNodes(t1, Internal.__GridCoordinates__)
   return t1
 
-def diffArrayGeom(t1, t2, tol=1.e-10):
-  """Return true if array1 and array2 are geometrically identical."""
+def diffArrayGeom(A, B, tol=1.e-10, removeCoordinates=True):
+  """Compute the difference of two pyTrees, geometrically."""
+  t1 = Internal.copyRef(A); t2 = Internal.copyRef(B)
   zones1 = Internal.getZones(t1)
   zones2 = Internal.getZones(t2)
-  for c, z1 in enumerate(zones1):
-    ret = diffArrayGeom__(z1, zones2[c], tol)
-    if ret == False: return False
-  return True 
+  nz = len(zones1)
+  if nz != len(zones2):
+    raise ValueError("diffArrays: different number of zones"
+                     "(A=%d; B=%d)."%(nz,len(zones2)))
+  
+  for no in range(nz):
+    # geometric diff
+    diffn, diffc = diffArrayGeom__(zones1[no], zones2[no], tol)
+    if diffn is None: return None # one array is different on coordinates
+    # remplacement des solutions aux noeuds par diffn
+    A1 = getAllFields(zones1[no], 'nodes', api=3); A1 = Internal.clearList(A1)
+    A2 = getAllFields(zones2[no], 'nodes', api=3); A2 = Internal.clearList(A2)
+    node = Internal.getNodesFromName1(zones1[no], Internal.__FlowSolutionNodes__)
+    if node != []:
+      (parent, d) = Internal.getParentOfNode(t1, node[0])
+      if parent is not None: del parent[2][d]
+    if A1 != [] and A2 != []:
+      setFields(diffn, zones1[no], 'nodes')
+      
+    # remplacement des solutions aux centres par diffc
+    A1 = getAllFields(zones1[no], 'centers', api=3); A1 = Internal.clearList(A1)
+    A2 = getAllFields(zones2[no], 'centers', api=3); A2 = Internal.clearList(A2)
+    node = Internal.getNodesFromName1(zones1[no], Internal.__FlowSolutionCenters__)
+    if node != []:
+      (parent, d) = Internal.getParentOfNode(t1, node[0])
+      if parent is not None: del parent[2][d]
+    if A1 != [] and A2 != []:
+      setFields(diffc, zones1[no], 'centers')
+      
+  if removeCoordinates: t1 = rmNodes(t1, Internal.__GridCoordinates__)
+  return t1
 
 def diffArrayGeom__(z1, z2, tol):
   # compare nodes
@@ -6644,8 +6673,8 @@ def diffArrayGeom__(z1, z2, tol):
   a2 = getFields(Internal.__GridCoordinates__, z2, api=3)[0]
   f2 = getFields(Internal.__FlowSolutionNodes__, z2, api=3)[0]
   if f2 != []: a2 = Converter.addVars2([a2,f2])
-  ret = Converter.diffArrayGeom__(a1, a2)
-  if ret == False: return False
+  diffn = Converter.diffArrayGeom__(a1, a2)
+  if diffn is None: return None, None
   # compare centers
   z1c = node2Center(z1)
   a1 = getFields(Internal.__GridCoordinates__, z1c, api=3)[0]
@@ -6655,8 +6684,8 @@ def diffArrayGeom__(z1, z2, tol):
   a2 = getFields(Internal.__GridCoordinates__, z2c, api=3)[0]
   f2 = getFields(Internal.__FlowSolutionNodes__, z2c, api=3)[0]
   if f2 != []: a2 = Converter.addVars2([a2,f2])
-  ret = Converter.diffArrayGeom__(a1, a2)
-  return ret
+  diffc = Converter.diffArrayGeom__(a1, a2)
+  return diffn, diffc
 
 # Check if all fields are finite (no NAN no INF)
 def isFinite(a, var=None):

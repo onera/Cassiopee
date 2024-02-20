@@ -110,8 +110,8 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   E_Int res;
   FldArrayF* f; FldArrayI* cn;
   E_Int ni, nj, nk;
-  char* varString1; char* eltType1;
-  char* varString2; char* eltType2;
+  vector<char*> varString1; char* eltType1;
+  vector<char*> varString2; char* eltType2;
 
   // Extract info from arrays1
   vector<E_Int> ni1; vector<E_Int> nj1; vector<E_Int> nk1;
@@ -123,10 +123,11 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   E_Int n1 = PyList_Size(arrays1);
   E_Int nfld1 = -1; E_Int nfld2 = -1;
   
-  for (int i = 0; i < n1; i++)
+  for (E_Int i = 0; i < n1; i++)
   {
     tpl = PyList_GetItem(arrays1, i);
-    res = K_ARRAY::getFromArray3(tpl, varString1, f, ni, nj, nk, cn, eltType1);
+    varString1.push_back(NULL);
+    res = K_ARRAY::getFromArray3(tpl, varString1[i], f, ni, nj, nk, cn, eltType1);
     object1.push_back(tpl);
     if (res == 1)
     {
@@ -169,10 +170,11 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   vector<FldArrayI*> cn2;
   E_Int n2 = PyList_Size(arrays2);
 
-  for (int i = 0; i < n2; i++)
+  for (E_Int i = 0; i < n2; i++)
   {
     tpl = PyList_GetItem(arrays2, i);
-    res = K_ARRAY::getFromArray3(tpl, varString2, f, ni, nj, nk, cn, eltType2);
+    varString2.push_back(NULL);
+    res = K_ARRAY::getFromArray3(tpl, varString2[i], f, ni, nj, nk, cn, eltType2);
     object2.push_back(tpl);
 
     if (res == 1)
@@ -188,7 +190,8 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
           if (f->getNfld() != nfld2)
           {
             PyErr_SetString(PyExc_ValueError,
-                            "diffArrays: number of fields must be equal in 2nd list.");
+                            "diffArrays: number of fields must be equal in "
+                            "2nd list.");
             return NULL;
           }
         }
@@ -208,10 +211,12 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   }
 
   if (nfld1 != nfld2) 
-    printf("Warning: diffArrays: number of fields are different. Only common fields are compared.\n");
+    printf("Warning: diffArrays: number of fields are different. Only common "
+           "fields are compared.\n");
 
   if (field1.size() != field2.size())
-    printf("Warning: diffArrays: the number of arrays is different in arrays1 and arrays2.\n");
+    printf("Warning: diffArrays: the number of arrays is different in arrays1 "
+           "and arrays2.\n");
 
   if (field1.size() == 0 || field2.size() == 0)
   {
@@ -226,42 +231,70 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
 
   // Extract position of common variables: 
   // nb: x,y,z are elements 0,1,2 in pos1 and pos2
-  vector<E_Int> pos1; vector<E_Int> pos2;
-  char varString[K_ARRAY::VARSTRINGLENGTH];
-  char varStringl[K_ARRAY::VARSTRINGLENGTH];
-  E_Int pos = 
-    K_ARRAY::getPosition( varString1, varString2, pos1, pos2, varStringl);
-  K_ARRAY::addPrefixInVarString(varStringl, "D", varString);
-
-  if (pos == -1)
+  E_Int nmin = std::min(n1, n2);
+  E_Int sumpos = 0;
+  vector<E_Bool> coordPresent;
+  vector<E_Int> pos, posx1, posy1, posz1, posx2, posy2, posz2;
+  vector<vector<E_Int> > pos1, pos2;
+  char varString[nmin][K_ARRAY::VARSTRINGLENGTH];
+  char varStringl[nmin][K_ARRAY::VARSTRINGLENGTH];
+  
+  for (E_Int i = 0; i < nmin; i++)
+  {
+    vector<E_Int> pos1i, pos2i;
+    pos.push_back(K_ARRAY::getPosition(varString1[i], varString2[i], 
+                                       pos1i, pos2i, varStringl[i]));
+    K_ARRAY::addPrefixInVarString(varStringl[i], "D", varString[i]);
+    pos1.push_back(pos1i); pos2.push_back(pos2i);
+    
+    if (pos[i] == -1)
+    {
+#ifdef E_DOUBLEINT
+      printf("diffArrays: no common variables found in array %ld.", i);
+#else
+      printf("diffArrays: no common variables found in array %d.", i);
+#endif
+      continue;
+    }
+    else if (pos[i] == 0) // des variables sont differentes
+    {
+#ifdef E_DOUBLEINT
+      printf("Warning: diffArrays: some variables are different in both "
+             "arguments in array %ld. Only common fields are compared.\n", i);
+#else
+      printf("Warning: diffArrays: some variables are different in both "
+             "arguments in array %d. Only common fields are compared.\n", i);
+#endif
+    }
+    
+    sumpos += pos[i];
+    
+    coordPresent.push_back(true);
+    posx1.push_back(K_ARRAY::isCoordinateXPresent(varString1[i]));
+    posy1.push_back(K_ARRAY::isCoordinateYPresent(varString1[i]));
+    posz1.push_back(K_ARRAY::isCoordinateZPresent(varString1[i]));
+    if (posx1[i] == -1 || posy1[i] == -1 || posz1[i] == -1)
+    {
+      coordPresent[i] = false;
+    }
+    posx1[i]++; posy1[i]++; posz1[i]++;
+    
+    posx2.push_back(K_ARRAY::isCoordinateXPresent(varString2[i]));
+    posy2.push_back(K_ARRAY::isCoordinateYPresent(varString2[i]));
+    posz2.push_back(K_ARRAY::isCoordinateZPresent(varString2[i]));
+    if (posx2[i] == -1 || posy2[i] == -1 || posz2[i] == -1)
+    {
+      coordPresent[i] = false;
+    }
+    posx2[i]++; posy2[i]++; posz2[i]++;
+  }
+  
+  if (sumpos < 0)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "diffArrays: no common variables found.");
+                    "diffArrays: no common variables found all arrays.");
     return NULL;
   }
-  else if (pos == 0) // des variables sont differentes
-  {
-    printf("Warning: diffArrays: some variables are different in both arguments. Only common fields are compared.\n");
-  }
-  
-  E_Boolean coordPresent = true;
-  E_Int posx1 = K_ARRAY::isCoordinateXPresent(varString1);
-  E_Int posy1 = K_ARRAY::isCoordinateYPresent(varString1);
-  E_Int posz1 = K_ARRAY::isCoordinateZPresent(varString1);
-  if (posx1 == -1 || posy1 == -1 || posz1 == -1)
-  {
-    coordPresent = false;
-  }
-  posx1++; posy1++; posz1++;
-  
-  E_Int posx2 = K_ARRAY::isCoordinateXPresent(varString2);
-  E_Int posy2 = K_ARRAY::isCoordinateYPresent(varString2);
-  E_Int posz2 = K_ARRAY::isCoordinateZPresent(varString2);
-  if (posx2 == -1 || posy2 == -1 || posz2 == -1)
-  {
-    coordPresent = false;
-  }
-  posx2++; posy2++; posz2++;
   
   // We now try to identify the blocks by sizes and position  
   
@@ -274,16 +307,15 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   {
     if (ni1[i] != -1)
     {
-      tpl = K_ARRAY::buildArray3(pos1.size(), varString, 
+      tpl = K_ARRAY::buildArray3(pos1[i].size(), varString[i], 
                                  ni1[i], nj1[i], nk1[i]);
     }
     else
     {
-      tpl = K_ARRAY::buildArray3(pos1.size(), varString, *field1[i],
+      tpl = K_ARRAY::buildArray3(pos1[i].size(), varString[i], *field1[i],
                                  *cn1[i], elt1[i], 0, -1, true);
       
     }
-    //errors.push_back(K_ARRAY::getFieldPtr(tpl));
     FldArrayF* f2;
     K_ARRAY::getFromArray3(tpl, f2); 
     errors.push_back(f2);
@@ -291,31 +323,31 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
     //RELEASESHAREDS(tpl, f2); // to fix
   }
 
-  for (size_t i1 = 0; i1 < field1.size(); i1++)
+  for (size_t i = 0; i < field1.size(); i++)
   {
-    FldArrayF& f1 = *field1[i1];
+    FldArrayF& f1 = *field1[i];
     //E_Int n1 = f1.getSize();
-    //FldArrayF error(n1, pos1.size(), errors[i1], true);
-    FldArrayF& error = *(errors[i1]);
+    //FldArrayF error(n1, pos1.size(), errors[i], true);
+    FldArrayF& error = *(errors[i]);
     error.setAllValuesAt(1.e6);
     E_Boolean found = false;
     
     found = searchField2(f1, error,
                          field2,
-                         pos1, pos2,
-                         posx1, posy1, posz1,
-                         posx2, posy2, posz2,
-                         coordPresent);
+                         pos1[i], pos2[i],
+                         posx1[i], posy1[i], posz1[i],
+                         posx2[i], posy2[i], posz2[i],
+                         coordPresent[i]);
 
-    if (found == false && coordPresent == true)
+    if (!found && coordPresent[i])
       found = searchField2(f1, error,
                            field2,
-                           pos1, pos2,
-                           posx1, posy1, posz1,
-                           posx2, posy2, posz2,
+                           pos1[i], pos2[i],
+                           posx1[i], posy1[i], posz1[i],
+                           posx2[i], posy2[i], posz2[i],
                            false);
 
-    if (found == false)
+    if (!found)
       printf("Warning: diffArrays: a field on a block can not be compared.\n");
   }
   
@@ -364,7 +396,7 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
   E_Int nfld2 = -1;
   E_Int nfld3 = -1;
   
-  for (int i = 0; i < n1; i++)
+  for (E_Int i = 0; i < n1; i++)
   {
     tpl = PyList_GetItem(arrays1, i);
     res = K_ARRAY::getFromArray(tpl, varString1, f, ni, nj, nk, cn, eltType1);
@@ -669,7 +701,7 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
       }
     }
   }
-  for (unsigned int no = 0; no < vectOfExtCenters.size(); no++)
+  for (size_t no = 0; no < vectOfExtCenters.size(); no++)
   {
     delete vectOfExtCenters[no];
     delete adts[no];
@@ -677,7 +709,7 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
   /* Sauvegarde de errors sous forme de liste python */
   PyObject* l = PyList_New(0);
 
-  for (int i = 0; i < sizeerrors; i++)
+  for (E_Int i = 0; i < sizeerrors; i++)
   {
     tpl = K_ARRAY::buildArray(*errors[i], varString, 
                               imsm[i], jmsm[i], kmsm[i]);
@@ -715,7 +747,7 @@ E_Boolean K_CONVERTER::searchField2(FldArrayF& f1,
     {
       E_Int npos1 = pos1[v];
       E_Float* f1p = f1.begin(npos1);
-#pragma omp parallel for
+#pragma omp for
       for (E_Int ind = 0; ind < n1; ind++)
       {
         if (isnan(f1p[ind])) hasNan[ithread] = 1;

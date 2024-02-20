@@ -892,11 +892,14 @@ def diffArrays(arrays1, arrays2, arrays3=[]):
     return converter.diffArrays(arrays1, arrays2, arrays3)
 
 def diffArrayGeom(array1, array2, tol=1.e-10):
-    """Return true if array1 and array2 are geometrically identical."""
+    """Diff arrays defining solutions, geometrically. Return the delta field."""
     if isinstance(array1[0], list): 
+        ret = []
         for c, a in enumerate(array1):
-            ret = diffArrayGeom__(a, array2[c], tol)
-            if ret == False: return False
+            res = diffArrayGeom__(a, array2[c], tol)
+            if res is None: return None
+            ret.append(res[0])
+        return ret
     else:
         return diffArrayGeom__(array1, array2, tol)
     
@@ -905,11 +908,9 @@ def diffArrayGeom__(array1, array2, tol=1.e-10):
     ids = identifyNodes(hook, array1, tol=tol)
     ret = numpy.any(ids == -1)
     if ret == True:
-        #print("Warning: some point of mesh a can not be found in b.")
         freeHook(hook)
-        return False # one array is different on coordinates
+        return None # one array is different on coordinates
     ids[:] = ids[:] - 1
-    #print(ids)
     pt = array1[1]
     # renumerote a in place
     if isinstance(pt, list): # array2/3
@@ -923,24 +924,11 @@ def diffArrayGeom__(array1, array2, tol=1.e-10):
     else: # array1
         pt2 = numpy.copy(pt)
         pt2[:,:] = pt[:, ids[:]]
-    #print(pt.flags)
-    #print(pt2.flags)
     
     array1[1] = pt2
-    #print(a)
-    #print(arrays2[c])
     ret2 = diffArrays([array1], [array2])
     freeHook(hook)
-    pt2 = ret2[0][1]
-    if isinstance(pt2, list): # array2/3
-        for p in pt2:
-            emax = numpy.any(p > tol)
-            if emax == True: return False # diff in fields
-    else:
-        emax = numpy.any(pt2 > tol)
-    if emax == True: return False # diff in fields
-    
-    return True
+    return ret2
 
 def isFinite__(a, var=None):
     nfld = a[1].shape[0]
@@ -1242,7 +1230,6 @@ def convertArray2Tetra1__(array, arrayC=[], split='simple'):
 
     if isinstance(sub, str): t = sub
     else: t = 'STRUCT'
-
     if split == 'simple': # no points added
         if t == 'STRUCT':
             return converter.convertStruct2Tetra(array)

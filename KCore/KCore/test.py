@@ -56,25 +56,38 @@ def testA(arrays, number=1):
         return True
     else:
         old = C.convertFile2Arrays(reference, 'bin_pickle')
-        # geometrical check
         if GEOMETRIC_DIFF:
-            ret = C.diffArrayGeom(arrays, old, tol=TOLERANCE)
-            if ret == False: print("DIFF: geometric difference.")
-            return ret
-        # topological check
-        ret = C.diffArrays(arrays, old)
-        varName = ret[0][0]
-        mvars = varName.split(',')
-        retour = True
-        for v in mvars:
-            l0 = 0.; l2 = 0.
-            for i in ret:
-                l0 = max(l0, C.normL0(i, v))
-                l2 = max(l2, C.normL2(i, v))
-                if l0 > TOLERANCE:
-                    print('DIFF: Variable=%s, L0=%.12f, L2=%.12f'%(v,l0,l2))
-                    retour = False
-        return retour
+            # geometrical check
+            if all(coord in oldArr[0].split(',') for oldArr in old for coord in 'xyz'):
+                ret = C.diffArrayGeom(arrays, old, tol=TOLERANCE)
+                if ret is None:
+                    print('DIFF: geometrical diff, 1-to-1 match in identifyNodes failed')
+                    return False
+            else: 
+                print("Warning: missing coordinates for geometrical diff., "
+                      "topological diff performed instead.")
+                ret = C.diffArrays(arrays, old)
+        else:
+            # topological check
+            ret = C.diffArrays(arrays, old)
+
+        isSuccessful = True
+        varNames = list(dict.fromkeys(','.join(i[0] for i in ret).split(',')))
+        nvarNames = len(varNames)
+        l0 = [0. for _ in range(nvarNames)]
+        l2 = [0. for _ in range(nvarNames)]
+        for i in ret:
+            for v in i[0].split(','):
+                vidx = varNames.index(v)
+                l0[vidx] = max(l0[vidx], C.normL0(i, v))
+                l2[vidx] = max(l2[vidx], C.normL2(i, v))
+        
+        for vidx, v in enumerate(varNames):
+            if l0[vidx] > TOLERANCE:
+                print('DIFF: Variable=%s, L0=%.12f, L2=%.12f'%(v, l0[vidx], l2[vidx]))
+                isSuccessful = False
+        
+        return isSuccessful
 
 # idem testA avec ecriture fichier
 def outA(arrays, number=1):
@@ -123,26 +136,35 @@ def testT(t, number=1):
     else:
         old = C.convertFile2PyTree(reference, 'bin_pickle')
         checkTree(t, old)
-        # geometrical check
         if GEOMETRIC_DIFF:
-            ret = C.diffArrayGeom(t, old, tol=TOLERANCE)
-            if ret == False: print("DIFF: geometric difference.")
-            return ret
-        # topological check
-        ret = C.diffArrays(t, old)
+            # geometrical check
+            nXYZ = [Internal.getNodesFromName(old, "Coordinate" + ax) for ax in 'XYZ']
+            nXYZ = [arr[0] if len(arr) else [] for arr in nXYZ]
+            if all(len(arr) for arr in nXYZ) and all(arr[1] is not None for arr in nXYZ):
+                ret = C.diffArrayGeom(t, old, tol=TOLERANCE)
+                if ret is None:
+                    print('DIFF: geometrical diff, 1-to-1 match in identifyNodes failed')
+                    return False
+            else:
+                print("Warning: missing coordinates for geometrical diff., "
+                      "topological diff performed instead.")
+                ret = C.diffArrays(t, old)
+        else:
+            # topological check
+            ret = C.diffArrays(t, old)
         C._fillMissingVariables(ret)
-        allvars = C.getVarNames(ret)
-        if len(allvars) > 0: mvars = allvars[0]
+        mvars = C.getVarNames(ret)
+        if len(mvars) > 0: mvars = mvars[0]
         else: mvars = []
-        retour = True
-
+        
+        isSuccessful = True
         for v in mvars:
             l0 = C.normL0(ret, v)
             l2 = C.normL2(ret, v)
             if l0 > TOLERANCE:
                 print('DIFF: Variable=%s, L0=%.12f, L2=%.12f'%(v,l0,l2))
-                retour = False
-        return retour
+                isSuccessful = False
+        return isSuccessful
 
 def outT(t, number=1):
     """Test and write pyTrees."""
@@ -391,9 +413,13 @@ def checkTree__(node1, node2):
         print('DIFF: reference: %s.'%node2[3])
         print('DIFF: courant: %s.'%node1[3])
         return 0
+    if GEOMETRIC_DIFF and node1[0] in ['NGonElements', 'NFaceElements']:
+        return 1
     if len(node1[2]) != len(node2[2]):
         print('DIFF: longueur des fils differente pour le noeud: %s.'%node1[0])
         return 0
+    if GEOMETRIC_DIFF and node1[0] in ['ElementRange', 'ElementConnectivity']:
+        return 1
     val1 = node1[1]; val2 = node2[1]
     if isinstance(val1, str):
         if not isinstance(val2, str):
