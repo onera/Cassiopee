@@ -955,11 +955,13 @@ def filterTestList(event=None):
         for s in TESTS:
             strg = s.split(separator)[pos].strip()
             if endidx != 0: strg = strg[:endidx]
-            if filtr[shift] == '!':
-                if re.search(filtr[1+shift:], strg) is None:
-                    filteredTests.add(s)
-            elif re.search(filtr[shift:], strg) is not None:
-                filteredTests.add(s)
+            try:
+              if filtr[shift] == '!':
+                  if re.search(filtr[1+shift:], strg) is None:
+                      filteredTests.add(s)
+              elif re.search(filtr[shift:], strg) is not None:
+                  filteredTests.add(s)
+            except re.error: pass
     
     # Apply filters with an AND gate to remove strings from set
     insertedTests = filteredTests.copy()
@@ -975,11 +977,13 @@ def filterTestList(event=None):
                 strg = s.split(separator)[pos].strip()
                 if endidx != 0: strg = strg[:endidx]
                 if len(filtr) < 3: continue
-                if filtr[1+shift] == '!':
-                    if len(filtr) > 3 and re.search(filtr[2+shift:], strg) is not None:
-                        insertedTests.discard(s)
-                elif re.search(filtr[1+shift:], strg) is None:
-                    insertedTests.discard(s)
+                try:
+                  if filtr[1+shift] == '!':
+                      if len(filtr) > 3 and re.search(filtr[2+shift:], strg) is not None:
+                          insertedTests.discard(s)
+                  elif re.search(filtr[1+shift:], strg) is None:
+                      insertedTests.discard(s)
+                except re.error: pass
         
     listbox.delete(0, TK.END)
     if filters:
@@ -1682,32 +1686,16 @@ Filter = TK.StringVar(master)
 text = TK.Entry(frame, textvariable=Filter, background='White', width=50)
 text.bind('<KeyRelease>', filterTestList)
 text.grid(row=1, column=2, columnspan=3, sticky=TK.EW)
-"""Filter tests by this regexp.\n'+'-'*70+'\n'\
-  '1) Filters are separated by a white space, for ex.\n'\
-  '    ^cylinder ^sphere\nselects tests whose names start with either cylinder or sphere.\n'\
-  '2) Filters can be applied on modules by prefixing their names\nwith the symbol #, for ex.\n'\
-  '    #Fast #FF #Apps\nwill load all PModules.\n'\
-  '3) Filters can be applied on statuses by prefixing their names\nwith the symbol /, for ex.\n'\
-  '    /FAILED /FAILEDMEM\nwill select all tests that failed because of bugs or memory leaks.\n'\
-  '4) Logical OR operations are performed unless a filter is \n'\
-  'prefixed with the symbol & to force an AND operation.\n'\
-  '    #Converter &/FAILED\nwill select all buggy tests in the Converter module.\n'\
-  '5) Negation of an expression with symbol ! should be the innermost\noperator, for ex.\n'\
-  '    #Fast &#!FastC\nwill load Fast modules but FastC.\n'\
-  '6) A few keyworded filters exist and can be called using angle\nbrackets, for ex.\n'\
-  '    <SEQ> &<UNRUN>\nselects all sequential tests that have not been run yet.\n'\
-  'These keyworded filters are:\n    <SEQ>, <DIST>, <RUN>, <UNRUN>, <TAG>, <UNTAG>.\n'\
-  '7) Tests can be filtered by coverage using the % symbol, for ex.\n'\
-  '    <TAG> &/OK &%100\nselects all bug-free tagged tests that have 100% coverage."""
   
 filterInfoBulle = 'Filter test database using a regexp.\n'+'-'*70+'\n'\
   '1) White-spaced: ^cylinder ^sphere\n'\
-  '2) Module filter using #: #Fast #FF #Apps\n'\
-  '3) Status filter using /: /FAILED /FAILEDMEM\n'\
+  '2) Module filter using #: #Apps #Fast #FF   or simply   #[A,F] \n'\
+  '3) Status filter using /: /FAILED /FAILEDMEM   or simply   /F\n'\
   '4) Coverage filter using %: %100\n'\
-  '5) Keyworded filters: <SEQ>, <DIST>, <RUN>, <UNRUN>, <TAG>, <UNTAG>.\n'\
-  '6) Logical OR ops unless prefixed with & (AND): #Converter &/FAILED\n'\
-  '7) Negated using !: #Fast &#!FastC (innermost symbol)'
+  '5) Tag symbol filter using £: £r   to catch red-coloured cases\n'\
+  '6) Keyworded filters: <SEQ>, <DIST>, <RUN>, <UNRUN>, <TAG>, <UNTAG>.\n'\
+  '7) Logical OR ops unless prefixed with & (AND): #Converter &/FAILED\n'\
+  '8) Negated using !: #Fast &#!FastC (innermost symbol)'
 BB = CTK.infoBulle(parent=text, text=filterInfoBulle)
 
 button = TK.Button(frame, text='Run', command=runTestsInThread, fg='blue')
