@@ -115,113 +115,111 @@ void H27_refine(E_Int cell, AMesh *M)
 
   // Add cell centroid
   // TODO(Imad): for now, mean of point coordinates
-  E_Float cc[3] = {0., 0., 0.};
-  E_Int *pn = get_facets(pf[0], M->ngon, M->indPG);
-  for (E_Int i = 0; i < 4; i++) {
-    cc[0] += M->x[pn[i]];
-    cc[1] += M->y[pn[i]];
-    cc[2] += M->z[pn[i]];
-  }
-  pn = get_facets(pf[1], M->ngon, M->indPG);
-  for (E_Int i = 0; i < 4; i++) {
-    cc[0] += M->x[pn[i]];
-    cc[1] += M->y[pn[i]];
-    cc[2] += M->z[pn[i]];
-  }
-  for (E_Int i = 0; i < 3; i++) cc[i] /= 8.0;
   NODES[26] = M->npoints;
-  M->x[M->npoints] = cc[0];
-  M->y[M->npoints] = cc[1];
-  M->z[M->npoints] = cc[2];
+  M->x[M->npoints] = M->ccenter[cell][0];
+  M->y[M->npoints] = M->ccenter[cell][1];
+  M->z[M->npoints] = M->ccenter[cell][2];
   M->npoints++;
 
   // Set internal faces in ngon
   E_Int *ptr = &M->indPG[M->nfaces];
 
-  // NCELLS TOP && RGT && BCK
-
-  // nfaces
+  // nfaces (cell TOP)
   ptr[1] = ptr[0] + 4;
-  M->ngon[*ptr  ] = NODES[15]; M->ngon[*ptr+1] = NODES[22];
-  M->ngon[*ptr+2] = NODES[26]; M->ngon[*ptr+3] = NODES[16];
+  M->ngon[*ptr  ] = NODES[15];
+  M->ngon[*ptr+1] = NODES[22];
+  M->ngon[*ptr+2] = NODES[26];
+  M->ngon[*ptr+3] = NODES[16];
   ptr++;
 
-  // nfaces+1
+  // nfaces+1 (cell RGT)
   ptr[1] = ptr[0] + 4;
-  M->ngon[*ptr  ] = NODES[8];  M->ngon[*ptr+1] = NODES[12];
-  M->ngon[*ptr+2] = NODES[26]; M->ngon[*ptr+3] = NODES[22];
+  M->ngon[*ptr  ] = NODES[8];
+  M->ngon[*ptr+1] = NODES[12];
+  M->ngon[*ptr+2] = NODES[26];
+  M->ngon[*ptr+3] = NODES[22];
   ptr++;
 
-  // nfaces+2
+  // nfaces+2 (cell BCK)
   ptr[1] = ptr[0] + 4;
-  M->ngon[*ptr  ] = NODES[12]; M->ngon[*ptr+1] = NODES[11];
-  M->ngon[*ptr+2] = NODES[16]; M->ngon[*ptr+3] = NODES[26];
+  M->ngon[*ptr  ] = NODES[12];
+  M->ngon[*ptr+1] = NODES[11];
+  M->ngon[*ptr+2] = NODES[16];
+  M->ngon[*ptr+3] = NODES[26];
   ptr++;
 
-  // NCELLS+1 TOP && BCK
-
-  // nfaces+3
+  // nfaces+3 (ncells TOP)
   ptr[1] = ptr[0] + 4;
-  M->ngon[*ptr  ] = NODES[22]; M->ngon[*ptr+1] = NODES[19];
-  M->ngon[*ptr+2] = NODES[20]; M->ngon[*ptr+3] = NODES[26];
+  M->ngon[*ptr  ] = NODES[22];
+  M->ngon[*ptr+1] = NODES[19];
+  M->ngon[*ptr+2] = NODES[20];
+  M->ngon[*ptr+3] = NODES[26];
   ptr++;
 
-  // nfaces+4
+  // nfaces+4 (ncells BCK)
   ptr[1] = ptr[0] + 4;
-  M->ngon[*ptr  ] = NODES[9]; M->ngon[*ptr+1] = NODES[12];
-  M->ngon[*ptr+2] = NODES[26]; M->ngon[*ptr+3] = NODES[20];
+  M->ngon[*ptr  ] = NODES[9];
+  M->ngon[*ptr+1] = NODES[12];
+  M->ngon[*ptr+2] = NODES[26];
+  M->ngon[*ptr+3] = NODES[20];
   ptr++;
 
-  // NCELLS+2 TOP && LFT
-
-  // nfaces+5
+  // nfaces+5 (ncells+1 TOP)
   ptr[1] = ptr[0] + 4;
-  M->ngon[*ptr  ] = NODES[26]; M->ngon[*ptr+1] = NODES[20];
-  M->ngon[*ptr+2] = NODES[17]; M->ngon[*ptr+3] = NODES[24];
+  M->ngon[*ptr  ] = NODES[26];
+  M->ngon[*ptr+1] = NODES[20];
+  M->ngon[*ptr+2] = NODES[17];
+  M->ngon[*ptr+3] = NODES[24];
   ptr++;
 
-  // nfaces+6
+  // nfaces+6 (ncells+1 LFT)
   ptr[1] = ptr[0] + 4;
-  M->ngon[*ptr  ] = NODES[12]; M->ngon[*ptr+1] = NODES[10];
-  M->ngon[*ptr+2] = NODES[24]; M->ngon[*ptr+3] = NODES[26];
+  M->ngon[*ptr  ] = NODES[12];
+  M->ngon[*ptr+1] = NODES[10];
+  M->ngon[*ptr+2] = NODES[24];
+  M->ngon[*ptr+3] = NODES[26];
   ptr++;
 
-  // NCELLS+3 TOP
-
-  // nfaces+7
+  // nfaces+7 (ncells+2 TOP)
   ptr[1] = ptr[0] + 4;
-  M->ngon[*ptr  ] = NODES[16];  M->ngon[*ptr+1] = NODES[26];
-  M->ngon[*ptr+2] = NODES[24]; M->ngon[*ptr+3] = NODES[13];
+  M->ngon[*ptr  ] = NODES[16];
+  M->ngon[*ptr+1] = NODES[26];
+  M->ngon[*ptr+2] = NODES[24];
+  M->ngon[*ptr+3] = NODES[13];
   ptr++;
 
-  // NCELLS+4 RGT && BCK
+  /*************/
 
-  // nfaces+8
+  // nfaces+8 (ncells+3 RGT)
   ptr[1] = ptr[0] + 4;
-  M->ngon[*ptr  ] = NODES[22]; M->ngon[*ptr+1] = NODES[26];
-  M->ngon[*ptr+2] = NODES[25]; M->ngon[*ptr+3] = NODES[21];
+  M->ngon[*ptr  ] = NODES[22];
+  M->ngon[*ptr+1] = NODES[26];
+  M->ngon[*ptr+2] = NODES[25];
+  M->ngon[*ptr+3] = NODES[21];
   ptr++;
 
-  // nfaces+9
+  // nfaces+9 (ncells+3 BCK)
   ptr[1] = ptr[0] + 4;
-  M->ngon[*ptr  ] = NODES[26]; M->ngon[*ptr+1] = NODES[16];
-  M->ngon[*ptr+2] = NODES[14]; M->ngon[*ptr+3] = NODES[25];
+  M->ngon[*ptr  ] = NODES[26];
+  M->ngon[*ptr+1] = NODES[16];
+  M->ngon[*ptr+2] = NODES[14];
+  M->ngon[*ptr+3] = NODES[25];
   ptr++;
 
-  // NCELLS+5 BCK
-
-  // nfaces+10
+  // nfaces+10 (ncells+4 BCK)
   ptr[1] = ptr[0] + 4;
-  M->ngon[*ptr  ] = NODES[20]; M->ngon[*ptr+1] = NODES[26];
-  M->ngon[*ptr+2] = NODES[25]; M->ngon[*ptr+3] = NODES[18];
+  M->ngon[*ptr  ] = NODES[20];
+  M->ngon[*ptr+1] = NODES[26];
+  M->ngon[*ptr+2] = NODES[25];
+  M->ngon[*ptr+3] = NODES[18];
   ptr++;
 
-  // NCELLS+6 LFT
-
-  // nfaces+11
+  // nfaces+11 (ncells+5 LFT)
   ptr[1] = ptr[0] + 4;
-  M->ngon[*ptr  ] = NODES[26]; M->ngon[*ptr+1] = NODES[24];
-  M->ngon[*ptr+2] = NODES[23]; M->ngon[*ptr+3] = NODES[25];
+  M->ngon[*ptr  ] = NODES[26];
+  M->ngon[*ptr+1] = NODES[24];
+  M->ngon[*ptr+2] = NODES[23];
+  M->ngon[*ptr+3] = NODES[25];
 
   // Assemble children
 
@@ -272,7 +270,7 @@ void H27_refine(E_Int cell, AMesh *M)
 
   // ncells+5
   ptr[1] = ptr[0] + 6;
-  M->nface[*ptr  ] = M->nfaces+5; M->nface[*ptr+1] = TOP[2];
+  M->nface[*ptr  ] = M->nfaces+5;  M->nface[*ptr+1] = TOP[2];
   M->nface[*ptr+2] = M->nfaces+11; M->nface[*ptr+3] = RGT[2];
   M->nface[*ptr+4] = M->nfaces+10; M->nface[*ptr+5] = BCK[3];
   ptr++;
@@ -280,8 +278,8 @@ void H27_refine(E_Int cell, AMesh *M)
   // ncells+6
   ptr[1] = ptr[0] + 6;
   M->nface[*ptr  ] = M->nfaces+7;  M->nface[*ptr+1] = TOP[3];
-  M->nface[*ptr+2] = LFT[2];  M->nface[*ptr+3] = M->nfaces+11;
-  M->nface[*ptr+4] = M->nfaces+9; M->nface[*ptr+5] = BCK[2];
+  M->nface[*ptr+2] = LFT[2];       M->nface[*ptr+3] = M->nfaces+11;
+  M->nface[*ptr+4] = M->nfaces+9;  M->nface[*ptr+5] = BCK[2];
 
   // Set new cells in tree
 
@@ -303,23 +301,41 @@ void H27_refine(E_Int cell, AMesh *M)
     M->faceTree->set_new_elem(M->nfaces+i, QUAD, next_level);
 
   // Set owns and neis of internal faces
-  M->owner[M->nfaces]    = cell;        M->owner[M->nfaces+1]  = cell;
-  M->neigh[M->nfaces]    = M->ncells+3; M->neigh[M->nfaces+1]  = M->ncells  ;
+  M->owner[M->nfaces]    = cell       ;
+  M->neigh[M->nfaces]    = M->ncells+3;
 
-  M->owner[M->nfaces+2]  = cell;        M->owner[M->nfaces+3]  = M->ncells  ;
-  M->neigh[M->nfaces+2]  = M->ncells+2; M->neigh[M->nfaces+3]  = M->ncells+4;
+  M->owner[M->nfaces+1]  = cell;
+  M->neigh[M->nfaces+1]  = M->ncells;
 
-  M->owner[M->nfaces+4]  = M->ncells  ; M->owner[M->nfaces+5]  = M->ncells+1;
-  M->neigh[M->nfaces+4]  = M->ncells+1; M->neigh[M->nfaces+5]  = M->ncells+5;
+  M->owner[M->nfaces+2]  = cell       ;
+  M->neigh[M->nfaces+2]  = M->ncells+2; 
 
-  M->owner[M->nfaces+6]  = M->ncells+2; M->owner[M->nfaces+7]  = M->ncells+2;
-  M->neigh[M->nfaces+6]  = M->ncells+1; M->neigh[M->nfaces+7]  = M->ncells+6;
+  M->owner[M->nfaces+3]  = M->ncells  ;
+  M->neigh[M->nfaces+3]  = M->ncells+4;
 
-  M->owner[M->nfaces+8]  = M->ncells+3; M->owner[M->nfaces+9]  = M->ncells+3;
-  M->neigh[M->nfaces+8]  = M->ncells+4; M->neigh[M->nfaces+9]  = M->ncells+6;
+  M->owner[M->nfaces+4]  = M->ncells;
+  M->neigh[M->nfaces+4]  = M->ncells+1;
 
-  M->owner[M->nfaces+10] = M->ncells+4; M->owner[M->nfaces+11] = M->ncells+6;
-  M->neigh[M->nfaces+10] = M->ncells+5; M->neigh[M->nfaces+11] = M->ncells+5;
+  M->owner[M->nfaces+5]  = M->ncells+1;
+  M->neigh[M->nfaces+5]  = M->ncells+5;
+
+  M->owner[M->nfaces+6]  = M->ncells+2       ;        
+  M->neigh[M->nfaces+6]  = M->ncells+1; 
+
+  M->owner[M->nfaces+7]  = M->ncells+2;
+  M->neigh[M->nfaces+7]  = M->ncells+6;
+
+  M->owner[M->nfaces+8]  = M->ncells+3;
+  M->neigh[M->nfaces+8]  = M->ncells+4; 
+
+  M->owner[M->nfaces+9]  = M->ncells+3;
+  M->neigh[M->nfaces+9]  = M->ncells+6;
+
+  M->owner[M->nfaces+10] = M->ncells+4;
+  M->neigh[M->nfaces+10] = M->ncells+5; 
+
+  M->owner[M->nfaces+11] = M->ncells+6;
+  M->neigh[M->nfaces+11] = M->ncells+5;
 
   assert(check_canon_hexa(cell, M));
   for (E_Int i = 0; i < 7; i++)

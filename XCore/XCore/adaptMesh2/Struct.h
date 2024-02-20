@@ -183,6 +183,7 @@ struct AMesh {
   E_Int *ref_data;
 
   std::map<Edge, E_Int> *ecenter;
+  std::map<E_Int, std::array<E_Float, 3>> ccenter;
 
   Tree *cellTree;
   Tree *faceTree;

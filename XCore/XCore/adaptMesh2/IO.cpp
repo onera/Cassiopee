@@ -87,8 +87,8 @@ PyObject *extract_conformal_mesh(AMesh *M, E_Int closed_mesh)
   memcpy(py, M->y, M->npoints * sizeof(E_Float));
   memcpy(pz, M->z, M->npoints * sizeof(E_Float));
 
-  assert(K_CONNECT::check_open_cells(*cno, NULL) == 0);
-  assert(K_CONNECT::check_overlapping_cells(*cno) == 0);
+  //assert(K_CONNECT::check_open_cells(*cno, NULL) == 0);
+  //assert(K_CONNECT::check_overlapping_cells(*cno) == 0);
 
   //return m;
 

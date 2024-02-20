@@ -218,6 +218,13 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
 
   std::vector<E_Int> ref_faces, ref_cells;
 
+  /*
+  ref_cells.push_back(0);
+  E_Int *pf = get_facets(0, M->nface, M->indPH);
+  for (E_Int i = 0; i < 6; i++) ref_faces.push_back(pf[i]);
+  */
+
+
   get_ref_faces_and_cells(M, ref_faces, ref_cells);
 
   printf("%d -> nref_cells: %ld - nref_faces: %ld\n", M->pid, ref_cells.size(),
@@ -240,6 +247,8 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
       return M->cellTree->level(i) < M->cellTree->level(j);
     });
   }
+
+  compute_ref_cells_centers(M, ref_cells);
 
   refine_mesh(M, ref_faces, ref_cells);
 

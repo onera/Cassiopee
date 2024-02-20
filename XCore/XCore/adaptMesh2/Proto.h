@@ -34,6 +34,7 @@ void compress_mesh(AMesh *M, const std::vector<E_Int> &new_cells,
 void mesh_drop(AMesh *M);
 void patch_drop(Patch *P);
 void make_dual_graph(AMesh *M);
+void compute_ref_cells_centers(AMesh *M, const std::vector<E_Int> &ref_cells);
 
 // Refine
 void get_ref_faces_and_cells(AMesh *, std::vector<E_Int> &ref_faces,

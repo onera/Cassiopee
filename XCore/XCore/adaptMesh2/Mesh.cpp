@@ -156,7 +156,7 @@ AMesh::AMesh() :
   owner(NULL), neigh(NULL),
   nbc(-1), ptlists(NULL), bcsizes(NULL), bcnames(NULL),
   Tr(-1.0), Tu(-1.0), eps(-1.0), hmin(-1.0), hmax(-1.0), unrefine(-1),
-  mode_2D(NULL), ref_data(NULL), ecenter(NULL),
+  mode_2D(NULL), ref_data(NULL), ecenter(NULL), ccenter(),
   cellTree(NULL), faceTree(NULL),
   prev_ncells(-1), prev_nfaces(-1), prev_npoints(-1),
   onc(-1), onf(-1), onp(-1),
@@ -581,4 +581,44 @@ void make_dual_graph(AMesh *M)
   }
 
   XFREE(cneis);
+}
+
+static
+void compute_cell_center_hexa(E_Int cell, AMesh *M)
+{
+  E_Float cc[3] = {0., 0., 0.};
+  E_Int *pf = get_facets(cell, M->nface, M->indPH);
+  E_Int *pn = get_facets(pf[0], M->ngon, M->indPG);
+  for (E_Int i = 0; i < 4; i++) {
+    cc[0] += M->x[pn[i]];
+    cc[1] += M->y[pn[i]];
+    cc[2] += M->z[pn[i]];
+  }
+  pn = get_facets(pf[1], M->ngon, M->indPG);
+  for (E_Int i = 0; i < 4; i++) {
+    cc[0] += M->x[pn[i]];
+    cc[1] += M->y[pn[i]];
+    cc[2] += M->z[pn[i]];
+  }
+  for (E_Int i = 0; i < 3; i++) cc[i] /= 8.0;
+  M->ccenter[cell][0] = cc[0];
+  M->ccenter[cell][1] = cc[1];
+  M->ccenter[cell][2] = cc[2];
+}
+
+void compute_ref_cells_centers(AMesh *M, const std::vector<E_Int> &ref_cells)
+{
+  M->ccenter.clear();
+
+  for (auto cell : ref_cells) {
+    switch (M->cellTree->type(cell)) {
+      case HEXA:
+        compute_cell_center_hexa(cell, M);
+        break;
+      default:
+        fprintf(stderr, "UNIMPLEMENTED");
+        assert(0);
+        exit(1);
+    }
+  }
 }

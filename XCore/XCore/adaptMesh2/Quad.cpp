@@ -76,9 +76,11 @@ void Q9_get_ordered_data(AMesh *M, E_Int NODE, E_Int reorient,
   Right_shift(children, i0, 4);
 
   if (reorient) {
-  	std::swap(local[1], local[3]);
-  	std::swap(local[4], local[7]);
-  	std::swap(local[5], local[6]);
+  	//std::swap(local[1], local[3]);
+  	//std::swap(local[4], local[7]);
+  	//std::swap(local[5], local[6]);
+    std::reverse(local+1, local+4);
+    std::reverse(local+4, local+8);
   	std::swap(children[1], children[3]);
   }
 }
@@ -107,7 +109,6 @@ void Q9_refine(E_Int face, AMesh *M)
     }
   }
 
-  // Note(Imad): face center is supposed to be already computed
   E_Float fc[3] = {0., 0., 0.};
   for (E_Int i = 0; i < 4; i++) {
     fc[0] += M->x[pn[i]];
