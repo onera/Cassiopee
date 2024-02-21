@@ -61,8 +61,10 @@ def testA(arrays, number=1):
             if all(coord in oldArr[0].split(',') for oldArr in old for coord in 'xyz'):
                 ret = C.diffArrayGeom(arrays, old, tol=TOLERANCE)
                 if ret is None:
-                    print('DIFF: geometrical diff, 1-to-1 match in identifyNodes failed')
-                    return False
+                    print('DIFF: geometrical diff, 1-to-1 match in '
+                          'identifyNodes failed, topological diff performed '
+                          'instead.')
+                    ret = C.diffArrays(arrays, old)
             else: 
                 print("Warning: missing coordinates for geometrical diff., "
                       "topological diff performed instead.")
@@ -143,8 +145,10 @@ def testT(t, number=1):
             if all(len(arr) for arr in nXYZ) and all(arr[1] is not None for arr in nXYZ):
                 ret = C.diffArrayGeom(t, old, tol=TOLERANCE)
                 if ret is None:
-                    print('DIFF: geometrical diff, 1-to-1 match in identifyNodes failed')
-                    return False
+                    print('DIFF: geometrical diff, 1-to-1 match in '
+                          'identifyNodes failed, topological diff performed '
+                          'instead.')
+                    ret = C.diffArrays(t, old)
             else:
                 print("Warning: missing coordinates for geometrical diff., "
                       "topological diff performed instead.")

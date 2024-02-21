@@ -110,8 +110,8 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   E_Int res;
   FldArrayF* f; FldArrayI* cn;
   E_Int ni, nj, nk;
-  vector<char*> varString1; char* eltType1;
-  vector<char*> varString2; char* eltType2;
+  vector<char*> varString1; char* eltType1; char* varString1i;
+  vector<char*> varString2; char* eltType2; char* varString2i;
 
   // Extract info from arrays1
   vector<E_Int> ni1; vector<E_Int> nj1; vector<E_Int> nk1;
@@ -126,13 +126,13 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   for (E_Int i = 0; i < n1; i++)
   {
     tpl = PyList_GetItem(arrays1, i);
-    varString1.push_back(NULL);
-    res = K_ARRAY::getFromArray3(tpl, varString1[i], f, ni, nj, nk, cn, eltType1);
+    res = K_ARRAY::getFromArray3(tpl, varString1i, f, ni, nj, nk, cn, eltType1);
     object1.push_back(tpl);
     if (res == 1)
     {
       if (ni*nj*nk > 0)
       {
+        varString1.push_back(varString1i);
         ni1.push_back(ni); nj1.push_back(nj); nk1.push_back(nk);
         field1.push_back(f);
         cn1.push_back(NULL);
@@ -152,6 +152,7 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
     }
     else if (res == 2) 
     {
+      varString1.push_back(varString1i);
       ni1.push_back(-1); nj1.push_back(-1); nk1.push_back(-1);
       field1.push_back(f);
       cn1.push_back(cn);
@@ -173,14 +174,14 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   for (E_Int i = 0; i < n2; i++)
   {
     tpl = PyList_GetItem(arrays2, i);
-    varString2.push_back(NULL);
-    res = K_ARRAY::getFromArray3(tpl, varString2[i], f, ni, nj, nk, cn, eltType2);
+    res = K_ARRAY::getFromArray3(tpl, varString2i, f, ni, nj, nk, cn, eltType2);
     object2.push_back(tpl);
 
     if (res == 1)
     {
       if (ni*nj*nk > 0)
       {
+        varString2.push_back(varString2i);
         ni2.push_back(ni); nj2.push_back(nj); nk2.push_back(nk);
         field2.push_back(f);
         cn2.push_back(NULL);
@@ -200,6 +201,7 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
     }
     else if (res == 2)
     {
+      varString2.push_back(varString2i);
       ni2.push_back(-1); nj2.push_back(-1); nk2.push_back(-1);
       field2.push_back(f);
       cn2.push_back(cn);
@@ -231,15 +233,14 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
 
   // Extract position of common variables: 
   // nb: x,y,z are elements 0,1,2 in pos1 and pos2
-  E_Int nmin = std::min(n1, n2);
   E_Int sumpos = 0;
   vector<E_Bool> coordPresent;
   vector<E_Int> pos, posx1, posy1, posz1, posx2, posy2, posz2;
   vector<vector<E_Int> > pos1, pos2;
-  char varString[nmin][K_ARRAY::VARSTRINGLENGTH];
-  char varStringl[nmin][K_ARRAY::VARSTRINGLENGTH];
+  char varString[field1.size()][K_ARRAY::VARSTRINGLENGTH];
+  char varStringl[field1.size()][K_ARRAY::VARSTRINGLENGTH];
   
-  for (E_Int i = 0; i < nmin; i++)
+  for (size_t i = 0; i < field1.size(); i++)
   {
     vector<E_Int> pos1i, pos2i;
     pos.push_back(K_ARRAY::getPosition(varString1[i], varString2[i], 
@@ -249,22 +250,13 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
     
     if (pos[i] == -1)
     {
-#ifdef E_DOUBLEINT
       printf("diffArrays: no common variables found in array %ld.", i);
-#else
-      printf("diffArrays: no common variables found in array %d.", i);
-#endif
       continue;
     }
     else if (pos[i] == 0) // des variables sont differentes
     {
-#ifdef E_DOUBLEINT
       printf("Warning: diffArrays: some variables are different in both "
              "arguments in array %ld. Only common fields are compared.\n", i);
-#else
-      printf("Warning: diffArrays: some variables are different in both "
-             "arguments in array %d. Only common fields are compared.\n", i);
-#endif
     }
     
     sumpos += pos[i];

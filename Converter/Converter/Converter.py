@@ -906,25 +906,25 @@ def diffArrayGeom(array1, array2, tol=1.e-10):
 def diffArrayGeom__(array1, array2, tol=1.e-10):
     hook = createHook(array2, 'nodes')
     ids = identifyNodes(hook, array1, tol=tol)
-    ret = numpy.any(ids == -1)
-    if ret == True:
+    if numpy.any(ids == -1):
+        print("ids", ids)
         freeHook(hook)
         return None # one array is different on coordinates
-    ids[:] = ids[:] - 1
+    ids[:] -= 1
     pt = array1[1]
     # renumerote a in place
     if isinstance(pt, list): # array2/3
         pt2 = []
         for c, p in enumerate(pt):
-            p2 = numpy.copy(p)
-            pr2 = p2.ravel('k')
-            pr = pt[c].ravel('k')
+            p2 = numpy.copy(p, order='K')
+            pr2 = p2.ravel(order='K')
+            pr = pt[c].ravel(order='K')
             pr2[:] = pr[ids[:]]
             pt2.append(p2)
     else: # array1
-        pt2 = numpy.copy(pt)
-        pt2[:,:] = pt[:, ids[:]]
-    
+        pt2 = numpy.copy(pt, order='K')
+        pt2[:,:] = pt[:,ids[:]]
+        
     array1[1] = pt2
     ret2 = diffArrays([array1], [array2])
     freeHook(hook)
