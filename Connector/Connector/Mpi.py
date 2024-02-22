@@ -362,6 +362,12 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
     ##-1:: NO  :wire model treatment BUT a treatment on locks for IBC for ___setInterpTransfers
     isWireModel_intv2      =max(isWireModel_int,0)
     isSetPartialFieldsCheck=max(abs(isWireModel_int),0)
+
+    ##for moving IBMs
+    isIbmMoving_int  = 0
+    motionType = int(Internal.getNodeFromName(zones,"Parameter_real")[1][64])
+    motionType = Cmpi.allreduce(motionType, op=Cmpi.MAX)
+    if motionType==3: isIbmMoving_int=1
 	
     # Transferts locaux/globaux
     # Calcul des solutions interpolees par arbre donneur
@@ -384,7 +390,7 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
             rank  = Cmpi.rank
             infos = connector.__setInterpTransfersD(zones, zonesD, vars, dtloc, param_int, param_real, it_target, varType,
                                                     type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage, rank,
-	    					    isWireModel_int) 
+	    					    isWireModel_int,isIbmMoving_int) 
             if infos != []:
                for n in infos:
                   rcvNode = dest

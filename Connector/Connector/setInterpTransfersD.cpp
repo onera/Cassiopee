@@ -316,12 +316,12 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
   PyObject* pyVariables, *pydtloc;
   PyObject *pyParam_int, *pyParam_real;
   E_Int     vartype, type_transfert, no_transfert, It_target;
-  E_Int     nstep, nitmax, rk, exploc, num_passage, rank, isWireModel;
+  E_Int     nstep, nitmax, rk, exploc, num_passage, rank, isWireModel, isIbmMoving;
 
-  if ( !PYPARSETUPLE_(args, OOOO_ OO_ IIII_ IIII_ III_,
+  if ( !PYPARSETUPLE_(args, OOOO_ OO_ IIII_ IIII_ IIII_,
 		      &zonesR,
 		      &zonesD, &pyVariables, &pydtloc, &pyParam_int, &pyParam_real, &It_target, &vartype, &type_transfert,
-		      &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage, &rank, &isWireModel) ) 
+		      &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage, &rank, &isWireModel, &isIbmMoving) ) 
   {
     return NULL;
   }
@@ -511,8 +511,8 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
   E_Int ptiter = ipt_omp[nssiter+ nstep-1];
 
   E_Int impli_local_init=0;
-  if (isWireModel_local==-1){impli_local_init=1;}
-
+  if (isWireModel_local==-1 || isIbmMoving==1){impli_local_init=1;}
+    
   for (E_Int nd = 0; nd < nidomR; nd++) {impli_local[nd]=impli_local_init;}
   for (E_Int ntask = 0; ntask < nbtask; ntask++)
     {
@@ -619,6 +619,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 
 	E_Int NoD      =  ipt_param_int[ shift_rac + nrac*5     ];
         E_Int overset  =  ipt_param_intD[NoD][LBM_OVERSET];        //flag pour overset en LBM recuper� sur param_int donneuse
+
         if      (nvars_loc==19 && overset==0) nvars_loc = nvars_loc + 5;
         else if (nvars_loc==19 && overset==1) nvars_loc = nvars_loc + 5 + 6 + 6;
 
