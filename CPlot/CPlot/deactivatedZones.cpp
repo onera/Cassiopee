@@ -65,11 +65,11 @@ void CPlotState::removeDeactivatedZones(E_Int i)
   {
     if (c->value == i)
     { 
-      if (cp == NULL) deactivatedZones = c->next;   
+      if (cp == NULL) deactivatedZones = c->next;
       else cp->next = c->next; 
       cn = c;
-      free(c);
-      c = cn->next;
+      c = c->next;
+      free(cn);
     }
     else 
     {

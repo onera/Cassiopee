@@ -181,6 +181,7 @@ def enforceH(event=None):
         CTK.TXT.insert('START', 'Error: ', 'Error')
     v = v[0]
     CTK.saveTree()
+    CPlot.setState(cursor=1)
     nzs = CPlot.getSelectedZones()
     zones = []
     for nz in nzs:
@@ -204,6 +205,7 @@ def enforceH(event=None):
     # add CAD remesh if possible
     edges = getSelection(nzs)
     remeshCAD(edges)
+    CPlot.setState(cursor=0)
 
 #==============================================================================
 # Smooth pour les zones edges
