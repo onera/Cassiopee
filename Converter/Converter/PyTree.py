@@ -1313,7 +1313,7 @@ def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
 # -- Array / PyTree conversions --
 #==============================================================================
 
-# -- convertArray2ZoneNode
+# -- convertArrays2ZoneNode
 # Cree une nouvelle zone a partir d'arrays
 # IN: A: liste d'arrays. Contient un array ou 2 arrays (dans ce cas, le
 # premier array est en noeuds et le deuxieme en centres).

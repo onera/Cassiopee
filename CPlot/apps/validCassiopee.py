@@ -922,15 +922,15 @@ def filterTestList(event=None):
                     elif tmpFiltr == 'DIST': outFilters.add('&t.$')
                     elif tmpFiltr == 'RUN': outFilters.update(['&/!FAILED', '&/!FAILEDMEM', '&/!OK'])
                     elif tmpFiltr == 'UNRUN': outFilters.update(['/FAILED', '/FAILEDMEM', '/OK'])
-                    elif tmpFiltr == 'TAG': outFilters.add('£^(?![\*,+,r,g,b])')
-                    elif tmpFiltr == 'UNTAG': outFilters.add('£[\*,+,r,g,b]')
+                    elif tmpFiltr == 'TAG': outFilters.add('£^(?![\*,r,g,b])')
+                    elif tmpFiltr == 'UNTAG': outFilters.add('£[\*,r,g,b]')
                 else:
                     if tmpFiltr == 'SEQ': outFilters.add('&t.$')
                     elif tmpFiltr == 'DIST': outFilters.add('&m.$')
                     elif tmpFiltr == 'RUN': outFilters.update(['/FAILED', '/FAILEDMEM', '/OK'])
                     elif tmpFiltr == 'UNRUN': outFilters.update(['&/!FAILED', '&/!FAILEDMEM', '&/!OK'])
-                    elif tmpFiltr == 'TAG': outFilters.add('£[\*,+,r,g,b]')
-                    elif tmpFiltr == 'UNTAG': outFilters.add('£^(?![\*,+,r,g,b])')
+                    elif tmpFiltr == 'TAG': outFilters.add('£[\*,r,g,b]')
+                    elif tmpFiltr == 'UNTAG': outFilters.add('£^(?![\*,r,g,b])')
             else: outFilters.add(filtr)
         return outFilters
         
@@ -1392,11 +1392,11 @@ def Quit(event=None):
 
 #==============================================================================
 # Ajoute une etoile a la selection. Tagger plusieurs fois une selection permet
-# de changer de symbole: *, +, r, g, b
+# de changer de symbole: *, r, g, b
 #==============================================================================
 def tagSelection(event=None):
     global TESTS
-    tagSymbols = '* + r g b'.split()
+    tagSymbols = '* r g b'.split()
     ntags = len(tagSymbols)
     selection = listbox.curselection()
     for s in selection:
