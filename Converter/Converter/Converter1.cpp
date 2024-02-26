@@ -593,6 +593,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   vector<FldArrayF*> fieldc;
   char* varString;
   vector<E_Int> elt;
+  vector<vector<E_Int> > eltIds;
   FldArrayF* f; FldArrayI* cn;
   E_Int res;
   vector<FldArrayF*> fieldu; // non structure
@@ -632,6 +633,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
             fieldu.push_back(f);
             connectu.push_back(cn);
             elt.push_back(ids[0]);
+            eltIds.push_back(ids);
           }
           else //id == -1
             printf("Warning: convertArrays2File: element type %s not taken "
@@ -647,6 +649,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
               FldArrayI* cm = cn->getConnect(ic);
               connectu.push_back(cm);
               elt.push_back(ids[ic]);
+              eltIds.push_back(ids);
             }
             else //id == -1
               printf("Warning: convertArrays2File: element type %s in position "
@@ -758,7 +761,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
     
     isok = K_IO::GenIO::getInstance()->meshwrite(fileName, dataFmt, varString,
                                                  ni, nj, nk,
-                                                 fieldc, fieldu, connectu, elt,
+                                                 fieldc, fieldu, connectu, eltIds,
                                                  zoneNames);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_gmsh") == 0) // fmt gmsh

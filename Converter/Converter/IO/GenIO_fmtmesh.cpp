@@ -92,13 +92,13 @@ E_Int K_IO::GenIO::meshread(
   E_Int st;
   res = readWord(ptrFile, buf);
 
-  E_Boolean Edges = false;
-  E_Boolean Triangles = false;
-  E_Boolean Quadrangles = false;
-  E_Boolean Tetrahedra = false;
-  E_Boolean Hexahedra = false;
-  E_Boolean Pentas = false;
-  E_Boolean Pyras = false;
+  E_Boolean foundEdge = false;
+  E_Boolean foundTri = false;
+  E_Boolean foundQuad = false;
+  E_Boolean foundTetra = false;
+  E_Boolean foundHexa = false;
+  E_Boolean foundPenta = false;
+  E_Boolean foundPyra = false;
 
   while (strcmp(buf, "End") != 0 && res >= 1)
   { 
@@ -117,7 +117,7 @@ E_Int K_IO::GenIO::meshread(
       }
       connect.push_back(cn);
       eltType.push_back(1);
-      Edges = true;
+      foundEdge = true;
     }
     else if (strcmp(buf, "Triangles") == 0)
     {
@@ -135,7 +135,7 @@ E_Int K_IO::GenIO::meshread(
       }
       connect.push_back(cn);
       eltType.push_back(2);
-      Triangles = true;
+      foundTri = true;
     }
     else if (strcmp(buf, "Quadrilaterals") == 0)
     {
@@ -155,7 +155,7 @@ E_Int K_IO::GenIO::meshread(
       }
       connect.push_back(cn);
       eltType.push_back(3);
-      Quadrangles = true;
+      foundQuad = true;
     }
     else if (strcmp(buf, "Tetrahedra") == 0)
     {
@@ -175,7 +175,7 @@ E_Int K_IO::GenIO::meshread(
       }
       connect.push_back(cn);
       eltType.push_back(4);
-      Tetrahedra = true;
+      foundTetra = true;
     }
     else if (strcmp(buf, "Hexahedra") == 0)
     {
@@ -199,7 +199,7 @@ E_Int K_IO::GenIO::meshread(
       }
       connect.push_back(cn);
       eltType.push_back(7);
-      Hexahedra = true;
+      foundHexa = true;
     }
     else if (strcmp(buf, "Prisms") == 0)
     {
@@ -221,7 +221,7 @@ E_Int K_IO::GenIO::meshread(
       }
       connect.push_back(cn);
       eltType.push_back(6);
-      Pentas = true;
+      foundPenta = true;
     }
     else if (strcmp(buf, "Pyramids") == 0)
     {
@@ -242,7 +242,7 @@ E_Int K_IO::GenIO::meshread(
       }
       connect.push_back(cn);
       eltType.push_back(5);
-      Pyras = true;
+      foundPyra = true;
     }
     next: ;
     res = readWord(ptrFile, buf);
@@ -250,50 +250,49 @@ E_Int K_IO::GenIO::meshread(
   }
   
   // Formation des vertices de chacun
-  if (Edges == true)
+  if (foundEdge)
   {
     FldArrayF* an = new FldArrayF(f);
     unstructField.push_back(an);
   }
-  // Triangles
-  if (Triangles == true)
+  if (foundTri)
   {
     FldArrayF* an = new FldArrayF(f);
     unstructField.push_back(an);
   }
-  if (Quadrangles == true)
+  if (foundQuad)
   {
     FldArrayF* an = new FldArrayF(f);
     unstructField.push_back(an);
   }
-  if (Tetrahedra == true)
+  if (foundTetra)
   {
     FldArrayF* an = new FldArrayF(f);
     unstructField.push_back(an);
   }
-  if (Hexahedra == true)
+  if (foundHexa)
   {
     FldArrayF* an = new FldArrayF(f);
     unstructField.push_back(an);
   }
-  if (Pentas == true)
+  if (foundPenta)
   {
     FldArrayF* an = new FldArrayF(f);
     unstructField.push_back(an);
   }
-  if (Pyras == true)
+  if (foundPyra)
   {
     FldArrayF* an = new FldArrayF(f);
     unstructField.push_back(an);
   }
   // Cree le nom de zone
-  for (unsigned int i=0; i < unstructField.size(); i++)
+  for (size_t i = 0; i < unstructField.size(); i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone%d", i);
+    sprintf(zoneName, "Zone%ld", i);
     zoneNames.push_back(zoneName);
   }
-  //printf("%d %d\n", unstructField.size(), connect.size());
+  //printf("%ld %ld\n", unstructField.size(), connect.size());
 
   varString = new char [8];
   strcpy(varString, "x,y,z");
@@ -766,6 +765,563 @@ E_Int K_IO::GenIO::meshwrite(
       }
     }
   }
+  delete vertices;
+  for (E_Int i = 0; i < connectTriSize; i++)
+    delete connectTri[i];
+  for (E_Int i = 0; i < connectQuadSize; i++)
+    delete connectQuad[i];
+  for (E_Int i = 0; i < connectTetraSize; i++)
+    delete connectTetra[i];
+  for (E_Int i = 0; i < connectHexaSize; i++)
+    delete connectHexa[i];
+  for (E_Int i = 0; i < connectPentaSize; i++)
+    delete connectPenta[i];
+  for (E_Int i = 0; i < connectPyraSize; i++)
+    delete connectPyra[i];
+
+  fclose(ptrFile);
+  return 0;
+}
+
+E_Int K_IO::GenIO::meshwrite(
+  char* file, char* dataFmt, char* varString,
+  vector<E_Int>& ni, vector<E_Int>& nj, vector<E_Int>& nk,
+  vector<FldArrayF*>& structField,
+  vector<FldArrayF*>& unstructField,
+  vector<FldArrayI*>& connect,
+  vector<vector<E_Int> >& eltType,
+  vector<char*>& zoneNames,
+  vector<vector<E_Int> >* colors)
+{
+  E_Int nzones = unstructField.size();
+  E_Int nvalidZones = 0;
+  E_Boolean isZoneValid [nzones] = {false};
+  for (E_Int zn = 0; zn < nzones; zn++)
+  {
+    vector<E_Int>& eltTypez = eltType[zn];
+    E_Int nvalidEltTypes = 0;
+    for (size_t ic = 0; ic < eltTypez.size(); ic++)
+    {
+      // triangles, quads, tetra, hexa, edges, supported
+      if (eltTypez[ic] == 1 || eltTypez[ic] == 2 || eltTypez[ic] == 3 || 
+          eltTypez[ic] == 4 || eltTypez[ic] == 5 || eltTypez[ic] == 6 ||
+          eltTypez[ic] == 7) 
+        nvalidEltTypes++;
+      else
+#ifdef E_DOUBLEINT
+        printf("Warning: meshwrite: zone %ld not written (not a valid element "
+               "type: %ld).", zn, eltTypez[ic]);
+#else
+        printf("Warning: meshwrite: zone %d not written (not a valid element "
+               "type: %d).", zn, eltTypez[ic]);
+#endif
+    }
+    if (nvalidEltTypes == (int)eltTypez.size())
+    {
+      isZoneValid[zn] = true; nvalidZones++;
+    }
+  }
+
+  if (nvalidZones == 0) return 1;
+
+  // All zones must have posx, posy, posz
+  E_Int posx, posy, posz;
+  posx = K_ARRAY::isCoordinateXPresent(varString);
+  posy = K_ARRAY::isCoordinateYPresent(varString);
+  posz = K_ARRAY::isCoordinateZPresent(varString);
+  if (posx == -1 || posy == -1)
+  {
+    printf("Warning: meshwrite: zones do not have coordinates. Not written.\n");
+    return 1;
+  }
+  posx++; posy++; posz++;
+
+ char format1[40]; char dataFmtl[40];
+ strcpy(dataFmtl, dataFmt);
+ int l = strlen(dataFmt); 
+ if (dataFmt[l-1] == ' ') dataFmtl[l-1] = '\0';
+
+  // Build format for data
+  sprintf(format1,"%s%s%s", dataFmt, dataFmt, dataFmtl);
+#ifdef E_DOUBLEINT
+  strcat(format1," %ld\n");
+#else
+  strcat(format1," %d\n");
+#endif
+
+  // Connectivite par elts
+  E_Int c = 0;
+  vector<FldArrayI*> connectEdge;
+  vector<FldArrayI*> connectTri;
+  vector<FldArrayI*> connectQuad;
+  vector<FldArrayI*> connectTetra;
+  vector<FldArrayI*> connectHexa;
+  vector<FldArrayI*> connectPenta;
+  vector<FldArrayI*> connectPyra;
+  
+  // Compute offsets and total size before the parallel block
+  E_Int cmpt = 0, size = 0;
+  E_Int shift[nzones];
+  E_Int cmptBE[7] = {0};
+  vector<vector<E_Int> > connIdSrc(nzones);
+  vector<vector<E_Int> > connIdTgt(nzones);
+  for (E_Int zn = 0; zn < nzones; zn++)
+  {
+    shift[zn] = size;
+    vector<E_Int>& eltTypez = eltType[zn];
+    for (size_t ic = 0; ic < eltTypez.size(); ic++)
+    {
+      E_Int elt = eltTypez[ic];
+      connIdSrc[zn].push_back(cmpt); cmpt++;
+      if (isZoneValid[zn])
+      {
+        if (elt == 1) connectEdge.push_back(NULL);
+        else if (elt == 2) connectTri.push_back(NULL);
+        else if (elt == 3) connectQuad.push_back(NULL);
+        else if (elt == 4) connectTetra.push_back(NULL);
+        else if (elt == 7) connectHexa.push_back(NULL);
+        else if (elt == 6) connectPenta.push_back(NULL);
+        else if (elt == 5) connectPyra.push_back(NULL);
+        connIdTgt[zn].push_back(cmptBE[elt]);
+        cmptBE[elt]++;
+      }
+    }
+    if (isZoneValid[zn]) size += unstructField[zn]->getSize();
+  }
+
+  // Concatenate all vertices in one field
+  FldArrayF* vertices;
+  vertices = new FldArrayF(size,3);
+  FldArrayF& v = *vertices;
+
+  #pragma omp parallel
+  {
+    for (E_Int zn = 0; zn < nzones; zn++)
+    {
+      if (not isZoneValid[zn]) continue;
+      
+      // Field
+      E_Int offset = shift[zn];
+      FldArrayF& field = *unstructField[zn];
+      if (posz > 0)
+      {
+        #pragma omp for
+        for (E_Int n = 0; n < field.getSize(); n++)
+        {
+          v(offset+n,1) = field(n,posx);
+          v(offset+n,2) = field(n,posy);
+          v(offset+n,3) = field(n,posz);
+        }
+      }
+      else
+      {
+        #pragma omp for
+        for (E_Int n = 0; n < field.getSize(); n++)
+        {
+          v(offset+n,1) = field(n,posx);
+          v(offset+n,2) = field(n,posy);
+          v(offset+n,3) = 0.;
+        }
+      }
+
+      // Connectivities
+      const vector<E_Int>& eltTypez = eltType[zn];
+      const vector<E_Int>& connIdSrcz = connIdSrc[zn];
+      const vector<E_Int>& connIdTgtz = connIdTgt[zn];
+
+      for (size_t ic = 0; ic < eltTypez.size(); ic++)
+      {
+        E_Int elt = eltTypez[ic];
+        FldArrayI& cn = *connect[connIdSrcz[ic]];
+        
+        if (elt == 1) // Edge
+        {
+          FldArrayI* cpp = new FldArrayI(cn);
+          FldArrayI& cp = *cpp;
+          #pragma omp for
+          for (E_Int n = 0; n < cn.getSize(); n++)
+          {
+            cp(n,1) = cn(n,1) + shift[zn];
+            cp(n,2) = cn(n,2) + shift[zn];
+          }
+          connectEdge[connIdTgtz[ic]] = cpp;
+        }
+        else if (elt == 2) // Tri
+        {
+          FldArrayI* cpp = new FldArrayI(cn);
+          FldArrayI& cp = *cpp;
+          #pragma omp for
+          for (E_Int n = 0; n < cn.getSize(); n++)
+          {
+            cp(n,1) = cn(n,1) + shift[zn];
+            cp(n,2) = cn(n,2) + shift[zn];
+            cp(n,3) = cn(n,3) + shift[zn];
+          }
+          connectTri[connIdTgtz[ic]] = cpp;
+        }
+        else if (elt == 3) // quads
+        {
+          FldArrayI* cpp = new FldArrayI(cn);
+          FldArrayI& cp = *cpp;
+          #pragma omp for
+          for (E_Int n = 0; n < cn.getSize(); n++)
+          {
+            cp(n,1) = cn(n,1) + shift[zn];
+            cp(n,2) = cn(n,2) + shift[zn];
+            cp(n,3) = cn(n,3) + shift[zn];
+            cp(n,4) = cn(n,4) + shift[zn];
+          }
+          connectQuad[connIdTgtz[ic]] = cpp;
+        }
+        else if (elt == 4) // tetra
+        {
+          FldArrayI* cpp = new FldArrayI(cn);
+          FldArrayI& cp = *cpp;
+          #pragma omp for
+          for (E_Int n = 0; n < cn.getSize(); n++)
+          {
+            cp(n,1) = cn(n,1) + shift[zn];
+            cp(n,2) = cn(n,2) + shift[zn];
+            cp(n,3) = cn(n,3) + shift[zn];
+            cp(n,4) = cn(n,4) + shift[zn];
+          }
+          connectTetra[connIdTgtz[ic]] = cpp;
+        }
+        else if (elt == 7) // hexa
+        {
+          FldArrayI* cpp = new FldArrayI(cn);
+          FldArrayI& cp = *cpp;
+          #pragma omp for
+          for (E_Int n = 0; n < cn.getSize(); n++)
+          {
+            cp(n,1) = cn(n,1) + shift[zn];
+            cp(n,2) = cn(n,2) + shift[zn];
+            cp(n,3) = cn(n,3) + shift[zn];
+            cp(n,4) = cn(n,4) + shift[zn];
+            cp(n,5) = cn(n,5) + shift[zn];
+            cp(n,6) = cn(n,6) + shift[zn];
+            cp(n,7) = cn(n,7) + shift[zn];
+            cp(n,8) = cn(n,8) + shift[zn];
+          }
+          connectHexa[connIdTgtz[ic]] = cpp;
+        }
+        else if (elt == 6) // penta
+        {
+          FldArrayI* cpp = new FldArrayI(cn);
+          FldArrayI& cp = *cpp;
+          #pragma omp for
+          for (E_Int n = 0; n < cn.getSize(); n++)
+          {
+            cp(n,1) = cn(n,1) + shift[zn];
+            cp(n,2) = cn(n,2) + shift[zn];
+            cp(n,3) = cn(n,3) + shift[zn];
+            cp(n,4) = cn(n,4) + shift[zn];
+            cp(n,5) = cn(n,5) + shift[zn];
+            cp(n,6) = cn(n,6) + shift[zn];
+          }
+          connectPenta[connIdTgtz[ic]] = cpp;
+        }
+        else if (elt == 5) // pyra
+        {
+          FldArrayI* cpp = new FldArrayI(cn);
+          FldArrayI& cp = *cpp;
+          #pragma omp for
+          for (E_Int n = 0; n < cn.getSize(); n++)
+          {
+            cp(n,1) = cn(n,1) + shift[zn];
+            cp(n,2) = cn(n,2) + shift[zn];
+            cp(n,3) = cn(n,3) + shift[zn];
+            cp(n,4) = cn(n,4) + shift[zn];
+            cp(n,5) = cn(n,5) + shift[zn];
+          }
+          connectPyra[connIdTgtz[ic]] = cpp;
+        }
+      }
+    }
+  }
+
+  // Ecriture
+  FILE* ptrFile = fopen(file, "w");
+  if (ptrFile == NULL) 
+  {
+    printf("Warning: meshwrite: I can't open file %s.\n", file);
+    return 1;  
+  }
+
+  fprintf(ptrFile, "MeshVersionFormatted\n1\n");
+  fprintf(ptrFile, "Dimension\n3\n");
+#ifdef E_DOUBLEINT
+  fprintf(ptrFile, "Vertices\n%ld\n", v.getSize());
+#else
+  fprintf(ptrFile, "Vertices\n%d\n", v.getSize());
+#endif
+  for (E_Int i = 0; i < v.getSize(); i++)
+    fprintf(ptrFile, format1, v(i,1), v(i,2), v(i,3), 0);
+  
+  E_Int connectEdgeSize = connectEdge.size();
+  if (connectEdgeSize != 0)
+  {
+    size = 0;
+    for (E_Int i = 0; i < connectEdgeSize; i++)
+      size = size + connectEdge[i]->getSize();
+#ifdef E_DOUBLEINT
+    fprintf(ptrFile, "Edges\n%ld\n", size);
+#else
+    fprintf(ptrFile, "Edges\n%d\n", size);
+#endif
+    c = 0;
+    for (E_Int zn = 0; zn < nzones; zn++) 
+    {
+      if (not isZoneValid[zn]) continue;
+      vector<E_Int>& eltTypez = eltType[zn];
+      for (size_t ic = 0; ic < eltTypez.size(); ic++)
+      {
+        if (eltTypez[ic] == 1)
+        {
+          FldArrayI& cp = *connectEdge[c];
+          if (!colors)
+            for (E_Int i = 0; i < cp.getSize(); i++)
+#ifdef E_DOUBLEINT
+              fprintf(ptrFile, "%ld %ld %ld\n", cp(i,1), cp(i,2), c);
+#else
+              fprintf(ptrFile, "%d %d %d\n", cp(i,1), cp(i,2), c);
+#endif
+          else
+            for (E_Int i = 0; i < cp.getSize(); i++)
+#ifdef E_DOUBLEINT
+              fprintf(ptrFile, "%ld %ld %ld\n", cp(i,1), cp(i,2), (*colors)[c][i]);
+#else
+              fprintf(ptrFile, "%d %d %d\n", cp(i,1), cp(i,2), (*colors)[c][i]);
+#endif
+          c++;
+        }
+      }
+    }
+  }
+
+  E_Int connectTriSize = connectTri.size();
+  if (connectTriSize != 0)
+  {
+    size = 0;
+    for (E_Int i = 0; i < connectTriSize; i++)
+      size = size + connectTri[i]->getSize();
+#ifdef E_DOUBLEINT
+    fprintf(ptrFile, "Triangles\n%ld\n", size);
+#else
+    fprintf(ptrFile, "Triangles\n%d\n", size);
+#endif
+    c = 0;
+    for (E_Int zn = 0; zn < nzones; zn++) 
+    {
+      if (not isZoneValid[zn]) continue;
+      vector<E_Int>& eltTypez = eltType[zn];
+      for (size_t ic = 0; ic < eltTypez.size(); ic++)
+      {
+        if (eltTypez[ic] == 2)
+        {
+          FldArrayI& cp = *connectTri[c];
+          if (!colors)
+            for (E_Int i = 0; i < cp.getSize(); i++)
+#ifdef E_DOUBLEINT
+              fprintf(ptrFile, "%ld %ld %ld %ld\n", cp(i,1), cp(i,2), cp(i,3), c);
+#else
+              fprintf(ptrFile, "%d %d %d %d\n", cp(i,1), cp(i,2), cp(i,3), c);
+#endif
+          else
+            for (E_Int i = 0; i < cp.getSize(); i++)
+#ifdef E_DOUBLEINT
+              fprintf(ptrFile, "%ld %ld %ld %ld\n", cp(i,1), cp(i,2), cp(i,3), (*colors)[c][i]);
+#else
+              fprintf(ptrFile, "%d %d %d %d\n", cp(i,1), cp(i,2), cp(i,3), (*colors)[c][i]);
+#endif
+          c++;
+        }
+      }
+    }
+  }
+
+  E_Int connectQuadSize = connectQuad.size();
+  if (connectQuadSize != 0)
+  {
+    size = 0;
+    for (E_Int i = 0; i < connectQuadSize; i++)
+      size = size + connectQuad[i]->getSize();
+#ifdef E_DOUBLEINT
+    fprintf(ptrFile, "Quadrilaterals\n%ld\n", size);
+#else
+    fprintf(ptrFile, "Quadrilaterals\n%d\n", size);
+#endif
+    c = 0;
+    for (E_Int zn = 0; zn < nzones; zn++) 
+    {
+      if (not isZoneValid[zn]) continue;
+      vector<E_Int>& eltTypez = eltType[zn];
+      for (size_t ic = 0; ic < eltTypez.size(); ic++)
+      {
+        if (eltTypez[ic] == 3)
+        {
+          FldArrayI& cp = *connectQuad[c];
+          for (E_Int i = 0; i < cp.getSize(); i++)
+#ifdef E_DOUBLEINT
+            fprintf(ptrFile, "%ld %ld %ld %ld %ld\n", 
+                    cp(i,1), cp(i,2), cp(i,3), cp(i,4), c);
+#else
+          fprintf(ptrFile, "%d %d %d %d %d\n", 
+                    cp(i,1), cp(i,2), cp(i,3), cp(i,4), c);
+#endif
+          c++;
+        }
+      }
+    }
+  }
+
+  E_Int connectTetraSize = connectTetra.size();
+  if (connectTetraSize != 0)
+  {
+    size = 0;
+    for (E_Int i = 0; i < connectTetraSize; i++)
+      size = size + connectTetra[i]->getSize();
+#ifdef E_DOUBLEINT
+    fprintf(ptrFile, "Tetrahedra\n%ld\n", size);
+#else
+    fprintf(ptrFile, "Tetrahedra\n%d\n", size);
+#endif
+
+    c = 0;
+    for (E_Int zn = 0; zn < nzones; zn++) 
+    {
+      if (not isZoneValid[zn]) continue;
+      vector<E_Int>& eltTypez = eltType[zn];
+      for (size_t ic = 0; ic < eltTypez.size(); ic++)
+      {
+        if (eltTypez[ic] == 4)
+        {
+          FldArrayI& cp = *connectTetra[c];
+          for (E_Int i = 0; i < cp.getSize(); i++)
+#ifdef E_DOUBLEINT
+            fprintf(ptrFile, "%ld %ld %ld %ld %ld\n", 
+                    cp(i,1), cp(i,2), cp(i,3), cp(i,4), c);
+#else
+            fprintf(ptrFile, "%d %d %d %d %d\n", 
+                    cp(i,1), cp(i,2), cp(i,3), cp(i,4), c);
+#endif
+          c++;
+        }
+      }
+    }
+  }
+
+  E_Int connectHexaSize = connectHexa.size();
+  if (connectHexaSize != 0)
+  {
+    size = 0;
+    for (E_Int i = 0; i < connectHexaSize; i++)
+      size = size + connectHexa[i]->getSize();
+#ifdef E_DOUBLEINT
+    fprintf(ptrFile, "Hexahedra\n%ld\n", size);
+#else
+    fprintf(ptrFile, "Hexahedra\n%d\n", size);
+#endif
+    c = 0;
+    for (E_Int zn = 0; zn < nzones; zn++) 
+    {
+      if (not isZoneValid[zn]) continue;
+      vector<E_Int>& eltTypez = eltType[zn];
+      for (size_t ic = 0; ic < eltTypez.size(); ic++)
+      {
+        if (eltTypez[ic] == 7)
+        {
+          FldArrayI& cp = *connectHexa[c];
+          for (E_Int i = 0; i < cp.getSize(); i++)
+#ifdef E_DOUBLEINT
+            fprintf(ptrFile, "%ld %ld %ld %ld %ld %ld %ld %ld %ld\n", 
+                    cp(i,1), cp(i,2), cp(i,3), cp(i,4),
+                    cp(i,5), cp(i,6), cp(i,7), cp(i,8), c);
+#else
+            fprintf(ptrFile, "%d %d %d %d %d %d %d %d %d\n", 
+                    cp(i,1), cp(i,2), cp(i,3), cp(i,4),
+                    cp(i,5), cp(i,6), cp(i,7), cp(i,8), c);
+#endif
+          c++;
+        }
+      }
+    }
+  }
+  
+  E_Int connectPentaSize = connectPenta.size();
+  if (connectPentaSize != 0)
+  {
+    size = 0;
+    for (E_Int i = 0; i < connectPentaSize; i++)
+      size = size + connectPenta[i]->getSize();
+#ifdef E_DOUBLEINT
+    fprintf(ptrFile, "Prisms\n%ld\n", size);
+#else
+    fprintf(ptrFile, "Prisms\n%d\n", size);
+#endif
+    c = 0;
+    for (E_Int zn = 0; zn < nzones; zn++) 
+    {
+      if (not isZoneValid[zn]) continue;
+      vector<E_Int>& eltTypez = eltType[zn];
+      for (size_t ic = 0; ic < eltTypez.size(); ic++)
+      {
+        if (eltTypez[ic] == 6)
+        {
+          FldArrayI& cp = *connectPenta[c];
+          for (E_Int i = 0; i < cp.getSize(); i++)
+#ifdef E_DOUBLEINT
+            fprintf(ptrFile, "%ld %ld %ld %ld %ld %ld %ld\n", 
+                    cp(i,1), cp(i,2), cp(i,3), cp(i,4),
+                    cp(i,5), cp(i,6), c);
+#else
+            fprintf(ptrFile, "%d %d %d %d %d %d %d\n", 
+                    cp(i,1), cp(i,2), cp(i,3), cp(i,4),
+                    cp(i,5), cp(i,6), c);
+#endif
+          c++;
+        }
+      }
+    }
+  }
+  
+  E_Int connectPyraSize = connectPyra.size();
+  if (connectPyraSize != 0)
+  {
+    size = 0;
+    for (E_Int i = 0; i < connectPyraSize; i++)
+      size = size + connectPyra[i]->getSize();
+#ifdef E_DOUBLEINT
+    fprintf(ptrFile, "Pyramids\n%ld\n", size);
+#else
+    fprintf(ptrFile, "Pyramids\n%d\n", size);
+#endif
+    c = 0;
+    for (E_Int zn = 0; zn < nzones; zn++) 
+    {
+      if (not isZoneValid[zn]) continue;
+      vector<E_Int>& eltTypez = eltType[zn];
+      for (size_t ic = 0; ic < eltTypez.size(); ic++)
+      {
+        if (eltTypez[ic] == 5)
+        {
+          FldArrayI& cp = *connectPyra[c];
+          for (E_Int i = 0; i < cp.getSize(); i++)
+#ifdef E_DOUBLEINT
+            fprintf(ptrFile, "%ld %ld %ld %ld %ld %ld\n", 
+                    cp(i,1), cp(i,2), cp(i,3), cp(i,4),
+                    cp(i,5), c);
+#else
+            fprintf(ptrFile, "%d %d %d %d %d %d\n", 
+                    cp(i,1), cp(i,2), cp(i,3), cp(i,4),
+                    cp(i,5), c);
+#endif
+          c++;
+        }
+      }
+    }
+  }
+  
   delete vertices;
   for (E_Int i = 0; i < connectTriSize; i++)
     delete connectTri[i];

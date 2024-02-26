@@ -379,6 +379,15 @@ class GenIO
       std::vector<E_Int>& eltType,
       std::vector<char*>& zoneNames,
       std::vector<std::vector<E_Int> > * colors=0);
+    E_Int meshwrite(
+      char* file, char* dataFmt, char* varString,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector <FldArrayF*>& structField,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connect,
+      std::vector<std::vector<E_Int> >& eltType,
+      std::vector<char*>& zoneNames,
+      std::vector<std::vector<E_Int> > * colors=0);
     ///-
 
     ///+ Gmsh (Louvain) functions
