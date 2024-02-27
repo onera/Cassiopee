@@ -2393,8 +2393,8 @@ E_Int K_IO::GenIO::tecwrite108(
           break;
         case 8: // NGON
         {
-          E_Int* ptr = connect[nol]->begin();
-          if (ptr[2] > 2) ib = 7; // polyhedron
+          E_Int* ngon = connect[nol]->getNGon();
+          if (ngon[0] > 2) ib = 7; // polyhedron
           else ib = 6; // polygon
         }
         break;
@@ -2452,17 +2452,16 @@ E_Int K_IO::GenIO::tecwrite108(
         // numPts
         ib = unstructField[nol]->getSize();
         fwrite(&ib, si, 1, ptrFile);
-        E_Int* ptr = connect[nol]->begin();
         // num faces
-        ib = ptr[0]; fwrite(&ib, si, 1, ptrFile);
+        ib = connect[nol]->getNFaces(); fwrite(&ib, si, 1, ptrFile);
         // numFacesNodes
-        ib = ptr[1]-ptr[0]; fwrite(&ib, si, 1, ptrFile);
+        ib = connect[nol]->getSizeNGon()-ib; fwrite(&ib, si, 1, ptrFile);
         // Boundary faces
         ib = 0; fwrite(&ib, si, 1, ptrFile);
         // Boundary connections
         ib = 0; fwrite(&ib, si, 1, ptrFile);
         // num elts
-        ib = ptr[2+ptr[1]]; fwrite(&ib, si, 1, ptrFile);
+        ib = connect[nol]->getNElts(); fwrite(&ib, si, 1, ptrFile);
         // cellDim
         ib = 0; fwrite(&ib, si, 1, ptrFile);
         ib = 0; fwrite(&ib, si, 1, ptrFile);
@@ -2531,7 +2530,8 @@ E_Int K_IO::GenIO::tecwrite108(
     }
 
     // field
-    fwrite(f.begin(), sizeof(E_Float), f.getSize()*f.getNfld(), ptrFile);
+    for (n = 1; n <= nfield; n++)
+      fwrite(f.begin(n), sizeof(E_Float), f.getSize(), ptrFile);
     no++;
   }
 
@@ -2585,7 +2585,8 @@ E_Int K_IO::GenIO::tecwrite108(
     }
 
     // field
-    fwrite(f.begin(), sizeof(E_Float), f.getSize()*f.getNfld(), ptrFile);
+    for (n = 1; n <= nfield; n++)
+      fwrite(f.begin(n), sizeof(E_Float), f.getSize(), ptrFile);
 
     // Connectivity
     nt = c.getSize(); nv = c.getNfld();
@@ -2627,11 +2628,11 @@ E_Int K_IO::GenIO::tecwrite108(
     }
     else if (eltType[no] == 8) // NGONS
     {
-      E_Int* ptr = c.begin();
-      E_Int numFaces = ptr[0];
-      E_Int size = ptr[1];
-      ptr += 2;
-      E_Int nf = ptr[0];
+      E_Int* ngon = c.getNGon();
+      E_Int* indPG = c.getIndPG();
+      E_Int numFaces = c.getNFaces();
+      E_Int size = c.getSizeNGon();
+      E_Int nf = ngon[0];
       nv = 1;
       if (nf > 2) nt = numFaces+1 + (size-numFaces) + 2*numFaces;
       else nt = (size-numFaces) + 2*numFaces;
@@ -2642,23 +2643,20 @@ E_Int K_IO::GenIO::tecwrite108(
       if (nf > 2) // only for volumic
       {
         ptri[0] = 0;
-        for (E_Int i = 1; i <= numFaces; i++)
+        for (E_Int i = 0; i < numFaces; i++)
         {
-          n = ptr[0];
-          ptri[i] = ptri[i-1] + n;
-          ptr += n+1;
+          c.getFace(i, n, ngon, indPG);
+          ptri[i+1] = ptri[i] + n;
         }
         ptri += numFaces+1;
       }
 
-      ptr = c.begin()+2;
       // face nodes
       for (E_Int i = 0; i < numFaces; i++)
       {
-        n = ptr[0];
-        for (E_Int j = 0; j < n; j++) ptri[j] = ptr[j+1]-1;
+        int* face = c.getFace(i, n, ngon, indPG);
+        for (E_Int j = 0; j < n; j++) ptri[j] = face[j]-1;
         ptri += n;
-        ptr += n+1;
       }
 
       FldArrayI cFE;
