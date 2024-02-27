@@ -812,8 +812,8 @@ def _fillNeighbourList(t, sameBase=0):
       for zdname in dnrZoneNames0:
         nozd = dictOfNozOfZone[zdname]
         nobd = dictOfNobOfZone[zdname]
-        if (sameBase == 1  or (sameBase==0 and nobd != nobR) ):
-          Internal.createNode(chimgroupname,"FamilyName_t",value=chimgroupname,parent=t[2][nobd][2][nozd])
+        if sameBase == 1 or (sameBase==0 and nobd != nobR):
+          Internal.createNode("FamilyName", "FamilyName_t", value=chimgroupname, parent=t[2][nobd][2][nozd])
 
         # create ChimGroup for donor base
         if nobd not in listOfDnrBasesNob: 
@@ -847,7 +847,7 @@ def _fillNeighbourList(t, sameBase=0):
             if dnrname not in dictOfNozOfZone:
               # c est une famille de zones, la prefixer par sa base
               dnrname2 = dnrname.split('/')
-              if len(dnrname2)==1:
+              if len(dnrname2) == 1:
                 for baseLoc in Internal.getBases(t):
                   myFamLoc = Internal.getNodesFromType1(baseLoc,"Family_t")
                   if myFamLoc != []:
@@ -867,7 +867,7 @@ def _fillNeighbourList(t, sameBase=0):
               # create a chim group
               nozd = dictOfNozOfZone[dnrname]
               nobd = dictOfNobOfZone[dnrname]
-              Internal.createNode(chimgroupnamedd,"FamilyName_t",value=chimgroupnamedd,parent=t[2][nobd][2][nozd])
+              Internal.createNode("FamilyName", "FamilyName_t", value=chimgroupnamedd, parent=t[2][nobd][2][nozd])
               # create ChimGroup for donor base
               if nobd not in listOfDnrBasesNob: 
                 listOfDnrBasesNob.append(nobd)
@@ -875,7 +875,7 @@ def _fillNeighbourList(t, sameBase=0):
                 chmg=Internal.createNode(chimgroupnamedd,"Family_t",children=chimgroupsons)
                 t[2][nobd][2].append(chmg)
                 basenameD = t[2][nobd][0]
-                if dnrListNL=="": dnrListNL=basenameD+'/'+chimgroupnamedd
+                if dnrListNL == "": dnrListNL=basenameD+'/'+chimgroupnamedd
                 else: dnrListNL+=" "+basenameD+'/'+chimgroupnamedd
 
           #print 'NeighbourList = ', NList[0], " : ", dnrListNL, ' for dd chimgroup ', chimgroupnamedd
