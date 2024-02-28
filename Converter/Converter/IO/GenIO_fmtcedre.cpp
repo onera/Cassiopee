@@ -346,11 +346,9 @@ E_Int K_IO::GenIO::cedrewrite(
       
       FldArrayI& cn = *connect[i];
       FldArrayF& f = *unstructField[i];
-      E_Int* cnp = cn.begin();
       E_Int nvertex = f.getSize();
-      E_Int nfaces = cnp[0];
-      E_Int pt = cnp[1];
-      E_Int ncells = cnp[pt+2];
+      E_Int nfaces = cn.getNFaces();
+      E_Int ncells = cn.getNElts();
       E_Int facLim = 0;
       if (i < BCFacesSize)
       {
@@ -384,16 +382,18 @@ E_Int K_IO::GenIO::cedrewrite(
       
       // Connectivite faces->noeuds
       fprintf(ptrFile, "2. FACES -> NODES : FACE no., number of NODES, no of NODE 1,...\n");
-      pt = 2; E_Int nf;
+      E_Int* ngon = cn.getNGon();
+      E_Int* indPG = cn.getIndPG();
+      E_Int nv;
       for (E_Int j = 0; j < nfaces; j++)
       {
-        nf = cnp[pt]; pt++;
-        fprintf(ptrFile, " %d  %d", j+1, nf);
-        for (E_Int k = 0; k < nf; k++)
+        E_Int* face = cn.getFace(j, nv, ngon, indPG);
+        fprintf(ptrFile, " %d  %d", j+1, nv);
+        for (E_Int k = 0; k < nv; k++)
 #ifdef E_DOUBLEINT
-        { fprintf(ptrFile, " %ld", cnp[pt]); pt++; }
+        { fprintf(ptrFile, " %ld", face[k]); }
 #else
-        { fprintf(ptrFile, " %d", cnp[pt]); pt++; }
+        { fprintf(ptrFile, " %d", face[k]); }
 #endif
         fprintf(ptrFile, "\n");
       }
