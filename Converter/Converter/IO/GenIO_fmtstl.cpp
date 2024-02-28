@@ -201,20 +201,17 @@ E_Int K_IO::GenIO::fstlwrite(
     E_Float* fy = a->begin(posy);
     E_Float* fz = a->begin(posz);
   
-    E_Int* c1 = c.begin(1);
-    E_Int* c2 = c.begin(2);
-    E_Int* c3 = c.begin(3);
     E_Int p;
     for (E_Int i = 0; i < ne; i++)
     {
       fprintf(ptrFile, "  facet normal 0. 0. 0.\n");
       fprintf(ptrFile, "    outer loop\n");
 
-      p = c1[i]-1;
+      p = c(i,1)-1;
       fprintf(ptrFile, format1, fx[p], fy[p], fz[p]);
-      p = c2[i]-1;
+      p = c(i,2)-1;
       fprintf(ptrFile, format1, fx[p], fy[p], fz[p]);
-      p = c3[i]-1;
+      p = c(i,3)-1;
       fprintf(ptrFile, format1, fx[p], fy[p], fz[p]);
       fprintf(ptrFile, "    endloop\n");
       fprintf(ptrFile, "  endfacet\n");

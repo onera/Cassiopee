@@ -639,7 +639,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
             printf("Warning: convertArrays2File: element type %s not taken "
                    "into account.\n", eltType);
         }
-        else // Mixed Connectivity
+        else // ME Connectivity
         {
           fieldu.push_back(f);
           for (E_Int ic = 0; ic < nc; ic++)

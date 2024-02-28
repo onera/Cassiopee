@@ -625,9 +625,6 @@ E_Int K_IO::GenIO::objwrite(
     {
       // faces
       FldArrayI& cn = *connect[i];
-      E_Int* cn1 = cn.begin(1);
-      E_Int* cn2 = cn.begin(2);
-      E_Int* cn3 = cn.begin(3);
       for (E_Int n = 0; n < cn.getSize(); n++)
       {
 #ifdef E_DOUBLEINT
@@ -637,9 +634,9 @@ E_Int K_IO::GenIO::objwrite(
                 cn3[n]+ng, cn3[n]+ng, cn3[n]+ng);
 #else
         fprintf(ptrFile, "f %d/%d/%d %d/%d/%d %d/%d/%d\n", 
-                cn1[n]+ng, cn1[n]+ng, cn1[n]+ng,
-                cn2[n]+ng, cn2[n]+ng, cn2[n]+ng,
-                cn3[n]+ng, cn3[n]+ng, cn3[n]+ng);
+                cn(n,1)+ng, cn(n,1)+ng, cn(n,1)+ng,
+                cn(n,2)+ng, cn(n,2)+ng, cn(n,2)+ng,
+                cn(n,3)+ng, cn(n,3)+ng, cn(n,3)+ng);
 #endif
       }
     }
@@ -647,24 +644,20 @@ E_Int K_IO::GenIO::objwrite(
     {
       // faces
       FldArrayI& cn = *connect[i];
-      E_Int* cn1 = cn.begin(1);
-      E_Int* cn2 = cn.begin(2);
-      E_Int* cn3 = cn.begin(3);
-      E_Int* cn4 = cn.begin(4);
       for (E_Int n = 0; n < cn.getSize(); n++)
       {
 #ifdef E_DOUBLEINT
         fprintf(ptrFile, "f %ld/%ld/%ld %ld/%ld/%ld %ld/%ld/%ld %ld/%ld/%ld\n", 
-                cn1[n]+ng, cn1[n]+ng, cn1[n]+ng,
-                cn2[n]+ng, cn2[n]+ng, cn2[n]+ng,
-                cn3[n]+ng, cn3[n]+ng, cn3[n]+ng,
-                cn4[n]+ng, cn4[n]+ng, cn4[n]+ng);
+                cn(n,1)+ng, cn(n,1)+ng, cn(n,1)+ng,
+                cn(n,2)+ng, cn(n,2)+ng, cn(n,2)+ng,
+                cn(n,3)+ng, cn(n,3)+ng, cn(n,3)+ng,
+                cn(n,4)+ng, cn(n,4)+ng, cn(n,4)+ng);
 #else
         fprintf(ptrFile, "f %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d\n", 
-                cn1[n]+ng, cn1[n]+ng, cn1[n]+ng,
-                cn2[n]+ng, cn2[n]+ng, cn2[n]+ng,
-                cn3[n]+ng, cn3[n]+ng, cn3[n]+ng,
-                cn4[n]+ng, cn4[n]+ng, cn4[n]+ng);
+                cn(n,1)+ng, cn(n,1)+ng, cn(n,1)+ng,
+                cn(n,2)+ng, cn(n,2)+ng, cn(n,2)+ng,
+                cn(n,3)+ng, cn(n,3)+ng, cn(n,3)+ng,
+                cn(n,4)+ng, cn(n,4)+ng, cn(n,4)+ng);
 #endif
       }
     }
