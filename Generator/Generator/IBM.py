@@ -62,7 +62,6 @@ def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, sizeMax=4000000,
                  variables=None, refineFinestLevel=False, refineNearBodies=False,
                  check=True, externalBCType='BCFarfield', fileo='octree.cgns',
                  isAMR=False,valMin=0,valMax=1):
-    import Converter.Mpi as Cmpi
     if fileo is None: raise ValueError("adaptIBMMesh: Octree mesh must be specified by a file.")
     try: to = C.convertFile2PyTree(fileo)
     except: raise ValueError("adaptIBMMesh: %s file not found."%fileo)
@@ -491,7 +490,6 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
     else:
         _addBCsForSymmetry(t, bbox=bb, dimPb=dimPb, dir_sym=dir_sym, X_SYM=X_SYM, depth=ext-1)
 
-    C.convertPyTree2File(t,"t_%d.cgns"%(Cmpi.rank))
     if dimPb == 2:
         dz = 0.01
         T._addkplane(t)
@@ -502,7 +500,6 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
 
 def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None, tbox=None, snearsf=None,
                 dimPb=3, vmin=15, balancing=2, fileout=None, rank=0, expand=2, dfarDir=0, mode=0):
-    import Converter.Mpi as Cmpi
     i = 0; surfaces=[]; snearso=[] # pas d'espace sur l'octree
     dfarListL = []
     bodies = Internal.getZones(tb)
