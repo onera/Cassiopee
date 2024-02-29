@@ -1214,7 +1214,7 @@ def convertPyTree2File(t, fileName, format=None, isize=4, rsize=8,
   else:
     tp = fillMissingVariables(t) # force all zones to have the same variables 
     a = center2Node(tp, Internal.__FlowSolutionCenters__); tp = None
-    a = getAllFields(a, 'nodes', api=1) # a passer en api3 a quand ok
+    a = getAllFields(a, 'nodes', api=3)
     a = Internal.clearList(a)
     zoneNames = getZoneNames(t, prefixByBase=False)
     BCFaces = getBCFaces(t)

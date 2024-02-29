@@ -473,18 +473,15 @@ E_Int K_IO::GenIO::plywrite(
   unsigned char ubuf[1]; unsigned int ibuf[4];
   if (ct != NULL)
   {
-    E_Int* c1 = ct->begin(1);
-    E_Int* c2 = ct->begin(2);
-    E_Int* c3 = ct->begin(3);
     E_Int ne = ct->getSize();
-
+    FldArrayI& c = *ct;
     if (endianess == 0)
     {
       ubuf[0] = 3;
       for (E_Int i = 0; i < ne; i++)
       {
         fwrite(ubuf, sizeof(unsigned char), 1, ptrFile);
-        ibuf[0] = c1[i]-1; ibuf[1] = c2[i]-1; ibuf[2] = c3[i]-1;
+        ibuf[0] = c(i,1)-1; ibuf[1] = c(i,2)-1; ibuf[2] = c(i,3)-1;
         fwrite(ibuf, sizeof(unsigned int), 3, ptrFile);
       }
     }
@@ -495,27 +492,23 @@ E_Int K_IO::GenIO::plywrite(
       for (E_Int i = 0; i < ne; i++)
       {
         fwrite(ubuf, sizeof(unsigned char), 1, ptrFile);
-        ibuf[0] = IBE(c1[i]-1); ibuf[1] = IBE(c2[i]-1); ibuf[2] = IBE(c3[i]-1);
+        ibuf[0] = IBE(c(i,1)-1); ibuf[1] = IBE(c(i,2)-1); ibuf[2] = IBE(c(i,3)-1);
         fwrite(ibuf, sizeof(unsigned int), 3, ptrFile);
       }
     }
   }
   if (cq != NULL)
   {
-    E_Int* c1 = cq->begin(1);
-    E_Int* c2 = cq->begin(2);
-    E_Int* c3 = cq->begin(3);
-    E_Int* c4 = cq->begin(4);
     E_Int ne = cq->getSize();
-
+    FldArrayI& c = *cq;
     if (endianess == 0)
     {
       ubuf[0] = 4;
       for (E_Int i = 0; i < ne; i++)
       {
         fwrite(ubuf, sizeof(unsigned char), 1, ptrFile);
-        ibuf[0] = c1[i]-1+ndec; ibuf[1] = c2[i]-1+ndec; 
-        ibuf[2] = c3[i]-1+ndec; ibuf[3] = c4[i]-1+ndec;
+        ibuf[0] = c(i,1)-1+ndec; ibuf[1] = c(i,2)-1+ndec; 
+        ibuf[2] = c(i,3)-1+ndec; ibuf[3] = c(i,4)-1+ndec;
         //printf("%d %d %d %d\n", ibuf[0], ibuf[1], ibuf[2], ibuf[3]);
         fwrite(ibuf, sizeof(unsigned int), 4, ptrFile);
       }
@@ -527,8 +520,8 @@ E_Int K_IO::GenIO::plywrite(
       for (E_Int i = 0; i < ne; i++)
       {
         fwrite(ubuf, sizeof(unsigned char), 1, ptrFile);
-        ibuf[0] = IBE(c1[i]-1+ndec); ibuf[1] = IBE(c2[i]-1+ndec); 
-        ibuf[2] = IBE(c3[i]-1+ndec); ibuf[3] = IBE(c4[i]-1+ndec);
+        ibuf[0] = IBE(c(i,1)-1+ndec); ibuf[1] = IBE(c(i,2)-1+ndec); 
+        ibuf[2] = IBE(c(i,3)-1+ndec); ibuf[3] = IBE(c(i,4)-1+ndec);
         fwrite(ibuf, sizeof(unsigned int), 4, ptrFile);
       }
     }
