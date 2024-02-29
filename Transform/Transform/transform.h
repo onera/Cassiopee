@@ -232,7 +232,8 @@ namespace K_TRANSFORM
   void breakNGonElements(FldArrayF& field, FldArrayI& cFNEF, 
                          std::vector<FldArrayI*>& cEV, 
                          std::vector<FldArrayF*>& fields, 
-                         std::vector<E_Int>& eltType);
+                         std::vector<E_Int>& eltType,
+                         char* varString);
   /* break a MIXED connectivity into elements */
   void breakMixedElements(FldArrayF& field, FldArrayI& ce, 
                          std::vector<FldArrayI*>& cEV,

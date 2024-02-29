@@ -19,6 +19,7 @@
 
 # include "transform.h"
 # include "Connect/connect.h"
+#include <unordered_map>
 
 using namespace K_FLD;
 using namespace std;
@@ -27,7 +28,7 @@ using namespace std;
 PyObject* K_TRANSFORM::breakElements(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array))
+  if (!PYPARSETUPLE_(args, "O", &array))
   {
     return NULL;
   }
@@ -63,7 +64,7 @@ PyObject* K_TRANSFORM::breakElements(PyObject* self, PyObject* args)
   
   vector<E_Int> eltTypev; vector<FldArrayI*> cEV; vector<FldArrayF*> fields;
   if (strcmp(eltTypes, "NGON") == 0)
-    breakNGonElements(*f, *cnl, cEV, fields, eltTypev);
+    breakNGonElements(*f, *cnl, cEV, fields, eltTypev, varString);
   else breakMixedElements(*f, *cnl, cEV, fields, eltTypev);
 
   PyObject* tpl;
@@ -92,239 +93,119 @@ PyObject* K_TRANSFORM::breakElements(PyObject* self, PyObject* args)
     delete fields[v]; delete cEV[v];
   }
   fields.clear(); cEV.clear(); eltTypev.clear();
-  RELEASESHAREDU(array, f, cnl); 
+  RELEASESHAREDU(array, f, cnl);
   return l;
 }
 
 //=============================================================================
 void K_TRANSFORM::breakNGonElements(
-  FldArrayF& field, FldArrayI& cNG, 
-  vector<FldArrayI*>& cEV, vector<FldArrayF*>& fields, vector<E_Int>& eltType)
+  FldArrayF& field, FldArrayI& cNG, vector<FldArrayI*>& cEV,
+  vector<FldArrayF*>& fields, vector<E_Int>& eltType, char* varString)
 { 
-  E_Int npts = field.getSize(); E_Int nfld = field.getNfld();
+  E_Int nfld = field.getNfld();
   E_Int api = field.getApi(); if (api == 2) api = 3;
   E_Int shift = 1; if (api == 3) shift = 0;
-  E_Int nfaces = cNG.getNFaces();
-  E_Int sizeFN = cNG.getSizeNGon();
+  
+  E_Int* ngon = cNG.getNGon(); E_Int* nface = cNG.getNFace();
+  E_Int* indPG = cNG.getIndPG(); E_Int* indPH = cNG.getIndPH();
   E_Int ncells = cNG.getNElts();
-  E_Int sizeEF = cNG.getSizeNFace();
 
   FldArrayI dimElt(ncells);
   K_CONNECT::getDimElts(cNG, dimElt);
-  vector< vector<E_Int> > cEVNGon(ncells);
+  vector<vector<E_Int> > cEVNGon(ncells);
   K_CONNECT::connectNG2EV(cNG, cEVNGon);
 
-  E_Int netbar = 0; E_Int nptsbar = 0;
-  E_Int nettri = 0; E_Int nptstri = 0;
-  E_Int netquad = 0; E_Int nptsquad = 0;
-  E_Int nettetra = 0; E_Int nptstetra = 0;
-  E_Int nethexa = 0; E_Int nptshexa = 0;
-  E_Int netpenta = 0; E_Int nptspenta = 0;
-  E_Int netpyra = 0; E_Int nptspyra = 0;
-
-  FldArrayI* cEVbarp = new FldArrayI(ncells, 2); 
-  FldArrayF* fbarp = new FldArrayF(npts, nfld);
-  FldArrayF& fbar = *fbarp; FldArrayI& cEVbar = *cEVbarp;
-  FldArrayI indirbF(npts); indirbF.setAllValuesAt(-1);
-  E_Int* indirb = indirbF.begin();
-
-  FldArrayI* cEVtrip = new FldArrayI(ncells, 3); 
-  FldArrayF* ftrip = new FldArrayF(npts,nfld);
-  FldArrayF& ftri = *ftrip; FldArrayI& cEVtri = *cEVtrip;
-  FldArrayI indirtF(npts); indirtF.setAllValuesAt(-1);
-  E_Int* indirt = indirtF.begin();
-
-  FldArrayI* cEVquadp = new FldArrayI(ncells, 4); 
-  FldArrayF* fquadp = new FldArrayF(npts,nfld);
-  FldArrayF& fquad = *fquadp; FldArrayI& cEVquad = *cEVquadp;
-  FldArrayI indirqF(npts); indirqF.setAllValuesAt(-1);
-  E_Int* indirq = indirqF.begin();
-  
-  FldArrayI* cEVtetrap = new FldArrayI(ncells, 4); 
-  FldArrayF* ftetrap = new FldArrayF(npts,nfld);
-  FldArrayF& ftetra = *ftetrap; FldArrayI& cEVtetra = *cEVtetrap;
-  FldArrayI indirttF(npts); indirttF.setAllValuesAt(-1);
-  E_Int* indirtt = indirttF.begin();
-
-  FldArrayI* cEVpentap = new FldArrayI(ncells, 6); 
-  FldArrayF* fpentap = new FldArrayF(npts, nfld);
-  FldArrayF& fpenta = *fpentap; FldArrayI& cEVpenta = *cEVpentap;
-  FldArrayI indirpF(npts); indirpF.setAllValuesAt(-1);
-  E_Int* indirp = indirpF.begin();
-
-  FldArrayI* cEVpyrap = new FldArrayI(ncells, 5); 
-  FldArrayF* fpyrap = new FldArrayF(npts,nfld);
-  FldArrayF& fpyra = *fpyrap; FldArrayI& cEVpyra = *cEVpyrap;
-  FldArrayI indiryF(npts); indiryF.setAllValuesAt(-1);
-  E_Int* indiry = indiryF.begin();
-
-  FldArrayI* cEVhexap = new FldArrayI(ncells, 8); 
-  FldArrayF* fhexap = new FldArrayF(npts,nfld);
-  FldArrayF& fhexa = *fhexap; FldArrayI& cEVhexa = *cEVhexap;
-  FldArrayI indirhF(npts); indirhF.setAllValuesAt(-1);
-  E_Int* indirh = indirhF.begin();
-
-  FldArrayF* fngonp = new FldArrayF(npts, nfld); FldArrayF& fngon = *fngonp;
-  FldArrayI cEF2(sizeEF); FldArrayI cFN2(sizeFN);
-  FldArrayI indirnF(npts); indirnF.setAllValuesAt(-1);
-  E_Int* indirn = indirnF.begin();
-
-  // nfaces tot ?
-  FldArrayI indirFF(nfaces); indirFF.setAllValuesAt(-1); // pour les faces NGON
-  E_Int* indirF = indirFF.begin();
-  E_Int vert1, vert2, vert3, vert4, vert5, vert6, vert7, vert8;
-  E_Int dim, nfacesl;
-  E_Int sizeEF2 = 0; E_Int sizeFN2 = 0; E_Int npts2 = 0; 
-  E_Int nelts2 = 0; E_Int nfaces2 = 0;
+  E_Int dim, nfacesl, sizeFN2 = 0, sizeEF2 = 0, nfacesngon = 0;
   vector<E_Int> verticesf; // sommets candidats image de la face
 
-  E_Int* ngon = cNG.getNGon(); E_Int* nface = cNG.getNFace();
-  E_Int* indPG = cNG.getIndPG(); E_Int* indPH = cNG.getIndPH();
+  E_Int nptsbar = 0, nptstri = 0, nptsquad = 0, nptstetra = 0, nptshexa = 0,
+    nptspenta = 0, nptspyra = 0, nptsngon = 0;
+  std::unordered_map<E_Int, E_Int> vMapBar, vMapTri, vMapQuad, vMapTetra,
+    vMapPenta, vMapPyra, vMapHexa, vMapNGon, fMapNGon;
+  vector<E_Int> etListBar, etListTri, etListQuad, etListTetra, etListPenta,
+    etListPyra, etListHexa, etListNGon;
 
   for (E_Int et = 0; et < ncells; et++)
   {
     dim = dimElt[et];
-    const vector<E_Int>& vertices = cEVNGon[et]; // sommets associes a l'elt
+    vector<E_Int>& vertices = cEVNGon[et]; // sommets associes a l'elt
     E_Int* elem = cNG.getElt(et, nfacesl, nface, indPH);
-    
+
     if (nfacesl == 2 && dim == 1) // BAR
     {
-      for (E_Int nov = 0; nov < 2; nov++)
+      for (size_t nov = 0; nov < vertices.size(); nov++)
       {
-        if (indirb[vertices[nov]-1] == -1)  
-        {
-          for (E_Int eq = 1; eq <= nfld; eq++) 
-            fbar(nptsbar,eq) = field(vertices[nov]-1,eq);    
-          nptsbar++;
-          indirb[vertices[nov]-1] = nptsbar;
-        }
+        auto res = vMapBar.insert(std::make_pair(vertices[nov]-1, nptsbar));
+        if (res.first->second == nptsbar) nptsbar++; // first time this vertex is encountered
       }
-      for (E_Int nov = 0; nov < 2; nov++)
-      {  
-        cEVbar(netbar, nov+1) = indirb[vertices[nov]-1];
-      }
-      netbar++;
+      etListBar.push_back(et);
     }
     else if (nfacesl == 3 && dim == 2) // TRI
     {
-      for (E_Int nov = 0; nov < 3; nov++)
+      for (size_t nov = 0; nov < vertices.size(); nov++)
       {
-        if (indirt[vertices[nov]-1] == -1)  
-        {
-          for (E_Int eq = 1; eq <= nfld; eq++) 
-            ftri(nptstri,eq) = field(vertices[nov]-1,eq);    
-          nptstri++;
-          indirt[vertices[nov]-1] = nptstri;
-        }
+        auto res = vMapTri.insert(std::make_pair(vertices[nov]-1, nptstri));
+        if (res.first->second == nptstri) nptstri++;
       }
-      for (E_Int nov = 0; nov < 3; nov++)
-      {  
-        cEVtri(nettri,nov+1) = indirt[vertices[nov]-1];
-      }
-      nettri++;     
+      etListTri.push_back(et);
     }
     else if (nfacesl == 4 && dim == 2) // QUAD
     {
-      E_Int nv, fidx;
-      vert1 = -1; vert2 = -1; vert3 = 0; vert4 = 0;
-      // recherche des faces de l'elt
-      for (E_Int nf = 0; nf < nfacesl; nf++)
+      // verification de la coherence de la numerotation des indices
+      E_Int nv, vert0 = -1, fidx = elem[0];
+      E_Int* face = cNG.getFace(fidx-1, nv, ngon, indPG);
+      E_Int vert1 = face[0], vert2 = face[1];
+
+      verticesf.clear();
+      for (size_t nov = 0; nov < vertices.size(); nov++)
       {
-        fidx = elem[nf];
-        E_Int* face = cNG.getFace(fidx-1, nv, ngon, indPG);
-        vert1 = face[0]; vert2 = face[1]; 
-        for (size_t novert = 0; novert < vertices.size(); novert++)
+        vert0 = vertices[nov];
+        if (vert0 != vert1 && vert0 != vert2) verticesf.push_back(vert0);
+      }
+      E_Int vert4 = K_CONNECT::image(vert1, fidx, et, verticesf, cNG,
+                                     ngon, nface, indPG, indPH);
+      E_Int vert3 = K_CONNECT::image(vert2, fidx, et, verticesf, cNG,
+                                     ngon, nface, indPG, indPH);
+
+      if (vert3 == -1 || vert4 == -1) goto ngonLabel;
+      else
+      {
+        vertices = {vert1, vert2, vert3, vert4};
+        for (size_t nov = 0; nov < vertices.size(); nov++)
         {
-          E_Int vert0 = vertices[novert];
-          if (vert0 != vert1 && vert0 != vert2) verticesf.push_back(vert0);
+          auto res = vMapQuad.insert(std::make_pair(vertices[nov]-1, nptsquad));
+          if (res.first->second == nptsquad) nptsquad++;
         }
-        // verification de la coherence de la numerotation des indices
-        vert4 = K_CONNECT::image(vert1, fidx, et, verticesf, cNG, ngon, nface, indPG, indPH);
-        vert3 = K_CONNECT::image(vert2, fidx, et, verticesf, cNG, ngon, nface, indPG, indPH);
-        if (vert3 == -1 || vert4 == -1) goto ngon;
-        else goto quad0;
+        etListQuad.push_back(et);
       }
-      quad0:;
-      // construction de l'elt quad
-      if (indirq[vert1-1] == -1) 
-      {
-        for (E_Int eq = 1; eq <= nfld; eq++) 
-          fquad(nptsquad,eq) = field(vert1-1,eq); 
-        nptsquad++; indirq[vert1-1] = nptsquad;
-      }
-      if (indirq[vert2-1] == -1) 
-      {
-        for (E_Int eq = 1; eq <= nfld; eq++) 
-          fquad(nptsquad,eq) = field(vert2-1,eq); 
-        nptsquad++; indirq[vert2-1] = nptsquad;
-      }
-      if (indirq[vert3-1] == -1) 
-      {
-        for (E_Int eq = 1; eq <= nfld; eq++) 
-          fquad(nptsquad,eq) = field(vert3-1,eq); 
-        nptsquad++; indirq[vert3-1] = nptsquad;
-      }
-      if (indirq[vert4-1] == -1) 
-      {
-        for (E_Int eq = 1; eq <= nfld; eq++) 
-          fquad(nptsquad,eq) = field(vert4-1,eq); 
-        nptsquad++; indirq[vert4-1] = nptsquad;
-      }
-      cEVquad(netquad,1) = indirq[vert1-1];
-      cEVquad(netquad,2) = indirq[vert2-1];
-      cEVquad(netquad,3) = indirq[vert3-1];
-      cEVquad(netquad,4) = indirq[vert4-1];
-      netquad++;
-    }//fin quad
+    }
     else if (nfacesl == 4 && dim == 3) // TETRA
     {
-      E_Int nv;
-      vert1 = -1; vert2 = -1; vert3 = -1; vert4 = -1; 
       // recherche de la premiere face tri de l elt
-      E_Int* face = cNG.getFace(elem[0]-1, nv, ngon, indPG);
-      vert1 = face[0]; vert2 = face[1]; vert3 = face[2];          
-      for (size_t novert = 0; novert < vertices.size(); novert++)
+      E_Int dummy, vert0 = -1, vert4 = -1;
+      E_Int* face = cNG.getFace(elem[0]-1, dummy, ngon, indPG);
+      E_Int vert1 = face[0], vert2 = face[1], vert3 = face[2];
+      for (size_t nov = 0; nov < vertices.size(); nov++)
       {
-        E_Int vert0 = vertices[novert];
+        vert0 = vertices[nov];
         if (vert0 != vert1 && vert0 != vert2 && vert0 != vert3) 
-        { vert4 = vert0; goto tetra0; }
+        {
+          vert4 = vert0; break;
+        }
       }
-      tetra0:;
-      // construction de l'elt tetra
-      if (indirtt[vert1-1] == -1) 
+      vertices = {vert1, vert2, vert3, vert4};
+      
+      for (size_t nov = 0; nov < vertices.size(); nov++)
       {
-        for (E_Int eq = 1; eq <= nfld; eq++) 
-          ftetra(nptstetra,eq) = field(vert1-1,eq); 
-        nptstetra++; indirtt[vert1-1] = nptstetra;
+        auto res = vMapTetra.insert(std::make_pair(vertices[nov]-1, nptstetra));
+        if (res.first->second == nptstetra) nptstetra++;
       }
-      if (indirtt[vert2-1] == -1) 
-      {
-        for (E_Int eq = 1; eq <= nfld; eq++) 
-          ftetra(nptstetra,eq) = field(vert2-1,eq); 
-        nptstetra++; indirtt[vert2-1] = nptstetra;
-      }
-      if (indirtt[vert3-1] == -1) 
-      {
-        for (E_Int eq = 1; eq <= nfld; eq++) 
-          ftetra(nptstetra,eq) = field(vert3-1,eq); 
-        nptstetra++; indirtt[vert3-1] = nptstetra;
-      }
-      if (indirtt[vert4-1] == -1) 
-      {
-        for (E_Int eq = 1; eq <= nfld; eq++) 
-          ftetra(nptstetra,eq) = field(vert4-1,eq); 
-        nptstetra++; indirtt[vert4-1] = nptstetra;
-      }
-      cEVtetra(nettetra,1) = indirtt[vert1-1];
-      cEVtetra(nettetra,2) = indirtt[vert2-1];
-      cEVtetra(nettetra,3) = indirtt[vert3-1];
-      cEVtetra(nettetra,4) = indirtt[vert4-1];
-      nettetra++;
-    }//fin tetra
-    else if (nfacesl == 5 && dim == 3) // PENTA/PYRA
+      etListTetra.push_back(et);
+    }
+    else if (nfacesl == 5 && dim == 3) // PENTA / PYRA
     {
-      E_Int nv;
-      E_Int nbnodes = 0;
+      E_Int nv, nbnodes = 0;
+      E_Int vert0 = -1, vert1 = -1, vert2 = -1, vert3 = -1, vert4 = -1, vert5 = -1;
       for (E_Int nf = 0; nf < nfacesl; nf++)
       {
         cNG.getFace(elem[nf]-1, nv, ngon, indPG);
@@ -332,65 +213,41 @@ void K_TRANSFORM::breakNGonElements(
       }
       if (nbnodes == 16) // PYRA
       {
-        vert1 = -1; vert2 = -1; vert3 = -1; vert4 = -1; vert5 = -1;
-        // recherche de la face quad de l elt
+        // verification de la coherence de la numerotation des indices
         for (E_Int nf = 0; nf < nfacesl; nf++)
         {
           E_Int* face = cNG.getFace(elem[nf]-1, nv, ngon, indPG);
           if (nv == 4) // face = base quad
           {       
-            vert1 = face[0]; vert2 = face[1]; vert3 = face[2]; vert4 = face[3];         
-            for (size_t novert = 0; novert < vertices.size(); novert++)
+            vert1 = face[0]; vert2 = face[1]; vert3 = face[2]; vert4 = face[3];
+            for (size_t nov = 0; nov < vertices.size(); nov++)
             {
-              E_Int vert0 = vertices[novert];
-              if (vert0 != vert1 && vert0 != vert2 && vert0 != vert3 && vert0 != vert4) 
-              { vert5 = vert0; goto pyra0; }
+              vert0 = vertices[nov];
+              if (vert0 != vert1 && vert0 != vert2 && vert0 != vert3 && vert0 != vert4)
+              {
+                vert5 = vert0; break;
+              }
             }
-            goto ngon;
           }
+          if (vert5 != -1) break;
         }
-        pyra0:;
-        // construction de l'elt pyra
-        for (E_Int eq = 1; eq <= nfld; eq++) 
+
+        if (vert5 == -1) { etListNGon.push_back(et); } // TODO NGon
+        else
         {
-          if (indiry[vert1-1] == -1) 
+          vertices = {vert1, vert2, vert3, vert4, vert5};
+          for (size_t nov = 0; nov < vertices.size(); nov++)
           {
-            for (E_Int eq = 1; eq <= nfld; eq++) {fpyra(nptspyra,eq) = field(vert1-1,eq);}
-            nptspyra++; indiry[vert1-1] = nptspyra;
+            auto res = vMapPyra.insert(std::make_pair(vertices[nov]-1, nptspyra));
+            if (res.first->second == nptspyra) nptspyra++;
           }
-          if (indiry[vert2-1] == -1) 
-          {
-            for (E_Int eq = 1; eq <= nfld; eq++) {fpyra(nptspyra,eq) = field(vert2-1,eq);}
-            nptspyra++; indiry[vert2-1] = nptspyra;
-          }
-          if (indiry[vert3-1] == -1) 
-          {
-            for (E_Int eq = 1; eq <= nfld; eq++) {fpyra(nptspyra,eq) = field(vert3-1,eq);}
-            nptspyra++; indiry[vert3-1] = nptspyra;
-          }
-          if (indiry[vert4-1] == -1) 
-          {
-            for (E_Int eq = 1; eq <= nfld; eq++) {fpyra(nptspyra,eq) = field(vert4-1,eq);}
-            nptspyra++; indiry[vert4-1] = nptspyra;
-          }
-          if (indiry[vert5-1] == -1) 
-          {
-            for (E_Int eq = 1; eq <= nfld; eq++) {fpyra(nptspyra,eq) = field(vert5-1,eq);}
-            nptspyra++; indiry[vert5-1] = nptspyra;
-          }
+          etListPyra.push_back(et);
         }
-        cEVpyra(netpyra,1) = indiry[vert1-1];
-        cEVpyra(netpyra,2) = indiry[vert2-1];
-        cEVpyra(netpyra,3) = indiry[vert3-1];
-        cEVpyra(netpyra,4) = indiry[vert4-1];
-        cEVpyra(netpyra,5) = indiry[vert5-1];
-        netpyra++; 
-      }//fin PYRA
+      }
       else // PENTA
       {
-        E_Int nv, fidx;
-        vert1 = -1; vert2 = -1; vert3 = -1; vert4 = -1; vert5 = -1; vert6 = -1;
-        // recherche des faces tri de l'elt
+        // verification de la coherence de la numerotation des indices
+        E_Int fidx, vert6 = -1;
         for (E_Int nf = 0; nf < nfacesl; nf++)
         {
           fidx = elem[nf];
@@ -398,227 +255,329 @@ void K_TRANSFORM::breakNGonElements(
           if (nv == 3) // face = base tri
           {
             vert1 = face[0]; vert2 = face[1]; vert3 = face[2];
-            verticesf.clear(); 
-            for (size_t novert = 0; novert < vertices.size(); novert++)
+            verticesf.clear();
+            for (size_t nov = 0; nov < vertices.size(); nov++)
             {
-              E_Int vert0 = vertices[novert];
-              if (vert0 != vert1 && vert0 != vert2 &&  vert0 != vert3) verticesf.push_back(vert0);
+              vert0 = vertices[nov];
+              if (vert0 != vert1 && vert0 != vert2 && vert0 != vert3)
+                verticesf.push_back(vert0);
             }
-            // verification de la coherence de la numerotation des indices
-            vert4 = K_CONNECT::image(vert1, fidx, et, verticesf, cNG, ngon, nface, indPG, indPH);
-            vert5 = K_CONNECT::image(vert2, fidx, et, verticesf, cNG, ngon, nface, indPG, indPH);
-            vert6 = K_CONNECT::image(vert3, fidx, et, verticesf, cNG, ngon, nface, indPG, indPH);      
-            if ((vert4 == -1)||(vert5 == -1)||(vert6 == -1)) goto ngon;
-            else goto penta0;            
+
+            vert4 = K_CONNECT::image(vert1, fidx, et, verticesf, cNG,
+                                    ngon, nface, indPG, indPH);
+            vert5 = K_CONNECT::image(vert2, fidx, et, verticesf, cNG,
+                                     ngon, nface, indPG, indPH);
+            vert6 = K_CONNECT::image(vert3, fidx, et, verticesf, cNG,
+                                     ngon, nface, indPG, indPH);      
+            break;        
           }
         }
-        goto ngon;
-        penta0:;
-        //construction de l'elt penta
-        if (indirp[vert1-1] == -1) 
+
+        if ((vert4 != -1) && (vert5 != -1) && (vert6 != -1))
         {
-          for (E_Int eq = 1; eq <= nfld; eq++) 
-            fpenta(nptspenta,eq) = field(vert1-1,eq); 
-          nptspenta++; indirp[vert1-1] = nptspenta;
+          vertices = {vert1, vert2, vert3, vert4, vert5, vert6};
+          for (size_t nov = 0; nov < vertices.size(); nov++)
+          {
+            auto res = vMapPenta.insert(std::make_pair(vertices[nov]-1, nptspenta));
+            if (res.first->second == nptspenta) nptspenta++;
+          }
+          etListPenta.push_back(et);
         }
-        if (indirp[vert2-1] == -1) 
-        {
-          for (E_Int eq = 1; eq <= nfld; eq++) 
-            fpenta(nptspenta,eq) = field(vert2-1,eq); 
-          nptspenta++; indirp[vert2-1] = nptspenta;
-        }
-        if (indirp[vert3-1] == -1) 
-        {
-          for (E_Int eq = 1; eq <= nfld; eq++) 
-            fpenta(nptspenta,eq) = field(vert3-1,eq); 
-          nptspenta++; indirp[vert3-1] = nptspenta;
-        }
-        if (indirp[vert4-1] == -1) 
-        {
-          for (E_Int eq = 1; eq <= nfld; eq++) 
-            fpenta(nptspenta,eq) = field(vert4-1,eq); 
-          nptspenta++; indirp[vert4-1] = nptspenta;
-        }
-        if (indirp[vert5-1] == -1) 
-        {
-          for (E_Int eq = 1; eq <= nfld; eq++) 
-            fpenta(nptspenta,eq) = field(vert5-1,eq); 
-          nptspenta++; indirp[vert5-1] = nptspenta;
-        }
-        if (indirp[vert6-1] == -1) 
-        {
-          for (E_Int eq = 1; eq <= nfld; eq++) 
-            fpenta(nptspenta,eq) = field(vert6-1,eq); 
-          nptspenta++; indirp[vert6-1] = nptspenta;
-        }
-        
-        cEVpenta(netpenta,1) = indirp[vert1-1];
-        cEVpenta(netpenta,2) = indirp[vert2-1];
-        cEVpenta(netpenta,3) = indirp[vert3-1];
-        cEVpenta(netpenta,4) = indirp[vert4-1];
-        cEVpenta(netpenta,5) = indirp[vert5-1];
-        cEVpenta(netpenta,6) = indirp[vert6-1];
-        netpenta++; 
-      }//fin PENTA
-    }// FIN PYRA/PENTA
+        else goto ngonLabel;
+      }
+    }
     else if (nfacesl == 6 && dim == 3) // HEXA
     {
-      E_Int nv, fidx;
-      vert1 = -1; vert2 = -1; vert3 = -1; vert4 = -1; 
-      vert5 = -1; vert6 = -1; vert7 = -1; vert8 = -1;
-      // recherche de la face quad de l elt
-      for (E_Int nf = 0; nf < nfacesl; nf++)
+      // verification de la coherence de la numerotation des indices
+      E_Int nv, fidx = elem[0];
+      E_Int* face = cNG.getFace(fidx-1, nv, ngon, indPG);
+      E_Int vert1 = face[0], vert2 = face[1], vert3 = face[2], vert4 = face[3];
+
+      verticesf.clear(); 
+      for (size_t nov = 0; nov < vertices.size(); nov++)
       {
-        fidx = elem[nf];
-        E_Int* face = cNG.getFace(fidx-1, nv, ngon, indPG);
-        vert1 = face[0]; vert2 = face[1]; vert3 = face[2]; vert4 = face[3];        
-        verticesf.clear(); 
-        for (size_t novert = 0; novert < vertices.size(); novert++)
+        E_Int vert0 = vertices[nov];
+        if (vert0 != vert1 && vert0 != vert2 && vert0 != vert3 && vert0 != vert4)
+          verticesf.push_back(vert0);
+      }
+      E_Int vert5 = K_CONNECT::image(vert1, fidx, et, verticesf, cNG,
+                                     ngon, nface, indPG, indPH);
+      E_Int vert6 = K_CONNECT::image(vert2, fidx, et, verticesf, cNG,
+                                     ngon, nface, indPG, indPH);
+      E_Int vert7 = K_CONNECT::image(vert3, fidx, et, verticesf, cNG,
+                                     ngon, nface, indPG, indPH);
+      E_Int vert8 = K_CONNECT::image(vert4, fidx, et, verticesf, cNG,
+                                     ngon, nface, indPG, indPH);
+
+      if ((vert5 == -1) || (vert6 == -1) || (vert7 == -1) || (vert8 == -1)) goto ngonLabel;
+      else
+      {
+        vertices = {vert1, vert2, vert3, vert4, vert5, vert6, vert7, vert8};
+        for (size_t nov = 0; nov < vertices.size(); nov++)
         {
-          E_Int vert0 = vertices[novert];
-          if (vert0 != vert1 && vert0 != vert2 && vert0 != vert3 && vert0 != vert4) verticesf.push_back(vert0);
+          auto res = vMapHexa.insert(std::make_pair(vertices[nov]-1, nptshexa));
+          if (res.first->second == nptshexa) nptshexa++;
         }
-        // verification de la coherence de la numerotation des indices
-        vert5 = K_CONNECT::image(vert1, fidx, et, verticesf, cNG, ngon, nface, indPG, indPH);
-        vert6 = K_CONNECT::image(vert2, fidx, et, verticesf, cNG, ngon, nface, indPG, indPH);
-        vert7 = K_CONNECT::image(vert3, fidx, et, verticesf, cNG, ngon, nface, indPG, indPH);   
-        vert8 = K_CONNECT::image(vert4, fidx, et, verticesf, cNG, ngon, nface, indPG, indPH);   
-        if ((vert5 == -1)||(vert6 == -1)||(vert7 == -1)||(vert8 == -1)) goto ngon;
-        else goto hexa0;
+        etListHexa.push_back(et);
       }
-      hexa0:;
-      // construction de l'elt Hexa
-      if (indirh[vert1-1] == -1) 
-      {
-        for (E_Int eq = 1; eq <= nfld; eq++) 
-          fhexa(nptshexa,eq) = field(vert1-1,eq); 
-        nptshexa++; indirh[vert1-1] = nptshexa;
-      }
-      if (indirh[vert2-1] == -1) 
-      {
-        for (E_Int eq = 1; eq <= nfld; eq++) 
-          fhexa(nptshexa,eq) = field(vert2-1,eq); 
-        nptshexa++; indirh[vert2-1] = nptshexa;
-      }
-      if (indirh[vert3-1] == -1) 
-      {
-        for (E_Int eq = 1; eq <= nfld; eq++) 
-          fhexa(nptshexa,eq) = field(vert3-1,eq); 
-        nptshexa++; indirh[vert3-1] = nptshexa;
-      }
-      if (indirh[vert4-1] == -1) 
-      {
-        for (E_Int eq = 1; eq <= nfld; eq++) 
-          fhexa(nptshexa,eq) = field(vert4-1,eq); 
-        nptshexa++; indirh[vert4-1] = nptshexa;
-      }
-      if (indirh[vert5-1] == -1) 
-      {
-        for (E_Int eq = 1; eq <= nfld; eq++) 
-          fhexa(nptshexa,eq) = field(vert5-1,eq); 
-        nptshexa++; indirh[vert5-1] = nptshexa;
-      }
-      if (indirh[vert6-1] == -1) 
-      {
-        for (E_Int eq = 1; eq <= nfld; eq++) 
-          fhexa(nptshexa,eq) = field(vert6-1,eq); 
-        nptshexa++; indirh[vert6-1] = nptshexa;
-      }
-      if (indirh[vert7-1] == -1) 
-      {
-        for (E_Int eq = 1; eq <= nfld; eq++) 
-          fhexa(nptshexa,eq) = field(vert7-1,eq); 
-        nptshexa++; indirh[vert7-1] = nptshexa;
-      }
-      if (indirh[vert8-1] == -1) 
-      {
-        for (E_Int eq = 1; eq <= nfld; eq++) 
-          fhexa(nptshexa,eq) = field(vert8-1,eq); 
-        nptshexa++; indirh[vert8-1] = nptshexa;
-      }
-      cEVhexa(nethexa,1) = indirh[vert1-1];
-      cEVhexa(nethexa,2) = indirh[vert2-1];
-      cEVhexa(nethexa,3) = indirh[vert3-1];
-      cEVhexa(nethexa,4) = indirh[vert4-1];
-      cEVhexa(nethexa,5) = indirh[vert5-1];
-      cEVhexa(nethexa,6) = indirh[vert6-1];
-      cEVhexa(nethexa,7) = indirh[vert7-1];
-      cEVhexa(nethexa,8) = indirh[vert8-1];
-      nethexa++; 
     }
-    else // NGON
+    else
     {
-      ngon:;
-      // connectivite elt/faces
+      ngonLabel:;
       E_Int nv, fidx;
-      cEF2[sizeEF2] = nfacesl; 
       for (E_Int nf = 0; nf < nfacesl; nf++)
       {
         fidx = elem[nf]-1;
         E_Int* face = cNG.getFace(fidx, nv, ngon, indPG);
-        if (indirF[fidx] == -1) 
+        auto resF = fMapNGon.insert(std::make_pair(fidx, nfacesngon));
+        if (resF.first->second == nfacesngon) // first time this face is encountered
         {
-          cFN2[sizeFN2] = nv;          
-          for (E_Int novert = 0; novert < nv; novert++) // parcours des noeuds
+          for (E_Int nov = 0; nov < nv; nov++)
           {
-            E_Int indvert = face[novert]-1;
-            if (indirn[indvert] == -1) 
-            {
-              for (E_Int eq = 1; eq <= nfld; eq++)
-                fngon(npts2,eq) = field(indvert,eq);
-              npts2++;
-              indirn[indvert] = npts2; 
-            }
-            cFN2[sizeFN2+novert+shift] = indirn[indvert];
+            auto resV = vMapNGon.insert(std::make_pair(face[nov]-1, nptsngon));
+            if (resV.first->second == nptsngon) nptsngon++; // first time this vertex is encountered
           }
           sizeFN2 += nv+shift;
-          nfaces2++; 
-          indirF[fidx] = nfaces2; // demarre a 1
+          nfacesngon++;
         }
-        cEF2[sizeEF2+nf+shift] = indirF[fidx];
-      } // fin boucle sur les faces 
+      }
       sizeEF2 += nfacesl+shift;
-      nelts2++;
-    }//NGON
+      etListNGon.push_back(et);
+    }
   }
 
-  // BAR
-  fbarp->reAllocMat(nptsbar,nfld); cEVbarp->reAllocMat(netbar,2);
-  cEV.push_back(cEVbarp); fields.push_back(fbarp); eltType.push_back(1);
-  //TRI
-  ftrip->reAllocMat(nptstri,nfld); cEVtrip->reAllocMat(nettri,3);
-  cEV.push_back(cEVtrip); fields.push_back(ftrip); eltType.push_back(2);
-  //QUAD
-  fquadp->reAllocMat(nptsquad,nfld); cEVquadp->reAllocMat(netquad,4);
-  cEV.push_back(cEVquadp); fields.push_back(fquadp); eltType.push_back(3);
-  //TETRA
-  ftetrap->reAllocMat(nptstetra,nfld); cEVtetrap->reAllocMat(nettetra,4);
-  cEV.push_back(cEVtetrap); fields.push_back(ftetrap); eltType.push_back(4);
-  //PYRA
-  fpyrap->reAllocMat(nptspyra,nfld); cEVpyrap->reAllocMat(netpyra,5);
-  cEV.push_back(cEVpyrap); fields.push_back(fpyrap); eltType.push_back(5);
-  //PENTA
-  fpentap->reAllocMat(nptspenta,nfld); cEVpentap->reAllocMat(netpenta,6);
-  cEV.push_back(cEVpentap); fields.push_back(fpentap); eltType.push_back(6);
-  //HEXA
-  fhexap->reAllocMat(nptshexa,nfld); cEVhexap->reAllocMat(nethexa,8);
-  cEV.push_back(cEVhexap); fields.push_back(fhexap); eltType.push_back(7);
-  // NGON
-  fngonp->reAllocMat(npts2,nfld); cFN2.resize(sizeFN2); cEF2.resize(sizeEF2);
+  E_Int netbar = etListBar.size();
+  E_Int nettri = etListTri.size();
+  E_Int netquad = etListQuad.size();
+  E_Int nettetra = etListTetra.size();
+  E_Int netpenta = etListPenta.size();
+  E_Int netpyra = etListPyra.size();
+  E_Int nethexa = etListHexa.size();
+  E_Int netngon = etListNGon.size();
 
-  FldArrayI* cnNGON = new FldArrayI(4+sizeEF2+sizeFN2);
-  E_Int* cnNGONp = cnNGON->begin();
-  cnNGONp[0] = nfaces2; cnNGONp[1] = sizeFN2;
-  cnNGONp[sizeFN2+2] = nelts2;
-  cnNGONp[sizeFN2+3] = sizeEF2;
+  FldArrayI* cEVbarp = new FldArrayI(netbar,2);
+  FldArrayF* fbarp = new FldArrayF(nptsbar,nfld);
+  FldArrayF& fbar = *fbarp; FldArrayI& cEVbar = *cEVbarp;
+
+  FldArrayI* cEVtrip = new FldArrayI(nettri,3);
+  FldArrayF* ftrip = new FldArrayF(nptstri,nfld);
+  FldArrayF& ftri = *ftrip; FldArrayI& cEVtri = *cEVtrip;
+
+  FldArrayI* cEVquadp = new FldArrayI(netquad,4);
+  FldArrayF* fquadp = new FldArrayF(nptsquad,nfld);
+  FldArrayF& fquad = *fquadp; FldArrayI& cEVquad = *cEVquadp;
+
+  FldArrayI* cEVtetrap = new FldArrayI(nettetra,4);
+  FldArrayF* ftetrap = new FldArrayF(nptstetra,nfld);
+  FldArrayF& ftetra = *ftetrap; FldArrayI& cEVtetra = *cEVtetrap;
+
+  FldArrayI* cEVpyrap = new FldArrayI(netpyra,5); 
+  FldArrayF* fpyrap = new FldArrayF(nptspyra,nfld);
+  FldArrayF& fpyra = *fpyrap; FldArrayI& cEVpyra = *cEVpyrap;
+  
+  FldArrayI* cEVpentap = new FldArrayI(netpenta,6);
+  FldArrayF* fpentap = new FldArrayF(nptspenta, nfld);
+  FldArrayF& fpenta = *fpentap; FldArrayI& cEVpenta = *cEVpentap;
+
+  FldArrayI* cEVhexap = new FldArrayI(nethexa,8); 
+  FldArrayF* fhexap = new FldArrayF(nptshexa,nfld);
+  FldArrayF& fhexa = *fhexap; FldArrayI& cEVhexa = *cEVhexap;
+
+  FldArrayI* cn2; FldArrayF* f2;
+  E_Int* ngon2 = NULL; E_Int* nface2 = NULL;
+  E_Int *indPG2 = NULL; E_Int* indPH2 = NULL;
+  if (netngon)
+  {
+    E_Int ngonType = 1; // CGNSv3 compact array1
+    if (api == 2) ngonType = 2; // CGNSv3, array2
+    else if (api == 3) ngonType = 3; // force CGNSv4, array3
+    PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, nptsngon, netngon,
+                                         nfacesngon, "NGON", sizeFN2, sizeEF2,
+                                         ngonType, false, api);
+    K_ARRAY::getFromArray3(tpl, f2, cn2);
+    ngon2 = cn2->getNGon();
+    nface2 = cn2->getNFace();
+    if (api == 2 || api == 3)
+    {
+      indPG2 = cn2->getIndPG(); indPH2 = cn2->getIndPH();
+    }
+  }
 
   #pragma omp parallel
   {
+    E_Int et, ind1, ind2;
+    
     #pragma omp for
-    for (E_Int i = 0; i < sizeFN2; i++) cnNGONp[2+i] = cFN2[i];
+    for (E_Int i = 0; i < netbar; i++) // BAR
+    {
+      et = etListBar[i];
+      const vector<E_Int>& vertices = cEVNGon[et];
+
+      for (size_t nov = 0; nov < vertices.size(); nov++)
+      {
+        ind1 = vertices[nov]-1;
+        ind2 = vMapBar[ind1];
+        cEVbar(i,nov+1) = ind2+1;
+        for (E_Int eq = 1; eq <= nfld; eq++)
+        {
+          fbar(ind2,eq) = field(ind1,eq);
+        }
+      }
+    }
+
     #pragma omp for
-    for (E_Int i = 0; i < sizeEF2; i++) cnNGONp[4+sizeFN2+i] = cEF2[i];
+    for (E_Int i = 0; i < nettri; i++) // TRI
+    {
+      et = etListTri[i];
+      const vector<E_Int>& vertices = cEVNGon[et];
+
+      for (size_t nov = 0; nov < vertices.size(); nov++)
+      {
+        ind1 = vertices[nov]-1;
+        ind2 = vMapTri[ind1];
+        cEVtri(i,nov+1) = ind2+1;
+        for (E_Int eq = 1; eq <= nfld; eq++)
+        {
+          ftri(ind2,eq) = field(ind1,eq);
+        }
+      }
+    }
+
+    #pragma omp for
+    for (E_Int i = 0; i < netquad; i++) // QUAD
+    {
+      et = etListQuad[i];
+      const vector<E_Int>& vertices = cEVNGon[et];
+
+      for (size_t nov = 0; nov < vertices.size(); nov++)
+      {
+        ind1 = vertices[nov]-1;
+        ind2 = vMapQuad[ind1];
+        cEVquad(i,nov+1) = ind2+1;
+        for (E_Int eq = 1; eq <= nfld; eq++)
+        {
+          fquad(ind2,eq) = field(ind1,eq);
+        }
+      }
+    }
+
+    #pragma omp for
+    for (E_Int i = 0; i < nettetra; i++) // TETRA
+    {
+      et = etListTetra[i];
+      const vector<E_Int>& vertices = cEVNGon[et];
+
+      for (size_t nov = 0; nov < vertices.size(); nov++)
+      {
+        ind1 = vertices[nov]-1;
+        ind2 = vMapTetra[ind1];
+        cEVtetra(i,nov+1) = ind2+1;
+        for (E_Int eq = 1; eq <= nfld; eq++)
+        {
+          ftetra(ind2,eq) = field(ind1,eq);
+        }
+      }
+    }
+    
+    #pragma omp for
+    for (E_Int i = 0; i < netpyra; i++) // PYRA
+    {
+      et = etListPyra[i];
+      const vector<E_Int>& vertices = cEVNGon[et];
+
+      for (size_t nov = 0; nov < vertices.size(); nov++)
+      {
+        ind1 = vertices[nov]-1;
+        ind2 = vMapPyra[ind1];
+        cEVpyra(i,nov+1) = ind2+1;
+        for (E_Int eq = 1; eq <= nfld; eq++)
+        {
+          fpyra(ind2,eq) = field(ind1,eq);
+        }
+      }
+    }
+    
+    #pragma omp for
+    for (E_Int i = 0; i < netpenta; i++) // PENTA
+    {
+      et = etListPenta[i];
+      const vector<E_Int>& vertices = cEVNGon[et];
+
+      for (size_t nov = 0; nov < vertices.size(); nov++)
+      {
+        ind1 = vertices[nov]-1;
+        ind2 = vMapPenta[ind1];
+        cEVpenta(i,nov+1) = ind2+1;
+        for (E_Int eq = 1; eq <= nfld; eq++)
+        {
+          fpenta(ind2,eq) = field(ind1,eq);
+        }
+      }
+    }
+
+    #pragma omp for
+    for (E_Int i = 0; i < nethexa; i++) // HEXA
+    {
+      et = etListHexa[i];
+      const vector<E_Int>& vertices = cEVNGon[et];
+
+      for (size_t nov = 0; nov < vertices.size(); nov++)
+      {
+        ind1 = vertices[nov]-1;
+        ind2 = vMapHexa[ind1];
+        cEVhexa(i,nov+1) = ind2+1;
+        for (E_Int eq = 1; eq <= nfld; eq++)
+        {
+          fhexa(ind2,eq) = field(ind1,eq);
+        }
+      }
+    }
   }
 
-  cEV.push_back(cnNGON); fields.push_back(fngonp); eltType.push_back(8);
+  E_Int nv, fidx, et, ind1, ind2, ind3 = 0, ind4 = 0, ind5 = 1;
+  if ((api == 2 || api == 3) && netngon) { indPG2[0] = 0; indPH2[0] = 0; }
+
+  for (E_Int i = 0; i < netngon; i++) // NGON
+  {
+    et = etListNGon[i];
+    E_Int* elem = cNG.getElt(et, nfacesl, nface, indPH);
+    nface2[ind4] = nfacesl;
+    if ((api == 2 || api == 3) && (i+1 < netngon)) indPH2[i+1] = nfacesl;
+
+    for (E_Int nf = 0; nf < nfacesl; nf++)
+    {
+      fidx = elem[nf]-1;
+      E_Int* face = cNG.getFace(fidx, nv, ngon, indPG);
+      ngon2[ind3] = nv;
+      if ((api == 2 || api == 3) && (i+1 < nfacesngon))
+      {
+        indPG2[ind5] = nv; ind5++;
+      }
+      for (E_Int nov = 0; nov < nv; nov++)
+      {
+        ind1 = face[nov]-1;
+        ind2 = vMapNGon[ind1];
+        for (E_Int eq = 1; eq <= nfld; eq++)
+        {
+          E_Float* f2p = f2->begin(eq);
+          f2p[ind2] = field(ind1,eq);
+        }
+        ngon2[ind3+nov+shift] = ind2+1;
+      }
+      ind3 += nv+shift;
+      
+      nface2[ind4+nf+shift] = fMapNGon[fidx]+1;
+    }
+    ind4 += nfacesl+shift;
+  }
+
+  // Append non-void connectivities & fields
+  if (netbar) {cEV.push_back(cEVbarp); fields.push_back(fbarp); eltType.push_back(1);}
+  if (nettri) {cEV.push_back(cEVtrip); fields.push_back(ftrip); eltType.push_back(2);}
+  if (netquad) {cEV.push_back(cEVquadp); fields.push_back(fquadp); eltType.push_back(3);}
+  if (nettetra) {cEV.push_back(cEVtetrap); fields.push_back(ftetrap); eltType.push_back(4);}
+  if (netpyra) {cEV.push_back(cEVpyrap); fields.push_back(fpyrap); eltType.push_back(5);}
+  if (netpenta) {cEV.push_back(cEVpentap); fields.push_back(fpentap); eltType.push_back(6);}
+  if (nethexa) {cEV.push_back(cEVhexap); fields.push_back(fhexap); eltType.push_back(7);}
+  if (netngon) {cEV.push_back(cn2); fields.push_back(f2); eltType.push_back(8);}
 }
