@@ -46,13 +46,13 @@ PyObject* K_OCC::getFaceArea(PyObject* self, PyObject* args)
   packet = (void**) PyCapsule_GetPointer(hook, NULL);
 #endif
 
-  TopoDS_Shape* shp = (TopoDS_Shape*) packet[0];
+  //TopoDS_Shape* shp = (TopoDS_Shape*) packet[0];
   TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
-  TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
+  //TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
   TopExp_Explorer expl;
 
   E_Float area = 0.;
-  const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
+  //const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
 
   for (expl.Init(surfaces(noFace), TopAbs_WIRE); expl.More(); expl.Next())
   {

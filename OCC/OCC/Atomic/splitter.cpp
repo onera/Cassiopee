@@ -64,8 +64,8 @@ PyObject* K_OCC::splitFaces(PyObject* self, PyObject* args)
   packet = (void**) PyCapsule_GetPointer(hook, NULL);
 #endif
 
-  TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
-  TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
+  //TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
+  //TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
 
   // try on all shape
   TopoDS_Shape* shp = (TopoDS_Shape*)packet[0];
@@ -182,13 +182,15 @@ PyObject* K_OCC::splitFaces(PyObject* self, PyObject* args)
 
   packet[0] = &newShape;
   // Extract surfaces
-  delete packet[1];
+  TopTools_IndexedMapOfShape* ptr = (TopTools_IndexedMapOfShape*)packet[1];
+  delete ptr;
   TopTools_IndexedMapOfShape* sf = new TopTools_IndexedMapOfShape();
   TopExp::MapShapes(newShape, TopAbs_FACE, *sf);
   packet[1] = sf;
 
   // Extract edges
-  delete packet[2];
+  TopTools_IndexedMapOfShape* ptr2 = (TopTools_IndexedMapOfShape*)packet[2];
+  delete ptr2;
   TopTools_IndexedMapOfShape* se = new TopTools_IndexedMapOfShape();
   TopExp::MapShapes(newShape, TopAbs_EDGE, *se);
   packet[2] = se;
