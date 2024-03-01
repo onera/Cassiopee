@@ -45,7 +45,16 @@ E_Int K_METRIC::compNGonFacesSurf(
   E_Int* indPG = cn.getIndPG();
   // Donnees liees a la connectivite
   E_Int nfaces = cn.getNFaces(); // nombre total de faces
+  E_Int nelts = cn.getNElts();
   E_Int ierr = 0; // error index
+
+  vector< vector<E_Int> > cnEV;
+  
+  if (cFE != NULL)
+  {
+    cnEV.resize(nelts);
+    K_CONNECT::connectNG2EV(cn, cnEV);
+  }
   
 #pragma omp parallel
   {
@@ -117,17 +126,13 @@ E_Int K_METRIC::compNGonFacesSurf(
         // norme
         snp[fa] = sqrt(sxp[fa]*sxp[fa]+syp[fa]*syp[fa]+szp[fa]*szp[fa]);
       }
-    }
-    
+    } 
     if (cFE != NULL)
     {
       E_Int nbNodes;
       E_Int* cFE1 = cFE->begin(1);
       E_Int* cFE2 = cFE->begin(2);
       // si cFE est present, on oriente les normales a l'exterieur de ig
-      E_Int nelts = cn.getNElts();
-      vector< vector<E_Int> > cnEV(nelts);
-      K_CONNECT::connectNG2EV(cn, cnEV);
       
 #pragma omp for
       for (E_Int fa = 0; fa < nfaces; fa++)
