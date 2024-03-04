@@ -4607,10 +4607,6 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                     else: createUniqueChild(p, 'ElementStartOffset', 'DataArray_t', value=off)
                     NFACE = len(sons)-1; NFACEORIG = False
                     if remove: _rmNode(z, parentElt)
-
-                    NGON = getNodeFromName1(z, 'NGonElements')
-                    offset = getNodeFromName1(NGON, 'ElementStartOffset')
-                    api = 3 if offset is not None else 2
                 else:
                     print('Warning: cannot create NFACE. ParentElements node is not present.')
                 _updateElementRange(z)
