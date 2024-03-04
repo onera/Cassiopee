@@ -1,5 +1,74 @@
 #include "Proto.h"
 
+PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
+{
+  PyObject *AMESH;
+  
+  if (!PYPARSETUPLE_(args, O_, &AMESH)) {
+    RAISE("Wrong input.");
+    return NULL;
+  }
+
+  // Unpack AMesh
+  if (!PyCapsule_IsValid(AMESH, "AMesh")) {
+    RAISE("Bad AMesh hook");
+    return NULL;
+  }
+
+  AMesh *M = (AMesh *)PyCapsule_GetPointer(AMESH, "AMesh");
+
+  //M = Redistribute_mesh(M);
+
+  std::vector<E_Int> ref_faces, ref_cells;
+
+  /*
+  ref_cells.push_back(0);
+  E_Int *pf = get_facets(0, M->nface, M->indPH);
+  for (E_Int i = 0; i < 6; i++) ref_faces.push_back(pf[i]);
+  */
+
+
+  get_ref_faces_and_cells(M, ref_faces, ref_cells);
+
+  printf("%d -> nref_cells: %ld - nref_faces: %ld\n", M->pid, ref_cells.size(),
+    ref_faces.size());
+  
+  M->prev_ncells = M->ncells;
+  M->prev_nfaces = M->nfaces;
+  M->prev_npoints = M->npoints;
+
+  resize_data_for_refinement(M, ref_cells.size(), ref_faces.size());
+
+  if (ref_faces.size()) {
+    std::sort(ref_faces.begin(), ref_faces.end(), [&] (E_Int i, E_Int j) {
+      return M->faceTree->level(i) < M->faceTree->level(j);
+    });
+  }
+
+  if (ref_cells.size()) {
+    std::sort(ref_cells.begin(), ref_cells.end(), [&] (E_Int i, E_Int j) {
+      return M->cellTree->level(i) < M->cellTree->level(j);
+    });
+  }
+
+  compute_ref_cells_centers(M, ref_cells);
+
+  refine_mesh(M, ref_faces, ref_cells);
+
+  update_patch_faces_after_ref(M);
+
+  E_Int gncells;
+  MPI_Allreduce(&M->ncells, &gncells, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+  if (M->pid == 0)
+    printf("Total leaves: %d\n", gncells);
+
+  for (E_Int i = 0; i < M->ncells; i++) M->cellTree->state_[i] = UNTOUCHED;
+  for (E_Int i = 0; i < M->nfaces; i++) M->faceTree->state_[i] = UNTOUCHED;
+
+  return Py_None;
+}
+
 PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
 {
   PyObject *ARRAY, *OWN, *NEI, *COMM, *BCS, *NORMAL_2D;
@@ -195,73 +264,4 @@ PyObject *K_XCORE::CreateAdaptMesh(PyObject *self, PyObject *args)
   RELEASESHAREDU(ARRAY, f, cn);
 
   return hook;
-}
-
-PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
-{
-  PyObject *AMESH;
-  
-  if (!PYPARSETUPLE_(args, O_, &AMESH)) {
-    RAISE("Wrong input.");
-    return NULL;
-  }
-
-  // Unpack AMesh
-  if (!PyCapsule_IsValid(AMESH, "AMesh")) {
-    RAISE("Bad AMesh hook");
-    return NULL;
-  }
-
-  AMesh *M = (AMesh *)PyCapsule_GetPointer(AMESH, "AMesh");
-
-  //M = Redistribute_mesh(M);
-
-  std::vector<E_Int> ref_faces, ref_cells;
-
-  /*
-  ref_cells.push_back(0);
-  E_Int *pf = get_facets(0, M->nface, M->indPH);
-  for (E_Int i = 0; i < 6; i++) ref_faces.push_back(pf[i]);
-  */
-
-
-  get_ref_faces_and_cells(M, ref_faces, ref_cells);
-
-  printf("%d -> nref_cells: %ld - nref_faces: %ld\n", M->pid, ref_cells.size(),
-    ref_faces.size());
-  
-  M->prev_ncells = M->ncells;
-  M->prev_nfaces = M->nfaces;
-  M->prev_npoints = M->npoints;
-
-  resize_data_for_refinement(M, ref_cells.size(), ref_faces.size());
-
-  if (ref_faces.size()) {
-    std::sort(ref_faces.begin(), ref_faces.end(), [&] (E_Int i, E_Int j) {
-      return M->faceTree->level(i) < M->faceTree->level(j);
-    });
-  }
-
-  if (ref_cells.size()) {
-    std::sort(ref_cells.begin(), ref_cells.end(), [&] (E_Int i, E_Int j) {
-      return M->cellTree->level(i) < M->cellTree->level(j);
-    });
-  }
-
-  compute_ref_cells_centers(M, ref_cells);
-
-  refine_mesh(M, ref_faces, ref_cells);
-
-  update_patch_faces_after_ref(M);
-
-  E_Int gncells;
-  MPI_Allreduce(&M->ncells, &gncells, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
-
-  if (M->pid == 0)
-    printf("Total leaves: %d\n", gncells);
-
-  for (E_Int i = 0; i < M->ncells; i++) M->cellTree->state_[i] = UNTOUCHED;
-  for (E_Int i = 0; i < M->nfaces; i++) M->faceTree->state_[i] = UNTOUCHED;
-
-  return Py_None;
 }

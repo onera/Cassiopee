@@ -87,10 +87,8 @@ PyObject *extract_conformal_mesh(AMesh *M, E_Int closed_mesh)
   memcpy(py, M->y, M->npoints * sizeof(E_Float));
   memcpy(pz, M->z, M->npoints * sizeof(E_Float));
 
-  //assert(K_CONNECT::check_open_cells(*cno, NULL) == 0);
-  //assert(K_CONNECT::check_overlapping_cells(*cno) == 0);
-
-  //return m;
+  assert(K_CONNECT::check_open_cells(*cno, NULL) == 0);
+  assert(K_CONNECT::check_overlapping_cells(*cno) == 0);
 
   // BCs
   PyObject *BCS = PyList_New(0);
@@ -275,6 +273,108 @@ PyObject *extract_BE_mesh(AMesh *M)
   memcpy(pz, M->z, M->npoints*sizeof(E_Float));
 
   return m;
+}
+
+#define BCMODE_BE 0
+#define BCMODE_NGON 1
+
+static
+PyObject *extractBCMesh_NGON(AMesh *M)
+{
+  // BCs
+  PyObject *BCs = PyList_New(0);
+
+  npy_intp dims[2];
+  
+  for (E_Int i = 0; i < M->nbc; i++) {
+    dims[0] = (npy_intp)M->bcsizes[i];
+    dims[1] = 1;
+
+    PyArrayObject *PL = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
+    E_Int *op = M->ptlists[i];
+    E_Int *np = (E_Int *)PyArray_DATA(PL);
+    for (E_Int j = 0; j < M->bcsizes[i]; j++)
+      *np++ = op[j] + 1;
+
+    PyObject *tpl = Py_BuildValue("[Os]", (PyObject *)PL, M->bcnames[i]);
+    Py_DECREF(PL);
+    PyList_Append(BCs, tpl);
+    Py_DECREF(tpl);
+  }
+
+  return BCs;
+}
+
+static
+PyObject *extractBCMesh_BE(AMesh *M)
+{
+  // Count number of bc faces
+
+  std::vector<E_Int> be_sizes(M->nbc, 0);
+  
+  for (E_Int i = 0; i < M->nbc; i++) {
+    E_Int *ptlist = M->ptlists[i];
+
+    for (E_Int j = 0; j < M->bcsizes[i]; j++) {
+      E_Int type = M->faceTree->type(ptlist[i]);
+      
+      if (type == QUAD) be_sizes[i] += 4;
+      else if (type == TRI) be_sizes[i] += 3;
+      else assert(0);
+    }
+  }
+
+  PyObject *BCs = PyList_New(0);
+
+  npy_intp dims[2];
+
+  for (E_Int i = 0; i < M->nbc; i++) {
+    dims[0] = (npy_intp)be_sizes[i];
+    dims[1] = 1;
+
+    PyArrayObject *PL = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
+    E_Int *op = M->ptlists[i];
+    E_Int *np = (E_Int *)PyArray_DATA(PL);
+
+    for (E_Int j = 0; j < M->bcsizes[i]; j++) {
+      E_Int face = op[j];
+      E_Int stride = -1;
+      E_Int *pn = get_face(face, stride, M->ngon, M->indPG);
+      for (E_Int k = 0; k < stride; k++)
+        *np++ = pn[k]+1;
+    }
+
+    PyObject *tpl = Py_BuildValue("[Os]", (PyObject *)PL, M->bcnames[i]);
+    Py_DECREF(PL);
+    PyList_Append(BCs, tpl);
+    Py_DECREF(tpl);
+  }
+
+  return BCs;
+}
+
+PyObject *K_XCORE::extractBoundaryMesh(PyObject *self, PyObject *args)
+{
+  PyObject *AMESH;
+  E_Int MODE; // BE or NGON
+
+  if (!PYPARSETUPLE_(args, O_ I_, &AMESH, &MODE)) {
+    RAISE("Wrong input.");
+    return NULL;
+  }
+
+  if (!PyCapsule_IsValid(AMESH, "AMesh")) {
+    RAISE("Bad mesh capsule");
+    return NULL;
+  }
+
+  AMesh *M = (AMesh *)PyCapsule_GetPointer(AMESH, "AMesh");
+
+  assert(MODE == BCMODE_BE || MODE == BCMODE_NGON);
+
+  if (MODE == BCMODE_NGON) return extractBCMesh_NGON(M);
+
+  return extractBCMesh_BE(M);
 }
 
 PyObject *K_XCORE::ExtractLeafMesh(PyObject *self, PyObject *args)
