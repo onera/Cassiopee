@@ -573,6 +573,17 @@ def getFaceCentersAndAreas(t):
     zones = Internal.getZones(t)
     for zone in zones:
         arr = C.getFields(Internal.__GridCoordinates__, zone, api=3)[0]
+        if len(arr) != 4:
+          fcenters.append(None)
+          fareas.append(None)
+          continue
+        
+        etype, stype = Internal.eltName2EltNo(arr[3])
+
+        if etype != 22:
+          fcenters.append(None)
+          fareas.append(None)
+          continue
         [fc, fa] = Generator.getFaceCentersAndAreas(arr)
         fcenters.append(fc)
         fareas.append(fa)
@@ -584,7 +595,18 @@ def getCellCenters(t, fc, fa, own=None, nei=None):
     centers = []
     for i in range(nzones):
         zone = zones[i]
+
         arr = C.getFields(Internal.__GridCoordinates__, zone, api=3)[0]
+
+        if len(arr) != 4:
+          centers.append(None)
+          continue
+        
+        etype, stype = Internal.eltName2EltNo(arr[3])
+
+        if etype != 22:
+          centers.append(None)
+          continue
 
         if own == None and nei == None:
             cx, cy, cz = Generator.getCellCenters(arr, fc[i], fa[i], None, None)
