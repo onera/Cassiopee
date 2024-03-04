@@ -25,6 +25,7 @@ if mpi: # source that requires mpi
             'XCore/exchangeFields.cpp',
 
             'XCore/common/mem.cpp',
+            'XCore/common/common.cpp',
 
             'XCore/chunk2partNGon.cpp',
             'XCore/chunk2partElt.cpp',
@@ -77,7 +78,12 @@ if mpi: # source that requires mpi
             'XCore/adaptMesh2/Tetra.cpp',
             'XCore/adaptMesh2/Pyra.cpp',
 
-            'XCore/intersectMesh/intersectMesh.cpp'
+            'XCore/intersectMesh/intersectMesh.cpp',
+            'XCore/intersectMesh/mesh.cpp',
+            'XCore/intersectMesh/io.cpp',
+            'XCore/intersectMesh/bbox.cpp',
+            'XCore/intersectMesh/geom.cpp',
+            'XCore/intersectMesh/topo.cpp'
             ]
 else:
     cpp_srcs += [

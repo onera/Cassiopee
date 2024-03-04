@@ -53,6 +53,7 @@ namespace K_XCORE
   PyObject *_prepareMeshForAdaptation(PyObject *self, PyObject *args);
   PyObject *ExtractLeafMesh(PyObject *self, PyObject *args);
   PyObject *_assignRefDataToAM(PyObject *self, PyObject *args);
+  PyObject *extractBoundaryMesh(PyObject *self, PyObject *args);
 
   PyObject *intersectMesh(PyObject *self, PyObject *args);
 }

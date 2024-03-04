@@ -286,10 +286,17 @@ def ExtractLeafMesh(t, conformize=1):
 def _assignRefDataToAM(AM, REF):
   return XCore.xcore._assignRefDataToAM(AM, REF)
 
+def extractBoundaryMesh(AM, mode):
+  return XCore.xcore.extractBoundaryMesh(AM, mode)
+
 
 ######################################################
 
-def intersectMesh(master, slave):
-  zm = I.getZones(master)[0]
-  zs = I.getZones(slave)[0]
-  return XCore.xcore.intersectMesh(zm, zs)
+def intersectMesh(t):
+  zm = I.getZones(t)[0]
+  zs = I.getZones(t)[1]
+
+  master = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
+  slave = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
+
+  return XCore.xcore.intersectMesh(master, slave)
