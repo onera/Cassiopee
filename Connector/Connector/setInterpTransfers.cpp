@@ -875,7 +875,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 #if PY_VERSION_HEX >= 0x03000000
     else if (PyUnicode_Check(tpl0)) vartmp = (char*)PyUnicode_AsUTF8(tpl0);
 #endif
-    //printf("varname %s \n", vartmp);
+    // printf("varname %s \n", vartmp);
     if     (ivar==0) {varname  = vartmp;}
     else if(ivar==1) {varname1 = vartmp;}  //En LBM, on a besoin d'echanger les macro !!ET!! les Q donc deux varname
     else if(ivar==2) {varname2 = vartmp;}  //Pour le couplage NS-LBM, on a besoin d'echanger les Q !!ET!! les macro !!ET!! les gradients
@@ -896,6 +896,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
     PyObject* zoneR = PyList_GetItem(zonesR, nd);
 #     include "getfromzoneRcompact_all.h"
   }
+
 
   E_Int nbcomIBC = ipt_param_int[2];
   E_Int nbcomID  = ipt_param_int[3+nbcomIBC];
@@ -1096,9 +1097,10 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 
             E_Int overset  =  ipt_param_intR[NoD][LBM_OVERSET];        //flag pour overset en LBM
             if      (nvars_loc==19 && overset==0) nvars_loc = nvars_loc + 5;
+            else if (nvars_loc==27 && overset==0) nvars_loc = nvars_loc + 5;
             else if (nvars_loc==19 && overset==1) nvars_loc = nvars_loc + 5 + 6 + 6;
-
-            //printf("irac=  %d, nvar/nvar_loc= %d %d,  ithread= %d  solverDR %d %d \n",irac , nvars,nvars_loc, ithread,  solver_D, solver_R);
+            // cout << nvars_loc << endl;
+            // printf("irac=  %d, nvar/nvar_loc= %d %d,  ithread= %d  solverDR %d %d \n",irac , nvars,nvars_loc, ithread,  solver_D, solver_R);
 
             E_Int meshtype = ipt_ndimdxD[NoD + nidomD*6];
             E_Int cnNfldD  = ipt_ndimdxD[NoD + nidomD*7];
@@ -1279,7 +1281,6 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
               }
             }
             
-
             // COUPLAGE NS-LBM: changement d'unite
             if (solver_D==4 && solver_R<4)
             {

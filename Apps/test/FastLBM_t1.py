@@ -15,7 +15,7 @@ myApp = App.LBM(format='single')
 VARSMACRO = ['Density','VelocityX','VelocityY','VelocityZ','Temperature']
 
 # Geometry and mesh
-nit   = 500
+nit   = 100
 NG    = 1
 x_min = -0.5
 dx    = 0.01
@@ -61,14 +61,18 @@ rho0Kap2 = rho0*kappa**2
 kapC0=kappa*c0
 R0_2Inv= 1./(R0*R0)
 v_adim=1./(math.sqrt(3)*c0)
-#
+
+R0 = L/10.; R0_2Inv= 1./(R0*R0); R0_3Inv= 1./(R0*R0*R0)
+epsilon = 0.07*c0; eps_2 = epsilon**2
+Tref = 1.0; Rhoref = 1.0
+
 C._initVars(t,"{centers:r2}=({centers:CoordinateX}-%g)**2+({centers:CoordinateY}-%g)**2"%(x_0,y_0))
-C._initVars(t,'{centers:Density}=1.-0.5*%g*exp(1.-{centers:r2}*%g)'%(kappa*kappa,R0_2Inv))
-C._initVars(t,'{centers:VelocityX}=%g-%g*({centers:CoordinateY}*%g)*exp(0.5*(1.-{centers:r2}*%g))'%(u0,kappa*c0,1/R0,R0_2Inv))
-C._initVars(t,'{centers:VelocityY}=%g*({centers:CoordinateX}*%g)*exp(0.5*(1.-{centers:r2}*%g))'%(kappa*c0,1/R0,R0_2Inv))
-C._rmVars(t,["centers:r2"])
-C._initVars(t,'{centers:Temperature}=1.')# pour l instant ne sert qu a passer dans le warmup, car isotherme
+C._initVars(t,'{centers:Density}= %20.16g*exp(-%20.16g/(2.*%20.16g**2)*exp(-{centers:r2}*%20.16g))'%(Rhoref,eps_2,c0,R0_2Inv))
+C._initVars(t,'{centers:VelocityX}=%20.16g-%20.16g*(({centers:CoordinateY}-%20.16g)*%20.16g)*exp(-0.5*{centers:r2}*%20.16g)'%(u0,epsilon,y_0,1./R0,R0_2Inv))
+C._initVars(t,'{centers:VelocityY}=%20.16g+%20.16g*(({centers:CoordinateX}-%20.16g)*%20.16g)*exp(-0.5*{centers:r2}*%20.16g)'%(0.,epsilon,x_0,1./R0,R0_2Inv))
 C._initVars(t,'{centers:VelocityZ}=0.')
+C._initVars(t,'{centers:Temperature}=%20.16g'%(Tref))
+
 #-------------------------
 # Adimensionnement
 #-------------------------
@@ -90,16 +94,17 @@ numz['cache_blocking_I']=1000000
 numz['cache_blocking_J']=1000000
 numz['cache_blocking_K']=1000000
 numz['cache_blocking_I']=1000000
-colop_select     = 'BGK' 
-NQ_local         = 19
+
+colop_select     = 'RR' 
+NQ_local         = 'D3Q19'
 nu_local         = 0
 numz["time_step"]           = 1 
-numz["lbm_neq"]             = NQ_local
+numz["LBM_velocity_set"]    = NQ_local
 numz["lbm_c0"]              = math.sqrt(1./3.)
 numz["lbm_dif_coef"]        = nu_local
 
-numz["lbm_col_op"]     =colop_select
-numz["lbm_taug"]       =0.5
+numz["LBM_coll_model"]      =colop_select
+numz["LBM_relax_time"]      =0.5
 
 
 myApp.set(numb=numb) 
