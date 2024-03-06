@@ -1603,12 +1603,15 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                 // imax --------------------------------------------------
                 i = im1-1;
 
+                alpha = 1;
+                if (i == 0 || i == im) alpha = 0;
                 i0 = E_max(i, 1)-1;
+                beta = im;
+                if (j == 0 || j == jm) beta = 0;
                 j0 = E_max(j, 1)-1;
-                k0 = E_max(k, 1)-1;
-
-                beta  = im;
                 gamma = ijm;
+                if (k == 0 || k == km) gamma = 0;
+                k0 = E_max(k, 1)-1;
                 
                 ind = i + j*im1 + k*ijm1;
 
@@ -2398,13 +2401,16 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                 // imax --------------------------------------------------
                 i = im1-1;
 
+                alpha = 1;
+                if (i == 0 || i == im) alpha = 0;
                 i0 = E_max(i, 1)-1;
+                beta = im;
+                if (j == 0 || j == jm) beta = 0;
                 j0 = E_max(j, 1)-1;
+                gamma = ijm;
+                if (k == 0 || k == km) gamma = 0;
                 k0 = E_max(k, 1)-1;
 
-                beta  = im;
-                gamma = ijm;
-                
                 ind = i + j*im1 + k*ijm1;
 
                 ind0 = i0 + j0*im + k0*ijm;

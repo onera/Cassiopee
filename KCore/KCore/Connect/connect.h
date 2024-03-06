@@ -403,7 +403,7 @@ namespace K_CONNECT
      IN: posx, posy, posz: position des coord. dans f
      IN: eps: tolerance pour eliminer les doublons
      IN: f, cNG: array NGON.
-     IN : remove_degen : suppression des elts degeneres compte tenu de la dimension du NGON
+     IN: remove_degen: suppression des elts degeneres compte tenu de la dimension du NGON
   */
   void cleanConnectivityNGon(E_Int posx, E_Int posy, E_Int posz, 
                              E_Float eps, K_FLD::FldArrayF& f, 
