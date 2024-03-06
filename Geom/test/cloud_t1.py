@@ -1,4 +1,4 @@
-# - point (array) -
+# - cloud (array) -
 import Geom as D
 import KCore.test as test
 import numpy as np
