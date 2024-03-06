@@ -34,11 +34,11 @@ tcFile                = LOCAL+'/tc.cgns'
 ##PREP
 dfar      = 5
 snears    = 1
-vmin      = 21;
+vmin      = 21
 
-t,tc=App.prepare1(t                , tFile      , tcFile             , 
-                  snears=snears    , dfar=dfar  , vmin=vmin          ,
-                  check=False      , frontType=1, isFilamentOnly=True, isWireModel=True )
+t,tc = App.prepare1(t                , tFile      , tcFile             , 
+                    snears=snears    , dfar=dfar  , vmin=vmin          ,
+                    check=False      , frontType=1, isFilamentOnly=True )
 
 test.testT(t , 1)
 test.testT(tc, 2)
