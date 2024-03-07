@@ -2658,6 +2658,18 @@ def pyTree2Node(t, type):
     else: node = t
     return node
 
+# -- EltNames2EltNos
+# Convertit une liste de noms CGNS d'elt en nos CGNS d'elt et leurs nombres
+# de noeuds associes. Retourne deux listes 
+def eltNames2EltNos(names):
+    if (isinstance(names, (list, tuple, numpy.ndarray)) and len(names) and
+            isinstance(names[0], str)):
+        names = ','.join(name for name in names)
+    if len(names.split(',')) > 1:
+        eltnos = [eltName2EltNo(name) for name in names.split(',')]
+        return list(zip(*eltnos))
+    else: return [[i] for i in eltName2EltNo(names)]
+
 # -- EltName2EltNo
 # Convertit un nom CGNS d'elt en no CGNS d'elt et son nombre de noeuds associes
 def eltName2EltNo(name):
@@ -2714,6 +2726,15 @@ def eltName2EltNo(name):
     elif name == 'NGON' or name == 'NGON_n': eltno = 22; nnodes = 1
     elif name == 'NFACE' or name == 'NFACE_n': eltno = 23; nnodes = 1
     return eltno, nnodes
+
+# -- EltNos2EltNames
+# Convertit une liste de numeros CGNS d'elt en noms CGNS d'elt et leurs nombres
+# de noeuds associes. Retourne deux listes
+def eltNos2EltNames(eltnos):
+    if isinstance(eltnos, (list, numpy.ndarray)):
+        eltnames = [eltNo2EltName(eltno) for eltno in eltnos]
+        return list(zip(*eltnames))
+    else: return [[i] for i in eltNo2EltName(eltnos)]
 
 # -- EltNo2EltName
 # Convertit un numero CGNS d'elt en nom CGNS d'elt et son nombre de noeuds
@@ -2947,31 +2968,36 @@ def createZoneNode(name, array, array2=[],
 
   # Connectivite
   if len(array) == 4: # non structure
-      etype,stype = eltName2EltNo(array[3])
-      i = numpy.empty((2), dtype=E_NpyInt); i[0] = etype; i[1] = 0
-      if etype == 22: # Faces->Nodes and Elements->Faces connectivities (NGON array)
-          if isinstance(array[2], list): # Array2 or array3
-            setElementConnectivity2(zone, array)
-          else: # Array1
-            setElementConnectivity(zone, array)
-      else:  # Elements -> Nodes connectivities
-          info.append(['GridElements', i, [], 'Elements_t'])
-          info2 = info[len(info)-1][2]
-          i = numpy.empty((2), dtype=E_NpyInt); i[0] = 1
-          if isinstance(array[2], list): # Array2
-             i[1] = array[2][0].shape[0]
-             info2.append(['ElementRange', i, [], 'IndexRange_t']) 
-             sizeConnectivity = array[2][0].size
-             connect = array[2][0]
-             connect = numpy.reshape(connect, (sizeConnectivity))
-             info2.append(['ElementConnectivity', connect, [], 'DataArray_t'])  
-          else: # Array1
-             i[1] = array[2].shape[1]
-             sizeConnectivity = array[2].size
-             info2.append(['ElementRange', i, [], 'IndexRange_t'])
-             connect = numpy.transpose(numpy.copy(array[2]))
-             connect = numpy.reshape(connect, (sizeConnectivity))
-             info2.append(['ElementConnectivity', connect, [], 'DataArray_t'])
+      etype, _ = eltNames2EltNos(array[3]) # types d'elements
+      neltstot = 0
+      for c in range(len(etype)):
+        i = numpy.empty((2), dtype=E_NpyInt); i[0] = etype[c]; i[1] = 0
+        if etype[c] == 22: # Faces->Nodes and Elements->Faces connectivities (NGON array)
+            if isinstance(array[2], list): # Array2 or array3
+                setElementConnectivity2(zone, array)
+            else: # Array1
+                setElementConnectivity(zone, array)
+        else:  # Elements -> Nodes connectivities
+            suffix = '' if c == 0 else '-{}'.format(c+1)
+            info.append(['GridElements{}'.format(suffix), i, [], 'Elements_t'])
+            info2 = info[len(info)-1][2]
+            
+            i = numpy.empty((2), dtype=E_NpyInt); i[0] = neltstot+1
+            if isinstance(array[2], list): # Array2
+                i[1] = neltstot + array[2][c].shape[0]; neltstot = i[1]
+                info2.append(['ElementRange', i, [], 'IndexRange_t']) 
+                sizeConnectivity = array[2][c].size
+                connect = array[2][c]
+                connect = numpy.reshape(connect, (sizeConnectivity))
+                info2.append(['ElementConnectivity', connect, [], 'DataArray_t'])
+            else: # Array1
+                i[1] = array[2].shape[1]
+                sizeConnectivity = array[2].size
+                info2.append(['ElementRange', i, [], 'IndexRange_t'])
+                connect = numpy.transpose(numpy.copy(array[2]))
+                connect = numpy.reshape(connect, (sizeConnectivity))
+                info2.append(['ElementConnectivity', connect, [], 'DataArray_t'])
+                break # ME not supported
 
   # field
   if isinstance(array[1], list): nvar = len(array[1])
@@ -3647,7 +3673,8 @@ def getZoneDim(zone):
             else: # BE/ME
                 cellDim = 0
                 for elt in eltNames: cellDim = max(cellDim, dimBE[elt])
-                return [gtype, np, ne, 'MULTIPLE', cellDim]
+                eltNames = dict.fromkeys(eltNames, None)
+                return [gtype, np, ne, ','.join(name for name in eltNames), cellDim]
       else:
         raise TypeError("getZoneDim: cannot find a valid zone type for zone '%s'."%zone[0])
       break
