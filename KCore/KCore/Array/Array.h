@@ -540,14 +540,7 @@ namespace K_ARRAY
                         FldArrayI& cn, // provides ncells, ...
                         char* eltType,
                         E_Int center=-1, E_Int api=1,
-                        E_Bool copyConnect=false); 
-  PyObject* buildArray3(E_Int nfld,
-                        const char* varString,
-                        FldArrayF& f, // provides nvertex
-                        FldArrayI& cn, // provides ncells, ...
-                        char* eltType,
-                        E_Int center=-1, E_Int api=-1,
-                        E_Boolean copyConnect=false);
+                        E_Bool copyConnect=false);
 
   /* Construit un array structure a partir d'un DynArray
      IN: field: Dyn champ structure

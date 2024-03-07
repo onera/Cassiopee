@@ -103,6 +103,7 @@ PyObject* K_INITIATOR::initLamb(PyObject* self, PyObject* args)
   E_Int defVars = 0; //says if output array is built using default variables or not
   E_Int neqTot = f->getNfld();
   E_Int npts = f->getSize();
+  E_Int api = f->getApi();
   E_Int posro = K_ARRAY::isDensityPresent(varString);
   E_Int posrou = K_ARRAY::isMomentumXPresent(varString);
   E_Int posrov = K_ARRAY::isMomentumYPresent(varString);
@@ -123,9 +124,9 @@ PyObject* K_INITIATOR::initLamb(PyObject* self, PyObject* args)
 
   PyObject* tpl;
   if (res == 1)
-    tpl = K_ARRAY::buildArray3(neqTot, varStringOut, im, jm, km, f->getApi());
+    tpl = K_ARRAY::buildArray3(neqTot, varStringOut, im, jm, km, api);
   else
-    tpl = K_ARRAY::buildArray3(neqTot, varStringOut, *f, *cn, eltType, 0, -1, true);
+    tpl = K_ARRAY::buildArray3(neqTot, varStringOut, npts, *cn, eltType, 0, api, true);
 
   FldArrayF* f2;  
   K_ARRAY::getFromArray3(tpl, f2);
@@ -201,6 +202,7 @@ PyObject* K_INITIATOR::initVisbal(PyObject* self, PyObject* args)
   E_Int defVars = 0;//says if output array is built using default variables or not
   E_Int neqTot = f->getNfld();
   E_Int npts = f->getSize();
+  E_Int api = f->getApi();
   E_Int posro = K_ARRAY::isDensityPresent(varString);
   E_Int posrou = K_ARRAY::isMomentumXPresent(varString);
   E_Int posrov = K_ARRAY::isMomentumYPresent(varString);
@@ -221,9 +223,9 @@ PyObject* K_INITIATOR::initVisbal(PyObject* self, PyObject* args)
   
     PyObject* tpl;
   if (res == 1)
-    tpl = K_ARRAY::buildArray3(neqTot, varStringOut, im, jm, km, f->getApi());
+    tpl = K_ARRAY::buildArray3(neqTot, varStringOut, im, jm, km, api);
   else
-    tpl = K_ARRAY::buildArray3(neqTot, varStringOut, *f, *cn, eltType, 0, -1, true);
+    tpl = K_ARRAY::buildArray3(neqTot, varStringOut, npts, *cn, eltType, 0, api, true);
 
   FldArrayF* f2;  
   K_ARRAY::getFromArray3(tpl, f2);
@@ -301,6 +303,7 @@ PyObject* K_INITIATOR::initScully(PyObject* self, PyObject* args)
   E_Int defVars = 0;//says if output array is built using default variables or not
   E_Int neqTot = f->getNfld();
   E_Int npts = f->getSize();
+  E_Int api = f->getApi();
   E_Int posro = K_ARRAY::isDensityPresent(varString);
   E_Int posrou = K_ARRAY::isMomentumXPresent(varString);
   E_Int posrov = K_ARRAY::isMomentumYPresent(varString);
@@ -321,9 +324,9 @@ PyObject* K_INITIATOR::initScully(PyObject* self, PyObject* args)
 
     PyObject* tpl;
   if (res == 1)
-    tpl = K_ARRAY::buildArray3(neqTot, varStringOut, im, jm, km, f->getApi());
+    tpl = K_ARRAY::buildArray3(neqTot, varStringOut, im, jm, km, api);
   else
-    tpl = K_ARRAY::buildArray3(neqTot, varStringOut, *f, *cn, eltType, 0, -1, true);
+    tpl = K_ARRAY::buildArray3(neqTot, varStringOut, npts, *cn, eltType, 0, api, true);
 
   FldArrayF* f2;  
   K_ARRAY::getFromArray3(tpl, f2);
@@ -408,6 +411,7 @@ PyObject* K_INITIATOR::initYee(PyObject* self, PyObject* args)
   E_Int defVars = 0;//says if output array is built using default variables or not
   E_Int neqTot = f->getNfld();
   E_Int npts = f->getSize();
+  E_Int api = f->getApi();
   E_Int posro = K_ARRAY::isDensityPresent(varString);
   E_Int posrou = K_ARRAY::isMomentumXPresent(varString);
   E_Int posrov = K_ARRAY::isMomentumYPresent(varString);
@@ -428,9 +432,9 @@ PyObject* K_INITIATOR::initYee(PyObject* self, PyObject* args)
   
     PyObject* tpl;
   if (res == 1)
-    tpl = K_ARRAY::buildArray3(neqTot, varStringOut, im, jm, km, f->getApi());
+    tpl = K_ARRAY::buildArray3(neqTot, varStringOut, im, jm, km, api);
   else
-    tpl = K_ARRAY::buildArray3(neqTot, varStringOut, *f, *cn, eltType, 0, -1, true);
+    tpl = K_ARRAY::buildArray3(neqTot, varStringOut, npts, *cn, eltType, 0, api, true);
 
   FldArrayF* f2;  
   K_ARRAY::getFromArray3(tpl, f2);
@@ -506,6 +510,7 @@ PyObject* K_INITIATOR::initWissocq(PyObject* self, PyObject* args)
   E_Int defVars = 0; //says if output array is built using default variables or not
   E_Int neqTot = f->getNfld();
   E_Int npts = f->getSize();
+  E_Int api = f->getApi();
   E_Int posro = K_ARRAY::isDensityPresent(varString);
   E_Int posrou = K_ARRAY::isMomentumXPresent(varString);
   E_Int posrov = K_ARRAY::isMomentumYPresent(varString);
@@ -526,9 +531,9 @@ PyObject* K_INITIATOR::initWissocq(PyObject* self, PyObject* args)
 
   PyObject* tpl;
   if (res == 1)
-    tpl = K_ARRAY::buildArray3(neqTot, varStringOut, im, jm, km, f->getApi());
+    tpl = K_ARRAY::buildArray3(neqTot, varStringOut, im, jm, km, api);
   else
-    tpl = K_ARRAY::buildArray3(neqTot, varStringOut, *f, *cn, eltType, 0, -1, true);
+    tpl = K_ARRAY::buildArray3(neqTot, varStringOut, npts, *cn, eltType, 0, api, true);
 
   FldArrayF* f2;  
   K_ARRAY::getFromArray3(tpl, f2);

@@ -304,8 +304,10 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
     }
     else
     {
-      tpl = K_ARRAY::buildArray3(pos1[i].size(), varString[i], *field1[i],
-                                 *cn1[i], elt1[i], 0, -1, true);
+      E_Int npts = field1[i]->getSize();
+      E_Int api = field1[i]->getApi();
+      tpl = K_ARRAY::buildArray3(pos1[i].size(), varString[i], npts,
+                                 *cn1[i], elt1[i], 0, api, true);
       
     }
     FldArrayF* f2;

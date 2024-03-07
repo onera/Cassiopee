@@ -135,8 +135,9 @@ PyObject* K_CONVERTER::magnitude(PyObject* self, PyObject* args)
   } 
   else //unstructured 
   {
-    tpl = K_ARRAY::buildArray3(1, varStringOut, *f, *cn,
-                              eltType, -1, -1, true); // copy connect
+    E_Int api = f->getApi();
+    tpl = K_ARRAY::buildArray3(1, varStringOut, npts, *cn,
+                              eltType, -1, api, true); // copy connect
   }
   FldArrayF* norm;
   K_ARRAY::getFromArray3(tpl, norm);
