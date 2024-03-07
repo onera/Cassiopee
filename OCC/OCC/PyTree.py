@@ -466,13 +466,15 @@ def getPosEdges(t):
 def getPosFaces(t):
   return getPos(t, 'FACES')
 
+# return the position of edges/faces in t
+# return pose, posf, posei (reverse), posfi (reverse)
 def getAllPos(t):
   pose, posei = getPos(t, 'EDGES')
   posf, posfi = getPos(t, 'FACES')
   return [pose, posf, posei, posfi]
 
 #==================================================
-# get the first tree from CAD - mesh CAD
+# get the first tree from CAD - mesh TRI the CAD
 # IN: hook: hook on CAD
 # IN: hmax: hmax
 # IN: hausd: hausd deflection
@@ -567,7 +569,7 @@ def getFirstTree(hook, hmax=-1., hausd=-1., faceList=None):
     Internal._createChild(cad, 'faceList', 'DataArray_t', value=n)
   return t
 
-# the first version of parallel CAD split and meshing
+# the first version of parallel CAD split and TRI meshing
 def getFirstTreePara(hook, area, hmax=-1., hausd=-1.):
   import Distributor2
   import Distributor2.PyTree as D2
@@ -693,7 +695,7 @@ def _modifyHSizeForFaces(t, faceList, hList):
     Internal._setValue(node, hsize)
   return None
 
-# from face hmin/hmax/hausd
+# remesh from face hmin/hmax/hausd
 def _remeshTreeFromFaces(hook, t, faceList, hList):
   _modifyHSizeForFaces(t, faceList, hList)
 
@@ -723,50 +725,11 @@ def _remeshTreeFromFaces(hook, t, faceList, hList):
 
   return None
 
-# build a tree from t, identical with empty zones
-def buildTransferTree(t):
-  tc = C.newPyTree()
-  be = Internal.getNodeFromName1(t, 'EDGES')
-  pos, posi = getPosEdges(t)
-  b = Internal.getNodeFromName1(t, 'FACES')
-  bp = Internal.createNode(b[0], b[3], value=b[1], parent=tc)
-  zones = Internal.getZones(b)
-  # Nous sommes sur les zones receveurs
-  for z in zones:
-    faceNo = getNo(z)
-    # create a zone in tc
-    zp = Internal.createNode(z[0], z[3], value=z[1], parent=bp)
-    pr = Internal.getNodeFromName1(z, '.Solver#Param')
-    if pr is not None: zp[2].append(pr)
-
-    # get the ranges of edges of face
-    ranges = getEdgeRanges(t, faceNo)
-    edges = ranges.keys()
-    print("face %d"%faceNo, edges)
-    # get the opp face 
-    #for e in edges:
-    #  oppFaceNo = 
-
-    # les vertex de z sont dans l'ordre des edges et au debut
-      
-      # range ok ici
-
-      # face opposee
-
-  return tc
 
 # build interpData from a CAD t
 # build tc, add ghostcells in one go
 def _setInterpData(t, tc):
-  # pour chaque face, determine les CAD edges
-  b = Internal.getNodeFromName1(t, 'FACES')
-  be = Internal.getNodeFromName1(t, 'EDGES')
-  zones = Internal.getZones(b)
-  for z in zones: # chaque face
-    # trouver les CAD edges
-    CAD = Internal.getNodeFromName1(z, 'CAD')
-    edgeList = Internal.getNodeFromName1(CAD, 'edgeList')[1]
-      
+  # fonction finale integrant getOppData    
   return None
 
 # Retourne l'edge a partir de edgeNo (numero global CAD)
@@ -801,7 +764,7 @@ def getEdgeListOfFace(t, pos, faceNo):
   return edgeList[1]
 
 # Get face list from edgeNo
-def getFaceListOfEge(t, pos, edgeNo):
+def getFaceListOfEdge(t, pos, edgeNo):
   be = Internal.getNodeFromName1(t, 'EDGES')
   ze = be[2][pos[0][edgeNo]]
   CAD = Internal.getNodeFromName1(ze, 'CAD')
@@ -820,7 +783,12 @@ def getEdgeRangeOfFace(t, pos, faceNo):
     c += npts
   return ranges
 
-# get the face opp of edgeNo of faceNo
-def getFaceNoOpp(t, pos, edgeNo, faceNo):
-  return True 
+# get the face opp of edgeNo belonging to faceNo
+def getFaceNoOppOfEdge(t, pos, edgeNo, faceNo):
+  faceList = getFaceListOfEdge(t, pos, edgeNo)
+  for f in faceList:
+    if f != faceNo: return f
+  return -1
+
+
 

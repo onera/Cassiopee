@@ -59,6 +59,8 @@ namespace K_OCC
   PyObject* getFaceArea(PyObject* self, PyObject* args);
   PyObject* splitFaces(PyObject* self, PyObject* args);
 
+  PyObject* getOppData(PyObject* self, PyObject* args);
+
 }
 
 #endif

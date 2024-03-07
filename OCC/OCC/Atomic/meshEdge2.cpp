@@ -334,7 +334,9 @@ PyObject* K_OCC::meshEdgesOfFace(PyObject* self, PyObject* args)
     PyObject* le = PyList_New(0); // sortie par edges
     const TopoDS_Wire& W = TopoDS::Wire(expl.Current());
     //printf("getting a wire\n");
-    BRepCheck_Wire check = BRepCheck_Wire(W);
+    //BRepCheck_Wire check = BRepCheck_Wire(W);
+    BRepCheck_Wire check(W);
+    
     //BRepCheck_Status status = check.Orientation(F);
     //if (status == BRepCheck_NoError) printf("wire correctly oriented\n");
     //else printf("WIRE BADLY oriented\n");

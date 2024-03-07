@@ -60,6 +60,8 @@ static PyMethodDef Pyocc [] =
   {"getFaceArea", K_OCC::getFaceArea, METH_VARARGS},
   {"splitFaces", K_OCC::splitFaces, METH_VARARGS},
 
+  {"getOppData", K_OCC::getOppData, METH_VARARGS},
+
   {NULL, NULL}
 };
 
