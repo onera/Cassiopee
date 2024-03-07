@@ -736,7 +736,7 @@ def convertExt2Format__(fileName):
 def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
                        density=-1., zoneNames=None, BCFaces=None, BCFields=None,
                        hmax=0.0, hausd=1., grow=0.0, mergeTol=-1, occAlgo=0,
-                       centerArrays=None):
+                       centerArrays=None, api=1):
     """Read file and return arrays containing file data.
     Usage: a = convertFile2Arrays(fileName, options)"""
     try: import locale; locale.setlocale(locale.LC_NUMERIC, 'C') # force .
@@ -819,14 +819,14 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
             raise TypeError("convertFile2Arrays: file %s can not be read."%fileName)
     else:
         try:
-            return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces, BCFields, centerArrays)
+            return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces, BCFields, centerArrays, api)
         except:
             if not autoTry: raise
             else: pass
 
             format = checkFileType(fileName)
             try:
-                return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces, centerArrays)
+                return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces, centerArrays, api)
             except:
                 FORMATS = ['bin_ply', 'fmt_tp', 'fmt_v3d',
                 'bin_tp', 'bin_v3d', 'bin_vtk', 'fmt_mesh',
@@ -836,10 +836,10 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
                 'fmt_obj', 'fmt_gts' , 'fmt_pov', 'bin_arc']
                 for fmt in FORMATS:
                     try:
-                        a = converter.convertFile2Arrays(fileName, fmt, nptsCurve, nptsLine, density, zoneNames, BCFaces, BCFields, centerArrays)
+                        a = converter.convertFile2Arrays(fileName, fmt, nptsCurve, nptsLine, density, zoneNames, BCFaces, BCFields, centerArrays, api)
                         return a
                     except: 
-                        return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces, BCFields, centerArrays)
+                        return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces, BCFields, centerArrays, api)
 
 def convertArrays2File(arrays, fileName, format=None, isize=4, rsize=8,
                        endian='big', colormap=0, dataFormat='%.9e ',

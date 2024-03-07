@@ -993,7 +993,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
                        density=-1., skeletonData=None, dataShape=None, 
                        links=None, skipTypes=None, uncompress=True, 
                        hmax=0.0, hausd=1., grow=0.0, mergeTol=-1, occAlgo=4, 
-                       oldcompress=False, readMode=0):
+                       oldcompress=False, readMode=0, api=1):
   """Read a file and return a pyTree containing file data.
   Usage: convertFile2PyTree(fileName, format, options)"""
   if format is None:
@@ -1099,9 +1099,11 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
                                      BCFields=bcfields,
                                      hmax=hmax, hausd=hausd, grow=grow, 
                                      mergeTol=mergeTol, occAlgo=occAlgo,
-                                     centerArrays=centerArrays)
+                                     centerArrays=centerArrays, api=api)
   t = newPyTree([])
-  base1 = False; base2 = False; base3 = False; base = 1; c = 0
+  base = 1; c = 0
+  isBaseOfDim = [0 for _ in range(4)]
+  unsEltsDim = {'NODE': 0, 'BAR': 1, 'TRI': 2, 'QUAD': 2}
 
   for c, i in enumerate(a):
     #a1, a2 = hackCenters(i)
@@ -1110,55 +1112,21 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
     else: a2 = []
     
     if len(i) == 5: # Structure
-      if i[3] == 1 and i[4] == 1:
-        if not base1:
-          t = addBase2PyTree(t, 'Base1', 1); base1 = base; base += 1
-        z = Internal.createZoneNode(getZoneName('Zone'), a1, a2,
-                                    Internal.__GridCoordinates__,
-                                    Internal.__FlowSolutionNodes__,
-                                    Internal.__FlowSolutionCenters__)
-        t[2][base1][2].append(z)
-      elif i[4] == 1:
-        if not base2:
-          t = addBase2PyTree(t, 'Base2', 2); base2 = base; base += 1
-        z = Internal.createZoneNode(getZoneName('Zone'), a1, a2,
-                                    Internal.__GridCoordinates__,
-                                    Internal.__FlowSolutionNodes__,
-                                    Internal.__FlowSolutionCenters__)
-        t[2][base2][2].append(z)
-      else:
-        if not base3:
-          t = addBase2PyTree(t, 'Base', 3); base3 = base; base += 1
-        z = Internal.createZoneNode(getZoneName('Zone'), a1, a2,
-                                    Internal.__GridCoordinates__,
-                                    Internal.__FlowSolutionNodes__,
-                                    Internal.__FlowSolutionCenters__)
-        t[2][base3][2].append(z)
+      if i[3] == 1 and i[4] == 1: dim = 1
+      elif i[4] == 1: dim = 2
+      else: dim = 3
     else: # non structure
-      if i[3] == 'BAR':
-        if not base1:
-          t = addBase2PyTree(t, 'Base1', 1); base1 = base; base += 1
-        z = Internal.createZoneNode(getZoneName('Zone'), a1, a2,
-                                    Internal.__GridCoordinates__,
-                                    Internal.__FlowSolutionNodes__,
-                                    Internal.__FlowSolutionCenters__)
-        t[2][base1][2].append(z)
-      elif i[3] == 'TRI' or i[3] == 'QUAD':
-        if not base2:
-          t = addBase2PyTree(t, 'Base2', 2); base2 = base; base += 1
-        z = Internal.createZoneNode(getZoneName('Zone'), a1, a2,
-                                    Internal.__GridCoordinates__,
-                                    Internal.__FlowSolutionNodes__,
-                                    Internal.__FlowSolutionCenters__)
-        t[2][base2][2].append(z)
-      else:
-        if not base3:
-          t = addBase2PyTree(t, 'Base', 3); base3 = base; base += 1
-        z = Internal.createZoneNode(getZoneName('Zone'), a1, a2,
-                                    Internal.__GridCoordinates__,
-                                    Internal.__FlowSolutionNodes__,
-                                    Internal.__FlowSolutionCenters__)
-        t[2][base3][2].append(z)
+      dim = unsEltsDim.get(i[3].split(',')[0], 3) # BE, ME, (HOBE,NGON? TODO)
+      
+    suffix = '' if dim == 3 else str(dim)
+    if not isBaseOfDim[dim]:
+      t = addBase2PyTree(t, 'Base{}'.format(suffix), dim)
+      isBaseOfDim[dim] = 1; base += 1
+    z = Internal.createZoneNode(getZoneName('Zone'), a1, a2,
+                                Internal.__GridCoordinates__,
+                                Internal.__FlowSolutionNodes__,
+                                Internal.__FlowSolutionCenters__)
+    t[2][isBaseOfDim[dim]][2].append(z)
     
     if len(zn) > c: z[0] = zn[c]
     c += 1

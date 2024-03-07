@@ -301,6 +301,333 @@ E_Int K_IO::GenIO::meshread(
   return 0;
 }
 
+E_Int K_IO::GenIO::meshread(
+  char* file, char*& varString,
+  vector<FldArrayF*>& structField,
+  vector<E_Int>& ni, vector<E_Int>& nj, vector<E_Int>& nk,
+  vector<FldArrayF*>& unstructField,
+  vector<FldArrayI*>& connect,
+  vector<vector<E_Int> >& eltType, vector<char*>& zoneNames, E_Int api)
+{
+  E_Int res;
+  E_Float t; E_Int ti;
+  
+  /* File Opening */
+  FILE* ptrFile;
+  ptrFile = fopen(file, "r");
+
+  if (ptrFile == NULL)
+  {
+    printf("Warning: meshread: cannot open file %s.\n", file);
+    return 1;
+  }
+
+  // Lecture de l'entete
+  char buf[BUFSIZE];
+  res = readWord(ptrFile, buf);
+  if (res == -1) { fclose(ptrFile); return 1; }
+  if (strcmp(buf, "MeshVersionFormatted") != 0) { fclose(ptrFile); return 1; }
+
+  res = readDouble(ptrFile, t, -1);
+  if (t != 1)
+    printf("Warning: meshread: version number is not really supported.\n");
+  res = readGivenKeyword(ptrFile, "DIMENSION");
+  res = readDouble(ptrFile, t, -1);
+  if (t != 3)
+  {
+    printf("Warning: meshread: only 3D files are supported.\n");
+    fclose(ptrFile);
+    return 1;
+  }
+  
+  // Lecture Vertices (Global)
+  res = readGivenKeyword(ptrFile, "VERTICES");
+  res = readDouble(ptrFile, t, -1);
+  E_Int nb = E_Int(t);
+  FldArrayF f(nb, 3);
+  for (E_Int i = 0; i < nb; i++)
+  {
+    res = readDouble(ptrFile, t, -1); f(i,1) = t;
+    res = readDouble(ptrFile, t, -1); f(i,2) = t;
+    res = readDouble(ptrFile, t, -1); f(i,3) = t;
+    res = readDouble(ptrFile, t, -1);  // ref discarded
+  }
+
+  E_Int st;
+  res = readWord(ptrFile, buf);
+
+  vector<FldArrayI*> tmpConnect;
+  E_Boolean foundTopo[7] = {0};
+  if (api == 3) eltType.resize(1);
+  else eltType.clear();
+
+  while (strcmp(buf, "End") != 0 && res >= 1)
+  { 
+    if (strcmp(buf, "Edges") == 0)
+    {
+      // Connectivity Edges (Global) -> 1 zone
+      res = readInt(ptrFile, st, -1);
+      if (st == 0) goto next;
+      FldArrayI* cn = new FldArrayI(st, 2);
+      FldArrayI& c = *cn;
+      for (E_Int i = 0; i < st; i++)
+      {
+        res = readInt(ptrFile, ti, -1); c(i,1) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,2) = ti;
+        res = readInt(ptrFile, ti, -1); // discarded
+      }
+      
+      if (api == 3)
+      {
+        eltType[0].push_back(1);
+        tmpConnect.push_back(cn);
+      }
+      else
+      {
+        eltType.push_back({1});
+        connect.push_back(cn);
+      }
+      foundTopo[0] = true;
+    }
+    else if (strcmp(buf, "Triangles") == 0)
+    {
+      // Connectivity triangles (Global) -> 1 zone
+      res = readInt(ptrFile, st, -1);
+      if (st == 0) goto next;
+      FldArrayI* cn = new FldArrayI(st, 3);
+      FldArrayI& c = *cn;
+      for (E_Int i = 0; i < st; i++)
+      {
+        res = readInt(ptrFile, ti, -1); c(i,1) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,2) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,3) = ti;
+        res = readInt(ptrFile, ti, -1); // discarded
+      }
+      if (api == 3)
+      {
+        eltType[0].push_back(2);
+        tmpConnect.push_back(cn);
+      }
+      else
+      {
+        eltType.push_back({2});
+        connect.push_back(cn);
+      }
+      foundTopo[1] = true;
+    }
+    else if (strcmp(buf, "Quadrilaterals") == 0)
+    {
+      // Connectivity Quadrangles (Global) -> 1 zone
+      res = readInt(ptrFile, st, -1);
+      if (st == 0) goto next;
+      FldArrayI* cn = new FldArrayI(st, 4);
+      FldArrayI& c = *cn;
+      for (E_Int i = 0; i < st; i++)
+      {
+        res = readInt(ptrFile, ti, -1); c(i,1) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,2) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,3) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,4) = ti;
+        res = readInt(ptrFile, ti, -1); // discarded
+      }
+      if (api == 3)
+      {
+        eltType[0].push_back(3);
+        tmpConnect.push_back(cn);
+      }
+      else
+      {
+        eltType.push_back({3});
+        connect.push_back(cn);
+      }
+      foundTopo[2] = true;
+    }
+    else if (strcmp(buf, "Tetrahedra") == 0)
+    {
+      // Connectivity Tetrahedra (Global) -> 1 zone
+      res = readDouble(ptrFile, t, -1);
+      st = E_Int(t);
+      if (st == 0) goto next;
+      FldArrayI* cn = new FldArrayI(st, 4);
+      FldArrayI& c = *cn;
+      for (E_Int i = 0; i < st; i++)
+      {
+        res = readInt(ptrFile, ti, -1); c(i,1) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,2) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,3) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,4) = ti;
+        res = readInt(ptrFile, ti, -1); // discarded
+      }
+      if (api == 3)
+      {
+        eltType[0].push_back(4);
+        tmpConnect.push_back(cn);
+      }
+      else
+      {
+        eltType.push_back({4});
+        connect.push_back(cn);
+      }
+      foundTopo[3] = true;
+    }
+    else if (strcmp(buf, "Hexahedra") == 0)
+    {
+      // Connectivity Hexahedra (Global) -> 1 zone
+      res = readDouble(ptrFile, t, -1);
+      st = E_Int(t);
+      if (st == 0) goto next;
+      FldArrayI* cn = new FldArrayI(st, 8);
+      FldArrayI& c = *cn;
+      for (E_Int i = 0; i < st; i++)
+      {
+        res = readInt(ptrFile, ti, -1); c(i,1) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,2) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,3) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,4) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,5) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,6) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,7) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,8) = ti;
+        res = readInt(ptrFile, ti, -1); // discarded
+      }
+      if (api == 3)
+      {
+        eltType[0].push_back(7);
+        tmpConnect.push_back(cn);
+      }
+      else
+      {
+        eltType.push_back({7});
+        connect.push_back(cn);
+      }
+      foundTopo[4] = true;
+    }
+    else if (strcmp(buf, "Prisms") == 0)
+    {
+      // Connectivity Penta (Global) -> 1 zone
+      res = readDouble(ptrFile, t, -1);
+      st = E_Int(t);
+      if (st == 0) goto next;
+      FldArrayI* cn = new FldArrayI(st, 6);
+      FldArrayI& c = *cn;
+      for (E_Int i = 0; i < st; i++)
+      {
+        res = readInt(ptrFile, ti, -1); c(i,1) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,2) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,3) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,4) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,5) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,6) = ti;
+        res = readInt(ptrFile, ti, -1); // discarded
+      }
+      if (api == 3)
+      {
+        eltType[0].push_back(6);
+        tmpConnect.push_back(cn);
+      }
+      else
+      {
+        eltType.push_back({6});
+        connect.push_back(cn);
+      }
+      foundTopo[5] = true;
+    }
+    else if (strcmp(buf, "Pyramids") == 0)
+    {
+      // Connectivity Penta (Global) -> 1 zone
+      res = readDouble(ptrFile, t, -1);
+      st = E_Int(t);
+      if (st == 0) goto next;
+      FldArrayI* cn = new FldArrayI(st, 5);
+      FldArrayI& c = *cn;
+      for (E_Int i = 0; i < st; i++)
+      {
+        res = readInt(ptrFile, ti, -1); c(i,1) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,2) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,3) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,4) = ti;
+        res = readInt(ptrFile, ti, -1); c(i,5) = ti;
+        res = readInt(ptrFile, ti, -1); // discarded
+      }
+      if (api == 3)
+      {
+        eltType[0].push_back(5);
+        tmpConnect.push_back(cn);
+      }
+      else
+      {
+        eltType.push_back({5});
+        connect.push_back(cn);
+      }
+      foundTopo[6] = true;
+    }
+    next: ;
+    res = readWord(ptrFile, buf);
+  }
+
+  // Cree la varString
+  varString = new char [8];
+  strcpy(varString, "x,y,z");
+  
+  // Formation des vertices de chacun
+  if (api == 3) // Create ME
+  {
+    FldArrayF* an = new FldArrayF(f);
+    unstructField.push_back(an);
+    
+    E_Int nfld = f.getNfld(); E_Int npts = f.getSize();
+    E_Int nc = tmpConnect.size(); vector<E_Int> nepc(nc);
+    for (E_Int ic = 0; ic < nc; ic++) nepc[ic] = tmpConnect[ic]->getSize();
+    char eltString[256]; vector<E_Int> dummy(1);
+    K_ARRAY::typeId2eltString(eltType[0], 0, eltString, dummy);
+
+    PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, nepc,
+                                         eltString, 0, api);
+    FldArrayI* cn2; FldArrayF* f2;
+    K_ARRAY::getFromArray3(tpl, f2, cn2);
+    #pragma omp parallel
+    {
+      for (E_Int ic = 0; ic < nc; ic++)
+      {
+        FldArrayI& cm = *tmpConnect[ic]->getConnect(0);
+        FldArrayI& cm2 = *(cn2->getConnect(ic));
+        #pragma omp for
+        for (E_Int i = 0; i < cm2.getSize(); i++)
+          for (E_Int j = 1; j <= cm2.getNfld(); j++)
+            cm2(i,j) = cm(i,j);
+      }
+    }
+    connect.push_back(cn2); 
+    
+    for (E_Int ic = 0; ic < nc; ic++) delete tmpConnect[ic];
+    tmpConnect.clear();
+    delete f2;
+  }
+  else // Create BEs
+  {
+    for (E_Int i = 0; i < 7; i++)
+    { 
+      if (foundTopo[i])
+      {
+        FldArrayF* an = new FldArrayF(f);
+        unstructField.push_back(an);
+      }
+    }
+  }
+  
+  // Cree le nom de zone
+  for (size_t i = 0; i < unstructField.size(); i++)
+  {
+    char* zoneName = new char [128];
+    sprintf(zoneName, "Zone%ld", i);
+    zoneNames.push_back(zoneName);
+  }
+
+  fclose(ptrFile);
+
+  return 0;
+}
+
 //=============================================================================
 // Only write triangles, quads, tetra, hexa meshes. Others are discarded.
 //=============================================================================

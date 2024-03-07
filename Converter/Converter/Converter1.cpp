@@ -40,15 +40,15 @@ using namespace K_FLD;
 // ============================================================================
 PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
 {
-  E_Int nLine; E_Int nCurve; E_Float density;
+  E_Int nLine; E_Int nCurve; E_Int api; E_Float density;
   char* fileName; char* fileFmt;
   PyObject* zoneNamesO; PyObject* BCFacesO; PyObject* centerArrays;
   PyObject *BCFieldsO;
 
-  if (!PYPARSETUPLE_(args, SS_ II_ R_ OOOO_,
+  if (!PYPARSETUPLE_(args, SS_ II_ R_ OOOO_ I_,
                     &fileName, &fileFmt, 
                     &nCurve, &nLine, &density, &zoneNamesO,
-                    &BCFacesO, &BCFieldsO, &centerArrays)) return NULL;
+                    &BCFacesO, &BCFieldsO, &centerArrays, &api)) return NULL;
 
   E_Int NptsLine = nLine;
   E_Int NptsCurve = nCurve;
@@ -94,7 +94,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
   vector<FldArrayF*> ufield; // unstructured node fields
   vector<FldArrayF*> ufieldc; // unstructured center fields
   
-  vector<E_Int> et; // element types
+  vector<vector<E_Int> > et(1); // element types
   vector<char*> zoneNames; // zone names
   vector<FldArrayI*> BCFaces;
   vector<char*> BCNames;
@@ -109,15 +109,19 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     // Binary tecplot read
     ret = K_IO::GenIO::getInstance()->tecread(fileName, varString, field, 
                                               im, jm, km, 
-                                              ufield, c, et, zoneNames,
+                                              ufield, c, et[0], zoneNames,
                                               varStringc, fieldc, ufieldc);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_tp") == 0)
   {
     // Formatted tecplot read
     ret = K_IO::GenIO::getInstance()->tpread(fileName, varString, field,
                                              im, jm, km, 
-                                             ufield, c, et, zoneNames);
+                                             ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_v3d") == 0)
   {
@@ -136,7 +140,9 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     // Binary vtk (legacy) read
     ret = K_IO::GenIO::getInstance()->binvtkread(fileName, varString, field, 
                                                  im, jm, km, 
-                                                 ufield, c, et, zoneNames);
+                                                 ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_plot3d") == 0)
   {
@@ -155,77 +161,97 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     // Formatted pov read
     ret = K_IO::GenIO::getInstance()->povread(fileName, varString, field, 
                                               im, jm, km, 
-                                              ufield, c, et, zoneNames);
+                                              ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_mesh") == 0)
   {
     // Formatted mesh read
     ret = K_IO::GenIO::getInstance()->meshread(fileName, varString, field, 
                                                im, jm, km, 
-                                               ufield, c, et, zoneNames);
+                                               ufield, c, et, zoneNames, api);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_gmsh") == 0)
   {
     // Formatted gmsh read
     ret = K_IO::GenIO::getInstance()->gmshread(fileName, varString, field, 
                                                im, jm, km, 
-                                               ufield, c, et, zoneNames);
+                                               ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "bin_gmsh") == 0)
   {
     // Formatted gmsh read
     ret = K_IO::GenIO::getInstance()->bingmshread(fileName, varString, field, 
                                                   im, jm, km, 
-                                                  ufield, c, et, zoneNames);
+                                                  ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_obj") == 0)
   {
     // Formatted obj read
     ret = K_IO::GenIO::getInstance()->objread(fileName, varString, field, 
                                               im, jm, km, 
-                                              ufield, c, et, zoneNames);
+                                              ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "bin_stl") == 0)
   {
     // Binary STL read
     ret = K_IO::GenIO::getInstance()->stlread(fileName, varString, field, 
                                               im, jm, km, 
-                                              ufield, c, et, zoneNames);
+                                              ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "bin_gltf") == 0)
   {
     // Binary GLTF read
     ret = K_IO::GenIO::getInstance()->gltfread(fileName, varString, field, 
                                                im, jm, km, 
-                                               ufield, c, et, zoneNames);
+                                               ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_stl") == 0)
   {
     // Formatted STL read
     ret = K_IO::GenIO::getInstance()->fstlread(fileName, varString, field, 
                                                im, jm, km, 
-                                               ufield, c, et, zoneNames);
+                                               ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_selig") == 0)
   {
     // fmt selig file
     ret = K_IO::GenIO::getInstance()->seligread(fileName, varString, field, 
                                                 im, jm, km, 
-                                                ufield, c, et, zoneNames);
+                                                ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "bin_3ds") == 0)
   {
     // Binary 3DS read
     ret = K_IO::GenIO::getInstance()->f3dsread(fileName, varString, field, 
                                                im, jm, km, 
-                                               ufield, c, et, zoneNames);
+                                               ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);                                           
   }
   else if (K_STRING::cmp(fileFmt, "bin_ply") == 0)
   {
     // Binary PLY read
     ret = K_IO::GenIO::getInstance()->plyread(fileName, varString, field, 
                                               im, jm, km, 
-                                              ufield, c, et, zoneNames);
+                                              ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);                                          
   }
   else if (K_STRING::cmp(fileFmt, "fmt_xfig") == 0)
   {
@@ -233,7 +259,9 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     ret = K_IO::GenIO::getInstance()->xfigread(fileName, varString, 
                                                NptsCurve, NptsLine, 
                                                field, im, jm, km, 
-                                               ufield, c, et, zoneNames);
+                                               ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);                                           
   }
   else if (K_STRING::cmp(fileFmt, "fmt_svg") == 0)
   {
@@ -243,17 +271,19 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
       ret = K_IO::GenIO::getInstance()->svgread(fileName, varString, 
                                                 NptsCurve, NptsLine, 
                                                 field, im, jm, km, 
-                                                ufield, c, et, zoneNames);
+                                                ufield, c, et[0], zoneNames);
     else 
       ret = K_IO::GenIO::getInstance()->svgread(fileName, varString, 
                                                 density,
                                                 field, im, jm, km, 
-                                                ufield, c, et, zoneNames);
+                                                ufield, c, et[0], zoneNames);
                                                 */
     ret = K_IO::GenIO::getInstance()->svgread(fileName, varString, density,
                                               NptsCurve, NptsLine, 
                                               field, im, jm, km, 
-                                              ufield, c, et, zoneNames);
+                                              ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);                                          
     
   }
   else if (K_STRING::cmp(fileFmt, "fmt_gts") == 0)
@@ -261,28 +291,34 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     // Formatted GTS read
     ret = K_IO::GenIO::getInstance()->gtsread(fileName, varString, field, 
                                               im, jm, km, 
-                                              ufield, c, et, zoneNames);
+                                              ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);                                          
   }
   else if (K_STRING::cmp(fileFmt, "bin_png") == 0)
   {
     // Binary PNG read
     ret = K_IO::GenIO::getInstance()->pngread(fileName, varString, field, 
                                               im, jm, km, 
-                                              ufield, c, et, zoneNames);
+                                              ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);                                          
   }
   else if (K_STRING::cmp(fileFmt, "bin_jpg") == 0)
   {
     // Binary JPG read
     ret = K_IO::GenIO::getInstance()->jpgread(fileName, varString, field, 
                                               im, jm, km, 
-                                              ufield, c, et, zoneNames);
+                                              ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);                                         
   }
   else if (K_STRING::cmp(fileFmt, "fmt_su2") == 0)
   {
     // Formatted su2 read
     ret = K_IO::GenIO::getInstance()->su2read(fileName, varString, 
                                               field, im, jm, km, 
-                                              ufield, c, et, zoneNames,
+                                              ufield, c, et[0], zoneNames,
                                               BCFaces, BCNames);
     // Pour l'instant, on ne peut pas les traiter en elements
     for (size_t i = 0; i < BCFaces.size(); i++) delete BCFaces[i];
@@ -294,7 +330,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     // Formatted foam read
     ret = K_IO::GenIO::getInstance()->foamread(fileName, varString, 
                                                field, im, jm, km, 
-                                               ufield, c, et, zoneNames,
+                                               ufield, c, et[0], zoneNames,
                                                BCFaces, BCNames, BCFields,
                                                varStringc,
                                                fieldc,
@@ -305,7 +341,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     // Formatted cedre read (Cedre input)
     ret = K_IO::GenIO::getInstance()->cedreread(fileName, varString, field, 
                                                 im, jm, km, 
-                                                ufield, c, et, zoneNames,
+                                                ufield, c, et[0], zoneNames,
                                                 BCFaces, BCNames);
   }
   else if (K_STRING::cmp(fileFmt, "bin_arc") == 0)
@@ -313,7 +349,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     // Binary archive read (Cedre output)
     ret = K_IO::GenIO::getInstance()->arcread(fileName, varString, field, 
                                               im, jm, km, 
-                                              ufield, c, et, zoneNames,
+                                              ufield, c, et[0], zoneNames,
                                               varStringc, fieldc, ufieldc);
   }
   else
@@ -427,19 +463,19 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
 
   for (size_t i = 0; i < ufield.size(); i++)
   {
-    char eltType[28]; E_Int d;
-    K_ARRAY::typeId2eltString(et[i], 0, eltType, d);
+    char eltType[256]; vector<E_Int> dummy(1);
+    if (api == 3) K_ARRAY::typeId2eltString(et[i], 0, eltType, dummy);
+    else K_ARRAY::typeId2eltString(et[i][0], 0, eltType, dummy[0]);
+
     if (ufield[i] != NULL)
     {
-      tpl = K_ARRAY::buildArray3(*ufield[i], varString,
-                                 *c[i], eltType);
+      tpl = K_ARRAY::buildArray3(*ufield[i], varString, *c[i], eltType, api);
       delete ufield[i];
     }
     else 
     {
       FldArrayF fl(0,1);
-      tpl = K_ARRAY::buildArray3(fl, varString,
-                                 *c[i], eltType); 
+      tpl = K_ARRAY::buildArray3(fl, varString, *c[i], eltType, api); 
     }
     delete c[i];
     PyList_Append(l, tpl);
@@ -453,7 +489,9 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
       if (fieldc[i] != NULL)
       {
         tpl = K_ARRAY::buildArray3(*fieldc[i], varStringc,
-                                   std::max(im[i]-1,E_Int(1)), std::max(jm[i]-1,E_Int(1)), std::max(km[i]-1,E_Int(1)));
+                                   std::max(im[i]-1,E_Int(1)),
+                                   std::max(jm[i]-1,E_Int(1)),
+                                   std::max(km[i]-1,E_Int(1)));
         delete fieldc[i];
       }
       else tpl = PyList_New(0);

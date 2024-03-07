@@ -369,6 +369,14 @@ class GenIO
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connectivity,
       std::vector<E_Int>& eltType, std::vector<char*>& zoneNames);
+    E_Int meshread(
+      char* file, char*& varString,
+      std::vector<FldArrayF*>& structField,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connectivity,
+      std::vector<std::vector<E_Int> >& eltType, std::vector<char*>& zoneNames,
+      E_Int api=1);
     /** Mesh write */
     E_Int meshwrite(
       char* file, char* dataFmt, char* varString,
