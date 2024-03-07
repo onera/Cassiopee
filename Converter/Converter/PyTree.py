@@ -7306,18 +7306,27 @@ def _recoverGlobalIndex(a, b):
 # si boundary==0, les noeuds de z2 sont merges dans z1 et reidentifies
 # IN: boundary: 0 (not a boundary zone), 1 (a boundary zone, add it as a
 # boundary connectivity)
-def mergeConnectivity(z1, z2, boundary=0):
+def mergeConnectivity(z1, z2=None, boundary=0):
   """Gather an additional zone connectivity in z1.
   Usage: mergeConnectivity(z1, z2)"""
   zout = Internal.copyRef(z1)
   _mergeConnectivity(zout, z2, boundary)
+  if z2 is None: return zout[0]
   return zout
 
-def _mergeConnectivity(z1, z2, boundary=0, shared=False):
+def _mergeConnectivity(z1, z2=None, boundary=0, shared=False):
+  if z2 is None:
+    # Checking that z1 is a list of zones
+    zones = Internal.getZones(z1)
+    if len(zones) > 1:
+      # Merge all BE connectivities within z1
+      return _mergeConnectivities(zones, boundary, shared)
+    else: return z1
+
   # Analyse zone z2
   dims = Internal.getZoneDim(z2)
   neb = dims[2] # nbre d'elts de z2
-  eltType, nf = Internal.eltName2EltNo(dims[3]) # type d'elements de z2
+  eltType, _ = Internal.eltName2EltNo(dims[3]) # type d'elements de z2
 
   # On cherche l'element max dans les connectivites de z1
   maxElt = 0
@@ -7376,7 +7385,6 @@ def _mergeConnectivity(z1, z2, boundary=0, shared=False):
           if p1 is not None: p1[1] = numpy.concatenate((p1[1],n[1]))
     
     # Ajoute les connectivites de z2
-    nebb = 0
     z1[1][0,1] += neb # nouveau nbre de cellules
 
     # on identifie les noeuds connectivity de z2 dans zn
@@ -7454,6 +7462,152 @@ def _mergeConnectivity(z1, z2, boundary=0, shared=False):
     newc = numpy.copy(oldc)
     newc[:] = ids[oldc[:]-1]
     Internal.createUniqueChild(node, 'ElementConnectivity', 'DataArray_t', value=newc)
+  return None
+
+def _mergeConnectivities(z, boundary=0, shared=False):
+  if len(z) == 1: return z
+  nebs = []; eltTypes = []
+  for zone in z:
+    dims = Internal.getZoneDim(zone)
+    nebs.append(dims[2]) # nbre d'elts de zone
+    eltType, _ = Internal.eltNames2EltNos(dims[3]) # types d'elements
+    eltTypes.extend(eltType)
+  maxElts = numpy.cumsum(nebs)
+  nnewElts = maxElts[-1] - maxElts[0] # nbre d'elts ajoutes a z[0]
+  
+  # connectivite ajoutee=volumique non shared
+  if boundary == 0 and not shared:
+    # on fusionne les coordonnees
+    import Transform.PyTree as T
+    zn = convertArray2Node(z)
+    zn = T.join(zn)
+    # reset Coordinates in z[0] with merged zn coordinates
+    cont1 = Internal.getNodeFromName1(z[0], Internal.__GridCoordinates__)
+    contn = Internal.getNodeFromName1(zn, Internal.__GridCoordinates__)
+    for name in ['CoordinateX', 'CoordinateY', 'CoordinateZ']:
+      p1 = Internal.getNodeFromName1(cont1, name)
+      pn = Internal.getNodeFromName1(contn, name)
+      p1[1] = pn[1]
+    # Recupere le container noeud
+    cont1 = Internal.getNodeFromName1(z[0], Internal.__FlowSolutionNodes__)
+    contn = Internal.getNodeFromName1(zn, Internal.__FlowSolutionNodes__)
+    if contn is not None:
+      for n in contn[2]:
+        if n[3] == 'DataArray_t':
+          p1 = Internal.getNodeFromName1(cont1, n[0])
+          if p1 is not None: p1[1] = n[1]
+    
+    # Nouveau nbre de points dans z[0]
+    np = Internal.getZoneDim(zn)[1]
+    z[0][1] = numpy.copy(z[0][1])
+    z[0][1][0,0] = np
+
+    # Reidentifie les connectivites de z[0]
+    hook = createHook(zn, 'nodes')
+    ids = identifyNodes(hook, z[0])
+    nodes = Internal.getNodesFromType1(z[0], 'Elements_t')
+    for n in nodes:
+      node = Internal.getNodeFromName1(n, 'ElementConnectivity')
+      oldc = node[1]
+      newc = numpy.copy(oldc)
+      newc[:] = ids[oldc[:]-1]
+      node[1] = newc
+    
+    # Ajoute les FlowSolutions en centres
+    cont1 = Internal.getNodeFromName1(z[0], Internal.__FlowSolutionCenters__)
+    if cont1 is not None:
+      for i in range(1, len(z)):
+        cont2 = Internal.getNodeFromName1(z[i], Internal.__FlowSolutionCenters__)
+        for n in cont2[2]:
+          if n[3] == 'DataArray_t':
+            p1 = Internal.getNodeFromName1(cont1, n[0])
+            if p1 is not None: p1[1] = numpy.concatenate((p1[1],n[1]))
+    
+    # Ajoute les connectivites de z[1] a z[-1]
+    z[0][1][0,1] += nnewElts # nouveau nbre de cellules
+
+    # on identifie les noeuds connectivity de z[1] a z[-1] dans zn
+    zbc1 = Internal.getNodeFromType1(z[0], 'ZoneBC_t')
+    for i in range(1, len(z)):
+      ids = identifyNodes(hook, z[i])
+      # On ajoute les connectivites de z[i]
+      nodes = Internal.getNodesFromType1(z[i], 'Elements_t')
+      for n in nodes:
+        node = Internal.createUniqueChild(z[0], n[0]+'-'+str(i+1), 'Elements_t',
+                                          value=n[1])
+        rn = Internal.getNodeFromType1(n, 'IndexRange_t')
+        r = Internal.getValue(rn)
+        r0 = r[0]+maxElts[i]-maxElts[0]; r1 = r[1]+maxElts[i]-maxElts[0]
+        Internal.createUniqueChild(node, rn[0], 'IndexRange_t', value=[r0,r1])
+        
+        oldc = Internal.getNodeFromName1(n, 'ElementConnectivity')[1]
+        newc = numpy.copy(oldc)
+        newc[:] = ids[oldc[:]-1]
+        Internal.createUniqueChild(node, 'ElementConnectivity', 'DataArray_t',
+                                   value=newc)
+
+      # decale les ranges des zoneBC de z[i]
+      zbc2 = Internal.getNodesFromType2(z[i], 'BC_t')
+      if zbc1 is None and zbc2 != []: zbc1 = Internal.newZoneBC(parent=z[0])
+      for bc in zbc2:
+        rn = Internal.getNodeFromType1(bc, 'IndexRange_t')
+        r = Internal.getValue(rn)
+        r0 = r[0,0]+maxElts[i]-maxElts[0]; r1 = r[0,1]+maxElts[i]-maxElts[0]
+        n = Internal.createUniqueChild(zbc1, bc[0], 'BC_t', value=bc[1])
+        Internal.createUniqueChild(n, rn[0], rn[3], value=[[r0,r1]])
+
+    # Tri des connectivites
+    Internal._sortNodesInZone(z[0])
+
+  elif boundary == 0 and shared: # connectivite ajoutee=volumique shared
+    # on cree des nouveaux noeuds connectivites dans z[0]
+    z[0][1][0,1] += nnewElts # update le nbre d'elements de z[0]
+    nebb = maxElts[0]
+    for i in range(1, len(z)):
+      elts = Internal.getNodesFromType2(z[i], 'Elements_t')
+      for e in elts:
+        if e[1][1] == 0: # volumique uniquement
+          r = Internal.getNodeFromName1(e, 'ElementRange')[1]
+          nbe2 = r[1]-r[0]+1
+          e2 = Internal.createUniqueChild(z[0], e[0], 'Elements_t',
+                                          value=[eltTypes[i],0])
+          Internal.createUniqueChild(e2, 'ElementRange', 'IndexRange_t',
+                                     value=[nebb+1,nebb+nbe2])
+          newc = Internal.getNodeFromName1(e, 'ElementConnectivity')[1]
+          Internal.createUniqueChild(e2, 'ElementConnectivity', 'DataArray_t',
+                                     value=newc)
+          nebb += nbe2
+
+    # Ajoute les FlowSolutions en centres
+    cont1 = Internal.getNodeFromName1(z[0], Internal.__FlowSolutionCenters__)
+    if cont1 is not None:
+      for i in range(1, len(z)):
+        cont2 = Internal.getNodeFromName1(z[i], Internal.__FlowSolutionCenters__)
+        for n in cont2[2]:
+          if n[3] == 'DataArray_t':
+            p1 = Internal.getNodeFromName1(cont1, n[0])
+            if p1 is not None: p1[1] = numpy.concatenate((p1[1],n[1]))
+
+    # Tri des connectivites
+    Internal._sortNodesInZone(z[0])
+
+  else: # connectivite ajoutee=boundary (subzone)
+    z[0][1] = numpy.copy(z[0][1])
+    z[0][1][0,2] += nnewElts
+    # on identifie les noeuds de z[i] dans z[0]
+    hook = createHook(z[0], 'nodes')
+    for i in range(1, len(z)):
+      ids = identifyNodes(hook, z[i])
+      # on cree un nouveau noeud connectivite dans z[0] (avec le nom de la zone z[i])
+      node = Internal.createUniqueChild(z[0], z[i][0], 'Elements_t',
+                                        value=[eltTypes[i],nebs[i]])
+      Internal.createUniqueChild(node, 'ElementRange', 'IndexRange_t',
+                                 value=[maxElts[i-1]+1,maxElts[i]])
+      oldc = Internal.getNodeFromName2(z[i], 'ElementConnectivity')[1]
+      newc = numpy.copy(oldc)
+      newc[:] = ids[oldc[:]-1]
+      Internal.createUniqueChild(node, 'ElementConnectivity', 'DataArray_t',
+                                 value=newc)
   return None
 
 #============================================
