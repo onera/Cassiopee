@@ -502,7 +502,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 
 
   
-  E_Int   motionType      = (int) param_real[MotionType];
+  int   motionType      = (int) param_real[MotionType];
   //[AJ] Keep for now
   //E_Float transpeed[3]    = {param_real[TransSpeed],param_real[TransSpeed+1],param_real[TransSpeed+2]};
   //E_Float axispnt[3]      = {param_real[AxisPnt],param_real[AxisPnt+1],param_real[AxisPnt+2]};
@@ -514,8 +514,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Float tmp_x,tmp_y,tmp_z;
   E_Float uGrid_local,vGrid_local,wGrid_local;
   E_Float normalVelGrid_local;
-  E_Int c_ale;
-  c_ale = max(0,min(1,motionType));
+  E_Int c_ale = max(0,min(1,motionType));
     
   E_Float* pressPtr = densPtr + 1*nbRcvPts;
   E_Float* vxPtr    = densPtr + 2*nbRcvPts;

@@ -2654,7 +2654,7 @@ E_Int K_IO::GenIO::tecwrite108(
       // face nodes
       for (E_Int i = 0; i < numFaces; i++)
       {
-        int* face = c.getFace(i, n, ngon, indPG);
+        E_Int* face = c.getFace(i, n, ngon, indPG);
         for (E_Int j = 0; j < n; j++) ptri[j] = face[j]-1;
         ptri += n;
       }

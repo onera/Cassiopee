@@ -629,9 +629,9 @@ E_Int K_IO::GenIO::objwrite(
       {
 #ifdef E_DOUBLEINT
         fprintf(ptrFile, "f %ld/%ld/%ld %ld/%ld/%ld %ld/%ld/%ld\n", 
-                cn1[n]+ng, cn1[n]+ng, cn1[n]+ng,
-                cn2[n]+ng, cn2[n]+ng, cn2[n]+ng,
-                cn3[n]+ng, cn3[n]+ng, cn3[n]+ng);
+                cn(n,1)+ng, cn(n,1)+ng, cn(n,1)+ng,
+                cn(n,2)+ng, cn(n,2)+ng, cn(n,2)+ng,
+                cn(n,3)+ng, cn(n,3)+ng, cn(n,3)+ng);
 #else
         fprintf(ptrFile, "f %d/%d/%d %d/%d/%d %d/%d/%d\n", 
                 cn(n,1)+ng, cn(n,1)+ng, cn(n,1)+ng,
