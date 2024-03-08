@@ -214,30 +214,56 @@ def testF(infile, number=1):
             return False
         else: return True
 
-def checkObject_(a, b, reference):
-    if type(a) != type(b):
-        print("DIFF: object type differs from "+reference+'.')
-        return False
-    if isinstance(a, numpy.ndarray): # array
-        if a.shape != b.shape:
+def checkObject_(objet, refObjet, reference):
+    # tests sur les types
+    if type(refObjet) != type(objet):
+        if isinstance(refObjet, (int, float)): pass
+        elif (isinstance(refObjet, (numpy.int32, numpy.int64)) and
+              isinstance(objet, (numpy.int32, numpy.int64))): pass
+        elif (isinstance(refObjet, (numpy.float32, numpy.float64)) and
+              isinstance(objet, (numpy.float32, numpy.float64))): pass
+        else:
+            print("DIFF: object type differs from "+reference+'.')
+            return False
+    # autres tests
+    if isinstance(refObjet, int):
+        diff = abs(refObjet-objet)
+        if diff > 0:
+            print("DIFF: object value differs from %s (diff=%g)."%(reference, diff))
+            return False
+    elif isinstance(refObjet, float):
+        diff = abs(refObjet-objet)
+        if diff > TOLERANCE:
+            print("DIFF: object value differs from %s (diff=%g)."%(reference, diff))
+            return False
+    elif isinstance(refObjet, dict):
+        for k in refObjet.keys():
+            v1 = refObjet[k]
+            v2 = objet.get(k, None)
+            ret = checkObject_(v1, v2, reference)
+            if not ret: return False
+    elif isinstance(refObjet, numpy.ndarray): # array
+        if refObjet.shape != objet.shape:
             print("DIFF: object shape differs from "+reference+'.')
             return False
-        diff = numpy.abs(a-b)
-        diff = (diff < TOLERANCE)
-        if diff.all() != True:
-            print("DIFF: object value differs from "+reference+'.')
-            return False
-    elif isinstance(a, list):
-        for i, v in enumerate(a):
-            checkObject_(v, b[i], reference)
-    elif isinstance(a, float):
-        diff = abs(a-b)
-        if diff > TOLERANCE:
-            print("DIFF: object value differs from "+reference+'.')
-            return False
-    else:
-        if a != b:
-            print("DIFF: object value differs from "+reference+'.')
+        if refObjet.dtype == 'S1' or objet.dtype == 'S1':
+            if refObjet.dtype != objet.dtype:
+                print("DIFF: object type differs from "+reference+'.')
+            if not numpy.all(refObjet == objet):
+                print("DIFF: object string differs from "+reference+'.')
+                return False
+        else:
+            diff = numpy.abs(refObjet-objet)
+            diff = (diff < TOLERANCE)
+            if not diff.all():
+                print("DIFF: object value differs from "+reference+'.')
+                return False
+    elif isinstance(refObjet, list): # liste
+        for i, ai in enumerate(refObjet):
+            if not checkObject_(objet[i], ai, reference): return False
+    elif refObjet != objet: # autre objet
+        print("DIFF: object differs from "+reference+'.')
+        return False
     return True
 
 #=============================================================================
@@ -287,97 +313,8 @@ def testO(objet, number=1):
         file.close()
         print("Reading '"+reference+"'... done.")
         if isinstance(a, str) and a == 'Undumpable object': return True
-
-        # tests sur les types
-        if type(a) != type(objet):
-            if isinstance(a, (int,float)): pass
-            elif isinstance(a, (numpy.int32, numpy.int64)) and isinstance(objet, (numpy.int32, numpy.int64)): pass
-            elif isinstance(a, (numpy.float32, numpy.float64)) and isinstance(objet, (numpy.float32, numpy.float64)): pass
-            else:
-                print("DIFF: object type differs from "+reference+'.')
-                return False
-        # autres tests
-        if isinstance(a, numpy.ndarray): # array
-            if a.shape != objet.shape:
-                print("DIFF: object shape differs from "+reference+'.')
-                return False
-            diff = numpy.abs(a-objet)
-            diff = (diff < TOLERANCE)
-            if diff.all() != True:
-                print("DIFF: object value differs from "+reference+'.')
-                return False
-            else: return True
-        elif isinstance(a, list):        # liste
-            for i, ai in enumerate(a):
-                if type(ai) != type(objet[i]):
-                    if isinstance(ai, (int,float)): pass
-                    elif isinstance(ai, (numpy.int32, numpy.int64)) and isinstance(objet[i], (numpy.int32, numpy.int64)): pass
-                    elif isinstance(ai, (numpy.float32, numpy.float64)) and isinstance(objet[i], (numpy.float32, numpy.float64)): pass
-                    else:
-                        print("DIFF: object type differs from "+reference+'.')
-                        return False
-                if isinstance(ai, numpy.ndarray):   # liste d'array
-                    if ai.shape != objet[i].shape:
-                        print("DIFF: object shape differs from "+reference+'.')
-                        return False
-                    diff = numpy.abs(ai-objet[i])
-                    diff = (diff < TOLERANCE)
-                    if diff.all() != True:
-                        print("DIFF: object value differs from "+reference+'.')
-                        return False
-                    return True
-                elif isinstance(ai, list): # liste de tuple/liste
-                    for j, aij in enumerate(ai):
-                        if isinstance(aij, numpy.ndarray):   # liste de tuple/liste d'array
-                            if aij.shape != objet[i][j].shape:
-                                print("DIFF: object shape differs from "+reference+'.')
-                                return False
-                            diff = numpy.abs(aij-objet[i][j])
-                            diff = (diff < TOLERANCE)
-                            if diff.all() != True:
-                                print("DIFF: object value differs from "+reference+'.')
-                                return False
-                            return True
-                        elif isinstance(aij, float):
-                            diff = abs(aij-objet[i][j])
-                            if diff > TOLERANCE:
-                                print("DIFF: object value differs from %s (%g)."%(reference, diff)) 
-                            return False
-                        elif aij != objet[i][j]:  # liste de tuple/liste d'autres objets
-                            print("DIFF: object differs from "+reference+'.')
-                            return False
-                        else: return True
-                elif isinstance(ai, float):
-                    diff = abs(ai-objet[i])
-                    if diff > TOLERANCE:
-                        print("DIFF: object value differs from %s (diff=%g)."%(reference, diff)) 
-                        return False
-                elif ai != objet[i]:      # liste d'autres objets
-                    print("DIFF: object differs from "+reference+'.')
-                    return False
-                else: return True
-        elif isinstance(a, float):
-            diff = abs(a-objet)
-            if diff > TOLERANCE:
-                print("DIFF: object value differs from %s (diff=%g)."%(reference, diff))
-                return False
-        elif isinstance(a, int):
-            diff = abs(a-objet)
-            if diff > 0:
-                print("DIFF: object value differs from %s (diff=%g)."%(reference, diff))
-                return False
-        elif isinstance(a, dict):
-            for k in a.keys():
-                v1 = a[k]
-                # try:
-                v2 = objet[k]
-                ret = checkObject_(v1, v2, reference)
-                if not ret: return False
-        elif a != objet:                    # autre objet
-            print("DIFF: object differs from "+reference+'.')
-            return False
-        else: return True
-
+        return checkObject_(objet, a, reference)
+        
 #=============================================================================
 # Verifie que les arbres t1 et t2 sont identiques
 # t1: courant; t2: reference
