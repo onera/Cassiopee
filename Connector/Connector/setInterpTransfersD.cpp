@@ -543,8 +543,8 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 
       if ( pass_inst == 1 )
         {
-	  irac_deb = ipt_param_int[ech + 4 + it_target];
-	  irac_fin = ipt_param_int[ech + 4 + it_target + timelevel];
+         irac_deb = ipt_param_int[ech + 4 + it_target];
+         irac_fin = ipt_param_int[ech + 4 + it_target + timelevel];
         }
 
       for ( E_Int irac = irac_deb; irac < irac_fin; irac++ ) {

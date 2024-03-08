@@ -265,7 +265,8 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
     zonesD = Internal.getZones(aD)
     for zD in zonesD:
         infos = X.setInterpTransfersD(zD, variables=variables, cellNVariable=cellNVariable, variablesIBC=variablesIBC, 
-                                      bcType=bcType, varType=varType, compact=compact, Gamma=Gamma, Cv=Cv, MuS=MuS, Cs=Cs, Ts=Ts, alpha=alpha)
+                                      bcType=bcType, varType=varType, compact=compact, Gamma=Gamma, Cv=Cv, MuS=MuS, 
+                                      Cs=Cs, Ts=Ts, alpha=alpha)
         for n in infos:
             rcvName = n[0]
             proc = procDict[rcvName]
@@ -430,7 +431,7 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
                     numpy.ndarray.max(field[1][0])< -1e05):
                     isSetPartialFields=False
             
-            if isSetPartialFields==True:
+            if isSetPartialFields:
                 listIndices = n[2]
                 z = zones[rcvName]
                 C._setPartialFields(z, [field], [listIndices], loc='centers')

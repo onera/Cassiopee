@@ -1906,15 +1906,16 @@ def setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='cellN',
 # IN: variablesI =['var1','var2',...]: variables to be used in Chimera transfers
 #                =[]: the whole FlowSolutionNodes variables in topTreeD are transferred
 # IN: variablesIBC=['var1','var2',...,'var5']: variables used in IBC transfers
-# NB : if variables and/or variablesIBC are None, then no transfer (interp or IBC) is done
+# NB: if variables and/or variablesIBC are None, then no transfer (interp or IBC) is done
 # IN: bcType (IBC only)  see TypesOfIBC dictionary at top of this file
 # IN: varType: defines the meaning of the variables IBC
 #     varType = 2 : (ro,u,v,w,t)
 #     varType = 21: (ro,u,v,w,t(,nutildeSA))
 # IN: storage=-1/0/1: unknown/direct/inverse
 # Pour les IBCs avec loi de paroi, il faut specifier Gamma, Cv, MuS, Cs, Ts
-# compact : 1 if fields in t are compacted
-# compactD : 1 for IBC transfers. In that case, fields in IBCD zonesubregions must be aligned with density 
+# compact: 1 if fields in t are compacted
+# compactD: 1 for IBC transfers. In that case, fields in IBCD zonesubregions 
+# must be aligned with density 
 #===============================================================================
 def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                         variablesIBC=['Density','VelocityX','VelocityY','VelocityZ','Temperature'],
@@ -2023,14 +2024,14 @@ def _setInterpTransfers(aR, topTreeD, variables=[], cellNVariable='',
                                 else: loc = 0
                                 # Transferts
                                 if sname == 'ID':
-                                    RotAngleNode = Internal.getNodeFromName1(s,'RotationAngle')
+                                    RotAngleNode = Internal.getNodeFromName1(s, 'RotationAngle')
                                     RotAngleX = 0.; RotAngleY = 0.; RotAngleZ = 0. 
                                     if RotAngleNode is not None:
                                         RotAngleNode=RotAngleNode[1]
                                         RotAngleX = RotAngleNode[0]
                                         RotAngleY = RotAngleNode[1]
                                         RotAngleZ = RotAngleNode[2]
-                                    connector._setInterpTransfers(zr, zd, variables, ListRcv, ListDonor, DonorType, Coefs,loc, varType, compact, cellNVariable,
+                                    connector._setInterpTransfers(zr, zd, variables, ListRcv, ListDonor, DonorType, Coefs, loc, varType, compact, cellNVariable,
                                                                   Internal.__GridCoordinates__, 
                                                                   Internal.__FlowSolutionNodes__, 
                                                                   Internal.__FlowSolutionCenters__,

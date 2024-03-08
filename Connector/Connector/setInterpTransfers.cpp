@@ -315,11 +315,12 @@ PyObject* K_CONNECTOR::_setInterpTransfers(PyObject* self, PyObject* args)
                      eltTypeD, hook,
                      GridCoordinates,
                      FlowSolutionNodes, FlowSolutionCenters);
+    
     if (cnd.size() > 0) ptrcnd = cnd[0];
     meshtype = resd; // 1: structure, 2: non structure
     // recupere les champs du receveur (centers)
     E_Int imr, jmr, kmr, cnSizeR, cnNfldR;
-    char* varStringR;  vector<E_Int> locsR;
+    char* varStringR; vector<E_Int> locsR;
     vector<E_Int*> cnr;
     K_PYTREE::getFromZone(zoneR, 0, loc, varStringR,
                 fieldsR, locsR, imr, jmr, kmr,

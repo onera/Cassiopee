@@ -1122,9 +1122,11 @@ E_Int K_IO::GenIO::meshwrite(
 {
   E_Int nzones = unstructField.size();
   E_Int nvalidZones = 0;
-  E_Boolean isZoneValid [nzones] = {false};
+  E_Boolean isZoneValid[nzones];
+
   for (E_Int zn = 0; zn < nzones; zn++)
   {
+    isZoneValid [zn] = false;
     vector<E_Int>& eltTypez = eltType[zn];
     E_Int nvalidEltTypes = 0;
     for (size_t ic = 0; ic < eltTypez.size(); ic++)

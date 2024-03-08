@@ -160,14 +160,14 @@ SplDistributor::split()
   
   // Pour les autres, c'est completement au hasard :
   for (E_Int j = 3; j <= sizeOfPopulation; j++)
-    for (unsigned int i = 0; i < glbMeshes.size(); i++)
+    for (size_t i = 0; i < glbMeshes.size(); i++)
     {
       E_Int targetProc = E_Int((nbProc*E_Float(lrand48()))/(E_Float(MAXRAND)));
       nicePeople(i,j) = targetProc;
     }
   
   // First evaluation for nice people :
-  for ( E_Int j = 1; j <= sizeOfPopulation; j++ )
+  for (E_Int j = 1; j <= sizeOfPopulation; j++)
   {
     nbPtsPerProcs = nbNodePerProc;
     nbPtsPerProcsp = nbPtsPerProcs.begin();

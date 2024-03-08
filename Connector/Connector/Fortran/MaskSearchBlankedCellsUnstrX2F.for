@@ -332,7 +332,7 @@ C_IN
       REAL_E    xt(0:npts-1)    ! Abcisses of mesh points
       REAL_E    yt(0:npts-1)    ! Ordinates of mesh points
       REAL_E    zt(0:npts-1)    ! Height of mesh points
-      INTEGER_E nelts           !nb of elements in unstructured zone
+      INTEGER_E nelts           ! nb of elements in unstructured zone
       INTEGER_E cn1(0:nelts-1)  ! connectivite  tetra : 1ere colonne
       INTEGER_E cn2(0:nelts-1)
       INTEGER_E cn3(0:nelts-1) 
@@ -352,11 +352,9 @@ C_OUT
       INTEGER_E cellNatureField(0:nelts-1) 
       INTEGER_E isMasked
 C_LOCAL
-      INTEGER_E i, j, k, l      ! For loop in the three directions
-      INTEGER_E ip, jp, kp
+      INTEGER_E l      ! For loop in the three directions
       INTEGER_E ind, indray, et
       INTEGER_E indrayc, indraycp1, indraycp2, indraycp3
-      REAL_E    dx1, dy1, dz1
       REAL_E    xp, yp, zp
       REAL_E    xp1, xp2, xp3, xp4, xp5, xp6, xp7, xp8
       REAL_E    yp1, yp2, yp3, yp4, yp5, yp6, yp7, yp8
