@@ -126,7 +126,7 @@ void Tree::set_child_elem(E_Int cpos, E_Int parent, E_Int type, E_Int level,
   parent_[id] = parent;
   type_[id] = type;
   level_[id] = level;
-  state_[id] = UNTOUCHED;
+  state_[id] = NEW;
 }
 
 void Tree::compress(const std::vector<E_Int> &new_ids, E_Int new_nelem)

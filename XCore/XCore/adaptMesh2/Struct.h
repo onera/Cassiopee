@@ -31,6 +31,7 @@
 #define UNREFINED -1
 #define UNTOUCHED 0
 #define REFINED 1
+#define NEW 2
 
 #define EXIT \
   do { \

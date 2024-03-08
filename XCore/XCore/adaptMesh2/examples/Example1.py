@@ -65,12 +65,13 @@ for it in range(itermax1):
 
     f = I.getNodeFromName(a, 'F')[1]
 
-    REF = np.empty(len(f), dtype=np.int32)
+    REF = np.empty(len(f), dtype=np.int32) - i4
+    #REF = np.empty(len(f), dtype=np.int64) - i8
     for i in range(len(f)):
         REF[i] = int(f[i])
-    
-    X._assignRefDataToAM(AM, REF)
 
+    X._assignRefDataToAM(AM, REF)
+    
     X.AdaptMesh(AM)
 
     m = X.ExtractLeafMesh(AM, conformize=0)

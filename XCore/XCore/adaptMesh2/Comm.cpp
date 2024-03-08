@@ -89,8 +89,8 @@ AMesh *reconstruct_mesh(AMesh *M, E_Int *cmap)
 
   MPI_Alltoall(c_scount, 1, MPI_INT, c_rcount, 1, MPI_INT, MPI_COMM_WORLD);
 
-  int *c_sdist = (E_Int *)XMALLOC((npc+1) * sizeof(int));
-  int *c_rdist = (E_Int *)XMALLOC((npc+1) * sizeof(int));
+  int *c_sdist = (int *)XMALLOC((npc+1) * sizeof(int));
+  int *c_rdist = (int *)XMALLOC((npc+1) * sizeof(int));
   c_sdist[0] = c_rdist[0] = 0;
   for (E_Int i = 0; i < npc; i++) {
     c_sdist[i+1] = c_sdist[i] + c_scount[i];
@@ -103,7 +103,7 @@ AMesh *reconstruct_mesh(AMesh *M, E_Int *cmap)
   E_Int *scells = (E_Int *)XMALLOC(c_sdist[npc] * sizeof(E_Int));
   E_Int *c_stride = (E_Int *)XMALLOC(c_sdist[npc] * sizeof(E_Int));
 
-  int *idx = (E_Int *)XMALLOC(npc * sizeof(int));
+  int *idx = (int *)XMALLOC(npc * sizeof(int));
   for (E_Int i = 0; i < npc; i++) idx[i] = c_sdist[i];
 
   for (E_Int i = 0; i < M->ncells; i++) {
@@ -133,8 +133,8 @@ AMesh *reconstruct_mesh(AMesh *M, E_Int *cmap)
   for (E_Int i = 0; i < m->ncells; i++) m->indPH[i+1] += m->indPH[i];
 
   // nface
-  int *scount = (E_Int *)XCALLOC(npc, sizeof(int));
-  int *rcount = (E_Int *)XMALLOC(npc * sizeof(int));
+  int *scount = (int *)XCALLOC(npc, sizeof(int));
+  int *rcount = (int *)XMALLOC(npc * sizeof(int));
 
   for (E_Int i = 0; i < M->ncells; i++) {
     E_Int where = cmap[i];
@@ -143,8 +143,8 @@ AMesh *reconstruct_mesh(AMesh *M, E_Int *cmap)
 
   MPI_Alltoall(scount, 1, MPI_INT, rcount, 1, MPI_INT, MPI_COMM_WORLD);
 
-  E_Int *sdist = (E_Int *)XMALLOC((npc+1) * sizeof(int));
-  E_Int *rdist = (E_Int *)XMALLOC((npc+1) * sizeof(int));
+  int *sdist = (int *)XMALLOC((npc+1) * sizeof(int));
+  int *rdist = (int *)XMALLOC((npc+1) * sizeof(int));
   sdist[0] = rdist[0] = 0;
   for (E_Int i = 0; i < npc; i++) {
     sdist[i+1] = sdist[i] + scount[i];
@@ -209,7 +209,7 @@ AMesh *reconstruct_mesh(AMesh *M, E_Int *cmap)
 
   for (E_Int i = 0; i < npc; i++) idx[i] = f_rdist[i];
 
-  int *vfaces = (E_Int *)XCALLOC(m->nfaces, sizeof(int));
+  int *vfaces = (int *)XCALLOC(m->nfaces, sizeof(int));
   
   for (E_Int i = 0; i < npc; i++) {
     E_Int *pc = &m->gcells[c_rdist[i]];
@@ -411,9 +411,9 @@ AMesh *reconstruct_mesh(AMesh *M, E_Int *cmap)
   Build_own_nei(m);
 
   // Exchange ref_data
-  m->ref_data = (int *)XMALLOC(m->ncells * sizeof(int));
+  m->ref_data = (E_Int *)XMALLOC(m->ncells * sizeof(E_Int));
 
-  int *sref = (int *)XMALLOC(c_sdist[npc] * sizeof(int));
+  E_Int *sref = (E_Int *)XMALLOC(c_sdist[npc] * sizeof(E_Int));
 
   for (E_Int i = 0; i < npc; i++) {
     E_Int *pc = &scells[c_sdist[i]];
@@ -425,8 +425,8 @@ AMesh *reconstruct_mesh(AMesh *M, E_Int *cmap)
     }
   }
   
-  MPI_Alltoallv(sref,        c_scount, c_sdist, MPI_INT,
-                m->ref_data, c_rcount, c_rdist, MPI_INT,
+  MPI_Alltoallv(sref,        c_scount, c_sdist, XMPI_INT,
+                m->ref_data, c_rcount, c_rdist, XMPI_INT,
                 MPI_COMM_WORLD);
 
   /* BOUNDARY */
@@ -530,10 +530,10 @@ AMesh *reconstruct_mesh(AMesh *M, E_Int *cmap)
       *f_it++ = m->gfaces[i];
   }
 
-  E_Int *RCOUNT = (E_Int *)XMALLOC(npc * sizeof(E_Int));
+  int *RCOUNT = (int *)XMALLOC(npc * sizeof(int));
   MPI_Allgather(&spcount, 1, MPI_INT, RCOUNT, 1, MPI_INT, MPI_COMM_WORLD);
 
-  E_Int *RDIST = (E_Int *)XMALLOC((npc+1) * sizeof(E_Int));
+  int *RDIST = (int *)XMALLOC((npc+1) * sizeof(int));
   RDIST[0] = 0;
   for (E_Int i = 0; i < npc; i++) {
     RDIST[i+1] = RDIST[i] + RCOUNT[i];

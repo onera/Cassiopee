@@ -458,6 +458,8 @@ void update_patch_faces_after_ref(AMesh *M)
       E_Int face = P->pf[j];
       E_Int state = M->faceTree->state(face);
 
+      assert(state != NEW);
+
       if (state == UNTOUCHED)
         new_nf += 1;
       else if (state == REFINED)
@@ -483,6 +485,8 @@ void update_patch_faces_after_ref(AMesh *M)
         *pn++ = nei;
       } else if (state == REFINED) {
         Children *children = M->faceTree->children(face);
+
+        assert(M->faceTree->state(children->pc[0]) == REFINED);
         
         for (E_Int k = 0; k < children->n; k++) {
           *pf++ = children->pc[k];

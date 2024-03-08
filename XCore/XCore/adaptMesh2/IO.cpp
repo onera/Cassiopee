@@ -353,6 +353,23 @@ PyObject *extractBCMesh_BE(AMesh *M)
   return BCs;
 }
 
+static
+PyObject *extractInterfaceMesh_BE(AMesh *M)
+{
+  std::set<E_Int> vfaces;
+
+  for (E_Int i = 0; i < M->npatches; i++) {
+    Patch *P = &M->patches[i];
+
+    for (E_Int j = 0; j < P->nf; j++) {
+      E_Int face = P->pf[j];
+      //E_Int type = 
+//
+      //if (face == )
+    }
+  }
+}
+
 PyObject *K_XCORE::extractBoundaryMesh(PyObject *self, PyObject *args)
 {
   PyObject *AMESH;

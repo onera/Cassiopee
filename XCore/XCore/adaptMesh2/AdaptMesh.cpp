@@ -17,6 +17,9 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
 
   AMesh *M = (AMesh *)PyCapsule_GetPointer(AMESH, "AMesh");
 
+  for (E_Int i = 0; i < M->ncells; i++) M->cellTree->state_[i] = UNTOUCHED;
+  for (E_Int i = 0; i < M->nfaces; i++) M->faceTree->state_[i] = UNTOUCHED;
+
   //M = Redistribute_mesh(M);
 
   std::vector<E_Int> ref_faces, ref_cells;
@@ -62,9 +65,6 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
 
   if (M->pid == 0)
     printf("Total leaves: %d\n", gncells);
-
-  for (E_Int i = 0; i < M->ncells; i++) M->cellTree->state_[i] = UNTOUCHED;
-  for (E_Int i = 0; i < M->nfaces; i++) M->faceTree->state_[i] = UNTOUCHED;
 
   return Py_None;
 }
