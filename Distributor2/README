@@ -3,10 +3,10 @@ Distributor2
 Distributing arrays/pyTrees among processors
 =============================================================================
 
-X. Juvigny, C.Benoit, G.Jeanfaivre, S. Peron (Onera).
+ONERA.
 Licenced under GPL3.
 
-For support, go to http://elsa.onera.fr/Cassiopee/Forum.
+For support, go to https://cassiopee.onera.fr
 
 See doc/Distributor2.txt for installation requirements.
 

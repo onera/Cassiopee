@@ -255,7 +255,7 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     Edge_Hit EH;
     EH.T = -1;
 
-    for (auto i = 0; i < FACES.size(); i++) {
+    for (size_t i = 0; i < FACES.size(); i++) {
       E_Int FACE = FACES[i];
       E_Int np = -1;
       E_Int *pn = mesh_get_face(FACE, np, M);

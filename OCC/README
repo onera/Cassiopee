@@ -1,18 +1,15 @@
 =============================================================================
-Geom
-Geometry definition
+OCC
+CAD module based on open cascade
 =============================================================================
 
-C.Benoit, G.Jeanfaivre, S. Peron, P. Raud, S. Landier (Onera).
+ONERA.
 Licenced under GPL3.
 
-For support, go to http://elsa.onera.fr/Cassiopee/Forum.
+For support, go to https://cassiopee.onera.fr
 
-See doc/Geom.txt for installation requirements.
+See doc/OCC.txt for installation requirements.
 See doc/Notes.txt for important notes and limitations.
-
-Acknoledgements:
-Parametric functions are borrowed from K3DSurf (A. Taha, LGPL).
 
 =============================================================================
 installing Geom:
