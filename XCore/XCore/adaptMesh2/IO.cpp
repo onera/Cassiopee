@@ -353,6 +353,7 @@ PyObject *extractBCMesh_BE(AMesh *M)
   return BCs;
 }
 
+/*
 static
 PyObject *extractInterfaceMesh_BE(AMesh *M)
 {
@@ -369,6 +370,7 @@ PyObject *extractInterfaceMesh_BE(AMesh *M)
     }
   }
 }
+*/
 
 PyObject *K_XCORE::extractBoundaryMesh(PyObject *self, PyObject *args)
 {
