@@ -18,28 +18,13 @@ except ImportError:
 
 def _applyGaussianAL(t, listOfLoads, listOfALPositions, listOfRotMat,
                     localEpsX, localEpsY, localEpsZ, NbBlades, NbPointsAL,
-                    TruncVar):
-    writeDim = False
-    C._TZAX(3, t, 'centers', 'centers', writeDim, 
-            Initiator.applyGaussianAL, 
-            listOfLoads, listOfALPositions, listOfRotMat,
-            localEpsX, localEpsY, localEpsZ, NbBlades, NbPointsAL, TruncVar)
-    return None
-
-def _getGaussianVelocitiesAL(t, listOfALPositions, listOfRotMat,
-                            localEpsX, localEpsY, localEpsZ, NbBlades, NbPointsAL,
-                            TruncVar='TruncRind', RindVar='rindN'):
+                    TruncVarLoads, TruncVarVelos):
     writeDim = False
     fa = C.getFields(Internal.__FlowSolutionCenters__, t, api=3)
     if fa != []:
-        res = Initiator.getGaussianVelocitiesAL(fa, 
-                                    listOfALPositions, listOfRotMat,
-                                    localEpsX, localEpsY, localEpsZ, 
-                                    NbBlades, NbPointsAL,
-                                    TruncVar='TruncRind', RindVar='rindN')
-        return res
-    else:
-        return []
+        Initiator._applyGaussianAL(fa, listOfLoads, listOfALPositions, listOfRotMat,
+                    localEpsX, localEpsY, localEpsZ, NbBlades, NbPointsAL, TruncVarLoads, TruncVarVelos)
+    return None
     
 def initConst(t, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8, 
               loc='nodes'):
