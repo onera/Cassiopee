@@ -305,7 +305,7 @@ PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
 PyObject* K_OCC::meshEdgesOfFace(PyObject* self, PyObject* args)
 {
   PyObject* hook; E_Int noFace;
-  E_Float hmax, hausd; PyObject* discretizedEdges;
+  PyObject* discretizedEdges;
   if (!PYPARSETUPLE_(args, O_ I_ O_, &hook, &noFace, &discretizedEdges)) return NULL;
 
   void** packet = NULL;
@@ -427,6 +427,7 @@ PyObject* K_OCC::meshEdgesOfFace(PyObject* self, PyObject* args)
       discreteWire.push_back(f);
       discreteWire2.push_back(o);
 
+#define REVERSEFACE
       E_Boolean reversed = false;
       if (forientation == TopAbs_FORWARD)
       {
@@ -443,6 +444,7 @@ PyObject* K_OCC::meshEdgesOfFace(PyObject* self, PyObject* args)
       }
       else
       {
+#ifdef REVERSEFACE
         if (worientation == TopAbs_FORWARD)
         {
           if (eorientation == TopAbs_FORWARD) reversed = true;
@@ -453,7 +455,20 @@ PyObject* K_OCC::meshEdgesOfFace(PyObject* self, PyObject* args)
           if (eorientation == TopAbs_FORWARD) reversed = false;
           else reversed = true; 
         }
+#else   
+        if (worientation == TopAbs_FORWARD)
+        {
+          if (eorientation == TopAbs_FORWARD) reversed = false;
+          else reversed = true;
+        }
+        else
+        {
+          if (eorientation == TopAbs_FORWARD) reversed = true;
+          else reversed = false;
+        }
+#endif   
       }
+      
       __meshEdgeByFace(E, F, nbPoints, *fe, *f, reversed);
 
       //RELEASESHAREDS(o, f); // done later
@@ -464,8 +479,13 @@ PyObject* K_OCC::meshEdgesOfFace(PyObject* self, PyObject* args)
       }
       else
       {
-        if (worientation == TopAbs_FORWARD) PyList_Insert(le, 0, o); 
-        else PyList_Append(le, o); 
+#ifdef REVERSEFACE
+        if (worientation == TopAbs_REVERSED) PyList_Append(le, o);
+        else PyList_Insert(le, 0, o);
+#else   
+        if (worientation == TopAbs_FORWARD) PyList_Append(le, o); 
+        else PyList_Insert(le, 0, o);
+#endif   
       }
       Py_DECREF(o);
     }
@@ -480,11 +500,19 @@ PyObject* K_OCC::meshEdgesOfFace(PyObject* self, PyObject* args)
     }
     else
     {
+#ifdef REVERSEFACE
       if (worientation == TopAbs_FORWARD)
       {
         std::reverse(discreteWire.begin(), discreteWire.end());  
         std::reverse(discreteWire2.begin(), discreteWire2.end());  
       }
+#else 
+      if (worientation == TopAbs_REVERSED)
+      { 
+        std::reverse(discreteWire.begin(), discreteWire.end());  
+        std::reverse(discreteWire2.begin(), discreteWire2.end());  
+      }
+#endif 
     }
 
     size_t nedges = discreteWire.size();
@@ -526,4 +554,26 @@ PyObject* K_OCC::meshEdgesOfFace(PyObject* self, PyObject* args)
   fflush(stdout);
 
   return out;
+}
+
+// Return face orientation in CAD
+PyObject* K_OCC::getFaceOrientation(PyObject* self, PyObject* args)
+{
+  PyObject* hook; E_Int noFace;
+  if (!PYPARSETUPLE_(args, O_ I_, &hook, &noFace)) return NULL;
+
+  void** packet = NULL;
+#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
+  packet = (void**) PyCObject_AsVoidPtr(hook);
+#else
+  packet = (void**) PyCapsule_GetPointer(hook, NULL);
+#endif
+
+  TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
+  const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
+
+  TopAbs_Orientation forientation = F.Orientation();
+  if (forientation == TopAbs_FORWARD) return Py_BuildValue("l", 1);
+  else if (forientation == TopAbs_REVERSED) return Py_BuildValue("l", 0);
+  else return Py_BuildValue("l", -1); // unknown
 }

@@ -488,7 +488,6 @@ def getFirstTree(hook, hmax=-1., hausd=-1., faceList=None):
 
   # Add CAD top container containing the CAD file name
   fileName, fileFmt = OCC.occ.getFileAndFormat(hook)
-  print(fileName, fileFmt)
   CAD = Internal.createChild(t, 'CAD', 'UserDefinedData_t')
   Internal._createChild(CAD, 'file', 'DataArray_t', value=fileName)
   Internal._createChild(CAD, 'format', 'DataArray_t', value=fileFmt)
@@ -505,7 +504,7 @@ def getFirstTree(hook, hmax=-1., hausd=-1., faceList=None):
     # Conserve hook, name, type et no de l'edge dans la CAD
     r = Internal.createChild(z, "CAD", "UserDefinedData_t")
     Internal._createChild(r, "name", "DataArray_t", value="edge%03d"%(c+1))
-    Internal._createChild(r, "type", "DataArray_t_t", value="edge")
+    Internal._createChild(r, "type", "DataArray_t", value="edge")
     Internal._createChild(r, "no", "Data_Array_t", value=(c+1))
     #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
     b[2].append(z)

@@ -70,6 +70,8 @@ PyObject* K_OCC::splitFaces(PyObject* self, PyObject* args)
   // try on all shape
   TopoDS_Shape* shp = (TopoDS_Shape*)packet[0];
   
+  TopoDS_Shape* newshp = new TopoDS_Shape();
+
   printf("splitting top shape\n");
 
   // Closed Shape Divide
@@ -91,7 +93,7 @@ PyObject* K_OCC::splitFaces(PyObject* self, PyObject* args)
   ShapeUpgrade_ShapeDivideArea splitter(*shp);
   splitter.MaxArea() = area;
   splitter.Perform();
-  TopoDS_Shape newShape = splitter.Result();
+  *newshp = splitter.Result();
 
   // ShapeBuild_ReShape use replace, remove
   //ShapeBuild_ReShape builder;
@@ -180,19 +182,19 @@ PyObject* K_OCC::splitFaces(PyObject* self, PyObject* args)
   //TopoDS_Shape newShape = *shp;
 
 
-  packet[0] = &newShape;
+  packet[0] = newshp;
   // Extract surfaces
   TopTools_IndexedMapOfShape* ptr = (TopTools_IndexedMapOfShape*)packet[1];
   delete ptr;
   TopTools_IndexedMapOfShape* sf = new TopTools_IndexedMapOfShape();
-  TopExp::MapShapes(newShape, TopAbs_FACE, *sf);
+  TopExp::MapShapes(*newshp, TopAbs_FACE, *sf);
   packet[1] = sf;
 
   // Extract edges
   TopTools_IndexedMapOfShape* ptr2 = (TopTools_IndexedMapOfShape*)packet[2];
   delete ptr2;
   TopTools_IndexedMapOfShape* se = new TopTools_IndexedMapOfShape();
-  TopExp::MapShapes(newShape, TopAbs_EDGE, *se);
+  TopExp::MapShapes(*newshp, TopAbs_EDGE, *se);
   packet[2] = se;
   printf("INFO: after split: Nb edges=%d\n", se->Extent());
   printf("INFO: after split: Nb faces=%d\n", sf->Extent());

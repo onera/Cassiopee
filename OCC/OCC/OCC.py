@@ -505,6 +505,8 @@ def meshFaceWithMetric(hook, i, edges, hmin, hmax, hausd, mesh, FAILED):
     try:
         a = occ.trimesh(hook, edges, i, hmin, hmax, hausd, 1.1)
         _enforceEdgesInFace(a, edgesSav)
+        if occ.getFaceOrientation(hook, i) == 0: 
+            a = Transform.reorder(a, (-1,))
         mesh.append(a)
         SUCCESS = True
     except Exception as e:
@@ -526,13 +528,15 @@ def meshFaceInUV(hook, i, edges, grading, mesh, FAILED):
     T = _scaleUV(edges)
     edges = Converter.convertArray2Tetra(edges)
     edges = Transform.join(edges)
-    
+        
     # Maillage de la face
     try:
-        a = Generator.T3mesher2D(edges, grading=grading)
+        a = Generator.T3mesher2D(edges, grading=grading)    
         _unscaleUV([a], T)
         o = occ.evalFace(hook, a, i)
         _enforceEdgesInFace(o, edgesSav)
+        if occ.getFaceOrientation(hook, i) == 0:
+            o = Transform.reorder(o, (-1,))
         mesh.append(o)
         SUCCESS = True
     except Exception as e:
@@ -619,7 +623,7 @@ def meshAllFaces(hook, dedges, metric=True, faceList=[], hList=[]):
         print("========== face %d / %d ==========="%(i,nbFaces), flush=True)
         
         wires = occ.meshEdgesOfFace(hook, i, dedges)
-
+        
         # join des edges par wire (structured)
         edges = []
         for w in wires:

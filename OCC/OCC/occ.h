@@ -57,7 +57,10 @@ namespace K_OCC
 
   PyObject* analyseEdges(PyObject* self, PyObject* args);
   PyObject* getFaceArea(PyObject* self, PyObject* args);
+  PyObject* getFaceOrientation(PyObject* self, PyObject* args);
+  
   PyObject* splitFaces(PyObject* self, PyObject* args);
+  PyObject* fixShape(PyObject* self, PyObject* args);
 
   PyObject* getOppData(PyObject* self, PyObject* args);
 

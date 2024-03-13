@@ -56,7 +56,6 @@ PyObject* K_OCC::writeCAD(PyObject* self, PyObject* args)
   }
   else if (strcmp(fileFmt, "fmt_step") == 0)
   {
-    // Read the file
     STEPControl_Writer writer;
     writer.Transfer(*shp, STEPControl_AsIs);
     writer.Write(fileName);

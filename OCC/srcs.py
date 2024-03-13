@@ -47,6 +47,7 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/analyse.cpp',
         'OCC/Atomic/getFaceArea.cpp',
         'OCC/Atomic/splitter.cpp',
+        'OCC/Atomic/fix.cpp',
         'OCC/Atomic/getOppData.cpp']
 
 import KCore.Dist as Dist
