@@ -792,11 +792,12 @@ E_Int K_IO::GenIO::tpwrite(
         break;
       case 8: // NGON
         {
-          E_Int nfaces = c[0];
-          E_Int sizeFN = c[1];
-          elts = c[sizeFN+2];
-          E_Int* ptrNF = &c[2];
-          E_Int nf = ptrNF[0];
+          E_Int nfaces = c.getNFaces();
+          E_Int sizeFN = c.getSizeNGon();
+          elts = c.getNElts();
+          E_Int* ngon = c.getNGon(); 
+          E_Int* indPG = c.getIndPG();
+          E_Int nf; c.getFace(0, nf, ngon, indPG);
           if (nf > 2) // volumique
             fprintf(ptrFile,
               "ZONE T=\"%s\", Nodes=%d, Elements=%d, Faces=%d, ZONETYPE=FEPOLYHEDRON\nDATAPACKING=BLOCK\nTotalNumFaceNodes=%d, NumConnectedBoundaryFaces=0, TotalNumBoundaryConnections=0\n",
@@ -870,30 +871,30 @@ E_Int K_IO::GenIO::tpwrite(
     }
     else if (eltType[cnt] == 8) // NGONS
     {
-      E_Int nfaces = c[0];
-      E_Int* ptr = &c[2];
+      E_Int nfaces = c.getNFaces();
+      E_Int* ngon = c.getNGon();
+      E_Int* indPG = c.getIndPG();
       E_Int col = 0;
-      E_Int n;
+      E_Int n; c.getFace(0, n, ngon, indPG);
 
       // node count per face (seult pour les NGON volumiques)
-      if (ptr[0] > 2)
+      if (n > 2)
       {
         for (E_Int i = 0; i < nfaces; i++)
         {
-          n = ptr[0];
-          fprintf(ptrFile, " %d", n); col++; ptr += n+1;
+          c.getFace(i, n, ngon, indPG);
+          fprintf(ptrFile, " %d", n); col++;
           if (col > 10) { fprintf(ptrFile, "\n"); col = 0; }
         }
         fprintf(ptrFile, "\n");
       }
       // face nodes
       col = 0;
-      ptr = &c[2];
       for (E_Int i = 0; i < nfaces; i++)
       {
-        n = ptr[0];
-        for (E_Int j = 0; j < n; j++) fprintf(ptrFile, " %d", ptr[j+1]);
-        col += n; ptr += n+1;
+        E_Int* face = c.getFace(i, n, ngon, indPG);
+        for (E_Int j = 0; j < n; j++) fprintf(ptrFile, " %d", face[j]);
+        col += n;
         if (col > 10) { fprintf(ptrFile, "\n"); col = 0; }
       }
       fprintf(ptrFile, "\n");
