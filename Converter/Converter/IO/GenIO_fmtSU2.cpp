@@ -687,25 +687,25 @@ E_Int K_IO::GenIO::su2read(
       switch (ti)
       { 
         case 3: // BAR
-          res = readInt(ptrFile, inds[0], -1);
-          res = readInt(ptrFile, inds[1], -1);
+          res = readInt(ptrFile, inds[0], -1); inds[0]--;
+          res = readInt(ptrFile, inds[1], -1); inds[1]--;
           indf = K_CONNECT::identifyFace(inds, 2, cVF);
           facep[c] = std::max(indf,E_Int(1));
           break;
 
         case 5: // TRI
-          res = readInt(ptrFile, inds[0], -1);
-          res = readInt(ptrFile, inds[1], -1);
-          res = readInt(ptrFile, inds[2], -1);
+          res = readInt(ptrFile, inds[0], -1); inds[0]--;
+          res = readInt(ptrFile, inds[1], -1); inds[1]--;
+          res = readInt(ptrFile, inds[2], -1); inds[2]--;
           indf = K_CONNECT::identifyFace(inds, 3, cVF);
           facep[c] = std::max(indf,E_Int(1));
           break;
 
         case 9: // QUAD
-          res = readInt(ptrFile, inds[0], -1);
-          res = readInt(ptrFile, inds[1], -1);
-          res = readInt(ptrFile, inds[2], -1);
-          res = readInt(ptrFile, inds[3], -1);
+          res = readInt(ptrFile, inds[0], -1); inds[0]--;
+          res = readInt(ptrFile, inds[1], -1); inds[1]--;
+          res = readInt(ptrFile, inds[2], -1); inds[2]--;
+          res = readInt(ptrFile, inds[3], -1); inds[3]--;
           indf = K_CONNECT::identifyFace(inds, 4, cVF);
           facep[c] = std::max(indf,E_Int(1));
           break;
@@ -734,9 +734,9 @@ E_Int K_IO::GenIO::su2write(
   vector<char*>& zoneNames, 
   PyObject* BCFaces)
 {
-  E_Int nzone = unstructField.size();
+  E_Int nzones = unstructField.size();
   E_Int nvalidZones = 0;
-  for (E_Int zone = 0; zone < nzone; zone++)
+  for (E_Int zone = 0; zone < nzones; zone++)
   {
     // triangles, quads, tetra, hexa supported
     if (eltType[zone] == 1 || eltType[zone] == 2 || eltType[zone] == 3 ||
@@ -778,7 +778,7 @@ E_Int K_IO::GenIO::su2write(
 
   // Concatenate all vertices in one field
   E_Int size = 0;
-  for (E_Int i = 0; i < nzone; i++)
+  for (E_Int i = 0; i < nzones; i++)
   {
     size += unstructField[i]->getSize();
   }
@@ -788,7 +788,7 @@ E_Int K_IO::GenIO::su2write(
   E_Float* v2 = v.begin(2);
   E_Float* v3 = v.begin(3);
   E_Int c = 0;
-  for (E_Int i = 0; i < nzone; i++)
+  for (E_Int i = 0; i < nzones; i++)
   {
     FldArrayF& field = *unstructField[i];
     for (E_Int n = 0; n < field.getSize(); n++)
@@ -809,7 +809,7 @@ E_Int K_IO::GenIO::su2write(
   vector<FldArrayI*> connectPenta;
   vector<FldArrayI*> connectHexa;
 
-  for (E_Int i = 0; i < nzone; i++)
+  for (E_Int i = 0; i < nzones; i++)
   {
     FldArrayI& cn = *connect[i];
     E_Int elt = eltType[i];
@@ -901,10 +901,10 @@ E_Int K_IO::GenIO::su2write(
         cp(n,2) = cn(n,2) + shift;
         cp(n,3) = cn(n,3) + shift;
         cp(n,4) = cn(n,4) + shift;
-        cp(n,5) = cn(n,1) + shift;
-        cp(n,6) = cn(n,2) + shift;
-        cp(n,7) = cn(n,3) + shift;
-        cp(n,8) = cn(n,4) + shift;
+        cp(n,5) = cn(n,5) + shift;
+        cp(n,6) = cn(n,6) + shift;
+        cp(n,7) = cn(n,7) + shift;
+        cp(n,8) = cn(n,8) + shift;
       }
       connectHexa.push_back(cpp);
     }
@@ -1048,13 +1048,13 @@ E_Int K_IO::GenIO::su2write(
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
 #ifdef E_DOUBLEINT
-      fprintf(ptrFile, "12 \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \n", 
+      fprintf(ptrFile, "12 \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, 
-              cp(i,5)-1, cp(i,6)-1, c); c++;
+              cp(i,5)-1, cp(i,6)-1, cp(i,7)-1, cp(i,8)-1, c); c++;
 #else
-      fprintf(ptrFile, "12 \t%d \t%d \t%d \t%d \t%d \t%d \t%d \n", 
+      fprintf(ptrFile, "12 \t%d \t%d \t%d \t%d \t%d \t%d \t%d \t%d \t%d  \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, 
-              cp(i,5)-1, cp(i,6)-1, c); c++;
+              cp(i,5)-1, cp(i,6)-1, cp(i,7)-1, cp(i,8)-1, c); c++;
 #endif
     }
   }
@@ -1097,7 +1097,7 @@ E_Int K_IO::GenIO::su2write(
     IMPORTNUMPY;
     shift = 0;
     E_Int face[6][4];
-    for (E_Int i = 0; i < nzone; i++)
+    for (E_Int i = 0; i < nzones; i++)
     {
       FldArrayI& cn = *connect[i];
       E_Int elt = eltType[i];

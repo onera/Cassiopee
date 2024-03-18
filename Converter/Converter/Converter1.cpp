@@ -302,7 +302,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
                                               im, jm, km, 
                                               ufield, c, et[0], zoneNames);
     et.resize(et[0].size()); // TODO hack tmp
-    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);                                          
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "bin_jpg") == 0)
   {
@@ -311,7 +311,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
                                               im, jm, km, 
                                               ufield, c, et[0], zoneNames);
     et.resize(et[0].size()); // TODO hack tmp
-    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);                                         
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_su2") == 0)
   {
@@ -320,6 +320,9 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
                                               field, im, jm, km, 
                                               ufield, c, et[0], zoneNames,
                                               BCFaces, BCNames);
+    
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
     // Pour l'instant, on ne peut pas les traiter en elements
     for (size_t i = 0; i < BCFaces.size(); i++) delete BCFaces[i];
     for (size_t i = 0; i < BCNames.size(); i++) delete [] BCNames[i];
@@ -335,6 +338,8 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
                                                varStringc,
                                                fieldc,
                                                ufieldc);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_cedre") == 0)
   {
@@ -343,6 +348,8 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
                                                 im, jm, km, 
                                                 ufield, c, et[0], zoneNames,
                                                 BCFaces, BCNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "bin_arc") == 0)
   {
@@ -351,6 +358,8 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
                                               im, jm, km, 
                                               ufield, c, et[0], zoneNames,
                                               varStringc, fieldc, ufieldc);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else
   {

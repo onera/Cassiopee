@@ -1127,25 +1127,25 @@ E_Int K_IO::GenIO::meshwrite(
   for (E_Int zn = 0; zn < nzones; zn++)
   {
     isZoneValid [zn] = false;
-    vector<E_Int>& eltTypez = eltType[zn];
+    vector<E_Int>& eltTypeZn = eltType[zn];
     E_Int nvalidEltTypes = 0;
-    for (size_t ic = 0; ic < eltTypez.size(); ic++)
+    for (size_t ic = 0; ic < eltTypeZn.size(); ic++)
     {
       // triangles, quads, tetra, hexa, edges, supported
-      if (eltTypez[ic] == 1 || eltTypez[ic] == 2 || eltTypez[ic] == 3 || 
-          eltTypez[ic] == 4 || eltTypez[ic] == 5 || eltTypez[ic] == 6 ||
-          eltTypez[ic] == 7) 
+      if (eltTypeZn[ic] == 1 || eltTypeZn[ic] == 2 || eltTypeZn[ic] == 3 || 
+          eltTypeZn[ic] == 4 || eltTypeZn[ic] == 5 || eltTypeZn[ic] == 6 ||
+          eltTypeZn[ic] == 7) 
         nvalidEltTypes++;
       else
 #ifdef E_DOUBLEINT
         printf("Warning: meshwrite: zone %ld not written (not a valid element "
-               "type: %ld).", zn, eltTypez[ic]);
+               "type: %ld).", zn, eltTypeZn[ic]);
 #else
         printf("Warning: meshwrite: zone %d not written (not a valid element "
-               "type: %d).", zn, eltTypez[ic]);
+               "type: %d).", zn, eltTypeZn[ic]);
 #endif
     }
-    if (nvalidEltTypes == (int)eltTypez.size())
+    if (nvalidEltTypes == (int)eltTypeZn.size())
     {
       isZoneValid[zn] = true; nvalidZones++;
     }
@@ -1180,7 +1180,7 @@ E_Int K_IO::GenIO::meshwrite(
 
   // Connectivite par elts
   E_Int c = 0;
-  vector<FldArrayI*> connectEdge;
+  vector<FldArrayI*> connectBar;
   vector<FldArrayI*> connectTri;
   vector<FldArrayI*> connectQuad;
   vector<FldArrayI*> connectTetra;
@@ -1191,20 +1191,21 @@ E_Int K_IO::GenIO::meshwrite(
   // Compute offsets and total size before the parallel block
   E_Int cmpt = 0, size = 0;
   E_Int shift[nzones];
-  E_Int cmptBE[7] = {0};
+  E_Int cmptBE[7];
+  for (E_Int i = 0; i < 7; i++) cmptBE[i] = 0;
   vector<vector<E_Int> > connIdSrc(nzones);
   vector<vector<E_Int> > connIdTgt(nzones);
   for (E_Int zn = 0; zn < nzones; zn++)
   {
     shift[zn] = size;
-    vector<E_Int>& eltTypez = eltType[zn];
-    for (size_t ic = 0; ic < eltTypez.size(); ic++)
+    vector<E_Int>& eltTypeZn = eltType[zn];
+    for (size_t ic = 0; ic < eltTypeZn.size(); ic++)
     {
-      E_Int elt = eltTypez[ic];
+      E_Int elt = eltTypeZn[ic];
       connIdSrc[zn].push_back(cmpt); cmpt++;
       if (isZoneValid[zn])
       {
-        if (elt == 1) connectEdge.push_back(NULL);
+        if (elt == 1) connectBar.push_back(NULL);
         else if (elt == 2) connectTri.push_back(NULL);
         else if (elt == 3) connectQuad.push_back(NULL);
         else if (elt == 4) connectTetra.push_back(NULL);
@@ -1217,6 +1218,14 @@ E_Int K_IO::GenIO::meshwrite(
     }
     if (isZoneValid[zn]) size += unstructField[zn]->getSize();
   }
+
+  E_Int connectBarSize = connectBar.size();
+  E_Int connectTriSize = connectTri.size();
+  E_Int connectQuadSize = connectQuad.size();
+  E_Int connectTetraSize = connectTetra.size();
+  E_Int connectPyraSize = connectPyra.size();
+  E_Int connectPentaSize = connectPenta.size();
+  E_Int connectHexaSize = connectHexa.size();
 
   // Concatenate all vertices in one field
   FldArrayF* vertices;
@@ -1232,12 +1241,42 @@ E_Int K_IO::GenIO::meshwrite(
       // Field
       E_Int offset = shift[zn];
       FldArrayF& field = *unstructField[zn];
-      if (posz > 0)
+      if (posx > 0 && posy > 0 && posz > 0)
       {
         #pragma omp for
         for (E_Int n = 0; n < field.getSize(); n++)
         {
           v(offset+n,1) = field(n,posx);
+          v(offset+n,2) = field(n,posy);
+          v(offset+n,3) = field(n,posz);
+        }
+      }
+      else if (posx > 0 && posy > 0)
+      {
+        #pragma omp for
+        for (E_Int n = 0; n < field.getSize(); n++)
+        {
+          v(offset+n,1) = field(n,posx);
+          v(offset+n,2) = field(n,posy);
+          v(offset+n,3) = 0.;
+        }
+      }
+      else if (posx > 0 && posz > 0)
+      {
+        #pragma omp for
+        for (E_Int n = 0; n < field.getSize(); n++)
+        {
+          v(offset+n,1) = field(n,posx);
+          v(offset+n,2) = 0.;
+          v(offset+n,3) = field(n,posz);
+        }
+      }
+      else if (posy > 0 && posz > 0)
+      {
+        #pragma omp for
+        for (E_Int n = 0; n < field.getSize(); n++)
+        {
+          v(offset+n,1) = 0.;
           v(offset+n,2) = field(n,posy);
           v(offset+n,3) = field(n,posz);
         }
@@ -1248,19 +1287,19 @@ E_Int K_IO::GenIO::meshwrite(
         for (E_Int n = 0; n < field.getSize(); n++)
         {
           v(offset+n,1) = field(n,posx);
-          v(offset+n,2) = field(n,posy);
+          v(offset+n,2) = 0.;
           v(offset+n,3) = 0.;
         }
       }
 
       // Connectivities
-      const vector<E_Int>& eltTypez = eltType[zn];
+      const vector<E_Int>& eltTypeZn = eltType[zn];
       const vector<E_Int>& connIdSrcz = connIdSrc[zn];
       const vector<E_Int>& connIdTgtz = connIdTgt[zn];
 
-      for (size_t ic = 0; ic < eltTypez.size(); ic++)
+      for (size_t ic = 0; ic < eltTypeZn.size(); ic++)
       {
-        E_Int elt = eltTypez[ic];
+        E_Int elt = eltTypeZn[ic];
         FldArrayI& cn = *connect[connIdSrcz[ic]];
         
         if (elt == 1) // Edge
@@ -1273,7 +1312,7 @@ E_Int K_IO::GenIO::meshwrite(
             cp(n,1) = cn(n,1) + shift[zn];
             cp(n,2) = cn(n,2) + shift[zn];
           }
-          connectEdge[connIdTgtz[ic]] = cpp;
+          connectBar[connIdTgtz[ic]] = cpp;
         }
         else if (elt == 2) // Tri
         {
@@ -1387,12 +1426,11 @@ E_Int K_IO::GenIO::meshwrite(
   for (E_Int i = 0; i < v.getSize(); i++)
     fprintf(ptrFile, format1, v(i,1), v(i,2), v(i,3), 0);
   
-  E_Int connectEdgeSize = connectEdge.size();
-  if (connectEdgeSize != 0)
+  if (connectBarSize != 0)
   {
     size = 0;
-    for (E_Int i = 0; i < connectEdgeSize; i++)
-      size = size + connectEdge[i]->getSize();
+    for (E_Int i = 0; i < connectBarSize; i++)
+      size = size + connectBar[i]->getSize();
 #ifdef E_DOUBLEINT
     fprintf(ptrFile, "Edges\n%ld\n", size);
 #else
@@ -1402,12 +1440,12 @@ E_Int K_IO::GenIO::meshwrite(
     for (E_Int zn = 0; zn < nzones; zn++) 
     {
       if (not isZoneValid[zn]) continue;
-      vector<E_Int>& eltTypez = eltType[zn];
-      for (size_t ic = 0; ic < eltTypez.size(); ic++)
+      vector<E_Int>& eltTypeZn = eltType[zn];
+      for (size_t ic = 0; ic < eltTypeZn.size(); ic++)
       {
-        if (eltTypez[ic] == 1)
+        if (eltTypeZn[ic] == 1)
         {
-          FldArrayI& cp = *connectEdge[c];
+          FldArrayI& cp = *connectBar[c];
           if (!colors)
             for (E_Int i = 0; i < cp.getSize(); i++)
 #ifdef E_DOUBLEINT
@@ -1428,7 +1466,6 @@ E_Int K_IO::GenIO::meshwrite(
     }
   }
 
-  E_Int connectTriSize = connectTri.size();
   if (connectTriSize != 0)
   {
     size = 0;
@@ -1443,10 +1480,10 @@ E_Int K_IO::GenIO::meshwrite(
     for (E_Int zn = 0; zn < nzones; zn++) 
     {
       if (not isZoneValid[zn]) continue;
-      vector<E_Int>& eltTypez = eltType[zn];
-      for (size_t ic = 0; ic < eltTypez.size(); ic++)
+      vector<E_Int>& eltTypeZn = eltType[zn];
+      for (size_t ic = 0; ic < eltTypeZn.size(); ic++)
       {
-        if (eltTypez[ic] == 2)
+        if (eltTypeZn[ic] == 2)
         {
           FldArrayI& cp = *connectTri[c];
           if (!colors)
@@ -1469,7 +1506,6 @@ E_Int K_IO::GenIO::meshwrite(
     }
   }
 
-  E_Int connectQuadSize = connectQuad.size();
   if (connectQuadSize != 0)
   {
     size = 0;
@@ -1484,10 +1520,10 @@ E_Int K_IO::GenIO::meshwrite(
     for (E_Int zn = 0; zn < nzones; zn++) 
     {
       if (not isZoneValid[zn]) continue;
-      vector<E_Int>& eltTypez = eltType[zn];
-      for (size_t ic = 0; ic < eltTypez.size(); ic++)
+      vector<E_Int>& eltTypeZn = eltType[zn];
+      for (size_t ic = 0; ic < eltTypeZn.size(); ic++)
       {
-        if (eltTypez[ic] == 3)
+        if (eltTypeZn[ic] == 3)
         {
           FldArrayI& cp = *connectQuad[c];
           for (E_Int i = 0; i < cp.getSize(); i++)
@@ -1504,7 +1540,6 @@ E_Int K_IO::GenIO::meshwrite(
     }
   }
 
-  E_Int connectTetraSize = connectTetra.size();
   if (connectTetraSize != 0)
   {
     size = 0;
@@ -1520,10 +1555,10 @@ E_Int K_IO::GenIO::meshwrite(
     for (E_Int zn = 0; zn < nzones; zn++) 
     {
       if (not isZoneValid[zn]) continue;
-      vector<E_Int>& eltTypez = eltType[zn];
-      for (size_t ic = 0; ic < eltTypez.size(); ic++)
+      vector<E_Int>& eltTypeZn = eltType[zn];
+      for (size_t ic = 0; ic < eltTypeZn.size(); ic++)
       {
-        if (eltTypez[ic] == 4)
+        if (eltTypeZn[ic] == 4)
         {
           FldArrayI& cp = *connectTetra[c];
           for (E_Int i = 0; i < cp.getSize(); i++)
@@ -1540,7 +1575,6 @@ E_Int K_IO::GenIO::meshwrite(
     }
   }
 
-  E_Int connectHexaSize = connectHexa.size();
   if (connectHexaSize != 0)
   {
     size = 0;
@@ -1555,10 +1589,10 @@ E_Int K_IO::GenIO::meshwrite(
     for (E_Int zn = 0; zn < nzones; zn++) 
     {
       if (not isZoneValid[zn]) continue;
-      vector<E_Int>& eltTypez = eltType[zn];
-      for (size_t ic = 0; ic < eltTypez.size(); ic++)
+      vector<E_Int>& eltTypeZn = eltType[zn];
+      for (size_t ic = 0; ic < eltTypeZn.size(); ic++)
       {
-        if (eltTypez[ic] == 7)
+        if (eltTypeZn[ic] == 7)
         {
           FldArrayI& cp = *connectHexa[c];
           for (E_Int i = 0; i < cp.getSize(); i++)
@@ -1577,7 +1611,6 @@ E_Int K_IO::GenIO::meshwrite(
     }
   }
   
-  E_Int connectPentaSize = connectPenta.size();
   if (connectPentaSize != 0)
   {
     size = 0;
@@ -1592,10 +1625,10 @@ E_Int K_IO::GenIO::meshwrite(
     for (E_Int zn = 0; zn < nzones; zn++) 
     {
       if (not isZoneValid[zn]) continue;
-      vector<E_Int>& eltTypez = eltType[zn];
-      for (size_t ic = 0; ic < eltTypez.size(); ic++)
+      vector<E_Int>& eltTypeZn = eltType[zn];
+      for (size_t ic = 0; ic < eltTypeZn.size(); ic++)
       {
-        if (eltTypez[ic] == 6)
+        if (eltTypeZn[ic] == 6)
         {
           FldArrayI& cp = *connectPenta[c];
           for (E_Int i = 0; i < cp.getSize(); i++)
@@ -1614,7 +1647,6 @@ E_Int K_IO::GenIO::meshwrite(
     }
   }
   
-  E_Int connectPyraSize = connectPyra.size();
   if (connectPyraSize != 0)
   {
     size = 0;
@@ -1629,10 +1661,10 @@ E_Int K_IO::GenIO::meshwrite(
     for (E_Int zn = 0; zn < nzones; zn++) 
     {
       if (not isZoneValid[zn]) continue;
-      vector<E_Int>& eltTypez = eltType[zn];
-      for (size_t ic = 0; ic < eltTypez.size(); ic++)
+      vector<E_Int>& eltTypeZn = eltType[zn];
+      for (size_t ic = 0; ic < eltTypeZn.size(); ic++)
       {
-        if (eltTypez[ic] == 5)
+        if (eltTypeZn[ic] == 5)
         {
           FldArrayI& cp = *connectPyra[c];
           for (E_Int i = 0; i < cp.getSize(); i++)
