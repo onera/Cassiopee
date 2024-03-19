@@ -1122,7 +1122,7 @@ E_Int K_IO::GenIO::meshwrite(
 {
   E_Int nzones = unstructField.size();
   E_Int nvalidZones = 0;
-  E_Boolean isZoneValid[nzones];
+  vector<E_Boolean> isZoneValid(nzones);
 
   for (E_Int zn = 0; zn < nzones; zn++)
   {
@@ -1190,9 +1190,9 @@ E_Int K_IO::GenIO::meshwrite(
   
   // Compute offsets and total size before the parallel block
   E_Int cmpt = 0, size = 0;
-  E_Int shift[nzones];
-  E_Int cmptBE[7];
-  for (E_Int i = 0; i < 7; i++) cmptBE[i] = 0;
+  vector<E_Int> shift(nzones);
+  E_Int cmptBE[8];
+  for (E_Int i = 0; i < 8; i++) cmptBE[i] = 0;
   vector<vector<E_Int> > connIdSrc(nzones);
   vector<vector<E_Int> > connIdTgt(nzones);
   for (E_Int zn = 0; zn < nzones; zn++)

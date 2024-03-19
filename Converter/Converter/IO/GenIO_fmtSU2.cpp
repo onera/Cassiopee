@@ -1052,7 +1052,7 @@ E_Int K_IO::GenIO::su2write(
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, 
               cp(i,5)-1, cp(i,6)-1, cp(i,7)-1, cp(i,8)-1, c); c++;
 #else
-      fprintf(ptrFile, "12 \t%d \t%d \t%d \t%d \t%d \t%d \t%d \t%d \t%d  \n", 
+      fprintf(ptrFile, "12 \t%d \t%d \t%d \t%d \t%d \t%d \t%d \t%d \t%d \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, 
               cp(i,5)-1, cp(i,6)-1, cp(i,7)-1, cp(i,8)-1, c); c++;
 #endif
