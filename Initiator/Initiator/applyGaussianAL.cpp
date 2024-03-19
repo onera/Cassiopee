@@ -273,16 +273,16 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
                 E_Int posrou_src = K_ARRAY::isNamePresent("MomentumX_src", varString[noz]); 
                 E_Int posrov_src = K_ARRAY::isNamePresent("MomentumY_src", varString[noz]); 
                 E_Int posrow_src = K_ARRAY::isNamePresent("MomentumZ_src", varString[noz]); 
-                E_Float posu = K_ARRAY::isVelocityXPresent(varString[noz]);
-                E_Float posv = K_ARRAY::isVelocityYPresent(varString[noz]); 
-                E_Float posw = K_ARRAY::isVelocityZPresent(varString[noz]);   
-                E_Float posuo = K_ARRAY::isNamePresent("VelXOut", varString[noz]);
-                E_Float posvo = K_ARRAY::isNamePresent("VelYOut", varString[noz]); 
-                E_Float poswo = K_ARRAY::isNamePresent("VelZOut", varString[noz]); 
-
+                E_Int posroe_src = K_ARRAY::isNamePresent("EnergyStagnationDensity_src", varString[noz]); 
+                E_Int posu = K_ARRAY::isVelocityXPresent(varString[noz]);
+                E_Int posv = K_ARRAY::isVelocityYPresent(varString[noz]); 
+                E_Int posw = K_ARRAY::isVelocityZPresent(varString[noz]);   
+                E_Int posuo = K_ARRAY::isNamePresent("VelXOut", varString[noz]);
+                E_Int posvo = K_ARRAY::isNamePresent("VelYOut", varString[noz]); 
+                E_Int poswo = K_ARRAY::isNamePresent("VelZOut", varString[noz]); 
                 if (posx==-1 || posy==-1 || posz==-1 || posvol==-1 || 
                     postruncl==-1 || postruncv==-1 || posgs==-1 ||
-                    posrou_src==-1 || posrov_src==-1 || posrow_src==-1 ||
+                    posrou_src==-1 || posrov_src==-1 || posrow_src==-1 || posroe_src == -1 || 
                     posu==-1 || posv==-1 || posw==-1 || 
                     posuo==-1 || posvo==-1 || poswo==-1)                                      
                 {
@@ -291,7 +291,11 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
                     RELEASEBLOCK1; RELEASEROTMAT;
                     RELEASESHAREDN(pyLocalEpsX, localEps_X);
                     RELEASESHAREDN(pyLocalEpsY, localEps_Y); 
-                
+                    RELEASESHAREDN(pyLocalEpsZ, localEps_Z); 
+
+                    printf(" posx = %d %d %d | posvol %d postruncl %d postruncv %d | posgs = %d posrou_src  = (%d %d %d %d ) | posu = %d %d %d | posuo = %d %d %d \n", 
+                            posx, posy, posz, posvol, postruncl, postruncv, posgs,  
+                            posrou_src, posrov_src, posrow_src, posroe_src, posu, posv, posw, posuo, posvo, poswo );                
                     PyErr_SetString(PyExc_TypeError,
                     "applyGaussianAL: cannot find required fields in array.");
                     return NULL;
@@ -312,6 +316,7 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
                 E_Float* MomentumX_src = f->begin(posrou_src);
                 E_Float* MomentumY_src = f->begin(posrov_src);
                 E_Float* MomentumZ_src = f->begin(posrow_src);
+                E_Float* EnergyStagnationDensity_src = f->begin(posroe_src);
                 E_Float* vxt = f->begin(posu);
                 E_Float* vyt = f->begin(posv);
                 E_Float* vzt = f->begin(posw);  
@@ -355,6 +360,7 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
                     MomentumX_src[ind] += gaussFx;
                     MomentumY_src[ind] += gaussFy;
                     MomentumZ_src[ind] += gaussFz;
+                    EnergyStagnationDensity_src[ind]+=gaussFx*vxt[ind]+gaussFy*vyt[ind]+gaussFz*vzt[ind];                    
                     gausssumt[ind]+=gaussl;  
                     E_Float gaussvel = gauss * truncVelosCell * GaussianNormInv;  
                     vxo[ind] = vxt[ind]*gaussvel;
@@ -365,36 +371,36 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
             }//nzones    
         }//nsections
     }//nblades
-for (E_Int noz = 0; noz < nzones; noz++)
-{
-    FldArrayF* f = fields[noz];
-    E_Int npts = f->getSize();     
-    E_Int posrou_src = K_ARRAY::isNamePresent("MomentumX_src", varString[noz]); 
-    E_Int posrov_src = K_ARRAY::isNamePresent("MomentumY_src", varString[noz]); 
-    E_Int posrow_src = K_ARRAY::isNamePresent("MomentumZ_src", varString[noz]); 
-    E_Int posu = K_ARRAY::isVelocityXPresent(varString[noz]);
-    E_Int posv = K_ARRAY::isVelocityYPresent(varString[noz]); 
-    E_Int posw = K_ARRAY::isVelocityZPresent(varString[noz]); 
-    E_Int posroe_src = K_ARRAY::isNamePresent("EnergyStagnationDensity_src", varString[noz]);           
-    posu++; posv++; posw++;    
-    posrou_src++; posrov_src++; posrow_src++; posroe_src++;         
-    E_Float* vxt = f->begin(posu);
-    E_Float* vyt = f->begin(posv);
-    E_Float* vzt = f->begin(posw);  
-    E_Float* MomentumX_src = f->begin(posrou_src);
-    E_Float* MomentumY_src = f->begin(posrov_src);
-    E_Float* MomentumZ_src = f->begin(posrow_src);                         
-    E_Float* EnergyStagnationDensity_src = f->begin(posroe_src);
+// for (E_Int noz = 0; noz < nzones; noz++)
+// {
+//     FldArrayF* f = fields[noz];
+//     E_Int npts = f->getSize();     
+//     E_Int posrou_src = K_ARRAY::isNamePresent("MomentumX_src", varString[noz]); 
+//     E_Int posrov_src = K_ARRAY::isNamePresent("MomentumY_src", varString[noz]); 
+//     E_Int posrow_src = K_ARRAY::isNamePresent("MomentumZ_src", varString[noz]); 
+//     E_Int posu = K_ARRAY::isVelocityXPresent(varString[noz]);
+//     E_Int posv = K_ARRAY::isVelocityYPresent(varString[noz]); 
+//     E_Int posw = K_ARRAY::isVelocityZPresent(varString[noz]); 
+//     E_Int posroe_src = K_ARRAY::isNamePresent("EnergyStagnationDensity_src", varString[noz]);           
+//     posu++; posv++; posw++;    
+//     posrou_src++; posrov_src++; posrow_src++; posroe_src++;         
+//     E_Float* vxt = f->begin(posu);
+//     E_Float* vyt = f->begin(posv);
+//     E_Float* vzt = f->begin(posw);  
+//     E_Float* MomentumX_src = f->begin(posrou_src);
+//     E_Float* MomentumY_src = f->begin(posrov_src);
+//     E_Float* MomentumZ_src = f->begin(posrow_src);                         
+//     E_Float* EnergyStagnationDensity_src = f->begin(posroe_src);
 
-#pragma omp parallel default(shared)
-{
-#pragma omp for     
-    for (E_Int ind = 0; ind < npts; ind++)
-    {
-        EnergyStagnationDensity_src[ind]=MomentumX_src[ind]*vxt[ind]+MomentumY_src[ind]*vyt[ind]+MomentumZ_src[ind]*vzt[ind];
-    }
-}
-}
+// #pragma omp parallel default(shared)
+// {
+// #pragma omp for     
+//     for (E_Int ind = 0; ind < npts; ind++)
+//     {
+//         EnergyStagnationDensity_src[ind]=MomentumX_src[ind]*vxt[ind]+MomentumY_src[ind]*vyt[ind]+MomentumZ_src[ind]*vzt[ind];
+//     }
+// }
+// }
     RELEASEARRAYS;
     RELEASEBLOCK0;  
     RELEASEBLOCK1; 
