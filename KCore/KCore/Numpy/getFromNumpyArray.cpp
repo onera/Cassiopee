@@ -56,7 +56,7 @@ using namespace K_FLD;
 //=============================================================================
 // Retourne un FldArrayI a partir d'un numpy d'entiers
 // Si shared=True, le FldArrayI pointe sur le tableau python. Il faut ensuite
-// utiliser RELEASESHAREN.
+// utiliser RELEASESHAREDN.
 // Sinon, c'est une copie.
 // Le FldArrayI map les dimensions si elles sont egales a 2 (npts, nfld).
 // sinon, retourne un FldArrayI (npts, 1).

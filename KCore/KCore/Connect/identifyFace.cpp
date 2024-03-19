@@ -57,8 +57,10 @@ E_Int K_CONNECT::identifyFace(E_Int* inds, E_Int n,
       for (size_t i2 = 0; i2 < cand.size(); i2++)
         if (indi == cand[i2]) commonFaces.push_back(indi);
     }
+    
+    if (commonFaces.size() == 0) return -1; // not found
   }
   
-  if (commonFaces.size() == 0) return -1; // not found
+  if (commonFaces.size() != 1) return -1; // error: not a face
   else return commonFaces[0];
 }
