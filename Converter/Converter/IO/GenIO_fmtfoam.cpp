@@ -724,14 +724,18 @@ E_Int K_IO::GenIO::foamReadFields(char *file,
   char path[1024];
   strcpy(fullPath, file);
   E_Float ret;
-  E_Float max_time = 0;
+  E_Float max_time = -1.0;
   while ((dir = readdir(d))) {
     strcpy(path, fullPath);
     strcat(path, "/");
     strcat(path, dir->d_name);
+    puts(path);
     if (dirExist(path)) {
-      ret = atof(dir->d_name);
-      max_time = std::max(max_time, ret);
+      char *badptr = NULL;
+      ret = strtod(dir->d_name, &badptr);
+      if (*badptr == '\0') {
+        max_time = std::max(max_time, ret);
+      }
     }
   }
   closedir(d);
@@ -741,22 +745,31 @@ E_Int K_IO::GenIO::foamReadFields(char *file,
   char dir_name[260] = {0};
   dir_name[0] = '\0';
   d = opendir(file);
-  while ((dir = readdir(d))) {
+  while ((dir = readdir(d)) && !found) {
     strcpy(path, fullPath);
     strcat(path, "/");
     strcat(path, dir->d_name);
     if (dirExist(path)) {
-      ret = atof(dir->d_name);
-      if (ret == max_time) {
+      char *badptr = NULL;
+      ret = strtod(dir->d_name, &badptr);
+      if (*badptr == '\0' && ret == max_time) {
         sprintf(dir_name, "%s", dir->d_name);
         found = true;
+        break;
       }
-      if (found) break;
     }
-    if (found) break;
   }
   closedir(d);
 
+  if (max_time == -1.0) {
+    printf("Warning: no time directory found. Skipping field read.\n");
+    return 0;
+  } else if (max_time == 0) {
+    printf("Warning: skipping time directory 0.\n");
+    return 0;
+  } else {
+    printf("Reading fields from time directory %s\n", dir_name);
+  }
 
   fullPath[0] = '\0';
   strcat(fullPath, file);
@@ -869,6 +882,8 @@ E_Int K_IO::GenIO::foamReadFields(char *file,
   }
   closedir(d);
 
+  printf("nflds: %d\n", nflds);
+
   // delete the last comma
   varStringc[strlen(varStringc)-1] = '\0';
 
@@ -921,8 +936,6 @@ E_Int K_IO::GenIO::foamReadFields(char *file,
   printf("Info: foamread: done reading fields.\n");
 
   centerUnstructField.push_back(F);
-
-  //
 
   return 0;
 }
