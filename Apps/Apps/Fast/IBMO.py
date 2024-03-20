@@ -900,6 +900,10 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
     test.printMem(">>> Interpolating IBM [after addXZones]")
 
     ReferenceState = Internal.getNodeFromType2(tp, 'ReferenceState_t')
+    model = Internal.getNodeFromName(t, 'GoverningEquations')
+    if model is not None: model = Internal.getValue(model)
+    else:                 model = "Euler"
+
     nbZonesIBC = len(zonesRIBC)
     for i in range(Cmpi.size): datas[i] = [] # force
 
@@ -920,7 +924,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
                         else: dnrZones.append(zd)
                     XOD._setIBCDataForZone__(zrcv, dnrZones, allCorrectedPts[nozr], allWallPts[nozr], allInterpPts[nozr],
                                              nature=1, penalty=1, loc='centers', storage='inverse', dim=dimPb,
-                                             interpDataType=0, ReferenceState=ReferenceState, bcType=ibcTypeL)
+                                             interpDataType=0, ReferenceState=ReferenceState, bcType=ibcTypeL,model=model)
 
                     nozr += 1
                     for zd in dnrZones:       
