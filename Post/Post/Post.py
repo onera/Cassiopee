@@ -162,7 +162,7 @@ def slice(a, type=None, eq=None):
         return p
     return a
 
-def projectCloudSolution(cloudArray, surfArray, dim=3, loc='nodes', ibm=False):
+def projectCloudSolution(cloudArray, surfArray, dim=3, loc='nodes', ibm=False, old=False):
     """Project the solution defined on a set of points to a TRI surface."""
     surfArray = Converter.convertArray2Tetra(surfArray)
     if isinstance(surfArray[0], list):
@@ -170,14 +170,14 @@ def projectCloudSolution(cloudArray, surfArray, dim=3, loc='nodes', ibm=False):
             import Transform
             surfArray = Transform.join(surfArray)
         except: pass
-    return projectCloudSolution__(cloudArray,surfArray,dim=dim,loc=loc,ibm=ibm)
+    return projectCloudSolution__(cloudArray,surfArray,dim=dim,loc=loc,ibm=ibm, old=old)
 
 # Much lighter than projectCloudSolution: no conversion to TETRA and no join.
-def projectCloudSolution__(cloudArray, surfArray, dim=3, loc='nodes', ibm=False):
+def projectCloudSolution__(cloudArray, surfArray, dim=3, loc='nodes', ibm=False, old=False):
     """Project the solution defined on a set of points to a TRI surface."""
     cloudArray = Converter.convertArray2Node(cloudArray)
     if loc == 'centers': surfArray = Converter.node2Center(surfArray)
-    return post.projectCloudSolution2Triangle(cloudArray,surfArray,dim,int(ibm))
+    return post.projectCloudSolution2Triangle(cloudArray,surfArray,dim,int(ibm), int(old))
 
 def projectCloudSolutionWithInterpData(cloudArray, surfArray, offset, interpDonor, interpCoef, dim=3, loc='nodes'):
     """Project the solution defined on a set of points to a TRI surface using pre-calculated interpolation data."""

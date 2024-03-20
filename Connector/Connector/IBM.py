@@ -913,7 +913,10 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
     # keyword subr=False to avoid memory overflow
     Cmpi._addXZones(tc, graph, variables=['cellN'], cartesian=cartesian, subr=False)
 
-    ReferenceState = Internal.getNodeFromType2(t, 'ReferenceState_t')   
+    ReferenceState = Internal.getNodeFromType2(t, 'ReferenceState_t')
+    model = Internal.getNodeFromName(t, 'GoverningEquations')
+    if model is not None: model = Internal.getValue(model)
+    else:                 model = "Euler"
 
     for i in range(Cmpi.size): datas[i] = [] # force
 
@@ -933,7 +936,7 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
                         else: dnrZones.append(zd)
                     XOD._setIBCDataForZone__(zrcv, dnrZones, allCorrectedPts[nozr], allWallPts[nozr], allInterpPts[nozr],
                                                 nature=1, penalty=1, loc='centers', storage='inverse', dim=dimPb,
-                                                interpDataType=interpDataType, ReferenceState=ReferenceState, bcType=ibcTypeL)
+                                                interpDataType=interpDataType, ReferenceState=ReferenceState, bcType=ibcTypeL,model=model)
 
                     nozr += 1
                     for zd in dnrZones:
@@ -2326,6 +2329,9 @@ def _pushBackImageFront2(t, tc, tbb, interpDataType=1):
 #=============================================================================
 def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None, frontType=0, depth=2, IBCType=1, interpDataType=1, Reynolds=6.e6, yplus=100., Lref=1., isLBM=False):
     ReferenceState = Internal.getNodeFromType2(t, 'ReferenceState_t')
+    model = Internal.getNodeFromName(t, 'GoverningEquations')
+    if model is not None: model = Internal.getValue(model)
+    else:                 model = "Euler"
     if typeI == 'ID':
         # toutes les zones sont interpolables en Chimere
         intersectionsDict = X.getIntersectingDomains(tbb, method='AABB', taabb=tbb)
@@ -2411,7 +2417,7 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
                     XOD._setIBCDataForZone__(zrcv, dnrZones, allCorrectedPts[nozr], allWallPts[nozr], allInterpPts[nozr], \
                                              nature=1, penalty=1, loc='centers', storage='inverse',
                                              interpDataType=interpDataType, hook=hook0, dim=dim, \
-                                             ReferenceState=ReferenceState, bcType=ibcTypeL)
+                                             ReferenceState=ReferenceState, bcType=ibcTypeL,model=model)
                     nozr += 1
                     for nod in range(len(dnrZones)):
                         nobd = nobOfDnrBases[nod]
@@ -2689,7 +2695,10 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
 #=============================================================================
 def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None, frontType=0, depth=2, IBCType=1, interpDataType=1, Reynolds=6.e6, yplus=100., Lref=1.):
     ReferenceState = Internal.getNodeFromType2(t, 'ReferenceState_t')
-
+    model = Internal.getNodeFromName(t, 'GoverningEquations')
+    if model is not None: model = Internal.getValue(model)
+    else:                 model = "Euler"
+    
     bases  = Internal.getNodesFromType1(t     , 'CGNSBase_t')
     dimmm  = Internal.getNodeFromName2(bases[0], 'EquationDimension')
     dimPb   = Internal.getValue(dimmm)
@@ -2894,7 +2903,7 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None
                     XOD._setIBCDataForZone__(zrcv, dnrZones, allCorrectedPts[nozr], allWallPts[nozr], allInterpPts[nozr], \
                                              nature=1, penalty=1, loc='centers', storage='inverse',
                                              interpDataType=interpDataType, hook=hook0, dim=dim, \
-                                             ReferenceState=ReferenceState, bcType=ibcTypeL)
+                                             ReferenceState=ReferenceState, bcType=ibcTypeL,model=model)
 
                     nozr += 1
 
@@ -3148,7 +3157,10 @@ def doInterp3(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
 
 
     ReferenceState = Internal.getNodeFromType2(t, 'ReferenceState_t')
-
+    model = Internal.getNodeFromName(t, 'GoverningEquations')
+    if model is not None: model = Internal.getValue(model)
+    else:                 model = "Euler"
+    
     bases  = Internal.getNodesFromType1(t     , 'CGNSBase_t')
     dimmm  = Internal.getNodeFromName2(bases[0], 'EquationDimension')
     dimPb   = Internal.getValue(dimmm)
@@ -3378,7 +3390,7 @@ def doInterp3(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
                                         nobOfDnrZones.append(nozd)
 
                     XOD._setIBCDataForZone__(zrcv, dnrZones, allCorrectedPts[nozr], allWallPts[nozr], allInterpPts[nozr], \
-                                             loc='centers', storage='inverse',  hook=hook0, dim=dim, ReferenceState=ReferenceState, bcType=ibcTypeL)
+                                             loc='centers', storage='inverse',  hook=hook0, dim=dim, ReferenceState=ReferenceState, bcType=ibcTypeL,model=model)
                     nozr += 1
 
                     levelrcv = niveaux_temps[zrcv[0]]

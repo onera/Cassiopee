@@ -86,13 +86,13 @@ def extractPlane(t, T, order=2, tol=1.e-6):
     a = Post.extractPlane(A, T, order, tol)
     return C.convertArrays2ZoneNode('extractedPlane', [a])
 
-def projectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False):
+def projectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False, old=False):
     """Project the solution defined on a set of points to a TRI surface."""
     surf2 = Internal.copyRef(surf)
-    _projectCloudSolution(cloud, surf2, dim=dim, loc=loc, ibm=ibm)
+    _projectCloudSolution(cloud, surf2, dim=dim, loc=loc, ibm=ibm, old=old)
     return surf2
 
-def _projectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False):
+def _projectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False, old=False):
     """Project the solution defined on a set of points to a TRI surface."""
     fc = C.getAllFields(cloud, 'nodes')[0]
     zones = Internal.getZones(surf)
@@ -107,7 +107,7 @@ def _projectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False):
             C.setFields([res], zones[noz], 'nodes')
         else:
             fs = C.getAllFields(zones[noz], 'nodes')[0]
-            res = Post.projectCloudSolution(fc, fs, dim=dim, ibm=ibm)
+            res = Post.projectCloudSolution(fc, fs, dim=dim, ibm=ibm, old=old)
             C.setFields([res], zones[noz], 'nodes')
     return None
 
@@ -2580,3 +2580,34 @@ def probeLocations(tprobe, tcase):
             f.write(string2write)
     
     return None
+
+
+def cgns2tecplot(t,isRmGhost=False,isSet2Zero=False):
+    listNameRemove=['CoordinateX', 'CoordinateY', 'CoordinateZ', 'TurbulentDistance', 'cellN']
+    t = C.node2Center(t)
+    if isRmGhost: t = Internal.rmGhostCells(t, t, 2, adaptBCs=0)
+    if isSet2Zero:
+        for z in Internal.getZones(t):
+            sol        = Internal.getNodeFromName(z,'FlowSolution')
+            varNames   = C.getVarNames(z)[0]
+            for namem in listNameRemove:
+                varNames.remove(namem)
+                
+            dist2walls = Internal.getNodeFromName(sol,'TurbulentDistance')[1]
+            sh         = numpy.shape(dist2walls)
+            for namem in varNames:
+                if 'P1' in namem or 'M1' in namem:continue
+                var       = Internal.getNodeFromName(sol,namem)[1]
+                
+                if len(sh) ==2:
+                    for j in range(sh[1]):
+                        for i in range(sh[0]):
+                            if dist2walls[i,j]<0:
+                                var[i,j]=0
+                else:
+                    for k in range(sh[2]):
+                        for j in range(sh[1]):
+                            for i in range(sh[0]):
+                                if dist2walls[i,j]<0:
+                                    var[i,j,k]=0
+    return t

@@ -88,7 +88,7 @@ def _updateGradPInfo(t, tc, ibctypes=[], secondOrder=False):
 # IN: extractIBMInfo (boolean): if True, store IB coordinates (PC, PI and PW)
 # IN: extractYplusAtImage (boolean): if True, project the y+ values at the image points to the IBM surface mesh
 #=============================================================================
-def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IBCD_*", extractIBMInfo=False, extractYplusAtImage=False, isClipInterpMLS=False):
+def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IBCD_*", extractIBMInfo=False, extractYplusAtImage=False, isClipInterpMLS=False, isRevertToOld=False):
     """Extracts the flow field stored at IBM points onto the surface."""
 
     if extractYplusAtImage and not famZones: _extractYplusIP(tc)
@@ -135,7 +135,7 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IB
                 zones = dictOfZoneFamilies[famName]
                 if zones!=[]: tb2=C.newPyTree(['Base']); tb2[2][1][2]=zones
 
-            zd = extractIBMWallFields(zd, tb=tb2, coordRef=coordRef, famZones=[], extractYplusAtImage=extractYplusAtImage,isClipInterpMLS=isClipInterpMLS)
+            zd = extractIBMWallFields(zd, tb=tb2, coordRef=coordRef, famZones=[], extractYplusAtImage=extractYplusAtImage,isClipInterpMLS=isClipInterpMLS,isRevertToOld=isRevertToOld)
             out += Internal.getZones(zd)
         return out
 
@@ -382,7 +382,7 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IB
             C._initVars(td,XOD.__CONV1__,0.)
             C._initVars(td,XOD.__CONV2__,0.)
         #print("projectCloudSolution for dim {}".format(dimPb))
-        P._projectCloudSolution(z, td, dim=dimPb, ibm=isClipInterpMLS)
+        P._projectCloudSolution(z, td, dim=dimPb, ibm=isClipInterpMLS, old=isRevertToOld)
 
         return td
 

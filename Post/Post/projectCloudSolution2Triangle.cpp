@@ -34,10 +34,10 @@ using namespace std;
 // ============================================================================
 PyObject* K_POST::projectCloudSolution2Triangle(PyObject* self, PyObject* args)
 {
-  E_Int dimPb, ibm;
+  E_Int dimPb, ibm, old;
   PyObject *arrayR, *arrayD;
-  if (!PYPARSETUPLE_(args, OO_ II_,
-                    &arrayD, &arrayR, &dimPb, &ibm))
+  if (!PYPARSETUPLE_(args, OO_ III_,
+		     &arrayD, &arrayR, &dimPb, &ibm, &old))
   {
       return NULL;
   }
@@ -355,6 +355,7 @@ PyObject* K_POST::projectCloudSolution2Triangle(PyObject* self, PyObject* args)
             }
             if (K_FUNC::E_abs(sumCf-1.)>5.e-2) indicesExtrap.push_back(indR);
             else if ((minCf<-2. || maxCf>2.) && ibm==1) indicesExtrap.push_back(indR); // avoid huge weights for IBMs
+	    else if (old == 1) indicesExtrap.push_back(indR); // avoid huge weights for IBMs
             else // interpolate
             {
               for (E_Int posv = 0; posv < nbVars; posv++)

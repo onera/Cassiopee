@@ -432,13 +432,13 @@ def _projectMeshSize(t, NPas=10, span=1, dictNz=None, isCartesianExtrude=False):
 # extrude mesh and case for z or theta periodic cases
 #================================================================================
 def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span=1 , Ntranche=1,
-                     dictNz=None, ific=2,isCartesianExtrude=False):
+                     dictNz=None, ific=2,isCartesianExtrude=False,isAutoPeriodic=False):
     """Extrudes a 2D IBM grid and geoemtry. The extraction is done in the z-direction..
         Usage: extrudeCartesian(t, tb, check, extrusion, dz, NPas, span, Ntranche, dictNz, ific, isCartesianExtrude)"""
 
     if  extrusion == "cart": perio = span/float(Ntranche)
     else:                    perio = span/180.*math.pi/float(Ntranche)
-
+    
     for z in Internal.getZones(t): 
         cellN    = Internal.getNodeFromName(z, "cellN")[1]
         #cellNInit= Internal.getNodeFromName(z, "cellN#Init")[1]
@@ -457,12 +457,12 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
     c = 0
     for tree in [t,tb]:
         for dim in Internal.getNodesFromName(tree,'EquationDimension'): dim[1]=3 
-    
+
         dz_loc={}; Nk={}
         if c ==0:
+            Nk_min = 1000000000
             for z in Internal.getZones(tree):
                 name_zone = z[0]
-                Nk_min = 1000000000
                 if not isCartesianExtrude:
                     if dictNz is not None:
                         Nk[z[0]]     = int(dictNz[name_zone])
@@ -489,10 +489,11 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
             for z in Internal.getZones(tree):
                 Nk[z[0]]     =  Nk_min
                 dz_loc[z[0]] = span/float(Ntranche*Nk_min)
-        
+
+        ##Adding ghost cells in K direction
         for z in Internal.getZones(tree):
-            Nk[z[0]] += 2*ific-1  # -1, car un plan de maillage deja ajoute dans le cas 2D
-       
+            Nk[z[0]] += 2*ific-1 #+c  # -1, car un plan de maillage deja ajoute dans le cas 2D
+
         for z in Internal.getZones(tree):    
             yy_2d   = Internal.getNodeFromName(z, "CoordinateY")[1]
             zz_2d   = Internal.getNodeFromName(z, "CoordinateZ")[1]
@@ -510,6 +511,7 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
             if c==1: period_loc= perio*1.5
             
             sh = numpy.shape(yy)
+
             if  len(sh_2d) == 1: #NGON
                 if  extrusion == "cart":
                     for k in range( sh[1]):
@@ -533,7 +535,7 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
     
         if c==1: break
         c += 1
-        
+        ng = 0
         for z in Internal.getZones(tree):    
             zdim = Internal.getValue(z)
              
@@ -546,62 +548,77 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
                 ptrg = Internal.getNodeFromName(bc, "PointRange")[1]
                 ptrg[2,0] = 3 
                 ptrg[2,1] = Nk[z[0]]
-            
-            # Creatioon connectivite perio dans t
-            for idir in ['_kmax','_kmin']:
-                if idir == '_kmax':
-                    ktg  = zdim[2,0]
-                    ktgD = 1
-                    if extrusion =='cart':
-                        angle = 0
-                        trans = -perio
+            if not isAutoPeriodic:
+                # Creatioon connectivite perio dans t
+                for idir in ['_kmax','_kmin']:
+                    if idir == '_kmax':
+                        ktg  = zdim[2,0]
+                        ktgD = 1
+                        if extrusion =='cart':
+                            angle = 0
+                            trans = -perio
+                        else:
+                            angle = -perio
+                            trans = 0.
                     else:
-                        angle = -perio
-                        trans = 0.
-                else:
-                    ktgD  = zdim[2,0]
-                    ktg   = 1
-                    if extrusion =='cart':
-                        angle = 0
-                        trans = perio
-                    else:
-                        angle = perio
-                        trans = 0.
+                        ktgD  = zdim[2,0]
+                        ktg   = 1
+                        if extrusion =='cart':
+                            angle = 0
+                            trans = perio
+                        else:
+                            angle = perio
+                            trans = 0.                    
                 
-                Conn = Internal.getNodeFromName(z, "ZoneGridConnectivity")
-                name = 'match_'+z[0]+idir
-                Internal.createUniqueChild(Conn, name, 'GridConnectivity1to1_t')
-                tmp1     = Internal.getNodeFromName(Conn, name)
-                Internal.setValue(tmp1, z[0])
-                datap = numpy.empty( (3,2) , numpy.int32)
-                datap[0,0]=1;datap[1,0]=1;datap[2,0]=ktg
-                datap[0,1]=zdim[0,0];datap[1,1]=zdim[1,0];datap[2,1]= ktg
-                Internal.createUniqueChild(tmp1 ,'PointRange', 'IndexRange_t',datap)
-                datap = numpy.empty( (3,2) , numpy.int32)
-                datap[0,0]=1;datap[1,0]=1;datap[2,0]=ktgD
-                datap[0,1]=zdim[0,0];datap[1,1]=zdim[1,0];datap[2,1]= ktgD
-                Internal.createUniqueChild(tmp1 ,'PointRangeDonor', 'IndexRange_t',datap)
-                datap = numpy.empty( 3 , numpy.int32)
-                datap[0]=1;datap[1]=2;datap[2]=3
-                Internal.createUniqueChild(tmp1 ,'Transform', '"int[IndexDimension]"',datap)
-                Internal.createUniqueChild(tmp1 ,'GridConnectivityProperty', 'GridConnectivityProperty_t')
-                
-                prop     = Internal.getNodeFromName(tmp1, 'GridConnectivityProperty')
-                Internal.createUniqueChild(prop ,'Periodic', 'Periodic_t')
-                period    = Internal.getNodeFromName(prop, 'Periodic')
-                datap = numpy.zeros( 3 , numpy.float64)
-                Internal.createUniqueChild(period ,'RotationCenter', 'DataArray_t',datap)
-                datap = numpy.zeros( 3 , numpy.float64)
-                datap[0]= angle
-                Internal.createUniqueChild(period ,'RotationAngle' ,'DataArray_t',datap)
-                datap = numpy.zeros( 3 , numpy.float64)
-                datap[2]= trans
-                Internal.createUniqueChild(period ,'Translation', 'DataArray_t',datap)
-                
-                rot     = Internal.getNodeFromName(period, 'RotationAngle')
-                Units=['Kilogram','Meter','Second','Kelvin','Radian']
-                Internal.createUniqueChild(rot ,'DimensionalUnits' ,'DimensionalUnits_t',Units)
+                    Conn = Internal.getNodeFromName(z, "ZoneGridConnectivity")
+                    name = 'match_'+z[0]+idir
+                    Internal.createUniqueChild(Conn, name, 'GridConnectivity1to1_t')
+                    tmp1     = Internal.getNodeFromName(Conn, name)
+                    Internal.setValue(tmp1, z[0])
+                    datap = numpy.empty( (3,2) , numpy.int32)
+                    datap[0,0]=1+ng;datap[1,0]=1+ng;datap[2,0]=ktg
+                    datap[0,1]=zdim[0,0]-ng;datap[1,1]=zdim[1,0]-ng;datap[2,1]= ktg
+                    Internal.createUniqueChild(tmp1 ,'PointRange', 'IndexRange_t',datap)
+                    datap = numpy.empty( (3,2) , numpy.int32)
+                    datap[0,0]=1+ng;datap[1,0]=1+ng;datap[2,0]=ktgD
+                    datap[0,1]=zdim[0,0]-ng;datap[1,1]=zdim[1,0]-ng;datap[2,1]= ktgD
+                    Internal.createUniqueChild(tmp1 ,'PointRangeDonor', 'IndexRange_t',datap)
+                    datap = numpy.empty( 3 , numpy.int32)
+                    datap[0]=1;datap[1]=2;datap[2]=3
+                    Internal.createUniqueChild(tmp1 ,'Transform', '"int[IndexDimension]"',datap)
+                    Internal.createUniqueChild(tmp1 ,'GridConnectivityProperty', 'GridConnectivityProperty_t')
+                    
+                    prop     = Internal.getNodeFromName(tmp1, 'GridConnectivityProperty')
+                    Internal.createUniqueChild(prop ,'Periodic', 'Periodic_t')
+                    period    = Internal.getNodeFromName(prop, 'Periodic')
+                    datap = numpy.zeros( 3 , numpy.float64)
+                    Internal.createUniqueChild(period ,'RotationCenter', 'DataArray_t',datap)
+                    datap = numpy.zeros( 3 , numpy.float64)
+                    datap[0]= angle
+                    Internal.createUniqueChild(period ,'RotationAngle' ,'DataArray_t',datap)
+                    datap = numpy.zeros( 3 , numpy.float64)
+                    datap[2]= trans
+                    Internal.createUniqueChild(period ,'Translation', 'DataArray_t',datap)
+                    
+                    rot     = Internal.getNodeFromName(period, 'RotationAngle')
+                    Units=['Kilogram','Meter','Second','Kelvin','Radian']
+                    Internal.createUniqueChild(rot ,'DimensionalUnits' ,'DimensionalUnits_t',Units)
+        if isAutoPeriodic:    
+            for node in Internal.getNodesFromName(t,'EquationDimension'): Internal.setValue(node,3)
+            for z in Internal.getZones(t):
+                C._addBC2Zone(z, z[0]+'periodKmin', 'BCautoperiod', 'kmin')
+                C._addBC2Zone(z, z[0]+'periodKmin', 'BCautoperiod', 'kmax')
+            BCs = Internal.getNodesFromType(t, "BC_t")
+            for bc in BCs:
+                if Internal.getValue(bc)=='BCautoperiod':
+                    ptrg = Internal.getNodeFromName(bc, "PointRange")[1]
+                    ptrg[0,0] = 3 
+                    ptrg[0,1] = ptrg[0,1]-2
 
+                    ptrg[1,0] = 3 
+                    ptrg[1,1] = ptrg[1,1]-2
+            
+            
     return t, tb
 
 
@@ -2093,7 +2110,11 @@ class IBM(Common):
         self.nbZonesIBC = len(self.zonesRIBC)
         
         for i in range(Cmpi.size): datas[i] = [] # force
-    
+        
+        model = Internal.getNodeFromName(t, 'GoverningEquations')
+        if model is not None: model = Internal.getValue(model)
+        else:                 model = "Euler"
+            
         if dictOfCorrectedPtsByIBCType!={}:
             for ibcTypeL in dictOfCorrectedPtsByIBCType:
                 allCorrectedPts = dictOfCorrectedPtsByIBCType[ibcTypeL]
@@ -2114,9 +2135,10 @@ class IBM(Common):
                             zd = Internal.getNodeFromName2(tc, zdname)
                             if zd is None: print('!!!Zone None', zrname, zdname)
                             else: dnrZones.append(zd)
+                        
                         XOD._setIBCDataForZone__(zrcv, dnrZones, allCorrectedPts[nozr], allWallPts[nozr], allInterpPts[nozr],
                                                  nature=1, penalty=1, loc='centers', storage='inverse', dim=self.dimPb,
-                                                 interpDataType=self.input_var.interpDataType, ReferenceState=ReferenceState, bcType=ibcTypeL)
+                                                 interpDataType=self.input_var.interpDataType, ReferenceState=ReferenceState, bcType=ibcTypeL,model=model)
     
                         nozr += 1
                         for zd in dnrZones:
@@ -2415,7 +2437,7 @@ class IBM(Common):
         ##IN  - tb                    :closed geometry tree 
         ##OUT - t                     :t tree with blanked done
         t = self.blanking__(t,tb)
-
+        
         C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
 
         if self.input_var.IBCType == -1:
@@ -2449,6 +2471,7 @@ class IBM(Common):
                                               Internal.__GridCoordinates__,
                                               Internal.__FlowSolutionNodes__,
                                               Internal.__FlowSolutionCenters__)
+        
         ##Ghost kmin et kmax donneuse potentiel
         if self.input_var.extrusion is not None:
             listvars_local =['cellNChim','cellNIBC']

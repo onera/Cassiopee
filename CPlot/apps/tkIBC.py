@@ -284,7 +284,7 @@ def createApp(win):
     # -0- Snear -
     V = TK.DoubleVar(win); V.set(0.01); VARS.append(V)
     # -1- IBC type -
-    V = TK.StringVar(win); V.set('Musker'); VARS.append(V)
+    V = TK.StringVar(win); V.set('WallLaw'); VARS.append(V)
     # -2- dfar local -
     V = TK.DoubleVar(win); V.set(20.); VARS.append(V)
     # -3- mask inv or not -
@@ -316,7 +316,7 @@ def createApp(win):
     B = TTK.Label(Frame, text="IBC type")
     B.grid(row=2, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Type of Immersed Boundary Condition.')
-    B = TTK.OptionMenu(Frame, VARS[1], 'slip', 'noslip', 'Log', 'Musker', 'outpress', 'inj', 'TBLE', 'slip_cr', 'overlap','wiremodel','None')
+    B = TTK.OptionMenu(Frame, VARS[1], 'slip', 'noslip', 'Log', 'Musker', 'WallLaw', 'outpress', 'inj', 'TBLE', 'slip_cr', 'overlap','wiremodel','WallLawLinearized','None')
     B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
 
     # - Mask settings (in or out) -
