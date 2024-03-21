@@ -1,8 +1,12 @@
 # Part loader - taken from old maia
-import Converter.PyTree as C
-import Converter.Internal as I
-import Converter.Filter as Filter
-import Converter.Mpi as Cmpi
+#import Converter.PyTree as C
+#import Converter.Internal as I
+#import Converter.Filter as Filter
+#import Converter.Mpi as Cmpi
+from . import PyTree as C
+from . import Internal as I
+from . import Filter as Filter
+from . import Mpi as Cmpi
 import XCore.xcore
 import numpy
 from functools import partial
@@ -229,7 +233,6 @@ def computePlistOrPrangeDistribution(node, comm):
 
   if pr_n2:
     pr_n2 = pr_n2[1].ravel('k')
-    print(pr_n2, flush=True)
     pr_length = pr_n2[1] - pr_n2[0] + 1
     createDistributionNode(pr_length, comm, 'Index', node)
 

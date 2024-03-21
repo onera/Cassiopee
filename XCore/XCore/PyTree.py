@@ -2,7 +2,7 @@ import Converter.Filter2 as Filter2
 import Converter.Mpi as Cmpi
 import Converter.Internal as I
 import Converter.PyTree as C
-import XCore.xcore
+from . import xcore
 
 # Returns for each zone, exchanged fields
 def exchangeFields(t, fldNames):
@@ -28,7 +28,7 @@ def exchangeFields(t, fldNames):
             nei_proc = int(I.getValue(comm))
             ptlist = I.getNodeFromName(comm, 'PointList')[1]
             comm_list.append([nei_proc, ptlist])
-        rfields.append(XCore.xcore.exchangeFields(arr, pe[1], flds, comm_list))
+        rfields.append(xcore.exchangeFields(arr, pe[1], flds, comm_list))
     return rfields
 
 def initAdaptTree(t):
@@ -37,7 +37,7 @@ def initAdaptTree(t):
   for z in zones:
     fc = C.getFields(I.__GridCoordinates__, z, api=3)[0]
     if fc != []:
-      adaptTrees.append(XCore.xcore.initAdaptTree(fc))
+      adaptTrees.append(xcore.initAdaptTree(fc))
     else:
       adaptTrees.append(None)
   return adaptTrees
@@ -70,7 +70,7 @@ def loadAndSplitElt(fileName):
     arr = I.getNodeFromName1(cn, 'ElementConnectivity')[1]
     chunks.append([name, stride, arr])
 
-  parts = XCore.xcore.chunk2partElt(XYZ, chunks)
+  parts = xcore.chunk2partElt(XYZ, chunks)
 
   zones = []
 
@@ -142,7 +142,7 @@ def loadAndSplitNGon(fileName):
 
   arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,solc,soln,bcs])
 
-  RES = XCore.xcore.chunk2partNGon(arrays)
+  RES = xcore.chunk2partNGon(arrays)
   (mesh, comm_data, solc, sol, bcs, cells, faces, points) = RES
   Cmpi.barrier()
 
@@ -188,28 +188,28 @@ def loadAndSplitNGon(fileName):
 def _adaptMeshDir(h, l, fld):
     zone = I.getZones(l)[0]
     arr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
-    XCore.xcore.adaptMeshDir(h, arr, fld)
+    xcore.adaptMeshDir(h, arr, fld)
     return None
 
 def _adaptMeshSeq(h, fld, fv=None):
     if isinstance(h, list):
         if len(h) != len(fld): raise ValueError('mesh hooks and fields not the same size')
         for i in range(len(h)):
-            XCore.xcore.adaptMeshSeq(h[i], fld[i], fv)
+            xcore.adaptMeshSeq(h[i], fld[i], fv)
     else:
-        XCore.xcore.adaptMeshSeq(h, fld, fv)
+        xcore.adaptMeshSeq(h, fld, fv)
     return None
 
 def extractLeafMesh(h):
     if isinstance(h, list):
         leaves = []
         for i in range(len(h)):
-            m = XCore.xcore.extractLeafMesh(h[i])
+            m = xcore.extractLeafMesh(h[i])
             leaves.append(I.createZoneNode('Leaves' + '%d'%i, m))
         T = C.newPyTree(['Base', leaves])
         return T
     else:
-        m = XCore.xcore.extractLeafMesh(h)
+        m = xcore.extractLeafMesh(h)
         leaf = I.createZoneNode('Leaves', m)
         T = C.newPyTree(['Base', leaf])
         return T
@@ -221,7 +221,7 @@ def createAdaptMesh(t):
     for z in zones:
         fc = C.getFields(I.__GridCoordinates__, z, api=3)[0]
         if fc != []:
-            AMs.append(XCore.xcore.createAdaptMesh(fc))
+            AMs.append(xcore.createAdaptMesh(fc))
     return AMs
 
 ############################################################################
@@ -256,38 +256,38 @@ def CreateAdaptMesh(t, own, nei, comm, Tr, Tu, eps, hmin, hmax, unrefine=False,
       #name = str(I.getValue(name))
       bcs.append([plist[1], name])
     
-  return XCore.xcore.CreateAdaptMesh(fc, own, nei, comm, bcs, Tr, Tu, eps,
+  return xcore.CreateAdaptMesh(fc, own, nei, comm, bcs, Tr, Tu, eps,
     hmin, hmax, unrefine, mode_2D, gcells, gfaces, gpoints)
 
 def AdaptMesh(AM):
-  return XCore.xcore.AdaptMesh(AM)
+  return xcore.AdaptMesh(AM)
 
 def computeGradient(AM, field, cx, cy, cz, own, nei):
-  return XCore.xcore.computeGradient(AM, field, cx, cy, cz, own, nei)
+  return xcore.computeGradient(AM, field, cx, cy, cz, own, nei)
 
 def computeHessian(AM, field, grad, cx, cy, cz, own, nei):
-  return XCore.xcore.computeHessian(AM, field, grad, cx, cy, cz, own, nei)
+  return xcore.computeHessian(AM, field, grad, cx, cy, cz, own, nei)
 
 def hessianToMetric(H, hmin, hmax, eps):
-  return XCore.xcore.hessianToMetric(H, hmin, hmax, eps)
+  return xcore.hessianToMetric(H, hmin, hmax, eps)
 
 def _makeRefDataFromGradAndHess(AM, f, g, h):
-  return XCore.xcore._makeRefDataFromGradAndHess(AM, f, g, h)
+  return xcore._makeRefDataFromGradAndHess(AM, f, g, h)
 
 def _prepareMeshForAdaptation(t):
     zones = I.getZones(t)
     zone = zones[0]
     arr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
-    return XCore.xcore._prepareMeshForAdaptation(arr)
+    return xcore._prepareMeshForAdaptation(arr)
 
 def ExtractLeafMesh(t, conformize=1):
-  return XCore.xcore.ExtractLeafMesh(t, conformize)
+  return xcore.ExtractLeafMesh(t, conformize)
 
 def _assignRefDataToAM(AM, REF):
-  return XCore.xcore._assignRefDataToAM(AM, REF)
+  return xcore._assignRefDataToAM(AM, REF)
 
 def extractBoundaryMesh(AM, mode):
-  return XCore.xcore.extractBoundaryMesh(AM, mode)
+  return xcore.extractBoundaryMesh(AM, mode)
 
 
 ######################################################
@@ -299,4 +299,4 @@ def intersectMesh(t):
   master = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
   slave = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
 
-  return XCore.xcore.intersectMesh(master, slave)
+  return xcore.intersectMesh(master, slave)
