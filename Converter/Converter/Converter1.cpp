@@ -318,11 +318,9 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     // Formatted su2 read
     ret = K_IO::GenIO::getInstance()->su2read(fileName, varString, 
                                               field, im, jm, km, 
-                                              ufield, c, et[0], zoneNames,
-                                              BCFaces, BCNames);
+                                              ufield, c, et, zoneNames,
+                                              BCFaces, BCNames, api);
     
-    et.resize(et[0].size()); // TODO hack tmp
-    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
     // Pour l'instant, on ne peut pas les traiter en elements
     for (size_t i = 0; i < BCFaces.size(); i++) delete BCFaces[i];
     for (size_t i = 0; i < BCNames.size(); i++) delete [] BCNames[i];
@@ -852,7 +850,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
     
     isok = K_IO::GenIO::getInstance()->su2write(fileName, dataFmt, varString,
                                                 ni, nj, nk,
-                                                fieldc, fieldu, connectu, elt,
+                                                fieldc, fieldu, connectu, eltIds,
                                                 zoneNames, BCFacesO);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_foam") == 0) // fmt open foam

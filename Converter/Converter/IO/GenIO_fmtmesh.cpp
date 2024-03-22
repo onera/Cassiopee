@@ -1231,9 +1231,14 @@ E_Int K_IO::GenIO::meshwrite(
   FldArrayF* vertices;
   vertices = new FldArrayF(size,3);
   FldArrayF& v = *vertices;
+  vector<E_Int> posCoords; posCoords.reserve(6);
+  if (posx > 0) {posCoords.push_back(1); posCoords.push_back(posx);}
+  if (posy > 0) {posCoords.push_back(2); posCoords.push_back(posy);}
+  if (posz > 0) {posCoords.push_back(3); posCoords.push_back(posz);}
 
   #pragma omp parallel
   {
+    E_Int ind1, ind2;
     for (E_Int zn = 0; zn < nzones; zn++)
     {
       if (not isZoneValid[zn]) continue;
@@ -1251,45 +1256,21 @@ E_Int K_IO::GenIO::meshwrite(
           v(offset+n,3) = field(n,posz);
         }
       }
-      else if (posx > 0 && posy > 0)
-      {
-        #pragma omp for
-        for (E_Int n = 0; n < field.getSize(); n++)
-        {
-          v(offset+n,1) = field(n,posx);
-          v(offset+n,2) = field(n,posy);
-          v(offset+n,3) = 0.;
-        }
-      }
-      else if (posx > 0 && posz > 0)
-      {
-        #pragma omp for
-        for (E_Int n = 0; n < field.getSize(); n++)
-        {
-          v(offset+n,1) = field(n,posx);
-          v(offset+n,2) = 0.;
-          v(offset+n,3) = field(n,posz);
-        }
-      }
-      else if (posy > 0 && posz > 0)
-      {
-        #pragma omp for
-        for (E_Int n = 0; n < field.getSize(); n++)
-        {
-          v(offset+n,1) = 0.;
-          v(offset+n,2) = field(n,posy);
-          v(offset+n,3) = field(n,posz);
-        }
-      }
       else
       {
         #pragma omp for
         for (E_Int n = 0; n < field.getSize(); n++)
-        {
-          v(offset+n,1) = field(n,posx);
-          v(offset+n,2) = 0.;
-          v(offset+n,3) = 0.;
-        }
+          for (E_Int j = 1; j <= 3; j++)
+            v(offset+n,j) = 0.;
+
+        #pragma omp for
+        for (E_Int n = 0; n < field.getSize(); n++)
+          for (size_t j = 0; j < posCoords.size(); j+=2)
+          {
+            ind1 = posCoords[j];
+            ind2 = posCoords[j+1];
+            v(offset+n,ind1) = field(n,ind2);
+          }
       }
 
       // Connectivities
@@ -1300,7 +1281,7 @@ E_Int K_IO::GenIO::meshwrite(
       for (size_t ic = 0; ic < eltTypeZn.size(); ic++)
       {
         E_Int elt = eltTypeZn[ic];
-        FldArrayI& cn = *connect[connIdSrcz[ic]];
+        FldArrayI& cn = *connect[connIdSrcz[ic]]->getConnect(0);
         
         if (elt == 1) // Edge
         {
