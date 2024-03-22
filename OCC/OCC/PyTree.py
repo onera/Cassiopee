@@ -724,11 +724,33 @@ def _remeshTreeFromFaces(hook, t, faceList, hList):
 
   return None
 
-
 # build interpData from a CAD t
 # build tc, add ghostcells in one go
 def _setInterpData(t, tc):
-  # fonction finale integrant getOppData
+  pos = getAllPos(t)
+  nCADFaces = len(pos[1])
+
+  for faceNo in range(1, nCADFaces+1):
+    print("\rfaceNo: {} ...".format(faceNo), end='')
+    face = getFace(t, pos, faceNo)
+    # Get list of edges for that face, their range, and the total no of points
+    edgeList = getEdgeListOfFace(t, pos, faceNo)
+    r = getEdgeRangeOfFace(t, pos, faceNo, edgeList)
+    nPtsOnEdgesOfFace = getNPtsOnEdgesOfFace(t, pos, faceNo, edgeList)
+
+    # Loop over edge indices of that face
+    for edgeNo in edgeList:
+      # Edge / faceOpp
+      faceOppNo = getFaceNoOppOfEdge(t, pos, edgeNo, faceNo)
+      faceOpp = getFace(t, pos, faceOppNo)
+      faceOpp = C.getAllFields(faceOpp, 'nodes')[0]
+
+      # Extract range and edge vertex indices
+      vIdxOpp = getEdgeVerticesOfFace(t, pos, faceOppNo).get(edgeNo)
+      oppData = occ.getOppData(faceOpp, vIdxOpp)
+      oppData = C.convertArrays2ZoneNode('Zone', [oppData])
+      # Append vertices and connectivity of opp. face to current face
+      _addOppFaceData2Face(face, oppData, edgeNo, r, nPtsOnEdgesOfFace)
   return None
 
 # Retourne l'edge a partir de edgeNo (numero global CAD)
@@ -806,3 +828,57 @@ def getFaceNoOppOfEdge(t, pos, edgeNo, faceNo):
   for f in faceList:
     if f != faceNo: return f
   return -1
+
+# Add opposite face fields and connectivity to a face (inplace)
+def _addOppFaceData2Face(z, zOpp, edgeIndex, r, nPtsOnEdgesOfFace):
+  # Get dimensions of current face
+  rEdg = r[edgeIndex]
+  nptsEdge = rEdg[1] - rEdg[0]
+  dims = Internal.getValue(z)[0]
+  
+  # Add missing opposite vertices to current
+  # NB: the first `nptsEdge` points in 'Opp' should be skipped
+  coords = C.getFields('coords', z)
+  coordsOpp = C.getFields('coords', zOpp)
+  coordsv = Internal.getValue(coords[0])
+  coordsOppv = Internal.getValue(coordsOpp[0])
+  coords[0][1] = numpy.hstack((coordsv, coordsOppv[:,nptsEdge:]))
+  z = C.setFields(coords, z, 'nodes')
+  
+  # Edit opposite connectivity and append to current
+  n = Internal.getNodesFromType1(z, 'Elements_t')
+  c = Internal.getNodeFromType1(n[0], 'DataArray_t')
+  cn = Internal.getValue(c)
+  nOpp = Internal.getNodesFromType1(zOpp, 'Elements_t')
+  cOpp = Internal.getNodeFromType1(nOpp[0], 'DataArray_t')
+  cnOpp = Internal.getValue(cOpp)
+  lastPoint = cnOpp == nptsEdge
+  # internal nodes in opp. face
+  cnOpp[cnOpp > nptsEdge] += dims[0] - nptsEdge
+  # setting edge indices of opp. face to that of current face
+  cnOpp[cnOpp < nptsEdge] += rEdg[0]
+  # map last point to first point
+  cnOpp[lastPoint] = numpy.mod(cnOpp[lastPoint] + rEdg[0], nPtsOnEdgesOfFace)
+  c[1] = numpy.concatenate((cn, cnOpp))
+  
+  # Edit current Rind using offsetted opposite element range
+  elRgOpp = Internal.getNodeFromType1(nOpp[0], 'IndexRange_t')
+  # offset elt count in opp using current
+  elRgOppv = Internal.getValue(elRgOpp) + dims[1]
+  ntotElts = elRgOppv[1] # shorthand
+  rind = Internal.getNodeFromType1(z, 'Rind_t')
+  if rind is None:
+    Internal.newRind(value=elRgOppv, parent=z)
+  else:
+    rindv = Internal.getValue(rind)
+    rindv[1] = ntotElts
+    
+  # Edit element range of merged connectivity
+  elRg = Internal.getNodeFromType1(n[0], 'IndexRange_t')
+  elRgv = Internal.getValue(elRg)
+  elRgv[1] = ntotElts
+  
+  # Edit number of elements of current face
+  dims = Internal.getValue(z)[0]
+  dims[1] = ntotElts
+  return None
