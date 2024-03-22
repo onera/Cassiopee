@@ -28,7 +28,7 @@ CADHOOK = None
 # Fichier pour les exports
 EXPORTFILE = ''
 # Update du menu Apps (semble poser pb sur certains linux)
-UPDATEAPPSMENU = True
+UPDATEAPPSMENU = False
 # pyTree contenant les donnees affichee
 t = []
 # pyTree contenant l'arbre precedent (pour le undo)

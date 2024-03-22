@@ -1,5 +1,5 @@
 # - tkMeshQual -
-"""COmpute mesh quality indicators."""
+"""Compute mesh quality indicators."""
 try: import tkinter as TK
 except: import Tkinter as TK
 import CPlot.Ttk as TTK
@@ -39,6 +39,7 @@ def findVar(var):
 def computeQual():
     if CTK.t == []: return
     CTK.saveTree()
+    CTK.setCursor(2, WIDGETS['frame'])
     qtype = VARS[0].get()
     if qtype == 'Volume map':
         CTK.t = G.getVolumeMap(CTK.t)
@@ -51,10 +52,12 @@ def computeQual():
         CTK.TXT.insert('START', 'Regularity map computed.\n')
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
+    CTK.setCursor(0, WIDGETS['frame'])
 
 #==============================================================================
-def viewQual():
+def viewQual(event=None):
     if CTK.t == []: return
+    CTK.setCursor(2, WIDGETS['frame'])
     qtype = VARS[1].get()
     if qtype == 'Neg. volume cells':
         res = findVar('vol')
@@ -74,6 +77,7 @@ def viewQual():
             CTK.display(CTK.dt, mainTree=CTK.MESHQUAL)
     elif qtype == 'Mesh':
         CTK.display(CTK.t)
+    CTK.setCursor(0, WIDGETS['frame'])
                 
 #==============================================================================
 # Create app widgets
@@ -114,7 +118,7 @@ def createApp(win):
     B = TTK.Button(Frame, text="View", command=viewQual)
     B.grid(row=1, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='View this filter.')
-    B = TTK.OptionMenu(Frame, VARS[1], 'Mesh', 'Neg. volume cells')
+    B = TTK.OptionMenu(Frame, VARS[1], 'Mesh', 'Neg. volume cells', command=viewQual)
     B.grid(row=1, column=1, sticky=TK.EW)
     
 #==============================================================================

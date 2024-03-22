@@ -58,6 +58,8 @@ def createApp(win):
 
     # - Stereo mode -
     B = TTK.Label(Frame, text="Stereo")
+    BB = CTK.infoBulle(parent=B, text='Choose a stereo mode.')
+    
     B.grid(row=0, column=0, sticky=TK.EW)
     B = TTK.OptionMenu(Frame, VARS[0], 'None', 'Anaglyph (b&w)',
                        'Anaglyph (color)', command=setStereo)
