@@ -18,19 +18,19 @@
 */
 
 #include "occ.h"
-#include <set>
+#include <unordered_set>
+#include <unordered_map>
 
 // ============================================================================
 /* Return the opposite data for an edge on a face */
 // ============================================================================
 PyObject* K_OCC::getOppData(PyObject* self, PyObject* args)
 {
+  // array is the face TRI mesh of the opposite face
+  // indArray are the indices (1st vertex: 0) in TRI mesh of the edge
   PyObject* array;
   PyObject* indArray;
   if (!PYPARSETUPLE_(args, OO_ , &array, &indArray)) return NULL;
-
-  // input array is the face TRI mesh (without ghost cells)
-  // inds is the indices in TRI mesh of edge
 
   // Check array
   E_Int nil, njl, nkl;
@@ -72,9 +72,6 @@ PyObject* K_OCC::getOppData(PyObject* self, PyObject* args)
                     "getOppData: coordinates missing in TRI array.");
     return NULL;
   }
-  E_Float* fx = f->begin(posx+1);
-  E_Float* fy = f->begin(posy+1);
-  E_Float* fz = f->begin(posz+1);
 
   // Check inds
   E_Int* inds; E_Int size; E_Int nfld;
@@ -87,77 +84,104 @@ PyObject* K_OCC::getOppData(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  // Export numpy of coordinates of inds (first)
-  PyObject* tplx = K_NUMPY::buildNumpyArray(size, 1, 0, 1);
-  E_Float* px = K_NUMPY::getNumpyPtrF(tplx);
-  PyObject* tply = K_NUMPY::buildNumpyArray(size, 1, 0, 1);
-  E_Float* py = K_NUMPY::getNumpyPtrF(tply);
-  PyObject* tplz = K_NUMPY::buildNumpyArray(size, 1, 0, 1);
-  E_Float* pz = K_NUMPY::getNumpyPtrF(tplz);
-  
-  // remplissage
-  E_Int ind;
-  for (E_Int i = 0; i < size; i++)
-  {
-    ind = inds[i];
-    px[i] = fx[ind];
-    py[i] = fy[ind];
-    pz[i] = fz[ind];
-  }
-
-  // Recherche des vertex voisins
+  // Recherche des vertex voisins et des triangles adjacents
   E_Int nv = f->getSize();
-  printf("nv=%d \n", nv);
+  //printf("nv=%d \n", nv);
   
+  // List of elements of faceOpp connected to the edge vertices
   std::vector< std::vector<E_Int> > cVE(nv);
   K_CONNECT::connectEV2VE(*cn, cVE);
 
-  std::set<E_Int> myset;
-  E_Int indn, inde;
-  FldArrayI& cnp = *cn;
+  E_Int ind, inde, indn;
+  E_Int vidx = size; // vertex counter starting from max range index of edge
+  FldArrayI& cm = *(cn->getConnect(0));
+  
+  std::unordered_map<E_Int, E_Int> vertexMap;
+  std::vector<E_Int> vertexInsOrder; // maintains insertion order
+  TopologyOpt E;
+  E_Int nvpe = 3; std::vector<E_Int> elt(nvpe);
+  std::unordered_set<TopologyOpt, JenkinsHash<TopologyOpt> > eltSet;
+  
+  // Insert edge vertices in reverse order
+  vertexInsOrder.reserve(2*size); // ballpark
   for (E_Int i = 0; i < size; i++)
   {
+    ind = inds[i]+1;
+    vertexMap.insert(std::make_pair(ind, size-i));
+    vertexInsOrder.push_back(ind);
+  }
+
+  // Insert vertices of ghost cells and ghost cells themselves
+  // Loop over all but corner vertices
+  for (E_Int i = 1; i < size-1; i++)
+  {
     ind = inds[i];
-    //printf("ind=%d size=%d\n", ind, cVE.size());
-    std::vector<E_Int>& elts = cVE[ind];
+    const std::vector<E_Int>& elts = cVE[ind];
     for (size_t e = 0; e < elts.size(); e++)
     {
       inde = elts[e];
-      //printf("inde=%d size=\n", inde);
-      indn = cnp(inde, 1)-1;
-      myset.insert(indn);
-      indn = cnp(inde, 2)-1;
-      myset.insert(indn);
-      indn = cnp(inde, 3)-1;
-      myset.insert(indn);
+      for (E_Int j = 0; j < nvpe; j++)
+      {
+        indn = cm(inde, j+1);
+        // Inserted vertex, indn, maps to -1 if it isn't in the map already
+        auto resV = vertexMap.insert(std::make_pair(indn, -1));
+        if (resV.first->second == -1)
+        {
+          vidx++; resV.first->second = vidx;
+          vertexInsOrder.push_back(indn);
+        }
+        elt[j] = resV.first->second;
+      }
+      E.set(elt, nvpe);
+      eltSet.insert(E);
     }
   }
   
-  // Export set to numpy
-  E_Int vsize = myset.size();
+  vertexInsOrder.shrink_to_fit();
+  E_Int vsize = vertexMap.size();
+  E_Int esize = eltSet.size();
 
-  // Export numpy of coordinates of inds (first)
-  PyObject* tpl2x = K_NUMPY::buildNumpyArray(vsize, 1, 0, 1);
-  E_Float* p2x = K_NUMPY::getNumpyPtrF(tpl2x);
-  PyObject* tpl2y = K_NUMPY::buildNumpyArray(vsize, 1, 0, 1);
-  E_Float* p2y = K_NUMPY::getNumpyPtrF(tpl2y);
-  PyObject* tpl2z = K_NUMPY::buildNumpyArray(vsize, 1, 0, 1);
-  E_Float* p2z = K_NUMPY::getNumpyPtrF(tpl2z);
-
-  E_Int i = 0;
-  for (auto it = myset.begin(); it != myset.end(); it++)
+  // Ajout des triangles supplementaires (ghost cells)
+  nfld = f->getNfld(); E_Int api = f->getApi();
+  PyObject* tpl2 = K_ARRAY::buildArray3(nfld, varString, vsize, esize,
+                                        "TRI", false, api);
+  FldArrayF* f2; FldArrayI* cn2;
+  K_ARRAY::getFromArray3(tpl2, f2, cn2);
+  
+  #pragma omp parallel if (vsize > __MIN_SIZE_MEAN__)
   {
-    ind = *it;
-    p2x[i] = fx[ind];
-    p2y[i] = fy[ind];
-    p2z[i] = fz[ind]; i++;
+    E_Int ind1, ind2;
+    // Fields
+    for (E_Int n = 1; n <= nfld; n++)
+    {
+      E_Float* fp = f->begin(n);
+      E_Float* f2p = f2->begin(n);
+      #pragma omp for
+      for (E_Int i = 0; i < vsize; i++)
+      {
+        ind1 = vertexInsOrder[i];
+        ind2 = vertexMap[ind1];
+        f2p[ind2-1] = fp[ind1-1];
+      }
+    }
   }
 
-  // Recherche des triangles supplementaires
+  // Connectivity TRI
+  ind = 0;
+  FldArrayI& cm2 = *(cn2->getConnect(0));
+  for (auto it = eltSet.begin(); it != eltSet.end(); it++)
+  {
+    const auto vert = it->p_;
+    for (E_Int j = 0; j < nvpe; j++)
+    {
+      cm2(ind,j+1) = vert[j];
+    }
+    ind++;
+  }
   
-
+  RELEASESHAREDU(tpl2, f2, cn2);
   RELEASESHAREDU(array, f, cn);
   Py_DECREF(indArray);
 
-  return Py_BuildValue("OOO", tpl2x, tpl2y, tpl2z);
-} 
+  return tpl2;
+}

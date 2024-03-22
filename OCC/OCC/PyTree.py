@@ -728,7 +728,7 @@ def _remeshTreeFromFaces(hook, t, faceList, hList):
 # build interpData from a CAD t
 # build tc, add ghostcells in one go
 def _setInterpData(t, tc):
-  # fonction finale integrant getOppData    
+  # fonction finale integrant getOppData
   return None
 
 # Retourne l'edge a partir de edgeNo (numero global CAD)
@@ -737,57 +737,72 @@ def getEdge(t, pos, edgeNo):
   ze = be[2][pos[0][edgeNo]]
   return ze
 
+# Retourne les edges a partir d'une liste de edgeNos (numero global CAD)
+def getEdges(t, pos, edgeNos):
+  be = Internal.getNodeFromName1(t, 'EDGES')
+  locEdgeNos = [pos[0].get(k) for k in edgeNos]
+  ze = [be[2][i] for i in locEdgeNos]
+  return ze
+
 # Retourne la face de faceNo (numero global CAD)
 def getFace(t, pos, faceNo):
   bf = Internal.getNodeFromName1(t, 'FACES')
   zf = bf[2][pos[1][faceNo]]
   return zf
 
-# return the position of edgeNo in faceNo
-def getEdgePosInFace(t, faceNo, edgeNo):
-  zf = getFace(t, faceNo)
-  CAD = Internal.getNodeFromName1(zf, 'CAD')
-  edgeList = Internal.getNodeFromName1(CAD, 'edgeList')
-  pos = 0
-  for e in edgeList: 
-    if e == edgeNo: return pos
-    pos += 1
+# Return the position of edgeNo in faceNo
+def getEdgePosInFace(t, pos, faceNo, edgeNo):
+  edgeList = getEdgeListOfFace(t, pos, faceNo)
+  for c, e in enumerate(edgeList):
+    if e == edgeNo: return c
   return -1 # not found
 
 # Get edge list from faceNo
 def getEdgeListOfFace(t, pos, faceNo):
-  bf = Internal.getNodeFromName1(t, 'FACES')
-  zf = bf[2][pos[1][faceNo]]
+  zf = getFace(t, pos, faceNo)
   CAD = Internal.getNodeFromName1(zf, 'CAD')
   edgeList = Internal.getNodeFromName1(CAD, 'edgeList')
   return edgeList[1]
 
 # Get face list from edgeNo
 def getFaceListOfEdge(t, pos, edgeNo):
-  be = Internal.getNodeFromName1(t, 'EDGES')
-  ze = be[2][pos[0][edgeNo]]
+  ze = getEdge(t, pos, edgeNo)
   CAD = Internal.getNodeFromName1(ze, 'CAD')
   faceList = Internal.getNodeFromName1(CAD, 'faceList')
   return faceList[1]
 
 # Return the ranges of edges of faceNo
-def getEdgeRangeOfFace(t, pos, faceNo):
-  edgeList = getEdgeListOfFace(t, pos, faceNo)
+def getEdgeRangeOfFace(t, pos, faceNo, edgeList=None):
+  if edgeList is None: edgeList = getEdgeListOfFace(t, pos, faceNo)
   ranges = {}
   c = 0
   for e in edgeList:
     ze = getEdge(t, pos, e)
     npts = C.getNPts(ze)
     ranges[e] = [c, c+npts]
-    c += npts
+    c += npts - 1 # last point is the 1st point of next edge
   return ranges
 
-# get the face opp of edgeNo belonging to faceNo
+# Return the number of points on the edges of faceNo
+def getNPtsOnEdgesOfFace(t, pos, faceNo, edgeList=None):
+  if edgeList is None: edgeList = getEdgeListOfFace(t, pos, faceNo)
+  npts = 0
+  for e in edgeList:
+    ze = getEdge(t, pos, e)
+    npts += C.getNPts(ze) - 1 # last point is the 1st point of next edge
+  return npts
+
+# Return the vertex indices for all edges of faceNo
+def getEdgeVerticesOfFace(t, pos, faceNo, edgeList=None):
+  if edgeList is None: edgeList = getEdgeListOfFace(t, pos, faceNo)
+  ranges = getEdgeRangeOfFace(t, pos, faceNo)
+  values = [numpy.arange(*ranges.get(k), dtype=Internal.E_NpyInt) for k in edgeList]
+  values[-1][-1] = values[0][0] # last index is a repetition of the first
+  return dict((k, v) for k, v in zip(edgeList, values))
+
+# Get the face opp of edgeNo belonging to faceNo
 def getFaceNoOppOfEdge(t, pos, edgeNo, faceNo):
   faceList = getFaceListOfEdge(t, pos, edgeNo)
   for f in faceList:
     if f != faceNo: return f
   return -1
-
-
-
