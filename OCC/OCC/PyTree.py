@@ -750,7 +750,7 @@ def _setInterpData(t, tc):
       oppData = occ.getOppData(faceOpp, vIdxOpp)
       oppData = C.convertArrays2ZoneNode('Zone', [oppData])
       # Append vertices and connectivity of opp. face to current face
-      _addOppFaceData2Face(face, oppData, edgeNo, r, nPtsOnEdgesOfFace)
+      _addOppFaceData2Face(face, oppData, r[edgeNo], nPtsOnEdgesOfFace)
   return None
 
 # Retourne l'edge a partir de edgeNo (numero global CAD)
@@ -829,11 +829,10 @@ def getFaceNoOppOfEdge(t, pos, edgeNo, faceNo):
     if f != faceNo: return f
   return -1
 
-# Add opposite face fields and connectivity to a face (inplace)
-def _addOppFaceData2Face(z, zOpp, edgeIndex, r, nPtsOnEdgesOfFace):
+# Add opposite face vertices and connectivity to a face (inplace)
+def _addOppFaceData2Face(z, zOpp, rgEdge, nPtsOnEdgesOfFace):
   # Get dimensions of current face
-  rEdg = r[edgeIndex]
-  nptsEdge = rEdg[1] - rEdg[0]
+  nptsEdge = rgEdge[1] - rgEdge[0]
   dims = Internal.getValue(z)[0]
   
   # Add missing opposite vertices to current
@@ -856,9 +855,9 @@ def _addOppFaceData2Face(z, zOpp, edgeIndex, r, nPtsOnEdgesOfFace):
   # internal nodes in opp. face
   cnOpp[cnOpp > nptsEdge] += dims[0] - nptsEdge
   # setting edge indices of opp. face to that of current face
-  cnOpp[cnOpp < nptsEdge] += rEdg[0]
+  cnOpp[cnOpp < nptsEdge] += rgEdge[0]
   # map last point to first point
-  cnOpp[lastPoint] = numpy.mod(cnOpp[lastPoint] + rEdg[0], nPtsOnEdgesOfFace)
+  cnOpp[lastPoint] = numpy.mod(cnOpp[lastPoint] + rgEdge[0], nPtsOnEdgesOfFace)
   c[1] = numpy.concatenate((cn, cnOpp))
   
   # Edit current Rind using offsetted opposite element range
