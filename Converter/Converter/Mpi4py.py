@@ -109,7 +109,7 @@ def Allreduce(dataIn, dataOut, op=MPI.SUM):
 #==============================================================================
 def sendRecv(datas, graph):
     if graph == {}: return {}
-    #reqs = []
+    reqs = []
     
     if rank in graph:
         g = graph[rank] # graph du proc courant
@@ -118,8 +118,8 @@ def sendRecv(datas, graph):
             #print('%d: On envoie a %d: %s'%(rank,oppNode,g[oppNode]))
             if oppNode in datas: s = KCOMM.isend(datas[oppNode], dest=oppNode)
             else: s = KCOMM.isend(None, dest=oppNode)
-            #reqs.append(s)
-    KCOMM.Barrier()
+            reqs.append(s)
+    barrier()
     rcvDatas={}
     for node in graph:
         #print(rank, graph[node],graph[node].keys(),flush=True)
@@ -127,8 +127,7 @@ def sendRecv(datas, graph):
             #print('%d: On doit recevoir de %d: %s'%(rank,node,graph[node][rank]),flush=True)
             rec = KCOMM.recv(source=node)
             if rec is not None: rcvDatas[node] = rec
-    KCOMM.Barrier()
-    #MPI.Request.waitall(reqs)
+    MPI.Request.waitall(reqs)
     return rcvDatas
 
 #==============================================================================
@@ -139,7 +138,7 @@ def sendRecv(datas, graph):
 #==============================================================================
 def sendRecvC(datas, graph):
     if graph == {}: return {}
-    #reqs = []
+    reqs = []
     
     if rank in graph:
         g = graph[rank] # graph du proc courant
@@ -150,8 +149,8 @@ def sendRecvC(datas, graph):
                 s = converter.iSend(datas[oppNode], oppNode, rank, KCOMM)
             else:
                 s = converter.iSend(None, oppNode, rank, KCOMM)
-            #reqs.append(s)
-    KCOMM.Barrier()
+            reqs.append(s)
+    barrier()
     rcvDatas={}
     for node in graph:
         #print(rank, graph[node].keys())
@@ -160,8 +159,7 @@ def sendRecvC(datas, graph):
             rec = converter.recv(node, rank, KCOMM)
             if rec is not None: rcvDatas[node] = rec
 
-    #a = converter.waitAll(reqs)
-    KCOMM.Barrier()
+    a = converter.waitAll(reqs)
     return rcvDatas
 
 #==============================================================================
