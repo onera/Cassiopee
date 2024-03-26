@@ -2561,12 +2561,12 @@ def prepareIBMData(t, tbody, DEPTH=2, loc='centers', frontType=1, interpDataType
 
     _removeBlankedGrids(t, loc='centers')
 
-    print('Nb of Cartesian grids=%d for rank %d.'%(len(Internal.getZones(t)), Cmpi.rank), flush=True)
+    print('Nb of Cartesian grids=%d for rank %d.'%(len(Internal.getZones(t)), Cmpi.rank))
     npts = 0
     for i in Internal.getZones(t):
        dims = Internal.getZoneDim(i)
        npts += dims[1]*dims[2]*dims[3]
-    print('Final number of points=%5.4f millions for rank %d.'%(npts/1000000., Cmpi.rank), flush=True)
+    print('Final number of points=%5.4f millions for rank %d.'%(npts/1000000., Cmpi.rank))
 
     C._initVars(t,'{centers:cellNIBC}={centers:cellN}')
 

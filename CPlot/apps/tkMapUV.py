@@ -27,7 +27,7 @@ def generateUVMap():
     CTK.saveTree()
 
     ndeviation = WIDGETS['deviation'].get()/10.
-    print("ndeviation=", ndeviation, flush=True)
+    print("ndeviation=", ndeviation)
 
     for nz in nzs:
         nob = CTK.Nb[nz]+1; noz = CTK.Nz[nz]
