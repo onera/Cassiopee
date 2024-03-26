@@ -16,7 +16,7 @@ a = C.initVars(a,'{F}=0.')
 a1 = P.projectCloudSolution(pts, a)
 test.testA([a1],1)
 a = C.convertArray2Tetra(a); a = G.close(a)
-a1 = P.projectCloudSolution(pts,a, loc='centers')
+a1 = P.projectCloudSolution(pts, a, loc='centers')
 test.testA([a1],4)
 
 a = D.naca(12., N=301)

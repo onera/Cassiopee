@@ -509,7 +509,7 @@ def runSingleUnitaryTest(no, module, test):
                     
         if m1 is not None: cmd = 'cd %s; %s time %s %s'%(path, cmdReps, pythonExec, test)
         else: cmd = 'cd %s; %s time kpython -n 2 -t %d %s'%(path, cmdReps, nthreads//2, test)
-
+        
     try:
         if mySystem == 'mingw' or mySystem == 'windows':
             output1 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)
@@ -628,30 +628,39 @@ def runSingleCFDTest(no, module, test):
     print('Info: Running CFD test %s.'%test)
     path = CASSIOPEE+CFDBASEPATH+'/'+test
 
-    m1 = None # si None=seq
+    m1 = None # si False=seq
+    # force mpi test pour certains cas
     if test == 'RAE2822_IBC': m1 = True
-    try: import mpi4py
-    except: m1 = None
+
+    if m1 is not None:
+        try: import mpi4py
+        except: m1 = None
+
+    pythonExec = os.getenv('PYTHONEXE', 'python')
+    nthreads = KCore.kcore.getOmpMaxThreads()
 
     if mySystem == 'mingw' or mySystem == 'windows':
         # Commande Dos (sans time)
         path = path.replace('/', '\\')
         if m1 is None: cmd = 'cd %s && ./valid check'%(path)
-        else: cmd = 'cd %s && ./valid check 0 0 0 2 4'%(path)
+        else: cmd = 'cd %s && ./valid check 0 0 0 2 %d'%(path, nthreads//2)
         cmd2 = 'echo %time%'
     else:
         # Unix - le shell doit avoir l'environnement cassiopee
         if m1 is None: cmd = 'cd %s; ./valid check'%(path)
-        else: cmd = 'cd %s; ./valid check 0 0 0 2 4'%(path)
+        else: cmd = 'cd %s; ./valid check 0 0 0 2 %d'%(path, nthreads//2)
+        #if m1 is None: cmd = 'cd %s; time %s compute.py check 0 0 0; %s post.py check'%(path, pythonExec, pythonExec)
+        #else: cmd = 'cd %s; kpython -n 2 -t %d compute.py check 0 0 0; %s post.py check'%(path, nthreads//2, pythonExec)
+        
     try:
         if mySystem == 'mingw' or mySystem == 'windows':
             output1 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)
-            output1 = output1.decode()
+            if sys.version_info[0] == 3: output1 = output1.decode()
         output = check_output(cmd, shell=True, stderr=subprocess.STDOUT)
-        output = output.decode()
+        if sys.version_info[0] == 3: output = output.decode()
         if mySystem == 'mingw' or mySystem == 'windows':
             output2 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)
-            output2 = output2.decode()
+            if sys.version_info[0] == 3: output2 = output2.decode()
         
         print(output)
 
@@ -676,6 +685,20 @@ def runSingleCFDTest(no, module, test):
                 #CPUtime = output[i1+4:i1+14]; CPUtime = CPUtime.strip()
         # Recupere le coverage
         coverage = '100%'
+
+    except subprocess.TimeoutExpired:
+        # killed here because timeout of communicate doesnt kill child processes
+        if mySystem == 'mingw' or mySystem == 'windows':
+            subprocess.call(['taskkill', '/F', '/T', '/PID', str(PROCESS.pid)])
+        else: # unix
+            # try soft, then hard
+            os.killpg(os.getpgid(PROCESS.pid), signal.SIGTERM)
+            os.kill(PROCESS.pid, signal.SIGTERM)
+            os.killpg(os.getpgid(PROCESS.pid), signal.SIGKILL)
+            os.kill(PROCESS.pid, signal.SIGKILL)
+        print('\nError: process TIMED OUT (killed).')
+        success = 0; CPUtime = 'Unknown'; coverage='0%' # Core dump/error
+
     except Exception as e:
         print(e)
         success = False; CPUtime = 'Unknown'; coverage='0%' # Core dump/error

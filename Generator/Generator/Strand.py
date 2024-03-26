@@ -37,26 +37,40 @@ def addNormalLayers(t, tc, distrib, niter=0, eps=0.4):
             
         print("Generating layer %d"%k1)
         
+        hloc = C.getValue(distrib, 'CoordinateX', k1+1) - C.getValue(distrib, 'CoordinateX', k1)
+        
+        # Keep pure normal in sx0
+        surf = getSmoothNormalMap(surf, tc, niter=0, eps=eps)
+        surf = modifyNormalWithMetric(surf, tc)
+        C._initVars(surf, '{sx0} = {sx}')
+        C._initVars(surf, '{sy0} = {sy}')
+        C._initVars(surf, '{sz0} = {sz}')
+        
         # Get smooth normal map
         surf = getSmoothNormalMap(surf, tc, niter=niter, eps=eps)
-        
-        # Keep it in sx0
-        #C._initVars(surf, '{sx0}={sx}')
-        #C._initVars(surf, '{sy0}={sy}')
-        #C._initVars(surf, '{sz0}={sz}')
-        
+
         # Modifiy sx with ht
         surf = modifyNormalWithMetric(surf, tc)
-        
+                
         # Mix sx0 and sx depending on height
-        #if kmax == 2: beta0 = 0.1
-        #else: beta0 = float((kmax-2-k1))/float(kmax-2); beta0 = beta0*beta0
-        #C._initVars(t, '{sx} = %20.6g * {sx0} + %20.6g * {sx}'%(1-beta0, beta0))
-        #C._initVars(t, '{sy} = %20.6g * {sy0} + %20.6g * {sy}'%(1-beta0, beta0))
-        #C._initVars(t, '{sz} = %20.6g * {sz0} + %20.6g * {sz}'%(1-beta0, beta0))
-        
+        if kmax == 2: beta0 = 0.1
+        else: beta0 = float((kmax-2-k1))/float(kmax-2); beta0 = beta0*beta0
+        C._initVars(surf, '{sx} = %20.6g * {sx} + %20.6g * {sx0}'%(1-beta0, beta0))
+        C._initVars(surf, '{sy} = %20.6g * {sy} + %20.6g * {sy0}'%(1-beta0, beta0))
+        C._initVars(surf, '{sz} = %20.6g * {sz} + %20.6g * {sz0}'%(1-beta0, beta0))
+
+        # multiply by the height
+        C._initVars(surf, '{sx} = %20.6g * {sx}'%hloc)
+        C._initVars(surf, '{sy} = %20.6g * {sy}'%hloc)
+        C._initVars(surf, '{sz} = %20.6g * {sz}'%hloc)
+
         # get layers (prisms) - for volume check
         layers = G.grow(surf, vector=['sx','sy','sz'])
+        G._getVolumeMap(layers)
+        #C.convertPyTree2File(layers, "out.cgns")
+        volmin = C.getMinValue(layers, "centers:vol")
+        print("INFO: volmin of layer=", volmin)
+        if volmin < 0: C.convertPyTree2File(layers, 'layers%03d.cgns'%k1)
 
         # deform surf to get new TRI surf
         T._deform(surf, vector=['sx','sy','sz'])
@@ -118,7 +132,7 @@ def getSmoothNormalMap(surf, tc, niter=2, eps=0.4):
         surf = C.center2Node(surf, 'centers:sy')
         surf = C.center2Node(surf, 'centers:sz')
         C._normalize(surf, ['sx','sy','sz'])
-        Xmpi._setInterpTransfers(surf, tc, variables=['sx','sy','sz'], compact=0)
+        #Xmpi._setInterpTransfers(surf, tc, variables=['sx','sy','sz'], compact=0)
         it += 1
     return surf
 

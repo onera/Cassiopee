@@ -35,7 +35,8 @@ MAC0=$(echo $KC | grep 'sator'); if [ "$MAC0" != "" ]; then export MAC="sator_br
 MAC0=$(echo $KC | grep 'jean-zay'); if [ "$MAC0" != "" ]; then export MAC="jean-zay"; fi
 MAC0=$(echo $KC | grep 'xdaap'); if [ "$MAC0" != "" ]; then export MAC="xdaap"; fi
 MAC0=$(echo $KC | grep 'spiro'); if [ "$MAC0" != "" ]; then export MAC="spiro_el8"; fi
-MAC0=$(echo $KC | grep 'f03'); if [ "$MAC0" != "" ]; then export MAC="juno"; fi
+MAC0=$(echo $KC | grep 'f0'); if [ "$MAC0" != "" ]; then export MAC="juno"; fi
+MAC0=$(echo $KC | grep 'n0'); if [ "$MAC0" != "" ]; then export MAC="juno"; fi
 MAC0=$(echo $KC | grep 'cobalt'); if [ "$MAC0" != "" ]; then export MAC="cobalt"; fi
 MAC0=$(echo $KC | grep 'irene'); if [ "$MAC0" != "" ]; then export MAC="irene"; fi
 MAC0=$(echo $KC | grep 'jean-zay'); if [ "$MAC0" != "" ]; then export MAC="jean-zay"; fi
@@ -736,11 +737,10 @@ elif [ "$MAC" = "juno" ]; then
 #----------------------------- juno -----------------------------------------
     export ELSAPROD=juno
     # Nbre de threads
-    export OMP_NUM_THREADS=96
+    export OMP_NUM_THREADS=48
     # modules
     source /opt/tools/Modules/init/bash
     module purge
-    #module load socle-cfd/5.0-intel2120-impi
     module load socle-cfd/6.0-intel2220-impi
     module load occt/7.6.1-gnu831
     module load subversion/1.14.1-gnu831
@@ -752,6 +752,41 @@ elif [ "$MAC" = "juno" ]; then
     export PYTHONEXE=python3
     alias python=python3
     export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
+    unset I_MPI_FABRICS_LIST
+    unset I_MPI_FABRICS
+    unset I_MPI_TCP_NETMASK
+    unset I_MPI_PMI_LIBRARY
+    unset $(env | grep SLLURM | cut -d'=' -f 1)
+    export OMP_PLACES=cores
+    # Chemin de l'executable python
+    export PATH=$PATH:$CASSIOPEE/Dist/bin
+    export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PATH
+    export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+    export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.8/site-packages
+
+elif [ "$MAC" = "juno_gcc" ]; then
+#----------------------------- juno -----------------------------------------
+    export ELSAPROD=juno_gcc
+    # Nbre de threads
+    export OMP_NUM_THREADS=48
+    # modules
+    source /opt/tools/Modules/init/bash
+    module purge
+    module load gcc/10.2.0    
+    module load occt/7.6.1-gnu831
+    module load python/3.10.8-gnu831
+    module load hdf5/1.10.5-gnu831-ompi405
+    module load subversion/1.14.1-gnu831
+    module load emacs/27.2-gnu831
+    alias inspxe-cl="/opt/tools/intel/oneapi/inspector/2021.2.0/bin64/inspxe-cl -r result -collect mi3 -- python3 "
+    alias inspxe-cl2="/opt/tools/intel/oneapi/inspector/2021.2.0/bin64/inspxe-cl -r result -collect ti3 -- python3 "
+    alias inspxe-gui="/opt/tools/intel/oneapi/inspector/2021.2.0/bin64/inspxe-gui result"
+    alias vtune="vtune -collect hotspots -result-dir result -quiet" 
+    export PYTHONEXE=python3
+    alias python=python3
+    export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
     unset I_MPI_FABRICS_LIST
     unset I_MPI_FABRICS
     unset I_MPI_TCP_NETMASK

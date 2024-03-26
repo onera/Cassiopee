@@ -57,22 +57,40 @@ def setCommunicator(com):
     size = KCOMM.size
 
 #==============================================================================
-# Barrier
+# barrier
 #==============================================================================
 def barrier():
     KCOMM.barrier()
 
-#==============================================================================
-# Send - send data from a proc to another proc (using pickle, small data)
-#==============================================================================
-def send(obj, dest=None):
-    KCOMM.send(obj, dest)
+#=================================================================================
+# send - blocking send data from a proc to another proc (using pickle, small data)
+#=================================================================================
+def send(obj, dest=None, tag=0):
+    KCOMM.send(obj, dest, tag=tag)
+
+#=================================================================================
+# Send - blocking send data from a proc to another proc (for numpys)
+#=================================================================================
+def Send(obj, dest=None, tag=0):
+    KCOMM.Send(obj, dest, tag=tag)
+
+#=====================================================================================
+# isend - non blocking send data from a proc to another proc (using pickle, small data)
+#=====================================================================================
+def isend(obj, dest=None, tag=0):
+    KCOMM.isend(obj, dest, tag=tag)
+
+#=====================================================================================
+# iSend - non blocking send data from a proc to another proc (for numpys)
+#=====================================================================================
+def Isend(obj, dest=None, tag=0):
+    KCOMM.Isend(obj, dest, tag=tag)
 
 #==============================================================================
-# Receive - receive data from a proc
+# receive - receive data from a proc
 #==============================================================================
-def recv(source=None):
-    return KCOMM.recv(source)
+def recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG):
+    return KCOMM.recv(source=source, tag=tag)
 
 #==============================================================================
 # Reduce to root (using pickle, small data)
