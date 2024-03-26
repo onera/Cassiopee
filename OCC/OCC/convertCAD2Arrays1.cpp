@@ -158,7 +158,7 @@ E_Int K_OCC::CADread
      connect[i] = cnt;
     
      char* zoneName = new char [128];
-     sprintf(zoneName, "Zone%d",i);
+     sprintf(zoneName, "Zone%ld", i);
 
     E_Int row = connectMs[i].rows();
 

@@ -96,9 +96,9 @@ PyObject* K_OCC::splitFaces(PyObject* self, PyObject* args)
   *newshp = splitter.Result();
 
   // ShapeBuild_ReShape use replace, remove
-  //ShapeBuild_ReShape builder;
+  // ShapeBuild_ReShape builder;
   // Brep builder to build face from geom
-  //BRep_Builder brepBuilder;
+  // BRep_Builder brepBuilder;
     
   //TopExp_Explorer expl;
   //E_Int nbFaces = surfaces.Extent();

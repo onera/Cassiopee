@@ -61,6 +61,7 @@ namespace K_OCC
   
   PyObject* splitFaces(PyObject* self, PyObject* args);
   PyObject* fixShape(PyObject* self, PyObject* args);
+  PyObject* trimFaces(PyObject* self, PyObject* args);
 
   PyObject* getOppData(PyObject* self, PyObject* args);
 

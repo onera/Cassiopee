@@ -731,7 +731,7 @@ def _setInterpData(t, tc):
   nCADFaces = len(pos[1])
 
   for faceNo in range(1, nCADFaces+1):
-    print("\rfaceNo: {} ...".format(faceNo), end='')
+    #print("\rfaceNo: {} ...".format(faceNo), end='')
     face = getFace(t, pos, faceNo)
     # Get list of edges for that face, their range, and the total no of points
     edgeList = getEdgeListOfFace(t, pos, faceNo)

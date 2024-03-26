@@ -554,7 +554,7 @@ def ultimate(hook, hmax, hausd=-1, metric=True):
     nbFaces = occ.getNbFaces(hook)
     
     for i in range(nbFaces):
-        print('Meshing face %d ======================'%i, flush=True)
+        print('Meshing face %d ======================'%i)
 
         # maillage des edges de la Face (sortie par wire)
         wires = occ.meshEdgesByFace3(hook, i+1, hmax, hausd)
@@ -620,7 +620,7 @@ def meshAllFaces(hook, dedges, metric=True, faceList=[], hList=[]):
     FAILED1 = []; FAILED2 = []; dfaces = []
     for c, i in enumerate(faceList):
 
-        print("========== face %d / %d ==========="%(i,nbFaces), flush=True)
+        print("========== face %d / %d ==========="%(i,nbFaces))
         
         wires = occ.meshEdgesOfFace(hook, i, dedges)
         
