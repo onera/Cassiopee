@@ -1157,11 +1157,11 @@ def computeAerodynamicLoads(ts, ts2=None, dimPb=3, famZones=[], Pref=None, cente
     Internal._rmNodesFromName(FSC, 'ShearStress*')
 
     if verbose and Cmpi.rank == 0:
-        print("Vector of pressure forces:  (Fx_P,Fy_P,Fz_P) = ({:.4e}, {:.4e}, {:.4e})".format(*forcePressure))
-        print("Vector of friction forces:  (Fx_F,Fy_F,Fz_F) = ({:.4e}, {:.4e}, {:.4e})".format(*forceFriction))
+        print("Vector of dimensionalized pressure forces in the body frame:  (Fx_P,Fy_P,Fz_P) = ({:.4e}, {:.4e}, {:.4e})".format(*forcePressure))
+        print("Vector of dimensionalized friction forces in the body frame:  (Fx_F,Fy_F,Fz_F) = ({:.4e}, {:.4e}, {:.4e})".format(*forceFriction))
 
-        print("Vector of pressure moments: (Mx_P,My_P,Mz_P) = ({:.4e}, {:.4e}, {:.4e})".format(*momentPressure))
-        print("Vector of friction moments: (Mx_F,My_F,Mz_F) = ({:.4e}, {:.4e}, {:.4e})".format(*momentFriction))
+        print("Vector of dimensionalized pressure moments in the body frame: (Mx_P,My_P,Mz_P) = ({:.4e}, {:.4e}, {:.4e})".format(*momentPressure))
+        print("Vector of dimensionalized friction moments in the body frame: (Mx_F,My_F,Mz_F) = ({:.4e}, {:.4e}, {:.4e})".format(*momentFriction))
     
     if dimPb == 2: # reextrait en 2D
         for b in Internal.getBases(tw):
@@ -1187,7 +1187,7 @@ def computeAerodynamicLoads(ts, ts2=None, dimPb=3, famZones=[], Pref=None, cente
 # IN: verbose (int or boolean): If True or 1: print detailed coefficient information on screen.
 #
 # OUT: Surface tree with normalized Cp & Cf
-# OUT: Cx (Drag), Cz (Lift) and CMy (pitching moment) put in the wind frame
+# OUT: OUT: aeroLoads (list of four lists): adimensionalized integration information in the wind frame ([forcePressure, forceFriction, momentPressure, momentFriction])
 #==========================================================================================
 def fromBodyFrameToWindFrame__(vector, dimPb=3, alpha=0., beta=0.):
     alpha  = math.radians(alpha); beta = math.radians(beta)
@@ -1237,28 +1237,20 @@ def computeAerodynamicCoefficients(ts, aeroLoads, dimPb=3, Sref=None, Lref=None,
         C._initVars(tw, '{centers:Cp}={centers:Cp}/%20.16g'%(Qref))
         C._initVars(tw, '{centers:Cf}={centers:Cf}/%20.16g'%(Qref))
 
-    cfxp, cfyp, cfzp = [i/(Qref*Sref) for i in fromBodyFrameToWindFrame__(forcePressure, dimPb, alpha, beta)]
-    cfxf, cfyf, cfzf = [i/(Qref*Sref) for i in fromBodyFrameToWindFrame__(forceFriction, dimPb, alpha, beta)]
+    forcePressure = [i/(Qref*Sref) for i in fromBodyFrameToWindFrame__(forcePressure, dimPb, alpha, beta)]
+    forceFriction = [i/(Qref*Sref) for i in fromBodyFrameToWindFrame__(forceFriction, dimPb, alpha, beta)]
 
-    cmxp, cmyp, cmzp = [-i/(Qref*Sref*Lref) for i in fromBodyFrameToWindFrame__(momentPressure, dimPb, alpha, beta)]
-    cmxf, cmyf, cmzf = [-i/(Qref*Sref*Lref) for i in fromBodyFrameToWindFrame__(momentFriction, dimPb, alpha, beta)]
+    momentPressure = [-i/(Qref*Sref*Lref) for i in fromBodyFrameToWindFrame__(momentPressure, dimPb, alpha, beta)]
+    momentFriction = [-i/(Qref*Sref*Lref) for i in fromBodyFrameToWindFrame__(momentFriction, dimPb, alpha, beta)]
 
     if verbose and Cmpi.rank == 0:
-        print("**********************************************************************************************")
-        print("Info IBM post : aerodynamic coefficients in wind frame (Drag, Lateral Force and Lift forces): ")
-        print("**********************************************************************************************")
-        print("Cx = %.12e | (Cxp, Cxf) = (%.12e, %.12e)"%(((cfxp+cfxf), cfxp, cfxf)))
-        print("Cy = %.12e | (Cyp, Cyf) = (%.12e, %.12e)"%(((cfyp+cfyf), cfyp, cfyf)))
-        print("Cz = %.12e | (Czp, Czf) = (%.12e, %.12e)"%(((cfzp+cfzf), cfzp, cfzf)))
-        print("**********************************************************************************************")
-        print("Info IBM post : aerodynamic coefficients in wind frame (Roll, Pitch and Yaw moments): ")
-        print("**********************************************************************************************")
-        print("Mx = %.12e | (Mxp, Mxf) = (%.12e, %.12e)"%(((cmxp+cmxf), cmxp, cmxf)))
-        print("My = %.12e | (Myp, Myf) = (%.12e, %.12e)"%(((cmyp+cmyf), cmyp, cmyf)))
-        print("Mz = %.12e | (Mzp, Mzf) = (%.12e, %.12e)"%(((cmzp+cmzf), cmzp, cmzf)))
-        print("**********************************************************************************************")
+        print("Vector of adimensionalized pressure forces in the wind frame:  (Fx_P,Fy_P,Fz_P) = ({:.4e}, {:.4e}, {:.4e})".format(*forcePressure))
+        print("Vector of adimensionalized friction forces in the wind frame:  (Fx_F,Fy_F,Fz_F) = ({:.4e}, {:.4e}, {:.4e})".format(*forceFriction))
 
-    return tw, (cfxp+cfxf), (cfzp+cfzf), (cmyp+cmyf)
+        print("Vector of adimensionalized pressure moments in the wind frame: (Mx_P,My_P,Mz_P) = ({:.4e}, {:.4e}, {:.4e})".format(*momentPressure))
+        print("Vector of adimensionalized friction moments in the wind frame: (Mx_F,My_F,Mz_F) = ({:.4e}, {:.4e}, {:.4e})".format(*momentFriction))
+
+    return tw, [forcePressure, forceFriction, momentPressure, momentFriction]
 
 ##################
 # WORK IN PROGRESS
