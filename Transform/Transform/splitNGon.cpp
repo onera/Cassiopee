@@ -31,17 +31,13 @@ using namespace std;
 PyObject* K_TRANSFORM::splitNGon(PyObject* self, PyObject* args)
 {
   PyObject* array; E_Int nparts;
-  if (!PYPARSETUPLE_(args, O_ I_,
-                    &array, &nparts))
-  {
-      return NULL;
-  }
+  if (!PYPARSETUPLE_(args, O_ I_, &array, &nparts)) return NULL;
   // Check array
   E_Int ni, nj, nk, res;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  res = K_ARRAY::getFromArray(array, varString, 
-                              f, ni, nj, nk, cn, eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, 
+                               f, ni, nj, nk, cn, eltType);
 
   if (res != 2)
   {
@@ -72,19 +68,17 @@ PyObject* K_TRANSFORM::splitNGon(PyObject* self, PyObject* args)
   E_Int* cFE1 = cFE.begin(1);
   E_Int* cFE2 = cFE.begin(2);
 
-  E_Int* cnp = cn->begin();
-  E_Int* cne = cnp+2+cnp[1];
-  E_Int nelts = cne[0];
+  E_Int* nface = cn->getNFace();
+  E_Int* indPH = cn->getIndPH();
+  E_Int nelts = cn->getNElts();
   //printf("nelts=%d\n", nelts);
-  cne += 2;
   
   E_Int nf;
   E_Int size = 0; // size of adj
   for (E_Int i = 0; i < nelts; i++)
   {
-    nf = cne[0];
+    cn->getElt(i, nf, nface, indPH);
     size += nf;
-    cne += nf+1;
   }
   //printf("size = %d\n", size);
 
@@ -92,23 +86,21 @@ PyObject* K_TRANSFORM::splitNGon(PyObject* self, PyObject* args)
   idx_t* adj1 = new idx_t [size];
   idx_t* adj = adj1;
   idx_t* xadj = new idx_t [nelts+1];
-  cne = cnp+4+cnp[1];
   size = 0;
   for (E_Int i = 0; i < nelts; i++)
   {
     xadj[i] = size;
-    nf = cne[0];
+    E_Int* face = cn->getElt(i, nf, nface, indPH);
 
     for (E_Int n = 0; n < nf; n++)
     {
-      indf = cne[n+1]-1;
+      indf = face[n]-1;
       e1 = cFE1[indf];
       e2 = cFE2[indf];
       //printf("%d - %d %d\n",i+1, e1,e2);
       if (e1 > 0 && e1 != i+1) { adj[size] = e1-1; size++; }
       else if (e2 > 0 && e2 != i+1) { adj[size] = e2-1; size++; }
     }
-    cne += nf+1;
   }
   xadj[nelts] = size;
   adj = adj1;
