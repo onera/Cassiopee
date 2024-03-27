@@ -181,6 +181,13 @@ def loadAndSplitNGon(fileName):
 
   t = C.newPyTree(['Base', zo])
   Cmpi._setProc(t, Cmpi.rank)
+  
+  # copy families
+  base = I.getNodeFromName1(t, 'Base')
+  families = I.getNodesFromType2(dt, 'Family_t')
+  for fam in families:
+    I.duptree__(fam, base)
+  
   I._correctPyTree(t, level=7)
 
   return t, RES
