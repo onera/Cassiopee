@@ -75,6 +75,9 @@ STOP = 0
 # WIDGETS dict
 WIDGETS = {}
 
+# Cassiopee compiled in i4 or i8
+INTTYPE = 'i8' if Dist.EDOUBLEINT else 'i4'
+
 # Cree sessionLog et le vide
 if not os.path.exists(CASSIOPEE+'/Apps/Modules/ValidData'):
     os.mkdir(CASSIOPEE+'/Apps/Modules/ValidData')
@@ -204,16 +207,17 @@ def ljust(text, size):
 #==============================================================================
 def buildString(module, test, CPUtime='...', coverage='...%', status='...',
                 tag=' '):
+    intTypeStr = '_'+INTTYPE if INTTYPE == 'i8' else ''
     if module == 'CFDBase':
         path = CASSIOPEE+CFDBASEPATH
-        fileTime = '%s/%s/Data/%s.time'%(path, test, test)
-        fileStar = '%s/%s/Data/%s.star'%(path, test, test)
+        fileTime = '%s/%s/Data/%s%s.time'%(path, test, test, intTypeStr)
+        fileStar = '%s/%s/Data/%s%s.star'%(path, test, test, intTypeStr)
     else:
         modulesDir = MODULESDIR[module]
         path = CASSIOPEE+'/Apps/'+modulesDir
         testr = os.path.splitext(test)
-        fileTime = '%s/%s/test/Data/%s.time'%(path, module, testr[0])
-        fileStar = '%s/%s/test/Data/%s.star'%(path, module, testr[0])
+        fileTime = '%s/%s/test/Data/%s%s.time'%(path, module, testr[0], intTypeStr)
+        fileStar = '%s/%s/test/Data/%s%s.star'%(path, module, testr[0], intTypeStr)
     a = os.access(fileTime, os.F_OK)
     if a:
         f = open(fileTime, 'r')
@@ -592,12 +596,13 @@ def runSingleUnitaryTest(no, module, test):
             _ = check_output(cleanCmd, shell=True, stderr=subprocess.STDOUT)
 
     # update le fichier .time (si non present)
-    fileTime = '%s/Data/%s.time'%(path, testr[0])
+    intTypeStr = '_'+INTTYPE if INTTYPE == 'i8' else ''
+    fileTime = '%s/Data/%s%s.time'%(path, testr[0], intTypeStr)
     if not os.access(fileTime, os.F_OK):
         writeTime(fileTime, CPUtime, coverage)
         
     # Recupere le tag
-    fileStar = '%s/Data/%s.star'%(path, testr[0])
+    fileStar = '%s/Data/%s%s.star'%(path, testr[0], intTypeStr)
     tag = ' '
     if os.access(fileStar, os.R_OK):
         tag = readStar(fileStar)
@@ -704,12 +709,13 @@ def runSingleCFDTest(no, module, test):
         success = False; CPUtime = 'Unknown'; coverage='0%' # Core dump/error
 
     # update le fichier .time (si non present)
-    fileTime = '%s/Data/%s.time'%(path, test)
+    intTypeStr = '_'+INTTYPE if INTTYPE == 'i8' else ''
+    fileTime = '%s/Data/%s%s.time'%(path, test, intTypeStr)
     if not os.access(fileTime, os.F_OK):
         writeTime(fileTime, CPUtime, coverage)
         
     # Recupere le tag
-    fileStar = '%s/Data/%s.star'%(path, test)
+    fileStar = '%s/Data/%s%s.star'%(path, test, intTypeStr)
     tag = ' '
     if os.access(fileStar, os.R_OK):
         tag = readStar(fileStar)
@@ -792,16 +798,17 @@ def updateTests():
         test = splits[1]
         module = module.strip()
         test = test.strip()
+        intTypeStr = '_'+INTTYPE if INTTYPE == 'i8' else ''
         if module == 'CFDBase':
             pathl = CASSIOPEE+CFDBASEPATH+'/'+test
-            test2 = test+'.time'
-            test = 'post.ref*'
+            test2 = test+intTypeStr+'.time'
+            test = 'post'+intTypeStr+'.ref*'
         else:
             modulesDir = MODULESDIR[module]
             path = CASSIOPEE+'/Apps/'+modulesDir
             d = os.path.splitext(test)
-            test = d[0]+'.ref*'
-            test2 = d[0]+'.time'
+            test = d[0]+intTypeStr+'.ref*'
+            test2 = d[0]+intTypeStr+'.time'
             pathl = '%s/%s/test'%(path,module)
         rmFile(pathl, test)
         rmFile(pathl, test2)
@@ -839,6 +846,7 @@ def rmFile(path, fileName):
 # Update TESTS et la listBox
 #==============================================================================
 def buildTestList(loadSession=False, modules=[]):
+    import glob
     global TESTS
     TESTS = []
     listbox.delete(0, TK.END)
@@ -846,8 +854,14 @@ def buildTestList(loadSession=False, modules=[]):
         modules = getModules()
     # Read last sessionLog conditionally
     ncolumns = 8
-    logname = CASSIOPEE+'/Apps/Modules/ValidData/lastSession.log'
+    intTypeStr = '-'+INTTYPE if INTTYPE == 'i8' else ''
+    logname = sorted(glob.glob(
+        CASSIOPEE+'/Apps/Modules/ValidData/session{}-*.log'.format(intTypeStr)))
+    if len(logname): logname = logname[-1]
+    else: logname = CASSIOPEE+'/Apps/Modules/ValidData/lastSession.log'
+
     if loadSession and os.access(logname, os.R_OK) and os.path.getsize(logname) > 0:
+        print("Loading last session: {}".format(logname.split('/')[-1]))
         with open(logname, "r") as g:
             sessionLog = [line.rstrip().split(':') for line in g.readlines()]
         # Remove header from logfile
@@ -1409,7 +1423,10 @@ def Quit(event=None):
     # The session log is copied if it is not empty and if we have write
     # permissions
     if os.access(dirname, os.W_OK) and (not os.path.getsize(logname) == 0):
-        dst = CASSIOPEE+"/Apps/Modules/ValidData/lastSession.log"
+        now = time.strftime("%y%m%d_%H%M%S", time.localtime())
+        intTypeStr = '-'+INTTYPE if INTTYPE == 'i8' else ''
+        dst = CASSIOPEE+"/Apps/Modules/ValidData/session{}-{}.log".format(
+            intTypeStr, now)
         shutil.copyfile(logname, dst)
     os._exit(0)
 
@@ -1431,7 +1448,8 @@ def tagSelection(event=None):
         modulesDir = MODULESDIR[module]
         path = CASSIOPEE+'/Apps/'+modulesDir+'/'+module+'/test'
         testr = os.path.splitext(test)
-        fileStar = path+'/Data/'+testr[0]+'.star'
+        intTypeStr = '_'+INTTYPE if INTTYPE == 'i8' else ''
+        fileStar = path+'/Data/'+testr[0]+intTypeStr+'.star'
         tag = splits[6].strip()
         if not tag: tag = '*'
         else: tag = tagSymbols[(tagSymbols.index(tag)+1)%ntags]
@@ -1460,8 +1478,9 @@ def untagSelection(event=None):
         modulesDir = MODULESDIR[module]
         path = CASSIOPEE+'/Apps/'+modulesDir+'/'+module+'/test'
         testr = os.path.splitext(test)
-        fileStar = path+'/Data/'+testr[0]+'.star'
-        rmFile(path, testr[0]+'.star')
+        intTypeStr = '_'+INTTYPE if INTTYPE == 'i8' else ''
+        fileStar = path+'/Data/'+testr[0]+intTypeStr+'.star'
+        rmFile(path, testr[0]+intTypeStr+'.star')
         splits[6] = ' '*3
         s = separator.join(i for i in splits)
         regTest = re.compile(' '+test+' ')

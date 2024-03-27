@@ -33,6 +33,7 @@ def getLocal():
 #=============================================================================
 def testA(arrays, number=1):
     """Test arrays."""
+    from KCore.Dist import EDOUBLEINT
     import Converter as C
     if not isinstance(arrays[0], list): arrays = [arrays]
 
@@ -47,8 +48,10 @@ def testA(arrays, number=1):
     baseName = os.path.basename(fileName)
     dirName = os.path.dirname(fileName)
     fileName = os.path.splitext(baseName)[0]
-    if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
-    else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
+    intTypeStr = '' # '_i8' if EDOUBLEINT else '' TODO qd la base i8 sera construite a partir de i4
+    
+    if dirName == '': reference = '%s/%s%s.ref%d'%(DATA, fileName, intTypeStr, number)
+    else: reference = '%s/%s/%s%s.ref%d'%(dirName, DATA, fileName, intTypeStr, number)
     a = os.access(reference, os.R_OK)
     if not a:
         print("Warning: reference file %s has been created."%reference)
@@ -104,6 +107,7 @@ def outA(arrays, number=1):
 #=============================================================================
 def testT(t, number=1):
     """Test pyTrees."""
+    from KCore.Dist import EDOUBLEINT
     import Converter.PyTree as C
     import Converter.Internal as Internal
 
@@ -127,8 +131,9 @@ def testT(t, number=1):
     baseName = os.path.basename(fileName)
     dirName = os.path.dirname(fileName)
     fileName = os.path.splitext(baseName)[0]
-    if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
-    else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
+    intTypeStr = '' # '_i8' if EDOUBLEINT else '' TODO qd la base i8 sera construite a partir de i4
+    if dirName == '': reference = '%s/%s%s.ref%d'%(DATA, fileName, intTypeStr, number)
+    else: reference = '%s/%s/%s%s.ref%d'%(dirName, DATA, fileName, intTypeStr, number)
     a = os.access(reference, os.R_OK)
 
     if not a:
@@ -181,6 +186,7 @@ def outT(t, number=1):
 # Diff byte to byte
 #=============================================================================
 def testF(infile, number=1):
+    from KCore.Dist import EDOUBLEINT
     # Chek infile
     a = os.access(infile, os.F_OK)
     if not a:
@@ -195,9 +201,10 @@ def testF(infile, number=1):
     baseName = os.path.basename(fileName)
     dirName = os.path.dirname(fileName)
     fileName = os.path.splitext(baseName)[0]
-
-    if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
-    else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
+    intTypeStr = '' # '_i8' if EDOUBLEINT else '' TODO qd la base i8 sera construite a partir de i4
+    
+    if dirName == '': reference = '%s/%s%s.ref%d'%(DATA, fileName, intTypeStr, number)
+    else: reference = '%s/%s/%s%s.ref%d'%(dirName, DATA, fileName, intTypeStr, number)
     a = os.access(reference, os.R_OK)
     if not a:
         print("Can not open file %s for reading."%reference)
@@ -272,6 +279,7 @@ def checkObject_(objet, refObjet, reference):
 #=============================================================================
 def testO(objet, number=1):
     """Test python object."""
+    from KCore.Dist import EDOUBLEINT
     # perform some sort on dict to be predictible
     if isinstance(objet, dict):
         from collections import OrderedDict
@@ -286,8 +294,10 @@ def testO(objet, number=1):
     baseName = os.path.basename(fileName)
     dirName = os.path.dirname(fileName)
     fileName = os.path.splitext(baseName)[0]
-    if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
-    else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
+    intTypeStr = '' # '_i8' if EDOUBLEINT else '' TODO qd la base i8 sera construite a partir de i4
+
+    if dirName == '': reference = '%s/%s%s.ref%d'%(DATA, fileName, intTypeStr, number)
+    else: reference = '%s/%s/%s%s.ref%d'%(dirName, DATA, fileName, intTypeStr, number)
     a = os.access(reference, os.R_OK)
 
     # OWNDATA check / copy
