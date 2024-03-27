@@ -149,6 +149,13 @@ else
         mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l -ordered-output $PYTHONEXE $SCRIPT $NPROCS
         set +x
         [ $? != 0 ] && exit 1;
+    elif [ $ELSAPROD == 'juno' ] # juno
+    then
+    set -x
+        # intelMpi
+        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l -ordered-output $PYTHONEXE $SCRIPT $NPROCS
+        set +x
+        [ $? != 0 ] && exit 1;
     elif [ $ELSAPROD == 'stv_r8' ] # stelvio
     then
         set -x

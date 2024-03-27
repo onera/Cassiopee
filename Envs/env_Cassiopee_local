@@ -34,6 +34,7 @@ set MAC0=`echo $KC | grep 'xdaap'`; if ($%MAC0 != 0) set MAC="xdaap"
 set MAC0=`echo $KC | grep 'spiro'`; if ($%MAC0 != 0) set MAC="spiro_el8"
 set MAC0=`echo $KC | grep 'f0'`; if ($%MAC0 != 0) set MAC="juno"
 set MAC0=`echo $KC | grep 'n0'`; if ($%MAC0 != 0) set MAC="juno"
+set MAC0=`echo $KC | grep 'v0'`; if ($%MAC0 != 0) set MAC="juno"
 set MAC0=`echo $KC | grep 'cobalt'`; if ($%MAC0 != 0) set MAC="cobalt"
 set MAC0=`echo $KC | grep 'mangrove'`; if ($%MAC0 != 0) set MAC="mangrove"
 set MAC0=`echo $KC | grep 'irene'`; if ($%MAC0 != 0) set MAC="irene"
@@ -905,7 +906,7 @@ else if ($MAC == "juno") then
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.8/site-packages
         
 else if ($MAC == "juno_gcc") then
-#----------------------------- spiro -----------------------------------------
+#----------------------------- juno -----------------------------------------
         setenv ELSAPROD juno_gcc
         # Nbre de threads
         setenv OMP_NUM_THREADS 48
