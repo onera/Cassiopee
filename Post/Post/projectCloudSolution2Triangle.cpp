@@ -525,7 +525,6 @@ PyObject* K_POST::prepareProjectCloudSolution2Triangle(PyObject* self, PyObject*
   posvarsR.erase(remove(posvarsR.begin(), posvarsR.end(), posyr), posvarsR.end());
   posvarsR.erase(remove(posvarsR.begin(), posvarsR.end(), poszr), posvarsR.end());
   posxd++; posyd++; poszd++; posxr++; posyr++; poszr++;
-  E_Int nbVars = posvarsD.size();
   E_Int order = 2; // ordre d'interpolation MLS
   const E_Int sizeBasis = K_FUNC::fact(dimPb+order-1)*1./(K_FUNC::fact(dimPb)*K_FUNC::fact(order-1));
 

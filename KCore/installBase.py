@@ -982,6 +982,21 @@ False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
+'juno_gcc': [ 'Machine dev Juno rocky8 (Onera)',
+'gfortran', # f77compiler
+'gfortran', # f90compiler
+'gcc', # Cppcompiler
+['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=48','-DSIMD=AVX512'], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+[], # additionalIncludePaths
+[], # additionalLibs
+[],  # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
+],
+###############################################################################
 'juno': [ 'Machine dev Juno rocky8 (Onera)',
 'ifort', # f77compiler
 'ifort', # f90compiler

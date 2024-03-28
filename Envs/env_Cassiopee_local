@@ -625,7 +625,6 @@ else if ($MAC == "topaze") then
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.8/site-packages
 
-
 else if ($MAC == "spiro_amdRM") then
 #------------------------------- spiro --------------------------------------
         setenv ELSAPROD spiro_amdrm_r8
