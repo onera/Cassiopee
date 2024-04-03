@@ -1,13 +1,22 @@
-/*
+/*    
+    Copyright 2013-2024 Onera.
 
+    This file is part of Cassiopee.
 
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
---------- NUGA v1.0
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-
-
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-//Authors : Sâm Landier (sam.landier@onera.fr)
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_PR18_HXX
 #define NUGA_PR18_HXX
@@ -237,11 +246,11 @@ namespace NUGA
       q43[0] = nodes[14]; q43[1] = nodes[13]; q43[2] = nodes[17];
       q44[0] = nodes[12]; q44[1] = nodes[13]; q44[2] = nodes[14];
 
-      q45[0] = nodes[6]; q45[1] = nodes[8]; q45[2] = nodes[14]; q45[3] = nodes[12];  // étage 1
+      q45[0] = nodes[6]; q45[1] = nodes[8]; q45[2] = nodes[14]; q45[3] = nodes[12];  // ï¿½tage 1
       q46[0] = nodes[7]; q46[1] = nodes[6]; q46[2] = nodes[12]; q46[3] = nodes[13];
       q47[0] = nodes[8]; q47[1] = nodes[7]; q47[2] = nodes[13]; q47[3] = nodes[14];
 
-      q48[0] = nodes[12]; q48[1] = nodes[14]; q48[2] = nodes[11]; q48[3] = nodes[9];  // étage 2    
+      q48[0] = nodes[12]; q48[1] = nodes[14]; q48[2] = nodes[11]; q48[3] = nodes[9];  // ï¿½tage 2    
       q49[0] = nodes[13]; q49[1] = nodes[12]; q49[2] = nodes[9]; q49[3] = nodes[10];
       q410[0] = nodes[14]; q410[1] = nodes[13]; q410[2] = nodes[10]; q410[3] = nodes[11];
 
