@@ -7963,6 +7963,32 @@ def _signNGonFaces(t):
   __TZGC3(t, Converter._signNGonFaces)
   return None
 
+def unsignNGonFaces(t):
+  """Unsign NFACE connectivity in NGON zones."""
+  tc = Internal.copyRef(t)
+  _unsignNGonFaces(tc)
+  return tc
+    
+def _unsignNGonFaces(t):
+  """Unsign NFACE connectivity in NGON zones and create a node storing whether
+  NFACE was initially signed.
+  Usage: _unsignNGonFaces(a)"""
+  zones = Internal.getZones(t)
+  isSigned = -1
+  for z in zones:
+    fc = getFields(Internal.__GridCoordinates__, z, api=3)[0]
+    n0 = Internal.getNodeFromName1(z, 'NFaceElements')
+    if n0 is None: return None # not an NGon
+    n = Internal.getNodeFromName1(n0, 'ElementStartOffset')
+    if n is None: return None # not an NGon v4
+    n = Internal.getNodeFromName1(n0, 'Signed')
+    if n is not None: return None # function already called
+    if isSigned != 0 and fc:
+      isSigned = Converter._unsignNGonFaces(fc)
+    if isSigned != -1:
+      Internal._createUniqueChild(n0, 'Signed', 'DataArray_t', value=isSigned)
+  return None
+
 def makeParentElements(t):
   tc = Internal.copyRef(t)
   _makeParentElements(tc)

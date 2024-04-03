@@ -36,7 +36,7 @@ __all__ = ['array', 'getApi', 'addVars', '_addVars', 'addVars2',
     'nearestElements', 'nearestFaces', 'nearestNodes', 'node2Center', 'node2ExtCenter', 'normL0', 'normL2',
     'normalize', '_normalize', 'randomizeVar', 'rmVars', 'send', 'setPartialFields', 'setValue', 'addGhostCellsNGon',
     'checkFileType', 'convertHO2LO', 'convertLO2HO', 'convertExt2Format__', 'mergeConnectivity', 
-    '_signNGonFaces', 'makeParentElements']
+    '_signNGonFaces', '_unsignNGonFaces', 'makeParentElements']
 
 # -- Create an array --
 # Les champs sont mis a zero, sauf si pour les champs cellN et cellNF
@@ -1795,11 +1795,22 @@ def isNamePresent(a, varname):
 
 def _signNGonFaces(a):
   """Return a consistently oriented pyTree with signed faces.
-  Usage: _signNGonFaces(a, tol)"""
+  Usage: _signNGonFaces(a)"""
   if isinstance(a[0], list):
       for i in a: converter.signNGonFaces(i)
   else: converter.signNGonFaces(a)
   return None
+  
+def _unsignNGonFaces(a):
+  """Unsign NFACE connectivity"""
+  isSigned = 1
+  if isinstance(a[0], list):
+      for i in a:
+        if isSigned == 1: isSigned = converter.unsignNGonFaces(i)
+        else: break # stop if unsigned
+  else:
+      isSigned = converter.unsignNGonFaces(a)
+  return isSigned
 
 def makeParentElements(a):
   PEs = []
