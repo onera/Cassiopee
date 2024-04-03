@@ -7976,17 +7976,37 @@ def _unsignNGonFaces(t):
   zones = Internal.getZones(t)
   isSigned = -1
   for z in zones:
-    fc = getFields(Internal.__GridCoordinates__, z, api=3)[0]
     n0 = Internal.getNodeFromName1(z, 'NFaceElements')
     if n0 is None: return None # not an NGon
     n = Internal.getNodeFromName1(n0, 'ElementStartOffset')
     if n is None: return None # not an NGon v4
     n = Internal.getNodeFromName1(n0, 'Signed')
     if n is not None: return None # function already called
+    fc = getFields(Internal.__GridCoordinates__, z, api=3)[0]
     if isSigned != 0 and fc:
       isSigned = Converter._unsignNGonFaces(fc)
     if isSigned != -1:
       Internal._createUniqueChild(n0, 'Signed', 'DataArray_t', value=isSigned)
+  return None
+  
+def resignNGonFaces(t):
+  """Resign NFACE connectivity in NGON zones if the node `Signed` is present
+  and has a value of 1 (meaning the NGonv4 was signed when first read)."""
+  tc = Internal.copyRef(t)
+  _resignNGonFaces(tc)
+  return tc
+  
+def _resignNGonFaces(t):
+  """Resign NFACE connectivity in NGON zones and delete node `Signed`."""
+  z = Internal.getZones(t)[0]
+  n0 = Internal.getNodeFromName1(z, 'NFaceElements')
+  if n0 is None: return None # not an NGon
+  n = Internal.getNodeFromName1(n0, 'ElementStartOffset')
+  if n is None: return None # not an NGon v4
+  n = Internal.getNodeFromName1(n0, 'Signed')
+  if n is None: return None # NGon was not signed
+  Internal._rmNodesFromName(n0, 'Signed')
+  if Internal.getValue(n) == 1: _signNGonFaces(t)
   return None
 
 def makeParentElements(t):

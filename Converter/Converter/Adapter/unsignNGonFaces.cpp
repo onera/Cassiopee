@@ -67,7 +67,7 @@ PyObject* K_CONVERTER::unsignNGonFaces(PyObject* self, PyObject* args)
   E_Int* indPH = cn->getIndPH();
   
   E_Int isSigned = 0;
-  ncells = K_FUNC::E_min(ncells, 3); // search for a negative sign
+  ncells = K_FUNC::E_min(ncells, 100); // search for a negative sign in a few elts
   
   for (E_Int i = 0; i < ncells; i++)
   {
