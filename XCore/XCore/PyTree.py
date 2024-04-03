@@ -147,7 +147,7 @@ def loadAndSplitNGon(fileName):
   Cmpi.barrier()
 
   # create zone
-  zo = I.createZoneNode('Zone_' + '%d'%Cmpi.rank, mesh)
+  zo = I.createZoneNode('{}_{}'.format(I.getName(z), Cmpi.rank), mesh)
 
   # add ZoneGridConnectivity
   ZGC = I.newZoneGridConnectivity(parent=zo)
