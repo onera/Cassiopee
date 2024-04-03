@@ -36,8 +36,6 @@
 #include "BRepGProp.hxx"
 #include "GProp_GProps.hxx"
 
-#define MAXNBPTSPEREDGE 100
-
 // ultimate (best) functions
 
 // ============================================================================
@@ -58,7 +56,7 @@ E_Int __getParamHmax(const TopoDS_Edge& E, E_Float hmax, E_Int& nbPoints, E_Floa
   }
   E_Float L = (E_Float) GCPnts_AbscissaPoint::Length(geomAdap, u0, u1);
   nbPoints = (E_Int)round(L / hmax);
-  nbPoints = std::max(nbPoints, E_Int(2));
+  nbPoints = std::max(nbPoints, E_Int(3));
   GCPnts_UniformAbscissa param(geomAdap, nbPoints, u0, u1);
   ue = new E_Float [nbPoints];
   for (E_Int i = 0; i < nbPoints; i++) ue[i] = param.Parameter(i+1);
@@ -448,7 +446,7 @@ PyObject* K_OCC::meshEdgesOfFace(PyObject* self, PyObject* args)
         if (worientation == TopAbs_FORWARD)
         {
           if (eorientation == TopAbs_FORWARD) reversed = true;
-          else reversed = false; 
+          else reversed = false;
         }
         else
         {
@@ -551,8 +549,7 @@ PyObject* K_OCC::meshEdgesOfFace(PyObject* self, PyObject* args)
     { RELEASESHAREDS(discreteWire2[i], discreteWire[i]); }
     PyList_Append(out, le); Py_DECREF(le);
   }
-  fflush(stdout);
-
+  
   return out;
 }
 

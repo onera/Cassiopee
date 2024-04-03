@@ -497,6 +497,8 @@ def meshFaceWithMetric(hook, i, edges, hmin, hmax, hausd, mesh, FAILED):
     edges[1][3,:] = pt[3,:]
     edges[1][4,:] = pt[4,:]
         
+    if edges[2].shape[1] == 0: return True # pass
+    
     # supprime les edges collapsed
     #edges2 = Generator.close(edges, 1.e-6)
     
@@ -513,10 +515,10 @@ def meshFaceWithMetric(hook, i, edges, hmin, hmax, hausd, mesh, FAILED):
         SUCCESS = False
         Converter.convertArrays2File(edges, '%03d_edgeUV.plt'%i) # pas vraiment UV
         FAILED.append(i)
-
+        
     return SUCCESS
 
-
+# Mesh face regular in UV space
 def meshFaceInUV(hook, i, edges, grading, mesh, FAILED):
     
     # save edges
@@ -542,6 +544,7 @@ def meshFaceInUV(hook, i, edges, grading, mesh, FAILED):
     except Exception as e:
         SUCCESS = False
         Converter.convertArrays2File(edges, '%03d_edgeUV.plt'%i)
+        mesh.append(None)
         FAILED.append(i)
     
     return SUCCESS

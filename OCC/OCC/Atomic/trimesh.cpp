@@ -76,6 +76,12 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
     for (E_Int i = 0; i < ne; i++) connectB(0,i) -= 1;
     for (E_Int i = 0; i < ne; i++) connectB(1,i) -= 1;
 
+    // Return null if input edges doesnt contain any bar
+    if (ne == 0)
+    {
+        printf("Error: trimesh: input edge has %d nodes and %d bars.\n", n, ne);
+        return NULL;
+    }
     /*
     printf("UVContour\n");
     printf("rows=%d cols=%d\n", UVcontour.rows(), UVcontour.cols());

@@ -1101,18 +1101,59 @@ PyObject* K_OCC::getEdgeNoByFace(PyObject* self, PyObject* args)
   PyObject* out = PyList_New(0);
 
   const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
+  TopAbs_Orientation forientation = F.Orientation();
+  
+  /*
   for (expl.Init(surfaces(noFace), TopAbs_EDGE); expl.More(); expl.Next())
   {
     const TopoDS_Edge& E = TopoDS::Edge(expl.Current());
       
-    /* find edge number in global edge list */
+    // find edge number in global edge list
     E_Int i = 0;
     for (i=1; i <= edges.Extent(); i++)
     {
       const TopoDS_Edge& El = TopoDS::Edge(edges(i));
       if (El.TShape() == E.TShape()) break;
     }
-    PyList_Append(out, Py_BuildValue("l", i));
+    // pour etre coherent avec meshEdgeByFace
+    if (forientation == TopAbs_FORWARD)
+    {
+      PyList_Append(out, Py_BuildValue("l", i));
+    }
+    else
+    {
+      PyList_Insert(out, 0, Py_BuildValue("l", i));
+    }
   }
+  */
+
+  // nouvelle version par wire pour etre coherent avec meshEdgesByFace
+  for (expl.Init(surfaces(noFace), TopAbs_WIRE); expl.More(); expl.Next())
+  {
+    const TopoDS_Wire& W = TopoDS::Wire(expl.Current());
+    BRepTools_WireExplorer expl2;
+    for (expl2.Init(W, F); expl2.More(); expl2.Next())
+    {
+      const TopoDS_Edge& E = TopoDS::Edge(expl2.Current());
+      TopAbs_Orientation eorientation = E.Orientation();
+      /* find edge number in global edge list */
+      E_Int i = 0;
+      for (i=1; i <= edges.Extent(); i++)
+      {
+        const TopoDS_Edge& El = TopoDS::Edge(edges(i));
+        if (El.TShape() == E.TShape()) break;
+      }
+
+      if (forientation == TopAbs_FORWARD)
+      {
+        PyList_Append(out, Py_BuildValue("l", i));
+      }
+      else
+      {
+        PyList_Insert(out, 0, Py_BuildValue("l", i));
+      }
+    }
+  }
+
   return out;
 }

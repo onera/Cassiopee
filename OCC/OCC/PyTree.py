@@ -528,6 +528,7 @@ def getFirstTree(hook, hmax=-1., hausd=-1., faceList=None):
   faces = OCC.meshAllFaces(hook, edges, True, faceList, hList)
   
   for c, f in enumerate(faces):
+    if f is None: continue # Failed face
     noface = faceList[c]
     z = Internal.createZoneNode('face%03d'%(noface), f, [],
                                 Internal.__GridCoordinates__,
