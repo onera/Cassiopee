@@ -13,8 +13,15 @@ TOLERANCE = 1.e-11
 GEOMETRIC_DIFF = False
 
 # Data directory to store references
-if sys.version_info[0] == 2: DATA = 'Data2'
-else: DATA = 'Data'
+def getDataFolderName(name='Data'):
+    from KCore.Dist import EDOUBLEINT
+    mac = os.getenv("MAC").split('_')[0]
+    intType = 'i8' if EDOUBLEINT else 'i4'
+    if sys.version_info[0] == 2: name += '2'
+    #if mac != 'juno': name += '_' + mac # TODO
+    #if intType == 'i8': name += '_' + intType # TODO qd la base i8 sera construite a partir de i4
+    return name
+DATA = getDataFolderName()
 
 #=============================================================================
 # Retourne la variable VALIDLOCAL si elle existe dans l'environnement
@@ -33,14 +40,13 @@ def getLocal():
 #=============================================================================
 def testA(arrays, number=1):
     """Test arrays."""
-    from KCore.Dist import EDOUBLEINT
     import Converter as C
     if not isinstance(arrays[0], list): arrays = [arrays]
 
     # Check Data directory
     a = os.access(DATA, os.F_OK)
     if not a:
-        print("Data directory doesn't exist. Created.")
+        print("{} directory doesn't exist. Created.".format(DATA))
         os.mkdir(DATA)
 
     # Construit le nom du fichier de reference
@@ -48,10 +54,9 @@ def testA(arrays, number=1):
     baseName = os.path.basename(fileName)
     dirName = os.path.dirname(fileName)
     fileName = os.path.splitext(baseName)[0]
-    intTypeStr = '' # '_i8' if EDOUBLEINT else '' TODO qd la base i8 sera construite a partir de i4
     
-    if dirName == '': reference = '%s/%s%s.ref%d'%(DATA, fileName, intTypeStr, number)
-    else: reference = '%s/%s/%s%s.ref%d'%(dirName, DATA, fileName, intTypeStr, number)
+    if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
+    else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
     a = os.access(reference, os.R_OK)
     if not a:
         print("Warning: reference file %s has been created."%reference)
@@ -107,7 +112,6 @@ def outA(arrays, number=1):
 #=============================================================================
 def testT(t, number=1):
     """Test pyTrees."""
-    from KCore.Dist import EDOUBLEINT
     import Converter.PyTree as C
     import Converter.Internal as Internal
 
@@ -123,7 +127,7 @@ def testT(t, number=1):
     # Check Data directory
     a = os.access(DATA, os.F_OK)
     if not a:
-        print("Data directory doesn't exist. Created.")
+        print("{} directory doesn't exist. Created.".format(DATA))
         os.mkdir(DATA)
 
     # Construit le nom du fichier de reference
@@ -131,11 +135,10 @@ def testT(t, number=1):
     baseName = os.path.basename(fileName)
     dirName = os.path.dirname(fileName)
     fileName = os.path.splitext(baseName)[0]
-    intTypeStr = '' # '_i8' if EDOUBLEINT else '' TODO qd la base i8 sera construite a partir de i4
-    if dirName == '': reference = '%s/%s%s.ref%d'%(DATA, fileName, intTypeStr, number)
-    else: reference = '%s/%s/%s%s.ref%d'%(dirName, DATA, fileName, intTypeStr, number)
-    a = os.access(reference, os.R_OK)
 
+    if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
+    else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
+    a = os.access(reference, os.R_OK)
     if not a:
         print("Warning: reference file %s has been created."%reference)
         C.convertPyTree2File(t, reference, 'bin_pickle')
@@ -186,7 +189,6 @@ def outT(t, number=1):
 # Diff byte to byte
 #=============================================================================
 def testF(infile, number=1):
-    from KCore.Dist import EDOUBLEINT
     # Chek infile
     a = os.access(infile, os.F_OK)
     if not a:
@@ -195,16 +197,15 @@ def testF(infile, number=1):
     # Check Data directory
     a = os.access(DATA, os.F_OK)
     if not a:
-        print("Data directory doesn't exist. Created.")
+        print("{} directory doesn't exist. Created.".format(DATA))
         os.mkdir(DATA)
     fileName = sys.argv[0]
     baseName = os.path.basename(fileName)
     dirName = os.path.dirname(fileName)
     fileName = os.path.splitext(baseName)[0]
-    intTypeStr = '' # '_i8' if EDOUBLEINT else '' TODO qd la base i8 sera construite a partir de i4
     
-    if dirName == '': reference = '%s/%s%s.ref%d'%(DATA, fileName, intTypeStr, number)
-    else: reference = '%s/%s/%s%s.ref%d'%(dirName, DATA, fileName, intTypeStr, number)
+    if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
+    else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
     a = os.access(reference, os.R_OK)
     if not a:
         print("Can not open file %s for reading."%reference)
@@ -279,7 +280,6 @@ def checkObject_(objet, refObjet, reference):
 #=============================================================================
 def testO(objet, number=1):
     """Test python object."""
-    from KCore.Dist import EDOUBLEINT
     # perform some sort on dict to be predictible
     if isinstance(objet, dict):
         from collections import OrderedDict
@@ -288,16 +288,15 @@ def testO(objet, number=1):
     # Check Data directory
     a = os.access(DATA, os.F_OK)
     if not a:
-        print("Data directory doesn't exist. Created.")
+        print("{} directory doesn't exist. Created.".format(DATA))
         os.mkdir(DATA)
     fileName = sys.argv[0]
     baseName = os.path.basename(fileName)
     dirName = os.path.dirname(fileName)
     fileName = os.path.splitext(baseName)[0]
-    intTypeStr = '' # '_i8' if EDOUBLEINT else '' TODO qd la base i8 sera construite a partir de i4
 
-    if dirName == '': reference = '%s/%s%s.ref%d'%(DATA, fileName, intTypeStr, number)
-    else: reference = '%s/%s/%s%s.ref%d'%(dirName, DATA, fileName, intTypeStr, number)
+    if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
+    else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
     a = os.access(reference, os.R_OK)
 
     # OWNDATA check / copy

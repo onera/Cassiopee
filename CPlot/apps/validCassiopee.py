@@ -3,7 +3,7 @@ try: import Tkinter as TK
 except: import tkinter as TK
 try: import tkFont as Font
 except: import tkinter.font as Font
-import os, sys, re, signal, platform
+import os, sys, re, glob, signal, platform
 from functools import partial
 import numpy as np
 import subprocess 
@@ -62,29 +62,22 @@ TESTS = []
 TESTS_FILTER = 0
 # Repertoire 'module' des modules
 MODULESDIR = {}
+# Name of the data folders
+DATA = None
 
 # Si THREAD est None, les test unitaires ne tournent pas
 # Sinon, THREAD vaut le thread lance
 THREAD = None
 # Le process lance sinon None
 PROCESS = None
+# Use the GUI (interactive) or not (command line execution)
+INTERACTIVE = len(sys.argv) == 1
 
 # Est egal a 1 si on doit s'arreter
 STOP = 0
 
 # WIDGETS dict
 WIDGETS = {}
-
-# Cassiopee compiled in i4 or i8
-INTTYPE = 'i8' if Dist.EDOUBLEINT else 'i4'
-
-# Cree sessionLog et le vide
-if not os.path.exists(CASSIOPEE+'/Apps/Modules/ValidData'):
-    os.mkdir(CASSIOPEE+'/Apps/Modules/ValidData')
-    
-f = open(CASSIOPEE+"/Apps/Modules/ValidData/session.log", "w")
-f.write("")
-f.close()
 
 #==============================================================================
 # Simulate check_output since it doesn't existe for early version of python
@@ -193,7 +186,17 @@ def ljust(text, size):
             form = '{}{:%d}'%l
             return form.format(text, ' ')
         else: return text
-    
+
+# return name of the Data folder
+def getDataFolderName(name='Data'):
+    from KCore.Dist import EDOUBLEINT
+    mac = os.getenv("MAC").split('_')[0]
+    intType = 'i8' if EDOUBLEINT else 'i4'
+    if sys.version_info[0] == 2: name += '2'
+    #if mac != 'juno': name += '_' + mac # TODO
+    #if intType == 'i8': name += '_' + intType # TODO add when ready
+    return name
+
 #==============================================================================
 # build a test string:
 # 0       1         2         3             4     5         6    7
@@ -207,17 +210,16 @@ def ljust(text, size):
 #==============================================================================
 def buildString(module, test, CPUtime='...', coverage='...%', status='...',
                 tag=' '):
-    intTypeStr = '_'+INTTYPE if INTTYPE == 'i8' else ''
     if module == 'CFDBase':
         path = CASSIOPEE+CFDBASEPATH
-        fileTime = '%s/%s/Data/%s%s.time'%(path, test, test, intTypeStr)
-        fileStar = '%s/%s/Data/%s%s.star'%(path, test, test, intTypeStr)
+        fileTime = '%s/%s/%s/%s.time'%(path, test, DATA, test)
+        fileStar = '%s/%s/%s/%s.star'%(path, test, DATA, test)
     else:
         modulesDir = MODULESDIR[module]
         path = CASSIOPEE+'/Apps/'+modulesDir
         testr = os.path.splitext(test)
-        fileTime = '%s/%s/test/Data/%s%s.time'%(path, module, testr[0], intTypeStr)
-        fileStar = '%s/%s/test/Data/%s%s.star'%(path, module, testr[0], intTypeStr)
+        fileTime = '%s/%s/test/%s/%s.time'%(path, module, DATA, testr[0])
+        fileStar = '%s/%s/test/%s/%s.star'%(path, module, DATA, testr[0])
     a = os.access(fileTime, os.F_OK)
     if a:
         f = open(fileTime, 'r')
@@ -596,13 +598,12 @@ def runSingleUnitaryTest(no, module, test):
             _ = check_output(cleanCmd, shell=True, stderr=subprocess.STDOUT)
 
     # update le fichier .time (si non present)
-    intTypeStr = '_'+INTTYPE if INTTYPE == 'i8' else ''
-    fileTime = '%s/Data/%s%s.time'%(path, testr[0], intTypeStr)
+    fileTime = '%s/%s/%s.time'%(path, DATA, testr[0])
     if not os.access(fileTime, os.F_OK):
         writeTime(fileTime, CPUtime, coverage)
         
     # Recupere le tag
-    fileStar = '%s/Data/%s%s.star'%(path, testr[0], intTypeStr)
+    fileStar = '%s/%s/%s.star'%(path, DATA, testr[0])
     tag = ' '
     if os.access(fileStar, os.R_OK):
         tag = readStar(fileStar)
@@ -619,7 +620,7 @@ def runSingleUnitaryTest(no, module, test):
             if regTest.search(tt) is not None: TESTS[c] = s; break
     listbox.delete(no, no)
     listbox.insert(no, s)
-    listbox.update()
+    if INTERACTIVE: listbox.update()
     CPUtime = string2Time(CPUtime)
     return CPUtime
 
@@ -709,13 +710,12 @@ def runSingleCFDTest(no, module, test):
         success = False; CPUtime = 'Unknown'; coverage='0%' # Core dump/error
 
     # update le fichier .time (si non present)
-    intTypeStr = '_'+INTTYPE if INTTYPE == 'i8' else ''
-    fileTime = '%s/Data/%s%s.time'%(path, test, intTypeStr)
+    fileTime = '%s/%s/%s.time'%(path, DATA, test)
     if not os.access(fileTime, os.F_OK):
         writeTime(fileTime, CPUtime, coverage)
         
     # Recupere le tag
-    fileStar = '%s/Data/%s%s.star'%(path, test, intTypeStr)
+    fileStar = '%s/%s/%s.star'%(path, DATA, test)
     tag = ' '
     if os.access(fileStar, os.R_OK):
         tag = readStar(fileStar)
@@ -731,7 +731,7 @@ def runSingleCFDTest(no, module, test):
             if regTest.search(tt) is not None: TESTS[c] = s; break
     listbox.delete(no, no)
     listbox.insert(no, s)
-    listbox.update()
+    if INTERACTIVE: listbox.update()
     CPUtime = string2Time(CPUtime)
     return CPUtime
 
@@ -798,17 +798,16 @@ def updateTests():
         test = splits[1]
         module = module.strip()
         test = test.strip()
-        intTypeStr = '_'+INTTYPE if INTTYPE == 'i8' else ''
         if module == 'CFDBase':
             pathl = CASSIOPEE+CFDBASEPATH+'/'+test
-            test2 = test+intTypeStr+'.time'
-            test = 'post'+intTypeStr+'.ref*'
+            test2 = test+'.time'
+            test = 'post'+'.ref*'
         else:
             modulesDir = MODULESDIR[module]
             path = CASSIOPEE+'/Apps/'+modulesDir
             d = os.path.splitext(test)
-            test = d[0]+intTypeStr+'.ref*'
-            test2 = d[0]+intTypeStr+'.time'
+            test = d[0]+'.ref*'
+            test2 = d[0]+'.time'
             pathl = '%s/%s/test'%(path,module)
         rmFile(pathl, test)
         rmFile(pathl, test2)
@@ -834,9 +833,9 @@ def updateTestsInThread():
 def rmFile(path, fileName):
     if mySystem == 'mingw' or mySystem == 'windows':
         path = path.replace('/', '\\')
-        cmd = 'cd '+path+' && del Data\\'+fileName
+        cmd = 'cd '+path+' && del '+DATA+'\\'+fileName
     else:
-        cmd = 'cd '+path+'; rm -f Data/'+fileName
+        cmd = 'cd '+path+'; rm -f '+DATA+'/'+fileName
     try:
         subprocess.call(cmd, shell=True, stderr=subprocess.STDOUT)
     except: pass
@@ -846,7 +845,6 @@ def rmFile(path, fileName):
 # Update TESTS et la listBox
 #==============================================================================
 def buildTestList(loadSession=False, modules=[]):
-    import glob
     global TESTS
     TESTS = []
     listbox.delete(0, TK.END)
@@ -854,11 +852,10 @@ def buildTestList(loadSession=False, modules=[]):
         modules = getModules()
     # Read last sessionLog conditionally
     ncolumns = 8
-    intTypeStr = '-'+INTTYPE if INTTYPE == 'i8' else ''
     logname = sorted(glob.glob(
-        CASSIOPEE+'/Apps/Modules/ValidData/session{}-*.log'.format(intTypeStr)))
+        '{}/Apps/Modules/Valid{}/session-*.log'.format(CASSIOPEE, DATA)))
     if len(logname): logname = logname[-1]
-    else: logname = CASSIOPEE+'/Apps/Modules/ValidData/lastSession.log'
+    else: logname = '{}/Apps/Modules/Valid{}/lastSession.log'.format(CASSIOPEE, DATA)
 
     if loadSession and os.access(logname, os.R_OK) and os.path.getsize(logname) > 0:
         print("Loading last session: {}".format(logname.split('/')[-1]))
@@ -879,7 +876,7 @@ def buildTestList(loadSession=False, modules=[]):
         # Read sessionLog and combine with lastSession. Priority given to
         # data from current session
         ncolumns = 8
-        logname = CASSIOPEE+'/Apps/Modules/ValidData/session.log'
+        logname = CASSIOPEE+'/Apps/Modules/Valid{}/session.log'.format(DATA)
         if os.path.getsize(logname) > 0:
             with open(logname, "r") as g:
                 sessionLog = [line.rstrip().split(':') for line in g.readlines()]
@@ -1076,7 +1073,7 @@ def showFilter(filter='FAILED'):
             listbox.insert(TK.END, s)
     listbox.config(yscrollcommand=scrollbar.set)
     scrollbar.config(command=listbox.yview)
-    Filter.set(''); text.update()
+    Filter.set(''); textFilter.update()
     return True
 
 #==============================================================================
@@ -1090,7 +1087,7 @@ def showRunCases():
             listbox.insert(TK.END, s)
     listbox.config(yscrollcommand=scrollbar.set)
     scrollbar.config(command=listbox.yview)
-    Filter.set(''); text.update()
+    Filter.set(''); textFilter.update()
     return True
 
 #==============================================================================
@@ -1104,7 +1101,7 @@ def showUnrunCases():
             listbox.insert(TK.END, s)
     listbox.config(yscrollcommand=scrollbar.set)
     scrollbar.config(command=listbox.yview)
-    Filter.set(''); text.update()
+    Filter.set(''); textFilter.update()
     return True
 
 #=============================================================================
@@ -1118,7 +1115,7 @@ def showCovered():
             listbox.insert(TK.END, s)
     listbox.config(yscrollcommand=scrollbar.set)
     scrollbar.config(command=listbox.yview)
-    Filter.set(''); text.update()
+    Filter.set(''); textFilter.update()
     return True
 
 #=============================================================================
@@ -1132,7 +1129,7 @@ def showUncovered():
             listbox.insert(TK.END, s)
     listbox.config(yscrollcommand=scrollbar.set)
     scrollbar.config(command=listbox.yview)
-    Filter.set(''); text.update()
+    Filter.set(''); textFilter.update()
     return True
 
 #==============================================================================
@@ -1149,7 +1146,7 @@ def showPartialCovered():
             listbox.insert(TK.END, s)
     listbox.config(yscrollcommand=scrollbar.set)
     scrollbar.config(command=listbox.yview)
-    Filter.set(''); text.update()
+    Filter.set(''); textFilter.update()
     return True
 
 #==============================================================================
@@ -1189,7 +1186,7 @@ def showFaster():
             if t1 < t2-0.15*t2: listbox.insert(TK.END, s)
     listbox.config(yscrollcommand=scrollbar.set)
     scrollbar.config(command=listbox.yview)
-    Filter.set(''); text.update()
+    Filter.set(''); textFilter.update()
     return True
 def showFasterP():
     listbox.delete(0, TK.END)
@@ -1202,7 +1199,7 @@ def showFasterP():
             if t1 < t2-0.5*t2: listbox.insert(TK.END, s)
     listbox.config(yscrollcommand=scrollbar.set)
     scrollbar.config(command=listbox.yview)
-    Filter.set(''); text.update()
+    Filter.set(''); textFilter.update()
     return True
 
 #==============================================================================
@@ -1219,7 +1216,7 @@ def showSlower():
             if (t1 > t2+0.15*t2): listbox.insert(TK.END, s)
     listbox.config(yscrollcommand=scrollbar.set)
     scrollbar.config(command=listbox.yview)
-    Filter.set(''); text.update()
+    Filter.set(''); textFilter.update()
     return True
 def showSlowerP():
     listbox.delete(0, TK.END)
@@ -1232,7 +1229,7 @@ def showSlowerP():
             if t1 > t2+0.5*t2: listbox.insert(TK.END, s)
     listbox.config(yscrollcommand=scrollbar.set)
     scrollbar.config(command=listbox.yview)
-    Filter.set(''); text.update()
+    Filter.set(''); textFilter.update()
     return True
 
 
@@ -1240,7 +1237,7 @@ def showSlowerP():
 # Affiche tous les tests
 #==============================================================================
 def showAll():
-    Filter.set(''); text.update()
+    Filter.set(''); textFilter.update()
     filterTestList()
 
 #==============================================================================
@@ -1275,6 +1272,7 @@ def stopTests():
 # Affiche le status: running/stopped
 #==============================================================================
 def displayStatus(status):
+    if not INTERACTIVE: return
     if status == 0: Status.set('Stopped'); label.config(bg='red')
     else: Status.set('Running'); label.config(bg='green')
     label.update()
@@ -1287,6 +1285,7 @@ def displayStatus(status):
 # IN: elapsed: temps passe
 #==============================================================================
 def displayProgress(current, total, remaining, elapsed):
+    if not INTERACTIVE: return
     Progress.set("%3d/%3d [%s/%s]"%
                  (current,total,time2String(remaining),time2String(elapsed)))
     progressLabel.update()
@@ -1326,7 +1325,7 @@ def setThreads(event=None):
 def getThreads():
     nt = KCore.kcore.getOmpMaxThreads()
     Threads.set(str(nt))
-    text.update()
+    if INTERACTIVE: textThreads.update()
 
 #==============================================================================
 # Exporte les resultats de la valid dans un fichier texte
@@ -1366,11 +1365,10 @@ def writeSessionLog():
     # Write time stamp dans ValidData/base.time et
     # log dans ValidData/session.log
     cassiopee = os.getenv("CASSIOPEE")
-    if not os.path.exists(cassiopee+'/Apps/Modules/ValidData'):
-        os.mkdir(cassiopee+'/Apps/Modules/ValidData')
-    writeFinal(cassiopee+'/Apps/Modules/ValidData/base.time', svnVersion)
-    writeFinal(cassiopee+'/Apps/Modules/ValidData/session.log', svnVersion, 
-               messageText, append=True)
+    writeFinal(cassiopee+'/Apps/Modules/Valid{}/base.time'.format(DATA),
+               svnVersion)
+    writeFinal(cassiopee+'/Apps/Modules/Valid{}/session.log'.format(DATA),
+               svnVersion, messageText, append=True)
 
 #=======================================
 # Notify "Commit ready" 
@@ -1418,15 +1416,14 @@ def notifyValidOK():
 def Quit(event=None):
     import os
     import shutil
-    dirname = CASSIOPEE+"/Apps/Modules/ValidData/"
-    logname = dirname+"session.log"
+    dirname = CASSIOPEE+"/Apps/Modules/Valid{}".format(DATA)
+    logname = os.path.join(dirname, "session.log")
     # The session log is copied if it is not empty and if we have write
     # permissions
     if os.access(dirname, os.W_OK) and (not os.path.getsize(logname) == 0):
         now = time.strftime("%y%m%d_%H%M%S", time.localtime())
-        intTypeStr = '-'+INTTYPE if INTTYPE == 'i8' else ''
-        dst = CASSIOPEE+"/Apps/Modules/ValidData/session{}-{}.log".format(
-            intTypeStr, now)
+        dst = CASSIOPEE+"/Apps/Modules/Valid{}/session-{}.log".format(DATA, now)
+        print("Saving session to: {}".format(dst))
         shutil.copyfile(logname, dst)
     os._exit(0)
 
@@ -1448,8 +1445,7 @@ def tagSelection(event=None):
         modulesDir = MODULESDIR[module]
         path = CASSIOPEE+'/Apps/'+modulesDir+'/'+module+'/test'
         testr = os.path.splitext(test)
-        intTypeStr = '_'+INTTYPE if INTTYPE == 'i8' else ''
-        fileStar = path+'/Data/'+testr[0]+intTypeStr+'.star'
+        fileStar = os.path.join(path, DATA, testr[0]+'.star')
         tag = splits[6].strip()
         if not tag: tag = '*'
         else: tag = tagSymbols[(tagSymbols.index(tag)+1)%ntags]
@@ -1478,9 +1474,7 @@ def untagSelection(event=None):
         modulesDir = MODULESDIR[module]
         path = CASSIOPEE+'/Apps/'+modulesDir+'/'+module+'/test'
         testr = os.path.splitext(test)
-        intTypeStr = '_'+INTTYPE if INTTYPE == 'i8' else ''
-        fileStar = path+'/Data/'+testr[0]+intTypeStr+'.star'
-        rmFile(path, testr[0]+intTypeStr+'.star')
+        rmFile(path, testr[0]+'.star')
         splits[6] = ' '*3
         s = separator.join(i for i in splits)
         regTest = re.compile(' '+test+' ')
@@ -1499,17 +1493,14 @@ def untagSelection(event=None):
 def setupGlobal():
     global CASSIOPEE
     CASSIOPEE = os.getenv('CASSIOPEE')
-    # Create Local directory for valid products
-    if not os.path.exists(CASSIOPEE+'/Apps/Modules/ValidData'):
-        os.mkdir(CASSIOPEE+'/Apps/Modules/ValidData')
-    os.environ['VALIDLOCAL'] = CASSIOPEE+'/Apps/Modules/ValidData'
+    os.environ['VALIDLOCAL'] = CASSIOPEE+'/Apps/Modules/Valid{}'.format(DATA)
     # Change to global ref
     CASSIOPEE = '/stck/benoit/Cassiopee'
     # No update on global ref!
     WIDGETS['updateButton'].configure(state=TK.DISABLED)
     # Change also to match the numthreads of global
     try:
-        file = open('/stck/benoit/Cassiopee/Apps/Modules/ValidData/base.time')
+        file = open('/stck/benoit/Cassiopee/Apps/Modules/Valid{}/base.time'.format(DATA))
         d = file.read(); d = d.split('\n')
         Threads.set(d[2])
         setThreads()
@@ -1625,153 +1616,214 @@ def filterModulesTests(master, event=None):
     newWin.protocol("WM_DELETE_WINDOW", newWin.destroy)
     newWin.mainloop()
     
+# Parse command-line arguments
+def parseArgs():
+    import argparse
+    def _checkInt(n):
+        def _throwError():
+            raise argparse.ArgumentTypeError("Number of remaining logs "
+                                             "must be a positive integer")
+            sys.exit()
+        try: n = int(n)
+        except: _throwError()
+        if n > 0: return n
+        else: _throwError()
+
+    # Create argument parser
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-l", "--load-session", dest='loadSession',
+                        action="store_true", help="Load last session")
+    parser.add_argument("-f", "--filters", type=str, default='',
+                        help="Single-quoted test filters")
+    parser.add_argument("-r", "--run", action="store_true",
+                        help="Run selected tests")
+    #parser.add_argument("-e", "--email", action="store_true",
+    #                    help="Email results")
+    parser.add_argument("-p", "--purge", default=50, type=_checkInt,
+                        help="Purge session logs down to the last X")
+
+    # Parse arguments
+    return parser.parse_args()
+    
+# Purge session logs by date down to the last n most recent
+def purgeSessionLogs(n):
+    lognames = sorted(glob.glob(
+        '{}/Apps/Modules/Valid{}/session-*.log'.format(CASSIOPEE, DATA)))
+    if len(lognames) > n:
+        for log in lognames[-n:]: os.remove(log)
+    return None
+    
 #==============================================================================
 # Main
 #==============================================================================
 
-# Main window
-master = TK.Tk()
-master.title('*Cassiopee* valid @ '+machine)
-master.columnconfigure(0, weight=1)
-master.rowconfigure(0, weight=1)
-#GENERALFONT = ('Courier', 9)
-GENERALFONT = ('Andale Mono', 9)
+if __name__ == '__main__':
+    # Create local directory for valid
+    DATA = getDataFolderName()
+    if not os.path.exists(CASSIOPEE+'/Apps/Modules/Valid{}'.format(DATA)):
+        os.mkdir(CASSIOPEE+'/Apps/Modules/Valid{}'.format(DATA))
+    # Cree sessionLog et le vide
+    f = open(CASSIOPEE+"/Apps/Modules/Valid{}/session.log".format(DATA), "w")
+    f.write("")
+    f.close()
+    
+    # Main window
+    master = TK.Tk()
+    master.title('*Cassiopee* valid @ '+machine)
+    master.columnconfigure(0, weight=1)
+    master.rowconfigure(0, weight=1)
+    #GENERALFONT = ('Courier', 9)
+    GENERALFONT = ('Andale Mono', 9)
 
-master.option_add('*Font', GENERALFONT)
-generalFont = Font.Font(family=GENERALFONT[0], size=GENERALFONT[1])
-generalFontS = generalFont.measure(' ')*1.
-generalFontA = generalFont.measure('a')*1.
-generalFontFixed = generalFont.metrics('fixed')
+    master.option_add('*Font', GENERALFONT)
+    generalFont = Font.Font(family=GENERALFONT[0], size=GENERALFONT[1])
+    generalFontS = generalFont.measure(' ')*1.
+    generalFontA = generalFont.measure('a')*1.
+    generalFontFixed = generalFont.metrics('fixed')
 
-# Main menu
-menu = TK.Menu(master)
-file = TK.Menu(menu, tearoff=0)
-menu.add_cascade(label='File', menu=file)
-tools = TK.Menu(menu, tearoff=0)
-menu.add_cascade(label='Tools', menu=tools)
-view = TK.Menu(menu, tearoff=0)
-menu.add_cascade(label='View', menu=view)
+    # Main menu
+    menu = TK.Menu(master)
+    file = TK.Menu(menu, tearoff=0)
+    menu.add_cascade(label='File', menu=file)
+    tools = TK.Menu(menu, tearoff=0)
+    menu.add_cascade(label='Tools', menu=tools)
+    view = TK.Menu(menu, tearoff=0)
+    menu.add_cascade(label='View', menu=view)
 
-loadSessionWithArgs = partial(buildTestList, True)
-file.add_command(label='Load last session', command=loadSessionWithArgs)
-file.add_command(label='Purge session', command=buildTestList)
-file.add_command(label='Export to text file', command=export2Text)
-file.add_command(label='Notify Ready for commit', command=notifyValidOK)
-file.add_command(label='Quit', command=Quit, accelerator='Ctrl+Q')
-view.add_command(label='Show FAILED', command=showFilter)
-showFilterWithArgs = partial(showFilter, "FAILEDMEM")
-view.add_command(label='Show FAILEDMEM', command=showFilterWithArgs)
-view.add_command(label='Show ALL tests', command=showAll)
-view.add_separator()
-view.add_command(label='Show run cases', command=showRunCases)
-view.add_command(label='Show unrun cases', command=showUnrunCases)
-view.add_separator()
-view.add_command(label='Show covered (100%)', command=showCovered)
-view.add_command(label='Show partially covered (x%)',
-                 command=showPartialCovered)
-view.add_command(label='Show uncovered (0%)', command=showUncovered)
-view.add_separator()
-view.add_command(label='Show faster (-15%)', command=showFaster)
-view.add_command(label='Show slower (+15%)', command=showSlower)
-view.add_command(label='Show faster (-50%)', command=showFasterP)
-view.add_command(label='Show slower (+50%)', command=showSlowerP)
-view.add_separator()
-view.add_command(label='Select all visible tests', command=selectAll,
-                 accelerator='Ctrl+A')
+    loadSessionWithArgs = partial(buildTestList, True)
+    file.add_command(label='Load last session', command=loadSessionWithArgs)
+    file.add_command(label='Purge session', command=buildTestList)
+    file.add_command(label='Export to text file', command=export2Text)
+    file.add_command(label='Notify Ready for commit', command=notifyValidOK)
+    file.add_command(label='Quit', command=Quit, accelerator='Ctrl+Q')
+    view.add_command(label='Show FAILED', command=showFilter)
+    showFilterWithArgs = partial(showFilter, "FAILEDMEM")
+    view.add_command(label='Show FAILEDMEM', command=showFilterWithArgs)
+    view.add_command(label='Show ALL tests', command=showAll)
+    view.add_separator()
+    view.add_command(label='Show run cases', command=showRunCases)
+    view.add_command(label='Show unrun cases', command=showUnrunCases)
+    view.add_separator()
+    view.add_command(label='Show covered (100%)', command=showCovered)
+    view.add_command(label='Show partially covered (x%)',
+                     command=showPartialCovered)
+    view.add_command(label='Show uncovered (0%)', command=showUncovered)
+    view.add_separator()
+    view.add_command(label='Show faster (-15%)', command=showFaster)
+    view.add_command(label='Show slower (+15%)', command=showSlower)
+    view.add_command(label='Show faster (-50%)', command=showFasterP)
+    view.add_command(label='Show slower (+50%)', command=showSlowerP)
+    view.add_separator()
+    view.add_command(label='Select all visible tests', command=selectAll,
+                     accelerator='Ctrl+A')
 
-#filterModulesTestsWithArgs = partial(filterModulesTests, master)
-#tools.add_command(label='Filter modules and tests', command=filterModulesTestsWithArgs)
-#tools.add_separator()
-tools.add_command(label='Tag selection', command=tagSelection)
-tools.add_command(label='Untag selection', command=untagSelection)
-tools.add_separator()
+    #filterModulesTestsWithArgs = partial(filterModulesTests, master)
+    #tools.add_command(label='Filter modules and tests', command=filterModulesTestsWithArgs)
+    #tools.add_separator()
+    tools.add_command(label='Tag selection', command=tagSelection)
+    tools.add_command(label='Untag selection', command=untagSelection)
+    tools.add_separator()
 
-try:
-    file = open('/stck/benoit/Cassiopee/Apps/Modules/ValidData/base.time')
-    d = file.read(); d = d.split('\n')
-    d = ' ['+d[0]+'/'+d[1]+'/'+d[2]+' threads]'
-except: d = ''
+    try:
+        file = open('/stck/benoit/Cassiopee/Apps/Modules/Valid{}/base.time'.format(DATA))
+        d = file.read(); d = d.split('\n')
+        d = ' ['+d[0]+'/'+d[1]+'/'+d[2]+' threads]'
+    except: d = ''
 
-tools.add_command(label='Switch to global data base'+d, command=setupGlobal)
-tools.add_command(label='Switch to local data base', command=setupLocal)
+    tools.add_command(label='Switch to global data base'+d, command=setupGlobal)
+    tools.add_command(label='Switch to local data base', command=setupLocal)
 
-master.config(menu=menu)
-master.bind_all("<Control-q>", Quit)
-master.protocol("WM_DELETE_WINDOW", Quit)
-master.bind_all("<Control-a>", selectAll)
+    master.config(menu=menu)
+    master.bind_all("<Control-q>", Quit)
+    master.protocol("WM_DELETE_WINDOW", Quit)
+    master.bind_all("<Control-a>", selectAll)
 
-# Main frame
-frame = TK.Frame(master)
-frame.columnconfigure(0, weight=1)
-frame.rowconfigure(0, weight=1)
-frame.columnconfigure(1, weight=1)
-frame.grid(row=0, column=0, sticky=TK.EW)
+    # Main frame
+    frame = TK.Frame(master)
+    frame.columnconfigure(0, weight=1)
+    frame.rowconfigure(0, weight=1)
+    frame.columnconfigure(1, weight=1)
+    frame.grid(row=0, column=0, sticky=TK.EW)
 
-listbox = TK.Listbox(frame, selectmode=TK.EXTENDED, width=120, height=39,
-                     background='White')
-listbox.grid(row=0, column=0, columnspan=11, sticky=TK.NSEW)
+    listbox = TK.Listbox(frame, selectmode=TK.EXTENDED, width=120, height=39,
+                         background='White')
+    listbox.grid(row=0, column=0, columnspan=11, sticky=TK.NSEW)
 
-scrollbar = TK.Scrollbar(frame, orient=TK.VERTICAL)
-scrollbar.grid(row=0, column=11, sticky=TK.NSEW)
+    scrollbar = TK.Scrollbar(frame, orient=TK.VERTICAL)
+    scrollbar.grid(row=0, column=11, sticky=TK.NSEW)
 
-Status = TK.StringVar(master)
-label = TK.Label(frame, textvariable=Status)
-Status.set('Stopped'); label.config(bg='red')
-label.grid(row=1, column=0, sticky=TK.EW)
+    Status = TK.StringVar(master)
+    label = TK.Label(frame, textvariable=Status)
+    Status.set('Stopped'); label.config(bg='red')
+    label.grid(row=1, column=0, sticky=TK.EW)
 
-Progress = TK.StringVar(master)
-progressLabel = TK.Label(frame, textvariable=Progress)
-Progress.set('  0/  0 [0h 0m 0s/0h 0m 0s]')
-progressLabel.grid(row=1, column=1, sticky=TK.EW)
+    Progress = TK.StringVar(master)
+    progressLabel = TK.Label(frame, textvariable=Progress)
+    Progress.set('  0/  0 [0h 0m 0s/0h 0m 0s]')
+    progressLabel.grid(row=1, column=1, sticky=TK.EW)
 
-Filter = TK.StringVar(master)
-text = TK.Entry(frame, textvariable=Filter, background='White', width=50)
-text.bind('<KeyRelease>', filterTestList)
-text.grid(row=1, column=2, columnspan=3, sticky=TK.EW)
-  
-filterInfoBulle = 'Filter test database using a regexp.\n'+'-'*70+'\n'\
-  '1) White-spaced: ^cylinder ^sphere\n'\
-  '2) Module filter using #: #Apps #Fast #FF   or simply   #[A,F] \n'\
-  '3) Status filter using /: /FAILED /FAILEDMEM   or simply   /F\n'\
-  '4) Coverage filter using %: %100\n'\
-  '5) Tag symbol filter using £: £r   to catch red-coloured cases\n'\
-  '6) Keyworded filters: <SEQ>, <DIST>, <RUN>, <UNRUN>, <TAG>, <UNTAG>.\n'\
-  '7) Logical OR ops unless prefixed with & (AND): #Converter &/FAILED\n'\
-  '8) Negated using !: #Fast &#!FastC (innermost symbol)'
-BB = CTK.infoBulle(parent=text, text=filterInfoBulle)
+    Filter = TK.StringVar(master)
+    textFilter = TK.Entry(frame, textvariable=Filter, background='White', width=50)
+    textFilter.bind('<KeyRelease>', filterTestList)
+    textFilter.grid(row=1, column=2, columnspan=3, sticky=TK.EW)
+      
+    filterInfoBulle = 'Filter test database using a regexp.\n'+'-'*70+'\n'\
+      '1) White-spaced: ^cylinder ^sphere\n'\
+      '2) Module filter using #: #Apps #Fast #FF   or simply   #[A,F] \n'\
+      '3) Status filter using /: /FAILED /FAILEDMEM   or simply   /F\n'\
+      '4) Coverage filter using %: %100\n'\
+      '5) Tag symbol filter using £: £r   to catch red-coloured cases\n'\
+      '6) Keyworded filters: <SEQ>, <DIST>, <RUN>, <UNRUN>, <TAG>, <UNTAG>.\n'\
+      '7) Logical OR ops unless prefixed with & (AND): #Converter &/FAILED\n'\
+      '8) Negated using !: #Fast &#!FastC (innermost symbol)'
 
-button = TK.Button(frame, text='Run', command=runTestsInThread, fg='blue')
-BB = CTK.infoBulle(parent=button, text='Run selected tests.')
-button.grid(row=1, column=5, sticky=TK.EW)
-button = TK.Button(frame, text='Stop', command=stopTests, fg='red')
-button.grid(row=1, column=6, sticky=TK.EW)
-button = TK.Button(frame, text='Update', command=updateTestsInThread, fg='blue')
-BB = CTK.infoBulle(parent=button, text='Update tests (replace data base files).')
-WIDGETS['updateButton'] = button
-button.grid(row=1, column=7, sticky=TK.EW)
-button = TK.Button(frame, text='Edit', command=viewTest)
-button.grid(row=1, column=8, sticky=TK.EW)
+    runButton = TK.Button(frame, text='Run', command=runTestsInThread, fg='blue')
+    runButton.grid(row=1, column=5, sticky=TK.EW)
+    button = TK.Button(frame, text='Stop', command=stopTests, fg='red')
+    button.grid(row=1, column=6, sticky=TK.EW)
+    updateButton = TK.Button(frame, text='Update', command=updateTestsInThread, fg='blue')
+    WIDGETS['updateButton'] = updateButton
+    updateButton.grid(row=1, column=7, sticky=TK.EW)
+    button = TK.Button(frame, text='Edit', command=viewTest)
+    button.grid(row=1, column=8, sticky=TK.EW)
 
-Threads = TK.StringVar(master)
-text = TK.Entry(frame, textvariable=Threads, background='White', width=3)
-text.grid(row=1, column=9, sticky=TK.EW)
-text.bind('<Return>', setThreads)
-text.bind('<KP_Enter>', setThreads)
-getThreads()
-BB = CTK.infoBulle(parent=text, text='Number of threads.')
+    Threads = TK.StringVar(master)
+    textThreads = TK.Entry(frame, textvariable=Threads, background='White', width=3)
+    textThreads.grid(row=1, column=9, sticky=TK.EW)
+    textThreads.bind('<Return>', setThreads)
+    textThreads.bind('<KP_Enter>', setThreads)
+    getThreads()
 
-Repeats = TK.IntVar(master, value=1)
-repeatsEntry = TK.Entry(frame, textvariable=Repeats, background='White',
-                        width=3)
-if mySystem == 'windows' or mySystem == 'mingw':
-    repeatsEntry["state"] = "disabled"
-repeatsEntry.grid(row=1, column=10, sticky=TK.EW)
-repeatsEntry.bind('<Return>', setNRepeats)
-repeatsEntry.bind('<KP_Enter>', setNRepeats)
-BB = CTK.infoBulle(parent=repeatsEntry,
-                   text='Number of times each unit test gets executed.')
-frame.grid(sticky=TK.NSEW)
-
-buildTestList()
-
-TK.mainloop()
+    Repeats = TK.IntVar(master, value=1)
+    repeatsEntry = TK.Entry(frame, textvariable=Repeats, background='White',
+                            width=3)
+    if mySystem == 'windows' or mySystem == 'mingw':
+        repeatsEntry["state"] = "disabled"
+    repeatsEntry.grid(row=1, column=10, sticky=TK.EW)
+    repeatsEntry.bind('<Return>', setNRepeats)
+    repeatsEntry.bind('<KP_Enter>', setNRepeats)
+    frame.grid(sticky=TK.NSEW)
+    
+    if INTERACTIVE:
+        # Use GUI
+        CTK.infoBulle(parent=textFilter, text=filterInfoBulle)
+        CTK.infoBulle(parent=runButton, text='Run selected tests.')
+        CTK.infoBulle(parent=updateButton,
+                      text='Update tests (replace data base files).')
+        CTK.infoBulle(parent=textThreads, text='Number of threads.')
+        CTK.infoBulle(parent=repeatsEntry,
+                      text='Number of times each unit test gets executed.')
+        buildTestList()
+        TK.mainloop()
+    else:
+        # Command line execution
+        vcargs = parseArgs()
+        purgeSessionLogs(vcargs.purge)
+        buildTestList(loadSession=vcargs.loadSession)
+        if vcargs.filters:
+            Filter.set(vcargs.filters)
+            filterTestList()
+        if vcargs.run:
+            selectAll()
+            runTests()
+            Quit()
