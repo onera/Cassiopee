@@ -725,33 +725,64 @@ def _remeshTreeFromFaces(hook, t, faceList, hList):
 
   return None
 
-# build interpData from a CAD t
-# build tc, add ghostcells in one go
+# Build interpData with ghostcells from a CAD PyTree t and its
+# corresponding connectivity tree tc (in place)
 def _setInterpData(t, tc):
   pos = getAllPos(t)
   nCADFaces = len(pos[1])
+  print("pos[0]: {} ...".format(pos[0]))
+  print("pos[1]: {} ...".format(pos[1]))
+  print("nCADFaces: {} ...".format(nCADFaces))
 
   for faceNo in range(1, nCADFaces+1):
-    #print("\rfaceNo: {} ...".format(faceNo), end='')
+    print("faceNo: {} ...".format(faceNo))
     face = getFace(t, pos, faceNo)
+    faceName = Internal.getName(face)
     # Get list of edges for that face, their range, and the total no of points
     edgeList = getEdgeListOfFace(t, pos, faceNo)
     r = getEdgeRangeOfFace(t, pos, faceNo, edgeList)
-    nPtsOnEdgesOfFace = getNPtsOnEdgesOfFace(t, pos, faceNo, edgeList)
+    print("  - edgeList: {}".format(edgeList))
+    print("  - r: {}".format(r))
+    print("  - nptsOnEdgesOfFace: {}".format(getNPtsOnEdgesOfFace(t, pos, faceNo, edgeList)))
 
     # Loop over edge indices of that face
     for edgeNo in edgeList:
-      # Edge / faceOpp
+      nptsFace = Internal.getValue(face)[0][0]
+      # faceOpp via edge
       faceOppNo = getFaceNoOppOfEdge(t, pos, edgeNo, faceNo)
+      if faceOppNo == -1: continue
+      print("    + nptsFace: {}".format(nptsFace))
+      print("    + edgeNo: {}".format(edgeNo))
+      print("      * faceOppNo: {}".format(faceOppNo))
       faceOpp = getFace(t, pos, faceOppNo)
+      faceOppName = Internal.getName(faceOpp)
+      # Extract number of elements of faceOpp prior to adding any ghost cells
+      rindOpp = Internal.getNodeFromType1(faceOpp, 'Rind_t')
+      if rindOpp is None: neltsOpp = Internal.getValue(faceOpp)[0][1]
+      else: neltsOpp = Internal.getValue(rindOpp)[0] - 1
+      print("      * rindOpp: {}".format(rindOpp))
+      print("      * neltsOpp: {}".format(neltsOpp))
+      print("      * r: {}".format(getEdgeRangeOfFace(t, pos, faceNo, edgeList)[edgeNo]))
+      print("      * rOpp: {}".format(getEdgeRangeOfFace(t, pos, faceOppNo)[edgeNo]))
       faceOpp = C.getAllFields(faceOpp, 'nodes')[0]
 
-      # Extract range and edge vertex indices
+      # Extract vertex indices of edge
+      vIdx = getEdgeVerticesOfFace(t, pos, faceNo).get(edgeNo)
       vIdxOpp = getEdgeVerticesOfFace(t, pos, faceOppNo).get(edgeNo)
-      oppData = occ.getOppData(faceOpp, vIdxOpp)
+      print("      * vIdx: {}".format(vIdx))
+      print("      * vIdxOpp: {}".format(vIdxOpp))
+      oppData, ptList, ptListDonor = occ.getOppData(faceOpp, vIdx, vIdxOpp, nptsFace, neltsOpp)
       oppData = C.convertArrays2ZoneNode('Zone', [oppData])
       # Append vertices and connectivity of opp. face to current face
-      _addOppFaceData2Face(face, oppData, r[edgeNo], nPtsOnEdgesOfFace)
+      _addOppFaceData2Face(face, oppData, ptList, r[edgeNo])
+      
+      # Update connectivity tree using newly inserted indices in current face
+      # (receiver) and their corresponding indices in opposite face (donor)
+      ptList = ptList[-len(ptListDonor):]
+      print("      * ptList: {}".format(ptList))
+      print("      * ptListDonor: {}".format(ptListDonor))
+      _updateConnectivityTree(tc, name=faceName, donorName=faceOppName,
+                              ptList=ptList, ptListDonor=ptListDonor)
   return None
 
 # Retourne l'edge a partir de edgeNo (numero global CAD)
@@ -830,8 +861,8 @@ def getFaceNoOppOfEdge(t, pos, edgeNo, faceNo):
     if f != faceNo: return f
   return -1
 
-# Add opposite face vertices and connectivity to a face (inplace)
-def _addOppFaceData2Face(z, zOpp, rgEdge, nPtsOnEdgesOfFace):
+# Add opposite face vertices and connectivity to a face (in place)
+def _addOppFaceData2Face(z, zOpp, ptList, rgEdge):
   # Get dimensions of current face
   nptsEdge = rgEdge[1] - rgEdge[0]
   dims = Internal.getValue(z)[0]
@@ -852,14 +883,8 @@ def _addOppFaceData2Face(z, zOpp, rgEdge, nPtsOnEdgesOfFace):
   nOpp = Internal.getNodesFromType1(zOpp, 'Elements_t')
   cOpp = Internal.getNodeFromType1(nOpp[0], 'DataArray_t')
   cnOpp = Internal.getValue(cOpp)
-  lastPoint = cnOpp == nptsEdge
-  # internal nodes in opp. face
-  cnOpp[cnOpp > nptsEdge] += dims[0] - nptsEdge
-  # setting edge indices of opp. face to that of current face
-  cnOpp[cnOpp < nptsEdge] += rgEdge[0]
-  # map last point to first point
-  cnOpp[lastPoint] = numpy.mod(cnOpp[lastPoint] + rgEdge[0], nPtsOnEdgesOfFace)
-  c[1] = numpy.concatenate((cn, cnOpp))
+  c[1] = numpy.concatenate((cn, ptList[cnOpp-1]))
+  print("      * cnOpp: {}".format(ptList[cnOpp-1]))
   
   # Edit current Rind using offsetted opposite element range
   elRgOpp = Internal.getNodeFromType1(nOpp[0], 'IndexRange_t')
@@ -881,4 +906,31 @@ def _addOppFaceData2Face(z, zOpp, rgEdge, nPtsOnEdgesOfFace):
   # Edit number of elements of current face
   dims = Internal.getValue(z)[0]
   dims[1] = ntotElts
+  return None
+
+# Update connectivity tree tc of receiver face `name` using data from opposite
+# face `donorName` (in place)
+def _updateConnectivityTree(tc, name, donorName, ptList, ptListDonor):
+  bf = Internal.getNodeFromName1(tc, 'Base')
+  z = Internal.getNodeFromName1(bf, name)
+  if z is None:
+    z = Internal.createNode(name, 'Zone_t', value=[0,0,0], parent=bf)
+  Internal.createNode('ZoneType', 'ZoneType_t', value='Unstructured', parent=z)
+
+  zsr = Internal.createNode('ID_'+donorName, 'ZoneSubRegion_t',
+                            value=donorName, parent=z)
+  Internal.createNode('ZoneRole', 'DataArray_t', value='Donor', parent=zsr)
+  Internal.createNode('GridLocation', 'GridLocation_t', value='Vertex', parent=zsr)
+  
+  npts = len(ptListDonor)
+  # indices des points receveur
+  Internal.createNode('PointList', 'IndexArray_t', value=ptList, parent=zsr)
+  # indices des points donneur
+  Internal.createNode('PointListDonor', 'IndexArray_t', value=ptListDonor, parent=zsr) 
+  # coefficient a 1 (injection)
+  data = numpy.ones((npts), dtype=numpy.float64)
+  Internal.createNode('InterpolantsDonor', 'DataArray_t', value=data, parent=zsr)
+  # type d'interpolation a 1 (injection)
+  data = numpy.ones((npts), dtype=Internal.E_NpyInt)
+  Internal.createNode('InterpolantsType', 'DataArray_t', value=data, parent=zsr)
   return None

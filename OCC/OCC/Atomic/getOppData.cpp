@@ -27,10 +27,16 @@
 PyObject* K_OCC::getOppData(PyObject* self, PyObject* args)
 {
   // array is the face TRI mesh of the opposite face
-  // indArray are the indices (1st vertex: 0) in TRI mesh of the edge
+  // indArray are the indices (starting at 0) in receiver mesh of the edge
+  // indArrayD are the indices in donor/opposite mesh of the edge
+  // nvR is the number of vertices of the receiver face
+  // neD is the number of elements of the donor/opposite face without ghost cells
   PyObject* array;
-  PyObject* indArray;
-  if (!PYPARSETUPLE_(args, OO_ , &array, &indArray)) return NULL;
+  PyObject* indArray; PyObject* indArrayD;
+  E_Int nvR, neD;
+  if (!PYPARSETUPLE_(args, OOO_ II_ ,
+                    &array, &indArray, &indArrayD, &nvR, &neD))
+    return NULL;
 
   // Check array
   E_Int nil, njl, nkl;
@@ -50,15 +56,18 @@ PyObject* K_OCC::getOppData(PyObject* self, PyObject* args)
   {
     RELEASESHAREDS(array, f);
     PyErr_SetString(PyExc_TypeError,
-                    "getOppData: only for TRI array.");
+                    "getOppData: only for TRI or QUAD array.");
     return NULL;
   }
 
-  if (strcmp(eltType, "TRI") != 0)
+  E_Int nvpe, fac; 
+  if (strcmp(eltType, "TRI") == 0) { nvpe = 3; fac = 3; }
+  else if (strcmp(eltType, "QUAD") == 0) { nvpe = 4; fac = 2; }
+  else
   {
     RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
-                    "getOppData: only for TRI array.");
+                    "getOppData: only for TRI or QUAD array.");
     return NULL;
   }
 
@@ -74,8 +83,10 @@ PyObject* K_OCC::getOppData(PyObject* self, PyObject* args)
   }
 
   // Check inds
-  E_Int* inds; E_Int size; E_Int nfld;
+  E_Int* inds; E_Int* indsD;
+  E_Int size; E_Int nfld;
   E_Int res2 = K_NUMPY::getFromNumpyArray(indArray, inds, size, nfld, true);
+  res2 &= K_NUMPY::getFromNumpyArray(indArrayD, indsD, size, nfld, true);
   if (res2 == 0)
   {
     RELEASESHAREDU(array, f, cn);
@@ -85,41 +96,47 @@ PyObject* K_OCC::getOppData(PyObject* self, PyObject* args)
   }
 
   // Recherche des vertex voisins et des triangles adjacents
-  E_Int nv = f->getSize();
-  //printf("nv=%d \n", nv);
+  E_Int nvD = f->getSize();
+  // printf("nvR=%d \n", nvR);
+  // printf("nvD=%d \n", nvD);
+  // printf("neD=%d \n", neD);
   
   // List of elements of faceOpp connected to the edge vertices
-  std::vector< std::vector<E_Int> > cVE(nv);
+  std::vector< std::vector<E_Int> > cVE(nvD);
   K_CONNECT::connectEV2VE(*cn, cVE);
 
-  E_Int ind, inde, indn;
-  E_Int vidx = size; // vertex counter starting from max range index of edge
+  E_Int ind, indd, inde, indn;
+  E_Int vidx = 0; // vertex counter for newly inserted points
   FldArrayI& cm = *(cn->getConnect(0));
   
   std::unordered_map<E_Int, E_Int> vertexMap;
   std::vector<E_Int> vertexInsOrder; // maintains insertion order
+  std::vector<E_Int> vertexIdxR; // keeps track of vertex index of receiver face
   TopologyOpt E;
-  E_Int nvpe = 3; std::vector<E_Int> elt(nvpe);
+  std::vector<E_Int> elt(nvpe);
   std::unordered_set<TopologyOpt, JenkinsHash<TopologyOpt> > eltSet;
   
-  // Insert edge vertices in reverse order
-  vertexInsOrder.reserve(2*size); // ballpark
+  // Insert edge vertices first
+  vertexInsOrder.reserve(fac*size); // ballpark
+  vertexIdxR.reserve(fac*size);     // ballpark
   for (E_Int i = 0; i < size; i++)
   {
-    ind = inds[i]+1;
-    vertexMap.insert(std::make_pair(ind, size-i));
-    vertexInsOrder.push_back(ind);
+    ind = inds[size-1-i]+1; indd = indsD[i]+1;
+    vertexMap.insert(std::make_pair(indd, i+1));
+    vertexInsOrder.push_back(indd);
+    vertexIdxR.push_back(ind);
   }
 
   // Insert vertices of ghost cells and ghost cells themselves
   // Loop over all but corner vertices
   for (E_Int i = 1; i < size-1; i++)
   {
-    ind = inds[i];
-    const std::vector<E_Int>& elts = cVE[ind];
+    indd = indsD[i];
+    const std::vector<E_Int>& elts = cVE[indd];
     for (size_t e = 0; e < elts.size(); e++)
     {
       inde = elts[e];
+      if (neD <= inde) continue; // skip ghost cells of opposite face
       for (E_Int j = 0; j < nvpe; j++)
       {
         indn = cm(inde, j+1);
@@ -127,8 +144,9 @@ PyObject* K_OCC::getOppData(PyObject* self, PyObject* args)
         auto resV = vertexMap.insert(std::make_pair(indn, -1));
         if (resV.first->second == -1)
         {
-          vidx++; resV.first->second = vidx;
+          vidx++; resV.first->second = size+vidx;
           vertexInsOrder.push_back(indn);
+          vertexIdxR.push_back(nvR+vidx);
         }
         elt[j] = resV.first->second;
       }
@@ -141,10 +159,16 @@ PyObject* K_OCC::getOppData(PyObject* self, PyObject* args)
   E_Int vsize = vertexMap.size();
   E_Int esize = eltSet.size();
 
+  // Export receiver and donor numpy point lists
+  PyObject* rcvIds = K_NUMPY::buildNumpyArray(vsize, 1, 1, 1);
+  E_Int* ridsp = K_NUMPY::getNumpyPtrI(rcvIds);
+  PyObject* donorIds = K_NUMPY::buildNumpyArray(vsize-size, 1, 1, 1);
+  E_Int* didsp = K_NUMPY::getNumpyPtrI(donorIds);
+
   // Ajout des triangles supplementaires (ghost cells)
   nfld = f->getNfld(); E_Int api = f->getApi();
   PyObject* tpl2 = K_ARRAY::buildArray3(nfld, varString, vsize, esize,
-                                        "TRI", false, api);
+                                        eltType, false, api);
   FldArrayF* f2; FldArrayI* cn2;
   K_ARRAY::getFromArray3(tpl2, f2, cn2);
   
@@ -164,9 +188,20 @@ PyObject* K_OCC::getOppData(PyObject* self, PyObject* args)
         f2p[ind2-1] = fp[ind1-1];
       }
     }
+
+    // Point lists
+    #pragma omp for
+    for (E_Int i = 0; i < size; i++) ridsp[i] = vertexIdxR[i];
+
+    #pragma omp for
+    for (E_Int i = size; i < vsize; i++)
+    {
+      ridsp[i] = vertexIdxR[i];
+      didsp[i-size] = vertexInsOrder[i];
+    }
   }
 
-  // Connectivity TRI
+  // Ghost cell connectivity (TRI or QUAD)
   ind = 0;
   FldArrayI& cm2 = *(cn2->getConnect(0));
   for (auto it = eltSet.begin(); it != eltSet.end(); it++)
@@ -178,10 +213,10 @@ PyObject* K_OCC::getOppData(PyObject* self, PyObject* args)
     }
     ind++;
   }
-  
+
   RELEASESHAREDU(tpl2, f2, cn2);
   RELEASESHAREDU(array, f, cn);
-  Py_DECREF(indArray);
+  Py_DECREF(indArray); Py_DECREF(indArrayD);
 
-  return tpl2;
+  return Py_BuildValue("OOO", tpl2, rcvIds, donorIds);
 }
