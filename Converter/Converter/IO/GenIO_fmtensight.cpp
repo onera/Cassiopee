@@ -22,15 +22,15 @@
 # include <stdio.h>
 
 //===========================================================================
-// ecriture_fmt_ensight : ecrit un champ structuré au format ensight5 
-// entrées: 
-//    - nom_fichier : le nom générique du fichier de sortie (il sera suivi de .geo pour le maillage, .res pour le champ aéro,
-//		    .scl pour le nom des variables aéro)
+// ecriture_fmt_ensight : ecrit un champ structure au format ensight5 
+// entrees: 
+//    - nom_fichier : le nom generique du fichier de sortie (il sera suivi de .geo pour le maillage, .res pour le champ aï¿½ro,
+//		    .scl pour le nom des variables aero)
 //    - titre : un titre dans l'entete du fichier
 //    - nom_variable : le tableau du nom des variables
-//    - endi, endj, endk: dimensions du champ aéro
-//    - nombre_variable: nombre de variables dans le champ aéro initial (sans les variables composées)
-//    - var: champ aéro rangé dans un tableau 1D par i puis j puis k puis numero_variable croissants
+//    - endi, endj, endk: dimensions du champ aï¿½ro
+//    - nombre_variable: nombre de variables dans le champ aï¿½ro initial (sans les variables composï¿½es)
+//    - var: champ aero range dans un tableau 1D par i puis j puis k puis numero_variable croissants
 // ===========================================================================
 void ecriture_fmt_ensight(string nom_fichier, string titre, 
                           string* nom_variable, long endi, 
@@ -198,9 +198,9 @@ void ecriture_fmt_ensight(string nom_fichier, string titre,
       FILE* pFile = fopen (nom_fichier.c_str(),"wt");   
       if (pFile!=NULL)
       {	  
-         fprintf (pFile , "%d %d %d\n", nombre_variable-3, 0, 0);
-	 fprintf (pFile , "1\n");
-	 fprintf (pFile , "0.0\n");
+         fprintf (pFile , SF_3D_ "\n", nombre_variable-3, 0, 0);
+         fprintf (pFile , "1\n");
+         fprintf (pFile , "0.0\n");
          for (long nvar=0;nvar<nombre_variable-3;nvar=nvar+1)
          {
    	    nom_resultat=nom_fichier.substr(0,nom_fichier.length()-3);

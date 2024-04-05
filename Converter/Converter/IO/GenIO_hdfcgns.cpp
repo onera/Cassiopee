@@ -1202,7 +1202,7 @@ E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape,
   // DBX
   /*
   E_Int opened = H5Fget_obj_count(fid, H5F_OBJ_ALL);
-  printf("opened=%d\n",opened);
+  printf("opened=%d\n", opened);
   if (opened > 0)
   {
     hid_t* objIds = new hid_t [opened];
@@ -1905,7 +1905,7 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
   // DBX
   /*
   E_Int opened = H5Fget_obj_count(fid, H5F_OBJ_ALL);
-  printf("opened=%d\n",opened);
+  printf("opened=" SF_D_ "\n", opened);
   if (opened > 0)
   {
     hid_t* objIds = new hid_t [opened];
@@ -1916,7 +1916,7 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
       hid_t anobj = *objIds++;
       H5I_type_t ot = H5Iget_type(anobj);
       herr_t status = H5Iget_name(anobj, name, 1024);
-      printf(" %d: type %d, name %s\n",i,ot,name);
+      printf(" %d: type %d, name %s\n", i, ot, name);
     }  
     delete [] objIds;
   }
@@ -2062,7 +2062,7 @@ E_Int K_IO::GenIO::hdfcgnsWritePaths(char* file, PyObject* treeList,
     }
   }
 
-  //printf("open=%d\n",H5Fget_obj_count(fid, H5F_OBJ_ALL));
+  //printf("open=%d\n", H5Fget_obj_count(fid, H5F_OBJ_ALL));
   H5Fclose(fid);
   
   return 0;

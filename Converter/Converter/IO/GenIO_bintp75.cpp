@@ -707,7 +707,7 @@ E_Int K_IO::GenIO::tecwrite75(
     E_Int nvar = structField[n]->getNfld();
     if (nvar != n_vartot)
     {
-      printf("Warning: tecwrite: number of variables differs for structured field: %d.\n", n+1);
+      printf("Warning: tecwrite: number of variables differs for structured field: " SF_D_ ".\n", n+1);
       return 1;
     }
   }
@@ -718,7 +718,7 @@ E_Int K_IO::GenIO::tecwrite75(
     E_Int nvar = unstructField[n]->getNfld();
     if (nvar != n_vartot)
     {
-      printf("Warning: tecwrite: number of variables differs for unstructured field: %d.\n",n+1);
+      printf("Warning: tecwrite: number of variables differs for unstructured field: " SF_D_ ".\n",n+1);
       return 1;
     }
   }

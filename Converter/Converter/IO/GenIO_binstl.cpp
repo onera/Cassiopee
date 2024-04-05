@@ -142,7 +142,7 @@ E_Int K_IO::GenIO::stlwrite(
     if (eltType[zone] == 2) // triangles
     { nvalidZones++; if (no == -1) no = zone; }
     else
-      printf("Warning: stlwrite: zone %d not written (not a triangle zone).", zone);
+      printf("Warning: stlwrite: zone " SF_D_ " not written (not a triangle zone).", zone);
   } 
 
   if (nvalidZones == 0) return 1;

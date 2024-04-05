@@ -93,7 +93,7 @@ PyObject* K_CONVERTER::convertPyTree2FFD(PyObject* self, PyObject* args)
 
   if( test == 1 ){
      printf("je rentre dans convertPyTree2FFD\n");
-     printf("nd = %d\n", nd);
+     printf("nd = " SF_D_ "\n", nd);
    }
   vector<PyArrayObject*> hook;
   E_Float real_state1[10];
@@ -104,7 +104,7 @@ PyObject* K_CONVERTER::convertPyTree2FFD(PyObject* self, PyObject* args)
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
      E_Int lrefstat = PyList_Size(RefStat);
-     if( test == 1 )printf("longueur de RefStat = %d\n", lrefstat);
+     if( test == 1 )printf("longueur de RefStat = " SF_D_ "\n", lrefstat);
      for  ( ii = 0 ; ii < lrefstat ; ii++)
         {
       PyObject* fl   = PyList_GetItem(RefStat, ii);
@@ -125,19 +125,18 @@ PyObject* K_CONVERTER::convertPyTree2FFD(PyObject* self, PyObject* args)
   char* varString; char* eltType;
   vector<E_Float*> fields; vector<E_Int> locs;
   vector<E_Int*> cn;
-  E_Int loc = 2 ;
-//  
-//  
+  E_Int loc = 2;
+
   E_Int res = K_PYTREE::getFromZone(zone, 1, loc, varString,
                         fields, locs, nnode, nelmt, km,
                         cn, cnSize, cnNfld, eltType, hook, 
                         GridCoordinates, FlowSolutionNodes, FlowSolutionCenters);
    if( test == 1 ){
      printf("getFromZone a repondu :\n");
-     printf("res = %d\n", res);
+     printf("res = " SF_D_ "\n", res);
      printf("varString : %s\n", varString);
-     printf("nnode = %d, nelmt = %d, km = %d \n",nnode, nelmt, km);
-     printf("cnSize= %d, cnNfld= %d \n",cnSize,cnNfld);
+     printf("nnode = " SF_D_ ", nelmt = " SF_D_ ", km = " SF_D_ " \n", nnode, nelmt, km);
+     printf("cnSize= " SF_D_ ", cnNfld= " SF_D_ " \n", cnSize, cnNfld);
      //printf("cn[0]= %d, cn2[0]= %d \n",cn[0],cn2[0]);
    }
     /* Plus d'info dans KCore/PyTree/PyTree.h */
@@ -344,7 +343,7 @@ PyObject* K_CONVERTER::convertPyTree2FFD(PyObject* self, PyObject* args)
 //   fin de convertPyTree2FFD 
      if( test == 1 ){
      printf("je sors de convertPyTree2FFD\n");
-     printf("nd = %d\n", nd);
+     printf("nd = " SF_D_ "\n", nd);
      }
     RELEASESHAREDZ(hook, varString, eltType);
     Py_INCREF(Py_None);

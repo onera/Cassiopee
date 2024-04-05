@@ -182,10 +182,10 @@ E_Int K_IO::GenIO::bingmshread(
 
   // Cree le nom des zones
   //printf("Number of zones %d\n", unstructField.size());
-  for (unsigned int i=0; i < unstructField.size(); i++)
+  for (size_t i=0; i < unstructField.size(); i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone%d", i);
+    sprintf(zoneName, "Zone" SF_D_, i);
     zoneNames.push_back(zoneName);
   }
   //printf("sizes: %d %d\n", unstructField.size(), connect.size());
@@ -216,7 +216,7 @@ E_Int K_IO::GenIO::bingmshwrite(
     // NODE, BAR, TRI, QUADS, TETRA, HEXA , PENTA, PYRA, supported
     if (eltType[zone] < 8) nvalidZones++;
     else
-      printf("Warning: gmshwrite: zone %d not written (not a valid elements in zone).", zone);
+      printf("Warning: gmshwrite: zone " SF_D_ " not written (not a valid elements in zone).", zone);
   }
 
   if (nvalidZones == 0) return 1;
@@ -275,7 +275,7 @@ E_Int K_IO::GenIO::bingmshwrite(
   fwrite("$EndMeshFormat\n", sizeChar, 15, ptrFile);
 
   fwrite("$Nodes\n", sizeChar, 7, ptrFile);
-  sprintf(buf, "%d\n", v.getSize());
+  sprintf(buf, SF_D_ "\n", v.getSize());
   fwrite(buf, sizeChar, strlen(buf), ptrFile);
 
   /* Nodes */
@@ -294,7 +294,7 @@ E_Int K_IO::GenIO::bingmshwrite(
   {
     size += connect[i]->getSize();
   }
-  sprintf(buf, "%d\n", size);
+  sprintf(buf, SF_D_ "\n", size);
   fwrite(buf, sizeChar, strlen(buf), ptrFile);
 
   // Connectivite par elts par rapport a la definition globale des vertices

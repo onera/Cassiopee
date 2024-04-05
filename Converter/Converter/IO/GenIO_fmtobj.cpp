@@ -574,7 +574,7 @@ E_Int K_IO::GenIO::objwrite(
     if (eltType[zone] == 2 || eltType[zone] == 3)
       nvalidZones++;
     else
-      printf("Warning: objwrite: zone %d not written (not a valid elements in zone).", zone);
+      printf("Warning: objwrite: zone " SF_D_ " not written (not a valid elements in zone).", zone);
   }
 
   if (nvalidZones == 0) return 1;
@@ -627,17 +627,10 @@ E_Int K_IO::GenIO::objwrite(
       FldArrayI& cn = *connect[i];
       for (E_Int n = 0; n < cn.getSize(); n++)
       {
-#ifdef E_DOUBLEINT
-        fprintf(ptrFile, "f %ld/%ld/%ld %ld/%ld/%ld %ld/%ld/%ld\n", 
+        fprintf(ptrFile, "f " SF_D_ "/" SF_D_ "/" SF_D_ " " SF_D_ "/" SF_D_ "/" SF_D_ " " SF_D_ "/" SF_D_ "/" SF_D_ "\n", 
                 cn(n,1)+ng, cn(n,1)+ng, cn(n,1)+ng,
                 cn(n,2)+ng, cn(n,2)+ng, cn(n,2)+ng,
                 cn(n,3)+ng, cn(n,3)+ng, cn(n,3)+ng);
-#else
-        fprintf(ptrFile, "f %d/%d/%d %d/%d/%d %d/%d/%d\n", 
-                cn(n,1)+ng, cn(n,1)+ng, cn(n,1)+ng,
-                cn(n,2)+ng, cn(n,2)+ng, cn(n,2)+ng,
-                cn(n,3)+ng, cn(n,3)+ng, cn(n,3)+ng);
-#endif
       }
     }
     if (eltType[i] == 3)
@@ -646,19 +639,11 @@ E_Int K_IO::GenIO::objwrite(
       FldArrayI& cn = *connect[i];
       for (E_Int n = 0; n < cn.getSize(); n++)
       {
-#ifdef E_DOUBLEINT
-        fprintf(ptrFile, "f %ld/%ld/%ld %ld/%ld/%ld %ld/%ld/%ld %ld/%ld/%ld\n", 
+        fprintf(ptrFile, "f " SF_D_ "/" SF_D_ "/" SF_D_ " " SF_D_ "/" SF_D_ "/" SF_D_ " " SF_D_ "/" SF_D_ "/" SF_D_ " " SF_D_ "/" SF_D_ "/" SF_D_ "\n",
                 cn(n,1)+ng, cn(n,1)+ng, cn(n,1)+ng,
                 cn(n,2)+ng, cn(n,2)+ng, cn(n,2)+ng,
                 cn(n,3)+ng, cn(n,3)+ng, cn(n,3)+ng,
                 cn(n,4)+ng, cn(n,4)+ng, cn(n,4)+ng);
-#else
-        fprintf(ptrFile, "f %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d\n", 
-                cn(n,1)+ng, cn(n,1)+ng, cn(n,1)+ng,
-                cn(n,2)+ng, cn(n,2)+ng, cn(n,2)+ng,
-                cn(n,3)+ng, cn(n,3)+ng, cn(n,3)+ng,
-                cn(n,4)+ng, cn(n,4)+ng, cn(n,4)+ng);
-#endif
       }
     }
     ng += field.getSize();

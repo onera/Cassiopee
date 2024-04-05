@@ -34,10 +34,8 @@
 #define PRINTSTACK2 ;
 #define PRINTSTACK \
   printf("stack:\n"); \
-  for (size_t i = 0; i < stackX.size(); i++) printf("%d: %g %g\n",i,stackX[i],stackY[i]);
-  
-//printf("Generation => commandP=%d (%d)\n", commandP, command);
-  
+  for (size_t i = 0; i < stackX.size(); i++) printf( SF_D_ ": %g %g\n",i,stackX[i],stackY[i]);
+    
 #define GENERATE \
   if (commandP == 0 || commandP == 1 || commandP == 2 || commandP == 3) \
     { \
@@ -358,7 +356,7 @@ E_Int K_IO::GenIO::svgread(
   for (unsigned int i = 0; i < structField.size(); i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone%d",i);
+    sprintf(zoneName, "Zone" SF_D_,i);
     zoneNames.push_back(zoneName);
   }
 

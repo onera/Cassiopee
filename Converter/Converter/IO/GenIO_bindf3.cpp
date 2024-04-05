@@ -104,7 +104,6 @@ E_Int K_IO::GenIO::df3write(
   E_Float hi = (xmax - xmin)/(nig-1);
   E_Float hj = (ymax - ymin)/(njg-1);
   E_Float hk = (zmax - zmin)/(nkg-1);
-  //printf("xmax = %f %f %f %f %f %f \n", xmax, ymax, zmax, xmin, ymin, zmin);
   FldArrayI indi(1);
   FldArrayF cf(8);
   FldArrayI tmpIndi(1); FldArrayF tmpCf(8);
@@ -135,7 +134,6 @@ E_Int K_IO::GenIO::df3write(
             type, density[ind]);
         }
         else density[ind] = -K_CONST::E_MAX_FLOAT;
-        //printf("%f %f %f %f %d %d\n", density[ind]);
       }
 
   // Delete Adt
@@ -163,7 +161,6 @@ E_Int K_IO::GenIO::df3write(
   {
     if (density[i] <= -K_CONST::E_MAX_FLOAT+1.) density[i] = dmin;
   }
-  //printf("min-max : %f %f \n", dmin, dmax);
   unsigned int* buf = new unsigned int[nig*njg*nkg];
   E_Float val;
   for (E_Int i = 0; i < density.getSize(); i++)
@@ -171,7 +168,6 @@ E_Int K_IO::GenIO::df3write(
     val = (density[i]-dmin) / (dmax - dmin) * 4294967295.;
     buf[i] = (unsigned int)val;
     //buf[i] = density[i] / dmax * 255;
-    //printf("%f %f %u\n",(density[i]-dmin) / (dmax - dmin), density[i], buf[i] );
   }
 
   // Write density grid (df3)

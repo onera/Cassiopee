@@ -74,7 +74,7 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
       
       if (primitive.type == cgltf_primitive_type_triangle_strip)
       {
-        printf("Warning: bingltf: bloc: %d, primitives are triangle strips\n", blockId);
+        printf("Warning: bingltf: bloc: " SF_D_ ", primitives are triangle strips\n", blockId);
       }
       if (primitive.indices && primitive.type == cgltf_primitive_type_triangles)
       {
@@ -108,7 +108,7 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
 
         if (attr.type == cgltf_attribute_type_invalid)
         {
-          fprintf(stderr, "Warning: bingltf: ignoring unknown attribute %s in primitive %d of mesh %d\n", attr.name, int(pi), blockId);
+          fprintf(stderr, "Warning: bingltf: ignoring unknown attribute %s in primitive %d of mesh " SF_D_ "\n", attr.name, int(pi), blockId);
           continue;
         }
 
@@ -247,7 +247,7 @@ E_Int K_IO::GenIO::gltfread(
   for (E_Int i = 0; i < (E_Int)unstructField.size(); i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone%d", i);
+    sprintf(zoneName, "Zone" SF_D_, i);
     zoneNames.push_back(zoneName);
   }
   varString = new char [30];

@@ -83,7 +83,6 @@ E_Int K_IO::GenIO::plyread(
   if (strcmp(dummy, "vertex") != 0) { fclose(ptrFile); return 1; }
   fscanf(ptrFile, "%s", dummy); // nbre de vertex
   E_Int nd = atoi(dummy);
-  //printf("nd = %d\n", nd);
   
   // Recherche property
   E_Int typeVar[20];
@@ -104,8 +103,7 @@ E_Int K_IO::GenIO::plyread(
     nvar++;
     fscanf(ptrFile, "%s", dummy);
   }
-  //printf("nvar=%d\n", nvar);
-
+  
   // recherche element face
   if (strcmp(dummy, "element") == 0) found = 1;
   else found = 0;
@@ -120,8 +118,7 @@ E_Int K_IO::GenIO::plyread(
 
   fscanf(ptrFile, "%s", dummy); // nbre de face
   E_Int ne = atoi(dummy);
-  //printf("ne = %d\n", ne);
-
+  
   // Recherche property
   //E_Int typec = 0;
   fscanf(ptrFile, "%s", dummy);
@@ -326,7 +323,7 @@ E_Int K_IO::GenIO::plyread(
   for (E_Int i = 0; i < unstructFieldSize; i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone%d", i);
+    sprintf(zoneName, "Zone" SF_D_, i);
     zoneNames.push_back(zoneName);
   }
 
@@ -402,7 +399,7 @@ E_Int K_IO::GenIO::plywrite(
   E_Int nv = 0;
   if (at != NULL) nv += at->getSize();
   if (aq != NULL) nv += aq->getSize();
-  fprintf(ptrFile, "element vertex %d\n", nv);
+  fprintf(ptrFile, "element vertex " SF_D_ "\n", nv);
   fprintf(ptrFile, "property double x\n");
   fprintf(ptrFile, "property double y\n");
   fprintf(ptrFile, "property double z\n");
@@ -411,7 +408,7 @@ E_Int K_IO::GenIO::plywrite(
   E_Int nf = 0;
   if (ct != NULL) nf += ct->getSize();
   if (cq != NULL) nf += cq->getSize();
-  fprintf(ptrFile, "element face %d\n", nf);
+  fprintf(ptrFile, "element face " SF_D_ "\n", nf);
   fprintf(ptrFile, "property list uchar uint vertex_index\n");
   
   fprintf(ptrFile, "end_header\n");
@@ -509,7 +506,6 @@ E_Int K_IO::GenIO::plywrite(
         fwrite(ubuf, sizeof(unsigned char), 1, ptrFile);
         ibuf[0] = c(i,1)-1+ndec; ibuf[1] = c(i,2)-1+ndec; 
         ibuf[2] = c(i,3)-1+ndec; ibuf[3] = c(i,4)-1+ndec;
-        //printf("%d %d %d %d\n", ibuf[0], ibuf[1], ibuf[2], ibuf[3]);
         fwrite(ibuf, sizeof(unsigned int), 4, ptrFile);
       }
     }

@@ -77,8 +77,8 @@ void readPoints(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
   buf[count] = '\0';
 
   npts = 0;
-  sscanf(buf, "%d", &npts);
-  printf("POINTS npts: %d, type=%s\n", npts, type);
+  sscanf(buf, SF_D_, &npts);
+  printf("POINTS npts: " SF_D_ ", type=%s\n", npts, type);
 
   if (strcmp(type, "double") == 0)
   {
@@ -141,15 +141,15 @@ void readCells(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated, E_Int&
   while (buf[i] != '\0' && buf[i] != ' ') { buf2[i-prev] = buf[i]; i++; }
   buf2[i-prev] = '\0';
   ncells = 0;
-  sscanf(buf2, "%d", &ncells);
-  printf("ncells: %d\n", ncells);
+  sscanf(buf2, SF_D_, &ncells);
+  printf("ncells: " SF_D_ "\n", ncells);
   // recupere la taille totale de la connectivite
   i += 1;
   E_Int is = i;
   while (buf[i] != '\0' && buf[i] != ' ') { buf2[i-is] = buf[i]; i++; }
   buf2[i-is] = '\0';
-  sscanf(buf2, "%d", &size);
-  printf("size: %d\n", size);
+  sscanf(buf2, SF_D_, &size);
+  printf("size: " SF_D_ "\n", size);
   cells = new int [size];
   if (formated == false)
   {
@@ -169,7 +169,7 @@ void readCells(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated, E_Int&
   {
     for (E_Int i = 0; i < size; i++) cells[i] = IBE(cells[i]);
   }
-  printf("cells=%d\n", cells[0]);
+  printf("cells=" SF_D_ "\n", cells[0]);
 }
 
 //===========================================================================
@@ -186,13 +186,13 @@ void readCellTypes(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
   }
   else
   {
-    for (E_Int i = 0; i < ncells; i++) fscanf(ptrFile, "%d", &cellTypes[i]);
+    for (E_Int i = 0; i < ncells; i++) fscanf(ptrFile, SF_D_, &cellTypes[i]);
   }
   if (changeEndian)
   {
     for (E_Int i = 0; i < ncells; i++) cellTypes[i] = IBE(cellTypes[i]);
   } 
-  printf("cellTypes=%d\n", cellTypes[0]);
+  printf("cellTypes=" SF_D_ "\n", cellTypes[0]);
 }
 
 //=========================================================================
@@ -213,16 +213,16 @@ void readType(FILE* ptrFile, char* rtype, E_Int& n1, E_Int& n2)
   while (buf[i] != '\0' && buf[i] != ' ') { buf2[i-prev] = buf[i]; i++; }
   buf2[i-prev] = '\0';
   n1 = 0;
-  sscanf(buf2, "%d", &n1);
-  printf("n1: %d\n", n1);
+  sscanf(buf2, SF_D_, &n1);
+  printf("n1: " SF_D_ "\n", n1);
 
   // recupere la taille totale de la connectivite
   i += 1;
   E_Int is = i;
   while (buf[i] != '\0' && buf[i] != ' ') { buf2[i-is] = buf[i]; i++; }
   buf2[i-is] = '\0';
-  sscanf(buf2, "%d", &n2);
-  printf("n2: %d\n", n2);
+  sscanf(buf2, SF_D_, &n2);
+  printf("n2: " SF_D_ "\n", n2);
 }
 
 //===========================================================================
@@ -231,7 +231,7 @@ void readPolygons(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
 {
   char celltype[256];
   readType(ptrFile, celltype, ncells, size);
-  printf("ncells = %d, size=%d\n", ncells, size);
+  printf("ncells = " SF_D_ ", size=" SF_D_ "\n", ncells, size);
   cells = new int [size];
   E_Int num;
 
@@ -240,11 +240,11 @@ void readPolygons(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
       E_Int c = 0;
       for (E_Int i = 0; i < ncells; i++) 
       {
-        fscanf(ptrFile, "%d ", &num);
+        fscanf(ptrFile, SF_D_ " ", &num);
         cells[c] = num; c++;
-        if (num == 2) fscanf(ptrFile, "%d %d\n", &cells[c], &cells[c+1]);
-        else if (num == 3) fscanf(ptrFile, "%d %d %d\n", &cells[c], &cells[c+1], &cells[c+2]);
-        else if (num == 4) fscanf(ptrFile, "%d %d %d %d\n", &cells[c], &cells[c+1], &cells[c+2], &cells[c+3]);
+        if (num == 2) fscanf(ptrFile, SF_D2_ "\n", &cells[c], &cells[c+1]);
+        else if (num == 3) fscanf(ptrFile, SF_D3_ "\n", &cells[c], &cells[c+1], &cells[c+2]);
+        else if (num == 4) fscanf(ptrFile, SF_D4_ "\n", &cells[c], &cells[c+1], &cells[c+2], &cells[c+3]);
         c += num;
       }
   }
@@ -252,7 +252,7 @@ void readPolygons(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
   {
       fread(cells, sizeof(E_Int), size, ptrFile);
   }
-  printf("cells[0]=%d %d %d\n", cells[0], cells[1], cells[2]);
+  printf("cells[0]=" SF_D3_ "\n", cells[0], cells[1], cells[2]);
 }
 
 //========================================================================
@@ -265,8 +265,8 @@ void readScalar(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
 
   // recupere dataName, dataType, numComp
   char dataType[256]; E_Int numComp;
-  fscanf(ptrFile, " %s %s %d\n", varName, dataType, &numComp);
-  printf("varName=%s, dataType=%s, numCom=%d\n", varName, dataType, numComp);
+  fscanf(ptrFile, " %s %s " SF_D_ "\n", varName, dataType, &numComp);
+  printf("varName=%s, dataType=%s, numCom=" SF_D_ "\n", varName, dataType, numComp);
 
   // Passe lookup table
   readLine(ptrFile, buf);
@@ -362,16 +362,16 @@ void readField(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
 
   // recupere dataName, numArrays
   char dataName[256]; E_Int numArrays;
-  fscanf(ptrFile, " %s %d\n", dataName, &numArrays);
-  printf("dataName=%s, numArrays=%d\n", dataName, numArrays);
+  fscanf(ptrFile, " %s " SF_D_ "\n", dataName, &numArrays);
+  printf("dataName=%s, numArrays=" SF_D_ "\n", dataName, numArrays);
   
   // Lit uniquement la premiere variable
   E_Int numComponents; E_Int numTuples; char dataType[256];
-  fscanf(ptrFile, "%s %d %d %s\n", varName, &numComponents, &numTuples, dataType);
+  fscanf(ptrFile, "%s " SF_D2_ " %s\n", varName, &numComponents, &numTuples, dataType);
   npts = numTuples;
   nfields = numComponents;
   E_Int size = npts*nfields;
-  printf("varName=%s, dataType=%s, npts=%d\n", varName, dataType, npts);
+  printf("varName=%s, dataType=%s, npts=" SF_D_ "\n", varName, dataType, npts);
 
   if (strcmp(dataType, "float") == 0)
   {
@@ -458,7 +458,7 @@ E_Int K_IO::GenIO::binvtkread(
   E_Boolean changeEndian = false;
 
   if (strcmp(buf, "BINARY") == 0) { formated = false; changeEndian = true; }
-  printf("isformated=%d, changeEndian=%d\n", formated, changeEndian);
+  printf("isformated=" SF_D_ ", changeEndian=" SF_D_ "\n", formated, changeEndian);
   
   // Type de Data (STRUCTURED_POINTS, STRUCTURED_GRID, RECTILINEAR_GRID, POLYDATA, UNSTRUCTURED_GRID)
   char dataSetType[256];
@@ -577,8 +577,7 @@ E_Int K_IO::GenIO::binvtkread(
   {
     nvars += type[i];
   }
-  printf("total nvars=%d\n", nvars);
-
+  
   // Concatenate arrays (fields supposed to be POINT_DATA)
   FldArrayF* f = new FldArrayF(npts, 3+nvars);
   E_Float* fx = f->begin(1);
@@ -697,7 +696,7 @@ E_Int K_IO::GenIO::binvtkread(
     }
 
     // Allocate
-    printf("Elements: BAR=%d TRI=%d QUAD=%d HEXA=%d TETRA=%d PENTA=%d PYRA=%d\n", nBAR, nTRI, nQUAD, nHEXA, nTETRA, nPENTA, nPYRA);
+    printf("Elements: BAR=" SF_D_ " TRI=" SF_D_ " QUAD=" SF_D_ " HEXA=" SF_D_ " TETRA=" SF_D_ " PENTA=" SF_D_ " PYRA=" SF_D_ "\n", nBAR, nTRI, nQUAD, nHEXA, nTETRA, nPENTA, nPYRA);
     
     E_Int* cnBAR=NULL; E_Int* cnTRI=NULL; E_Int* cnQUAD=NULL;
     E_Int* cnTETRA=NULL; E_Int* cnPYRA=NULL; E_Int* cnPENTA=NULL;
@@ -873,7 +872,7 @@ E_Int K_IO::GenIO::binvtkread(
   for (unsigned int i=0; i < unstructField.size(); i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone%d", i);
+    sprintf(zoneName, "Zone" SF_D_, i);
     zoneNames.push_back(zoneName);
   }
   
@@ -899,7 +898,7 @@ E_Int K_IO::GenIO::binvtkwrite(
     // NODE, BAR, TRI, QUADS, TETRA, HEXA , PENTA, PYRA, supported
     if (eltType[zone] < 8) nvalidZones++;
     else
-      printf("Warning: binvtkwrite: zone %d not written (not a valid elements in zone).", zone);
+      printf("Warning: binvtkwrite: zone " SF_D_ " not written (not a valid elements in zone).", zone);
   }
 
   if (nvalidZones == 0) return 1;

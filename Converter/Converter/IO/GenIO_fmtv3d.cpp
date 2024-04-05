@@ -81,8 +81,7 @@ E_Int K_IO::GenIO::fv3dread(
   // Read format
   fscanf(ptrFile, "%s", t);
   E_Int formatLength = getFormatLength(t);
-  //printf("format length %d\n", formatLength);
-
+  
   // Read im, jm, km
   ret = readInt(ptrFile, valueInt); // no var
   if (strcmp(var, "x") != 0 && strcmp(var, "CoordinateX") != 0 &&
@@ -98,7 +97,6 @@ E_Int K_IO::GenIO::fv3dread(
   ret = readInt(ptrFile, valueInt);
   E_Int km = valueInt;
   ni.push_back(im); nj.push_back(jm); nk.push_back(km);
-  //printf("%d %d %d\n", im, jm, km);
   if (ret == 1) // garbage
   { int c = fgetc(ptrFile);
     while (c != '\n' && c != '\r') c = fgetc(ptrFile);
@@ -111,7 +109,7 @@ E_Int K_IO::GenIO::fv3dread(
 
   // Cree les noms des zones
   char* zoneName = new char [128];
-  sprintf(zoneName, "Zone%d", numzone); numzone++;
+  sprintf(zoneName, "Zone" SF_D_, numzone); numzone++;
   zoneNames.push_back(zoneName);
 
   // Read block

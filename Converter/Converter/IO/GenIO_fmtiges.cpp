@@ -87,21 +87,21 @@ E_Int K_IO::GenIO::igesread(
       if (ret == 0) 
       { pos = 0; ret = readline(ptrFile, l, 82); 
         ret = readInt(l, 73, pos, ival); ret = readInt(l, 73, pos, ival); }
-      printf(" type=%d\n", ival);
+      printf(" type=" SF_D_ "\n", ival);
 
       // Parameter datas (2)
       ret = readInt(l, 73, pos, ival); 
       if (ret == 0) 
       { pos = 0; ret = readline(ptrFile, l, 82); 
         ret = readInt(l, 73, pos, ival); ret = readInt(l, 73, pos, ival); }
-      printf(" params=%d\n", ival);
+      printf(" params=" SF_D_ "\n", ival);
 
       // Structure (3)
       ret = readInt(l, 73, pos, ival); 
       if (ret < 0) 
       { pos = 0; ret = readline(ptrFile, l, 82); 
         ret = readInt(l, 73, pos, ival); ret = readInt(l, 73, pos, ival); }
-      printf(" struct=%d\n", ival);
+      printf(" struct=" SF_D_ "\n", ival);
       
       
       // Line font pattern (4)
@@ -109,28 +109,28 @@ E_Int K_IO::GenIO::igesread(
       if (ret < 0) 
       { pos = 0; ret = readline(ptrFile, l, 82); 
         ret = readInt(l, 73, pos, ival); ret = readInt(l, 73, pos, ival); }
-      printf(" font=%d\n", ival);
+      printf(" font=" SF_D_ "\n", ival);
 
       // Level
       ret = readInt(l, 73, pos, ival);
       if (ret < 0) 
       { pos = 0; ret = readline(ptrFile, l, 82); 
         ret = readInt(l, 73, pos, ival); ret = readInt(l, 73, pos, ival); }
-      printf(" level=%d\n", ival);
+      printf(" level=" SF_D_ "\n", ival);
 
       // View
       ret = readInt(l, 73, pos, ival); 
       if (ret < 0) 
       { pos = 0; ret = readline(ptrFile, l, 82); 
         ret = readInt(l, 73, pos, ival); ret = readInt(l, 73, pos, ival); }
-      printf(" view=%d\n", ival);
+      printf(" view=" SF_D_ "\n", ival);
 
       // Matrix
       ret = readInt(l, 73, pos, ival); 
       if (ret < 0)
       { pos = 0; ret = readline(ptrFile, l, 82); 
         ret = readInt(l, 73, pos, ival); ret = readInt(l, 73, pos, ival); }
-      printf(" matrix=%d\n", ival);
+      printf(" matrix=" SF_D_ "\n", ival);
 
       
       // Label display
@@ -138,35 +138,35 @@ E_Int K_IO::GenIO::igesread(
       if (ret < 0) 
       { pos = 0; ret = readline(ptrFile, l, 82); 
         ret = readInt(l, 73, pos, ival); ret = readInt(l, 73, pos, ival); }
-      printf(" label=%d\n", ival);
+      printf(" label=" SF_D_ "\n", ival);
       
       // Line weight
       ret = readInt(l, 73, pos, ival); 
       if (ret < 0) 
       { pos = 0; ret = readline(ptrFile, l, 82); 
         ret = readInt(l, 73, pos, ival); ret = readInt(l, 73, pos, ival); }
-      printf(" line weight=%d\n", ival);
+      printf(" line weight=" SF_D_ "\n", ival);
       
       // Color number
       ret = readInt(l, 73, pos, ival); 
       if (ret < 0) 
       { pos = 0; ret = readline(ptrFile, l, 82); 
         ret = readInt(l, 73, pos, ival); ret = readInt(l, 73, pos, ival); }
-      printf(" color=%d\n", ival);
+      printf(" color=" SF_D_ "\n", ival);
       
       // Line count
       ret = readInt(l, 73, pos, ival);
       if (ret < 0) 
       { pos = 0; ret = readline(ptrFile, l, 82); 
         ret = readInt(l, 73, pos, ival); ret = readInt(l, 73, pos, ival); }
-      printf(" count=%d\n", ival);
+      printf(" count=" SF_D_ "\n", ival);
       
       // Form number
       ret = readInt(l, 73, pos, ival); 
       if (ret < 0) 
       { pos = 0; ret = readline(ptrFile, l, 82); 
         ret = readInt(l, 73, pos, ival); ret = readInt(l, 73, pos, ival); }
-      printf(" form=%d\n", ival);
+      printf(" form=" SF_D_ "\n", ival);
     }
     else if (type == 'P') // Parameters
     {
@@ -227,13 +227,12 @@ E_Int K_IO::GenIO::igesread(
           ret = readDouble(l, 73, pos, x);
           ret = readDouble(l, 73, pos, y);
           ret = readDouble(l, 73, pos, z);
-          //printf("%f %f %f\n", x,y,z);
           createPoint(unstructField, connect, eltType, density, x, y, z);
           break;
         }
 
         default:
-          printf("Warning: I got an unknown entity (%d)\n", ival);
+          printf("Warning: I got an unknown entity (" SF_D_ ")\n", ival);
       }
     }
   }
@@ -243,7 +242,7 @@ E_Int K_IO::GenIO::igesread(
   for (E_Int i=0; i<structSize;i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone%d",i);
+    sprintf(zoneName, "Zone" SF_D_, i);
     zoneNames.push_back(zoneName);
   }
 
@@ -251,7 +250,7 @@ E_Int K_IO::GenIO::igesread(
   for (unsigned int i=0; i < unstructField.size(); i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone%d",i+structSize);
+    sprintf(zoneName, "Zone" SF_D_, i+structSize);
     zoneNames.push_back(zoneName);
   }
 

@@ -974,7 +974,7 @@ E_Int K_IO::GenIO::p3dfread(
     {
       if (strlen(varString) != 0) strcat(varString, ",");
       strcat(varString, "var");
-      sprintf(no, "%d", p);
+      sprintf(no, SF_D_, p);
       strcat(varString, no);
     }
   }
@@ -988,7 +988,7 @@ E_Int K_IO::GenIO::p3dfread(
       if (strlen(varString) != 0)
         strcat(varString, ",");
       strcat(varString, "var");
-      sprintf(no, "%d", p);
+      sprintf(no, SF_D_, p);
       strcat(varString, no);
     }
     strcat(varString, ",cellN");
@@ -1033,7 +1033,7 @@ E_Int K_IO::GenIO::plot3dread(
   for (E_Int i = 0; i < fieldSize; i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone%d", i);
+    sprintf(zoneName, "Zone" SF_D_, i);
     zoneNames.push_back(zoneName);
   }
 

@@ -211,7 +211,6 @@ E_Int K_IO::GenIO::tpread(
       }
       if (c > 0) varString[c-1] = '\0'; // final ,
       else varString[c] = '\0';
-      //printf("varstring %s %d\n", varString, nvar);
     }
     else if (strcmp(keyword, "ZONE") == 0)
     {
@@ -259,7 +258,6 @@ E_Int K_IO::GenIO::tpread(
     else if (strcmp(keyword, "FACES") == 0)
     {
       nfaces = convertString2Int(prevData);
-      //printf("nfaces: %d\n", nfaces);
     }
     else if (strcmp(keyword, "I") == 0 || strcmp(keyword, ",I") == 0)
     {
@@ -406,11 +404,7 @@ E_Int K_IO::GenIO::tpread(
     // put zone name in structured list
     E_Int structSize = structZoneNames.size();
     if (zoneName[0] == '\0') 
-#ifdef E_DOUBLEINT
-        sprintf(zoneName, "StructZone%ld", structSize);
-#else
-        sprintf(zoneName, "StructZone%d", structSize);
-#endif
+    sprintf(zoneName, "StructZone" SF_D_, structSize);
     char* name = new char[BUFSIZE+1]; strcpy(name, zoneName);
     structZoneNames.push_back(name);
     zoneName[0] = '\0';
@@ -420,11 +414,7 @@ E_Int K_IO::GenIO::tpread(
     // put zone name in unstructured list
     E_Int unstructSize = unstructZoneNames.size();
     if (zoneName[0] == '\0')
-#ifdef E_DOUBLEINT
-        sprintf(zoneName, "UnstructZone%ld", unstructSize);
-#else
-        sprintf(zoneName, "UnstructZone%d", unstructSize);
-#endif
+    sprintf(zoneName, "UnstructZone" SF_D_, unstructSize);
     char* name = new char[BUFSIZE+1]; strcpy(name, zoneName);
     unstructZoneNames.push_back(name);
     zoneName[0] = '\0';
@@ -661,14 +651,8 @@ E_Int K_IO::GenIO::tpwrite(
   {
     FldArrayF& f = *structField[cnt];
     E_Int nijk = ni[cnt]*nj[cnt]*nk[cnt];
-
-#ifdef E_DOUBLEINT
-    fprintf(ptrFile, "ZONE T=\"%s\",  I=%ld,  J=%ld,  K=%ld, F=BLOCK\n",
+    fprintf(ptrFile, "ZONE T=\"%s\",  I=" SF_D_ ",  J=" SF_D_ ",  K=" SF_D_", F=BLOCK\n",
             zoneNames[cnt], ni[cnt], nj[cnt], nk[cnt]);
-#else
-    fprintf(ptrFile, "ZONE T=\"%s\",  I=%d,  J=%d,  K=%d, F=BLOCK\n",
-            zoneNames[cnt], ni[cnt], nj[cnt], nk[cnt]);
-#endif
 
     for (E_Int n = 1; n <= f.getNfld(); n++)
     {
@@ -714,81 +698,39 @@ E_Int K_IO::GenIO::tpwrite(
     switch (eltType[cnt])
     {
       case 1: // BAR
-#ifdef E_DOUBLEINT
         fprintf(ptrFile,
-                "ZONE T=\"%s\", N=%ld, E=%ld, ET=LINESEG, F=FEBLOCK\n",
+                "ZONE T=\"%s\", N=" SF_D_ ", E=" SF_D_ ", ET=LINESEG, F=FEBLOCK\n",
                 zoneNames[cnt+structSize], nodes, elts);
-#else
-        fprintf(ptrFile,
-                "ZONE T=\"%s\", N=%d, E=%d, ET=LINESEG, F=FEBLOCK\n",
-                zoneNames[cnt+structSize], nodes, elts);
-#endif
         break;
       case 2: // TRI
-#ifdef E_DOUBLEINT
         fprintf(ptrFile,
-                "ZONE T=\"%s\", N=%ld, E=%ld, ET=TRIANGLE, F=FEBLOCK\n",
+                "ZONE T=\"%s\", N=" SF_D_ ", E=" SF_D_ ", ET=TRIANGLE, F=FEBLOCK\n",
                 zoneNames[cnt+structSize], nodes, elts);
-#else
-        fprintf(ptrFile,
-                "ZONE T=\"%s\", N=%d, E=%d, ET=TRIANGLE, F=FEBLOCK\n",
-                zoneNames[cnt+structSize], nodes, elts);
-#endif
         break;
       case 3: // QUAD
-#ifdef E_DOUBLEINT
         fprintf(ptrFile,
-                "ZONE T=\"%s\", N=%ld, E=%ld, ET=QUADRILATERAL, F=FEBLOCK\n",
+                "ZONE T=\"%s\", N=" SF_D_ ", E=" SF_D_ ", ET=QUADRILATERAL, F=FEBLOCK\n",
                 zoneNames[cnt+structSize], nodes, elts);
-#else
-        fprintf(ptrFile,
-                "ZONE T=\"%s\", N=%d, E=%d, ET=QUADRILATERAL, F=FEBLOCK\n",
-                zoneNames[cnt+structSize], nodes, elts);
-#endif
         break;
       case 4: // TETRA
-#ifdef E_DOUBLEINT
         fprintf(ptrFile,
-                "ZONE T=\"%s\", N=%ld, E=%ld, ET=TETRAHEDRON, F=FEBLOCK\n",
+                "ZONE T=\"%s\", N=" SF_D_ ", E=" SF_D_ ", ET=TETRAHEDRON, F=FEBLOCK\n",
                 zoneNames[cnt+structSize], nodes, elts);
-#else
-        fprintf(ptrFile,
-                "ZONE T=\"%s\", N=%d, E=%d, ET=TETRAHEDRON, F=FEBLOCK\n",
-                zoneNames[cnt+structSize], nodes, elts);
-#endif
         break;
       case 5: // PYRA - FIX as HEXA
-#ifdef E_DOUBLEINT
         fprintf(ptrFile,
-                "ZONE T=\"%s\", N=%ld, E=%ld, ET=BRICK, F=FEBLOCK\n",
+                "ZONE T=\"%s\", N=" SF_D_ ", E=" SF_D_ ", ET=BRICK, F=FEBLOCK\n",
                 zoneNames[cnt+structSize], nodes, elts);
-#else
-        fprintf(ptrFile,
-                "ZONE T=\"%s\", N=%d, E=%d, ET=BRICK, F=FEBLOCK\n",
-                zoneNames[cnt+structSize], nodes, elts);
-#endif
         break;
       case 6: // PENTA - FIX as HEXA
-#ifdef E_DOUBLEINT
         fprintf(ptrFile,
-                "ZONE T=\"%s\", N=%ld, E=%ld, ET=BRICK, F=FEBLOCK\n",
+                "ZONE T=\"%s\", N=" SF_D_ ", E=" SF_D_ ", ET=BRICK, F=FEBLOCK\n",
                 zoneNames[cnt+structSize], nodes, elts);
-#else
-        fprintf(ptrFile,
-                "ZONE T=\"%s\", N=%d, E=%d, ET=BRICK, F=FEBLOCK\n",
-                zoneNames[cnt+structSize], nodes, elts);
-#endif
         break;
       case 7: // HEXA
-#ifdef E_DOUBLEINT
         fprintf(ptrFile,
-                "ZONE T=\"%s\", N=%ld, E=%ld, ET=BRICK, F=FEBLOCK\n",
+                "ZONE T=\"%s\", N=" SF_D_ ", E=" SF_D_ ", ET=BRICK, F=FEBLOCK\n",
                 zoneNames[cnt+structSize], nodes, elts);
-#else
-        fprintf(ptrFile,
-                "ZONE T=\"%s\", N=%d, E=%d, ET=BRICK, F=FEBLOCK\n",
-                zoneNames[cnt+structSize], nodes, elts);
-#endif
         break;
       case 8: // NGON
         {
@@ -800,11 +742,11 @@ E_Int K_IO::GenIO::tpwrite(
           E_Int nf; c.getFace(0, nf, ngon, indPG);
           if (nf > 2) // volumique
             fprintf(ptrFile,
-              "ZONE T=\"%s\", Nodes=%d, Elements=%d, Faces=%d, ZONETYPE=FEPOLYHEDRON\nDATAPACKING=BLOCK\nTotalNumFaceNodes=%d, NumConnectedBoundaryFaces=0, TotalNumBoundaryConnections=0\n",
+              "ZONE T=\"%s\", Nodes=" SF_D_ ", Elements=" SF_D_ ", Faces=" SF_D_ ", ZONETYPE=FEPOLYHEDRON\nDATAPACKING=BLOCK\nTotalNumFaceNodes=" SF_D_ ", NumConnectedBoundaryFaces=0, TotalNumBoundaryConnections=0\n",
               zoneNames[cnt+structSize], nodes, elts, nfaces, sizeFN-nfaces);
           else
             fprintf(ptrFile,
-              "ZONE T=\"%s\", Nodes=%d, Elements=%d, Faces=%d, ZONETYPE=FEPOLYGON\nDATAPACKING=BLOCK\nTotalNumFaceNodes=%d, NumConnectedBoundaryFaces=0, TotalNumBoundaryConnections=0\n",
+              "ZONE T=\"%s\", Nodes=" SF_D_ ", Elements=" SF_D_ ", Faces=" SF_D_ ", ZONETYPE=FEPOLYGON\nDATAPACKING=BLOCK\nTotalNumFaceNodes=" SF_D_ ", NumConnectedBoundaryFaces=0, TotalNumBoundaryConnections=0\n",
               zoneNames[cnt+structSize], nodes, elts, nfaces, sizeFN-nfaces);
         }
         break;
@@ -852,9 +794,9 @@ E_Int K_IO::GenIO::tpwrite(
       {
         for (E_Int n = 1; n <= c.getNfld(); n++)
         {
-          fprintf(ptrFile, "%d ", c(i,n));
+          fprintf(ptrFile, SF_D_ " ", c(i,n));
         }
-        fprintf(ptrFile, "%d %d %d", c(i,5), c(i,5), c(i,5));
+        fprintf(ptrFile, SF_D3_, c(i,5), c(i,5), c(i,5));
         fprintf(ptrFile, "\n");
       }
     }
@@ -862,7 +804,7 @@ E_Int K_IO::GenIO::tpwrite(
     {
       for (E_Int i = 0; i < elts; i++)
       {
-        fprintf(ptrFile, "%d %d %d %d %d %d %d %d",
+        fprintf(ptrFile, SF_D8_,
                 c(i,1), c(i,2), c(i,2), c(i,3),
                 c(i,4), c(i,5), c(i,5), c(i,6));
         fprintf(ptrFile, "\n");
@@ -883,7 +825,7 @@ E_Int K_IO::GenIO::tpwrite(
         for (E_Int i = 0; i < nfaces; i++)
         {
           c.getFace(i, n, ngon, indPG);
-          fprintf(ptrFile, " %d", n); col++;
+          fprintf(ptrFile, " " SF_D_, n); col++;
           if (col > 10) { fprintf(ptrFile, "\n"); col = 0; }
         }
         fprintf(ptrFile, "\n");
@@ -893,7 +835,7 @@ E_Int K_IO::GenIO::tpwrite(
       for (E_Int i = 0; i < nfaces; i++)
       {
         E_Int* face = c.getFace(i, n, ngon, indPG);
-        for (E_Int j = 0; j < n; j++) fprintf(ptrFile, " %d", face[j]);
+        for (E_Int j = 0; j < n; j++) fprintf(ptrFile, " " SF_D_, face[j]);
         col += n;
         if (col > 10) { fprintf(ptrFile, "\n"); col = 0; }
       }
@@ -906,7 +848,7 @@ E_Int K_IO::GenIO::tpwrite(
       for (E_Int i = 0; i < nfaces; i++)
       {
         n = cFE(i,1);
-        fprintf(ptrFile, " %d", n); col++;
+        fprintf(ptrFile, " " SF_D_, n); col++;
         if (col > 10) { fprintf(ptrFile, "\n"); col = 0; }
       }
       fprintf(ptrFile, "\n");
@@ -916,7 +858,7 @@ E_Int K_IO::GenIO::tpwrite(
       for (E_Int i = 0; i < nfaces; i++)
       {
         n = cFE(i,2);
-        fprintf(ptrFile, " %d", n); col++;
+        fprintf(ptrFile, " " SF_D_, n); col++;
         if (col > 10) { fprintf(ptrFile, "\n"); col = 0; }
       }
       fprintf(ptrFile, "\n");
@@ -927,11 +869,7 @@ E_Int K_IO::GenIO::tpwrite(
       {
         for (E_Int n = 1; n <= c.getNfld(); n++)
         {
-#ifdef E_DOUBLEINT
-          fprintf(ptrFile, "%ld ", c(i,n));
-#else
-          fprintf(ptrFile, "%d ", c(i,n));
-#endif
+          fprintf(ptrFile, SF_D_ " ", c(i,n));
         }
         fprintf(ptrFile, "\n");
       }

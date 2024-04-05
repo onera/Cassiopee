@@ -27,6 +27,7 @@
 # include "Def/DefTypes.h"
 # include "Fld/FldArray.h"
 # include "Def/DefCplusPlusConst.h"
+# include "String/kstring.h"
 # include "kPython.h"
 # include "Nuga/include/ngon_t.hxx"
 
