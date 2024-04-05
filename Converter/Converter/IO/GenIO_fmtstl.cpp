@@ -23,6 +23,7 @@
 # include <stdio.h>
 # include "GenIO.h"
 # include "Array/Array.h"
+# include "String/kstring.h"
 # include <vector>
 # include "Def/DefFunction.h"
 # include "Connect/connect.h"
@@ -94,9 +95,9 @@ E_Int K_IO::GenIO::fstlread(
       res = readGivenKeyword(ptrFile, "VERTEX ", "ENDSOLID ");
       if (res == 1)
       {
-        res = readDouble(ptrFile, t, -1); fx[i] = t; //printf("%f ", t);
-        res = readDouble(ptrFile, t, -1); fy[i] = t; //printf("%f ", t);
-        res = readDouble(ptrFile, t, -1); fz[i] = t; i++; //printf("%f\n", t);
+        res = readDouble(ptrFile, t, -1); fx[i] = t; //printf(SF_F_ " ", t);
+        res = readDouble(ptrFile, t, -1); fy[i] = t; //printf(SF_F_ " ", t);
+        res = readDouble(ptrFile, t, -1); fz[i] = t; i++; //printf(SF_F_ "\n", t);
         if (res == 0) res = 1; else res = 0;
       }
     }
@@ -153,7 +154,7 @@ E_Int K_IO::GenIO::fstlwrite(
     if (eltType[zone] == 2) // triangles
     { nvalidZones++; if (no == -1) no = zone; }
     else
-      printf("Warning: fstlwrite: zone %d not written (not a triangle zone).", zone);
+      printf("Warning: fstlwrite: zone " SF_D_ " not written (not a triangle zone).", zone);
   } 
 
   if (nvalidZones == 0) return 1;

@@ -23,6 +23,7 @@
 # include <stdio.h>
 # include "GenIO.h"
 # include "Array/Array.h"
+# include "String/kstring.h"
 # include <vector>
 # include "Def/DefFunction.h"
 # include "Connect/connect.h"
@@ -77,7 +78,7 @@ E_Int K_IO::GenIO::seligread(
   }
   nv = nv-1;
   
-  //printf("I found %d vertices\n", nv); fflush(stdout);
+  //printf("I found " SF_D_ " vertices\n", nv); fflush(stdout);
   if (nv == 0) { fclose(ptrFile); return 1; } // FAILED
 
   f = new FldArrayF(nv, 3);
@@ -94,13 +95,13 @@ E_Int K_IO::GenIO::seligread(
     if (zoneName[i] != '\n' && zoneName[i] != '\r' && zoneName[i] != ' ') break;
   }
   zoneName[i+1] = '\0';
-  //printf("%d %s\n", i, zoneName);
+  //printf(SF_D_ " %s\n", i, zoneName);
   
   for (E_Int i = 0; i < nv; i++)
   {
-    res = readDouble(ptrFile, t, -1); fx[i] = t; //printf("%f ", t);
-    res = readDouble(ptrFile, t, -1); fy[i] = t; //printf("%f ", t);
-    fz[i] = 0.; //printf("%f\n", t);
+    res = readDouble(ptrFile, t, -1); fx[i] = t; //printf(SF_F_ " ", t);
+    res = readDouble(ptrFile, t, -1); fy[i] = t; //printf(SF_F_ " ", t);
+    fz[i] = 0.; //printf(SF_F_ "\n", t);
   }
 
   structField.push_back(f);
@@ -136,7 +137,7 @@ E_Int K_IO::GenIO::seligwrite(
     if (nj[zone] == 1 && nj[zone] == 1)
     { nvalidZones++; if (no == -1) no = zone; }
     else
-      printf("Warning: seligwrite: zone %d not written (not a 1D STRUCT).", zone);
+      printf("Warning: seligwrite: zone " SF_D_ " not written (not a 1D STRUCT).", zone);
   }
 
   if (nvalidZones == 0) return 1;

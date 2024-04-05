@@ -24,6 +24,7 @@
 
 # include "GenIO.h"
 # include "Array/Array.h"
+# include "String/kstring.h"
 # include <vector>
 # include "Def/DefFunction.h"
 # include "Connect/connect.h"
@@ -81,7 +82,7 @@ E_Int K_IO::GenIO::povread(
     if (res == 0) goto end;
     res = readDouble(ptrFile, t, -1);
     size = E_Int(t);
-    //printf("size = %d\n", size);
+    //printf("size = " SF_D_ "\n", size);
     FldArrayF* field = new FldArrayF(size,3);
     FldArrayF& f = *field;
     
@@ -90,7 +91,7 @@ E_Int K_IO::GenIO::povread(
       res = readDouble(ptrFile, t, -1); f(i,1) = t;
       res = readDouble(ptrFile, t, -1); f(i,2) = t;
       res = readDouble(ptrFile, t, -1); f(i,3) = t;
-      //printf("%f %f %f\n", f(i,1), f(i,2), f(i,3));
+      //printf(SF_F3_ "\n", f(i,1), f(i,2), f(i,3));
     }
     res = readGivenKeyword(ptrFile, "}");
     if (res == 0) {delete field; goto end;}
@@ -102,7 +103,7 @@ E_Int K_IO::GenIO::povread(
     if (res == 0) {delete field; goto end;}
     res = readDouble(ptrFile, t, -1);
     size = E_Int(t);
-    //printf("size = %d\n", size);
+    //printf("size = " SF_D_ "\n", size);
     FldArrayI* cn = new FldArrayI(size, 3);
     FldArrayI& c = *cn;
     
@@ -111,7 +112,7 @@ E_Int K_IO::GenIO::povread(
       res = readDouble(ptrFile, t, -1); c(i,1) = int(t+1);
       res = readDouble(ptrFile, t, -1); c(i,2) = int(t+1);
       res = readDouble(ptrFile, t, -1); c(i,3) = int(t+1);
-      //printf("%d %d %d\n", c(i,1), c(i,2), c(i,3));
+      //printf(" SF_D3_ "\n", c(i,1), c(i,2), c(i,3));
     }
 
     unstructField.push_back(field);
@@ -129,7 +130,7 @@ E_Int K_IO::GenIO::povread(
   for (unsigned int i = 0; i < unstructField.size(); i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone%d", i);
+    sprintf(zoneName, "Zone" SF_D_, i);
     zoneNames.push_back(zoneName);
   }
   varString = new char [8];
@@ -158,7 +159,7 @@ E_Int K_IO::GenIO::povwrite(
     if (eltType[zone] == 2) // triangles 
       nvalidZones++;
     else
-      printf("Warning: povwrite: zone %d not written (not a triangle zone).", zone);
+      printf("Warning: povwrite: zone " SF_D_ " not written (not a triangle zone).", zone);
   }
 
   if (nvalidZones == 0) return 1;
@@ -212,7 +213,7 @@ E_Int K_IO::GenIO::povwrite(
       }
     }
   }
-  //printf("%f %f \n", fmin, fmax);
+  //printf(SF_F2_ \n", fmin, fmax);
 
   // Create colormap if necessary
   FldArrayF rgb;
@@ -224,7 +225,7 @@ E_Int K_IO::GenIO::povwrite(
     N = rgb.getSize();
     E_Float dd = K_FUNC::E_max(fmax-fmin, 1.e-13);
     delta = N/dd;
-    //printf("N = %f %f \n", N, delta);
+    //printf("N = " SF_F2_ " \n", N, delta);
   }
 
   // Open file
@@ -253,9 +254,9 @@ E_Int K_IO::GenIO::povwrite(
     E_Float* fz = f.begin(posz);
 
     // Vertices
-    fprintf(ptrFile, "#declare %s%d=mesh2 {\n", meshName, zone);
+    fprintf(ptrFile, "#declare %s" SF_D_ "=mesh2 {\n", meshName, zone);
     fprintf(ptrFile, "    vertex_vectors {\n");
-    fprintf(ptrFile, "       %d,\n", nv);
+    fprintf(ptrFile, "       " SF_D_ ",\n", nv);
     E_Int l = 0;
     for (E_Int i = 0; i < nv-1; i++)
     {
@@ -311,7 +312,7 @@ E_Int K_IO::GenIO::povwrite(
       n3[i] = n3[i] / sizecVE;
     }
     fprintf(ptrFile, "    normal_vectors {\n");
-    fprintf(ptrFile, "       %d,\n", nv);
+    fprintf(ptrFile, "       " SF_D_ ",\n", nv);
     
     l = 0;
     for (E_Int i = 0; i < nv-1; i++)
@@ -331,16 +332,16 @@ E_Int K_IO::GenIO::povwrite(
     if (colormap > 0)
     {
       fprintf(ptrFile, "    texture_list {\n");
-      fprintf(ptrFile, "       %d,\n", rgb.getSize());
+      fprintf(ptrFile, "       " SF_D_ ",\n", rgb.getSize());
       for (E_Int i = 0; i < rgb.getSize(); i++)
-        fprintf(ptrFile, "     texture{pigment{rgb<%f,%f,%f>}}\n",
+        fprintf(ptrFile, "     texture{pigment{rgb<" SF_F_ "," SF_F_ "," SF_F_ ">}}\n",
                 rgb(i,1), rgb(i,2), rgb(i,3));
       fprintf(ptrFile, " }\n");
     }
 
     // Connectivity
     fprintf(ptrFile, "    face_indices {\n");
-    fprintf(ptrFile, "       %d,\n", ne);
+    fprintf(ptrFile, "       " SF_D_ ",\n", ne);
     l = 0;
     E_Int* c1 = c.begin(1);
     E_Int* c2 = c.begin(2);
@@ -349,7 +350,8 @@ E_Int K_IO::GenIO::povwrite(
     {
       for (E_Int i = 0; i < ne-1; i++)
       {
-        fprintf(ptrFile, "<%d,%d,%d>,", c1[i]-1, c2[i]-1, c3[i]-1);
+        fprintf(ptrFile, "<" SF_D_ "," SF_D_ "," SF_D_ ">,",
+                c1[i]-1, c2[i]-1, c3[i]-1);
         if (l > 3) 
         {
           l = 0; 
@@ -357,7 +359,7 @@ E_Int K_IO::GenIO::povwrite(
         }
         l++;
       }
-      fprintf(ptrFile, "<%d,%d,%d>\n}\n", 
+      fprintf(ptrFile, "<" SF_D_ "," SF_D_ "," SF_D_ ">\n}\n", 
               c1[ne-1]-1, c2[ne-1]-1, c3[ne-1]-1);
     }
     else
@@ -367,7 +369,7 @@ E_Int K_IO::GenIO::povwrite(
         col1 = E_Int(K_FUNC::E_min((f(c1[i]-1, posd) - fmin)*delta, N-1)); 
         col2 = E_Int(K_FUNC::E_min((f(c2[i]-1, posd) - fmin)*delta, N-1)); 
         col3 = E_Int(K_FUNC::E_min((f(c3[i]-1, posd) - fmin)*delta, N-1));
-        fprintf(ptrFile, "<%d,%d,%d>,%d,%d,%d,", 
+        fprintf(ptrFile, "<" SF_D_ "," SF_D_ "," SF_D_ ">," SF_D_ "," SF_D_ "," SF_D_ ",", 
                 c(i,1)-1, c(i,2)-1, c(i,3)-1,
                 col1, col2, col3);
         if (l > 3) 
@@ -380,7 +382,7 @@ E_Int K_IO::GenIO::povwrite(
       col1 = E_Int(K_FUNC::E_min((f(c1[ne-1]-1, posd) - fmin)*delta, N-1)); 
       col2 = E_Int(K_FUNC::E_min((f(c2[ne-1]-1, posd) - fmin)*delta, N-1)); 
       col3 = E_Int(K_FUNC::E_min((f(c3[ne-1]-1, posd) - fmin)*delta, N-1)); 
-      fprintf(ptrFile, "<%d,%d,%d>,%d,%d,%d\n}\n", 
+      fprintf(ptrFile, "<" SF_D_ "," SF_D_ "," SF_D_ ">," SF_D_ "," SF_D_ "," SF_D_ "\n}\n", 
               c(ne-1,1)-1, c(ne-1,2)-1, c(ne-1,3)-1,
               col1, col2, col3);
     }
@@ -393,7 +395,7 @@ E_Int K_IO::GenIO::povwrite(
     fprintf(ptrFile, "#declare %s=union {\n", meshName);
     for (E_Int zone = 0; zone < nzone; zone++)
     {
-      fprintf(ptrFile, "object {%s%d}\n", meshName, zone);
+      fprintf(ptrFile, "object {%s" SF_D_ "}\n", meshName, zone);
     }
     fprintf(ptrFile, "}\n");
   }

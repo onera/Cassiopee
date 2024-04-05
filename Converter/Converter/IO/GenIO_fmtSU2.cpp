@@ -23,6 +23,7 @@
 # include <stdio.h>
 # include "GenIO.h"
 # include "Array/Array.h"
+# include "String/kstring.h"
 # include <vector>
 # include "Def/DefFunction.h"
 # include "Connect/connect.h"
@@ -61,13 +62,13 @@ E_Int K_IO::GenIO::su2read(
   res = readInt(ptrFile, ti, -1);
   E_Int dim = ti;
   if (dim != 2 && dim != 1 && dim != 3)
-    printf("Warning: su2read: dimension is strange (%d).\n", ti);
+    printf("Warning: su2read: dimension is strange (" SF_D_ ").\n", ti);
 
   // Lecture du nombre d'elements
   res = readGivenKeyword(ptrFile, "NELEM=");
   res = readInt(ptrFile, ti, -1);
   E_Int ne = ti;
-  //printf("ne=%d, res=%d\n", ne, res);
+  //printf("ne=" SF_D_ ", res=" SF_D_ "\n", ne, res);
 
   //===========================================================================
   // Lecture polyedrique
@@ -300,7 +301,7 @@ E_Int K_IO::GenIO::su2read(
   while (c < ne)
   { 
     res = readInt(ptrFile, ti, -1); // type d'element
-    //printf("%d\n", ti);
+    //printf(SF_D_ "\n", ti);
     switch (ti)
     { 
       case 3: //BAR
@@ -501,7 +502,7 @@ E_Int K_IO::GenIO::su2read(
   res = readGivenKeyword(ptrFile, "NPOIN=");
   res = readInt(ptrFile, ti, -1);
   E_Int np = ti;
-  //printf("np %d - res=%d\n", np, res);
+  //printf("np " SF_D_ " - res=" SF_D_ "\n", np, res);
   // skip - parfois il semble y avoir un autre entier
   if (res == 1) skipLine(ptrFile);
   FldArrayF f(np, 3); E_Float fx, fy, fz;
@@ -526,7 +527,7 @@ E_Int K_IO::GenIO::su2read(
       res = readDouble(ptrFile, fz, -1);
       res = readInt(ptrFile, ti, -1);
     }
-    //printf("%d\n", res); 
+    //printf(SF_D_ "\n", res); 
     if (res == 1) skipLine(ptrFile);
     f(ti,1)= fx; f(ti,2) = fy; f(ti,3) = fz;
     //printf("%f %f %f\n", f(ti,1), f(ti,2), f(ti,3));
@@ -587,14 +588,10 @@ E_Int K_IO::GenIO::su2read(
   for (size_t i=0; i < unstructField.size(); i++)
   {
     char* zoneName = new char [128];
-#ifdef E_DOUBLEINT
-    sprintf(zoneName, "Zone%ld", i);
-#else
-    sprintf(zoneName, "Zone%d", (int)i);
-#endif
+    sprintf(zoneName, "Zone" SF_D_, (int)i);
     zoneNames.push_back(zoneName);
   }
-  //printf("%d %d\n", unstructField.size(), connect.size());
+  //printf(SF_D2_ "\n", unstructField.size(), connect.size());
 
   varString = new char [8];
   strcpy(varString, "x,y,z");
@@ -659,7 +656,7 @@ E_Int K_IO::GenIO::su2read(
 
   KFSEEK(ptrFile, pos, SEEK_SET);
   res = readGivenKeyword(ptrFile, "MARKER_TAG=");
-  //printf("nafectot=%d\n", nfacetot);
+  //printf("nafectot=" SF_D_ "\n", nfacetot);
   char* names = new char [BUFSIZE*nfacetot];
   BCNames.push_back(names);
   FldArrayI* faceList = new FldArrayI (nfacetot);
@@ -672,11 +669,11 @@ E_Int K_IO::GenIO::su2read(
   while (res == 1) // trouve des BCS
   {
     res = readWord(ptrFile, buf);
-    lenbuf = strlen(buf); //printf("%s %d\n", buf, lenbuf);
+    lenbuf = strlen(buf); //printf("%s " SF_D_ "\n", buf, lenbuf);
 
     res = readGivenKeyword(ptrFile, "MARKER_ELEMS=");
     res = readInt(ptrFile, nfaces, -1);
-    //printf("%s %d\n", buf, nfaces);
+    //printf("%s " SF_D_ "\n", buf, nfaces);
 
     for (E_Int i = 0; i < nfaces; i++)
     { 
@@ -715,7 +712,7 @@ E_Int K_IO::GenIO::su2read(
     }
     res = readGivenKeyword(ptrFile, "MARKER_TAG=");
   }
-  //printf("final: %d %d\n", c, nfacetot); 
+  //printf("final: " SF_D2_ "\n", c, nfacetot); 
 
   fclose(ptrFile);
   return 0;
@@ -754,7 +751,7 @@ E_Int K_IO::GenIO::su2read(
   res = readInt(ptrFile, ti, -1);
   E_Int dim = ti;
   if (dim != 2 && dim != 1 && dim != 3)
-    printf("Warning: su2read: dimension is strange (%d).\n", ti);
+    printf("Warning: su2read: dimension is strange (" SF_D_ ").\n", ti);
 
   // Lecture du nombre d'elements
   res = readGivenKeyword(ptrFile, "NELEM=");
@@ -973,14 +970,10 @@ E_Int K_IO::GenIO::su2read(
   for (size_t i=0; i < unstructField.size(); i++)
   {
     char* zoneName = new char [128];
-#ifdef E_DOUBLEINT
-    sprintf(zoneName, "Zone%ld", i);
-#else
-    sprintf(zoneName, "Zone%d", (int)i);
-#endif
+    sprintf(zoneName, "Zone" SF_D_, (int)i);
     zoneNames.push_back(zoneName);
   }
-  //printf("%d %d\n", unstructField.size(), connect.size());
+  //printf(SF_D2_ "\n", unstructField.size(), connect.size());
 
   //====================================
   // Lecture des conditions aux limites
@@ -1130,7 +1123,7 @@ E_Int K_IO::GenIO::su2write(
         eltType[zone] == 7)
       nvalidZones++;
     else
-      printf("Warning: su2write: zone %d not written (not a valid elements in zone).", zone);
+      printf("Warning: su2write: zone " SF_D_ " not written (not a valid elements in zone).", zone);
   }
 
   if (nvalidZones == 0) return 1;
@@ -1157,9 +1150,9 @@ E_Int K_IO::GenIO::su2write(
   sprintf(format1,"\t%s ", dataFmtl);
   sprintf(format2,"\t%s \t%s ", dataFmt, dataFmtl);
   sprintf(format3,"\t%s \t%s \t%s ", dataFmt, dataFmt, dataFmtl);
-  strcat(format1,"\t%d \n");
-  strcat(format2,"\t%d \n");
-  strcat(format3,"\t%d \n");
+  strcat(format1,"\t" SF_D_ " \n");
+  strcat(format2,"\t" SF_D_ " \n");
+  strcat(format3,"\t" SF_D_ " \n");
   //printf("format=%s\n", format3);
 
   // Concatenate all vertices in one field
@@ -1329,13 +1322,8 @@ E_Int K_IO::GenIO::su2write(
     return 1;  
   }
 
-#ifdef E_DOUBLEINT
-  fprintf(ptrFile, "NDIME= %ld\n", dim);
-  fprintf(ptrFile, "NELEM= %ld\n", ne);
-#else
-  fprintf(ptrFile, "NDIME= %d\n", dim);
-  fprintf(ptrFile, "NELEM= %d\n", ne);
-#endif
+  fprintf(ptrFile, "NDIME= " SF_D_ "\n", dim);
+  fprintf(ptrFile, "NELEM= " SF_D_ "\n", ne);
 
   c = 0;
   for (E_Int i = 0; i < connectBarSize; i++) 
@@ -1343,11 +1331,8 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectBar[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
-#ifdef E_DOUBLEINT
-      fprintf(ptrFile, "3 \t%ld \t%ld \t%ld \n", cp(i,1)-1, cp(i,2)-1, c); c++;
-#else
-      fprintf(ptrFile, "3 \t%d \t%d \t%d \n", cp(i,1)-1, cp(i,2)-1, c); c++;
-#endif
+      fprintf(ptrFile, "3 \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \n",
+              cp(i,1)-1, cp(i,2)-1, c); c++;
     }
   }
 
@@ -1356,13 +1341,8 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectTri[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
-#ifdef E_DOUBLEINT
-      fprintf(ptrFile, "5 \t%ld \t%ld \t%ld \t%ld \n", 
+      fprintf(ptrFile, "5 \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, c); c++;
-#else
-      fprintf(ptrFile, "5 \t%d \t%d \t%d \t%d \n", 
-              cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, c); c++;
-#endif
     }
   }
  
@@ -1371,13 +1351,8 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectQuad[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
-#ifdef E_DOUBLEINT
-      fprintf(ptrFile, "9 \t%ld \t%ld \t%ld \t%ld \t%ld \n", 
+      fprintf(ptrFile, "9 \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, c); c++;
-#else
-      fprintf(ptrFile, "9 \t%d \t%d \t%d \t%d \t%d \n", 
-              cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, c); c++;
-#endif
     }
   }
   
@@ -1386,13 +1361,8 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectTetra[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
-#ifdef E_DOUBLEINT
-      fprintf(ptrFile, "10 \t%ld \t%ld \t%ld \t%ld \t%ld \n", 
+      fprintf(ptrFile, "10 \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, c); c++;
-#else
-      fprintf(ptrFile, "10 \t%d \t%d \t%d \t%d \t%d \n", 
-              cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, c); c++;
-#endif
     }
   }
 
@@ -1401,13 +1371,8 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectPyra[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
-#ifdef E_DOUBLEINT
-      fprintf(ptrFile, "14 \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \n", 
+      fprintf(ptrFile, "14 \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, cp(i,5)-1, c); c++;
-#else
-      fprintf(ptrFile, "14 \t%d \t%d \t%d \t%d \t%d \t%d \n", 
-              cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, cp(i,5)-1, c); c++;
-#endif
     }
   }
   
@@ -1416,15 +1381,9 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectPenta[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
-#ifdef E_DOUBLEINT
-      fprintf(ptrFile, "13 \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \n", 
+      fprintf(ptrFile, "13 \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, 
               cp(i,5)-1, cp(i,6)-1, c); c++;
-#else
-      fprintf(ptrFile, "13 \t%d \t%d \t%d \t%d \t%d \t%d \t%d \n", 
-              cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, 
-              cp(i,5)-1, cp(i,6)-1, c); c++;
-#endif
     }
   }
   
@@ -1433,21 +1392,15 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectHexa[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
-#ifdef E_DOUBLEINT
-      fprintf(ptrFile, "12 \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \n", 
+      fprintf(ptrFile, "12 \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, 
               cp(i,5)-1, cp(i,6)-1, cp(i,7)-1, cp(i,8)-1, c); c++;
-#else
-      fprintf(ptrFile, "12 \t%d \t%d \t%d \t%d \t%d \t%d \t%d \t%d \t%d \n", 
-              cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, 
-              cp(i,5)-1, cp(i,6)-1, cp(i,7)-1, cp(i,8)-1, c); c++;
-#endif
     }
   }
   
   // Vertices
   c = 0;
-  fprintf(ptrFile, "NPOIN= %d\n", v.getSize());
+  fprintf(ptrFile, "NPOIN= " SF_D_ "\n", v.getSize());
   if (dim == 1)
   {
     for (E_Int i = 0; i < v.getSize(); i++)
@@ -1541,11 +1494,7 @@ E_Int K_IO::GenIO::su2write(
       }
       PyObject* BCs = PyList_GetItem(BCFaces, i);
       E_Int size = PyList_Size(BCs);
-#ifdef E_DOUBLEINT
-      fprintf(ptrFile, "NMARK= %ld\n", size/2);
-#else
-      fprintf(ptrFile, "NMARK= %d\n", size/2);
-#endif
+      fprintf(ptrFile, "NMARK= " SF_D_ "\n", size/2);
       for (E_Int j = 0; j < size/2; j++) // marker differents
       {
         char* name = NULL;
@@ -1558,30 +1507,35 @@ E_Int K_IO::GenIO::su2write(
         PyArrayObject* array = (PyArrayObject*)PyList_GetItem(BCs, 2*j+1);
         int* ptr = (int*)PyArray_DATA(array);
         E_Int np = PyArray_SIZE(array);
-        fprintf(ptrFile, "MARKER_ELEMS= %d\n", np);
+        fprintf(ptrFile, "MARKER_ELEMS= " SF_D_ "\n", np);
         for (E_Int j = 0; j < np; j++)
         {
           indFace = ptr[j];
           inde = (indFace-1)/nf;
           nof = (indFace-1)-inde*nf;
-          fprintf(ptrFile, "%d ", eltBnd);
+          fprintf(ptrFile, SF_D_ " ", eltBnd);
           if (elt == 5) // PYRA
           {
             if (nof == 4) // base
-              for (E_Int i = 0; i < 4; i++) fprintf(ptrFile, "%d ", cn(inde,face[nof][i])-1);
+              for (E_Int i = 0; i < 4; i++)
+                fprintf(ptrFile, SF_D_ " ", cn(inde,face[nof][i])-1);
             else
-              for (E_Int i = 0; i < nn; i++) fprintf(ptrFile, "%d ", cn(inde,face[nof][i])-1);
+              for (E_Int i = 0; i < nn; i++)
+                fprintf(ptrFile, SF_D_ " ", cn(inde,face[nof][i])-1);
           }
           else if (elt == 6) // PENTA
           {
             if (nof == 3 || nof == 4) 
-              for (E_Int i = 0; i < 3; i++) fprintf(ptrFile, "%d ", cn(inde,face[nof][i])-1);
+              for (E_Int i = 0; i < 3; i++)
+                fprintf(ptrFile, SF_D_ " ", cn(inde,face[nof][i])-1);
             else
-              for (E_Int i = 0; i < nn; i++) fprintf(ptrFile, "%d ", cn(inde,face[nof][i])-1);
+              for (E_Int i = 0; i < nn; i++)
+                fprintf(ptrFile, SF_D_ " ", cn(inde,face[nof][i])-1);
           }
           else
           {
-            for (E_Int i = 0; i < nn; i++) fprintf(ptrFile, "%d ", cn(inde,face[nof][i])-1);
+            for (E_Int i = 0; i < nn; i++)
+              fprintf(ptrFile, SF_D_ " ", cn(inde,face[nof][i])-1);
           }
           fprintf(ptrFile, "\n");
         }
@@ -1621,13 +1575,8 @@ E_Int K_IO::GenIO::su2write(
           eltTypeZn[ic] == 7) 
         nvalidEltTypes++;
       else
-#ifdef E_DOUBLEINT
-        printf("Warning: su2write: zone %ld not written (not a valid element "
-               "type: %ld).", zn, eltTypeZn[ic]);
-#else
-        printf("Warning: su2write: zone %d not written (not a valid element "
-               "type: %d).", zn, eltTypeZn[ic]);
-#endif
+        printf("Warning: su2write: zone " SF_D_ " not written (not a valid element "
+               "type: " SF_D_ ").", zn, eltTypeZn[ic]);
     }
     if (nvalidEltTypes == (int)eltTypeZn.size())
     {
@@ -1659,15 +1608,9 @@ E_Int K_IO::GenIO::su2write(
   sprintf(format1,"\t%s ", dataFmtl);
   sprintf(format2,"\t%s \t%s ", dataFmt, dataFmtl);
   sprintf(format3,"\t%s \t%s \t%s ", dataFmt, dataFmt, dataFmtl);
-#ifdef E_DOUBLEINT
-  strcat(format1,"\t%ld \n");
-  strcat(format2,"\t%ld \n");
-  strcat(format3,"\t%ld \n");
-#else
-  strcat(format1,"\t%d \n");
-  strcat(format2,"\t%d \n");
-  strcat(format3,"\t%d \n");
-#endif
+  strcat(format1,"\t" SF_D_ " \n");
+  strcat(format2,"\t" SF_D_ " \n");
+  strcat(format3,"\t" SF_D_ " \n");
 
   // Connectivite par elts
   E_Int c = 0;
@@ -1903,13 +1846,8 @@ E_Int K_IO::GenIO::su2write(
     return 1;  
   }
 
-#ifdef E_DOUBLEINT
-  fprintf(ptrFile, "NDIME= %ld\n", dim);
-  fprintf(ptrFile, "NELEM= %ld\n", ne);
-#else
-  fprintf(ptrFile, "NDIME= %d\n", dim);
-  fprintf(ptrFile, "NELEM= %d\n", ne);
-#endif
+  fprintf(ptrFile, "NDIME= " SF_D_ "\n", dim);
+  fprintf(ptrFile, "NELEM= " SF_D_ "\n", ne);
 
   c = 0;
   for (E_Int i = 0; i < connectBarSize; i++) 
@@ -1917,11 +1855,8 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectBar[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
-#ifdef E_DOUBLEINT
-      fprintf(ptrFile, "3 \t%ld \t%ld \t%ld \n", cp(i,1)-1, cp(i,2)-1, c); c++;
-#else
-      fprintf(ptrFile, "3 \t%d \t%d \t%d \n", cp(i,1)-1, cp(i,2)-1, c); c++;
-#endif
+      fprintf(ptrFile, "3 \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \n",
+              cp(i,1)-1, cp(i,2)-1, c); c++;
     }
   }
 
@@ -1930,13 +1865,8 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectTri[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
-#ifdef E_DOUBLEINT
-      fprintf(ptrFile, "5 \t%ld \t%ld \t%ld \t%ld \n", 
+      fprintf(ptrFile, "5 \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, c); c++;
-#else
-      fprintf(ptrFile, "5 \t%d \t%d \t%d \t%d \n", 
-              cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, c); c++;
-#endif
     }
   }
  
@@ -1945,13 +1875,8 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectQuad[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
-#ifdef E_DOUBLEINT
-      fprintf(ptrFile, "9 \t%ld \t%ld \t%ld \t%ld \t%ld \n", 
+      fprintf(ptrFile, "9 \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, c); c++;
-#else
-      fprintf(ptrFile, "9 \t%d \t%d \t%d \t%d \t%d \n", 
-              cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, c); c++;
-#endif
     }
   }
   
@@ -1960,13 +1885,8 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectTetra[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
-#ifdef E_DOUBLEINT
-      fprintf(ptrFile, "10 \t%ld \t%ld \t%ld \t%ld \t%ld \n", 
+      fprintf(ptrFile, "10 \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, c); c++;
-#else
-      fprintf(ptrFile, "10 \t%d \t%d \t%d \t%d \t%d \n", 
-              cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, c); c++;
-#endif
     }
   }
 
@@ -1975,13 +1895,8 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectPyra[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
-#ifdef E_DOUBLEINT
-      fprintf(ptrFile, "14 \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \n", 
+      fprintf(ptrFile, "14 \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, cp(i,5)-1, c); c++;
-#else
-      fprintf(ptrFile, "14 \t%d \t%d \t%d \t%d \t%d \t%d \n", 
-              cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, cp(i,5)-1, c); c++;
-#endif
     }
   }
   
@@ -1990,15 +1905,9 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectPenta[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
-#ifdef E_DOUBLEINT
-      fprintf(ptrFile, "13 \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \n", 
+      fprintf(ptrFile, "13 \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, 
               cp(i,5)-1, cp(i,6)-1, c); c++;
-#else
-      fprintf(ptrFile, "13 \t%d \t%d \t%d \t%d \t%d \t%d \t%d \n", 
-              cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, 
-              cp(i,5)-1, cp(i,6)-1, c); c++;
-#endif
     }
   }
   
@@ -2007,21 +1916,15 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectHexa[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
-#ifdef E_DOUBLEINT
-      fprintf(ptrFile, "12 \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \t%ld \n", 
+      fprintf(ptrFile, "12 \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, 
               cp(i,5)-1, cp(i,6)-1, cp(i,7)-1, cp(i,8)-1, c); c++;
-#else
-      fprintf(ptrFile, "12 \t%d \t%d \t%d \t%d \t%d \t%d \t%d \t%d \t%d \n", 
-              cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, 
-              cp(i,5)-1, cp(i,6)-1, cp(i,7)-1, cp(i,8)-1, c); c++;
-#endif
     }
   }
   
   // Vertices
   c = 0;
-  fprintf(ptrFile, "NPOIN= %d\n", v.getSize());
+  fprintf(ptrFile, "NPOIN= " SF_D_ "\n", v.getSize());
   if (dim == 1)
   {
     for (E_Int i = 0; i < v.getSize(); i++)
@@ -2114,11 +2017,7 @@ E_Int K_IO::GenIO::su2write(
       }
       PyObject* BCs = PyList_GetItem(BCFaces, i);
       E_Int size = PyList_Size(BCs);
-#ifdef E_DOUBLEINT
-      fprintf(ptrFile, "NMARK= %ld\n", size/2);
-#else
-      fprintf(ptrFile, "NMARK= %d\n", size/2);
-#endif
+      fprintf(ptrFile, "NMARK= " SF_D_ "\n", size/2);
       for (E_Int j = 0; j < size/2; j++) // marker differents
       {
         char* name = NULL;
@@ -2131,30 +2030,30 @@ E_Int K_IO::GenIO::su2write(
         PyArrayObject* array = (PyArrayObject*)PyList_GetItem(BCs, 2*j+1);
         int* ptr = (int*)PyArray_DATA(array);
         E_Int np = PyArray_SIZE(array);
-        fprintf(ptrFile, "MARKER_ELEMS= %d\n", np);
+        fprintf(ptrFile, "MARKER_ELEMS= " SF_D_ "\n", np);
         for (E_Int j = 0; j < np; j++)
         {
           indFace = ptr[j];
           inde = (indFace-1)/nf;
           nof = (indFace-1)-inde*nf;
-          fprintf(ptrFile, "%d ", eltBnd);
+          fprintf(ptrFile, SF_D_ " ", eltBnd);
           if (elt == 5) // PYRA
           {
             if (nof == 4) // base
-              for (E_Int i = 0; i < 4; i++) fprintf(ptrFile, "%d ", cn(inde,face[nof][i])-1);
+              for (E_Int i = 0; i < 4; i++) fprintf(ptrFile, SF_D_ " ", cn(inde,face[nof][i])-1);
             else
-              for (E_Int i = 0; i < nn; i++) fprintf(ptrFile, "%d ", cn(inde,face[nof][i])-1);
+              for (E_Int i = 0; i < nn; i++) fprintf(ptrFile, SF_D_ " ", cn(inde,face[nof][i])-1);
           }
           else if (elt == 6) // PENTA
           {
             if (nof == 3 || nof == 4) 
-              for (E_Int i = 0; i < 3; i++) fprintf(ptrFile, "%d ", cn(inde,face[nof][i])-1);
+              for (E_Int i = 0; i < 3; i++) fprintf(ptrFile, SF_D_ " ", cn(inde,face[nof][i])-1);
             else
-              for (E_Int i = 0; i < nn; i++) fprintf(ptrFile, "%d ", cn(inde,face[nof][i])-1);
+              for (E_Int i = 0; i < nn; i++) fprintf(ptrFile, SF_D_ " ", cn(inde,face[nof][i])-1);
           }
           else
           {
-            for (E_Int i = 0; i < nn; i++) fprintf(ptrFile, "%d ", cn(inde,face[nof][i])-1);
+            for (E_Int i = 0; i < nn; i++) fprintf(ptrFile, SF_D_ " ", cn(inde,face[nof][i])-1);
           }
           fprintf(ptrFile, "\n");
         }

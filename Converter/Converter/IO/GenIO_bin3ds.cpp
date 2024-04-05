@@ -21,6 +21,7 @@
 
 # include "GenIO.h"
 # include "Array/Array.h"
+# include "String/kstring.h"
 # include <vector>
 # include <stdio.h>
 # include <string.h>
@@ -86,7 +87,7 @@ E_Int K_IO::GenIO::f3dsread(
     fread (&l_chunk_id, 2, 1, ptrFile); // Read the chunk header 
     //printf("ChunkID: %x\n", l_chunk_id);
     fread (&l_chunk_length, 4, 1, ptrFile); // Read the length of the chunk
-    //printf("ChunkLength: %d\n", l_chunk_length);
+    //printf("ChunkLength: " SF_D_ "\n", l_chunk_length);
     if (l_chunk_length == 0) break;
 
     switch (l_chunk_id)
@@ -152,13 +153,13 @@ E_Int K_IO::GenIO::f3dsread(
         f = new FldArrayF(l_qty, 3);
         unstructField.push_back(f);
         f1 = f->begin(1); f2 = f->begin(2); f3 = f->begin(3);
-        //printf(" Number of vertices: %d\n", l_qty);
+        //printf(" Number of vertices: " SF_D_ "\n", l_qty);
         for (i = 0; i < l_qty; i++)
         {
           fread (&tf, sizeof(float), 1, ptrFile); f1[i] = tf;
           fread (&tf, sizeof(float), 1, ptrFile); f2[i] = tf;
           fread (&tf, sizeof(float), 1, ptrFile); f3[i] = tf;
-          //printf("Vertices %f %f %f\n", (*f)(i,1),(*f)(i,2), (*f)(i,3));
+          //printf("Vertices " SF_F3_ "\n", (*f)(i,1),(*f)(i,2), (*f)(i,3));
         }
         break;
 
@@ -171,7 +172,7 @@ E_Int K_IO::GenIO::f3dsread(
         //-------------------------------------------
       case 0x4120:
         fread (&l_qty, sizeof(unsigned short), 1, ptrFile);
-        //printf(" Number of polygons: %d\n", l_qty);
+        //printf(" Number of polygons: " SF_D_ "\n", l_qty);
         eltType.push_back(2);
         cp = new FldArrayI(l_qty, 3);
         connect.push_back(cp);
@@ -183,7 +184,7 @@ E_Int K_IO::GenIO::f3dsread(
           fread (&ti, sizeof(unsigned short), 1, ptrFile); cp3[i] = ti+1;
           fread (&l_face_flags, sizeof(unsigned short), 1, ptrFile);
           //printf("Face flags: %x\n", l_face_flags);
-          //printf("%d %d %d\n", (*cp)(i,1), (*cp)(i,2), (*cp)(i,3));
+          //printf(SF_D3_ "\n", (*cp)(i,1), (*cp)(i,2), (*cp)(i,3));
         }
         break;
 
@@ -199,9 +200,9 @@ E_Int K_IO::GenIO::f3dsread(
         for (i = 0; i < l_qty; i++)
         {
           fread (&tf, sizeof (float), 1, ptrFile);
-          //printf("Mapping list u: %f\n",p_object->mapcoord[i].u);
+          //printf("Mapping list u: " SF_F_ "\n",p_object->mapcoord[i].u);
           fread (&tf, sizeof (float), 1, ptrFile);
-          //printf("Mapping list v: %f\n",p_object->mapcoord[i].v);
+          //printf("Mapping list v: " SF_F_ "\n",p_object->mapcoord[i].v);
         }
         break;
 
@@ -242,7 +243,7 @@ E_Int K_IO::GenIO::f3dswrite(
     if (eltType[zone] == 2) // triangles
     { nvalidZones++; if (no == -1) no = zone; }
     else
-      printf("Warning: 3dswrite: zone %d not written (not a triangle zone).", zone);
+      printf("Warning: 3dswrite: zone " SF_D_ " not written (not a triangle zone).", zone);
   }
 
   if (nvalidZones == 0) return 1;

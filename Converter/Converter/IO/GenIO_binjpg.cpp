@@ -23,6 +23,7 @@
 
 # include "GenIO.h"
 # include "Array/Array.h"
+# include "String/kstring.h"
 # include "Connect/connect.h"
 # include <vector>
 # include <stdio.h>
@@ -151,7 +152,7 @@ E_Int K_IO::GenIO::jpgread(
   E_Int nc = cinfo.output_components;
   E_Int nil = cinfo.output_width;
   E_Int njl = cinfo.output_height;
-  printf("size=%d %d, components=%d\n", nil, njl, nc);
+  printf("size=" SF_D2_ ", components=" SF_D_ "\n", nil, njl, nc);
   
   varString = new char [128];
 
@@ -263,7 +264,7 @@ E_Int K_IO::GenIO::jpgwrite(
   if (posB == -1) posB = K_ARRAY::isNamePresent((char*)"B", varString);
   
 
-  //printf("pos %d %d %d - %d %d\n", posR, posG, posB, width, height);
+  //printf("pos " SF_D3_ " - " SF_D2_ "\n", posR, posG, posB, width, height);
   E_Int nc = 3; // only for RGB for now
 
   FILE* ptrFile;

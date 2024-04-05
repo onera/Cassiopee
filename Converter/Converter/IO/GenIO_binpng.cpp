@@ -22,6 +22,7 @@
 # include "Images/png/png.h"
 # include "GenIO.h"
 # include "Array/Array.h"
+# include "String/kstring.h"
 # include "Connect/connect.h"
 # include <vector>
 # include <stdio.h>
@@ -96,8 +97,8 @@ E_Int K_IO::GenIO::pngread(
   height = png_get_image_height(png_ptr, info_ptr);
   color_type = png_get_color_type(png_ptr, info_ptr);
   bit_depth = png_get_bit_depth(png_ptr, info_ptr);
-  //printf("color type %d\n", color_type);
-  //printf("bit depth %d\n", bit_depth);
+  //printf("color type " SF_D_ "\n", color_type);
+  //printf("bit depth " SF_D_ "\n", bit_depth);
   
   if (bit_depth == 16) png_set_strip_16(png_ptr);
   if (color_type == PNG_COLOR_TYPE_PALETTE) png_set_palette_to_rgb(png_ptr);
@@ -134,7 +135,7 @@ E_Int K_IO::GenIO::pngread(
   int components;
   int size = png_get_rowbytes(png_ptr, info_ptr);
   components = (size/width);
-  //printf("components = %d\n", components);
+  //printf("components = " SF_D_ "\n", components);
 
   // Stockage du champ
   E_Int nil = width;
@@ -283,7 +284,7 @@ E_Int K_IO::GenIO::pngwrite(
   int width = 0; int height = 0;
   width = ni[0]; height = nj[0];
   
-  //printf("pos %d %d %d - %d %d\n", posR, posG, posB, width, height);
+  //printf("pos " SF_D3_ " - " SF_D2_ "\n", posR, posG, posB, width, height);
   
   E_Int nc = 3;
   if (posA >= 0) { nc = 4; mode = 1; }

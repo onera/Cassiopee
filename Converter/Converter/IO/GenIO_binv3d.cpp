@@ -21,6 +21,7 @@
 
 # include "GenIO.h"
 # include "Array/Array.h"
+# include "String/kstring.h"
 
 # include <stdio.h>
 # include <string.h>
@@ -196,7 +197,7 @@ E_Int K_IO::GenIO::v3dread(
       return 1;
     }
     nvar = std::min(nrec, E_Int(500));
-    //printf("read: nrec=%d %d\n", nvar, nrec);
+    //printf("read: nrec=" SF_D2_ "\n", nvar, nrec);
 
     for (n = 0; n < nrec; n++)
     {
@@ -252,7 +253,7 @@ E_Int K_IO::GenIO::v3dread(
         E_Int indvar;
         readInt(indvar, _intLength,
                 ptrFile, _convertEndian, si, si2);
-        //printf("indvar: %d\n", indvar);
+        //printf("indvar: " SF_D_ "\n", indvar);
       }
       else
       {
@@ -278,7 +279,7 @@ E_Int K_IO::GenIO::v3dread(
               ptrFile, _convertEndian, si, si2);
       readInt(kp, _intLength, 
               ptrFile, _convertEndian, si, si2);
-      //printf("read: %d - %d %d %d\n", ndom, ip,jp,kp);
+      //printf("read: " SF_D_ " - " SF_D3_ "\n", ndom, ip,jp,kp);
 
       if (refdom == ndom && domain == 0)
       {
@@ -290,7 +291,7 @@ E_Int K_IO::GenIO::v3dread(
         }
       }
       if (ndom != refdom) nvar = K_ARRAY::getNumberOfVariables(varString);
-      //printf("read: dimensionned nvar (%s) %d\n", varString, nvar);
+      //printf("read: dimensionned nvar (%s) " SF_D_ "\n", varString, nvar);
 
       if (prevDom != ndom || n == 0)
       { 
@@ -346,7 +347,7 @@ E_Int K_IO::GenIO::v3dread(
     domain++;
   } // data blocks
 
-  //printf("nb domain %d\n", domain);
+  //printf("nb domain " SF_D_ "\n", domain);
   // Seul le premier a ete sur-alloue
   field[0]->reAllocMat(field[0]->getSize(), nvar);
 
@@ -363,10 +364,10 @@ E_Int K_IO::GenIO::v3dread(
   for (E_Int i = 0; i < fieldSize; i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "zone%d", i);
+    sprintf(zoneName, "zone" SF_D_, i);
     zoneNames.push_back(zoneName);
   }
-  //printf("nb domain 2 %d\n", fieldSize); fflush(stdout);
+  //printf("nb domain 2 " SF_D_ "\n", fieldSize); fflush(stdout);
   return 0;
 }
 
@@ -475,7 +476,7 @@ E_Int K_IO::GenIO::v3dwrite(
            ptrFile, convertEndian, si, si2);
 
   // Nombre d'enregistrements
-  //printf("nrec = %d\n", nvar*fieldSize);
+  //printf("nrec = " SF_D_ "\n", nvar*fieldSize);
   writeInt(nvar*fieldSize, isize,
            ptrFile, convertEndian, si, si2);
   

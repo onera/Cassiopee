@@ -148,7 +148,7 @@ void readNElemElmin(FILE* ptrFile, unsigned int& nelem, unsigned int& elmin)
   fread(&elmin, sizeof(unsigned int), 1, ptrFile); elmin = UIBE(elmin);
   printf("elmin=%u\n", elmin);
   fread(&nelem, sizeof(unsigned int), 1, ptrFile); nelem = UIBE(nelem);
-  printf("nelem=%d\n", nelem);
+  printf("nelem=" SF_D_ "\n", nelem);
 }
 
 // Lit et decompresse un champ de floats
@@ -157,7 +157,7 @@ double* readAndUncompress(FILE* ptrFile, unsigned int nelem, unsigned int elmin)
   // Lit comp
   unsigned char comp;
   fread(&comp, sizeof(unsigned char), 1, ptrFile);
-  printf("compression=%d\n", comp);
+  printf("compression=" SF_D_ "\n", comp);
   double vmin = 0.;
   if (comp != 0) { fread(&vmin, sizeof(double), 1, ptrFile); vmin = DBE(vmin); }
   double vmax = 0.;
@@ -286,10 +286,10 @@ void readEspece(FILE* ptrFile, int& numMel, char* nomMel, int& nespeces, char* n
     while ((c = fgetc(ptrFile) && i < STRINGLENGTH-1) != '\0') { nomEspece[i] = c; i++; }
     nomEspece[i] = '\0';
   }
-  printf("numMel: %d\n", numMel);
+  printf("numMel: " SF_D_ "\n", numMel);
   printf("nomMel: %s\n", nomMel);
-  printf("nbreEspeces: %d\n", nespeces);
-  for (E_Int i = 0; i < nespeces; i++) printf("%d %s\n", i, nomEspece);
+  printf("nbreEspeces: " SF_D_ "\n", nespeces);
+  for (E_Int i = 0; i < nespeces; i++) printf(SF_D_ " %s\n", i, nomEspece);
 }
 
 // Lit les donnees scalaires
@@ -342,7 +342,7 @@ void readThermo(FILE* ptrFile, unsigned int& read, char* name,
   fread(&nGr, sizeof(unsigned int), 1, ptrFile); nGr = UIBE(nGr);
   fread(&ne, sizeof(unsigned int), 1, ptrFile); ne = UIBE(ne);
   fread(&nr, sizeof(unsigned int), 1, ptrFile); nr = UIBE(nr);
-  printf("nGe: %d %d %d %d\n", nGe, nGr, ne, nr);
+  printf("nGe: " SF_D4_ "\n", nGe, nGr, ne, nr);
   dthGe = new unsigned int [nGe];
   dthGr = new unsigned int [nGr];
   dthe = new unsigned int [ne];
@@ -398,8 +398,9 @@ void readNumerotation(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   fread(&m->_nflm, sizeof(int), 1, ptrFile); m->_nflm = IBE(m->_nflm);
   fread(&m->_nflp, sizeof(int), 1, ptrFile); m->_nflp = IBE(m->_nflp);
   fread(&m->_nceli, sizeof(int), 1, ptrFile); m->_nceli = IBE(m->_nceli);
-  printf("npts=%d nfaces=%d \n", m->_nsom, m->_nfac);
-  printf("ncellLim=%d, ncellPart=%d, ncelli=%d\n", m->_nflm, m->_nflp, m->_nceli);
+  printf("npts=" SF_D_ " nfaces=" SF_D_ " \n", m->_nsom, m->_nfac);
+  printf("ncellLim=" SF_D_ ", ncellPart=" SF_D_ ", ncelli=" SF_D_ "\n",
+         m->_nflm, m->_nflp, m->_nceli);
   m->_isomu = new int [m->_nsom];
   fread(m->_isomu, sizeof(int), m->_nsom, ptrFile);
   int* pt = m->_isomu;
@@ -475,7 +476,7 @@ void readMaillage1(FILE* ptrFile, mesh* m)
 {
   double temps;
   fread(&temps, sizeof(double), 1, ptrFile); temps = DBE(temps);
-  printf("temps=%f\n", temps);
+  printf("temps=" SF_F_ "\n", temps);
   
   unsigned int elmin; unsigned int nelem;
   readNElemElmin(ptrFile, nelem, elmin);
@@ -491,7 +492,7 @@ void readMaillage(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   unsigned int nd;
   fread(&nd, sizeof(unsigned int), 1, ptrFile); nd = UIBE(nd);
   mesh* m = checkMesh(nd, meshes);
-  printf("reading type=%d for mesh no %d\n", m->_type, nd);
+  printf("reading type=" SF_D_ " for mesh no " SF_D_ "\n", m->_type, nd);
   if (m->_type == 0 || m->_type == 1) readMaillage0(ptrFile, m);
   else readMaillage1(ptrFile, m);
 }
@@ -595,18 +596,18 @@ void readValeurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   // champ moyen ou instantane
   unsigned char moyen;
   fread(&moyen, sizeof(unsigned char), 1, ptrFile); //moyen = UIBE(moyen);
-  printf("Champ moyen=%d\n", moyen);
+  printf("Champ moyen=" SF_D_ "\n", moyen);
   
   unsigned int nd;
   fread(&nd, sizeof(unsigned int), 1, ptrFile); nd = UIBE(nd);
   double temps;
   fread(&temps, sizeof(double), 1, ptrFile); temps = DBE(temps);
-  printf("temps=%f\n", temps);
+  printf("temps=" SF_F_ "\n", temps);
   mesh* m = checkMesh(nd, meshes);
 
   unsigned char classe;
   fread(&classe, sizeof(unsigned char), 1, ptrFile); //classe = UIBE(classe);
-  printf("Champ de classe=%d\n", classe);
+  printf("Champ de classe=" SF_D_ "\n", classe);
   
   // Unknown thing that is here (not in spec)
   char toto[20];
@@ -622,7 +623,7 @@ void readValeurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   readNElemElmin(ptrFile, nelem, elmin);
   
   printf("nom champ=%s\n", nomField);
-  printf("taille %d (ncell=%d)\n", nelem, m->_nceli);
+  printf("taille " SF_D_ " (ncell=" SF_D_ ")\n", nelem, m->_nceli);
   
   double* F = readAndUncompress(ptrFile, nelem, elmin);
   
@@ -637,18 +638,18 @@ void readVecteurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   // champ moyen ou instantane
   unsigned char moyen;
   fread(&moyen, sizeof(unsigned char), 1, ptrFile); //moyen = UIBE(moyen);
-  printf("Champ moyen=%d\n", moyen);
+  printf("Champ moyen=" SF_D_ "\n", moyen);
   
   unsigned int nd;
   fread(&nd, sizeof(unsigned int), 1, ptrFile); nd = UIBE(nd);
   double temps;
   fread(&temps, sizeof(double), 1, ptrFile); temps = DBE(temps);
-  printf("temps=%f\n", temps);
+  printf("temps=" SF_F_ "\n", temps);
   mesh* m = checkMesh(nd, meshes);
 
   unsigned char classe;
   fread(&classe, sizeof(unsigned char), 1, ptrFile); //classe = UIBE(classe);
-  printf("Champ de classe=%d\n", classe);
+  printf("Champ de classe=" SF_D_ "\n", classe);
   
   // Unknown thing that is here (not in spec)
   char toto[20];
@@ -663,7 +664,7 @@ void readVecteurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   readNElemElmin(ptrFile, nelem, elmin);
   
   printf("nom champ=%s\n", nomField);
-  printf("taille %d (ncell=%d)\n", nelem, m->_nceli);
+  printf("taille " SF_D_ " (ncell=" SF_D_ ")\n", nelem, m->_nceli);
   
   double* Fx = readAndUncompress(ptrFile, nelem, elmin);
   double* Fy = readAndUncompress(ptrFile, nelem, elmin);
@@ -696,18 +697,18 @@ void readTenseurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   // champ moyen ou instantane
   unsigned char moyen;
   fread(&moyen, sizeof(unsigned char), 1, ptrFile); //moyen = UIBE(moyen);
-  printf("Champ moyen=%d\n", moyen);
+  printf("Champ moyen=" SF_D_ "\n", moyen);
   
   unsigned int nd;
   fread(&nd, sizeof(unsigned int), 1, ptrFile); nd = UIBE(nd);
   double temps;
   fread(&temps, sizeof(double), 1, ptrFile); temps = DBE(temps);
-  printf("temps=%f\n", temps);
+  printf("temps=" SF_F_ "\n", temps);
   mesh* m = checkMesh(nd, meshes);
 
   unsigned char classe;
   fread(&classe, sizeof(unsigned char), 1, ptrFile); //classe = UIBE(classe);
-  printf("Champ de classe=%d\n", classe);
+  printf("Champ de classe=" SF_D_ "\n", classe);
   
   // Unknown thing that is here (not in spec)
   char toto[20];
@@ -723,7 +724,7 @@ void readTenseurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   readNElemElmin(ptrFile, nelem, elmin);
   
   printf("nom champ=%s\n", nomField);
-  printf("taille %d (ncell=%d)\n", nelem, m->_nceli);
+  printf("taille " SF_D_ " (ncell=" SF_D_ ")\n", nelem, m->_nceli);
   double* Fxx = readAndUncompress(ptrFile, nelem, elmin);
   double* Fxy = readAndUncompress(ptrFile, nelem, elmin);
   double* Fxz = readAndUncompress(ptrFile, nelem, elmin);
@@ -906,7 +907,7 @@ E_Int K_IO::GenIO::arcread(
     lx = std::max(l, lx);
   }
   centerVarString = new char [lx];
-  printf("lx=%d\n", lx);
+  printf("lx=" SF_D_ "\n", lx);
   
   // transforme les structures de maillages en arrays
   for (std::map<unsigned int,mesh*>::iterator it = meshes.begin(); it != meshes.end(); it++)
@@ -948,7 +949,7 @@ E_Int K_IO::GenIO::arcread(
       //printf("nodes: %s\n", varString);
       
       // recopie des champs au centre + vire les ghost cells + sentinelle 
-      //printf("champs aux centres=%lld, nceli=%d\n", m._cfields.size(), m._nceli);
+      //printf("champs aux centres=%lld, nceli=" SF_D_ "\n", m._cfields.size(), m._nceli);
       FldArrayF* fc = NULL;
       nvars = m._cfields.size();
       if (nvars > 0) fc = new FldArrayF(m._nceli, nvars);
@@ -982,22 +983,22 @@ E_Int K_IO::GenIO::arcread(
         cFEp[p+nf] = ind;
       } 
       //printf("FE: ");
-      //for (E_Int p = 0; p < 2*nf; p++) printf(" %d ", cFEp[p]);
+      //for (E_Int p = 0; p < 2*nf; p++) printf(" " SF_D_ " ", cFEp[p]);
       //printf("\n");
       FldArrayI cNFace; E_Int nelts;
       K_CONNECT::connectFE2NFace(*cFE, cNFace, nelts);
-      printf("I found %d elements\n", nelts);
+      printf("I found " SF_D_ " elements\n", nelts);
       //printf("NFACE: ");
-      //for (E_Int p = 0; p < cNFace.getSize(); p++) printf(" %d ", cNFace[p]);
+      //for (E_Int p = 0; p < cNFace.getSize(); p++) printf(" " SF_D_ " ", cNFace[p]);
       //printf("\n");
-      for (E_Int p = 0; p < cNFace.getSize(); p++) { if (cNFace[p] > nf || cNFace[p] < 1) printf("DANGER %d\n",cNFace[p]);}
+      for (E_Int p = 0; p < cNFace.getSize(); p++) { if (cNFace[p] > nf || cNFace[p] < 1) printf("DANGER " SF_D_ "\n",cNFace[p]);}
       delete cFE;
       E_Int sizeNFACE = cNFace.getSize();
       
       // Calcul de NGON
       E_Int sizeNGON = 0;
       for (E_Int p = 0; p < nf; p++) sizeNGON += (m._nbpoints[p]+1);
-      printf("sizeNGON=%d\n", sizeNGON);
+      printf("sizeNGON=" SF_D_ "\n", sizeNGON);
       FldArrayI* cn = new FldArrayI(sizeNGON+sizeNFACE+4);
       E_Int* cnp = cn->begin();
       cnp[0] = nf;
@@ -1013,9 +1014,9 @@ E_Int K_IO::GenIO::arcread(
         ptr += npf+1; ptr2 += npf;
       }
       //printf("NGON: ");
-      //for (E_Int p = 0; p < sizeNGON; p++) printf(" %d ",cnp[2+p]);
+      //for (E_Int p = 0; p < sizeNGON; p++) printf(" " SF_D_ " ",cnp[2+p]);
       //printf("\n");
-      for (E_Int p = 0; p < sizeNGON; p++) { if (cnp[2+p] > nf || cnp[2+p] < 1) printf("DANGER %d\n",cnp[2+p]);}
+      for (E_Int p = 0; p < sizeNGON; p++) { if (cnp[2+p] > nf || cnp[2+p] < 1) printf("DANGER " SF_D_ "\n",cnp[2+p]);}
     
       ptr[0] = nelts;
       ptr[1] = sizeNFACE;
@@ -1024,7 +1025,7 @@ E_Int K_IO::GenIO::arcread(
       for (E_Int p = 0; p < sizeNFACE; p++) ptr[p] = cNFacep[p];
         
       //printf("final:\n");
-      //for (E_Int p = 0; p < sizeNFACE+sizeNGON+4; p++) printf(" %d ", cnp[p]);
+      //for (E_Int p = 0; p < sizeNFACE+sizeNGON+4; p++) printf(" " SF_D_ " ", cnp[p]);
       //printf("\n");
       unstructField.push_back(f); connectivity.push_back(cn); eltType.push_back(8);
       centerUnstructField.push_back(fc);

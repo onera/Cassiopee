@@ -23,6 +23,7 @@
 # include <stdio.h>
 # include "GenIO.h"
 # include "Array/Array.h"
+# include "String/kstring.h"
 # include <vector>
 # include "Def/DefFunction.h"
 # include "Connect/connect.h"
@@ -61,19 +62,19 @@ E_Int K_IO::GenIO::gmshread(
   if (res == -1) { fclose(ptrFile); return 1; }
   if (strcmp(buf, "$MeshFormat") != 0) { fclose(ptrFile); return 1; }
   res = readDouble(ptrFile, t, -1);
-  //printf("version %f\n", t);
+  //printf("version " SF_F_ "\n", t);
   res = readInt(ptrFile, ti, -1); type = ti;
   if (type == 1) return 1; // c'est un binary file
-  //printf("file type %d\n", ti);
+  //printf("file type " SF_D_ "\n", ti);
   res = readInt(ptrFile, ti, -1);
-  //printf("data size %d\n", ti);
+  //printf("data size " SF_D_ "\n", ti);
   res = readGivenKeyword(ptrFile, "$ENDMESHFORMAT");
   
   // Lecture Vertices (Global)
   res = readGivenKeyword(ptrFile, "$NODES");
   res = readInt(ptrFile, ti, -1);
   E_Int nb = E_Int(ti);
-  //printf("Number of nodes %d\n", nb);
+  //printf("Number of nodes " SF_D_ "\n", nb);
   FldArrayF f(nb, 3);
   E_Float* f1 = f.begin(1); E_Float* f2 = f.begin(2); E_Float* f3 = f.begin(3);
   FldArrayI indirNodes(nb);
@@ -83,7 +84,7 @@ E_Int K_IO::GenIO::gmshread(
     res = readDouble(ptrFile, t, -1); f1[i] = t;
     res = readDouble(ptrFile, t, -1); f2[i] = t;
     res = readDouble(ptrFile, t, -1); f3[i] = t;
-    //printf("%f %f %f\n", f(i,1), f(i,2), f(i,3));
+    //printf(SF_F3_ "\n", f(i,1), f(i,2), f(i,3));
   }
   //res = readGivenKeyword(ptrFile, "$ENDNODES"); // pas obligatoire?
 
@@ -91,7 +92,7 @@ E_Int K_IO::GenIO::gmshread(
   res = readGivenKeyword(ptrFile, "$ELEMENTS");
   res = readInt(ptrFile, ti, -1);
   E_Int ne = E_Int(ti); // Global
-  printf("Number of elements %d\n", ne);
+  printf("Number of elements " SF_D_ "\n", ne);
   FldArrayI indirElements(ne);
   // declarations
 #include "GenIO_gmsh3.h"
@@ -102,9 +103,9 @@ E_Int K_IO::GenIO::gmshread(
   E_LONG pos = KFTELL(ptrFile);
 #define READI readInt(ptrFile, ti, -1)
 #include "GenIO_gmsh1.h"
-printf("Elements BAR=%d TRI=%d QUAD=%d TETRA=%d HEXA=%d PENTA=%d PYRA=%d NODES=%d\n", 
+printf("Elements BAR=" SF_D_ " TRI=" SF_D_ " QUAD=" SF_D_ " TETRA=" SF_D_ " HEXA=" SF_D_ " PENTA=" SF_D_ " PYRA=" SF_D_ " NODES=" SF_D_ "\n", 
        nBAR, nTRI, nQUAD, nTETRA, nHEXA, nPENTA, nPYRA, nNODE);
-printf("Elements BAR_3=%d TRI_6=%d QUAD_9=%d TETRA_10=%d HEXA_27=%d PENTA_18=%d PYRA_14=%d\n",
+printf("Elements BAR_3=" SF_D_ " TRI_6=" SF_D_ " QUAD_9=" SF_D_ " TETRA_10=" SF_D_ " HEXA_27=" SF_D_ " PENTA_18=" SF_D_ " PYRA_14=" SF_D_ "\n",
        nBAR_3, nTRI_6, nQUAD_9, nTETRA_10, nHEXA_27, nPENTA_18, nPYRA_14);
 
   /* Allocations */
@@ -119,14 +120,14 @@ printf("Elements BAR_3=%d TRI_6=%d QUAD_9=%d TETRA_10=%d HEXA_27=%d PENTA_18=%d 
 #include "GenIO_gmsh5.h"
 
   // Cree le nom des zones
-  //printf("Number of zones %d\n", unstructField.size());
+  //printf("Number of zones " SF_D_ "\n", unstructField.size());
   for (unsigned int i=0; i < unstructField.size(); i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone%d", i);
+    sprintf(zoneName, "Zone" SF_D_, i);
     zoneNames.push_back(zoneName);
   }
-  //printf("sizes: %d %d\n", unstructField.size(), connect.size());
+  //printf("sizes: " SF_D2_ "\n", unstructField.size(), connect.size());
 
   varString = new char [8];
   strcpy(varString, "x,y,z");
@@ -154,7 +155,7 @@ E_Int K_IO::GenIO::gmshwrite(
     // NODE, BAR, TRI, QUADS, TETRA, HEXA , PENTA, PYRA, supported
     if (eltType[zone] < 8) nvalidZones++;
     else
-      printf("Warning: gmshwrite: zone %d not written (not a valid elements in zone).", zone);
+      printf("Warning: gmshwrite: zone " SF_D_ " not written (not a valid elements in zone).", zone);
   }
 
   if (nvalidZones == 0) return 1;
@@ -177,7 +178,7 @@ E_Int K_IO::GenIO::gmshwrite(
   if (dataFmt[l-1] == ' ') dataFmtl[l-1] = '\0';
 
   // Build format for data
-  strcpy(format1, "%d ");
+  strcpy(format1, SF_D_ " ");
   sprintf(format2,"%s%s%s", dataFmt, dataFmt, dataFmtl);
   strcat(format1, format2);
   strcat(format1, "\n");
@@ -215,7 +216,7 @@ E_Int K_IO::GenIO::gmshwrite(
   fprintf(ptrFile, "$EndMeshFormat\n");
 
   fprintf(ptrFile, "$Nodes\n");
-  fprintf(ptrFile, "%d\n", v.getSize());
+  fprintf(ptrFile, SF_D_ "\n", v.getSize());
   for (E_Int i = 0; i < v.getSize(); i++)
     fprintf(ptrFile, format1, i+1, v(i,1), v(i,2), v(i,3));
   fprintf(ptrFile, "$EndNodes\n");
@@ -226,7 +227,7 @@ E_Int K_IO::GenIO::gmshwrite(
   {
     size += connect[i]->getSize();
   }
-  fprintf(ptrFile, "%d\n", size);
+  fprintf(ptrFile, SF_D_ "\n", size);
 
   // Connectivite par elts par rapport a la definition globale des vertices
   E_Int shift = 0;
@@ -241,7 +242,7 @@ E_Int K_IO::GenIO::gmshwrite(
       {
         for (E_Int n = 0; n < cn.getSize(); n++)
         {
-          fprintf(ptrFile, "%d 15 2 0 14 %d\n", ind, ind);
+          fprintf(ptrFile, SF_D_ " 15 2 0 14 " SF_D_ "\n", ind, ind);
           ind++;
         }
       }
@@ -250,7 +251,7 @@ E_Int K_IO::GenIO::gmshwrite(
       {
         for (E_Int n = 0; n < cn.getSize(); n++)
         {
-          fprintf(ptrFile, "%d 1 2 0 14 %d %d\n", ind, cn(n,1)+shift, cn(n,2)+shift);
+          fprintf(ptrFile, SF_D_ " 1 2 0 14 " SF_D2_ "\n", ind, cn(n,1)+shift, cn(n,2)+shift);
           ind++;
         }
       }
@@ -259,7 +260,7 @@ E_Int K_IO::GenIO::gmshwrite(
       {
         for (E_Int n = 0; n < cn.getSize(); n++)
         {
-          fprintf(ptrFile, "%d 2 2 0 14 %d %d %d\n", ind, 
+          fprintf(ptrFile, SF_D_ " 2 2 0 14 " SF_D3_ "\n", ind, 
                   cn(n,1)+shift, cn(n,2)+shift,cn(n,3)+shift);
           ind++;
         }
@@ -269,7 +270,7 @@ E_Int K_IO::GenIO::gmshwrite(
       {
         for (E_Int n = 0; n < cn.getSize(); n++)
         {
-          fprintf(ptrFile, "%d 3 2 0 14 %d %d %d %d\n", ind, 
+          fprintf(ptrFile, SF_D_ " 3 2 0 14 " SF_D4_ "\n", ind, 
                   cn(n,1)+shift, cn(n,2)+shift,cn(n,3)+shift,cn(n,4)+shift);
           ind++;
         }
@@ -279,7 +280,7 @@ E_Int K_IO::GenIO::gmshwrite(
       {
         for (E_Int n = 0; n < cn.getSize(); n++)
         {
-          fprintf(ptrFile, "%d 4 2 0 14 %d %d %d %d\n", ind, 
+          fprintf(ptrFile, SF_D_ " 4 2 0 14 " SF_D4_ "\n", ind, 
                   cn(n,1)+shift, cn(n,2)+shift,cn(n,3)+shift,cn(n,4)+shift);
           ind++;
         }
@@ -289,7 +290,7 @@ E_Int K_IO::GenIO::gmshwrite(
       {
         for (E_Int n = 0; n < cn.getSize(); n++)
         {
-          fprintf(ptrFile, "%d 7 2 0 14 %d %d %d %d %d\n", ind, 
+          fprintf(ptrFile, SF_D_ " 7 2 0 14 " SF_D5_ "\n", ind, 
                   cn(n,1)+shift, cn(n,2)+shift,cn(n,3)+shift,
                   cn(n,4)+shift,cn(n,5)+shift);
           ind++;
@@ -300,7 +301,7 @@ E_Int K_IO::GenIO::gmshwrite(
       {
         for (E_Int n = 0; n < cn.getSize(); n++)
         {
-          fprintf(ptrFile, "%d 6 2 0 14 %d %d %d %d %d %d\n", ind, 
+          fprintf(ptrFile, SF_D_ " 6 2 0 14 " SF_D6_ "\n", ind, 
                   cn(n,1)+shift, cn(n,2)+shift,cn(n,3)+shift,
                   cn(n,4)+shift,cn(n,5)+shift,cn(n,6)+shift);
           ind++;
@@ -311,7 +312,7 @@ E_Int K_IO::GenIO::gmshwrite(
       {
         for (E_Int n = 0; n < cn.getSize(); n++)
         {
-          fprintf(ptrFile, "%d 5 2 0 14 %d %d %d %d %d %d %d %d\n", ind, 
+          fprintf(ptrFile, SF_D_ " 5 2 0 14 " SF_D8_ "\n", ind, 
                   cn(n,1)+shift, cn(n,2)+shift,cn(n,3)+shift,
                   cn(n,4)+shift,cn(n,5)+shift,cn(n,6)+shift,
                   cn(n,7)+shift,cn(n,8)+shift);

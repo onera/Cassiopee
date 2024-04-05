@@ -91,7 +91,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file, E_Int readMode,
     if (isKeyString)
     {
       E_Int FilterSize = PyList_Size(DataSpaceDIM);
-      //printf("FilterSize: %d \n", FilterSize);
+      //printf("FilterSize: " SF_D_ " \n", FilterSize);
 
       /* Orient if mutiple_data_space or not */
       bool have_multiple_data_space = haveMultipleDataSpace(DataSpaceDIM);
@@ -105,7 +105,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file, E_Int readMode,
       }
       if (FilterSize < 9 && have_multiple_data_space == false)  /** Dans le cas particulier Contiguous with only one path **/
       {
-        //printf("FilterSize: %d \n", FilterSize);
+        //printf("FilterSize: " SF_D_ " \n", FilterSize);
         PyErr_SetString(PyExc_TypeError, "hdfread: FilterSize must be a list of 9 numbers.");
         return NULL;
       }
@@ -245,7 +245,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file, E_Int readMode,
         //assert(lsize == 10);
 
         /** Verbose **/
-        // printf("path ...  %s -> %d / %d \n", path, lsize, oField);
+        // printf("path ...  %s -> " SF_D_ " / " SF_D_ " \n", path, lsize, oField);
 
         /** Fill data space **/
         HDF.fillDataSpaceWithFilter(LocalDataSetDim);
@@ -257,7 +257,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file, E_Int readMode,
         // int* ptr = (int *) PyArray_DATA((PyArrayObject * ) data);
         // for(int n=0; n<24; n++)
         // {
-        //   printf("data[%d] : %d \n", n , ptr[n]);
+        //   printf("data[" SF_D_ "] : " SF_D_ " \n", n , ptr[n]);
         // }
 
         /* Close */
@@ -289,15 +289,15 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file, E_Int readMode,
   }
 
   /* Close */
-  // printf("open=%d\n",H5Fget_obj_count(fid, H5F_OBJ_ALL));
+  // printf("open=" SF_D_ "\n",H5Fget_obj_count(fid, H5F_OBJ_ALL));
   /*
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
   if (HDF._ismpi == 1)
   {
-    // printf("[%d] - open=%d\n",myRank, H5Fget_obj_count(fid, H5F_OBJ_ALL));
+    // printf("[" SF_D_ "] - open=" SF_D_ "\n",myRank, H5Fget_obj_count(fid, H5F_OBJ_ALL));
   }
 #else
-  printf("open=%ld\n",H5Fget_obj_count(fid, H5F_OBJ_ALL));
+  printf("open=" SF_D_ "\n",H5Fget_obj_count(fid, H5F_OBJ_ALL));
 #endif
   */
   H5Fclose(fid);
@@ -370,7 +370,7 @@ PyObject* K_IO::GenIOHdf::createNodePartial(hid_t& node)
     // C'est Faux -> A voir avec Christophe car dans ce cas on recupere la dim de l'utilisateur pas via le HDF...
     for (d = 0; d < dim; d++) _dims[d] = _dims2[dim-d-1];
     // for (d = 0; d < dim; d++) _dims[d] = _dims2[d];
-    // for (d = 0; d < dim; d++)  printf("%d \n", _dims[d]);
+    // for (d = 0; d < dim; d++)  printf("" SF_D_ " \n", _dims[d]);
     // printf("\n");
   }
 
@@ -589,8 +589,8 @@ PyObject* K_IO::GenIOHdf::createNodePartialContigous(hid_t&    node,
       assert(dim==1);
 
       /* Verbose */
-      // printf("dim      : %d \n", dim);
-      // printf("dim Glob : %d \n", DataSpace.GlobDataSetDim[0]);
+      // printf("dim      : " SF_D_ " \n", dim);
+      // printf("dim Glob : " SF_D_ " \n", DataSpace.GlobDataSetDim[0]);
 
       _dims2[0] = DataSpace.GlobDataSetDim[0];               /* Assume 1D */
       for (d = 0; d < dim; d++) _dims[d] = _dims2[dim-d-1];
@@ -782,7 +782,7 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
     H5Gclose(gid); // did is gidp
   }
 
-  // printf("open=%d\n", H5Fget_obj_count(fid, H5F_OBJ_ALL));
+  // printf("open=" SF_D_ "\n", H5Fget_obj_count(fid, H5F_OBJ_ALL));
   H5Fclose(fid);
 
   // printf("hdfcgnswriteFromPathPartial End \n");
@@ -1111,7 +1111,7 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, hsize_t*
   file_dataspace = H5Dget_space(dataset);
   if (file_dataspace < 0) {printf("Fail in setArrayPartial::H5Dget_space\n");}
 
-  //printf("combine=%d\n", DataSpace.data_space_combine);
+  //printf("combine=" SF_D_ "\n", DataSpace.data_space_combine);
   if (DataSpace.data_space_combine == true) 
   {
     assert(DataSpace.List_Dst_Offset.size() > 1);
@@ -1219,8 +1219,8 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilter(PyObject* Filter)
     fillArrayLongWithList(Filter, 9, DataSpace.Flags);
   }
 
-  // printf(" DataSpace->Dst_Block  %d\n",  (int)DataSpace.GlobDataSetDim[0]);
-  // printf(" DataSpace->Dst_Block  %d\n",  (int)DataSpace.Src_Offset[3]);
+  // printf(" DataSpace->Dst_Block  " SF_D_ "\n",  (int)DataSpace.GlobDataSetDim[0]);
+  // printf(" DataSpace->Dst_Block  " SF_D_ "\n",  (int)DataSpace.Src_Offset[3]);
 
   /** Permute DataSpace **/
   /** THIS STEP IS MANDATORY BECAUSE DATA SPACE /HYPERSLAB IN HDF IS C ORDER AND CGNS IS FORTRAN ORDER **/
@@ -1273,15 +1273,15 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilter(PyObject* Filter)
   // for(int n=0; n<L3C_MAX_DIMS; n++)
   // {
   //   printf("----------------------- \n");
-  //   printf("DataSpace.Dst_Offset     [%d] : %d \n", n, DataSpace.Dst_Offset[n]     );
-  //   printf("DataSpace.Dst_Count      [%d] : %d \n", n, DataSpace.Dst_Count[n]      );
-  //   printf("DataSpace.Dst_Stride     [%d] : %d \n", n, DataSpace.Dst_Stride[n]     );
-  //   printf("DataSpace.Dst_Block      [%d] : %d \n", n, DataSpace.Dst_Block[n]      );
-  //   printf("DataSpace.Src_Offset     [%d] : %d \n", n, DataSpace.Src_Offset[n]     );
-  //   printf("DataSpace.Src_Count      [%d] : %d \n", n, DataSpace.Src_Count[n]      );
-  //   printf("DataSpace.Src_Stride     [%d] : %d \n", n, DataSpace.Src_Stride[n]     );
-  //   printf("DataSpace.Src_Block      [%d] : %d \n", n, DataSpace.Src_Block[n]      );
-  //   printf("DataSpace.GlobDataSetDim [%d] : %d \n", n, DataSpace.GlobDataSetDim[n] );
+  //   printf("DataSpace.Dst_Offset     [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.Dst_Offset[n]     );
+  //   printf("DataSpace.Dst_Count      [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.Dst_Count[n]      );
+  //   printf("DataSpace.Dst_Stride     [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.Dst_Stride[n]     );
+  //   printf("DataSpace.Dst_Block      [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.Dst_Block[n]      );
+  //   printf("DataSpace.Src_Offset     [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.Src_Offset[n]     );
+  //   printf("DataSpace.Src_Count      [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.Src_Count[n]      );
+  //   printf("DataSpace.Src_Stride     [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.Src_Stride[n]     );
+  //   printf("DataSpace.Src_Block      [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.Src_Block[n]      );
+  //   printf("DataSpace.GlobDataSetDim [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.GlobDataSetDim[n] );
   // }
 }
 
@@ -1495,30 +1495,30 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
   // for(int n=0; n<L3C_MAX_DIMS; n++)
   // {
   //   printf("----------------------- \n");
-  //   printf("DataSpace.Dst_Offset     [%d] : %d \n", n, DataSpace.Dst_Offset[n]     );
-  //   printf("DataSpace.Dst_Count      [%d] : %d \n", n, DataSpace.Dst_Count[n]      );
-  //   printf("DataSpace.Dst_Stride     [%d] : %d \n", n, DataSpace.Dst_Stride[n]     );
-  //   printf("DataSpace.Dst_Block      [%d] : %d \n", n, DataSpace.Dst_Block[n]      );
-  //   printf("DataSpace.Src_Offset     [%d] : %d \n", n, DataSpace.Src_Offset[n]     );
-  //   printf("DataSpace.Src_Count      [%d] : %d \n", n, DataSpace.Src_Count[n]      );
-  //   printf("DataSpace.Src_Stride     [%d] : %d \n", n, DataSpace.Src_Stride[n]     );
-  //   printf("DataSpace.Src_Block      [%d] : %d \n", n, DataSpace.Src_Block[n]      );
-  //   printf("DataSpace.GlobDataSetDim [%d] : %d \n", n, DataSpace.GlobDataSetDim[n] );
+  //   printf("DataSpace.Dst_Offset     [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.Dst_Offset[n]     );
+  //   printf("DataSpace.Dst_Count      [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.Dst_Count[n]      );
+  //   printf("DataSpace.Dst_Stride     [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.Dst_Stride[n]     );
+  //   printf("DataSpace.Dst_Block      [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.Dst_Block[n]      );
+  //   printf("DataSpace.Src_Offset     [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.Src_Offset[n]     );
+  //   printf("DataSpace.Src_Count      [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.Src_Count[n]      );
+  //   printf("DataSpace.Src_Stride     [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.Src_Stride[n]     );
+  //   printf("DataSpace.Src_Block      [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.Src_Block[n]      );
+  //   printf("DataSpace.GlobDataSetDim [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.GlobDataSetDim[n] );
   // }
 
   // for(int i_data_space = 0; i_data_space < n_data_space; ++i_data_space){
   //   for(int n=0; n<3; n++)
   //   {
   //     printf("----------------------- \n");
-  //     printf("DataSpace.List_Dst_Offset[%d] : %d \n", n, DataSpace.List_Dst_Offset[i_data_space][n]);
-  //     printf("DataSpace.List_Dst_Stride[%d] : %d \n", n, DataSpace.List_Dst_Stride[i_data_space][n]);
-  //     printf("DataSpace.List_Dst_Count [%d] : %d \n", n, DataSpace.List_Dst_Count [i_data_space][n]);
-  //     printf("DataSpace.List_Dst_Block [%d] : %d \n", n, DataSpace.List_Dst_Block [i_data_space][n]);
-  //     // printf("DataSpace.Src_Offset     [%d] : %d \n", n, DataSpace.Src_Offset[n]     );
-  //     // printf("DataSpace.Src_Count      [%d] : %d \n", n, DataSpace.Src_Count[n]      );
-  //     // printf("DataSpace.Src_Stride     [%d] : %d \n", n, DataSpace.Src_Stride[n]     );
-  //     // printf("DataSpace.Src_Block      [%d] : %d \n", n, DataSpace.Src_Block[n]      );
-  //     // printf("DataSpace.GlobDataSetDim [%d] : %d \n", n, DataSpace.GlobDataSetDim[n] );
+  //     printf("DataSpace.List_Dst_Offset[" SF_D_ "] : " SF_D_ " \n", n, DataSpace.List_Dst_Offset[i_data_space][n]);
+  //     printf("DataSpace.List_Dst_Stride[" SF_D_ "] : " SF_D_ " \n", n, DataSpace.List_Dst_Stride[i_data_space][n]);
+  //     printf("DataSpace.List_Dst_Count [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.List_Dst_Count [i_data_space][n]);
+  //     printf("DataSpace.List_Dst_Block [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.List_Dst_Block [i_data_space][n]);
+  //     // printf("DataSpace.Src_Offset     [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.Src_Offset[n]     );
+  //     // printf("DataSpace.Src_Count      [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.Src_Count[n]      );
+  //     // printf("DataSpace.Src_Stride     [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.Src_Stride[n]     );
+  //     // printf("DataSpace.Src_Block      [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.Src_Block[n]      );
+  //     // printf("DataSpace.GlobDataSetDim [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.GlobDataSetDim[n] );
   //   }
   // }
 }
@@ -1683,7 +1683,7 @@ hid_t createDataSpaceEntryCombine(hid_t nid, std::vector<std::array<hsize_t, L3C
 bool haveMultipleDataSpace(PyObject* Filter)
 {
   E_Int FilterSize = PyList_Size(Filter);
-  //printf("FilterSize: %d \n", FilterSize);
+  //printf("FilterSize: " SF_D_ " \n", FilterSize);
   /* Orient if mutiple_data_space or not */
   bool have_multiple_data_space = false;
   for (int i_list = 0; i_list < FilterSize; ++i_list)

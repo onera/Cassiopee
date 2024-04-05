@@ -20,6 +20,7 @@
 
 # include "GenIO.h"
 # include "Array/Array.h"
+# include "String/kstring.h"
 # include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
@@ -415,7 +416,7 @@ E_Int K_IO::GenIO::readDouble(FILE* ptrFile, E_Float& value,
 
   number[i] = '\0';
   value = strtod(number, NULL);
-  //printf("number %s %f %d\n", number, value, formatLength);
+  //printf("number %s " SF_F_ " " SF_D_ "\n", number, value, formatLength);
 
   if (i == 0) return -1;
   else if (c == EOF) return 2;
@@ -460,7 +461,7 @@ E_Int K_IO::GenIO::readDouble(char* buf, E_Int size, E_Int& pos,
   number[i] = '\0';
   errno = 0;
   value = strtod(number, NULL);
-  //printf("number: %f %s\n", value, number);
+  //printf("number: " SF_F_ " %s\n", value, number);
 
   if (pos < size) return 2;
   else if (c == ' ') return 1;
@@ -525,7 +526,7 @@ E_Int K_IO::GenIO::readInt(FILE* ptrFile, E_Int& value,
   number[i] = '\0';
   errno = 0;
   value = strtol(number, NULL, 0);
-  //printf("number: %d string: %s errno=%d\n", value, number, errno);
+  //printf("number: " SF_D_ " string: %s errno=" SF_D_ "\n", value, number, errno);
 
   if (i == 0) return -1; // pas de caractere valide lu
   else if (c == EOF) return 2; // end of file
@@ -580,7 +581,7 @@ E_Int K_IO::GenIO::readHexaInt(FILE* ptrFile, E_Int& value,
   number[i] = '\0';
   errno = 0;
   value = strtol(number, NULL, 16);
-  //printf("number: %d %s\n", value, number);
+  //printf("number: " SF_D_ " %s\n", value, number);
 
   if (i == 0) return -1; // pas de caractere valide lu
   else if (c == EOF) return 2; // end of file
@@ -625,7 +626,7 @@ E_Int K_IO::GenIO::readInt(char* buf, E_Int size, E_Int& pos, E_Int& value)
   number[i] = '\0';
   errno = 0;
   value = strtol(number, NULL, 0);
-  //printf("number : %d %s %d\n", value, number, i);
+  //printf("number : " SF_D_ " %s " SF_D_ "\n", value, number, i);
   
   if (i == 0) return -1; // pas de caractere valide lu
   else if (errno == ERANGE) return -1; // pas entier
@@ -975,11 +976,8 @@ E_Int K_IO::GenIO::tpwriteTriangles(char* file, FldArrayF& field,
   // Write just one zone
   E_Int npts = field.getSize();
   E_Int nbElts = connect.getSize();
-#ifdef E_DOUBLEINT
-  fprintf(ptr_file,"ZONE N=%ld, E=%ld, F=FEPOINT, ET=TRIANGLE\n", npts, nbElts);
-#else
-  fprintf(ptr_file,"ZONE N=%d, E=%d, F=FEPOINT, ET=TRIANGLE\n", npts, nbElts);
-#endif
+  fprintf(ptr_file, "ZONE N=" SF_D_ ", E=" SF_D_ ", F=FEPOINT, ET=TRIANGLE\n",
+          npts, nbElts);
   // Write points
   for (E_Int np = 0; np < npts; np++)
   {
@@ -1021,12 +1019,7 @@ E_Int K_IO::GenIO::tpwriteTriangles(char* file, FldArrayF& field,
   // Write connectivity
   for (E_Int i = 0; i < nbElts; i++)
   { 
-#ifdef E_DOUBLEINT  
-    fprintf(ptr_file, "%ld %ld %ld\n", connect(i,1), connect(i,2),
-            connect(i,3));
-#else
-    fprintf(ptr_file, "%d %d %d\n", connect(i,1), connect(i,2), connect(i,3));
-#endif
+    fprintf(ptr_file, SF_D3_ "\n", connect(i,1), connect(i,2), connect(i,3));
   }
 
   fclose(ptr_file);
@@ -1090,11 +1083,8 @@ E_Int K_IO::GenIO::tpwriteQuads(char* file, FldArrayF& field,
   // Write just one zone
   E_Int npts = field.getSize();
   E_Int nbElts = connect.getSize();
-#ifdef E_DOUBLEINT
-  fprintf(ptr_file, "ZONE N=%ld, E=%ld, F=FEPOINT, ET=QUADRILATERAL\n", npts, nbElts);
-#else
-  fprintf(ptr_file, "ZONE N=%d, E=%d, F=FEPOINT, ET=QUADRILATERAL\n", npts, nbElts);
-#endif
+  fprintf(ptr_file, "ZONE N=" SF_D_ ", E=" SF_D_ ", F=FEPOINT, ET=QUADRILATERAL\n",
+          npts, nbElts);
   // Write points
   for (E_Int np = 0; np < npts; np++)
   {
@@ -1135,13 +1125,8 @@ E_Int K_IO::GenIO::tpwriteQuads(char* file, FldArrayF& field,
   // Write connectivity
   for (E_Int i = 0; i < nbElts; i++)
   { 
-#ifdef E_DOUBLEINT  
-    fprintf(ptr_file, "%ld %ld %ld %ld\n", connect(i,1),
+    fprintf(ptr_file, SF_D4_ "\n", connect(i,1),
             connect(i,2), connect(i,3), connect(i,4));
-#else
-    fprintf(ptr_file,"%d %d %d %d\n", connect(i,1),
-            connect(i,2), connect(i,3), connect(i,4));
-#endif    
   }
 
   fclose(ptr_file);
@@ -1175,11 +1160,7 @@ E_Int K_IO::GenIO::tpwriteText(char* file, FldArrayF& field, FldArrayI& number)
   // write text number for each point
   for (E_Int np = 0; np < npts; np++)
   {
-#ifdef E_DOUBLEINT
-    sprintf(numbers, "%ld", number[np]);
-#else
-    sprintf(numbers, "%d", number[np]);
-#endif
+    sprintf(numbers, SF_D_, number[np]);
     fprintf(ptr_file, "TEXT\n");
     fprintf(ptr_file, "CS=GRID\n");
     fprintf(ptr_file, "C=BLACK\n");

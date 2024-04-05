@@ -289,10 +289,10 @@ E_Int K_IO::GenIO::meshread(
   for (size_t i = 0; i < unstructField.size(); i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone%ld", i);
+    sprintf(zoneName, "Zone%zu", i);
     zoneNames.push_back(zoneName);
   }
-  //printf("%ld %ld\n", unstructField.size(), connect.size());
+  //printf(SF_D2_ "\n", unstructField.size(), connect.size());
 
   varString = new char [8];
   strcpy(varString, "x,y,z");
@@ -619,7 +619,7 @@ E_Int K_IO::GenIO::meshread(
   for (size_t i = 0; i < unstructField.size(); i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone%ld", i);
+    sprintf(zoneName, "Zone%zu", i);
     zoneNames.push_back(zoneName);
   }
 

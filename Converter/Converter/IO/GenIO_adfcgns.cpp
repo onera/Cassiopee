@@ -1216,7 +1216,7 @@ E_Int K_IO::GenIO::adfcgnsWritePaths(char* file, PyObject* treeList,
         }
         else // maxDepth=0
         {
-          //printf("%f\n", id); // NE MARCHE PAS
+          //printf(SF_F_ "\n", id); // NE MARCHE PAS
           ADF.writeNode(id, node, id); // replace data
           //ADF_Set_Label(id, "help", &ADF._errorFlag);                           
         }

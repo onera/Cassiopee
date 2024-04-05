@@ -26,6 +26,7 @@
 
 # include "GenIO.h"
 # include "Array/Array.h"
+# include "String/kstring.h"
 # include "Def/DefFunction.h"
 # include "Connect/connect.h"
 # include "CompGeom/compGeom.h"
@@ -73,7 +74,7 @@ E_Int K_IO::GenIO::tgfread(
   while (ret == 1)
   {
     ret = K_IO::GenIO::readInt(ptrFile, val);
-    printf("reading a block %d\n", val);
+    printf("reading a block " SF_D_ "\n", val);
     switch (val)
     {
       case 0: // comment
@@ -300,15 +301,15 @@ E_Int K_IO::GenIO::tgfread(
  //    skipLine(ptrFile); // echelle de longueur
  //    ret = readInt(ptrFile, nvertex);
  //    if (ret == 1) skipLine(ptrFile);
- //    //printf("nbre de vertex=%d\n", nvertex);
+ //    //printf("nbre de vertex=" SF_D_ "\n", nvertex);
 
  //    ret = readInt(ptrFile, nfaces); 
  //    if (ret == 1) skipLine(ptrFile);
- //    //printf("nbre de faces=%d\n", nfaces);
+ //    //printf("nbre de faces=" SF_D_ "\n", nfaces);
 
  //    ret = readInt(ptrFile, ncells); 
  //    if (ret == 1) skipLine(ptrFile);
- //    //printf("nbre de cellules=%d\n", ncells);
+ //    //printf("nbre de cellules=" SF_D_ "\n", ncells);
     
  //    ret = readInt(ptrFile, nboundaryfaces); 
  //    if (ret == 1) skipLine(ptrFile);
@@ -329,7 +330,7 @@ E_Int K_IO::GenIO::tgfread(
  //      readDouble(ptrFile, y); 
  //      ret = readDouble(ptrFile, z);
  //      xp[i] = x; yp[i] = y; zp[i] = z;
- //      //printf("%f %f %f\n", x,y,z);
+ //      //printf(SF_F3_ "\n", x,y,z);
  //    }
  //    if (ret == 1) skipLine(ptrFile);
 
@@ -343,7 +344,7 @@ E_Int K_IO::GenIO::tgfread(
  //    {
  //      readInt(ptrFile, value); // no de la face
  //      ret = readInt(ptrFile, np); connect1[size] = np; size++;
- //      //printf("np=%d\n", np);
+ //      //printf("np=" SF_D_ "\n", np);
  //      if (size+np+1 > connect1.getSize()) 
  //        connect1.reAlloc(size+(nfaces-i+10)*(np+1));
  //      for (E_Int j = 0; j < np; j++)
@@ -352,7 +353,7 @@ E_Int K_IO::GenIO::tgfread(
  //      }
  //    }
  //    connect1.reAlloc(size);
- //    //printf("%d\n", size);
+ //    //printf(SF_D_ "\n", size);
 
  //    // Connectivite faces->elts
  //    skipLine(ptrFile);
@@ -360,11 +361,11 @@ E_Int K_IO::GenIO::tgfread(
  //    E_Int* cn2 = connect2.begin();
  //    for (E_Int i = 0; i < nfaces; i++)
  //    {
- //      readInt(ptrFile, value); //printf("no=%d\n", value); // no face
- //      readInt(ptrFile, value);  //printf("nv=%d\n", value); // nbre de faces valides (1 ou 2)
+ //      readInt(ptrFile, value); //printf("no=" SF_D_ "\n", value); // no face
+ //      readInt(ptrFile, value);  //printf("nv=" SF_D_ "\n", value); // nbre de faces valides (1 ou 2)
  //      ret = readInt(ptrFile, value); cn2[2*i] = value;
  //      ret = readInt(ptrFile, value); cn2[2*i+1] = value;
- //      //printf("%d %d\n", cn2[2*i], cn2[2*i+1]);
+ //      //printf(SF_D2_ "\n", cn2[2*i], cn2[2*i+1]);
  //    }
  //    if (ret == 1) skipLine(ptrFile);
 
@@ -379,7 +380,7 @@ E_Int K_IO::GenIO::tgfread(
  //      nbfacep[a-1]++;
  //      if (b != 0) nbfacep[b-1]++;
  //    }
- //    //for (E_Int i = 0; i < ncells; i++) printf("%d %d\n", i, nbfacep[i]);
+ //    //for (E_Int i = 0; i < ncells; i++) printf(SF_D2_ "\n", i, nbfacep[i]);
 
  //    size = ncells;
  //    for (E_Int i = 0; i < ncells; i++) size += nbfacep[i];

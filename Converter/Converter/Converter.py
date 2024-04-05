@@ -1803,8 +1803,8 @@ def _signNGonFaces(a):
   
 def _unsignNGonFaces(a):
   """Unsign NFACE connectivity"""
-  isSigned = 1
   if isinstance(a[0], list):
+      isSigned = 1
       for i in a:
         if isSigned == 1: isSigned = converter.unsignNGonFaces(i)
         else: break # stop if unsigned

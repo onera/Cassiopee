@@ -1979,7 +1979,7 @@ E_Int K_IO::GenIO::readGeom108(FILE* ptrFile,
     return 1;
 
     default:
-      printf("Warning: readGeom: this kind of geometry is unknown: %d.\n",
+      printf("Warning: readGeom: this kind of geometry is unknown: " SF_D_ ".\n",
              geomType);
   }
   return 0; // nothing created
@@ -2182,7 +2182,7 @@ E_Int K_IO::GenIO::readGeom108CE(FILE* ptrFile,
     return 1;
 
     default:
-      printf("Warning: readGeom: this kind of geometry is unknown: %d.\n",
+      printf("Warning: readGeom: this kind of geometry is unknown: " SF_D_ ".\n",
              geomType);
   }
   return 0; // nothing created
@@ -2244,7 +2244,7 @@ E_Int K_IO::GenIO::tecwrite108(
     E_Int nvar = structField[n]->getNfld();
     if (nvar != nfield)
     {
-      printf("Warning: tecwrite: number of variables differs for structured field: %d.\n", n+1);
+      printf("Warning: tecwrite: number of variables differs for structured field: " SF_D_ ".\n", n+1);
       return 1;
     }
   }
@@ -2255,7 +2255,7 @@ E_Int K_IO::GenIO::tecwrite108(
     E_Int nvar = unstructField[n]->getNfld();
     if (nvar != nfield)
     {
-      printf("Warning: tecwrite: number of variables differs for unstructured field: %d.\n",n+1);
+      printf("Warning: tecwrite: number of variables differs for unstructured field: " SF_D_ ".\n",n+1);
       return 1;
     }
   }

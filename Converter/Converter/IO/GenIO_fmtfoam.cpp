@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include "GenIO.h"
 #include "Array/Array.h"
+# include "String/kstring.h"
 #include <vector>
 #include "Def/DefFunction.h"
 #include "Connect/connect.h"
@@ -225,7 +226,7 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
       if (strcmp(buf, "uniform") == 0) {
         readWord(ptrFile, buf);
         E_Float val = strtod(buf, NULL);
-        printf("uniform %f\n", val);
+        printf("uniform " SF_F_ "\n", val);
         for (E_Int j = 0; j < bcsize; j++) {
           bcf[i] = val;
         }
@@ -242,7 +243,7 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
         readInt(buf, 1024, pos, nfaces);
         assert(nfaces == bcsize);
 
-        printf("non uniform list of size %d\n", nfaces);
+        printf("non uniform list of size " SF_D_ "\n", nfaces);
 
         skipLine(ptrFile); // (
 
@@ -271,7 +272,7 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
       char buf[128];
       readWord(ptrFile, buf);
       E_Float val = strtod(buf, NULL);
-      printf("uniform %f\n", val);
+      printf("uniform " SF_F_ "\n", val);
       for (E_Int j = 0; j < bcsize; j++) {
         bcf[j] = val;
       }
@@ -288,7 +289,7 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
       if (strcmp(buf, "uniform") == 0) {
         readWord(ptrFile, buf);
         E_Float val = strtod(buf, NULL);
-        printf("uniform %f\n", val);
+        printf("uniform " SF_F_ "\n", val);
         for (E_Int j = 0; j < bcsize; j++) {
           bcf[i] = val;
         }
@@ -305,7 +306,7 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
         readInt(buf, 1024, pos, nfaces);
         assert(nfaces == bcsize);
 
-        printf("non uniform list of size %d\n", nfaces);
+        printf("non uniform list of size " SF_D_ "\n", nfaces);
 
         skipLine(ptrFile); // (
 
@@ -333,7 +334,7 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
       readInt(buf, 1024, pos, nfaces);
       assert(nfaces == bcsize);
       
-      printf("non uniform list of size %d\n", nfaces);
+      printf("non uniform list of size " SF_D_ "\n", nfaces);
       skipLine(ptrFile); // (
       
       for (E_Int j = 0; j < nfaces; j++)
@@ -350,7 +351,7 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
       char buf[128];
       readWord(ptrFile, buf);
       E_Float val = strtod(buf, NULL);
-      printf("uniform %f\n", val);
+      printf("uniform " SF_F_ "\n", val);
       for (E_Int j = 0; j < bcsize; j++) {
         bcf[j] = val;
       }
@@ -460,7 +461,7 @@ E_Int K_IO::GenIO::readVectorField(char *file, FldArrayF& f, E_Int idx,
 
       readWord(ptrFile, buf);
       E_Float valz = strtod(buf, NULL);
-      printf("uniform (%f %f %f)\n", valx, valy, valz);
+      printf("uniform (" SF_F3_ ")\n", valx, valy, valz);
 
       for (E_Int j = 0; j < bcsize; j++) {
         bcfx[j] = valx;
@@ -491,7 +492,7 @@ E_Int K_IO::GenIO::readVectorField(char *file, FldArrayF& f, E_Int idx,
       readInt(buf, 1024, pos, nfaces);
       assert(nfaces == bcsize);
 
-      printf("%d faces", nfaces);
+      printf(SF_D_ " faces", nfaces);
 
       skipLine(ptrFile);
 
@@ -626,11 +627,7 @@ E_Int K_IO::GenIO::foamread(
   // compute NFace
   FldArrayI cNFace; E_Int nelts;
   K_CONNECT::connectFE2NFace(PE, cNFace, nelts);
-#ifdef E_DOUBLEINT
-  printf("cells: %ld\n", nelts);
-#else
-  printf("cells: %d\n", nelts);
-#endif
+  printf("cells: " SF_D_ "\n", nelts);
 
   // Merge
   E_Int sizeNGon = cNGon.getSize();
@@ -874,7 +871,7 @@ E_Int K_IO::GenIO::foamReadFields(char *file,
         size++;
       }
       if (size == MAX_FIELDS) {
-        fprintf(stderr, "Warning: foamread: Trying to read more that maximum number of fields (%d). Aborting.\n", MAX_FIELDS);
+        fprintf(stderr, "Warning: foamread: Trying to read more that maximum number of fields (" SF_D_ "). Aborting.\n", MAX_FIELDS);
         exit(1);
       }
       fclose(fh);
@@ -882,7 +879,7 @@ E_Int K_IO::GenIO::foamReadFields(char *file,
   }
   closedir(d);
 
-  printf("nflds: %d\n", nflds);
+  printf("nflds: " SF_D_ "\n", nflds);
 
   // delete the last comma
   varStringc[strlen(varStringc)-1] = '\0';
@@ -989,11 +986,7 @@ E_Int K_IO::GenIO::foamReadPoints(char* file, FldArrayF& f)
   }
   fclose(ptrFile);
 
-#ifdef E_DOUBLEINT
-  printf("points: %ld\n", f.getSize());
-#else
-  printf("points: %d\n", f.getSize());
-#endif
+  printf("points: " SF_D_ "\n", f.getSize());
 
   return 0;
 }
@@ -1061,11 +1054,7 @@ E_Int K_IO::GenIO::foamReadFaces(char* file, E_Int& nfaces, FldArrayI& cn)
   }
   fclose(ptrFile);
 
-#ifdef E_DOUBLEINT
-  printf("faces: %ld\n", nfaces);
-#else
-  printf("faces: %d\n", nfaces);
-#endif
+  printf("faces: " SF_D_ "\n", nfaces);
 
   return 0;
 }
@@ -1161,11 +1150,7 @@ E_Int K_IO::GenIO::foamReadNeighbour(char* file, FldArrayI& PE)
     PE(i,2) = 0; // exterior
   }
 
-#ifdef E_DOUBLEINT
-  printf("internal faces: %ld\n", nifaces);
-#else
-  printf("internal faces: %d\n", nifaces);
-#endif
+  printf("internal faces: " SF_D_ "\n", nifaces);
 
   fclose(ptrFile);
 
@@ -1336,11 +1321,7 @@ E_Int K_IO::GenIO::foamWritePoints(char* file, FldArrayF& f)
   E_Float* y = f.begin(2);
   E_Float* z = f.begin(3);
   
-#ifdef E_DOUBLEINT
-  fprintf(ptrFile, "%lld\n", npts);
-#else
-  fprintf(ptrFile, "%d\n", npts);
-#endif
+  fprintf(ptrFile, SF_D_ "\n", npts);
   fprintf(ptrFile, "(\n");
 
   for (E_Int i = 0; i < npts; i++)
@@ -1375,11 +1356,7 @@ E_Int K_IO::GenIO::foamWriteFaces(char* file, K_FLD::FldArrayI &cn,
 
   E_Int nfaces = faces.size();
 
-#ifdef E_DOUBLEINT
-  fprintf(ptrFile, "%ld\n", nfaces);
-#else
-  fprintf(ptrFile, "%d\n", nfaces);
-#endif
+  fprintf(ptrFile, SF_D_ "\n", nfaces);
   fprintf(ptrFile, "(\n");
 
   E_Int *ngon = cn.getNGon();
@@ -1391,13 +1368,8 @@ E_Int K_IO::GenIO::foamWriteFaces(char* file, K_FLD::FldArrayI &cn,
     E_Int stride = -1;
     E_Int *pN = cn.getFace(face, stride, ngon, indPG);
 
-#ifdef E_DOUBLEINT
-    fprintf(ptrFile, "%ld(", stride);
-    for (E_Int k = 0; k < stride; k++) fprintf(ptrFile, "%ld ", pN[k]-1);
-#else
-    fprintf(ptrFile, "%d(", stride);
-    for (E_Int k = 0; k < stride; k++) fprintf(ptrFile, "%d ", pN[k]-1);
-#endif
+    fprintf(ptrFile, SF_D_ "(", stride);
+    for (E_Int k = 0; k < stride; k++) fprintf(ptrFile, SF_D_ " ", pN[k]-1);
     fprintf(ptrFile, ")\n");
   }
   fprintf(ptrFile, ")\n");
@@ -1428,20 +1400,12 @@ E_Int K_IO::GenIO::foamWriteOwner(char* file, const std::vector<E_Int> &owner,
   fprintf(ptrFile, "}\n");
 
   E_Int nfaces = owner.size();
-#ifdef E_DOUBLEINT
-  fprintf(ptrFile, "%ld\n", nfaces);
-#else
-  fprintf(ptrFile, "%d\n", nfaces);
-#endif
+  fprintf(ptrFile, SF_D_ "\n", nfaces);
   fprintf(ptrFile, "(\n");
 
   for (E_Int i = 0; i < nfaces; i++) {
     E_Int own = owner[faces[i]];
-#ifdef E_DOUBLEINT
-    fprintf(ptrFile, "%ld\n", own);
-#else
-    fprintf(ptrFile, "%d\n", own);
-#endif
+    fprintf(ptrFile, SF_D_ "\n", own);
   }
   fprintf(ptrFile, ")\n");
   fclose(ptrFile);
@@ -1471,20 +1435,12 @@ E_Int K_IO::GenIO::foamWriteNeighbour(char* file,
   fprintf(ptrFile, "}\n");
 
   E_Int nfaces = neigh.size();
-#ifdef E_DOUBLEINT
-  fprintf(ptrFile, "%ld\n", nfaces);
-#else
-  fprintf(ptrFile, "%d\n", nfaces);
-#endif
+  fprintf(ptrFile, SF_D_ "\n", nfaces);
   fprintf(ptrFile, "(\n");
 
   for (E_Int i = 0; i < nfaces; i++) {
     E_Int nei = neigh[faces[i]];
-#ifdef E_DOUBLEINT
-    fprintf(ptrFile, "%ld\n", nei);
-#else
-    fprintf(ptrFile, "%d\n", nei);
-#endif
+    fprintf(ptrFile, SF_D_ "\n", nei);
   }
   fprintf(ptrFile, ")\n");
   fclose(ptrFile);
@@ -1510,7 +1466,7 @@ E_Int K_IO::GenIO::foamWriteBoundary(char* file, const std::vector<char*>& bc_na
   fprintf(ptrFile, "    object      boundary;\n");
   fprintf(ptrFile, "}\n");
 
-  fprintf(ptrFile, "%ld\n", bc_names.size());
+  fprintf(ptrFile, SF_D_ "\n", bc_names.size());
   fprintf(ptrFile, "(\n");
 
   for (size_t i = 0; i < bc_names.size(); i++)
@@ -1532,13 +1488,8 @@ E_Int K_IO::GenIO::foamWriteBoundary(char* file, const std::vector<char*>& bc_na
       fprintf(ptrFile, "        physicalType    %s;\n", token);
     }
     
-#ifdef E_DOUBLEINT
-    fprintf(ptrFile, "        nFaces          %ld;\n", bc_nfaces[i]);
-    fprintf(ptrFile, "        startFace       %ld;\n", bc_startfaces[i]);
-#else
-    fprintf(ptrFile, "        nFaces          %d;\n", bc_nfaces[i]);
-    fprintf(ptrFile, "        startFace       %d;\n", bc_startfaces[i]);
-#endif
+    fprintf(ptrFile, "        nFaces          " SF_D_ ";\n", bc_nfaces[i]);
+    fprintf(ptrFile, "        startFace       " SF_D_ ";\n", bc_startfaces[i]);
     fprintf(ptrFile, "    }\n");
   }
   fprintf(ptrFile, ")\n");
@@ -1689,7 +1640,7 @@ E_Int K_IO::GenIO::foamwrite(
   // BC
   E_Int BCFacesSize = 0;
   if (PyList_Check(BCFaces)) BCFacesSize = PyList_Size(BCFaces);
-  printf("BCFacesSize = %d\n", BCFacesSize);
+  printf("BCFacesSize = " SF_D_ "\n", BCFacesSize);
 
   std::vector<E_Int> start_face_per_bc;
   std::vector<E_Int> nfaces_per_bc;
@@ -1721,7 +1672,7 @@ E_Int K_IO::GenIO::foamwrite(
       if (PyString_Check(o)) name = PyString_AsString(o);
 #endif
       else {
-        printf("Bad %d-th bcname %s\n", j, name);
+        printf("Bad " SF_D_ "-th bcname %s\n", j, name);
         abort();
       }
 
@@ -1744,7 +1695,7 @@ E_Int K_IO::GenIO::foamwrite(
 
   printf("total faces: %lu\n", faces.size());
 
-  printf("cn faces: %d\n", nfaces);
+  printf("cn faces: " SF_D_ "\n", nfaces);
 
   foamWriteOwner(file, owner, faces);
   foamWriteNeighbour(file, neigh, faces);
