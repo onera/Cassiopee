@@ -13,14 +13,7 @@ TOLERANCE = 1.e-11
 GEOMETRIC_DIFF = False
 
 # Data directory to store references
-def getDataFolderName(name='Data'):
-    from KCore.Dist import EDOUBLEINT
-    mac = os.getenv("MAC").split('_')[0]
-    intType = 'i8' if EDOUBLEINT else 'i4'
-    if sys.version_info[0] == 2: name += '2'
-    #if mac != 'juno': name += '_' + mac # TODO
-    #if intType == 'i8': name += '_' + intType # TODO qd la base i8 sera construite a partir de i4
-    return name
+from KCore.Dist import getDataFolderName
 DATA = getDataFolderName()
 
 #=============================================================================

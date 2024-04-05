@@ -21,6 +21,63 @@
 #define _KCORE_STRING_H_
 #include "Def/DefTypes.h"
 
+// C format specifiers:
+//   - int and long int: d, ld (or lld on Windows)
+//   - simple and double precision float: f, lf
+#if defined E_DOUBLEINT
+#if defined _WIN32
+#define SF_D_ "%lld"
+#define SF_D2_ "%lld %lld"
+#define SF_D3_ "%lld %lld %lld"
+#define SF_D4_ "%lld %lld %lld %lld"
+#define SF_D5_ "%lld %lld %lld %lld %lld"
+#define SF_D6_ "%lld %lld %lld %lld %lld %lld"
+#define SF_D7_ "%lld %lld %lld %lld %lld %lld %lld"
+#define SF_D8_ "%lld %lld %lld %lld %lld %lld %lld %lld"
+#define SF_D9_ "%lld %lld %lld %lld %lld %lld %lld %lld %lld"
+#else
+#define SF_D_ "%ld"
+#define SF_D2_ "%ld %ld"
+#define SF_D3_ "%ld %ld %ld"
+#define SF_D4_ "%ld %ld %ld %ld"
+#define SF_D5_ "%ld %ld %ld %ld %ld"
+#define SF_D6_ "%ld %ld %ld %ld %ld %ld"
+#define SF_D7_ "%ld %ld %ld %ld %ld %ld %ld"
+#define SF_D8_ "%ld %ld %ld %ld %ld %ld %ld %ld"
+#define SF_D9_ "%ld %ld %ld %ld %ld %ld %ld %ld %ld"
+#endif
+#else
+#define SF_D_ "%d"
+#define SF_D2_ "%d %d"
+#define SF_D3_ "%d %d %d"
+#define SF_D4_ "%d %d %d %d"
+#define SF_D5_ "%d %d %d %d %d"
+#define SF_D6_ "%d %d %d %d %d %d"
+#define SF_D7_ "%d %d %d %d %d %d %d"
+#define SF_D8_ "%d %d %d %d %d %d %d %d"
+#define SF_D9_ "%d %d %d %d %d %d %d %d %d"
+#endif
+
+#if defined E_DOUBLEREAL
+#define SF_F_ "%lf"
+#define SF_F2_ "%lf %lf"
+#define SF_F3_ "%lf %lf %lf"
+#define SF_F4_ "%lf %lf %lf %lf"
+#define SF_F5_ "%lf %lf %lf %lf %lf"
+#define SF_F6_ "%lf %lf %lf %lf %lf %lf"
+#define SF_F7_ "%lf %lf %lf %lf %lf %lf %lf"
+#define SF_F8_ "%lf %lf %lf %lf %lf %lf %lf %lf"
+#else
+#define SF_F_ "%f"
+#define SF_F2_ "%f %f"
+#define SF_F3_ "%f %f %f"
+#define SF_F4_ "%f %f %f %f"
+#define SF_F5_ "%f %f %f %f %f"
+#define SF_F6_ "%f %f %f %f %f %f"
+#define SF_F7_ "%f %f %f %f %f %f %f"
+#define SF_F8_ "%f %f %f %f %f %f %f %f"
+#endif
+
 namespace K_STRING
 {
   /* strcmp avec une chaine non terminee par \0

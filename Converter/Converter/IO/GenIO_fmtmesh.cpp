@@ -23,6 +23,7 @@
 # include <stdio.h>
 # include "GenIO.h"
 # include "Array/Array.h"
+# include "String/kstring.h"
 # include <vector>
 # include "Def/DefFunction.h"
 # include "Connect/connect.h"
@@ -151,7 +152,6 @@ E_Int K_IO::GenIO::meshread(
         res = readInt(ptrFile, ti, -1); c(i,3) = ti;
         res = readInt(ptrFile, ti, -1); c(i,4) = ti;
         res = readInt(ptrFile, ti, -1); // discarded
-        //printf("%d %d %d %d\n", c(i,1), c(i,2), c(i,3), c(i,4));
       }
       connect.push_back(cn);
       eltType.push_back(3);
@@ -651,11 +651,8 @@ E_Int K_IO::GenIO::meshwrite(
         eltType[zone] == 4 || eltType[zone] == 5 || eltType[zone] == 6 || eltType[zone] == 7) 
       nvalidZones++;
     else
-#ifdef E_DOUBLEINT
-      printf("Warning: meshwrite: zone %ld not written (not a valid element type: %ld).", zone, eltType[zone]);
-#else
-      printf("Warning: meshwrite: zone %d not written (not a valid element type: %d).", zone, eltType[zone]);
-#endif
+      printf("Warning: meshwrite: zone " SF_D_ " not written (not a valid "
+             "element type: " SF_D_ ").", zone, eltType[zone]);
   }
 
   if (nvalidZones == 0) return 1;
@@ -690,11 +687,7 @@ E_Int K_IO::GenIO::meshwrite(
 
   // Build format for data
   sprintf(format1,"%s%s%s", dataFmt, dataFmt, dataFmtl);
-#ifdef E_DOUBLEINT
-  strcat(format1," %ld\n");
-#else
-  strcat(format1," %d\n");
-#endif
+  strcat(format1," " SF_D_ "\n");
 
   // Concatenate all vertices in one field
   FldArrayF* vertices;
@@ -857,11 +850,7 @@ E_Int K_IO::GenIO::meshwrite(
 
   fprintf(ptrFile, "MeshVersionFormatted\n1\n");
   fprintf(ptrFile, "Dimension\n3\n");
-#ifdef E_DOUBLEINT
-  fprintf(ptrFile, "Vertices\n%ld\n", v.getSize());
-#else
-  fprintf(ptrFile, "Vertices\n%d\n", v.getSize());
-#endif
+  fprintf(ptrFile, "Vertices\n" SF_D_ "\n", v.getSize());
   for (E_Int i = 0; i < v.getSize(); i++)
     fprintf(ptrFile, format1, v(i,1), v(i,2), v(i,3), 0);
   
@@ -872,11 +861,7 @@ E_Int K_IO::GenIO::meshwrite(
     E_Int size = 0;
     for (E_Int i = 0; i < connectEdgeSize; i++)
       size = size + connectEdge[i]->getSize();
-#ifdef E_DOUBLEINT
-    fprintf(ptrFile, "Edges\n%ld\n", size);
-#else
-    fprintf(ptrFile, "Edges\n%d\n", size);
-#endif
+    fprintf(ptrFile, "Edges\n" SF_D_ "\n", size);
     c = 0;
     for (E_Int i = 0; i < nzone; i++) 
     {
@@ -885,18 +870,10 @@ E_Int K_IO::GenIO::meshwrite(
         FldArrayI& cp = *connectEdge[c];
         if (!colors)
           for (E_Int i = 0; i < cp.getSize(); i++)
-#ifdef E_DOUBLEINT
-            fprintf(ptrFile, "%ld %ld %ld\n", cp(i,1), cp(i,2), c);
-#else
-            fprintf(ptrFile, "%d %d %d\n", cp(i,1), cp(i,2), c);
-#endif
+            fprintf(ptrFile, SF_D3_ "\n", cp(i,1), cp(i,2), c);
         else
           for (E_Int i = 0; i < cp.getSize(); i++)
-#ifdef E_DOUBLEINT
-            fprintf(ptrFile, "%ld %ld %ld\n", cp(i,1), cp(i,2), (*colors)[c][i]);
-#else
-            fprintf(ptrFile, "%d %d %d\n", cp(i,1), cp(i,2), (*colors)[c][i]);
-#endif
+            fprintf(ptrFile, SF_D3_ "\n", cp(i,1), cp(i,2), (*colors)[c][i]);
         c++;
       }
     }
@@ -908,11 +885,7 @@ E_Int K_IO::GenIO::meshwrite(
     E_Int size = 0;
     for (E_Int i = 0; i < connectTriSize; i++)
       size = size + connectTri[i]->getSize();
-#ifdef E_DOUBLEINT
-    fprintf(ptrFile, "Triangles\n%ld\n", size);
-#else
-    fprintf(ptrFile, "Triangles\n%d\n", size);
-#endif
+    fprintf(ptrFile, "Triangles\n" SF_D_ "\n", size);
     c = 0;
     for (E_Int i = 0; i < nzone; i++) 
     {
@@ -921,18 +894,10 @@ E_Int K_IO::GenIO::meshwrite(
         FldArrayI& cp = *connectTri[c];
         if (!colors)
           for (E_Int i = 0; i < cp.getSize(); i++)
-#ifdef E_DOUBLEINT
-            fprintf(ptrFile, "%ld %ld %ld %ld\n", cp(i,1), cp(i,2), cp(i,3), c);
-#else
-            fprintf(ptrFile, "%d %d %d %d\n", cp(i,1), cp(i,2), cp(i,3), c);
-#endif
+            fprintf(ptrFile, SF_D4_ "\n", cp(i,1), cp(i,2), cp(i,3), c);
         else
           for (E_Int i = 0; i < cp.getSize(); i++)
-#ifdef E_DOUBLEINT
-            fprintf(ptrFile, "%ld %ld %ld %ld\n", cp(i,1), cp(i,2), cp(i,3), (*colors)[c][i]);
-#else
-            fprintf(ptrFile, "%d %d %d %d\n", cp(i,1), cp(i,2), cp(i,3), (*colors)[c][i]);
-#endif
+            fprintf(ptrFile, SF_D4_ "\n", cp(i,1), cp(i,2), cp(i,3), (*colors)[c][i]);
         c++;
       }
     }
@@ -944,11 +909,7 @@ E_Int K_IO::GenIO::meshwrite(
     E_Int size = 0;
     for (E_Int i = 0; i < connectQuadSize; i++)
       size = size + connectQuad[i]->getSize();
-#ifdef E_DOUBLEINT
-    fprintf(ptrFile, "Quadrilaterals\n%ld\n", size);
-#else
-    fprintf(ptrFile, "Quadrilaterals\n%d\n", size);
-#endif
+    fprintf(ptrFile, "Quadrilaterals\n" SF_D_ "\n", size);
     c = 0;
     for (E_Int i = 0; i < nzone; i++) 
     {
@@ -956,13 +917,7 @@ E_Int K_IO::GenIO::meshwrite(
       {
         FldArrayI& cp = *connectQuad[c];
         for (E_Int i = 0; i < cp.getSize(); i++)
-#ifdef E_DOUBLEINT
-          fprintf(ptrFile, "%ld %ld %ld %ld %ld\n", 
-                  cp(i,1), cp(i,2), cp(i,3), cp(i,4), c);
-#else
-        fprintf(ptrFile, "%d %d %d %d %d\n", 
-                  cp(i,1), cp(i,2), cp(i,3), cp(i,4), c);
-#endif
+        fprintf(ptrFile, SF_D5_ "\n", cp(i,1), cp(i,2), cp(i,3), cp(i,4), c);
         c++;
       }
     }
@@ -974,11 +929,7 @@ E_Int K_IO::GenIO::meshwrite(
     E_Int size = 0;
     for (E_Int i = 0; i < connectTetraSize; i++)
       size = size + connectTetra[i]->getSize();
-#ifdef E_DOUBLEINT
-    fprintf(ptrFile, "Tetrahedra\n%ld\n", size);
-#else
-    fprintf(ptrFile, "Tetrahedra\n%d\n", size);
-#endif
+    fprintf(ptrFile, "Tetrahedra\n" SF_D_ "\n", size);
 
     c = 0;
     for (E_Int i = 0; i < nzone; i++) 
@@ -987,13 +938,8 @@ E_Int K_IO::GenIO::meshwrite(
       {
         FldArrayI& cp = *connectTetra[c];
         for (E_Int i = 0; i < cp.getSize(); i++)
-#ifdef E_DOUBLEINT
-          fprintf(ptrFile, "%ld %ld %ld %ld %ld\n", 
+          fprintf(ptrFile, SF_D5_ "\n", 
                   cp(i,1), cp(i,2), cp(i,3), cp(i,4), c);
-#else
-          fprintf(ptrFile, "%d %d %d %d %d\n", 
-                  cp(i,1), cp(i,2), cp(i,3), cp(i,4), c);
-#endif
         c++;
       }
     }
@@ -1005,11 +951,7 @@ E_Int K_IO::GenIO::meshwrite(
     E_Int size = 0;
     for (E_Int i = 0; i < connectHexaSize; i++)
       size = size + connectHexa[i]->getSize();
-#ifdef E_DOUBLEINT
-    fprintf(ptrFile, "Hexahedra\n%ld\n", size);
-#else
-    fprintf(ptrFile, "Hexahedra\n%d\n", size);
-#endif
+    fprintf(ptrFile, "Hexahedra\n" SF_D_ "\n", size);
     c = 0;
     for (E_Int i = 0; i < nzone; i++) 
     {
@@ -1017,15 +959,9 @@ E_Int K_IO::GenIO::meshwrite(
       {
         FldArrayI& cp = *connectHexa[c];
         for (E_Int i = 0; i < cp.getSize(); i++)
-#ifdef E_DOUBLEINT
-          fprintf(ptrFile, "%ld %ld %ld %ld %ld %ld %ld %ld %ld\n", 
+          fprintf(ptrFile, SF_D9_ "\n", 
                   cp(i,1), cp(i,2), cp(i,3), cp(i,4),
                   cp(i,5), cp(i,6), cp(i,7), cp(i,8), c);
-#else
-          fprintf(ptrFile, "%d %d %d %d %d %d %d %d %d\n", 
-                  cp(i,1), cp(i,2), cp(i,3), cp(i,4),
-                  cp(i,5), cp(i,6), cp(i,7), cp(i,8), c);
-#endif
         c++;
       }
     }
@@ -1036,11 +972,7 @@ E_Int K_IO::GenIO::meshwrite(
     E_Int size = 0;
     for (E_Int i = 0; i < connectPentaSize; i++)
       size = size + connectPenta[i]->getSize();
-#ifdef E_DOUBLEINT
-    fprintf(ptrFile, "Prisms\n%ld\n", size);
-#else
-    fprintf(ptrFile, "Prisms\n%d\n", size);
-#endif
+    fprintf(ptrFile, "Prisms\n" SF_D_ "\n", size);
     c = 0;
     for (E_Int i = 0; i < nzone; i++) 
     {
@@ -1048,15 +980,9 @@ E_Int K_IO::GenIO::meshwrite(
       {
         FldArrayI& cp = *connectPenta[c];
         for (E_Int i = 0; i < cp.getSize(); i++)
-#ifdef E_DOUBLEINT
-          fprintf(ptrFile, "%ld %ld %ld %ld %ld %ld %ld\n", 
+          fprintf(ptrFile, SF_D7_ "\n", 
                   cp(i,1), cp(i,2), cp(i,3), cp(i,4),
                   cp(i,5), cp(i,6), c);
-#else
-          fprintf(ptrFile, "%d %d %d %d %d %d %d\n", 
-                  cp(i,1), cp(i,2), cp(i,3), cp(i,4),
-                  cp(i,5), cp(i,6), c);
-#endif
         c++;
       }
     }
@@ -1067,11 +993,7 @@ E_Int K_IO::GenIO::meshwrite(
     E_Int size = 0;
     for (E_Int i = 0; i < connectPyraSize; i++)
       size = size + connectPyra[i]->getSize();
-#ifdef E_DOUBLEINT
-    fprintf(ptrFile, "Pyramids\n%ld\n", size);
-#else
-    fprintf(ptrFile, "Pyramids\n%d\n", size);
-#endif
+    fprintf(ptrFile, "Pyramids\n" SF_D_ "\n", size);
     c = 0;
     for (E_Int i = 0; i < nzone; i++) 
     {
@@ -1079,15 +1001,9 @@ E_Int K_IO::GenIO::meshwrite(
       {
         FldArrayI& cp = *connectPyra[c];
         for (E_Int i = 0; i < cp.getSize(); i++)
-#ifdef E_DOUBLEINT
-          fprintf(ptrFile, "%ld %ld %ld %ld %ld %ld\n", 
+          fprintf(ptrFile, SF_D6_ "\n", 
                   cp(i,1), cp(i,2), cp(i,3), cp(i,4),
                   cp(i,5), c);
-#else
-          fprintf(ptrFile, "%d %d %d %d %d %d\n", 
-                  cp(i,1), cp(i,2), cp(i,3), cp(i,4),
-                  cp(i,5), c);
-#endif
         c++;
       }
     }
@@ -1137,13 +1053,8 @@ E_Int K_IO::GenIO::meshwrite(
           eltTypeZn[ic] == 7) 
         nvalidEltTypes++;
       else
-#ifdef E_DOUBLEINT
-        printf("Warning: meshwrite: zone %ld not written (not a valid element "
-               "type: %ld).", zn, eltTypeZn[ic]);
-#else
-        printf("Warning: meshwrite: zone %d not written (not a valid element "
-               "type: %d).", zn, eltTypeZn[ic]);
-#endif
+        printf("Warning: meshwrite: zone " SF_D_ " not written (not a valid element "
+               "type: " SF_D_ ").", zn, eltTypeZn[ic]);
     }
     if (nvalidEltTypes == (int)eltTypeZn.size())
     {
@@ -1172,11 +1083,7 @@ E_Int K_IO::GenIO::meshwrite(
 
   // Build format for data
   sprintf(format1,"%s%s%s", dataFmt, dataFmt, dataFmtl);
-#ifdef E_DOUBLEINT
-  strcat(format1," %ld\n");
-#else
-  strcat(format1," %d\n");
-#endif
+  strcat(format1," " SF_D_ "\n");
 
   // Connectivite par elts
   E_Int c = 0;
@@ -1399,11 +1306,7 @@ E_Int K_IO::GenIO::meshwrite(
 
   fprintf(ptrFile, "MeshVersionFormatted\n1\n");
   fprintf(ptrFile, "Dimension\n3\n");
-#ifdef E_DOUBLEINT
-  fprintf(ptrFile, "Vertices\n%ld\n", v.getSize());
-#else
-  fprintf(ptrFile, "Vertices\n%d\n", v.getSize());
-#endif
+  fprintf(ptrFile, "Vertices\n" SF_D_ "\n", v.getSize());
   for (E_Int i = 0; i < v.getSize(); i++)
     fprintf(ptrFile, format1, v(i,1), v(i,2), v(i,3), 0);
   
@@ -1412,11 +1315,7 @@ E_Int K_IO::GenIO::meshwrite(
     size = 0;
     for (E_Int i = 0; i < connectBarSize; i++)
       size = size + connectBar[i]->getSize();
-#ifdef E_DOUBLEINT
-    fprintf(ptrFile, "Edges\n%ld\n", size);
-#else
-    fprintf(ptrFile, "Edges\n%d\n", size);
-#endif
+    fprintf(ptrFile, "Edges\n" SF_D_ "\n", size);
     c = 0;
     for (E_Int zn = 0; zn < nzones; zn++) 
     {
@@ -1429,18 +1328,10 @@ E_Int K_IO::GenIO::meshwrite(
           FldArrayI& cp = *connectBar[c];
           if (!colors)
             for (E_Int i = 0; i < cp.getSize(); i++)
-#ifdef E_DOUBLEINT
-              fprintf(ptrFile, "%ld %ld %ld\n", cp(i,1), cp(i,2), c);
-#else
-              fprintf(ptrFile, "%d %d %d\n", cp(i,1), cp(i,2), c);
-#endif
+              fprintf(ptrFile, SF_D3_ "\n", cp(i,1), cp(i,2), c);
           else
             for (E_Int i = 0; i < cp.getSize(); i++)
-#ifdef E_DOUBLEINT
-              fprintf(ptrFile, "%ld %ld %ld\n", cp(i,1), cp(i,2), (*colors)[c][i]);
-#else
-              fprintf(ptrFile, "%d %d %d\n", cp(i,1), cp(i,2), (*colors)[c][i]);
-#endif
+              fprintf(ptrFile, SF_D3_ "\n", cp(i,1), cp(i,2), (*colors)[c][i]);
           c++;
         }
       }
@@ -1452,11 +1343,7 @@ E_Int K_IO::GenIO::meshwrite(
     size = 0;
     for (E_Int i = 0; i < connectTriSize; i++)
       size = size + connectTri[i]->getSize();
-#ifdef E_DOUBLEINT
-    fprintf(ptrFile, "Triangles\n%ld\n", size);
-#else
-    fprintf(ptrFile, "Triangles\n%d\n", size);
-#endif
+    fprintf(ptrFile, "Triangles\n" SF_D_ "\n", size);
     c = 0;
     for (E_Int zn = 0; zn < nzones; zn++) 
     {
@@ -1469,18 +1356,10 @@ E_Int K_IO::GenIO::meshwrite(
           FldArrayI& cp = *connectTri[c];
           if (!colors)
             for (E_Int i = 0; i < cp.getSize(); i++)
-#ifdef E_DOUBLEINT
-              fprintf(ptrFile, "%ld %ld %ld %ld\n", cp(i,1), cp(i,2), cp(i,3), c);
-#else
-              fprintf(ptrFile, "%d %d %d %d\n", cp(i,1), cp(i,2), cp(i,3), c);
-#endif
+              fprintf(ptrFile, SF_D4_ "\n", cp(i,1), cp(i,2), cp(i,3), c);
           else
             for (E_Int i = 0; i < cp.getSize(); i++)
-#ifdef E_DOUBLEINT
-              fprintf(ptrFile, "%ld %ld %ld %ld\n", cp(i,1), cp(i,2), cp(i,3), (*colors)[c][i]);
-#else
-              fprintf(ptrFile, "%d %d %d %d\n", cp(i,1), cp(i,2), cp(i,3), (*colors)[c][i]);
-#endif
+              fprintf(ptrFile, SF_D4_ "\n", cp(i,1), cp(i,2), cp(i,3), (*colors)[c][i]);
           c++;
         }
       }
@@ -1492,11 +1371,7 @@ E_Int K_IO::GenIO::meshwrite(
     size = 0;
     for (E_Int i = 0; i < connectQuadSize; i++)
       size = size + connectQuad[i]->getSize();
-#ifdef E_DOUBLEINT
-    fprintf(ptrFile, "Quadrilaterals\n%ld\n", size);
-#else
-    fprintf(ptrFile, "Quadrilaterals\n%d\n", size);
-#endif
+    fprintf(ptrFile, "Quadrilaterals\n" SF_D_ "\n", size);
     c = 0;
     for (E_Int zn = 0; zn < nzones; zn++) 
     {
@@ -1508,13 +1383,8 @@ E_Int K_IO::GenIO::meshwrite(
         {
           FldArrayI& cp = *connectQuad[c];
           for (E_Int i = 0; i < cp.getSize(); i++)
-#ifdef E_DOUBLEINT
-            fprintf(ptrFile, "%ld %ld %ld %ld %ld\n", 
-                    cp(i,1), cp(i,2), cp(i,3), cp(i,4), c);
-#else
-          fprintf(ptrFile, "%d %d %d %d %d\n", 
-                    cp(i,1), cp(i,2), cp(i,3), cp(i,4), c);
-#endif
+          fprintf(ptrFile, SF_D5_ "\n", 
+                  cp(i,1), cp(i,2), cp(i,3), cp(i,4), c);
           c++;
         }
       }
@@ -1526,11 +1396,7 @@ E_Int K_IO::GenIO::meshwrite(
     size = 0;
     for (E_Int i = 0; i < connectTetraSize; i++)
       size = size + connectTetra[i]->getSize();
-#ifdef E_DOUBLEINT
-    fprintf(ptrFile, "Tetrahedra\n%ld\n", size);
-#else
-    fprintf(ptrFile, "Tetrahedra\n%d\n", size);
-#endif
+    fprintf(ptrFile, "Tetrahedra\n" SF_D_ "\n", size);
 
     c = 0;
     for (E_Int zn = 0; zn < nzones; zn++) 
@@ -1543,13 +1409,8 @@ E_Int K_IO::GenIO::meshwrite(
         {
           FldArrayI& cp = *connectTetra[c];
           for (E_Int i = 0; i < cp.getSize(); i++)
-#ifdef E_DOUBLEINT
-            fprintf(ptrFile, "%ld %ld %ld %ld %ld\n", 
+            fprintf(ptrFile, SF_D5_ "\n", 
                     cp(i,1), cp(i,2), cp(i,3), cp(i,4), c);
-#else
-            fprintf(ptrFile, "%d %d %d %d %d\n", 
-                    cp(i,1), cp(i,2), cp(i,3), cp(i,4), c);
-#endif
           c++;
         }
       }
@@ -1561,11 +1422,7 @@ E_Int K_IO::GenIO::meshwrite(
     size = 0;
     for (E_Int i = 0; i < connectHexaSize; i++)
       size = size + connectHexa[i]->getSize();
-#ifdef E_DOUBLEINT
-    fprintf(ptrFile, "Hexahedra\n%ld\n", size);
-#else
-    fprintf(ptrFile, "Hexahedra\n%d\n", size);
-#endif
+    fprintf(ptrFile, "Hexahedra\n" SF_D_ "\n", size);
     c = 0;
     for (E_Int zn = 0; zn < nzones; zn++) 
     {
@@ -1577,15 +1434,9 @@ E_Int K_IO::GenIO::meshwrite(
         {
           FldArrayI& cp = *connectHexa[c];
           for (E_Int i = 0; i < cp.getSize(); i++)
-#ifdef E_DOUBLEINT
-            fprintf(ptrFile, "%ld %ld %ld %ld %ld %ld %ld %ld %ld\n", 
+            fprintf(ptrFile, SF_D9_ "\n", 
                     cp(i,1), cp(i,2), cp(i,3), cp(i,4),
                     cp(i,5), cp(i,6), cp(i,7), cp(i,8), c);
-#else
-            fprintf(ptrFile, "%d %d %d %d %d %d %d %d %d\n", 
-                    cp(i,1), cp(i,2), cp(i,3), cp(i,4),
-                    cp(i,5), cp(i,6), cp(i,7), cp(i,8), c);
-#endif
           c++;
         }
       }
@@ -1597,11 +1448,7 @@ E_Int K_IO::GenIO::meshwrite(
     size = 0;
     for (E_Int i = 0; i < connectPentaSize; i++)
       size = size + connectPenta[i]->getSize();
-#ifdef E_DOUBLEINT
-    fprintf(ptrFile, "Prisms\n%ld\n", size);
-#else
-    fprintf(ptrFile, "Prisms\n%d\n", size);
-#endif
+    fprintf(ptrFile, "Prisms\n" SF_D_ "\n", size);
     c = 0;
     for (E_Int zn = 0; zn < nzones; zn++) 
     {
@@ -1613,15 +1460,9 @@ E_Int K_IO::GenIO::meshwrite(
         {
           FldArrayI& cp = *connectPenta[c];
           for (E_Int i = 0; i < cp.getSize(); i++)
-#ifdef E_DOUBLEINT
-            fprintf(ptrFile, "%ld %ld %ld %ld %ld %ld %ld\n", 
+            fprintf(ptrFile, SF_D7_ "\n", 
                     cp(i,1), cp(i,2), cp(i,3), cp(i,4),
                     cp(i,5), cp(i,6), c);
-#else
-            fprintf(ptrFile, "%d %d %d %d %d %d %d\n", 
-                    cp(i,1), cp(i,2), cp(i,3), cp(i,4),
-                    cp(i,5), cp(i,6), c);
-#endif
           c++;
         }
       }
@@ -1633,11 +1474,7 @@ E_Int K_IO::GenIO::meshwrite(
     size = 0;
     for (E_Int i = 0; i < connectPyraSize; i++)
       size = size + connectPyra[i]->getSize();
-#ifdef E_DOUBLEINT
-    fprintf(ptrFile, "Pyramids\n%ld\n", size);
-#else
-    fprintf(ptrFile, "Pyramids\n%d\n", size);
-#endif
+    fprintf(ptrFile, "Pyramids\n" SF_D_ "\n", size);
     c = 0;
     for (E_Int zn = 0; zn < nzones; zn++) 
     {
@@ -1649,15 +1486,9 @@ E_Int K_IO::GenIO::meshwrite(
         {
           FldArrayI& cp = *connectPyra[c];
           for (E_Int i = 0; i < cp.getSize(); i++)
-#ifdef E_DOUBLEINT
-            fprintf(ptrFile, "%ld %ld %ld %ld %ld %ld\n", 
+            fprintf(ptrFile, SF_D6_ "\n", 
                     cp(i,1), cp(i,2), cp(i,3), cp(i,4),
                     cp(i,5), c);
-#else
-            fprintf(ptrFile, "%d %d %d %d %d %d\n", 
-                    cp(i,1), cp(i,2), cp(i,3), cp(i,4),
-                    cp(i,5), c);
-#endif
           c++;
         }
       }
