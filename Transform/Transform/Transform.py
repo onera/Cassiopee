@@ -15,7 +15,7 @@ try: range = xrange
 except: pass
 
 __all__ = ['_translate', 'translate', 'addkplane', 'breakElements', 'cart2Cyl', '_cart2Cyl', 'collapse', 
-    'computeDeformationVector', '_contract', 'contract', 'cyl2Cart', '_cyl2Cart','deform', 'deformNormals', 'deformPoint', 
+    'computeDeformationVector', '_contract', 'contract', 'cyl2Cart', '_cyl2Cart', 'deform', 'deformNormals', 'deformPoint', 
     'dual', '_homothety', 'homothety', 'join', 'makeCartesianXYZ', 'makeDirect', 'merge', 'mergeCart', 
     'mergeCartByRefinementLevel', 'oneovern', 'patch', 'perturbate', 'projectAllDirs', 'projectDir', 
     'projectOrtho', 'projectOrthoSmooth', 'projectRay', 'reorder', 'reorderAll', 

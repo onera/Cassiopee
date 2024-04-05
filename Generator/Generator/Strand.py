@@ -110,6 +110,113 @@ def addNormalLayers(t, tc, distrib, niter=0, eps=0.4):
 
     return strand
 
+#===============================================
+# IN: t: multibloc distributed TRI mesh
+# IN: tc: connectivity of t
+# IN: distrib: 1D mesh of heights (1D struct)
+# IN: niter: number of smoothing iterations
+# IN: eps: eps used in smoothing
+# this version uses blanking
+#===============================================
+def addNormalLayers2(t, tc, distrib, niter=0, eps=0.4):
+
+    kmax = C.getNPts(distrib)
+    if kmax < 2: raise ValueError("addNormalLayers: distribution must contain at least 2 points.")
+
+    # output tree
+    strand = Internal.copyRef(t)
+    coords = {} # all coordinates of planes
+    for z in Internal.getZones(strand):
+            zx = Internal.getNodeFromName2(z, 'CoordinateX')[1]
+            zy = Internal.getNodeFromName2(z, 'CoordinateY')[1]
+            zz = Internal.getNodeFromName2(z, 'CoordinateZ')[1]
+            coords[z[0]] = []
+            coords[z[0]].append((zx,zy,zz))
+    
+    # advancing surfaces
+    surf = Internal.copyRef(t)
+    #C._initVars(surf, 'cellN', 1.)
+
+    for k1 in range(kmax-1):
+        
+        print("Generating layer %d"%k1)
+        
+        hloc = C.getValue(distrib, 'CoordinateX', k1+1) - C.getValue(distrib, 'CoordinateX', k1)
+        
+        # Keep pure normal in sx0
+        surf = getSmoothNormalMap(surf, tc, niter=0, eps=eps)
+        surf = modifyNormalWithMetric(surf, tc)
+        C._initVars(surf, '{sx0} = {sx}')
+        C._initVars(surf, '{sy0} = {sy}')
+        C._initVars(surf, '{sz0} = {sz}')
+        
+        # Get smooth normal map
+        surf = getSmoothNormalMap(surf, tc, niter=niter, eps=eps)
+
+        # Modifiy sx with ht
+        surf = modifyNormalWithMetric(surf, tc)
+                
+        # Mix sx0 and sx depending on height
+        #if kmax == 2: beta0 = 0.1
+        #else: beta0 = float((kmax-2-k1))/float(kmax-2); beta0 = beta0*beta0
+        #C._initVars(surf, '{sx} = %20.6g * {sx} + %20.6g * {sx0}'%(1-beta0, beta0))
+        #C._initVars(surf, '{sy} = %20.6g * {sy} + %20.6g * {sy0}'%(1-beta0, beta0))
+        #C._initVars(surf, '{sz} = %20.6g * {sz} + %20.6g * {sz0}'%(1-beta0, beta0))
+
+        # multiply by the height
+        C._initVars(surf, '{sx} = %20.6g * {sx}'%hloc)
+        C._initVars(surf, '{sy} = %20.6g * {sy}'%hloc)
+        C._initVars(surf, '{sz} = %20.6g * {sz}'%hloc)
+
+        # get layers (prisms) - for volume check
+        layers = G.grow(surf, vector=['sx','sy','sz'])
+        G._getVolumeMap(layers)
+        #C.convertPyTree2File(layers, "out.cgns")
+        volmin = C.getMinValue(layers, "centers:vol")
+        if volmin > 0: print("INFO: volmin of layer=", volmin)
+        else: print("FAIL: volmin of layer=", volmin)
+        if volmin <= 0:
+            C._initVars(layers, '{centers:cellN}={centers:vol}>0')
+            C.convertPyTree2File(layers, 'layers%03d.cgns'%k1)
+
+        # deform surf to get new TRI surf
+        T._deform(surf, vector=['sx','sy','sz'])
+
+        # keep track of coordinates
+        for z in Internal.getZones(surf):
+            zx = Internal.getNodeFromName2(z, 'CoordinateX')[1]
+            zy = Internal.getNodeFromName2(z, 'CoordinateY')[1]
+            zz = Internal.getNodeFromName2(z, 'CoordinateZ')[1]
+            coords[z[0]].append((zx,zy,zz))
+    
+    # build strand mesh
+    for z in Internal.getZones(strand):
+        coord = coords[z[0]]
+        nk = len(coord)
+        np = C.getNPts(z)
+        fx = numpy.empty(np*nk, dtype=numpy.float64)
+        fy = numpy.empty(np*nk, dtype=numpy.float64)
+        fz = numpy.empty(np*nk, dtype=numpy.float64)
+        for k, i in enumerate(coord):
+            px = i[0]; py = i[1]; pz = i[2]
+            fx[k*np:(k+1)*np] = px[:]
+            fy[k*np:(k+1)*np] = py[:]
+            fz[k*np:(k+1)*np] = pz[:]
+
+        # Repush coordinates in strand grid
+        x1 = Internal.getNodeFromName2(z, 'CoordinateX')
+        y1 = Internal.getNodeFromName2(z, 'CoordinateY')
+        z1 = Internal.getNodeFromName2(z, 'CoordinateZ')
+
+        x1[1] = fx.ravel('k')
+        y1[1] = fy.ravel('k')
+        z1[1] = fz.ravel('k')
+
+        # modify strand grid dimensions
+        dim = z[1]; dim[0] = fx.size
+
+    return strand
+
 #===================================
 # Compute a smooth normal map on t
 #===================================

@@ -70,7 +70,7 @@ E_Int __meshEdge1(const TopoDS_Edge& E,
   }
 
   // non degenerated
-  GCPnts_UniformAbscissa unifAbs(geomAdap, int(nbPoints), u0, u1);
+  GCPnts_UniformAbscissa unifAbs(geomAdap, nbPoints, u0, u1);
   if (!unifAbs.IsDone()) return 1;
   if (nbPoints != unifAbs.NbPoints()) return 1;
     
@@ -1103,30 +1103,6 @@ PyObject* K_OCC::getEdgeNoByFace(PyObject* self, PyObject* args)
   const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
   TopAbs_Orientation forientation = F.Orientation();
   
-  /*
-  for (expl.Init(surfaces(noFace), TopAbs_EDGE); expl.More(); expl.Next())
-  {
-    const TopoDS_Edge& E = TopoDS::Edge(expl.Current());
-      
-    // find edge number in global edge list
-    E_Int i = 0;
-    for (i=1; i <= edges.Extent(); i++)
-    {
-      const TopoDS_Edge& El = TopoDS::Edge(edges(i));
-      if (El.TShape() == E.TShape()) break;
-    }
-    // pour etre coherent avec meshEdgeByFace
-    if (forientation == TopAbs_FORWARD)
-    {
-      PyList_Append(out, Py_BuildValue("l", i));
-    }
-    else
-    {
-      PyList_Insert(out, 0, Py_BuildValue("l", i));
-    }
-  }
-  */
-
   // nouvelle version par wire pour etre coherent avec meshEdgesByFace
   for (expl.Init(surfaces(noFace), TopAbs_WIRE); expl.More(); expl.Next())
   {

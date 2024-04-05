@@ -1857,7 +1857,7 @@ def findBest(diff, bary):
 # piece of ext that must match
 
 # Match l'exterieur de a1 sur l'exterieur de a2 si la distance est
-# infierieure a tol
+# inferieure a tol
 def _forceMatch1(a1, a2, tol):
     import Post; import KCore; import Geom; import Transform; import Generator
         

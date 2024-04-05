@@ -119,6 +119,7 @@ def setEnforce(event=None):
     z = CTK.t[2][nob][2][noz]
     setEnforceZ(z)
 
+# Perform a setH on z with clicked point
 def setEnforceZ(z):
     h = CTK.varsFromWidget(VARS[1].get(), 1)
     if len(h) != 1:
@@ -140,6 +141,7 @@ def setEnforceZ(z):
     D.setH(z, ind, h)
     CTK.TXT.insert('START', 'Spacing set to %f.\n'%h)
 
+# Pass in clik mode for setting H
 def setEnforceMode(event=None):
     import time
     if CTK.t == []: return
@@ -165,7 +167,7 @@ def setEnforceMode(event=None):
                 noz = CTK.Nz[nz]
                 z = CTK.t[2][nob][2][noz]
                 setEnforceZ(z)
-                CPlot.unselectAllZones()
+
         CTK.__BUSY__ = False
         TTK.raiseButton(W)
         CPlot.setState(cursor=0)

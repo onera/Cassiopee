@@ -1974,7 +1974,7 @@ def connectNSLBM(t, tol=1.e-6, dim=3, type='all'):
 #==============================================================================
 # Double Wall treatment for chimera transfers (MPI friendly)
 # Only modify tc
-# familBC* can either be a string or a list of strings
+# familyBC* can either be a string or a list of strings
 #==============================================================================
 def _doubleWall(t, tc, familyBC1, familyBC2, ghostCells=False, check=False, surfaceCenters1=None):
     from . import DoubleWall

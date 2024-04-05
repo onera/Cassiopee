@@ -65,6 +65,8 @@ Contents
 
     For instance, prescribed[2] = 0 means that block 2 MUST be affected to processor 0.
 
+    Prescribed is ignored for algorithm="graph".
+
     - perfo is a tuple or a tuple list for each processor. 
 
     Each tuple describes the relative weight of solver CPU time regarding the communication speed and latence (solverWeight, latenceWeight, comSpeedWeight).
