@@ -79,6 +79,17 @@ def getenv(name):
      else: return ''
 
 #==============================================================================
+# Get name of the Data folder
+#==============================================================================
+def getDataFolderName(name='Data'):
+    prod = os.getenv("ELSAPROD").split('_')[0]
+    intType = 'i8' if EDOUBLEINT else 'i4'
+    if sys.version_info[0] == 2: name += '2'
+    #if prod in 'juno': name += '_' + prod # TODO
+    #if intType == 'i8': name += '_' + intType # TODO add when ready
+    return name
+
+#==============================================================================
 # Check all (python, numpy, C++, fortran, hdf, mpi, mpi4py, png, osmesa, mpeg)
 #==============================================================================
 def checkAll(summary=True):

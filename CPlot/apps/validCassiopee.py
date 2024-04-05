@@ -187,16 +187,6 @@ def ljust(text, size):
             return form.format(text, ' ')
         else: return text
 
-# return name of the Data folder
-def getDataFolderName(name='Data'):
-    from KCore.Dist import EDOUBLEINT
-    mac = os.getenv("MAC").split('_')[0]
-    intType = 'i8' if EDOUBLEINT else 'i4'
-    if sys.version_info[0] == 2: name += '2'
-    #if mac != 'juno': name += '_' + mac # TODO
-    #if intType == 'i8': name += '_' + intType # TODO add when ready
-    return name
-
 #==============================================================================
 # build a test string:
 # 0       1         2         3             4     5         6    7
@@ -956,15 +946,15 @@ def filterTestList(event=None):
                     elif tmpFiltr == 'DIST': outFilters.add('&t.$')
                     elif tmpFiltr == 'RUN': outFilters.update(['&/!FAILED', '&/!FAILEDMEM', '&/!OK'])
                     elif tmpFiltr == 'UNRUN': outFilters.update(['/FAILED', '/FAILEDMEM', '/OK'])
-                    elif tmpFiltr == 'TAG': outFilters.add('£^(?![\*,r,g,b])')
-                    elif tmpFiltr == 'UNTAG': outFilters.add('£[\*,r,g,b]')
+                    elif tmpFiltr == 'TAG': outFilters.add('@^(?![\*,r,g,b])')
+                    elif tmpFiltr == 'UNTAG': outFilters.add('@[\*,r,g,b]')
                 else:
                     if tmpFiltr == 'SEQ': outFilters.add('&t.$')
                     elif tmpFiltr == 'DIST': outFilters.add('&m.$')
                     elif tmpFiltr == 'RUN': outFilters.update(['/FAILED', '/FAILEDMEM', '/OK'])
                     elif tmpFiltr == 'UNRUN': outFilters.update(['&/!FAILED', '&/!FAILEDMEM', '&/!OK'])
-                    elif tmpFiltr == 'TAG': outFilters.add('£[\*,r,g,b]')
-                    elif tmpFiltr == 'UNTAG': outFilters.add('£^(?![\*,r,g,b])')
+                    elif tmpFiltr == 'TAG': outFilters.add('@[\*,r,g,b]')
+                    elif tmpFiltr == 'UNTAG': outFilters.add('@^(?![\*,r,g,b])')
             else: outFilters.add(filtr)
         return outFilters
         
@@ -978,12 +968,12 @@ def filterTestList(event=None):
     # Apply filters with an OR gate and append strings to set
     filteredTests = set()
     for filtr in filters:
-        if (not filtr) or (filtr in ['#', '/', '!', '£', '%']) or (filtr[0] in ['&', '*']):
+        if (not filtr) or (filtr in ['#', '/', '!', '@', '%']) or (filtr[0] in ['&', '*']):
             continue
         shift = 1; endidx = 0
         if filtr[0] == '#': pos = 0 # filter modules
         elif filtr[0] == '/': pos = 7 # filter statuses
-        elif filtr[0] == '£': pos = 6 # filter tags
+        elif filtr[0] == '@': pos = 6 # filter tags
         elif filtr[0] == '%': pos = 5 # filter coverage
         else: pos = 1; shift = 0; endidx = -3 # filter test names
         for s in TESTS:
@@ -1004,7 +994,7 @@ def filterTestList(event=None):
             shift = 1; endidx = 0
             if filtr[1] == '#': pos = 0 # filter modules
             elif filtr[1] == '/': pos = 7 # filter statuses
-            elif filtr[1] == '£': pos = 6 # filter tags
+            elif filtr[1] == '@': pos = 6 # filter tags
             elif filtr[1] == '%': pos = 5 # filter coverage
             else: pos = 1; shift = 0; endidx = -3 # filter test names
             for s in filteredTests:
@@ -1371,14 +1361,41 @@ def writeSessionLog():
                svnVersion, messageText, append=True)
 
 #=======================================
-# Notify "Commit ready" 
+# Send an email
 #=======================================
-def notifyValidOK():
+def notify(sender=None, recipients=[], messageSubject="", messageText=""):
     try:
         import smtplib
         from email.mime.text import MIMEText
         from email.mime.multipart import MIMEMultipart
+
+        if sender is None:
+            if os.getenv('CASSIOPEE_EMAIL') is None:
+                if os.getenv('USER') is None:
+                    print("Sender email address not found.")
+                    return
+                else: sender = os.getenv('USER')+'@onera.fr'
+            else: sender = os.getenv('CASSIOPEE_EMAIL')
+        if isinstance(recipients, str): recipients = [recipients]
+        if not recipients: recipients = ['christophe.benoit@onera.fr']
+        
+        msg = MIMEMultipart()
+        msg['Subject'] = messageSubject
+        msg['From'] = sender
+        msg['To'] = ", ".join(recipients)
+        msg['Cc'] = sender
+        msg.preamble = 'Sent by Cassiopee.'
+        if messageText:
+            msg.attach(MIMEText(messageText, 'plain'))
+        s = smtplib.SMTP('localhost')
+        s.sendmail(sender, recipients, msg.as_string())
+        s.quit()
     except: return
+
+#=======================================
+# Notify "Commit ready" 
+#=======================================    
+def notifyValidOK():
     svnVersion = 'Unknown'
     if CHECKSVNVERSION:
         try:
@@ -1395,22 +1412,8 @@ def notifyValidOK():
     messageText += 'Based on version %s (can be locally modified).\n'%svnVersion
     for t in TESTS:
         messageText += t+'\n'
-
-    try:
-        me = os.getenv('USER')+'@onera.fr'
-        if me is None: me = ''
-        to = 'Christophe.Benoit@onera.fr'
-        msg = MIMEMultipart()
-        msg['Subject'] = '[Cassiopee] Ready to commit'
-        msg['From'] = me
-        msg['To'] = to
-        msg.preamble = 'Send by Cassiopee.'
-        if messageText != '':
-            msg.attach(MIMEText(messageText, 'plain'))
-        s = smtplib.SMTP('localhost')
-        s.sendmail(me, to, msg.as_string())
-        s.quit()
-    except: pass
+    notify(messageSubject='[Cassiopee] Ready to commit',
+           messageText=messageText)
     
 #==============================================================================
 def Quit(event=None):
@@ -1631,16 +1634,18 @@ def parseArgs():
 
     # Create argument parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("-l", "--load-session", dest='loadSession',
-                        action="store_true", help="Load last session")
     parser.add_argument("-f", "--filters", type=str, default='',
                         help="Single-quoted test filters")
+    parser.add_argument("-gdb", "--global-database", action="store_true",
+                        dest="global_db",
+                        help="Switch to global database. Default: local database")
+    parser.add_argument("-l", "--load-session", dest='loadSession',
+                        action="store_true",
+                        help="Load last session. Default: False")
+    parser.add_argument("-p", "--purge", default=50, type=_checkInt,
+                        help="Purge session logs down to the last X. Default: 50")
     parser.add_argument("-r", "--run", action="store_true",
                         help="Run selected tests")
-    #parser.add_argument("-e", "--email", action="store_true",
-    #                    help="Email results")
-    parser.add_argument("-p", "--purge", default=50, type=_checkInt,
-                        help="Purge session logs down to the last X")
 
     # Parse arguments
     return parser.parse_args()
@@ -1650,7 +1655,7 @@ def purgeSessionLogs(n):
     lognames = sorted(glob.glob(
         '{}/Apps/Modules/Valid{}/session-*.log'.format(CASSIOPEE, DATA)))
     if len(lognames) > n:
-        for log in lognames[-n:]: os.remove(log)
+        for log in lognames[:-n]: os.remove(log)
     return None
     
 #==============================================================================
@@ -1659,7 +1664,7 @@ def purgeSessionLogs(n):
 
 if __name__ == '__main__':
     # Create local directory for valid
-    DATA = getDataFolderName()
+    DATA = Dist.getDataFolderName()
     if not os.path.exists(CASSIOPEE+'/Apps/Modules/Valid{}'.format(DATA)):
         os.mkdir(CASSIOPEE+'/Apps/Modules/Valid{}'.format(DATA))
     # Cree sessionLog et le vide
@@ -1772,7 +1777,7 @@ if __name__ == '__main__':
       '2) Module filter using #: #Apps #Fast #FF   or simply   #[A,F] \n'\
       '3) Status filter using /: /FAILED /FAILEDMEM   or simply   /F\n'\
       '4) Coverage filter using %: %100\n'\
-      '5) Tag symbol filter using £: £r   to catch red-coloured cases\n'\
+      '5) Tag symbol filter using @: @r   to catch red-coloured cases\n'\
       '6) Keyworded filters: <SEQ>, <DIST>, <RUN>, <UNRUN>, <TAG>, <UNTAG>.\n'\
       '7) Logical OR ops unless prefixed with & (AND): #Converter &/FAILED\n'\
       '8) Negated using !: #Fast &#!FastC (innermost symbol)'
@@ -1819,6 +1824,8 @@ if __name__ == '__main__':
         # Command line execution
         vcargs = parseArgs()
         purgeSessionLogs(vcargs.purge)
+        #if vcargs.global_db: setupGlobal() TODO when ready
+        #else: setupLocal()
         buildTestList(loadSession=vcargs.loadSession)
         if vcargs.filters:
             Filter.set(vcargs.filters)
