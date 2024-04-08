@@ -67,8 +67,8 @@ Mesh *mesh_init(K_FLD::FldArrayI &cn, E_Float *X, E_Float *Y, E_Float *Z,
   M->owner = (E_Int *)XMALLOC(M->nf * sizeof(E_Int));
   M->neigh = (E_Int *)XMALLOC(M->nf * sizeof(E_Int));
 
-  mesh_orient_boundary(M);
-  mesh_build_own_nei(M);
+  //mesh_orient_boundary(M);
+  //mesh_build_own_nei(M);
 
   return M;
 }
@@ -403,6 +403,84 @@ E_Int mesh_get_neighbour(E_Int cell, E_Int face, Mesh *M)
   assert(M->owner[face] == cell || M->neigh[face] == cell);
   if (M->owner[face] == cell) return M->neigh[face];
   return M->owner[face];
+}
+
+Mesh *mesh_make_surface_mesh_from_structured_points(E_Int ni, E_Int nj,
+  const std::vector<E_Float> &X, const std::vector<E_Float> &Y,
+  const std::vector<E_Float> &Z)
+{
+  assert(ni*nj == (E_Int)X.size());
+
+  Mesh *M = new Mesh();
+
+  M->np = ni*nj;
+  M->nf = ni*(nj-1) + nj*(ni-1);
+  M->nc = 2 + M->nf - M->np - 1;
+
+  // Points
+  M->x = (E_Float *)XMALLOC(M->np * sizeof(E_Float));
+  M->y = (E_Float *)XMALLOC(M->np * sizeof(E_Float));
+  M->z = (E_Float *)XMALLOC(M->np * sizeof(E_Float));
+
+  memcpy(M->x, &X[0], M->np * sizeof(E_Float));
+  memcpy(M->y, &Y[0], M->np * sizeof(E_Float));
+  memcpy(M->z, &Z[0], M->np * sizeof(E_Float));
+
+  // Edges
+  M->indPG = (E_Int *)XMALLOC((M->nf+1) * sizeof(E_Int));
+  M->indPG[0] = 0;
+  for (E_Int i = 1; i < M->nf+1; i++) M->indPG[i] = 2;
+  for (E_Int i = 0; i < M->nf; i++) M->indPG[i+1] += M->indPG[i];
+
+  M->ngon = (E_Int *)XMALLOC(M->indPG[M->nf] * sizeof(E_Int));
+  E_Int *ptr = M->ngon;
+
+  for (E_Int j = 0; j < nj; j++) {
+    for (E_Int i = 0; i < ni-1; i++) {
+      E_Int p = i + ni*j;
+      E_Int q = p + 1;
+      *ptr++ = p;
+      *ptr++ = q;
+    }
+  }
+
+  for (E_Int i = 0; i < ni; i++) {
+    for (E_Int j = 0; j < nj-1; j++) {
+      E_Int p = i + ni*j;
+      E_Int q = p + ni;
+      *ptr++ = p;
+      *ptr++ = q;
+    }
+  }
+
+  // Faces
+  M->indPH = (E_Int *)XMALLOC((M->nc+1) * sizeof(E_Int));
+  M->indPH[0] = 0;
+  for (E_Int i = 1; i < M->nc+1; i++) M->indPH[i] = 4;
+  for (E_Int i = 0; i < M->nc; i++) M->indPH[i+1] += M->indPH[i];
+
+  M->nface = (E_Int *)XMALLOC(M->indPH[M->nc] * sizeof(E_Int));
+
+  E_Int nie = nj*(ni-1);
+
+  // Face is bounded from the:
+  // Bottom by edge i+(ni-1)*j,
+  // Top by edge i+(ni-1)*(j+1),
+  // Left by edge nie + j + (nj-1)*i
+  // Right by edge nie + j + (nj-1)*(i+1)
+
+  ptr = M->nface;
+
+  for (E_Int j = 0; j < nj-1; j++) {
+    for (E_Int i = 0; i < ni-1; i++) {
+      *ptr++ = i + (ni-1)*j;
+      *ptr++ = i + (ni-1)*(j+1);
+      *ptr++ = j + (nj-1)*i + nie;
+      *ptr++ = j + (nj-1)*(i+1) + nie;
+    }
+  }
+
+  return M;
 }
 
 /*

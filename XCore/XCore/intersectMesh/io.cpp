@@ -148,6 +148,22 @@ void point_hits_write(const std::map<E_Int, Edge_Hit> &point_hit_table,
   fclose(eh);
 }
 
+void point_hits_write(const std::unordered_map<E_Int, Edge_Hit> &ptable,
+  const char *fname)
+{
+  FILE *fh = fopen(fname, "w");
+  assert(fh);
+
+  fprintf(fh, "POINTS\n");
+  fprintf(fh, "%lu\n", ptable.size());
+
+  for (auto P : ptable) {
+    fprintf(fh, "%f %f %f\n", P.second.x, P.second.y, P.second.z);
+  }
+
+  fclose(fh);
+}
+
 void write_edge_path(Mesh *M, const Edge_NO &edge,
   const std::vector<E_Int> &path_faces, const char *fname)
 {
@@ -176,6 +192,72 @@ void write_edge_path(Mesh *M, const Edge_NO &edge,
       incr++;
     }
     fprintf(fh, "\n");
+  }
+
+  fclose(fh);
+}
+
+void write_point_list(E_Float *X, E_Float *Y, E_Float *Z, E_Int *list,
+  E_Int n, const char *fname)
+{
+  FILE *fh = fopen(fname, "w");
+  assert(fh);
+  fprintf(fh, "POINTS\n");
+  fprintf(fh, "%d\n", n);
+  for (E_Int i = 0; i < n; i++) {
+    E_Int ind = list[i];
+    fprintf(fh, "%f %f %f\n", X[ind], Y[ind], Z[ind]);
+  }
+  fclose(fh);
+}
+
+void write_trimesh(const std::vector<Triangle> &TRIS, Mesh *M)
+{
+  FILE *fh = fopen("trimesh", "w");
+  assert(fh);
+  fprintf(fh, "Points\n");
+
+  std::unordered_map<E_Int, E_Int> pmap;
+  E_Int np = 0;
+
+  // How many points
+  for (const auto &TRI : TRIS) {
+    E_Int A = TRI.A;
+    E_Int B = TRI.B;
+    E_Int C = TRI.C;
+
+    if (pmap.find(A) == pmap.end()) {
+      pmap[A] = np++;
+    }
+
+    if (pmap.find(B) == pmap.end()) {
+      pmap[B] = np++;
+    }
+
+    if (pmap.find(C) == pmap.end()) {
+      pmap[C] = np++;
+    }
+  }
+
+  fprintf(fh, "%d\n", np);
+
+  std::vector<E_Int> inv_map(np);
+  for (auto P : pmap)
+    inv_map[P.second] = P.first;
+
+  for (auto P : inv_map) {
+    fprintf(fh, "%f %f %f\n", M->x[P], M->y[P], M->z[P]);
+  }
+
+  fprintf(fh, "TRIS\n");
+  fprintf(fh, "%lu\n", TRIS.size());
+
+  for (const auto &TRI : TRIS) {
+    E_Int A = TRI.A;
+    E_Int B = TRI.B;
+    E_Int C = TRI.C;
+
+    fprintf(fh, "%d %d %d\n", pmap[A], pmap[B], pmap[C]);
   }
 
   fclose(fh);

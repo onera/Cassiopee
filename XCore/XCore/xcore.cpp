@@ -51,6 +51,8 @@ static PyMethodDef Pyxcore [] =
   {"extractBoundaryMesh", K_XCORE::extractBoundaryMesh, METH_VARARGS},
 
   {"intersectMesh", K_XCORE::intersectMesh, METH_VARARGS},
+  {"removeIntersectingKPlanes", K_XCORE::removeIntersectingKPlanes, METH_VARARGS},
+  {"sweep", K_XCORE::sweep, METH_VARARGS},
   {NULL, NULL}
 };
 

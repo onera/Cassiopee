@@ -299,11 +299,23 @@ def extractBoundaryMesh(AM, mode):
 
 ######################################################
 
-def intersectMesh(t):
-  zm = I.getZones(t)[0]
-  zs = I.getZones(t)[1]
+def intersectMesh(master, slave):
+  return removeIntersectingKPlanes(master, slave)
+
+def removeIntersectingKPlanes(m, s):
+  zm = I.getZones(m)[0]
+  zs = I.getZones(s)[0]
 
   master = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
   slave = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
 
-  return xcore.intersectMesh(master, slave)
+  return xcore.removeIntersectingKPlanes(master, slave)
+
+def sweep(m, s):
+    zm = I.getZones(m)[0]
+    zs = I.getZones(s)[0]
+
+    master = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
+    slave = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
+
+    return xcore.sweep(master, slave)

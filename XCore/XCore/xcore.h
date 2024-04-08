@@ -56,5 +56,7 @@ namespace K_XCORE
   PyObject *extractBoundaryMesh(PyObject *self, PyObject *args);
 
   PyObject *intersectMesh(PyObject *self, PyObject *args);
+  PyObject *removeIntersectingKPlanes(PyObject *self, PyObject *args);
+  PyObject *sweep(PyObject *self, PyObject *args);
 }
 #endif

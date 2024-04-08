@@ -350,17 +350,17 @@ E_Int mesh_orient_boundary(Mesh *M)
   }
 
   // Apply orientation
-  //E_Int nrev = 0;
+  E_Int nrev = 0;
   for (E_Int i = 0; i < nefaces; i++) {
     if (forient[i] == -1) {
       E_Int face = efaces[i]; // 0-based
       E_Int stride = -1;
       E_Int *pn = mesh_get_face(face, stride, M);
       std::reverse(pn+1, pn+stride);
-      //nrev++;
+      nrev++;
     }
   }
-  //printf("orient_boundary(): reversed %d faces\n", nrev);
+  printf("orient_boundary(): reversed %d faces\n", nrev);
 
   return ret;
 }

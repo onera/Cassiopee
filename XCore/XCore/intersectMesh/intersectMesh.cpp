@@ -3,16 +3,7 @@
 #include <unordered_map>
 #include <stack>
 
-static
-E_Int compute_bin_point(E_Float x, E_Float y, E_Int ndiv, const BBox &bbox)
-{
-  E_Int I = x / bbox.xmax * 0.99 * ndiv;
-  E_Int J = y / bbox.ymax * 0.99 * ndiv;
-  E_Int bin = I + ndiv * J;
-  return bin;
-}
-
-PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
+PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 {
   PyObject *MASTER, *SLAVE;
   
@@ -62,14 +53,18 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
   K_FLD::FldArrayI *cns;
   ret = K_ARRAY::getFromArray3(SLAVE, varString, fs, ni, nj, nk, cns, eltType);
 
+  printf("ni: %d\n", ni);
+  printf("nj: %d\n", nj);
+  printf("nk: %d\n", nk);
+
   if (ret <= 0) {
     RAISE("Bad slave mesh");
     return NULL;
   }
 
-  if (ret == 1) {
-    RAISE("Slave mesh is not NGon.");
-    RELEASESHAREDS(SLAVE, fs);
+  if (ret != 1) {
+    RAISE("Slave mesh should be structured.");
+    RELEASESHAREDB(ret, SLAVE, fs, cns);
     RELEASESHAREDU(MASTER, fm, cnm);
     return NULL;
   }
@@ -80,8 +75,8 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
 
   if (posx == -1 || posy == -1 || posz == -1) {
     RELEASESHAREDU(MASTER, fm, cnm);
-    RELEASESHAREDU(SLAVE, fs, cns);
-    RAISE("Bad slave point coordinates.");
+    RELEASESHAREDS(SLAVE, fs);
+    RAISE("Slave point coordinates not found.");
     return NULL;
   }
 
@@ -91,124 +86,94 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
   E_Float *Ys = fs->begin(posy);
   E_Float *Zs = fs->begin(posz);
   E_Int nps = fs->getSize();
+  E_Int nfld = fs->getNfld();
+  E_Int nij = ni*nj;
 
-  // Init and orient meshes
+  // Init and orient master mesh
   Mesh *M = mesh_init(*cnm, Xm, Ym, Zm, npm);
-  Mesh *S = mesh_init(*cns, Xs, Ys, Zs, nps);
 
   printf("Master cells: %d\n", M->nc);
   printf("Master points: %d\n", M->np);
-  printf("Slave cells: %d\n", S->nc);
-  printf("Slave points: %d\n", S->np);
 
-  mesh_write(M, "mesh.dat");
-  mesh_write(S, "cylinder.dat");
-
-  // Make the bounding boxes
   BBox bboxm = bbox_make(M);
-  BBox bboxs = bbox_make(S);
 
-  // Which slave points are inside master bbox?
-  std::set<E_Int> bbox_points;
+  // Detect at which k does the slave mesh intersect the master mesh
+  // Get projected points coordinates
 
-  for (E_Int i = 0; i < S->np; i++) {
-    if (bbox_is_point_inside(bboxm, S->x[i], S->y[i], S->z[i])) {
-      bbox_points.insert(i);
+  printf("Slave points: %d\n", nps);
+  printf("Slave nfld: %d\n", nfld);
+
+  E_Int kmax = 0;
+
+  for (E_Int k = nk-1; k >= 0; k--) {
+    E_Int inside = 0;
+    
+    for (E_Int j = 0; j < nj && !inside; j++) {
+      for (E_Int i = 0; i < ni; i++) {
+        E_Int iq = i + ni*j + nij*k;
+        
+        // If q in bbox, go to lower level plane
+        if (bbox_is_point_inside(bboxm, Xs[iq], Ys[iq], Zs[iq])) {
+          inside = 1;
+          break;
+        }
+      }
     }
+
+    if (inside) continue;
+
+    // No points in this plane within the bbox, stop
+    assert(inside == 0);
+    kmax = k+1;
+    break;
   }
 
-  printf("Points inside master bbox: %d\n", bbox_points.size());
+  printf("kmax: %d\n", kmax);
 
-  point_set_write(bbox_points, S, "bbox_points.dat");
+  // Build returned array
+  PyObject *tpl = K_ARRAY::buildArray3(nfld, varString, ni, nj, kmax);
+  E_Float *fnp = K_ARRAY::getFieldPtr(tpl);
+  FldArrayF subzone(nij*kmax, nfld, fnp, true);
 
-  // Make point cells
-  std::vector<std::vector<E_Int>> point_cells = mesh_make_point_cells(S);
+  for (E_Int dim = 1; dim <= 3; dim++) {
+    E_Float* sp = subzone.begin(dim);
+    E_Float* fp = fs->begin(dim);
 
-  // Isolate bbox cells
-  std::set<E_Int> bbox_cells;
-
-  for (auto point : bbox_points) {
-    for (auto cell : point_cells[point])
-      bbox_cells.insert(cell);
-  }
-
-  Mesh *C = mesh_extract_from_cell_set(S, bbox_cells);
-  mesh_write(C, "bbox_cells.dat");
-
-  /************/
-
-  // We want to isolate ON_FACES and ON_CELLS
-  std::stack<E_Int> stk;
-  for (auto cell : bbox_cells) stk.push(cell);
-
-  std::vector<E_Int> ON_FACES(S->nf, 0);
-  std::set<E_Int> ON_CELLS;
-
-  while (!stk.empty()) {
-    E_Int cell = stk.top();
-    stk.pop();
-
-    E_Int nf = -1;
-    E_Int *pf = mesh_get_cell(cell, nf, S);
-    for (E_Int i = 0; i < nf; i++) {
-      E_Int face = pf[i];
-
-      E_Int nei = mesh_get_neighbour(cell, face, S);
-      if (nei == -1) continue;
-
-      // Mark nei as ON if it is not a bbox_cell
-      if (bbox_cells.find(nei) == bbox_cells.end()) {
-        ON_FACES[face] = 1;
-        ON_CELLS.insert(nei);
+    for (E_Int k = 0; k < kmax; k++) {
+      for (E_Int j = 0; j < nj; j++) {
+        for (E_Int i = 0; i < ni; i++) {
+          E_Int ind = i + j*ni + k*nij;
+          sp[ind] = fp[ind];
+        }
       }
     }
   }
 
-  Mesh *O = mesh_extract_from_cell_set(S, ON_CELLS);
-  mesh_write(O, "on_cells.dat");
+  // Also return a list of indices of the points to be projected
+  npy_intp dims[2];
+  dims[0] = (npy_intp)nij;
+  dims[1] = 1;
 
-  std::vector<E_Int> on_face_list;
-  for (E_Int i = 0; i < S->nf; i++) {
-    if (ON_FACES[i])
-      on_face_list.push_back(i);
+  PyArrayObject *PL = (PyArrayObject *)PyArray_SimpleNew(1, dims, E_NPY_INT);
+  E_Int *np = (E_Int *)PyArray_DATA(PL);
+  E_Int kshift = (kmax-1)*nij;
+
+  for (E_Int j = 0; j < nj; j++) {
+    for (E_Int i = 0; i < ni; i++) {
+      E_Int ind = i + j*ni + kshift;
+      *np++ = ind;
+    }
   }
 
-  Mesh *F = mesh_make_surface_mesh_from_face_list(S, on_face_list);
-  mesh_write(F, "on_faces.dat");
+  np = (E_Int *)PyArray_DATA(PL);
+  write_point_list(Xs, Ys, Zs, np, nij, "POINTS");
 
-  std::set<E_Int> kept_cells;
-  for (E_Int i = 0; i < S->nc; i++) {
-    if (bbox_cells.find(i) == bbox_cells.end())
-      kept_cells.insert(i);
-  }
-
-  Mesh *K = mesh_extract_from_cell_set(S, kept_cells);
-  mesh_write(K, "kept_cells.dat");
-
-  std::vector<E_Int> base_faces;
-
-  E_Float DIR[3] = {sqrt(2),0,sqrt(2)};
-
-  for (auto face : on_face_list) {
-    E_Float n[3];
-    geom_compute_face_normal(face, S, n);
-
-    E_Float val = K_MATH::dot(n, DIR, 3);
-
-    //printf("(%f %f %f) -> %f\n", n[0], n[1], n[2], val);
-    
-    if (val > 0.8)
-      base_faces.push_back(face);
-  }
-
-  Mesh *B = mesh_make_surface_mesh_from_face_list(S, base_faces);
-  mesh_write(B, "base_faces.dat");
-
-  /***********************************************************/
+  /***************************************************/
 
   // Master external faces
   auto efaces = mesh_get_external_faces_indices(M);
 
+  // TODO(Imad): input master patch instead of geom identification
   std::vector<E_Int> FACES;
   for (auto face : efaces) {
     E_Int np = -1;
@@ -221,92 +186,7 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
   }
 
   Mesh *MF = mesh_make_surface_mesh_from_face_list(M, FACES);
-  mesh_write(MF, "master_patch.dat");
-
-  // All base faces have the same normal: the direction of the projection
-  E_Float Proj_dir[3];
-  geom_compute_face_normal(base_faces[0], S, Proj_dir);
-  printf("Projection direction: (%f, %f, %f)\n", Proj_dir[0],
-    Proj_dir[1], Proj_dir[2]);
-
-  // Gather the points to be projected
-  std::set<E_Int> proj_points;
-
-  for (auto face : base_faces) {
-    E_Int np = -1;
-    E_Int *pn = mesh_get_face(face, np, S);
-    for (E_Int i = 0; i < np; i++) proj_points.insert(pn[i]);
-  }
-
-  printf("Points to be projected: %lu\n", proj_points.size());
-
-  // Project base faces points on master skin polyhedron
-
-  std::map<E_Int, Edge_Hit> point_hit_table;
-
-  for (auto point : proj_points) {
-    E_Float px = S->x[point];
-    E_Float py = S->y[point];
-    E_Float pz = S->z[point];
-    E_Float qx = S->x[point] + Proj_dir[0] * bboxm.dmax;
-    E_Float qy = S->y[point] + Proj_dir[1] * bboxm.dmax;
-    E_Float qz = S->z[point] + Proj_dir[2] * bboxm.dmax;
-
-    Edge_Hit EH;
-    EH.T = -1;
-
-    for (size_t i = 0; i < FACES.size(); i++) {
-      E_Int FACE = FACES[i];
-      E_Int np = -1;
-      E_Int *pn = mesh_get_face(FACE, np, M);
-
-      assert(np == 4);
-
-      E_Int hit = 0;
-
-      // First triangle
-      hit += geom_ray_triangle_intersect(px, py, pz, qx, qy, qz,
-                                         M->x[pn[0]], M->y[pn[0]], M->z[pn[0]],
-                                         M->x[pn[1]], M->y[pn[1]], M->z[pn[1]],
-                                         M->x[pn[2]], M->y[pn[2]], M->z[pn[2]],
-                                         EH);
-      
-
-      if (hit) {
-        EH.T = i;
-        point_hit_table[point] = EH;
-        break;
-      }
-
-      // Second triangle
-      hit += geom_ray_triangle_intersect(px, py, pz, qx, qy, qz,
-                                         M->x[pn[0]], M->y[pn[0]], M->z[pn[0]],
-                                         M->x[pn[2]], M->y[pn[2]], M->z[pn[2]],
-                                         M->x[pn[3]], M->y[pn[3]], M->z[pn[3]],
-                                         EH);
-      
-
-      if (hit) {
-        EH.T = i;
-        point_hit_table[point] = EH;
-        break;
-      }
-    }
-
-    // Point must hit!
-    assert(EH.T != -1);
-  }
-
-  // Write edges and intersection points
-  point_hits_write(point_hit_table, S, "edges.dat");
-
-  // Write the intersected faces
-  std::vector<E_Int> ifaces;
-  for (const auto &edge : point_hit_table)
-    ifaces.push_back(FACES[edge.second.T]);
-  
-  Mesh *IF = mesh_make_surface_mesh_from_face_list(M, ifaces);
-  mesh_write(IF, "intersected_faces.dat");
+  mesh_write(MF, "master_patch");
 
   // Make the external faces connectivity
   std::vector<E_Int> fadj, xadj(1, 0);
@@ -314,8 +194,11 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
     E_Int np = -1;
     E_Int *pn = mesh_get_face(face, np, M);
     xadj.push_back(np);
-    for (E_Int i = 0; i < np; i++)
-      fadj.push_back(pn[i]);
+    assert(np == 4);
+    fadj.push_back(pn[0]);
+    fadj.push_back(pn[3]);
+    fadj.push_back(pn[2]);
+    fadj.push_back(pn[1]);
   }
 
   for (auto i = 0; i < FACES.size(); i++) xadj[i+1] += xadj[i];
@@ -323,88 +206,194 @@ PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
   std::vector<E_Int> fneis;
   K_CONNECT::build_face_neighbourhood(fadj, xadj, fneis);
 
+  // Master patch Point-To-Face
+  std::unordered_map<E_Int, std::vector<E_Int>> point_faces;
 
-  /*****************************************************/
+  for (size_t i = 0; i < FACES.size(); i++) {
+    for (E_Int j = xadj[i]; j < xadj[i+1]; j++) {
+      E_Int point = fadj[j];
+      point_faces[point].push_back(i);
+    }
+  }
 
-  // Build the path of each edge on the master surface
-  // Path: all the faces that an edge projection goes through
+  // Make edges
+  std::set<Edge_NO> master_edges;
 
-  std::set<Edge_NO> base_edges;
-
-  std::map<Edge_NO, std::vector<E_Int>> proj_edges_path;
-
-  for (auto face : base_faces) {
-    E_Int np = -1;
-    E_Int *pn = mesh_get_face(face, np, S);
-
-    for (E_Int i = 0; i < np; i++) {
-      E_Int p = pn[i];
-      E_Int q = pn[(i+1)%np];
-
+  for (size_t i = 0; i < FACES.size(); i++) {
+    for (E_Int j = xadj[i]; j < xadj[i+1]; j++) {
+      E_Int p = fadj[j];
+      E_Int q = fadj[(j+1)%4];
       Edge_NO e(p, q);
+      master_edges.insert(e);
+    }
+  }
 
-      if (base_edges.find(e) != base_edges.end())
-        continue;
+  printf("Master edges: %lu\n", master_edges.size());
+
+  // Project points onto master surface
+  std::unordered_map<E_Int, Edge_Hit> point_hit_table;
+
+  for (E_Int i = 0; i < nij; i++) {
+    E_Int p = np[i];
+    E_Int q = p + nij;
+
+    E_Float px = Xs[p];
+    E_Float py = Ys[p];
+    E_Float pz = Zs[p];
+    E_Float qx = Xs[q];
+    E_Float qy = Ys[q];
+    E_Float qz = Zs[q];
+    E_Float dir[3] = {qx-px, qy-py, qz-pz};
+    E_Float NORM = K_MATH::norm(dir, 3);
+    E_Float dx = dir[0] / NORM;
+    E_Float dy = dir[1] / NORM;
+    E_Float dz = dir[2] / NORM;
+
+    // TODO(Imad): improve
+    // For now intersect with all master patch triangles
+
+    Edge_Hit EH;
+    EH.F = -1;
+    EH.T = -1;
+
+    for (size_t fid = 0; fid < FACES.size(); fid++) {
       
-      base_edges.insert(e);
+      E_Int *pn = &fadj[xadj[fid]];
+      E_Int A = pn[0];
+      E_Int B = pn[1];
+      E_Int C = pn[2];
+      E_Int D = pn[3];
 
-      // First time encountering this edge, do it
+      // First triangle ABC
 
-      assert(point_hit_table.find(e.q) != point_hit_table.end());
+      E_Int hit = geom_ray_triangle_intersect(px, py, pz, dx, dy, dz,
+                                         M->x[A], M->y[A], M->z[A],
+                                         M->x[B], M->y[B], M->z[B],
+                                         M->x[C], M->y[C], M->z[C],
+                                         EH);
+      
+      if (hit) {
+        EH.T = 0;
+        EH.F = fid;
 
-      // End point coordinates
-      E_Float proj_qx = point_hit_table[e.q].x;
-      E_Float proj_qy = point_hit_table[e.q].y;
-      E_Float proj_qz = point_hit_table[e.q].z;
+        E_Float u, v, w;
+        u = EH.u;
+        v = EH.v;
+        w = EH.w;
 
-      // Find all the faces that [proj(p), proj(q)] traverses
-      E_Int sf = point_hit_table[e.p].T; // start face
-      E_Int ef = point_hit_table[e.q].T; // end face
+        // Classify hit points P within a triangle ABC:
+        // 1- P is A
+        // 2- P is B
+        // 3- P is C
+        // 4- P in [AB]
+        // 5- P in [BC]
+        // 6- P in [AC]
+        // 7- P inside ABC
 
-      E_Int found = 0;
-
-      proj_edges_path[e].push_back(FACES[sf]);
-
-      // TODO(Imad): this is dangerous, loop might never terminate due to
-      // floating point error...
-
-      while (!found) {
-        E_Int np = -1;
-        E_Int *pn = mesh_get_face(FACES[sf], np, M);
-        // End point lie to the left of all edges to terminate
-
-        E_Int j = 0;
-        for (; j < np; j++) {
-          E_Int P = pn[j];
-          E_Int Q = pn[(j+1)%np];
-
-          if (geom_is_right(M->x[P], M->y[P], M->z[P],
-                            M->x[Q], M->y[Q], M->z[Q],
-                            proj_qx, proj_qy, proj_qz)) {
-            sf = fneis[xadj[sf]+j];
-            proj_edges_path[e].push_back(FACES[sf]);
-            assert(sf != -1);
-            break;
-          }
+        if (FEQ(u, 1) && FEQ(v, 0) && FEQ(w, 0)) {
+          EH.is_vertex = 0;
+        } else if (FEQ(u, 0) && FEQ(v, 1) && FEQ(w, 0)) {
+          EH.is_vertex = 1;
+        } else if (FEQ(u, 0) && FEQ(v, 0) && FEQ(w, 1)) {
+          EH.is_vertex = 2;
+        } else if (!FEQ(u, 0.0) && !FEQ(v, 1.0) && FEQ(w, 0.0)) {
+          // P on AB
+          EH.on_edge = 0;
+        } else if (FEQ(u, 0.0) && !FEQ(v, 1.0) && !FEQ(w, 0.0)) {
+          // P on BC
+          EH.on_edge = 1;
         }
 
-        if (j == np) found = 1;
+        point_hit_table[p] = EH;
+
+        break;
       }
 
-      assert(sf == ef);
+      // First triangle CDA
+
+      hit = geom_ray_triangle_intersect(px, py, pz, dx, dy, dz,
+                                        M->x[C], M->y[C], M->z[C],
+                                        M->x[D], M->y[D], M->z[D],
+                                        M->x[A], M->y[A], M->z[A],
+                                        EH);
+      
+      if (hit) {
+        EH.T = 1;
+        EH.F = fid;
+
+        E_Float u, v, w;
+        u = EH.u;
+        v = EH.v;
+        w = EH.w;
+
+        if (FEQ(u, 1) && FEQ(v, 0) && FEQ(w, 0)) {
+          EH.is_vertex = 2;
+        } else if (FEQ(u, 0) && FEQ(v, 1) && FEQ(w, 0)) {
+          EH.is_vertex = 3;
+        } else if (FEQ(u, 0) && FEQ(v, 0) && FEQ(w, 1)) {
+          EH.is_vertex = 0;
+        } else if (!FEQ(u, 0.0) && !FEQ(v, 1.0) && FEQ(w, 0.0)) {
+          // P on CD
+          EH.on_edge = 2;
+        } else if (FEQ(u, 0.0) && !FEQ(v, 1.0) && !FEQ(w, 0.0)) {
+          // P on DA
+          EH.on_edge = 3;
+        }
+
+        point_hit_table[p] = EH;
+
+        break;
+      }
+    }
+
+    // Point must hit!
+    assert(EH.T != -1);
+    assert(EH.F != -1);
+  }
+
+  point_hits_write(point_hit_table, "hits");
+  puts("ok point hits");
+
+  /***********************************/
+
+  // Master dcel
+  dcel Dm(MF);
+
+  // Slave dcel
+  std::vector<E_Float> X(nij), Y(nij), Z(nij);
+  for (E_Int j = 0; j < nj; j++) {
+    for (E_Int i = 0; i < ni; i++) {
+      E_Int coord = i + ni*j;
+      E_Int p = coord + kshift;
+      const auto &EHp = point_hit_table[p];
+      X[coord] = EHp.x;
+      Y[coord] = EHp.y;
+      Z[coord] = EHp.z;
     }
   }
 
-  for (const auto &path : proj_edges_path) {
-    for (auto face : path.second)
-      printf("%d -> ",  face);
-    puts("");
+  dcel Ds(ni, nj, X, Y, Z);
+
+  dcel D(Dm, Ds);
+
+  D.resolve();
 
 
-    if (path.second.size() == 6) {
-      write_edge_path(M, path.first, path.second, "path.dat");
-    }
-  }
+  PyObject *out = PyList_New(0);
+  PyList_Append(out, tpl);
+  PyList_Append(out, (PyObject *)PL);
+  Py_DECREF(tpl);
+  Py_DECREF(PL);
+  
+  RELEASESHAREDU(MASTER, fm, cnm);
+  RELEASESHAREDS(SLAVE, fs);
+  // TODO(Imad): free M
+  
+  return out;
+}
+
+PyObject *K_XCORE::intersectMesh(PyObject *self, PyObject *args)
+{
 
   return Py_None;
 }
