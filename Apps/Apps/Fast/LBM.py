@@ -157,6 +157,194 @@ def prepare0(t_case, t_out, tc_out, translation=[0.,0.,0.], NP=0, format='single
         C.convertPyTree2File(t, t_out)
     return t, tc
 
+def prepareNonUniform(t_case, t_out, tc_out, zones_dict={}, translation=[0.,0.,0.], NP=0, format='single', NG=1):
+    import Converter.Mpi as Cmpi
+    rank = Cmpi.rank; size = Cmpi.size
+    ret = None
+    # sequential prep for non uniform grids (overset and/or grid refinement)
+    if rank == 0: ret = prepareNonUniform0(t_case, t_out, tc_out, zones_dict, translation, NP, format, NG=NG)
+    return ret
+
+#======================================
+# WORK IN PROGRESS
+#======================================
+def prepareNonUniform0(t_case, t_out, tc_out, zones_dict={}, translation=[0.,0.,0.], NP=0, format='single',NG=1):
+    if isinstance(t_case, str): t = C.convertFile2PyTree(t_case)
+    else: t = t_case
+    #
+    TX = translation[0]; TY = translation[1]; TZ = translation[2]
+    #
+    for i,z in enumerate(Internal.getZones(t)):
+        C._addState(z,'GoverningEquations','LBMLaminar')
+    #
+    zcorners = []
+    for z in Internal.getZones(t):
+        if z[0] in zones_dict.keys():
+            for bord in zones_dict[z[0]]:
+                # Bords droits
+                if bord=='imin':
+                    zdup = T.translate(z,(TX,0.,0.))
+                    C._rmBCOfType(zdup,"BCMatch")
+                    zdupname = C.getZoneName(Internal.getName(zdup)+'_dup')
+                    zdup[0] = zdupname
+                    zcorners.append(zdup)
+                if bord=='imax':
+                    zdup = T.translate(z,(-TX,0.,0.))
+                    C._rmBCOfType(zdup,"BCMatch")
+                    zdupname = C.getZoneName(Internal.getName(zdup)+'_dup')
+                    zdup[0] = zdupname
+                    zcorners.append(zdup)
+                if bord=='jmin':
+                    zdup = T.translate(z,(0.,TY,0.))
+                    C._rmBCOfType(zdup,"BCMatch")
+                    zdupname = C.getZoneName(Internal.getName(zdup)+'_dup')
+                    zdup[0] = zdupname
+                    zcorners.append(zdup)
+                if bord=='jmax':
+                    zdup = T.translate(z,(0.,-TY,0.))
+                    C._rmBCOfType(zdup,"BCMatch")
+                    zdupname = C.getZoneName(Internal.getName(zdup)+'_dup')
+                    zdup[0] = zdupname
+                    zcorners.append(zdup)
+            # Coins 2D
+            if ('imin' in zones_dict[z[0]]) and ('jmin' in zones_dict[z[0]]):
+                zdup = T.translate(z,(TX,TY,0.))
+                C._rmBCOfType(zdup,"BCMatch")
+                zdupname = C.getZoneName(Internal.getName(zdup)+'_dup')
+                zdup[0] = zdupname
+                zcorners.append(zdup)
+            if ('imin' in zones_dict[z[0]]) and ('jmax' in zones_dict[z[0]]):
+                zdup = T.translate(z,(TX,-TY,0.))
+                C._rmBCOfType(zdup,"BCMatch")
+                zdupname = C.getZoneName(Internal.getName(zdup)+'_dup')
+                zdup[0] = zdupname
+                zcorners.append(zdup)
+            if ('imax' in zones_dict[z[0]]) and ('jmin' in zones_dict[z[0]]):
+                zdup = T.translate(z,(-TX,TY,0.))
+                C._rmBCOfType(zdup,"BCMatch")
+                zdupname = C.getZoneName(Internal.getName(zdup)+'_dup')
+                zdup[0] = zdupname
+                zcorners.append(zdup)
+            if ('imax' in zones_dict[z[0]]) and ('jmax' in zones_dict[z[0]]):
+                zdup = T.translate(z,(-TX,-TY,0.))
+                C._rmBCOfType(zdup,"BCMatch")
+                zdupname = C.getZoneName(Internal.getName(zdup)+'_dup')
+                zdup[0] = zdupname
+                zcorners.append(zdup)
+    t[2][1][2]+=zcorners
+    
+    zcorners = []
+    for z in Internal.getZones(t):
+        dx_zone = numpy.abs(C.getValue(z, 'CoordinateX',0)-C.getValue(z, 'CoordinateX',1))
+        dim = Internal.getZoneDim(z); Nz_zone = dim[3] - 2*NG - 1
+        for k in [1,-1]:
+            if k == 1: zdup = T.translate(z,(0.,0.,k*Nz_zone*dx_zone))#-2*dx))
+            elif k==-1: zdup = T.translate(z,(0.,0.,k*Nz_zone*dx_zone))#+2*dx))
+            C._rmBCOfType(zdup,"BCMatch")
+            zdupname = C.getZoneName(Internal.getName(zdup)+'_dupz')
+            zdup[0] = zdupname
+            zcorners.append(zdup)
+    t[2][1][2]+=zcorners
+
+    C._initVars(t,'{centers:cellN}=1.0')
+
+    for z in Internal.getZones(t):
+        flowsol = Internal.getNodeFromName(z,'FlowSolution#Centers')
+        cellN = Internal.getNodeFromName(flowsol,'cellN')[1]
+        if 'dup' not in z[0]:
+            for i in range(2):
+                cellN[i,:,:] = 2.0
+            for i in range(cellN.shape[0]-2,cellN.shape[0]):
+                cellN[i,:,:] = 2.0
+            for j in range(2):
+                cellN[:,j,:] = 2.0
+            for j in range(cellN.shape[1]-2,cellN.shape[1]):
+                cellN[:,j,:] = 2.0
+            for k in range(2):
+                cellN[:,:,k] = 2.0
+            for k in range(cellN.shape[-1]-2,cellN.shape[-1]):
+                cellN[:,:,k] = 2.0
+        else:
+            for i in range(2):
+                cellN[i,:,:] = 0.0
+            for i in range(cellN.shape[0]-2,cellN.shape[0]):
+                cellN[i,:,:] = 0.0
+            for j in range(2):
+                cellN[:,j,:] = 0.0
+            for j in range(cellN.shape[1]-2,cellN.shape[1]):
+                cellN[:,j,:] = 0.0
+            for k in range(2):
+                cellN[:,:,k] = 0.0
+            for k in range(cellN.shape[-1]-2,cellN.shape[-1]):
+                cellN[:,:,k] = 0.0
+    
+    for z in Internal.getZones(t):
+        C._addBC2Zone(z, 'PerioZ', 'BCautoperiod','kmin')
+        C._addBC2Zone(z, 'PerioZ', 'BCautoperiod','kmax')
+        C._addBC2Zone(z, 'PerioY', 'BCautoperiod','jmin')
+        C._addBC2Zone(z, 'PerioY', 'BCautoperiod','jmax')
+        
+    zonesNamesORIG = []
+    for z in Internal.getZones(t):
+        if 'dup' not in z[0]:
+            zonesNamesORIG.append(z[0])
+
+    tc = C.node2Center(t)
+    
+    # Raccords
+    for z in Internal.getZones(t):
+        if z[0] not in zonesNamesORIG:
+            t = Internal.rmNodesByName(t, z[0])
+
+    X._setInterpData(t, tc, order=3,nature=1, loc='centers', storage='inverse',sameName=1, dim=3)#, itype='chimera')
+
+    # # to check orphans
+    # t = X.getOversetInfo(t, tc, loc='center',type='extrapolated')
+    # # z = X.getOversetInfo(z, dnrZones, loc='center',type='orphan')
+
+    for z in Internal.getZones(tc):
+        if z[0] not in zonesNamesORIG:
+            parentz,noz = Internal.getParentOfNode(tc,z)
+            zdnames = z[0].split('_')
+            znameorig = zdnames[0]
+            zorig = Internal.getNodeFromNameAndType(tc,znameorig,'Zone_t')
+            IDS = Internal.getNodesFromType(z,'ZoneSubRegion_t')
+            for ID in IDS:
+                ID_orig = Internal.getNodeFromNameAndType(zorig,ID[0],'ZoneSubRegion_t')
+                if ID_orig is None:
+                    zorig[2].append(ID)
+                else:
+                    PL_NEW  = Internal.getNodeFromName(ID,'PointList')
+                    PL_ORIG = Internal.getNodeFromName(ID_orig,'PointList')
+                    PL_ORIG[1] = numpy.concatenate((PL_ORIG[1],PL_NEW[1]))
+
+                    PLD_NEW = Internal.getNodeFromName(ID,'PointListDonor')
+                    PLD_ORIG = Internal.getNodeFromName(ID_orig,'PointListDonor')
+                    PLD_ORIG[1] = numpy.concatenate((PLD_ORIG[1],PLD_NEW[1]))
+
+                    COEF_NEW = Internal.getNodeFromName(ID,'InterpolantsDonor')
+                    COEF_ORIG = Internal.getNodeFromName(ID_orig,'InterpolantsDonor')
+                    COEF_ORIG[1] = numpy.concatenate((COEF_ORIG[1],COEF_NEW[1]))
+
+                    TYPE_NEW = Internal.getNodeFromName(ID,'InterpolantsType')
+                    TYPE_ORIG = Internal.getNodeFromName(ID_orig,'InterpolantsType')
+                    TYPE_ORIG[1] = numpy.concatenate((TYPE_ORIG[1],TYPE_NEW[1]))
+
+            del parentz[2][noz]
+            # t = Internal.rmNodesByName(t, z[0])
+
+    Internal._rmNodesFromType(tc,"GridCoordinates_t")
+
+    for z in Internal.getZones(t):
+        rindplanes = [2,2,2,2,2,2]
+        Internal.createChild(z, 'ZoneRind', 'Rind_t',value=rindplanes, children=[])
+
+    for z in Internal.getZones(tc):
+        rindplanes = [2,2,2,2,2,2]
+        Internal.createChild(z, 'ZoneRind', 'Rind_t',value=rindplanes, children=[])
+
+    return t, tc
+
 #====================================================================================
 class LBM(Common):
     """Preparation et caculs avec le module FastLBM."""
@@ -172,4 +360,12 @@ class LBM(Common):
         #if NP == 0: print('Preparing for a sequential computation.')
         #else: print('Preparing for a computation on %d processors.'%NP)
         ret = prepare(t_case, t_out, tc_out, translation=translation, NP=NP, format=self.data['format'],NG=NG)
+        return ret
+    
+    # Prepare for non uniform grids (overset and/or grid refinement)
+    def prepareNonUniform(self, t_case, t_out=None, tc_out=None, NP=0, zones_dict={}, translation=[0.,0.,0.],NG=1):
+        #if NP is None: NP = Cmpi.size
+        #if NP == 0: print('Preparing for a sequential computation.')
+        #else: print('Preparing for a computation on %d processors.'%NP)
+        ret = prepareNonUniform(t_case, t_out, tc_out, zones_dict=zones_dict, translation=translation, NP=NP, format=self.data['format'],NG=NG)
         return ret

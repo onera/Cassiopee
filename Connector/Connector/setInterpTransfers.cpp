@@ -1095,13 +1095,18 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
             if (nvars_loc == 11) {solver_R =4;}
             if (nvars_loc == -5) {solver_D =4; nvars_loc = 5;}
             if (nvars_loc == 19) {solver_D =4; solver_R=4;}
+            if (nvars_loc == 27) {solver_D =4; solver_R=4;}
 
             E_Int overset  =  ipt_param_intR[NoD][LBM_OVERSET];        //flag pour overset en LBM
             if      (nvars_loc==19 && overset==0) nvars_loc = nvars_loc + 5;
             else if (nvars_loc==27 && overset==0) nvars_loc = nvars_loc + 5;
             else if (nvars_loc==19 && overset==1) nvars_loc = nvars_loc + 5 + 6 + 6;
+            else if (nvars_loc==27 && overset==1) nvars_loc = nvars_loc + 5 + 6 + 6;
             // cout << nvars_loc << endl;
             // printf("irac=  %d, nvar/nvar_loc= %d %d,  ithread= %d  solverDR %d %d \n",irac , nvars,nvars_loc, ithread,  solver_D, solver_R);
+
+            E_Int levelD   = ipt_param_intR[NoD][LEVEL];
+            E_Int levelR   = ipt_param_intR[NoR][LEVEL];
 
             E_Int meshtype = ipt_ndimdxD[NoD + nidomD*6];
             E_Int cnNfldD  = ipt_ndimdxD[NoD + nidomD*7];
@@ -1158,7 +1163,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
                             vectOfDnrFields[eq] = ipt_SD[ NoD] + (eq-5)*ipt_param_intR[ NoD][ NDIMDX ];
                           }
                         }
-                        else if (nvars_loc == 36 ) // //Transfert LBM  overset   
+                        else if (nvars_loc == 36 || nvars_loc == 44) // //Transfert LBM  overset   
                         {
                           // On commence par copier les 5 variables macros
                           for (E_Int eq = 0; eq < 5; eq++)
@@ -1282,7 +1287,23 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
               }
             }
             
+            // =============================================================
+            // RAFFINEMENT DE MAILLAGE LBM/LBM
+            // =============================================================
+            if (solver_D==4 && solver_R==4 && levelD > levelR)
+            {
+#             include "includeTransfers_coarse2fine_LBM.h"
+            }
+            else if (solver_D == 4 && solver_R == 4 && levelD < levelR)
+            {
+#             include "includeTransfers_fine2coarse_LBM.h"
+            }
+            // =============================================================
+
+            // =============================================================
             // COUPLAGE NS-LBM: changement d'unite
+            // =============================================================
+            // Code que pour le cas D3Q19 pour le moment, a adapter au 27
             if (solver_D==4 && solver_R<4)
             {
               // Transfert LBM vers NS: repasse dans unites SI
