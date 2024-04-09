@@ -228,7 +228,7 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     }
   }
 
-  printf("Master edges: %lu\n", master_edges.size());
+  printf("Master edges: %zu\n", master_edges.size());
 
   // Project points onto master surface
   std::unordered_map<E_Int, Edge_Hit> point_hit_table;

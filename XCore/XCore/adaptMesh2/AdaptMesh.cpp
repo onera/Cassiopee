@@ -33,7 +33,7 @@ PyObject *K_XCORE::AdaptMesh(PyObject *self, PyObject *args)
 
   get_ref_faces_and_cells(M, ref_faces, ref_cells);
 
-  printf("%d -> nref_cells: %ld - nref_faces: %ld\n", M->pid, ref_cells.size(),
+  printf("%d -> nref_cells: %zu - nref_faces: %zu\n", M->pid, ref_cells.size(),
     ref_faces.size());
   
   M->prev_ncells = M->ncells;

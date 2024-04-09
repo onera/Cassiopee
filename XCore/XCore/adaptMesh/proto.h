@@ -20,6 +20,8 @@
 #define PROTO_H
 
 #include "struct.h"
+#include <array>
+#include <vector> 
 
 /* distribute */
 mesh *redistribute_mesh(mesh *);

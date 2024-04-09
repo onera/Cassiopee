@@ -132,7 +132,7 @@ event *event_delete(event *root, point *p)
     if (cmp == -1) {
       root->right = event_delete(root->right, p);
       return root;
-    } else if (cmp == 1) {
+    } else {
       root->left = event_delete(root->left, p);
       return root;
     }

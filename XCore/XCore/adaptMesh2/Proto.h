@@ -3,6 +3,9 @@
 
 #include "Struct.h"
 #include "../common/mem.h"
+#include <array>
+#include <vector> 
+#include <map>
 
 // Mesh
 AMesh *init_mesh(K_FLD::FldArrayI& cn, E_Float *px, E_Float *py, E_Float *pz,

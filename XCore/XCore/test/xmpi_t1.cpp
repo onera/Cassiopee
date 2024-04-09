@@ -37,7 +37,8 @@ namespace xcore
 			if ( rk == 0 ) { 
 				token = tokenref;
 				comm.send(token, 1);
-				xcore::status st = comm.recv(token, np-1);
+				//xcore::status st = 
+                comm.recv(token, np-1);
 			} else
 			{
 				comm.recv(token,rk-1);
