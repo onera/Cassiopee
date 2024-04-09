@@ -778,11 +778,12 @@ def _setInterpData(t, tc):
       
       # Update connectivity tree using newly inserted indices in current face
       # (receiver) and their corresponding indices in opposite face (donor)
+      # Info stored in donor face, so receiver/donor roles are switched
       ptList = ptList[-len(ptListDonor):]
       print("      * ptList: {}".format(ptList))
       print("      * ptListDonor: {}".format(ptListDonor))
-      _updateConnectivityTree(tc, name=faceName, donorName=faceOppName,
-                              ptList=ptList, ptListDonor=ptListDonor)
+      _updateConnectivityTree(tc, name=faceOppName, nameDonor=faceName,
+                              ptList=ptListDonor, ptListDonor=ptList)
   return None
 
 # Retourne l'edge a partir de edgeNo (numero global CAD)
@@ -908,25 +909,24 @@ def _addOppFaceData2Face(z, zOpp, ptList, rgEdge):
   dims[1] = ntotElts
   return None
 
-# Update connectivity tree tc of receiver face `name` using data from opposite
-# face `donorName` (in place)
-def _updateConnectivityTree(tc, name, donorName, ptList, ptListDonor):
+# Update connectivity tree tc of donor face `nameDonor` using data from
+# the opposite/receiver face `name` (in place)
+def _updateConnectivityTree(tc, name, nameDonor, ptList, ptListDonor):
   bf = Internal.getNodeFromName1(tc, 'Base')
-  z = Internal.getNodeFromName1(bf, name)
+  z = Internal.getNodeFromName1(bf, nameDonor)
   if z is None:
-    z = Internal.createNode(name, 'Zone_t', value=[0,0,0], parent=bf)
+    z = Internal.createNode(nameDonor, 'Zone_t', value=[0,0,0], parent=bf)
   Internal.createNode('ZoneType', 'ZoneType_t', value='Unstructured', parent=z)
 
-  zsr = Internal.createNode('ID_'+donorName, 'ZoneSubRegion_t',
-                            value=donorName, parent=z)
+  zsr = Internal.createNode('ID_'+name, 'ZoneSubRegion_t', value=name, parent=z)
   Internal.createNode('ZoneRole', 'DataArray_t', value='Donor', parent=zsr)
   Internal.createNode('GridLocation', 'GridLocation_t', value='Vertex', parent=zsr)
   
-  npts = len(ptListDonor)
+  npts = len(ptList)
   # indices des points receveur
-  Internal.createNode('PointList', 'IndexArray_t', value=ptList, parent=zsr)
+  Internal.createNode('PointList', 'IndexArray_t', value=ptListDonor, parent=zsr)
   # indices des points donneur
-  Internal.createNode('PointListDonor', 'IndexArray_t', value=ptListDonor, parent=zsr) 
+  Internal.createNode('PointListDonor', 'IndexArray_t', value=ptList, parent=zsr)
   # coefficient a 1 (injection)
   data = numpy.ones((npts), dtype=numpy.float64)
   Internal.createNode('InterpolantsDonor', 'DataArray_t', value=data, parent=zsr)
