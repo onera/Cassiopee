@@ -3970,13 +3970,13 @@ def _addBC2NGonZone__(z, bndName, bndType, faceList, data, subzone,
   # elif bndType1 == 'BCOverlap':
   #   # Cree le noeud zoneGridConnectivity si besoin
   #   zoneGC = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
-  #   if (zoneGC == []):
+  #   if zoneGC == []:
   #     z[2].append(['ZoneGridConnectivity', None, [], 'ZoneGridConnectivity_t'])
   #     zoneGC = z[2][len(z[2])-1]
   #   else:
   #     zoneGC = zoneGC[0]
   #   # Cree le noeud de GC
-  #   if (zoneDonor == []):
+  #   if zoneDonor == []:
   #     # autoattach
   #     v = numpy.fromstring(z[0], 'c')
   #     zoneGC[2].append([bndName, v, [], 'GridConnectivity_t'])

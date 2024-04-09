@@ -213,7 +213,7 @@ def addNormalLayers2(t, tc, distrib, niter=0, eps=0.4):
         z1[1] = fz.ravel('k')
 
         # modify strand grid dimensions
-        dim = z[1]; dim[0] = fx.size
+        dim = z[1]; dim[0,0] = fx.size
 
     return strand
 
