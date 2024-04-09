@@ -27,13 +27,9 @@ PyObject* K_GENERATOR::computeEta(PyObject* self, PyObject* args)
 {
   PyObject *arrayc, *arrayn;
   E_Int loop, niter;
-#ifdef E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "OOll", &arrayc, &arrayn, &niter, &loop)) 
-    return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "OOii", &arrayc, &arrayn, &niter, &loop)) 
-    return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, OO_ II_,
+                    &arrayc, &arrayn, &niter, &loop)) return NULL;
+
   // Check array of contour
   E_Int ni, nj, nk;
   FldArrayF* coords; FldArrayI* cn;
@@ -367,7 +363,7 @@ void K_GENERATOR::relaxNearConstraints(
   {
     E_Int ip = i+1;
     E_Int found = 0;
-    for (unsigned int noj = 0; noj < constrainedPts.size(); noj++)
+    for (size_t noj = 0; noj < constrainedPts.size(); noj++)
     {
       E_Int j = constrainedPts[noj];
       if ( i == j ) {found = 1; break;}

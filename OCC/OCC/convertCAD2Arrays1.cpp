@@ -48,22 +48,8 @@ PyObject* K_OCC::convertCAD2Arrays1(PyObject* self, PyObject* args)
   E_Float h, chordal_err, gr(-1.);
   E_Int do_join(1);
 
-#if defined E_DOUBLEREAL
-#if defined E_DOUBLEINT
-  const char* fm = "ssdddl";
-#else
-  const char* fm = "ssdddi";
-#endif
-#else
-#if defined E_DOUBLEINT
-  const char* fm = "ssfffl";
-#else
-  const char* fm = "ssfffi";
-#endif
-#endif
-
-  if (!PyArg_ParseTuple(args, fm, &fileName, &fileFmt, &h, &chordal_err, &gr, &do_join)) return NULL;
-
+  if (!PYPARSETUPLE_(args, SS_ RRR_ I_, &fileName, &fileFmt, &h, &chordal_err,
+                    &gr, &do_join)) return NULL;
 
   // Check recognised formats
   if (K_STRING::cmp(fileFmt, "fmt_iges") != 0 && K_STRING::cmp(fileFmt, "fmt_step") != 0)
@@ -158,7 +144,7 @@ E_Int K_OCC::CADread
      connect[i] = cnt;
     
      char* zoneName = new char [128];
-     sprintf(zoneName, "Zone%ld", i);
+     sprintf(zoneName, "Zone%zu", i);
 
     E_Int row = connectMs[i].rows();
 

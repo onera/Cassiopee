@@ -59,15 +59,8 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
   E_Float x0;
   E_Int verbose;
 
-#if defined E_DOUBLEREAL && defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Odd(ll)l", &array, &x0, &eh, &supp, &add, &verbose)) return NULL;
-#elif defined E_DOUBLEREAL && !defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Odd(ii)i", &array, &x0, &eh, &supp, &add, &verbose)) return NULL;
-#elif !defined E_DOUBLEREAL && defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Off(ll)l", &array, &x0, &eh, &supp, &add, &verbose)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Off(ii)i", &array, &x0, &eh, &supp, &add, &verbose)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, O_ RR_ TII_ I_,
+                    &array, &x0, &eh, &supp, &add, &verbose)) return NULL;
 
   bool isVerbose = (verbose == 1) ? true : false;
 
@@ -114,7 +107,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
     {
       char msg[256];
       sprintf(msg,
-              "enforceX (x0=%f, eh=%f): cannot find hl in distrib, stopped.",
+              "enforceX (x0=" SF_F_ ", eh=" SF_F_ "): cannot find hl in distrib, stopped.",
               x0, eh);
       PyErr_SetString(PyExc_TypeError, msg);
       return NULL;
@@ -123,7 +116,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
     {
       char msg[256];
       sprintf(msg,
-              "enforceX (x0=%f, eh=%f): line to enforce is in the first cell of distribution. \n=> use enforcePlusX to enforce this mesh.", x0, eh);
+              "enforceX (x0=" SF_F_ ", eh=" SF_F_ "): line to enforce is in the first cell of distribution. \n=> use enforcePlusX to enforce this mesh.", x0, eh);
       PyErr_SetString(PyExc_TypeError, msg);
       return NULL;
     }
@@ -131,7 +124,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
     {
       char msg[256];
       sprintf(msg,
-              "enforceX (x0=%f, eh=%f): line to enforce is in the last cell of distribution. \n=> use enforceMoinsX to enforce this mesh.", x0, eh);
+              "enforceX (x0=" SF_F_ ", eh=" SF_F_ "): line to enforce is in the last cell of distribution. \n=> use enforceMoinsX to enforce this mesh.", x0, eh);
       PyErr_SetString(PyExc_TypeError, msg);
       return NULL;
     }
@@ -139,7 +132,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
     {
       char msg[256];
       sprintf(msg,
-              "enforceX (x0=%f, eh=%f): overlapping around node 1.\n=> decrease eh or increase hl or enforce initial mesh.", x0, eh);
+              "enforceX (x0=" SF_F_ ", eh=" SF_F_ "): overlapping around node 1.\n=> decrease eh or increase hl or enforce initial mesh.", x0, eh);
       PyErr_SetString(PyExc_TypeError, msg);
       return NULL;
     }
@@ -147,7 +140,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
     {
       char msg[256];
       sprintf(msg,
-              "enforceX (x0=%f, eh=%f): overlapping around node ni-2.\n=> decrease eh or decrease hl.\n", x0, eh);
+              "enforceX (x0=" SF_F_ ", eh=" SF_F_ "): overlapping around node ni-2.\n=> decrease eh or decrease hl.\n", x0, eh);
       PyErr_SetString(PyExc_TypeError,
                       msg);
       return NULL;
@@ -176,8 +169,8 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
       if (isVerbose)
       {
         MSGX;
-        printf("cannot suppress %d points on left side.\n", supp);
-        printf("supp set to %d on left side.\n", suppl);
+        printf("cannot suppress " SF_D_ " points on left side.\n", supp);
+        printf("supp set to " SF_D_ " on left side.\n", suppl);
       }
     }
     if (supp > ni-1-il-1)
@@ -186,8 +179,8 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
       if (isVerbose)
       {
         MSGX;
-        printf("cannot suppress %d points on right side.\n", supp);
-        printf("supp set to %d on right side.\n", suppr);
+        printf("cannot suppress " SF_D_ " points on right side.\n", supp);
+        printf("supp set to " SF_D_ " on right side.\n", suppr);
       }
     }
     while ((suppl+add < 2) || (suppr+add < 2))
@@ -199,7 +192,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
     {
       MSGX;
       printf("supp+add < 2.\n");
-      printf("   => add set to: %d.\n", add);
+      printf("   => add set to: " SF_D_ ".\n", add);
     }
     pb = false;
     if (add == 0) // add = 0 => risque de probleme sur la croissance ou decroissance des tailles de maille
@@ -209,7 +202,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
       {
         MSGX;
         printf("add = 0 => problems will occur on step-size.\n");
-        printf("   => add set to: %d.\n", add);
+        printf("   => add set to: " SF_D_ ".\n", add);
       }
     }
 
@@ -232,14 +225,14 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
       if (eh > deltal)
       {
         MSGX;
-        printf("add = %d > 0  while eh = %f ",add,eh);
-        printf("is greater than the first step on left side = %f.\n", deltal);
+        printf("add = " SF_D_ " > 0  while eh = " SF_F_ " ",add,eh);
+        printf("is greater than the first step on left side = " SF_F_ ".\n", deltal);
       }
       if (eh > deltar)
       {
         MSGX;
-        printf("add = %d > 0  while eh = %f ",add,eh);
-        printf("is greater than the first step on right side = %f.\n", deltar);
+        printf("add = " SF_D_ " > 0  while eh = " SF_F_ " ",add,eh);
+        printf("is greater than the first step on right side = " SF_F_ ".\n", deltar);
       }
     }
     if (add < 0 && isVerbose)
@@ -247,14 +240,14 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
       if (eh < deltal)
       {
         MSGX;
-        printf("add = %d < 0  while eh = %f ",add,eh);
-        printf("is lower than the first step on left side = %f.\n", deltal);
+        printf("add = " SF_D_ " < 0  while eh = " SF_F_ " ",add,eh);
+        printf("is lower than the first step on left side = " SF_F_ ".\n", deltal);
       }
       if (eh < deltar)
       {
         MSGX;
-        printf("add = %d < 0  while eh = %f ",add,eh);
-        printf("is lower than the last step on right side = %f.\n", deltar);
+        printf("add = " SF_D_ " < 0  while eh = " SF_F_ " ",add,eh);
+        printf("is lower than the last step on right side = " SF_F_ ".\n", deltar);
       }
     }
 
@@ -283,7 +276,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
       {
         MSGX;
         printf("non-decreasing step-size in left-distribution.\n");
-        printf("   => Please change add = %d or eh  = %f.\n", add, eh);
+        printf("   => Please change add = " SF_D_ " or eh  = " SF_F_ ".\n", add, eh);
       }
     }
     // Verification de la distribution : croissance des tailles de maille a gauche si add < 0
@@ -301,7 +294,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
       {
         MSGX;
         printf("non-increasing step-size in left-distribution.\n");
-        printf("   => Please change add = %d or eh = %f.\n", add, eh);
+        printf("   => Please change add = " SF_D_ " or eh = " SF_F_ ".\n", add, eh);
       }
     }
     pb = false;
@@ -325,7 +318,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
       {
         MSGX;
         printf("non-increasing step-size in right-distribution.\n");
-        printf("   => Please change add = %d or eh = %f.\n", add, eh);
+        printf("   => Please change add = " SF_D_ " or eh = " SF_F_ ".\n", add, eh);
       }
     }
     // Verification de la distribution : decroissance des tailles de maille a droite si add < 0
@@ -343,7 +336,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
       {
         MSGX;
         printf("non-decreasing step-size in right-distribution.\n");
-        printf("   => Please change add = %d or eh  = %f.\n", add, eh);
+        printf("   => Please change add = " SF_D_ " or eh  = " SF_F_ ".\n", add, eh);
       }
     }
     pb = false;
@@ -411,7 +404,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
           {
             MSGX;
             printf("X coordinates are not increasing:\n");
-            printf("   X(%d) = %f and X(%d) = %f.\n",
+            printf("   X(" SF_D_ ") = " SF_F_ " and X(" SF_D_ ") = " SF_F_ ".\n",
                    i, coord2(ind,1), i+1, coord2(ind2,1));
           }
           pb = true;
@@ -419,7 +412,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
       }
     if (pb == true && isVerbose)
     {
-      printf("      => Please change add = %d or supp = %d or eh  = %f.\n",
+      printf("      => Please change add = " SF_D_ " or supp = " SF_D_ " or eh  = " SF_F_ ".\n",
              add, supp, eh);
     }
     pb = false;
@@ -430,7 +423,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
     {
       MSGX;
       printf("eh different from the specified value.\n");
-      printf("in new distribution, eh = %f.\n", ehr+eh);
+      printf("in new distribution, eh = " SF_F_ ".\n", ehr+eh);
     }
 
     jc++;
@@ -488,15 +481,8 @@ PyObject* K_GENERATOR::enforcePlusXMesh(PyObject* self, PyObject* args)
   E_Float eh, ehr;    // enforce length
   E_Int verbose;
 
-#if defined E_DOUBLEREAL && defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Od(ll)l", &array, &eh, &supp, &add, &verbose)) return NULL;
-#elif defined E_DOUBLEREAL && !defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Od(ii)i", &array, &eh, &supp, &add, &verbose)) return NULL;
-#elif !defined E_DOUBLEREAL && defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Of(ll)l", &array, &eh, &supp, &add, &verbose)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Of(ii)i", &array, &eh, &supp, &add, &verbose)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, O_ R_ TII_ I_,
+                    &array, &eh, &supp, &add, &verbose)) return NULL;
 
   bool isVerbose = (verbose == 1) ? true : false;
 
@@ -538,7 +524,7 @@ PyObject* K_GENERATOR::enforcePlusXMesh(PyObject* self, PyObject* args)
       {
         MSGPLUSX;
         printf("supp <= 0.\n");
-        printf("   =>supp set to: %d.\n", supp);
+        printf("   =>supp set to: " SF_D_ ".\n", supp);
       }
     }
     if (supp > ni-2)
@@ -547,8 +533,8 @@ PyObject* K_GENERATOR::enforcePlusXMesh(PyObject* self, PyObject* args)
       if (isVerbose)
       {
         MSGPLUSX;
-        printf("cannot suppress %d points.\n", supp);
-        printf("   =>supp set to: %d.\n", supp);
+        printf("cannot suppress " SF_D_ " points.\n", supp);
+        printf("   =>supp set to: " SF_D_ ".\n", supp);
       }
     }
     iend = istart + supp + 1 ;
@@ -558,8 +544,8 @@ PyObject* K_GENERATOR::enforcePlusXMesh(PyObject* self, PyObject* args)
       if (isVerbose)
       {
         MSGPLUSX;
-        printf("supp+add=%d < 2.\n", supp+add);
-        printf("   => add set to: %d.\n", add);
+        printf("supp+add=" SF_D_ " < 2.\n", supp+add);
+        printf("   => add set to: " SF_D_ ".\n", add);
       }
     }
     if (add == 0) // add=0 => risque de probleme sur la croissance ou decroissance des tailles de maille
@@ -569,7 +555,7 @@ PyObject* K_GENERATOR::enforcePlusXMesh(PyObject* self, PyObject* args)
       {
         MSGPLUSX;
         printf("add=0 => problems will occur on step-size.\n");
-        printf("   => add set to: %d.\n", add);
+        printf("   => add set to: " SF_D_ ".\n", add);
       }
     }
 
@@ -595,8 +581,8 @@ PyObject* K_GENERATOR::enforcePlusXMesh(PyObject* self, PyObject* args)
         if (eh > delta1)
         {
           MSGPLUSX;
-          printf("   add=%d >= 0 while eh=%f", add, eh);
-          printf(" is greater than the last step=%f.\n", delta1);
+          printf("   add=" SF_D_ " >= 0 while eh=" SF_F_ "", add, eh);
+          printf(" is greater than the last step=" SF_F_ ".\n", delta1);
         }
       }
       if (add < 0)
@@ -604,8 +590,8 @@ PyObject* K_GENERATOR::enforcePlusXMesh(PyObject* self, PyObject* args)
         if (eh < delta1)
         {
           MSGPLUSX;
-          printf("   add=%d <= 0 while eh=%f", add, eh);
-          printf(" is lower than the last step=%f.\n",  delta1);
+          printf("   add=" SF_D_ " <= 0 while eh=" SF_F_ "", add, eh);
+          printf(" is lower than the last step=" SF_F_ ".\n",  delta1);
         }
       }
     }
@@ -625,15 +611,15 @@ PyObject* K_GENERATOR::enforcePlusXMesh(PyObject* self, PyObject* args)
         {
           MSGPLUSX;
           printf("X coordinates are not increasing:\n");
-          printf("   X(%d) = %f", i, sn1[i]);
-          printf("   X(%d) = %f.\n", i+1, sn1[i+1]);
+          printf("   X(" SF_D_ ") = " SF_F_ "", i, sn1[i]);
+          printf("   X(" SF_D_ ") = " SF_F_ ".\n", i+1, sn1[i+1]);
         }
       }
     }
 
     if (pb == true && isVerbose)
     {
-      printf("      => Please change add=%d or eh=%f.\n", add, eh);
+      printf("      => Please change add=" SF_D_ " or eh=" SF_F_ ".\n", add, eh);
     }
 
     // Verification de la distribution : croissance des tailles de maille si add > 0
@@ -651,7 +637,7 @@ PyObject* K_GENERATOR::enforcePlusXMesh(PyObject* self, PyObject* args)
       {
         MSGPLUSX;
         printf("non-increasing step-size in distribution.\n");
-        printf("   => Please change add=%d or eh=%f.\n", add, eh);
+        printf("   => Please change add=" SF_D_ " or eh=" SF_F_ ".\n", add, eh);
       }
     }
 
@@ -670,7 +656,7 @@ PyObject* K_GENERATOR::enforcePlusXMesh(PyObject* self, PyObject* args)
       {
         MSGPLUSX;
         printf("non-decreasing step-size in distribution.\n");
-        printf("   => Please change add=%d or eh=%f.\n", add, eh);
+        printf("   => Please change add=" SF_D_ " or eh=" SF_F_ ".\n", add, eh);
       }
     }
 
@@ -706,14 +692,14 @@ PyObject* K_GENERATOR::enforcePlusXMesh(PyObject* self, PyObject* args)
           {
             MSGPLUSX;
             printf("X coordinates are not increasing:\n");
-            printf("   X(%d) = %f", i, coord(ind,1));
-            printf("   X(%d) = %f.\n", i+1, coord(ind2,1));
+            printf("   X(" SF_D_ ") = " SF_F_ "", i, coord(ind,1));
+            printf("   X(" SF_D_ ") = " SF_F_ ".\n", i+1, coord(ind2,1));
           }
         }
       }
     if (pb == true and isVerbose)
     {
-      printf("      => Please change add=%d or supp=%d or eh=%f.\n", add, supp, eh);
+      printf("      => Please change add=" SF_D_ " or supp=" SF_D_ " or eh=" SF_F_ ".\n", add, supp, eh);
     }
     pb = false;
 
@@ -723,7 +709,7 @@ PyObject* K_GENERATOR::enforcePlusXMesh(PyObject* self, PyObject* args)
     {
       MSGPLUSX;
       printf("eh different from the specified value.\n");
-      printf("   in new distribution, eh=%f.\n", coord(1,1)-coord(0,1));
+      printf("   in new distribution, eh=" SF_F_ ".\n", coord(1,1)-coord(0,1));
     }
 
     jc++;
@@ -779,15 +765,8 @@ PyObject* K_GENERATOR::enforceMoinsXMesh(PyObject* self, PyObject* args)
   E_Float eh, ehr;    // enforce height
   E_Int verbose;
 
-#if defined E_DOUBLEREAL && defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Od(ll)l", &array, &eh, &supp, &add, &verbose)) return NULL;
-#elif defined E_DOUBLEREAL && !defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Od(ii)i", &array, &eh, &supp, &add, &verbose)) return NULL;
-#elif !defined E_DOUBLEREAL && defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Of(ll)l", &array, &eh, &supp, &add, &verbose)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Of(ii)i", &array, &eh, &supp, &add, &verbose)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, O_ R_ TII_ I_,
+                    &array, &eh, &supp, &add, &verbose)) return NULL;
 
   bool isVerbose = (verbose == 1) ? true : false;
 
@@ -828,7 +807,7 @@ PyObject* K_GENERATOR::enforceMoinsXMesh(PyObject* self, PyObject* args)
       {
         MSGMOINSX;
         printf("supp <= 0.\n");
-        printf("   =>supp set to: supp=%d.\n", supp);
+        printf("   =>supp set to: supp=" SF_D_ ".\n", supp);
       }
     }
     if (supp > ni-2)
@@ -837,8 +816,8 @@ PyObject* K_GENERATOR::enforceMoinsXMesh(PyObject* self, PyObject* args)
       if (isVerbose)
       {
         MSGMOINSX;
-        printf("cannot suppress %d points.\n", supp);
-        printf("   =>supp set to: supp=%d.\n", supp);
+        printf("cannot suppress " SF_D_ " points.\n", supp);
+        printf("   =>supp set to: supp=" SF_D_ ".\n", supp);
       }
     }
     istart = iend - supp - 1;
@@ -848,8 +827,8 @@ PyObject* K_GENERATOR::enforceMoinsXMesh(PyObject* self, PyObject* args)
       if (isVerbose)
       {
         MSGMOINSX;
-        printf("supp+add=%d < 2.\n", supp+add);
-        printf("   => add set to: add=%d.\n", add);
+        printf("supp+add=" SF_D_ " < 2.\n", supp+add);
+        printf("   => add set to: add=" SF_D_ ".\n", add);
       }
     }
     if (add == 0) // add = 0 => risque de probleme sur la croissance ou decroissance des tailles de maille
@@ -859,7 +838,7 @@ PyObject* K_GENERATOR::enforceMoinsXMesh(PyObject* self, PyObject* args)
       {
         MSGMOINSX;
         printf("add=0 => problems will occur on step-size.\n");
-        printf("   => add set to: add=%d.\n", add);
+        printf("   => add set to: add=" SF_D_ ".\n", add);
       }
     }
 
@@ -887,7 +866,7 @@ PyObject* K_GENERATOR::enforceMoinsXMesh(PyObject* self, PyObject* args)
         if (eh > delta1)
         {
           MSGMOINSX;
-          printf("   add=%d > 0 while eh=%f is greater than the last step=%f.\n", add, eh, delta1);
+          printf("   add=" SF_D_ " > 0 while eh=" SF_F_ " is greater than the last step=" SF_F_ ".\n", add, eh, delta1);
         }
       }
       if (add < 0)
@@ -895,7 +874,7 @@ PyObject* K_GENERATOR::enforceMoinsXMesh(PyObject* self, PyObject* args)
         if (eh < delta1)
         {
           MSGMOINSX;
-          printf("   add=%d < 0  while eh=%f is lower than the last step=%f.\n", add, eh, delta1);
+          printf("   add=" SF_D_ " < 0  while eh=" SF_F_ " is lower than the last step=" SF_F_ ".\n", add, eh, delta1);
         }
       }
     }
@@ -922,7 +901,7 @@ PyObject* K_GENERATOR::enforceMoinsXMesh(PyObject* self, PyObject* args)
       {
         MSGMOINSX;
         printf("Non-decreasing step-size in distribution.\n");
-        printf("   => Please change add=%d or eh=%f.\n", add, eh);
+        printf("   => Please change add=" SF_D_ " or eh=" SF_F_ ".\n", add, eh);
       }
     }
 
@@ -941,7 +920,7 @@ PyObject* K_GENERATOR::enforceMoinsXMesh(PyObject* self, PyObject* args)
       {
         MSGMOINSX;
         printf("non-increasing step-size in distribution.\n");
-        printf("   => Please change add=%d or eh=%f.\n", add, eh);
+        printf("   => Please change add=" SF_D_ " or eh=" SF_F_ ".\n", add, eh);
       }
     }
 
@@ -977,17 +956,17 @@ PyObject* K_GENERATOR::enforceMoinsXMesh(PyObject* self, PyObject* args)
           {
             MSGMOINSX;
             printf("X coordinates are not increasing:\n");
-            printf("   X(%d) = %f", i, coord(ind,1));
-            printf("   X(%d) = %f.\n", i+1, coord(ind2,1));
+            printf("   X(" SF_D_ ") = " SF_F_ "", i, coord(ind,1));
+            printf("   X(" SF_D_ ") = " SF_F_ ".\n", i+1, coord(ind2,1));
           }
           pb = true;
         }
       }
     if (isVerbose && pb == true)
     {
-      printf("      => Please change add=%d.\n", add);
-      printf("      => or supp=%d.\n", supp);
-      printf("      => or eh=%f.\n", eh);
+      printf("      => Please change add=" SF_D_ ".\n", add);
+      printf("      => or supp=" SF_D_ ".\n", supp);
+      printf("      => or eh=" SF_F_ ".\n", eh);
     }
     pb = false;
 
@@ -997,7 +976,7 @@ PyObject* K_GENERATOR::enforceMoinsXMesh(PyObject* self, PyObject* args)
     {
       MSGMOINSX;
       printf("eh different from the specified value.\n");
-      printf("   in new distribution, eh=%f.\n", coord(1,1)-coord(0,1));
+      printf("   in new distribution, eh=" SF_F_ ".\n", coord(1,1)-coord(0,1));
     }
 
     jc++;
@@ -1049,15 +1028,8 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
   PyObject* array;
   E_Int verbose;
 
-#if defined E_DOUBLEREAL && defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Odd(ll)l", &array, &y0, &eh, &supp, &add, &verbose)) return NULL;
-#elif defined E_DOUBLEREAL && !defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Odd(ii)i", &array, &y0, &eh, &supp, &add, &verbose)) return NULL;
-#elif !defined E_DOUBLEREAL && defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Off(ll)l", &array, &y0, &eh, &supp, &add, &verbose)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Off(ii)i", &array, &y0, &eh, &supp, &add, &verbose)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, O_ RR_ TII_ I_,
+                    &array, &y0, &eh, &supp, &add, &verbose)) return NULL;
 
   bool isVerbose = (verbose == 1) ? true : false;
 
@@ -1099,7 +1071,7 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
     {
       char msg[256];
       sprintf(msg,
-              "enforceY (y0=%f, eh=%f): cannot find hl in distrib, stopped.",
+              "enforceY (y0=" SF_F_ ", eh=" SF_F_ "): cannot find hl in distrib, stopped.",
               y0, eh);
       PyErr_SetString(PyExc_TypeError, msg);
       return NULL;
@@ -1108,7 +1080,7 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
     {
       char msg[256];
       sprintf(msg,
-              "enforceY (y0=%f, eh=%f): line to enforce is in the first cell of distribution. \n=> use enforcePlusY to enforce this mesh.", y0, eh);
+              "enforceY (y0=" SF_F_ ", eh=" SF_F_ "): line to enforce is in the first cell of distribution. \n=> use enforcePlusY to enforce this mesh.", y0, eh);
       PyErr_SetString(PyExc_TypeError, msg);
       return NULL;
     }
@@ -1116,7 +1088,7 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
     {
       char msg[256];
       sprintf(msg,
-              "enforceY (y0=%f, eh=%f): line to enforce is in the last cell of distribution. \n=> use enforceMoinsY to enforce this mesh.", y0, eh);
+              "enforceY (y0=" SF_F_ ", eh=" SF_F_ "): line to enforce is in the last cell of distribution. \n=> use enforceMoinsY to enforce this mesh.", y0, eh);
       PyErr_SetString(PyExc_TypeError, msg);
       return NULL;
     }
@@ -1125,7 +1097,7 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
     {
       char msg[256];
       sprintf(msg,
-              "enforceY (y0=%f, eh=%f): overlapping around node 1.\n=> decrease eh or increase hl or enforce initial mesh.", y0, eh);
+              "enforceY (y0=" SF_F_ ", eh=" SF_F_ "): overlapping around node 1.\n=> decrease eh or increase hl or enforce initial mesh.", y0, eh);
       PyErr_SetString(PyExc_TypeError, msg);
       return NULL;
     }
@@ -1133,7 +1105,7 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
     {
       char msg[256];
       sprintf(msg,
-              "enforceY (y0=%f, eh=%f): overlapping around node ni-2.\n=> decrease eh or increase hl or enforce initial mesh.", y0, eh);
+              "enforceY (y0=" SF_F_ ", eh=" SF_F_ "): overlapping around node ni-2.\n=> decrease eh or increase hl or enforce initial mesh.", y0, eh);
       PyErr_SetString(PyExc_TypeError, msg);
       return NULL;
     }
@@ -1159,8 +1131,8 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
       if (isVerbose)
       {
         MSGY;
-        printf("cannot suppress %d points on left side.\n", supp);
-        printf("supp set to %d on left side.\n", suppl);
+        printf("cannot suppress " SF_D_ " points on left side.\n", supp);
+        printf("supp set to " SF_D_ " on left side.\n", suppl);
       }
     }
     if (supp > nj-1-jl-1)
@@ -1169,8 +1141,8 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
       if (isVerbose)
       {
         MSGY;
-        printf("cannot suppress %d points on right side.\n", supp);
-        printf("supp set to %d on right side.\n", suppr);
+        printf("cannot suppress " SF_D_ " points on right side.\n", supp);
+        printf("supp set to " SF_D_ " on right side.\n", suppr);
       }
     }
     while ( ( suppl+add < 2 ) || ( suppr+add < 2 ) )
@@ -1182,7 +1154,7 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
     {
       MSGY;
       printf("supp+add < 2.\n");
-      printf("   => add set to: %d.\n", add);
+      printf("   => add set to: " SF_D_ ".\n", add);
     }
     pb = false;
     if (add == 0) // add = 0 => risque de probleme sur la croissance ou decroissance des tailles de maille
@@ -1192,7 +1164,7 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
       {
         MSGY;
         printf("add=0 => problems will occur on step-size.\n");
-        printf("   => add set to: %d.\n", add);
+        printf("   => add set to: " SF_D_ ".\n", add);
       }
     }
 
@@ -1216,14 +1188,14 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
       if (eh > deltal)
       {
         MSGY;
-        printf("add=%d > 0  while eh=%f ",add,eh);
-        printf("is greater than the first step on left side=%f.\n", deltal);
+        printf("add=" SF_D_ " > 0  while eh=" SF_F_ " ",add,eh);
+        printf("is greater than the first step on left side=" SF_F_ ".\n", deltal);
       }
       if (eh > deltar)
       {
         MSGY;
-        printf("add=%d > 0  while eh=%f ",add,eh);
-        printf("is greater than the first step on right side=%f.\n", deltar);
+        printf("add=" SF_D_ " > 0  while eh=" SF_F_ " ",add,eh);
+        printf("is greater than the first step on right side=" SF_F_ ".\n", deltar);
       }
     }
     if (add < 0 && isVerbose)
@@ -1231,14 +1203,14 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
       if (eh < deltal)
       {
         MSGY;
-        printf("add=%d < 0  while eh=%f ",add,eh);
-        printf("is lower than the first step on left side=%f.\n", deltal);
+        printf("add=" SF_D_ " < 0  while eh=" SF_F_ " ",add,eh);
+        printf("is lower than the first step on left side=" SF_F_ ".\n", deltal);
       }
       if (eh < deltar)
       {
         MSGY;
-        printf("add=%d < 0 while eh=%f ",add,eh);
-        printf("is lower than the last step on right side=%f.\n", deltar);
+        printf("add=" SF_D_ " < 0 while eh=" SF_F_ " ",add,eh);
+        printf("is lower than the last step on right side=" SF_F_ ".\n", deltar);
       }
     }
 
@@ -1263,7 +1235,7 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
       {
         MSGY;
         printf("non-decreasing step-size in left-distribution.\n");
-        printf("   => Please change add=%d or eh=%f.\n", add, eh);
+        printf("   => Please change add=" SF_D_ " or eh=" SF_F_ ".\n", add, eh);
       }
     }
     // Verification de la distribution : croissance des tailles de maille a gauche si add < 0
@@ -1279,7 +1251,7 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
       {
         MSGY;
         printf("non-increasing step-size in left-distribution.\n");
-        printf("   => Please change add=%d or eh=%f.\n", add, eh);
+        printf("   => Please change add=" SF_D_ " or eh=" SF_F_ ".\n", add, eh);
       }
     }
     pb = false;
@@ -1302,7 +1274,7 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
       {
         MSGY;
         printf("non-increasing step-size in right-distribution.\n");
-        printf("   => Please change add=%d or eh=%f.\n", add, eh);
+        printf("   => Please change add=" SF_D_ " or eh=" SF_F_ ".\n", add, eh);
       }
     }
     // Verification de la distribution : decroissance des tailles de maille a droite si add < 0
@@ -1318,7 +1290,7 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
       {
         MSGY;
         printf("non-decreasing step-size in right-distribution.\n");
-        printf("   => Please change add=%d or eh=%f.\n", add, eh);
+        printf("   => Please change add=" SF_D_ " or eh=" SF_F_ ".\n", add, eh);
       }
     }
     pb = false;
@@ -1377,14 +1349,14 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
           {
             MSGY;
             printf("Y coordinates are not increasing:\n");
-            printf("   Y(%d) = %f and Y(%d) = %f.\n",
+            printf("   Y(" SF_D_ ") = " SF_F_ " and Y(" SF_D_ ") = " SF_F_ ".\n",
                    j, coord(ind,2), j+1, coord(ind2,2));
           }
           pb = true;
         }
       }
     if (pb == true && isVerbose)
-      printf("      => Please change add=%d or supp=%d or eh=%f.\n",
+      printf("      => Please change add=" SF_D_ " or supp=" SF_D_ " or eh=" SF_F_ ".\n",
              add, supp, eh);
     pb = false;
 
@@ -1394,7 +1366,7 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
     {
       MSGY;
       printf("eh different from the specified value.\n");
-      printf("in new distribution, eh = %f.\n", ehr+eh);
+      printf("in new distribution, eh = " SF_F_ ".\n", ehr+eh);
     }
 
     ic++;
@@ -1446,16 +1418,9 @@ PyObject* K_GENERATOR::enforcePlusYMesh(PyObject* self, PyObject* args)
   E_Int add;  // added points
   E_Float eh, ehr;  // enforce height
   E_Int verbose;
-
-#if defined E_DOUBLEREAL && defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Od(ll)l", &array, &eh, &supp, &add, &verbose)) return NULL;
-#elif defined E_DOUBLEREAL && !defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Od(ii)i", &array, &eh, &supp, &add, &verbose)) return NULL;
-#elif !defined E_DOUBLEREAL && defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Of(ll)l", &array, &eh, &supp, &add, &verbose)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Of(ii)i", &array, &eh, &supp, &add &verbose)) return NULL;
-#endif
+  
+  if (!PYPARSETUPLE_(args, O_ R_ TII_ I_,
+                    &array, &eh, &supp, &add, &verbose)) return NULL;
 
   bool isVerbose = (verbose == 1) ? true : false;
 
@@ -1496,7 +1461,7 @@ PyObject* K_GENERATOR::enforcePlusYMesh(PyObject* self, PyObject* args)
       {
         MSGPLUSY;
         printf("supp <= 0.\n");
-        printf("   =>supp set to: %d.\n", supp);
+        printf("   =>supp set to: " SF_D_ ".\n", supp);
       }
     }
     if (supp > nj-2)
@@ -1505,8 +1470,8 @@ PyObject* K_GENERATOR::enforcePlusYMesh(PyObject* self, PyObject* args)
       if (isVerbose)
       {
         MSGPLUSY;
-        printf("cannot suppress %d points.\n", supp);
-        printf("   =>supp set to: %d.\n", supp);
+        printf("cannot suppress " SF_D_ " points.\n", supp);
+        printf("   =>supp set to: " SF_D_ ".\n", supp);
       }
     }
     jend = jstart + supp + 1 ;
@@ -1515,10 +1480,10 @@ PyObject* K_GENERATOR::enforcePlusYMesh(PyObject* self, PyObject* args)
       if (isVerbose)
       {
         MSGPLUSY;
-        printf("supp+add=%d < 2.\n", supp+add);
+        printf("supp+add=" SF_D_ " < 2.\n", supp+add);
       }
       while (supp+add < 2) {add++;}
-      if (isVerbose) printf("   => add set to: %d.\n", add);
+      if (isVerbose) printf("   => add set to: " SF_D_ ".\n", add);
     }
     if (add == 0) // add = 0 => risque de probleme sur la croissance ou decroissance des tailles de maille
     {
@@ -1527,7 +1492,7 @@ PyObject* K_GENERATOR::enforcePlusYMesh(PyObject* self, PyObject* args)
       {
         MSGPLUSY;
         printf("add=0 => problems will occur on step-size.\n");
-        printf("   => add set to: %d.\n", add);
+        printf("   => add set to: " SF_D_ ".\n", add);
       }
     }
 
@@ -1551,8 +1516,8 @@ PyObject* K_GENERATOR::enforcePlusYMesh(PyObject* self, PyObject* args)
       if (eh > delta1 && isVerbose)
       {
         MSGPLUSY;
-        printf("   add=%d >= 0 while eh=%f", add, eh);
-        printf(" is greater than the last step=%f.\n", delta1);
+        printf("   add=" SF_D_ " >= 0 while eh=" SF_F_ "", add, eh);
+        printf(" is greater than the last step=" SF_F_ ".\n", delta1);
       }
     }
     if (add < 0 && isVerbose)
@@ -1560,8 +1525,8 @@ PyObject* K_GENERATOR::enforcePlusYMesh(PyObject* self, PyObject* args)
       if (eh < delta1)
       {
         MSGPLUSY;
-        printf("   add=%d <= 0  while eh=%f", add, eh);
-        printf(" is lower than the last step=%f.\n",  delta1);
+        printf("   add=" SF_D_ " <= 0  while eh=" SF_F_ "", add, eh);
+        printf(" is lower than the last step=" SF_F_ ".\n",  delta1);
       }
     }
 
@@ -1579,8 +1544,8 @@ PyObject* K_GENERATOR::enforcePlusYMesh(PyObject* self, PyObject* args)
         {
             MSGPLUSY;
             printf("Y coordinates are not increasing:\n");
-            printf("   Y(%d) = %f", j, sn1[j]);
-            printf("   Y(%d) = %f.\n", j+1, sn1[j+1]);
+            printf("   Y(" SF_D_ ") = " SF_F_ "", j, sn1[j]);
+            printf("   Y(" SF_D_ ") = " SF_F_ ".\n", j+1, sn1[j+1]);
         }
         pb = true;
       }
@@ -1588,7 +1553,7 @@ PyObject* K_GENERATOR::enforcePlusYMesh(PyObject* self, PyObject* args)
 
     if (pb == true && isVerbose)
     {
-      printf("      => Please change add=%d or eh=%f.\n", add, eh);
+      printf("      => Please change add=" SF_D_ " or eh=" SF_F_ ".\n", add, eh);
     }
 
     // Verification de la distribution : croissance des tailles de maille si add > 0
@@ -1606,7 +1571,7 @@ PyObject* K_GENERATOR::enforcePlusYMesh(PyObject* self, PyObject* args)
       {
         MSGPLUSY;
         printf("non-increasing step-size in distribution.\n");
-        printf("   => Please change add=%d or eh=%f.\n", add, eh);
+        printf("   => Please change add=" SF_D_ " or eh=" SF_F_ ".\n", add, eh);
       }
     }
 
@@ -1623,7 +1588,7 @@ PyObject* K_GENERATOR::enforcePlusYMesh(PyObject* self, PyObject* args)
       {
         MSGPLUSY;
         printf("non-decreasing step-size in distribution.\n");
-        printf("   => Please change add=%d or eh=%f.\n", add, eh);
+        printf("   => Please change add=" SF_D_ " or eh=" SF_F_ ".\n", add, eh);
       }
     }
 
@@ -1659,15 +1624,15 @@ PyObject* K_GENERATOR::enforcePlusYMesh(PyObject* self, PyObject* args)
           {
             MSGPLUSY;
             printf("Y coordinates are not increasing:\n");
-            printf("   Y(%d) = %f", j, coord(ind,2));
-            printf("   Y(%d) = %f.\n", j+1, coord(ind2,2));
+            printf("   Y(" SF_D_ ") = " SF_F_ "", j, coord(ind,2));
+            printf("   Y(" SF_D_ ") = " SF_F_ ".\n", j+1, coord(ind2,2));
           }
           pb = true;
         }
       }
     if (pb == true && isVerbose)
     {
-      printf("      => Please change add=%d or supp=%d or eh=%f.\n", add, supp, eh);
+      printf("      => Please change add=" SF_D_ " or supp=" SF_D_ " or eh=" SF_F_ ".\n", add, supp, eh);
     }
     pb = false;
 
@@ -1677,7 +1642,7 @@ PyObject* K_GENERATOR::enforcePlusYMesh(PyObject* self, PyObject* args)
     {
       MSGPLUSY;
       printf("eh different from the specified value.\n");
-      printf("   in new distribution, eh=%f.\n", coord(1,2)-coord(0,2));
+      printf("   in new distribution, eh=" SF_F_ ".\n", coord(1,2)-coord(0,2));
     }
 
     ic++;
@@ -1728,16 +1693,9 @@ PyObject* K_GENERATOR::enforceMoinsYMesh(PyObject* self, PyObject* args)
   E_Int add;  // added points
   E_Float eh, ehr;  // enforce height
   E_Int verbose;
-
-#if defined E_DOUBLEREAL && defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Od(ll)l", &array, &eh, &supp, &add, &verbose)) return NULL;
-#elif defined E_DOUBLEREAL && !defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Od(ii)i", &array, &eh, &supp, &add, &verbose)) return NULL;
-#elif !defined E_DOUBLEREAL && defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Of(ll)l", &array, &eh, &supp, &add, &verbose)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Of(ii)i", &array, &eh, &supp, &add, &verbose)) return NULL;
-#endif
+  
+  if (!PYPARSETUPLE_(args, O_ R_ TII_ I_,
+                    &array, &eh, &supp, &add, &verbose)) return NULL;
 
   bool isVerbose = (verbose == 1) ? true : false;
 
@@ -1779,7 +1737,7 @@ PyObject* K_GENERATOR::enforceMoinsYMesh(PyObject* self, PyObject* args)
       {
         MSGMOINSY;
         printf("supp <= 0.\n");
-        printf("   =>supp set to: supp=%d.\n", supp);
+        printf("   =>supp set to: supp=" SF_D_ ".\n", supp);
       }
     }
     if (supp > nj-2)
@@ -1788,8 +1746,8 @@ PyObject* K_GENERATOR::enforceMoinsYMesh(PyObject* self, PyObject* args)
       if (isVerbose)
       {
         MSGMOINSY;
-        printf("cannot suppress %d points.\n", supp);
-        printf("   =>supp set to: supp=%d.\n", supp);
+        printf("cannot suppress " SF_D_ " points.\n", supp);
+        printf("   =>supp set to: supp=" SF_D_ ".\n", supp);
       }
     }
     jstart = jend - supp - 1;
@@ -1798,10 +1756,10 @@ PyObject* K_GENERATOR::enforceMoinsYMesh(PyObject* self, PyObject* args)
       if (isVerbose)
       {
         MSGMOINSY;
-        printf("supp+add=%d < 2.\n", supp+add);
+        printf("supp+add=" SF_D_ " < 2.\n", supp+add);
       }
       while (supp+add < 2) {add++;}
-      if (isVerbose) printf("   => add set to: add=%d.\n", add);
+      if (isVerbose) printf("   => add set to: add=" SF_D_ ".\n", add);
     }
     if (add == 0) // add = 0 => risque de probleme sur la croissance ou decroissance des tailles de maille
     {
@@ -1810,7 +1768,7 @@ PyObject* K_GENERATOR::enforceMoinsYMesh(PyObject* self, PyObject* args)
       {
         MSGMOINSY;
         printf("add=0 => problems will occur on step-size.\n");
-        printf("   => add set to: add=%d.\n", add);
+        printf("   => add set to: add=" SF_D_ ".\n", add);
       }
     }
 
@@ -1835,7 +1793,7 @@ PyObject* K_GENERATOR::enforceMoinsYMesh(PyObject* self, PyObject* args)
       if (eh > delta1)
       {
         MSGMOINSY;
-        printf("   add=%d > 0 while eh=%f is greater than the last step=%f.\n", add, eh, delta1);
+        printf("   add=" SF_D_ " > 0 while eh=" SF_F_ " is greater than the last step=" SF_F_ ".\n", add, eh, delta1);
       }
     }
     if (add < 0 && isVerbose)
@@ -1843,7 +1801,7 @@ PyObject* K_GENERATOR::enforceMoinsYMesh(PyObject* self, PyObject* args)
       if (eh < delta1)
       {
         MSGMOINSY;
-        printf("   add=%d < 0 while eh=%f is lower than the last step=%f.\n", add, eh, delta1);
+        printf("   add=" SF_D_ " < 0 while eh=" SF_F_ " is lower than the last step=" SF_F_ ".\n", add, eh, delta1);
       }
     }
 
@@ -1869,7 +1827,7 @@ PyObject* K_GENERATOR::enforceMoinsYMesh(PyObject* self, PyObject* args)
       {
         MSGMOINSY;
         printf("Non-decreasing step-size in distribution.\n");
-        printf("   => Please change add=%d or eh=%f.\n", add, eh);
+        printf("   => Please change add=" SF_D_ " or eh=" SF_F_ ".\n", add, eh);
       }
     }
 
@@ -1888,7 +1846,7 @@ PyObject* K_GENERATOR::enforceMoinsYMesh(PyObject* self, PyObject* args)
       {
         MSGMOINSY;
         printf("non-increasing step-size in distribution.\n");
-        printf("   => Please change add=%d or eh=%f.\n", add, eh);
+        printf("   => Please change add=" SF_D_ " or eh=" SF_F_ ".\n", add, eh);
       }
     }
 
@@ -1925,17 +1883,17 @@ PyObject* K_GENERATOR::enforceMoinsYMesh(PyObject* self, PyObject* args)
           {
             MSGMOINSY;
             printf("Y coordinates are not increasing:\n");
-            printf("   Y(%d) = %f", j, coord(ind,2));
-            printf("   Y(%d) = %f.\n", j+1, coord(ind2,2));
+            printf("   Y(" SF_D_ ") = " SF_F_ "", j, coord(ind,2));
+            printf("   Y(" SF_D_ ") = " SF_F_ ".\n", j+1, coord(ind2,2));
           }
           pb = true;
         }
       }
     if (pb == true && isVerbose)
     {
-      printf("      => Please change add=%d.\n", add);
-      printf("      => or supp=%d.\n", supp);
-      printf("      => or eh=%f.\n", eh);
+      printf("      => Please change add=" SF_D_ ".\n", add);
+      printf("      => or supp=" SF_D_ ".\n", supp);
+      printf("      => or eh=" SF_F_ ".\n", eh);
     }
     pb = false;
 
@@ -1945,7 +1903,7 @@ PyObject* K_GENERATOR::enforceMoinsYMesh(PyObject* self, PyObject* args)
     {
       char msg[256];
       sprintf(msg,
-              "enforceMoinsY (eh=%f): eh different from the specified value in new distribution eh=%f.", eh, coord((np-1)*ni,2)-coord((np-2)*ni,2));
+              "enforceMoinsY (eh=" SF_F_ "): eh different from the specified value in new distribution eh=" SF_F_ ".", eh, coord((np-1)*ni,2)-coord((np-2)*ni,2));
       PyErr_SetString(PyExc_TypeError,
                       msg);
       return NULL;
@@ -1999,16 +1957,10 @@ PyObject* K_GENERATOR::enforceLineMesh(PyObject* self, PyObject* args)
   E_Int add;  // added points
   E_Float eh; // enforce heigh
   const E_Float EPS = 1.e-3;
-
-#if defined E_DOUBLEREAL && defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "OOd(ll)", &array1, &array2, &eh, &supp, &add)) return NULL;
-#elif defined E_DOUBLEREAL && !defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "OOd(ii)", &array1, &array2, &eh, &supp, &add)) return NULL;
-#elif !defined E_DOUBLEREAL && defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "OOf(ll)", &array1, &array2, &eh, &supp, &add)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "OOf(ii)", &array1, &array2, &eh, &supp, &add)) return NULL;
-#endif
+  
+  if (!PYPARSETUPLE_(args, OO_ R_ TII_,
+                    &array1, &array2, &eh, &supp, &add)) return NULL;
+                    
   // Check array
   E_Int ni, nj, nk, im2, jm2, km2;
   FldArrayF* f1; FldArrayF* f2;
@@ -2104,7 +2056,7 @@ PyObject* K_GENERATOR::enforceLineMesh(PyObject* self, PyObject* args)
         delete f1; delete f2;
         char msg[256];
         sprintf(msg,
-                "enforceLine: cannot find sc=%f in line, stopped.", sc);
+                "enforceLine: cannot find sc=" SF_F_ " in line, stopped.", sc);
         PyErr_SetString(PyExc_TypeError, msg);
         return NULL;
       }
@@ -2164,14 +2116,14 @@ PyObject* K_GENERATOR::enforceLineMesh(PyObject* self, PyObject* args)
         delete f1; delete f2;
         char msg[256];
         sprintf(msg,
-                "enforceLine: cannot find sc=%f in line, stopped.", sc);
+                "enforceLine: cannot find sc=" SF_F_ " in line, stopped.", sc);
         PyErr_SetString(PyExc_TypeError,
                         msg);
         return NULL;
       }
       else if (il == 0) hl = f2y[il];
       else hl = f2y[il-1];
-      //printf("index %d: y=%f\n", ic, hl);
+      //printf("index " SF_D_ ": y=" SF_F_ "\n", ic, hl);
 
       // to avoid problems
       hl = E_max(hl, ehr);
@@ -2278,14 +2230,8 @@ PyObject* K_GENERATOR::enforcePoint(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Float x0; // enforced point
-#ifdef E_DOUBLEREAL
-  if (!PyArg_ParseTuple(args, "Od", &array, &x0))
-#else
-    if (!PyArg_ParseTuple(args, "Of", &array, &x0))
-#endif
-    {
-      return NULL;
-    }
+  
+  if (!PYPARSETUPLE_(args, O_ R_, &array, &x0)) return NULL;
 
   // Check array
   E_Int ni, nj, nk;
@@ -2417,7 +2363,7 @@ PyObject* K_GENERATOR::enforcePoint(PyObject* self, PyObject* args)
     if (E_abs(coord(ni-1,1)-(*f)(ni-1,posx)) > 1.e-12)
       printf("Warning: enforcePoint: a bound has been moved.\n");
 
-    printf("Info: enforcePoint: index of enforced point is: %d.\n", is);
+    printf("Info: enforcePoint: index of enforced point is: " SF_D_ ".\n", is);
 
     delete f;
     // Build array
@@ -2446,11 +2392,7 @@ PyObject* K_GENERATOR::addPointInDistribution(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Int ind;
-#ifdef E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Ol", &array, &ind)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Oi", &array, &ind)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, O_ I_, &array, &ind)) return NULL;
 
   // Check array
   E_Int ni, nj, nk;

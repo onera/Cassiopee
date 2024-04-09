@@ -33,11 +33,8 @@ PyObject* K_GENERATOR::snapFront(PyObject* self, PyObject* args)
   PyObject* arrays;
   PyObject* surface;
   E_Int optimized;
-#ifdef E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "OOl", &arrays, &surface, &optimized)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "OOi", &arrays, &surface, &optimized)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, OO_ I_, &arrays, &surface, &optimized)) return NULL;
+
   // Extract infos from arrays
   vector<E_Int> resl;
   vector<char*> structVarString; vector<char*> unstrVarString;
@@ -718,7 +715,7 @@ void K_GENERATOR::computeUnstrFrontIndi(E_Float* cellN, E_Int npts, E_Int var1, 
     if (cellN[ind] == var1)
     {
       vector<E_Int>& voisin = cVN[ind];
-      for (unsigned int nv = 0; nv < voisin.size(); nv++)
+      for (size_t nv = 0; nv < voisin.size(); nv++)
       {
         indv = voisin[nv]-1;
         if (cellN[indv] == var2) { BRANCH; }

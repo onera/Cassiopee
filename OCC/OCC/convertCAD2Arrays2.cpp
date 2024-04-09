@@ -51,21 +51,8 @@ PyObject* K_OCC::convertCAD2Arrays2(PyObject* self, PyObject* args)
   E_Float h, chordal_err, gr(-1.), merge_tol(1.e-6);
   E_Int do_join(1);
 
-#if defined E_DOUBLEREAL
-#if defined E_DOUBLEINT
-  const char* fm = "ssddddl";
-#else
-  const char* fm = "ssddddi";
-#endif
-#else
-#if defined E_DOUBLEINT
-  const char* fm = "ssffffl";
-#else
-  const char* fm = "ssffffi";
-#endif
-#endif
-
-  if (!PyArg_ParseTuple(args, fm, &fileName, &fileFmt, &h, &chordal_err, &gr, &merge_tol, &do_join)) return NULL;
+  if (!PYPARSETUPLE_(args, SS_ RRRR_ I_, &fileName, &fileFmt, &h, &chordal_err,
+                    &gr, &merge_tol, &do_join)) return NULL;
 
   // Check recognised formats
   if (K_STRING::cmp(fileFmt, "fmt_iges") != 0 && K_STRING::cmp(fileFmt, "fmt_step") != 0)
@@ -183,14 +170,14 @@ E_Int K_OCC::CADread2
   
    if (err) return err;
 
-   int nmeshes = connectMs.size();
+   E_Int nmeshes = connectMs.size();
 
    unstructField.resize(nmeshes, nullptr);
    connect.resize(nmeshes, nullptr);
    eltType.resize(nmeshes, 0);
    zoneNames.resize(nmeshes, nullptr);
  
-   for (unsigned int i=0; i < connectMs.size(); i++)
+   for (size_t i=0; i < connectMs.size(); i++)
    {
      if (connectMs[i].cols() == 0) continue; //failed to mesh it
      
@@ -202,9 +189,9 @@ E_Int K_OCC::CADread2
      connect[i] = cnt;
     
      char* zoneName = new char [128];
-     sprintf(zoneName, "Zone%d",i);
+     sprintf(zoneName, "Zone%zu",i);
 
-    int row = connectMs[i].rows();
+    E_Int row = connectMs[i].rows();
 
     zoneNames[i] = zoneName;
 

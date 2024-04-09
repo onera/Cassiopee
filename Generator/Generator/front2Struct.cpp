@@ -108,19 +108,8 @@ PyObject* front2Struct(PyObject* self, PyObject* args)
   PyObject *front, *surface, *distrib;
   E_Int Vmin;
   E_Float dist;
-#if defined E_DOUBLEREAL && defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "OOOld", &front, &surface, &distrib, &Vmin, 
-                        &dist)) return NULL;
-#elif defined E_DOUBLEREAL && !defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "OOOid", &front, &surface, &distrib, &Vmin, 
-                        &dist)) return NULL;
-#elif !defined E_DOUBLEREAL && defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "OOOlf", &front, &surface, &distrib, &Vmin, 
-                        &dist)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "OOOif", &front, &surface, &distrib, &Vmin, 
-                        &dist)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, OOO_ I_ R_,
+                    &front, &surface, &distrib, &Vmin, &dist)) return NULL;
 
   // Check front: must be quad
   E_Int ni1, nj1, nk1;
@@ -249,8 +238,8 @@ PyObject* front2Struct(PyObject* self, PyObject* args)
     dMin = K_FUNC::E_min(dMin, ll);
     dMax = K_FUNC::E_max(dMax, ll);
   }
-  printf("Info: proj ortho dist min %f.\n", dMin);
-  printf("Info: proj ortho dist max %f.\n", dMax);
+  printf("Info: proj ortho dist min " SF_F_ ".\n", dMin);
+  printf("Info: proj ortho dist max " SF_F_ ".\n", dMax);
 
   // Precond pour projectDir
   typedef K_SEARCH::BoundingBox<3> BBox3DType;
@@ -415,9 +404,9 @@ PyObject* front2Struct(PyObject* self, PyObject* args)
   }
 
   // Resume
-  printf("Info: concave quads: %d over %d quads.\n", concaveQuads, nQuads);
-  printf("Info: projected points: %d over %d points.\n", projectedPoints, 
-         int(nQuads*Vmin*Vmin));
+  printf("Info: concave quads: " SF_D_ " over " SF_D_ " quads.\n", concaveQuads, nQuads);
+  printf("Info: projected points: " SF_D_ " over " SF_D_ " points.\n", projectedPoints, 
+         E_Int(nQuads*Vmin*Vmin));
 
   // Delete les boxes
   E_Int boxesSize = boxes.size();
@@ -435,11 +424,7 @@ PyObject* fillWithStruct( PyObject* self, PyObject* args )
 {
   PyObject *mesh;
   E_Int Vmin;
-#ifdef E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Ol", &mesh, &Vmin)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Oi", &mesh, &Vmin)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, O_ I_, &mesh, &Vmin)) return NULL;
   // Check mesh : must be quad pour l'instant
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
@@ -549,7 +534,8 @@ PyObject* fillWithStruct( PyObject* self, PyObject* args )
   }
 
   // Resume
-  printf("Info: concave quads : %d over %d quads.\n", concaveQuads, nQuads);
+  printf("Info: concave quads : " SF_D_ " over " SF_D_ " quads.\n",
+         concaveQuads, nQuads);
 
   // Sortie
   delete f; delete cn; 

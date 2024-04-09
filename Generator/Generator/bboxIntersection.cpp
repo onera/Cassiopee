@@ -31,7 +31,8 @@ PyObject* K_GENERATOR::bboxIntersection(PyObject* self, PyObject* args)
   PyObject* array1; PyObject* array2;
   E_Float tol;
 
-  if (!PyArg_ParseTuple(args, "OOd", &array1, &array2, &tol)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ R_,
+                    &array1, &array2, &tol)) return NULL;
 
   // Check array1
   E_Int ni1, nj1, nk1;
@@ -107,11 +108,7 @@ PyObject* K_GENERATOR::bboxIntersection(PyObject* self, PyObject* args)
       (zmax1 > zmin2-tol && zmin1 < zmax2+tol)) 
     isIntersect = 1;
 
-#ifdef E_DOUBLEINT
-    return Py_BuildValue("l", isIntersect);
-#else
-    return Py_BuildValue("i", isIntersect);
-#endif
+  return Py_BuildValue(I_, isIntersect);
 }
 
 //===========================================================================
@@ -123,8 +120,10 @@ PyObject* K_GENERATOR::_bboxIntersectionZ(PyObject* self, PyObject* args)
 {
   char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
   PyObject* zone1; PyObject* zone2; E_Float tol;
-  if (!PyArg_ParseTuple(args, "OOdsss", &zone1, &zone2, &tol,
-                        &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters)) return NULL;
+  
+  if (!PYPARSETUPLE_(args, OO_ R_ SSS_,
+                    &zone1, &zone2, &tol, &GridCoordinates, &FlowSolutionNodes,
+                    &FlowSolutionCenters)) return NULL;
 
   // Checks coordinates of zone 1
   vector<PyArrayObject*> hook1;
@@ -258,9 +257,5 @@ PyObject* K_GENERATOR::_bboxIntersectionZ(PyObject* self, PyObject* args)
       (zmax1 > zmin2-tol && zmin1 < zmax2+tol)) 
      {isIntersect = 1;}
 
-#ifdef E_DOUBLEINT
-    return Py_BuildValue("l", long(isIntersect));
-#else
-    return Py_BuildValue("i", isIntersect);
-#endif
+  return Py_BuildValue(I_, isIntersect);
 }

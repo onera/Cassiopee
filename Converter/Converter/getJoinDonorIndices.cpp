@@ -36,8 +36,8 @@ PyObject* K_CONVERTER::getJoinDonorIndices(PyObject* self, PyObject* args)
   E_Int T1, T2, T3;
   E_Int Direction, Dim, DimI, DimBI;
   if (!PYPARSETUPLE_(args, OO_ IIII_ III_,
-			&arrayI, &arrayBorderI, &T1, &T2, &T3,
-			&Direction, &Dim, &DimI, &DimBI)) return NULL;
+			              &arrayI, &arrayBorderI, &T1, &T2, &T3,
+			              &Direction, &Dim, &DimI, &DimBI)) return NULL;
 
   // Get arrays
   PyArrayObject* ar = (PyArrayObject*)arrayI;
@@ -282,15 +282,11 @@ PyObject* K_CONVERTER::getJoinDonorIndices(PyObject* self, PyObject* args)
 
   // Convert vector<E_Int> listjoindonor in PyObject tpljoindonor
   E_Int size = listjoindonor.size();
-  PyObject * tpljoindonor;
+  PyObject* tpljoindonor;
   PyObject* l = PyList_New(0);
   for (E_Int i = 0; i < size; i++)
   {
-#ifdef E_DOUBLEINT
-    tpljoindonor = Py_BuildValue("l",long(listjoindonor[i]));
-#else
-    tpljoindonor = Py_BuildValue("i",listjoindonor[i]);
-#endif
+    tpljoindonor = Py_BuildValue(I_, listjoindonor[i]);
     PyList_Append(l, tpljoindonor);
     Py_DECREF(tpljoindonor);
   }

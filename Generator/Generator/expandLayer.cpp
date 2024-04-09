@@ -34,11 +34,8 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
 {
   PyObject *octree, *indicator; 
   E_Int level, corners, checkType;
-#ifdef E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "OOlll", &octree, &indicator, &level, &corners, &checkType)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "OOiii", &octree, &indicator, &level, &corners, &checkType)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, OO_ III_, &octree, &indicator, &level, &corners,
+                    &checkType)) return NULL;
   if (level < 0) {printf("Warning: expandLayer: level is set to 0.\n"); level = 0;}
 
   // Verif octree HEXA/QUAD
@@ -328,7 +325,7 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
         }
       }
     }
-    printf("==> Pbs: %d\n", pb);
+    printf("==> Pbs: " SF_D_ "\n", pb);
   }
 
   else if (checkType == 6) // extension au troisieme niveau

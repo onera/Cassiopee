@@ -30,11 +30,8 @@ PyObject* K_GENERATOR::delaunay(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Int keepBB;
-#ifdef E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Ol", &array, &keepBB)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Oi", &array, &keepBB)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, O_ I_, &array, &keepBB)) return NULL;
+  
   // Check array
   E_Int ni, nj, nk;
   K_FLD::FldArrayF* f;

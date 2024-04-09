@@ -46,7 +46,7 @@ PyObject* K_KBRIDGE::array2KDesMesh(PyObject* self, PyObject* args)
   char* swigName;
   PyObject* array;
 	
-  if (!PyArg_ParseTuple(args, "Os", &array, &swigName)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ S_, &array, &swigName)) return NULL;
 	
   DesMesh* desMesh;
   BlkMesh* mesh;

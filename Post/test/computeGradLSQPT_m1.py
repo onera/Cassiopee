@@ -29,8 +29,8 @@ t = Pmpi.computeGradLSQ(t, ['g', 'f'])
 nx = Internal.getNodesFromName(t, 'CoordinateX')[0]
 import numpy as np; minx = np.min(nx[1])
 if minx == 0.5:
-    z = Internal.getNodesFromName(t, 'Zone_1')
-    if z: Internal._renameNode(t, 'Zone_1', 'Zone_0')
+    z = Internal.getNodesFromName(t, 'cartHexa_1')
+    if z: Internal._renameNode(t, 'cartHexa_1', 'cartHexa_0')
     zGC = Internal.getNodesFromName(t, 'ZoneGridConnectivity')
     z = Internal.getNodesFromName(zGC, 'Match_0')
     if z: Internal._renameNode(t, 'Match_0', 'Match_1')

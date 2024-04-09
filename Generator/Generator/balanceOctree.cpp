@@ -28,11 +28,7 @@ PyObject* K_GENERATOR::balanceOctree(PyObject* self, PyObject* args)
 {
   E_Int ratio, corners;
   PyObject *octree;
-#ifdef E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Oll", &octree, &ratio, &corners)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Oii", &octree, &ratio, &corners)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, O_ II_, &octree, &ratio, &corners)) return NULL;
 
   if (corners != 0 && corners != 1)
   {
