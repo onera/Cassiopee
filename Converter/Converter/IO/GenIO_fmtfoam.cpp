@@ -1465,11 +1465,12 @@ E_Int K_IO::GenIO::foamWriteBoundary(char* file, const std::vector<char*>& bc_na
   fprintf(ptrFile, "    location    \"constant/polyMesh\";\n");
   fprintf(ptrFile, "    object      boundary;\n");
   fprintf(ptrFile, "}\n");
-
-  fprintf(ptrFile, SF_D_ "\n", bc_names.size());
+  
+  E_Int nbcs = bc_names.size();
+  fprintf(ptrFile, SF_D_ "\n", nbcs);
   fprintf(ptrFile, "(\n");
 
-  for (size_t i = 0; i < bc_names.size(); i++)
+  for (E_Int i = 0; i < nbcs; i++)
   {
     char *token = strtok(bc_names[i], "@");
     char name[256];
