@@ -1690,8 +1690,8 @@ Array / PyTree common manipulations
 
 .. py:function:: Converter.convertSurfaceNGon(a, rmEmptyNFaceElements=True)
 
-    Convert a surface NGon from one type (A: NGON=bars, NFACE=polygon)
-    to another (B: NGON=polygon, NFACE=NULL).
+    Convert a surface NGon from (A: NGON=bars, NFACE=polygon)
+    to (B: NGON=polygon, NFACE=NULL), or vice versa.
 
     :param a: input data (NGON)
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]

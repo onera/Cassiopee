@@ -3475,7 +3475,7 @@ def convertDataNodes2Array3(nodes, dim, connects, loc=-1):
             return [vars, field, ni, nj, nk]
 
     # unstructured
-    iBE = 0; isNGon = False; iNGon = 0; iNFace = 0
+    iBE = 0; isNGon = False; iNGon = None; iNFace = None
     cr = [None,None,None,None,None]; et = []
     for c in connects:
         ctype = c[1][0]
@@ -3527,14 +3527,14 @@ def convertDataNodes2Array3(nodes, dim, connects, loc=-1):
         eltString = "NGON"
         if cr[0] is None: print('Warning: getField: empty NGON connectivity.')
         if cr[1] is None: print('Warning: getField: empty NFACE connectivity.')
-        if cr[2] is None:
+        if cr[2] is None and iNGon is not None:
             # forcement Array2 old ngon
             no = getNodeFromName1(iNGon, 'ElementRange')[1]
             nfaces = no[1]-no[0]+1
             n = converter.adaptNGon2Index(cr[0], nfaces)
             g = createUniqueChild(iNGon, 'FaceIndex', 'DataArray_t', value=n)
             cr[2] = g[1]
-        if cr[3] is None:
+        if cr[3] is None and iNFace is not None:
             # forcement Array2 old ngon
             no = getNodeFromName1(iNFace, 'ElementRange')[1]
             nelts = no[1]-no[0]+1

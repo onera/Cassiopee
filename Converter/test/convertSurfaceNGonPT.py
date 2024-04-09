@@ -10,3 +10,7 @@ Internal.printTree(a)
 # type B : NGON=polygon, NFACE=NULL
 b = C.convertSurfaceNGon(a)
 Internal.printTree(b)
+
+# Back to type A
+c = C.convertSurfaceNGon(b)
+Internal.printTree(c)
