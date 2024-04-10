@@ -41,7 +41,7 @@ void writePPMFile(Data* d, char *filename, char* buffer,
   int elt = 3;
   ibuffer = (unsigned char *)malloc(width*height*3);
 
-  fprintf(fp, "P6\n# CREATOR: CPlot\n%d %d %d\n",
+  fprintf(fp, "P6\n# CREATOR: CPlot\nSF_D3_\n",
           width, height, 255);
   q = 0;
   for (i = 0; i < height; i++)
@@ -53,6 +53,6 @@ void writePPMFile(Data* d, char *filename, char* buffer,
   fclose(fp);
   free(ibuffer);
   
-  printf("Wrote file %s (%d x %d pixels, %d bytes).\n",
+  printf("Wrote file %s (" SF_D_ " x " SF_D_ " pixels, " SF_D_ " bytes).\n",
          filename, width, height, 3*width*height);
 }

@@ -206,7 +206,7 @@ E_Int make_gradient(K_FLD::FldArrayI &cn, E_Int *count_neis, E_Float *b,
     bad_gradient |= !converged;
     if (!converged) {
       printf("Gradient: BiCGStab not converged\n");
-      printf("Cell: %d\n", i);
+      printf("Cell: " SF_D_ "\n", i);
       E_Float *pt = &lsqGG[9*i];
       for (E_Int j = 0; j < 3; j++) {
         for (E_Int k = 0; k < 3; k++) {

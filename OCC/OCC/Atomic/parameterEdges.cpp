@@ -38,7 +38,7 @@ void getShapeProperties(TopoDS_Face& F,
   Handle(Geom_Surface) face = BRep_Tool::Surface(F);
   isUClosed = isVClosed = false;
   ShapeAnalysis::GetFaceUVBounds(F, U0, U1, V0, V1);
-  printf("Face bounds U=%f %f - V=%f %f\n",U0,U1,V0,V1);
+  printf("Face bounds U=" SF_F2_ " - V=" SF_F2_ "\n",U0,U1,V0,V1);
   ShapeAnalysis_Surface o(face);
   isUClosed = o.IsUClosed();
   isVClosed = o.IsVClosed();
@@ -52,8 +52,8 @@ void getShapeProperties(TopoDS_Face& F,
   // Comme on dessine uniquement sur la premiere periode:
   if (uPeriod > U1-U0+1.e-2) isUClosed = false;
   if (vPeriod > V1-V0+1.e-2) isVClosed = false;
-  printf("isUClosed=%d isVClosed=%d isUPeriodic=%d isVPeriodic=%d\n", isUClosed, isVClosed,
-  isUPeriodic, isVPeriodic);
+  printf("isUClosed=" SF_D_ " isVClosed=" SF_D_ " isUPeriodic=" SF_D_ " isVPeriodic=" SF_D_ "\n",
+         isUClosed, isVClosed, isUPeriodic, isVPeriodic);
 }
 
 // Compute u,v du point P sur la face face

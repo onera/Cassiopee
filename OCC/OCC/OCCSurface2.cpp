@@ -32,6 +32,7 @@
 #include <ShapeAnalysis.hxx>
 #include <ShapeAnalysis_Surface.hxx>
 #include <StdFail_NotDone.hxx>
+#include "String/kstring.h"
 
 //#define DEBUG_CAD_READER
 
@@ -151,7 +152,8 @@ E_Int K_OCC::OCCSurface::findNextElement(E_Int e, K_FLD::IntArray& found,
   for (size_t i = 0; i < s; i++) bestScore = std::max(bestScore, score[i]);
   
   printf("score: ");
-  for (size_t i = 0; i < s; i++) printf("%d (%d %d) ", score[i], connectB(0,next[i]), connectB(1,next[i]));
+  for (size_t i = 0; i < s; i++)
+    printf(SF_D_ " (" SF_D2_ ") ", score[i], connectB(0,next[i]), connectB(1,next[i]));
   printf("\n");
     
   for (size_t i = 0; i < s; i++) 
@@ -196,7 +198,7 @@ void K_OCC::OCCSurface::parcoursBAR(K_FLD::FloatArray& pos3D, K_FLD::IntArray& c
   }
   
   for (E_Int i = 0; i < nelts; i++)
-    printf("chain %d: %d (%d %d)\n",i,eltChain[i],connectB(0,eltChain[i]),connectB(1,eltChain[i]));
+    printf("chain " SF_D_ ": " SF_D_ " (" SF_D2_ ")\n",i,eltChain[i],connectB(0,eltChain[i]),connectB(1,eltChain[i]));
   
   // Ajoute les noeuds de valence > 2
   /*
@@ -417,13 +419,13 @@ void K_OCC::OCCSurface::orderBAR(E_Int npts,
     else if (node2Elt[i].size() == 1) // open BAR
     {
       printf("Warning: opened BAR.\n");
-      printf("%d: elt=%d\n", i, node2Elt[i][0]);
+      printf(SF_D_ ": elt=" SF_D_ "\n", i, node2Elt[i][0]);
     }
     else if (node2Elt[i].size() > 2) // Branch
     {
       printf("Warning: branch.\n");
-      printf("%d: ", i);
-      for (size_t j = 0; j < node2Elt[i].size(); j++) printf("elt=%d ", node2Elt[i][j]);
+      printf(SF_D_ ": ", i);
+      for (size_t j = 0; j < node2Elt[i].size(); j++) printf("elt=" SF_D_ " ", node2Elt[i][j]);
       printf("\n");
     }
   }
@@ -440,7 +442,7 @@ void K_OCC::OCCSurface::orderBAR(E_Int npts,
   //E_Int indCur = findNextPoint(found, node2Elt);
   E_Int indCur = findNonAmbStart(npts, coord3D);
 #ifdef DEBUG_CAD_READER
-  printf("starting non ambiguous index=%d\n", indCur);
+  printf("starting non ambiguous index=" SF_D_ "\n", indCur);
 #endif
   start[0] = indCur;
   
@@ -493,7 +495,7 @@ void K_OCC::OCCSurface::orderBAR(E_Int npts,
   // Check order new->old
 #ifdef DEBUG_CAD_READER
   for (E_Int i = 0; i < npts; i++)
-    printf("order new=%d -> old=%d (found=%d, start=%d) \n", i, index[i], found[index[i]], start[i]);
+    printf("order new=" SF_D_ " -> old=" SF_D_ " (found=" SF_D_ ", start=" SF_D_ ") \n", i, index[i], found[index[i]], start[i]);
 #endif
   
   // Check start
@@ -509,7 +511,7 @@ void K_OCC::OCCSurface::orderBAR(E_Int npts,
     else length += 1;
   }
 #ifdef DEBUG_CAD_READER
-  if (nstart > 1) printf("Warning: nstart = %d\n", nstart);
+  if (nstart > 1) printf("Warning: nstart = " SF_D_ "\n", nstart);
 #endif
 }
 
@@ -532,8 +534,8 @@ E_Int K_OCC::OCCSurface::parameters2
   //printf("after orderBAR\n"); fflush(stdout);
 #ifdef DEBUG_CAD_READER
   printf("bounds %f %f - %f %f \n",_U0,_U1,_V0,_V1);
-  printf("isClosedU = %d isClosedV = %d\n",_isUClosed,_isVClosed);
-  printf("isUPeriodic = %d isVPeriodic = %d\n", _isUPeriodic, _isVPeriodic);
+  printf("isClosedU = " SF_D_ " isClosedV = " SF_D_ "\n",_isUClosed,_isVClosed);
+  printf("isUPeriodic = " SF_D_ " isVPeriodic = " SF_D_ "\n", _isUPeriodic, _isVPeriodic);
   printf("UPeriod=%f, VPeriod=%f\n", _uPeriod,_vPeriod);
 #endif
   
@@ -549,12 +551,12 @@ E_Int K_OCC::OCCSurface::parameters2
     if (_isRevol == true && (std::fabs(Up-Upp) > 0.7*(_U1-_U0) || std::fabs(Vp-Vpp) > 0.7*(_V1-_V0)))
     {
 #ifdef DEBUG_CAD_READER
-      printf("Warning: %f %f | %f %f Jump detected in %d.\n",Up,Upp,Vp,Vpp,n);
+      printf("Warning: %f %f | %f %f Jump detected in " SF_D_ ".\n",Up,Upp,Vp,Vpp,n);
 #endif
       return index[i-1]+1;
     }
     
-    //printf("%d/%d: %f %f \n",n,npts,UVs(0,n),UVs(1,n));
+    //printf("" SF_D_ "/" SF_D_ ": %f %f \n",n,npts,UVs(0,n),UVs(1,n));
   }
   return 0;
   
@@ -568,8 +570,8 @@ E_Int K_OCC::OCCSurface::parameters2
     E_Float Vi = UVs(1, Ni);
     E_Float Uj = UVs(0, Nj);
     E_Float Vj = UVs(1, Nj);
-    //printf("la %d: %g %g -> %g %g\n", i,Ui,Vi,Uj,Vj);
-    if (::fabs(Ui-Uj) > 0.7 || ::fabs(Vi-Vj) > 0.7) printf("switch elt=%d, n1=%d, n2=%d: %g %g -> %g %g\n", i,Ni,Nj,Ui,Vi,Uj,Vj);
+    //printf("la " SF_D_ ": %g %g -> %g %g\n", i,Ui,Vi,Uj,Vj);
+    if (::fabs(Ui-Uj) > 0.7 || ::fabs(Vi-Vj) > 0.7) printf("switch elt=" SF_D_ ", n1=" SF_D_ ", n2=" SF_D_ ": %g %g -> %g %g\n", i,Ni,Nj,Ui,Vi,Uj,Vj);
   }
   */
   
@@ -591,7 +593,7 @@ E_Int K_OCC::OCCSurface::parameters2
     if (start[i] == 1) { Up=-1; Vp=-1; Upp=-1; Vpp=-1; }
     n = index[i];
     u = UVs(0,n); v = UVs(1,n);
-    //printf("%d: %f %f \n",n,UVs(0,n),UVs(1,n));
+    //printf("" SF_D_ ": %f %f \n",n,UVs(0,n),UVs(1,n));
     Upp = Up; Vpp = Vp;
     Up = UVs(0,n); Vp = UVs(1,n);
   }
@@ -655,7 +657,7 @@ K_OCC::OCCSurface::parameters2(const E_Float* pt, E_Float& u, E_Float& v,
     //o.LowerDistanceParameters(u1,v1);
     //if (::fabs(u-u1) > 1.e-6 || ::fabs(v-v1) > 1.e-6) printf("erreur: %f %f versus %f %f\n",u,v,u1,v1);
 #ifdef DEBUG_CAD_READER
-    printf("%d: startuv: %f %f (orig=%f %f)\n",index,u,v,uv.X(),uv.Y());
+    printf(SF_D_ ": startuv: %f %f (orig=%f %f)\n",index,u,v,uv.X(),uv.Y());
 #endif
   }
   else
@@ -776,7 +778,7 @@ K_OCC::OCCSurface::parameters2(const E_Float* pt, E_Float& u, E_Float& v,
       }
     }
 #ifdef DEBUG_CAD_READER
-    printf("%d: nextuv: %f %f (orig=%f %f)\n",index, u,v,uv.X(),uv.Y());
+    printf(SF_D_ ": nextuv: %f %f (orig=%f %f)\n",index, u,v,uv.X(),uv.Y());
 #endif
   }
   

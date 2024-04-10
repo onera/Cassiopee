@@ -73,7 +73,7 @@ PyObject* K_TRANSFORM::splitElement(PyObject* self, PyObject* args)
     vector<E_Int>& voisins = cEEN[i]; 
     size += voisins.size();
   }
-  //printf("size = %d\n", size);
+  //printf("size = " SF_D_ "\n", size);
 
   idx_t* adj1 = new idx_t [size];
   idx_t* adj = adj1;
@@ -120,7 +120,7 @@ PyObject* K_TRANSFORM::splitElement(PyObject* self, PyObject* args)
   {
     p = parts[i]; partSize[p] += 1;
   }
-  for (E_Int i = 0; i < nparts; i++) printf("partSize=%d\n", partSize[i]);
+  for (E_Int i = 0; i < nparts; i++) printf("partSize=" SF_D_ "\n", partSize[i]);
 
   // output numpy of elements
   PyObject* tpl;

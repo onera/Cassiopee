@@ -276,7 +276,7 @@ void K_CONNECTOR::changeWall(
       dir1 = E_Int(dirw1[ii]);
       dir2 = E_Int(dirw2[ii]);
       dir3 = E_Int(dirw3[ii]);
-      //printf("dir %d %d %d\n", dir1, dir2, dir3);
+      //printf("dir " SF_D3_ "\n", dir1, dir2, dir3);
       hmax1 = hmaxw[ii];
 
       // on recupere le pt B si le pt A est un pt paroi dans la direction ortho a i
@@ -349,7 +349,7 @@ void K_CONNECTOR::changeWall(
           }
         }
         if (isProjected == false) goto nextptB;      
-        //   printf("Info: Wall double definition: point (%15.6f,%15.6f,%15.6f) of indices (%d,%d,%d) projected onto (%15.6f,%15.6f,%15.6f)\n",
+        //   printf("Info: Wall double definition: point (%15.6f,%15.6f,%15.6f) of indices (" SF_D_ "," SF_D_ "," SF_D_ ") projected onto (%15.6f,%15.6f,%15.6f)\n",
         //                 xa, ya, za, iA+1, jA+1, kA+1, xa+deltax, ya+deltay,za+deltaz);
 
         cpt_loc++;
@@ -369,7 +369,7 @@ void K_CONNECTOR::changeWall(
   }
 
   for (E_Int i = 0; i < nthreads; i++) cpt += npts_proj[i];
-  printf("Info: changeWall: %d points have been projected\n", cpt);
+  printf("Info: changeWall: " SF_D_ " points have been projected\n", cpt);
 
   // cleanup
   E_Int nboxes = vectOfBoxes.size();

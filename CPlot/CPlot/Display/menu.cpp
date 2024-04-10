@@ -372,14 +372,14 @@ void Data::displayMenuString(E_Int no, char* msg, E_Int* l, E_Int* sizeMax,
     case INT:
       vali = (E_Int*)(value);
       strcpy(loc, msg);
-      sprintf(loc2, "%d", *vali);
+      sprintf(loc2, SF_D_, *vali);
       strcat(loc, loc2);
       break;
 
     case FLOAT:
       valf = (float*)(value);
       strcpy(loc, msg);
-      sprintf(loc2, "%f", *valf);
+      sprintf(loc2, SF_F_, *valf);
       strcat(loc, loc2);
       break;
 
@@ -436,13 +436,13 @@ void Data::displayMenuString(E_Int no, char* msg, E_Int* l, E_Int* sizeMax,
       n = 0;
       for (E_Int i = 0; i < _numberOfZones; i++)
         n = n + _zones[i]->npts;
-      sprintf(loc, "Total number of points : %d", n);
+      sprintf(loc, "Total number of points : " SF_D_, n);
       size = strlen(loc);
       *sizeMax = MAX(size, *sizeMax);
       displayBigText((int)(_view.w/2-size*0.5*9), *l, loc);
       *l = *l + 20;
 
-      sprintf(loc, "Total number of blocks : %d", _numberOfZones);
+      sprintf(loc, "Total number of blocks : " SF_D_, _numberOfZones);
       size = strlen(loc);
       *sizeMax = MAX(size, *sizeMax);
       displayBigText((int)(_view.w/2-size*0.5*9), *l, loc);

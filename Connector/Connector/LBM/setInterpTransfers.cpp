@@ -240,7 +240,7 @@ PyObject* K_CONNECTOR::___setQintersectionLBM(PyObject* self, PyObject* args){
 	    E_Int*   ipt_intrQ ;
 	    E_Int*   ipt_cvel  ;
 	    if (loc == 0){
-	      printf("Error: transferts optimises non code en vextex %d %d %d\n", shift_rac + nrac*9  +1, NoD, NoR ); 
+	      printf("Error: transferts optimises non code en vextex " SF_D3_ "\n", shift_rac + nrac*9  +1, NoD, NoR ); 
 	      imd = 0; jmd = 0;
 	    }
 	    else {
@@ -389,7 +389,7 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
 
   E_Int NoTransfert  = E_Int(no_transfert);
 
-  //printf("vartype=%d \n",vartype);
+  //printf("vartype=" SF_D_ " \n",vartype);
   E_Int kmd, cnNfldD, nvars, meshtype;
   E_Int nvars_macro_local;
 
@@ -768,7 +768,7 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
 	    
 	    
  	    if (loc == 0){
- 	      printf("Error: transferts optimises non code en vextex %d %d %d\n", shift_rac + nrac*9  +1, NoD, NoR ); 
+ 	      printf("Error: transferts optimises non code en vextex " SF_D3_ "\n", shift_rac + nrac*9  +1, NoD, NoR ); 
  	      //imd= ipt_ndimdxD[ NoD+ nidomD*4]; jmd= ipt_ndimdxD[ NoD + nidomD*5];
  	      imd = 0; jmd = 0;
  	    }

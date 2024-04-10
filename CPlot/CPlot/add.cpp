@@ -125,7 +125,7 @@ PyObject* K_CPLOT::add(PyObject* self, PyObject* args)
   if (res == 1)
   {
     if (zoneNameI != NULL) { strcpy(zoneName, zoneNameI); delete [] zoneNameI; }
-    else sprintf(zoneName, "S-Zone %d", nzs);
+    else sprintf(zoneName, "S-Zone " SF_D_, nzs);
     
     posx = K_ARRAY::isCoordinateXPresent(varString);
     posy = K_ARRAY::isCoordinateYPresent(varString);
@@ -142,7 +142,7 @@ PyObject* K_CPLOT::add(PyObject* self, PyObject* args)
   else // res=2
   {
     if (zoneNameI != NULL) { strcpy(zoneName, zoneNameI); delete [] zoneNameI; }
-    else sprintf(zoneName, "U-Zone %d", nzu);
+    else sprintf(zoneName, "U-Zone " SF_D_, nzu);
     
     posx = K_ARRAY::isCoordinateXPresent(varString);
     posy = K_ARRAY::isCoordinateYPresent(varString);

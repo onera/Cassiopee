@@ -402,7 +402,7 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
     E_Int sizeDnrIndices = posPtrDnrIndices[nozd];
     E_Int sizeCf = posPtrCoefs[nozd];
     E_Int sizeRcvIndices = posPtrRcvIndices[nozd];
-    printf(" zone donneuse %d : sizeDnrIndices = %d, sizeCf = %d, sizeRcvIndices = %d\n", nozd, sizeDnrIndices, sizeCf, sizeRcvIndices);
+    printf(" zone donneuse " SF_D_ " : sizeDnrIndices = " SF_D_ ", sizeCf = " SF_D_ ", sizeRcvIndices = " SF_D_ "\n", nozd, sizeDnrIndices, sizeCf, sizeRcvIndices);
     listOfInterpCoefs[nozd]->resize(sizeCf);
     listOfDnrIndices[nozd]->resize(sizeDnrIndices);
     listOfRcvIndices[nozd]->resize(sizeRcvIndices);

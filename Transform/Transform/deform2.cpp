@@ -37,7 +37,7 @@ PyObject* K_TRANSFORM::deform2(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* normal;
 
-  if (!PyArg_ParseTuple(args, "OO", &array, &normal))
+  if (!PYPARSETUPLE_(args, OO_, &array, &normal))
     return NULL;
   
   // Check array
@@ -130,7 +130,7 @@ PyObject* K_TRANSFORM::deform2(PyObject* self, PyObject* args)
   E_Int nfaces = cNG[0];
   E_Int nelts = cNG[2+cNG[1]];
   E_Int* cNGe = cNG + 2 + cNG[1];
-  //printf("input surface has %d faces and %d elements\n", nfaces, nelts);
+  //printf("input surface has " SF_D_ " faces and " SF_D_ " elements\n", nfaces, nelts);
   vector< vector<E_Int> > cVF(npts); K_CONNECT::connectNG2VF(*cn1, cVF);
   FldArrayI cFE; K_CONNECT::connectNG2FE(*cn1, cFE);
   vector< vector<E_Int> > cEV(nelts); K_CONNECT::connectNG2EV(*cn1,cEV);
@@ -193,7 +193,7 @@ PyObject* K_TRANSFORM::deform2(PyObject* self, PyObject* args)
    s = SCAL(r1x,r1y,r1z,r2x,r2y,r2z);
    if (s < 0)  { tagp[ind1] = -1; tagp[ind2] = -1; collapsed++; } // collapse
   }
-  printf("Expanded=%d, collapsed=%d\n", expanded, collapsed);
+  printf("Expanded=" SF_D_ ", collapsed=" SF_D_ "\n", expanded, collapsed);
 
   // Reperage des elements touches par l'expand (qui possede un noeud 
   // tagge pour l'expand)
@@ -213,7 +213,7 @@ PyObject* K_TRANSFORM::deform2(PyObject* self, PyObject* args)
     }
   }
   //printf("======================\n");
-  //for (E_Int i = 0; i < nelts; i++) printf("em[%d] = %d\n", i, em[i]);
+  //for (E_Int i = 0; i < nelts; i++) printf("em[" SF_D_ "] = " SF_D_ "\n", i, em[i]);
   //printf("======================\n");
 
   // Compte le nbre de pts, nbre de faces, d'elements en plus
@@ -267,8 +267,8 @@ PyObject* K_TRANSFORM::deform2(PyObject* self, PyObject* args)
     }
   }
 
-  //printf("on cree %d pts, %d faces, %d elts\n", nptsPlus, nfacesPlus, neltsPlus);
-  //printf("sizeNGonPlus=%d sizeNFacePluis=%d sizeNFaceMoins=%d\n", sizeNGonPlus, sizeNFacePlus, sizeNFaceMoins);
+  //printf("on cree " SF_D_ " pts, " SF_D_ " faces, " SF_D_ " elts\n", nptsPlus, nfacesPlus, neltsPlus);
+  //printf("sizeNGonPlus=" SF_D_ " sizeNFacePluis=" SF_D_ " sizeNFaceMoins=" SF_D_ "\n", sizeNGonPlus, sizeNFacePlus, sizeNFaceMoins);
   // Construit l'array resultat et l'initialise par copie
   PyObject* tpl;
   E_Int sizeConnect = 4+cNG[1]+cNGe[1]+sizeNGonPlus+sizeNFacePlus;
@@ -311,7 +311,7 @@ PyObject* K_TRANSFORM::deform2(PyObject* self, PyObject* args)
     fz[i] = f1z[i] + f2z[i];
   }
 
-  printf("input surface has %d points\n", npts);
+  printf("input surface has " SF_D_ " points\n", npts);
 
   // 4. Collapse some nodes
   E_Float fxm = 0.; E_Float fym = 0.; E_Float fzm = 0.;
@@ -363,7 +363,7 @@ PyObject* K_TRANSFORM::deform2(PyObject* self, PyObject* args)
         fx[ind1] = fx[ind2]; fy[ind1] = fy[ind2]; fz[ind1] = fz[ind2];
       }
       tagp[ind1] = 0; tagp[ind2] = 0; // forced
-      //printf("%d collapse %d\n", i, collapse);
+      //printf("" SF_D_ " collapse " SF_D_ "\n", i, collapse);
     }
   }
 
@@ -397,16 +397,16 @@ PyObject* K_TRANSFORM::deform2(PyObject* self, PyObject* args)
 
       while (current < nbf)
       {
-        //printf("current face %d\n", indf);
+        //printf("current face " SF_D_ "\n", indf);
         e1 = cFE(indf-1, 1); // premier element de la face
         e2 = cFE(indf-1, 2);
         if (e1 == eprev && e2 != 0) e1 = e2;
         if (e1 == 0) e1 = e2;
         
-        //printf("current element: %d\n", e1);
+        //printf("current element: " SF_D_ "\n", e1);
         pt = cNG+posElts[e1-1]; // faces de e1
         n1 = pt[0]; // nbre de faces de e1
-        //printf("nbre de face de l element %d\n", n1);
+        //printf("nbre de face de l element " SF_D_ "\n", n1);
         
         posindf = 0; posindn = 0; found = 0;
         for (E_Int k = 0; k < n1; k++) // pour toutes faces de e1
@@ -440,7 +440,7 @@ PyObject* K_TRANSFORM::deform2(PyObject* self, PyObject* args)
         indf = abs(ordered[k]);
         pt = cNG+posFacesp[indf-1];
         ind1 = pt[1]-1; ind2 = pt[2]-1;
-        //printf("face %d : %d %d\n",indf,ind1,ind2);
+        //printf("face " SF_D_ " : " SF_D2_ "\n",indf,ind1,ind2);
         fx[currNpts+k] = 0.5*(fx[ind1]+fx[ind2]);
         fy[currNpts+k] = 0.5*(fy[ind1]+fy[ind2]);
         fz[currNpts+k] = 0.5*(fz[ind1]+fz[ind2]);
@@ -593,8 +593,8 @@ PyObject* K_TRANSFORM::deform2(PyObject* self, PyObject* args)
             elt = (*tft)[2*k+1]; // element ou est le triangle
             if (elt == i+1)
             {
-              //printf("for element %d : found tft %d %d\n", i+1, indft, elt);
-              //printf("found tri face %d\n", indft);
+              //printf("for element " SF_D_ " : found tft " SF_D2_ "\n", i+1, indft, elt);
+              //printf("found tri face " SF_D_ "\n", indft);
               ptElem[jloc+2] = indft; jloc++;    
               break;
             }

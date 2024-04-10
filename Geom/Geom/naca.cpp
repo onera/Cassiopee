@@ -60,7 +60,7 @@ PyObject* K_GEOM::nacaMesh(PyObject* self, PyObject* args)
     if ((N/2)*2-N == 0)
     {
       printf("Warning: naca: number of points must be odd.\n");
-      printf("Warning: naca: number of points set to %d.\n", N+1);
+      printf("Warning: naca: number of points set to " SF_D_ ".\n", N+1);
       N = N+1;
     }
   
@@ -77,14 +77,14 @@ PyObject* K_GEOM::nacaMesh(PyObject* self, PyObject* args)
     {
       // sharp : 2N+1
       printf("Warning: naca: number of points must be odd.\n");
-      printf("Warning: naca: number of points set to %d.\n", N+1);
+      printf("Warning: naca: number of points set to " SF_D_ ".\n", N+1);
       N = N+1;
     }
     if (sharpte == 0 && (N/2)*2-N == 1)
     {
       // pas sharp : 2N
       printf("Warning: naca: number of points must be even.\n");
-      printf("Warning: naca: number of points set to %d.\n", N+1);
+      printf("Warning: naca: number of points set to " SF_D_ ".\n", N+1);
       N = N+1;
     }
 

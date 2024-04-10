@@ -123,7 +123,7 @@ E_Int Data::initZoneData(
   for (E_Int i = 0; i < sSize; i++)
   {
     if (i < zoneNamesSize) strcpy(zoneName, zoneNames[i]);
-    else sprintf(zoneName, "S-Zone %d", i);
+    else sprintf(zoneName, "S-Zone " SF_D_, i);
     if (i < zoneTagsSize) zTags = zoneTags[i];
     else zTags = NULL;
     szones[i] = createStructZone(structF[i], structVarString[i],
@@ -185,7 +185,7 @@ E_Int Data::initZoneData(
   for (E_Int i = 0; i < uSize; i++)
   {
     if (i+sSize < zoneNamesSize) strcpy(zoneName, zoneNames[i+sSize]);
-    else sprintf(zoneName, "U-Zone %d", i);
+    else sprintf(zoneName, "U-Zone " SF_D_, i);
     if (i+sSize < zoneTagsSize) zTags = zoneTags[i+sSize];
     else zTags = NULL;
     uzones[i] = createUnstrZone(

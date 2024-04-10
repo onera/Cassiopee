@@ -1206,7 +1206,7 @@ short K_POST::getThetaRKCoef(
   {
     if (type != 2 && type != 3 && type != 5)
     {
-      printf("Error: getThetaRKCoef: not a valid interptype: %d.\n", type);
+      printf("Error: getThetaRKCoef: not a valid interptype: " SF_D_ ".\n", type);
       exit(0);
     }
     FldArrayF* velo = listOfStructVelocities[noblk0];
@@ -1244,7 +1244,7 @@ short K_POST::getThetaRKCoef(
   {
     if (type != 4) 
     {
-      printf("Error: getThetaRKCoef: not a valid interp type: %d.\n", type);
+      printf("Error: getThetaRKCoef: not a valid interp type: " SF_D_ ".\n", type);
       exit(0);
     }
     noblk0 = noblk0-ns;// numero du bloc reel dans la liste des blocs non structures

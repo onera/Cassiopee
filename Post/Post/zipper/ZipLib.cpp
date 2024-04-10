@@ -261,7 +261,7 @@ void buildPocket(E_Float matchTol,
   for (E_Int i = 0; i < dejaVu.getSize();i++)
   {
     if (dejaVu[i] == 0)
-      printf("Warning: buildPocket: segment number %d is not in a pocket.\n", i+1);  
+      printf("Warning: buildPocket: segment number " SF_D_ " is not in a pocket.\n", i+1);  
   }
   for (E_Int i = 0; i < size; i++)
     delete singleSegments[i];

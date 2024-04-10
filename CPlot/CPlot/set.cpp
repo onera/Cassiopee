@@ -753,7 +753,7 @@ PyObject* K_CPLOT::setActiveZones(PyObject* self, PyObject* args)
     }
     else if (status != 1 && status != 0)
     {
-      printf("Warning: setActiveZones: status of zone is invalid (%d).\n",
+      printf("Warning: setActiveZones: status of zone is invalid (" SF_D_ ").\n",
              status);
     } 
     else

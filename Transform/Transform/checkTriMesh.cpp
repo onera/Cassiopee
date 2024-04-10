@@ -120,7 +120,7 @@ void K_TRANSFORM::checkTriMesh(FldArrayI& ct, E_Int np,
     ndirl = sqrt(dir1[0]*dir1[0]+dir1[1]*dir1[1]+dir1[2]*dir1[2]);
     if (ndirl < 1.e-11) 
     {
-      printf("check: %d: %f maille ecrase.\n", i, ndirl); 
+      printf("check: " SF_D_ ": " SF_F_ " maille ecrase.\n", i, ndirl); 
       maillesEcrasees += 1;
     }
 
@@ -181,14 +181,14 @@ void K_TRANSFORM::checkTriMesh(FldArrayI& ct, E_Int np,
 
       if (inverse1 < -0.9)
       {
-        printf("check: %d: %f maille inversee.\n", i, inverse1); 
+        printf("check: " SF_D_ ": " SF_F_ " maille inversee.\n", i, inverse1); 
         maillesInversees += 1;
       }
     }
 
   }
 
-  printf("Check: Mailles inversees=%d - mailles ecrasees=%d\n", maillesInversees, maillesEcrasees);
+  printf("Check: Mailles inversees=" SF_D_ " - mailles ecrasees=" SF_D_ "\n", maillesInversees, maillesEcrasees);
   ne = maillesEcrasees;
   ni = maillesInversees;
 }

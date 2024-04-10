@@ -390,7 +390,7 @@ void Data::printHeader()
 
   if (_niter > 0)
   {
-    strcat(msg, " | It. "); sprintf(tmp, "%d", _niter);
+    strcat(msg, " | It. "); sprintf(tmp, SF_D_, _niter);
     strcat(msg, tmp);
   }
 
@@ -403,13 +403,13 @@ void Data::printHeader()
     strcat(msg, " : ");
     if (nz < _numberOfStructZones)
     {
-      sprintf(tmp, "%d", _szones[nz]->ni);
+      sprintf(tmp, SF_D_, _szones[nz]->ni);
       strcat(msg, tmp);
       strcat(msg, "x");
-      sprintf(tmp, "%d", _szones[nz]->nj);
+      sprintf(tmp, SF_D_, _szones[nz]->nj);
       strcat(msg, tmp);
       strcat(msg, "x");
-      sprintf(tmp, "%d", _szones[nz]->nk);
+      sprintf(tmp, SF_D_, _szones[nz]->nk);
       strcat(msg, tmp);
 
       // Displayed planes
@@ -419,19 +419,19 @@ void Data::printHeader()
         if (_szones[nz]->iPlane >= 0)
         {
           strcat(msg, " i=");
-          sprintf(tmp, "%d", _szones[nz]->iPlane+1);
+          sprintf(tmp, SF_D_, _szones[nz]->iPlane+1);
           strcat(msg, tmp);
         }
         if (_szones[nz]->jPlane >= 0)
         {
           strcat(msg, "+j=");
-          sprintf(tmp, "%d", _szones[nz]->jPlane+1);
+          sprintf(tmp, SF_D_, _szones[nz]->jPlane+1);
           strcat(msg, tmp);
         }
         if (_szones[nz]->kPlane >= 0)
         {
           strcat(msg, "+k=");
-          sprintf(tmp, "%d", _szones[nz]->kPlane+1);
+          sprintf(tmp, SF_D_, _szones[nz]->kPlane+1);
           strcat(msg, tmp);
         }
       }
@@ -443,22 +443,22 @@ void Data::printHeader()
             if (_szones[nz]->jPlane >= 0)
             {
               strcat(msg, " j=");
-              sprintf(tmp, "%d", _szones[nz]->jPlane+1);
+              sprintf(tmp, SF_D_, _szones[nz]->jPlane+1);
               strcat(msg, tmp);
             }
             strcat(msg, " k=");
-            sprintf(tmp, "%d", _szones[nz]->kLine+1);
+            sprintf(tmp, SF_D_, _szones[nz]->kLine+1);
             strcat(msg, tmp);
             break;
           
           case 1: // j variant
             strcat(msg, " i=");
-            sprintf(tmp, "%d", _szones[nz]->iLine+1);
+            sprintf(tmp, SF_D_, _szones[nz]->iLine+1);
             strcat(msg, tmp);
             if (_szones[nz]->kPlane >= 0)
             {
               strcat(msg, " k=");
-              sprintf(tmp, "%d", _szones[nz]->kPlane+1);
+              sprintf(tmp, SF_D_, _szones[nz]->kPlane+1);
               strcat(msg, tmp);
             }
             break;
@@ -467,11 +467,11 @@ void Data::printHeader()
             if (_szones[nz]->iPlane >= 0)
             {
               strcat(msg, " i=");
-              sprintf(tmp, "%d", _szones[nz]->iPlane+1);
+              sprintf(tmp, SF_D_, _szones[nz]->iPlane+1);
               strcat(msg, tmp);
             }
             strcat(msg, " j=");
-            sprintf(tmp, "%d", _szones[nz]->jLine+1);
+            sprintf(tmp, SF_D_, _szones[nz]->jLine+1);
             strcat(msg, tmp);
             break;
         }
@@ -479,7 +479,7 @@ void Data::printHeader()
     }
     else // non structure
     {
-      sprintf(tmp, "%d pts, %d elts", _uzones[nz-_numberOfStructZones]->np, 
+      sprintf(tmp, SF_D_ " pts, " SF_D_ " elts", _uzones[nz-_numberOfStructZones]->np, 
               _uzones[nz-_numberOfStructZones]->ne);
       strcat(msg, tmp);
     }
@@ -630,7 +630,7 @@ void Data::displayInfo()
     if (ptrState->selectedZone-1 < _numberOfStructZones)
     {
       StructZone* zs = (StructZone*)z;
-      sprintf(temp,"@1%s@0 (STRUCT): %dx%dx%d",
+      sprintf(temp,"@1%s@0 (STRUCT): " SF_D_ "x" SF_D_ "x" SF_D_ "",
               z->zoneName, zs->ni, zs->nj, zs->nk);
       strcat(msg, temp);
     }
@@ -644,80 +644,80 @@ void Data::displayInfo()
       switch (eltType)
       {
         case 0:
-          sprintf(temp,"@1%s@0 (NODE): %d pts",
+          sprintf(temp,"@1%s@0 (NODE): " SF_D_ " pts",
                   z->zoneName, zu->npts);
           break;
         case 1:
           if (zu->_is_high_order && eltSize == 3)
-            sprintf(temp,"@1%s@0 (BAR_3): %d pts, %d elts",
+            sprintf(temp,"@1%s@0 (BAR_3): " SF_D_ " pts, " SF_D_ " elts",
                     z->zoneName, zu->npts, zu->ne);
           else
-            sprintf(temp,"@1%s@0 (BAR): %d pts, %d elts",
+            sprintf(temp,"@1%s@0 (BAR): " SF_D_ " pts, " SF_D_ " elts",
                     z->zoneName, zu->npts, zu->ne);
           break;
         case 2:
           if (zu->_is_high_order && eltSize == 6)
-            sprintf(temp,"@1%s@0 (TRI_6): %d pts, %d elts",
+            sprintf(temp,"@1%s@0 (TRI_6): " SF_D_ " pts, " SF_D_ " elts",
                     z->zoneName, zu->npts, zu->ne);
           else
-            sprintf(temp,"@1%s@0 (TRI): %d pts, %d elts",
+            sprintf(temp,"@1%s@0 (TRI): " SF_D_ " pts, " SF_D_ " elts",
                     z->zoneName, zu->npts, zu->ne);
           break;
         case 3:
           if (zu->_is_high_order && eltSize == 8)
-            sprintf(temp,"@1%s@0 (QUAD_8): %d pts, %d elts",
+            sprintf(temp,"@1%s@0 (QUAD_8): " SF_D_ " pts, " SF_D_ " elts",
                     z->zoneName, zu->npts, zu->ne);
           else if (zu->_is_high_order && eltSize == 9)
-            sprintf(temp,"@1%s@0 (QUAD_9): %d pts, %d elts",
+            sprintf(temp,"@1%s@0 (QUAD_9): " SF_D_ " pts, " SF_D_ " elts",
                     z->zoneName, zu->npts, zu->ne);
           else
-            sprintf(temp,"@1%s@0 (QUAD): %d pts, %d elts",
+            sprintf(temp,"@1%s@0 (QUAD): " SF_D_ " pts, " SF_D_ " elts",
                     z->zoneName, zu->npts, zu->ne);
           break;
         case 4:
           if (zu->_is_high_order && eltSize == 10)
-            sprintf(temp,"@1%s@0 (TETRA_10): %d pts, %d elts",
+            sprintf(temp,"@1%s@0 (TETRA_10): " SF_D_ " pts, " SF_D_ " elts",
                     z->zoneName, zu->npts, zu->ne);
           else
-            sprintf(temp,"@1%s@0 (TETRA): %d pts, %d elts",
+            sprintf(temp,"@1%s@0 (TETRA): " SF_D_ " pts, " SF_D_ " elts",
                     z->zoneName, zu->npts, zu->ne);
           break;
         case 5:
           if (zu->_is_high_order && eltSize == 15)
-            sprintf(temp,"@1%s@0 (PENTA_15): %d pts, %d elts",
+            sprintf(temp,"@1%s@0 (PENTA_15): " SF_D_ " pts, " SF_D_ " elts",
                     z->zoneName, zu->npts, zu->ne);
           else if (zu->_is_high_order && eltSize == 18)
-            sprintf(temp,"@1%s@0 (PENTA_18): %d pts, %d elts",
+            sprintf(temp,"@1%s@0 (PENTA_18): " SF_D_ " pts, " SF_D_ " elts",
                     z->zoneName, zu->npts, zu->ne);
           else
-            sprintf(temp,"@1%s@0 (PENTA): %d pts, %d elts",
+            sprintf(temp,"@1%s@0 (PENTA): " SF_D_ " pts, " SF_D_ " elts",
                     z->zoneName, zu->npts, zu->ne);
           break;
         case 6:
           if (zu->_is_high_order && eltSize == 14)
-            sprintf(temp,"@1%s@0 (PYRA_14): %d pts, %d elts",
+            sprintf(temp,"@1%s@0 (PYRA_14): " SF_D_ " pts, " SF_D_ " elts",
                     z->zoneName, zu->npts, zu->ne);
           else
-            sprintf(temp,"@1%s@0 (PYRA): %d pts, %d elts",
+            sprintf(temp,"@1%s@0 (PYRA): " SF_D_ " pts, " SF_D_ " elts",
                     z->zoneName, zu->npts, zu->ne);
           break;
         case 7:
           if (zu->_is_high_order && eltSize == 20)
-            sprintf(temp,"@1%s@0 (HEXA_20): %d pts, %d elts",
+            sprintf(temp,"@1%s@0 (HEXA_20): " SF_D_ " pts, " SF_D_ " elts",
                     z->zoneName, zu->npts, zu->ne);
           else if (zu->_is_high_order && eltSize == 27)
-            sprintf(temp,"@1%s@0 (HEXA_27): %d pts, %d elts",
+            sprintf(temp,"@1%s@0 (HEXA_27): " SF_D_ " pts, " SF_D_ " elts",
                     z->zoneName, zu->npts, zu->ne);
           else
-            sprintf(temp,"@1%s@0 (HEXA): %d pts, %d elts",
+            sprintf(temp,"@1%s@0 (HEXA): " SF_D_ " pts, " SF_D_ " elts",
                     z->zoneName, zu->npts, zu->ne);
           break;
         case 10:
-          sprintf(temp,"@1%s@0 (NGON): %d pts, %d elts, %d faces",
+          sprintf(temp,"@1%s@0 (NGON): " SF_D_ " pts, " SF_D_ " elts, " SF_D_ " faces",
                   z->zoneName, zu->npts, zu->ne, connect[0]);
           break;
         default:
-          sprintf(temp,"@1%s@0 (UNKNOWN): %d pts, %d elts",
+          sprintf(temp,"@1%s@0 (UNKNOWN): " SF_D_ " pts, " SF_D_ " elts",
                   z->zoneName, zu->npts, zu->ne);
           break;
       }
@@ -729,8 +729,8 @@ void Data::displayInfo()
     {
       // structure
       if (ptrState->mode == MESH || ptrState->mode == SOLID)
-        strcpy(local, "\nx=@1%g@0, y=@1%g@0, z=@1%g@0 (@1i=%d@0, @1j=%d@0, @1k=%d@0)");
-      else strcpy(local, "\nx=%g, y=%g, z=%g (i=%d, j=%d,  k=%d)");
+        strcpy(local, "\nx=@1%g@0, y=@1%g@0, z=@1%g@0 (@1i=" SF_D_ "@0, @1j=" SF_D_ "@0, @1k=" SF_D_ "@0)");
+      else strcpy(local, "\nx=%g, y=%g, z=%g (i=" SF_D_ ", j=" SF_D_ ",  k=" SF_D_ ")");
       sprintf(temp, local,
               ptrState->activePointX, ptrState->activePointY, ptrState->activePointZ,
               ptrState->activePointI, ptrState->activePointJ, abs(ptrState->activePointK));
@@ -747,14 +747,14 @@ void Data::displayInfo()
       if (zu->eltType[0] != 10)
       {
         if (ptrState->mode == MESH || ptrState->mode == SOLID)
-          strcpy(local, "\nx=@1%g@0, y=@1%g@0, z=@1%g@0 (@1np=%d@0, @1ne=%d@0, @1ns=%d@0)");
-        else strcpy(local, "\nx=%g, y=%g, z=%g (np=%d, ne=%d, ns=%d)");
+          strcpy(local, "\nx=@1%g@0, y=@1%g@0, z=@1%g@0 (@1np=" SF_D_ "@0, @1ne=" SF_D_ "@0, @1ns=" SF_D_ "@0)");
+        else strcpy(local, "\nx=%g, y=%g, z=%g (np=" SF_D_ ", ne=" SF_D_ ", ns=" SF_D_ ")");
       }
       else
       {
         if (ptrState->mode == MESH || ptrState->mode == SOLID)
-          strcpy(local, "\nx=%g, y=%g, z=%g (@1np=%d@0, @1ne=%d@0, @1nf=%d@0)");
-        else strcpy(local, "\nx=%g, y=%g, z=%g (np=%d, ne=%d, nf=%d)");
+          strcpy(local, "\nx=%g, y=%g, z=%g (@1np=" SF_D_ "@0, @1ne=" SF_D_ "@0, @1nf=" SF_D_ "@0)");
+        else strcpy(local, "\nx=%g, y=%g, z=%g (np=" SF_D_ ", ne=" SF_D_ ", nf=" SF_D_ ")");
       }
       
       sprintf(temp, local,  

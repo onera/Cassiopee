@@ -24,6 +24,7 @@
 
 # include "BlkInterp.h"
 # include "Fld/FldArray.h"
+# include "String/kstring.h"
 # include "Connect/connect.h"
 
 using namespace std;
@@ -520,7 +521,7 @@ E_Float K_KINTERP::selectBestUnstructuredInterpolationCell(
   short found;
 
   E_Float best = K_CONST::E_MAX_FLOAT; // for now : volume
-  //E_Int nvoisinsTetra = 4; // un tetra a 4 voisins, dans le cas contraire supposé sur un bord du maillage
+  //E_Int nvoisinsTetra = 4; // un tetra a 4 voisins, dans le cas contraire suppose sur un bord du maillage
 
   FldArrayI tmpIndi(indi.getSize());
   FldArrayI indisav(indi.getSize());
@@ -780,7 +781,7 @@ buildListOfUnstrInterpData(vector<FldArrayI*>& connectIn,
     if ( strcmp(eltType, "TETRA") != 0 ) 
     {
       printf("K_KINTERP::buildListOfUnstrInterpData: only TETRA element type are valid.");
-      printf("Array %d skipped.\n",v+1); 
+      printf("Array " SF_D_ " skipped.\n",v+1); 
     }
     else 
     {
@@ -789,7 +790,7 @@ buildListOfUnstrInterpData(vector<FldArrayI*>& connectIn,
       posz = isCoordinateZPresent(varStringIn[v]);
       if (posx == -1 || posy == -1 || posz == -1)
       {
-        printf("K_KINTERP::buildListOfUnstrInterpData: coordinate not found in array %d. ",v+1);
+        printf("K_KINTERP::buildListOfUnstrInterpData: coordinate not found in array " SF_D_ ". ",v+1);
         printf("Skipped.\n");
       }
       else 
@@ -872,7 +873,7 @@ buildListOfStructInterpData(vector<FldArrayF*>& fieldsIn,
     if (ni < 2 || nj < 2 || nk < 2)
     {
       printf("K_KINTERP::buildListOfStructInterpData: only 3D arrays are valid.");
-      printf("Array %d skipped.\n", v+1);
+      printf("Array " SF_D_ " skipped.\n", v+1);
     }
     else 
     {
@@ -881,7 +882,7 @@ buildListOfStructInterpData(vector<FldArrayF*>& fieldsIn,
       posz = isCoordinateZPresent(varStringIn[v]);
       if (posx == -1 || posy == -1 || posz == -1)
       {
-        printf("K_KINTERP::buildListOfStructInterpData: coordinate not found in array %d. ", v+1);
+        printf("K_KINTERP::buildListOfStructInterpData: coordinate not found in array " SF_D_ ". ", v+1);
         printf("Skipped.\n");
       }
       else
@@ -1044,11 +1045,11 @@ E_Float K_KINTERP::compInterpolatedNatureEX(E_Int ni, E_Int nj, E_Int nk,
         -1, -1, -1 si le donneur est non structure
    IN: f0: champ du bloc donneur pour l interpolation
    IN: indi: indices des pts de la molecule d interpolation
-             peut être defini par des sommets de la molécule donneuse
+             peut etre defini par des sommets de la molecule donneuse
                               par l indice de la cellule donneuse
-             doit être cohérent avec f.
+             doit etre coherent avec f.
    IN: indiSize: taille de indi
-   IN: cf: coefs d'interpolation associés 
+   IN: cf: coefs d'interpolation associes 
    IN: ind: indice du pt a interpoler 
    IN: interpType: permet de determiner la formule appliquee
    OUT: f: champs interpoles au point ind 

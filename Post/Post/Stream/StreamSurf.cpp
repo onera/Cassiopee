@@ -234,7 +234,7 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
     else 
     {
       printf("Warning: streamSurf: unstructured element type is %s (must be TETRA).\n", eltType[no]);
-      printf("Zone %d not taken into account to build the stream surface\n", no);
+      printf("Zone " SF_D_ " not taken into account to build the stream surface\n", no);
     }
   } 
   E_Int structSize =  structInterpDatas1.size();

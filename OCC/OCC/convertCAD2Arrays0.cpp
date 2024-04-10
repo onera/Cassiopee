@@ -202,8 +202,8 @@ PyObject* K_OCC::convertCAD2Arrays0(PyObject* self, PyObject* args)
     }
   }
   
-  printf("INFO: total number of nodes: %d\n", nbNodes);
-  printf("INFO:  total number of triangles: %d\n", nbTris);
+  printf("INFO: total number of nodes: " SF_D_ "\n", nbNodes);
+  printf("INFO:  total number of triangles: " SF_D_ "\n", nbTris);
   
   // buildArray
   PyObject* o = K_ARRAY::buildArray2(3, "x,y,z", nbNodes, nbTris, -1, "TRI", false, 0, 0, 0, 1);

@@ -60,7 +60,7 @@ E_Int __getParamHmax(const TopoDS_Edge& E, E_Float hmax, E_Int& nbPoints, E_Floa
   GCPnts_UniformAbscissa param(geomAdap, nbPoints, u0, u1);
   ue = new E_Float [nbPoints];
   for (E_Int i = 0; i < nbPoints; i++) ue[i] = param.Parameter(i+1);
-  printf("L=%f hmax=%f nbPoints=%d\n", L, hmax, nbPoints); fflush(stdout);
+  printf("L=%f hmax=%f nbPoints=" SF_D_ "\n", L, hmax, nbPoints); fflush(stdout);
   return 0;
 }
 
@@ -84,7 +84,7 @@ E_Int __getParamHausd(const TopoDS_Edge& E, E_Float hausd, E_Int& nbPoints, E_Fl
   nbPoints = param.NbPoints();
   ue = new E_Float [nbPoints];
   for (E_Int i = 0; i < nbPoints; i++) ue[i] = param.Parameter(i+1);
-  printf("hausd=%f nbPoints=%d\n", hausd, nbPoints); fflush(stdout);
+  printf("hausd=%f nbPoints=" SF_D_ "\n", hausd, nbPoints); fflush(stdout);
   return 0;
 }
 

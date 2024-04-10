@@ -37,11 +37,11 @@ using namespace K_FLD;
 //=============================================================================
 /* Calcule et stocke les coefficients d'interpolation par intersection
    OUT: [donorBlks,donorInd1D, donorType, coefs, extrapInd1D, orphanInd1D] 
-        donorBlks: no du blk donneur, d�marre � 0
+        donorBlks: no du blk donneur, demarre a 0
         donorInd1D: indice global (structure), de l elt (NS) du donneur
-        donorType: type d interpolation effectu� localement
-        coefs: coefficients d interpolation, stock�s selon le type
-        extrapInd1D: indices des pts extrapol�s
+        donorType: type d interpolation effectue localement
+        coefs: coefficients d interpolation, stockes selon le type
+        extrapInd1D: indices des pts extrapoles
         orphanInd1D: indices des pts orphelins */
 //=============================================================================
 PyObject* K_CONNECTOR::setInterpDataCons(PyObject* self, PyObject* args)
@@ -202,7 +202,7 @@ PyObject* K_CONNECTOR::setInterpDataCons(PyObject* self, PyObject* args)
   //E_Int nbI = neltsR; //nb d elts a interpoler (initialisation, a redimensionner en sortie)
 
   // Initialisation des tableaux et dimensionnement a priori
-  // On met pour l'instant NCloudPtsMax � CLOUDMAX: la molecule d'interpolation contient a priori CLOUDMAX pts
+  // On met pour l'instant NCloudPtsMax a CLOUDMAX: la molecule d'interpolation contient a priori CLOUDMAX pts
   //E_Int nCloudPtsMax = CLOUDMAX;
 
   vector<E_Int> cellNt(neltsR);
@@ -255,7 +255,7 @@ PyObject* K_CONNECTOR::setInterpDataCons(PyObject* self, PyObject* args)
       listOfDonorInd1D.push_back(donorInd1D);
       listOfRcvInd1D.push_back(rcvInd1D);
       listOfInterpCoefs.push_back(coefs);
-      printf("Warning: setInterpDataConservative: failure in computation of interpolation coefficients for donor zone %d (%d zones).\n", noz, nDnrZones);
+      printf("Warning: setInterpDataConservative: failure in computation of interpolation coefficients for donor zone " SF_D_ " (" SF_D_ " zones).\n", noz, nDnrZones);
       // RELEASEDATA; return Py_None;
     }
     else 

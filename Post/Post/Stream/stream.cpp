@@ -73,7 +73,7 @@ void K_POST::compInitialStep(
   {
     if (type != 2 && type != 3 && type != 5 )
     {
-      printf("Error: stream: compInitialStep: not a valid interpolation type: %d.\n", type);
+      printf("Error: stream: compInitialStep: not a valid interpolation type: " SF_D_ ".\n", type);
       exit(0);
     }
     FldArrayF* field = structFields[noblk0];
@@ -99,7 +99,7 @@ void K_POST::compInitialStep(
   {
     if (type != 4) 
     {
-      printf("Error: stream: compInitialStep: not a valid interp type: %d.\n", type);
+      printf("Error: stream: compInitialStep: not a valid interp type: " SF_D_ ".\n", type);
       exit(0);
     }
     noblk0 = noblk0-ns;// numero du bloc reel dans la liste des blocs non structures

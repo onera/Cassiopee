@@ -279,11 +279,11 @@ void K_TRANSFORM::breakMixedElements(
       cnp += 8+1; ps += 8+1;
     }
   }
-  printf("found %d TRI\n", nettri);
-  printf("found %d QUAD\n", netquad);
-  printf("found %d HEXA\n", nethexa);
-  printf("found %d PENTA\n", netpenta);
-  printf("found %d TETRA\n", nettetra);  
+  printf("found " SF_D_ " TRI\n", nettri);
+  printf("found " SF_D_ " QUAD\n", netquad);
+  printf("found " SF_D_ " HEXA\n", nethexa);
+  printf("found " SF_D_ " PENTA\n", netpenta);
+  printf("found " SF_D_ " TETRA\n", nettetra);  
 
   // BAR
   cEVbarp->reAllocMat(netbar,2);

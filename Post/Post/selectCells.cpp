@@ -847,7 +847,7 @@ PyObject* K_POST::selectCells3(PyObject* self, PyObject* args)
   }
 
   E_Int nelts = f2->getSize();
-  printf("nelts=%d\n", nelts);
+  printf("nelts=" SF_D_ "\n", nelts);
   E_Float* tagp = f2->begin(); 
   E_Float oneEps = 1.-1.e-10;
 
@@ -871,7 +871,7 @@ PyObject* K_POST::selectCells3(PyObject* self, PyObject* args)
   // allocate
   E_Int size = 0;
   for (E_Int i = 0; i < nthreads; i++) { pos[i] = size; size += nb[i]; }
-  printf("size = %d\n", size);
+  printf("size = " SF_D_ "\n", size);
 
   PyObject* o = K_NUMPY::buildNumpyArray(size, 1, 1, 0);
   E_Int* ind = K_NUMPY::getNumpyPtrI(o);

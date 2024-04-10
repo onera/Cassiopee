@@ -171,7 +171,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2LBM(E_Int bctype    , E_Int* rcvPts 
     }
   }
   else{
-    printf("Warning !!! setIBCTransfersCommonVar2LBM: bcType %d not implemented.\n", bctype);
+    printf("Warning !!! setIBCTransfersCommonVar2LBM: bcType " SF_D_ " not implemented.\n", bctype);
     return 0;
   }
   return 1;
@@ -370,7 +370,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar5(E_Int bctype    , E_Int* rcvPts, E_
     }      
   }
   else{
-    printf("Warning !!! setIBCTransfersCommonVar5: bcType %d not implemented.\n", bctype);
+    printf("Warning !!! setIBCTransfersCommonVar5: bcType " SF_D_ " not implemented.\n", bctype);
     return 0;
   }
   return 1;

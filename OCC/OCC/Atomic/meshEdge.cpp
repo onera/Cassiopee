@@ -447,7 +447,7 @@ E_Int __meshEdge4(const TopoDS_Edge& E,
   //GCPnts_TangentialDeflection param(GeomAdap, 10., hausd, 2, 1.e-9, hmax);
   nbPoints = param.NbPoints();
   nbPoints = std::min(nbPoints, E_Int(MAXNBPTSPEREDGE)); // hard limit
-  printf("hausd edge: nbPoints=%d coords=%d\n", nbPoints, coords.getSize()); fflush(stdout);
+  printf("hausd edge: nbPoints=" SF_D_ " coords=" SF_D_ "\n", nbPoints, coords.getSize()); fflush(stdout);
   if (nbPoints != coords.getSize()) exit(0);
 
   {
@@ -519,7 +519,7 @@ E_Int __meshEdgeByFace4(const TopoDS_Edge& E, const TopoDS_Face& F,
   // non degenerated
   GCPnts_UniformDeflection param(geomAdap, hausd, aFirst, aEnd);
   nbPoints = param.NbPoints();
-  printf("hausd face: nbPoints=%d coords=%d\n", nbPoints, coords.getSize()); fflush(stdout);
+  printf("hausd face: nbPoints=" SF_D_ " coords=" SF_D_ "\n", nbPoints, coords.getSize()); fflush(stdout);
 
   if (nbPoints != coords.getSize()) exit(0);
 
@@ -564,7 +564,7 @@ E_Int __getNbPts1(const TopoDS_Edge& E, E_Float& hmax, E_Int& nbPoints)
     hmax = L / nbPoints;
     printf("WARNING: limit edge nbPoints\n");
   } 
-  printf("L=%f hmax=%f nbPoints=%d\n", L, hmax, nbPoints);
+  printf("L=%f hmax=%f nbPoints=" SF_D_ "\n", L, hmax, nbPoints);
   return 0;
 }
 
@@ -599,9 +599,9 @@ E_Int __getNbPts2(const TopoDS_Edge& E, E_Float hausd, E_Int& nbPoints)
     hausd = hausd*(MAXNBPTSPEREDGE / nbPoints); // suppose proportionnel
     GCPnts_UniformDeflection param2(geomAdap, hausd, u0, u1);
     nbPoints = param2.NbPoints();
-    printf("WARNING: limit edge nbPoints=%d\n", nbPoints);
+    printf("WARNING: limit edge nbPoints=" SF_D_ "\n", nbPoints);
   }
-  printf("getnpts2: hausd=%f nbPoints=%d\n", hausd, nbPoints); fflush(stdout);
+  printf("getnpts2: hausd=%f nbPoints=" SF_D_ "\n", hausd, nbPoints); fflush(stdout);
   return 0;
 }
 

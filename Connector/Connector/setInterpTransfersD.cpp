@@ -650,7 +650,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 	 	  if (isWireModel==0){ strcpy( varStringOut, "Density_P1,VelocityX_P1,VelocityY_P1,VelocityZ_P1,Temperature_P1" );}
 	 	  else{                strcpy( varStringOut, "Density_WM,VelocityX_WM,VelocityY_WM,VelocityZ_WM,Temperature_WM" ); }
                  }
-               else{ printf("souci setinterpTransferD %d \n", nvars_loc); }
+               else{ printf("souci setinterpTransferD " SF_D_ " \n", nvars_loc); }
               }
             else if ( nvars_loc == 6 ) 
               {
@@ -664,46 +664,46 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 	 	  if (isWireModel==0){ strcpy( varStringOut, "Density_P1,VelocityX_P1,VelocityY_P1,VelocityZ_P1,Temperature_P1,TurbulentSANuTilde_P1" );}
 	 	  else{                strcpy( varStringOut, "Density_WM,VelocityX_WM,VelocityY_WM,VelocityZ_WM,Temperature_WM,TurbulentSANuTilde_WM" ); }
                  }
-               else{ printf("souci setinterpTransferD %d \n", nvars_loc); }
+               else{ printf("souci setinterpTransferD " SF_D_ " \n", nvars_loc); }
               }
             else if ( nvars_loc == 19 ||  nvars_loc == 24 ) 
               { 
                 if      ( strcmp( varname, "Density"    ) == 0 ){ strcpy( varStringOut, "Density,VelocityX,VelocityY,VelocityZ,Temperature" ); }
                 else if ( strcmp( varname, "Density_P1" ) == 0 ){ strcpy( varStringOut, "Density_P1,VelocityX_P1,VelocityY_P1,VelocityZ_P1,Temperature_P1" );}
-                else{ printf("souci setinterpTransferD %d \n", nvars_loc); }
+                else{ printf("souci setinterpTransferD " SF_D_ " \n", nvars_loc); }
 
                 if ( varname1 != NULL ) // Raccords LBM
                   {
                     if      ( strcmp( varname1, "Q1")    == 0 ){ strcpy( varStringOut1, "Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15,Q16,Q17,Q18,Q19" );}
                     else if ( strcmp( varname1, "Q1_M1") == 0 ){ strcpy( varStringOut1, "Q1_M1,Q2_M1,Q3_M1,Q4_M1,Q5_M1,Q6_M1,Q7_M1,Q8_M1,Q9_M1,Q10_M1,Q11_M1,Q12_M1,Q13_M1,Q14_M1,Q15_M1,Q16_M1,Q17_M1,Q18_M1,Q19_M1" );}
-                    else{ printf("souci setinterpTransferD %d \n", nvars_loc); }
+                    else{ printf("souci setinterpTransferD " SF_D_ " \n", nvars_loc); }
                   }
               } 
             else if ( nvars_loc == 27 ||  nvars_loc == 32 ) 
               { 
                 if      ( strcmp( varname, "Density"    ) == 0 ){ strcpy( varStringOut, "Density,VelocityX,VelocityY,VelocityZ,Temperature" ); }
                 else if ( strcmp( varname, "Density_P1" ) == 0 ){ strcpy( varStringOut, "Density_P1,VelocityX_P1,VelocityY_P1,VelocityZ_P1,Temperature_P1" );}
-                else{ printf("souci setinterpTransferD %d \n", nvars_loc); }
+                else{ printf("souci setinterpTransferD " SF_D_ " \n", nvars_loc); }
 
                 if ( varname1 != NULL ) // Raccords LBM
                   {
                     if      ( strcmp( varname1, "Q1")    == 0 ){ strcpy( varStringOut1, "Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15,Q16,Q17,Q18,Q19,Q20,Q21,Q22,Q23,Q24,Q25,Q26,Q27" );}
                     else if ( strcmp( varname1, "Q1_M1") == 0 ){ strcpy( varStringOut1, "Q1_M1,Q2_M1,Q3_M1,Q4_M1,Q5_M1,Q6_M1,Q7_M1,Q8_M1,Q9_M1,Q10_M1,Q11_M1,Q12_M1,Q13_M1,Q14_M1,Q15_M1,Q16_M1,Q17_M1,Q18_M1,Q19_M1,Q20_M1,Q21_M1,Q22_M1,Q23_M1,Q24_M1,Q25_M1,Q26_M1,Q27_M1" );}
-                    else{ printf("souci setinterpTransferD %d \n", nvars_loc); }
+                    else{ printf("souci setinterpTransferD " SF_D_ " \n", nvars_loc); }
                   }
               }
             else if ( nvars_loc == 11 ) 
               { 
                 if      ( strcmp( varname, "Density"    ) == 0 ){ strcpy( varStringOut, "Density,VelocityX,VelocityY,VelocityZ,Temperature" ); }
                 else if ( strcmp( varname, "Density_P1" ) == 0 ){ strcpy( varStringOut, "Density_P1,VelocityX_P1,VelocityY_P1,VelocityZ_P1,Temperature_P1" );}
-                else{ printf("souci setinterpTransferD %d \n", nvars_loc); }
+                else{ printf("souci setinterpTransferD " SF_D_ " \n", nvars_loc); }
 
                 if ( varname2 != NULL ) // Raccords LBM
                   {
                     strcpy( varStringOut2, "Sxx,Sxy,Sxz,Syy,Syz,Szz");
                   }
               }
-            else{ printf("souci aiguillage setinterpTransferD %d \n", nvars_loc); }
+            else{ printf("souci aiguillage setinterpTransferD " SF_D_ " \n", nvars_loc); }
           }
 
           if ( nvars_loc == 5 || nvars_loc == 6  || nvars_loc == 1)

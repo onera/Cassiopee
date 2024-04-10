@@ -293,7 +293,7 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
                     RELEASESHAREDN(pyLocalEpsY, localEps_Y); 
                     RELEASESHAREDN(pyLocalEpsZ, localEps_Z); 
 
-                    printf(" posx = %d %d %d | posvol %d postruncl %d postruncv %d | posgs = %d posrou_src  = (%d %d %d %d ) | posu = %d %d %d | posuo = %d %d %d \n", 
+                    printf(" posx = " SF_D3_ " | posvol " SF_D_ " postruncl " SF_D_ " postruncv " SF_D_ " | posgs = " SF_D_ " posrou_src  = (" SF_D4_ ") | posu = " SF_D3_ " | posuo = " SF_D3_ " \n", 
                             posx, posy, posz, posvol, postruncl, postruncv, posgs,  
                             posrou_src, posrov_src, posrow_src, posroe_src, posu, posv, posw, posuo, posvo, poswo );                
                     PyErr_SetString(PyExc_TypeError,

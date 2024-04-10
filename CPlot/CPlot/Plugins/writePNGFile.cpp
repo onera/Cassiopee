@@ -108,5 +108,5 @@ void writePNGFile(Data* d, char* filename, char* buffer,
 
   fclose(fp); 
 
-  printf("Wrote file %s (%d x %d pixels).\n", filename, width, height);
+  printf("Wrote file %s (" SF_D_ " x " SF_D_ " pixels).\n", filename, width, height);
 }

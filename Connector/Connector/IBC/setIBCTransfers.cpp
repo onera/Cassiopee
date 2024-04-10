@@ -462,7 +462,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar1(
     }
   else
     {
-      printf("Warning !!! setIBCTransfersCommonVar1: bcType %d not implemented.\n", bctype);
+      printf("Warning !!! setIBCTransfersCommonVar1: bcType " SF_D_ " not implemented.\n", bctype);
       return 0;
     }
   return 1;
@@ -675,7 +675,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
     }
   else 
     {
-      printf("Warning !!! setIBCTransfersCommonVar2: bcType %d not implemented.\n", bctype);
+      printf("Warning !!! setIBCTransfersCommonVar2: bcType " SF_D_ " not implemented.\n", bctype);
       return 0;
     }
 
@@ -2505,7 +2505,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
     {;}      
   else
     {
-      printf("Warning !!! setIBCTransfersCommonVar2: bcType %d not implemented.\n", bctype);
+      printf("Warning !!! setIBCTransfersCommonVar2: bcType " SF_D_ " not implemented.\n", bctype);
       return 0;
     }
 
@@ -2811,7 +2811,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar3(
     }
   else
     {
-      printf("Warning !!! setIBCTransfersCommonVar3: bcType %d not implemented.\n", bctype);
+      printf("Warning !!! setIBCTransfersCommonVar3: bcType " SF_D_ " not implemented.\n", bctype);
       return 0;
     }
   return 1;

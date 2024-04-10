@@ -612,7 +612,8 @@ K_GENERATOR::mergeOctreeElement(E_Int et, E_Int npts, E_Float indic,
       return 1;
     }
   }
-  printf("Error: mergeElement: too many candidates (%d) to merge with element %d. Check the octree.\n", ncandidats, et+1);
+  printf("Error: mergeElement: too many candidates (" SF_D_ ") to merge with element " SF_D_ ". Check the octree.\n",
+         ncandidats, et+1);
   
   return -1;
 }

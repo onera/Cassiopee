@@ -131,7 +131,7 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
     dir1[1] = (ptB[2]-ptA[2])*(ptC[0]-ptA[0])-(ptB[0]-ptA[0])*(ptC[2]-ptA[2]);
     dir1[2] = (ptB[0]-ptA[0])*(ptC[1]-ptA[1])-(ptB[1]-ptA[1])*(ptC[0]-ptA[0]);
     ndirl = sqrt(dir1[0]*dir1[0]+dir1[1]*dir1[1]+dir1[2]*dir1[2]);
-    if (ndirl < 1.e-11) printf("contractEdges: %d: %f init ecrase.\n", i, ndirl); 
+    if (ndirl < 1.e-11) printf("contractEdges: " SF_D_ ": " SF_F_ " init ecrase.\n", i, ndirl); 
 
     if (mode == 1) // decimate si degenere (ecrase)
     {
@@ -254,9 +254,9 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
           indA = 0; indB = 0; indC = 0; indD = 0;
           printf("what?? problem\n");
         }
-        //printf("ind1 %d %d %d\n", ind1, ind2, ind3);
-        //printf("ind4 %d %d %d\n", ind4, ind5, ind6);
-        //printf("indA %d %d %d %d\n", indA, indB, indC, indD);
+        //printf("ind1 " SF_D3_ "\n", ind1, ind2, ind3);
+        //printf("ind4" SF_D3_ "\n", ind4, ind5, ind6);
+        //printf("indA " SF_D4_ "\n", indA, indB, indC, indD);
 
         ptA[0] = x[indA]; ptA[1] = y[indA]; ptA[2] = z[indA];
         ptB[0] = x[indB]; ptB[1] = y[indB]; ptB[2] = z[indB];
@@ -283,7 +283,7 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
                                               ptC[0], ptC[1], ptC[2],
                                               ptD[0], ptD[1], ptD[2]);
 
-        if (inverse1 < -0.9) printf("contractEdges: %d: %f inverse.\n", i, inverse1); 
+        if (inverse1 < -0.9) printf("contractEdges: " SF_D_ ": " SF_F_ " inverse.\n", i, inverse1); 
 
         if (inverse1 < -0.9 && decim[i] == 1 && decim[ie] == 1 && fixed[indB] == 0 && fixed[indC] == 0) 
         {
@@ -305,7 +305,7 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
   E_Int ne = 0;
   for (E_Int i = 0; i < ntr; i++) ne += decim[i];
 
-  printf("contractEdges: final number of elements=%d\n", ne);
+  printf("contractEdges: final number of elements=" SF_D_ "\n", ne);
   FldArrayI ctn(ne, 3);
   E_Int* ctn1 = ctn.begin(1);
   E_Int* ctn2 = ctn.begin(2);
@@ -321,7 +321,7 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
 
   ct = ctn;
 
-  //printf("Mailles inversees=%d - mailles ecrasees=%d\n", maillesInversees, maillesEcrasees);
+  //printf("Mailles inversees=" SF_D_ " - mailles ecrasees=" SF_D_ "\n", maillesInversees, maillesEcrasees);
   delete [] decim;
   delete [] fixed;
 }

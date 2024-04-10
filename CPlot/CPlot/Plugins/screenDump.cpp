@@ -437,7 +437,7 @@ void Data::dumpWindow()
 
   // File name
   if (strcmp(ptrState->exportFile, "CPlot") == 0)
-    sprintf(fileName, "%s/%s.%d.%s", ptrState->localPathName, 
+    sprintf(fileName, "%s/%s." SF_D_ ".%s", ptrState->localPathName, 
             ptrState->exportFile, ptrState->exportNumber, 
             _pref.screenDump->extension);
   else strcpy(fileName, ptrState->exportFile);

@@ -83,7 +83,7 @@
         eltType.push_back(eltTypel); cnt.push_back(cnl);
         obju.push_back(o);
     }
-    else printf("Warning: display: array %d is invalid. Discarded.\n", i);
+    else printf("Warning: display: array " SF_D_ " is invalid. Discarded.\n", i);
   }
 
   Data* d = Data::getInstance();

@@ -52,17 +52,17 @@ void K_DISTRIBUTOR2::stats(vector<E_Float>& nbPts, E_Int NProc,
     proc = out[i];
     nbNodePerProc[proc] += nbPts[i];
   }
-  //printf("Nb de pts moyen par proc: %d\n", int(meanPtsPerProc));
+  //printf("Nb de pts moyen par proc: " SF_D_ "\n", E_Int(meanPtsPerProc));
  
   //printf("Nb de pts par proc:\n");
   empty = 0;
   for (E_Int i = 0; i < NProc; i++)
   {
-    //  printf("Proc %d: %d pts\n", i, nbNodePerProc[i]);
+    //  printf("Proc " SF_D_ ": " SF_D_ " pts\n", i, nbNodePerProc[i]);
     if (nbNodePerProc[i] == 0)
     {
       empty = 1; 
-      printf("Warning: processor %d is empty!\n", i);
+      printf("Warning: processor " SF_D_ " is empty!\n", i);
     }
   }
 
@@ -78,7 +78,8 @@ void K_DISTRIBUTOR2::stats(vector<E_Float>& nbPts, E_Int NProc,
   varMin = varMin / meanPtsPerProc;
   varMax = varMax / meanPtsPerProc;
   varRMS = sqrt(varRMS) / (NProc*meanPtsPerProc);
-  printf("Info: varMin=%f%%, varMax=%f%%, varRMS=%f%%\n", 100*varMin, 100*varMax, 100*varRMS);
+  printf("Info: varMin=" SF_F_ "%%, varMax=" SF_F_ "%%, varRMS=" SF_F_ "%%\n",
+         100*varMin, 100*varMax, 100*varRMS);
 
   nptsCom = 0; E_Int volTot = 0;
   if (com != NULL)
@@ -122,9 +123,9 @@ void K_DISTRIBUTOR2::stats(vector<E_Float>& nbPts, E_Int NProc,
     }
   }
 
-  //printf("Volume de communication=%d\n", nptsCom);
+  //printf("Volume de communication=" SF_D_ "\n", nptsCom);
   if (volTot > 1.e-6) volRatio = E_Float(nptsCom)/E_Float(volTot);
   else volRatio = 0.;
-  printf("Info: external com ratio=%f%%\n", volRatio*100);
+  printf("Info: external com ratio=" SF_F_ "%%\n", volRatio*100);
   fflush(stdout);
 }

@@ -392,7 +392,7 @@ PyObject* K_POST::projectCloudSolution2Triangle(PyObject* self, PyObject* args)
   E_Float percentageOfExtrap = nbExtrapPts/float(nbPtsR)*100.;
   if (nbExtrapPts > 0)
   {
-    printf("Info: projectCloudSolution2Triangle: percentage of extrapolated points = %2.2f%% (%i/%i)\n", percentageOfExtrap, nbExtrapPts, nbPtsR);
+    printf("Info: projectCloudSolution2Triangle: percentage of extrapolated points = %2.2f%% (" SF_D_ "/" SF_D_ ")\n", percentageOfExtrap, nbExtrapPts, nbPtsR);
     // kdtree of cloud pts
     ArrayAccessor<FldArrayF>* coordAcc = new ArrayAccessor<FldArrayF>(*fd, posxd, posyd, poszd);
     K_SEARCH::KdTree<FldArrayF>* kdt = new K_SEARCH::KdTree<FldArrayF>(*coordAcc);
@@ -773,7 +773,7 @@ PyObject* K_POST::prepareProjectCloudSolution2Triangle(PyObject* self, PyObject*
   E_Float percentageOfExtrap = nbExtrapPts/float(nbPtsR)*100.;
   if (nbExtrapPts > 0)
   {
-    printf("Info: projectCloudSolution2Triangle: percentage of extrapolated points = %2.2f%% (%i/%i)\n", percentageOfExtrap, nbExtrapPts, nbPtsR);
+    printf("Info: projectCloudSolution2Triangle: percentage of extrapolated points = %2.2f%% (" SF_D_ "/" SF_D_ ")\n", percentageOfExtrap, nbExtrapPts, nbPtsR);
     // kdtree of cloud pts
     ArrayAccessor<FldArrayF>* coordAcc = new ArrayAccessor<FldArrayF>(*fd, posxd, posyd, poszd);
     K_SEARCH::KdTree<FldArrayF>* kdt = new K_SEARCH::KdTree<FldArrayF>(*coordAcc);

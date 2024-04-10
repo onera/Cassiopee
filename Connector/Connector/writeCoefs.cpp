@@ -111,7 +111,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     tpl = PyList_GetItem(Npts, v);
     if (PyInt_Check(tpl) == 0)
     {
-      printf("Warning: writeCoefs: invalid int for variable %d. Skipped...\n", v);
+      printf("Warning: writeCoefs: invalid int for variable " SF_D_ ". Skipped...\n", v);
     }
     else
     {
@@ -140,7 +140,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     pyKey = PyList_GetItem(key_list, i);
     if (PyInt_Check(pyKey) == 0)
     {
-      printf("Warning: writeCoefs: invalid int for variable %d. Skipped...\n", i);
+      printf("Warning: writeCoefs: invalid int for variable " SF_D_ ". Skipped...\n", i);
     }
     else
       intKey = PyInt_AsLong(pyKey);
@@ -196,7 +196,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     pyKey = PyList_GetItem(key_list, i);
     if (PyInt_Check(pyKey) == 0)
     {
-      printf("Warning: writeCoefs: invalid int for variable %d. Skipped...\n", i);
+      printf("Warning: writeCoefs: invalid int for variable " SF_D_ ". Skipped...\n", i);
     }
     else
       intKey = PyInt_AsLong(pyKey);
@@ -252,7 +252,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     pyKey = PyList_GetItem(key_list, i);
     if (PyInt_Check(pyKey) == 0)
     {
-      printf("Warning: writeCoefs: invalid int for variable %d. Skipped...\n", i);
+      printf("Warning: writeCoefs: invalid int for variable " SF_D_ ". Skipped...\n", i);
     }
     else
       intKey = PyInt_AsLong(pyKey);
@@ -315,7 +315,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
       pyKey = PyList_GetItem(key_list, i);
       if (PyInt_Check(pyKey) == 0)
       {
-        printf("Warning: writeCoefs: invalid int for variable %d. Skipped...\n", i);
+        printf("Warning: writeCoefs: invalid int for variable " SF_D_ ". Skipped...\n", i);
       }
       else
         intKey = PyInt_AsLong(pyKey);
@@ -378,7 +378,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     pyKey = PyList_GetItem(key_list, i);
     if (PyInt_Check(pyKey) == 0)
     {
-      printf("Warning: writeCoefs: invalid int for variable %d. Skipped...\n", i);
+      printf("Warning: writeCoefs: invalid int for variable " SF_D_ ". Skipped...\n", i);
     }
     else
       intKey = PyInt_AsLong(pyKey);
@@ -438,7 +438,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     PyObject * pyKey = 0;
     pyKey = PyList_GetItem(key_list, i);
     if (PyInt_Check(pyKey) == 0)
-      printf("Warning: writeCoefs: invalid integer for variable %d. Skipped...\n", i);
+      printf("Warning: writeCoefs: invalid integer for variable " SF_D_ ". Skipped...\n", i);
     else
       intKey = PyInt_AsLong(pyKey);
     //Convert to a C++ vector<E_Int*>
@@ -499,7 +499,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     pyKey = PyList_GetItem(key_list, i);
     if (PyInt_Check(pyKey) == 0)
     {
-      printf("Warning: writeCoefs: invalid int for variable %d. Skipped...\n", i);
+      printf("Warning: writeCoefs: invalid int for variable " SF_D_ ". Skipped...\n", i);
     }
     else
       intKey = PyInt_AsLong(pyKey);
@@ -551,7 +551,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     pyKey = PyList_GetItem(key_list, i);
     if (PyInt_Check(pyKey) == 0)
     {
-      printf("Warning: writeCoefs: invalid int for variable %d. Skipped...\n", i);
+      printf("Warning: writeCoefs: invalid int for variable " SF_D_ ". Skipped...\n", i);
     }
     else
       intKey = PyInt_AsLong(pyKey);
@@ -642,18 +642,26 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
       FILE* ptr_file = NULL;
       char* file = new char[K_ARRAY::VARSTRINGLENGTH];
       strcpy(file,PrefixFile);
-      char* strId = new char[K_ARRAY::VARSTRINGLENGTH]; sprintf(strId,"%04d",BlockDonorId);
+      char* strId = new char[K_ARRAY::VARSTRINGLENGTH];
+      #if defined E_DOUBLEINT
+        #if defined _WIN32
+        sprintf(strId,"%04lld",BlockDonorId);
+        #else
+        sprintf(strId,"%04ld",BlockDonorId);
+        #endif
+      #else
+      sprintf(strId,"%04d",BlockDonorId);
+      #endif
       strcat(file,strId);
       strcat(file,"_Blanking");
       ptr_file = fopen(file, "w");
       printf("Open file %s\n",file);fflush(stdout);
       // Ecriture du nombre de points du domaine d interpolation
       E_Int nptsInterp = cellNgc.getSize();
-      fprintf(ptr_file,"%d\n",nptsInterp);
+      fprintf(ptr_file, SF_D_ "\n",nptsInterp);
       for (E_Int np = 0; np < nptsInterp; np++)
       {
-        fprintf(ptr_file, "%d ",
-                cellNgc[np]);
+        fprintf(ptr_file, SF_D_ " ", cellNgc[np]);
       }
       fclose(ptr_file);
     }
@@ -663,14 +671,23 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     FILE* ptr_file = NULL;
     char* file = new char[K_ARRAY::VARSTRINGLENGTH];
     strcpy(file,PrefixFile);
-    char* strId = new char[K_ARRAY::VARSTRINGLENGTH]; sprintf(strId,"%04d",BlockDonorId);
+    char* strId = new char[K_ARRAY::VARSTRINGLENGTH];
+    #if defined E_DOUBLEINT
+      #if defined _WIN32
+      sprintf(strId,"%04lld",BlockDonorId);
+      #else
+      sprintf(strId,"%04ld",BlockDonorId);
+      #endif
+    #else
+    sprintf(strId,"%04d",BlockDonorId);
+    #endif
     strcat(file,strId);
     if (isEX) strcat(file,"_Int");
     ptr_file = fopen(file, "w");
     printf("Open file %s\n",file);fflush(stdout);
     // Ecriture du nombre de points d interpolations
     E_Int npts = nbInterpCells[noz];
-    fprintf(ptr_file,"%d\n",npts);
+    fprintf(ptr_file, SF_D_ "\n",npts);
 
     for (E_Int n = 0; n < nbRcvZones; n++)
     {
@@ -715,12 +732,12 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
         if (!isEX)
         {
           if (solver == 1) // elsA/Kernel
-            fprintf(ptr_file, "%d %d %d %d %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f\n",
+            fprintf(ptr_file, SF_D4_ " %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f\n",
                     indDonor, indRcv, RcvId, typeInterp, 
                     donorCoefMap1[np], donorCoefMap2[np],donorCoefMap3[np], donorCoefMap4[np], 
                     donorCoefMap5[np], donorCoefMap6[np], donorCoefMap7[np], donorCoefMap8[np]);
           else //Cassiopee/Kernel
-            fprintf(ptr_file, "%d %d %d %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f\n",
+            fprintf(ptr_file, SF_D3_ " %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f\n",
                     indDonor, indRcv, RcvId, donorCoefMap1[np], donorCoefMap2[np],donorCoefMap3[np], 
                     donorCoefMap4[np], donorCoefMap5[np], donorCoefMap6[np], donorCoefMap7[np], donorCoefMap8[np]);
         }
@@ -739,7 +756,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
             else if (directionEXMap[noz][n][np] == 3) indIntEX = kg*nignjg+jg*nig+ig     +   nbIntByDir; // interface de frontiere Jmin
             else if (directionEXMap[noz][n][np] == 4) indIntEX = (kg+1)*nignjg+jg*nig+ig + 2*nbIntByDir; // interface de frontiere Kmax
             else if (directionEXMap[noz][n][np] == 5) indIntEX = kg*nignjg+jg*nig+ig     + 2*nbIntByDir; // interface de frontiere Kmin
-            fprintf(ptr_file, "%d %d %d %d %d %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f\n",
+            fprintf(ptr_file, SF_D5_ " %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f\n",
                     indDonor, indIntEX, directionEXMap[noz][n][np], RcvId, typeInterp, 
                     donorCoefMap1[np], donorCoefMap2[np],donorCoefMap3[np], donorCoefMap4[np], 
                     donorCoefMap5[np], donorCoefMap6[np], donorCoefMap7[np], donorCoefMap8[np]);
@@ -756,7 +773,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
             else if (directionEXMap[noz][n][np] == 4) indIntEX = (kd+1)*ninj+jd*ni+id + nbIntByDiri + nbIntByDirj; // interface de frontiere Kmax
             else if (directionEXMap[noz][n][np] == 5) indIntEX = kd*ninj+jd*ni+id     + nbIntByDiri + nbIntByDirj; // interface de frontiere Kmin      
             
-            fprintf(ptr_file, "%d %d %d %d %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f\n",
+            fprintf(ptr_file, SF_D4_ " %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f\n",
                     indDonor, indIntEX, directionEXMap[noz][n][np], RcvId, donorCoefMap1[np], donorCoefMap2[np],donorCoefMap3[np], 
                     donorCoefMap4[np], donorCoefMap5[np], donorCoefMap6[np], donorCoefMap7[np], donorCoefMap8[np]);
           }          

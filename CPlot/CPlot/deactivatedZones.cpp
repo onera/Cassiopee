@@ -18,6 +18,7 @@
 */
 // Code for dealing with deactivatedZones
 #include "CPlotState.h"
+#include "String/kstring.h"
 
 // Clear deactivatedZones list
 void CPlotState::clearDeactivatedZones() 
@@ -86,7 +87,7 @@ void CPlotState::printDeactivatedZones()
   chain_int* c = deactivatedZones;
   while (c != NULL)
   {
-    printf("deactivated %d\n", c->value);
+    printf("deactivated " SF_D_ "\n", c->value);
     c = c->next;
   }
   fflush(stdout);
