@@ -3522,10 +3522,9 @@ def _conformizeNGon(a, tol=1.e-6):
 
 # -- convertSurfaceNGon
 def convertSurfaceNGon(a, rmEmptyNFaceElements=True):
-    """Convert a surface NGon from one type (A: NGON=bars, NFACE=polygon)
-    to another (B: NGON=polygon, NFACE=NULL).
+    """Convert a surface NGon from (A: NGON=bars, NFACE=polygon)
+    to (B: NGON=polygon, NFACE=NULL), or vice versa.
     Usage: convertSurfaceNGon(a)"""
-
     # add NFace node if necessary
     for z in Internal.getZones(a):
         nFace = Internal.getNodeFromName(z, 'NFaceElements')
@@ -3533,19 +3532,24 @@ def convertSurfaceNGon(a, rmEmptyNFaceElements=True):
             nGon = Internal.getNodeFromName(z, 'NGonElements')
             offset = Internal.getNodeFromName(nGon, 'ElementStartOffset')
             api = 3 if offset is not None else 2
-
             rnGon = Internal.getNodeFromName(nGon, 'ElementRange')[1]
 
-            nface = Internal.createNode('NFaceElements', 'Elements_t', parent=z, value=numpy.array([23,0], dtype='int32', order='F'))
+            nface = Internal.createNode('NFaceElements', 'Elements_t', parent=z,
+                                        value=numpy.array([23,0],
+                                        dtype=Internal.E_NpyInt, order='F'))
 
-            value = numpy.array([rnGon[1]+1, rnGon[1]+1], dtype='int32', order='F')
-            Internal.createNode('ElementRange', 'IndexRange_t', parent=nface, value=value)
-
-            value = numpy.array([], dtype='int32', order='F')
-            Internal.createNode('ElementConnectivity', 'DataArray_t', parent=nface, value=value)
-
-            value = numpy.array([0], dtype='int32', order='F') if api == 3 else numpy.array([], dtype='int32', order='F')
-            Internal.createNode('ElementStartOffset', 'DataArray_t', parent=nface, value=value)
+            value = numpy.array([rnGon[1]+1, rnGon[1]+1],
+                                 dtype=Internal.E_NpyInt, order='F')
+            Internal.createNode('ElementRange', 'IndexRange_t',
+                                parent=nface, value=value)
+            value = numpy.array([], dtype=Internal.E_NpyInt, order='F')
+            Internal.createNode('ElementConnectivity', 'DataArray_t',
+                                parent=nface, value=value)
+            if api == 3:
+                value = numpy.array([0], dtype=Internal.E_NpyInt, order='F')
+            else: value =  numpy.array([], dtype=Internal.E_NpyInt, order='F')
+            Internal.createNode('ElementStartOffset', 'DataArray_t',
+                                parent=nface, value=value)
 
     a = TZGC3(a, 'nodes', True, Converter.convertSurfaceNGon)
 
