@@ -17,6 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "connect.h"
+#include "String/kstring.h"
 #include <map>
 #include <algorithm>
 #include <stack>
@@ -79,7 +80,7 @@ E_Int check_open_cell(E_Int cell, K_FLD::FldArrayI &cn)
 
   for (auto& ec : edgeCount) {
     if (ec.second != 2) {
-      fprintf(stderr, "Warning: Cell %d is not closed.\n", cell); 
+      fprintf(stderr, "Warning: Cell " SF_D_ " is not closed.\n", cell); 
       return 1;
     }
   }
@@ -132,7 +133,7 @@ E_Int K_CONNECT::check_overlapping_cells(K_FLD::FldArrayI &cn)
 
   for (const auto &FE : f2e) {
     if (FE.second.size() != 1 && FE.second.size() != 2) {
-      fprintf(stderr, "Warning: Face %d belongs to more than two cells\n",
+      fprintf(stderr, "Warning: Face " SF_D_ " belongs to more than two cells\n",
         FE.first);
       ret = 1;
     }
@@ -356,7 +357,7 @@ E_Int _orient_boundary
     }
 
     if (refPG == -1) {
-      fprintf(stderr, "orient_boundary(): couldn't find an external face within external cell %d\n", cid);
+      fprintf(stderr, "orient_boundary(): couldn't find an external face within external cell " SF_D_ "\n", cid);
       return 1;
     }
 
@@ -370,7 +371,7 @@ E_Int _orient_boundary
     }
 
     if (refIdx == -1) {
-      fprintf(stderr, "orient_boundary(): couldn't find reference face %d in external faces list\n", refPG);
+      fprintf(stderr, "orient_boundary(): couldn't find reference face " SF_D_ " in external faces list\n", refPG);
       return 1;
     }
 
@@ -550,7 +551,7 @@ E_Int K_CONNECT::orient_boundary_ngon(E_Float *x, E_Float *y, E_Float *z,
   E_Int nconnex = K_CONNECT::colorConnexParts(&fneighbours[0], &xadj[0],
     nefaces, &colors[0]);
   
-  //printf("orient_boundary(): connex parts: %d\n", nconnex);
+  //printf("orient_boundary(): connex parts: " SF_D_ "\n", nconnex);
 
   assert(efaces.size() == xadj.size()-1);
 
@@ -593,7 +594,7 @@ E_Int K_CONNECT::orient_boundary_ngon(E_Float *x, E_Float *y, E_Float *z,
       nrev++;
     }
   }
-  printf("Orient_boundary(): flipped %d faces\n", nrev);
+  printf("Orient_boundary(): flipped " SF_D_ " faces\n", nrev);
 
   return ret;
 }
@@ -778,7 +779,7 @@ E_Int K_CONNECT::build_parent_elements_ngon(K_FLD::FldArrayI &cn, E_Int *owner,
     }
   }
 
-  //printf("build_parent_elements(): connex parts: %d\n", nconnex);
+  //printf("build_parent_elements(): connex parts: " SF_D_ "\n", nconnex);
   
   return 0;
 }

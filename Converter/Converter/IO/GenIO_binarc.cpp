@@ -724,7 +724,7 @@ void readTenseurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   readNElemElmin(ptrFile, nelem, elmin);
   
   printf("nom champ=%s\n", nomField);
-  printf("taille " SF_D_ " (ncell=" SF_D_ ")\n", nelem, m->_nceli);
+  printf("taille %u (ncell=%u)\n", nelem, m->_nceli);
   double* Fxx = readAndUncompress(ptrFile, nelem, elmin);
   double* Fxy = readAndUncompress(ptrFile, nelem, elmin);
   double* Fxz = readAndUncompress(ptrFile, nelem, elmin);
@@ -935,7 +935,7 @@ E_Int K_IO::GenIO::arcread(
       for (E_Int p = 0; p < np; p++) fx[p] = m._x[p];
       for (E_Int p = 0; p < np; p++) fy[p] = m._y[p];
       for (E_Int p = 0; p < np; p++) fz[p] = m._z[p];
-      //printf("champs aux noeuds=%lld\n", m._nfields.size());
+      //printf("champs aux noeuds=%zu\n", m._nfields.size());
       for (size_t j = 0; j < m._nfields.size(); j++)
       {
         E_Float* fp = f->begin(4+j);
@@ -949,7 +949,7 @@ E_Int K_IO::GenIO::arcread(
       //printf("nodes: %s\n", varString);
       
       // recopie des champs au centre + vire les ghost cells + sentinelle 
-      //printf("champs aux centres=%lld, nceli=" SF_D_ "\n", m._cfields.size(), m._nceli);
+      //printf("champs aux centres=%zu, nceli=" SF_D_ "\n", m._cfields.size(), m._nceli);
       FldArrayF* fc = NULL;
       nvars = m._cfields.size();
       if (nvars > 0) fc = new FldArrayF(m._nceli, nvars);

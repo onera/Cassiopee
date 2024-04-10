@@ -223,15 +223,15 @@ E_Int K_IO::GenIO::tecread(
   E_Int vers = numeralVersion(version);
   if (vers == 75 || vers == 101 || vers == 108 || vers == 112) { ; /* supported */ }
   else if (vers < 75) 
-  { printf("Warning: tecread: the file version " SF_D_ " is not really supported. Trying to read with " SF_D_ ". ", vers, 75); vers = 75; }
+  { printf("Warning: tecread: the file version " SF_D_ " is not really supported. Trying to read with " SF_D_ ". ", vers, E_Int(75)); vers = 75; }
   else if (vers < 100)
-  { printf("Warning: tecread: the file version " SF_D_ " is not really supported. Trying to read with " SF_D_ ". ", vers, 75); vers = 75; }
+  { printf("Warning: tecread: the file version " SF_D_ " is not really supported. Trying to read with " SF_D_ ". ", vers, E_Int(75)); vers = 75; }
   else if (vers < 108)
-  { printf("Warning: tecread: the file version " SF_D_ " is not really supported. Trying to read with " SF_D_ ". ", vers, 108); vers = 101; }
+  { printf("Warning: tecread: the file version " SF_D_ " is not really supported. Trying to read with " SF_D_ ". ", vers, E_Int(108)); vers = 101; }
   else if (vers < 111)
-  { printf("Warning: tecread: the file version " SF_D_ " is not really supported. Trying to read with " SF_D_ ". ", vers, 108); vers = 108; }
+  { printf("Warning: tecread: the file version " SF_D_ " is not really supported. Trying to read with " SF_D_ ". ", vers, E_Int(108)); vers = 108; }
   else if (vers > 112)
-  { printf("Warning: tecread: the file version " SF_D_ " is not really supported. Trying to read with " SF_D_ ". ", vers, 112); vers = 112; }
+  { printf("Warning: tecread: the file version " SF_D_ " is not really supported. Trying to read with " SF_D_ ". ", vers, E_Int(112)); vers = 112; }
 
   /* Local vector for structured and unstructured zones names */
   vector<char*> structZoneNames, unstructZoneNames;

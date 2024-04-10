@@ -127,10 +127,10 @@ E_Int K_IO::GenIO::povread(
   
   end:
   // Cree les noms des zones
-  for (unsigned int i = 0; i < unstructField.size(); i++)
+  for (size_t i = 0; i < unstructField.size(); i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone" SF_D_, i);
+    sprintf(zoneName, "Zone%zu", i);
     zoneNames.push_back(zoneName);
   }
   varString = new char [8];

@@ -55,7 +55,7 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
     //int mesh_id = int(&mesh - data->meshes);
     int coordCreated = false;
     
-    //printf("bloc: %d, mpc: %lld\n", blockId, mesh.primitives_count);
+    //printf("bloc: " SF_D_ ", mpc: %lld\n", blockId, mesh.primitives_count);
     
     // Pour tous ce qu'il y a dans mesh
     for (size_t pi = 0; pi < mesh.primitives_count; ++pi)
@@ -63,13 +63,13 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
       const cgltf_primitive& primitive = mesh.primitives[pi];
       if (primitive.type == cgltf_primitive_type_triangles)
       {
-        //printf("bloc: %d, primitives are triangles\n", blockId);
+        //printf("bloc: " SF_D_ ", primitives are triangles\n", blockId);
         //size_t count = primitive.attributes ? primitive.attributes[0].data->count : 0;
-        //for (size_t i = 0; i < count; ++i) printf("%lld\n", i);
+        //for (size_t i = 0; i < count; ++i) printf("%zu\n", i);
       }
       if (primitive.type == cgltf_primitive_type_points)
       {
-        printf("Warning: bingltf: bloc: %d, primitives are points\n", blockId);
+        printf("Warning: bingltf: bloc: " SF_D_ ", primitives are points\n", blockId);
       }
       
       if (primitive.type == cgltf_primitive_type_triangle_strip)
@@ -78,7 +78,7 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
       }
       if (primitive.indices && primitive.type == cgltf_primitive_type_triangles)
       {
-        //printf("bloc: %d, primitive are indices : %lld\n", blockId, primitive.indices->count);
+        //printf("bloc: " SF_D_ ", primitive are indices : %lld\n", blockId, primitive.indices->count);
         //printf("is this connect? %lld %lld\n", primitive.indices->count, primitive.indices->count/3);
         //for (size_t i = 0; i < primitive.indices->count; ++i)
         //  printf("%lld\n", cgltf_accessor_read_index(primitive.indices, i));
@@ -108,7 +108,7 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
 
         if (attr.type == cgltf_attribute_type_invalid)
         {
-          fprintf(stderr, "Warning: bingltf: ignoring unknown attribute %s in primitive %d of mesh " SF_D_ "\n", attr.name, int(pi), blockId);
+          fprintf(stderr, "Warning: bingltf: ignoring unknown attribute %s in primitive %zu of mesh " SF_D_ "\n", attr.name, pi, blockId);
           continue;
         }
 
@@ -123,7 +123,7 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
 
         if (attr.type == cgltf_attribute_type_position)
         {
-          //printf("bloc %d: trouve coords\n", blockId);
+          //printf("bloc " SF_D_ ": trouve coords\n", blockId);
           // numerotation i*3+j (i = pts, j = 0,1,2 composante)
           //for (E_Int i = 0; i < data.size(); i++) 
           //  printf("%f %f %f\n", data[i*3+0], data[i*3+1], data[i*3+2]);
@@ -147,7 +147,7 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
 
         if (attr.type == cgltf_attribute_type_texcoord)
         {
-          //printf("bloc %d : trouve texcoord\n", blockId);
+          //printf("bloc " SF_D_ " : trouve texcoord\n", blockId);
           E_Int npts = data1.size()/2;
           FldArrayF* f;
           if (coordCreated) f = unstructField[blockId];
@@ -166,7 +166,7 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
 
         if (attr.type == cgltf_attribute_type_normal)
         {
-          //printf("bloc %d : trouve normals\n", blockId);
+          //printf("bloc " SF_D_ " : trouve normals\n", blockId);
           E_Int npts = data1.size()/3;
           FldArrayF* f;
           if (coordCreated) f = unstructField[blockId];
@@ -197,7 +197,7 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
 
           if (attr.type == cgltf_attribute_type_invalid)
           {
-            fprintf(stderr, "Warning: bingltf: ignoring unknown attribute %s in morph target %d of primitive %d of mesh %d\n", attr.name, int(ti), int(pi), blockId);
+            fprintf(stderr, "Warning: bingltf: ignoring unknown attribute %s in morph target %zu of primitive %zu of mesh " SF_D_ "\n", attr.name, ti, pi, blockId);
             continue;
           }
 
@@ -276,7 +276,7 @@ E_Int K_IO::GenIO::gltfwrite(
     if (eltType[zone] == 2) // triangles
     { nvalidZones++; if (no == -1) no = zone; }
     else
-      printf("Warning: gltfwrite: zone %d not written (not a triangle zone).", zone);
+      printf("Warning: gltfwrite: zone " SF_D_ " not written (not a triangle zone).", zone);
   } 
 
   if (nvalidZones == 0) return 1;

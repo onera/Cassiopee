@@ -698,7 +698,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
             }
             else //id == -1
               printf("Warning: convertArrays2File: element type %s in position "
-                     "%d not taken into account.\n", eltType, ic);
+                     SF_D_ " not taken into account.\n", eltType, ic);
           }
         }
       }

@@ -19,6 +19,7 @@
 
 # include "Interp/Interp.h"
 # include "Fld/FldArray.h"
+#include "String/kstring.h"
 # include "Def/DefFunction.h"
 # include "Connect/connect.h"
 # include "Metric/metric.h"
@@ -1311,11 +1312,7 @@ short K_INTERP::compInterpolatedField(
       break;
       
     default:
-#ifdef E_DOUBLEINT
-      printf("compInterpolatedField: unknown interpolation type: %lld.\n", type);
-#else
-      printf("compInterpolatedField: unknown interpolation type: %d.\n", type);
-#endif
+      printf("compInterpolatedField: unknown interpolation type: " SF_D_ ".\n", type);
       return -1;
   }
   return 1;

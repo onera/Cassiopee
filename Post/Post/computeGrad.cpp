@@ -79,7 +79,7 @@ extern "C"
 PyObject* K_POST::computeGrad(PyObject* self,PyObject* args)
 {
   PyObject* array; PyObject* varname;
-  if (!PyArg_ParseTuple(args, "OO", &array, &varname)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &varname)) return NULL;
   
   // Check array
   char* varString; char* eltType;
@@ -498,7 +498,7 @@ E_Int K_POST::computeGradNGon(E_Float* xt, E_Float* yt, E_Float* zt,
       }
       else
       {
-        printf("computeGrad: not valid for %ldD NGONs\n", dim);
+        printf("computeGrad: not valid for " SF_D_ "D NGONs\n", dim);
         ierr = 1;
       }
     }

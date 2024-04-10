@@ -970,7 +970,7 @@ E_Int K_IO::GenIO::p3dfread(
   if (cellN == false)
   {
     E_Int nv = nvar[0];
-    for (int p = 0 ; p < nv; p++)
+    for (E_Int p = 0 ; p < nv; p++)
     {
       if (strlen(varString) != 0) strcat(varString, ",");
       strcat(varString, "var");
@@ -983,7 +983,7 @@ E_Int K_IO::GenIO::p3dfread(
     E_Int nv = nvar[0];
     E_Int l = strlen(varString);
     varString[l-6] = '\0';
-    for (int p = 0 ; p < nv; p++)
+    for (E_Int p = 0 ; p < nv; p++)
     {
       if (strlen(varString) != 0)
         strcat(varString, ",");

@@ -118,7 +118,7 @@ PyObject* K_CONVERTER::convertPenta2Strand(PyObject* self, PyObject* args)
     nk += 1;
   }
   nk = nk-1;
-  //printf("I detected %d layers\n", nk);
+  //printf("I detected " SF_D_ " layers\n", nk);
   
   // Find bottom shell vertices
   E_Int* kk = new E_Int [npts]; // k of global vertex
@@ -147,8 +147,8 @@ PyObject* K_CONVERTER::convertPenta2Strand(PyObject* self, PyObject* args)
     std::vector<E_Int>& elts = cVE[vertex];
     for (size_t e = 0; e < elts.size(); e++) sete.insert(elts[e]);
   }
-  //printf("size of setv = %ld, size of shell=%d\n", setv.size(), nptsShell);
-  //printf("size of sete = %ld\n", sete.size());
+  //printf("size of setv = %zu, size of shell=" SF_D_ "\n", setv.size(), nptsShell);
+  //printf("size of sete = %zu\n", sete.size());
 
   // numerote le shell localement suivant le set
   E_Int* no = new E_Int [nptsShell]; // shell vertex -> local shell vertex
@@ -157,7 +157,7 @@ PyObject* K_CONVERTER::convertPenta2Strand(PyObject* self, PyObject* args)
   for (auto it = setv.begin(); it != setv.end(); it++) 
   {
     no[*it] = c;
-    //printf("no: %d %d\n", *it, c);
+    //printf("no: " SF_D2_ "\n", *it, c);
     c++;
   }
   
@@ -181,7 +181,7 @@ PyObject* K_CONVERTER::convertPenta2Strand(PyObject* self, PyObject* args)
       #pragma omp for
       for (E_Int i = 0; i < npts; i++)
       {
-        //printf("nodes: %d: %d %d\n", i, shellVert[i], kk[i]);
+        //printf("nodes: " SF_D_ ": " SF_D2_ "\n", i, shellVert[i], kk[i]);
         ind = no[shellVert[i]-1] + (kk[i]-1)*nptsShell;
         f2p[ind] = fp[i];
       }
@@ -195,15 +195,15 @@ PyObject* K_CONVERTER::convertPenta2Strand(PyObject* self, PyObject* args)
   for (auto it = sete.begin(); it != sete.end(); it++)
   {
     elt = *it; // shell element
-    //printf("connect: %d: %d\n", i, elt);
+    //printf("connect: " SF_D_ ": " SF_D_ "\n", i, elt);
     v1 = cm(elt, 1)-1; v2 = cm(elt, 2)-1; v3 = cm(elt, 3)-1;
-    //printf("bottom vertices: %d %d %d\n", v1, v2, v3);
+    //printf("bottom vertices: " SF_D3_ "\n", v1, v2, v3);
     
     ind1 = no[shellVert[v1]-1] + (kk[v1]-1)*nptsShell+1;
     ind2 = no[shellVert[v2]-1] + (kk[v2]-1)*nptsShell+1;
     ind3 = no[shellVert[v3]-1] + (kk[v3]-1)*nptsShell+1;
     
-    //printf("bottom new vertices: %d %d %d\n", ind1, ind2, ind3);
+    //printf("bottom new vertices: " SF_D3_ "\n", ind1, ind2, ind3);
     cm2(i,1) = ind1;
     cm2(i,2) = ind2;
     cm2(i,3) = ind3;

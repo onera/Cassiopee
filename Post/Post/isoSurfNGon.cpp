@@ -132,9 +132,9 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
 
   E_Int nelts = cn.getNElts();
   //E_Int nfaces = cn.getNFaces();
-  //printf("nelts=%d, nfaces=%d\n", nelts, nfaces);
-  //printf("api=%d, ngon=%d\n", cn.getApi(), cn.isNGon());
-  //printf("nfld=%d\n", cn.getNfld());
+  //printf("nelts=" SF_D_ ", nfaces=" SF_D_ "\n", nelts, nfaces);
+  //printf("api=" SF_D_ ", ngon=" SF_D_ "\n", cn.getApi(), cn.isNGon());
+  //printf("nfld=" SF_D_ "\n", cn.getNfld());
   fflush(stdout);
   E_Int* ptrf = cn.getNGon();
   E_Int* ptre = cn.getNFace();
@@ -144,7 +144,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
 
   /*
   printf("indPG\n");
-  for (E_Int i = 0; i < nfaces; i++) printf("%d ", indPG[i]);
+  for (E_Int i = 0; i < nfaces; i++) printf(SF_D_ " ", indPG[i]);
   printf("\n");
   */
 
@@ -153,7 +153,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
   
   /*
   printf("indPH\n");
-  for (E_Int i = 0; i < nelts; i++) printf("%d ", indPH[i]);
+  for (E_Int i = 0; i < nelts; i++) printf(SF_D_ " ", indPH[i]);
   printf("\n");
   */
 
@@ -162,7 +162,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
   //K_CONNECT::getDimElts(cn, dimElts);
   /*
   printf("dimElts\n");
-  for (E_Int i = 0; i < dimElts.getSize(); i++) printf("%d ", dimElts[i]);
+  for (E_Int i = 0; i < dimElts.getSize(); i++) printf(SF_D_ " ", dimElts[i]);
   printf("\n");
   */
   //E_Int dim = dimElts[0];
@@ -203,19 +203,19 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
       E_Float delta = (nelts*1.)/(nthreads*1.);
       E_Int ieltstart = int(ithread*delta);
       E_Int ieltend = int((ithread+1)*delta);
-      //printf("ieltstart = %d , %d check=%d\n",ieltstart, ieltend, nelts);
+      //printf("ieltstart = " SF_D_ " , " SF_D_ " check=" SF_D_ "\n",ieltstart, ieltend, nelts);
       E_Float deltap = (ieltend-ieltstart)/(10.);
       E_Int elt;
 
       elt = ieltstart;
-      //printf("borne start=%d\n", elt);
+      //printf("borne start=" SF_D_ "\n", elt);
       for (E_Int j = 0; j < 10; j++)
       {
         np = 0; ntri = 0;
-        //printf("%d %d\n", int((j)*deltap), int((j+1)*deltap));
+        //printf("" SF_D2_ "\n", int((j)*deltap), int((j+1)*deltap));
         for (E_Int k = 0; k < int((j+1)*deltap)-int(j*deltap); k++)
         {
-          //printf("%d %d\n", elt, nelts);
+          //printf("" SF_D2_ "\n", elt, nelts);
           // Construit centre de l'element
           pe = indPH[elt]; pte = ptre+pe;
           nbFaces = pte[0];
@@ -312,14 +312,14 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
         npts2[j+ithread*10] = np;
         ntris2[j+ithread*10] = ntri;
       }
-      //printf("borne end=%d\n", elt);
+      //printf("borne end=" SF_D_ "\n", elt);
     }
 
     // Nbre de tris
     E_Float alpha = 0.;
     for (E_Int i = 0; i < 10*nthreads; i++) alpha += ntris2[i];
     alpha = alpha/nthreads;
-    //printf("ntri=%d, ntri moyen par thread=%d\n", int(alpha*nthreads),int(alpha));
+    //printf("ntri=" SF_D_ ", ntri moyen par thread=" SF_D_ "\n", int(alpha*nthreads),int(alpha));
     //fflush(stdout);
     if (alpha == 0.)
     {
@@ -331,7 +331,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
 
     //for (E_Int i = 0; i < nthreads; i++)
     //{
-    //  for (E_Int j = 0; j < 10; j++) printf("thread=%d, j=%d -> %d,%d\n", i,j,npts2[j+i*10],ntris2[j+i*10]);
+    //  for (E_Int j = 0; j < 10; j++) printf("thread=" SF_D_ ", j=" SF_D_ " -> " SF_D_ "," SF_D_ "\n", i,j,npts2[j+i*10],ntris2[j+i*10]);
     //}
     //printf("dimensionnement...\n");
     //fflush(stdout);
@@ -354,7 +354,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     ieend[10*nthreads-1] = nelts;
     //for (E_Int i = 0; i < nthreads; i++)
     //  for (E_Int j = 0; j < 10; j++)
-    //    printf("%d %d: %d %d\n",i,j,iestart[j+10*i],ieend[j+10*i]);
+    //    printf("" SF_D2_ ": " SF_D2_ "\n",i,j,iestart[j+10*i],ieend[j+10*i]);
     //fflush(stdout);
 
     E_Int* istart = new E_Int [nthreads];
@@ -384,7 +384,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
         }
       }
       ntris[i] = nc; npts[i] = np;
-      //printf("DEBUG ib=%d %d\n",ibold,ib);
+      //printf("DEBUG ib=" SF_D2_ "\n",ibold,ib);
       if (ib > ibold)
       {
         istart[i] = iestart[ibold];
@@ -401,12 +401,12 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
         iend[i] = ieend[10*nthreads-1];
       }
       
-      //printf("DEBUG istart=%d %d\n",istart[i],iend[i]);
+      //printf("DEBUG istart=" SF_D2_ "\n",istart[i],iend[i]);
       ibold = ib;
     }
     //iend[nthreads-1] = nelts;
-    //printf("reequilibrage: nthreads=%d\n", nthreads);
-    //for (E_Int i = 0; i < nthreads; i++) printf("thread=%d: ntri=%d / start=%d end=%d\n", i, ntris[i], istart[i], iend[i]);
+    //printf("reequilibrage: nthreads=" SF_D_ "\n", nthreads);
+    //for (E_Int i = 0; i < nthreads; i++) printf("thread=" SF_D_ ": ntri=" SF_D_ " / start=" SF_D_ " end=" SF_D_ "\n", i, ntris[i], istart[i], iend[i]);
     //fflush(stdout);
     // fin equilibrage dynamique
     delete [] npts2; delete [] ntris2;
@@ -504,7 +504,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
 
       ETK* key = keys[ithread]->begin();
       
-      //printf("%d: %d %d\n", ithread,istart[ithread],iend[ithread]); fflush(stdout);
+      //printf("" SF_D_ ": " SF_D2_ "\n", ithread,istart[ithread],iend[ithread]); fflush(stdout);
       
       for (E_Int elt = istart[ithread]; elt < iend[ithread]; elt++)
       {
@@ -942,7 +942,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     ETK* key = keys[ithread]->begin();
     ETK* key2 = keys[ithread]->begin(2);
     for (E_Int i = 0; i < npts[ithread]; i++)
-      printf("%d: %f %f %f (key=%d, source=%d)\n",i,x[i],y[i],z[i],key[i],key2[i]);
+      printf("" SF_D_ ": %f %f %f (key=" SF_D_ ", source=" SF_D_ ")\n",i,x[i],y[i],z[i],key[i],key2[i]);
     fflush(stdout);
   }
   */
@@ -952,7 +952,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
   for (E_Int i = 0; i < nthreads; i++) 
   { prevT[i] = ntri; ntri += ntris[i];
     prevF[i] = npt; npt += npts[i]; }
-  //printf("nbre de pts dup=%d, nbre de tris dup=%d\n",npt,ntri);
+  //printf("nbre de pts dup=" SF_D_ ", nbre de tris dup=" SF_D_ "\n",npt,ntri);
   //fflush(stdout);
   
   // DEBUG: force une key unique
@@ -983,19 +983,19 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     
   // Nouveau nombre de points (non dup)
   npt = map.size();
-  //printf("nbre de pts uniques=%d\n",npt); fflush(stdout);
+  //printf("nbre de pts uniques=" SF_D_ "\n",npt); fflush(stdout);
   E_Int c = 0;
   for (std::pair<ETK,E_Int> elt : map)
   {
     //ETK k = elt.first;
     E_Int ind = elt.second;
-    //printf("map c=%d inddup=%d key=%d\n",c,ind,k);
+    //printf("map c=" SF_D_ " inddup=" SF_D_ " key=" SF_D_ "\n",c,ind,k);
     invMapp[ind] = c;
     c++;
   }
   //fflush(stdout);
   //printf("invmap0\n");
-  //for (E_Int i = 0; i < invMap.getSize(); i++) printf("invdup=%d: ind=%d\n",i,invMap[i]);
+  //for (E_Int i = 0; i < invMap.getSize(); i++) printf("invdup=" SF_D_ ": ind=" SF_D_ "\n",i,invMap[i]);
   fflush(stdout);
   
   // complete invMap
@@ -1007,7 +1007,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     for (E_Int i = 0; i < npts[ithread]; i++)
     { 
       ETK k = key[i];
-      //printf("check f=%d key=%d inddup=%d [%d]\n",f+i,k,map[k],invMap[map[k]]);
+      //printf("check f=" SF_D_ " key=" SF_D_ " inddup=" SF_D_ " [" SF_D_ "]\n",f+i,k,map[k],invMap[map[k]]);
       //if (f+i != map[k]) 
       invMapp[f+i] = invMapp[map[k]];
     }
@@ -1017,10 +1017,10 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
   map.clear();
   
   //printf("invmap\n");
-  //for (E_Int i = 0; i < invMap.getSize(); i++) printf("invdup=%d: ind=%d\n",i,invMap[i]);
+  //for (E_Int i = 0; i < invMap.getSize(); i++) printf("invdup=" SF_D_ ": ind=" SF_D_ "\n",i,invMap[i]);
   //fflush(stdout);
   
-  //printf("reconstruction fiso (%d points)\n", npt); fflush(stdout);
+  //printf("reconstruction fiso (" SF_D_ " points)\n", npt); fflush(stdout);
   fiso.malloc(npt, nfld);
   
 #pragma omp parallel default(shared)
@@ -1029,7 +1029,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
   
     E_Int f = prevF[ithread];
     E_Int np = npts[ithread];
-    //printf("%d %d\n", np, f); fflush(stdout);
+    //printf("" SF_D2_ "\n", np, f); fflush(stdout);
     for (E_Int n = 1; n <= nfld; n++)
     {
       E_Float* fisop = fiso.begin(n);
@@ -1037,7 +1037,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
       for (E_Int e = 0; e < np; e++) fisop[invMapp[e+f]] = fisol[e];
     }
   }
-  //for (E_Int i = 0; i < npt; i++) printf("f %d: %f %f %f\n",i,fiso(i,1),fiso(i,2),fiso(i,3));
+  //for (E_Int i = 0; i < npt; i++) printf("f " SF_D_ ": %f %f %f\n",i,fiso(i,1),fiso(i,2),fiso(i,3));
   //fflush(stdout);
   
   //printf("reconstruction ciso\n"); fflush(stdout);
@@ -1059,7 +1059,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     }
   } 
   
-  //for (E_Int i = 0; i < ntri; i++) printf("c %d: %d %d %d\n",i,ciso2(i,1),ciso2(i,2),ciso2(i,3));
+  //for (E_Int i = 0; i < ntri; i++) printf("c " SF_D_ ": " SF_D3_ "\n",i,ciso2(i,1),ciso2(i,2),ciso2(i,3));
   //fflush(stdout);
   //printf("done\n"); fflush(stdout);
   
@@ -1104,7 +1104,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
       //keyp[i] = i; // DEBUG
     }
   }  
-  //for (E_Int i = 0; i < ntri; i++) printf("ct=%d %d %d = %ld\n",ct1[i],ct2[i],ct3[i],keyp[i]);
+  //for (E_Int i = 0; i < ntri; i++) printf("ct=" SF_D3_ " = " SF_D_ "\n",ct1[i],ct2[i],ct3[i],keyp[i]);
   //fflush(stdout);
 
   for (E_Int i = 0; i < ntri; i++) { if (keyp[i] != -1) map[keyp[i]] = i; }
@@ -1114,12 +1114,12 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
   ciso.malloc(newTri,3);
   E_Int* cp1 = ciso.begin(1); E_Int* cp2 = ciso.begin(2); E_Int* cp3 = ciso.begin(3);
   E_Int ind;
-  //printf("elimination TRI multiples ou degeneres =%d\n", newTri); fflush(stdout);
+  //printf("elimination TRI multiples ou degeneres =" SF_D_ "\n", newTri); fflush(stdout);
   for (std::pair<ETK,E_Int> elt : map)
   {
     //ETK k = elt.first;
     ind = elt.second;
-    //printf("map c=%d indTri=%d key=%ld\n",c,ind,k);
+    //printf("map c=" SF_D_ " indTri=" SF_D_ " key=" SF_D_ "\n",c,ind,k);
     cp1[c] = ct1[ind];
     cp2[c] = ct2[ind];
     cp3[c] = ct3[ind];

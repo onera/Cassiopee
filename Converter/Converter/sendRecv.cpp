@@ -391,14 +391,14 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
             }
             else
             {
-                printf("[%d][ERROR] Bad dataType (=%d)(= 2 or 3 normally)\n", rank, dataType); fflush(stdout);
+                printf("[" SF_D_ "][ERROR] Bad dataType (=" SF_D_ ")(= 2 or 3 normally)\n", rank, dataType); fflush(stdout);
                 Py_INCREF(Py_None);
                 return Py_None;
             }
         }
         else 
         {
-            printf("[%d][ERROR] size of list = %d (= 3 or 6 normally)\n", rank, sizeList); fflush(stdout);
+            printf("[" SF_D_ "][ERROR] size of list = " SF_D_ " (= 3 or 6 normally)\n", rank, sizeList); fflush(stdout);
         }
     }
 
@@ -664,7 +664,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             zoneDName[size]='\0'; buf += size;
 
             // Tableau des indices
-            (*typeData)         = *buf    ; buf+=1; if ((*typeData)!='i'){printf("[%d][RECV] Probleme de type pour indices (!=integer)\n", rank); fflush(stdout);} ;
+            (*typeData)         = *buf    ; buf+=1; if ((*typeData)!='i'){printf("[" SF_D_ "][RECV] Probleme de type pour indices (!=integer)\n", rank); fflush(stdout);} ;
             intBuf              = (E_Int*) buf;
             size                = intBuf[0]; buf+=4;
             E_Int* indices      = new E_Int[size];
@@ -673,7 +673,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             buf += size*4;
 
             // Tableau des X
-            (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[%d][RECV] Probleme de type pour X (!=float)\n", rank); fflush(stdout);};
+            (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[" SF_D_ "][RECV] Probleme de type pour X (!=float)\n", rank); fflush(stdout);};
             intBuf              = (E_Int*) buf;
             size                = intBuf[0]; buf+=4;
             E_Float* xCoords    = new E_Float[size];
@@ -681,7 +681,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             buf+=size*8;
 
             // Tableau des Y
-            (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[%d][RECV] Probleme de type pour Y (!=float)\n", rank); fflush(stdout);};
+            (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[" SF_D_ "][RECV] Probleme de type pour Y (!=float)\n", rank); fflush(stdout);};
             intBuf              = (E_Int*) buf;
             size                = intBuf[0]; buf+=4;
             E_Float* yCoords    = new E_Float[size];
@@ -689,7 +689,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             buf += size*8;
 
             // Tableau des Z
-            (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[%d][RECV] Probleme de type pour Z (!=float)\n", rank); fflush(stdout);};
+            (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[" SF_D_ "][RECV] Probleme de type pour Z (!=float)\n", rank); fflush(stdout);};
             intBuf              = (E_Int*) buf;
             size                = intBuf[0]; buf+=4;
             E_Float* zCoords    = new E_Float[size];
@@ -741,7 +741,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             E_Int size = 0; // taille de ce qui vient dans buf
 
             // Nom de la zone
-            (*typeData)      = *buf      ; buf+=1; if ((*typeData)!='c'){printf("[%d][RECV] Probleme de type pour zoneName (!=char)\n", rank); fflush(stdout);};
+            (*typeData)      = *buf      ; buf+=1; if ((*typeData)!='c'){printf("[" SF_D_ "][RECV] Probleme de type pour zoneName (!=char)\n", rank); fflush(stdout);};
             E_Int* intBuf    = (E_Int*) buf;
             size             = intBuf[0] ; buf+=4;
             char zoneName[size+1];
@@ -749,7 +749,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             zoneName[size]='\0'; buf+=size;
 
             // Tableau des indices
-            (*typeData)         = *buf    ; buf+=1; if ((*typeData)!='i'){printf("[%d][RECV] Probleme de type pour indices (!=integer)\n", rank); fflush(stdout);} ;
+            (*typeData)         = *buf    ; buf+=1; if ((*typeData)!='i'){printf("[" SF_D_ "][RECV] Probleme de type pour indices (!=integer)\n", rank); fflush(stdout);} ;
             intBuf              = (E_Int*) buf;
             size                = intBuf[0]; buf+=4;
             E_Int* indices      = new E_Int[size];
@@ -759,7 +759,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             buf += size*4;
 
             // Nom des fields
-            (*typeData)          = *buf      ; buf+=1; if ((*typeData)!='c'){printf("[%d][RECV] Probleme de type pour nameFields (!=char)\n", rank); fflush(stdout);};
+            (*typeData)          = *buf      ; buf+=1; if ((*typeData)!='c'){printf("[" SF_D_ "][RECV] Probleme de type pour nameFields (!=char)\n", rank); fflush(stdout);};
             intBuf               = (E_Int*) buf;
             size                 = intBuf[0] ; buf+=4;
             char fieldNames[size+1];
@@ -767,7 +767,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             fieldNames[size]='\0'; buf+=size;
 
             // Tableau des fields
-            (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[%d][RECV] Probleme de type pour X (!=float)\n", rank); fflush(stdout);};
+            (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[" SF_D_ "][RECV] Probleme de type pour X (!=float)\n", rank); fflush(stdout);};
             intBuf              = (E_Int*) buf;
             size                = intBuf[0]; buf+=4;
             E_Int nFlds         = intBuf[1]; buf+=4;
@@ -819,12 +819,12 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             E_Int size = 0; // taille de ce qui vient dans buf
 
             // Entier
-            (*typeData)      = *buf      ; buf+=1; if ((*typeData)!='i'){printf("[%d][RECV] Probleme de type pour l'entier (!=int)\n", rank); fflush(stdout);};
+            (*typeData)      = *buf      ; buf+=1; if ((*typeData)!='i'){printf("[" SF_D_ "][RECV] Probleme de type pour l'entier (!=int)\n", rank); fflush(stdout);};
             E_Int* intBuf    = (E_Int*) buf;
             E_Int var        = intBuf[0] ; buf+=4;
 
             // Nom des fields
-            (*typeData)          = *buf      ; buf+=1; if ((*typeData)!='c'){printf("[%d][RECV] Probleme de type pour nameFields (!=char)\n", rank); fflush(stdout);};
+            (*typeData)          = *buf      ; buf+=1; if ((*typeData)!='c'){printf("[" SF_D_ "][RECV] Probleme de type pour nameFields (!=char)\n", rank); fflush(stdout);};
             intBuf               = (E_Int*) buf;
             size                 = intBuf[0] ; buf+=4;
             char fieldNames[size+1];
@@ -832,7 +832,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             fieldNames[size] = '\0'; buf += size;
 
             // Tableau des fields
-            (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[%d][RECV] Probleme de type pour X (!=float)\n", rank); fflush(stdout);};
+            (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[" SF_D_ "][RECV] Probleme de type pour X (!=float)\n", rank); fflush(stdout);};
             intBuf              = (E_Int*) buf;
             size                = intBuf[0]; buf+=4;
             E_Int nFlds         = intBuf[1]; buf+=4;
@@ -841,7 +841,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             buf += size*nFlds*8;
 
             // Tableau des indices
-            (*typeData)         = *buf    ; buf+=1; if ((*typeData)!='i'){printf("[%d][RECV] Probleme de type pour indices (!=integer)\n", rank); fflush(stdout);} ;
+            (*typeData)         = *buf    ; buf+=1; if ((*typeData)!='i'){printf("[" SF_D_ "][RECV] Probleme de type pour indices (!=integer)\n", rank); fflush(stdout);} ;
             intBuf              = (E_Int*) buf;
             E_Int npts          = intBuf[0]; buf+=4;
             E_Int* indices      = new E_Int[npts];

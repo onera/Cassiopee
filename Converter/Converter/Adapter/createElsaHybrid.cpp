@@ -166,7 +166,7 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
         if (PED[i]*PEG[i] == 0) { peQUAD[eQUAD] = i+1; eQUAD++; }
         else { piQUAD[iQUAD] = i+1; iQUAD++; }
       }
-      else printf("Face no=%d non TRI et non QUAD (%d)\n",i,np);
+      else printf("Face no=" SF_D_ " non TRI et non QUAD (" SF_D_ ")\n",i,np);
     }
     ints = iTRI+iQUAD; exts = eTRI+eQUAD;
   }

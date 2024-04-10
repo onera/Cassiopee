@@ -75,7 +75,7 @@ PyObject* K_CONVERTER::magnitude(PyObject* self, PyObject* args)
       var = PyString_AsString(l);
       m = K_ARRAY::isNamePresent(var, varString);
       if (m == -1)
-        printf("Warning: magnitude: variable %d not present in array. Skipped...\n", v);
+        printf("Warning: magnitude: variable " SF_D_ " not present in array. Skipped...\n", v);
       else 
       {
         m++; pos.push_back(m); strcat(varStringOut, var);
@@ -95,7 +95,7 @@ PyObject* K_CONVERTER::magnitude(PyObject* self, PyObject* args)
       var = (char*)PyUnicode_AsUTF8(l);
       m = K_ARRAY::isNamePresent(var, varString);
       if (m == -1)
-        printf("Warning: magnitude: variable %d not present in array. Skipped...\n", v);
+        printf("Warning: magnitude: variable " SF_D_ " not present in array. Skipped...\n", v);
       else 
       {
         m++; pos.push_back(m); strcat(varStringOut, var);
@@ -112,7 +112,7 @@ PyObject* K_CONVERTER::magnitude(PyObject* self, PyObject* args)
 #endif
     else
     {
-      printf("Warning: magnitude: invalid string for variable %d. Skipped...\n", v);
+      printf("Warning: magnitude: invalid string for variable " SF_D_ ". Skipped...\n", v);
     }
       
   }

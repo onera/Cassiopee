@@ -72,11 +72,7 @@ void K_KCORE::memcpy__(E_Float* a, E_Float* b, E_Int s)
 PyObject* K_KCORE::empty(PyObject* self, PyObject* args)
 {
   PyObject* shape; E_Int align;
-#if defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Ol", &shape, &align)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Oi", &shape, &align)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, O_ I_, &shape, &align)) return NULL;
   IMPORTNUMPY;
   npy_intp dims[3];
   E_Int nd; E_Int size;

@@ -78,7 +78,7 @@ PyObject* K_CONVERTER::PR2VL(PyObject* self, PyObject* args)
   if (imax < imin) { t = imax; imax = imin; imin = t; }
   if (jmax < jmin) { t = jmax; jmax = jmin; jmin = t; }
   if (kmax < kmin) { t = kmax; kmax = kmin; kmin = t; }
-  printf("%d %d %d %d %d %d\n",imin,imax,jmin,jmax,kmin,kmax); fflush(stdout);
+  printf(SF_D6_ "\n",imin,imax,jmin,jmax,kmin,kmax); fflush(stdout);
 
   E_Int size, ind;
   //E_Int dim = 3;

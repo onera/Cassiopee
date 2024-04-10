@@ -18,6 +18,7 @@
 */
 #include "metric.h"
 #include "Math/math.h"
+#include "String/kstring.h"
 #include <vector>
 #include <map>
 #include <unordered_map>
@@ -87,7 +88,7 @@ void K_METRIC::compute_face_center_and_area(E_Int id, E_Int stride,
   // Deal with zero-area faces
   if (sumA < K_MATH::SMALL) {
     fprintf(stderr, "compute_face_area_and_center(): "
-      "Warning: Face: %d - Area: %f - Tol: %.2e\n", id, sumA, K_MATH::SMALL);
+      "Warning: Face: " SF_D_ " - Area: " SF_F_ " - Tol: %.2e\n", id, sumA, K_MATH::SMALL);
     for (E_Int i = 0; i < 3; i++) {
       fc[i] = fcenter[i];
       fa[i] = 0.0;
@@ -159,7 +160,7 @@ void K_METRIC::compute_cell_center_and_volume(E_Int id, E_Int stride,
   vol *= K_MATH::ONE_THIRD;
 
   if (vol < 0.0)
-    fprintf(stderr, "Warning: cell %d has negative volume %.4e\n", id, vol);
+    fprintf(stderr, "Warning: cell " SF_D_ " has negative volume %.4e\n", id, vol);
 }
 
 // Assumes closed cell
@@ -324,7 +325,7 @@ void compute_volumes(K_FLD::FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z,
   for (E_Int i = 0; i < ncells; i++) {
     vols[i] *= K_MATH::ONE_THIRD;
     if (vols[i] < 0.0)
-      fprintf(stderr, "Warning: cell %d has negative volume %.4e\n", i, vols[i]);
+      fprintf(stderr, "Warning: cell " SF_D_ " has negative volume %.4e\n", i, vols[i]);
   }
 }
 
@@ -365,7 +366,7 @@ E_Int K_METRIC::compute_volumes_ngon(E_Float *x, E_Float *y, E_Float *z,
       if (is_cell_open[i]) {
         ret = 2;
         fprintf(stderr,
-          "Warning: Cell %d is not closed. Setting its volume to zero\n", i);
+          "Warning: Cell " SF_D_ " is not closed. Setting its volume to zero\n", i);
         continue;
       }
       K_METRIC::compute_cell_volume(i, cn, x, y, z, vols[i]);
@@ -479,7 +480,7 @@ void K_METRIC::compute_cell_centers_and_vols
     cz[i] *= coeff;
     vols[i] /= 3.0;
     if (vols[i] <= 0.0) {
-      fprintf(stderr, "Warning: cell %d has negative volume %f\n",
+      fprintf(stderr, "Warning: cell " SF_D_ " has negative volume " SF_F_ "\n",
         i, vols[i]);
     }
     assert(vols[i] > 0.0);

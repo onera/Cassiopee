@@ -121,10 +121,10 @@ printf("Elements BAR_3=" SF_D_ " TRI_6=" SF_D_ " QUAD_9=" SF_D_ " TETRA_10=" SF_
 
   // Cree le nom des zones
   //printf("Number of zones " SF_D_ "\n", unstructField.size());
-  for (unsigned int i=0; i < unstructField.size(); i++)
+  for (size_t i=0; i < unstructField.size(); i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone" SF_D_, i);
+    sprintf(zoneName, "Zone%zu", i);
     zoneNames.push_back(zoneName);
   }
   //printf("sizes: " SF_D2_ "\n", unstructField.size(), connect.size());

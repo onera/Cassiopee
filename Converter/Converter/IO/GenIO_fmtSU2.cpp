@@ -588,7 +588,7 @@ E_Int K_IO::GenIO::su2read(
   for (size_t i=0; i < unstructField.size(); i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone" SF_D_, (int)i);
+    sprintf(zoneName, "Zone%zu", i);
     zoneNames.push_back(zoneName);
   }
   //printf(SF_D2_ "\n", unstructField.size(), connect.size());
@@ -967,10 +967,10 @@ E_Int K_IO::GenIO::su2read(
   }
 
   // Cree le nom de zone
-  for (size_t i=0; i < unstructField.size(); i++)
+  for (size_t i = 0; i < unstructField.size(); i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone" SF_D_, (int)i);
+    sprintf(zoneName, "Zone%zu", i);
     zoneNames.push_back(zoneName);
   }
   //printf(SF_D2_ "\n", unstructField.size(), connect.size());

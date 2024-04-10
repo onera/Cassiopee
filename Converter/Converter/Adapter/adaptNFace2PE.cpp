@@ -307,7 +307,7 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
       }
       for (E_Int e = 0; e < nelts; e++)
       {
-        printf("%d: %f %f %f\n", e, bilanx[e], bilany[e], bilanz[e]);
+        printf(SF_D_ ": " SF_F3_ "\n", e, bilanx[e], bilany[e], bilanz[e]);
       }
     }
   }

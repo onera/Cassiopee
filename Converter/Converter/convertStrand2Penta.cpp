@@ -100,7 +100,7 @@ PyObject* K_CONVERTER::convertStrand2Penta(PyObject* self, PyObject* args)
                     "convertStrand2Penta: array is not a strand grid.");
     return NULL; 
   }
-  printf("detected np=%d nk=%d\n", np, nk);
+  printf("detected np=" SF_D_ " nk=" SF_D_ "\n", np, nk);
 
   // maillage penta : 
   // npts = np*nk

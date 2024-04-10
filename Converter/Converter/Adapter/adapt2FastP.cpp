@@ -322,7 +322,7 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
   {
     if (PEG[i+ints] == 0)
     {
-      printf(" PEGGGGGGG nul %d %d\n", ints, i);
+      printf(" PEGGGGGGG nul " SF_D2_ "\n", ints, i);
       PEG[i+ints] = nelts+i+1;
     }
 

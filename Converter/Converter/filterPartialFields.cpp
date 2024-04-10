@@ -211,9 +211,11 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
     
     if (verbose >= 1)
     {
-      printf("Zone %s: interpolated=%d; extrapolated=%d; orphans=%d.\n", zname, countInterp, countExtrap, countOrphan);
+      printf("Zone %s: interpolated=" SF_D_ "; extrapolated=" SF_D_ "; orphans=" SF_D_ ".\n",
+             zname, countInterp, countExtrap, countOrphan);
       if (countOrphan > 0)
-        printf("WARNING: Zone %s has %d orphan points.\n", zname, countOrphan);
+        printf("WARNING: Zone %s has " SF_D_ " orphan points.\n",
+               zname, countOrphan);
     }
     if (verbose == 2)
     {
@@ -237,7 +239,7 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
         if (filterMax >= penaltyOrphan)
         {
           ind = indices[i]-startFrom;
-          printf("orphan %s: %d\n", zname, ind);
+          printf("orphan %s: " SF_D_ "\n", zname, ind);
         }
       }
     }

@@ -250,13 +250,13 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
     
     if (pos[i] == -1)
     {
-      printf("diffArrays: no common variables found in array %ld.", i);
+      printf("diffArrays: no common variables found in array %zu.", i);
       continue;
     }
     else if (pos[i] == 0) // des variables sont differentes
     {
       printf("Warning: diffArrays: some variables are different in both "
-             "arguments in array %ld. Only common fields are compared.\n", i);
+             "arguments in array %zu. Only common fields are compared.\n", i);
     }
     
     sumpos += pos[i];

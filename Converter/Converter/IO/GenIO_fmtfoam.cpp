@@ -871,7 +871,7 @@ E_Int K_IO::GenIO::foamReadFields(char *file,
         size++;
       }
       if (size == MAX_FIELDS) {
-        fprintf(stderr, "Warning: foamread: Trying to read more that maximum number of fields (" SF_D_ "). Aborting.\n", MAX_FIELDS);
+        fprintf(stderr, "Warning: foamread: Trying to read more that maximum number of fields (%d). Aborting.\n", MAX_FIELDS);
         exit(1);
       }
       fclose(fh);

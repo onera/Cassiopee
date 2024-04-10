@@ -192,7 +192,7 @@ void readCellTypes(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
   {
     for (E_Int i = 0; i < ncells; i++) cellTypes[i] = IBE(cellTypes[i]);
   } 
-  printf("cellTypes=" SF_D_ "\n", cellTypes[0]);
+  printf("cellTypes=%d\n", cellTypes[0]);
 }
 
 //=========================================================================
@@ -242,9 +242,9 @@ void readPolygons(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
       {
         fscanf(ptrFile, SF_D_ " ", &num);
         cells[c] = num; c++;
-        if (num == 2) fscanf(ptrFile, SF_D2_ "\n", &cells[c], &cells[c+1]);
-        else if (num == 3) fscanf(ptrFile, SF_D3_ "\n", &cells[c], &cells[c+1], &cells[c+2]);
-        else if (num == 4) fscanf(ptrFile, SF_D4_ "\n", &cells[c], &cells[c+1], &cells[c+2], &cells[c+3]);
+        if (num == 2) fscanf(ptrFile, "%d %d\n", &cells[c], &cells[c+1]);
+        else if (num == 3) fscanf(ptrFile, "%d %d %d\n", &cells[c], &cells[c+1], &cells[c+2]);
+        else if (num == 4) fscanf(ptrFile, "%d %d %d %d\n", &cells[c], &cells[c+1], &cells[c+2], &cells[c+3]);
         c += num;
       }
   }
@@ -252,7 +252,7 @@ void readPolygons(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
   {
       fread(cells, sizeof(E_Int), size, ptrFile);
   }
-  printf("cells[0]=" SF_D3_ "\n", cells[0], cells[1], cells[2]);
+  printf("cells[0]=%d %d %d\n", cells[0], cells[1], cells[2]);
 }
 
 //========================================================================
@@ -458,7 +458,7 @@ E_Int K_IO::GenIO::binvtkread(
   E_Boolean changeEndian = false;
 
   if (strcmp(buf, "BINARY") == 0) { formated = false; changeEndian = true; }
-  printf("isformated=" SF_D_ ", changeEndian=" SF_D_ "\n", formated, changeEndian);
+  printf("isformated=%d, changeEndian=%d\n", formated, changeEndian);
   
   // Type de Data (STRUCTURED_POINTS, STRUCTURED_GRID, RECTILINEAR_GRID, POLYDATA, UNSTRUCTURED_GRID)
   char dataSetType[256];
@@ -869,10 +869,10 @@ E_Int K_IO::GenIO::binvtkread(
   fclose(ptrFile);
 
   // Cree le nom de zone
-  for (unsigned int i=0; i < unstructField.size(); i++)
+  for (size_t i=0; i < unstructField.size(); i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone" SF_D_, i);
+    sprintf(zoneName, "Zone%zu", i);
     zoneNames.push_back(zoneName);
   }
   

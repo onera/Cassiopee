@@ -32,7 +32,7 @@ using namespace K_CONST;
 PyObject* K_GEOM::getLength(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check array
   E_Int im, jm, km;
@@ -236,12 +236,7 @@ PyObject* K_GEOM::getDistantIndex(PyObject* self, PyObject* args)
     }
 
     RELEASESHAREDS(array, f);
-
-#ifdef E_DOUBLEINT
-    return Py_BuildValue("l", long(is));
-#else
-    return Py_BuildValue("i", is);
-#endif
+    return Py_BuildValue(I_, is);
   }
   else if (res == 2)
   {
@@ -264,7 +259,7 @@ PyObject* K_GEOM::getDistantIndex(PyObject* self, PyObject* args)
 PyObject* K_GEOM::getCurvilinearAbscissa(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check array
   E_Int im, jm, km;

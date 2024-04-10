@@ -17,6 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 # include "CompGeom/compGeom.h"
+# include "String/kstring.h"
 # include <stdio.h>
 # include <stdlib.h>
 
@@ -265,11 +266,7 @@ void K_COMPGEOM::compDimOfCartElts(E_Int dir, E_Int ni, E_Int nj, E_Int nk,
       nbElts2 = ny;
       break;
     default:
-#ifdef E_DOUBLEINT
-      printf("Error: compDimOfCartElts: bad dir value: %lld.", dir);
-#else
-      printf("Error: compDimOfCartElts: bad dir value: %d.", dir);
-#endif
+      printf("Error: compDimOfCartElts: bad dir value: " SF_D_ ".", dir);
       exit(0);
   }
 }

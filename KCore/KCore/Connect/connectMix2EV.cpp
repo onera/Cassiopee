@@ -18,6 +18,7 @@
 */
 
 #include "Connect/connect.h"
+#include "String/kstring.h"
 
 using namespace K_FLD;
 using namespace std;
@@ -82,21 +83,13 @@ void K_CONNECT::connectMix2EV(FldArrayI& cMIX,
         nHEXA++; ls = 8; break;
 
       default: // probleme
-#ifdef E_DOUBLEINT
-        printf("Warning: Mix2Ev: Unknow element type (%lld).\n", ntype); 
-#else
-        printf("Warning: Mix2Ev: Unknow element type (%d).\n", ntype); 
-#endif
+        printf("Warning: Mix2Ev: Unknow element type (" SF_D_ ").\n", ntype); 
         ls = 0; break;
     }
     c += ls+1;
   }
 
-#ifdef E_DOUBLEINT
-  printf("Info: Mix2EV: found %lld HEXAS %lld PENTAS\n", nHEXA, nPENTA);
-#else
-  printf("Info: Mix2EV: found %d HEXAS %d PENTAS\n", nHEXA, nPENTA);
-#endif
+  printf("Info: Mix2EV: found " SF_D_ " HEXAS " SF_D_ " PENTAS\n", nHEXA, nPENTA);
 
   // Dimensionne
   cBAR.malloc(nBAR*2);

@@ -470,11 +470,11 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
       }
 
       Face[6] = nb_pgs;
-      printf("FACE IN0= %d, Face RAC0-1= %d, FACE IN1= %d , FACE BC1= %d,  FACE BC0= %d, FACE IN2=  %d \n",Face[0],Face[1],Face[2],Face[3],Face[4],Face[5] );
+      printf("FACE IN0= " SF_D_ ", Face RAC0-1= " SF_D_ ", FACE IN1= " SF_D_ " , FACE BC1= " SF_D_ ",  FACE BC0= " SF_D_ ", FACE IN2=  " SF_D_ " \n",Face[0],Face[1],Face[2],Face[3],Face[4],Face[5] );
 
       Elt[4]= Face[4];
 
-      printf("ELts0 = %d, ELts1 RacTyp = %d, ELts1 RacTyp = %d,  ELts2 RacTyp = %d, ELts BC1&2 %d \n", Elt[0],Elt[1],Elt[4],Elt[2],Elt[3]);
+      printf("ELts0 = " SF_D_ ", ELts1 RacTyp = " SF_D_ ", ELts1 RacTyp = " SF_D_ ",  ELts2 RacTyp = " SF_D_ ", ELts BC1&2 " SF_D_ " \n", Elt[0],Elt[1],Elt[4],Elt[2],Elt[3]);
 
       nb_pgs = Zghost._ng.PGs.size();
       nb_phs = Zghost._ng.PHs.size();
