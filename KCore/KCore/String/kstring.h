@@ -35,6 +35,8 @@
 #define SF_D7_ "%lld %lld %lld %lld %lld %lld %lld"
 #define SF_D8_ "%lld %lld %lld %lld %lld %lld %lld %lld"
 #define SF_D9_ "%lld %lld %lld %lld %lld %lld %lld %lld %lld"
+#define SF_5D_ "%5lld"
+#define SF_6D_ "%6lld"
 #else
 #define SF_D_ "%ld"
 #define SF_D2_ "%ld %ld"
@@ -45,6 +47,8 @@
 #define SF_D7_ "%ld %ld %ld %ld %ld %ld %ld"
 #define SF_D8_ "%ld %ld %ld %ld %ld %ld %ld %ld"
 #define SF_D9_ "%ld %ld %ld %ld %ld %ld %ld %ld %ld"
+#define SF_5D_ "%5ld"
+#define SF_6D_ "%6ld"
 #endif
 #else
 #define SF_D_ "%d"
@@ -56,6 +60,8 @@
 #define SF_D7_ "%d %d %d %d %d %d %d"
 #define SF_D8_ "%d %d %d %d %d %d %d %d"
 #define SF_D9_ "%d %d %d %d %d %d %d %d %d"
+#define SF_5D_ "%5d"
+#define SF_6D_ "%6d"
 #endif
 
 #if defined E_DOUBLEREAL

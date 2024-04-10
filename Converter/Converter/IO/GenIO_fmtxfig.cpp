@@ -385,7 +385,7 @@ E_Int K_IO::GenIO::xfigread(
 
   // Cree les noms des zones structurees
   E_Int structSize = structField.size();
-  for (E_Int i=0; i<structSize;i++)
+  for (E_Int i = 0; i < structSize; i++)
   {
     char* zoneName = new char [128];
     sprintf(zoneName, "Zone" SF_D_, i);
@@ -554,7 +554,7 @@ E_Int K_IO::GenIO::xfigwrite(
       switch (eltType[zone])
       {
         case 1: // BAR
-          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 " SF_D_ "\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 2);
           fprintf(ptrFile, "\t");
           ind = c(i,1) - 1;
@@ -567,7 +567,7 @@ E_Int K_IO::GenIO::xfigwrite(
           break;
 
         case 2: // TRI
-          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 " SF_D_ "\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 4);
           fprintf(ptrFile, "\t");
           ind = c(i,1) - 1;
@@ -586,7 +586,7 @@ E_Int K_IO::GenIO::xfigwrite(
           break;
           
         case 3: // QUAD
-          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 " SF_D_ "\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 5);
           fprintf(ptrFile, "\t");
           ind = c(i,1) - 1;
@@ -608,7 +608,7 @@ E_Int K_IO::GenIO::xfigwrite(
           break;
 
         case 4: // TETRA
-          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 " SF_D_ "\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 4);
           fprintf(ptrFile, "\t");
           ind = c(i,1) - 1;
@@ -625,7 +625,7 @@ E_Int K_IO::GenIO::xfigwrite(
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
 
-          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 " SF_D_ "\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 3);
           fprintf(ptrFile, "\t");
           ind = c(i,1) -1;
@@ -639,7 +639,7 @@ E_Int K_IO::GenIO::xfigwrite(
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
 
-          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 " SF_D_ "\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 2);
           fprintf(ptrFile, "\t");
           ind = c(i,4) -1;
@@ -652,7 +652,7 @@ E_Int K_IO::GenIO::xfigwrite(
           break;
 
         case 6: // PENTA (PRISM)
-          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 " SF_D_ "\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 4);
           fprintf(ptrFile, "\t");
           ind = c(i,1) - 1;
@@ -669,7 +669,7 @@ E_Int K_IO::GenIO::xfigwrite(
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
 
-          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 " SF_D_ "\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 4);
           fprintf(ptrFile, "\t");
           ind = c(i,1) -1;
@@ -686,7 +686,7 @@ E_Int K_IO::GenIO::xfigwrite(
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
 
-          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 " SF_D_ "\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 3);
           fprintf(ptrFile, "\t");
           ind = c(i,4) -1;
@@ -700,7 +700,7 @@ E_Int K_IO::GenIO::xfigwrite(
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
 
-          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 " SF_D_ "\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 2);
           fprintf(ptrFile, "\t");
           ind = c(i,6) -1;
@@ -713,7 +713,7 @@ E_Int K_IO::GenIO::xfigwrite(
           break;
 
         case 7: // HEXA
-          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 " SF_D_ "\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 5);
           fprintf(ptrFile, "\t");
           ind = c(i,1) - 1;
@@ -733,7 +733,7 @@ E_Int K_IO::GenIO::xfigwrite(
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
 
-          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 " SF_D_ "\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 4);
           fprintf(ptrFile, "\t");
           ind = c(i,1) -1;
@@ -750,7 +750,7 @@ E_Int K_IO::GenIO::xfigwrite(
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
 
-          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 " SF_D_ "\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 4);
           fprintf(ptrFile, "\t");
           ind = c(i,4) -1;
@@ -767,7 +767,7 @@ E_Int K_IO::GenIO::xfigwrite(
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
 
-          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 " SF_D_ "\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 2);
           fprintf(ptrFile, "\t");
           ind = c(i,5) -1;
@@ -778,7 +778,7 @@ E_Int K_IO::GenIO::xfigwrite(
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
 
-          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 " SF_D_ "\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 2);
           fprintf(ptrFile, "\t");
           ind = c(i,6) -1;

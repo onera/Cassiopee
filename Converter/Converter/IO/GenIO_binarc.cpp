@@ -148,7 +148,7 @@ void readNElemElmin(FILE* ptrFile, unsigned int& nelem, unsigned int& elmin)
   fread(&elmin, sizeof(unsigned int), 1, ptrFile); elmin = UIBE(elmin);
   printf("elmin=%u\n", elmin);
   fread(&nelem, sizeof(unsigned int), 1, ptrFile); nelem = UIBE(nelem);
-  printf("nelem=" SF_D_ "\n", nelem);
+  printf("nelem=%u\n", nelem);
 }
 
 // Lit et decompresse un champ de floats
@@ -157,7 +157,7 @@ double* readAndUncompress(FILE* ptrFile, unsigned int nelem, unsigned int elmin)
   // Lit comp
   unsigned char comp;
   fread(&comp, sizeof(unsigned char), 1, ptrFile);
-  printf("compression=" SF_D_ "\n", comp);
+  printf("compression=%hhu\n", comp);
   double vmin = 0.;
   if (comp != 0) { fread(&vmin, sizeof(double), 1, ptrFile); vmin = DBE(vmin); }
   double vmax = 0.;
@@ -286,9 +286,9 @@ void readEspece(FILE* ptrFile, int& numMel, char* nomMel, int& nespeces, char* n
     while ((c = fgetc(ptrFile) && i < STRINGLENGTH-1) != '\0') { nomEspece[i] = c; i++; }
     nomEspece[i] = '\0';
   }
-  printf("numMel: " SF_D_ "\n", numMel);
+  printf("numMel: %d\n", numMel);
   printf("nomMel: %s\n", nomMel);
-  printf("nbreEspeces: " SF_D_ "\n", nespeces);
+  printf("nbreEspeces: %d\n", nespeces);
   for (E_Int i = 0; i < nespeces; i++) printf(SF_D_ " %s\n", i, nomEspece);
 }
 
@@ -342,7 +342,7 @@ void readThermo(FILE* ptrFile, unsigned int& read, char* name,
   fread(&nGr, sizeof(unsigned int), 1, ptrFile); nGr = UIBE(nGr);
   fread(&ne, sizeof(unsigned int), 1, ptrFile); ne = UIBE(ne);
   fread(&nr, sizeof(unsigned int), 1, ptrFile); nr = UIBE(nr);
-  printf("nGe: " SF_D4_ "\n", nGe, nGr, ne, nr);
+  printf("nGe: %u %u %u %u\n", nGe, nGr, ne, nr);
   dthGe = new unsigned int [nGe];
   dthGr = new unsigned int [nGr];
   dthe = new unsigned int [ne];
@@ -398,8 +398,8 @@ void readNumerotation(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   fread(&m->_nflm, sizeof(int), 1, ptrFile); m->_nflm = IBE(m->_nflm);
   fread(&m->_nflp, sizeof(int), 1, ptrFile); m->_nflp = IBE(m->_nflp);
   fread(&m->_nceli, sizeof(int), 1, ptrFile); m->_nceli = IBE(m->_nceli);
-  printf("npts=" SF_D_ " nfaces=" SF_D_ " \n", m->_nsom, m->_nfac);
-  printf("ncellLim=" SF_D_ ", ncellPart=" SF_D_ ", ncelli=" SF_D_ "\n",
+  printf("npts=%d nfaces=%d \n", m->_nsom, m->_nfac);
+  printf("ncellLim=%d, ncellPart=%d, ncelli=%d\n",
          m->_nflm, m->_nflp, m->_nceli);
   m->_isomu = new int [m->_nsom];
   fread(m->_isomu, sizeof(int), m->_nsom, ptrFile);
@@ -492,7 +492,7 @@ void readMaillage(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   unsigned int nd;
   fread(&nd, sizeof(unsigned int), 1, ptrFile); nd = UIBE(nd);
   mesh* m = checkMesh(nd, meshes);
-  printf("reading type=" SF_D_ " for mesh no " SF_D_ "\n", m->_type, nd);
+  printf("reading type=%d for mesh no %d\n", m->_type, nd);
   if (m->_type == 0 || m->_type == 1) readMaillage0(ptrFile, m);
   else readMaillage1(ptrFile, m);
 }
@@ -596,7 +596,7 @@ void readValeurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   // champ moyen ou instantane
   unsigned char moyen;
   fread(&moyen, sizeof(unsigned char), 1, ptrFile); //moyen = UIBE(moyen);
-  printf("Champ moyen=" SF_D_ "\n", moyen);
+  printf("Champ moyen=%hhu\n", moyen);
   
   unsigned int nd;
   fread(&nd, sizeof(unsigned int), 1, ptrFile); nd = UIBE(nd);
@@ -607,7 +607,7 @@ void readValeurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
 
   unsigned char classe;
   fread(&classe, sizeof(unsigned char), 1, ptrFile); //classe = UIBE(classe);
-  printf("Champ de classe=" SF_D_ "\n", classe);
+  printf("Champ de classe=%hhu\n", classe);
   
   // Unknown thing that is here (not in spec)
   char toto[20];
@@ -623,7 +623,7 @@ void readValeurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   readNElemElmin(ptrFile, nelem, elmin);
   
   printf("nom champ=%s\n", nomField);
-  printf("taille " SF_D_ " (ncell=" SF_D_ ")\n", nelem, m->_nceli);
+  printf("taille %u (ncell=%d)\n", nelem, m->_nceli);
   
   double* F = readAndUncompress(ptrFile, nelem, elmin);
   
@@ -638,7 +638,7 @@ void readVecteurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   // champ moyen ou instantane
   unsigned char moyen;
   fread(&moyen, sizeof(unsigned char), 1, ptrFile); //moyen = UIBE(moyen);
-  printf("Champ moyen=" SF_D_ "\n", moyen);
+  printf("Champ moyen=%hhu\n", moyen);
   
   unsigned int nd;
   fread(&nd, sizeof(unsigned int), 1, ptrFile); nd = UIBE(nd);
@@ -649,7 +649,7 @@ void readVecteurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
 
   unsigned char classe;
   fread(&classe, sizeof(unsigned char), 1, ptrFile); //classe = UIBE(classe);
-  printf("Champ de classe=" SF_D_ "\n", classe);
+  printf("Champ de classe=%hhu\n", classe);
   
   // Unknown thing that is here (not in spec)
   char toto[20];
@@ -664,7 +664,7 @@ void readVecteurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   readNElemElmin(ptrFile, nelem, elmin);
   
   printf("nom champ=%s\n", nomField);
-  printf("taille " SF_D_ " (ncell=" SF_D_ ")\n", nelem, m->_nceli);
+  printf("taille %u (ncell=%d)\n", nelem, m->_nceli);
   
   double* Fx = readAndUncompress(ptrFile, nelem, elmin);
   double* Fy = readAndUncompress(ptrFile, nelem, elmin);
@@ -697,7 +697,7 @@ void readTenseurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
   // champ moyen ou instantane
   unsigned char moyen;
   fread(&moyen, sizeof(unsigned char), 1, ptrFile); //moyen = UIBE(moyen);
-  printf("Champ moyen=" SF_D_ "\n", moyen);
+  printf("Champ moyen=%hhu\n", moyen);
   
   unsigned int nd;
   fread(&nd, sizeof(unsigned int), 1, ptrFile); nd = UIBE(nd);
@@ -708,7 +708,7 @@ void readTenseurVolumique(FILE* ptrFile, std::map<unsigned int, mesh*>& meshes)
 
   unsigned char classe;
   fread(&classe, sizeof(unsigned char), 1, ptrFile); //classe = UIBE(classe);
-  printf("Champ de classe=" SF_D_ "\n", classe);
+  printf("Champ de classe=%hhu\n", classe);
   
   // Unknown thing that is here (not in spec)
   char toto[20];

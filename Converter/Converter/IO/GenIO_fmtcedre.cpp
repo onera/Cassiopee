@@ -438,7 +438,7 @@ E_Int K_IO::GenIO::cedrewrite(
           E_Int np = PyArray_SIZE(array);
           for (E_Int k = 0; k < np; k++)
           {
-            fprintf(ptrFile, SF_D2_ " %s\n", c, ptr[k], name); c++;
+            fprintf(ptrFile, SF_D_ " %d %s\n", c, ptr[k], name); c++;
           }
         }
       }

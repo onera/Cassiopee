@@ -182,10 +182,10 @@ E_Int K_IO::GenIO::bingmshread(
 
   // Cree le nom des zones
   //printf("Number of zones %d\n", unstructField.size());
-  for (size_t i=0; i < unstructField.size(); i++)
+  for (size_t i = 0; i < unstructField.size(); i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone" SF_D_, i);
+    sprintf(zoneName, "Zone%zu", i);
     zoneNames.push_back(zoneName);
   }
   //printf("sizes: %d %d\n", unstructField.size(), connect.size());

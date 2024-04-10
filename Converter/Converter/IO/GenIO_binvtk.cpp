@@ -169,7 +169,7 @@ void readCells(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated, E_Int&
   {
     for (E_Int i = 0; i < size; i++) cells[i] = IBE(cells[i]);
   }
-  printf("cells=" SF_D_ "\n", cells[0]);
+  printf("cells=%d\n", cells[0]);
 }
 
 //===========================================================================
@@ -186,7 +186,7 @@ void readCellTypes(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
   }
   else
   {
-    for (E_Int i = 0; i < ncells; i++) fscanf(ptrFile, SF_D_, &cellTypes[i]);
+    for (E_Int i = 0; i < ncells; i++) fscanf(ptrFile, "%d", &cellTypes[i]);
   }
   if (changeEndian)
   {
