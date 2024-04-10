@@ -1449,6 +1449,7 @@ class IBM(Common):
                        print("{} / {}".format(cpt, total))
                        cellN = Internal.getNodeFromName(z,'cellN')[1]
                        if 2 in cellN:
+                           hloc = abs(C.getValue(z,'CoordinateX',1)-C.getValue(z,'CoordinateX',0))
                            zname = z[0]
                            zd = Internal.getNodeFromName(w, zname)
                            if zd is not None:
@@ -1460,7 +1461,7 @@ class IBM(Common):
                                yplusA[1][:] = yplus_w
     
                                C._setPartialFields(z, [yplusA], [listIndices], loc='centers')
-    
+                               C._initVars(z,'{centers:yplus}={centers:yplus}*(1-%20.16g/{centers:TurbulentDistance})'%(hloc)) #safety measure
                        cpt += 1
                  
                    C._initVars(t,'{centers:cellN}=({centers:cellN}>0) * ( (({centers:cellN}) * ({centers:yplus}<=%20.16g)) + ({centers:yplus}>%20.16g) )'%(self.input_var.yplus,self.input_var.yplus))
