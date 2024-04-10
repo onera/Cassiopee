@@ -70,7 +70,7 @@ E_Int __meshEdge1(const TopoDS_Edge& E,
   }
 
   // non degenerated
-  GCPnts_UniformAbscissa unifAbs(geomAdap, nbPoints, u0, u1);
+  GCPnts_UniformAbscissa unifAbs(geomAdap, int(nbPoints), u0, u1);
   if (!unifAbs.IsDone()) return 1;
   if (nbPoints != unifAbs.NbPoints()) return 1;
     

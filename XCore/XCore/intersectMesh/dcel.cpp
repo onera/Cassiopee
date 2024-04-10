@@ -98,7 +98,7 @@ int dcel::_check_duplicate_points()
   return 1;
 }
 
-E_Int dcel::is_valid()
+int dcel::is_valid()
 {
   // Tests
   for (size_t i = 0; i < points.size(); i++) {

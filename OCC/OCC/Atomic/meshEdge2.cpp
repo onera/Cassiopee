@@ -57,7 +57,7 @@ E_Int __getParamHmax(const TopoDS_Edge& E, E_Float hmax, E_Int& nbPoints, E_Floa
   E_Float L = (E_Float) GCPnts_AbscissaPoint::Length(geomAdap, u0, u1);
   nbPoints = (E_Int)round(L / hmax);
   nbPoints = std::max(nbPoints, E_Int(3));
-  GCPnts_UniformAbscissa param(geomAdap, nbPoints, u0, u1);
+  GCPnts_UniformAbscissa param(geomAdap, int(nbPoints), u0, u1);
   ue = new E_Float [nbPoints];
   for (E_Int i = 0; i < nbPoints; i++) ue[i] = param.Parameter(i+1);
   printf("L=%f hmax=%f nbPoints=" SF_D_ "\n", L, hmax, nbPoints); fflush(stdout);
