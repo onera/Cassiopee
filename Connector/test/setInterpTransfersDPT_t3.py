@@ -15,7 +15,7 @@ s = C.convertArray2Tetra(s); s = T.join(s); s = P.exteriorFaces(s)
 t = C.newPyTree(['Base']); t[2][1][2] = [a]
 # Blanking
 bodies = [[s]]
-BM = N.array([[1]],N.int32)
+BM = N.array([[1]], Internal.E_NpyInt)
 t = X.blankCells(t,bodies,BM,blankingType='center_in')
 X._setHoleInterpolatedPoints(t,depth=-2)
 

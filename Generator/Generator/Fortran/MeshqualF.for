@@ -22,66 +22,66 @@ C  ==========================================================================
 C       
 C       Written by : O.P. Jacquotte and G. Coussement
 C       
-	SUBROUTINE k6checkmesh(ni,nj,nk, xd,yd,zd)	
+        SUBROUTINE k6checkmesh(ni,nj,nk, xd,yd,zd)        
 C_IN
-	INTEGER_E ni, nj, nk
-	REAL_E xd(*), yd(*), zd(*)
+        INTEGER_E ni, nj, nk
+        REAL_E xd(*), yd(*), zd(*)
 C_LOCAL
-	INTEGER_E nij
-	PARAMETER  (noddm = 1100000)
-	PARAMETER  (noddomdm = 1100000)
-	PARAMETER  (ndodm = 1)
-	DIMENSION x(3*noddm)
-	DIMENSION vol(noddm)
-	DIMENSION angl(3*noddm)
-	DIMENSION xlgth(3*noddm)
-	DIMENSION volm(3*noddm)
-	DIMENSION work(3*noddm)
+        INTEGER_E nij
+        PARAMETER  (noddm = 1100000)
+        PARAMETER  (noddomdm = 1100000)
+        PARAMETER  (ndodm = 1)
+        DIMENSION x(3*noddm)
+        DIMENSION vol(noddm)
+        DIMENSION angl(3*noddm)
+        DIMENSION xlgth(3*noddm)
+        DIMENSION volm(3*noddm)
+        DIMENSION work(3*noddm)
 c       
-	DIMENSION xi(noddomdm)
-	DIMENSION ixi(noddomdm)
+        DIMENSION xi(noddomdm)
+        DIMENSION ixi(noddomdm)
 c       
-	DIMENSION voldom(ndodm)
-	DIMENSION ipnt(ndodm),imax(ndodm),jmax(ndodm),kmax(ndodm)
-	
+        DIMENSION voldom(ndodm)
+        DIMENSION ipnt(ndodm),imax(ndodm),jmax(ndodm),kmax(ndodm)
+        
 c       CALCULATION OF CELL VOLUME
-	WRITE(*,3000)
-	nij = ni*nj
-	nbdom = 1
-	nbnode = nij
-	ipnt(1) = 1
-	nint = -8
-	imax(1) = ni
-	jmax(1) = nj
-	kmax(1) = 1
-	iangl = 1
-	
-	DO i = 1, nij
-	   x(i) = xd(i)
-	   x(i+nij) = yd(i)
-	ENDDO
+        WRITE(*,3000)
+        nij = ni*nj
+        nbdom = 1
+        nbnode = nij
+        ipnt(1) = 1
+        nint = -8
+        imax(1) = ni
+        jmax(1) = nj
+        kmax(1) = 1
+        iangl = 1
+        
+        DO i = 1, nij
+           x(i) = xd(i)
+           x(i+nij) = yd(i)
+        ENDDO
       
-	call k6jacob(nbdom,nbnode,ipnt, imax, jmax, kmax ,x, vol, 
+        call k6jacob(nbdom,nbnode,ipnt, imax, jmax, kmax ,x, vol, 
      &               voldom, nint, work, ixi, xi)
      
 c       MESH QUALITY MEASURMENTS
-	WRITE(*,4000)
-	call k6angl_qual(iangl,nbdom,nbnode,ipnt,imax,jmax,kmax,x,
+        WRITE(*,4000)
+        call k6angl_qual(iangl,nbdom,nbnode,ipnt,imax,jmax,kmax,x,
      &                   angl,work(1),work(1+nbnode))
-	WRITE(*,5000)
-	call k6lgth_qual(nbdom,nbnode,ipnt,imax,jmax,kmax,x,xlgth,work)
-	WRITE(*,6000)
-	call k6volm_qual(nbdom,nbnode,ipnt,imax,jmax,kmax,x,vol,volm,
+        WRITE(*,5000)
+        call k6lgth_qual(nbdom,nbnode,ipnt,imax,jmax,kmax,x,xlgth,work)
+        WRITE(*,6000)
+        call k6volm_qual(nbdom,nbnode,ipnt,imax,jmax,kmax,x,vol,volm,
      &  work,xlgth,ixi,xi)
 c       
- 1000	format(/,1x,'Input Reading',/)
- 2000	format(/,1x,'Mesh Reading',/)
- 3000	format(/,1x,'Volume Control',/)
- 4000	format(/,1x,'Angle Analysis',/)
- 5000	format(/,1x,'Length Analysis',/)
- 6000	format(/,1x,'Volume Analysis',/)
+ 1000        format(/,1x,'Input Reading',/)
+ 2000        format(/,1x,'Mesh Reading',/)
+ 3000        format(/,1x,'Volume Control',/)
+ 4000        format(/,1x,'Angle Analysis',/)
+ 5000        format(/,1x,'Length Analysis',/)
+ 6000        format(/,1x,'Volume Analysis',/)
 c    
-	END
+        END
 c
 c=======================================================================
       function acosdd(angle)
@@ -891,7 +891,7 @@ c
         nmax          = nbinter+1
 c
         do 100 index = 1,nmax
-	 ifreq(index) = 0
+         ifreq(index) = 0
  100    continue
 c
         do 200 i = 1,imax
@@ -929,8 +929,8 @@ c
  2000   format(1x,i6)
  3000   format(1x,e15.7)
 c
-	return
-	end
+        return
+        end
 
 c
 c=======================================================================
@@ -956,7 +956,7 @@ c
         nmax          = nbinter + 1
 c
         do 100 index = 1,nmax-1
-	 ifreq(index) = 0
+         ifreq(index) = 0
  100    continue
 c
         do 200 i = 1,imax
@@ -983,8 +983,8 @@ c
  2000   format(1x,i5)
  3000   format(1x,e15.7)
 c
-	return
-	end
+        return
+        end
 
 c
 c=======================================================================
@@ -1363,22 +1363,22 @@ c Copyright   : (c) 1992 ONERA OAt1, All Rights Reserved
 c
 c ----------------------------------------------------------------------
 c
-	dimension     x(*)
-	dimension     var(*)
+        dimension     x(*)
+        dimension     var(*)
         dimension     ipnt(*),imax(*),jmax(*),kmax(*)
-	dimension     nb(10)
-	character*20  ch(3)
-	character*20  va(6)
-	data          ch/'x','y','z'/
-	data          va/'va','va','va','va','va','va'/
-	data          nb/1,2,3,4,5,6,7,8,9,10/          
-	character*20  string
+        dimension     nb(10)
+        character*20  ch(3)
+        character*20  va(6)
+        data          ch/'x','y','z'/
+        data          va/'va','va','va','va','va','va'/
+        data          nb/1,2,3,4,5,6,7,8,9,10/          
+        character*20  string
 c
-	nf = 40
+        nf = 40
         open(unit=nf,file=string,form='formatted',status='UNKNOWN')
 c       write(nf,'(i5)') nbdom*(3+nvar)
-	write(nf,'(i5)') nbdom*nvar
-	do 100 n = 1,nbdom
+        write(nf,'(i5)') nbdom*nvar
+        do 100 n = 1,nbdom
 c
          ip      = ipnt(n)
          im      = imax(n)
@@ -1390,22 +1390,22 @@ c         iend    = 3*(ip-1) + 1 +   m  *im*jm*km - 1
 c         write(nf,'(2a20)') ch(m),'5e16.8'
 c         write(nf,'(5i6)') n,im,jm,km
 c         write(nf,'(5e16.8)') (x(i),i=istart,iend)
-c110	 continue
+c110         continue
 c
-	 do 120 m = 1,nvar
+         do 120 m = 1,nvar
           istart  = nvar*(ip-1) + 1 + (m-1)*im*jm*km
           iend    = nvar*(ip-1) + 1 +   m  *im*jm*km - 1
-	  write(nf,'(2a20)') va(m),'5e16.8'
-	  write(nf,'(5i6)') nb(m),n,im,jm,km
-	  write(nf,'(6e12.5)') (var(i),i=istart,iend)
- 120	 continue
+          write(nf,'(2a20)') va(m),'5e16.8'
+          write(nf,'(5i6)') nb(m),n,im,jm,km
+          write(nf,'(6e12.5)') (var(i),i=istart,iend)
+ 120         continue
 c
- 100	continue	
+ 100        continue        
 c
-	close(unit=nf)
+        close(unit=nf)
 c
-	return
-	end
+        return
+        end
 
 c
 c=======================================================================
@@ -1466,86 +1466,86 @@ c
 c
         small          = 1.0e-6
 c
-	 do 100 k= 1,km
-	 do 100 j= 1,jm
-	 do 100 i= 1,im
+         do 100 k= 1,km
+         do 100 j= 1,jm
+         do 100 i= 1,im
           xlgth(i,j,k,1) = 1.0
           xlgth(i,j,k,2) = 1.0
           xlgth(i,j,k,3) = 1.0
- 100	 continue
+ 100         continue
 c
 c
-	if (im.ge.3) then
-	 do 200 k= 1,km
-	 do 200 j= 1,jm
-	 do 200 i= 1,im
+        if (im.ge.3) then
+         do 200 k= 1,km
+         do 200 j= 1,jm
+         do 200 i= 1,im
           im1d         = min(1,iabs(i-1 ))
           ip1d         = min(1,iabs(i-im))
           i0           = i - im1d + ip1d
           im1          = i0 - 1 
           ip1          = i0 + 1 
-	  dxl          = x(i0,j,k,1) - x(im1,j,k,1)
-	  dyl          = x(i0,j,k,2) - x(im1,j,k,2)
-	  dzl          = x(i0,j,k,3) - x(im1,j,k,3)
+          dxl          = x(i0,j,k,1) - x(im1,j,k,1)
+          dyl          = x(i0,j,k,2) - x(im1,j,k,2)
+          dzl          = x(i0,j,k,3) - x(im1,j,k,3)
           dsl          = sqrt(dxl*dxl + dyl*dyl + dzl*dzl)
           dsl          = max(dsl,small)
-	  dxr          = x(ip1,j,k,1) - x(i0,j,k,1)
-	  dyr          = x(ip1,j,k,2) - x(i0,j,k,2)
-	  dzr          = x(ip1,j,k,3) - x(i0,j,k,3)
+          dxr          = x(ip1,j,k,1) - x(i0,j,k,1)
+          dyr          = x(ip1,j,k,2) - x(i0,j,k,2)
+          dzr          = x(ip1,j,k,3) - x(i0,j,k,3)
           dsr          = sqrt(dxr*dxr + dyr*dyr + dzr*dzr)
           dsr          = max(dsr,small)
           xlgth(i,j,k,1)= max(dsl/dsr,dsr/dsl)
- 200	 continue
-	end if
+ 200         continue
+        end if
 c
-	if (jm.ge.3) then
-	 do 300 k= 1,km
-	 do 300 j= 1,jm
-	 do 300 i= 1,im
+        if (jm.ge.3) then
+         do 300 k= 1,km
+         do 300 j= 1,jm
+         do 300 i= 1,im
           jm1d         = min(1,iabs(j-1 ))
           jp1d         = min(1,iabs(j-jm))
           j0           = j - jm1d + jp1d
           jm1          = j0 - 1 
           jp1          = j0 + 1 
-	  dxl          = x(i,j0,k,1) - x(i,jm1,k,1)
-	  dyl          = x(i,j0,k,2) - x(i,jm1,k,2)
-	  dzl          = x(i,j0,k,3) - x(i,jm1,k,3)
+          dxl          = x(i,j0,k,1) - x(i,jm1,k,1)
+          dyl          = x(i,j0,k,2) - x(i,jm1,k,2)
+          dzl          = x(i,j0,k,3) - x(i,jm1,k,3)
           dsl          = sqrt(dxl*dxl + dyl*dyl + dzl*dzl)
           dsl          = max(dsl,small)
-	  dxr          = x(i,jp1,k,1) - x(i,j0,k,1)
-	  dyr          = x(i,jp1,k,2) - x(i,j0,k,2)
-	  dzr          = x(i,jp1,k,3) - x(i,j0,k,3)
+          dxr          = x(i,jp1,k,1) - x(i,j0,k,1)
+          dyr          = x(i,jp1,k,2) - x(i,j0,k,2)
+          dzr          = x(i,jp1,k,3) - x(i,j0,k,3)
           dsr          = sqrt(dxr*dxr + dyr*dyr + dzr*dzr)
           dsr          = max(dsr,small)
           xlgth(i,j,k,2)= max(dsl/dsr,dsr/dsl)
- 300	 continue
-	end if
+ 300         continue
+        end if
 c
-	if (km.ge.3) then
-	 do 400 k= 1,km
-	 do 400 j= 1,jm
-	 do 400 i= 1,im
+        if (km.ge.3) then
+         do 400 k= 1,km
+         do 400 j= 1,jm
+         do 400 i= 1,im
           km1d         = min(1,iabs(k-1 ))
           kp1d         = min(1,iabs(k-km))
           k0           = k - km1d + kp1d
           km1          = k0 - 1 
           kp1          = k0 + 1 
-	  dxl          = x(i,j,k0,1) - x(i,j,km1,1)
-	  dyl          = x(i,j,k0,2) - x(i,j,km1,2)
-	  dzl          = x(i,j,k0,3) - x(i,j,km1,3)
+          dxl          = x(i,j,k0,1) - x(i,j,km1,1)
+          dyl          = x(i,j,k0,2) - x(i,j,km1,2)
+          dzl          = x(i,j,k0,3) - x(i,j,km1,3)
           dsl          = sqrt(dxl*dxl + dyl*dyl + dzl*dzl)
           dsl          = max(dsl,small)
-	  dxr          = x(i,j,kp1,1) - x(i,j,k0,1)
-	  dyr          = x(i,j,kp1,2) - x(i,j,k0,2)
-	  dzr          = x(i,j,kp1,3) - x(i,j,k0,3)
+          dxr          = x(i,j,kp1,1) - x(i,j,k0,1)
+          dyr          = x(i,j,kp1,2) - x(i,j,k0,2)
+          dzr          = x(i,j,kp1,3) - x(i,j,k0,3)
           dsr          = sqrt(dxr*dxr + dyr*dyr + dzr*dzr)
           dsr          = max(dsr,small)
           xlgth(i,j,k,3)= max(dsl/dsr,dsr/dsl)
- 400	 continue
-	end if
+ 400         continue
+        end if
 c
-	return
-	end
+        return
+        end
 
 
 c
@@ -1570,62 +1570,62 @@ c
 c
         small          = 1.0e-6
 c
-	if (im.ge.3) then
-	 do 200 k= 1,km1
-	 do 200 j= 1,jm1
-	 do 200 i= 1,im
-	  i0           = min(im1,max(2,i))
-	  i0m1         = i0-1
-	  volr         = max(vol(i0  ,j,k),small)
-	  voll         = max(vol(i0m1,j,k),small)
+        if (im.ge.3) then
+         do 200 k= 1,km1
+         do 200 j= 1,jm1
+         do 200 i= 1,im
+          i0           = min(im1,max(2,i))
+          i0m1         = i0-1
+          volr         = max(vol(i0  ,j,k),small)
+          voll         = max(vol(i0m1,j,k),small)
           volmi(i,j,k) = max(volr/voll,voll/volr)
- 200	 continue
+ 200         continue
         else
-	 do 210 k= 1,km1
-	 do 210 j= 1,jm1
-	 do 210 i= 1,im
+         do 210 k= 1,km1
+         do 210 j= 1,jm1
+         do 210 i= 1,im
           volmi(i,j,k) = 1.0
- 210	 continue
-	end if
+ 210         continue
+        end if
 c
-	if (jm.ge.3) then
-	 do 300 k= 1,km1
-	 do 300 j= 1,jm
-	 do 300 i= 1,im1
-	  j0           = min(jm1,max(2,j))
-	  j0m1         = j0-1
-	  volr         = max(vol(i,j0  ,k),small)
-	  voll         = max(vol(i,j0m1,k),small)
+        if (jm.ge.3) then
+         do 300 k= 1,km1
+         do 300 j= 1,jm
+         do 300 i= 1,im1
+          j0           = min(jm1,max(2,j))
+          j0m1         = j0-1
+          volr         = max(vol(i,j0  ,k),small)
+          voll         = max(vol(i,j0m1,k),small)
           volmj(i,j,k) = max(volr/voll,voll/volr)
- 300	 continue
+ 300         continue
         else
-	 do 310 k= 1,km1
-	 do 310 j= 1,jm
-	 do 310 i= 1,im1
+         do 310 k= 1,km1
+         do 310 j= 1,jm
+         do 310 i= 1,im1
           volmj(i,j,k) = 1.0
- 310	 continue
-	end if
+ 310         continue
+        end if
 c
-	if (km.ge.3) then
-	 do 400 k= 1,km
-	 do 400 j= 1,jm1
-	 do 400 i= 1,im1
-	  k0           = min(km1,max(2,k))
-	  k0m1         = k0-1
-	  volr         = max(vol(i,j,k0  ),small)
-	  voll         = max(vol(i,j,k0m1),small)
+        if (km.ge.3) then
+         do 400 k= 1,km
+         do 400 j= 1,jm1
+         do 400 i= 1,im1
+          k0           = min(km1,max(2,k))
+          k0m1         = k0-1
+          volr         = max(vol(i,j,k0  ),small)
+          voll         = max(vol(i,j,k0m1),small)
           volmk(i,j,k) = max(volr/voll,voll/volr)
- 400	 continue
+ 400         continue
         else
-	 do 410 k= 1,km
-	 do 410 j= 1,jm1
-	 do 410 i= 1,im1
+         do 410 k= 1,km
+         do 410 j= 1,jm1
+         do 410 i= 1,im1
           volmk(i,j,k) = 1.0
- 410	 continue
-	end if
+ 410         continue
+        end if
 c
-	return
-	end
+        return
+        end
 
 c
 c=======================================================================
@@ -1757,7 +1757,7 @@ c
 
 c
 c ======================================================================
-	subroutine k6volum(ndom,im,jm,km,im1,jm1,km1
+        subroutine k6volum(ndom,im,jm,km,im1,jm1,km1
      &                    ,x,vol,voldom,neg,nint,dvol,voli)
 c ======================================================================
 c
@@ -1793,9 +1793,9 @@ c
 c ----------------------------------------------------------------------
 c
 c
-	dimension    x     (im,jm,km,3)
-	dimension    vol   (im1,jm1,km1)
-	dimension    dvol  (im1)
+        dimension    x     (im,jm,km,3)
+        dimension    vol   (im1,jm1,km1)
+        dimension    dvol  (im1)
         dimension    voli  (im1)
 c
         dimension np(8),xsi(15),eta(15),zet(15),r(2)
@@ -1952,9 +1952,9 @@ c
 c
 c        VALUE OF THE DETERMINANT
 c
-  	   delta    = dxd1*(dyd2*dzd3 - dzd2*dyd3) 
-     &	            - dxd2*(dyd1*dzd3 - dzd1*dyd3) 
-     &	            + dxd3*(dyd1*dzd2 - dzd1*dyd2)
+             delta    = dxd1*(dyd2*dzd3 - dzd2*dyd3) 
+     &                    - dxd2*(dyd1*dzd3 - dzd1*dyd3) 
+     &                    + dxd3*(dyd1*dzd2 - dzd1*dyd2)
 c
 c        ELEMENTARY VOLUME AT THE CURRENT POINT
 c
@@ -1963,7 +1963,7 @@ c
  221      continue
           do 222 i=1,im1
            if (dvol(i).lt.-eps) then
-	    write(*,1000) i,j,k,ndom,xsi(int),eta(int),zet(int)
+            write(*,1000) i,j,k,ndom,xsi(int),eta(int),zet(int)
            end if
  222      continue
  220     continue
@@ -1973,7 +1973,7 @@ c
          do 240 i=1,im1
            voldom = voldom + vol(i,j,k)
            if (vol(i,j,k).lt.-eps) then
-	    write(*,2000) i,j,k,ndom
+            write(*,2000) i,j,k,ndom
             neg = neg+1
            end if
  240     continue
@@ -1989,7 +1989,7 @@ c
 
 c
 c ======================================================================
-	subroutine k6lint3d(phi,im,jm,km,lm,phi0,im0,jm0,km0,lm0,ixi,xi)
+        subroutine k6lint3d(phi,im,jm,km,lm,phi0,im0,jm0,km0,lm0,ixi,xi)
 c ======================================================================
 c
 c       SUBROUTINE FOR INTERPOLATION PROCESS BASED ON A TRI-LINEAR
@@ -2028,7 +2028,7 @@ c
 c ----------------------------------------------------------------------
 c
 c Aim  : This routine interpolates the value phi at point x,y,z knowing 
-c	the cell containing this point or if not the nearest cell 
+c        the cell containing this point or if not the nearest cell 
 c       and the tri-linear interpolation coefficients on a initial gird.
 c
 c ----------------------------------------------------------------------
@@ -2038,12 +2038,12 @@ c
         dimension      xi(  3,im ,jm ,km )
         dimension     ixi(  3,im ,jm ,km )
 c
-c	find phi at x,y,z by tri-linear interpolation
+c        find phi at x,y,z by tri-linear interpolation
 c
         do 100 l  = 1,lm
-	do 100 k  = 1,km
-	do 100 j  = 1,jm
-	do 100 i  = 1,im
+        do 100 k  = 1,km
+        do 100 j  = 1,jm
+        do 100 i  = 1,im
          ic    = ixi(1,i,j,k)
          jc    = ixi(2,i,j,k)
          kc    = ixi(3,i,j,k)
@@ -2065,14 +2065,14 @@ c
      &    +wp*( vm*(um*phi0(ic,jc  ,kcp1,l)+up*phi0(icp1,jc  ,kcp1,l))
      &        + vp*(um*phi0(ic,jcp1,kcp1,l)+up*phi0(icp1,jcp1,kcp1,l))))
 c
- 100	continue
+ 100        continue
 c
-	return
-	end
+        return
+        end
 
 c
 c ======================================================================
-	subroutine k6ci_v3d(im,jm,km,ixi,xi)
+        subroutine k6ci_v3d(im,jm,km,ixi,xi)
 c ======================================================================
 c
 c       SUBROUTINE FOR FACE CENTER ( ALONG I PLANE) 
@@ -2111,11 +2111,11 @@ c
 c ----------------------------------------------------------------------
 c
         dimension      xi(3,im ,jm ,km )
-	dimension     ixi(3,im ,jm ,km )
+        dimension     ixi(3,im ,jm ,km )
 c
-	do 100 k=1,km
-	do 100 j=1,jm
-	do 100 i=1,im
+        do 100 k=1,km
+        do 100 j=1,jm
+        do 100 i=1,im
          ixi(1,i,j,k) = i
          ixi(2,i,j,k) = j-1
          ixi(3,i,j,k) = k-1
@@ -2135,24 +2135,24 @@ c
         j2            = min(2,jm1)
         k2            = min(2,km1)
 c
-	do 200 j=1,jm
-	do 200 i=1,im
+        do 200 j=1,jm
+        do 200 i=1,im
          ixi(3,i,j,1 ) = 1
          xi (3,i,j,1 ) =-2.0
          ixi(3,i,j,km) = km2 
          xi (3,i,j,km) = 2.0
  200    continue
 c
-	do 300 i=1,im
-	do 300 k=1,km
+        do 300 i=1,im
+        do 300 k=1,km
          ixi(2,i,1 ,k) = 1
          xi (2,i,1 ,k) =-2.0
          ixi(2,i,jm,k) = jm2 
          xi (2,i,jm,k) = 2.0
  300    continue
 c
-	do 400 k=1,km
-	do 400 j=1,jm
+        do 400 k=1,km
+        do 400 j=1,jm
 c        ixi(1,1 ,j,k) = 1
 c        xi (1,1 ,j,k) =-1.0
 c        ixi(1,im,j,k) = im1
@@ -2163,12 +2163,12 @@ c        xi (1,im,j,k) = 1.0
          xi (1,im,j,k) = 1.0 + 2.0*(im1-im2)
  400    continue
 c
-	return
+        return
         end
 
 c
 c ======================================================================
-	subroutine k6cj_v3d(im,jm,km,ixi,xi)
+        subroutine k6cj_v3d(im,jm,km,ixi,xi)
 c ======================================================================
 c
 c       SUBROUTINE FOR FACE CENTER ( ALONG J PLANE) 
@@ -2207,11 +2207,11 @@ c
 c ----------------------------------------------------------------------
 c
         dimension      xi(3,im ,jm ,km )
-	dimension     ixi(3,im ,jm ,km )
+        dimension     ixi(3,im ,jm ,km )
 c
-	do 100 k=1,km
-	do 100 j=1,jm
-	do 100 i=1,im
+        do 100 k=1,km
+        do 100 j=1,jm
+        do 100 i=1,im
          ixi(1,i,j,k) = i-1
          ixi(2,i,j,k) = j
          ixi(3,i,j,k) = k-1
@@ -2231,16 +2231,16 @@ c
         j2            = min(2,jm1)
         k2            = min(2,km1)
 c
-	do 200 j=1,jm
-	do 200 i=1,im
+        do 200 j=1,jm
+        do 200 i=1,im
          ixi(3,i,j,1 ) = 1
          xi (3,i,j,1 ) =-2.0
          ixi(3,i,j,km) = km2 
          xi (3,i,j,km) = 2.0
  200    continue
 c
-	do 300 i=1,im
-	do 300 k=1,km
+        do 300 i=1,im
+        do 300 k=1,km
 c        ixi(2,i,1 ,k) = 1
 c        xi (2,i,1 ,k) =-1.0
 c        ixi(2,i,jm,k) = jm1 
@@ -2251,20 +2251,20 @@ c        xi (2,i,jm,k) = 1.0
          xi (2,i,jm,k) = 1.0 + 2.0*(jm1-jm2)
  300    continue
 c
-	do 400 k=1,km
-	do 400 j=1,jm
+        do 400 k=1,km
+        do 400 j=1,jm
          ixi(1,1 ,j,k) = 1
          xi (1,1 ,j,k) =-2.0
          ixi(1,im,j,k) = im2 
          xi (1,im,j,k) = 2.0
  400    continue
 c
-	return
+        return
         end
 
 c
 c ======================================================================
-	subroutine k6ck_v3d(im,jm,km,ixi,xi)
+        subroutine k6ck_v3d(im,jm,km,ixi,xi)
 c ======================================================================
 c
 c       SUBROUTINE FOR FACE CENTER ( ALONG K PLANE) 
@@ -2303,11 +2303,11 @@ c
 c ----------------------------------------------------------------------
 c
         dimension      xi(3,im ,jm ,km )
-	dimension     ixi(3,im ,jm ,km )
+        dimension     ixi(3,im ,jm ,km )
 c
-	do 100 k=1,km
-	do 100 j=1,jm
-	do 100 i=1,im
+        do 100 k=1,km
+        do 100 j=1,jm
+        do 100 i=1,im
          ixi(1,i,j,k) = i-1
          ixi(2,i,j,k) = j-1
          ixi(3,i,j,k) = k
@@ -2327,8 +2327,8 @@ c
         j2            = min(2,jm1)
         k2            = min(2,km1)
 c
-	do 200 j=1,jm
-	do 200 i=1,im
+        do 200 j=1,jm
+        do 200 i=1,im
 c        ixi(3,i,j,1 ) = 1
 c        xi (3,i,j,1 ) =-1.0
 c        ixi(3,i,j,km) = km1
@@ -2339,28 +2339,28 @@ c        xi (3,i,j,km) = 1.0
          xi (3,i,j,km) = 1.0 + 2.0*(km1-km2)
  200    continue
 c
-	do 300 i=1,im
-	do 300 k=1,km
+        do 300 i=1,im
+        do 300 k=1,km
          ixi(2,i,1 ,k) = 1
          xi (2,i,1 ,k) =-2.0
          ixi(2,i,jm,k) = jm2 
          xi (2,i,jm,k) = 2.0
  300    continue
 c
-	do 400 k=1,km
-	do 400 j=1,jm
+        do 400 k=1,km
+        do 400 j=1,jm
          ixi(1,1 ,j,k) = 1
          xi (1,1 ,j,k) =-2.0
          ixi(1,im,j,k) = im2 
          xi (1,im,j,k) = 2.0
  400    continue
 c
-	return
+        return
         end
 
 c
 c ======================================================================
-	subroutine k6c_v3d(im,jm,km,ixi,xi)
+        subroutine k6c_v3d(im,jm,km,ixi,xi)
 c ======================================================================
 c
 c       SUBROUTINE FOR CELL CENTER TO CELL VERTEX INTERPOLATION USED
@@ -2398,11 +2398,11 @@ c
 c ----------------------------------------------------------------------
 c
         dimension      xi(3,im ,jm ,km )
-	dimension     ixi(3,im ,jm ,km )
+        dimension     ixi(3,im ,jm ,km )
 c
-	do 100 k=1,km
-	do 100 j=1,jm
-	do 100 i=1,im
+        do 100 k=1,km
+        do 100 j=1,jm
+        do 100 i=1,im
          ixi(1,i,j,k) = i-1
          ixi(2,i,j,k) = j-1
          ixi(3,i,j,k) = k-1
@@ -2415,29 +2415,29 @@ c
         jm2           = max0(jm-2,1)
         km2           = max0(km-2,1)
 c
-	do 200 j=1,jm
-	do 200 i=1,im
+        do 200 j=1,jm
+        do 200 i=1,im
          ixi(3,i,j,1 ) = 1
          xi (3,i,j,1 ) = -2.0
          ixi(3,i,j,km) = km2 
          xi (3,i,j,km) = 2.0
  200    continue
 c
-	do 300 i=1,im
-	do 300 k=1,km
+        do 300 i=1,im
+        do 300 k=1,km
          ixi(2,i,1 ,k) = 1
          xi (2,i,1 ,k) = -2.0
          ixi(2,i,jm,k) = jm2 
          xi (2,i,jm,k) = 2.0
  300    continue
 c
-	do 400 k=1,km
-	do 400 j=1,jm
+        do 400 k=1,km
+        do 400 j=1,jm
          ixi(1,1 ,j,k) = 1
          xi (1,1 ,j,k) = -2.0
          ixi(1,im,j,k) = im2 
          xi (1,im,j,k) = 2.0
  400    continue
 c
-	return
+        return
         end

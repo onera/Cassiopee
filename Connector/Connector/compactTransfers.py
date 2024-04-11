@@ -354,7 +354,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
     #print("pos_IBC is",pos_IBC)
     #print("pos_ID  is",pos_ID)
 
-    param_int  = numpy.empty(size_int + len(graphIDrcv) + len(graphIBCrcv) + 2, dtype=numpy.int32  )
+    param_int  = numpy.empty(size_int + len(graphIDrcv) + len(graphIBCrcv) + 2, dtype=Internal.E_NpyInt)
     param_real = numpy.empty(size_real, dtype=numpy.float64)
     Internal.createUniqueChild(tc, 'Parameter_int' , 'DataArray_t', param_int)
     if size_real !=0 :
@@ -1632,7 +1632,7 @@ def miseAPlatDonorZone__(zones, tc, procDict):
             #print('nbpt, nbpt_donor', sname,Nbpts,Nbpts_InterpD)
 
         size_int = size_int + 2 + (count_IBC + count_ID)*2  # 2: nbr rac ID et IBC, stockage adresse debut raccord et coef
-        param_int  = numpy.empty(size_int , dtype=numpy.int32  )
+        param_int  = numpy.empty(size_int , dtype=Internal.E_NpyInt)
         param_real = numpy.empty(size_real, dtype=numpy.float64)
         Internal.createUniqueChild(z, 'Parameter_int' , 'DataArray_t', param_int )
         if size_real !=0 :
