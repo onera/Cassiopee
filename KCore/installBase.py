@@ -60,9 +60,11 @@ True, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-['c:/msys64/mingw64/include', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Include', 'c:/msys64/mingw64/include/OpenBLAS'], # additionalIncludePaths
+#['c:/msys64/mingw64/include', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Include', 'c:/msys64/mingw64/include/OpenBLAS'], # additionalIncludePaths
+['d:/benoit/AppData/Local/msys2/mingw64/include', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Include', 'd:/benoit/AppData/Local/msys2/mingw64/include/openBLAS'],
 ['gomp', 'gfortran'], # additionalLibs
-['c:/msys64/mingw64/lib', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64'], # additionalLibPaths
+#['c:/msys64/mingw64/lib', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64'], # additionalLibPaths
+['d:/benoit/AppData/Local/msys2/mingw64/lib', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64'],
 False, # useCuda
 [] # NvccAdditionalOptions
 ],

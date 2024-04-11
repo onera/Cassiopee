@@ -1586,7 +1586,7 @@ E_Int K_IO::GenIO::foamwrite(
   std::vector<E_Int> faces;
   std::vector<E_Int> marked(nfaces, 0);
 
-  E_Int PGi, stride;
+  E_Int PGi;
   std::vector<E_Int> neis;
   std::vector<E_Int> pgs;
 
@@ -1694,7 +1694,7 @@ E_Int K_IO::GenIO::foamwrite(
     }
   }
 
-  printf("total faces: %lu\n", faces.size());
+  printf("total faces: %zu\n", faces.size());
 
   printf("cn faces: " SF_D_ "\n", nfaces);
 

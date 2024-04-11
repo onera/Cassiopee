@@ -13,4 +13,4 @@ test.testT(c, 1)
 # merge element connectivity
 b = G.cartTetra( (0,0,9), (1,1,1), (10,10,10) )
 c = C.mergeConnectivity(a, b, boundary=0)
-test.testO(c, 2)
+test.testT(c, 2)

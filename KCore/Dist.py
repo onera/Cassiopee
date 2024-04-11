@@ -1569,12 +1569,14 @@ def checkMpi4py(additionalLibPaths=[], additionalIncludePaths=[]):
     fileN = mpi4py.__file__
     incPaths += [os.path.dirname(fileN)+'/include']
     i = checkIncFile__('mpi4py/mpi4py.MPI.h', additionalIncludePaths+incPaths)
+    if i is None:
+        i = checkIncFile__('mpi4py/mpi4py.h', additionalIncludePaths+incPaths)
 
     if i is not None:
         print('Info: Mpi4py detected at %s.'%i)
         return (True, i, '')
     else:
-        print('Info: mpi4py.MPI.h was not found on your system. No Mpi support.')
+        print('Info: mpi4py.MPI.h or mpi4py.h was not found on your system. No Mpi support.')
         return (False, i, '')
 
 #=============================================================================
@@ -2088,7 +2090,11 @@ def checkLibFile__(file, additionalLibPaths):
     if mySystem[0] == 'Windows':
         p1 = env.get('PATH', None)
         if p1 is not None: p += p1.split(';')
-    else: # unix, mingw...
+    elif mySystem[0] == 'mingw':
+        p1 = env.get('PATH', None)
+        if p1 is not None:
+            p += p1.split(';')
+    else: # unix
         p1 = env.get('LD_LIBRARY_PATH', None)
         if p1 is not None: p += p1.split(':')
         p1 = env.get('PATH', None)
@@ -2115,7 +2121,11 @@ def checkIncFile__(file, additionalIncludePaths):
     if mySystem[0] == 'Windows':
         p1 = env.get('PATH', None)
         if p1 is not None: pp += p1.split(';')
-    else: # unix, mingw...
+    elif mySystem[0] == 'mingw':
+        p1 = env.get('PATH', None)
+        if p1 is not None: 
+            pp += p1.split(';')
+    else: # unix 
         p1 = env.get('LD_LIBRARY_PATH', None)
         if p1 is not None: pp += p1.split(':')
         p1 = env.get('PATH', None)
@@ -2134,7 +2144,8 @@ def checkIncFile__(file, additionalIncludePaths):
         pp[i] = out[:-1]
     p += pp
     for i in p:
-        a = os.access(i+'/'+file, os.F_OK)
+        pf = i+'/'+file
+        a = os.access(pf, os.F_OK)
         if a: return i
     return None
 

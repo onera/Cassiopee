@@ -42,8 +42,7 @@ extensions = [
 if srcs.SZ:
   mySystem = Dist.getSystem()
   if mySystem[0] == 'mingw':
-    if not Dist.useStatic() and prod != "msys64": additionalLibs += ["zlib1"]
-    else: additionalLibs += ["z"]
+    additionalLibs += ["z"] # sometimes zlib1
   else: additionalLibs += ["z"]
 
   extensions += [
