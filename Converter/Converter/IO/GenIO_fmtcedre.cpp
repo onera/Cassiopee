@@ -379,7 +379,7 @@ E_Int K_IO::GenIO::cedrewrite(
       for (E_Int j = 0; j < nfaces; j++)
       {
         E_Int* face = cn.getFace(j, nv, ngon, indPG);
-        fprintf(ptrFile, " " SF_D_ "  " SF_D_ "", j+1, nv);
+        fprintf(ptrFile, " " SF_D_ "  " SF_D_, j+1, nv);
         for (E_Int k = 0; k < nv; k++)
         { fprintf(ptrFile, " " SF_D_, face[k]); }
         fprintf(ptrFile, "\n");
@@ -434,11 +434,11 @@ E_Int K_IO::GenIO::cedrewrite(
           else if (PyUnicode_Check(o)) name = (char*)PyUnicode_AsUTF8(o);
 #endif
           PyArrayObject* array = (PyArrayObject*)PyList_GetItem(BCs, 2*j+1);
-          int* ptr = (int*)PyArray_DATA(array);
+          E_Int* ptr = (E_Int*)PyArray_DATA(array);
           E_Int np = PyArray_SIZE(array);
           for (E_Int k = 0; k < np; k++)
           {
-            fprintf(ptrFile, SF_D_ " %d %s\n", c, ptr[k], name); c++;
+            fprintf(ptrFile, SF_D2_ " %s\n", c, ptr[k], name); c++;
           }
         }
       }

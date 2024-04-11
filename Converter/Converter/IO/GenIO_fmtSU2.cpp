@@ -2028,7 +2028,7 @@ E_Int K_IO::GenIO::su2write(
 #endif
         fprintf(ptrFile, "MARKER_TAG= %s\n", name);
         PyArrayObject* array = (PyArrayObject*)PyList_GetItem(BCs, 2*j+1);
-        int* ptr = (int*)PyArray_DATA(array);
+        E_Int* ptr = (E_Int*)PyArray_DATA(array);
         E_Int np = PyArray_SIZE(array);
         fprintf(ptrFile, "MARKER_ELEMS= " SF_D_ "\n", np);
         for (E_Int j = 0; j < np; j++)

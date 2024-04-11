@@ -2270,8 +2270,8 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
           // convert to i4
           E_Int s = PyArray_SIZE(ar);
           int* buf = new int [s];
-          int* ptr = (int*)PyArray_DATA(ar);
-          for (E_Int i = 0; i < s; i++) buf[i] = ptr[i];
+          E_Int* ptr = (E_Int*)PyArray_DATA(ar);
+          for (E_Int i = 0; i < s; i++) buf[i] = (int)ptr[i];
           setArrayI4(child, buf, dim, dims); // raw
           delete [] buf;
          }
