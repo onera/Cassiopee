@@ -3569,7 +3569,7 @@ def convertSurfaceNGon(a, rmEmptyNFaceElements=True):
 def addBC2Zone(a, bndName, bndType, wrange=[],
                zoneDonor=[], rangeDonor=[], trirac=[1,2,3],
                rotationCenter=[], rotationAngle=[], translation=[],
-               faceList=[], pointList=[], elementList=[], elementRange=[], data=None,
+               faceList=None, pointList=None, elementList=None, elementRange=[], data=None,
                subzone=None, faceListDonor=None, elementListDonor=None,
                elementRangeDonor=None, tol=1.e-12, unitAngle=None):
   """Add a BC to a zone node.
@@ -3586,7 +3586,7 @@ def addBC2Zone(a, bndName, bndType, wrange=[],
 def _addBC2Zone(a, bndName, bndType, wrange=[],
                 zoneDonor=[], rangeDonor=[], trirac=[1,2,3],
                 rotationCenter=[], rotationAngle=[], translation=[],
-                faceList=[], pointList=[], elementList=[], elementRange=[], data=None,
+                faceList=None, pointList=None, elementList=None, elementRange=[], data=None,
                 subzone=None, faceListDonor=None, elementListDonor=None,
                 elementRangeDonor=None, tol=1.e-12, unitAngle=None):
   bndName = getBCName(bndName)
@@ -3596,14 +3596,14 @@ def _addBC2Zone(a, bndName, bndType, wrange=[],
     if dims[0] == 'Unstructured':
       eltType = dims[3]
       if eltType == 'NGON':
-        if faceList == [] and subzone is None:
+        if faceList is None and subzone is None:
           raise TypeError("addBC2Zone: unstructured grids requires a faceList or a subzone.")
         _addBC2NGonZone__(z, bndName, bndType, faceList=faceList, data=data, subzone=subzone,
                           zoneDonor=zoneDonor, faceListDonor=faceListDonor,
                           rotationCenter=rotationCenter, rotationAngle=rotationAngle, translation=translation,
                           tol=tol, unitAngle=unitAngle)
       else: # basic elements
-        if elementList == [] and elementRange == [] and subzone is None and faceList == [] and pointList == []:
+        if elementList is None and elementRange == [] and subzone is None and faceList is None and pointList is None:
           raise TypeError("addBC2Zone: unstructured grids requires an elementList, a elementRange or a subzone.")
         _addBC2UnstructZone__(z, bndName, bndType, elementList=elementList, elementRange=elementRange,
                               faceList=faceList, pointList=pointList, data=data, subzone=subzone,
@@ -3664,7 +3664,7 @@ def _addPeriodicInfoInGC__(info, rotationCenter, rotationAngle, translation, uni
   return None
 
 # typeZone=0 : struct, 1 : NGON, 2: unstructured BE
-def _addFamilyOfStageGC__(z, bndName, bndType2, typeZone=0, faceList=[], elementList=[], elementRange=[], pointRange=[], zoneDonor=[]):
+def _addFamilyOfStageGC__(z, bndName, bndType2, typeZone=0, faceList=None, elementList=None, elementRange=[], pointRange=[], zoneDonor=[]):
   zoneGC = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
   if zoneGC == []:
     z[2].append(['ZoneGridConnectivity', None, [], 'ZoneGridConnectivity_t'])
@@ -3689,12 +3689,12 @@ def _addFamilyOfStageGC__(z, bndName, bndType2, typeZone=0, faceList=[], element
   info = zoneGC[2][len(zoneGC[2])-1]
 
   if typeZone == 0: # STRUCTURED
-    if pointRange==[]: raise ValueError("_addFamilyOfStageGC__: pointRange is empty.")
+    if pointRange == []: raise ValueError("_addFamilyOfStageGC__: pointRange is empty.")
     r = Internal.window2Range(pointRange)
     info[2].append(['PointRange', r, [], 'IndexRange_t'])
 
   elif typeZone == 1: # NGON
-    if faceList == []: raise ValueError("_addFamilyOfStageGC__: faceList is empty.")
+    if faceList is None: raise ValueError("_addFamilyOfStageGC__: faceList is empty.")
 
     if isinstance(faceList, numpy.ndarray): r = faceList
     else: r = numpy.array(faceList, dtype=Internal.E_NpyInt)
@@ -3702,7 +3702,7 @@ def _addFamilyOfStageGC__(z, bndName, bndType2, typeZone=0, faceList=[], element
     info[2].append([Internal.__FACELIST__, r, [], 'IndexArray_t'])
 
   elif typeZone == 2: # UNS BE
-    if elementList != []:
+    if elementList is not None:
       if isinstance(elementList, numpy.ndarray): r = elementList
       else: r = numpy.array(elementList, dtype=Internal.E_NpyInt)
       r = r.reshape((1,r.size), order='F')
@@ -3712,7 +3712,7 @@ def _addFamilyOfStageGC__(z, bndName, bndType2, typeZone=0, faceList=[], element
       r[0,0] = elementRange[0]
       r[0,1] = elementRange[1]
       info[2].append([Internal.__ELEMENTRANGE__, r, [], 'IndexRange_t'])
-    elif faceList != []:
+    elif faceList is not None:
       Internal._createChild(info, 'GridLocation', 'GridLocation_t', value='FaceCenter')
       if isinstance(faceList, numpy.ndarray): r = faceList
       else: r = numpy.array(faceList, dtype=Internal.E_NpyInt)
@@ -4057,7 +4057,7 @@ def _addBC2UnstructZone__(z, bndName, bndType, elementList, elementRange,
   else: bndType2 = ''
 
   # si subzone: on cree la connectivite BC, on passe en elementRange
-  if subzone is not None and pointList == []:
+  if subzone is not None and pointList is None:
     bcn = Internal.getNodeFromName1(z, subzone[0])
     if bcn is None:
       _mergeConnectivity(z, subzone, boundary=1)
@@ -4088,13 +4088,13 @@ def _addBC2UnstructZone__(z, bndName, bndType, elementList, elementRange,
     zoneGC = Internal.createUniqueChild(z, 'ZoneGridConnectivity',
                                         'ZoneGridConnectivity_t')
 
-    if isinstance(zoneDonor, str): v = v = zoneDonor
+    if isinstance(zoneDonor, str): v = zoneDonor
     else: v = zoneDonor[0]
     Internal._createChild(zoneGC, bndName, 'GridConnectivity_t', value=v)
     l = len(zoneGC[2])
     info = zoneGC[2][l-1]
 
-    if elementList != []:
+    if elementList is not None:
       if isinstance(elementList, numpy.ndarray): r = elementList
       else: r = numpy.array(elementList, dtype=Internal.E_NpyInt)
       r = r.reshape((1,r.size), order='F')
@@ -4104,7 +4104,7 @@ def _addBC2UnstructZone__(z, bndName, bndType, elementList, elementRange,
       r[0,0] = elementRange[0]
       r[0,1] = elementRange[1]
       info[2].append([Internal.__ELEMENTRANGE__, r, [], 'IndexRange_t'])
-    elif faceList != []:
+    elif faceList is not None:
       Internal._createChild(info, 'GridLocation', 'GridLocation_t', value='FaceCenter')
       if isinstance(faceList, numpy.ndarray): r = faceList
       else: r = numpy.array(faceList, dtype=Internal.E_NpyInt)
@@ -4149,7 +4149,7 @@ def _addBC2UnstructZone__(z, bndName, bndType, elementList, elementRange,
 
     # Cree le noeud de BC
     info = Internal.createChild(zoneBC, bndName, 'BC_t', value=bndType1)
-    if elementList != []:
+    if elementList is not None:
       if isinstance(elementList, numpy.ndarray): r = elementList
       else: r = numpy.array(elementList, dtype=Internal.E_NpyInt)
       r = r.reshape((1,r.size), order='F')
@@ -4160,7 +4160,7 @@ def _addBC2UnstructZone__(z, bndName, bndType, elementList, elementRange,
       n[0,1] = elementRange[1]
       Internal.createUniqueChild(info, Internal.__ELEMENTRANGE__,
                                  'IndexRange_t', value=n)
-    elif faceList != []:
+    elif faceList is not None:
       Internal.createUniqueChild(info, 'GridLocation', 'GridLocation_t',
                                  value='FaceCenter')
       if isinstance(faceList, numpy.ndarray): r = faceList
@@ -4168,7 +4168,7 @@ def _addBC2UnstructZone__(z, bndName, bndType, elementList, elementRange,
       r = r.reshape((1,r.size), order='F')
       info[2].append([Internal.__FACELIST__, r, [], 'IndexArray_t'])
 
-    elif pointList != []:
+    elif pointList is not None:
       Internal.createUniqueChild(info, 'GridLocation', 'GridLocation_t',
                                  value='Vertex')
       if isinstance(pointList, numpy.ndarray): r = pointList

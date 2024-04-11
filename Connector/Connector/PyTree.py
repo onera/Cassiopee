@@ -972,7 +972,7 @@ def blankCells(t, bodies, blankingMatrix=[], depth=2,
     bases = Internal.getBases(a)
     if bases == []: raise ValueError("blankCells: no CGNS base found in input tree.")
 
-    if blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(bodies)), Internal.E_NpyInt)
+    if isinstance(blankingMatrix, list) and blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(bodies)), Internal.E_NpyInt)
     for b in bases:
         coords = C.getFields(Internal.__GridCoordinates__, b)
         if coords != []:
@@ -1042,7 +1042,7 @@ def _blankCells(a, bodies, blankingMatrix=[], depth=2,
     bases = Internal.getBases(a)
     if bases == []: raise ValueError("_blankCells: no CGNS base found in input tree.")
 
-    if blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(bodies)), dtype=Internal.E_NpyInt)
+    if isinstance(blankingMatrix, list) and blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(bodies)), dtype=Internal.E_NpyInt)
     for b in bases:
         coords = C.getFields(Internal.__GridCoordinates__, b, api=2) # api=1 a cause de node2Center en center_in dans le Connector.py
         if coords != []:
@@ -1095,7 +1095,7 @@ def blankCellsTetra(t, mT4, blankingMatrix=[], blankingType='node_in',
     bases = Internal.getBases(a)
     if bases == []: raise ValueError("blankCellsTetra: no basis found in input tree.")
 
-    if blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(mT4)), dtype=Internal.E_NpyInt)
+    if isinstance(blankingMatrix, list) and blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(mT4)), dtype=Internal.E_NpyInt)
     for b in bases:
         nb += 1
         coords = C.getFields(Internal.__GridCoordinates__, b)
@@ -1153,7 +1153,7 @@ def blankCellsTri(t, mT3, blankingMatrix=[], blankingType='node_in',
     bases = Internal.getBases(a)
     if bases == []: raise ValueError("blankCellsTri: no basis found in input tree.")
 
-    if blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(mT3)), dtype=Internal.E_NpyInt)
+    if isinstance(blankingMatrix, list) and blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(mT3)), dtype=Internal.E_NpyInt)
     for b in bases:
         nb += 1
         coords = C.getFields(Internal.__GridCoordinates__, b)
@@ -1207,7 +1207,7 @@ def _blankCellsTri(a, mT3, blankingMatrix=[], blankingType='node_in',
     bases = Internal.getBases(a)
     if bases == []: raise ValueError("blankCellsTri: no basis found in input tree.")
 
-    if blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(mT3)), dtype=Internal.E_NpyInt)
+    if isinstance(blankingMatrix, list) and blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(mT3)), dtype=Internal.E_NpyInt)
     for b in bases:
         nb += 1
         coords = C.getFields(Internal.__GridCoordinates__, b)

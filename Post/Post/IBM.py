@@ -289,41 +289,41 @@ def extractIBMWallFields(tc, tb=None, coordRef='wall', famZones=[], IBCNames="IB
         FSN[2].append(["CoordinateZ_PC",zcNP, [],'DataArray_t'])
     
     utauPresent = 0; yplusPresent = 0; yplusIPresent = 0
-    if utauNP != []:
+    if isinstance(utauNP, numpy.ndarray):
         utauPresent = 1
         FSN[2].append([XOD.__UTAU__,utauNP, [],'DataArray_t'])
-    if yplusNP != []:
+    if isinstance(yplusNP, numpy.ndarray):
         yplusPresent = 1
         FSN[2].append([XOD.__YPLUS__,yplusNP, [],'DataArray_t'])
-    if yplusINP != []:
+    if isinstance(yplusINP, numpy.ndarray):
         yplusIPresent = 1
         FSN[2].append(["yplusIP",yplusINP, [],'DataArray_t'])
     vxPresent = 0
-    if vxNP != []:
+    if isinstance(vxNP, numpy.ndarray):
         vxPresent = 1
         FSN[2].append([XOD.__VELOCITYX__,vxNP, [],'DataArray_t'])
         FSN[2].append([XOD.__VELOCITYY__,vyNP, [],'DataArray_t'])
         FSN[2].append([XOD.__VELOCITYZ__,vzNP, [],'DataArray_t'])
 
     kcurvPresent = 0
-    if KCurvNP != []:
+    if isinstance(KCurvNP, numpy.ndarray):
         kcurvPresent = 1
         FSN[2].append([XOD.__KCURV__,KCurvNP, [],'DataArray_t'])
 
     temperaturePresent = 0
-    if temperatureNP != []:
+    if isinstance(temperatureNP, numpy.ndarray):
         temperaturePresent = 1
         FSN[2].append([XOD.__TEMPERATURE__,temperatureNP, [],'DataArray_t'])
 
     gradxPressurePresent = 0
-    if gradxPressureNP != []:
+    if isinstance(gradxPressureNP, numpy.ndarray):
         gradxPressurePresent = 1
         FSN[2].append([XOD.__GRADXPRESSURE__,gradxPressureNP, [],'DataArray_t'])
         FSN[2].append([XOD.__GRADYPRESSURE__,gradyPressureNP, [],'DataArray_t'])
         FSN[2].append([XOD.__GRADZPRESSURE__,gradzPressureNP, [],'DataArray_t'])
 
     conv1Present = 0
-    if conv1NP != []:
+    if isinstance(conv1NP, numpy.ndarray):
         conv1Present = 1
         FSN[2].append([XOD.__CONV1__,conv1NP, [],'DataArray_t'])
         FSN[2].append([XOD.__CONV2__,conv2NP, [],'DataArray_t'])
