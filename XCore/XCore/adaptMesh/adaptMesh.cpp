@@ -213,7 +213,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   MPI_Allreduce(&M->ncells, &gncells, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
   if (M->pid == 0)
-    printf("Total number of cells: %d\n", gncells);
+    printf("Total number of cells: " SF_D_ "\n", gncells);
 
   shift_data(M);
 
@@ -421,7 +421,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   
   if (rM->pid == 0) {
     printf("Adaptation time: %.2f s\n", adapt_time);
-    printf("Total number of cells: %d\n", gnc);
+    printf("Total number of cells: " SF_D_ "\n", gnc);
     printf("Memory: %.1f MB\n", gmem);
   }
 
@@ -485,7 +485,7 @@ PyObject *K_XCORE::adaptMesh(PyObject *self, PyObject *args)
   toc = clock();
   E_Float extract_time = ((E_Float)(toc-tic)) / CLOCKS_PER_SEC;
   if (rM->pid == 0)
-    printf("Extracted %d leaves in %.2f s\n", nleaves, extract_time);
+    printf("Extracted " SF_D_ " leaves in %.2f s\n", nleaves, extract_time);
 
   mesh_free(rM);
 

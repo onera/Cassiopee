@@ -41,7 +41,7 @@ E_Int get_proc(E_Int element, E_Int *distribution, E_Int nproc)
     if (element >= distribution[j] && element < distribution[j+1])
       return j;
   }
-  printf("\nWarning: could not find distribution of element %d\n", element);
+  printf("\nWarning: could not find distribution of element " SF_D_ "\n", element);
   assert(0);
   return -1;
 }
@@ -221,9 +221,9 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
 
   // global info
   if (rank == 0) {
-    printf("Total number of cells: %d\n", cells_dist[nproc]);
-    printf("Total number of faces: %d\n", faces_dist[nproc]);
-    printf("Total number of points: %d\n", points_dist[nproc]);
+    printf("Total number of cells: " SF_D_ "\n", cells_dist[nproc]);
+    printf("Total number of faces: " SF_D_ "\n", faces_dist[nproc]);
+    printf("Total number of points: " SF_D_ "\n", points_dist[nproc]);
   }
 
   E_Int sfaces_exist = 0; // switch for handling signed faces

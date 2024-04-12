@@ -36,7 +36,7 @@ E_Int get_proc(E_Int element, const std::vector<E_Int> &distribution,
     if (element >= distribution[j] && element < distribution[j+1])
       return j;
   }
-  printf("\nWarning: could not find distribution of element %d\n", element);
+  printf("\nWarning: could not find distribution of element " SF_D_ "\n", element);
   assert(0);
   return -1;
 }
@@ -48,7 +48,7 @@ E_Int get_chunk(E_Int element, const std::vector<E_Int> &dist)
     if (element >= dist[i] && element < dist[i+1])
       return i;
   }
-  printf("\nWarning: could not find chunk of element %d\n", element);
+  printf("\nWarning: could not find chunk of element " SF_D_ "\n", element);
   assert(0);
   return -1;
 }
@@ -486,7 +486,7 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   MPI_Allreduce(&ncells, &gncells, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
   assert(gncells == cdist[nproc]);
   if (rank == 0)
-    printf("Total number of cells: %d (Average: %d)\n", gncells, gncells/nproc);
+    printf("Total number of cells: " SF_D_ " (Average: " SF_D_ ")\n", gncells, gncells/nproc);
 
   // make local cell labels
   std::vector<E_Int> cellLabels(nchunks);
@@ -781,7 +781,7 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   E_Int nlf = ncontrol + nfree;
   MPI_Allreduce(&nlf, &gnfaces, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
   if (rank == 0)
-    printf("total number of unique faces: %d\n", gnfaces);
+    printf("total number of unique faces: " SF_D_ "\n", gnfaces);
   E_Int k = gnfaces;
   for (E_Int i = 0; i < nproc; i++) {
     E_Int l = k / (nproc-i);

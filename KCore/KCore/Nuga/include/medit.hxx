@@ -225,15 +225,15 @@ static E_Int read(const char* filename, T1*& pcrd, T2& dim, T2& npts, bool& call
   FILE * file = fopen(filename.str().c_str(), "w");
   if (file == nullptr) return 1;
 
-  E_Int  nb_pts(crd.cols()), COLS(cnt.cols()), dim(crd.rows());
+  E_Int nb_pts(crd.cols()), COLS(cnt.cols()), dim(crd.rows());
 
   // Header
   fprintf(file, "MeshVersionFormatted 1\n");
-  fprintf(file, "Dimension %i\n", dim);
+  fprintf(file, "Dimension " SF_D_"\n", dim);
        
   // Points
   fprintf(file, "Vertices\n");
-  fprintf(file, "%i\n", nb_pts);
+  fprintf(file, SF_D_"\n", nb_pts);
   
   const E_Float* pP;
 
@@ -297,7 +297,7 @@ static E_Int read(const char* filename, T1*& pcrd, T2& dim, T2& npts, bool& call
     return 0;
   }
 
-	fprintf(file, "%i\n", nb_elts);
+	fprintf(file, SF_D_"\n", nb_elts);
   
   bool valid;
   const E_Int* pC;
@@ -318,10 +318,10 @@ static E_Int read(const char* filename, T1*& pcrd, T2& dim, T2& npts, bool& call
 		  {
 			  switch (nb_nods)
 			  {
-			  case 2: fprintf(file, "%i %i 0\n", *(pC)+1, *(pC + 1) + 1); break;
-			  case 3: fprintf(file, "%i %i %i 0\n", *(pC)+1, *(pC + 1) + 1, *(pC + 2) + 1); break;
-			  case 4: fprintf(file, "%i %i %i %i 0\n", *(pC)+1, *(pC + 1) + 1, *(pC + 2) + 1, *(pC + 3) + 1); break;
-			  case 8: fprintf(file, "%i %i %i %i %i %i %i %i 0\n", *pC + 1, *(pC + 1) + 1, *(pC + 2) + 1, *(pC + 2) + 1, *(pC + 3) + 1, *(pC + 4) + 1, *(pC + 5) + 1, *(pC + 5) + 1); break;
+			  case 2: fprintf(file, SF_D2_" 0\n", *(pC)+1, *(pC + 1) + 1); break;
+			  case 3: fprintf(file, SF_D3_" 0\n", *(pC)+1, *(pC + 1) + 1, *(pC + 2) + 1); break;
+			  case 4: fprintf(file, SF_D4_" 0\n", *(pC)+1, *(pC + 1) + 1, *(pC + 2) + 1, *(pC + 3) + 1); break;
+			  case 8: fprintf(file, SF_D8_" 0\n", *pC + 1, *(pC + 1) + 1, *(pC + 2) + 1, *(pC + 2) + 1, *(pC + 3) + 1, *(pC + 4) + 1, *(pC + 5) + 1, *(pC + 5) + 1); break;
 			  default:break;
 			  }
 		  }
@@ -329,10 +329,10 @@ static E_Int read(const char* filename, T1*& pcrd, T2& dim, T2& npts, bool& call
 		  {
 			  switch (nb_nods)
 			  {
-			    case 2: fprintf(file, "%i %i %i\n", *(pC)+1, *(pC + 1) + 1, (E_Int)(*colors)[i]); break;
-			    case 3: fprintf(file, "%i %i %i %i\n", *(pC)+1, *(pC + 1) + 1, *(pC + 2) + 1, (E_Int)(*colors)[i]); break;
-			    case 4: fprintf(file, "%i %i %i %i %i\n", *(pC)+1, *(pC + 1) + 1, *(pC + 2) + 1, *(pC + 3) + 1, (E_Int)(*colors)[i]); break;
-			    case 8: fprintf(file, "%i %i %i %i %i %i %i %i %i\n", *pC + 1, *(pC + 1) + 1, *(pC + 2) + 1, *(pC + 2) + 1, *(pC + 3) + 1, *(pC + 4) + 1, *(pC + 5) + 1, *(pC + 5) + 1, (E_Int)(*colors)[i]); break;
+			    case 2: fprintf(file, SF_D3_"\n", *(pC)+1, *(pC + 1) + 1, (E_Int)(*colors)[i]); break;
+			    case 3: fprintf(file, SF_D4_"\n", *(pC)+1, *(pC + 1) + 1, *(pC + 2) + 1, (E_Int)(*colors)[i]); break;
+			    case 4: fprintf(file, SF_D5_"\n", *(pC)+1, *(pC + 1) + 1, *(pC + 2) + 1, *(pC + 3) + 1, (E_Int)(*colors)[i]); break;
+			    case 8: fprintf(file, SF_D9_"\n", *pC + 1, *(pC + 1) + 1, *(pC + 2) + 1, *(pC + 2) + 1, *(pC + 3) + 1, *(pC + 4) + 1, *(pC + 5) + 1, *(pC + 5) + 1, (E_Int)(*colors)[i]); break;
 			    default:break;
 			  }
 		  }
@@ -357,7 +357,7 @@ static E_Int read(const char* filename, T1*& pcrd, T2& dim, T2& npts, bool& call
     {
       keep.resize(cnt.cols(), false);
 
-      for (size_t u = 0; u< toprocess->size(); ++u)
+      for (size_t u = 0; u < toprocess->size(); ++u)
         keep[(*toprocess)[u] - idx_start] = true;
     }
 

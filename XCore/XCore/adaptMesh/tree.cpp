@@ -171,26 +171,26 @@ E_Int *tree_get_children(tree *T, E_Int id)
 
 void tree_print(tree *T)
 {
-  printf("size: %d\n", T->size);
-  printf("last: %d\n", T->size);
+  printf("size: " SF_D_ "\n", T->size);
+  printf("last: " SF_D_ "\n", T->size);
   assert((E_Int)T->enabled.size() == T->size);
   assert((E_Int)T->level.size() == T->size);
   assert((E_Int)T->parent.size() == T->size);
   assert((E_Int)T->indir.size() == T->size);
   printf("enabled:\n");
-  for (E_Int i = 0; i < T->size; i++) {printf("%d ", T->enabled[i]);} puts("");
+  for (E_Int i = 0; i < T->size; i++) {printf(SF_D_ " ", T->enabled[i]);} puts("");
   printf("level:\n");
-  for (E_Int i = 0; i < T->size; i++) {printf("%d ", T->level[i]);} puts("");
+  for (E_Int i = 0; i < T->size; i++) {printf(SF_D_ " ", T->level[i]);} puts("");
   printf("parent:\n");
-  for (E_Int i = 0; i < T->size; i++) {printf("%d ", T->parent[i]);} puts("");
+  for (E_Int i = 0; i < T->size; i++) {printf(SF_D_ " ", T->parent[i]);} puts("");
 	for (E_Int i = 0; i < T->size; i++) {
 		E_Int where = T->indir[i];
 		if (where == -1) continue;
-		printf("%d: ", i);
+		printf(SF_D_ ": ", i);
 		E_Int nchild = T->children[where];
 		E_Int *children = &T->children[where+1];
 		for (E_Int j = 0; j < nchild; j++)
-			printf("%d ", children[j]);
+			printf(SF_D_ " ", children[j]);
 		puts("");
 	}
 }

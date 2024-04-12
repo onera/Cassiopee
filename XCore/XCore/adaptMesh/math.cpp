@@ -486,7 +486,7 @@ E_Float *compute_hessian(mesh* M, E_Float *fld)
     E_Int converged = BiCGStab(&M->lsqHH[36*i], &H[6*i], B, 6);
     if (!converged) {
       printf("BiCGStab not converged\n");
-      printf("Cell: %d\n", i);
+      printf("Cell: " SF_D_ "\n", i);
       E_Float *pt = &M->lsqHH[36*i];
       for (E_Int j = 0; j < 6; j++) {
         for (E_Int k = 0; k < 6; k++) {

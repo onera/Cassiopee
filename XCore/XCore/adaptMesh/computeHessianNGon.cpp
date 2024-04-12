@@ -1,3 +1,21 @@
+/*    
+    Copyright 2013-2024 Onera.
+
+    This file is part of Cassiopee.
+
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "proto.h"
 
 #define MAXNEI 6 // ok for hexa, tetra and prism
@@ -121,7 +139,7 @@ E_Int make_hessian
     bad_hessian |= !converged;
     if (!converged) {
       printf("BiCGStab not converged\n");
-      printf("Cell: %d\n", i);
+      printf("Cell: " SF_D_ "\n", i);
       E_Float *pt = &lsqHH[36*i];
       for (E_Int j = 0; j < 6; j++) {
         for (E_Int k = 0; k < 6; k++) {

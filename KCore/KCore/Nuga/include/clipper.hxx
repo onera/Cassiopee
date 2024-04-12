@@ -1,11 +1,20 @@
-/*
+/*    
+    Copyright 2013-2024 Onera.
 
+    This file is part of Cassiopee.
 
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
---------- NUGA v1.0
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-
-
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 //Authors : Sam Landier (sam.landier@onera.fr)
 
@@ -457,7 +466,7 @@ namespace NUGA
             E_Int& Kv = data.neighbors(n, i);
             if (Kv == IDX_NONE || data.colors[Kv] != coli) //color border
             {
-              int E[] = { *(pS + (n + 1) % 3),*(pS + (n + 2) % 3) };
+              E_Int E[] = { *(pS + (n + 1) % 3),*(pS + (n + 2) % 3) };
               col_to_cntB[coli].pushBack(E, E + 2);
             }
           }
@@ -912,7 +921,7 @@ namespace NUGA
             E_Int& Kv = data.neighbors(n, i);
             if (Kv == IDX_NONE || data.colors[Kv] != coli) //color border
             {
-              int E[] = { *(pS + (n + 1) % 3),*(pS + (n + 2) % 3) };
+              E_Int E[] = { *(pS + (n + 1) % 3),*(pS + (n + 2) % 3) };
               col_to_cntB[coli].pushBack(E, E + 2);
             }
           }

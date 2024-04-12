@@ -146,7 +146,8 @@ namespace CMP {
             logg << LogInformation << "Longueur message a recevoir : " 
                  << m_current_size << std::endl;
 #           endif
-            if (m_current_size > m_rcv_buffer.size())
+            int m_rcv_buffer_size = m_rcv_buffer.size();
+            if (m_current_size > m_rcv_buffer_size)
                 std::vector<value_t>( m_current_size ).swap( m_rcv_buffer );
             m_cur_iterator = m_rcv_buffer.begin( );
         }
@@ -162,7 +163,8 @@ namespace CMP {
 #       if defined(CMP_DEBUG)        
         logg << LogInformation << "Longueur message a recevoir... : " << m_current_size << std::endl;
 #       endif        
-        if (m_current_size > m_rcv_buffer.size())
+        int m_rcv_buffer_size = m_rcv_buffer.size();
+        if (m_current_size > m_rcv_buffer_size)
             std::vector<value_t>( m_current_size ).swap( m_rcv_buffer );
         m_cur_iterator = m_rcv_buffer.begin( );
     }

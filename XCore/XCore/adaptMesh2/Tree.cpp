@@ -1,3 +1,21 @@
+/*    
+    Copyright 2013-2024 Onera.
+
+    This file is part of Cassiopee.
+
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "Proto.h"
 
 Tree::Tree(E_Int nelem) :
@@ -44,7 +62,7 @@ void print_children_node(Children *children)
 {
   printf("[ ");
   for (E_Int i = 0; i < children->n; i++)
-    printf("%d ", children->pc[i]);
+    printf(SF_D_ " ", children->pc[i]);
   printf("]");
 }
 
@@ -66,7 +84,7 @@ void Tree::print_children()
     if (!children_[i]) {
       //printf("---");
     } else {
-      printf("%d -> ", i);
+      printf(SF_D_ " -> ", i);
       Children *cur = children_[i];
       while (cur != NULL) {
         print_children_node(cur);
@@ -82,14 +100,14 @@ void Tree::print_children()
 void Tree::print_face_types()
 {
   for (E_Int i = 0; i < nelem_; i++) {
-    printf("%d -> %d (%s) \n", i, type_[i], face_type_to_string(type_[i]));
+    printf(SF_D_ " -> " SF_D_ " (%s) \n", i, type_[i], face_type_to_string(type_[i]));
   }
 }
 
 void Tree::print_cell_types()
 {
   for (E_Int i = 0; i < nelem_; i++) {
-    printf("%d -> %d (%s) \n", i, type_[i], cell_type_to_string(type_[i]));
+    printf(SF_D_ " -> " SF_D_ " (%s) \n", i, type_[i], cell_type_to_string(type_[i]));
   }
 }
 

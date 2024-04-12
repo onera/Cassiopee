@@ -216,12 +216,12 @@ E_Int K_IO::GenIO::fp3dwrite(
 
   // Write header (number of blocks)
   E_Int nb = field.size();
-  fprintf(ptrFile, SF_5D_ "\n", nb);
+  fprintf(ptrFile, SF_W5D_ "\n", nb);
   
   // Write im,jm,km for each block
   for (E_Int i = 0; i < nb; i++)
   {
-    fprintf(ptrFile, SF_5D_ " " SF_5D_ " " SF_5D_, ni[i], nj[i], nk[i]);
+    fprintf(ptrFile, SF_W5D_ " " SF_W5D_ " " SF_W5D_, ni[i], nj[i], nk[i]);
   }
   fprintf(ptrFile, "\n");
 

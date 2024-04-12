@@ -1,3 +1,21 @@
+/*    
+    Copyright 2013-2024 Onera.
+
+    This file is part of Cassiopee.
+
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "proto.h"
 #include <map>
 #include <unordered_map>
@@ -310,7 +328,7 @@ Mesh *mesh_make_surface_mesh_from_face_list(Mesh *M,
   // Count sizeNFace
   E_Int sizeNFace = 0;
 
-  for (auto i = 0; i < face_list.size(); i++) {
+  for (size_t i = 0; i < face_list.size(); i++) {
     E_Int face = face_list[i];
 
     // A face has as many edges as it has points
@@ -329,7 +347,7 @@ Mesh *mesh_make_surface_mesh_from_face_list(Mesh *M,
   E->nf = 0;
   E->np = 0;
 
-  for (auto i = 0; i < face_list.size(); i++) {
+  for (size_t i = 0; i < face_list.size(); i++) {
     E_Int face = face_list[i];
 
     E_Int np = -1;

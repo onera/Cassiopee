@@ -1,3 +1,21 @@
+/*    
+    Copyright 2013-2024 Onera.
+
+    This file is part of Cassiopee.
+
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "proto.h"
 
 void mesh_write(Mesh *O, const char *file_name)
@@ -7,43 +25,43 @@ void mesh_write(Mesh *O, const char *file_name)
 
   // Points
   fprintf(fh, "Points\n");
-  fprintf(fh, "%d\n", O->np);
+  fprintf(fh, SF_D_ "\n", O->np);
   for (E_Int i = 0; i < O->np; i++)
     fprintf(fh, "%.12f %.12f %.12f\n", O->x[i], O->y[i], O->z[i]);
 
   // NGon
   fprintf(fh, "NGon\n");
-  fprintf(fh, "%d\n", O->indPG[O->nf]);
+  fprintf(fh, SF_D_ "\n", O->indPG[O->nf]);
   for (E_Int i = 0; i < O->nf; i++) {
     for (E_Int j = O->indPG[i]; j < O->indPG[i+1]; j++) {
-      fprintf(fh, "%d ", O->ngon[j]);
+      fprintf(fh, SF_D_ " ", O->ngon[j]);
     }
   }
   fprintf(fh, "\n");
 
   // NFace
   fprintf(fh, "NFace\n");
-  fprintf(fh, "%d\n", O->indPH[O->nc]);
+  fprintf(fh, SF_D_ "\n", O->indPH[O->nc]);
   for (E_Int i = 0; i < O->nc; i++) {
     for (E_Int j = O->indPH[i]; j < O->indPH[i+1]; j++) {
-      fprintf(fh, "%d ", O->nface[j]);
+      fprintf(fh, SF_D_ " ", O->nface[j]);
     }
   }
   fprintf(fh, "\n");
 
   // IndPG
   fprintf(fh, "IndPG\n");
-  fprintf(fh, "%d\n", O->nf+1);
+  fprintf(fh, SF_D_ "\n", O->nf+1);
   for (E_Int i = 0; i < O->nf+1; i++) {
-    fprintf(fh, "%d ", O->indPG[i]);
+    fprintf(fh, SF_D_ " ", O->indPG[i]);
   }
   fprintf(fh, "\n");
 
   // IndPH
   fprintf(fh, "IndPH\n");
-  fprintf(fh, "%d\n", O->nc+1);
+  fprintf(fh, SF_D_ "\n", O->nc+1);
   for (E_Int i = 0; i < O->nc+1; i++) {
-    fprintf(fh, "%d ", O->indPH[i]);
+    fprintf(fh, SF_D_ " ", O->indPH[i]);
   }
   fprintf(fh, "\n");
 
@@ -55,7 +73,7 @@ void point_set_write(const std::set<E_Int> &points, Mesh *M, const char *fname)
   FILE *fh = fopen(fname, "w");
   assert(fh);
   fprintf(fh, "Points\n");
-  fprintf(fh, "%lu\n", points.size());
+  fprintf(fh, "%zu\n", points.size());
   for (auto point : points) {
     fprintf(fh, "%f %f %f\n", M->x[point], M->y[point], M->z[point]);
   }
@@ -92,17 +110,17 @@ void edge_hits_write(const std::map<Edge_NO, Edge_Hit> &edge_hit_table,
 
   // Write xyz
   fprintf(eh, "Points\n");
-  fprintf(eh, "%d\n", np);
+  fprintf(eh, SF_D_ "\n", np);
 
   for (auto point : points)
     fprintf(eh, "%.12f %.12f %.12f\n", M->x[point], M->y[point], M->z[point]);
 
   // Write the edges
   fprintf(eh, "Edges\n");
-  fprintf(eh, "%lu\n", edge_hit_table.size());
+  fprintf(eh, "%zu\n", edge_hit_table.size());
 
   fprintf(ph, "Points\n");
-  fprintf(ph, "%lu\n", edge_hit_table.size());
+  fprintf(ph, "%zu\n", edge_hit_table.size());
 
   for (auto edge : edge_hit_table) {
     E_Int p = edge.first.p;
@@ -113,7 +131,7 @@ void edge_hits_write(const std::map<Edge_NO, Edge_Hit> &edge_hit_table,
     
     fprintf(ph, "%f %f %f\n", EH.x, EH.y, EH.z);
 
-    fprintf(eh, "%d %d ", PT[p], PT[q]);
+    fprintf(eh, SF_D2_ " ", PT[p], PT[q]);
   }
 
   fclose(eh);
@@ -129,7 +147,7 @@ void point_hits_write(const std::map<E_Int, Edge_Hit> &point_hit_table,
   E_Int np = point_hit_table.size() * 2;
 
   fprintf(eh, "Points\n");
-  fprintf(eh, "%d\n", np);
+  fprintf(eh, SF_D_ "\n", np);
   
   for (auto edge : point_hit_table) {
     E_Int p = edge.first;
@@ -140,9 +158,9 @@ void point_hits_write(const std::map<E_Int, Edge_Hit> &point_hit_table,
   }
 
   fprintf(eh, "Edges\n");
-  fprintf(eh, "%d\n", np/2);
+  fprintf(eh, SF_D_ "\n", np/2);
   for (E_Int i = 0; i < np; i++)
-    fprintf(eh, "%d ", i);
+    fprintf(eh, SF_D_ " ", i);
   fprintf(eh, "\n");
 
   fclose(eh);
@@ -155,7 +173,7 @@ void point_hits_write(const std::unordered_map<E_Int, Edge_Hit> &ptable,
   assert(fh);
 
   fprintf(fh, "POINTS\n");
-  fprintf(fh, "%lu\n", ptable.size());
+  fprintf(fh, "%zu\n", ptable.size());
 
   for (auto P : ptable) {
     fprintf(fh, "%f %f %f\n", P.second.x, P.second.y, P.second.z);
@@ -171,7 +189,7 @@ void write_edge_path(Mesh *M, const Edge_NO &edge,
   assert(fh);
 
   fprintf(fh, "Points\n");
-  fprintf(fh, "%d\n", 2 + path_faces.size()*4);
+  fprintf(fh, "%zu\n", 2 + path_faces.size()*4);
 
   fprintf(fh, "%f %f %f\n", M->x[edge.p], M->y[edge.p], M->z[edge.p]);
   fprintf(fh, "%f %f %f\n", M->x[edge.q], M->y[edge.q], M->z[edge.q]);
@@ -184,11 +202,11 @@ void write_edge_path(Mesh *M, const Edge_NO &edge,
   }
 
   fprintf(fh, "Quads\n");
-  fprintf(fh, "%lu\n", path_faces.size());
+  fprintf(fh, "%zu\n", path_faces.size());
   E_Int incr = 2;
   for (auto face : path_faces) {
     for (E_Int i = 0; i < 4; i++) {
-      fprintf(fh, "%d ", incr);
+      fprintf(fh, SF_D_ " ", incr);
       incr++;
     }
     fprintf(fh, "\n");
@@ -203,7 +221,7 @@ void write_point_list(E_Float *X, E_Float *Y, E_Float *Z, E_Int *list,
   FILE *fh = fopen(fname, "w");
   assert(fh);
   fprintf(fh, "POINTS\n");
-  fprintf(fh, "%d\n", n);
+  fprintf(fh, SF_D_ "\n", n);
   for (E_Int i = 0; i < n; i++) {
     E_Int ind = list[i];
     fprintf(fh, "%f %f %f\n", X[ind], Y[ind], Z[ind]);
@@ -239,7 +257,7 @@ void write_trimesh(const std::vector<Triangle> &TRIS, Mesh *M)
     }
   }
 
-  fprintf(fh, "%d\n", np);
+  fprintf(fh, SF_D_ "\n", np);
 
   std::vector<E_Int> inv_map(np);
   for (auto P : pmap)
@@ -250,14 +268,14 @@ void write_trimesh(const std::vector<Triangle> &TRIS, Mesh *M)
   }
 
   fprintf(fh, "TRIS\n");
-  fprintf(fh, "%lu\n", TRIS.size());
+  fprintf(fh, "%zu\n", TRIS.size());
 
   for (const auto &TRI : TRIS) {
     E_Int A = TRI.A;
     E_Int B = TRI.B;
     E_Int C = TRI.C;
 
-    fprintf(fh, "%d %d %d\n", pmap[A], pmap[B], pmap[C]);
+    fprintf(fh, SF_D3_ "\n", pmap[A], pmap[B], pmap[C]);
   }
 
   fclose(fh);

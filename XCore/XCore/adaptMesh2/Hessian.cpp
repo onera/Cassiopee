@@ -1,3 +1,21 @@
+/*    
+    Copyright 2013-2024 Onera.
+
+    This file is part of Cassiopee.
+
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "Proto.h"
 
 E_Float hessian_norm_inf(E_Float M[6])
@@ -175,7 +193,7 @@ void make_hessian(AMesh *M, E_Int *indPH, E_Int *count_neis,
     E_Int converged = K_LINEAR::BiCGStab(&lsqHH[36*i], B, 6, &H[6*i]);
 
     if (!converged) {
-      fprintf(stderr, "make_hessian: cell %d not converged.\n", i);
+      fprintf(stderr, "make_hessian: cell " SF_D_ " not converged.\n", i);
       exit(1);
     }
   }

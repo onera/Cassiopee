@@ -1,3 +1,21 @@
+/*    
+    Copyright 2013-2024 Onera.
+
+    This file is part of Cassiopee.
+
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "proto.h"
 #include <stack>
 
@@ -10,10 +28,10 @@ static
 void Compute_cell_volume(E_Int cell, Mesh *M, E_Float *x, E_Float *y,
   E_Float *z, E_Float &vol, E_Int refIdx)
 {
-  E_Int *nface = M->nface;
-  E_Int *indPH = M->indPH;
-  E_Int *ngon = M->ngon;
-  E_Int *indPG = M->indPG;
+  //E_Int *nface = M->nface;
+  //E_Int *indPH = M->indPH;
+  //E_Int *ngon = M->ngon;
+  //E_Int *indPG = M->indPG;
 
   // Orient the faces coherently
   std::vector<E_Int> NGON;
@@ -154,7 +172,7 @@ E_Int _Orient_boundary
     }
 
     if (refPG == -1) {
-      fprintf(stderr, "orient_boundary(): couldn't find an external face within external cell %d\n", cid);
+      fprintf(stderr, "orient_boundary(): couldn't find an external face within external cell " SF_D_ "\n", cid);
       return 1;
     }
 
@@ -168,7 +186,7 @@ E_Int _Orient_boundary
     }
 
     if (refIdx == -1) {
-      fprintf(stderr, "orient_boundary(): couldn't find reference face %d in external faces list\n", refPG);
+      fprintf(stderr, "orient_boundary(): couldn't find reference face " SF_D_ " in external faces list\n", refPG);
       return 1;
     }
 
@@ -205,8 +223,8 @@ void Extract_nface_of_kept_pgs(Mesh *M, const std::vector<bool> &kept_pgs,
   std::vector<E_Int> &NFACE, std::vector<E_Int> &xadj,
   std::vector<E_Int> &cells)
 {
-  E_Int *nface = M->nface;
-  E_Int *indPH = M->indPH;
+  //E_Int *nface = M->nface;
+  //E_Int *indPH = M->indPH;
   E_Int ncells = M->nc;
 
   NFACE.clear();
@@ -235,8 +253,8 @@ static
 void Flag_marked_external_cells(Mesh *M, const std::vector<E_Int> &cells,
   const std::vector<E_Int> &fflags, std::vector<E_Int> &cflags)
 {
-  E_Int *nface = M->nface;
-  E_Int *indPH = M->indPH;
+  //E_Int *nface = M->nface;
+  //E_Int *indPH = M->indPH;
 
   // External cells are those with at least one external face
   cflags.resize(cells.size(), INTERNAL);
@@ -258,8 +276,8 @@ static
 void Flag_all_external_cells(Mesh *M, const std::vector<E_Int> &fflags,
   std::vector<E_Int> &cflags)
 {
-  E_Int *nface = M->nface;
-  E_Int *indPH = M->indPH;
+  //E_Int *nface = M->nface;
+  //E_Int *indPH = M->indPH;
   E_Int ncells = M->nc;
 
   // External cells are those with at least one external face
@@ -280,8 +298,8 @@ void Flag_all_external_cells(Mesh *M, const std::vector<E_Int> &fflags,
 E_Int mesh_orient_boundary(Mesh *M)
 {
   E_Int nfaces = M->nf;
-  E_Int *indPG = M->indPG;
-  E_Int *ngon = M->ngon;
+  //E_Int *indPG = M->indPG;
+  //E_Int *ngon = M->ngon;
   E_Int ncells = M->nc;
   E_Float *x = M->x;
   E_Float *y = M->y;
@@ -360,7 +378,7 @@ E_Int mesh_orient_boundary(Mesh *M)
       nrev++;
     }
   }
-  printf("orient_boundary(): reversed %d faces\n", nrev);
+  printf("orient_boundary(): reversed " SF_D_ " faces\n", nrev);
 
   return ret;
 }
@@ -371,8 +389,8 @@ void Build_cell_neighbourhood(Mesh *M, std::vector<E_Int>& neighbours,
 {
   E_Int nfaces = M->nf;
   E_Int ncells = M->nc;
-  E_Int *indPH = M->indPH;
-  E_Int *nface = M->nface;
+  //E_Int *indPH = M->indPH;
+  //E_Int *nface = M->nface;
 
   xadj.resize(ncells+1);
   xadj[0] = 0;
@@ -413,10 +431,10 @@ void Build_cell_neighbourhood(Mesh *M, std::vector<E_Int>& neighbours,
 E_Int mesh_build_own_nei(Mesh *M)
 {
   E_Int ncells = M->nc;
-  E_Int *nface = M->nface;
-  E_Int *ngon = M->ngon;
-  E_Int *indPH = M->indPH;
-  E_Int *indPG = M->indPG;
+  //E_Int *nface = M->nface;
+  //E_Int *ngon = M->ngon;
+  //E_Int *indPH = M->indPH;
+  //E_Int *indPG = M->indPG;
   E_Int *owner = M->owner;
   E_Int *neigh = M->neigh;
 

@@ -188,7 +188,7 @@ E_Int K_IO::GenIO::fv3dwrite(
   }
 
   // Write header (number of variables)
-  fprintf(ptrFile, SF_5D_ "\n", field[0]->getNfld());
+  fprintf(ptrFile, SF_W5D_ "\n", field[0]->getNfld());
   vector<char*> vars;
   extractVars(varString, vars);
   
@@ -298,14 +298,14 @@ E_Int K_IO::GenIO::fv3dwrite(
       {
         fprintf(ptrFile, "%s                   6%s%s.%s\n", 
                 varsn1, specifier, width, precision);
-        fprintf(ptrFile, SF_6D_ SF_6D_ SF_6D_ SF_6D_ "\n",
+        fprintf(ptrFile, SF_W6D_ SF_W6D_ SF_W6D_ SF_W6D_ "\n",
                 E_Int(1), ni[cnt], nj[cnt], nk[cnt]);
       }
       else 
       {
         fprintf(ptrFile, "%s                   6%s%s.%s\n", 
                 varsn1, specifier, width, precision);
-        fprintf(ptrFile, SF_6D_ SF_6D_ SF_6D_ SF_6D_ SF_6D_ "\n",
+        fprintf(ptrFile, SF_W6D_ SF_W6D_ SF_W6D_ SF_W6D_ SF_W6D_ "\n",
                 n, E_Int(1), ni[cnt], nj[cnt], nk[cnt]);
       }
     

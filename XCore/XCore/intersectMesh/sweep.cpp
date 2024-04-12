@@ -1,3 +1,21 @@
+/*    
+    Copyright 2013-2024 Onera.
+
+    This file is part of Cassiopee.
+
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "proto.h"
 
 PyObject *K_XCORE::sweep(PyObject *self, PyObject *args)
@@ -55,33 +73,33 @@ PyObject *K_XCORE::sweep(PyObject *self, PyObject *args)
   Mesh *M = mesh_init(*cnm, Xm, Ym, Zm, npm);
   Mesh *S = mesh_init(*cns, Xs, Ys, Zs, nps);
 
-  printf("Master faces:  %d\n", M->nc);
-  printf("Master edges:  %d\n", M->nf);
-  printf("Master points: %d\n", M->np);
-  printf("Slave faces:   %d\n", S->nc);
-  printf("Slave edges:   %d\n", S->nf);
-  printf("Slave points:  %d\n", S->np);
+  printf("Master faces:  " SF_D_ "\n", M->nc);
+  printf("Master edges:  " SF_D_ "\n", M->nf);
+  printf("Master points: " SF_D_ "\n", M->np);
+  printf("Slave faces:   " SF_D_ "\n", S->nc);
+  printf("Slave edges:   " SF_D_ "\n", S->nf);
+  printf("Slave points:  " SF_D_ "\n", S->np);
 
   // Make points
   std::vector<point *> points;
 
-  for (size_t i = 0; i < M->np; i++) {
+  for (E_Int i = 0; i < M->np; i++) {
     point *p = new point(M->x[i], M->y[i], i, -1);
     points.push_back(p);
   }
 
-  for (size_t i = 0; i < S->np; i++) {
+  for (E_Int i = 0; i < S->np; i++) {
     point *p = new point(S->x[i], S->y[i], i+M->np, -1);
     points.push_back(p);
   }
 
   for (point *p : points)
-    printf("%lu: %f %f\n", p->id, p->x, p->y);
+    printf("%zu: %f %f\n", p->id, p->x, p->y);
 
   // Make segments
   std::vector<segment *> segs;
 
-  for (size_t i = 0; i < M->nf; i++) {
+  for (E_Int i = 0; i < M->nf; i++) {
     E_Int np = -1;
     E_Int *pn = mesh_get_face(i, np, M);
     assert(np == 2);
@@ -91,7 +109,7 @@ PyObject *K_XCORE::sweep(PyObject *self, PyObject *args)
     segs.push_back(s);
   }
 
-  for (size_t i = 0; i < S->nf; i++) {
+  for (E_Int i = 0; i < S->nf; i++) {
     E_Int np = -1;
     E_Int *pn = mesh_get_face(i, np, S);
     assert(np == 2);
@@ -103,7 +121,7 @@ PyObject *K_XCORE::sweep(PyObject *self, PyObject *args)
   }
 
   for (segment *s: segs)
-    printf("S%lu: P%lu P%lu\n", s->id, s->p->id, s->q->id);
+    printf("S%zu: P%zu P%zu\n", s->id, s->p->id, s->q->id);
 
   std::unordered_map<point *, std::vector<segment *>> Xsegs;
 

@@ -1,3 +1,21 @@
+/*    
+    Copyright 2013-2024 Onera.
+
+    This file is part of Cassiopee.
+
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "proto.h"
 #include <map>
 #include <unordered_map>
@@ -53,9 +71,9 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
   K_FLD::FldArrayI *cns;
   ret = K_ARRAY::getFromArray3(SLAVE, varString, fs, ni, nj, nk, cns, eltType);
 
-  printf("ni: %d\n", ni);
-  printf("nj: %d\n", nj);
-  printf("nk: %d\n", nk);
+  printf("ni: " SF_D_ "\n", ni);
+  printf("nj: " SF_D_ "\n", nj);
+  printf("nk: " SF_D_ "\n", nk);
 
   if (ret <= 0) {
     RAISE("Bad slave mesh");
@@ -92,16 +110,16 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
   // Init and orient master mesh
   Mesh *M = mesh_init(*cnm, Xm, Ym, Zm, npm);
 
-  printf("Master cells: %d\n", M->nc);
-  printf("Master points: %d\n", M->np);
+  printf("Master cells: " SF_D_ "\n", M->nc);
+  printf("Master points: " SF_D_ "\n", M->np);
 
   BBox bboxm = bbox_make(M);
 
   // Detect at which k does the slave mesh intersect the master mesh
   // Get projected points coordinates
 
-  printf("Slave points: %d\n", nps);
-  printf("Slave nfld: %d\n", nfld);
+  printf("Slave points: " SF_D_ "\n", nps);
+  printf("Slave nfld: " SF_D_ "\n", nfld);
 
   E_Int kmax = 0;
 
@@ -128,7 +146,7 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     break;
   }
 
-  printf("kmax: %d\n", kmax);
+  printf("kmax: " SF_D_ "\n", kmax);
 
   // Build returned array
   PyObject *tpl = K_ARRAY::buildArray3(nfld, varString, ni, nj, kmax);
@@ -201,7 +219,7 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     fadj.push_back(pn[1]);
   }
 
-  for (auto i = 0; i < FACES.size(); i++) xadj[i+1] += xadj[i];
+  for (size_t i = 0; i < FACES.size(); i++) xadj[i+1] += xadj[i];
 
   std::vector<E_Int> fneis;
   K_CONNECT::build_face_neighbourhood(fadj, xadj, fneis);

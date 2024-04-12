@@ -1,3 +1,21 @@
+/*    
+    Copyright 2013-2024 Onera.
+
+    This file is part of Cassiopee.
+
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "Proto.h"
 #include <stack>
 
@@ -35,14 +53,14 @@ void set_PENTA_for_2D(E_Int cell, AMesh *M)
   }
 
   if (start == nf) {
-    fprintf(stderr, "Couldn't align PENTA %d with prescribed 2D normal.\n",
+    fprintf(stderr, "Couldn't align PENTA " SF_D_ " with prescribed 2D normal.\n",
       cell);
     exit(1);
   }
 
   if (M->faceTree->type(pf[start]) != TRI) {
-    fprintf(stderr, "PENTA %d is aligned with prescribed 2D normal at"
-      "face %d but it is not a triangle. This is weird.\n", cell, pf[start]);
+    fprintf(stderr, "PENTA " SF_D_ " is aligned with prescribed 2D normal at"
+      "face " SF_D_ " but it is not a triangle. This is weird.\n", cell, pf[start]);
     exit(1);
   }
 
@@ -85,7 +103,7 @@ void set_HEXA_for_2D(E_Int cell, AMesh *M)
   }
 
   if (start == nf) {
-    fprintf(stderr, "Couldn't align HEXA %d with prescribed 2D normal.\n",
+    fprintf(stderr, "Couldn't align HEXA " SF_D_ " with prescribed 2D normal.\n",
       cell);
     assert(0);
     exit(1);
@@ -417,7 +435,7 @@ E_Int _Orient_boundary
     }
 
     if (refPG == -1) {
-      fprintf(stderr, "orient_boundary(): couldn't find an external face within external cell %d\n", cid);
+      fprintf(stderr, "orient_boundary(): couldn't find an external face within external cell " SF_D_ "\n", cid);
       return 1;
     }
 
@@ -431,7 +449,7 @@ E_Int _Orient_boundary
     }
 
     if (refIdx == -1) {
-      fprintf(stderr, "orient_boundary(): couldn't find reference face %d in external faces list\n", refPG);
+      fprintf(stderr, "orient_boundary(): couldn't find reference face " SF_D_ " in external faces list\n", refPG);
       return 1;
     }
 
@@ -831,7 +849,7 @@ E_Int check_closed_cell(E_Int cell, E_Int *pf, E_Int stride, AMesh *M)
 
   for (auto& ec : edgeCount) {
     if (ec.second != 2) {
-      fprintf(stderr, "Warning: Cell %d is not closed.\n", cell); 
+      fprintf(stderr, "Warning: Cell " SF_D_ " is not closed.\n", cell); 
       return 0;
     }
   }
