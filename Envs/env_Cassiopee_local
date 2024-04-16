@@ -15,6 +15,7 @@ limit stacksize unlimited
 
 # Detection machine (shortest first)
 set KC=`uname -n`
+
 set MAC0=`echo $KC | grep 'n'`; if ($%MAC0 != 0) set MAC="sator_brw"
 set MAC0=`echo $KC | grep 'ld'`; if ($%MAC0 != 0) set MAC="ld"
 set MAC0=`echo $KC | grep 'clausius'`; if ($%MAC0 != 0) set MAC="ld"
@@ -43,7 +44,7 @@ set MAC0=`echo $KC | grep 'node6.cluster'`; if ($%MAC0 != 0) set MAC="macosx"
 set MAC0=`echo $KC | grep 'topaze'`; if ($%MAC0 != 0) set MAC="topaze"
 
 if ($?MACHINE != 0) then
-    setenv MAC=$MACHINE
+    setenv MAC $MACHINE
 endif
 
 unset KC
