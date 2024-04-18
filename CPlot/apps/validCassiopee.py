@@ -848,7 +848,7 @@ def buildTestList(loadSession=False, modules=[]):
     else: logname = '{}/Apps/Modules/Valid{}/lastSession.log'.format(CASSIOPEE, DATA)
 
     if loadSession and os.access(logname, os.R_OK) and os.path.getsize(logname) > 0:
-        print("Loading last session: {}".format(logname.split('/')[-1]))
+        print("Loading last session: {}".format(logname))
         with open(logname, "r") as g:
             sessionLog = [line.rstrip().split(':') for line in g.readlines()]
         # Remove header from logfile

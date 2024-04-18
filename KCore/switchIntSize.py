@@ -59,6 +59,16 @@ def writeDist(contents):
   with open (filename, 'w') as f:
     for line in contents: f.write(line)
   return
+
+# Check ELSAPROD
+def check_elsaprod(intSize):
+  elsaprod = os.getenv("ELSAPROD")
+  if elsaprod is not None:
+    if intSize == 4 and "_i8" in elsaprod:
+      print("Remove '_i8' suffix from $ELSAPROD: {}".format(elsaprod[:-3]))
+    elif intSize == 8 and "_i8" not in elsaprod:
+      print("Add '_i8' suffix to $ELSAPROD: {}_i8".format(elsaprod))
+  return
   
 if __name__ == '__main__':
   args = parseArgs()
@@ -66,3 +76,4 @@ if __name__ == '__main__':
   contents = readDist()
   editDist(contents, intState)
   writeDist(contents)
+  check_elsaprod(args.int)

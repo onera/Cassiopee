@@ -296,26 +296,26 @@ E_Int K_IO::GenIO::cedrewrite(
   }
   posx++; posy++; posz++;
 
- char format1[40]; char fmtcrd[121]; char dataFmtl[40];
- strcpy(dataFmtl, dataFmt);
- int l = strlen(dataFmt); 
- if (dataFmt[l-1] == ' ') dataFmtl[l-1] = '\0';
+  char format1[40]; char fmtcrd[121]; char dataFmtl[40];
+  strcpy(dataFmtl, dataFmt);
+  int l = strlen(dataFmt); 
+  if (dataFmt[l-1] == ' ') dataFmtl[l-1] = '\0';
 
- // Build format for data
- strcpy(format1,SF_D_ " ");
- sprintf(fmtcrd,"%s %s %s\n", dataFmt, dataFmt, dataFmtl);
- strcat(format1,fmtcrd);
+  // Build format for data
+  strcpy(format1, SF_D_ " ");
+  sprintf(fmtcrd, "%s %s %s\n", dataFmt, dataFmt, dataFmtl);
+  strcat(format1, fmtcrd);
 
- // BCFaces size
- E_Int BCFacesSize = 0;
- if (PyList_Check(BCFaces) == true) BCFacesSize = PyList_Size(BCFaces);
- IMPORTNUMPY;
+  // BCFaces size
+  E_Int BCFacesSize = 0;
+  if (PyList_Check(BCFaces) == true) BCFacesSize = PyList_Size(BCFaces);
+  IMPORTNUMPY;
 
   // Ecriture de l'entete
   FILE* ptrFile = fopen(file, "w");
   if (ptrFile == NULL) 
   {
-    printf("cedrewrite: I can't open file %s.\n", file);
+    printf("Warning: cedrewrite: can't open file %s.\n", file);
     return 1;
   }
 
@@ -442,8 +442,7 @@ E_Int K_IO::GenIO::cedrewrite(
           }
         }
       }
-      
-    } // NGONS
+    }
   }
  
   fclose(ptrFile);

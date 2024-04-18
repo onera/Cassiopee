@@ -663,42 +663,38 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
     {
       if (f->getSize() > 0)
       {
+        // Ecriture non structuree
         vector<E_Int> ids = getElementTypesId(eltType);
         E_Int nc = ids.size();
-        // Ecriture non structuree
-        if (nc == 1)
+        E_Boolean allNodes = true;
+        E_Boolean allValid = true;
+        for (E_Int ic = 0; ic < nc; ic++)
         {
-          if (ids[0] == 0) // NODE -> structure
+          if (ids[ic] < 0)
           {
-            ni.push_back(f->getSize()); nj.push_back(1); nk.push_back(1);
-            fieldc.push_back(f); 
+            printf("Warning: convertArrays2File: invalid element type %s in "
+                   "position " SF_D_ ", BE/ME connectivity disregarded.\n",
+                   eltType, ic+1);
+            allValid = false;
+            allNodes = false;
+            break;
           }
-          else if (ids[0] > 0)
-          {
-            fieldu.push_back(f);
-            connectu.push_back(cn);
-            elt.push_back(ids[0]);
-            eltIds.push_back(ids);
-          }
-          else //id == -1
-            printf("Warning: convertArrays2File: element type %s not taken "
-                   "into account.\n", eltType);
+          else if (ids[ic] > 0) allNodes = false;
         }
-        else // ME Connectivity
+
+        if (allNodes)
+        {
+          ni.push_back(f->getSize()); nj.push_back(1); nk.push_back(1);
+          fieldc.push_back(f); 
+        }
+        else if (allValid)
         {
           fieldu.push_back(f);
+          connectu.push_back(cn);
           for (E_Int ic = 0; ic < nc; ic++)
           {
-            if (ids[ic] > 0)
-            {
-              FldArrayI* cm = cn->getConnect(ic);
-              connectu.push_back(cm);
-              elt.push_back(ids[ic]);
-              eltIds.push_back(ids);
-            }
-            else //id == -1
-              printf("Warning: convertArrays2File: element type %s in position "
-                     SF_D_ " not taken into account.\n", eltType, ic);
+            elt.push_back(ids[ic]);
+            eltIds.push_back(ids);
           }
         }
       }
