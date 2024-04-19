@@ -119,9 +119,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     // Formatted tecplot read
     ret = K_IO::GenIO::getInstance()->tpread(fileName, varString, field,
                                              im, jm, km, 
-                                             ufield, c, et[0], zoneNames);
-    et.resize(et[0].size()); // TODO hack tmp
-    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
+                                             ufield, c, et, zoneNames, api);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_v3d") == 0)
   {

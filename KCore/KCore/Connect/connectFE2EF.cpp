@@ -46,29 +46,33 @@ void K_CONNECT::connectFE2EF(FldArrayI& cFE, E_Int nelts, FldArrayI& cEF)
     if (a != 0) nbfacep[a-1]++;
     if (b != 0) nbfacep[b-1]++;
   }
-  E_Int size = nelts;
-  for (E_Int i = 0; i < nelts; i++) size += nbfacep[i];
-
-  FldArrayI pos(nelts); // position des faces pour chaque elt
+  
+  // position des faces pour chaque elt
+  FldArrayI pos(nelts);
   E_Int* posp = pos.begin();
   posp[0] = 0;
-  for (E_Int i = 0; i < nelts-1; i++)
+  for (E_Int i = 0; i < nelts-1; i++) posp[i+1] = posp[i] + nbfacep[i] + 1;
+  
+  E_Int sizeEF = nelts;
+  for (E_Int i = 0; i < nelts; i++) sizeEF += nbfacep[i];
+  cEF.malloc(sizeEF); 
+  E_Int* cEFp = cEF.begin();
+  
+  #pragma omp parallel
   {
-    posp[i+1] = posp[i] + (nbfacep[i]+1);
+    #pragma omp for
+    for (E_Int i = 0; i < nelts; i++) cEFp[posp[i]] = nbface[i];
+    #pragma omp for
+    for (E_Int i = 0; i < nelts; i++) nbface[i] = 0;
   }
   
-  cEF.malloc(size); 
-  E_Int* cEFp = cEF.begin(); 
-  for (E_Int i = 0; i < nelts; i++)
-  {
-    cEFp[posp[i]] = nbface[i];
-  }
-      
-  nbface.setAllValuesAtNull();
+  E_Int ind1, ind2;
   for (E_Int i = 0; i < nfaces; i++)
   {
-    a = cn1[i]; b = cn2[i];
-    if (a != 0) { cEFp[posp[a-1]+nbfacep[a-1]+1] = i+1; nbfacep[a-1]++; }
-    if (b != 0) { cEFp[posp[b-1]+nbfacep[b-1]+1] = i+1; nbfacep[b-1]++; }
+    a = cn1[i]-1; b = cn2[i]-1;
+    ind1 = posp[a] + nbfacep[a] + 1;
+    ind2 = posp[b] + nbfacep[b] + 1;
+    if (a+1 != 0) { cEFp[ind1] = i+1; nbfacep[a]++; }
+    if (b+1 != 0) { cEFp[ind2] = i+1; nbfacep[b]++; }
   }
 }

@@ -25,6 +25,7 @@
 # include "Array/Array.h"
 # include "String/kstring.h"
 # include <vector>
+# include <unordered_map>
 # include "Def/DefFunction.h"
 # include "Connect/connect.h"
 
@@ -761,87 +762,40 @@ E_Int K_IO::GenIO::su2read(
   //============================================================================
   // Lecture par elements basiques
   //============================================================================
-  E_Int eltNo, el;
+  E_Int el;
   const E_Int ncmax = 8;
   vector<E_Int> nelts(ncmax);
   for (E_Int i = 0; i < ncmax; i++) nelts[i] = 0;
   vector<E_Int> tmpConnect(8*ne);
+  // indirBE: element indices for each basic element
   vector<vector<E_Int> > indirBE(ncmax);
+
+  // Create a map between basic elements and element numbers
+  E_Int elt;
+  std::unordered_map<E_Int, E_Int> beMap;
+  beMap[3] = 1; // BAR
+  beMap[5] = 2; // TRI
+  beMap[9] = 3; // QUAD
+  beMap[10] = 4; // TETRA
+  beMap[14] = 5; // PYRA
+  beMap[13] = 6; // PENTA
+  beMap[12] = 7; // HEXA
+
+  vector<E_Int> nvpe(ncmax);
+  nvpe[1] = 2; nvpe[2] = 3; nvpe[3] = 4;
+  nvpe[4] = 4; nvpe[5] = 5; nvpe[6] = 6; nvpe[7] = 8;
 
   E_Int c = 0;
   while (c < ne)
   { 
-    el = 8*c;
+    el = ncmax*c;
     res = readInt(ptrFile, ti, -1); // type d'element
-    switch (ti)
-    { 
-      case 3: //BAR
-        eltNo = 1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+1] = ti+1;
-        indirBE[eltNo].push_back(c); nelts[eltNo]++;
-        break;
-
-      case 5: // TRI
-        eltNo = 2;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+1] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+2] = ti+1;
-        indirBE[eltNo].push_back(c); nelts[eltNo]++;
-        break;
-
-      case 9: // QUAD
-        eltNo = 3;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+1] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+2] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+3] = ti+1;
-        indirBE[eltNo].push_back(c); nelts[eltNo]++;
-        break;
-
-      case 10: // TETRA
-        eltNo = 4;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+1] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+2] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+3] = ti+1;
-        indirBE[eltNo].push_back(c); nelts[eltNo]++;
-        break;
-
-      case 14: // PYRA
-        eltNo = 5;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+1] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+2] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+3] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+4] = ti+1;
-        indirBE[eltNo].push_back(c); nelts[eltNo]++;
-        break;
-        
-      case 13: // PENTA
-        eltNo = 6;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+1] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+2] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+3] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+4] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+5] = ti+1;
-        indirBE[eltNo].push_back(c); nelts[eltNo]++;
-        break;
-        
-      case 12: // HEXA
-        eltNo = 7;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+1] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+2] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+3] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+4] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+5] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+6] = ti+1;
-        res = readInt(ptrFile, ti, -1); tmpConnect[el+7] = ti+1;
-        indirBE[eltNo].push_back(c); nelts[eltNo]++;
-        break;
+    elt = beMap[ti];
+    for (E_Int j = 0; j < nvpe[elt]; j++)
+    {
+      res = readInt(ptrFile, ti, -1); tmpConnect[el+j] = ti+1;
     }
+    indirBE[elt].push_back(c); nelts[elt]++;
     res = readInt(ptrFile, ti, -1); // index of cell (unused here)
     c++;
   }
@@ -849,31 +803,30 @@ E_Int K_IO::GenIO::su2read(
   // Lecture Vertices (Global)
   res = readGivenKeyword(ptrFile, "NPOIN=");
   res = readInt(ptrFile, ti, -1);
-  E_Int np = ti;
+  E_Int npts = ti;
   // skip - parfois il semble y avoir un autre entier
   if (res == 1) skipLine(ptrFile);
-  FldArrayF f(np, 3); E_Float fx, fy, fz;
-  for (E_Int i = 0; i < np; i++)
+  FldArrayF f(npts, 3);
+  E_Float fx, fy, fz;
+  for (E_Int i = 0; i < npts; i++)
   {
     fy = 0.; fz = 0.;
     if (dim == 1)
     {
       res = readDouble(ptrFile, fx, -1);
-      res = readInt(ptrFile, ti, -1);
     }
     else if (dim == 2)
     { 
       res = readDouble(ptrFile, fx, -1);
       res = readDouble(ptrFile, fy, -1);
-      res = readInt(ptrFile, ti, -1);
     }
     else 
     {
       res = readDouble(ptrFile, fx, -1);
       res = readDouble(ptrFile, fy, -1);
       res = readDouble(ptrFile, fz, -1);
-      res = readInt(ptrFile, ti, -1);
     }
+    res = readInt(ptrFile, ti, -1);
     if (res == 1) skipLine(ptrFile);
     f(ti,1)= fx; f(ti,2) = fy; f(ti,3) = fz;
   }
@@ -893,7 +846,6 @@ E_Int K_IO::GenIO::su2read(
     }
   }
 
-  // Formation des vertices de chacun
   E_Int nc; vector<E_Int> nepc;
   vector<E_Int> tmpEltType, indirEltType(ncmax);
   char eltString[256]; vector<E_Int> dummy(1);
@@ -925,22 +877,23 @@ E_Int K_IO::GenIO::su2read(
     K_ARRAY::typeId2eltString(tmpEltType, 0, eltString, dummy);
   }
 
-  PyObject* tpl = K_ARRAY::buildArray3(3, varString, np, nepc,
+  PyObject* tpl = K_ARRAY::buildArray3(3, varString, npts, nepc,
                                        eltString, 0, 3); // forcing api 3
   FldArrayI* cn2; FldArrayF* f2;
   K_ARRAY::getFromArray3(tpl, f2, cn2);
 
   #pragma omp parallel
   {
-    E_Int ind;
+    E_Int et, ind;
     for (E_Int ic = 0; ic < nc; ic++)
     {
+      et = tmpEltType[ic];
       FldArrayI& cm2 = *(cn2->getConnect(ic));
-      vector<E_Int>& indirBEic = indirBE[tmpEltType[ic]];
+      const vector<E_Int>& eltIds = indirBE[et];
       #pragma omp for
       for (E_Int i = 0; i < nepc[ic]; i++)
       {
-        ind = 8*indirBEic[i];
+        ind = 8*eltIds[i];
         for (E_Int j = 0; j < cm2.getNfld(); j++)
           cm2(i,j+1) = tmpConnect[ind+j];
       }
@@ -973,7 +926,6 @@ E_Int K_IO::GenIO::su2read(
     sprintf(zoneName, "Zone%zu", i);
     zoneNames.push_back(zoneName);
   }
-  //printf(SF_D2_ "\n", unstructField.size(), connect.size());
 
   //====================================
   // Lecture des conditions aux limites
@@ -984,7 +936,7 @@ E_Int K_IO::GenIO::su2read(
   res = readInt(ptrFile, nbnds, -1);
   if (nbnds == 0) { fclose(ptrFile); return 0; }
 
-  vector<vector<E_Int> > cVF(np);
+  vector<vector<E_Int> > cVF(npts);
   if (nelts[2] > 0)
     K_CONNECT::connectEV2VF(*(cn2->getConnect(indirEltType[2])), "TRI", cVF);
   if (nelts[3] > 0)
@@ -1014,25 +966,10 @@ E_Int K_IO::GenIO::su2read(
     for (E_Int i = 0; i < nfaces; i++)
     { 
       res = readInt(ptrFile, ti, -1); // type d'element
-      switch (ti)
-      { 
-        case 3: // BAR
-          res = readInt(ptrFile, inds[0], -1);
-          res = readInt(ptrFile, inds[1], -1);
-          break;
-
-        case 5: // TRI
-          res = readInt(ptrFile, inds[0], -1);
-          res = readInt(ptrFile, inds[1], -1);
-          res = readInt(ptrFile, inds[2], -1);
-          break;
-
-        case 9: // QUAD
-          res = readInt(ptrFile, inds[0], -1);
-          res = readInt(ptrFile, inds[1], -1);
-          res = readInt(ptrFile, inds[2], -1);
-          res = readInt(ptrFile, inds[3], -1);
-          break;
+      elt = beMap[ti];
+      for (E_Int j = 0; j < nvpe[elt]; j++)
+      {
+        res = readInt(ptrFile, inds[j], -1);
       }
       if (res == 1) skipLine(ptrFile);
     }
@@ -1060,36 +997,18 @@ E_Int K_IO::GenIO::su2read(
 
     for (E_Int i = 0; i < nfaces; i++)
     { 
-      res = readInt(ptrFile, ti, -1); // type d'element
       for (E_Int k = 0; k < lenbuf; k++) names[k+p] = buf[k];
       p += lenbuf; names[p] = '\0'; p++;
 
-      switch (ti)
-      { 
-        case 3: // BAR
-          res = readInt(ptrFile, inds[0], -1);
-          res = readInt(ptrFile, inds[1], -1);
-          indf = K_CONNECT::identifyFace(inds, 2, cVF);
-          facep[c] = std::max(indf,E_Int(1));
-          break;
-
-        case 5: // TRI
-          res = readInt(ptrFile, inds[0], -1);
-          res = readInt(ptrFile, inds[1], -1);
-          res = readInt(ptrFile, inds[2], -1);
-          indf = K_CONNECT::identifyFace(inds, 3, cVF);
-          facep[c] = std::max(indf,E_Int(1));
-          break;
-
-        case 9: // QUAD
-          res = readInt(ptrFile, inds[0], -1);
-          res = readInt(ptrFile, inds[1], -1);
-          res = readInt(ptrFile, inds[2], -1);
-          res = readInt(ptrFile, inds[3], -1);
-          indf = K_CONNECT::identifyFace(inds, 4, cVF);
-          facep[c] = std::max(indf,E_Int(1));
-          break;
+      res = readInt(ptrFile, ti, -1); // type d'element
+      elt = beMap[ti];
+      for (E_Int j = 0; j < nvpe[elt]; j++)
+      {
+        res = readInt(ptrFile, inds[j], -1);
       }
+      indf = K_CONNECT::identifyFace(inds, nvpe[elt], cVF);
+      facep[c] = std::max(indf, E_Int(1));
+
       if (res == 1) skipLine(ptrFile);
       c++;
     }

@@ -25,6 +25,7 @@
 # include "Array/Array.h"
 # include "String/kstring.h"
 # include <vector>
+#include <unordered_map>
 # include "Def/DefFunction.h"
 # include "Connect/connect.h"
 
@@ -343,225 +344,73 @@ E_Int K_IO::GenIO::meshread(
   // Lecture Vertices (Global)
   res = readGivenKeyword(ptrFile, "VERTICES");
   res = readDouble(ptrFile, t, -1);
-  E_Int nb = E_Int(t);
-  FldArrayF f(nb, 3);
-  for (E_Int i = 0; i < nb; i++)
+  E_Int npts = E_Int(t);
+  FldArrayF f(npts, 3);
+  for (E_Int i = 0; i < npts; i++)
   {
-    res = readDouble(ptrFile, t, -1); f(i,1) = t;
-    res = readDouble(ptrFile, t, -1); f(i,2) = t;
-    res = readDouble(ptrFile, t, -1); f(i,3) = t;
-    res = readDouble(ptrFile, t, -1);  // ref discarded
+    for (E_Int j = 1; j <= 3; j++)
+    {
+      res = readDouble(ptrFile, t, -1); f(i,j) = t;
+    }
+    res = readDouble(ptrFile, t, -1); // ref discarded
   }
 
   E_Int st;
   res = readWord(ptrFile, buf);
 
+  const E_Int ncmax = 8;
   vector<FldArrayI*> tmpConnect;
-  E_Boolean foundTopo[7] = {0};
+  vector<E_Boolean> topoFound(ncmax, false);
+  
+  eltType.clear();
   if (api == 3) eltType.resize(1);
-  else eltType.clear();
+
+  // Create a map between basic elements and element numbers
+  E_Int elt, nvpeElt;
+  std::unordered_map<std::string, E_Int> beMap;
+  beMap["Edges"] = 1;
+  beMap["Triangles"] = 2;
+  beMap["Quadrilaterals"] = 3;
+  beMap["Tetrahedra"] = 4;
+  beMap["Pyramids"] = 5;
+  beMap["Prisms"] = 6;
+  beMap["Hexahedra"] = 7;
+
+  vector<E_Int> nvpe(ncmax);
+  nvpe[1] = 2; nvpe[2] = 3; nvpe[3] = 4;
+  nvpe[4] = 4; nvpe[5] = 5; nvpe[6] = 6; nvpe[7] = 8;
 
   while (strcmp(buf, "End") != 0 && res >= 1)
   { 
-    if (strcmp(buf, "Edges") == 0)
+    elt = beMap[buf];
+    nvpeElt = nvpe[elt];
+    // Connectivity `beMap[buf]` (Global) -> 1 zone
+    res = readInt(ptrFile, st, -1);
+    if (st != 0)
     {
-      // Connectivity Edges (Global) -> 1 zone
-      res = readInt(ptrFile, st, -1);
-      if (st == 0) goto next;
-      FldArrayI* cn = new FldArrayI(st, 2);
+      FldArrayI* cn = new FldArrayI(st, nvpeElt);
       FldArrayI& c = *cn;
       for (E_Int i = 0; i < st; i++)
       {
-        res = readInt(ptrFile, ti, -1); c(i,1) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,2) = ti;
+        for (E_Int j = 1; j <= nvpeElt; j++)
+        {
+          res = readInt(ptrFile, ti, -1); c(i,j) = ti;
+        }
         res = readInt(ptrFile, ti, -1); // discarded
       }
       
       if (api == 3)
       {
-        eltType[0].push_back(1);
+        eltType[0].push_back(elt);
         tmpConnect.push_back(cn);
       }
       else
       {
-        eltType.push_back({1});
+        eltType.push_back({elt});
         connect.push_back(cn);
       }
-      foundTopo[0] = true;
+      topoFound[elt] = true;
     }
-    else if (strcmp(buf, "Triangles") == 0)
-    {
-      // Connectivity triangles (Global) -> 1 zone
-      res = readInt(ptrFile, st, -1);
-      if (st == 0) goto next;
-      FldArrayI* cn = new FldArrayI(st, 3);
-      FldArrayI& c = *cn;
-      for (E_Int i = 0; i < st; i++)
-      {
-        res = readInt(ptrFile, ti, -1); c(i,1) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,2) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,3) = ti;
-        res = readInt(ptrFile, ti, -1); // discarded
-      }
-      if (api == 3)
-      {
-        eltType[0].push_back(2);
-        tmpConnect.push_back(cn);
-      }
-      else
-      {
-        eltType.push_back({2});
-        connect.push_back(cn);
-      }
-      foundTopo[1] = true;
-    }
-    else if (strcmp(buf, "Quadrilaterals") == 0)
-    {
-      // Connectivity Quadrangles (Global) -> 1 zone
-      res = readInt(ptrFile, st, -1);
-      if (st == 0) goto next;
-      FldArrayI* cn = new FldArrayI(st, 4);
-      FldArrayI& c = *cn;
-      for (E_Int i = 0; i < st; i++)
-      {
-        res = readInt(ptrFile, ti, -1); c(i,1) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,2) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,3) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,4) = ti;
-        res = readInt(ptrFile, ti, -1); // discarded
-      }
-      if (api == 3)
-      {
-        eltType[0].push_back(3);
-        tmpConnect.push_back(cn);
-      }
-      else
-      {
-        eltType.push_back({3});
-        connect.push_back(cn);
-      }
-      foundTopo[2] = true;
-    }
-    else if (strcmp(buf, "Tetrahedra") == 0)
-    {
-      // Connectivity Tetrahedra (Global) -> 1 zone
-      res = readDouble(ptrFile, t, -1);
-      st = E_Int(t);
-      if (st == 0) goto next;
-      FldArrayI* cn = new FldArrayI(st, 4);
-      FldArrayI& c = *cn;
-      for (E_Int i = 0; i < st; i++)
-      {
-        res = readInt(ptrFile, ti, -1); c(i,1) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,2) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,3) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,4) = ti;
-        res = readInt(ptrFile, ti, -1); // discarded
-      }
-      if (api == 3)
-      {
-        eltType[0].push_back(4);
-        tmpConnect.push_back(cn);
-      }
-      else
-      {
-        eltType.push_back({4});
-        connect.push_back(cn);
-      }
-      foundTopo[3] = true;
-    }
-    else if (strcmp(buf, "Hexahedra") == 0)
-    {
-      // Connectivity Hexahedra (Global) -> 1 zone
-      res = readDouble(ptrFile, t, -1);
-      st = E_Int(t);
-      if (st == 0) goto next;
-      FldArrayI* cn = new FldArrayI(st, 8);
-      FldArrayI& c = *cn;
-      for (E_Int i = 0; i < st; i++)
-      {
-        res = readInt(ptrFile, ti, -1); c(i,1) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,2) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,3) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,4) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,5) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,6) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,7) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,8) = ti;
-        res = readInt(ptrFile, ti, -1); // discarded
-      }
-      if (api == 3)
-      {
-        eltType[0].push_back(7);
-        tmpConnect.push_back(cn);
-      }
-      else
-      {
-        eltType.push_back({7});
-        connect.push_back(cn);
-      }
-      foundTopo[4] = true;
-    }
-    else if (strcmp(buf, "Prisms") == 0)
-    {
-      // Connectivity Penta (Global) -> 1 zone
-      res = readDouble(ptrFile, t, -1);
-      st = E_Int(t);
-      if (st == 0) goto next;
-      FldArrayI* cn = new FldArrayI(st, 6);
-      FldArrayI& c = *cn;
-      for (E_Int i = 0; i < st; i++)
-      {
-        res = readInt(ptrFile, ti, -1); c(i,1) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,2) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,3) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,4) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,5) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,6) = ti;
-        res = readInt(ptrFile, ti, -1); // discarded
-      }
-      if (api == 3)
-      {
-        eltType[0].push_back(6);
-        tmpConnect.push_back(cn);
-      }
-      else
-      {
-        eltType.push_back({6});
-        connect.push_back(cn);
-      }
-      foundTopo[5] = true;
-    }
-    else if (strcmp(buf, "Pyramids") == 0)
-    {
-      // Connectivity Penta (Global) -> 1 zone
-      res = readDouble(ptrFile, t, -1);
-      st = E_Int(t);
-      if (st == 0) goto next;
-      FldArrayI* cn = new FldArrayI(st, 5);
-      FldArrayI& c = *cn;
-      for (E_Int i = 0; i < st; i++)
-      {
-        res = readInt(ptrFile, ti, -1); c(i,1) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,2) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,3) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,4) = ti;
-        res = readInt(ptrFile, ti, -1); c(i,5) = ti;
-        res = readInt(ptrFile, ti, -1); // discarded
-      }
-      if (api == 3)
-      {
-        eltType[0].push_back(5);
-        tmpConnect.push_back(cn);
-      }
-      else
-      {
-        eltType.push_back({5});
-        connect.push_back(cn);
-      }
-      foundTopo[6] = true;
-    }
-    next: ;
     res = readWord(ptrFile, buf);
   }
 
@@ -569,7 +418,6 @@ E_Int K_IO::GenIO::meshread(
   varString = new char [8];
   strcpy(varString, "x,y,z");
   
-  // Formation des vertices de chacun
   if (api == 3) // Create ME
   {
     FldArrayF* an = new FldArrayF(f);
@@ -605,9 +453,9 @@ E_Int K_IO::GenIO::meshread(
   }
   else // Create BEs
   {
-    for (E_Int i = 0; i < 7; i++)
+    for (size_t i = 1; i < topoFound.size(); i++)
     { 
-      if (foundTopo[i])
+      if (topoFound[i])
       {
         FldArrayF* an = new FldArrayF(f);
         unstructField.push_back(an);
