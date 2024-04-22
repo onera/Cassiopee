@@ -1038,53 +1038,28 @@ E_Int K_IO::GenIO::tpread(
   // Lecture connectivite (eventuellement)
   if (np != 0)
   {
-    E_Int ind, elt, nvpeElt;
+    E_Int ind, elt;
     if (ngonDim == -1) // Basic elements
     {
       vector<E_Int> nvpe(8);
       nvpe[1] = 2; nvpe[2] = 3; nvpe[3] = 4;
       nvpe[4] = 4; nvpe[7] = 8;
 
-      // if (api == 3) // Create ME
-      // {
-      //   E_Int nc = eltType[uzone].size();
-      //   vector<E_Int> nepc(nc);
-      //   for (E_Int ic = 0; ic < nc; ic++)
-      //   {
-      //     elt = eltType[uzone][ic];
-      //     nepc[ic] = nvpe[elt];
-      //   }
-      //   PyObject* tpl = K_ARRAY::buildArray3(3, varString, np, nepc,
-      //                                        eltType[uzone], 0, api);
-      //   FldArrayI* cn2; FldArrayF* f2;
-      //   K_ARRAY::getFromArray3(tpl, f2, cn2);
-
-      //   for (E_Int i = 0; i < ne; i++)
-      //   {
-      //     for (E_Int n = 1; n <= nvpeElt; n++)
-      //     {
-      //       ret = readInt(ptrFile, ind);
-      //       (*cn2)(i, n) = ind;
-      //     }
-      //   }
-      //   connectivity.push_back(cn2);
-      //   delete f2;
-      // }
-      // else // Create BE
-      // {
-        elt = eltType[uzone][0];
-        nvpeElt = nvpe[elt];
-        FldArrayI* cn2 = new FldArrayI(ne, nvpeElt);
-        for (E_Int i = 0; i < ne; i++)
+      // Create BE (no ME)
+      // NB: BE may have be degenerated elements and be an ME but can only
+      // be read as a BE here. Clean connectivity in user script if necessary
+      elt = eltType[uzone][0];
+      E_Int nvpeElt = nvpe[elt];
+      FldArrayI* cn2 = new FldArrayI(ne, nvpeElt);
+      for (E_Int i = 0; i < ne; i++)
+      {
+        for (E_Int n = 1; n <= nvpeElt; n++)
         {
-          for (E_Int n = 1; n <= nvpeElt; n++)
-          {
-            ret = readInt(ptrFile, ind);
-            (*cn2)(i, n) = ind;
-          }
+          ret = readInt(ptrFile, ind);
+          (*cn2)(i, n) = ind;
         }
-        connectivity.push_back(cn2);
-      // }
+      }
+      connectivity.push_back(cn2);
     }
     else // NGON
     {
