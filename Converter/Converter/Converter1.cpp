@@ -728,7 +728,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   { 
     isok = K_IO::GenIO::getInstance()->tpwrite(fileName, dataFmt, varString,
                                                ni, nj, nk,
-                                               fieldc, fieldu, connectu, elt,
+                                               fieldc, fieldu, connectu, eltIds,
                                                zoneNames);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_v3d") == 0) // fmt v3d
