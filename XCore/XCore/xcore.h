@@ -55,7 +55,7 @@ namespace K_XCORE
   PyObject *_assignRefDataToAM(PyObject *self, PyObject *args);
   PyObject *extractBoundaryMesh(PyObject *self, PyObject *args);
 
-  PyObject *intersectMesh(PyObject *self, PyObject *args);
+  PyObject *intersectSurf(PyObject *self, PyObject *args);
   PyObject *removeIntersectingKPlanes(PyObject *self, PyObject *args);
   PyObject *sweep(PyObject *self, PyObject *args);
 }

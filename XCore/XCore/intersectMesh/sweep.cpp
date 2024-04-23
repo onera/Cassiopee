@@ -202,7 +202,7 @@ void _find_new_event(event *&Q, point *p, status *S0, status *S1,
                    c->x * (a->y - b->y);
 
     // Parallel / Collinear: skip for now
-    if (get_sign(denom) == 0) return;
+    if (sign(denom) == 0) return;
 
     E_Float num = a->x * (d->y - c->y) +
                  c->x * (a->y - d->y) +

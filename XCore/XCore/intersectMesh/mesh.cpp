@@ -22,6 +22,15 @@
 
 #define MAXPOINTSPERCELL 8
 
+
+void mesh_patch_intersect(Mesh *M, Mesh *S, E_Int *mpatch, E_Int mpatchc,
+  E_Int *spatch, E_Int spatchc)
+{
+  smesh Mf(M, mpatch, mpatchc);
+  smesh Sf(S, spatch, spatchc);
+}
+
+
 Mesh::Mesh() :
   nc(0), nf(0), np(0), ne(0),
   nface(NULL), indPH(NULL), ngon(NULL), indPG(NULL),

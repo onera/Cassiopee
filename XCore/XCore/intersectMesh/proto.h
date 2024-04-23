@@ -24,7 +24,8 @@ E_Int mesh_build_own_nei(Mesh *M);
 Mesh *mesh_make_surface_mesh_from_structured_points(E_Int ni, E_Int nj,
   const std::vector<E_Float> &X, const std::vector<E_Float> &Y,
   const std::vector<E_Float> &Z);
-
+void mesh_patch_intersect(Mesh *M, Mesh *S, E_Int *mpatch, E_Int mpatchc,
+  E_Int *spatch, E_Int spatchc);
 
 // Io
 void point_set_write(const std::set<E_Int> &points, Mesh *M, const char *fname);
@@ -90,7 +91,7 @@ E_Int dcel_check(dcel *D);
 
 int segment_is_lexico(const segment *S);
 
-int get_sign(E_Float x);
+int sign(E_Float x);
 int f_eq(E_Float x, E_Float y);
 int cmp_points(const point *p, const point *q);
 int cmp_xyz(E_Float x1, E_Float y1, E_Float x2, E_Float y2);

@@ -43,7 +43,7 @@ int _status_cmp_segments_sweep(segment *s1, segment *s2, E_Float xs,
 
     // Test if the segments have the same underlying line.
     double T1 = dy1*dx2 - dy2*dx1;
-    int sign1 = get_sign(T1);
+    int sign1 = sign(T1);
     if (sign1 == 0) {
         // Parallel lines.
         // Is p2 collinear to s1?
@@ -64,20 +64,20 @@ int _status_cmp_segments_sweep(segment *s1, segment *s2, E_Float xs,
     // s1 is vertical, s2 is not vertical.
     // Return -1 is l x s2 is above psweep. 
     if (f_eq(dx1, 0.0)) {
-        int i = get_sign(py2*dx2 - px2*dy2 + dy2*xs - ys*dx2);
+        int i = sign(py2*dx2 - px2*dy2 + dy2*xs - ys*dx2);
         return (i <= 0) ? 1 : -1;
     }
 
     // s2 is vertical, s1 is not vertical.
     // Return -1 if l x s1 is below or equal to psweep.
     if (f_eq(dx2, 0.0)) {
-        int i = get_sign(py1*dx1 - px1*dy1 + dy1*xs - ys*dx1);
+        int i = sign(py1*dx1 - px1*dy1 + dy1*xs - ys*dx1);
         return (i <= 0) ? -1 : 1;
     }
 
     // Neither s1 nor s2 is vertical. Compare l x s1 and l x s2
     double T2 = dx2*(py1*dx1 + dy1*(xs - px1)) - dx1*(py2*dx2 + dy2*(xs - px2));
-    int sign2 = get_sign(T2);
+    int sign2 = sign(T2);
     if (sign2 != 0) return sign2;
 
     // s1 and s2 intersect the sweep line in the same point.
@@ -89,7 +89,7 @@ int _status_cmp_segments_sweep(segment *s1, segment *s2, E_Float xs,
     // The common intersection is above psweep iff T3 > 0. In this case
     // we return -sign(T1) and sign(T1) otherwise.
 
-    int sign3 = get_sign(T3);
+    int sign3 = sign(T3);
     return (sign3 <= 0) ? sign1 : -sign1;
 }
 

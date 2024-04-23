@@ -78,7 +78,10 @@ if mpi: # source that requires mpi
             'XCore/adaptMesh2/Tetra.cpp',
             'XCore/adaptMesh2/Pyra.cpp',
 
-            'XCore/intersectMesh/intersectMesh.cpp',
+            'XCore/intersectMesh/removeIntersectingKPlanes.cpp',
+            'XCore/intersectMesh/intersectSurf.cpp',
+            'XCore/intersectMesh/smesh.cpp',
+
             'XCore/intersectMesh/mesh.cpp',
             'XCore/intersectMesh/io.cpp',
             'XCore/intersectMesh/bbox.cpp',

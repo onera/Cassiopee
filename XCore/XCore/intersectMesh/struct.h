@@ -4,6 +4,9 @@
 #include "../common/common.h"
 #include "../common/mem.h"
 #include "xcore.h"
+#include <unordered_map>
+#include <array>
+#include <vector>
 
 #define INTERSECT_TOL 1e-6
 #define TOL 1e-10
@@ -88,6 +91,26 @@ struct Edge_Hit {
 /********************************************/
 
 /* DCEL */
+
+struct o_edge {
+  E_Int p;
+  E_Int q;
+
+  o_edge(E_Int, E_Int);
+};
+
+struct smesh {
+  std::vector<E_Float> X;
+  std::vector<E_Float> Y;
+  std::vector<std::vector<E_Int>> F;
+  std::vector<o_edge> E;
+  std::vector<std::vector<E_Int>> F2E;
+  std::vector<std::array<E_Int, 2>> E2F;
+  std::unordered_map<E_Int, E_Int> g2l_p; // mesh point id to local point id
+  smesh(Mesh *, E_Int *, E_Int);
+  void make_edges();
+};
+
 
 struct point {
   E_Float x;

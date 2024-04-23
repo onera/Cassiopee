@@ -1,6 +1,6 @@
 #include "proto.h"
 
-int get_sign(E_Float x)
+int sign(E_Float x)
 {
   if (x > TOL) return 1;
   if (x < -TOL) return -1;
@@ -9,13 +9,13 @@ int get_sign(E_Float x)
 
 int f_eq(E_Float x, E_Float y)
 {
-    return get_sign(fabs(x-y)) == 0;
+    return sign(fabs(x-y)) == 0;
 }
 
 int get_orient(point *a, point *b, point *c)
 {
     E_Float det = (b->x - a->x)*(c->y - a->y) - (b->y - a->y)*(c->x - a->x);
-    return get_sign(det);
+    return sign(det);
 }
 
 int segments_are_colli(segment *s1, segment *s2)
@@ -26,9 +26,9 @@ int segments_are_colli(segment *s1, segment *s2)
 
 int cmp_xyz(E_Float x1, E_Float y1, E_Float x2, E_Float y2)
 {
-    int sign_x = get_sign(x1 - x2);
+    int sign_x = sign(x1 - x2);
     if (sign_x != 0) return sign_x;
-    int sign_y = get_sign(y1 - y2);
+    int sign_y = sign(y1 - y2);
     return sign_y;
 }
 
