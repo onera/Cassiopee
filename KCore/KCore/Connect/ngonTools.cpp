@@ -584,17 +584,17 @@ E_Int K_CONNECT::orient_boundary_ngon(E_Float *x, E_Float *y, E_Float *z,
   }
   
   // Apply orientation
-  E_Int nrev = 0;
+  //E_Int nrev = 0;
   for (E_Int i = 0; i < nefaces; i++) {
     if (forient[i] == -1) {
       E_Int face = efaces[i]; // 0-based
       E_Int stride = -1;
       E_Int *pn = cn.getFace(face, stride, ngon, indPG);
       std::reverse(pn+1, pn+stride);
-      nrev++;
+      //nrev++;
     }
   }
-  printf("Orient_boundary(): flipped " SF_D_ " faces\n", nrev);
+  //printf("Orient_boundary(): flipped " SF_D_ " faces\n", nrev);
 
   return ret;
 }
