@@ -214,7 +214,8 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
              strcmp(type, "calculated")        == 0 ||
              strcmp(type, "totalPressure")     == 0 ||
              strcmp(type, "fixedFluxPressure") == 0 ||
-             strcmp(type, "waveTransmissive")  == 0) {
+             strcmp(type, "waveTransmissive")  == 0 ||
+             strcmp(type, "freestreamPressure") == 0) {
 
       puts(type);
 
@@ -278,7 +279,8 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
       }
     }
 
-    else if (strcmp(type, "inletOutlet") == 0) {
+    else if (strcmp(type, "inletOutlet") == 0 ||
+             strcmp(type, "free")) {
       puts(type);
 
       // Value can be uniform <val> or nonuniform List<scalar>
@@ -344,8 +346,7 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
       }
     }
 
-    else if (strcmp(type, "compressible::alphatWallFunction") == 0 ||
-             strcmp(type, "nutkWallFunction")                 == 0) {
+    else if (strcmp(type, "compressible::alphatWallFunction")) {
       puts(type);
       readGivenKeyword(ptrFile, "UNIFORM");
       char buf[128];
@@ -480,7 +481,8 @@ E_Int K_IO::GenIO::readVectorField(char *file, FldArrayF& f, E_Int idx,
       }
     }
 
-    else if (strcmp(type, "calculated") == 0) {
+    else if (strcmp(type, "calculated") == 0 ||
+             strcmp(type, "freestreamVelocity") == 0) {
       readGivenKeyword(ptrFile, "<VECTOR>");
   
       skipLine(ptrFile);
