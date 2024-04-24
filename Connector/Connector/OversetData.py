@@ -1135,21 +1135,21 @@ def _setInterpData2(aR, aD, order=2, loc='centers', cartesian=False):
 def setInterpData(tR, tD, order=2, penalty=1, nature=0, extrap=1,
                   method='lagrangian', loc='nodes', storage='direct',
                   interpDataType=1, hook=None, verbose=2,
-                  topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both'):
+                  topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both', dictOfModels=None):
     """Compute and store overset interpolation data."""
     aR = Internal.copyRef(tR)
     aD = Internal.copyRef(tD)
     _setInterpData(aR, aD, order=order, penalty=penalty, nature=nature, extrap=extrap,
                    method=method, loc=loc, storage=storage, interpDataType=interpDataType,
                    hook=hook, verbose=verbose,
-                   topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr, sameName=sameName, dim=dim, itype=itype)
+                   topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr, sameName=sameName, dim=dim, itype=itype, dictOfModels=dictOfModels)
     if storage == 'direct': return aR
     else: return aD
 
 def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                    method='lagrangian', loc='nodes', storage='direct',
                    interpDataType=1, hook=None, verbose=2,
-                   topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both'):
+                   topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both', dictOfModels=None):
 
     # Recherche pour les pts coincidents (base sur les GridConnectivity)
     if itype != 'chimera': # abutting
@@ -1161,12 +1161,12 @@ def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
 
             # Determination du model pour RANS/LES
             #if itype == 'abutting': # SP : a mettre non ? sinon on le refait 2 fois
-            _adaptForRANSLES__(aR, aD)
+            _adaptForRANSLES__(aR, aD, dictOfModels=dictOfModels)
 
     if itype != 'abutting': # chimera
         _setInterpDataChimera(aR, aD, order=order, penalty=penalty, nature=nature, extrap=extrap, verbose=verbose,
                               method=method, loc=loc, storage=storage, interpDataType=interpDataType, hook=hook,
-                              topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr, sameName=sameName, dim=dim, itype=itype)
+                              topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr, sameName=sameName, dim=dim, itype=itype, dictOfModels=dictOfModels)
 
     # SP: pour l'instant adaptForRANSLES est appele 2 fois: pour les ghost cells et pour le chimere
     # peut on ne le mettre qu ici ?
@@ -1176,7 +1176,7 @@ def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
 def _setInterpDataChimera(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                           method='lagrangian', loc='nodes', storage='direct',
                           interpDataType=1, hook=None, verbose=2,
-                          topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both'):
+                          topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both', dictOfModels=None):
     locR = loc
 
     # Si pas de cellN receveur, on retourne
@@ -1336,7 +1336,7 @@ def _setInterpDataChimera(aR, aD, order=2, penalty=1, nature=0, extrap=1,
 
 
     if storage != 'direct':
-        _adaptForRANSLES__(aR, aD)
+        _adaptForRANSLES__(aR, aD, dictOfModels=dictOfModels)
 
     # fin parcours des zones receveuses
     for zd in Internal.getZones(aD):
@@ -1689,33 +1689,53 @@ def _setInterpDataForGhostCellsStruct__(aR, aD, storage='direct', loc='nodes'):
     return None
 
 # Adapt aD pour RANS/LES
-def _adaptForRANSLES__(tR, tD):
+def _adaptForRANSLES__(tR, tD, dictOfModels=None):
     zrdict = {}
-    zones = Internal.getNodesFromType2(tR, 'Zone_t')
-    for z in zones: zrdict[z[0]] = z
+    if dictOfModels == None: #sequential behavior
+        dictOfModels = {}
+        for tp in [tR, tD]:
+            bases = Internal.getBases(tp)
+            if bases != []:
+                for b in bases:
+                    model_b = Internal.getNodeFromName2(b, 'GoverningEquations')
+                    if model_b is not None: model_b = Internal.getValue(model_b)
+                    else: model_b = 'None'
+                    for z in Internal.getZones(b):
+                        model = Internal.getNodeFromName2(z, 'GoverningEquations')
+                        if model is None: model = model_b
+                        else: model = Internal.getValue(model)
+                        dictOfModels[z[0]] = model
+            else:
+                for z in Internal.getZones(tp):
+                    model = Internal.getNodeFromName2(z, 'GoverningEquations')
+                    if model is None: model = 'None'
+                    else: model = Internal.getValue(model)
+                    dictOfModels[z[0]] = model
+      
+    zonesR = Internal.getNodesFromType2(tR, 'Zone_t')
+    for zr in zonesR: zrdict[zr[0]] = zr
 
     zonesD = Internal.getNodesFromType2(tD, 'Zone_t')
     for zd in zonesD:
         subRegions = Internal.getNodesFromType1(zd, 'ZoneSubRegion_t')
+        model_zd = dictOfModels[zd[0]]
         for s in subRegions:
             zrcvname = Internal.getValue(s)
-            try:
+            if zrcvname in zrdict:
                 zr = zrdict[zrcvname]
-                model_z1 = 'Euler'; model_z2 = 'Euler'
-                a = Internal.getNodeFromName2(zr, 'GoverningEquations')
-                if a is not None: model_z1 = Internal.getValue(a)
-                a = Internal.getNodeFromName2(zd, 'GoverningEquations')
-                if a is not None: model_z2 = Internal.getValue(a)
+                model_zr = dictOfModels[zr[0]]
 
-                if (model_z2=='NSturbulent' or model_z1=='NSturbulent') and  model_z1 != model_z2:
-                   datap = numpy.ones(1, numpy.int32)
-                   Internal.createUniqueChild(s, 'RANSLES', 'DataArray_t', datap)
+                if model_zr != 'None' and model_zd != 'None':
+                    print("Info: _adaptForRANSLES__: {}/{} <-> {}/{}".format(zr[0], model_zr, zd[0], model_zd), flush=True)
 
-                if (model_z2=='LBMLaminar' or model_z1=='LBMLaminar') and model_z1 != model_z2:
-                    datap = numpy.ones(1, numpy.int32)
-                    Internal.createUniqueChild(s, 'NSLBM', 'DataArray_t', datap)
+                    if (model_zr=='NSTurbulent' or model_zd=='NSTurbulent') and  model_zr != model_zd:
+                        datap = numpy.ones(1, numpy.int32)
+                        Internal.createUniqueChild(s, 'RANSLES', 'DataArray_t', datap)
 
-            except: pass
+                    if (model_zr=='LBMLaminar' or model_zd=='LBMLaminar') and model_zr != model_zd:
+                        datap = numpy.ones(1, numpy.int32)
+                        Internal.createUniqueChild(s, 'NSLBM', 'DataArray_t', datap)
+
     return None
 
 def _createInterpRegion__(z, zname, pointlist, pointlistdonor, interpCoef, interpType, interpVol, indicesExtrap, indicesOrphan, \
@@ -2829,8 +2849,6 @@ def _setIBCTransfersDForPressureGradients(topTreeD, ibctypes=[], secondOrder=Fal
     infos = []
     loc = 1
 
-    print("_setIBCTransfersDForPressureGradients")
-
     for direction in ["x", "y", "z"]:
         var = "grad"+direction+"Pressure"
         variables.append(var)
@@ -2897,8 +2915,6 @@ def _setIBCTransfersDForPressureGradients(topTreeD, ibctypes=[], secondOrder=Fal
 def _setIBCTransfersForPressureGradients(aR, topTreeD, ibctypes=[], secondOrder=False):
 
     variables = ["Pressure"]
-
-    print("_setIBCTransfersForPressureGradients")
 
     for direction in ["x", "y", "z"]:
         var = "grad"+direction+"Pressure"

@@ -1105,9 +1105,9 @@ def _tcInitialize__(tc, tc2=None, twoFronts=False, ibctypes=[]):
         Internal._createUniqueChild(solverIBC, 'isgradP'   , 'DataArray_t', 'True')
         Internal._createUniqueChild(solverIBC, 'mafzalMode', 'DataArray_t', 0)
         Internal._createUniqueChild(solverIBC, 'alphaGrad' , 'DataArray_t', 0)            
-    if twoFronts:
-        Internal._createUniqueChild(solverIBC, 'isgradP'    , 'DataArray_t', 'True')
-        Internal._createUniqueChild(solverIBC, 'alphaGrad'  , 'DataArray_t', 0)
+    # if twoFronts:
+    #     Internal._createUniqueChild(solverIBC, 'isgradP'    , 'DataArray_t', 'True')
+    #     Internal._createUniqueChild(solverIBC, 'alphaGrad'  , 'DataArray_t', 0)
     if 'TBLE' in ibctypes or 'TBLE_FULL' in ibctypes:
         Internal._createUniqueChild(solverIBC, 'isTBLE'        , 'DataArray_t', 'True')
         Internal._createUniqueChild(solverIBC, 'alphaGrad'     , 'DataArray_t', 0)

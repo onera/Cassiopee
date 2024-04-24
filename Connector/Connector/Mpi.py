@@ -730,6 +730,22 @@ def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                    topTreeRcv=None, topTreeDnr=None, sameName=1, 
                    dim=3, itype='abutting'):
     """Compute interpolation data for abutting or chimera intergrid connectivity."""
+
+    # create dictOfModels for adaptRANSLES in OversetData
+    dictOfModels = {}
+    for b in Internal.getBases(aR):
+        model_b = Internal.getNodeFromName2(b, 'GoverningEquations')
+        if model_b is not None: model_b = Internal.getValue(model_b)
+        else: model_b = 'Euler'
+        for z in Internal.getZones(b):
+            model = Internal.getNodeFromName2(z, 'GoverningEquations')
+            if model is None: model = model_b
+            else: model = Internal.getValue(model)
+            dictOfModels[z[0]] = [model]
+
+    dictOfModels = Cmpi.allgatherDict(dictOfModels)
+    dictOfModels = {key:value[0] for key,value in dictOfModels.items()}
+        
     # Le graph doit correspondre au probleme
     if itype == 'abutting':
         graph = Cmpi.computeGraph(aR, type='match', reduction=True)
@@ -740,7 +756,7 @@ def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
         X._setInterpData(aR, aD, order=order, penalty=penalty, nature=nature, extrap=extrap,
                          method=method, loc=loc, storage=storage, interpDataType=interpDataType, hook=hook, 
                          topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr,
-                         sameName=sameName, dim=dim, itype=itype)
+                         sameName=sameName, dim=dim, itype=itype, dictOfModels=dictOfModels)
         Cmpi._rmXZones(aR); Cmpi._rmXZones(aD)
 
     elif itype == 'chimeraOld': # ancienne version
@@ -766,7 +782,7 @@ def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
         X._setInterpData(aR, aD, order=order, penalty=penalty, nature=nature, extrap=extrap,
                          method=method, loc=loc, storage=storage, interpDataType=interpDataType, hook=hook, 
                          topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr,
-                         sameName=sameName, dim=dim, itype=itype)
+                         sameName=sameName, dim=dim, itype=itype, dictOfModels=dictOfModels)
 
         Cmpi._rmXZones(aR); Cmpi._rmXZones(aD)
     
@@ -837,7 +853,7 @@ def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                          method=method, loc=loc, storage=storage, 
                          interpDataType=interpDataTypeL, hook=hookL, 
                          topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr,
-                         sameName=sameName, dim=dim, itype="chimera")
+                         sameName=sameName, dim=dim, itype="chimera", dictOfModels=dictOfModels)
 
             for zd in dnrZones:
                 zdname = zd[0]
