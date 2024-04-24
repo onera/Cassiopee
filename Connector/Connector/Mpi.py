@@ -736,7 +736,7 @@ def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
     for b in Internal.getBases(aR):
         model_b = Internal.getNodeFromName2(b, 'GoverningEquations')
         if model_b is not None: model_b = Internal.getValue(model_b)
-        else: model_b = 'Euler'
+        else: model_b = 'None'
         for z in Internal.getZones(b):
             model = Internal.getNodeFromName2(z, 'GoverningEquations')
             if model is None: model = model_b
