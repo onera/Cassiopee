@@ -18,7 +18,8 @@
 */
 
 /* Hash functions */
-// Template parameter is a topology struct (see topologyMapping.h)
+// Template parameter is a topology struct (see topologyMapping.h), unless
+// otherwise stated
 // CantorPairingHash: Cantor pairing function (works for pairs of ints)
 template <typename T>
 struct CantorPairingHash
@@ -90,6 +91,18 @@ struct FowlerNollVoHash
     {
       hash = (value ^ hash) * 0x9e3779b9;
     }
+    return hash;
+  }
+};
+
+// Hash function for std::pair of integers based on FNV-1a
+struct pairHash
+{
+  std::size_t operator () (const std::pair<E_Int, E_Int>& pair) const
+  {
+    std::size_t hash = 0x811c9dc5; // 32-bit offset basis
+    hash = (pair.first ^ hash) * 0x9e3779b9;
+    hash = (pair.second ^ hash) * 0x9e3779b9;
     return hash;
   }
 };

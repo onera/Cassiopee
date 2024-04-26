@@ -175,9 +175,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     // Formatted gmsh read
     ret = K_IO::GenIO::getInstance()->gmshread(fileName, varString, field, 
                                                im, jm, km, 
-                                               ufield, c, et[0], zoneNames);
-    et.resize(et[0].size()); // TODO hack tmp
-    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
+                                               ufield, c, et, zoneNames, api);
   }
   else if (K_STRING::cmp(fileFmt, "bin_gmsh") == 0)
   {
@@ -393,9 +391,11 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
         {
           if (K_STRING::cmp(n, names[k]) == 0) { indir[i] = k; exist = true; break; }
         }
-        if (exist == false)
-        { char* na = new char[128]; strcpy(na, n); 
-          names.push_back(na); indir[i] = names.size()-1; }
+        if (!exist)
+        {
+          char* na = new char[128]; strcpy(na, n); 
+          names.push_back(na); indir[i] = names.size()-1;
+        }
       }
       //for (E_Int i = 0; i < names.size(); i++) printf("%s\n", names[i]);
 
@@ -807,7 +807,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   {
     isok = K_IO::GenIO::getInstance()->gmshwrite(fileName, dataFmt, varString,
                                                  ni, nj, nk,
-                                                 fieldc, fieldu, connectu, elt,
+                                                 fieldc, fieldu, connectu, eltIds,
                                                  zoneNames);
   }
   else if (K_STRING::cmp(fileFmt, "bin_gmsh") == 0) // bin gmsh
