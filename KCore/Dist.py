@@ -1530,6 +1530,10 @@ def checkMpi(additionalLibPaths=[], additionalIncludePaths=[]):
     if l is None:
         l = checkLibFile__('msmpi.lib', additionalLibPaths)
         if l is not None: libnames.append('msmpi')
+    if l is None:
+        l = checkLibFile__('msmpi.dll.a', additionalLibPaths)
+        if l is not None: libnames.append('msmpi')
+
     # pour open mpi
     o = checkLibFile__('libmpi_cxx.so', additionalLibPaths)
     if o is not None and o == l: libnames.append('mpi_cxx')

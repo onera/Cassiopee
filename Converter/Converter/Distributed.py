@@ -383,8 +383,10 @@ def _setZonesInTree(t, zones):
                   (p, nb) = Internal.getParentOfNode(base, z)
                   p[2][nb] = zone
                 else:
-                  base = Internal.newCGNSBase(baseName, parent=t)
-                  base[2].append(zone)
+                  base[2].append(zone) 
+              else:
+                base = Internal.newCGNSBase(baseName, parent=t)
+                base[2].append(zone)
             else:    
               z = Internal.getNodeFromName2(t, zoneName)
               if z is not None:
