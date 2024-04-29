@@ -883,7 +883,7 @@ False, # useCuda
 'ifort', # f77compiler
 'ifort', # f90compiler
 'icc', # Cppcompiler
-['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=32','-DSIMD=AVX2'], 
+['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=32','-DSIMD=AVX2'],
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
@@ -924,7 +924,7 @@ False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
-'spiro_coda': [ 'Machine dev Spiro (env. coda)',
+'spiro_coda': [ 'Machine dev Spiro centos8 (Onera) (env. coda)',
 'gfortran', # f77compiler
 'gfortran', # f90compiler
 'gcc', # Cppcompiler
@@ -989,6 +989,21 @@ False, # useCuda
 'gfortran', # f90compiler
 'gcc', # Cppcompiler
 ['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=48','-DSIMD=AVX512'], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+[], # additionalIncludePaths
+[], # additionalLibs
+[],  # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
+],
+###############################################################################
+'juno_coda': [ 'Machine dev Juno rocky8 (Onera) (env. coda)',
+'gfortran', # f77compiler
+'gfortran', # f90compiler
+'gcc', # Cppcompiler
+['-DCACHELINE=32'], # CppAdditionalOptions
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
