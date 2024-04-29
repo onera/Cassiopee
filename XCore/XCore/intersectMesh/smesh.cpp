@@ -1,5 +1,6 @@
 #include "proto.h"
 #include <queue>
+#include <algorithm>
 
 smesh::smesh(Mesh *M, E_Int *patch, E_Int nf)
 {
@@ -29,7 +30,7 @@ smesh::smesh(Mesh *M, E_Int *patch, E_Int nf)
     }
   }
 
-  printf("Smesh points: %d\n", np);
+  printf("Smesh points: " SF_D_"\n", np);
 
   // Make X Y
   X.resize(np);
@@ -55,10 +56,6 @@ smesh::smesh(Mesh *M, E_Int *patch, E_Int nf)
 
   make_edges();
 }
-
-o_edge::o_edge(E_Int P, E_Int Q)
-: p(P), q(Q)
-{}
 
 struct o_edge_cmp {
   bool operator()(const o_edge &e, const o_edge &f) const
@@ -93,9 +90,9 @@ void smesh::make_edges()
     }
   }
 
-  // Make the edges
+  // Make the o_edges
   F2E.resize(F.size());
-  std::map<o_edge, int, o_edge_cmp> edges;
+  std::map<o_edge, int, o_edge_cmp> o_edges;
 
   for (size_t i = 0; i < F.size(); i++) {
     auto &face = F[i];
@@ -103,11 +100,11 @@ void smesh::make_edges()
       E_Int p = face[j];
       E_Int q = face[(j+1)%face.size()];
       o_edge e(p, q);
-      auto it = edges.find(e);
-      if (it == edges.end()) {
-        // New edge
+      auto it = o_edges.find(e);
+      if (it == o_edges.end()) {
+        // New o_edge
         F2E[i].push_back(E.size());
-        edges[e] = E.size();
+        o_edges[e] = E.size();
         E.push_back(e);
       } else {
         F2E[i].push_back(it->second);
@@ -118,7 +115,7 @@ void smesh::make_edges()
   // Euler's formula should always be true
   assert(F.size()+1 + X.size() == E.size() + 2);
 
-  // Make edge_to_face
+  // Make o_edge_to_face
   E2F.resize(E.size(), {-1, -1});
   for (size_t i = 0; i < F2E.size(); i++) {
     auto &face = F2E[i];
@@ -142,7 +139,7 @@ void smesh::make_edges()
     }
   }
 
-  // Traverse the facelist breadth-first and adjust edges accordingly
+  // Traverse the facelist breadth-first and adjust o_edges accordingly
   std::vector<int> visited(F.size(), 0);
   std::queue<E_Int> Q;
   Q.push(0);
@@ -216,3 +213,33 @@ void smesh::make_edges()
 
   puts("EDGES OK.");
 }
+
+#define SU2_TRI 5
+#define SU2_QUAD 9
+
+void smesh::write_su2(const char *fname)
+{
+  FILE *fh = fopen(fname, "w");
+  assert(fh);
+
+  fprintf(fh, "NDIME= 2\n");
+  fprintf(fh, "NELEM= %zu\n", F.size());
+  for (size_t i = 0; i < F.size(); i++) {
+    auto &cn = F[i];
+    int type = cn.size() == 3 ? SU2_TRI : SU2_QUAD;
+    fprintf(fh, "%d ", type);
+    for (auto &p : cn) fprintf(fh, "%d ", p);
+    fprintf(fh, "%zu\n", i); 
+  }
+
+  fprintf(fh, "NPOIN= %zu\n", X.size());
+  for (size_t i = 0; i < X.size(); i++) {
+    fprintf(fh, "%f %f %zu\n", X[i], Y[i], i);
+  }
+
+  fclose(fh);
+}
+
+o_edge::o_edge(E_Int P, E_Int Q)
+: p(P), q(Q)
+{}

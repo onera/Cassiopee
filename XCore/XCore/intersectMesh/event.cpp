@@ -1,139 +1,227 @@
 #include "proto.h"
+#include <cstddef>
+#include <cstdio>
+#include <cassert>
 
-event::event(point *P)
-: p(P), s(NULL), left(NULL), right(NULL)
+event::event(vertex *V)
+: key(V), inf(NULL), left(NULL), right(NULL)
 {}
 
-void event_show(event *E)
+event::event(double x, double y, int oid)
 {
-  printf("<%lu,", E->p->id);
-  if (E->s) printf("%lu>\n", E->s->id);
-  else printf("NULL>\n");
+    key = new vertex(x, y, oid);
+    inf = NULL;
+    left = NULL;
+    right = NULL;
 }
 
-void event_print(event *E)
+void event::inorder(std::vector<vertex *> &V)
 {
-  if (E == NULL) return;
-
-  event_print(E->left);
-  event_show(E);
-  event_print(E->right);
+    if (left) left->inorder(V);
+    V.push_back(key);
+    if (right) right->inorder(V);
 }
 
-/* INSERTION */
+queue::queue()
+: root(NULL), nelem(0)
+{}
 
-event *event_insert(event *&root, point *p)
+void queue::inorder(std::vector<vertex *> &V)
+{
+    root->inorder(V);
+}
+
+event *queue::insert(double x, double y, int oid)
+{
+    return _insert(root, x, y, oid);
+}
+
+event *queue::_insert(event *&root, double x, double y, int oid)
 {
     if (root == NULL) {
-        root = new event(p);
+        root = new event(x, y, oid);
         return root;
     }
 
-    int cmp = cmp_points(root->p, p);
+    vertex *key = root->key;
 
-    if (cmp == 0) return root;
+    int cmp = xy_cmp(key->x, key->y, x, y);
+    
+    if (cmp == 0) {
+        if (key->oid[0] == -1) key->oid[0] = oid;
+        else key->oid[1] = oid;
+        return root;
+    }
 
-    if (cmp == -1) return event_insert(root->right, p);
+    else if (cmp < 0)
+        return _insert(root->right, x, y, oid);
 
-    return event_insert(root->left, p);
+    else
+        return _insert(root->left, x, y, oid);
 }
 
-/* SEARCH */
+event *queue::insert(vertex *v)
+{
+    return _insert(root, v);
+}
 
-event *event_lookup(event *root, point *p)
+event *queue::_insert(event *&root, vertex *v)
+{
+    if (root == NULL) {
+        root = new event(v);
+        return root;
+    }
+
+    int cmp = vertex_cmp_xy(root->key, v);
+
+    if (cmp == 0)
+        return root;
+    else if (cmp < 0)
+        return _insert(root->right, v);
+    else
+        return _insert(root->left, v);
+}
+
+vertex *queue::locate_v(double x, double y)
+{
+    return locate(x, y)->key;
+}
+
+event *queue::locate(double x, double y)
+{
+    return _locate(root, x, y);
+}
+
+event *queue::_locate(event *root, double x, double y)
 {
     if (root == NULL)
+        return NULL;
+
+    int cmp = xy_cmp(root->key->x, root->key->y, x, y);
+
+    if (cmp == 0)
+        return root;
+    else if (cmp < 0)
+        return _locate(root->right, x, y);
+    else
+        return _locate(root->left, x, y);
+}
+
+event *queue::lookup(vertex *v)
+{
+    return _lookup(root, v);
+}
+
+event *queue::_lookup(event *root, vertex *v)
+{
+    if (root == NULL)
+        return NULL;
+
+    int cmp = vertex_cmp(root->key, v);
+
+    if (cmp == 0)
+        return root;
+    else if (cmp < 0)
+        return _lookup(root->right, v);
+    else
+        return _lookup(root->left, v);
+}
+
+event *queue::min()
+{
+    if (root == NULL)
+        return NULL;
+
+    event *curr = root;
+
+    while (curr->left != NULL)
+        curr = curr->left;
+
+    return curr;
+}
+
+void queue::erase(event *E)
+{
+    erase(E->key);
+}
+
+void queue::erase(vertex *v)
+{
+    root = _erase(root, v);
+}
+
+event *queue::_erase(event *root, vertex *v)
+{
+    if (!root)
         return root;
 
-    int cmp = cmp_points(root->p, p);
+    int cmp = vertex_cmp(root->key, v);
 
-    if (cmp == 0) return root;
-    
-    if (cmp == -1) return event_lookup(root->right, p);
+    if (cmp < 0) {
+        root->right = _erase(root->right, v);
+        return root;
+    } else if (cmp > 0) {
+        root->left = _erase(root->left, v);
+        return root;
+    }
 
-    return event_lookup(root->left, p);
-}
+    assert(root->key == v);
 
-event *event_locate(event *root, E_Float x, E_Float y)
-{
-  if (root == NULL)
-    return root;
-
-  int cmp = cmp_xyz(root->p->x, root->p->y, x, y);
-
-  if (cmp == 0)
-    return root;
-  else if (cmp == -1)
-    return event_locate(root->right, x, y);
-  else
-    return event_locate(root->left, x, y);
-}
-
-event *event_min(event *root)
-{
-    event *current = root;
-
-    while (current->left != NULL)
-        current = current->left;
-
-    return current;
-}
-
-/* DELETION */
-
-event *event_delete(event *root, point *p)
-{
-    if (root == NULL) return root;
-
-    if (root->p == p) {
-      // Node item is reached.
-
-      // If one of the children is empty:
-      if (root->left == NULL) {
+    if (root->left == NULL) {
         event *tmp = root->right;
         delete root;
         return tmp;
-      } else if (root->right == NULL) {
+    } else if (root->right == NULL) {
         event *tmp = root->left;
         delete root;
         return tmp;
-      }
-
-      // If both of the children exist:
-      else {
+    } else {
         event *succ_parent = root;
 
-        // Find successor: leftmost node in right subtree.
         event *succ = root->right;
-        while (succ->left != NULL) {
-          succ_parent = succ;
-          succ = succ->left;
+        while (succ->left) {
+            succ_parent = succ;
+            succ = succ->left;
         }
 
         if (succ_parent != root)
-          succ_parent->left = succ->right;
+            succ_parent->left = succ->right;
         else
-          succ_parent->right = succ->right;
+            succ_parent->right = succ->left;
 
-        // Copy successor data to root.
-        root->p = succ->p;
-        root->s = succ->s;
+        root->key = succ->key;
+        root->inf = succ->inf;
 
-        // Delete successor and return root.
         delete succ;
         return root;
-      }
     }
+}
 
-    int cmp = cmp_points(root->p, p);
+int queue::empty()
+{
+    return root == NULL;
+}
 
-    assert(cmp);
+void event::print()
+{
+    /*
+    printf("<P%d,", key->id);
+    if (inf) printf("S%d>\n", inf->id);
+    else printf("NULL>\n");
+    */
+}
 
-    if (cmp == -1) {
-      root->right = event_delete(root->right, p);
-      return root;
-    } else {
-      root->left = event_delete(root->left, p);
-      return root;
-    }
+void queue::print()
+{
+    event_print(root);
+}
+
+void event_print(event *root)
+{
+    if (root == NULL)
+        return;
+
+    event_print(root->left);
+    root->print();
+    event_print(root->right);
 }

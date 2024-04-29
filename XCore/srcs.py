@@ -89,11 +89,13 @@ if mpi: # source that requires mpi
             'XCore/intersectMesh/topo.cpp',
             
             'XCore/intersectMesh/dcel.cpp',
-            'XCore/intersectMesh/primitives.cpp',
-            'XCore/intersectMesh/sweep.cpp',
-            'XCore/intersectMesh/status.cpp',
             'XCore/intersectMesh/event.cpp',
-            'XCore/intersectMesh/predicates.cpp'
+            'XCore/intersectMesh/hedge.cpp',
+            'XCore/intersectMesh/predicate.cpp',
+            'XCore/intersectMesh/segment.cpp',
+            'XCore/intersectMesh/status.cpp',
+            'XCore/intersectMesh/sweep.cpp',
+            'XCore/intersectMesh/vertex.cpp'
             ]
 else:
     cpp_srcs += [

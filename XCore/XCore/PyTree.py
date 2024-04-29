@@ -347,13 +347,3 @@ def intersectSurf(master, slave, patch_name):
   mesh = xcore.intersectSurf(m, s, faces, tag)
 
   return mesh
-  
-
-def sweep(m, s):
-    zm = I.getZones(m)[0]
-    zs = I.getZones(s)[0]
-
-    master = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
-    slave = C.getFields(I.__GridCoordinates__, zs, api=3)[0]
-
-    return xcore.sweep(master, slave)

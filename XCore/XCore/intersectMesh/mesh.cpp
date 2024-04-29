@@ -22,14 +22,19 @@
 
 #define MAXPOINTSPERCELL 8
 
-
 void mesh_patch_intersect(Mesh *M, Mesh *S, E_Int *mpatch, E_Int mpatchc,
   E_Int *spatch, E_Int spatchc)
 {
   smesh Mf(M, mpatch, mpatchc);
   smesh Sf(S, spatch, spatchc);
-}
 
+  Mf.write_su2("Mf");
+  Sf.write_su2("Sf");
+
+  dcel D(Mf, Sf);
+  D.find_intersections();
+  D.write_edges("out");
+}
 
 Mesh::Mesh() :
   nc(0), nf(0), np(0), ne(0),
