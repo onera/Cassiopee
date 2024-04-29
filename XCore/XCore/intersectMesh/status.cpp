@@ -294,5 +294,5 @@ void snode_print(snode *root)
 
 void snode::print()
 {
-    printf("<S%d>\n", s->id);
+    printf("<S" SF_D_ ">\n", s->id);
 }

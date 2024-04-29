@@ -204,11 +204,7 @@ int queue::empty()
 
 void event::print()
 {
-    /*
-    printf("<P%d,", key->id);
-    if (inf) printf("S%d>\n", inf->id);
-    else printf("NULL>\n");
-    */
+    printf("<P" SF_D_ ">\n", key->nid);
 }
 
 void queue::print()

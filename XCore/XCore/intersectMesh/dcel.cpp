@@ -76,8 +76,8 @@ void dcel_set_face_labels(std::vector<face *> &F)
 void face::print_parents()
 {
     printf("<");
-    printf("%d,", ofp[RED]);
-    printf("%d", ofp[BLACK]);
+    printf(SF_D_ ",", ofp[RED]);
+    printf(SF_D_, ofp[BLACK]);
     puts(">");
 }
 
@@ -583,12 +583,11 @@ void dcel::write_edges(const char *fname)
     fprintf(fh, "%zu\n", H.size());
     for (size_t i = 0; i < H.size(); i++) {
         hedge *h = H[i];
-        //if (H[i]->color == DEGEN)
-        //    continue;
+        if (H[i]->color == DEGEN)
+            continue;
         hedge *t = h->twin;
         h->orig->fprint(fh);
         t->orig->fprint(fh);
-        //fprintf(fh, "%d %d ", h->orig->nid, t->orig->nid);
     }
     fprintf(fh, "\n");
 
@@ -598,59 +597,6 @@ void dcel::write_edges(const char *fname)
 void dcel::write_ngon(const char *fname)
 {
     assert(0 && "UNIMPLEMENTED.");
-    FILE *fh = fopen(fname, "w");
-    assert(fh);
-
-    fprintf(fh, "Points\n");
-    fprintf(fh, "%zu\n", V.size());
-    for (size_t i = 0; i < V.size(); i++)
-        fprintf(fh, "%f %f 0\n", V[i]->x, V[i]->y);
-   
-    fprintf(fh, "INDPG\n");
-    fprintf(fh, "%zu\n", H.size()+1);
-    fprintf(fh, "0 ");
-    int indpg = 0;
-    for (size_t i = 0; i < H.size(); i++) {
-        indpg += 2;
-        fprintf(fh, "%d ", indpg);
-    }
-    fprintf(fh, "\n");
- 
-    fprintf(fh, "NGON\n");
-    fprintf(fh, "%zu\n", H.size());
-    for (size_t i = 0; i < H.size(); i++) {
-        hedge *h = H[i];
-        hedge *t = h->twin;
-        fprintf(fh, "%d %d ", h->orig->nid, t->orig->nid);
-    }
-    fprintf(fh, "\n");
-
-    fprintf(fh, "INDPH\n");
-    fprintf(fh, "%zu\n", C.size()+1);
-    fprintf(fh, "0 ");
-    int indph = 0;
-    for (size_t i = 0; i < C.size(); i++) {
-        indph += C[i]->get_size(); 
-        fprintf(fh, "%d ", indph);
-    }
-    fprintf(fh, "\n"); 
-    
-    fprintf(fh, "NFACE\n");
-    fprintf(fh, "%d\n", indph);
-    for (size_t i = 0; i < C.size(); i++) {
-        hedge *h = C[i]->rep;
-        vertex *v = h->orig;
-        fprintf(fh, "%d ", v->nid);
-        hedge *w = h->next;
-        while (w != h) {
-           v = w->orig;
-           fprintf(fh, "%d ", v->nid);
-           w = w->next;
-        }
-    }
-    fprintf(fh, "\n"); 
-
-    fclose(fh);
 }
 
 int cycle::get_size()
@@ -780,10 +726,10 @@ hedge *dcel_get_hedge_of_color_from_face(face *f, int color)
 void face::print_vertices()
 {
     hedge *h = rep;
-    printf("%d ", h->orig->nid);
+    printf(SF_D_ " ", h->orig->nid);
     hedge *w = h->next;
     while (w != h) {
-        printf("%d ", w->orig->nid);
+        printf(SF_D_ " ", w->orig->nid);
         w = w->next;
     }
     puts("");

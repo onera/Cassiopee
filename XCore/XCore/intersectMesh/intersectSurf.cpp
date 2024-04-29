@@ -92,7 +92,7 @@ PyObject *K_XCORE::intersectSurf(PyObject *self, PyObject *args)
     return NULL;
   }
 
-  printf("Master patch: %d faces\n", mpatch_size);
+  printf("Master patch: " SF_D_ " faces\n", mpatch_size);
 
   // Check slave point tags
   E_Float *tag = NULL;

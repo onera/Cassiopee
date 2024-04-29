@@ -336,7 +336,7 @@ E_Int mesh_orient_boundary(Mesh *M)
   E_Int nconnex = K_CONNECT::colorConnexParts(&fneighbours[0], &xadj[0],
     nefaces, &colors[0]);
 
-  //printf("orient_boundary(): connex parts: %d\n", nconnex);
+  printf("orient_boundary(): connex parts: " SF_D_ "\n", nconnex);
 
   assert(efaces.size() == xadj.size()-1);
   std::vector<E_Int> forient(nefaces, 0);
@@ -562,7 +562,7 @@ E_Int mesh_build_own_nei(Mesh *M)
     }
   }
 
-  //printf("build_parent_elements(): connex parts: %d\n", nconnex);
+  //printf("build_parent_elements(): connex parts: " SF_D_ "\n", nconnex);
 
   return 0;
 }

@@ -21,17 +21,17 @@ vertex::vertex(double X, double Y, int Oid, bool is_new)
 
 void vertex::print()
 {
-    printf("%d ", nid);
-    if (nid != -1) printf("%d ", nid);
-    else if (oid[0] != -1 && oid[1] != -1) printf("%d/%d ", oid[0], oid[1]);
-    else if (oid[0] != -1) printf("%d ", oid[0]);
-    else printf("%d ", oid[1]);
+    printf(SF_D_ " ", nid);
+    if (nid != -1) printf(SF_D_ " ", nid);
+    else if (oid[0] != -1 && oid[1] != -1) printf(SF_D_ "/" SF_D_ " ", oid[0], oid[1]);
+    else if (oid[0] != -1) printf(SF_D_ " ", oid[0]);
+    else printf(SF_D_ " ", oid[1]);
 }
 
 void vertex::fprint(FILE *fh)
 {
-    if (nid != -1) fprintf(fh, "%d ", nid);
-    else fprintf(fh, "%d ", oid[0]);
+    if (nid != -1) fprintf(fh, SF_D_ " ", nid);
+    else fprintf(fh, SF_D_ " ", oid[0]);
 }
 
 edge::edge(vertex *P, vertex *Q)

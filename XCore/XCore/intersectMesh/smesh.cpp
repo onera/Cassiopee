@@ -227,8 +227,8 @@ void smesh::write_su2(const char *fname)
   for (size_t i = 0; i < F.size(); i++) {
     auto &cn = F[i];
     int type = cn.size() == 3 ? SU2_TRI : SU2_QUAD;
-    fprintf(fh, "%d ", type);
-    for (auto &p : cn) fprintf(fh, "%d ", p);
+    fprintf(fh, SF_D_ " ", type);
+    for (auto &p : cn) fprintf(fh, SF_D_ " ", p);
     fprintf(fh, "%zu\n", i); 
   }
 

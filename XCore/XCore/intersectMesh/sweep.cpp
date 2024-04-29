@@ -80,18 +80,6 @@ int _report_intersection(const std::vector<segment *> &L,
     if (ncolors[RED] == 0 || ncolors[BLACK] == 0)
         return 0;
 
-    /*
-    printf("Intersection at P%d (%f %f)\n", v->id, v->x, v->y);
-    printf("Ending: ");
-    for (segment *s : L) printf("S%d ", s->id);
-    puts("");
-    printf("Passing: ");
-    for (segment *s : C) printf("S%d ", s->id);
-    puts("");
-    printf("Starting: ");
-    for (segment *s : U) printf("S%d ", s->id);
-    puts("\n");
-    */
     return 1;
 }
 
