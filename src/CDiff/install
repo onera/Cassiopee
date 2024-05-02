@@ -1,3 +1,0 @@
-#! /bin/sh
-echo 'Installing CDiff'
-cp .Obj/$ELSAPROD/CDiff.x $ELSADIST/Dist/bin/$ELSAPROD/CDiff
