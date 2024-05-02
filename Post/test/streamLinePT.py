@@ -4,7 +4,6 @@ import Post.PyTree as P
 import Generator.PyTree as G
 import math as M
 
-
 def F(x): return M.cos(x)
 ni = 30; nj = 40
 m1 = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,2))

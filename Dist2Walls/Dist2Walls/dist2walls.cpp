@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -33,15 +33,37 @@ static PyMethodDef Pydist2walls [] =
   {NULL, NULL}
 };
 
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "dist2walls",
+        NULL,
+        -1,
+        Pydist2walls
+};
+#endif
+
 // ============================================================================
 /* Init of module */
 // ============================================================================
 extern "C"
 {
+#if PY_MAJOR_VERSION >= 3
+  PyMODINIT_FUNC PyInit_dist2walls();
+  PyMODINIT_FUNC PyInit_dist2walls()
+#else
   PyMODINIT_FUNC initdist2walls();
   PyMODINIT_FUNC initdist2walls()
+#endif
   {
-    Py_InitModule("dist2walls", Pydist2walls);
     import_array();
+#if PY_MAJOR_VERSION >= 3
+    PyObject* module = PyModule_Create(&moduledef);
+#else
+    Py_InitModule("dist2walls", Pydist2walls);
+#endif
+#if PY_MAJOR_VERSION >= 3
+    return module;
+#endif
   }
 }

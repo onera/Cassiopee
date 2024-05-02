@@ -1,13 +1,6 @@
 #! /bin/csh
 # *Cassiopee* Compilation Environment
 
-#---------------------------- User Data --------------------------------------
-# Using MPI?
-setenv MPI false
-# Using debug mode?
-setenv DBG false
-#-----------------------------------------------------------------------------
-
 if (-e $CASSIOPEE/Apps/Modules/Envs/env_Cassiopee_local) then
     source $CASSIOPEE/Apps/Modules/Envs/env_Cassiopee_local
 else

@@ -1,10 +1,14 @@
+"""Distribution module for Cassiopee package.
+"""
 import Distributor2
 import Converter.Internal as Internal
 import Converter.PyTree as C
-import Converter
 import Generator as G
 import numpy
 __version__ = Distributor2.__version__
+
+try: range = xrange
+except: pass
 
 #==============================================================================
 # Calcul la liste des bbox
@@ -18,7 +22,6 @@ def computeBBoxes__(arrays, zoneNames):
         except: bb = [0,0,0,1,1,1,zoneNames[c],False]
         bboxes.append(bb)
         c += 1
-
     # Parallel eventuel
     try: 
         import Converter.Mpi as Cmpi
@@ -34,6 +37,12 @@ def computeBBoxes__(arrays, zoneNames):
     except: pass
     return bboxes
 
+# Retourne une cle unique pour le dictionnaire de com
+def addCom__(comd, c, d, NBlocs, vol):
+    key = c+d*NBlocs
+    if key in comd: comd[key] += vol
+    else: comd[key] = vol
+    
 #==============================================================================
 # Distribute t (pyTree) over NProc processors
 # IN: NProc: number of processors
@@ -50,68 +59,117 @@ def computeBBoxes__(arrays, zoneNames):
 # IN: algorithm: gradient0, gradient1, genetic, fast
 # IN: nghost: nbre de couches de ghost cells ajoutees
 #==============================================================================
-def distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all', 
-               algorithm='graph', mode='nodes', nghost=0):
+def distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='match', 
+               algorithm='graph', mode='nodes', nghost=0, tbb=None):
     """Distribute a pyTree over processors.
-    Usage: distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all', algorithm='graph')"""
+    Usage: distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='all', algorithm='graph', mode='nodes', nghost=0)"""
     tp = Internal.copyRef(t)
     out = _distribute(tp, NProc, prescribed=prescribed, perfo=perfo,
                       weight=weight, useCom=useCom, algorithm=algorithm,
-                      mode='nodes', nghost=nghost)
+                      mode=mode, nghost=nghost, tbb=tbb)
     return tp, out
 
 # in place version
-def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all', 
-                algorithm='graph', mode='nodes', nghost=0):
+def _distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='match', 
+                algorithm='graph', mode='nodes', nghost=0, tbb=None):
     """Distribute a pyTree over processors.
-    Usage: _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all', algorithm='gradient0')"""
+    Usage: _distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='all', algorithm='graph', mode='nodes', nghost=0)"""
+    
+    (nbPts, aset, com, comd, weightlist) = getData__(t, NProc, prescribed, weight, useCom, mode, tbb)
+
+    # Equilibrage
+    out = Distributor2.distribute(nbPts, NProc, prescribed=aset, 
+                                  com=com, comd=comd,
+                                  perfo=perfo, weight=weightlist, 
+                                  algorithm=algorithm, mode=mode, nghost=nghost)
+
+    # Sortie
     zones = Internal.getZones(t)
-    # Formation des arrays
-    arrays = []; zoneNames = []; aset = []; weightlist = [] # weight for all zones
+    procs = out['distrib']
+    i = 0
+    for z in zones:
+        node = Internal.getNodeFromName1(z, '.Solver#Param')
+        if node is not None: param = node
+        else:
+            param = ['.Solver#Param', None, [], 'UserDefinedData_t']
+            z[2].append(param)
+        v = numpy.zeros((1,1), dtype=Internal.E_NpyInt); v[0,0] = procs[i]
+        node = Internal.getNodeFromName1(param, 'proc')
+        if node is not None:
+            a = node; a[1] = v
+        else:
+            a = ['proc', v, [], 'DataArray_t']
+            param[2].append(a)
+        i += 1
+    return out
+
+# Internal: get data from tree
+def getData__(t, NProc, prescribed=None, weight=None, useCom='match', mode='nodes', tbb=None):
+    zones = Internal.getZones(t)
+    nbPts = []; arrays = []; zoneNames = []; aset = []; weightlist = [] # weight for all zones
     for z in zones:
         zname = z[0]
         zoneNames.append(zname)
-        aset.append(prescribed.get(zname,-1))
+        if prescribed is not None: aset.append(prescribed.get(zname,-1))
+        else: aset.append(-1)
 
-        if zname in weight.keys(): weightlist.append(weight[zname])
+        if weight is not None: weightlist.append(weight.get(zname, 1))
         else: weightlist.append(1)
 
-        a = C.getFields(Internal.__GridCoordinates__, z, api=2)
-        if a == [[]]: # no coord present in z
-            dim = Internal.getZoneDim(z)
-            if dim[0] == 'Structured':
-                ar = Converter.array('x', dim[1], dim[2], dim[3], api=2)
-            elif dim[3] == 'NGON':
-                ar = Converter.array('x', dim[1], dim[2], 'HEXA', api=2) # hack
-            else:
-                ar = Converter.array('x', dim[1], dim[2], dim[3], api=2)
-            arrays.append(ar)
+        a = C.getFields(Internal.__GridCoordinates__, z, api=3)
+        if a == [[]]: arrays.append(None)
         else: arrays.append(a[0])
-    Nb = len(arrays)
-    com = numpy.zeros((Nb, Nb), numpy.int32)
 
+        if mode == 'cells': nbPts.append(C.getNCells(z))
+        else: nbPts.append(C.getNPts(z))
+
+        #if useCom == 'overlap' or useCom == 'bbox':
+        #    a = C.getFields(Internal.__GridCoordinates__, z, api=2)
+        #    if a == [[]]: # no coord present in z
+        #        print('Warning: no coordinates found. You shouldnt use useCom=overlap or bbox with skeleton tree.')
+        #        useCom = 'match'
+        #        if mode == 'cells': arrays.append(C.getNCell(z))
+        #        else: arrays.append(C.getNPts(z))
+        #    else: arrays.append(a[0])
+        #else:
+        #    if mode == 'cells': arrays.append(C.getNCell(z))
+        #    else: arrays.append(C.getNPts(z))
+
+    Nb = len(nbPts)
+    com = None; comd = {}
+    
     if useCom == 'match' or useCom == 'all':
         # Formation des coms - raccords coincidents
-        tpp, typen = Internal.node2PyTree(t) 
+        tpp, typen = Internal.node2PyTree(t)
         bases = Internal.getBases(tpp)
         zc = 0; c = 0
         for b in bases:
             zones = Internal.getNodesFromType1(b, 'Zone_t') 
-            dict = {}
+            mdict = {}
             pc = 0
-            for z in zones: dict[z[0]] = pc; pc += 1
+            for z in zones: mdict[z[0]] = pc; pc += 1
             
             for z in zones:
-                match = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
+                match = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t') # forcement structure
                 for m in match:
                     donorName = Internal.getValue(m)
-                    if donorName in dict: d = dict[donorName]+zc
+                    if donorName in mdict: d = mdict[donorName]+zc
                     else: d = -1
                     node = Internal.getNodeFromName1(m, 'PointRange')
-                    win = node[1]
-                    w = Internal.range2Window(win)
-                    vol = (w[1]-w[0]+1)*(w[3]-w[2]+1)*(w[5]-w[4]+1)
-                    if d != -1: com[c, d] += vol
+                    if node is not None and node[1] is not None:
+                        win = node[1]
+                        w = Internal.range2Window(win)
+                        vol = (w[1]-w[0]+1)*(w[3]-w[2]+1)*(w[5]-w[4]+1)
+                        if d != -1: addCom__(comd, c, d, Nb, vol)
+                match = Internal.getNodesFromType2(z, 'GridConnectivity_t') # non structure
+                for m in match:
+                    donorName = Internal.getValue(m)
+                    if donorName in mdict: d = mdict[donorName]+zc
+                    else: d = -1
+                    node = Internal.getNodeFromName1(m, 'PointList')
+                    if node is not None and node[1] is not None:
+                        vol = node[1].size
+                        if d != -1: addCom__(comd, c, d, Nb, vol)
                 c += 1
             zc += len(zones)
 
@@ -145,14 +203,27 @@ def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all',
                                 if (xmax1 > xmin2-tol and xmin1 < xmax2+tol and
                                     ymax1 > ymin2-tol and ymin1 < ymax2+tol and
                                     zmax1 > zmin2-tol and zmin1 < zmax2+tol):
-                                    com[c, d] += vol
+                                    addCom__(comd, c, d, Nb, vol)
                             d += 1
             c += 1
 
     if useCom == 'bbox':
         # Formation des coms - si les blocs se recouvrent
         tol = 1.e-12
-        bboxes = computeBBoxes__(arrays, zoneNames)
+        if tbb is None:
+            # Calcul les bbox a partir de l'arbre
+            bboxes = computeBBoxes__(arrays, zoneNames)
+        else:
+            # Calcul les bbox a partir d'un arbre de bbox global
+            bboxes = []
+            for z in Internal.getZones(tbb):
+                minx = C.getMinValue(z, 'CoordinateX')
+                miny = C.getMinValue(z, 'CoordinateY')
+                minz = C.getMinValue(z, 'CoordinateZ')
+                maxx = C.getMaxValue(z, 'CoordinateX')
+                maxy = C.getMaxValue(z, 'CoordinateY')
+                maxz = C.getMaxValue(z, 'CoordinateZ')
+                bboxes.append([minx,miny,minz,maxx,maxy,maxz,z[0],True])
 
         c = 0
         zones = Internal.getZones(t)
@@ -173,14 +244,14 @@ def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all',
                     if (xmax1 > xmin2-tol and xmin1 < xmax2+tol and
                         ymax1 > ymin2-tol and ymin1 < ymax2+tol and
                         zmax1 > zmin2-tol and zmin1 < zmax2+tol):
-                        com[c, d] += np
+                        addCom__(comd, c, d, Nb, np)
                 d += 1
             c += 1
 
-    if useCom == 'ID' or useCom == 'all':
-        dict = {}
+    if useCom == 'ID' or useCom == 'all' or useCom == 'match':
+        mdict = {}
         pc = 0
-        for z in zones: dict[z[0]] = pc; pc += 1
+        for z in zones: mdict[z[0]] = pc; pc += 1
         for z in zones:
             zname = z[0]
             sr = Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
@@ -188,33 +259,10 @@ def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all',
                 oppname = Internal.getValue(s)
                 PL = Internal.getNodeFromName1(s, 'PointList')
                 if PL is not None and PL[1] is not None:
-                    com[dict[zname],dict[oppname]] = PL[1].size
+                    addCom__(comd, mdict[zname], mdict[oppname], Nb, PL[1].size)
                 else:
-                    com[dict[zname],dict[oppname]] = 1.
-
-    # Equilibrage
-    out = Distributor2.distribute(arrays, NProc, prescribed=aset, com=com,
-                                  perfo=perfo, weight=weightlist, 
-                                  algorithm=algorithm, mode=mode, nghost=nghost)
-    # Sortie
-    zones = Internal.getZones(t)
-    procs = out['distrib']
-    i = 0
-    for z in zones:
-        node = Internal.getNodeFromName1(z, '.Solver#Param')
-        if node is not None: param = node
-        else:
-            param = ['.Solver#Param', None, [], 'UserDefinedData_t']
-            z[2].append(param)
-        v = numpy.zeros((1,1), numpy.int32); v[0,0] = procs[i]
-        node = Internal.getNodeFromName1(param, 'proc')
-        if node is not None:
-            a = node; a[1] = v
-        else:
-            a = ['proc', v, [], 'DataArray_t']
-            param[2].append(a)
-        i += 1
-    return out
+                    addCom__(comd, mdict[zname], mdict[oppname], Nb, 1)
+    return (nbPts, aset, com, comd, weightlist)
 
 #==============================================================================
 # Retourne le dictionnaire proc['blocName']
@@ -223,7 +271,6 @@ def _distribute(t, NProc, prescribed={}, perfo=[], weight={}, useCom='all',
 def getProcDict(t, prefixByBase=False):
     """Return the proc of a zone in a dictionary proc['zoneName']."""
     proc = {}
-    tp = Internal.node2PyTree(t)
     bases = Internal.getBases(t)
     for b in bases:
         zones = Internal.getNodesFromType1(b, 'Zone_t')
@@ -250,7 +297,7 @@ def getProcList(t, NProc=None, sort=False):
                proc = Internal.getValue(proc)
                NProc = max(NProc, proc+1)
     procList = []
-    for s in xrange(NProc): procList.append([])
+    for s in range(NProc): procList.append([])
 
     if not sort: # pas de tri
         for z in zones: 
@@ -268,7 +315,7 @@ def getProcList(t, NProc=None, sort=False):
            size_zone =[]
            for z in zones:
               dim = Internal.getZoneDim(z)
-              if dim[0]=='Structured':
+              if dim[0] == 'Structured':
                 if dim[3] == 1: kfic = 0
                 else          : kfic = 2
                 ndimdx = (dim[1]-4)*(dim[2]-4)*(dim[3]-kfic) 
@@ -276,13 +323,13 @@ def getProcList(t, NProc=None, sort=False):
               size_zone.append(ndimdx)
 
            # Tri les zone par taille decroissante
-           new_zones =[]
-           for z in xrange(len(size_zone)):
+           new_zones = []
+           for z in range(len(size_zone)):
              vmax    = max(size_zone)
              pos_max = size_zone.index(vmax)
              new_zones.append(zones[pos_max])
-             size_zone.pop(pos_max) 
-             zones.pop(pos_max) 
+             size_zone.pop(pos_max)
+             zones.pop(pos_max)
 
            for z in new_zones:
              proc = Internal.getNodeFromName2(z, 'proc')
@@ -305,14 +352,14 @@ def _copyDistribution(a, b):
     procs = getProcDict(b)
     zones = Internal.getZones(a)
     for z in zones:
-        if procs.has_key(z[0]):
+        if z[0] in procs:
             proc = procs[z[0]]
             node = Internal.getNodeFromName1(z, '.Solver#Param')
             if node is not None: param = node
             else:
                 param = ['.Solver#Param', None, [], 'UserDefinedData_t']
                 z[2].append(param)
-            v = numpy.zeros((1,1), numpy.int32); v[0,0] = proc
+            v = numpy.zeros((1,1), dtype=Internal.E_NpyInt); v[0,0] = proc
             node = Internal.getNodeFromName1(param, 'proc')
             if node is not None:
                 a = node; a[1] = v
@@ -356,18 +403,19 @@ def getProc(t):
     if len(procs) == 1: return procs[0]
     else: return procs
 
-
+#==============================================================================
+# print infos from stats dictionary
+#==============================================================================
 def printProcStats(t, stats=None, NProc=None):
     """Print stats dictionary."""
     if stats is not None:
         dist = stats['distrib']
         if NProc is None: NProc = max(dist)+1
         if len(list(set(dist))) != NProc:
-            print 'Warning: some processors are empty!'
-            import sys;sys.exit()
+            print ('Warning: some processors are empty!')
 
         zones = Internal.getZones(t)
-        for proc in xrange(NProc):
+        for proc in range(NProc):
             indexes = [i for i,x in enumerate(dist) if x == proc]
             npts = 0
             lzone = []
@@ -375,20 +423,97 @@ def printProcStats(t, stats=None, NProc=None):
                 z = zones[i]
                 lzone.append(Internal.getName(z))
                 dim = Internal.getZoneDim(z)
-                npts += dim[1]*dim[2]*dim[3]
-            print 'Info: proc '+str(proc)+': '+str(npts)+' points for zones ',lzone
+                if dim[0] == 'Structured': npts += dim[1]*dim[2]*dim[3]
+                else: npts += dim[1] 
+            print ('Info: proc '+str(proc)+': '+str(npts)+' points for zones ',lzone)
                 
     else: # no dist
         d = getProcList(t)
         if NProc is None: NProc = len(d)
-        for proc in xrange(NProc):
+        for proc in range(NProc):
             lzone = d[proc]
             npts = 0
             for i in lzone:
                 z = Internal.getNodeFromName2(t, i)
                 dim = Internal.getZoneDim(z)
-                npts += dim[1]*dim[2]*dim[3]
-            print 'Info: proc '+str(proc)+': '+str(npts)+' points for zones ',lzone
-
+                if dim[0] == 'Structured': npts += dim[1]*dim[2]*dim[3]
+                else: npts += dim[1]
+            print ('Info: proc '+str(proc)+': '+str(npts)+' points for zones ',lzone)
     return None
 
+#================================================================================
+# Get stats from tree with proc nodes (redone here from stats.cpp)
+#================================================================================
+def stats(t, useCom='match', mode='nodes'):
+    NProc = 0; nbTot = 0
+    zones = Internal.getZones(t)
+    nzones = len(zones)
+    nbPts = numpy.empty( (nzones), dtype=Internal.E_NpyInt )
+    out = numpy.empty( (nzones), dtype=Internal.E_NpyInt )
+
+    for c, z in enumerate(zones):
+        if mode == 'nodes': np = C.getNPts(z)
+        else: np = C.getNCells(z)
+        nbTot += np
+        p = getProc(z)
+        NProc = max(NProc, p)
+        out[c] = p
+        nbPts[c] = np
+    NProc += 1
+
+    # meanPtsPerProc, nbNodePerProc
+    meanPtsPerProc = nbTot*1./NProc
+    nbNodePerProc = numpy.zeros( (NProc), dtype=numpy.float64 )
+    for c, p in enumerate(out):
+        nbNodePerProc[p] += nbPts[c]
+
+    # empty
+    empty = 0
+    for i in range(NProc):
+        if nbNodePerProc[i] == 0: empty = 1
+
+    varMin = 1.e6; varMax = 0.; varRMS = 0.
+    for i in range(NProc):
+        v = abs(nbNodePerProc[i] - meanPtsPerProc)
+        varMin = min(varMin, v)
+        varMax = max(varMax, v)
+        varRMS = varRMS + v*v
+
+    varMin = varMin / meanPtsPerProc;
+    varMax = varMax / meanPtsPerProc;
+    varRMS = numpy.sqrt(varRMS) / (NProc*meanPtsPerProc);
+    volRatio = 0.
+
+    (nbPts, aset, com, comd, weightlist) = getData__(t, NProc, None, None, useCom, mode)
+
+    if comd is not None:    
+        allkeys = comd.keys()
+        size = len(allkeys)
+        volComd = numpy.empty((2*size), dtype=Internal.E_NpyInt)
+        for i, k in enumerate(allkeys):
+            volComd[2*i] = k
+            volComd[2*i+1] = comd[k]
+    
+        volTot = 0.; nptsCom = 0.
+        for v in range(size):
+            v1 = volComd[2*v]; volcom = volComd[2*v+1];
+            k = int(v1/nzones)
+            i = v1-k*nzones
+            proci = out[i]
+            prock = out[k]
+            volTot += volcom
+            if proci != prock: nptsCom += volcom
+
+    volRatio = nptsCom / volTot
+    
+    return (varMin, varMax, varRMS, volRatio, empty)
+
+#==================================================================================
+# print stats from tree
+#==================================================================================
+def printStats(t, useCom='match', mode='nodes'):
+    (varMin, varMax, varRMS, volRatio, empty) = stats(t, useCom, mode)
+    print("Info: varMin=%f%%, varMax=%f%%, varRMS=%f%%"%(100*varMin, 100*varMax, 100*varRMS))
+    print("Info: external com ratio=%f%%"%(volRatio*100))
+    if empty == 1: print("Warning: at least one processor is empty!")
+    return (varMin, varMax, varRMS, volRatio, empty)

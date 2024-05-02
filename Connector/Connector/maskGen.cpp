@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -111,7 +111,9 @@ namespace K_CONNECTOR
     E_Int nb_box_av(0), nb_box_max(0), nb_box_min(_connT4->size());
 #endif
 
+#ifndef DEBUG_MASK
 #pragma omp parallel for private(caught_boxes, P)
+#endif
     for (size_t i = 0; i < sz; ++i)
     {
       coord.getEntry(i, P);

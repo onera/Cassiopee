@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -201,8 +201,7 @@ void K_POST::refineElements(FldArrayF& f, FldArrayI& cn, FldArrayIS& indic)
     else if (i1 > 0 && i2 > 0)
     {
       // Ajoute 1 pt et 2 elements
-      for (v = 1; v <= nf; v++)
-        fo(npt, v) = 0.5*(f(n1,v) + f(n2,v));
+      for (v = 1; v <= nf; v++) fo(npt, v) = 0.5*(f(n1,v) + f(n2,v));
       co1[nelt] = n1+1;
       co2[nelt] = npt+1;
       co3[nelt] = n3+1;
@@ -215,8 +214,7 @@ void K_POST::refineElements(FldArrayF& f, FldArrayI& cn, FldArrayIS& indic)
     else if (i1 > 0 && i3 > 0)
     {
       // Ajoute 1 pt et 2 elements
-      for (v = 1; v <= nf; v++)
-        fo(npt, v) = 0.5*(f(n1,v) + f(n3,v));
+      for (v = 1; v <= nf; v++) fo(npt, v) = 0.5*(f(n1,v) + f(n3,v));
       co1[nelt] = n1+1;
       co2[nelt] = n2+1;
       co3[nelt] = npt+1;
@@ -229,8 +227,7 @@ void K_POST::refineElements(FldArrayF& f, FldArrayI& cn, FldArrayIS& indic)
     else if (i2 > 0 && i3 > 0)
     {
       // Ajoute 1 pt et 2 elements
-      for (v = 1; v <= nf; v++)
-        fo(npt, v) = 0.5*(f(n2,v) + f(n3,v));
+      for (v = 1; v <= nf; v++) fo(npt, v) = 0.5*(f(n2,v) + f(n3,v));
       co1[nelt] = n1+1;
       co2[nelt] = n2+1;
       co3[nelt] = npt+1;

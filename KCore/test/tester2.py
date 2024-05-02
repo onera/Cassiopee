@@ -1,3 +1,4 @@
+# Tests pour Array2
 import KCore
 
 import Generator.PyTree as G
@@ -33,5 +34,3 @@ x3 = Internal.getNodeFromName2(a, 'CoordinateZ')
 c1 = Internal.getNodesFromName2(a, 'ElementConnectivity')
 b = ['x,y,z', [x1[1],x2[1],x3[1]], [c1], 'HEXA']
 KCore.tester(b)
-
-

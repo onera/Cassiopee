@@ -1,5 +1,6 @@
 # - mesure d'un modele -
-import Tkinter as TK
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -13,20 +14,21 @@ WIDGETS = {}; VARS = []
 def measure():
     if CTK.t == []: return
     prev = []
-    w = WIDGETS['button']
-    if CTK.__BUSY__ == False:
+    w = WIDGETS['measure']
+    if not CTK.__BUSY__:
         CTK.__BUSY__ = True
         TTK.sunkButton(w)
         CPlot.setState(cursor=1)
+        CTK.setCursor(1, WIDGETS['measure'])
         while CTK.__BUSY__:
             CPlot.unselectAllZones()
             l = []
-            while (l == []):
+            while l == []:
                 l = CPlot.getActivePoint()
                 time.sleep(CPlot.__timeStep__)
                 w.update()
-                if CTK.__BUSY__ == False: break
-            if CTK.__BUSY__ == True:
+                if not CTK.__BUSY__: break
+            if CTK.__BUSY__:
                 if prev == []:
                     prev = l
                     CTK.TXT.insert('START', 'Click second point...\n')
@@ -35,34 +37,76 @@ def measure():
                     (l[1]-prev[1])*(l[1]-prev[1])+\
                     (l[2]-prev[2])*(l[2]-prev[2])
                     dist = math.sqrt(dist)
-                    CTK.TXT.insert('START', 'dist= '+str(dist)+'\n')
+                    CTK.TXT.insert('START', 'd= %.4e\n'%dist)
                     time.sleep(CPlot.__timeStep__)
                     prev = []
         CTK.__BUSY__ = False
         TTK.raiseButton(w)
+        CTK.setCursor(0, WIDGETS['measure'])
         CPlot.setState(cursor=0)
     else:
        CTK.__BUSY__ = False
        TTK.raiseButton(w)
        CPlot.setState(cursor=0)
-    
+       CTK.setCursor(0, WIDGETS['measure'])
+
+#==============================================================================
+def vector():
+    if CTK.t == []: return
+    prev = []
+    w = WIDGETS['vector']
+    if not CTK.__BUSY__:
+        CTK.__BUSY__ = True
+        TTK.sunkButton(w)
+        CPlot.setState(cursor=1)
+        CTK.setCursor(1, WIDGETS['vector'])
+        while CTK.__BUSY__:
+            CPlot.unselectAllZones()
+            l = []
+            while l == []:
+                l = CPlot.getActivePoint()
+                time.sleep(CPlot.__timeStep__)
+                w.update()
+                if not CTK.__BUSY__: break
+            if CTK.__BUSY__:
+                if prev == []:
+                    prev = l
+                    CTK.TXT.insert('START', 'Click second point...\n')
+                elif prev != l:
+                    dx = l[0]-prev[0]
+                    dy = l[1]-prev[1]
+                    dz = l[2]-prev[2]
+                    CTK.TXT.insert('START', 'v=( %.4e, %.4e, %.4e )\n'%(dx,dy,dz))
+                    time.sleep(CPlot.__timeStep__)
+                    prev = []
+        CTK.__BUSY__ = False
+        TTK.raiseButton(w)
+        CPlot.setState(cursor=0)
+        CTK.setCursor(0, WIDGETS['vector'])
+    else:
+       CTK.__BUSY__ = False
+       TTK.raiseButton(w)
+       CPlot.setState(cursor=0)
+       CTK.setCursor(0, WIDGETS['vector'])
+        
 #==============================================================================
 # Create app widgets
 #==============================================================================
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                          text='tkRuler', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Take measures by clicking.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                          text='tkRuler  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Take measures by clicking.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkRuler')
     WIDGETS['frameMenu'] = FrameMenu
 
@@ -75,19 +119,28 @@ def createApp(win):
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B,
                        text='Click on two points to obtain the distance.')
-    WIDGETS['button'] = B
+    WIDGETS['measure'] = B
+    B = TTK.Button(Frame, text="Vector mode", command=vector)
+    B.grid(row=1, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B,
+                       text='Click on two points to obtain the vector coordinates.')
+    WIDGETS['vector'] = B
     
 #==============================================================================
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
-
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['StateNoteBook'].add(WIDGETS['frame'], text='tkRuler')
+    except: pass
+    CTK.WIDGETS['StateNoteBook'].select(WIDGETS['frame'])
+    
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['StateNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes

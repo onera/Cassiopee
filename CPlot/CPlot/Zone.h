@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -20,6 +20,7 @@
 #ifndef _CPLOT_ZONE_H_
 #define _CPLOT_ZONE_H_
 #include "ZoneImpl.h"
+#include <vector>
 
 #ifndef MAXSTRINGLENGTH
 #define MAXSTRINGLENGTH 128   /* max length of strings */
@@ -43,47 +44,57 @@ class Zone
     };
 
     // Steal the implementation pointer !
-    Zone( CPlotState* states, ZoneImpl* impl );
+    Zone(CPlotState* states, ZoneImpl* impl);
     virtual ~Zone();
 
     CPlotState* ptrState;
     char zoneName[MAXSTRINGLENGTH];  // zone name
     
-    int dim;                         // dim = 1, 2 or 3
-    int nfield;                      // Number of variables defined in zone
+    E_Int dim;                       // dim = 1, 2 or 3
+    E_Int nfield;                    // Number of variables defined in zone
                                      // that is 3 (xyz) + nfield
-    int npts;                       // number of vertices
-    double* x;                      // storage of coords of points (x,y,z)
+    E_Int npts;                      // number of vertices
+    double* x;                       // storage of coords of points (x,y,z)
     double* y;
     double* z;
-    double **f;                    // storage of variables (size nf)
-    char** varnames;               // x,y,z + other variables
-    float* surf;                     // normal to each element
+    double **f;                      // storage of variables (size nf)
+    char** varnames;                 // x,y,z + other variables
+    std::vector<float*> surf;        // normal to each element
+                                     // for struct: only one at faces
+                                     // for TRI, QUAD: only one at nodes
+                                     // for others, one for each connectivity at faces
     double xmin, xmax;               // min max of zone coords
     double ymin, ymax; 
     double zmin, zmax;
-    double* minf;                   // min max value of f (size nf)
+    double* minf;                    // min max value of f (size nf)
     double* maxf;
-    double Di, Dj, Dk;               // Mesh densities
+    double Di, Dj, Dk;                // Mesh densities
     double xc, yc, zc;                // center of zone (sphere)
     double rc;                        // radius of sphere
-    int active; // if set to 0 the zone is not displayed
-    int selected; // if set to 1 the zone is displayed selected
-    int previouslySelected; // 1 means that zone was selected at previous click
-    int blank; // no blanking (0), otherwise the blanking variable number
+    E_Int active; // if set to 0 the zone is not displayed
+    E_Int selected; // if set to 1 the zone is displayed selected
+    E_Int previouslySelected; // 1 means that zone was selected at previous click
+    E_Int blank; // no blanking (0), otherwise the blanking variable number
 
     char renderTag[MAXSTRINGLENGTH];  // tag for render
-    double colorR, colorG, colorB; // color RGB (from tag)
-    int material; // material code (from tag)
+    float colorR, colorG, colorB; // color RGB (from tag)
+    E_Int material; // material code (from tag)
     double blending; // blending (from tag)
-    int meshOverlay; // 1 if mesh must be overlaid (from tag)
+    E_Int meshOverlay; // 1 if mesh must be overlaid (from tag)
     float shaderParam1, shaderParam2; // shaders param (from tag)
                                   // default value is 1. (can vary in 0-2).
+    double* texu; // pointe sur le champ u pour les textures
+    double* texv; // pointe sur le champ v pour les textures
+    double* texw; // pointe sur le champ w pour les textures
+    double* regtexu; // generated regtexu if not in fields
+    double* regtexv; // generated regtexv if not in fields
+    float tesOuter, tesInner; // Tesselation shader param ( from tag ? )
+                              // Default value is 3 ( can vary in 3-50 )
 
     ZoneImpl* ptr_impl;
     void setUseGPURessources()   { ptr_impl->_GPUResUse = 1; }
     void unsetUseGPURessources() { ptr_impl->_GPUResUse = 0; }
-    void freeGPURessources(bool useGPURessources = true, bool freeIso = true);
+    void freeGPURessources(bool useGPURessources=true, bool freeIso=true);
     void destroyGPUIsoField() { ptr_impl->destroyIsoField(); }
     unsigned char* _voxelArray; // array voxel pour les zones en rendu volumique
 };

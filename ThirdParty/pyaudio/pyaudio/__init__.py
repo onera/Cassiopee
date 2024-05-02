@@ -1,1 +1,1 @@
-from pyaudio import *
+from .pyaudio import *

@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -136,7 +136,7 @@ C-----------------------------------------------------------------------------
          curlz = curlz + uint(l,1)*surf(l,2) - uint(l,2)*surf(l,1)
       ENDDO
      
-      cellvol = -ONE_FOURTH / cellvol
+      cellvol = -ONE_FOURTH / MAX(cellvol, E_MIN_VOL)
       
       rotu = cellvol * curlx
       rotv = cellvol * curly

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -41,7 +41,7 @@ PyObject* K_GENERATOR::front2Hexa(PyObject* self, PyObject* args)
   PyObject *a1, *a2, *distrib;
   E_Float h0;
   
- #ifdef E_DOUBLEREAL
+#ifdef E_DOUBLEREAL
   if (!PyArg_ParseTuple(args, "OOOd", &a1, &a2, &distrib, &h0))  
 #else
     if (!PyArg_ParseTuple(args, "OOOf", &a1, &a2, &distrib, &h0))

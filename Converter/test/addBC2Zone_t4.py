@@ -9,14 +9,14 @@ import KCore.test as test
 a = G.cartHexa((2,0,0), (0.1,0.1,1), (10,10,10))
 b = G.cartHexa((2,0,0), (0.1,0.1,1), (10,10,1))
 a = C.mergeConnectivity(a, b, boundary=1)
-a = C.addBC2Zone(a, 'wall', 'BCWall', elementRange=[730,810])
+C._addBC2Zone(a, 'wall', 'BCWall', elementRange=[730,810])
 test.testT(a, 1)
+
 # Ajout par une subzone
 a = G.cartHexa((2,0,0), (0.1,0.1,1), (10,10,10))
 b = G.cartHexa((2,0,0), (0.1,0.1,1), (10,10,1))
 a = C.addBC2Zone(a, 'wall', 'BCWall', subzone=b)
 test.testT(a, 2)
-
 # Match : element range
 a = G.cartHexa((0,0,0), (0.1,0.1,0.1), (11,11,11))
 b = G.cartHexa((1,0,0), (0.1,0.1,0.1), (1,11,11))

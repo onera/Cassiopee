@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -18,7 +18,7 @@
 */
 
 # include "generator.h"
-# include "Nuga/GapFixer/GapsManager.h"
+# include "Nuga/include/GapsManager.h"
 using namespace std;
 
 //=============================================================================
@@ -29,11 +29,8 @@ PyObject* K_GENERATOR::gapsmanager(PyObject* self, PyObject* args)
   PyObject* arrays;
   E_Int probtype=0 /* for post, nodal mesh */;
   E_Int refine(0), coplanar(0);
-#ifdef E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Olll", &arrays, &probtype, &refine, &coplanar)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Oiii", &arrays, &probtype, &refine, &coplanar)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, O_ III_,
+                    &arrays, &probtype, &refine, &coplanar)) return NULL;
   
   // Check every arrays
   if (PyList_Check(arrays) == 0)
@@ -52,7 +49,7 @@ PyObject* K_GENERATOR::gapsmanager(PyObject* self, PyObject* args)
 
   // Retrieve the meshes and gather all in a unique coordinates array.
   K_FLD::FloatArray pos;
-  for (int i = 0; i < n; i++)
+  for (E_Int i = 0; i < n; i++)
   {
     tpl = PyList_GetItem(arrays, i);
     res = K_ARRAY::getFromArray(tpl, varString, pPos, ni, nj, nk, components[i], eltType);
@@ -64,7 +61,7 @@ PyObject* K_GENERATOR::gapsmanager(PyObject* self, PyObject* args)
     
     if (res != 2)
     {
-      printf("Warning: gapsmanager: zone %d must be unstructured. Skipped.\n", i);
+      printf("Warning: gapsmanager: zone " SF_D_ " must be unstructured. Skipped.\n", i);
     }
     else 
     {
@@ -83,7 +80,7 @@ PyObject* K_GENERATOR::gapsmanager(PyObject* self, PyObject* args)
   GapsManager::run(pos, components, posFs, connectFs, GapsManager::eCase(probtype), refine, GapsManager::eMode(coplanar));
 
   // Cleaning.
-  for (int i = 0; i < n; i++) delete components[i];
+  for (E_Int i = 0; i < n; i++) delete components[i];
 
   // Formation des array de sortie
   PyObject* l = PyList_New(0);

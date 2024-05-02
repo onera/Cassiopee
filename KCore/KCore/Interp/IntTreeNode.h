@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -17,11 +17,16 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 // ============================================================================
+#ifndef _INT_TREE_NODE_H_
+#define _INT_TREE_NODE_H_
 
+namespace K_INTERP
+{
 // ============================================================================
 /*
    The node of the ADT (binary tree of cells).*/
 //=============================================================================
+
 class IntTreeNode
 {
   public:
@@ -104,4 +109,5 @@ inline E_Int IntTreeNode::getIndex() const
 }
 // ============================================================================
 
-
+}
+#endif

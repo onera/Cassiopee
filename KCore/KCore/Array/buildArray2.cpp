@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -67,6 +67,28 @@ PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
 }
 
 //=============================================================================
+/* Build a structured array from a FldArrayF
+   IN: varString: variables string
+   IN: ni,nj,nk: number of points in field
+   IN: api (1: array, 2: array2)
+   OUT: PyObject created. */
+//=============================================================================
+PyObject* K_ARRAY::buildArray2(FldArrayF& f, const char* varString, 
+                               E_Int ni, E_Int nj, E_Int nk, E_Int api)
+{
+  E_Int nfld = f.getNfld();
+  PyObject* o = buildArray2(nfld, varString, 
+                            ni, nj, nk, api);
+  FldArrayF* fp;
+  getFromArray2(o, fp);
+  
+  for (E_Int n = 1; n <= nfld; n++)
+  for (E_Int i = 0; i < f.getSize(); i++) (*fp)(i,n) = f(i,n);
+  RELEASESHAREDS(o, fp);
+  return o;
+}
+
+//=============================================================================
 /* Build an empty unstructured array 
    IN: nfld: number of fields
    IN: varString: variable string
@@ -90,7 +112,7 @@ PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
 {
   npy_intp dim[2];
   PyObject* a; PyObject* ac; PyObject* tpl;
-  char eltType[8];
+  char eltType[12];
 
   E_Int fSize;
   if (center == true) fSize = nelt;
@@ -98,7 +120,7 @@ PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
   E_Int cSize = nelt;
   E_Int nvpe = 0;
   E_Int ngon = 0;
-
+      
   IMPORTNUMPY;
 
   if (et == -1)
@@ -118,79 +140,19 @@ PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
       printf("Warning: buildArray: element type is unknown.\n");
       strcpy(eltType, "UNKNOWN");
     }
-    if (K_STRING::cmp(eltType, "NODE") == 0) nvpe = 1;
-    else if (K_STRING::cmp(eltType, "TRI") == 0) nvpe = 3;
-    else if (K_STRING::cmp(eltType, "QUAD") == 0) nvpe = 4;
-    else if (K_STRING::cmp(eltType, "TETRA") == 0) nvpe = 4;
-    else if (K_STRING::cmp(eltType, "HEXA") == 0) nvpe = 8;
-    else if (K_STRING::cmp(eltType, "BAR") == 0) nvpe = 2;
-    else if (K_STRING::cmp(eltType, "PYRA") == 0) nvpe = 5;
-    else if (K_STRING::cmp(eltType, "PENTA") == 0) nvpe = 6;
-    else if (K_STRING::cmp(eltType, "NGON") == 0) { nvpe = 1; cSize = 4+sizeNGon+sizeNFace; ngon = 1; }
-    else if (K_STRING::cmp(eltType, "NODE*") == 0) nvpe = 1;
-    else if (K_STRING::cmp(eltType, "TRI*") == 0) nvpe = 3;
-    else if (K_STRING::cmp(eltType, "QUAD*") == 0) nvpe = 4;
-    else if (K_STRING::cmp(eltType, "TETRA*") == 0) nvpe = 4;
-    else if (K_STRING::cmp(eltType, "HEXA*") == 0) nvpe = 8;
-    else if (K_STRING::cmp(eltType, "BAR*") == 0) nvpe = 2;
-    else if (K_STRING::cmp(eltType, "PYRA*") == 0) nvpe = 5;
-    else if (K_STRING::cmp(eltType, "PENTA*") == 0) nvpe = 6;
-    else if (K_STRING::cmp(eltType, "NGON*") == 0) { nvpe = 1; cSize = 4+sizeNGon+sizeNFace; ngon = 1; }
+    //E_Int l = strlen(eltType);
+    //if (eltType[l-1] == '*') l = l-1;
+
+    char st[256]; E_Int dummy;
+    eltString2TypeId(eltType, st, nvpe, dummy, dummy);
+    if (K_STRING::cmp(eltType, 4, "NGON") == 0) { nvpe = 1; cSize = 4+sizeNGon+sizeNFace; ngon = 1; }
   }
   else
   {
-    switch (et)
-    {
-      case 0:
-        strcpy(eltType, "NODE");
-        if (cSize == fSize && center == true) strcat(eltType, "*");
-        nvpe = 1;
-        break;
-      case 1:
-        strcpy(eltType, "BAR");
-        if (cSize == fSize && center == true) strcat(eltType, "*");
-        nvpe = 2;
-        break;
-      case 2:
-        strcpy(eltType, "TRI");
-        if (cSize == fSize && center == true) strcat(eltType, "*");
-        nvpe = 3;
-        break;
-      case 3:
-        strcpy(eltType, "QUAD");
-        if (cSize == fSize && center == true) strcat(eltType, "*");
-        nvpe = 4;
-        break;
-      case 4:
-        strcpy(eltType, "TETRA");
-        if (cSize == fSize && center == true) strcat(eltType, "*");
-        nvpe = 4;
-        break;
-      case 5:
-        strcpy(eltType, "PYRA");
-        if (cSize == fSize && center == true) strcat(eltType, "*");
-        nvpe = 5;
-        break;
-      case 6:
-        strcpy(eltType, "PENTA");
-        if (cSize == fSize && center == true) strcat(eltType, "*");
-        nvpe = 6;
-        break;
-      case 7:
-        strcpy(eltType, "HEXA");
-        if (cSize == fSize && center == true) strcat(eltType, "*");
-        nvpe = 8;
-        break;
-      case 8:
-        strcpy(eltType, "NGON");
-        if (cSize == fSize && center == true) strcat(eltType, "*");
-        nvpe = 1; cSize = 4+sizeNGon+sizeNFace; ngon = 1;
-        break; 
-      default:
-        printf("Warning: buildArray: element type is unknown.\n");
-        strcpy(eltType, "UNKNOWN");
-        break;
-    }
+    E_Int loc = 0;
+    if (cSize == fSize && center == true) loc = 1;
+    typeId2eltString(et, loc, eltType, nvpe);
+    if (et == 8) { nvpe = 1; cSize = 4+sizeNGon+sizeNFace; ngon = 1; }
   }
   
   // Build array of field
@@ -214,7 +176,7 @@ PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
   if (api == 1) // Array 1
   {
     dim[1] = cSize; dim[0] = nvpe;
-    ac = PyArray_SimpleNew(2, dim, NPY_INT);
+    ac = PyArray_SimpleNew(2, dim, E_NPY_INT);
     E_Int* data = (E_Int*)PyArray_DATA((PyArrayObject*)ac);
     if (ngon == 1)
     {
@@ -231,30 +193,30 @@ PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
     {
       // autre que NGON - connectivite elt-noeuds
       dim[0] = cSize; dim[1] = nvpe;
-      PyObject* ar = PyArray_EMPTY(2, dim, NPY_INT, 0);
+      PyObject* ar = PyArray_EMPTY(2, dim, E_NPY_INT, 0);
       PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
     }
     else
     {
       // ngons - NGON - sizeNGon
       dim[0] = sizeNGon;
-      PyObject* ar = PyArray_EMPTY(1, dim, NPY_INT, 0);
+      PyObject* ar = PyArray_EMPTY(1, dim, E_NPY_INT, 0);
       PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
       // ngons - NFACE - sizeNFace
       dim[0] = sizeNFace;
-      ar = PyArray_EMPTY(1, dim, NPY_INT, 0);
+      ar = PyArray_EMPTY(1, dim, E_NPY_INT, 0);
       PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
       // ngons - indPG - nfaces
       dim[0] = nface;
-      ar = PyArray_EMPTY(1, dim, NPY_INT, 0);
+      ar = PyArray_EMPTY(1, dim, E_NPY_INT, 0);
       PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
       // ngons - indPH - nelts
       dim[0] = nelt;
-      ar = PyArray_EMPTY(1, dim, NPY_INT, 0);
+      ar = PyArray_EMPTY(1, dim, E_NPY_INT, 0);
       PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
       // Eventuellement PE - 2*nface
       //dim[0] = nface; dim[1] = 2;
-      //PyObject* ar = PyArray_EMPTY(2, dim, NPY_INT, 0);
+      //PyObject* ar = PyArray_EMPTY(2, dim, E_NPY_INT, 0);
       //PyList_Append(ac, (PyObject*)ar); Py_DECREF(ar);
     }
   }
@@ -263,3 +225,58 @@ PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
 
   return tpl;
 }
+//=============================================================================
+/* Build a unstructured array from a FldArrayF and FldArrayI
+   IN: varString: variables string
+   IN: f: field Fld
+   IN: cn: connectivity Fld
+   IN: eltType: elt type
+   IN: api (1: array, 2: array2)
+   OUT: PyObject created. */
+//=============================================================================
+PyObject* K_ARRAY::buildArray2(FldArrayF& f, const char* varString, 
+                               FldArrayI& cn, const char* eltType, E_Int api)
+{
+  E_Int nfld = f.getNfld();
+  E_Int nvertex = f.getSize();
+  E_Int nelt = cn.getSize();
+
+  E_Int sizeNGon = 0;
+  E_Int sizeNFace = 0;
+  E_Int nface = 0;
+
+  if (cn.isNGon()) // NGon Fld
+  {
+    sizeNGon = cn.getSizeNGon();
+    sizeNFace = cn.getSizeNFace();
+    nface = cn.getNFaces();
+    nelt = cn.getNElts();
+  }
+  else if (K_STRING::cmp((char*)eltType, 4, "NGON") == 0) // classical compact Fld
+  {
+    E_Int* cnp = cn.begin();
+    nface = cnp[0];
+    sizeNGon = cnp[1];
+    cnp += sizeNGon+2;
+    nelt = cnp[0];
+    sizeNFace = cnp[1];
+  }
+  PyObject* o = buildArray2(nfld, varString,
+                            nvertex, nelt,
+                            -1, eltType,
+                            false, sizeNGon,
+                            sizeNFace, nface, api);
+                            
+  FldArrayF* fp; FldArrayI* cnp;
+  getFromArray2(o, fp, cnp);
+  
+  for (E_Int n = 1; n <= nfld; n++)
+  for (E_Int i = 0; i < f.getSize(); i++) (*fp)(i,n) = f(i,n);
+
+  for (E_Int n = 1; n <= cn.getNfld(); n++)
+  for (E_Int i = 0; i < cn.getSize(); i++) (*cnp)(i,n) = cn(i,n);
+  
+  RELEASESHAREDU(o, fp, cnp);
+  return o;
+}
+

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -33,9 +33,9 @@ PyObject* K_CONVERTER::convertUnstruct2Hexa(PyObject* self, PyObject* args)
   // Check array
   E_Int nil, njl, nkl;
   FldArrayF* f; FldArrayI* cnl;
-  char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, 
-                                    f, nil, njl, nkl, cnl, eltType, true);
+  char* varString; char* eltType; string eltType2;
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f,
+                                     nil, njl, nkl, cnl, eltType);
   if (res != 2) 
   {
     RELEASESHAREDS(array, f);
@@ -43,134 +43,167 @@ PyObject* K_CONVERTER::convertUnstruct2Hexa(PyObject* self, PyObject* args)
                     "convertUnstruct2Hexa: array must be unstructured.");
     return NULL;
   }
-  if (strcmp(eltType, "QUAD") == 0 || strcmp(eltType, "HEXA") == 0 ||
-      strcmp(eltType, "QUAD*") == 0 || strcmp(eltType, "HEXA*") == 0 ||
-      strcmp(eltType, "BAR") == 0 || strcmp(eltType, "BAR*") == 0)
+
+  // Acces universel sur BE/ME
+  E_Int nc = cnl->getNConnect();
+  // Acces universel aux eltTypes
+  vector<char*> eltTypes;
+  K_ARRAY::extractVars(eltType, eltTypes);
+
+  E_Int npts = f->getSize(), api = f->getApi(), nfld = f->getNfld();
+  E_Int nelts, loc = 0;
+  vector<E_Int> neltsConn(nc);
+  E_Boolean center = false;
+
+  // Boucle sur toutes les connectivites pour determiner les types des
+  // nouveaux elements afin de construire la nouvelle connectivite ME
+  for (E_Int ic = 0; ic < nc; ic++)
   {
-    RELEASESHAREDU(array, f, cnl);
-    return array;
-  }
-  E_Int nelts = cnl->getSize();
-  char etString[64];
-
-  if (strcmp(eltType, "TRI") == 0 || strcmp(eltType, "TRI*") == 0) 
-  {
-    E_Boolean loc = false; strcpy(etString, "QUAD");
-    if (strcmp(eltType, "TRI*") == 0 ) {strcpy(etString, "QUAD*"); loc = true;}
-    E_Int* cn1 = cnl->begin(1);
-    E_Int* cn2 = cnl->begin(2);
-    E_Int* cn3 = cnl->begin(3);
-
-    E_Int eltt = 3; //QUAD
-    E_Int nvert = 4;
-    PyObject* tpl = K_ARRAY::buildArray(f->getNfld(), varString, f->getSize(), 
-                                        nelts, eltt, etString, loc);
-    E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF fn(f->getSize(), f->getNfld(), fnp, true); fn = *f;
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    FldArrayI ct(nelts, nvert, cnnp, true);
-    E_Int* ct1 = ct.begin(1);
-    E_Int* ct2 = ct.begin(2);
-    E_Int* ct3 = ct.begin(3);
-    E_Int* ct4 = ct.begin(4);
-
-#pragma omp parallel for default(shared) if (nelts > 50)
-    for (E_Int et = 0; et < nelts; et++)
+    FldArrayI& cm = *(cnl->getConnect(ic));
+    char* eltTypConn = eltTypes[ic];
+    if (ic > 0) eltType2.append(","); 
+    
+    if (strncmp(eltTypConn, "QUAD", 4) == 0 || strncmp(eltTypConn, "HEXA", 4) == 0 ||
+        strncmp(eltTypConn, "BAR", 3) == 0)
     {
-      ct1[et] = cn1[et];
-      ct2[et] = cn2[et];
-      ct3[et] = cn3[et];
-      ct4[et] = cn3[et];
+      eltType2.append(eltTypConn);
     }
-    RELEASESHAREDU(array, f, cnl);
-    return tpl;
-  }
-  else if (strcmp(eltType, "TETRA") == 0 || strcmp(eltType, "TETRA*") == 0) 
-  {
-    E_Boolean loc = false; strcpy(etString, "HEXA");
-    if (strcmp(eltType, "TETRA*") == 0) {strcpy(etString, "HEXA*"); loc = true;}
-    E_Int* cn1 = cnl->begin(1);
-    E_Int* cn2 = cnl->begin(2);
-    E_Int* cn3 = cnl->begin(3);
-    E_Int* cn4 = cnl->begin(4);
-
-    E_Int eltt = 7; //HEXA
-    E_Int nvert = 8;
-    PyObject* tpl = K_ARRAY::buildArray(f->getNfld(), varString, f->getSize(), nelts, eltt, etString, loc);
-    E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF fn(f->getSize(), f->getNfld(), fnp, true); fn = *f;
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    FldArrayI ct(nelts, nvert, cnnp, true);
-    E_Int* ct1 = ct.begin(1);
-    E_Int* ct2 = ct.begin(2);
-    E_Int* ct3 = ct.begin(3);
-    E_Int* ct4 = ct.begin(4);
-    E_Int* ct5 = ct.begin(5);
-    E_Int* ct6 = ct.begin(6);
-    E_Int* ct7 = ct.begin(7);
-    E_Int* ct8 = ct.begin(8);
-
-#pragma omp parallel for default(shared)
-    for (E_Int et = 0; et < nelts; et++)
+    else if (strncmp(eltType, "TRI", 3) == 0) eltType2.append("QUAD");
+    else if (strncmp(eltType, "PENTA", 5) == 0 || strncmp(eltType, "TETRA", 5) == 0)
     {
-      ct1[et] = cn1[et];
-      ct2[et] = cn2[et];
-      ct3[et] = cn3[et];
-      ct4[et] = cn3[et];
-      ct5[et] = cn4[et];
-      ct6[et] = cn4[et];
-      ct7[et] = cn4[et];
-      ct8[et] = cn4[et];
+      eltType2.append("HEXA");
     }
-    RELEASESHAREDU(array, f, cnl);
-    return tpl;
-  }
-  else if (strcmp(eltType, "PENTA") == 0 || strcmp(eltType, "PENTA*") == 0)
-  {
-    E_Boolean loc = false; strcpy(etString, "HEXA");
-    if (strcmp(eltType, "PENTA*") == 0) {strcpy(etString, "HEXA*"); loc = true;}
-    E_Int* cn1 = cnl->begin(1);
-    E_Int* cn2 = cnl->begin(2);
-    E_Int* cn3 = cnl->begin(3);
-    E_Int* cn4 = cnl->begin(4);
-    E_Int* cn5 = cnl->begin(5);
-    E_Int* cn6 = cnl->begin(6);
-    E_Int eltt = 7;//HEXA
-    E_Int nvert = 8;
-    PyObject* tpl = K_ARRAY::buildArray(f->getNfld(), varString, f->getSize(), nelts, eltt, etString, loc);
-    E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF fn(f->getSize(), f->getNfld(), fnp, true); fn = *f;
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    FldArrayI ct(nelts, nvert, cnnp, true);
-    E_Int* ct1 = ct.begin(1);
-    E_Int* ct2 = ct.begin(2);
-    E_Int* ct3 = ct.begin(3);
-    E_Int* ct4 = ct.begin(4);
-    E_Int* ct5 = ct.begin(5);
-    E_Int* ct6 = ct.begin(6);
-    E_Int* ct7 = ct.begin(7);
-    E_Int* ct8 = ct.begin(8);
-
-#pragma omp parallel for default(shared)
-    for (E_Int et = 0; et < nelts; et++)
+    else
     {
-      ct1[et] = cn1[et];
-      ct2[et] = cn2[et];
-      ct3[et] = cn3[et];
-      ct4[et] = cn3[et];
-      ct5[et] = cn4[et];
-      ct6[et] = cn5[et];
-      ct7[et] = cn6[et];
-      ct8[et] = cn6[et];
+      PyErr_SetString(PyExc_TypeError,
+                      "convertUnstruct2Hexa: invalid element type.");
+      return NULL;
     }
-    RELEASESHAREDU(array, f, cnl);
-    return tpl;
+
+    if (strchr(eltTypConn,'*') != NULL) loc += 1;
+    neltsConn[ic] = cm.getSize();
   }
-  else 
+
+  if (loc != 0 and loc != nc)
   {
-    RELEASESHAREDU(array, f, cnl);
-    PyErr_SetString(PyExc_TypeError, 
-                    "convertUnstruct2Hexa: invalid element type.");
+    PyErr_SetString(PyExc_TypeError,
+                    "convertUnstruct2Hexa: invalid element type - mix of "
+                    "cell-centered and nodal fields in ME connectivity");
     return NULL;
   }
+  else if (loc == nc) center = true;
+
+  // Build empty ME connectivity
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, neltsConn,
+                                       eltType2.c_str(), center, api);
+  FldArrayF* f2; FldArrayI* cnl2;
+  K_ARRAY::getFromArray3(tpl, f2, cnl2);
+
+  // Boucle sur toutes les connectivites pour les remplir
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    FldArrayI& cm = *(cnl->getConnect(ic));
+    FldArrayI& cm2 = *(cnl2->getConnect(ic));
+    char* eltTypConn = eltTypes[ic];
+    nelts = cm.getSize();
+
+#pragma omp parallel default(shared) if (nelts > __MIN_SIZE_MEAN__)
+    {
+      if (strncmp(eltTypConn, "QUAD", 4) == 0)
+      {
+        // Copy existing connectivity
+#pragma omp for
+        for (E_Int et = 0; et < nelts; et++)
+        {
+          cm2(et,1) = cm(et,1);
+          cm2(et,2) = cm(et,2);
+          cm2(et,3) = cm(et,3);
+          cm2(et,4) = cm(et,4);
+        }
+      }
+      else if (strncmp(eltTypConn, "HEXA", 4) == 0)
+      {
+        // Copy existing connectivity
+#pragma omp for
+        for (E_Int et = 0; et < nelts; et++)
+        {
+          cm2(et,1) = cm(et,1);
+          cm2(et,2) = cm(et,2);
+          cm2(et,3) = cm(et,3);
+          cm2(et,4) = cm(et,4);
+          cm2(et,5) = cm(et,5);
+          cm2(et,6) = cm(et,6);
+        }
+      }
+      else if (strncmp(eltTypConn, "BAR", 3) == 0)
+      {
+        // Copy existing connectivity
+#pragma omp for
+        for (E_Int et = 0; et < nelts; et++)
+        {
+          cm2(et,1) = cm(et,1);
+          cm2(et,2) = cm(et,2);
+        }
+      }
+      else if (strncmp(eltType, "TRI", 3) == 0)
+      {
+#pragma omp for
+        for (E_Int et = 0; et < nelts; et++)
+        {
+          cm2(et,1) = cm(et,1);
+          cm2(et,2) = cm(et,2);
+          cm2(et,3) = cm(et,3);
+          cm2(et,4) = cm(et,3);
+        }
+      }
+      else if (strncmp(eltType, "TETRA", 5) == 0)
+      {
+#pragma omp for
+        for (E_Int et = 0; et < nelts; et++)
+        {
+          cm2(et,1) = cm(et,1);
+          cm2(et,2) = cm(et,2);
+          cm2(et,3) = cm(et,3);
+          cm2(et,4) = cm(et,3);
+          cm2(et,5) = cm(et,4);
+          cm2(et,6) = cm(et,4);
+          cm2(et,7) = cm(et,4);
+          cm2(et,8) = cm(et,4);
+        }
+      }
+      else if (strncmp(eltType, "PENTA", 5) == 0)
+      {
+#pragma omp for
+        for (E_Int et = 0; et < nelts; et++)
+        {
+          cm2(et,1) = cm(et,1);
+          cm2(et,2) = cm(et,2);
+          cm2(et,3) = cm(et,3);
+          cm2(et,4) = cm(et,3);
+          cm2(et,5) = cm(et,4);
+          cm2(et,6) = cm(et,5);
+          cm2(et,7) = cm(et,6);
+          cm2(et,8) = cm(et,6);
+        }
+      }
+    }
+  }
+
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+
+#pragma omp parallel
+  {
+    // Copy fields to f2
+    for (E_Int n = 1; n <= nfld; n++)
+    {
+      E_Float* fp = f->begin(n);
+      E_Float* f2p = f2->begin(n);
+#pragma omp for
+      for (E_Int i = 0; i < npts; i++) f2p[i] = fp[i];
+    }
+  }
+  
+  RELEASESHAREDU(array, f, cnl);
+  RELEASESHAREDU(tpl, f2, cnl2);
+  return tpl;
 }

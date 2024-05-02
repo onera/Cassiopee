@@ -2,7 +2,6 @@
 import Post as P
 import Converter as C
 import Generator as G
-import Geom as D
 import KCore.test as test
 
 def F(x, y): return x*x+y*y
@@ -13,7 +12,7 @@ a = C.initVars(a, 'field', F, ['x','y'])
 isos = []
 min = C.getMinValue(a, 'field')
 max = C.getMaxValue(a, 'field')
-for v in xrange(20):
+for v in range(20):
     value = min + (max-min)/18.*v
     try:
         i = P.isoLine(a, 'field', value)
@@ -27,7 +26,7 @@ b = C.initVars(b, 'field', F, ['x','y'])
 isos = []
 min = C.getMinValue([a,b], 'field')
 max = C.getMaxValue([a,b], 'field')
-for v in xrange(20):
+for v in range(20):
     value = min + (max-min)/18.*v
     try:
         i = P.isoLine([a,b], 'field', value)
@@ -41,7 +40,7 @@ a = C.initVars(a, 'field', F, ['x','y'])
 isos = []
 min = C.getMinValue(a, 'field')
 max = C.getMaxValue(a, 'field')
-for v in xrange(20):
+for v in range(20):
     value = min + (max-min)/18.*v
     try:
         i = P.isoLine(a, 'field', value)

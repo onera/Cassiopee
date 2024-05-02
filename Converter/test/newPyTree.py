@@ -12,7 +12,7 @@ t = C.newPyTree(['Base1',2,'Base2',3])
 base = Internal.newCGNSBase('Base', 3)
 t = C.newPyTree([base])
 
-# Create a tree with attached existing zones
+# Create a tree with existing zones attached
 z1 = Internal.newZone('Zone1')
 z2 = Internal.newZone('Zone2')
 t1 = C.newPyTree(['Base', z1, z2])

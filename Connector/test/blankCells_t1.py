@@ -19,12 +19,17 @@ c = 1
 for delta in deltas:
     for masknot in isNot:
         for type in blankingTypes:
-            if (type ==-1 and delta > 0): c += 1
-            elif (type ==-2 and delta > 0): c += 1
-            elif (type == 2 and delta > 0): c += 1
-            elif (masknot == 1 and delta > 0): c+= 1
+            if type ==-1 and delta > 0: c += 1
+            elif type ==-2 and delta > 0: c += 1
+            elif type == 2 and delta > 0: c += 1
+            elif masknot == 1 and delta > 0: c+= 1
             else:
                 celln = X.blankCells([a], [ca], [surf], type,
                                          delta, dim, masknot)
+                
                 test.testA(celln, c)
+                ca2 = C.initVars(ca, 'cellN', 1.)
+                X._blankCells([a], [ca2], [surf], type,
+                              delta, dim, masknot)                    
+                test.testA([ca2], c)
                 c += 1

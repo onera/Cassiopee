@@ -1,6 +1,6 @@
 #! /bin/sh
 #
-# Installation du module networkx
+# Installation du module mpi4py
 # Par defaut dans : $CASSIOPEE/Dist/bin/$ELSAPROD/
 # Sinon : dans le repertoire specifie en argument
 #
@@ -28,8 +28,13 @@ else
     exit
 fi
 
-# installation
+if [ "$PYTHONEXE" != "" ]; then
+    alias python=$PYTHONEXE
+fi
+
+# Installation
 python setup.py install --prefix="$INSTALLPATH"
+#python setupWithCassiopee.py install --prefix="$INSTALLPATH"
 
 # Test installation
 kpython -n 2 -t 1 test/t1.py

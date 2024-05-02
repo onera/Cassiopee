@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -595,8 +595,7 @@ PyObject* K_POST::isoSurfMC(PyObject* self, PyObject* args)
   PyObject* grid;
   char* field;
   E_Float value;
-  if (!PYPARSETUPLEF(args,
-                    "Osd", "Osf",
+  if (!PYPARSETUPLE_(args, O_ S_ R_,
                     &grid, &field, &value))
   {
       return NULL;
@@ -1068,7 +1067,7 @@ void K_POST::doIsoSurfMCQuads(
   for (E_Int i = 0; i < nthreads; i++) 
   { prevQ[i] = nquad; nquad += nquads[i]; 
     prevF[i] = npt; npt += npts[i]; }
-  //printf("%d %d\n", npt, nquad);
+  //printf(SF_D2_ "\n", npt, nquad);
 
   fiso.malloc(npt, nfld);
   ciso.malloc(nquad, 4);
@@ -1111,8 +1110,7 @@ PyObject* K_POST::isoSurfMC_opt(PyObject* self, PyObject* args)
   PyObject* grid;
   char* field;
   E_Float value;
-  if (!PYPARSETUPLEF(args,
-                    "Osd", "Osf",
+  if (!PYPARSETUPLE_(args, O_ S_ R_,
                     &grid, &field, &value))
   {
       return NULL;
@@ -1188,7 +1186,7 @@ PyObject* K_POST::isoSurfMC_opt(PyObject* self, PyObject* args)
 
   FldArrayI tab_nquad1   ( __NUMTHREADS__); E_Int* nquad1    = tab_nquad1.begin();
   FldArrayI tab_npt1     ( __NUMTHREADS__); E_Int* npt1      = tab_npt1.begin();
-  FldArrayI tab_nbloc    ( __NUMTHREADS__); E_Int*  nbloc    = tab_nbloc.begin();
+  FldArrayI tab_nbloc    ( __NUMTHREADS__); E_Int* nbloc     = tab_nbloc.begin();
   FldArrayI tab_npt      ( Thread_max    ); E_Int* npt       = tab_npt.begin();
 
   FldArrayI tab_shift_npt( Thread_max, __NUMTHREADS__  );
@@ -1221,15 +1219,15 @@ PyObject* K_POST::isoSurfMC_opt(PyObject* self, PyObject* args)
         npts   = npts   + npt[ithread];
         nquads = nquads + nquad;
 
-        //printf("npt= %d, nquad= %d, net=, %d, ith= %d  \n", npt[ithread], nquad, net, ithread);
+        //printf("npt= " SF_D_ ", nquad= " SF_D_ ", net=, " SF_D_ ", ith= " SF_D_ "  \n", npt[ithread], nquad, net, ithread);
 
       }
 
 
-        //printf("npts %d %d \n", npts, nquads);
+        //printf("npts " SF_D2_ " \n", npts, nquads);
         //#pragma omp barrier
 
-      if( npts!= 0 && nquads != 0)
+      if (npts!= 0 && nquads != 0)
       {
 
          #pragma omp single
@@ -1238,7 +1236,7 @@ PyObject* K_POST::isoSurfMC_opt(PyObject* self, PyObject* args)
           
            E_Int ipart     = 0;
            E_Int ideb_ipart= 0; 
-           E_Int shift2    = 0; 
+           E_Int shift2    = 0;
 
 
            for (E_Int ithread = 0; ithread <  __NUMTHREADS__; ithread++)
@@ -1254,7 +1252,7 @@ PyObject* K_POST::isoSurfMC_opt(PyObject* self, PyObject* args)
               E_Int* iend      = tab_iend.begin(ithread+1);
               E_Int* Nopart    = tab_Nopart.begin(1+ithread);
 
-              //printf("net %d %d %d %d \n", net, npt1[ithread],  npt[ipart], ipart) ;
+              //printf("net " SF_D4_ " \n", net, npt1[ithread],  npt[ipart], ipart) ;
 
 
               // balancing OMP des points a traiter 
@@ -1264,13 +1262,13 @@ PyObject* K_POST::isoSurfMC_opt(PyObject* self, PyObject* args)
                       E_Int l1        = npt[ipart]-ideb_ipart;
                       E_Int l2        = net - npt1[ithread];
 
-                      //printf("IPART= %d, lg0= %d, ith= %d \n", ipart, lgo, ithread);
+                      //printf("IPART= " SF_D_ ", lg0= " SF_D_ ", ith= " SF_D_ " \n", ipart, lgo, ithread);
 
-                      if(npt[ipart]==0) ipart = ipart +1;
+                      if (npt[ipart]==0) ipart = ipart +1;
                       else
                       {
                          // Size Part restant >  Size vide de thread
-                         if( l1 > l2 ) 
+                         if (l1 > l2) 
                               { 
                                 E_Int l = ideb_ipart + l2;
                                 while( l > ideb_ipart && map_cifi[ l ] == 0 ) l =l-1;
@@ -1283,7 +1281,7 @@ PyObject* K_POST::isoSurfMC_opt(PyObject* self, PyObject* args)
                                 Nopart[  nbloc[ithread] ] = ipart;
                                 shift_npt[nbloc[ithread]] = shift2;
 
-                                //printf("verif0, nb= %d, ideb= %d, ifin= %d, ipart= %d, ith= %d \n",nbloc[ithread] , ideb_in[ipart], iend[ipart], ipart, ithread);
+                                //printf("verif0, nb= " SF_D_ ", ideb= " SF_D_ ", ifin= " SF_D_ ", ipart= " SF_D_ ", ith= " SF_D_ " \n",nbloc[ithread] , ideb_in[ipart], iend[ipart], ipart, ithread);
                                 nbloc[ithread]            = nbloc[ithread]  +1;
 
                                 npt1[  ithread]           = npt1[  ithread] +      l      -            ideb_ipart;
@@ -1299,7 +1297,7 @@ PyObject* K_POST::isoSurfMC_opt(PyObject* self, PyObject* args)
                                 Nopart[ nbloc[ithread] ]  = ipart;
                                 shift_npt[nbloc[ithread]] = shift2;
 
-                                //printf("verif1, nb=, %d ideb= %d, ifin= %d, ipart= %d, ith= %d \n",nbloc[ithread] , ideb_in[ipart], iend[ipart], ipart, ithread);
+                                //printf("verif1, nb=, " SF_D_ " ideb= " SF_D_ ", ifin= " SF_D_ ", ipart= " SF_D_ ", ith= " SF_D_ " \n",nbloc[ithread] , ideb_in[ipart], iend[ipart], ipart, ithread);
                                 nbloc[ithread]            = nbloc[ithread]  +1;
 
                                 npt1[  ithread]           = npt1[  ithread] +      l      -            ideb_ipart;
@@ -1311,14 +1309,14 @@ PyObject* K_POST::isoSurfMC_opt(PyObject* self, PyObject* args)
                                
                               }
 
-                                //if(ithread<=2) printf("ipart= %d, ith= %d    \n",  ipart-1, ithread );
-                                //if(ithread<=2) printf("npt1 et nquad1 %d %d, ith= %d \n",  npt1[ithread], nquad1[ithread], ithread);
-                                //if(ithread<=2) printf("ideb= %d, ifin= %d, nbloc= %d, shift= %d, ith= %d \n",  ideb_in[nbloc[ithread]-1], iend[nbloc[ithread]-1], nbloc[ithread]-1,shift_npt[nbloc[ithread]-1] , ithread );
+                                //if(ithread<=2) printf("ipart= " SF_D_ ", ith= " SF_D_ "    \n",  ipart-1, ithread );
+                                //if(ithread<=2) printf("npt1 et nquad1 " SF_D2_ ", ith= " SF_D_ " \n",  npt1[ithread], nquad1[ithread], ithread);
+                                //if(ithread<=2) printf("ideb= " SF_D_ ", ifin= " SF_D_ ", nbloc= " SF_D_ ", shift= " SF_D_ ", ith= " SF_D_ " \n",  ideb_in[nbloc[ithread]-1], iend[nbloc[ithread]-1], nbloc[ithread]-1,shift_npt[nbloc[ithread]-1] , ithread );
                          }
 
                        }// while equilibrage
 
-             //if(ithread==0) printf("nbloc %d %d %d \n", nbloc[ithread], blocstart[ithread], ithread);
+             //if(ithread==0) printf("nbloc " SF_D3_ " \n", nbloc[ithread], blocstart[ithread], ithread);
             }// loop thread
          } //single
 
@@ -1332,7 +1330,7 @@ PyObject* K_POST::isoSurfMC_opt(PyObject* self, PyObject* args)
          fiso[ithread].malloc(  npt1[ithread], nfld);
          ciso[ithread].malloc(nquad1[ithread], 4);
 
-         //if(ithread==0) printf("malloc %d  %d %d \n",  npt1[ithread], nquad1[ithread], ithread);
+         //if(ithread==0) printf("malloc " SF_D_ " " SF_D2_ " \n",  npt1[ithread], nquad1[ithread], ithread);
          //#pragma omp barrier
 
          E_Int nquad_sav;
@@ -1357,16 +1355,16 @@ PyObject* K_POST::isoSurfMC_opt(PyObject* self, PyObject* args)
 
                   shift1 = shift1 - shift_npt[nb];
 
-                //if(n==1){ printf("cisp ipar= %d, nb= %d, shift_npt= %d,  ith= %d \n",  ipart, nb, shift_npt[nb], ithread );
-		//		   printf("cisp deb= %d, fin=%d, nquad=%d, ith= %d \n", ideb, ifin, nquad,  ithread);}
+                //if(n==1){ printf("cisp ipar= " SF_D_ ", nb= " SF_D_ ", shift_npt= " SF_D_ ",  ith= " SF_D_ " \n",  ipart, nb, shift_npt[nb], ithread );
+		//		   printf("cisp deb= " SF_D_ ", fin=" SF_D_ ", nquad=" SF_D_ ", ith= " SF_D_ " \n", ideb, ifin, nquad,  ithread);}
 
-                  for (E_Int e = ideb; e < ifin; e++) { cisop[nquad_sav] = cisol[e]+shift1; nquad_sav = nquad_sav+1;}// if(n==1) printf("cisol= %d, l=%d, e= %d, ith= %d \n", cisop[nquad_sav-1], nquad_sav-1 , e, ithread); }
+                  for (E_Int e = ideb; e < ifin; e++) { cisop[nquad_sav] = cisol[e]+shift1; nquad_sav = nquad_sav+1;}// if(n==1) printf("cisol= " SF_D_ ", l=" SF_D_ ", e= " SF_D_ ", ith= " SF_D_ " \n", cisop[nquad_sav-1], nquad_sav-1 , e, ithread); }
                   shift1 = shift1 + npt[ipart];
                   
                 }
             }
 
-         //printf("ciso OK: nquad= %d, ith= %d  \n", nquad_sav, ithread);
+         //printf("ciso OK: nquad= " SF_D_ ", ith= " SF_D_ "  \n", nquad_sav, ithread);
          //#pragma omp barrier
 
          E_Int npt_sav;
@@ -1381,7 +1379,7 @@ PyObject* K_POST::isoSurfMC_opt(PyObject* self, PyObject* args)
                   E_Int    ipart = Nopart[ nb ];   
                   E_Float* fisol = fisos.begin(n + ipart*nfld);
 
-                  for (E_Int e = ideb_in[nb]; e <  iend[nb]; e++) { fisop[npt_sav] = fisol[e]; npt_sav +=1;}// if(n==1) printf("fisol= %f, l=%d, e= %d, ith= %d \n", fisop[npt_sav-1], npt_sav-1 , e, ithread);}
+                  for (E_Int e = ideb_in[nb]; e <  iend[nb]; e++) { fisop[npt_sav] = fisol[e]; npt_sav +=1;}// if(n==1) printf("fisol= %f, l=" SF_D_ ", e= " SF_D_ ", ith= " SF_D_ " \n", fisop[npt_sav-1], npt_sav-1 , e, ithread);}
 
                 }
             }
@@ -1392,9 +1390,9 @@ PyObject* K_POST::isoSurfMC_opt(PyObject* self, PyObject* args)
   {
          E_Int  ithread = __CURRENT_THREAD__;
            // OUT: npt
-           //printf("Fiso OK: npt = %d  ith= %d  \n", fiso[ithread].getSize(), ithread);
+           //printf("Fiso OK: npt = " SF_D_ "  ith= " SF_D_ "  \n", fiso[ithread].getSize(), ithread);
            K_CONNECT::cleanConnectivity_opt(posx, posy, posz, tolc, "QUAD", fiso[ithread], ciso[ithread]);
-           //printf("Clean OK: npt= %d, ith= %d  \n", fiso[ithread].getSize(), ithread);
+           //printf("Clean OK: npt= " SF_D_ ", ith= " SF_D_ "  \n", fiso[ithread].getSize(), ithread);
 
          // voir avec christophe si on peut brancher le reoder par ici....
          //K_CONNECT::reorderQuadTriField(fiso[ithread],  ciso[ithread], E_Int(oi));
@@ -1422,9 +1420,6 @@ PyObject* K_POST::isoSurfMC_opt(PyObject* self, PyObject* args)
   }
 
   delete [] fiso; delete [] ciso;
-
-           //printf("routine OK:  \n");
-
   return out;
 }
 
@@ -1472,7 +1467,7 @@ void K_POST::doIsoSurfMCQuads_opt(
        else           { imin= 1; imax = -10;  }
     }
 
-  //if(ithread==1) printf("imin=  %d %d %d %p  \n", imin, imax, ithread, map_cifi);
+  //if(ithread==1) printf("imin=  " SF_D3_ " %p  \n", imin, imax, ithread, map_cifi);
 
   for (E_Int i = imin; i < imax; i++)
   {
@@ -1584,29 +1579,29 @@ void K_POST::doIsoSurfMCQuads_opt(
       ciso3[nquad] = nptSav + indir[qt[j+2]];
       ciso4[nquad] = nptSav + indir[qt[j+3]];
 
-    // printf("ciso1= %d, nquad_tot= %d, nquad(i)= %d, npt_tot= %d, npt(i)= %d, j= %d, i= %d, ith= %d \n",  ciso1[nquad] , nquad, nquad-qua_sav, npt, npt - nptSav, j,  i, ithread);
-    // printf("ciso2= %d, nquad_tot= %d, nquad(i)= %d, npt_tot= %d, npt(i)= %d, j= %d, i= %d, ith= %d \n",  ciso2[nquad] , nquad, nquad-qua_sav, npt, npt - nptSav, j,  i, ithread);
-    // printf("ciso3= %d, nquad_tot= %d, nquad(i)= %d, npt_tot= %d, npt(i)= %d, j= %d, i= %d, ith= %d \n",  ciso3[nquad] , nquad, nquad-qua_sav, npt, npt - nptSav, j,  i, ithread);
-    // printf("ciso4= %d, nquad_tot= %d, nquad(i)= %d, npt_tot= %d, npt(i)= %d, j= %d, i= %d, ith= %d \n",  ciso4[nquad] , nquad, nquad-qua_sav, npt, npt - nptSav, j,  i, ithread);
+    // printf("ciso1= " SF_D_ ", nquad_tot= " SF_D_ ", nquad(i)= " SF_D_ ", npt_tot= " SF_D_ ", npt(i)= " SF_D_ ", j= " SF_D_ ", i= " SF_D_ ", ith= " SF_D_ " \n",  ciso1[nquad] , nquad, nquad-qua_sav, npt, npt - nptSav, j,  i, ithread);
+    // printf("ciso2= " SF_D_ ", nquad_tot= " SF_D_ ", nquad(i)= " SF_D_ ", npt_tot= " SF_D_ ", npt(i)= " SF_D_ ", j= " SF_D_ ", i= " SF_D_ ", ith= " SF_D_ " \n",  ciso2[nquad] , nquad, nquad-qua_sav, npt, npt - nptSav, j,  i, ithread);
+    // printf("ciso3= " SF_D_ ", nquad_tot= " SF_D_ ", nquad(i)= " SF_D_ ", npt_tot= " SF_D_ ", npt(i)= " SF_D_ ", j= " SF_D_ ", i= " SF_D_ ", ith= " SF_D_ " \n",  ciso3[nquad] , nquad, nquad-qua_sav, npt, npt - nptSav, j,  i, ithread);
+    // printf("ciso4= " SF_D_ ", nquad_tot= " SF_D_ ", nquad(i)= " SF_D_ ", npt_tot= " SF_D_ ", npt(i)= " SF_D_ ", j= " SF_D_ ", i= " SF_D_ ", ith= " SF_D_ " \n",  ciso4[nquad] , nquad, nquad-qua_sav, npt, npt - nptSav, j,  i, ithread);
 
       nquad++;
     }
 
     map_cifi[npt]= nquad;
 
-    if (npt  >= nptSize) printf("isoSurfMC_opt: (Pour C. benoit) probleme realloc fiso %d %d %d \n", npt, nptSize, ithread);
-    if (nquad  >= nquadSize) printf("isoSurfMC_opt: (Pour C. benoit) probleme realloc ciso %d %d %d \n", nquad,nquadSize , ithread); 
+    if (npt  >= nptSize) printf("isoSurfMC_opt: (Pour C. benoit) probleme realloc fiso " SF_D3_ " \n", npt, nptSize, ithread);
+    if (nquad  >= nquadSize) printf("isoSurfMC_opt: (Pour C. benoit) probleme realloc ciso " SF_D3_ " \n", nquad,nquadSize , ithread); 
 
     if (npt + 13 >= nptSize) 
     { 
-      printf("isoSurfMC_opt: (Pour C. benoit) probleme realloc fiso %d %d %d \n", npt, nptSize, ithread);
+      printf("isoSurfMC_opt: (Pour C. benoit) probleme realloc fiso " SF_D3_ " \n", npt, nptSize, ithread);
 
       //nptSize += nelts; fisos.reAllocMat(nptSize, nfld); 
      }
 
     if (nquad + 5 >= nquadSize)
     { 
-      printf("isoSurfMC_opt: (Pour C. benoit) probleme realloc ciso  %d %d %d \n", nquad, nquadSize, ithread);
+      printf("isoSurfMC_opt: (Pour C. benoit) probleme realloc ciso  " SF_D3_ " \n", nquad, nquadSize, ithread);
       //nquadSize += nelts; cisos.reAllocMat(nquadSize, 4); 
       //ciso1 = cisos;
       //ciso2 = cisos+net;

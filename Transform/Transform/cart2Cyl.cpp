@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -29,20 +29,22 @@ PyObject* K_TRANSFORM::_cart2CylA(PyObject* self, PyObject* args)
     PyObject *array; 
     E_Float X0, Y0, Z0;
     E_Float ex, ey, ez;
-    if (!PYPARSETUPLEF(args,"O(ddd)(ddd)", "O(fff)(fff)",
-                       &array, &X0, &Y0, &Z0, &ex, &ey, &ez))
-      return NULL;
+    E_Int depth;
+    E_Float thetaShift;
+    if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ I_ R_,
+                      &array, &X0, &Y0, &Z0, &ex, &ey, &ez, &depth, &thetaShift))
+        return NULL;
     
     // check array
     E_Int im, jm, km;
     FldArrayF* f; FldArrayI* cn;
     char* varString; char* eltType;
-    E_Int res = K_ARRAY::getFromArray2(array, varString, f, im, jm, km, 
+    E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, 
                                        cn, eltType);
     if (res != 1 && res != 2)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "cart2CylA: 1st arg is an invalid array.");
+                      "cart2Cyl: 1st arg is an invalid array.");
       return NULL;
     }
 
@@ -62,7 +64,7 @@ PyObject* K_TRANSFORM::_cart2CylA(PyObject* self, PyObject* args)
     E_Float *rt, *thetat;
     if (ex > eps && ey < eps && ez < eps) // axe X
     {
-      rt = f->begin(posz); thetat = f->begin(posy);
+      rt = f->begin(posy); thetat = f->begin(posz);
     }
     else if (ey > eps && ex < eps && ez < eps) // axe Y
     {
@@ -72,9 +74,15 @@ PyObject* K_TRANSFORM::_cart2CylA(PyObject* self, PyObject* args)
     {
       rt = f->begin(posx); thetat = f->begin(posy);
     }
-
+    else
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "cart2Cyl: axis must be canonical.");
+      RELEASESHAREDB(res, array, f, cn); return NULL;
+    }
     E_Int ret = K_LOC::cart2Cyl(npts, f->begin(posx), f->begin(posy), f->begin(posz),
-                                X0, Y0, Z0, ex, ey, ez, rt, thetat);
+                                X0, Y0, Z0, ex, ey, ez, rt, thetat,  
+                                im, jm, km, depth, thetaShift);
     if (ret == 1)
     {
       PyErr_SetString(PyExc_TypeError,
@@ -97,8 +105,10 @@ PyObject* K_TRANSFORM::_cart2CylZ(PyObject* self, PyObject* args)
     char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
     E_Float X0, Y0, Z0;
     E_Float ex, ey, ez;
-    if (!PYPARSETUPLEF(args,"O(ddd)(ddd)sss", "O(fff)(fff)sss",
-                       &zone, &X0, &Y0, &Z0, &ex, &ey, &ez, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
+    E_Int depth; E_Float thetaShift;
+    if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ I_ R_ SSS_,
+                      &zone, &X0, &Y0, &Z0, &ex, &ey, &ez, 
+                      &depth, &thetaShift, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
         return NULL;
     
     vector<PyArrayObject*> hook;
@@ -131,11 +141,11 @@ PyObject* K_TRANSFORM::_cart2CylZ(PyObject* self, PyObject* args)
     thetat = NULL; rt = NULL;
     if (ex > eps && ey < eps && ez < eps) // axe X
     {
-      rt = fields[posz]; thetat = fields[posy];
+      rt = fields[posy]; thetat = fields[posz];
     }
     else if (ey > eps && ex < eps && ez < eps) // axe Y
     {
-      rt = fields[posx]; thetat = fields[posz];
+      rt = fields[posz]; thetat = fields[posx];
     }
     else if (ez > eps && ey < eps && ex < eps) // axe Z
     {
@@ -143,7 +153,7 @@ PyObject* K_TRANSFORM::_cart2CylZ(PyObject* self, PyObject* args)
     }
    
     E_Int ret = K_LOC::cart2Cyl(npts, fields[posx], fields[posy], fields[posz],
-                                X0, Y0, Z0, ex, ey, ez, rt, thetat);
+                                X0, Y0, Z0, ex, ey, ez, rt, thetat,  im, jm, km, depth, thetaShift);
     if (ret == 1)
     {
       RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -25,10 +25,11 @@
 #include "TopExp.hxx"
 #include "TopTools_IndexedMapOfShape.hxx"
 #include "Geom_Surface.hxx"
+#include "BRepAdaptor_Curve.hxx"
 #include "Def/DefTypes.h"
 #include <vector>
 #include <map>
-#include "Fld/DynArray.h"
+# include "Nuga/include/DynArray.h"
 #include "OCCSurface.h"
 
 namespace K_OCC
@@ -42,7 +43,7 @@ public:
 	~CADviaOCC();
     
     ///
-    E_Int import_cad(const char* fname, const char*format, E_Float h=0., E_Float chordal_err=0.);
+    E_Int import_cad(const char* fname, const char*format, E_Float h=0., E_Float chordal_err=0.,  E_Float gr = 0. /*growth ratio*/);
     ///
     E_Int compute_h_sizing(K_FLD::FloatArray& coords, std::vector<E_Int>& Ns);
     ///
@@ -50,16 +51,21 @@ public:
     ///
     E_Int mesh_edges(K_FLD::FloatArray& coords, std::vector<K_FLD::IntArray>& connectEs);
     ///
-    E_Int build_loops (K_FLD::FloatArray& coords, const std::vector<K_FLD::IntArray>& connectEs, std::vector<K_FLD::IntArray>& connectBs);
+    E_Int build_loops (K_FLD::FloatArray& coords, const std::vector<K_FLD::IntArray>& connectEs, std::vector<K_FLD::IntArray>& connectBs, E_Float merge_tol=-1.);
     ///
-    E_Int mesh_faces(K_FLD::FloatArray& coords, const std::vector<K_FLD::IntArray>& connectEs, std::vector<K_FLD::FloatArray>& crds, std::vector<K_FLD::IntArray>& connectMs);
-        
+    E_Int mesh_faces(const K_FLD::FloatArray& coords, const std::vector<K_FLD::IntArray>& connectEs, std::vector<K_FLD::FloatArray>& crds, std::vector<K_FLD::IntArray>& connectMs, bool aniso=false, bool do_join = true);
+    E_Int mesh_faces2(const K_FLD::FloatArray& coords, const std::vector<K_FLD::IntArray>& connectEs, std::vector<K_FLD::FloatArray>& crds, std::vector<K_FLD::IntArray>& connectMs, bool aniso=false, bool do_join = true);
+    
+    E_Int __eval_chordal_error(const BRepAdaptor_Curve& curve, E_Float u0, E_Float u1, E_Float& chordal_error);
+    E_Int __eval_nb_points(const BRepAdaptor_Curve& C, E_Float u0, E_Float u1, E_Float chordal_error, E_Int& nb_points );
+    E_Int __eval_nb_points2(const BRepAdaptor_Curve& C, E_Float u0, E_Float u1, E_Float chordal_error, E_Int& nb_points );
+    
 private:
   
     E_Int __build_graph(const TopoDS_Shape& occ_shape, std::vector<OCCSurface*>& vFG);
-    void __traverse_face_edges(const TopoDS_Face& F, TopExp_Explorer& edge_expl, std::vector<E_Int>& edges);
-    E_Int __split_surface_of_revolution(const TopoDS_Face&, std::vector<OCCSurface*>& vFG, E_Int nb_solid=-1);
     
+    void __traverse_face_edges(const TopoDS_Face& F, TopExp_Explorer& edge_expl, std::vector<E_Int>& edges);
+        
     E_Int __h_sizing(const TopoDS_Edge& E, E_Float& L);
     E_Int __chord_sizing(const TopoDS_Edge& E, E_Float chordal_err, E_Int& nb_points);
     
@@ -70,7 +76,22 @@ private:
     
     void __computeOrient(const K_FLD::FloatArray crd2D, const K_FLD::IntArray& cnt, E_Int&o);
     
-    E_Float _chordal_err, _h, _merge_tol, _Lmin, _Lmax, _Lmean;
+    E_Int __reorient_holed_surface(K_FLD::IntArray& cB, const K_FLD::FloatArray& UVs);
+    E_Int __reorient_holed_surface(std::vector<K_FLD::IntArray>& cntLoops, const K_FLD::FloatArray& UVcontour);
+
+    E_Int __check_for_spikes(const std::vector<K_FLD::IntArray>& cntLoops, const K_FLD::FloatArray& UVcontour);
+    
+    void __split_surface_of_revolution(const OCCSurface* face, K_FLD::IntArray& connectB, K_FLD::FloatArray& pos3D, 
+                                       std::map<E_Int, std::pair<E_Int, E_Int> >& seam_nodes);
+    
+    void __add_seam_node(OCCSurface const *face, K_FLD::FloatArray& pos3D, E_Int N0, std::map<E_Int, std::pair<E_Int, E_Int> >& seam_nodes);
+    
+    void __split_surface_of_revolution2(const OCCSurface* face, K_FLD::IntArray& connectB, K_FLD::FloatArray& pos3D, 
+                                        std::map<E_Int, std::pair<E_Int, E_Int> >& seam_nodes);
+    
+    void __add_seam_node2(OCCSurface const *face, K_FLD::FloatArray& pos3D, E_Int N0, std::map<E_Int, std::pair<E_Int, E_Int> >& seam_nodes);
+    
+    E_Float _chordal_err, _h, _merge_tol, _Lmin, _Lmax, _Lmean, _gr;
     bool _hrelative;
     
     TopoDS_Shape _occ_shape;

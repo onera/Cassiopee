@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -20,7 +20,7 @@
 
 #ifndef _KCORE_ARRAY_H_
 #define _KCORE_ARRAY_H_
-#include "Fld/DynArray.h"
+#include "Nuga/include/DynArray.h"
 #include "kPython.h"
 #include "Def/DefTypes.h"
 #include "Def/DefCplusPlusConst.h"
@@ -48,6 +48,9 @@
     Py_DECREF(PyList_GetItem(array,1));                                 \
     if (res == 2) {delete (FldArrayI*)a2; Py_DECREF(PyList_GetItem(array,2));}}
 
+// Formats I : l, i
+// Formats F : d, f
+// Formats A : ld, id, lf, if
 #if defined E_DOUBLEREAL && defined E_DOUBLEINT
 #define PYPARSETUPLE(args, format1, format2, format3, format4, ...) PyArg_ParseTuple(args, format1, __VA_ARGS__)
 #elif defined E_DOUBLEREAL && !defined E_DOUBLEINT
@@ -70,6 +73,53 @@
 #define PYPARSETUPLEF(args, format1, format2, ...) PyArg_ParseTuple(args, format2, __VA_ARGS__)
 #endif
 
+// Nouveau parsetuple
+#if defined E_DOUBLEINT
+#define I_ "l"
+#define II_ "ll"
+#define III_ "lll"
+#define IIII_ "llll"
+#define TII_ "(ll)"
+#define TIII_ "(lll)"
+#define TIIII_ "(llll)"
+#else
+#define I_ "i"
+#define II_ "ii"
+#define III_ "iii"
+#define IIII_ "iiii"
+#define TII_ "(ii)"
+#define TIII_ "(iii)"
+#define TIIII_ "(iiii)"
+#endif
+#if defined E_DOUBLEREAL
+#define R_ "d"
+#define RR_ "dd"
+#define RRR_ "ddd"
+#define RRRR_ "dddd"
+#define TRR_ "(dd)"
+#define TRRR_ "(ddd)"
+#define TRRRR_ "(dddd)"
+#else
+#define R_ "f"
+#define RR_ "ff"
+#define RRR_ "fff"
+#define RRRR_ "ffff"
+#define TRR_ "(ff)"
+#define TRRR_ "(fff)"
+#define TRRRR_ "(ffff)"
+#endif
+#define O_ "O"
+#define OO_ "OO"
+#define OOO_ "OOO"
+#define OOOO_ "OOOO"
+#define S_ "s"
+#define SS_ "ss"
+#define SSS_ "sss"
+#define SSSS_ "ssss"
+
+// ex de format string: O_ I_ R_ I_ O_    
+#define PYPARSETUPLE_(args, format, ...) PyArg_ParseTuple(args, format, __VA_ARGS__) 
+
 namespace K_ARRAY
 {
   /* Taille max de la varString pour les alloc. statiques */
@@ -79,7 +129,7 @@ namespace K_ARRAY
 
   /* Retourne le nombre de variables dans varString (style "a,b,c").
      IN: varString: la chaine de variables. */
-  E_Int getNumberOfVariables(char* varString);
+  E_Int getNumberOfVariables(const char* varString);
 
   /* Is name present in string?
      IN: name: nom a rechercher dans string
@@ -87,23 +137,23 @@ namespace K_ARRAY
      Retourne -1 si name n'existe pas dans string.
      Return i: si name existe et est en position i. La position etant 
      determinee suivant les virgules. */
-  E_Int isNamePresent(const char* name, char* string);
-  E_Int isCoordinateXPresent(char* string);
-  E_Int isCoordinateYPresent(char* string);
-  E_Int isCoordinateZPresent(char* string);
-  E_Int isCellNatureField1Present(char* string);
-  E_Int isCellNatureField2Present(char* string);
-  E_Int isDensityPresent(char* string);
-  E_Int isMomentumXPresent(char* string);
-  E_Int isMomentumYPresent(char* string);
-  E_Int isMomentumZPresent(char* string);
-  E_Int isEnergyStagnationDensityPresent(char* string);
-  E_Int isVelocityXPresent(char* varString);
-  E_Int isVelocityYPresent(char* varString);
-  E_Int isVelocityZPresent(char* varString);
-  E_Int isPressurePresent(char* varString);
-  E_Int isTemperaturePresent(char* varString);
-  E_Int isTimePresent(char* varString);
+  E_Int isNamePresent(const char* name, const char* string);
+  E_Int isCoordinateXPresent(const char* string);
+  E_Int isCoordinateYPresent(const char* string);
+  E_Int isCoordinateZPresent(const char* string);
+  E_Int isCellNatureField1Present(const char* string);
+  E_Int isCellNatureField2Present(const char* string);
+  E_Int isDensityPresent(const char* string);
+  E_Int isMomentumXPresent(const char* string);
+  E_Int isMomentumYPresent(const char* string);
+  E_Int isMomentumZPresent(const char* string);
+  E_Int isEnergyStagnationDensityPresent(const char* string);
+  E_Int isVelocityXPresent(const char* varString);
+  E_Int isVelocityYPresent(const char* varString);
+  E_Int isVelocityZPresent(const char* varString);
+  E_Int isPressurePresent(const char* varString);
+  E_Int isTemperaturePresent(const char* varString);
+  E_Int isTimePresent(const char* varString);
 
   /* A partir de 2 varStrings, recherche si des variables communes existent et 
      retourne les vecteurs des positions des variables correspondantes dans les
@@ -125,7 +175,7 @@ namespace K_ARRAY
      IN: varString: chaine des variables
      OUT: vars: vecteur contenant chaque chaine de variable.
      C'est la responsabilite de l'appelant de liberer la memoire des vars. */
-  void extractVars(char* varString, std::vector<char*>& vars);
+  void extractVars(const char* varString, std::vector<char*>& vars);
 
   /* Construit la chaine de variables varString a partir d'une liste python
      de noms de variables.
@@ -133,6 +183,13 @@ namespace K_ARRAY
      OUT: varString: chaine des variables (allouee par l'appelant). 
      retourne le nombre de variables. */
   E_Int getVarName(PyObject* varNames, char* varString);
+
+  /* Analyse element string. For instance: "TRI_6" will return "TRI" and 6 */
+  E_Int eltString2TypeId(char* eltString, char* eltType, E_Int& nvpe, E_Int& loc, E_Int& typeId);
+  /* Analyse typeId. Retourne eltString, nvpe */  
+  E_Int typeId2eltString(E_Int typeId, E_Int loc, char* eltString, E_Int& nvpe);
+  E_Int typeId2eltString(const std::vector<E_Int>& typeId, E_Int loc,
+                         char* eltString, std::vector<E_Int>& nvpe);
 
   /* Get data pointers dans un PyObject array.
      Pas de verification ici. */
@@ -150,6 +207,29 @@ namespace K_ARRAY
      OUT: varStringOut: le resultat. */
   void addPrefixInVarString(char* varString, const char* prefix,
                             char* varStringOut);
+
+  /* Ajoute un suffixe a tous les noms de variables contenu dans varString. 
+     IN: varString: la chaine des variables
+     IN: suffix: la chaine de suffix a ajouter aux noms des variables
+     OUT: varStringOut: le resultat. */
+  void addSuffixInVarString(const char* varString, const char* suffix,
+                            char* varStringOut);
+
+  /* Ajoute une etoile a tous les noms de variables contenu dans varString. 
+     IN: varString: la chaine des variables aux noeuds
+     OUT: varStringOut: le resultat aux centres. */
+  void starVarString(const char* varString, char* varStringOut);
+
+  /* Retire un suffixe a tous les noms de variables contenu dans varString. 
+     IN: varString: la chaine des variables
+     IN: suffix: la chaine de suffix a retirer aux noms des variables
+     OUT: varStringOut: le resultat. */
+  void rmSuffixInVarString(const char* varString, const char* suffix,
+                           char* varStringOut);
+  /* Retire l'etoile de tous les noms de variables contenu dans varString. 
+     IN: varString: la chaine des variables aux centres
+     OUT: varStringOut: le resultat aux noeuds. */
+  void unstarVarString(const char* varString, char* varStringOut);
 
   /* Extrait les donnees utiles d'un objet python struct array
      defini par: [ 'vars', a, ni, nj, nk ]
@@ -191,11 +271,39 @@ namespace K_ARRAY
                       E_Int& ni, E_Int& nj, E_Int& nk,
                       FldArrayI*& c,
                       char*& eltType);
+  E_Int getFromArray2(PyObject* o,
+                      char*& varString,
+                      FldArrayF*& f,
+                      FldArrayI*& c,
+                      char*& eltType);
+  E_Int getFromArray2(PyObject* o,
+                      FldArrayF*& f,
+                      FldArrayI*& c);
   /* Retourne uniquement un FldArrayF (shared) sur les champs et la varstring 
      Il faut utiliser la macro RELEASESHAREDS */
   E_Int getFromArray2(PyObject* o,
                       char*& varString,
                       FldArrayF*& f);
+  E_Int getFromArray2(PyObject* o, FldArrayF*& f);
+
+  E_Int getFromArray3(PyObject* o,
+                      char*& varString,
+                      FldArrayF*& f,
+                      E_Int& ni, E_Int& nj, E_Int& nk,
+                      FldArrayI*& c,
+                      char*& eltType);
+  E_Int getFromArray3(PyObject* o,
+                      char*& varString,
+                      FldArrayF*& f,
+                      FldArrayI*& c,
+                      char*& eltType);
+  E_Int getFromArray3(PyObject* o,
+                      FldArrayF*& f,
+                      FldArrayI*& c);                   
+  E_Int getFromArray3(PyObject* o,
+                      char*& varString,
+                      FldArrayF*& f);
+  E_Int getFromArray3(PyObject* o, FldArrayF*& f);
 
   /* Extrait les donnees utiles d'un objet python struct array 
      defini par: [ 'vars', a, ni, nj, nk ]
@@ -226,6 +334,13 @@ namespace K_ARRAY
                      K_FLD::DynArray<E_Float>*& f,
                      E_Int& ni, E_Int& nj, E_Int& nk,
                      K_FLD::DynArray<E_Int>*& c,
+                     char*& eltType);
+  //idem sans allocation interne des DynArrays
+  E_Int getFromArray(PyObject* o,
+                     char*& varString,
+                     K_FLD::DynArray<E_Float>& f,
+                     E_Int& ni, E_Int& nj, E_Int& nk,
+                     K_FLD::DynArray<E_Int>& c,
                      char*& eltType);
 
   /* Extrait les donnees utiles d'une liste d'objets pythons.
@@ -332,48 +447,56 @@ namespace K_ARRAY
    Si type=2, nvertex, nelt, sizeConnect et eltType sont renseignes.
    Cette routine ne fait pas de verification.
   */
-  E_Int getInfoFromArray(PyObject* o,  char*& varString,
+  E_Int getInfoFromArray(PyObject* o, char*& varString,
                          E_Int& ni, E_Int& nj, E_Int& nk,
                          E_Int& nvertex, E_Int& nelt, 
-                         E_Int& sizeConect, char*& eltType);
+                         E_Int& sizeConnect, char*& eltType);
 
   /* Construit un array structure a partir d'un FldArray
      IN: field: Fld champ structure
      IN: varString: variable string
      IN: ni,nj,nk: nombre de points dans field
+     IN: api: 1 (array), 2 (array2), 3 (array3), -1 (prend l'api de f)
      OUT: PyObject cree. */
-  PyObject* buildArray(FldArrayF& field, const char* varString,
+  PyObject* buildArray(FldArrayF& f, const char* varString,
                        E_Int ni, E_Int nj, E_Int nk);
-  /* Construit un array structure vide 
-     IN: nfld: nombre de champ dans varString
-     IN: varString: variable string
-     IN: ni,nj,nk: nombre de points dans le champ
-     OUT: PyObject cree. */
-  PyObject* buildArray(E_Int nfld, const char* varString,
-                       E_Int ni, E_Int nj, E_Int nk);
+  PyObject* buildArray2(FldArrayF& f, const char* varString,
+                        E_Int ni, E_Int nj, E_Int nk, E_Int api=1);
+  PyObject* buildArray3(FldArrayF& f, const char* varString,
+                        E_Int ni, E_Int nj, E_Int nk, E_Int api=-1);
+
   /* Construit un array structure vide suivant les differentes api
      IN: nfld: nombre de champ dans varString
      IN: varString: variable string
      IN: ni,nj,nk: nombre de points dans le champ
-     IN: api: 1 (array), 2 (array2)
+     IN: api: 1 (array), 2 (array2), 3 (array3)
      OUT: PyObject cree. */
+  PyObject* buildArray(E_Int nfld, const char* varString,
+                       E_Int ni, E_Int nj, E_Int nk);
   PyObject* buildArray2(E_Int nfld, const char* varString,
-                       E_Int ni, E_Int nj, E_Int nk, E_Int api=1);
+                        E_Int ni, E_Int nj, E_Int nk, E_Int api=1);
+  PyObject* buildArray3(E_Int nfld, const char* varString,
+                        E_Int ni, E_Int nj, E_Int nk, E_Int api=1);
 
   /* Construit un array non structure a partir d'un FldArray
      IN: field: Fld champ non structure
      IN: varString: variable string
-     IN: c: connectivite elements->noeuds (commence a 1)
+     IN: cn: connectivite elements->noeuds (commence a 1)
      IN: et: type d'elements: 0 (NODE), 1 (BAR), 2 (TRI), 3 (QUAD)
      4 (TETRA), 5 (PYRA), 6 (PENTA), 7 (HEXA), 8 (NGON) ou star.
      IN: etString: si et=-1, utilise pour le type d'element.
      IN: center: mis a true si field est localise sur les centres,
          sinon false.
      OUT: PyObject cree. */
-  PyObject* buildArray(FldArrayF& field, const char* varString,
-                       FldArrayI& c, E_Int et, 
+  PyObject* buildArray(FldArrayF& f, const char* varString,
+                       FldArrayI& cn, E_Int et, 
                        const char* etString=NULL, 
                        E_Boolean center=false);
+  PyObject* buildArray2(FldArrayF& f, const char* varString, 
+                        FldArrayI& cn, const char* eltType, E_Int api=1);
+  PyObject* buildArray3(FldArrayF& f, const char* varString, 
+                        FldArrayI& cn, const char* eltType, E_Int api=-1);
+
   /* Construit un array non structure vide 
      IN: nfld: nombre de champs dans varString
      IN: varString: variable string
@@ -392,19 +515,39 @@ namespace K_ARRAY
                        E_Int nvertex, E_Int nelt, 
                        E_Int et, const char* etString, 
                        E_Boolean center=false, E_Int sizeConnect=1); 
- PyObject* buildArray2(E_Int nfld, const char* varString,
+  PyObject* buildArray2(E_Int nfld, const char* varString,
                        E_Int nvertex, E_Int nelt, 
                        E_Int et, const char* etString, 
                        E_Boolean center=false, 
                        E_Int sizeNGon=1, E_Int sizeNFace=1,
                        E_Int nface=1, E_Int api=1);
-                        
+  PyObject* buildArray3(E_Int nfld, const char* varString,
+                        E_Int nvertex, E_Int nelt, E_Int nface, 
+                        const char* etString,
+                        E_Int sizeNGon=1, E_Int sizeNFace=-1, E_Int ngonType=1,
+                        E_Boolean center=false, E_Int api=1);
+  PyObject* buildArray3(E_Int nfld, const char* varString,
+                        E_Int nvertex, E_Int nelts,
+                        const char* etString,
+                        E_Boolean center=false, E_Int api=1);
+  PyObject* buildArray3(E_Int nfld, const char* varString,
+                        E_Int nvertex, std::vector<E_Int>& neltsPerConnect,
+                        const char* etString,
+                        E_Boolean center=false, E_Int api=1);
+  PyObject* buildArray3(E_Int nfld,
+                        const char* varString,
+                        E_Int nvertex,
+                        FldArrayI& cn, // provides ncells, ...
+                        char* eltType,
+                        E_Int center=-1, E_Int api=1,
+                        E_Bool copyConnect=false);
+
   /* Construit un array structure a partir d'un DynArray
      IN: field: Dyn champ structure
      IN: varString: variable string
      IN: ni,nj,nk: nombre de points dans field
      OUT: PyObject cree. */
-  PyObject* buildArray(K_FLD::DynArray<E_Float>& field, const char* varString,
+  PyObject* buildArray(const K_FLD::DynArray<E_Float>& field, const char* varString,
                        E_Int ni, E_Int nj, E_Int nk);
   
   /* Construit un array non structure a partir d'un DynArray
@@ -417,8 +560,8 @@ namespace K_ARRAY
      IN: center: mis a true si field est localise sur les centres,
      sinon false.
      OUT: PyObject cree. */
-  PyObject* buildArray(K_FLD::DynArray<E_Float>& field, const char* varString,
-                       K_FLD::DynArray<E_Int>& c, E_Int et, 
+  PyObject* buildArray(const K_FLD::DynArray<E_Float>& field, const char* varString,
+                       const K_FLD::DynArray<E_Int>& c, E_Int et, 
                        const char* etString=NULL, 
                        E_Boolean center=false);
 

@@ -1,5 +1,6 @@
 # - an applet for creating points -
-import Tkinter as TK
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -36,7 +37,7 @@ def createPoint(event=None):
     a = D.point((point[0], point[1], point[2]))
     CTK.add(CTK.t, nob, -1, a)
     CTK.TXT.insert('START', 'Point '+VARS[0].get()+' created.\n')
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -61,9 +62,8 @@ def modifyPoint(event=None):
     noz = CTK.Nz[nz]
     z = CTK.t[2][nob][2][noz]
     ind = CPlot.getActivePointIndex()
-    if ind == []:
-       CTK.TXT.insert('START', 'No selected point.\n')    
-       CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    if ind == []: # point in not selected in gfx window but
+       ind = [0]  # a point has only one point
     ind = ind[0]
     
     CTK.saveTree()
@@ -73,6 +73,8 @@ def modifyPoint(event=None):
     C.setValue(zp, 'CoordinateZ', ind, point[2])
     
     CPlot.replace(CTK.t, nob, noz, zp)
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
     CTK.TXT.insert('START', 'Point modified.\n')
     CPlot.render()
 
@@ -82,9 +84,10 @@ def modifyPoint(event=None):
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkPoint', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Generate points.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkPoint  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Generate points.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=4)
@@ -93,8 +96,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkPoint')
     WIDGETS['frameMenu'] = FrameMenu
 
@@ -124,13 +127,17 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['EdgeNoteBook'].add(WIDGETS['frame'], text='tkPoint')
+    except: pass
+    CTK.WIDGETS['EdgeNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['EdgeNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -142,9 +149,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

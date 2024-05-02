@@ -3,7 +3,6 @@ import Generator as G
 import Converter as C
 import Geom as D
 import KCore.test as test
-import Transform as T
 
 # Tests sans lissage
 
@@ -46,7 +45,7 @@ test.testA([a], 3)
 # Structure (i-array)
 a = D.line((0,0,0),(10,1,0))
 a = G.addNormalLayers(a, d)
-test.testA([a], 4)                                       
+test.testA([a], 4)
 
 #
 # list of arrays

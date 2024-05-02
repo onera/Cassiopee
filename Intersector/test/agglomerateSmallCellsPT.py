@@ -13,7 +13,7 @@ t = C.convertArray2NGon(t)
 # ngon conformization
 t = C.conformizeNGon(t); t = G.close(t)
 # ngon close cells
-t = XOR.closeOctalCells(t)
+t = XOR.closeCells(t)
 #t = XOR.reorientExternalFaces(t)
 
 # ngon converion of the sphere
@@ -25,7 +25,7 @@ s = XOR.convertNGON2DToNGON3D(s)
 # Boolean operation
 x = XOR.diffSurf(t, s, tol = 0., preserve_right=1, agg_mode=2) # agg_mode=2 : full mode aggregation
 
-x = XOR.agglomerateSmallCells(x, 0., 10.)
+x = XOR.agglomerateSmallCells(x, vmin=0., vratio=0.1)
 
 t = C.newPyTree(['Base',2]); t[2][1][2].append(x)
 C.convertPyTree2File(t, 'diffs.cgns')

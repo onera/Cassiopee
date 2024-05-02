@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -21,37 +21,38 @@
 #define _CPLOT_UNSTRUCTZONE_H_
 
 #include "Zone.h"
+#include <vector>
 
 /* Define a unstructured zone */
 class UnstructZone : public Zone
 {
   public:
-  UnstructZone( CPlotState* states, ZoneImpl* impl );
+    UnstructZone(CPlotState* states, ZoneImpl* impl);
     virtual ~UnstructZone();
-
     void compNorm();
 
   public:
-    int np;                       // number of points
-    int ne;                       // number of elements
-    enum enumType {
-      NODE = 0, BAR, TRI, QUAD, TETRA, PENTA, PYRA, HEXA, NGON, ENDTYPE
-    };
-    int eltType;                  // 0: NODE
-                                  // 1: BAR
-                                  // 2: TRI
-                                  // 3: QUAD
-                                  // 4: TETRA
-                                  // 7: HEXA
+    /* Types of basic elements */
+    enum enumType { NODE=0, BAR, TRI, QUAD, TETRA, PENTA, PYRA, HEXA, EMPTY1, EMPTY2, NGON, ENDTYPE };
+
+    E_Int np;                       // number of points
+    E_Int ne;                       // total number of elements
+    /* An unstruct zone can have multiple connectivities but they must be of the same dimension 
+       For NGONs, zone has only one connectivity. */
+    std::vector<E_Int> nec;         // number of elements for each connectivity
+    std::vector<int> eltType;     // element type for each connectivity (see enum)
+                                  // 0: NODE, 1: BAR, 2: TRI, 3: QUAD, 4: TETRA
+                                  // 5: PENTA, 6: PYRA, 7: HEXA
                                   // 10: NGON
-    int eltSize;                  // nbre de noeuds par elt
+    std::vector<E_Int> eltSize;   // nbre of nodes for each element
+    E_Int _is_high_order;         // Dit si on est en presence d'elements high order ou non (all connects)
                                   // sauf pour NGONS (=1) 
-    int* connect;                 // connectivity (ne*eltSize sauf pour NGONS)
-                                  // Seulement pour NGONS
-    int* posFaces;                // position de la face no i dans connect
-    int nelts1D;                  // nombre d'elements 1D
-    int nelts2D;                  // nombre d'elements 2D
-    int* posElts1D;               // position des elements 1D dans connect
-    int* posElts2D;               // position des elements 2D dans connect
+    std::vector<E_Int*> connect;  // connectivities (ne*eltSize sauf pour NGONS)
+                                  // Seulement pour NGONS:
+    E_Int* posFaces;              // position de la face no i dans connect
+    E_Int nelts1D;                // nombre d'elements 1D
+    E_Int nelts2D;                // nombre d'elements 2D
+    E_Int* posElts1D;             // position des elements 1D dans connect
+    E_Int* posElts2D;             // position des elements 2D dans connect
 };
 #endif

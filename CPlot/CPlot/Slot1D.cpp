@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -31,6 +31,6 @@ Slot1D::Slot1D(int no, int gridPosI, int gridPosJ, double bgBlend)
 //=============================================================================
 Slot1D::~Slot1D()
 {
-  unsigned int nz = _zones.size();
-  for (unsigned int i = 0; i < nz; i++) delete _zones[i];
+  size_t nz = _zones.size();
+  for (size_t i = 0; i < nz; i++) delete _zones[i];
 }

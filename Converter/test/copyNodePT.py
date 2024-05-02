@@ -7,7 +7,7 @@ b = Internal.copyNode(a)
 # Modify numpy of b
 b[1][0]=5
 # a is not modified
-print a
+print(a)
 #>> ['Data', array([1, 2, 3], dtype=int32), [], 'DataArray_t']
-print b
+print(b)
 #>> ['Data', array([5, 2, 3], dtype=int32), [], 'DataArray_t']

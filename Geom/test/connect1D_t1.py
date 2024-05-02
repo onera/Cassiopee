@@ -1,6 +1,5 @@
 # - connect1D (array) -
 import Geom as D
-import Converter as C
 import KCore.test as test
 
 # Test avec deux droites

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -33,14 +33,18 @@ static PyMethodDef PyTransform[] =
   {"_cyl2CartA", K_TRANSFORM::_cyl2CartA, METH_VARARGS},
   {"_cyl2CartZ", K_TRANSFORM::_cyl2CartZ, METH_VARARGS},
   {"translate", K_TRANSFORM::translate, METH_VARARGS},
-  {"rotateA1", K_TRANSFORM::rotateA1, METH_VARARGS},
-  {"rotateA2", K_TRANSFORM::rotateA2, METH_VARARGS},
-  {"rotateA3", K_TRANSFORM::rotateA3, METH_VARARGS},
+  //{"rotateA1", K_TRANSFORM::rotateA1, METH_VARARGS},
+  //{"rotateA2", K_TRANSFORM::rotateA2, METH_VARARGS},
+  //{"rotateA3", K_TRANSFORM::rotateA3, METH_VARARGS},
+  {"_rotateA1", K_TRANSFORM::_rotateA1, METH_VARARGS},
+  {"_rotateA2", K_TRANSFORM::_rotateA2, METH_VARARGS},
+  {"_rotateA3", K_TRANSFORM::_rotateA3, METH_VARARGS},
   {"homothety", K_TRANSFORM::homothety, METH_VARARGS},
   {"contract", K_TRANSFORM::contract, METH_VARARGS},
   {"symetrize", K_TRANSFORM::symetrize, METH_VARARGS},
   {"perturbate", K_TRANSFORM::perturbate, METH_VARARGS},
   {"smooth", K_TRANSFORM::smooth, METH_VARARGS},
+  {"_smoothField", K_TRANSFORM::_smoothField, METH_VARARGS},
   {"deform", K_TRANSFORM::deform, METH_VARARGS},
   {"deform2", K_TRANSFORM::deform2, METH_VARARGS},
   {"deformPoint", K_TRANSFORM::deformPoint, METH_VARARGS},
@@ -51,6 +55,7 @@ static PyMethodDef PyTransform[] =
   {"projectOrthoSmooth", K_TRANSFORM::projectOrthoSmooth, METH_VARARGS},
   {"projectRay", K_TRANSFORM::projectRay, METH_VARARGS},
   {"projectSmoothDir", K_TRANSFORM::projectSmoothDir, METH_VARARGS},
+  {"_alignVectorFieldWithRadialCylindricProjection", K_TRANSFORM::_alignVectorFieldWithRadialCylindricProjection, METH_VARARGS},
   {"join", K_TRANSFORM::join, METH_VARARGS},
   {"joinBoth", K_TRANSFORM::joinBoth, METH_VARARGS},
   {"joinAll", K_TRANSFORM::joinAll, METH_VARARGS},
@@ -87,6 +92,7 @@ static PyMethodDef PyTransform[] =
   {"computeDeformationVector", K_TRANSFORM::computeDeformationVector, METH_VARARGS},
   {"breakElements", K_TRANSFORM::breakElements, METH_VARARGS},
   {"splitNGon", K_TRANSFORM::splitNGon, METH_VARARGS},
+  {"splitNGon2", K_TRANSFORM::splitNGon2, METH_VARARGS},
   {"splitElement", K_TRANSFORM::splitElement, METH_VARARGS},
   {"dualNGon", K_TRANSFORM::dualNGon, METH_VARARGS},
   {"flipEdges", K_TRANSFORM::flipEdges, METH_VARARGS},
@@ -95,15 +101,37 @@ static PyMethodDef PyTransform[] =
   {NULL, NULL}
 };
 
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "transform",
+        NULL,
+        -1,
+        PyTransform
+};
+#endif
+
 // ============================================================================
 /* Init of module */
 // ============================================================================
 extern "C"
 {
+#if PY_MAJOR_VERSION >= 3
+  PyMODINIT_FUNC PyInit_transform();
+  PyMODINIT_FUNC PyInit_transform()
+#else
   PyMODINIT_FUNC inittransform();
   PyMODINIT_FUNC inittransform()
+#endif
   {
-    Py_InitModule("transform", PyTransform);
     import_array();
+#if PY_MAJOR_VERSION >= 3
+    PyObject* module = PyModule_Create(&moduledef);
+#else
+    Py_InitModule("transform", PyTransform);
+#endif
+#if PY_MAJOR_VERSION >= 3
+    return module;
+#endif
   }
 }

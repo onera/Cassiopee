@@ -21,7 +21,7 @@ nodes = Internal.getNodesFromName(t, 'TurbulentDistance')
 dists = []
 for n in nodes:
     ni = n[1].shape[0]; nj = n[1].shape[1]; nk = n[1].shape[2]
-    a = numpy.reshape(n[1], (ni*nj*nk), order='Fortran')
+    a = numpy.reshape(n[1], (ni*nj*nk), order='F')
     a = numpy.reshape(a, (1,ni*nj*nk))
     array = ['walldistance', a, ni, nj, nk]
     array = Converter.initVars(array, 'wallglobalindex', 1)

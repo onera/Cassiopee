@@ -29,7 +29,7 @@ C._addState(t[2][1], 'EquationDimension',dimPb)
 t = X.connectNearMatch(t,2, dim=dimPb)
 t = Internal.addGhostCells(t,t,2,adaptBCs=1,fillCorner=1)
 test.testT(t,2)
-C.convertPyTree2File(t,"out.cgns")
+
 # geometrical extrapolation of corner cells
 t = C.newPyTree(['Base',a,a2])
 C._addState(t[2][1], 'EquationDimension',dimPb)

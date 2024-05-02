@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -87,8 +87,7 @@ PyObject* K_POST::computeVariables(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* vars0;
   E_Float gamma, rgp, s0, betas, Cs, mus, Ts;
-  if (!PYPARSETUPLEF(args,
-                    "OOddddddd", "OOfffffff",
+  if (!PYPARSETUPLE_(args, OO_ RRRR_ RRR_, 
                     &array, &vars0, &gamma, &rgp, &s0, &betas, &Cs, &mus, &Ts))
   {
       return NULL;
@@ -125,11 +124,7 @@ PyObject* K_POST::computeVariables(PyObject* self, PyObject* args)
     for (int i = 0; i < PyList_Size(vars0); i++)
     {
       PyObject* tpl0 = PyList_GetItem(vars0, i);
-      if (PyString_Check(tpl0) == 0)
-      {
-        printf("Warning: computeVariables: varname must be a string. Skipped...\n");
-      }
-      else 
+      if (PyString_Check(tpl0))
       {
         char* str = PyString_AsString(tpl0);
         char tmpVarString[K_ARRAY::VARSTRINGLENGTH];
@@ -140,16 +135,41 @@ PyObject* K_POST::computeVariables(PyObject* self, PyObject* args)
           else {strcat(varStringOut, ","); strcat(varStringOut, tmpVarString);}
         }
       }
+#if PY_VERSION_HEX >= 0x03000000
+      else if (PyUnicode_Check(tpl0)) 
+      {
+        char* str = (char*)PyUnicode_AsUTF8(tpl0);
+        char tmpVarString[K_ARRAY::VARSTRINGLENGTH];
+        short ok = checkAndExtractVariables(str, vars, tmpVarString);
+        if (ok != 0) 
+        {
+          if (varStringOut[0] == '\0') strcpy(varStringOut, tmpVarString);
+          else {strcat(varStringOut, ","); strcat(varStringOut, tmpVarString);}
+        }
+      }
+#endif
+      else  
+      {
+        printf("Warning: computeVariables: varname must be a string. Skipped...\n");
+      }
     }
   }
   else 
   {
-    if (PyString_Check(vars0) == 0) printf("Warning: computeVariables: varname must be a string. Skipped...\n");
-    else 
+    if (PyString_Check(vars0)) 
     {  
       char* str = PyString_AsString(vars0);
       checkAndExtractVariables(str, vars, varStringOut);
     }
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(vars0)) 
+    {
+      char* str = (char*)PyUnicode_AsUTF8(vars0);
+      checkAndExtractVariables(str, vars, varStringOut);
+    }
+#endif
+    else
+      printf("Warning: computeVariables: varname must be a string. Skipped...\n");
   }
   E_Int nvarout = vars.size();// variables a calculer
   if (nvarout == 0)
@@ -208,7 +228,7 @@ PyObject* K_POST::computeVariables(PyObject* self, PyObject* args)
   E_Int varsSize = vars.size();
   for (E_Int v = 0; v < varsSize; v++) delete [] vars[v];
 
-  if (ok == 0) //erreur de developpt
+  if (ok == 0) // erreur de developpt
   {
     PyErr_SetString(PyExc_TypeError,
                     "computeVariables: invalid string.\n");
@@ -238,7 +258,7 @@ PyObject* K_POST::computeVariables(PyObject* self, PyObject* args)
    aussi construite pour l'array de sortie 
    IN: vars0: chaine contenant les variables a extraire
    OUT: vars: vecteur contenant les variables a calculer
-   OUT: varStringOut: chaine de variables calculees pour l'array de sortie 
+   OUT: varStringOut: chaine de variables calculees pour l'array de sortie
    retourne 0 si aucune variable n a ete trouvee.
 */
 //-----------------------------------------------------------------------------

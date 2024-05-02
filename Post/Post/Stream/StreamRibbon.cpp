@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -54,9 +54,7 @@ PyObject* K_POST::compStreamRibbon(PyObject* self, PyObject* args)
   PyObject* vectorNames;
   E_Int nStreamPtsMax;
   E_Float signe;
-  if (!PYPARSETUPLE(args,
-                    "O(ddd)(ddd)Odl", "O(ddd)(ddd)Odi",
-                    "O(fff)(fff)Ofl", "O(fff)(fff)Ofi",
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ O_ R_ I_,
                     &arrays, &x0, &y0, &z0, &n0x, &n0y, &n0z, &vectorNames, &signe, &nStreamPtsMax))
   {
       return NULL;
@@ -88,16 +86,23 @@ PyObject* K_POST::compStreamRibbon(PyObject* self, PyObject* args)
   for (int i = 0; i < PyList_Size(vectorNames); i++)
   {
     PyObject* tpl0 = PyList_GetItem(vectorNames, i);
-    if (PyString_Check(tpl0) == 0)
+    if (PyString_Check(tpl0))
+    {
+      char* str = PyString_AsString(tpl0);
+      vnames.push_back(str);
+    }
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(tpl0)) 
+    {
+      char* str = (char*)PyUnicode_AsUTF8(tpl0);
+      vnames.push_back(str);
+    }
+#endif
+    else  
     {
       PyErr_SetString(PyExc_TypeError,
                       "streamRibbon: vector component name must be a string.");
       return NULL;
-    }
-    else 
-    {
-      char* str = PyString_AsString(tpl0);
-      vnames.push_back(str);
     }
   }
   // Extract infos from arrays
@@ -181,7 +186,7 @@ PyObject* K_POST::compStreamRibbon(PyObject* self, PyObject* args)
   E_Int nzonesU = unstrF.size();
   // InterpData structuree
   vector<E_Int> posxs1; vector<E_Int> posys1; vector<E_Int> poszs1; vector<E_Int> poscs1;
-  vector<K_INTERP::InterpAdt*> structInterpDatas1;
+  vector<K_INTERP::InterpData*> structInterpDatas1;
   vector<FldArrayF*> structF1;
   vector<E_Int> nis1; vector<E_Int> njs1; vector<E_Int> nks1;
   vector<char*> structVarStrings1;
@@ -209,7 +214,7 @@ PyObject* K_POST::compStreamRibbon(PyObject* self, PyObject* args)
   // InterpData non structuree
   vector<E_Int> posxu2; vector<E_Int> posyu2; vector<E_Int> poszu2; 
   vector<E_Int> poscu2;
-  vector<K_INTERP::InterpAdt*> unstrInterpDatas2;
+  vector<K_INTERP::InterpData*> unstrInterpDatas2;
   vector<FldArrayI*> cnt2;
   vector<FldArrayF*> unstrF2;
   vector<char*> unstrVarString2;
@@ -258,7 +263,7 @@ PyObject* K_POST::compStreamRibbon(PyObject* self, PyObject* args)
   vector<E_Int> poscs;
   vector<char*> structVarStrings;
   vector<FldArrayF*> structFields;
-  vector<K_INTERP::InterpAdt*> structInterpDatas;
+  vector<K_INTERP::InterpData*> structInterpDatas;
   // non structure
   vector<FldArrayF*> unstrVector;
   vector<E_Int> posxu; vector<E_Int> posyu; vector<E_Int> poszu; 
@@ -267,7 +272,7 @@ PyObject* K_POST::compStreamRibbon(PyObject* self, PyObject* args)
   vector<FldArrayF*> unstrFields;
   vector<FldArrayI*> connectu;
   vector<char*> eltTypes;
-  vector<K_INTERP::InterpAdt*> unstrInterpDatas;  
+  vector<K_INTERP::InterpData*> unstrInterpDatas;  
 
   // seuls sont pris en compte les fields ayant les variables du vecteur
   // ts les arrays traites doivent avoir le meme nb de champs
@@ -402,13 +407,13 @@ PyObject* K_POST::compStreamRibbon(PyObject* self, PyObject* args)
 E_Int K_POST::computeStreamRibbonElts(
   E_Float xp, E_Float yp, E_Float zp, 
   E_Float nxp, E_Float nyp, E_Float nzp,
-  vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+  vector<K_INTERP::InterpData*>& listOfStructInterpData, 
   vector<FldArrayF*>& listOfStructFields,
   vector<FldArrayF*>& listOfStructVelocities,
   vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks, 
   vector<E_Int>& posxs, vector<E_Int>& posys, vector<E_Int>& poszs, 
   vector<E_Int>& poscs,
-  vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+  vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
   vector<FldArrayF*>& listOfUnstrFields,
   vector<FldArrayF*>& listOfUnstrVelocities,
   vector<FldArrayI*>& connectu,
@@ -423,10 +428,10 @@ E_Int K_POST::computeStreamRibbonElts(
   E_Float dt;
   
   // Creation of interpolation data
-  K_INTERP::InterpAdt::InterpolationType interpType = K_INTERP::InterpAdt::O2CF;
+  K_INTERP::InterpData::InterpolationType interpType = K_INTERP::InterpData::O2CF;
   E_Int ns = listOfStructInterpData.size();
   E_Int nu = listOfUnstrInterpData.size();
-  vector<K_INTERP::InterpAdt*> allInterpDatas;
+  vector<K_INTERP::InterpData*> allInterpDatas;
   vector<FldArrayF*> allFields;
   vector<void*> allA1; vector<void*> allA2;
   vector<void*> allA3; vector<void*> allA4;
@@ -474,7 +479,8 @@ E_Int K_POST::computeStreamRibbonElts(
   if (listOfStructVelocities.size() == 0) { cf.malloc(4); indi.malloc(1); }
   else //ordre 2 structure
   {cf.malloc(8); indi.malloc(1);}
-  
+  FldArrayI tmpIndi(indi.getSize()); FldArrayF tmpCf(cf.getSize());
+
   // Calcul des premiers pts X0 et X0' et de dt, et du vecteur vitesse de X0
   // et des normales
   E_Int niter = 0;
@@ -509,7 +515,7 @@ E_Int K_POST::computeStreamRibbonElts(
     xp, yp, zp, allInterpDatas,
     allFields, allA1, allA2, allA3, allA4,
     posxt, posyt, poszt, posct, 
-    volp, indi, cf, type, noblkp, interpType);
+    volp, indi, cf, tmpIndi, tmpCf, type, noblkp, interpType);
 
   if ( found == 0 ) {printf("Warning: streamRibbon: initial point not interpolable.\n"); return 0;}
   // Recherche des points X(n+1), n > 0
@@ -614,22 +620,22 @@ short K_POST::compSecondPoint(
   const E_Int nopt,
   const E_Float xp, const E_Float yp, const E_Float zp,
   const E_Float nxp, const E_Float nyp, const E_Float nzp,
-  vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+  vector<K_INTERP::InterpData*>& listOfStructInterpData, 
   vector<FldArrayF*>& listOfStructFields,
   vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks,
   vector<E_Int>& posxs, vector<E_Int>& posys, 
   vector<E_Int>& poszs, vector<E_Int>& poscs,
-  vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+  vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
   vector<FldArrayF*>& listOfUnstrFields,
   vector<FldArrayI*>& connectu,
   vector<E_Int>& posxu, vector<E_Int>& posyu, 
   vector<E_Int>& poszu, vector<E_Int>& poscu,
   FldArrayF& streamPts2,  
-  K_INTERP::InterpAdt::InterpolationType interpType)
+  K_INTERP::InterpData::InterpolationType interpType)
 {
   E_Int ns = listOfStructInterpData.size();
   E_Int nu = listOfUnstrInterpData.size();
-  vector<K_INTERP::InterpAdt*> allInterpDatas;
+  vector<K_INTERP::InterpData*> allInterpDatas;
   vector<FldArrayF*> allFields;
   vector<void*> allA1; vector<void*> allA2;
   vector<void*> allA3; vector<void*> allA4;
@@ -679,6 +685,7 @@ short K_POST::compSecondPoint(
   if (listOfStructFields.size() == 0) { cf.malloc(4); indi.malloc(1); }
   else //ordre 2 structure
   { cf.malloc(8); indi.malloc(1); }
+  FldArrayI tmpIndi(indi.getSize()); FldArrayF tmpCf(cf.getSize());
 
   // pt 0: no du blk d'interpolation dans interpDatas: demarre a 1 
   E_Int type = 0; E_Int noblkp2 = 0; E_Float volp2 = 0.;
@@ -686,7 +693,7 @@ short K_POST::compSecondPoint(
     xp2, yp2, zp2, allInterpDatas,
     allFields, allA1, allA2, allA3, allA4,
     posxt, posyt, poszt, posct, 
-    volp2, indi, cf, type, noblkp2, interpType);
+    volp2, indi, cf, tmpIndi, tmpCf, type, noblkp2, interpType);
   
   if (found < 1) return 0;
 
@@ -707,13 +714,13 @@ short K_POST::compSecondPoint(
 //=============================================================================
 short K_POST::initStreamRibbon(
   E_Float xp, E_Float yp, E_Float zp,
-  vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+  vector<K_INTERP::InterpData*>& listOfStructInterpData, 
   vector<FldArrayF*>& listOfStructFields,
   vector<FldArrayF*>& listOfStructVelocities,
   vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks,
   vector<E_Int>& posxs, vector<E_Int>& posys, 
   vector<E_Int>& poszs, vector<E_Int>& poscs,
-  vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+  vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
   vector<FldArrayF*>& listOfUnstrFields,
   vector<FldArrayF*>& listOfUnstrVelocities,
   vector<FldArrayI*>& connectu,
@@ -723,7 +730,7 @@ short K_POST::initStreamRibbon(
   E_Float& nxp, E_Float& nyp, E_Float& nzp,
   FldArrayI& indi, FldArrayF& cf, 
   FldArrayF& streamPts1, FldArrayF& streamPts2, 
-  K_INTERP::InterpAdt::InterpolationType interpType)
+  K_INTERP::InterpData::InterpolationType interpType)
 {
   // Donnees pour l'appel de la methode computeStreamLineElts
   FldArrayI* connectSurf = NULL;
@@ -777,24 +784,24 @@ short K_POST::updateStreamRibbonPoints(
   E_Float& thetap,
   FldArrayI& indip, FldArrayF& cfp, E_Float& dt, 
   FldArrayF& streamPts1, FldArrayF& streamPts2,
-  vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+  vector<K_INTERP::InterpData*>& listOfStructInterpData, 
   vector<FldArrayF*>& listOfStructFields,
   vector<FldArrayF*>& listOfStructVelocities,
   vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks,
   vector<E_Int>& posxs, vector<E_Int>& posys, 
   vector<E_Int>& poszs, vector<E_Int>& poscs,
-  vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+  vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
   vector<FldArrayF*>& listOfUnstrFields,
   vector<FldArrayF*>& listOfUnstrVelocities,
   vector<FldArrayI*>& connectu,
   vector<E_Int>& posxu, vector<E_Int>& posyu, 
   vector<E_Int>& poszu, vector<E_Int>& poscu,
-  K_INTERP::InterpAdt::InterpolationType interpType,
+  K_INTERP::InterpData::InterpolationType interpType,
   E_Int& noblkn, E_Int& type)
 {
   E_Int ns = listOfStructInterpData.size();
   E_Int nu = listOfUnstrInterpData.size();
-  vector<K_INTERP::InterpAdt*> allInterpDatas;
+  vector<K_INTERP::InterpData*> allInterpDatas;
   vector<FldArrayF*> allFields;
   vector<void*> allA1; vector<void*> allA2;
   vector<void*> allA3; vector<void*> allA4;
@@ -840,6 +847,8 @@ short K_POST::updateStreamRibbonPoints(
   E_Float xn, yn, zn, thetan;
   FldArrayI indin(indip.getSize());
   FldArrayF cfn(cfp.getSize());
+  FldArrayI tmpIndin(indip.getSize()); FldArrayF tmpCfn(cfp.getSize());
+  
   E_Float nxn, nyn, nzn;
 
   noblkn = 0;
@@ -873,7 +882,7 @@ short K_POST::updateStreamRibbonPoints(
           xn, yn, zn, allInterpDatas,
           allFields, allA1, allA2, allA3, allA4,
           posxt, posyt, poszt, posct, 
-          voln, indin, cfn, type, noblkn, interpType);
+          voln, indin, cfn, tmpIndin, tmpCfn, type, noblkn, interpType);
         if (found < 1) dt = 0.5 * dt;
         else 
         {
@@ -953,23 +962,23 @@ short K_POST::compRungeKutta4ForRibbon(
   E_Float up, E_Float vp, E_Float wp, 
   FldArrayI& indip, FldArrayF& cfp,
   E_Float& dt, E_Float& xn, E_Float& yn, E_Float& zn, E_Float& thetan,
-  vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+  vector<K_INTERP::InterpData*>& listOfStructInterpData, 
   vector<FldArrayF*>& listOfStructFields,
   vector<FldArrayF*>& listOfStructVelocities,
   vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks,
   vector<E_Int>& posxs, vector<E_Int>& posys, 
   vector<E_Int>& poszs, vector<E_Int>& poscs,
-  vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+  vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
   vector<FldArrayF*>& listOfUnstrFields,
   vector<FldArrayF*>& listOfUnstrVelocities,
   vector<FldArrayI*>& connectu,
   vector<E_Int>& posxu, vector<E_Int>& posyu, 
   vector<E_Int>& poszu, vector<E_Int>& poscu,
-  K_INTERP::InterpAdt::InterpolationType interpType)
+  K_INTERP::InterpData::InterpolationType interpType)
 {
   E_Int ns = listOfStructInterpData.size();
   E_Int nu = listOfUnstrInterpData.size();
-  vector<K_INTERP::InterpAdt*> allInterpDatas;
+  vector<K_INTERP::InterpData*> allInterpDatas;
   vector<FldArrayF*> allFields;
   vector<void*> allA1; vector<void*> allA2;
   vector<void*> allA3; vector<void*> allA4;
@@ -1032,6 +1041,9 @@ short K_POST::compRungeKutta4ForRibbon(
   //Cellule d interpolation pour calculer Up2
   FldArrayI indi(indip.getSize());
   FldArrayF cf(cfp.getSize());
+  FldArrayI tmpIndi(indip.getSize());
+  FldArrayF tmpCf(cfp.getSize());
+  
   E_Float voli = 0.;
   E_Int type = 0;
   E_Int noblk = 0;
@@ -1040,7 +1052,7 @@ short K_POST::compRungeKutta4ForRibbon(
     xp2, yp2, zp2, allInterpDatas,
     allFields, allA1, allA2, allA3, allA4,
     posxt, posyt, poszt, posct, 
-    voli, indi, cf, type, noblk, interpType);
+    voli, indi, cf, tmpIndi, tmpCf, type, noblk, interpType);
    
   if (found < 1) return 0; // pas de pt d'interpolation trouve
   //Calcul de Up,2
@@ -1083,7 +1095,7 @@ short K_POST::compRungeKutta4ForRibbon(
   found = K_INTERP::getInterpolationCell( xp2, yp2, zp2, allInterpDatas,
                                           allFields, allA1, allA2, allA3, allA4,
                                           posxt, posyt, poszt, posct, 
-                                          voli, indi, cf, type, noblk, interpType);
+                                          voli, indi, cf, tmpIndi, tmpCf, type, noblk, interpType);
   if (found < 1) return 0; // pas de pt d'interpolation trouve
   
   // Calcul de Up3
@@ -1127,7 +1139,7 @@ short K_POST::compRungeKutta4ForRibbon(
     xp2, yp2, zp2, allInterpDatas,
     allFields, allA1, allA2, allA3, allA4,
     posxt, posyt, poszt, posct, 
-    voli, indi, cf, type, noblk, interpType);
+    voli, indi, cf, tmpIndi, tmpCf, type, noblk, interpType);
 
   if (found < 1) return 0;// pas de pt d'interpolation trouve
 
@@ -1194,7 +1206,7 @@ short K_POST::getThetaRKCoef(
   {
     if (type != 2 && type != 3 && type != 5)
     {
-      printf("Error: getThetaRKCoef: not a valid interptype: %d.\n", type);
+      printf("Error: getThetaRKCoef: not a valid interptype: " SF_D_ ".\n", type);
       exit(0);
     }
     FldArrayF* velo = listOfStructVelocities[noblk0];
@@ -1232,7 +1244,7 @@ short K_POST::getThetaRKCoef(
   {
     if (type != 4) 
     {
-      printf("Error: getThetaRKCoef: not a valid interp type: %d.\n", type);
+      printf("Error: getThetaRKCoef: not a valid interp type: " SF_D_ ".\n", type);
       exit(0);
     }
     noblk0 = noblk0-ns;// numero du bloc reel dans la liste des blocs non structures

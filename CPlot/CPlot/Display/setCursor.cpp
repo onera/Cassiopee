@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -23,7 +23,7 @@
 // cursor=0 (default), 1 (cross), 2 (wait)
 // Cette fonction doit etre appelee de CPlot et non de l'interface tkInter.
 //=============================================================================
-void Data::setCursor(int type)
+void Data::setCursor(E_Int type)
 {
   switch (type)
   {

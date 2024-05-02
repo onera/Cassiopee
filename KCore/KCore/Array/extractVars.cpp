@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -28,8 +28,7 @@ using namespace std;
 // IN: varString: de type "x,y,z,ro"
 // OUT: un vector <"x", "y", "z", "ro">
 //=============================================================================
-void K_ARRAY::extractVars(char* varString, 
-                          vector<char*>& vars)
+void K_ARRAY::extractVars(const char* varString, vector<char*>& vars)
 {
   E_Int l = strlen(varString);
   E_Int c = 0;

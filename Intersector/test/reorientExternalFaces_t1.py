@@ -7,6 +7,6 @@ import KCore.test as test
 
 a = G.cartHexa((0.,0.,0.), (0.1,0.1,0.2), (10,10,10))
 a = C.convertArray2NGon(a)
-a = XOR.reorientExternalFaces(a)
+a = XOR.reorient(a)
 
 test.testA(a,1)

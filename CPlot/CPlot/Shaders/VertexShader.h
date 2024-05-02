@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -26,10 +26,11 @@ namespace CPlot
   {
   public:
     VertexShader();
-    VertexShader(const VertexShader& shader);
+    VertexShader( const std::string& src );
+    VertexShader(const VertexShader& shader) = delete;
     virtual ~VertexShader();
 
-    const VertexShader& operator = (const VertexShader& obj);
+    const VertexShader& operator = (const VertexShader& obj) = delete;
 
   };
 }

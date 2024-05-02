@@ -16,12 +16,12 @@ moduleName = 'KCore'
 try:
     __import__(moduleName)
     if color:
-        print "\033[32m%s correctly installed.\033[0m"%moduleName
-    else: print "%s correctly installed."%moduleName
-except Exception, inst:
+        print("\033[32m%s correctly installed.\033[0m"%moduleName)
+    else: print("%s correctly installed."%moduleName)
+except Exception as inst:
     if color:
-        print "\033[31mFAILED: %s\033[0m"%inst
-        print "\033[31mFAILED: %s badly installed.\033[0m"%moduleName
+        print("\033[31mFAILED: %s\033[0m"%inst)
+        print("\033[31mFAILED: %s badly installed.\033[0m"%moduleName)
     else:
-        print "FAILED: %s"%inst
-        print "FAILED: %s badly installed."%moduleName
+        print("FAILED: %s"%inst)
+        print("FAILED: %s badly installed."%moduleName)

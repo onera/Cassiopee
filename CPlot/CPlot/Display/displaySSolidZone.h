@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -72,62 +72,63 @@
   glTexCoord3f(1,1,1);                                          \
   glVertex3d(x[n7], y[n7], z[n7]);                              \
   glTexCoord3f(0,1,1);                                          \
-  glVertex3d(x[n8], y[n8], z[n8]);                                \
+  glVertex3d(x[n8], y[n8], z[n8]);                              \
   glTexCoord3f(0,0,0);                                          \
-  glVertex3d(x[n1], y[n1], z[n1]);                            \
-  glTexCoord3f(1,0,0);                                     \
-  glVertex3d(x[n2], y[n2], z[n2]);                        \
-  glTexCoord3f(1,0,1);                                     \
-  glVertex3d(x[n6], y[n6], z[n6]);                        \
-  glTexCoord3f(0,0,1);                                     \
-  glVertex3d(x[n5], y[n5], z[n5]);                             \
+  glVertex3d(x[n1], y[n1], z[n1]);                              \
+  glTexCoord3f(1,0,0);                                          \
+  glVertex3d(x[n2], y[n2], z[n2]);                              \
+  glTexCoord3f(1,0,1);                                          \
+  glVertex3d(x[n6], y[n6], z[n6]);                              \
+  glTexCoord3f(0,0,1);                                          \
+  glVertex3d(x[n5], y[n5], z[n5]);                              \
   glTexCoord3f(0,1,0);                                          \
-  glVertex3d(x[n4], y[n4], z[n4]);                            \
-  glTexCoord3f(0,1,1);                                     \
-  glVertex3d(x[n8], y[n8], z[n8]);                        \
-  glTexCoord3f(1,1,1);                                     \
-  glVertex3d(x[n7], y[n7], z[n7]);                        \
-  glTexCoord3f(1,1,0);                                     \
-  glVertex3d(x[n3], y[n3], z[n3]); \
+  glVertex3d(x[n4], y[n4], z[n4]);                              \
+  glTexCoord3f(0,1,1);                                          \
+  glVertex3d(x[n8], y[n8], z[n8]);                              \
+  glTexCoord3f(1,1,1);                                          \
+  glVertex3d(x[n7], y[n7], z[n7]);                              \
+  glTexCoord3f(1,1,0);                                          \
+  glVertex3d(x[n3], y[n3], z[n3]);                              \
   glTexCoord3f(0,0,0);                                          \
-  glVertex3d(x[n1], y[n1], z[n1]);                            \
-  glTexCoord3f(0,0,1);                                     \
-  glVertex3d(x[n5], y[n5], z[n5]);                        \
-  glTexCoord3f(0,1,1);                                     \
-  glVertex3d(x[n8], y[n8], z[n8]);                        \
-  glTexCoord3f(0,1,0);                                     \
-  glVertex3d(x[n4], y[n4], z[n4]);                            \
-  glTexCoord3f(1,0,0);                                        \
-  glVertex3d(x[n2], y[n2], z[n2]);                            \
-  glTexCoord3f(1,1,0);                                     \
-  glVertex3d(x[n3], y[n3], z[n3]);                        \
-  glTexCoord3f(1,1,1);                                     \
-  glVertex3d(x[n7], y[n7], z[n7]);                        \
-  glTexCoord3f(1,0,1);                                     \
+  glVertex3d(x[n1], y[n1], z[n1]);                              \
+  glTexCoord3f(0,0,1);                                          \
+  glVertex3d(x[n5], y[n5], z[n5]);                              \
+  glTexCoord3f(0,1,1);                                          \
+  glVertex3d(x[n8], y[n8], z[n8]);                              \
+  glTexCoord3f(0,1,0);                                          \
+  glVertex3d(x[n4], y[n4], z[n4]);                              \
+  glTexCoord3f(1,0,0);                                          \
+  glVertex3d(x[n2], y[n2], z[n2]);                              \
+  glTexCoord3f(1,1,0);                                          \
+  glVertex3d(x[n3], y[n3], z[n3]);                              \
+  glTexCoord3f(1,1,1);                                          \
+  glVertex3d(x[n7], y[n7], z[n7]);                              \
+  glTexCoord3f(1,0,1);                                          \
   glVertex3d(x[n6], y[n6], z[n6]);
 
   // Grid dimensions
-  int ni = zonep->ni;
-  int nj = zonep->nj;
-  int nk = zonep->nk;
-  int n1s, n2s, n3s, n4s;
+  E_Int ni = zonep->ni;
+  E_Int nj = zonep->nj;
+  E_Int nk = zonep->nk;
+  E_Int n1s, n2s, n3s, n4s;
   if (ptrState->dim == 2) nk = 1;
-  int nij = ni*nj;
-  int nistepj = ni*stepj;
-  int nijstepk = nij*stepk;
+  E_Int nij = ni*nj;
+  E_Int nistepj = ni*stepj;
+  E_Int nijstepk = nij*stepk;
   
-  int nim = MIN(ni, 2);
-  int njm = MIN(nj, 2);
-  int nkm = MIN(nk, 2);
-  int nbElti = nj*nk*nim;
-  int nbEltj = ni*nk*njm;
-  int nbEltk = ni*nj*nkm;
+  E_Int nim = MIN(ni, E_Int(2));
+  E_Int njm = MIN(nj, E_Int(2));
+  E_Int nkm = MIN(nk, E_Int(2));
+  E_Int nbElti = nj*nk*nim;
+  E_Int nbEltj = ni*nk*njm;
+  E_Int nbEltk = ni*nj*nkm;
 
   double* x = zonep->x;
   double* y = zonep->y;
   double* z = zonep->z;
 
-  float* surfx = zonep->surf;
+  float* surfp = zonep->surf[0];
+  float* surfx = surfp;
   float* surfy = surfx + nbElti;
   float* surfz = surfy + nbElti;
   
@@ -207,7 +208,7 @@
       }
     }
     
-    surfx = zonep->surf + 3*nbElti;
+    surfx = surfp + 3*nbElti;
     surfy = surfx + nbEltj;
     surfz = surfy + nbEltj;
   
@@ -274,7 +275,7 @@
       }
     }
    
-    surfx = zonep->surf + 3*nbElti + 3*nbEltj;
+    surfx = surfp + 3*nbElti + 3*nbEltj;
     surfy = surfx + nbEltk;
     surfz = surfy + nbEltk;
 
@@ -403,7 +404,7 @@
       }
     }
   
-    surfx = zonep->surf + 3*nbElti;
+    surfx = surfp + 3*nbElti;
     surfy = surfx + nbEltj;
     surfz = surfy + nbEltj;
     
@@ -464,7 +465,7 @@
       }
     }
   
-    surfx = zonep->surf + 3*nbElti + 3*nbEltj;
+    surfx = surfp + 3*nbElti + 3*nbEltj;
     surfy = surfx + nbEltk;
     surfz = surfy + nbEltk;
 
@@ -532,7 +533,7 @@
   {
     glPolygonOffset(-1.,-10.); // force offset
     glBegin(GL_LINES);
-    int nie, nje, nke;
+    E_Int nie, nje, nke;
     nie = ni; nje = nj; nke = nk;
     if (ni*nj == 1) nke = nke-1;
     if (ni*nk == 1) nje = nje-1;

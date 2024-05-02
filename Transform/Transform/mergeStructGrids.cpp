@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -20,8 +20,8 @@
 # include "transform.h"
 # include <list>
 # include <stdlib.h>
-# include "Search/KdTree.h"
-# include "Fld/ArrayAccessor.h"
+# include "Nuga/include/KdTree.h"
+# include "Nuga/include/ArrayAccessor.h"
 
 using namespace std;
 using namespace K_FLD;
@@ -145,9 +145,7 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
   PyObject *arrays, *arraysc;
   E_Int sizeMax;
 
-  if (!PYPARSETUPLE(args,
-                    "OOlldd", "OOiidd",
-                    "OOllff", "OOiiff",
+  if (!PYPARSETUPLE_(args, OO_ II_ RR_,
                     &arrays, &arraysc, &sizeMax, &dircons, &tol, &alphaRef))
   {
       return NULL;
@@ -426,7 +424,7 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
                              pos1, pos2, posc1, posc2,
                              *mergedField, nio, njo, nko, 
                              *mergedFieldc, nioc, njoc, nkoc, tol); 
-    if (res!=0)
+    if (res != 0)
     {
       if (dircons == 1 && gradeMin == -10000) 
       {

@@ -1,5 +1,4 @@
 """Module of procedural models.
 """
-__version__ = '2.7'
-__author__ = "Christophe Benoit, Luis Barrera"
-
+__version__ = '4.0'
+__author__ = "Christophe Benoit, Luis Barrera, Alexis Dorange"

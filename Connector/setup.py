@@ -1,6 +1,6 @@
-#!/usr/bin/env python
 from distutils.core import setup, Extension
-import os, sys
+#from setuptools import setup, Extension
+import os
 
 #=============================================================================
 # Connector requires:
@@ -20,47 +20,43 @@ Dist.writeSetupCfg()
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
-# Compilation des fortrans ===================================================
 from KCore.config import *
-if (f77compiler == "None"):
-    print "Error: a fortran 77 compiler is required for compiling Connector."
-    sys.exit()
-args = Dist.getForArgs(); opt = ''
-for c in xrange(len(args)):
-    opt += 'FOPT'+str(c)+'='+args[c]+' '
-os.system("make -e FC="+f77compiler+" WDIR=Connector/Fortran "+opt)
+
+# Compilation des fortrans ===================================================
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ["build/"+prod, kcoreLibDir]
-libraries = ["ConnectorF", "kcore"]
+libraries = ["connector", "kcore"]
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
+includeDirs = [numpyIncDir, kcoreIncDir]
+ADDITIONALCPPFLAGS=[]
 
 # setup =======================================================================
-import srcs
 listExtensions = []
 listExtensions.append(
     Extension('Connector.connector',
-              sources=['Connector/connector.cpp']+srcs.cpp_srcs,
-              include_dirs=["Connector", "Connector/CMP/include"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
+              sources=['Connector/connector.cpp'],
+              include_dirs=["Connector"]+additionalIncludePaths+includeDirs,
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
-              extra_compile_args=Dist.getCppArgs(),
+              extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
               extra_link_args=Dist.getLinkArgs()
               ) )
 
 # setup ======================================================================
 setup(
     name="Connector",
-    version="2.7",
+    version="4.0",
     description="Connector for *Cassiopee* modules.",
-    author="Onera",
-    package_dir={"":"."},
+    author="ONERA",
+    url="https://cassiopee.onera.fr",
     packages=['Connector'],
+    package_dir={"":"."},
     ext_modules=listExtensions)
 
 # Check PYTHONPATH ===========================================================

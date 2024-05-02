@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -20,14 +20,12 @@
 
 //=============================================================================
 /* 
-   Display structured meshes (mode SOLID et mode RENDER). 
-   Display all planes or only one i, one j and one k plane.
-   This surface mesh is plotted with plane quads.
+   Display billboards.
 */
 //=============================================================================
 void Data::displayAllBillBoards()
 {
-  int zone;
+  E_Int zone;
 
   // Enable blending
   glEnable(GL_BLEND);

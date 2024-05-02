@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -29,12 +29,12 @@
   - offb=0 (couleur de selection)
 */
 //=============================================================================
-void DataDL::createGPUUIsoSolidZone(UnstructZone* zonep, int zone, int zonet, 
-				    int nofield)
+void DataDL::createGPUUIsoSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet, 
+				    E_Int nofield)
 {  
-  int i, n1, n2, n3, n4;
+  E_Int i, n1, n2, n3, n4;
   float r, g, b, offb;
-  int ret1, ret2, ret3, ret4, ff;
+  E_Int ret1, ret2, ret3, ret4, ff;
   offb = 0.;
   ZoneImplDL* zImpl = static_cast<ZoneImplDL*>(zonep->ptr_impl);
 
@@ -53,12 +53,12 @@ void DataDL::createGPUUIsoSolidZone(UnstructZone* zonep, int zone, int zonet,
   - offb=0 (couleur de selection)
 */
 //=============================================================================
-void DataDL::createGPUUIsoSolidZone(UnstructZone* zonep, int zone, int zonet, 
-				    int nofield1, int nofield2, int nofield3)
+void DataDL::createGPUUIsoSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet, 
+				    E_Int nofield1, E_Int nofield2, E_Int nofield3)
 {  
-  int i, n1, n2, n3, n4;
+  E_Int i, n1, n2, n3, n4;
   float r, g, b, offb;
-  int ret1, ret2, ret3, ret4, ff;
+  E_Int ret1, ret2, ret3, ret4, ff;
   offb = 0.;
 
   ZoneImplDL* zImpl = static_cast<ZoneImplDL*>(zonep->ptr_impl);
@@ -69,6 +69,16 @@ void DataDL::createGPUUIsoSolidZone(UnstructZone* zonep, int zone, int zonet,
 #undef PLOTQUAD
 #undef PLOTQUAD2
 #undef PLOTNGON
+  double* f1 = zonep->f[nofield1];
+  double* f2 = zonep->f[nofield2];
+  double* f3 = zonep->f[nofield3];
+  double fmin1, fmax1, fmin2, fmax2, fmin3, fmax3;
+  fmax1 = maxf[nofield1]; fmin1 = minf[nofield1];
+  fmax2 = maxf[nofield2]; fmin2 = minf[nofield2];
+  fmax3 = maxf[nofield3]; fmin3 = minf[nofield3];
+#define GL_QUADS_ARE GL_TRIANGLES
+#define PLOTQUAD PLOTQUADT
+#define PLOTQUAD2 PLOTQUADT2
 #include "displayUVectSolidZone.h"
   glEndList();
 }

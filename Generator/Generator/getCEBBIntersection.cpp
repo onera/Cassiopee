@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -30,10 +30,7 @@ PyObject* K_GENERATOR::getCEBBIntersectionOfArrays(PyObject* self, PyObject* arg
   PyObject* array1;
   PyObject* array2;
   E_Float tol;
-  if ( !PyArg_ParseTuple(args, "OOd", &array1, &array2, &tol ) )
-  {
-    return NULL;
-  }
+  if (!PYPARSETUPLE_(args, OO_ R_, &array1, &array2, &tol)) return NULL;
 
   // Check array1
   E_Int ni1, nj1, nk1;
@@ -81,11 +78,7 @@ PyObject* K_GENERATOR::getCEBBIntersectionOfArrays(PyObject* self, PyObject* arg
       ni2, nj2, nk2, posx2, posy2, posz2, *f2, tol);
 
     RELEASESHAREDS(array1, f1); RELEASESHAREDS(array2, f2);
-#ifdef E_DOUBLEINT
-    return Py_BuildValue("l", long(isIntersect));
-#else
-    return Py_BuildValue("i", isIntersect);
-#endif
+    return Py_BuildValue(I_, isIntersect);
   }
   else if (res1 == 2 || res2 == 2)
   {

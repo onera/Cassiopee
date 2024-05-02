@@ -1,4 +1,116 @@
 ===============================================================================
+Generator 3.7 [10/2023]
+Requires: C++ compiler, f77 compiler, python > 2.7, numpy > 1.0, KCore 3.7
+Optional: pyTree interface requires Converter 3.7
+Optional: bbox requires Converter 3.7
+Optional: addNormalLayers, gencartmb, map require Converter, Transform 3.7
+Optional: stitchedHat requires Transform 3.7
+Optional: mapSplit requires Converter, Transform, Geom 3.7
+- checkMesh: check mesh quality
+- getAngleRegularityMap
+===============================================================================
+Generator 3.6 [03/2023]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.6
+Optional: pyTree interface requires Converter 3.6
+Optional: bbox requires Converter 3.6
+Optional: addNormalLayers, gencartmb, map require Converter, Transform 3.6
+Optional: stitchedHat requires Transform 3.6
+Optional: mapSplit requires Converter, Transform, Geom 3.6
+===============================================================================
+Generator 3.5 [12/2022]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.5
+Optional: pyTree interface requires Converter 3.5
+Optional: bbox requires Converter 3.5
+Optional: addNormalLayers, gencartmb, map require Converter, Transform 3.5
+Optional: stitchedHat requires Transform 3.5
+Optional: mapSplit requires Converter, Transform, Geom 3.5
+===============================================================================
+Generator 3.4 [07/2022]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.4
+Optional: pyTree interface requires Converter 3.4
+Optional: bbox requires Converter 3.4
+Optional: addNormalLayers, gencartmb, map require Converter, Transform 3.4
+Optional: stitchedHat requires Transform 3.4
+Optional: mapSplit requires Converter, Transform, Geom 3.4
+- G.cartRx : cartesian grids in parallel
+- G.cartRx3: cartesian and geometric grids in parallel
+- cartr1 : geometric cartesian grid
+- cartr2 : geometric cartesian grid
+===============================================================================
+Generator 3.3 [10/2021]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.3
+Optional: pyTree interface requires Converter 3.3
+Optional: bbox requires Converter 3.3
+Optional: addNormalLayers, gencartmb, map require Converter, Transform 3.3
+Optional: stitchedHat requires Transform 3.3
+Optional: mapSplit requires Converter, Transform, Geom 3.3
+===============================================================================
+Generator 3.2 [02/2021]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.2
+Optional: pyTree interface requires Converter 3.2
+Optional: bbox requires Converter 3.2
+Optional: addNormalLayers, gencartmb, map require Converter, Transform 3.2
+Optional: stitchedHat requires Transform 3.2
+Optional: mapSplit requires Converter, Transform, Geom 3.2
+===============================================================================
+Generator 3.1 [06/2020]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.1
+Optional: pyTree interface requires Converter 3.1
+Optional: bbox requires Converter 3.1
+Optional: addNormalLayers, gencartmb, map require Converter, Transform 3.1
+Optional: stitchedHat requires Transform 3.1
+Optional: mapSplit requires Converter, Transform, Geom 3.1
+- interface to MMGs surface remesher
+===============================================================================
+Generator 3.0 [12/2019]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.0
+Optional: pyTree interface requires Converter 2.9
+Optional: bbox requires Converter 2.9
+Optional: addNormalLayers, gencartmb, map require Converter, Transform 3.0
+Optional: stitchedHat requires Transform 2.9
+Optional: mapSplit requires Converter, Transform, Geom 3.0
+===============================================================================
+Generator 2.9 [06/2019]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.9
+Optional: pyTree interface requires Converter 2.9
+Optional: bbox requires Converter 2.9
+Optional: addNormalLayers, gencartmb, map require Converter, Transform 2.9
+Optional: stitchedHat requires Transform 2.9
+Optional: mapSplit requires Converter, Transform, Geom 2.9
+===============================================================================
+Generator 2.8 [12/2018]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.8
+Optional: pyTree interface requires Converter 2.8
+Optional: bbox requires Converter 2.8
+Optional: addNormalLayers, gencartmb, map require Converter, Transform 2.8
+Optional: stitchedHat requires Transform 2.8
+Optional: mapSplit requires Converter, Transform, Geom 2.8
+- Generator: T3Mesher2D: 2 nouvelles options pour contr�ler la gradation du maillage.
+===============================================================================
+Generator 2.7 [07/2018]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.7
+Optional: pyTree interface requires Converter 2.7
+Optional: bbox requires Converter 2.7
+Optional: addNormalLayers, gencartmb, map require Converter, Transform 2.7
+Optional: stitchedHat requires Transform 2.7
+Optional: mapSplit requires Converter, Transform, Geom 2.7
+===============================================================================
+Generator 2.6 [03/2018]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.6
+Optional: pyTree interface requires Converter 2.6
+Optional: bbox requires Converter 2.6
+Optional: addNormalLayers, gencartmb, map require Converter, Transform 2.6
+Optional: stitchedHat requires Transform 2.6
+Optional: mapSplit requires Converter, Transform, Geom 2.6
+===============================================================================
+Generator 2.5 [20/09/2017]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.5
+Optional: pyTree interface requires Converter 2.5
+Optional: bbox requires Converter 2.5
+Optional: addNormalLayers, gencartmb, map require Converter, Transform 2.5
+Optional: stitchedHat requires Transform 2.5
+Optional: mapSplit requires Converter, Transform, Geom 2.5
+===============================================================================
 Generator 2.4 [29/03/2017]
 Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.4
 Optional: pyTree interface requires Converter 2.4

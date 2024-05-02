@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -28,7 +28,7 @@ PyObject* K_CONVERTER::rmGhostCellsNGonNodes(PyObject* self, PyObject* args)
 {
   PyObject *arrayN;
   E_Int depth;
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arrayN, &depth)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &arrayN, &depth)) return NULL;
 
   if (depth < 1) 
   {
@@ -43,7 +43,7 @@ PyObject* K_CONVERTER::rmGhostCellsNGonNodes(PyObject* self, PyObject* args)
                                     cn, eltType, true);
   if (res != 2)
   {
-    if ( res == 1) RELEASESHAREDS(arrayN,f);
+    if (res == 1) RELEASESHAREDS(arrayN, f);
     PyErr_SetString(PyExc_TypeError, 
                     "rmGhostCells: array is invalid.");
     return NULL;
@@ -158,7 +158,7 @@ PyObject* K_CONVERTER::rmGhostCellsNGonCenters(PyObject* self, PyObject* args)
 {
   PyObject *arrayC;
   E_Int depth;
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &arrayC, &depth)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &arrayC, &depth)) return NULL;
 
   if (depth < 1) 
   {
@@ -299,7 +299,7 @@ PyObject* K_CONVERTER::rmGhostCellsNGonBoth(PyObject* self, PyObject* args)
 {
   PyObject *arrayN, *arrayC;
   E_Int depth;
-  if (!PYPARSETUPLEI(args, "OOl", "OOi", &arrayN, &arrayC, &depth)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ I_, &arrayN, &arrayC, &depth)) return NULL;
 
   if (depth < 1) 
   {
@@ -314,7 +314,7 @@ PyObject* K_CONVERTER::rmGhostCellsNGonBoth(PyObject* self, PyObject* args)
                                     cn, eltType, true);
   if (res != 2)
   {
-    if ( res == 1) RELEASESHAREDS(arrayN,f);
+    if (res == 1) RELEASESHAREDS(arrayN,f);
     PyErr_SetString(PyExc_TypeError, 
                     "rmGhostCells: array is invalid.");
     return NULL;
@@ -373,14 +373,14 @@ PyObject* K_CONVERTER::rmGhostCellsNGonBoth(PyObject* self, PyObject* args)
     {
       face = ptr[n]-1; 
       e1 = cFE1[face]; e2 = cFE2[face];
-      if (e1 == 0 && e2 > 0 )  tag[i] = 1;
+      if (e1 == 0 && e2 > 0)  tag[i] = 1;
       else if (e1 > 0 && e2 == 0) tag[i] = 1;
     }
     ptr += nfe+1;
   }
 
 
-  if ( depth > 1)
+  if (depth > 1)
   {
     vector < vector<E_Int> > cEEN(ne);
     K_CONNECT::connectFE2EENbrs(cFE, cEEN);  
@@ -397,7 +397,7 @@ PyObject* K_CONVERTER::rmGhostCellsNGonBoth(PyObject* self, PyObject* args)
           for (E_Int ng = 0; ng < sizengbrs; ng++)
           {
             indv = ngbrs[ng];
-            if ( tag[indv] == 0) tag[indv] = d;
+            if (tag[indv] == 0) tag[indv] = d;
           }
         }
         ptr += nfe+1;

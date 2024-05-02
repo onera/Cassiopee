@@ -1,5 +1,6 @@
 # - tkRenderSet -
-import Tkinter as TK
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Converter.Internal as Internal
@@ -10,14 +11,17 @@ import CPlot.iconics as iconics
 
 # local widgets list
 WIDGETS = {}; VARS = []
+# Supprime: light, smoke
 MATERIALS = ['Solid', 'Flat', 'Glass', 'Chrome',
              'Metal', 'Wood', 'Marble', 'Granite', 'Brick', 'XRay',
-             'Cloud', 'Gooch', 'Smoke', 'Sphere', 'Light']
+             'Cloud', 'Gooch', 'Sphere', 'Texmat']
+             
 #==============================================================================
 # Appele quand une couleur est selectionnee (optionMenu)
 def setColorVar(l):
     if l == 'Custom>':
-        import tkColorChooser
+        try: import tkinter.colorchooser as tkColorChooser
+        except: import tkColorChooser 
         ret = tkColorChooser.askcolor()
         l = ret[1]
     VARS[1].set(l)
@@ -27,58 +31,51 @@ def setColorVar(l):
 def setColorVar2(event=None):
     l = VARS[1].get()
     if l == 'Custom>':
-        import tkColorChooser
+        try: import tkinter.colorchooser as tkColorChooser
+        except: import tkColorChooser 
         ret = tkColorChooser.askcolor()
         l = ret[1]
         VARS[1].set(l)
 
 #==============================================================================
-# Cree la liste des variables dans l'arbre (optionMenu)
+# Cree la liste des couleurs + variables (optionMenu)
 #==============================================================================
 def updateVarNameList(event=None):
     if CTK.t == []: return
-    nzs = CPlot.getSelectedZones()
-    if (CTK.__MAINTREE__ <= 0 or nzs == []):
-        vars = C.getVarNames(CTK.t, excludeXYZ=True)
+    if CTK.__MAINTREE__ <= 0:
+        zvars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
     else:
-        nob = CTK.Nb[0]+1
-        noz = CTK.Nz[0]
-        vars = C.getVarNames(CTK.t[2][nob][2][noz], excludeXYZ=True)
+        zvars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
     m = WIDGETS['colors'].children['menu']
     m.delete(0, TK.END)
     allvars = ['White', 'Black', 'Grey', 'Blue', 'Red', 'Green', 'Yellow',
                'Orange', 'Brown', 'Magenta', 'Custom>']
-    if len(vars) > 0:
-        for v in vars[0]: allvars.append('Iso:'+v)
+    if len(zvars) > 0:
+        for v in zvars[0]: allvars.append('Iso:'+v)
     for i in allvars:
-        #m.add_command(label=i, command=lambda v=VARS[1],l=i:v.set(l))
         m.add_command(label=i, command=lambda v=VARS[1],l=i:setColorVar(l))
 
 #==============================================================================
-# Cree la liste des variables dans l'arbre (combobox)
+# Cree la liste des couleurs + variables (combobox)
 #==============================================================================
 def updateVarNameList2(event=None):
     if CTK.t == []: return
-    nzs = CPlot.getSelectedZones()
-    if (CTK.__MAINTREE__ <= 0 or nzs == []):
-        vars = C.getVarNames(CTK.t, excludeXYZ=True)
+    if CTK.__MAINTREE__ <= 0:
+        zvars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
     else:
-        nob = CTK.Nb[0]+1
-        noz = CTK.Nz[0]
-        vars = C.getVarNames(CTK.t[2][nob][2][noz], excludeXYZ=True)
-    
+        zvars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
     allvars = ['White', 'Black', 'Grey', 'Blue', 'Red', 'Green', 'Yellow',
                'Orange', 'Brown', 'Magenta', 'Custom>']
-    if len(vars) > 0:
-        for v in vars[0]: allvars.append('Iso:'+v)
+    if len(zvars) > 0:
+        for v in zvars[0]: allvars.append('Iso:'+v)
 
-    if WIDGETS.has_key('colors'):
+    if 'colors' in WIDGETS:
         WIDGETS['colors']['values'] = allvars
 
 #==============================================================================
 def setMaterial():
     if CTK.t == []: return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     material = VARS[0].get()
@@ -164,7 +161,8 @@ def setBlending(event=None):
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     CTK.saveTree()
-    
+    VARS[6].set('Blending [%.2f]'%(WIDGETS['blending'].get() / 100.))
+
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
@@ -226,8 +224,8 @@ def setShaderParameter(event=None):
     CPlot.render()
 
 #==============================================================================
-def setBlending(event=None):
-    VARS[6].set('Blending [%.2f]'%(WIDGETS['blending'].get() / 100.))
+#def setBlending(event=None):
+#    VARS[6].set('Blending [%.2f]'%(WIDGETS['blending'].get() / 100.))
 
 #==============================================================================
 def getData():
@@ -273,9 +271,10 @@ def createApp(win):
 
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkRenderSet', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Customize block rendering\n(render mode).\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkRenderSet  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Customize block rendering\n(render mode).\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -283,8 +282,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkRenderSet')
     WIDGETS['frameMenu'] = FrameMenu
 
@@ -379,13 +378,17 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['RenderNoteBook'].add(WIDGETS['frame'], text='tkRenderSet')
+    except: pass
+    CTK.WIDGETS['RenderNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['RenderNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -397,9 +400,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
 
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

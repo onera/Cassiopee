@@ -1,0 +1,4 @@
+[coverage:run]
+parallel = true
+source = @PROJECT_NAME@
+data_file = .coverage_@label@

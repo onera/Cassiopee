@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -34,7 +34,7 @@ using namespace std;
 PyObject* K_GENERATOR::obboxIntersection(PyObject* self, PyObject* args)
 {
   PyObject* array1; PyObject* array2;
-  if (!PyArg_ParseTuple(args, "OO", &array1, &array2)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array1, &array2)) return NULL;
 
   // Check array1
   E_Int ni1, nj1, nk1;
@@ -291,11 +291,7 @@ PyObject* K_GENERATOR::obboxIntersection(PyObject* self, PyObject* args)
   RELEASESHAREDB(res1, array1, f1, cn1); 
   RELEASESHAREDB(res2, array2, f2, cn2); 
 
-#ifdef E_DOUBLEINT
-    return Py_BuildValue("l", long(isIntersect));
-#else
-    return Py_BuildValue("i", isIntersect);
-#endif
+  return Py_BuildValue(I_, isIntersect);
 }
 
 //===========================================================================
@@ -306,8 +302,9 @@ PyObject* K_GENERATOR::_obboxIntersectionZ(PyObject* self, PyObject* args)
 {
   char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
   PyObject* zone1; PyObject* zone2;
-  if (!PyArg_ParseTuple(args, "OOsss", &zone1, &zone2,
-                        &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ SSS_,
+                    &zone1, &zone2, &GridCoordinates,  &FlowSolutionNodes,
+                    &FlowSolutionCenters)) return NULL;
 
   // Checks coordinates of zone 1
   vector<PyArrayObject*> hook1;
@@ -553,11 +550,7 @@ PyObject* K_GENERATOR::_obboxIntersectionZ(PyObject* self, PyObject* args)
   RELEASESHAREDZ(hook1, (char*)NULL, (char*)NULL);
   RELEASESHAREDZ(hook2, (char*)NULL, (char*)NULL);
 
-#ifdef E_DOUBLEINT
-    return Py_BuildValue("l", long(isIntersect));
-#else
-    return Py_BuildValue("i", isIntersect);
-#endif
+  return Py_BuildValue(I_, isIntersect);
 }
 
 //===========================================================================
@@ -568,7 +561,7 @@ PyObject* K_GENERATOR::_obboxIntersectionZ(PyObject* self, PyObject* args)
 PyObject* K_GENERATOR::crossIntersection(PyObject* self, PyObject* args)
 {
   PyObject* array1; PyObject* array2;
-  if (!PyArg_ParseTuple(args, "OO", &array1, &array2)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array1, &array2)) return NULL;
 
   // Check array1
   E_Int ni1, nj1, nk1;
@@ -797,11 +790,7 @@ PyObject* K_GENERATOR::crossIntersection(PyObject* self, PyObject* args)
   RELEASESHAREDB(res1, array1, f1, cn1); 
   RELEASESHAREDB(res2, array2, f2, cn2); 
 
-#ifdef E_DOUBLEINT
-    return Py_BuildValue("l", long(isIntersect));
-#else
-    return Py_BuildValue("i", isIntersect);
-#endif
+  return Py_BuildValue(I_, isIntersect);
 }
 
 //===========================================================================
@@ -813,8 +802,9 @@ PyObject* K_GENERATOR::_crossIntersectionZ(PyObject* self, PyObject* args)
 {
   char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
   PyObject* zone1; PyObject* zone2;
-  if (!PyArg_ParseTuple(args, "OOsss", &zone1, &zone2,
-                        &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ SSS_,
+                    &zone1, &zone2, &GridCoordinates,  &FlowSolutionNodes,
+                    &FlowSolutionCenters)) return NULL;
 
   // Checks coordinates of zone 1
   vector<PyArrayObject*> hook1;
@@ -1035,9 +1025,5 @@ PyObject* K_GENERATOR::_crossIntersectionZ(PyObject* self, PyObject* args)
   RELEASESHAREDZ(hook1, (char*)NULL, (char*)NULL);
   RELEASESHAREDZ(hook2, (char*)NULL, (char*)NULL);
 
-#ifdef E_DOUBLEINT
-    return Py_BuildValue("l", long(isIntersect));
-#else
-    return Py_BuildValue("i", isIntersect);
-#endif
+  return Py_BuildValue(I_, isIntersect);
 }

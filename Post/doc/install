@@ -1,6 +1,5 @@
-#!/bin/sh
+#! /bin/sh
 echo 'Installing Post tests and doc'
-
 if ([ $# -eq 0 ])
 then
     if [ "$CASSIOPEE" = "" ]; then
@@ -28,7 +27,7 @@ elif ([ $# -eq 2 ])
 then
     PRODUCTION=1
     # Destination docs
-    DEST="$CASSIOPEE/UserGuides"
+    DEST="$CASSIOPEE/WWW/cassiopee-web"
     # Destination tests unitaires
     DEST2="$DEST/Examples/Post"
     # Destination des release notes
@@ -39,53 +38,90 @@ else
     exit
 fi
 
-# Nom du fichier doc
-DOC=Post
-
-# Creation des repertoires de destination
-if test ! -e $DEST
-then 
-    mkdir $DEST
-fi
-if test ! -e "$DEST/Examples"
-then 
-    mkdir "$DEST/Examples"
-fi
-if test ! -e $DEST2
-then 
-    mkdir $DEST2
-fi
-if test ! -e $DEST3
-then 
-    mkdir $DEST3
-fi
-
-# copie de la doc html
-cp $DOC.html $DEST
-
-# Production + copie des tests unitaires
+# Copy examples to global dir (production mod)
 if ([ $PRODUCTION -eq 1 ])
 then
-    LOCAL=`pwd`
-    cd $DEST
-    if test ! -e Latex
-    then
-        mkdir Latex
+    if test ! -e $DEST
+    then 
+        mkdir $DEST
     fi
-    python parseDoc.py $DOC.html Latex/$DOC.tex
-    cd Latex ; compile $DOC > out ; cd $LOCAL
-    cp $DEST/Latex/$DOC.pdf .
-else
+    if test ! -e "$DEST/Examples"
+    then 
+        mkdir "$DEST/Examples"
+    fi
+    if test ! -e $DEST2
+    then 
+        mkdir $DEST2
+    fi
+    if test ! -e $DEST3
+    then 
+        mkdir $DEST3
+    fi
+
     cp ../test/*.py $DEST2
-    if test -f $DOC.pdf
-    then
-        cp *.pdf $DEST
-    fi
+fi
+
+# Create Links for Examples (local)
+if test ! -e build
+then
+    mkdir build
+fi
+cd build
+if test ! -e Examples
+then
+    mkdir Examples
+    ln -s $CASSIOPEE/Apps/Modules/Post/test Examples/Post
+fi
+cd ..
+
+# Build html
+touch source/*.rst
+sphinx-build -b html ./source ./build
+if ([ $PRODUCTION -eq 1 ])
+then
+# Build pdf
+    sphinx-build -b latex ./source ./build
+    cd build
+    pdflatex Post >& /dev/null
+    pdflatex Rotor >& /dev/null
+    pdflatex ExtraVariables2 >& /dev/null
+    pdflatex Post_IBM >& /dev/null
+    cd ..
+fi
+
+# Copie dans le DEST
+if ([ $PRODUCTION -eq 1 ])
+then
+    taghtml build/Post.html
+    sed -i 's/Post.Post/Post/g' build/Post.html
+    cp build/Post.html $DEST
+    cp build/Post.pdf $DEST
+
+    taghtml build/Rotor.html
+    sed -i 's/Post.Rotor.Post.Rotor/Post.Rotor/g' build/Rotor.html
+    sed -i 's/Post\.pdf/Rotor\.pdf/g' build/Rotor.html
+    cp build/Rotor.html $DEST
+    cp build/Rotor.pdf $DEST
+
+    taghtml build/ExtraVariables2.html
+    sed -i 's/Post.ExtraVariables2.Post.ExtraVariables2/Post.ExtraVariables2/g' build/ExtraVariables2.html
+    sed -i 's/Post\.pdf/ExtraVariables2\.pdf/g' build/ExtraVariables2.html
+    cp build/ExtraVariables2.html $DEST
+    cp build/ExtraVariables2.pdf $DEST
+
+    taghtml build/Post_IBM.html
+    sed -i 's/Post.Post_IBM.Post.Post_IBM/Post.Post_IBM/g' build/Post_IBM.html
+    sed -i 's/Post\.pdf/Post_IBM\.pdf/g' build/Post_IBM.html
+    cp build/Post_IBM.html $DEST
+    cp build/Post_IBM.pdf $DEST
 fi
 
 # Copie des release Notes
-version=`grep -e __version__ ../Post/Post.py`
-version1=${version:15:10}
-version1=${version1/"'"/""}
-v='Post-'$version1'.txt'
-cp Post.txt $DEST3/$v
+if ([ $PRODUCTION -eq 1 ])
+then
+    version=`grep -e __version__ ../Post/Post.py`
+    version1=${version:15:4}
+    version1=${version1/"'"/""}
+    v='Post-'$version1'.txt'
+    cp Post.txt $DEST3/$v
+fi

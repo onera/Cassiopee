@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -33,7 +33,7 @@ using namespace std;
 // si retourne 0: echec
 // si retourne 1: OK
 //=============================================================================
-int Data::initZoneData(
+E_Int Data::initZoneData(
   vector<FldArrayF*>& structF,
   vector<char*>& structVarString,
   vector<E_Int>& nit,
@@ -44,7 +44,9 @@ int Data::initZoneData(
   vector<FldArrayI*>& cnt,
   vector<char*>& eltType,
   vector<char*>& zoneNames,
-  vector<char*>& zoneTags)
+  vector<char*>& zoneTags,
+  E_Int referenceNfield,
+  char** referenceVarNames)
 {
   // Calcul de la position des coords dans chaque arrays
   E_Int posx, posy, posz;
@@ -97,23 +99,23 @@ int Data::initZoneData(
   }
 
   // Recuperation des precedents pointeurs
-  int numberOfStructZonesp = _numberOfStructZones;
-  int numberOfUnstructZonesp = _numberOfUnstructZones;
+  E_Int numberOfStructZonesp = _numberOfStructZones;
+  E_Int numberOfUnstructZonesp = _numberOfUnstructZones;
   Zone** zonesp = _zones;
   StructZone** szonesp = _szones;
   UnstructZone** uzonesp = _uzones;
 
   // Remplissage du container de donnees
-  int numberOfStructZones = structF.size();
-  int numberOfUnstructZones = unstrF.size();
-  int numberOfZones = numberOfStructZones + numberOfUnstructZones;
+  E_Int numberOfStructZones = structF.size();
+  E_Int numberOfUnstructZones = unstrF.size();
+  E_Int numberOfZones = numberOfStructZones + numberOfUnstructZones;
   Zone** zones = (Zone**)malloc(numberOfZones*sizeof(Zone*));
   StructZone** szones = (StructZone**)malloc(numberOfStructZones*
                                              sizeof(StructZone*));
   UnstructZone** uzones = (UnstructZone**)malloc(numberOfUnstructZones*
                                                  sizeof(UnstructZone*));
-  int zoneNamesSize = zoneNames.size();
-  int zoneTagsSize = zoneTags.size();
+  E_Int zoneNamesSize = zoneNames.size();
+  E_Int zoneTagsSize = zoneTags.size();
   char zoneName[MAXSTRINGLENGTH];
   char* zTags;
 
@@ -121,13 +123,14 @@ int Data::initZoneData(
   for (E_Int i = 0; i < sSize; i++)
   {
     if (i < zoneNamesSize) strcpy(zoneName, zoneNames[i]);
-    else sprintf(zoneName, "S-Zone %d", i);
+    else sprintf(zoneName, "S-Zone " SF_D_, i);
     if (i < zoneTagsSize) zTags = zoneTags[i];
     else zTags = NULL;
     szones[i] = createStructZone(structF[i], structVarString[i],
                                  sposx[i], sposy[i], sposz[i],
                                  nit[i], njt[i], nkt[i],
-                                 zoneName, zTags);
+                                 zoneName, zTags,
+                                 referenceNfield, referenceVarNames);
     StructZone& z = *(szones[i]);
  
     // Essai de retrouver les reglages dans la previous zonesp
@@ -176,20 +179,21 @@ int Data::initZoneData(
         z.selected = zp.selected;
       }
     }
-  }  
+  }
 
   // mise a jour des pointeurs + BB pour les grilles unstruct
   for (E_Int i = 0; i < uSize; i++)
   {
     if (i+sSize < zoneNamesSize) strcpy(zoneName, zoneNames[i+sSize]);
-    else sprintf(zoneName, "U-Zone %d", i);
+    else sprintf(zoneName, "U-Zone " SF_D_, i);
     if (i+sSize < zoneTagsSize) zTags = zoneTags[i+sSize];
     else zTags = NULL;
     uzones[i] = createUnstrZone(
       unstrF[i], unstrVarString[i],
       uposx[i], uposy[i], uposz[i],
       cnt[i], eltType[i],
-      zoneName, zTags);
+      zoneName, zTags,
+      referenceNfield, referenceVarNames);
     UnstructZone& z = *(uzones[i]);
 
     // Essai de retrouver les reglages dans la previous zonesp
@@ -276,8 +280,7 @@ int Data::initZoneData(
   }
 
   // Switch - Dangerous zone protegee par state.lock
-  if (state.selectedZone >= numberOfZones)
-    state.selectedZone = 0; // RAZ selected zone
+  if (state.selectedZone >= numberOfZones) state.selectedZone = 0; // RAZ selected zone
   state.kcursor = 0; // RAZ clavier
   state.syncDisplay();
   _zones = zones;
@@ -293,7 +296,7 @@ int Data::initZoneData(
   globFMinMax(_zones, _numberOfZones, minf, maxf);
   
   // Free the previous
-  int i;
+  E_Int i;
   for (i = 0; i < numberOfStructZonesp; i++) delete szonesp[i];
   for (i = 0; i < numberOfUnstructZonesp; i++) delete uzonesp[i];
   if (szonesp != NULL) free(szonesp);
@@ -302,7 +305,7 @@ int Data::initZoneData(
 
   // Modifie les zones pour le rendu volumetrique
   replaceVolumetricZones();
-
+  
   return 1;
 }
 
@@ -362,7 +365,7 @@ void Data::replaceVolumetricZones()
         zn.shaderParam1 = z.shaderParam1;
         zn.shaderParam2 = z.shaderParam2;
 
-        zn.surf = NULL; zn.compNorm();
+        zn.compNorm();
         zn.blank = z.blank;
         zn.active = z.active;
         zn.selected = z.selected;
@@ -373,7 +376,6 @@ void Data::replaceVolumetricZones()
 
         delete _zones[i]; _szones[i] = znp;
         _zones[i] = znp;
-
       }
       else
       {
@@ -385,11 +387,11 @@ void Data::replaceVolumetricZones()
         zn.np = zn.npts;
         zn.nfield = z.nfield;
         zn.dim = z.dim;
-        zn.x = new E_Float[zn.npts];
         double factor = 0.3;
         double deltax = factor*(z.xmax - z.xmin);
         double deltay = factor*(z.ymax - z.ymin);
         double deltaz = factor*(z.zmax - z.zmin);
+        zn.x = new E_Float[zn.npts];
         zn.x[0] = z.xmin - deltax; zn.x[1] = z.xmax + deltax;
         zn.x[2] = z.xmax + deltax; zn.x[3] = z.xmin - deltax;
         zn.x[4] = z.xmin - deltax; zn.x[5] = z.xmax + deltax;
@@ -406,6 +408,7 @@ void Data::replaceVolumetricZones()
         zn.z[6] = z.zmax + deltaz; zn.z[7] = z.zmax + deltaz;
 
         zn.ne = 1;
+        zn.nec.push_back(1);
         
         for (E_Int n = 0; n < zn.nfield; n++)
         {
@@ -423,11 +426,11 @@ void Data::replaceVolumetricZones()
         zn.shaderParam1 = z.shaderParam1;
         zn.shaderParam2 = z.shaderParam2;
 
-        zn.eltType = 7;
-        zn.eltSize = 8;
+        zn.eltType.push_back(7);
+        zn.eltSize.push_back(8);
         
-        zn.connect = new E_Int[zn.ne*zn.eltSize];
-        E_Int* cn = zn.connect;
+        zn.connect.push_back(new E_Int[zn.nec[0]*zn.eltSize[0]]);
+        E_Int* cn = zn.connect[0];
 
         //cn[0] = 1; cn[6] = 2; cn[12] = 3; cn[18] = 4;
         //cn[1] = 5; cn[7] = 6; cn[13] = 7; cn[19] = 8;
@@ -439,7 +442,8 @@ void Data::replaceVolumetricZones()
         cn[0] = 1; cn[1] = 2; cn[2] = 3; cn[3] = 4; cn[4] = 5;
         cn[5] = 6; cn[6] = 7; cn[7] = 8;
 
-        zn.surf = NULL; zn.compNorm();
+        //zn.surf = NULL; 
+        zn.compNorm();
         zn.blank = z.blank;
         zn.active = z.active;
         zn.selected = z.selected;

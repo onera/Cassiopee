@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -37,15 +37,38 @@ static PyMethodDef Pytemplate [] =
   {NULL, NULL}
 };
 
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "template",
+        NULL,
+        -1,
+        Pytemplate
+};
+#endif
+
 // ============================================================================
 /* Init of module */
 // ============================================================================
 extern "C"
 {
+#if PY_MAJOR_VERSION >= 3
+  PyMODINIT_FUNC PyInit_template();
+  PyMODINIT_FUNC PyInit_template()
+#else
   PyMODINIT_FUNC inittemplate();
   PyMODINIT_FUNC inittemplate()
+#endif
   {
-    Py_InitModule("template", Pytemplate);
     import_array();
+#if PY_MAJOR_VERSION >= 3
+    PyObject* module = PyModule_Create(&moduledef);
+#else
+    Py_InitModule("template", Pytemplate);
+#endif
+#if PY_MAJOR_VERSION >= 3
+    return module;
+#endif
+
   }
 }

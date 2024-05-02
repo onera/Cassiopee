@@ -1,5 +1,7 @@
-# - time machine -
-import Tkinter as TK
+# - tkTime -
+"""Time machine."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -55,7 +57,8 @@ def setTime(event=None):
     else: temp = RM.evalPosition(CTK.t, time)
     
     WIDGETS['slider'].set((time-t0)/step); WIDGETS['slider'].update()
-    CTK.display(temp, mainTree=CTK.TIME)
+    if time == 0.: CTK.display(CTK.t, mainTree=CTK.MAIN)
+    else: CTK.display(temp, mainTree=CTK.TIME)
 
 #==============================================================================
 def playForward(event=None):
@@ -69,15 +72,15 @@ def playForward(event=None):
     if CTK.__MAINTREE__ == 1:
         CTK.__MAINACTIVEZONES__ = CPlot.getActiveZones()
 
-    if (walls == '1' and CTK.dt == []):
+    if walls == '1' and CTK.dt == []:
         zones = Internal.getNodesFromType(CTK.t, 'Zone_t')
         Z = buildWalls(zones)
         CTK.dt = C.newPyTree(['Base']); CTK.dt[2][1][2] += Z
 
     CTK.__BUSY__ = True
     CPlot.setState(cursor=2)
-    while (time < tf and CTK.__BUSY__):
-        if (walls == '1'):  temp = RM.evalPosition(CTK.dt, time)
+    while time < tf and CTK.__BUSY__:
+        if walls == '1': temp = RM.evalPosition(CTK.dt, time)
         else: temp = RM.evalPosition(CTK.t, time)
         CTK.display(temp, mainTree=CTK.TIME)
         time += step; VARS[1].set(str(time))
@@ -98,15 +101,15 @@ def playBackward(event=None):
     if CTK.__MAINTREE__ == 1:
         CTK.__MAINACTIVEZONES__ = CPlot.getActiveZones()
 
-    if (walls == '1' and CTK.dt == []):
+    if walls == '1' and CTK.dt == []:
         zones = Internal.getNodesFromType(CTK.t, 'Zone_t')
         Z = buildWalls(zones)
         CTK.dt = C.newPyTree(['Base']); CTK.dt[2][1][2] += Z
 
     CTK.__BUSY__ = True
     CPlot.setState(cursor=2)
-    while (time > t0 and CTK.__BUSY__):
-        if (walls == '1'):  temp = RM.evalPosition(CTK.dt, time)
+    while time > t0 and CTK.__BUSY__:
+        if walls == '1':  temp = RM.evalPosition(CTK.dt, time)
         else: temp = RM.evalPosition(CTK.t, time)
         CTK.display(temp, mainTree=CTK.TIME)
         time -= step; VARS[1].set(str(time))
@@ -130,9 +133,10 @@ def setWalls(event=None):
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkTime', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Manage time.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkTime  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Manage time.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -141,8 +145,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkTime')
@@ -151,15 +155,15 @@ def createApp(win):
     # - VARS -
     # -0- t0 -
     V = TK.StringVar(win); V.set('0.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkTimeT0'): V.set(CTK.PREFS['tkTimeT0'])
+    if 'tkTimeT0' in CTK.PREFS: V.set(CTK.PREFS['tkTimeT0'])
     # -1- t -
-    V = TK.StringVar(win); V.set('0.5'); VARS.append(V)
+    V = TK.StringVar(win); V.set('0.'); VARS.append(V)
     # -2- tf -
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkTimeTF'): V.set(CTK.PREFS['tkTimeTF'])
+    if 'tkTimeTF' in CTK.PREFS: V.set(CTK.PREFS['tkTimeTF'])
     # -3- Show only BCWall
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    if CTK.PREFS.has_key('tkTimeWall'): V.set(CTK.PREFS['tkTimeWall'])
+    if 'tkTimeWall' in CTK.PREFS: V.set(CTK.PREFS['tkTimeWall'])
     # -4- time info bulle
     V = TK.StringVar(win); V.set('Time.'); VARS.append(V)
 
@@ -205,13 +209,17 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['MotionNoteBook'].add(WIDGETS['frame'], text='tkTime')
+    except: pass
+    CTK.WIDGETS['MotionNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['MotionNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -240,9 +248,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

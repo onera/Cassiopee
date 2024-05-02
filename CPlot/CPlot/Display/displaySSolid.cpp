@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "../DataDL.h"
-#include "../ZoneImplDL.h"
+#include "DataDL.h"
+#include "ZoneImplDL.h"
 
 //=============================================================================
 /* 
@@ -29,7 +29,7 @@
 void DataDL::displaySSolid()
 {
   if (_numberOfStructZones == 0) return;
-  int zone;
+  E_Int zone;
 
   // Enable blending
   glEnable(GL_BLEND);
@@ -50,24 +50,35 @@ void DataDL::displaySSolid()
          (zonep->active == 0 && ptrState->ghostifyDeactivatedZones == 1))
         && isInFrustum(zonep, _view) == 1)
     {
-      if (ptrState->mode == RENDER && zonep->meshOverlay == 1) 
+      if (ptrState->mode == RENDER && zonep->meshOverlay == 1)
+      { 
+        noLight(); 
+        _shaders.activate((short unsigned int)0); 
         displaySMeshZone(zonep, zone);
+        light(2);
+      }
 
       double alphaSav = ptrState->alpha;
       if (ptrState->mode == RENDER && zonep->blending != -1.)
       {
         ptrState->alpha = zonep->blending;
-        if (ptrState->alpha < 0.9999) 
+        if (ptrState->alpha < 0.9999)
         { /*glEnable(GL_CULL_FACE);*/ glDepthMask(GL_FALSE); }
       }
 
-      if (ptrState->mode == RENDER && zonep->colorR < -1.5) // Iso
+      if (ptrState->mode == RENDER && zonep->colorR < -1.5 && zonep->material != 9) // Iso
       {
 #ifdef __SHADERS__
 #include "isoShaders.h"
 #endif
-        //displaySIsoSolidZone(zonep, zone, (int)(-zonep->colorR-2));
-        renderSIsoSolidZone(zonep, zone, (int)(-zonep->colorR-2));
+        if (ptrState->isoLight == 1 && ptrState->dim == 3) light(3);
+        
+        if (ptrState->simplifyOnDrag == 1 && ptrState->ondrag == 1) displaySBBZone(zonep);
+        else
+        {
+          //displaySIsoSolidZone(zonep, zone, (int)(-zonep->colorR-2));
+          renderSIsoSolidZone(zonep, zone, (int)(-zonep->colorR-2));
+        }
       }
       //else if (ptrState->mode == RENDER && zonep->material == 9) // Billboarding
       //{
@@ -92,8 +103,12 @@ void DataDL::displaySSolid()
               light(2); break;
           }
         }
-        if (zoneImpl->_DLsolid != 0) renderGPUSSolidZone(zonep, zone);
-        else displaySSolidZone(zonep, zone);
+        if (ptrState->simplifyOnDrag == 1 && ptrState->ondrag == 1) displaySBBZone(zonep);
+        else
+        {
+          if (zoneImpl->_DLsolid != 0) renderGPUSSolidZone(zonep, zone);
+          else displaySSolidZone(zonep, zone);
+        }
       }
       ptrState->alpha = alphaSav;
       glDisable(GL_CULL_FACE); glDepthMask(GL_TRUE);
@@ -104,6 +119,8 @@ void DataDL::displaySSolid()
   noLight();
 #ifdef __SHADERS__
   _shaders.activate((short unsigned int)0);
+  glActiveTexture(GL_TEXTURE2);
+  glDisable(GL_TEXTURE_2D);
   glActiveTexture(GL_TEXTURE1);
   glDisable(GL_TEXTURE_2D);
   glActiveTexture(GL_TEXTURE0);

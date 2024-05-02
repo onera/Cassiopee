@@ -48,4 +48,4 @@ t = C.initVars(t, 'centers:cellN', 1.)
 t = C.initVars(t, 'Density', 2.)
 bases = Internal.getNodesFromType(t,'CGNSBase_t'); base = bases[0]
 doms = X.getCEBBTimeIntersectingDomains(base, F, bases, Funcs, 0, 6, dt, sameBase=1)
-print doms
+print(doms)

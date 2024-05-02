@@ -15,11 +15,11 @@ bool = 0
 while bool == 0:
     l = []
     CPlot.display(a)
-    while (l == []):
+    while l == []:
         l = CPlot.getActivePointIndex()
         nz = CPlot.getSelectedZone()
         s = CPlot.getKeyboard()
-        if (s == "s"):
+        if s == "s":
             C.convertArrays2File(a, 'out.plt')
             import sys; sys.exit();
         time.sleep(0.1)

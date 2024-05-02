@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -43,9 +43,7 @@ PyObject* K_CONNECTOR::gatherMatching(PyObject* self, PyObject* args)
     *listOfNI, *listOfNJ, *listOfNK;
   E_Int dimPb;
   E_Float tol;
-  if (!PYPARSETUPLE(args,
-                    "OOOOOOOld", "OOOOOOOid",
-                    "OOOOOOOlf", "OOOOOOOif",
+  if (!PYPARSETUPLE_(args, OOOO_ OOO_ I_ R_,
                     &listOfAllWins, &listOfAllTags, 
                     &listOfWinTypes, &listOfBlks, &listOfNI, &listOfNJ, 
                     &listOfNK, &dimPb, &tol))
@@ -106,7 +104,7 @@ PyObject* K_CONNECTOR::gatherMatching(PyObject* self, PyObject* args)
   E_Boolean skipNoCoord = true;
   E_Boolean skipStructured = false;
   E_Boolean skipUnstructured = true;
-  E_Boolean skipDiffVars = true;
+  E_Boolean skipDiffVars = false;//true;
 
   E_Int isOk = K_ARRAY::getFromArrays(
     listOfAllWins, resl, structVarString, unstrVarString,
@@ -752,7 +750,7 @@ void K_CONNECTOR::compTrirac(E_Int im1, E_Int jm1, E_Int im2, E_Int jm2,
     else if (incm1 == im2*jm2)  r2 =  3;
     else if (incm1 == -im2*jm2) r2 = -3;
   }
-  else if ( inc1 == im1*jm1 )
+  else if (inc1 == im1*jm1)
   {
     if (incm1 == 1)    r3 =  1;
     else if (incm1 == -1)   r3 = -1;
@@ -762,7 +760,7 @@ void K_CONNECTOR::compTrirac(E_Int im1, E_Int jm1, E_Int im2, E_Int jm2,
     else if (incm1 == -im2*jm2) r3 = -3;
   }
 
-  if ( inc2 == 1 )
+  if (inc2 == 1)
   {
     if (incm2 == 1)    r1 =  1;
     else if (incm2 == -1)   r1 = -1;
@@ -771,7 +769,7 @@ void K_CONNECTOR::compTrirac(E_Int im1, E_Int jm1, E_Int im2, E_Int jm2,
     else if (incm2 == im2*jm2)  r1 =  3;
     else if (incm2 == -im2*jm2) r1 = -3;
   }
-  else if ( inc2 == im1 )
+  else if (inc2 == im1)
   {
     if (incm2 == 1)    r2 =  1;
     else if (incm2 == -1)   r2 = -1;
@@ -780,7 +778,7 @@ void K_CONNECTOR::compTrirac(E_Int im1, E_Int jm1, E_Int im2, E_Int jm2,
     else if (incm2 == im2*jm2)  r2 =  3;
     else if (incm2 == -im2*jm2) r2 = -3;
   }
-  else if ( inc2 == im1*jm1 )
+  else if (inc2 == im1*jm1)
   {
     if (incm2 == 1)    r3 =  1;
     else if (incm2 == -1)   r3 = -1;

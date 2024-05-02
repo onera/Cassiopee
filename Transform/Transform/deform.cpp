@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -64,15 +64,25 @@ PyObject* K_TRANSFORM::deform(PyObject* self, PyObject* args)
   vector<char*> vars;
   for (E_Int nov = 0; nov < 3; nov++)
   {
+    char* vects;
     PyObject* tpl0 = PyList_GetItem(vectorNames, nov);
-    if (PyString_Check(tpl0) == 0)
+    if (PyString_Check(tpl0))
+    {
+      vects = PyString_AsString(tpl0);
+    }
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(tpl0))
+    {
+      vects = (char*)PyUnicode_AsUTF8(tpl0); 
+    }
+#endif
+    else
     {
       RELEASESHAREDB(res1, array,f1,cn1);
       PyErr_SetString(PyExc_TypeError,
                       "deform: vector fields must be strings.");
       return NULL;
     }
-    char* vects = PyString_AsString(tpl0);
     vars.push_back(vects);
   }
   // Presence des coordonnees ?

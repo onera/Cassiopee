@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -24,7 +24,7 @@ using namespace K_FLD;
 
 // ============================================================================
 /* Extrait la solution en un point de coordonnees (x,y,z). Si ce point est 
-   dans une zone ou des maillages se recouvrent, la solution est extraite à
+   dans une zone ou des maillages se recouvrent, la solution est extraite a
    partir du maillage ayant la plus petite cellule d interpolation */
 // ============================================================================
 PyObject* K_POST::extractPoint(PyObject* self, PyObject* args)
@@ -34,9 +34,7 @@ PyObject* K_POST::extractPoint(PyObject* self, PyObject* args)
   E_Int extrapOrder;
   E_Float constraint;
   PyObject* hook;
-  if (!PYPARSETUPLE(args,
-                    "OOlldO", "OOiidO",
-                    "OOllfO", "OOiifO",
+  if (!PYPARSETUPLE_(args, OO_ II_ R_ O_,
                     &arrays, &listPts, &interpOrder, &extrapOrder, &constraint, &hook))
   {
       return NULL;
@@ -79,25 +77,25 @@ PyObject* K_POST::extractPoint(PyObject* self, PyObject* args)
 
   // Interpolation type 
   E_Int ncf;
-  K_INTERP::InterpAdt::InterpolationType interpType;
+  K_INTERP::InterpData::InterpolationType interpType;
   // attention le cas purement non structure est traite apres les interpDatas 
   switch (interpOrder)
   {
     case 2:
-      interpType = K_INTERP::InterpAdt::O2CF;
+      interpType = K_INTERP::InterpData::O2CF;
       ncf = 8;
       break;
     case 3: 
-      interpType = K_INTERP::InterpAdt::O3ABC;
+      interpType = K_INTERP::InterpData::O3ABC;
       ncf = 9;
       break;
     case 5:
-      interpType = K_INTERP::InterpAdt::O5ABC;
+      interpType = K_INTERP::InterpData::O5ABC;
       ncf = 15;
       break;
     default:
       printf("Warning: extractPoint: unknown interpolation order. Set to 2nd order.\n");
-      interpType = K_INTERP::InterpAdt::O2CF;
+      interpType = K_INTERP::InterpData::O2CF;
       ncf = 8;
       break;
   }
@@ -166,7 +164,7 @@ PyObject* K_POST::extractPoint(PyObject* self, PyObject* args)
   // Liste des interpDatas
   vector<E_Int> nis; vector<E_Int> njs; vector<E_Int> nks;
   vector<FldArrayI*> cnt;
-  vector<K_INTERP::InterpAdt*> interpDatas;
+  vector<K_INTERP::InterpData*> interpDatas;
   // creation des interpDatas
   if (hook == Py_None)
   {
@@ -210,6 +208,7 @@ PyObject* K_POST::extractPoint(PyObject* self, PyObject* args)
   
   /* Interpolation de la liste des pts */
   FldArrayI indi(1); FldArrayF cf(ncf);
+  FldArrayI tmpIndi(1); FldArrayF tmpCf(ncf);
   E_Float* xt = coord.begin(1);
   E_Float* yt = coord.begin(2);
   E_Float* zt = coord.begin(3);
@@ -227,7 +226,7 @@ PyObject* K_POST::extractPoint(PyObject* self, PyObject* args)
       xt[i], yt[i], zt[i],
       interpDatas, fields,
       a2, a3, a4, a5, posxs, posys, poszs, poscs,
-      voli, indi, cf, type, noblk, interpType, 0, 0);    
+      voli, indi, cf, tmpIndi, tmpCf, type, noblk, interpType, 0, 0);    
     if (ok < 1)
     {
       ok = K_INTERP::getExtrapolationCell(

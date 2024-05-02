@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -290,8 +290,7 @@ E_Float sqrNorm(InputIterator it)
   E_Float result = 0.;
 
   for (E_Int i = 0; i < dim; ++i)
-    result += (*(it+i))*(*(it+i));
-
+  { result += (*it) * (*it); it++; }
   return result;
 }
 
@@ -324,7 +323,7 @@ E_Float zzdet3(E_Float u1, E_Float u2, E_Float u3, E_Float v1, E_Float v2, E_Flo
 {
   return (u1*(v2*w3 - v3*w2) + u2*(v3*w1 - v1*w3) + u3*(v1*w2 - v2*w1));
 }
-// Prouit mixte u.(v ^ w) = det(u,v,w)
+// Produit mixte u.(v ^ w) = det(u,v,w)
 inline
 E_Float tripleProduct(const E_Float* u, const E_Float* v, E_Float* w)
 {
@@ -336,7 +335,6 @@ E_Float tripleProduct(const E_Float* u, const E_Float* v, E_Float* w)
 inline
 E_Float zzdet4(const E_Float* P0, const E_Float* P1, const E_Float* P2, const E_Float* Q)
 {
-  // zzdet3(P0Q, P0P1, P0P2)
   return zzdet3(Q[0]-P0[0], Q[1]-P0[1], Q[2]-P0[2],  P1[0]-P0[0], P1[1]-P0[1], P1[2]-P0[2], P2[0]-P0[0], P2[1]-P0[1], P2[2]-P0[2]);
 }
 
@@ -363,7 +361,7 @@ inline
 E_Float normalize (InputIterator it)
 {
   E_Float L0 = ::sqrt(sqrNorm<dim>(it));
-  if (L0 > E_EPSILON)
+  if (L0 != 0.)
   {
     E_Float L1 = 1./L0;
     for (E_Int i = 0; i < dim; ++i) *(it+i) *= L1;

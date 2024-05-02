@@ -1,9 +1,12 @@
-# - tkCanvas : create drawing canvas -
-import Tkinter as TK
+# - tkCanvas -
+"""Create drawing canvas."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
+import CPlot as CP
 import Generator.PyTree as G
 import Transform.PyTree as T
 import Converter.Internal as Internal
@@ -21,28 +24,43 @@ DIRX = 0; DIRY = 0; DIRZ = 0
 
 #==============================================================================
 def initCanvas(event=None):
-    dir = VARS[0].get()
-    if (dir == 'None' and CTK.t == []): return
-
+    zdir = VARS[0].get()
+    if zdir == 'None' and CTK.t == []: return
     global CANVASSIZE, XC, YC, ZC, UX, UY, UZ, LX, LY, LZ, DIRX, DIRY, DIRZ
     if CANVASSIZE == -1:
-        try:
+        if CTK.t == []:
+            CANVASSIZE = 1
+            dx = 1
+            VARS[2].set(str(dx))
+            VARS[3].set(str(dx))
+            XC = 0.
+            YC = 0.
+            ZC = 0.
+        else:
             bb = G.bbox(CTK.t)
             CANVASSIZE = max(bb[3]-bb[0], bb[4]-bb[1], bb[5]-bb[2])
-        except: CANVASSIZE = 1
+            dx = (bb[3]-bb[0] + bb[4]-bb[1] + bb[5]-bb[2])/30.
+            VARS[2].set(str(dx))
+            VARS[3].set(str(dx))
+            XC = 0.5*(bb[3]+bb[0])
+            YC = 0.5*(bb[4]+bb[1])
+            ZC = 0.5*(bb[5]+bb[2])
 
     nzs = CPlot.getSelectedZones()
-    if (nzs != [] and dir != 'None'):
+    if nzs != [] and dir != 'None':
         point = CPlot.getActivePoint()
         if point != []:
-            XC = point[0]; YC = point[1]; ZC = point[2]
+            if zdir == 'YZ': XC = point[0]
+            elif zdir == 'XZ': YC = point[1]
+            elif zdir == 'XY': ZC = point[2]
+            else: XC = point[0]; YC = point[1]; ZC = point[2]
     
-    if dir == 'None':
+    if zdir == 'None':
         deleteCanvasBase()
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
         CTK.TKTREE.updateApp()
         CPlot.render(); return
-    elif dir == 'View':
+    elif zdir == 'View':
         posCam = CPlot.getState('posCam')
         posEye = CPlot.getState('posEye')
         dirCam = CPlot.getState('dirCam')
@@ -51,8 +69,8 @@ def initCanvas(event=None):
         LX = posEye[0]-posCam[0]
         LY = posEye[1]-posCam[1]
         LZ = posEye[2]-posCam[2]
-        if (LX*LX + LY*LY + LZ*LZ < 1.e-10): LX = -1
-        if (dirCam[0]*dirCam[0] + dirCam[1]*dirCam[1] + dirCam[2]*dirCam[2] == 0.):
+        if LX*LX + LY*LY + LZ*LZ < 1.e-10: LX = -1
+        if dirCam[0]*dirCam[0] + dirCam[1]*dirCam[1] + dirCam[2]*dirCam[2] == 0.:
             dirCam = (0,0,1)
         DIRX = dirCam[0]; DIRY = dirCam[1]; DIRZ = dirCam[2]
     
@@ -60,11 +78,11 @@ def initCanvas(event=None):
         UY = dirCam[2]*LX - dirCam[0]*LZ
         UZ = dirCam[0]*LY - dirCam[1]*LX
     
-    elif dir == 'YZ':
+    elif zdir == 'YZ':
         DIRX = 1; DIRY = 0; DIRZ = 0
         UX = 0; UY = 1; UZ = 0
         LX = 0; LY = 0; LZ = 1
-    elif dir == 'XZ':
+    elif zdir == 'XZ':
         DIRX = 0; DIRY = 1; DIRZ = 0
         UX = 1; UY = 0; UZ = 0
         LX = 0; LY = 0; LZ = 1
@@ -74,7 +92,7 @@ def initCanvas(event=None):
         LX = 0; LY = 0; LZ = 1
     CTK.TXT.insert('START', 'Set a canvas.\n')
     setCanvas()
-    
+
 #==============================================================================
 def deleteCanvasBase():
     nodes = Internal.getNodesFromName1(CTK.t, 'CANVAS')
@@ -90,24 +108,24 @@ def deleteCanvasBase():
     
 #==============================================================================
 def setCanvas(event=None):
-    dir = VARS[0].get()
+    zdir = VARS[0].get()
     CTK.saveTree()
     deleteCanvasBase()
     CTK.t = C.addBase2PyTree(CTK.t, 'CANVAS', 2)
     
     size = CANVASSIZE
-    if dir == 'View':
+    if zdir == 'View':
         a = G.cart( (-size, 0, -size), (2*size, 2*size, 2*size), (2,1,2) )
         a = T.translate(a, (XC, YC, ZC) )
         a = T.rotate(a, (XC, YC, ZC),
                      ((1,0,0),(0,1,0),(0,0,1)),
                      ((-DIRX,-DIRY,-DIRZ), (LX,LY,LZ), (UX,UY,UZ)))
         VARS[1].set(str(XC)+';'+str(YC)+';'+str(ZC))
-    elif dir == 'YZ':
+    elif zdir == 'YZ':
         a = G.cart( (0, -size, -size), (2*size, 2*size, 2*size), (1,2,2) )
         a = T.translate(a, (XC, YC, ZC) )
         VARS[1].set(str(XC))
-    elif dir == 'XZ':
+    elif zdir == 'XZ':
         a = G.cart( (-size, 0, -size), (2*size, 2*size, 2*size), (2,1,2) )
         a = T.translate(a, (XC, YC, ZC) )
         VARS[1].set(str(YC))
@@ -118,9 +136,11 @@ def setCanvas(event=None):
     nodes = Internal.getNodesFromName1(CTK.t, 'CANVAS')
     base = nodes[0]
     nob = C.getNobOfBase(base, CTK.t)
-    CTK.add(CTK.t, nob, -1, a)
+    if CP.__slot__ is None:
+        CTK.t[2][nob][2].append(a); CTK.display(CTK.t)
+    else: CTK.add(CTK.t, nob, -1, a)
     
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -128,19 +148,19 @@ def setCanvas(event=None):
 #==============================================================================
 def moveUp():
     if CTK.t == []: return
-    dir = VARS[0].get()
+    zdir = VARS[0].get()
     step = VARS[2].get()
     try: step = float(step)
     except: step = 1.
     
     global XC, YC, ZC
-    if dir == 'View':
+    if zdir == 'View':
         XC = XC + step*LX
         YC = YC + step*LY
         ZC = ZC + step*LZ
-    elif dir == 'YZ':
+    elif zdir == 'YZ':
         XC = XC + step
-    elif dir == 'XZ':
+    elif zdir == 'XZ':
         YC = YC + step
     else:
         ZC = ZC + step
@@ -150,19 +170,19 @@ def moveUp():
 #==============================================================================
 def moveDown():
     if CTK.t == []: return
-    dir = VARS[0].get()
+    zdir = VARS[0].get()
     step = VARS[2].get()
     try: step = float(step)
     except: step = 1.
     
     global XC, YC, ZC
-    if dir == 'View':
+    if zdir == 'View':
         XC = XC - step*LX
         YC = YC - step*LY
         ZC = ZC - step*LZ
-    elif dir == 'YZ':
+    elif zdir == 'YZ':
         XC = XC - step
-    elif dir == 'XZ':
+    elif zdir == 'XZ':
         YC = YC - step
     else:
         ZC = ZC - step
@@ -188,7 +208,7 @@ def reduce():
     try: step = float(step)
     except: step = 1.
     CANVASSIZE = CANVASSIZE - step
-    if CANVASSIZE < 1.e-10: CANVASSIZE = 1.e-10
+    if CANVASSIZE < 1.e-3: CANVASSIZE = 1.e-3
     CTK.TXT.insert('START', 'Reduce canvas.\n')
     setCanvas()
 
@@ -196,19 +216,19 @@ def reduce():
 def setCanvasPos(event=None):
     if CTK.t == []: return
     global XC, YC, ZC
-    dir = VARS[0].get()
+    zdir = VARS[0].get()
     res = CTK.varsFromWidget(VARS[1].get(), type=1)
-    if dir == 'View':
-        if (len(res) != 3):
+    if zdir == 'View':
+        if len(res) != 3:
             CTK.TXT.insert('START', 'xc;yc;zc is incorrect.\n'); return
         else:
             XC = res[0]; YC = res[1]; ZC = res[2]
     else:
-        if (len(res) != 1):
+        if len(res) != 1:
             CTK.TXT.insert('START', 'pos is incorrect.\n'); return
         else:
-            if (dir == 'YZ'): XC = res[0]
-            elif (dir == 'XZ'): YC = res[0]
+            if zdir == 'YZ': XC = res[0]
+            elif zdir == 'XZ': YC = res[0]
             else: ZC = res[0]
     setCanvas()
     
@@ -218,9 +238,10 @@ def setCanvasPos(event=None):
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkCanvas', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Manage a canvas\nfor drawing..\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkCanvas  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Manage a canvas\nfor drawing..\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -229,8 +250,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkCanvas')
@@ -243,11 +264,11 @@ def createApp(win):
     V = TK.StringVar(win); V.set('0.'); VARS.append(V)
     # -2- Canvas dir step
     V = TK.StringVar(win); V.set('0.1'); VARS.append(V)
-    if CTK.PREFS.has_key('tkCanvasDirStep'):
+    if 'tkCanvasDirStep' in CTK.PREFS:
         V.set(CTK.PREFS['tkCanvasDirStep'])
     # -3- Canvas enlarge step
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkCanvasEnlargeStep'):
+    if 'tkCanvasEnlargeStep' in CTK.PREFS:
         V.set(CTK.PREFS['tkCanvasEnlargeStep'])
 
     # - Direction -
@@ -295,13 +316,17 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['EdgeNoteBook'].add(WIDGETS['frame'], text='tkCanvas')
+    except: pass
+    CTK.WIDGETS['EdgeNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['EdgeNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -327,9 +352,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

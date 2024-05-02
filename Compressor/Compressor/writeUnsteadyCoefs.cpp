@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -17,20 +17,20 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 # include <stdio.h>
-#include <map>
+# include <map>
 # include "compressor.h"
 using namespace std;
 using namespace K_FLD;
 
-#define WRITE1(ptr_file,f,i1) do if (strcmp(f,"f") == 0) {fprintf(ptr_file,"%d\n",i1);} else {fwrite( &i1 , sizeof(int) , 1 , ptr_file);} while(0)
-#define WRITE2(ptr_file,f,i1,i2) do {if (strcmp(f,"f") == 0) {fprintf(ptr_file,"%d %d\n",i1,i2);} else {fwrite( &i1 , sizeof(int) , 1 , ptr_file);fwrite( &i2 , sizeof(int) , 1 , ptr_file);}} while(0)
+#define WRITE1(ptr_file,f,i1) do if (strcmp(f,"f") == 0) {fprintf(ptr_file, SF_D_ "\n",i1);} else {fwrite( &i1 , sizeof(E_Int) , 1 , ptr_file);} while(0)
+#define WRITE2(ptr_file,f,i1,i2) do {if (strcmp(f,"f") == 0) {fprintf(ptr_file, SF_D2_ "\n",i1,i2);} else {fwrite( &i1 , sizeof(E_Int), 1 , ptr_file);fwrite( &i2, sizeof(E_Int) , 1 , ptr_file);}} while(0)
 #define WRITE3(ptr_file,f,i1,i2,tabf)\
 do\
 {\
-  if (strcmp(f,"f") == 0) {fprintf(ptr_file, "%d %d %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f\n",i1,i2,tabf[0],tabf[1],tabf[2],tabf[3],tabf[4],tabf[5],tabf[6]);}\
+  if (strcmp(f,"f") == 0) {fprintf(ptr_file, SF_D2_ " %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f\n",i1,i2,tabf[0],tabf[1],tabf[2],tabf[3],tabf[4],tabf[5],tabf[6]);}\
   else\
   {\
-    fwrite( &i1 , sizeof(int) , 1 , ptr_file);fwrite( &i2 , sizeof(int) , 1 , ptr_file);\
+    fwrite( &i1 , sizeof(E_Int) , 1 , ptr_file);fwrite( &i2 , sizeof(E_Int) , 1 , ptr_file);\
     fwrite( &tabf , sizeof(E_Float) , 7 , ptr_file);\
   }\
 }\
@@ -38,24 +38,24 @@ while(0)
 #define WRITE3F(ptr_file,f,i1,i2,tabf,i3)\
 do\
 {\
-  if (strcmp(f,"f") == 0) {fprintf(ptr_file, "%d %d %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %d\n",i1,i2,tabf[0],tabf[1],tabf[2],tabf[3],tabf[4],tabf[5],tabf[6],i3);}\
+  if (strcmp(f,"f") == 0) {fprintf(ptr_file, SF_D2_ " %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f " SF_D_ "\n",i1,i2,tabf[0],tabf[1],tabf[2],tabf[3],tabf[4],tabf[5],tabf[6],i3);}\
   else\
   {\
-    fwrite( &i1 , sizeof(int) , 1 , ptr_file);fwrite( &i2 , sizeof(int) , 1 , ptr_file);\
+    fwrite( &i1 , sizeof(E_Int) , 1 , ptr_file);fwrite( &i2 , sizeof(E_Int) , 1 , ptr_file);\
     fwrite( &tabf , sizeof(E_Float) , 7 , ptr_file);\
-    fwrite( &i3 , sizeof(int) , 1 , ptr_file);\
+    fwrite( &i3 , sizeof(E_Int) , 1 , ptr_file);\
   }\
 }\
 while(0)
 #define WRITE4(ptr_file,f,i1,i2,i3,tabf)\
 do\
 {\
-  if (strcmp(f,"f") == 0) {fprintf(ptr_file, "%d %d %d %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f\n",i1,i2,i3,tabf[0],tabf[1],tabf[2],tabf[3],tabf[4],tabf[5],tabf[6]);}\
+  if (strcmp(f,"f") == 0) {fprintf(ptr_file, SF_D3_ " %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f\n",i1,i2,i3,tabf[0],tabf[1],tabf[2],tabf[3],tabf[4],tabf[5],tabf[6]);}\
   else\
   {\
-    fwrite( &i1 , sizeof(int) , 1 , ptr_file);\
-    fwrite( &i2 , sizeof(int) , 1 , ptr_file);\
-    fwrite( &i3 , sizeof(int) , 1 , ptr_file);\
+    fwrite( &i1 , sizeof(E_Int) , 1 , ptr_file);\
+    fwrite( &i2 , sizeof(E_Int) , 1 , ptr_file);\
+    fwrite( &i3 , sizeof(E_Int) , 1 , ptr_file);\
     fwrite( &tabf , sizeof(E_Float) , 7 , ptr_file);\
   }\
 }\
@@ -63,27 +63,27 @@ while(0)
 #define WRITE4F(ptr_file,f,i1,i2,i3,tabf,i4)\
 do\
 {\
-  if (strcmp(f,"f") == 0) {fprintf(ptr_file, "%d %d %d %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %d\n",i1,i2,i3,tabf[0],tabf[1],tabf[2],tabf[3],tabf[4],tabf[5],tabf[6],i4);}\
+  if (strcmp(f,"f") == 0) {fprintf(ptr_file, SF_D3_ " %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f " SF_D_ "\n",i1,i2,i3,tabf[0],tabf[1],tabf[2],tabf[3],tabf[4],tabf[5],tabf[6],i4);}\
   else\
   {\
-    fwrite( &i1 , sizeof(int) , 1 , ptr_file);\
-    fwrite( &i2 , sizeof(int) , 1 , ptr_file);\
-    fwrite( &i3 , sizeof(int) , 1 , ptr_file);\
+    fwrite( &i1 , sizeof(E_Int) , 1 , ptr_file);\
+    fwrite( &i2 , sizeof(E_Int) , 1 , ptr_file);\
+    fwrite( &i3 , sizeof(E_Int) , 1 , ptr_file);\
     fwrite( &tabf , sizeof(E_Float) , 7 , ptr_file);\
-    fwrite( &i4 , sizeof(int) , 1 , ptr_file);\
+    fwrite( &i4 , sizeof(E_Int) , 1 , ptr_file);\
   }\
 }\
 while(0)
 #define WRITE5(ptr_file,f,i1,i2,i3,i4,tabf)\
 do\
 {\
-  if (strcmp(f,"f") == 0) {fprintf(ptr_file, "%d %d %d %d %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f\n",i1,i2,i3,i4,tabf[0],tabf[1],tabf[2],tabf[3],tabf[4],tabf[5],tabf[6]);}\
+  if (strcmp(f,"f") == 0) {fprintf(ptr_file, SF_D4_ " %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f\n",i1,i2,i3,i4,tabf[0],tabf[1],tabf[2],tabf[3],tabf[4],tabf[5],tabf[6]);}\
   else\
   {\
-    fwrite( &i1 , sizeof(int) , 1 , ptr_file);\
-    fwrite( &i2 , sizeof(int) , 1 , ptr_file);\
-    fwrite( &i3 , sizeof(int) , 1 , ptr_file);\
-    fwrite( &i4 , sizeof(int) , 1 , ptr_file);\
+    fwrite( &i1 , sizeof(E_Int) , 1 , ptr_file);\
+    fwrite( &i2 , sizeof(E_Int) , 1 , ptr_file);\
+    fwrite( &i3 , sizeof(E_Int) , 1 , ptr_file);\
+    fwrite( &i4 , sizeof(E_Int) , 1 , ptr_file);\
     fwrite( &tabf , sizeof(E_Float) , 7 , ptr_file);\
   }\
 }\
@@ -91,34 +91,34 @@ while(0)
 #define WRITE5F(ptr_file,f,i1,i2,i3,i4,tabf,i5)\
 do\
 {\
-  if (strcmp(f,"f") == 0) {fprintf(ptr_file, "%d %d %d %d %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %d\n",i1,i2,i3,i4,tabf[0],tabf[1],tabf[2],tabf[3],tabf[4],tabf[5],tabf[6],i5);}\
+  if (strcmp(f,"f") == 0) {fprintf(ptr_file, SF_D4_ " %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f " SF_D_ "\n",i1,i2,i3,i4,tabf[0],tabf[1],tabf[2],tabf[3],tabf[4],tabf[5],tabf[6],i5);}\
   else\
   {\
-    fwrite( &i1 , sizeof(int) , 1 , ptr_file);\
-    fwrite( &i2 , sizeof(int) , 1 , ptr_file);\
-    fwrite( &i3 , sizeof(int) , 1 , ptr_file);\
-    fwrite( &i4 , sizeof(int) , 1 , ptr_file);\
+    fwrite( &i1 , sizeof(E_Int) , 1 , ptr_file);\
+    fwrite( &i2 , sizeof(E_Int) , 1 , ptr_file);\
+    fwrite( &i3 , sizeof(E_Int) , 1 , ptr_file);\
+    fwrite( &i4 , sizeof(E_Int) , 1 , ptr_file);\
     fwrite( &tabf , sizeof(E_Float) , 7 , ptr_file);\
-    fwrite( &i5 , sizeof(int) , 1 , ptr_file);\
+    fwrite( &i5 , sizeof(E_Int) , 1 , ptr_file);\
   }\
 }\
 while(0)
 
 //=============================================================================
 /* Ecriture des coefficients d'interpolation dans un fichier relisible 
-   par elsA dans un format optimise pour l instationnaire */
+   par elsA dans un format optimise pour l'instationnaire */
 //=============================================================================
 PyObject* K_COMPRESSOR::writeUnsteadyCoefs(PyObject* self, PyObject* args)
 {
   IMPORTNUMPY;
   E_Int Iteration;          // tableau contenant le numero des iterations
-  PyObject *ListInterpData; // donnees d interpolations pour un donneur
+  PyObject* ListInterpData; // donnees d interpolations pour un donneur
   char* FileName;           // nom du fichier
   char* Localisation;       // cellules ou centres des faces
   char* Format;             // format du fichier
 
-  if (!PYPARSETUPLEI(args, "lOsss", "iOsss",
-                        &Iteration, &ListInterpData, &FileName, &Localisation, &Format)) 
+  if (!PYPARSETUPLE_(args, I_ O_ SSS_,
+                     &Iteration, &ListInterpData, &FileName, &Localisation, &Format)) 
     return NULL;
   /*-------------------*/
   /* Variables locales */
@@ -150,19 +150,18 @@ PyObject* K_COMPRESSOR::writeUnsteadyCoefs(PyObject* self, PyObject* args)
                       "deltaInterpolations: listInterpData must be a list of dictionary.");
       return NULL;
     }
-    PyObject * key_list = PyDict_Keys(InterpData);
+    PyObject* key_list = PyDict_Keys(InterpData);
     E_Int nbRcvZones = PyList_Size(key_list);
     //Get keys and corresponding values from the dictionary
     map<E_Int,map<E_Int, vector<E_Float> > > mapInterpDataByBlock;
     for (E_Int i  = 0 ; i < nbRcvZones; i++)
     {
-      PyObject * pyKey = PyList_GetItem(key_list, i);
+      PyObject* pyKey = PyList_GetItem(key_list, i);
       if (PyInt_Check(pyKey) == 0)
       {
-        printf("Warning: deltaInterpolations: invalid int for variable %d. Skipped...\n", i);
+        printf("Warning: deltaInterpolations: invalid int for variable " SF_D_ ". Skipped...\n", i);
       }
-      else
-        intKey1 = PyInt_AsLong(pyKey);
+      else intKey1 = PyInt_AsLong(pyKey);
       // map <E_Int, <listE_Float > >
       PyObject* InterpDataByRcvBlk = PyDict_GetItem(InterpData, pyKey);
       if (PyDict_Check (InterpDataByRcvBlk) == 0)
@@ -171,19 +170,18 @@ PyObject* K_COMPRESSOR::writeUnsteadyCoefs(PyObject* self, PyObject* args)
                         "deltaInterpolations: listInterpData must be a list of dictionary.");
         return NULL;
       }
-      PyObject * key_list2 = PyDict_Keys(InterpDataByRcvBlk);
+      PyObject* key_list2 = PyDict_Keys(InterpDataByRcvBlk);
       E_Int nbIndices = PyList_Size(key_list2);
       //DBG TO COMMENT
       map<E_Int, vector<E_Float> > mapInterpDataByIndex;
-      for (E_Int iterIndex  = 0 ; iterIndex < nbIndices; iterIndex++)
+      for (E_Int iterIndex = 0; iterIndex < nbIndices; iterIndex++)
       {
-        PyObject * keyIndexRcv = PyList_GetItem(key_list2, iterIndex);
+        PyObject* keyIndexRcv = PyList_GetItem(key_list2, iterIndex);
         if (PyInt_Check(keyIndexRcv) == 0)
         {
-          printf("Warning: deltaInterpolations: invalid int for variable %d. Skipped ...\n", iterIndex);
+          printf("Warning: deltaInterpolations: invalid int for variable " SF_D_ ". Skipped ...\n", iterIndex);
         }
-        else
-          intKey2 = PyInt_AsLong(keyIndexRcv);
+        else intKey2 = PyInt_AsLong(keyIndexRcv);
         // vector<E_Float>
         vector<E_Float> listOfData;
         PyObject* pyListValues = PyDict_GetItem(InterpDataByRcvBlk, keyIndexRcv);
@@ -196,21 +194,13 @@ PyObject* K_COMPRESSOR::writeUnsteadyCoefs(PyObject* self, PyObject* args)
         }
         // list<E_Float>
         E_Int tmpListValueSize = PyList_Size(pyListValues);
-        for (E_Int v  = 0 ; v < tmpListValueSize; v++)
+        for (E_Int v  = 0; v < tmpListValueSize; v++)
         {
           PyObject* pyValue = PyList_GetItem(pyListValues, v);
-          // // DBG
-          // PyTypeObject* type = pyValue->ob_type;
-          // const char* p = type->tp_name;
-          // printf("DBG pyValue %s\n",p);fflush(stdout);
-          // DBG
           if (PyInt_Check(pyValue) != 0)
           {
             E_Int intValue = PyInt_AsLong(pyValue);
             listOfData.push_back((E_Float)(intValue));
-            // DBG
-            //printf("DBG value = %d\n",intValue);fflush(stdout);
-            // DBG
           }
           // DBG
           // else if (PyArray_IsScalar(pyValue, Integer))
@@ -231,14 +221,15 @@ PyObject* K_COMPRESSOR::writeUnsteadyCoefs(PyObject* self, PyObject* args)
         }
         mapInterpDataByIndex[intKey2] = listOfData;
       }
-      mapInterpDataByBlock[intKey1]=mapInterpDataByIndex;
+      mapInterpDataByBlock[intKey1] = mapInterpDataByIndex;
     }
     listInterpData.push_back(mapInterpDataByBlock);
   }
  
-  printf("DBG Ecriture des fichiers d interpolation\n");fflush(stdout);
+  printf("DBG Ecriture des fichiers d'interpolation\n"); fflush(stdout);
+
   /*--------------------------------------------------------*/
-  /* Ecriture des fichiers d interpolation                  */
+  /* Ecriture des fichiers d'interpolation                  */
   /*--------------------------------------------------------*/
   // Ouverture du fichier
   FILE* ptr_file = NULL;
@@ -250,9 +241,8 @@ PyObject* K_COMPRESSOR::writeUnsteadyCoefs(PyObject* self, PyObject* args)
   strcpy(format,Format);
   ptr_file = fopen(file, "w");
   // Ecriture de la premiere iteration de lecture
-  printf("DBG iteration %d\n",iteration);fflush(stdout);
-  printf("DBG loc %s\n",loc);fflush(stdout);
-  printf("DBG format = %s, test = %d\n",format,strcmp(format,"f"));fflush(stdout);
+  printf("DBG iteration " SF_D_ "\n",iteration); fflush(stdout);
+  printf("DBG loc %s\n",loc); fflush(stdout);
   WRITE1(ptr_file,format,iteration);
   
     // Parcours des iterations

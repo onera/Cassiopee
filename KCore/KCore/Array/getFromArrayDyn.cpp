@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -21,46 +21,10 @@
 #include "String/kstring.h"
 
 using namespace K_FLD;
- 
-//=============================================================================
-// Extrait les donnees utiles d'un objet python struct array
-// defini par: [ 'vars, a, ni, nj, nk ]
-// ou d'un objet python unstruct array
-// defini par: [ 'vars', a, c, "ELTTYPE"].
-// ou ELTTYPE vaut: NODE, BAR, TRI, QUAD, TETRA, PYRA, PENTA, HEXA, NGON
-// avec ou sans star.
-// return 1: valid struct array
-//            f: field en stockage Dyn (champ de v1,v2,v3,...)
-//            ni, nj, nk: number of points
-//            varString
-// return 2: valid unstruct array
-//            f: field en stockage Dyn (champ de v1,v2,v3,...)
-//            c: connectivity en stockage Dyn (champ c1,c2,c3 avec indices
-//               commencants a zero).
-//            eltType: type of elements
-//            varString
-// return -1: given object is not a list.
-// return -2: not a valid number of elts in list.
-// return -3: first element is not a var string.
-// return -4: a is not a valid numpy array.
-// return -5: array is structured but ni, nj, nk unvalid.
-// return -6: array is unstructured but connectivity is unvalid.
-// return -7: array is unstructured but elt type is unknown.
-// C'est la responsabilite de l'appelant de liberer la memoire de f et 
-// eventuellement de c
-//=============================================================================
-E_Int K_ARRAY::getFromArray(PyObject* o,
-                            char*& varString,
-                            DynArray<E_Float>*& f,
-                            E_Int& ni, E_Int& nj, E_Int& nk,
-                            DynArray<E_Int>*& c,
-                            char*& eltType)
+
+E_Int __check_array(PyObject* o, PyArrayObject*& a, char*& varString)
 {
   PyObject* tpl;
-  PyArrayObject* a;
-  PyArrayObject* ac;
-  IMPORTNUMPY;
-  
   if (PyList_Check(o) == false)
   {
     PyErr_Warn(PyExc_Warning,
@@ -76,15 +40,24 @@ E_Int K_ARRAY::getFromArray(PyObject* o,
   }
  
   // -- varString --
-  if (PyString_Check(PyList_GetItem(o,0)) == false)
+  PyObject* l = PyList_GetItem(o,0);
+  if (PyString_Check(l))
+  {
+    // pointeur sur la chaine python
+    varString = PyString_AsString(l);  
+  }
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(l))
+  {
+    varString = (char*)PyUnicode_AsUTF8(l); 
+  }
+#endif
+  else
   {
     PyErr_Warn(PyExc_Warning,
                "getFromArray: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. First element must be a string.");
     return -3;
   }
-  varString = PyString_AsString(PyList_GetItem(o,0));
-
-  E_Int nvar = getNumberOfVariables(varString);
 
   // -- field --
   tpl = PyList_GetItem(o, 1);
@@ -112,37 +85,39 @@ E_Int K_ARRAY::getFromArray(PyObject* o,
     Py_DECREF(a);
     return -4;
   }
-  E_Int s = PyArray_DIMS(a)[1];
-  E_Int nfld = PyArray_DIMS(a)[0];
-  
-  if (nfld != nvar)
-  {
-    PyErr_Warn(PyExc_Warning,
-               "getFromArray: number of variables different in varString and field.");
-    Py_DECREF(a);
-    return -4;
-  }
-  
-  f = new DynArray<E_Float>(nfld, s);
-  E_Float* d = (E_Float*)PyArray_DATA(a);
-  DynArray<E_Float>::iterator it = f->begin();
-  for (E_Int i = 0; i < s; i++)
-    for (E_Int n = 0; n < nfld; n++)
-    {
-      *it = d[i + s*n]; it++;
-    }
+  return 0;
+}
 
+E_Int __get_connectivity(PyObject*o, PyArrayObject*& a, 
+                         E_Int& ni, E_Int& nj, E_Int& nk,
+                         DynArray<E_Int>& c,
+                         char*& eltType)
+{
+  PyObject* tpl;
+  PyArrayObject* ac;
+
+  E_Int size = PyList_Size(o);
   if (size == 4) // unstruct array
   {
     // -- element type --
-    if (PyString_Check(PyList_GetItem(o,3)) == false)
+    PyObject* l = PyList_GetItem(o,3);
+    if (PyString_Check(l))
+    {
+      eltType = PyString_AsString(l);  
+    }
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(l))
+    {
+      eltType = (char*)PyUnicode_AsUTF8(l); 
+    }
+#endif
+    else
     {
       PyErr_Warn(PyExc_Warning,
                  "getFromArray: an unstruct array must be of list of type ['vars', a, c, 'ELTTYPE']. Last element must be a string.");
       Py_DECREF(a);
       return -7;
     }
-    eltType = PyString_AsString(PyList_GetItem(o,3));
 
     if (K_STRING::cmp(eltType, "NODE") != 0 &&
         K_STRING::cmp(eltType, "BAR") != 0 &&
@@ -183,7 +158,7 @@ E_Int K_ARRAY::getFromArray(PyObject* o,
       Py_DECREF(a);
       return -6;
     }
-    //ac = (PyArrayObject*)PyArray_ContiguousFromObject(tpl, NPY_INT,
+    //ac = (PyArrayObject*)PyArray_ContiguousFromObject(tpl, E_NPY_INT,
     //                                                  1, 10000000);
     ac = (PyArrayObject*)tpl; Py_INCREF(ac);
 
@@ -204,15 +179,14 @@ E_Int K_ARRAY::getFromArray(PyObject* o,
     }
     E_Int s = PyArray_DIMS(ac)[1];
     E_Int nfld = PyArray_DIMS(ac)[0];
-    c = new DynArray<E_Int>(nfld, s);
+    c.resize(nfld,s);
     E_Int* d = (E_Int*)PyArray_DATA(ac);
-    DynArray<E_Int>::iterator it = c->begin();
+    DynArray<E_Int>::iterator it = c.begin();
     for (E_Int i = 0; i < s; i++)
       for (E_Int n = 0; n < nfld; n++)
       {
         *it = d[i + s*n]-shift; it++;
       }
-
     
     Py_DECREF(a); Py_DECREF(ac);
     return 2;
@@ -249,4 +223,108 @@ E_Int K_ARRAY::getFromArray(PyObject* o,
     Py_DECREF(a);
     return 1;
   }
+}
+ 
+//=============================================================================
+// Extrait les donnees utiles d'un objet python struct array
+// defini par: [ 'vars, a, ni, nj, nk ]
+// ou d'un objet python unstruct array
+// defini par: [ 'vars', a, c, "ELTTYPE"].
+// ou ELTTYPE vaut: NODE, BAR, TRI, QUAD, TETRA, PYRA, PENTA, HEXA, NGON
+// avec ou sans star.
+// return 1: valid struct array
+//            f: field en stockage Dyn (champ de v1,v2,v3,...)
+//            ni, nj, nk: number of points
+//            varString
+// return 2: valid unstruct array
+//            f: field en stockage Dyn (champ de v1,v2,v3,...)
+//            c: connectivity en stockage Dyn (champ c1,c2,c3 avec indices
+//               commencants a zero).
+//            eltType: type of elements
+//            varString
+// return -1: given object is not a list.
+// return -2: not a valid number of elts in list.
+// return -3: first element is not a var string.
+// return -4: a is not a valid numpy array.
+// return -5: array is structured but ni, nj, nk unvalid.
+// return -6: array is unstructured but connectivity is unvalid.
+// return -7: array is unstructured but elt type is unknown.
+// C'est la responsabilite de l'appelant de liberer la memoire de f et 
+// eventuellement de c
+//=============================================================================
+E_Int K_ARRAY::getFromArray(PyObject* o,
+                            char*& varString,
+                            DynArray<E_Float>*& f,
+                            E_Int& ni, E_Int& nj, E_Int& nk,
+                            DynArray<E_Int>*& c,
+                            char*& eltType)
+{
+  IMPORTNUMPY;
+  
+  PyArrayObject* a;
+  E_Int res = __check_array(o, a, varString);
+  if (res != 0) return res;
+  
+  E_Int s = PyArray_DIMS(a)[1];
+  E_Int nfld = PyArray_DIMS(a)[0];
+  E_Int nvar = getNumberOfVariables(varString);
+
+  if (nfld != nvar)
+  {
+    PyErr_Warn(PyExc_Warning,
+               "getFromArray: number of variables different in varString and field.");
+    Py_DECREF(a);
+    return -4;
+  }
+  
+  f = new DynArray<E_Float>(nfld, s);
+  E_Float* d = (E_Float*)PyArray_DATA(a);
+  DynArray<E_Float>::iterator it = f->begin();
+  for (E_Int i = 0; i < s; i++)
+    for (E_Int n = 0; n < nfld; n++)
+    {
+      *it = d[i + s*n]; it++;
+    }
+
+  c = new DynArray<E_Int>(1, 1);//will be resized inside
+  return __get_connectivity(o, a, ni, nj, nk, *c, eltType);
+}
+
+// same as above ignoring fields other than coordinates
+E_Int K_ARRAY::getFromArray(PyObject* o,
+                                char*& varString,
+                                DynArray<E_Float>& f,
+                                E_Int& ni, E_Int& nj, E_Int& nk,
+                                DynArray<E_Int>& c,
+                                char*& eltType)
+{
+  IMPORTNUMPY;
+  
+  PyArrayObject* a;
+  E_Int res = __check_array(o, a, varString);
+  if (res != 0) return res;
+  
+  E_Int s = PyArray_DIMS(a)[1];
+  E_Int nfld = PyArray_DIMS(a)[0];
+  E_Int nvar = getNumberOfVariables(varString);
+
+  if (nfld != nvar)
+  {
+    PyErr_Warn(PyExc_Warning,
+               "getFromArray: number of variables different in varString and field.");
+    Py_DECREF(a);
+    return -4;
+  }
+  
+  f.resize(nfld, s);
+  
+  E_Float* d = (E_Float*)PyArray_DATA(a);
+  DynArray<E_Float>::iterator it = f.begin();
+  for (E_Int i = 0; i < s; i++)
+    for (E_Int n = 0; n < nfld; n++)
+    {
+      *it = d[i + s*n]; it++;
+    }
+
+  return __get_connectivity(o, a, ni, nj, nk, c, eltType);
 }

@@ -1,0 +1,9 @@
+# paradigma source path
+PPATH = 'XCore/paradigma'
+#==============================================================================
+# Fichiers c++
+#==============================================================================
+cpp_srcs = ['pdm.c', 'mesh/pdm_plane.c', 'mesh/pdm_triangle.c', 'mesh/pdm_dist_cellcenter_surf.c', 'mesh/pdm_dist_cloud_surf.c', 'mesh/pdm_mesh_nodal.c', 'mesh/pdm_dmesh_nodal.c', 'mesh/pdm_polygon.c', 'mesh/pdm_geom_elem.c', 'mesh/pdm_mesh_check.c', 'mesh/pdm_surf_mesh.c', 'mesh/pdm_points_merge.c', 'mesh/pdm_surf_part.c', 'mesh/pdm_cellface_orient.c', 'mesh/pdm_line.c', 'mesh/pdm_graph_bound.c', 'mesh/pdm_elt_parent_find.c', 'mesh/pdm_part_bound.c', 'util/pdm_remove_blank.c', 'util/pdm_fortran_to_c_string.c', 'util/pdm_mpi_node_first_rank.c', 'util/pdm_timer.c', 'ext_wrapper/pdm_ext_wrapper.c', 'struct/pdm_cuthill.c', 'struct/pdm_hash_tab.c', 'struct/pdm_binary_search.c', 'struct/pdm_morton.c', 'struct/pdm_handles.c', 'struct/pdm_sort.c', 'struct/pdm_box.c', 'struct/pdm_octree_seq.c', 'struct/pdm_global_mean.c', 'struct/pdm_distrib.c', 'struct/pdm_gnum.c', 'struct/pdm_block_to_block.c', 'struct/pdm_box_tree.c', 'struct/pdm_dbbtree.c', 'struct/pdm_order.c', 'struct/pdm_octree.c', 'struct/pdm_block_to_part.c', 'struct/pdm_part_to_block.c', 'struct/pdm_part_graph.c', 'mpi_wrapper/no_mpi/pdm_no_mpi_ext_dependencies.c', 'mpi_wrapper/no_mpi/pdm_no_mpi.c', 'mpi_wrapper/mpi/pdm_mpi_ext_dependencies.c', 'mpi_wrapper/mpi/pdm_mpi.c', 'meshgen/pdm_dcube_gen.c', 'meshgen/pdm_poly_surf_gen.c', 'ppart/pdm_hilbert.c', 'ppart/pdm_part_renum.c', 'ppart/pdm_part_geom.c', 'ppart/pdm_part_coarse_mesh.c', 'ppart/pdm_part.c', 'io/pdm_printf.c', 'io/pdm_error.c', 'pario/pdm_file_seq.c', 'pario/pdm_io.c', 'pario/pdm_writer_ensight_case.c', 'pario/pdm_writer.c', 'pario/pdm_io_tab.c', 'pario/pdm_writer_ensight.c', 'pario/pdm_file_par.c']
+
+# Fichiers pyx
+pyx_srcs = ['XCore/paradigma/Cython/Pypdm.pyx']

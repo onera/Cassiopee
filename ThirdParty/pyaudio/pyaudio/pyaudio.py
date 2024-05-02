@@ -113,7 +113,7 @@ import sys
 
 # attempt to import PortAudio
 try:
-    import _portaudio as pa
+    from . import _portaudio as pa
 except ImportError:
     print("Could not import the PyAudio C module '_portaudio'.")
     raise

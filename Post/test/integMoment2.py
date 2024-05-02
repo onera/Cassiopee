@@ -9,8 +9,6 @@ arrays = []
 
 ar = C.convertFile2Arrays("cyl01.tp", "fmt_tp")
 a2 = T.subzone(ar[0], (1,1,1), (101,301,1))
-print ar[0]
-print a2
 arrays.append(a2)
 ar = C.convertFile2Arrays("cyl02.tp", "fmt_tp")
 a2 = T.subzone(ar[0], (1,1,1), (51,301,1))
@@ -36,14 +34,13 @@ for i in a :
     ni = arrays[i][2]
     nj = arrays[i][3]
     nk = arrays[i][4]
-    print ni, nj, nk
     dens = ones( (3, (ni-1) * (nj-1) * nk), float64 )    
     densa = ['t', dens, (ni-1), (nj-1), nk]
     density.append(densa)
 
 res = P.integNormProduct(arrays, density, [])
-print res
+print(res)
 res = P.integMoment(arrays, density, [], (0.,0.,0.))
-print res
+print(res)
 
 

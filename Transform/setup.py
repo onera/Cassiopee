@@ -1,5 +1,5 @@
-#!/usr/bin/env python
 from distutils.core import setup, Extension
+#from setuptools import setup, Extension
 import os
 
 #=============================================================================
@@ -8,10 +8,10 @@ import os
 # C++ compiler
 # Fortran compiler: defined in config.py
 # Numpy
-# KCore
+# KCore library
 #=============================================================================
 
-# Write setup.cfg
+# Write setup.cfg file
 import KCore.Dist as Dist
 Dist.writeSetupCfg()
 
@@ -20,43 +20,42 @@ Dist.writeSetupCfg()
 
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLib) = Dist.checkKCore()
-    
-# Compilation des fortrans ===================================================
+
 from KCore.config import *
-if (f77compiler == "None"):
-    print "Error: a fortran 77 compiler is required for compiling Transform."
-args = Dist.getForArgs(); opt = ''
-for c in xrange(len(args)):
-    opt += 'FOPT'+str(c)+'='+args[c]+' '
-os.system("make -e FC="+f77compiler+" WDIR=Transform/Fortran "+opt)
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 
-# Setting libraryDirs and libraries ===========================================
+# Setting libraryDirs, include dirs and libraries =============================
 libraryDirs = ["build/"+prod, kcoreLib]
-libraries = ["TransformF", "kcore"]
+includeDirs = [numpyIncDir, kcoreIncDir]
+libraries = ["transform", "kcore"]
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
-
-# setup =======================================================================
-import srcs
+    
+# Extensions ==================================================================
+listExtensions = []
+listExtensions.append(
+    Extension('Transform.transform',
+              sources=['Transform/transform.cpp'],
+              include_dirs=["Transform"]+additionalIncludePaths+includeDirs,
+              library_dirs=additionalLibPaths+libraryDirs,
+              libraries=libraries+additionalLibs,
+              extra_compile_args=Dist.getCppArgs(),
+              extra_link_args=Dist.getLinkArgs()
+              ) )
+    
+# setup ======================================================================
 setup(
     name="Transform",
-    version="2.7",
+    version="4.0",
     description="Transformations of arrays/pyTrees for *Cassiopee* modules.",
-    author="Onera",
+    author="ONERA",
+    url="https://cassiopee.onera.fr",
     package_dir={"":"."},
     packages=['Transform'],
-    ext_modules=[Extension('Transform.transform',
-                           sources=["Transform/transform.cpp"]+srcs.cpp_srcs,
-                           include_dirs=["Transform"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
-                           library_dirs=additionalLibPaths+libraryDirs,
-                           libraries=libraries+additionalLibs,
-                           extra_compile_args=Dist.getCppArgs(),
-                           extra_link_args=Dist.getLinkArgs()
-                           )]
+    ext_modules=listExtensions
     )
 
 # Check PYTHONPATH ===========================================================

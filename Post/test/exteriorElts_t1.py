@@ -1,5 +1,4 @@
 # - exteriorElts (array) -
-import Converter as C
 import Post as P
 import Generator as G
 import Geom as D

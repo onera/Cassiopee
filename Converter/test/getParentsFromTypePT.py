@@ -6,8 +6,6 @@ b = Internal.createChild(a, 'level1', 'DataArray_t', 1)
 c = Internal.createChild(b, 'level2', 'DataArray_t', 2)
 
 p = Internal.getParentsFromType(a, c, 'DataArray_t')
-for i in p: print i[0]
+for i in p: print(i[0])
 #>> level0
 #>> level1
-
-

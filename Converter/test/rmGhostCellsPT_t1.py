@@ -1,4 +1,4 @@
-# - addGhostCells (pyTree) -
+# - rmGhostCells (pyTree) -
 import Generator.PyTree as G
 import Converter.PyTree as C
 import Converter.Internal as Internal
@@ -27,19 +27,17 @@ C._initVars(b, 'centers:cellN', 0.)
 C._initVars(a, '{Density}=3.*{CoordinateX}+2.*{CoordinateY}')
 C._initVars(a, 'StagnationPressure', 0.5)
 C._initVars(c, 'StagnationPressure', 1.)
-t = C.newPyTree(['Base']); t[2][1][2] += [a,b,c]
+t = C.newPyTree(['Base',a,b,c])
 # Matching BC
 t = X.connectMatch(t)
 a = t[2][1][2][0]
 
-ag = Internal.addGhostCells(t, a, 2)
-t[2][1][2].append(ag)
-ag = Internal.rmGhostCells(t, ag, 3)
+ag = Internal.addGhostCells(t, a, 2, adaptBCs=0)
 t[2][1][2].append(ag)
 
-ag = Internal.rmGhostCells(t, ag, 1)
+ag = Internal.rmGhostCells(t, ag, 1, adaptBCs=0)
 t[2][1][2].append(ag)
-ag = Internal.rmGhostCells(t, ag, 1)
+ag = Internal.rmGhostCells(t, ag, 1, adaptBCs=0)
 t[2][1][2].append(ag)
 
 test.testT(t, 1)

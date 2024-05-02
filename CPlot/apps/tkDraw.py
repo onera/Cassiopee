@@ -1,5 +1,7 @@
-# - Draw curves -
-import Tkinter as TK
+# - tkDraw -
+"""Applet to draw curves."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -78,17 +80,17 @@ def draw():
     if CTK.t == []: return
     type = VARS[0].get()
     npts = CTK.varsFromWidget(VARS[1].get(), 2)
-    if (len(npts) != 1):
+    if len(npts) != 1:
         CTK.TXT.insert('START', 'Invalid number of points.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
     npts = npts[0]
-    if (type == 'Polyline'): drawPolyline()
-    elif (type == 'Line'): drawLine(npts)
-    elif (type == 'Circle'): drawCircle(npts)
-    elif (type == 'Circular arc'): drawArc(npts)
-    elif (type == 'Rectangle'): drawRectangle(npts)
-    elif (type == 'Cubic'): drawCubic(npts)
-    elif (type == 'Free hand'): drawFreeHand()
+    if type == 'Polyline': drawPolyline()
+    elif type == 'Line': drawLine(npts)
+    elif type == 'Circle': drawCircle(npts)
+    elif type == 'Circular arc': drawArc(npts)
+    elif type == 'Rectangle': drawRectangle(npts)
+    elif type == 'Cubic': drawCubic(npts)
+    elif type == 'Free hand': drawFreeHand()
 
 #==============================================================================
 def drawLine(npts):
@@ -115,14 +117,14 @@ def drawLine(npts):
                 if prev == []:
                     prev = l
                     CTK.TXT.insert('START', 'Click second point...\n')
-                elif (prev != l):
+                elif prev != l:
                     line = D.line(prev, l, npts)
                     if surfaces != []: line = T.projectOrthoSmooth(line, surfaces)
                     CTK.add(CTK.t, nob, -1, line)
                     CTK.TXT.insert('START', 'Line created.\n')
                     CTK.__BUSY__ = False
                     TTK.raiseButton(WIDGETS['draw'])
-                    CTK.t = C.fillMissingVariables(CTK.t)
+                    #C._fillMissingVariables(CTK.t)
                     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
                     CTK.TKTREE.updateApp()
                     CPlot.render()
@@ -155,19 +157,19 @@ def drawCircle(npts):
             CTK.saveTree()
             surfaces = getSurfaces()
             l = []
-            while (l == []):
+            while l == []:
                 l = CPlot.getActivePoint()
                 time.sleep(CPlot.__timeStep__)
                 w.update()
-                if (CTK.__BUSY__ == False): break
-            if (CTK.__BUSY__ == True):
+                if not CTK.__BUSY__: break
+            if CTK.__BUSY__:
                 if prev == []:
                     prev = l
                     CTK.TXT.insert('START', 'Click second point...\n')
-                elif (second == [] and prev != l):
+                elif second == [] and prev != l:
                     second = l
                     CTK.TXT.insert('START', 'Click third point...\n')
-                elif (prev != l and second != l):
+                elif prev != l and second != l:
                     x1 = l[0]; y1 = l[1]; z1 = l[2]
                     x2 = prev[0]; y2 = prev[1]; z2 = prev[2]
                     x3 = second[0]; y3 = second[1]; z3 = second[2]
@@ -190,7 +192,8 @@ def drawCircle(npts):
                     normi = 1./math.sqrt(norm)
                     tx = tx*normi; ty = ty*normi; tz = tz*normi;
                     alpha = R*R - (xa*xa+ya*ya+za*za)*0.25
-                    alpha = math.sqrt(alpha)
+                    if alpha >= 0: alpha = math.sqrt(alpha)
+                    else: alpha = 0.    
                     center = [0,0,0]
                     center[0] = 0.5*(x1+x2) + alpha*tx
                     center[1] = 0.5*(y1+y2) + alpha*ty
@@ -209,19 +212,22 @@ def drawCircle(npts):
                     e1 = [x1-center[0], y1-center[1], z1-center[2]]
                     e2 = [x2-center[0], y2-center[1], z2-center[2]]
                     e3 = Vector.cross(e1, e2)
+                    if (e3[0]*e3[0]+e3[1]*e3[1]+e3[2]*e3[2]) < 1e-24:
+                        e2 = [x3-center[0], y3-center[1], z3-center[2]]
+                        e3 = Vector.cross(e1, e2)
                     e4 = Vector.cross(e1, e3)
                     circle = T.rotate(circle,
                                       (center[0], center[1], center[2]),
                                       ((1,0,0), (0,1,0), (0,0,1)),
                                       (e1, e4, e3))
-                    if (surfaces != []):
+                    if surfaces != []:
                         circle = T.projectOrthoSmooth(circle, surfaces)
                     CTK.add(CTK.t, nob, -1, circle)
                     CTK.TXT.insert('START', 'Circle created.\n')
                     CTK.__BUSY__ = False
                     TTK.raiseButton(w)
                     CPlot.setState(cursor=0)
-                    CTK.t = C.fillMissingVariables(CTK.t)
+                    #C._fillMissingVariables(CTK.t)
                     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
                     CTK.TKTREE.updateApp()
                     CPlot.render()
@@ -244,7 +250,7 @@ def drawArc(npts):
     CTK.TXT.insert('START', 'Click first point...\n')
     w = WIDGETS['draw']
     prev = []; second = []
-    if CTK.__BUSY__ == False:
+    if not CTK.__BUSY__:
         CTK.__BUSY__ = True
         TTK.sunkButton(w)
         CPlot.setState(cursor=1)
@@ -253,19 +259,19 @@ def drawArc(npts):
             CTK.saveTree()
             surfaces = getSurfaces()
             l = []
-            while (l == []):
+            while l == []:
                 l = CPlot.getActivePoint()
                 time.sleep(CPlot.__timeStep__)
                 w.update()
-                if (CTK.__BUSY__ == False): break
-            if (CTK.__BUSY__ == True):
-                if (prev == []):
+                if not CTK.__BUSY__: break
+            if CTK.__BUSY__:
+                if prev == []:
                     prev = l
                     CTK.TXT.insert('START', 'Click second point...\n')
-                elif (second == [] and prev != l):
+                elif second == [] and prev != l:
                     second = l
                     CTK.TXT.insert('START', 'Click third point...\n')
-                elif (prev != l and second != l):
+                elif prev != l and second != l:
                     x1 = l[0]; y1 = l[1]; z1 = l[2]
                     x2 = prev[0]; y2 = prev[1]; z2 = prev[2]
                     x3 = second[0]; y3 = second[1]; z3 = second[2]
@@ -276,8 +282,9 @@ def drawArc(npts):
                     b2 = xb*xb + yb*yb + zb*zb
                     c2 = xc*xc + yc*yc + zc*zc
                     A = 2*b2*c2 + 2*c2*a2 + 2*a2*b2 - a2*a2 - b2*b2 - c2*c2
-                    R = math.sqrt( a2*b2*c2 / A )
-                    
+                    if A > 1.e-48: R = math.sqrt(a2*b2*c2 / A)
+                    else: R = 0.
+
                     nx = ya*zb - za*yb
                     ny = za*xb - xa*zb
                     nz = xa*yb - ya*xb
@@ -285,17 +292,20 @@ def drawArc(npts):
                     ty = za*nx - xa*nz
                     tz = xa*ny - ya*nx
                     norm = tx*tx + ty*ty + tz*tz
-                    normi = 1./math.sqrt(norm)
+                    if norm > 1.e-24: normi = 1./math.sqrt(norm)
+                    else: normi = 1.e24
+
                     tx = tx*normi; ty = ty*normi; tz = tz*normi;
                     alpha = R*R - (xa*xa+ya*ya+za*za)*0.25
-                    alpha = math.sqrt(alpha)
+                    if alpha >= 0: alpha = math.sqrt(alpha)
+                    else: alpha = 0.
                     center = [0,0,0]
                     center[0] = 0.5*(x1+x2) + alpha*tx
                     center[1] = 0.5*(y1+y2) + alpha*ty
                     center[2] = 0.5*(z1+z2) + alpha*tz
                     dx3 = center[0]-x3; dy3 = center[1]-y3; dz3 = center[2]-z3
                     l = dx3*dx3 + dy3*dy3 + dz3*dz3
-                    if (abs(l - R*R) > 1.e-10):
+                    if abs(l - R*R) > 1.e-10:
                         center[0] = 0.5*(x1+x2) - alpha*tx
                         center[1] = 0.5*(y1+y2) - alpha*ty
                         center[2] = 0.5*(z1+z2) - alpha*tz
@@ -305,13 +315,15 @@ def drawArc(npts):
                     e1 = [x1-center[0], y1-center[1], z1-center[2]]
                     e2 = [x2-center[0], y2-center[1], z2-center[2]]
                     e3 = Vector.cross(e1, e2)
+                    if (e3[0]*e3[0]+e3[1]*e3[1]+e3[2]*e3[2]) < 1e-24:
+                        e2 = [x3-center[0], y3-center[1], z3-center[2]]
+                        e3 = Vector.cross(e1, e2)
                     e4 = Vector.cross(e1, e3)
 
                     # Images des pts dans le plan xyz 
                     pt1 = D.point((x1,y1,z1))
                     pt2 = D.point((x2,y2,z2))
                     pt3 = D.point((x3,y3,z3))
-                    #print 'orig', x1,y1,z1
                     pt1 = T.rotate(pt1,
                                    (center[0], center[1], center[2]),
                                    (e1, e4, e3),
@@ -333,33 +345,29 @@ def drawArc(npts):
                     xp3 = C.getValue(pt3, 'CoordinateX', 0)
                     yp3 = C.getValue(pt3, 'CoordinateY', 0)
                     zp3 = C.getValue(pt3, 'CoordinateZ', 0)
-                    #print xp1,yp1,zp1
-                
+                    
                     dx1 = (xp1-center[0])/R; dy1 = (yp1-center[1])/R
-                    if (dx1 > 1.): dx1 = 1.
-                    if (dx1 < -1.): dx1 = -1.
-                    #print dx1, dy1
-                    if (dy1 > 0): teta1 = math.acos(dx1)
+                    if dx1 > 1.: dx1 = 1.
+                    if dx1 < -1.: dx1 = -1.
+                    if dy1 > 0: teta1 = math.acos(dx1)
                     else: teta1 = 2*math.pi - math.acos(dx1)
                     teta1 = teta1*180./math.pi; teta1 = 360.
 
                     dx2 = (xp2-center[0])/R; dy2 = (yp2-center[1])/R
-                    if (dx2 > 1.): dx2 = 1.
-                    if (dx2 < -1.): dx2 = -1.
-                    #print dx2, dy2
-                    if (dy2 > 0): teta2 = math.acos(dx2)
+                    if dx2 > 1.: dx2 = 1.
+                    if dx2 < -1.: dx2 = -1.
+                    if dy2 > 0: teta2 = math.acos(dx2)
                     else: teta2 = 2*math.pi - math.acos(dx2)
                     teta2 = teta2*180./math.pi
 
                     dx3 = (xp3-center[0])/R; dy3 = (yp3-center[1])/R
-                    if (dx3 > 1.): dx3 = 1.
-                    if (dx3 < -1.): dx3 = -1.
-                    #print dx2, dy2
-                    if (dy3 > 0): teta3 = math.acos(dx3)
+                    if dx3 > 1.: dx3 = 1.
+                    if dx3 < -1.: dx3 = -1.
+                    if dy3 > 0: teta3 = math.acos(dx3)
                     else: teta3 = 2*math.pi - math.acos(dx3)
                     teta3 = teta3*180./math.pi
 
-                    if (teta3 > teta2): teta1 = 360.
+                    if teta3 > teta2: teta1 = 360.
                     else: teta1 = 0.
 
                     circle = D.circle((center[0],center[1],center[2]), R, 
@@ -368,14 +376,13 @@ def drawArc(npts):
                                       (center[0], center[1], center[2]),
                                       ((1,0,0), (0,1,0), (0,0,1)),
                                       (e1, e4, e3))
-                    if (surfaces != []):
+                    if surfaces != []:
                         circle = T.projectOrthoSmooth(circle, surfaces)
                     CTK.add(CTK.t, nob, -1, circle)
                     CTK.TXT.insert('START', 'Circle created.\n')
                     CTK.__BUSY__ = False
                     TTK.raiseButton(w)
                     CPlot.setState(cursor=0)
-                    CTK.t = C.fillMissingVariables(CTK.t)
                     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
                     CTK.TKTREE.updateApp()
                     CPlot.render()
@@ -398,36 +405,36 @@ def drawRectangle(npts):
     CTK.TXT.insert('START', 'Click left/lower corner...\n')
     w = WIDGETS['draw']
     prev = []; second = []
-    if (CTK.__BUSY__ == False):
+    if not CTK.__BUSY__:
         CTK.__BUSY__ = True
         TTK.sunkButton(w)
         CPlot.setState(cursor=1)
-        while (CTK.__BUSY__ == True):
+        while CTK.__BUSY__:
             CPlot.unselectAllZones()
             CTK.saveTree()
             surfaces = getSurfaces()
             l = []
-            while (l == []):
+            while l == []:
                 l = CPlot.getActivePoint()
                 time.sleep(CPlot.__timeStep__)
                 w.update()
-                if (CTK.__BUSY__ == False): break
-            if (CTK.__BUSY__ == True):
-                if (prev == []):
+                if not CTK.__BUSY__: break
+            if CTK.__BUSY__:
+                if prev == []:
                     prev = l
                     CTK.TXT.insert('START', 'Click right/up corner...\n')
-                elif (prev != l):
+                elif prev != l:
                     e1,e2 = getVectorsFromCanvas()
                     e1n = Vector.norm(e1)
                     e2n = Vector.norm(e2)
-                    if (e2n > e1n): e1 = e2
+                    if e2n > e1n: e1 = e2
                     P1 = l; P2 = prev
                     P1P2 = Vector.sub(P2, P1)
                     P1P2n = Vector.norm(P1P2)
                     Q = Vector.norm(Vector.cross(e1, P1P2))
                     L = math.sqrt( P1P2n*P1P2n - Q*Q )
                     sign = Vector.dot(e1, P1P2)
-                    if (sign > 0): e1 = Vector.mul(L, e1)
+                    if sign > 0: e1 = Vector.mul(L, e1)
                     else: e1 = Vector.mul(-L, e1)
                     P3 = Vector.add(P1, e1)
                     P4 = Vector.sub(P2, e1)
@@ -436,14 +443,13 @@ def drawRectangle(npts):
                     l3 = D.line(P2, P4, npts)
                     l4 = D.line(P4, P1, npts)
                     rect = T.join([l1,l2,l3,l4])
-                    if (surfaces != []):
+                    if surfaces != []:
                         rect = T.projectOrthoSmooth(rect, surfaces)
                     CTK.add(CTK.t, nob, -1, rect)
                     CTK.TXT.insert('START', 'Rectangle created.\n')
                     CTK.__BUSY__ = False
                     TTK.raiseButton(w)
                     CPlot.setState(cursor=0)
-                    CTK.t = C.fillMissingVariables(CTK.t)
                     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
                     CTK.TKTREE.updateApp()
                     CPlot.render()
@@ -461,26 +467,26 @@ def drawRectangle(npts):
 #==============================================================================
 def drawPolyline():
     global CURRENTZONE; global CURRENTPOLYLINE
-    if (CTK.t == []): return
+    if CTK.t == []: return
     w = WIDGETS['draw']
     
-    if (CTK.__BUSY__ == False):
+    if not CTK.__BUSY__:
         CPlot.unselectAllZones()
         CTK.saveTree()
         CTK.__BUSY__ = True
         TTK.sunkButton(w)
         CPlot.setState(cursor=1)
-        while (CTK.__BUSY__ == True):
+        while CTK.__BUSY__:
             l = []
-            while (l == []):
+            while l == []:
                 l = CPlot.getActivePoint()
                 CPlot.unselectAllZones()
                 time.sleep(CPlot.__timeStep__)
                 w.update()
-                if (CTK.__BUSY__ == False): break
-            if (CTK.__BUSY__ == True):
+                if not CTK.__BUSY__: break
+            if CTK.__BUSY__:
                 CURRENTPOLYLINE.append((l[0],l[1],l[2]))
-                if (CURRENTZONE == None):
+                if CURRENTZONE is None:
                     CTK.t = C.addBase2PyTree(CTK.t, 'CONTOURS', 1)
                     base = Internal.getNodeFromName1(CTK.t, 'CONTOURS')
                     nob = C.getNobOfBase(base, CTK.t)
@@ -502,13 +508,12 @@ def drawPolyline():
     else:
        CTK.__BUSY__ = False
        surfaces = getSurfaces()
-       if (surfaces != []):
+       if surfaces != []:
            ret = Internal.getParentOfNode(CTK.t, CURRENTZONE)
            nob = C.getNobOfBase(ret[0], CTK.t)
            a = T.projectOrthoSmooth(CURRENTZONE, surfaces)
            noz = ret[1]
            CTK.replace(CTK.t, nob, noz, a)
-       CTK.t = C.fillMissingVariables(CTK.t)
        (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
        CTK.TKTREE.updateApp()
        CPlot.render()
@@ -520,25 +525,25 @@ def drawPolyline():
 #==============================================================================
 def drawCubic(npts):
     global CURRENTZONE; global CURRENTPOLYLINE
-    if (CTK.t == []): return
+    if CTK.t == []: return
     w = WIDGETS['draw']
-    if (CTK.__BUSY__ == False):
+    if not CTK.__BUSY__:
         CPlot.unselectAllZones()
         CTK.saveTree()
         CTK.__BUSY__ = True
         TTK.sunkButton(w)
         CPlot.setState(cursor=1)
-        while (CTK.__BUSY__ == True):
+        while CTK.__BUSY__:
             l = []
-            while (l == []):
+            while l == []:
                 l = CPlot.getActivePoint()
                 CPlot.unselectAllZones()
                 time.sleep(CPlot.__timeStep__)
                 w.update()
-                if (CTK.__BUSY__ == False): break
-            if (CTK.__BUSY__ == True):
+                if not CTK.__BUSY__: break
+            if CTK.__BUSY__:
                 CURRENTPOLYLINE.append((l[0],l[1],l[2]))
-                if (CURRENTZONE == None):
+                if CURRENTZONE is None:
                     CTK.t = C.addBase2PyTree(CTK.t, 'CONTOURS', 1)
                     base = Internal.getNodeFromName1(CTK.t, 'CONTOURS')
                     nob = C.getNobOfBase(base, CTK.t)
@@ -564,10 +569,9 @@ def drawCubic(npts):
        d = G.cart( (0,0,0), (1./(npts-1),1,1), (npts,1,1) )
        a = G.map(a, d)
        surfaces = getSurfaces()
-       if (surfaces != []): a = T.projectOrthoSmooth(a, surfaces)
+       if surfaces != []: a = T.projectOrthoSmooth(a, surfaces)
        nob = C.getNobOfBase(ret[0], CTK.t)
        CTK.replace(CTK.t, nob, ret[1], a)
-       CTK.t = C.fillMissingVariables(CTK.t)
        (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
        CTK.TKTREE.updateApp()
        CPlot.render()
@@ -581,22 +585,22 @@ def drawFreeHand():
     global CURRENTZONE; global CURRENTPOLYLINE; global ALLZONES
     w = WIDGETS['draw']
     prev = []; first = []
-    if (CTK.__BUSY__ == False):
+    if CTK.__BUSY__ == False:
         CPlot.unselectAllZones()
         CTK.saveTree()
         CTK.__BUSY__ = True
         TTK.sunkButton(w)
         CPlot.setState(cursor=1)
         buttonState = 0
-        while (CTK.__BUSY__ == True):
-            if (prev == []): # first point
+        while CTK.__BUSY__:
+            if prev == []: # first point
                 l = []
-                while (l == []):
+                while l == []:
                     l = CPlot.getActivePoint()
-                    if (l != []): prev = l; first = l
+                    if l != []: prev = l; first = l
                     time.sleep(CPlot.__timeStep__)
                     w.update()
-                    if (CTK.__BUSY__ == False): break
+                    if not CTK.__BUSY__: break
             else: # next points
                 diff = -1.
                 while (diff < 1.e-10):
@@ -604,15 +608,15 @@ def drawFreeHand():
                     l = (x,y,z)
                     diff = Vector.norm2(Vector.sub(l,prev))
                     diff1 = Vector.norm2(Vector.sub(l,first))
-                    if (diff1 < 1.e-10): l = first
-                    if (buttonState == 5): break
+                    if diff1 < 1.e-10: l = first
+                    if buttonState == 5: break
                     time.sleep(CPlot.__timeStep__)
                     w.update()
-                    if (CTK.__BUSY__ == False): break
+                    if not CTK.__BUSY__: break
                     
             prev = l
             CPlot.unselectAllZones()
-            if (buttonState == 5): # button released
+            if buttonState == 5: # button released
                 ALLZONES.append(CURRENTZONE)
                 CURRENTZONE = None; prev = []; first = []
                 CURRENTPOLYLINE = []
@@ -620,7 +624,7 @@ def drawFreeHand():
                 
             if (CTK.__BUSY__ == True and buttonState != 5):
                 CURRENTPOLYLINE.append((l[0],l[1],l[2]))
-                if (CURRENTZONE == None):
+                if CURRENTZONE is None:
                     CTK.t = C.addBase2PyTree(CTK.t, 'CONTOURS', 1)
                     base = Internal.getNodeFromName1(CTK.t, 'CONTOURS')
                     nob = C.getNobOfBase(base, CTK.t)
@@ -642,15 +646,14 @@ def drawFreeHand():
     else:
        CTK.__BUSY__ = False
        surfaces = getSurfaces()
-       if (surfaces != []):
-           if (CURRENTZONE != None): ALLZONES += [CURRENTZONE]
+       if surfaces != []:
+           if CURRENTZONE is not None: ALLZONES += [CURRENTZONE]
            for s in ALLZONES:
                ret = Internal.getParentOfNode(CTK.t, s)
                nob = C.getNobOfBase(ret[0], CTK.t)
                a = T.projectOrthoSmooth(s, surfaces)
                noz = ret[1]
                CTK.replace(CTK.t, nob, noz, a)
-       CTK.t = C.fillMissingVariables(CTK.t)
        (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
        CTK.TKTREE.updateApp()
        CPlot.render()
@@ -665,9 +668,10 @@ def drawFreeHand():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkDraw', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Drawing tools.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkDraw  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Drawing tools.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=2)
@@ -677,8 +681,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkDraw')
@@ -687,10 +691,10 @@ def createApp(win):
     # - VARS -
     # -0- Figure type -
     V = TK.StringVar(win); V.set('Line'); VARS.append(V)
-    if CTK.PREFS.has_key('tkDrawType'): V.set(CTK.PREFS['tkDrawType'])
+    if 'tkDrawType' in CTK.PREFS: V.set(CTK.PREFS['tkDrawType'])
     # -1- Npts -
     V = TK.StringVar(win); V.set('10'); VARS.append(V)
-    if CTK.PREFS.has_key('tkDrawNpts'): V.set(CTK.PREFS['tkDrawNpts'])
+    if 'tkDrawNpts' in CTK.PREFS: V.set(CTK.PREFS['tkDrawNpts'])
     # -2- underlaying surface
     V = TK.StringVar(win); V.set(''); VARS.append(V)
 
@@ -724,13 +728,17 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['EdgeNoteBook'].add(WIDGETS['frame'], text='tkDraw')
+    except: pass
+    CTK.WIDGETS['EdgeNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
     WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['EdgeNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -756,9 +764,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
    
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

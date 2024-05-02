@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -27,19 +27,19 @@
   IN: nofield: le no du champ
 */
 //=============================================================================
-void DataDL::renderSIsoSolidZone(StructZone* zonep, int zone, int nofield)
+void DataDL::renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield)
 {
-  int i, j, k, n1, n2;
+  E_Int i, j, k, n1, n2;
   float offb;
   double blend;
-  int ret1, ret2;
+  E_Int ret1, ret2;
 
   // Grid dimensions
-  int ni = zonep->ni;
-  int nj = zonep->nj;
-  int nk = zonep->nk;
+  E_Int ni = zonep->ni;
+  E_Int nj = zonep->nj;
+  E_Int nk = zonep->nk;
   if (ptrState->dim == 2) nk = 1;
-  int nij = ni*nj;
+  E_Int nij = ni*nj;
 
   ZoneImplDL* zoneImpl = static_cast<ZoneImplDL*>(zonep->ptr_impl);
 
@@ -51,57 +51,26 @@ void DataDL::renderSIsoSolidZone(StructZone* zonep, int zone, int nofield)
   int curr = _shaders.currentShader();
   if (curr != 0) _shaders[curr]->setUniform("blend", (float)blend);
   glColor4f(0.,0.,0., blend); // pour imposer blend
+
+  if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1)
+  {
+    if (curr != 0) _shaders[curr]->setUniform("lightOn", (int)0); // impose isoLight off on 1D meshes
+  }
 #endif
 
   double* x = zonep->x; double* y = zonep->y; double* z = zonep->z;
 
   glCallList(zoneImpl->_DLiso);
       
-  // Pour les lignes
-  if (nij == 1 || ni*nk == 1 || nj*nk == 1)
+#ifdef __SHADERS__
+  if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1)
   {
-    glBegin(GL_LINES);
-    int nie, nje, nke;
-    nie = ni; nje = nj; nke = nk;
-    if (ni*nj == 1) nke = nke-1;
-    if (ni*nk == 1) nje = nje-1;
-    if (nj*nk == 1) nie = nie-1;
-    if (zonep->blank == 0)
+    if (ptrState->isoLight == 1 && ptrState->dim == 3)
     {
-      // No blanking
-      for (k = 0; k < nke; k++)
-        for (j = 0; j < nje; j++)
-          for (i = 0; i < nie; i++)
-          {
-            n1 = i+j*ni+k*nij;
-            n2 = n1+1;
-            glColor4f(0, 0, 0+offb, blend);
-            glVertex3d(x[n1], y[n1], z[n1]);
-            glColor4f(0, 0, 0+offb, blend);
-            glVertex3d(x[n2], y[n2], z[n2]);
-          }
+      if (curr != 0) _shaders[curr]->setUniform("lightOn", (int)1); // put back the isoLight value found in the CPlot state
     }
-    else
-    {
-      for (k = 0; k < nke; k++)
-        for (j = 0; j < nje; j++)
-          for (i = 0; i < nie; i++)
-          {
-            n1 = i+j*ni+k*nij;
-            n2 = n1+1;
-            ret1 = _pref.blanking->f(this, n1, zonep->blank, zone);
-            ret2 = _pref.blanking->f(this, n2, zonep->blank, zone);
-            if (ret1*ret2 != 0)
-            { 
-              glColor4f(0, 0, 0+offb, blend);
-              glVertex3d(x[n1], y[n1], z[n1]);
-              glColor4f(0, 0, 0+offb, blend);
-              glVertex3d(x[n2], y[n2], z[n2]);
-            }
-          }
-    }
-    glEnd();
   }
+#endif
 }
 
 //=============================================================================
@@ -112,21 +81,20 @@ void DataDL::renderSIsoSolidZone(StructZone* zonep, int zone, int nofield)
   IN: nofield1, nofield2, nofield3: les no des champs
 */
 //=============================================================================
-void DataDL::renderSIsoSolidZone(StructZone* zonep, int zone, int nofield1,
-                               int nfield2, int nofield3)
-{
-  
-  int i, j, k, n1, n2;
+void DataDL::renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield1,
+                                 E_Int nfield2, E_Int nofield3)
+{  
+  E_Int i, j, k, n1, n2;
   float offb;
   double blend;
-  int ret1, ret2;
+  E_Int ret1, ret2;
 
   // Grid dimensions
-  int ni = zonep->ni;
-  int nj = zonep->nj;
-  int nk = zonep->nk;
+  E_Int ni = zonep->ni;
+  E_Int nj = zonep->nj;
+  E_Int nk = zonep->nk;
   if (ptrState->dim == 2) nk = 1;
-  int nij = ni*nj;
+  E_Int nij = ni*nj;
 
   ZoneImplDL* zoneImpl = static_cast<ZoneImplDL*>(zonep->ptr_impl);
 
@@ -148,7 +116,7 @@ void DataDL::renderSIsoSolidZone(StructZone* zonep, int zone, int nofield1,
   if (nij == 1 || ni*nk == 1 || nj*nk == 1)
   {
     glBegin(GL_LINES);
-    int nie, nje, nke;
+    E_Int nie, nje, nke;
     nie = ni; nje = nj; nke = nk;
     if (ni*nj == 1) nke = nke-1;
     if (ni*nk == 1) nje = nje-1;
@@ -190,4 +158,3 @@ void DataDL::renderSIsoSolidZone(StructZone* zonep, int zone, int nofield1,
     glEnd();
   }
 }
-

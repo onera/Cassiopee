@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "../Data.h"
+#include "Data.h"
 #include <math.h>
 
 //=============================================================================
@@ -70,8 +70,8 @@ void Data::displayPlots()
   setOrthographicProjection();
   glPushMatrix(); glLoadIdentity();
   
-  unsigned int ns = _slots1D.size();
-  for (unsigned int i = 0; i < ns; i++) displayPlot(_slots1D[i]);
+  size_t ns = _slots1D.size();
+  for (size_t i = 0; i < ns; i++) displayPlot(_slots1D[i]);
 
   // Put back the previous projection
   glPopMatrix();
@@ -116,18 +116,18 @@ void Data::displayPlot(Slot1D* s)
   // display Title
 
   // display plot
-  for (unsigned int i = 0; i < s->_zones.size(); i++)
+  for (size_t i = 0; i < s->_zones.size(); i++)
     plotZone(s, s->_zones[i], posx, posy, dx, dy, s->_var1[i], s->_var2[i]);
 
 }
 
 //=============================================================================
 void Data::plotZone(Slot1D* s, Zone1D* z, E_Float posx, E_Float posy,
-                    E_Float dx, E_Float dy, int var1, int var2)
+                    E_Float dx, E_Float dy, E_Int var1, E_Int var2)
 {
   E_Int ne = z->_ne;
-  int c1, c2;
-  int* c = z->_cn;
+  E_Int c1, c2;
+  E_Int* c = z->_cn;
   double* f1 = &(z->_f[var1*(z->_np)]);
   double* f2 = &(z->_f[var2*(z->_np)]);
   // scale
@@ -263,7 +263,7 @@ void Data::plot1DAxis(Slot1D* s, E_Float posx, E_Float posy,
   //x = a1*imin*tx+b1;
   //sprintf(figure, "%f", imin*tx);
   //printf("figure=%s\n", figure);
-  //renderBitmapString(x, posy+dy-bordery, 0., FONT1, figure);
+  //renderBitmapString(x, posy+dy-bordery, 0., _font1Size, figure);
 
   // y ticks
   glVertex3d(posx+borderx, posy+dy-bordery,0.);
@@ -296,7 +296,7 @@ void Data::plot1DAxis(Slot1D* s, E_Float posx, E_Float posy,
   //x = a1*imin*tx+b1;
   //sprintf(figure, "%f", imin*tx);
   //printf("figure=%s\n", figure);
-  //renderBitmapString(x, posy+dy-bordery, 0., FONT1, figure);
+  //renderBitmapString(x, posy+dy-bordery, 0., _font1Size, figure);
 
   // y ticks
   glVertex3d(posx+borderx+2., posy+dy-bordery,0.);
@@ -314,7 +314,7 @@ void Data::plot1DAxis(Slot1D* s, E_Float posx, E_Float posy,
   glLineWidth(1.);
 
   // x figures
-  E_Int ly = FONTSIZE1;
+  E_Int ly = _font1Size;
   E_Int lx;
   imin = E_Int(r1min/tx);
   imax = E_Int(r1max/tx);
@@ -322,17 +322,17 @@ void Data::plot1DAxis(Slot1D* s, E_Float posx, E_Float posy,
   {
     x = a1*i*tx+b1;
     sprintf(figure, "%g", i*tx);
-    lx = textWidth(FONT1, figure);
-    renderStringWithShadow(x-lx*0.5, posy+dy-bordery+2+ly, 0., FONT1, figure,
+    lx = textWidth(_font1Size, figure);
+    renderStringWithShadow(x-lx*0.5, posy+dy-bordery+2+ly, 0., _font1Size, figure,
                            fc, fc, fc, 1.,
                            bc, bc, bc, 1.);
   }
 
   // x var name
   figure[0] = c11; figure[1] = c12; figure[2] = '\0';
-  lx = textWidth(FONT1, figure);
+  lx = textWidth(_font1Size, figure);
   renderStringWithShadow(posx+dx-borderx+lx, posy+dy-bordery+2+ly, 0., 
-                         FONT1, figure, fc, fc, fc, 1.,
+                         _font1Size, figure, fc, fc, fc, 1.,
                          bc, bc, bc, 1.);
 
   // y figures
@@ -342,16 +342,16 @@ void Data::plot1DAxis(Slot1D* s, E_Float posx, E_Float posy,
   {
     y = a2*i*ty+b2;
     sprintf(figure, "%g", i*ty);
-    lx = textWidth(FONT1, figure);
-    renderStringWithShadow(posx+borderx-lx-3, y+ly*0.5, 0., FONT1, figure,
+    lx = textWidth(_font1Size, figure);
+    renderStringWithShadow(posx+borderx-lx-3, y+ly*0.5, 0., _font1Size, figure,
                            fc, fc, fc, 1.,
                            bc, bc, bc, 1.);
   }
   
   // y var name
   figure[0] = c21; figure[1] = c22; figure[2] = '\0';
-  lx = textWidth(FONT1, figure);
-  renderStringWithShadow(posx+borderx-3*lx, posy+bordery-ly, 0., FONT1, figure,
+  lx = textWidth(_font1Size, figure);
+  renderStringWithShadow(posx+borderx-3*lx, posy+bordery-ly, 0., _font1Size, figure,
                          fc, fc, fc, 1.,
                          bc, bc, bc, 1.);
   glEnable(GL_DEPTH_TEST);
@@ -373,11 +373,11 @@ E_Float Data::getTick(E_Float rmin, E_Float rmax)
 // Determine les indices du point actif dans la courbe
 // Retourne 1 (trouve) et 0 (FAIL)
 //=============================================================================
-int Data::getActivePointIndex(Zone1D* z, int var1, int var2,
-                              int& e1, int& e2, double& alpha)
+E_Int Data::getActivePointIndex(Zone1D* z, E_Int var1, E_Int var2,
+                                E_Int& e1, E_Int& e2, double& alpha)
 {
   // active point
-  int nz = ptrState->selectedZone;
+  E_Int nz = ptrState->selectedZone;
   if (nz == 0) return 0; // FAIL
  
   double xP = ptrState->activePointX;
@@ -410,8 +410,8 @@ int Data::getActivePointIndex(Zone1D* z, int var1, int var2,
   {
     // Check index of f in fv
     E_Int ne = z->_ne;
-    int* c = z->_cn;
-    int c1, c2;
+    E_Int* c = z->_cn;
+    E_Int c1, c2;
     for (E_Int i = 0; i < ne; i++)
     {
       c1 = c[i]-1; c2 = c[ne+i]-1;
@@ -424,11 +424,11 @@ int Data::getActivePointIndex(Zone1D* z, int var1, int var2,
   }
 
   // autres cas
-  int iP = ptrState->activePointI;
-  int jP = ptrState->activePointJ;
-  int kP = ptrState->activePointK;
+  E_Int iP = ptrState->activePointI;
+  E_Int jP = ptrState->activePointJ;
+  E_Int kP = ptrState->activePointK;
 
-  int ind;
+  E_Int ind;
   if (nz < _numberOfStructZones) 
   {
     StructZone* zs = (StructZone*)z;
@@ -440,8 +440,8 @@ int Data::getActivePointIndex(Zone1D* z, int var1, int var2,
   double f2 = fv2[ind];
   
   E_Int ne = z->_ne;
-  int* c = z->_cn;
-  int c1, c2;
+  E_Int* c = z->_cn;
+  E_Int c1, c2;
   for (E_Int i = 0; i < ne; i++)
   {
     c1 = c[i]-1; c2 = c[ne+i]-1;
@@ -457,14 +457,14 @@ int Data::getActivePointIndex(Zone1D* z, int var1, int var2,
 }
 
 //=============================================================================
-int Data::display1DActivePoint(Slot1D* s, Zone1D* z, 
-                               E_Float posx, E_Float posy,
-                               E_Float dx, E_Float dy,
-                               int var1, int var2)
+E_Int Data::display1DActivePoint(Slot1D* s, Zone1D* z, 
+                            E_Float posx, E_Float posy,
+                            E_Float dx, E_Float dy,
+                            E_Int var1, E_Int var2)
 {
-  int e1, e2;
+  E_Int e1, e2;
   double alpha;
-  int ret = getActivePointIndex(z, var1, var2, e1, e2, alpha);
+  E_Int ret = getActivePointIndex(z, var1, var2, e1, e2, alpha);
   if (ret == 0) return 0; // FAIL
 
   double* f1 = &(z->_f[var1*(z->_np)]);
@@ -504,15 +504,15 @@ int Data::display1DActivePoint(Slot1D* s, Zone1D* z,
 }
 
 //=============================================================================
-int Data::link2View(Zone1D* z, int var1, int var2, 
-                    E_Float& r1min, E_Float& r1max, 
-                    E_Float& r2min, E_Float& r2max)
+E_Int Data::link2View(Zone1D* z, E_Int var1, E_Int var2, 
+                      E_Float& r1min, E_Float& r1max, 
+                      E_Float& r2min, E_Float& r2max)
 {
   // Check coordinates
   // var1 ou var2 doit etre une coordonnee
   char* v1 = z->_varNames[var1];
   char* v2 = z->_varNames[var2];
-  int f = 0;
+  E_Int f = 0;
   if (strcmp(v1, "CoordinateX") == 0 || strcmp(v1, "x") == 0) 
   { f = 1; }
   else if (strcmp(v1, "CoordinateY") == 0 || strcmp(v1, "y") == 0) 

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../Data.h"
+#include "Data.h"
 
 //=============================================================================
 // Display the axis bottom/right
@@ -105,30 +105,24 @@ void Data::displayAxis()
   // X
   vx = 0; vy = 0; vz = 0;
   xp = x1+l+4*offset; yp = y1; zp = z1;
-  glColor3f(1., 0.5, 0.5);
-  renderBitmapString(xp+offnx, yp+offny, zp+offnz, FONT3, sX); // +n
-  renderBitmapString(xp+offtx, yp+offty, zp+offtz, FONT3, sX); // +t
-  renderBitmapString(xp+offntx, yp+offnty, zp+offntz, FONT3, sX); // +t+n
-  glColor3f(1., 0., 0.); // X
-  renderBitmapString(xp, yp, zp, FONT3, sX);
+  renderBitmapString(xp+offnx, yp+offny, zp+offnz, _font3Size, sX, 1., 0.5, 0.5, 1.); // +n
+  renderBitmapString(xp+offtx, yp+offty, zp+offtz, _font3Size, sX,  1., 0.5, 0.5, 1.); // +t
+  renderBitmapString(xp+offntx, yp+offnty, zp+offntz, _font3Size, sX, 1., 0.5, 0.5, 1.); // +t+n
+  renderBitmapString(xp, yp, zp, _font3Size, sX, 1., 0., 0., 1.);
 
   // Y
   xp = x1; yp = y1+l+offset; zp = z1;
-  glColor3f(0.5, 1, 0.5);
-  renderBitmapString(xp+offnx, yp+offny, zp+offnz, FONT3, sY); // +n
-  renderBitmapString(xp+offtx, yp+offty, zp+offtz, FONT3, sY); // +t
-  renderBitmapString(xp+offntx, yp+offnty, zp+offntz, FONT3, sY); // +t+n
-  glColor3f(0., 1, 0); // Y
-  renderBitmapString(xp, yp, zp, FONT3, sY);
+  renderBitmapString(xp+offnx, yp+offny, zp+offnz, _font3Size, sY, 0.5, 1, 0.5, 1.); // +n
+  renderBitmapString(xp+offtx, yp+offty, zp+offtz, _font3Size, sY, 0.5, 1, 0.5, 1.); // +t
+  renderBitmapString(xp+offntx, yp+offnty, zp+offntz, _font3Size, sY, 0.5, 1, 0.5, 1.); // +t+n
+  renderBitmapString(xp, yp, zp, _font3Size, sY, 0., 1, 0., 1.);
 
   // Z
   xp = x1; yp = y1; zp = z1+l+offset;
-  glColor3f(0.5, 0.5, 1);
-  renderBitmapString(xp+offnx, yp+offny, zp+offnz, FONT3, sZ); // +n
-  renderBitmapString(xp+offtx, yp+offty, zp+offtz, FONT3, sZ); // +t
-  renderBitmapString(xp+offntx, yp+offnty, zp+offntz, FONT3, sZ); // +t+n
-  glColor3f(0., 0., 1.); // Z
-  renderBitmapString(xp, yp, zp, FONT3, sZ);
+  renderBitmapString(xp+offnx, yp+offny, zp+offnz, _font3Size, sZ, 0.5, 0.5, 1., 1.); // +n
+  renderBitmapString(xp+offtx, yp+offty, zp+offtz, _font3Size, sZ, 0.5, 0.5, 1., 1.); // +t
+  renderBitmapString(xp+offntx, yp+offnty, zp+offntz, _font3Size, sZ, 0.5, 0.5, 1., 1.); // +t+n
+  renderBitmapString(xp, yp, zp, _font3Size, sZ, 0., 0., 1., 1.);
   
   glEnable(GL_DEPTH_TEST);
   

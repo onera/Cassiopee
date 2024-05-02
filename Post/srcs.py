@@ -1,6 +1,10 @@
-from KCore.config import *
+try:
+  from KCore.config import *
+except ModuleNotFoundError:
+  pass
 import os
 USURP = False
+STREAMLINE2 = True
 dirName = os.path.dirname(__file__)+'/Post'
 
 #==============================================================================
@@ -13,8 +17,9 @@ cpp_srcs = ["Post/coarsen.cpp",
             "Post/selectCellCenters.cpp",
             "Post/selectInteriorFaces.cpp",
             "Post/selectExteriorFaces.cpp",
-            "Post/selectExteriorElts.cpp",
             "Post/selectExteriorFacesStructured.cpp",
+            "Post/selectExteriorElts.cpp",
+            "Post/exteriorEltsStructured.cpp",
             "Post/frontFaces.cpp",
             "Post/integ.cpp",
             "Post/integNorm.cpp",
@@ -25,7 +30,9 @@ cpp_srcs = ["Post/coarsen.cpp",
             "Post/computeVariables2.cpp",
             "Post/computeGrad.cpp",
             "Post/computeGrad2.cpp",
+            "Post/computeGradLSQ.cpp",
             "Post/computeNormGrad.cpp",
+            "Post/computeDiv.cpp",
             "Post/computeDiv2.cpp",
             "Post/computeCurl.cpp",
             "Post/computeNormCurl.cpp",
@@ -57,6 +64,7 @@ cpp_srcs = ["Post/coarsen.cpp",
             "Post/isoLine.cpp",
             "Post/isoSurf.cpp",
             "Post/isoSurfMC.cpp",
+            "Post/isoSurfNGon.cpp",
             "Post/computeDiff.cpp",
             "Post/computeIndicatorValue.cpp",
             "Post/enforceIndicatorNearBodies.cpp",
@@ -65,7 +73,30 @@ cpp_srcs = ["Post/coarsen.cpp",
             "Post/sharpEdges.cpp",
             "Post/silhouette.cpp"]
 
-if (USURP == True and f90compiler != "None" and os.access(dirName+'/usurp', os.F_OK) == True):
+if STREAMLINE2:
+    cpp_srcs += [
+            "Post/Stream2/face.cpp",
+            "Post/Stream2/connectivity.cpp",
+            "Post/Stream2/kdtree.cpp",
+            "Post/Stream2/linear_algebra.cpp",
+            "Post/Stream2/triangulated_polyhedron.cpp",
+            "Post/Stream2/zone_data_view.cpp",
+            "Post/Stream2/structured_data_view.cpp",
+            "Post/Stream2/unstructured_data_view.cpp",
+            "Post/Stream2/ngon_data_view.cpp",
+            "Post/Stream2/stream_line.cpp",
+            "Post/Stream2/py_stream_line.cpp",
+            "Post/Stream2/write_svg.cpp",
+            "Post/Stream2/volume.cpp",
+            "Post/Stream2/rotational.cpp",
+            "Post/Stream2/ribbon_stream_line.cpp",
+            "Post/Stream2/py_streamribbon.cpp"]
+else:
+    cpp_srcs += [
+            "Post/Stream2/py_stream_line_stub.cpp",
+            "Post/Stream2/py_stream_ribbon_stub.cpp"]
+    
+if USURP and f90compiler != "None" and os.access(dirName+'/usurp', os.F_OK):
     cpp_srcs.append("Post/usurp.cpp")
     cpp_srcs += ["Post/usurp/Ctype.cpp",
                  "Post/usurp/Gpc.cpp",
@@ -101,6 +132,10 @@ for_srcs = ['Post/Fortran/IntegStructF.for',
             'Post/Fortran/CompUnstrGradF.for',
             'Post/Fortran/CompUnstrGrad2DF.for',
             'Post/Fortran/CompUnstrGrad1DF.for',
+            'Post/Fortran/CompStructDivF.for',
+            'Post/Fortran/CompStructDiv2DF.for',
+            'Post/Fortran/CompUnstrDivF.for',
+            'Post/Fortran/CompUnstrDiv2DF.for',
             'Post/Fortran/CompStructCurlF.for',
             'Post/Fortran/CompStructCurl2DF.for',
             'Post/Fortran/CompUnstrCurlF.for',
@@ -109,7 +144,7 @@ for_srcs = ['Post/Fortran/IntegStructF.for',
             'Post/zipper/ConstrConnectF.for']
 
 f90_srcs = []
-if (USURP == True and f90compiler != "None" and os.access(dirName+'/usurp', os.F_OK) == True):
+if USURP and f90compiler != "None" and os.access(dirName+'/usurp', os.F_OK):
     f90_srcs = ['Post/usurp/IntrTypeM.f90',
                 'Post/usurp/VertexDataM.f90',
                 'Post/usurp/TypesM.f90',

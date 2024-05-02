@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -18,11 +18,26 @@
 */
 #ifndef _CPLOT_SHADERUTIL_HPP_
 #define _CPLOT_SHADERUTIL_HPP_
+
+//#define DEBUG_SHADER
+
+#ifdef DEBUG_SHADER
+
+/* for glu.h to work on win */
+#ifdef _WIN32
+#ifndef APIENTRY
+#define APIENTRY __stdcall
+#endif
+#ifndef CALLBACK
+#define CALLBACK __attribute__ ((__stdcall__))
+#endif
+//typedef unsigned short wchar_t;
+#endif
+
 #include <stdio.h>
+#include <GL/glu.h>
 
-//#define DEBUG 
-
-#ifdef DEBUG
+// Retourne 1 si error et 0 sinon
 static int checkGLError(char *file, int line)
 {
   GLenum glErr;
@@ -37,11 +52,11 @@ static int checkGLError(char *file, int line)
       printf("GL Error # %d (%s) in file %s at line %d.\n",
              glErr, gluErrorString(glErr), file, line);
     else
-       printf("GL Error # %d (no message) in file %s at line %d.\n",
+      printf("GL Error # %d (no message) in file %s at line %d.\n",
              glErr, file, line);
-			
-    retCode = 1;
     glErr = glGetError();
+    fflush(stdout);
+    retCode = 1;
   }
   return retCode;
 }

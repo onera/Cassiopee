@@ -4,7 +4,6 @@ import Geom.PyTree as D
 import Post.PyTree as P
 import Transform.PyTree as T
 import Generator.PyTree as G
-import KCore.test as test
 
 a = D.sphere((0,0,0),1.,N=20)
 a = C.convertArray2Tetra(a); a = G.close(a)
@@ -14,4 +13,4 @@ pts = C.convertArray2Node(b)
 C._initVars(pts,'{F}={CoordinateX}*{CoordinateY}')
 C._initVars(a,'F', 0.)
 a = P.projectCloudSolution(pts,a)
-C.convertPyTree2File(a,"out.cgns")
+C.convertPyTree2File(a, "out.cgns")

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -33,7 +33,7 @@ PyObject* K_GENERATOR::barycenter(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, 
                                      ni, nj, nk, cn, eltType);
   
   if (res != 1 && res != 2)
@@ -64,7 +64,7 @@ PyObject* K_GENERATOR::barycenter(PyObject* self, PyObject* args)
     E_Int niw, njw, nkw;
     FldArrayF* fw; FldArrayI* cnw;
     char* varStringw; char* eltTypew;
-    E_Int resw = K_ARRAY::getFromArray2(weight, varStringw, fw, 
+    E_Int resw = K_ARRAY::getFromArray3(weight, varStringw, fw, 
                                         niw, njw, nkw, cnw, eltTypew);
   
     if (resw != 1 && resw != 2) 

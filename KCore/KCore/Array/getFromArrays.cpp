@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -78,7 +78,7 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
   // o doit etre une liste
   if (PyList_Check(o) == false)
   {
-    PyErr_SetString( PyExc_TypeError, 
+    PyErr_SetString( PyExc_TypeError,
                      "getFromArrays: arrays argument must be a list.");
     return -1;
   }
@@ -101,15 +101,9 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
   for (int i = 0; i < n; i++)
   {
     tpl = PyList_GetItem(o, i);
-    if (PyList_Check(PyList_GetItem(tpl,1)) == true)
-    {
-      resl = K_ARRAY::getFromArray2(tpl, varString, f,
-                                    nil, njl, nkl, cn, eltT);
-    }
-    else
-      resl = K_ARRAY::getFromArray(tpl, varString, f,
-                                   nil, njl, nkl, cn, eltT, shared);
-  
+    resl = K_ARRAY::getFromArray3(tpl, varString, f,
+                                  nil, njl, nkl, cn, eltT);
+
     if (skipNoCoord == true)
     {
       posx = K_ARRAY::isCoordinateXPresent(varString);
@@ -233,15 +227,15 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
   // o doit etre une liste
   if (PyList_Check(o) == false)
   {
-    PyErr_SetString( PyExc_TypeError, 
-                     "getFromArrays: arrays argument must be a list.");
+    PyErr_SetString(PyExc_TypeError, 
+                    "getFromArrays: arrays argument must be a list.");
     return -1;
   }
   
   E_Int n = PyList_Size(o);
   
   // Dim varString common
-  E_Int size = 0;
+  E_Int size = 1;
   E_Int nvertex, nelt, sizeConnect;
   for (int i = 0; i < n; i++)
   {
@@ -250,22 +244,15 @@ E_Int K_ARRAY::getFromArrays(PyObject* o,
                      sizeConnect, eltT);
     size += strlen(varStringl)+4;
   }
-  char* varStringCommon = new char [size]; 
+  char* varStringCommon = new char [size];
   varStringCommon[0] = '\0';
 
   for (int i = 0; i < n; i++)
   {
     tpl = PyList_GetItem(o, i);
-    if (PyList_Check(PyList_GetItem(tpl,1)) == true)
-    {
-      resl = K_ARRAY::getFromArray2(tpl, varStringl, f, 
-                                    nil, njl, nkl, cn, eltT);
-    }
-    else
-    {
-      resl = K_ARRAY::getFromArray(tpl, varStringl, f, 
-                                   nil, njl, nkl, cn, eltT, shared); 
-    }
+    resl = K_ARRAY::getFromArray3(tpl, varStringl, f, 
+                                  nil, njl, nkl, cn, eltT);
+
     if (skipNoCoord == true)
     {
       posx = K_ARRAY::isCoordinateXPresent(varStringl);

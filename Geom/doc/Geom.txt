@@ -1,4 +1,102 @@
 ===============================================================================
+Geom 3.7 [XX/2023]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.6
+Optional: pyTree interface requires Converter 3.6
+Optional: volumeFromCrossSections requires Converter, Transform, Generator 3.6
+Optional: sphere6 requires Transform, Generator 3.6
+Optional: text functions require Converter, Transform, Generator 3.6
+- offsetSurface (same as in tkFilter in the GUI)
+===============================================================================
+Geom 3.6 [03/2023]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.6
+Optional: pyTree interface requires Converter 3.6
+Optional: volumeFromCrossSections requires Converter, Transform, Generator 3.6
+Optional: sphere6 requires Transform, Generator 3.6
+Optional: text functions require Converter, Transform, Generator 3.6
+- distrib1, distrib2: 1D distributions
+===============================================================================
+Geom 3.5 [12/2022]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.5
+Optional: pyTree interface requires Converter 3.5
+Optional: volumeFromCrossSections requires Converter, Transform, Generator 3.5
+Optional: sphere6 requires Transform, Generator 3.5
+Optional: text functions require Converter, Transform, Generator 3.5
+===============================================================================
+Geom 3.4 [07/2022]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.4
+Optional: pyTree interface requires Converter 3.4
+Optional: volumeFromCrossSections requires Converter, Transform, Generator 3.4
+Optional: sphere6 requires Transform, Generator 3.4
+Optional: text functions require Converter, Transform, Generator 3.4
+===============================================================================
+Geom 3.3 [10/2021]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.3
+Optional: pyTree interface requires Converter 3.3
+Optional: volumeFromCrossSections requires Converter, Transform, Generator 3.3 
+Optional: sphere6 requires Transform, Generator 3.3
+Optional: text functions require Converter, Transform, Generator 3.3
+===============================================================================
+Geom 3.2 [02/2021]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.2
+Optional: pyTree interface requires Converter 3.2
+Optional: volumeFromCrossSections requires Converter, Transform, Generator 3.2 
+Optional: sphere6 requires Transform, Generator 3.2
+Optional: text functions require Converter, Transform, Generator 3.2
+===============================================================================
+Geom 3.1 [06/2020]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.1
+Optional: pyTree interface requires Converter 3.1
+Optional: volumeFromCrossSections requires Converter, Transform, Generator 3.1 
+Optional: sphere6 requires Transform, Generator 3.1
+Optional: text functions require Converter, Transform, Generator 3.1
+===============================================================================
+Geom 3.0 [12/2019]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.0
+Optional: pyTree interface requires Converter 3.0
+Optional: volumeFromCrossSections requires Converter, Transform, Generator 3.0 
+Optional: sphere6 requires Transform, Generator 3.0
+Optional: text functions require Converter, Transform, Generator 3.0
+===============================================================================
+Geom 2.9 [06/2019]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.9
+Optional: pyTree interface requires Converter 2.9
+Optional: volumeFromCrossSections requires Converter, Transform, Generator 2.9 
+Optional: sphere6 requires Transform, Generator 2.9
+Optional: text functions require Converter, Transform, Generator 2.9
+===============================================================================
+Geom 2.8 [12/2018]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.8
+Optional: pyTree interface requires Converter 2.8
+Optional: volumeFromCrossSections requires Converter, Transform, Generator 2.8 
+Optional: sphere6 requires Transform, Generator 2.8
+Optional: text functions require Converter, Transform, Generator 2.8
+- lineDrive, orthoDrive: creation de maillage de surface ou volumique par sweeping
+===============================================================================
+Geom 2.7 [07/2018]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.7
+Optional: pyTree interface requires Converter 2.7
+Optional: volumeFromCrossSections requires Converter, Transform, Generator 2.7 
+Optional: sphere6 requires Transform, Generator 2.7
+Optional: text functions require Converter, Transform, Generator 2.7
+- naca: nouveaux profils (par F. Moens)
+- uniformize: uniformisation de maillages 1D
+- refine: raffinement de maillages 1D
+- enforceh: remaillage de courbes 1D en imposant des tailles de mailles
+===============================================================================
+Geom 2.6 [03/2018]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.6
+Optional: pyTree interface requires Converter 2.6
+Optional: volumeFromCrossSections requires Converter, Transform, Generator 2.6 
+Optional: sphere6 requires Transform, Generator 2.6
+Optional: text functions require Converter, Transform, Generator 2.6
+===============================================================================
+Geom 2.5 [20/09/2017]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.5
+Optional: pyTree interface requires Converter 2.5
+Optional: volumeFromCrossSections requires Converter, Transform, Generator 2.5 
+Optional: sphere6 requires Transform, Generator 2.5
+Optional: text functions require Converter, Transform, Generator 2.5
+===============================================================================
 Geom 2.4 [29/03/2017]
 Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.4
 Optional: pyTree interface requires Converter 2.4

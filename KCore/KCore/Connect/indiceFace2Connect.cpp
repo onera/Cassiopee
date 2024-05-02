@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -18,7 +18,7 @@
 */
 
 #include "kcore.h"
-#include "Search/KdTree.h"
+#include "Nuga/include/KdTree.h"
 using namespace K_FLD;
 using namespace std;
 

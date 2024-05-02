@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -36,31 +36,34 @@ public:
   virtual void freeGPURes(int mode, int start, int end, int permanent);
   virtual void freeGPURes(int mode, int size, int* ptr, int permanent);
 
-  virtual void createIsoGPURes(int nofield); // scalaire
-  virtual void createIsoGPURes(int nofield1, int nofield2, int nofield3); // vecteur
+  virtual void createIsoGPURes(E_Int nofield); // scalaire
+  virtual void createIsoGPURes(E_Int nofield1, E_Int nofield2, E_Int nofield3); // vecteur
   virtual void createIsoGPUResForRender(); // scalaire for render mode
-  virtual void createGPUSMeshZone(StructZone* zonep, int zone);
-  virtual void createGPUUMeshZone(UnstructZone* zonep, int zone, int zonet);
-  virtual void createGPUSSolidZone(StructZone* zonep, int zone);
-  virtual void createGPUUSolidZone(UnstructZone* zonep, int zone, int zonet);
-  virtual void createGPUSIsoSolidZone(StructZone* zonep, int zone, int nofield);
-  virtual void createGPUSIsoSolidZone(StructZone* zonep, int zone, int nofield1,
-			      int nofield2, int nofield3);
-  virtual void createGPUUIsoSolidZone(UnstructZone* zonep, int zone, int zonet, 
-			      int nofield);
-  virtual void createGPUUIsoSolidZone(UnstructZone* zonep, int zone, int zonet, 
-			      int nofield1, int nofield2, int nofield3);
+  virtual void createGPUSMeshZone(StructZone* zonep, E_Int zone);
+  virtual void createGPUUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
+  virtual void createGPUUMeshZoneHO(UnstructZone* zonep, E_Int zone, E_Int zonet);
+  virtual void createGPUSSolidZone(StructZone* zonep, E_Int zone);
+  virtual void createGPUUSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
+  virtual void createGPUUSolidHOZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
+  virtual void createGPUSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield);
+  virtual void createGPUSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield1,
+			                          E_Int nofield2, E_Int nofield3);
+  virtual void createGPUUIsoSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet, 
+			                          E_Int nofield);
+  virtual void createGPUUIsoSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet, 
+			                          E_Int nofield1, E_Int nofield2, E_Int nofield3);
 
-  virtual void renderGPUSMeshZone(StructZone* zonep, int zone);
-  virtual void renderGPUUMeshZone(UnstructZone* zonep, int zone, int zonet);
-  virtual void renderGPUSSolidZone(StructZone* zonep, int zone);
-  virtual void renderGPUUSolidZone(UnstructZone* zonep, int zone, int zonet);
-  virtual void renderSIsoSolidZone(StructZone* zonep, int zone, int nofield);
-  virtual void renderSIsoSolidZone(StructZone* zonep, int zone, int nofield1,
-				   int nofield2, int nofield3);
-  virtual void renderUIsoSolidZone(UnstructZone* zonep, int zonet, int nofield);
-  virtual void renderUIsoSolidZone(UnstructZone* zonep, int zonet, int nofield1,
-				   int nofield2, int nofield3);
+  virtual void renderGPUSMeshZone(StructZone* zonep, E_Int zone);
+  virtual void renderGPUUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
+  virtual void renderGPUSSolidZone(StructZone* zonep, E_Int zone);
+  virtual void renderGPUUSolidZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
+  virtual void renderGPUUSolidHOZone(UnstructZone* zonep, E_Int zone, E_Int zonet);
+  virtual void renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield);
+  virtual void renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield1,
+				                   E_Int nofield2, E_Int nofield3);
+  virtual void renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield);
+  virtual void renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield1,
+				                   E_Int nofield2, E_Int nofield3);
 
   virtual void displaySMesh();
   virtual void displayUMesh();
@@ -69,22 +72,24 @@ public:
   virtual void displaySIsoSolid();
   virtual void displayUIsoSolid();
 
-  virtual int initZoneData( std::vector<K_FLD::FldArrayF*>& structF,
-			    std::vector<char*>& structVarString,
-			    std::vector<E_Int>& nit,
-			    std::vector<E_Int>& njt, 
-			    std::vector<E_Int>& nkt,
-			    std::vector<K_FLD::FldArrayF*>& unstrF,
-			    std::vector<char*>& unstrVarString,
-			    std::vector<K_FLD::FldArrayI*>& cnt,
-			    std::vector<char*>& eltType,
-			    std::vector<char*>& zoneNames,
-			    std::vector<char*>& zoneTags);
+  virtual E_Int initZoneData(std::vector<K_FLD::FldArrayF*>& structF,
+    std::vector<char*>& structVarString,
+	std::vector<E_Int>& nit,
+	std::vector<E_Int>& njt, 
+	std::vector<E_Int>& nkt,
+	std::vector<K_FLD::FldArrayF*>& unstrF,
+	std::vector<char*>& unstrVarString,
+	std::vector<K_FLD::FldArrayI*>& cnt,
+	std::vector<char*>& eltType,
+	std::vector<char*>& zoneNames,
+	std::vector<char*>& zoneTags,
+    E_Int referenceNfield=-1,
+    char** referenceVarNames=NULL);
   virtual void initState();
 
 protected:
-  //virtual void freeGPUResources( int mode, int start, int end, int permanent );
-  //virtual void updateGPUResources( int mode, int size, int permanent, void* updatedPointer );
+  //virtual void freeGPUResources(int mode, int start, int end, int permanent);
+  //virtual void updateGPUResources(int mode, int size, int permanent, void* updatedPointer);
 
   virtual ZoneImpl* createZoneImpl( );
 };

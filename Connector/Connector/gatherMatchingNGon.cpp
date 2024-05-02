@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -74,6 +74,7 @@ PyObject* K_CONNECTOR::gatherMatchingNGon(PyObject* self, PyObject* args)
 
   // Original face numbering in volume mesh : extract numpys
   vector<FldArrayI*> vectOfOrigIndicesFaces;
+  vector<PyObject*> vectOfIndicesObjects;
   int sizeOfOrigIndices = 0;
   if (PyList_Check(OriginalExteriorFaceIndices) != 0)
   {   
@@ -82,8 +83,9 @@ PyObject* K_CONNECTOR::gatherMatchingNGon(PyObject* self, PyObject* args)
     {
       PyObject* tpl = PyList_GetItem(OriginalExteriorFaceIndices, i);
       FldArrayI* indicesFacesL;
-      K_NUMPY::getFromNumpyArray(tpl, indicesFacesL);
+      K_NUMPY::getFromNumpyArray(tpl, indicesFacesL, true);
       vectOfOrigIndicesFaces.push_back(indicesFacesL);
+      vectOfIndicesObjects.push_back(tpl);
     }
   }
   
@@ -173,9 +175,14 @@ PyObject* K_CONNECTOR::gatherMatchingNGon(PyObject* self, PyObject* args)
   {
     RELEASESHAREDU(objutt[is], unstrFt[is], cntt[is]);
   }
+  for (size_t i = 0; i < vectOfOrigIndicesFaces.size(); i++)
+  {
+    RELEASESHAREDN(vectOfIndicesObjects[i], vectOfOrigIndicesFaces[i]);
+  }
 
   // Sortie
   PyObject* tpl = Py_BuildValue("[OOOO]", allPyZonesR, allPyZonesD, allPyOrigFacesR, allPyOrigFacesD);
   Py_DECREF(allPyZonesD); Py_DECREF(allPyZonesR); Py_DECREF(allPyOrigFacesR);Py_DECREF(allPyOrigFacesD);  
   return tpl;
 }
+ 

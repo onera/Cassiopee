@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -30,7 +30,7 @@ using namespace std;
 /* Cree une ligne de courant a  partir d'un point (x0,y0,z0) et d'une liste
    de grilles definies par des arrays. Les grilles d'interpolation sont celles
    qui sont structurees, contenant les infos sur la vitesse, et ayant toutes
-   les mêmes variables dans le même ordre.*/
+   les mï¿½mes variables dans le mï¿½me ordre.*/
 //=============================================================================
 PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
 {
@@ -41,9 +41,7 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
   E_Int nStreamPtsMax;
   E_Float signe;
 
-  if (!PYPARSETUPLE(args,
-                    "OO(ddd)Odl", "OO(ddd)Odi",
-                    "OO(fff)Ofl", "OO(fff)Ofi",
+  if (!PYPARSETUPLE_(args, OO_ TRRR_ O_ R_ I_,
                     &arrays, &surfArray, &x0, &y0, &z0, &vectorNames, &signe, &nStreamPtsMax))
   {
       return NULL;
@@ -73,16 +71,23 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
   for (int i = 0; i < PyList_Size(vectorNames); i++)
   {
     PyObject* tpl0 = PyList_GetItem(vectorNames, i);
-    if (PyString_Check(tpl0) == 0)
+    if (PyString_Check(tpl0))
+    {
+      char* str = PyString_AsString(tpl0);
+      vnames.push_back(str);
+    }
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(tpl0)) 
+    {
+      char* str = (char*)PyUnicode_AsUTF8(tpl0);
+      vnames.push_back(str);
+    }
+#endif
+    else  
     {
       PyErr_SetString(PyExc_TypeError,
                       "streamLine: vector component name must be a string.");
       return NULL;
-    }
-    else 
-    {
-      char* str = PyString_AsString(tpl0);
-      vnames.push_back(str);
     }
   }
 
@@ -196,7 +201,7 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
    E_Int nzonesU = unstrF.size();
    // InterpData structuree
    vector<E_Int> posxs1; vector<E_Int> posys1; vector<E_Int> poszs1; vector<E_Int> poscs1;
-   vector<K_INTERP::InterpAdt*> structInterpDatas1;
+   vector<K_INTERP::InterpData*> structInterpDatas1;
    vector<FldArrayF*> structF1;
    vector<E_Int> nis1; vector<E_Int> njs1; vector<E_Int> nks1;
    vector<char*> structVarStrings1;
@@ -223,7 +228,7 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
    // InterpData non structuree
   vector<E_Int> posxu2; vector<E_Int> posyu2; vector<E_Int> poszu2; 
   vector<E_Int> poscu2;
-  vector<K_INTERP::InterpAdt*> unstrInterpDatas2;
+  vector<K_INTERP::InterpData*> unstrInterpDatas2;
   vector<FldArrayI*> cnt2;
   vector<FldArrayF*> unstrF2;
   vector<char*> unstrVarString2;
@@ -268,7 +273,7 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
   vector<E_Int> poscs;
   vector<char*> structVarStrings;
   vector<FldArrayF*> structFields;
-  vector<K_INTERP::InterpAdt*> structInterpDatas;
+  vector<K_INTERP::InterpData*> structInterpDatas;
   // non structure
   vector<FldArrayF*> unstrVector;
   vector<E_Int> posxu; vector<E_Int> posyu; vector<E_Int> poszu; 
@@ -277,7 +282,7 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
   vector<FldArrayF*> unstrFields;
   vector<FldArrayI*> connectu;
   vector<char*> eltTypes;
-  vector<K_INTERP::InterpAdt*> unstrInterpDatas;
+  vector<K_INTERP::InterpData*> unstrInterpDatas;
 
   
   // seuls sont pris en compte les champs correspondant au vecteur
@@ -294,7 +299,7 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
                                                 structInterpDatas,
                                                 structVector, vnames);
 
-    if ( found != 1)
+    if (found != 1)
     {
       if ( ress != -1000 ) RELEASESHAREDU(surfArray, f, cnSurf);
       for (unsigned int nos = 0; nos < structInterpDatas1.size(); nos++)
@@ -305,7 +310,7 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
         RELEASESHAREDS(objs[nos], structF[nos]);
       for (unsigned int nos = 0; nos < obju.size(); nos++)
         RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
-      if (found == -1 ) 
+      if (found == -1) 
         PyErr_SetString(PyExc_ValueError,
                         "streamLine: no field corresponding to vector component.");
       else // found = -2 uniquement pour l instant
@@ -324,18 +329,18 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
                                                unstrVarStrings, unstrFields, connectu,
                                                eltTypes, unstrInterpDatas,
                                                unstrVector, vnames); 
-    if ( found != 1)
+    if (found != 1)
     {
       if ( ress != -1000 ) RELEASESHAREDU(surfArray, f, cnSurf);
-      for (unsigned int nos = 0; nos < structInterpDatas1.size(); nos++)
+      for (size_t nos = 0; nos < structInterpDatas1.size(); nos++)
         delete structInterpDatas1[nos];
-      for (unsigned int nos = 0; nos < unstrInterpDatas2.size(); nos++)
+      for (size_t nos = 0; nos < unstrInterpDatas2.size(); nos++)
         delete unstrInterpDatas2[nos];
-      for (unsigned int nos = 0; nos < objs.size(); nos++)
+      for (size_t nos = 0; nos < objs.size(); nos++)
         RELEASESHAREDS(objs[nos], structF[nos]);
-      for (unsigned int nos = 0; nos < obju.size(); nos++)
+      for (size_t nos = 0; nos < obju.size(); nos++)
         RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
-      if (found == -1 ) 
+      if (found == -1) 
         PyErr_SetString(PyExc_ValueError,
                         "streamLine: no field corresponding to vector component.");
       else // found = -2 uniquement pour l instant
@@ -410,13 +415,13 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
 //=============================================================================
 E_Int K_POST::computeStreamLineElts(
   E_Float xp, E_Float yp, E_Float zp, 
-  vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+  vector<K_INTERP::InterpData*>& listOfStructInterpData, 
   vector<FldArrayF*>& listOfStructFields,
   vector<FldArrayF*>& listOfStructVelocities,
   vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks, 
   vector<E_Int>& posxs, vector<E_Int>& posys, vector<E_Int>& poszs, 
   vector<E_Int>& poscs,
-  vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+  vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
   vector<FldArrayF*>& listOfUnstrFields,
   vector<FldArrayF*>& listOfUnstrVelocities,
   vector<FldArrayI*>& connectu,
@@ -432,7 +437,7 @@ E_Int K_POST::computeStreamLineElts(
   E_Float dt;
 
   // Creation of interpolation data
-  K_INTERP::InterpAdt::InterpolationType interpType = K_INTERP::InterpAdt::O2CF;
+  K_INTERP::InterpData::InterpolationType interpType = K_INTERP::InterpData::O2CF;
   FldArrayF cf;
   FldArrayI indi;
 
@@ -528,25 +533,25 @@ short K_POST::updateStreamLinePoint(
   E_Float& up, E_Float& vp, E_Float& wp,
   E_Int& type, FldArrayI& indip, FldArrayF& cfp,
   E_Float& dt, 
-  vector<K_INTERP::InterpAdt*>& listOfStructInterpData,
+  vector<K_INTERP::InterpData*>& listOfStructInterpData,
   vector<FldArrayF*>& listOfStructFields,
   vector<FldArrayF*>& listOfStructVelocities,
   vector<E_Int>& nis, vector<E_Int>& njs,
   vector<E_Int>& nks, vector<E_Int>& posxs, 
   vector<E_Int>& posys, vector<E_Int>& poszs, 
   vector<E_Int>& poscs, 
-  vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData,
+  vector<K_INTERP::InterpData*>& listOfUnstrInterpData,
   vector<FldArrayF*>& listOfUnstrFields,
   vector<FldArrayF*>& listOfUnstrVelocities,
   vector<FldArrayI*>& connectu,
   vector<E_Int>& posxu, vector<E_Int>& posyu, 
   vector<E_Int>& poszu, vector<E_Int>& poscu, 
   FldArrayI& connectSurf, E_Float* xSurf, E_Float* ySurf, E_Float* zSurf, E_Int sizeSurf, 
-  K_INTERP::InterpAdt::InterpolationType interpType)
+  K_INTERP::InterpData::InterpolationType interpType)
 {
   E_Int ns = listOfStructInterpData.size();
   E_Int nu = listOfUnstrInterpData.size();
-  vector<K_INTERP::InterpAdt*> allInterpDatas;
+  vector<K_INTERP::InterpData*> allInterpDatas;
   vector<FldArrayF*> allFields;
   vector<void*> allA1;
   vector<void*> allA2;
@@ -593,16 +598,19 @@ short K_POST::updateStreamLinePoint(
 
   E_Float cosmin = cos(15.);
   E_Float xn, yn, zn;
-  FldArrayI indin(indip.getSize());
-  FldArrayF cfn(cfp.getSize());
+  FldArrayI indin(indip.getSize()); FldArrayF cfn(cfp.getSize());
+  FldArrayI tmpIndin(indip.getSize()); FldArrayF tmpCfn(cfp.getSize());
 
   E_Int noblkn=0;
-  short isThetaValid = 0; //theta compris entre 2deg et 15deg : 1
+  short isThetaValid=0; //theta compris entre 2deg et 15deg : 1
   short isOk;
   short cnt=0;
   short cntmax=4;
   E_Int noblkn0;
   short found=0;
+  FldArrayF un(3);
+  E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3];
+
   while (isThetaValid == 0 && cnt < cntmax)
   {
     // Si la surface n'est pas nulle, on projette le point sur cette surface
@@ -611,7 +619,8 @@ short K_POST::updateStreamLinePoint(
       K_COMPGEOM::projectOrtho(xp, yp, zp,
                                xSurf, ySurf, zSurf,
                                connectSurf,
-                               xp, yp, zp);
+                               xp, yp, zp,
+                               p0, p1, p2, p);
     }
 
     // 1- calcul du pt X(n+1)
@@ -639,7 +648,7 @@ short K_POST::updateStreamLinePoint(
         xn, yn, zn, allInterpDatas,
         allFields, allA1, allA2, allA3, allA4,
         posxt, posyt, poszt, posct, 
-        voln, indin, cfn, type, noblkn, interpType);
+        voln, indin, cfn, tmpIndin, tmpCfn, type, noblkn, interpType);
 
       if (found < 1) {dt = 0.5 * dt; }
       else
@@ -650,11 +659,11 @@ short K_POST::updateStreamLinePoint(
           K_COMPGEOM::projectOrtho(xn, yn, zn,
                                    xSurf, ySurf, zSurf,
                                    connectSurf, 
-                                   xn, yn, zn);
+                                   xn, yn, zn,
+                                   p0, p1, p2, p);
         }
         noblkn0 = noblkn-1;
         // Calcul de Un
-        FldArrayF un(3);
         if (noblkn0 < ns)
         {
           K_INTERP::compInterpolatedField(

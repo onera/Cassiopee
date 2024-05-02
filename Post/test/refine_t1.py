@@ -2,7 +2,6 @@
 import Post as P
 import Converter as C
 import Generator as G
-import Geom as D
 import KCore.test as test
 
 a = G.cartTetra( (0,0,0), (1,1,1), (10,10,1))

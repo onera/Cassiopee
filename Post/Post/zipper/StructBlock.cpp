@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -363,7 +363,7 @@ void StructBlock::computeDistanceOfNodeToCell(
   taking iblank into account.
 */
 //=============================================================================
-void StructBlock::write(char* fileName, E_Boolean add)
+void StructBlock::write(const char* fileName, E_Boolean add)
 {
   E_Int im = _im;
   E_Int im1 = im-1;
@@ -423,7 +423,7 @@ void StructBlock::write(char* fileName, E_Boolean add)
 
 //=============================================================================
 void StructBlock::writeLine(FldArrayI& indices,
-                            char* fileName, E_Boolean add)
+                            const char* fileName, E_Boolean add)
 {
   // Note : lines are defined by degenerated triangles
   E_Int ind;

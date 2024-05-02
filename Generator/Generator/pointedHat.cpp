@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -19,6 +19,7 @@
 
 #include "generator.h"
 using namespace K_FLD;
+
 //============================================================================
 /* Maillage en chapeau */
 //============================================================================
@@ -27,7 +28,7 @@ PyObject* K_GENERATOR::pointedHat(PyObject* self, PyObject* args)
   PyObject* array;
   double x, y, z;
 
-  if (!PYPARSETUPLEF(args, "O(ddd)", "O(fff)", &array, &x, &y, &z)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ TRRR_, &array, &x, &y, &z)) return NULL;
   
   // Check array
   E_Int im, jm, km;
@@ -40,7 +41,7 @@ PyObject* K_GENERATOR::pointedHat(PyObject* self, PyObject* args)
   {
     if (res == 2) {delete f; delete cn;}
     PyErr_SetString(PyExc_TypeError,
-                    "pointedHat: array must be a  structured array.");
+                    "pointedHat: array must be a structured array.");
     return NULL;
   }
   

@@ -1,6 +1,5 @@
 # - createBBoxTree (pyTree) -
 import Converter.PyTree as C
-import Converter.Internal as Internal
 import Converter.Mpi as Cmpi
 import Distributor2.PyTree as Distributor2
 import Generator.PyTree as G

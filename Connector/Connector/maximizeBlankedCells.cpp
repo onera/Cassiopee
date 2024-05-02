@@ -29,8 +29,7 @@ PyObject* K_CONNECTOR::maximizeBlankedCells(PyObject* self, PyObject* args)
 {
   PyObject* array; E_Int depth; E_Int dir;
   char* varCellN;
-  if (!PYPARSETUPLEI(args,
-                    "Olls", "Oiis",
+  if (!PYPARSETUPLE_(args, O_ II_ S_,
                     &array, &depth, &dir, &varCellN))
   {
       return NULL;

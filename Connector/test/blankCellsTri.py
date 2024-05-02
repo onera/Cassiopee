@@ -2,15 +2,12 @@
 import Converter as C
 import Connector as X
 import Generator as G
-import Geom as D
 import Post as P
 
-
-# Test 1
-# Tet mask
+# Tri mask
 m = G.cart((0.,0.,0.), (0.1,0.1,0.2), (10,10,10))
 m = P.exteriorFaces(m)
-m = C.convertArray2Tetra(m)
+
 # Mesh to blank
 a = G.cart((-5.,-5.,-5.), (0.5,0.5,0.5), (100,100,100))
 # celln init
@@ -20,7 +17,3 @@ ca = C.initVars(ca, 'cellN', 1.)
 celln = X.blankCellsTri([a], [ca], m, blankingType=0, tol=1.e-12)
 celln = C.addVars([[a], celln])
 C.convertArrays2File(celln, 'out0.plt')
-
-
-
-

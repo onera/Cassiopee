@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -21,7 +21,7 @@
 using namespace std;
 using namespace K_FLD;
 
-#define FINDNEXT { next = -1;                    \
+#define FINDNEXT { next = -1;                   \
   for (E_Int i = 0; i < nv; i++)                \
   { if (no[4*i] == 0) { next = i; break; } } }
 
@@ -62,7 +62,7 @@ E_Int numeroteI(E_Float* P1, E_Float* P2, E_Int ind,
     E_Int n = voisins.size();
     bestDev = 1.e6;
     indBest = 0;
-    //printf("n=%d\n", n);
+    //printf("n=" SF_D_ "\n", n);
     //if (n != 4) { no[4*ind] = 2; goto end; }
 
     for (E_Int j = 0; j < n; j++)
@@ -159,7 +159,7 @@ PyObject* K_CONVERTER::convertHexa2Struct(PyObject* self, PyObject* args)
   vector<E_Int>& voisins = cVN[ind];
 
   E_Int istart = 0; E_Int jstart = 0; E_Int kstart = 0; // indice debut ligne en i
-  printf("Ligne j=%d\n", jstart);
+  printf("Ligne j=" SF_D_ "\n", jstart);
   next = voisins[0]-1;
   P1[0] = x[next]; P1[1] = y[next]; P1[2] = z[next];
   P2[0] = x[ind]; P2[1] = y[ind]; P2[2] = z[ind];
@@ -175,7 +175,7 @@ PyObject* K_CONVERTER::convertHexa2Struct(PyObject* self, PyObject* args)
   ind2 = ii[istart+jstart*nv+kstart*2*nv];
   P2[0] = x[ind2]; P2[1] = y[ind2]; P2[2] = z[ind2];
   jstart++;
-  printf("Ligne j=%d\n", jstart);
+  printf("Ligne j=" SF_D_ "\n", jstart);
   ni = numeroteI(P1, P2, next,
                  istart, jstart, kstart, no.begin(), ii.begin(), nv,
                  cVN, x, y, z, 45.);
@@ -183,7 +183,7 @@ PyObject* K_CONVERTER::convertHexa2Struct(PyObject* self, PyObject* args)
   
 
 
-  printf("ni=%d, nj=%d, nk=%d\n", ni, nj, nk);  
+  printf("ni=" SF_D_ ", nj=" SF_D_ ", nk=" SF_D_ "\n", ni, nj, nk);  
   
 
   /* Reconstruit le maillage structure */
@@ -200,7 +200,7 @@ PyObject* K_CONVERTER::convertHexa2Struct(PyObject* self, PyObject* args)
       for (E_Int j = 0; j < nj; j++)
         for (E_Int i = 0; i < ni; i++)
         {
-          printf("%d %d %d - %d\n", i,j,k, ii[i+nv*j+2*nv*k]);
+          printf(SF_D3_ " - " SF_D_ "\n", i,j,k, ii[i+nv*j+2*nv*k]);
           fnp[i+j*ni+k*ni*nj] = fp[ii[i+nv*j+2*nv*k]];
         }
   }

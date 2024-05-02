@@ -9,8 +9,7 @@ import Transform.PyTree as T
 a = D.circle((0.,0.,0.), 1., 0., 359.995, 500)
 C._addVars(a,'Density'); C._addVars(a,'centers:cellN')
 a = C.convertArray2Tetra(a)
-tol = 1.e-4
-a2 = G.close(a, tol)
+a2 = G.close(a, 1.e-4)
 test.testT(a2,1)
 
 # test 2D cylindre QUAD
@@ -23,7 +22,8 @@ a2 = G.close(a, 1.e-1)
 test.testT(a2,2)
 
 # test 2D TRI
-a = C.convertArray2Tetra(a0)
+a = T.subzone(a0, (1,nj,1),(ni,nj,nk))
+a = C.convertArray2Tetra(a)
 C._addVars(a,'Density'); C._initVars(a,'centers:cellN',1.)
 a2 = G.close(a, 1.e-1)
 test.testT(a2,3)

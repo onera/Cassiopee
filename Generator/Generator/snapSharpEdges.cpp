@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -31,7 +31,7 @@ using namespace std;
 PyObject* K_GENERATOR::snapSharpEdges(PyObject* self, PyObject* args)
 {
   PyObject* arrays; PyObject* surface;
-  if (!PyArg_ParseTuple(args, "OO", &arrays, &surface)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &arrays, &surface)) return NULL;
 
   // Extract infos from arrays
   vector<E_Int> resl;
@@ -422,7 +422,7 @@ void K_GENERATOR::snapMesh(
           }
           cptg = K_FUNC::E_max(cpt, cptg);
         }
-        //printf("pt %d -> cptg:%d\n",indp, cptg);
+        //printf("pt " SF_D_ " -> cptg:" SF_D_ "\n",indp, cptg);
       }
       // distance si je snap ce point
       dist1 = (xi-fx[indpt])*(xi-fx[indpt]) +
@@ -432,7 +432,7 @@ void K_GENERATOR::snapMesh(
       dist2 = (coords1[indp]-xi)*(coords1[indp]-xi) +
         (coords2[indp]-yi)*(coords2[indp]-yi) +
         (coords3[indp]-zi)*(coords3[indp]-zi);
-      //printf("indpt %d - dist1 %g, dist2=%g, cptg=%d\n", indpt, dist1, dist2, cptg); 
+      //printf("indpt " SF_D_ " - dist1 %g, dist2=%g, cptg=" SF_D_ "\n", indpt, dist1, dist2, cptg); 
     
       // snap si le pt n'a jamais ete snappe ou si un pt plus proche existe
       if ((dist2 < 1.e-12 || dist1 <= dist2 || dist1 < 1.e-12) && cptg < 2)
@@ -441,10 +441,10 @@ void K_GENERATOR::snapMesh(
         coords2[indp] = fy[indpt];
         coords3[indp] = fz[indpt];
         if (indic[no] != NULL) { indic1[indp] = 1.; indic[no][i] = 1.; }
-        //printf("Le pt %d de la contrainte attire %d (%f)\n", indpt, indp, dist1);
+        //printf("Le pt " SF_D_ " de la contrainte attire " SF_D_ " (" SF_F_ ")\n", indpt, indp, dist1);
       }
     }
-    else printf("Can not snap point %f %f %f\n", pt[0], pt[1], pt[2]);
+    else printf("Can not snap point " SF_F3_ "\n", pt[0], pt[1], pt[2]);
   }
   c = 0;
   for (E_Int no = 0; no < n; no++)
@@ -483,7 +483,7 @@ void K_GENERATOR::snapMesh(
       {
         cpt = 0;
         for (E_Int q = 0; q < nfld; q++) cpt += indic[no][c(i,q+1)-1]; 
-        if (cpt >= 2) printf("warning: elt %d snaped more than 2 times\n", i);
+        if (cpt >= 2) printf("warning: elt " SF_D_ " snaped more than 2 times\n", i);
       }
     }
   }

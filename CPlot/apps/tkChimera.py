@@ -1,5 +1,7 @@
-# - Chimera app -
-import Tkinter as TK
+# - tkChimera -
+"""Chimera setup app."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
@@ -71,7 +73,7 @@ def initCellN():
                 C._initVars(CTK.t[2][nob][2][noz], 'cellN', 1)
             else:
                 C._initVars(CTK.t[2][nob][2][noz], 'centers:cellN', 1.)
-        C._fillMissingVariables(CTK.t)
+        #C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'cellN variable init to 1.\n')
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
@@ -150,7 +152,7 @@ def blank():
         z = CTK.t[2][nob][2][noz]
         t[2][1][2].append(z)
     # Create blanking Matrix
-    BM = numpy.zeros((1, 1), numpy.int32); BM[0,0] = 1
+    BM = numpy.zeros((1, 1), dtype=Internal.E_NpyInt); BM[0,0] = 1
 
     # BlankCells
     CTK.saveTree()
@@ -167,7 +169,7 @@ def blank():
         CTK.t[2][nob][2][noz] = z
         c += 1
 
-    C._fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'Blanking done.\n')
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
@@ -215,7 +217,7 @@ def optimize():
     t = X.optimizeOverlap(t, double_wall=dw, priorities=prios)
     t = X.maximizeBlankedCells(t, depth=depth)
 
-    c = [0 for x in xrange(len(bases))]
+    c = [0 for x in range(len(bases))]
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
@@ -242,21 +244,21 @@ def createOversetHoles():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkChimera', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Chimera connectivity.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkChimera  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Chimera connectivity.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=0)
     Frame.columnconfigure(1, weight=1)
     Frame.columnconfigure(2, weight=1)
     Frame.columnconfigure(3, weight=1)
-    Frame.columnconfigure(4, weight=1)
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkChimera')
     WIDGETS['frameMenu'] = FrameMenu
 
@@ -379,13 +381,18 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW); updateApp()
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['BCNoteBook'].add(WIDGETS['frame'], text='tkChimera')
+    except: pass
+    CTK.WIDGETS['BCNoteBook'].select(WIDGETS['frame'])
+    updateApp()
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['BCNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -397,9 +404,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
    
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

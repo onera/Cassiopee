@@ -151,7 +151,7 @@ graph_t *PruneGraph(ctrl_t *ctrl, idx_t nvtxs, idx_t *xadj, idx_t *adjncy,
              idx_t *vwgt, idx_t *iperm, real_t factor)
 {
   idx_t i, j, k, l, nlarge, pnvtxs, pnedges;
-  idx_t *pxadj, *padjncy, *padjwgt, *pvwgt;
+  idx_t *pxadj, *padjncy, *pvwgt;
   idx_t *perm;
   graph_t *graph=NULL;
 

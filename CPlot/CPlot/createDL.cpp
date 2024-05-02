@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -34,8 +34,7 @@
 //=============================================================================
 void DataDL::createGPURes()
 {
-  int zone, zonet;
-
+  E_Int zone, zonet;
   ptrState->lockDisplay();
   // - Solid -
   zone = 0;
@@ -56,7 +55,12 @@ void DataDL::createGPURes()
     if (zImpl._GPUResUse == 1 && zImpl._DLsolid == 0)
     {
       zonet = zone + _numberOfStructZones;
+      if ( not z->_is_high_order)
       { createGPUUSolidZone(z, zone, zonet); goto end; }
+      else
+      {
+        createGPUUSolidHOZone(z, zone, zonet); goto end;
+      }
     }
     zone++;
   }
@@ -85,17 +89,31 @@ void DataDL::createGPURes()
     }
     zone++;
   }
+#else
+  zone = 0;
+  while (zone < _numberOfUnstructZones)
+  {
+    UnstructZone* z = _uzones[zone];
+    ZoneImplDL& zImpl = *static_cast<ZoneImplDL*>(z->ptr_impl);
+    if (zImpl._GPUResUse == 1 && zImpl._DLmesh == 0 && z->_is_high_order == true )
+    {
+      zonet = zone + _numberOfStructZones;
+      { createGPUUMeshZone(z, zone, zonet); goto end; }
+    }
+    zone++;
+  }
 #endif
- end: ptrState->unlockDisplay();
+ end: ;
+ ptrState->unlockDisplay();
 }
 
 //=============================================================================
 // Cree les DL pour le champ scalaire nofield
 //=============================================================================
-void DataDL::createIsoGPURes(int nofield)
+void DataDL::createIsoGPURes(E_Int nofield)
 {
-  int zone = 0;
-  int zonet;
+  E_Int zone = 0;
+  E_Int zonet;
   while (zone < _numberOfStructZones)
   {
     StructZone* z = _szones[zone];
@@ -142,8 +160,8 @@ void DataDL::createIsoGPURes(int nofield)
 //=============================================================================
 void DataDL::createIsoGPUResForRender()
 {
-  int zone = 0;
-  int zonet;
+  E_Int zone = 0;
+  E_Int zonet;
   while (zone < _numberOfStructZones)
   {
     StructZone* z = _szones[zone];
@@ -191,10 +209,10 @@ void DataDL::createIsoGPUResForRender()
 //=============================================================================
 // Cree les DL pour le champ vector nofield1, nofield2, nofield3
 //=============================================================================
-void DataDL::createIsoGPURes(int nofield1, int nofield2, int nofield3)
+void DataDL::createIsoGPURes(E_Int nofield1, E_Int nofield2, E_Int nofield3)
 {
-  int zone = 0;
-  int zonet;
+  E_Int zone = 0;
+  E_Int zonet;
   while (zone < _numberOfStructZones)
   {
     StructZone* z = _szones[zone];
@@ -245,7 +263,7 @@ void DataDL::createIsoGPURes(int nofield1, int nofield2, int nofield3)
 //=============================================================================
 void DataDL::freeGPURes(int mode, int start, int end, int permanent)
 {
-  int i;
+  E_Int i;
   if (mode == 0 || mode == -1)
   {
     for (i = start; i <= end; i++)
@@ -274,7 +292,7 @@ void DataDL::freeGPURes(int mode, int start, int end, int permanent)
 //=============================================================================
 void DataDL::freeGPURes(int mode, int size, int* ptr, int permanent)
 {
-  int i;
+  E_Int i;
   if (mode == 0 || mode == -1)
   {
     for (i = 0; i < size; i++)
@@ -282,7 +300,7 @@ void DataDL::freeGPURes(int mode, int size, int* ptr, int permanent)
       if (ptr[i] >= 0 && ptr[i] < _numberOfZones)
       {
         Zone* z = _zones[ptr[i]];
-	ZoneImplDL& zImpl = *static_cast<ZoneImplDL*>(z->ptr_impl);
+        ZoneImplDL& zImpl = *static_cast<ZoneImplDL*>(z->ptr_impl);
         if (zImpl._DLmesh != 0) {glDeleteLists(zImpl._DLmesh, 1); zImpl._DLmesh = 0;}
         if (permanent == 1) zImpl._GPUResUse = 0;
       }
@@ -295,7 +313,7 @@ void DataDL::freeGPURes(int mode, int size, int* ptr, int permanent)
       if (ptr[i] >= 0 && ptr[i] < _numberOfZones)
       {
         Zone* z = _zones[ptr[i]];
-	ZoneImplDL& zImpl = *static_cast<ZoneImplDL*>(z->ptr_impl);
+        ZoneImplDL& zImpl = *static_cast<ZoneImplDL*>(z->ptr_impl);
         if (zImpl._DLsolid != 0) {glDeleteLists(zImpl._DLsolid, 1); zImpl._DLsolid = 0;}
         if (permanent == 1) zImpl._GPUResUse = 0;
       }

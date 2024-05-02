@@ -1,13 +1,16 @@
 # Search BAR
-import Tkinter as TK
-import Ttk as TTK
-import Tk as CTK
+try: import tkinter as TK
+except: import Tkinter as TK
+from . import Ttk as TTK
+from . import Tk as CTK
 
 # Dictionaire Action->applet
 applet = {
+    # tkNodeEdir
+    'tkNodeEdit':'tkNodeEdit', 'Edit/change node value':'tkNodeEdit', 'Load a node':'tkNodeEdit',
     # tkTreeOps
     'tkTreeOps':'tkTreeOps', 'Move node':'tkTreeOps', 'Delete/remove node':'tkTreeOps', 
-    'Edit/change node value':'tkTreeOps', 'Move zone to another base':'tkTreeOps',
+    'Move zone to another base':'tkTreeOps',
     # tkCheckPyTree
     'tkCheckPyTree':'tkCheckPyTree', 'Correct pyTree':'tkCheckPyTree', 
     'Correct nodes':'tkCheckPyTree', 'Correct BCs':'tkCheckPyTree',
@@ -35,6 +38,8 @@ applet = {
     'tkRuler':'tkRuler', 'Measure distance': 'tkRuler',
     # tkFind
     'tkFind':'tkFind', 'Find index/cell':'tkFind', 'Extract one/some cells':'tkFind',
+    # tkProbe
+    'tkProbe':'tkProbe', 'Probe value in cell or vertex':'tkProbe', 'Set a field value in a cell':'tkProbe',
     # tkCanvas
     'tkCanvas':'tkCanvas', 'Create Canvas for drawing':'tkCanvas', 
     'Enlarge canvas':'tkCanvas', 'Reduce canvas':'tkCanvas',
@@ -49,6 +54,7 @@ applet = {
     'tkExtractEdges':'tkExtractEdges', 'Get external edges':'tkExtractEdges',
     'Get two edges intersection':'tkExtractEdges', 'Get sharp edges':'tkExtractEdges',
     'Convert BAR to Struct':'tkExtractEdges', 'Split TBranches':'tkExtractEdges',
+    'BAR2Struct':'tkExtractEdges',
     # tkMapEdge
     'tkMapEdges':'tkMapEdge', 'Uniformize edge distrib':'tkMapEdge',
     'Refine edge distrib':'tkMapEdge', 'Smooth edge distrib':'tkMapEdge',
@@ -68,11 +74,16 @@ applet = {
     'tkBoolean':'tkBoolean', 'Union two surfaces':'tkBoolean',
     'Intersection of rwo surfaces':'tkBoolean', 
     'Difference of two surfaces':'tkBoolean',
-    # tkMapSurfs
-    'tkMapSurfs':'tkMapSurfs', 'Remesh a surface':'tkMapSurfs',
-    'Wrap surface -watertight-':'tkMapSurfs', 'Cartesian wrapper':'tkMapSurfs',
-    # tkFilterSurfs
-    'tkFilterSurfs':'tkFilterSurfs', 'Offset a surface':'tkFilterSurfs',
+    # tkMapUV
+    'tkMapUV':'tkMapUV', 'UV map of surface':'tkMapUV',
+    # tkCartWrap
+    'tkCartWrap':'tkCartWrap', 'Remesh a surface with cartesian wrapper':'tkCartWrap',
+    'Wrap surface -watertight-':'tkCartWrap', 'Cartesian wrapper':'tkCartWrap',
+    # tkOffset
+    'tkOffset':'tkOffset', 'Offset a surface of a given distance':'tkOffset',
+    # tkMMGs
+    'tkMMGs':'tkMMGs', 'Remesh a TRI surface':'tkMMGs',
+    'Refine a TRI surface':'tkMMGs',
     # tkSurfaceWalk
     'tkSurfaceWalk':'tkSurfaceWalk', 
     'Mesh a surface -othogonal/structured-':'tkSurfaceWalk',
@@ -137,6 +148,8 @@ applet = {
     'tkBC':'tkBC', 'Set BC':'tkBC', 'View BC':'tkBC', 'Connect match':'tkBC',
     'Set Boundary conditions':'tkBC', 'Fill empty BCs':'tkBC',
     'View undefined BC':'tkBC', 'Remove BC':'tkBC',
+    # tkIBC
+    'tkIBC':'tkIBC', 'Set snear on surface':'tkIBC', 'Immersed boundaries':'tkIBC', 'Set data for IBM':'tkIBC',
     # tkChimera
     'tkChimera':'tkChimera', 'Blank cells':'tkChimera', 
     'Optimize overlap':'tkChimera',
@@ -148,11 +161,15 @@ applet = {
     'tkDistributor':'tkDistributor', 'Distribute over processors':'tkDistributor',
     # tkDist2Walls
     'tkDist2Walls':'tkDist2Walls', 'Compute wall distance':'tkDist2Walls',
+    # tkTime
+    'tkTime':'tkTime', 'View time motion':'tkTime',
+    # tkRigidMotion
+    'tkRigidMotion':'tkRigidMotion', 'Set rigid motion in tree':'tkRigidMotion',
     # tkElsaSolver
     'tkElsaSolver':'tkElsaSolver', 'Create elsAHybrid':'tkElsaSolver',
     'Adapt tree for elsA':'tkElsaSolver',
     # tkFastSolver
-    'tkFastSolver':'tkFastSolver', 'Set snear on surface':'tkFastSolver',
+    'tkFastSolver':'tkFastSolver', 'Compute CFD with IBM':'tkFastSolver',
     # tkVariables
     'tkVariables':'tkVariables', 'Compute variables/fields':'tkVariables',
     'Center2Node or Node2Center variables/fields':'tkVariables', 
@@ -177,12 +194,15 @@ applet = {
     # tkSlice
     'tkSlice':'tkSlice', 'Slice mesh':'tkSlice', 'View inside mesh':'tkSlice',
     'Cut mesh':'tkSlice',
+    # tkIJK
+    'tkIJK':'tkIJK', 'View IJK planes':'tkIJK',
     # tkCellN
     'tkCellN':'tkCellN', 'View blanking':'tkCellN', 'View chimera data':'tkCellN',
     'View Orphan points -chimera-':'tkCellN',
     # tkBackground
     'tkBackground':'tkBackground', 'Add a background mesh':'tkBackground',
     # tkRender
+    'tkRenderTree':'tkRenderTree', 'Load textures':'tkRenderTree',
     'tkRenderSet':'tkRenderSet', 'Set surface material': 'tkRenderSet',
     'Set Chrome/Wood/Glass/Stone effect on surface':'tkRenderSet',
     'Set XRay/Metal/Gooch/Smoke effect on surface':'tkRenderSet',
@@ -194,7 +214,7 @@ applet = {
     'Use Red/Blue glasses':'tkStereo',
     # tkEffects
     'tkEffects':'tkEffects', 'Add shadow':'tkEffects', 'Change camera angle':'tkEffects',
-    'Add depth of field': 'tkEffects', 
+    'Add depth of field': 'tkEffects', 'Set gamma': 'tkEffects', 'Set camera angle': 'tkEffects',
     # tkDemo
     'tkDemo':'tkDemo', 'Automatic camera motion':'tkDemo'
     }
@@ -205,21 +225,28 @@ lista = applet.keys()
 class AutocompleteEntry(TK.Entry):
     def __init__(self, lista, *args, **kwargs):
         TK.Entry.__init__(self, *args, **kwargs)
+        TK.Entry.config(self, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
         self.lista = lista
         self.var = self["textvariable"]        
         if self.var == '':
             self.var = self["textvariable"] = TK.StringVar()
             self.var.set("Ask me...")
         self.var.trace('w', self.changed)
+        self.bind("<FocusIn>", self.focusin)
         self.bind("<Right>", self.selection)
         self.bind("<Up>", self.up)
         self.bind("<Down>", self.down)
         self.bind("<Return>", self.selection)
         self.bind("<Control-c>", self.clearVar)
+        self.bind("<Control-u>", self.clearVar)
+        self.bind("<Escape>", self.clearVar)
         self.lb_up = False
 
     def clearVar(self, event):
         self.var.set('')
+
+    def focusin(self, event):
+        if self.var.get() == 'Ask me...': self.var.set('')
 
     def changed(self, name, index, mode):
         if self.var.get() == '':
@@ -229,13 +256,13 @@ class AutocompleteEntry(TK.Entry):
             words = self.comparison()
             if words:            
                 if not self.lb_up: # listbox exists
-                    self.lb = TK.Listbox(width=self.winfo_width())
+                    self.lb = TTK.Listbox(width=self.winfo_width())
                     self.lb.bind("<Double-Button-1>", self.selection)
                     self.lb.bind("<Right>", self.selection)
                     self.lb.bind("<Return>", self.selection)
-                    self.lb.place(x=self.winfo_x(), y=self.winfo_y()+2*self.winfo_height())
+                    self.lb.place(x=self.winfo_x(), y=self.winfo_y()+2*self.winfo_height()+11)
                     self.lb_up = True
-                    #self.sb = TK.Scrollbar()
+                    #self.sb = TTK.Scrollbar()
                     #self.lb.config(yscrollcommand=self.sb.set)
                     #self.sb.config(command=self.lb.yview)
                     #self.sb.place(x=self.winfo_x()-10, y=self.winfo_y()+self.winfo_height())
@@ -258,10 +285,8 @@ class AutocompleteEntry(TK.Entry):
 
     def up(self, event):
         if self.lb_up:
-            if self.lb.curselection() == ():
-                index = '0'
-            else:
-                index = self.lb.curselection()[0]
+            if self.lb.curselection() == (): index = '0'
+            else: index = self.lb.curselection()[0]
             if index != '0':                
                 self.lb.selection_clear(first=index)
                 index = str(int(index)-1)                
@@ -270,10 +295,8 @@ class AutocompleteEntry(TK.Entry):
 
     def down(self, event):
         if self.lb_up:
-            if self.lb.curselection() == ():
-                index = '-1'
-            else:
-                index = self.lb.curselection()[0]
+            if self.lb.curselection() == (): index = '-1'
+            else: index = self.lb.curselection()[0]
             if index != TK.END:
                 self.lb.selection_clear(first=index)
                 index = str(int(index)+1)        
@@ -288,8 +311,7 @@ class AutocompleteEntry(TK.Entry):
         for a in askString:
             pattern.append(re.compile('.*' + a + '.*', re.IGNORECASE))
 
-        sol = []
-        for i in xrange(la): sol.append([])
+        sol = [[]]*la
 
         for w in self.lista:
             ma = 0
@@ -302,7 +324,7 @@ class AutocompleteEntry(TK.Entry):
             lr = len(ret); ls = len(s)
             if lr < 8: 
                 if lr + ls < 8: ret += s
-                else: ret += s[0:8-lr]   
+                else: ret += s[0:8-lr]
         #ret = [w for w in self.lista if re.match(pattern, w)]
         #import difflib
         #word =  self.var.get()
@@ -311,7 +333,7 @@ class AutocompleteEntry(TK.Entry):
 
     def enter(self, event=None):
         word = self.var.get()
-        if applet.has_key(word):
+        if word in applet:
             # Get applet name
             app = applet[word]
             # activate the APP
@@ -376,7 +398,4 @@ if __name__ == '__main__':
     F.grid(row=0, column=0, sticky=TK.EW)
     entry = AutocompleteEntry(lista, F)
     entry.grid(row=0, column=0, sticky=TK.EW)
-    #Button(text='nothing').grid(row=1, column=0)
-    #Button(text='nothing').grid(row=2, column=0)
-    #Button(text='nothing').grid(row=3, column=0)
     root.mainloop()

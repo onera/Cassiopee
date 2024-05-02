@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -35,11 +35,11 @@ PyObject* K_CONVERTER::fillJoin(PyObject* self, PyObject* args)
   E_Int Direction, DirDonor, IncrR, IncrD, DimZone, D;
   E_Int Im=0;
   E_Int ImDonor=0;
-  if (!PYPARSETUPLEI(args, "OOOOsllllllllll", "OOOOsiiiiiiiiii",
+  if (!PYPARSETUPLE_(args, OOOO_ S_ IIII_ IIII_ II_,
                      &arrayR, &arrayD, 
                      &arrayIR, &listID, &loc, 
                      &arrayRdim1, &arrayRdim2,
-                     &Direction, &DirDonor, &IncrR, &IncrD, &DimZone, &D , 
+                     &Direction, &DirDonor, &IncrR, &IncrD, &DimZone, &D, 
                      &Im, &ImDonor)) return NULL;
 
   // Get E_Int values
@@ -78,9 +78,9 @@ PyObject* K_CONVERTER::fillJoin(PyObject* self, PyObject* args)
   PyArrayObject* arR = (PyArrayObject*)arrayR;
   PyArrayObject* arD = (PyArrayObject*)arrayD;
   PyArrayObject* arI = (PyArrayObject*)arrayIR;
-  double* dataR = (double*)PyArray_DATA(arR);
-  double* dataD = (double*)PyArray_DATA(arD);
-  int* arrayBorder = (int*)PyArray_DATA(arI);
+  E_Float* dataR = (E_Float*)PyArray_DATA(arR);
+  E_Float* dataD = (E_Float*)PyArray_DATA(arD);
+  E_Int* arrayBorder = (E_Int*)PyArray_DATA(arI);
 
   // local values
   E_Int indadj;               // cell index of reciever block cell adjacent to the join border

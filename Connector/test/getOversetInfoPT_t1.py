@@ -23,7 +23,7 @@ t1 = X.setInterpData(t, tDnr, sameName=1, loc='centers',storage='direct')
 
 C._initVars(tDnr,'{F}={CoordinateX}*{CoordinateY}')
 C._initVars(t1,'{centers:F}={centers:CoordinateX}*{centers:CoordinateY}')
-X._setInterpTransfers(t1,tDnr)
+X._setInterpTransfers(t1,tDnr,cellNVariable='',variables=['F'])
 test.testT(t1,0)
 t1 = X.getOversetInfo(t1,tDnr, loc='centers', type='interpolated')
 t1 = X.getOversetInfo(t1,tDnr, loc='centers', type='extrapolated')

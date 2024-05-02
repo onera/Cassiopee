@@ -1,13 +1,155 @@
-#!/bin/sh
-# Destination des release Notes (download)
-DEST2=$CASSIOPEE/WWW/Main/Download
-
-# Copie des release Notes
-if test -e $DEST2
+#! /bin/bash
+if ([ $# -eq 0 ])
 then
-    version=`grep -e __version__ ../KCore/__init__.py`
-    version1=${version:15:10}
-    version1=${version1/"'"/""}
-    v='KCore-'$version1'.txt'
-    cp KCore.txt $DEST2/$v
+    if [ "$CASSIOPEE" = "" ]; then
+        echo "You must specify a CASSIOPEE variable in your environment."
+        echo "This variable specifies the installation path of *Cassiopee*."
+        exit
+    fi
+    PRODUCTION=0
+    # Destination docs
+    DEST="$CASSIOPEE/Dist/doc"
+    # Destination tests unitaires
+    DEST2="$DEST/Examples/Cassiopee"
+    # Destination des release notes
+    DEST3="$DEST"
+elif ([ $# -eq 1 ])
+then
+    PRODUCTION=0
+    # Destination docs
+    DEST="$1/doc"
+    # Destination tests unitaires
+    DEST2="$DEST/Examples/Cassiopee"
+    # Destination des release notes
+    DEST3="$DEST"
+elif ([ $# -eq 2 ])
+then
+    PRODUCTION=1
+    # Destination docs
+    DEST="$CASSIOPEE/WWW/cassiopee-web"
+    # Destination tests unitaires
+    DEST2="$DEST/Examples/Cassiopee"
+    # Destination des release notes
+    DEST3="$CASSIOPEE/WWW/Main/Download"
+else
+    echo 'install: install in $CASSIOPEE/Dist/doc'
+    echo 'install <dir>: install in directory <dir/doc>.'
+    exit
 fi
+
+# Copy all docs locally
+cp $CASSIOPEE/Apps/Modules/Converter/doc/source/Internal.rst source/
+cp $CASSIOPEE/Apps/Modules/Converter/doc/source/ConverterMpi.rst source/
+cp $CASSIOPEE/Apps/Modules/Converter/doc/source/elsAProfile.rst source/
+cp $CASSIOPEE/Apps/Modules/Converter/doc/source/Filter.rst source/
+cp $CASSIOPEE/Apps/Modules/Converter/doc/source/Converter.rst source/
+
+cp $CASSIOPEE/Apps/Modules/Geom/doc/source/Geom.rst source/
+cp $CASSIOPEE/Apps/Modules/Geom/doc/source/Geom_IBM.rst source/
+
+cp $CASSIOPEE/Apps/Modules/Compressor/doc/source/Compressor.rst source/
+cp $CASSIOPEE/Apps/Modules/Initiator/doc/source/Initiator.rst source/
+cp $CASSIOPEE/Apps/Modules/Generator/doc/source/Generator.rst source/
+cp $CASSIOPEE/Apps/Modules/Transform/doc/source/Transform.rst source/
+cp $CASSIOPEE/Apps/Modules/Dist2Walls/doc/source/Dist2Walls.rst source/
+cp $CASSIOPEE/Apps/Modules/Connector/doc/source/Connector.rst source/
+cp $CASSIOPEE/Apps/Modules/Distributor2/doc/source/Distributor2.rst source/
+
+cp $CASSIOPEE/Apps/Modules/Post/doc/source/Post.rst source/
+cp $CASSIOPEE/Apps/Modules/Post/doc/source/ExtraVariables2.rst source/
+cp $CASSIOPEE/Apps/Modules/Post/doc/source/Rotor.rst source/
+cp $CASSIOPEE/Apps/Modules/Post/doc/source/Post_IBM.rst source/
+
+cp $CASSIOPEE/Apps/Modules/RigidMotion/doc/source/RigidMotion.rst source/
+cp $CASSIOPEE/Apps/Modules/OCC/doc/source/OCC.rst source/
+
+cp $CASSIOPEE/Apps/Modules/CPlot/doc/source/CPlot.rst source/
+cp $CASSIOPEE/Apps/Modules/CPlot/doc/source/tkCassiopee.rst source/
+cp $CASSIOPEE/Apps/Modules/CPlot/doc/source/tkPlotXY.rst source/
+cp $CASSIOPEE/Apps/Modules/CPlot/doc/source/Decorator.rst source/
+
+cp $CASSIOPEE/Apps/Modules/Intersector/doc/source/Intersector.rst source/
+
+
+sphinx-build -b html ./source ./build
+
+# modif de search index
+FILE=build/searchindex.js
+sed -i 's/Converter\.Internal\.Converter\.Internal/Converter\.Internal/g' $FILE
+sed -i 's/Converter\.Mpi.Converter\.Mpi/Converter\.Mpi/g' $FILE
+sed -i 's/Converter\.elsAProfile\.Converter\.elsAProfile/Converter\.elsAProfile/g' $FILE
+sed -i 's/Converter\.Filter\.Converter\.Filter/Converter\.Filter/g' $FILE
+sed -i 's/Converter\.Converter\.PyTree/Converter\.PyTree/g' $FILE
+sed -i 's/Converter\.Converter\.Array3D/Converter\.Array3D/g' $FILE
+sed -i 's/Converter\.Converter/Converter/g' $FILE
+#sed -i 's/Converter\:{/converter\:{/g' $FILE
+
+sed -i 's/Geom\.IBM\.Geom\.IBM/Geom\.IBM/g' $FILE
+sed -i 's/Geom\.Geom/Geom/g' $FILE
+#sed -i 's/Geom\:{/geom\:{/g' $FILE
+
+sed -i 's/Compressor\.Compressor/Compressor/g' $FILE
+sed -i 's/Initiator\.Initiator/Initiator/g' $FILE
+sed -i 's/Generator\.Generator/Generator/g' $FILE
+sed -i 's/Transform\.Transform/Transform/g' $FILE
+sed -i 's/Dist2Walls\.Dist2Walls/Dist2Walls/g' $FILE
+sed -i 's/Connector\.Connector/Connector/g' $FILE
+sed -i 's/Distributor2\.Distributor2/Distributor2/g' $FILE
+
+sed -i 's/Post\.Rotor\.Post\.Rotor/Post\.Rotor/g' $FILE
+sed -i 's/Post\.IBM\.Post\.IBM/Post\.IBM/g' $FILE
+sed -i 's/Post\.ExtraVariables2\.Post\.ExtraVariables2/Post\.ExtraVariables2/g' $FILE
+sed -i 's/Post\.Post/Post/g' $FILE
+#sed -i 's/Post\:{/post\:{/g' $FILE
+
+sed -i 's/RigidMotion\.RigidMotion/RigidMotion/g' $FILE
+
+sed -i 's/CPlot\.Decorator\.CPlot\.Decorator/CPlot\.Decorator/g' $FILE
+sed -i 's/CPlot\.CPlot/CPlot/g' $FILE
+#sed -i 's/CPlot\:{/cplot\:{/g' $FILE
+
+sed -i 's/Intersector\.Intersector/Intersector/g' $FILE
+
+# meme modif de genindex
+FILE=build/genindex.html
+sed -i 's/Converter\.Internal\.Converter\.Internal/Converter\.Internal/g' $FILE
+sed -i 's/Converter\.Mpi.Converter\.Mpi/Converter\.Mpi/g' $FILE
+sed -i 's/Converter\.elsAProfile\.Converter\.elsAProfile/Converter\.elsAProfile/g' $FILE
+sed -i 's/Converter\.Filter\.Converter\.Filter/Converter\.Filter/g' $FILE
+sed -i 's/Converter\.Converter\.PyTree/Converter\.PyTree/g' $FILE
+sed -i 's/Converter\.Converter\.Array3D/Converter\.Array3D/g' $FILE
+sed -i 's/Converter\.Converter/Converter/g' $FILE
+#sed -i 's/Converter\:{/converter\:{/g' $FILE
+
+sed -i 's/Geom\.IBM\.Geom\.IBM/Geom\.IBM/g' $FILE
+sed -i 's/Geom\.Geom/Geom/g' $FILE
+#sed -i 's/Geom\:{/geom\:{/g' $FILE
+
+sed -i 's/Compressor\.Compressor/Compressor/g' $FILE
+sed -i 's/Initiator\.Initiator/Initiator/g' $FILE
+sed -i 's/Generator\.Generator/Generator/g' $FILE
+sed -i 's/Transform\.Transform/Transform/g' $FILE
+sed -i 's/Dist2Walls\.Dist2Walls/Dist2Walls/g' $FILE
+sed -i 's/Connector\.Connector/Connector/g' $FILE
+sed -i 's/Distributor2\.Distributor2/Distributor2/g' $FILE
+
+sed -i 's/Post\.IBM\.Post\.IBM/Post\.IBM/g' $FILE
+sed -i 's/Post\.Rotor\.Post\.Rotor/Post\.Rotor/g' $FILE
+sed -i 's/Post\.ExtraVariables2\.Post\.ExtraVariables2/Post\.ExtraVariables2/g' $FILE
+sed -i 's/Post\.Post/Post/g' $FILE
+#sed -i 's/Post\:{/post\:{/g' $FILE
+
+sed -i 's/RigidMotion\.RigidMotion/RigidMotion/g' $FILE
+
+sed -i 's/CPlot\.Decorator\.CPlot\.Decorator/CPlot\.Decorator/g' $FILE
+sed -i 's/CPlot\.CPlot/CPlot/g' $FILE
+#sed -i 's/CPlot\:{/cplot\:{/g' $FILE
+
+sed -i 's/Intersector\.Intersector/Intersector/g' $FILE
+
+
+cp build/searchindex.js $DEST
+cp build/genindex.html $DEST
+cp build/py-modindex.html $DEST
+cp build/search.html $DEST
+cp -r build/_sources $DEST

@@ -28,9 +28,12 @@
       break;
 
     case 4:
-      // Couleur uniforme black/grey
-      color1[0] = 0.4; color1[1] = 0.4; color1[2] = 0.4;
-      color2[0] = 0.1;  color2[1] = 0.1;  color2[2] = 1;
+      // multicolor + sobel
+      getrgb(this, zone*nz, &g, &r, &b);
+      color1[0] = r; color1[1] = g; color1[2] = b;
+      if (b > 0.8 && r < 0.2 && g < 0.2) 
+      { color1[0] = r; color1[1] = b; color1[2] = g; }
+      color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1;
       break;
 
     default:

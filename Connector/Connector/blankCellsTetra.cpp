@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -19,9 +19,14 @@
 
 # include "connector.h"
 #include "maskGen.h"
-#include "Search/Collider.h"
-#include "Search/ZoneExtractor.h"
+#include "Nuga/include/Collider.h"
+#include "Nuga/include/ZoneExtractor.h"
 #include <memory>
+#include "Nuga/include/ngacc.hxx"
+#include "Nuga/include/localizer.hxx"
+#include "Nuga/include/collider.hxx"
+#include "Nuga/include/Pentahedron.h"
+#include "Nuga/include/Pyramid.h"
 //#include <sstream>
 //#include <fstream>
 //#include <iostream>
@@ -47,8 +52,7 @@ PyObject* K_CONNECTOR::createTetraMask(PyObject* self, PyObject* args)
   K_FLD::FldArrayF *fV(0), *fS(0);
   K_FLD::FldArrayI *cV(0), *cS(0);
 
-  if (!PYPARSETUPLEF(args,
-                    "OOd", "OOf",
+  if (!PYPARSETUPLE_(args, OO_ R_,
                     &maskV, &maskS, &tol))
   {
       return NULL;
@@ -131,9 +135,7 @@ PyObject* K_CONNECTOR::createTriMask(PyObject* self, PyObject* args)
   K_FLD::FldArrayF *fmask(0);
   K_FLD::FldArrayI *cmask(0);
   
-  if (!PYPARSETUPLEF(args,
-                    "Od", "Of",
-                    &maskT, &tol))
+  if (!PYPARSETUPLE_(args, O_ R_, &maskT, &tol))
   {
       return NULL;
   }
@@ -190,7 +192,6 @@ PyObject* K_CONNECTOR::createTriMask(PyObject* self, PyObject* args)
 PyObject* K_CONNECTOR::deleteTetraMask(PyObject* self, PyObject* args)
 {
   PyObject* hook;
-
   if (!PyArg_ParseTuple(args, "O", &hook))
   {
       return NULL;
@@ -270,6 +271,7 @@ struct MaskEntity
   K_CONNECTOR::maskGen* _auxiliary; //surfacic for tet mask
 };
 
+template <typename ELT_t>
 E_Int do_the_blanking(E_Int blankingType, MaskEntity& maskE, const K_FLD::FldArrayF& fmesh, E_Int posx, E_Int posy, E_Int posz,
                       const K_FLD::FldArrayI* cmesh, E_Int CELLNVAL, E_Int overwrite, K_FLD::FldArrayI& cN);
 
@@ -278,18 +280,18 @@ E_Int do_the_blanking(E_Int blankingType, MaskEntity& maskE, const K_FLD::FldArr
 //============================================================================
 PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
 {
+  char* cellNName;
   PyObject* mesh;
   PyObject* celln;
   PyObject* maskHook;
   E_Int blankingType, CELLNVAL(0), overwrite(0);
-  char *varString, *varStringC, *eltType, *eltTypeC;
+  char *varString, *varStringC, *eltType(0), *eltTypeC;
   E_Int ni, nj, nk;
   K_FLD::FldArrayF *fmesh(0), *fC(0);
   K_FLD::FldArrayI *cmesh(0), *cC(0);
   
-  if (!PYPARSETUPLEI(args,
-                    "OOOlll", "OOOiii",
-                    &mesh, &celln, &maskHook, &blankingType, &CELLNVAL, &overwrite))
+  if (!PYPARSETUPLE_(args, OOO_ III_ S_, 
+                    &mesh, &celln, &maskHook, &blankingType, &CELLNVAL, &overwrite, &cellNName))
   {
       return NULL;
   }
@@ -324,14 +326,13 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
   if (*type != TETRA_HOOK_ID && *type != TRI_HOOK_ID)
   {
     PyErr_SetString(PyExc_TypeError, 
-                    "identifyNodes: this function requires a identify K_CONNECTOR::maskT4Fld hook.");
+                    "blankCellsTetra: this function requires a identify K_CONNECTOR::maskT4Fld hook.");
     return NULL;
   }
 
   E_Int res = K_ARRAY::getFromArray(mesh, varString, fmesh, ni, nj, nk, cmesh, eltType);
-  std::auto_ptr<K_FLD::FldArrayF> afmesh(fmesh); // to avoid to call explicit delete at several places in the code.
-  std::auto_ptr<K_FLD::FldArrayI> acmesh(cmesh); // to avoid to call explicit delete at several places in the code.
-  
+  std::unique_ptr<K_FLD::FldArrayF> afmesh(fmesh); // to avoid to call explicit delete at several places in the code.
+  std::unique_ptr<K_FLD::FldArrayI> acmesh(cmesh); // to avoid to call explicit delete at several places in the code.
   
   if (res == -1)
   {
@@ -342,24 +343,17 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
 
   if (blankingType == 1 /*cell _intersect*/)
   {
-    if ( (res != 2) || ((res == 2) && (strcmp(eltType, "HEXA") != 0) ) )
+    if ( (res != 2) || ((res == 2) && (strstr(eltType, "TETRA") == 0 && strstr(eltType, "PYRA") == 0 && strstr(eltType, "PENTA") == 0 && strstr(eltType, "HEXA") == 0 && strstr(eltType, "NGON") == 0) ) )
     {
      PyErr_SetString(PyExc_ValueError,
-		   "blankCellsTetra: the mesh can currently only be of type HEXA in cell_intersect mode.");
+		   "blankCellsTetra: the mesh can currently only be of type TETRA, PYRA, PENTA, HEXA or NGON in cell_intersect mode.");
       return NULL;
     }
   }
-  
-  if (res == 2 && strcmp(eltType, "HEXA") != 0 && blankingType == 1 /*cell _intersect*/)
-  {
-    PyErr_SetString(PyExc_ValueError,
-		   "blankCellsTetra: the input mesh must be HEXA.");
-      return NULL;
-  }
 
   res = K_ARRAY::getFromArray(celln, varStringC, fC, ni, nj, nk, cC, eltTypeC);
-  std::auto_ptr<K_FLD::FldArrayF> afC(fC); // to avoid to call explicit delete at several places in the code.
-  std::auto_ptr<K_FLD::FldArrayI> acC(cC); // to avoid to call explicit delete at several places in the code.
+  std::unique_ptr<K_FLD::FldArrayF> afC(fC); // to avoid to call explicit delete at several places in the code.
+  std::unique_ptr<K_FLD::FldArrayI> acC(cC); // to avoid to call explicit delete at several places in the code.
    
   if (res == -1)
   {
@@ -368,14 +362,7 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
     return NULL;
   }
   bool struct_celln = (res == 1);
-  E_Int posc = K_ARRAY::isCellNatureField2Present(varStringC);
-  if (posc == -1)
-  {
-    PyErr_SetString(PyExc_TypeError,
-                      "blankCellsTetra: celln variable not found for one structured array.");
-    return NULL;
-  }
-  
+
   // Blanking
   K_CONNECTOR::maskGen* mask = (K_CONNECTOR::maskGen*)(packet[1]);
 
@@ -407,12 +394,46 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
   {
     maske._auxiliary=(K_CONNECTOR::maskGen*)(packet[4]);
   }
-    
-  size_t sz = fC->getSize();
+
+  size_t sz = 0;
+  if (blankingType == 0)
+    sz = fmesh->getSize();
+  else if (eltType && strstr(eltType, "NGON") == 0)
+    sz = cmesh->getSize();
+  else if (eltType && strstr(eltType, "NGON") != 0)
+  {
+    E_Int pos = (*cmesh)[1] + 2;
+    sz = (*cmesh)[pos];
+    //std::cout << "nb phs : " << sz << std::endl;
+  }
+
+  if (sz == 0)
+  {
+    //std::cout << "nb points/tets : " << mask->nb_points() << "/" << mask->nb_elts() << std::endl;
+    PyErr_SetString(PyExc_ValueError,
+       "blankCellsTetra: the input combination is not handled.");
+    return NULL;
+  }
+
   K_FLD::FldArrayI cN(sz);
   for (size_t i = 0; i < sz; ++i) cN[i]=E_Int((*fC)[i]);
-   
-  E_Int err = do_the_blanking(blankingType, maske, *fmesh, posx, posy, posz, cmesh, CELLNVAL, overwrite, cN);
+  
+  E_Int err =0;
+  if (eltType && strstr(eltType, "TETRA") != 0)
+    err = do_the_blanking<K_MESH::Tetrahedron>(blankingType, maske, *fmesh, posx, posy, posz, cmesh, CELLNVAL, overwrite, cN);
+  else if (eltType && strstr(eltType, "PYRA") != 0)
+    err = do_the_blanking<K_MESH::Pyramid>(blankingType, maske, *fmesh, posx, posy, posz, cmesh, CELLNVAL, overwrite, cN);
+  else if (eltType && strstr(eltType, "PENTA") != 0)
+    err = do_the_blanking<K_MESH::Pentahedron>(blankingType, maske, *fmesh, posx, posy, posz, cmesh, CELLNVAL, overwrite, cN);
+  else if (eltType && strstr(eltType, "HEXA") != 0)
+    err = do_the_blanking<K_MESH::Hexahedron>(blankingType, maske, *fmesh, posx, posy, posz, cmesh, CELLNVAL, overwrite, cN);
+  else if (eltType && strstr(eltType, "NGON") != 0)
+    err = do_the_blanking<K_MESH::Polyhedron<UNKNOWN> >(blankingType, maske, *fmesh, posx, posy, posz, cmesh, CELLNVAL, overwrite, cN);
+  else // STRUCTURED
+  {
+  	do_the_blanking<K_MESH::Hexahedron/*dummy*/>(blankingType, maske, *fmesh, posx, posy, posz, cmesh, CELLNVAL, overwrite, cN);
+  }
+
   if (err)
   {
     PyErr_SetString(PyExc_TypeError, "blankCellsTetra: failed.");
@@ -420,12 +441,12 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
   }
   
   K_FLD::FldArrayF cellnout(sz);
-  for (size_t i = 0; i < sz; ++i)cellnout[i]=E_Float(cN[i]);
+  for (size_t i = 0; i < sz; ++i) cellnout[i]=E_Float(cN[i]);
   
   if (struct_celln)
-    return K_ARRAY::buildArray(cellnout, "cellN", ni, nj, nk);
+    return K_ARRAY::buildArray(cellnout, cellNName, ni, nj, nk);
   else
-    return K_ARRAY::buildArray(cellnout, "cellN", *cC, -1, eltTypeC, false);
+    return K_ARRAY::buildArray(cellnout, cellNName, *cC, -1, eltTypeC, false);
 }
 
 ///
@@ -442,18 +463,18 @@ inline E_Int __do_the_node_blanking
   std::vector<E_Int> subset;
   K_FLD::ArrayAccessor<K_FLD::FldArrayF > acrd(fmesh, posx, posy, posz);
   extractor.getInBox<3>(bb->minB, bb->maxB, E_EPSILON, acrd, subset);
-    
+  
   if (subset.empty())
     return 0;
   size_t sz = subset.size();
   
   K_FLD::FldArrayF fzoom;
-  fzoom.reserve(3, sz);
+  fzoom.resize(sz, 3);
   E_Float P[3];
   for (size_t i=0; i < sz; ++i)
   {
     acrd.getEntry(subset[i], P);
-    fzoom.pushBack(P, P+3);
+    for (E_Int k=0; k < 3; ++k) fzoom(i, k+1) = P[k];
   }
   
   K_FLD::FldArrayI cellNzoom;
@@ -467,43 +488,50 @@ inline E_Int __do_the_node_blanking
 
   if (overwrite)
   {
-    for (size_t i=0; i < sz; ++i){
+    for (size_t i=0; i < sz; ++i)
+    {
       cN[subset[i]] = cellNzoom[i];
     }
   }
   else //append only blanked values
   {
-    for (size_t i=0; i < sz; ++i){
-      if (cellNzoom[i]==CELLNVAL)cN[subset[i]] = CELLNVAL;
+    for (size_t i=0; i < sz; ++i)
+    {
+      if (cellNzoom[i]==CELLNVAL) cN[subset[i]] = CELLNVAL;
     }
   }
   return 0;
 }
 
 /// 
+template <typename ELT_t>
 inline E_Int __do_the_cell_blanking
 (MaskEntity& maskE, const K_FLD::FldArrayF& fmesh, E_Int posx, E_Int posy, E_Int posz,
  const K_FLD::FldArrayI& cmesh,  E_Int CELLNVAL, E_Int overwrite, K_FLD::FldArrayI& cN)
 {  
   // Preconditioning
-  K_CONNECT::FldZoneExtractor extractor;
   // Mask bbox
   const K_SEARCH::BBox3D* bb = maskE._main->getTree()->getGlobalBox();
-  std::vector<E_Int> subset;
   K_FLD::ArrayAccessor<K_FLD::FldArrayF > acrd(fmesh, posx, posy, posz);
+  
+  K_CONNECT::FldZoneExtractor extractor;
   K_FLD::ArrayAccessor<K_FLD::FldArrayI > acnt(cmesh, -1);
-  extractor.getInBox<3>(bb->minB, bb->maxB, E_EPSILON, acrd, acnt, subset);
-    
-  if (subset.empty())
-    return 0;
+  
+  std::vector<E_Int> subset;
+  extractor.getInBox<3, ELT_t>(bb->minB, bb->maxB, E_EPSILON, acrd, acnt, subset);
+  
+  // CB : essai OMP
+  //std::vector<E_Int> subset;
+  //extractor.getInBox_omp<3>(bb->minB, bb->maxB, E_EPSILON, acrd, acnt, subset);
+  
+  if (subset.empty()) return 0;
   
   //std::cout << "nb of extracted : " << subset.size() << std::endl;
     
   size_t sz1 = subset.size();
   E_Int ROWS(cmesh.getNfld());
   K_FLD::FldArrayI connectZoom(sz1, ROWS);
-
-  //  
+  
   for (E_Int j = 0; j < ROWS; ++j)
   {
     E_Int* pZ = connectZoom.begin(j+1);
@@ -514,7 +542,7 @@ inline E_Int __do_the_cell_blanking
   // FIRST PASS : CELL IN
   typedef K_FLD::FldArrayF Coordinate_t;
   typedef K_FLD::FldArrayI Connectivity_t;
-        
+
   Coordinate_t ZoomCentroids;
   ZoomCentroids.reserve(3, connectZoom.getSize());
   E_Float G[3];
@@ -522,12 +550,12 @@ inline E_Int __do_the_cell_blanking
   K_FLD::ArrayAccessor<Connectivity_t> acvz(connectZoom, -1);
   K_FLD::IntArray e;
   e.reserve(1,8);
-  E_Int*pt=e.begin();
+  E_Int*pt = e.begin();
   for (size_t i=0; i < sz1; ++i)
   {    
     acvz.getEntry(i, pt);
-    K_MESH::Hexahedron Hi(pt);
-    Hi.iso_barycenter<K_FLD::ArrayAccessor<Coordinate_t> >(ac, G);
+    ELT_t Hi(pt);
+    Hi.template iso_barycenter< K_FLD::ArrayAccessor<Coordinate_t> >(ac, G);
     ZoomCentroids.pushBack(G, G+3);
   }
 
@@ -540,7 +568,7 @@ inline E_Int __do_the_cell_blanking
   // reduce the work set to those inside the zoom but not masked yet
   E_Int sz2=0, k=0;
   for (E_Int i = 0; i < cellNzoom.getSize(); ++i)
-    if (cellNzoom[i] !=CELLNVAL) ++sz2;
+    if (cellNzoom[i] != CELLNVAL) ++sz2;
 
   Connectivity_t connectZoom2(sz2, ROWS);
   std::vector<E_Int> oldIds2;
@@ -558,21 +586,161 @@ inline E_Int __do_the_cell_blanking
   
   //std::cout << " remaining unmasked in zoom :" << k << std::endl;
 
+  // SECOND PASS : CELL INTERSECT
+  std::vector<E_Int> is_colliding;
+  if (!oldIds2.empty())
+  {    
+    using loc_t = NUGA::localizer<K_SEARCH::BbTree3D>;
+    loc_t loc(*maskE._auxiliary->getTree(), maskE._auxiliary->tolerance());
+
+    std::vector<E_Int> ids1;
+    const K_FLD::ArrayAccessor<K_FLD::FldArrayF>& acrd1 = maskE._auxiliary->coords();
+    const Connectivity_t& cnt1 = maskE._auxiliary->connect().array();
     
+    const Coordinate_t& crd2 = fmesh;
+    const Connectivity_t& cnt2 = connectZoom2;
+                      
+    NUGA::COLLIDE::compute<Coordinate_t, Connectivity_t, Connectivity_t, loc_t, K_MESH::Triangle, ELT_t, 3>(acrd1, cnt1, loc,
+                                                        crd2, posx, posy, posz, cnt2, 
+                                                        ids1, is_colliding, maskE._auxiliary->tolerance());
+  }
+  
+  // SET CELLN ////////////////////////////////////////////////////////////////
+  if (cN.getSize() < cmesh.getSize())
+    cN.resize(1, cmesh.getSize(), VISIBLE);
+  //std::set<int> uids;
+  if (overwrite)
+  {
+    for (E_Int i=0; i < cellNzoom.getSize(); ++i){
+      cN[subset[i]] = cellNzoom[i];
+    }
+  }
+  else //append only blanked values
+  {
+    for (E_Int i=0; i < cellNzoom.getSize(); ++i){
+      if (cellNzoom[i]==CELLNVAL)cN[subset[i]] = CELLNVAL;
+    }
+  }
+  
+  //cell_intersect
+  for (size_t i=0; i < is_colliding.size(); ++i){
+    if (is_colliding[i]){
+     cN[subset[oldIds2[i]]] = CELLNVAL;
+     //uids.insert(subset[oldIds2[i]]);
+    }
+  }
+  
+  //int minid = *std::min_element(ids.begin(), ids.end());
+  //int maxid = *std::max_element(ids.begin(), ids.end());
+  //std::cout << "ids stat : size/min/max : " << ids.size() << " " << minid << " " << maxid << std::endl;
+  //std::cout << "cN size : " << cN.getSize() << std::endl;
+  
+  /*std::ostringstream o;
+  o << "/home/slandier/tmp/mask_tree/mask_" << xcount++ << ".txt";
+  std::ofstream of(o.str().c_str());
+  for (std::set<int>::const_iterator it=uids.begin(); it != uids.end(); ++it)
+    of <<*it << std::endl;
+  of.close();*/
+  
+  return 0;
+  
+}
+
+/// 
+template <>
+inline E_Int __do_the_cell_blanking<K_MESH::Polyhedron<UNKNOWN> >
+(MaskEntity& maskE, const K_FLD::FldArrayF& fmesh, E_Int posx, E_Int posy, E_Int posz,
+ const K_FLD::FldArrayI& cmesh,  E_Int CELLNVAL, E_Int overwrite, K_FLD::FldArrayI& cN)
+{  
+  using ELT_t = K_MESH::Polyhedron<UNKNOWN>;
+  // Preconditioning
+  //std::cout << "cell blanking PH" << std::endl;
+  // Mask bbox
+  const K_SEARCH::BBox3D* bb = maskE._main->getTree()->getGlobalBox();
+  std::vector<E_Int> subset;
+  K_FLD::ArrayAccessor<K_FLD::FldArrayF > acrd(fmesh, posx, posy, posz);
+  
+  using ngon_type = ngon_t<K_FLD::FldArrayI>;
+    
+  K_CONNECT::ZoneExtractor<K_FLD::FldArrayF, ngon_type> extractor;
+  ngon_type ng(cmesh);
+  K_FLD::ArrayAccessor< ngon_type > acnt(ng, -1);
+  extractor.getInBox<3, ELT_t>(bb->minB, bb->maxB, E_EPSILON, acrd, acnt, subset);
+    
+  if (subset.empty())
+    return 0;
+  
+  //std::cout << "nb of extracted : " << subset.size() << std::endl;
+  size_t sz1 = subset.size();
+  ngon_t<K_FLD::FldArrayI> ngZoom;
+  ngZoom.PGs = ng.PGs;
+  //
+  for (size_t i = 0; i < sz1; ++i)
+    ngZoom.addPH(ng, subset[i]);
+  ngZoom.PHs.updateFacets();
+
+  // FIRST PASS : CELL IN
+  typedef K_FLD::FldArrayF Coordinate_t;
+  typedef K_FLD::FldArrayI Connectivity_t;
+
+  Coordinate_t ZoomCentroids;
+  ZoomCentroids.resize(ngZoom.PHs.size(), 3);
+  E_Float G[3];
+  
+  K_FLD::ArrayAccessor<ngon_type> acvz(ngZoom, -1);
+  
+  ELT_t e;
+  for (size_t i=0; i < sz1; ++i)
+  {    
+    acvz.getEntry(i, e);
+    e.iso_barycenter<K_FLD::ArrayAccessor<Coordinate_t> >(acrd, G, 1);
+
+    for (E_Int k=0; k < 3; ++k)ZoomCentroids(i, k+1) = G[k]; //hack because dynamic interface of FldArray is broken with _rake/_stride logic.
+  }
+ 
+  Connectivity_t cellNzoom(ZoomCentroids.getSize(), 1);
+  cellNzoom.setAllValuesAt(1);
+  E_Int err = maskE._main->blank(ZoomCentroids, 1,2,3, cellNzoom, CELLNVAL, overwrite);
+  if (err)
+    return err;
+        
+  // reduce the work set to those inside the zoom but not masked yet
+  E_Int sz2=0;
+  for (E_Int i = 0; i < cellNzoom.getSize(); ++i)
+    if (cellNzoom[i] !=CELLNVAL) ++sz2;
+
+  ngon_type ngZoom2;
+  ngZoom2.PGs = ngZoom.PGs;
+  std::vector<E_Int> oldIds2;
+  oldIds2.reserve(sz2);     
+  for (E_Int i = 0; i < cellNzoom.getSize(); ++i)
+  {
+    if (cellNzoom[i]!=CELLNVAL)
+    {
+      ngZoom2.addPH(ngZoom, i);
+      oldIds2.push_back(i);
+    }
+  }
+  
+  ngZoom2.PHs.updateFacets();
+  
+  //std::cout << " remaining unmasked in zoom :" << k << std::endl;
+
   // SECOND PASS : CELL INTERSECT
   std::vector<E_Int> is_colliding;
   if (!oldIds2.empty())
   {
-    if (/*(strcmp(eltType, "HEXA") == 0*/true) // only support HEXA currently
-    {
-      // cell_intersect
-      K_CONNECT::Collider<K_FLD::FldArrayF, K_FLD::FldArrayI, 3, K_MESH::Triangle, T3HX6_XPredicate > collider(maskE._auxiliary->coords(), maskE._auxiliary->connect(), maskE._auxiliary->getTree(), maskE._auxiliary->tolerance());
-      collider.compute(fmesh, posx, posy, posz, connectZoom2, is_colliding);
-    }
-    else //if (strcmp(eltType, "NGON") == 0)
-    {
-      return 1;
-    }
+    using loc_t = NUGA::localizer<K_SEARCH::BbTree3D>;
+    loc_t loc(*maskE._auxiliary->getTree(), maskE._auxiliary->tolerance());
+
+    std::vector<E_Int> ids1;
+    const K_FLD::ArrayAccessor<K_FLD::FldArrayF>& acrd1 = maskE._auxiliary->coords();
+    const Connectivity_t& cnt1 = maskE._auxiliary->connect().array();
+    
+    const Coordinate_t& crd2 = fmesh;
+    const ngon_type& ng2 = ngZoom2;
+                      
+    NUGA::COLLIDE::compute<Coordinate_t, Connectivity_t, ngon_type, loc_t, K_MESH::Triangle, ELT_t, 3>(acrd1, cnt1, loc, crd2, posx, posy, posz, ng2, ids1, is_colliding, maskE._auxiliary->tolerance());
   }
   
   // SET CELLN ////////////////////////////////////////////////////////////////
@@ -617,13 +785,14 @@ inline E_Int __do_the_cell_blanking
 }
 
 ///
+template <typename ELT_t>
 inline E_Int do_the_blanking
 (E_Int blankingType, MaskEntity& maskE, const K_FLD::FldArrayF& fmesh, E_Int posx, E_Int posy, E_Int posz,
  const K_FLD::FldArrayI* cmesh, E_Int CELLNVAL, E_Int overwrite, K_FLD::FldArrayI& cN)
-{  
+{
   // node_in or cell_in
   if (blankingType != 1)   
     return __do_the_node_blanking(maskE._main, fmesh, posx, posy, posz, CELLNVAL, overwrite, cN);
   
-  return __do_the_cell_blanking(maskE, fmesh, posx, posy, posz, *cmesh, CELLNVAL, overwrite, cN);
+  return __do_the_cell_blanking<ELT_t>(maskE, fmesh, posx, posy, posz, *cmesh, CELLNVAL, overwrite, cN);
 }

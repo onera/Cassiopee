@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -201,9 +201,9 @@ class BlkInterpAdt : public BlkInterpWithKMesh
     
     /* routine generale */
     void buildAdt();
-    /* construit l adt a partir d'un kmesh structure */
+    /* construit l'adt a partir d'un kmesh structure */
     void buildStructAdt();
-    /* construit l adt a partir d'un kmesh non structure */
+    /* construit l'adt a partir d'un kmesh non structure */
     void buildUnstructAdt();
     
     void insert(E_Int ind, E_Float xmin, E_Float ymin, E_Float zmin,

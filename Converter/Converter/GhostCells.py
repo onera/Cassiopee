@@ -1,11 +1,13 @@
 # - ghostcells -
-# Un module d ajout/suppression de cellules fictives dans les arbres python
+# Un module d'ajout/suppression de cellules fictives dans les arbres python
+try: range = xrange
+except: pass
 
-import Internal
-import Converter
-import converter
+from . import Internal
+from . import Converter
+from . import converter
 import numpy
-import PyTree
+from . import PyTree
 import math
 # global definition: coordinates name
 coordinate = ['CoordinateX', 'CoordinateY', 'CoordinateZ']
@@ -75,8 +77,8 @@ def _addGhostCells(t, b, d, adaptBCs=0, modified=[], fillCorner=1):
                 #isghost[c] = _addGhostCellsNGON__(zp, b, d, isghost[c], stdNode, modified)
                 pass
             else: 
-                #print 'Warning: addGhostCells: not yet implemented for BE.'
-                pass # other elt types                     
+                #print('Warning: addGhostCells: not yet implemented for BE.')
+                pass # other elt types
         else : # Structured
             validjoins,dictjoins,indexjoin = _addGhostCellsStruct__(zp, b, d, modified, nodesRef, validjoins, dictjoins, indexjoin)
         c += 1
@@ -170,7 +172,7 @@ def _addGhostCellsNGON__(zp, bp, d, isghost, stdNode, modified):
     # fieldsn and fieldsc contain coords, solution at nodes and centers
     #
     if fieldsc == [] and fieldsn == []: 
-        print 'Warning: addGhostCells: variables not found. No ghost cells added.'
+        print('Warning: addGhostCells: variables not found. No ghost cells added.')
     elif fieldsc == [] and fieldsn != []: # nodes only 
         out = Converter.converter.addGhostCellsNGonNodes(fieldsn,d)
         #PyTree.setFields([out], zp, 'nodes', writeDim=True)
@@ -194,8 +196,8 @@ def _addGhostCellsNGON__(zp, bp, d, isghost, stdNode, modified):
 # and FlowSolution#Centers
 # IN: z: les zones doivent avoir des dimensions en noeuds avec ghost cells
 # IN: modified: si [], modifie GridCoordinates+FlowSolution+FlowSolution#Centers
-# adaptBCs = 0: BC non modifiees par addGC
-#          = 1: ranges des BC phys + BCMatch + BCOverlap modifies par addGC
+# adaptBCs=0: BC non modifiees par addGC
+#         =1: ranges des BC phys + BCMatch + BCOverlap modifies par addGC
 # Return a new zone
 #==============================================================================
 def rmGhostCells(t, b, d, adaptBCs=0, modified=[]):
@@ -216,29 +218,40 @@ def _rmGhostCells(t, b, d, adaptBCs=0, modified=[]):
         if dim[0] == 'Unstructured':
             typeElt = dim[3]
             if typeElt == 'NGON':
-                _rmGhostCellsNGON__(zp, b, d, stdNode, modified)
+                pass
+                #_rmGhostCellsNGON__(zp, b, d, stdNode, modified)
             else: 
-                #print 'Warning: rmGhostCells: not yet implemented for BE zones.'
+                #print('Warning: rmGhostCells: not yet implemented for BE zones.')
                 pass # other elt types 
 
         else: # Structured:
             # zone dimension with ghost cells
             img = dim[1]; jmg = dim[2]; kmg = dim[3]
+            # Traitement particulier 2D
+            if kmg == 2:
+                try:
+                    import Transform.PyTree as T               
+                    zpp = T.subzone(zp, (1,1,1), (-1,-1,1)); kmg = 1
+                    zp[2] = zpp[2] # force in place
+                    zp[1] = zpp[1]
+                    dim = Internal.getZoneDim(zp)
+                    #print('Warning: rmGhostCells: matching boundaries will be lost.')
+                except: pass
             # zone dimension without ghost cells
             im = img-2*d; jm = jmg-2*d; km = kmg-2*d
             # check dimensions
-            dim_zone = dim[4]
-            if dim_zone == 3:
-                if ((im <= 0) or (jm <= 0) or (km <= 0)):
-                    print "Warning: rmGhostCells: cannot remove %d ghost cells. Try less."%d
+            dimZone = dim[4]
+            if dimZone == 3:
+                if im <= 0 or jm <= 0 or km <= 0:
+                    print("Warning: rmGhostCells: cannot remove %d ghost cells. Try less."%d)
                     return b
-            elif dim_zone == 2:
-                if ((im <= 0) or (jm <= 0)):
-                    print "Warning: rmGhostCells: cannot to remove %d ghost cells. Try less."%d
+            elif dimZone == 2:
+                if im <= 0 or jm <= 0:
+                    print("Warning: rmGhostCells: cannot to remove %d ghost cells. Try less."%d)
                     return b
             else:
                 if im <= 0:
-                    print "Warning: rmGhostCells: cannot remove %d ghost cells. Try less."%d
+                    print("Warning: rmGhostCells: cannot remove %d ghost cells. Try less."%d)
                     return b
 
             #-----------------------
@@ -266,7 +279,7 @@ def _rmGhostCells(t, b, d, adaptBCs=0, modified=[]):
 # IN: zp: zone for which fields are extracted
 # IN: modified: list of names of the container 
 #               __GridCoordinates__, __FlowSolution__ and list of variables
-# IN: coords =True: return the coordinates array if modified=Internal.__FlowSolutionCenters__
+# IN: coords=True: return the coordinates array if modified=Internal.__FlowSolutionCenters__
 # OUT: return the list of arrays corresponding to fields at nodes and at centers
 #===============================================================================
 def getFieldsInContainer__(zp, modified, coords=True):
@@ -284,7 +297,8 @@ def getFieldsInContainer__(zp, modified, coords=True):
         else:
             if not isinstance(name, list): name = [name]
             for vname in name:
-                vars0 = vname.split(':')
+                if vname not in PyTree.getVarNames(zp)[0]: continue
+                vars0 = vname.split(':',1)
                 if len(vars0) == 1: # nodes
                     if fieldsn == []: fieldsn = PyTree.getField(vname,zp)[0]
                     else:
@@ -296,11 +310,17 @@ def getFieldsInContainer__(zp, modified, coords=True):
                         else: 
                             fc = PyTree.getField(vname,zp)[0]
                             fieldsc = Converter.addVars([fieldsc,fc])
-                    else: # nodes
+                    elif vars0[0] == 'nodes': # nodes
                         if fieldsn == []: fieldsn = PyTree.getField(vname,zp)[0]
                         else: 
                             fn = PyTree.getField(vname,zp)[0]
                             fieldsn = Converter.addVars([fieldsn,fn])
+                    else:
+                        if fieldsn == []: fieldsn = PyTree.getField(vname,zp)[0]
+                        else:
+                            fn = PyTree.getField(vname,zp)[0]
+                            fieldsn = Converter.addVars([fieldsn,fn])
+                        
     return fieldsn, fieldsc
 
 def _rmGhostCellsNGON__(zp, bp, d, stdNode, modified):
@@ -310,9 +330,9 @@ def _rmGhostCellsNGON__(zp, bp, d, stdNode, modified):
     # fieldsn and fieldsc contain coords, solution at nodes and centers
     #
     if fieldsc == [] and fieldsn == []:
-        print 'Warning: rmGhostCells: variables not found. No ghost cells removed.'
-    elif fieldsc == [] and fieldsn !=[]:
-        out = Converter.converter.rmGhostCellsNGonNodes(fieldsn,d)
+        print('Warning: rmGhostCells: variables not found. No ghost cells removed.')
+    elif fieldsc == [] and fieldsn != []:
+        out = Converter.converter.rmGhostCellsNGonNodes(fieldsn, d)
         #PyTree.setFields([out], zp, 'nodes', writeDim=True)
     elif fieldsc != [] and fieldsn == []:
         pass
@@ -374,7 +394,7 @@ def fillJoinGhostCellsStruct__(zp, join, modified, joininfo,
 
     # current zone dimensions
     dim = Internal.getZoneDim(zp)
-    dim_zone = dim[4]
+    dimZone = dim[4]
 
     # donor zone dimensions
     dimdonor = Internal.getZoneDim(zdonor)
@@ -410,12 +430,12 @@ def fillJoinGhostCellsStruct__(zp, join, modified, joininfo,
             fieldsc = Transform.rotate(fieldsc, (xc,yc,zc), (vx,vy,vz), anglep, vectors=vectorsR) 
             PyTree.setFields([fieldsc], zdonor, 'centers', writeDim=False)
     elif  translVect != [] and rotationData != []:
-        print 'Periodicity by rotation and translation cannot be applied at the same time.'
+        print('Periodicity by rotation and translation cannot be applied at the same time.')
 
     PR = prange[0][1]; PRD = prangedonor[0][1]
-    borderinfoN = getInfoForFillJoinsStruct__(PR, PRD, trirac, dim, dimdonor, d, 'Vertex', dim_zone, nmratio=nmratio,
+    borderinfoN = getInfoForFillJoinsStruct__(PR, PRD, trirac, dim, dimdonor, d, 'Vertex', dimZone, nmratio=nmratio,
                                               corner=treatment)
-    borderinfoC = getInfoForFillJoinsStruct__(PR, PRD, trirac, dim, dimdonor, d, 'CellCenter', dim_zone, nmratio=nmratio,
+    borderinfoC = getInfoForFillJoinsStruct__(PR, PRD, trirac, dim, dimdonor, d, 'CellCenter', dimZone, nmratio=nmratio,
                                               corner=treatment)
     for name in modified:
         containers, containersD, locations = getContainers__(name, zp, zdonor)
@@ -427,10 +447,10 @@ def fillJoinGhostCellsStruct__(zp, join, modified, joininfo,
             else: borderinfo = borderinfoN
             if treatment == 0:
                 cont[1] = fillJoinBorderStruct__(PR, PRD, trirac, dim, dimdonor, cont, containersD[noc],
-                                                 d, loc, dim_zone, borderinfo, typegc)
+                                                 d, loc, dimZone, borderinfo, typegc)
             else:             
                 cont[1] = fillJoinCornerStruct__(PR, PRD, trirac, dim, dimdonor, cont, containersD[noc],
-                                                 d, loc, dim_zone, borderinfo, treatment, typegc)
+                                                 d, loc, dimZone, borderinfo, treatment, typegc)
             noc += 1
     return None
 
@@ -440,30 +460,30 @@ def fillJoinGhostCellsStruct__(zp, join, modified, joininfo,
 # Return new field - for structured zones only
 #==============================================================================
 def fillJoinBorderStruct__(prange, prangedonor, trirac, dim, dimdonor, frecv,
-                           fdonor, d, loc, dim_zone, borderinfo, typegc):
+                           fdonor, d, loc, dimZone, borderinfo, typegc):
     # copy of recv field (this field has already ghostcells)
     a = frecv[1]; f = fdonor[1]
     [arrayborder,dim1,dim2,listdonor,direction,dirdonor,incrrecv,incrdonor,im,imdonor,shiftDir1,shiftDir2,isFine]=borderinfo    
     # fill ghost values (except corner values) for join
     if typegc == 0:
         Converter.converter.fillJoin(a, f, arrayborder, listdonor, loc, dim1, dim2, direction, dirdonor,
-                                     incrrecv, incrdonor, dim_zone, d, im, imdonor)
+                                     incrrecv, incrdonor, dimZone, d, im, imdonor)
     else:
         if loc != 'CellCenter':
             Converter.converter.fillJoinNMNodes(a, f, arrayborder, listdonor, dim1, dim2, direction, dirdonor,
-                                                incrrecv, incrdonor, dim_zone, d, im, imdonor,
+                                                incrrecv, incrdonor, dimZone, d, im, imdonor,
                                                 shiftDir1, shiftDir2, isFine)
         else: 
             Converter.converter.fillJoinNMCenters(a, f, arrayborder, listdonor, 
                                                   dim1, dim2, direction, dirdonor,
-                                                  incrrecv, incrdonor, dim_zone, d, im, imdonor,
+                                                  incrrecv, incrdonor, dimZone, d, im, imdonor,
                                                   shiftDir1, shiftDir2, isFine)
     return a
 #===============================================================================
 #
 #===============================================================================
 def getInfoForFillJoinsStruct__(prange, prangedonor, trirac, dim, dimdonor, 
-                                d, loc, dim_zone, nmratio=[], corner=0):
+                                d, loc, dimZone, nmratio=[], corner=0):
     if corner == 0: dloc = 0
     else: dloc = d
     # recv zone dimension
@@ -471,21 +491,21 @@ def getInfoForFillJoinsStruct__(prange, prangedonor, trirac, dim, dimdonor,
 
     # donor zone dimension
     imdonor = dimdonor[1]
-    if dim_zone != 1: jmdonor = dimdonor[2]
-    if dim_zone == 3: kmdonor = dimdonor[3]
-    if loc =='CellCenter':
+    if dimZone != 1: jmdonor = dimdonor[2]
+    if dimZone == 3: kmdonor = dimdonor[3]
+    if loc == 'CellCenter':
         imdonor = imdonor-1
         im = im-1 ; jm = jm-1 ; km = km-1        
-        if dim_zone != 1: jmdonor = jmdonor-1
-        if dim_zone == 3: kmdonor = kmdonor-1        
+        if dimZone != 1: jmdonor = jmdonor-1
+        if dimZone == 3: kmdonor = kmdonor-1        
 
     # get directions of recv and donor borders
-    direction = getDirBorderStruct__(prange, dim_zone)
-    dirdonor = getDirBorderStruct__(prangedonor, dim_zone)
+    direction = getDirBorderStruct__(prange, dimZone)
+    dirdonor = getDirBorderStruct__(prangedonor, dimZone)
     # get list of border nodes and direction of border
-    if dim_zone != 1:
-        [arrayborder, dim1border, dim2border] = getBorderIndicesStruct__(prange,dim,direction,d,loc,dim_zone)
-        listdonor = getJoinDonorIndicesStruct__(prange,prangedonor,dimdonor,dirdonor,trirac,dloc,loc,dim_zone)
+    if dimZone != 1:
+        [arrayborder, dim1border, dim2border] = getBorderIndicesStruct__(prange,dim,direction,d,loc,dimZone)
+        listdonor = getJoinDonorIndicesStruct__(prange,prangedonor,dimdonor,dirdonor,trirac,dloc,loc,dimZone)
 
     incrrecv = 1 ; incrdonor = 1
     absdirection = abs(direction)
@@ -516,16 +536,16 @@ def getInfoForFillJoinsStruct__(prange, prangedonor, trirac, dim, dimdonor,
 
     if corner == 0: # for fillJoinBorder
         # liste des directions de la zone receveur
-        dir_rcv = [0]*dim_zone
+        dir_rcv = [0]*dimZone
         dir_rcv[absdirection-1] = 1
         # liste des directions de la zone donneuse
-        dir_donor = [0]*dim_zone
+        dir_donor = [0]*dimZone
         dir_donor[absdirdonor-1] = 1
 
-        if dim_zone == 3:
+        if dimZone == 3:
             incrrecv = increment__(dir_rcv[0],dir_rcv[1],dir_rcv[2],im,jm,km,d)
             incrdonor = increment__(dir_donor[0],dir_donor[1],dir_donor[2],imdonor,jmdonor,kmdonor,0)
-        elif dim_zone == 2:
+        elif dimZone == 2:
             incrrecv = increment__(dir_rcv[0],dir_rcv[1],im,jm,d)
             incrdonor = increment__(dir_donor[0],dir_donor[1],imdonor,jmdonor,0)
         
@@ -545,7 +565,7 @@ def getInfoForFillJoinsStruct__(prange, prangedonor, trirac, dim, dimdonor,
         #    incrdonorI: index between two cells following the local axe I of the frontier
         #    incrdonorJ: index between two cells following the local axe J of the frontier
         
-        if dim_zone == 3:
+        if dimZone == 3:
             if absdirection == 1:
                 incrrecv = increment__(1,0,0,im,jm,km,d)
                 incrrecvI = increment__(0,1,0,im,jm,km,d)
@@ -573,11 +593,11 @@ def getInfoForFillJoinsStruct__(prange, prangedonor, trirac, dim, dimdonor,
                 incrdonor = increment__(0,0,1,imdonor,jmdonor,kmdonor,d)
 
             # computation of incrdonorI and incrdonorJ in the same local (I,J) frame as for recv join
-            absI = abs(DonorI); signI = absI/DonorI
-            absJ = abs(DonorJ); signJ = absJ/DonorJ
-            incrdonorI = signI*(absI-2)*(absI-3)/2 -  signI*(absI-1)*(absI-3)*(imdonor+2*d) + signI*(absI-1)*(absI-2)/2*(imdonor+2*d)*(jmdonor+2*d)
-            incrdonorJ = signJ*(absJ-2)*(absJ-3)/2 -  signJ*(absJ-1)*(absJ-3)*(imdonor+2*d) + signJ*(absJ-1)*(absJ-2)/2*(imdonor+2*d)*(jmdonor+2*d)
-        elif dim_zone == 2:
+            absI = abs(DonorI); signI = absI//DonorI
+            absJ = abs(DonorJ); signJ = absJ//DonorJ
+            incrdonorI = signI*(absI-2)*(absI-3)//2 -  signI*(absI-1)*(absI-3)*(imdonor+2*d) + signI*(absI-1)*(absI-2)//2*(imdonor+2*d)*(jmdonor+2*d)
+            incrdonorJ = signJ*(absJ-2)*(absJ-3)//2 -  signJ*(absJ-1)*(absJ-3)*(imdonor+2*d) + signJ*(absJ-1)*(absJ-2)//2*(imdonor+2*d)*(jmdonor+2*d)
+        elif dimZone == 2:
             if abs(direction) == 1:
                 incrrecv = increment__(1,0,im,jm,d)
                 incrrecvI = increment__(0,1,im,jm,d)
@@ -591,7 +611,7 @@ def getInfoForFillJoinsStruct__(prange, prangedonor, trirac, dim, dimdonor,
             elif abs(dirdonor) == 2:
                 incrdonor = increment__(0,1,imdonor,jmdonor,d)
             # computation of incrdonorI and incrdonorJ in the same local (I,J) frame as for recv join
-            absI = abs(DonorI); signI = absI/DonorI
+            absI = abs(DonorI); signI = absI//DonorI
             incrdonorI = signI*(2-absI) + signI*(absI-1)*(imdonor+2*d)
             incrdonorJ = 0
  
@@ -606,22 +626,18 @@ def getInfoForFillJoinsStruct__(prange, prangedonor, trirac, dim, dimdonor,
 #          2 corresponds to the second (and last) passage for unfilled ghost cells 
 #==============================================================================
 def fillJoinCornerStruct__(prange, prangedonor, trirac, dim, dimdonor, frecv,
-                           fdonor, d, loc, dim_zone, borderinfo, passage, typegc):
+                           fdonor, d, loc, dimZone, borderinfo, passage, typegc):
     # copy of recv field (this field has already ghostcells)
     a = frecv[1]
     f = fdonor[1]
 
-    [arrayborder, dim1, dim2, listdonor,incrrecvI,incrrecvJ,incrdonorI,incrdonorJ,direction,dirdonor,incrrecv,incrdonor, shiftDir1, shiftDir2,isFine] = borderinfo
-    
-    #dim2 = 0
-    #if len(arrayborder.shape) == 2: dim2 = arrayborder.shape[1]
-    #dim1 = arrayborder.shape[0]
+    [arrayborder, dim1, dim2, listdonor,incrrecvI,incrrecvJ,incrdonorI,incrdonorJ,direction,dirdonor,incrrecv,incrdonor, shiftDir1, shiftDir2, isFine] = borderinfo
     
     # fill ghost corner values for join
     if typegc == 0:
-        Converter.converter.fillCornerGhostCells(a,f,arrayborder,listdonor,loc,dim1,dim2,incrrecvI,incrrecvJ,
+        Converter.converter.fillCornerGhostCells(a, f, arrayborder, listdonor, loc, dim1, dim2, incrrecvI, incrrecvJ,
                                                  incrdonorI, incrdonorJ, direction, dirdonor, incrrecv, incrdonor, 
-                                                 dim_zone, d, passage)
+                                                 dimZone, d, passage)
     else: # non implemented for nearmatch
         pass
     return a    
@@ -629,47 +645,47 @@ def fillJoinCornerStruct__(prange, prangedonor, trirac, dim, dimdonor, frecv,
 #==============================================================================
 # Return a list with donor indices for a matching join between structured zones
 #==============================================================================
-def getJoinDonorIndicesStruct__(prange,prangedonor,dimdonor,dirdonor,trirac,d,loc,dim_zone, shift=0):
+def getJoinDonorIndicesStruct__(prange,prangedonor,dimdonor,dirdonor,trirac,d,loc,dimZone, shift=0):
     im = dimdonor[1]
     jm = dimdonor[2]
     # trirac
     t1 = trirac[0]; t2 = trirac[1]; t3 = 0
-    if dim_zone == 3: km = dimdonor[3]; t3 = trirac[2]
+    if dimZone == 3: km = dimdonor[3]; t3 = trirac[2]
     if loc == 'CellCenter':
         im = im-1 ; jm = jm-1
-        if (dim_zone == 3): km = km-1
+        if dimZone == 3: km = km-1
 
     # Donor border window dimension
     [wimin,wimax,wjmin,wjmax,wkmin,wkmax] = Internal.range2Window(prangedonor)
     if loc == 'CellCenter':
         wimax = wimax-1
         wjmax = wjmax-1
-        if dim_zone == 3: wkmax = wkmax-1
+        if dimZone == 3: wkmax = wkmax-1
     # direction of recv border
-    direction = getDirBorderStruct__(prange,dim_zone)
-    dirdonor = getDirBorderStruct__(prangedonor,dim_zone)
+    direction = getDirBorderStruct__(prange,dimZone)
+    dirdonor = getDirBorderStruct__(prangedonor,dimZone)
     # get list of border nodes and direction of border
-    [arrayborder, dim1border, dim2border] = getBorderIndicesStruct__(prangedonor,dimdonor,dirdonor,d,loc,dim_zone, shift)
-    if dim_zone == 3:
+    [arrayborder, dim1border, dim2border] = getBorderIndicesStruct__(prangedonor,dimdonor,dirdonor,d,loc,dimZone, shift)
+    if dimZone == 3:
         dim1 = 3
-        array = numpy.zeros((dim1,2), numpy.int32, order='Fortran')
+        array = numpy.zeros((dim1,2), dtype=Internal.E_NpyInt, order='F')
         array[0,1] = wimax-wimin+1
         array[1,1] = wjmax-wjmin+1
         array[2,1] = wkmax-wkmin+1
     else:
         dim1 = 2
-        array = numpy.zeros((dim1,2), numpy.int32, order='Fortran')
+        array = numpy.zeros((dim1,2), dtype=Internal.E_NpyInt, order='F')
         array[0,1] = wimax-wimin+1
         array[1,1] = wjmax-wjmin+1
     # reorder indices of opposite (donor) matching join wrt the trirac
     #dimb1 = arrayborder.shape[0]
     dimb1 = dim1border
-    return Converter.converter.getJoinDonorIndices(array,arrayborder,t1,t2,t3,direction,dim_zone,dim1,dimb1)
+    return Converter.converter.getJoinDonorIndices(array,arrayborder,t1,t2,t3,direction,dimZone,dim1,dimb1)
 
 #==============================================================================
 # Return an array with adjacent nodes/cells indices of a border
 #==============================================================================
-def getBorderIndicesStruct__(prange, dim, direction, d, loc, dim_zone, shift=0):
+def getBorderIndicesStruct__(prange, dim, direction, d, loc, dimZone, shift=0):
     # dimensions of zone
     im = dim[1] ; jm = dim[2] ; km = dim[3]
     if loc == 'CellCenter':
@@ -679,8 +695,8 @@ def getBorderIndicesStruct__(prange, dim, direction, d, loc, dim_zone, shift=0):
     [wimin,wimax,wjmin,wjmax,wkmin,wkmax] = Internal.range2Window(prange)
     if loc == 'CellCenter':
         wimax = wimax-1
-        if dim_zone != 1: wjmax = wjmax-1
-        if dim_zone == 3: wkmax = wkmax-1
+        if dimZone != 1: wjmax = wjmax-1
+        if dimZone == 3: wkmax = wkmax-1
 
     dim1 = wjmax-wjmin+1
     dim2 = wkmax-wkmin+1
@@ -691,18 +707,17 @@ def getBorderIndicesStruct__(prange, dim, direction, d, loc, dim_zone, shift=0):
         dim2 = wjmax-wjmin+1
 
     # 3D Treatment
-    if dim_zone == 3:
-        #arrayIndices = numpy.empty((dim1,dim2), numpy.int32, order='Fortran')
-        arrayIndices = numpy.empty((dim1*dim2), numpy.int32, order='Fortran')
+    if dimZone == 3:
+        arrayIndices = numpy.empty((dim1*dim2), dtype=Internal.E_NpyInt, order='F')
         Converter.converter.getJoinBorderIndices(arrayIndices, dim1, im, jm, km,
                                                  wimin, wimax, wjmin, wjmax, wkmin, wkmax,
-                                                 direction, dim_zone, d, shift)
+                                                 direction, dimZone, d, shift)
     # 2D Treatment
     else:
-        arrayIndices = numpy.empty((dim1), numpy.int32, order='Fortran')
+        arrayIndices = numpy.empty((dim1), dtype=Internal.E_NpyInt, order='F')
         Converter.converter.getJoinBorderIndices(arrayIndices, dim1, im, jm, km,
                                                  wimin, wimax, wjmin, wjmax, wkmin, wkmax,
-                                                 direction, dim_zone, d, shift)
+                                                 direction, dimZone, d, shift)
     return [ arrayIndices, dim1, dim2 ]
 
 #==============================================================================
@@ -785,7 +800,7 @@ def changePointRange__(prange, dimZone, direction, d, corners=0, extend=0):
     ijk = int(direction/2)
     minmax = direction%2
   
-    for ind in xrange(dimZone[4]):
+    for ind in range(dimZone[4]):
         if ind != ijk:
             #pr[ind][0] = max(pr[ind][0]+d,1)
             #pr[ind][1] = pr[ind][1]+(1+corners)*d
@@ -860,12 +875,15 @@ def getContainers__(name, z, zdonor=None):
     else:
         if not isinstance(name, list): name = [name]
         for v in name:
-            vars = v.split(':')
+            vars = v.split(':',1)
             loc = 'Vertex'; container = Internal.__FlowSolutionNodes__
             if len(vars) == 2: # center value
-                if vars[0] == 'centers': loc = 'CellCenter'; container = Internal.__FlowSolutionCenters__
-                vars = vars[1]
-            else: vars = vars[0] # node value
+                if vars[0] == 'centers':
+                    loc = 'CellCenter'; container = Internal.__FlowSolutionCenters__
+                    vars = vars[1]
+                elif vars[0] == 'nodes': vars = vars[1]
+                else: vars = v
+            else: vars = v # node value
             # search vars in nodes/centers container
             containerNode = Internal.getNodesFromName1(z, container)
             if containerNode != []:
@@ -897,7 +915,7 @@ def getContainers__(name, z, zdonor=None):
 # init all ghost cells for zone z with extrapolation of zeroth order.
 #-----------------------------------------------------------------------------
 def _initWithExtrapStruct__(z, dim, modified, d):
-    dim_zone = dim[4]
+    dimZone = dim[4]
     imz = dim[1]; jmz = dim[2]; kmz = dim[3]
 
     for name in modified:
@@ -910,14 +928,14 @@ def _initWithExtrapStruct__(z, dim, modified, d):
             else: im = imz; jm = jmz; km = kmz
             img = im+2*d ; jmg = jm+2*d ; kmg = km+2*d
             # copy real values and fill ghost values
-            if dim_zone == 3:
-                a = numpy.empty((img,jmg,kmg), b.dtype, order='Fortran')
+            if dimZone == 3:
+                a = numpy.empty((img,jmg,kmg), b.dtype, order='F')
                 Converter.converter.cpyReal2Ghost(a, b, d, im, jm, km)
-            elif dim_zone == 2:
-                a = numpy.empty((img,jmg), b.dtype, order='Fortran')
+            elif dimZone == 2:
+                a = numpy.empty((img,jmg), b.dtype, order='F')
                 Converter.converter.cpyReal2Ghost(a, b, d, im, jm, 0)
             else:
-                a = numpy.empty((img), b.dtype, order='Fortran')
+                a = numpy.empty((img), b.dtype, order='F')
                 Converter.converter.cpyReal2Ghost(a, b, d, im, 0, 0)
             cont[1] = a
             noc += 1
@@ -926,12 +944,12 @@ def _initWithExtrapStruct__(z, dim, modified, d):
 # Warning: z dimension is not already modified - containers of flow solutions are not consistent yet with zone dim
 def _setBCDataInGhostCellsStruct__(z, dim, modified, d):
     if dim[0] == 'Unstructured': 
-        print 'addGhostCells: _setBCDataInGhostCellsStruct__: not valid for unstructured zones.'
+        print('addGhostCells: _setBCDataInGhostCellsStruct__: not valid for unstructured zones.')
         return None
-    dim_zone = dim[4]
+    dimZone = dim[4]
     imz = dim[1] ; jmz = dim[2] ; kmz = dim[3]
     for name in modified:
-        containers = Internal.getBCDataSetContainers(name,z) 
+        containers = Internal.getBCDataSetContainers(name, z) 
         if containers is not None:
             for cont in containers:
                 varname = cont[0]
@@ -940,9 +958,10 @@ def _setBCDataInGhostCellsStruct__(z, dim, modified, d):
                 if loc == 'CellCenter': locI = 1
                 dataSetInfo = cont[2]
                 bcranges = []; dataBC = []
-                for i in xrange(len(dataSetInfo)):
-                    bcranges.append(dataSetInfo[i][0])
-                    dataBC.append(dataSetInfo[i][1])
+                for e in dataSetInfo:
+                    if e[1] is not None: # firewall pour les mauvaises BCDataSet
+                        bcranges.append(e[0])
+                        dataBC.append(e[1])
                 Converter.converter._setBCDataInGhostCellsStruct(z, bcranges, dataBC, imz, jmz, kmz, d, locI, varname, 
                                                                  Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__,Internal.__FlowSolutionCenters__)
     return None
@@ -952,7 +971,7 @@ def _setBCDataInGhostCellsStruct__(z, dim, modified, d):
 # Remove ghost cells in numpy arrays for zone z
 #-----------------------------------------------------------------------------
 def _rmGhostCellsStruct__(z, dim, modified, d):
-    dim_zone = dim[4]
+    dimZone = dim[4]
     imz = dim[1] ; jmz = dim[2] ; kmz = dim[3]
 
     for name in modified:
@@ -966,14 +985,14 @@ def _rmGhostCellsStruct__(z, dim, modified, d):
             else: img = imz; jmg = jmz; kmg = kmz
             im = img-2*d ; jm = jmg-2*d ; km = kmg-2*d
 
-            if dim_zone == 3:
-                a = numpy.empty((im,jm,km), b.dtype, order='Fortran')
+            if dimZone == 3:
+                a = numpy.empty((im,jm,km), b.dtype, order='F')
                 Converter.converter.cpyGhost2Real(a,b,d,im,jm,km)
-            elif dim_zone == 2:
-                a = numpy.empty((im,jm), b.dtype, order='Fortran')
+            elif dimZone == 2:
+                a = numpy.empty((im,jm), b.dtype, order='F')
                 Converter.converter.cpyGhost2Real(a,b,d,im,jm,0)
             else:
-                a = numpy.empty((im), b.dtype, order='Fortran')
+                a = numpy.empty((im), b.dtype, order='F')
                 Converter.converter.cpyGhost2Real(a,b,d,im,0,0)
             cont[1] = a
             noc += 1
@@ -987,22 +1006,45 @@ def _rmGhostCellsStruct__(z, dim, modified, d):
 # Modifie un ou plusieurs containers avec Rind pour le transformer en 
 # container standard (centres ou noeuds)
 #==============================================================================
-def rmRindCells(t, d, modified=[]):
+def rmRindCells(t, d=-1, modified=[]):
     tp = Internal.copyRef(t)
     _rmRindCells(tp, d, modified)
     return tp
 
-def _rmRindCells(t, d, modified=[]):
+def _rmRindCells0(t):
+    try:
+        import Transform.PyTree as T
+    except:
+        print("Warning: rmRindCells requires Transform module.")
+        return None
+    
+    for zp in Internal.getZones(t):
+        dim = Internal.getZoneDim(zp)
+        dimZone = dim[4]
+        if dim[0] == 'Structured':
+            imz = dim[1] ; jmz = dim[2] ; kmz = dim[3]
+            rindnode = Internal.getNodeFromType(zp,'Rind_t')
+            if rindnode is not None:
+                rindnode = Internal.getValue(rindnode)
+                rindimin = rindnode[0]; rindimax = rindnode[1]
+                rindjmin = rindnode[2]; rindjmax = rindnode[3]
+                rindkmin = rindnode[4]; rindkmax = rindnode[5]
+                zpp = T.subzone(zp, (1+rindimin,1+rindjmin, 1+rindkmin),
+                                (imz-rindimax,jmz-rindjmax,kmz-rindkmax))
+                zp[2]=zpp[2]; zp[1]=zpp[1] # force in place    
+    return None
+
+def _rmRindCells(t, d=-1, modified=[]):
+    if d == -1: return _rmRindCells0(t)
+ 
     stdNode = Internal.isStdNode(t)
     nodes = Internal.getZones(t)
     for zp in nodes:
         dim = Internal.getZoneDim(zp)
-        dim_zone = dim[4]
+        dimZone = dim[4]
         if dim[0] == 'Structured':
             imz = dim[1] ; jmz = dim[2] ; kmz = dim[3]
-
-            # recherche les containers
-            for name in modified:
+            for name in modified:  # recherche les containers
                 containers, locations = getContainers__(name, zp)
                 noc = 0
                 for cont in containers:
@@ -1012,15 +1054,15 @@ def _rmRindCells(t, d, modified=[]):
                         im = imz-1; jm = jmz-1; km = kmz-1
                     else: # output sera un champ en noeuds
                         im = imz; jm = jmz; km = kmz
-                    
-                    if dim_zone == 3:
-                        a = numpy.empty((im,jm,km), b.dtype, order='Fortran')
+
+                    if dimZone == 3:
+                        a = numpy.empty((im,jm,km), b.dtype, order='F')
                         Converter.converter.cpyGhost2Real(a,b,d,im,jm,km)
-                    elif dim_zone == 2:
-                        a = numpy.empty((im,jm), b.dtype, order='Fortran')
+                    elif dimZone == 2:
+                        a = numpy.empty((im,jm), b.dtype, order='F')
                         Converter.converter.cpyGhost2Real(a,b,d,im,jm,0)
                     else:
-                        a = numpy.empty((im), b.dtype, order='Fortran')
+                        a = numpy.empty((im), b.dtype, order='F')
                         Converter.converter.cpyGhost2Real(a,b,d,im,0,0)
                     cont[1] = a
                     noc += 1               
@@ -1041,10 +1083,10 @@ def _fillGhostCellCorners__(bp, modified, d, validjoins, dictjoins, loop=2):
     for j in validjoins:
         zp = dictjoins[indexjoin][0]          # zrcv: current zone
         dim = Internal.getZoneDim(zp)
-        dim_zone = dim[4]
+        dimZone = dim[4]
         joininfo = dictjoins[indexjoin][1]
         if dim[0] == 'Structured':
-            if (loop == 2) or (loop==3 and dim_zone==3): 
+            if (loop == 2) or (loop==3 and dimZone==3): 
                 zdonorname = joininfo[0][0]
                 zdonor = Internal.getNodesFromName2(bp, zdonorname)        
                 # Check if donor exists.
@@ -1067,21 +1109,21 @@ def _fillGhostCellCorners__(bp, modified, d, validjoins, dictjoins, loop=2):
 #-----------------------------------------------------------------------------
 def _fillGhostCellsForStructBCMatch__(zp, d, dimZone, modified, nodesRef,
                                       validjoins, dictjoins, indexjoin):
-    dim_zone = dimZone[4]
+    dimZone = dimZone[4]
     # BCMatch
     joinlist = Internal.getNodesFromType2(zp, 'GridConnectivity1to1_t')
     joindirs = []
     for i in joinlist:
-        joininfo = getJoinInfo__(i, 'BCMatch', dim_zone, nodesRef, d)
+        joininfo = getJoinInfo__(i, 'BCMatch', dimZone, nodesRef, d)
         if joininfo != []:
             # store valid joins (and its parent base) for second loop treatment
             validjoins.append(i)
-            zdonor = joininfo[0]
+            #zdonor = joininfo[0]
             fillJoinGhostCellsStruct__(zp, i, modified, joininfo, d, treatment=0)
-            dictjoins[indexjoin]=(zp,joininfo)
+            dictjoins[indexjoin] = (zp,joininfo)
             indexjoin += 1
 
-    if dim_zone == 1: return validjoins, dictjoins, indexjoin 
+    if dimZone == 1: return validjoins, dictjoins, indexjoin 
 
     # BCNearMatch
     joinlist = Internal.getNodesFromType2(zp, 'GridConnectivity_t')
@@ -1091,11 +1133,11 @@ def _fillGhostCellsForStructBCMatch__(zp, d, dimZone, modified, nodesRef,
         if typegc is not None:
             val = Internal.getValue(typegc)
             if val == 'Abutting':
-                joininfo = getJoinInfo__(i, 'BCNearMatch', dim_zone, nodesRef, d)
+                joininfo = getJoinInfo__(i, 'BCNearMatch', dimZone, nodesRef, d)
                 if joininfo != []:
                     # store valid joins (and its parent base) for second loop treatment
                     validjoins.append(i)
-                    zdonor = joininfo[0]
+                    #zdonor = joininfo[0]
                     fillJoinGhostCellsStruct__(zp, i, modified, joininfo, d, treatment=0)
                     dictjoins[indexjoin] = (zp,joininfo)
                     indexjoin += 1
@@ -1123,14 +1165,14 @@ def _adaptBCStruct__(zp, dimZone, d, nodesRef):
             prangedonor = Internal.getNodesFromName1(i, 'PointRangeDonor')
             if prangedonor != []:
                 zdonorname = Internal.getValue(i)
-                if nodesRef.has_key(zdonorname): zdonor = nodesRef[zdonorname]
+                if zdonorname in nodesRef: zdonor = nodesRef[zdonorname]
                 else: zdonor = []
                 # multi-bases approach
                 # if several zdonor found corresponding to name v, zdonor=first zone found
                 if zdonor == []: continue
                 zdonor = zdonor[0]
                 dimZoneDonor = Internal.getZoneDim(zdonor)
-                #print 'h2',zdonor[0], dimZoneDonor
+                #print('h2',zdonor[0], dimZoneDonor)
                 direction = getDirection__(dimZoneDonor[4], prangedonor)
                 changePointRange__(prangedonor, dimZoneDonor, direction, d, extend=0)
     # BCNearMatch
@@ -1149,14 +1191,14 @@ def _adaptBCStruct__(zp, dimZone, d, nodesRef):
                     prangedonor = Internal.getNodesFromName1(udd, 'PointRangeDonor')
                     if prangedonor != []:
                         zdonorname = Internal.getValue(i)
-                        if nodesRef.has_key(zdonorname): zdonor = nodesRef[zdonorname]
+                        if zdonorname in nodesRef: zdonor = nodesRef[zdonorname]
                         else: zdonor = []
                         # multi-bases approach
                         # if several zdonor found corresponding to name v, zdonor=first zone found
                         if zdonor == []: continue
                         zdonor = zdonor[0]
                         dimZoneDonor = Internal.getZoneDim(zdonor)
-                        #print 'h3',zdonor[0], dimZoneDonor
+                        #print('h3',zdonor[0], dimZoneDonor)
                         direction = getDirection__(dimZoneDonor[4], prangedonor)
                         changePointRange__(prangedonor, dimZoneDonor, direction, d, extend=0)
     # 'Overset'
@@ -1209,8 +1251,8 @@ def _updateZoneDim__(zp, d):
     dimZone = Internal.getZoneDim(zp)
     if dimZone[0] != 'Unstructured':
         zp[1] = numpy.copy(zp[1])
-        for j in xrange(zp[1].shape[1]-1):
-            for i in xrange(zp[1].shape[0]):
+        for j in range(zp[1].shape[1]-1):
+            for i in range(zp[1].shape[0]):
                 zp[1][i,j] = zp[1][i,j] + 2*d
             
 def updateZoneDim__(z,d):
@@ -1226,7 +1268,7 @@ def updateZoneDim__(z,d):
 # rotationData = [] if no periodicity by rotation
 # rotationData = [xc,yc,zc, axisX, axisY, axisZ, angle] if rotation-per 
 #=============================================================================
-def getJoinInfo__(join, jointype, dim_zone, nodesRef, d):
+def getJoinInfo__(join, jointype, dimZone, nodesRef, d):
     prange = Internal.getNodesFromName1(join, 'PointRange')
     nmr = []; translVect = []; rotationData = []
     if jointype == 'BCMatch':
@@ -1243,14 +1285,14 @@ def getJoinInfo__(join, jointype, dim_zone, nodesRef, d):
         if nmrnode == []: return []
         for nm in nmrnode[0][1]: nmr.append(nm)
     v = Internal.getValue(join)
-    if nodesRef.has_key(v): zdonor = nodesRef[v]
+    if v in nodesRef: zdonor = nodesRef[v]
     else: zdonor = []
 
     # if several zdonor found corresponding to name v, zdonor=first zone found
     if zdonor == []: return []
     zdonor = zdonor[0]
     dimdonor = Internal.getZoneDim(zdonor)
-    #print 'h1',zdonor[0], dimdonor
+    #print('h1',zdonor[0], dimdonor)
 
     # get periodic info (if any)
     rotationData, translVect = Internal.getPeriodicInfo__(join)
@@ -1258,27 +1300,27 @@ def getJoinInfo__(join, jointype, dim_zone, nodesRef, d):
     if dimdonor[0] != 'Unstructured':
         # get trirac
         # -----------------------
-        if dim_zone == 3: trirac = [1,2,3]
-        elif dim_zone == 2: trirac = [1,2]                
+        if dimZone == 3: trirac = [1,2,3]
+        elif dimZone == 2: trirac = [1,2]                
         else: trirac = [1]
         if transfo != []:
             trirac[0] = transfo[0][1][0]
-            if dim_zone != 1: trirac[1] = transfo[0][1][1]
-            if dim_zone == 3: trirac[2] = transfo[0][1][2]
+            if dimZone != 1: trirac[1] = transfo[0][1][1]
+            if dimZone == 3: trirac[2] = transfo[0][1][2]
         # get direction of donor border
-        dirdonor = getDirBorderStruct__(prangedonor[0][1], dim_zone)
+        dirdonor = getDirBorderStruct__(prangedonor[0][1], dimZone)
         # check donor zone dimension
         # check if dimensions of donor border match with dimension of current zone
         check = True
         [wimin,wimax,wjmin,wjmax,wkmin,wkmax] = Internal.range2Window(prange[0][1])        
         [wimindonor,wimaxdonor,wjmindonor,wjmaxdonor,wkmindonor,wkmaxdonor]=Internal.range2Window(prangedonor[0][1])
-        if dim_zone == 3:
+        if dimZone == 3:
             delta = [wimax-wimin,wjmax-wjmin,wkmax-wkmin]
             deltadonor = [wimaxdonor-wimindonor,wjmaxdonor-wjmindonor,wkmaxdonor-wkmindonor]
             if jointype == 'BCMatch':
                 if ((delta[1] != deltadonor[abs(trirac[1])-1]) or (delta[2] != deltadonor[abs(trirac[2])-1])): 
                     check = False
-        elif dim_zone == 2:
+        elif dimZone == 2:
             delta = [wimax-wimin,wjmax-wjmin]
             deltadonor = [wimaxdonor-wimindonor,wjmaxdonor-wjmindonor]
             if jointype == 'BCMatch':
@@ -1292,14 +1334,14 @@ def getJoinInfo__(join, jointype, dim_zone, nodesRef, d):
         if check:
             # check if donor zone is deep enough for "d" ghost cells
             imdonor = dimdonor[1]
-            if dim_zone != 1: jmdonor = dimdonor[2]
+            if dimZone != 1: jmdonor = dimdonor[2]
             else: jmdonor = 0 ### useless value for 1d: test is also on dirborder.
-            if dim_zone == 3: kmdonor = dimdonor[3]
+            if dimZone == 3: kmdonor = dimdonor[3]
             else: kmdonor = 0 ### useless value for 2d: test is also on dirborder.
             if (((abs(dirdonor) == 1) and (imdonor < d+1)) or 
                 ((abs(dirdonor) == 2) and (abs(jmdonor) < d+1)) or 
                 ((abs(dirdonor) == 3) and (kmdonor < d+1))):
-                print "Warning: addGhostCells: dimension of matching zone is too small for", d, "ghost cells. Skip join treatment for ghost extension."
+                print("Warning: addGhostCells: dimension of matching zone is too small for", d, "ghost cells. Skip join treatment for ghost extension.")
                 return []
             else:
                 return [zdonor, prange, prangedonor, trirac, nmr, translVect, rotationData]
@@ -1317,7 +1359,7 @@ def getJoinInfo__(join, jointype, dim_zone, nodesRef, d):
 #    ptFace = faceList.flat
 #    elts = set()
 #    faces = set()
-#    for i in xrange(n):
+#    for i in range(n):
 #        ind = ptFace[i]-1
 #        e1 = PE[ind,0]; e2 = PE[ind,1]
 #        if e1 != 0: elts.add(e1-1)
@@ -1369,7 +1411,7 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
     coordyD = Internal.getNodeFromPath(zD, 'GridCoordinates/CoordinateY')[1]
     coordzD = Internal.getNodeFromPath(zD, 'GridCoordinates/CoordinateZ')[1]
 
-    if (no_layer > 1):
+    if no_layer > 1:
       NG_PE_R = Internal.getNodeFromPath(zR, 'NGonElements/ParentElements')[1]    
       NG_EC_R = Internal.getNodeFromPath(zR, 'NGonElements/ElementConnectivity')[1]    
       NG_IDX_R= Internal.getNodeFromPath(zR, 'NGonElements/FaceIndex')[1]    
@@ -1387,22 +1429,24 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
     ptFaceD = faceListD.flat
     ptFaceR = faceListR.flat
 
-    elts  = set()
-    for i in xrange(n):
+    one = Internal.E_NpyInt(1)
+
+    elts = set()
+    for i in range(n):
         faceD = ptFaceD[i]-1
         if no_layer == 1:
-              if NG_PE_D[ faceD, 0] == 0:  e1D = NG_PE_D[faceD,1]
-              else: e1D = NG_PE_D[faceD,0] 
-              elts.add(e1D-1)
+              if NG_PE_D[ faceD, 0] == 0: e1D = NG_PE_D[faceD,1]
+              else: e1D = NG_PE_D[faceD,0]
+              elts.add(e1D-one)
 
               # calcul centre maille
               x0 = 0.; y0 = 0.; z0 = 0.
-              eltD =  FA_IDX_D[e1D-1]
-              for face in xrange( 1, FA_EC_D[eltD ]+1):
+              eltD = FA_IDX_D[e1D-1]
+              for face in range( 1, FA_EC_D[eltD ]+1):
                  f       = FA_EC_D[ eltD  + face] -1
                  ind_f   = NG_IDX_D[ f] 
                  NvtxD   = NG_EC_D[ ind_f]
-                 for vtx in xrange( NvtxD ):
+                 for vtx in range( NvtxD ):
                     vtxD = NG_EC_D[ ind_f +vtx +1 ] -1
                     x0 = x0 + coordxD[vtxD]
                     y0 = y0 + coordyD[vtxD]
@@ -1411,17 +1455,17 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
               code = x0 + 1000000.*y0 +   1.e12*z0
               xyz0.add( code )
 
-              #print 'elts', elts
+              #print('elts', elts)
         else:
               if (NG_PE_D[ faceD, 0] > NG_PE_D[ faceD, 1]):  e1D = NG_PE_D[faceD,1]
               else:                                          e1D = NG_PE_D[faceD,0] 
               #recuperation adresse element dans ElementConnectivity pour recuperer faces de l'element
-              ind_e1D =  FA_IDX_D[e1D-1]
+              ind_e1D = FA_IDX_D[e1D-1]
 
               #print 'e1',e1D, faceD+1, mask
               #print 'GD',NG_PE_D[faceD,1],NG_PE_D[faceD,0]
 
-              for fD in xrange( 1, FA_EC_D[ ind_e1D]+1):
+              for fD in range( 1, FA_EC_D[ ind_e1D]+1):
                  no_faceD = FA_EC_D[ ind_e1D + fD] -1
                  if no_faceD != faceD:
                     e3D = NG_PE_D[no_faceD,0]
@@ -1436,11 +1480,11 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
                            y0 = 0.
                            z0 = 0.
                            eltD =  FA_IDX_D[e3D-1]
-                           for face in xrange(1, FA_EC_D[eltD ]+1):
+                           for face in range(1, FA_EC_D[eltD ]+1):
                                 f       = FA_EC_D[ eltD  + face] -1
                                 ind_f   = NG_IDX_D[ f] 
                                 NvtxD   = NG_EC_D[ ind_f]
-                                for vtx in xrange(NvtxD):
+                                for vtx in range(NvtxD):
                                         vtxD = NG_EC_D[ ind_f +vtx +1] -1
                                         x0=x0 + coordxD[vtxD]
                                         y0=y0 + coordyD[vtxD]
@@ -1450,13 +1494,13 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
                            code = x0 + 1000000.*y0 + 1.e12*z0
                            xyz0.add(code)
                            size2_xyz = len( xyz0)
-                           if size2_xyz > size1_xyz: elts.add(e3D-1)
+                           if size2_xyz > size1_xyz: elts.add(e3D-one)
  
                        elif e4D < mask[0] or e4D > mask[1]: 
                            #calcul centre maille
                            x0 = 0.; y0 = 0.; z0 = 0.
                            eltD =  FA_IDX_D[e4D-1]
-                           for face in xrange(1, FA_EC_D[eltD ]+1):
+                           for face in range(1, FA_EC_D[eltD ]+1):
                                 f       = FA_EC_D[ eltD  + face] -1
                                 ind_f   = NG_IDX_D[ f]
                                 NvtxD   = NG_EC_D[ ind_f]
@@ -1470,20 +1514,20 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
                            code = x0 + 1000000.*y0 + 1.e12*z0
                            xyz0.add(code)
                            size2_xyz = len(xyz0)
-                           if size2_xyz > size1_xyz: elts.add(e4D-1)
+                           if size2_xyz > size1_xyz: elts.add(e4D-one)
                     else:
                        #on cherche le matching entre la face BC dans donneur et receveur
                        faceR= ptFaceR[i]-1
                        e1R  = NG_PE_R[faceR,0]
                        e2R  = NG_PE_R[faceR,1]
                        #element couche externe a forcemment un no + grand
-                       if (e1R > e2R): elR = e1R
+                       if e1R > e2R: elR = e1R
                        else          : elR = e2R  
                        eltR =  FA_IDX_R[elR-1]
                        face_bingo = []
                        faceSearch = True
                        faceR      = 1
-                       while  faceSearch == True:
+                       while faceSearch:
                        #for faceR in range( 1, FA_EC_R[eltR]+1):
                           no_faceR = FA_EC_R[ eltR + faceR] -1
                           e3R      = NG_PE_R[no_faceR,0]
@@ -1493,16 +1537,16 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
                           NvtxD    = NG_EC_D[ ind_fD]
                           NvtxR    = NG_EC_R[ ind_fR]
                           #on elimine les faces non externes, celle du raccord ou celle possedant un nbr de vextex different
-                          if (no_faceR != faceR and e3R*e4R == 0 and NvtxD== NvtxR):
+                          if no_faceR != faceR and e3R*e4R == 0 and NvtxD== NvtxR:
                              
                              searchD    = True
                              bingo      = 0
                              cd =1
-                             while  searchD == True:
+                             while searchD:
                                  vtxD = NG_EC_D[ ind_fD+cd]-1
                                  searchR= True
                                  cr =1
-                                 while  searchR == True:
+                                 while searchR:
                                     vtxR = NG_EC_R[ ind_fR+cr]-1
                                     #if(elR==26 and no_faceR ==104):
                                     #  print 'xD=',  coordxD[vtxD], coordyD[vtxD],coordzD[vtxD]
@@ -1529,44 +1573,45 @@ def getLayer(zD, zR, elts_old, mask, xyz0, no_layer, faceListD=None, faceListR=N
                        for fbingo in  face_bingo:     
                          for gD in bc_D:
                            ptlist = Internal.getNodeFromName1(gD, 'PointList')[1]
-                           if (no_faceD+1 in ptlist): 
+                           if no_faceD+1 in ptlist: 
                               ldone    = False
                               c        = 0
                               clD      = Internal.getValue(gD)
                               searchBC = True
                               #Recherche existence CL sur la zone receuveuse, on ajoute la face en cas d'absence
-                              while  searchBC == True:
+                              while searchBC:
                                   clR    = Internal.getValue(bc_R[c])
-                                  if (clD==clR and ldone==False):
+                                  if clD == clR and ldone == False:
 
                                      ptlistR = Internal.getNodeFromName1(bc_R[c], 'PointList')[1]
-                                     if (fbingo+1 not in ptlistR): 
+                                     if fbingo+1 not in ptlistR: 
 
                                        sizeR   = numpy.size(ptlistR)
-                                       datap   = numpy.empty( sizeR +1, numpy.int32)
+                                       datap   = numpy.empty(sizeR+1, dtype=Internal.E_NpyInt)
                                        datap[0:sizeR] = ptlistR[0:sizeR]
                                        datap[sizeR]   = fbingo +1
                                        Internal.getNodeFromName1(bc_R[c], 'PointList')[1] = datap
 
                                      searchBC = False
                                      ldone    = True
-                                  c +=1
+                                  c += 1
                                   if c == len(bc_R): searchBC = False
 
                               #creation du noeud BC si type inconnu sur zone receveuse
-                              if ldone == False:
-                                  print 'type BC inconnu: creation from scratch',gD
+                              if not ldone:
+                                  print('type BC inconnu: creation from scratch',gD)
                                   #ptlistR = Internal.getNodeFromName1(tmp, 'PointList')[1]
-                                  datap = numpy.empty(1, numpy.int32)
+                                  datap = numpy.empty(1, dtype=Internal.E_NpyInt)
                                   datap[0] = fbingo +1
                                   tmp = [ gD[0],  gD[1], [ gD[2][0] ], gD[3]]
                                   tmp[2].append( [ 'PointList',  datap, [], 'IndexArray_t'] )
-                                  print 'tmp',tmp
+                                  print('tmp',tmp)
                                   zbc_R[2]+=tmp
 
-    #print 'zoneD=', zD[0], 'elts new ', elts,'elts old ', elts_old
+    #print('zoneD=', zD[0], 'elts new ', elts,'elts old ', elts_old)
     elts = elts-elts_old
-    #print 'layer=', no_layer, elts
+
+    #print('layer=', no_layer, elts)
     b = T.subzone(zD, list(elts), type='elements')
     
     return b, elts, zbc_R
@@ -1606,7 +1651,7 @@ def addGhostCellsP(t, dims_woghost, list_elts, mask_elts, xyz0, no_layer):
                 #zp1= Internal.copyRef(z)
                 c1            = 0
                 nbElts_inf = dims_woghost[c][1]+1
-                print 'Traitement zone',z[0],c
+                #print('Traitement zone',z[0],c)
                 for g in gc:
                     faceListD= Internal.getNodeFromName1(g, 'PointListDonor')[1]
                     faceListR= Internal.getNodeFromName1(g, 'PointList')[1]
@@ -1617,7 +1662,7 @@ def addGhostCellsP(t, dims_woghost, list_elts, mask_elts, xyz0, no_layer):
                     gcD = Internal.getNodesFromType1(zgcD, 'GridConnectivity_t')
                     rac = 0
                     gcSearch = True
-                    while  gcSearch == True:
+                    while  gcSearch:
                       if Internal.getValue( gcD[rac]) == z[0]:
                           gcSearch =  False
                       else: rac +=1
@@ -1659,13 +1704,13 @@ def addGhostCellsP(t, dims_woghost, list_elts, mask_elts, xyz0, no_layer):
                 b[2][c] = zp
             c += 1
 
-    #on renome les nom de zones dans les connectivite
+    # on renome les nom de zones dans les connectivite
     zones = Internal.getZones(tpp)
     for z in zones:
        gc = Internal.getNodesFromType2(z, 'GridConnectivity_t')
        for g in gc:
            old_name = Internal.getValue(g)
-           #print 'oldname ',  old_name, 'et newname: ',znameD[ old_name ]
+           #print('oldname ',  old_name, 'et newname: ',znameD[ old_name ])
            Internal.setValue(g, znameD[ old_name ] )
 
     tp = Internal.pyTree2Node(tpp, ntype)
@@ -1678,7 +1723,7 @@ def adapt2FastP(t, nlayers=2):
     list_elts = []
     mask_elts = []
     xyz0 = []
-    for layer in xrange(1,nlayers+1):
+    for layer in range(1,nlayers+1):
 
       zones = Internal.getZones(t)
       #sauvegarde taille de zone sans ghost et de la list des elememnt ajoutes
@@ -1701,7 +1746,7 @@ def adapt2FastP(t, nlayers=2):
         for g in gc:
              nface_bc = nface_bc + numpy.size( Internal.getNodeFromName1(g, 'PointList')[1] )
 
-        print 'zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', nface_rac, 'Nface_bc=', nface_bc, 'layer=', layer -1
+        #print('zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', nface_rac, 'Nface_bc=', nface_bc, 'layer=', layer -1)
 
         list_elts.append( elts )
         mask_elts.append( mask )
@@ -1731,13 +1776,13 @@ def adapt2FastP(t, nlayers=2):
         for g in gc:
              nface_bc = nface_bc + numpy.size( Internal.getNodeFromName1(g, 'PointList')[1] )
 
-        print 'zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', 0 , 'Nface_bc=', nface_bc, 'layer=', 2
+        #print('zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', 0 , 'Nface_bc=', nface_bc, 'layer=', 2)
 
         Nvtx  = z[1][0][0]
         Nelts = z[1][0][1]
         dims_woghost.append( [ Nvtx , Nelts,  nface_tot, 0, nface_bc ] )
 
-        data_ng = numpy.zeros(6, numpy.int32)
+        data_ng = numpy.zeros(6, dtype=Internal.E_NpyInt)
         data_ng[0] = dims_woghost[c][2] - dims_woghost[c][3] - dims_woghost[c][4] # couche 0: faceInterne= nbface tot(0) -nface_rac(0)-nfacebc(0)
         data_ng[1] = dims_woghost[c][3]                                           # couche 0: nbface_rac(0)
         data_ng[2] = dims_woghost[c][4]                                           # couche 0: nbfacebc(0)
@@ -1751,7 +1796,7 @@ def adapt2FastP(t, nlayers=2):
         node =  Internal.getNodeFromName1(z, 'NGonElements')
         Internal.createUniqueChild(node, 'IntExt', 'DataArray_t', data_ng)
 
-        data_nf = numpy.zeros(3, numpy.int32)
+        data_nf = numpy.zeros(3, dtype=Internal.E_NpyInt)
         data_nf[0] = dims_woghost[c][1]                                           # couche 0: nombre element
         l1 = c + nbzone
         l2 = c + nbzone*2
@@ -1761,7 +1806,7 @@ def adapt2FastP(t, nlayers=2):
         node =  Internal.getNodeFromName1(z, 'NFaceElements')
         Internal.createUniqueChild(node, 'IntExt', 'DataArray_t', data_nf)
 
-        print 'zone=', z[0], 'Elts0=', data_nf[0], 'Elts1=', data_nf[1],'Elts2=', data_nf[2]
+        #print('zone=', z[0], 'Elts0=', data_nf[0], 'Elts1=', data_nf[1],'Elts2=', data_nf[2])
         c +=1
 
     #print 'dim_wo final ', dims_woghost
@@ -1811,8 +1856,8 @@ def adapt2FastP(t, nlayers=2):
       nf       = converter.adapt2FastP(NG_EC, FA_EC, NG_PE,  NG_intext, FA_intext, ptlist_bc, ptlist_rac, ptlist_racD, dim[2])
       NF[1]    = nf
       #Mise a jour du nombre d'elemnt
-      print 'FA_RG[1]', FA_RG[1], 'NG_intext[2]',NG_intext[2],'NG_intext[4]', NG_intext[4]
-      print 'voir christophe pour probleme visu'
+      print('FA_RG[1]', FA_RG[1], 'NG_intext[2]',NG_intext[2],'NG_intext[4]', NG_intext[4])
+      print('voir christophe pour probleme visu')
       FA_RG[1] = FA_RG[1] + NG_intext[2] + NG_intext[4]
       z[1][0,1]= z[1][0,1]+ NG_intext[2] + NG_intext[4]  
       Internal._adaptNFace2Index(z) 
@@ -1824,10 +1869,10 @@ def adapt2FastP2(t, nlayers=2):
 
     dims_woghost=[]
     
-    for layer in xrange(1,nlayers+1):
+    for layer in range(1,nlayers+1):
 
       zones = Internal.getZones(t)
-      #sauvegarde taille de zone sans ghost et de la list des elememnt ajoutes
+      #sauvegarde taille de zone sans ghost et de la list des elements ajoutes
       for z in zones:
         #Nombre de face totale
         NGON_range = Internal.getNodeFromPath(z, 'NGonElements/ElementRange')[1]
@@ -1844,13 +1889,15 @@ def adapt2FastP2(t, nlayers=2):
         for g in gc:
              nface_bc = nface_bc + numpy.size( Internal.getNodeFromName1(g, 'PointList')[1] )
 
-        #print 'zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', nface_rac, 'Nface_bc=', nface_bc, 'layer=', layer -1
 
         Nvtx  = z[1][0][0]
         Nelts = z[1][0][1]
         dims_woghost.append( [ Nvtx , Nelts,  nface_tot, nface_rac, nface_bc ] )
 
-    #creation nouvel arbre avec ghost
+        print('zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', nface_rac, 'Nface_bc=', nface_bc, 'layer=', layer -1, Nvtx, Nelts)
+
+
+    # creation nouvel arbre avec ghost
     t = addGhostCellsNG(t, nlayers)
     
     # 
@@ -1862,24 +1909,25 @@ def adapt2FastP2(t, nlayers=2):
         NGON_range = Internal.getNodeFromPath(z, 'NGonElements/ElementRange')[1]
         nface_tot  = NGON_range[1]-NGON_range[0] +1
         #Nombre de face BC      
-        gc         = Internal.getNodesFromType2(z, 'BC_t')
+        gc        = Internal.getNodesFromType2(z, 'BC_t')
         nface_bc  = 0
         for g in gc:
              nface_bc = nface_bc + numpy.size( Internal.getNodeFromName1(g, 'PointList')[1] )
 
+        '''
         #print 'zone=', z[0],'Nface total=', nface_tot, 'Nface_rac=', 0 , 'Nface_bc=', nface_bc, 'layer=', 2
 
         Nvtx  = z[1][0][0]
         Nelts = z[1][0][1]
         dims_woghost.append( [ Nvtx , Nelts,  nface_tot, 0, nface_bc ] )
 
-        data_ng = numpy.zeros(6, numpy.int32)
+        data_ng = numpy.zeros(6, Internal.E_NpyInt)
         data_ng[0] = dims_woghost[c][2] - dims_woghost[c][3] - dims_woghost[c][4] # couche 0: faceInterne= nbface tot(0) -nface_rac(0)-nfacebc(0)
         data_ng[1] = dims_woghost[c][3]                                           # couche 0: nbface_rac(0)
         data_ng[2] = dims_woghost[c][4]                                           # couche 0: nbfacebc(0)
         l1 = c + nbzone
         l2 = c + nbzone*2
-        if (nlayers ==2): 
+        if nlayers == 2: 
            data_ng[4] = dims_woghost[l2][4] - dims_woghost[c ][4]                    # couche 1: nbfacebc(1)
            data_ng[3] = dims_woghost[l1][2] - dims_woghost[c ][2] - data_ng[4]       # couche 1: faceInterne(1)= nbfacetot -nfacebc(1) 
            data_ng[5] = dims_woghost[l2][2] - dims_woghost[l1][2]                    # couche 2: nbintern(2)
@@ -1887,31 +1935,83 @@ def adapt2FastP2(t, nlayers=2):
         node =  Internal.getNodeFromName1(z, 'NGonElements')
         Internal.createUniqueChild(node, 'IntExt', 'DataArray_t', data_ng)
 
-        data_nf = numpy.zeros(3, numpy.int32)
+        data_nf = numpy.zeros(3, Internal.E_NpyInt)
         data_nf[0] = dims_woghost[c][1]                                           # couche 0: nombre element
         l1 = c + nbzone
         l2 = c + nbzone*2
         data_nf[1] = dims_woghost[l1][1] -dims_woghost[c][1]                      # couche 1: nombre element
-        if (nlayers ==2): 
+        if nlayers == 2: 
            data_nf[2] = dims_woghost[l2][1] -dims_woghost[l1][1]                     # couche 2: nombre element
         node =  Internal.getNodeFromName1(z, 'NFaceElements')
         Internal.createUniqueChild(node, 'IntExt', 'DataArray_t', data_nf)
 
-        #print 'zone=', z[0], 'Elts0=', data_nf[0], 'Elts1=', data_nf[1],'Elts2=', data_nf[2]
-        c +=1
+        print('zone=', z[0], 'Elts0=', data_nf[0], 'Elts1=', data_nf[1],'Elts2=', data_nf[2])
+        '''
+        c += 1
 
     return t
 
 #===============================================================================
 # Add ghost cells in a pyTree
-# Returns a pyTree with it zones extended with gost cells
+# Returns a pyTree with it zones extended with ghost cells
 # IN: t: top tree
 #===============================================================================
 def addGhostCellsNG(t, nlayers=2):
 
+    bases = Internal.getBases(t) 
     zones = Internal.getZones(t)
     nbz = len(zones)
-    #print "nb zones :",nbz
+
+    # merge des BC de meme type
+    for z in zones:
+       bc_type={}
+       bcs   = Internal.getNodesFromType2(z, 'BC_t')
+       for bc in bcs:
+           tmp = Internal.getValue(bc)
+           if tmp in bc_type:
+            bc_type[tmp].append(bc)
+           else:
+            bc_type[tmp]=[bc]
+       for key in bc_type:
+           #print(key, len(bc_type[key]))
+           if len(bc_type[key]) != 1:
+             size_fen = 0
+             min_face= 10000000
+             max_face=-10000000
+             for bc in bc_type[key]:
+               ptlist  = Internal.getNodeFromName1(bc, 'PointList')[1]
+               min_face= min(min_face, numpy.amin(ptlist)) 
+               max_face= max(max_face, numpy.amax(ptlist)) 
+               size_fen+= numpy.size(ptlist)
+               #print("minmax", min_face, max_face, size_fen)
+             #bc contigu
+             if min_face + size_fen - 1 ==  max_face:
+               ptlistNew = numpy.arange(min_face, min_face + size_fen, dtype=Internal.E_NpyInt).reshape((1,size_fen))
+               #on supprime les noeuds merger et on gonfle le numpy du premier noeud
+               c=0
+               for bc in bc_type[key]:
+                 if c==0:
+                   Internal.getNodeFromName1(bc, 'PointList')[1] = ptlistNew
+                 else:
+                   Internal._rmNodesByName(z, bc[0])
+                 c+=1
+             else:
+                print(key,": cette CL n'est pas contigue et doit etre mergee")
+                ptlistNew = numpy.empty((1,size_fen), dtype=Internal.E_NpyInt)
+                c = 0
+                ipt_ptlist = 0
+                for bc in bc_type[key]:
+                  if c==0:
+                    ptlistOld = Internal.getNodeFromName1(bc, 'PointList')[1]
+                    ptlistNew[:,ipt_ptlist:ipt_ptlist+numpy.size(ptlistOld)]= ptlistOld[:]
+                    Internal.getNodeFromName1(bc, 'PointList')[1] = ptlistNew
+                    ipt_ptlist += numpy.size(ptlistOld)
+                  else:
+                    ptlistOld = Internal.getNodeFromName1(bc, 'PointList')[1]
+                    ptlistNew[:,ipt_ptlist:ipt_ptlist+numpy.size(ptlistOld)]= ptlistOld[:]
+                    ipt_ptlist += numpy.size(ptlistOld)
+                    Internal._rmNodesByName(z, bc[0])
+                  c+=1
 
     ozones = []
     znames = []
@@ -1923,10 +2023,10 @@ def addGhostCellsNG(t, nlayers=2):
 
     # zone name to id
     name2id = dict()
-    i=0
+    i = 0
     for z in zones :
         name2id[z[0]] = i
-        i=i+1
+        i += 1
 
     zone_ngons = []
     F2Es = []
@@ -1938,80 +2038,65 @@ def addGhostCellsNG(t, nlayers=2):
     bc_PointLists = []
     bc_ptL_sizes = []
 
-    for z in zones :
-
+    nbz_unstruct=0
+    for z in zones:
       zname = z[0]
       znames.append(zname)
 
+      if Internal.getZoneType(z)==1: continue
+      
       m = PyTree.getFields(Internal.__GridCoordinates__, z)[0]
       zone_ngons.append(m)
 
-      F2Esep = Internal.getNodeFromName(z, 'ParentElements')
-      if (F2Esep != None) : F2Esep=F2Esep[1]
+      F2Esep = Internal.getNodeFromName2(z, 'ParentElements')
+      if F2Esep is not None: F2Esep=F2Esep[1]
 
-      #print F2Esep
       F2Es.append(F2Esep)
 
-      raccords = Internal.getNodesFromType(z, 'GridConnectivity_t')
+      raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
       nb_racs = len(raccords)
-      #print nb_racs
 
       bcs = Internal.getNodesFromType2(z, 'BC_t')
       nb_bcs = len(bcs)
-      #print "NB OF BCS %d"%nb_bcs
 
-      z_PointLists = []
-      z_donIds = numpy.empty(nb_racs, numpy.int32)
-      z_ptL_sizes = numpy.empty(nb_racs, numpy.int32)
-      z_PointListsD = []
-
+      z_PointLists    = []
+      z_PointListsD   = []
       z_bc_PointLists = []
-      z_bc_ptL_sizes = numpy.empty(nb_bcs, numpy.int32)
+      z_donIds        = numpy.empty(nb_racs, Internal.E_NpyInt)
+      z_ptL_sizes     = numpy.empty(nb_racs, Internal.E_NpyInt)
+      z_bc_ptL_sizes  = numpy.empty(nb_bcs,  Internal.E_NpyInt)
 
       j=0
-      for rac in raccords :
+      for rac in raccords:
 
         rt = Internal.getNodeFromType1(rac, 'GridConnectivityType_t')
-        jn = "".join(rt[1])
-        #print jn
+        jn = "".join(Internal.getValue(rt))
         JNames.append(rac[0])
         JTypes.append(jn)
-        #JTypes.append('BCMatch')
-        #print Internal.getType(rac)
-        #print Internal.getValue(rac)
 
-        donnorName = "".join(rac[1])
-        #print donnorName
-        #dz = Internal.getNodeFromName(zones, donnorName)
+        donnorName = "".join(Internal.getValue(rac))
 
         id = name2id[donnorName]
         z_donIds[j] = id
         
-
-        #print "#####################################################"
-        #print rac #dz
-        #print "#####################################################"
-
         ptList = Internal.getNodeFromName1(rac, 'PointList')[1][0]
         sz  = len(ptList)
         
         z_ptL_sizes[j] = sz
         z_PointLists.append(ptList)
-        #print ptList
 
         ptListD = Internal.getNodeFromName1(rac, 'PointListDonor')[1][0]
         z_PointListsD.append(ptListD)
-        #print ptList
 
         j = j+1
 
       b = 0
-      for bc in bcs :
+      for bc in bcs:
         BCNames.append(bc[0])
-        #print Internal.getType(bc)
-        #print Internal.getValue(bc)
         BCTypes.append(Internal.getValue(bc))
 
+        #o = Internal.getNodeFromName1(bc, 'PointList')[1]
+        #print(f"Internal get node : {o[0]}")
         ptList = Internal.getNodeFromName1(bc, 'PointList')[1][0]
         z_bc_PointLists.append(ptList)
         z_bc_ptL_sizes[b] = len(ptList)
@@ -2025,6 +2110,7 @@ def addGhostCellsNG(t, nlayers=2):
       bc_PointLists.append(z_bc_PointLists)
       bc_ptL_sizes.append(z_bc_ptL_sizes)
 
+      nbz_unstruct+=1
     #print "nb of bc in python side as input : %d"%len(bc_ptL_sizes)
 
     nodes = converter.addGhostCellsNG(zone_ngons, F2Es, ptL_sizes, PointLists, PointListsD, donIds, bc_ptL_sizes, bc_PointLists, nlayers)
@@ -2033,11 +2119,12 @@ def addGhostCellsNG(t, nlayers=2):
 
     # Create zones with ghost upon exit
 
-    for i in xrange(nbz):
+    for i in range(nbz_unstruct):
 
       #print "zone %d"%i
 
       zwgh = PyTree.convertArrays2ZoneNode(znames[i], [nodes[i][0]])
+      #zwgh[0] = znames[i] # oblige de forcer, car la fonction getZoneName est appelee par convertArrays2ZoneNode
 
       ######################################################################################
       # FIXME : can be retrieved from K_CONVERTER::addGhostCellsNG instead of regenerating it
@@ -2048,7 +2135,7 @@ def addGhostCellsNG(t, nlayers=2):
 
       # MAJ BCs
       nb_bcs = len(nodes[i][2])
-      for j in xrange(nb_bcs):
+      for j in range(nb_bcs):
 
         (oid, ids) = nodes[i][2][j]
         # print oid
@@ -2061,24 +2148,58 @@ def addGhostCellsNG(t, nlayers=2):
 
     # ozones must have been created to set the joins between them
 
-    for i in xrange(nbz):
+    tp = PyTree.newPyTree([bases[0][0]])
+    # Attache les zones
+
+    for i in range(nbz_unstruct):
 
       zwgh = ozones[i]
 
       nb_joins = len(nodes[i][1])
-      for j in xrange(nb_joins):
+      for j in range(nb_joins):
 
          (oid, zid, ids) = nodes[i][1][j]
 
          # get the corresponding join in corresponding joined ghosted zone
-         for k in xrange(len(nodes[zid][1])):
+         for k in range(len(nodes[zid][1])):
              (donnor_oid, donnor_zid, donnor_ids) = nodes[zid][1][k]
              if (donnor_zid == i): break
 
          PyTree._addBC2Zone(zwgh, JNames[oid], JTypes[oid],
                zoneDonor=ozones[zid],
-               faceList=ids , #elementList=elementList, elementRange=elementRange, data=data, subzone=subzone,
+               faceList=ids ,           #elementList=elementList, elementRange=elementRange, data=data, subzone=subzone,
                faceListDonor=donnor_ids #, elementListDonor=elementListDonor, elementRangeDonor=elementRangeDonor
                )
+      node =  Internal.getNodeFromName1(zwgh, 'NFaceElements')
+      Internal.createUniqueChild(node, 'IntExt', 'DataArray_t',  nodes[i][3])
+      node =  Internal.getNodeFromName1(zwgh, 'NGonElements')
+      Internal.createUniqueChild(node, 'IntExt', 'DataArray_t',  nodes[i][4])
 
-    return ozones
+    tp[2][1][2] += ozones
+
+    #return ozones
+    return tp
+
+
+
+
+#===============================================================================================================================================
+#===============================================================================================================================================
+
+def _adaptBCStruct3__(join, dimZoneR,dimZoneD, d):
+    
+    #BCMatch
+    prange = Internal.getNodesFromName1(join, 'PointRange')
+    direction = getDirection__(dimZoneR[4], prange)
+    changePointRange__(prange, dimZoneR, direction, d, extend=0)
+
+    prangedonor = Internal.getNodesFromName1(join, 'PointRangeDonor')
+
+    direction = getDirection__(dimZoneD[4], prangedonor)
+    changePointRange__(prangedonor, dimZoneD, direction, d, extend=0)
+          
+ 
+    return None
+
+
+

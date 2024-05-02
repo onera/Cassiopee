@@ -1,5 +1,7 @@
-# - simple transformations of mesh -
-import Tkinter as TK
+# - tkTransform -
+"""Basic transformations of mesh."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Generator.PyTree as G
@@ -82,14 +84,14 @@ def rotate(event=None):
     else: 
         CTK.TXT.insert('START', 'Invalid angle or angle+rotation center.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    if axis == 'around X': axe = (1,0,0)
-    elif axis == 'around Y': axe = (0,1,0)
-    elif axis == 'around Z': axe = (0,0,1)
+    if axis == 'around X': axe = (1.,0.,0.)
+    elif axis == 'around Y': axe = (0.,1.,0.)
+    elif axis == 'around Z': axe = (0.,0.,1.)
     elif axis == 'around view':
         pos = CPlot.getState('posCam')
         eye = CPlot.getState('posEye')
         axe = (eye[0]-pos[0], eye[1]-pos[1], eye[2]-pos[2])
-    else: axe = (0,0,1)
+    else: axe = (0.,0.,1.)
     try: angle = float(angle)
     except: angle = 0.
     
@@ -99,7 +101,7 @@ def rotate(event=None):
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
         
     CTK.saveTree()
-    if X == None:
+    if X is None:
         sel = []
         for nz in nzs:
             nob = CTK.Nb[nz]+1
@@ -167,7 +169,7 @@ def translateClick():
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     prev = []
     w = WIDGETS['translate']
-    if CTK.__BUSY__ == False:
+    if not CTK.__BUSY__:
         CTK.__BUSY__ = True
         nzs = CPlot.getSelectedZones()
         CTK.TXT.insert('START', 'Click start point...\n')
@@ -179,7 +181,7 @@ def translateClick():
                 l = CPlot.getActivePoint()
                 time.sleep(CPlot.__timeStep__)
                 w.update()
-                if CTK.__BUSY__ == False: break
+                if not CTK.__BUSY__: break
             if CTK.__BUSY__:
                 if prev == []:
                     prev = l
@@ -247,7 +249,6 @@ def scale():
         X = [v[3],v[4],v[5]]
     else:
         X = G.barycenter(selection)
-    print X
     if len(v) == 1 and v[0] == 0.: # scale unitaire 
         bbox = G.bbox(selection)
         dx = bbox[3]-bbox[0]
@@ -257,11 +258,11 @@ def scale():
         if dy >= dx and dy >= dz: v[0] = 1./dy
         if dz >= dy and dz >= dx: v[0] = 1./dz
     
-    list = []
+    zlist = []
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
-        list.append( (nob,noz,nz) )
+        zlist.append( (nob,noz,nz) )
         z = CTK.t[2][nob][2][noz]
         if len(v) == 1:
             a = T.homothety(z, (X[0],X[1],X[2]), v[0])
@@ -286,7 +287,6 @@ def changeFrame():
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     mode = VARS[7].get()
-    #print "Transform: apply({}): ".format(mode)
     assert(mode in dir(T))
 
     args = CTK.varsFromWidget(VARS[8].get(), type=1)
@@ -299,7 +299,7 @@ def changeFrame():
     axis   = (args[3], args[4], args[5])
     CTK.saveTree()
 
-    fail = False;
+    fail = False
     errors = []
     for nz in nzs:
         nob = CTK.Nb[nz]+1
@@ -308,7 +308,7 @@ def changeFrame():
             func = getattr(T, mode)
             a = func(CTK.t[2][nob][2][noz], origin, axis)
             CTK.replace(CTK.t, nob, noz, a)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
     if not fail: CTK.TXT.insert('START', '{} done.\n'.format(mode))
@@ -325,9 +325,10 @@ def changeFrame():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkTransform', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='General block transformations.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkTransform  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='General block transformations.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -336,8 +337,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkTransform')
     WIDGETS['frameMenu'] = FrameMenu
 
@@ -399,7 +400,7 @@ def createApp(win):
     B.grid(row=3, column=1, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=5)
     B.grid(row=3, column=2, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='angle (degrees) or \nangle; Xc;Yc;Zc (angle+rotation center)')
+    BB = CTK.infoBulle(parent=B, text='angle (degrees) or \nangle; Xc;Yc;Zc (angle+rotation center)\nIf center is not specified, rotate around barycenter of zones.')
 
     # - Symetrize -
     B = TTK.Button(Frame, text="Mirror", command=symetrize)
@@ -425,13 +426,17 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['BlockNoteBook'].add(WIDGETS['frame'], text='tkTransform')
+    except: pass
+    CTK.WIDGETS['BlockNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['BlockNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -443,9 +448,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

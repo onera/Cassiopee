@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -23,6 +23,7 @@
 # include <stdio.h>
 # include "GenIO.h"
 # include "Array/Array.h"
+# include "String/kstring.h"
 # include <vector>
 # include "Def/DefFunction.h"
 # include "Connect/connect.h"
@@ -57,63 +58,79 @@ E_Int K_IO::GenIO::fstlread(
     return 1;
   }
 
-  // Lecture de tous les vertex
-  nv = 0; res = 1;
-  while (res == 1)
+  // lecture par zone solid
+  E_Int resz = 1; E_LONG pos = 0;
+  while (resz == 1)
   {
-    res = readGivenKeyword(ptrFile, "VERTEX "); nv++;
-  }
-  nv = nv-1;
-  //printf("I found %d vertices\n", nv);
-  if (nv == 0) { fclose(ptrFile); return 1; } // FAILED
+    resz = readGivenKeyword(ptrFile, "SOLID ");
+    if (resz != 1) goto end;
 
-  f = new FldArrayF(nv, 3);
-  E_Float* fx = f->begin(1);
-  E_Float* fy = f->begin(2);
-  E_Float* fz = f->begin(3);
-  fseek(ptrFile, 0, SEEK_SET);
-  i = 0; res = 1;
-  while (res == 1)
-  {
-    res = readGivenKeyword(ptrFile, "VERTEX ");
-    if (res == 1)
+    // Cree le nom de zone
+    char* zoneName = new char [128];
+    readline(ptrFile, zoneName, 127);
+    compressString(zoneName);
+    zoneNames.push_back(zoneName);
+
+    // Lecture de tous les vertex de la zone
+    pos = KFTELL(ptrFile);
+
+    // count vertex of zone
+    nv = 0; res = 1;
+    while (res == 1)
     {
-      res = readDouble(ptrFile, t, -1); fx[i] = t; //printf("%f ", t);
-      res = readDouble(ptrFile, t, -1); fy[i] = t; //printf("%f ", t);
-      res = readDouble(ptrFile, t, -1); fz[i] = t; i++; //printf("%f\n", t);
-      if (res == 0) res = 1; else res = 0;
+      res = readGivenKeyword(ptrFile, "VERTEX ", "ENDSOLID "); nv++;
     }
+    nv = nv-1;
+    if (nv <= 0) { fclose(ptrFile); return 1; } // FAILED
+
+    f = new FldArrayF(nv, 3);
+    E_Float* fx = f->begin(1);
+    E_Float* fy = f->begin(2);
+    E_Float* fz = f->begin(3);
+    KFSEEK(ptrFile, pos, SEEK_SET);
+
+    i = 0; res = 1;
+    while (res == 1)
+    {
+      res = readGivenKeyword(ptrFile, "VERTEX ", "ENDSOLID ");
+      if (res == 1)
+      {
+        res = readDouble(ptrFile, t, -1); fx[i] = t; //printf(SF_F_ " ", t);
+        res = readDouble(ptrFile, t, -1); fy[i] = t; //printf(SF_F_ " ", t);
+        res = readDouble(ptrFile, t, -1); fz[i] = t; i++; //printf(SF_F_ "\n", t);
+        if (res == 0) res = 1; else res = 0;
+      }
+    }
+
+    // facettes
+    E_Int ne = nv/3;
+    FldArrayI* cn = new FldArrayI(ne, 3);
+    E_Int* cn1 = cn->begin(1);
+    E_Int* cn2 = cn->begin(2);
+    E_Int* cn3 = cn->begin(3);
+
+    for (i = 0; i < ne; i++)
+    {
+      cn1[i] = 3*i+1; cn2[i] = 3*i+2; cn3[i] = 3*i+3;
+    }
+
+    K_CONNECT::cleanConnectivity(1, 2, 3, 
+                                 1.e-14, "TRI",
+                                 *f, *cn);
+
+    unstructField.push_back(f);
+    eltType.push_back(2);
+    connect.push_back(cn);
+
   }
 
-  // facettes
-  E_Int ne = nv/3;
-  FldArrayI* cn = new FldArrayI(ne, 3);
-  E_Int* cn1 = cn->begin(1);
-  E_Int* cn2 = cn->begin(2);
-  E_Int* cn3 = cn->begin(3);
-
-  for (i = 0; i < ne; i++)
-  {
-    cn1[i] = 3*i+1; cn2[i] = 3*i+2; cn3[i] = 3*i+3;
-  }
-
-  unstructField.push_back(f);
-  eltType.push_back(2);
-  connect.push_back(cn);
-
-  K_CONNECT::cleanConnectivity(1, 2, 3, 
-                               1.e-14,  "TRI",
-                               *unstructField[0], *connect[0]);
-
-  // Cree le nom de zone
-  char* zoneName = new char [128];
-  sprintf(zoneName, "Zone0");
-  zoneNames.push_back(zoneName);
-
+  end: ;
   varString = new char [8];
   strcpy(varString, "x,y,z");
   fclose(ptrFile);
   
+  if (unstructField.size() == 0) return 1; // FAIL
+
   return 0;
 }
 
@@ -137,11 +154,10 @@ E_Int K_IO::GenIO::fstlwrite(
     if (eltType[zone] == 2) // triangles
     { nvalidZones++; if (no == -1) no = zone; }
     else
-      printf("Warning: fstlwrite: zone %d not written (not a triangle zone).", zone);
+      printf("Warning: fstlwrite: zone " SF_D_ " not written (not a triangle zone).", zone);
   } 
 
   if (nvalidZones == 0) return 1;
-  if (nvalidZones > 1) printf("Warning: fstlwrite: only first zone will be written.");
   
   // Zone must have posx, posy, posz
   E_Int posx, posy, posz;
@@ -157,14 +173,14 @@ E_Int K_IO::GenIO::fstlwrite(
 
   // Open file
   FILE* ptrFile = fopen(file, "w");
-  if (ptrFile == NULL) 
+  if (ptrFile == NULL)
   {
     printf("Warning: fstlwrite: I can't open file %s.\n", file);
     return 1;
   }
 
   // Build writing data format
-  char format1[40]; char dataFmtl[40];
+  char format1[134]; char dataFmtl[40];
   strcpy(dataFmtl, dataFmt);
   int l = strlen(dataFmt);
   if (dataFmt[l-1] == ' ') dataFmtl[l-1] = '\0';
@@ -173,35 +189,37 @@ E_Int K_IO::GenIO::fstlwrite(
   sprintf(format1,"      vertex %s%s%s\n", dataFmt, dataFmt, dataFmtl);
 
   // Header
-  fprintf(ptrFile, "solid Cassiopee STL\n");
-  
-  FldArrayF* a = unstructField[no];
-  FldArrayI& c = *connect[no];
-  int ne = c.getSize();
-  E_Float* fx = a->begin(posx);
-  E_Float* fy = a->begin(posy);
-  E_Float* fz = a->begin(posz);
-  
-  E_Int* c1 = c.begin(1);
-  E_Int* c2 = c.begin(2);
-  E_Int* c3 = c.begin(3);
-  E_Int p;
-  for (E_Int i = 0; i < ne; i++)
+  for (E_Int nz = 0; nz < nzone; nz++)
   {
-    fprintf(ptrFile, "  facet normal 0. 0. 0.\n");
-    fprintf(ptrFile, "    outer loop\n");
+    fprintf(ptrFile, "solid %s\n", zoneNames[nz]);
+  
+    if (eltType[nz] != 2) continue;
+    
+    FldArrayF* a = unstructField[nz];
+    FldArrayI& c = *connect[nz];
+    E_Int ne = c.getSize();
+    E_Float* fx = a->begin(posx);
+    E_Float* fy = a->begin(posy);
+    E_Float* fz = a->begin(posz);
+  
+    E_Int p;
+    for (E_Int i = 0; i < ne; i++)
+    {
+      fprintf(ptrFile, "  facet normal 0. 0. 0.\n");
+      fprintf(ptrFile, "    outer loop\n");
 
-    p = c1[i]-1;
-    fprintf(ptrFile, format1, fx[p], fy[p], fz[p]);
-    p = c2[i]-1;
-    fprintf(ptrFile, format1, fx[p], fy[p], fz[p]);
-    p = c3[i]-1;
-    fprintf(ptrFile, format1, fx[p], fy[p], fz[p]);
-    fprintf(ptrFile, "    endloop\n");
-    fprintf(ptrFile, "  endfacet\n");
+      p = c(i,1)-1;
+      fprintf(ptrFile, format1, fx[p], fy[p], fz[p]);
+      p = c(i,2)-1;
+      fprintf(ptrFile, format1, fx[p], fy[p], fz[p]);
+      p = c(i,3)-1;
+      fprintf(ptrFile, format1, fx[p], fy[p], fz[p]);
+      fprintf(ptrFile, "    endloop\n");
+      fprintf(ptrFile, "  endfacet\n");
+    }
+
+    fprintf(ptrFile, "endsolid %s\n", zoneNames[nz]);
   }
-
-  fprintf(ptrFile, "endsolid Cassiopee STL\n");
   fclose(ptrFile);
   return 0;
 }

@@ -1,0 +1,7 @@
+#! /bin/sh
+if test -e "$CASSIOPEE/Dist/tkCassiopee.py"
+then
+    ${APPDIR}/Dist/BUNDLE/bin/python "$CASSIOPEE/Dist/tkCassiopee.py" "$@"
+else
+    ${APPDIR}/Dist/BUNDLE/bin/python "$CASSIOPEE/Dist/tkCassiopee.pyc" "$@"
+fi

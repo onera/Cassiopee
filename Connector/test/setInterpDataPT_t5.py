@@ -22,5 +22,5 @@ C._addFamily2Base(t[2][1], 'SKN1', bndType="BCWall")
 C._addFamily2Base(t[2][2], 'SKN2', bndType="BCWall") 
 
 t1 = X.applyBCOverlaps(t, depth=2) 
-t1[2][2] = X.setInterpData(t1[2][2],t1[2][1], double_wall=0,loc='centers')
+t1[2][2] = X.setInterpData(t1[2][2],t1[2][1], loc='centers')
 test.testT(t1,1)

@@ -10,6 +10,6 @@ t = C.newPyTree(['Base',a,b])
 t = Cmpi.setProc(t, 1)
 
 zones = Internal.getZones(t)
-for z in zones: print z[0]+' -> '+str(Cmpi.getProc(z))
+for z in zones: print(z[0]+' -> '+str(Cmpi.getProc(z)))
 #>> cart -> 1
 #>> cart.0 -> 1

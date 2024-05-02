@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -36,8 +36,7 @@ C_OUT
       REAL_E y(1:2*npt)
       REAL_E z(1:2*npt)
 C_LOCAL
-      INTEGER_E np, nps2, n, i, shift
-      REAL_E pi, usnps2, xpn, ypn, en, epais, si, is
+      INTEGER_E i, shift
       REAL_E a5, coef, rap, xx, y_thick, yy
       REAL_E teta, y_camb
       REAL_E xm            ! valeur max de la ligne de cambrure (en % corde)
@@ -79,10 +78,12 @@ c ***************************
          y_thick = y_thick*xth/0.20
 
          if (xx.lt.xp) then
-           teta = 0.
-           if (xm.ne.0.) then
+           if (xp.ne.0.) then
             y_camb = (2.*xp-xx)*xm*xx/(xp**2)
             teta = (xp-xx)*2.*xm/(xp**2)
+           else
+            y_camb = 0.
+            teta = 0.
            endif
            teta = atan(teta)
            x(2*npt-i+1-shift) = xx-y_thick*sin(teta)
@@ -92,10 +93,12 @@ c ***************************
            y(i) = y_camb-y_thick*cos(teta)
            z(i) = 0.
          else
-           teta = 0.
-           if (xm.ne.0.) then
+           if (xp.ne.1.) then
               y_camb = (1.+xx-2.*xp)*xm*(1.-xx)/(1.-xp)**2
               teta = (xp-xx)*2.*xm/(1.-xp)**2 
+           else
+            y_camb = 0.
+            teta = 0.
            endif
            teta = atan(teta)
            x(2*npt-i+1-shift) = xx-y_thick*sin(teta)

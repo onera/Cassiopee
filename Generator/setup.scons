@@ -50,37 +50,54 @@ env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
 env.Replace(CXXFLAGS=Dist.getCppArgs())
 env.Replace(CFLAGS=Dist.getCArgs())
 
+ELSAPROD = os.environ.get('ELSAPROD', 'x86_r8')
+env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
+
 env = Dist.createFortranBuilder(env, [kcoreIncDir])
 ppf = Dist.createFortranFiles(env, srcs)
 
 #==============================================================================
-# Modification pour compiler certains fichiers specifiquement
 cppOpts = Dist.getCppArgs()
+
+# Optimisation en -O0 pour les fichiers de tetgen
+files = ["Generator/Tetgen/predicates.cxx", "Generator/Tetgen/tetgen.cxx"]
 if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
     flags = ''
     for i in cppOpts:
         if i[0:2] != '-O' and i[0:9] != '-fp-model': flags += i+' '
     flags += '-fp-model=strict -O2'
-    for i in xrange(len(srcs.cpp_srcs2)):
-        if srcs.cpp_srcs2[i] == "Generator/Tetgen/predicates.cxx":
-            srcs.cpp_srcs2[i] = env.Object("Generator/Tetgen/predicates.cxx", CXXFLAGS=flags)
-        if srcs.cpp_srcs2[i] == "Generator/Tetgen/tetgen.cxx": 
-            srcs.cpp_srcs2[i] = env.Object("Generator/Tetgen/tetgen.cxx", CXXFLAGS=flags)
+    for i, v in enumerate(srcs.cpp_srcs2):
+       	if v in files:
+           #print('altering', v,flags)
+           srcs.cpp_srcs2[i] = env.Object(v, CXXFLAGS=flags)
+        
 if Cppcompiler.find('gcc') == 0 or Cppcompiler.find('g++') == 0 or Cppcompiler == 'x86_64-w64-mingw32-gcc':
     flags = ''
     for i in cppOpts: 
         if i[0:2] != '-O': flags += i+' '
-    for i in xrange(len(srcs.cpp_srcs2)):
-        if srcs.cpp_srcs2[i] == "Generator/Tetgen/predicates.cxx":
-            srcs.cpp_srcs2[i] = env.Object("Generator/Tetgen/predicates.cxx", CXXFLAGS=flags+'-O0')
-        if srcs.cpp_srcs2[i] == "Generator/Tetgen/tetgen.cxx": 
-            srcs.cpp_srcs2[i] = env.Object("Generator/Tetgen/tetgen.cxx", CXXFLAGS=flags+'-O2')
+    for v, i in enumerate(srcs.cpp_srcs2):
+        if v in files:
+            #print('altering', v,flags)
+            srcs.cpp_srcs2[i] = env.Object(v, CXXFLAGS=flags+'-O0')
+
+# Suppression vectorisation pour T3mesher et gapfixer
+files = ["Generator/T3mesher2D.cpp", "Generator/gapfixer.cpp"]
+flags = ''
+for i in cppOpts:
+    if not Dist.isSimd(i): flags += i+' '
+for i, v in enumerate(srcs.cpp_srcs):
+    if v in files:
+       #print('altering',v,flags)
+       srcs.cpp_srcs[i] = env.Object(v, CXXFLAGS=flags)
+
+#==============================================================================
 
 myMod = env.StaticLibrary('generator', srcs.cpp_srcs)
-myMod2 = env.StaticLibrary('generator2', srcs.cpp_srcs2+ppf)
-modDir = installPath+'/Generator/'
+myMod2 = env.StaticLibrary('generator2', srcs.cpp_srcs2)
+myMod3 = env.StaticLibrary('generator3', ppf)
+modDir = 'build/'+ELSAPROD
 dp1 = env.Install(modDir, myMod)
 dp2 = env.Install(modDir, myMod2)
-dp3 = env.Install(modDir, Glob('Generator/*.py'))
+dp3 = env.Install(modDir, myMod3)
 
 env.Alias(target="install", source=[dp1,dp2,dp3])

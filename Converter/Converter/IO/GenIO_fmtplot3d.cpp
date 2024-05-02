@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -23,6 +23,7 @@
 
 # include "GenIO.h"
 # include "Array/Array.h"
+# include "String/kstring.h"
 # include "../converter.h"
 
 using namespace K_ARRAY;
@@ -105,8 +106,8 @@ E_Int K_IO::GenIO::fp3dread(
   else if (nr == 2*nb) dim = 2;
   else dim = 1;
   
-  //printf("dim=%d\n", dim);
-  //for (E_Int i = 0; i < nb*dim; i++) printf("%d\n", dims[i]);
+  //printf("dim=" SF_D_ "\n", dim);
+  //for (E_Int i = 0; i < nb*dim; i++) printf(SF_D_ "\n", dims[i]);
   
   if (dim == 1)
   {
@@ -139,7 +140,7 @@ E_Int K_IO::GenIO::fp3dread(
     E_Int im = ni[numzone];
     E_Int jm = nj[numzone];
     E_Int km = nk[numzone];
-    //printf("ni=%d %d %d\n", im,jm,km);
+    //printf("ni=" SF_D3_ "\n", im,jm,km);
     FldArrayF* fp = new FldArrayF(im*jm*km, 3);
     fp->setAllValuesAtNull();
     field.push_back(fp);
@@ -150,7 +151,7 @@ E_Int K_IO::GenIO::fp3dread(
 
     // Cree les noms des zones
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone%d", numzone);
+    sprintf(zoneName, "Zone" SF_D_, numzone);
     zoneNames.push_back(zoneName);
 
     // Read block
@@ -215,17 +216,17 @@ E_Int K_IO::GenIO::fp3dwrite(
 
   // Write header (number of blocks)
   E_Int nb = field.size();
-  fprintf(ptrFile, "%5d\n", nb);
+  fprintf(ptrFile, SF_W5D_ "\n", nb);
   
   // Write im,jm,km for each block
   for (E_Int i = 0; i < nb; i++)
   {
-    fprintf(ptrFile, "%5d %5d %5d", ni[i], nj[i], nk[i]);
+    fprintf(ptrFile, SF_W5D_ " " SF_W5D_ " " SF_W5D_, ni[i], nj[i], nk[i]);
   }
   fprintf(ptrFile, "\n");
 
   // Build writing data format
-  char format1[20], format2[40], format3[60];
+  char format1[41], format2[82], format3[122];
   
   char dataFmtl[40];
   strcpy(dataFmtl, dataFmt);

@@ -9,4 +9,4 @@ CPlot.display(a)
 nz = -1
 while nz == -1:
     nz = CPlot.getSelectedZone(); time.sleep(0.1)
-print 'One zone has been selected: ', nz
+print('One zone has been selected: %d.'%nz)

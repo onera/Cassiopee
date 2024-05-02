@@ -63,8 +63,7 @@
 #include <omp.h>
 #endif
 
-
-
+#include <gklib_rename.h>
 
 #include <gk_types.h>
 #include <gk_struct.h>
@@ -83,7 +82,4 @@
 
 #include <gk_proto.h>
 
-
 #endif  /* GKlib.h */
-
-

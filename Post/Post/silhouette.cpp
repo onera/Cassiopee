@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -40,8 +40,7 @@ PyObject* K_POST::silhouette(PyObject* self, PyObject* args)
   PyObject* array;
   E_Float vx, vy, vz;
 
-  if (!PYPARSETUPLEF(args,
-                    "O(ddd)", "O(fff)",
+  if (!PYPARSETUPLE_(args, O_ TRRR_,
                     &array, &vx, &vy, &vz))
   {
       return NULL;

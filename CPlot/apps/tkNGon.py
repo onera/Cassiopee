@@ -1,5 +1,7 @@
-# - NGon operations in a pyTree -
-import Tkinter as TK
+# - tkNGon -
+"""Perform NGON operations."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Transform.PyTree as T
@@ -35,7 +37,7 @@ def convert2NGon():
         try:
             a = C.convertArray2NGon(z)
             CTK.replace(CTK.t, nob, noz, a)
-        except Exception, e:
+        except Exception as e:
             fail = False; errors += [0,str(e)]
             
     if not fail:
@@ -44,7 +46,7 @@ def convert2NGon():
         Panels.displayErrors(errors, header='Error: convert2NGon')
         CTK.TXT.insert('START', 'NGon conversion fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -75,7 +77,7 @@ def breakElts():
             zones = T.breakElements(z)
             if (len(zones) > 0): CTK.replace(CTK.t, nob, noz, zones[0])
             for zz in zones[1:]: CTK.add(CTK.t, nob, -1, zz)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
     if not fail:
@@ -84,7 +86,7 @@ def breakElts():
         Panels.displayErrors(errors, header='Error: breakElts')
         CTK.TXT.insert('START', 'Break elts fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    CTK.t = C.fillMissingVariables(CTK.t)   
+    #C._fillMissingVariables(CTK.t)   
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -101,7 +103,7 @@ def dual():
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     CTK.saveTree()
@@ -114,7 +116,7 @@ def dual():
         try:
             a = T.dual(z)
             CTK.replace(CTK.t, nob, noz, a)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
     if not fail:
@@ -123,7 +125,7 @@ def dual():
         Panels.displayErrors(errors, header='Error: dual')
         CTK.TXT.insert('START', 'Dual fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    CTK.t = C.fillMissingVariables(CTK.t)   
+    #C._fillMissingVariables(CTK.t)   
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -140,7 +142,7 @@ def conformize():
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     CTK.saveTree()
@@ -153,16 +155,16 @@ def conformize():
         try:
             zp = C.conformizeNGon(z)
             CTK.replace(CTK.t, nob, noz, zp)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
-    if (fail == False):
+    if not fail:
         CTK.TXT.insert('START', 'Zones conformized.\n')
     else:
         Panels.displayErrors(errors, header='Error: conformize')
         CTK.TXT.insert('START', 'Conformize fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    CTK.t = C.fillMissingVariables(CTK.t)   
+    #C._fillMissingVariables(CTK.t)   
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -171,9 +173,10 @@ def conformize():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE, 
-                           text='tkNGon', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Manage Polyhedral (NGON) meshes.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkNGon  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Manage Polyhedral (NGON) meshes.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -181,8 +184,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
 
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkNGon')
     WIDGETS['frameMenu'] = FrameMenu
 
@@ -210,12 +213,16 @@ def createApp(win):
     
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['BlockNoteBook'].add(WIDGETS['frame'], text='tkNGon')
+    except: pass
+    CTK.WIDGETS['BlockNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
-
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['BlockNoteBook'].hide(WIDGETS['frame'])
+    
 #==============================================================================
 def updateApp(): return
 
@@ -224,9 +231,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
 
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

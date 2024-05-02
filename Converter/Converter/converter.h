@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -20,6 +20,7 @@
 #define _CONVERTER_CONVERTER_H_
 
 # include "kcore.h"
+
 namespace K_CONVERTER
 {
   // # define QUADDOUBLE
@@ -29,6 +30,10 @@ namespace K_CONVERTER
   PyObject* setPartialFields(PyObject* self, PyObject* args);
   PyObject* _setPartialFields(PyObject* self, PyObject* args);
   PyObject* setPartialFieldsPT(PyObject* self, PyObject* args);
+  PyObject* updatePartialFields(PyObject* self, PyObject* args);
+  PyObject* _updatePartialFields(PyObject* self, PyObject* args);
+  PyObject* updatePartialFieldsPT(PyObject* self, PyObject* args);
+  PyObject* _setPartialFieldsAverage(PyObject* self, PyObject* args);
   PyObject* filterPartialFields(PyObject* self, PyObject* args);
   PyObject* extractVars(PyObject* self, PyObject* args);
   PyObject* addVar(PyObject* self, PyObject* args);
@@ -53,6 +58,8 @@ namespace K_CONVERTER
   PyObject* normL2(PyObject* self, PyObject* args);
   PyObject* normalize(PyObject* self, PyObject* args);
   PyObject* magnitude(PyObject* self, PyObject* args);
+  PyObject* isFinite(PyObject* self, PyObject* args);
+  PyObject* setNANValuesAt(PyObject* self, PyObject* args);
   PyObject* convertBAR2Struct(PyObject* self, PyObject* args);
   PyObject* convertStruct2Tetra(PyObject* self, PyObject* args);
   PyObject* convertStruct2TetraBary(PyObject* self, PyObject* args);
@@ -70,10 +77,16 @@ namespace K_CONVERTER
   PyObject* convertNGon2TetraBaryBoth(PyObject* self, PyObject* args);
   PyObject* convertArray2TetraBary(PyObject* self, PyObject* args);
   PyObject* convertArray2TetraBaryBoth(PyObject* self, PyObject* args);
+  PyObject* convertHO2LO(PyObject* self, PyObject* args);
+  PyObject* convertLO2HO(PyObject* self, PyObject* args);
   PyObject* convertTri2Quad(PyObject* self, PyObject* args);
   PyObject* convertQuad2Tri(PyObject* self, PyObject* args);
+  PyObject* convertStrand2Penta(PyObject* self, PyObject* args);
+  PyObject* convertPenta2Strand(PyObject* self, PyObject* args);
   PyObject* center2Node(PyObject* self, PyObject* args);
+  PyObject* center2Node_OLD(PyObject* self, PyObject* args);
   PyObject* node2Center(PyObject* self, PyObject* args);
+  PyObject* node2Center_OLD(PyObject* self, PyObject* args);
   PyObject* node2ExtCenter(PyObject* self, PyObject* args);
   PyObject* extCenter2Node(PyObject* self, PyObject* args);
   PyObject* center2ExtCenter(PyObject* self, PyObject* args);
@@ -90,6 +103,7 @@ namespace K_CONVERTER
   PyObject* cpyReal2Ghost(PyObject* self, PyObject* args);
   PyObject* cpyConnectA2ConnectP(PyObject* self, PyObject* args);
   PyObject* cpyConnectP2ConnectA(PyObject* self, PyObject* args);
+  PyObject* cpyConnectP2ConnectA2(PyObject* self, PyObject* args);
   PyObject* cpyValueByField(PyObject* self, PyObject* args);
   PyObject* detectEmptyBC(PyObject* self, PyObject* args);
   PyObject* tagDefinedBC(PyObject* self, PyObject* args);
@@ -130,23 +144,45 @@ namespace K_CONVERTER
   PyObject* nearestElements(PyObject* self, PyObject* args);
   PyObject* nearestFaces(PyObject* self, PyObject* args);
   PyObject* nearestNodes(PyObject* self, PyObject* args);
+  // topological identification
+  PyObject* createGlobalIndex(PyObject* self, PyObject* args);
+  PyObject* recoverGlobalIndex(PyObject* self, PyObject* args);
   // Adapter
   PyObject* adaptPE2NFace(PyObject* self, PyObject* args);
   PyObject* adaptNFace2PE(PyObject* self, PyObject* args);
   PyObject* adaptNGon2Index(PyObject* self, PyObject* args);
   PyObject* adaptNFace2Index(PyObject* self, PyObject* args);
+  PyObject* signNGonFaces(PyObject* self, PyObject* args);
+  PyObject* unsignNGonFaces(PyObject* self, PyObject* args);
+  PyObject* makeParentElements(PyObject* self, PyObject* args);
+  PyObject* convertSurfaceNGon(PyObject* self, PyObject* args);
   PyObject* adaptBCFace2BCC(PyObject* self, PyObject* args);
   PyObject* adaptBCC2BCFace(PyObject* self, PyObject* args);
+  PyObject* adaptNGon42NGon3(PyObject* self, PyObject* args);
+  PyObject* adaptNGon32NGon4(PyObject* self, PyObject* args);
   PyObject* adapt2FastP(PyObject* self, PyObject* args);
   PyObject* createElsaHybrid(PyObject* self, PyObject* args);
   PyObject* diffIndex(PyObject* self, PyObject* args);
   PyObject* pointList2Ranges(PyObject* self, PyObject* args);
   PyObject* pointList2SPL(PyObject* self, PyObject* args);
-  // Extraction d'infos pour les raccords match 
-  PyObject* extractBCMatch(PyObject* self, PyObject* args);
-  PyObject* extractBCFields(PyObject* self, PyObject* args);
-  PyObject* buildBCMatchField(PyObject* self, PyObject* args);
   PyObject* range2PointList(PyObject* self, PyObject* args);
+  PyObject* PR2VL(PyObject* self, PyObject* args);
+  // Extraction d'infos ou de champs
+  PyObject* extractFields(PyObject* self, PyObject* args); 
+  PyObject* extractBCMatchStruct(PyObject* self, PyObject* args);
+  PyObject* extractBCMatchNG(PyObject* self, PyObject* args);
+  PyObject* extractBCFields(PyObject* self, PyObject* args);
+  PyObject* buildBCMatchFieldStruct(PyObject* self, PyObject* args);
+  PyObject* buildBCMatchFieldNG(PyObject* self, PyObject* args);
+  // send/recv
+  PyObject* iSend(PyObject* self, PyObject* args);
+  PyObject* recv(PyObject* self, PyObject* args);
+  PyObject* waitAll(PyObject* self, PyObject* args);
+  // BBTree
+  PyObject* createBBTree(PyObject* self, PyObject* args);
+  PyObject* intersect(PyObject* self, PyObject* args);
+  PyObject* intersect2(PyObject* self, PyObject* args);
+  PyObject* deleteBBTree(PyObject* self, PyObject* args);
 
   // addGhostCells NGON
   void addGhostCellsNGon2D(E_Int depth,
@@ -202,8 +238,9 @@ namespace K_CONVERTER
   // Method for building nodes indices by face
   void buildFaceIndices(char* eltType, std::vector< std::vector<E_Int> >& faces);
 
-  // Element Type's String to Id
+  // Element type String to Id for BE and ME
   E_Int getElementTypeId(const char* eltType);
+  std::vector<E_Int> getElementTypesId(const char* eltType);
 
   // Fonction pour FFD72
   void calculateMutsMu(E_Int nelmt, E_Float* MutsMu, E_Float* Mut, E_Float* Mu, E_Float* Density=NULL, E_Float* Densitym1=NULL);

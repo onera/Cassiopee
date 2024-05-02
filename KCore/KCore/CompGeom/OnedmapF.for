@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -15,90 +15,89 @@ C    GNU General Public License for more details.
 C
 C    You should have received a copy of the GNU General Public License
 C    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
-
+ 
 C ============================================================================
 C map a 1D distribution over a profile
 C  ==========================================================================
       SUBROUTINE k6onedmap(ni, x, y, z, no, d, xo, yo, zo,
      &                     s, dx, dy, dz)
 C=============================================================================
-	IMPLICIT NONE
+      IMPLICIT NONE
 C_IN
-	INTEGER_E ni              ! nombre de points de la ligne entrante
-	REAL_E x(ni),y(ni),z(ni)  ! ligne entrante
-	INTEGER_E no              ! nombre de points de la ligne sortante
-	REAL_E    d(no)           ! distribution
+      INTEGER_E ni              ! nombre de points de la ligne entrante
+      REAL_E x(ni),y(ni),z(ni)  ! ligne entrante
+      INTEGER_E no              ! nombre de points de la ligne sortante
+      REAL_E    d(no)           ! distribution
 C_OUT
-	REAL_E xo(no), yo(no), zo(no) ! ligne sortante
+      REAL_E xo(no), yo(no), zo(no) ! ligne sortante
 C_LOCAL
-	REAL_E small, big, stota
-	REAL_E s(ni)
-	REAL_E dx(ni)
-        REAL_E dy(ni)
-        REAL_E dz(ni)
+      REAL_E small, big, stota
+      REAL_E s(ni)
+      REAL_E dx(ni)
+      REAL_E dy(ni)
+      REAL_E dz(ni)
 C==============================================================================
-	small = 1.e-18
-	big = 1.e+15
+      small = 1.e-18
+      big = 1.e+15
 
-C       Parametrisation	de la ligne entrante
-        CALL k6slope(small, big, ni,
+C     Parametrisation	de la ligne entrante
+      CALL k6slope(small, big, ni,
      &               x, y, z,            
      &               dx, dy, dz)
 
-        CALL k6param(stota, small, ni, 
+       CALL k6param(stota, small, ni, 
      &  	     x, y, z,          
      &               dx, dy, dz, s)
             
 C       Projection
-        CALL k6interp(ni, no, stota,       
+       CALL k6interp(ni, no, stota,       
      &                x, y, z, s,       
      &                dx, dy, dz,      
      &                xo, yo, zo, d)                
 
-	END
+      END
 
 
 C=============================================================================
       SUBROUTINE k6onedmapbar(npts, x, y, z, no, d, net, cn1, cn2, neto,
      &                        cn1o, cn2o, xo, yo, zo, s, dx, dy, dz)
-			
-	IMPLICIT NONE
+
+      IMPLICIT NONE
 C_IN
-	INTEGER_E npts          ! nombre de points de la ligne entrante
-	REAL_E x(0:npts-1)      ! ligne entrante
-        REAL_E y(0:npts-1)      ! ligne entrante
-        REAL_E z(0:npts-1)      ! ligne entrante
-	INTEGER_E no            ! nombre de points de la ligne sortante
-	REAL_E d(0:no-1)        ! distribution
-        INTEGER_E net           ! nb d'elts BAR initiaux
-        INTEGER_E cn1(0:net-1)  ! connectivite BAR : 1ers sommets
-        INTEGER_E cn2(0:net-1)  ! connectivite BAR : 2nds sommets
+      INTEGER_E npts          ! nombre de points de la ligne entrante
+      REAL_E x(0:npts-1)      ! ligne entrante
+      REAL_E y(0:npts-1)      ! ligne entrante
+      REAL_E z(0:npts-1)      ! ligne entrante
+      INTEGER_E no            ! nombre de points de la ligne sortante
+      REAL_E d(0:no-1)        ! distribution
+      INTEGER_E net           ! nb d'elts BAR initiaux
+      INTEGER_E cn1(0:net-1)  ! connectivite BAR : 1ers sommets
+      INTEGER_E cn2(0:net-1)  ! connectivite BAR : 2nds sommets
 C_OUT
-        INTEGER_E neto          ! nb d'elts BAR  de sortie
-        INTEGER_E cn1o(0:neto-1) ! connectivite BAR : 1ers sommets
-        INTEGER_E cn2o(0:neto-1) ! connectivite BAR : 2nds sommets
-	REAL_E xo(0:no-1), yo(0:no-1), zo(0:no-1) ! ligne sortante
+      INTEGER_E neto          ! nb d'elts BAR  de sortie
+      INTEGER_E cn1o(0:neto-1) ! connectivite BAR : 1ers sommets
+      INTEGER_E cn2o(0:neto-1) ! connectivite BAR : 2nds sommets
+      REAL_E xo(0:no-1), yo(0:no-1), zo(0:no-1) ! ligne sortante
 C_LOCAL
-	REAL_E small, big, stota
-	REAL_E s(0:npts-1)
-	REAL_E dx(0:npts-1)
-        REAL_E dy(0:npts-1)
-        REAL_E dz(0:npts-1)
-	
-	small = 1.e-18
-	big = 1.e+15
+      REAL_E small, big, stota
+      REAL_E s(0:npts-1)
+      REAL_E dx(0:npts-1)
+      REAL_E dy(0:npts-1)
+      REAL_E dz(0:npts-1)
+
+      small = 1.e-18
+      big = 1.e+15
 
 C       Parametrisation	de la ligne entrante
-        CALL  k6slopebar(small, big, npts, x, y, z, net, cn1, cn2,
-     &                   dx, dy, dz)
+      CALL k6slopebar(small, big, npts, x, y, z, net, cn1, cn2,
+     &                  dx, dy, dz)
 
-        CALL k6parambar(stota, small, npts, x, y, z, net, cn1, cn2, 
+      CALL k6parambar(stota, small, npts, x, y, z, net, cn1, cn2, 
      &                  dx, dy, dz, s)
         
 C       Projection
-        CALL k6interpbar(npts, no, stota, net, cn1, cn2, x, y, z, s,
+      CALL k6interpbar(npts, no, stota, net, cn1, cn2, x, y, z, s,
      &       dx, dy, dz, neto, cn1o, cn2o, xo, yo, zo, d)
                
-
-	END
+      END
 C==================  OnedmapF.for ============================================

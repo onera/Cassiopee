@@ -1,5 +1,6 @@
 # - Reorder des blocs d'un pyTree -
-import Tkinter as TK
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -27,26 +28,26 @@ def reorder():
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     ii = VARS[0].get()
-    if (ii == 'I -> I'): i1 = 1
-    elif (ii == 'I -> -I'): i1 = -1
-    elif (ii == 'I -> J'): i1 = 2
-    elif (ii == 'I -> -J'): i1 = -2
-    elif (ii == 'I -> K'): i1 = 3
-    elif (ii == 'I -> -K'): i1 = -3
+    if ii == 'I -> I': i1 = 1
+    elif ii == 'I -> -I': i1 = -1
+    elif ii == 'I -> J': i1 = 2
+    elif ii == 'I -> -J': i1 = -2
+    elif ii == 'I -> K': i1 = 3
+    elif ii == 'I -> -K': i1 = -3
     jj = VARS[1].get()
-    if (jj == 'J -> I'): j1 = 1
-    elif (jj == 'J -> -I'): j1 = -1
-    elif (jj == 'J -> J'): j1 = 2
-    elif (jj == 'J -> -J'): j1 = -2
-    elif (jj == 'J -> K'): j1 = 3
-    elif (jj == 'J -> -K'): j1 = -3
+    if jj == 'J -> I': j1 = 1
+    elif jj == 'J -> -I': j1 = -1
+    elif jj == 'J -> J': j1 = 2
+    elif jj == 'J -> -J': j1 = -2
+    elif jj == 'J -> K': j1 = 3
+    elif jj == 'J -> -K': j1 = -3
     kk = VARS[2].get()
-    if (kk == 'K -> I'): k1 = 1
-    elif (kk == 'K -> -I'): k1 = -1
-    elif (kk == 'K -> J'): k1 = 2
-    elif (kk == 'K -> -J'): k1 = -2
-    elif (kk == 'K -> K'): k1 = 3
-    elif (kk == 'K -> -K'): k1 = -3
+    if kk == 'K -> I': k1 = 1
+    elif kk == 'K -> -I': k1 = -1
+    elif kk == 'K -> J': k1 = 2
+    elif kk == 'K -> -J': k1 = -2
+    elif kk == 'K -> K': k1 = 3
+    elif kk == 'K -> -K': k1 = -3
     if abs(i1)+abs(j1)+abs(k1) != 6:
         CTK.TXT.insert('START', 'Reordering settings is invalid.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
@@ -70,7 +71,7 @@ def reorder():
                 #else: a = T.reorder(z, (-1,2,3), topTree=CTK.t)
                 T._reorder(z, (i1,j1,k1), topTree=CTK.t)
             CTK.replace(CTK.t, nob, noz, z)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
             
     if not fail:
@@ -89,19 +90,19 @@ def reorder():
 #==============================================================================
 def reorderAll():
     if CTK.t == []: return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     ii = VARS[0].get()
-    if (ii == 'I -> I'): i1 = 1
-    elif (ii == 'I -> -I'): i1 = -1
+    if ii == 'I -> I': i1 = 1
+    elif ii == 'I -> -I': i1 = -1
     try:
         CTK.saveTree()
         CTK.t = T.reorderAll(CTK.t, i1)
         CTK.TKTREE.updateApp()
         CTK.display(CTK.t)
         CTK.TXT.insert('START', 'All blocks reordered.\n')
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: reorderAll')
         CTK.TXT.insert('START', 'Reorder all fails.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
@@ -131,7 +132,7 @@ def makeDirect():
         try:
             a = T.makeDirect(z)
             CTK.replace(CTK.t, nob, noz, a)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
             
     if not fail:
@@ -147,9 +148,10 @@ def makeDirect():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkReorder', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Reorder blocks.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkReorder  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Reorder blocks.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -157,8 +159,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkReorder')
     WIDGETS['frameMenu'] = FrameMenu
 
@@ -197,11 +199,15 @@ def createApp(win):
 
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['BlockNoteBook'].add(WIDGETS['frame'], text='tkReorder')
+    except: pass
+    CTK.WIDGETS['BlockNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['BlockNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 def updateApp(): return
@@ -211,9 +217,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(FILE)

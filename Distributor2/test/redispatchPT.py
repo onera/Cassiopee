@@ -11,7 +11,7 @@ import Generator.PyTree as G
 N = 11
 t = C.newPyTree(['Base'])
 pos = 0
-for i in xrange(N):
+for i in range(N):
     a = G.cart((pos,0,0), (1,1,1), (10+i, 10, 10))
     pos += 10 + i - 1
     t[2][1][2].append(a)
@@ -32,7 +32,8 @@ a = Cmpi.readZones(a, 'in.cgns', rank=Cmpi.rank)
 (a, dic) = D2.distribute(a, NProc=Cmpi.size, algorithm='gradient1',
                          useCom='match')
 
-a = D2mpi.redispatch(a)
+Cmpi._convert2PartialTree(a)
+D2mpi._redispatch(a)
 
 # force toutes les zones sur 0
 zones = Internal.getNodesFromType(a, 'Zone_t')
@@ -40,7 +41,7 @@ for z in zones:
     nodes = Internal.getNodesFromName(z, 'proc')
     Internal.setValue(nodes[0], 0)
 
-a = D2mpi.redispatch(a)
+D2mpi._redispatch(a)
 
 # Reconstruit l'arbre complet a l'ecriture
 Cmpi.convertPyTree2File(a, 'out.cgns')

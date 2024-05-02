@@ -10,7 +10,7 @@ N = 11
 # Test raccords matchs
 t = C.newPyTree(['Base'])
 off = 0
-for i in xrange(N):
+for i in range(N):
     a = G.cart( (off,0,0), (1,1,1), (10+i, 10, 10) )
     off += 9+i
     t[2][1][2].append(a)
@@ -28,10 +28,10 @@ test.testT(t, 3)
 # avec overlap
 t = C.newPyTree(['Base'])
 off = 0
-for i in xrange(N):
+for i in range(N):
     a = G.cart( (off,0,0), (1,1,1), (10+i, 10, 10) )
-    a = C.addBC2Zone(a, 'overlap', 'BCOverlap', 'imin')
-    a = C.addBC2Zone(a, 'overlap', 'BCOverlap', 'imax')
+    C._addBC2Zone(a, 'overlap', 'BCOverlap', 'imin')
+    C._addBC2Zone(a, 'overlap', 'BCOverlap', 'imax')
     off += 9+i
     t[2][1][2].append(a)
 
@@ -47,7 +47,7 @@ test.testT(t, 6)
 # Avec zones qui se recouvrent
 t = C.newPyTree(['Base'])
 off = 0
-for i in xrange(N):
+for i in range(N):
     a = G.cart( (off,0,0), (1,1,1), (10+i, 10, 10) )
     off += 9+i
     t[2][1][2].append(a)
@@ -59,13 +59,19 @@ test.testT(t, 7)
 t = C.newPyTree(['Base'])
 off = 0
 weightDict={}
-for i in xrange(N):
+for i in range(N):
     a = G.cart( (off,0,0), (1,1,1), (10+i, 10, 10) )
     off += 9+i
     t[2][1][2].append(a)
-    weightDict[a[0]]=i+1
-    
+    weightDict[a[0]]=i+1    
 
 t, stats = D2.distribute(t, NProc=5, weight=weightDict,algorithm='gradient', useCom='bbox')
 test.testT(t,8)
 
+t2 = C.convertArray2Hexa(t)
+stats = D2._distribute(t2, NProc=5, weight=weightDict,algorithm='gradient', useCom='bbox', mode='cells')
+test.testT(t2,9)
+
+t2 = C.convertArray2NGon(t)
+stats = D2._distribute(t2, NProc=5, weight=weightDict,algorithm='gradient', useCom='bbox', mode='cells')
+test.testT(t2,10)

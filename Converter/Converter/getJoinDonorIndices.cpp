@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -35,15 +35,15 @@ PyObject* K_CONVERTER::getJoinDonorIndices(PyObject* self, PyObject* args)
   PyObject* arrayBorderI;
   E_Int T1, T2, T3;
   E_Int Direction, Dim, DimI, DimBI;
-  if (!PYPARSETUPLEI(args, "OOlllllll", "OOiiiiiii",
-			&arrayI, &arrayBorderI, &T1, &T2, &T3,
-			&Direction, &Dim, &DimI, &DimBI)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ IIII_ III_,
+			              &arrayI, &arrayBorderI, &T1, &T2, &T3,
+			              &Direction, &Dim, &DimI, &DimBI)) return NULL;
 
   // Get arrays
   PyArrayObject* ar = (PyArrayObject*)arrayI;
-  int* array = (int*)PyArray_DATA(ar);
+  E_Int* array = (E_Int*)PyArray_DATA(ar);
   PyArrayObject* arB = (PyArrayObject*)arrayBorderI;
-  int* arrayborder = (int*)PyArray_DATA(arB);
+  E_Int* arrayborder = (E_Int*)PyArray_DATA(arB);
   
   // Get integer values
   E_Int t1 = T1;
@@ -282,15 +282,11 @@ PyObject* K_CONVERTER::getJoinDonorIndices(PyObject* self, PyObject* args)
 
   // Convert vector<E_Int> listjoindonor in PyObject tpljoindonor
   E_Int size = listjoindonor.size();
-  PyObject * tpljoindonor;
+  PyObject* tpljoindonor;
   PyObject* l = PyList_New(0);
   for (E_Int i = 0; i < size; i++)
   {
-#ifdef E_DOUBLEINT
-    tpljoindonor = Py_BuildValue("l",long(listjoindonor[i]));
-#else
-    tpljoindonor = Py_BuildValue("i",listjoindonor[i]);
-#endif
+    tpljoindonor = Py_BuildValue(I_, listjoindonor[i]);
     PyList_Append(l, tpljoindonor);
     Py_DECREF(tpljoindonor);
   }

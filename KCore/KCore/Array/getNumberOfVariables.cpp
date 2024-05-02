@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -23,7 +23,7 @@
 /* Retourne le nombre de variables dans varString (style "a,b,c")
    IN: varString: la chaine de variables. */
 //=============================================================================
-E_Int K_ARRAY::getNumberOfVariables(char* varString)
+E_Int K_ARRAY::getNumberOfVariables(const char* varString)
 {
   E_Int lenString = strlen(varString);
 

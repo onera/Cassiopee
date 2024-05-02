@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -38,8 +38,8 @@ PyObject* K_GENERATOR::checkDelaunay(PyObject* self, PyObject* args)
   E_Int imc, jmc, kmc;
   FldArrayF* fc; FldArrayI* cnc;
   char* varStringc; char* eltTypec;
-  E_Int resc =  K_ARRAY::getFromArray(arrayc, varStringc, fc, imc, jmc, kmc,
-                                      cnc, eltTypec, true);
+  E_Int resc = K_ARRAY::getFromArray(arrayc, varStringc, fc, imc, jmc, kmc,
+                                     cnc, eltTypec, true);
   if (resc == 2)
   {
     if (strcmp(eltTypec, "BAR") != 0) 
@@ -75,7 +75,7 @@ PyObject* K_GENERATOR::checkDelaunay(PyObject* self, PyObject* args)
       return NULL;
     }
   }
-  else 
+  else
   {
     if (resd == 1) RELEASESHAREDS(arrayd, fd);
     RELEASESHAREDU(arrayc, fc, cnc);
@@ -156,10 +156,10 @@ PyObject* K_GENERATOR::checkDelaunay(PyObject* self, PyObject* args)
 
       // test coincidence 1-3
       E_Float dist13 = (xd3-xc1)*(xd3-xc1) + (yd3-yc1)*(yd3-yc1) + (zd3-zc1)*(zd3-zc1);
-      if ( K_FUNC::fEqualZero(dist13, eps) == true)
+      if (K_FUNC::fEqualZero(dist13, eps) == true)
       {
-        if ( K_FUNC::fEqualZero(dist21, eps) == true || 
-             K_FUNC::fEqualZero(dist22, eps) == true)
+        if (K_FUNC::fEqualZero(dist21, eps) == true || 
+            K_FUNC::fEqualZero(dist22, eps) == true)
         {found = 1; break;} //coincidence des 2 pts
       }
 

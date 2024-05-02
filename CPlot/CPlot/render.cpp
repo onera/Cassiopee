@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -32,7 +32,7 @@
 PyObject* K_CPLOT::render(PyObject* self, PyObject* args)
 {
   Data* d = Data::getInstance();
-  int count = 5000;
+  E_Int count = 5000;
   while (d->ptrState->render == 1 && count > 0)
   {
     static struct timeval tv;
@@ -43,5 +43,6 @@ PyObject* K_CPLOT::render(PyObject* self, PyObject* args)
   }
 
   d->ptrState->render = 1;
+  if (d->ptrState->offscreen > 0) d->ptrState->shootScreen = 1;
   return Py_BuildValue("i", KSUCCESS);
 }

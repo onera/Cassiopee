@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "../Data.h"
+#include "Data.h"
 
 #define PLOTNODE xi = x[i]; yi = y[i]; zi = z[i];               \
   dx = xi - xcam; dy = yi - ycam; dz = zi - zcam;               \
@@ -50,13 +50,13 @@
   IN: zone: le no de la zone dans la liste globale des zones
 */
 //=============================================================================
-void Data::displaySMeshZone(StructZone* zonep, int zone)
+void Data::displaySMeshZone(StructZone* zonep, E_Int zone)
 {
-  int i, n1, n2, j, k, plane;
-  int stepi, stepj, stepk;
-  int nis, njs, nks;
-  int nie, nje, nke;
-  int ret1, ret2, ret;
+  E_Int i, n1, n2, j, k, plane;
+  E_Int stepi, stepj, stepk;
+  E_Int nis, njs, nks;
+  E_Int nie, nje, nke;
+  E_Int ret1, ret2, ret;
 
   // Style colors
   float color1[3]; float color2[3];
@@ -64,11 +64,11 @@ void Data::displaySMeshZone(StructZone* zonep, int zone)
   // Colormap
   float r, g, b;
   void (*getrgb)(Data* data, double, float*, float*, float*);
-  getrgb = _plugins.colorMap->next->f;
+  getrgb = _plugins.zoneColorMap->f;
 
   // For node rendering (1D zones)
   double d;
-  double dref = 0.003;
+  double dref = 0.004;
   double xi, yi, zi;
   double viewMatrix[16];
   glGetDoublev(GL_MODELVIEW_MATRIX, viewMatrix);
@@ -89,18 +89,19 @@ void Data::displaySMeshZone(StructZone* zonep, int zone)
 
   E_Float nz = 1./_numberOfStructZones;
 #include "meshStyles.h"
-
-#include "selection.h"
   
   // Grid dimensions
-  int ni = zonep->ni;
-  int nj = zonep->nj;
-  int nk = zonep->nk;
+  E_Int ni = zonep->ni;
+  E_Int nj = zonep->nj;
+  E_Int nk = zonep->nk;
   if (ptrState->dim == 2) nk = 1;
-  int nij = ni*nj;
+  E_Int nij = ni*nj;
   
-  if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1) glLineWidth(3.);
-   
+  if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1) 
+  { glLineWidth(3.); color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1.; }
+
+#include "selection.h"
+ 
   d = dist2BB(_view.xcam, _view.ycam, _view.zcam,
               zonep->xmin, zonep->ymin, zonep->zmin,
               zonep->xmax, zonep->ymax, zonep->zmax);
@@ -113,24 +114,18 @@ void Data::displaySMeshZone(StructZone* zonep, int zone)
   // Zones 1D: on ajoute les noeuds
   if (nj*nk == 1 || ni*nk == 1 || ni*nj == 1)
   {
-    glBegin(GL_QUADS);  
+    glBegin(GL_QUADS);
     if (zonep->blank == 0)
     {
       // No blanking
-      for (i = 0; i < ni*nj*nk; i++)
-      {
-        PLOTNODE;
-      }
+      for (i = 0; i < ni*nj*nk; i++) { PLOTNODE; }
     }
     else
     {
       for (i = 0; i < ni*nj*nk; i++)
       {
         ret = _pref.blanking->f(this, i, zonep->blank, zone);
-        if (ret != 0)
-        {
-          PLOTNODE;
-        }
+        if (ret != 0) { PLOTNODE; }
       }
     }
     glEnd();

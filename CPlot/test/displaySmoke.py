@@ -9,4 +9,4 @@ a = C.convertArray2Hexa(a)
 a = CPlot.addRender2Zone(a, material='Smoke', color='White')
 t = C.newPyTree(['Base',a])
 
-CPlot.display(t, displayBB=0, mode=2)
+CPlot.display(t, mode=2)

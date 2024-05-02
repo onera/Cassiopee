@@ -1,11 +1,22 @@
+#version 400 compatibility
 // Metal (anisotropic)
-varying vec3 MCposition;
+/*varying vec3 MCposition;
 varying vec4 color;
 varying vec3 normal;
 varying vec3 tangent;
 varying vec3 light;
 varying vec3 eye;
-varying vec4 vertex;
+varying vec4 vertex;*/
+in V2F_OUT
+{
+    vec4 position;
+    vec4 mv_position;
+    vec4 mvp_position;
+    vec4 view_normal;
+    vec4 nrm_view_normal;
+    vec4 color;
+    vec4 vdata1, vdata2, vdata3, vdata4;
+} v2f_out;
 
 uniform vec3 intensity;
 uniform float bump;
@@ -15,10 +26,18 @@ uniform sampler2D ShadowMap;
 
 void main(void) 
 {
-  vec3 ambient = 0.001 * vec3(gl_LightSource[0].ambient);
+  vec3 MCposition = v2f_out.vdata1.xyz;
+  vec4 color      = v2f_out.color;
+  vec3 normal     = v2f_out.nrm_view_normal.xyz;
+  vec3 tangent    = v2f_out.vdata2.xyz;
+  vec3 light      = v2f_out.vdata3.xyz;
+  vec3 eye        = -v2f_out.mv_position.xyz;
+  vec4 vertex     = v2f_out.position;
+
+  vec3 ambient = 0.00001 * vec3(gl_LightSource[0].ambient);
   vec3 diffuse = 0.1 * vec3(gl_LightSource[0].diffuse); // 0.2
   vec3 specular = 0.7 * vec3(gl_LightSource[0].specular); // 0.6
-  float exponent = 0.5 * gl_FrontMaterial.shininess; // 0.5
+  float exponent = 0.4 * gl_FrontMaterial.shininess; // 0.5
 
   vec3 n = normalize(normal);
   vec3 t = normalize(tangent);
@@ -102,7 +121,12 @@ void main(void)
   float s = shadowCoordinateW.s;
   float t = shadowCoordinateW.t;      
   if (ShadowCoord.w > 0.0 && s > 0.001 && s < 0.999 && t > 0.001 && t < 0.999)
-      shadowValue = distanceFromLight < shadowCoordinateW.z ? 0.5 : 1.0;
+    {
+      //shadowValue = distanceFromLight < shadowCoordinateW.z ? 0.5 : 1.0;
+      if (distanceFromLight < shadowCoordinateW.z - 0.001) shadowValue = 0.5;
+      else if (distanceFromLight >= shadowCoordinateW.z) shadowValue = 1.;
+      else shadowValue = 500.*distanceFromLight-499.*shadowCoordinateW.z;
+    }  
   }
 
    gl_FragColor = shadowValue * color2;

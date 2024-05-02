@@ -1,5 +1,6 @@
 # - plot 1d data (plots) -
-import Tkinter as TK
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -28,7 +29,7 @@ def updateVar1NameList2(event=None):
     vars = C.getVarNames(CTK.t)
     vars[0] += ['s']
     if len(vars) == 0: return
-    if WIDGETS.has_key('var1'):
+    if 'var1' in WIDGETS:
         WIDGETS['var1']['values'] = vars[0]
 
 #==============================================================================
@@ -47,7 +48,7 @@ def updateVar2NameList2(event=None):
     vars = C.getVarNames(CTK.t)
     vars[0] += ['s']
     if len(vars) == 0: return
-    if WIDGETS.has_key('var2'):
+    if 'var2' in WIDGETS:
         WIDGETS['var2']['values'] = vars[0]
 
 #==============================================================================
@@ -71,7 +72,7 @@ def display1D(event=None):
     try:
         gridPos = VARS[2].get()
         grids = gridPos.split(';')
-        if (len(grids) == 1): gridPos = (int(grids[0]),1)
+        if len(grids) == 1: gridPos = (int(grids[0]),1)
         else: gridPos = (int(grids[0]), int(grids[1]))
     except: gridPos = (0,0)
 
@@ -95,12 +96,12 @@ def display1D(event=None):
             z = CTK.t[2][nob][2][noz]
             selected = CTK.t[2][nob][0]+'/'+z[0]
             points.append(selected)
-    elif (dir == 'I' or dir == 'J' or dir == 'K'): # indice -> recupere les indices + la zone
-        if (CTK.__MAINTREE__ <= 0):
+    elif dir == 'I' or dir == 'J' or dir == 'K': # indice -> recupere les indices + la zone
+        if CTK.__MAINTREE__ <= 0:
             CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error'); return
         nz = CPlot.getSelectedZone()
-        if (nz == -1):
+        if nz == -1:
             CTK.TXT.insert('START', 'Selection is empty.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error'); return
         points = []
@@ -270,9 +271,10 @@ def createApp(win):
 
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkPlot', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='My personal applet.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkPlot  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='My personal applet.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -281,8 +283,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
 
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkPlot')
@@ -291,13 +293,13 @@ def createApp(win):
     # - VARS -
     # -0- Direction -
     V = TK.StringVar(win); V.set('None'); VARS.append(V)
-    if CTK.PREFS.has_key('tkPlotDirection'): V.set(CTK.PREFS['tkPlotDirection'])
+    if 'tkPlotDirection' in CTK.PREFS: V.set(CTK.PREFS['tkPlotDirection'])
     # -1- grid size -
     V = TK.StringVar(win); V.set('3;3'); VARS.append(V)
-    if CTK.PREFS.has_key('tkPlotGridSize'): V.set(CTK.PREFS['tkPlotGridSize'])
+    if 'tkPlotGridSize' in CTK.PREFS: V.set(CTK.PREFS['tkPlotGridSize'])
     # -2- grid pos -
     V = TK.StringVar(win); V.set('0;0'); VARS.append(V)
-    if CTK.PREFS.has_key('tkPlotGridPos'): V.set(CTK.PREFS['tkPlotGridPos'])
+    if 'tkPlotGridPos' in CTK.PREFS: V.set(CTK.PREFS['tkPlotGridPos'])
     # -3- Var1
     V = TK.StringVar(win); V.set('CoordinateX'); VARS.append(V)
     # -4- Var2
@@ -384,7 +386,7 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    WIDGETS['frame'].grid(sticky=TK.NSEW)
 
 #==============================================================================
 # Called to hide widgets

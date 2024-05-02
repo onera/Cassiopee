@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -86,14 +86,17 @@ void K_IO::GenIO::convertEndianField(FldArrayF& field)
   E_Int np = field.getSize();
   E_Int nf = field.getNfld();
 
-  E_Float* f = field.begin();
-  for (E_Int i = 0; i < np*nf; i++)
+  for (E_Int n = 0; n < nf; n++)
   {
+    E_Float* f = field.begin(n+1);
+    for (E_Int i = 0; i < np; i++)
+    {
 #ifdef E_DOUBLEREAL
-    f[i] = DBE(f[i]);
+      f[i] = DBE(f[i]);
 #else
-    f[i] = FBE(f[i]);
+      f[i] = FBE(f[i]);
 #endif
+    }
   }
 }
 //=============================================================================
@@ -104,13 +107,16 @@ void K_IO::GenIO::convertEndianField(FldArrayI& field)
   E_Int np = field.getSize();
   E_Int nf = field.getNfld();
 
-  E_Int* f = field.begin();
-  for (E_Int i = 0; i < np*nf; i++)
+  for (E_Int n = 0; n < nf; n++)
   {
+    E_Int* f = field.begin(n+1);
+    for (E_Int i = 0; i < np; i++)
+    {
 #ifdef E_DOUBLEINT
       f[i] = LBE(f[i]);
 #else
       f[i] = IBE(f[i]);
 #endif
+    }
   }
 }

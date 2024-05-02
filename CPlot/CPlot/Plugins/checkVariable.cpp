@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -25,9 +25,9 @@
   If variable is not found return -1.
 */
 //=============================================================================
-int Data::checkVariable(int zone, const char* varName)
+E_Int Data::checkVariable(E_Int zone, const char* varName)
 {
-  int i;
+  E_Int i;
   Zone* z = _zones[zone];
   for (i = 0; i < z->nfield; i++)
   {

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -26,18 +26,45 @@ static PyMethodDef PyrigidMotion [] =
 {
   {"move", K_RIGIDMOTION::move, METH_VARARGS},
   {"moveN", K_RIGIDMOTION::moveN, METH_VARARGS},
+  {"evalGridMotionN", K_RIGIDMOTION::evalGridMotionN, METH_VARARGS},
+  {"evalSpeed3", K_RIGIDMOTION::evalSpeed3, METH_VARARGS},
+  {"_computeRotorMotionZ", K_RIGIDMOTION::_computeRotorMotionZ, METH_VARARGS},
+  {"_computeRotorMotionInfo", K_RIGIDMOTION::_computeRotorMotionInfo, METH_VARARGS},
+  {"copyCoords", K_RIGIDMOTION::copyCoords, METH_VARARGS},
   {NULL, NULL}
 };
+
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "rigidMotion",
+        NULL,
+        -1,
+        PyrigidMotion
+};
+#endif
 
 // ============================================================================
 /* Init of module */
 // ============================================================================
 extern "C"
 {
+#if PY_MAJOR_VERSION >= 3
+  PyMODINIT_FUNC PyInit_rigidMotion();
+  PyMODINIT_FUNC PyInit_rigidMotion()
+#else
   PyMODINIT_FUNC initrigidMotion();
   PyMODINIT_FUNC initrigidMotion()
+#endif
   {
-    Py_InitModule("rigidMotion", PyrigidMotion);
     import_array();
+#if PY_MAJOR_VERSION >= 3
+    PyObject* module = PyModule_Create(&moduledef);
+#else
+    Py_InitModule("rigidMotion", PyrigidMotion);
+#endif
+#if PY_MAJOR_VERSION >= 3
+    return module;
+#endif
   }
 }

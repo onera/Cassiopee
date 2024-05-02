@@ -1,6 +1,5 @@
-#!/bin/sh
+#! /bin/sh
 echo 'Installing Geom tests and doc'
-
 if ([ $# -eq 0 ])
 then
     if [ "$CASSIOPEE" = "" ]; then
@@ -28,7 +27,7 @@ elif ([ $# -eq 2 ])
 then
     PRODUCTION=1
     # Destination docs
-    DEST="$CASSIOPEE/UserGuides"
+    DEST="$CASSIOPEE/WWW/cassiopee-web"
     # Destination tests unitaires
     DEST2="$DEST/Examples/Geom"
     # Destination des release notes
@@ -39,53 +38,76 @@ else
     exit
 fi
 
-# Nom du fichier doc
-DOC=Geom
-
-# Creation des repertoires de destination
-if test ! -e $DEST
-then 
-    mkdir $DEST
-fi
-if test ! -e "$DEST/Examples"
-then 
-    mkdir "$DEST/Examples"
-fi
-if test ! -e $DEST2
-then 
-    mkdir $DEST2
-fi
-if test ! -e $DEST3
-then 
-    mkdir $DEST3
-fi
-
-# copie de la doc html
-cp $DOC.html $DEST
-
-# Production + copie des tests unitaires
+# Copy examples to global dir (production mod)
 if ([ $PRODUCTION -eq 1 ])
 then
-    LOCAL=`pwd`
-    cd $DEST
-    if test ! -e Latex
-    then
-        mkdir Latex
+    if test ! -e $DEST
+    then 
+        mkdir $DEST
     fi
-    python parseDoc.py $DOC.html Latex/$DOC.tex
-    cd Latex ; compile $DOC > out ; cd $LOCAL
-    cp $DEST/Latex/$DOC.pdf .
-else
+    if test ! -e "$DEST/Examples"
+    then 
+        mkdir "$DEST/Examples"
+    fi
+    if test ! -e $DEST2
+    then 
+        mkdir $DEST2
+    fi
+    if test ! -e $DEST3
+    then 
+        mkdir $DEST3
+    fi
     cp ../test/*.py $DEST2
-    if test -f $DOC.pdf
-    then
-        cp *.pdf $DEST
-    fi
+fi
+
+# Create Links for Examples (local)
+if test ! -e build
+then
+    mkdir build
+fi
+cd build
+if test ! -e Examples
+then
+    mkdir Examples
+    ln -s $CASSIOPEE/Apps/Modules/Geom/test Examples/Geom
+fi
+cd ..
+
+# Build html
+touch source/*.rst
+sphinx-build -b html ./source ./build
+
+if ([ $PRODUCTION -eq 1 ])
+then
+# Build pdf
+    sphinx-build -b latex ./source ./build
+    cd build
+    pdflatex Geom >& /dev/null
+    pdflatex Geom_IBM >& /dev/null 
+    cd ..
+fi
+
+# Copie dans le DEST
+if ([ $PRODUCTION -eq 1 ])
+then
+    taghtml build/Geom.html
+    sed -i 's/Geom.Geom/Geom/g' build/Geom.html
+    cp build/Geom.html $DEST
+    cp build/Geom.pdf $DEST
+
+    taghtml build/Geom_IBM.html
+    sed -i 's/Geom.Geom_IBM.Geom.Geom_IBM/Geom.Geom_IBM/g' build/Geom_IBM.html
+    sed -i 's/Geom\.pdf/Geom_IBM\.pdf/g' build/Geom_IBM.html
+    cp build/Geom_IBM.html $DEST
+    cp build/Geom_IBM.pdf $DEST
 fi
 
 # Copie des release Notes
-version=`grep -e __version__ ../Geom/Geom.py`
-version1=${version:15:10}
-version1=${version1/"'"/""}
-v='Geom-'$version1'.txt'
-cp Geom.txt $DEST3/$v
+if ([ $PRODUCTION -eq 1 ])
+then
+    version=`grep -e __version__ ../Geom/Geom.py`
+    version1=${version:15:4}
+    version1=${version1/"'"/""}
+    v='Geom-'$version1'.txt'
+    cp Geom.txt $DEST3/$v
+fi

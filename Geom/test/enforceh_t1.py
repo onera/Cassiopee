@@ -25,7 +25,7 @@ A = [a,b,c]
 A = C.convertArray2Hexa(A)
 a = T.join(A)
 a = D.enforceh(a, N=100)
-C.convertArrays2File(a, 'out.plt')
+#C.convertArrays2File(a, 'out.plt')
 test.testA([a],2)
 
 # Circle (STRUCT)

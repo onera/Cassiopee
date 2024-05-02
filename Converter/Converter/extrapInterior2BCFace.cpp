@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -21,6 +21,7 @@
 # include "converter.h"
 using namespace K_FLD;
 using namespace std;
+
 //=============================================================================
 /* set values in BCFace by extrapolation from interior */
 //=============================================================================
@@ -30,7 +31,7 @@ PyObject* K_CONVERTER::extrapInterior2BCFaceStruct(PyObject* self, PyObject* arg
   PyObject *zone, *dataBC;
   E_Int Loc;
   char* varname; char *GridCoordinates, *FlowSolutionNodes, *FlowSolutionCenters;
-  if (!PYPARSETUPLEI(args, "OOlllllllssss", "OOiiiiiiissss", 
+  if (!PYPARSETUPLE_(args, OO_ IIII_ III_ SSSS_, 
                      &zone, &dataBC, &imin, &imax, &jmin, &jmax, &kmin, &kmax, 
                      &Loc, &varname, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters)) return NULL;
 

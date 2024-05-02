@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -61,8 +61,9 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh( PyObject* self,
                                            PyObject* args )
 {
   PyObject* array;
+  E_Int method;
 
-  if ( !PyArg_ParseTuple(args, "O", &array) ) return NULL;
+  if ( !PYPARSETUPLE_(args, O_ I_, &array, &method) ) return NULL;
   
   // Check array
   E_Int im, jm, km;
@@ -123,7 +124,7 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh( PyObject* self,
 
       // calcul du volume
       if (dim == 1)
-	k6structsurf1dt_(
+        k6structsurf1dt_(
           im, jm , km , 
           xt, yt, zt, volap);
       else if (dim == 2)
@@ -177,13 +178,15 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh( PyObject* self,
         {
           E_Int* cn1 = cn->begin(1);
           E_Int* cn2 = cn->begin(2);
+          E_Int ind1, ind2;
+          E_Float dx, dy, dz;
           for (E_Int i = 0; i < nelts; i++)
           {
-            E_Int ind1 = cn1[i]-1; 
-            E_Int ind2 = cn2[i]-1;
-            E_Float dx = xt[ind2]-xt[ind1];
-            E_Float dy = yt[ind2]-yt[ind1];
-            E_Float dz = zt[ind2]-zt[ind1];
+            ind1 = cn1[i]-1; 
+            ind2 = cn2[i]-1;
+            dx = xt[ind2]-xt[ind1];
+            dy = yt[ind2]-yt[ind1];
+            dz = zt[ind2]-zt[ind1];
             fieldp[i] = sqrt(dx*dx + dy*dy + dz*dz);
           }
         }
@@ -233,7 +236,17 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh( PyObject* self,
         FldArrayI cnn(cn->getSize(), 1, cnnp, true); cnn = *cn;
         
         // compute array vol which store volume at element centers
-        E_Int err = K_METRIC::CompNGonVol(xt,yt,zt,*cn,volp);
+        E_Int err;
+        if (method == 0)
+          err = K_METRIC::CompNGonVol(xt,yt,zt,*cn,volp);
+        else if (method == 1)
+          err = K_METRIC::compute_volumes_ngon(xt, yt, zt, *cn, volp);
+        else {
+          PyErr_SetString(PyExc_ValueError,
+                          "getVolumeMap: wrong method (should be 0 or 1).");
+          RELEASESHAREDU(array, f, cn);
+          return NULL;
+        }
 
         // sortie si une erreur a ete trouvee
         if (err == 1)

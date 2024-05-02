@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -71,7 +71,7 @@ PyObject* K_CPLOT::add(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, 
                                      ni, nj, nk, cn, eltType);
 
   if (res != 1 && res != 2) 
@@ -103,8 +103,20 @@ PyObject* K_CPLOT::add(PyObject* self, PyObject* args)
   UnstructZone** uzonesp = d->_uzones;
 
   Zone* referenceZone = NULL;
-  if (numberOfZones > 0) referenceZone = zonesp[0];
-
+  E_Int referenceNfield = -1;
+  char** referenceVarNames = NULL;
+  if (numberOfZones > 0)
+  {
+    referenceZone = zonesp[0];
+    referenceNfield = referenceZone->nfield;
+    referenceVarNames = new char* [referenceNfield];
+    for (E_Int i = 0; i < referenceNfield; i++) 
+    {
+      referenceVarNames[i] = new char [MAXSTRINGLENGTH];
+      strcpy(referenceVarNames[i], referenceZone->varnames[i]);
+    } 
+  }
+  
   // malloc nouveaux pointeurs (copie)
   Zone** zones = (Zone**)malloc(numberOfZones*sizeof(Zone*));
   for (E_Int i = 0; i < numberOfZones; i++) zones[i] = d->_zones[i];
@@ -112,9 +124,8 @@ PyObject* K_CPLOT::add(PyObject* self, PyObject* args)
   // Creations d'une nouvelle zone structuree
   if (res == 1)
   {
-    if (zoneNameI != NULL) 
-    { strcpy(zoneName, zoneNameI); delete [] zoneNameI; }
-    else sprintf(zoneName, "S-Zone %d", nzs);
+    if (zoneNameI != NULL) { strcpy(zoneName, zoneNameI); delete [] zoneNameI; }
+    else sprintf(zoneName, "S-Zone " SF_D_, nzs);
     
     posx = K_ARRAY::isCoordinateXPresent(varString);
     posy = K_ARRAY::isCoordinateYPresent(varString);
@@ -124,13 +135,14 @@ PyObject* K_CPLOT::add(PyObject* self, PyObject* args)
       d->createStructZone(f, varString,
                           posx+1, posy+1, posz+1,
                           ni, nj, nk,
-                          zoneName, zoneTagI, referenceZone);
+                          zoneName, zoneTagI, 
+                          referenceNfield, referenceVarNames, 1);
     insertAfterNz(zonesp, numberOfZones, zones, nzs, zz);
   }
   else // res=2
   {
     if (zoneNameI != NULL) { strcpy(zoneName, zoneNameI); delete [] zoneNameI; }
-    else sprintf(zoneName, "U-Zone %d", nzu);
+    else sprintf(zoneName, "U-Zone " SF_D_, nzu);
     
     posx = K_ARRAY::isCoordinateXPresent(varString);
     posy = K_ARRAY::isCoordinateYPresent(varString);
@@ -140,7 +152,8 @@ PyObject* K_CPLOT::add(PyObject* self, PyObject* args)
       d->createUnstrZone(f, varString,
                          posx+1, posy+1, posz+1,
                          cn, eltType,
-                         zoneName, zoneTagI, referenceZone);
+                         zoneName, zoneTagI, 
+                         referenceNfield, referenceVarNames, 1);
     insertAfterNz(zonesp, numberOfZones, zones, numberOfStructZones+nzu, zz);
   }
 
@@ -172,6 +185,35 @@ PyObject* K_CPLOT::add(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < numberOfUnstructZones; i++)
     zones[i+numberOfStructZones] = uzones[i];
 
+  // update de la liste des deactivatedZones
+  if (d->ptrState->deactivatedZones != NULL) // la numerotation change que si la zone change de type
+  {
+    int* old2new = new int [d->_numberOfZones];
+    if (res == 1) // structure en plus a la fin des structures
+    {
+      for (E_Int i = 0; i < nzs; i++) old2new[i] = i;
+      for (E_Int i = nzs+1; i < d->_numberOfZones; i++) old2new[i] = i+1;
+    }
+    else if (res == 2) // non structure en plus a la fin des non structures
+    {
+      for (E_Int i = 0; i < d->_numberOfZones; i++) old2new[i] = i;
+    }
+    // decale la liste deactivatedZones a cause de l'insertion
+    chain_int* c = d->ptrState->deactivatedZones;
+    E_Int oldn, newn;
+    while (c != NULL)
+    {
+      oldn = c->value-1;
+      oldn = MIN(oldn, d->_numberOfZones-1); // securite
+      newn = old2new[oldn];
+      c->value = newn+1; 
+      c = c->next;
+    }
+    delete [] old2new;
+    //d->ptrState->printDeactivatedZones();
+    //d->ptrState->clearDeactivatedZones();
+  }
+
   // Switch - Dangerous zone protegee par _state.lock
   if (d->ptrState->selectedZone >= numberOfZones)
     d->ptrState->selectedZone = 0; // RAZ selected zone
@@ -191,9 +233,12 @@ PyObject* K_CPLOT::add(PyObject* self, PyObject* args)
   globFMinMax(d->_zones, d->_numberOfZones, d->minf, d->maxf);
   
   free(szonesp); free(uzonesp); free(zonesp);
-
+  
   // Free the input array
   RELEASESHAREDB(res, array, f, cn);
+
+  for (E_Int i = 0; i < referenceNfield; i++) delete [] referenceVarNames[i];
+  delete [] referenceVarNames;
 
   return Py_BuildValue("i", KSUCCESS);
 }

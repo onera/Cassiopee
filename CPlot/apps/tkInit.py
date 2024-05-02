@@ -1,11 +1,12 @@
 # - tkInit -
-import Tkinter as TK
+"""Initialize flow fields."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import CPlot.Panels as Panels
-import Initiator.PyTree as I
 import Converter.Internal as Internal
 import Dist2Walls.PyTree as DW
 
@@ -16,15 +17,15 @@ WIDGETS = {}; VARS = []
 def initWallDistance():
     if CTK.t == []: return
     bodies = C.extractBCOfType(CTK.t, 'BCWall')
-    for c in xrange(len(bodies)):
+    for c in range(len(bodies)):
         try: bodies[c] = C.node2ExtCenter(bodies[c])
         except: pass
     tb = C.newPyTree(['Base', 2]); tb[2][1][2] += bodies
-    CTK.saveTree() 
+    CTK.saveTree()
     try:
         CTK.t = DW.distance2Walls(CTK.t, tb, loc='centers', type='ortho')
         CTK.TXT.insert('START', 'Distance to wall computed.\n')
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: wallDistance')
         CTK.TXT.insert('START', 'Wall distance fails.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
@@ -45,9 +46,9 @@ def initSolution():
     Model = 'NSTurbulent'
     if eqs is not None: Model = Internal.getValue(eqs)
 
-    vars = ['Density', 'MomentumX', 'MomentumY', 'MomentumZ',
+    zvars = ['Density', 'MomentumX', 'MomentumY', 'MomentumZ',
             'EnergyStagnationDensity']
-    for v in vars:
+    for v in zvars:
         node = Internal.getNodeFromName(state, v)
         if node is not None:
             val = float(node[1][0])
@@ -57,9 +58,9 @@ def initSolution():
             CTK.TXT.insert('START', 'Error: ', 'Error')
             return
     if Model == 'NSTurbulent':
-        vars = ['TurbulentSANuTildeDensity', 'TurbulentEnergyKineticDensity',
+        zvars = ['TurbulentSANuTildeDensity', 'TurbulentEnergyKineticDensity',
                 'TurbulentDissipationDensity']
-        for v in vars:
+        for v in zvars:
             node = Internal.getNodeFromName(state, v)
             if node is not None:
                 val = float(node[1][0])
@@ -75,17 +76,18 @@ def initSolution():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkInit', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Init solution fields.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkInit  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Init solution fields.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkInit')
     WIDGETS['frameMenu'] = FrameMenu
 
@@ -109,13 +111,17 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['SolverNoteBook'].add(WIDGETS['frame'], text='tkInit')
+    except: pass
+    CTK.WIDGETS['SolverNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['SolverNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -127,9 +133,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
 
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

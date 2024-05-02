@@ -1,0 +1,195 @@
+#! /bin/bash
+# Lancement de python en parallele
+# kpython -n 2 script.py: lance 2 process, choisit le nbre de threads en fonction de la ressource
+# kpython -n2 -t4 script.py: lance 2 process avec 4 threads chacuns
+# kpython -a "env::" -n2 script.py: lance mpirun avec une option supplementaire
+# kpython -p: ajoute un profiling python
+if ([ $# -eq 0 ])
+then
+    echo 'kpython -n 5 -t 2 script.py'
+    exit 1
+fi
+
+# executable python
+if [ "$PYTHONEXE" = "" ]; then
+    PYTHONEXE=python
+fi
+
+# OMP_NUM_THREADS init
+if [ -z "$OMP_NUM_THREADS" ]
+then
+    OMPNUMTHREADSINIT=$OMP_NUM_THREADS
+else
+    OMPNUMTHREADSINIT="1"
+fi
+
+# Ressources
+ncpu=$(grep processor /proc/cpuinfo |tail -1 |cut -f2 -d: )
+if [ -z "$ncpu" ]
+then
+    ncpu=$OMP_NUM_THREADS
+else
+    ncpu=$((ncpu + 1 ))    
+fi
+
+if [ -z "$ELSAPROD" ]
+then
+    ELSAPROD=""
+fi
+
+NPROCS="0"
+NTHREADS="0"
+ARGS=""
+while getopts hpn:t:a: OPTION
+do
+     case $OPTION in
+         h)
+             echo 'kpython -n 5 -t 2 script.py'      
+             exit 1
+             ;;
+         n)
+             if [[ ${OPTARG:0:1} == "p" ]]
+             then
+                NPROCS=${OPTARG:1}
+             else
+                NPROCS=$OPTARG
+             fi
+             ;;
+         t)
+             NTHREADS=$OPTARG
+             ;;
+         a)
+             ARGS+=$OPTARG
+             ;;
+         p) 
+             ARGS+="-m cProfile -s tottime"
+             ;;
+     esac
+done
+shift $((OPTIND-1))
+SCRIPT=$*
+
+# Machine avec remote GL (utilisant virtual GL)
+if command -v xdpyinfo &> /dev/null
+then
+    xdpyinfo | grep VNC > /dev/null
+    if [ $? -eq 0 ]; then
+        cat $SCRIPT | grep "offscreen=1" > /dev/null
+        if [ $? -ne 0 ]; then
+            cat $SCRIPT | grep "offscreen=7" > /dev/null
+            if [ $? -ne 0 ]; then
+                cat $SCRIPT | grep "offscreen=5" > /dev/null
+                if [ $? -ne 0 ]; then
+                    PYTHONEXE='vglrun '$PYTHONEXE
+                fi
+            fi
+        fi
+    fi
+fi
+
+if [ $NTHREADS == "0" ]
+then
+    if [ $NPROCS != "0" ]
+    then
+        NTHREADS=`expr $ncpu / $NPROCS`
+    else
+        NTHREADS=`expr $ncpu`
+    fi
+    if [ $NTHREADS == "0" ]
+    then
+        NTHREADS=1
+    fi
+fi
+echo 'Running '$SCRIPT' with Nprocs='$NPROCS' and Nthreads='$NTHREADS
+
+if [ $NPROCS == "0" ]
+then
+    export MPIRUN=0
+    export OMP_NUM_THREADS=$NTHREADS
+    $PYTHONEXE $ARGS $SCRIPT
+    export OMP_NUM_THREADS=$OMPNUMTHREADSINIT
+    unset MPIRUN
+else
+    export MPIRUN=1
+    export OMP_NUM_THREADS=$NTHREADS
+    if [ $ELSAPROD == 'x86_r8' ] # eos
+    then
+        set -x
+        # openMpi
+        #mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
+        # intelMpi
+        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l $PYTHONEXE $SCRIPT $NPROCS
+        set +x
+        [ $? != 0 ] && exit 1;
+    elif [ $ELSAPROD == 'aus_r8' ] # austri
+    then
+        set -x
+        # intelMpi
+        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l $PYTHONEXE $SCRIPT $NPROCS
+        set +x
+        [ $? != 0 ] && exit 1;
+    elif [ $ELSAPROD == 'sat_r8' ] # sator
+    then
+        set -x
+        # intelMpi
+        mpirun $ARGS -n $NPROCS -l -ordered-output $PYTHONEXE $SCRIPT $NPROCS
+        set +x
+        [ $? != 0 ] && exit 1;
+    elif [ $ELSAPROD == 'sat_cas_r8' ] # sator-new
+    then
+        set -x
+        # intelMpi
+        mpirun $ARGS -n $NPROCS -l -ordered-output $PYTHONEXE $SCRIPT $NPROCS
+        set +x
+        [ $? != 0 ] && exit 1;
+    elif [ $ELSAPROD == 'spiro_el8' ] || [ $ELSAPROD == 'spiro_amdrm_r8' ] || [ $ELSAPROD == 'spiro_amdnp_r8' ] || [ $ELSAPROD == 'spiro_sky_r8' ] || [ $ELSAPROD == 'spiro_cas_r8' ] # spiro
+    then
+    set -x
+        # intelMpi
+        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l -ordered-output $PYTHONEXE $SCRIPT $NPROCS
+        set +x
+        [ $? != 0 ] && exit 1;
+    elif [ $ELSAPROD == 'juno' ] # juno
+    then
+    set -x
+        # intelMpi
+        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l -ordered-output $PYTHONEXE $SCRIPT $NPROCS
+        set +x
+        [ $? != 0 ] && exit 1;
+    elif [ $ELSAPROD == 'stv_r8' ] # stelvio
+    then
+        set -x
+        # intelMpi
+        mptrun $ARGS -omp $NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
+        set +x
+        [ $? != 0 ] && exit 1;
+    elif [ $ELSAPROD == 'cob_r8' ] # cobalt
+    then
+        set -x
+        export OMP_NUM_THREADS=$NTHREADS
+        ccc_mprun -n $NPROCS $PYTHONEXE $SCRIPT
+        set +x
+        [ $? != 0 ] && exit 1;
+    elif [ $ELSAPROD == 'msys64' ] # MSYS 2 With Win64 production
+    then
+        set -x
+	    # MSMPI
+	    mpiexec $ARGS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
+        set +x    
+        [ $? != 0 ] && exit 1;
+    elif [ $ELSAPROD == 'win64' ] # MSYS 2 With Win64 production
+    then
+        set -x
+	    # MSMPI
+	    mpiexec $ARGS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
+        set +x
+        [ $? != 0 ] && exit 1;
+    else
+        set -x
+        mpirun $ARGS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
+        set +x
+        [ $? != 0 ] && exit 1;
+    fi
+    unset MPIRUN
+    export OMP_NUM_THREADS=$OMPNUMTHREADSINIT
+fi

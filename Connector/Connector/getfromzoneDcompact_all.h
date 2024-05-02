@@ -1,21 +1,84 @@
-       PyObject* sol;  PyObject* t; PyObject* t2;
-       //if( loc==0) { sol = K_PYTREE::getNodeFromName1(zoneD , "FlowSolution#Centers"); }
-       //else        { sol = K_PYTREE::getNodeFromName1(zoneD , "FlowSolution"        ); }    
+       PyObject* sol; PyObject* t; PyObject* t2;
        
+       ipt_roD_vert[nd]= NULL; ipt_qD_vert[nd]= NULL; ipt_SD_vert[nd]= NULL; ipt_psiGD_vert[nd]=NULL;
        sol = K_PYTREE::getNodeFromName1(zoneD , "FlowSolution#Centers");
        if (sol != NULL)
        {  
-          t  = K_PYTREE::getNodeFromName1(sol, varname );
-         ipt_roD_vert[nd] = K_PYTREE::getValueAF(t, hook);
+           for (E_Int ivar = 0; ivar < nbvar_inlist; ivar++)
+            {
+               if (ivar==0)
+                 { t           = K_PYTREE::getNodeFromName1(sol, varname );
+                   ipt_roD_vert[nd] = K_PYTREE::getValueAF(t, hook);
+                 }
+               else if (ivar==1)
+                 { t = K_PYTREE::getNodeFromName1(sol, varname1);
+                   if (t != NULL) ipt_qD_vert[nd] = K_PYTREE::getValueAF(t, hook);
+                 }
+               else if (ivar==2)
+                 { t = K_PYTREE::getNodeFromName1(sol, varname2);
+                   if (t != NULL) ipt_SD_vert[nd] = K_PYTREE::getValueAF(t, hook);
+                 }
+               else if (ivar==3)
+                 { t = K_PYTREE::getNodeFromName1(sol, varname3);
+                   if (t != NULL) ipt_psiGD_vert[nd] = K_PYTREE::getValueAF(t, hook);
+                 }
+            }
        }
-       else { ipt_roD_vert[nd]= NULL; } 
+
+       ipt_roD[nd]= NULL; ipt_qD[nd]= NULL; ipt_SD[nd]= NULL; ipt_psiGD[nd]= NULL;
        sol = K_PYTREE::getNodeFromName1(zoneD , "FlowSolution");
        if (sol != NULL)
-       {  
-         t  = K_PYTREE::getNodeFromName1(sol, varname );
+       { 
+           for (E_Int ivar = 0; ivar < nbvar_inlist; ivar++)
+            {
+               if (ivar==0)
+                 { t           = K_PYTREE::getNodeFromName1(sol, varname );
+                   ipt_roD[nd] = K_PYTREE::getValueAF(t, hook);
+                 }
+               else if (ivar==1)
+                 { t = K_PYTREE::getNodeFromName1(sol, varname1);
+                   if (t != NULL) ipt_qD[nd] = K_PYTREE::getValueAF(t, hook);
+                 }
+               else if (ivar==2)
+                 { t = K_PYTREE::getNodeFromName1(sol, varname2);
+                   if (t != NULL) ipt_SD[nd] = K_PYTREE::getValueAF(t, hook);
+                 }
+               else if (ivar==3)
+                 { t = K_PYTREE::getNodeFromName1(sol, varname3);
+                   if (t != NULL) ipt_psiGD[nd] = K_PYTREE::getValueAF(t, hook);
+                 }
+            }
+          /*
+         t           = K_PYTREE::getNodeFromName1(sol, varname );
          ipt_roD[nd] = K_PYTREE::getValueAF(t, hook);
+         if (vartype==5)
+         { ipt_qD[nd] = NULL;
+            t = K_PYTREE::getNodeFromName1(sol, varname1);
+            if (t != NULL) ipt_qD[nd] = K_PYTREE::getValueAF(t, hook);
+
+            ipt_SD[nd] = NULL;
+            t = K_PYTREE::getNodeFromName1(sol, varname2);
+            if (t != NULL) ipt_SD[nd] = K_PYTREE::getValueAF(t, hook);
+         }
+         else if (vartype==4)
+         { ipt_qD[nd] = NULL;
+            t = K_PYTREE::getNodeFromName1(sol, varname1);
+            if (t != NULL) ipt_qD[nd] = K_PYTREE::getValueAF(t, hook);
+         }
+         else if (vartype==41)
+         { ipt_SD[nd] = NULL;
+            t = K_PYTREE::getNodeFromName1(sol, varname1);
+            if (t != NULL) ipt_SD[nd] = K_PYTREE::getValueAF(t, hook);
+
+            ipt_psiGD[nd] = NULL;
+            t = K_PYTREE::getNodeFromName1(sol, varname2);
+            if (t != NULL) ipt_psiGD[nd] = K_PYTREE::getValueAF(t, hook);
+
+            ipt_qD[nd] = NULL;
+            t = K_PYTREE::getNodeFromName1(sol, varname3);
+            if (t != NULL) ipt_qD[nd] = K_PYTREE::getValueAF(t, hook);
+         }*/
        }
-       else { ipt_roD[nd]= NULL; } 
 
        // Types valides: 0, 1, 2, 3, 4, 5 
        char* type; E_Int s, s0, s1;  E_Int* d;
@@ -26,11 +89,11 @@
         d  =  K_PYTREE::getValueAI(zoneD, s0, s1, hook);
         if (K_STRING::cmp(type, s, "Structured") == 0)
         { 
-          meshtype = 1; E_Int shift = 0;// if(loc == 0) shift =1;
+          meshtype = 1; //E_Int shift = 0; if(loc == 0) shift =1;
           ipt_ndimdxD[nd+ nidomD*6] = meshtype;
           
           if  (s0 == 1){ ipt_ndimdxD[nd+ nidomD  ]= d[0]; ipt_ndimdxD[nd+ nidomD*2]=  1 ; kmd=1   ; ipt_ndimdxD[nd          ]= d[0];  
-                               ipt_ndimdxD[nd+ nidomD*4]= d[3]; ipt_ndimdxD[nd+ nidomD*5]=  1 ; kmd=1   ; ipt_ndimdxD[nd+ nidomD*3]= d[3];
+                         ipt_ndimdxD[nd+ nidomD*4]= d[3]; ipt_ndimdxD[nd+ nidomD*5]=  1 ; kmd=1   ; ipt_ndimdxD[nd+ nidomD*3]= d[3];
                             }
           else if (s0 == 2){ ipt_ndimdxD[nd+ nidomD  ]= d[0]; ipt_ndimdxD[nd+ nidomD*2]=d[1]; kmd=1   ; ipt_ndimdxD[nd          ]= d[0]*d[1];  
                              ipt_ndimdxD[nd+ nidomD*4]= d[3]; ipt_ndimdxD[nd+ nidomD*5]=d[4]; kmd=1   ; ipt_ndimdxD[nd+ nidomD*3]= d[3]*d[4];
@@ -58,6 +121,7 @@
            vector<PyObject*> ln;
            K_PYTREE::getNodesFromType1(zoneD, "Elements_t", ln);
            E_Int size = ln.size();
+           cnNfldD = -1; // must be set
            //printf("size %d\n", size);
            for (E_Int i = 0; i < size; i++)
            {
@@ -120,7 +184,8 @@
                      ptrcnd  = NULL;
                      break;
             
-                   default: break;
+                   default: 
+                     break;
                  }
                }
              }  // loop size

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -20,8 +20,8 @@
 // Outils pour l'octree
 
 # include "generator.h"
-# include "Search/BbTree.h"
-# include "Fld/ArrayAccessor.h"
+# include "Nuga/include/BbTree.h"
+# include "Nuga/include/ArrayAccessor.h"
 
 //=============================================================================
 /* Recuperation des elements voisins par arete, avec prise en compte de la non
@@ -313,6 +313,12 @@ E_Int K_GENERATOR::getNeighbourQuads2(
     }// fin et2
   }// fin et1
   }
+
+  for (E_Int et = 0; et < nelts; et++)
+  {
+    delete boxes[et];
+  }
+
   delete bbtree;
   return 1;
 }
@@ -606,7 +612,8 @@ K_GENERATOR::mergeOctreeElement(E_Int et, E_Int npts, E_Float indic,
       return 1;
     }
   }
-  printf("Error: mergeElement: too many candidates (%d) to merge with element %d. Check the octree.\n", ncandidats, et+1);
+  printf("Error: mergeElement: too many candidates (" SF_D_ ") to merge with element " SF_D_ ". Check the octree.\n",
+         ncandidats, et+1);
   
   return -1;
 }

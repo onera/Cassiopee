@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -18,9 +18,13 @@
 */
 #ifndef _CPLOT_SHADERMANAGER_HPP_
 #define _CPLOT_SHADERMANAGER_HPP_
+#include <cassert>
 #include <map>
 #include <vector>
+
+#include <iostream>
 #include "Shader.h"
+#include "TesselationShaderManager.hpp"
 
 // prepare the shadow texture
 #define SHADOWTEXTURE if (ptrState->shadow > 0) {          \
@@ -57,19 +61,19 @@ namespace CPlot
     Shader* addFromFile(const char* geomFile, const char* vertexFile, const char* fragmentFile);
 
     bool eraseShader(Shader* obj);
-    unsigned short numberOfShaders() const
-    { return (unsigned short)_shaderList.size(); }
-    unsigned short currentShader()
-    { return _currentActiveShader; }
+    unsigned short numberOfShaders() const;
+    unsigned short currentShader() const;
+    unsigned short shader_id( int idShadMat ) const;
+
+    void set_tesselation( unsigned short idTes );
+    void unset_tesselation();
+    bool has_tesselation() const;
     
-    Shader* operator [] (unsigned short id)
-    { return _shaderList[id-1]; }
-    
-    const Shader* operator [] (unsigned short id) const
-    { return _shaderList[id-1]; }
+    Shader* operator [] (unsigned short id);
+    const Shader* operator [] (unsigned short id) const;
     
     /* Return the id of a shader in shader list */
-    unsigned short getId(Shader* shad);
+    unsigned short getId(Shader* shad) const;
     
     /* Activate a shader from his identificator 
        Desactivate the previous shader if different.
@@ -80,16 +84,17 @@ namespace CPlot
     */
     void activate(Shader* shad);
     /* Deactivate shader pipeline and returns to a
-       default opengl pipeline
+       default opengl pipeline ( sauf si tesselation actif... )
     */
     void deactivate();
     
   private:
     ShaderManager(const ShaderManager& shadMan);
     ShaderManager& operator = (const ShaderManager& shadMan);
-    
     std::vector<Shader*> _shaderList;
+    Shader* m_previous_shader;
     unsigned short _currentActiveShader;
+    TesselationShaderManager tesselationManager;
   };
 }
 #endif

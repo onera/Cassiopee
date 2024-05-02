@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -18,6 +18,7 @@
 */
 
 #include "Connect/connect.h"
+#include "String/kstring.h"
 
 using namespace K_FLD;
 using namespace std;
@@ -81,13 +82,14 @@ void K_CONNECT::connectMix2EV(FldArrayI& cMIX,
       case 17:
         nHEXA++; ls = 8; break;
 
-      default: ; // probleme
-        printf("Warning: Mix2Ev: Unknow element type.\n"); ls = 0; break;
+      default: // probleme
+        printf("Warning: Mix2Ev: Unknow element type (" SF_D_ ").\n", ntype); 
+        ls = 0; break;
     }
     c += ls+1;
   }
 
-  printf("found %d HEXAS %d PENTAS\n", nHEXA, nPENTA);
+  printf("Info: Mix2EV: found " SF_D_ " HEXAS " SF_D_ " PENTAS\n", nHEXA, nPENTA);
 
   // Dimensionne
   cBAR.malloc(nBAR*2);
@@ -135,7 +137,8 @@ void K_CONNECT::connectMix2EV(FldArrayI& cMIX,
         ls = 8; lp = ptHEXA; ptHEXA += 8; break;
 
       default:
-        printf("Warning: Mix2Ev: unknown element type.\n"); ls = 0; lp = NULL; break;
+        printf("Warning: Mix2Ev: unknown element type.\n");
+        ls = 0; lp = NULL; break;
 
     }
     for (E_Int i = 0; i < ls; i++) lp[i] = mix[c+i+1];

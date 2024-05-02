@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -26,6 +26,17 @@
 
 using namespace std;
 using namespace K_FLD;
+
+// Retourne le nbre de variables nodes et centers en fonction de loc
+void getNfldFromLoc(vector<E_Int>& loc, E_Int& nfldNodes, E_Int& nfldCenters)
+{
+  nfldNodes = 0; nfldCenters = 0;
+  for (size_t i = 0; i < loc.size(); i++)
+  {
+    if (loc[i] == 0) nfldNodes += 1;
+    else nfldCenters += 1;
+  }
+}
 
 //=============================================================================
 /*
@@ -172,7 +183,10 @@ E_Int K_IO::GenIO::tecread(
   vector<E_Int>& ni, vector<E_Int>& nj, vector<E_Int>& nk,
   vector<FldArrayF*>& unstructField,
   vector<FldArrayI*>& connectivity,
-  vector<E_Int>& eltType, vector<char*>& zoneNames)
+  vector<E_Int>& eltType, vector<char*>& zoneNames,
+  char*& varStringc,
+  vector<FldArrayF*>& centerStructField,
+  vector<FldArrayF*>& centerUnstructField)
 {
   FILE* ptrFile;
   E_Int error, nfield, zone, no, zoneStruct, zoneUnstruct;
@@ -194,7 +208,7 @@ E_Int K_IO::GenIO::tecread(
   }
   else if (ret == 1) _convertEndian = true;
   else _convertEndian = false;
-
+  
   /* Opening */
   ptrFile = fopen(file, "rb");
 
@@ -207,30 +221,31 @@ E_Int K_IO::GenIO::tecread(
 
   /* Verification des Versions */
   E_Int vers = numeralVersion(version);
-  if (vers == 75 || vers == 108 || vers == 112) { ; /* supported */ }
+  if (vers == 75 || vers == 101 || vers == 108 || vers == 112) { ; /* supported */ }
   else if (vers < 75) 
-  { printf("Warning: tecread: the file version %d is not really supported. Trying to read with %d. ", vers, 75); vers = 75; }
+  { printf("Warning: tecread: the file version " SF_D_ " is not really supported. Trying to read with " SF_D_ ". ", vers, E_Int(75)); vers = 75; }
   else if (vers < 100)
-  { printf("Warning: tecread: the file version %d is not really supported. Trying to read with %d. ", vers, 75); vers = 75; }
+  { printf("Warning: tecread: the file version " SF_D_ " is not really supported. Trying to read with " SF_D_ ". ", vers, E_Int(75)); vers = 75; }
   else if (vers < 108)
-  { printf("Warning: tecread: the file version %d is not really supported. Trying to read with %d. ", vers, 108); vers = 108; }
+  { printf("Warning: tecread: the file version " SF_D_ " is not really supported. Trying to read with " SF_D_ ". ", vers, E_Int(108)); vers = 101; }
   else if (vers < 111)
-  { printf("Warning: tecread: the file version %d is not really supported. Trying to read with %d. ", vers, 108); vers = 108; }
+  { printf("Warning: tecread: the file version " SF_D_ " is not really supported. Trying to read with " SF_D_ ". ", vers, E_Int(108)); vers = 108; }
   else if (vers > 112)
-  { printf("Warning: tecread: the file version %d is not really supported. Trying to read with %d. ", vers, 112); vers = 112; }
+  { printf("Warning: tecread: the file version " SF_D_ " is not really supported. Trying to read with " SF_D_ ". ", vers, E_Int(112)); vers = 112; }
 
   /* Local vector for structured and unstructured zones names */
   vector<char*> structZoneNames, unstructZoneNames;
-
+  
   /* Look for zones */
   vector<FldArrayF*> geom;
   vector<E_Int> loc;
   E_Int dataPacking=1;
+  E_Int rawlocal=0; // 1 si PE connect
   E_Int strand=0; E_Float time=0.;
   no = 0;
   error = 0;
 
-  FldArrayF* f; FldArrayI* c;
+  FldArrayF* f; FldArrayI* c; FldArrayF* fc;
 
   while (error == 0)
   {
@@ -247,13 +262,14 @@ E_Int K_IO::GenIO::tecread(
           error = readZoneHeader75CE(ptrFile, dim, ni1, nj1, nk1, 
                                      npts, nelts, et, zoneName, dataPacking,
                                      geom);
-        if (error == 0) 
+        if (error == 0)
         {
           if (et == -1) structZoneNames.push_back(zoneName);
           else unstructZoneNames.push_back(zoneName);
         }
         break;
         
+      case 101:
       case 108:
       case 111:
       case 112:
@@ -262,7 +278,7 @@ E_Int K_IO::GenIO::tecread(
                                     ni1, nj1, nk1, 
                                     npts, nelts, numFaces, numFaceNodes,
                                     numBoundaryFaces, numBoundaryConnections,
-                                    et, zoneName, 
+                                    et, rawlocal, zoneName, 
                                     dataPacking, strand, time, 
                                     loc, geom);
         else
@@ -270,10 +286,10 @@ E_Int K_IO::GenIO::tecread(
                                       ni1, nj1, nk1, 
                                       npts, nelts, numFaces, numFaceNodes,
                                       numBoundaryFaces, numBoundaryConnections,
-                                      et, zoneName, 
+                                      et, rawlocal, zoneName, 
                                       dataPacking, strand, time, 
                                       loc, geom);
-        if (error == 0) 
+        if (error == 0)
         {
           if (et == -1) structZoneNames.push_back(zoneName);
           else 
@@ -296,58 +312,97 @@ E_Int K_IO::GenIO::tecread(
     // Concatenation of structured and unstructed zones names lists
     zoneNames = structZoneNames;
     zoneNames.insert(zoneNames.end(),unstructZoneNames.begin(),unstructZoneNames.end());
-
+    if (loc.size() == 0)
+    {
+      loc.resize(nfield);
+      for (E_Int i = 0; i < nfield; i++) loc[i] = 0;
+    }
+    E_Int nfldNodes, nfldCenters;
+    getNfldFromLoc(loc, nfldNodes, nfldCenters);
+    
+    // dimensionnement et stockage
     switch (et)
     {
       case 1: // BAR
-        f = new FldArrayF(npts, nfield);
+        if (nfldNodes > 0) f = new FldArrayF(npts, nfldNodes);
+        else f = NULL;
+        if (nfldCenters > 0) fc = new FldArrayF(nelts, nfldCenters);
+        else fc = NULL;
         c = new FldArrayI(nelts,2);
         unstructField.push_back(f);
+        centerUnstructField.push_back(fc);
         connectivity.push_back(c);
         eltType.push_back(1); // "BAR"
         break;
       case 2: // TRI
-        f = new FldArrayF(npts, nfield);
+        if (nfldNodes > 0) f = new FldArrayF(npts, nfldNodes);
+        else f = NULL;
+        if (nfldCenters > 0) fc = new FldArrayF(nelts, nfldCenters);
+        else fc = NULL;
         c = new FldArrayI(nelts,3);
         unstructField.push_back(f);
+        centerUnstructField.push_back(fc);
         connectivity.push_back(c);
         eltType.push_back(2); // "TRI"
         break;
       case 3: // QUAD
-        f = new FldArrayF(npts, nfield);
+        if (nfldNodes > 0) f = new FldArrayF(npts, nfldNodes);
+        else f = NULL;
+        if (nfldCenters > 0) fc = new FldArrayF(nelts, nfldCenters);
+        else fc = NULL;
         c = new FldArrayI(nelts,4);
         unstructField.push_back(f);
+        centerUnstructField.push_back(fc);
         connectivity.push_back(c);
         eltType.push_back(3); // "QUAD"
         break;
       case 4: // TETRA
-        f = new FldArrayF(npts, nfield);
+        if (nfldNodes > 0) f = new FldArrayF(npts, nfldNodes);
+        else f = NULL;
+        if (nfldCenters > 0) fc = new FldArrayF(nelts, nfldCenters);
+        else fc = NULL;
         c = new FldArrayI(nelts,4);
         unstructField.push_back(f);
+        centerUnstructField.push_back(fc);
         connectivity.push_back(c);
         eltType.push_back(4); // "TETRA"
         break;
       case 7: // HEXA 
-        f = new FldArrayF(npts, nfield);
+        if (nfldNodes > 0) f = new FldArrayF(npts, nfldNodes);
+        else f = NULL;
+        if (nfldCenters > 0) fc = new FldArrayF(nelts, nfldCenters);
+        else fc = NULL;
         c = new FldArrayI(nelts,8);
         unstructField.push_back(f);
+        centerUnstructField.push_back(fc);
         connectivity.push_back(c);
         eltType.push_back(7); // "HEXA"
         break;
       case 8: // NGON 
-        f = new FldArrayF(npts, nfield);
+        if (nfldNodes > 0) f = new FldArrayF(npts, nfldNodes);
+        else f = NULL;
+        if (nfldCenters > 0) fc = new FldArrayF(nelts, nfldCenters);
+        else fc = NULL;
         c = new FldArrayI(1); // ne peut pas etre dimensionne
         unstructField.push_back(f);
+        centerUnstructField.push_back(fc);
         connectivity.push_back(c);
         eltType.push_back(8); // "NGON"
-        break;   
+        break;
 
       default: // structure
         ni.push_back(ni1);
         nj.push_back(nj1);
         nk.push_back(nk1);
-        f = new FldArrayF(ni1*nj1*nk1, nfield);
+        E_Int nim = std::max(ni1-1,E_Int(1));
+        E_Int njm = std::max(nj1-1,E_Int(1));
+        E_Int nkm = std::max(nk1-1,E_Int(1));
+        if (nfldNodes > 0) f = new FldArrayF(ni1*nj1*nk1, nfldNodes);
+        else f = NULL;
+        if (nfldCenters > 0) fc = new FldArrayF(nim*njm*nkm, nfldCenters);
+        else fc = NULL;
         structField.push_back(f);
+        centerStructField.push_back(fc);
         break;
     }
     etl.push_back(et);
@@ -363,32 +418,40 @@ E_Int K_IO::GenIO::tecread(
   {
     if (etl[zone] == -1) // structured
     {
-      FldArrayF& f = *structField[zoneStruct];
+      FldArrayF* f = structField[zoneStruct];
+      FldArrayF* fc = centerStructField[zoneStruct];
+      
       switch (vers)
       {
         case 75:
+        {
+          FldArrayF& fp = *f;
           if (_convertEndian == false)
             readData75(ptrFile, 
                        ni[zoneStruct], nj[zoneStruct], nk[zoneStruct],
-                       dataPacking, f);
+                       dataPacking, fp);
           else
             readData75CE(ptrFile, 
                          ni[zoneStruct], nj[zoneStruct], nk[zoneStruct], 
-                         dataPacking, f);
-          break;
+                         dataPacking, fp);
+        }
+        break;
           
+        case 101:
         case 108:
         case 111:
         case 112:
+        {
           if (_convertEndian == false)
-            readData108(ptrFile, 
+            readData108(vers, ptrFile, 
                         ni[zoneStruct], nj[zoneStruct], nk[zoneStruct], 
-                        dataPacking, f);
+                        dataPacking, loc, f, fc);
           else
-            readData108CE(ptrFile, 
+            readData108CE(vers, ptrFile, 
                           ni[zoneStruct], nj[zoneStruct], nk[zoneStruct], 
-                          dataPacking, f);
-          break;
+                          dataPacking, loc, f, fc);
+        }
+        break;
           
         default:;
           break;
@@ -398,32 +461,37 @@ E_Int K_IO::GenIO::tecread(
     else
     { 
       // unstructured
-      FldArrayF& f1 = *unstructField[zoneUnstruct];
+      FldArrayF* f1 = unstructField[zoneUnstruct];
       FldArrayI& c1 = *connectivity[zoneUnstruct];
+      FldArrayF* fc = centerUnstructField[zoneUnstruct];
       switch (vers)
       {
         case 75:
+        {
+          FldArrayF& fp = *f1;
           if (_convertEndian == false)
-            readData75(ptrFile, dataPacking, f1, c1);
+            readData75(ptrFile, dataPacking, fp, c1);
           else
-            readData75CE(ptrFile, dataPacking, f1, c1);
-          break;
-          
+            readData75CE(ptrFile, dataPacking, fp, c1);
+        } 
+        break;
+
+        case 101:
         case 108:
         case 111:
         case 112:
           if (_convertEndian == false)
-            readData108(ptrFile, dataPacking, etl[zone], 
+            readData108(vers, ptrFile, dataPacking, loc, etl[zone], 
                         numFacesl[zoneUnstruct], numFaceNodesl[zoneUnstruct],
                         numBoundaryFacesl[zoneUnstruct],  
                         numBoundaryConnectionsl[zoneUnstruct],
-                        neltsl[zoneUnstruct], f1, c1);
+                        neltsl[zoneUnstruct], rawlocal, f1, c1, fc);
           else
-            readData108CE(ptrFile, dataPacking, etl[zone],
+            readData108CE(vers, ptrFile, dataPacking, loc, etl[zone],
                           numFacesl[zoneUnstruct], numFaceNodesl[zoneUnstruct],
                           numBoundaryFacesl[zoneUnstruct],  
                           numBoundaryConnectionsl[zoneUnstruct],
-                          neltsl[zoneUnstruct], f1, c1);
+                          neltsl[zoneUnstruct], rawlocal, f1, c1, fc);
           break;
           
         default:;
@@ -435,6 +503,31 @@ E_Int K_IO::GenIO::tecread(
   }
   fclose(ptrFile);
 
+  // Recompose la varstring si des variables en centres existent
+  // Les variables sont supposees les memes pour toutes les zones
+  E_Int nfldNodes, nfldCenters;
+  if (loc.size() == 0) { nfldNodes = nfield; nfldCenters = 0; }
+  else getNfldFromLoc(loc, nfldNodes, nfldCenters);
+  varStringc = new char [nfldCenters*K_ARRAY::VARNAMELENGTH+2];
+  strcpy(varStringc, "");
+    
+  if (nfldCenters > 0)
+  {
+    vector<char*> vars;
+    K_ARRAY::extractVars(varString, vars);
+    strcpy(varString, "");
+    for (size_t i = 0; i < vars.size(); i++)
+    {
+      if (loc[i] == 1) { strcat(varStringc, vars[i]); strcat(varStringc, ","); }
+      else { strcat(varString, vars[i]); strcat(varString, ","); }
+    }
+    E_Int l = strlen(varString);
+    if (l > 0) varString[l-1] = '\0';
+    l = strlen(varStringc);
+    if (l > 0) varStringc[l-1] = '\0';
+    for (size_t v = 0; v < vars.size(); v++) delete [] vars[v];
+  }
+  
   // Add geometries if any
   E_Int geomSize = geom.size();
   if (geomSize != 0)
@@ -460,15 +553,15 @@ E_Int K_IO::GenIO::tecread(
     {
       vector<char*> vars;
       K_ARRAY::extractVars(varString, vars);
-      if ( strcmp(vars[0], "x") !=0 && strcmp(vars[0], "CoordinateX") !=0)
+      if (strcmp(vars[0], "x") !=0 && strcmp(vars[0], "CoordinateX") !=0)
         printf(
           "Warning: tecread: first geometry variable is set to: %s\n",
           vars[0]);
-      if ( strcmp(vars[1], "y") !=0 && strcmp(vars[1], "CoordinateY") !=0)
+      if (strcmp(vars[1], "y") !=0 && strcmp(vars[1], "CoordinateY") !=0)
         printf(
           "Warning: tecread: second geometry variable is set to: %s\n",
           vars[1]);
-      if ( strcmp(vars[2], "z") !=0 && strcmp(vars[2], "CoordinateZ") !=0)
+      if (strcmp(vars[2], "z") !=0 && strcmp(vars[2], "CoordinateZ") !=0)
         printf(
           "Warning: tecread: third geometry variable is set to: %s\n",
           vars[2]);
@@ -498,7 +591,7 @@ E_Int K_IO::GenIO::tecwrite(char* file, char* dataFmt, char* varString,
                             E_Int ni, E_Int nj, E_Int nk,
                             const FldArrayF& coord,
                             const FldArrayF& field,
-			    vector<char*>& zoneNames)
+                            vector<char*>& zoneNames)
 {
   assert(coord.getSize() == field.getSize());
   vector<E_Int> vni; vector<E_Int> vnj; vector<E_Int> vnk;

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -18,7 +18,7 @@
 */
 
 # include "transform.h"
-# include "Search/BbTree.h"
+# include "Nuga/include/BbTree.h"
 
 using namespace K_FLD;
 using namespace std;
@@ -32,8 +32,7 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
   PyObject* arrays; PyObject* surfArrays;
   PyObject* varsO;
   E_Int oriented;
-  if (!PYPARSETUPLEI(args,
-                    "OOOl", "OOOi",
+  if (!PYPARSETUPLE_(args, OOO_ I_,
                     &arrays, &surfArrays, &varsO, &oriented))
   {
       return NULL;
@@ -100,15 +99,10 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
   for (E_Int v  = 0 ; v < nvars; v++)
   {
     E_Int* posN = posnormal.begin(v+1);
-    if (PyString_Check(PyList_GetItem(varsO, v)) == 0)
+    PyObject* l = PyList_GetItem(varsO, v);
+    if (PyString_Check(l))
     {
-      err = 1;
-      PyErr_SetString(PyExc_TypeError,
-                    "projectAllDirs: invalid string for normal component.");
-    }
-    else 
-    {
-      var = PyString_AsString(PyList_GetItem(varsO, v));
+      var = PyString_AsString(l);
       for (E_Int no = 0; no < nprojectedZones; no++)
       {
         m = K_ARRAY::isNamePresent(var, varStringP[no]);
@@ -119,12 +113,36 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
                           "projectAllDirs: variable not found in projected zones.");
           break;
         }
-        else 
-        {
-          posN[no] = m+1;
-        }
+        else posN[no] = m+1;
       }
     }
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(l))
+    {
+      var = (char*)PyUnicode_AsUTF8(l);
+      for (E_Int no = 0; no < nprojectedZones; no++)
+      {
+        m = K_ARRAY::isNamePresent(var, varStringP[no]);
+        if (m == -1)
+        {
+          err = 2;
+          PyErr_SetString(PyExc_TypeError,
+                          "projectAllDirs: variable not found in projected zones.");
+          break;
+        }
+        else posN[no] = m+1;
+      } 
+    }
+#endif 
+  
+    else
+    {
+      err = 1;
+      PyErr_SetString(PyExc_TypeError,
+                    "projectAllDirs: invalid string for normal component.");
+    }
+    
+    
     if (err != 0)
     {
       for (E_Int no = 0; no < nprojectedZones; no++)

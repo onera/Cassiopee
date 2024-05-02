@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -34,14 +34,14 @@ PyObject* K_CONVERTER::initVars(PyObject* self, PyObject* args)
   PyObject* array;
   E_Float val; char* varName;
 
-  if (!PYPARSETUPLEF(args, "Osd", "Osf", &array, &varName, &val)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ S_ R_, &array, &varName, &val)) return NULL;
 
   // Check array
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, 
-                                    ni, nj, nk, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, 
+                                     ni, nj, nk, cn, eltType);
 
   if (res != 1 && res != 2)
   {
@@ -53,31 +53,16 @@ PyObject* K_CONVERTER::initVars(PyObject* self, PyObject* args)
   // Construit l'array resultat et l'initialise par copie
   PyObject* tpl;
   E_Int npts = f->getSize();
-  E_Int nfld = f->getNfld();
   if (res == 1) //structured
   {
-    tpl = K_ARRAY::buildArray(nfld, varString, 
-                              ni, nj, nk);
+    E_Int nfld = f->getNfld();
+    tpl = K_ARRAY::buildArray3(nfld, varString, ni, nj, nk);
   } 
   else //unstructured 
   {
-    E_Int csize = cn->getSize()*cn->getNfld(); 
-    tpl = K_ARRAY::buildArray(nfld, varString,
-                              npts, cn->getSize(),
-                              -1, eltType, false, csize);
+    tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType);
   }
-  E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF fn(npts, nfld, fnp, true);
-  fn.setAllValuesAt(*f);
-  if (res == 2)
-  {
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    E_Int* cnp = cn->begin();
-    E_Int size = cn->getSize()*cn->getNfld();
-    E_Int i;
-#pragma omp parallel for shared(size,cnnp,cnp) private(i)
-    for (i = 0; i < size; i++) cnnp[i] = cnp[i];
-  }
+  FldArrayF* f2; K_ARRAY::getFromArray3(tpl, f2);
 
   E_Int posvar = K_ARRAY::isNamePresent(varName, varString)+1;
   if (posvar == 0)
@@ -86,12 +71,12 @@ PyObject* K_CONVERTER::initVars(PyObject* self, PyObject* args)
   }
   else 
   {
-    E_Float* fnp = fn.begin(posvar);
-    E_Int i;
-#pragma omp parallel for shared(npts,fnp,val) private(i) if (npts > 100)
-    for (i = 0; i < npts; i++) fnp[i] = val;
+    E_Float* f2p = f2->begin(posvar);
+#pragma omp parallel for if (npts > __MIN_SIZE_MEAN__)
+    for (E_Int i = 0; i < npts; i++) f2p[i] = val;
   }
 
   RELEASESHAREDB(res, array, f, cn);
+  RELEASESHAREDS(tpl, f2);
   return tpl;
 }

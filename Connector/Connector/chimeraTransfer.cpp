@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -23,6 +23,7 @@
 
 using namespace std;
 using namespace K_FLD;
+
 //=============================================================================
 /* 
    Calcul des transferts Chimere  issus de setInterpolations 
@@ -38,8 +39,7 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
   PyObject *pyArrayCoefs;
   PyObject *arrayR, *arrayD;
 
-  if (!PYPARSETUPLEI(args,
-                    "OOOOOO", "OOOOOO",
+  if (!PYPARSETUPLE_(args, OOOO_ OO_,
                     &pyIndRcv, &pyIndDonor, &pyArrayTypes, &pyArrayCoefs, &arrayR, &arrayD))
   {
       return NULL;
@@ -117,7 +117,7 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
     RELEASESHAREDN(pyIndDonor, donorPtsI);
     RELEASESHAREDN(pyArrayTypes, typesI);
     RELEASESHAREDN(pyArrayCoefs, donorCoefsF);
-    if ( resr == 2 ) RELEASESHAREDB(resr, arrayR, fr, cnr); 
+    if (resr == 2) RELEASESHAREDB(resr, arrayR, fr, cnr); 
 
     PyErr_SetString(PyExc_TypeError,
                     "chimeraTransfer: 5th arg is not a valid array.");
@@ -140,7 +140,7 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
     RELEASESHAREDN(pyIndDonor, donorPtsI);
     RELEASESHAREDN(pyArrayTypes, typesI);
     RELEASESHAREDN(pyArrayCoefs, donorCoefsF);
-    if ( resd == 2 ) RELEASESHAREDB(resd, arrayD, fd, cnd); 
+    if (resd == 2) RELEASESHAREDB(resd, arrayD, fd, cnd); 
     return NULL; 
   }
   /*---------------------------------------------------*/

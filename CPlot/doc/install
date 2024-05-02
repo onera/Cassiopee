@@ -1,6 +1,5 @@
-#!/bin/sh
+#! /bin/sh
 echo 'Installing CPlot tests and doc'
-
 if ([ $# -eq 0 ])
 then
     if [ "$CASSIOPEE" = "" ]; then
@@ -28,7 +27,7 @@ elif ([ $# -eq 2 ])
 then
     PRODUCTION=1
     # Destination docs
-    DEST="$CASSIOPEE/UserGuides"
+    DEST="$CASSIOPEE/WWW/cassiopee-web"
     # Destination tests unitaires
     DEST2="$DEST/Examples/CPlot"
     # Destination des release notes
@@ -39,61 +38,87 @@ else
     exit
 fi
 
-# Nom du fichier doc
-DOC=CPlot
-
-# Creation des repertoires de destination
-if test ! -e $DEST
-then 
-    mkdir $DEST
-fi
-if test ! -e "$DEST/Examples"
-then 
-    mkdir "$DEST/Examples"
-fi
-if test ! -e $DEST2
-then 
-    mkdir $DEST2
-fi
-if test ! -e $DEST3
-then 
-    mkdir $DEST3
-fi
-
-# copie de la doc html
-cp $DOC.html $DEST
-cp tkCassiopee.html $DEST
-
-# Production + copie des tests unitaires
+# Copy examples to global dir (production mod)
 if ([ $PRODUCTION -eq 1 ])
 then
-    LOCAL=`pwd`
-    cd $DEST
-    if test ! -e Latex
-    then
-        mkdir Latex
+    if test ! -e $DEST
+    then 
+        mkdir $DEST
     fi
-    python parseDoc.py $DOC.html Latex/$DOC.tex
-    cd Latex ; compile $DOC > out ; cd $LOCAL
-    cp $DEST/Latex/$DOC.pdf .
-
-    # Genere la doc de Internal
-    cd $DEST
-    python parseDoc.py tkCassiopee.html Latex/tkCassiopee.tex
-    cd Latex ; compile tkCassiopee > out ; cd $LOCAL
-    cp $DEST/Latex/tkCassiopee.pdf .
-else
+    if test ! -e "$DEST/Examples"
+    then 
+        mkdir "$DEST/Examples"
+    fi
+    if test ! -e $DEST2
+    then 
+        mkdir $DEST2
+    fi
+    if test ! -e $DEST3
+    then 
+        mkdir $DEST3
+    fi
     cp ../test/*.py $DEST2
-    if test -f $DOC.pdf
-    then
-        cp *.pdf $DEST
-    fi
+fi
+
+# Create Links for Examples (local)
+if test ! -e build
+then
+    mkdir build
+fi
+cd build
+if test ! -e Examples
+then
+    mkdir Examples
+    ln -s $CASSIOPEE/Apps/Modules/CPlot/test Examples/CPlot
+fi
+cd ..
+
+# Build html
+touch source/*.rst
+sphinx-build -b html ./source ./build
+if ([ $PRODUCTION -eq 1 ])
+then
+# Build pdf
+    sphinx-build -b latex ./source ./build
+    cd build
+    pdflatex CPlot >& /dev/null
+    pdflatex tkCassiopee >& /dev/null
+    pdflatex tkPlotXY >& /dev/null
+    pdflatex Decorator >& /dev/null
+    cd ..
+fi
+
+# Copie dans le DEST
+if ([ $PRODUCTION -eq 1 ])
+then
+    taghtml build/CPlot.html
+    sed -i 's/CPlot.CPlot/CPlot/g' build/CPlot.html
+    cp build/CPlot.html $DEST
+
+    taghtml build/tkCassiopee.html
+    sed -i 's/CPlot.pdf/tkCassiopee.pdf/g' build/tkCassiopee.html
+    cp build/tkCassiopee.html $DEST
+
+    taghtml build/tkPlotXY.html
+    sed -i 's/CPlot.pdf/tkPlotXY.pdf/g' build/tkPlotXY.html
+    cp build/tkPlotXY.html $DEST
+
+    taghtml build/Decorator.html
+    sed -i 's/CPlot.pdf/Decorator.pdf/g' build/Decorator.html
+    cp build/Decorator.html $DEST
+    
+    cp build/CPlot.pdf $DEST
+    cp build/tkCassiopee.pdf $DEST
+    cp build/tkPlotXY.pdf $DEST
+    cp build/Decorator.pdf $DEST
 fi
 
 # Copie des release Notes
-version=`grep -e __version__ ../CPlot/CPlot.py`
-version1=${version:15:10}
-version1=${version1/"'"/""}
-v='CPlot-'$version1'.txt'
-cp CPlot.txt $DEST3/$v
-
+if ([ $PRODUCTION -eq 1 ])
+then
+    version=`grep -e __version__ ../CPlot/CPlot.py`
+    version1=${version:15:4}
+    version1=${version1/"'"/""}
+    v='CPlot-'$version1'.txt'
+    cp CPlot.txt $DEST3/$v
+fi

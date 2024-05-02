@@ -1,6 +1,3 @@
-import KCore.Dist as Dist
-from KCore.config import *
-mpi, mpiIndDic, mpiLibDir = Dist.checkMpi(additionalLibPaths, additionalIncludePaths)
 #==============================================================================
 # Fichiers C++
 #==============================================================================
@@ -28,10 +25,12 @@ cpp_srcs = ['Connector/KInterp/BlkInterp.cpp',
             'Connector/setInterpData.cpp',
             'Connector/setInterpDataCons.cpp',
             'Connector/setInterpDataForGhostCells.cpp',
+            'Connector/setInterpDataForGhostCellsNGon.cpp',
             'Connector/initNuma.cpp',
             'Connector/setInterpTransfers.cpp',
             'Connector/setInterpTransfersD.cpp',
             'Connector/IBC/setIBCTransfersD.cpp',
+            'Connector/IBC/blankClosestTargetCells.cpp',
             'Connector/writeCoefs.cpp',
             'Connector/chimeraTransfer.cpp',
             'Connector/transferVariables.cpp',
@@ -44,6 +43,7 @@ cpp_srcs = ['Connector/KInterp/BlkInterp.cpp',
             'Connector/gatherMatchingNGon.cpp',
             'Connector/gatherDegenerated.cpp',
             'Connector/IBC/setIBCTransfers.cpp',
+            'Connector/IBC/setInterpDataMLS_IBMWall.cpp',
             'Connector/setInterpDataLS.cpp',
             'Connector/modifyBorders.cpp',
             'Connector/applyBCOverlaps.cpp',
@@ -51,19 +51,21 @@ cpp_srcs = ['Connector/KInterp/BlkInterp.cpp',
             "Connector/getEmptyBCInfoNGON.cpp",
             "Connector/updateNatureForIBM.cpp",
             "Connector/getIBMPtsWithFront.cpp",
+            "Connector/getIBMPtsWithTwoFronts.cpp",
             "Connector/getIBMPtsWithoutFront.cpp",
-            "Connector/getIBMPtsBasic.cpp"
-            ]
-if mpi is True:
-    cpp_srcs  += [
-            "Connector/CMP/src/recv_buffer.cpp", 
-            "Connector/CMP/src/send_buffer.cpp"
-            ]
+            "Connector/getIBMPtsBasic.cpp",
+            "Connector/indiceToCoord2.cpp",
+            "Connector/correctCoeffList.cpp",
+            "Connector/modCellN.cpp",
+            "Connector/LBM/setInterpTransfers.cpp",
+            "Connector/IBC/LBM/setIBCTransfers.cpp",
+            "Connector/computeFrictionVelocityIBM.cpp"]
 
 #==============================================================================
 # Fichiers fortran
 #==============================================================================
-for_srcs = ['Connector/Fortran/CompMotionCentersF.for',
+for_srcs = ['Connector/Fortran/spalart_1d.for',
+            'Connector/Fortran/CompMotionCentersF.for',
             'Connector/Fortran/CompMotionCentersEXF.for',
             'Connector/Fortran/BlkAdjustCellNatureFieldF.for',
             'Connector/Fortran/MaskSearchBlankedNodesXF.for',

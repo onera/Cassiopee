@@ -3,7 +3,6 @@ import Geom as D
 import Transform as T
 import Generator as G
 import Converter as C
-import math
 
 #==============================================================================
 # Etoile plane
@@ -19,7 +18,7 @@ def star(R1=1., R2=2., shift=0.5, N=10, h=1.):
     points = []
     xc1 = c1[1][0]; yc1 = c1[1][1]
     xc2 = c2[1][0]; yc2 = c2[1][1]
-    for i in xrange(N):
+    for i in range(N):
         points.append((xc1[i],yc1[i],0))
         points.append((xc2[i],yc2[i],0))
     c = D.polyline(points)
@@ -27,7 +26,7 @@ def star(R1=1., R2=2., shift=0.5, N=10, h=1.):
     b = G.gapfixer(c, p)
     b2 = T.translate(b, (0,0,h))
     l = D.line((0,0,0), (0,0,h), N=3)
-    c = D.lineGenerate(c, l)
+    c = D.lineDrive(c, l)
     c = C.convertArray2Tetra(c)
     o = T.join([b,c,b2])
     o = G.close(o)

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -33,9 +33,7 @@ PyObject* K_GENERATOR::cylinderMesh(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   E_Float xo, yo, zo;
   E_Float tetas, tetae, R1, R2, H;
-  if (!PYPARSETUPLE(args, 
-                    "(ddd)ddddd(lll)", "(ddd)ddddd(iii)",
-                    "(fff)fffff(lll)", "(fff)fffff(iii)",
+  if (!PYPARSETUPLE_(args, TRRR_ RRRR_ R_ TIII_, 
                     &xo, &yo, &zo, &R1, &R2, &tetas, &tetae, 
                     &H, &ni, &nj, &nk)) return NULL;
 
@@ -248,7 +246,7 @@ PyObject* K_GENERATOR::cylinderMesh3( PyObject* self,
 {
   E_Float tetas, tetae;
   PyObject* arrayXZ; PyObject* arrayT;
-  if (!PYPARSETUPLEF(args, "OddO", "OffO",
+  if (!PYPARSETUPLE_(args, O_ RR_ O_,
                      &arrayXZ, &tetas, &tetae, &arrayT))
   {
     PyErr_SetString(PyExc_TypeError, 

@@ -26,7 +26,7 @@ C._addState(t, adim='dim2', UInf=35, TInf=294., RoInf=1.2, LInf=1.,
             alphaZ=0., alphaY=0., MutSMuInf=0.2, TurbLevelInf=1.e-4)
 
 # Specifie un etat de reference dimensionne par:
-# U, P, Ro, L, MutSMu, TurbLevel (dim2)
+# U, P, Ro, L, MutSMu, TurbLevel (dim3)
 C._addState(t, adim='dim3', UInf=35, PInf=101325., RoInf=1.2, LInf=1.,
             alphaZ=0., alphaY=0., MutSMuInf=0.2, TurbLevelInf=1.e-4)
 

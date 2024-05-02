@@ -9,5 +9,5 @@ CPlot.display([a1, a2])
 
 time.sleep(5.)
 ret = CPlot.getActiveStatus(0)
-if ret == 1: print 'Zone 0 is active.'
-else: print 'Zone 0 is inactive.'
+if ret == 1: print('Zone 0 is active.')
+else: print('Zone 0 is inactive.')

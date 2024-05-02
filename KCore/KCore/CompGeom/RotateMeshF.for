@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -15,11 +15,11 @@ C    GNU General Public License for more details.
 C
 C    You should have received a copy of the GNU General Public License
 C    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
-
+C ============================================================================
 C  ============================================================================
 C  Make a rotation of a mesh
 C  ============================================================================
-      SUBROUTINE k6rotatemesh( dim, center, axis, teta, x0, y0, z0)
+      SUBROUTINE k6rotatemesh(dim, center, axis, teta, x0, y0, z0)
 C
       IMPLICIT NONE
 C==============================================================================
@@ -74,4 +74,76 @@ C quaternion
          z0(ind) = center(3) + pz
       ENDDO
       END
+
+C  ============================================================================
+C  Make a rotation of a mesh
+C same function as previous, but different interface and omp present
+C  ============================================================================
+      SUBROUTINE k6rotatemesh2(npts, x, y, z,
+     &                    xc, yc, zc, nx, ny, nz,
+     &                    teta, 
+     &                    xo, yo, zo)
+C
+      IMPLICIT NONE
+C==============================================================================
+C_IN
+      INTEGER_E npts            ! mesh size
+      REAL_E x(1:npts)          ! mesh coordinates
+      REAL_E y(1:npts)
+      REAL_E z(1:npts)
+      REAL_E xc,yc,zc           ! center of rotation
+      REAL_E nx,ny,nz           ! rotation vector
+      REAL_E teta               ! angle
+C_OUT
+      REAL_E xo(1:npts)         ! rotated mesh
+      REAL_E yo(1:npts)
+      REAL_E zo(1:npts)
+C_LOCAL
+      INTEGER_E ind
+      REAL_E unx, uny, unz
+      REAL_E norm
+      REAL_E px, py, pz
+      REAL_E rx, ry, rz
+      REAL_E e0, e1, e2, e3
+      REAL_E a1, a2, sinteta, sinteta5
+C==============================================================================
+C     nx,ny,nz must be unit vector
+      norm = nx*nx+ny*ny+nz*nz
+      IF (norm.LE.1.e-12) THEN
+         WRITE(*,*) 'Error: rotate: nx,ny,nz has null norm.'
+         RETURN
+      ENDIF
+         
+      norm = 1.D0/SQRT(norm)
+      unx = nx*norm
+      uny = ny*norm
+      unz = nz*norm
+         
+      sinteta = sin(teta)
+      sinteta5 = sin(teta*0.5D0)
+C quaternion
+      e0 = cos(teta*0.5D0)
+      e1 = -unx*sinteta5
+      e2 = -uny*sinteta5
+      e3 = -unz*sinteta5
+      a1 = e0*e0-e1*e1-e2*e2-e3*e3
+
+!$OMP PARALLEL PRIVATE(ind, rx, ry, rz, a2, px, py, pz)
+!$OMP DO 
+      DO ind = 1, npts
+         rx = x(ind)-xc
+         ry = y(ind)-yc
+         rz = z(ind)-zc
+         a2 = e1*rx+e2*ry+e3*rz
+         px = a1*rx+2*e1*a2-(ry*unz-rz*uny)*sinteta
+         py = a1*ry+2*e2*a2-(rz*unx-rx*unz)*sinteta
+         pz = a1*rz+2*e3*a2-(rx*uny-ry*unx)*sinteta
+         xo(ind) = xc+px
+         yo(ind) = yc+py
+         zo(ind) = zc+pz
+      ENDDO
+!$OMP END DO
+!$OMP END PARALLEL
+      END
+
 C============================= CompGeom/RotateMeshF.for ====================

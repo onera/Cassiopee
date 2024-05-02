@@ -1,4 +1,52 @@
 ===============================================================================
+Initiator 3.7 [10/2023]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.7
+Optional: pyTree interface requires Converter 3.7
+===============================================================================
+Initiator 3.6 [03/2023]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.6
+Optional: pyTree interface requires Converter 3.6
+===============================================================================
+Initiator 3.5 [12/2022]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.5
+Optional: pyTree interface requires Converter 3.5
+===============================================================================
+Initiator 3.4 [07/2022]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.4
+Optional: pyTree interface requires Converter 3.4
+===============================================================================
+Initiator 3.3 [10/2021]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.3
+Optional: pyTree interface requires Converter 3.3
+===============================================================================
+Initiator 3.2 [02/2021]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.2
+Optional: pyTree interface requires Converter 3.2
+===============================================================================
+Initiator 3.1 [06/2020]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.1
+Optional: pyTree interface requires Converter 3.1
+===============================================================================
+Initiator 3.0 [12/2019]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.0
+Optional: pyTree interface requires Converter 3.0
+===============================================================================
+Initiator 2.8 [12/2018]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.8
+Optional: pyTree interface requires Converter 2.8
+===============================================================================
+Initiator 2.7 [07/2018]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.7
+Optional: pyTree interface requires Converter 2.7
+===============================================================================
+Initiator 2.6 [03/2018]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.6
+Optional: pyTree interface requires Converter 2.6
+===============================================================================
+Initiator 2.5 [20/09/2017]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.5
+Optional: pyTree interface requires Converter 2.5
+===============================================================================
 Initiator 2.4 [29/03/2017]
 Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.4
 Optional: pyTree interface requires Converter 2.4

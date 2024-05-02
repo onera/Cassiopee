@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -41,7 +41,7 @@ PyObject* K_CONVERTER::registerFaces(PyObject* self, PyObject* args)
   E_Int nil, njl, nkl, res;
   FldArrayF* f; FldArrayI* cnl;
   char* varString; char* eltType;
-  res = K_ARRAY::getFromArray2(array, varString, 
+  res = K_ARRAY::getFromArray3(array, varString, 
                                f, nil, njl, nkl, cnl, eltType);
 
   if (res != 1 && res != 2)
@@ -89,156 +89,155 @@ PyObject* K_CONVERTER::registerFaces(PyObject* self, PyObject* args)
     E_Float inv0 = E_Float(0.25);
     quad_double qinv0 = quad_double(0.25);
 
-#pragma omp parallel default(shared)
+    #pragma omp parallel default(shared)
     {
-    E_Int ind,ind1,ind2,ind3,ind4,ip,jp,kp;
-      
-    // interface en i
-    for (E_Int k = 0; k < nk1; k++)
-      for (E_Int j = 0; j < nj1; j++)
-#pragma omp for
-        for (E_Int i = 0; i < ni; i++)
-        {
-          ind = i+j*ni+k*ni*nj1;
-          ip = E_min(i+1,ni-1);
-          jp = E_min(j+1,nj-1);
-          kp = E_min(k+1,nk-1);
-          ind1 = i+j*ni+k*nij;
-          ind2 = i+jp*ni+k*nij;
-          ind3 = i+j*ni+kp*nij;
-          ind4 = i+jp*ni+kp*nij;
+      E_Int ind,ind1,ind2,ind3,ind4,ip,jp,kp;
+      #ifdef QUADDOUBLE
+      quad_double qxp[4], qyp[4], qzp[4], qcx, qcy, qcz;
+      #endif
 
-#ifdef QUADDOUBLE
-          quad_double qxp[4], qyp[4], qzp[4], qcx, qcy, qcz;
-          qxp[0] = quad_double(xp[ind1]);
-          qxp[1] = quad_double(xp[ind2]);
-          qxp[2] = quad_double(xp[ind3]);
-          qxp[3] = quad_double(xp[ind4]);
-          qcx = qinv0*(qxp[0]+qxp[1]+qxp[2]+qxp[3]);
-          qyp[0] = quad_double(yp[ind1]);
-          qyp[1] = quad_double(yp[ind2]);
-          qyp[2] = quad_double(yp[ind3]);
-          qyp[3] = quad_double(yp[ind4]);
-          qcy = qinv0*(qyp[0]+qyp[1]+qyp[2]+qyp[3]);
-          qzp[0] = quad_double(zp[ind1]);
-          qzp[1] = quad_double(zp[ind2]);
-          qzp[2] = quad_double(zp[ind3]);
-          qzp[3] = quad_double(zp[ind4]);
-          qcz = qinv0*(qzp[0]+qzp[1]+qzp[2]+qzp[3]);
-          cx[ind] = E_Float(qcx);
-          cy[ind] = E_Float(qcy);
-          cz[ind] = E_Float(qcz);
-#else
-          {
-          #ifdef __INTEL_COMPILER
-          #pragma float_control(precise, on)
-          #endif
-          cx[ind] = inv0*(xp[ind1]+xp[ind2]+xp[ind3]+xp[ind4]);
-          cy[ind] = inv0*(yp[ind1]+yp[ind2]+yp[ind3]+yp[ind4]);
-          cz[ind] = inv0*(zp[ind1]+zp[ind2]+zp[ind3]+zp[ind4]);
-          }
-#endif
-        }
-    // interface en j
-    if (nj > 1)
-    {
+      // interface en i
       for (E_Int k = 0; k < nk1; k++)
-#pragma omp for
-        for (E_Int j = 0; j < nj; j++)
-          for (E_Int i = 0; i < ni1; i++)
-          {
-            ind = ninti+i+j*ni1+k*ni1*nj;
-            ip = E_min(i+1,ni-1);
-            jp = E_min(j+1,nj-1);
-            kp = E_min(k+1,nk-1);
-            ind1 = i+j*ni+k*nij;
-            ind2 = ip+j*ni+k*nij;
-            ind3 = i+j*ni+kp*nij;
-            ind4 = ip+j*ni+kp*nij;
-
-#ifdef QUADDOUBLE
-          quad_double qxp[4], qyp[4], qzp[4], qcx, qcy, qcz;
-          qxp[0] = quad_double(xp[ind1]);
-          qxp[1] = quad_double(xp[ind2]);
-          qxp[2] = quad_double(xp[ind3]);
-          qxp[3] = quad_double(xp[ind4]);
-          qcx = qinv0*(qxp[0]+qxp[1]+qxp[2]+qxp[3]);
-          qyp[0] = quad_double(yp[ind1]);
-          qyp[1] = quad_double(yp[ind2]);
-          qyp[2] = quad_double(yp[ind3]);
-          qyp[3] = quad_double(yp[ind4]);
-          qcy = qinv0*(qyp[0]+qyp[1]+qyp[2]+qyp[3]);
-          qzp[0] = quad_double(zp[ind1]);
-          qzp[1] = quad_double(zp[ind2]);
-          qzp[2] = quad_double(zp[ind3]);
-          qzp[3] = quad_double(zp[ind4]);
-          qcz = qinv0*(qzp[0]+qzp[1]+qzp[2]+qzp[3]);
-          cx[ind] = E_Float(qcx);
-          cy[ind] = E_Float(qcy);
-          cz[ind] = E_Float(qcz);
-#else
-          {
-            #ifdef __INTEL_COMPILER
-            #pragma float_control(precise, on)
-            #endif
-            cx[ind] = inv0*(xp[ind1]+xp[ind2]+xp[ind3]+xp[ind4]);
-            cy[ind] = inv0*(yp[ind1]+yp[ind2]+yp[ind3]+yp[ind4]);
-            cz[ind] = inv0*(zp[ind1]+zp[ind2]+zp[ind3]+zp[ind4]);
-          }
-#endif
-          }
-    }
-    // interface en k
-    if (nk > 1)
-    {
-#pragma omp for
-      for (E_Int k = 0; k < nk; k++)
         for (E_Int j = 0; j < nj1; j++)
-          for (E_Int i = 0; i < ni1; i++)
+          #pragma omp for
+          for (E_Int i = 0; i < ni; i++)
           {
-            ind = ninti+nintj+i+j*ni1+k*ni1*nj1;
+            ind = i+j*ni+k*ni*nj1;
             ip = E_min(i+1,ni-1);
             jp = E_min(j+1,nj-1);
             kp = E_min(k+1,nk-1);
             ind1 = i+j*ni+k*nij;
-            ind2 = ip+j*ni+k*nij;
-            ind3 = i+jp*ni+k*nij;
-            ind4 = ip+jp*ni+k*nij;
-    
-#ifdef QUADDOUBLE
-          quad_double qxp[4], qyp[4], qzp[4], qcx, qcy, qcz;
-          qxp[0] = quad_double(xp[ind1]);
-          qxp[1] = quad_double(xp[ind2]);
-          qxp[2] = quad_double(xp[ind3]);
-          qxp[3] = quad_double(xp[ind4]);
-          qcx = qinv0*(qxp[0]+qxp[1]+qxp[2]+qxp[3]);
-          qyp[0] = quad_double(yp[ind1]);
-          qyp[1] = quad_double(yp[ind2]);
-          qyp[2] = quad_double(yp[ind3]);
-          qyp[3] = quad_double(yp[ind4]);
-          qcy = qinv0*(qyp[0]+qyp[1]+qyp[2]+qyp[3]);
-          qzp[0] = quad_double(zp[ind1]);
-          qzp[1] = quad_double(zp[ind2]);
-          qzp[2] = quad_double(zp[ind3]);
-          qzp[3] = quad_double(zp[ind4]);
-          qcz = qinv0*(qzp[0]+qzp[1]+qzp[2]+qzp[3]);
-          cx[ind] = E_Float(qcx);
-          cy[ind] = E_Float(qcy);
-          cz[ind] = E_Float(qcz);            
-#else
-          {
-            #ifdef __INTEL_COMPILER
-            #pragma float_control(precise, on)
-            #endif
-            cx[ind] = inv0*(xp[ind1]+xp[ind2]+xp[ind3]+xp[ind4]);
-            cy[ind] = inv0*(yp[ind1]+yp[ind2]+yp[ind3]+yp[ind4]);
-            cz[ind] = inv0*(zp[ind1]+zp[ind2]+zp[ind3]+zp[ind4]);
-          }
-#endif
-          }
-    }
-    }
+            ind2 = i+jp*ni+k*nij;
+            ind3 = i+j*ni+kp*nij;
+            ind4 = i+jp*ni+kp*nij;
 
+            #ifdef QUADDOUBLE
+            qxp[0] = quad_double(xp[ind1]);
+            qxp[1] = quad_double(xp[ind2]);
+            qxp[2] = quad_double(xp[ind3]);
+            qxp[3] = quad_double(xp[ind4]);
+            qcx = qinv0*(qxp[0]+qxp[1]+qxp[2]+qxp[3]);
+            qyp[0] = quad_double(yp[ind1]);
+            qyp[1] = quad_double(yp[ind2]);
+            qyp[2] = quad_double(yp[ind3]);
+            qyp[3] = quad_double(yp[ind4]);
+            qcy = qinv0*(qyp[0]+qyp[1]+qyp[2]+qyp[3]);
+            qzp[0] = quad_double(zp[ind1]);
+            qzp[1] = quad_double(zp[ind2]);
+            qzp[2] = quad_double(zp[ind3]);
+            qzp[3] = quad_double(zp[ind4]);
+            qcz = qinv0*(qzp[0]+qzp[1]+qzp[2]+qzp[3]);
+            cx[ind] = E_Float(qcx);
+            cy[ind] = E_Float(qcy);
+            cz[ind] = E_Float(qcz);
+            #else
+            {
+              #ifdef __INTEL_COMPILER
+              #pragma float_control(precise, on)
+              #endif
+              cx[ind] = inv0*(xp[ind1]+xp[ind2]+xp[ind3]+xp[ind4]);
+              cy[ind] = inv0*(yp[ind1]+yp[ind2]+yp[ind3]+yp[ind4]);
+              cz[ind] = inv0*(zp[ind1]+zp[ind2]+zp[ind3]+zp[ind4]);
+            }
+            #endif
+          }
+      // interface en j
+      if (nj > 1)
+      {
+        for (E_Int k = 0; k < nk1; k++)
+          #pragma omp for
+          for (E_Int j = 0; j < nj; j++)
+            for (E_Int i = 0; i < ni1; i++)
+            {
+              ind = ninti+i+j*ni1+k*ni1*nj;
+              ip = E_min(i+1,ni-1);
+              jp = E_min(j+1,nj-1);
+              kp = E_min(k+1,nk-1);
+              ind1 = i+j*ni+k*nij;
+              ind2 = ip+j*ni+k*nij;
+              ind3 = i+j*ni+kp*nij;
+              ind4 = ip+j*ni+kp*nij;
+
+              #ifdef QUADDOUBLE
+              qxp[0] = quad_double(xp[ind1]);
+              qxp[1] = quad_double(xp[ind2]);
+              qxp[2] = quad_double(xp[ind3]);
+              qxp[3] = quad_double(xp[ind4]);
+              qcx = qinv0*(qxp[0]+qxp[1]+qxp[2]+qxp[3]);
+              qyp[0] = quad_double(yp[ind1]);
+              qyp[1] = quad_double(yp[ind2]);
+              qyp[2] = quad_double(yp[ind3]);
+              qyp[3] = quad_double(yp[ind4]);
+              qcy = qinv0*(qyp[0]+qyp[1]+qyp[2]+qyp[3]);
+              qzp[0] = quad_double(zp[ind1]);
+              qzp[1] = quad_double(zp[ind2]);
+              qzp[2] = quad_double(zp[ind3]);
+              qzp[3] = quad_double(zp[ind4]);
+              qcz = qinv0*(qzp[0]+qzp[1]+qzp[2]+qzp[3]);
+              cx[ind] = E_Float(qcx);
+              cy[ind] = E_Float(qcy);
+              cz[ind] = E_Float(qcz);
+              #else
+              {
+                #ifdef __INTEL_COMPILER
+                #pragma float_control(precise, on)
+                #endif
+                cx[ind] = inv0*(xp[ind1]+xp[ind2]+xp[ind3]+xp[ind4]);
+                cy[ind] = inv0*(yp[ind1]+yp[ind2]+yp[ind3]+yp[ind4]);
+                cz[ind] = inv0*(zp[ind1]+zp[ind2]+zp[ind3]+zp[ind4]);
+              }
+              #endif
+            }
+      }
+      // interface en k
+      if (nk > 1)
+      {
+        #pragma omp for
+        for (E_Int k = 0; k < nk; k++)
+          for (E_Int j = 0; j < nj1; j++)
+            for (E_Int i = 0; i < ni1; i++)
+            {
+              ind = ninti+nintj+i+j*ni1+k*ni1*nj1;
+              ip = E_min(i+1,ni-1);
+              jp = E_min(j+1,nj-1);
+              kp = E_min(k+1,nk-1);
+              ind1 = i+j*ni+k*nij;
+              ind2 = ip+j*ni+k*nij;
+              ind3 = i+jp*ni+k*nij;
+              ind4 = ip+jp*ni+k*nij;
+    
+              #ifdef QUADDOUBLE
+              qxp[0] = quad_double(xp[ind1]);
+              qxp[1] = quad_double(xp[ind2]);
+              qxp[2] = quad_double(xp[ind3]);
+              qxp[3] = quad_double(xp[ind4]);
+              qcx = qinv0*(qxp[0]+qxp[1]+qxp[2]+qxp[3]);
+              qyp[0] = quad_double(yp[ind1]);
+              qyp[1] = quad_double(yp[ind2]);
+              qyp[2] = quad_double(yp[ind3]);
+              qyp[3] = quad_double(yp[ind4]);
+              qcy = qinv0*(qyp[0]+qyp[1]+qyp[2]+qyp[3]);
+              qzp[0] = quad_double(zp[ind1]);
+              qzp[1] = quad_double(zp[ind2]);
+              qzp[2] = quad_double(zp[ind3]);
+              qzp[3] = quad_double(zp[ind4]);
+              qcz = qinv0*(qzp[0]+qzp[1]+qzp[2]+qzp[3]);
+              cx[ind] = E_Float(qcx);
+              cy[ind] = E_Float(qcy);
+              cz[ind] = E_Float(qcz);            
+              #else
+              {
+                #ifdef __INTEL_COMPILER
+                #pragma float_control(precise, on)
+                #endif
+                cx[ind] = inv0*(xp[ind1]+xp[ind2]+xp[ind3]+xp[ind4]);
+                cy[ind] = inv0*(yp[ind1]+yp[ind2]+yp[ind3]+yp[ind4]);
+                cz[ind] = inv0*(zp[ind1]+zp[ind2]+zp[ind3]+zp[ind4]);
+              }
+              #endif
+            }
+      }
+    }
   }
   else if (res == 2 && strcmp(eltType, "NGON") == 0) // NGON
   {
@@ -247,158 +246,203 @@ PyObject* K_CONVERTER::registerFaces(PyObject* self, PyObject* args)
     E_Float* cx = centers->begin(1);
     E_Float* cy = centers->begin(2);
     E_Float* cz = centers->begin(3);
-    E_Int* ptr;
-    if (cnl->isNGon() == 2) ptr = cnl->getNGon();
-    else ptr = cnl->begin();
-    FldArrayI posFace; K_CONNECT::getPosFaces(*cnl, posFace);
+    // Acces non universel sur les ptrs
+    E_Int* ngon = cnl->getNGon();
+    E_Int* indPG = cnl->getIndPG();
 
-# pragma omp parallel for default(shared)
-    for (E_Int i = 0; i < nfaces; i++)
+    #pragma omp parallel
     {
-      E_Int posf = posFace[i];
-      E_Int* ptrFace = &ptr[posf];
-      E_Int nv = ptrFace[0];
-      E_Float xf=0., yf=0., zf=0.;
-      
-#ifdef QUADDOUBLE
-      quad_double qxf, qyf, qzf;
-      quad_double qinv = quad_double(nv);
-      for (E_Int n = 1; n <= nv; n++)
-      { 
-        E_Int ind = ptrFace[n]-1; 
-        qxf = qxf+quad_double(xp[ind]); 
-        qyf = qyf+quad_double(yp[ind]); 
-        qzf = qzf+quad_double(zp[ind]); 
-      }
-      qxf = qxf/qinv; qyf = qyf/qinv; qzf = qzf/qinv;
-      xf = E_Float(qxf); yf = E_Float(qyf); zf = E_Float(qzf);
-#else
-      {
-      #ifdef __INTEL_COMPILER
-      #pragma float_control(precise, on)
-      #endif
-      for (E_Int n = 1; n <= nv; n++)
-      { 
-        E_Int ind = ptrFace[n]-1; xf += xp[ind]; yf += yp[ind]; zf += zp[ind];
-      }
-      E_Float inv = 1./E_Float(nv); xf *= inv; yf *= inv; zf *= inv;
-      }
-#endif
+      E_Int nv, ind;
+      E_Float xf, yf, zf, inv;
 
-      cx[i] = xf; cy[i] = yf; cz[i] = zf;
+      #pragma omp for
+      for (E_Int i = 0; i < nfaces; i++)
+      {
+        // Acces universel face i
+        E_Int* face = cnl->getFace(i, nv, ngon, indPG);
+        xf=0.; yf=0.; zf=0.;
+      
+        #ifdef QUADDOUBLE
+        quad_double qxf, qyf, qzf;
+        quad_double qinv = quad_double(nv);
+        for (E_Int n = 0; n < nv; n++)
+        {  
+          ind = face[n]-1; 
+          qxf = qxf+quad_double(xp[ind]); 
+          qyf = qyf+quad_double(yp[ind]); 
+          qzf = qzf+quad_double(zp[ind]); 
+        }
+        qxf = qxf/qinv; qyf = qyf/qinv; qzf = qzf/qinv;
+        xf = E_Float(qxf); yf = E_Float(qyf); zf = E_Float(qzf);
+        #else
+        {
+          #ifdef __INTEL_COMPILER
+          #pragma float_control(precise, on)
+          #endif
+          for (E_Int n = 0; n < nv; n++)
+          { 
+            ind = face[n]-1; xf += xp[ind]; yf += yp[ind]; zf += zp[ind];
+          }
+          inv = 1./E_Float(nv); xf *= inv; yf *= inv; zf *= inv;
+        }
+        #endif
+
+        cx[i] = xf; cy[i] = yf; cz[i] = zf;
+      }
     }
   }
-  else // Basic elements
+  else // BE/ME
   {
-    E_Int nelts = cnl->getSize();
-    E_Int nof = 0; E_Int nfaces = 0;
-    E_Int face[6][4];
-    if (strcmp(eltType, "BAR") == 0) 
+    // Acces universel sur BE/ME
+    E_Int nc = cnl->getNConnect();
+    // Acces universel aux eltTypes
+    vector<char*> eltTypes;
+    K_ARRAY::extractVars(eltType, eltTypes);
+
+    // Number of elements and faces per connectivity
+    vector<E_Int> nelts(nc);
+    vector<E_Int> nof(nc);
+    vector<E_Int> nfaces(nc);
+    // Accumulated number of faces over connectivities
+    vector<E_Int> ntotfaces(nc+1); ntotfaces[0] = 0;
+    vector<vector<E_Int> > face(nc);
+
+    // Boucle sur toutes les connectivites pour calculer la taille de 
+    // la variable center, ie, nombre total de faces
+    for (E_Int ic = 0; ic < nc; ic++)
     {
-      nfaces = 2; nof = 1;
-      face[0][0] = 1; face[1][0] = 2;
+      FldArrayI& cm = *(cnl->getConnect(ic));
+      char* eltTypConn = eltTypes[ic];
+      nelts[ic] = cm.getSize();
+
+      if (strcmp(eltTypConn, "BAR") == 0) 
+      {
+        nfaces[ic] = 2; nof[ic] = 1;
+        face[ic].reserve(nfaces[ic] * nof[ic]);
+        face[ic][0 + 0*nfaces[ic]] = 1;
+        face[ic][1 + 0*nfaces[ic]] = 2;
+      }
+      else if (strcmp(eltTypConn, "TRI") == 0) 
+      {
+        nfaces[ic] = 3; nof[ic] = 2;
+        face[ic].reserve(nfaces[ic] * nof[ic]);
+        face[ic][0 + 0*nfaces[ic]] = 1; face[ic][0 + 1*nfaces[ic]] = 2;
+        face[ic][1 + 0*nfaces[ic]] = 2; face[ic][1 + 1*nfaces[ic]] = 3;
+        face[ic][2 + 0*nfaces[ic]] = 3; face[ic][2 + 1*nfaces[ic]] = 1;
+      }
+      else if (strcmp(eltTypConn, "QUAD") == 0) 
+      {
+        nfaces[ic] = 4; nof[ic] = 2;
+        face[ic].reserve(nfaces[ic] * nof[ic]);
+        face[ic][0 + 0*nfaces[ic]] = 1; face[ic][0 + 1*nfaces[ic]] = 2;
+        face[ic][1 + 0*nfaces[ic]] = 2; face[ic][1 + 1*nfaces[ic]] = 3;
+        face[ic][2 + 0*nfaces[ic]] = 3; face[ic][2 + 1*nfaces[ic]] = 4;
+        face[ic][3 + 0*nfaces[ic]] = 4; face[ic][3 + 1*nfaces[ic]] = 1;
+      }
+      else if (strcmp(eltTypConn, "TETRA") == 0) 
+      {
+        nfaces[ic] = 4; nof[ic] = 3;
+        face[ic].reserve(nfaces[ic] * nof[ic]);
+        face[ic][0 + 0*nfaces[ic]] = 1; face[ic][0 + 1*nfaces[ic]] = 2; face[ic][0 + 2*nfaces[ic]] = 3;
+        face[ic][1 + 0*nfaces[ic]] = 1; face[ic][1 + 1*nfaces[ic]] = 2; face[ic][1 + 2*nfaces[ic]] = 4;
+        face[ic][2 + 0*nfaces[ic]] = 2; face[ic][2 + 1*nfaces[ic]] = 3; face[ic][2 + 2*nfaces[ic]] = 4;
+        face[ic][3 + 0*nfaces[ic]] = 3; face[ic][3 + 1*nfaces[ic]] = 1; face[ic][3 + 2*nfaces[ic]] = 4;
+      }
+      else if (strcmp(eltTypConn, "PYRA") == 0) 
+      {
+        nfaces[ic] = 6; nof[ic] = 3; // 2 TRIs pour la base
+        face[ic].reserve(nfaces[ic] * nof[ic]);
+        face[ic][0 + 0*nfaces[ic]] = 1; face[ic][0 + 1*nfaces[ic]] = 4; face[ic][0 + 2*nfaces[ic]] = 3;
+        face[ic][1 + 0*nfaces[ic]] = 3; face[ic][1 + 1*nfaces[ic]] = 2; face[ic][1 + 2*nfaces[ic]] = 1;
+        face[ic][2 + 0*nfaces[ic]] = 1; face[ic][2 + 1*nfaces[ic]] = 2; face[ic][2 + 2*nfaces[ic]] = 5;
+        face[ic][3 + 0*nfaces[ic]] = 2; face[ic][3 + 1*nfaces[ic]] = 3; face[ic][3 + 2*nfaces[ic]] = 5;
+        face[ic][4 + 0*nfaces[ic]] = 3; face[ic][4 + 1*nfaces[ic]] = 4; face[ic][4 + 2*nfaces[ic]] = 5;
+        face[ic][5 + 0*nfaces[ic]] = 4; face[ic][5 + 1*nfaces[ic]] = 1; face[ic][5 + 2*nfaces[ic]] = 5;
+      }
+      else if (strcmp(eltTypConn, "PENTA") == 0) 
+      {
+        nfaces[ic] = 5; nof[ic] = 4; // TRI degen
+        face[ic].reserve(nfaces[ic] * nof[ic]);
+        face[ic][0 + 0*nfaces[ic]] = 1; face[ic][0 + 1*nfaces[ic]] = 2; face[ic][0 + 2*nfaces[ic]] = 5; face[ic][0 + 3*nfaces[ic]] = 4;
+        face[ic][1 + 0*nfaces[ic]] = 2; face[ic][1 + 1*nfaces[ic]] = 3; face[ic][1 + 2*nfaces[ic]] = 6; face[ic][1 + 3*nfaces[ic]] = 5;
+        face[ic][2 + 0*nfaces[ic]] = 3; face[ic][2 + 1*nfaces[ic]] = 1; face[ic][2 + 2*nfaces[ic]] = 4; face[ic][2 + 3*nfaces[ic]] = 6;
+        face[ic][3 + 0*nfaces[ic]] = 1; face[ic][3 + 1*nfaces[ic]] = 3; face[ic][3 + 2*nfaces[ic]] = 2; face[ic][3 + 3*nfaces[ic]] = 1;
+        face[ic][4 + 0*nfaces[ic]] = 4; face[ic][4 + 1*nfaces[ic]] = 5; face[ic][4 + 2*nfaces[ic]] = 6; face[ic][4 + 3*nfaces[ic]] = 4;
+      }
+      else if (strcmp(eltTypConn, "HEXA") == 0) 
+      {
+        nfaces[ic] = 6; nof[ic] = 4;
+        face[ic].reserve(nfaces[ic] * nof[ic]);
+        face[ic][0 + 0*nfaces[ic]] = 1; face[ic][0 + 1*nfaces[ic]] = 4; face[ic][0 + 2*nfaces[ic]] = 3; face[ic][0 + 3*nfaces[ic]] = 2;
+        face[ic][1 + 0*nfaces[ic]] = 1; face[ic][1 + 1*nfaces[ic]] = 2; face[ic][1 + 2*nfaces[ic]] = 6; face[ic][1 + 3*nfaces[ic]] = 5;
+        face[ic][2 + 0*nfaces[ic]] = 2; face[ic][2 + 1*nfaces[ic]] = 3; face[ic][2 + 2*nfaces[ic]] = 7; face[ic][2 + 3*nfaces[ic]] = 6;
+        face[ic][3 + 0*nfaces[ic]] = 3; face[ic][3 + 1*nfaces[ic]] = 4; face[ic][3 + 2*nfaces[ic]] = 8; face[ic][3 + 3*nfaces[ic]] = 7;
+        face[ic][4 + 0*nfaces[ic]] = 1; face[ic][4 + 1*nfaces[ic]] = 5; face[ic][4 + 2*nfaces[ic]] = 8; face[ic][4 + 3*nfaces[ic]] = 4;
+        face[ic][5 + 0*nfaces[ic]] = 5; face[ic][5 + 1*nfaces[ic]] = 6; face[ic][5 + 2*nfaces[ic]] = 7; face[ic][5 + 3*nfaces[ic]] = 8;
+      }
+
+      // Update total face count
+      ntotfaces[ic+1] = ntotfaces[ic] + nelts[ic]*nfaces[ic];
     }
-    else if (strcmp(eltType, "QUAD") == 0) 
-    {
-      nfaces = 4; nof = 2;
-      face[0][0] = 1; face[0][1] = 2;
-      face[1][0] = 2; face[1][1] = 3;
-      face[2][0] = 3; face[2][1] = 4;
-      face[3][0] = 4; face[3][1] = 1;
-    }
-    else if (strcmp(eltType, "TRI") == 0) 
-    {
-      nfaces = 3; nof = 2;
-      face[0][0] = 1; face[0][1] = 2;
-      face[1][0] = 2; face[1][1] = 3;
-      face[2][0] = 3; face[2][1] = 1;
-    }
-    else if (strcmp(eltType, "HEXA") == 0) 
-    {
-      nfaces = 6; nof = 4;
-      face[0][0] = 1; face[0][1] = 4; face[0][2] = 3; face[0][3] = 2;
-      face[1][0] = 1; face[1][1] = 2; face[1][2] = 6; face[1][3] = 5;
-      face[2][0] = 2; face[2][1] = 3; face[2][2] = 7; face[2][3] = 6;
-      face[3][0] = 3; face[3][1] = 4; face[3][2] = 8; face[3][3] = 7;
-      face[4][0] = 1; face[4][1] = 5; face[4][2] = 8; face[4][3] = 4;
-      face[5][0] = 5; face[5][1] = 6; face[5][2] = 7; face[5][3] = 8;
-    }
-    else if (strcmp(eltType, "TETRA") == 0) 
-    {
-      nfaces = 4; nof = 3;
-      face[0][0] = 1; face[0][1] = 3; face[0][2] = 2;
-      face[1][0] = 1; face[1][1] = 2; face[1][2] = 4;
-      face[2][0] = 2; face[2][1] = 3; face[2][2] = 4;
-      face[3][0] = 3; face[3][1] = 1; face[3][2] = 4;
-    }
-    else if (strcmp(eltType, "PYRA") == 0) 
-    {
-      nfaces = 5; nof = 3; // 2 TRIs pour la base
-      face[0][0] = 1; face[0][1] = 4; face[0][2] = 3;
-      face[1][0] = 3; face[1][1] = 2; face[1][2] = 1;
-      face[2][0] = 1; face[2][1] = 2; face[2][2] = 5; 
-      face[3][0] = 2; face[3][1] = 3; face[3][2] = 5;
-      face[4][0] = 3; face[4][1] = 4; face[4][2] = 5;
-      face[5][0] = 4; face[5][1] = 1; face[5][2] = 5;
-    }
-    else if (strcmp(eltType, "PENTA") == 0) 
-    {
-      nfaces = 5; nof = 4; // TRI degen
-      face[0][0] = 1; face[0][1] = 2; face[0][2] = 5; face[0][3] = 4;
-      face[1][0] = 2; face[1][1] = 3; face[1][2] = 6; face[1][3] = 5;
-      face[2][0] = 3; face[2][1] = 1; face[2][2] = 4; face[2][3] = 6;
-      face[3][0] = 1; face[3][1] = 3; face[3][2] = 2; face[3][3] = 2;
-      face[4][0] = 4; face[4][1] = 5; face[4][2] = 6; face[4][3] = 6;
-    }
-    
-    centers = new FldArrayF(nelts*nfaces, 3);
+
+    for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+
+    centers = new FldArrayF(ntotfaces[nc], 3);
     E_Float* cx = centers->begin(1);
     E_Float* cy = centers->begin(2);
     E_Float* cz = centers->begin(3);
-    E_Float inv = E_Float(1./nof);
-    quad_double qinv = quad_double(nof);
 
-#pragma omp parallel default(shared)
+    // Boucle sur toutes les connectivites pour remplir les compos
+    // de center
+    for (E_Int ic = 0; ic < nc; ic++)
     {
-      E_Int ind, indl;
+      FldArrayI& cm = *(cnl->getConnect(ic));
+      E_Float inv = E_Float(1./nof[ic]);
+      quad_double qinv = quad_double(nof[ic]);
 
-#pragma omp for  
-    for (E_Int i = 0; i < nelts; i++)
-    {
-      for (E_Int f = 0; f < nfaces; f++)
+      #pragma omp parallel default(shared)
       {
-        ind = f + i*nfaces;
+        E_Int ind, indl;
 
-#ifdef QUADDOUBLE
-        quad_double qcx, qcy, qcz;
-        for (E_Int n = 0; n < nof; n++)
+        #pragma omp for
+        for (E_Int i = 0; i < nelts[ic]; i++)
         {
-          indl = (*cnl)(i,face[f][n])-1;
-          qcx = qcx+quad_double(xp[indl]); 
-          qcy = qcy+quad_double(yp[indl]); 
-          qcz = qcz+quad_double(zp[indl]);
-        }
-        qcx = qcx/qinv; qcy = qcy/qinv; qcz = qcz/qinv;
-        cx[ind] = E_Float(qcx);
-        cy[ind] = E_Float(qcy);
-        cz[ind] = E_Float(qcz);
-#else
-        {
-        #ifdef __INTEL_COMPILER
-        #pragma float_control(precise, on)
-        #endif
-        cx[ind] = 0.; cy[ind] = 0.; cz[ind] = 0.;
-        for (E_Int n = 0; n < nof; n++)
-        {
-          indl = (*cnl)(i,face[f][n])-1;
-          cx[ind] += xp[indl]; cy[ind] += yp[indl]; cz[ind] += zp[indl];
-        }
-        cx[ind] *= inv; cy[ind] *= inv; cz[ind] *= inv;
-        }
-#endif
-      }// loop on faces 
-    }// loop on elts
-    }//omp
+          for (E_Int f = 0; f < nfaces[ic]; f++)
+          {
+            ind = f + i*nfaces[ic] + ntotfaces[ic];
+
+            #ifdef QUADDOUBLE
+            quad_double qcx, qcy, qcz;
+            for (E_Int n = 0; n < nof[ic]; n++)
+            {
+              indl = cm(i,face[ic][f + n*nfaces[ic]])-1;
+              qcx = qcx+quad_double(xp[indl]); 
+              qcy = qcy+quad_double(yp[indl]); 
+              qcz = qcz+quad_double(zp[indl]);
+            }
+
+            qcx = qcx/qinv; qcy = qcy/qinv; qcz = qcz/qinv;
+            cx[ind] = E_Float(qcx);
+            cy[ind] = E_Float(qcy);
+            cz[ind] = E_Float(qcz);
+            #else
+            {
+              #ifdef __INTEL_COMPILER
+              #pragma float_control(precise, on)
+              #endif
+              cx[ind] = 0.; cy[ind] = 0.; cz[ind] = 0.;
+              for (E_Int n = 0; n < nof[ic]; n++)
+              {
+                indl = cm(i,face[ic][f + n*nfaces[ic]])-1;
+                cx[ind] += xp[indl]; cy[ind] += yp[indl]; cz[ind] += zp[indl];
+              }
+              cx[ind] *= inv; cy[ind] *= inv; cz[ind] *= inv;
+            }
+            #endif
+          }// loop on faces 
+        }// loop on elts
+      }//omp
+    }
   }
 
   ArrayAccessor<FldArrayF>* coordAcc = 
@@ -432,8 +476,13 @@ PyObject* K_CONVERTER::registerFaces(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
 {
   PyObject* listFields;
-  if (!PyArg_ParseTuple(args, "O", &listFields)) return NULL;
-
+  PyObject* center; // si adt en cylindrique
+  PyObject* axis; // si adt en cylindrique
+  E_Int depth; // si adt en cylindrique : nb de rangees de cellules fictives - a modifier a Pi pres 
+  E_Float thetaShift; // si adt cylindrique, thetaShift! 
+  if (!PYPARSETUPLE_(args, OOO_ I_ R_,
+      &listFields, &center, &axis, &depth, &thetaShift)) return NULL;
+  
   if (PyList_Check(listFields) == false)
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -449,8 +498,8 @@ PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
   vector<void*> a3; //eltType en NS
   vector<void*> a4;
   vector<PyObject*> objs;
-  E_Boolean skipNoCoord = true; E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false; E_Boolean skipDiffVars = true;
+  E_Boolean skipNoCoord=true; E_Boolean skipStructured=false;
+  E_Boolean skipUnstructured=false; E_Boolean skipDiffVars=true;
   E_Int isOk = K_ARRAY::getFromArrays(listFields, resl, varString, fields, 
                                       a2, a3, a4, objs, skipDiffVars, skipNoCoord, 
                                       skipStructured, skipUnstructured, true);
@@ -496,18 +545,18 @@ PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
     }
     posxs.push_back(posxi); posys.push_back(posyi); poszs.push_back(poszi); 
   }
-  // Verif des zones pour l adt
+  // Verif des zones pour l'adt
   for (E_Int no = 0; no < nzones; no++)
   {
     if (resl[no] == 2) 
     {
       char* eltType0 = (char*)a3[no];
-      if (K_STRING::cmp(eltType0,"TETRA")!= 0)
+      if (K_STRING::cmp(eltType0, "TETRA")!= 0)
       {
         for (E_Int noi = 0; noi < nzones; noi++)
           RELEASESHAREDA(resl[noi],objs[noi],fields[noi],a2[noi],a3[noi],a4[noi]); 
         PyErr_SetString(PyExc_TypeError,
-                        "setInterpData: unstructured zones must be TETRA.");
+                        "createHook: unstructured zones must be TETRA.");
         return NULL;
       }
     }
@@ -518,7 +567,7 @@ PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
         for (E_Int noi = 0; noi < nzones; noi++)
           RELEASESHAREDA(resl[noi],objs[noi],fields[noi],a2[noi],a3[noi],a4[noi]); 
         PyErr_SetString(PyExc_TypeError,
-                        "setInterpData: structured donor zones must be 3D or nk=1.");
+                        "createHook: structured donor zones must be 3D or nk=1.");
         return NULL;
       }
     }
@@ -528,15 +577,37 @@ PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
   E_Int isBuilt;
   for (E_Int no = 0; no < nzones; no++)
   {
-    K_INTERP::InterpAdt* adt = new K_INTERP::InterpAdt(
-      fields[no]->getSize(), 
-      fields[no]->begin(posxs[no]),
-      fields[no]->begin(posys[no]),
-      fields[no]->begin(poszs[no]),
-      a2[no], a3[no], a4[no], isBuilt);
-    if (isBuilt == 1) 
-      interpDatas.push_back(adt);
-    else 
+    K_INTERP::InterpAdt* adt=NULL;
+    if (center == Py_None || axis == Py_None)
+    {
+        // Adt sur les coordonnees cartesiennes
+        adt = new K_INTERP::InterpAdt(
+        fields[no]->getSize(), 
+        fields[no]->begin(posxs[no]),
+        fields[no]->begin(posys[no]),
+        fields[no]->begin(poszs[no]),
+        a2[no], a3[no], a4[no], isBuilt);
+    }
+    else
+    {
+        // Adt sur les coordonnees cylindriques
+        E_Float centerX, centerY, centerZ;
+        E_Float axisX, axisY, axisZ;
+        PYPARSETUPLE_(center, RRR_, &centerX, &centerY, &centerZ);
+        PYPARSETUPLE_(axis, RRR_, &axisX, &axisY, &axisZ);
+        adt = new K_INTERP::InterpAdt(
+        fields[no]->getSize(), 
+        fields[no]->begin(posxs[no]),
+        fields[no]->begin(posys[no]),
+        fields[no]->begin(poszs[no]),
+        a2[no], a3[no], a4[no],
+        centerX, centerY, centerZ,
+        axisX, axisY, axisZ, thetaShift, depth,
+        isBuilt);
+    }
+
+    if (isBuilt == 1) interpDatas.push_back(adt);
+    else
     {
       for (E_Int noi = 0; noi < nzones; noi++)
         RELEASESHAREDA(resl[noi],objs[noi],fields[noi],a2[noi],a3[noi],a4[noi]); 
@@ -581,8 +652,8 @@ PyObject* K_CONVERTER::registerNodes(PyObject* self, PyObject* args)
   E_Int nil, njl, nkl, res;
   FldArrayF* f; FldArrayI* cnl;
   char* varString; char* eltType;
-  res = K_ARRAY::getFromArray2(array, varString, 
-                              f, nil, njl, nkl, cnl, eltType);
+  res = K_ARRAY::getFromArray3(array, varString, 
+                               f, nil, njl, nkl, cnl, eltType);
 
   if (res != 1 && res != 2)
   {
@@ -605,8 +676,8 @@ PyObject* K_CONVERTER::registerNodes(PyObject* self, PyObject* args)
   posx++; posy++; posz++;
 
   // Parcours noeuds, les enregistre dans le KdTree
-  E_Int nodes = f->getSize();
-  FldArrayF* coords = new FldArrayF(nodes, 3);
+  E_Int npts = f->getSize();
+  FldArrayF* coords = new FldArrayF(npts, 3);
   E_Float* cx = coords->begin(1);
   E_Float* cy = coords->begin(2);
   E_Float* cz = coords->begin(3);
@@ -614,8 +685,8 @@ PyObject* K_CONVERTER::registerNodes(PyObject* self, PyObject* args)
   E_Float* yp = f->begin(posy);
   E_Float* zp = f->begin(posz);
 
-#pragma omp parallel for default(shared)
-  for (E_Int i = 0; i < nodes; i++)
+  #pragma omp parallel for default(shared)
+  for (E_Int i = 0; i < npts; i++)
   {
     cx[i] = xp[i]; cy[i] = yp[i]; cz[i] = zp[i];
   }
@@ -656,7 +727,7 @@ PyObject* K_CONVERTER::registerElements(PyObject* self, PyObject* args)
   E_Int nil, njl, nkl, res;
   FldArrayF* f; FldArrayI* cnl;
   char* varString; char* eltType;
-  res = K_ARRAY::getFromArray2(array, varString, 
+  res = K_ARRAY::getFromArray3(array, varString, 
                                f, nil, njl, nkl, cnl, eltType);
 
   if (res != 1 && res != 2)
@@ -699,162 +770,199 @@ PyObject* K_CONVERTER::registerElements(PyObject* self, PyObject* args)
     E_Float inv = E_Float(0.125);
     quad_double qinv = quad_double(8.);
 
-#pragma omp parallel for default(shared)
-    for (E_Int k = 0; k < nk1; k++)
-      for (E_Int j = 0; j < nj1; j++)
-        for (E_Int i = 0; i < ni1; i++)
-        {
-          E_Int ip = E_min(i+1,nil-1); 
-          E_Int jp = E_min(j+1,njl-1); 
-          E_Int kp = E_min(k+1,nkl-1);
+    #pragma omp parallel
+    {
+      E_Int ip, jp, kp, indcell, indv;
+      E_Float xf, yf, zf;
+      E_Int indT[8];
 
-          E_Int indT[8];
-          E_Int indcell = i+j*ni1+k*ni1nj1;
-          indT[0] = i  + j*nil  + k*nij;
-          indT[1] = ip + j*nil  + k*nij;
-          indT[2] = i  + jp*nil + k*nij;
-          indT[3] = ip + jp*nil + k*nij;
-          indT[4] = i  + j*nil  + kp*nij;
-          indT[5] = ip + j*nil  + kp*nij;
-          indT[6] = i  + jp*nil + kp*nij;
-          indT[7] = ip + jp*nil + kp*nij;
+      for (E_Int k = 0; k < nk1; k++)
+        for (E_Int j = 0; j < nj1; j++)
+          #pragma omp for
+          for (E_Int i = 0; i < ni1; i++)
+          {
+            ip = E_min(i+1,nil-1); 
+            jp = E_min(j+1,njl-1);
+            kp = E_min(k+1,nkl-1);
 
-          E_Float xf=0., yf=0.,zf=0.;
-          quad_double qxf, qyf, qzf;
+            indcell = i+j*ni1+k*ni1nj1;
+            indT[0] = i  + j*nil  + k*nij;
+            indT[1] = ip + j*nil  + k*nij;
+            indT[2] = i  + jp*nil + k*nij;
+            indT[3] = ip + jp*nil + k*nij;
+            indT[4] = i  + j*nil  + kp*nij;
+            indT[5] = ip + j*nil  + kp*nij;
+            indT[6] = i  + jp*nil + kp*nij;
+            indT[7] = ip + jp*nil + kp*nij;
 
-#ifdef QUADDOUBLE
-          for (E_Int nov = 0; nov < 8; nov++)
-          {
-            E_Int indv = indT[nov];
-            qxf = qxf+quad_double(xp[indv]); 
-            qyf = qyf+quad_double(yp[indv]); 
-            qzf = qzf+quad_double(zp[indv]); 
+            xf=0.; yf=0.; zf=0.;
+
+            #ifdef QUADDOUBLE
+            quad_double qxf, qyf, qzf;
+            for (E_Int nov = 0; nov < 8; nov++)
+            {
+              indv = indT[nov];
+              qxf = qxf+quad_double(xp[indv]); 
+              qyf = qyf+quad_double(yp[indv]); 
+              qzf = qzf+quad_double(zp[indv]); 
+            }
+            qxf = qxf/qinv;
+            qyf = qyf/qinv;
+            qzf = qzf/qinv;
+            cx[indcell] = E_Float(qxf);
+            cy[indcell] = E_Float(qyf);
+            cz[indcell] = E_Float(qzf);
+            #else
+            {
+              #ifdef __INTEL_COMPILER
+              #pragma float_control(precise, on)
+              #endif
+              for (E_Int nov = 0; nov < 8; nov++)
+              {
+                indv = indT[nov];
+                xf += xp[indv]; yf += yp[indv]; zf += zp[indv];
+              }
+              xf *= inv; yf *= inv; zf *= inv;
+              cx[indcell] = xf; cy[indcell] = yf; cz[indcell] = zf;
+            }
+            #endif     
           }
-          qxf =qxf/qinv;
-          qyf =qyf/qinv;
-          qzf =qzf/qinv;
-          cx[indcell]=E_Float(qxf);
-          cy[indcell]=E_Float(qyf);
-          cz[indcell]=E_Float(qzf);
-#else
-          {
-          #ifdef __INTEL_COMPILER
-          #pragma float_control(precise, on)
-          #endif
-          for (E_Int nov = 0; nov < 8; nov++)
-          {
-            E_Int indv = indT[nov];
-            xf += xp[indv]; yf += yp[indv]; zf+= zp[indv];
-          }
-          xf*=inv; yf*=inv; zf*=inv;
-          cx[indcell]=xf; cy[indcell]=yf; cz[indcell]=zf;
-          }
-#endif     
-        }
+    }
   }
   else if (res == 2 && strcmp(eltType, "NGON") == 0)
   {
+    // Donnees liees a la connectivite - Acces non universel sur les ptrs
+    E_Int* ngon = cnl->getNGon();
+    E_Int* nface = cnl->getNFace();
+    E_Int* indPG = cnl->getIndPG();
+    E_Int* indPH = cnl->getIndPH();
+    // Acces universel nbre d'elements
     E_Int nelts = cnl->getNElts();
     centers = new FldArrayF(nelts, 3);
     E_Float* cx = centers->begin(1);
     E_Float* cy = centers->begin(2);
     E_Float* cz = centers->begin(3);
-    E_Int* ptrf; E_Int* ptre;
-    if (cnl->isNGon() == 2) ptrf = cnl->getNGon();
-    else ptrf = cnl->begin();
-    if (cnl->isNGon() == 2) ptre = cnl->getNFace();
-    else ptre = cnl->begin();
-    FldArrayI posFace; K_CONNECT::getPosFaces(*cnl, posFace);
-    FldArrayI posElt; K_CONNECT::getPosElts(*cnl, posElt);
     
-# pragma omp parallel for default(shared)
-    for (E_Int i = 0; i < nelts; i++)
+    #pragma omp parallel
     {
-      E_Int pose = posElt[i];
-      E_Int* ptrElt = &ptre[pose];
-      E_Int nf = ptrElt[0];
-      E_Float xf=0., yf=0.,zf=0.;
-      E_Int c = 0;
-      quad_double qxf, qyf, qzf;
+      E_Int nf, nv, ind;
+      E_Float xf, yf, zf;
 
-      for (E_Int n = 1; n <= nf; n++)
-      { 
-        E_Int ind = ptrElt[n]-1;
-        E_Int pos = posFace[ind];
-        E_Int* ptrFace = &ptrf[pos];
-        E_Int nv = ptrFace[0];
+      #pragma omp for
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        // Acces universel element i
+        E_Int* elem = cnl->getElt(i, nf, nface, indPH);
+        xf=0.; yf=0.; zf=0.;
+        quad_double qxf, qyf, qzf;
+        E_Int c = 0;
 
-#ifdef QUADDOUBLE
-        for (E_Int p = 1; p <= nv; p++)
-        {
-          ind = ptrFace[p]-1; 
-          qxf = qxf+quad_double(xp[ind]); 
-          qyf = qyf+quad_double(yp[ind]); 
-          qzf = qzf+quad_double(zp[ind]); 
-          c++;
+        for (E_Int n = 0; n < nf; n++)
+        { 
+          // Acces universel face elem[n]-1
+          E_Int* face = cnl->getFace(elem[n]-1, nv, ngon, indPG);
+          #ifdef QUADDOUBLE
+          for (E_Int p = 0; p < nv; p++)
+          {
+            ind = face[p]-1; 
+            qxf = qxf+quad_double(xp[ind]); 
+            qyf = qyf+quad_double(yp[ind]); 
+            qzf = qzf+quad_double(zp[ind]); 
+            c++;
+          }
+          #else
+          {
+            #ifdef __INTEL_COMPILER
+            #pragma float_control(precise, on)
+            #endif
+            for (E_Int p = 0; p < nv; p++)
+            {
+              ind = face[p]-1; 
+              xf += xp[ind]; 
+              yf += yp[ind]; 
+              zf += zp[ind]; c++;
+            }
+          }
+          #endif
         }
-      }
-      quad_double qinv = quad_double(c);
-      qxf = qxf/qinv; qyf = qyf/qinv; qzf = qzf/qinv;
-      xf = E_Float(qxf); yf = E_Float(qyf); zf = E_Float(qzf);
-
-#else
-        //#pragma float_control(precise, on)
-        for (E_Int p = 1; p <= nv; p++)
-        {
-          ind = ptrFace[p]-1; xf += xp[ind]; yf += yp[ind]; zf += zp[ind]; c++;
-        }
-      }
-      E_Float inv = 1./E_Float(c); xf *= inv; yf *= inv; zf *= inv;
-#endif
-      
-      cx[i] = xf; cy[i] = yf; cz[i] = zf;
-  } // loop on elts
+        #ifdef QUADDOUBLE
+        quad_double qinv = quad_double(c);
+        qxf = qxf/qinv; qyf = qyf/qinv; qzf = qzf/qinv;
+        xf = E_Float(qxf); yf = E_Float(qyf); zf = E_Float(qzf);
+        #else
+        E_Float inv = 1./E_Float(c); xf *= inv; yf *= inv; zf *= inv;
+        #endif
+        cx[i] = xf; cy[i] = yf; cz[i] = zf;
+      } // loop on elts
+    } // omp
   }// NGON
-  else
+  else // BE/ME
   {
-    E_Int nelts = cnl->getSize();
-    E_Int nv = cnl->getNfld();
-    E_Float inv = E_Float(1./nv);
-    quad_double qinv = quad_double(nv);
-    centers = new FldArrayF(nelts, 3);
+    // Acces universel sur BE/ME
+    E_Int nc = cnl->getNConnect();
+    E_Int elOffset = 0; //element offset between connectivities
+    E_Int nv, nelts, ntotelts = 0;
+    E_Float inv;
+
+    // Compute total number of elements
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      FldArrayI& cm = *(cnl->getConnect(ic));
+      ntotelts += cm.getSize();
+    }
+    centers = new FldArrayF(ntotelts, 3);
     E_Float* cx = centers->begin(1);
     E_Float* cy = centers->begin(2);
     E_Float* cz = centers->begin(3);
 
+    // Boucle sur toutes les connectivites
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      FldArrayI& cm = *(cnl->getConnect(ic));
+      nelts = cm.getSize();
+      nv = cm.getNfld();
+      inv = E_Float(1./nv);
+      quad_double qinv = quad_double(nv);
+
 #pragma omp parallel default(shared)
-    {
-      E_Int ind;
-
-#pragma omp for
-    for (E_Int i = 0; i < nelts; i++)
-    {
-      E_Float xf=0., yf=0., zf=0.;
-
-#ifdef QUADDOUBLE
-      quad_double qxf, qyf, qzf;
-      for (E_Int j = 1; j <= nv; j++)
       {
-        ind = (*cnl)(i,j)-1;
-        qxf = qxf+quad_double(xp[ind]); 
-        qyf = qyf+quad_double(yp[ind]); 
-        qzf = qzf+quad_double(zp[ind]); 
-      }
-      qxf = qxf/qinv; qyf = qyf/qinv; qzf = qzf/qinv;
-      cx[i] = E_Float(qxf); cy[i] = E_Float(qyf); cz[i] = E_Float(qzf);
-#else
-      //#pragma float_control(precise, on) 
-      for (E_Int j = 1; j <= nv; j++)
-      {
-        ind = (*cnl)(i,j)-1;
-        xf += xp[ind]; yf+= yp[ind]; zf += zp[ind];
-      }
-      xf *= inv; yf*= inv; zf*= inv; 
-      cx[i] = xf; cy[i] = yf; cz[i] = zf;
-#endif
-    }//loop for elts
-    }// instruct omp
-  }//EB
+        E_Int ind;
+
+        #pragma omp for
+        for (E_Int i = 0; i < nelts; i++)
+        {
+          E_Float xf=0., yf=0., zf=0.;
+
+          #ifdef QUADDOUBLE
+          quad_double qxf, qyf, qzf;
+          for (E_Int j = 1; j <= nv; j++)
+          {
+            ind = cm(i,j)-1;
+            qxf = qxf+quad_double(xp[ind]); 
+            qyf = qyf+quad_double(yp[ind]); 
+            qzf = qzf+quad_double(zp[ind]); 
+          }
+          qxf = qxf/qinv; qyf = qyf/qinv; qzf = qzf/qinv;
+          cx[elOffset+i] = E_Float(qxf);
+          cy[elOffset+i] = E_Float(qyf);
+          cz[elOffset+i] = E_Float(qzf);
+          #else
+          #ifdef __INTEL_COMPILER
+          #pragma float_control(precise, on) 
+          #endif
+          for (E_Int j = 1; j <= nv; j++)
+          {
+            ind = cm(i,j)-1;
+            xf += xp[ind]; yf += yp[ind]; zf += zp[ind];
+          }
+          xf *= inv; yf*= inv; zf*= inv; 
+          cx[elOffset+i] = xf; cy[elOffset+i] = yf; cz[elOffset+i] = zf;
+          #endif
+        }//loop for elts
+      }// omp
+      elOffset += nelts;
+    }
+  }//BE/ME
   
   ArrayAccessor<FldArrayF>* coordAcc = 
     new ArrayAccessor<FldArrayF>(*centers, 1, 2, 3); // ref sur centers

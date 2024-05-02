@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -23,14 +23,48 @@
 
 namespace K_OCC
 {
-  PyObject* convertIGES2Arrays(PyObject* self, PyObject* args);
+  PyObject* convertCAD2Arrays0(PyObject* self, PyObject* args); // with OCC internal
+  PyObject* convertCAD2Arrays1(PyObject* self, PyObject* args); // with T3Mesher
+  PyObject* convertCAD2Arrays2(PyObject* self, PyObject* args); // with T3Mesher
   
-  E_Int CADread(
-  char* file, char* fimeFmt, E_Float h, E_Float chordal_err, char*& varString,
-  std::vector<K_FLD::FldArrayF*>& unstructField,
-  std::vector<K_FLD::FldArrayI*>& connect,
-  std::vector<E_Int>& eltType,
-  std::vector<char*>& zoneNames);
+  PyObject* readCAD(PyObject* self, PyObject* args);
+  PyObject* writeCAD(PyObject* self, PyObject* args);
+  PyObject* getNbFaces(PyObject* self, PyObject* args);
+  PyObject* getNbEdges(PyObject* self, PyObject* args);
+  PyObject* getFileAndFormat(PyObject* self, PyObject* args);
+
+  PyObject* meshGlobalEdges1(PyObject* self, PyObject* args);
+  PyObject* meshGlobalEdges2(PyObject* self, PyObject* args);
+  PyObject* meshGlobalEdges3(PyObject* self, PyObject* args);
+  PyObject* meshGlobalEdges4(PyObject* self, PyObject* args);
+  PyObject* meshEdgesByFace(PyObject* self, PyObject* args);
+  PyObject* meshEdgesByFace2(PyObject* self, PyObject* args);
+  PyObject* meshEdgesByFace3(PyObject* self, PyObject* args);
+  PyObject* getEdgeNoByFace(PyObject* self, PyObject* args);
+  PyObject* identifyLoopsInEdges(PyObject* self, PyObject* args);
+  PyObject* evalEdge(PyObject* self, PyObject* args);
+  PyObject* evalFace(PyObject* self, PyObject* args);
+  PyObject* projectOnFaces(PyObject* self, PyObject* args);
+  PyObject* projectOnEdges(PyObject* self, PyObject* args);
+  PyObject* linkNodes2CAD(PyObject* self, PyObject* args);
+  PyObject* updateFcadidFromNcadid(PyObject* self, PyObject* args);
+  PyObject* updateNcadidFromFcadid(PyObject* self, PyObject* args);
+  PyObject* getNodalParameters(PyObject* self, PyObject* args);
+  PyObject* trimesh(PyObject* self, PyObject* args);
+
+  PyObject* meshOneEdge(PyObject* self, PyObject* args);
+  PyObject* meshEdgesOfFace(PyObject* self, PyObject* args);
+
+  PyObject* analyseEdges(PyObject* self, PyObject* args);
+  PyObject* getFaceArea(PyObject* self, PyObject* args);
+  PyObject* getFaceOrientation(PyObject* self, PyObject* args);
+  
+  PyObject* splitFaces(PyObject* self, PyObject* args);
+  PyObject* fixShape(PyObject* self, PyObject* args);
+  PyObject* trimFaces(PyObject* self, PyObject* args);
+
+  PyObject* getOppData(PyObject* self, PyObject* args);
+
 }
 
 #endif

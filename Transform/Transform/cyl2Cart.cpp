@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -29,7 +29,7 @@ PyObject* K_TRANSFORM::_cyl2CartA(PyObject* self, PyObject* args)
     PyObject *array;
     E_Float X0, Y0, Z0;
     E_Float ex, ey, ez;
-    if (!PYPARSETUPLEF(args,"O(ddd)(ddd)", "O(fff)(fff)",
+    if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_,
                        &array, &X0, &Y0, &Z0, &ex, &ey, &ez))
       return NULL;
 
@@ -37,12 +37,12 @@ PyObject* K_TRANSFORM::_cyl2CartA(PyObject* self, PyObject* args)
     E_Int im, jm, km;
     FldArrayF* f; FldArrayI* cn;
     char* varString; char* eltType;
-    E_Int res = K_ARRAY::getFromArray2(array, varString, f, im, jm, km,
+    E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km,
                                        cn, eltType);
     if (res != 1 && res != 2)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "cyl2CartA: 1st arg is an invalid array.");
+                      "cyl2Cart: 1st arg is an invalid array.");
       return NULL;
     }
 
@@ -59,19 +59,19 @@ PyObject* K_TRANSFORM::_cyl2CartA(PyObject* self, PyObject* args)
     E_Int npts = f->getSize();
 
     E_Float eps = K_CONST::E_GEOM_CUTOFF;
-    E_Int posxc, posyc, poszc;
+    E_Int posr, postheta;
 
     if (ex > eps && ey < eps && ez < eps)
     {
-      posxc = posz; posyc = posy; poszc = posx;
+      posr = posy; postheta = posz; 
     }
     else if (ey > eps && ex < eps && ez < eps)
     {
-      posxc = posx; posyc = posz; poszc = posy;
+      posr = posz; postheta = posx;
     }
     else if (ez > eps && ey < eps && ex < eps)
     {
-      posxc = posx; posyc = posy; poszc = posz;
+      posr = posx; postheta = posy;
     }
     else
     {
@@ -79,21 +79,19 @@ PyObject* K_TRANSFORM::_cyl2CartA(PyObject* self, PyObject* args)
                       "cyl2Cart: axis must be x,y or z.");
       RELEASESHAREDB(res, array, f, cn); return NULL;
     }
-    E_Float* xt = f->begin(posxc);
-    E_Float* yt = f->begin(posyc);
-    E_Float* zt = f->begin(poszc);
-
+    E_Float* rt = f->begin(posr);
+    E_Float* thetat = f->begin(postheta);
+    
 #pragma omp parallel default(shared)
     {
+      E_Float r, theta;
 #pragma omp for
       for (E_Int ind = 0; ind < npts; ind++)
       {
-        E_Float r     = xt[ind];
-        E_Float theta = yt[ind];
-        E_Float x = r*cos(theta);
-        E_Float y = r*sin(theta);
-        xt[ind] = x;
-        yt[ind] = y;
+        r = rt[ind];
+        theta = thetat[ind];
+        rt[ind] = r*cos(theta);
+        thetat[ind] = r*sin(theta);//(y,z) dans le cas (X;R;Theta), (x,y) dans le cas (R,Theta,Z), (z,x) dans le cas (Theta,Y,R)
       }
     }
     RELEASESHAREDB(res, array, f, cn);
@@ -111,7 +109,7 @@ PyObject* K_TRANSFORM::_cyl2CartZ(PyObject* self, PyObject* args)
     char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
     E_Float X0, Y0, Z0;
     E_Float ex, ey, ez;
-    if (!PYPARSETUPLEF(args,"O(ddd)(ddd)sss", "O(fff)(fff)sss",
+    if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ SSS_,
                        &zone, &X0, &Y0, &Z0, &ex, &ey, &ez, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
         return NULL;
 
@@ -141,18 +139,18 @@ PyObject* K_TRANSFORM::_cyl2CartZ(PyObject* self, PyObject* args)
     else npts = im;
 
     E_Float eps = K_CONST::E_GEOM_CUTOFF;
-    E_Int posR, posTHETA, posZ;
+    E_Int posR, posTHETA;
     if (ex > eps && ey < eps && ez < eps)// AXE (OX)
     {
-      posR = posy; posTHETA = posz; posZ = posx;
+      posR = posy; posTHETA = posz;
     }
     else if (ey > eps && ex < eps && ez < eps)// AXE (OY)
     {
-      posR = posx; posTHETA = posz; posZ = posy;
+      posR = posz; posTHETA = posx;
     }
     else if (ez > eps && ey < eps && ex < eps)// AXE (OZ)
     {
-      posR = posx; posTHETA = posy; posZ = posz;
+      posR = posx; posTHETA = posy;
     }
     else
     {
@@ -163,19 +161,18 @@ PyObject* K_TRANSFORM::_cyl2CartZ(PyObject* self, PyObject* args)
     }
     E_Float* xt = fields[posR];
     E_Float* yt = fields[posTHETA];
-    E_Float* zt = fields[posZ];
+
 #pragma omp parallel default(shared)
     {
+      E_Float r, theta;
 #pragma omp for
       for (E_Int ind = 0; ind < npts; ind++)
       {
-        E_Float r     = xt[ind];
-        E_Float theta = yt[ind];
-        E_Float x = r*cos(theta);
-        E_Float y = r*sin(theta);
-        xt[ind] = x;
-        yt[ind] = y;
-      }
+        r = xt[ind];
+        theta = yt[ind];
+        xt[ind] = r*cos(theta);
+        yt[ind] = r*sin(theta);
+      }//(y,z) dans le cas (X;R;Theta), (x,y) dans le cas (R,Theta,Z), (z,x) dans le cas (Theta,Y,R)
     }
 
     delete [] eltType;

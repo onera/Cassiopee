@@ -1,8 +1,0 @@
-#=============================================================================
-# Module Connector
-#=============================================================================
-
-[MISSING] setDoublyDefinedBC : pas implémenté en 2D
-
-[WARNING] getCEBBTimeIntersectingDomains : l'utilisation en 2D est possible 
-mais le mouvement doit etre defini en 3D (a cause de l'utilisation de Transform.move)

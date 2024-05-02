@@ -6,8 +6,7 @@ from math import *
 #=============================================================================
 # Basic test case 1
 #=============================================================================
-ni = 30
-nj = 40
+ni = 30; nj = 40
 # premier maillage
 m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,1))
 m1 = C.addVar(m, 'ro'); del m
@@ -17,7 +16,7 @@ c1 = C.initVars(c, 'cellN', 1); del c
 #
 import Post as P
 r = P.usurp([m1], [c1])
-print r
+print(r)
 
 res = P.integ([m1],[c1],[])
               
@@ -30,7 +29,7 @@ m2 = C.addVar(m, 'ro'); del m
 c = C.array('cellN', ni-1, nj-1, 1)
 c2 = C.initVars(c, 'cellN', 1); del c
 r = P.usurp([m1,m2], [c1,c2])
-print r
+print(r)
 
 #=============================================================================
 # Basic test case 3
@@ -45,7 +44,7 @@ c3 = C.initVars(c, 'cellN', 1); del c
 C.convertArrays2File([m1,m3], "out.plt", "bin_tp")
 
 r = P.usurp([m1,m3], [c1,c3])
-print r
+print(r)
 
 m4 = T.addkplane(m1); del m1
 m5 = T.addkplane(m3); del m3

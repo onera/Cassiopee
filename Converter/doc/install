@@ -1,6 +1,5 @@
-#!/bin/sh
+#! /bin/sh
 echo 'Installing Converter tests and doc'
-
 if ([ $# -eq 0 ])
 then
     if [ "$CASSIOPEE" = "" ]; then
@@ -28,7 +27,7 @@ elif ([ $# -eq 2 ])
 then
     PRODUCTION=1
     # Destination docs
-    DEST="$CASSIOPEE/UserGuides"
+    DEST="$CASSIOPEE/WWW/cassiopee-web"
     # Destination tests unitaires
     DEST2="$DEST/Examples/Converter"
     # Destination des release notes
@@ -39,61 +38,95 @@ else
     exit
 fi
 
-# Nom du fichier doc
-DOC=Converter
-
-# Creation des repertoires de destination
-if test ! -e $DEST
-then 
-    mkdir $DEST
-fi
-if test ! -e "$DEST/Examples"
-then 
-    mkdir "$DEST/Examples"
-fi
-if test ! -e $DEST2
-then 
-    mkdir $DEST2
-fi
-if test ! -e $DEST3
-then 
-    mkdir $DEST3
-fi
-
-# copie de la doc html
-cp $DOC.html $DEST
-cp Internal.html $DEST
-
-# Production + copie des tests unitaires
+# Copy examples to global dir (production mod)
 if ([ $PRODUCTION -eq 1 ])
 then
-    LOCAL=`pwd`
-    cd $DEST
-    if test ! -e Latex
-    then
-        mkdir Latex
+    if test ! -e $DEST
+    then 
+        mkdir $DEST
     fi
-    python parseDoc.py $DOC.html Latex/$DOC.tex
-    cd Latex ; compile $DOC > out ; cd $LOCAL
-    cp $DEST/Latex/$DOC.pdf .
-
-    # Genere la doc de Internal
-    cd $DEST
-    python parseDoc.py Internal.html Latex/Internal.tex
-    cd Latex ; compile Internal > out ; cd $LOCAL
-    cp $DEST/Latex/Internal.pdf .
-else
+    if test ! -e "$DEST/Examples"
+    then 
+        mkdir "$DEST/Examples"
+    fi
+    if test ! -e $DEST2
+    then 
+        mkdir $DEST2
+    fi
+    if test ! -e $DEST3
+    then 
+        mkdir $DEST3
+    fi
     cp ../test/*.py $DEST2
-    if test -f $DOC.pdf
-    then
-        cp *.pdf $DEST
-    fi
+fi
+
+# Create Links for Examples (local)
+if test ! -e build
+then
+    mkdir build
+fi
+cd build
+if test ! -e Examples
+then
+    mkdir Examples
+    ln -s $CASSIOPEE/Apps/Modules/Converter/test Examples/Converter
+fi
+cd ..
+
+# Build html
+touch source/*.rst
+sphinx-build -b html ./source ./build
+
+if ([ $PRODUCTION -eq 1 ])
+then
+    # Build pdf
+    sphinx-build -b latex ./source ./build
+    cd build
+    sed -i 's/longtable}{LL}/longtable}{ll}/g' Internal.tex
+    pdflatex Internal >& /dev/null
+    pdflatex Filter >& /dev/null
+    pdflatex ConverterMpi >& /dev/null
+    pdflatex elsAProfile >& /dev/null
+    pdflatex Converter >& /dev/null
+    cd ..
+fi
+
+# Copie dans le DEST
+if ([ $PRODUCTION -eq 1 ])
+then
+    taghtml build/Internal.html
+    sed -i 's/Converter\.Internal\.Converter\.Internal/Converter\.Internal/g' build/Internal.html
+    sed -i 's/Converter\.pdf/Internal\.pdf/g' build/Internal.html
+    cp build/Internal.html $DEST
+    taghtml build/Filter.html
+    sed -i 's/Converter\.Filter\.Converter\.Filter/Converter\.Filter/g' build/Filter.html
+    sed -i 's/Converter\.pdf/Filter\.pdf/g' build/Filter.html
+    cp build/Filter.html $DEST
+    taghtml build/ConverterMpi.html
+    sed -i 's/Converter\.Mpi\.Converter\.Mpi/Converter\.Mpi/g' build/ConverterMpi.html
+    sed -i 's/Converter\.pdf/ConverterMpi\.pdf/g' build/ConverterMpi.html
+    cp build/ConverterMpi.html $DEST
+    taghtml build/elsAProfile.html
+    sed -i 's/Converter\.elsAProfile\.Converter\.elsAProfile/Converter\.elsAProfile/g' build/elsAProfile.html
+    sed -i 's/Converter\.pdf/elsAProfile\.pdf/g' build/elsAProfile.html
+    cp build/elsAProfile.html $DEST
+    taghtml build/Converter.html
+    sed -i 's/Converter\.Converter/Converter/g' build/Converter.html
+    cp build/Converter.html $DEST
+
+    cp build/Internal.pdf $DEST
+    cp build/Filter.pdf $DEST
+    cp build/ConverterMpi.pdf $DEST
+    cp build/elsAProfile.pdf $DEST
+    cp build/Converter.pdf $DEST
 fi
 
 # Copie des release Notes
-version=`grep -e __version__ ../Converter/Converter.py`
-version1=${version:15:10}
-version1=${version1/"'"/""}
-v='Converter-'$version1'.txt'
-cp Converter.txt $DEST3/$v
-
+if ([ $PRODUCTION -eq 1 ])
+then
+    version=`grep -e __version__ ../Converter/Converter.py`
+    version1=${version:15:4}
+    version1=${version1/"'"/""}
+    v='Converter-'$version1'.txt'
+    cp Converter.txt $DEST3/$v
+fi

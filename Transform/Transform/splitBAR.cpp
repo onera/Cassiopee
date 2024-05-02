@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -18,7 +18,7 @@
 */
 
 # include "transform.h"
-# include "Connect/BARSplitter.h"
+# include "Nuga/include/BARSplitter.h"
 
 using namespace K_FLD;
 using namespace std;
@@ -31,10 +31,9 @@ using namespace std;
 //=============================================================================
 PyObject* K_TRANSFORM::splitBAR(PyObject* self, PyObject* args)
 {
-  PyObject* array; E_Int N;
-  if (!PYPARSETUPLEI(args,
-                    "Ol", "Oi",
-                    &array, &N))
+  PyObject* array; E_Int N; E_Int N2;
+  if (!PYPARSETUPLE_(args, O_ II_,
+                    &array, &N, &N2))
   {
       return NULL;
   }
@@ -69,9 +68,9 @@ PyObject* K_TRANSFORM::splitBAR(PyObject* self, PyObject* args)
   
   // Duplique le pt et c'est tout. Le reste sera fait par un splitConnexity.
   E_Int npts = f->getSize();
-  E_Int Ns = N;
+  E_Int N1 = N;
  
-  if (Ns < 0 || Ns > npts-1)
+  if (N1 < 0 || N1 > npts-1)
   {
     delete f; delete cn;
     PyErr_SetString(PyExc_ValueError,
@@ -79,13 +78,15 @@ PyObject* K_TRANSFORM::splitBAR(PyObject* self, PyObject* args)
     return NULL;
   }
 
+  E_Int nptsf = npts+1;
+  if (N2 > 0) nptsf = npts+2;
   E_Int nfld = f->getNfld();
   E_Int csize = cn->getSize()*cn->getNfld(); 
   PyObject* tpl = K_ARRAY::buildArray(nfld, varString,
-                                      npts+1, cn->getSize(),
+                                      nptsf, cn->getSize(),
                                       -1, eltType, false, csize);
   E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF fn(npts+1, nfld, fnp, true);
+  FldArrayF fn(nptsf, nfld, fnp, true);
 
   for (E_Int v = 1; v <= nfld; v++)
   {
@@ -93,7 +94,8 @@ PyObject* K_TRANSFORM::splitBAR(PyObject* self, PyObject* args)
     E_Float* f2 = fn.begin(v);
 
     for (E_Int i = 0; i < npts; i++) f2[i] = f1[i];
-    f2[npts] = f1[Ns];
+    f2[npts] = f1[N1];
+  if (N2 > 0) f2[npts+1] = f1[N2];
   }
   
   // copie connectivite
@@ -103,7 +105,8 @@ PyObject* K_TRANSFORM::splitBAR(PyObject* self, PyObject* args)
   // change le pts
   for (E_Int i = 0; i < cn->getSize(); i++)
   {
-    if (cnnp[i] == Ns+1) { cnnp[i] = npts+1; break; }
+    if (cnnp[i] == N1+1) { cnnp[i] = npts+1; }
+    if (cnnp[i] == N2+1) { cnnp[i] = npts+2; }
   }
 
   delete f; delete cn;

@@ -9,8 +9,8 @@ a = G.cylinder((0,0,0),0.5,1.,0.,90.,1.,(ni,nj,1))
 a = C.initVars(a,'vx', 0.)
 a = C.initVars(a,'vy', 0.)
 a = C.initVars(a,'vz', 1.)
-for j in xrange(nj):
-    for i in xrange(ni):
+for j in range(nj):
+    for i in range(ni):
         i0 = i * math.pi/2./90.
         a[1][3,i+j*ni] = math.cos(i0)
         a[1][4,i+j*ni] = math.sin(i0)

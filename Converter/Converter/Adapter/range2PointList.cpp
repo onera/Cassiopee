@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -28,12 +28,12 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::range2PointList(PyObject* self, PyObject* args)
 {
   E_Int imin, imax, jmin, jmax, kmin, kmax, ni, nj, nk;
-  if (!PYPARSETUPLEI(args, "lllllllll", "iiiiiiiii", &imin, &imax, &jmin, &jmax, &kmin, &kmax,
+  if (!PYPARSETUPLE_(args, IIII_ IIII_ I_, &imin, &imax, &jmin, &jmax, &kmin, &kmax,
                      &ni, &nj, &nk)) return NULL;
   
-  E_Int ni1 = std::max(ni-1,1);
-  E_Int nj1 = std::max(nj-1,1);
-  E_Int nk1 = std::max(nk-1,1);
+  E_Int ni1 = std::max(ni-1,E_Int(1));
+  E_Int nj1 = std::max(nj-1,E_Int(1));
+  E_Int nk1 = std::max(nk-1,E_Int(1));
   E_Int shift, size, ind;
   E_Int ii = 0;
   if ( kmin == kmax && nk == 1) kmax = 2;// 2D

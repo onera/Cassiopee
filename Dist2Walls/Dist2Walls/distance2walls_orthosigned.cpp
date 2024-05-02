@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -18,9 +18,9 @@
 */
 
 # include "dist2walls.h"
-# include "Search/KdTree.h"
-# include "Search/BbTree.h"
-# include "Fld/ArrayAccessor.h"
+# include "Nuga/include/KdTree.h"
+# include "Nuga/include/BbTree.h"
+# include "Nuga/include/ArrayAccessor.h"
 
 using namespace std;
 using namespace K_FLD; 
@@ -362,6 +362,7 @@ void K_DIST2WALLS::computeSignedOrthoDist(
 
   /* Compute the distance with orthogonal projection */
   E_Float pt[3];
+  E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3];
   vector<E_Int> indicesBB; vector<E_Int> candidates;
 
   for (E_Int v = 0; v < nzones; v++)
@@ -372,7 +373,7 @@ void K_DIST2WALLS::computeSignedOrthoDist(
     E_Float* distancep = distances[v]->begin();
     E_Int npts = distances[v]->getSize();
 
-#pragma omp parallel for default(shared) private(minB, maxB, pt, indicesBB, candidates) schedule(dynamic)
+#pragma omp parallel for default(shared) private(minB, maxB, pt, p0, p1, p2, p, indicesBB, candidates) schedule(dynamic)
     for (E_Int ind = 0; ind < npts; ind++)
     {
       E_Int ret, ets, nows; E_Float rxsav, rysav, rzsav;
@@ -431,7 +432,8 @@ void K_DIST2WALLS::computeSignedOrthoDist(
         }
 
         ret = K_COMPGEOM::projectOrthoPrecond(pt[0], pt[1], pt[2], xw, yw, zw, 
-                                              candidates, cnloc, xp, yp, zp);
+                                              candidates, cnloc, xp, yp, zp,
+                                              p0, p1, p2, p);
         if (ret != -1)
         {
           rx = xp-pt[0]; ry = yp-pt[1]; rz = zp-pt[2];

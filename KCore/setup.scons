@@ -32,7 +32,8 @@ libraryDirs += paths; libraries += libs
 # Env =========================================================================
 import srcs
 cpp_srcs1 = srcs.cpp_srcs[0:100]
-cpp_srcs2 = srcs.cpp_srcs[100:]
+cpp_srcs2 = srcs.cpp_srcs[100:200]
+cpp_srcs3 = srcs.cpp_srcs[200:]
 
 if Dist.getSystem()[0] == 'mingw': tools = ['mingw']
 else: tools = None
@@ -42,27 +43,50 @@ env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
                   LIBPATH=additionalLibPaths+libraryDirs,
                   LIBS=libraries+additionalLibs,
                   CPPPATH=["KCore", "KCore/Metis"]+additionalIncludePaths+[pythonIncDir, numpyIncDir],
-                  CCFLAGS=Dist.getCArgs(),
+                  CFLAGS=Dist.getCArgs(),
                   CXXFLAGS=Dist.getCppArgs(),
                   SHLIBSUFFIX=so_ext, SHLIBPREFIX='',
                   LINKFLAGS=Dist.getLinkArgs(),
                   ENV=Dist.getEnvForScons())
 
+ELSAPROD = os.environ.get('ELSAPROD', 'x86_r8')
+env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
+
 env = Dist.createFortranBuilder(env, ['./KCore'])
 ppf = Dist.createFortranFiles(env, srcs)
 
-import os
-ELSAPROD = os.environ.get('ELSAPROD', 'x86_r8')
 env.Command('merge.l', 'merge.ar', "sed -e s/ELSAPROD/%s/g merge.ar > merge.l"%ELSAPROD)
-env.Command('libkcore.a', ['libkcore1.a', 'libkcore2.a', 'merge.l'], "ar -M < merge.l")
+env.Command('libkcore.a', ['libkcore1.a', 'libkcore2.a', 'libkcore3.a', 'merge.l'], "ar -M < merge.l")
+
+#==============================================================================
+# Suppression de la vectorisation pour les fichiers de Nuga
+cppOpts = Dist.getCppArgs()
+flags = ''
+for i in cppOpts:
+    if not Dist.isSimd(i): flags += i+' '
+for i, f in enumerate(cpp_srcs3):
+    if "KCore/Nuga" in f:
+        #print('altering',f,flags)
+        cpp_srcs3[i] = env.Object(f, CXXFLAGS=flags)
+
+#==============================================================================
+# Bidouille pour openacc
+#flags = ''
+#for i in cppOpts:
+#    if '-target=multicore' in i: continue
+#    if '-mp' in i: continue
+#    flags += i+' '
+#for i, f in enumerate(cpp_srcs1):
+#    if "testerAcc" in f:
+#        cpp_srcs1[i] = env.Object(f, CXXFLAGS=flags)
 
 #==============================================================================
 
 myMod1 = env.StaticLibrary('kcore1', source=cpp_srcs1)
-myMod2 = env.StaticLibrary('kcore2', source=cpp_srcs2+ppf)
+myMod2 = env.StaticLibrary('kcore2', source=cpp_srcs2)
+myMod3 = env.StaticLibrary('kcore3', source=cpp_srcs3+ppf)
 myMod = 'libkcore.a'
-modDir = installPath+'/KCore/'
-dp1 = env.Install(modDir, myMod)
-dp2 = env.Install(modDir, Glob('KCore/*.py'))
 
-env.Alias(target="install", source=[dp1,dp2])
+modDir = 'build/'+ELSAPROD
+dp1 = env.Install(modDir, myMod)
+env.Alias(target="install", source=[dp1])

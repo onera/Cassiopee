@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -54,9 +54,9 @@
   Les steps sont forces a 1
 */
 //=============================================================================
-void DataDL::renderGPUSMeshZone(StructZone* zonep, int zone)
+void DataDL::renderGPUSMeshZone(StructZone* zonep, E_Int zone)
 {
-  int i, ret;
+  E_Int i, ret;
 
   // Style colors
   float color1[3]; float color2[3];
@@ -64,11 +64,11 @@ void DataDL::renderGPUSMeshZone(StructZone* zonep, int zone)
   // Colormap
   float r, g, b;
   void (*getrgb)(Data* data, double, float*, float*, float*);
-  getrgb = _plugins.colorMap->next->f;
+  getrgb = _plugins.zoneColorMap->f;
 
   // For node rendering (1D zones)
   double d;
-  double dref = 0.003;
+  double dref = 0.004;
   double xi, yi, zi;
   double viewMatrix[16];
   glGetDoublev(GL_MODELVIEW_MATRIX, viewMatrix);
@@ -90,19 +90,19 @@ void DataDL::renderGPUSMeshZone(StructZone* zonep, int zone)
   E_Float nz = 1./_numberOfStructZones;
 #include "meshStyles.h"  
 
-#include "selection.h"
-    
   double* x = zonep->x;
   double* y = zonep->y;
   double* z = zonep->z;
 
   // Grid dimensions
-  int ni = zonep->ni;
-  int nj = zonep->nj;
-  int nk = zonep->nk;
+  E_Int ni = zonep->ni;
+  E_Int nj = zonep->nj;
+  E_Int nk = zonep->nk;
   if (ptrState->dim == 2) nk = 1;
   
-  if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1) glLineWidth(3.);
+  if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1) 
+  { glLineWidth(3.); color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1.; }
+#include "selection.h"
   
   d = dist2BB(_view.xcam, _view.ycam, _view.zcam,
               zonep->xmin, zonep->ymin, zonep->zmin,
@@ -126,20 +126,14 @@ void DataDL::renderGPUSMeshZone(StructZone* zonep, int zone)
     if (zonep->blank == 0)
     {
       // No blanking
-      for (i = 0; i < ni*nj*nk; i++)
-      {
-        PLOTNODE;
-      }
+      for (i = 0; i < ni*nj*nk; i++) { PLOTNODE; }
     }
     else
     {
       for (i = 0; i < ni*nj*nk; i++)
       {
         ret = _pref.blanking->f(this, i, zonep->blank, zone);
-        if (ret != 0)
-        {
-          PLOTNODE;
-        }
+        if (ret != 0) { PLOTNODE; }
       }
     }
     glEnd();

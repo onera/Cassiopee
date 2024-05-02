@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -91,32 +91,58 @@ void Data::loadPlugins()
   pd->f = colBlueToRed;
   pd->next = NULL;
 
-  // Green to red
+  // col2RGB
   pd->next =
     (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
   pd = pd->next;
-  
-  strcpy(pd->functionName, "Green to red colormap");
+  strcpy(pd->functionName, "Bi-color RGB colormap");
   strcpy(pd->varName, "1");
-  pd->f = colGreenToRed;
+  pd->f = col2RGB;
   pd->next = NULL;
 
-  // colGrey
+  // col2HSV
   pd->next =
     (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
   pd = pd->next;
-  strcpy(pd->functionName, "Grey colormap");
+  strcpy(pd->functionName, "Bi-color HSV colormap");
   strcpy(pd->varName, "2");
-  pd->f = colGrey;
+  pd->f = col2HSV;
   pd->next = NULL;
 
-  // colGrey2
+  // col3RGB
   pd->next =
     (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
   pd = pd->next;
-  strcpy(pd->functionName, "Reverse grey colormap");
+  strcpy(pd->functionName, "Tri-color RGB colormap");
   strcpy(pd->varName, "3");
-  pd->f = colGrey2;
+  pd->f = col3RGB;
+  pd->next = NULL;
+
+  // col3HSV
+  pd->next =
+    (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
+  pd = pd->next;
+  strcpy(pd->functionName, "Tri-color HSV colormap");
+  strcpy(pd->varName, "4");
+  pd->f = col3HSV;
+  pd->next = NULL;
+
+  // colMRGB
+  pd->next =
+    (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
+  pd = pd->next;
+  strcpy(pd->functionName, "Multi-color RGB colormap");
+  strcpy(pd->varName, "5");
+  pd->f = colMRGB;
+  pd->next = NULL;
+
+  // colMHSV
+  pd->next =
+    (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
+  pd = pd->next;
+  strcpy(pd->functionName, "Multi-color HSV colormap");
+  strcpy(pd->varName, "6");
+  pd->f = colMHSV;
   pd->next = NULL;
 
   // Diverging
@@ -124,10 +150,18 @@ void Data::loadPlugins()
     (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
   pd = pd->next;
   strcpy(pd->functionName, "Diverging colormap");
-  strcpy(pd->varName, "4");
+  strcpy(pd->varName, "7");
   pd->f = diverging;
   pd->next = NULL;
 
+  // Zone color map plugins
+  _plugins.zoneColorMap = 
+    (struct chain_function_double*)malloc(sizeof(struct chain_function_double));
+  pd = _plugins.zoneColorMap;
+  strcpy(pd->functionName, "Green to red colormap");
+  strcpy(pd->varName, "0");
+  pd->f = colGreenToRed;
+  pd->next = NULL;
 
   // -- Default screenDump functions -- 
   // RGB ppm screen dump

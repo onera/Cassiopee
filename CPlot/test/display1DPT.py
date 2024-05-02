@@ -9,7 +9,7 @@ b = G.cart((0,0,0), (0.1,1,1), (50,1,1))
 c = G.cart((5,0,0), (0.1,1,1), (50,1,1))
 B = [b, c]
 CPlot.setState(gridSize=(1,2))
-for i in xrange(100):
+for i in range(100):
     C._initVars(B, '{f}=sin({CoordinateX}+0.01*%d)'%i)
     C._initVars(B, '{g}={CoordinateX}')
     CPlot.display1D(B, slot=0, bgBlend=1., gridPos=(0,0), var1='CoordinateX', var2='f')

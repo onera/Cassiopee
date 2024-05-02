@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -20,7 +20,7 @@
 // Creates a structured points cloud over a BAR.
 
 # include "generator.h"
-# include "Nuga/GapFixer/Plaster.h"
+# include "Nuga/include/Plaster.h"
 
 using namespace std;
 
@@ -31,10 +31,10 @@ using namespace std;
 PyObject* K_GENERATOR::fittingPlaster(PyObject* self, PyObject* args)
 {
   PyObject *arrB0;
-  float pump_factor = 0.f;
-
-  if (!PyArg_ParseTuple(args, "Of", &arrB0, &pump_factor)) return NULL;
-
+  E_Float pump_factor;
+  if (!PYPARSETUPLE_(args, O_ R_, 
+                    &arrB0, &pump_factor))
+    return NULL;
   E_Int ni, nj, nk;
   K_FLD::FloatArray *fB0;
   char* varString; char* eltType;
@@ -57,7 +57,7 @@ PyObject* K_GENERATOR::fittingPlaster(PyObject* self, PyObject* args)
                     "fittingPlaster: array must define a BAR.");
     delete fB0; return NULL;
   }
-  if ( res == 2 ) 
+  if (res == 2) 
   {
     if (strcmp(eltType, "BAR") != 0)
     {
@@ -82,10 +82,9 @@ PyObject* K_GENERATOR::fittingPlaster(PyObject* self, PyObject* args)
   K_FLD::FloatArray &posB0(*fB0), plaster; 
   K_FLD::IntArray &connectB0(*cn);
   E_Int ni1;
-
   Plaster p;
   E_Int err = p.make(posB0, connectB0, plaster, ni1, pump_factor);
-
+  
   delete fB0; delete cn;
   PyObject* tpl = NULL;
   if (!err)

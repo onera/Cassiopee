@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -46,7 +46,6 @@ PyObject* K_CONNECTOR::getExtrapAbsCoefs(PyObject* self, PyObject* args)
                     "getExtrapCoefs: 1st arg must be a numpy of integers.");
     return NULL;
   }
-
   /*---------------------------------------*/
   /* Extraction des indices des extrapoles */
   /*---------------------------------------*/
@@ -78,7 +77,8 @@ PyObject* K_CONNECTOR::getExtrapAbsCoefs(PyObject* self, PyObject* args)
   /* Extraction des coefs  */
   /*-----------------------*/
   FldArrayF* donorCoefsF;
-  res = K_NUMPY::getFromNumpyArray(pyArrayCoefs, donorCoefsF, true);
+  E_Boolean shared=true;
+  res = K_NUMPY::getFromNumpyArray(pyArrayCoefs, donorCoefsF, shared);
   if (res == 0) 
   {
     RELEASESHAREDN(pyIndRcv, rcvPtsI);
@@ -88,7 +88,6 @@ PyObject* K_CONNECTOR::getExtrapAbsCoefs(PyObject* self, PyObject* args)
                     "getExtrapCoefs: 4th arg must be a numpy of floats.");
     return NULL;
   }
-  
   E_Int sizecoefs = 0;
   // Types valides: 2, 3, 4, 5, 102
   E_Float* ptrCoefs = donorCoefsF->begin();

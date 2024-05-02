@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -16,23 +16,23 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <png.h>
+#include "Images/png/png.h"
 #include "../Data.h"
 
 //============================================================================
 // sortie png + depth dans le canal alpha
 //============================================================================
 void writeDPNGFile(Data* d, char *filename, char* buffer, 
-                   int width, int height, int mode)
+                   E_Int width, E_Int height, E_Int mode)
 {
   char* sbuffer = new char [width*height*4];
-  for (int j = 0; j < width*height; j++)
+  for (E_Int j = 0; j < width*height; j++)
   {
     sbuffer[4*j] = buffer[3*j];
     sbuffer[4*j+1] = buffer[3*j+1];
     sbuffer[4*j+2] = buffer[3*j+2];
   }
-  for (int j = 0; j < width*height; j++)
+  for (E_Int j = 0; j < width*height; j++)
   {
     sbuffer[4*j+3] = buffer[3*width*height+j];
   }
@@ -43,19 +43,19 @@ void writeDPNGFile(Data* d, char *filename, char* buffer,
 //=============================================================================
 /*
   Write buffer to PNG file.
-  mode=0 : RGB, buffer must be RGB
-  mode=1 : RGB+A, buffer must be RGBA
+  mode=0: RGB, buffer must be RGB
+  mode=1: RGB+A, buffer must be RGBA
 */
 //=============================================================================
-void writePNGFile(Data* d, char *filename, char* buffer, 
-                  int width, int height, int mode)
+void writePNGFile(Data* d, char* filename, char* buffer, 
+                  E_Int width, E_Int height, E_Int mode)
 {
   FILE *fp;
   if (buffer == NULL) return;
 
   png_byte color_type;
   png_byte bit_depth;
-  int stride = 0;
+  E_Int stride = 0;
   if (mode == 0) 
   { color_type = PNG_COLOR_TYPE_RGB; bit_depth = 8; stride = 3; }
   else { color_type = PNG_COLOR_TYPE_RGBA; bit_depth = 8; stride = 4; }  
@@ -90,7 +90,7 @@ void writePNGFile(Data* d, char *filename, char* buffer,
 
   /* write bytes */
   if (setjmp(png_jmpbuf(png_ptr))) return;
-  
+   
   row_pointers = new png_bytep [height];
   for (int y = 0; y < height; y++)
   {
@@ -100,12 +100,13 @@ void writePNGFile(Data* d, char *filename, char* buffer,
   png_write_image(png_ptr, row_pointers);
 
   if (setjmp(png_jmpbuf(png_ptr))) {delete[] row_pointers; return;}
-
   png_write_end(png_ptr, NULL);
 
   /* cleanup heap allocation */
   delete [] row_pointers;
+  png_destroy_write_struct(&png_ptr, &info_ptr);
+
   fclose(fp); 
 
-  printf("Wrote file %s (%d x %d pixels).\n", filename, width, height);
+  printf("Wrote file %s (" SF_D_ " x " SF_D_ " pixels).\n", filename, width, height);
 }

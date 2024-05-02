@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -29,15 +29,38 @@ static PyMethodDef Pydistributor2 [] =
   {NULL, NULL}
 };
 
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "distributor2",
+        NULL,
+        -1,
+        Pydistributor2
+};
+#endif
+
 // ============================================================================
 /* Init of module */
 // ============================================================================
 extern "C"
 {
-  void initdistributor2();
-  void initdistributor2()
+
+#if PY_MAJOR_VERSION >= 3
+  PyMODINIT_FUNC PyInit_distributor2();
+  PyMODINIT_FUNC PyInit_distributor2()
+#else
+  PyMODINIT_FUNC initdistributor2();
+  PyMODINIT_FUNC initdistributor2()
+#endif
   {
-    Py_InitModule("distributor2", Pydistributor2);
     import_array();
+#if PY_MAJOR_VERSION >= 3
+    PyObject* module = PyModule_Create(&moduledef);
+#else
+    Py_InitModule("distributor2", Pydistributor2);
+#endif
+#if PY_MAJOR_VERSION >= 3
+    return module;
+#endif
   }
 }

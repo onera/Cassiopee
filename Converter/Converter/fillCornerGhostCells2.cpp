@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -42,7 +42,7 @@ PyObject* K_CONVERTER::fillCornerGhostCells2(PyObject* self, PyObject* args)
   PyObject* zone;
   E_Int ngc;
   char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
-  if (!PYPARSETUPLEI(args, "Olsss", "Oisss", &zone, &ngc, 
+  if (!PYPARSETUPLE_(args, O_ I_ SSS_, &zone, &ngc, 
                      &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
     return NULL;
   /* zone a modifier */

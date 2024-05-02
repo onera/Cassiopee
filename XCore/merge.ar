@@ -1,0 +1,4 @@
+create build/ELSAPROD/libxcore.a
+addlib build/ELSAPROD/libxcore1.a
+save
+end

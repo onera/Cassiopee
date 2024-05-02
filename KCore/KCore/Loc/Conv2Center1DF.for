@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -65,8 +65,7 @@ C_LOCAL
       INTEGER_E i, j, indcenter
       INTEGER_E ind0, ind1
       INTEGER_E nic
-      REAL_E f
-
+      
       nic = ni-1
       DO i = 0, nic-1
          indcenter = i
@@ -96,8 +95,8 @@ C_OUT
       
 C_LOCAL
       INTEGER_E i, indcenter
-      INTEGER_E ind0, ind1, nic, njc
-      REAL_E f, somme, prod
+      INTEGER_E ind0, ind1, nic
+      REAL_E somme
 
       nic = ni-1
       DO i = 1, nic-1
@@ -108,7 +107,8 @@ C_LOCAL
          IF (somme .EQ. 0.) THEN
             fieldcenter(indcenter) = 0.D0
          ELSE
-            IF (somme .GE. 2.) THEN
+            IF ((fieldnode(ind0) .EQ. 2.) 
+     &              .OR. (fieldnode(ind1) .EQ. 2.))  THEN
                fieldcenter(indcenter) = 2.D0
             ELSE
                fieldcenter(indcenter) = 1.D0
@@ -119,7 +119,7 @@ C_LOCAL
       somme = fieldnode(0)+fieldnode(1)
       IF (somme .EQ. 0) THEN
          fieldcenter(0) = 0.D0
-      ELSE IF (somme .EQ. 2.) THEN 
+      ELSE IF (somme .EQ. 4.) THEN 
          fieldcenter(0) = 2.D0
       ELSE
          fieldcenter(0) = 1.D0
@@ -128,7 +128,7 @@ C_LOCAL
       somme = fieldnode(nic)+fieldnode(nic-1)
       IF (somme .EQ. 0) THEN
          fieldcenter(nic-1) = 0.D0
-      ELSE IF (somme .EQ. 2.) THEN 
+      ELSE IF (somme .EQ. 4.) THEN 
          fieldcenter(nic-1) = 2.D0
       ELSE
          fieldcenter(nic-1) = 1.D0

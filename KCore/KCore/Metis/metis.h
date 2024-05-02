@@ -6,6 +6,7 @@
 \date   Started 8/9/02
 \version\verbatim $Id$\endverbatim
 */
+#include "Def/DefTypes.h"
 
 #ifndef _METIS_H_
 #define _METIS_H_ 
@@ -30,15 +31,18 @@
  GCC does provides these definitions in stdint.h, but it may require some
  modifications on other architectures.
 --------------------------------------------------------------------------*/
-#define IDXTYPEWIDTH 32
-
+#ifdef E_DOUBLEINT
+  #define IDXTYPEWIDTH 64
+#else
+  #define IDXTYPEWIDTH 32
+#endif
 
 /*--------------------------------------------------------------------------
  Specifies the data type that will hold floating-point style information.
 
  Possible values:
-   32 : single precission floating point (float)
-   64 : double precission floating point (double)
+   32 : single precision floating point (float)
+   64 : double precision floating point (double)
 --------------------------------------------------------------------------*/
 #define REALTYPEWIDTH 64
 
@@ -176,7 +180,20 @@ typedef __int64 int64_t;
 #define METIS_API(type) type
 #endif
 
-
+/* CBX: Ajoute par Pascal et Sebastien */
+#define METIS_PartGraphRecursive K_METIS__METIS_PartGraphRecursive
+#define METIS_PartGraphKway      K_METIS__METIS_PartGraphKway
+#define METIS_MeshToDual         K_METIS__METIS_MeshToDual
+#define METIS_MeshToNodal        K_METIS__METIS_MeshToNodal
+#define METIS_PartMeshNodal      K_METIS__METIS_PartMeshNodal
+#define METIS_PartMeshDual       K_METIS__METIS_PartMeshDual
+#define METIS_NodeND             K_METIS__METIS_NodeND
+#define METIS_Free               K_METIS__METIS_Free
+#define METIS_SetDefaultOptions  K_METIS__METIS_SetDefaultOptions
+#define METIS_NodeNDP            K_METIS__METIS_NodeNDP
+#define METIS_ComputeVertexSeparator K_METIS__METIS_ComputeVertexSeparator
+#define METIS_NodeRefine         K_METIS__METIS_NodeRefine
+/* Fin ajout CBX */
 
 #ifdef __cplusplus
 extern "C" {

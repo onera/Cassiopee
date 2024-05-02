@@ -45,12 +45,13 @@ env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
 env.Replace(CXXFLAGS=Dist.getCppArgs())
 env.Replace(CFLAGS=Dist.getCArgs())
 
+ELSAPROD = os.environ.get('ELSAPROD', 'x86_r8')
+env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
+
 #==============================================================================
 
-myMod = env.StaticLibrary('dist2walls',
-                          srcs.cpp_srcs)
-modDir = installPath+'/Dist2Walls/'
+myMod = env.StaticLibrary('dist2walls', srcs.cpp_srcs)
+modDir = 'build/'+ELSAPROD
 dp1 = env.Install(modDir, myMod)
-dp2 = env.Install(modDir, Glob('Dist2Walls/*.py'))
 
-env.Alias(target="install", source=[dp1,dp2])
+env.Alias(target="install", source=[dp1])

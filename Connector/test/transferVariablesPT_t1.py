@@ -3,7 +3,6 @@ import Connector.PyTree as X
 import Generator.PyTree as G
 import KCore.test as test
 import Geom.PyTree as D
-import Converter
 
 # transfers at centers
 a = D.sphere((5.,5.,5.),1)
@@ -19,7 +18,6 @@ adt = C.createHook(zdnrc,'adt')
 fields = X.transferFields(zdnrc, XI, YI, ZI, hook=adt, variables=['Density'])
 C.freeHook(adt)
 test.testA(fields,1)
-
 
 # transfers at nodes
 a = D.sphere((5.,5.,5.),1)

@@ -1,4 +1,77 @@
 ===============================================================================
+Post 3.7 [10/2023]
+Requires: C++ compiler, f77 compiler, python > 2.7, numpy > 1.0, KCore 3.7
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 3.7
+Optional: extraction functions features require Generator, Transform 3.7
+===============================================================================
+Post 3.6 [03/2023]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.6
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 3.6
+Optional: extraction functions features require Generator, Transform 3.6
+===============================================================================
+Post 3.5 [12/2022]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.5
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 3.5
+Optional: extraction functions features require Generator, Transform 3.5
+===============================================================================
+Post 3.4 [07/2022]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.4
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 3.4
+Optional: extraction functions features require Generator, Transform 3.4
+- Rotor module
+- ExtraVariable2 module
+===============================================================================
+Post 3.3 [10/2021]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.3
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 3.3
+Optional: extraction functions features require Generator, Transform 3.3
+===============================================================================
+Post 3.2 [02/2021]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.2
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 3.2
+Optional: extraction functions features require Generator, Transform 3.2
+===============================================================================
+Post 3.1 [06/2020]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.1
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 3.1
+Optional: extraction functions features require Generator, Transform 3.1
+- streamLines2: optimized stream lines
+===============================================================================
+Post 3.0 [12/2019]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.0
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 3.0
+Optional: extraction functions features require Generator, Transform 3.0
+===============================================================================
+Post 2.9 [06/2019]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.9
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 2.9
+Optional: extraction functions features require Generator, Transform 2.9
+===============================================================================
+Post 2.8 [12/2018]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.8
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 2.8
+Optional: extraction functions features require Generator, Transform 2.8
+- Post: computeDiv
+- Post: computeDiv2
+===============================================================================
+Post 2.7 [07/2018]
+Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.7
+Optional: usurp function requires f90 compiler
+Optional: PyTree interface requires Converter 2.7
+Optional: extraction functions features require Generator, Transform 2.7
+- doc sphinx
+- computDiv2: calcul direct de la divergence d'un champ
+===============================================================================
 Post 2.6 [03/2018]
 Requires: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.6
 Optional: usurp function requires f90 compiler

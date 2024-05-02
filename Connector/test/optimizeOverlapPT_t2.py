@@ -1,4 +1,4 @@
-# - optimizeOverlap (pyTree)-
+# - optimizeOverlap (pyTree) -
 # Cas double wall
 import Converter.PyTree as C
 import Connector.PyTree as X

@@ -11,6 +11,6 @@ t = C.newPyTree(['Base',a,b])
 (t, dic) = Distributor2.distribute(t, NProc=2, algorithm='fast')
 
 zones = Internal.getNodesFromType(t, 'Zone_t')
-for z in zones: print z[0]+' -> '+str(Cmpi.getProc(z))
+for z in zones: print(z[0]+' -> '+str(Cmpi.getProc(z)))
 #>> cart -> 0
 #>> cart.0 -> 1

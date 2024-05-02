@@ -5,7 +5,6 @@ import Converter as C
 import Connector as X
 import Generator as G
 import Geom as D
-import Transform as T
 import KCore.test as test
 
 surf = D.circle((0,0,0), 0.5, 0., 360.)

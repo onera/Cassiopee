@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Récupère les pointeurs si grandeurs conservatives
+// Recupere les pointeurs si grandeurs conservatives
 #define GETPTRS \
   rop  = (E_Float*)f.begin(posro);  \
   roup = (E_Float*)f.begin(posrou); \
@@ -68,8 +68,7 @@ PyObject* K_POST::computeVariables2(PyObject* self, PyObject* args)
   PyObject* array; PyObject* vars0;
   E_Float gamma, rgp, s0, betas, Cs, mus, Ts;
 
-  if (!PYPARSETUPLEF(args,
-                    "OOddddddd", "OOfffffff",
+  if (!PYPARSETUPLE_(args, OO_ RRRR_ RRR_, 
                     &array, &vars0, &gamma, &rgp, &s0, &betas, &Cs, &mus, &Ts))
   {
       return NULL;
@@ -90,8 +89,8 @@ PyObject* K_POST::computeVariables2(PyObject* self, PyObject* args)
   }
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Extrait les variables à calculer de la chaîne vars0. 
-  // Insert dans vars uniquement celles qui seront effectivement calculées
+  // Extrait les variables a calculer de la chaine vars0. 
+  // Insere dans vars uniquement celles qui seront effectivement calculees
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   char varStringOut[K_ARRAY::VARSTRINGLENGTH]; varStringOut[0] = '\0';
   vector<char*> vars;
@@ -100,11 +99,7 @@ PyObject* K_POST::computeVariables2(PyObject* self, PyObject* args)
     for (int i = 0; i < PyList_Size(vars0); i++)
     {
       PyObject* tpl0 = PyList_GetItem(vars0, i);
-      if (PyString_Check(tpl0) == 0)
-      {
-        printf("Warning: computeVariables: varname must be a string. Skipped...\n");
-      }
-      else 
+      if (PyString_Check(tpl0))
       {
         char* str = PyString_AsString(tpl0);
         char tmpVarString[K_ARRAY::VARSTRINGLENGTH];
@@ -115,16 +110,40 @@ PyObject* K_POST::computeVariables2(PyObject* self, PyObject* args)
           else {strcat(varStringOut, ","); strcat(varStringOut, tmpVarString);}
         }
       }
+#if PY_VERSION_HEX >= 0x03000000
+      else if (PyUnicode_Check(tpl0)) 
+      {
+        char* str = (char*)PyUnicode_AsUTF8(tpl0);
+        char tmpVarString[K_ARRAY::VARSTRINGLENGTH];
+        short ok = checkAndExtractVariables(str, vars, tmpVarString);
+        if (ok != 0) 
+        {
+          if (varStringOut[0] == '\0') strcpy(varStringOut, tmpVarString);
+          else {strcat(varStringOut, ","); strcat(varStringOut, tmpVarString);}
+        }
+      }
+#endif
+      else  
+      {
+        printf("Warning: computeVariables: varname must be a string. Skipped...\n");
+      }
     }
   }
   else // PyList_Check(vars0) == 0
   {
-    if (PyString_Check(vars0) == 0) printf("Warning: computeVariables: varname must be a string. Skipped...\n");
-    else 
-    {  
+    if (PyString_Check(vars0))
+    {
       char* str = PyString_AsString(vars0);
       checkAndExtractVariables(str, vars, varStringOut);
     }
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(vars0)) 
+    {
+      char* str = (char*)PyUnicode_AsUTF8(vars0);
+      checkAndExtractVariables(str, vars, varStringOut); 
+    }
+#endif
+    else printf("Warning: computeVariables: varname must be a string. Skipped...\n");
   }
   E_Int nvarout = vars.size(); // variables a calculer
   if (nvarout == 0)
@@ -180,7 +199,6 @@ PyObject* K_POST::computeVariables2(PyObject* self, PyObject* args)
   // Evaluation des nouveaux champs 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   E_Int varsSize = vars.size();
-
   for (E_Int v = 0; v < varsSize; v++) 
   { 
       E_Int posvar = K_ARRAY::isNamePresent(vars[v],varString);
@@ -203,15 +221,15 @@ PyObject* K_POST::computeVariables2(PyObject* self, PyObject* args)
           computeCompVars2(*f, posvar, vars[v], posro, posu, posv, 
    	      	               posw, post, gamma, rgp, s0, betas, Cs);
 
-      RELEASESHAREDB(res2, array, f, cn); 
+      RELEASESHAREDB(res2, array, f, cn);
   }
-
+  for (E_Int v = 0; v < varsSize; v++) delete [] vars[v];
   Py_INCREF(Py_None);
   return Py_None;
 }
 
 // =================================================================================
-// Calcule les variables composées (à partir des variables cons.)
+// Calcule les variables composees (a partir des variables cons.)
 //==================================================================================
 E_Int K_POST::computeCompVars(const FldArrayF& f,  const E_Int posnew, 
                                     char* varnew,  const E_Int posro,
@@ -496,7 +514,7 @@ E_Int K_POST::computeCompVars(const FldArrayF& f,  const E_Int posnew,
   else return 1;
 }
 // =================================================================================
-// Calcule les variables composées (à partir des variables ro, u, T)
+// Calcule les variables composees (a partir des variables ro, u, T)
 // =================================================================================
 E_Int K_POST::computeCompVars2(const FldArrayF& f,    const E_Int posnew,
 			             char* varnew,    const E_Int posro,
@@ -666,7 +684,7 @@ E_Int K_POST::computeCompVars2(const FldArrayF& f,    const E_Int posnew,
       }
   }
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Viscosité du fluide
+  // Viscosite du fluide
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   else if (K_STRING::cmp(varnew, "ViscosityMolecular") == 0) //viscosite du fluide 
   {
@@ -705,7 +723,7 @@ E_Int K_POST::computeCompVars2(const FldArrayF& f,    const E_Int posnew,
       }
   }
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Température d'arrêt 
+  // Temperature d'arret 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   else if (K_STRING::cmp(varnew, "TemperatureStagnation") == 0) //temperature d'arret
   {

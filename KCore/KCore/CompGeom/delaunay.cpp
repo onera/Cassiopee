@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -337,7 +337,7 @@ void K_COMPGEOM::insertNewTriangles(E_Float coefa, E_Float coefb,
   list<Edge*>::iterator itr2;
   itr = edges.begin();
 
-  while ( itr != edges.end() )
+  while (itr != edges.end())
   {
     ind1 = (*itr)->s1;
     ind2 = (*itr)->s2;
@@ -364,7 +364,7 @@ void K_COMPGEOM::removeTrianglesWithBBoxVertices(
     (*itr)->getVertexIndices(ind1, ind2, ind3);
 
     // The triangle contains one bbox vertex
-    if ( ind1 >= sizeIni || ind2 >= sizeIni || ind3 >= sizeIni )
+    if (ind1 >= sizeIni || ind2 >= sizeIni || ind3 >= sizeIni)
     {
       itr2 = itr;
       itr++;

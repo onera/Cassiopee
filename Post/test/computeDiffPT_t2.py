@@ -40,5 +40,5 @@ test.testT(m,3)
 # Prise en compte du cellN
 m = C.initVars(m, 'cellN', celln, ['CoordinateY'])
 m = C.node2Center(m, 'cellN')
-m = P.computeDiff(m, 'centers:Density') 
+m = P.computeDiff(m, 'centers:Density')
 test.testT(m,4)

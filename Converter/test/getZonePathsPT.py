@@ -7,5 +7,5 @@ a = G.cart((0,0,0), (1,1,1), (10,10,10))
 t = C.newPyTree(['Base', a])
 
 # Return paths of 'Zone_t'
-zonePaths = Internal.getZonePaths(t); print zonePaths
+zonePaths = Internal.getZonePaths(t); print(zonePaths)
 #>> ['CGNSTree/Base/cart']

@@ -1,5 +1,7 @@
-# - stereo -
-import Tkinter as TK
+# - tkStereo -
+"""Activate stereo rendering."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -29,9 +31,10 @@ def setDist(event=None):
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkStereo', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Set anaglyph mode.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkStereo  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Set anaglyph mode.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=0)
@@ -39,8 +42,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkStereo')
@@ -49,12 +52,14 @@ def createApp(win):
     # - VARS -
     # -0- Stero mode -
     V = TK.StringVar(win); V.set('None'); VARS.append(V)
-    if CTK.PREFS.has_key('tkStereoMode'): V.set(CTK.PREFS['tkStereoMode'])
+    if 'tkStereoMode' in CTK.PREFS: V.set(CTK.PREFS['tkStereoMode'])
     # -1- Stereo dist info bulle
     V = TK.StringVar(win); V.set('Stereo distance.'); VARS.append(V)
 
     # - Stereo mode -
     B = TTK.Label(Frame, text="Stereo")
+    BB = CTK.infoBulle(parent=B, text='Choose a stereo mode.')
+    
     B.grid(row=0, column=0, sticky=TK.EW)
     B = TTK.OptionMenu(Frame, VARS[0], 'None', 'Anaglyph (b&w)',
                        'Anaglyph (color)', command=setStereo)
@@ -71,13 +76,17 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['RenderNoteBook'].add(WIDGETS['frame'], text='tkStereo')
+    except: pass
+    CTK.WIDGETS['RenderNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['RenderNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -100,9 +109,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

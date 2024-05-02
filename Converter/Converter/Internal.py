@@ -1,10 +1,18 @@
 # -- Internal --
 # -- PyTree node manipulations --
+from sys import version_info
+try: range = xrange
+except: pass
 
 import numpy
 import fnmatch # unix wildcards
-import KCore
-import converter
+import KCore.kcore as KCore
+from . import converter
+
+# INT size for numpys connectivities
+from KCore.Dist import EDOUBLEINT
+if EDOUBLEINT: E_NpyInt = numpy.int64
+else: E_NpyInt = numpy.int32
 
 # Containeurs
 __GridCoordinates__ = 'GridCoordinates'
@@ -20,7 +28,7 @@ __POINTLIST__ = 'PointList' # Vertex list
 
 # Separators
 # Separateur intra-nom (pour le reperage des BCs qui deviennent des zones)
-SEP1 = '/'
+SEP1 = '\\'
 # Separateur intra-BCs (pour les exports getBCFaces et addBCFaces)
 SEP2 = '@'
 
@@ -29,6 +37,9 @@ name2CGNS = { \
 'x'              :'CoordinateX'                   , \
 'y'              :'CoordinateY'                   , \
 'z'              :'CoordinateZ'                   , \
+'x3d'            :'CoordinateX'                   , \
+'y3d'            :'CoordinateY'                   , \
+'z3d'            :'CoordinateZ'                   , \
 'X'              :'CoordinateX'                   , \
 'Y'              :'CoordinateY'                   , \
 'Z'              :'CoordinateZ'                   , \
@@ -55,10 +66,12 @@ name2CGNS = { \
 
 # Known BCs
 KNOWNBCS = ['BCWall', 'BCWallInviscid','BCWallViscous', 'BCWallViscousIsothermal',
-            'BCFarfield', 'BCExtrapolate', 'BCInflow', 'BCOutflow',
+            'BCFarfield', 'BCExtrapolate', 
+            'BCInflow', 'BCInflowSubsonic', 'BCInflowSupersonic',
+            'BCOutflow', 'BCOutflowSubsonic', 'BCOutflowSupersonic',
             'BCMatch', 'BCNearMatch', 'BCOverlap', 'BCSymmetryPlane', 
             'BCDegenerateLine', 'BCDegeneratePoint', 'BCStage',
-            'BCUserDefined']
+            'UserDefined']
 
 #import math
 __DEG2RAD__ = 0.017453292519943295 #math.pi/180.
@@ -84,11 +97,9 @@ def isStdNode(node):
     if not isinstance(node, list): return -2
     if len(node) == 0: return 0
     node0 = node[0]
-    if (isinstance(node0, str) and len(node) == 4 and
-        isinstance(node[2], list)): return -1
+    if isinstance(node0, str) and len(node) == 4 and isinstance(node[2], list): return -1
     if not isinstance(node0, list): return -2
-    if (isinstance(node0[0], str) and len(node0) == 4
-        and isinstance(node0[2], list)): return 0
+    if len(node0) == 4 and isinstance(node0[0], str) and isinstance(node0[2], list): return 0
     return -2
 
 # -- typeOfNode
@@ -136,7 +147,7 @@ def isType(node, ntype):
 # IN: node: pyTree node
 def isName(node, name):
     """Return True if node has given name."""
-    if isinstance(name, numpy.ndarray): sname = name.tostring()
+    if isinstance(name, numpy.ndarray): sname = name.tobytes().decode()
     else: sname = str(name)
     snode = node[0]
     if ('*' in sname)|('?' in sname)|('[' in sname): return fnmatch.fnmatch(snode, sname)
@@ -150,9 +161,10 @@ def isValue(node, value):
     if node[1] is None: return (node[1] == value)
     # bool for string value
     isStrValue = isinstance(value, str)
+    isByteValue = isinstance(value, bytes)
     isNStrValue= (isinstance(value, numpy.ndarray) and value.dtype == numpy.array('a').dtype)
     # Not string case
-    if not(isStrValue or isNStrValue):
+    if not(isStrValue or isByteValue or isNStrValue):
         # Value to ndarray
         if not isinstance(value, numpy.ndarray): value = numpy.array([value]) # float or int
         # Node Value to ndarray
@@ -166,15 +178,11 @@ def isValue(node, value):
     # String Case
     else:
         # bool for string node value
-        isStrNode = isinstance(node[1], str)
-        isNStrNode=(isinstance(node[1], numpy.ndarray) and node[1].dtype == numpy.array('a').dtype)
-        # node value not string
-        if not(isStrNode or isNStrNode): return False
-        # Value  to string if ndarray string
-        if isNStrValue: value = value.tostring()
-        # Node value to string if ndarray string
-        if isNStrNode: nodeValue = node[1].tostring()
-        else: nodeValue = node[1] # not CGNS/Compliant
+        nodeValue = getValue(node) 
+        isNStrNode = isinstance(nodeValue, str)
+        if not isNStrNode: return False        
+        if isNStrValue: value = value.tobytes().decode()
+        if isByteValue: value = value.decode()
         # Comparison
         if ('*' in value)|('?' in value)|('[' in value): res = fnmatch.fnmatch(nodeValue, value)
         else: res = (nodeValue == value)
@@ -182,7 +190,7 @@ def isValue(node, value):
 
 # -- isNameAndType
 # Compare type and name of node with given (name, ntype)
-def isNameAndType(node, (name, ntype)):
+def isNameAndType(node, name, ntype):
     return isName(node, name) and isType(node, ntype)
 
 # -- is child
@@ -211,7 +219,7 @@ def isChild2(start, node):
         for p in n[2]:
             if id(p) == id(node): return True
     return False
-
+    
 #==============================================================================
 # -- Set/create nodes --
 #==============================================================================
@@ -226,34 +234,71 @@ def setValue(node, value=None):
         else: raise TypeError("setValue: CGNSLibraryVersion node value should be a float.")
     else:
         if value is None: node[1] = None
-        elif isinstance(value, numpy.ndarray): node[1] = value
-        elif isinstance(value, int) or isinstance(value, numpy.int32) or isinstance(value,numpy.int64): node[1] = numpy.array([value],'i')
-        elif isinstance(value, float) or isinstance(value, numpy.float32) or isinstance(value, numpy.float64): node[1] = numpy.array([value],'d')
-        elif isinstance(value, str): node[1] = numpy.array([c for c in value],'c')
+        elif isinstance(value, numpy.ndarray): 
+            if value.flags.f_contiguous: node[1] = value
+            else: node[1] = numpy.asfortranarray(value)
+        elif isinstance(value, int) or isinstance(value, numpy.int32) or isinstance(value,numpy.int64) or isinstance(value,numpy.intc): node[1] = numpy.array([value], dtype=numpy.int32)
+        elif isinstance(value, float) or isinstance(value, numpy.float32) or isinstance(value, numpy.float64): node[1] = numpy.array([value], dtype=numpy.float64)
+        elif isinstance(value, str):
+            node[1] = numpy.array([c for c in value], 'c')
         elif isinstance(value, list):
             testValue = value
             while isinstance(testValue, list): testValue = testValue[0]
             if isinstance(testValue, float) or isinstance(testValue, numpy.float32) or isinstance(testValue, numpy.float64):
                 node[1] = numpy.array(value, dtype=numpy.float64, order='F')
-            elif isinstance(testValue, int) or isinstance(testValue, numpy.int32) or isinstance(testValue, numpy.int64):
-                node[1] = numpy.array(value, dtype=numpy.int32, order='F')
+            elif isinstance(testValue, int) or isinstance(testValue, numpy.int32) or isinstance(testValue, numpy.int64) or isinstance(testValue,numpy.intc):
+                node[1] = numpy.array(value, dtype=E_NpyInt, order='F')
             elif isinstance(testValue, str):
-                v = numpy.empty( (32,len(value) ), dtype='c', order='F')
-                c = 0
-                for i in value: v[:,c] = i[:]; c += 1
-                node[1] = v
+                if isinstance(value[0], str):
+                    size = 0
+                    for v in value: size = max(len(v), size)
+                    v = numpy.empty( (size,len(value) ), dtype='c', order='F')
+                    for c, i in enumerate(value): 
+                        s = min(len(i),size)
+                        v[:,c] = ' '
+                        v[0:s,c] = i[0:s]
+                    node[1] = v
+                else:
+                    size = 0
+                    for v in value: 
+                        for d in v:
+                            size = max(len(d), size)
+                    v = numpy.empty( (size,len(value[0]),len(value) ), dtype='c', order='F')
+                    for c in range(len(value)):
+                        for d in range(len(value[c])):
+                            s = min(len(value[c][d]),size)
+                            v[:,d,c] = ' '
+                            v[0:s,d,c] = value[c][d][0:s]
+                    node[1] = v
         elif isinstance(value, tuple):
             testValue = value
             while isinstance(testValue, tuple): testValue = testValue[0]
             if isinstance(testValue, float) or isinstance(testValue, numpy.float32) or isinstance(testValue, numpy.float64):
                 node[1] = numpy.array(value, dtype=numpy.float64, order='F')
             elif isinstance(testValue, int) or isinstance(testValue, numpy.int32) or isinstance(testValue, numpy.int64):
-                node[1] = numpy.array(value, dtype=numpy.int32, order='F')
+                node[1] = numpy.array(value, dtype=E_NpyInt, order='F')
             elif isinstance(testValue, str):
-                v = numpy.empty( (32,len(value) ), dtype='c', order='F')
-                c = 0
-                for i in value: v[:,c] = i[:]; c += 1
-                node[1] = v
+                if isinstance(value[0], str):
+                    size = 0
+                    for v in value: size = max(len(v), size)
+                    v = numpy.empty( (size,len(value) ), dtype='c', order='F')
+                    for c, i in enumerate(value): 
+                        s = min(len(i),size)
+                        v[:,c] = ' '
+                        v[0:s,c] = i[0:s]
+                    node[1] = v
+                else:
+                    size = 0
+                    for v in value: 
+                        for d in v:
+                            size = max(len(d), size)
+                    v = numpy.empty( (size,len(value[0]),len(value) ), dtype='c', order='F')
+                    for c in range(len(value)):
+                        for d in range(len(value[c])):
+                            s = min(len(value[c][d]),size)
+                            v[:,d,c] = ' '
+                            v[0:s,d,c] = value[c][d][0:s]
+                    node[1] = v
         else: node[1] = numpy.array([value])
     return None
 
@@ -267,8 +312,8 @@ def setName(node, name):
     """Set name in node."""
     if isinstance(name, str): node[0] = name
     elif isinstance(name, numpy.ndarray):
-        if name.dtype.char == 'S': node[0] = name.tostring()
-        elif name.dtype.char == 'c': node[0] = name.tostring()
+        if name.dtype.char == 'S': node[0] = name.tobytes().decode()
+        elif name.dtype.char == 'c': node[0] = name.tobytes().decode()
         else:
             raise TypeError("setName: name of node must be a string(%s)"%(name.__repr__()[:min(len(name.__repr__()),60)]))
     else: raise TypeError("setName: name of node must be a string(%s)"%(name.__repr__()[:min(len(name.__repr__()),60)]))
@@ -339,8 +384,8 @@ def createUniqueChild(node, name, ntype, value=None, children=None, pos=-1):
     for n in node[2]:
         if name == n[0]: e = i; break
         i += 1
-    if e == -1: child = createChild(node, name, ntype, value=value,
-                                      children=children, pos=pos)
+    if e == -1:
+        child = createChild(node, name, ntype, value=value, children=children, pos=pos)
     else: # replace value, ntype, children
         child = node[2][e]
         setValue(child, value)
@@ -364,6 +409,10 @@ def _append(t, node, path):
     # already exists?
     child = getNodeFromPath(root, '%s'%node[0])
     if child is None: _addChild(root, node)
+    elif node[1] is not None:
+        child[1] = node[1]; child[3] = node[3]
+        for child in node[2]: # append les enfants de node uniquement
+            _append(root, child, '%s'%node[0])
     else:
         for child in node[2]: # append les enfants de node uniquement
             _append(root, child, '%s'%node[0])
@@ -403,7 +452,7 @@ def createRootNode(name='CGNSTree', children=None):
 # -- Create base node named name with dim
 # cellDim=2 (cells surfaciques), cellDim=3 (cells volumiques)
 def createBaseNode(name, cellDim):
-    a = numpy.empty((2), numpy.int32)
+    a = numpy.empty((2), dtype=E_NpyInt)
     a[0] = cellDim; a[1] = 3
     return [name, a, [], 'CGNSBase_t']
 
@@ -431,7 +480,7 @@ def newZone(name='Zone', zsize=None, ztype='Structured',
     """Create a new Zone node."""
     ZoneType_l = ['Null', 'UserDefined', 'Structured', 'Unstructured']
     if ztype not in ZoneType_l:
-        raise ValueError, 'ztype must be in '+str(ZoneType_l)
+        raise ValueError('newZone: ztype must be in %s.'%str(ZoneType_l))
     if parent is None:
         node = createNode(name, 'Zone_t', value=zsize)
     else:
@@ -452,6 +501,13 @@ def newGridCoordinates(name=__GridCoordinates__, parent=None):
 # -- newDataArray
 def newDataArray(name='Data', value=None, parent=None):
     """Create a new DataArray node."""
+    if 'Pointers' in name: # Specific for iterative pointers
+        if isinstance(value, list):
+            out = []
+            for v in value:
+                if isinstance(v, str): out.append(v.ljust(32))
+                else: out.append(v)
+            value = out
     if parent is None:
         node = createNode(name, 'DataArray_t', value=value)
     else: node = createUniqueChild(parent, name, 'DataArray_t', value=value)
@@ -520,7 +576,7 @@ def newGridLocation(value='CellCenter', parent=None):
                       'FaceCenter', 'IFaceCenter', 'JFaceCenter',
                       'KFaceCenter', 'EdgeCenter']
     if value not in GridLocation_l:
-        raise ValueError, 'value must be in '+str(GridLocation_l)
+        raise ValueError('newGridLocation: value must be in %s.'%str(GridLocation_l))
     if parent is None:
         node = createNode('GridLocation', 'GridLocation_t', value=value)
     else: node = createUniqueChild(parent, 'GridLocation', 'GridLocation_t',
@@ -548,10 +604,13 @@ def newPointList(name='PointList', value=None, parent=None):
 # -- newPointRange
 def newPointRange(name='PointRange', value=None, parent=None):
     """Create a new PointRange node."""
+    if value is not None:
+        if isinstance(value, list) and len(value) == 6: # si fourni a plat
+            (imin,imax,jmin,jmax,kmin,kmax) = value
+            value = [[imin, imax], [jmin, jmax], [kmin, kmax]]
     if parent is None:
         node = createNode(name, 'IndexRange_t', value=value)
-    else: node = createUniqueChild(parent, name, 'IndexRange_t',
-                                   value=value)
+    else: node = createUniqueChild(parent, name, 'IndexRange_t', value=value)
     return node
 
 # -- newRind
@@ -567,7 +626,7 @@ def newSimulationType(value='TimeAccurate', parent=None):
     """Create a new SimulationType node."""
     SimulationType_l = ['Null', 'UserDefined', 'TimeAccurate', 'NonTimeAccurate']
     if value not in SimulationType_l:
-        raise ValueError, 'value must be in '+str(SimulationType_l)
+        raise ValueError('newSimulationType: value must be in %s.'%str(SimulationType_l))
     if parent is None:
         node = createNode('SimulationType', 'SimulationType_t', value=value)
     else: node = createUniqueChild(parent, 'SimulationType',
@@ -639,7 +698,8 @@ def newBC(name='BC', pointRange=None, pointList=None,
                 'BCAxisymmetricWedge', 'FamilySpecified',
                 'BCFarfield', 'BCInflow', 'BCOutflow']
     if btype not in BCType_l:
-        raise ValueError, 'btype must be in '+str(BCType_l)
+        raise ValueError('newBC: btype must be in %s.'%str(BCType_l))
+    if family is not None: btype = 'FamilySpecified'
     if parent is None:
         node = createNode(name, 'BC_t', value=btype)
     else: node = createUniqueChild(parent, name, 'BC_t', value=btype)
@@ -664,7 +724,7 @@ def newBCDataSet(name='BCDataSet', value='Null', gridLocation=None, parent=None)
                 'BCAxisymmetricWedge', 'FamilySpecified',
                 'BCFarfield', 'BCInflow', 'BCOutflow']
     if value not in BCType_l:
-        raise ValueError, 'value must be in '+str(BCType_l)
+        raise ValueError('newBCDataSet: value must be in %s.'%str(BCType_l))
     if parent is None:
         node = createNode(name, 'BCDataSet_t', value=value)
     else: node = createUniqueChild(parent, name, 'BCDataSet_t', value=value)
@@ -747,6 +807,8 @@ def newGridConnectivity1to1(name='Match', donorName=None,
         newPointRange(name='PointRangeDonor', value=pointRangeDonor, parent=node)
     if pointListDonor is not None:
         newPointList(name='PointListDonor', value=pointListDonor, parent=node)
+    if transform is not None:
+        createUniqueChild(node, 'Transform', '"int[IndexDimension]"', value=transform)
     return node
 
 # -- newGridConnectivity
@@ -795,11 +857,30 @@ def newPeriodic(rotationCenter=[0.,0.,0.],
 def newAverageInterface(value='Null', parent=None):
     """Create a new AverageInterface node."""
     #if value not in AverageInterface_l:
-    #    raise ValueError, 'value must be in '+str(AverageInterface_l)
+    #    raise ValueError('newAverageInterface: value must be in %s.'%str(AverageInterface_l))
     if parent is None:
         node = createNode('AverageInterface', 'AverageInterface_t', value=value)
     else: node = createUniqueChild(parent, 'AverageInterface',
                                    'AverageInterface_t', value=value)
+    return node
+
+# -- newZoneSubRegion
+def newZoneSubRegion(name='SubRegion', pointRange=None, pointList=None,
+                    bcName=None, gcName=None, gridLocation=None, parent=None):
+    """Create a new ZoneSubRegion node."""
+    if parent is None:
+        node = createNode(name, 'ZoneSubRegion_t')
+    else: node = createUniqueChild(parent, name, 'ZoneSubRegion_t')
+    if (bcName is None) and (gcName is None):
+        if pointRange is not None: newPointRange(value=pointRange, parent=node)
+        if pointList is not None: newPointList(value=pointList, parent=node)
+        if gridLocation is not None: newGridLocation(gridLocation, parent=node)
+    if (bcName is not None) and (gcName is not None):
+        raise AttributeError('newZoneSubRegion: bcName and gcName could not be both defined !')
+    if bcName is not None:
+        createChild(node, 'BCRegionName', 'Descriptor_t', value=bcName)
+    if gcName is not None:
+        createChild(node, 'GridConnectivityRegionName', 'Descriptor_t', value=gcName)
     return node
 
 # -- newOversetHoles
@@ -830,7 +911,7 @@ def newGoverningEquations(value='Euler', parent=None):
                             'NSLaminarIncompressible',
                             'NSTurbulentIncompressible']
     if value not in GoverningEquations_l:
-        raise ValueError, 'value must be in '+str(GoverningEquations_l)
+        raise ValueError('newGoverningEquation: value must be in %s.'%str(GoverningEquations_l))
     if parent is None:
         node = createNode('GoverningEquations', 'GoverningEquations_t',
                           value=value)
@@ -845,7 +926,7 @@ def newGasModel(value='Ideal', parent=None):
                   'CaloricallyPerfect', 'ThermallyPerfect',
                   'ConstantDensity', 'RedlichKwong']
     if value not in GasModel_l:
-        raise ValueError, 'value must be in '+str(GasModel_l)
+        raise ValueError('newGasModel: value must be in %s.'%str(GasModel_l))
     if parent is None:
         node = createNode('GasModel', 'GasModel_t', value=value)
     else: node = createUniqueChild(parent, 'GasModel',
@@ -858,7 +939,7 @@ def newThermalConductivityModel(value='SutherlandLaw', parent=None):
     ThermalConductivityModel_l = ['Null', 'UserDefined', 'ConstantPrandtl',
                                   'PowerLaw', 'SutherlandLaw']
     if value not in ThermalConductivityModel_l:
-        raise ValueError, 'value must be in '+str(ThermalConductivityModel_l)
+        raise ValueError('newThermalConductivityModel: value must be in %s'%str(ThermalConductivityModel_l))
     if parent is None:
         node = createNode('ThermalConductivityModel',
                           'ThermalConductivityModel_t', value=value)
@@ -872,7 +953,7 @@ def newViscosityModel(value='SutherlandLaw', parent=None):
     ViscosityModel_l = ['Null', 'UserDefined', 'Constant', 'PowerLaw',
                         'SutherlandLaw']
     if value not in ViscosityModel_l:
-        raise ValueError, 'value must be in '+str(ViscosityModel_l)
+        raise ValueError('newViscosityModel: value must be in %s.'%str(ViscosityModel_l))
     if parent is None:
         node = createNode('ViscosityModel', 'ViscosityModel_t',
                           value=value)
@@ -886,7 +967,7 @@ def newTurbulenceClosure(value='Null', parent=None):
     TurbulenceClosure_l = ['Null', 'UserDefined', 'EddyViscosity',
                            'ReynoldsStress', 'ReynoldsStressAlgebraic']
     if value not in TurbulenceClosure_l:
-        raise ValueError, 'value must be in '+str(TurbulenceClosure_l)
+        raise ValueError('newTurbulenceColsure: value must be in %s.'%str(TurbulenceClosure_l))
     if parent is None:
         node = createNode('TurbulenceClosure', 'TurbulenceClosure_t',
                           value=value)
@@ -904,7 +985,7 @@ def newTurbulenceModel(value='OneEquation_SpalartAllmaras', parent=None):
                          'TwoEquation_JonesLaunder',
                          'TwoEquation_MenterSST', 'TwoEquation_Wilcox']
     if value not in TurbulenceModel_l:
-        raise ValueError, 'value must be in '+str(TurbulenceModel_l)
+        raise ValueError('newTurbulenceModle: value must be in %s.'%str(TurbulenceModel_l))
     if parent is None:
         node = createNode('TurbulenceModel', 'TurbulenceModel_t',
                           value=value)
@@ -918,7 +999,7 @@ def newThermalRelaxationModel(value='Null', parent=None):
     ThermalRelaxationModel_l = ['Null', 'UserDefined', 'Frozen',
                                 'ThermalEquilib', 'ThermalNonequilib']
     if value not in ThermalRelaxationModel_l:
-        raise ValueError, 'value must be in '+str(ThermalRelaxationModel_l)
+        raise ValueError('newThermalRelaxationModel: value must be in %s.'%str(ThermalRelaxationModel_l))
     if parent is None:
         node = createNode('ThermalRelaxationModel', 'ThermalRelaxationModel_t',
                           value=value)
@@ -934,7 +1015,7 @@ def newChemicalKineticsModel(value='Null', parent=None):
                                 'ChemicalEquilibMinimization',
                                 'ChemicalNonequilib']
     if value not in ChemicalKineticsModel_l:
-        raise ValueError, 'value must be in '+str(ChemicalKineticsModel_l)
+        raise ValueError('newChemicalFineticsModel: value must be in %s.'%str(ChemicalKineticsModel_l))
     if parent is None:
         node = createNode('ChemicalKineticsModel', 'ChemicalKineticsModel_t',
                           value=value)
@@ -948,7 +1029,7 @@ def newEMElectricFieldModel(value='Null', parent=None):
     EMElectricFieldModel_l = ['Null', 'UserDefined', 'Constant', 'Frozen',
                               'Interpolated', 'Voltage']
     if value not in EMElectricFieldModel_l:
-        raise ValueError, 'value must be in '+str(EMElectricFieldModel_l)
+        raise ValueError('newEMElectricFieldModel: value must be in %s.'%str(EMElectricFieldModel_l))
     if parent is None:
         node = createNode('EMElectricFieldModel', 'EMElectricFieldModel_t',
                           value=value)
@@ -962,7 +1043,7 @@ def newEMMagneticFieldModel(value='Null', parent=None):
     EMMagneticFieldModel_l = ['Null', 'UserDefined',
                               'Constant', 'Frozen', 'Interpolated']
     if value not in EMMagneticFieldModel_l:
-        raise ValueError, 'value must be in '+str(EMMagneticFieldModel_l)
+        raise ValueError('newEMMagneticFieldModel: value must be in %s.'%str(EMMagneticFieldModel_l))
     if parent is None:
         node = createNode('EMMagneticFieldModel', 'EMMagneticFieldModel_t',
                           value=value)
@@ -976,7 +1057,7 @@ def newEMConductivityModel(value='Null', parent=None):
     EMConductivityModel_l = ['Null', 'UserDefined', 'Constant', 'Frozen',
                              'Equilibrium_LinRessler', 'Chemistry_LinRessler']
     if value not in EMConductivityModel_l:
-        raise ValueError, 'value must be in '+str(EMConductivityModel_l)
+        raise ValueError('newEMConductivityModel: value must be in %s.'%str(EMConductivityModel_l))
     if parent is None:
         node = createNode('EMConductivityModel', 'EMConductivityModel_t',
                           value=value)
@@ -990,9 +1071,9 @@ def newBaseIterativeData(name='BaseIterativeData', nsteps=0,
     """Create a new BaseIterativeData node."""
     if parent is None:
         node = createNode(name, 'BaseIterativeData_t', value=nsteps)
-    else: node = createUniqueChild(parent, name, 'BaseIterative_t',
+    else: node = createUniqueChild(parent, name, 'BaseIterativeData_t',
                                    value=nsteps)
-    newDataArray(itype, value=numpy.arange(1,nsteps+1,dtype='int32'), parent=node)
+    newDataArray(itype, value=numpy.arange(1,nsteps+1, dtype=E_NpyInt), parent=node)
     return node
 
 # -- newZoneIterativeData
@@ -1019,7 +1100,7 @@ def newRigidGridMotionType(value='Null', parent=None):
     """Create a new RigidGridMotionType node."""
     RigidGridMotionType_l = ['Null', 'UserDefined', 'ConstantRate', 'VariableRate']
     if value not in RigidGridMotionType_l:
-        raise ValueError, 'value must be in '+str(RigidGridMotionType_l)
+        raise ValueError('newRigidGridMotionType: value must be in %s.'%str(RigidGridMotionType_l))
     if parent is None:
         node = createNode('RigidGridMotionType', 'RigidGridMotionType_t', value=value)
     else: node = createUniqueChild(parent, 'RigidGridMotionType', 'RigidGridMotionType_t', value=value)
@@ -1040,7 +1121,7 @@ def newConvergenceHistory(name='GlobalConvergenceHistory',
     ConvergenceHistory_l = ['ZoneConvergenceHistory',
                             'GlobalConvergenceHistory']
     if name not in ConvergenceHistory_l:
-        raise ValueError, 'name must be in '+str(ConvergenceHistory_l)
+        raise ValueError('newConvergenceHistory: name must be in %s.'%str(ConvergenceHistory_l))
     if parent is None:
         node = createNode(name, 'ConvergenceHistory_t', value=value)
     else: node = createUniqueChild(parent, name, 'ConvergenceHistory_t',
@@ -1053,6 +1134,14 @@ def newFamily(name='Family', parent=None):
     if parent is None:
         node = createNode(name, 'Family_t')
     else: node = createUniqueChild(parent, name, 'Family_t')
+    return node
+
+# -- newFamilyName (zones)
+def newFamilyName(name='Family', value='myFamily', parent=None):
+    """Create a new FamilyName node."""
+    if parent is None:
+        node = createNode(name, 'FamilyName_t', value=value)
+    else: node = createUniqueChild(parent, name, 'FamilyName_t', value=value)
     return node
 
 # -- newFamilyBC
@@ -1070,7 +1159,7 @@ def newFamilyBC(value='UserDefined', parent=None):
                 'BCAxisymmetricWedge', 'FamilySpecified',
                 'BCFarfield', 'BCInflow', 'BCOutflow']
     if value not in BCType_l:
-        raise ValueError, 'value must be in '+str(BCType_l)
+        raise ValueError('newFamilyBC: value must be in %s.'%str(BCType_l))
     if parent is None:
         node = createNode('FamilyBC', 'FamilyBC_t', value=value)
     else: node = createUniqueChild(parent, 'FamilyBC',
@@ -1083,7 +1172,7 @@ def newGeometryReference(value='UserDefined', file='MyCAD.iges', parent=None):
     GeometryFormat_l = ['Null', 'NASA-IGES', 'SDRC', 'Unigraphics',
                         'ProEngineer', 'ICEM-CFD', 'UserDefined']
     if value not in GeometryFormat_l:
-        raise ValueError, 'value must be in '+str(GeometryFormat_l)
+        raise ValueError('newGeometryReference: value must be in %s.'%str(GeometryFormat_l))
     if parent is None:
         node = createNode('GeometryReference', 'GeometryReference_t')
     else: node = createUniqueChild(parent, 'GeometryReference',
@@ -1100,7 +1189,7 @@ def newArbitraryGridMotion(name='Motion', value='Null', parent=None):
     ArbitraryGridMotion_l = ['Null', 'UserDefined',
                              'NonDeformingGrid', 'DeformingGrid']
     if value not in ArbitraryGridMotion_l:
-        raise ValueError, 'value must be in '+str(ArbitraryGridMotion_l)
+        raise ValueError('newArbitraryGridMotion: value must be in %s.'%str(ArbitraryGridMotion_l))
     if parent is None:
         node = createNode(name, 'ArbitraryGridMotion_t')
     else: node = createUniqueChild(parent, name, 'ArbitraryGridMotion_t')
@@ -1172,9 +1261,11 @@ def getNodeFromPath(t, path):
     if path[0] == '/': path = path[1:]
     if path[-1] == '/': path = path[:-1]
     if t[0] == path: return t
-    if t[3] == 'CGNSTree_t': p = path.replace(t[0]+'/','')
+    if len(t) > 3 and  t[3] == 'CGNSTree_t': p = path.replace(t[0]+'/','')
     else: p = path
     p = p.split('/')
+    if p[0] == '.' or p[0] == t[0]: p = p[1:] # full path=normal mode
+
     isStd = isStdNode(t)
     if isStd >= 0:
         for c in t[isStd:]:
@@ -1505,19 +1596,66 @@ def getPathLeaf(path):
 def getPathAncestor(path, level=1):
     """Return the path ancestor of path."""
     if level == 0: return path
-    s = path.split('/'); ls =  len(s); c = 0
-    for i in xrange(level): c += len(s[ls-i-1])+1
+    s = path.split('/'); ls = len(s); c = 0
+    for i in range(level): c += len(s[ls-i-1])+1
     return path[0:-c]
 
 # -- Retourne les noeuds Zone_t --
 def getZones(t):
     """Return a list of all Zone_t nodes."""
-    result = []; ntype = 'Zone_t'
+    result = []
     isStd = isStdNode(t)
     if isStd >= 0:
-        for c in t[isStd:]: getNodesFromType2__(c, ntype, result)
-    else: getNodesFromType2__(t, ntype, result)
+        for c in t[isStd:]: getNodesFromType2__(c, 'Zone_t', result)
+    elif isStd == -1: getNodesFromType2__(t, 'Zone_t', result)
     return result
+
+# -- getZonesPerIteration --
+# Si pas d'argument iteration ou time, retourne une liste de zones pour chaque iteration (a plat?)
+# Si argument time ou iteration, retourne la liste de zones correspondantes
+def getZonesPerIteration(t, iteration=None, time=None):
+    """Return zones for given iteration of time."""
+    bid = getNodeFromType2(t, 'BaseIterativeData_t')
+    if bid is None:
+        raise ValueError('getZonesPerIteration: no BaseIterativeData.')
+
+    nbOfZones = getNodeFromName1(bid, 'NumberOfZones')
+    zonePtrs = getNodeFromName1(bid, 'ZonePointers')
+    if nbOfZones is None:
+        raise ValueError('getZonesPerIteration: no NumberOfZones node in BaseIterativedata.')
+    if zonePtrs is None:
+        raise ValueError('getZonesPerIteration: no ZonePointers node in BaseIterativeData.')
+
+    nbOfZones = nbOfZones[1]
+    zonePtrs = zonePtrs[1]
+    
+    if iteration is not None:
+        zoneNames = []
+        for nbz in range(nbOfZones[iteration]):
+            zoneName = zonePtrs[:, nbz, iteration]
+            zoneName = zoneName.tobytes().decode().strip()
+            zoneNames.append(zoneName)
+        return [getNodeFromName2(t,z) for z in zoneNames]
+
+    if time is not None:
+        timeValues = getNodeFromName1(bid, 'TimeValues')[1]
+        zoneNames = []
+        for i in range(nbOfZones.shape[0]):
+            if time == timeValues[i]:
+                for nbz in range(nbOfZones[i]):
+                    zoneName = zonePtrs[:, nbz, i]
+                    zoneName = zoneName.tobytes().decode().strip()
+                    zoneNames.append(zoneName)
+        return [getNodeFromName2(t,z) for z in zoneNames]
+
+    zonesPerIteration = []
+    for i in range(nbOfZones.shape[0]):
+        zones = []
+        for nbz in range(nbOfZones[i]):
+            zoneName = zonePtrs[:, nbz, i].tobytes().decode().strip()
+            zones.append(getNodeFromName2(t,zoneName))
+        zonesPerIteration.append(zones)
+    return zonesPerIteration
 
 # -- Retourne les noeuds CGNSBase_t --
 def getBases(t):
@@ -1641,6 +1779,7 @@ def getNodeFromName__(node, name):
 
 # Parcours un seul niveau de recursivite, node doit etre un noeud du pyTree
 def getNodeFromName1(node, name):
+    if node == [] or node is None: return None
     if node[0] == name: return node
     for c in node[2]:
         if c[0] == name: return c
@@ -1650,6 +1789,7 @@ getNodeByName1 = getNodeFromName1 # alias
 
 # node doit etre un noeud du pyTree
 def getNodeFromName2(node, name):
+    if node == [] or node is None: return None
     if node[0] == name: return node
     for c in node[2]:
         if c[0] == name: return c
@@ -1661,6 +1801,7 @@ getNodeByName2 = getNodeFromName2 # alias
 
 # node doit etre un noeud du pyTree
 def getNodeFromName3(node, name):
+    if node == [] or node is None: return None
     if node[0] == name: return node
     for c in node[2]:
         if c[0] == name: return c
@@ -1733,6 +1874,40 @@ def getNodeFromNameAndType__(node, name, ntype):
         if ret is not None: return ret
     return None
 
+# Pour un noeud node, retourne le premier enfant 
+# de nom donne (pas de widcard)
+def getChildFromName(node, name):
+    """Return the first child of given name."""
+    for i in node[2]:
+        if i[0] == name: return i
+    return None
+
+# Pour un noeud node, retourne la liste des enfants
+# de nom donne (pas de widlcard)
+def getChildrenFromName(node, name):
+    """Return the children nodes of given name."""
+    out = []
+    for i in node[2]:
+        if i[0] == name: out.append(i)
+    return out
+
+# Pour un noeud node, retourne le premier enfant 
+# de type donne (pas de widcard)
+def getChildFromType(node, ntype):
+    """Return the first child of given type."""
+    for i in node[2]:
+        if i[3] == ntype: return i
+    return None
+
+# Pour un noeud node, retourne la liste des enfants
+# de type donne (pas de widlcard)
+def getChildrenFromType(node, ntype):
+    """Return the children nodes of given type."""
+    out = []
+    for i in node[2]:
+        if i[3] == ntype: out.append(i)
+    return out
+    
 # -- (p, c) = getParentOfNode(start, node). Retourne :
 # Si start est un noeud standard, retourne le noeud parent de node et le no
 # dans la liste des fils. p[2][c] = node.
@@ -1744,7 +1919,7 @@ def getNodeFromNameAndType__(node, name, ntype):
 #                                              else: p[2][c] = node
 # Remarque: start doit etre au dessus de node
 def getParentOfNode(t, node):
-    """Return the parent of given node."""
+    """Return the parent of given node in t."""
     idNode = id(node)
     isStd = isStdNode(t)
     if isStd >= 0:
@@ -1769,9 +1944,30 @@ def getParentOfNode__(start, idNode):
         c += 1
     return (r, d)
 
+def getParentOfNode1(t, node):
+    """Get the parent of node with 1 level only in a standard node."""
+    idNode = id(node)
+    c = 0
+    for n in t[2]:
+        if id(n) == idNode: return (t, c)
+        c += 1
+    return (None,0)
+
+def getParentOfNode2(t, node):
+    """Get the parent of node with 2 levels only in a standard node."""
+    idNode = id(node)
+    c = 0
+    for n in t[2]:
+        if id(n) == idNode: return (t, c)
+        c += 1
+    for n in t[2]:
+        c = 0
+        for n2 in n[2]:
+            if id(n2) == idNode: return (n, c)
+    return (None,0)
+
 def getParentFromType(start, node, parentType, prev=None):
-    #if prev is not None: print start[0], prev[0]
-    #else: print start[0], None
+    """Return the first parent node matching type."""
     if id(start) == id(node): return prev
     if start[3] == parentType: prev = start
     for n in start[2]:
@@ -1780,6 +1976,7 @@ def getParentFromType(start, node, parentType, prev=None):
     return None
 
 def getParentsFromType(start, node, parentType, l=[]):
+    """Return all parent nodes matching type."""
     l = l[:]
     if id(start) == id(node): return l
     if start[3] == parentType: l.append(start)#; l = l[:]
@@ -1788,6 +1985,13 @@ def getParentsFromType(start, node, parentType, l=[]):
         if ret != []: return ret
     return []
     
+# -- Return the position of node in parent children list (Return -1 if not found)
+def getNodePosition(node, parent):
+    """Return the position of node in parent children list."""
+    for c, n in enumerate(parent[2]):
+        if id(n) == id(node): return c
+    return -1
+
 # -- Retourne le nom d'un noeud
 def getName(node):
     """Return node name."""
@@ -1809,17 +2013,41 @@ def getValue(node):
     """Return the value of a node."""
     n = node[1]
     if isinstance(n, numpy.ndarray):
-        if n.dtype.char == 'S': return n.tostring()
-        elif n.dtype.char == 'c':
-            if len(n.shape) == 1: return n.tostring()
+        if n.dtype.char == 'S':
+            if len(n.shape) == 1:
+                if version_info[0] == 2: 
+                    try: return n.tobytes()
+                    except: return n.tostring()
+                else: return n.tobytes().decode()
             out = []
-            for i in xrange(n.shape[1]):
-                v = n[:,i].tostring()
+            for i in range(n.shape[1]):
+                if version_info[0] == 2: 
+                    try: v = n[:,i].tobytes()
+                    except: v = n[:,i].tostring()
+                else: v = n[:,i].tobytes().decode()
+                out.append(v.strip())
+            return out
+        elif n.dtype.char == 'c':
+            if len(n.shape) == 1:
+                if version_info[0] == 2: 
+                    try: return n.tobytes()
+                    except: return n.tostring()
+                else: return n.tobytes().decode()
+            out = []
+            for i in range(n.shape[1]):
+                if version_info[0] == 2: 
+                    try: v = n[:,i].tobytes()
+                    except: v = n[:,i].tostring()
+                else: v = n[:,i].tobytes().decode()
                 out.append(v.strip())
             return out
         elif n.dtype == numpy.int32:
             if n.size == 1: return int(n.flat[0])
             else: return n
+        elif n.dtype == numpy.int64:
+            if n.size == 1: return int(n.flat[0])
+            else: return n
+            
         elif n.dtype == numpy.float64:
             if n.size == 1: return float(n.flat[0])
             else: return n
@@ -1829,8 +2057,13 @@ def getValue(node):
                 b = numpy.empty(n.shape, dtype=numpy.float64)
                 b[:] = n[:]
                 return b
+        else: return node[1]
     else: return node[1]
 
+def getVal(node):
+    """Return the value of a node always as a numpy."""
+    return node[1]
+    
 #==============================================================================
 # -- rm Nodes --
 #==============================================================================
@@ -1840,14 +2073,14 @@ def rmNode(t, node):
     """Remove given node from t."""
     (p, c) = getParentOfNode(t, node)
     if p is not None:
-        if (isStdNode(t) == 0 and id(p) == id(t)): del p[c]
+        if isStdNode(t) == 0 and id(p) == id(t): del p[c]
         else: del p[2][c]
     return None
 
 def _rmNode(t, node):
     (p, c) = getParentOfNode(t, node)
     if p is not None:
-        if (isStdNode(t) == 0 and id(p) == id(t)): del p[c]
+        if isStdNode(t) == 0 and id(p) == id(t): del p[c]
         else: del p[2][c]
     return None
 
@@ -1875,8 +2108,7 @@ def _rmNodeByPath(t, path):
     return None
 
 def rmNodeByPath__(t, path):
-    children = range(len(t[2]))
-    children.reverse()
+    children = list(range(len(t[2])-1,-1,-1))
     for ichild in children:
         if t[2][ichild][0] == path[0]:
             if len(path) == 1: t[2].pop(ichild)
@@ -1904,12 +2136,32 @@ def _rmNodesByName(t, name):
 _rmNodesFromName = _rmNodesByName # alias
 
 def rmNodesByName__(t, name):
-    children = range(len(t[2]))
-    children.reverse()
+    children = list(range(len(t[2])-1,-1,-1))
     for ichild in children:
         if isName(t[2][ichild], name): t[2].pop(ichild)
         else: rmNodesByName__(t[2][ichild], name)
     return None
+
+def _rmNodesByName1(t, name):
+    children = list(range(len(t[2])-1,-1,-1))
+    for ichild in children:
+        if t[2][ichild][0] == name: t[2].pop(ichild)
+    return None
+
+_rmNodesFromName1 = _rmNodesByName1 # alias
+
+def _rmNodesByName2(t, name):
+    children = list(range(len(t[2])-1,-1,-1))
+    for ichild in children:
+        if t[2][ichild][0] == name: t[2].pop(ichild)
+        else:
+            n = t[2][ichild]
+            children = list(range(len(n[2])-1,-1,-1))
+            for ichild in children:
+                if n[2][ichild][0] == name: n[2].pop(ichild)
+    return None
+
+_rmNodesFromName2 = _rmNodesByName2 # alias
 
 # -- rmNodesByType
 def rmNodesByType(t, ntype):
@@ -1930,9 +2182,32 @@ def _rmNodesByType(t, ntype):
 _rmNodesFromType = _rmNodesByType # alias
 
 def rmNodesByType__(t, ntype):
-    nodes = getNodesFromType(t, ntype)
-    for n in nodes: _rmNode(t, n)
+    children = list(range(len(t[2])-1,-1,-1))
+    for ichild in children:
+        if t[2][ichild][3] == ntype: t[2].pop(ichild)
+        else: rmNodesByType__(t[2][ichild], ntype)
     return None
+
+def _rmNodesByType1(t, ntype):
+    children = list(range(len(t[2])-1,-1,-1))
+    for ichild in children:
+        if t[2][ichild][3] == ntype: t[2].pop(ichild)
+    return None
+
+_rmNodesFromType1 = _rmNodesByType1 # alias
+
+def _rmNodesByType2(t, ntype):
+    children = list(range(len(t[2])-1,-1,-1))
+    for ichild in children:
+        if t[2][ichild][3] == ntype: t[2].pop(ichild)
+        else:
+            n = t[2][ichild]
+            children = list(range(len(n[2])-1,-1,-1))
+            for ichild in children:
+                if n[2][ichild][3] == ntype: n[2].pop(ichild)
+    return None
+
+_rmNodesFromType2 = _rmNodesByType2 # alias
 
 # -- rmNodesByNameAndType
 def rmNodesByNameAndType(t, name, ntype):
@@ -1952,10 +2227,19 @@ def _rmNodesByNameAndType(t, name, ntype):
 
 _rmNodesFromPathAndType = _rmNodesByNameAndType # alias
 
+"""
 def rmNodesByNameAndType__(t, name, ntype):
     nodes = getNodesFromType(t, ntype)
     for n in nodes:
         if isName(n, name): _rmNode(t, n)
+    return None
+"""
+
+def rmNodesByNameAndType__(t, name, ntype):
+    children = list(range(len(t[2])-1,-1,-1))
+    for ichild in children:
+        if t[2][ichild][3] == ntype and isName(t[2][ichild],name): t[2].pop(ichild)
+        else: rmNodesByNameAndType__(t[2][ichild], name, ntype)
     return None
 
 # -- rmNodesByValue
@@ -1975,14 +2259,68 @@ def _rmNodesByValue(t, value):
     return None
 
 def rmNodesByValue__(t, value):
-    indchild = range(len(t[2]))
-    indchild.reverse()
+    indchild = list(range(len(t[2])-1,-1,-1))
     for ichild in indchild:
         if isValue(t[2][ichild], value): t[2].pop(ichild)
         else: rmNodesByValue__(t[2][ichild], value)
     return None
 
 _rmNodesFromValue = _rmNodesByValue # alias
+
+def _moveNodeFromPaths(t, path1, path2):
+    """Move a node from path1 to path2."""
+    # path1: path of node to move (must exist)
+    # path2: destination path (must exist)
+    p1 = getPathAncestor(path1)
+    n1 = getPathLeaf(path1)
+    parent = getNodeFromPath(t, p1)
+    if parent is None: 
+        raise ValueError("moveNodeFromPaths: path %s doesnt exist."%path1)
+    child = getChildFromName(parent, n1)
+    if child is None: 
+        raise ValueError("moveNodeFromPaths: path %s doesnt exist."%path1)
+    dest = getNodeFromPath(t, path2)
+    if dest is None: 
+        raise ValueError("moveNodeFromPaths: path %s doesnt exist."%path2)
+    dest[2].append(child)
+    parent[2].remove(child)
+    return None
+
+def moveNodeFromPaths(t, path1, path2):
+    """Move a node from path1 to path2."""
+    tp = copyRef(t)
+    _moveNodeFromPaths(tp, path1, path2)
+    return tp
+
+def _keepNodesByType(node, CGNSTypes):
+    """Only keep nodes of given types in node children."""
+    typesToRemove = numpy.unique([getType(n) for n in getChildren(node)])
+    for CGNSType in CGNSTypes:
+        typeIndex = numpy.where(typesToRemove == CGNSType)
+        typesToRemove = numpy.delete(typesToRemove, typeIndex)
+    for typeToRemove in typesToRemove:
+        _rmNodesByType1(node, typeToRemove)
+
+def keepNodesByType(node, CGNSTypes):
+    """Only keep nodes of given types in node children."""
+    nodep = copyRef(node)
+    _keepNodesByType(nodep, CGNSTypes)
+    return nodep
+
+def _keepNodesByName(node, CGNSNames):
+    """Only keep nodes of given names in node children."""
+    namesToRemove = numpy.unique([getName(n) for n in getChildren(node)])
+    for CGNSName in CGNSNames:
+        nameIndex = numpy.where(namesToRemove == CGNSName)
+        namesToRemove = numpy.delete(namesToRemove, nameIndex)
+    for nameToRemove in namesToRemove:
+        _rmNodesByName1(node, nameToRemove)
+
+def keepNodesByName(node, CGNSTypes):
+    """Only keep nodes of given names in node children."""
+    nodep = copyRef(node)
+    _keepNodesByName(nodep, CGNSTypes)
+    return nodep
 
 #==============================================================================
 # -- Node name modifications --
@@ -1995,14 +2333,17 @@ def sortByName(t, recursive=True):
     _sortByName(tp, recursive)
     return tp
 
-def _sortByName(t, recursive):
+def _sortByName(t, recursive=True):
     names = [n[0] for n in t[2]]
-    names.sort()
-    for name in names:
-        node = getNodeFromName1(t, name)
-        _rmNode(t, node)
-        addChild(t, node, pos=names.index(node[0]))
-        if recursive: _sortByName(node, recursive)
+    nodes = t[2]
+    zipped = zip(names, nodes)
+    zipped = sorted(zipped, key=lambda x: x[0])
+    ret = []
+    for i in zip(*zipped): ret = i
+    t[2] = list(ret)
+    if recursive:
+        for node in ret:
+            _sortByName(node, recursive)
     return None
 
 # -- Rename node ou nodes
@@ -2081,7 +2422,7 @@ def duptree__(node, parent):
     for i in node[2]: duptree__(i, d)
     return d
 
-# -- Copy un arbre en gardant des references sur les numpy
+# -- Copy un arbre en gardant des references sur les numpys
 def copyRef(node):
     """Copy a tree sharing node values."""
     ret = isStdNode(node)
@@ -2089,27 +2430,53 @@ def copyRef(node):
         dup = duptree__(node, []); return dup
     elif ret == 0:
         l = list(node); lg = len(l)
-        for i in xrange(lg): l[i] = duptree__(l[i], [])
+        for i in range(lg): l[i] = duptree__(l[i], [])
         return l
     else: return node
 
 # -- Copie un arbre ou un sous-arbre en copiant aussi les numpy.array
-def copyTree(node, parent=None, order='F'):
+def copyTree(node, order='F'):
     """Fully copy a tree."""
+    ret = isStdNode(node)
+    if ret == -1: 
+        d = copyTree__(node, order=order)
+        return d
+    elif ret == 0:
+        d = []
+        for n in node:
+            o = copyTree__(n, order=order)
+            d.append(d)
+        return d
+    else: return node
+
+def copyTree__(node, parent=None, order='F'):
     if node[1] is not None and isinstance(node[1], numpy.ndarray):
         d = [node[0], node[1].copy(order), [], node[3]]
     else: d = [node[0], node[1], [], node[3]]
     if parent is not None and len(parent) == 4: parent[2].append(d)
-    for i in node[2]: copyTree(i, d, order=order)
+    for i in node[2]: copyTree__(i, d, order=order)
     return d
 
 # -- Copie un noeud (pas de recursivite)
 def copyNode(node):
-    """Copy only this node (no recursion)."""
-    if node[1] is not None and isinstance(node[1], numpy.ndarray):
-        d = [node[0], node[1].copy('F'), node[2], node[3]]
-    else: d = [node[0], node[1], node[2], node[3]]
-    return d
+    """Copy only this node (no recursion). Share children with node. """
+    ret = isStdNode(node)
+    if ret == -1:
+        if node[1] is not None and isinstance(node[1], numpy.ndarray):
+            d = [node[0], node[1].copy('F'), node[2], node[3]]
+        else: d = [node[0], node[1], node[2], node[3]]
+        return d
+    elif ret == 0:
+        d = []
+        for n in node:
+            if n[1] is not None and isinstance(n[1], numpy.ndarray):
+                o = [n[0], n[1].copy('F'), n[2], n[3]]
+                d.append(o)
+            else:
+                o = [n[0], n[1], n[2], n[3]]
+                d.append(o)
+        return d
+    else: return node
 
 # -- copyOnly(node) --
 # Copie recursivement les noms (si names=True), les types (si types=True)
@@ -2117,13 +2484,10 @@ def copyNode(node):
 def duptree1__(node, byName, byType, parent):
     value = node[1]
     if byName is not None:
-        if fnmatch.fnmatch(node[0], byName):
-            value = node[1].copy('F')
+        if fnmatch.fnmatch(node[0], byName): value = node[1].copy('F')
     if byType is not None:
-        if fnmatch.fnmatch(node[3], byType):
-            value = node[1].copy('F')
-    if byName is None and byType is None:
-        value = node[1].copy('F')
+        if fnmatch.fnmatch(node[3], byType): value = node[1].copy('F')
+    if byName is None and byType is None: value = node[1].copy('F')
     d = [node[0], value, [], node[3]]
     if len(parent) == 4: parent[2].append(d)
     for i in node[2]: duptree1__(i, byName, byType, d)
@@ -2136,7 +2500,7 @@ def copyValue(node, byName=None, byType=None):
         dup = duptree1__(node, byName, byType, []); return dup
     elif ret == 0:
         l = list(node); lg = len(l)
-        for i in xrange(lg): l[i] = duptree1__(l[i], byName, byType, [])
+        for i in range(lg): l[i] = duptree1__(l[i], byName, byType, [])
         return l
     else: return node
 
@@ -2154,7 +2518,7 @@ def merge(A, pathList=None):
     for path, tree in zip(pathList, A[1:]):
         if path: _append(tp, tree, path)
         else:
-            if tp[0] != tree[0]: raise AttributeError("merge: Path is None, but root name are differents.")
+            if tp[0] != tree[0]: raise AttributeError("merge: path is None, but root name are differents.")
             for child in tree[2]: _append(tp, child, tree[0])
     return tp
 
@@ -2170,10 +2534,12 @@ def repr__(t, Out=None, DEB='', LAST=False, code=['','','']):
         out += "'%s',["%t[1]
     elif isinstance(t[1], (int,float,list)):
         out += str(t[1])+",["
-    elif isinstance(t[1],numpy.ndarray):
-        if t[1].dtype==numpy.array('a').dtype and t[1].size < 32:
-            out += "array('%s',dtype='%s'),["%(t[1].tostring(),t[1].dtype)
-        elif t[1].size == 1 :
+    elif isinstance(t[1], numpy.ndarray):
+        if t[1].dtype == numpy.array('a').dtype and t[1].size < 32:
+            out += "array('%s',dtype='%s'),["%(t[1].tobytes(),t[1].dtype)
+        elif t[1].dtype == numpy.array(b'a').dtype and t[1].size < 32:
+            out += "array('%s',dtype='%s'),["%(t[1].tobytes(),t[1].dtype)
+        elif t[1].size == 1:
             out += "array(%s,dtype='%s'),["%(t[1].tolist(),t[1].dtype)
         else:
             Flag = 'C'
@@ -2203,7 +2569,7 @@ def printTree(node, file=None, stdOut=None, editor=None, color=False):
     elif stdNode == -1: rep = ''.join(repr__(node, code=code))
     else:
         out = []
-        for b in node: out += repr__(b)
+        for b in node: out += repr__(b, code=code)
         rep = ''.join(out)
 
     if stdOut: stdOut.write(rep)
@@ -2221,6 +2587,30 @@ def printTree(node, file=None, stdOut=None, editor=None, color=False):
     if file is None and editor is None and stdOut is None:
         import sys
         sys.stdout.write(rep)
+
+# Mesure de la taille de a en octets
+def getSizeOf__(a, s):
+    s += len(a[0])
+    s += len(a[3])
+    r = a[1]
+    if r is not None:
+        if isinstance(r, numpy.ndarray):
+            if r.dtype == numpy.int32: s += r.size*4
+            elif r.dtype == numpy.float32: s += r.size*4
+            else: s += r.size*8
+    for i in a[2]:
+        s = getSizeOf__(i, s)
+    return s
+
+def getSizeOf(a):
+    """Return the size of a in octets."""
+    s = 0
+    if isStdNode(a) == 0:
+        for i in a: 
+            sl = 0
+            s += getSizeOf__(i, sl)
+    else: s = getSizeOf__(a, s)
+    return s
 
 #==============================================================================
 # -- Conversion zones, bases, listes de zones <-> tree + noms + ranges --
@@ -2256,36 +2646,95 @@ def node2PyTree(node):
 # -- Converti un pyTree en noeud de type fourni (avec les memes adresses)
 # IN: type=1 (zone), 2 (liste de zones), 3 (tree), 4 (base), 5 (liste de bases)
 def pyTree2Node(t, type):
-    if type == 1: # zone: renvoit une zone ou une liste de zones
+    if type == 1: # zone: renvoie une zone ou une liste de zones
         node = t[2][1][2]
         if len(node) == 1: node = node[0]
-    elif type == 2: # liste de zones: renvoit une liste de zones
+    elif type == 2: # liste de zones: renvoie une liste de zones
         node = t[2][1][2]
-    elif type == 4: # base: renvoit une base
+    elif type == 4: # base: renvoie une base
         node = t[2][1]
-    elif type == 5: # liste de bases: renvoit une liste de bases
+    elif type == 5: # liste de bases: renvoie une liste de bases
         node = t[2][1:]
     else: node = t
     return node
+
+# -- EltNames2EltNos
+# Convertit une liste de noms CGNS d'elt en nos CGNS d'elt et leurs nombres
+# de noeuds associes. Retourne deux listes 
+def eltNames2EltNos(names):
+    if (isinstance(names, (list, tuple, numpy.ndarray)) and len(names) and
+            isinstance(names[0], str)):
+        names = ','.join(name for name in names)
+    if len(names.split(',')) > 1:
+        eltnos = [eltName2EltNo(name) for name in names.split(',')]
+        return list(zip(*eltnos))
+    else: return [[i] for i in eltName2EltNo(names)]
 
 # -- EltName2EltNo
 # Convertit un nom CGNS d'elt en no CGNS d'elt et son nombre de noeuds associes
 def eltName2EltNo(name):
     eltno = 0; nnodes = 0
-    if (name == 'BAR' or name == 'BAR_2'): eltno = 3; nnodes = 2
-    elif (name == 'TRI' or name == 'TRI_3'): eltno = 5; nnodes = 3
-    elif (name == 'QUAD' or name == 'QUAD_4'): eltno = 7; nnodes = 4
-    elif (name == 'TETRA' or name == 'TETRA_4'): eltno = 10; nnodes = 4
-    elif (name == 'HEXA' or name == 'HEXA_8'): eltno = 17; nnodes = 8
-    elif (name == 'PENTA' or name == 'PENTA_6'): eltno = 14; nnodes = 6
-    elif (name == 'NODE'): eltno = 2; nnodes = 1
-    elif (name == 'PYRA' or name == 'PYRA_5'): eltno = 12; nnodes = 5
-    elif (name == 'MIXED'):
-        print 'Warning: eltName2EltNo: MIXED elements not supported.'
-        eltno = 20; nnodes = -1
-    elif (name == 'NGON' or name == 'NGON_n'): eltno = 22; nnodes = 1
-    elif (name == 'NFACE' or name == 'NFACE_n'): eltno = 23; nnodes = 1
+    if name == 'NODE':
+        eltno = 2; nnodes = 1
+    elif name[0:3] == 'BAR':
+        if len(name) == 3: nnodes = 2
+        else: nnodes = int(name[4:])
+        if nnodes == 2: eltno = 3
+        elif nnodes == 3: eltno = 4
+    elif name[0:3] == 'TRI':
+        if len(name) == 3: nnodes = 3
+        else: nnodes = int(name[4:])
+        if nnodes == 3: eltno = 5
+        elif nnodes == 6: eltno = 6
+        elif nnodes == 9: eltno = 25   # D'apres l'enumeration CGNS
+        elif nnodes == 10: eltno = 26  #
+                                       # Pour l'ordre 4, rien dans l'enumeration CGNS...
+    elif name[0:4] == 'QUAD':
+        if len(name) == 4: nnodes = 4
+        else: nnodes = int(name[5:])
+        if nnodes == 4: eltno = 7
+        elif nnodes == 8:  eltno = 8
+        elif nnodes == 9:  eltno = 9
+        elif nnodes == 12: eltno = 27 # D'apres l'enumeration CGNS
+        elif nnodes == 16: eltno = 28 # Attention, ici, je prends par defaut QUAD_16 mais cela pourrait etre QUAD_P4_16... Que faire ? 
+                                      # Pour l'ordre 4,rien dans l'enumeration CGNS
+    elif name[0:5] == 'TETRA':
+        if len(name) == 5: nnodes = 4
+        else: nnodes = int(name[6:])
+        if nnodes == 4: eltno = 10
+        elif nnodes == 10: eltno = 11
+    elif name[0:4] == 'PYRA':
+        if len(name) == 4: nnodes = 5
+        else: nnodes = int(name[5:])
+        if nnodes == 5: eltno = 12
+        elif nnodes == 14: eltno = 13
+    elif name[0:5] == 'PENTA':
+        if len(name) == 5: nnodes = 6
+        else: nnodes = int(name[6:])
+        if nnodes == 6: eltno = 14
+        elif nnodes == 15: eltno = 15
+        elif nnodes == 18: eltno = 16
+    elif name[0:4] == 'HEXA':
+        if len(name) == 4: nnodes = 8
+        else: nnodes = int(name[5:])
+        if nnodes == 8: eltno = 17
+        elif nnodes == 20: eltno = 18
+        elif nnodes == 27: eltno = 19
+    elif name == 'MIXED':
+        print('Warning: eltName2EltNo: MIXED elements not supported.')
+        eltno = 20; nnodes = 1
+    elif name == 'NGON' or name == 'NGON_n': eltno = 22; nnodes = 1
+    elif name == 'NFACE' or name == 'NFACE_n': eltno = 23; nnodes = 1
     return eltno, nnodes
+
+# -- EltNos2EltNames
+# Convertit une liste de numeros CGNS d'elt en noms CGNS d'elt et leurs nombres
+# de noeuds associes. Retourne deux listes
+def eltNos2EltNames(eltnos):
+    if isinstance(eltnos, (list, numpy.ndarray)):
+        eltnames = [eltNo2EltName(eltno) for eltno in eltnos]
+        return list(zip(*eltnames))
+    else: return [[i] for i in eltNo2EltName(eltnos)]
 
 # -- EltNo2EltName
 # Convertit un numero CGNS d'elt en nom CGNS d'elt et son nombre de noeuds
@@ -2293,16 +2742,30 @@ def eltName2EltNo(name):
 def eltNo2EltName(eltno):
     name = 'UNKNOWN'; nnodes = 0
     if eltno == 2: name = 'NODE'; nnodes = 1
-    elif eltno >= 3 and eltno <= 4: name = 'BAR'; nnodes = 2
-    elif eltno >= 5 and eltno <= 6: name = 'TRI'; nnodes = 3
-    elif eltno >= 7 and eltno <= 9: name = 'QUAD'; nnodes = 4
-    elif eltno >= 10 and eltno <= 11: name = 'TETRA'; nnodes = 4
-    elif eltno >= 12 and eltno <= 13: name = 'PYRA'; nnodes = 5
-    elif eltno >= 14 and eltno <= 16: name = 'PENTA'; nnodes = 6
-    elif eltno >= 17 and eltno <= 19: name = 'HEXA'; nnodes = 8
+    elif eltno == 3: name = 'BAR'; nnodes = 2
+    elif eltno == 4: name = 'BAR_3'; nnodes = 3
+    elif eltno == 5: name = 'TRI'; nnodes = 3
+    elif eltno == 6: name = 'TRI_6'; nnodes = 6
+    elif eltno == 25: name = 'TRI_9'; nnodes = 9
+    elif eltno == 26: name = 'TRI_10'; nnodes = 10
+    elif eltno == 7: name = 'QUAD'; nnodes = 4
+    elif eltno == 8: name = 'QUAD_8'; nnodes = 8
+    elif eltno == 9: name = 'QUAD_9'; nnodes = 9
+    elif eltno == 27: name = 'QUAD_12'; nnodes = 12
+    elif eltno == 28: name = 'QUAD_16'; nnodes = 16
+    elif eltno == 10: name = 'TETRA'; nnodes = 4
+    elif eltno == 11: name = 'TETRA_10'; nnodes = 10
+    elif eltno == 12: name = 'PYRA'; nnodes = 5
+    elif eltno == 13: name = 'PYRA_14'; nnodes = 14
+    elif eltno == 14: name = 'PENTA'; nnodes = 6
+    elif eltno == 15: name = 'PENTA_15'; nnodes = 15
+    elif eltno == 16: name = 'PENTA_18'; nnodes = 18
+    elif eltno == 17: name = 'HEXA'; nnodes = 8
+    elif eltno == 18: name = 'HEXA_20'; nnodes = 20
+    elif eltno == 19: name = 'HEXA_27'; nnodes = 27
     elif eltno == 20:
-        print 'Warning: eltNo2EltName: MIXED elements not supported.'
-        name = 'MIXED'; nnodes = -1
+        print('Warning: eltNo2EltName: MIXED elements not supported.')
+        name = 'MIXED'; nnodes = 1
     elif eltno == 22: name = 'NGON'; nnodes = 1
     elif eltno == 23: name = 'NFACE'; nnodes = 1
     return name, nnodes
@@ -2313,6 +2776,7 @@ def dimFromEltNo(eltno):
     elif eltno >= 3 and eltno <= 4: return 1 # BAR
     elif eltno >= 5 and eltno <= 6: return 2 # TRI
     elif eltno >= 7 and eltno <= 9: return 2 # QUAD
+    elif eltno >=25 and eltno <= 28: return 2 #TRI et QUAD d'ordre 3
     else: return 3
 
 # -- Convertit un PointRange (pyTree) en indices de fenetres (Converter)
@@ -2329,21 +2793,11 @@ def range2Window(r):
 
 # -- Convertit une fenetre [imin,imax,jmin,jmax,kmin,kmax] en PointRange pyTree
 def window2Range(win):
-    r = numpy.empty((3,2), numpy.int32, order='Fortran')
+    r = numpy.empty((3,2), dtype=E_NpyInt, order='F')
     r[0,0] = win[0]; r[0,1] = win[1]
     r[1,0] = win[2]; r[1,1] = win[3]
     r[2,0] = win[4]; r[2,1] = win[5]
     return r
-
-# -- PointList (face) to range (struct zones)
-def pointList2Windows(PL, ni, nj, nk):
-    # find face
-    ind = PL[0]
-    # find i,j
-    # regrouper dans des vector[j]
-    # pour chaque j, trouve imin, imax
-    # Regroupe en j si meme imin, imax
-
 
 # -- ClearList: supprime les [] d'une liste
 def clearList(list):
@@ -2354,7 +2808,7 @@ def clearList(list):
 
 # -- Change a var name to a CGNS name
 def getCGNSName(v):
-    if name2CGNS.has_key(v): return name2CGNS[v]
+    if v in name2CGNS: return name2CGNS[v]
     else: return v
 
 #==============================================================================
@@ -2373,57 +2827,60 @@ def array2PyTreeDim(a):
         ni = a[2]; nj = a[3]; nk = a[4]
         if ni == 1:
             if nj == 1:
-                d = numpy.empty((1,3), numpy.int32, order='Fortran')
+                d = numpy.empty((1,3), dtype=E_NpyInt, order='F')
                 d[0,0] = nk
                 d[0,1] = nk-1
                 d[0,2] = 0
             elif nk == 1:
-                d = numpy.empty((1,3), numpy.int32, order='Fortran')
+                d = numpy.empty((1,3), dtype=E_NpyInt, order='F')
                 d[0,0] = nj
                 d[0,1] = nj-1
                 d[0,2] = 0
             else:
-                d = numpy.empty((2,3), numpy.int32, order='Fortran')
+                d = numpy.empty((2,3), dtype=E_NpyInt, order='F')
                 d[0,0] = nj;   d[1,0] = nk
                 d[0,1] = nj-1; d[1,1] = nk-1
                 d[0,2] = 0;    d[1,2] = 0
         elif nj == 1:
             if nk == 1:
-                d = numpy.empty((1,3), numpy.int32, order='Fortran')
+                d = numpy.empty((1,3), dtype=E_NpyInt, order='F')
                 d[0,0] = ni
                 d[0,1] = ni-1
                 d[0,2] = 0
             else:
-                d = numpy.empty((2,3), numpy.int32, order='Fortran')
+                d = numpy.empty((2,3), dtype=E_NpyInt, order='F')
                 d[0,0] = ni;   d[1,0] = nk
                 d[0,1] = ni-1; d[1,1] = nk-1
                 d[0,2] = 0;    d[1,2] = 0
         elif nk == 1:
-            d = numpy.empty((2,3), numpy.int32, order='Fortran')
+            d = numpy.empty((2,3), dtype=E_NpyInt, order='F')
             d[0,0] = ni;   d[1,0] = nj
             d[0,1] = ni-1; d[1,1] = nj-1
             d[0,2] = 0;    d[1,2] = 0
         else:
-            d = numpy.empty((3,3), numpy.int32, order='Fortran')
+            d = numpy.empty((3,3), dtype=E_NpyInt, order='F')
             d[0,0] = ni;   d[1,0] = nj;   d[2,0] = nk
             d[0,1] = ni-1; d[1,1] = nj-1; d[2,1] = nk-1
             d[0,2] = 0;    d[1,2] = 0;    d[2,2] = 0
     elif len(a) == 4: # non structure
-        if isinstance(a[2], list): # Array2
+        if isinstance(a[2], list): # Array2/Array3
             if a[3] == 'NGON':
-                nelts = a[2][3].size
-                d = numpy.empty((1,3), numpy.int32, order='Fortran')
+                if a[2][3].size > 0 and a[2][3][-1] == a[2][1].size: nelts = a[2][3].size-1
+                else: nelts = a[2][3].size
+                d = numpy.empty((1,3), dtype=E_NpyInt, order='F')
                 d[0,0] = a[1][0].size; d[0,1] = nelts; d[0,2] = 0
             else:
-                d = numpy.empty((1,3), numpy.int32, order='Fortran')
-                d[0,0] = a[1][0].size; d[0,1] = a[2][0].shape[0]; d[0,2] = 0 
+                d = numpy.empty((1,3), dtype=E_NpyInt, order='F')
+                cn = a[2]; nelts = 0
+                for i in cn: nelts += i.shape[0]
+                d[0,0] = a[1][0].size; d[0,1] = nelts; d[0,2] = 0 
         else:   # Array1
             if a[3] == 'NGON':
                 sizeFN = a[2][0,1]; nelts = a[2][0,2+sizeFN]
-                d = numpy.empty((1,3), numpy.int32, order='Fortran')
+                d = numpy.empty((1,3), dtype=E_NpyInt, order='F')
                 d[0,0] = a[1].shape[1]; d[0,1] = nelts; d[0,2] = 0
             else:
-                d = numpy.empty((1,3), numpy.int32, order='Fortran')
+                d = numpy.empty((1,3), dtype=E_NpyInt, order='F')
                 d[0,0] = a[1].shape[1]; d[0,1] = a[2].shape[1]; d[0,2] = 0
     else:
         d = None
@@ -2432,33 +2889,32 @@ def array2PyTreeDim(a):
 # -- Cree un noeud de donnees (DataArray_t) a partir d'un array field nfld --
 # cellDim = zone cell dimension
 def createDataNode(name, array, nfld, cellDim=3):
-  name = getCGNSName(name)
   if len(array) == 5: # structure
       ni = array[2]; nj = array[3]; nk = array[4]
       if isinstance(array[1], list): a = array[1][nfld] # array 2
       else: a = array[1][nfld,:] # array 1
       if cellDim == 3:
-          a = numpy.reshape(a, (ni, nj, nk), order='Fortran')
+          a = numpy.reshape(a, (ni, nj, nk), order='F')
       elif cellDim == 2:
           if ni == 1 or ni == 0:
-              a = numpy.reshape(a, (nj, nk), order='Fortran')
+              a = numpy.reshape(a, (nj, nk), order='F')
           elif nj == 1 or nj == 0:
-              a = numpy.reshape(a, (ni, nk), order='Fortran')
+              a = numpy.reshape(a, (ni, nk), order='F')
           else:
-              a = numpy.reshape(a, (ni, nj), order='Fortran')
+              a = numpy.reshape(a, (ni, nj), order='F')
       else: # cellDim = 1
           if ni == 1 or ni == 0:
               if nj == 1 or nj == 0:
-                  a = numpy.reshape(a, (nk), order='Fortran')
+                  a = numpy.reshape(a, (nk), order='F')
               elif nk == 1 or nk == 0:
-                  a = numpy.reshape(a, (nj), order='Fortran')
+                  a = numpy.reshape(a, (nj), order='F')
           elif nj == 1 or nj == 0:
               if nk == 1 or nk == 0:
-                  a = numpy.reshape(a, (ni), order='Fortran')
+                  a = numpy.reshape(a, (ni), order='F')
   else: # non structure
     if isinstance(array[1], list):
         a = array[1][nfld] # Array2
-        a = numpy.reshape(a, (a.size), order='Fortran')
+        a = numpy.reshape(a, (a.size), order='F')
     else: a = array[1][nfld,:] # Array1
   node = [name, a, [], 'DataArray_t']
   return node
@@ -2479,19 +2935,25 @@ def createZoneNode(name, array, array2=[],
   # Zone type
   if len(array) == 5: type = 'Structured'
   else: type = 'Unstructured'
-  v = numpy.fromstring(type, 'c')
-  info.append(['ZoneType', v, [], 'ZoneType_t'])
+  _createChild(zone, 'ZoneType', 'ZoneType_t', value=type)
 
   # Coordonnees
   px = KCore.isNamePresent(array, 'CoordinateX')
   if px == -1: px = KCore.isNamePresent(array, 'x')
   if px == -1: px = KCore.isNamePresent(array, 'X')
+  if px == -1: px = KCore.isNamePresent(array, 'x3d')
+  if px == -1: px = KCore.isNamePresent(array, 'Coordinates.CoordinateX')
   py = KCore.isNamePresent(array, 'CoordinateY')
   if py == -1: py = KCore.isNamePresent(array, 'y')
   if py == -1: py = KCore.isNamePresent(array, 'Y')
+  if py == -1: py = KCore.isNamePresent(array, 'y3d')
+  if py == -1: py = KCore.isNamePresent(array, 'Coordinates.CoordinateY')
   pz = KCore.isNamePresent(array, 'CoordinateZ')
   if pz == -1: pz = KCore.isNamePresent(array, 'z')
   if pz == -1: pz = KCore.isNamePresent(array, 'Z')
+  if pz == -1: pz = KCore.isNamePresent(array, 'z3d')
+  if pz == -1: pz = KCore.isNamePresent(array, 'Coordinates.CoordinateZ')
+  
   if px != -1 or py != -1 or pz != -1:
     info.append([GridCoordinates, None, [], 'GridCoordinates_t'])
     if px != -1:
@@ -2506,43 +2968,48 @@ def createZoneNode(name, array, array2=[],
 
   # Connectivite
   if len(array) == 4: # non structure
-      etype,stype = eltName2EltNo(array[3])
-      i = numpy.empty((2), numpy.int32); i[0] = etype; i[1] = 0
-      if etype == 22: # Faces->Nodes and Elements->Faces connectivities (NGON array)
-          if isinstance(array[2], list): # Array2
-            setElementConnectivity2(zone, array)
-          else: # Array1
-            setElementConnectivity(zone, array)
-      else:  # Elements -> Nodes connectivities
-          info.append(['GridElements', i, [], 'Elements_t'])
-          info2 = info[len(info)-1][2]
-          i = numpy.empty((2), numpy.int32); i[0] = 1
-          if isinstance(array[2], list): # Array2
-             i[1] = array[2][0].shape[0]
-             info2.append(['ElementRange', i, [], 'IndexRange_t']) 
-             sizeConnectivity = array[2][0].size
-             connect = array[2][0]
-             connect = numpy.reshape(connect, (sizeConnectivity))
-             info2.append(['ElementConnectivity', connect, [], 'DataArray_t'])  
-          else: # Array1
-             i[1] = array[2].shape[1]
-             sizeConnectivity = array[2].size
-             info2.append(['ElementRange', i, [], 'IndexRange_t'])
-             connect = numpy.transpose(numpy.copy(array[2]))
-             connect = numpy.reshape(connect, (sizeConnectivity))
-             info2.append(['ElementConnectivity', connect, [], 'DataArray_t'])
+      etype, _ = eltNames2EltNos(array[3]) # types d'elements
+      neltstot = 0
+      for c in range(len(etype)):
+        i = numpy.empty((2), dtype=E_NpyInt); i[0] = etype[c]; i[1] = 0
+        if etype[c] == 22: # Faces->Nodes and Elements->Faces connectivities (NGON array)
+            if isinstance(array[2], list): # Array2 or array3
+                setElementConnectivity2(zone, array)
+            else: # Array1
+                setElementConnectivity(zone, array)
+        else:  # Elements -> Nodes connectivities
+            suffix = '' if c == 0 else '-{}'.format(c+1)
+            info.append(['GridElements{}'.format(suffix), i, [], 'Elements_t'])
+            info2 = info[len(info)-1][2]
+            
+            i = numpy.empty((2), dtype=E_NpyInt); i[0] = neltstot+1
+            if isinstance(array[2], list): # Array2
+                i[1] = neltstot + array[2][c].shape[0]; neltstot = i[1]
+                info2.append(['ElementRange', i, [], 'IndexRange_t']) 
+                sizeConnectivity = array[2][c].size
+                connect = array[2][c]
+                connect = numpy.reshape(connect, (sizeConnectivity))
+                info2.append(['ElementConnectivity', connect, [], 'DataArray_t'])
+            else: # Array1
+                i[1] = array[2].shape[1]
+                sizeConnectivity = array[2].size
+                info2.append(['ElementRange', i, [], 'IndexRange_t'])
+                connect = numpy.transpose(numpy.copy(array[2]))
+                connect = numpy.reshape(connect, (sizeConnectivity))
+                info2.append(['ElementConnectivity', connect, [], 'DataArray_t'])
+                break # ME not supported
 
   # field
   if isinstance(array[1], list): nvar = len(array[1])
   else: nvar = array[1].shape[0]
   createFlow = False
-  for i in xrange(nvar):
+  for i in range(nvar):
     if i != px and i != py and i != pz: createFlow = True
   if createFlow:
     vars = array[0].split(',')
     info.append([FlowSolutionNodes, None, [], 'FlowSolution_t'])
     info = info[len(info)-1]
-    for i in xrange(nvar):
+    for i in range(nvar):
       if i != px and i != py and i != pz:
         node = createDataNode(vars[i], array, i, cellDim)
         info[2].append(node)
@@ -2552,9 +3019,8 @@ def createZoneNode(name, array, array2=[],
       vars = array2[0].split(',')
       info.append([FlowSolutionCenters, None, [], 'FlowSolution_t'])
       info = info[len(info)-1]
-      v = numpy.fromstring('CellCenter', 'c')
-      info[2].append(['GridLocation', v, [], 'GridLocation_t'])
-      for i in xrange(nvar):
+      _createChild(info, 'GridLocation', 'GridLocation_t', value='CellCenter')
+      for i in range(nvar):
           node = createDataNode(vars[i], array2, i, cellDim)
           info[2].append(node)
   return zone
@@ -2576,17 +3042,17 @@ def convertDataNode2Array(node, dim, connects, loc=-1):
         ar2[:] = ar
         ar = ar2
 
-    if isinstance(gtype, numpy.ndarray): gtype = gtype.tostring()
+    if isinstance(gtype, numpy.ndarray): gtype = gtype.tobytes().decode()
     if gtype == 'Structured':
         ni = dim[1]; nj = dim[2]; nk = dim[3]
         ni1 = max(ni-1,1); nj1 = max(nj-1,1); nk1 = max(nk-1,1)
         if ni*nj*nk == ar.size: # champ en noeuds
-            a = numpy.reshape(ar, (ni*nj*nk), order='Fortran')
+            a = numpy.reshape(ar, (ni*nj*nk), order='F')
             a = numpy.reshape(a, (1,ni*nj*nk))
             array = [node[0], a, ni, nj, nk]
             return ['nodes', array]
         elif ni1*nj1*nk1 == ar.size: # champ en centres
-            a = numpy.reshape(ar, (ni1*nj1*nk1), order='Fortran')
+            a = numpy.reshape(ar, (ni1*nj1*nk1), order='F')
             a = numpy.reshape(a, (1,ni1*nj1*nk1))
             array = [node[0], a, ni1, nj1, nk1]
             return ['centers', array]
@@ -2597,22 +3063,23 @@ def convertDataNode2Array(node, dim, connects, loc=-1):
             if lsize == 1: ni = size[0]; nj = 1; nk = 1
             elif lsize == 2: ni = size[0]; nj = size[1]; nk = 1
             elif lsize == 3: ni = size[0]; nj = size[1]; nk = size[2]
-            a = numpy.reshape(ar, (1,ni*nj*nk), order='Fortran')
+            a = numpy.reshape(ar, (1,ni*nj*nk), order='F')
             array = [node[0], a, ni, nj, nk]
-            print "Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0]
+            print("Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0])
             return ['unknown', array]
     elif gtype == 'Unstructured':
         cr, ettype = adaptConnect__(connects, dim)
-        lconnects = len(connects)
         s = ar.size
-        a = numpy.reshape(ar, (1, s), order='Fortran')
+        a = numpy.reshape(ar, (1, s), order='F')
         locout = 'nodes'
         if dim[1] != dim[2]: # on peut decider
-            if s == dim[2]: ettype += '*'; locout = 'centers'
+            if s == dim[2]:
+                ettype = ettype.replace(',', '*,') + '*'; locout = 'centers'
             elif s != dim[1]:
-                print "Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0]
+                print("Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0])
         else: # force + no check
-            if loc == 1: ettype += '*'; locout = 'centers'
+            if loc == 1:
+                ettype = ettype.replace(',', '*,') + '*'; locout = 'centers'
 
         array = [node[0], a, cr, ettype]
         return [locout, array]
@@ -2628,7 +3095,7 @@ def convertDataNode2Array2(node, dim, connects, loc=-1):
         ar2[:] = ar
         ar = ar2
 
-    if isinstance(gtype, numpy.ndarray): gtype = gtype.tostring()
+    if isinstance(gtype, numpy.ndarray): gtype = gtype.tobytes().decode()
     if gtype == 'Structured':
         ni = dim[1]; nj = dim[2]; nk = dim[3]
         ni1 = max(ni-1,1); nj1 = max(nj-1,1); nk1 = max(nk-1,1)
@@ -2646,7 +3113,7 @@ def convertDataNode2Array2(node, dim, connects, loc=-1):
             elif lsize == 2: ni = size[0]; nj = size[1]; nk = 1
             elif lsize == 3: ni = size[0]; nj = size[1]; nk = size[2]
             array = [node[0], [ar], ni, nj, nk]
-            print "Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0]
+            print("Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0])
             return ['unknown', array]
 
     # non structure
@@ -2665,16 +3132,15 @@ def convertDataNode2Array2(node, dim, connects, loc=-1):
     elif iBE != -1: # une connectivite BE existe -> on la prend
         connect = connects[iBE]; eltType = connect[1][0]
         if iBEMultiple == 1:
-            print 'Warning: convertDataNode2Array: different connectivities in a single zone is not possible. Only first connectivity is kept.'
+            print('Warning: convertDataNode2Array2: different connectivities in a single zone is not possible. Only first connectivity is kept.')
     else:
         #raise ValueError("convertDataNode2Array: no valid connectivity found.")
-        #print 'Warning: convertDataNode2Array: no valid connectivity found (using NODE).'
-        cr = numpy.empty((1,0), dtype=numpy.int32); ettype='NODE'
+        #print('Warning: convertDataNode2Array: no valid connectivity found (using NODE).')
+        cr = numpy.empty((1,0), dtype=E_NpyInt); ettype='NODE'
 
     ettype, stype = eltNo2EltName(eltType)
 
     if eltType == 22: # NGON
-        info = connect1
         e = getNodeFromName(connect1, 'ElementConnectivity')
         f = getNodeFromName(connect2, 'ElementConnectivity')
         g = getNodeFromName(connect1, 'FaceIndex')
@@ -2695,20 +3161,135 @@ def convertDataNode2Array2(node, dim, connects, loc=-1):
     else:
         e = getNodeFromName(connect, 'ElementConnectivity')
         if e[1] is not None:
-            size = e[1].size/stype
+            size = e[1].size//stype
             b = e[1].reshape((size,stype)) # reshape needed
             cr = [b]
         else: cr = [None] # nodes
     locout = 'nodes'
     s = ar.size
     if dim[1] != dim[2]: # on peut decider
-        if s == dim[2]: ettype += '*'; locout = 'centers'
+        if s == dim[2]:
+            ettype = ettype.replace(',', '*,') + '*'; locout = 'centers'
         elif s != dim[1]:
-            print "Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0]
+            print("Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0])
     else: # force + no check
-        if loc == 1: ettype += '*'; locout = 'centers'
+        if loc == 1:
+            ettype = ettype.replace(',', '*,') + '*'; locout = 'centers'
 
     array = [node[0], [ar], cr, ettype]
+    return [locout, array]
+
+# Pour array3
+def convertDataNode2Array3(node, dim, connects, loc=-1):
+    gtype = dim[0]
+    array = None
+    ar = node[1]
+    if ar is None: return ['unknown', None]
+    if ar.dtype != numpy.float64: # mauvais type de noeud, copie
+        ar2 = numpy.empty(ar.shape, numpy.float64)
+        ar2[:] = ar
+        ar = ar2
+
+    if isinstance(gtype, numpy.ndarray): gtype = gtype.tobytes().decode()
+    if gtype == 'Structured':
+        ni = dim[1]; nj = dim[2]; nk = dim[3]
+        ni1 = max(ni-1,1); nj1 = max(nj-1,1); nk1 = max(nk-1,1)
+        if ni*nj*nk == ar.size: # champ en noeuds
+            array = [node[0], [ar], ni, nj, nk]
+            return ['nodes', array]
+        elif ni1*nj1*nk1 == ar.size: # champ en centres
+            array = [node[0], [ar], ni1, nj1, nk1]
+            return ['centers', array]
+        else:
+            # Le tableau n'est pas coherent avec les noeuds ou les centres
+            # de la zone
+            size = ar.shape; lsize = len(size)
+            if lsize == 1: ni = size[0]; nj = 1; nk = 1
+            elif lsize == 2: ni = size[0]; nj = size[1]; nk = 1
+            elif lsize == 3: ni = size[0]; nj = size[1]; nk = size[2]
+            array = [node[0], [ar], ni, nj, nk]
+            print("Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0])
+            return ['unknown', array]
+
+    # non structure
+    iBE = 0; isNGon = False; iNGon = 0; iNFace = 0
+    cr = [None,None,None,None,None]; et = []
+    for c in connects:
+        ctype = c[1][0]
+        if ctype == 22: # NGon 
+            isNGon = True; iNGon = c
+            pt = getNodeFromName1(c, 'ElementConnectivity')
+            if pt is not None: cr[0] = pt[1]
+            pt = getNodeFromName1(c, 'ElementStartOffset')
+            if pt is not None: cr[2] = pt[1]
+            pt = getNodeFromName1(c, 'FaceIndex')
+            if pt is not None: cr[2] = pt[1]
+            pt = getNodeFromName1(c, 'ParentElement')
+            if pt is not None: cr[4] = pt[1]
+        elif ctype == 23: # NFace
+            isNGon = True; iNFace = c
+            pt = getNodeFromName1(c, 'ElementConnectivity')
+            if pt is not None: cr[1] = pt[1]
+            pt = getNodeFromName1(c, 'ElementStartOffset')
+            if pt is not None: cr[3] = pt[1]
+            pt = getNodeFromName1(c, 'ElementIndex')
+            if pt is not None: cr[3] = pt[1]
+        else: # BE
+            pt = getNodeFromName1(c, 'ElementConnectivity')
+            if pt is not None:
+                if iBE < 5: cr[iBE] = pt[1]
+                else: cr.append(pt[1])
+                eltType = c[1][0]; et.append(eltType)
+                iBE += 1
+
+    # Filter des connectivites (supp None et elements non volumiques)
+    eltString = ""
+    if not isNGon:
+        crOut = []; iBE = 0
+        for c in cr:
+            if c is not None:
+                ettype, stype = eltNo2EltName(et[iBE])
+                eltString += ettype+","
+                size = c.size//stype
+                b = c.reshape((size,stype)) # reshape needed
+                crOut.append(b)
+                iBE += 1
+        cr = crOut
+        eltString = eltString[:-1]
+        if cr == []: # patch empty connect
+            c = numpy.empty((1,0), dtype=E_NpyInt)
+            eltString = 'NODE'
+            crOut.append(c)
+    else:
+        eltString = "NGON"
+        if cr[0] is None: print('Warning: getField: empty NGON connectivity.')
+        if cr[1] is None: print('Warning: getField: empty NFACE connectivity.')
+        if cr[2] is None:
+            # forcement Array2 old ngon
+            no = getNodeFromName1(iNGon, 'ElementRange')[1]
+            nfaces = no[1]-no[0]+1
+            n = converter.adaptNGon2Index(cr[0], nfaces)
+            g = createUniqueChild(iNGon, 'FaceIndex', 'DataArray_t', value=n)
+            cr[2] = g[1]
+        if cr[3] is None:
+            # forcement Array2 old ngon
+            no = getNodeFromName1(iNFace, 'ElementRange')[1]
+            nelts = no[1]-no[0]+1
+            n = converter.adaptNFace2Index(cr[1], nelts)
+            g = createUniqueChild(iNFace, 'ElementIndex', 'DataArray_t', value=n)
+            cr[3] = g[1]
+
+    locout = 'nodes'
+    s = ar.size
+    if dim[1] != dim[2]: # on peut decider
+        if s == dim[2]:
+            eltString = eltString.replace(',', '*,') + '*'; locout = 'centers'
+        elif s != dim[1]:
+            print("Warning: convertDataNode2Array: incoherency zone/array (%s)."%node[0])
+    else: # force + no check
+        if loc == 1:
+            eltString = eltString.replace(',', '*,') + '*'; locout = 'centers'
+    array = [node[0], [ar], cr, eltString]
     return [locout, array]
 
 # -- convert a data node list to an array
@@ -2752,7 +3333,7 @@ def convertDataNodes2Array(nodes, dim, connects, loc=-1):
         else:
             # Le tableau n'est pas coherent avec les noeuds ou les centres
             # de la zone
-            print "Warning: convertDataNodes2Array: incoherency zone (%dx%dx%d)/array (%s,%d)."%(ni,nj,nk,nodes[0][0],s)
+            print("Warning: convertDataNodes2Array: incoherency zone (%dx%dx%d)/array (%s,%d)."%(ni,nj,nk,nodes[0][0],s))
             size = ar.shape; lsize = len(size)
             if lsize == 1: ni = size[0]; nj = 1; nk = 1
             elif lsize == 2: ni = size[0]; nj = size[1]; nk = 1
@@ -2763,11 +3344,11 @@ def convertDataNodes2Array(nodes, dim, connects, loc=-1):
     cr, ettype = adaptConnect__(connects, dim)
 
     if dim[1] != dim[2]: # on peut decider
-        if s == dim[2]: ettype += '*'
+        if s == dim[2]: ettype = ettype.replace(',', '*,') + '*'
         elif s != dim[1]:
-            print "Warning: convertDataNodes2Array: incoherency zone (%d,%d)/array (%s,%d)."%(dim[1],dim[2],nodes[0][0],s)
+            print("Warning: convertDataNodes2Array: incoherency zone (%d,%d)/array (%s,%d)."%(dim[1],dim[2],nodes[0][0],s))
     else: # force + no check
-        if loc == 1: ettype += '*'
+        if loc == 1: ettype = ettype.replace(',', '*,') + '*'
     return [vars, a, cr, ettype]
 
 # Pour array2
@@ -2798,7 +3379,7 @@ def convertDataNodes2Array2(nodes, dim, connects, loc=-1):
             if lsize == 1: ni = size[0]; nj = 1; nk = 1
             elif lsize == 2: ni = size[0]; nj = size[1]; nk = 1
             elif lsize == 3: ni = size[0]; nj = size[1]; nk = size[2]
-            print "Warning: convertDataNodes2Array: incoherency zone/array."
+            print("Warning: convertDataNodes2Array2: incoherency zone/array.")
             return [vars, field, ni, nj, nk]
 
     # unstructured
@@ -2817,16 +3398,15 @@ def convertDataNodes2Array2(nodes, dim, connects, loc=-1):
     elif iBE != -1: # une connectivite BE existe -> on la prend
         connect = connects[iBE]; eltType = connect[1][0]
         if iBEMultiple == 1:
-            print 'Warning: convertDataNode2Array: different connectivities in a single zone is not possible. Only first connectivity is kept.'
+            print('Warning: convertDataNodes2Array2: different connectivities in a single zone is not possible. Only first connectivity is kept.')
     else:
         #raise ValueError("convertDataNode2Array: no valid connectivity found.")
-        #print 'Warning: convertDataNode2Array: no valid connectivity found (using NODE).'
-        cr = numpy.empty((1,0), dtype=numpy.int32); ettype='NODE'
+        #print('Warning: convertDataNode2Array: no valid connectivity found (using NODE).')
+        cr = numpy.empty((1,0), dtype=E_NpyInt); ettype='NODE'; eltType = 0
 
     ettype, stype = eltNo2EltName(eltType)
 
     if eltType == 22: # NGON
-        info = connect1
         e = getNodeFromName(connect1, 'ElementConnectivity')
         f = getNodeFromName(connect2, 'ElementConnectivity')
         g = getNodeFromName(connect1, 'FaceIndex')
@@ -2844,48 +3424,159 @@ def convertDataNodes2Array2(nodes, dim, connects, loc=-1):
             _createUniqueChild(connect2, 'ElementIndex', 'DataArray_t', value=n)
             h = getNodeFromName(connect2, 'ElementIndex')
         cr = [e[1], f[1], g[1], h[1]]
-    else:
+    elif eltType != 0: # all elements except NODE
         e = getNodeFromName(connect, 'ElementConnectivity')
         if e[1] is not None:
-            size = e[1].size/stype
+            size = e[1].size//stype
             b = e[1].reshape((size,stype)) # reshape needed
             cr = [b]
         else: cr = [] # ou None?
+
     # tag *
     if dim[1] != dim[2]: # on peut decider
-        if s == dim[2]: ettype += '*'
+        if s == dim[2]: ettype = ettype.replace(',', '*,') + '*'
         elif s != dim[1]:
-            print "Warning: convertDataNodes2Array: incoherency zone/array."
+            print("Warning: convertDataNodes2Array2: incoherency zone/array.")
     else: # force + no check
-        if loc == 1: ettype += '*'
+        if loc == 1: ettype = ettype.replace(',', '*,') + '*'
     return [vars, field, cr, ettype]
 
-def _groupByFamily(t, familyChilds=None,unique=False):
+# Pour array3
+def convertDataNodes2Array3(nodes, dim, connects, loc=-1):
+    gtype = dim[0]
+    nfld = len(nodes)
+    if nfld == 0: return []
+    ar = nodes[0][1]
+    if ar is None: return []
+    s = ar.size
+
+    field = []; vars = ''
+    for n in nodes:
+        if n[1] is not None:
+            field.append(n[1])
+            vars += n[0]+','
+    if vars[-1] == ',': vars = vars[0:-1]
+
+    if gtype == 'Structured':
+        ni = dim[1]; nj = dim[2]; nk = dim[3]
+        ni1 = max(ni-1,1); nj1 = max(nj-1,1); nk1 = max(nk-1,1)
+        if ni*nj*nk == s:
+            return [vars, field, ni, nj, nk]
+        elif ni1*nj1*nk1 == s:
+            return [vars, field, ni1, nj1, nk1]
+        else:
+            # Le tableau n'est pas coherent avec les noeuds ou les centres
+            # de la zone
+            size = ar.shape; lsize = len(size)
+            if lsize == 1: ni = size[0]; nj = 1; nk = 1
+            elif lsize == 2: ni = size[0]; nj = size[1]; nk = 1
+            elif lsize == 3: ni = size[0]; nj = size[1]; nk = size[2]
+            print("Warning: convertDataNodes2Array3: incoherency zone/array.")
+            return [vars, field, ni, nj, nk]
+
+    # unstructured
+    iBE = 0; isNGon = False; iNGon = None; iNFace = None
+    cr = [None,None,None,None,None]; et = []
+    for c in connects:
+        ctype = c[1][0]
+        if ctype == 22: # NGon 
+            isNGon = True; iNGon = c
+            pt = getNodeFromName1(c, 'ElementConnectivity')
+            if pt is not None: cr[0] = pt[1]
+            pt = getNodeFromName1(c, 'ElementStartOffset')
+            if pt is not None: cr[2] = pt[1]
+            pt = getNodeFromName1(c, 'FaceIndex')
+            if pt is not None: cr[2] = pt[1]
+            pt = getNodeFromName1(c, 'ParentElement')
+            if pt is not None: cr[4] = pt[1]
+        elif ctype == 23: # NFace
+            isNGon = True; iNFace = c
+            pt = getNodeFromName1(c, 'ElementConnectivity')
+            if pt is not None: cr[1] = pt[1]
+            pt = getNodeFromName1(c, 'ElementStartOffset')
+            if pt is not None: cr[3] = pt[1]
+            pt = getNodeFromName1(c, 'ElementIndex')
+            if pt is not None: cr[3] = pt[1]
+        else: # BE
+            pt = getNodeFromName1(c, 'ElementConnectivity')
+            if pt is not None:
+                if iBE < 5: cr[iBE] = pt[1]
+                else: cr.append(pt[1])
+                eltType = c[1][0]; et.append(eltType)
+                iBE += 1
+
+    # Filter des connectivites (supp None et elements non volumiques)
+    eltString = ""
+    if not isNGon:
+        crOut = []; iBE = 0
+        for c in cr:
+            if c is not None: 
+                ettype, stype = eltNo2EltName(et[iBE])
+                eltString += ettype+","
+                size = c.size//stype
+                b = c.reshape((size,stype)) # reshape needed
+                crOut.append(b)
+                iBE += 1
+        cr = crOut
+        eltString = eltString[:-1]
+        if cr == []: # patch empty connect
+            c = numpy.empty((1,0), dtype=E_NpyInt)
+            eltString = 'NODE'
+            crOut.append(c)
+    else: 
+        eltString = "NGON"
+        if cr[0] is None: print('Warning: getField: empty NGON connectivity.')
+        if cr[1] is None: print('Warning: getField: empty NFACE connectivity.')
+        if cr[2] is None and iNGon is not None:
+            # forcement Array2 old ngon
+            no = getNodeFromName1(iNGon, 'ElementRange')[1]
+            nfaces = no[1]-no[0]+1
+            n = converter.adaptNGon2Index(cr[0], nfaces)
+            g = createUniqueChild(iNGon, 'FaceIndex', 'DataArray_t', value=n)
+            cr[2] = g[1]
+        if cr[3] is None and iNFace is not None:
+            # forcement Array2 old ngon
+            no = getNodeFromName1(iNFace, 'ElementRange')[1]
+            nelts = no[1]-no[0]+1
+            n = converter.adaptNGon2Index(cr[1], nelts)
+            g = createUniqueChild(iNFace, 'ElementIndex', 'DataArray_t', value=n)
+            cr[3] = g[1]
+
+    # tag *
+    if dim[1] != dim[2]: # on peut decider
+        if s == dim[2]: eltString = eltString.replace(',', '*,') + '*'
+        elif s != dim[1]:
+            print("Warning: convertDataNodes2Array3: incoherency zone/array.")
+    else: # force + no check
+        if loc == 1: eltString = eltString.replace(',', '*,') + '*'
+    return [vars, field, cr, eltString]
+
+def _groupByFamily(t, familyChilds=None, unique=False):
     """Group all nodes of each base which have the same family name but not link to a family node."""
     if familyChilds is None: familyChilds=[]
     for b in getBases(t):
         # Name of Nodes Family_t
-        familiesNodeNames=[fam[0] for fam in getNodesFromType(b,'Family_t')]
+        familyNodeNames = [fam[0] for fam in getNodesFromType(b, 'Family_t')]
         # All node BC_t not family specified
-        BCNotSpec=[]
-        for bc in getNodesFromType3(b,'BC_t'):
+        BCNotSpec = []
+        for bc in getNodesFromType3(b, 'BC_t'):
             if not isValue(bc, 'FamilySpecified'):
-                childname = getNodesFromName(bc,'FamilyName')                
+                childname = getNodesFromName(bc, 'FamilyName')                
                 if childname != []: BCNotSpec.append(bc)
         for bc in BCNotSpec:
-            FamNameNode = getNodeFromType(bc,'FamilyName_t')
+            FamNameNode = getNodeFromType(bc, 'FamilyName_t')
             FamilyName= getValue(FamNameNode)
-            solverBC = getNodeFromName(bc,'.Solver#BC')
+            solverBC = getNodeFromName(bc, '.Solver#BC')
             if not solverBC: solverBCChilds = []
             else: solverBCChilds = solverBC[2]
 
             # if a family node already exist
-            if FamilyName in FamiliesNodeNames:
-                setValue(bc,'FamilySpecified')
+            if FamilyName in familyNodeNames:
+                setValue(bc, 'FamilySpecified')
             else:
-                FamiliesNodeNames.append(FamilyName)
-                FamBC=createNode('FamilyBC','FamilyBC_t',Internal.getValue(bc))                
-                children = FamilyChilds[:]+solverBCChilds[:]# faut il faire une deepcopy ? dans XTree c est le cas
+                familyNodeNames.append(FamilyName)
+                FamBC = createNode('FamilyBC', 'FamilyBC_t', getValue(bc))                
+                children = familyChilds[:]+solverBCChilds[:]# faut il faire une deepcopy ? dans XTree c est le cas
                 if not unique: children.append(FamBC)
                 else:
                     e = -1
@@ -2896,15 +3587,14 @@ def _groupByFamily(t, familyChilds=None,unique=False):
                             break
                     if e==-1: children.append(FamBC)
                         
-                #
-                nodep=createNode(FamilyName,'Family_t', value=None,children=children,parent=b)
-                setValue(bc,'FamilySpecified')
-                if solverBC: _rmNode(bc,solverBC)
+                nodep = createNode(FamilyName, 'Family_t', value=None, children=children, parent=b)
+                setValue(bc, 'FamilySpecified')
+                if solverBC: _rmNode(bc, solverBC)
     return None
 
-def groupByFamily(t,familyChilds=None, unique=False):
+def groupByFamily(t, familyChilds=None, unique=False):
     tp = copyRef(t)
-    _groupByFamily(tp)
+    _groupByFamily(tp, familyChilds, unique)
     return tp
 
 #==============================================================================
@@ -2921,8 +3611,10 @@ def groupByFamily(t,familyChilds=None, unique=False):
 # EltsName: nom des elements (BAR, NODE, ..., NGON ou MULTI)
 def getZoneDim(zone):
   """Return dimension information from a Zone_t node."""
+  dimBE = {'NODE': 0, 'BAR': 1, 'TRI': 2, 'QUAD': 2, 'TETRA': 3,
+           'PYRA': 3, 'PENTA': 3, 'HEXA': 3}  
   if len(zone) < 4: raise TypeError("getZoneDim: not a zone node.")
-  if zone[3] != 'Zone_t': raise TypeError("getZoneDim: '%s' is not a zone node."%zone[0])
+  if zone[3] != 'Zone_t': raise TypeError("getZoneDim: '%s' is not a zone node."%(zone[0]))
   dims = zone[1]
   # zone type
   info = zone[2]
@@ -2944,46 +3636,49 @@ def getZoneDim(zone):
         c = getElementNodes(zone)
         lc = len(c)
         if lc == 0: return [gtype, np, ne, 'UNKNOWN', 3]
-        if lc >= 2:
+        elif lc == 1:
+            eltName,stype = eltNo2EltName(c[0][1][0])
+            if eltName in dimBE: cellDim = dimBE[eltName]
+            elif eltName in ['NGON', 'NFACE']:
+                eltName = 'NGON'
+                data = getNodeFromName1(c[0], 'ElementConnectivity')
+                if data is not None and len(data)>0: datar = data[1]
+                if datar is not None and datar.size > 0:
+                    if datar[0] == 1: cellDim = 1
+                    elif datar[0] == 2: cellDim = 2
+            else: eltName = 'UNKNOWN'
+            return [gtype, np, ne, eltName, cellDim]
+        else: # lc >= 2:
             # Y a t-il NGON et NFACE? Si oui, renvoie NGON meme si il
             # y a des BEs
-            NGON = -1; NFACE = -1; NGONp = None
-            for i in c:
-                if i[1][0] == 22: NGON = 1; NGONp = i
-                elif i[1][0] == 23: NFACE = 1
-            if NGON == 1 and NFACE == 1:
+            eltNames = [eltNo2EltName(i[1][0])[0] for i in c]
+            if "NGON" in eltNames and "NFACE" in eltNames:
+                NGONp = c[eltNames.index("NGON")]
+                data = getNodeFromName1(NGONp, 'ElementStartOffset')
+                if data is not None and len(data)>0: datar = data[1]
+                else: datar = None
+                if datar is not None and datar.size > 0:
+                    if datar[1] == 1: cellDim = 1
+                    elif datar[1] == 2: cellDim = 2
+                    return [gtype, np, ne, 'NGON', cellDim]
+                
                 data = getNodeFromName1(NGONp, 'ElementConnectivity')
-                datar = data[1]
-                if (datar is not None and datar.size > 0):
+                if data is not None and len(data)>0: datar = data[1]
+                else: datar = None
+                if datar is not None and datar.size > 0:
                     if datar[0] == 1: cellDim = 1
                     elif datar[0] == 2: cellDim = 2
+                
                 return [gtype, np, ne, 'NGON', cellDim]
-            else: return [gtype, np, ne, 'MULTIPLE', 3]
-        eltName,stype = eltNo2EltName(c[0][1][0])
-        if (lc == 2 and eltName != 'NGON' and eltName != 'NFACE'):
-            return [gtype, np, ne, 'MULTIPLE', 3]
-        if eltName == 'NODE': cellDim = 0
-        elif eltName == 'BAR': cellDim = 1
-        elif eltName == 'TRI' or eltName == 'QUAD': cellDim = 2
-        elif eltName == 'NGON':
-            data = getNodeFromName1(c[0], 'ElementConnectivity')
-            datar = data[1]
-            if datar is not None and datar.size > 0:
-                if datar[0] == 1: cellDim = 1
-                elif datar[0] == 2: cellDim = 2
-        elif eltName == 'NFACE':
-            if len(c) > 1:
-                data = getNodeFromName1(c[1], 'ElementConnectivity')
-                datar = data[1]
-                if (datar is not None and datar.size > 0):
-                    if datar[0] == 1: cellDim = 1
-                    elif datar[0] == 2: cellDim = 2
-                eltName = 'NGON'
-        return [gtype, np, ne, eltName, cellDim]
+            else: # BE/ME
+                cellDim = 0
+                for elt in eltNames: cellDim = max(cellDim, dimBE[elt])
+                eltNames = dict.fromkeys(eltNames, None)
+                return [gtype, np, ne, ','.join(name for name in eltNames), cellDim]
       else:
-        raise TypeError("getZoneDim: can not find zone type for zone '%s'."%zone[0])
+        raise TypeError("getZoneDim: cannot find a valid zone type for zone '%s'."%zone[0])
       break
-  raise TypeError("getZoneDim: can not find zone type for zone '%s'."%zone[0])
+  raise TypeError("getZoneDim: cannot find zone type for zone '%s'."%zone[0])
 
 # -- getZoneType --
 # Retourne 1 si la zone est structuree
@@ -2991,11 +3686,12 @@ def getZoneDim(zone):
 # Retourne 0 sinon.
 # Cette routine est plus rapide que getZoneDim
 def getZoneType(zone):
+    """Return 1 for structured zones, 2 for unstructured zones."""
     info = zone[2]
     for i in info:
         if i[3] == 'ZoneType_t':
             gtype = i[1][0] # OK si numpy ou string
-            if gtype == 'S': return 1
+            if gtype == 'S' or gtype == b'S': return 1
             else: return 2
     return 0
 
@@ -3021,36 +3717,41 @@ def getZoneType(zone):
 #             and edges can be wrong
 #         =0: neighbouring vectors are extrapolated to build edge cells, no
 #             flow field is filled
-def addGhostCells(t, b, d, adaptBCs=0, modified=[], fillCorner=1):
+def addGhostCells(t, b, d, adaptBCs=1, modified=[], fillCorner=1):
     """Add ghost cells to a pyTree.
-    Usage: addGhostCells(t, b, d, modified, fillCorner)"""
-    import GhostCells
+    Usage: addGhostCells(t, b, d, adaptBCs, modified, fillCorner)"""
+    from . import GhostCells
     return GhostCells.addGhostCells(t, b, d, adaptBCs, modified, fillCorner)
-def _addGhostCells(t, b, d, adaptBCs=0, modified=[], fillCorner=1):
+def _addGhostCells(t, b, d, adaptBCs=1, modified=[], fillCorner=1):
     """Add ghost cells to a pyTree.
-    Usage: addGhostCells(t, b, d, modified, fillCorner)"""
-    import GhostCells
+    Usage: addGhostCells(t, b, d, adaptBCs, modified, fillCorner)"""
+    from . import GhostCells
     GhostCells._addGhostCells(t, b, d, adaptBCs, modified, fillCorner)
     return None
 
 # -- Remove ghost Cells on GridConnectivity and all fields of FlowSolution
 # and FlowSolution#Centers
 # Return a new zone
-def rmGhostCells(t, b, d, adaptBCs=0, modified=[]):
+def rmGhostCells(t, b, d, adaptBCs=1, modified=[]):
     """Remove ghost cells to a pyTree.
-    Usage: rmGhostCells(t, b, d, modified)"""
-    import GhostCells
+    Usage: rmGhostCells(t, b, d, adaptBCs, modified)"""
+    from . import GhostCells
     return GhostCells.rmGhostCells(t, b, d, adaptBCs, modified)
-def _rmGhostCells(t, b, d, adaptBCs=0, modified=[]):
+def _rmGhostCells(t, b, d, adaptBCs=1, modified=[]):
     """Remove ghost cells to a pyTree.
-    Usage: rmGhostCells(t, b, d, modified)"""
-    import GhostCells
+    Usage: rmGhostCells(t, b, d, adaptBCs, modified)"""
+    from . import GhostCells
     return GhostCells._rmGhostCells(t, b, d, adaptBCs, modified)
 
 # -- Remove rind cells
-def rmRindCells(t, d, modified=[]):
-    import GhostCells
-    return GhostCells.rmRindCells(t, d, modified)
+def rmRindCells(t, d=-1, modified=[]):
+    tp = copyRef(t)
+    _rmRindCells(tp, d=d, modified=modified)
+    return tp
+
+def _rmRindCells(t, d=-1, modified=[]):
+    from . import GhostCells
+    return GhostCells._rmRindCells(t, d=d, modified=modified)
 
 #==============================================================================
 # -- Check --
@@ -3060,20 +3761,20 @@ def rmRindCells(t, d, modified=[]):
 def checkPyTree(t, level=-20):
     """Check pyTree conformity.
     Usage: checkPyTree(t, level)"""
-    import Check
+    from . import Check
     return Check.checkPyTree(t, level)
 
 # -- correctPyTree
 def correctPyTree(t, level=-20):
     """Correct a pyTree.
     Usage: correctPyTree(t, level)"""
-    import Check
+    from . import Check
     return Check.correctPyTree(t, level)
 
 def _correctPyTree(t, level=-20):
     """Correct a pyTree.
     Usage: correctPyTree(t, level)"""
-    import Check
+    from . import Check
     Check._correctPyTree(t, level)
     return None
 
@@ -3082,21 +3783,27 @@ def checkMultigrid(t, level=1, nbMinCoarseB=5, nbMinCoarseW=3):
     """Check if zones, BC ranges and grid connectivity ranges are
     compatible with multigrid of given level.
     Usage: checkMultigrid(t, level, nbMinCoarseB, nbMinCoarseW)"""
-    import Check
+    from . import Check
     return Check.checkMultigrid(t, level, nbMinCoarseB, nbMinCoarseW)
 
 # -- checkSize
 def checkSize(t, sizeMax=100000000):
     """Check if the number of points of a zone exceeds the sizeMax.
-    Usage: checkSize(t,sizeMax)"""
-    import Check
-    return Check.checkSize(t,sizeMax)
+    Usage: checkSize(t, sizeMax)"""
+    from . import Check
+    return Check.checkSize(t, sizeMax)
 
 # -- correctBCElementNodes
 def _correctBCElementNodes(t):
     """Correct element nodes to tag them as BC."""
-    import Check
+    from . import Check
     return Check._correctBCElementNodes(t)
+
+# -- correctBaseZonesDim
+def _correctBaseZonesDim(t, splitBases=False):
+    """Correct base dimensions according to their zones."""
+    from . import Check
+    return Check._correctBaseZonesDim(t, splitBases)
 
 #==============================================================================
 # -- BC management --
@@ -3134,8 +3841,8 @@ def _addOneLayer2BC(a, dir, N=1):
                 parent[2][d][1] = window2Range(win)
             nom = 0
             for w in winsopp: # passe seult pour les matchs/nearmatch
-                if (dir == 3 and len(transf[nom][1]) == 2):
-                    n = numpy.empty((3), numpy.int32)
+                if dir == 3 and len(transf[nom][1]) == 2:
+                    n = numpy.empty((3), dtype=E_NpyInt)
                     n[0] = transf[nom][1][0]; n[1] = transf[nom][1][1]; n[2] = 3
                     transf[nom][1] = n; diropp = 3
                 else: diropp = abs(transf[nom][1][dir-1])
@@ -3194,30 +3901,45 @@ def adaptConnect__(connects, dim):
     elif iBE != -1: # une connectivite BE existe -> on la prend
         connect = connects[iBE]; eltType = connect[1][0]
         if iBEMultiple == 1:
-            print 'Warning: convertDataNode2Array: different connectivities in a single zone is not possible. Only first connectivity is kept.'
+            print('Warning: convertDataNode2Array: different connectivities in a single zone is not possible. Only first connectivity is kept.')
     else:
         #raise ValueError("convertDataNode2Array: no valid connectivity found.")
-        #print 'Warning: convertDataNode2Array: no valid connectivity found (using NODE).'
-        return (numpy.empty((1,0), dtype=numpy.int32), 'NODE')
+        #print('Warning: convertDataNode2Array: no valid connectivity found (using NODE).')
+        return (numpy.empty((1,0), dtype=E_NpyInt), 'NODE')
 
     np = dim[1]; ne = dim[2]
     ettype, stype = eltNo2EltName(eltType)
 
-    if eltType == 22: # NGON
+    if eltType == 22: # NGON1/NGON2
         info = connect1[2]
-        c1 = None; nfaces = 0
+        c1 = None; nfaces = 0; cr = None; offset1 = None
         for i in info:
           if i[0] == 'ElementConnectivity': c1 = i[1]
-          if i[0] == 'ElementRange': nfaces = i[1][1]-i[1][0]+1
+          elif i[0] == 'ElementRange': nfaces = i[1][1]-i[1][0]+1
+          elif i[0] == 'ElementStartOffset': offset1 = i[1]
         info = connect2[2]
         c2 = None; nelts = 0
         for i in info:
           if i[0] == 'ElementConnectivity': c2 = i[1]
-          if i[0] == 'ElementRange': nelts = i[1][1]-i[1][0]+1
-        st1 = c1.size; st2 = c2.size
-        st = st1 + st2 + 4
-        cr = numpy.empty((1, st), numpy.int32)
-        converter.cpyConnectP2ConnectA(cr, c1, c2, stype, ne, nfaces, nelts)
+          elif i[0] == 'ElementRange': nelts = i[1][1]-i[1][0]+1
+          elif i[0] == 'ElementStartOffset': offset2 = i[1]
+        if c1 is not None and c2 is not None and offset1 is None: # NGON1
+            if c1.dtype != E_NpyInt: c1 = c1.astype(E_NpyInt, order='K')
+            if c2.dtype != E_NpyInt: c2 = c2.astype(E_NpyInt, order='K')
+            st1 = c1.size; st2 = c2.size
+            st = st1 + st2 + 4
+            cr = numpy.empty((1, st), E_NpyInt)
+            converter.cpyConnectP2ConnectA(cr, c1, c2, stype, ne, nfaces, nelts)
+        if c1 is not None and c2 is not None and offset1 is not None and offset2 is not None: # NGON2 (v4)
+            if c1.dtype != E_NpyInt: c1 = c1.astype(E_NpyInt, order='K')
+            if c2.dtype != E_NpyInt: c2 = c2.astype(E_NpyInt, order='K')
+            if offset1.dtype != E_NpyInt: offset1 = offset1.astype(E_NpyInt, order='K')
+            if offset2.dtype != E_NpyInt: offset2 = offset2.astype(E_NpyInt, order='K')
+            st1 = c1.size+offset1.size-1; st2 = c2.size+offset2.size-1
+            st = st1 + st2 + 4
+            cr = numpy.empty((1, st), E_NpyInt)
+            converter.cpyConnectP2ConnectA2(cr, c1, c2, stype, ne, nfaces, nelts, offset1, offset2)
+
     else: # Autres types
         info = connect[2]
         cr = None
@@ -3225,10 +3947,11 @@ def adaptConnect__(connects, dim):
           if i[0] == 'ElementConnectivity':
             c = i[1]
             if c is None: # a NODE
-                cr = numpy.empty((stype, 0), numpy.int32)
+                cr = numpy.empty((stype, 0), E_NpyInt)
             else:
-                nelts = c.size / stype # elts = ne sauf si MULTIPLE
-                cr = numpy.empty((stype, nelts), numpy.int32)
+                if c.dtype != E_NpyInt: c = c.astype(E_NpyInt, order='K')
+                nelts = c.size // stype # elts = ne sauf si MULTIPLE
+                cr = numpy.empty((stype, nelts), E_NpyInt)
                 c2 = None
                 converter.cpyConnectP2ConnectA(cr, c, c2, stype, nelts, -1, -1)
     return cr, ettype
@@ -3239,14 +3962,14 @@ def adaptConnect__(connects, dim):
 def setElementConnectivity(z, array):
   etype, stype = eltName2EltNo(array[3])
   GENodes = getElementNodes(z)
-  i = numpy.empty((2), numpy.int32); i[0] = etype; i[1] = 0
+  i = numpy.empty((2), dtype=E_NpyInt); i[0] = etype; i[1] = 0
   if GENodes == []:
       if etype != 22 and etype != 23: # Elements->Nodes connectivities
           z[2].append(['GridElements', i, [], 'Elements_t'])
           info = z[2][len(z[2])-1]
-          i = numpy.empty((2), numpy.int32); i[0] = 1; i[1] = array[2].shape[1]
+          i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = array[2].shape[1]
           info[2].append(['ElementRange', i, [], 'IndexRange_t'])
-          connect = numpy.empty((array[2].size), numpy.int32)
+          connect = numpy.empty((array[2].size), E_NpyInt)
           converter.cpyConnectA2ConnectP(array[2], connect,
                                          stype, array[2].shape[1])
           info[2].append(['ElementConnectivity', connect, [], 'DataArray_t'])
@@ -3259,7 +3982,7 @@ def setElementConnectivity(z, array):
           info2 = info[len(info)-1][2]
           # Size of ElementRange : nb de faces
           nfaces = array[2][0][0]
-          i = numpy.empty((2), numpy.int32); i[0] = 1; i[1] = nfaces
+          i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = nfaces
           info2.append(['ElementRange', i, [], 'IndexRange_t'])
           # Tableau de connectivite Face/Noeuds
           sizeNGON = array[2][0][1]
@@ -3270,12 +3993,12 @@ def setElementConnectivity(z, array):
           _updateElementRange(z)
           # Creation du noeud NFACE_n: connectivite Elements->Faces
           etype,stype = eltName2EltNo('NFACE')
-          i2 = numpy.empty((2), numpy.int32); i2[0] = etype; i2[1] = 0
+          i2 = numpy.empty((2), E_NpyInt); i2[0] = etype; i2[1] = 0
           info.append(['NFaceElements', i2, [], 'Elements_t'])
           info2 = info[len(info)-1][2]
           # Size of ElementRange
           nelts = array[2][0][sizeNGON+2]
-          i = numpy.empty((2), numpy.int32)
+          i = numpy.empty((2), E_NpyInt)
           i[0] = nfaces+1; i[1] = nfaces+nelts
           info2.append(['ElementRange', i, [], 'IndexRange_t'])
           # Tableau de connectivite Elements/Faces
@@ -3288,9 +4011,9 @@ def setElementConnectivity(z, array):
       if etype != 22 and etype != 23: # Elements->Nodes connectivities
           GENodes[0][1] = i
           nodeE = getNodeFromName2(z, 'ElementRange')
-          i = numpy.empty((2), numpy.int32); i[0] = 1; i[1] = array[2].shape[1]
+          i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = array[2].shape[1]
           nodeE[1] = i
-          connect = numpy.empty((array[2].size), numpy.int32)
+          connect = numpy.empty((array[2].size), E_NpyInt)
           converter.cpyConnectA2ConnectP(array[2], connect,
                                          stype, array[2].shape[1])
           nodeE = getNodeFromName2(z, 'ElementConnectivity')
@@ -3312,7 +4035,7 @@ def setElementConnectivity(z, array):
           info2 = info[len(info)-1][2]
           # Size of ElementRange : nb de faces
           nfaces = array[2][0][0]
-          i = numpy.empty((2), numpy.int32); i[0] = 1; i[1] = nfaces
+          i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = nfaces
           info2.append(['ElementRange', i, [], 'IndexRange_t'])
           # Tableau de connectivite Face/Noeuds
           sizeNGON = array[2][0][1]
@@ -3322,12 +4045,12 @@ def setElementConnectivity(z, array):
           info2.append(['ElementConnectivity', cFN, [], 'DataArray_t'])
           # Creation du noeud NFACE_n : connectivite Elements->Faces
           etype, stype = eltName2EltNo('NFACE')
-          i2 = numpy.empty((2), numpy.int32); i2[0] = etype; i2[1] = 0
+          i2 = numpy.empty((2), E_NpyInt); i2[0] = etype; i2[1] = 0
           info.append(['NFaceElements', i2, [], 'Elements_t'])
           info2 = info[len(info)-1][2]
           # Size of ElementRange
           nelts = array[2][0][sizeNGON+2]
-          i = numpy.empty((2), numpy.int32)
+          i = numpy.empty((2), E_NpyInt)
           i[0] = nfaces+1; i[1] = nfaces+nelts
           info2.append(['ElementRange', i, [], 'IndexRange_t'])
           # Tableau de connectivite Elements/Faces
@@ -3337,107 +4060,137 @@ def setElementConnectivity(z, array):
           info2.append(['ElementConnectivity', cEF, [], 'DataArray_t'])
           _updateElementRange(z)
 
-# Pour array2
+# Pour array - api2 ou 3
 def setElementConnectivity2(z, array):
-  etype, stype = eltName2EltNo(array[3])
+  estring = array[3]
+  estring = estring.split(',')
+  etype0, stype = eltName2EltNo(estring[0])
   GENodes = getElementNodes(z)
-  i = numpy.empty((2), numpy.int32); i[0] = etype; i[1] = 0
-  if GENodes == []:
-      if etype != 22 and etype != 23: # Elements->Nodes connectivities
-          z[2].append(['GridElements', i, [], 'Elements_t'])
-          info = z[2][len(z[2])-1]
-          i = numpy.empty((2), numpy.int32); i[0] = 1; i[1] = array[2].shape[1]
-          info[2].append(['ElementRange', i, [], 'IndexRange_t'])
-          info[2].append(['ElementConnectivity', array[2][0], [], 'DataArray_t'])
-          _updateElementRange(z)
-      else: # Faces->Nodes and Elements->Faces connectivities (NGON or NFACE)
-          info = z[2]
-          # Creation du noeud NGON_n: connectivite Faces->Noeuds
-          info.append(['NGonElements', i, [], 'Elements_t'])
-          info2 = info[len(info)-1][2]
-          # Size of ElementRange : nb de faces
-          nfaces = array[2][2].size
-          i = numpy.empty((2), numpy.int32); i[0] = 1; i[1] = nfaces
-          info2.append(['ElementRange', i, [], 'IndexRange_t'])
-          # Tableau de connectivite Face/Noeuds
-          info2.append(['ElementConnectivity', array[2][0], [], 'DataArray_t'])
-          # Tableau FaceIndex (PH)
-          info2.append(['FaceIndex', array[2][2], [], 'DataArray_t'])
-          _updateElementRange(z)
-          # Creation du noeud NFACE_n: connectivite Elements->Faces
-          etype,stype = eltName2EltNo('NFACE')
-          i2 = numpy.empty((2), numpy.int32); i2[0] = etype; i2[1] = 0
-          info.append(['NFaceElements', i2, [], 'Elements_t'])
-          info2 = info[len(info)-1][2]
-          # Size of ElementRange
-          nelts = array[2][3].size
-          i = numpy.empty((2), numpy.int32)
-          i[0] = nfaces+1; i[1] = nfaces+nelts
-          info2.append(['ElementRange', i, [], 'IndexRange_t'])
-          # Tableau de connectivite Elements/Faces
-          info2.append(['ElementConnectivity', array[2][1], [], 'DataArray_t'])
-          # Tableau ElementIndex (PH)
-          info2.append(['ElementIndex', array[2][3], [], 'DataArray_t'])
-          _updateElementRange(z)
-  else: # la connectivite existe deja
-      if etype != 22 and etype != 23: # Elements->Nodes connectivities
-          GENodes[0][1] = i
-          nodeE = getNodeFromName2(z, 'ElementRange')
-          i = numpy.empty((2), numpy.int32); i[0] = 1; i[1] = array[2].shape[1]
-          nodeE[1] = i
-          nodeE = getNodeFromName2(z, 'ElementConnectivity')
-          nodeE[1] = array[2][0]
-          _updateElementRange(z)
-          for n in GENodes[1:]: # delete NFace ou NGon (si il existe)
-              if (n[1][0] == 23 or n[1][0] == 22):
-                  (p, r) = getParentOfNode(z, n)
-                  del p[2][r]
-      else: # Faces->Nodes and Elements->Faces connectivities (NGON or NFACE)
-          GEl = getNodesFromType1(z, 'Elements_t')
-          for GE in GEl:
-              if GE[1][1] == 0:
-                  (p, r) = getParentOfNode(z, GE)
-                  del p[2][r]
-          info = z[2]
-          # Creation du noeud NGON_n: connectivite Faces->Noeuds
-          info.append(['NGonElements', i, [], 'Elements_t'])
-          info2 = info[len(info)-1][2]
-          # Size of ElementRange : nb de faces
-          nfaces = array[2][2].size
-          i = numpy.empty((2), numpy.int32); i[0] = 1; i[1] = nfaces
-          info2.append(['ElementRange', i, [], 'IndexRange_t'])
-          # Tableau de connectivite Face/Noeuds
-          info2.append(['ElementConnectivity', array[2][0], [], 'DataArray_t'])
-          # Tableau FaceIndex (PG)
-          createUniqueChild(info2, 'FaceIndex', 'DataArray_t', array[2][2])
-          # Creation du noeud NFACE_n : connectivite Elements->Faces
-          etype, stype = eltName2EltNo('NFACE')
-          i2 = numpy.empty((2), numpy.int32); i2[0] = etype; i2[1] = 0
-          info.append(['NFaceElements', i2, [], 'Elements_t'])
-          info2 = info[len(info)-1][2]
-          # Size of ElementRange
-          nelts = array[2][3].size
-          i = numpy.empty((2), numpy.int32)
-          i[0] = nfaces+1; i[1] = nfaces+nelts
-          info2.append(['ElementRange', i, [], 'IndexRange_t'])
-          # Tableau de connectivite Elements/Faces
-          info2.append(['ElementConnectivity', array[2][1], [], 'DataArray_t'])
-          # Tableau ElementIndex (PH)
-          createUniqueChild(info2, 'ElementIndex', 'DataArray_t', array[2][3])
-          _updateElementRange(z)
+  cnames = {}
+  for nc, gc in enumerate(GENodes): cnames[nc] = gc[0]
+  for gc in GENodes: _rmNode(z, gc)
 
+  #if GENodes == []: # la connectivite n'existe pas
+  if etype0 != 22 and etype0 != 23: # Elements->Nodes connectivities
+    for nc, gc in enumerate(array[2]):
+      etype, stype = eltName2EltNo(estring[nc])
+      i = numpy.empty((2), E_NpyInt); i[0] = etype; i[1] = 0
+      if nc in cnames: cname = cnames[nc]
+      elif nc == 0: cname = 'GridElements'
+      else: cname = 'GridElements%d'%nc        
+      z[2].append([cname, i, [], 'Elements_t'])
+      info = z[2][len(z[2])-1]
+      i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = gc.shape[1]
+      info[2].append(['ElementRange', i, [], 'IndexRange_t'])
+      info[2].append(['ElementConnectivity', gc, [], 'DataArray_t'])
+      _updateElementRange(z)
+  else: # Faces->Nodes and Elements->Faces connectivities (NGON or NFACE)
+      i = numpy.empty((2), E_NpyInt); i[0] = etype0; i[1] = 0        
+      info = z[2]
+      # Creation du noeud NGON_n: connectivite Faces->Noeuds
+      info.append(['NGonElements', i, [], 'Elements_t'])
+      info2 = info[len(info)-1][2]
+      # Size of ElementRange: nb de faces
+      if array[2][2][-1] == array[2][0].size: nfaces = array[2][2].size-1
+      else: nfaces = array[2][2].size
+      i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = nfaces
+      info2.append(['ElementRange', i, [], 'IndexRange_t'])
+      # Tableau de connectivite Face/Noeuds
+      info2.append(['ElementConnectivity', array[2][0], [], 'DataArray_t'])
+      # Tableau FaceIndex (PH)
+      if array[2][2][-1] == array[2][0].size:
+        info2.append(['ElementStartOffset', array[2][2], [], 'DataArray_t'])
+      else:
+        info2.append(['FaceIndex', array[2][2], [], 'DataArray_t'])
+      _updateElementRange(z)
+      # Creation du noeud NFACE_n: connectivite Elements->Faces
+      etype,stype = eltName2EltNo('NFACE')
+      i2 = numpy.empty((2), E_NpyInt); i2[0] = etype; i2[1] = 0
+      info.append(['NFaceElements', i2, [], 'Elements_t'])
+      info2 = info[len(info)-1][2]
+      # Size of ElementRange
+      if array[2][3].size > 0 and array[2][3][-1] == array[2][1].size: nelts = array[2][3].size-1
+      else: nelts = array[2][3].size
+      i = numpy.empty((2), E_NpyInt)
+      i[0] = nfaces+1; i[1] = nfaces+nelts
+      info2.append(['ElementRange', i, [], 'IndexRange_t'])
+      # Tableau de connectivite Elements/Faces
+      info2.append(['ElementConnectivity', array[2][1], [], 'DataArray_t'])
+      # Tableau ElementIndex (PH)
+      if array[2][3].size > 0 and array[2][3][-1] == array[2][1].size:
+        info2.append(['ElementStartOffset', array[2][3], [], 'DataArray_t'])
+      else:
+        info2.append(['ElementIndex', array[2][3], [], 'DataArray_t'])
+      _updateElementRange(z)
+  #else: # la connectivite existe deja
+  #    if etype0 != 22 and etype0 != 23: # Elements->Nodes connectivities
+  #        i = numpy.empty((2), E_NpyInt); i[0] = etype; i[1] = 0
+  #        GENodes[0][1] = i
+  #        nodeE = getNodeFromName2(z, 'ElementRange')
+  #        i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = array[2][0].shape[1]
+  #        nodeE[1] = i
+  #        nodeE = getNodeFromName2(z, 'ElementConnectivity')
+  #        nodeE[1] = array[2][0]
+  #        _updateElementRange(z)
+  #        for n in GENodes[1:]: # delete NFace ou NGon (si il existe)
+  #            if n[1][0] == 23 or n[1][0] == 22:
+  #                (p, r) = getParentOfNode(z, n)
+  #                del p[2][r]
+  #    else: # Faces->Nodes and Elements->Faces connectivities (NGON or NFACE)
+  #        GEl = getNodesFromType1(z, 'Elements_t')
+  #        for GE in GEl:
+  #            if GE[1][1] == 0:
+  #                (p, r) = getParentOfNode(z, GE)
+  #                del p[2][r]
+  #        info = z[2]
+  #        # Creation du noeud NGON_n: connectivite Faces->Noeuds
+  #        info.append(['NGonElements', i, [], 'Elements_t'])
+  #        info2 = info[len(info)-1][2]
+  #        # Size of ElementRange : nb de faces
+  #        nfaces = array[2][2].size
+  #        i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = nfaces
+  #        info2.append(['ElementRange', i, [], 'IndexRange_t'])
+  #        # Tableau de connectivite Face/Noeuds
+  #        info2.append(['ElementConnectivity', array[2][0], [], 'DataArray_t'])
+  #        # Tableau FaceIndex (PG)
+  #        if nfaces+1 == array[2][2].size:
+  #          createUniqueChild(info2, 'ElementStartOffset', 'DataArray_t', array[2][2])
+  #        else:
+  #          createUniqueChild(info2, 'FaceIndex', 'DataArray_t', array[2][2])
+  #        # Creation du noeud NFACE_n : connectivite Elements->Faces
+  #        etype, stype = eltName2EltNo('NFACE')
+  #        i2 = numpy.empty((2), E_NpyInt); i2[0] = etype; i2[1] = 0
+  #        info.append(['NFaceElements', i2, [], 'Elements_t'])
+  #        info2 = info[len(info)-1][2]
+  #        # Size of ElementRange
+  #        nelts = array[2][3].size
+  #        i = numpy.empty((2), E_NpyInt)
+  #        i[0] = nfaces+1; i[1] = nfaces+nelts
+  #        info2.append(['ElementRange', i, [], 'IndexRange_t'])
+  #        # Tableau de connectivite Elements/Faces
+  #        info2.append(['ElementConnectivity', array[2][1], [], 'DataArray_t'])
+  #        # Tableau ElementIndex (PH)
+  #        if nelts+1 == array[2][3].size:
+  #          createUniqueChild(info2, 'ElementStartOffset', 'DataArray_t', array[2][3])
+  #        else:
+  #          createUniqueChild(info2, 'ElementIndex', 'DataArray_t', array[2][3])
+  #        _updateElementRange(z)
+
+# Met un nbre non nul dans les Elements_t presuppose frontieres
+# Sert de reference a Cassiopee pour savoir si un Elements_t est volumique ou non
+def _setElementDim(z):
+    GEl = getNodesFromType1(z, 'Elements_t')
+    if GEl == []: return []
+    dimElt = [dimFromEltNo(i[1][0]) for i in GEl]
+    maxdim = max(dimElt)
+    for c, GE in enumerate(GEl):
+       if dimElt[c] == maxdim: GE[1][1] = 0
+       else: GE[1][1] = 1
+    
 # -- Retourne une liste des noeuds Elements_t volumiques d'une zone
 # Retourne [] si il n'y en a pas.
 def getElementNodes(z):
     GEl = getNodesFromType1(z, 'Elements_t')
-    #if GEl == []: return []
-    #dimElt = [dimFromEltNo(i[1][0]) for i in GEl]
-    #maxdim = max(dimElt)
-    #c = 0; out = []
-    #for GE in GEl:
-    #    if dimElt[c] == maxdim: # connectivite volumique
-    #        out.append(GE)
-    #    c += 1
     out = []
     for GE in GEl:
         if GE[1][1] == 0: out.append(GE)
@@ -3447,14 +4200,6 @@ def getElementNodes(z):
 # Retourne [] si il n'y en a pas.
 def getElementBoundaryNodes(z):
     GEl = getNodesFromType1(z, 'Elements_t')
-    #if GEl == []: return []
-    #dimElt = [dimFromEltNo(i[1][0]) for i in GEl]
-    #maxdim = max(dimElt)
-    #c = 0; out = []
-    #for GE in GEl:
-    #    if dimElt[c] < maxdim: # connectivite BC
-    #        out.append(GE)
-    #    c += 1
     out = []
     for GE in GEl:
         if GE[1][1] > 0: out.append(GE)
@@ -3491,7 +4236,7 @@ def getElementRange(z, name=None, type=None, number=None):
                     r = getNodeFromName1(e, 'ElementRange')
                     if r is not None: return [r[1][0], r[1][1]]
         elif number is not None:
-            if (number < 0 or number > len(elts)-1): return None
+            if number < 0 or number > len(elts)-1: return None
             e = elts[number]
             r = getNodeFromName1(e, 'ElementRange')
             if r is not None: return [r[1][0], r[1][1]]
@@ -3513,37 +4258,47 @@ def getElementRange(z, name=None, type=None, number=None):
 # -- Adapte une connectivite avec ParentElement en connectivite NFACE
 # remove = True: detruit la connectivite ParentElements
 def adaptPE2NFace(t, remove=True):
+    """Creates NFaceElements nodes from ParentElements arrays in each zone."""
     tp = copyRef(t)
     _adaptPE2NFace(tp, remove)
     return tp
 
 def _adaptPE2NFace(t, remove=True):
+    """Creates NFaceElements nodes from ParentElements arrays in each zone."""
     zones = getZones(t)
     for z in zones:
+        NGON = getNodeFromName1(z, 'NGonElements')
+        offset = getNodeFromName1(NGON, 'ElementStartOffset')
+        api = 3 if offset is not None else 2
+
         parentElt = getNodeFromName2(z, 'ParentElements')
         if parentElt is not None:
             cFE = parentElt[1]
-            cNFace, nelts = converter.adaptPE2NFace(cFE)
-            p = createUniqueChild(z, 'NFaceElements', 'Elements_t',
-                                  value=[23,0])
-            createUniqueChild(p, 'ElementRange', 'IndexRange_t',
-                              value=[1,nelts])
-            createUniqueChild(p, 'ElementConnectivity',
-                              'DataArray_t', value=cNFace)
+            cNFace, off, nelts = converter.adaptPE2NFace(cFE, api)
+            p = createUniqueChild(z, 'NFaceElements', 'Elements_t', value=[23,0])
+            createUniqueChild(p, 'ElementRange', 'IndexRange_t', value=[1,nelts])
+            createUniqueChild(p, 'ElementConnectivity', 'DataArray_t', value=cNFace)
+            if api < 3: createUniqueChild(p, 'ElementIndex', 'DataArray_t', value=off)
+            else: createUniqueChild(p, 'ElementStartOffset', 'DataArray_t', value=off)
+            
             if remove: _rmNodesByName(z, 'ParentElements')
     return None
 
 # -- Adapte une connectivite NFACE en connectivite ParentElement
 # remove = True: detruit la connectivite NFace
-def adaptNFace2PE(t, remove=True):
+# methodPE = 0 : methode geometrique pour generer le ParentElement (pour un maillage relativement regulier, sans cellules concaves).
+# methodPE = 1 : methode topologique (pour un maillage quelconque).
+def adaptNFace2PE(t, remove=True, methodPE=0, shiftPE=False):
+    """Creates ParentElement arrays from NFaceElement nodes in each zone."""
     tp = copyRef(t)
-    _adaptNFace2PE(tp, remove)
+    _adaptNFace2PE(tp, remove, methodPE, shiftPE)
     return tp
 
-def _adaptNFace2PE(t, remove=True):
+def _adaptNFace2PE(t, remove=True, methodPE=0, shiftPE=False):
+    """Creates ParentElement arrays from NFaceElement nodes in each zone."""
     zones = getZones(t)
     for z in zones:
-        npts = 0; nelts = 0; cNFace = None; NGON = None; noNFace = 0
+        nelts = 0; cNFace = None; NGON = None; noNFace = 0
         cNGon = None
         c = 0
         # Coordonnees
@@ -3560,17 +4315,28 @@ def _adaptNFace2PE(t, remove=True):
                     cNGon = getNodeFromName1(e, 'ElementConnectivity')[1]
                     node = getNodeFromName1(e, 'ElementRange')[1]
                     nfaces = node[1]-node[0]+1
+                    offset = getNodeFromName1(e, 'ElementStartOffset')
+                    if offset is not None: # CGNSv4
+                        offset = offset[1]
+                        cNGon = cNGon.copy()
+                        cNGon = numpy.insert(cNGon, offset[:-1], offset[1:]-offset[:-1])
                 elif val == 23: # NFace
                     node = getNodeFromName1(e, 'ElementRange')[1]
                     nelts = node[1]-node[0]+1
                     noNFace = c
                     cNFace = getNodeFromName1(e, 'ElementConnectivity')[1]
+                    offset = getNodeFromName1(e, 'ElementStartOffset')
+                    if offset is not None: # CGNSv4
+                        offset = offset[1]
+                        cNFace = cNFace.copy()
+                        cNFace = numpy.insert(cNFace, offset[:-1], offset[1:]-offset[:-1])
             c += 1
 
-        if (cNFace is not None and NGON is not None and cNGon is not None):
-            cFE = converter.adaptNFace2PE(cNFace, cNGon, XN, YN, ZN, nelts, nfaces)
+        if cNFace is not None and NGON is not None and cNGon is not None:
+            cFE = converter.adaptNFace2PE(cNFace, cNGon, XN, YN, ZN, nelts, nfaces, methodPE)
             createUniqueChild(NGON, 'ParentElements', 'DataArray_t', value=cFE)
         if remove: del z[2][noNFace]
+        if shiftPE: cFE[:] += nfaces
     return None
 
 # -- Adapte NGON en FaceIndex
@@ -3603,6 +4369,78 @@ def _adaptNFace2Index(t):
                     cNFace = getNodeFromName1(e, 'ElementConnectivity')[1]
                     pos = converter.adaptNFace2Index(cNFace, nelts)
                     createUniqueChild(NFACE, 'ElementIndex', 'DataArray_t', value=pos)
+    return None
+
+# -- Adapte un NGon(CGNSv4) en NGon(CGNSv3)
+def adaptNGon42NGon3(t, shiftPE=True, absFace=True):
+    """Adapts a NGON mesh from the CGNSv4 standard to the CGNSv3 standard."""
+    tp = copyRef(t)
+    _adaptNGon42NGon3(tp, shiftPE, absFace)
+    return tp
+    
+def _adaptNGon42NGon3(t, shiftPE=True, absFace=True):
+    """Adapts a NGON mesh from the CGNSv4 standard to the CGNSv3 standard."""
+    zones = getZones(t)
+    for z in zones:
+        cn = getElementNodes(z)
+        for c in cn:
+            # NGON ou NFACE modifie l'offset
+            if c[1][0] == 22 or c[1][0] == 23: 
+                off = getNodeFromName1(c, 'ElementStartOffset')
+                cn = getNodeFromName1(c, 'ElementConnectivity')
+                if off is not None and cn is not None:
+                    n = converter.adaptNGon42NGon3(cn[1], off[1])
+                    if absFace: n = numpy.abs(n)
+                    cn[1] = n
+                    off[1] = off[1][:-1]
+                    if c[1][0] == 22: off[0] = 'FaceIndex'
+                    else: off[0] = 'ElementIndex'
+
+            # Si ParentElement, regarde si il adresse les elements decales du nbre de faces de NGON
+            if shiftPE and c[1][0] == 22:
+                parentElt = getNodeFromName1(c, 'ParentElements')
+                if parentElt is not None and parentElt[1] is not None: # parent element est present
+                    cFE = parentElt[1]
+                    erange = getNodeFromName1(c, 'ElementRange')
+                    shift = numpy.min(cFE[numpy.nonzero(cFE)])
+                    if shift > 1 and shift == erange[1][1]+1:
+                        cFE = cFE+(1-shift)*(cFE>0)
+                        parentElt[1] = cFE
+    return None
+
+# -- Adapte un NGon(CGNSv3) en NGon(CGNSv4)
+def adaptNGon32NGon4(t, shiftPE=True):
+    """Adapts a NGON mesh from the CGNSv3 standard to the CGNSv4 standard"""
+    tp = copyRef(t)
+    _adaptNGon32NGon4(tp, shiftPE)
+    return tp
+    
+def _adaptNGon32NGon4(t, shiftPE=True):
+    """Adapts a NGON mesh from the CGNSv3 standard to the CGNSv4 standard"""
+    zones = getZones(t)
+    for z in zones:
+        cn = getElementNodes(z)
+        for c in cn:
+            # NGON ou NFACE offsets
+            if c[1][0] == 22 or c[1][0] == 23: 
+                cn = getNodeFromName1(c, 'ElementConnectivity')
+                if cn is not None:
+                    (n,off) = converter.adaptNGon32NGon4(cn[1])
+                    cn[1] = n
+                    createUniqueChild(c, 'ElementStartOffset', 'DataArray_t', off)
+                    _rmNodesFromName(c, 'FaceIndex')
+                    _rmNodesFromName(c, 'ElementIndex')
+            # Si ParentElement, regarde si il adresse les elements decales du nbre de faces de NGON
+            if shiftPE and c[1][0] == 22:
+                parentElt = getNodeFromName1(c, 'ParentElements')
+                if parentElt is not None and parentElt[1] is not None: # parent element est present
+                    cFE = parentElt[1]
+                    erange = getNodeFromName1(c, 'ElementRange')
+                    shift = numpy.min(cFE[numpy.nonzero(cFE)])
+                    if shift == erange[1][1]+1:
+                        cFE = cFE+(shift-1)*(cFE>0)
+                        parentElt[1] = cFE
+
     return None
 
 # -- Adapte une condition aux limites definies par faces en conditions aux
@@ -3670,7 +4508,7 @@ def _adaptBCC2BCFace(t, remove=True):
             if ra is not None:
                 for e in BCCs:
                     r = getNodeFromName1(e, 'ElementRange')
-                    if (r is not None and r[0] == ra[0] and r[1] == ra[1]):
+                    if r is not None and r[0] == ra[0] and r[1] == ra[1]:
                         bcc = getNodeFromName1(e, 'ElementConnectivity'); break # found
             if bcc is not None:
                 faces = converter.adaptBCC2BCFace(bcc[1], cEV[1], dims[3])
@@ -3697,7 +4535,7 @@ def _adaptZoneBCEltRange2EltList(t):
     for b in bcs:
         r = getNodeFromType1(b, 'IndexRange_t')
         v = getValue(r)
-        val = numpy.arange(v[0][0],v[0][1]+1,dtype=numpy.int32)
+        val = numpy.arange(v[0][0], v[0][1]+1, dtype=E_NpyInt)
         val = val.reshape((1,val.size))
         setValue(r, val)
         setType(r, 'IndexArray_t')
@@ -3708,19 +4546,19 @@ def _adaptZoneBCEltRange2EltList(t):
 def getElementRangeDict(t, d):
     zones = getZones(t)
     for z in zones:
-        if not d.has_key(z[0]): d[z[0]] = {}
+        if z[0] not in d: d[z[0]] = {}
         elts = getNodesFromType1(z, 'Elements_t')
         for e in elts:
-            n = getNodeFromName1(e, 'ElementRange')[1]
-            if n is not None: d[z[0]][e[0]] = (n[0],n[1])
+            n = getNodeFromName1(e, 'ElementRange')
+            if n is not None and n[1] is not None: d[z[0]][e[0]] = (n[1][0],n[1][1])
             else: d[z[0]][e[0]] = (1,1)
 
 # input dict, index of a Elements of z
 # trouve la connectivite de zname referencee par ind
 def referencedElement(ind, zname, d):
-    if not d.has_key(zname): return None
+    if zname not in d: return None
     p = d[zname]
-    for k in p.keys():
+    for k in p:
         if ind >= p[k][0] and ind <= p[k][1]: return k 
     return None
 
@@ -3732,8 +4570,10 @@ def referencedElement(ind, zname, d):
 # Si zone BE et breakBE=True
 # Break la zone en plusieurs BE a simple element
 # Si zone MIX et convertMIX=True
-# Converti la zone MIXED en NGON
+# Convertit la zone MIXED en NGON
 # Si addNFace=True, ajoute le NFace
+# Si NFACE, fait la valeur absolue des indices
+# Si nouvel NGON, convertit en ancien NGON
 def fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
     tp = copyRef(t)
     _fixNGon(tp, remove, breakBE, convertMIXED)
@@ -3741,7 +4581,6 @@ def fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
 
 def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
     zones = getZones(t)
-
     dictOfZTypes = {} # dictionnaire des types de zone (0: struct, 1: non struct)
     for z in zones:
         stype = getZoneType(z)
@@ -3753,42 +4592,50 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
         stype = dictOfZTypes[z[0]]
         if stype == 2: # Unstructured
             # Check NGON, NFACE, BE (first BE met)
-            NGON = -1; NFACE = -1; BE = -1; NFACEORIG = True
+            NGON = -1; NFACE = -1; BE = -1
             sons = z[2]; no = 0
             for s in sons:
                 if s[3] == 'Elements_t':
                     ztype = s[1][0]
-                    if ztype == 22: NGON = no
-                    elif ztype == 23: NFACE = no
+                    if ztype == 22: 
+                        if NGON == -1: NGON = no
+                        else: print("Warning: fixNGon: only first NGON connectivity is taken into account.")
+                    elif ztype == 23: 
+                        if NFACE == -1: NFACE = no
+                        else: print("Warning: fixNGon: only first NFACE connectivity is taken into account.")
                     elif BE == -1: BE = no
                 no += 1
+
+            # si BE, tag les connectivites frontieres
+            if BE >= 0: _setElementDim(z)
 
             # si NFACE, abs face index
             if NFACE != -1:
                 c = getNodeFromName1(sons[NFACE], 'ElementConnectivity')
-                if c[1] is not None: c[1] = numpy.absolute(c[1])
+                if c is not None and c[1] is not None: c[1] = numpy.absolute(c[1])
 
             # Si NGON, ajoute NFace si manquant
             if addNFace == True and NFACE == -1 and NGON >= 0:
                 # Essaie de transformer la connectivite ParentElements en NFACE
                 ngon = sons[NGON]
                 parentElt = getNodeFromName1(ngon, 'ParentElements')
-                if parentElt is not None: # parent element est present
+                offset = getNodeFromName1(ngon, 'ElementStartOffset')
+                api = 3 if offset is not None else 2
+                if parentElt is not None and parentElt[1] is not None: # parent element est present
                     cFE = parentElt[1]
                     sh = cFE.shape
                     if len(sh) == 1: # Bug elsA
-                        cFE = cFE.reshape((sh[0]/2,2), order='F'); parentElt[1] = cFE
-                    cNFace, nelts = converter.adaptPE2NFace(cFE)
-                    p = createUniqueChild(z, 'NFaceElements', 'Elements_t',
-                                          value=[23,0])
-                    createUniqueChild(p, 'ElementRange', 'IndexRange_t',
-                                      value=[1,nelts])
-                    createUniqueChild(p, 'ElementConnectivity',
-                                      'DataArray_t', value=cNFace)
+                        cFE = cFE.reshape((sh[0]//2,2), order='F'); parentElt[1] = cFE
+                    cNFace, off, nelts = converter.adaptPE2NFace(cFE, api)
+                    p = createUniqueChild(z, 'NFaceElements', 'Elements_t', value=[23,0])
+                    createUniqueChild(p, 'ElementRange', 'IndexRange_t', value=[1,nelts])
+                    createUniqueChild(p, 'ElementConnectivity', 'DataArray_t', value=cNFace)
+                    if api < 3: createUniqueChild(p, 'ElementIndex', 'DataArray_t', value=off)
+                    else: createUniqueChild(p, 'ElementStartOffset', 'DataArray_t', value=off)
                     NFACE = len(sons)-1; NFACEORIG = False
                     if remove: _rmNode(z, parentElt)
                 else:
-                    print 'Warning: cannot create NFACE. ParentElements node is not present.'
+                    print('Warning: cannot create NFACE. ParentElements node is not present.')
                 _updateElementRange(z)
 
             # Reorder: NGON en premier, NFACE en deuxieme si BE
@@ -3818,7 +4665,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
             if NGON == -1 and breakBE:
                 connects = getElementNodes(z)
                 if len(connects) > 1: # multiple volume connectivity
-                    import PyTree; import Generator.PyTree as G
+                    from . import PyTree; import Generator.PyTree as G
                     zones = PyTree.breakConnectivity(z)
                     zones = G.close(zones)
                     (p,c) = getParentOfNode(t, z)
@@ -3828,9 +4675,10 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
             # Convert MIXED to NGON
             if NGON == -1 and convertMIXED:
                 connects = getElementNodes(z)
-                if connects[0][1][0] == 20:
-                    import PyTree
-                    PyTree._convertArray2NGon(z) # ineffective (2.2)
+                if connects != []:
+                    if connects[0][1][0] == 20:
+                        from . import PyTree
+                        PyTree._convertArray2NGon(z) # ineffective (2.2)
                                                  
     # Remet les BCs d'aplomb (en fonction de la renumerotation shift0->shift1)
     shift1 = {}
@@ -3853,7 +4701,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                         ind = pln.ravel('k')[0]
                         ref = referencedElement(ind, z[0], shift0)
                         if ref is None: 
-                            print 'Warning: Can not find', ind, b[0], z[0]
+                            print('Warning: fixNGon: cannot find', ind, b[0], z[0])
                         else:
                             shiftn = shift1[z[0]][ref][0]-shift0[z[0]][ref][0]
                             pln[:] += shiftn
@@ -3874,7 +4722,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                         ind = pln.ravel('k')[0]
                         ref = referencedElement(ind, z[0], shift0)
                         if ref is None: 
-                            print 'Warning: Can not find', ind, b[0], z[0]
+                            print('Warning: fixNGon: cannot find', ind, b[0], z[0])
                         else:
                             shiftn = shift1[z[0]][ref][0]-shift0[z[0]][ref][0]
                             pln[:] += shiftn
@@ -3885,7 +4733,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                         ind = pln.ravel('k')[0]
                         ref = referencedElement(ind, zdonor, shift0)
                         if ref is None:
-                            print 'Warning: Can not find', ind, b[0], z[0]
+                            print('Warning: fixNGon: cannot find', ind, b[0], z[0])
                         else:
                             shiftn = shift1[zdonor][ref][0]-shift0[zdonor][ref][0]
                             pln[:] += shiftn
@@ -3910,45 +4758,142 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True):
                         ind = pln.ravel('k')[0]
                         ref = referencedElement(ind, zdonorname, shift0)
                         if ref is None:
-                            print 'Warning: Can not find', ind, b[0], z[0]
+                            print('Warning: fixNGon: cannot find', ind, b[0], z[0])
                         else:
                             shiftn = shift1[zdonorname][ref][0]-shift0[zdonorname][ref][0]
                             pln[:] += shiftn
                             pld[1] = pln.reshape((1, pln.size))
+    _adaptNGon42NGon3(t)
     return None
 
 #==============================================================================
 # Remet des elements a un NGon
 #==============================================================================
-def _unfixNGon(t):
-    import PyTree; import Transform.PyTree as T
+# methodPE = 0: methode geometrique pour generer le ParentElement (pour un maillage relativement regulier, sans cellules concaves).
+# methodPE = 1: methode topologique (pour un maillage quelconque).
+def _unfixNGon(t, methodPE=0):
+    from . import PyTree; import Transform.PyTree as T
     zones = getZones(t)
     for z in zones:
-        _adaptNFace2PE(z, remove=False)
+        _adaptNFace2PE(z, remove=False, methodPE=0)
         B = T.breakElements(z)
         for b in B:
             PyTree._mergeConnectivity(z, b, boundary=0)
     return None
+
+# Dans une zone z, tri les noeuds elements dans l'ordre des connectivites
+# volumiques, surfaciques et renumerote les ZoneBCs en consequence
+def _sortNodesInZone(z):
+  li = z[2]; lo = []
+  # ZoneType
+  for l in li:
+    if l[3] == 'ZoneType_t': lo.append(l)
+  # Containers
+  for l in li:
+    if l[3] == 'GridCoordinates_t' or l[3] == 'FlowSolution_t': lo.append(l)
+  # Connectivites volumiques
+  for l in li:
+    if l[3] == 'Elements_t' and l[1][1] == 0: lo.append(l)
+  # Connectivite surfaciques
+  for l in li:
+    if l[3] == 'Elements_t' and l[1][1] > 0: lo.append(l)
+  # ZoneBC
+  for l in li:
+    if l[3] == 'ZoneBC_t': lo.append(l)
+  # Les autres
+  for l in li:
+    if l[3] != 'ZoneType_t' and l[3] != 'GridCoordinates_t' and l[3] != 'FlowSolution_t' and l[3] != 'Elements_t' and l[3] != 'ZoneBC_t':
+      lo.append(l)
+  # Renumerote les GC et les zoneBCs
+  oranges = {}; nranges = {}
+  c = 1
+  for l in lo:
+    if l[3] == 'Elements_t':
+      r = getNodeFromType1(l, 'IndexRange_t')
+      r[1] = numpy.copy(r[1])
+      r = r[1]
+      oranges[l[0]] = (r[0],r[1])
+      nr0 = c; nr1 = c+r[1]-r[0]
+      nranges[l[0]] = (nr0, nr1)
+      r[0] = nr0; r[1] = nr1
+      c += nr1-nr0+1
+  BCs = getNodesFromType2(z, 'BC_t')
+  for b in BCs:
+    r = getNodeFromType1(b, 'IndexRange_t')
+    if r is not None:
+        r[1] = numpy.copy(r[1])
+        r = r[1]
+        r = r.ravel('k')
+        for i in oranges:
+          if r[0] >= oranges[i][0] and r[1] <= oranges[i][1]:
+            r[0] = nranges[i][0]+r[0]-oranges[i][0]
+            r[1] = nranges[i][0]+r[1]-oranges[i][0]
+    r = getNodeFromType1(b, 'PointRange_t')
+    if r is not None:
+        r[1] = numpy.copy(r[1])
+        r = r[1]
+        r = r.ravel('k')
+        rmin = r[0]; rmax = r[-1]
+        for i in oranges:
+          if rmin >= oranges[i][0] and rmax <= oranges[i][1]:
+            r[:] = nranges[i][0]+r[:]-oranges[i][0]
+
+  z[2] = lo
+  return None
 
 #==============================================================================
 # Create :elsAHybrid node, add ParentElements
 # method=0: avec tri TRI,QUAD+interior, exterior
 # method=1: avec tri interior, exterior
 #==============================================================================
-def createElsaHybrid(t, method=0, axe2D=0):
-    import elsAProfile
-    tp = elsAProfile.createElsaHybrid(t, method, axe2D)
+def createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
+    from . import elsAProfile
+    tp = elsAProfile.createElsaHybrid(t, method, axe2D, methodPE)
     return tp
 
-def _createElsaHybrid(t, method=0, axe2D=0):
-    import elsAProfile
-    elsAProfile._createElsaHybrid(t, method, axe2D)
+def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
+    from . import elsAProfile
+    elsAProfile._createElsaHybrid(t, method, axe2D, methodPE)
     return None
 
 #==============================================================================
 # -- Purely internal (undocumented) --
 #==============================================================================
 
+# order nodes in FSC
+def _orderFlowSolution(t, loc='both'):
+    if loc == 'nodes': loci=0
+    elif loc == 'centers': loci=1
+    else: loci = 2
+
+    noz = 0; orderedNodesC=[]; orderedNodesN=[]
+    for z in getZones(t):
+        if loci > 0: 
+            FSC = getNodeFromName(z,__FlowSolutionCenters__)
+            if FSC is not None:
+                if noz == 0:
+                    for fieldnode in FSC[2]:
+                        orderedNodesC.append(getName(fieldnode))
+                else:
+                    newChildrens=[]
+                    for nodename in orderedNodesC:
+                        nodel = getNodeFromName1(FSC,nodename)
+                        newChildrens.append(nodel)  
+                    FSC[2]=newChildrens
+        else:
+            FSN = getNodeFromName(z,__FlowSolutionNodes__)
+            if FSN is not None:
+                if noz == 0:
+                    for fieldnode in FSN[2]:
+                        orderedNodesN.append(getName(fieldnode))
+                else:
+                    newChildrens=[]
+                    for nodename in orderedNodesN:
+                        nodel = getNodeFromName1(FSN,nodename)
+                        newChildrens.append(nodel)  
+                    FSN[2]=newChildrens        
+        noz += 1
+    return None
 # -- Convert an array with (i,j,k) numerotation to an array with 1D-index
 # numerotation
 # IN: array with (i,j,k) numerotation
@@ -3957,8 +4902,8 @@ def convertIJKArray21DArray(*thetuple):
   if len(thetuple) == 4:
     (a,im,jm,km) = thetuple
     size = a.shape[1]
-    b = numpy.empty((1,size), numpy.int32)
-    for l in xrange(size):
+    b = numpy.empty((1,size), E_NpyInt)
+    for l in range(size):
       i = a[0][l]-1; j = a[1][l]-1; k = a[2][l]-1
       ind = adrNode1__(i,j,k,im,jm,km,0)
       b[0][l] = ind
@@ -3966,21 +4911,20 @@ def convertIJKArray21DArray(*thetuple):
   elif len(thetuple) == 3:
     (a,im,jm) = thetuple
     size = a.shape[1]
-    b = numpy.empty((1,size), numpy.int32)
-    for l in xrange(size):
-      b[0][l] = a[0][l]-1; j = a[1][l]-1
+    b = numpy.empty((1,size), E_NpyInt)
+    for l in range(size):
+      i = a[0][l]-1; j = a[1][l]-1
       ind = adrNode2__(i,j,im,jm,0)
     return b
   elif len(thetuple) == 2:
     (a,im) = thetuple
     size = a.shape[1]
-    b = numpy.empty((1,size), numpy.int32)
-    for l in xrange(size):
+    b = numpy.empty((1,size), E_NpyInt)
+    for l in range(size):
       b[0][l] = a[l]-1
     return b
   else:
     raise TypeError("convertIJKArray2IndexArray: bad number of arguments.")
-    return 0
 
 # -- Return 1D-indice corresponding to (i,j) in 2D and (i,j,k) in 3D
 def adrNode1__(i,j,k,im,jm,km,d):
@@ -3994,22 +4938,22 @@ def gatherInStructPatch2D__(listIndices, indirWin, niw, njw, dirf, niZ, njZ, nkZ
     noBlk = -1
     while restart == 1:
         # Recherche du premier pt identifie
-        noind = 0; indstart=-1; indend=-1
+        noind = 0; indstart=-1
         for indH in listIndices:
             if indH != -1: indstart = noind; noBlk = indirWin[indH-1]; break
             noind += 1
         if indstart == -1: return []
 
-        jstart = indstart/niw; istart = indstart-jstart*niw
-        iend = niw-1; jend = njw-1;
-        for i in xrange(istart+1,niw):
+        jstart = indstart//niw; istart = indstart-jstart*niw
+        iend = niw-1; jend = njw-1
+        for i in range(istart+1,niw):
             ind = i+jstart*niw
             indH = listIndices[ind]
-            if indH == -1 or indirWin[indH-1] != noBlk:break
+            if indH == -1 or indirWin[indH-1] != noBlk: break
             else: iend=i; jend=jstart; indend=ind
-        for j in xrange(jstart+1,njw):
+        for j in range(jstart+1,njw):
             ok = 1
-            for i in xrange(istart,niw):
+            for i in range(istart,niw):
                 ind = i+j*niw
                 indH = listIndices[ind]
                 if indH == -1 or indirWin[indH-1] != noBlk:
@@ -4019,10 +4963,10 @@ def gatherInStructPatch2D__(listIndices, indirWin, niw, njw, dirf, niZ, njZ, nkZ
             if ok == 0: break
             else: jend=j
         # update listIndices
-        for j in xrange(jstart,jend+1):
-            for i in xrange(istart,iend+1):
+        for j in range(jstart,jend+1):
+            for i in range(istart,iend+1):
                 ind = i+j*niw
-                listIndices[ind] = -1;
+                listIndices[ind] = -1
         res.append([istart,iend,jstart,jend,noBlk])
         if max(listIndices) == -1: restart=0
 
@@ -4042,24 +4986,29 @@ def getRotationAngleValueInDegrees(RotationAngleNode):
     if RotationAngleNode is None: return None
     angleUnitNode = getNodeFromType1(RotationAngleNode, 'DimensionalUnits_t')
     if angleUnitNode is not None:
-        angleunit = getValue(angleUnitNode)[4]
-        if angleunit == 'Radian': alpha = __RAD2DEG__
-        elif angleunit == 'Degree': alpha = 1.
-        else: raise ValueError("Internal.getRotationAngleInDegrees: AngleUnits must be Radian or Degree.")
+        angleUnit = getValue(angleUnitNode)[4]
+        #print("angleUnit", angleUnit)
+        if angleUnit == 'Radian': alpha = __RAD2DEG__
+        elif angleUnit == 'Degree': alpha = 1.
+        else:
+            print('Warning: getRotationAngleValueInDegrees: unknown angle unit !')
+            print('Warning: getRotationAngleInDegrees: AngleUnits must be Radian or Degree. Assuming Degree')
+            alpha = 1.
     else: 
         alpha=1.#__RAD2DEG__
-        print 'WARNING: getRotationAngleInDegrees: no angle units defined in RotationAngle node: assuming angle unit is degree.'
+        print('Warning: getRotationAngleInDegrees: no angle units defined in RotationAngle node: assuming angle unit is Degree.')
 
     anglev = getValue(RotationAngleNode)
     if anglev.shape[0] != 3: raise ValueError("getRotationAngleInDegrees: RotationAngle value must be a numpy of size 3.")
     anglev = [v*alpha for v in anglev]
     return anglev
 
+
 #=============================================================================
 # Get the periodic connectivity information (rotation or translation)
 # IN: gcnode: GridConnectivity node
-# OUT : [xc,yc,zc,axisX,axisY,axisZ,angleDeg],[translX,translY,translZ]
-#       avec angleDeg en degres ! 
+# OUT: [xc,yc,zc,axisX,axisY,axisZ,angleDeg],[translX,translY,translZ]
+#      avec angleDeg en degres ! 
 #=============================================================================
 def getPeriodicInfo__(gcnode):
     cont = getNodeFromName1(gcnode, 'GridConnectivityProperty')
@@ -4069,7 +5018,6 @@ def getPeriodicInfo__(gcnode):
     translVect = []; rotationData = []
     transl = getNodeFromName2(cont, 'Translation')
     tx = 0.; ty = 0.; tz = 0. # translation
-    isTranslated = 0; isRotated = 0
     if transl is not None:
         transl = getValue(transl)
         tx = transl[0]; ty = transl[1]; tz = transl[2]
@@ -4081,12 +5029,92 @@ def getPeriodicInfo__(gcnode):
     if center is not None and anglev is not None:
         (xc,yc,zc) = getValue(center)
         anglev = getRotationAngleValueInDegrees(anglev)
-        if   anglev[0] != 0: angle = anglev[0]; vx = 1.; isRotated = 1
-        elif anglev[1] != 0: angle = anglev[1]; vy = 1.; isRotated = 1
-        elif anglev[2] != 0: angle = anglev[2]; vz = 1.; isRotated = 1
-        if angle != 0.: rotationData = [xc,yc,zc,vx, vy, vz,angle]
+        if   anglev[0] != 0: angle = anglev[0]; vx = 1.
+        elif anglev[1] != 0: angle = anglev[1]; vy = 1.
+        elif anglev[2] != 0: angle = anglev[2]; vz = 1.
+        if angle != 0.: rotationData = [xc,yc,zc,vx,vy,vz,angle]
 
     return rotationData, translVect
+
+# Idem for zones
+def getPeriodicInfo(t):
+    zones = getZones(t)
+    for z in zones:
+        gcnodes = getNodesFromType2(z, 'GridConnectivity1to1_t')
+        ret = []
+        for gc in gcnodes: ret += [getPeriodicInfo__(gc)]
+    # Synthetisation    
+    return ret
+
+# merge Elements_t nodes for BE per elt type
+def _mergeEltsTPerType(t):
+    for z in getZones(t):
+        typesEltsT={}
+        rangeMinT={}; rangeMaxT={}
+        rmaxall = -1
+        for elts_t in getNodesFromType(z,'Elements_t'):
+            name = getName(elts_t)
+            typeEt = getValue(elts_t)[0]
+            if typeEt not in typesEltsT: typesEltsT[name]=[]
+            typesEltsT[name].append(typeEt)
+            eltRange = getNodeFromType(elts_t,"IndexRange_t")
+            rangeMinT[name] = getValue(eltRange)[0]
+            rangeMaxT[name] = getValue(eltRange)[1]
+            rmaxall = max(rangeMaxT[name]+1,rmaxall)
+
+        # init 
+        rmin = 1; rmax= -1
+        newElts_t = []; etype = -1
+   
+        while rmin < rmaxall:
+            name1 = -1; name2 = -1
+            #start
+            for name in rangeMinT:
+                if rangeMinT[name]==rmin:
+                    rmax = rangeMaxT[name]
+                    EltsT = getNodeFromName1(z,name)
+                    etype = typesEltsT[name]
+                    name1 = name
+                    break
+                
+            # recherche des suivants de meme type
+            found = 1
+            while found == 1:
+                found = -1
+                for name in rangeMinT:
+                    if rangeMinT[name]==rmax+1:
+                        if typesEltsT[name]==etype:
+                            found = 1
+                            name2 = name
+                            EltsT2 = getNodeFromName1(z,name2)
+                        else: found = 0
+                        
+                if found == 0:
+                    rmax2 = rmax
+                    newElts_t.append(EltsT)
+                    
+                elif found == 1: #merge EltsT and EltsT2
+                    rmin2 = rangeMinT[name1]
+                    rmax2 = rangeMaxT[name2]
+                    ER = getNodeFromType(EltsT, 'IndexRange_t')
+                    ERVal = getValue(ER)
+                    ERVal[0] = rmin
+                    ERVal[1] = rmax2
+                    setValue(ER, ERVal)
+                    ec1 = getNodeFromName(EltsT, 'ElementConnectivity')
+                    ec2 = getNodeFromName(EltsT2, 'ElementConnectivity')
+                    ec1[1] = numpy.concatenate((ec1[1],ec2[1]))
+                    typesEltsT[name2]=-1; rangeMinT[name2]=-1; rangeMaxT[name2]=-1
+                    rmax = rmax2
+                    if rmax2+1==rmaxall:
+                        newElts_t.append(EltsT)
+            rmin = rmax2+1
+     
+        _rmNodesFromType(z, 'Elements_t')
+        z[2] += newElts_t
+
+    return None
+
 #=================================================================================
 # Merge BCDataSets: special bcdataset (etc/FFD) are prefered, other are destroyed
 #=================================================================================
@@ -4111,8 +5139,8 @@ def _mergeBCDataSets__(z, bcNode):
         if dname == 'BCDataSet#EndOfRun': nod = no; break
         elif dname==dataSetByPathName and dataSetByPathName is not None: nod = no; break
         elif dname=='FFD72SurfaceSolution': nod = no; break
-        no+=1
-    if nod == -1: nod = 0# other cases : first bc data set is kept
+        no += 1
+    if nod == -1: nod = 0 # other cases: first bc data set is kept
 
     no = 0; locd = dataSetLocs[nod]
     bcdatas = getNodeFromType2(dataSets[nod], 'DataArray_t')
@@ -4126,7 +5154,7 @@ def _mergeBCDataSets__(z, bcNode):
                     _createUniqueChild(cont, data0[0], 'DataArray_t', value=data0[1])
                 del parent[2][nop]
             else:
-                print 'Warning: BCDataSet location of %s is different from %s. Not merged.'%(dataSets[no], dataSets[nod])
+                print('Warning: mergeBCDataSet: BCDataSet location of %s is different from %s. Not merged.'%(dataSets[no], dataSets[nod]))
         no += 1
     return None
 
@@ -4145,7 +5173,7 @@ def getBCDataSet(z, bcNode, withLoc=False):
     # Try from BCDataSet#EndOfRun (etc)
     dataSet = getNodeFromName1(bcNode, 'BCDataSet#EndOfRun')
     if dataSet is not None:
-        #print 'found new etc style dataSet'
+        #print('found new etc style dataSet')
         datas = getNodesFromType2(dataSet, 'DataArray_t')
         if withLoc:
             l = 'Vertex'
@@ -4158,7 +5186,7 @@ def getBCDataSet(z, bcNode, withLoc=False):
     path = '%s#ZoneBC/%s'%(__FlowSolutionCenters__, bcNode[0])
     node = getNodeFromPath(z, path)
     if node is not None:
-        #print 'found old style etc Flow#ZoneBC'
+        #print('found old style etc Flow#ZoneBC')
         datas = getNodesFromType2(node, 'DataArray_t')
         if withLoc:
             l = 'Vertex'
@@ -4170,7 +5198,7 @@ def getBCDataSet(z, bcNode, withLoc=False):
     # Try from FFD extraction
     node = getNodeFromName(bcNode, 'FFD72SurfaceSolution')
     if node is not None:
-        #print 'found FFD72'
+        #print('found FFD72')
         datas = getNodesFromType2(node, 'DataArray_t')
         if withLoc:
             l = 'Vertex'
@@ -4182,7 +5210,7 @@ def getBCDataSet(z, bcNode, withLoc=False):
     # Try from other BCDataSet
     dataSet = getNodeFromType1(bcNode, 'BCDataSet_t')
     if dataSet is not None:
-        #print 'Found dataSet'
+        #print('Found dataSet')
         datas = getNodesFromType2(dataSet, 'DataArray_t')
         if withLoc:
             l = 'Vertex'
@@ -4190,9 +5218,59 @@ def getBCDataSet(z, bcNode, withLoc=False):
             if l is not None: ploc = getValue(l)
             return datas,ploc
         else: return datas
+
+    # Try from ZoneSubRegion
+    bcName = getName(bcNode)
+    zoneSubRegions = getNodesFromType1(z, 'ZoneSubRegion_t')
+    if zoneSubRegions is not None:
+        for zoneSubRegion in zoneSubRegions:
+            bcRegionNameNode = getNodeFromName1(zoneSubRegion,'BCRegionName')
+            if bcRegionNameNode and (getValue(bcRegionNameNode) == bcName):
+                # print('Found zoneSubRegion linked to bc')
+                datas = getNodesFromType1(zoneSubRegion, 'DataArray_t')
+                if withLoc:
+                    l = getNodeFromType1(zoneSubRegion, 'GridLocation_t')
+                    if l is not None: ploc = getValue(l)
+                    else: ploc = 'Vertex'
+                    return datas,ploc
+                else: return datas
+
     if withLoc: return None
     else: return datas
  
+# Retourne une liste des BCDataSets et BCZoneSubRegions de z
+# Retourne un dictionnaire
+def getBCDataSets(z, bcNode):
+    ret = {}
+    nodes1 = getNodesFromType(z, 'BCDataSet_t')
+    for n in nodes1:
+        datas = getNodesFromType2(n, 'DataArray_t')
+        ploc = 'Vertex'
+        l = getNodeFromType1(n, 'GridLocation_t')
+        if l is not None: ploc = getValue(l)
+        ret[getName(n)] = [datas, ploc]
+
+    nodes2 = getNodesFromType(z, 'ZoneSubRegion_t')
+    bcName = getName(bcNode)
+    for n in nodes2:
+        bcRegionNameNode = getNodeFromName1(n, 'BCRegionName')
+        if bcRegionNameNode and (getValue(bcRegionNameNode) == bcName):
+            datas = getNodesFromType2(n, 'DataArray_t')
+            ploc = 'Vertex'
+            l = getNodeFromType1(n, 'GridLocation_t')
+            if l is not None: ploc = getValue(l)
+            ret[getName(n)] = [datas, ploc]
+        
+        gcRegionNameNode = getNodeFromName1(n, 'GridConnectivityRegionName')
+        if gcRegionNameNode and (getValue(gcRegionNameNode) == bcName):
+            datas = getNodesFromType2(n, 'DataArray_t')
+            ploc = 'Vertex'
+            l = getNodeFromType1(n, 'GridLocation_t')
+            if l is not None: ploc = getValue(l)
+            ret[getName(n)] = [datas, ploc]
+
+    return ret
+
 #==============================================================================
 # Retourne une liste des faces de la BC (node)
 # si la grille est structuree, retourne un indicage de faces
@@ -4214,11 +5292,11 @@ def getBCFaceNode(z, bcNode):
 # Return a container per variable available in a BCDataSet 
 # FlowSolution and BCDataSet must be at the same location Vertex/Centers 
 # return list of type: [[numpyFS, 'CellCenter', [[BCRange1, numpyBCDS1],[BCRange2, numpyBCDS2]]]
-def  getBCDataSetContainers(name, z):
+def getBCDataSetContainers(name, z):
     containers = []
     dims = getZoneDim(z)
     if dims[0] == 'Unstructured': 
-        print 'Internal: getBCDataSetContainers not yet implemented for unstructured zones.'
+        print('Warning: Internal: getBCDataSetContainers not yet implemented for unstructured zones.')
         return None
 
     if name == __GridCoordinates__: return None
@@ -4237,8 +5315,8 @@ def  getBCDataSetContainers(name, z):
     if allBCDatas == []: return None
     nbcdataset = len(allRanges)
 
-    # Case 1 : get all the fields at a given location
-    if (name  == __FlowSolutionNodes__) or (name == __FlowSolutionCenters__):
+    # Case 1: get all the fields at a given location
+    if name  == __FlowSolutionNodes__ or name == __FlowSolutionCenters__:
         loc = 'Vertex'
         f = getNodeFromName2(z, name)
         if f is not None:
@@ -4253,26 +5331,29 @@ def  getBCDataSetContainers(name, z):
             else: matchingLoc = 'FaceCenter'   
 
             for f0 in f[2]: # for all the fields stored in flow solution
-                if f0[3]=='DataArray_t':
+                if f0[3] == 'DataArray_t':
                     fname = f0[0] # variable name to be extracted from bcdataset
                     dataSetL = [] # [[BCRange1,fieldBC],[BCRange2,fieldBC2],[...],...]
-                    for nobcdata in xrange(nbcdataset):
+                    for nobcdata in range(nbcdataset):
                         if allLocDS[nobcdata]==matchingLoc: # OK: locations are consistent
                             datas = getNodesFromName1(allBCDatas[nobcdata],fname) 
                             if datas != []:
                                 dataSetL+=[[allRanges[nobcdata], datas[0][1]]]
-                    if dataSetL!=[]:# variable exists both in flow solution and in bcdataset
+                    if dataSetL != []: # variable exists both in flow solution and in bcdataset
                         dataFS = [fname, loc, dataSetL]
                         containers.append(dataFS)
     else: 
         if not isinstance(name, list): name = [name]
         for v in name:
-            varname = v.split(':')
+            varname = v.split(':', 1)
             loc = 'Vertex'; container = __FlowSolutionNodes__
-            if len(varname) == 2: # center value
-                if varname[0] == 'centers': loc = 'CellCenter'; container = __FlowSolutionCenters__
-                varname = varname[1]
-            else: varname = varname[0] # node value
+            if len(varname) == 2: # center/node value
+                if varname[0] == 'centers':
+                    loc = 'CellCenter'; container = __FlowSolutionCenters__
+                    varname = varname[1]
+                elif varname[0] == 'nodes': varname = varname[1]
+                else: varname = v
+            else: varname = v # node value
 
             # search vars in nodes/centers container
             containerNode = getNodeFromName1(z, container)
@@ -4291,7 +5372,7 @@ def  getBCDataSetContainers(name, z):
                 if f0 is not None:
                     if f0[3] == 'DataArray_t':
                         dataSetL = [] # [[BCRange1,fieldBC],[BCRange2,fieldBC2],[...],...]
-                        for nobcdata in xrange(nbcdataset):
+                        for nobcdata in range(nbcdataset):
                             if allLocDS[nobcdata]==matchingLoc: # OK: locations are consistent
                                 datas = getNodesFromName1(allBCDatas[nobcdata],varname) 
                                 if datas != []:
@@ -4308,7 +5389,7 @@ def  getBCDataSetContainers(name, z):
 # OUT: __GridCoordinates__, __FlowSolutionCenters__, ...
 #==============================================================================
 def autoSetContainers(t):
-    global __FlowSolutionCenters__, __FlowSolutionNodes__
+    global __FlowSolutionCenters__, __FlowSolutionNodes__, __GridCoordinates__
     zones = getZones(t)
     if len(zones) == 0: return
     z = zones[0]
@@ -4319,18 +5400,20 @@ def autoSetContainers(t):
     foundNode = 0; foundCenter = 0
     for n in nodes:
         loc = getNodeFromType1(n, 'GridLocation_t')
-        if loc is not None and getValue(loc) == 'CellCenter':
-            if foundCenter == 0: __FlowSolutionCenters__ = n[0]
-            foundCenter += 1
-        else:
-            if foundNode == 0: __FlowSolutionNodes__ = n[0]
-            foundNode += 1
+        data = getNodeFromType1(n, 'DataArray_t')
+        if data is not None and data[1] is not None:
+            if loc is not None and getValue(loc) == 'CellCenter':
+                if foundCenter == 0: __FlowSolutionCenters__ = n[0]
+                foundCenter += 1
+            else:
+                if foundNode == 0: __FlowSolutionNodes__ = n[0]
+                foundNode += 1
     if __FlowSolutionNodes__ == __FlowSolutionCenters__:
         if foundNode == 0: __FlowSolutionNodes__ = ''
-        elif foundCenters == 0: __FlowSolutionCenters__ = ''
-        else: print 'Warning: FlowSolutionNodes and FlowSolutionCenters have the same name (%s).'%__FlowSolutionNodes__
-    if foundNode > 1: print 'Warning: multiple FlowSolutionNodes containers found (selected: %s)'%__FlowSolutionNodes__
-    if foundCenter > 1: print 'Warning: multiple FlowSolutionCenters containers found (selected: %s)'%__FlowSolutionCenters__
+        elif foundCenter == 0: __FlowSolutionCenters__ = ''
+        else: print('Warning: autoSetContainers: FlowSolutionNodes and FlowSolutionCenters have the same name (%s).'%__FlowSolutionNodes__)
+    if foundNode > 1: print('Warning: autoSetContainers: multiple FlowSolutionNodes containers found (selected: %s)'%__FlowSolutionNodes__)
+    if foundCenter > 1: print('Warning: autoSetContainers: multiple FlowSolutionCenters containers found (selected: %s)'%__FlowSolutionCenters__)
     return None
 
 #==============================================================================
@@ -4345,3 +5428,167 @@ def fixVarName(var):
     if len(varS) == 1: return var, 0
     if varS[0] == 'centers': return varS[1], 1
     return varS[1], 0
+
+#===============================================================================
+# set Loc 2 Glob information in zone
+# A appeler pour la zone decoupee, source est la zone parent
+# Structured zones: zone source name, winLoc/glob, dim of source zone
+# IN: soit loc2glob: numpy de 9 entiers
+# IN: soit winloc2glob+sourceDim en listes 6 + 3 entiers
+# Unstructured zones: zone source name, index loc/glob
+def setLoc2Glob(z, source, loc2glob=None, win=None, sourceDim=None):
+    zp = copyRef(z)
+    _setLoc2Glob(z, source, loc2glob, win, sourceDim)
+    return zp
+
+def _setLoc2Glob(z, source, loc2glob=None, win=None, sourceDim=None):
+    p = createUniqueChild(z, '.Solver#ownData', 'UserDefinedData_t', value=None)
+    createUniqueChild(p, 'source', 'UserDefinedData_t', value=source)
+    if loc2glob is not None:
+        createUniqueChild(p, 'loc2glob', 'DataArray_t', value=loc2glob)
+    else:
+        if win is not None:
+            if isinstance(win, list) and sourceDim is not None:
+                createUniqueChild(p, 'loc2glob', 'DataArray_t', value=win+sourceDim)
+            elif isinstance(win, list) and sourceDim is None:
+                createUniqueChild(p, 'loc2glob', 'DataArray_t', value=win)
+            else:
+                createUniqueChild(p, 'loc2glob', 'DataArray_t', value=win)
+    return None
+
+def setGlob2Loc(z, source, glob2loc=None, win=None, sourceDim=None):
+        zp = copyRef(z)
+        _setGlob2Loc(z, source, glob2loc, win, sourceDim)
+        return zp
+    
+def _setGlob2Loc(z, source, glob2loc=None, win=None, sourceDim=None):
+    p = createUniqueChild(z, '.Solver#ownData', 'UserDefinedData_t', value=None)
+    createUniqueChild(p, 'source', 'UserDefinedData_t', value=source)
+    if glob2loc is not None:
+        createUniqueChild(p, 'glob2loc', 'DataArray_t', value=glob2loc)
+    else: 
+        if win is not None:
+            if isinstance(win, list) and sourceDim is not None:
+                createUniqueChild(p, 'glob2loc', 'DataArray_t', value=win+sourceDim)
+            elif isinstance(win, list) and sourceDim is None:
+                createUniqueChild(p, 'glob2loc', 'DataArray_t', value=win)
+            else:
+                createUniqueChild(p, 'glob2loc', 'DataArray_t', value=win)
+    return None
+
+def getLoc2Glob(z):
+    a = getNodeFromName2(z, 'loc2glob')
+    b = getNodeFromName2(z, 'source')
+    if a is not None: a = getValue(a)
+    if b is not None: b = getValue(b)
+    return b, a
+
+def getGlob2Loc(z):
+    a = getNodeFromName2(z, 'glob2loc')
+    b = getNodeFromName2(z, 'source')
+    if a is not None: a = getValue(a)
+    if b is not None: b = getValue(b)
+    return b, a
+
+# change les numpy R4 en R8 et les numpy i8 en i4
+# dans FlowSolution/Coordinates et Elements_t
+def _adaptTypes(t, convertR42R8=True, convertI82I4=True, convertR82R4=False, convertI42I8=False):
+    zones = getZones(t)
+    for z in zones:
+        if convertR42R8:
+            nodes = getNodesFromType1(z, 'GridCoordinates_t')
+            nodes += getNodesFromType1(z, 'FlowSolution_t')
+            for no in nodes:
+                for n in no[2]: 
+                    if n[3] == 'DataArray_t' and n[1] is not None and n[1].dtype == numpy.float32:
+                        pt1 = n[1].ravel('k')
+                        n[1] = numpy.empty(n[1].shape, dtype=numpy.float64, order='F')
+                        pt2 = n[1].ravel('k')
+                        pt2[:] = pt1[:]
+
+        if convertR82R4:
+            nodes = getNodesFromType1(z, 'GridCoordinates_t')
+            nodes += getNodesFromType1(z, 'FlowSolution_t')
+            for no in nodes:
+                for n in no[2]: 
+                    if n[3] == 'DataArray_t' and n[1] is not None and n[1].dtype == numpy.float64:
+                        pt1 = n[1].ravel('k')
+                        n[1] = numpy.empty(n[1].shape, dtype=numpy.float32, order='F')
+                        pt2 = n[1].ravel('k')
+                        pt2[:] = pt1[:]
+
+        if convertI82I4:
+            if z[3] == 'Zone_t' and z[1] is not None and z[1].dtype == numpy.int64:
+                pt1 = z[1].ravel('k')
+                z[1] = numpy.empty(z[1].shape, dtype=numpy.int32, order='F')
+                pt2 = z[1].ravel('k')
+                pt2[:] = pt1[:]
+            nodes = getNodesFromType1(z, 'Elements_t')
+            for no in nodes:
+                if no[1] is not None and no[1].dtype == numpy.int64:
+                    pt1 = no[1].ravel('k')
+                    no[1] = numpy.empty(no[1].shape, dtype=numpy.int32, order='F')
+                    pt2 = no[1].ravel('k')
+                    pt2[:] = pt1[:]
+                for n in no[2]:
+                    if (n[3] == 'DataArray_t' or n[3] == 'IndexRange_t') and n[1] is not None and n[1].dtype == numpy.int64:
+                        pt1 = n[1].ravel('k')
+                        n[1] = numpy.empty(n[1].shape, dtype=numpy.int32, order='F')
+                        pt2 = n[1].ravel('k')
+                        pt2[:] = pt1[:]
+            nodes = getNodesFromType2(z, 'BC_t')
+            nodes += getNodesFromType2(z, 'GridConnectivity_t')
+            for no in nodes:
+                for n in no[2]:
+                    if n[3] == 'IndexArray_t' and n[1] is not None and n[1].dtype == numpy.int64:
+                        pt1 = n[1].ravel('k')
+                        n[1] = numpy.empty(n[1].shape, dtype=numpy.int32, order='F')
+                        pt2 = n[1].ravel('k')
+                        pt2[:] = pt1[:]
+            node = getNodeFromName1(z, ':elsA#Hybrid')
+            if node is not None:
+                for n in node[2]:
+                    if n[3] == 'DataArray_t' and n[1] is not None and n[1].dtype == numpy.int64:
+                        pt1 = n[1].ravel('k')
+                        n[1] = numpy.empty(n[1].shape, dtype=numpy.int32, order='F')
+                        pt2 = n[1].ravel('k')
+                        pt2[:] = pt1[:]
+
+        if convertI42I8:
+            if z[3] == 'Zone_t' and z[1] is not None and z[1].dtype == numpy.int32:
+                pt1 = z[1].ravel('k')
+                z[1] = numpy.empty(z[1].shape, dtype=numpy.int64, order='F')
+                pt2 = z[1].ravel('k')
+                pt2[:] = pt1[:]
+            nodes = getNodesFromType1(z, 'Elements_t')
+            for no in nodes:
+                if no[1] is not None and no[1].dtype == numpy.int32:
+                    pt1 = no[1].ravel('k')
+                    no[1] = numpy.empty(no[1].shape, dtype=numpy.int64, order='F')
+                    pt2 = no[1].ravel('k')
+                    pt2[:] = pt1[:]
+                for n in no[2]:
+                    if (n[3] == 'DataArray_t' or n[3] == 'IndexRange_t') and n[1] is not None and n[1].dtype == numpy.int32:
+                        pt1 = n[1].ravel('k')
+                        n[1] = numpy.empty(n[1].shape, dtype=numpy.int64, order='F')
+                        pt2 = n[1].ravel('k')
+                        pt2[:] = pt1[:]
+            nodes = getNodesFromType2(z, 'BC_t')
+            nodes += getNodesFromType2(z, 'GridConnectivity_t')
+            for no in nodes:
+                for n in no[2]:
+                    if n[3] == 'IndexArray_t' and n[1] is not None and n[1].dtype == numpy.int32:
+                        pt1 = n[1].ravel('k')
+                        n[1] = numpy.empty(n[1].shape, dtype=numpy.int64, order='F')
+                        pt2 = n[1].ravel('k')
+                        pt2[:] = pt1[:]
+            node = getNodeFromName1(z, ':elsA#Hybrid')
+            if node is not None:
+                for n in node[2]:
+                    if n[3] == 'DataArray_t' and n[1] is not None and n[1].dtype == numpy.int32:
+                        pt1 = n[1].ravel('k')
+                        n[1] = numpy.empty(n[1].shape, dtype=numpy.int64, order='F')
+                        pt2 = n[1].ravel('k')
+                        pt2[:] = pt1[:]
+
+    return None

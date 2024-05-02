@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -55,9 +55,7 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
   E_Int sizeMax; 
   E_Float eps = 1.e-10;// tolerance match 
 
-  if (!PYPARSETUPLE(args,
-                    "Old", "Oid",
-                    "Olf", "Oif",
+  if (!PYPARSETUPLE_(args, O_ I_ R_,
                     &arrays, &sizeMax, &eps))
   {
       return NULL;
@@ -102,7 +100,8 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
     E_Int posz = K_ARRAY::isCoordinateZPresent(varString); posz++;
     posxt[v] = posx; posyt[v] = posy; poszt[v] = posz;
   }
-
+  //printf("Running mergecart\n"); fflush(stdout);
+  
   /* Determination de la bounding box des blocs */
   E_Float xmino, ymino, zmino, xmaxo, ymaxo, zmaxo;
   K_COMPGEOM::globalBoundingBox(posxt, posyt, poszt, structF, 
@@ -122,12 +121,17 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
   }
   for (E_Int i = 0; i < nzones; i++) RELEASESHAREDS(objst[i], structF[i]);
 
+  //printf("step1\n"); fflush(stdout);
+
   /* compte les facettes mergeables */
   /* construit la liste des facettes mergeables */
-  list<CartBlock*> listOfNewBlocks;
   list<CartBlock*>::iterator itr;
   list<CartBlock*>::iterator itr2;
   list<CartBlock*>::iterator itr3;
+  
+  vector<CartBlockFace*>::iterator vitrf;
+  vector<CartBlockFace*>::iterator vitrf1;
+  vector<CartBlockFace*>::iterator vitrf2;
   
   list<CartBlockFace*>::iterator itrf;
   list<CartBlockFace*>::iterator itrf1;
@@ -138,7 +142,7 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
 
   CartBlock *block1, *block2;
   
-  list<CartBlockFace*> listOfMergeableFace;  // liste des facettes mergeables (candidates au merge)
+  vector<CartBlockFace*> listOfMergeableFace;  // liste des facettes mergeables (candidates au merge)
   CartBlockFace* face;
   E_Int gradeMin;
   CartBlockFace* faceMin;
@@ -297,16 +301,20 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
     }// parcours itr2
   }// parcours itr
 
+  //printf("step2\n"); fflush(stdout);
+  CartBlockFace* mface;
+  
   /* Recherche du grade de chaque facette candidate */
-  for (itrf = listOfMergeableFace.begin();
-       itrf != listOfMergeableFace.end();
-       itrf++)
+  for (vitrf = listOfMergeableFace.begin();
+       vitrf != listOfMergeableFace.end();
+       vitrf++)
   {
-    (*itrf)->_grade = 1;
-    block1 = (*itrf)->_blk1; block2 = (*itrf)->_blk2;
+    mface = *vitrf;
+    mface->_grade = 1;
+    block1 = mface->_blk1; block2 = mface->_blk2;
 
-    if ((*itrf)->_i1 == (*itrf)->_i2) itrfconst = 1;
-    else if ((*itrf)->_j1 == (*itrf)->_j2) itrfconst = 2;
+    if (mface->_i1 == mface->_i2) itrfconst = 1;
+    else if (mface->_j1 == mface->_j2) itrfconst = 2;
     else itrfconst = 3;
 
     // cette facette contient-elle une arete externe ? 
@@ -323,9 +331,10 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
 
       if (itrfconst != itrf2const)
       {
-        itrf1 = listOfMergeableFace.begin();
-        while ((itrf1 != listOfMergeableFace.end())&&((*itrf1) != (*itrf2))) itrf1++;
-        if ((*itrf1) == (*itrf2)) (*itrf)->_grade++;
+        // Trouve *itrf2
+        vitrf1 = listOfMergeableFace.begin();
+        while ((vitrf1 != listOfMergeableFace.end())&&((*vitrf1) != (*itrf2))) vitrf1++; // !!
+        if ((*vitrf1) == (*itrf2)) mface->_grade++;
         
         /* Recherche si creation d'une nouvelle facette mergeable */
         for (itrf3 = block2->_listOfFaces.begin();
@@ -379,8 +388,8 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
                 if (K_FUNC::fEqualZero(zfusmin-(*itr2)->_zmax, eps) == true || 
                     K_FUNC::fEqualZero(zfusmax-(*itr2)->_zmin, eps) == true ) 
                 {
-                  (*itrf)->_grade--;
-                  (*itrf)->_grade--;
+                  mface->_grade--;
+                  mface->_grade--;
                 }
               }
               /* compare cas 2 */
@@ -394,8 +403,8 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
                 if (K_FUNC::fEqualZero(xfusmin-(*itr2)->_xmax, eps) == true || 
                     K_FUNC::fEqualZero(xfusmax-(*itr2)->_xmin, eps) == true ) 
                 {
-                  (*itrf)->_grade--;
-                  (*itrf)->_grade--;
+                  mface->_grade--;
+                  mface->_grade--;
                 }
               }
               /* compare cas 3 */
@@ -409,8 +418,8 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
                 if (K_FUNC::fEqualZero(yfusmin-(*itr2)->_ymax, eps) == true || 
                     K_FUNC::fEqualZero(yfusmax-(*itr2)->_ymin, eps) == true ) 
                 {
-                  (*itrf)->_grade--;
-                  (*itrf)->_grade--;
+                  mface->_grade--;
+                  mface->_grade--;
                 }
               } 
             }// fin boucle itr2 de listOfBlocks
@@ -428,26 +437,29 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
       else if ((*itrf2)->_j1 == (*itrf2)->_j2) itrf2const = 2;
       else itrf2const = 3;
 
-      itrf1 = listOfMergeableFace.begin();
-      while ((itrf1 != listOfMergeableFace.end())&&((*itrf1) != (*itrf2))) itrf1++;
-      if (itrfconst != itrf2const && (*itrf1) == (*itrf2)) (*itrf)->_grade++;
+      // Trouve itrf2
+      vitrf1 = listOfMergeableFace.begin();
+      while ((vitrf1 != listOfMergeableFace.end())&&((*vitrf1) != (*itrf2))) vitrf1++;
+      if (itrfconst != itrf2const && (*vitrf1) == (*itrf2)) mface->_grade++;
     }        
   } // boucle sur itrf
 
   if (listOfMergeableFace.size() <= 0) goto end;
+  //printf("stepO\n"); fflush(stdout);
 
   truc:;
 
   /* Determine la facette de plus petit grade */
   gradeMin = 1000000; faceMin = NULL;
-  for (itrf = listOfMergeableFace.begin();
-       itrf != listOfMergeableFace.end(); itrf++)
+  for (vitrf = listOfMergeableFace.begin();
+       vitrf != listOfMergeableFace.end(); vitrf++)
   {
-    if ((*itrf)->_grade <= gradeMin) gradeMin = (*itrf)->_grade;
+    mface = *vitrf;
+    if (mface->_grade <= gradeMin) gradeMin = mface->_grade;
   }
-  for (itrf = listOfMergeableFace.begin();
-       itrf != listOfMergeableFace.end(); itrf++)
-  { if ((*itrf)->_grade == gradeMin) candidates.push_back(*itrf); }
+  for (vitrf = listOfMergeableFace.begin();
+       vitrf != listOfMergeableFace.end(); vitrf++)
+  { if ((*vitrf)->_grade == gradeMin) candidates.push_back(*vitrf); }
 
   ncandidates = candidates.size();
   rank = E_Int(K_NOISE::stdRand(&idum) * ncandidates);
@@ -463,6 +475,8 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
   
   block1 = faceMin->_blk1; block2 = faceMin->_blk2;
 
+  //printf("stepH\n"); fflush(stdout);
+
   if (K_FUNC::fEqualZero(faceMin->_xmin-faceMin->_xmax,eps) == true)
   {
     ninew = block1->_ni+block2->_ni-1; njnew = block1->_nj; nknew = block1->_nk; //dir = 1;
@@ -475,7 +489,7 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
   {
     ninew = block1->_ni; njnew = block1->_nj; nknew = block1->_nk+block2->_nk-1; //dir = 3;
   }
-
+  
   /* Assure que la grille creee ne soit pas trop grande */
   /* Utile pour le parallele */
   size1 = block1->_ni*block1->_nj*block1->_nk;
@@ -499,13 +513,17 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
       if ((*itrf) == faceMin) block2->_listOfFaces.erase(itrf);
       itrf = itrf3;
     }
-    itrf = listOfMergeableFace.begin();
-    while ((itrf != listOfMergeableFace.end())&&((*itrf) != faceMin)) itrf++;
-    listOfMergeableFace.erase(itrf);
+    vitrf = listOfMergeableFace.begin();
+    // Efface faceMin
+    while ((vitrf != listOfMergeableFace.end())&&((*vitrf) != faceMin)) vitrf++; // !!
+    listOfMergeableFace.erase(vitrf); // check
     delete faceMin;
     if (listOfMergeableFace.size() > 0) goto truc;
     else goto end;
   }
+  
+  //printf("la\n"); fflush(stdout);
+  
   /* Tagger les facettes condamnees */
   /* les supprimer et les fusionner */
   /* cette fusion cree-t-elle de nouvelle facettes? */
@@ -515,9 +533,10 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
     itrf3 = itrf; itrf3++;
     if ((*itrf) != faceMin)
     {
-      itrf2 = listOfMergeableFace.begin();
-      while ((*itrf2) != (*itrf)) itrf2++;
-      listOfMergeableFace.erase(itrf2);
+      // Efface *itrf
+      vitrf2 = listOfMergeableFace.begin();
+      while ((*vitrf2) != (*itrf)) vitrf2++; // !!
+      listOfMergeableFace.erase(vitrf2); // check
       if ((*itrf)->_blk1 != block1)
       {
         itrf2 = (*itrf)->_blk1->_listOfFaces.begin();
@@ -542,9 +561,10 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
     itrf3 = itrf; itrf3++;
     if ((*itrf) != faceMin)
     {
-      itrf2 = listOfMergeableFace.begin();
-      while ((*itrf2) != (*itrf)) itrf2++;
-      listOfMergeableFace.erase(itrf2);
+      // Efface *itrf
+      vitrf2 = listOfMergeableFace.begin();
+      while ((*vitrf2) != (*itrf)) vitrf2++; // !!
+      listOfMergeableFace.erase(vitrf2); // check
       if ((*itrf)->_blk1 != block2)
       {
         itrf2 = (*itrf)->_blk1->_listOfFaces.begin();
@@ -563,10 +583,13 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
     itrf = itrf3;
   }
 
+  //printf("la la\n"); fflush(stdout);
+  
   /* On enleve la facette choisie de la liste des facettes mergeables */
-  itrf = listOfMergeableFace.begin();
-  while ((itrf != listOfMergeableFace.end())&&((*itrf) != faceMin)) itrf++;
-  listOfMergeableFace.erase(itrf);
+  // Efface faceMin
+  vitrf = listOfMergeableFace.begin();
+  while ((vitrf != listOfMergeableFace.end())&&((*vitrf) != faceMin)) vitrf++; // !!
+  listOfMergeableFace.erase(vitrf); // check
   delete faceMin;
 
   /* Merger les blocks */
@@ -732,10 +755,11 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
           block1->_listOfFaces.push_back(face);
           (*itr2)->_listOfFaces.push_back(face);
         }
-      }// cas 3  
+      }// cas 3
     }
   }
 
+  //printf("step3\n"); fflush(stdout);
   if (listOfMergeableFace.size() <= 0) goto end;
 
   blockMerged = block1;
@@ -756,21 +780,22 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
             ((K_FUNC::fEqualZero(xmin1-xmax2, eps) == true ||
               K_FUNC::fEqualZero(xmax1-xmin2, eps) == true) &&
              ymin2 < ymax1 && ymax2 > ymin1 && 
-             ((zmin2 < zmax1 && zmax2 > zmin1) ||                        // 3D
+             ((zmin2 < zmax1 && zmax2 > zmin1) ||                // 3D
               K_FUNC::fEqualZero(zmin1-zmax1, eps) == true)) ||  // 2D
             ((K_FUNC::fEqualZero(ymin1-ymax2, eps) == true ||
               K_FUNC::fEqualZero(ymax1-ymin2, eps) == true) &&
              xmin2 < xmax1 && xmax2 > xmin1 &&
-             ((zmin2 < zmax1 && zmax2 > zmin1) ||                        // 3D
+             ((zmin2 < zmax1 && zmax2 > zmin1) ||             // 3D
               K_FUNC::fEqualZero(zmin1-zmax1, eps) == true))) // 2D
         {
           for (itrf = (*itr2)->_listOfFaces.begin();
                itrf != (*itr2)->_listOfFaces.end();
                itrf++)
           {
-            itrf1 = listOfMergeableFace.begin();
-            while ((itrf1 != listOfMergeableFace.end())&&((*itrf1) != (*itrf))) itrf1++;
-            if ((*itrf1) == (*itrf))
+            // Trouve *itrf
+            vitrf1 = listOfMergeableFace.begin();
+            while ((vitrf1 != listOfMergeableFace.end())&&((*vitrf1) != (*itrf))) vitrf1++; // !!
+            if ((*vitrf1) == (*itrf))
             {
               (*itrf)->_grade = 1;
               block1 = (*itrf)->_blk1; block2 = (*itrf)->_blk2;
@@ -792,16 +817,17 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
 
                 if (itrfconst != itrf2const)
                 {
-                  itrf1 = listOfMergeableFace.begin();
-                  while ((itrf1 != listOfMergeableFace.end())&&((*itrf1) != (*itrf2))) itrf1++;
-                  if ((*itrf1) == (*itrf2)) (*itrf)->_grade++;
+                  // Trouve *itrf2
+                  vitrf1 = listOfMergeableFace.begin();
+                  while ((vitrf1 != listOfMergeableFace.end())&&((*vitrf1) != (*itrf2))) vitrf1++; // !!
+                  if ((*vitrf1) == (*itrf2)) (*itrf)->_grade++;
                
                   /* Recherche si creation d'une nouvelle facette mergeable */
                   for (itrf3 = block2->_listOfFaces.begin(); itrf3 != block2->_listOfFaces.end();itrf3++)
-                  {       
+                  {
                     if ((*itrf3)->_i1 == (*itrf3)->_i2) { itrf3const = 1; findex2 = (*itrf3)->_xmin; }
                     else if ((*itrf3)->_j1 == (*itrf3)->_j2) { itrf3const = 2; findex2 = (*itrf3)->_ymin; }
-                    else { itrf3const = 3;  findex2 = (*itrf3)->_zmin; }
+                    else { itrf3const = 3; findex2 = (*itrf3)->_zmin; }
 
                     if (itrf3const == itrf2const && K_FUNC::fEqualZero(findex1-findex2,eps)== true)
                     {
@@ -896,20 +922,24 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
                 else if ((*itrf2)->_j1 == (*itrf2)->_j2) itrf2const = 2;
                 else itrf2const = 3;
 
-                itrf1 = listOfMergeableFace.begin();
-                while ((itrf1 != listOfMergeableFace.end())&&((*itrf1) != (*itrf2))) itrf1++;
-                if (itrfconst != itrf2const && (*itrf1) == (*itrf2)) (*itrf)->_grade++;
+                // Trouve *itrf2
+                vitrf1 = listOfMergeableFace.begin();
+                while ((vitrf1 != listOfMergeableFace.end())&&((*vitrf1) != (*itrf2))) vitrf1++; // !!
+                if (itrfconst != itrf2const && (*vitrf1) == (*itrf2)) (*itrf)->_grade++;
               }
-            }//fin if itrf face mergeable   
+            }//fin if itrf face mergeable
           }// boucle sur itrf de itr2
         }//fin if itr2 voisin de blockMerged
       }//dh1 == dh2
     }//fin if (blockMerged != (*itr2))
   }// boucle sur itr2 des blocks
 
+  //printf("size of mergeable %d\n", listOfMergeableFace.size()); fflush(stdout);
   if (listOfMergeableFace.size() > 0) goto truc;
   end:;
-
+  
+  //printf("producing\n");
+  
   E_Int ind;
   PyObject* l = PyList_New(0); 
 

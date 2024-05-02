@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -29,7 +29,7 @@ c
       g11 = xxi*xxi + yxi*yxi
       g12 = xxi*xet + yxi*yet
       g22 = xet*xet + yet*yet
-      rg = xxi*yet - xet*yxi
+      rg = xxi*yet - xet*yxi 
       g = rg*rg
 
       RETURN
@@ -184,10 +184,12 @@ C==============================================================================
      &     p11, p12, p22, p11p11, p11p12, p11p22, p11prg,
      &     p12p12, p12p22, p12prg, p22p22, p22prg, prgprg)
 c
+      IMPLICIT NONE
       INTEGER_E imth
       REAL_E g11, g12, g22, rg, g
       REAL_E p11, p12, p22, p11p11, p11p12, p11p22, p11prg,
      &     p12p12, p12p22, p12prg, p22p22, p22prg, prgprg
+      REAL_E u,w,s,r,ca
 c
       imth = 2
 
@@ -214,7 +216,7 @@ c
          p22 = g11
          p11p22 = 1.D0
          return
-      end if
+      endif
 c
       if (imth.eq.2) then
 c
@@ -226,16 +228,16 @@ c
          p22prg = -1.D0/g
          prgprg = 2.*(g11+g22)/g/rg
          return
-      end if
+      endif
 c
       if (imth.eq.3) then
 c
 c    length
 c
          p11 = 1.D0
-         p22 = 1.D0       
+         p22 = 1.D0
          return
-      end if
+      endif
 c
       if (imth.eq.4) then
 c
@@ -247,7 +249,7 @@ c
          p11p22 = 1.D0
          p12p12 = -2.D0
          return
-      end if
+      endif
 c
       if (imth.eq.5) then
 c
@@ -258,7 +260,7 @@ c
          p22 = w*1.
          prgprg = (1.-w)*2.
          return
-      end if
+      endif
 c
       if (imth.eq.6) then
 c

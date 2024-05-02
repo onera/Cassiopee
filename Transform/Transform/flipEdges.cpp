@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -30,7 +30,7 @@ using namespace K_FUNC;
 PyObject* K_TRANSFORM::flipEdges(PyObject* self, PyObject* args)
 {
   PyObject* o; E_Int mode; E_Int nit;
-  if (!PYPARSETUPLEI(args, "Oll", "Oii", &o, &mode, &nit)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ II_, &o, &mode, &nit)) return NULL;
    
   // Check array
   E_Int ni, nj, nk;
@@ -77,7 +77,7 @@ PyObject* K_TRANSFORM::flipEdges(PyObject* self, PyObject* args)
 
   for (E_Int i = 0; i < nit; i++)
   {
-    printf("iteration %d=mode=%d================\n",i,mode);
+    //printf("iteration %d=mode=%d================\n",i,mode);
     flipEdges(ct, f->getSize(), x,y,z, indic, mode);
   }
 
@@ -112,7 +112,7 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
   E_Float ndir1, ndir2, ndir3, ndir4;
   E_Float ptA[3], ptB[3], ptC[3], dir1[3];
   E_Float ptD[3], dir2[3], dir3[3], dir4[3];
-  E_Float inverse1, inverse2, rad1, rad2, rad3, rad4, ndirl;
+  E_Float inverse1=0, inverse2, rad1, rad2, rad3, rad4, ndirl;
   E_Int indA, indB, indC, indD, ind5, ind6, swap, ie, iv1, iv2, iv, pos1, pos2;
   E_Int tA, tB, tC, tD;
   E_Int maillesEcrasees = 0;
@@ -132,8 +132,7 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
     dir1[1] = (ptB[2]-ptA[2])*(ptC[0]-ptA[0])-(ptB[0]-ptA[0])*(ptC[2]-ptA[2]);
     dir1[2] = (ptB[0]-ptA[0])*(ptC[1]-ptA[1])-(ptB[1]-ptA[1])*(ptC[0]-ptA[0]);
     ndirl = sqrt(dir1[0]*dir1[0]+dir1[1]*dir1[1]+dir1[2]*dir1[2]);
-    if (ndirl < 1.e-11) printf("flipEdges: %d: %f init ecrase.\n", i, ndirl); 
-
+    if (ndirl < 1.e-11) printf("Warning: flipEdges: " SF_D_ ": " SF_F_ " init ecrase.\n", i, ndirl);
     for (size_t v = 0; v < voisins.size(); v++)
     {
       E_Int ie = voisins[v];
@@ -161,11 +160,10 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
       else 
       {
         indA = 0; indB = 0; indC = 0; indD = 0;
-        printf("what?? problem\n");
       }
-      //printf("ind1 %d %d %d\n", ind1, ind2, ind3);
-      //printf("ind4 %d %d %d\n", ind4, ind5, ind6);
-      //printf("indA %d %d %d %d\n", indA, indB, indC, indD);
+      //printf("ind1 " " SF_D3_ " "\n", ind1, ind2, ind3);
+      //printf("ind4 " " SF_D3_ " "\n", ind4, ind5, ind6);
+      //printf("indA " " SF_D3_ " " %d\n", indA, indB, indC, indD);
 
       ptA[0] = x[indA]; ptA[1] = y[indA]; ptA[2] = z[indA];
       ptB[0] = x[indB]; ptB[1] = y[indB]; ptB[2] = z[indB];
@@ -177,7 +175,9 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
       dir1[1] = (ptB[2]-ptA[2])*(ptC[0]-ptA[0])-(ptB[0]-ptA[0])*(ptC[2]-ptA[2]);
       dir1[2] = (ptB[0]-ptA[0])*(ptC[1]-ptA[1])-(ptB[1]-ptA[1])*(ptC[0]-ptA[0]);
       ndir1 = sqrt(dir1[0]*dir1[0]+dir1[1]*dir1[1]+dir1[2]*dir1[2]);
-      rad1 = K_COMPGEOM::circumCircleRadius(ptA, ptB, ptC);
+      rad1 = K_COMPGEOM::circumCircleRadius(ptA[0], ptA[1], ptA[2],
+                                            ptB[0], ptB[1], ptB[2],
+                                            ptC[0], ptC[1], ptC[2]);
 
       // DC ^ DB
       dir2[0] = (ptC[1]-ptD[1])*(ptB[2]-ptD[2])-(ptC[2]-ptD[2])*(ptB[1]-ptD[1]);
@@ -186,14 +186,18 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
       ndir2 = sqrt(dir2[0]*dir2[0]+dir2[1]*dir2[1]+dir2[2]*dir2[2]);
       inverse1 = dir1[0]*dir2[0]+dir1[1]*dir2[1]+dir1[2]*dir2[2];
       if (ndir1 > 1.e-12 && ndir2 > 1.e-12) inverse1 = inverse1/(ndir1*ndir2);
-      rad2 = K_COMPGEOM::circumCircleRadius(ptB, ptC, ptD);
+      rad2 = K_COMPGEOM::circumCircleRadius(ptB[0], ptB[1], ptB[2],
+                                            ptC[0], ptC[1], ptC[2],
+                                            ptD[0], ptD[1], ptD[2]);
 
       // BD ^ BA
       dir3[0] = (ptD[1]-ptB[1])*(ptA[2]-ptB[2])-(ptD[2]-ptB[2])*(ptA[1]-ptB[1]);
       dir3[1] = (ptD[2]-ptB[2])*(ptA[0]-ptB[0])-(ptD[0]-ptB[0])*(ptA[2]-ptB[2]);
       dir3[2] = (ptD[0]-ptB[0])*(ptA[1]-ptB[1])-(ptD[1]-ptB[1])*(ptA[0]-ptB[0]);
       ndir3 = sqrt(dir3[0]*dir3[0]+dir3[1]*dir3[1]+dir3[2]*dir3[2]);
-      rad3 = K_COMPGEOM::circumCircleRadius(ptA, ptB, ptD);
+      rad3 = K_COMPGEOM::circumCircleRadius(ptA[0], ptA[1], ptA[2],
+                                            ptB[0], ptB[1], ptB[2],
+                                            ptD[0], ptD[1], ptD[2]);
 
       // CA ^ CD
       dir4[0] = (ptA[1]-ptC[1])*(ptD[2]-ptC[2])-(ptA[2]-ptC[2])*(ptD[1]-ptC[1]);
@@ -202,13 +206,15 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
       ndir4 = sqrt(dir4[0]*dir4[0]+dir4[1]*dir4[1]+dir4[2]*dir4[2]);
       inverse2 = dir3[0]*dir4[0]+dir3[1]*dir4[1]+dir3[2]*dir4[2];
       if (ndir3 > 1.e-12 && ndir4 > 1.e-12) inverse2 = inverse2/(ndir3*ndir4);
-      rad4 = K_COMPGEOM::circumCircleRadius(ptA, ptC, ptD);
+      rad4 = K_COMPGEOM::circumCircleRadius(ptA[0], ptA[1], ptA[2],
+                                            ptC[0], ptC[1], ptC[2],
+                                            ptD[0], ptD[1], ptD[2]);
 
       if (indic != NULL)
       { 
         tA = floor(indic[indA]+0.5); tB = floor(indic[indB]+0.5); 
         tC = floor(indic[indC]+0.5); tD = floor(indic[indD]+0.5);
-        //printf("%d %d %d %d\n", tA, tB, tC, tD);
+        //printf("" SF_D4_ "\n", tA, tB, tC, tD);
       }
       else {tA = 0; tB = 0; tC = 0; tD = 0;}
       if (tB == 1 && tC == 1 && ndir1 > 1.e-12) // no swap
@@ -216,14 +222,15 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
         goto next;
       }
 
-      if (ndir1 < 1.e-11) printf("flipEdges: %d: %f ecrase. inv1=%f,inv2=%f,ndirs=%f %f %f\n", i, ndir1,inverse1,inverse2,ndir2,ndir3,ndir4); 
+      if (ndir1 < 1.e-11) printf("Warning: flipEdges: " SF_D_ ": " SF_F_ " ecrase. inv1=" SF_F_ ",inv2=" SF_F_ ",ndirs=" SF_F2_ " " SF_F_ "\n", i, ndir1,inverse1,inverse2,ndir2,ndir3,ndir4); 
 
       if (mode == 2)
       {
         if (ndir1 < 1.e-12 && ndir3 > 1.e-12 && ndir4 > 1.e-12)
         {
-          printf("flipEdges: %d: swap maille ecrasee1\n", i);
-          printf("flipEdges: %d: improving %f %f -> %f %f\n", i, ndir1, ndir2, ndir3, ndir4);
+          printf("flipEdges: " SF_D_ ": swap maille ecrasee1\n", i);
+          printf("flipEdges: " SF_D_ ": improving " SF_F2_ " -> " SF_F2_ "\n",
+                 i, ndir1, ndir2, ndir3, ndir4);
           swap = ie; goto next;
         }
       }
@@ -234,15 +241,17 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
         if (inverse1 < -0.9)
         {
           // corrige l'inverse
-          printf("flipEdges: %d: swap inverse\n", i);
-          printf("flipEdges: %d: improving %f %f -> %f %f\n", i, ndir1, ndir2, ndir3, ndir4);
+          printf("Warning: flipEdges: " SF_D_ ": swap inverse\n", i);
+          printf("Warning: flipEdges: " SF_D_ ": improving " SF_F2_ " -> " SF_F2_ "\n",
+                 i, ndir1, ndir2, ndir3, ndir4);
           swap = ie; goto next;
         }
         else if (ndir1 < 1.e-12 && ndir3 > 1.e-12 && ndir4 > 1.e-12)
         {
           // corrige mailles ecrasees 
-          printf("flipEdges: %d: swap maille ecrasee1\n", i);
-          printf("flipEdges: %d: improving %f %f -> %f %f\n", i, ndir1, ndir2, ndir3, ndir4);
+          printf("Warning: flipEdges: " SF_D_ ": swap maille ecrasee1\n", i);
+          printf("Warning: flipEdges: " SF_D_ ": improving " SF_F2_ " -> " SF_F2_ "\n",
+                 i, ndir1, ndir2, ndir3, ndir4);
           swap = ie; goto next;
         }
       }
@@ -265,8 +274,9 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
         if (rad3 < rad1 && rad3 < rad2 && rad4 < rad1 && rad4 < rad2)
         {
           // optimisation suivant equilaterite
-          printf("flipEdges: %d: swap opt equi\n",i );
-          printf("flipEdges: %d: improving rad %f %f -> %f %f\n", i, rad1, rad2, rad3, rad4);
+          printf("Warning: flipEdges: " SF_D_ ": swap opt equi\n",i );
+          printf("Warning: flipEdges: " SF_D_ ": improving rad " SF_F2_ " -> " SF_F2_ "\n",
+                 i, rad1, rad2, rad3, rad4);
           swap = ie; goto next;
         }
       }
@@ -276,7 +286,7 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
     // DBX
     //swap = -1;
     //if (swap != -1) 
-    //{ printf("I can swap %d %d\n", i, swap); printf("improving %f %f -> %f %f\n", ndir1, ndir2, ndir3, ndir4);}
+    //{ printf("I can swap " SF_D2_ "\n", i, swap); printf("improving " SF_F2_ " -> " SF_F2_ "\n", ndir1, ndir2, ndir3, ndir4);}
     //if (i != 0 && i != 1 && i != 2 && i != 3) swap = -1;
     //if (i != 3) swap = -1;
     
@@ -302,7 +312,7 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
       {
         iv = voisins[v];
         ind1 = ct1[iv]-1; ind2 = ct2[iv]-1; ind3 = ct3[iv]-1;
-        //printf("vois i %d %d %d\n", ind1,ind2,ind3);
+        //printf("vois i " " SF_D3_ " "\n", ind1,ind2,ind3);
         if      (ind1 == indA && ind2 == indC) { iv1 = iv; pos1 = v; break; }
         else if (ind1 == indA && ind3 == indC) { iv1 = iv; pos1 = v; break; }
         else if (ind2 == indA && ind3 == indC) { iv1 = iv; pos1 = v; break; }
@@ -317,7 +327,7 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
       {
         iv = voisins2[v];
         ind1 = ct1[iv]-1; ind2 = ct2[iv]-1; ind3 = ct3[iv]-1;
-        //printf("vois ie %d %d %d\n", ind1,ind2,ind3);
+        //printf("vois ie " " SF_D3_ " "\n", ind1,ind2,ind3);
       
         if      (ind1 == indB && ind2 == indD) { iv2 = iv; pos2 = v; break; }
         else if (ind1 == indB && ind3 == indD) { iv2 = iv; pos2 = v; break; }
@@ -329,19 +339,19 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
       // swap
       if (iv1 != -1 && iv2 != -1)
       {
-        //printf("ech: %d %d - %d %d %d %d\n",i,ie,iv1,iv2,pos1,pos2);
+        //printf("ech: " SF_D2_ " - " SF_D4_ "\n",i,ie,iv1,iv2,pos1,pos2);
         cEEN[i][pos1] = iv2;
         cEEN[ie][pos2] = iv1;
       }
       else if (iv1 != -1)
       {
-        //printf("erase: %d %d - %d %d %d\n",i,ie,iv1,pos1,cEEN[i].size());
+        //printf("erase: " SF_D2_ " - " " SF_D3_ " "\n",i,ie,iv1,pos1,cEEN[i].size());
         cEEN[i].erase(cEEN[i].begin()+pos1);
         cEEN[ie].push_back(iv1);
       }
       else if (iv2 != -1)
       {
-        //printf("erase: %d %d - %d %d %d\n",i,ie,iv2,pos2,cEEN[ie].size());
+        //printf("erase: " SF_D2_ " - " " SF_D3_ " "\n",i,ie,iv2,pos2,cEEN[ie].size());
         cEEN[i].push_back(iv2);
         cEEN[ie].erase(cEEN[ie].begin()+pos2);
       }
@@ -368,6 +378,6 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
     }
   }
 
-  printf("Mailles inversees=%d - mailles ecrasees=%d\n", maillesInversees, maillesEcrasees);
-
+  printf("Mailles inversees=" SF_D_ " - mailles ecrasees=" SF_D_ "\n",
+         maillesInversees, maillesEcrasees);
 }

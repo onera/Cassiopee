@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -39,7 +39,7 @@ void gkeyboardup(int key, int x, int y)
     {ptrState->keys[ptrState->kcursor]=6; ptrState->kcursor++;}
     else if (key == GLUT_KEY_LEFT) 
     {ptrState->keys[ptrState->kcursor]=7; ptrState->kcursor++;}
-     else if (key == GLUT_KEY_RIGHT) 
+    else if (key == GLUT_KEY_RIGHT) 
     {ptrState->keys[ptrState->kcursor]=8; ptrState->kcursor++;}
     return;
   }
@@ -56,20 +56,20 @@ void garrows(int key, int x, int y)
 // Keyboards calls
 //=============================================================================
 // Branche les differents appels pour le clavier
-void Data::keyboard(unsigned char key, int x, int y)
+void Data::keyboard(unsigned char key, E_Int x, E_Int y)
 {
-  //printf("key: %d\n", key);
-  int nv;
-  int stateHeader, stateInfo, stateMenu, stateBB;
-  double alpha = 0.04;
-  double dx = (_view.xeye-_view.xcam)*alpha;
-  double dy = (_view.yeye-_view.ycam)*alpha;
-  double dz = (_view.zeye-_view.zcam)*alpha;
-  double d = sqrt(dx*dx + dy*dy + dz*dz);
-  double dirx = _view.dirx;
-  double diry = _view.diry;
-  double dirz = _view.dirz;
-  int modif = glutGetModifiers();
+  //printf("normal key: %d\n", key); fflush(stdout);
+  E_Int nv;
+  //E_Int stateHeader, stateInfo, stateMenu, stateBB;
+  //double alpha = 0.04;
+  //double dx = (_view.xeye-_view.xcam)*alpha;
+  //double dy = (_view.yeye-_view.ycam)*alpha;
+  //double dz = (_view.zeye-_view.zcam)*alpha;
+  //double d = sqrt(dx*dx + dy*dy + dz*dz);
+  //double dirx = _view.dirx;
+  //double diry = _view.diry;
+  //double dirz = _view.dirz;
+  E_Int modif = glutGetModifiers();
 
   ptrState->render = 1;
 
@@ -78,323 +78,373 @@ void Data::keyboard(unsigned char key, int x, int y)
   if (ptrState->kkeysActivated == 0) return; // no short cuts
 
   switch (key) {
-    // -- Quit --
+  
+  // -- Quit --
   case 'q':
   case 'Q':
+  {
     glutHideWindow();
-  freeGPUResources(-1, 0, _numberOfZones-1, 1);
-  ptrState->freeGPURes = 1;
-  exit(0);
-  break;
-
-  // Menu - display state information
-  case 27: // esc key
-    menu();
+    freeGPUResources(-1, 0, _numberOfZones-1, 1);
+    ptrState->freeGPURes = 1;
+    _exit(0);
     break;
+  }
 
+  // -- Menu / display state information --
+  // case 27: // esc key
+  // {
+  //   menu();
+  //   break;
+  // }
+    
   // -- Move down --
-  case 'o':
-    moveDown(alpha, dx, dy, dz, d, dirx, diry, dirz);
-    break;
-
+  // case 'o':
+  // {
+  //   moveDown(alpha, dx, dy, dz, d, dirx, diry, dirz);
+  //   break;
+  // }
+    
   // -- Move up --
-  case 'p':
-    moveUp(alpha, dx, dy, dz, d, dirx, diry, dirz);
-    break;
+  // case 'p':
+  // {
+  //   moveUp(alpha, dx, dy, dz, d, dirx, diry, dirz);
+  //   break;
+  // }
      
   // -- Fit view / fullscreen --
   case 'f':
-  case 6:
-    if (modif == GLUT_ACTIVE_CTRL) {
-      if (ptrState->fullScreen == 0)
-        { 
-          glutFullScreen(); // pas de retour possible sous linux
-          _view.wSav = _view.w; _view.hSav = _view.h;
-          //glutReshapeWindow(1680, 1050);
-          ptrState->fullScreen = 1;
-        }
-        else 
-        {
-          glutReshapeWindow(_view.wSav, _view.hSav);
-          ptrState->fullScreen = 0;
-        }
-      }
-      else { initCam(); farClipping(); }
-      break;
-      
-      // -- Mesh or surface display --
-    case 32:
-    case 0:
-      if (modif == GLUT_ACTIVE_SHIFT) ptrState->mode = SOLID;
-      else if (modif == GLUT_ACTIVE_CTRL) ptrState->mode = RENDER;
-      else ptrState->mode = MESH;
-      break;
-      
-      // -- Primary field toggle -- 
-    case '1':
-    case 33:
-    case 38:
-      nv = _zones[0]->nfield;
-      if (_zones[0]->nfield < 1) break;
-
-      if (modif == GLUT_ACTIVE_SHIFT)
-      {
-        if (ptrState->mode <= 3 || ptrState->mode == VECTORFIELD) 
-          ptrState->mode = SCALARFIELD;
-        ptrState->scalarField--;
-        if (ptrState->scalarField < 0) ptrState->scalarField = nv-1;
-        
-      }
-      else
-      {
-        if (ptrState->mode <= 3 || ptrState->mode == VECTORFIELD)
-          ptrState->mode = SCALARFIELD;
-        ptrState->scalarField++;
-        if (ptrState->scalarField >= nv) ptrState->scalarField = 0;
-      }
-      break;
-
-      // -- Secondary field toggle --
-    case '2':
-    case 169:
-      if (ptrState->dim == 3) break;
-
-      if (modif == GLUT_ACTIVE_SHIFT) changeSecondaryVariableMinus();
-      else changeSecondaryVariablePlus();
-      break;
-
-      // -- Toggle i,j,k mode --
-    case '3':
-    case 34:
-      if (ptrState->dim == 3 || ptrState->dim == 2) break;
-
-      if (modif == GLUT_ACTIVE_SHIFT)
-      {
-        ptrState->ijk1D--;
-        if (ptrState->ijk1D < 0) ptrState->ijk1D = 2;
-      }
-      else
-      {
-        ptrState->ijk1D++;
-        if (ptrState->ijk1D > 2) ptrState->ijk1D = 0;
-      }
-      break;
-      
-
-      // -- Change the displayed plane --
-    case 'i':
-    case 9:
-      changeIPlanePlus();
-      break;
-    case 'I':
-      changeIPlaneMinus();
-      break;
-    case 'j':
-    case 10:
-      changeJPlanePlus();
-      break;
-    case 'J':
-      changeJPlaneMinus();
-      break;
-    case 'k':
-    case 11:
-      changeKPlanePlus();
-      break;
-    case 'K':
-      changeKPlaneMinus();
-      break;
-
-      // -- Change the dimension mode (3D - 2D - 1D) --
-    case 'm':
-      switch (ptrState->dim)
-      {
-        case 3:
-          ptrState->dim = 2;
-	  freeGPUResources( -1, 0, _numberOfZones-1, 0 );
-          roll3Dto2D();
-          break;
-
-        case 2:
-          ptrState->dim = 3;
-	  freeGPUResources( -1, 0, _numberOfZones-1, 0 );
-          roll2Dto3D();
-          break;
-          
-        case 1: // 1D mode est osolete dans cette version
-          ptrState->dim = 3;
-          roll1Dto3D();
-          break;
-      }
-      break;
-
-      // -- Change the dimension mode (1D - 2D - 3D) --
-    case 'M':
-      switch (ptrState->dim)
-      {
-        case 1:
-          ptrState->dim = 2;
-          roll1Dto2D();
-          break;
-
-        case 2:
-          ptrState->dim = 3;
-	  freeGPUResources( -1, 0, _numberOfZones-1, 0 );
-          roll2Dto3D();
-          break;
-          
-        case 3:
-          ptrState->dim = 2;
-	  freeGPUResources( -1, 0, _numberOfZones-1, 0 );
-          roll3Dto2D();
-          break;
-      }
-      break;
-      
-      // Reload file
-    case 'r':
+  case 6: // on windows
+  {
+    if (modif == GLUT_ACTIVE_CTRL) 
     {
-      PyEval_RestoreThread(_save);
-      char com[1024];
-      int l = strlen(ptrState->file); char *p = ptrState->file;
-      if (l > 5 && p[l-1] == 's' && p[l-2] == 'n' && p[l-3] == 'g' 
-          && p[l-4] == 'c' && p[l-5] == '.')
-        sprintf(com, "import Converter.PyTree; import CPlot.PyTree; kpl = Converter.PyTree.convertFile2PyTree('%s'); CPlot.PyTree.display(kpl)",
-                ptrState->file);
-      else
-        sprintf(com, "import Converter; import CPlot; kpl = Converter.convertFile2Arrays('%s'); CPlot.display(kpl)",
-                ptrState->file);
-      PyRun_SimpleString(com);
-      _save = PyEval_SaveThread(); 
-      printTmpMessage("File reloaded.");
+      if (ptrState->fullScreen == 0)
+      { 
+        glutFullScreen(); // pas de retour possible sous linux
+        _view.wSav = _view.w; _view.hSav = _view.h;
+        //glutReshapeWindow(1680, 1050);
+        ptrState->fullScreen = 1;
+      }
+      else 
+      {
+        glutReshapeWindow(_view.wSav, _view.hSav);
+        ptrState->fullScreen = 0;
+      }
+    }
+    else { initCam(); farClipping(); }
+    break;
+  }
+      
+  // -- Mesh/Solid display --
+  case '1':
+  case 33: // !
+  case 38: // 1
+  {
+    /*
+    if (modif == (GLUT_ACTIVE_CTRL | GLUT_ACTIVE_SHIFT))
+    {
+      if (ptrState->mode < 2) ptrState->mode++;
+      else ptrState->mode = MESH;
+    }
+    else
+    {
+      if (ptrState->mode > 0) ptrState->mode--;
+      else ptrState->mode = RENDER;
+    }
+    */
+
+    if (ptrState->mode == SOLID) ptrState->mode = MESH;
+    else if (ptrState->mode == MESH) ptrState->mode = SOLID;
+    else ptrState->mode = MESH;
+    break;
+  }
+
+  // -- Select/unselectAll --
+  case 32: // space 
+  {
+    // toggle selectall
+    E_Int toggle = 0;
+    for (E_Int i = 0; i < _numberOfZones; i++)
+      toggle = std::max(toggle, _zones[i]->selected);
+    if (toggle == 1)
+    {
+      // unselect  all
+      for (E_Int i = 0; i < _numberOfZones; i++) _zones[i]->selected = 0;
+      ptrState->selectedZone = 0;
+    }
+    else
+    {
+      // select all
+      for (E_Int i = 0; i < _numberOfZones; i++) _zones[i]->selected = 1;
     }
     break;
+  }
+    
+  // -- Scalar mode --
+  case '2':
+  case 195: // 2
+  case 233: // é
+  {
+    nv = _zones[0]->nfield;
+    if (nv < 1) break;
 
-      // Select active zone
-    case 'z':
-      if (_pref.selectNextZone != NULL) _pref.selectNextZone->f(this);
-      break;
-    case 'Z':
-      if (_pref.selectPreviousZone != NULL) _pref.selectPreviousZone->f(this);
-      break;
+    if (ptrState->mode != SCALARFIELD) 
+    { ptrState->mode = SCALARFIELD; break; }
+    
+    if (modif == GLUT_ACTIVE_SHIFT)
+    {
+      ptrState->scalarField--;
+      if (ptrState->scalarField < 0) ptrState->scalarField = nv-1;
+    }
+    else
+    {
+      ptrState->scalarField++;
+      if (ptrState->scalarField >= nv) ptrState->scalarField = 0;
+    }
+    break;
+  }
+     
+  // -- render mode --
+  case '3':
+  case 34: // 3
+  {
+    ptrState->mode = RENDER;
+    break;
+  }
 
-      // Look for active zone
-    case 'l':
-      if (_pref.lookFor != NULL) _pref.lookFor->f(this);
-      break;
+  // -- I/J/K mode --
+  case 'i':
+  {
+    changeIPlanePlus();
+    break;
+  }
+  case 'I':
+  {
+    changeIPlaneMinus();
+    break;
+  }
+  case 'j':
+  {
+    changeJPlanePlus();
+    break;
+  }
+  case 'J':
+  {
+    changeJPlaneMinus();
+    break;
+  }
+  case 'k':
+  {
+    changeKPlanePlus();
+    break;
+  }
+  case 'K':
+  {
+    changeKPlaneMinus();
+    break;
+  }
 
-//       // Change the blanking plugin function
-//     case 2: // Ctrl+b
-//       if (modif == GLUT_ACTIVE_CTRL)
-//         changeBlankingFunction();
-//       break;
+  // -- Change the dimension mode (3D - 2D - 1D) --
+  case 'm':
+  {
+    switch (ptrState->dim)
+    {
+      case 3:
+        ptrState->dim = 2;
+        freeGPUResources(-1, 0, _numberOfZones-1, 0);
+        roll3Dto2D();
+        break;
 
-      // Zone deactivation
-    case 'a':
-      if (ptrState->selectedZone != 0)
+      case 2:
+        ptrState->dim = 3;
+        freeGPUResources(-1, 0, _numberOfZones-1, 0);
+        roll2Dto3D();
+        break;
+        
+      case 1: // 1D mode est osolete dans cette version
+        ptrState->dim = 3;
+        roll1Dto3D();
+        break;
+    }
+    break;
+  }
+  case 'M':
+  {
+    switch (ptrState->dim)
+    {
+      case 1:
+        ptrState->dim = 2;
+        roll1Dto2D();
+        break;
+
+      case 2:
+        ptrState->dim = 3;
+        freeGPUResources(-1, 0, _numberOfZones-1, 0);
+        roll2Dto3D();
+        break;
+        
+      case 3:
+        ptrState->dim = 2;
+        freeGPUResources(-1, 0, _numberOfZones-1, 0);
+        roll3Dto2D();
+        break;
+    }
+    break;
+  }
+      
+  // Reload file
+  case 'r':
+  {
+    PyEval_RestoreThread(_save);
+    char com[1024];
+    E_Int l = strlen(ptrState->file); char *p = ptrState->file;
+    if (l > 5 && p[l-1] == 's' && p[l-2] == 'n' && p[l-3] == 'g' 
+        && p[l-4] == 'c' && p[l-5] == '.')
+      sprintf(com, "import Converter.PyTree; import CPlot.PyTree; kpl = Converter.PyTree.convertFile2PyTree('%s'); CPlot.PyTree.display(kpl)",
+              ptrState->file);
+    else
+      sprintf(com, "import Converter; import CPlot; kpl = Converter.convertFile2Arrays('%s'); CPlot.display(kpl)",
+              ptrState->file);
+    PyRun_SimpleString(com);
+    _save = PyEval_SaveThread(); 
+    printTmpMessage("File reloaded.");
+    break;
+  }
+
+  // Select active zone
+  case 'z':
+  {
+    if (_pref.selectNextZone != NULL) _pref.selectNextZone->f(this);
+    break;
+  }
+  case 'Z':
+  {
+    if (_pref.selectPreviousZone != NULL) _pref.selectPreviousZone->f(this);
+    break;
+  }
+
+  // Look for active zone
+  case 'l':
+  {
+    if (_pref.lookFor != NULL) _pref.lookFor->f(this);
+    break;
+  }
+
+  // Zone deactivation/reactivation
+  case 'a':
+  {
+    if (ptrState->selectedZone != 0)
+    {
+      _zones[ptrState->selectedZone-1]->active = 0;
+      _zones[ptrState->selectedZone-1]->selected = 0;
+      /*
+      if (ptrState->deactivatedZones == NULL)
       {
-        _zones[ptrState->selectedZone-1]->active = 0;
-        _zones[ptrState->selectedZone-1]->selected = 0;
-        if (ptrState->deactivatedZones == NULL)
-        {
-          struct chain_int* ci;
-          ci = (struct chain_int*)malloc(sizeof(struct chain_int));
-          ci->value = ptrState->selectedZone;
-          ci->next = NULL;
-          ptrState->deactivatedZones = ci;
-        }
-        else
-        {
-          struct chain_int* ci = ptrState->deactivatedZones;
-          while (ci->next != NULL)
-            ci = ci->next;
-          ci->next = (struct chain_int*)malloc(sizeof(struct chain_int));
-          ci = ci->next;
-          ci->value = ptrState->selectedZone;
-          ci->next = NULL;
-        }
-        ptrState->selectedZone = ptrState->selectedZone+1;
-        if (ptrState->selectedZone == _numberOfZones+1) 
-          ptrState->selectedZone = 0;
-        else
-        {
-          while (_zones[ptrState->selectedZone-1]->active == 0)
-          {
-            ptrState->selectedZone = ptrState->selectedZone+1;
-            if (ptrState->selectedZone == _numberOfZones+1) 
-            {
-              ptrState->selectedZone = 0;
-              break;
-            }
-          }
-          if (ptrState->selectedZone != 0)
-            _zones[ptrState->selectedZone-1]->selected = 1;
-        }
+        struct chain_int* ci;
+        ci = (struct chain_int*)malloc(sizeof(struct chain_int));
+        ci->value = ptrState->selectedZone;
+        ci->next = NULL;
+        ptrState->deactivatedZones = ci;
       }
-      break;
-
-      // Zone reactivation
-    case 'A':
-      if (ptrState->deactivatedZones != NULL)
+      else
       {
         struct chain_int* ci = ptrState->deactivatedZones;
-        struct chain_int* cip = ptrState->deactivatedZones;
-        while (ci->next != NULL)
+        while (ci->next != NULL) ci = ci->next;
+        ci->next = (struct chain_int*)malloc(sizeof(struct chain_int));
+        ci = ci->next;
+        ci->value = ptrState->selectedZone;
+        ci->next = NULL;
+      } */
+      ptrState->insertDeactivatedZones(ptrState->selectedZone);
+      //ptrState->printDeactivatedZones();
+
+      ptrState->selectedZone = ptrState->selectedZone+1;
+      if (ptrState->selectedZone == _numberOfZones+1) 
+        ptrState->selectedZone = 0;
+      else
+      {
+        while (_zones[ptrState->selectedZone-1]->active == 0)
         {
-          cip = ci;
-          ci = ci->next;
+          ptrState->selectedZone = ptrState->selectedZone+1;
+          if (ptrState->selectedZone == _numberOfZones+1) 
+          {
+            ptrState->selectedZone = 0;
+            break;
+          }
         }
         if (ptrState->selectedZone != 0)
-          _zones[ptrState->selectedZone-1]->selected = 0;
-        _zones[ci->value-1]->active = 1;
-        //ptrState->selectedZone = ci->value;
-        if (ptrState->selectedZone != 0)
           _zones[ptrState->selectedZone-1]->selected = 1;
-        if (cip == ci) ptrState->deactivatedZones = ci->next;
-        else cip->next = NULL;
-        free(ci);
       }
-      break;
+    }
+    break;
+  }
+  case 'A':
+  {
+    if (ptrState->deactivatedZones != NULL)
+    {
+      struct chain_int* ci = ptrState->deactivatedZones;
+      struct chain_int* cip = NULL;
+      while (ci->next != NULL)
+      {
+        cip = ci;
+        ci = ci->next;
+      }
+      if (ptrState->selectedZone != 0) _zones[ptrState->selectedZone-1]->selected = 0;
+      _zones[ci->value-1]->active = 1;
+      //ptrState->selectedZone = ci->value;
+      if (ptrState->selectedZone != 0) _zones[ptrState->selectedZone-1]->selected = 1;
+      if (cip == NULL) ptrState->deactivatedZones = NULL;
+      else cip->next = NULL;
+      free(ci);
+    }
+    //ptrState->printDeactivatedZones();
+    break;
+  }
 
-      // Image dump
-    case 'y':
-      stateHeader = ptrState->header;
-      stateInfo = ptrState->info;
-      stateMenu = ptrState->menu;
-      stateBB = ptrState->bb;
-      ptrState->header = 0;
-      ptrState->info = 0;
-      ptrState->menu = 0;
-      ptrState->bb = 0;
-      display();
-      dumpWindow();
-      ptrState->header = stateHeader;
-      ptrState->info = stateInfo;
-      ptrState->menu = stateMenu;
-      ptrState->bb = stateBB;
-      printTmpMessage("Image dumped to file.");
-      break;
+  // Image dump
+  // case 'y':
+  // {
+  //   stateHeader = ptrState->header;
+  //   stateInfo = ptrState->info;
+  //   stateMenu = ptrState->menu;
+  //   stateBB = ptrState->bb;
+  //   ptrState->header = 0;
+  //   ptrState->info = 0;
+  //   ptrState->menu = 0;
+  //   ptrState->bb = 0;
+  //   display();
+  //   dumpWindow();
+  //   ptrState->header = stateHeader;
+  //   ptrState->info = stateInfo;
+  //   ptrState->menu = stateMenu;
+  //   ptrState->bb = stateBB;
+  //   printTmpMessage("Image dumped to file.");
+  //   break;
+  // }
 
-      // Change render appearance
-    case 'c':
-      changeAppearance();
-      break;
+  // Change render appearance
+  case 'c':
+  {
+    changeAppearance();
+    break;
+  }
 
-    default:
-      break;
+  default:
+  break;
+
   }
 }
 
 //=============================================================================
 // Branche les appels suivants les fleches
 //=============================================================================
-void Data::arrows(int key, int x, int y)
+void Data::arrows(unsigned char key, E_Int x, E_Int y)
 {
-  double alpha = 0.05;
+  double alpha = 0.07853981633974483;
   double dx = (_view.xeye - _view.xcam)*alpha;
   double dy = (_view.yeye - _view.ycam)*alpha;
   double dz = (_view.zeye - _view.zcam)*alpha;
   double d = sqrt(dx*dx + dy*dy + dz*dz);
-  int modif = glutGetModifiers();
+  E_Int modif = glutGetModifiers();
   double dirx = _view.dirx;
   double diry = _view.diry;
   double dirz = _view.dirz;
@@ -404,89 +454,75 @@ void Data::arrows(int key, int x, int y)
   
   if (ptrState->kkeysActivated == 0)
   {
+    //printf("special key %d\n", key);
     if (key == GLUT_KEY_UP) 
     {ptrState->keys[ptrState->kcursor]=1; ptrState->kcursor++;} 
     else if (key == GLUT_KEY_DOWN) 
     {ptrState->keys[ptrState->kcursor]=2; ptrState->kcursor++;}
     else if (key == GLUT_KEY_LEFT) 
     {ptrState->keys[ptrState->kcursor]=3; ptrState->kcursor++;}
-     else if (key == GLUT_KEY_RIGHT) 
+    else if (key == GLUT_KEY_RIGHT) 
     {ptrState->keys[ptrState->kcursor]=4; ptrState->kcursor++;}
+    else 
+    {ptrState->keys[ptrState->kcursor]=key; ptrState->kcursor++;}
     return;
   }
 
   switch (key)
   {
     case GLUT_KEY_UP:
+    {
       if (modif == GLUT_ACTIVE_SHIFT)
         strafeUp(alpha, dx, dy, dz, d, dirx, diry, dirz);
       else if (modif == GLUT_ACTIVE_CTRL)
-        rotateHeadUp(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      else
       {
         _view.xcam += dx;
         _view.ycam += dy;
         _view.zcam += dz;
-        
-        /*
-        if (d <= epsup*1.e-5)
-        { if (_view.clipping != 3) veryVeryCloseClipping(); }
-        else if (d <= epsup*1.e-3)
-        { if (_view.clipping != 2) veryCloseClipping(); }
-        else if (d <= epsup*1.)
-        { if (_view.clipping != 1) closeClipping(); }
-        else
-        { if (_view.clipping != 0) farClipping(); }
-        */
         adaptiveClipping(d);
       }
+      else
+        moveUp(alpha, dx, dy, dz, d, dirx, diry, dirz);
       break;
+    }
       
     case GLUT_KEY_DOWN:
+    {
       if (modif == GLUT_ACTIVE_SHIFT)
         strafeDown(alpha, dx, dy, dz, d, dirx, diry, dirz);
       else if (modif == GLUT_ACTIVE_CTRL)
-        rotateHeadDown(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      else
       {
         _view.xcam -= dx;
         _view.ycam -= dy;
         _view.zcam -= dz;
-        /*
-        if (d > epsup*1.)
-        { if (_view.clipping != 0) farClipping(); }
-        else if (d > epsup*1.e-3)
-        { if (_view.clipping != 1) closeClipping(); }
-        else if (d > epsup*1.e-5)
-        { if (_view.clipping != 2) veryCloseClipping(); }
-        else
-        { if (_view.clipping != 3) veryVeryCloseClipping(); }
-        */
         adaptiveClipping(d);
       }
+      else
+        moveDown(alpha, dx, dy, dz, d, dirx, diry, dirz);
       break;
+    }
       
     case GLUT_KEY_LEFT:
-      if (modif == GLUT_ACTIVE_SHIFT)
-        strafeLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      else if (modif == GLUT_ACTIVE_CTRL)
-        rotateHeadLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      else if (modif == (GLUT_ACTIVE_CTRL | GLUT_ACTIVE_SHIFT))
-        tiltLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      else
-        moveLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      break;
-      
-    case GLUT_KEY_RIGHT:
+    {
       if (modif == GLUT_ACTIVE_SHIFT)
         strafeRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
       else if (modif == GLUT_ACTIVE_CTRL)
-        rotateHeadRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
-      else if (modif == (GLUT_ACTIVE_CTRL | GLUT_ACTIVE_SHIFT))
-        tiltRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
+        tiltLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
       else
         moveRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
       break;
+    }
+      
+    case GLUT_KEY_RIGHT:
+    {
+      if (modif == GLUT_ACTIVE_SHIFT)
+        strafeLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
+      else if (modif == GLUT_ACTIVE_CTRL)
+        tiltRight(alpha, dx, dy, dz, d, dirx, diry, dirz);
+      else
+        moveLeft(alpha, dx, dy, dz, d, dirx, diry, dirz);
+      break;
+    }
   }
   //printf("camera position %f %f %f\n",_view.xcam,_view.ycam,_view.zcam);
 }
@@ -499,20 +535,47 @@ void Data::moveDown(double alpha, double dx, double dy, double dz, double d,
 {
   if (ptrState->dim == 3)
   {
-    double z1, z2, z3, d1, d2, d3;
-    _view.xcam = _view.xcam - dirx*d;
-    _view.ycam = _view.ycam - diry*d;
-    _view.zcam = _view.zcam - dirz*d;
-    z1 = dy*dirz - dz*diry;
-    z2 = dz*dirx - dx*dirz;
-    z3 = dx*diry - dy*dirx;
-    d1 = dy*z3 -dz*z2;
-    d2 = dz*z1 -dx*z3;
-    d3 = dx*z2-dy*z1;
-    z1 = 1./sqrt(d1*d1 + d2*d2 + d3*d3);
-    _view.dirx =  -d1 * z1;
-    _view.diry =  -d2 * z1;
-    _view.dirz =  -d3 * z1;
+    double P0ex, P0ey, P0ez, ox, oy, oz, P1x, P1y, P1z;
+    double P1ex, P1ey, P1ez, nv, nd, f, nP1e, nP0e, k;
+    P1x = _view.xcam - dirx*d;
+    P1y = _view.ycam - diry*d;
+    P1z = _view.zcam - dirz*d;
+    P1ex = P1x - _view.xeye;
+    P1ey = P1y - _view.yeye;
+    P1ez = P1z - _view.zeye;
+
+    P0ex = _view.xcam - _view.xeye;
+    P0ey = _view.ycam - _view.yeye;
+    P0ez = _view.zcam - _view.zeye;
+
+    ox = P0ey*dirz - P0ez*diry;
+    oy = P0ez*dirx - P0ex*dirz;
+    oz = P0ex*diry - P0ey*dirx;
+    nv = dirx*dirx+diry*diry+dirz*dirz;
+    
+    dx = P1ey*oz - P1ez*oy;
+    dy = P1ez*ox - P1ex*oz;
+    dz = P1ex*oy - P1ey*ox;
+
+    nd = dx*dx + dy*dy + dz*dz;
+    if (nd > 1.e-24) f = sqrt(nv/nd);
+    else f = 1.;
+    dx = - dx * f;
+    dy = - dy * f;
+    dz = - dz * f;
+
+    _view.dirx = dx;
+    _view.diry = dy;
+    _view.dirz = dz;
+
+    nP1e = P1ex*P1ex+P1ey*P1ey+P1ez*P1ez;
+    nP0e = P0ex*P0ex+P0ey*P0ey+P0ez*P0ez;
+    if (nP1e > 1.e-24) k = sqrt(nP0e / nP1e);
+    else k = 0.;    
+    _view.xcam = _view.xeye + k*P1ex;
+    _view.ycam = _view.yeye + k*P1ey;
+    _view.zcam = _view.zeye + k*P1ez;
+
   }
   else
   {
@@ -583,20 +646,47 @@ void Data::moveUp(double alpha, double dx, double dy, double dz, double d,
 {
   if (ptrState->dim == 3)
   {
-    double z1, z2, z3, d1, d2, d3;
-    _view.xcam = _view.xcam + dirx*d;
-    _view.ycam = _view.ycam + diry*d;
-    _view.zcam = _view.zcam + dirz*d;
-    z1 = dy*dirz - dz*diry;
-    z2 = dz*dirx - dx*dirz;
-    z3 = dx*diry - dy*dirx;
-    d1 = dy*z3 -dz*z2;
-    d2 = dz*z1 -dx*z3;
-    d3 = dx*z2-dy*z1;
-    z1 = 1./sqrt(d1*d1 + d2*d2 + d3*d3);
-    _view.dirx =  -d1 * z1;
-    _view.diry =  -d2 * z1;
-    _view.dirz =  -d3 * z1;
+    double P0ex, P0ey, P0ez, ox, oy, oz, P1x, P1y, P1z;
+    double P1ex, P1ey, P1ez, nv, nd, f, nP1e, nP0e, k;
+    P1x = _view.xcam + dirx*d;
+    P1y = _view.ycam + diry*d;
+    P1z = _view.zcam + dirz*d;
+    P1ex = P1x - _view.xeye;
+    P1ey = P1y - _view.yeye;
+    P1ez = P1z - _view.zeye;
+ 
+    P0ex = _view.xcam - _view.xeye;
+    P0ey = _view.ycam - _view.yeye;
+    P0ez = _view.zcam - _view.zeye;
+
+    ox = P0ey*dirz - P0ez*diry;
+    oy = P0ez*dirx - P0ex*dirz;
+    oz = P0ex*diry - P0ey*dirx;
+    nv = dirx*dirx+diry*diry+dirz*dirz;
+    
+    dx = P1ey*oz - P1ez*oy;
+    dy = P1ez*ox - P1ex*oz;
+    dz = P1ex*oy - P1ey*ox;
+
+    nd = dx*dx + dy*dy + dz*dz;
+    if (nd > 1.e-24) f = sqrt(nv/nd);
+    else f = 1.;
+    dx = - dx * f;
+    dy = - dy * f;
+    dz = - dz * f;
+
+    _view.dirx = dx;
+    _view.diry = dy;
+    _view.dirz = dz;
+
+    nP1e = P1ex*P1ex+P1ey*P1ey+P1ez*P1ez;
+    nP0e = P0ex*P0ex+P0ey*P0ey+P0ez*P0ez;
+    if (nP1e > 1.e-24) k = sqrt(nP0e / nP1e);
+    else k = 0.;    
+    _view.xcam = _view.xeye + k*P1ex;
+    _view.ycam = _view.yeye + k*P1ey;
+    _view.zcam = _view.zeye + k*P1ez;
+
   }
   else
   {
@@ -667,9 +757,28 @@ void Data::moveRight(double alpha, double dx, double dy, double dz, double d,
 {
   if (ptrState->dim == 3)
   {
+    /*
     _view.xcam = _view.xcam + dy*dirz - dz*diry;
     _view.ycam = _view.ycam - dx*dirz + dz*dirx;
-    _view.zcam = _view.zcam + dx*diry - dy*dirx; 
+    _view.zcam = _view.zcam + dx*diry - dy*dirx;
+    */
+    double P1x,P1y,P1z,P1ex,P1ey,P1ez,P0ex,P0ey,P0ez,nP1e,nP0e,k;
+    P1x = _view.xcam + dy*dirz - dz*diry;
+    P1y = _view.ycam - dx*dirz + dz*dirx;
+    P1z = _view.zcam + dx*diry - dy*dirx;
+    P1ex = P1x - _view.xeye;
+    P1ey = P1y - _view.yeye;
+    P1ez = P1z - _view.zeye;
+    P0ex = _view.xcam - _view.xeye;
+    P0ey = _view.ycam - _view.yeye;
+    P0ez = _view.zcam - _view.zeye;
+    nP1e = P1ex*P1ex+P1ey*P1ey+P1ez*P1ez;
+    nP0e = P0ex*P0ex+P0ey*P0ey+P0ez*P0ez;
+    if (nP1e > 1.e-24) k = sqrt(nP0e / nP1e);
+    else k = 0.;
+    _view.xcam = _view.xeye + k*P1ex;
+    _view.ycam = _view.yeye + k*P1ey;
+    _view.zcam = _view.zeye + k*P1ez;
   }
   else if (ptrState->dim == 2)
   {
@@ -878,9 +987,28 @@ void Data::moveLeft(double alpha, double dx, double dy, double dz, double d,
 {
   if (ptrState->dim == 3)
   {
+    /*
     _view.xcam = _view.xcam - dy*dirz + dz*diry;
     _view.ycam = _view.ycam + dx*dirz - dz*dirx;
     _view.zcam = _view.zcam - dx*diry + dy*dirx;
+    */
+    double P1x,P1y,P1z,P1ex,P1ey,P1ez,P0ex,P0ey,P0ez,nP1e,nP0e,k;
+    P1x = _view.xcam - dy*dirz + dz*diry;
+    P1y = _view.ycam + dx*dirz - dz*dirx;
+    P1z = _view.zcam - dx*diry + dy*dirx;
+    P1ex = P1x - _view.xeye;
+    P1ey = P1y - _view.yeye;
+    P1ez = P1z - _view.zeye;
+    P0ex = _view.xcam - _view.xeye;
+    P0ey = _view.ycam - _view.yeye;
+    P0ez = _view.zcam - _view.zeye;
+    nP1e = P1ex*P1ex+P1ey*P1ey+P1ez*P1ez;
+    nP0e = P0ex*P0ex+P0ey*P0ey+P0ez*P0ez;
+    if (nP1e > 1.e-24) k = sqrt(nP0e / nP1e);
+    else k = 0.;
+    _view.xcam = _view.xeye + k*P1ex;
+    _view.ycam = _view.yeye + k*P1ey;
+    _view.zcam = _view.zeye + k*P1ez;
   }
   else if (ptrState->dim == 2)
   {
@@ -978,11 +1106,11 @@ void Data::strafeLeft(double alpha, double dx, double dy, double dz, double d,
 //=============================================================================
 void Data::changeIPlanePlus()
 {
-  int modif = glutGetModifiers();
-  int* changed = new int[_numberOfStructZones];
-  int nchanged = 0;
+  E_Int modif = glutGetModifiers();
+  E_Int* changed = new E_Int [_numberOfStructZones];
+  E_Int nchanged = 0;
 
-  for (int nz = 0; nz < _numberOfStructZones; nz++)
+  for (E_Int nz = 0; nz < _numberOfStructZones; nz++)
   {
     StructZone* z = _szones[nz];
     if (z->selected == 1)
@@ -1005,11 +1133,11 @@ void Data::changeIPlanePlus()
 //=============================================================================
 void Data::changeJPlanePlus()
 {
-  int modif = glutGetModifiers();
-  int*  changed = new int [_numberOfStructZones];
-  int nchanged = 0;
+  E_Int modif = glutGetModifiers();
+  E_Int* changed = new E_Int [_numberOfStructZones];
+  E_Int nchanged = 0;
 
-  for (int nz = 0; nz < _numberOfStructZones; nz++)
+  for (E_Int nz = 0; nz < _numberOfStructZones; nz++)
   {
     StructZone* z = _szones[nz];
     if (z->selected == 1)
@@ -1032,11 +1160,11 @@ void Data::changeJPlanePlus()
 //=============================================================================
 void Data::changeKPlanePlus()
 {
-  int modif = glutGetModifiers();
-  int* changed = new int[_numberOfStructZones];
-  int nchanged = 0;
+  E_Int modif = glutGetModifiers();
+  E_Int* changed = new E_Int [_numberOfStructZones];
+  E_Int nchanged = 0;
 
-  for (int nz = 0; nz < _numberOfStructZones; nz++)
+  for (E_Int nz = 0; nz < _numberOfStructZones; nz++)
   {
     StructZone* z = _szones[nz];
     if (z->selected == 1)
@@ -1059,11 +1187,11 @@ void Data::changeKPlanePlus()
 //=============================================================================
 void Data::changeIPlaneMinus()
 {
-  int modif = glutGetModifiers();
-  int* changed = new int[_numberOfStructZones];
-  int nchanged = 0;
+  E_Int modif = glutGetModifiers();
+  E_Int* changed = new E_Int [_numberOfStructZones];
+  E_Int nchanged = 0;
 
-  for (int nz = 0; nz < _numberOfStructZones; nz++)
+  for (E_Int nz = 0; nz < _numberOfStructZones; nz++)
   {
     StructZone* z = _szones[nz];
     if (z->selected == 1)
@@ -1085,11 +1213,11 @@ void Data::changeIPlaneMinus()
 //=============================================================================
 void Data::changeJPlaneMinus()
 {
-  int modif = glutGetModifiers();
-  int* changed = new int[_numberOfStructZones];
-  int nchanged = 0;
+  E_Int modif = glutGetModifiers();
+  E_Int* changed = new E_Int [_numberOfStructZones];
+  E_Int nchanged = 0;
 
-  for (int nz = 0; nz < _numberOfStructZones; nz++)
+  for (E_Int nz = 0; nz < _numberOfStructZones; nz++)
   {
     StructZone* z = _szones[nz];
     if (z->selected == 1)
@@ -1111,11 +1239,11 @@ void Data::changeJPlaneMinus()
 //=============================================================================
 void Data::changeKPlaneMinus()
 {
-  int modif = glutGetModifiers();
-  int* changed = new int[_numberOfStructZones];
-  int nchanged = 0;
+  E_Int modif = glutGetModifiers();
+  E_Int* changed = new E_Int [_numberOfStructZones];
+  E_Int nchanged = 0;
 
-  for (int nz = 0; nz < _numberOfStructZones; nz++)
+  for (E_Int nz = 0; nz < _numberOfStructZones; nz++)
   {
     StructZone* z = _szones[nz];
     if (z->selected == 1)
@@ -1210,24 +1338,24 @@ void Data::changeBlankingFunction()
 //=============================================================================
 void Data::changeAppearance()
 {
-  // In iso solid mode, change the colormap or the light
-  if (ptrState->mode == SCALARFIELD)
-  {
-    if (ptrState->isoLight == 0)
-    {
-      ptrState->isoLight = 1;
-      //printTmpMessage("Activating light for iso.");
-    }
-    else
-    {
-      if (_pref.colorMap->next == NULL)
-        _pref.colorMap = _plugins.colorMap;
-      else
-        _pref.colorMap = _pref.colorMap->next;
-      //printTmpMessage(_pref.colorMap->functionName);
-      ptrState->isoLight = 0;
-    }
-  }
+  // // In iso solid mode, change the colormap or the light
+  // if (ptrState->mode == SCALARFIELD)
+  // {
+  //   if (ptrState->isoLight == 0)
+  //   {
+  //     ptrState->isoLight = 1;
+  //     //printTmpMessage("Activating light for iso.");
+  //   }
+  //   else
+  //   {
+  //     if (_pref.colorMap->next == NULL)
+  //       _pref.colorMap = _plugins.colorMap;
+  //     else
+  //       _pref.colorMap = _pref.colorMap->next;
+  //     //printTmpMessage(_pref.colorMap->functionName);
+  //     ptrState->isoLight = 0;
+  //   }
+  // }
 
   // In solid mode 
   if (ptrState->mode == SOLID)

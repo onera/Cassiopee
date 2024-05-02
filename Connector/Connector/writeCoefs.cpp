@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -22,13 +22,41 @@
 using namespace std;
 using namespace K_FLD;
 
+#define BLOCK1\
+  for (size_t v2 =0; v2 < pyRcvIndices.size(); v2++)\
+    RELEASESHAREDN(pyRcvIndices[v2], FldRcvIndices[v2]);\
+
+#define BLOCK2\
+  BLOCK1;  \
+  for (size_t v2 =0; v2 < pyDnrIndices.size(); v2++)\
+    RELEASESHAREDN(pyDnrIndices[v2], FldDnrIndices[v2]);     \
+
+#define BLOCK3\
+  BLOCK2; \
+  for (size_t v2 =0; v2 < pyEXIndir.size(); v2++)\
+    RELEASESHAREDN(pyEXIndir[v2], FldEXIndir[v2]);\
+
+# define BLOCK4 \
+  BLOCK3; \
+  for (size_t v2 = 0; v2 < pyDnrCoefs.size(); v2++)\
+    RELEASESHAREDN(pyDnrCoefs[v2], FldDnrCoefs[v2]);\
+
+# define BLOCK5\
+  BLOCK4;\
+  for (size_t v2 =0; v2 < pyTypes.size(); v2++)\
+    RELEASESHAREDN(pyTypes[v2], FldTypes[v2]); \
+
+#define BLOCK6\
+  BLOCK5; \
+  for (size_t v2 = 0; v2 < pyCellN.size(); v2++)\
+    RELEASESHAREDS(pyCellN[v2], FldCellN[v2]);\
+
 //=============================================================================
 /* Ecriture des coefficients d'interpolation dans un fichier relisible 
    par elsA */
 //=============================================================================
 PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
 {
-  IMPORTNUMPY;
   PyObject *RcvIndexMap, *DonorIndexMap;  // indices des pts interpoles et des cellules donneuses
   PyObject *EXDirectionMap;
   PyObject *DonorInterpCoefMap;           // coefficients d interpolation
@@ -42,14 +70,13 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
   E_Int NZones;                        // nombre de points interpoles
   E_Int Solver;                        // solveur pour lequel les fichiers sont ecrits
   E_Int NGhostCells;
-  if (!PYPARSETUPLEI(args,
-                    "lOOOOOOOOOslll", "iOOOOOOOOOsiii",
+  if (!PYPARSETUPLE_(args, I_ OOOO_ OOOO_ O_ S_ III_,
                     &NZones, &BlockRcvIdMap, &RcvIndexMap, 
                     &EXDirectionMap, &DonorIndexMap, &DonorInterpCoefMap, &InterpTypesMap,
                     &DonorCellNMap, &ZoneDimMap,
                     &Npts, &PrefixFile, &isEX, &Solver, &NGhostCells))
   {
-      return NULL;
+    return NULL;
   }
 
   /*-------------------*/
@@ -84,7 +111,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     tpl = PyList_GetItem(Npts, v);
     if (PyInt_Check(tpl) == 0)
     {
-      printf("Warning: writeCoefs: invalid int for variable %d. Skipped...\n", v);
+      printf("Warning: writeCoefs: invalid int for variable " SF_D_ ". Skipped...\n", v);
     }
     else
     {
@@ -113,7 +140,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     pyKey = PyList_GetItem(key_list, i);
     if (PyInt_Check(pyKey) == 0)
     {
-      printf("Warning: writeCoefs: invalid int for variable %d. Skipped...\n", i);
+      printf("Warning: writeCoefs: invalid int for variable " SF_D_ ". Skipped...\n", i);
     }
     else
       intKey = PyInt_AsLong(pyKey);
@@ -144,13 +171,15 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     }
    blockRcvIdMap[intKey] = tmpListValue;
   }
-
   /*--------------------------------------------------------*/
   /* Extraction des listes de tableaux d indices            */
   /*--------------------------------------------------------*/
   map<E_Int,vector<E_Int*> > rcvIndexMap;
   map<E_Int,vector<E_Int*> > donorIndexMap;
-
+  vector<PyObject*> pyRcvIndices;
+  vector<FldArrayI*> FldRcvIndices;
+  vector<PyObject*> pyDnrIndices;
+  vector<FldArrayI*> FldDnrIndices;
   // rcvIndexMap : indices du bloc interpole
   if (PyDict_Check (RcvIndexMap) == 0)
   {
@@ -167,7 +196,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     pyKey = PyList_GetItem(key_list, i);
     if (PyInt_Check(pyKey) == 0)
     {
-      printf("Warning: writeCoefs: invalid int for variable %d. Skipped...\n", i);
+      printf("Warning: writeCoefs: invalid int for variable " SF_D_ ". Skipped...\n", i);
     }
     else
       intKey = PyInt_AsLong(pyKey);
@@ -186,23 +215,30 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     for (E_Int v  = 0 ; v < tmpListValueSize; v++)
     {
       PyObject* intArray = PyList_GetItem(pyListValues, v);
-      PyArrayObject* a = (PyArrayObject*)intArray;
-      if (PyArray_Check(a) == 0)
+      pyRcvIndices.push_back(intArray);
+
+      FldArrayI* indArrayI;
+      E_Int ok = K_NUMPY::getFromNumpyArray(intArray, indArrayI, true);
+      if ( ok == 1)
       {
-      printf("Warning: writeCoefs: RcvIndexMap must contain a list of arrays\n");
-      }
-      else
-      {
-        E_Int* indArray = (E_Int*)PyArray_DATA(a); 
+        E_Int* indArray = indArrayI->begin();
+        FldRcvIndices.push_back(indArrayI);
         tmpListValue.push_back(indArray);
       }
+      else 
+      {
+        BLOCK1;
+        PyErr_SetString(PyExc_TypeError,"writeCoefs: invalid array in RcvIndexMap");
+        return NULL;
+      }
     }
-   rcvIndexMap[intKey] = tmpListValue;
+    rcvIndexMap[intKey] = tmpListValue;
   }
 
   // DonorIndexArray  : indices du bloc donneur
   if (PyDict_Check (DonorIndexMap) == 0)
   {
+    BLOCK1;
     PyErr_SetString(PyExc_TypeError, 
                     "writeCoefs: DonorIndexMap must be a dictionary.");
     return NULL;
@@ -216,7 +252,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     pyKey = PyList_GetItem(key_list, i);
     if (PyInt_Check(pyKey) == 0)
     {
-      printf("Warning: writeCoefs: invalid int for variable %d. Skipped...\n", i);
+      printf("Warning: writeCoefs: invalid int for variable " SF_D_ ". Skipped...\n", i);
     }
     else
       intKey = PyInt_AsLong(pyKey);
@@ -226,6 +262,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     // check if pyListValue is a list
     if (PyList_Check (pyListValues) == 0)
     {
+      BLOCK1;
       PyErr_SetString(PyExc_TypeError, 
                       "writeCoefs: DonorIndexMap must contain lists.");
       return NULL;
@@ -235,28 +272,36 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     for (E_Int v  = 0 ; v < tmpListValueSize; v++)
     {
       PyObject* intArray = PyList_GetItem(pyListValues, v);
-      PyArrayObject* a = (PyArrayObject*)intArray;
-      if (PyArray_Check(a) == 0)
+      pyDnrIndices.push_back(intArray);
+      FldArrayI* indArrayI;
+      E_Int ok = K_NUMPY::getFromNumpyArray(intArray, indArrayI, true);
+      if ( ok == 1)
       {
-      printf("Warning: writeCoefs: DonorIndexMap must contain a list of arrays\n");
+        E_Int* indArray = indArrayI->begin();
+        FldDnrIndices.push_back(indArrayI);
+        tmpListValue.push_back(indArray);
       }
-      else
-      { 
-        E_Int* indArray = (E_Int*)PyArray_DATA(a); tmpListValue.push_back(indArray);
-        //int* indArray = (int*)PyArray_DATA(a); tmpListValue.push_back(indArray);
+      else 
+      {
+        BLOCK2;
+        PyErr_SetString(PyExc_TypeError,"writeCoefs: invalid array in DonorIndexMap");
+        return NULL;
       }
     }
-   donorIndexMap[intKey] = tmpListValue;
+    donorIndexMap[intKey] = tmpListValue;
   }
 
   /*----------------------------------------------------------*/
   /* Extraction des tableaux d indirection pour les points EX */
   /*----------------------------------------------------------*/
   map<E_Int,vector<E_Int*> >directionEXMap;
+  vector<PyObject*> pyEXIndir;
+  vector<FldArrayI*> FldEXIndir;
   if (isEX)
   {    
     if (PyDict_Check (EXDirectionMap) == 0)
     {
+      BLOCK2;
       PyErr_SetString(PyExc_TypeError, 
                       "writeCoefs: EXDirectionMap must be a dictionary.");
       return NULL;
@@ -270,7 +315,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
       pyKey = PyList_GetItem(key_list, i);
       if (PyInt_Check(pyKey) == 0)
       {
-        printf("Warning: writeCoefs: invalid int for variable %d. Skipped...\n", i);
+        printf("Warning: writeCoefs: invalid int for variable " SF_D_ ". Skipped...\n", i);
       }
       else
         intKey = PyInt_AsLong(pyKey);
@@ -280,6 +325,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
       // check if pyListValue is a list
       if (PyList_Check (pyListValues) == 0)
       {
+        BLOCK2;
         PyErr_SetString(PyExc_TypeError, 
                         "writeCoefs: EXDirectionMap must contain lists.");
         return NULL;
@@ -289,15 +335,20 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
       for (E_Int v  = 0 ; v < tmpListValueSize; v++)
       {
         PyObject* intArray = PyList_GetItem(pyListValues, v);
-        PyArrayObject* a = (PyArrayObject*)intArray;
-        if (PyArray_Check(a) == 0)
+        pyEXIndir.push_back(intArray);
+        FldArrayI* indArrayI;
+        E_Int ok = K_NUMPY::getFromNumpyArray(intArray, indArrayI, true);
+        if ( ok == 1)
         {
-          printf("Warning: writeCoefs: EXDirectionMap must contain a list of arrays\n");
-        }
-        else
-        {
-          E_Int* indArray = (E_Int*)PyArray_DATA(a); 
+          E_Int* indArray = indArrayI->begin();
+          FldEXIndir.push_back(indArrayI);
           tmpListValue.push_back(indArray);
+        }
+        else 
+        {
+          BLOCK3;
+          PyErr_SetString(PyExc_TypeError,"writeCoefs: invalid array in EXIndirMap");
+          return NULL;
         }
       }
       directionEXMap[intKey] = tmpListValue;
@@ -309,8 +360,11 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
   /*--------------------------------------------------------*/
   // DonorInterpCoef : coefficient d'interpolation
   map<E_Int,vector<FldArrayF> > donorCoefMap;
+  vector<PyObject*> pyDnrCoefs;
+  vector<FldArrayF*> FldDnrCoefs;
   if (PyDict_Check (DonorInterpCoefMap) == 0)
   {
+    BLOCK3;
     PyErr_SetString(PyExc_TypeError, 
                     "writeCoefs: DonorInterpCoefMap must be a dictionary.");
     return NULL;
@@ -324,7 +378,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     pyKey = PyList_GetItem(key_list, i);
     if (PyInt_Check(pyKey) == 0)
     {
-      printf("Warning: writeCoefs: invalid int for variable %d. Skipped...\n", i);
+      printf("Warning: writeCoefs: invalid int for variable " SF_D_ ". Skipped...\n", i);
     }
     else
       intKey = PyInt_AsLong(pyKey);
@@ -334,6 +388,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     // check if pyListValue is a list
     if (PyList_Check (pyListValues) == 0)
     {
+      BLOCK3;
       PyErr_SetString(PyExc_TypeError, 
                       "writeCoefs: DonorInterpCoefMap must contain lists.");
       return NULL;
@@ -343,25 +398,20 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     for (E_Int v  = 0 ; v < tmpListValueSize; v++)
     {
       PyObject* pyArrayValue = PyList_GetItem(pyListValues, v);
-      PyArrayObject* a = (PyArrayObject*)pyArrayValue;
-      if (PyArray_Check(a) == 0)
+      pyDnrCoefs.push_back(pyArrayValue);
+      FldArrayF* dnrCoefs;
+      E_Int ok = K_NUMPY::getFromNumpyArray(pyArrayValue, dnrCoefs, true);
+      if (ok == 1)
       {
-      printf("Warning: writeCoefs: DonorInterpCoefMap must contain a list of arrays\n");
+        FldDnrCoefs.push_back(dnrCoefs);
+        tmpListValue.push_back(*dnrCoefs);
       }
       else
       {
-#ifdef NPY_1_7_API_VERSION
-        E_Int isFortran = PyArray_IS_F_CONTIGUOUS(a);
-#else
-        E_Int isFortran = PyArray_CHKFLAGS(a, NPY_F_CONTIGUOUS);
-#endif
-        E_Int adim1, adim2;
-        if (isFortran == 1) {adim1 = PyArray_DIMS(a)[0]; adim2 = PyArray_DIMS(a)[1];}
-        else  {adim1 = PyArray_DIMS(a)[1]; adim2 = PyArray_DIMS(a)[0];}
-        FldArrayF coefArray(adim1, adim2, (E_Float*)PyArray_DATA(a));
-        
-        tmpListValue.push_back(coefArray);
-      }
+        BLOCK4;
+        PyErr_SetString(PyExc_TypeError,"writeCoefs: invalid array in DonorInterpCoefMap");
+        return NULL;
+      }      
     }
     donorCoefMap[intKey] = tmpListValue;
   }
@@ -370,8 +420,12 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
   /* Extraction des types d interpolation                   */
   /*--------------------------------------------------------*/
   map<E_Int,vector<E_Int*> > interpTypesMap;
+  vector<PyObject*> pyTypes;
+  vector<FldArrayI*> FldTypes;
+
   if (PyDict_Check (InterpTypesMap) == 0)
   {
+    BLOCK4;
     PyErr_SetString(PyExc_TypeError, 
                     "writeCoefs: InterpTypesMap must be a dictionary.");
     return NULL;
@@ -384,7 +438,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     PyObject * pyKey = 0;
     pyKey = PyList_GetItem(key_list, i);
     if (PyInt_Check(pyKey) == 0)
-      printf("Warning: writeCoefs: invalid integer for variable %d. Skipped...\n", i);
+      printf("Warning: writeCoefs: invalid integer for variable " SF_D_ ". Skipped...\n", i);
     else
       intKey = PyInt_AsLong(pyKey);
     //Convert to a C++ vector<E_Int*>
@@ -393,6 +447,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     // check if pyListValue is a list
     if (PyList_Check (pyListValues) == 0)
     {
+      BLOCK4;
       PyErr_SetString(PyExc_TypeError, 
                       "writeCoefs: InterpTypesMap must contain lists.");
       return NULL;
@@ -402,26 +457,35 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     for (E_Int v  = 0 ; v < tmpListValueSize; v++)
     {
       PyObject* intArray = PyList_GetItem(pyListValues, v);
-      PyArrayObject* a = (PyArrayObject*)intArray;
-      if (PyArray_Check(a) == 0)
+      pyTypes.push_back(intArray);
+      FldArrayI* indArrayI;
+      E_Int ok = K_NUMPY::getFromNumpyArray(intArray, indArrayI, true);
+      if ( ok == 1)
       {
-        printf("Warning: writeCoefs: InterpTypesMap must contain a list of arrays.\n");
+        FldTypes.push_back(indArrayI);
+        tmpListValue.push_back(indArrayI->begin());
       }
-      else
+      else 
       {
-        E_Int* indArray = (E_Int*)PyArray_DATA(a); 
-        tmpListValue.push_back(indArray);
+        BLOCK5;
+        PyErr_SetString(PyExc_TypeError,"writeCoefs: invalid array in InterpTypesMap");
+        return NULL;
       }
     }
     interpTypesMap[intKey] = tmpListValue;
   }
+
   /*--------------------------------------------------------*/
   /* Extraction des listes de champs cellN                  */
   /*--------------------------------------------------------*/
   // DonorCellN : champs cellNatureField
   map<E_Int,FldArrayF> lDonorCellN;
+  vector<PyObject*> pyCellN;
+  vector<FldArrayF*> FldCellN;
+
   if (PyDict_Check (DonorCellNMap) == 0)
   {
+    BLOCK5;
     PyErr_SetString(PyExc_TypeError, 
                     "writeCoefs: DonorCellNMap must be a dictionary.");
     return NULL;
@@ -435,21 +499,36 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     pyKey = PyList_GetItem(key_list, i);
     if (PyInt_Check(pyKey) == 0)
     {
-      printf("Warning: writeCoefs: invalid int for variable %d. Skipped...\n", i);
+      printf("Warning: writeCoefs: invalid int for variable " SF_D_ ". Skipped...\n", i);
     }
     else
       intKey = PyInt_AsLong(pyKey);
     // fill C++ map
     PyObject* pyArrayValue = PyDict_GetItem(DonorCellNMap, pyKey);
-    PyArrayObject* a = (PyArrayObject*)pyArrayValue;
-    if (PyArray_Check(a) == 0)
+    E_Int im, jm, km;
+    FldArrayF* cellNF; FldArrayI* cn;
+    char* varString; char* eltType;
+    E_Int res = K_ARRAY::getFromArray2(pyArrayValue, varString, 
+                                       cellNF, im, jm, km, cn, eltType); 
+    if ( res != 1 )
     {
+      BLOCK6;
       PyErr_SetString(PyExc_TypeError, 
-                      "writeCoefs: lDonorCellN must contain a list of arrays.");
+                      "writeCoefs: DonorCellNMap must be a structured array.");
       return NULL;
     }
-    FldArrayF cellnArray(PyArray_DIMS(a)[1], PyArray_DIMS(a)[0], (E_Float*)PyArray_DATA(a));
-    lDonorCellN[intKey] = cellnArray;
+    E_Int posc = K_ARRAY::isCellNatureField2Present(varString);
+    if ( posc != 0 )
+    {
+      BLOCK6;
+      PyErr_SetString(PyExc_TypeError, 
+                      "writeCoefs: DonorCellNMap must contain only cellN variable.");
+      return NULL;
+    }
+
+    pyCellN.push_back(pyArrayValue);
+    FldCellN.push_back(cellNF);
+    lDonorCellN[intKey]=*cellNF;
   }
 
   /*--------------------------------------------------------*/
@@ -458,6 +537,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
   map<E_Int, vector<E_Int> > zoneDimMap;
   if (PyDict_Check (ZoneDimMap) == 0)
   {
+    BLOCK6;
     PyErr_SetString(PyExc_TypeError, 
                     "writeCoefs: ZoneDimMap must be a dictionary.");
     return NULL;
@@ -471,7 +551,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     pyKey = PyList_GetItem(key_list, i);
     if (PyInt_Check(pyKey) == 0)
     {
-      printf("Warning: writeCoefs: invalid int for variable %d. Skipped...\n", i);
+      printf("Warning: writeCoefs: invalid int for variable " SF_D_ ". Skipped...\n", i);
     }
     else
       intKey = PyInt_AsLong(pyKey);
@@ -481,6 +561,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     // check if pyListValue is a list
     if (PyList_Check (pyListValues) == 0)
     {
+      BLOCK6;
       PyErr_SetString(PyExc_TypeError, 
                       "writeCoefs: ZoneDimMap must contain lists.");
       return NULL;
@@ -561,18 +642,26 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
       FILE* ptr_file = NULL;
       char* file = new char[K_ARRAY::VARSTRINGLENGTH];
       strcpy(file,PrefixFile);
-      char* strId = new char[K_ARRAY::VARSTRINGLENGTH]; sprintf(strId,"%04d",BlockDonorId);
+      char* strId = new char[K_ARRAY::VARSTRINGLENGTH];
+      #if defined E_DOUBLEINT
+        #if defined _WIN32
+        sprintf(strId,"%04lld",BlockDonorId);
+        #else
+        sprintf(strId,"%04ld",BlockDonorId);
+        #endif
+      #else
+      sprintf(strId,"%04d",BlockDonorId);
+      #endif
       strcat(file,strId);
       strcat(file,"_Blanking");
       ptr_file = fopen(file, "w");
       printf("Open file %s\n",file);fflush(stdout);
       // Ecriture du nombre de points du domaine d interpolation
       E_Int nptsInterp = cellNgc.getSize();
-      fprintf(ptr_file,"%d\n",nptsInterp);
+      fprintf(ptr_file, SF_D_ "\n",nptsInterp);
       for (E_Int np = 0; np < nptsInterp; np++)
       {
-        fprintf(ptr_file, "%d ",
-                cellNgc[np]);
+        fprintf(ptr_file, SF_D_ " ", cellNgc[np]);
       }
       fclose(ptr_file);
     }
@@ -582,14 +671,23 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     FILE* ptr_file = NULL;
     char* file = new char[K_ARRAY::VARSTRINGLENGTH];
     strcpy(file,PrefixFile);
-    char* strId = new char[K_ARRAY::VARSTRINGLENGTH]; sprintf(strId,"%04d",BlockDonorId);
+    char* strId = new char[K_ARRAY::VARSTRINGLENGTH];
+    #if defined E_DOUBLEINT
+      #if defined _WIN32
+      sprintf(strId,"%04lld",BlockDonorId);
+      #else
+      sprintf(strId,"%04ld",BlockDonorId);
+      #endif
+    #else
+    sprintf(strId,"%04d",BlockDonorId);
+    #endif
     strcat(file,strId);
     if (isEX) strcat(file,"_Int");
     ptr_file = fopen(file, "w");
     printf("Open file %s\n",file);fflush(stdout);
     // Ecriture du nombre de points d interpolations
     E_Int npts = nbInterpCells[noz];
-    fprintf(ptr_file,"%d\n",npts);
+    fprintf(ptr_file, SF_D_ "\n",npts);
 
     for (E_Int n = 0; n < nbRcvZones; n++)
     {
@@ -634,12 +732,12 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
         if (!isEX)
         {
           if (solver == 1) // elsA/Kernel
-            fprintf(ptr_file, "%d %d %d %d %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f\n",
+            fprintf(ptr_file, SF_D4_ " %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f\n",
                     indDonor, indRcv, RcvId, typeInterp, 
                     donorCoefMap1[np], donorCoefMap2[np],donorCoefMap3[np], donorCoefMap4[np], 
                     donorCoefMap5[np], donorCoefMap6[np], donorCoefMap7[np], donorCoefMap8[np]);
           else //Cassiopee/Kernel
-            fprintf(ptr_file, "%d %d %d %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f\n",
+            fprintf(ptr_file, SF_D3_ " %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f\n",
                     indDonor, indRcv, RcvId, donorCoefMap1[np], donorCoefMap2[np],donorCoefMap3[np], 
                     donorCoefMap4[np], donorCoefMap5[np], donorCoefMap6[np], donorCoefMap7[np], donorCoefMap8[np]);
         }
@@ -658,7 +756,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
             else if (directionEXMap[noz][n][np] == 3) indIntEX = kg*nignjg+jg*nig+ig     +   nbIntByDir; // interface de frontiere Jmin
             else if (directionEXMap[noz][n][np] == 4) indIntEX = (kg+1)*nignjg+jg*nig+ig + 2*nbIntByDir; // interface de frontiere Kmax
             else if (directionEXMap[noz][n][np] == 5) indIntEX = kg*nignjg+jg*nig+ig     + 2*nbIntByDir; // interface de frontiere Kmin
-            fprintf(ptr_file, "%d %d %d %d %d %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f\n",
+            fprintf(ptr_file, SF_D5_ " %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f\n",
                     indDonor, indIntEX, directionEXMap[noz][n][np], RcvId, typeInterp, 
                     donorCoefMap1[np], donorCoefMap2[np],donorCoefMap3[np], donorCoefMap4[np], 
                     donorCoefMap5[np], donorCoefMap6[np], donorCoefMap7[np], donorCoefMap8[np]);
@@ -675,7 +773,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
             else if (directionEXMap[noz][n][np] == 4) indIntEX = (kd+1)*ninj+jd*ni+id + nbIntByDiri + nbIntByDirj; // interface de frontiere Kmax
             else if (directionEXMap[noz][n][np] == 5) indIntEX = kd*ninj+jd*ni+id     + nbIntByDiri + nbIntByDirj; // interface de frontiere Kmin      
             
-            fprintf(ptr_file, "%d %d %d %d %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f\n",
+            fprintf(ptr_file, SF_D4_ " %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f %20.16f\n",
                     indDonor, indIntEX, directionEXMap[noz][n][np], RcvId, donorCoefMap1[np], donorCoefMap2[np],donorCoefMap3[np], 
                     donorCoefMap4[np], donorCoefMap5[np], donorCoefMap6[np], donorCoefMap7[np], donorCoefMap8[np]);
           }          
@@ -702,6 +800,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
 //     for (E_Int w = 0; w < vect.size(); w++) delete [] vect[w]; 
 //   }
 
+  BLOCK6;
   Py_INCREF(Py_None);
   return Py_None;
 }

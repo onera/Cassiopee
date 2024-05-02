@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -69,6 +69,8 @@ void Data::displayAnaglyph()
             _view.dirx, _view.diry, _view.dirz);
   computeFrustumPlanes(_view);
   
+  glEnable(GL_MULTISAMPLE);
+
   // Display following mode
   if (ptrState->dim != 1)
   {
@@ -109,6 +111,7 @@ void Data::displayAnaglyph()
 
   // Recuperation dans la texture
   if (_texLeft != 0) glDeleteTextures(1, &_texLeft);
+  glActiveTexture(GL_TEXTURE0);
   glGenTextures(1, &_texLeft);
   glBindTexture(GL_TEXTURE_2D, _texLeft);
   glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, _view.w, _view.h, 0);
@@ -130,7 +133,6 @@ void Data::displayAnaglyph()
             _view.xeye, _view.yeye, _view.zeye, 
             _view.dirx, _view.diry, _view.dirz);
   computeFrustumPlanes(_view);
-  glEnable(GL_MULTISAMPLE);
   
   // Display following mode
   if (ptrState->dim != 1)
@@ -171,29 +173,28 @@ void Data::displayAnaglyph()
 //     displayPlot();
   }
 
-  glDisable(GL_MULTISAMPLE);
-
 #ifdef __SHADERS__
   // Update du frame buffer pour les shaders le necessitant
   // Je pense qu'il faudrait le faire tout le temps
-  if (_shaders.currentShader() == 3)
+  if (_shaders.currentShader() == _shaders.shader_id(3))
   {
-     int w = _view.w;
-     int h = _view.h;
-     w = w < _frameBufferSize ? w : (int) _frameBufferSize;
-     h = h < _frameBufferSize ? h : (int) _frameBufferSize;
-    glBindTexture(GL_TEXTURE_2D, _texFrameBuffer);
-    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, w, h);
+     E_Int w = _view.w; E_Int h = _view.h;
+     w = w < _frameBufferSize[ptrState->frameBuffer] ? w : (int) _frameBufferSize[ptrState->frameBuffer];
+     h = h < _frameBufferSize[ptrState->frameBuffer] ? h : (int) _frameBufferSize[ptrState->frameBuffer];
+    glBindTexture(GL_TEXTURE_2D, _texFrameBuffer[ptrState->frameBuffer]);
+    //glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, w, h);
+    glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, w, h, 0);
   }
 #endif
-
+  
   // Recuperation dans la texture
   if (_texRight != 0) glDeleteTextures(1, &_texRight);
+  glActiveTexture(GL_TEXTURE1);
   glGenTextures(1, &_texRight);
   glBindTexture(GL_TEXTURE_2D, _texRight);
   glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, _view.w, _view.h, 0);
 
-  // Rendering
+  // Render frame tex
   glClear(GL_COLOR_BUFFER_BIT);
   setOrthographicProjection();
   glPushMatrix();
@@ -203,7 +204,9 @@ void Data::displayAnaglyph()
   resetPerspectiveProjection();
 
   // Info + legende
-  if (ptrState->dim != 1)
+  if (ptrState->dim != 1 &&
+      ptrState->offscreen != 1 && ptrState->offscreen != 5 &&
+      ptrState->offscreen != 6 && ptrState->offscreen != 7)
   {
     if (ptrState->header == 1) printHeader();
     if (ptrState->info == 1) 
@@ -214,4 +217,7 @@ void Data::displayAnaglyph()
   ptrState->unlockDisplay();
   
   if (ptrState->render == 1) glutSwapBuffers();
+  else glFlush(); // Force flush (usefull with osmesa)
+
+  glDisable(GL_MULTISAMPLE);
 }

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -34,10 +34,8 @@
 #define PRINTSTACK2 ;
 #define PRINTSTACK \
   printf("stack:\n"); \
-  for (size_t i = 0; i < stackX.size(); i++) printf("%d: %g %g\n",i,stackX[i],stackY[i]);
-  
-//printf("Generation => commandP=%d (%d)\n", commandP, command);
-  
+  for (size_t i = 0; i < stackX.size(); i++) printf( SF_D_ ": %g %g\n",i,stackX[i],stackY[i]);
+    
 #define GENERATE \
   if (commandP == 0 || commandP == 1 || commandP == 2 || commandP == 3) \
     { \
@@ -355,10 +353,10 @@ E_Int K_IO::GenIO::svgread(
     res = readWord(ptrFile, buf);
   }
   // Cree les noms des zones
-  for (unsigned int i = 0; i < structField.size(); i++)
+  for (size_t i = 0; i < structField.size(); i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone%d",i);
+    sprintf(zoneName, "Zone%zu", i);
     zoneNames.push_back(zoneName);
   }
 
@@ -395,7 +393,7 @@ E_Int K_IO::GenIO::svgwrite(
   posx++; posy++; posz++;
 
   // Build writing data format
-  char format1[20], format2[20], format3[20], format4[20];
+  char format1[82], format2[85], format3[84], format4[85];
   char dataFmtl[40];
   strcpy(dataFmtl, dataFmt);
   int l = strlen(dataFmt); 
@@ -447,7 +445,7 @@ E_Int K_IO::GenIO::svgwrite(
           else
             fprintf(ptrFile, format2, f(ind,posx), f(ind,posy));
         }
-        fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path%d\" />\n", nc); nc++;
+        fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_"\" />\n", nc); nc++;
       }
 
     if (njl != 1)
@@ -464,7 +462,7 @@ E_Int K_IO::GenIO::svgwrite(
             else
               fprintf(ptrFile,format2, f(ind,posx), f(ind,posy));
           }
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path%d\" />\n", nc); nc++;
+          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
         }
     }
 
@@ -482,7 +480,7 @@ E_Int K_IO::GenIO::svgwrite(
             else
               fprintf(ptrFile,format2, f(ind,posx), f(ind,posy));
           }
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path%d\" />\n", nc); nc++;
+          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
         }
     }
   }
@@ -504,7 +502,7 @@ E_Int K_IO::GenIO::svgwrite(
           fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
           ind = c(i,2) - 1;
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path%d\" />\n", nc); nc++;
+          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
           break;
 
         case 2: // TRI
@@ -517,7 +515,7 @@ E_Int K_IO::GenIO::svgwrite(
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
           ind = c(i,1) -1;
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path%d\" />\n", nc); nc++;
+          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
           break;
           
         case 3: // QUAD
@@ -532,7 +530,7 @@ E_Int K_IO::GenIO::svgwrite(
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
           ind = c(i,1) -1;
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path%d\" />\n", nc); nc++;
+          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
           break;
 
         case 4: // TETRA
@@ -545,7 +543,7 @@ E_Int K_IO::GenIO::svgwrite(
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
           ind = c(i,1) - 1;
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path%d\" />\n", nc); nc++;
+          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
 
           fprintf(ptrFile, "<path\n   d=\"M");
           ind = c(i,1) -1;
@@ -554,14 +552,14 @@ E_Int K_IO::GenIO::svgwrite(
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
           ind = c(i,2) -1;
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path%d\" />\n", nc); nc++;
+          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
 
           fprintf(ptrFile, "<path\n   d=\"M");
           ind = c(i,4) -1;
           fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
           ind = c(i,3) -1;
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path%d\" />\n", nc); nc++;
+          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
           break;
 
         case 6: // PENTA (PRISM)
@@ -574,7 +572,7 @@ E_Int K_IO::GenIO::svgwrite(
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
           ind = c(i,1) - 1;
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path%d\" />\n", nc); nc++;
+          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
 
           fprintf(ptrFile, "<path\n   d=\"M");
           ind = c(i,1) -1;
@@ -585,7 +583,7 @@ E_Int K_IO::GenIO::svgwrite(
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
           ind = c(i,2) -1;
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path%d\" />\n", nc); nc++;
+          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
 
           fprintf(ptrFile, "<path\n   d=\"M");
           ind = c(i,4) -1;
@@ -594,14 +592,14 @@ E_Int K_IO::GenIO::svgwrite(
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
           ind = c(i,3) -1;
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path%d\" />\n", nc); nc++;
+          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
 
           fprintf(ptrFile, "<path\n   d=\"M");
           ind = c(i,6) -1;
           fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
           ind = c(i,5) -1;
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path%d\" />\n", nc); nc++;
+          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
           break;
 
         case 7: // HEXA
@@ -616,7 +614,7 @@ E_Int K_IO::GenIO::svgwrite(
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
           ind = c(i,1) - 1;
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path%d\" />\n", nc); nc++;
+          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
 
           fprintf(ptrFile, "<path\n   d=\"M");
           ind = c(i,1) -1;
@@ -627,7 +625,7 @@ E_Int K_IO::GenIO::svgwrite(
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
           ind = c(i,2) -1;
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path%d\" />\n", nc); nc++;
+          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
 
           fprintf(ptrFile, "<path\n   d=\"M");
           ind = c(i,4) -1;
@@ -638,21 +636,21 @@ E_Int K_IO::GenIO::svgwrite(
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
           ind = c(i,3) -1;
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path%d\" />\n", nc); nc++;
+          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
 
           fprintf(ptrFile, "<path\n   d=\"M");
           ind = c(i,5) -1;
           fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
           ind = c(i,8) -1;
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path%d\" />\n", nc); nc++;
+          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
 
           fprintf(ptrFile, "<path\n   d=\"M");
           ind = c(i,6) -1;
           fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
           ind = c(i,7) -1;
           fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path%d\" />\n", nc); nc++;
+          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
           break;
 
         default:

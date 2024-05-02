@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -31,9 +31,7 @@ PyObject* K_TRANSFORM::perturbate(PyObject* self, PyObject* args)
 {
   E_Float radius; PyObject* array;
   E_Int dim;
-  if (!PYPARSETUPLE(args,
-                    "Odl", "Odi",
-                    "Ofl", "Ofi",
+  if (!PYPARSETUPLE_(args, O_ R_ I_,
                     &array, &radius, &dim))
   {
       return NULL;

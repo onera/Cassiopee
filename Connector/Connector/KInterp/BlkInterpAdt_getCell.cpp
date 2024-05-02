@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -412,7 +412,7 @@ short K_KINTERP::BlkInterpAdt::searchInterpolationCell(
   /* If the technique of jump succeeds, find the interpolation coefficients
      in the cell by cut it in 24 tetrahedras */
   saut:
-  if (JUMP)  
+  if (JUMP)
   {
     if (getCoeffInterpHexa(x, y, z,
                            isomm,

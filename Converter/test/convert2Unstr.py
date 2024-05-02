@@ -1,6 +1,5 @@
 # - convertFile2Arrays (bin_tp unstructured) -
 import Converter as C
-import Post as P
 
 # lit un fichier non structure
 # le met dans un array

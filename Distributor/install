@@ -10,12 +10,12 @@ then
     if [ "$CASSIOPEE" = "" ]; then
         echo "You must specify a CASSIOPEE variable in you environment."
         echo "This variable specifies the installation path of *Cassiopee*."
-        exit
+        exit 1
     fi
     if [ "$ELSAPROD" = "" ]; then
         echo "You must specify a ELSAPROD in your environment."
         echo "This variable identifies the processor type."
-        exit
+        exit 1
     fi
     INSTALLPATH="$CASSIOPEE/Dist/bin/$ELSAPROD"
 
@@ -24,13 +24,13 @@ then
     if [ "$ELSAPROD" = "" ]; then
         echo "You must specify a ELSAPROD in your environment."
         echo "This variable identifies the processor type."
-        exit
+        exit 1
     fi
     INSTALLPATH="$1"
 else
     echo 'install: install in $CASSIOPEE/Dist/bin/$ELSAPROD'
     echo 'install <dir>: install in directory <dir>.'
-    exit
+    exit 1
 fi
 
 # Compilation et installation

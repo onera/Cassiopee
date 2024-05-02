@@ -40,20 +40,19 @@ h = T.translate(h, (0,2.5,0))
 h = CPlot.addRender2Zone(h, material='Solid', color='Iso:centers:F')
 
 t = C.newPyTree(['Base',a,b,c,d,e,f,g,h,i])
-t = C.fillMissingVariables(t)
 
 # Tests des shaders
-CPlot.display(t, displayBB=0, mode=2)
+CPlot.display(t, mode=2) # mode=2 active les shaders
 time.sleep(2)
 
 # Ajout du overlay mesh
 CPlot._addRender2Zone(t, meshOverlay=1)
-CPlot.display(t, displayBB=0, mode=2)
+CPlot.display(t, mode=2)
 time.sleep(2)
 
 # Ajout du blending
 CPlot._addRender2Zone(t, meshOverlay=0)
-for i in xrange(30):
+for i in range(30):
     CPlot._addRender2Zone(t, blending=1.-i*1./30.)
-    CPlot.display(t, displayBB=0, mode=2)
+    CPlot.display(t, mode=2)
     time.sleep(0.1)

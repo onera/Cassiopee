@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -50,9 +50,8 @@ C_LOCAL
       REAL_E xs, ys, zs, dx, dy, dz
       REAL_E xc01, xc02, xc03, r01, r02, r03
       REAL_E m11, m12, m13, m21, m22, m23, m31, m32, m33
-      INTEGER_E ind, ind2
-      INTEGER_E i, j, k
-
+      INTEGER_E ind
+      
 C==============================================================================
 
       xmax = -MAXFLOAT

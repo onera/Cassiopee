@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -37,12 +37,12 @@ PyObject* K_CONNECTOR::_getEmptyBCInfoNGON(PyObject* self, PyObject* args)
   {
       return NULL;
   }
-// Recup du numpy des faces externes
+  // Recup du numpy des faces externes
   FldArrayI* exteriorFaceIndices;
-  K_NUMPY::getFromNumpyArray(ExteriorFaceIndices, exteriorFaceIndices);
+  K_NUMPY::getFromNumpyArray(ExteriorFaceIndices, exteriorFaceIndices, true);
   // numpy des faces externes definies
   FldArrayI* exteriorDefinedFaceIndices;
-  K_NUMPY::getFromNumpyArray(ExteriorDefinedFaceIndices, exteriorDefinedFaceIndices);
+  K_NUMPY::getFromNumpyArray(ExteriorDefinedFaceIndices, exteriorDefinedFaceIndices, true);
       
   vector<PyArrayObject*> hook;
   E_Int im, jm, km, cnSize, cnNfld;

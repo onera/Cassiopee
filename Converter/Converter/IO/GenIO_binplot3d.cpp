@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -425,7 +425,7 @@ E_Int K_IO::GenIO::xyzread(
           ptrFile, _convertEndian, si, si2);
   if (s != _intLength*3*nzones) // sep : nombre de zones * 3 * taille int
   {
-    printf("Warning : binary file corrupted.\n");
+    printf("Warning: binary file corrupted.\n");
     fclose(ptrFile);
     return 1;
   }
@@ -970,11 +970,11 @@ E_Int K_IO::GenIO::p3dfread(
   if (cellN == false)
   {
     E_Int nv = nvar[0];
-    for (int p = 0 ; p < nv; p++)
+    for (E_Int p = 0 ; p < nv; p++)
     {
       if (strlen(varString) != 0) strcat(varString, ",");
       strcat(varString, "var");
-      sprintf(no, "%d", p);
+      sprintf(no, SF_D_, p);
       strcat(varString, no);
     }
   }
@@ -983,12 +983,12 @@ E_Int K_IO::GenIO::p3dfread(
     E_Int nv = nvar[0];
     E_Int l = strlen(varString);
     varString[l-6] = '\0';
-    for (int p = 0 ; p < nv; p++)
+    for (E_Int p = 0 ; p < nv; p++)
     {
       if (strlen(varString) != 0)
         strcat(varString, ",");
       strcat(varString, "var");
-      sprintf(no, "%d", p);
+      sprintf(no, SF_D_, p);
       strcat(varString, no);
     }
     strcat(varString, ",cellN");
@@ -1033,7 +1033,7 @@ E_Int K_IO::GenIO::plot3dread(
   for (E_Int i = 0; i < fieldSize; i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone%d", i);
+    sprintf(zoneName, "Zone" SF_D_, i);
     zoneNames.push_back(zoneName);
   }
 

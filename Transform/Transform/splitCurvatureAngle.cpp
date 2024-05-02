@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -26,20 +26,15 @@ using namespace std;
 // ============================================================================
 /* Split a i-array following curvature angle */
 // ============================================================================
-PyObject* K_TRANSFORM::splitCurvatureAngle( PyObject* self,
-                                            PyObject* args )
+PyObject* K_TRANSFORM::splitCurvatureAngle(PyObject* self, PyObject* args)
 {
   E_Float tol = 45.;
   E_Float dirVect[3];
-  dirVect[0] = 0;  dirVect[1] = 0;  dirVect[2] = 1; 
+  dirVect[0] = 0.;  dirVect[1] = 0.;  dirVect[2] = 1.;
   PyObject* array;
 
-  if (!PYPARSETUPLEF(args,
-                    "Od", "Of",
-                    &array, &tol) && 
-      !PYPARSETUPLEI(args,
-                    "O", "O",
-                    &array))
+  if (!PYPARSETUPLE_(args, O_ R_, &array, &tol) && 
+      !PYPARSETUPLE_(args, O_, &array))
   {
       return NULL;
   }
@@ -65,7 +60,7 @@ PyObject* K_TRANSFORM::splitCurvatureAngle( PyObject* self,
                       "splitCurvatureAngle: can't find coordinates in array.");
       return NULL;        
     }
-    if (im < 2 || jm != 1 || km != 1 )
+    if (im < 2 || jm != 1 || km != 1)
     {
       delete f;
       PyErr_SetString(PyExc_TypeError,

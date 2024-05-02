@@ -1,10 +1,11 @@
+"""Extract doubly defined boundaries."""
 # A doubly defined BC extractor
 
 # IN: maillage volumique + BC walls + BC Overlap doubly defined
 # Utilise setDoublyDefined -> cellN modifie
 # Recopie le cellN proche aux centres dans le BCDataSet
 # Extrait les BCs
-# Faits un selectCells
+# Fait un selectCells
 
 import Converter.Internal as Internal
 import Converter.PyTree as C
@@ -17,17 +18,17 @@ def _extrapOnBCDataSet(t, variables):
     # variables are extrapolated on BCDataSet **if not already present**
     for z in Internal.getZones(t):
         for bc in Internal.getNodesFromType2(z, 'BC_t'):
-            # print 'zone ', z[0], ' BC ', bc[0]
             allbcdset = Internal.getNodesFromType1(bc, 'BCDataSet_t')
-            # print 'bcdset = ', allbcdset
-
+            
             for bcdset in allbcdset:
                 for bcd in Internal.getNodesFromType1(bcdset, 'BCData_t'):
                     fields = Internal.getNodesFromType1(bcd, 'DataArray_t')
 
                     for var in variables:
-                        v = var.split(':')
-                        if len(v) == 2: v = v[1]
+                        v = var.split(':',1)
+                        if len(v) == 2: 
+                            if v[0] == 'centers' or v[0] == 'nodes': v = v[1]
+                            else: v = var
                         else: v = var
                         found = 0
                         for field in fields:
@@ -44,8 +45,6 @@ def _setBCDataSet__(z, bc, variables):
     if r is not None and r[1].shape[0] > 1: rangew = r[1]
     w = Internal.range2Window(rangew)
 
-    dim = Internal.getZoneDim(z)
-    ni = dim[1]; nj = dim[2]; nk = dim[3]
     imin = w[0]; imax = w[1]; jmin = w[2]; jmax = w[3]; kmin = w[4]; kmax = w[5]
     zw = T.subzone(z, (imin,jmin,kmin), (imax,jmax,kmax))
     # zw = CP.subzoneWithReorder__(z, w) # Modif CW 04/11/16
@@ -69,16 +68,19 @@ def _setBCDataSet__(z, bc, variables):
                         Internal._createUniqueChild(d,varName,'DataArray_t',value=fsn[1])
         else:
             for var in variables:
-                varl = var.split(':')
+                varl = var.split(':',1)
                 if len(varl) > 1:
                     if varl[0] == 'centers':
                         varname = varl[1]
                         fs = Internal.getNodeFromName1(FSC,varname)
-                    else:
+                    elif varl[0] == 'nodes':
                         varname = varl[1]
                         fs = Internal.getNodeFromName1(FSN,varname)
+                    else:
+                        varname = var
+                        fs = Internal.getNodeFromName1(FSN,varname)
                 else:
-                    varname = varl[0]
+                    varname = var
                     fs = Internal.getNodeFromName1(FSN,varname)
                 Internal._createUniqueChild(d,varname,'DataArray_t',value=fs[1])
 
@@ -93,7 +95,7 @@ def _setBCDataSet__(z, bc, variables):
                 Internal._createUniqueChild(cont,varName,'DataArray_t',value=fsn[1])
         else:
             for var in variables:
-                varl = var.split(':')
+                varl = var.split(':',1)
                 if len(varl) > 1:
                     if varl[0] == 'centers':
                         varname = varl[1]
@@ -108,6 +110,7 @@ def _setBCDataSet__(z, bc, variables):
     return None
 
 def extract(t, bcType, compute):
+    """Extract doubly defined boundaries."""
     if compute:
        # Calculs des doubly defined -> cellN
        C._initVars(t, 'centers:cellN', 1)

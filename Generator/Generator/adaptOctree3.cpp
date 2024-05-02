@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -29,7 +29,7 @@ using namespace std;
 PyObject* K_GENERATOR::adaptOctree3(PyObject* self, PyObject* args)
 {
   PyObject *octree, *indica;
-  if (!PyArg_ParseTuple(args, "OO", &octree, &indica)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &octree, &indica)) return NULL;
 
   // Check array
   E_Int ni, nj, nk;
@@ -208,7 +208,7 @@ PyObject* K_GENERATOR::adaptOctree3(PyObject* self, PyObject* args)
   delete fo;
   PyList_Append(l, tpl); Py_DECREF(tpl);
   char eltType2[8];
-  if ( strcmp(eltType, "QUAD")  == 0 ) strcpy(eltType2, "QUAD*");
+  if (strcmp(eltType, "QUAD")  == 0) strcpy(eltType2, "QUAD*");
   else strcpy(eltType2, "HEXA*");
   PyObject* tpl2 = K_ARRAY::buildArray(*indicout, "indicator", *cno, 
                                        -1, eltType2);
@@ -737,7 +737,8 @@ K_GENERATOR::mergeOctreeElement27(E_Int et, E_Int npts, E_Float indic,
       return 1;
     }
   }
-  printf("Error : mergeElement : too many candidates (%d) to merge with element %d. Check the octree.\n", ncandidats, et+1);
+  printf("Error : mergeElement : too many candidates (" SF_D_ ") to merge with element " SF_D_ ". Check the octree.\n",
+         ncandidats, et+1);
   
   return -1;
 }

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -49,10 +49,11 @@ void Data::init(void)
 #endif
   
   // Cree les textures
+  E_Int width, height;
   createNodeTexture();
   createNoise3DTexture();
   createFrameBufferTexture();
-  createPngTexture("windtunnel.png", _texEnviron1);
+  createPngTexture("windtunnel.png", _texEnviron1, width, height);
   createVoxelTexture();
 
   // Set bg color

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -29,7 +29,7 @@ PyObject* K_CONNECTOR::initNuma(PyObject* self, PyObject* args)
 {
   PyObject* sourceArray;  PyObject* targetArray; E_Int ideb;  E_Int size_bc; E_Int vartype; E_Float val;
 
-  if (!PYPARSETUPLE(args,"OOllld", "OOiiid","OOlllf", "OOiiif", &sourceArray, &targetArray, &ideb, &size_bc, &vartype, &val ))
+  if (!PYPARSETUPLE_(args, OO_ III_ R_, &sourceArray, &targetArray, &ideb, &size_bc, &vartype, &val ))
   {
     return NULL;
   }

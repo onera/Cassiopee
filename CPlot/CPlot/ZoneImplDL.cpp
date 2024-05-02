@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -39,7 +39,7 @@ void ZoneImplDL::freeGPURes( CPlotState* pt_state, bool freeIso )
   if (_DLmesh != 0) state.freeDLList.push_back(_DLmesh);
   if (_DLsolid != 0) state.freeDLList.push_back(_DLsolid);
   if (freeIso) {
-    if (_DLiso   != 0) state.freeDLList.push_back(_DLiso);
+    if (_DLiso != 0) state.freeDLList.push_back(_DLiso);
     _DLiso = 0;
   }
   _GPUResUse = 1; _DLmesh = 0; _DLsolid = 0;

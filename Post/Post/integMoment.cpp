@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -120,8 +120,7 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
   PyObject* coordArrays;
   PyObject* FArrays;
   PyObject* ratioArrays;
-  if (!PYPARSETUPLEF(args,
-                    "OOO(ddd)", "OOO(fff)",
+  if (!PYPARSETUPLE_(args, OOO_ TRRR_,
                     &coordArrays, &FArrays, &ratioArrays, &cx, &cy, &cz))
   {
       return NULL;

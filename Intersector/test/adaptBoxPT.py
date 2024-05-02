@@ -9,7 +9,6 @@ a = C.convertArray2NGon(a); a = G.close(a)
 
 m = XOR.adaptBox(a, box_ratio=10.)
 
-m = C.conformizeNGon(m)    # optional : to get a polyhedral conformal mesh
-m = XOR.closeOctalCells(m) # optional : to close the polyhedral cells
+m = XOR.closeCells(m) # optional : to close the polyhedral cells
 
 C.convertPyTree2File(m, 'out.cgns')

@@ -1,5 +1,6 @@
 # - Octree mesher app -
-import Tkinter as TK
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -58,10 +59,10 @@ def expandLayer():
         try:
             z = G.expandLayer(z, level=level)
             CTK.replace(CTK.t, nob, noz, z)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
 
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     if not fail:
         CTK.TXT.insert('START', 'Level %d expanded.\n'%level)
     else:
@@ -107,7 +108,7 @@ def octree2Struct():
         try:
             zlist = G.octree2Struct(z, vmin=vmin, ext=ext, optimized=optimized, 
                                     merged=merged, AMR=AMR)    
-        except Exception, e: 
+        except Exception as e: 
             fail = True; errors += [0,str(e)]
             
     CTK.t = C.addBase2PyTree(CTK.t, 'CARTESIAN')
@@ -115,8 +116,8 @@ def octree2Struct():
     nob = C.getNobOfBase(bases[0], CTK.t)
     for i in zlist: CTK.add(CTK.t, nob, -1, i)
 
-    CTK.t = C.fillMissingVariables(CTK.t)
-    if (fail == False):
+    #C._fillMissingVariables(CTK.t)
+    if fail == False:
         CTK.TXT.insert('START', 'Structured octree generated.\n')
     else:
         Panels.displayErrors(errors, header='Error: octree2Struct')
@@ -129,7 +130,7 @@ def octree2Struct():
 #==============================================================================
 def bodyFit():
     if CTK.t == []: return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -170,7 +171,7 @@ def bodyFit():
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     # Blank
-    BM = numpy.zeros((1, 1), numpy.int32); BM[0,0] = 1
+    BM = numpy.zeros((1, 1), dtype=Internal.E_NpyInt); BM[0,0] = 1
     tp = X.blankCells(tp, [surfaces], blankingMatrix=BM,
                       blankingType='node_in', dim=dim)
 
@@ -194,11 +195,11 @@ def bodyFit():
         try:
             z = G.snapFront(z, surfaces, optimized=2)
             CTK.t[2][nob][2][noz] = z
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
             
-    CTK.t = C.fillMissingVariables(CTK.t)
-    if (fail == False):
+    #C._fillMissingVariables(CTK.t)
+    if fail == False:
         CTK.TXT.insert('START', 'Snapped to body.\n')
     else:
         Panels.displayErrors(errors, header='Error: snapFront')
@@ -262,7 +263,7 @@ def adaptInsideOctree():
     # Blank   
     CTK.saveTree()
 
-    BM = numpy.zeros((1, 1), numpy.int32); BM[0,0] = 1
+    BM = numpy.zeros((1, 1), dtype=Internal.E_NpyInt); BM[0,0] = 1
     end = 0
     count = 0
     while end == 0:
@@ -272,7 +273,7 @@ def adaptInsideOctree():
         C._initVars(tp,'{centers:indicator}=({centers:cellN}<1.)*({centers:vol}>%20.16g)'%volmin)
         end = 1
         if C.getMaxValue(tp,'centers:indicator') == 1.: end = 0
-        for noz in xrange(len(tp[2][1][2])):
+        for noz in range(len(tp[2][1][2])):
             tp[2][1][2][noz] = G.adaptOctree(tp[2][1][2][noz],'centers:indicator', balancing=1)
         count += 1
     
@@ -285,8 +286,8 @@ def adaptInsideOctree():
         CTK.t[2][nob][2][noz] = z
         c += 1
     fail = False
-    CTK.t = C.fillMissingVariables(CTK.t)
-    if (fail == False):
+    #C._fillMissingVariables(CTK.t)
+    if fail == False:
         CTK.TXT.insert('START', 'Adapt octree computed.\n')
     else: 
         CTK.TXT.insert('START', 'Adapt octree failed.\n')
@@ -332,7 +333,7 @@ def hexaOctree():
         if (dim[4] == 2 or dim[4] == 1): surfs.append(z) # surfaces ou courbes
 
     if len(snears) == 1 :
-        snears = [snears[0] for x in xrange(len(surfs))]
+        snears = [snears[0] for x in range(len(surfs))]
     elif len(snears) != len(surfs):
         CTK.TXT.insert('START', 'snear is invalid.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
@@ -346,10 +347,10 @@ def hexaOctree():
         o = G.octree(surfs, snears, dfar=dfar, balancing=balancing)
         nob = C.getNobOfBase(b[0], CTK.t)
         CTK.add(CTK.t, nob, -1, o)
-    except Exception, e:
-        fail = True; print 'Error: octree: %s.'%str(e)
-    CTK.t = C.fillMissingVariables(CTK.t)
-    if (fail == False):
+    except Exception as e:
+        fail = True; print('Error: octree: %s.'%str(e))
+    #C._fillMissingVariables(CTK.t)
+    if fail == False:
         CTK.TXT.insert('START', 'Hexa octree computed.\n')
     else: 
         CTK.TXT.insert('START', 'Hexa octree failed.\n')
@@ -364,9 +365,10 @@ def hexaOctree():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkOctree', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Create octrees.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkOctre  [ + ]  e', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Create octrees.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -375,8 +377,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkOctree')
@@ -385,19 +387,19 @@ def createApp(win):
     # - VARS -
     # -0- Snears -
     V = TK.StringVar(win); V.set('0.1'); VARS.append(V)
-    if CTK.PREFS.has_key('tkOctreeSnear'): V.set(CTK.PREFS['tkOctreeSnear'])
+    if 'tkOctreeSnear' in CTK.PREFS: V.set(CTK.PREFS['tkOctreeSnear'])
     # -1- Dfar -
     V = TK.StringVar(win); V.set('10.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkOctreeDfar'): V.set(CTK.PREFS['tkOctreeDfar'])
+    if 'tkOctreeDfar' in CTK.PREFS: V.set(CTK.PREFS['tkOctreeDfar'])
     # -2- Balanced/unbalanced -
     V = TK.StringVar(win); V.set('Balanced'); VARS.append(V)
-    if CTK.PREFS.has_key('tkOctreeBalance'): V.set(CTK.PREFS['tkOctreeBalance'])
+    if 'tkOctreeBalance' in CTK.PREFS: V.set(CTK.PREFS['tkOctreeBalance'])
     # -3- Vmins
     V = TK.StringVar(win); V.set('10'); VARS.append(V)
-    if CTK.PREFS.has_key('tkOctreeVmin'): V.set(CTK.PREFS['tkOctreeVmin'])
+    if 'tkOctreeVmin' in CTK.PREFS: V.set(CTK.PREFS['tkOctreeVmin'])
     # -4- Level to expand
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    if CTK.PREFS.has_key('tkOctreeExpand'): V.set(CTK.PREFS['tkOctreeExpand'])
+    if 'tkOctreeExpand' in CTK.PREFS: V.set(CTK.PREFS['tkOctreeExpand'])
     # -5- Type of body fitting
     V = TK.StringVar(win); V.set('Snap'); VARS.append(V)
     # -6- Body surfaces for body fitting
@@ -484,13 +486,17 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['MeshNoteBook'].add(WIDGETS['frame'], text='tkOctree')
+    except: pass
+    CTK.WIDGETS['MeshNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['MeshNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -527,7 +533,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

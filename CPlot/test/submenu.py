@@ -1,4 +1,4 @@
 import CPlot.Menus as Menus
 
-ans = Menus.submenu(['1. Bonjour', '2. Au revoir', '3. Exit', '4. Oh non!'])
-print ans
+answ = Menus.submenu(['1. Bonjour', '2. Au revoir', '3. Exit', '4. Oh non!'])
+print(answ)

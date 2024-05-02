@@ -1,5 +1,7 @@
-# - basic surfaces -
-import Tkinter as TK
+# - tkBasicSurfs -
+"""Create basic surfaces."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -85,7 +87,7 @@ def meshCircle(center, R, N):
 
 #==============================================================================
 def generate(event=None):
-    
+    CTK.setCursor(2, WIDGETS['generate'], WIDGETS['Npts'])
     CTK.saveTree()
     N = CTK.varsFromWidget(VARS[0].get(), type=2)
     if len(N) != 1:
@@ -93,7 +95,6 @@ def generate(event=None):
     N = N[0]
     eltType = VARS[1].get()
     surfType = VARS[2].get()
-
     if surfType == 'Sphere':
         s = D.sphere6((0,0,0), 0.5, N=N)
         xc = 0; yc = 0; zc = 0
@@ -142,7 +143,7 @@ def generate(event=None):
         m1 = T.reorder(m1, (-1,2,3))
         m2 = D.circle( (0,0,-0.5), 0.5, tetas=-45, tetae=-45+360, N=4*N-3)
         l = D.line((0,0,-0.5), (0,0,0.5), N=N)
-        m2 = D.lineGenerate(m2, l)
+        m2 = D.lineDrive(m2, l)
         s = m0 + m1 + [m2]
         xc = 0.; yc = 0.; zc = 0.
     elif surfType == 'Cone':
@@ -173,7 +174,7 @@ def generate(event=None):
     ly = posEye[1]-posCam[1]
     lz = posEye[2]-posCam[2]
     if lx*lx + ly*ly + lz*lz < 1.e-10: lx = -1
-    if (dirCam[0]*dirCam[0] + dirCam[1]*dirCam[1] + dirCam[2]*dirCam[2] == 0.):
+    if dirCam[0]*dirCam[0] + dirCam[1]*dirCam[1] + dirCam[2]*dirCam[2] == 0.:
         dirCam = (0,0,1)
     ll = math.sqrt(lx*lx + ly*ly + lz*lz)
     s = T.homothety(s, (posEye[0], posEye[1], posEye[2]), 0.5*ll)
@@ -198,11 +199,11 @@ def generate(event=None):
         else:
             for i in s: CTK.add(CTK.t, nob, -1, i)
         
-    CTK.t = C.fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'Surface created.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
+    CTK.setCursor(0, WIDGETS['generate'], WIDGETS['Npts'])
     
 #==============================================================================
 # Create app widgets
@@ -212,9 +213,10 @@ def createApp(win):
 
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkBasicSurfs', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Create basic surfaces.\nCtrl+c to close applet.', btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkBasicSurfs  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Create basic surfaces.\nCtrl+w to close applet.', btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -222,8 +224,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkBasicSurfs')
@@ -232,20 +234,21 @@ def createApp(win):
     # - VARS -
     # -0- NPts -
     V = TK.StringVar(win); V.set('10'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBasicSurfsNpts'): 
+    if 'tkBasicSurfsNpts' in CTK.PREFS: 
         V.set(CTK.PREFS['tkBasicSurfsNpts'])
     # -1- Type d'elements
     V = TK.StringVar(win); V.set('TRI'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBasicSurfsElts'): 
+    if 'tkBasicSurfsElts' in CTK.PREFS: 
         V.set(CTK.PREFS['tkBasicSurfsElts'])
     # -2- Type de surface
     V = TK.StringVar(win); V.set('Sphere'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBasicSurfsType'): 
+    if 'tkBasicSurfsType' in CTK.PREFS: 
         V.set(CTK.PREFS['tkBasicSurfsType'])
 
     # - Npts -
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White')
     B.grid(row=0, column=0, sticky=TK.EW)
+    WIDGETS['Npts'] = B
     BB = CTK.infoBulle(parent=B, text='Number of generated points.')
     B.bind('<Return>', generate)
 
@@ -256,15 +259,19 @@ def createApp(win):
 
     # - Type de surface -
     SURFTYPES = ['Sphere', 'Cube', 'Tetra', 'Pyramid', 'Cylinder', 'Plane', 'Cone']
-    SURFTYPES += base.keys()
+    baseKeys = list(base.keys())
+    baseKeys.sort(key=str.lower)
+    SURFTYPES += baseKeys
     if ttk is None:
         B = TK.OptionMenu(Frame, VARS[2], *SURFTYPES)
     else:
-        B = ttk.Combobox(Frame, textvariable=VARS[2], values=SURFTYPES, 
+        B = TTK.Combobox(Frame, textvariable=VARS[2], values=SURFTYPES, 
                          state='readonly', width=10)
+        
     B.grid(row=1, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Type of generated surface.')
+    #BB = CTK.infoBulle(parent=B, text='Type of generated surface.')
     B = TTK.Button(Frame, text="Generate", command=generate)
+    WIDGETS['generate'] = B
     B.grid(row=1, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Generate surface.')
     
@@ -272,13 +279,17 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['SurfNoteBook'].add(WIDGETS['frame'], text='tkBasicSurfs')
+    except: pass
+    CTK.WIDGETS['SurfNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['SurfNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -307,9 +318,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

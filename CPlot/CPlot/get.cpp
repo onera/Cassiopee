@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -19,7 +19,7 @@
 
 #include "cplot.h"
 #include "Data.h"
-int findFace(double xp, double yp, double zp, int elt, 
+int findFace(double xp, double yp, double zp, E_Int elt, 
              UnstructZone* zone, double& dist);
 
 //======================================================
@@ -29,11 +29,11 @@ int findFace(double xp, double yp, double zp, int elt,
 E_Int getMode(PyObject* modeObject)
 {
   E_Int mode = -1;
-  if (PyLong_Check(modeObject) == true || PyInt_Check(modeObject) == true) 
+  if (PyLong_Check(modeObject) || PyInt_Check(modeObject)) 
     mode = PyLong_AsLong(modeObject);
-  else if (PyFloat_Check(modeObject) == true)
+  else if (PyFloat_Check(modeObject))
     mode = int(PyFloat_AsDouble(modeObject));
-  else if (PyString_Check(modeObject) == true) 
+  else if (PyString_Check(modeObject)) 
   {  
     char* m = PyString_AsString(modeObject);
     if (strcmp(m, "mesh")==0 || strcmp(m,"MESH")==0 || strcmp(m,"Mesh")==0) mode=0;
@@ -42,6 +42,17 @@ E_Int getMode(PyObject* modeObject)
     if (strcmp(m, "scalar")==0 || strcmp(m,"SCALAR")==0 || strcmp(m,"Scalar")==0) mode=3;
     if (strcmp(m, "vector")==0 || strcmp(m,"VECTOR")==0 || strcmp(m,"Vector")==0) mode=4;
   }
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(modeObject))
+  {
+    const char* m = PyUnicode_AsUTF8(modeObject);
+    if (strcmp(m, "mesh")==0 || strcmp(m,"MESH")==0 || strcmp(m,"Mesh")==0) mode=0;
+    if (strcmp(m, "solid")==0 || strcmp(m,"SOLID")==0 || strcmp(m,"Solid")==0) mode=1;
+    if (strcmp(m, "render")==0 || strcmp(m,"RENDER")==0 || strcmp(m,"Render")==0) mode=2;
+    if (strcmp(m, "scalar")==0 || strcmp(m,"SCALAR")==0 || strcmp(m,"Scalar")==0) mode=3;
+    if (strcmp(m, "vector")==0 || strcmp(m,"VECTOR")==0 || strcmp(m,"Vector")==0) mode=4;
+  }
+#endif  
   return mode;
 }
 
@@ -52,11 +63,11 @@ E_Int getScalarField(PyObject* scalarFieldObject)
 {
   Data* d = Data::getInstance();  
   E_Int scalarField = -1;
-  if (PyLong_Check(scalarFieldObject) == true || PyInt_Check(scalarFieldObject) == true) 
+  if (PyLong_Check(scalarFieldObject) || PyInt_Check(scalarFieldObject)) 
     scalarField = PyLong_AsLong(scalarFieldObject);
-  else if (PyFloat_Check(scalarFieldObject) == true)
+  else if (PyFloat_Check(scalarFieldObject))
     scalarField = int(PyFloat_AsDouble(scalarFieldObject));
-  else if (PyString_Check(scalarFieldObject) == true) 
+  else if (PyString_Check(scalarFieldObject)) 
   {  
     char* m1 = PyString_AsString(scalarFieldObject);
     char m [MAXSTRINGLENGTH];
@@ -84,6 +95,37 @@ E_Int getScalarField(PyObject* scalarFieldObject)
       }
     }
   }
+  
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(scalarFieldObject))
+  {
+    char* m1 = (char*)PyUnicode_AsUTF8(scalarFieldObject);
+    char m [MAXSTRINGLENGTH];
+    strcpy(m, m1);
+    E_Int l = strlen(m);
+    if (l > 6 && m[0] == 'n' && m[1] == 'o' && m[2] == 'd' && m[3] == 'e' && 
+        m[4] == 's' && m[5] == ':')
+    {
+      for (E_Int i = 6; i < l; i++) m[i-6] = m[i];
+      m[l-6] = '\0';
+    }
+    if (l > 8 && m[0] == 'c' && m[1] == 'e' && m[2] == 'n' && m[3] == 't' && 
+        m[4] == 'e' && m[5] == 'r' && m[6] == 's' && m[7] == ':')
+    {
+      for (E_Int i = 8; i < l; i++) m[i-8] = m[i];
+      m[l-8] = '\0';
+    }
+    // cherche dans la premiere zone (if any)
+    if (d->_numberOfZones > 0)
+    {
+      Zone* z = d->_zones[0];
+      for (E_Int i = 0; i < z->nfield; i++)
+      {
+        if (strcmp(z->varnames[i], m) == 0) {scalarField = i; break;}
+      }
+    }
+  }
+#endif
   return scalarField;
 }
 
@@ -127,13 +169,15 @@ PyObject* K_CPLOT::getState(PyObject* self, PyObject* args)
     return Py_BuildValue("(ii)", d->_view.w, d->_view.h);
   else if (K_STRING::cmp(mode, "posCam") == 0)
     return Py_BuildValue("(fff)", d->_view.xcam,
-                         d->_view.ycam, d->_view.zcam );
+                         d->_view.ycam, d->_view.zcam);
   else if (K_STRING::cmp(mode, "posEye") == 0)
     return Py_BuildValue("(fff)", d->_view.xeye,
-                         d->_view.yeye, d->_view.zeye );
+                         d->_view.yeye, d->_view.zeye);
   else if (K_STRING::cmp(mode, "dirCam") == 0)
     return Py_BuildValue("(fff)", d->_view.dirx,
-                         d->_view.diry, d->_view.dirz );
+                         d->_view.diry, d->_view.dirz);
+  else if (K_STRING::cmp(mode, "viewAngle") == 0)
+    return Py_BuildValue("f", d->_view.angle);
   else if (K_STRING::cmp(mode, "ghostifyDeactivatedZones") == 0)
     return Py_BuildValue("i", d->ptrState->ghostifyDeactivatedZones);
   else if (K_STRING::cmp(mode, "niso") == 0)
@@ -142,6 +186,45 @@ PyObject* K_CPLOT::getState(PyObject* self, PyObject* args)
     return Py_BuildValue("f", d->ptrState->isoEdges);
   else if (K_STRING::cmp(mode, "blanking") == 0) // automatic blanking with cellN
     return Py_BuildValue("i", d->ptrState->autoblank);
+  else if (K_STRING::cmp(mode, "isoScale") == 0) // iso scale of current field
+  {
+    E_Int nofield = d->ptrState->scalarField;
+    if (nofield >= 0 && nofield < d->_nfield)
+    {
+      E_Int niso = d->_niso[nofield];
+      double isoMin = d->_isoMin[nofield];
+      double isoMax = d->_isoMax[nofield];
+      if (niso == -1) 
+      {
+        niso = d->ptrState->niso;
+        isoMin = d->minf[nofield];
+        isoMax = d->maxf[nofield];
+      }
+      return Py_BuildValue("[idd]",niso,isoMin,isoMax);
+    }
+    else return Py_BuildValue("[idd]",0,0.,0.);
+  }
+  else if (K_STRING::cmp(mode, "colormap1") == 0) // colormap-color1
+    return Py_BuildValue("(ddd)", d->ptrState->colormapR1, d->ptrState->colormapG1, d->ptrState->colormapB1);
+  else if (K_STRING::cmp(mode, "colormap2") == 0) // colormap-color2
+    return Py_BuildValue("(ddd)", d->ptrState->colormapR2, d->ptrState->colormapG2, d->ptrState->colormapB2);
+  else if (K_STRING::cmp(mode, "colormap3") == 0) // colormap-color3
+    return Py_BuildValue("(ddd)", d->ptrState->colormapR3, d->ptrState->colormapG3, d->ptrState->colormapB3);
+  else if (K_STRING::cmp(mode, "colormapC") == 0) // colormap-array
+  {
+    E_Int size = d->ptrState->colormapSize;
+    float* pr = d->ptrState->colormapR;
+    float* pg = d->ptrState->colormapG;
+    float* pb = d->ptrState->colormapB;
+    PyObject* l = PyList_New(3*size);
+    for (E_Int i = 0; i < size; i++)
+    {
+      PyList_SetItem(l, 3*i,   Py_BuildValue("f",pr[i]));
+      PyList_SetItem(l, 3*i+1, Py_BuildValue("f",pg[i]));
+      PyList_SetItem(l, 3*i+2, Py_BuildValue("f",pb[i]));
+    }
+    return l;
+  }
   else
   {
     PyErr_SetString(PyExc_TypeError,
@@ -160,7 +243,7 @@ PyObject* K_CPLOT::getState(PyObject* self, PyObject* args)
 PyObject* K_CPLOT::getSelectedZone(PyObject* self, PyObject* args)
 {
   Data* d = Data::getInstance();
-  int nz = d->ptrState->selectedZone-1;
+  E_Int nz = d->ptrState->selectedZone-1;
   return Py_BuildValue("i", nz);
 }
 
@@ -174,7 +257,7 @@ PyObject* K_CPLOT::getSelectedZones(PyObject* self, PyObject* args)
 {
   Data* d = Data::getInstance();
   PyObject* o = PyList_New(0);
-  for (int i = 0; i < d->_numberOfZones; i++)
+  for (E_Int i = 0; i < d->_numberOfZones; i++)
   {
     if (d->_zones[i]->selected == 1)
     {
@@ -195,7 +278,7 @@ PyObject* K_CPLOT::getActiveZones(PyObject* self, PyObject* args)
 {
   Data* d = Data::getInstance();
   PyObject* o = PyList_New(0);
-  for (int i = 0; i < d->_numberOfZones; i++)
+  for (E_Int i = 0; i < d->_numberOfZones; i++)
   {
     if (d->_zones[i]->active == 1)
     {
@@ -214,7 +297,7 @@ PyObject* K_CPLOT::getActiveZones(PyObject* self, PyObject* args)
 PyObject* K_CPLOT::getSelectedStatus(PyObject* self, PyObject* args)
 {
   int zone;
-  if (!PyArg_ParseTuple(args, "i", &zone)) return NULL;
+  if (!PYPARSETUPLE_(args, "i", &zone)) return NULL;
 
   Data* d = Data::getInstance();
   if (zone < 0 || zone >= d->_numberOfZones)
@@ -231,7 +314,7 @@ PyObject* K_CPLOT::getSelectedStatus(PyObject* self, PyObject* args)
 PyObject* K_CPLOT::getActiveStatus(PyObject* self, PyObject* args)
 {
   int zone;
-  if (!PyArg_ParseTuple(args, "i", &zone)) return NULL;
+  if (!PYPARSETUPLE_(args, "i", &zone)) return NULL;
 
   Data* d = Data::getInstance();
   if (zone < 0 || zone >= d->_numberOfZones)
@@ -249,7 +332,7 @@ PyObject* K_CPLOT::getActiveStatus(PyObject* self, PyObject* args)
 PyObject* K_CPLOT::getActivePoint(PyObject* self, PyObject* args)
 {
   Data* d = Data::getInstance();
-  int nz = d->ptrState->selectedZone;
+  E_Int nz = d->ptrState->selectedZone;
   PyObject* tpl;
   PyObject*l = PyList_New(0);
   if (nz == 0) return l;
@@ -274,7 +357,7 @@ PyObject* K_CPLOT::getActivePoint(PyObject* self, PyObject* args)
 PyObject* K_CPLOT::getActivePointF(PyObject* self, PyObject* args)
 {
   Data* d = Data::getInstance();
-  int nz = d->ptrState->selectedZone;
+  E_Int nz = d->ptrState->selectedZone;
   PyObject* tpl;
   PyObject*l = PyList_New(0);
   if (nz == 0) return l;
@@ -301,7 +384,7 @@ PyObject* K_CPLOT::getActivePointF(PyObject* self, PyObject* args)
 PyObject* K_CPLOT::getActivePointIndex(PyObject* self, PyObject* args)
 {
   Data* d = Data::getInstance();
-  int nz = d->ptrState->selectedZone;
+  E_Int nz = d->ptrState->selectedZone;
   PyObject* tpl;
   PyObject*l = PyList_New(0);
   if (nz == 0) return l;
@@ -309,21 +392,21 @@ PyObject* K_CPLOT::getActivePointIndex(PyObject* self, PyObject* args)
   {
     // Re-check (if zone has been replaced)
     double posX, posY, posZ;
-    int zone, ind, indE; double dist;
+    E_Int zone, ind, indE, ncon; double dist;
     posX = d->ptrState->activePointX;
     posY = d->ptrState->activePointY;
     posZ = d->ptrState->activePointZ;
     d->findBlockContaining(posX, posY, posZ, 
-                           zone, ind, indE, dist);
+                           zone, ind, indE, dist, ncon);
     Zone* z = d->_zones[zone];
     if (zone < d->_numberOfStructZones)
     {
       StructZone* zz = (StructZone*)z;
-      int ni = zz->ni; 
-      int nj = zz->nj;
-      int k = ind / (ni*nj);
-      int j = (ind - k*ni*nj)/ni;
-      int i = ind - k*ni*nj - j*ni;
+      E_Int ni = zz->ni; 
+      E_Int nj = zz->nj;
+      E_Int k = ind / (ni*nj);
+      E_Int j = (ind - k*ni*nj)/ni;
+      E_Int i = ind - k*ni*nj - j*ni;
       d->ptrState->activePointI = i+1;
       d->ptrState->activePointJ = j+1;
       d->ptrState->activePointK = k+1;
@@ -332,20 +415,23 @@ PyObject* K_CPLOT::getActivePointIndex(PyObject* self, PyObject* args)
     {
       d->ptrState->activePointI = ind; // indice du noeud le plus proche
       d->ptrState->activePointJ = indE; // indice de l'element contenant P
+      d->ptrState->activePointL = ncon; // connectivite contenant l'element
       UnstructZone* zz = (UnstructZone*)z;
-      if (zz->eltType != 10) // autre que NGON
+      if (zz->eltType[0] != 10) // autre que NGON
       {
-        int* c = zz->connect;
-        int size = zz->eltSize;
-        int ne = zz->ne;
-        int v = 0;
+        E_Int* c = zz->connect[ncon];
+        E_Int size = zz->eltSize[ncon];
+        E_Int ne = zz->nec[ncon];
+        E_Int v = 0;
+        E_Int prev = 0;
+        for (E_Int nc = 0; nc < ncon; nc++) prev += zz->nec[nc];
         for (v = 0; v < size; v++)
         {
-          if (c[indE+v*ne] == ind+1) break;
+          if (c[indE-prev+v*ne] == ind+1) break;
         }
         d->ptrState->activePointK = -v-1;
       }
-      else d->ptrState->activePointK = findFace(
+      else d->ptrState->activePointK = -findFace(
         posX, posY, posZ, indE, zz, dist);
     }
 
@@ -402,17 +488,36 @@ PyObject* K_CPLOT::getKeyboard(PyObject* self, PyObject* args)
   PyObject* tpl;
   char tmp[128];
   for (int i = 0; i < d->ptrState->kcursor; i++)
+  {
     tmp[i] = d->ptrState->keys[i];
+  }
   tmp[d->ptrState->kcursor] = '\0';
   tpl = Py_BuildValue("s", tmp);
   return tpl;
+
+  // modification pour forcer le latin1
+  /*
+  int j = 0;
+  for (int i = 0; i < d->ptrState->kcursor; i++)
+  {
+    unsigned char c = d->ptrState->keys[i];
+    unsigned int k = (unsigned int)(c);
+    printf("%u %u\n", c, k);
+    //if (k == -61) { tmp[j] = 0x00; tmp[j+1] = 0xe9; j+=2; }
+    if (k == -61) { tmp[j] = 233; j+=1; }
+    else { tmp[j] = c; j+=1; }
+  }
+  tmp[j] = '\0';
+  tpl = PyUnicode_DecodeLatin1(tmp, strlen(tmp), "ignore");
+  return tpl;
+  */
 }
 
 //=============================================================================
 /*
   Return mouse position (coordinates in 3D space) and the mouse button
   state while dragging (GLUT_MIDDLE_BUTTON(1), GLUT_LEFT_BUTTON (0), 
-  GLUT_RIGHT_BUTTON (2), RELEASED (5)
+  GLUT_RIGHT_BUTTON (2), RELEASED (5))
 */
 //=============================================================================
 PyObject* K_CPLOT::getMouseState(PyObject* self, PyObject* args)
@@ -421,7 +526,7 @@ PyObject* K_CPLOT::getMouseState(PyObject* self, PyObject* args)
   float posX = d->ptrState->currentMousePosX;
   float posY = d->ptrState->currentMousePosY;
   float posZ = d->ptrState->currentMousePosZ;
-  int mouseButton = d->ptrState->currentMouseButton;
+  E_Int mouseButton = d->ptrState->currentMouseButton;
   //printf("%f %f %f\n", posX, posY, posZ);
   PyObject* tpl = Py_BuildValue("lddd", mouseButton, posX, posY, posZ);
   return tpl;

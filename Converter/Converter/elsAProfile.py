@@ -1,22 +1,25 @@
-import PyTree as C
-import Internal
+# Module for exporting to elsA
+try: range = xrange
+except: pass
+
+from . import PyTree as C
+from . import Internal
 import Connector.PyTree as X
-import Converter
+from . import Converter
 import numpy
-import string
 import math
 
-__CONSERVATIVE__=["Density", "MomentumX", "MomentumY", "MomentumZ", "EnergyStagnationDensity"]
-__TURBULENT__=["TurbulentEnergyKineticDensity", "TurbulentDissipationDensity"]
-__COMMONS__=["Pressure", "Mach", "Temperature"]
-__COMMONSNS__=["Viscosity_EddyMolecularRatio"]
-__WALLDISTANCE__= ["TurbulentDistance","TurbulentDistanceIndex"]
-__XYZ__=['CoordinateX', 'CoordinateY', 'CoordinateZ']
+__CONSERVATIVE__ = ["Density", "MomentumX", "MomentumY", "MomentumZ", "EnergyStagnationDensity"]
+__TURBULENT__ = ["TurbulentEnergyKineticDensity", "TurbulentDissipationDensity", "TurbulentSANuTildeDensity"]
+__COMMONS__ = ["Pressure", "Mach", "Temperature"]
+__COMMONSNS__ = ["Viscosity_EddyMolecularRatio"]
+__WALLDISTANCE__ = ["TurbulentDistance","TurbulentDistanceIndex"]
+__XYZ__ = ['CoordinateX', 'CoordinateY', 'CoordinateZ']
 
-__FAMOVERLAPBC__='F_OV_'
-__FAMOVERLAPDDBC__='F_OVDD_'
-__CHIMGROUPNAME__='ChimGroup_' # reference to donors for suffixed base name
-__CHIMGROUPNAMEDD__='ChimGroupDD_' # reference to donors for suffixed base name
+__FAMOVERLAPBC__ = 'F_OV_'
+__FAMOVERLAPDDBC__ = 'F_OVDD_'
+__CHIMGROUPNAME__ = 'ChimGroup_' # reference to donors for suffixed base name
+__CHIMGROUPNAMEDD__ = 'ChimGroupDD_' # reference to donors for suffixed base name
 
 ##############################################################################
 
@@ -70,6 +73,7 @@ keyselsA2CGNS = {\
 'roE'            :'EnergyStagnationDensity'       , \
 'rok'            :'TurbulentEnergyKineticDensity' , \
 'roeps'          :'TurbulentDissipationDensity'   , \
+'ronutilde'      :'TurbulentSANuTildeDensity'     , \
 'mach'           :'Mach'                          , \
 'psta'           :'Pressure'                      , \
 'tsta'           :'Temperature'                   , \
@@ -105,7 +109,7 @@ keysCGNS2elsA={
 'UserDefined'                   :'komega_kok'   , \
 'UserDefined'                   :'smith'        , \
 'ViscosityModel'                :'visclaw'      , \
-'Sutherland'                    :'sutherland'   ,\
+'Sutherland'                    :'sutherland'   , \
 'SutherlandLawConstant'         :'suth_const'   , \
 'ViscosityMolecularReference'   :'suth_muref'   , \
 'TemperatureReference'          :'suth_tref'    , \
@@ -123,6 +127,7 @@ keysCGNS2elsA={
 'EnergyStagnationDensity'       :'roe'          , \
 "TurbulentEnergyKineticDensity" :'rok'          , \
 "TurbulentDissipationDensity"   :'roeps'        , \
+"TurbulentSANuTildeDensity"     :'ronutilde'    , \
 'Mach'                          :'mach'         , \
 'Pressure'                      :'psta'         , \
 'Temperature'                   :'tsta'         , \
@@ -166,7 +171,7 @@ def _adaptPeriodicMatch(t, clean=False):
           #rotAngle = Internal.getValue(rotAngleNode)
           rotAngle = numpy.zeros(3,numpy.float64)
           rotAngleDeg = Internal.getRotationAngleValueInDegrees(rotAngleNode)
-          for i in xrange(3): rotAngle[i]=rotAngleDeg[i]
+          for i in range(3): rotAngle[i]=rotAngleDeg[i]
           Internal._rmNodesByNameAndType(rotAngleNode,'DimensionalUnits','DimensionalUnits_t')
         else: 
           rotAngle = numpy.empty(0,numpy.float64)
@@ -186,7 +191,7 @@ def _adaptPeriodicMatch(t, clean=False):
 
         if rotAngle.any(): # at least one rotation angle not nul => periodicity by rotation
           if len(numpy.where(rotAngle)[0]) != 1:
-            print "Warning: adaptPeriodicMatch__: rotation angle must have one non-zero component."
+            print("Warning: adaptPeriodicMatch__: rotation angle must have one non-zero component.")
             continue
           axis = numpy.zeros(3,numpy.float64)
           axis[numpy.where(rotAngle)[0][0]]=1.0
@@ -196,7 +201,7 @@ def _adaptPeriodicMatch(t, clean=False):
           pointRange = Internal.getNodeFromName1(c,'PointRange')
           pointRangeDonor = Internal.getNodeFromName1(c,'PointRangeDonor')
           if pointRange is None or pointRangeDonor is None:
-            print "Warning: adaptPeriodicMatch__: missing PointRange(Donor) for join ",c[0],"."
+            print("Warning: adaptPeriodicMatch__: missing PointRange(Donor) for join ",c[0],".")
             continue
           
           [wincur_imin, wincur_imax, wincur_jmin, wincur_jmax, wincur_kmin, wincur_kmax] = Internal.range2Window(pointRange[1])
@@ -245,24 +250,24 @@ def _addPeriodicDataInSolverParam(a, rotationCenter=[0.,0.,0.], rotationAngle=[0
     else: angle1 = int(round(360./abs(rotationAngle[diraxis]))) # number of angular sectors of the component which includes the zone in radian
     angle2 = 1    
 
-    paramNames=['axis_ang_1','axis_ang_2','axis_pnt_x','axis_pnt_y','axis_pnt_z','axis_vct_x','axis_vct_y','axis_vct_z']
-    paramValues=[angle1,angle2,xc,yc,zc,axis[0],axis[1],axis[2]]
+    paramNames = ['axis_ang_1','axis_ang_2','axis_pnt_x','axis_pnt_y','axis_pnt_z','axis_vct_x','axis_vct_y','axis_vct_z']
+    paramValues = [angle1,angle2,xc,yc,zc,axis[0],axis[1],axis[2]]
     if isChimera: paramNames.append('periodic_dir'); paramValues.append(periodicDir)
 
     for z in Internal.getZones(a):
       solverParam = Internal.getNodeFromName(z, '.Solver#Param')
       if solverParam is None:
         nodes=[]
-        for nop in xrange(len(paramNames)):
-          nodes.append(Internal.createNode(paramNames[nop],'DataArray_t',value=paramValues[nop]))
+        for nop, v in enumerate(paramValues):
+          nodes.append(Internal.createNode(paramNames[nop],'DataArray_t',value=v))
         Internal._createChild(z,".Solver#Param",'UserDefinedData_t',value=None, children=nodes)
       else: 
-        for nop in xrange(len(paramNames)):
-          node = Internal.getNodeFromName(solverParam,paramNames[nop])
+        for nop, v in enumerate(paramValues):
+          node = Internal.getNodeFromName(solverParam, paramNames[nop])
           if node is None:
-            Internal._createChild(solverParam,paramNames[nop],'DataArray_t',value=paramValues[nop])
+            Internal._createChild(solverParam, paramNames[nop], 'DataArray_t', value=v)
           else:
-            Internal.setValue(node,paramValues[nop])
+            Internal.setValue(node, v)
 
   return None
 
@@ -278,10 +283,10 @@ def addPeriodicDataInSolverParam(a, rotationCenter=[0.,0.,0.],
 def getCGNSkeys(key, verbose=True):
     """Return the CGNS name (if it exists) corresponding to the elsA key.
     Usage: getCGNSkeys(key, verbose=True)"""
-    if key in keyselsA2CGNS.keys(): return keyselsA2CGNS[key]
+    if key in keyselsA2CGNS: return keyselsA2CGNS[key]
     elif key in keyselsA2CGNS.values(): return key
     else:
-        if verbose: print 'Warning: getCGNSkeys: the given key %s cannot be translated in a CGNS key.'%key
+        if verbose: print('Warning: getCGNSkeys: the given key %s cannot be translated in a CGNS key.'%key)
         return key
 
 # -----------------------------------------------------------------------------
@@ -296,16 +301,16 @@ def _addOutput(a, Dict, name='', update=False):
 
     if outputnode is None:
       nodeso = []
-      for each in Dict.keys(): nodeso+=[Internal.createNode(each,'DataArray_t',value=Dict[each])]
+      for each in Dict: nodeso+=[Internal.createNode(each,'DataArray_t',value=Dict[each])]
       a[2].append(Internal.createNode(outputName, 'UserDefinedData_t',children=nodeso))
     else:
       if update: 
         Internal._rmNodesByName(a, outputName)
         nodeso = []
-        for each in Dict.keys(): nodeso+=[Internal.createNode(each,'DataArray_t',value=Dict[each])]
+        for each in Dict: nodeso+=[Internal.createNode(each,'DataArray_t',value=Dict[each])]
         a[2].append(Internal.createNode(outputName, 'UserDefinedData_t', children=nodeso))
       else:
-        for childname in Dict.keys():
+        for childname in Dict:
           childnode = Internal.getNodeFromName1(outputnode, childname)
           if childnode is None:
             newchild = Internal.createNode(childname, 'DataArray_t', value=Dict[childname])
@@ -527,15 +532,18 @@ def _addFlowSolution(t, name='', loc='CellCenter', variables=None,
                      governingEquations=None, writingMode=None,
                      writingFrame='relative', period=None, output=None,
                      addBCExtract=False, protocol="end"):
+  """Add a node to extract the flow solution."""
   if governingEquations is not None: gE0 = governingEquations
   else: 
     gE0 = None
     GE = Internal.getNodeFromType2(t,'GoverningEquations_t')
     if GE is not None: gE0 = Internal.getValue(GE)
+  if variables is not None:
+    for c, v in enumerate(variables): variables[c] = Internal.getCGNSName(v)
   if output is None: outputDict={}
   else: outputDict=output
   if loc == 'cellfict': outputDict["loc"]=2
-  elif loc is 'CellCenter' or loc is "Vertex": pass
+  elif loc == 'CellCenter' or loc == "Vertex": pass
   else: raise AttributeError("'loc' attribute should be 'CellCenter','Vertex' or 'cellfict' => loc='%s'" %(loc))
   if writingMode is not None: outputDict['writingmode'] = writingMode
   if period is not None: outputDict['period'] = period
@@ -543,12 +551,12 @@ def _addFlowSolution(t, name='', loc='CellCenter', variables=None,
 
   for base in Internal.getBases(t):
     if gE0 is None:
-      GE = Internal.getNodeFromType2(base,'GoverningEquations_t')
+      GE = Internal.getNodeFromType2(base, 'GoverningEquations_t')
       if GE is not None:
         gE0 = Internal.getValue(GE)
     for z in Internal.getZones(base):
       if gE0 is None:
-        GE = Internal.getNodeFromType2(z,'GoverningEquations_t')
+        GE = Internal.getNodeFromType2(z, 'GoverningEquations_t')
         if GE is None:
           if variables is None:
             raise ValueError("addFlowSolution: no GoverningEquations in tree. You must specify it in your function parameter.")
@@ -562,10 +570,10 @@ def _addFlowSolution(t, name='', loc='CellCenter', variables=None,
           if variables is None: variables = [] 
 
         else:
-          variables=__CONSERVATIVE__+__COMMONS__
+          variables = __CONSERVATIVE__+__COMMONS__
           if gE0 != 'Euler': variables+=__COMMONSNS__
-          if gE0 =='NSTurbulent': variables+= __TURBULENT__+__WALLDISTANCE__
-          #print 'addFlowSolution: extracted variables are: ',variables
+          if gE0 == 'NSTurbulent': variables += __TURBULENT__+__WALLDISTANCE__
+          #print('addFlowSolution: extracted variables are: ',variables)
       else:
         if isinstance(variables,str): variables = variables.split()
         if "xyz" in variables: 
@@ -583,15 +591,15 @@ def _addFlowSolution(t, name='', loc='CellCenter', variables=None,
         variables= list(set(variables))
 
       for varname in variables:
-        childrenNodes.append(Internal.createNode(varname,'UserDefinedData_t',value=None))
+        childrenNodes.append(Internal.createNode(varname,'DataArray_t',value=None))
 
       if addBCExtract:
         subChildren1 = []
         for bc in Internal.getNodesFromType2(z, "BC_t"):
-          prval = Internal.getValue(Internal.getNodeFromName1(bc,"PointRange")) 
+          prval = Internal.getValue(Internal.getNodeFromName1(bc, "PointRange")) 
           subChildren2 = [Internal.createNode("PointRange","DataArray_t", value=prval)]
           subChildren2+= [Internal.createNode("Protocol","Descriptor_t",value=protocol)]
-          strval = string.join(['SurfaceSolution/NeumannData/'+variable for variable in variables],'\n')
+          strval = '\n'.join(['SurfaceSolution/NeumannData/'+variable for variable in variables])
           subChildren2+= [Internal.createNode("Path","DataArray_t",value=strval)]
           subChildren1+= [Internal.createNode(Internal.getName(bc), "UserDefinedData_t",children=subChildren2)]
         
@@ -622,17 +630,15 @@ def _buildMaskFiles(t, keepOversetHoles=True, fileDir='.', prefixBase=False):
         hf[:] = h[:]
         array = ['cell_index', hf, hf.size, 1, 1]
         fileName = fileDir+'/hole_'
-        if prefixBase: 
-          fileName += basename+'_'
-
+        if prefixBase: fileName += basename+'_'
         Converter.convertArrays2File([array], fileName+z[0]+'.v3d',
                                      "bin_v3d", dataFormat=dataFormat)
 
-    if not keepOversetHoles: Internal._rmNodesByName(t,'OversetHoles')
+    if not keepOversetHoles: Internal._rmNodesByName(t, 'OversetHoles')
   return None
 
 #==============================================================================
-def buildMaskFiles(t, keepOversetHoles=True, fileDir='.',prefixBase=False):
+def buildMaskFiles(t, keepOversetHoles=True, fileDir='.', prefixBase=False):
   """Write the mask files for elsA solver."""
   tp = Internal.copyRef(t)
   _buildMaskFiles(tp, keepOversetHoles, fileDir, prefixBase)
@@ -650,13 +656,13 @@ def overlapGC2BC(t):
 
 def _overlapGC2BC(t):
   donorDict={}
-  for nob in xrange(len(t[2])):
+  for nob in range(len(t[2])):
     if Internal.getType(t[2][nob])=='CGNSBase_t':
       base = t[2][nob]
       baseName = base[0]
       isDD = False; isClassical=False
       oversetBase=False
-      for noz in xrange(len(base[2])):
+      for noz in range(len(base[2])):
         zone = base[2][noz]
         if Internal.getType(zone)=='Zone_t':
           zoneName = Internal.getName(zone)
@@ -713,10 +719,12 @@ def _overlapGC2BC(t):
       if oversetBase:
         if isClassical:
           famOvlpName = __FAMOVERLAPBC__+baseName
-          Internal._groupBCByBCType(t[2][nob],btype='UserDefined',name=famOvlpName)
-          NLnode=Internal.createNode('NeighbourList','DataArray_t')
-          FamOvlp = Internal.getNodeFromName1(base,famOvlpName)
-          Internal._createChild(FamOvlp,'.Solver#Overlap','UserDefinedData_t',value=None,children=[NLnode])
+          Internal._groupBCByBCType(base, btype='UserDefined', name=famOvlpName)
+          FamOvlp = Internal.getNodeFromName1(base, famOvlpName)
+          if FamOvlp:
+            NLnode = Internal.createNode('NeighbourList', 'DataArray_t')
+            Internal._createChild(FamOvlp, '.Solver#Overlap', 'UserDefinedData_t', 
+                                  value=None, children=[NLnode])
       
       # renommage en FamilySpecified des doubly defined UserDefinedDD
       for bc in Internal.getNodesFromType3(t[2][nob],'BC_t'): 
@@ -764,10 +772,10 @@ def _fillNeighbourList(t, sameBase=0):
   import Generator.PyTree as G
   dictOfNobOfZone={}
   dictOfNozOfZone={}
-  for nobR in xrange(len(t[2])):
+  for nobR in range(len(t[2])):
     baseR = t[2][nobR]
     if Internal.getType(baseR)=='CGNSBase_t':
-      for nozR in xrange(len(baseR[2])):
+      for nozR in range(len(baseR[2])):
         zr = baseR[2][nozR]
         if Internal.getType(zr)=='Zone_t':
           dictOfNobOfZone[zr[0]]=nobR
@@ -793,7 +801,7 @@ def _fillNeighbourList(t, sameBase=0):
         if baseD[0] != baseR[0]: tBBDL[2].append(baseD)
       intersectionDictR = X.getIntersectingDomains(baseR,t2=tBBDL,method='AABB',taabb=tBBR,taabb2=tBBDL)
       intersectionDict[baseR[0]]=intersectionDictR[baseR[0]]
-  for nobR in xrange(len(t[2])):
+  for nobR in range(len(t[2])):
     baseR = t[2][nobR]
     basenameR = baseR[0]
     NList=""
@@ -804,8 +812,8 @@ def _fillNeighbourList(t, sameBase=0):
       for zdname in dnrZoneNames0:
         nozd = dictOfNozOfZone[zdname]
         nobd = dictOfNobOfZone[zdname]
-        if (sameBase == 1  or (sameBase==0 and nobd != nobR) ):
-          Internal.createNode(chimgroupname,"FamilyName_t",value=chimgroupname,parent=t[2][nobd][2][nozd])
+        if sameBase == 1 or (sameBase==0 and nobd != nobR):
+          Internal.createNode("FamilyName", "FamilyName_t", value=chimgroupname, parent=t[2][nobd][2][nozd])
 
         # create ChimGroup for donor base
         if nobd not in listOfDnrBasesNob: 
@@ -836,10 +844,10 @@ def _fillNeighbourList(t, sameBase=0):
           dnrListNL = ""
           listOfDnrBasesNob = []
           for dnrname in donorList.split(' '):
-            if dnrname not in dictOfNozOfZone.keys():
+            if dnrname not in dictOfNozOfZone:
               # c est une famille de zones, la prefixer par sa base
               dnrname2 = dnrname.split('/')
-              if len(dnrname2)==1:
+              if len(dnrname2) == 1:
                 for baseLoc in Internal.getBases(t):
                   myFamLoc = Internal.getNodesFromType1(baseLoc,"Family_t")
                   if myFamLoc != []:
@@ -859,7 +867,7 @@ def _fillNeighbourList(t, sameBase=0):
               # create a chim group
               nozd = dictOfNozOfZone[dnrname]
               nobd = dictOfNobOfZone[dnrname]
-              Internal.createNode(chimgroupnamedd,"FamilyName_t",value=chimgroupnamedd,parent=t[2][nobd][2][nozd])
+              Internal.createNode("FamilyName", "FamilyName_t", value=chimgroupnamedd, parent=t[2][nobd][2][nozd])
               # create ChimGroup for donor base
               if nobd not in listOfDnrBasesNob: 
                 listOfDnrBasesNob.append(nobd)
@@ -867,7 +875,7 @@ def _fillNeighbourList(t, sameBase=0):
                 chmg=Internal.createNode(chimgroupnamedd,"Family_t",children=chimgroupsons)
                 t[2][nobd][2].append(chmg)
                 basenameD = t[2][nobd][0]
-                if dnrListNL=="": dnrListNL=basenameD+'/'+chimgroupnamedd
+                if dnrListNL == "": dnrListNL=basenameD+'/'+chimgroupnamedd
                 else: dnrListNL+=" "+basenameD+'/'+chimgroupnamedd
 
           #print 'NeighbourList = ', NList[0], " : ", dnrListNL, ' for dd chimgroup ', chimgroupnamedd
@@ -913,8 +921,9 @@ def _addTurbulentDistanceIndex(t):
       if distindex is None:
         dist = Internal.getNodeFromName1(sol,'TurbulentDistance')
         if dist is not None:
-          #indexa = numpy.full(dist[1].shape,-1, dtype=numpy.int32, order='F')
-          indexa = numpy.empty(dist[1].shape, dtype=numpy.int32, order='F')
+          #indexa = numpy.full(dist[1].shape,-1, dtype=Internal.__E_NPY_INT, order='F')
+          #indexa = numpy.empty(dist[1].shape, dtype=Internal.__E_NPY_INT, order='F')
+          indexa = numpy.empty(dist[1].shape, dtype=numpy.float64, order='F')
           indexa[:] = -1
           distindex = Internal.createNode("TurbulentDistanceIndex",'DataArray_t',value=indexa,parent=sol)
   return None
@@ -937,13 +946,13 @@ def adaptNearMatch(t):
 
 def _adaptNearMatch(t):
   for z in Internal.getZones(t):
-    zgc = Internal.getNodeFromType1(z,"ZoneGridConnectivity_t")
+    zgc = Internal.getNodeFromType1(z, 'ZoneGridConnectivity_t')
     if zgc is not None:
-      allgcs = Internal.getNodesFromType1(zgc, "GridConnectivity_t")
+      allgcs = Internal.getNodesFromType1(zgc, 'GridConnectivity_t')
       for gc in allgcs:
-        udd = Internal.getNodeFromType1(gc,'UserDefinedData_t')
+        udd = Internal.getNodeFromType1(gc, 'UserDefinedData_t')
         if udd is not None:
-          nm = Internal.getNodeFromName1(udd,"NMRatio")
+          nm = Internal.getNodeFromName1(udd, 'NMRatio')
           if nm is not None:
             Internal.setType(gc,'GridConnectivity1to1_t')
             transfo = Internal.getNodeFromName1(udd,'Transform')
@@ -986,14 +995,14 @@ def _adaptNearMatch(t):
   return None
 
 #=========================================================================================
-def createElsaHybrid(t, method=0, axe2D=0):
+def createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
     """Create elsAHybrid node necessary for NGON zones."""
     tp = Internal.copyRef(t)
-    _createElsaHybrid(tp, method, axe2D)
+    _createElsaHybrid(tp, method, axe2D, methodPE)
     return tp
 
-def _createElsaHybrid(t, method=0, axe2D=0):
-    import converter
+def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
+    from . import converter
     zones = Internal.getZones(t)
     for z in zones:
          GEl = Internal.getElementNodes(z)
@@ -1006,19 +1015,22 @@ def _createElsaHybrid(t, method=0, axe2D=0):
              CE = Internal.getNodeFromName1(node, 'ElementConnectivity')
              PE = Internal.getNodeFromName1(node, 'ParentElements')
              if PE is None:
-                 Internal._adaptNFace2PE(z, remove=False)
+                 Internal._adaptNFace2PE(z, remove=False, methodPE = methodPE)
                  PE = Internal.getNodeFromName1(node, 'ParentElements')
              er = Internal.getNodeFromName1(node, 'ElementRange')
              nfaces = er[1][1]-er[1][0]+1
              child = Internal.createUniqueChild(z, ':elsA#Hybrid', 'UserDefinedData_t')
+             ESO = Internal.getNodeFromName1(node, 'ElementStartOffset')
+             if ESO is not None: ESO = ESO[1]
+
              # to be removed (only used by elsA for nothing)
-             sct = numpy.arange((nfaces), dtype=numpy.int32)
+             sct = numpy.arange((nfaces), dtype=Internal.E_NpyInt)
              Internal.newDataArray('SortedCrossTable', value=sct, parent=child)
-             inct = numpy.empty((nfaces), dtype=numpy.int32)
-             Internal.newDataArray('IndexNGONCrossTable', value=inct, parent=child)
+             inct = numpy.empty((nfaces), dtype=Internal.E_NpyInt)
+             if ESO is None: Internal.newDataArray('IndexNGONCrossTable', value=inct, parent=child)
              # OK
-             ict = numpy.empty((nfaces), dtype=numpy.int32)
-             bcct = numpy.empty((nfaces), dtype=numpy.int32)
+             ict = -1*numpy.ones((nfaces), dtype=Internal.E_NpyInt)
+             bcct = -1*numpy.ones((nfaces), dtype=Internal.E_NpyInt)
              Internal.newDataArray('InversedCrossTable', value=ict, parent=child)
              Internal.newDataArray('BCCrossTable', value=bcct, parent=child)
              if axe2D > 0:
@@ -1028,7 +1040,7 @@ def _createElsaHybrid(t, method=0, axe2D=0):
              else: x = None; y = None; z = None
              (iTRI, iQUADS, eTRI, eQUADS) = converter.createElsaHybrid(
                  CE[1], PE[1], ict, bcct, inct, method,
-                 axe2D, x, y, z)
+                 axe2D, x, y, z, ESO)
              if method == 0:
                  Internal.newDataArray('InternalTris', iTRI, parent=child)
                  Internal.newDataArray('InternalQuads', iQUADS, parent=child)
@@ -1038,7 +1050,8 @@ def _createElsaHybrid(t, method=0, axe2D=0):
                  Internal.newDataArray('InternalElts', iTRI, parent=child)
                  Internal.newDataArray('ExternalElts', eTRI, parent=child)
          else:
-             print 'Warning: createElsaHybrid: no NGON node found for zone %s. No :elsAHybrid node created.'%z[0]
+             pass
+             #print('Warning: createElsaHybrid: no NGON node found for zone %s. No :elsAHybrid node created.'%z[0])
     return None
 
 #==============================================================================
@@ -1052,7 +1065,7 @@ def prefixDnrInSubRegions(t):
 
 # in place version
 def _prefixDnrInSubRegions(t):
-  if Internal.getNodeFromType3(t,"ZoneSubRegion_t")==None: return None
+  if Internal.getNodeFromType3(t,"ZoneSubRegion_t") is None: return None
 
   baseDict={}
   for base in Internal.getBases(t):
@@ -1075,32 +1088,45 @@ def _prefixDnrInSubRegions(t):
 
   return None
 
+# remove OrphanPointList nodes and  subregions with empty PointList nodes (created for orphan points)
+def _cleanIDSubregions(t):
+    for z in Internal.getZones(t):
+        removedNames=[]
+        for zsr in Internal.getNodesFromType1(z,'ZoneSubRegion_t'):
+            PL = Internal.getNodeFromName1(zsr,'PointList')
+            if PL[1].shape[0]==0: removedNames.append(zsr[0])
+            Internal._rmNodesFromName(zsr,"OrphanPointList")
+        for srname in removedNames:
+            Internal._rmNodesFromName1(z,srname)
+    return None
 #==============================================================================
 # Conversion d'un arbre CGNS a la Cassiopee en un arbre de profil elsAxdt
 #==============================================================================
-def convert2elsAxdt(t, sameBase=0):
+def convert2elsAxdt(t, sameBase=0, fileDir='.'):
   """Perform all necessary transformations to obtain a computable tree for elsA."""
   tp = Internal.copyRef(t)
-  _convert2elsAxdt(tp)
+  _convert2elsAxdt(tp, fileDir)
   return tp
 
-def _convert2elsAxdt(t, sameBase=0):
-  print '1. addTurbulentDistance index'
+def _convert2elsAxdt(t, sameBase=0, fileDir='.'):
+  print('1. addTurbulentDistance index')
   _addTurbulentDistanceIndex(t)
-  print '2. buildMaskFiles'
-  _buildMaskFiles(t)
-  print '3. adaptNearMatch'
+  print('2. buildMaskFiles')
+  _buildMaskFiles(t, fileDir=fileDir)
+  print('3. adaptNearMatch')
   _adaptNearMatch(t)
-  print '4. adaptPeriodicMatch'
-  _adaptPeriodicMatch(t,clean=True)
-  print '5. overlapGC2BC'
+  print('4. adaptPeriodicMatch')
+  _adaptPeriodicMatch(t, clean=True)
+  print('5. overlapGC2BC')
   _overlapGC2BC(t)
-  print '6. rmGCOverlap'
+  print('6. rmGCOverlap')
   _rmGCOverlap(t)
-  print '7. fillNeighbourList'
+  print('7. fillNeighbourList')
   _fillNeighbourList(t)
-  print '8. prefixDnrInSubRegions'
+  print('8. prefixDnrInSubRegions')
   _prefixDnrInSubRegions(t)
+  print('9. clean subregions ID')
+  _cleanIDSubregions(t)
   return None
 
 #===============================================================================================================================
@@ -1110,10 +1136,10 @@ def _convert2elsAxdt(t, sameBase=0):
 #===============================================================================================================================
 #==============================================================================
 def adaptNearmatch__(t):
-  print 'Warning: elsAProfile: adaptNearmatch__ is obsolete. New function name is adaptNearMatch.'
+  print('Warning: elsAProfile: adaptNearmatch__ is obsolete. New function name is adaptNearMatch.')
   return adaptNearMatch(t)
 def adaptNearmatch(t):
-  print 'Warning: elsAProfile: adaptNearmatch is obsolete. New function name is adaptNearMatch.'
+  print('Warning: elsAProfile: adaptNearmatch is obsolete. New function name is adaptNearMatch.')
   return adaptNearMatch(t)
 
 #==============================================================================
@@ -1133,11 +1159,11 @@ def _addNeighbours__(t, sameBase=0):
     """ Fill the NeighbourList nodes with bounding-box domains intersection.
     """
     bases = Internal.getBases(t)
-    for i in xrange(len(bases)):
+    for i in range(len(bases)):
         fams = []
         doms = X.getCEBBIntersectingDomains(bases[i] , bases, sameBase)
         if doms != [[]]:
-            for j in xrange(len(doms)):
+            for j in range(len(doms)):
                 famsByZone=[]
                 if doms[j] !=[]:
                     for donorZoneName in doms[j]:
@@ -1150,7 +1176,7 @@ def _addNeighbours__(t, sameBase=0):
                             famsByZone.append(baseName+'/'+donorF[0])
                 fams.append(famsByZone)
         zones = Internal.getNodesFromType1(bases[i],'Zone_t')
-        for zi in xrange(len(zones)):
+        for zi in range(len(zones)):
             familyName='F_'+ zones[zi][0]
             F = Internal.getNodesFromName1(bases[i],familyName)[0]
             lOvlp = Internal.getNodesFromName(F,'.Solver#Overlap')
@@ -1161,26 +1187,26 @@ def _addNeighbours__(t, sameBase=0):
                 (parentFamily, numOvlp) = Internal.getParentOfNode(F,Ovlp)
                 (parentOvlp, numN) = Internal.getParentOfNode(Ovlp,N)
                 listFamily = ''
-                for l in xrange(len(fams[zi])):
+                for l in range(len(fams[zi])):
                     listFamily = listFamily+fams[zi][l]
                     if l != len(fams[zi])-1:
                         listFamily = listFamily + ' '
                 v = numpy.fromstring(listFamily, 'c')
-                N[1]=v
-                Ovlp[2][numN]=N
-                F[2][numOvlp]=Ovlp
+                N[1] = v
+                Ovlp[2][numN] = N
+                F[2][numOvlp] = Ovlp
                 bases[i][2][numFamily] = F
             # famille doubly-defined
             gc = Internal.getNodesFromType2(zones[zi],'GridConnectivity_t')
-            for k in xrange(len(gc)):
+            for k in range(len(gc)):
                 familyNameDD='FDD_'+ zones[zi][0]+'_'+gc[k][0]
                 FDD = (Internal.getNodesFromName1(bases[i],familyNameDD))
                 if FDD != []:
                     listVal="";domsDD=""
                     if isinstance(gc[k][1], numpy.ndarray):
-                        val = gc[k][1].tostring()
+                        val = gc[k][1].tobytes().decode()
                         listVal = val.split(",")
-                    for vi in xrange(len(listVal)):
+                    for vi in range(len(listVal)):
                         nvi = (Internal.getNodesFromName(t,listVal[vi]))[0]
                         (pvi, nvi) = Internal.getParentOfNode(t,nvi)
                         namevi = pvi[0]+'/F_'+listVal[vi]
@@ -1192,9 +1218,9 @@ def _addNeighbours__(t, sameBase=0):
                     (parentBaseDD, numFamilyDD) = Internal.getParentOfNode(bases[i],FDD[0])
                     (parentFamilyDD, numOvlpDD) = Internal.getParentOfNode(FDD[0],OvlpDD)
                     (parentOvlpDD, numNDD) = Internal.getParentOfNode(OvlpDD,NDD)
-                    NDD[1]=numpy.fromstring(domsDD, 'c')
-                    OvlpDD[2][numNDD]=NDD
-                    FDD[0][2][numOvlpDD]=OvlpDD
+                    Internal._setValue(NDD, domsDD)
+                    OvlpDD[2][numNDD] = NDD
+                    FDD[0][2][numOvlpDD] = OvlpDD
                     bases[i][2][numFamilyDD] = FDD[0]
 
     cgnsv = Internal.getNodeFromType1(t, 'CGNSLibraryVersion_t')
@@ -1206,16 +1232,15 @@ def _addNeighbours__(t, sameBase=0):
 def addFamilyBCNode__(t):
     tp = Internal.copyRef(t)
     bases = Internal.getBases(tp)
-    for i in xrange(len(bases)):
+    for i in range(len(bases)):
         families = Internal.getNodesFromType1(bases[i], 'Family_t')
         for f in families:
+            (parentBase, numFamily) = Internal.getParentOfNode(bases[i], f)
             fbc = Internal.getNodesFromType1(f, 'FamilyBC_t')
-            (parentBase, numFamily) = Internal.getParentOfNode(bases[i],f)
             if fbc == []:
-                ud = numpy.fromstring('UserDefined', 'c')
-                f[2].append(['FamilyBC', ud, [], 'FamilyBC_t'])
+                Internal._createChild(f, 'FamilyBC', 'FamilyBC_t', value='UserDefined')
             else:
-                fbc[0][0]='FamilyBC'
+                fbc[0][0] = 'FamilyBC'
             bases[i][2][numFamily] = f
 
     cgnsv = Internal.getNodesFromType1(tp, 'CGNSLibraryVersion_t')
@@ -1227,14 +1252,14 @@ def addFamilyBCNode__(t):
 
 def buildBCOverlap(t):
   """OBSOLETE: use ovelrapGC2BC"""
-  print 'WARNING: elsAProfile.buildBCOverlap is obsolete. Will be removed in next release. Please replace by overlapGC2BC in your script.'
+  print('WARNING: elsAProfile.buildBCOverlap is obsolete. Will be removed in next release. Please replace by overlapGC2BC in your script.')
   tp = Internal.copyRef(t)
   bases = Internal.getBases(tp)
 
   c = 0 # compteur pour le nommage des conditions BCOverlap
-  for i in xrange(len(bases)):
+  for i in range(len(bases)):
       zones = Internal.getNodesFromType1(bases[i], 'Zone_t')
-      for j in xrange(len(zones)):
+      for j in range(len(zones)):
           (parentBase, numZone) = Internal.getParentOfNode(tp,zones[j])
           # Creation d'une famille par zone"
           familyName='F_'+zones[j][0]
@@ -1266,16 +1291,15 @@ def buildBCOverlap(t):
               bases[i][2][numFamily] = F
               # Creation des noeuds ZoneBC_t de type BCOverlap
               gc = Internal.getNodesFromType2(zones[j],'GridConnectivity_t')
-              for k in xrange(len(gc)):
+              for k in range(len(gc)):
                   # search in parent GridConnectivity if a PointRange is present
                   # if no, connectivity is linked to blanking and not to a BCOverlap
                   prange = Internal.getNodesFromName1(gc[k],'PointRange')
                   if prange != []: # corresponds to a BCOverlap
                       gct = Internal.getNodesFromType3(gc[k],'GridConnectivityType_t')
                       for o in gct:
-                          if o != []: val=o[1]
-                          if isinstance(val, numpy.ndarray):
-                              val = val.tostring()
+                          val = Internal.getValue(o)
+                          
                           if val == 'Overset':
                               # Recuperation des donnees necessaires a la creation d'un noeud ZoneBC_t
                               #   range
@@ -1283,7 +1307,7 @@ def buildBCOverlap(t):
                               r = Internal.range2Window(lPointRange[0][1])
                               i1=int(r[0]); j1=int(r[2]); k1=int(r[4])
                               i2=int(r[1]); j2=int(r[3]); k2=int(r[5])
-                              range = [i1,i2,j1,j2,k1,k2]
+                              wrange = [i1,i2,j1,j2,k1,k2]
                               #   nom de la ZoneBC_t
                               overlapName='overlapBC'+str(c); c=c+1
                               #   doubly_defined
@@ -1297,7 +1321,7 @@ def buildBCOverlap(t):
                                           ListFDD = (Internal.getNodesFromName1(bases[i],familyNameDD))
                                           if ListFDD == []:
                                               bases[i] = C.addFamily2Base(bases[i], familyNameDD, 'BCOverlap')
-                                          zones[j] = C.addBC2Zone(zones[j], overlapName, 'FamilySpecified:'+familyNameDD,range, rangeDonor='doubly_defined')
+                                          zones[j] = C.addBC2Zone(zones[j], overlapName, 'FamilySpecified:'+familyNameDD, wrange, rangeDonor='doubly_defined')
                                           zones[j] = C.tagWithFamily(zones[j],familyNameDD)
                                           FDD = Internal.getNodesFromName1(bases[i],familyNameDD)[0]
                                           (parentBaseDD, numFamilyDD) = Internal.getParentOfNode(bases[i],FDD)
@@ -1305,11 +1329,10 @@ def buildBCOverlap(t):
                                           OvlpDD  = Internal.getNodesFromName(FDD,'.Solver#Overlap')[0]
                                           (parentFamilyDD, numOvlpDD) = Internal.getParentOfNode(FDD,OvlpDD)
                                           FDD[2][numOvlpDD][2].append(['NeighbourList', None, [], 'DataArray_t'])
-                                          dd = numpy.fromstring('active', 'c')
-                                          FDD[2][numOvlpDD][2].append(['doubly_defined', dd, [], 'DataArray_t'])
+                                          Internal._createChild(FDD[2][numOvlpDD], 'doubly_defined', 'DataArray_t', value='active')
                                           bases[i][2][numFamilyDD] = FDD
                               else:
-                                  zones[j] = C.addBC2Zone(zones[j], overlapName, 'FamilySpecified:'+familyName,range)
+                                  zones[j] = C.addBC2Zone(zones[j], overlapName, 'FamilySpecified:'+familyName, wrange)
                                   familyNameList = Internal.getNodesFromType1(zones[j],'FamilyName_t')
                                   if familyNameList == []: zones[j] = C.tagWithFamily(zones[j],familyName)
 
@@ -1333,11 +1356,10 @@ def addBaseToDonorZone__(t):
             sname = s[0]
             if sname.split('_')[0] == 'ID': interpSubRegions.append(s)
         for s in interpSubRegions:
-            donorname = s[1].tostring()
+            donorname = s[1].tobytes().decode()
             donorzone = Internal.getNodeFromName(tp, donorname)
             base,pos = Internal.getParentOfNode(tp, donorzone)
-            s[1] = numpy.fromstring(base[0]+"/"+donorname,'c')
-
+            Internal._setValue(s, base[0]+"/"+donorname)
     return tp
 
 # Remove useless families
@@ -1345,32 +1367,32 @@ def removeExtraFamily__(t, listOfNodes):
     tp = Internal.copyRef(t)
     bases = Internal.getBases(tp)
     toDelete = []
-    for i in xrange(len(bases)):
+    for i in range(len(bases)):
         baseName = bases[i][0]
         families = Internal.getNodesFromType1(bases[i], 'Family_t')
-        for j in xrange(len(families)):
+        for j in range(len(families)):
             familyName = families[j][0]
             path="%s/%s"%(baseName,familyName)
             # Checking if the family is not needed  if it is a default family with just a familyBC_t node of type UserDefined
-            if path not in listOfNodes and len(families[j][2]) == 1 and families[j][2][0][2] == [] and families[j][2][0][1].tostring() == 'UserDefined':
+            if path not in listOfNodes and len(families[j][2]) == 1 and families[j][2][0][2] == [] and families[j][2][0][1].tobytes().decode() == 'UserDefined':
                 Internal._rmNode(tp,families[j])
                 toDelete.append(path)
 
         zones = Internal.getNodesFromType1(bases[i], 'Zone_t')
-        for j in xrange(len(zones)):
+        for j in range(len(zones)):
             familyNameNodes = Internal.getNodesFromType1(zones[j],'FamilyName_t')
             additionalFamilyNameNodes = Internal.getNodesFromType1(zones[j],'AdditionalFamilyName_t')
 
-            for k in xrange(len(familyNameNodes)):
+            for k in range(len(familyNameNodes)):
                 familyName = familyNameNodes[k][1]
                 if type(familyName) == 'numpy.ndarray':
-                    familyName = familyName.tostring()
+                    familyName = familyName.tobytes().decode()
                 familyPath = "%s/%s"%(baseName,familyName)
                 if familyPath in toDelete:
                     Internal._rmNode(tp, familyNameNodes[k])
 
-            for k in xrange(len(additionalFamilyNameNodes)):
-                familyName = additionalFamilyNameNodes[k][1].tostring()
+            for k in range(len(additionalFamilyNameNodes)):
+                familyName = additionalFamilyNameNodes[k][1].tobytes().decode()
                 familyPath = "%s/%s"%(baseName,familyName)
                 if familyPath in toDelete:
                     Internal._rmNode(tp, additionalFamilyNameNodes[k])
@@ -1385,7 +1407,7 @@ def addMergedFamily__(t, equivalenceNodes):
     tp = Internal.copyRef(t)
     # Looking for overlap BC FamilySpecified!
     bases = Internal.getBases(tp)
-    for i in xrange(len(bases)):
+    for i in range(len(bases)):
         baseName = bases[i][0]
         families = Internal.getNodesFromType1(bases[i], 'Family_t')
 
@@ -1408,69 +1430,70 @@ def addMergedFamily__(t, equivalenceNodes):
                 bases[i][2].append(Fnew)
 
         # Updating NeighbourList
-        for j in xrange(len(families)):
+        for j in range(len(families)):
             familyName = families[j][0]
             path = "%s/%s"%(baseName,familyName)
 
             Ovlp  = Internal.getNodesFromName(families[j],'.Solver#Overlap')
-            for k in xrange(len(Ovlp)):
+            for k in range(len(Ovlp)):
                 NeighbourList = Internal.getNodesFromName(Ovlp[k], 'NeighbourList')
                 nl =  NeighbourList[0][1]
                 if nl is not None:# can be None for doubly defined BCs
-                    nl = nl.tostring().split()
+                    nl = nl.tobytes().decode().split()
                     for e in sorted(equivalenceNodes.keys()):
                         if equivalenceNodes[e] <= set(nl):
                             familyNodes = Internal.getNodesFromName(bases[i],e)
                             snl = set(nl) - equivalenceNodes[e]
                             snl.add(e)
-                            NeighbourList[0][1] = numpy.fromstring(" ".join(list(snl)),'c')
+                            Internal._setValue(NeighbourList[0], " ".join(list(snl)))
 
         zones = Internal.getNodesFromType1(bases[i], 'Zone_t')
-        for j in xrange(len(zones)):
+        for j in range(len(zones)):
             zoneName = zones[j][0]
             path = "%s/%s"%(baseName,zoneName)
             familyNameNodes = Internal.getNodesFromType1(zones[j],'FamilyName_t')
             additionalFamilyNameNodes = Internal.getNodesFromType1(zones[j],'AdditionalFamilyName_t')
 
             # Updating FamilyName_t for Zone_t
-            for k in xrange(len(familyNameNodes)):
+            for k in range(len(familyNameNodes)):
                 familyName = familyNameNodes[k][1]
                 if type(familyName) == 'numpy.ndarray':
-                    familyName = familyName.tostring()
+                    familyName = familyName.tobytes().decode()
                 familyPath = "%s/%s"%(baseName,familyName)
                 for e in sorted(equivalenceNodes.keys()):
                     if familyPath in equivalenceNodes[e]:
-                        familyNameNodes[k][1] = numpy.fromstring(e.split("/")[1],'c')
+                        Internal._setValue(familyNameNodes[k], e.split("/")[1])
 
             # Updating AdditionalFamilyName_t for Zone_t
-            for k in xrange(len(additionalFamilyNameNodes)):
-                familyName = additionalFamilyNameNodes[k][1].tostring()
+            for k in range(len(additionalFamilyNameNodes)):
+                familyName = additionalFamilyNameNodes[k][1].tobytes().decode()
                 familyPath = "%s/%s"%(baseName,familyName)
                 for e in sorted(equivalenceNodes.keys()):
                     if familyPath in equivalenceNodes[e]:
-                        additionalFamilyNameNodes[k][1] = numpy.fromstring(e.split("/")[1],'c')
+                        Internal._setValue(additionalFamilyNameNodes[k], e.split("/")[1])
+
 
             # Updating familyName_t for familySpecified BC_t
             zonebcs = Internal.getNodesFromType1(zones[j], 'ZoneBC_t')
-            for k in xrange(len(zonebcs)):
+            for k in range(len(zonebcs)):
                 bcs = Internal.getNodesFromType1(zonebcs[k], 'BC_t')
-                for l in xrange(len(bcs)):
-                    if bcs[l][1].tostring() == 'FamilySpecified':
+                for l in range(len(bcs)):
+                    if bcs[l][1].tobytes().decode() == 'FamilySpecified':
                         familyNameNodes = Internal.getNodesFromType1(bcs[l], 'FamilyName_t')
                         additionalFamilyNameNodes = Internal.getNodesFromType1(bcs[l], 'AdditionalFamilyName_t')
-                        familyName = familyNameNodes[0][1].tostring()
+                        familyName = familyNameNodes[0][1].tobytes().decode()
                         familyPath = "%s/%s"%(baseName,familyName)
                         for e in sorted(equivalenceNodes.keys()):
                             if familyPath in equivalenceNodes[e]:
-                                familyNameNodes[0][1] = numpy.fromstring(e.split("/")[1],'c')
+                                Internal._setValue(familyNameNodes[0], e.split("/")[1])
 
                         # Updating AdditionalFamilyName_t for Zone_t
-                        for k in xrange(len(additionalFamilyNameNodes)):
-                            familyName = additionalFamilyNameNodes[k][1].tostring()
+                        for k in range(len(additionalFamilyNameNodes)):
+                            familyName = additionalFamilyNameNodes[k][1].tobytes().decode()
                             familyPath = "%s/%s"%(baseName,familyName)
                             for e in sorted(equivalenceNodes.keys()):
                                 if familyPath in equivalenceNodes[e]:
-                                    additionalFamilyNameNodes[k][1] = numpy.fromstring(e.split("/")[1],'c')
+                                    Internal._setValue(additionalFamilyNameNodes[k], e.split("/")[1])
 
 
     return tp
@@ -1480,23 +1503,23 @@ def addMergedFamily__(t, equivalenceNodes):
 def buildGraph__(t):
     bases = Internal.getBases(t)
     g = {}
-    for i in xrange(len(bases)):
+    for i in range(len(bases)):
         baseName = bases[i][0]
         families = Internal.getNodesFromType1(bases[i], 'Family_t')
-        for j in xrange(len(families)):
+        for j in range(len(families)):
             familyName = families[j][0]
             path = "%s/%s"%(baseName, familyName)
             Ovlp = Internal.getNodesFromName(families[j],'.Solver#Overlap')
-            for k in xrange(len(Ovlp)):
-                if path not in g.keys():
+            for k in range(len(Ovlp)):
+                if path not in g:
                     g[path] = set()
                 NeighbourList = Internal.getNodesFromName(Ovlp[k], 'NeighbourList')
                 nl = NeighbourList[0][1]
                 if nl is not None: # can be None for doubly defined BCs
-                    nl = nl.tostring().split()
+                    nl = nl.tobytes().decode().split()
                     g[path].update(nl)
                     for elt in nl:
-                        if elt not in g.keys(): g[elt] = set()
+                        if elt not in g: g[elt] = set()
                         g[elt].add(path)
     return g
 
@@ -1513,7 +1536,7 @@ def buildPart__(g):
                     if g[k1] not in equivalenceValues.values():
                         i = i+1
                         equivalenceValues[i] = g[k1]
-                    if i not in equivalenceNodes.keys():
+                    if i not in equivalenceNodes:
                         equivalenceNodes[i] = set([])
                     equivalenceNodes[i].update([k1,k2])
 
@@ -1561,7 +1584,7 @@ def _splitHybridBCMatch(t):
               SPL = Converter.converter.pointList2SPL(PL[1],PLD[1],dims[1],dims[2],dims[3])
               name = g[0]
               Internal._rmNodesFromName(zgc, name)
-              for i in xrange(6):
+              for i in range(6):
                 if SPL[i] is not None: 
                   n = Internal.createChild(zgc, C.getBCName(name), 'GridConnectivity1to1_t', value=Internal.getValue(g))
                   Internal.createChild(n, 'GridLocation', 'GridLocation_t', value='FaceCenter')
@@ -1584,15 +1607,13 @@ def _splitHybridBCMatch(t):
                 SPL = Converter.converter.pointList2SPL(PLD[1],PL[1],dimsd[1],dimsd[2],dimsd[3])
                 name = g[0]
                 Internal._rmNodesFromName(zgc, name)
-                for i in xrange(6):
+                for i in range(6):
                   if SPL[i] is not None: 
                     n = Internal.createChild(zgc, C.getBCName(name), 'GridConnectivity_t', value=zdname)
                     Internal.createChild(n, 'GridLocation', 'GridLocation_t', value='FaceCenter')
                     Internal.createChild(n, 'PointList', 'IndexArray_t', value=SPL[i+6].reshape(1,SPL[i+6].size))
                     Internal.createChild(n, 'PointListDonor', 'IndexArray_t', value=SPL[i].reshape(1,SPL[i].size))
                     Internal.createChild(n, 'GridConnectivityType', 'GridConnectivityType_t', value='Abutting1to1')
-
-
   return None
 
 

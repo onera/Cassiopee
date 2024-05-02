@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -36,7 +36,7 @@ using namespace K_FUNC;
 PyObject* K_CONVERTER::convertMix2BE(PyObject* self, PyObject* args)
 {
   PyObject* oMIX;
-  if (!PYPARSETUPLEF(args, "O", "O", &oMIX)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &oMIX)) return NULL;
  
   // Check numpy
   FldArrayI* cMIX;

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -24,15 +24,16 @@
 */
 //=============================================================================
 void writePPMFile(Data* d, char *filename, char* buffer, 
-                  int width, int height, int mode)
+                  E_Int width, E_Int height, E_Int mode)
 {
   if (buffer == NULL) return;
-  int i, j, k, q;
+  E_Int i, j, k, q;
   unsigned char *ibuffer;
   FILE *fp;
   int pixelSize = GL_RGB==GL_RGBA?4:3;
   
-  if ( (fp = fopen(filename, "wb")) == NULL ) {
+  if ( (fp = fopen(filename, "wb")) == NULL ) 
+  {
     printf("Warning: cannot open %s.\n", filename);
     return;
   }
@@ -40,7 +41,7 @@ void writePPMFile(Data* d, char *filename, char* buffer,
   int elt = 3;
   ibuffer = (unsigned char *)malloc(width*height*3);
 
-  fprintf(fp, "P6\n# CREATOR: CPlot\n%d %d %d\n",
+  fprintf(fp, "P6\n# CREATOR: CPlot\nSF_D3_\n",
           width, height, 255);
   q = 0;
   for (i = 0; i < height; i++)
@@ -52,6 +53,6 @@ void writePPMFile(Data* d, char *filename, char* buffer,
   fclose(fp);
   free(ibuffer);
   
-  printf("Wrote file %s (%d x %d pixels, %d bytes).\n",
+  printf("Wrote file %s (" SF_D_ " x " SF_D_ " pixels, " SF_D_ " bytes).\n",
          filename, width, height, 3*width*height);
 }

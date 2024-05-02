@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -30,11 +30,11 @@ using namespace K_FLD;
    CAS SANS DOUBLE WALL 
    IN: receiverArray: points a interpoler definis sous forme de maillage
    IN: donorArrays: maillages donneurs. La localisation du donneur 
-        (noeuds/centres/centres etendus) doit être effectuee au prealable
+        (noeuds/centres/centres etendus) doit ï¿½tre effectuee au prealable
    IN: Nature: 0: produit des cellN=0 -> donneur invalide; 
                1: cellN=0 ou 2 -> donneur invalide
    IN: PenalizeBorders: 1: penalite sur le volume des pts ou cellules frontieres
-   IN: hook != Py_None: hook sur les kdt associes à donorArrays 
+   IN: hook != Py_None: hook sur les kdt associes ï¿½ donorArrays 
    OUT: [donorBlks,donorInd1D, donorType, coefs, extrapInd1D, orphanInd1D] 
         donorBlks: no du blk donneur, demarre a 0
         donorInd1D: [N1,ind1,...,indN1,N2,indp1,...,indpN2,...] sous forme d un numpy 1D
@@ -51,8 +51,7 @@ PyObject* K_CONNECTOR::setInterpDataLS(PyObject* self, PyObject* args)
   E_Int PenalizeBorders;
   PyObject* hook;
 
-  if (!PYPARSETUPLEI(args,
-                    "OOlllOl", "OOiiiOi",
+  if (!PYPARSETUPLE_(args, OO_ III_ O_ I_,
                     &receiverArray, &donorArrays, &Order, &Nature, &PenalizeBorders, &hook, &Dim))
   {
       return NULL;
@@ -267,7 +266,7 @@ PyObject* K_CONNECTOR::setInterpDataLS(PyObject* self, PyObject* args)
       vectOfPosElt.push_back(posElt);
       // tableau de la dimension des elements
       FldArrayI dimElt(npts); 
-      K_CONNECT::getDimElts(cNG, posFace, dimElt);
+      K_CONNECT::getDimElts(cNG, dimElt);
       vectOfDimElt.push_back(dimElt);
     }
     else //si la zone est structuree
@@ -300,7 +299,7 @@ PyObject* K_CONNECTOR::setInterpDataLS(PyObject* self, PyObject* args)
   vector<FldArrayI*> listOfExtrapInd1D;
 
   // Initialisation des tableaux et dimensionnement a priori
-  // On met pour l'instant NCloudPtsMax à CLOUDMAX: la molecule d'interpolation contient a priori CLOUDMAX pts
+  // On met pour l'instant NCloudPtsMax ï¿½ CLOUDMAX: la molecule d'interpolation contient a priori CLOUDMAX pts
   E_Int nCloudPtsMax = CLOUDMAX;
   for (E_Int noz = 0; noz < nDnrZones; noz++)
   {

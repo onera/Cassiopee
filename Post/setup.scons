@@ -50,15 +50,31 @@ env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
 env.Replace(CXXFLAGS=Dist.getCppArgs())
 env.Replace(CFLAGS=Dist.getCArgs())
 
+ELSAPROD = os.environ.get('ELSAPROD', 'x86_r8')
+env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
+
 env = Dist.createFortranBuilder(env, [kcoreIncDir])
 ppf = Dist.createFortranFiles(env, srcs)
-  
+
+#==============================================================================
+cppOpts = Dist.getCppArgs()
+
+# Optimisation en -O1 pour les fichiers de stream2
+if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
+    flags = ''
+    for i in cppOpts:
+        if i[0:2] != '-O' and i[0:9] != '-fp-model': flags += i+' '
+    flags += '-fp-model=strict -O1'
+    for i, v in enumerate(srcs.cpp_srcs):
+       	if 'Stream2/' in v:
+           #print('altering', v, flags)
+           srcs.cpp_srcs[i] = env.Object(v, CXXFLAGS=flags)
+
 #==============================================================================
 
 myMod = env.StaticLibrary('post',
                           srcs.cpp_srcs+ppf)
-modDir = installPath+'/Post/'
+modDir = 'build/'+ELSAPROD
 dp1 = env.Install(modDir, myMod)
-dp2 = env.Install(modDir, Glob('Post/*.py'))
 
-env.Alias(target="install", source=[dp1,dp2])
+env.Alias(target="install", source=[dp1])

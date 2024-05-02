@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -20,6 +20,7 @@
 
 # include "GenIO.h"
 # include "Array/Array.h"
+# include "String/kstring.h"
 # include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
@@ -56,6 +57,7 @@ E_Int K_IO::GenIO::matchInString(char* buf, const char* word)
 //=============================================================================
 /* Lit un mot.
    On appelle separateur le dernier caractere lu apres le mot.
+   Retourne 3 si un mot a ete lu et ; est le separateur
    Retourne 2 si un mot a ete lu et blank ou tab est le separateur
    Retourne 1 si un mot a ete lu et \n ou \r est le separateur 
    Retourne 0 si la fin du fichier a ete atteinte mais qu'un mot a pu etre lu
@@ -72,14 +74,15 @@ E_Int K_IO::GenIO::readWord(FILE* ptrFile, char* buf)
   E_Int c = 0;
   while (t != EOF && c < BUFSIZE && (c == 0 || t != ' ') 
          && (c == 0 || t != '\n') 
-         && (c == 0 || t != '\r'))
+         && (c == 0 || t != '\r')
+         && (c == 0 || t != ';'))
   {
     if (t == '#') // skip comment
     {
       while (t != EOF && t != '\n' && t != '\r') t = fgetc(ptrFile);
       if (t == EOF) { buf[c] = '\0' ; return 0; }
     }
-    if (t != ' ' && t != '\n' && t != '\r') { buf[c] = t; c++; }
+    if (t != ' ' && t != '\n' && t != '\r' && t != ';') { buf[c] = t; c++; }
     t = fgetc(ptrFile);
   }
   buf[c] = '\0';
@@ -88,6 +91,7 @@ E_Int K_IO::GenIO::readWord(FILE* ptrFile, char* buf)
   else if (t == EOF) return -1;
   else if (t == ' ') return 2;
   else if (t == '\t') return 2;
+  else if (t == ';') return 3;
   else return 1;
 }
 
@@ -125,6 +129,136 @@ E_Int K_IO::GenIO::readGivenKeyword(FILE* ptrFile, const char* keyword)
   }
 
   delete [] word;
+
+  if (t == EOF) return 0;
+  else return 1;
+}
+
+//=============================================================================
+/*
+  Lit le ptrFile jusqu'a rencontrer keyword1 ou keyword2 ou eof.
+  keyword1 et keyword2 doicent etre en majuscule.
+  Ignore les majuscules.
+  Retourne 1 si keyword1 a ete trouve en premier.
+  Retourne 2 si keyword2 a ete trouve en premier.
+  Retourne 0 si eof a ete atteint.
+*/
+//=============================================================================
+E_Int K_IO::GenIO::readGivenKeyword(FILE* ptrFile, const char* keyword1, 
+                                    const char* keyword2)
+{
+  E_Int i, a;
+  E_Int l1 = strlen(keyword1);
+  E_Int l2 = strlen(keyword2);
+  
+  char* word1 = new char [l1+1];
+  char* word2 = new char [l2+1];
+  
+  for (i = 0; i < l1; i++) word1[i] = ' ';
+  word1[l1] = '\0';
+  for (i = 0; i < l2; i++) word2[i] = ' ';
+  word2[l2] = '\0';
+
+  char t;
+  t = fgetc(ptrFile);
+  
+  while (t != EOF)
+  {
+    for (a = 0; a < l1-1; a++) word1[a] = word1[a+1];
+    word1[l1-1] = toupper(t);
+    for (a = 0; a < l2-1; a++) word2[a] = word2[a+1];
+    word2[l2-1] = toupper(t);
+  
+    if (strcmp(word1, keyword1) == 0)
+    {
+      //printf("%s\n", word1);
+      delete [] word1; delete [] word2;
+      return 1;
+    }
+
+    if (strcmp(word2, keyword2) == 0)
+    {
+      //printf("%s\n", word2);
+      delete [] word1; delete [] word2;
+      return 2;
+    }
+
+    t = fgetc(ptrFile);
+  }
+
+  delete [] word1; delete [] word2;
+
+  if (t == EOF) return 0;
+  else return 1;
+}
+
+//=============================================================================
+/*
+  Lit le ptrFile jusqu'a rencontrer keyword1 ou keyword2 ou keyword3 ou eof.
+  keyword1, keyword2, keyword3 doivent etre en majuscule.
+  Ignore les majuscules.
+  Retourne 1 si keyword1 a ete trouve en premier.
+  Retourne 2 si keyword2 a ete trouve en premier.
+  Retourne 3 si keyword3 a ete trouve en premier.
+  Retourne 0 si eof a ete atteint.
+*/
+//=============================================================================
+E_Int K_IO::GenIO::readGivenKeyword(FILE* ptrFile, const char* keyword1, 
+                                    const char* keyword2, const char *keyword3)
+{
+  E_Int i, a;
+  E_Int l1 = strlen(keyword1);
+  E_Int l2 = strlen(keyword2);
+  E_Int l3 = strlen(keyword3);
+  
+  char* word1 = new char [l1+1];
+  char* word2 = new char [l2+1];
+  char* word3 = new char [l3+1];
+  
+  for (i = 0; i < l1; i++) word1[i] = ' ';
+  word1[l1] = '\0';
+  for (i = 0; i < l2; i++) word2[i] = ' ';
+  word2[l2] = '\0';
+  for (i = 0; i < l3; i++) word3[i] = ' ';
+  word2[l3] = '\0';
+
+  char t;
+  t = fgetc(ptrFile);
+  
+  while (t != EOF)
+  {
+    for (a = 0; a < l1-1; a++) word1[a] = word1[a+1];
+    word1[l1-1] = toupper(t);
+    for (a = 0; a < l2-1; a++) word2[a] = word2[a+1];
+    word2[l2-1] = toupper(t);
+    for (a = 0; a < l3-1; a++) word3[a] = word3[a+1];
+    word3[l3-1] = toupper(t);
+  
+    if (strcmp(word1, keyword1) == 0)
+    {
+      //printf("%s\n", word1);
+      delete [] word1; delete [] word2; delete [] word3;
+      return 1;
+    }
+
+    if (strcmp(word2, keyword2) == 0)
+    {
+      //printf("%s\n", word2);
+      delete [] word1; delete [] word2; delete [] word3;
+      return 2;
+    }
+
+    if (strcmp(word3, keyword3) == 0)
+    {
+      //printf("%s\n", word3);
+      delete [] word1; delete [] word2; delete [] word3;
+      return 3;
+    }
+
+    t = fgetc(ptrFile);
+  }
+
+  delete [] word1; delete [] word2; delete [] word3;
 
   if (t == EOF) return 0;
   else return 1;
@@ -179,10 +313,12 @@ E_Int K_IO::GenIO::readDataAndKeyword(FILE* ptrFile, char* buf,
   E_Int l, p, i, j;
   E_Int c = 0;
 
-  E_Int ret = readKeyword(ptrFile,buf);
+  readKwd:
+  E_Int ret = readKeyword(ptrFile, buf);
 
-  if (ret!=0)
+  if (ret != 0)
   {
+    buf[BUFSIZE] = '\0';
     strcpy(prevData, buf);
     return ret; // echec
   }
@@ -211,10 +347,11 @@ E_Int K_IO::GenIO::readDataAndKeyword(FILE* ptrFile, char* buf,
     }
   }
 
-  if (found == 0)
+  if (found == 0) // pas un mot cle reconnu, continue a la recherche d'un nouveau mot cle
   {
-    strcpy(prevData, buf);
-    return 1; // echec
+    goto readKwd;
+    //strcpy(prevData, buf);
+    //return 1; // echec
   }
 
   // stocke la prevdata
@@ -256,11 +393,12 @@ E_Int K_IO::GenIO::readDouble(FILE* ptrFile, E_Float& value,
            (c != '\r' || i == 0) && (c != ',' || i == 0) && 
            (c != '>' || i == 0) && (c != ';' || i == 0) &&
            (c != '<' || i == 0) && (c != '\v' || i == 0) && 
-           (c != '\t' || i == 0))
+           (c != '\t' || i == 0) && (c != '(' || i == 0))
     {
       c = fgetc(ptrFile);
       if (c != ' ' && c != '\n' && c != '\r' && c != ',' && c != '>' 
-          && c != '<' && c != '\v' && c != '\t' && c != ';')
+          && c != '<' && c != '\v' && c != '\t' 
+          && c != ';' && c != '(')
       {number[i] = c; if (c == 'D') number[i] = 'E'; i++;} 
     }
   }
@@ -278,7 +416,7 @@ E_Int K_IO::GenIO::readDouble(FILE* ptrFile, E_Float& value,
 
   number[i] = '\0';
   value = strtod(number, NULL);
-  //printf("number %s %f %d\n", number, value, formatLength);
+  //printf("number %s " SF_F_ " " SF_D_ "\n", number, value, formatLength);
 
   if (i == 0) return -1;
   else if (c == EOF) return 2;
@@ -311,18 +449,19 @@ E_Int K_IO::GenIO::readDouble(char* buf, E_Int size, E_Int& pos,
          (c != ',' || i == 0) && (c != '>' || i == 0) && 
          (c != '/' || i == 0) && (c != ';' || i == 0) &&
          (c != '<' || i == 0) && (c != '\v' || i == 0) && 
-         (c != '\t' || i == 0))
+         (c != '\t' || i == 0) && (c != '(' || i == 0))
     {
       c = buf[pos]; pos++;
       if (c != ' ' && c != '\n' && c != '\r' && c != ',' && c != '>' 
-          && c != '<' && c != '\v' && c != '\t' && c != '/' && c != ';')
+          && c != '<' && c != '\v' && c != '\t' && c != '/' 
+          && c != ';' && c != '(')
       {number[i] = c; if (c == 'D') number[i] = 'E'; i++;}
     }
 
   number[i] = '\0';
   errno = 0;
   value = strtod(number, NULL);
-  //printf("number: %f %s\n", value, number);
+  //printf("number: " SF_F_ " %s\n", value, number);
 
   if (pos < size) return 2;
   else if (c == ' ') return 1;
@@ -363,11 +502,12 @@ E_Int K_IO::GenIO::readInt(FILE* ptrFile, E_Int& value,
            (c != ',' || i == 0) && (c != '>' || i == 0) && 
            (c != '/' || i == 0) && (c != ';' || i == 0) &&
            (c != '<' || i == 0) && (c != '\v' || i == 0) && 
-           (c != '\t' || i == 0))
+           (c != '\t' || i == 0) && (c != '(' || i == 0))
     {
       c = fgetc(ptrFile);
       if (c != ' ' && c != '\n' && c != '\r' && c != ',' && c != '>' 
-          && c != '<' && c != '\v' && c != '\t' && c != '/' && c != ';')
+          && c != '<' && c != '\v' && c != '\t' && c != '/' 
+          && c != ';' && c!= '(')
       {number[i] = c; if (c == 'D') number[i] = 'E'; i++;}  
     }
   }
@@ -386,7 +526,7 @@ E_Int K_IO::GenIO::readInt(FILE* ptrFile, E_Int& value,
   number[i] = '\0';
   errno = 0;
   value = strtol(number, NULL, 0);
-  //printf("number: %d %s\n", value, number);
+  //printf("number: " SF_D_ " string: %s errno=" SF_D_ "\n", value, number, errno);
 
   if (i == 0) return -1; // pas de caractere valide lu
   else if (c == EOF) return 2; // end of file
@@ -417,11 +557,12 @@ E_Int K_IO::GenIO::readHexaInt(FILE* ptrFile, E_Int& value,
            (c != ',' || i == 0) && (c != '>' || i == 0) && 
            (c != '/' || i == 0) && (c != ';' || i == 0) &&
            (c != '<' || i == 0) && (c != '\v' || i == 0) && 
-           (c != '\t' || i == 0))
+           (c != '\t' || i == 0) && (c != '(' || i == 0))
     {
       c = fgetc(ptrFile);
       if (c != ' ' && c != '\n' && c != '\r' && c != ',' && c != '>' 
-          && c != '<' && c != '\v' && c != '\t' && c != '/' && c != ';')
+          && c != '<' && c != '\v' && c != '\t' && c != '/' 
+          && c != ';' && c != '(')
       {number[i] = c; if (c == 'D') number[i] = 'E'; i++;}  
     }
   }
@@ -440,7 +581,7 @@ E_Int K_IO::GenIO::readHexaInt(FILE* ptrFile, E_Int& value,
   number[i] = '\0';
   errno = 0;
   value = strtol(number, NULL, 16);
-  //printf("number: %d %s\n", value, number);
+  //printf("number: " SF_D_ " %s\n", value, number);
 
   if (i == 0) return -1; // pas de caractere valide lu
   else if (c == EOF) return 2; // end of file
@@ -472,18 +613,20 @@ E_Int K_IO::GenIO::readInt(char* buf, E_Int size, E_Int& pos, E_Int& value)
   while (pos < size && (c != ' ' || i == 0) && (c != '\n' || i == 0) &&
          (c != ',' || i == 0) && (c != '>' || i == 0) && 
          (c != '/' || i == 0) && (c != ';' || i == 0) &&
-         (c != '<' || i == 0) && (c != '\v' || i == 0) && (c != '\t' || i == 0))
+         (c != '<' || i == 0) && (c != '\v' || i == 0) && 
+         (c != '\t' || i == 0) && (c != '(' || i == 0))
     {
       c = buf[pos]; pos++;
       if (c != ' ' && c != '\n' && c != '\r' && c != ',' && c != '>' 
-          && c != '<' && c != '\v' && c != '\t' && c != '/' && c != ';')
+          && c != '<' && c != '\v' && c != '\t' && c != '/' 
+          && c != ';' && c != '(')
       {number[i] = c; if (c == 'D') number[i] = 'E'; i++;}
     }
 
   number[i] = '\0';
   errno = 0;
   value = strtol(number, NULL, 0);
-  //printf("number : %d %s %d\n", value, number, i);
+  //printf("number : " SF_D_ " %s " SF_D_ "\n", value, number, i);
   
   if (i == 0) return -1; // pas de caractere valide lu
   else if (errno == ERANGE) return -1; // pas entier
@@ -530,6 +673,125 @@ E_Int K_IO::GenIO::readIntTuple(FILE* ptrFile, E_Int& value)
   
   value = strtol(number, NULL, 0);
 
+  if (c == EOF) return 2;
+  else if (c == ' ') return 1;
+  else if (c == '\t') return 1;
+  else return 0;
+}
+
+//=============================================================================
+/* 
+   Lit un tuple 12/13/24 ou 12/13.
+   Retourne les deux premieres valeurs.
+   Retourne 2 si eof, 1 si arret sur un blanc et 0 sinon. 
+ */
+//=============================================================================
+E_Int K_IO::GenIO::readIntTuple2(FILE* ptrFile, E_Int& value1, E_Int& value2)
+{
+  E_Int i = 0;
+  char c;
+  char number[256];
+  
+  c = fgetc(ptrFile);
+  // Avance jusqu'a un tuple lisible
+  while (c != EOF && (c == ' ' || c == '\n' || c == '\r'))
+  {
+    c = fgetc(ptrFile);
+  }
+
+  // Lit la premiere valeur du tuple
+  while (c != EOF && c != ' ' && c != '/' && c != '\n' && c != '\r')
+  {
+    {number[i] = c; if (c == 'D') number[i] = 'E'; i++;}
+    c = fgetc(ptrFile);
+  }
+  number[i] = '\0';
+
+  value1 = strtol(number, NULL, 0);
+
+  c = fgetc(ptrFile); // passe /
+  i = 0;
+  while (c != EOF && c != ' ' && c != '/' && c != '\n' && c != '\r')
+  {
+    {number[i] = c; if (c == 'D') number[i] = 'E'; i++;}
+    c = fgetc(ptrFile);
+  }
+  number[i] = '\0';
+
+  value2 = strtol(number, NULL, 0);
+
+  // Lit les autres valeurs (si il y en a)
+  while (c != EOF && c != ' ' && c != '\n' && c != '\r')
+  {
+    c = fgetc(ptrFile);
+  }
+  
+  if (c == EOF) return 2;
+  else if (c == ' ') return 1;
+  else if (c == '\t') return 1;
+  else return 0;
+}
+
+//=============================================================================
+/* 
+   Lit un tuple 12/13/24.
+   Retourne les trois valeurs.
+   Retourne 2 si eof, 1 si arret sur un blanc et 0 sinon. 
+ */
+//=============================================================================
+E_Int K_IO::GenIO::readIntTuple3(FILE* ptrFile, E_Int& value1, E_Int& value2, E_Int& value3)
+{
+  E_Int i = 0;
+  char c;
+  char number[256];
+  
+  value1 = -1; value2 = -1; value3 = -1;
+
+  c = fgetc(ptrFile);
+  // Avance jusqu'a un tuple lisible
+  while (c != EOF && (c == ' ' || c == '\n' || c == '\r'))
+  {
+    c = fgetc(ptrFile);
+  }
+
+  // Lit la premiere valeur du tuple
+  while (c != EOF && c != ' ' && c != '/' && c != '\n' && c != '\r')
+  {
+    {number[i] = c; if (c == 'D') number[i] = 'E'; i++;}
+    c = fgetc(ptrFile);
+  }
+  number[i] = '\0';
+
+  value1 = strtol(number, NULL, 0);
+
+  if (c == '/')
+  { // essai pour lire la deuxieme valeur
+    c = fgetc(ptrFile); // passe /
+    i = 0;
+    while (c != EOF && c != ' ' && c != '/' && c != '\n' && c != '\r')
+    {
+      {number[i] = c; if (c == 'D') number[i] = 'E'; i++;}
+      c = fgetc(ptrFile);
+    }
+    number[i] = '\0';
+
+    value2 = strtol(number, NULL, 0);
+
+    if (c == '/')
+    {
+      c = fgetc(ptrFile); // passe /
+      i = 0;
+      while (c != EOF && c != ' ' && c != '/' && c != '\n' && c != '\r')
+      {
+        {number[i] = c; if (c == 'D') number[i] = 'E'; i++;}
+        c = fgetc(ptrFile);
+      }
+      number[i] = '\0';
+
+      value3 = strtol(number, NULL, 0);
+    }
+  }
+  
   if (c == EOF) return 2;
   else if (c == ' ') return 1;
   else if (c == '\t') return 1;
@@ -714,9 +976,8 @@ E_Int K_IO::GenIO::tpwriteTriangles(char* file, FldArrayF& field,
   // Write just one zone
   E_Int npts = field.getSize();
   E_Int nbElts = connect.getSize();
-  fprintf(ptr_file,"ZONE N=%d, E=%d, F=FEPOINT, ET=TRIANGLE\n",
-          int(npts), int(nbElts));
-
+  fprintf(ptr_file, "ZONE N=" SF_D_ ", E=" SF_D_ ", F=FEPOINT, ET=TRIANGLE\n",
+          npts, nbElts);
   // Write points
   for (E_Int np = 0; np < npts; np++)
   {
@@ -750,7 +1011,7 @@ E_Int K_IO::GenIO::tpwriteTriangles(char* file, FldArrayF& field,
         break;
         
       default:
-        printf("Warning: Number of variables unknown in tpwriteTriangles.\n");
+        printf("Warning: tpwrite: Number of variables unknown in tpwriteTriangles.\n");
         return 1;
     }
   }
@@ -758,12 +1019,7 @@ E_Int K_IO::GenIO::tpwriteTriangles(char* file, FldArrayF& field,
   // Write connectivity
   for (E_Int i = 0; i < nbElts; i++)
   { 
-#ifdef E_DOUBLEINT  
-    fprintf(ptr_file, "%lld %lld %lld\n", connect(i,1), connect(i,2),
-            connect(i,3));
-#else
-    fprintf(ptr_file, "%d %d %d\n", connect(i,1), connect(i,2), connect(i,3));
-#endif
+    fprintf(ptr_file, SF_D3_ "\n", connect(i,1), connect(i,2), connect(i,3));
   }
 
   fclose(ptr_file);
@@ -827,9 +1083,8 @@ E_Int K_IO::GenIO::tpwriteQuads(char* file, FldArrayF& field,
   // Write just one zone
   E_Int npts = field.getSize();
   E_Int nbElts = connect.getSize();
-  fprintf(ptr_file, "ZONE N=%d, E=%d, F=FEPOINT, ET=QUADRILATERAL\n",
-          int(npts), int(nbElts));
-
+  fprintf(ptr_file, "ZONE N=" SF_D_ ", E=" SF_D_ ", F=FEPOINT, ET=QUADRILATERAL\n",
+          npts, nbElts);
   // Write points
   for (E_Int np = 0; np < npts; np++)
   {
@@ -862,7 +1117,7 @@ E_Int K_IO::GenIO::tpwriteQuads(char* file, FldArrayF& field,
         break;
         
       default:
-        printf("Warning: number of variables unknown in tpwriteQuads.\n");
+        printf("Warning: tpwrite: number of variables unknown in tpwriteQuads.\n");
         return 1;
     }
   }
@@ -870,13 +1125,8 @@ E_Int K_IO::GenIO::tpwriteQuads(char* file, FldArrayF& field,
   // Write connectivity
   for (E_Int i = 0; i < nbElts; i++)
   { 
-#ifdef E_DOUBLEINT  
-    fprintf(ptr_file, "%lld %lld %lld %lld\n", connect(i,1),
+    fprintf(ptr_file, SF_D4_ "\n", connect(i,1),
             connect(i,2), connect(i,3), connect(i,4));
-#else
-    fprintf(ptr_file,"%d %d %d %d\n", connect(i,1),
-            connect(i,2), connect(i,3), connect(i,4));
-#endif    
   }
 
   fclose(ptr_file);
@@ -910,7 +1160,7 @@ E_Int K_IO::GenIO::tpwriteText(char* file, FldArrayF& field, FldArrayI& number)
   // write text number for each point
   for (E_Int np = 0; np < npts; np++)
   {
-    sprintf(numbers, "%d", int(number[np]));
+    sprintf(numbers, SF_D_, number[np]);
     fprintf(ptr_file, "TEXT\n");
     fprintf(ptr_file, "CS=GRID\n");
     fprintf(ptr_file, "C=BLACK\n");
@@ -931,7 +1181,7 @@ E_Int K_IO::GenIO::tpwriteText(char* file, FldArrayF& field, FldArrayI& number)
 }
 
 //==============================================================================
-// Converti une string an int.
+// Converti une string en int.
 // Retourne 0 si fail, sinon retourne l'entier
 // Vire le debut s'il commence par 0 ou autre chose.
 //==============================================================================

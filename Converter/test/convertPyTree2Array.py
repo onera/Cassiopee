@@ -31,4 +31,4 @@ Converter.convertArrays2File(arrays, "out2.plt")
 	
 # 3 - Get the flow solution
 a = C.convertPyTree2Array(zones[0]+'/FlowSolution', t)
-print a
+print(a)

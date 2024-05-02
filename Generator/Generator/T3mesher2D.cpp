@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -20,7 +20,7 @@
 // Mesh (or triangulate only) a 2D contour.
 
 # include "generator.h"
-# include "Nuga/Delaunay/T3Mesher.h"
+# include "Nuga/include/T3Mesher.h"
 using namespace std;
 
 //=========================================================================
@@ -29,12 +29,12 @@ using namespace std;
 PyObject* K_GENERATOR::T3mesher2D(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  E_Int triangulateOnly=0;
-#ifdef E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Ol", &array, &triangulateOnly)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Oi", &array, &triangulateOnly)) return NULL;
-#endif
+  E_Int triangulateOnly(0), metric_interp_type(0);
+  E_Float grading(1.2);
+
+  if (!PYPARSETUPLE_(args, O_ R_ II_, 
+                    &array, &grading, &triangulateOnly, &metric_interp_type)) { return NULL; }
+
   // Check array
   E_Int ni, nj, nk;
   K_FLD::FloatArray* f;
@@ -85,7 +85,6 @@ PyObject* K_GENERATOR::T3mesher2D(PyObject* self, PyObject* args)
                     "T3mesher2D: can't find coordinates in array.");
     return NULL;
   }
-
  
   K_FLD::FloatArray& POS = *f;
   K_FLD::IntArray&   CONNECT = *cn;
@@ -99,8 +98,7 @@ PyObject* K_GENERATOR::T3mesher2D(PyObject* self, PyObject* args)
   E_Float zero = 0., sz = POS.cols();
   
   if (posm11 != -1) // Isotropic metric (so far).
-  {
-    
+  {  
     dT3.metrics.resize(1, POS.cols(), &zero);
 
     for (E_Int j = 0; j < sz; ++j)
@@ -125,6 +123,14 @@ PyObject* K_GENERATOR::T3mesher2D(PyObject* self, PyObject* args)
   DELAUNAY::MesherMode mode;
   if (triangulateOnly)
     mode.mesh_mode = DELAUNAY::MesherMode::TRIANGULATION_MODE;
+  else if (grading != 1.) mode.symmetrize = true;
+  
+  mode.growth_ratio = grading; // Growth ratio
+  //std::cout << "gr : " << mode.growth_ratio << std::endl;
+
+  if (metric_interp_type != 0)
+    mode.metric_interpol_type = mode.GEOMETRIC;
+
   
   E_Int err = 0;
   if (dT3.metrics.rows() < 3) // Isotropic

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -389,8 +389,7 @@ PyObject* K_TRANSFORM::addkplaneCenters(PyObject* self, PyObject* args)
 {
   PyObject *arrayC, *arrayK;
   E_Int N;
-  if (!PYPARSETUPLEI(args,
-                    "OOl", "OOi",
+  if (!PYPARSETUPLE_(args, OO_ I_,
                     &arrayC, &arrayK, &N))
   {
       return NULL;

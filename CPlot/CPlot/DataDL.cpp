@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -18,7 +18,7 @@
 */
 # include "DataDL.h"
 
-DataDL::DataDL() : Data( new CPlotStateDL)
+DataDL::DataDL() : Data(new CPlotStateDL)
 {}
 //=============================================================================
 DataDL::~DataDL()
@@ -38,7 +38,8 @@ DataDL::createZoneImpl( )
 //=============================================================================
 Data* DataDL::getInstance()
 {
-  if (_instance == NULL) {
+  if (_instance == NULL) 
+  {
     Data::_renderID = Data::DL;
     _instance = new DataDL;
   }

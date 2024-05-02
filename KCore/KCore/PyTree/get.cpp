@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -18,6 +18,7 @@
 */
 #include "PyTree/PyTree.h"
 #include "String/kstring.h"
+
 using namespace K_FLD;
 using namespace std;
 
@@ -31,13 +32,16 @@ PyObject* K_PYTREE::getNodeFromName1(PyObject* o, const char* name)
 {
   PyObject* childrens = PyList_GetItem(o, 2);
   E_Int n = PyList_Size(childrens);
-  PyObject *l; PyObject *node; char* str;
+  PyObject *l; PyObject *node; char* str=NULL;
   for (E_Int i = 0; i < n; i++)
   {
     l = PyList_GetItem(childrens, i);
     node = PyList_GetItem(l, 0);
-    str = PyString_AsString(node);
-    if (K_STRING::cmp(str, name) == 0) return l;
+    if (PyString_Check(node)) str = PyString_AsString(node);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(node)) str = (char*)PyUnicode_AsUTF8(node);
+#endif
+    if (K_STRING::cmp(str, name) == 0) { return l; }  
   }
   return NULL;
 }
@@ -53,12 +57,15 @@ void K_PYTREE::getNodesFromType1(PyObject* o, const char* type,
 {
   PyObject* childrens = PyList_GetItem(o, 2);
   E_Int n = PyList_Size(childrens);
-  PyObject *l; PyObject *node; char* str;
+  PyObject *l; PyObject *node; char* str=NULL;
   for (E_Int i = 0; i < n; i++)
   {
     l = PyList_GetItem(childrens, i);
     node = PyList_GetItem(l, 3);
-    str = PyString_AsString(node);
+    if (PyString_Check(node)) str = PyString_AsString(node);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(node)) str = (char*)PyUnicode_AsUTF8(node); 
+#endif
     if (K_STRING::cmp(str, type) == 0) out.push_back(l);
   }
 }
@@ -72,8 +79,12 @@ void K_PYTREE::getNodesFromType1(PyObject* o, const char* type,
 char* K_PYTREE::getNodeName(PyObject* o, vector<PyArrayObject*>& hook)
 {
   PyObject* v = PyList_GetItem(o, 0);
-  if (PyString_Check(v) == true)
+  if (PyString_Check(v))
   { char* r = PyString_AsString(v); return r; }
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(v))
+  { char* r = (char*)PyUnicode_AsUTF8(v); return r; }
+#endif
   return NULL;
 }
 
@@ -86,8 +97,12 @@ char* K_PYTREE::getNodeName(PyObject* o, vector<PyArrayObject*>& hook)
 char* K_PYTREE::getNodeType(PyObject* o, vector<PyArrayObject*>& hook)
 {
   PyObject* v = PyList_GetItem(o, 3);
-  if (PyString_Check(v) == true)
+  if (PyString_Check(v))
   { char* r = PyString_AsString(v); return r; }
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(v))
+  { char* r = (char*)PyUnicode_AsUTF8(v); return r; }
+#endif
   return NULL;
 }
 
@@ -103,7 +118,10 @@ char* K_PYTREE::getValueS(PyObject* o, vector<PyArrayObject*>& hook)
 {
   //IMPORTNUMPY;
   PyObject* v = PyList_GetItem(o, 1);
-  if (PyString_Check(v) == true) return PyString_AsString(v);
+  if (PyString_Check(v)) return PyString_AsString(v);
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(v)) return (char*)PyUnicode_AsUTF8(v);
+#endif
   PyArrayObject* ac = (PyArrayObject*)v; Py_INCREF(ac);
   char* d = (char*)PyArray_DATA(ac);
   hook.push_back(ac);
@@ -122,8 +140,12 @@ char* K_PYTREE::getValueS(PyObject* o, E_Int& s, vector<PyArrayObject*>& hook)
 {
   IMPORTNUMPY;
   PyObject* v = PyList_GetItem(o, 1);
-  if (PyString_Check(v) == true)
+  if (PyString_Check(v))
   { char* r = PyString_AsString(v); s = strlen(r); return r; }
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(v))
+  { char* r = (char*)PyUnicode_AsUTF8(v); return r; }
+#endif
   PyArrayObject* ac = (PyArrayObject*)v; Py_INCREF(ac);
   char* d = (char*)PyArray_DATA(ac);
   s = PyArray_DIM(ac, 0);
@@ -142,10 +164,17 @@ E_Int* K_PYTREE::getValueAI(PyObject* o, vector<PyArrayObject*>& hook)
 {
   //IMPORTNUMPY;
   PyObject* v = PyList_GetItem(o, 1);
-  PyArrayObject* ac = (PyArrayObject*)v; Py_INCREF(ac);
-  E_Int* d = (E_Int*)PyArray_DATA(ac);
-  hook.push_back(ac);
-  return d;
+  if (v != Py_None)
+  {
+    PyArrayObject* ac = (PyArrayObject*)v; Py_INCREF(ac);
+    E_Int* d = (E_Int*)PyArray_DATA(ac);
+    hook.push_back(ac);
+    return d;
+  }
+  else
+  {
+    return NULL;
+  }
 }
 
 //==============================================================================
@@ -178,13 +207,23 @@ E_Int* K_PYTREE::getValueAI(PyObject* o, E_Int& s0, E_Int& s1,
 {
   //IMPORTNUMPY;
   PyObject* v = PyList_GetItem(o, 1);
-  PyArrayObject* ac = (PyArrayObject*)v; Py_INCREF(ac);
-  E_Int* d = (E_Int*)PyArray_DATA(ac);
-  int ndim = PyArray_NDIM(ac);
-  if (ndim == 1) { s0 = PyArray_DIM(ac,0); s1 = 1; }
-  else { s0 = PyArray_DIM(ac,0); s1 = PyArray_DIM(ac,1); }
-  hook.push_back(ac);
-  return d;
+  if (v != Py_None)
+  {
+    PyArrayObject* ac = (PyArrayObject*)v; Py_INCREF(ac);
+    E_Int* d = (E_Int*)PyArray_DATA(ac);
+    E_Int ndim = PyArray_NDIM(ac);
+   
+    if (ndim == 1) { s0 = PyArray_DIM(ac,0); s1 = 1; }
+    else if (ndim == 2 || ndim == 3) { s0 = PyArray_DIM(ac,0); s1 = PyArray_DIM(ac,1); }
+    else { s0 = 0; s1 = 1; } // fail
+    hook.push_back(ac);
+    return d;
+  }
+  else // NODE type: some nodes are empty (ElementConnectivity[1] = None for instance)
+  {
+    s0 = 0; s1 = 1;
+  }
+  return NULL;
 }
 
 //==============================================================================
@@ -222,6 +261,39 @@ E_Float K_PYTREE::getValueF(PyObject* o)
 }
 
 //==============================================================================
+// Retourne le nombre d'éléments d'une zone d'un pyTree
+// IN: zone
+// OUT: number of points
+//==============================================================================
+E_Int K_PYTREE::getNumberOfPointsOfZone(PyObject* o, vector<PyArrayObject*>& hook)
+{
+  PyObject* t;
+  // get type
+  t = getNodeFromName1(o, "ZoneType");
+  if (t == NULL) return 0;
+  E_Int s;
+  char* type = getValueS(t, s, hook);
+  E_Int isStructured = false;
+  if (K_STRING::cmp(type, s, "Structured") == 0) isStructured = true;
+  // get dims
+  E_Int s0, s1, numberOfPoints;
+  E_Int* d = getValueAI(o, s0, s1, hook);
+  E_Int ni=0; E_Int nj=0; E_Int nk=0;
+  if (isStructured) // structured
+  {
+    if (s0 == 1) { ni = d[0]; nj = 1; nk = 1; }
+    else if (s0 == 2) { ni = d[0]; nj = d[1]; nk = 1; }
+    else { ni = d[0]; nj = d[1]; nk = d[2]; }
+    numberOfPoints = ni*nj*nk;
+  }
+  else // unstructured
+  {
+    numberOfPoints = d[0];
+  }
+  return numberOfPoints;
+}
+
+//==============================================================================
 // fill name from pt
 //==============================================================================
 E_Int fillName(char*& pt, char* name)
@@ -240,7 +312,7 @@ E_Int fillName(char*& pt, char* name)
 //==============================================================================
 PyObject* K_PYTREE::getNodeFromPath(PyObject* o, const char* path)
 {
-  PyObject *l; PyObject *node; char* str;
+  PyObject *l; PyObject *node; char* str=NULL;
   char name[256];
   char* pt = (char*)path;
   PyObject* next = o;
@@ -265,12 +337,14 @@ PyObject* K_PYTREE::getNodeFromPath(PyObject* o, const char* path)
     {
       l = PyList_GetItem(childrens, i);
       node = PyList_GetItem(l, 0);
-      str = PyString_AsString(node);
+      if (PyString_Check(node)) str = PyString_AsString(node);
+#if PY_VERSION_HEX >= 0x03000000
+      else if (PyUnicode_Check(node)) str = (char*)PyUnicode_AsUTF8(node); 
+#endif
       // printf("comparing %s %s %c\n", str, name, *pt);
       if (K_STRING::cmp(str, name) == 0) { next = l; found = true; break; }
     }
     if (found == false) return NULL;
     if (*pt == '\0') return next;
   }
-  return next;
 }

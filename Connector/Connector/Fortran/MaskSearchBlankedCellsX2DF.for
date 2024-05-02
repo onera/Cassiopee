@@ -1,5 +1,5 @@
-C  
-C    Copyright 2013-2018 Onera.
+C
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -17,15 +17,14 @@ C    You should have received a copy of the GNU General Public License
 C    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 
 C Recherche des points masques cas : plan XRay en (x,y)
-C                                    critere de masquage cell intersect 
+C                                    critere de masquage cell intersect
 
-      SUBROUTINE k6searchblankedcellsx2d( 
+      SUBROUTINE k6searchblankedcellsx2d(
      &     ni, nj, nk, meshX, meshY,
      &     xmin, niray, njray, hiray, indir,
      &     nz, z, isnot, cellNatureField, isMasked )
 
       IMPLICIT NONE
-
 #include "Def/DefFortranConst.h"
 C==============================================================================
 C_IN
@@ -40,10 +39,10 @@ C_IN
       REAL_E    z(0:nz-1)       ! pierce points
       INTEGER_E isnot           ! inverse mask
 C_OUT
-      INTEGER_E cellNatureField(0:(ni-1)*(nj-1)*(nk-1)-1) ! nature of the cells ( masked or not )
+      INTEGER_E cellNatureField(0:(ni-1)*(nj-1)*nk-1) ! nature of the cells ( masked or not )
       INTEGER_E isMasked
 C_LOCAL
-      INTEGER_E i, j, k, l       
+      INTEGER_E i, j, k, l, d
       INTEGER_E ip, jp, et
       INTEGER_E ind, indray
       REAL_E    dx1, dy1
@@ -62,33 +61,42 @@ C==============================================================================
       nicnjc = nic*(nj-1)
       isMasked = 0
 
+
+!$OMP PARALLEL PRIVATE(d, i, j, k, l, ip, jp, et, ind, indray, dx1, dy1,
+!$OMP&                  xp1, yp1, xp2, yp2, xp3, yp3, xp4, yp4,
+!$OMP&                  xmincell, ymincell, xmaxcell, ymaxcell,
+!$OMP&                  iray, ibeg, iend, iraymin, iraymax,
+!$OMP&                  npmin, npmax, cellN)
+
       IF ( isnot .EQ. 0 ) THEN
-      DO j = 0, nj-2
-         DO i = 0, nic-1
-            cellN = 0
-            et = i+j*nic
-C     
+!$OMP DO REDUCTION(MAX:isMasked)
+      DO d = 0, nicnjc-1
+          j = d/nic
+          i = d - j*nic
+          cellN = 0
+          et = i+j*nic
+C
 #include "../../Connector/Fortran/MaskCell2DF.for"
 C
 #include "../../Connector/Fortran/MaskCellIntersect2DF.for"
-         ENDDO
       ENDDO
+!$OMP END DO
 
       ELSE
-      DO j = 0, nj-2
-         DO i = 0, nic-1
-            cellN = 0
-            et = i+j*nic
-C     
+!$OMP DO REDUCTION(MAX:isMasked)
+      DO d = 0, nicnjc-1
+          j = d/nic
+          i = d - j*nic
+          cellN = 0
+          et = i+j*nic
+C
 #include "../../Connector/Fortran/MaskCell2DF.for"
 C
-#include "../../Connector/Fortran/MaskCellIntersectNot2DF.for"            
-         ENDDO
+#include "../../Connector/Fortran/MaskCellIntersectNot2DF.for"
       ENDDO
+!$OMP END DO
+
       ENDIF
+!$OMP END PARALLEL
       END
 C ===== XRay/MaskSearchBlankedCellsX2DF.for =====
-
-
-
-

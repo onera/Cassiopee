@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -55,11 +55,36 @@ namespace K_METRIC
     E_Float* sxp, E_Float* syp,  E_Float* szp, E_Float* snp, 
     K_FLD::FldArrayI* cFE=NULL);  
 
-  /* Calcule l aire d'une cellule d un maillage surfacique nk=1. N'est pas nécessairement dans le plan 
+  /* Calcule l aire d'une cellule d un maillage surfacique nk=1. N'est pas nï¿½cessairement dans le plan 
   On rentre soit l indice de la cellule indcell, soit indnode l indice du premier point
   d indices i et j min de la cellule. Si indnode est different de -1, c'est lui qui prime
   */
   E_Float compVolOfStructCell2D(E_Int ni, E_Int nj, E_Float* xt, E_Float* yt, E_Float* zt,
                                 E_Int indcell=-1, E_Int indnode=-1);
+
+  // Compute cell volumes for NGons
+  void compute_face_center_and_area(E_Int id, E_Int stride, E_Int *pn,
+    E_Float *x, E_Float *y, E_Float *z, E_Float *fc, E_Float *fa);
+  
+  E_Int compute_volumes_ngon(E_Float *x, E_Float *y, E_Float *z,
+    K_FLD::FldArrayI &cn, E_Float *cellVols);
+
+  void compute_cell_volume(E_Int, K_FLD::FldArrayI &, E_Float *, E_Float *,
+    E_Float *, E_Float &, E_Int refIdx=0);
+  
+  void compute_face_centers_and_areas(K_FLD::FldArrayI &cn, E_Float *x,
+    E_Float *y, E_Float *z, E_Float *fcenters, E_Float *fareas);
+  
+  void compute_cell_centers_and_vols(K_FLD::FldArrayI &cn, E_Float *x,
+    E_Float *y, E_Float *z, E_Int *owner, E_Int *neigh, E_Float *fcenters,
+    E_Float *fareas, E_Float *cx, E_Float *cy, E_Float *cz, E_Float *volumes);
+  
+  E_Int compute_gradients_ngon(K_FLD::FldArrayI &cn, E_Float *x, E_Float *y,
+    E_Float *z, E_Int *owner, E_Int *neigh, E_Float *centers,
+    const std::vector<E_Float *> &flds, std::vector<E_Float *> &Gs);
+  
+  void compute_cell_center_and_volume(E_Int id, E_Int stride,
+    E_Int *pf, E_Float *x, E_Float *y, E_Float *z, E_Float *fc, E_Float *fa,
+    E_Int *owner, E_Float &cx, E_Float &cy, E_Float &cz, E_Float &vol);
 }
 #endif

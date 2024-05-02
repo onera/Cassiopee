@@ -1,6 +1,6 @@
-#!/usr/bin/env python
-from distutils.core import setup, Extension
-import os, sys
+from distutils.core import setup
+#from setuptools import setup
+import os
 
 #=============================================================================
 # Modeler requires:
@@ -38,11 +38,12 @@ libraryDirs += paths; libraries += libs
 # setup ======================================================================
 setup(
     name="Modeler",
-    version="2.7",
+    version="4.0",
     description="Modeler module.",
-    author="Onera",
-    package_dir={"":"."},
-    packages=['Modeler']
+    author="ONERA",
+    url="https://cassiopee.onera.fr",
+    packages=['Modeler'],
+    package_dir={"":"."}
     )
 
 # Check PYTHONPATH ===========================================================

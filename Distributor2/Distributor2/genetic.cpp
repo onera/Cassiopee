@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -34,7 +34,8 @@ using namespace K_FLD;
 //=============================================================================
 void K_DISTRIBUTOR2::genetic(
   vector<E_Float>& nbPts, vector<E_Int>& setBlocks,
-  E_Int NProc, int* com, vector<E_Float>& solver,
+  E_Int NProc, E_Int* com, E_Int* comd, E_Int sizeComd, 
+  vector<E_Float>& solver,
   vector<E_Float>& latence, vector<E_Float>& comSpeed, E_Int param,
   vector<E_Int>& out, E_Float& meanPtsPerProc, E_Float& varMin,
   E_Float& varMax, E_Float& varRMS, E_Int& nptsCom, E_Float& volRatio,
@@ -65,7 +66,7 @@ void K_DISTRIBUTOR2::genetic(
   E_Float nbTot = 0;
   for (E_Int i = 0; i < nb; i++) nbTot += nbPts[i];
 
-  // Nb de noeuds moyens devant etre contenu par chaque processeur
+  // Nb de noeuds moyens devant etre contenus par chaque processeur
   meanPtsPerProc = nbTot*1./NProc;
 
   // Bloc le plus petit
@@ -83,7 +84,7 @@ void K_DISTRIBUTOR2::genetic(
   sizeOfPopulation = K_FUNC::E_min(sizeOfPopulation, 300);
   // Number max of generations
   E_Int nitMax = 50;
-  if (param == 1) { nitMax = 0; sizeOfPopulation = 5; } // fast
+  if (param == 1) { nitMax = 0; sizeOfPopulation = 4; } // fast
 
   // Local data
   E_LONG idum = -1;
@@ -192,6 +193,7 @@ void K_DISTRIBUTOR2::genetic(
   }
 
   // Pour le cinquieme, best fit avec utilisation des coms
+  /*
   E_Int* pop5 = popp+4*nb;
   E_Int* alreadySet = new E_Int [nb];
   for (E_Int i = 0; i < nb; i++) alreadySet[i] = 0;
@@ -247,13 +249,14 @@ void K_DISTRIBUTOR2::genetic(
     }
   }
   delete [] alreadySet;
-
+  */
+  
   //for (E_Int i = 0; i < nb; i++)
   //  printf("%d %d %d\n", i, pop(i, 3), nbPts[i]);
   delete [] largest;
 
   // Pour les autres, c'est completement au hasard:
-  for (E_Int j = 6; j <= sizeOfPopulation; j++)
+  for (E_Int j = 5; j <= sizeOfPopulation; j++)
   {
     E_Int* popj = popp+(j-1)*nb;
     for (E_Int i = 0; i < nb; i++)
@@ -273,7 +276,7 @@ void K_DISTRIBUTOR2::genetic(
   {
     evalp[j-1] = K_DISTRIBUTOR2::eval(nb, NProc, meanPtsPerProc,
                                       solver, latence,
-                                      comSpeed, com, 
+                                      comSpeed, com, comd, sizeComd,
                                       nbPtsPerProcs, nbPts,
                                       popp+(j-1)*nb);
   }
@@ -315,7 +318,7 @@ void K_DISTRIBUTOR2::genetic(
     }
     else
     {
-      // Ah, on a une meilleurs population:
+      // Ah, on a une meilleur population:
       nbItWithFail = 0;
     }
     E_Int nbSurvivors = 0;
@@ -494,7 +497,7 @@ void K_DISTRIBUTOR2::genetic(
     {
       evalp[j-1] = K_DISTRIBUTOR2::eval(nb, NProc, meanPtsPerProc,
                                         solver, latence,
-                                        comSpeed, com, 
+                                        comSpeed, com, comd, sizeComd, 
                                         nbPtsPerProcs, nbPts,
                                         popp+(j-1)*nb);
     }
@@ -511,61 +514,12 @@ void K_DISTRIBUTOR2::genetic(
   //printf("jbest=%d\n", jBest);
   for (E_Int i = 0; i < nb; i++) out[i] = popp[i+(jBest-1)*nb];
 
-  // Calcul du nombre de pts par processeurs
-  nbNodePerProc.setAllValuesAtNull();
-  for (E_Int i = 0; i < nb; i++)
-  {
-    proc = out[i];
-    nbNodePerProc[proc] += nbPts[i];
-  }
-  //printf("Nb de pts moyen par proc: %d\n", meanPtsPerProc);
- 
-  //printf("Nb de pts par proc:\n");
-  for (E_Int i = 0; i < NProc; i++)
-  {
-    //printf("Proc %d: %g pts\n", i, nbNodePerProc[i]);
-    if (K_FUNC::E_abs(nbNodePerProc[i]) < 1.e-6)
-      printf("Warning: processor %d is empty!\n", i);
-  }
-
-  // Variance
-  varMin = 1.e6; varMax = 0.; varRMS = 0.;
-  for (E_Int i = 0; i < NProc; i++)
-  {
-    E_Float v = K_FUNC::E_abs(nbNodePerProc[i] - meanPtsPerProc);
-    varMin = K_FUNC::E_min(varMin, v);
-    varMax = K_FUNC::E_max(varMax, v);
-    varRMS = varRMS + v*v;
-  }
-  varMin = varMin / meanPtsPerProc;
-  varMax = varMax / meanPtsPerProc;
-  varRMS = sqrt(varRMS) / (NProc*meanPtsPerProc);
-  //printf("varMin=%f, varMax=%f, varRMS=%f\n", varMin, varMax, varRMS);
-
-  nptsCom = 0;
-  E_Int volTot = 0;
-  for (E_Int i = 0; i < nb; i++)
-  {
-    E_Int proci = popp[i+(jBest-1)*nb];
-    for (E_Int k = 0; k < nb; k++)
-    {
-      if (com[k + i*nb] > 0)
-      {
-        E_Int prock = popp[k+(jBest-1)*nb];
-        volTot += com[k + i*nb];
-        // le voisin est-il sur le meme processeur?
-        if (proci != prock) 
-        {
-          nptsCom += com[k + i*nb];
-        }
-      }
-    }
-  }
-  //printf("Volume de communication=%d\n", nptsCom);
-  if (volTot > 1.e-6) volRatio = E_Float(nptsCom)/E_Float(volTot);
-  else volRatio = 0.;
-  //printf("Volume de communication/volume total=%f\n", volRatio);
-
   bestAdapt = evalp[jBest-1];
   //printf("Adaptation: %f\n", bestAdapt);
+
+  // external stats
+  E_Int empty;
+  stats(nbPts, NProc, com, comd, sizeComd, out, empty, 
+        varMin, varMax, varRMS, volRatio);
+
 }

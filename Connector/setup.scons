@@ -22,28 +22,19 @@ installPath = Dist.getInstallPath(prefix)
 # Test if numpy exists =======================================================
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
-# Test if libmpi exists ======================================================
-(mpi, mpiIncDir, mpiLibDir) = Dist.checkMpi(additionalLibPaths, additionalIncludePaths)
-
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ['..', '.', pythonLibDir, kcoreLibDir]
-includeDirs = ["Connector","Connector/CMP/include"]+additionalIncludePaths+[pythonIncDir, numpyIncDir, kcoreIncDir]
+includeDirs = ["Connector", "Connector/CMP/include"]+additionalIncludePaths+[pythonIncDir, numpyIncDir, kcoreIncDir]
 libraries = ["kcore"]
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
-if mpi:
-    libraryDirs.append(mpiLibDir)
-    includeDirs.append(mpiIncDir)
-    ADDITIONALCPPFLAGS = ['-D_MPI']
-else:	       
-    ADDITIONALCPPFLAGS = []
 
-if mpi: libraries.append('mpi')
+ADDITIONALCPPFLAGS = []
 
 # Env =========================================================================
 import srcs
@@ -61,6 +52,9 @@ env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
                   LINKFLAGS=Dist.getLinkArgs(),
                   ENV=Dist.getEnvForScons())
 
+ELSAPROD = os.environ.get('ELSAPROD', 'x86_r8')
+env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
+
 env = Dist.createFortranBuilder(env, [kcoreIncDir, './Connector/Fortran'])
 ppf = Dist.createFortranFiles(env, srcs)
 
@@ -68,9 +62,7 @@ ppf = Dist.createFortranFiles(env, srcs)
 
 myMod = env.StaticLibrary('connector',
                           srcs.cpp_srcs+ppf)
-modDir = installPath+'//Connector/'
+modDir = installPath+'/Connector/'
 dp1 = env.Install(modDir, myMod)
-dp2 = env.Install(modDir, Glob('Connector/*.py'))
 
-env.Alias(target="install", source=[dp1,dp2])
-
+env.Alias(target="install", source=[dp1])

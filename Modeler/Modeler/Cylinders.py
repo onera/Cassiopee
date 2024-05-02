@@ -11,7 +11,7 @@ import Converter as C
 # h: hauteur
 # Rc: rayon de fermeture, si < 0, fermeture plane
 #==============================================================================
-def cylinder(R1=1.,R2=1.,N=10,h=1.,Rc=-1):
+def cylinder(R1=1., R2=1., N=10, h=1., Rc=-1):
     line = D.line((R1,0,0), (R2,0,h))
     o = D.axisym(line, (0,0,0), (0,0,1), 360, N)
     o = C.convertArray2Tetra(o)

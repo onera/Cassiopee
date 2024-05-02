@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -21,7 +21,7 @@
 #define	__DYNARRAYIO_H__
 
 #include <vector>
-#include "Fld/DynArray.h"
+# include "Nuga/include/DynArray.h"
 #include <string>
 
 namespace K_CONVERTER

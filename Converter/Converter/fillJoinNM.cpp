@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -35,7 +35,7 @@ PyObject* K_CONVERTER::fillJoinNMNodes(PyObject* self, PyObject* args)
   E_Int Im=0;
   E_Int ImDonor=0;
   E_Int ShiftDir1, ShiftDir2, IsFine;
-  if (!PYPARSETUPLEI(args, "OOOOlllllllllllll", "OOOOiiiiiiiiiiiii", 
+  if (!PYPARSETUPLE_(args, OOOO_ IIII_ IIII_ IIII_ I_, 
                      &arrayR, &arrayD, &arrayIR, &listID,
                      &arrayRdim1, &arrayRdim2, &Direction, &DirDonor, 
                      &IncrR, &IncrD, &DimZone, &D, &Im, &ImDonor,
@@ -76,9 +76,9 @@ PyObject* K_CONVERTER::fillJoinNMNodes(PyObject* self, PyObject* args)
   PyArrayObject* arR = (PyArrayObject*)arrayR;
   PyArrayObject* arD = (PyArrayObject*)arrayD;
   PyArrayObject* arI = (PyArrayObject*)arrayIR;
-  double* dataR = (double*)PyArray_DATA(arR);
-  double* dataD = (double*)PyArray_DATA(arD);
-  int* arrayBorder = (int*)PyArray_DATA(arI);
+  E_Float* dataR = (E_Float*)PyArray_DATA(arR);
+  E_Float* dataD = (E_Float*)PyArray_DATA(arD);
+  E_Int* arrayBorder = (E_Int*)PyArray_DATA(arI);
 
   // local values
   E_Int indadj, indadjdonor, indadjprev, indadjnext;             
@@ -255,7 +255,7 @@ PyObject* K_CONVERTER::fillJoinNMCenters(PyObject* self, PyObject* args)
   E_Int Im=0;
   E_Int ImDonor=0;
   E_Int ShiftDir1, ShiftDir2, IsFine;
-  if (!PYPARSETUPLEI(args, "OOOOlllllllllllll", "OOOOiiiiiiiiiiiii", 
+  if (!PYPARSETUPLE_(args, OOOO_ IIII_ IIII_ IIII_ I_, 
                         &arrayR, &arrayD, &arrayIR, &listID,
                         &arrayRdim1, &arrayRdim2, &Direction, &DirDonor, 
                         &IncrR, &IncrD, &DimZone, &D, &Im, &ImDonor,
@@ -296,9 +296,9 @@ PyObject* K_CONVERTER::fillJoinNMCenters(PyObject* self, PyObject* args)
   PyArrayObject* arR = (PyArrayObject*)arrayR;
   PyArrayObject* arD = (PyArrayObject*)arrayD;
   PyArrayObject* arI = (PyArrayObject*)arrayIR;
-  double* dataR = (double*)PyArray_DATA(arR);
-  double* dataD = (double*)PyArray_DATA(arD);
-  int* arrayBorder = (int*)PyArray_DATA(arI);
+  E_Float* dataR = (E_Float*)PyArray_DATA(arR);
+  E_Float* dataD = (E_Float*)PyArray_DATA(arD);
+  E_Int* arrayBorder = (E_Int*)PyArray_DATA(arI);
 
   // local values
   E_Int indadj, indadjdonor;             

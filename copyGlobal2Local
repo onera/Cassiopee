@@ -1,0 +1,13 @@
+#! /bin/sh
+# copie les resultats de la base de validation de reference localement
+. ./MODULES
+
+for mod in $FULLMODULES
+do
+  if test -e $mod
+  then
+      echo "cp -r /stck/benoit/Cassiopee/Apps/Modules/$mod/test/Data $mod/test/."
+      cp -r /stck/benoit/Cassiopee/Apps/Modules/$mod/test/Data $mod/test/.
+  fi
+done
+

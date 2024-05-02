@@ -1,11 +1,11 @@
 """Bridge to Cassiopee Solver.
 """
-__version__ = '2.6'
+__version__ = '3.0'
 __author__ = "Stephanie Peron, Christophe Benoit"
 try:
     import kbridge
 except:
-    raise ImportError, "KBridge module is unvailable."
+    raise ImportError("KBridge module is unvailable.")
 
 def evalKDesFunction(Func1, time):
     return kbridge.evalKDesFunction(Func1, time)

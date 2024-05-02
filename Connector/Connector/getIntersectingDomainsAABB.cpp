@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 # include "connector.h"
-# include "Search/BbTree.h"
+# include "Nuga/include/BbTree.h"
 
 using namespace K_FUNC;
 using namespace K_CONST;
@@ -31,7 +31,7 @@ using namespace std;
 PyObject* K_CONNECTOR::getIntersectingDomainsAABB(PyObject* self, PyObject* args)
 {
     PyObject* arrays; E_Float tol;
-    if (!PYPARSETUPLEF(args, "Od", "Of", &arrays, &tol)) return NULL;
+    if (!PYPARSETUPLE_(args, O_ R_, &arrays, &tol)) return NULL;
 
     E_Int na = PyList_Size(arrays);
     vector<FldArrayF*> fs(na);

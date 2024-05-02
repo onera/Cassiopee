@@ -1,6 +1,5 @@
-#!/bin/sh
+#! /bin/sh
 echo 'Installing Connector tests and doc'
-
 if ([ $# -eq 0 ])
 then
     if [ "$CASSIOPEE" = "" ]; then
@@ -39,53 +38,93 @@ else
     exit
 fi
 
-# Nom du fichier doc
-DOC=Connector
-
-# Creation des repertoires de destination
-if test ! -e $DEST
-then 
-    mkdir $DEST
-fi
-if test ! -e "$DEST/Examples"
-then 
-    mkdir "$DEST/Examples"
-fi
-if test ! -e $DEST2
-then 
-    mkdir $DEST2
-fi
-if test ! -e $DEST3
-then 
-    mkdir $DEST3
-fi
-
-# copie de la doc html
-cp $DOC.html $DEST
-
-# Production + copie des tests unitaires
+# Copy examples to global dir (production mod)
 if ([ $PRODUCTION -eq 1 ])
 then
-    LOCAL=`pwd`
-    cd $DEST
-    if test ! -e Latex
-    then
-        mkdir Latex
+    if test ! -e $DEST
+    then 
+        mkdir $DEST
     fi
-    python parseDoc.py $DOC.html Latex/$DOC.tex
-    cd Latex ; compile $DOC > out ; cd $LOCAL
-    cp $DEST/Latex/$DOC.pdf .
-else
+    if test ! -e "$DEST/Examples"
+    then 
+        mkdir "$DEST/Examples"
+    fi
+    if test ! -e $DEST2
+    then 
+        mkdir $DEST2
+    fi
+    if test ! -e $DEST3
+    then 
+        mkdir $DEST3
+    fi
     cp ../test/*.py $DEST2
-    if test -f $DOC.pdf
-    then
-        cp *.pdf $DEST
-    fi
+fi
+
+# Create Links for Examples (local)
+if test ! -e build
+then
+    mkdir build
+fi
+cd build
+if test ! -e Examples
+then
+    mkdir Examples
+    ln -s $CASSIOPEE/Apps/Modules/Connector/test Examples/Connector
+fi
+cd ..
+
+# Build html
+touch source/*.rst
+sphinx-build -b html ./source ./build
+if ([ $PRODUCTION -eq 1 ])
+then
+# Build pdf
+    sphinx-build -b latex ./source ./build
+    cd build
+    pdflatex Connector >& /dev/null
+    pdflatex Connector_IBM >& /dev/null
+    #pdflatex ConnectorMpi
+    #pdflatex OversetData
+    #pdflatex OversetDataElsA
+  cd ..
+fi
+
+# Copie dans le DEST
+if ([ $PRODUCTION -eq 1 ])
+then
+    #taghtml build/ConnectorMpi.html
+    #sed -i 's/Connector.Mpi.Connector.Mpi/Connector.Mpi/g' build/ConnectorMpi.html
+    #sed -i 's/Connector.pdf/ConnectorMpi.pdf/g' build/ConnectorMpi.html
+    #cp build/ConnectorMpi.html $DEST
+    #taghtml build/OversetData.html
+    #sed -i 's/OversetData.Connector/Connector/g' build/OversetData.html
+    #sed -i 's/Connector.pdf/OversetData.pdf/g' build/OversetData.html
+    #taghtml build/OversetData.html
+    #taghtml build/OversetDataElsA.html
+    #sed -i 's/OversetDataElsA.Connector/Connector/g' build/OversetDataElsA.html
+    #sed -i 's/Connector.pdf/OversetDataElsA.pdf/g' build/OversetDataElsA.html
+    #taghtml build/OversetDataElsA.html
+    sed -i 's/Connector.Connector/Connector/g' build/Connector.html    
+    sed -i 's/Connector.Connector/Connector/g' build/Connector.html
+    cp build/Connector.html $DEST
+    cp build/Connector.pdf $DEST
+    #cp build/ConnectorMpi.pdf $DEST
+    #cp build/OversetData.pdf $DEST
+    #cp build/OversetDataElsA.pdf $DEST
+
+    taghtml build/Connector_IBM.html
+    sed -i 's/Connector.Connector_IBM.Connector.Connector_IBM/Connector.Connector_IBM/g' build/Connector_IBM.html
+    sed -i 's/Connector\.pdf/Connector_IBM\.pdf/g' build/Connector_IBM.html
+    cp build/Connector_IBM.html $DEST
+    cp build/Connector_IBM.pdf $DEST
 fi
 
 # Copie des release Notes
-version=`grep -e __version__ ../Connector/Connector.py`
-version1=${version:15:10}
-version1=${version1/"'"/""}
-v='Connector-'$version1'.txt'
-cp Connector.txt $DEST3/$v
+if ([ $PRODUCTION -eq 1 ])
+then
+    version=`grep -e __version__ ../Connector/Connector.py`
+    version1=${version:15:4}
+    version1=${version1/"'"/""}
+    v='Connector-'$version1'.txt'
+    cp Connector.txt $DEST3/$v
+fi

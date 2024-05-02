@@ -1,6 +1,5 @@
-#!/bin/sh
+#! /bin/sh
 echo 'Installing RigidMotion tests and doc'
-
 if ([ $# -eq 0 ])
 then
     if [ "$CASSIOPEE" = "" ]; then
@@ -28,7 +27,7 @@ elif ([ $# -eq 2 ])
 then
     PRODUCTION=1
     # Destination docs
-    DEST="$CASSIOPEE/UserGuides"
+    DEST="$CASSIOPEE/WWW/cassiopee-web"
     # Destination tests unitaires
     DEST2="$DEST/Examples/RigidMotion"
     # Destination des release notes
@@ -39,53 +38,68 @@ else
     exit
 fi
 
-# Nom du fichier doc
-DOC=RigidMotion
-
-# Creation des repertoires de destination
-if test ! -e $DEST
-then 
-    mkdir $DEST
-fi
-if test ! -e "$DEST/Examples"
-then 
-    mkdir "$DEST/Examples"
-fi
-if test ! -e $DEST2
-then 
-    mkdir $DEST2
-fi
-if test ! -e $DEST3
-then 
-    mkdir $DEST3
-fi
-
-# copie de la doc html
-cp $DOC.html $DEST
-
-# Production + copie des tests unitaires
+# Copy examples to global dir (production mod)
 if ([ $PRODUCTION -eq 1 ])
 then
-    LOCAL=`pwd`
-    cd $DEST
-    if test ! -e Latex
-    then
-        mkdir Latex
+    if test ! -e $DEST
+    then 
+        mkdir $DEST
     fi
-    python parseDoc.py $DOC.html Latex/$DOC.tex
-    cd Latex ; compile $DOC > out ; cd $LOCAL
-    cp $DEST/Latex/$DOC.pdf .
-else
+    if test ! -e "$DEST/Examples"
+    then 
+        mkdir "$DEST/Examples"
+    fi
+    if test ! -e $DEST2
+    then 
+        mkdir $DEST2
+    fi
+    if test ! -e $DEST3
+    then 
+        mkdir $DEST3
+    fi
     cp ../test/*.py $DEST2
-    if test -f $DOC.pdf
-    then
-        cp *.pdf $DEST
-    fi
+fi
+
+# Create Links for Examples (local)
+if test ! -e build
+then
+    mkdir build
+fi
+cd build
+if test ! -e Examples
+then
+    mkdir Examples
+    ln -s $CASSIOPEE/Apps/Modules/RigidMotion/test Examples/RigidMotion
+fi
+cd ..
+
+# Build html
+touch source/*.rst
+sphinx-build -b html ./source ./build
+if ([ $PRODUCTION -eq 1 ])
+then
+# Build pdf
+    sphinx-build -b latex ./source ./build
+    cd build
+    pdflatex RigidMotion >& /dev/null
+    cd ..
+fi
+
+# Copie dans le DEST
+if ([ $PRODUCTION -eq 1 ])
+then
+    taghtml build/RigidMotion.html
+    sed -i 's/RigidMotion.RigidMotion/RigidMotion/g' build/RigidMotion.html
+    cp build/RigidMotion.html $DEST
+    cp build/RigidMotion.pdf $DEST
 fi
 
 # Copie des release Notes
-version=`grep -e __version__ ../RigidMotion/RigidMotion.py`
-version1=${version:15:10}
-version1=${version1/"'"/""}
-v='RigidMotion-'$version1'.txt'
-cp RigidMotion.txt $DEST3/$v
+if ([ $PRODUCTION -eq 1 ])
+then
+    version=`grep -e __version__ ../RigidMotion/RigidMotion.py`
+    version1=${version:15:4}
+    version1=${version1/"'"/""}
+    v='RigidMotion-'$version1'.txt'
+    cp RigidMotion.txt $DEST3/$v
+fi

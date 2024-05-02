@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "../Data.h"
+#include "Data.h"
 
 //=============================================================================
 // Nettoie le display.
@@ -52,10 +52,10 @@ void Data::clearDisplay()
       glMatrixMode(GL_PROJECTION); glPushMatrix(); glLoadIdentity();
       glDisable(GL_DEPTH_TEST);
       glBegin(GL_QUADS);
-      glColor3f(0.60, 0.70, 1.);
+      glColor3f(14./255., 175./255., 250./255.);
       glVertex3i(-1, -1, -1); 
       glVertex3i(1, -1, -1); 
-      glColor3f(0.01, 0.20, 0.8);
+      glColor3f(93./255., 207./255., 236./255.);
       glVertex3i(1, 1, -1); 
       glVertex3i(-1, 1, -1); 
       glEnd();
@@ -85,7 +85,10 @@ void Data::clearDisplay()
     case 7:
     case 8:
     case 9:
-    case 10: 
+    case 10:
+    case 11:
+    case 12:
+    case 13: 
       glMatrixMode(GL_TEXTURE); glLoadIdentity(); glMatrixMode(GL_MODELVIEW);
       setOrthographicProjection();
       glPushMatrix(); glLoadIdentity();
@@ -165,8 +168,8 @@ void gdisplay()
     // Check si display iso solid
     if (d->ptrState->mode == SCALARFIELD) d->createIsoGPURes(d->ptrState->scalarField);
     if (d->ptrState->mode == VECTORFIELD) d->createIsoGPURes(d->ptrState->vectorField1,
-							      d->ptrState->vectorField2,
-							      d->ptrState->vectorField3);
+                                                             d->ptrState->vectorField2,
+                                                             d->ptrState->vectorField3);
     if (d->ptrState->mode == RENDER) d->createIsoGPUResForRender();
 
     // Update mouse cursor eventuellement
@@ -179,23 +182,31 @@ void gdisplay()
     // Update des textures eventuellement
     if (d->ptrState->updateEnvmap == 1)
     { 
-      d->createPngTexture(d->ptrState->envmapFile, d->_texEnviron1, true);
+      E_Int width, height;
+      d->createImageTexture(d->ptrState->envmapFile, d->_texEnviron1, width, height, true);
       d->ptrState->updateEnvmap = 0; 
     }
     if (d->ptrState->updateBackground == 1)
     { 
+      E_Int width, height;
       if (d->ptrState->bgColor == 6)
-       d->createPngTexture("paperBackground1.png", d->_texBackground, false);
+       d->createPngTexture("paperBackground1.png", d->_texBackground, width, height, false);
       else if (d->ptrState->bgColor == 7)
-       d->createPngTexture("paperBackground2.png", d->_texBackground, false);
+       d->createPngTexture("paperBackground2.png", d->_texBackground, width, height, false);
       else if (d->ptrState->bgColor == 8)
-       d->createPngTexture("paperBackground3.png", d->_texBackground, false);
+       d->createPngTexture("paperBackground3.png", d->_texBackground, width, height, false);
       else if (d->ptrState->bgColor == 9)
-       d->createPngTexture("paperBackground4.png", d->_texBackground, false);
+       d->createPngTexture("paperBackground4.png", d->_texBackground, width, height, false);
       else if (d->ptrState->bgColor == 10)
-       d->createPngTexture("paperBackground5.png", d->_texBackground, false);
+       d->createPngTexture("paperBackground5.png", d->_texBackground, width, height, false);
+      else if (d->ptrState->bgColor == 11)
+       d->createPngTexture("paperBackground6.png", d->_texBackground, width, height, false);
+      else if (d->ptrState->bgColor == 12)
+       d->createPngTexture("paperBackground7.png", d->_texBackground, width, height, false);
+      else if (d->ptrState->bgColor == 13)
+       d->createImageTexture(d->ptrState->backgroundFile, d->_texBackground, width, height, false);
       else
-       d->createPngTexture("paperBackground1.png", d->_texBackground, false);
+       d->createPngTexture("paperBackground1.png", d->_texBackground, width, height, false);
       d->ptrState->updateBackground = 0;
     }
 
@@ -228,7 +239,7 @@ void gdisplay()
 void Data::display()
 {
   ptrState->lockDisplay();
-  //fprintf(stderr, "Dans le display\n");
+
   // Preprocessing pour le shadow mapping
   if (ptrState->shadow == 1)
   {
@@ -284,7 +295,7 @@ void Data::display()
   displayPlots();
 
 #ifdef __SHADERS__
-  // Update du frame buffer pour les shaders le necessitant (glass)
+  // Update du frame buffer pour les shaders le necessitant (glass par ex)
   int update = 0;
   for (E_Int i = 0; i < _numberOfZones; i++)
   {
@@ -293,26 +304,32 @@ void Data::display()
   if (update == 1)
   {
     // Il faut normalement faire la photo sans les objets glass
-    int w = _view.w; int h = _view.h;
-    w = w < _frameBufferSize ? w : (int) _frameBufferSize;
-    h = h < _frameBufferSize ? h : (int) _frameBufferSize;
+    E_Int w = _view.w; E_Int h = _view.h;
+    w = w < _frameBufferSize[ptrState->frameBuffer] ? w : (int) _frameBufferSize[ptrState->frameBuffer];
+    h = h < _frameBufferSize[ptrState->frameBuffer] ? h : (int) _frameBufferSize[ptrState->frameBuffer];
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _texFrameBuffer);
+    glBindTexture(GL_TEXTURE_2D, _texFrameBuffer[ptrState->frameBuffer]);
     //glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, w, h);
     glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, w, h, 0);
   }
 #endif
 
   // Post-processing
-  if (ptrState->DOF == 1)
+  E_Int post = 0; double sobelThreshold = -0.5; 
+  if (ptrState->DOF == 1) { post = 1; sobelThreshold = ptrState->sobelThreshold; }
+  if (ptrState->gamma != 1.) { post = 1; sobelThreshold = ptrState->sobelThreshold; }
+  if (ptrState->toneMapping != 0) { post = 1; sobelThreshold = ptrState->sobelThreshold; }
+  if (ptrState->mode == SOLID && ptrState->solidStyle == 4) { post = 1; sobelThreshold = 0.5; }
+  
+  if (post == 1)
   { 
-    // Recupere l'image standard
+    // Recupere l'image standard dans _texRight
     if (_texRight != 0) glDeleteTextures(1, &_texRight);
     glActiveTexture(GL_TEXTURE0);
     glGenTextures(1, &_texRight);
     glBindTexture(GL_TEXTURE_2D, _texRight);
     glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, _view.w, _view.h, 0);
-    // Recupere le depth buffer
+    // Recupere le depth buffer dans _texLeft
     if (_texLeft != 0) glDeleteTextures(1, &_texLeft);
     glActiveTexture(GL_TEXTURE1);
     glGenTextures(1, &_texLeft);
@@ -336,28 +353,31 @@ void Data::display()
     setOrthographicProjection();
     glPushMatrix();
     glLoadIdentity();
-    displayFrameTex(2);
+    displayFrameTex(2, sobelThreshold);
     glPopMatrix();
     resetPerspectiveProjection();
   }
 
   // Info + legende
-  if (ptrState->dim != 1)
+  if (ptrState->dim != 1 &&
+      ptrState->offscreen != 1 && ptrState->offscreen != 5 &&
+      ptrState->offscreen != 6 && ptrState->offscreen != 7)
   {
+    // All those functions use glut font and so X
     if (ptrState->header == 1) printHeader();
-    if (ptrState->info == 1) 
-    { displayInfo(); displayActivePoint(); displayAxis(); }
     if (ptrState->isoLegend > 0) displayIsoLegend(ptrState->isoLegend);
+    if (ptrState->info == 1) { displayInfo(); displayAxis(); }
+    if (ptrState->info == 1) displayActivePoint();
   }
 
   // Message overlay
   if (ptrState->message != NULL) printTmpMessage(ptrState->message);
 
   ptrState->unlockDisplay();
-  //fprintf(stderr, "sortie du display\n");
 
   // Rendering
   if (ptrState->render == 1) glutSwapBuffers();
+  else glFlush(); // Force flush (usefull with osmesa)
   
   glDisable(GL_MULTISAMPLE);
 }

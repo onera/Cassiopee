@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -32,7 +32,7 @@ PyObject* K_CONVERTER::randomizeVar(PyObject* self, PyObject* args)
 {
   PyObject* array; char* varname;
   E_Float deltamin, deltamax;
-  if (!PYPARSETUPLEF(args, "Osdd", "Osff", &array, &varname, &deltamin, &deltamax)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ S_ RR_, &array, &varname, &deltamin, &deltamax)) return NULL;
 
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;

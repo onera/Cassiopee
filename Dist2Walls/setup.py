@@ -1,5 +1,6 @@
-#!/usr/bin/env python
+import os
 from distutils.core import setup, Extension
+#from setuptools import setup, Extension
 
 #=============================================================================
 # Dist2Walls requires:
@@ -19,17 +20,21 @@ Dist.writeSetupCfg()
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
 # Setting libraryDirs and libraries ===========================================
-libraryDirs = [kcoreLibDir]
-libraries = ["kcore"]
+from KCore.config import *
+prod = os.getenv("ELSAPROD")
+if prod is None: prod = 'xx'
+libraryDirs = [kcoreLibDir, 'build/'+prod]
+libraries = ["dist2walls", "kcore"]
 from KCore.config import *
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
+(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
 
 # Extensions =================================================================
-import srcs
 extensions = [
     Extension('Dist2Walls.dist2walls',
-              sources=["Dist2Walls/dist2walls.cpp"]+srcs.cpp_srcs,
+              sources=["Dist2Walls/dist2walls.cpp"],
               include_dirs=["Dist2Walls"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
@@ -41,11 +46,12 @@ extensions = [
 # Setup ======================================================================
 setup(
     name="Dist2Walls",
-    version="2.7",
+    version="4.0",
     description="Computation of distance to walls.",
-    author="Onera",
-    package_dir={"":"."},
+    author="ONERA",
+    url="https://cassiopee.onera.fr",
     packages=['Dist2Walls'],
+    package_dir={"":"."},
     ext_modules=extensions
     )
 

@@ -125,13 +125,15 @@ namespace Expression {
                     s += "*";
                     break;
                 case DIV:
-                    s += "-";
+                    s += "/";
                     break;
                 case POW:
                     s += "**";
                     break;
                 case ASSIGN:
                     s += "=";
+                    break;
+                default:
                     break;
                 }
             }

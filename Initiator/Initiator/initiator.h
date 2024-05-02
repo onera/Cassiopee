@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -25,9 +25,12 @@
 namespace K_INITIATOR
 {
   PyObject* initLamb( PyObject* self, PyObject* args );
+  PyObject* initWissocq( PyObject* self, PyObject* args );
   PyObject* initVisbal( PyObject* self, PyObject* args );
   PyObject* initYee( PyObject* self, PyObject* args );
   PyObject* initScully( PyObject* self, PyObject* args );
   PyObject* overlayField( PyObject* self, PyObject* args );
+  PyObject* applyGaussianAL( PyObject* self, PyObject* args );
+
 }
 #endif

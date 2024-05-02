@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -22,6 +22,8 @@ C     -------------------------
       INTEGER_E ZERO_I
       INTEGER_E ONE_I
       INTEGER_E TWO_I
+      INTEGER_E THREE_I
+      INTEGER_E FOUR_I
       INTEGER_E E_MAXITERNWT
 
       INTEGER_E X_AXIS_E, Y_AXIS_E, Z_AXIS_E
@@ -29,6 +31,8 @@ C     -------------------------
       PARAMETER (ZERO_I = 0)
       PARAMETER (ONE_I  = 1)
       PARAMETER (TWO_I  = 2)
+      PARAMETER (THREE_I = 3)
+      PARAMETER (FOUR_I = 4)
       PARAMETER (E_MAXITERNWT = 30)
 
       PARAMETER (X_AXIS_E=1, Y_AXIS_E=2, Z_AXIS_E=3)
@@ -46,6 +50,7 @@ C     ----------------------
       REAL_E FOUR
       REAL_E E_CUTOFF
       REAL_E E_MIN_SURFACE
+      REAL_E E_MIN_VOL
       REAL_E E_PI
       REAL_E E_MAXEXP
       REAL_E INFTYS
@@ -63,11 +68,12 @@ C     ----------------------
 C     Useful 
       PARAMETER (E_CUTOFF     = 1.0D-11)
       PARAMETER (E_MIN_SURFACE= 1.0D-30)
+      PARAMETER (E_MIN_VOL    = 1.0D-30)
       PARAMETER (E_PI         = 3.14159265359)
 C     Avoid exponential overflow
       PARAMETER (E_MAXEXP     = 50.D0)
       PARAMETER (INFTYS       = 1.0D-30 )
-      PARAMETER (MAXFLOAT     =  1.0E+30 )
+      PARAMETER (MAXFLOAT     = 1.0E+30 )
 #else
       PARAMETER (ZERO         = 0.0E0  )
       PARAMETER (ONE_EIGHT    = 0.125E0 )
@@ -79,6 +85,7 @@ C     Avoid exponential overflow
       PARAMETER (FOUR         = 4.0E0  )
       PARAMETER (E_CUTOFF     = 1.0E-06)
       PARAMETER (E_MIN_SURFACE= 1.0E-30)
+      PARAMETER (E_MIN_VOL    = 1.0D-30)
       PARAMETER (E_PI         = 3.14159265359)
       PARAMETER (E_MAXEXP     = 50.E0)
       PARAMETER (INFTYS       =  1.0E-30 )

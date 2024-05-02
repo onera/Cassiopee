@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -179,10 +179,10 @@
  #endif
 
   double r2, r3, r4, a;
-  int blank;
+  E_Int blank;
   double fmin, fmax;
   fmax = maxf[nofield]; fmin = minf[nofield];
-  double deltai = MAX(fmax-fmin, 1.e-6);
+  double deltai = MAX(fmax-fmin, ISOCUTOFF);
   deltai = 1./deltai;
 
   // Colormap
@@ -191,17 +191,24 @@
 
   double* f = zonep->f[nofield];
 
-  int ne = zonep->ne;
-  int ne2 = 2*ne; int ne3 = 3*ne;
-  int ne4 = 4*ne; int ne5 = 5*ne;
-  int np = zonep->np;
+  E_Int np = zonep->np;
+  double* x = zonep->x; 
+  double* y = zonep->y; 
+  double* z = zonep->z;
+  
+  for (size_t nc = 0; nc < zonep->connect.size(); nc++) {
 
-  double* x = zonep->x; double* y = zonep->y; double* z = zonep->z;
-  int* connect = zonep->connect;
+  E_Int eltType = zonep->eltType[nc];
+  E_Int* connect = zonep->connect[nc];
+  E_Int ne = zonep->nec[nc];
 
-  if (zonep->eltType == 2) // TRI
+  E_Int ne2 = 2*ne; E_Int ne3 = 3*ne;
+  E_Int ne4 = 4*ne; E_Int ne5 = 5*ne;
+  
+  if (eltType == 2) // TRI
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[0];
+    float* surfx = surfp;
     float* surfy = surfx + np;
     float* surfz = surfy + np;
     
@@ -229,9 +236,10 @@
     }
     glEnd();
   }
-  else if (zonep->eltType == 3) // QUAD
+  else if (eltType == 3) // QUAD
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[0];
+    float* surfx = surfp;
     float* surfy = surfx + np;
     float* surfz = surfy + np;
     
@@ -261,9 +269,10 @@
     }
     glEnd();
   }
-  else if (zonep->eltType == 4) // TETRA
+  else if (eltType == 4) // TETRA
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[nc];
+    float* surfx = surfp;
     float* surfy = surfx + ne4;
     float* surfz = surfy + ne4;
     
@@ -323,9 +332,10 @@
     }
     glEnd();
   }
-  else if (zonep->eltType == 5) // PENTA
+  else if (eltType == 5) // PENTA
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[nc];
+    float* surfx = surfp;
     float* surfy = surfx + ne5;
     float* surfz = surfy + ne5;
     
@@ -417,9 +427,10 @@
     }
     glEnd();
   } 
-  else if (zonep->eltType == 6) // PYRA
+  else if (eltType == 6) // PYRA
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[nc];
+    float* surfx = surfp;
     float* surfy = surfx + ne5;
     float* surfz = surfy + ne5;
     
@@ -507,9 +518,10 @@
     }
     glEnd();
   } 
-  else if (zonep->eltType == 7) // HEXA
+  else if (eltType == 7) // HEXA
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[nc];
+    float* surfx = surfp;
     float* surfy = surfx + 6*ne;
     float* surfz = surfy + 6*ne;
     
@@ -601,14 +613,15 @@
     }
     glEnd();
   }
-  else if (zonep->eltType == 10) // NGON
+  else if (eltType == 10) // NGON
   {
-    int nf = connect[0];
-    int l, nd, c;
-    float* surfx = zonep->surf;
+    E_Int nf = connect[nc];
+    E_Int l, nd, c;
+    float* surfp = zonep->surf[nc];
+    float* surfx = surfp;
     float* surfy = surfx + nf;
     float* surfz = surfy + nf;
-    int next, prev;
+    E_Int next, prev;
     
     if (zonep->blank == 0)
     {
@@ -671,15 +684,15 @@
       for (i = 0; i < zonep->nelts2D; i++)
       {
         glBegin(GL_POLYGON);
-        int elt = zonep->posElts2D[i];
-        int* ptrelt = &connect[elt];
-        int nf = ptrelt[0];
-        int drawn = 0;
-        int j, first;
+        E_Int elt = zonep->posElts2D[i];
+        E_Int* ptrelt = &connect[elt];
+        E_Int nf = ptrelt[0];
+        E_Int drawn = 0;
+        E_Int j, first;
 
-        int face = ptrelt[1]-1;
+        E_Int face = ptrelt[1]-1;
         glNormal3f(surfx[face], surfy[face], surfz[face]);
-        int* ptrface = &connect[zonep->posFaces[face]];
+        E_Int* ptrface = &connect[zonep->posFaces[face]];
         n1 = ptrface[1]-1; first = n1;
         n2 = ptrface[2]-1;
         PLOTNGON(n1);
@@ -799,15 +812,15 @@
       // Elements 2D
       for (i = 0; i < zonep->nelts2D; i++)
       {
-        int elt = zonep->posElts2D[i];
-        int* ptrelt = &connect[elt];
-        int nf = ptrelt[0];
+        E_Int elt = zonep->posElts2D[i];
+        E_Int* ptrelt = &connect[elt];
+        E_Int nf = ptrelt[0];
 
         blank = 0;
-        for (int j = 1; j <= nf; j++)
+        for (E_Int j = 1; j <= nf; j++)
         {
-          int face = ptrelt[1]-1;
-          int* ptrface = &connect[zonep->posFaces[face]];
+          E_Int face = ptrelt[1]-1;
+          E_Int* ptrface = &connect[zonep->posFaces[face]];
           n1 = ptrface[1]-1;
           n2 = ptrface[2]-1;
           if (_pref.blanking->f(this, n1, zonep->blank, zonet) == 0)
@@ -818,15 +831,15 @@
         if (blank == 0)
         {
           glBegin(GL_POLYGON);
-          int elt = zonep->posElts2D[i];
-          int* ptrelt = &connect[elt];
-          int nf = ptrelt[0];
-          int drawn = 0;
-          int j, first;
+          E_Int elt = zonep->posElts2D[i];
+          E_Int* ptrelt = &connect[elt];
+          E_Int nf = ptrelt[0];
+          E_Int drawn = 0;
+          E_Int j, first;
 
-          int face = ptrelt[1]-1;
+          E_Int face = ptrelt[1]-1;
           glNormal3f(surfx[face], surfy[face], surfz[face]);
-          int* ptrface = &connect[zonep->posFaces[face]];
+          E_Int* ptrface = &connect[zonep->posFaces[face]];
           n1 = ptrface[1]-1; first = n1;
           n2 = ptrface[2]-1;
           PLOTNGON(n1);
@@ -862,7 +875,7 @@
   }
 
   // Pour les BAR
-  if (zonep->eltType == 1)
+  if (eltType == 1)
   {
     glLineWidth(3.);
     glPolygonOffset(-1.,-10.); // force offset
@@ -873,12 +886,21 @@
       {
         n1 = connect[i]-1;
         n2 = connect[i+ne]-1;
-        getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
-        glColor3f(r, g, b+offb); 
-        glVertex3d(x[n1], y[n1], z[n1]);
-        getrgb(this, (f[n2]-fmin)*deltai, &r, &g, &b);
-        glColor3f(r, g, b+offb); 
-        glVertex3d(x[n2], y[n2], z[n2]);
+        #ifndef __SHADERS__
+          getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
+          glColor3f(r, g, b+offb);
+          glVertex3d(x[n1], y[n1], z[n1]);
+          getrgb(this, (f[n2]-fmin)*deltai, &r, &g, &b);
+          glColor3f(r, g, b+offb); 
+          glVertex3d(x[n2], y[n2], z[n2]);
+        #else
+          r =(f[n1]-fmin)*deltai;
+          glColor3f(r, 0.f, 0.f);
+          glVertex3d(x[n1], y[n1], z[n1]);
+          r =(f[n2]-fmin)*deltai;
+          glColor3f(r, 0.f, 0.f);
+          glVertex3d(x[n2], y[n2], z[n2]);
+        #endif
       }
     }
     else
@@ -892,12 +914,21 @@
         
         if (ret1*ret2 != 0)
         {
-          getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
-          glColor3f(r, g, b+offb); 
-          glVertex3d(x[n1], y[n1], z[n1]);
-          getrgb(this, (f[n2]-fmin)*deltai, &r, &g, &b);
-          glColor3f(r, g, b+offb); 
-          glVertex3d(x[n2], y[n2], z[n2]);
+          #ifndef __SHADERS__
+            getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
+            glColor3f(r, g, b+offb); 
+            glVertex3d(x[n1], y[n1], z[n1]);
+            getrgb(this, (f[n2]-fmin)*deltai, &r, &g, &b);
+            glColor3f(r, g, b+offb); 
+            glVertex3d(x[n2], y[n2], z[n2]);
+          #else
+            r =(f[n1]-fmin)*deltai;
+            glColor3f(r, 0.f, 0.f);
+            glVertex3d(x[n1], y[n1], z[n1]);
+            r =(f[n2]-fmin)*deltai;
+            glColor3f(r, 0.f, 0.f);
+            glVertex3d(x[n2], y[n2], z[n2]);
+          #endif
         }
       }
     }
@@ -906,55 +937,76 @@
   }
 
   // Pour les NGONS 1D
-  if (zonep->eltType == 10 && zonep->nelts1D > 0)
+  if (eltType == 10 && zonep->nelts1D > 0)
   {
     glLineWidth(3.);
+    E_Int elt, face1, face2, posface1, posface2;
     glBegin(GL_LINES);
     if (zonep->blank == 0)
     {
       for (i = 0; i < zonep->nelts1D; i++)
       {
-        int elt = zonep->posElts1D[i];
-        int* ptrelt = &connect[elt];
-        int face1 = ptrelt[1]-1;
-        int face2 = ptrelt[2]-1;
-        int posface1 = zonep->posFaces[face1];
-        int posface2 = zonep->posFaces[face2];
+        elt = zonep->posElts1D[i];
+        E_Int* ptrelt = &connect[elt];
+        face1 = ptrelt[1]-1;
+        face2 = ptrelt[2]-1;
+        posface1 = zonep->posFaces[face1];
+        posface2 = zonep->posFaces[face2];
         n1 = connect[posface1+1]-1;
         n2 = connect[posface2+1]-1;
-        getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
-        glColor3f(r, g, b+offb); 
-        glVertex3d(x[n1], y[n1], z[n1]);
-        getrgb(this, (f[n2]-fmin)*deltai, &r, &g, &b);
-        glColor3f(r, g, b+offb); 
-        glVertex3d(x[n2], y[n2], z[n2]);
+        #ifndef __SHADERS__
+          getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
+          glColor3f(r, g, b+offb);
+          glVertex3d(x[n1], y[n1], z[n1]);
+          getrgb(this, (f[n2]-fmin)*deltai, &r, &g, &b);
+          glColor3f(r, g, b+offb); 
+          glVertex3d(x[n2], y[n2], z[n2]);
+        #else
+          r =(f[n1]-fmin)*deltai;
+          glColor3f(r, 0.f, 0.f);
+          glVertex3d(x[n1], y[n1], z[n1]);
+          r =(f[n2]-fmin)*deltai;
+          glColor3f(r, 0.f, 0.f);
+          glVertex3d(x[n2], y[n2], z[n2]);
+        #endif
       }
     }
     else
     {
       for (i = 0; i < zonep->nelts1D; i++)
       {
-        int elt = zonep->posElts1D[i];
-        int* ptrelt = &connect[elt];
-        int face1 = ptrelt[1]-1;
-        int face2 = ptrelt[2]-1;
-        int posface1 = zonep->posFaces[face1];
-        int posface2 = zonep->posFaces[face2];
+        elt = zonep->posElts1D[i];
+        E_Int* ptrelt = &connect[elt];
+        face1 = ptrelt[1]-1;
+        face2 = ptrelt[2]-1;
+        posface1 = zonep->posFaces[face1];
+        posface2 = zonep->posFaces[face2];
         n1 = connect[posface1+1]-1;
         n2 = connect[posface2+1]-1;
         ret1 = _pref.blanking->f(this, n1, zonep->blank, zonet);
         ret2 = _pref.blanking->f(this, n2, zonep->blank, zonet);
         if (ret1*ret2 != 0)
         {
-          getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
-          glColor3f(r, g, b+offb); 
-          glVertex3d(x[n1], y[n1], z[n1]);
-          getrgb(this, (f[n2]-fmin)*deltai, &r, &g, &b);
-          glColor3f(r, g, b+offb); 
-          glVertex3d(x[n2], y[n2], z[n2]);
+          #ifndef __SHADERS__
+            getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
+            glColor3f(r, g, b+offb); 
+            glVertex3d(x[n1], y[n1], z[n1]);
+            getrgb(this, (f[n2]-fmin)*deltai, &r, &g, &b);
+            glColor3f(r, g, b+offb); 
+            glVertex3d(x[n2], y[n2], z[n2]);
+          #else
+            r =(f[n1]-fmin)*deltai;
+            glColor3f(r, 0.f, 0.f);
+            glVertex3d(x[n1], y[n1], z[n1]);
+            r =(f[n2]-fmin)*deltai;
+            glColor3f(r, 0.f, 0.f);
+            glVertex3d(x[n2], y[n2], z[n2]);
+          #endif
         }
       }
     }
     glEnd();
     glLineWidth(1.);
   }
+
+  } // connects

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -23,7 +23,7 @@
 #include "IO/DynArrayIO.h"
 #include <vector>
 #include "Fld/FldArray.h"
-#include "Fld/DynArray.h"
+# include "Nuga/include/DynArray.h"
 #include <string.h>
 #include "IO/GenIO.h"
 #include <iostream>
@@ -31,7 +31,7 @@
 #include "Connect/connect.h"
 #include "kcore.h"
 #include "converter.h"
-#include "Connect/merge.h"
+#include "Nuga/include/merge.h"
 
 std::string K_CONVERTER::DynArrayIO::rdir = "";
 std::string K_CONVERTER::DynArrayIO::wdir = "";
@@ -56,6 +56,10 @@ E_Int DynArrayIO::read
   std::vector<K_FLD::FldArrayF*> ufield;
   std::vector<E_Int> et;
   std::vector<char*> zoneNames;
+  char* varStringc = NULL; // added for center fields read
+  std::vector<K_FLD::FldArrayF*> fieldc;
+  std::vector<K_FLD::FldArrayF*> ufieldc;
+  
   E_Int ret = 1;
   
   int l = strlen(fileName);
@@ -64,15 +68,15 @@ E_Int DynArrayIO::read
   if (rdir == "")
   {
     //const char* -> char*
-    fname = new char[l +1]();
-    strncpy(fname, fileName, l); 
+    fname = new char[l+1]();
+    strncpy(fname, fileName, l+1); 
   }
   else
   {
     //const char* -> char*
-    fname = new char[l+rdir.size() +1]();
+    fname = new char[l+rdir.size()+1]();
     strncpy(fname, rdir.c_str(), rdir.size()); 
-    strncat(fname, fileName, l); 
+    strncat(fname, fileName, l+1); 
   }
   
   const char* fileFmt = get_fmt(fileName);
@@ -82,7 +86,7 @@ E_Int DynArrayIO::read
   {
     // Binary tecplot read
     ret = K_IO::GenIO::getInstance()->tecread
-            (fname, varString, field, im, jm, km, ufield, c, et, zoneNames);
+            (fname, varString, field, im, jm, km, ufield, c, et, zoneNames, varStringc, fieldc, ufieldc);
   }
   else if (strcmp(fileFmt, "fmt_tp") == 0)
   {
@@ -162,6 +166,9 @@ E_Int DynArrayIO::read
   std::vector<K_FLD::FldArrayF*> ufield;
   std::vector<E_Int> et;
   std::vector<char*> zoneNames;
+  char* varStringc = NULL; // centers
+  std::vector<K_FLD::FldArrayF*> fieldc; 
+  std::vector<K_FLD::FldArrayF*> ufieldc; 
   E_Int ret = 1;
   
   int l = strlen(fileName);
@@ -170,15 +177,15 @@ E_Int DynArrayIO::read
   if (rdir == "")
   {
     //const char* -> char*
-    fname = new char[l +1]();
-    strncpy(fname, fileName, l); 
+    fname = new char[l+1]();
+    strncpy(fname, fileName, l+1); 
   }
   else
   {
     //const char* -> char*
-    fname = new char[l+rdir.size() +1]();
+    fname = new char[l+rdir.size()+1]();
     strncpy(fname, rdir.c_str(), rdir.size()); 
-    strncat(fname, fileName, l); 
+    strncat(fname, fileName, l+1);
   }
   
   const char* fileFmt = get_fmt(fileName);
@@ -188,7 +195,7 @@ E_Int DynArrayIO::read
   {
     // Binary tecplot read
     ret = K_IO::GenIO::getInstance()->tecread
-            (fname, varString, field, im, jm, km, ufield, c, et, zoneNames);
+            (fname, varString, field, im, jm, km, ufield, c, et, zoneNames, varStringc, fieldc, ufieldc);
   }
   else if (strcmp(fileFmt, "fmt_tp") == 0)
   {
@@ -306,15 +313,15 @@ const std::vector<K_FLD::IntArray>& connects,
   if (wdir == "")
   {
     //const char* -> char*
-    fname = new char[l +1]();
-    strncpy(fname, fileName, l); 
+    fname = new char[l+1]();
+    strncpy(fname, fileName, l+1); 
   }
   else
   {
     //const char* -> char*
-    fname = new char[l+wdir.size() +1]();
+    fname = new char[l+wdir.size()+1]();
     strncpy(fname, wdir.c_str(), wdir.size()); 
-    strncat(fname, fileName, l); 
+    strncat(fname, fileName, l+1); 
   }
     
   if (strcmp(fileFmt, "bin_tp") == 0) // binary tecplot
@@ -428,14 +435,14 @@ E_Int DynArrayIO::write
   {
     //const char* -> char*
     fname = new char[l +1]();
-    strncpy(fname, fileName, l); 
+    strncpy(fname, fileName, l+1); 
   }
   else
   {
     //const char* -> char*
     fname = new char[l+wdir.size() +1]();
     strncpy(fname, wdir.c_str(), wdir.size()); 
-    strncat(fname, fileName, l); 
+    strncat(fname, fileName, l+1); 
   }
   
   if (strcmp(fileFmt, "bin_tp") == 0) // binary tecplot
@@ -537,15 +544,15 @@ E_Int DynArrayIO::write
   if (wdir == "")
   {
     //const char* -> char*
-    fname = new char[l +1]();
-    strncpy(fname, fileName, l); 
+    fname = new char[l+1]();
+    strncpy(fname, fileName, l+1); 
   }
   else
   {
     //const char* -> char*
-    fname = new char[l+wdir.size() +1]();
+    fname = new char[l+wdir.size()+1]();
     strncpy(fname, wdir.c_str(), wdir.size()); 
-    strncat(fname, fileName, l); 
+    strncat(fname, fileName, l+1); 
   }
   
   if (strcmp(fileFmt, "bin_tp") == 0) // binary tecplot

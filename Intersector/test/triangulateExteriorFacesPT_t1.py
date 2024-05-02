@@ -8,5 +8,5 @@ C._initVars(t, '{F}={CoordinateX}')
 C._initVars(t, '{centers:G}={centers:CoordinateX}')
 t = C.convertArray2NGon(t)
 
-t = XOR.triangulateExteriorFaces(t)
+t = XOR.triangulateExteriorFaces(t, improve_qual=0)
 test.testT(t, 1)

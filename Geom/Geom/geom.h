@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -49,7 +49,8 @@ namespace K_GEOM
   PyObject* nurbs(PyObject* self, PyObject* args);
   PyObject* getSharpestAngleForVertices(PyObject* self, PyObject* args);
   PyObject* getNearestPointIndex(PyObject* self, PyObject* args);
-  
+  PyObject* getUV(PyObject* self, PyObject* args);
+
   /* Calcul des centres des cercles circonscrits de tous les triangles 
      IN: coord: coordonnees des vertices
      IN: cn: connectivite element->vertex

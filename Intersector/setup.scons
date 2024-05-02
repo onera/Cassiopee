@@ -3,7 +3,6 @@ import KCore.Dist as Dist
 from KCore.config import *
 #==============================================================================
 # Intersector requires:
-# ELSAPROD variable defined in environment
 # C++ compiler
 # Fortran compiler: defined in config.py
 # Numpy
@@ -26,38 +25,73 @@ installPath = Dist.getInstallPath(prefix)
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
+# Test if xcore exists =======================================================
+#(xcoreVersion, xcoreIncDir, xcoreLibDir) = Dist.checkXCore()
+
+# Test if libmpi exists ======================================================
+(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
+                                                     additionalIncludePaths)
+(mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py(additionalLibPaths,
+                                                        additionalIncludePaths)
+
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ['..', '.', pythonLibDir, kcoreLibDir]
-libraries = ["kcore"]
+includeDirs = [numpyIncDir, kcoreIncDir, pythonIncDir]
+libraries = ["kcore", "ptscotch", "scotch1", "scotch2"]
+ADDITIONALCPPFLAGS = []
+if mpi:
+    libraryDirs.append(mpiLibDir)
+    includeDirs.append(mpiIncDir)
+    ADDITIONALCPPFLAGS = ['-D_MPI']
+if mpi4py:
+    includeDirs.append(mpi4pyIncDir)
+
+if mpi: libraries += mpiLibs
+    
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 
+
 # Env =========================================================================
 import srcs
 if Dist.getSystem()[0] == 'mingw': tools = ['mingw']
 else: tools = None
+
 AR = Dist.getAR()
 env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
                   FORTRAN=f77compiler,
                   LIBPATH=additionalLibPaths+libraryDirs,
                   LIBS=libraries+additionalLibs,
-                  CPPPATH=["Intersector"]+additionalIncludePaths+[pythonIncDir, numpyIncDir, kcoreIncDir],
                   SHLIBSUFFIX=so_ext, SHLIBPREFIX='',
                   LINKFLAGS=Dist.getLinkArgs(),
                   ENV=Dist.getEnvForScons())
-env.Replace(CXXFLAGS=Dist.getCppArgs())
-env.Replace(CFLAGS=Dist.getCArgs())
 
+ELSAPROD = os.environ.get('ELSAPROD', 'x86_r8')
+env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
+env.Replace(CPPPATH=["Intersector"]+additionalIncludePaths+includeDirs)
+env.Replace(CXXFLAGS=Dist.getCppArgs()+ADDITIONALCPPFLAGS)
+env.Replace(CPPFLAGS=Dist.getCppArgs()+ADDITIONALCPPFLAGS)
+env.Replace(CFLAGS=Dist.getCArgs()+ADDITIONALCPPFLAGS)
 env = Dist.createFortranBuilder(env, [kcoreIncDir])
 ppf = Dist.createFortranFiles(env, srcs)
 
 #==============================================================================
-  
-myMod = env.StaticLibrary('intersector', srcs.cpp_srcs+ppf)
-modDir = installPath+'/Intersector/'
-dp1 = env.Install(modDir, myMod)
-dp2 = env.Install(modDir, Glob('Intersector/*.py'))
+cppOpts = Dist.getCppArgs()
 
-env.Alias(target="install", source=[dp1,dp2])
+# Suppression vectorisation pour tous les fichiers
+flags = ''
+for i in cppOpts: 
+    if not Dist.isSimd(i): flags += i+' '
+for i, v in enumerate(srcs.cpp_srcs):
+    #print('altering', v, flags)
+    srcs.cpp_srcs[i] = env.Object(v, CXXFLAGS=flags)
+       
+#==============================================================================	
+
+myMod = env.StaticLibrary('intersector', srcs.cpp_srcs+ppf)
+modDir = 'build/'+ELSAPROD
+dp1 = env.Install(modDir, myMod)
+
+env.Alias(target="install", source=[dp1])

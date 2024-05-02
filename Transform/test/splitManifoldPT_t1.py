@@ -1,5 +1,5 @@
 # - splitManifold (pyTree) -
-# Conforming 1 or 2 TRI/BAR together (same type for both operands
+# Conforming 1 or 2 TRI/BAR together (same type for both operands)
 import Converter.PyTree as C
 import Generator.PyTree as G
 import Intersector.PyTree as XOR
@@ -7,7 +7,6 @@ import Geom.PyTree as D
 from Geom.Parametrics import base
 import Transform.PyTree as T
 import KCore.test as test
-
 
 s1 = D.sphere( (0,0,0), 1, N=20 )
 

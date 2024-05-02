@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -26,5 +26,13 @@ namespace K_COMPRESSOR
 { 
   PyObject* deltaIndex(PyObject* self, PyObject* args);
   PyObject* writeUnsteadyCoefs(PyObject* self, PyObject* args);
+  PyObject* py_cellN_compress(PyObject *self, PyObject *args);
+  PyObject* py_cellN_uncompress(PyObject *self, PyObject *args);
+  PyObject* py_fpc_compress(PyObject *self, PyObject *args);
+  PyObject* py_fpc_uncompress(PyObject *self, PyObject *args);
+  PyObject* py_indices_compress(PyObject* self, PyObject* args);
+  PyObject* py_indices_uncompress(PyObject* self, PyObject* args);
+  PyObject* py_ngon_indices_compress(PyObject* self, PyObject* args);
+  PyObject* py_ngon_indices_uncompress(PyObject* self, PyObject* args);
 }
 #endif

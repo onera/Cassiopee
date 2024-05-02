@@ -1,6 +1,6 @@
-#!/usr/bin/env python
-from distutils.core import setup, Extension
-import os, sys
+from distutils.core import setup
+#from setuptools import setup
+import os
 import KCore.Dist as Dist
 
 #=============================================================================
@@ -15,11 +15,11 @@ if prod is None: prod = 'xx'
 # setup ======================================================================
 setup(
     name="Apps",
-    version="2.7",
-    description="Application module (layer1).",
-    author="C. Benoit",
-    package_dir={"":"."},
-    packages=['Apps', 'Apps.Chimera']
+    version="4.0",
+    description="Application modules",
+    author="ONERA",
+    packages=['Apps', 'Apps.Chimera', 'Apps.Fast', 'Apps.Mesh', 'Apps.Coda'],
+    package_dir={"":"."}
     )
 
 # Check PYTHONPATH ===========================================================

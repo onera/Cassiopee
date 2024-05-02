@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -19,10 +19,15 @@
 
 #ifndef _KCORE_CONNECT_H
 #define _KCORE_CONNECT_H
-
+# include <utility>
+# include <kPython.h>
 # include "Def/DefTypes.h"
 # include "Fld/FldArray.h"
 # include "Def/DefFunction.h"
+#include "Numpy/importNumpy.h"
+#include <numpy/arrayobject.h>
+# include "topologyMapping.h"
+# include "hashFunctions.h"
 
 namespace K_CONNECT
 {
@@ -38,13 +43,17 @@ namespace K_CONNECT
   /* Nettoyage de la connectivite de maillage non-structures */
   void cleanConnectivity(E_Int posx, E_Int posy, E_Int posz, 
                          E_Float eps, const char* eltType, 
-                         K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV);
+                         K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV,
+                         bool remove_degen = false,
+                         bool ordered_merge = true);
 
   /* Nettoyage de la connectivite de maillage non-structures 
      (openmp coarse grain) */
   void cleanConnectivity_opt(E_Int posx, E_Int posy, E_Int posz, 
                              E_Float eps, const char* eltType, 
-                             K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV);
+                             K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV,
+                             bool remove_degen = false,
+                             bool ordered_merge = true);
 
   /*-------------*/
   /*- Structure -*/
@@ -154,6 +163,14 @@ namespace K_CONNECT
      cVE doit deja etre alloue au nombre de noeuds. */
   void connectEV2VE(K_FLD::FldArrayI& cEV,
                     std::vector< std::vector<E_Int> >& cVE);
+  /* Change a Elts-Vertex connectivity to a Vertex-Elts connectivity.
+     Le format de stockage est de type CSR : le premier vecteur donne à
+     l'indice i la position dans le deuxième tableau de l'indice du 
+     premier element contenant le sommet i.
+     nv est le nombre de sommets definissant le maillage.
+   */
+  std::pair<std::vector<E_Int>,std::vector<E_Int> > 
+  connectEV2VE(K_FLD::FldArrayI& cEV);
 
   /* Change a Elts-Vertex connectivity to a Vertex-Vertex neighbours 
      connectivity.
@@ -173,13 +190,17 @@ namespace K_CONNECT
   */
   E_Int connectEV2EENbrs(const char* eltType, E_Int nv, K_FLD::FldArrayI& cEV,
                          std::vector< std::vector<E_Int> >& cEEN);
+  E_Int connectEV2EENbrs(const char* eltType, E_Int nv, K_FLD::FldArrayI& cEV,
+                         std::vector< std::vector<E_Int> >& cEEN,
+                         std::vector< std::vector<E_Int> >& commonFace);
+    
 
   /* Change un connectivite Elts-Vertex (basic elements) en une connectivite
    Faces->Vertex. L'indice des faces est global, soit : nof + nelt*nfaces
    ou nfaces est le nbre de faces de l'elements, nelt le no de l'element
    (commencant a 0) et nof la numero local de la face 0,1,2,...
   */
-  void connectEV2FV(K_FLD::FldArrayI& cEV, char* eltType, 
+  void connectEV2FV(K_FLD::FldArrayI& cEV, const char* eltType, 
                     K_FLD::FldArrayI& cFV);
   /* Change un connectivite Elts-Vertex (basic elements) en une connectivite
    Vertex->Faces. L'indice des faces est global, soit : nof + nelt*nfaces
@@ -188,6 +209,10 @@ namespace K_CONNECT
   */
   void connectEV2VF(K_FLD::FldArrayI& cEV, const char* eltType,
                     std::vector< std::vector<E_Int> >& cVF);
+  /* Change HO EV connectivity to LO EV connectivity.
+     mode=0: sub-select, mode=1: tesselate */
+  E_Int connectHO2LO(const char* eltTypeHO, K_FLD::FldArrayI& cEVHO,
+                     K_FLD::FldArrayI& cEVLO, E_Int mode);
   /* identifyFace */
   E_Int identifyFace(E_Int* inds, E_Int n, 
                      std::vector< std::vector<E_Int> >& cVF);
@@ -229,7 +254,7 @@ namespace K_CONNECT
      Version openmp corse grain de createConnectEV
   */
   void createConnectEV_opt(K_FLD::FldArrayI& cEV, std::vector<E_Int> newId, 
-                       E_Int* indirp, K_FLD::FldArrayI& cEVout);
+                           E_Int* indirp, K_FLD::FldArrayI& cEVout);
   /* 
      Suppression des points doubles et des elements 
      degeneres (surface nulle) dans un array non-structure (f, cEV).
@@ -240,15 +265,21 @@ namespace K_CONNECT
   */
   void cleanConnectivityBasic(E_Int posx, E_Int posy, E_Int posz, 
                               E_Float eps, const char* eltType, 
-                              K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV);
-
+                              K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV,
+                              bool ordered_merge = true);
 
   /*
-     Version openmp corse grain de  cleanConnectivityBasic
+     Version openmp corse grain de cleanConnectivityBasic
   */
   void cleanConnectivityBasic_opt(E_Int posx, E_Int posy, E_Int posz, 
-                              E_Float eps, const char* eltType, 
-                              K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV);
+                                  E_Float eps, const char* eltType, 
+                                  K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV,
+                                  bool ordered_merge = true);
+
+  /* Elimine les vertex non references dans une connectivite basique */
+  void cleanUnreferencedVertexBasic(K_FLD::FldArrayF& f, K_FLD::FldArrayI& cn,
+                                    K_FLD::FldArrayF& fout, K_FLD::FldArrayI& cnout);
+
   /*-----------------------*/
   /* - Connectivite NGon - */
   /*-----------------------*/
@@ -294,6 +325,12 @@ namespace K_CONNECT
      connectivite FE */
   void connectFE2NFace(K_FLD::FldArrayI& cFE, K_FLD::FldArrayI& cNFace, 
                        E_Int& nelts);
+
+  void connectFE2NFace3(K_FLD::FldArrayI& cFE, K_FLD::FldArrayI& cNFace, 
+                       K_FLD::FldArrayI& off, E_Int& nelts);
+
+  void connectFE2NFace4(K_FLD::FldArrayI& cFE, K_FLD::FldArrayI& cNFace, 
+                       K_FLD::FldArrayI& off, E_Int& nelts);
 
   /* Calcul des connectivites elements a partir d'une
     connectivite mix */
@@ -355,20 +392,88 @@ namespace K_CONNECT
                         K_FLD::FldArrayI& posElts, K_FLD::FldArrayI& posFaces,
                         K_FLD::FldArrayI& cNG);
 
+  void orderNGONElement(E_Int noe, std::vector<E_Int>& indices, 
+                        E_Int* ngon, E_Int* nface, E_Int* indPG,
+                        E_Int* indPH, K_FLD::FldArrayI& cn);
+
+  // --- Nettoyage de connectivites non-structurees ---
   /* 
      Suppression des points doubles, des faces doubles et des elements 
      degeneres, des faces degenerees  dans un array NGON (f, cNG).
      IN: posx, posy, posz: position des coord. dans f
      IN: eps: tolerance pour eliminer les doublons
      IN: f, cNG: array NGON.
+     IN: remove_degen: suppression des elts degeneres compte tenu de la dimension du NGON
   */
   void cleanConnectivityNGon(E_Int posx, E_Int posy, E_Int posz, 
                              E_Float eps, K_FLD::FldArrayF& f, 
-                             K_FLD::FldArrayI& cNG);
+                             K_FLD::FldArrayI& cNG,
+                             bool remove_degen = false,
+                             bool ordered_merge = true);
 
   /* Nettoyage des faces non referencees dans la connectivity NGon */
   void cleanUnreferencedFacesNGon(K_FLD::FldArrayI& cn);
 
+  PyObject* V_cleanConnectivity(
+    const char* varString, K_FLD::FldArrayF& f,
+    K_FLD::FldArrayI& cn, const char* eltType,
+    E_Float tol=0., E_Bool removeOverlappingPoints=true,
+    E_Bool removeOrphanPoints=true,
+    E_Bool removeDuplicatedFaces=true,
+    E_Bool removeDuplicatedElements=true,
+    E_Bool removeDegeneratedFaces=true,
+    E_Bool removeDegeneratedElements=true);
+
+  // Clean connectivity - NGON
+  PyObject* V_cleanConnectivityNGon(
+    E_Int posx, E_Int posy, E_Int posz, const char* varString,
+    K_FLD::FldArrayF& f, K_FLD::FldArrayI& cn,
+    E_Float tol=0., E_Bool removeOverlappingPoints=true,
+    E_Bool removeOrphanPoints=true,
+    E_Bool removeDuplicatedFaces=true,
+    E_Bool removeDuplicatedElements=true,
+    E_Bool removeDegeneratedFaces=true,
+    E_Bool removeDegeneratedElements=true);
+
+  E_Int V_identifyOverlappingPoints(
+    E_Int posx, E_Int posy, E_Int posz, 
+    K_FLD::FldArrayF& f, E_Float tol,
+    std::vector<E_Int>& indir);
+
+  E_Int V_identifyDirtyFacesNGon(
+    E_Int dim, K_FLD::FldArrayF& f, K_FLD::FldArrayI& cn,
+    std::vector<E_Int>& indirPG,
+    E_Bool removeDegeneratedFaces=true);
+
+  E_Int V_identifyDirtyFacesNGon(
+    E_Int dim, K_FLD::FldArrayI& cn, E_Int* ngon, E_Int* indPG,
+    std::vector<E_Int>& indirPG,
+    E_Bool removeDegeneratedFaces=true);
+
+  E_Int V_identifyDirtyElementsNGon(
+    E_Int dim, K_FLD::FldArrayF& f, K_FLD::FldArrayI& cn,
+    std::vector<E_Int>& indirPH,
+    E_Bool removeDegeneratedFaces=true);
+
+  E_Int V_identifyDirtyElementsNGon(
+    E_Int dim, K_FLD::FldArrayI& cn, E_Int* nface, E_Int* indPH,
+    std::vector<E_Int>& indirPH,
+    E_Bool removeDegeneratedElements=true);
+
+  // Clean connectivity - ME
+  PyObject* V_cleanConnectivityME(
+    E_Int posx, E_Int posy, E_Int posz, const char* varString,
+    K_FLD::FldArrayF& f, K_FLD::FldArrayI& cn, const char* eltType,
+    E_Float tol=0., E_Bool removeOverlappingPoints=true,
+    E_Bool removeOrphanPoints=true,
+    E_Bool removeDuplicatedElements=true,
+    E_Bool removeDegeneratedElements=true);  
+
+  E_Int V_identifyDuplicatedElementsME(
+    K_FLD::FldArrayI& cn, std::vector<E_Int>& indir,
+    std::vector<E_Int>& nuniqueElts, E_Int neltsTot=0,
+    E_Bool removeDegeneratedElements=true);
+  
   /* Retourne l'image de vert0 issu de la face0 dans l'element et0 
      IN: cNG: connectivite NGON: Faces/Noeuds et Elts/Faces
      IN: et0: numero de l'element considere dans cNG: demarre a 0 
@@ -376,17 +481,22 @@ namespace K_CONNECT
      IN: face0: numero de la face a laquelle appartient le pt vert0: demarre a 1
      IN: vertices: liste des vertices appartenant a face0
      OUT: vert1: pt image: demarre a 1 */
-  E_Int image(E_Int vert0, E_Int face0, E_Int et0, 
-              std::vector<E_Int>& vertices, 
-              K_FLD::FldArrayI& posFace, K_FLD::FldArrayI& posElt,
+  E_Int image(E_Int vert0, E_Int face0, E_Int et0,
+              std::vector<E_Int>& vertices,
               K_FLD::FldArrayI& cNG);
+  E_Int image(E_Int vert0, E_Int face0, E_Int et0,
+              std::vector<E_Int>& vertices, K_FLD::FldArrayI& cNG,
+              E_Int* ngon, E_Int* nface, E_Int* indPG, E_Int* indPH);
 
   /* Retourne un tableau donnant pour chaque element sa dimension
      IN: cNG: connectivite NGON: Faces/Noeuds et Elts/Faces
      IN: posFaces: position of each face in cNG
      OUT: dimElts: tableau donnant pour chaque element sa dimension (1,2 ou 3)
   */
+  void getDimElts(K_FLD::FldArrayI& cNG, K_FLD::FldArrayI& dimElts);
   void getDimElts(K_FLD::FldArrayI& cNG, K_FLD::FldArrayI& posFaces, 
+                  K_FLD::FldArrayI& dimElts);
+  void getDimElts(K_FLD::FldArrayI& cNG, E_Int* indPG, E_Int* indPH, 
                   K_FLD::FldArrayI& dimElts);
 
   /* Pour un element 2D repere par eltPos dans cNG, retourne les indices 
@@ -395,5 +505,21 @@ namespace K_CONNECT
   E_Int getVertexIndices(const E_Int* connect, const E_Int* posFaces,
                          E_Int eltPos, 
                          std::vector<E_Int>& ind);
+  E_Int getVertexIndices(K_FLD::FldArrayI& cNG, E_Int* ngon, E_Int* nface,
+                         E_Int* indPG, E_Int* indPH, E_Int eltPos,
+                         std::vector<E_Int>& ind);
+
+  /* ngon tools */
+  E_Int check_open_cells(K_FLD::FldArrayI &cn, E_Int *is_cell_open);
+  E_Int check_overlapping_cells(K_FLD::FldArrayI &cn);
+  E_Int orient_boundary_ngon(E_Float *x, E_Float *y, E_Float *z,
+    K_FLD::FldArrayI &cn);
+  E_Int build_parent_elements_ngon(K_FLD::FldArrayI &cn, E_Int *owner,
+    E_Int *neigh);
+  void reversi_connex(E_Int *, E_Int *, E_Int, E_Int *,
+    E_Int, std::vector<E_Int> &);
+  void build_face_neighbourhood(std::vector<E_Int> &, std::vector<E_Int> &,
+    std::vector<E_Int> &);
+  E_Int colorConnexParts(E_Int *, E_Int *, E_Int, E_Int *);
 }
 #endif

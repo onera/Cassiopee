@@ -8,4 +8,4 @@ b = G.cart((9.,0,0), (1,1,1), (10,10,10))
 
 bb = G.BB([a,b])
 ret = X.getIntersectingDomainsAABB(bb)
-print ret
+print(ret)

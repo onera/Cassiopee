@@ -1,5 +1,6 @@
 # - mesh smoother -
-import Tkinter as TK
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -83,7 +84,7 @@ def smooth():
         if base is not None:
             nodes = Internal.getNodesFromType1(base, 'Zone_t')
             for z in nodes:
-                if (z[0] == sname[1]): fixedConstraints.append(z)
+                if z[0] == sname[1]: fixedConstraints.append(z)
 
     CTK.saveTree()
     
@@ -99,7 +100,7 @@ def smooth():
     try:
         A = C.convertArray2Tetra(zones)
         A = T.join(A); A = G.close(A)
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: smooth')
         CTK.TXT.insert('START', 'Some zones are invalid for smoothing.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
@@ -143,6 +144,7 @@ def smooth():
         Pj = 0
     
     # Smooth
+    CTK.setCursor(2, WIDGETS['smooth'])
     fail = False
     try:
         if Pj == 0:
@@ -150,13 +152,13 @@ def smooth():
                              fixedConstraints=fixedConstraints, 
                              projConstraints=projConstraints, delta=strength)
         else:
-            for s in xrange(smooth):
+            for s in range(smooth):
                 zones = T.smooth(zones, eps=eps, niter=2, type=ntype,
                                  fixedConstraints=fixedConstraints, 
                                  projConstraints=projConstraints, 
                                  delta=strength)
                 zones = T.projectOrtho(zones, [projSurf])
-    except Exception, e:
+    except Exception as e:
         fail = True
         Panels.displayErrors([0,str(e)], header='Error: smooth')
 
@@ -172,7 +174,9 @@ def smooth():
         CTK.TXT.insert('START', 'Smooth fails.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
 
-    CTK.t = C.fillMissingVariables(CTK.t)
+    CTK.setCursor(0, WIDGETS['smooth'])
+    
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -183,9 +187,10 @@ def smooth():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkSmooth', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Smooth meshes.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkSmooth  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Smooth meshes.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -196,8 +201,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkSmooth')
@@ -206,30 +211,30 @@ def createApp(win):
     # - VARS -
     # -0- Smoother niter -
     V = TK.StringVar(win); V.set('10'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSmoothIter'): V.set(CTK.PREFS['tkSmoothIter'])
+    if 'tkSmoothIter' in CTK.PREFS: V.set(CTK.PREFS['tkSmoothIter'])
     # -1- Constraint
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -2- Constraint strength
     V = TK.StringVar(win); V.set('0.1'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSmoothConsStrength'): 
+    if 'tkSmoothConsStrength' in CTK.PREFS: 
         V.set(CTK.PREFS['tkSmoothConsStrength'])
     # -3- Constraint external faces
     V = TK.IntVar(win); V.set(1); VARS.append(V)
     # -4- smooth eps
     V = TK.StringVar(win); V.set('0.5'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSmoothEps'): 
+    if 'tkSmoothEps' in CTK.PREFS: 
         V.set(CTK.PREFS['tkSmoothEps'])
     # -5- Constraint sharp edges
     V = TK.IntVar(win); V.set(0); VARS.append(V)
     # -6- Sharp edges detection angle
     V = TK.StringVar(win); V.set('30.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSmoothSharpAngle'): 
+    if 'tkSmoothSharpAngle' in CTK.PREFS: 
         V.set(CTK.PREFS['tkSmoothSharpAngle'])
     # -7- Project on surface
     V = TK.IntVar(win); V.set(0); VARS.append(V)
     # -8- Type de smoothing
     V = TK.StringVar(win); V.set('Volume'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSmoothType'): 
+    if 'tkSmoothType' in CTK.PREFS: 
         V.set(CTK.PREFS['tkSmoothType'])
 
     # - Smoother power -
@@ -265,7 +270,7 @@ def createApp(win):
     # - Project on surface
     B = TTK.Checkbutton(Frame, text='PJ', variable=VARS[7])
     B.grid(row=1, column=3, columnspan=1, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Project on surface.')
+    BB = CTK.infoBulle(parent=B, text='Project on surafce.')
 
     # - Sharp edges detection
     B = TTK.Entry(Frame, textvariable=VARS[6], background='White', width=4)
@@ -283,6 +288,7 @@ def createApp(win):
     
     # - Smooth -
     B = TTK.Button(Frame, text="Smooth", command=smooth)
+    WIDGETS['smooth'] = B
     BB = CTK.infoBulle(parent=B, text='Smooth mesh.')
     B.grid(row=3, column=0, columnspan=5, sticky=TK.EW)
     
@@ -290,14 +296,18 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['MeshNoteBook'].add(WIDGETS['frame'], text='tkSmooth')
+    except: pass
+    CTK.WIDGETS['MeshNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
-
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['MeshNoteBook'].hide(WIDGETS['frame'])
+    
 #==============================================================================
 # Update widgets when global pyTree t changes
 #==============================================================================
@@ -333,7 +343,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

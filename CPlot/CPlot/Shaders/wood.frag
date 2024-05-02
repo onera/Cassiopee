@@ -1,11 +1,23 @@
+#version 400 compatibility
 //
 // Wood shader
 //
-varying vec3 MCposition;
+/*varying vec3 MCposition;
 varying vec3 Nv;
 varying vec3 P;
 varying vec4 initColor;
 varying vec4 vertex;
+*/
+in V2F_OUT
+{
+    vec4 position;
+    vec4 mv_position;
+    vec4 mvp_position;
+    vec4 view_normal;
+    vec4 nrm_view_normal;
+    vec4 color;
+    vec4 vdata1, vdata2, vdata3, vdata4;
+} v2f_out;
 
 uniform float bump;
 uniform sampler3D Noise;
@@ -27,6 +39,11 @@ uniform int lightOn;
 
 void main()
 {
+    vec3 MCposition = v2f_out.vdata1.xyz;
+    vec3 Nv = v2f_out.view_normal.xyz;
+    vec3 P  = v2f_out.mv_position.xyz;
+    vec4 initColor = v2f_out.color;
+    vec4 vertex    = v2f_out.position;
     vec3 noisevec = vec3(texture3D(Noise, MCposition*NoiseScale)*Noisiness);
     vec3 location = MCposition + noisevec;
 
@@ -125,7 +142,12 @@ void main()
      float s = shadowCoordinateW.s;
      float t = shadowCoordinateW.t;      
      if (ShadowCoord.w > 0.0 && s > 0.001 && s < 0.999 && t > 0.001 && t < 0.999)
-       shadowValue = distanceFromLight < shadowCoordinateW.z ? 0.5 : 1.0;
+       {
+       //shadowValue = distanceFromLight < shadowCoordinateW.z ? 0.5 : 1.0;
+       if (distanceFromLight < shadowCoordinateW.z - 0.001) shadowValue = 0.5;
+       else if (distanceFromLight >= shadowCoordinateW.z) shadowValue = 1.;
+       else shadowValue = 500.*distanceFromLight-499.*shadowCoordinateW.z;
+       }
      }
 
     gl_FragColor = shadowValue * col;

@@ -2,7 +2,6 @@
 import Generator.PyTree as G
 import Transform.PyTree as T
 import Converter.PyTree as C
-import Converter.Internal as CI
 import KCore.test as test
 
 a = G.cylinder((0.,0.,0.), 0.1, 1., 0., 45., 5., (11,11,11)) 

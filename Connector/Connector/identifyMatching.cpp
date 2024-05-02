@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -20,9 +20,9 @@
 // Identify matching points in windows
 
 # include "connector.h"
-# include "Connect/merge.h"
-# include "Search/KdTree.h"
-# include "Fld/ArrayAccessor.h"
+# include "Nuga/include/merge.h"
+# include "Nuga/include/KdTree.h"
+# include "Nuga/include/ArrayAccessor.h"
 
 using namespace K_FUNC;
 using namespace std;
@@ -37,8 +37,7 @@ PyObject* K_CONNECTOR::identifyMatchingP(PyObject* self, PyObject* args)
 {
   PyObject *listOfAllWins, *listOfAllWinsP;
   E_Float tolmatch;
-  if (!PYPARSETUPLEF(args,
-                    "OOd", "OOf",
+  if (!PYPARSETUPLE_(args, OO_ R_,
                     &listOfAllWins, &listOfAllWinsP, &tolmatch))
   {
       return NULL;
@@ -66,7 +65,7 @@ PyObject* K_CONNECTOR::identifyMatchingP(PyObject* self, PyObject* args)
   E_Boolean skipNoCoord = true;
   E_Boolean skipStructured = false;
   E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
+  E_Boolean skipDiffVars = false;//true;
   E_Int isOk = K_ARRAY::getFromArrays(
     listOfAllWins, resl, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltTypet, objst, objut, 
@@ -323,21 +322,23 @@ PyObject* K_CONNECTOR::identifyMatchingP(PyObject* self, PyObject* args)
   }
   tagDnr.malloc(0); indirB.malloc(0); indirI.malloc(0);
   E_Int sizeI = indicesR.size();
-  if (sizeI > 0 )
+  E_Int indR, indD, nozR, nozD, nptsR, nptsD;
+  E_Float *tagR1, *tagR2, *tagD1, *tagD2;
+  if (sizeI > 0)
   {
     //2eme passe : on est plus tolerant 
     for (E_Int i = 0; i < sizeI; i++)
     {
-      E_Int indR = indicesR[i];//indice local a la zone    
-      E_Int indD = indicesD[i];
-      E_Int nozR = zonesR[i];
-      E_Int nozD = zonesD[i]; 
-      E_Int nptsR = sizeOfFields[nozR];
-      E_Int nptsD = sizeOfFields[nozD];
-      E_Float* tagR1 = fields[nozR]+post1[nozR]*nptsR;
-      E_Float* tagR2 = fields[nozR]+post2[nozR]*nptsR;
-      E_Float* tagD1 = fields[nozD]+post1[nozD]*nptsD;
-      E_Float* tagD2 = fields[nozD]+post2[nozD]*nptsD;
+      indR = indicesR[i];//indice local a la zone    
+      indD = indicesD[i];
+      nozR = zonesR[i];
+      nozD = zonesD[i]; 
+      nptsR = sizeOfFields[nozR];
+      nptsD = sizeOfFields[nozD];
+      tagR1 = fields[nozR]+post1[nozR]*nptsR;
+      tagR2 = fields[nozR]+post2[nozR]*nptsR;
+      tagD1 = fields[nozD]+post1[nozD]*nptsD;
+      tagD2 = fields[nozD]+post2[nozD]*nptsD;
       tagR1[indR] = nozD; tagR2[indR] = indD;        
       tagD1[indD] = nozR; tagD2[indD] = indR;        
     }
@@ -358,8 +359,7 @@ PyObject* K_CONNECTOR::identifyMatching(PyObject* self, PyObject* args)
 {
   PyObject *listOfAllWins;
   E_Float tolmatch;
-  if (!PYPARSETUPLEF(args,
-                    "Od", "Of",
+  if (!PYPARSETUPLE_(args, O_ R_,
                     &listOfAllWins, &tolmatch))
   {
       return NULL;
@@ -381,7 +381,7 @@ PyObject* K_CONNECTOR::identifyMatching(PyObject* self, PyObject* args)
   E_Boolean skipNoCoord = true;
   E_Boolean skipStructured = false;
   E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
+  E_Boolean skipDiffVars = false;//true;
 
   E_Int isOk = K_ARRAY::getFromArrays(
     listOfAllWins, resl, structVarString, unstrVarString,
@@ -554,8 +554,8 @@ PyObject* K_CONNECTOR::identifyMatching(PyObject* self, PyObject* args)
         if (tag1[ind] == -2. && tago1[indopp] == -2.)
           continue;
         
-        // if (tag1[ind] == -1. && tago1[indopp] == -1.)
         if (tag1[ind] <0. && tago1[indopp] <0.)
+	// if (tag1[ind] == -1. && tago1[indopp] == -1.)
         {
           tag1[ind] = nozopp; tag2[ind] = indopp;
           // update donor tags
@@ -580,8 +580,7 @@ PyObject* K_CONNECTOR::identifyMatchingNM(PyObject* self, PyObject* args)
 {
   PyObject *listOfAllWinsR, *listOfAllWinsD;
   E_Float tolmatch;
-  if (!PYPARSETUPLEF(args,
-                    "OOd", "OOf",
+  if (!PYPARSETUPLE_(args, OO_ R_,
                     &listOfAllWinsR, &listOfAllWinsD, &tolmatch))
   {
       return NULL;
@@ -609,7 +608,7 @@ PyObject* K_CONNECTOR::identifyMatchingNM(PyObject* self, PyObject* args)
   E_Boolean skipNoCoord = true;
   E_Boolean skipStructured = false;
   E_Boolean skipUnstructured = true;
-  E_Boolean skipDiffVars = true;
+  E_Boolean skipDiffVars = false;//true;
 
   E_Int isOk = K_ARRAY::getFromArrays(
     listOfAllWinsR, reslR, structVarStringR, unstrVarStringR,

@@ -10,7 +10,7 @@ zmap = World.initGround(zmap, type=0)
 ground = C.copy(zmap)
 allObjects = [ground]
 
-for i in xrange(30):
+for i in range(30):
     hx = random.random()*5.
     hy = random.random()*5.
     hz = random.random()*1.

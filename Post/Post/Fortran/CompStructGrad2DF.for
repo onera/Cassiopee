@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -81,7 +81,7 @@ C
 
          nn = sqrt(nx*nx+ny*ny+nz*nz)
          vinv = 2D0 * surf(indcell) * nn 
-         vinv = ONE/vinv
+         vinv = ONE/MAX(vinv, E_MIN_VOL)
 
          xAB = xt(indB)-xt(indA)
          yAB = yt(indB)-yt(indA)

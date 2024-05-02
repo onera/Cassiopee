@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -86,19 +86,19 @@
   ret4 = _pref.blanking->f(this, n4, zonep->blank, zone);               \
   if (ret1*ret2*ret3*ret4 != 0) { PLOT; }    
 
-  int i, j, k, n1, n2, n3, n4, n1s, n2s, n3s, n4s;
+  E_Int i, j, k, n1, n2, n3, n4, n1s, n2s, n3s, n4s;
   float r, g, b;
 #ifndef __SHADERS__
   float a;
 #endif
-  int ret1, ret2, ret3, ret4;
+  E_Int ret1, ret2, ret3, ret4;
   //double r2, r3, r4;
 
   // scalar field
   double* f = zonep->f[nofield];
   double fmin, fmax;
   fmax = maxf[nofield]; fmin = minf[nofield];
-  double deltai = MAX(fmax-fmin, 1.e-6);
+  double deltai = MAX(fmax-fmin, ISOCUTOFF);
   //if (fmax-fmin < 1.e-10) { deltai = 1.; fmax = fmin+1.; }
   //else deltai = fmax-fmin;
   deltai = 1./deltai;
@@ -108,29 +108,32 @@
   getrgb = _pref.colorMap->f;
 
   // Grid dimensions
-  int ni = zonep->ni;
-  int nj = zonep->nj;
-  int nk = zonep->nk;
+  E_Int ni = zonep->ni;
+  E_Int nj = zonep->nj;
+  E_Int nk = zonep->nk;
   if (ptrState->dim == 2) nk = 1;
-  int nij = ni*nj;
+  E_Int nij = ni*nj;
 
-  int nim = MIN(ni, 2);
-  int njm = MIN(nj, 2);
-  int nkm = MIN(nk, 2);
-  int nbElti = nj*nk*nim;
-  int nbEltj = ni*nk*njm;
-  int nbEltk = nij*nkm;
+  E_Int nim = MIN(ni, E_Int(2));
+  E_Int njm = MIN(nj, E_Int(2));
+  E_Int nkm = MIN(nk, E_Int(2));
+  E_Int nbElti = nj*nk*nim;
+  E_Int nbEltj = ni*nk*njm;
+  E_Int nbEltk = nij*nkm;
 
-  int nistepj = ni*stepj;
-  int nijstepk = nij*stepk;
-  int njstepk = nj*stepk;
-  int nistepk = ni*stepk;
-  int inci = (nim-1)*nj*nk;
-  int incj = (njm-1)*ni*nk;
-  int inck = (nkm-1)*nij;
+  E_Int nistepj = ni*stepj;
+  E_Int nijstepk = nij*stepk;
+  E_Int njstepk = nj*stepk;
+  E_Int nistepk = ni*stepk;
+  E_Int inci = (nim-1)*nj*nk;
+  E_Int incj = (njm-1)*ni*nk;
+  E_Int inck = (nkm-1)*nij;
 
-  double* x = zonep->x; double* y = zonep->y; double* z = zonep->z;
-  float* surfx = zonep->surf;
+  double* x = zonep->x; 
+  double* y = zonep->y; 
+  double* z = zonep->z;
+  float* surfp = zonep->surf[0];
+  float* surfx = surfp;
   float* surfy = surfx + nbElti;
   float* surfz = surfy + nbElti;
 
@@ -140,7 +143,7 @@
 
   // I Plane
   i = zonep->iPlane;
-  if (i != -1)
+  if (i >= 0) // display single i plane
   {
     if (zonep->blank == 0)
     {
@@ -177,7 +180,7 @@
         }
     }
   }
-  else
+  else if (i == -1) // display both planes
   {
     if (zonep->blank == 0)
     {
@@ -241,13 +244,14 @@
     }
   }
 
-  surfx = zonep->surf + 3*nbElti;
+  surfp = zonep->surf[0];
+  surfx = surfp + 3*nbElti;
   surfy = surfx + nbEltj;
   surfz = surfy + nbEltj;
 
   // J Plane
   j = zonep->jPlane;
-  if (j != -1)
+  if (j >= 0)
   {
     if (zonep->blank == 0)
     {
@@ -284,7 +288,7 @@
         }
     }
   }
-  else
+  else if (j == -1)
   {
     if (zonep->blank == 0)
     {
@@ -348,13 +352,14 @@
     }
   }
   
-  surfx = zonep->surf + 3*nbElti + 3*nbEltj;
+  surfp = zonep->surf[0];
+  surfx = surfp + 3*nbElti + 3*nbEltj;
   surfy = surfx + nbEltk;
   surfz = surfy + nbEltk;
 
   // K Plane
   k = zonep->kPlane;
-  if (k != -1)
+  if (k >= 0)
   {
     if (zonep->blank == 0)
     {
@@ -423,7 +428,7 @@
           PLOT;
         }
     }
-    else
+    else if (k == -1)
     {
       // With blanking
       for (j = 0; j < nj-stepj; j += stepj)
@@ -462,7 +467,7 @@
     glLineWidth(3.);
     glPolygonOffset(-1.,-10.); // force offset
     glBegin(GL_LINES);
-    int nie, nje, nke;
+    E_Int nie, nje, nke;
     nie = ni; nje = nj; nke = nk;
     if (ni*nj == 1) nke = nke-1;
     if (ni*nk == 1) nje = nje-1;
@@ -475,13 +480,22 @@
           for (i = 0; i < nie; i++)
           {
             n1 = i+j*ni+k*nij;
-            getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
-            glColor3f(r, g, b+offb);
-            glVertex3d(x[n1], y[n1], z[n1]);
             n2 = n1+1;
-            getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
-            glColor3f(r, g, b+offb);
-            glVertex3d(x[n2], y[n2], z[n2]);
+            #ifndef __SHADERS__
+              getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
+              glColor3f(r, g, b+offb);
+              glVertex3d(x[n1], y[n1], z[n1]);
+              getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
+              glColor3f(r, g, b+offb);
+              glVertex3d(x[n2], y[n2], z[n2]);
+            #else
+              r =(f[n1]-fmin)*deltai;
+              glColor3f(r, 0.f, 0.f);
+              glVertex3d(x[n1], y[n1], z[n1]);
+              r =(f[n2]-fmin)*deltai;
+              glColor3f(r, 0.f, 0.f);
+              glVertex3d(x[n2], y[n2], z[n2]);
+            #endif
           }
     }
     else
@@ -496,12 +510,21 @@
             ret2 = _pref.blanking->f(this, n2, zonep->blank, zone);
             if (ret1*ret2 != 0)
             { 
-              getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
-              glColor3f(r, g, b+offb);
-              glVertex3d(x[n1], y[n1], z[n1]);
-              getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
-              glColor3f(r, g, b+offb);
-              glVertex3d(x[n2], y[n2], z[n2]);
+              #ifndef __SHADERS__
+                getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
+                glColor3f(r, g, b+offb);
+                glVertex3d(x[n1], y[n1], z[n1]);
+                getrgb(this, (f[n1]-fmin)*deltai, &r, &g, &b);
+                glColor3f(r, g, b+offb);
+                glVertex3d(x[n2], y[n2], z[n2]);
+              #else
+                r =(f[n1]-fmin)*deltai;
+                glColor3f(r, 0.f, 0.f);
+                glVertex3d(x[n1], y[n1], z[n1]);
+                r =(f[n2]-fmin)*deltai;
+                glColor3f(r, 0.f, 0.f);
+                glVertex3d(x[n2], y[n2], z[n2]);
+              #endif
             }
           }
     }

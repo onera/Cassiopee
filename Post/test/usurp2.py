@@ -16,7 +16,7 @@ c = C.array('cellN', ni-1, nj-1, 1)
 c = C.initVars(c, 'cellN', 1)
 
 import Post as P
-r = P.usurp([m], [c]); print r
+r = P.usurp([m], [c]); print(r)
 
 #=============================================================================
 # Basic test case 2
@@ -26,7 +26,7 @@ m2 = C.addVar(m2, 'ro')
 
 c2 = C.array('cellN', ni-1, nj-1, 1)
 c2 = C.initVars(c2, 'cellN', 1)
-r = P.usurp([m,m2], [c,c2]); print r
+r = P.usurp([m,m2], [c,c2]); print(r)
 
 #=============================================================================
 # Basic test cas 3
@@ -40,8 +40,7 @@ c3 = C.initVars(c3, 'cellN', 1)
 
 C.convertArrays2File([m,m3], "out.plt", "bin_tp")
 
-r = P.usurp([m,m3], [c,c3])
-print r
+r = P.usurp([m,m3], [c,c3]); print(r)
 
 m = T.addkplane(m)
 m3 = T.addkplane(m3)

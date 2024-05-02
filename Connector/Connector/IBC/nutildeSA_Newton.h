@@ -8,7 +8,7 @@
 #endif 
          for (E_Int noind = 0; noind < ifin-ideb; noind++)
            {
-             if (K_FUNC::E_abs(utauv_vec[noind]) > newtoneps)
+             if (K_FUNC::E_abs(utauv_vec[noind]) > newtonepsnutilde)
               {
                 skip = 0; 
                 //fp
@@ -30,6 +30,6 @@
           #pragma omp simd
 #endif 
           for (E_Int noind = 0; noind < ifin-ideb; noind++)  // test pour imiter stephanie
-            { if (K_FUNC::E_abs(utauv_vec[noind]) > newtoneps) aa_vec[noind]  = ut_vec[noind];  
+            { if (K_FUNC::E_abs(utauv_vec[noind]) > newtonepsnutilde) aa_vec[noind]  = ut_vec[noind];  
             }
         }

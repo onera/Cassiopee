@@ -1,26 +1,32 @@
-"""Post-processing of solutions.
-"""
-__version__ = '2.7'
-__author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud, Christelle Wervaecke"
-#
-# Python Interface for post-processing tools
-#
-import post
+"""Post-processing of solutions."""
+__version__ = '4.0'
+__author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud, Christelle Wervaecke, Xavier Juvigny"
+
+from . import post
 import numpy
 try: import Converter
-except: raise ImportError("Post: requires Converter module.")
+except ImportError: raise ImportError("Post: requires Converter module.")
 
-__all__ = ['coarsen', 'computeCurl', 'computeDiff', 'computeExtraVariable', 'computeGrad',
-'computeGrad2', 'computeDiv2', 'computeIndicatorField', 'computeIndicatorFieldForBounds',
-'computeIndicatorValue', 'computeNormCurl', 'computeNormGrad', 'computeVariables',
-'computeVariables2', '_computeVariables2', 'enforceIndicatorForCoarsestLevel',
-'enforceIndicatorForFinestLevel', 'enforceIndicatorNearBodies', 'exteriorElts',
-'exteriorFaces', 'exteriorFacesStructured', 'extractMesh', 'extractPlane',
-'extractPoint', 'frontFaces', 'integ', 'integMoment', 'integMomentNorm',
-'integNorm', 'integNormProduct', 'interiorFaces', 'isoLine', 'isoSurf', 'isoSurfMC',
-'isoSurfMC_opt', 'perlinNoise', 'projectCloudSolution', 'refine', 'renameVars',
-'selectCells', 'selectCells2', 'selectCells3', 'sharpEdges', 'silhouette', 'slice',
-'streamLine', 'streamRibbon', 'streamSurf', 'usurp', 'zip', 'zipper', 'growOfEps__']
+try: range = xrange
+except: pass
+
+## [AJ - KEEP FOR NOW - FROM MASTER]
+__all__ = ['coarsen', 'computeCurl', 'computeDiff', 'computeExtraVariable',
+    'computeGrad', 'computeGrad2', 'computeGradLSQ',
+    'computeDiv', 'computeDiv2', 'computeIndicatorField',
+    'computeIndicatorFieldForBounds', 'computeIndicatorValue',
+    'computeNormCurl', 'computeNormGrad', 'computeVariables',
+    'computeVariables2', '_computeVariables2',
+    'enforceIndicatorForCoarsestLevel', 'enforceIndicatorForFinestLevel',
+    'enforceIndicatorNearBodies', 'exteriorElts', 'exteriorEltsStructured',
+    'exteriorFaces', 'exteriorFacesStructured', 'extractMesh', 'extractPlane',
+    'extractPoint', 'frontFaces', 'integ', 'integMoment', 'integMomentNorm',
+    'integNorm', 'integNormProduct', 'interiorFaces', 'isoLine', 'isoSurf',
+    'isoSurfMC', 'isoSurfMC_opt', 'perlinNoise', 'projectCloudSolution',
+    'refine', 'renameVars', 'selectCells', 'selectCells2', 'selectCells3',
+    'sharpEdges', 'silhouette', 'slice', 'streamLine', 'streamLine2',
+    'streamRibbon', 'streamRibbon2', 'streamSurf', 'usurp', 'zip', 'zipper',
+    'growOfEps__','computeIndicatorField_AMR']
 
 #==============================================================================
 # Add two layers to surface arrays
@@ -34,30 +40,40 @@ def extrudeLayer__(i, nlayers, planarity, eps, dplus, dmoins):
         p = Generator.getCellPlanarity(i)
         epsmax = max(eps, 2*Converter.getMaxValue(p, 'dist'))
     else: epsmax = eps
-    for k in xrange(nlayers+1): dplus[1][0,k] = k*epsmax; dmoins[1][0,k] =-k*epsmax
-    b = Generator.addNormalLayers(i, dplus)
-    c = Generator.addNormalLayers(i, dmoins)
-    b = Converter.convertArray2Tetra(b)
-    c = Converter.convertArray2Tetra(c)
-    p = Transform.join(b, c); p = Generator.close(p)
-    if p[3] == 'TRI': # une BAR au depart
-        b = Generator.addNormalLayers(p, dplus)
-        c = Generator.addNormalLayers(p, dmoins)
+    if i[3] == 'BAR' or (i[3] == 1 and i[4] == 1): # 1D
+        for k in range(nlayers+1): dplus[1][0,k] = k*epsmax; dmoins[1][0,k] =-k*epsmax
+        b = Generator.addNormalLayers(i, dplus)
+        c = Generator.addNormalLayers(i, dmoins)
         b = Converter.convertArray2Tetra(b)
         c = Converter.convertArray2Tetra(c)
         p = Transform.join(b, c); p = Generator.close(p)
+    else: # other
+        j = Converter.convertArray2Tetra(i)
+        for k in range(nlayers+1): dplus[1][0,k] = k*epsmax; dmoins[1][0,k] =-k*epsmax
+        j = Transform.reorder(j, (1,))
+        b = Generator.addNormalLayers(j, dplus)
+        j = Transform.reorder(j, (-1,))
+        c = Generator.addNormalLayers(j, dplus)
+        p = Transform.join(b, c); p = Generator.close(p)
+        p = Converter.convertArray2Tetra(p)    
+        
+    if p[3] == 'TRI': # une BAR au depart
+        p = Transform.reorder(p, (1,))
+        b = Generator.addNormalLayers(p, dplus)
+        p = Transform.reorder(p, (-1,))
+        c = Generator.addNormalLayers(p, dplus)    
+        p = Transform.join(b, c); p = Generator.close(p)
+        p = Converter.convertArray2Tetra(p)
     return p
 
 def growOfEps__(arrays, eps, nlayers=1, planarity=True):
-    try: import Generator; import Transform
-    except: return arrays
     inl = []
     dplus = Converter.array('h', nlayers+1, 1, 1)
     dmoins = Converter.array('h', nlayers+1, 1, 1)
     modified = 0
     for i in arrays:
         if len(i) == 5: # structure
-           if (i[2] == 1 or i[3] == 1 or i[4] == 1): # 2D : to be extruded
+           if i[2] == 1 or i[3] == 1 or i[4] == 1: # 2D : to be extruded
                 p = extrudeLayer__(i, nlayers, planarity, eps, dplus, dmoins)
                 modified += 1
                 inl.append(p)
@@ -78,6 +94,7 @@ def growOfEps__(arrays, eps, nlayers=1, planarity=True):
                     inl.append(i)
     if modified == len(arrays): modified = 1
     else: modified = 0
+    #Converter.convertArrays2File(inl, 'ext.plt')
     return inl, modified
 
 def extractPoint(arrays, Pts, order=2, extrapOrder=1,
@@ -90,22 +107,21 @@ def extractPoint(arrays, Pts, order=2, extrapOrder=1,
     else: res = post.extractPoint(inl, [Pts], order, extrapOrder, constraint, hook)
     out = []
     npts = res[1].shape[1]; nfld = res[1].shape[0]
-    for i in xrange(npts):
+    for i in range(npts):
         outi = []
-        for nof in xrange(nfld): outi.append(res[1][nof,i])
+        for nof in range(nfld): outi.append(res[1][nof,i])
         out.append(outi)
     if isinstance(Pts, list): return out
     else: return out[0]
 
-def extractPlane(arrays, (coefa, coefb, coefc, coefd), order=2, tol=1.e-6):
+def extractPlane(arrays, T, order=2, tol=1.e-6):
     """Slice solution with a plane.
     Usage: extractPlane(arrays, (coefa, coefb, coefc, coefd), order)"""
     try: import Generator; import Transform
-    except:
-        return post.extractPlane(arrays,(coefa, coefb, coefc, coefd),
-                                 order)
+    except ImportError:
+        return post.extractPlane(arrays,T, order)
     inl, modified = growOfEps__(arrays, tol, nlayers=2, planarity=False)
-    ret1 = post.extractPlane(inl, (coefa, coefb, coefc, coefd), order)
+    ret1 = post.extractPlane(inl, T, order)
     if modified == 0: return ret1
     else:
         ret1 = Generator.close(ret1)
@@ -133,20 +149,20 @@ def slice(a, type=None, eq=None):
         eq = '{eslice}='+eq
 
     if type == 'cone':
-        if eq is None: raise ValueError, 'equation is needed.'
+        if eq is None: raise ValueError('slice: equation is needed.')
         a = Converter.initVars(a, '{r}=sqrt({z}*{z}+{y}*{y})')
         a = Converter.initVars(a, eq)
         p = isoSurfMC(a, 'eslice', 0.)
         return p
     elif type == 'cone_struct':
-        raise ValueError, 'Structured slices not already implemented.'
+        raise ValueError('slice: Structured slices not already implemented.')
     elif type == 'plane':
         a = Converter.initVars(a, eq)
         p = isoSurfMC(a, 'eslice', 0.)
         return p
     return a
 
-def projectCloudSolution(cloudArray, surfArray, dim=3):
+def projectCloudSolution(cloudArray, surfArray, dim=3, loc='nodes', ibm=False, old=False):
     """Project the solution defined on a set of points to a TRI surface."""
     surfArray = Converter.convertArray2Tetra(surfArray)
     if isinstance(surfArray[0], list):
@@ -154,8 +170,48 @@ def projectCloudSolution(cloudArray, surfArray, dim=3):
             import Transform
             surfArray = Transform.join(surfArray)
         except: pass
+    return projectCloudSolution__(cloudArray,surfArray,dim=dim,loc=loc,ibm=ibm, old=old)
+
+# Much lighter than projectCloudSolution: no conversion to TETRA and no join.
+def projectCloudSolution__(cloudArray, surfArray, dim=3, loc='nodes', ibm=False, old=False):
+    """Project the solution defined on a set of points to a TRI surface."""
     cloudArray = Converter.convertArray2Node(cloudArray)
-    return post.projectCloudSolution2Triangle(cloudArray,surfArray,dim)
+    if loc == 'centers': surfArray = Converter.node2Center(surfArray)
+    return post.projectCloudSolution2Triangle(cloudArray,surfArray,dim,int(ibm), int(old))
+
+def projectCloudSolutionWithInterpData(cloudArray, surfArray, offset, interpDonor, interpCoef, dim=3, loc='nodes'):
+    """Project the solution defined on a set of points to a TRI surface using pre-calculated interpolation data."""
+    surfArray = Converter.convertArray2Tetra(surfArray)
+    if isinstance(surfArray[0], list):
+        try:
+            import Transform
+            surfArray = Transform.join(surfArray)
+        except: pass
+    return projectCloudSolutionWithInterpData__(cloudArray, surfArray, offset, interpDonor, interpCoef, dim=dim, loc=loc)
+
+# Much lighter than projectCloudSolution: no conversion to TETRA and no join.
+def projectCloudSolutionWithInterpData__(cloudArray, surfArray, offset, interpDonor, interpCoef, dim=3, loc='nodes'):
+    """Project the solution defined on a set of points to a TRI surface using pre-calculated interpolation data."""
+    cloudArray = Converter.convertArray2Node(cloudArray)
+    if loc == 'centers': surfArray = Converter.node2Center(surfArray)
+    return post.projectCloudSolution2TriangleWithInterpData(cloudArray, surfArray, offset, interpDonor, interpCoef, dim)
+
+def prepareProjectCloudSolution(cloudArray, surfArray, dim=3, loc='nodes', ibm=False):
+    """Compute the MLS interpolation data for projectCloudSolutionWithInterpData."""
+    surfArray = Converter.convertArray2Tetra(surfArray)
+    if isinstance(surfArray[0], list):
+        try:
+            import Transform
+            surfArray = Transform.join(surfArray)
+        except: pass
+    return prepareProjectCloudSolution__(cloudArray,surfArray,dim=dim,loc=loc,ibm=ibm)
+
+# Much lighter than projectCloudSolution: no conversion to TETRA and no join.
+def prepareProjectCloudSolution__(cloudArray, surfArray, dim=3, loc='nodes', ibm=False):
+    """Compute the MLS interpolation data for projectCloudSolutionWithInterpData."""
+    cloudArray = Converter.convertArray2Node(cloudArray)
+    if loc == 'centers': surfArray = Converter.node2Center(surfArray)
+    return post.prepareProjectCloudSolution2Triangle(cloudArray,surfArray,dim,int(ibm))
 
 def coarsen(a, indic, argqual=0.1, tol=1.e6):
     """Coarsen a surface TRI-type mesh given a coarsening indicator for each
@@ -163,7 +219,7 @@ def coarsen(a, indic, argqual=0.1, tol=1.e6):
     Usage: coarsen(a, indic, argqual, tol)"""
     if isinstance(a[0], list):
         b = []
-        for i in xrange(len(a)):
+        for i in range(len(a)):
             b.append(post.coarsen(a[i], indic[i], argqual, tol))
         return b
     else:
@@ -175,7 +231,7 @@ def refine(a, indic=None, w=-1):
     Usage: refine(a, indic, w)"""
     if isinstance(a[0], list):
         b = []
-        for i in xrange(len(a)):
+        for i in range(len(a)):
             b.append(refine__(a[i], indic[i], w))
         return b
     else:
@@ -188,7 +244,7 @@ def refine__(a, indic, w):
 def interiorFaces(a, strict=0):
     """Interior faces of an array a. The argument strict equal to 1 means
     that interior faces with only interior nodes are taken into account.
-    Usage: interiorFaces( array, strict)"""
+    Usage: interiorFaces(array, strict)"""
     if isinstance(a[0], list):
         b = []
         for i in a:
@@ -217,7 +273,7 @@ def exteriorFacesStructured(a):
 #==============================================================================
 def exteriorFaces(a, indices=None):
     """Exterior faces of an array.
-    Usage: exteriorFaces(a,indices)"""
+    Usage: exteriorFaces(a, indices)"""
     if isinstance(a[0], list):
         b = []
         for i in a:
@@ -226,8 +282,9 @@ def exteriorFaces(a, indices=None):
     else:
         return exteriorFacesForOneArray__(a, indices)
 
-def exteriorFacesForOneArray__(a,indices):
-    if (len(a) == 4 and (a[3] == 'PENTA' or a[3] == 'PYRA')):
+def exteriorFacesForOneArray__(a, indices):
+    # To be commented in next release
+    if len(a) == 4 and (a[3] == 'PENTA' or a[3] == 'PYRA'):
         try:
             import Generator
             a = Converter.convertArray2NGon(a)
@@ -248,6 +305,17 @@ def exteriorElts(array):
         a = array
         if len(a) == 5: a = Converter.convertArray2Hexa(a)
         return post.exteriorElts(a)
+
+def exteriorEltsStructured(array, depth=1):
+    """Exterior elements of an array as a structured grid.
+    Usage: exteriorEltsStructured(a, depth)"""
+    if isinstance(array[0], list):
+        b = []
+        for i in array:
+            b.append(post.exteriorEltsStructured(i, depth))
+        return b
+    else:
+        return post.exteriorEltsStructured(array, depth)
 
 def integ(coordArrays, FArrays, ratioArrays):
     """Integral of fields.
@@ -296,7 +364,7 @@ def computeVariables(array, varname,
     """Compute the variables defined in varname for array.
     Usage: computeVariables(array, varname, gamma=1.4, rgp=287.053, s0=0., betas=1.458e-6, Cs=110.4, mus=0., Ts=0.)"""
     if varname == []:
-        #print 'Warning: computeVariables: varname list is empty.'
+        #print('Warning: computeVariables: varname list is empty.')
         return array
     if isinstance(varname, str): varname = [varname]
     if isinstance(array[0], list):
@@ -309,18 +377,18 @@ def computeVariables(array, varname,
 
 
 def computeVariables2(array, varname,
-                     gamma=1.4, rgp=287.053, s0=0., betas=1.458e-6,
-                     Cs=110.4, mus=1.76e-5, Ts=273.15):
+                      gamma=1.4, rgp=287.053, s0=0., betas=1.458e-6,
+                      Cs=110.4, mus=1.76e-5, Ts=273.15):
     """In place compute variable2"""
     b = Converter.copy(array)
     _computeVariables2(b, varname, gamma, rgp, s0, betas, Cs, mus, Ts)
     return b
 
 def _computeVariables2(array, varname,
-                     gamma=1.4, rgp=287.053, s0=0., betas=1.458e-6,
-                     Cs=110.4, mus=1.76e-5, Ts=273.15):
+                       gamma=1.4, rgp=287.053, s0=0., betas=1.458e-6,
+                       Cs=110.4, mus=1.76e-5, Ts=274.05):
     if varname == []:
-        #print 'Warning: computeVariables: varname list is empty.'
+        #print('Warning: computeVariables: varname list is empty.')
         return array
     if isinstance(varname, str): varname = [varname]
     if isinstance(array[0], list):
@@ -333,7 +401,8 @@ def _computeVariables2(array, varname,
 
 def computeExtraVariable(array, varname, gamma=1.4, rgp=287.53,
                          Cs=110.4, mus=1.76e-5, Ts=273.15):
-    import extraVariables
+    """Compute variables that require a change of location."""
+    from . import extraVariables
     if varname == 'Vorticity':
         return extraVariables.computeVorticity(array)
     elif varname == 'VorticityMagnitude':
@@ -348,7 +417,7 @@ def computeExtraVariable(array, varname, gamma=1.4, rgp=287.53,
     elif varname == 'SkinFrictionTangential':
         return extraVariables.computeSkinFriction(array, tangent=1)
     else:
-        print 'Warning: computeExtraVariable: unknown variable: %s.'%varname
+        print('Warning: computeExtraVariable: unknown variable: %s.'%varname)
 
 def perlinNoise(array, alpha=2., beta=2., n=8):
     """Compute perlin noise for array.
@@ -372,16 +441,17 @@ def computeGrad(array, varname):
     else:
         return post.computeGrad(array, varname)
 
-def computeGrad2(array, arrayc, indices=None, BCField=None):
+def computeGrad2(array, arrayc, vol=None, cellN=None, indices=None, BCField=None):
+    """Compute the gradient of a field defined on centers."""
     if isinstance(array[0], list):
         raise ValueError("computeGrad2: input must be a single zone.")
     if len(array) == 4:
         if array[3] == 'NGON' and arrayc[3] == 'NGON*':
-            return post.computeGrad2NGon(array, arrayc, indices, BCField)
+            return post.computeGrad2NGon(array, arrayc, vol, cellN, indices, BCField)
         else:
             raise ValueError("computeGrad2: only valid for NGon unstructured zones.")
     else:
-        return post.computeGrad2Struct(array, arrayc, indices, BCField)
+        return post.computeGrad2Struct(array, arrayc, cellN, indices, BCField)
 
 def computeNormGrad(array, varname):
     """Compute the norm of gradient of field varname defined in array.
@@ -394,19 +464,35 @@ def computeNormGrad(array, varname):
     else:
         return post.computeNormGrad(array, varname)
 
-def computeDiv2(array, arrayc, indices=None, BCField=None):
+def computeGradLSQ(array, arrayc):
+    """Compute gradient using least-squares method."""
+    return post.computeGradLSQ(array, arrayc)
+
+def computeDiv(array, vector):
+    """Compute the divergence of the given vector, whose components are defined in array
+    using the computeGrad method for gradients.
+    Usage: computeDiv(array, vector) """
+    if isinstance(array[0], list):
+        b = []
+        for i in array:
+            b.append(post.computeDiv(i, vector))
+        return b
+    else:
+        return post.computeDiv(array, vector)
+
+def computeDiv2(array, arrayc, vol=None, cellN=None, indices=None, BCFieldX=None, BCFieldY=None, BCFieldZ=None):
     """Compute the divergence of the field varname, whose components are defined in array
     using the computeGrad2 method for gradients.
-    Usage: computeDiv2(array, arrayc, indices, BCField) """
+    Usage: computeDiv2(array, arrayc, indices, BCFieldX, BCFieldY, BCFieldZ) """
     if isinstance(array[0], list):
         raise ValueError("computeDiv2: input must be a single zone.")
     if len(array) == 4:
         if array[3] == 'NGON' and arrayc[3] == 'NGON*':
-            return post.computeDiv2NGon(array, arrayc, indices, BCField)
+            return post.computeDiv2NGon(array, arrayc, vol, cellN, indices, BCFieldX, BCFieldY, BCFieldZ)
         else:
             raise ValueError("computeDiv2: only valid for NGon unstructured zones.")
     else:
-        return post.computeDiv2Struct(array, arrayc, indices, BCField)
+        return post.computeDiv2Struct(array, arrayc, cellN, indices, BCFieldX, BCFieldY, BCFieldZ)
 
 def computeCurl(array, vector):
     """Compute the curl of the 3D-field defined in array.
@@ -441,7 +527,7 @@ def computeDiff(array, varname):
         for a in array:
             b =  Converter.extractVars(a,[varname])
             posc = KCore.isNamePresent(a, 'cellN')
-            if (posc != -1):
+            if posc != -1:
                 celln = Converter.extractVars(a, ['cellN'])
                 b = Converter.addVars([b,celln])
             A.append(b)
@@ -449,7 +535,7 @@ def computeDiff(array, varname):
         b = []
         for i in A:
             b0 = post.computeDiff(i, varname); b0[0] = 'diff'+b0[0]
-            b.append( b0)
+            b.append(b0)
         return b
     else:
         b = Converter.extractVars(array,[varname])
@@ -485,7 +571,7 @@ def streamLine(arrays, X0, vector, N=2000, dir=2):
         surf = Generator.close(surf)
     # grow 2D arrays
     if surf != []:
-        tol=1.
+        tol = 1.
         inl, modified = growOfEps__(arrays, tol, nlayers=2, planarity=False)
         arrays = inl
 
@@ -502,11 +588,44 @@ def streamLine(arrays, X0, vector, N=2000, dir=2):
             try: import Transform
             except: return a
             b = Transform.reorder(b, (-1,2,3))
-            c = Transform.join(b,a)
+            c = Transform.join(b, a)
             return c
         elif b == 0 and a != 0: return a
         elif a == 0 and b != 0: return b
-        else: raise
+        else: raise ValueError('Empty streamline.')
+
+# IN: arrays: coords + solution
+# IN: X0: (x,y,z) ou liste de tuples
+# IN: vector: ['vx','vy','vz']
+# IN: eps: hauteur extrusion quand on nous donne une surface
+def streamLine2(arrays, X0, vector, N=2000, dir=2, eps=1.e-2):
+    """Compute a streamline starting from (x0,y0,z0) given
+    a list of arrays containing 'vector' information.
+    Usage: streamLine(arrays, (x0,y0,z0), vector, N, dir)"""
+    # get an (unstructured) array containing all  2D-surface arrays
+    surf = []
+    for a in arrays:
+        elt = 'None'
+        ni = 2; nj = 2; nk = 2
+        if len(a) == 5: # structure
+            ni = a[2]; nj = a[3]; nk = a[4]
+        else: elt = a[3]
+        mult = (ni - 1)*(nj - 1)*(nk - 1)
+        add = (ni - 1)*(nj - 1) + (ni - 1)*(nk - 1) + (nj - 1)*(nk - 1)
+        if (mult == 0 and add != 0) or elt == 'QUAD' or elt == 'TRI':
+            a = Converter.convertArray2Tetra(a)
+            surf.append(a)
+    if surf != []:
+        try: import Transform, Generator
+        except: raise ImportError("streamLine: requires Transform and Generator modules.")
+        surf = Transform.join(surf)
+        surf = Generator.close(surf)
+    # grow 2D arrays
+    if surf != []:
+        inl, modified = growOfEps__(arrays, eps, nlayers=2, planarity=False)
+        arrays = inl
+    rets = post.comp_stream_line(arrays, surf, X0, vector, dir, N)
+    return rets
 
 def streamRibbon(arrays, X0, N0, vector, N=2000, dir=2):
     """Compute a streamribbon starting from (x0,y0,z0) given
@@ -533,10 +652,22 @@ def streamRibbon(arrays, X0, N0, vector, N=2000, dir=2):
         elif a == 0 and b != 0: return b
         else: raise
 
+def streamRibbon2(arrays, X0, vector, N=2000, dir=1, width=1.):
+    """Compute a streamribbon starting from (x0,y0,z0) given
+    a list of arrays containing 'vector' information. The width could be given (default 1).
+    Usage: streamRibbon2(arrays, (x0,y0,z0), vector, dir)"""
+    r = post.comp_stream_ribbon(arrays, X0, vector, dir, N, width)
+    return r
+
+
 def streamSurf(arrays, b, vector, N=2000, dir=1):
+    """Compute a stream surface."""
     b = Converter.convertArray2Hexa(b)
     if b[3] != 'BAR': raise TypeError("streamSurf: b must be a BAR.")
     coord = b[1]
+    for no in range(len(arrays)):
+        if len(arrays[no])!= 5: 
+            arrays[no] = Converter.convertArray2Tetra(arrays[no])
     return post.compStreamSurf(arrays, b, vector, dir, N)
 
 #------------------------------------------------------------------------------
@@ -586,66 +717,136 @@ def buildTag1__(array, F, varStrings):
     tag = numpy.zeros(nsize, numpy.float64)
 
     if l == 0:
-        if (F() == True): tag[:] = 1
+        if F(): tag[:] = 1
     else:
-        for i in xrange(nsize):
-            x = [ n[pos[j]-1,i] for j in xrange(l)]
-            if (F(*x) == True): tag[i] = 1
+        for i in range(nsize):
+            x = [n[pos[j]-1,i] for j in range(l)]
+            if F(*x): tag[i] = 1
     tag = tag.reshape(1, tag.size)
     if len(array) == 5: out = ['__tag__', tag, array[2], array[3], array[4]]
     else: out = ['__tag__', tag, array[2], array[3]]
     return out
 
-def selectCells__(array, F, varStrings, strict):
-    if varStrings == []: tag = buildTag2__(array, F)
-    else: tag = buildTag1__(array, F, varStrings)
-    return post.selectCells(array, tag, strict)
 
-def selectCells(array, F, varStrings=[], strict=0):
+def selectCells__(arrayNodes, F, arrayCenters, varStrings, strict, F2E, cleanConnectivity):
+    if varStrings == []: tag = buildTag2__(arrayNodes, F)
+    else: tag = buildTag1__(arrayNodes, F, varStrings)
+    
+    if arrayCenters != []:
+        return post.selectCellsBoth(arrayNodes, arrayCenters, tag, strict, F2E, cleanConnectivity)
+    else:
+        return post.selectCells(arrayNodes, tag, strict, F2E, cleanConnectivity)
+
+def selectCells(arrayNodes, F, arrayCenters=[], varStrings=[], strict=0, F2E=None, cleanConnectivity=True):
     """Select cells in a given array.
     Usage: selectCells(array, F, varStrings, strict)"""
-    if isinstance(array[0], list):
+    if isinstance(arrayNodes[0], list):
         b = []
-        for i in array:
-            ret = selectCells__(i, F, varStrings, strict)
-            b.append(ret)
+        if arrayCenters != []:
+            if len(arrayNodes) != len(arrayCenters): raise ValueError("selectCells: Nodes and Centers arrays have different size.")
+            
+        for i in range(len(arrayNodes)):
+            if arrayCenters != []:
+                ret = selectCells__(arrayNodes[i], F, arrayCenters[i], varStrings, strict, F2E)
+            else:
+                ret = selectCells__(arrayNodes[i], F, [], varStrings, strict, F2E)
+                
+            if F2E is None and arrayCenters == []:
+                b.append(ret[0])
+            else:
+                b.append(ret)
+            
         return b
     else:
-        ret = selectCells__(array, F, varStrings, strict)
-        return ret
+        ret = selectCells__(arrayNodes, F, arrayCenters, varStrings, strict, F2E, cleanConnectivity)
+
+        if F2E is None and arrayCenters == []:
+            return ret[0]
+        else:
+            return ret
 
 #------------------------------------------------------------------------------
 # Select cells where tag=1
 # loc=-1: unknown, 1: centers, 0: nodes (forced)
 #------------------------------------------------------------------------------
-def selectCells2(a, tag, strict=0, loc=-1):
+# selectCells preserving center flow field solutions
+# an : coordinates and fields in nodes
+# ac : fields in centers 
+def selectCells2(an, tag, ac=[], strict=0, loc=-1, F2E=None, cleanConnectivity=True):
     """Select cells in a given array following tag.
-    Usage: selectCells2(a, tag, strict)"""
-    if isinstance(a[0], list):
+    Usage: selectCells2(arrayN, arrayC, tag, strict)"""
+    if isinstance(an[0], list):
         b = []
-        lena = len(a)
-        for i in xrange(lena):
+        lenan = len(an)
+        lenac = len(ac)
+        if ac != []:
+            if lenan != lenac: raise ValueError("selectCells2: Nodes and Centers arrays have different size.")
+        for i in range(lenan):
             sizetag = tag[i][1].shape[1]
-            sizea = a[i][1].shape[1]
-            if (sizetag != sizea or loc == 1): # centers
-                ret = post.selectCellCenters(a[i], tag[i])
+            sizean  = an[i][1].shape[1]
+            if sizetag != sizean or loc == 1: # centers
+                if F2E is not None:
+                    (PE2, retn, retc) = post.selectCellCenters(an[i], ac[i], tag[i], F2E, cleanConnectivity)
+                else:
+                    (retn, retc) = post.selectCellCenters(an[i], ac[i], tag[i], cleanConnectivity)
             else:
-                ret = post.selectCells(a[i], tag[i], strict)
-            b.append(ret)
+                if ac == []:
+                    if F2E is not None:
+                        (PE2, retn) = post.selectCells(an[i], tag[i], strict, F2E, cleanConnectivity)
+                    else:
+                        retn = post.selectCells(an[i], tag[i], strict, None, cleanConnectivity)[0]
+                else:
+                    if F2E is not None:
+                        (PE2, retn, retc) = post.selectCellsBoth(an[i], ac[i], tag[i], strict, F2E, cleanConnectivity)
+                    else:
+                        (retn, retc) = post.selectCellsBoth(an[i], ac[i], tag[i], strict, None, cleanConnectivity)
+
+            if ac == []:
+                if F2E is None: b.append(retn)
+                else: b.append(PE2, retn)
+            else:
+                if F2E is None: b.append((retn, retc))
+                else: b.append((PE2,retn, retc))
+
         return b
+    
     else:
         sizetag = tag[1].shape[1]
-        sizea = a[1].shape[1]
-        if (sizea != sizetag or loc == 1): # centers
-            ret = post.selectCellCenters(a, tag)
+        sizean  = an[1].shape[1]
+        if sizean != sizetag or loc == 1: # centers
+            if ac == []:
+                if F2E is not None:
+                    (PE2, retn)  = post.selectCellCenters(an, tag, F2E, cleanConnectivity)
+                else:
+                    retn         = post.selectCellCenters(an, tag, None, cleanConnectivity)[0]
+            else:
+                if F2E is not None:
+                    (PE2, retn, retc) = post.selectCellCentersBoth(an, ac, tag, F2E, cleanConnectivity)
+                else:
+                    (retn, retc) = post.selectCellCentersBoth(an, ac, tag, None, cleanConnectivity)
         else:
-            ret = post.selectCells(a, tag, strict)
-        return ret
+            if ac == []:
+                if F2E is not None:
+                    (PE2, retn)  = post.selectCells(an, tag, strict, F2E, cleanConnectivity)
+                else:
+                    retn         = post.selectCells(an, tag, strict, None, cleanConnectivity)[0]
+            else:
+                if F2E is not None:
+                    (PE2, retn, retc) = post.selectCellsBoth(an, ac, tag, strict, F2E, cleanConnectivity)
+                else:
+                    (retn, retc) = post.selectCellsBoth(an, ac, tag, strict, None, cleanConnectivity)
+
+        if ac != []:
+            if F2E is None: return (retn,retc)
+            else: return (PE2, retn, retc)
+        else:
+            if F2E is None: return retn
+            else: return (PE2, retn)
 
 #==============================================================================
 def selectCells3(a, tag):
     try: import Transform as T
-    except: raise ImportError, 'Transform module required.'
+    except: raise ImportError('selectCells: Transform module is required.')
     if isinstance(a[0], list):
         b = []
         lena = len(a)
@@ -666,7 +867,7 @@ def frontFaces(a, tag):
     if isinstance(a[0], list):
         b = []
         lena = len(a)
-        for i in xrange(lena):
+        for i in range(lena):
             try:
                 if len(a[i]) == 5: # structure
                     a[i] = Converter.convertArray2Hexa(a[i])
@@ -687,7 +888,7 @@ def isoLine(array, var, value):
     try:
         b = Converter.convertArray2Tetra(array)
         if isinstance(b[0], list):
-            for i in xrange(len(b)):
+            for i in range(len(b)):
                 if b[i][3] == 'TETRA': b[i] = exteriorFaces(b[i])
         else:
             if b[3] == 'TETRA': b = exteriorFaces(b)
@@ -719,13 +920,13 @@ def isoLine(array, var, value):
             except: pass
 
     if out == []: raise ValueError("isoLine: isoline is empty.")
-    if (isinstance(value, list) and len(value) == 1): return out[0]
+    if isinstance(value, list) and len(value) == 1: return out[0]
     if not isinstance(value, list): return out[0]
     return out
 
 #==============================================================================
 def isoSurf(array, var, value, split='simple'):
-    """Compute an isoSurf correponding to value of field 'var' in
+    """Compute an isoSurf corresponding to value of field 'var' in
     volume arrays.
     Usage: isoSurf(array, 'Density', 1.2)"""
     try: import Transform
@@ -734,11 +935,22 @@ def isoSurf(array, var, value, split='simple'):
     if isinstance(array[0], list):
         ret = []
         for i in array:
-            try: i = Converter.convertArray2Tetra(i, split=split)
+            try:
+                dim = 3
+                if i[3] == 'NGON':
+                    ap = i[2].ravel('K')
+                    if ap[2] == 1: dim = 1
+                    if ap[2] == 2: dim = 2
+                if i[3] != 'NGON' or dim != 3:
+                    i = Converter.convertArray2Tetra(i, split=split)
             except: pass
             try:
                 if i[3] == 'TRI' or i[3] == 'QUAD' or i[3] == 'BAR':
                     i = post.isoLine(i, var, value)
+                    ret.append(i)
+                elif i[3] == 'NGON':
+                    i = post.isoSurfNGon(i, var, value)
+                    i = Transform.reorder(i, (1,))
                     ret.append(i)
                 else:
                     i = post.isoSurf(i, var, value)
@@ -747,11 +959,21 @@ def isoSurf(array, var, value, split='simple'):
             except: pass
         return ret
     else:
-        try: b = Converter.convertArray2Tetra(array, split=split)
+        try:
+            dim = 3
+            if array[3] == 'NGON': 
+                ap = array[2].ravel('K')
+                if ap[2] == 1: dim = 1
+                if ap[2] == 2: dim = 2
+            if array[3] != 'NGON' or dim != 3: b = Converter.convertArray2Tetra(array, split=split)
+            else: b = array
         except: b = array
         try:
             if b[3] == 'TRI' or b[3] == 'QUAD' or b[3] == 'BAR':
                 b = post.isoLine(b, var, value)
+            elif b[3] == 'NGON':
+                b = post.isoSurfNGon(b, var, value)
+                b = Transform.reorder(b, (1,))
             else:
                 b = post.isoSurf(b, var, value)
                 b = Transform.reorder(b, (1,))
@@ -841,7 +1063,7 @@ def enforceIndicatorForCoarsestLevel(indicator, octreeHexa):
     level: the indicator is set to -3000 for the elements of coarsest level."""
     return post.enforceIndicatorForCoarsestLevel(indicator, octreeHexa)
 
-def computeIndicatorFieldForBounds(indicator, indicatorValues, valMin, valMax):
+def computeIndicatorFieldForBounds(indicator, indicatorValues, valMin, valMax, isAMR=False):
     """Return the modified indicator field in order to obtain a number of
     points controlled by bounds epsMin and epsMax. Indicator values greater
     than epsMax are refined (indicator=1), those lower than epsMin are
@@ -849,18 +1071,30 @@ def computeIndicatorFieldForBounds(indicator, indicatorValues, valMin, valMax):
     valt = indicatorValues[1]; nelts = indicator[1][0].shape[0]
     indicator2 = Converter.copy(indicator)
     indict = indicator2[1]
-    for i in xrange(nelts):
+    for i in range(nelts):
         if indict[0,i] == -1000.: # enforce near bodies
-            if valt[0,i] >= valMax: indict[0,i] = 1.
-            else: indict[0,i] = 0.
+            if isAMR:
+                indict[0,i] = 0.
+            else:
+                if valt[0,i] >= valMax: indict[0,i] = 1.
+                else: indict[0,i] = 0.
         elif indict[0,i] == -2000.: # no refinement of finest level
             indict[0,i] = 0.
+            if isAMR:
+                if valt[0,i] <= valMin: indict[0,i] = -1.
         elif indict[0,i] == -3000.: # coarsening of coarsest level
             indict[0,i] = -1.
+            if isAMR:
+                if valt[0,i] >= valMax and valt[0,i] <=1: indict[0,i] = 1.
         else:
-            if valt[0,i] >= valMax: indict[0,i] = 1.
-            elif valt[0,i] <= valMin: indict[0,i] = -1.
-            else: indict[0,i] = 0.
+            if isAMR:
+                if valt[0,i] >= valMax and valt[0,i] <=1: indict[0,i] = 1.
+                elif valt[0,i] <= valMin: indict[0,i] = -1.
+                else: indict[0,i] = 0.
+            else:
+                if valt[0,i] >= valMax: indict[0,i] = 1.
+                elif valt[0,i] <= valMin: indict[0,i] = -1.
+                else: indict[0,i] = 0.
     return indicator2
 
 def computeIndicatorValue(octreeHexa, zones, indicField):
@@ -880,8 +1114,7 @@ def computeIndicatorField(octreeHexa, indicVal, nbTargetPts=-1, bodies=[],
     Returns the indicator field.
     Usage: computeIndicatorField(octreeHexa, indicVal, nbTargetPts, bodies, refinestLevel, coarsenCoarsestLevel)"""
     try: import Generator as G
-    except:
-        raise ImportError("computeIndicatorField: requires Generator module.")
+    except: raise ImportError("computeIndicatorField: requires Generator module.")
     npts = octreeHexa[1][0].shape[0]
     if nbTargetPts == -1: nbTargetPts = npts
 
@@ -905,25 +1138,25 @@ def computeIndicatorField(octreeHexa, indicVal, nbTargetPts=-1, bodies=[],
                                                 epsInf/4., 4.*epsInf)
     res = G.adaptOctree(octreeHexa, indicator1)
     nptsfin = len(res[1][0])
-    print 'Number of points for low bound value %g is %d (targetPts=%d)'%(epsInf, nptsfin, nbTargetPts)
-    if (nptsfin < nbTargetPts): return indicator1, epsInf/4., epsInf*4.
+    print('Number of points for low bound value %g is %d (targetPts=%d)'%(epsInf, nptsfin, nbTargetPts))
+    if nptsfin < nbTargetPts: return indicator1, epsInf/4., epsInf*4.
 
     # calcul de l'indicateur : ts les pts sont deraffines
     indicator1 = computeIndicatorFieldForBounds(indicator, indicVal, \
                                                 epsSup/4., epsSup*4.)
     res = G.adaptOctree(octreeHexa, indicator1)
     nptsfin = len(res[1][0])
-    print 'Number of points for high bound value %g is %d (targetPts=%d)'%(epsSup, nptsfin, nbTargetPts)
+    print('Number of points for high bound value %g is %d (targetPts=%d)'%(epsSup, nptsfin, nbTargetPts))
     if nptsfin > nbTargetPts:
-        #print 'Warning: computeIndicator: the number of final points cannot be lower than the target.'
+        #print('Warning: computeIndicator: the number of final points cannot be lower than the target.')
         return indicator1, epsSup/4., epsSup*4.
 
     # dichotomie
     count = 0; Delta = nbTargetPts
     diffmax = 1.e-8*nbTargetPts/max(Delta,1e-6); diff = diffmax+1.
-    while (count < 100 and Delta > 0.02*nbTargetPts and diff > diffmax):
+    while count < 100 and Delta > 0.02*nbTargetPts and diff > diffmax:
         eps = 0.5*(epsInf+epsSup)
-        #print 'epsInf =', epsInf, ' | epsSup = ', epsSup
+        #print('epsInf =', epsInf, ' | epsSup = ', epsSup)
         indicator1 = computeIndicatorFieldForBounds(indicator, indicVal, eps/4., 4.*eps)
         res = G.adaptOctree(octreeHexa, indicator1)
         nptsfin = len(res[1][0])
@@ -933,7 +1166,7 @@ def computeIndicatorField(octreeHexa, indicVal, nbTargetPts=-1, bodies=[],
         diffmax = 1.e-8*nbTargetPts/max(Delta, 1e-6)
         diff = abs(epsSup-epsInf)
         count += 1
-        print 'Number of points for bound value %g is %d (targetPts=%d)'%(eps, nptsfin, nbTargetPts)
+        print('Number of points for bound value %g is %d (targetPts=%d)'%(eps, nptsfin, nbTargetPts))
     return indicator1, eps/4., eps*4.
 
 #==============================================================================
@@ -998,7 +1231,7 @@ def renameVars(array, varsPrev, varsNew):
         for a in array:
             b = a[:]
             varsb = b[0]; varsb = varsb.split(',')
-            for nov in xrange(len(varsPrev)):
+            for nov in range(len(varsPrev)):
                 try:
                     pos = varsb.index(varsPrev[nov])
                     varsb[pos] = varsNew[nov]
@@ -1011,10 +1244,64 @@ def renameVars(array, varsPrev, varsNew):
         res = array[:]
         varsb = res[0]; varsb = varsb.split(',')
 
-        for nov in xrange(len(varsPrev)):
+        for nov in range(len(varsPrev)):
             try:
                 pos = varsb.index(varsPrev[nov])
                 varsb[pos] = varsNew[nov]
             except: pass
         res[0] = ','.join(varsb)
     return res
+
+## [AJ - KEEP FOR NOW - FROM MASTER]
+## This function needs to be further tested & validated and should be used at your own risk
+##      Further devs might occur upon further discussion with other developers
+def computeIndicatorField_AMR(octreeHexa, indicVal, nbTargetPts=-1, bodies=[],
+                              refineFinestLevel=1, coarsenCoarsestLevel=1,valMin=0,valMax=1,isOnlySmallest=False):
+    """Compute the indicator -1, 0 or 1 for each element of the HEXA octree
+    with respect to the indicatorValue field located at element centers. The
+    bodies fix the indicator to 0 in the vicinity of bodies. nbTargetPts
+    controls the number of points after adaptation.
+    If refineFinestLevel=1, the finest levels are refined.
+    If coarsenCoarsestLevel=1, the coarsest levels are coarsened wherever possible.
+    Returns the indicator field.
+    Usage: computeIndicatorField(octreeHexa, indicVal, nbTargetPts, bodies, refinestLevel, coarsenCoarsestLevel)"""
+    try: import Generator as G
+    except: raise ImportError("computeIndicatorField: requires Generator module.")
+    npts = octreeHexa[1][0].shape[0]
+    valName = indicVal[0]; nelts = indicVal[2]
+    indicVal[1] = numpy.absolute(indicVal[1])
+    indicator = Converter.initVars(indicVal, 'indicator', 0.)
+    indicator = Converter.extractVars(indicator, ['indicator'])
+
+    if bodies != []:
+        bodies = Converter.convertArray2Tetra(bodies)
+        indicator = post.enforceIndicatorNearBodies(indicator, octreeHexa, bodies)
+    if refineFinestLevel == 0:
+        indicator = post.enforceIndicatorForFinestLevel(indicator, octreeHexa)
+        if isOnlySmallest: return indicator
+    if coarsenCoarsestLevel == 1:
+        indicator = post.enforceIndicatorForCoarsestLevel(indicator, octreeHexa)
+
+
+    indicator1 = computeIndicatorFieldForBounds(indicator, indicVal,valMin,valMax,isAMR=True)
+    res        = G.adaptOctree(octreeHexa, indicator1)
+    nptsfin    = len(res[1][0])
+    print('Number of points: Pre %d | Post %d | Increase: %f'%(npts, nptsfin, nptsfin/npts))
+    if nptsfin < nbTargetPts:
+        return indicator1
+
+    count = 0;
+    while count < 100 and nptsfin/nbTargetPts > 1.02:
+        valMean    = 0.5*(valMin+valMax)
+        valMax    += 0.25*abs(valMean-valMin)
+        valMin    += 0.25*abs(valMean-valMin)
+        indicator1 = computeIndicatorFieldForBounds(indicator, indicVal,valMin,valMax,isAMR=True)
+        res        = G.adaptOctree(octreeHexa, indicator1)
+        nptsfin    = len(res[1][0])
+        count     += 1
+        print('Number of points: Pre %d | Post %d | Increase: %f | Lower Threshold: %f | Upper Threshold: %f | Limits Modif. Loop Cnt: %d'%(npts, nptsfin, nunt))
+
+    return indicator1
+
+
+

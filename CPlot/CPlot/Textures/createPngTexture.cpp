@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -17,43 +17,52 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <png.h>
+#include "Images/png/png.h"
 #include "../Data.h"
 
 //=============================================================================
 /*
   Create une texture a partir d'un fichier png.
   IN: filename: fichier png
-  IN: mipmap: si true, cree une texture avec mipmaps
+  IN: mipmap: si true, cree une texture avec mipmaps (not used, always mipmap)
   OUT: tex: texture.
+  OUT: width, height: nbre de pixels de la texture
 */
 //=============================================================================
-int Data::createPngTexture(const char* filename, GLuint &tex, bool mipmap)
+E_Int Data::createPngTexture(const char* filename, GLuint &tex, 
+                             E_Int &width, E_Int &height, bool mipmap)
 {
   Data* d = Data::getInstance();
+  //GLint mipMap = GL_FALSE;
+  //if (mipmap == true) mipMap = GL_TRUE;
 
-  GLint mipMap = GL_FALSE;
-  if (mipmap == true) mipMap = GL_TRUE;
-
+  // Shader path
   char path[256*8];
   strcpy(path, d->ptrState->shaderPath);
-
 #ifdef __SHADERS__
   strcat(path, filename);
 #else
   strcpy(path, filename);
 #endif
 
-  FILE* ptrFile = fopen(path, "rb");
+  // local path name
+  char path2[256*8];
+  //char* file = ptrState->file;
+  char* lpn = ptrState->filePath;
+  strcpy(path2, lpn);
+  strcat(path2, "/");
+  strcat(path2, filename);
+  
+  FILE* ptrFile = fopen(path, "rb"); // shader path
   if (!ptrFile) 
-  { ptrFile = fopen(filename, "rb"); }
+  { ptrFile = fopen(filename, "rb"); } // local cassiopee path
   if (!ptrFile)
-  { printf("Warning: CPlot: can't open texture file %s.\n", path); 
+  { ptrFile = fopen(path2, "rb"); } // loaded file path
+  if (!ptrFile)
+  { printf("Warning: CPlot: can't open texture file %s.\n", path2); 
     return 0; }
   
-  int width, height;
   png_structp png_ptr;
-  int number_of_passes;
   png_byte color_type;
   png_byte bit_depth;
 
@@ -61,25 +70,25 @@ int Data::createPngTexture(const char* filename, GLuint &tex, bool mipmap)
   png_byte header[8];    // 8 is the maximum size that can be checked
   fread(header, 1, 8, ptrFile);
   if (png_sig_cmp(header, 0, 8))
-  { printf("File %s is an invalid png file.\n", filename); 
+  { printf("Warning: file %s is an invalid png file.\n", filename); 
     fclose(ptrFile); return 1; }
   
   /* initialize stuff */
   png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 
   if (!png_ptr)
-  { printf("Can not create png structures.\n"); fclose(ptrFile); return 1; }
+  { printf("Warning: can not create png structures.\n"); fclose(ptrFile); return 1; }
   
   png_infop info_ptr = png_create_info_struct(png_ptr);
   if (!info_ptr)
-  { printf("Can not create png structures.\n"); fclose(ptrFile); return 1; }
+  { printf("Warning: can not create png structures.\n"); fclose(ptrFile); return 1; }
 
   png_infop end_info_ptr = png_create_info_struct(png_ptr);
   if (!end_info_ptr)
-  { printf("Can not create png structures.\n"); fclose(ptrFile); return 1; }
+  { printf("Warning: can not create png structures.\n"); fclose(ptrFile); return 1; }
 
   if (setjmp(png_jmpbuf(png_ptr)))
-  { printf("Can not create png structures.\n"); fclose(ptrFile); return 1; }
+  { printf("Warning: can not create png structures.\n"); fclose(ptrFile); return 1; }
               
   png_init_io(png_ptr, ptrFile);
   png_set_sig_bytes(png_ptr, 8);
@@ -89,43 +98,49 @@ int Data::createPngTexture(const char* filename, GLuint &tex, bool mipmap)
   width = png_get_image_width(png_ptr, info_ptr);
   height = png_get_image_height(png_ptr, info_ptr);
   color_type = png_get_color_type(png_ptr, info_ptr);
-  //printf("color type %d\n", color_type);
-  if (color_type == 3)
-  {
-    printf("Palette indexed colors is not supported.\n"); 
-    fclose(ptrFile); return 1;
-  }
-  if (color_type != PNG_COLOR_TYPE_RGB_ALPHA 
-      && color_type != PNG_COLOR_TYPE_RGB) 
-  {
-    fclose(ptrFile); return 1;
-  }
-  bool alpha = color_type == PNG_COLOR_TYPE_RGB_ALPHA;
-  int components = alpha ? 4 : 3;
-
   bit_depth = png_get_bit_depth(png_ptr, info_ptr);
+  //printf("color type %d\n", color_type);
   //printf("bit depth %d\n", bit_depth);
-  if (bit_depth != 8)
-  {
-    printf("Color depth must be 8.\n"); 
-    fclose(ptrFile); return 1;
-  }
+  
+  if (bit_depth == 16) png_set_strip_16(png_ptr);
+  if (color_type == PNG_COLOR_TYPE_PALETTE) png_set_palette_to_rgb(png_ptr);
 
-  number_of_passes = png_set_interlace_handling(png_ptr);
+  // PNG_COLOR_TYPE_GRAY_ALPHA is always 8 or 16bit depth.
+  if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8) png_set_expand_gray_1_2_4_to_8(png_ptr);
+
+  if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)) png_set_tRNS_to_alpha(png_ptr);
+  // These color_type don't have an alpha channel then fill it with 0xff.
+  if (color_type == PNG_COLOR_TYPE_RGB ||
+      color_type == PNG_COLOR_TYPE_GRAY ||
+      color_type == PNG_COLOR_TYPE_PALETTE)
+    png_set_filler(png_ptr, 0xFF, PNG_FILLER_AFTER);
+
+  if (color_type == PNG_COLOR_TYPE_GRAY ||
+      color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+    png_set_gray_to_rgb(png_ptr);
+
+  //int number_of_passes = png_set_interlace_handling(png_ptr);
   png_read_update_info(png_ptr, info_ptr);
 
   /* read file */
   if (setjmp(png_jmpbuf(png_ptr)))
-  { printf("Error during read of png image.\n"); fclose(ptrFile); return 1; }
+  { printf("Warning: error during read of png image.\n"); fclose(ptrFile); return 1; }
   
+  bool alpha; int components;
+  E_Int size = png_get_rowbytes(png_ptr, info_ptr);
+  if (size == width*3) { alpha = false; components = 3; }
+  else { alpha = true; components = 4; }
+
   png_bytepp rows = new png_bytep[height];
   png_bytep image = new png_byte[height * width * components];
   
-  for (int i = 0; i < height; i++)
+  for (E_Int i = 0; i < height; i++)
     rows[i] = image + (height - i - 1) * width * components;
   
   png_set_rows(png_ptr, info_ptr, rows);
   png_read_image(png_ptr, rows);
+
+  //printf("reading file %s\n", filename);
 
   if (tex == 0)
   {

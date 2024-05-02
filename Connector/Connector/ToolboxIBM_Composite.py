@@ -1,6 +1,6 @@
 """Toolbox for IBM preprocessing
 """
-import PyTree as X
+from . import PyTree as X
 
 try:
     import Converter.PyTree as C
@@ -8,9 +8,12 @@ try:
     import Transform.PyTree as T
     import Converter.Internal as Internal
     import Post.PyTree as P
-    from ToolboxIBM import *
+    from .ToolboxIBM import *
 except:
     raise ImportError("Connector.ToolboxIBM requires Converter, Generator, Transform, Dist2Walls and Post modules.")
+
+try: range = xrange
+except: pass
 
 varsn = ['gradxTurbulentDistance','gradyTurbulentDistance','gradzTurbulentDistance']
 TOLDIST = 1.e-14
@@ -25,7 +28,7 @@ EPSCART = 1.e-6
 def generateCompositeIBMMesh(tb, vmin, snears, dfar, dfarloc=0., DEPTH=2, NP=0, check=True, merged=1, sizeMax=4000000, symmetry=0, externalBCType='BCFarfield'):
     tbox = None; snearsf = None
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
-    if dimPb is None: raise ValueError, 'EquationDimension is missing in input body tree.'
+    if dimPb is None: raise ValueError('EquationDimension is missing in input body tree.')
     dimPb = Internal.getValue(dimPb)
     model = Internal.getNodeFromName(tb, 'GoverningEquations')
     refstate = C.getState(tb)
@@ -37,7 +40,7 @@ def generateCompositeIBMMesh(tb, vmin, snears, dfar, dfarloc=0., DEPTH=2, NP=0, 
 
     DEPTHEXT = 3*DEPTH+1
     tov = Internal.rmNodesFromType(tb,'Zone_t')
-    for nob in xrange(len(tb[2])):
+    for nob in range(len(tb[2])):
         base = tb[2][nob]
         if base[3] == 'CGNSBase_t':
             basename = base[0]
@@ -93,14 +96,14 @@ def generateCompositeIBMMesh(tb, vmin, snears, dfar, dfarloc=0., DEPTH=2, NP=0, 
 #-----------------------------------------------------------
 def prepareCompositeIBMData(t,tb, DEPTH=2, loc='centers', frontType=1):
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
-    if dimPb is None: raise ValueError, 'EquationDimension is missing in input body tree.'
+    if dimPb is None: raise ValueError('EquationDimension is missing in input body tree.')
     dimPb = Internal.getValue(dimPb)
     tc = C.newPyTree()
-    for nob in xrange(len(t[2])):
+    for nob in range(len(t[2])):
         if Internal.getType(t[2][nob])=='CGNSBase_t':
             basename = t[2][nob][0]
             C._addBase2PyTree(tc,basename)
-    for nob in xrange(len(tb[2])):
+    for nob in range(len(tb[2])):
         if tb[2][nob][3]=='CGNSBase_t':
             basename = tb[2][nob][0]
             tloc = C.newPyTree([basename]); tloc[2][1]=t[2][nob]
@@ -186,13 +189,13 @@ def getListOfOffBodyIntersectingNBZones(tBB, noBaseOff, NIT=1, DEPTH=2,
     C._initVars(tBB[2][noBaseOff],"{CoordinateYInit}={CoordinateY}")
     C._initVars(tBB[2][noBaseOff],"{CoordinateZInit}={CoordinateZ}")
 
-    for it in xrange(NIT):
+    for it in range(NIT):
         if constantMotion: 
             if rotation:
                 angleX = RotationAngle[0]*it
                 angleY = RotationAngle[1]*it
                 angleZ = RotationAngle[2]*it
-                print 'Rotation (degres) : (alphaX=%g,alphaY=%g,alphaZ=%g)'%(angleX,angleY,angleZ)
+                print('Rotation (degres) : (alphaX=%g,alphaY=%g,alphaZ=%g)'%(angleX,angleY,angleZ))
             elif translation:
                 tx = Translation[0]
                 ty = Translation[1]
@@ -202,7 +205,7 @@ def getListOfOffBodyIntersectingNBZones(tBB, noBaseOff, NIT=1, DEPTH=2,
                 angleX = RotationAngle[it][0]
                 angleY = RotationAngle[it][1]
                 angleZ = RotationAngle[it][2]
-                print 'Rotation (degres) : (alphaX=%g,alphaY=%g,alphaZ=%g)'%(angleX,angleY,angleZ)
+                print('Rotation (degres) : (alphaX=%g,alphaY=%g,alphaZ=%g)'%(angleX,angleY,angleZ))
             elif translation:
                 tx = Translation[it][0]
                 ty = Translation[it][1]
@@ -214,11 +217,11 @@ def getListOfOffBodyIntersectingNBZones(tBB, noBaseOff, NIT=1, DEPTH=2,
         elif translation: 
             tBB[2][noBaseOff]=T.translate(tBB[2][noBaseOff],(-tx,-ty,-tz))      
 
-        for nob in xrange(len(tBB[2])):
+        for nob in range(len(tBB[2])):
             if nob != noBaseOff and Internal.getType(tBB[2][nob])=='CGNSBase_t':
                 dictOfIntersectingZones = X.getIntersectingDomains(tBB[2][nob],t2=tBB[2][noBaseOff],
                                                                    method='AABB',taabb=tBB[2][nob],taabb2=tBB[2][noBaseOff])
-                for bodyZone in dictOfIntersectingZones.keys():
+                for bodyZone in dictOfIntersectingZones:
                     listOfOffBodyIntersectingNBZones+=dictOfIntersectingZones[bodyZone]
                 listOfOffBodyIntersectingNBZones=list(set(listOfOffBodyIntersectingNBZones))
 
@@ -250,7 +253,7 @@ def prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc='center
         listOfSteadyOffBodyZones=getListOfSteadyOffBodyZones(tBB,noBaseOff,listOfOffBodyIntersectingNBZones)
 
     dimPb = Internal.getNodeFromName(t, 'EquationDimension')
-    if dimPb is None: raise ValueError, 'EquationDimension is missing in input body tree.'
+    if dimPb is None: raise ValueError('EquationDimension is missing in input body tree.')
     dimPb = Internal.getValue(dimPb)
     if dimPb == 2:
         z0 = Internal.getNodeFromType2(t, 'Zone_t')
@@ -282,11 +285,11 @@ def prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc='center
     C._initVars(tc[2][noBaseOff],"{cellNInit}={cellN}")
     dictOfNearBodyBaseNb={}
     dictOfNearBodyZoneNb={}
-    for nob in xrange(len(tc[2])):
+    for nob in range(len(tc[2])):
         if nob != noBaseOff:
             base = tc[2][nob]
             if Internal.getType(base)=='CGNSBase_t':
-                for noz in xrange(len(base[2])):
+                for noz in range(len(base[2])):
                     zone = base[2][noz]
                     if Internal.getType(zone)=='Zone_t':
                         zname=zone[0]
@@ -295,7 +298,7 @@ def prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc='center
 
     dictOfOffBodyZoneNb={}
     dictOfOffBodyADT={} # preconditionnement 
-    for noz in xrange(len(tc[2][noBaseOff][2])):
+    for noz in range(len(tc[2][noBaseOff][2])):
         z = tc[2][noBaseOff][2][noz]
         zname = z[0]
         if Internal.getType(z)=='Zone_t':
@@ -336,19 +339,19 @@ def prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc='center
     # a remonter dans l interface
     intersectionsDictOffOff = X.getIntersectingDomains(tBB[2][noBaseOff], method='AABB', taabb=tBB[2][noBaseOff])
     listOfIntersectionDictsNBNB={}
-    for nob in xrange(len(t[2])):
+    for nob in range(len(t[2])):
         if nob != noBaseOff and Internal.getType(t[2][nob])=='CGNSBase_t':
             intersectionsDictNB= X.getIntersectingDomains(tBB[2][nob], method='AABB', taabb=tBB[2][nob])
             listOfIntersectionDictsNBNB[nob]=intersectionsDictNB
 
-    for it in xrange(NIT):
-        print ' ------------------- Iteration %d ----------------------- '%it
+    for it in range(NIT):
+        print (' ------------------- Iteration %d ----------------------- '%it)
         if constantMotion: 
             if rotation:
                 angleX = RotationAngle[0]*it
                 angleY = RotationAngle[1]*it
                 angleZ = RotationAngle[2]*it
-                print 'Rotation (degres) : (alphaX=%g,alphaY=%g,alphaZ=%g)'%(angleX,angleY,angleZ)
+                print('Rotation (degres) : (alphaX=%g,alphaY=%g,alphaZ=%g)'%(angleX,angleY,angleZ))
 
             elif translation:
                 tx = Translation[0]
@@ -359,7 +362,7 @@ def prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc='center
                 angleX = RotationAngle[it][0]
                 angleY = RotationAngle[it][1]
                 angleZ = RotationAngle[it][2]
-                print 'Rotation (degres) : (alphaX=%g,alphaY=%g,alphaZ=%g)'%(angleX,angleY,angleZ)
+                print('Rotation (degres) : (alphaX=%g,alphaY=%g,alphaZ=%g)'%(angleX,angleY,angleZ))
 
             elif translation:
                 tx = Translation[it][0]
@@ -380,7 +383,7 @@ def prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc='center
         dictOfMotionADT={} # ADT des blocs en mvt  a detruire a chq pas de temps
 
         # bases proches corps interpolees par le maillage de fond fixe + ses voisins
-        for nob in xrange(len(t[2])):
+        for nob in range(len(t[2])):
             base = t[2][nob]
             if nob != noBaseOff and Internal.getType(base)=='CGNSBase_t':
                 if rotation: 
@@ -395,21 +398,21 @@ def prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc='center
         tBBNB = Internal.rmNodesByName(tBB, tBB[2][noBaseOff][0])
         intersectionsDictOffNB = X.getIntersectingDomains(tBB[2][noBaseOff], t2=tBBNB, method='AABB', 
                                                           taabb=tBB[2][noBaseOff],taabb2=tBBNB) 
-        for nob in xrange(len(t[2])):
+        for nob in range(len(t[2])):
             base = t[2][nob]
             if nob != noBaseOff and Internal.getType(base)=='CGNSBase_t':
                 # test intersection entre maillage proche corps et maillage de fond
                 intersectionsDictNBO = X.getIntersectingDomains(tBB[2][nob], t2=tBB[2][noBaseOff], method='AABB', 
                                                                 taabb=tBB[2][nob],taabb2=tBB[2][noBaseOff])
 
-                print 'Near-body base %s in motion'%(base[0])
+                print('Near-body base %s in motion'%(base[0]))
                 intersectionsDictNBNB=listOfIntersectionDictsNBNB[nob]
                 for zr in Internal.getZones(base):
                     if Internal.getNodesFromName(zr,"ov_ext*")!=[]:
                         znamer = zr[0]
                         donorZones = []; hooks = []
                         for znamed in intersectionsDictNBO[znamer]:
-                            if znamed in dictOfOffBodyZoneNb.keys():# donneur=fond
+                            if znamed in dictOfOffBodyZoneNb:# donneur=fond
                                 nozd = dictOfOffBodyZoneNb[znamed]
                                 zd = tc[2][noBaseOff][2][nozd]
                                 hooks.append(dictOfOffBodyADT[znamed])
@@ -418,7 +421,7 @@ def prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc='center
                             nozd = dictOfNearBodyZoneNb[znamed]
                             nobd = dictOfNearBodyBaseNb[znamed]
                             zd = tc[2][nobd][2][nozd]
-                            if znamed not in dictOfMotionADT.keys():
+                            if znamed not in dictOfMotionADT:
                                 hook0 = C.createHook(zd,'adt')
                                 dictOfMotionADT[znamed]=hook0
                             hooks.append(dictOfMotionADT[znamed])
@@ -428,10 +431,10 @@ def prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc='center
                                                      hook=hooks, itype='chimera')
                         for zd in donorZones:
                             znamed = zd[0]
-                            if znamed in dictOfOffBodyZoneNb.keys():
+                            if znamed in dictOfOffBodyZoneNb:
                                 nozd = dictOfOffBodyZoneNb[znamed]            
                                 tc[2][noBaseOff][2][nozd] = zd                    
-                            elif znamed in dictOfNearBodyZoneNb.keys():
+                            elif znamed in dictOfNearBodyZoneNb:
                                 nozd = dictOfNearBodyZoneNb[znamed]
                                 nobd = dictOfNearBodyBaseNb[znamed]
                                 tc[2][nobd][2][nozd]=zd
@@ -446,7 +449,7 @@ def prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc='center
                 for znamed in intersectionsDictOffOff[znamer]:# donneur=maillage de fond
                     nozd = dictOfOffBodyZoneNb[znamed]
                     zd = tc[2][noBaseOff][2][nozd]
-                    if znamed not in dictOfOffBodyADT.keys():
+                    if znamed not in dictOfOffBodyADT:
                         hook0 = C.createHook(zd,'adt')
                         dictOfOffBodyADT[znamed]=hook0
                     hooks.append(dictOfOffBodyADT[znamed])
@@ -455,7 +458,7 @@ def prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc='center
                     nozd = dictOfNearBodyZoneNb[znamed]
                     nobd = dictOfNearBodyBaseNb[znamed]
                     zd = tc[2][nobd][2][nozd]
-                    if znamed not in dictOfMotionADT.keys():
+                    if znamed not in dictOfMotionADT:
                         hook0 = C.createHook(zd,'adt')
                         dictOfMotionADT[znamed]=hook0
                     hooks.append(dictOfMotionADT[znamed])
@@ -466,19 +469,19 @@ def prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc='center
                                              hook=hooks, itype='chimera')
                 for zd in donorZones:
                     znamed = zd[0]
-                    if znamed in dictOfOffBodyZoneNb.keys():
+                    if znamed in dictOfOffBodyZoneNb:
                         nozd = dictOfOffBodyZoneNb[znamed]            
                         tc[2][noBaseOff][2][nozd] = zd                    
-                    elif znamed in dictOfNearBodyZoneNb.keys():
+                    elif znamed in dictOfNearBodyZoneNb:
                         nozd = dictOfNearBodyZoneNb[znamed]
                         nobd = dictOfNearBodyBaseNb[znamed]
                         tc[2][nobd][2][nozd]=zd
 
-        for dnrname in dictOfMotionADT.keys(): C.freeHook(dictOfMotionADT[dnrname]) 
+        for dnrname in dictOfMotionADT: C.freeHook(dictOfMotionADT[dnrname]) 
 
         # Reinit
         if NIT == 1:
-            for dnrname in dictOfOffBodyADT.keys(): C.freeHook(dictOfOffBodyADT[dnrname]) 
+            for dnrname in dictOfOffBodyADT: C.freeHook(dictOfOffBodyADT[dnrname]) 
             C._rmVars(tc,["CoordinateX","CoordinateY","CoordinateZ","cellNInit","CoordinateXInit","CoordinateYInit","CoordinateZInit"])    
             C._initVars(t,'{CoordinateX}={CoordinateXInit}')
             C._initVars(t,'{CoordinateY}={CoordinateYInit}')
@@ -509,7 +512,7 @@ def prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc='center
             C._initVars(tBB,'{CoordinateY}={CoordinateYInit}')
             C._initVars(tBB,'{CoordinateZ}={CoordinateZInit}')
 
-    for dnrname in dictOfOffBodyADT.keys(): C.freeHook(dictOfOffBodyADT[dnrname]) 
+    for dnrname in dictOfOffBodyADT: C.freeHook(dictOfOffBodyADT[dnrname]) 
 
     C._rmVars(t,["centers:cellNInit","CoordinateXInit","CoordinateYInit","CoordinateZInit"])
     C._initVars(tc[2][noBaseOff],"{cellN}={cellNInit}")
@@ -531,12 +534,12 @@ def prepareSteadyOffBodyChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc=
     intersectionDict = X.getIntersectingDomains(tBB[2][noBaseOff])
 
     dictOfOffBodyZoneNb={}
-    for noz in xrange(len(tc[2][noBaseOff][2])):
+    for noz in range(len(tc[2][noBaseOff][2])):
         z = tc[2][noBaseOff][2][noz]
         if Internal.getType(z)=='Zone_t': dictOfOffBodyZoneNb[z[0]] = noz
 
     dictOfOffBodyZoneNbRcv={}# t et tc peuvent ne pas avoir la meme structure
-    for noz in xrange(len(t[2][noBaseOff][2])):
+    for noz in range(len(t[2][noBaseOff][2])):
         z = t[2][noBaseOff][2][noz]
         if Internal.getType(z)=='Zone_t': dictOfOffBodyZoneNbRcv[z[0]] = noz
 
@@ -552,7 +555,7 @@ def prepareSteadyOffBodyChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc=
         for znamed in intersectingZones:
             nozd = dictOfOffBodyZoneNb[znamed]
             zd = tc[2][noBaseOff][2][nozd]
-            if znamed not in dictOfADT.keys():
+            if znamed not in dictOfADT:
                 hook0 = C.createHook(zd,'adt')
                 dictOfADT[znamed] = hook0
             hooks.append(dictOfADT[znamed])
@@ -565,5 +568,5 @@ def prepareSteadyOffBodyChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc=
             nozd = dictOfOffBodyZoneNb[znamed]            
             tc[2][noBaseOff][2][nozd] = zd
 
-    for dnrname in dictOfADT.keys(): C.freeHook(dictOfADT[dnrname]) 
+    for dnrname in dictOfADT: C.freeHook(dictOfADT[dnrname]) 
     return t, tc

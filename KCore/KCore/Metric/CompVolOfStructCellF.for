@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -54,36 +54,36 @@ C
       nicnjc = nic*njc
 
 C     Warning : here i,j,k start from 0
-      if ( indcell > -1 ) then
-            if ( indnode < 0 ) then
+      if (indcell > -1) then
+            if (indnode < 0) then
                   k = indcell/nicnjc
                   j = (indcell-k*nicnjc)/nic
                   i = indcell -j*nic -k*nicnjc
                   indnode = i+j*ni+k*ninj
             endif
       else
-            if ( indnode < 0 ) then 
+            if (indnode < 0) then 
                   WRITE(*,*) 'ERROR: compvolofstructcell: '
                   WRITE(*,*) 'one of indcell or indnode must be > -1.'
                   STOP
             endif
       endif
 
-C       k = ind/ninj
-C       j = ind/ni - k*nj
-C       i = ind - k*ninj - j*ni
-      
-C C     Decalages a gauche
-C       if (i .eq. nic) then 
-C          i = i-1
-C       endif
-C       if (j .eq. njc) then
-C          j = j-1
-C       endif
-C       if (k .eq. nkc) then 
-C          k = k-1
-C       endif
+      k = indnode/ninj
+      j = indnode/ni - k*nj
+      i = indnode - k*ninj - j*ni      
+C     Decalages a gauche
+      if (i .eq. ni-1) then 
+        indnode = indnode-1
+      endif
+      if (j .eq. nj-1) then
+        indnode = indnode-ni
+      endif
+      if (k .eq. nk-1) then 
+        indnode = indnode-ninj
+      endif
 
+      
       indA = indnode
       indB = indA + 1           !(i+1,j,k)
       indC = indB + ni          !(i+1,j+1,k)
@@ -183,7 +183,7 @@ C=========================================================================
 C computes the cross product AC ^ BD 
 C=========================================================================
       subroutine k6crossproduct(xA, yA, zA, xB, yB, zB, xC, yC, zC,
-     &                          xD, yD, zD, nx, ny, nz )
+     &                          xD, yD, zD, nx, ny, nz)
 
 C
       IMPLICIT NONE

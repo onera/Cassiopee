@@ -45,12 +45,14 @@ env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
 env.Replace(CXXFLAGS=Dist.getCppArgs())
 env.Replace(CFLAGS=Dist.getCArgs())
 
+ELSAPROD = os.environ.get('ELSAPROD', 'x86_r8')
+env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
+
 #==============================================================================
 
 myMod = env.StaticLibrary('distributor2',
                           srcs.cpp_srcs)
-modDir = installPath+'/Distributor2/'
+modDir = 'build/'+ELSAPROD
 dp1 = env.Install(modDir, myMod)
-dp2 = env.Install(modDir, Glob('Distributor2/*.py'))
 
-env.Alias(target="install", source=[dp1,dp2])
+env.Alias(target="install", source=[dp1])

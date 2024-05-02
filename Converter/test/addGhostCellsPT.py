@@ -1,7 +1,6 @@
 # - addGhostCells (pyTree) -
 import Generator.PyTree as G
 import Converter.PyTree as C
-import Converter.Internal as Internal
 
 ni = 11; nj = 11; nk = 8
 a = G.cart((0,0,0), (1.,1.,1.), (ni,nj,nk)); a[0]='cart1'
@@ -12,5 +11,5 @@ t = C.newPyTree(['Base',a,b])
 t = C.addBC2Zone(t, 'wall', 'BCWall', 'imin')
 t = C.initVars(t, '{F}=3*{CoordinateX}+2*{CoordinateY}')
 
-t = Internal.addGhostCells(t, t, 2, adaptBCs=1)
+t = C.addGhostCells(t, t, 2, adaptBCs=1)
 C.convertPyTree2File(t, 'out.cgns')

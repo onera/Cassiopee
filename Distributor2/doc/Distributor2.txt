@@ -1,4 +1,39 @@
 ===============================================================================
+Distributor2 3.7 [10/2023]
+Require: C++ compiler, f77 compiler, python > 2.7, numpy > 1.0, KCore 3.7
+===============================================================================
+Distributor2 3.6 [03/2023]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.6
+===============================================================================
+Distributor2 3.5 [12/2022]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.5
+===============================================================================
+Distributor2 3.4 [07/2022]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.4
+===============================================================================
+Distributor2 3.3 [10/2021]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.3
+===============================================================================
+Distributor2 3.2 [02/2021]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.2
+===============================================================================
+Distributor2 3.1 [06/2020]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.1
+===============================================================================
+Distributor2 3.0 [12/2019]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.0
+===============================================================================
+Distributor2 2.9 [06/2019]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.9
+===============================================================================
+Distributor2 2.8 [12/2018]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.8
+===============================================================================
+Distributor2 2.7 [07/2018]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.7
+- fonction printProcStats
+- meilleur algorithme pour prendre en compte les coms : 'graph'
+===============================================================================
 Distributor2 2.6 [03/2018]
 Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.6
 ===============================================================================

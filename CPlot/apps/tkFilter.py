@@ -1,9 +1,12 @@
-# -- filters in a pyTree --
-import Tkinter as TK
+# -- tkFilter --
+"""Filters for viewing certain zones."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
+import Distributor2.PyTree as D2
 import Converter.Internal as Internal
 
 # local widgets list
@@ -23,15 +26,12 @@ def setFilter(event=None):
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
-    import re
     # Get filter type
     filterType = VARS[1].get()
     actionType = VARS[2].get()
-
     # Filter by name
-    if filterType == 'By name':
+    if filterType == 'By Zone name':
         rexp = VARS[0].get()
-        exp = re.compile(rexp)
         bases = CTK.t[2][1:]
         active = []
         for b in bases:
@@ -40,7 +40,7 @@ def setFilter(event=None):
                 if z[3] == 'Zone_t':
                     zoneName = baseName + '/' + z[0]
                     i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
-                    if exp.search(zoneName) is not None: active.append((i,1))
+                    if CTK.matchString(rexp, zoneName): active.append((i,1))
                     else: active.append((i,0))
                     
         if actionType == 'Activate': CPlot.setActiveZones(active)
@@ -52,8 +52,35 @@ def setFilter(event=None):
         else: CPlot.setSelectedZones(active)
         CTK.TXT.insert('START', 'Filtered by name.\n')
 
+    # Filter by Zone family
+    if filterType == 'By Zone family':
+        rexp = VARS[0].get()
+        bases = CTK.t[2][1:]
+        active = []
+        familySelect = C.getFamilyZones(bases, rexp)
+        listFmlySlct=[]
+        for i in familySelect: listFmlySlct.append(i[0])
+        del familySelect
+        for b in bases:
+            baseName = b[0]            
+            for z in b[2]:
+                if z[3] == 'Zone_t':
+                    zoneName = baseName + '/' + z[0]
+                    i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
+                    if z[0] in listFmlySlct: active.append((i,1))
+                    else: active.append((i,0))
+                    
+        if actionType == 'Activate': CPlot.setActiveZones(active)
+        elif actionType == 'Deactivate':
+            inactive = []
+            for i in active:
+                if i[1] == 1: inactive.append((i[0],0))
+            CPlot.setActiveZones(inactive)
+        else: CPlot.setSelectedZones(active)
+        CTK.TXT.insert('START', 'Filtered by Zone Family Name.\n')
+
     # Filter by number
-    if filterType == 'By number':
+    elif filterType == 'By number':
         no = VARS[0].get()
         try: no = int(no)
         except:
@@ -82,7 +109,7 @@ def setFilter(event=None):
         CTK.TXT.insert('START', 'Filtered by number.\n')
 
     # Filter by size
-    elif (filterType  == 'By size >'):
+    elif filterType  == 'By size >':
         size = VARS[0].get()
         try: size = int(size)
         except:
@@ -93,24 +120,24 @@ def setFilter(event=None):
         active = []
         for b in bases:
             for z in b[2]:
-                if (z[3] == 'Zone_t'):
+                if z[3] == 'Zone_t':
                     dim = Internal.getZoneDim(z)
-                    if (dim[0] == 'Structured'): np = dim[1]*dim[2]*dim[3]
+                    if dim[0] == 'Structured': np = dim[1]*dim[2]*dim[3]
                     else: np = dim[1]
                     i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
                     if np > size: active.append((i,1))
                     else: active.append((i,0))
                     
-        if (actionType == 'Activate'): CPlot.setActiveZones(active)
-        elif (actionType == 'Deactivate'):
+        if actionType == 'Activate': CPlot.setActiveZones(active)
+        elif actionType == 'Deactivate':
             inactive = []
             for i in active:
-                if (i[1] == 1): inactive.append((i[0],0))
+                if i[1] == 1: inactive.append((i[0],0))
             CPlot.setActiveZones(inactive)
         else: CPlot.setSelectedZones(active)
         CTK.TXT.insert('START', 'Filtered by size.\n')
 
-    elif (filterType  == 'By size <'):
+    elif filterType  == 'By size <':
         size = VARS[0].get()
         try: size = int(size)
         except:
@@ -121,26 +148,26 @@ def setFilter(event=None):
         active = []
         for b in bases:
             for z in b[2]:
-                if (z[3] == 'Zone_t'):
+                if z[3] == 'Zone_t':
                     dim = Internal.getZoneDim(z)
-                    if (dim[0] == 'Structured'):
+                    if dim[0] == 'Structured':
                         np = dim[1]*dim[2]*dim[3]
                     else:
                         np = dim[1]
                     i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
-                    if (np < size): active.append((i,1))
+                    if np < size: active.append((i,1))
                     else: active.append((i,0))
                     
-        if (actionType == 'Activate'): CPlot.setActiveZones(active)
-        elif (actionType == 'Deactivate'):
+        if actionType == 'Activate': CPlot.setActiveZones(active)
+        elif actionType == 'Deactivate':
             inactive = []
             for i in active:
-                if (i[1] == 1): inactive.append((i[0],0))
+                if i[1] == 1: inactive.append((i[0],0))
             CPlot.setActiveZones(inactive)
         else: CPlot.setSelectedZones(active)
         CTK.TXT.insert('START', 'Filtered by size.\n')
 
-    elif (filterType  == 'By MG lvl ='):
+    elif filterType  == 'By MG lvl =':
         lvl = VARS[0].get()
         try: lvl = int(lvl)
         except:
@@ -152,32 +179,32 @@ def setFilter(event=None):
         active = []
         for b in bases:
             for z in b[2]:
-                if (z[3] == 'Zone_t'):
+                if z[3] == 'Zone_t':
                     dim = Internal.getZoneDim(z)
                     i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
-                    if (dim[0] == 'Structured'):
+                    if dim[0] == 'Structured':
                         celldim = dim[4]
                         ni = dim[1]; nj = dim[2]; nk = dim[3]
-                        if (celldim == 2):
+                        if celldim == 2:
                             if ((ni-1)%fac == 0 and (nj-1)%fac == 0):
                                 active.append((i,1))
                             else: active.append((i,0))
-                        elif (celldim == 3):
+                        elif celldim == 3:
                             if ((ni-1)%fac == 0 and (nj-1)%fac == 0 and (nk-1)%fac == 0):
                                 active.append((i,1))
                             else: active.append((i,0))
                         else: active.append((i,0))
                     else: active.append((i,0))
-        if (actionType == 'Activate'): CPlot.setActiveZones(active)
-        elif (actionType == 'Deactivate'):
+        if actionType == 'Activate': CPlot.setActiveZones(active)
+        elif actionType == 'Deactivate':
             inactive = []
             for i in active:
-                if (i[1] == 1): inactive.append((i[0],0))
+                if i[1] == 1: inactive.append((i[0],0))
             CPlot.setActiveZones(inactive)
         else: CPlot.setSelectedZones(active)
         CTK.TXT.insert('START', 'Filtered by multigrid level.\n')
 
-    elif (filterType  == 'By MG lvl !='):
+    elif filterType  == 'By MG lvl !=':
         lvl = VARS[0].get()
         try: lvl = int(lvl)
         except:
@@ -189,33 +216,33 @@ def setFilter(event=None):
         active = []
         for b in bases:
             for z in b[2]:
-                if (z[3] == 'Zone_t'):
+                if z[3] == 'Zone_t':
                     dim = Internal.getZoneDim(z)
-                    if (dim[0] == 'Structured'):
+                    if dim[0] == 'Structured':
                         celldim = dim[4]
                         ni = dim[1]; nj = dim[2]; nk = dim[3]
                         i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
-                        if (celldim == 2):
+                        if celldim == 2:
                             if ((ni-1)%fac == 0 and (nj-1)%fac == 0):
                                 active.append((i,0))
                             else: active.append((i,1))
-                        elif (celldim == 3):
+                        elif celldim == 3:
                             if ((ni-1)%fac == 0 and (nj-1)%fac == 0 and (nk-1)%fac == 0):
                                 active.append((i,0))
                             else: active.append((i,1))
                         else: active.append((i,0))
                     else: active.append((i,0))
                     
-        if (actionType == 'Activate'): CPlot.setActiveZones(active)
-        elif (actionType == 'Deactivate'):
+        if actionType == 'Activate': CPlot.setActiveZones(active)
+        elif actionType == 'Deactivate':
             inactive = []
             for i in active:
-                if (i[1] == 1): inactive.append((i[0],0))
+                if i[1] == 1: inactive.append((i[0],0))
             CPlot.setActiveZones(inactive)
         else: CPlot.setSelectedZones(active)
         CTK.TXT.insert('START', 'Filtered by multigrid level.\n')
 
-    elif (filterType == 'By proc'):
+    elif filterType == 'By proc':
         myProc = VARS[0].get()
         try: myProc = int(myProc)
         except:
@@ -226,23 +253,23 @@ def setFilter(event=None):
         active = []
         for b in bases:
             for z in b[2]:
-                if (z[3] == 'Zone_t'):
+                if z[3] == 'Zone_t':
                     i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
-                    proc = Internal.getNodesFromName(z, 'proc')
-                    if (proc != [] and proc[0][1][0,0] == myProc):
+                    proc = Internal.getNodeFromName(z, 'proc')
+                    if proc is not None and D2.getProc(z) == myProc:
                         active.append((i,1))
                     else:
                         active.append((i,0))
-        if (actionType == 'Activate'): CPlot.setActiveZones(active)
-        elif (actionType == 'Deactivate'):
+        if actionType == 'Activate': CPlot.setActiveZones(active)
+        elif actionType == 'Deactivate':
             inactive = []
             for i in active:
-                if (i[1] == 1): inactive.append((i[0],0))
+                if i[1] == 1: inactive.append((i[0],0))
             CPlot.setActiveZones(inactive)
         else: CPlot.setSelectedZones(active)
         CTK.TXT.insert('START', 'Filtered by proc.\n')
 
-    elif (filterType == 'By priority'):
+    elif filterType == 'By priority':
         prio = VARS[0].get()
         try: prio = int(prio)
         except:
@@ -253,37 +280,37 @@ def setFilter(event=None):
         active = []
         for b in bases:
             prios = Internal.getNodesFromName2(b, 'Priority')
-            if (prios != [] and prios[0][1][0,0] == prio):
+            if prios != [] and prios[0][1][0,0] == prio:
                 for z in b[2]:
-                    if (z[3] == 'Zone_t'):
+                    if z[3] == 'Zone_t':
                         i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
                         active.append((i,1)) 
-            elif (prios == [] and prio == 0):
+            elif prios == [] and prio == 0:
                 for z in b[2]:
-                    if (z[3] == 'Zone_t'):
+                    if z[3] == 'Zone_t':
                         i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
                         active.append((i,1))
             else:
                 for z in b[2]:
-                    if (z[3] == 'Zone_t'):
+                    if z[3] == 'Zone_t':
                         i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
                         active.append((i,0))
-        if (actionType == 'Activate'): CPlot.setActiveZones(active)
-        elif (actionType == 'Deactivate'):
+        if actionType == 'Activate': CPlot.setActiveZones(active)
+        elif actionType == 'Deactivate':
             inactive = []
             for i in active:
-                if (i[1] == 1): inactive.append((i[0],0))
+                if i[1] == 1: inactive.append((i[0],0))
             CPlot.setActiveZones(inactive)
         else: CPlot.setSelectedZones(active)
         CTK.TXT.insert('START', 'Filtered by priority.\n')
 
-    elif (filterType  == 'By formula (and)' or filterType == 'By formula (or)'):
-        if (filterType  == 'By formula (and)'): testType = 0
+    elif filterType  == 'By formula (and)' or filterType == 'By formula (or)':
+        if filterType  == 'By formula (and)': testType = 0
         else: testType = 1
         formula = VARS[0].get()
         b1 = formula.find('{')
         b2 = formula.find('}')
-        if (b1 == -1 or b2 == -1):
+        if b1 == -1 or b2 == -1:
             CTK.TXT.insert('START', 'Filter value must be int.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')
             return
@@ -298,12 +325,12 @@ def setFilter(event=None):
             return
         b1 = formula.find('==')
         formula1 = formula; formula2 = formula
-        if (b1 != -1): 
+        if b1 != -1: 
             formula1 = formula.replace('==', '<=')
             formula2 = formula.replace('==', '>=')
         else:
             b1 = formula.find('=')
-            if (b1 != -1): 
+            if b1 != -1: 
                 formula1 = formula.replace('=', '<=')
                 formula2 = formula.replace('=', '>=')
 
@@ -311,7 +338,7 @@ def setFilter(event=None):
         active = []
         for b in bases:
             for z in b[2]:
-                if (z[3] == 'Zone_t'):
+                if z[3] == 'Zone_t':
                     fmin = C.getMinValue(z, field)
                     fmax = C.getMaxValue(z, field)
                     ff = formula1.replace('{'+field+'}', str(fmin))
@@ -319,17 +346,17 @@ def setFilter(event=None):
                     ff = formula2.replace('{'+field+'}', str(fmax))
                     res2 = eval(ff)
                     i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
-                    if (testType == 0):
-                        if (res1 == True and res2 == True): active.append((i,1))
+                    if testType == 0:
+                        if res1 == True and res2 == True: active.append((i,1))
                         else: active.append((i,0))
                     else:
-                        if (res1 == True or res2 == True): active.append((i,1))
+                        if res1 == True or res2 == True: active.append((i,1))
                         else: active.append((i,0))
         if actionType == 'Activate': CPlot.setActiveZones(active)
         elif actionType == 'Deactivate':
             inactive = []
             for i in active:
-                if (i[1] == 1): inactive.append((i[0],0))
+                if i[1] == 1: inactive.append((i[0],0))
             CPlot.setActiveZones(inactive)
         else: CPlot.setSelectedZones(active)
         CTK.TXT.insert('START', 'Filtered by formula.\n')
@@ -338,9 +365,10 @@ def setFilter(event=None):
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkFilter', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Display/select certain blocks.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkFilter  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Display/select certain blocks.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -348,8 +376,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
 
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkFilter')
@@ -358,20 +386,20 @@ def createApp(win):
     # - VARS -
     # -0- filter value -
     V = TK.StringVar(win); V.set(''); VARS.append(V)
-    if CTK.PREFS.has_key('tkFilterValue'): V.set(CTK.PREFS['tkFilterValue'])
+    if 'tkFilterValue' in CTK.PREFS: V.set(CTK.PREFS['tkFilterValue'])
     # -1- filter type
-    V = TK.StringVar(win); V.set('By name'); VARS.append(V)
-    if CTK.PREFS.has_key('tkFilterName'): V.set(CTK.PREFS['tkFilterName'])
+    V = TK.StringVar(win); V.set('By Zone name'); VARS.append(V)
+    if 'tkFilterName' in CTK.PREFS: V.set(CTK.PREFS['tkFilterName'])
     # -2- action
     V = TK.StringVar(win); V.set('Activate'); VARS.append(V)
-    if CTK.PREFS.has_key('tkFilterAction'): V.set(CTK.PREFS['tkFilterAction'])
+    if 'tkFilterAction' in CTK.PREFS: V.set(CTK.PREFS['tkFilterAction'])
 
     # - Options -
     B = TTK.OptionMenu(Frame, VARS[2], 'Activate', 'Deactivate', 'Select')
     BB = CTK.infoBulle(parent=B, text='Action to be performed on filtered zones.')
     B.grid(row=0, column=0, sticky=TK.EW)
     
-    B = TTK.OptionMenu(Frame, VARS[1], 'By name', 'By size >',
+    B = TTK.OptionMenu(Frame, VARS[1], 'By Zone name', 'By Zone family' ,'By size >',
                        'By size <', 'By MG lvl =', 'By MG lvl !=',
                        'By proc', 'By priority', 'By number', 
                        'By formula (or)', 'By formula (and)')
@@ -390,11 +418,15 @@ def createApp(win):
 
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['StateNoteBook'].add(WIDGETS['frame'], text='tkFilter')
+    except: pass
+    CTK.WIDGETS['StateNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['StateNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 def updateApp(): return
@@ -421,7 +453,7 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
 
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
     if (len(sys.argv) == 2):
         CTK.FILE = sys.argv[1]

@@ -1,0 +1,74 @@
+#! /bin/sh
+#
+# Installation du module XCore
+#
+# Pour l'installation standard (dans $CASSIOPEE/Dist/bin/$ELSAPROD/),
+# taper  : ./install
+# Pour une installation dans un repertoire <rep>, taper : ./install <rep>
+# Puis suivre les instructions.
+#
+if ([ $# -eq 0 ])
+then
+    if [ "$CASSIOPEE" = "" ]; then
+        echo "You must specify a CASSIOPEE variable in your environment."
+        echo "This variable specifies the installation path of *Cassiopee*."
+        exit 1
+    fi
+    if [ "$ELSAPROD" = "" ]; then
+        export ELSAPROD=x86_r8
+    fi
+    INSTALLPATH="$CASSIOPEE/Dist/bin/$ELSAPROD"
+
+elif ([ $# -eq 1 ])
+then
+    INSTALLPATH="$1"
+else
+    echo 'install: install in $CASSIOPEE/Dist/bin/$ELSAPROD'
+    echo ' -or- '
+    echo 'install <dir>: install in directory <dir>.'
+    exit 1
+fi
+
+# if specific python exe name
+if [ "$PYTHONEXE" != "" ]; then
+    alias python=$PYTHONEXE
+fi
+
+# set production mode (0: scons+setup, 1: scons+pip, 2: setup legacy)
+if [ "$PRODMODE" = "" ]; then
+    PRODMODE=0
+fi
+
+# Creation des liens
+#python createLinks.py
+
+# Compilation et installation
+if [ $PRODMODE -le 1 ]; then
+    sconsf=`which scons`
+    if [ "$OMP_NUM_THREADS" != "" ]; then
+        export SCONSOPT="-j $OMP_NUM_THREADS"
+    else
+        export SCONSOPT=""
+    fi
+    python $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
+    [ $? != 0 ] && exit 1;
+    #touch KCore/xcore.cpp
+    rm -f build/lib.*/XCore/xcore.*
+    rm -f build/lib.*/XCore/xcore-*.*
+    if [ $PRODMODE -eq 0 ]; then
+        python setup.py install --prefix="$INSTALLPATH"
+        [ $? != 0 ] && exit 1;
+    elif [ $PRODMODE -eq 1 ]; then
+        python -m pip install --ignore-installed --upgrade --prefix="$INSTALLPATH" .
+        [ $? != 0 ] && exit 1;
+    fi
+else
+    python setupLegacy.py install --prefix="$INSTALLPATH"
+    [ $? != 0 ] && exit 1;
+fi
+
+# Install libxcore
+python installLib.py
+
+# Check installation
+python test/t1.py

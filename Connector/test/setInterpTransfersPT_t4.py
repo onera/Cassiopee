@@ -2,7 +2,6 @@
 import Converter.PyTree as C
 import Connector.PyTree as X
 import Generator.PyTree as G
-import Converter.Internal as Internal
 import KCore.test as test
 # DONOR NON STRUCTURE NGon
 # Create a function

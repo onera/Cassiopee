@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -38,8 +38,21 @@ namespace K_LOC
                           K_FLD::FldArrayF& FNode,
                           E_Int& nin, E_Int& njn, E_Int& nkn,
                           E_Int algo=0);
+  E_Int center2nodeStruct_OLD(K_FLD::FldArrayF& FCenter, 
+                          E_Int ni, E_Int nj, E_Int nk,
+                          E_Int cellN, E_Int mod,
+                          E_Int posx, E_Int posy, E_Int posz,
+                          K_FLD::FldArrayF& FNode,
+                          E_Int& nin, E_Int& njn, E_Int& nkn,
+                          E_Int algo=0);
 
   E_Int center2nodeUnstruct(K_FLD::FldArrayF& FCenter, 
+                            K_FLD::FldArrayI& c,
+                            E_Int cellN, E_Int mod,
+                            E_Int posx, E_Int posy, E_Int posz,
+                            K_FLD::FldArrayF& FNode,
+                            E_Int algo=0);
+  E_Int center2nodeUnstruct_OLD(K_FLD::FldArrayF& FCenter, 
                             K_FLD::FldArrayI& c,
                             E_Int cellN, E_Int mod,
                             E_Int posx, E_Int posy, E_Int posz,
@@ -50,17 +63,34 @@ namespace K_LOC
                           E_Int ni, E_Int nj, E_Int nk,
                           E_Int cellN, E_Int mod, 
                           K_FLD::FldArrayF& FCenter);
+  E_Int node2centerStruct_OLD(K_FLD::FldArrayF& FNode, 
+                          E_Int ni, E_Int nj, E_Int nk,
+                          E_Int cellN, E_Int mod, 
+                          K_FLD::FldArrayF& FCenter);
+
   E_Int node2centerUnstruct(K_FLD::FldArrayF& FNode, 
                             K_FLD::FldArrayI& c,
                             E_Int cellN, E_Int mod, 
                             K_FLD::FldArrayF& FCenter);
+  E_Int node2centerUnstruct_OLD(K_FLD::FldArrayF& FNode, 
+                            K_FLD::FldArrayI& c,
+                            E_Int cellN, E_Int mod, 
+                            K_FLD::FldArrayF& FCenter);
+
   E_Int node2centerNGon(K_FLD::FldArrayF& FNode, K_FLD::FldArrayI& cNG,
+                        K_FLD::FldArrayF& FCenter, E_Int sorted=0);
+  E_Int node2centerNGon_OLD(K_FLD::FldArrayF& FNode, K_FLD::FldArrayI& cNG,
                         K_FLD::FldArrayF& FCenter, E_Int sorted=0);
 
   E_Int center2nodeNGon(K_FLD::FldArrayF& FCenter, K_FLD::FldArrayI& cNG,
                         std::vector< std::vector<E_Int> >& cEV, 
                         K_FLD::FldArrayF& FNode, E_Int cellN, E_Int mod, 
                         E_Int algo=0);
+  E_Int center2nodeNGon_OLD(K_FLD::FldArrayF& FCenter, K_FLD::FldArrayI& cNG,
+                        std::vector< std::vector<E_Int> >& cEV, 
+                        K_FLD::FldArrayF& FNode, E_Int cellN, E_Int mod, 
+                        E_Int algo=0);
+
   E_Int node2ExtCenterStruct(E_Int imo, E_Int jmo, E_Int kmo,
                              K_FLD::FldArrayF& FNode,
                              E_Int ime, E_Int jme, E_Int kme, 
@@ -82,11 +112,15 @@ namespace K_LOC
                                   E_Int indExt, E_Int type,  K_FLD::FldArrayI& indTab,
                                   E_Int& extrapB);
 
-  /* Transformation repere cart -> repere cylindrique */
+  /* Transformation repere cart -> repere cylindrique 
+   if depth > 0, theta must be continuous between two adjacent points - work for structured zones only (ni,nj,nk must be provided)
+  */
   E_Int cart2Cyl(E_Int npts, E_Float* xt, E_Float* yt, E_Float* zt,
                  E_Float X0, E_Float Y0, E_Float Z0,
                  E_Float ex, E_Float ey, E_Float ez,
-                 E_Float* rt, E_Float* thetat);
+                 E_Float* rt, E_Float* thetat, 
+                 E_Int ni=0, E_Int nj=0, E_Int nk=0, E_Int depth=0, 
+                 E_Float thetaShift=0.);
   /* Transformation repere cylindrique -> repere cartesien */
   E_Int cyl2Cart(E_Int npts, E_Float* rt, E_Float* thetat, 
                  E_Float X0, E_Float Y0, E_Float Z0,

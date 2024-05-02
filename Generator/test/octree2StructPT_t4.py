@@ -1,11 +1,10 @@
 # - octree2Struct liste de vmin (pyTree) -
 import Generator.PyTree as G
-import Converter.PyTree as C
 import Geom.PyTree as D
 import KCore.test as test
 
 # cas 2D : contours->QUAD avec liste de vmin
-s = D.circle((0,0,0), 1., N=100); snear = 0.2
+s = D.circle((0,0,0), 1., N=100); snear = 0.26
 res = G.octree([s], [snear], dfar=5., balancing=1)
 res1 = G.octree2Struct(res, vmin=[5,7,10], ext=0)
 test.testT(res1,11)
@@ -40,7 +39,7 @@ res1 = G.octree2Struct(res, vmin=[5,7,10], ext=2, optimized=0, merged=1)
 test.testT(res1,112)
 
 # cas 3D : contours->QUAD avec liste de vmin
-s = D.sphere((0,0,0), 1., N=100); snear = 0.5
+s = D.sphere((0,0,0), 1., N=100); snear = 0.82
 res = G.octree([s], [snear], dfar=5., balancing=1)
 res1 = G.octree2Struct(res, vmin=[5,7,10], ext=0)
 test.testT(res1,21)

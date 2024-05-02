@@ -1,0 +1,40 @@
+#! /bin/sh
+#
+# Installation du module scons
+# Par defaut dans : $CASSIOPEE/Dist/bin/$ELSAPROD/
+# Sinon : dans le repertoire specifie en argument
+#
+if ([ $# -eq 0 ])
+then
+    if [ "$CASSIOPEE" = "" ]; then
+        echo "You must specify a CASSIOPEE variable in you environment."
+        echo "This variable specifies the installation path of *Cassiopee*."
+        exit
+    fi
+    if [ "$ELSAPROD" = "" ]; then
+        echo "You must specify a ELSAPROD in your environment."
+        echo "This variable identifies the processor type."
+        exit
+    fi
+    INSTALLPATH="$CASSIOPEE/Dist/bin/$ELSAPROD"
+
+elif ([ $# -eq 1 ])
+then
+    INSTALLPATH="$1"
+else
+    echo 'install: install in $CASSIOPEE/Dist/bin/$ELSAPROD'
+    echo ' -or-'
+    echo 'install <dir>: install in directory <dir>.'
+    exit
+fi
+
+if [ "$PYTHONEXE" != "" ]; then
+    alias python=$PYTHONEXE
+fi
+
+# installation
+python setup.py install --prefix="$INSTALLPATH"
+echo 'scons est installe dans'"$INSTALLPATH"/bin
+echo 'Il faut ajouter ce chemin au PATH.'
+# parfois necessaire de faire
+# ln -s "$INSTALLPATH"/lib/python3.6/site-packages/Scons "$INSTALLPATH"/lib/scons-3.0.5

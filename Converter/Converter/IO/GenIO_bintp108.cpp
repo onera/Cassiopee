@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -19,15 +19,37 @@
 
 // Binary tecplot v108 file support
 
+//#define SENTINELLE *(double*)&0xffefffffffffffff
+#define SENTINELLE -1.79769e+308
+
 # include "GenIO.h"
 # include <stdio.h>
 # include <string.h>
+# include <stdint.h>
 # include "Def/DefFunction.h"
 # include <math.h>
 # include "kcore.h"
 
 using namespace std;
 using namespace K_FLD;
+
+// Retourne les begin pour les nodes et les centres
+void getBeginFromLoc(vector<E_Int>& loc, vector<E_Int>& beginNodes, 
+                     vector<E_Int>& beginCenters)
+{
+  E_Int nvars = loc.size();
+  beginNodes.resize(nvars);
+  beginCenters.resize(nvars);
+  E_Int nfldNodes, nfldCenters;
+  nfldNodes = 1; nfldCenters = 1;
+  for (size_t i = 0; i < loc.size(); i++)
+  {
+    beginNodes[i] = nfldNodes;
+    beginCenters[i] = nfldCenters;
+    if (loc[i] == 0) { nfldNodes++; }
+    else { nfldCenters++; }
+  }
+}
 
 //=============================================================================
 /* Read zone header.
@@ -54,6 +76,7 @@ using namespace K_FLD;
    OUT: dataPacking: 0 (block), 1 (point)
    OUT: strand: strand number registered in zone
    OUT: time: time registered in zone
+   OUT: rawlocal: 1 si connect est donnee par le parent element
    OUT: loc: for each field, 0 (node), 1(center)
    OUT: geometries (1D fields)
    v108-112 compatible.
@@ -66,7 +89,7 @@ E_Int K_IO::GenIO::readZoneHeader108(
   E_Int& npts, E_Int& nelts,
   E_Int& numFaces, E_Int& numFaceNodes,
   E_Int& numBoundaryFaces, E_Int& numBoundaryConnections,
-  E_Int& eltType,
+  E_Int& eltType, E_Int& rawlocal,
   char* zoneName, E_Int& dataPacking,
   E_Int& strand, E_Float& time,
   vector<E_Int>& loc,
@@ -99,6 +122,7 @@ E_Int K_IO::GenIO::readZoneHeader108(
   }
   else if (K_FUNC::fEqualZero(a - 899.) == true)
   {
+    // 899 means Variable Aux data : discarded
     ib = fread(&ib, si, 1, ptrFile);
     while (ib != 0) fread(&ib, si, 1, ptrFile);
     ib = fread(&ib, si, 1, ptrFile);
@@ -110,9 +134,38 @@ E_Int K_IO::GenIO::readZoneHeader108(
   }
   else if (K_FUNC::fEqualZero(a - 399.) == true)
   {
+    // Geometry
     FldArrayF* field;
     E_Int ret = readGeom108(ptrFile, field);
     if (ret == 1) geom.push_back(field);
+    goto zonemarker;
+  }
+  else if (K_FUNC::fEqualZero(a - 499.) == true)
+  {
+    // Text : discarded
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    while (ib != 0) fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    while (ib != 0) fread(&ib, si, 1, ptrFile);
     goto zonemarker;
   }
   else if (K_FUNC::fEqualZero(a - 299.) == false) return 1;
@@ -128,20 +181,23 @@ E_Int K_IO::GenIO::readZoneHeader108(
   if (i == BUFSIZE) dummy[BUFSIZE] = '\0';
   strcpy(zoneName, dummy);
 
-  /* Parent zone: not used. */
-  fread(&ib, si, 1, ptrFile);
+  if (version > 101)
+  {
+    /* Parent zone: not used. */
+    fread(&ib, si, 1, ptrFile);
 
-  /* Strand id. */
-  fread(&ib, si, 1, ptrFile);
-  strand = ib;
+    /* Strand id. */
+    fread(&ib, si, 1, ptrFile);
+    strand = ib;
 
-  /* Solution time. */
-  fread(&t, sizeof(double), 1, ptrFile);
-  time = t;
+    /* Solution time. */
+    fread(&t, sizeof(double), 1, ptrFile);
+    time = t;
+  }
 
   /* Zone color: not used. */
   fread(&ib, si, 1, ptrFile);
-
+  
   /* Zone type: checked. */
   fread(&ib, si, 1, ptrFile);
   elt = ib;
@@ -150,7 +206,7 @@ E_Int K_IO::GenIO::readZoneHeader108(
     printf("Warning: readZoneHeader: those elements are unknown.\n");
     return 1;
   }
-
+  
   /* Data packing: used. Disappear in v112. */
   dataPacking = 0;
   if (version < 112)
@@ -166,10 +222,11 @@ E_Int K_IO::GenIO::readZoneHeader108(
 
   /* Var location */
   fread(&ib, si, 1, ptrFile);
+  loc.resize(nfield);
+  for (E_Int i = 0; i < nfield; i++) loc[i] = 0;
   if (ib != 0)
   {
     // var location is specified
-    loc.reserve(nfield);
     E_Int center;
     for (E_Int i = 0; i < nfield; i++)
     {
@@ -179,11 +236,15 @@ E_Int K_IO::GenIO::readZoneHeader108(
     }
   }
 
-  /* Raw local 1 to 1 face neighbors supplied: not supported. */
-  fread(&ib, si, 1, ptrFile);
-  if (ib != 0)
+  if (version > 101)
   {
-    printf("Warning: readZoneHeader: raw local faces not supported.\n");
+    /* Raw local 1 to 1 face neighbors supplied: not supported. */
+    fread(&ib, si, 1, ptrFile);
+    if (ib != 0)
+    {
+      printf("Warning: readZoneHeader: raw local faces not supported.\n");
+      rawlocal = 1;
+    }
   }
 
   /* Misc user defined faces: not supported. */
@@ -191,6 +252,7 @@ E_Int K_IO::GenIO::readZoneHeader108(
   if (ib != 0)
   {
     fread(&ib, si, 1, ptrFile); // face mode (local, 1-to-1)
+    if (elt != 0) fread(&ib, si, 1, ptrFile);
     printf("Warning: readZoneHeader: user defined faces not supported.\n");
   }
 
@@ -286,7 +348,7 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
   E_Int& npts, E_Int& nelts,
   E_Int& numFaces, E_Int& numFaceNodes,
   E_Int& numBoundaryFaces, E_Int& numBoundaryConnections,
-  E_Int& eltType,
+  E_Int& eltType, E_Int& rawlocal, 
   char* zoneName, E_Int& dataPacking,
   E_Int& strand, E_Float& time,
   vector<E_Int>& loc,
@@ -320,6 +382,7 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
   }
   else if (K_FUNC::fEqualZero(a - 899.) == true)
   {
+    // 899 means Variable Aux data : discarded
     ib = fread(&ib, si, 1, ptrFile);
     while (ib != 0) fread(&ib, si, 1, ptrFile);
     ib = fread(&ib, si, 1, ptrFile);
@@ -331,41 +394,74 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
   }
   else if (K_FUNC::fEqualZero(a - 399.) == true)
   {
+    // Geometry
     FldArrayF* field;
     E_Int ret = readGeom108CE(ptrFile, field);
     if (ret == 1) geom.push_back(field);
     goto zonemarker;
   }
-  else if (K_FUNC::fEqualZero(a - 299.) == false)
-    return 1;
+  else if (K_FUNC::fEqualZero(a - 499.) == true)
+  {
+    // Text : discarded
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    fread(&t, sizeof(double), 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    while (ib != 0) fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    ib = fread(&ib, si, 1, ptrFile);
+    while (ib != 0) fread(&ib, si, 1, ptrFile);
+    goto zonemarker;
+  }
+  else if (K_FUNC::fEqualZero(a - 299.) == false) return 1;
 
   /* Zone name */
   i = 0; ib = 1;
-  while (ib != 0)
+  while (ib != 0 && i < BUFSIZE)
   {
     fread(&ib, si, 1, ptrFile);
-    dummy[i] = (char)IBE(ib);
+    ib = IBE(ib);
+    dummy[i] = (char)ib;
     i++;
   }
+  if (i == BUFSIZE) dummy[BUFSIZE] = '\0';
   strcpy(zoneName, dummy);
-
-  /* Parent zone: not used */
-  fread(&ib, si, 1, ptrFile);
-
-  /* Strand id */
-  fread(&ib, si, 1, ptrFile);
-  strand = IBE(ib);
-
-  /* Solution time */
-  fread(&t, sizeof(double), 1, ptrFile);
-  time = FBE(t);
+  
+  if (version > 101)
+  {
+    /* Parent zone: not used */
+    fread(&ib, si, 1, ptrFile);
+  
+    /* Strand id */
+    fread(&ib, si, 1, ptrFile);
+    strand = IBE(ib);
+  
+    /* Solution time */
+    fread(&t, sizeof(double), 1, ptrFile);
+    time = DBE(t);
+  }
 
   /* Zone color: not used */
   fread(&ib, si, 1, ptrFile);
-
+  
   /* Zone type: checked */
-  fread(&ib, si, 1, ptrFile); ib = IBE(ib);
-  elt = ib;
+  fread(&ib, si, 1, ptrFile);
+  elt = IBE(ib);
   if (elt < 0 || elt > 7)
   {
     printf("Warning: readZoneHeader: the element type is unknown.\n");
@@ -387,10 +483,11 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
 
   /* Var location */
   fread(&ib, si, 1, ptrFile); ib = IBE(ib);
+  loc.resize(nfield);
+  for (E_Int i = 0; i < nfield; i++) loc[i] = 0;
   if (ib != 0)
   {
     // var location is specified
-    loc.reserve(nfield);
     E_Int center;
     for (E_Int i = 0; i < nfield; i++)
     {
@@ -400,11 +497,15 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
     }
   }
 
-  /* Raw local: not supported */
-  fread(&ib, si, 1, ptrFile); ib = IBE(ib);
-  if (ib != 0)
+  if (version > 101)
   {
-    printf("Warning: readZoneHeader: raw local faces not supported.\n");
+    /* Raw local: not supported */
+    fread(&ib, si, 1, ptrFile); ib = IBE(ib);
+    if (ib != 0)
+    {
+      printf("Warning: readZoneHeader: raw local faces not supported.\n");
+      rawlocal = 1;
+    }
   }
 
   /* Misc user defined faces: not supported */
@@ -412,9 +513,10 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
   if (ib != 0)
   {
     fread(&ib, si, 1, ptrFile); // face mode (local, 1-to-1)
+    if (elt != 0) fread(&ib, si, 1, ptrFile);
     printf("Warning: readZoneHeader: user defined faces not supported.\n");
   }
-
+  
   switch (elt)
   {
     case 0: // Structure
@@ -430,11 +532,11 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
       nk = ib;
       break;
 
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-    case 5:
+    case 1: // BAR (tecplot type)
+    case 2: // TRI
+    case 3: // QUAD
+    case 4: // TETRA
+    case 5: // HEXA
       fread(&ib, si, 1, ptrFile);
       npts = IBE(ib);
       fread(&ib, si, 1, ptrFile);
@@ -444,6 +546,9 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
       else if (elt == 3) eltType = 3; // QUAD
       else if (elt == 4) eltType = 4; // TETRA
       else if (elt == 5) eltType = 7; // HEXA
+      fread(&ib, si, 1, ptrFile); // cell dim
+      fread(&ib, si, 1, ptrFile);
+      fread(&ib, si, 1, ptrFile);
       break;
 
     case 6: // POLYGON
@@ -467,11 +572,11 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
       break;
   }
 
-  /* Repeat */
+  /* Auxiliary data: not supported. */
   fread(&ib, si, 1, ptrFile); ib = IBE(ib);
   if (ib == 1)
   {
-    printf("Warning: readZoneHeader: var repeat is not supported.\n");
+    printf("Warning: readZoneHeader: auxiliary data is not supported.\n");
     // read name string
     fread(&ib, si, 1, ptrFile); ib = IBE(ib);
     while (ib != 0) { fread(&ib, si, 1, ptrFile); ib = IBE(ib); }
@@ -482,6 +587,9 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
     // read value string
     fread(&ib, si, 1, ptrFile); ib = IBE(ib);
     while (ib != 0) { fread(&ib, si, 1, ptrFile); ib = IBE(ib); }
+
+    // read next
+    fread(&ib, si, 1, ptrFile);
   }
 
   return 0;
@@ -496,35 +604,53 @@ E_Int K_IO::GenIO::readZoneHeader108CE(
    OUT: f: field read. Must be already dimensioned.
  */
 //=============================================================================
-E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
-                               E_Int dataPacking,
-                               FldArrayF& f)
+E_Int K_IO::GenIO::readData108(E_Int version, FILE* ptrFile, 
+                               E_Int ni, E_Int nj, E_Int nk,
+                               E_Int dataPacking, vector<E_Int>& loc,
+                               FldArrayF* f, FldArrayF* fc)
 {
   float a;
   int ib;
   double t;
   E_Int i, n;
   E_Int sizer = 8;
-  E_Int nfield = f.getNfld();
+  E_Int nfield = loc.size();
+  if (nfield == 0) nfield = f->getNfld();
   E_Int si = sizeof(int);
   E_Int npts = ni*nj*nk;
+  E_Int nelts = K_FUNC::E_max((ni-1),1)*K_FUNC::E_max((nj-1),1)*K_FUNC::E_max((nk-1),1);
 
+  vector<E_Int> beginNodes; vector<E_Int> beginCenters;
+  getBeginFromLoc(loc, beginNodes, beginCenters);
+    
   // Read zone separator
   fread(&a, sizeof(float), 1, ptrFile); // 299.
-
+  if (K_FUNC::fEqualZero(a - 299.) == false) return 1;
+  
   /* Type des variables */
+  vector<int> varType(nfield);
   for (i = 0; i < nfield; i++)
   {
     fread(&ib, si, 1, ptrFile); // variables type
     if (ib == 1) sizer = 4;
+    varType[i] = ib; // 1=Float, 2=Double, 3=LongInt, 4=ShortInt, 5=Byte, 6=Bit
   }
 
   /* Passive variables */
-  fread(&ib, si, 1, ptrFile);
-  if (ib != 0)
+  E_Int* passive = new E_Int[nfield];
+  for (E_Int i = 0; i < nfield; i++) passive[i] = 0;
+
+  if (version > 101)
   {
-    for (E_Int i = 0; i < nfield; i++) fread(&ib, si, 1, ptrFile);
-    printf("Warning: this file has passive variables. Not supported.\n");
+    fread(&ib, si, 1, ptrFile);
+    if (ib != 0)
+    {
+      for (E_Int i = 0; i < nfield; i++)
+      { 
+        fread(&ib, si, 1, ptrFile);
+        passive[i] = ib;
+      }
+    }
   }
 
   /* Sharing variables */
@@ -539,55 +665,170 @@ E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
   fread(&ib, si, 1, ptrFile);
   if (ib != -1)
   {
-    printf("This file has sharing variables. Not supported.\n");
+    printf("Warning: this file has sharing connectivity. Not supported.\n");
   }
 
-  /* Min-Max since no sharing and no passive. */
-  for (n = 0; n < nfield; n++)
+  if (version > 101)
   {
-    fread(&t, sizeof(double), 1, ptrFile);
-    fread(&t, sizeof(double), 1, ptrFile);
+    /* Min-Max since no sharing and no passive. */
+    for (n = 0; n < nfield; n++)
+    {
+      if (passive[n] == 0)
+      {
+        fread(&t, sizeof(double), 1, ptrFile);
+        fread(&t, sizeof(double), 1, ptrFile);
+      }
+    }
   }
 
   /* Read dump */
-  if (sizer == 4 && dataPacking == 0) // block
-  {
-    float* buf = new float[npts];
-    for (n = 0; n < nfield; n++)
-    {
-      fread(buf, sizeof(float), npts, ptrFile);
-      for (i = 0; i < npts; i++) f(i, n+1) = buf[i];
-    }
-    delete [] buf;
-  }
-  else if (sizer == 8 && dataPacking == 0) // block
+  E_Int size;
+  if (dataPacking == 0) // block all types
   {
     for (n = 0; n < nfield; n++)
     {
-      fread(f.begin(n+1), sizeof(E_Float), npts, ptrFile);
-    }
+      float* buf1=NULL; double* buf2=NULL; int64_t* buf3=NULL;
+      int32_t* buf4=NULL; int8_t* buf5=NULL; 
+      E_Float* fp;
+      if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
+      else { size = npts; fp = f->begin(beginNodes[n]); }
+
+      if (varType[n] == 1) buf1 = new float[size];
+      else if (varType[n] == 2) buf2 = new double[size];
+      else if (varType[n] == 3) buf3 = new int64_t [size];
+      else if (varType[n] == 4) buf4 = new int32_t [size];
+      else if (varType[n] == 5) buf5 = new int8_t [size];
+      else printf("Warning: unknow type of variable.\n");
+
+      if (passive[n] == 0)
+      {
+        if (varType[n] == 1) 
+        {
+            fread(buf1, sizeof(float), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = buf1[i];
+            delete [] buf1;
+        }    
+        else if (varType[n] == 2) 
+        {
+            fread(buf2, sizeof(double), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = buf2[i];
+            delete [] buf2;
+        }
+        else if (varType[n] == 3) 
+        {
+            fread(buf3, sizeof(int64_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = buf3[i];
+            delete [] buf3;
+        }
+        else if (varType[n] == 4) 
+        {
+            fread(buf4, sizeof(int32_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = buf4[i];
+            delete [] buf4;
+        }
+        else if (varType[n] == 5) 
+        {
+            fread(buf5, sizeof(int8_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = buf5[i];
+            delete [] buf5;
+        }
+      }
+      else
+      {
+        for (E_Int i = 0; i < size; i++) fp[i] = 0.;
+      }
+    }    
   }
-  else if (sizer == 4 && dataPacking == 1) // point
+  else if (dataPacking == 1) // point all types (forcement node)
   {
-    float* buf = new float[nfield];
+    FldArrayF& fp = *f;
+    
+    // rip passives
+    int nfieldLoc = 0;
+    vector<int> index(nfield); // index of non passive field
+    int bsize = 0; 
+    vector<int> pos(nfield+1); // pos of non passive field in buffer
+    for (i = 0; i < nfield; i++)
+    {
+        if (passive[i] == 0) 
+        {
+            if (varType[i] == 1) { pos[nfieldLoc] = bsize; bsize += 4; }
+            else if (varType[i] == 2) { pos[nfieldLoc] = bsize; bsize += 8;  }
+            else if (varType[i] == 3) { pos[nfieldLoc] = bsize; bsize += 8;  }
+            else if (varType[i] == 4) { pos[nfieldLoc] = bsize; bsize += 4;  }
+            else if (varType[i] == 5) { pos[nfieldLoc] = bsize; bsize += 1;  }
+            index[nfieldLoc] = i; nfieldLoc += 1;
+        }
+    }
+    char* buf = new char[bsize];
+
     for (n = 0; n < npts; n++)
     {
-      fread(buf, sizeof(float), nfield, ptrFile);
-      for (i = 0; i < nfield; i++) f(n, i+1) = buf[i];
+       for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
+       fread(buf, sizeof(char), bsize, ptrFile);
+       for (i = 0; i < nfieldLoc; i++) 
+       {
+           switch (varType[index[i]])
+           {
+               case 1:
+               {
+                float* ptr = (float*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = ptr[0];
+               }
+               break;
+               case 2:
+               {
+                double* ptr = (double*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = ptr[0];
+               }
+               break;
+               case 3:
+               {
+                int64_t* ptr = (int64_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = ptr[0];
+               }
+               break;
+               case 4:
+               {
+                int32_t* ptr = (int32_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = ptr[0];
+               }
+               break;
+               case 5:
+               {
+                int8_t* ptr = (int8_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = ptr[0];
+               }
+               break;
+           }
+       }    
     }
     delete [] buf;
   }
-  else if (sizer == 8 && dataPacking == 1) // point
+  else if (dataPacking == 1 && sizer == 4) // point old code
   {
+    float* buf = new float[nfield];
+    FldArrayF& fp = *f;
+    for (n = 0; n < npts; n++)
+    {
+        fread(buf, sizeof(float), nfield, ptrFile);
+        for (i = 0; i < nfield; i++) fp(n, i+1) = buf[i];
+    }
+    delete [] buf;
+  }
+  else if (dataPacking == 1 && sizer == 8) // point old code
+  {
+    FldArrayF& fp = *f;
     double* buf = new double[nfield];
     for (n = 0; n < npts; n++)
     {
-      fread(buf, sizeof(E_Float), nfield, ptrFile);
-      for (i = 0; i < nfield; i++) f(n, i+1) = buf[i];
+        fread(buf, sizeof(E_Float), nfield, ptrFile);
+        for (i = 0; i < nfield; i++) fp(n, i+1) = buf[i];
     }
     delete [] buf;
   }
 
+  delete [] passive;
   return 0;
 }
 //=============================================================================
@@ -604,41 +845,59 @@ E_Int K_IO::GenIO::readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
  */
 //=============================================================================
 E_Int K_IO::GenIO::readData108(
+  E_Int version,
   FILE* ptrFile,
-  E_Int dataPacking, E_Int et,
+  E_Int dataPacking, vector<E_Int>& loc, E_Int et,
   E_Int numFaces, E_Int numFaceNodes,
-  E_Int numBoundaryFaces, E_Int numBoundaryConnections, E_Int ne,
-  FldArrayF& f, FldArrayI& c)
+  E_Int numBoundaryFaces, E_Int numBoundaryConnections, 
+  E_Int ne, E_Int rawlocal,
+  FldArrayF* f, FldArrayI& c, FldArrayF* fc)
 {
   float a;
-  int ib;
   double t;
+  int ib;
   E_Int i, n;
   E_Int sizer = 8;
-  E_Int nfield = f.getNfld();
-  E_Int npts = f.getSize();
+  E_Int nfield = loc.size();
+  if (nfield == 0) nfield = f->getNfld(); 
+  E_Int npts;
+  if (f != NULL) npts = f->getSize();
+  else npts = 0;
   E_Int nelts = c.getSize();
   E_Int eltType = c.getNfld();
   E_Int si = sizeof(int);
 
+  vector<E_Int> beginNodes; vector<E_Int> beginCenters;
+  getBeginFromLoc(loc, beginNodes, beginCenters);
+    
   // Read zone separator
   fread(&a, sizeof(float), 1, ptrFile); // 299.
-
   if (K_FUNC::fEqualZero(a - 299.) == false) return 1;
 
   /* Type des variables */
+  vector<int> varType(nfield);
   for (i = 0; i < nfield; i++)
   {
     fread(&ib, si, 1, ptrFile); // variables type
     if (ib == 1) sizer = 4;
+    varType[i] = ib; // 1=Float, 2=Double, 3=LongInt, 4=ShortInt, 5=Byte, 6=Bit
   }
 
   /* Passive variables */
-  fread(&ib, si, 1, ptrFile);
-  if (ib != 0)
+  E_Int* passive = new E_Int[nfield];
+  for (E_Int i = 0; i < nfield; i++) passive[i] = 0;
+  
+  if (version > 101)
   {
-    for (E_Int i = 0; i < nfield; i++) fread(&ib, si, 1, ptrFile);
-    printf("Warning: this file has passive variables. Not supported.\n");
+    fread(&ib, si, 1, ptrFile);
+    if (ib != 0)
+    {
+      for (E_Int i = 0; i < nfield; i++)
+      {
+        fread(&ib, si, 1, ptrFile);
+        passive[i] = ib;
+      }
+    }
   }
 
   /* Sharing variables */
@@ -656,52 +915,169 @@ E_Int K_IO::GenIO::readData108(
     printf("Warning: this file has sharing connectivity. Not supported.\n");
   }
 
-  /* Min-Max since no sharing and no passive. */
-  for (n = 0; n < nfield; n++)
+  if (version > 101)
   {
-    fread(&t, sizeof(double), 1, ptrFile);
-    fread(&t, sizeof(double), 1, ptrFile);
+    /* Min-Max for no sharing and no passive. */
+    for (n = 0; n < nfield; n++)
+    {
+      if (passive[n] == 0)
+      {
+        fread(&t, sizeof(double), 1, ptrFile);
+        fread(&t, sizeof(double), 1, ptrFile);
+      }
+    }
   }
 
   /* Read dump */
-  if (sizer == 4 && dataPacking == 0) // block
-  {
-    float* buf = new float[npts];
-    for (n = 0; n < nfield; n++)
-    {
-      fread(buf, sizeof(float), npts, ptrFile);
-      for (i = 0; i < npts; i++) f(i, n+1) = buf[i];
-    }
-    delete [] buf;
-  }
-  else if (sizer == 8 && dataPacking == 0) // block
+  E_Int size;
+  if (dataPacking == 0) // block all types
   {
     for (n = 0; n < nfield; n++)
     {
-      fread(f.begin(n+1), sizeof(E_Float), npts, ptrFile);
-    }
+      float* buf1=NULL; double* buf2=NULL; int64_t* buf3=NULL;
+      int32_t* buf4=NULL; int8_t* buf5=NULL;
+      
+      E_Float* fp;
+      if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
+      else { size = npts; fp = f->begin(beginNodes[n]); }
+
+      if (varType[n] == 1) buf1 = new float[size];
+      else if (varType[n] == 2) buf2 = new double[size];
+      else if (varType[n] == 3) buf3 = new int64_t [size];
+      else if (varType[n] == 4) buf4 = new int32_t [size];
+      else if (varType[n] == 5) buf5 = new int8_t [size];
+      else printf("Warning: unknown type of variable.\n");
+
+      if (passive[n] == 0)
+      {
+        if (varType[n] == 1) 
+        {
+            fread(buf1, sizeof(float), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = buf1[i];
+            delete [] buf1;
+        }    
+        else if (varType[n] == 2) 
+        {
+            fread(buf2, sizeof(double), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = buf2[i];
+            delete [] buf2;
+        }
+        else if (varType[n] == 3) 
+        {
+            fread(buf3, sizeof(int64_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = buf3[i];
+            delete [] buf3;
+        }
+        else if (varType[n] == 4) 
+        {
+            fread(buf4, sizeof(int32_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = buf4[i];
+            delete [] buf4;
+        }
+        else if (varType[n] == 5) 
+        {
+            fread(buf5, sizeof(int8_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = buf5[i];
+            delete [] buf5;
+        }
+      }
+      else
+      {
+        for (E_Int i = 0; i < size; i++) fp[i] = 0.;
+      }
+    } 
   }
-  else if (sizer == 4 && dataPacking == 1) // point
+  else if (dataPacking == 1) // point all types (forcement node)
   {
-    float* buf = new float[nfield];
+    FldArrayF& fp = *f;
+    
+    // rip passives
+    int nfieldLoc = 0;
+    vector<int> index(nfield); // index of non passive field
+    int bsize = 0; 
+    vector<int> pos(nfield+1); // pos of non passive field in buffer
+    for (i = 0; i < nfield; i++)
+    {
+        if (passive[i] == 0) 
+        {
+            if (varType[i] == 1) { pos[nfieldLoc] = bsize; bsize += 4; }
+            else if (varType[i] == 2) { pos[nfieldLoc] = bsize; bsize += 8;  }
+            else if (varType[i] == 3) { pos[nfieldLoc] = bsize; bsize += 8;  }
+            else if (varType[i] == 4) { pos[nfieldLoc] = bsize; bsize += 4;  }
+            else if (varType[i] == 5) { pos[nfieldLoc] = bsize; bsize += 1;  }
+            index[nfieldLoc] = i; nfieldLoc += 1;
+        }
+    }
+    char* buf = new char[bsize];
+
     for (n = 0; n < npts; n++)
     {
-      fread(buf, sizeof(float), nfield, ptrFile);
-      for (i = 0; i < nfield; i++) f(n, i+1) = buf[i];
+       for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
+       fread(buf, sizeof(char), bsize, ptrFile);
+       for (i = 0; i < nfieldLoc; i++) 
+       {
+           switch (varType[index[i]])
+           {
+               case 1:
+               {
+                float* ptr = (float*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = ptr[0];
+               }
+               break;
+               case 2:
+               {
+                double* ptr = (double*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = ptr[0];
+               }
+               break;
+               case 3:
+               {
+                int64_t* ptr = (int64_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = ptr[0];
+               }
+               break;
+               case 4:
+               {
+                int32_t* ptr = (int32_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = ptr[0];
+               }
+               break;
+               case 5:
+               {
+                int8_t* ptr = (int8_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = ptr[0];
+               }
+               break;
+           }
+       }    
     }
     delete [] buf;
   }
-  else if (sizer == 8 && dataPacking == 1) // point
+  else if (dataPacking == 1 && sizer == 4) // point old code
   {
+    float* buf = new float[nfield];
+    FldArrayF& fp = *f;
+    for (n = 0; n < npts; n++)
+    {
+        fread(buf, sizeof(float), nfield, ptrFile);
+        for (i = 0; i < nfield; i++) fp(n, i+1) = buf[i];
+    }
+    delete [] buf;
+  }
+  else if (dataPacking == 1 && sizer == 8) // point old code
+  {
+    FldArrayF& fp = *f;
     double* buf = new double[nfield];
     for (n = 0; n < npts; n++)
     {
-      fread(buf, sizeof(E_Float), nfield, ptrFile);
-      for (i = 0; i < nfield; i++) f(n, i+1) = buf[i];
+        fread(buf, sizeof(E_Float), nfield, ptrFile);
+        for (i = 0; i < nfield; i++) fp(n, i+1) = buf[i];
     }
     delete [] buf;
   }
 
+  delete [] passive;
+  
   // Connectivity
   if (et != 8) // elements basiques
   {
@@ -709,10 +1085,10 @@ E_Int K_IO::GenIO::readData108(
     for (n = 0; n < nelts; n++)
     {
       fread(buf2, si, eltType, ptrFile);
-      for (i = 0; i < eltType; i++)
-      {
-        c(n, i+1) = buf2[i]+1; // la numerotation a change en version 108!
-      }
+      if (version <= 101)
+      { for (i = 0; i < eltType; i++) c(n, i+1) = buf2[i]; }
+      else // la numerotation a change en version 108!
+      { for (i = 0; i < eltType; i++) c(n, i+1) = buf2[i]+1; }
     }
     delete [] buf2;
   }
@@ -823,35 +1199,54 @@ E_Int K_IO::GenIO::readData108(
    OUT: f: field read. Must be already dimensioned.
  */
 //=============================================================================
-E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
-                                 E_Int dataPacking,
-                                 FldArrayF& f)
+E_Int K_IO::GenIO::readData108CE(E_Int version, FILE* ptrFile, 
+                                 E_Int ni, E_Int nj, E_Int nk,
+                                 E_Int dataPacking, vector<E_Int>& loc,
+                                 FldArrayF* f, FldArrayF* fc)
 {
   float a;
   double t;
   int ib;
   E_Int i, n;
   E_Int sizer = 8;
-  E_Int nfield = f.getNfld();
+  E_Int nfield = loc.size();
+  if (nfield == 0) nfield = f->getNfld();
   E_Int si = sizeof(int);
+  E_Int npts = ni*nj*nk;
+  E_Int nelts = K_FUNC::E_max((ni-1),1)*K_FUNC::E_max((nj-1),1)*K_FUNC::E_max((nk-1),1);
 
+  vector<E_Int> beginNodes; vector<E_Int> beginCenters;
+  getBeginFromLoc(loc, beginNodes, beginCenters);  
+  
   // Read zone separator
   fread(&a, sizeof(float), 1, ptrFile); // 299.
+  a = FBE(a);
+  if (K_FUNC::fEqualZero(a - 299.) == false) return 1;
 
   /* Type des variables */
+  vector<int> varType(nfield);
   for (i = 0; i < nfield; i++)
   {
     fread(&ib, si, 1, ptrFile); // variables type
     ib = IBE(ib);
     if (ib == 1) sizer = 4;
+    varType[i] = ib;
   }
 
   /* Passive variables */
-  fread(&ib, si, 1, ptrFile); ib = IBE(ib);
-  if (ib != 0)
+  E_Int* passive = new E_Int[nfield];
+  for (E_Int i = 0; i < nfield; i++) passive[i] = 0;
+  if (version > 101)
   {
-    for (E_Int i = 0; i < nfield; i++) fread(&ib, si, 1, ptrFile);
-    printf("Warning: this file has passive variables. NOT supported.\n");
+    fread(&ib, si, 1, ptrFile); ib = IBE(ib);
+    if (ib != 0)
+    {
+      for (E_Int i = 0; i < nfield; i++) 
+      {
+        fread(&ib, si, 1, ptrFile);
+        passive[i] = IBE(ib);
+      }
+    }
   }
 
   /* Sharing variables */
@@ -869,53 +1264,165 @@ E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
     printf("Warning: this file has sharing connectivity. Not supported.\n");
   }
 
-  /* Min-Max since no sharing and no passive. */
-  for (n = 0; n < nfield; n++)
+  if (version > 101)
   {
-    fread(&t, sizeof(double), 1, ptrFile);
-    fread(&t, sizeof(double), 1, ptrFile);
+    /* Min-Max since no sharing and no passive. */
+    for (n = 0; n < nfield; n++)
+    {
+      if (passive[n] == 0)
+      {
+        fread(&t, sizeof(double), 1, ptrFile);
+        fread(&t, sizeof(double), 1, ptrFile);
+      }
+    }
   }
 
   /* Read dump */
-  E_Int npts = ni*nj*nk;
-  if (sizer == 4 && dataPacking == 0)
+  E_Int size;
+  if (dataPacking == 0) // block all types
   {
-    float* buf = new float[npts];
     for (n = 0; n < nfield; n++)
     {
-      fread(buf, sizeof(float), npts, ptrFile);
-      for (i = 0; i < npts; i++) f(i, n+1) = FBE(buf[i]);
+      float* buf1=NULL; double* buf2=NULL; int64_t* buf3=NULL;
+      int32_t* buf4=NULL; int8_t* buf5=NULL; 
+      E_Float* fp;
+      if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
+      else { size = npts; fp = f->begin(beginNodes[n]); }
+      if (varType[n] == 1) buf1 = new float[size];
+      else if (varType[n] == 2) buf2 = new double[size];
+      else if (varType[n] == 3) buf3 = new int64_t [size];
+      else if (varType[n] == 4) buf4 = new int32_t [size];
+      else if (varType[n] == 5) buf5 = new int8_t [size];
+      else printf("Warning: unknown type of variable.\n");
+
+      if (passive[n] == 0)
+      {
+        if (varType[n] == 1) 
+        {
+            fread(buf1, sizeof(float), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = FBE(buf1[i]);
+            delete [] buf1;
+        }    
+        else if (varType[n] == 2) 
+        {
+            fread(buf2, sizeof(double), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = DBE(buf2[i]);
+            delete [] buf2;
+        }
+        else if (varType[n] == 3)
+        {
+            fread(buf3, sizeof(int64_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = LBE(buf3[i]);
+            delete [] buf3;
+        }
+        else if (varType[n] == 4) 
+        {
+            fread(buf4, sizeof(int32_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = IBE(buf4[i]);
+            delete [] buf4;
+        }
+        else if (varType[n] == 5) 
+        {
+            fread(buf5, sizeof(int8_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = SBE(buf5[i]);
+            delete [] buf5;
+        }
+      }
+      else
+      {
+        for (E_Int i = 0; i < size; i++) fp[i] = 0.;
+      }
+    }    
+  }
+  else if (dataPacking == 1) // point all types (forcement node)
+  {
+    FldArrayF& fp = *f;
+    
+    // rip passives
+    int nfieldLoc = 0;
+    vector<int> index(nfield); // index of non passive field
+    int bsize = 0; 
+    vector<int> pos(nfield+1); // pos of non passive field in buffer
+    for (i = 0; i < nfield; i++)
+    {
+        if (passive[i] == 0) 
+        {
+            if (varType[i] == 1) { pos[nfieldLoc] = bsize; bsize += 4; }
+            else if (varType[i] == 2) { pos[nfieldLoc] = bsize; bsize += 8;  }
+            else if (varType[i] == 3) { pos[nfieldLoc] = bsize; bsize += 8;  }
+            else if (varType[i] == 4) { pos[nfieldLoc] = bsize; bsize += 4;  }
+            else if (varType[i] == 5) { pos[nfieldLoc] = bsize; bsize += 1;  }
+            index[nfieldLoc] = i; nfieldLoc += 1;
+        }
+    }
+    char* buf = new char[bsize];
+
+    for (n = 0; n < npts; n++)
+    {
+       for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
+       fread(buf, sizeof(char), bsize, ptrFile);
+       for (i = 0; i < nfieldLoc; i++) 
+       {
+           switch (varType[index[i]])
+           {
+               case 1:
+               {
+                float* ptr = (float*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = FBE(ptr[0]);
+               }
+               break;
+               case 2:
+               {
+                double* ptr = (double*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = DBE(ptr[0]);
+               }
+               break;
+               case 3:
+               {
+                int64_t* ptr = (int64_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = LBE(ptr[0]);
+               }
+               break;
+               case 4:
+               {
+                int32_t* ptr = (int32_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = IBE(ptr[0]);
+               }
+               break;
+               case 5:
+               {
+                int8_t* ptr = (int8_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = SBE(ptr[0]);
+               }
+               break;
+           }
+       }    
     }
     delete [] buf;
   }
-  else if (sizer == 8 && dataPacking == 0)
-  {
-    for (n = 0; n < nfield; n++)
-    {
-      fread(f.begin(n+1), sizeof(E_Float), npts, ptrFile);
-    }
-  }
-  else if (sizer == 4 && dataPacking == 1)
+  else if (sizer == 4 && dataPacking == 1) // point old code
   {
     vector<float> buf(nfield);
+    FldArrayF& fp = *f;
     for (n = 0; n < npts; n++)
     {
-      fread(&buf[0], sizeof(float), nfield, ptrFile);
-      for (i = 0; i < nfield; i++) f(n, i+1) = FBE(buf[i]);
+        fread(&buf[0], sizeof(float), nfield, ptrFile);
+        for (i = 0; i < nfield; i++) fp(n, i+1) = FBE(buf[i]);
     }
   }
-  else if (sizer == 8 && dataPacking == 1)
+  else if (sizer == 8 && dataPacking == 1) // point old code
   {
     vector<double> buf(nfield);
+    FldArrayF& fp = *f;
     for (n = 0; n < npts; n++)
     {
-      fread(&buf[0], sizeof(E_Float), nfield, ptrFile);
-      for (i = 0; i < nfield; i++) f(n, i+1) = DBE(buf[i]);
+        fread(&buf[0], sizeof(E_Float), nfield, ptrFile);
+        for (i = 0; i < nfield; i++) fp(n, i+1) = DBE(buf[i]);
     }
   }
 
-  if (sizer == 8 && dataPacking == 0) convertEndianField(f);
-
+  delete [] passive;
+  
   return 0;
 }
 //=============================================================================
@@ -929,50 +1436,58 @@ E_Int K_IO::GenIO::readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
  */
 //=============================================================================
 E_Int K_IO::GenIO::readData108CE(
-  FILE* ptrFile,
-  E_Int dataPacking, E_Int et,
+  E_Int version, FILE* ptrFile,
+  E_Int dataPacking, vector<E_Int>& loc, E_Int et,
   E_Int numFaces, E_Int numFaceNodes,
   E_Int numBoundaryFaces, E_Int numBoundaryConnections,
-  E_Int ne,
-  FldArrayF& f, FldArrayI& c)
+  E_Int ne, E_Int rawlocal,
+  FldArrayF* f, FldArrayI& c, FldArrayF* fc)
 {
   float a;
-  int ib;
   double t;
+  int ib;
   E_Int i, n;
   E_Int sizer = 8;
-  E_Int nfield = f.getNfld();
-  E_Int npts = f.getSize();
+  E_Int nfield = loc.size();
+  if (nfield == 0) nfield = f->getNfld();
+  E_Int npts;
+  if (f != NULL) npts = f->getSize();
+  else npts = 0; 
   E_Int nelts = c.getSize();
   E_Int eltType = c.getNfld();
   E_Int si = sizeof(int);
-
+  
+  vector<E_Int> beginNodes; vector<E_Int> beginCenters;
+  getBeginFromLoc(loc, beginNodes, beginCenters);
+  
   // Read zone separator
   fread(&a, sizeof(float), 1, ptrFile); // 299.
   a = FBE(a);
-
-  if (K_FUNC::fEqualZero(a - 799.) == true)
-  {
-    // 799 means undocumented Aux data zone : discarded
-    while (a != 299.)
-      fread(&a, sizeof(float), 1, ptrFile);
-  }
-  if (K_FUNC::fEqualZero(a - 299.) == false)
-    return 1;
+  if (K_FUNC::fEqualZero(a - 299.) == false) return 1;
 
   /* Type des variables */
+  vector<int> varType(nfield);
   for (i = 0; i < nfield; i++)
   {
-    fread(&ib, si, 1, ptrFile); ib = IBE(ib); // variables type
+    fread(&ib, si, 1, ptrFile); ib = IBE(ib); // variable type
     if (ib == 1) sizer = 4;
+    varType[i] = ib;
   }
-
-  /* Passive variables */
-  fread(&ib, si, 1, ptrFile); ib = IBE(ib);
-  if (ib != 0)
+  
+  E_Int* passive = new E_Int[nfield];
+  for (E_Int i = 0; i < nfield; i++) passive[i] = 0;
+  if (version > 101)
   {
-    for (E_Int i = 0; i < nfield; i++) fread(&ib, si, 1, ptrFile);
-    printf("Warning: this file has passive variables. NOT supported.\n");
+    /* Passive variables */
+    fread(&ib, si, 1, ptrFile); ib = IBE(ib);
+    if (ib != 0)
+    {
+      for (E_Int i = 0; i < nfield; i++) 
+      {
+        fread(&ib, si, 1, ptrFile);
+        passive[i] = IBE(ib);
+      }
+    }
   }
 
   /* Sharing variables */
@@ -987,52 +1502,169 @@ E_Int K_IO::GenIO::readData108CE(
   fread(&ib, si, 1, ptrFile);
   if (ib != -1)
   {
-    printf("This file has sharing variables. Not supported.\n");
+    printf("This file has sharing connectivity. Not supported.\n");
   }
 
-  /* Min-Max since no sharing and no passive. */
-  for (n = 0; n < nfield; n++)
+  if (version > 101)
   {
-    fread(&t, sizeof(double), 1, ptrFile);
-    fread(&t, sizeof(double), 1, ptrFile);
+    /* Min-Max since no sharing and no passive. */
+    for (n = 0; n < nfield; n++)
+    {
+      if (passive[n] == 0)
+      {
+        fread(&t, sizeof(double), 1, ptrFile);
+        fread(&t, sizeof(double), 1, ptrFile);
+      }
+    }
   }
 
   /* Read dump */
-  if (sizer == 4 && dataPacking == 0) // block
-  {
-    vector<float> buf(npts);
-    for (n = 0; n < nfield; n++)
-    {
-      fread(&buf[0], sizeof(float), npts, ptrFile);
-      for (i = 0; i < npts; i++) f(i, n+1) = FBE(buf[i]);
-    }
-  }
-  else if (sizer == 8 && dataPacking == 0) // block
+  E_Int size;
+  if (dataPacking == 0) // block all types
   {
     for (n = 0; n < nfield; n++)
     {
-      fread(f.begin(n+1), sizeof(E_Float), npts, ptrFile);
-    }
+      float* buf1=NULL; double* buf2=NULL; int64_t* buf3=NULL;
+      int32_t* buf4=NULL; int8_t* buf5=NULL;
+      E_Float* fp;
+      if (loc[n] == 1) { size = nelts; fp = fc->begin(beginCenters[n]); }
+      else { size = npts; fp = f->begin(beginNodes[n]); }
+      if (varType[n] == 1) buf1 = new float[size];
+      else if (varType[n] == 2) buf2 = new double[size];
+      else if (varType[n] == 3) buf3 = new int64_t [size];
+      else if (varType[n] == 4) buf4 = new int32_t [size];
+      else if (varType[n] == 5) buf5 = new int8_t [size];
+      else printf("Warning: unknown type of variable.\n");
+
+      if (passive[n] == 0)
+      {
+        if (varType[n] == 1) 
+        {
+            fread(buf1, sizeof(float), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = FBE(buf1[i]);
+            delete [] buf1;
+        }    
+        else if (varType[n] == 2) 
+        {
+            fread(buf2, sizeof(double), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = DBE(buf2[i]);
+            delete [] buf2;
+        }
+        else if (varType[n] == 3)
+        {
+            fread(buf3, sizeof(int64_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = LBE(buf3[i]);
+            delete [] buf3;
+        }
+        else if (varType[n] == 4) 
+        {
+            fread(buf4, sizeof(int32_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = IBE(buf4[i]);
+            delete [] buf4;
+        }
+        else if (varType[n] == 5) 
+        {
+            fread(buf5, sizeof(int8_t), size, ptrFile);
+            for (i = 0; i < size; i++) fp[i] = SBE(buf5[i]);
+            delete [] buf5;
+        }
+      }
+      else
+      {
+        for (E_Int i = 0; i < size; i++) fp[i] = 0.;
+      }
+    }    
   }
-  else if (sizer == 4 && dataPacking == 1) // point
+  else if (dataPacking == 1) // point all types (forcement node)
   {
-    vector<float> buf(nfield);
+    FldArrayF& fp = *f;
+    
+    // rip passives
+    int nfieldLoc = 0;
+    vector<int> index(nfield); // index of non passive field
+    int bsize = 0; 
+    vector<int> pos(nfield+1); // pos of non passive field in buffer
+    for (i = 0; i < nfield; i++)
+    {
+        if (passive[i] == 0) 
+        {
+            if (varType[i] == 1) { pos[nfieldLoc] = bsize; bsize += 4; }
+            else if (varType[i] == 2) { pos[nfieldLoc] = bsize; bsize += 8;  }
+            else if (varType[i] == 3) { pos[nfieldLoc] = bsize; bsize += 8;  }
+            else if (varType[i] == 4) { pos[nfieldLoc] = bsize; bsize += 4;  }
+            else if (varType[i] == 5) { pos[nfieldLoc] = bsize; bsize += 1;  }
+            index[nfieldLoc] = i; nfieldLoc += 1;
+        }
+    }
+    char* buf = new char[bsize];
+
     for (n = 0; n < npts; n++)
     {
-      fread(&buf[0], sizeof(float), nfield, ptrFile);
-      for (i = 0; i < nfield; i++) f(n, i+1) = FBE(buf[i]);
+       for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
+       fread(buf, sizeof(char), bsize, ptrFile);
+       for (i = 0; i < nfieldLoc; i++) 
+       {
+           switch (varType[index[i]])
+           {
+               case 1:
+               {
+                float* ptr = (float*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = FBE(ptr[0]);
+               }
+               break;
+               case 2:
+               {
+                double* ptr = (double*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = DBE(ptr[0]);
+               }
+               break;
+               case 3:
+               {
+                int64_t* ptr = (int64_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = LBE(ptr[0]);
+               }
+               break;
+               case 4:
+               {
+                int32_t* ptr = (int32_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = IBE(ptr[0]);
+               }
+               break;
+               case 5:
+               {
+                int8_t* ptr = (int8_t*)&buf[pos[i]]; 
+                fp(n, index[i]+1) = SBE(ptr[0]);
+               }
+               break;
+           }
+       }    
+    }
+    delete [] buf;
+  }
+
+  else if (sizer == 4 && dataPacking == 1) // old point code
+  {
+    vector<float> buf(nfield);
+    FldArrayF& fp = *f;
+    for (n = 0; n < npts; n++)
+    {
+        fread(&buf[0], sizeof(float), nfield, ptrFile);
+        for (i = 0; i < nfield; i++) fp(n, i+1) = FBE(buf[i]);
     }
   }
   else if (sizer == 8 && dataPacking == 1) // point
   {
     vector<double> buf(nfield);
+    FldArrayF& fp = *f;
     for (n = 0; n < npts; n++)
     {
-      fread(&buf[0], sizeof(E_Float), nfield, ptrFile);
-      for (i = 0; i < nfield; i++) f(n, i+1) = DBE(buf[i]);
+        fread(&buf[0], sizeof(E_Float), nfield, ptrFile);
+        for (i = 0; i < nfield; i++) fp(n, i+1) = DBE(buf[i]);
     }
   }
 
+  delete [] passive;
+  
   // Connectivity
   if (et != 8) // elements basiques
   {
@@ -1040,7 +1672,18 @@ E_Int K_IO::GenIO::readData108CE(
     for (n = 0; n < nelts; n++)
     {
       fread(&buf2[0], si, eltType, ptrFile);
-      for (i = 0; i < eltType; i++) c(n, i+1) = IBE(buf2[i])+1;
+      if (version <= 101)
+      { for (i = 0; i < eltType; i++) c(n, i+1) = IBE(buf2[i]); }
+      else  // la numerotation a change en version 108!
+      { for (i = 0; i < eltType; i++) c(n, i+1) = IBE(buf2[i])+1; }
+    }
+    if (rawlocal == 1)
+    {
+      int b;
+      for (n = 0; n < nelts; n++)
+      {
+        fread(&b, si, 1, ptrFile);
+      }
     }
   }
   else // NGON
@@ -1140,7 +1783,7 @@ E_Int K_IO::GenIO::readData108CE(
     }
   }
 
-  if (sizer == 8 && dataPacking == 0) convertEndianField(f);
+  //if (sizer == 8 && dataPacking == 0) convertEndianField(*f);
   return 0;
 }
 
@@ -1336,7 +1979,7 @@ E_Int K_IO::GenIO::readGeom108(FILE* ptrFile,
     return 1;
 
     default:
-      printf("Warning: readGeom: this kind of geometry is unknown: %d.\n",
+      printf("Warning: readGeom: this kind of geometry is unknown: " SF_D_ ".\n",
              geomType);
   }
   return 0; // nothing created
@@ -1539,7 +2182,7 @@ E_Int K_IO::GenIO::readGeom108CE(FILE* ptrFile,
     return 1;
 
     default:
-      printf("Warning: readGeom: this kind of geometry is unknown: %d.\n",
+      printf("Warning: readGeom: this kind of geometry is unknown: " SF_D_ ".\n",
              geomType);
   }
   return 0; // nothing created
@@ -1601,7 +2244,7 @@ E_Int K_IO::GenIO::tecwrite108(
     E_Int nvar = structField[n]->getNfld();
     if (nvar != nfield)
     {
-      printf("Warning: tecwrite: number of variables differs for structured field: %d.\n", n+1);
+      printf("Warning: tecwrite: number of variables differs for structured field: " SF_D_ ".\n", n+1);
       return 1;
     }
   }
@@ -1612,7 +2255,7 @@ E_Int K_IO::GenIO::tecwrite108(
     E_Int nvar = unstructField[n]->getNfld();
     if (nvar != nfield)
     {
-      printf("Warning: tecwrite: number of variables differs for unstructured field: %d.\n",n+1);
+      printf("Warning: tecwrite: number of variables differs for unstructured field: " SF_D_ ".\n",n+1);
       return 1;
     }
   }
@@ -1750,8 +2393,8 @@ E_Int K_IO::GenIO::tecwrite108(
           break;
         case 8: // NGON
         {
-          E_Int* ptr = connect[nol]->begin();
-          if (ptr[2] > 2) ib = 7; // polyhedron
+          E_Int* ngon = connect[nol]->getNGon();
+          if (ngon[0] > 2) ib = 7; // polyhedron
           else ib = 6; // polygon
         }
         break;
@@ -1809,17 +2452,16 @@ E_Int K_IO::GenIO::tecwrite108(
         // numPts
         ib = unstructField[nol]->getSize();
         fwrite(&ib, si, 1, ptrFile);
-        E_Int* ptr = connect[nol]->begin();
         // num faces
-        ib = ptr[0]; fwrite(&ib, si, 1, ptrFile);
+        ib = connect[nol]->getNFaces(); fwrite(&ib, si, 1, ptrFile);
         // numFacesNodes
-        ib = ptr[1]-ptr[0]; fwrite(&ib, si, 1, ptrFile);
+        ib = connect[nol]->getSizeNGon()-ib; fwrite(&ib, si, 1, ptrFile);
         // Boundary faces
         ib = 0; fwrite(&ib, si, 1, ptrFile);
         // Boundary connections
         ib = 0; fwrite(&ib, si, 1, ptrFile);
         // num elts
-        ib = ptr[2+ptr[1]]; fwrite(&ib, si, 1, ptrFile);
+        ib = connect[nol]->getNElts(); fwrite(&ib, si, 1, ptrFile);
         // cellDim
         ib = 0; fwrite(&ib, si, 1, ptrFile);
         ib = 0; fwrite(&ib, si, 1, ptrFile);
@@ -1888,7 +2530,8 @@ E_Int K_IO::GenIO::tecwrite108(
     }
 
     // field
-    fwrite(f.begin(), sizeof(E_Float), f.getSize()*f.getNfld(), ptrFile);
+    for (n = 1; n <= nfield; n++)
+      fwrite(f.begin(n), sizeof(E_Float), f.getSize(), ptrFile);
     no++;
   }
 
@@ -1942,7 +2585,8 @@ E_Int K_IO::GenIO::tecwrite108(
     }
 
     // field
-    fwrite(f.begin(), sizeof(E_Float), f.getSize()*f.getNfld(), ptrFile);
+    for (n = 1; n <= nfield; n++)
+      fwrite(f.begin(n), sizeof(E_Float), f.getSize(), ptrFile);
 
     // Connectivity
     nt = c.getSize(); nv = c.getNfld();
@@ -1984,11 +2628,11 @@ E_Int K_IO::GenIO::tecwrite108(
     }
     else if (eltType[no] == 8) // NGONS
     {
-      E_Int* ptr = c.begin();
-      E_Int numFaces = ptr[0];
-      E_Int size = ptr[1];
-      ptr += 2;
-      E_Int nf = ptr[0];
+      E_Int* ngon = c.getNGon();
+      E_Int* indPG = c.getIndPG();
+      E_Int numFaces = c.getNFaces();
+      E_Int size = c.getSizeNGon();
+      E_Int nf = ngon[0];
       nv = 1;
       if (nf > 2) nt = numFaces+1 + (size-numFaces) + 2*numFaces;
       else nt = (size-numFaces) + 2*numFaces;
@@ -1999,23 +2643,20 @@ E_Int K_IO::GenIO::tecwrite108(
       if (nf > 2) // only for volumic
       {
         ptri[0] = 0;
-        for (E_Int i = 1; i <= numFaces; i++)
+        for (E_Int i = 0; i < numFaces; i++)
         {
-          n = ptr[0];
-          ptri[i] = ptri[i-1] + n;
-          ptr += n+1;
+          c.getFace(i, n, ngon, indPG);
+          ptri[i+1] = ptri[i] + n;
         }
         ptri += numFaces+1;
       }
 
-      ptr = c.begin()+2;
       // face nodes
       for (E_Int i = 0; i < numFaces; i++)
       {
-        n = ptr[0];
-        for (E_Int j = 0; j < n; j++) ptri[j] = ptr[j+1]-1;
+        E_Int* face = c.getFace(i, n, ngon, indPG);
+        for (E_Int j = 0; j < n; j++) ptri[j] = face[j]-1;
         ptri += n;
-        ptr += n+1;
       }
 
       FldArrayI cFE;

@@ -19,7 +19,7 @@ sphere = C.convertArray2Tetra(sphere)
 sphere = G.close(sphere)
 t = C.newPyTree(['Base', a])
 
-for it in xrange(NIT):
+for it in range(NIT):
     T._translate(sphere, (0.1*it,0,0))
     C._initVars(t,"cellN",1.)
     t = X.blankCells(t, [[sphere]], numpy.array([[1]]), blankingType='node_in')
@@ -27,13 +27,13 @@ for it in xrange(NIT):
     C._initVars(t,'{flag}=({cellN}>1.)')
     t = DTW.distance2WallsEikonal(t, sphere, DEPTH=DEPTH, nitmax=10)
 test.testT(t,1)
-#
+
 # Centers
 t = C.newPyTree(['Base']); t[2][1][2] = [a]
 sphere = D.sphere((6.4,6.4,0), 1., 100)
 sphere = C.convertArray2Tetra(sphere)
 sphere = G.close(sphere)
-for it in xrange(NIT):
+for it in range(NIT):
     T._translate(sphere,(0.1*it,0,0))
     C._initVars(t,"centers:cellN",1.)
     t = X.blankCells(t,[[sphere]], numpy.array([[1]]), blankingType='center_in')

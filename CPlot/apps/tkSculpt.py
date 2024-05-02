@@ -1,5 +1,6 @@
 # - sculpt app -
-import Tkinter as TK
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -67,7 +68,7 @@ def sculpt():
     CPlot.unselectAllZones()
 
     w = WIDGETS['sculpt']
-    if CTK.__BUSY__ == False:
+    if not CTK.__BUSY__:
         CTK.__BUSY__ = True
         TTK.sunkButton(w)
         CPlot.setState(cursor=1)
@@ -78,7 +79,7 @@ def sculpt():
                 l = CPlot.getActivePointIndex()
                 time.sleep(CPlot.__timeStep__)
                 w.update()
-                if (CTK.__BUSY__ == False): break
+                if not CTK.__BUSY__: break
             if CTK.__BUSY__:
                 nob = CTK.Nb[nz]+1
                 noz = CTK.Nz[nz]
@@ -144,9 +145,10 @@ def setWidth(event=None):
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkSculpt', font=CTK.FRAMEFONT, takefocus=1)
+                           text='tkSculpt  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
     #BB = CTK.infoBulle(parent=Frame, text='Sculpt surfaces by deformations.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -154,8 +156,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkSculpt')
     WIDGETS['frameMenu'] = FrameMenu
 
@@ -204,13 +206,17 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['SurfNoteBook'].add(WIDGETS['frame'], text='tkSculpt')
+    except: pass
+    CTK.WIDGETS['SurfNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['SurfNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -222,9 +228,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

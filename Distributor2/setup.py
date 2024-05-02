@@ -1,5 +1,6 @@
-#!/usr/bin/env python
 from distutils.core import setup, Extension
+#from setuptools import setup, Extension
+import os
 
 #=============================================================================
 # Distributor2 requires:
@@ -19,23 +20,28 @@ Dist.writeSetupCfg()
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
 # Setting libraryDirs and libraries ===========================================
-libraryDirs = [kcoreLibDir]
-libraries = ["kcore"]
 from KCore.config import *
+prod = os.getenv("ELSAPROD")
+if prod is None: prod = 'xx'
+
+libraryDirs = ['build/'+prod, kcoreLibDir]
+libraries = ["distributor2", "kcore"]
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
-    
+(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
+
 # setup ======================================================================
-import srcs
 setup(
     name="Distributor2",
-    version="2.7",
+    version="4.0",
     description="Distributor for arrays and pyTrees.",
-    author="Onera",
-    package_dir={"":"."},
+    author="ONERA",
+    url="https://cassiopee.onera.fr",
     packages=['Distributor2'],
+    package_dir={"":"."},
     ext_modules=[Extension('Distributor2.distributor2',
-                           sources=['Distributor2/distributor2.cpp']+srcs.cpp_srcs,
+                           sources=['Distributor2/distributor2.cpp'],
                            include_dirs=["Distributor2"]+additionalIncludePaths+[numpyIncDir,kcoreIncDir],
                            library_dirs=additionalLibPaths+libraryDirs,
                            libraries=libraries+additionalLibs,

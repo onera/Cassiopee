@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -81,7 +81,7 @@ PyObject* K_TRANSFORM::subzoneStructInt(PyObject* self, PyObject* args)
   E_Int ninj1 = ni*nj1;
   E_Int indcell=0; E_Int nov = 0;
 
-  if ( nj==1 && nk==1 )
+  if (nj == 1 && nk == 1)
   {
     strcpy(newEltType, "NODE");
     FldArrayF* fnodes = new FldArrayF(n,nfld);// dimension max
@@ -234,7 +234,7 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = K_ARRAY::getFromArray(arrayN, varString, f, ni, nj, nk, cn, eltType, true); 
-  if ( res == 1 );
+  if (res == 1);
   else if (res == 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -289,7 +289,7 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
   PyObject* l = PyList_New(0);
   E_Int nov = 0;
   E_Int noet = 0;
-  if ( nj==1 && nk==1 )
+  if (nj == 1 && nk == 1)
   {
     strcpy(newEltType, "NODE");
     FldArrayF* fnodes = new FldArrayF(n,nfld);// dimension max
@@ -300,9 +300,22 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
       indint = intIndicesp[noint];
       i = indint;
       for (E_Int eq = 1; eq <= nfld; eq++)      
-        (*fnodes)(nov,eq) = 0.5*((*f)(i,eq)+(*f)(i+1,eq));
-      for (E_Int eq = 1; eq <= nfldc; eq++)
-        (*fcenters)(nov,eq) = (*fc)(indint,eq);      
+        (*fnodes)(nov,eq) = (*f)(i,eq);
+      if (i == 0)
+      {
+        for (E_Int eq = 1; eq <= nfldc; eq++)
+          (*fcenters)(nov,eq) = (*fc)(i,eq); 
+      }
+      else if (i == ni-1)
+      {
+        for (E_Int eq = 1; eq <= nfldc; eq++)
+          (*fcenters)(nov,eq) = (*fc)(i-1,eq); 
+      }
+      else
+      {
+        for (E_Int eq = 1; eq <= nfldc; eq++)
+          (*fcenters)(nov,eq) = 0.5*((*fc)(i,eq)+(*fc)(i-1,eq));
+      }
       nov++;
     }
     tplN = K_ARRAY::buildArray(*fnodes, varString, *connect, -1, newEltType);

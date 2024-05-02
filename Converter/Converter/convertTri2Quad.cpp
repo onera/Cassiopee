@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -39,7 +39,7 @@ PyObject* K_CONVERTER::convertTri2Quad(PyObject* self, PyObject* args)
 {
   PyObject* pArray;
   E_Float angle;
-  if (!PYPARSETUPLEF(args, "Od", "Of", &pArray, &angle)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ R_, &pArray, &angle)) return NULL;
  
   // Check array
   E_Int ni, nj, nk;

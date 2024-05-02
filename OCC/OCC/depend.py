@@ -17,22 +17,22 @@ dic = {}
 
 # cherche les includes: ajoute le fichier cxx + le fichier include
 def checkDepend(file, dic):
-    #print 'Checking %s'%file
+    #print('Checking %s'%file)
     dic[file] = 1
     f = None
     for i in DIRS:
         try:
             f = open(i+'/'+file, "r")
-            print 'Found %s.'%(i+'/'+file)
+            print('Found %s.'%(i+'/'+file))
             break
         except: pass 
-    if (f == None): 
-        print 'File %s not found.'%file ; return
+    if f is None: 
+        print('File %s not found.'%file); return
 
     lines = f.readlines()
     for i in lines:
         r = exp.search(i)
-        if (r != None):
+        if r is not None:
             i = i.replace("#include", "")
             i = i.replace("\"","")
             i = i.replace(" ","")
@@ -40,12 +40,12 @@ def checkDepend(file, dic):
             i = i.replace("\r","")
             i = i.replace("<","")
             i = i.replace(">","")
-            if dic.has_key(i) == False: dic[i] = 0 # add include file
+            if i not in dic: dic[i] = 0 # add include file
             
             c = i.replace("hxx", "cxx")
-            if dic.has_key(c) == False: dic[c] = 0 # add cxx file
+            if c not in dic: dic[c] = 0 # add cxx file
             d = i.replace("hxx", "dxx")
-            if dic.has_key(c) == False: dic[c] = 0 # add cxx file
+            if c not in dic: dic[c] = 0 # add cxx file
     f.close()
 
 #==============================================================================
@@ -58,8 +58,8 @@ def rebuild(dic):
         # find orig
         name = None
         for i in DIRS:
-            if os.access(i+'/'+k, os.R_OK) == True:
-                #print 'Found %s.'%(i+'/'+k)
+            if os.access(i+'/'+k, os.R_OK):
+                #print('Found %s.'%(i+'/'+k))
                 name = i+'/'+k
                 names.append(name)
                 break
@@ -69,14 +69,14 @@ def rebuild(dic):
         base = n.split('/')[0]
         if (base != '.'):
             shutil.copyfile(n, target);
-            print 'copy %s -> %s'%(n, target)
+            print('copy %s -> %s'%(n, target))
     
 #==============================================================================
 # Ecrit les sources (.cxx) par modules
 #============================================================================== 
 def writeSources(dic):
     keys = dic.keys()
-    print '== Sources (%d) =='%len(keys)
+    print('== Sources (%d) =='%len(keys))
     sources = {}
     for i in MODS: sources[i] = []
 
@@ -85,8 +85,8 @@ def writeSources(dic):
         # find orig
         name = None
         for i in DIRS:
-            if os.access(i+'/'+k, os.R_OK) == True:
-                #print 'Found %s.'%(i+'/'+k)
+            if os.access(i+'/'+k, os.R_OK):
+                #print('Found %s.'%(i+'/'+k))
                 name = i+'/'+k
                 names.append(name)
                 break
@@ -95,14 +95,14 @@ def writeSources(dic):
         spl = n.split('/')
         last = spl[-1]
         last = last.split('.')
-        if (len(last) == 2 and last[1] == 'cxx'):
+        if len(last) == 2 and last[1] == 'cxx':
             for i in MODS:
-                if (spl[1] == i): sources[i] += [n]
+                if spl[1] == i: sources[i] += [n]
 
     for i in MODS:
-        print '%s_srcs = ['%i
-        for k in sources[i]: print '%s,'%k.replace('occ_src', 'OCC_SRC')
-        print ' ]'
+        print('%s_srcs = ['%i)
+        for k in sources[i]: print('%s,'%k.replace('occ_src', 'OCC_SRC'))
+        print(' ]')
 #==============================================================================
 
 checkDepend('import_OCC_CAD_wrapper.cpp', dic)
@@ -114,7 +114,7 @@ while end == False:
     keys = dic.keys() ; l = len(keys) ; update = 0
     for k in keys: 
         if (dic[k] == 0): checkDepend(k, dic) ; update = 1
-    if (update == 0): end = True
+    if update == 0: end = True
 
 rebuild(dic)
 writeSources(dic)

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -17,6 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 # include "CompGeom/compGeom.h"
+# include "String/kstring.h"
 # include <stdio.h>
 # include <stdlib.h>
 
@@ -264,8 +265,8 @@ void K_COMPGEOM::compDimOfCartElts(E_Int dir, E_Int ni, E_Int nj, E_Int nk,
       nbElts1 = nx;
       nbElts2 = ny;
       break;
-    default :
-      printf("Error: compDimOfCartElts: bad dir value: %d.", dir);
+    default:
+      printf("Error: compDimOfCartElts: bad dir value: " SF_D_ ".", dir);
       exit(0);
   }
 }

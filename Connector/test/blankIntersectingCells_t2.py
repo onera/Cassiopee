@@ -13,7 +13,7 @@ for i in range(1,d[2]+1): d[1][0,i-1] = 0.01*i
 # structure
 s = D.sphere6((0,0,0), 1.,N=10)
 A = []; Ac = []
-for i in xrange(len(s)):
+for i in range(len(s)):
     a = G.addNormalLayers(s[i], d)
     ac = C.node2Center(a); ac = C.initVars(ac,'cellN',1)
     Ac.append(ac); A.append(a)
@@ -23,7 +23,7 @@ test.testA(res,1)
 # non structure hexa
 sh = C.convertArray2Hexa(s)
 A = []; Ac = []
-for i in xrange(len(sh)):
+for i in range(len(sh)):
     a = G.addNormalLayers(sh[i], d)
     ac = C.node2Center(a); ac = C.initVars(ac,'cellN',1)
     Ac.append(ac); A.append(a)
@@ -33,7 +33,7 @@ test.testA(res,2)
 # non structure penta
 st = C.convertArray2Tetra(s)
 A = []; Ac = []
-for i in xrange(len(st)):
+for i in range(len(st)):
     a = G.addNormalLayers(st[i], d)
     ac = C.node2Center(a); ac = C.initVars(ac,'cellN',1)
     Ac.append(ac); A.append(a)
@@ -50,7 +50,7 @@ for i in range(1,d[2]+1):
 # structure
 s = D.sphere6((0,0,0), 1.,10)
 A = []; Ac = []
-for i in xrange(len(s)):
+for i in range(len(s)):
     a = G.addNormalLayers(s[i], d)
     ac = C.node2Center(a); ac = C.initVars(ac,'cellN',1)
     Ac.append(ac); A.append(a)
@@ -60,7 +60,7 @@ test.testA(res,4)
 # non structure hexa
 sh = C.convertArray2Hexa(s)
 A = []; Ac = []
-for i in xrange(len(s)):
+for i in range(len(s)):
     a = G.addNormalLayers(s[i], d)
     ac = C.node2Center(a); ac = C.initVars(ac,'cellN',1)
     Ac.append(ac); A.append(a)
@@ -70,7 +70,7 @@ test.testA(res,5)
 # non structure tetra
 st = C.convertArray2Tetra(s)
 A = []; Ac = []
-for i in xrange(len(s)):
+for i in range(len(s)):
     a = G.addNormalLayers(s[i], d)
     ac = C.node2Center(a); ac = C.initVars(ac,'cellN',1)
     Ac.append(ac); A.append(a)

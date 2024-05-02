@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2017 Onera.
 
     This file is part of Cassiopee.
@@ -18,7 +18,7 @@
 */
 #ifndef _KCORE_UNIQUE_PTR_HPP_
 #define _KCORE_UNIQUE_PTR_HPP_
-#if __cplusplus > 199711L
+#if __cplusplus >= 201103L
 # include <memory>
 namespace K_MEMORY {
     template<typename K>

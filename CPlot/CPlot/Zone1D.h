@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -30,11 +30,11 @@ public:
   ~Zone1D();
 
 public:
-  int _np; // nbre de pts dans f
-  int _nv; // nombre de variables dans f
-  int _ne; // nbre d'elements dans la BAR
+  E_Int _np; // nbre de pts dans f
+  E_Int _nv; // nombre de variables dans f
+  E_Int _ne; // nbre d'elements dans la BAR
   double* _f; // champ des variables
-  int* _cn; // connectivite
+  E_Int* _cn; // connectivite
   char** _varNames; // nom des variables
 };
 

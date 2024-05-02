@@ -1,18 +1,19 @@
 #! /bin/sh
-# install     : installe tous les modules
-# install doc : installe les docs
+# install     : compile et installe tous les modules
+# install doc : installe uniquement les docs
+# install opensource : compile et installe la version open-source
 # install all : installe les modules + docs
 if ([ $# -eq 0 ])
 then
     if [ "$CASSIOPEE" = "" ]; then
         echo "You must specify a CASSIOPEE variable in your environment."
         echo "This variable specifies the installation path of *Cassiopee*."
-        exit
+        exit 1
     fi
     if [ "$ELSAPROD" = "" ]; then
         echo "You must specify a ELSAPROD in your environment."
         echo "This variable identifies the processor type."
-        exit
+        exit 1
     fi
     INSTALLPATH="$CASSIOPEE/Dist/bin/$ELSAPROD"
 
@@ -21,16 +22,24 @@ then
     if [ "$ELSAPROD" = "" ]; then
         echo "You must specify a ELSAPROD in your environment."
         echo "This variable identifies the processor type."
-        exit
+        exit 1
     fi
     INSTALLPATH="$1"
 else
     echo 'install: install in $CASSIOPEE/Dist/bin/$ELSAPROD'
     echo 'install <dir>: install in directory <dir>.'
-    exit
+    exit 1
 fi
 
 . ./MODULES
+
+if [ "$PYTHONEXE" = "" ]; then
+    export PYTHONEXE=python
+fi
+
+if [ "$1" = "opensource" ]; then
+    $PYTHONEXE $CASSIOPEE/Apps/util/STUBS/stubs.py stubit
+fi
 
 for mod in $FULLMODULES
 do
@@ -39,17 +48,13 @@ do
       cd $mod
       if [ "$1" = "" -o "$1" = "all" ]; then
           ./install
+          [ $? != 0 ] && exit 1;
       fi
       if [ "$1" = "doc" -o "$1" = "all" ]; then
-          if [ "$mod" = "Converter" -o "$mod" = "Geom" -o "$mod" = "Transform" -o "$mod" = "Generator" -o "$mod" = "Intersector" -o "$mod" = "Initiator" -o "$mod" = "CPlot" -o "$mod" = "Dist2Walls" -o "$mod" = "RigidMotion" -o "$mod" = "Compressor" -o "$mod" = "Distributor2" ]; then
-              cd doc2
-              ./install 1 2
-              cd ..
-          else
-              cd doc
-              ./install 1 2
-              cd ..
-          fi
+          cd doc
+          ./install 1 2
+          [ $? != 0 ] && exit 1;
+          cd ..
       fi
       cd ..
   else
@@ -57,14 +62,18 @@ do
   fi
 done
 
+if [ "$1" = "opensource" ]; then
+    $PYTHONEXE $CASSIOPEE/Apps/util/STUBS/stubs.py unstubit
+fi
+
 # Fini avec la doc KCore pour genindex...
 if [ "$1" = "doc" -o "$1" = "all" ]; then
-    cd KCore/doc2
+    cd KCore/doc
     ./install 1 2
+    [ $? != 0 ] && exit 1;
     cd ../..
 fi
 
 # Installation des fichiers d'environnement
 cp Envs/env_Cassiopee* "$CASSIOPEE"/Dist
 cp Envs/sh_Cassiopee*  "$CASSIOPEE"/Dist
-cp ../util/kpython "$CASSIOPEE"/Dist/bin/"$ELSAPROD"

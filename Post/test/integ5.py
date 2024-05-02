@@ -28,7 +28,7 @@ for a in arrays :
     ni = a[2]
     nj = a[3]
     nk = a[4]
-    print ni, nj, nk
+    print(ni, nj, nk)
     dens = ones( (1, (ni-1) * (nj-1) * (nk-1)), float64 )    
 #    dens = ones( (3, (ni-1) * (nj-1) * (nk-1)), float64 )    
     densa = ['t', dens, (ni-1), (nj-1), (nk-1)]  # en centres
@@ -38,6 +38,4 @@ for a in arrays :
 
 res = P.integ(A,data,[])
 #res = P.integNormProduct(A, data,[])
-print res
-
-
+print(res)

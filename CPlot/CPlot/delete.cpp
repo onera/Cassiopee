@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -38,7 +38,7 @@ using namespace K_FLD;
 PyObject* K_CPLOT::deletez(PyObject* self, PyObject* args)
 {
   PyObject* l;
-  if (!PyArg_ParseTuple(args, "O", &l)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &l)) return NULL;
   
   Data* d = Data::getInstance();
   FldArrayI deleted;
@@ -52,17 +52,40 @@ PyObject* K_CPLOT::deletez(PyObject* self, PyObject* args)
     for (E_Int i = 0; i < size; i++)
     {
       tpl = PyList_GetItem(l, i);
-      if (PyLong_Check(tpl) != 0 || PyInt_Check(tpl) != 0)
+      if (PyLong_Check(tpl) || PyInt_Check(tpl))
         deleted[i] = PyLong_AsLong(tpl);
-      else if (PyString_Check(tpl) != 0)
+      else if (PyString_Check(tpl))
       {
         char* name = PyString_AsString(tpl);
+        deleted[i] = -1;
         for (E_Int j = 0; j < d->_numberOfZones; j++)
         {
           if (strcmp(d->_zones[j]->zoneName, name) == 0) 
           { deleted[i] = j; break; }
         }
+        if (deleted[i] == -1) 
+        {
+          printf("Warning: delete: zone to delete was not found.\n"); fflush(stdout);
+          deleted[i] = 0; // may be a pb
+        }
       }
+#if PY_VERSION_HEX >= 0x03000000
+      else if (PyUnicode_Check(tpl))
+      {
+        deleted[i] = -1;
+        const char* name = PyUnicode_AsUTF8(tpl);
+        for (E_Int j = 0; j < d->_numberOfZones; j++)
+        {
+          if (strcmp(d->_zones[j]->zoneName, name) == 0) 
+          { deleted[i] = j; break; }
+        } 
+        if (deleted[i] == -1) 
+        {
+          printf("Warning: delete: zone to delete was not found.\n"); fflush(stdout);
+          deleted[i] = 0; // may be a pb
+        }
+      }
+#endif
       else
       {
         PyErr_SetString(PyExc_TypeError, 
@@ -71,12 +94,20 @@ PyObject* K_CPLOT::deletez(PyObject* self, PyObject* args)
       }
     }
   }
-  else if (PyString_Check(l) == true) // string -> delete all
+  else if (PyString_Check(l)) // string -> delete all
   {
     size = d->_numberOfZones;
     deleted.malloc(size);
     for (E_Int i = 0; i < size ; i++) deleted[i] = i;
   }
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(l))
+  {
+    size = d->_numberOfZones;
+    deleted.malloc(size);
+    for (E_Int i = 0; i < size ; i++) deleted[i] = i;   
+  }
+#endif
   else
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -86,10 +117,10 @@ PyObject* K_CPLOT::deletez(PyObject* self, PyObject* args)
 
   // Suppression DL
   d->ptrState->syncGPURes();
-  for (int i = 0; i < size; i++)
+  for (E_Int i = 0; i < size; i++)
   {
     Zone* z = d->_zones[deleted[i]];
-    z->freeGPURessources( false, false );
+    z->freeGPURessources(false, false);
   }
 
   // Suppression de la zone
@@ -127,12 +158,11 @@ PyObject* K_CPLOT::deletez(PyObject* self, PyObject* args)
 
   // malloc pointeurs
   Zone** zones = (Zone**)malloc(numberOfZones*sizeof(Zone*));
-  StructZone** szones = (StructZone**)malloc(numberOfStructZones*
-                                             sizeof(StructZone*));
-  UnstructZone** uzones = (UnstructZone**)malloc(numberOfUnstructZones*
-                                                 sizeof(UnstructZone*));
-  int mustDel;
-  int c = 0;
+  StructZone** szones = (StructZone**)malloc(numberOfStructZones*sizeof(StructZone*));
+  UnstructZone** uzones = (UnstructZone**)malloc(numberOfUnstructZones*sizeof(UnstructZone*));
+  
+  E_Int mustDel;
+  E_Int c = 0;
   for (E_Int i = 0; i < d->_numberOfStructZones; i++)
   {
     mustDel = 0;
@@ -154,6 +184,49 @@ PyObject* K_CPLOT::deletez(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < numberOfUnstructZones; i++)
     zones[i+numberOfStructZones] = uzones[i];
 
+  // Renumerotation de deactivatedZones
+  if (d->ptrState->deactivatedZones != NULL)
+  {
+    E_Int* old2new = new E_Int [d->_numberOfZones];
+    c = 0;
+    for (E_Int i = 0; i < d->_numberOfZones; i++)
+    {
+      mustDel = 0;
+      for (E_Int j = 0; j < size; j++)
+        if (i == deleted[j]) {mustDel = 1; break;}
+      if (mustDel == 0) { old2new[i] = c; c++; }
+      else old2new[i] = -1;
+    }
+    
+    chain_int* c = d->ptrState->deactivatedZones;
+    chain_int* cp = NULL;
+    chain_int* cn = c;
+    E_Int oldn, newn;
+    while (c != NULL)
+    {
+      oldn = c->value-1;
+      oldn = MIN(oldn, d->_numberOfZones-1); // securite
+      newn = old2new[oldn];
+      if (newn == -1) 
+      { 
+        if (cp == NULL) d->ptrState->deactivatedZones = c->next;
+        else cp->next = c->next;
+        cn = c;
+        free(c);
+        c = cn->next;
+      }
+      else 
+      { 
+        cp = c;
+        c->value = newn+1; 
+        c = c->next; 
+      }
+    }
+      
+    delete [] old2new;
+    //d->ptrState->printDeactivatedZones();
+  }
+  
   // Switch - Dangerous zone protegee par _state.lock
   if (d->ptrState->selectedZone >= numberOfZones)
     d->ptrState->selectedZone = 0; // RAZ selected zone
@@ -174,5 +247,6 @@ PyObject* K_CPLOT::deletez(PyObject* self, PyObject* args)
   // Free
   for (E_Int i = 0; i < size; i++) delete zonesp[deleted[i]];
   free(szonesp); free(uzonesp); free(zonesp);
+  
   return Py_BuildValue("i", KSUCCESS);
 }

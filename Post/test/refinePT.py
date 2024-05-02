@@ -2,7 +2,6 @@
 import Post.PyTree as P
 import Converter.PyTree as C
 import Generator.PyTree as G
-import Geom.PyTree as D
 
 # Linear with indicator field
 a = G.cartTetra((0,0,0), (1,1,1), (10,10,1))

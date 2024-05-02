@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -19,7 +19,7 @@
 
 # include "compGeom.h"
 # include <stdio.h>
-# include "MeshElement/Triangle.h"
+# include "Nuga/include/Triangle.h"
 
 using namespace std;
 
@@ -100,8 +100,8 @@ E_Int K_COMPGEOM::crossIntersectionOfTriangles(
 //=============================================================================
 /* Compute triangle-triangle intersection par l'algorithme de Moller
    IN: ptA, ptB, ptC sommets des 2 triangles 
-   OUT:  0: pas d intersection
-          1: intersection sur une ligne: les 2 intervalles s intersectent
+   OUT:  0: pas d'intersection
+          1: intersection sur une ligne: les 2 intervalles s'intersectent
          -1: intersection en un point commun
          -2: intersection sur une arete commune
          -3: coplanaires et intersectants */
@@ -182,12 +182,12 @@ E_Int K_COMPGEOM::trianglesIntersection(
   // un sommet commun 
   if (nc1 == 1) return testCommonVertexIntersection(ptA1, ptB1, ptC1, ptA2, ptB2, ptC2, 
                                                     resA1, resB1, resC1, resA2, resB2, resC2, tol);
-  if ( nc2 == 1 ) return testCommonVertexIntersection(ptA2, ptB2, ptC1, ptA1, ptB1, ptC1, 
+  if (nc2 == 1) return testCommonVertexIntersection(ptA2, ptB2, ptC1, ptA1, ptB1, ptC1, 
                                                       resA2, resB2, resC2, resA1, resB1, resC1, tol); 
   // une arete d un triangle dans le plan de l autre triangle 
-  if ( nc1 == 2 ) return testCommonEdgeIntersection(ptA2, ptB2, ptC2, ptA1, ptB1, ptC1, 
+  if (nc1 == 2) return testCommonEdgeIntersection(ptA2, ptB2, ptC2, ptA1, ptB1, ptC1, 
                                                     resA2, resB2, resC2, resA1, resB1, resC1, N2, tol);
-  if ( nc2 == 2 ) return testCommonEdgeIntersection(ptA1, ptB1, ptC1, ptA2, ptB2, ptC2, 
+  if (nc2 == 2) return testCommonEdgeIntersection(ptA1, ptB1, ptC1, ptA2, ptB2, ptC2, 
                                                     resA1, resB1, resC1, resA2, resB2, resC2, N1, tol);
 
   //5- Non coplanaires : calcule la ligne d intersection + projection
@@ -302,7 +302,7 @@ E_Int K_COMPGEOM::getTypeOfSegmentIntersection(E_Float* P1T1, E_Float* P2T1,
   return 0;
 }
 //=============================================================================
-/* Teste si 2 triangles coplanaires s intersectent 
+/* Teste si 2 triangles coplanaires s'intersectent 
    Retourne  0 si pas d intersection 
    Retourne -1 si intersection en au moins un point different d un sommet 
    Retourne  1 si intersection en un sommet 
@@ -400,10 +400,9 @@ E_Int K_COMPGEOM::testCoplanarTrianglesIntersection(
   okt[8] = getTypeOfSegmentIntersection(P1T1, P2T1, P1T2, P2T2, eps);
 
   //cas ou un pt interieur est intersection
+  for (E_Int i = 0; i < 9; i++) { if (okt[i] == -1) return -1; }
   for (E_Int i = 0; i < 9; i++)
-  {if ( okt[i] == -1 ) return -1;}
-  for (E_Int i = 0; i < 9; i++)
-  {if ( okt[i] != 0 ) return okt[i];}// cas possibles 1, 2, -2
+  { if (okt[i] != 0) return okt[i]; }// cas possibles 1, 2, -2
 
   /* 2e passage : test si T1 interieur a T2 */
   E_Float* Ball = NULL; E_Float* BB = NULL;
@@ -411,14 +410,14 @@ E_Int K_COMPGEOM::testCoplanarTrianglesIntersection(
   P2T2[0] = uB2; P2T2[1] = vB2; P2T2[2] = wB2; 
   P3T2[0] = uC2; P3T2[1] = vC2; P3T2[2] = wC2; 
   P1T1[0] = uA1; P1T1[1] = vA1; P1T1[2] = wA1;
-  if ( pointInTriangle2D(P1T2, P2T2, P3T2, P1T1, Ball, BB) == 1 ) return 1;
+  if (pointInTriangle2D(P1T2, P2T2, P3T2, P1T1, Ball, BB) == 1) return 1;
                        
   /* 3e passage : test si T2 interieur a T1 */
   P1T2[0] = uA1; P1T2[1] = vA1; P1T2[2] = wA1; 
   P2T2[0] = uB1; P2T2[1] = vB1; P2T2[2] = wB1; 
   P3T2[0] = uC1; P3T2[1] = vC1; P3T2[2] = wC1; 
   P1T1[0] = uA2; P1T1[1] = vA2; P1T1[2] = wA2;
-  if ( pointInTriangle2D(P1T2, P2T2, P3T2, P1T1, Ball,BB) == 1 ) return 1; 
+  if (pointInTriangle2D(P1T2, P2T2, P3T2, P1T1, Ball,BB) == 1) return 1; 
   return 0;
 }
 
@@ -441,7 +440,7 @@ E_Int K_COMPGEOM::testCommonVertexIntersection(
     dist1 = (ptC2[0]-ptA1[0])*(ptC2[0]-ptA1[0]) + (ptC2[1]-ptA1[1])*(ptC2[1]-ptA1[1])+ (ptC2[2]-ptA1[2])*(ptC2[2]-ptA1[2]);
     if (K_FUNC::fEqualZero(dist1,eps2) == true) return 1;
   }
-  else if ( K_FUNC::fEqualZero(resB1,eps) == true) 
+  else if (K_FUNC::fEqualZero(resB1,eps) == true) 
   {
     dist1 = (ptA2[0]-ptB1[0])*(ptA2[0]-ptB1[0]) + (ptA2[1]-ptB1[1])*(ptA2[1]-ptB1[1])+ (ptA2[2]-ptB1[2])*(ptA2[2]-ptB1[2]);
     if ( K_FUNC::fEqualZero(dist1,eps2) == true ) return 1;
@@ -450,20 +449,20 @@ E_Int K_COMPGEOM::testCommonVertexIntersection(
     dist1 = (ptC2[0]-ptB1[0])*(ptC2[0]-ptB1[0]) + (ptC2[1]-ptB1[1])*(ptC2[1]-ptB1[1])+ (ptC2[2]-ptB1[2])*(ptC2[2]-ptB1[2]);
     if ( K_FUNC::fEqualZero(dist1,eps2) == true ) return 1;
   }
-  else if ( K_FUNC::fEqualZero(resC1,eps) == true) 
+  else if (K_FUNC::fEqualZero(resC1,eps) == true) 
   {
     dist1 = (ptA2[0]-ptC1[0])*(ptA2[0]-ptC1[0]) + (ptA2[1]-ptC1[1])*(ptA2[1]-ptC1[1])+ (ptA2[2]-ptC1[2])*(ptA2[2]-ptC1[2]);
-    if ( K_FUNC::fEqualZero(dist1,eps2) == true ) return 1;
+    if (K_FUNC::fEqualZero(dist1,eps2) == true) return 1;
     dist1 = (ptB2[0]-ptC1[0])*(ptB2[0]-ptC1[0]) + (ptB2[1]-ptC1[1])*(ptB2[1]-ptC1[1])+ (ptB2[2]-ptC1[2])*(ptB2[2]-ptC1[2]);
-    if ( K_FUNC::fEqualZero(dist1,eps2) == true ) return 1;
+    if (K_FUNC::fEqualZero(dist1,eps2) == true) return 1;
     dist1 = (ptC2[0]-ptC1[0])*(ptC2[0]-ptC1[0]) + (ptC2[1]-ptC1[1])*(ptC2[1]-ptC1[1])+ (ptC2[2]-ptC1[2])*(ptC2[2]-ptC1[2]);
-    if ( K_FUNC::fEqualZero(dist1,eps2) == true ) return 1;
+    if (K_FUNC::fEqualZero(dist1,eps2) == true) return 1;
   }
   return 0;
 }
 //=============================================================================
 /* 4 possibilites : coincidence des aretes, intersection sur un segment 
-   interieur, en un point ou pas d'intersection*/
+   interieur, en un point ou pas d'intersection */
 //=============================================================================
 E_Int K_COMPGEOM::testCommonEdgeIntersection(
   E_Float* ptA1, E_Float* ptB1, E_Float* ptC1,
@@ -480,7 +479,7 @@ E_Int K_COMPGEOM::testCommonEdgeIntersection(
   E_Float nx = K_FUNC::E_abs(N1[0]);
   E_Float ny = K_FUNC::E_abs(N1[1]);
   E_Float nz = K_FUNC::E_abs(N1[2]);
-  if ( nx > ny-eps2 && nx >nz-eps2 ) // projete sur plan x
+  if (nx > ny-eps2 && nx > nz-eps2) // projete sur plan x
   {
     uA1[0] = ptA1[1]; uA1[1] = ptA1[2]; uA1[2] = ptA1[0]; 
     uB1[0] = ptB1[1]; uB1[1] = ptB1[2]; uB1[2] = ptB1[0]; 
@@ -489,7 +488,7 @@ E_Int K_COMPGEOM::testCommonEdgeIntersection(
     uB2[0] = ptB2[1]; uB2[1] = ptB2[2]; uB2[2] = ptB2[0];
     uC2[0] = ptC2[1]; uC2[1] = ptC2[2]; uC2[2] = ptC2[0];
   }
-  else if ( ny > nx-eps2 && ny >nz-eps2 )// projete sur plan y
+  else if (ny > nx-eps2 && ny > nz-eps2) // projete sur plan y
   {
     uA1[0] = ptA1[2]; uA1[1] = ptA1[0]; uA1[2] = ptA1[1]; 
     uB1[0] = ptB1[2]; uB1[1] = ptB1[0]; uB1[2] = ptB1[1]; 
@@ -498,7 +497,7 @@ E_Int K_COMPGEOM::testCommonEdgeIntersection(
     uB2[0] = ptB2[2]; uB2[1] = ptB2[0]; uB2[2] = ptB2[1]; 
     uC2[0] = ptC2[2]; uC2[1] = ptC2[0]; uC2[2] = ptC2[1];
   }
-  else if ( nz > nx-eps2 && nz >ny-eps2 )// projete sur plan z
+  else if (nz > nx-eps2 && nz >ny-eps2) // projete sur plan z
   {
     uA1[0] = ptA1[0]; uA1[1] = ptA1[1]; uA1[2] = ptA1[2]; 
     uB1[0] = ptB1[0]; uB1[1] = ptB1[1]; uB1[2] = ptB1[2]; 
@@ -508,34 +507,34 @@ E_Int K_COMPGEOM::testCommonEdgeIntersection(
     uC2[0] = ptC2[0]; uC2[1] = ptC2[1]; uC2[2] = ptC2[2];
   }
   //1- arete B2C2 dans le plan de T1
-  if ( K_FUNC::E_abs(resB2)<eps && K_FUNC::E_abs(resC2)<eps) 
+  if (K_FUNC::E_abs(resB2)<eps && K_FUNC::E_abs(resC2) < eps) 
   {
     ok[0] = getTypeOfSegmentIntersection(uB1, uC1, uB2, uC2, eps);
     ok[1] = getTypeOfSegmentIntersection(uA1, uC1, uB2, uC2, eps);
     ok[2] = getTypeOfSegmentIntersection(uA1, uB1, uB2, uC2, eps);
-    if ( K_FUNC::E_abs(ok[0]) > K_FUNC::E_abs(ok[1]) ) ok0 = ok[0];
+    if (K_FUNC::E_abs(ok[0]) > K_FUNC::E_abs(ok[1])) ok0 = ok[0];
     else ok0 = ok[1];
-    if ( K_FUNC::E_abs(ok[2]) > K_FUNC::E_abs(ok0 ) ) ok0 = ok[2];
+    if (K_FUNC::E_abs(ok[2]) > K_FUNC::E_abs(ok0)) ok0 = ok[2];
   }
   //2- arete A2C2 dans le plan de T1
-  if ( K_FUNC::E_abs(resA2)<eps && K_FUNC::E_abs(resC2)<eps) 
+  if (K_FUNC::E_abs(resA2)<eps && K_FUNC::E_abs(resC2) < eps) 
   {
     ok[0] = getTypeOfSegmentIntersection(uB1, uC1, uA2, uC2, eps);
     ok[1] = getTypeOfSegmentIntersection(uA1, uC1, uA2, uC2, eps);
     ok[2] = getTypeOfSegmentIntersection(uA1, uB1, uA2, uC2, eps);
-    if ( K_FUNC::E_abs(ok[0]) > K_FUNC::E_abs(ok[1]) ) ok0 = ok[0];
+    if (K_FUNC::E_abs(ok[0]) > K_FUNC::E_abs(ok[1])) ok0 = ok[0];
     else ok0 = ok[1];
-    if ( K_FUNC::E_abs(ok[2]) > K_FUNC::E_abs(ok0 ) ) ok0 = ok[2];
+    if (K_FUNC::E_abs(ok[2]) > K_FUNC::E_abs(ok0 )) ok0 = ok[2];
   }
   //3- arete A2B2 dans le plan de T1
-  if ( K_FUNC::E_abs(resB2)<eps && K_FUNC::E_abs(resA2)<eps) 
+  if (K_FUNC::E_abs(resB2)<eps && K_FUNC::E_abs(resA2) < eps) 
   {
     ok[0] = getTypeOfSegmentIntersection(uB1, uC1, uB2, uA2, eps);
     ok[1] = getTypeOfSegmentIntersection(uA1, uC1, uB2, uA2, eps);
     ok[2] = getTypeOfSegmentIntersection(uA1, uB1, uB2, uA2, eps);
-    if ( K_FUNC::E_abs(ok[0]) > K_FUNC::E_abs(ok[1]) ) ok0 = ok[0];
+    if (K_FUNC::E_abs(ok[0]) > K_FUNC::E_abs(ok[1])) ok0 = ok[0];
     else ok0 = ok[1];
-    if ( K_FUNC::E_abs(ok[2]) > K_FUNC::E_abs(ok0 ) ) ok0 = ok[2];
+    if (K_FUNC::E_abs(ok[2]) > K_FUNC::E_abs(ok0 )) ok0 = ok[2];
   }
   return ok0;
 }

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -27,7 +27,7 @@
 // Return i: si name existe et est en position i. La position etant 
 // determinee suivant les virgules.
 //=============================================================================
-E_Int K_ARRAY::isNamePresent(const char* name, char* myString)
+E_Int K_ARRAY::isNamePresent(const char* name, const char* myString)
 {
   E_Int c = 0;
   E_Int compt;
@@ -68,7 +68,7 @@ E_Int K_ARRAY::isNamePresent(const char* name, char* myString)
 // Return i: si name existe et est en position i. La position etant 
 // determinee suivant les virgules.
 //=============================================================================
-E_Int K_ARRAY::isCoordinateXPresent(char* string)
+E_Int K_ARRAY::isCoordinateXPresent(const char* string)
 {
   E_Int r = K_ARRAY::isNamePresent("CoordinateX", string);
   if (r == -1) r = K_ARRAY::isNamePresent("x", string);
@@ -82,7 +82,7 @@ E_Int K_ARRAY::isCoordinateXPresent(char* string)
 // Return i: si name existe et est en position i. La position etant 
 // determinee suivant les virgules.
 //=============================================================================
-E_Int K_ARRAY::isCoordinateYPresent(char* myString)
+E_Int K_ARRAY::isCoordinateYPresent(const char* myString)
 {
   E_Int r = K_ARRAY::isNamePresent("CoordinateY", myString);
   if (r == -1) r = K_ARRAY::isNamePresent("y", myString);
@@ -96,7 +96,7 @@ E_Int K_ARRAY::isCoordinateYPresent(char* myString)
 // Return i: si name existe et est en position i. La position etant 
 // determinee suivant les virgules.
 //=============================================================================
-E_Int K_ARRAY::isCoordinateZPresent(char* myString)
+E_Int K_ARRAY::isCoordinateZPresent(const char* myString)
 {
   E_Int r = K_ARRAY::isNamePresent("CoordinateZ", myString);
   if (r == -1) r = K_ARRAY::isNamePresent("z", myString);
@@ -111,7 +111,7 @@ E_Int K_ARRAY::isCoordinateZPresent(char* myString)
 // Return i: si name existe et est en position i. La position etant 
 // determinee suivant les virgules.
 //=============================================================================
-E_Int K_ARRAY::isCellNatureField1Present(char* myString)
+E_Int K_ARRAY::isCellNatureField1Present(const char* myString)
 {
   E_Int r = K_ARRAY::isNamePresent("cellN", myString);
   if (r == -1) r = K_ARRAY::isNamePresent("cellnf", myString);
@@ -125,7 +125,7 @@ E_Int K_ARRAY::isCellNatureField1Present(char* myString)
 // Return i: si name existe et est en position i. La position etant 
 // determinee suivant les virgules.
 //=============================================================================
-E_Int K_ARRAY::isCellNatureField2Present(char* myString)
+E_Int K_ARRAY::isCellNatureField2Present(const char* myString)
 {
   E_Int r = K_ARRAY::isNamePresent("cellN", myString);
   if (r == -1) r = K_ARRAY::isNamePresent("cellnf", myString);
@@ -141,7 +141,7 @@ E_Int K_ARRAY::isCellNatureField2Present(char* myString)
 // Return i: si name existe et est en position i. La position etant 
 // determinee suivant les virgules.
 //=============================================================================
-E_Int K_ARRAY::isDensityPresent(char* myString)
+E_Int K_ARRAY::isDensityPresent(const char* myString)
 {
   E_Int r = K_ARRAY::isNamePresent("Density", myString);
   if (r == -1) r = K_ARRAY::isNamePresent("ro", myString);
@@ -155,7 +155,7 @@ E_Int K_ARRAY::isDensityPresent(char* myString)
 // Return i: si name existe et est en position i. La position etant 
 // determinee suivant les virgules.
 //=============================================================================
-E_Int K_ARRAY::isMomentumXPresent(char* myString)
+E_Int K_ARRAY::isMomentumXPresent(const char* myString)
 {
   E_Int r = K_ARRAY::isNamePresent("MomentumX", myString);
   if (r == -1) r = K_ARRAY::isNamePresent("rou", myString);
@@ -170,7 +170,7 @@ E_Int K_ARRAY::isMomentumXPresent(char* myString)
 // Return i: si name existe et est en position i. La position etant 
 // determinee suivant les virgules.
 //=============================================================================
-E_Int K_ARRAY::isMomentumYPresent(char* myString)
+E_Int K_ARRAY::isMomentumYPresent(const char* myString)
 {
   E_Int r = K_ARRAY::isNamePresent("MomentumY", myString);
   if (r == -1) r = K_ARRAY::isNamePresent("rov", myString);
@@ -185,7 +185,7 @@ E_Int K_ARRAY::isMomentumYPresent(char* myString)
 // Return i: si name existe et est en position i. La position etant 
 // determinee suivant les virgules.
 //=============================================================================
-E_Int K_ARRAY::isMomentumZPresent(char* myString)
+E_Int K_ARRAY::isMomentumZPresent(const char* myString)
 {
   E_Int r = K_ARRAY::isNamePresent("MomentumZ", myString);
   if (r == -1) r = K_ARRAY::isNamePresent("row", myString);
@@ -201,7 +201,7 @@ E_Int K_ARRAY::isMomentumZPresent(char* myString)
 // Return i: si name existe et est en position i. La position etant 
 // determinee suivant les virgules.
 //=============================================================================
-E_Int K_ARRAY::isEnergyStagnationDensityPresent(char* myString)
+E_Int K_ARRAY::isEnergyStagnationDensityPresent(const char* myString)
 {
   E_Int r = K_ARRAY::isNamePresent("EnergyStagnationDensity", myString);
   if (r == -1) r = K_ARRAY::isNamePresent("roE", myString);
@@ -216,7 +216,7 @@ E_Int K_ARRAY::isEnergyStagnationDensityPresent(char* myString)
 // Return i: si name existe et est en position i. La position etant 
 // determinee suivant les virgules.
 //=============================================================================
-E_Int K_ARRAY::isVelocityXPresent(char* myString)
+E_Int K_ARRAY::isVelocityXPresent(const char* myString)
 {
   E_Int r = K_ARRAY::isNamePresent("VelocityX", myString);
   if (r == -1) r = K_ARRAY::isNamePresent("vx", myString);
@@ -231,7 +231,7 @@ E_Int K_ARRAY::isVelocityXPresent(char* myString)
 // Return i: si name existe et est en position i. La position etant 
 // determinee suivant les virgules.
 //=============================================================================
-E_Int K_ARRAY::isVelocityYPresent(char* myString)
+E_Int K_ARRAY::isVelocityYPresent(const char* myString)
 {
   E_Int r = K_ARRAY::isNamePresent("VelocityY", myString);
   if (r == -1) r = K_ARRAY::isNamePresent("vy", myString);
@@ -246,7 +246,7 @@ E_Int K_ARRAY::isVelocityYPresent(char* myString)
 // Return i: si name existe et est en position i. La position etant 
 // determinee suivant les virgules.
 //=============================================================================
-E_Int K_ARRAY::isVelocityZPresent(char* myString)
+E_Int K_ARRAY::isVelocityZPresent(const char* myString)
 {
   E_Int r = K_ARRAY::isNamePresent("VelocityZ", myString);
   if (r == -1) r = K_ARRAY::isNamePresent("vz", myString);
@@ -261,7 +261,7 @@ E_Int K_ARRAY::isVelocityZPresent(char* myString)
 // Return i: si name existe et est en position i. La position etant 
 // determinee suivant les virgules.
 //=============================================================================
-E_Int K_ARRAY::isTemperaturePresent(char* myString)
+E_Int K_ARRAY::isTemperaturePresent(const char* myString)
 {
   E_Int r = K_ARRAY::isNamePresent("Temperature", myString);
   if (r == -1) r = K_ARRAY::isNamePresent("Temp", myString);
@@ -275,7 +275,7 @@ E_Int K_ARRAY::isTemperaturePresent(char* myString)
 // Return i: si name existe et est en position i. La position etant 
 // determinee suivant les virgules.
 //=============================================================================
-E_Int K_ARRAY::isPressurePresent(char* myString)
+E_Int K_ARRAY::isPressurePresent(const char* myString)
 {
   E_Int r = K_ARRAY::isNamePresent("Pressure", myString);
   if (r == -1) r = K_ARRAY::isNamePresent("p", myString);
@@ -290,7 +290,7 @@ E_Int K_ARRAY::isPressurePresent(char* myString)
 // Return i: si name existe et est en position i. La position etant 
 // determinee suivant les virgules.
 //=============================================================================
-E_Int K_ARRAY::isTimePresent(char* myString)
+E_Int K_ARRAY::isTimePresent(const char* myString)
 {
   E_Int r = K_ARRAY::isNamePresent("Time", myString);
   if (r == -1) r = K_ARRAY::isNamePresent("t", myString);

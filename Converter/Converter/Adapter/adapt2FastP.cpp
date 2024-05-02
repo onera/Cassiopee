@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -30,7 +30,7 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
 {
   PyObject* NGon; PyObject* NFace; PyObject* PE; PyObject* NGon_intext; PyObject* NFace_intext; PyObject* Ptlist_bc; PyObject* Ptlist_rac; PyObject* Ptlist_racD;
   E_Int nelts;
-  if (!PYPARSETUPLEI(args, "OOOOOOOOl", "OOOOOOOOi", &NGon, &NFace, &PE, &NGon_intext, &NFace_intext, &Ptlist_bc, &Ptlist_rac, &Ptlist_racD, &nelts))
+  if (!PYPARSETUPLE_(args, OOOO_ OOOO_ I_, &NGon, &NFace, &PE, &NGon_intext, &NFace_intext, &Ptlist_bc, &Ptlist_rac, &Ptlist_racD, &nelts))
     return NULL;
 
   // Check numpy NGon
@@ -51,7 +51,7 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
   // Check numpy  Nb face interne/extern (Ngon)
   FldArrayI* cNGon_intext;
   res = K_NUMPY::getFromNumpyArray(NGon_intext, cNGon_intext, true);
-  if (res == 0) { PyErr_SetString(PyExc_TypeError, "adapt2FastP:  Ngon IntExt is invalid."); return NULL; }
+  if (res == 0) { PyErr_SetString(PyExc_TypeError, "adapt2FastP:  NGon IntExt is invalid."); return NULL; }
 
   // Check numpy  Nb elts interne/extern (Nface)
   FldArrayI* cNFace_intext;
@@ -76,7 +76,7 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
   {
     PyObject* ptlistArray  = PyList_GetItem(Ptlist_bc,i); 
     FldArrayI* Ptlist;
-    K_NUMPY::getFromNumpyArray(ptlistArray, Ptlist, true); 
+    K_NUMPY::getFromPointList(ptlistArray, Ptlist, true);
     ipt_ptlist_bc[i]   = Ptlist->begin();
     size_ptlist_bc[i]  = Ptlist->getSize();
     //printf(" fen bc= %d %d %d \n", size_ptlist_bc[i], Ptlist->getSize(),  i);
@@ -85,7 +85,7 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
   {
     PyObject* ptlistArray  = PyList_GetItem(Ptlist_rac,i); 
     FldArrayI* Ptlist;
-    K_NUMPY::getFromNumpyArray(ptlistArray, Ptlist, true); 
+    K_NUMPY::getFromPointList(ptlistArray, Ptlist, true); 
     ipt_ptlist_rac[i]          = Ptlist->begin();
 
     size_ptlist_rac[i]= Ptlist->getSize();
@@ -95,7 +95,7 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
   {
     PyObject* ptlistArray  = PyList_GetItem(Ptlist_racD,i); 
     FldArrayI* Ptlist;
-    K_NUMPY::getFromNumpyArray(ptlistArray, Ptlist, true); 
+    K_NUMPY::getFromPointList(ptlistArray, Ptlist, true); 
     ipt_ptlist_racD[i]         = Ptlist->begin();
 
     size_ptlist_racD[i]= Ptlist->getSize();
@@ -269,7 +269,6 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
     {
       E_Int face          = ipt_ptlist_rac[i][j];
       ipt_ptlist_rac[i][j] = nn[face-1]+1;
-      //printf(" pt rac= %d %d %d %d\n", nn[face-1]+1, face, j,i);
     }
   }
   // modify pointlistdonor Match
@@ -279,7 +278,6 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
     {
       E_Int face          = ipt_ptlist_racD[i][j];
       ipt_ptlist_racD[i][j] = nn[face-1]+1;
-      //printf(" pt rac= %d %d %d %d\n", nn[face-1]+1, face, j,i);
     }
   }
 
@@ -324,7 +322,7 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
   {
     if (PEG[i+ints] == 0)
     {
-      printf(" PEGGGGGGG nul %d %d\n", ints, i);
+      printf(" PEGGGGGGG nul " SF_D2_ "\n", ints, i);
       PEG[i+ints] = nelts+i+1;
     }
 

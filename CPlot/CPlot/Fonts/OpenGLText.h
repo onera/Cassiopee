@@ -32,6 +32,10 @@
 #ifndef OpenGLText_H__
 #define OpenGLText_H__
 
+// some choices
+#define TOPOLOGY_PRIM GL_QUADS
+#define PRIMNUMBER 4
+
 #include <vector>
 
 class OpenGLText
@@ -81,50 +85,41 @@ public:
 
     OpenGLText();
     ~OpenGLText();
-    static void BackupStates();
-    static void RestoreStates();
+    static void backupStates();
+    static void restoreStates();
     void beginString();
     void endString();
     void stringSize(const char *text, float *sz);
-    float drawString( int x, int y, const char * text, int nbLines, unsigned long color);
-    float drawString( int x, int y, const char * text, int nbLines, float * color4f);
+    float drawString(int x, int y, const char* text, int nbLines, unsigned long color);
+    float drawString(int x, int y, const char* text, int nbLines, float *color4f);
     bool init(const char * fontName, int w, int h);
     bool init(unsigned char *imageData, FileHeader *glyphInfos, int w, int h);
     void changeCanvas(int w, int h);
     void changeSize(int w, int h);
 private:
     bool init(int w, int h);
-    static char*         cWidgetVSSource2;
-    static char*         cWidgetFSSource2;
-    unsigned int        c_fontNbChars;
-    unsigned int        c_fontHeight;
-    unsigned int        c_fontWidth;
-    unsigned int        m_widgetProgram;
-    unsigned int        m_vShader;
-    unsigned int        m_fShader;
-    unsigned int        m_canvasVar;
-    unsigned int        m_color;
-    unsigned int        m_depthNFRSVar;
-    unsigned int        m_fontTex;
-    float               m_vertexDepth;
-    int                 m_indexOffset;
-    unsigned int        m_vbo;
-    unsigned int        m_vbosz;
-#ifdef USE_FONT_METRIC_AS_TBO
+    static char*  cWidgetVSSource2;
+    static char*  cWidgetFSSource2;
+    unsigned int  c_fontNbChars;
+    unsigned int  c_fontHeight;
+    unsigned int  c_fontWidth;
+    unsigned int  m_widgetProgram;
+    unsigned int  m_vShader;
+    unsigned int  m_fShader;
+    unsigned int  m_canvasVar;
+    unsigned int  m_color;
+    unsigned int  m_depthNFRSVar;
+    unsigned int  m_fontTex;
+    float         m_vertexDepth;
+    int           m_indexOffset;
+    unsigned int  m_vbo;
+    unsigned int  m_vbosz;
     unsigned int        m_GlyphTexOffset;
     unsigned int        m_boGlyphTexOffset;
     unsigned int        m_texGlyphTexOffset;
     unsigned int        m_locGlyphTexOffset;
-#else
-    unsigned int        locTc;
-#endif
-#ifdef USE_PSEUDO_INSTANCING
     unsigned int        m_locQuads;
     unsigned int        m_texQuads;
-#else
-    unsigned int        locPos;
-    unsigned int        locGlyph;
-#endif
     struct TCanvas
     {
         float w,h;
@@ -136,15 +131,8 @@ private:
     struct Vertex
     {
         float pos[4];
-#ifndef USE_FONT_METRIC_AS_TBO
-        float tc[4];
-#endif
-#ifdef USE_PSEUDO_INSTANCING
         float  iattr;
         float  dummy[3]; // to align with the fact we do 2 texelFetch over vec4
-#else
-        int   iattr;
-#endif
         Vertex()
         { memset(this, 0, sizeof(Vertex)); }
 
@@ -152,13 +140,6 @@ private:
         {
             pos[0] = fx; pos[1] = fy; pos[2] = fz; pos[3] = fw;
         }
-
-#ifndef USE_FONT_METRIC_AS_TBO
-        void setTC( float fx, float fy, float fz, float fw )
-        {
-            tc[0] = fx; tc[1] = fy; tc[2] = fz; tc[3] = fw;
-        }
-#endif
     };
 
     std::vector< Vertex >       m_vertices;

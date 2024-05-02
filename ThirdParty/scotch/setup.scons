@@ -1,0 +1,56 @@
+import os
+import KCore.Dist as Dist
+from KCore.config import *
+#==============================================================================
+# scotch requires:
+# C++ compiler
+#==============================================================================
+opts =['-DCOMMON_FILE_COMPRESS_GZ','-DCOMMON_PTHREAD','-DCOMMON_RANDOM_FIXED_SEED',
+       '-DSCOTCH_RENAME','-DSCOTCH_PTHREAD','-restrict','-DIDXSIZE64',
+       '-DSCOTCH_VERSION_NUM=6','-DSCOTCH_RELEASE_NUM=0','-DSCOTCH_PATCHLEVEL_NUM=6']
+
+# Get prefix from command line
+prefix = ARGUMENTS.get('prefix', '')
+installPath = Dist.getInstallPath(prefix)
+
+# Get compilers from Distutils ================================================
+(cc, cxx, opt, basecflags, ccshared, ldshared, so_ext) = Dist.getDistUtilsCompilers()
+
+# Python ======================================================================
+(pythonVersion, pythonIncDir, pythonLibDir, pythonLibs) = Dist.checkPython()
+
+# Test if numpy exists =======================================================
+(numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
+
+# Setting libraryDirs and libraries ===========================================
+libraryDirs = ['..', '.', pythonLibDir]
+libraries = []
+(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
+(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
+
+# Env =========================================================================
+import srcs
+cpp_srcs = srcs.cpp_srcs
+
+if Dist.getSystem()[0] == 'mingw': tools = ['mingw']
+else: tools = None
+AR = Dist.getAR()
+env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
+                  FORTRAN=f77compiler,
+                  LIBPATH=additionalLibPaths+libraryDirs,
+                  LIBS=libraries+additionalLibs,
+                  CPPPATH=["KCore"]+additionalIncludePaths+[pythonIncDir, numpyIncDir],
+                  CFLAGS=Dist.getCArgs()+opts,
+                  CXXFLAGS=Dist.getCppArgs(),
+                  SHLIBSUFFIX=so_ext, SHLIBPREFIX='',
+                  LINKFLAGS=Dist.getLinkArgs(),
+                  ENV=Dist.getEnvForScons())
+
+#==============================================================================
+
+myMod = env.StaticLibrary('libscotch', source=cpp_srcs)
+modDir = installPath+'/scotch/'
+dp1 = env.Install(modDir, myMod)
+env.Alias(target="install", source=[dp1])

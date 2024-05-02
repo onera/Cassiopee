@@ -1,0 +1,12 @@
+#%Module1.0#####################################################################
+##
+## CASSIOPEE
+##
+module-whatis   "Set the environment for using Cassiopee"
+
+setenv CASSIOPEE /home/benoit/Cassiopee
+setenv ELSAPROD vis_r8
+setenv OMP_NUM_THREADS 16
+prepend-path PATH /home/benoit/Cassiopee/Dist/bin/vis_r8/lib/..
+prepend-path PYTHONPATH /home/benoit/Cassiopee/Dist/bin/vis_r8/lib/python2.7/site-packages
+prepend-path LD_LIBRARY_PATH /home/benoit/Cassiopee/Dist/bin/vis_r8/lib:/home/benoit/Cassiopee/Kernel/lib/vis_r8:/home/benoit/Cassiopee/Dist/bin/vis_r8:/home/benoit/Cassiopee/Dist/bin/vis_r8/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/lib64:/usr/lib64:/usr/local/intel/studio/2015/composer_xe_2015.6.233/debugger/ipt/intel64/lib:/usr/local/intel/studio/2015/composer_xe_2015.6.233/compiler/lib/intel64:/usr/lib64/openmpi/lib:/usr/local/intel/studio/2015/composer_xe_2015.6.233/ipp/lib/intel64:/usr/local/intel/studio/2015/composer_xe_2015.6.233/tbb/lib/intel64/gcc4.4:/usr/local/intel/studio/2015/composer_xe_2015.6.233/mkl/lib/intel64

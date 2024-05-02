@@ -95,6 +95,6 @@ test.testA(A, 12)
 #test.testA(A, 13)
 
 # fmt cedre
-C.convertArrays2File([cart4], LOCAL+'/out.d', 'fmt_cedre')
-A = C.convertFile2Arrays(LOCAL+'/out.d', 'fmt_cedre')
-test.testA(A, 14)
+#C.convertArrays2File([cart4], LOCAL+'/out.d', 'fmt_cedre')
+#A = C.convertFile2Arrays(LOCAL+'/out.d', 'fmt_cedre')
+#test.testA(A, 14)

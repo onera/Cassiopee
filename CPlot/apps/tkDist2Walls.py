@@ -1,5 +1,7 @@
-# - tk interface for Dist2Walls -
-import Tkinter as TK
+# - tkDist2Walls -
+"""Compute distance to walls."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -66,7 +68,7 @@ def compute():
         tp[2][1][2].append(z)
         
     try:
-        if (VARS[2].get() == 'absolute'): signed = 0
+        if VARS[2].get() == 'absolute': signed = 0
         else: signed = 1
         tp = DTW.distance2Walls(tp, walls, type=VARS[0].get(), loc=VARS[3].get(),
                                 signed=signed)
@@ -76,11 +78,11 @@ def compute():
             noz = CTK.Nz[nz]
             CTK.t[2][nob][2][noz] = tp[2][1][2][c]
             c += 1
-        CTK.t = C.fillMissingVariables(CTK.t)
+        #C._fillMissingVariables(CTK.t)
         CTK.TKTREE.updateApp()
         CTK.display(CTK.t)
         CTK.TXT.insert('START', 'Distance to walls computed.\n')
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: dist2Walls')
         CTK.TXT.insert('START', 'Distance to walls failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
@@ -91,9 +93,10 @@ def compute():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkDist2Walls', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Compute wall distance.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkDist2Walls  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Compute wall distance.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -101,8 +104,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkDist2Walls')
@@ -111,17 +114,17 @@ def createApp(win):
     # - VARS -
     # -0- Type de distance -
     V = TK.StringVar(win); V.set('ortho'); VARS.append(V)
-    if CTK.PREFS.has_key('tkDist2WallsType'): 
+    if 'tkDist2WallsType' in CTK.PREFS: 
         V.set(CTK.PREFS['tkDist2WallsType'])
     # -1- Surfaces -
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -2- Signed ou absolute -
     V = TK.StringVar(win); V.set('absolute'); VARS.append(V)
-    if CTK.PREFS.has_key('tkDist2WallsSigned'): 
+    if 'tkDist2WallsSigned' in CTK.PREFS: 
         V.set(CTK.PREFS['tkDist2WallsSigned'])
     # -3- Vars location -
     V = TK.StringVar(win); V.set('nodes'); VARS.append(V)
-    if CTK.PREFS.has_key('tkVariablesLoc'): 
+    if 'tkVariablesLoc' in CTK.PREFS: 
         V.set(CTK.PREFS['tkVariablesLoc'])
 
     # - Surfaces -
@@ -142,20 +145,23 @@ def createApp(win):
     B.grid(row=2, column=0, sticky=TK.EW)
     B = TTK.OptionMenu(Frame, VARS[3], 'nodes', 'centers')
     B.grid(row=2, column=1, sticky=TK.EW)
-
-    C = CTK.infoBulle(parent=B, text='Compute the wall distance.\nTree is modified.')
+    BB = CTK.infoBulle(parent=B, text='Compute the wall distance.\nTree is modified.')
     
 #==============================================================================
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['SolverNoteBook'].add(WIDGETS['frame'], text='tkDist2Walls')
+    except: pass
+    CTK.WIDGETS['SolverNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['SolverNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -181,9 +187,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

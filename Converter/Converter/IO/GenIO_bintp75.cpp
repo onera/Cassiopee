@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -35,7 +35,7 @@ using namespace K_FLD;
 
    IN: ptrFile: opened stream,
    
-   if zone is structured then returns :
+   if zone is structured then returns:
    OUT: dim, ni, nj, nk
    OUT: zoneName
    OUT: dataPacking: 0 (block), 1 (point)
@@ -80,7 +80,7 @@ E_Int K_IO::GenIO::readZoneHeader75(FILE* ptrFile, E_Int& dim,
   }
   strcpy(zoneName, dummy);
   
-  /* Format of zone */
+  /* type of zone */
   fread(&ib, si, 1, ptrFile);
   fmt = ib;
   if (ib <= 1) dataPacking = ib;
@@ -707,7 +707,7 @@ E_Int K_IO::GenIO::tecwrite75(
     E_Int nvar = structField[n]->getNfld();
     if (nvar != n_vartot)
     {
-      printf("Warning: tecwrite: number of variables differs for structured field: %d.\n", n+1);
+      printf("Warning: tecwrite: number of variables differs for structured field: " SF_D_ ".\n", n+1);
       return 1;
     }
   }
@@ -718,7 +718,7 @@ E_Int K_IO::GenIO::tecwrite75(
     E_Int nvar = unstructField[n]->getNfld();
     if (nvar != n_vartot)
     {
-      printf("Warning: tecwrite: number of variables differs for unstructured field: %d.\n",n+1);
+      printf("Warning: tecwrite: number of variables differs for unstructured field: " SF_D_ ".\n",n+1);
       return 1;
     }
   }

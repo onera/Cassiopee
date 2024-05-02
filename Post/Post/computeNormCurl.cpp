@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -48,16 +48,23 @@ PyObject* K_POST::computeNormCurl(PyObject* self, PyObject* args)
   for (int i = 0; i < PyList_Size(vars0); i++)
   {
     PyObject* tpl0 = PyList_GetItem(vars0, i);
-    if (PyString_Check(tpl0) == 0)
+    if (PyString_Check(tpl0))
+    {
+      char* str = PyString_AsString(tpl0);
+      vars.push_back(str);
+    }
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(tpl0)) 
+    {
+      char* str = (char*)PyUnicode_AsUTF8(tpl0);
+      vars.push_back(str);  
+    }
+#endif
+    else
     {
       PyErr_SetString(PyExc_TypeError,
                       "computeNormCurl: varname must be a string.");
       return NULL;
-    }
-    else 
-    {
-      char* str = PyString_AsString(tpl0);
-      vars.push_back(str);
     }
   }
   // Check array

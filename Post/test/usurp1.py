@@ -13,4 +13,4 @@ C.convertArrays2File([m], "out.plt", "bin_tp")
 
 # Basic test case
 import Post as P
-r = P.usurp([m], [c]); print r
+r = P.usurp([m], [c]); print(r)

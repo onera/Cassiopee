@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -32,8 +32,7 @@ PyObject* K_CONNECTOR::_updateNatureForIBM(PyObject* self, PyObject* args)
   char* GridCoordinates; char* FlowSolutionNodes;
   char* FlowSolutionCenters;
   E_Int ibctype;
-  if (!PYPARSETUPLEI(args,
-                    "Olsss", "Oisss",
+  if (!PYPARSETUPLE_(args, O_ I_ SSS_,
                     &zone, &ibctype, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
   {
       return NULL;
@@ -78,7 +77,7 @@ PyObject* K_CONNECTOR::_updateNatureForIBM(PyObject* self, PyObject* args)
   
   E_Float* ptrCellNIBC  = fields[poscellni];
   E_Float* ptrCellNChim = fields[poscellnc];
-  E_Float* ptrCellNFront = fields[poscellnf];
+  //E_Float* ptrCellNFront = fields[poscellnf];
   E_Int imc = K_FUNC::E_max(1,im-1);
   E_Int jmc = K_FUNC::E_max(1,jm-1);
   E_Int kmc = K_FUNC::E_max(1,km-1);
@@ -90,7 +89,7 @@ PyObject* K_CONNECTOR::_updateNatureForIBM(PyObject* self, PyObject* args)
     {
       E_Float& cellNChim = ptrCellNChim[ind];
       E_Float& cellNIBC = ptrCellNIBC[ind];
-      E_Float& cellNFront = ptrCellNFront[ind];
+      //E_Float& cellNFront = ptrCellNFront[ind];
 
       if (cellNChim == 1.)
       {
@@ -107,17 +106,11 @@ PyObject* K_CONNECTOR::_updateNatureForIBM(PyObject* self, PyObject* args)
         if ( cellNIBC == 1 ) cellNIBC = -3.;//~ blanked
       }
 
-      if ( cellNFront != 0.)
-      {
-        if (cellNIBC == -3.) cellNFront = 0.;
-        //   if (cellNIBC == 3.)
-        //   {
-        //     if (cellNChim == 2.) cellNFront = 0.;
-        //     else cellNFront = 1.;
-        //   }
-        //  else if (cellNIBC == 1.) cellNFront = 1.;
-        //   else cellNFront = 0.;// cellNIBC = 2 ou 0 -> front=0
-      }
+      // c est commente : on suppose que les corps IBM n intersectent pas les corps Chimere
+      // if ( cellNFront != 0.)
+      // {
+      //   if (cellNIBC == -3.) cellNFront = 0.;
+      // }
     }
   }
   delete [] eltType;

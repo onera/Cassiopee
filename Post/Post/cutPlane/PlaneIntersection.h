@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -43,8 +43,8 @@ namespace K_POST
    Retourne 0 si erreur interne
 */ 
 short computeStructIntersectionWithPlane( 
-  K_INTERP::InterpAdt* interpData,
-  K_INTERP::InterpAdt::InterpolationType interpType,
+  K_INTERP::InterpData* interpData,
+  K_INTERP::InterpData::InterpolationType interpType,
   E_Float coefa, E_Float coefb, E_Float coefc,
   E_Float coefd, E_Int ni, E_Int nj, E_Int nk,
   E_Int posx, E_Int posy, E_Int posz, E_Int posc,
@@ -58,8 +58,8 @@ short computeStructIntersectionWithPlane(
    tagC = 1 : on recherche l intersection pour la cellule */
 void computeUnstrIntersectionWithPlane(
   E_Float coefa, E_Float coefb, E_Float coefc, E_Float coefd, 
-  K_INTERP::InterpAdt* interpData,
-  K_INTERP::InterpAdt::InterpolationType interpType,
+  K_INTERP::InterpData* interpData,
+  K_INTERP::InterpData::InterpolationType interpType,
   FldArrayI& connect,
   E_Int posx, E_Int posy, E_Int posz, E_Int posc, FldArrayF& field, 
   FldArrayI& tagC,
@@ -73,8 +73,8 @@ void computeUnstrIntersectionWithPlane(
    else insert H if and only if k in [0,1], where k is such that  AH = k.AB 
    cnt is the number for the intersectPts array of the last point inserted*/
 void searchStructIntersectForSegment(
-  K_INTERP::InterpAdt* interpData,
-  K_INTERP::InterpAdt::InterpolationType interpType,
+  K_INTERP::InterpData* interpData,
+  K_INTERP::InterpData::InterpolationType interpType,
   E_Float coefa, E_Float coefb, E_Float coefc, E_Float coefd,
   E_Int ni, E_Int nj, E_Int nk, E_Int indA, 
   E_Int posx, E_Int posy, E_Int posz, E_Int poscelln, 
@@ -96,8 +96,8 @@ void searchUnstrIntersectForSegment(
   E_Float coefa, E_Float coefb, E_Float coefc, E_Float coefd,
   E_Int indA, E_Int indB, E_Int posx, E_Int posy, E_Int posz, E_Int posc,
   E_Float cellVol, FldArrayI& connect, FldArrayF& field, 
-  K_INTERP::InterpAdt* interpData, 
-  K_INTERP::InterpAdt::InterpolationType interpType,
+  K_INTERP::InterpData* interpData, 
+  K_INTERP::InterpData::InterpolationType interpType,
   E_Int& cnt, FldArrayF& intersectPts, FldArrayF& volOfIntersectPts);
 } //fin namespace
 #undef FldArrayF

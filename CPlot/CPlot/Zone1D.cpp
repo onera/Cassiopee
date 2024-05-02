@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -31,7 +31,7 @@ Zone1D::Zone1D(char* varString, K_FLD::FldArrayF& f, K_FLD::FldArrayI& cn)
   _f = new double [_np*_nv];
   for (E_Int i = 0; i < _np*_nv; i++) _f[i] = fp[i];
   E_Int* cnp = cn.begin();
-  _cn = new int [_ne*2];
+  _cn = new E_Int [_ne*2];
   for (E_Int i = 0; i < _ne*2; i++) _cn[i] = cnp[i];
 
   std::vector<char*> vars;

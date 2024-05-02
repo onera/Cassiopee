@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -67,7 +67,7 @@ E_Int K_IO::GenIO::stlread(
   { fclose(ptrFile); return 1;} // cette valeur est arbitraire
   
 
-  // Champ
+  // Champ des vertex
   float buf[12];
   short count;
   FldArrayF* f = new FldArrayF(3*nd, 3);
@@ -142,7 +142,7 @@ E_Int K_IO::GenIO::stlwrite(
     if (eltType[zone] == 2) // triangles
     { nvalidZones++; if (no == -1) no = zone; }
     else
-      printf("Warning: stlwrite: zone %d not written (not a triangle zone).", zone);
+      printf("Warning: stlwrite: zone " SF_D_ " not written (not a triangle zone).", zone);
   } 
 
   if (nvalidZones == 0) return 1;
@@ -188,23 +188,21 @@ E_Int K_IO::GenIO::stlwrite(
   
   E_Int sizeoffloat = sizeof(float);
   E_Int sizeofshort = sizeof(short);
-  E_Int* c1 = c.begin(1);
-  E_Int* c2 = c.begin(2);
-  E_Int* c3 = c.begin(3);
+  
   for (E_Int i = 0; i < nd; i++)
   {
     buf[0] = 0.; // normales a detecter
     buf[1] = 0.;
     buf[2] = 0.;
-    p = c1[i]-1;
+    p = c(i,1)-1;
     buf[3] = fx[p];
     buf[4] = fy[p];
     buf[5] = fz[p];
-    p = c2[i]-1;
+    p = c(i,2)-1;
     buf[6] = fx[p];
     buf[7] = fy[p];
     buf[8] = fz[p];
-    p = c3[i]-1;
+    p = c(i,3)-1;
     buf[9] = fx[p];
     buf[10] = fy[p];
     buf[11] = fz[p];

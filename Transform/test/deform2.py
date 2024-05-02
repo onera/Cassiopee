@@ -55,7 +55,7 @@ a = T.reorder(a, (+1,))
 ainit = C.copy(a)
 
 out = [ainit]
-for i in xrange(4):
+for i in range(4):
     n = G.getNormalMap(a)
     n = C.center2Node(n)
     n = C.normalize(n, ['sx','sy','sz'])

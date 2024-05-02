@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -59,8 +59,7 @@ PyObject* K_TRANSFORM::reorderAll(PyObject* self, PyObject* args)
   // Load block arrays 
   PyObject* listBlks;
   E_Int dir=1; // direction of the normals
-  if (!PYPARSETUPLEI(args,
-                    "Ol", "Oi",
+  if (!PYPARSETUPLE_(args, O_ I_,
                     &listBlks, &dir))
   {
       return NULL;

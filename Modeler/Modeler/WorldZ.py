@@ -1,7 +1,6 @@
 #
 # Cassiopee's world
 #
-import numpy
 import math
 import Converter
 import Generator
@@ -78,7 +77,7 @@ def createKeyState():
 def getKeys(state):
     key = CPlot.getKeyboard()
     if len(key) == 0: return
-    for k in xrange(len(key)):
+    for k in range(len(key)):
         try: v = ord(key[k])
         except: v = key
         if v == 1: state['forward']=1

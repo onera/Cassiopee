@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -91,6 +91,7 @@ C_LOCAL
             f = MIN(fieldnode(ind0), fieldnode(ind1))
             f = MIN(f, fieldnode(ind2))
             f = MIN(f, fieldnode(ind3))
+            fieldcenter(indc) = f
          ENDDO
       ENDDO
 
@@ -120,7 +121,7 @@ C_LOCAL
       INTEGER_E i, j, indc
       INTEGER_E ind0, ind1, ind2, ind3
       INTEGER_E nic, njc
-      REAL_E f, somme, prod
+      REAL_E somme
 
       nic = ni-1
       njc = nj-1
@@ -170,7 +171,7 @@ C     i = 0
          IF (somme .EQ. 0.) THEN
             fieldcenter(indc) = 0.D0
          ELSE
-            IF (somme .EQ. 16.) THEN
+            IF (somme .EQ. 8.) THEN
                fieldcenter(indc) = 2.D0
             ELSE
                fieldcenter(indc) = 1.D0
@@ -192,7 +193,7 @@ C     i = ni-2
             IF (somme .EQ. 0.) THEN
                fieldcenter(indc) = 0.D0
             ELSE
-               IF (somme .EQ. 16.) THEN
+               IF (somme .EQ. 8.) THEN
                   fieldcenter(indc) = 2.D0
                ELSE
                   fieldcenter(indc) = 1.D0
@@ -213,7 +214,7 @@ C     j = 0
          IF (somme .EQ. 0.) THEN
             fieldcenter(indc) = 0.D0
          ELSE
-            IF (somme .EQ. 16.) THEN
+            IF (somme .EQ. 8.) THEN
                fieldcenter(indc) = 2.D0
             ELSE
                fieldcenter(indc) = 1.D0
@@ -235,7 +236,7 @@ C     j = nj-2
             IF (somme .EQ. 0.) THEN
                fieldcenter(indc) = 0.D0
             ELSE
-               IF (somme .EQ. 16.) THEN
+               IF (somme .EQ. 8.) THEN
                   fieldcenter(indc) = 2.D0
                ELSE
                   fieldcenter(indc) = 1.D0

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -26,11 +26,11 @@
 //=============================================================================
 void Data::roll3Dto2D()
 {
-  int i;
+  E_Int i;
   double distx, disty, distz;
   double edistx, edisty, edistz;
   double ddistx, ddisty, ddistz;
-  int nroll = _pref.nroll;
+  E_Int nroll = _pref.nroll;
   double froll = 1./((double)nroll);
 
   // Save the 3D camera position
@@ -92,11 +92,11 @@ void Data::roll3Dto2D()
 //=============================================================================
 void Data::roll2Dto1D()
 {
-  int i;
+  E_Int i;
   double distx, disty, distz;
   double edistx, edisty, edistz;
   double ddistx, ddisty, ddistz; 
-  int nroll = _pref.nroll;
+  E_Int nroll = _pref.nroll;
   double froll = 1./((double)nroll);
 
   // Save the 3D camera position
@@ -158,11 +158,11 @@ void Data::roll2Dto1D()
 //=============================================================================
 void Data::roll1Dto3D()
 {
-  int i;
+  E_Int i;
   double distx, disty, distz;
   double edistx, edisty, edistz;
   double ddistx, ddisty, ddistz; 
-  int nroll = _pref.nroll;
+  E_Int nroll = _pref.nroll;
   double froll = 1./((double)nroll);
 
   // Save the 1D camera position
@@ -214,11 +214,11 @@ void Data::roll1Dto3D()
 //=============================================================================
 void Data::roll1Dto2D()
 {
-  int i;
+  E_Int i;
   double distx, disty, distz;
   double edistx, edisty, edistz;
   double ddistx, ddisty, ddistz; 
-  int nroll = _pref.nroll;
+  E_Int nroll = _pref.nroll;
   double froll = 1./((double)nroll);
 
   // Save the 1D camera position
@@ -270,11 +270,11 @@ void Data::roll1Dto2D()
 //=============================================================================
 void Data::roll2Dto3D()
 {
-  int i;
+  E_Int i;
   double distx, disty, distz;
   double edistx, edisty, edistz;
   double ddistx, ddisty, ddistz; 
-  int nroll = _pref.nroll;
+  E_Int nroll = _pref.nroll;
   double froll = 1./((double)nroll);
 
   // Save the 2D camera position
@@ -326,11 +326,11 @@ void Data::roll2Dto3D()
 //=============================================================================
 void Data::roll3Dto1D()
 {
-  int i;
+  E_Int i;
   double distx, disty, distz;
   double edistx, edisty, edistz;
   double ddistx, ddisty, ddistz; 
-  int nroll = _pref.nroll;
+  E_Int nroll = _pref.nroll;
   double froll = 1./((double)nroll);
 
   // Save the 3D camera position
@@ -382,11 +382,11 @@ void Data::roll3Dto1D()
 //=============================================================================
 void Data::rollto2Dws()
 {
-  int i;
+  E_Int i;
   double distx, disty, distz;
   double edistx, edisty, edistz;
   double ddistx, ddisty, ddistz; 
-  int nroll = _pref.nroll;
+  E_Int nroll = _pref.nroll;
   double froll = 1./((double)nroll);
 
   // Compute distance
@@ -427,11 +427,11 @@ void Data::rollto2Dws()
 //=============================================================================
 void Data::rollto1Dws()
 {
-  int i;
+  E_Int i;
   double distx, disty, distz;
   double edistx, edisty, edistz;
   double ddistx, ddisty, ddistz; 
-  int nroll = _pref.nroll;
+  E_Int nroll = _pref.nroll;
   double froll = 1./((double)nroll);
 
   // Compute distance

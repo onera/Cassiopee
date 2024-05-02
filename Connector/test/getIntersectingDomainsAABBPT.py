@@ -14,4 +14,4 @@ a = T.rotate(a, (0,0,0), (0,0,1), 10.); a = T.translate(a, (0.5,0.5,0))
 
 bb = G.BB([a,b])
 ret = X.getIntersectingDomainsAABB(bb)
-print ret
+print(ret)

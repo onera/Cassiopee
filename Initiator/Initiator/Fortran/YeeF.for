@@ -9,7 +9,7 @@ C ============================================================================
       SUBROUTINE k6yee(x0, y0, Gamma, Minf,
      &                    npts,    
      &                    xc, yc, zc,
-     &                    u)
+     &                    u1, u2, u3, u4, u5)
 C
       IMPLICIT NONE
 C
@@ -24,18 +24,22 @@ C_IN
       REAL_E yc(0:npts-1)    ! y cooord of centers
       REAL_E zc(0:npts-1)    ! z cooord of centers
 C_OUT
-      REAL_E u(0:npts-1,5)     ! field to be initialized
+      REAL_E u1(0:npts-1) ! field to be initialized
+      REAL_E u2(0:npts-1) ! field to be initialized
+      REAL_E u3(0:npts-1) ! field to be initialized
+      REAL_E u4(0:npts-1) ! field to be initialized
+      REAL_E u5(0:npts-1) ! field to be initialized
+
 C_LOCAL  
       
-      REAL_E  ro0, ainf
+      REAL_E ro0, ainf
       REAL_E p0,  u0
       INTEGER_E ind
       REAL_E r2
       REAL_E roinf, uinf, pinf
-      INTEGER_E i,j,k,m
       REAL_E ta
       REAL_E cos_teta, sin_teta
-      REAL_E va, ss, ro, pp, t0
+      REAL_E va, ro, pp, t0
       REAL_E gam,gma,pi,rgp
 C==============================================================================
 
@@ -65,11 +69,11 @@ C==============================================================================
          pp = ta**(gma/(gma-1.))*p0
          ro = ta**(1./(gma-1.))*ro0
                
-         u(ind,1) = ro
-         u(ind,2) = ro*uinf+ro*cos_teta*va
-         u(ind,3) = ro*sin_teta*va
-         u(ind,4) = 0.
-         u(ind,5) = pp/(gma-1.)+0.5*(u(ind,2)**2+u(ind,3)**2)/ro
+         u1(ind) = ro
+         u2(ind) = ro*uinf+ro*cos_teta*va
+         u3(ind) = ro*sin_teta*va
+         u4(ind) = 0.
+         u5(ind) = pp/(gma-1.)+0.5*(u2(ind)**2+u3(ind)**2)/ro
       ENDDO
       
       RETURN

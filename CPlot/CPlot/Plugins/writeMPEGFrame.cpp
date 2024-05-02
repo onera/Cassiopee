@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -49,7 +49,7 @@ extern "C" {
 */
 //=============================================================================
 void writeMPEGFrame(Data* d, char *filename, char* buffer, 
-                    int width, int height, int mode)
+                    E_Int width, E_Int height, E_Int mode)
 {
   int gotOutput, ret;
   AVPacket pkt;

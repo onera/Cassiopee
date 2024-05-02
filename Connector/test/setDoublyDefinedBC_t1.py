@@ -9,8 +9,7 @@ b = G.cart((2.5,2.5,-2.5),(0.5,0.5,0.5),(10,10,30))
 celln = C.array('cellN',a[2]-1,a[3]-1,a[4]-1)
 celln = C.initVars(celln, 'cellN', 1)
 indmax = celln[2]*celln[3]
-for ind in xrange(indmax):
-    celln[1][0][ind] = 2
+celln[1][0][0:indmax] = 2
 cellnb = C.array('cellN',b[2]-1,b[3]-1,b[4]-1)
 cellnb = C.initVars(cellnb, 'cellN', 1)
 celln = X.setDoublyDefinedBC(a, celln, [b], [cellnb], [1,a[2],1,a[3],1,1])

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -34,7 +34,7 @@ PyObject* K_GENERATOR::checkPointInCEBBOfMesh(PyObject* self,
 {
   PyObject* array;
   double x, y, z;
-  if (!PyArg_ParseTuple(args, "O(ddd)", &array, &x, &y, &z)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ TRRR_, &array, &x, &y, &z)) return NULL;
   
   // Check array
   E_Int im, jm, km;
@@ -110,11 +110,7 @@ PyObject* K_GENERATOR::checkPointInCEBBOfMesh(PyObject* self,
     
     end:;
     RELEASESHAREDS(array, f);
-#ifdef E_DOUBLEINT
-    return Py_BuildValue("l", long(found));
-#else
-    return Py_BuildValue("i", found);
-#endif
+    return Py_BuildValue(I_, found);
   }
   else if (res == 2)
   {

@@ -3,11 +3,11 @@ import Geom as D
 import KCore.test as test
 
 # font text1
-a1 = D.text1D("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-a2 = D.text1D("Aabcdefghijklmnopqrstuvwxyz")
-a3 = D.text1D("A0123456789+-=.,;:!()")
+a1 = D.text1D("ABCDEFGHIJKLMNOPQRSTUVWXYZ", font='text1')
+a2 = D.text1D("Aabcdefghijklmnopqrstuvwxyz", font='text1')
+a3 = D.text1D("A0123456789+-=.,;:!()", font='text1')
 
-a4 = D.text1D("ABCDEFGHIJKLMNOPQRSTUVWXYZ", smooth=4, offset=1.)
+a4 = D.text1D("ABCDEFGHIJKLMNOPQRSTUVWXYZ", font='text1', smooth=4, offset=1.)
 a5 = D.text1D("A.1+2=3. 2-1=1.")
 test.testA(a1, 1)
 

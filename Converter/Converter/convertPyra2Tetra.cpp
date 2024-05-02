@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -39,14 +39,14 @@ using namespace K_FUNC;
 PyObject* K_CONVERTER::convertPyra2Tetra(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
   
   // Check array
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, 
-                                    eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f,
+                                     ni, nj, nk, cn, eltType);
 
   // Test non structure ?
   if (res != 1 && res != 2)
@@ -87,87 +87,88 @@ PyObject* K_CONVERTER::convertPyra2Tetra(PyObject* self, PyObject* args)
   E_Float* y = f->begin(posy);
   E_Float* z = f->begin(posz);
 
+  // Build new connectivity and fields
+  FldArrayI& cm = *(cn->getConnect(0));
+  E_Int neltsp = cm.getSize();
   // Chaque pyra se decompose en 2 tetraedres
-  E_Int neltsp = cn->getSize();
   E_Int nelts = 2*neltsp;
-  FldArrayI& cn0 = *cn;
-  E_Int eltt = 4;//TETRA 
-  PyObject* tpl = K_ARRAY::buildArray(f->getNfld(), varString, f->getSize(), nelts, eltt, NULL);
-  E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF fn(f->getSize(), f->getNfld(), fnp, true); fn = *f;
-  E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-  FldArrayI ct(nelts, 4, cnnp, true);
+  E_Int npts = f->getSize(), api = f->getApi(), nfld = f->getNfld();
 
-  E_Int* ct1 = ct.begin(1);
-  E_Int* ct2 = ct.begin(2);
-  E_Int* ct3 = ct.begin(3);
-  E_Int* ct4 = ct.begin(4);
-  E_Int* cn01 = cn0.begin(1);
-  E_Int* cn02 = cn0.begin(2);
-  E_Int* cn03 = cn0.begin(3);
-  E_Int* cn04 = cn0.begin(4);
-  E_Int* cn05 = cn0.begin(5);
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, nelts,
+                                       "TETRA", false, api);
+  FldArrayF* f2; FldArrayI* cn2;
+  K_ARRAY::getFromArray3(tpl, f2, cn2);
+  FldArrayI& cm2 = *(cn2->getConnect(0));
 
 #pragma omp parallel default(shared)
   {
-  E_Int cnt;
-  E_Int squareDiag1, squareDiag2;
-  E_Int i1, i2, i3, i4;
+    E_Int cnt;
+    E_Int squareDiag1, squareDiag2;
+    E_Int i1, i2, i3, i4;
 
 #pragma omp for
-  for (E_Int elt = 0; elt < neltsp; elt++)
-  {
-    /* determination des indices de l'element */
-    i1 = cn01[elt]-1;
-    i2 = cn02[elt]-1;
-    i3 = cn03[elt]-1;
-    i4 = cn04[elt]-1;
-    //i5 = cn05[elt]-1;
-
-    /* determination de la plus petite diagonale de la face quad i1i2i3i4 */
-    // on retient les 2 sommets de la diag min
-    squareDiag1 = ((x[i3]-x[i1])*(x[i3]-x[i1])+(y[i3]-y[i1])*(y[i3]-y[i1])+(z[i3]-z[i1])*(z[i3]-z[i1]));
-    squareDiag2 = ((x[i4]-x[i2])*(x[i4]-x[i2])+(y[i4]-y[i2])*(y[i4]-y[i2])+(z[i4]-z[i2])*(z[i4]-z[i2]));
-
-    /* construction des elements tetra */
-    if (squareDiag1 <= squareDiag2)
+    for (E_Int elt = 0; elt < neltsp; elt++)
     {
-      // build tetras: I1I2I3I5,I1I3I4I5
-      // t1: I1I2I3I5
-      cnt = 2*elt;
-      ct1[cnt] = cn01[elt];
-      ct2[cnt] = cn02[elt];
-      ct3[cnt] = cn03[elt];
-      ct4[cnt] = cn05[elt];
+      /* determination des indices de l'element */
+      i1 = cm(elt,1)-1;
+      i2 = cm(elt,2)-1;
+      i3 = cm(elt,3)-1;
+      i4 = cm(elt,4)-1;
+      //i5 = cm(elt,5)-1;
 
-      // t2: I1I3I4I5
-      cnt = 2*elt+1;
-      ct1[cnt] = cn01[elt];
-      ct2[cnt] = cn03[elt];
-      ct3[cnt] = cn04[elt];
-      ct4[cnt] = cn05[elt];
+      /* determination de la plus petite diagonale de la face quad i1i2i3i4 */
+      // on retient les 2 sommets de la diag min
+      squareDiag1 = ((x[i3]-x[i1])*(x[i3]-x[i1])+(y[i3]-y[i1])*(y[i3]-y[i1])+(z[i3]-z[i1])*(z[i3]-z[i1]));
+      squareDiag2 = ((x[i4]-x[i2])*(x[i4]-x[i2])+(y[i4]-y[i2])*(y[i4]-y[i2])+(z[i4]-z[i2])*(z[i4]-z[i2]));
+
+      /* construction des elements tetra */
+      if (squareDiag1 <= squareDiag2)
+      {
+        // build tetras: I1I2I3I5,I1I3I4I5
+        // t1: I1I2I3I5
+        cnt = 2*elt;
+        cm2(cnt,1) = cm(elt,1);
+        cm2(cnt,2) = cm(elt,2);
+        cm2(cnt,3) = cm(elt,3);
+        cm2(cnt,4) = cm(elt,5);
+
+        // t2: I1I3I4I5
+        cnt = 2*elt+1;
+        cm2(cnt,1) = cm(elt,1);
+        cm2(cnt,2) = cm(elt,3);
+        cm2(cnt,3) = cm(elt,4);
+        cm2(cnt,4) = cm(elt,5);
+      }
+      else
+      {
+        // build tetras: I2I3I4I5, I2I4I1I5
+        // t1: I1I2I3I5
+        cnt = 2*elt;
+        cm2(cnt,1) = cm(elt,2);
+        cm2(cnt,2) = cm(elt,3);
+        cm2(cnt,3) = cm(elt,4);
+        cm2(cnt,4) = cm(elt,5);
+
+        // t2: I1I5I3I6
+        cnt = 2*elt+1;
+        cm2(cnt,1) = cm(elt,2);
+        cm2(cnt,2) = cm(elt,4);
+        cm2(cnt,3) = cm(elt,1);
+        cm2(cnt,4) = cm(elt,5);
+      }
     }
-    else
+
+    // Copy fields to f2
+    for (E_Int n = 1; n <= nfld; n++)
     {
-      // build tetras: I2I3I4I5, I2I4I1I5
-      // t1: I1I2I3I5
-      cnt = 2*elt;
-      ct1[cnt] = cn02[elt];
-      ct2[cnt] = cn03[elt];
-      ct3[cnt] = cn04[elt];
-      ct4[cnt] = cn05[elt];
-
-      // t2: I1I5I3I6
-      cnt = 2*elt+1;
-      ct1[cnt] = cn02[elt];
-      ct2[cnt] = cn04[elt];
-      ct3[cnt] = cn01[elt];
-      ct4[cnt] = cn05[elt];
-      cnt++;
+      E_Float* fp = f->begin(n);
+      E_Float* f2p = f2->begin(n);
+#pragma omp for
+      for (E_Int i = 0; i < npts; i++) f2p[i] = fp[i];
     }
-  }
   }
 
   RELEASESHAREDU(array, f, cn);
+  RELEASESHAREDU(tpl, f2, cn2);
   return tpl;
 }

@@ -6,4 +6,4 @@ import Converter as C
 a = G.cart((0.,0.,0.),(1.,1.,1.),(10,10,10))
 a = T.reorder(a, (1,2,-3)) # indirect now
 a = T.makeDirect(a)
-C.convertArrays2File([a], 'out.plt')
+C.convertArrays2File(a, 'out.plt')

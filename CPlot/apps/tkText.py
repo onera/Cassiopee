@@ -1,5 +1,7 @@
-# - Text app -
-import Tkinter as TK
+# - tkText -
+"""Create Texts."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -46,8 +48,8 @@ def createText(event=None):
     lx = posEye[0]-posCam[0]
     ly = posEye[1]-posCam[1]
     lz = posEye[2]-posCam[2]
-    if (lx*lx + ly*ly + lz*lz == 0.): lx = -1
-    if (dirCam[0]*dirCam[0] + dirCam[1]*dirCam[1] + dirCam[2]*dirCam[2] == 0.):
+    if lx*lx + ly*ly + lz*lz == 0.: lx = -1
+    if dirCam[0]*dirCam[0] + dirCam[1]*dirCam[1] + dirCam[2]*dirCam[2] == 0.:
         dirCam = (0,0,1)
     ll = math.sqrt(lx*lx + ly*ly + lz*lz)
     a = T.homothety(a, (posEye[0], posEye[1], posEye[2]), 0.01*ll)
@@ -60,7 +62,7 @@ def createText(event=None):
 
     nob = C.getNobOfBase(base, CTK.t)
     CTK.add(CTK.t, nob, -1, a)
-    C._fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'Text created.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -105,9 +107,7 @@ def replaceText(event=None):
     if abs(n1) < 1.e-12: v1 = Vector.cross(v2,v3); v1p = (0.,0.,0.)
     elif abs(n2) < 1.e-12: v2 = Vector.cross(v1,v3); v2p = (0.,0.,0.)
     elif abs(n3) < 1.e-12: v3 = Vector.cross(v2,v3); v3p = (0.,0.,0.)
-    #print 'Pts OBB',P0,P1,P2,P3
-    #print 'vector OBB',v1,v2,v3
-
+    
     # Essaie de matcher les vecteur sur la vue p1,p2,p3
     # On suppose que dirCam doit etre e2, ...
     posCam = CPlot.getState('posCam')
@@ -116,8 +116,7 @@ def replaceText(event=None):
     e2 = dirCam
     e3 = Vector.sub(posCam, posEye)
     e1 = Vector.cross(e2, e3)
-    #print 'cam',e1,e2,e3
-
+    
     f1 = None; f2 = None; f3 = None; Pt = P0
     s1 = Vector.dot(e1, v1)
     s2 = Vector.dot(e1, v2)
@@ -155,12 +154,7 @@ def replaceText(event=None):
     elif abs(s3) > abs(s1) and abs(s3) > abs(s2):
         if s3 > 0: f3 = v3
         else: f3 = Vector.mul(-1.,v3); Pt = Vector.add(Pt,v3p)
-    #print 'match',Pt, f1, f2, f3
     (x0,y0,z0) = Pt
-    #print 'pt', P0, Pt
-    #print 'e1',e1, f1
-    #print 'e2',e2, f2
-    #print 'e3',e3, f3
     n2 = Vector.norm(f2)
 
     # Cree le texte
@@ -190,7 +184,7 @@ def replaceText(event=None):
     CTK.t = CPlot.deleteSelection(CTK.t, CTK.Nb, CTK.Nz, nzs)
     CPlot.delete(dels)
     CTK.add(CTK.t, nob0, -1, a)
-    C._fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     CTK.TXT.insert('START', 'Text replaced.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -202,8 +196,9 @@ def replaceText(event=None):
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkText', font=CTK.FRAMEFONT, takefocus=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkText  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -212,8 +207,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
 
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkText')
@@ -224,14 +219,14 @@ def createApp(win):
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -1- 1D/2D/3D -
     V = TK.StringVar(win); V.set('3D'); VARS.append(V)
-    if CTK.PREFS.has_key('tkTextDim'): V.set(CTK.PREFS['tkTextDim'])
+    if 'tkTextDim' in CTK.PREFS: V.set(CTK.PREFS['tkTextDim'])
     # -2-  Smoothness -
     V = TK.StringVar(win); V.set('Regular'); VARS.append(V)
-    if CTK.PREFS.has_key('tkTextSmoothness'):
+    if 'tkTextSmoothness' in CTK.PREFS:
         V.set(CTK.PREFS['tkTextSmoothness'])
     # -3- Font -
-    V = TK.StringVar(win); V.set('text1'); VARS.append(V)
-    if CTK.PREFS.has_key('tkTextFont'): V.set(CTK.PREFS['tkTextFont'])
+    V = TK.StringVar(win); V.set('vera'); VARS.append(V)
+    if 'tkTextFont' in CTK.PREFS: V.set(CTK.PREFS['tkTextFont'])
 
     # - 1D/2D/3D -
     B = TTK.OptionMenu(Frame, VARS[1], '3D', '2D', '1D')
@@ -239,8 +234,8 @@ def createApp(win):
     B.grid(row=0, column=0, sticky=TK.EW)
 
     # - Font -
-    B = TTK.OptionMenu(Frame, VARS[3], 'text1', 'vera', 'chancery',
-                       'courier', 'nimbus')
+    B = TTK.OptionMenu(Frame, VARS[3], 'vera', 'chancery',
+                       'courier', 'text1', 'nimbus')
     BB = CTK.infoBulle(parent=B, text='Font type.')
     B.grid(row=0, column=1, sticky=TK.EW)
 
@@ -269,13 +264,17 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['SurfNoteBook'].add(WIDGETS['frame'], text='tkText')
+    except: pass
+    CTK.WIDGETS['SurfNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['SurfNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -293,7 +292,7 @@ def saveApp():
 def resetApp():
     VARS[1].set('3D')
     VARS[2].set('Regular')
-    VARS[3].set('text1')
+    VARS[3].set('vera')
     CTK.PREFS['tkTextDim'] = VARS[1].get()
     CTK.PREFS['tkTextSmoothness'] = VARS[2].get()
     CTK.PREFS['tkTextFont'] = VARS[3].get()
@@ -304,9 +303,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

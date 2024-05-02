@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -22,13 +22,24 @@
 #include <iostream>
 #include <stdlib.h>
 
-# define EXTARITH
-# define TESTMEMORY
-# define TESTLOGGER
-#ifdef EXTARITH
+// Les differents tests
+# define EXTARITH       0
+# define TESTMEMORY     0
+# define TESTLOGGER     0
+#define  TEST1          0
+#define  TEST2          0
+#define  TEST3          0
+#define  TEST4          1
+#define  TESTARRAY2     0
+#define  TESTARRAY3     0
+#define  TESTFLD        0
+#define  TESTNUMPY      0
+#define  TESTHIGHORDER  0
+
+#if EXTARITH == 1
 #include "ExtArith/quad_double.hpp"
 #endif
-#if defined(TESTMEMORY)
+#if TESTMEMORY == 1
 #include "Memory/shared_ptr.hpp"
 #include "Memory/vector_view.hpp"
 #include "Memory/unique_ptr.hpp"
@@ -48,7 +59,7 @@ namespace {
 #   define nullptr NULL
 # endif
 #endif
-#if defined(TESTLOGGER)
+#if TESTLOGGER == 1
 # include "Logger/logger.hpp"
 # include "Logger/log_to_file.hpp"
 # include "Logger/log_from_root_output.hpp"
@@ -58,9 +69,21 @@ namespace {
 //==============================================================================
 PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
 {
-#define TESTARRAYN
 
-#ifdef TEST1
+#if TESTNUMPY == 1
+  K_FLD::FldArrayF f(1,3);
+  for (E_Int i = 0; i < 1; i++) f(i,1) = 1.;
+    for (E_Int i = 0; i < 1; i++) f(i,2) = 2.;
+      for (E_Int i = 0; i < 1; i++) f(i,3) = 3.;
+
+  //f.setAllValuesAt(2.);
+  PyObject* a = K_NUMPY::buildNumpyArray(f, 1);
+  K_FLD::FldArrayF* out;
+  K_NUMPY::getFromNumpyArray(a , out, true);
+  return a;
+#endif
+
+#if TEST1 == 1
   PyObject* o;
   if (!PyArg_ParseTuple(args, "O", &o)) return NULL;
   E_Float* t = new E_Float[1]; t[0] = 12.;
@@ -70,14 +93,14 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
   return p;
 #endif
 
-#ifdef TEST2
+#if TEST2 == 1
   PyObject* o; char* path;
   if (!PyArg_ParseTuple(args, "Os", &o, &path)) return NULL;
   PyObject* p = K_PYTREE::getNodeFromPath(o, path);
   return p;
 #endif
 
-#ifdef TEST3
+#if TEST3 == 1
   PyObject* o;
   if (!PyArg_ParseTuple(args, "O", &o)) return NULL;
   E_Int ni, nj, nk;
@@ -93,7 +116,121 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
   return Py_None;
 #endif
 
-#ifdef TESTARRAY2
+#if TEST4 == 1
+  PyObject* o;
+  if (!PyArg_ParseTuple(args, "O", &o)) return NULL;
+  E_Int ni, nj, nk;
+  K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
+  char* varString; char* eltType;
+  E_Int ret = K_ARRAY::getFromArray3(o, varString, f, ni, nj, nk, c, eltType);
+  // Acces universel sur f (begin)
+  //f->print();
+  E_Int nfld = f->getNfld(); // nbre de champs
+  E_Int npts = f->getSize(); // nbre de pts
+  printf("universel field: npts=" SF_D_ ", nfld=" SF_D_ "\n", npts, nfld);
+  
+  // Acces par begin
+  E_Float* x = f->begin(1); 
+  for (E_Int i = 0; i < 5; i++) printf(" " SF_F_ " ", x[i]);
+  printf("\n");
+  // modification
+  x[0] = -0.05;
+
+  // Acces direct par operateur ()
+  FldArrayF& fr = (*f);
+  fr(1, 1) = +0.05;
+
+  // Interrogation de l'api de field
+  // si apif=1, c'est un array1
+  // si apif=2, c'est un array2 ou un array3
+  // la distinction entre array2 et 3 est que le 3 peut stocker du ME
+  // et en cas de NGON peut stocker un NGONv4
+  // pour savoir si le NGON est un NGONv4, il faut regarder c->isNGON
+  // si isngon=1 (array1 compact CGNSv3), isngon=2 (rake CGNSv3), isgon=3 (rake CGNSv4)
+  E_Int apif = f->getApi();
+  printf("api Fld C de field=" SF_D_ "\n", apif);
+
+  if (ret == 2 && K_STRING::cmp(eltType, 4, "NGON") == 0)
+  {
+    // Acces universel sur NGON
+    E_Int isNGon = c->isNGon();
+    // isNGon=1: NGON, NFACE CGNSv3 array1 compact
+    // isNGON=2: NGON, NFACE, [indPG], [indPF] rake CGNSv3
+    // isNGON=3: NGON, NFACE, indPG, indPF rake CGNSv4
+    printf("isNGON=" SF_D_ "\n", isNGon);
+    // Acces universel nbre de faces et d'elements
+    E_Int nfaces = c->getNFaces();
+    E_Int nelts = c->getNElts();
+    printf("universel NGON: nbre de faces=" SF_D_ ", nbre d'elements=" SF_D_ "\n", nfaces, nelts);
+    // Acces non universel sur le ptrs, attention suivant NGONv3 ou v4, pas les memes tableaux
+    E_Int* ngon = c->getNGon();
+    E_Int* nface = c->getNFace();
+    E_Int* indPG = c->getIndPG(); // existe toujours meme en array1, must be called
+    E_Int* indPH = c->getIndPH();
+    // Acces universel taille des vecteurs ngon et nface
+    E_Int sizeNGon = c->getSizeNGon(); // for NGONv3, contains face number and so is greater than for CGNSv4
+    E_Int sizeNFace = c->getSizeNFace();
+    printf("universel NGON: sizeNGon=" SF_D_ ", sizeNFace=" SF_D_ "\n", sizeNGon, sizeNFace);
+    // Acces universel face 0
+    E_Int size;
+    E_Int* face = c->getFace(0, size, ngon, indPG);
+    printf("face " SF_D_ ":", E_Int(0));
+    for (E_Int i = 0; i < size; i++) printf(" " SF_D_ " ", face[i]);
+    printf("\n");
+    face = c->getFace(1, size, ngon, indPG);
+    printf("face " SF_D_ ":", E_Int(1));
+    for (E_Int i = 0; i < size; i++) printf(" " SF_D_ " ", face[i]);
+    printf("\n");
+    // Acces universel element 0
+    E_Int* elt = c->getElt(0, size, nface, indPH);
+    printf("elt " SF_D_ ":", E_Int(0));
+    for (E_Int i = 0; i < size; i++) printf(" " SF_D_ " ", elt[i]);
+    printf("\n");
+  }
+  else if (ret == 2)
+  {
+    // Acces universel sur BE/ME
+    E_Int nc = c->getNConnect();
+    // dans le cas mono element nc vaut 1
+    printf("universel nombre de connectivites=" SF_D_ "\n", nc);
+    // universel eltTypes
+    std::vector<char*> eltTypes;
+    K_ARRAY::extractVars(eltType, eltTypes);
+
+    // acces premiere connectivite BE
+    FldArrayI& cm = *(c->getConnect(0));
+    E_Int nelts = cm.getSize();
+    E_Int nvpe = cm.getNfld();
+    printf("universel first connect, %s, nelts=" SF_D_ ", nvpe=" SF_D_ "\n", eltTypes[0], nelts, nvpe);
+    printf("universel elt 0: \n");
+    for (E_Int i = 0; i < nvpe; i++) printf(" " SF_D_ " ", cm(0,i+1));
+    printf("\n");
+    printf("universel elt 1: \n");
+    for (E_Int i = 0; i < nvpe; i++) printf(" " SF_D_ " ", cm(1,i+1));
+    printf("\n");
+    for (E_Int i = 0; i < nelts; i++)
+    {
+      cm(i,1) = -1; cm(i,2) = -2; cm(i,3) = -3; // pas de begin sur les connects
+    }
+    
+    // acces a toutes les connectivites
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      FldArrayI& cm = *(c->getConnect(ic));
+      E_Int nelts = cm.getSize();
+      E_Int nvpe = cm.getNfld();
+      printf("universel connect ic=" SF_D_ ", %s, nelts=" SF_D_ ", nvpe=" SF_D_ "\n", ic, eltTypes[ic], nelts, nvpe);
+    }
+    for (size_t i = 0; i < eltTypes.size(); i++) delete [] eltTypes[i];
+  }
+  
+  //if (ret == 2) c->print();
+  RELEASESHAREDB(ret, o, f, c);
+  Py_INCREF(Py_None);
+  return Py_None;
+#endif
+
+#if TESTARRAY2 == 1
   // Structured array1 - build - ni=5,nj=5,nk=5
   PyObject* o = K_ARRAY::buildArray2(5, "x,y,z,F,G", 5,5,5, 1);
   // Structured array1 - get
@@ -165,7 +302,7 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
   E_Int* indPG = c->getIndPG();
   E_Int* indPH = c->getIndPH();
   RELEASESHAREDB(ret, o, f, c);
-  //printf("nelts=%d, nfaces=%d\n", nelts, nfaces);
+  //printf("nelts=" SF_D_ ", nfaces=" SF_D_ "\n", nelts, nfaces);
 
   // NGon array2 - build
   o = K_ARRAY::buildArray2(5, "x,y,z,F,G", 10, 5,-1, "NGON", false, 20, 30, 6, 2);
@@ -178,12 +315,173 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
   nface = c->getNFace();
   indPG = c->getIndPG();
   indPH = c->getIndPH();
-  //printf("nelts=%d, nfaces=%d\n", nelts, nfaces);
+  //printf("nelts=" SF_D_ ", nfaces=" SF_D_ "\n", nelts, nfaces);
   RELEASESHAREDB(ret, o, f, c);
   return o;
 #endif
 
-#ifdef TESTFLD
+#if TESTARRAY3 == 1
+    PyObject* o=NULL;
+    // Structured array3 - nodes - build
+    {
+    E_Int ni=2, nj=2, nk=2; 
+    o = K_ARRAY::buildArray3(5, "x,y,z,F,G", ni,nj,nk, 3);
+    char* varString; K_FLD::FldArrayF* f; 
+    // structured array3 - nodes - get
+    K_ARRAY::getFromArray3(o, varString, f);
+    f->setAllValuesAt(1.);
+    // Getting information from Fld
+    E_Int nfld = f->getNfld(); // nbre de champs
+    E_Int npts = f->getSize(); // nbre de pts (ni x nj x nk)
+    E_Float* x = f->begin(1); // ptrs sur les champs
+    E_Float* y = f->begin(2);
+    for (E_Int i = 0; i < npts; i++) { x[i] = i; y[i] = -i; }
+    RELEASESHAREDS(o, f);
+    }
+    
+    // NGON array3 - nodes - build
+    {
+    E_Int nvertex=8, nelts=1, nface=6, sizeNGon=4*6, sizeNFace=6;
+    o = K_ARRAY::buildArray3(5, "x,y,z,F,G", nvertex, nelts, nface, 
+                             "NGON", sizeNGon, sizeNFace, 3, false, 3);
+    K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
+    K_ARRAY::getFromArray3(o, f, c);
+    f->setAllValuesAt(1.);
+    // safe
+    E_Int nfaces = c->getNFaces();
+    E_Int* ng = c->getNGon();
+    E_Int* ngso = c->getIndPG();
+    nelts = c->getNElts();
+    E_Int* nf = c->getNFace();
+    E_Int* nfso = c->getIndPH();
+    // il faut toujours utiliser les startoffsets
+    // faces
+    for (E_Int i = 0; i <= nfaces; i++) ngso[i] = i*4;
+    E_Int* pt = ng+ngso[0];
+    pt[0] = 1; pt[1] = 2; pt[2] = 3; pt[3] = 4;
+    pt = ng+ngso[1];
+    pt[0] = 5; pt[1] = 6; pt[2] = 7; pt[3] = 8;
+    pt = ng+ngso[2];
+    pt[0] = 1; pt[1] = 4; pt[2] = 8; pt[3] = 5;
+    // Elt
+    nfso[0] = 0; nfso[1] = 6;
+    pt = nf+nfso[0];
+    pt[0] = 1; pt[0] = 2; pt[0] = 3; pt[0] = 4; pt[0] = 5; pt[0] = 6;
+    RELEASESHAREDU(o, f, c);
+    }
+    
+    // BE array3 - nodes - build
+    {
+    E_Int nvertex=5; E_Int nelts=3;
+    o = K_ARRAY::buildArray3(5, "x,y,z,F,G", nvertex, nelts, 
+                             "TRI", false, 3);
+    K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
+    K_ARRAY::getFromArray3(o, f, c);
+    f->setAllValuesAt(1.);
+    E_Float* fx = f->begin(1);
+    for (E_Int i = 0; i < nvertex; i++) fx[i] = i;
+    FldArrayI& cm = *(c->getConnect(0));
+    for (E_Int i = 0; i < nelts; i++)
+    {
+        cm(i,1) = 1; cm(i,2) = 2; cm(i,3) = 3;
+    }
+    RELEASESHAREDU(o, f, c);
+    }
+
+    // ME array3 - NODE - build
+    {
+    E_Int nvertex=5;
+    std::vector<int> neltsPerType = {3, 4};
+    o = K_ARRAY::buildArray3(5, "x,y,z,F,G", nvertex, neltsPerType, 
+                             "TRI,QUAD", false, 3);
+    K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
+    K_ARRAY::getFromArray3(o, f, c);
+    f->setAllValuesAt(1.);
+    FldArrayI& cm0 = *(c->getConnect(0)); // TRI
+    for (E_Int i = 0; i < cm0.getSize(); i++)
+    {
+        cm0(i,1) = 1; cm0(i,2) = 2; cm0(i,3) = 3;
+    }
+    FldArrayI& cm1 = *(c->getConnect(1)); // QUAD
+    for (E_Int i = 0; i < cm1.getSize(); i++)
+    {
+        cm1(i,1) = 1; cm1(i,2) = 2; cm1(i,3) = 3; cm1(i,4) = 4;
+    }
+    RELEASESHAREDU(o, f, c);
+    }
+
+    return o;
+
+
+#endif
+
+#if TESTHIGHORDER == 1
+    char eltType[128];
+    E_Int loc, nvpe, typeId;
+    K_ARRAY::eltString2TypeId((char*)"TETRA_20*", eltType, nvpe, loc, typeId);
+    printf("%s " SF_D2_ "\n", eltType, nvpe, loc);
+    K_ARRAY::eltString2TypeId((char*)"TETRA", eltType, nvpe, loc, typeId);
+    printf("%s " SF_D2_ "\n", eltType, nvpe, loc);
+  
+    K_ARRAY::eltString2TypeId((char*)"NODE", eltType, nvpe, loc, typeId);
+    printf("%s " SF_D2_ "\n", eltType, nvpe, loc);
+  
+    K_ARRAY::eltString2TypeId((char*)"QUAD_8", eltType, nvpe, loc, typeId);
+    printf("%s " SF_D2_ "\n", eltType, nvpe, loc);
+  
+    K_ARRAY::eltString2TypeId((char*)"QUAD", eltType, nvpe, loc, typeId);
+    printf("%s " SF_D2_ "\n", eltType, nvpe, loc);
+    
+    K_ARRAY::eltString2TypeId((char*)"BAR_3", eltType, nvpe, loc, typeId);
+    printf("%s " SF_D2_ "\n", eltType, nvpe, loc);
+    K_ARRAY::eltString2TypeId((char*)"TRI_6", eltType, nvpe, loc, typeId);
+    printf("%s " SF_D2_ "\n", eltType, nvpe, loc);
+  
+    K_ARRAY::eltString2TypeId((char*)"NGON", eltType, nvpe, loc, typeId);
+    printf("%s " SF_D2_ "\n", eltType, nvpe, loc);
+#endif
+
+#if TESTHIGHORDER == 2
+  // Construction vide
+  PyObject* o = K_ARRAY::buildArray2(3, "x,y,z", 6, 1, -1, "TRI_6", false, 0, 0, 0, 2);
+  // Recuperation des pointeurs
+  //E_Int ni,nj,nk; char* eltType; K_FLD::FldArrayF* f; K_FLD::FldArrayI* c; char* varString; 
+  //E_Int ret = K_ARRAY::getFromArray2(o, varString, f, ni, nj, nk, c, eltType);
+
+  K_FLD::FldArrayF* f; K_FLD::FldArrayI* c; 
+  E_Int ret = K_ARRAY::getFromArray2(o, f, c);
+  
+  // Champs --
+  // Acces direct Fld
+  (*f)(0,1) = 0.; (*f)(0,2) = -2.; (*f)(0,3) = 0.;
+  (*f)(1,1) = 2.; (*f)(1,2) =  0.; (*f)(1,3) = 0.;
+  (*f)(2,1) = -2.; (*f)(2,2) =  0.; (*f)(2,3) = 0.;
+  (*f)(3,1) =  1.; (*f)(3,2) =  -1.; (*f)(3,3) = 0.;
+  (*f)(4,1) =  0.; (*f)(4,2) =   0.; (*f)(4,3) = 0.2;
+  (*f)(5,1) = -1.; (*f)(5,2) =  -1.2; (*f)(5,3) = 0.;
+
+  (*c)(0,1) = 1; (*c)(0,2) = 2; (*c)(0,3) = 3; (*c)(0,4) = 4; (*c)(0,5) = 5; (*c)(0,6) = 6;
+
+  // Acces par champ Fld
+  //E_Float* f3 = f->begin(3);
+  //f3[0] = 0.; f3[1] = 1.;
+
+  // Connectivite
+  // Acces direct 
+  //(*c)(0,1) = 1; (*c)(0,2) = 2; (*c)(0,3) = 3; (*c)(0,4) = 4; (*c)(0,5) = 5; (*c)(0,6) = 6;
+  // Parcours avec stride
+  //E_Int* cp = c->begin();
+  //E_Int nelts = c->getSize(); E_Int nvpe = c->getNfld(); E_Int s = c->getStride();
+  //for (E_Int i = 0; i < nelts; i++) { cp[0] = i; cp += s; }
+
+
+  // Acces direct pour decoupage de la boucle
+  
+  RELEASESHAREDB(ret, o, f, c);
+  return o;
+#endif
+
+#if TESTFLD == 1
   // test nouveau FldArray
   K_FLD::FldArrayF t1; 
 
@@ -201,14 +499,14 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
     t2(i,3) = 0.01*i;
   }
   K_FLD::FldArrayF t2p(t2);
-  printf("indmin %d %d %d\n", t2p.indMin(1,1), t2p.indMin(1,2), t2p.indMin(1,3));
-  printf("indmax %d %d %d\n", t2p.indMax(1,1), t2p.indMax(1,2), t2p.indMax(1,3));
-  printf("1: %f %f %f\n", t2(10,1), t2(10,2), t2(10,3));
-  printf("1: %f %f %f\n", t2[10], t2[10+120], t2[10+240]);
+  printf("indmin " SF_D3_ "\n", t2p.indMin(1,1), t2p.indMin(1,2), t2p.indMin(1,3));
+  printf("indmax " SF_D3_ "\n", t2p.indMax(1,1), t2p.indMax(1,2), t2p.indMax(1,3));
+  printf("1: " SF_F3_ "\n", t2(10,1), t2(10,2), t2(10,3));
+  printf("1: " SF_F3_ "\n", t2[10], t2[10+120], t2[10+240]);
   E_Float* pt1 = t2.begin(1);
   E_Float* pt2 = t2.begin(2);
   E_Float* pt3 = t2.begin(3);
-  printf("1: %f %f %f\n", pt1[10], pt2[10], pt3[10]);
+  printf("1: " SF_F3_ "\n", pt1[10], pt2[10], pt3[10]);
   
   K_FLD::FldArrayF t2t(120, 3, t2.begin(), true); // shared with t2
   t2t(10,2) = 12.;
@@ -238,14 +536,14 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
     t3(i,3) = 0.01*i;
   }
   K_FLD::FldArrayF t3p(t3);
-  printf("indmin %d %d %d\n", t3p.indMin(1,1), t3p.indMin(1,2), t3p.indMin(1,3));
-  printf("indmax %d %d %d\n", t3p.indMax(1,1), t3p.indMax(1,2), t3p.indMax(1,3));
-  printf("2: %f %f %f\n", t3(10,1), t3(10,2), t3(10,3));
-  printf("2: %f %f %f\n", t3[10], t3[10+120], t3[10+240]);
+  printf("indmin " SF_D3_ "\n", t3p.indMin(1,1), t3p.indMin(1,2), t3p.indMin(1,3));
+  printf("indmax " SF_D3_ "\n", t3p.indMax(1,1), t3p.indMax(1,2), t3p.indMax(1,3));
+  printf("2: " SF_F3_ "\n", t3(10,1), t3(10,2), t3(10,3));
+  printf("2: " SF_F3_ "\n", t3[10], t3[10+120], t3[10+240]);
   pt1 = t3.begin(1);
   pt2 = t3.begin(2);
   pt3 = t3.begin(3);
-  printf("2: %f %f %f\n", pt1[10], pt2[10], pt3[10]);
+  printf("2: " SF_F3_ "\n", pt1[10], pt2[10], pt3[10]);
 
   //===================
   // compact, C ordered
@@ -261,16 +559,17 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
     t4(i,3) = 0.01*i;
   }
   K_FLD::FldArrayF t4p(t4);
-  printf("indmin %d %d %d\n", t4p.indMin(1,1), t4p.indMin(1,2), t4p.indMin(1,3));
-  printf("indmax %d %d %d\n", t4p.indMax(1,1), t4p.indMax(1,2), t4p.indMax(1,3));
-  printf("3: %f %f %f\n", t4(10,1), t4(10,2), t4(10,3));
-  printf("3: %f %f %f\n", t4[10], t4[10+120], t4[10+240]);
+  printf("indmin " SF_D3_ "\n", t4p.indMin(1,1), t4p.indMin(1,2), t4p.indMin(1,3));
+  printf("indmax " SF_D3_ "\n", t4p.indMax(1,1), t4p.indMax(1,2), t4p.indMax(1,3));
+  printf("3: " SF_F3_ "\n", t4(10,1), t4(10,2), t4(10,3));
+  printf("3: " SF_F3_ "\n", t4[10], t4[10+120], t4[10+240]);
   pt1 = t4.begin(1);
   pt2 = t4.begin(2);
   pt3 = t4.begin(3);
-  printf("3: %f %f %f\n", pt1[10*3], pt2[10*3], pt3[10*3]);
+  printf("3: " SF_F3_ "\n", pt1[10*3], pt2[10*3], pt3[10*3]);
 #endif
-#if defined(TESTMEMORY)
+
+#if TESTMEMORY == 1
   // Unique pointer tests
   // ================================================================================
   {
@@ -401,9 +700,9 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
 #   endif
   }
   printf("End of memory tests\n");
-#undef TESTMEMORY
 #endif
-# if defined (EXTARITH)
+
+#if EXTARITH == 1
   {
     using namespace ExtendedArithmetics;
     printf("Beginning extended arithmetics tests\n");
@@ -464,9 +763,9 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
     printf("Square root of double : %lg et square root of quad_double : %lg\n", root, double(qroot));
   }
   printf("End of Extended arithmetics tests\n");
-# undef EXTARITH
 #endif
-#if defined(TESTLOGGER)
+
+#if TESTLOGGER == 1
   {
     K_LOGGER::logger log;
     log.subscribe( new K_LOGGER::log_to_std_output(K_LOGGER::logger::all) );
@@ -475,8 +774,8 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
     log << LogError << "Aie ca fait mal...\n\n\n...\nMais non, je rigole :-)" << std::endl;
     log << LogAssert((1==0)) << "Mmmh, ne devrait pas s'afficher" << std::endl;
   }
-# undef TESTLOGGER
 #endif  
+
   Py_INCREF(Py_None);
   return Py_None;
 }

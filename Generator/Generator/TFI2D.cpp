@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -101,13 +101,19 @@ PyObject* K_GENERATOR::TFI2D(PyObject* arrays)
   //short isok = TFIstruct2D(ni, nj, nfld, imin, imax, jmin, jmax, fields, coord);
   short isok = TFIstruct2D2(ni, nj, nfld, posx, posy, posz, imin, imax, jmin, jmax, fields, coord);
 
-  if (isok == 0) //echec
+  if (isok < 1) //echec
   {
     for (E_Int nos = 0; nos < nzones; nos++)
-        RELEASESHAREDS(objs[nos], fields[nos]);
-    
-    PyErr_SetString(PyExc_TypeError,
-                    "TFI: input arrays are not valid.");
+      RELEASESHAREDS(objs[nos], fields[nos]);
+    if ( isok == -1)
+      PyErr_SetString(PyExc_TypeError,
+                      "TFI: imin and imax borders are not of same size ni.");
+    else if ( isok == -2 )
+            PyErr_SetString(PyExc_TypeError,
+                      "TFI: jmin and jmax borders are not of same size nj.");
+    else       
+      PyErr_SetString(PyExc_TypeError,
+                      "TFI: input arrays are not valid.");
     return NULL;
   }
   for (E_Int nos = 0; nos < nzones; nos++)
@@ -163,6 +169,9 @@ short K_GENERATOR::TFIstruct2D2(E_Int ni, E_Int nj, E_Int nfld,
   E_Int ni1 = ni-1;
   E_Int nj1 = nj-1;
   E_Int i, j, ind;
+
+  if (fields[imin]->getSize() != fields[imax]->getSize()) return -1;
+  if (fields[jmin]->getSize() != fields[jmax]->getSize()) return -2;
 
   E_Float* pondximin = fields[imin]->begin(posx);
   E_Float* pondximax = fields[imax]->begin(posx);
@@ -226,7 +235,7 @@ short K_GENERATOR::TFIstruct2D2(E_Int ni, E_Int nj, E_Int nfld,
 }
 
 //=========================================================================
-/* Reordonne les arrays d entree - cas 2D */
+/* Reordonne les arrays d'entree - cas 2D */
 //=========================================================================
 E_Int K_GENERATOR::reorderTFI2D(
   E_Int posx, E_Int posy, E_Int posz,
@@ -241,32 +250,32 @@ E_Int K_GENERATOR::reorderTFI2D(
   // 1- depart : f1 -> detection raccord en imax1
   E_Int vp = 0; E_Int vpp = 0;
   E_Int c = 1;
-  while ( c < 5 ) 
+  while (c < 5)
   {
     i2 = -1; j2 = -1; k2 = -1;
     for (E_Int vn = 0; vn < 4; vn++)
     {
-      if ( dejaVu[vn] == 0 && vp != vn && vpp != vn) 
+      if (dejaVu[vn] == 0 && vp != vn && vpp != vn) 
       {
-        i2 = -1; j2 = -1; k2 = -1;        
+        i2 = -1; j2 = -1; k2 = -1;       
         ok = K_CONNECT::getCoincidentVertexIndices(
           nit[vp], jm, km, nit[vp], jm, km, nit[vn], jm, km,
           posx, posy, posz, posx, posy, posz,
           *fields[vp], *fields[vn], i2, j2, k2, eps);
-        if ( ok > 0 )
+        if (ok > 0)
         { 
           newOrder[c-1] = vp;
           dejaVu[vn] = 1; vpp = vp; vp = vn;
           goto next;
         }
 
-        if ( c != 1 ) 
+        if (c != 1) 
         {
           ok = K_CONNECT::getCoincidentVertexIndices(
             1, jm, km, nit[vp], jm, km, nit[vn], jm, km,
             posx, posy, posz, posx, posy, posz,
             *fields[vp], *fields[vn], i2, j2, k2, eps);
-          if ( ok > 0 )
+          if (ok > 0)
           { 
             newOrder[c-1] = vp;
             dejaVu[vn] = 1; vpp = vp; vp = vn; 
@@ -289,4 +298,3 @@ E_Int K_GENERATOR::reorderTFI2D(
   }
   return 1;
 }
-

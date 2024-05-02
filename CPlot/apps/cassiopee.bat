@@ -1,1 +1,1 @@
-python "%CASSIOPEE%\Dist\bin\%ELSAPROD%\tkCassiopee.pyc" %1
+python "%CASSIOPEE%\Dist\bin\%ELSAPROD%\tkCassiopee.py" %1

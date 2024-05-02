@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -28,8 +28,7 @@ PyObject* K_CONNECTOR::setDoublyDefinedBC(PyObject* self, PyObject* args)
 {
   PyObject *a1, *celln1, *arrays, *cellns, *range1;
   E_Int depth;
-  if (!PYPARSETUPLEI(args,
-                    "OOOOOl", "OOOOOi",
+  if (!PYPARSETUPLE_(args, OOOO_ O_ I_,
                     &a1, &celln1, &arrays, &cellns, &range1, &depth))
   {
       return NULL;
@@ -325,8 +324,9 @@ E_Int K_CONNECTOR::modifyCellNForDoublyDefined(
   // Interpolation type
   //K_INTERP::InterpAdt::InterpolationType interpType=K_INTERP::InterpAdt::O2CF;
   E_Int nindi = 1; E_Int ncf = 8; 
-  FldArrayI indi(nindi);// indice de la cellule d interp
-  FldArrayF cf(ncf);// coefs d interp
+  FldArrayI indi(nindi);// indice de la cellule d'interp
+  FldArrayF cf(ncf);// coefs d'interp
+  FldArrayI tmpIndi(nindi); FldArrayF tmpCf(ncf);
 
   E_Int nzones = structF.size();
   E_Int isBuilt;
@@ -395,7 +395,7 @@ E_Int K_CONNECTOR::modifyCellNForDoublyDefined(
               E_Float voli = 0.; E_Int type = 0; E_Int noblk = 0;
               short tmp = K_INTERP::getInterpolationCell(x, y, z, interpData,
                                                           listOfExtCenters[v], &niet[v], &njet[v], &nket[v], NULL,
-                                                          1, 2, 3, 0, voli, indi, cf, type, noblk);
+                                                          1, 2, 3, 0, voli, indi, cf, tmpIndi, tmpCf, type, noblk);
               if ( tmp < 1 ) found = 0;
               else 
               {
@@ -463,7 +463,7 @@ E_Int K_CONNECTOR::modifyCellNForDoublyDefined(
               void* nkev = (void*)&(nket[v]);  
               short tmp = K_INTERP::getInterpolationCell(x, y, z, interpData,
                                                          listOfExtCenters[v], niev, njev, nkev, NULL,
-                                                          1, 2, 3, 0, voli, indi, cf, type, noblk);
+                                                          1, 2, 3, 0, voli, indi, cf, tmpIndi, tmpCf, type, noblk);
               if ( tmp < 1 ) found = 0;
               else 
               {
@@ -512,7 +512,7 @@ E_Int K_CONNECTOR::modifyCellNForDoublyDefined(
               E_Float voli = 0.; E_Int type = 0; E_Int noblk = 0;
               short tmp = K_INTERP::getInterpolationCell(x, y, z, interpData,
                                                           listOfExtCenters[v], &niet[v], &njet[v], &nket[v], NULL,
-                                                          1, 2, 3, 0, voli, indi, cf, type, noblk);
+                                                          1, 2, 3, 0, voli, indi, cf, tmpIndi, tmpCf, type, noblk);
               if ( tmp < 1 ) found = 0;
               else 
               {

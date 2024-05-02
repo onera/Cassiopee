@@ -1,12 +1,22 @@
-/*
- 
- 
- 
-              NUGA 
- 
- 
- 
- */
+/*    
+    Copyright 2013-2024 Onera.
+
+    This file is part of Cassiopee.
+
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
+*/
+//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef ZONE_T_HXX
 #define ZONE_T_HXX
@@ -14,23 +24,41 @@
 #include <map>
 #include <vector>
 
+#ifdef DEBUG_ZONE_T
+#include "Nuga/include/medit.hxx"
+#endif
+
 
 #define Vector_t std::vector
 
 #define PH_INNER_COL -1
 #define UNSET_COL     0
+#define PH_GHOST      99
 
-#define PG_INNER_COL   0
-#define PG_JOIN_COL    1
-#define PG_LAY1_IN_COL 2
-#define PG_LAY1_BC_COL 3
-#define PG_BC          4
-#define PG_LAY2_IN_COL 5
-#define PG_LAY2_BC_COL 6
-#define OTHER_LAYS_COL 7  //above 2nd lauyer , anything is unsorted for now
+#define PG_COL_RANGE   10000 // <=> sum(n_bcs(zi)) over i zones must be <= 1000
 
+#define PG_INNER_COL   0  * PG_COL_RANGE
+#define PG_JOIN_COL    1  * PG_COL_RANGE
+#define PG_LAY1_IN_COL 2  * PG_COL_RANGE
+#define PG_LAY1_BC_COL 3  * PG_COL_RANGE
+#define PG_BC          4  * PG_COL_RANGE
+#define PG_LAY2_IN_COL 5  * PG_COL_RANGE
+#define PG_LAY2_BC_COL 6  * PG_COL_RANGE
+#define OTHER_LAYS_COL 7  * PG_COL_RANGE  //above 2nd lauyer , anything is unsorted for now
+#define PG_GHOST       99 * PG_COL_RANGE
 
-#define NEIGHBOR(PH0, F2E, shift, Fi) ((F2E[Fi] == PH0 ) ? F2E[Fi+shift] : F2E[Fi])
+#define NEIGHBOR1(PH0, F2E, shift, Fi) ((F2E[Fi] == PH0 ) ? F2E[Fi+shift] : F2E[Fi])
+
+inline bool is_a_bc(E_Int type, E_Int nlayers)
+{
+  if ((PG_LAY1_BC_COL <= type && type < PG_LAY1_BC_COL + PG_COL_RANGE) && (nlayers >= 2))
+    return true;
+  if ((PG_LAY2_BC_COL <= type && type < PG_LAY2_BC_COL + PG_COL_RANGE) && (nlayers >=3))
+    return true;
+  if (PG_BC <= type && type < PG_BC + PG_COL_RANGE)
+    return true;
+  return false;
+}
 
 namespace NUGA
 {
@@ -49,7 +77,7 @@ class zone_t
     using join_t = std::map<E_Int, std::pair<zone_t*, Vector_t<E_Int> > >;
     using bc_t    = std::map<E_Int, Vector_t<E_Int> >; 
     
-    zone_t():_id(E_IDX_NONE),_F2E_NONE(0){}
+    zone_t():_id(IDX_NONE),_F2E_NONE(0){}
     zone_t(E_Int id, crd_t& crd, ngo_t& ng, E_Int* f2e, E_Int F2E_NONE):_id(id), _crd(crd), _ng(ng), _F2E_NONE(F2E_NONE){
       
       E_Int nb_pgs = ng.PGs.size();
@@ -159,6 +187,7 @@ class zone_t
     E_Int reduce_to_positive_types();
     
     void sort_by_type() ;
+    void insert_ghosts_on_bcs(E_Int type, E_Int nb_layers);
     
     void init_pg_types(E_Int& color);
     void set_join_types(E_Int& color);
@@ -176,8 +205,14 @@ class zone_t
     void update_boundaries(const Vector_t<E_Int>& pgnids, E_Int idx_start);
     
     void add_boundary(E_Int obcid, const E_Int* ids, E_Int n);
+
+    void sort_pointLists();
     
     void set_pg_colors();
+
+    void __distinguish_bcs();
+    
+    void color_ranges(std::vector<E_Int>& PGcolors, std::vector<E_Int>& PHcolors);
     
 #ifdef DEBUG_ZONE_T
 void draw_boundaries()
@@ -186,10 +221,10 @@ void draw_boundaries()
   E_Int nb_pgs = _ng.PGs.size();
   for (size_t i=0; i < nb_pgs; ++i)
   {
-    if (_F2Es[i] == _F2E_NONE || _F2Es[i+nb_pgs] == _F2E_NONE)ids.push_back(i);
+    if (_F2Es[i+nb_pgs] == _F2E_NONE)ids.push_back(i);
   }
   
-  NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_PGs(_crd, _ng.PGs, ids, false);
+  //NGON_debug<K_FLD::FloatArray, K_FLD::IntArray>::draw_PGs("bound", _crd, _ng.PGs, ids, false);
 }
 #endif
     
@@ -397,7 +432,7 @@ E_Int zone_t<crd_t, ngo_t>::reduce_to_positive_types()
 
   _ng.PGs.extract_by_predicate(pred, pgs, pgoids, pgnids);
   _ng.PGs = pgs;
-  _ng.PHs.change_indices(pgnids, true);
+  _ng.PHs.change_indices(pgnids);
   
       
   // 2.4 compress and update accordingly F2E
@@ -407,14 +442,14 @@ E_Int zone_t<crd_t, ngo_t>::reduce_to_positive_types()
     K_CONNECT::keep<E_Int> pred1(keepPG); 
     K_CONNECT::IdTool::compress(_F2Es, pred1);
     
-    E_Int nb_pgs = _F2Es.size() / 2;
+    //E_Int nb_pgs = _F2Es.size() / 2;
     
     for (size_t i=0; i < _F2Es.size(); ++i) 
     {
       E_Int PHi = _F2Es[i];
       if (PHi == _F2E_NONE || PHi < 0) continue; // BC or JOIN
-      _F2Es[i] = (phnids[PHi - 1] ==  E_IDX_NONE) ? _F2E_NONE :  phnids[PHi - 1] + 1;
-      if (_F2Es[i] == E_IDX_NONE) _F2Es[i] = _F2E_NONE;
+      _F2Es[i] = (phnids[PHi - 1] ==  IDX_NONE) ? _F2E_NONE :  phnids[PHi - 1] + 1;
+      if (_F2Es[i] == IDX_NONE) _F2Es[i] = _F2E_NONE;
     }
   }
     
@@ -452,7 +487,7 @@ void zone_t<crd_t, ngo_t>::flag_connected_to_type
     for (E_Int n=0; n < nb_faces;++n)
     {
       E_Int PGi = *(pPGi + n) - 1;
-      E_Int neighPH = NEIGHBOR(PHi, _F2Es, nb_pgs, PGi);
+      E_Int neighPH = NEIGHBOR1(PHi, _F2Es, nb_pgs, PGi);
       
       if (neighPH == this->_F2E_NONE) continue; // BC
       
@@ -494,7 +529,7 @@ void zone_t<crd_t, ngo_t>::set_pg_colors()
     
     K_FLD::IntArray cnto;
     ngt.export_to_array(cnto);
-    MIO::write("layer1.plt", _crd, cnto, "NGON");
+    medith::write("layer1.plt", _crd, cnto, "NGON");
   }
   {
     ngon_unit PHex;
@@ -505,16 +540,19 @@ void zone_t<crd_t, ngo_t>::set_pg_colors()
     
     K_FLD::IntArray cnto;
     ngt.export_to_array(cnto);
-    MIO::write("layer2.plt", _crd, cnto, "NGON");
+    medith::write("layer2.plt", _crd, cnto, "NGON");
   }
 #endif
   E_Int nb_pgs = _ng.PGs.size();
-  for (size_t i = 0; i < nb_pgs; ++i)
+  for (E_Int i = 0; i < nb_pgs; ++i)
   {
     E_Int eL    = _F2Es[i];
     E_Int eR    = _F2Es[i+nb_pgs];
+#ifdef DEBUG_ZONE_T
+    assert(eL > 0);
+#endif
     E_Int typeL = _ng.PHs._type[eL-1];
-    E_Int typeR = (eR != _F2E_NONE) ? _ng.PHs._type[eR-1] : E_IDX_NONE;
+    E_Int typeR = (eR != _F2E_NONE) ? _ng.PHs._type[eR-1] : IDX_NONE;
     
     if (typeL == typeR) // PG_INNER_COL, PG_LAY1_IN_COL, PG_LAY2_IN_COL
     {
@@ -527,7 +565,7 @@ void zone_t<crd_t, ngo_t>::set_pg_colors()
       else 
         _ng.PGs._type[i] = OTHER_LAYS_COL;
     }
-    else if (typeR == E_IDX_NONE) // BC
+    else if (typeR == IDX_NONE) // BC
     {
       if (typeL == PH_INNER_COL)
         _ng.PGs._type[i] = PG_BC;
@@ -549,6 +587,50 @@ void zone_t<crd_t, ngo_t>::set_pg_colors()
         _ng.PGs._type[i] = PG_LAY2_IN_COL;
       else
         _ng.PGs._type[i] = OTHER_LAYS_COL;
+    }
+  }
+
+#ifdef DEBUG_ZONE_T
+  E_Int pg_inner(0),pg_join(0), lay1in(0), lay1bc(0), bc(0), lay2in(0), lay2bc(0), other(0);
+          
+  for (E_Int i = 0; i < nb_pgs; ++i)
+  {
+    if ( _ng.PGs._type[i] == PG_INNER_COL)++pg_inner;
+    else if ( _ng.PGs._type[i] == PG_JOIN_COL)++pg_join;
+    else if ( _ng.PGs._type[i] == PG_BC)++bc;
+    else if ( _ng.PGs._type[i] == PG_LAY1_IN_COL)++lay1in;
+    else if ( _ng.PGs._type[i] == PG_LAY1_BC_COL)++lay1bc;
+    else if ( _ng.PGs._type[i] == PG_LAY2_IN_COL)++lay2in;
+    else if ( _ng.PGs._type[i] == PG_LAY2_BC_COL)++lay2bc;
+    else if ( _ng.PGs._type[i] == OTHER_LAYS_COL)++other;
+  }
+  
+  std::cout << " PG_INNER_COL : " << pg_inner << std::endl;
+  std::cout << " PG_JOIN_COL : " << pg_join << std::endl;
+  std::cout << " PG_BC : " << bc << std::endl;
+  std::cout << " PG_LAY1_IN_COL : " << lay1in << std::endl;
+  std::cout << " PG_LAY1_BC_COL : " << lay1bc << std::endl;
+  std::cout << " PG_LAY2_IN_COL : " << lay2in << std::endl;
+  std::cout << " PG_LAY2_BC_COL : " << lay2bc << std::endl;
+  std::cout << " OTHER_LAYS_COL : " << other << std::endl;
+#endif
+
+  __distinguish_bcs();
+}
+
+template <typename crd_t, typename ngo_t>
+void zone_t<crd_t, ngo_t>::__distinguish_bcs()
+{
+  for (auto b=_bcs.begin(); b != _bcs.end(); ++b)
+  {
+    E_Int bcid = b->first;
+    Vector_t<E_Int>& ids = b->second;
+    size_t nbc = ids.size();
+    for (size_t i=0; i < nbc; ++i)
+    {
+      E_Int PGi = ids[i] - 1;
+      if (_ng.PGs._type[PGi] != PG_BC && _ng.PGs._type[PGi] != PG_LAY1_BC_COL && _ng.PGs._type[PGi] != PG_LAY2_BC_COL) continue;
+      _ng.PGs._type[PGi] += bcid; // first bc will have 1001, second 1002...
     }
   }
 }
@@ -601,12 +683,12 @@ void zone_t<crd_t, ngo_t>::update_boundaries(const Vector_t<E_Int>& pgnids, E_In
       nids.clear();
       
       vtmp.reserve(nbc);
-      nids.resize(nbc, E_IDX_NONE);
+      nids.resize(nbc, IDX_NONE);
       E_Int count(0);
       for (size_t i = 0; i < nbc; ++i)
       {
         E_Int PGi = b->second[i] - idx_start;
-        if (pgnids[PGi] == E_IDX_NONE) continue;
+        if (pgnids[PGi] == IDX_NONE) continue;
         vtmp.push_back(pgnids[PGi] + idx_start);
         nids[i] = count++;
       }
@@ -640,12 +722,12 @@ void zone_t<crd_t, ngo_t>::update_boundaries(const Vector_t<E_Int>& pgnids, E_In
     nids.clear();
 
     vtmp.reserve(nbj);
-    nids.resize(nbj, E_IDX_NONE);
+    nids.resize(nbj, IDX_NONE);
     E_Int count(0);
     for (size_t i = 0; i < nbj; ++i)
     {
       E_Int PGi = j.second.second[i] - idx_start;
-      if (pgnids[PGi] == E_IDX_NONE) continue;
+      if (pgnids[PGi] == IDX_NONE) continue;
       vtmp.push_back(pgnids[PGi] + idx_start);
       nids[i] = count++;
     }
@@ -667,6 +749,23 @@ void zone_t<crd_t, ngo_t>::update_boundaries(const Vector_t<E_Int>& pgnids, E_In
   
   for (size_t i=0; i < to_remove.size(); ++i)
     _joins.erase(to_remove[i]);
+}
+
+///
+template <typename crd_t, typename ngo_t>
+void zone_t<crd_t, ngo_t>::sort_pointLists()
+{
+  for (auto& b : _bcs)
+  {
+     std::vector<E_Int>& ids = b.second;
+     std::sort(ids.begin(), ids.end());
+
+  }
+  for (auto j : _joins)
+  {
+    std::vector<E_Int>& ids = j.second.second;
+    std::sort(ids.begin(), ids.end());
+  }
 }
 
 
@@ -730,7 +829,7 @@ void zone_t<crd_t, ngo_t>::append( zone_t& that_z, bool keep_joins)
     // reindex and append pgs not in any join, update this F2E
     
     E_Int that_nb_pgs = ngtmp.PGs.size();
-    Vector_t<E_Int> pgnids(that_nb_pgs, E_IDX_NONE);
+    Vector_t<E_Int> pgnids(that_nb_pgs, IDX_NONE);
     
     for (size_t jj = 0; jj < jids.size(); ++jj)
     {
@@ -796,7 +895,7 @@ void zone_t<crd_t, ngo_t>::append( zone_t& that_z, bool keep_joins)
 
       for (E_Int i = 0; i < that_nb_pgs; ++i)
       {
-        if (pgnids[i] != E_IDX_NONE) continue;
+        if (pgnids[i] != IDX_NONE) continue;
         pgnids[i] = pnids[i] + shftPG0;
       }
 
@@ -814,8 +913,11 @@ void zone_t<crd_t, ngo_t>::append( zone_t& that_z, bool keep_joins)
       
       for (E_Int i = 0; i < pgs.size(); ++i)
       {
-        _F2Es[i + shftPG0]       = that_z._F2Es[poids[i]];
-        _F2Es[i + shftPG0 + nb_pgs1] = that_z._F2Es[poids[i] + sz1];
+        E_Int left = that_z._F2Es[poids[i]];
+        E_Int right = that_z._F2Es[poids[i] + sz1];
+        if (left == _F2E_NONE)std::swap(left,right);
+        _F2Es[i + shftPG0]           = left;
+        _F2Es[i + shftPG0 + nb_pgs1] = right;
       }
     }
     
@@ -823,7 +925,7 @@ void zone_t<crd_t, ngo_t>::append( zone_t& that_z, bool keep_joins)
       this->draw_boundaries();
 #endif
     
-    ngtmp.PHs.change_indices(pgnids, true); 
+    ngtmp.PHs.change_indices(pgnids); 
 
     _ng.PHs.append(ngtmp.PHs);
 
@@ -869,7 +971,7 @@ void zone_t<crd_t, ngo_t>::sort_by_type()
 {
   Vector_t<E_Int> nids, oids;
   _ng.PGs.sort_by_type(nids, oids);
-  
+
   // do the change
   {
     size_t nb_pgs = _ng.PGs.size();
@@ -905,13 +1007,13 @@ void zone_t<crd_t, ngo_t>::sort_by_type()
       ngon_type ng(pgs, true);
       K_FLD::IntArray cnto;
       ng.export_to_array(cnto);
-      MIO::write(o.str().c_str(), _crd, cnto, "NGON");
+      medith::write(o.str().c_str(), _crd, cnto, "NGON");
       
     }
   }
 #endif
 
-  _ng.PHs.change_indices(nids, true);
+  _ng.PHs.change_indices(nids);
   
   _ng.PHs.sort_by_type(nids, oids);
   
@@ -922,14 +1024,136 @@ void zone_t<crd_t, ngo_t>::sort_by_type()
     phs.reserve(nb_phs);
     phs._NGON.reserve(_ng.PHs._NGON.size());
 
-    for (size_t i=0; i < nb_phs; ++i)
+    Vector_t<E_Int> typ(nb_phs);
+    
+    for (size_t i=0; i < nb_phs; ++i){
       phs.add(_ng.PHs.stride(oids[i]), _ng.PHs.get_facets_ptr(oids[i]));
+      typ[i] = _ng.PHs._type[oids[i]];
+    }
 
     _ng.PHs = phs;
+    _ng.PHs._type = typ;
   }
   
 }
 
+template <typename crd_t, typename ngo_t>
+void zone_t<crd_t, ngo_t>::insert_ghosts_on_bcs(E_Int type, E_Int nb_layers) //type 1 : single-PG host, 2: degen ghost, 3 : degen ghost with top creation (rather than bot duplication)
+{
+
+  // first shift types to make room for BC ghost (just before 2nd layer)
+  size_t nb_phs = _ng.PHs.size();
+  for (size_t i=0; i < nb_phs; ++i)
+  {
+    if (_ng.PHs._type[i] > 1 && _ng.PHs._type[i] != IDX_NONE) ++_ng.PHs._type[i];
+  }
+  // Now add one cell per BC pg
+  size_t nb_pgs = _ng.PGs.size();
+  if (type == 1)
+  {
+    // Now add one cell per BC pg
+    E_Int pg;
+
+    // RULE
+    // for any nb of layers, add PG_BC
+    // for nlayers >=2 , add also PG_LAY1_BC_COL
+    // for nlayer n>=3 , add also PG_LAY2_BC_COL
+    // above not handled
+
+    for (size_t i=0; i < nb_pgs; ++i)
+    {
+      bool ad = is_a_bc(_ng.PGs._type[i], nb_layers);
+
+      if (ad)
+      {
+        pg = i+1;
+        _ng.PHs.add(1, &pg);
+      }
+    }
+    _ng.PHs.updateFacets();
+    nb_phs = _ng.PHs.size();
+    _ng.PHs._type.resize(nb_phs, 2); // set GHOST cells color
+  }
+  else if (type == 2 || type == 3)
+  {
+    std::vector<E_Int> pglist;
+    for (size_t i=0; i < nb_pgs; ++i)
+    {
+      bool ad = is_a_bc(_ng.PGs._type[i], nb_layers);
+
+      if (ad)
+        pglist.push_back(i);
+    }
+    ngon_type::add_flat_ghosts(_ng, pglist, (type == 3));
+    //replace temporarily to put ghost at the right position
+    nb_phs = _ng.PHs.size();
+    for (size_t i = 0; i < nb_phs; ++i)
+      if (_ng.PHs._type[i] == PH_GHOST)_ng.PHs._type[i] = 2; 
+  }
+  
+  
+  
+  // put the PHs of type 2 at the right place
+  Vector_t<E_Int> nids, oids;
+  _ng.PHs.sort_by_type(nids, oids);
+  
+  // do the change
+  {
+    size_t nb_phs = _ng.PHs.size();
+    ngon_unit phs;
+    phs.reserve(nb_phs);
+    phs._NGON.reserve(_ng.PHs._NGON.size());
+
+    Vector_t<E_Int> typ(nb_phs);
+    
+    for (size_t i=0; i < nb_phs; ++i){
+      phs.add(_ng.PHs.stride(oids[i]), _ng.PHs.get_facets_ptr(oids[i]));
+      typ[i] = _ng.PHs._type[oids[i]];
+    }
+
+    _ng.PHs = phs;
+    _ng.PHs._type = typ;
+  }
+  
+  // Now get back to previous types
+  nb_phs = _ng.PHs.size();
+  for (size_t i=0; i < nb_phs; ++i)
+  {
+    if (_ng.PHs._type[i] == 2) _ng.PHs._type[i] = PH_GHOST;
+    else if (_ng.PHs._type[i] > 1 && _ng.PHs._type[i] != IDX_NONE) --_ng.PHs._type[i];
+  }
+}
+
+template <typename crd_t, typename ngo_t>
+void zone_t<crd_t, ngo_t>::color_ranges
+(std::vector<E_Int>& PGcolors, std::vector<E_Int>& PHcolors)
+{
+  PGcolors.clear(); PHcolors.clear();
+  E_Int pgColCur=_ng.PGs._type[0];
+  
+  PGcolors.push_back(0);
+  E_Int i=0;
+
+  while (i<_ng.PGs.size())
+  {
+    while (i<_ng.PGs.size() && _ng.PGs._type[i] ==  pgColCur)++i;
+    pgColCur = _ng.PGs._type[i];
+    PGcolors.push_back(i);
+    ++i;
+  }
+  
+  E_Int phColCur=_ng.PHs._type[0];
+  PHcolors.push_back(0);
+  i=0;
+
+  while (i<_ng.PHs.size())
+  {
+    while (i<_ng.PHs.size() && _ng.PHs._type[i] ==  phColCur)++i;
+    phColCur = _ng.PHs._type[i];
+    PHcolors.push_back(i);
+    ++i;
+  }
+}
 
 } // NUGA
 

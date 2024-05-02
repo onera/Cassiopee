@@ -10,9 +10,13 @@ a = C.convertArray2NGon(a); a = G.close(a)
 b = G.cartHexa((0.,0.,0.), (0.005,0.005,0.005), (5,5,5))
 #C.convertArrays2File([b], 'b.plt')
 
-m = XOR.adaptCells(a,b)
-m = C.conformizeNGon(m)
-m = XOR.closeOctalCells(m)
-#C.convertArrays2File([m], 'out.plt')
+m = XOR.adaptCells(a,b, sensor_type=0)
+m = XOR.closeCells(m[0])
 test.testA(m,1)
+#C.convertArrays2File([m], 't1_1.plt')
+
+m = XOR.adaptCells(a,b, sensor_type=1)
+m = XOR.closeCells(m[0])
+test.testA(m,2)
+#C.convertArrays2File([m], 't1_2.plt')
 

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -19,10 +19,9 @@
 
 # include "generator.h"
 # include <stack>
-# include "Search/BbTree.h"
+# include "Nuga/include/BbTree.h"
 # include "Search/OctreeNode.h"
-# include "Fld/ArrayAccessor.h"
-
+# include "Nuga/include/ArrayAccessor.h"
 using namespace std;
 using namespace K_FLD;
 using namespace K_SEARCH;
@@ -74,12 +73,14 @@ struct stackData
 //============================================================================
 PyObject* octree(PyObject* self, PyObject* args)
 {
+  E_Float __DFARTOL__ = -0.5;// dfar=-1 par defaut = pas pris en compte
   PyObject* stlArrays; PyObject* listOfSnears;
-  E_Float dfar; E_Int levelMax;
+  PyObject* listOfDfars;
+  E_Float dfar; E_Int levelMax; E_Int dfarDir; E_Int mode;
   PyObject* octant;
-  if (!PYPARSETUPLE(args, "OOdlO", "OOdiO", "OOflO", "OOfiO",
-                    &stlArrays, &listOfSnears, 
-                    &dfar, &levelMax, &octant)) return NULL;
+  if (!PYPARSETUPLE_(args, OOO_ R_ I_ O_ I_ I_,
+                    &stlArrays, &listOfSnears, &listOfDfars,
+                    &dfar, &levelMax, &octant, &dfarDir, &mode)) return NULL;
   
   if (PyList_Size(stlArrays) == 0)
   {
@@ -99,6 +100,17 @@ PyObject* octree(PyObject* self, PyObject* args)
                     "octree: 1st and 2nd args must be of same length.");
     return NULL;
   }
+  E_Int ndfars = PyList_Size(listOfDfars);
+  if (ndfars == 0 && dfar < __DFARTOL__)
+  {
+    PyErr_SetString(PyExc_TypeError, 
+                    "octree: you must set a global dfar as a positive value or define a list of dfars.");
+    return NULL;
+  }
+  if (ndfars > 0 && dfar > __DFARTOL__)
+  {
+    printf("octree: both dfar and listOfDfars are defined; the list of dfars is taken into account.\n");
+  }
 
   // recuperations des stl
   vector<E_Int> resl;
@@ -111,14 +123,13 @@ PyObject* octree(PyObject* self, PyObject* args)
   E_Boolean skipStructured = true;
   E_Boolean skipUnstructured = false;
   E_Boolean skipDiffVars = true;
-
+  E_Boolean shared = true;
   E_Int res = K_ARRAY::getFromArrays(
     stlArrays, resl, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltTypet, objst, objut, 
-    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured);
+    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, shared);
   if (res == -1) 
   {
-    K_ARRAY::cleanUnstrFields(unstrF, cnt, eltTypet);
     PyErr_SetString(PyExc_TypeError, 
                     "octree: 1st arg is not valid.");
     return NULL;
@@ -133,7 +144,8 @@ PyObject* octree(PyObject* self, PyObject* args)
       if (dim == -1) dim = 3;
       else if (dim != 3) 
       {
-        K_ARRAY::cleanUnstrFields(unstrF, cnt, eltTypet);
+        for (E_Int no = 0; no < nzones; no++)
+          RELEASESHAREDU(objut[no], unstrF[no], cnt[no]);
         PyErr_SetString(PyExc_TypeError, 
                         "octree: 1st arg must be a list of TRI zones.");
         return NULL;
@@ -144,7 +156,8 @@ PyObject* octree(PyObject* self, PyObject* args)
       if (dim == -1) dim = 2;
       else if (dim != 2)
       {
-        K_ARRAY::cleanUnstrFields(unstrF, cnt, eltTypet);
+        for (E_Int no = 0; no < nzones; no++)
+          RELEASESHAREDU(objut[no], unstrF[no], cnt[no]);
         PyErr_SetString(PyExc_TypeError, 
                         "octree: 1st arg must be a list of BAR zones.");
         return NULL;
@@ -152,7 +165,8 @@ PyObject* octree(PyObject* self, PyObject* args)
     }
     else 
     {
-      K_ARRAY::cleanUnstrFields(unstrF, cnt, eltTypet);
+      for (E_Int no = 0; no < nzones; no++)
+        RELEASESHAREDU(objut[no], unstrF[no], cnt[no]);
       PyErr_SetString(PyExc_TypeError, 
                       "octree: 1st arg must be a list of TRI or BAR zones.");
       return NULL; 
@@ -173,11 +187,43 @@ PyObject* octree(PyObject* self, PyObject* args)
   E_Int nsnear = PyList_Size(listOfSnears);
   if (nzones != nsnear)
   {
-    K_ARRAY::cleanUnstrFields(unstrF, cnt, eltTypet);
+    for (E_Int no = 0; no < nzones; no++)
+      RELEASESHAREDU(objut[no], unstrF[no], cnt[no]);
     PyErr_SetString(PyExc_TypeError, 
                     "octree: 1st and 2nd args must be consistent.");
     return NULL;
   }    
+  // recuperation des dfars
+  if (ndfars > 0 && ndfars != nzones)
+  {
+    for (E_Int no = 0; no < nzones; no++)
+      RELEASESHAREDU(objut[no], unstrF[no], cnt[no]);
+    PyErr_SetString(PyExc_TypeError, 
+                    "octree: size of Dfarlist must be equal to the size of 1st arg (list of surface zones).");
+    return NULL;
+  }
+  vector<E_Float> vectOfDfars;
+  if (ndfars > 0)
+  {
+    PyObject* tpl0 = NULL;
+
+    for (E_Int i = 0; i < ndfars; i++)
+    {
+      E_Float dfarloc;
+      tpl0 = PyList_GetItem(listOfDfars,i);
+      if (PyFloat_Check(tpl0) == 0)
+      {
+        for (E_Int no = 0; no < nzones; no++)
+          RELEASESHAREDU(objut[no], unstrF[no], cnt[no]);
+        PyErr_SetString(PyExc_TypeError, 
+                        "octree: dfarList must be a list of floats.");
+        return NULL;
+      }
+      else dfarloc = PyFloat_AsDouble(tpl0);
+      vectOfDfars.push_back(dfarloc);
+    }
+  }
+
   PyObject* tpl = NULL;
   vector<E_Float> snears(nzones);
   for (int i = 0; i < nzones; i++)
@@ -185,44 +231,30 @@ PyObject* octree(PyObject* self, PyObject* args)
     tpl = PyList_GetItem(listOfSnears, i);
     if (PyFloat_Check(tpl) == 0)
     {
-      K_ARRAY::cleanUnstrFields(unstrF, cnt, eltTypet);
-      PyErr_SetString(PyExc_TypeError, 
+      for (E_Int no = 0; no < nzones; no++) RELEASESHAREDU(objut[no], unstrF[no], cnt[no]);
+      PyErr_SetString(PyExc_TypeError,
                       "octree: not a valid value for snear.");
       return NULL;
     }
     else snears[i] = PyFloat_AsDouble(tpl);
   }
-  E_Float dfxm = dfar; E_Float dfym = dfar; E_Float dfzm = dfar;
-  E_Float dfxp = dfar; E_Float dfyp = dfar; E_Float dfzp = dfar;  
-  if (dim == 2) { dfzp = 0.; dfzm = 0.; }
-
-  // Creation des bbox trees pour ttes les surfaces
-  typedef K_SEARCH::BoundingBox<3>  BBox3DType;
+  
+  typedef K_SEARCH::BoundingBox<3> BBox3DType;
   vector<K_SEARCH::BbTree3D*> bboxtrees(nzones);
   vector< vector<BBox3DType*> > vectOfBBoxes;// pour etre detruit a la fin
-  E_Float minB[3];  E_Float maxB[3];
+  E_Float minB[3]; E_Float maxB[3];
   E_Int posx2, posy2, posz2, nelts2;
-  E_Float xmino =  K_CONST::E_MAX_FLOAT;
-  E_Float ymino =  K_CONST::E_MAX_FLOAT;
-  E_Float zmino =  K_CONST::E_MAX_FLOAT;
-  E_Float xmaxo = -K_CONST::E_MAX_FLOAT;
-  E_Float ymaxo = -K_CONST::E_MAX_FLOAT;
-  E_Float zmaxo = -K_CONST::E_MAX_FLOAT;
-  if (dim == 2) {zmino = 0.; zmaxo= 0.;}
-  E_Float xminloc, yminloc, zminloc, xmaxloc, ymaxloc, zmaxloc;
-
+  vector<E_Float> xminZ(nzones);
+  vector<E_Float> yminZ(nzones);
+  vector<E_Float> zminZ(nzones);
+  vector<E_Float> xmaxZ(nzones);
+  vector<E_Float> ymaxZ(nzones);
+  vector<E_Float> zmaxZ(nzones);
   for (E_Int v = 0; v < nzones; v++)
   {
     FldArrayF& f2 = *unstrF[v]; FldArrayI& cn2 = *cnt[v];
     posx2 = posxt[v]; posy2 = posyt[v]; posz2 = poszt[v];
-    //bounding box globale ? 
-    k6boundboxunstr_(
-      f2.getSize(), f2.begin(posx2), f2.begin(posy2), f2.begin(posz2),
-      xmaxloc, ymaxloc, zmaxloc, xminloc, yminloc, zminloc);
-    xmino = K_FUNC::E_min(xminloc,xmino); xmaxo = K_FUNC::E_max(xmaxloc,xmaxo);
-    ymino = K_FUNC::E_min(yminloc,ymino); ymaxo = K_FUNC::E_max(ymaxloc,ymaxo);
-    if (dim == 2) {zmino = 0.; zmaxo = 0.;}
-    else {zmino = K_FUNC::E_min(zminloc,zmino); zmaxo = K_FUNC::E_max(zmaxloc,zmaxo);}
+
     // Creation de la bboxtree
     nelts2 = cn2.getSize();
     vector<BBox3DType*> boxes(nelts2);// liste des bbox de ts les elements de a2
@@ -232,32 +264,147 @@ PyObject* octree(PyObject* self, PyObject* args)
     E_Float* xminp = bbox.begin(1); E_Float* xmaxp = bbox.begin(4);
     E_Float* yminp = bbox.begin(2); E_Float* ymaxp = bbox.begin(5);
     E_Float* zminp = bbox.begin(3); E_Float* zmaxp = bbox.begin(6);
+    E_Float xminl = K_CONST::E_MAX_FLOAT; E_Float xmaxl =-K_CONST::E_MAX_FLOAT;
+    E_Float yminl = K_CONST::E_MAX_FLOAT; E_Float ymaxl =-K_CONST::E_MAX_FLOAT;
+    E_Float zminl = K_CONST::E_MAX_FLOAT; E_Float zmaxl =-K_CONST::E_MAX_FLOAT;
     for (E_Int et = 0; et < nelts2; et++)
     {
       minB[0] = xminp[et]; minB[1] = yminp[et]; minB[2] = zminp[et];
       maxB[0] = xmaxp[et]; maxB[1] = ymaxp[et]; maxB[2] = zmaxp[et]; 
       boxes[et] = new BBox3DType(minB, maxB);
+      xminl = K_FUNC::E_min(minB[0],xminl); xmaxl = K_FUNC::E_max(maxB[0],xmaxl);
+      yminl = K_FUNC::E_min(minB[1],yminl); ymaxl = K_FUNC::E_max(maxB[1],ymaxl);
+      if (dim == 3) {zminl = K_FUNC::E_min(minB[2],zminl); zmaxl = K_FUNC::E_max(maxB[2],zmaxl);}
+      else {zminl= 0.; zmaxl=0.;}
     }
     // Build the box tree
     bboxtrees[v] = new K_SEARCH::BbTree3D(boxes);
     vectOfBBoxes.push_back(boxes);
+    // bbox de la surface noz 
+    xminZ[v]=xminl; yminZ[v]=yminl; zminZ[v]=zminl;  
+    xmaxZ[v]=xmaxl; ymaxZ[v]=ymaxl; zmaxZ[v]=zmaxl;
   }
-  K_ARRAY::cleanUnstrFields(unstrF, cnt, eltTypet);
+  for (E_Int no = 0; no < nzones; no++)
+    RELEASESHAREDU(objut[no], unstrF[no], cnt[no]);
 
-  // construction de l'octree (octant)
-  E_Float Deltax = xmaxo+dfxp-xmino+dfxm;
-  E_Float Deltay = ymaxo+dfyp-ymino+dfym;
-  E_Float Deltaz = zmaxo+dfzp-zmino+dfzm;
-  E_Float Delta = K_FUNC::E_max(Deltax, Deltay); 
-  if (dim == 3) Delta = K_FUNC::E_max(Delta, Deltaz);
-  Delta = 0.5*Delta;
-  E_Float xc = 0.5*(xmaxo+dfxp+xmino-dfxm);
-  E_Float yc = 0.5*(ymaxo+dfyp+ymino-dfym);
-  E_Float zc = 0.5*(zmaxo+dfzp+zmino-dfzm);
-  zmino = 0.; zmaxo = 0.;
-  xmino = xc-Delta; ymino = yc-Delta; if (dim == 3) zmino = zc-Delta;
-  xmaxo = xc+Delta; ymaxo = yc+Delta; if (dim == 3) zmaxo = zc+Delta;
+  // calcul du dfar reel a partir de la bbox des bbox
+  E_Float xmino, ymino, zmino, xmaxo, ymaxo, zmaxo;
+  E_Float xc, yc, zc, Delta, Deltax, Deltay, Deltaz;
+  if (ndfars == 0) // starts from the global dfar
+  {
+    E_Float dfxm = dfar; E_Float dfym = dfar; E_Float dfzm = dfar;
+    E_Float dfxp = dfar; E_Float dfyp = dfar; E_Float dfzp = dfar;  
+    if (dim == 2) { dfzp = 0.; dfzm = 0.; }
+
+    xmino =  K_CONST::E_MAX_FLOAT; xmaxo = -K_CONST::E_MAX_FLOAT;
+    ymino =  K_CONST::E_MAX_FLOAT; ymaxo = -K_CONST::E_MAX_FLOAT;
+    zmino =  K_CONST::E_MAX_FLOAT; zmaxo = -K_CONST::E_MAX_FLOAT;
+    if (dim == 2) {zmino = 0.; zmaxo= 0.;}
+    for (E_Int v = 0; v < nzones; v++)
+    {
+      xmino = K_FUNC::E_min(xminZ[v],xmino); xmaxo = K_FUNC::E_max(xmaxZ[v],xmaxo);
+      ymino = K_FUNC::E_min(yminZ[v],ymino); ymaxo = K_FUNC::E_max(ymaxZ[v],ymaxo);
+      if (dim == 3)
+      {
+        zmino = K_FUNC::E_min(zminZ[v],zmino); zmaxo = K_FUNC::E_max(zmaxZ[v],zmaxo);
+      }
+    }
+    if (dim == 2) {zmino = 0.; zmaxo = 0.;}
+
+    Deltax = xmaxo+dfxp-xmino+dfxm;
+    Deltay = ymaxo+dfyp-ymino+dfym;
+    Deltaz = zmaxo+dfzp-zmino+dfzm;
+    Delta = K_FUNC::E_max(Deltax, Deltay); 
+    if (dim == 3) Delta = K_FUNC::E_max(Delta, Deltaz);
+    Delta = 0.5*Delta;
+    xc = 0.5*(xmaxo+dfxp+xmino-dfxm);
+    yc = 0.5*(ymaxo+dfyp+ymino-dfym);
+    zc = 0.5*(zmaxo+dfzp+zmino-dfzm);
+    zmino = 0.; zmaxo = 0.;
+    xmino = xc-Delta; ymino = yc-Delta; if (dim == 3) zmino = zc-Delta;
+    xmaxo = xc+Delta; ymaxo = yc+Delta; if (dim == 3) zmaxo = zc+Delta;
+  }
+  else // if (ndfars > 0)// local dfar
+  {
+    // calcul de la bbox etendue de dfar local pour ttes les surfaces sauf celles tq dfarloc=-1
+    xmino = K_CONST::E_MAX_FLOAT; xmaxo =-K_CONST::E_MAX_FLOAT;
+    ymino = K_CONST::E_MAX_FLOAT; ymaxo =-K_CONST::E_MAX_FLOAT;
+    zmino = K_CONST::E_MAX_FLOAT; zmaxo =-K_CONST::E_MAX_FLOAT;
+    if (dim == 2) {zmino = 0.; zmaxo= 0.;}
+
+    for (E_Int v = 0; v < nzones; v++)
+    {
+      E_Float dfarloc = vectOfDfars[v];
+      if (dfarloc > __DFARTOL__) // extensions non isotropes
+      {
+        E_Float xminl = xminZ[v]; E_Float xmaxl = xmaxZ[v];
+        E_Float yminl = yminZ[v]; E_Float ymaxl = ymaxZ[v];
+        E_Float zminl = zminZ[v]; E_Float zmaxl = zmaxZ[v];
+
+        Deltax = xmaxl-xminl+2*dfarloc;
+        Deltay = ymaxl-yminl+2*dfarloc;
+        Delta = K_FUNC::E_max(Deltax, Deltay); 
+        if (dim == 3) 
+        {
+          Deltaz=zmaxl-zminl+2*dfarloc;
+          Delta = K_FUNC::E_max(Delta, Deltaz);
+        }
+        Delta = 0.5*Delta;
+        xc = 0.5*(xmaxl+xminl);
+        yc = 0.5*(ymaxl+yminl);
+        xminl=xc-Delta; yminl=yc-Delta;
+        xmaxl=xc+Delta; ymaxl=yc+Delta; 
+
+        if (dim == 2)
+        {zc = 0.; zminl = 0.; zmaxl = 0.;}
+        else 
+        {
+          zc = 0.5*(zmaxl+zminl);
+          zminl=zc-Delta; zmaxl=zc+Delta;
+        }
+        xmino = K_FUNC::E_min(xmino,xminl); xmaxo = K_FUNC::E_max(xmaxo,xmaxl);
+        ymino = K_FUNC::E_min(ymino,yminl); ymaxo = K_FUNC::E_max(ymaxo,ymaxl);
+        if (dim == 3)
+        {
+          zmino = K_FUNC::E_min(zmino,zminl); zmaxo = K_FUNC::E_max(zmaxo,zmaxl);
+        }        
+      }//only zones with dfar > -1
+    }// loop on all zones
+  }// list of dfars
+
+  // Nous rendons cubique la boite finale
+  E_Float d = 0.;
+  if (dfarDir == 0) // impose dfar max
+  { 
+    d = K_FUNC::E_max(xmaxo-xmino,ymaxo-ymino);
+    if (dim == 3) d = K_FUNC::E_max(d, zmaxo-zmino);
+  }
+  else if (dfarDir == 1)
+    d = xmaxo-xmino;
+  else if (dfarDir == 2)
+    d = ymaxo-ymino;
+  else if (dfarDir == 3)
+    d = zmaxo-zmino;
+
+  if (mode == 1)
+  {
+    printf("size domain before octree size adaptation = %f\n",d);
+    E_Float dd = d;
+    E_Float snear_target = 1.e6;
+    for (E_Int v = 0; v < nzones; v++) snear_target = K_FUNC::E_min(snears[v], snear_target);
+    while (dd > snear_target) dd = dd/2.;
+    d = d*snear_target/(2*dd);
+    d = d*2; // better having a bigger domain than a lower one...
+    printf("size domain after octree size adaptation = %f\n",d);
+  }
   
+  xc = 0.5*(xmino+xmaxo);
+  yc = 0.5*(ymino+ymaxo);
+  xmino = xc-0.5*d; ymino = yc-0.5*d;
+  xmaxo = xc+0.5*d; ymaxo = yc+0.5*d;
+  if (dim == 3) { zc = 0.5*(zmino+zmaxo); zmino = zc-0.5*d; zmaxo = zc+0.5*d; }
+    
+  // construction de l'octree (octant)
   // si octant est present, ecrase xmino,...
   if (octant != Py_None && PyList_Check(octant) == true)
   {
@@ -288,12 +435,12 @@ PyObject* octree(PyObject* self, PyObject* args)
   E_Int indmax = 0;
   
   OctreeNode* toptree;
-  if (dim == 2) 
+  if (dim == 2)
   {
     toptree = new OctreeNode(xmino, ymino, zmino, xmaxo-xmino, l0, indmax, indmax+1, indmax+2, indmax+3);
     indmax += 4;
   }
-  else 
+  else
   {
     toptree = new OctreeNode(xmino, ymino, zmino, xmaxo-xmino, l0, indmax, indmax+1, indmax+2, indmax+3, indmax+4, indmax+5, indmax+6, indmax+7);
     indmax += 8;
@@ -328,7 +475,7 @@ PyObject* octree(PyObject* self, PyObject* args)
       {
         //regarder si dh > snear ? 
         snear = K_FUNC::E_min(snears[v], snear);
-        if (dh > snear-tol) found = 1;
+        if (dh > snear-tol && dh != snear) found = 1;
       }
       indicesBB.clear();
     }
@@ -505,6 +652,7 @@ PyObject* octree(PyObject* self, PyObject* args)
   K_CONNECT::cleanConnectivity(1, 2, 3, 1.e-6, eltType, *coords, *cn);
   //buildArray
   tpl = K_ARRAY::buildArray(*coords, "x,y,z", *cn, -1, eltType, false);
+
   //nettoyage
   delete coords; delete cn;
   return tpl;

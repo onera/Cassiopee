@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -27,13 +27,9 @@ PyObject* K_GENERATOR::computeEta(PyObject* self, PyObject* args)
 {
   PyObject *arrayc, *arrayn;
   E_Int loop, niter;
-#ifdef E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "OOll", &arrayc, &arrayn, &niter, &loop)) 
-    return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "OOii", &arrayc, &arrayn, &niter, &loop)) 
-    return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, OO_ II_,
+                    &arrayc, &arrayn, &niter, &loop)) return NULL;
+
   // Check array of contour
   E_Int ni, nj, nk;
   FldArrayF* coords; FldArrayI* cn;
@@ -169,15 +165,16 @@ PyObject* K_GENERATOR::straightenVector(PyObject* self, PyObject* args)
   PyObject *arrayc, * arrayv, *constrainedPtsa, *constraintsa;
   E_Int loop, niter;
   E_Float toldist;
-#if defined E_DOUBLEREAL && defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "OOOOlld", &arrayc, &arrayv, &constrainedPtsa, &constraintsa, &loop, &niter, &toldist)) return NULL;
-#elif defined E_DOUBLEREAL && !defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "OOOOiid", &arrayc, &arrayv, &constrainedPtsa, &constraintsa, &loop, &niter, &toldist)) return NULL;
-#elif !defined E_DOUBLEREAL && defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "OOOOllf", &arrayc, &arrayv, &constrainedPtsa, &constraintsa, &loop, &niter, &toldist)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "OOOOiif", &arrayc, &arrayv, &constrainedPtsa, &constraintsa, &loop, &niter, &toldist)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, OOOO_ II_ R_,
+                    &arrayc, &arrayv, &constrainedPtsa, &constraintsa, 
+                    &loop, &niter, &toldist)) return NULL;
+  if (PyList_Check(constrainedPtsa) == 0)
+  {
+    PyErr_SetString(PyExc_TypeError, 
+                    "straightenVector: 3rd argument must be a list.");
+    return NULL;
+  }
+
   if (PyList_Size(constraintsa) == 0 || PyList_Size(constrainedPtsa) == 0)
     return arrayv;
 
@@ -213,15 +210,15 @@ PyObject* K_GENERATOR::straightenVector(PyObject* self, PyObject* args)
   if ( err == 1 ) {RELEASESHAREDB(res, arrayc, coords, cn); RELEASESHAREDB(resv, arrayv, vectp, cnv); return NULL;}
   
   // Recup des indices 
-  PyObject* tpl = NULL;
   E_Int nconsi = PyList_Size(constrainedPtsa);
   vector<E_Int> constrainedPts(nconsi);
-  for (int i = 0; i <nconsi; i++)
+  for (int i = 0; i < nconsi; i++)
   {
-    tpl = PyList_GetItem(constrainedPtsa, i);
-    if ( PyLong_Check(tpl) == 0 && PyInt_Check(tpl) == 0 )    
+    PyObject* tpl = PyList_GetItem(constrainedPtsa, i);
+    if ( !PyLong_Check(tpl) && !PyInt_Check(tpl))    
     {
       RELEASESHAREDB(resv, arrayv, vectp, cnv); RELEASESHAREDB(res, arrayc, coords, cn); 
+      PyErr_SetString(PyExc_TypeError, "straightenVector: 3rd arg must be a list of integers.");
       return NULL;
     }
     else constrainedPts[i] = PyLong_AsLong(tpl);
@@ -366,7 +363,7 @@ void K_GENERATOR::relaxNearConstraints(
   {
     E_Int ip = i+1;
     E_Int found = 0;
-    for (unsigned int noj = 0; noj < constrainedPts.size(); noj++)
+    for (size_t noj = 0; noj < constrainedPts.size(); noj++)
     {
       E_Int j = constrainedPts[noj];
       if ( i == j ) {found = 1; break;}

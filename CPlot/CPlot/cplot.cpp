@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -71,19 +71,40 @@ static PyMethodDef Pycplot [] =
   {NULL, NULL}
 };
 
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "cplot",
+        NULL,
+        -1,
+        Pycplot
+};
+#endif
+
 // ============================================================================
 /* Init of module */
 // ============================================================================
 extern "C"
 {
+#if PY_MAJOR_VERSION >= 3
+  PyMODINIT_FUNC PyInit_cplot();
+  PyMODINIT_FUNC PyInit_cplot()
+#else
   PyMODINIT_FUNC initcplot();
   PyMODINIT_FUNC initcplot()
+#endif
   {
+    import_array();
+#if PY_MAJOR_VERSION >= 3
+    PyObject* m = PyModule_Create(&moduledef);
+#else
     PyObject* m = Py_InitModule("cplot", Pycplot);
+#endif
     PyModule_AddIntConstant(m, "useDirect", long(Data::Direct));
     PyModule_AddIntConstant(m, "useDL",     long(Data::DL));
     PyModule_AddIntConstant(m, "useVBO",    long(Data::VBO));
-    //PyModule_AddIntConstant(m, "useImg",    long(Data::Img));// Pour le rendu deporte sur image ?
-    import_array();
+#if PY_MAJOR_VERSION >= 3
+    return m;
+#endif
   }
 }

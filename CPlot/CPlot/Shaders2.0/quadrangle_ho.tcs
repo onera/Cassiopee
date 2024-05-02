@@ -1,0 +1,72 @@
+#version 400 compatibility
+
+uniform float uOuter, uInner;
+
+layout(vertices = 9) out;
+
+in V2CT_OUT
+{
+    vec4 position;
+    vec4 color;
+    ivec4 data_comp; // Raconte si vdata1,2,3 ou 4 est utilise
+    vec4 vdata1, vdata2, vdata3, vdata4;
+} vs_in[];
+
+out TCS_OUT
+{
+    vec4 position;
+    vec4 color;
+    ivec4 data_comp; // Raconte si vdata1,2,3 ou 4 est utilise
+    vec4 vdata1, vdata2, vdata3, vdata4;    
+} tcs_out[];
+
+float computeLod( vec3 origin, vec3 radius )
+{
+    vec3  center = origin + 0.5*radius;
+    float lgth   = length(radius);
+    vec4  min_x  = gl_ModelViewProjectionMatrix * (vec4(center,1.0f) - vec4(lgth, 0.0f, 0.0f, 0.0f));
+    vec4  max_x  = gl_ModelViewProjectionMatrix * (vec4(center,1.0f) + vec4(lgth, 0.0f, 0.0f, 0.0f));
+    vec4  min_y  = gl_ModelViewProjectionMatrix * (vec4(center,1.0f) - vec4(0.0f, lgth, 0.0f, 0.0f));
+    vec4  max_y  = gl_ModelViewProjectionMatrix * (vec4(center,1.0f) + vec4(0.0f, lgth, 0.0f, 0.0f));
+    vec4  min_z  = gl_ModelViewProjectionMatrix * (vec4(center,1.0f) - vec4(0.0f, 0.0f, lgth, 0.0f));
+    vec4  max_z  = gl_ModelViewProjectionMatrix * (vec4(center,1.0f) + vec4(0.0f, 0.0f, lgth, 0.0f));
+
+    // Transform from clip-space to NDC
+    min_x /= min_x.w; max_x /= max_x.w;
+    min_y /= min_y.w; max_y /= max_y.w;
+    min_z /= min_z.w; max_z /= max_z.w;
+
+    // Calculate the distance (ignore depth) covered by all three pairs of extremes
+    float dist_x = distance (min_x.xy, max_x.xy);
+    float dist_y = distance (min_y.xy, max_y.xy);
+    float dist_z = distance (min_z.xy, max_z.xy);
+
+    // A max_dist >= 2.0 indicates the edge spans the entire screen in one direction
+    float max_dist = max (dist_x, max (dist_y, dist_z));    
+    return max(2.5*max_dist,1);
+}
+
+void main()
+{    
+    float lod1 = computeLod( gl_in[0].gl_Position.xyz, gl_in[1].gl_Position.xyz - gl_in[0].gl_Position.xyz );
+    //float lod2 = computeLod( gl_in[1].gl_Position.xyz, gl_in[3].gl_Position.xyz - gl_in[1].gl_Position.xyz );
+    float lod3 = computeLod( gl_in[3].gl_Position.xyz, gl_in[0].gl_Position.xyz - gl_in[3].gl_Position.xyz );
+    float lod4 = computeLod( gl_in[3].gl_Position.xyz, gl_in[2].gl_Position.xyz - gl_in[3].gl_Position.xyz );
+    float lod5 = computeLod( gl_in[2].gl_Position.xyz, gl_in[1].gl_Position.xyz - gl_in[2].gl_Position.xyz );
+    gl_TessLevelInner[0] = max(uInner*min(lod1,lod4),1);
+    gl_TessLevelInner[1] = max(uInner*min(lod5,lod3),1);
+    gl_TessLevelOuter[0] = uOuter*lod3;
+    gl_TessLevelOuter[1] = uOuter*lod1;
+    gl_TessLevelOuter[2] = uOuter*lod5;
+    gl_TessLevelOuter[3] = uOuter*lod4;
+
+    gl_out[gl_InvocationID].gl_Position = vs_in[gl_InvocationID].position;
+
+    tcs_out[gl_InvocationID].position  = vs_in[gl_InvocationID].position;
+    tcs_out[gl_InvocationID].color     = vs_in[gl_InvocationID].color;
+    tcs_out[gl_InvocationID].data_comp = vs_in[gl_InvocationID].data_comp;
+    tcs_out[gl_InvocationID].vdata1    = vs_in[gl_InvocationID].vdata1;
+    tcs_out[gl_InvocationID].vdata2    = vs_in[gl_InvocationID].vdata2;
+    tcs_out[gl_InvocationID].vdata3    = vs_in[gl_InvocationID].vdata3;
+    tcs_out[gl_InvocationID].vdata4    = vs_in[gl_InvocationID].vdata4;
+}

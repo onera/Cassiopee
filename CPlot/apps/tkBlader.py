@@ -1,5 +1,7 @@
-# - blader -
-import Tkinter as TK
+# - tkBlader -
+"""App to create blade meshes."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Converter.Internal as Internal
@@ -63,7 +65,7 @@ def trimesh(a1, a2, a3):
 
     # Verif de N
     Nt = N3-N2+N1+1
-    if (Nt/2-Nt*0.5 != 0): return [0, 'N3-N2+N1 must be odd.', 0]
+    if Nt/2-Nt*0.5 != 0: return [0, 'N3-N2+N1 must be odd.', 0]
     N = Nt/2
     if N < 2: return [0, 'invalid number of points for this operation.', 0]
     if N > N1-1: return [0, 'invalid number of points for this operation.',0]
@@ -114,8 +116,8 @@ def mono2mesh(a1, a2):
     import Generator as G
     N1 = a1[2]; N2 = a2[2]
     diff = N2-N1
-    if (diff/2 != diff*0.5): return ['N1-N2 must be even.']
-    if (diff < 0): ap = a2; a2 = a1; a1 = ap; diff = -diff; N2 = N1
+    if diff/2 != diff*0.5: return ['N1-N2 must be even.']
+    if diff < 0: ap = a2; a2 = a1; a1 = ap; diff = -diff; N2 = N1
     Np = (diff+2)/2
 
     b1 = T.subzone(a2, (1,1,1), (Np,1,1))
@@ -132,15 +134,15 @@ def step1():
 
     # Recupere le profil
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
-    if (len(nzs) > 2):
+    if len(nzs) > 2:
         CTK.TXT.insert('START', 'Input profile must be one curve or two curves (blunt profiles).\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
-    if (len(nzs) == 2): culot = 1
+    if len(nzs) == 2: culot = 1
     else: culot = 0
 
     zones = []; errors = []
@@ -149,15 +151,15 @@ def step1():
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
         dim = Internal.getZoneDim(z)
-        if (dim[0] == 'Unstructured'): 
+        if dim[0] == 'Unstructured': 
             try: z = C.convertBAR2Struct(z)
-            except Exception, e:
-                #print 'Error: blader: %s'%str(e)
+            except Exception as e:
+                #print('Error: blader: %s'%str(e))
                 errors += [0,str(e)]
                 CTK.TXT.insert('START', 'Input profile must be structured.\n')
                 CTK.TXT.insert('START', 'Error: ', 'Error'); return
         zones.append(z)
-    if (len(errors)>0): Panels.displayErrors(errors, header='Error: blader')
+    if len(errors)>0: Panels.displayErrors(errors, header='Error: blader')
     CTK.saveTree()
 
     # -- Go to array world!
@@ -168,10 +170,10 @@ def step1():
 
     # repere le culot si 2 courbes sont fournies
     a = C.getAllFields(zones[0], 'nodes')[0]
-    if (culot == 1):
+    if culot == 1:
         ac = C.getAllFields(zones[1], 'nodes')[0]
         bb1 = G.bbox(a); bb2 = G.bbox(ac)
-        if (bb1[0] > bb2[0]): temp = a; a = ac; ac = temp 
+        if bb1[0] > bb2[0]: temp = a; a = ac; ac = temp 
 
     # taille de maille trailing edge et culot
     h = float(VARS[1].get())
@@ -188,7 +190,7 @@ def step1():
     # Remaille uniforme du profil avec h2
     l = D.getLength(a)
     npts = int(l / h2)+1
-    if (npts/2 == npts*0.5): npts += 1
+    if npts/2 == npts*0.5: npts += 1
     distrib = G.cart( (0,0,0), (1./(npts-1.),1,1), (npts,1,1) )
     a = G.map(a, distrib)
 
@@ -261,16 +263,16 @@ def step1():
     median = G.map(median, s)
     median = G.refine(median, 0.9, 1)
     N1 = c1[2]; N2 = median[2]; d = N1-N2    
-    if (d/2 != d*0.5):
+    if d/2 != d*0.5:
         factor = (N2+2.)/N2
         median = G.refine(median, factor, 1)
 
     #===========================================================================
     # Maillage TRI au bout
-    if (culot == 0):
+    if culot == 0:
         #Converter.convertArrays2File([b1,b2,delta], 'bout1.plt')
         m3 = trimesh(b1, b2, delta)
-        if (m3[0] == 0): raise ValueError(m3[1]) 
+        if m3[0] == 0: raise ValueError(m3[1]) 
         #Converter.convertArrays2File([b1,b2,delta]+m3, 'bout1.plt')
     else:
         # Dans le cas avec culot, on remaille le culot comme delta
@@ -317,7 +319,7 @@ def step1():
     line2 = G.map(line2, s)
     #Converter.convertArrays2File([a1,a2,line2], 'out.plt')
 
-    if (culot == 0):
+    if culot == 0:
         line2p = Converter.copy(line2)
     else:
         P1 = Converter.getValue(a2,0)
@@ -351,7 +353,7 @@ def step1():
     # check volume + subzone
     vol = G.getVolumeMap(m4[0])
     nk = vol[4]; ni = vol[2]
-    for k in xrange(nk-1):
+    for k in range(nk-1):
         sub = T.subzone(vol, (1,1,k+1), (ni,1,k+2)) 
         volmin = Converter.getMinValue(sub, 'vol')
         if volmin < 0.:
@@ -389,7 +391,7 @@ def step1():
         zones.append(z)
 
     base = Internal.getNodesFromName1(CTK.t, 'STEP1')
-    if (base != []):
+    if base != []:
         (p, c) = Internal.getParentOfNode(CTK.t, base[0])
         del p[2][c]
     
@@ -447,13 +449,13 @@ def step2():
     #==========================================================================
     M1b = T.translate(M1, (0,0,Dfar))
     B1 = []
-    for i in xrange(len(M1)):
+    for i in range(len(M1)):
         B1.append(G.stack(M1[i], M1b[i]))
 
     M1c = T.translate(M1, (0,0,-span))
     M1d = T.translate(M1, (0,0,-span-Dfar))
     B2 = []
-    for i in xrange(len(M1c)):
+    for i in range(len(M1c)):
         B2.append(G.stack(M1c[i], M1d[i]))
 
     #C.convertArrays2File(B1+B2, 'bouchon.plt')
@@ -461,7 +463,7 @@ def step2():
     M2b = T.translate(M2, (0,0,Dfar))
     M2c = T.translate(M2, (0,0,-span-Dfar))
     I = []
-    for i in xrange(len(M2b)):
+    for i in range(len(M2b)):
         I.append(G.stack(M2c[i], M2b[i]))
 
     # B1, B2: les bouchons; I le reste
@@ -472,13 +474,13 @@ def step2():
 
     N = int(Dfar/hp)+1
     distrib = G.cart( (0,0,0), (1./(N-1),1,1), (N,1,1) )
-    for i in xrange(len(B1)):
+    for i in range(len(B1)):
         B1[i] = G.map(B1[i], distrib, 3)
-    for i in xrange(len(B2)):
+    for i in range(len(B2)):
         B2[i] = G.map(B2[i], distrib, 3)
     N = int((2*Dfar+span)/hp)+1
     distrib = G.cart( (0,0,0), (1./(N-1),1,1), (N,1,1) )
-    for i in xrange(len(I)):
+    for i in range(len(I)):
         I[i] = G.map(I[i], distrib, 3)
     
     # Back to zones
@@ -515,12 +517,12 @@ def step2():
         z = C.addBC2Zone(z, 'overlap', 'BCOverlap', 'imax')
         base[2][11] = z
 
-        for i in xrange(5):
+        for i in range(5):
             z = base[2][i]
             z = C.addBC2Zone(z, 'overlap', 'BCOverlap', 'kmax')
             base[2][i] = z
 
-        for i in xrange(5):
+        for i in range(5):
             z = base[2][5+i]
             z = C.addBC2Zone(z, 'overlap', 'BCOverlap', 'kmax')
             base[2][5+i] = z
@@ -545,12 +547,12 @@ def step2():
         z = C.addBC2Zone(z, 'overlap', 'BCOverlap', 'kmin')
         base[2][7] = z
 
-        for i in xrange(3):
+        for i in range(3):
             z = base[2][i]
             z = C.addBC2Zone(z, 'overlap', 'BCOverlap', 'kmax')
             base[2][i] = z
 
-        for i in xrange(3):
+        for i in range(3):
             z = base[2][3+i]
             z = C.addBC2Zone(z, 'overlap', 'BCOverlap', 'kmax')
             base[2][3+i] = z
@@ -569,9 +571,10 @@ def step2():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkBlader', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Automatic mesher for\nblades.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkBlader  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Automatic mesher for\nblades.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=0)
@@ -579,8 +582,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkBlader')
@@ -589,29 +592,29 @@ def createApp(win):
     # - VARS -
     # -0- front split % -
     V = TK.StringVar(win); V.set('0.5'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBladerFrontSplit'): 
+    if 'tkBladerFrontSplit' in CTK.PREFS: 
         V.set(CTK.PREFS['tkBladerFrontSplit'])
     # -1- front step -
     V = TK.StringVar(win); V.set('0.001'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBladerFrontStep'): 
+    if 'tkBladerFrontStep' in CTK.PREFS: 
         V.set(CTK.PREFS['tkBladerFrontStep'])
     # -2- other step -
     V = TK.StringVar(win); V.set('0.01'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBladerStep'): 
+    if 'tkBladerStep' in CTK.PREFS: 
         V.set(CTK.PREFS['tkBladerStep'])
     # -3- delta line index -
     V = TK.StringVar(win); V.set('15'); VARS.append(V)
     # -4- Dfar. Mesh height -
     V = TK.StringVar(win); V.set('0.3'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBladerHeight'): 
+    if 'tkBladerHeight' in CTK.PREFS: 
         V.set(CTK.PREFS['tkBladerHeight'])
     # -5- hp: step en envergure -
     V = TK.StringVar(win); V.set('0.02'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBladerSpanStep'): 
+    if 'tkBladerSpanStep' in CTK.PREFS: 
         V.set(CTK.PREFS['tkBladerSpanStep'])
     # -6- span: longeur de l'envergure -
     V = TK.StringVar(win); V.set('5.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBladerSpan'): 
+    if 'tkBladerSpan' in CTK.PREFS: 
         V.set(CTK.PREFS['tkBladerSpan'])
 
     # - Step1 -
@@ -676,14 +679,18 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['MeshNoteBook'].add(WIDGETS['frame'], text='tkBlader')
+    except: pass
+    CTK.WIDGETS['MeshNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
-
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['MeshNoteBook'].hide(WIDGETS['frame'])
+    
 #==============================================================================
 # Update widgets when global pyTree t changes
 #==============================================================================
@@ -720,9 +727,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

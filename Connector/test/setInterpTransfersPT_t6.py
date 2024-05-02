@@ -11,34 +11,34 @@ dk = G.cart((0,0,0),(0.01,1,1),(11,1,1))
 a = G.addNormalLayers(a,dk)
 t = C.newPyTree(['Base']); t[2][1][2] = a
 t = X.connectMatch(t,dim=3)
-t = Internal.addGhostCells(t,t,d,adaptBCs=1)
+Internal._addGhostCells(t,t,d,adaptBCs=1)
 #---------
 # Centers
 #---------
-t = C.initVars(t,'centers:F',0.)
+C._initVars(t,'centers:F',0.)
 tc = C.node2Center(t)
-tc = C.initVars(tc,'{F}={CoordinateX}*{CoordinateY}')
+C._initVars(tc,'{F}={CoordinateX}*{CoordinateY}')
 # stockage direct
-t1 = X.setInterpDataForGhostCells__(t, tc, storage='direct', loc='centers')
-t1 = X.setInterpTransfers(t1,tc,variables=['F'])
+t1 = X.setInterpData(t, tc, storage='direct', loc='centers',itype='abutting')
+X._setInterpTransfers(t1,tc,variables=['F'])
 test.testT(t1,1)
 
 # stockage inverse
-tc1 = X.setInterpDataForGhostCells__(t, tc, storage='inverse', loc='centers')
+tc1 = X.setInterpData(t, tc, storage='inverse', loc='centers',itype='abutting')
 t1 = X.setInterpTransfers(t,tc1,variables=['F'])
 test.testT(t1,2)
 #---------
 # Nodes
 #---------
 # noeuds, stockage direct
-t = C.rmVars(t,['centers:F'])
-t = C.initVars(t,'F', 0.)
+C._rmVars(t,['centers:F'])
+C._initVars(t,'F', 0.)
 td = C.initVars(t,'{F}={CoordinateX}*{CoordinateY}')
-t1 = X.setInterpDataForGhostCells__(t, td, storage='direct', loc='nodes')
-t1 = X.setInterpTransfers(t1,td,variables=['F'])
+t1 = X.setInterpData(t, td, storage='direct', loc='nodes',itype='abutting')
+X._setInterpTransfers(t1,td,variables=['F'])
 test.testT(t1,3)
 
 # noeuds, stockage inverse
-td1 = X.setInterpDataForGhostCells__(t, td, storage='inverse', loc='nodes')
+td1 = X.setInterpData(t, td, storage='inverse', loc='nodes',itype='abutting')
 t1 = X.setInterpTransfers(t,td1,variables=['F'])
 test.testT(t1,4)

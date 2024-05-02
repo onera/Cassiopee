@@ -1,7 +1,7 @@
 /* =============================================================================
 **  This file is part of the mmg software package for the tetrahedral
 **  mesh modification.
-**  Copyright (c) Bx INP/Inria/UBordeaux/UPMC, 2004- .
+**  Copyright (c) Bx INP/CNRS/Inria/UBordeaux/UPMC, 2004-
 **
 **  mmg is free software: you can redistribute it and/or modify it
 **  under the terms of the GNU Lesser General Public License as published
@@ -32,8 +32,8 @@
  * name and the opening brace (it creates errors under windows)
  */
 
-#ifndef _MMGLIBCOMMON_H
-#define _MMGLIBCOMMON_H
+#ifndef MMGLIBCOMMON_H
+#define MMGLIBCOMMON_H
 
 #include <stdarg.h>
 
@@ -71,7 +71,7 @@ void  MMG5_Init_fileNames(MMG5_pMesh mesh, MMG5_pSol sol);
  * >   END SUBROUTINE\n
  *
  */
-void  (_MMG5_Init_parameters)(MMG5_pMesh mesh);
+void  (MMG5_Init_parameters)(MMG5_pMesh mesh);
 
 /* init file names */
 /**
@@ -145,7 +145,21 @@ int  MMG5_Set_inputSolName(MMG5_pMesh mesh,MMG5_pSol sol, const char* solin);
  */
 int  MMG5_Set_outputSolName(MMG5_pMesh mesh,MMG5_pSol sol, const char* solout);
 
+/**
+ * \param mesh pointer toward the mesh structure.
+ * \param met pointer toward the sol structure.
+ * \param hsiz wanted edge size
+ *
+ * fill the metric field with the size \a hsiz
+ *
+ * \Remark not for extern users.
+ *
+ */
+void MMG5_Set_constantSize(MMG5_pMesh mesh,MMG5_pSol met,double hsiz);
+
 /* deallocations */
+void MMG5_Free_structures(MMG5_pMesh mesh,MMG5_pSol sol);
+
 /**
  * \param mesh pointer toward the mesh structure.
  * \param met pointer toward the sol structure.
@@ -153,31 +167,60 @@ int  MMG5_Set_outputSolName(MMG5_pMesh mesh,MMG5_pSol sol, const char* solout);
  * File name deallocations before return.
  *
  * \remark Fortran interface:
- * >   SUBROUTINE MMG5_SET_MMGFREE_NAMES(mesh,met)\n
+ * >   SUBROUTINE MMG5_SETMMGFREE_NAMES(mesh,met)\n
  * >     MMG5_DATA_PTR_T, INTENT(INOUT) :: mesh,met\n
  * >   END SUBROUTINE\n
  *
  */
 void MMG5_mmgFree_names(MMG5_pMesh mesh, MMG5_pSol met);
+
 /**
  * \param mesh pointer toward the mesh structure.
- * \param sol pointer toward the solution structure.
- * \param filename name of file.
- * \return 0 if failed, 1 otherwise.
+ * \param sethmin 1 if hmin is already setted (>0.)
+ * \param sethmax 1 if hmax is already setted (>0.)
  *
- * Write mesh and sol at MSH  file format (.msh extension).
- * Write binary file for .mshb extension.and ASCII for .msh one.
+ * \return 1 if success, 0 if we detect mismatch parameters
  *
- * \remark Fortran interface:
- * >   SUBROUTINE MMG5_SAVEMSHMESH(mesh,sol,filename,strlen,retval)\n
- * >     MMG5_DATA_PTR_T, INTENT(INOUT) :: mesh,sol\n
- * >     CHARACTER(LEN=*), INTENT(IN)   :: filename\n
- * >     INTEGER, INTENT(IN)            :: strlen\n
- * >     INTEGER, INTENT(OUT)           :: retval\n
- * >   END SUBROUTINE\n
+ * Set default values for hmin and hmax  from the bounding box.
+ *
+ * \Remark not for extern users.
  *
  */
-int MMG5_saveMshMesh(MMG5_pMesh mesh,MMG5_pSol sol,const char *filename);
+extern int MMG5_Set_defaultTruncatureSizes(MMG5_pMesh mesh,char sethmin,char sethmax);
+
+/**
+ * \param mesh pointer toward the mesh structure.
+ * \param met pointer toward the metric.
+ * \param hsiz computed constant size to impose.
+ *
+ * \return 1 if success, 0 if fail
+ *
+ * Compute the constant size to impose according to hmin and hmax and store it in \a hsiz.
+ * Fill hmin and hamx if they are not setted by the user.
+ *
+ */
+int MMG5_Compute_constantSize(MMG5_pMesh mesh,MMG5_pSol met,double *hsize);
+
+/* Enum utilities */
+/**
+ * \param ent MMG5_entities enum
+ *
+ * \return the name of the enum field
+ *
+ * Print the name associated to the \a ent value in the \a MMG5_entities enum.
+ *
+ */
+const char* MMG5_Get_entitiesName(enum MMG5_entities ent);
+
+/**
+ * \param typ MMG5_type enum
+ *
+ * \return the name of the enum field
+ *
+ * Print the name associated to the \a typ value in the \a MMG5_type enum.
+ *
+ */
+const char* MMG5_Get_typeName(enum MMG5_type typ);
 
 #ifdef __cplusplus
 }

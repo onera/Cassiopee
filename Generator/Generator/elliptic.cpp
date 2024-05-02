@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -45,11 +45,8 @@ PyObject* K_GENERATOR::TTMMesh(PyObject* self, PyObject* args)
 {
   E_Int nit;
   PyObject* array;
-#ifdef E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Ol", &array, &nit)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Oi", &array, &nit)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, O_ I_, &array, &nit)) return NULL;
+
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;

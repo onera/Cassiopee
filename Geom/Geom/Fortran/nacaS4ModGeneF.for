@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -94,10 +94,12 @@ c
          y_thick = y_thick*xth/0.20
 
          if (xx.lt.xp) then
-           teta = 0.
-           if (xm.ne.0.) then
+           if (xp.ne.0.) then
             y_camb = (2.*xp-xx)*xm*xx/(xp**2)
-             teta = (xp-xx)*2.*xm/(xp**2)
+            teta = (xp-xx)*2.*xm/(xp**2)
+           else
+            y_camb = 0.
+            teta = 0.
            endif
            teta = atan(teta)
            x(2*npt-i+1-shift) = xx-y_thick*sin(teta)
@@ -108,9 +110,12 @@ c
            z(i) = 0.
          else
            teta = 0.
-           if (xm.ne.0.) then
+           if (xp.ne.1.) then
             y_camb = (1.+xx-2.*xp)*xm*(1.-xx)/(1.-xp)**2
-              teta = (xp-xx)*2.*xm/(1.-xp)**2 
+            teta = (xp-xx)*2.*xm/(1.-xp)**2
+           else
+            y_camb = 0.
+            teta = 0.
            endif
            teta = atan(teta)
            x(2*npt-i+1-shift) = xx-y_thick*sin(teta)

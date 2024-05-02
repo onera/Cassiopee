@@ -70,7 +70,7 @@ def airfoil(designation='NACA0012', Ntop=None, Nbot=None, ChordLength=1.,
         Imported = numpy.genfromtxt(designation, dtype=numpy.float, skip_header=0, usecols=(0,1))
         # Deletes useless lines
         RowsToDelete = []
-        for i in xrange(len(Imported[:,0])):
+        for i in range(len(Imported[:,0])):
             if any(numpy.isnan(Imported[i])) or any(Imported[i]>1.5):
                 RowsToDelete.append(i)
         Imported = numpy.delete(Imported, RowsToDelete, axis=0)
@@ -165,7 +165,7 @@ def airfoil(designation='NACA0012', Ntop=None, Nbot=None, ChordLength=1.,
             cld = float(NACAidentifier[0]) *(3./2.)*0.1
             p = float(NACAidentifier[1])
             if p > 5:
-                print 'Warning: second digit of 5-digit NACA identifier > 5, switched to 5'
+                print ('Warning: second digit of 5-digit NACA identifier > 5, switched to 5')
                 p = 5
             p   /= 20.
             q   = int(NACAidentifier[2])
@@ -226,7 +226,7 @@ def airfoil(designation='NACA0012', Ntop=None, Nbot=None, ChordLength=1.,
                 Airfoil[1][0] = numpy.hstack((xL,xU[1:]))
                 Airfoil[1][1] = numpy.hstack((yL,yU[1:]))
     else:
-        print 'airfoil: designation "%s" not recognized.'%designation
+        print ('airfoil: designation "%s" not recognized.'%designation)
         return -1
     # Scaling
     Airfoil[1] *= ChordLength
@@ -266,12 +266,12 @@ def linelaw(P1=(0,0,0), P2=(1,0,0), N=100, Distribution=None):
             Height = S[1]-S[0]
             ErrorHeight = abs(100*(1-Height/(dy*Length)))
             if ErrorHeight > 1.:
-                print '--------'
-                print 'Warning: Distribution of kind tanhOneSide resulted in an'
-                print 'effective cell Height of:',Height,' which differs from the'
-                print 'desired one,',dy*Length,' a relative amount of:',ErrorHeight,'%.'
-                print 'Try different discretization parameters for better result.'
-                print '--------'
+                print ('--------')
+                print ('Warning: Distribution of kind tanhOneSide resulted in an')
+                print ('effective cell Height of:',Height,' which differs from the')
+                print ('desired one,',dy*Length,' a relative amount of:',ErrorHeight,'%.')
+                print ('Try different discretization parameters for better result.')
+                print ('--------')
 
             Line[1][0] = S*Dir[0]+P1[0]
             Line[1][1] = S*Dir[1]+P1[1]
@@ -295,19 +295,19 @@ def linelaw(P1=(0,0,0), P2=(1,0,0), N=100, Distribution=None):
             ErrorHeight1 = abs(100*(1-Height1/(dy[0]*Length)))
             ErrorHeight2 = abs(100*(1-Height2/(dy[1]*Length)))
             if ErrorHeight1 > 1.:
-                print '--------'
-                print 'Warning: Distribution of kind tanhTwoSides resulted in an'
-                print 'effective first cell Height of:',Height1,' which differs from the'
-                print 'desired one,',dy[0]*Length,' a relative amount of:',ErrorHeight1,'%.'
-                print 'Try different discretization parameters for better result.'
-                print '--------'
+                print ('--------')
+                print ('Warning: Distribution of kind tanhTwoSides resulted in an')
+                print ('effective first cell Height of:',Height1,' which differs from the')
+                print ('desired one,',dy[0]*Length,' a relative amount of:',ErrorHeight1,'%.')
+                print ('Try different discretization parameters for better result.')
+                print ('--------')
             elif ErrorHeight2 > 1.:
-                print '--------'
-                print 'Warning: Distribution of kind tanhTwoSides resulted in an'
-                print 'effective last cell Height of:',Height2,' which differs from the'
-                print 'desired one,',dy[1]*Length,' a relative amount of:',ErrorHeight2,'%.'
-                print 'Try different discretization parameters for better result.'
-                print '--------'
+                print ('--------')
+                print ('Warning: Distribution of kind tanhTwoSides resulted in an')
+                print ('effective last cell Height of:',Height2,' which differs from the')
+                print ('desired one,',dy[1]*Length,' a relative amount of:',ErrorHeight2,'%.')
+                print ('Try different discretization parameters for better result.')
+                print ('--------')
             Line[1][0] = S*Dir[0]+P1[0]
             Line[1][1] = S*Dir[1]+P1[1]
             Line[1][2] = S*Dir[2]+P1[2]
@@ -382,7 +382,7 @@ def getTrigoLinDistribution__(Nx, p):
         b = p - (-3)
         return b*S2 + a*L
     else:
-        print 'Warning: parameter p=',p,'out of allowed bounds [3,-3]. Switched to p=0.'
+        print ('Warning: parameter p=',p,'out of allowed bounds [3,-3]. Switched to p=0.')
         return x
 
 
@@ -412,27 +412,27 @@ def splinelaw(polyLine, N=100, Distribution=None, SplineDegree=3):
         nt = getTrigoLinDistribution__(N, p)
     elif 'tanhOneSide' in Distribution['kind']:
         if not 'FirstCellHeight' in Distribution:
-            print 'splinelaw: parameter FirstCellHeight not found, switching to linear.'
+            print ('splinelaw: parameter FirstCellHeight not found, switching to linear.')
             nt = numpy.linspace(0., 1., N)
         else:
             CellH = Distribution['FirstCellHeight']
             if CellH > 1 or CellH < 0:
-                print 'splinelaw: selected ratio FirstCellHeight of %g is out of the bounds [0,1], switch to linear.'%(CellH)
+                print ('splinelaw: selected ratio FirstCellHeight of %g is out of the bounds [0,1], switch to linear.'%(CellH))
                 nt = numpy.linspace(0., 1., N)
             else:
                 nt = G.getTanhDist__(N,CellH,CellH,1)[1][0]
     elif 'tanhTwoSides' in Distribution['kind']:
         if not 'FirstCellHeight' in Distribution:
-            print 'splinelaw: parameter FirstCellHeight not found, switching to linear.'
+            print ('splinelaw: parameter FirstCellHeight not found, switching to linear.')
             nt = numpy.linspace(0., 1., N)
         else:
             CellHstart = Distribution['FirstCellHeight']
             CellHend = CellHstart if not 'LastCellHeight' in Distribution else Distribution['LastCellHeight']
             if CellHstart > 1 or CellHstart < 0:
-                print 'splinelaw: selected ratio FirstCellHeight of %g is out of the bounds [0,1], switch to linear.'%(CellHstart)
+                print ('splinelaw: selected ratio FirstCellHeight of %g is out of the bounds [0,1], switch to linear.'%(CellHstart))
                 nt = numpy.linspace(0., 1., N)
             elif CellHend > 1 or CellHend < 0:
-                print 'splinelaw: selected ratio LastCellHeight of %g is out of the bounds [0,1], switch to linear.'%(CellHend)
+                print ('splinelaw: selected ratio LastCellHeight of %g is out of the bounds [0,1], switch to linear.'%(CellHend))
                 nt = numpy.linspace(0., 1., N)
             else:
                 nt = G.getTanhDist__(N,CellHstart,CellHend,2)[1][0]
@@ -503,10 +503,10 @@ def wing(sections=[airfoil(),airfoil()], span=[1.], washout=[0.], sweep=[0.],
 
     # Makes the vector of sections spanwise positions
     SectionsSpanPositions = numpy.hstack((0.,numpy.cumsum(span)))
-    print 'SectionsSpanPositions:',SectionsSpanPositions,'Ns=',Ns
+    print ('SectionsSpanPositions:',SectionsSpanPositions,'Ns=',Ns)
     # Applies the washout, sweep and dihedral angles to each section
     Dx = 0.; Dy = 0.
-    for s in xrange(1,Ns):
+    for s in range(1,Ns):
         wI = 0 if len(washout)!=(Ns-1) else s-1
         dI = 0 if len(dihedral)!=(Ns-1) else s-1
         sI = 0 if len(sweep)!=(Ns-1) else s-1
@@ -520,7 +520,7 @@ def wing(sections=[airfoil(),airfoil()], span=[1.], washout=[0.], sweep=[0.],
 
     # Invokes the wing
     Ne = numpy.zeros(WingElts,numpy.int32)
-    for w in xrange(WingElts):
+    for w in range(WingElts):
         disI = 0 if len(distribution) != WingElts else w
         Ne[w] = distribution[disI]['points']
     Ntot = numpy.sum(Ne) - (Ns - 2)
@@ -528,10 +528,10 @@ def wing(sections=[airfoil(),airfoil()], span=[1.], washout=[0.], sweep=[0.],
 
     # Makes the interpolation matrices based upon the provided sections
     W4dims = numpy.shape(Wing[1])
-    print 'W4dims:',W4dims,'Ntot:',Ntot
+    print ('W4dims:',W4dims,'Ntot:',Ntot)
     InterpXmatrix = numpy.zeros((Ns,W4dims[1]),dtype=numpy.float64,order='F')
     InterpYmatrix = numpy.zeros((Ns,W4dims[1]),dtype=numpy.float64,order='F')
-    for s in xrange(Ns):
+    for s in range(Ns):
         InterpXmatrix[s,:] = sections[s][1][0]
         InterpYmatrix[s,:] = sections[s][1][1]
 
@@ -539,7 +539,7 @@ def wing(sections=[airfoil(),airfoil()], span=[1.], washout=[0.], sweep=[0.],
     ElementSpanPositions = numpy.zeros(Ntot,numpy.float64)
     k0 = 0
     PreviousSpan = 0. # and this is its corresponding spanwise position
-    for w in xrange(WingElts):
+    for w in range(WingElts):
 #        print 'k0:',k0,'PreviousSpan',PreviousSpan,'k0+Ne[w]:',k0+Ne[w]
         disI = 0 if len(distribution) != WingElts else w
         Interpolation = 'linear' if not 'kind' in distribution[disI] else distribution[disI]['kind']
@@ -550,21 +550,21 @@ def wing(sections=[airfoil(),airfoil()], span=[1.], washout=[0.], sweep=[0.],
             ElementSpanPositions[k0:k0+Ne[w]] = PreviousSpan + span[w]*getTrigoLinDistribution__(Ne[w], p)
         elif Interpolation == 'tanhOneSide':
             if not 'FirstCellHeight' in distribution[disI]:
-                print 'wing: parameter FirstCellHeight not found in wing element %d, switching to linear.'%(w)
+                print ('wing: parameter FirstCellHeight not found in wing element %d, switching to linear.'%(w))
                 ElementSpanPositions[k0:k0+Ne[w]] = PreviousSpan + span[w]*numpy.linspace(0.,1.,Ne[w])
             else:
                 CellH = distribution[disI]['FirstCellHeight']/span[w]
                 ElementSpanPositions[k0:k0+Ne[w]] = PreviousSpan + span[w]*G.getTanhDist__(Ne[w],CellH,CellH,1)[1][0]
         elif Interpolation == 'tanhTwoSides':
             if not 'FirstCellHeight' in distribution[disI]:
-                print 'wing: parameter FirstCellHeight not found in wing element %d, switching to linear.'%(w)
+                print ('wing: parameter FirstCellHeight not found in wing element %d, switching to linear.'%(w))
                 ElementSpanPositions[k0:k0+Ne[w]] = PreviousSpan + span[w]*numpy.linspace(0.,1.,Ne[w])
             else:
                 CellHstart = distribution[disI]['FirstCellHeight']/span[w]
                 CellHend = CellHstart if not 'LastCellHeight' in distribution[disI] else distribution[disI]['LastCellHeight']/span[w]
                 ElementSpanPositions[k0:k0+Ne[w]] = PreviousSpan + span[w]*G.getTanhDist__(Ne[w],CellHstart,CellHend,2)[1][0]
         else:
-            print "Warning: wing distribution kind '%s' not recognized for wing element %d. Making 'linear' instead."%(Interpolation,w)
+            print ("Warning: wing distribution kind '%s' not recognized for wing element %d. Making 'linear' instead."%(Interpolation,w))
             ElementSpanPositions[k0:k0+Ne[w]] = PreviousSpan + span[w]*numpy.linspace(0.,1.,Ne[w])
         PreviousSpan = ElementSpanPositions[k0+Ne[w]-1]
         k0 += Ne[w] - 1
@@ -580,7 +580,7 @@ def wing(sections=[airfoil(),airfoil()], span=[1.], washout=[0.], sweep=[0.],
         kind=sectionShapeLaw, bounds_error=False, fill_value=InterpYmatrix[0,:])
 
     # Constructs the wing section by section
-    for k in xrange(Ntot):
+    for k in range(Ntot):
         # X and Y coords are based upon the interpolating functions
 #        print 'shape interpX(ElementSpanPositions[k]):',interpX(ElementSpanPositions[k]).shape
 #        print 'shape Wing[1][0][:,:,k]',Wing[1][0][:,:,k].shape
@@ -647,8 +647,8 @@ def sweepSections(sections=[airfoil(),airfoil()], SpanPositions=None,
 
     if not SpanPositions: SpanPositions = numpy.linspace(0,1,Ns)
     elif numpy.max(SpanPositions) > 1 or numpy.min(SpanPositions) < 0:
-            print 'Aero sweepSections warning: SpanPositions badly imposed, \
-            it shall be defined between [0,1]. Switching to uniform spacing.'
+            print ('Aero sweepSections warning: SpanPositions badly imposed, \
+            it shall be defined between [0,1]. Switching to uniform spacing.')
             SpanPositions = numpy.linspace(0,1,Ns)
 
     if not rotation:
@@ -669,7 +669,7 @@ def sweepSections(sections=[airfoil(),airfoil()], SpanPositions=None,
     W4dims = numpy.shape(Surf[1])
     InterpXmatrix = numpy.zeros((Ns,sections[0][2]),dtype=numpy.float64,order='F')
     InterpYmatrix = numpy.zeros((Ns,sections[0][2]),dtype=numpy.float64,order='F')
-    for s in xrange(Ns):
+    for s in range(Ns):
         InterpXmatrix[s,:] = sections[s][1][0]
         InterpYmatrix[s,:] = sections[s][1][1]
 
@@ -689,7 +689,7 @@ def sweepSections(sections=[airfoil(),airfoil()], SpanPositions=None,
 
     # Constructs the surface plane by plane
     InterpolatedProfiles = [sections[0]]
-    for k in xrange(Ntot):
+    for k in range(Ntot):
         # X and Y coords are based upon the interpolating functions
         InterpolatedProfiles[k][1][0] = interpX(UnitCurvAbscissa[k])
         InterpolatedProfiles[k][1][1] = interpY(UnitCurvAbscissa[k])

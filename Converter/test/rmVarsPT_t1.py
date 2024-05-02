@@ -5,23 +5,23 @@ import KCore.test as test
 
 # Sur une zone
 a = G.cart((0,0,0),(1,1,1),(10,10,10))
-a = C.addBC2Zone(a, 'wall1', 'BCWall', 'jmin')
-a = C.addVars(a, ['Density', 'centers:cellN', 'rou', 'rov', 'Hx', 'centers:Hy'])
-a = C.rmVars(a, 'Density')
-a = C.rmVars(a, ['Hx', 'centers:Hy'])
-a = C.rmVars(a, 'FlowSolution#Centers')
+C._addBC2Zone(a, 'wall1', 'BCWall', 'jmin')
+C._addVars(a, ['Density', 'centers:cellN', 'rou', 'rov', 'Hx', 'centers:Hy'])
+C._rmVars(a, 'Density')
+C._rmVars(a, ['Hx', 'centers:Hy'])
+C._rmVars(a, 'FlowSolution#Centers')
 t = C.newPyTree(['Base',a])
 test.testT(t, 1)
 
 # Sur un arbre
 a = G.cart((0,0,0),(1,1,1),(10,10,10))
-a = C.addBC2Zone(a, 'wall1', 'BCWall', 'jmin')
-a = C.addVars(a, ['Density', 'centers:cellN'])
+C._addBC2Zone(a, 'wall1', 'BCWall', 'jmin')
+C._addVars(a, ['Density', 'centers:cellN'])
 b = G.cart((10,0,0),(1,1,1),(10,10,10))
-b = C.addVars(b, ['Density', 'centers:cellN'])
+C._addVars(b, ['Density', 'centers:cellN'])
 t = C.newPyTree(['Base',a,b])
-t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
-t = C.rmVars(t, 'Density')
+C._addState(t[2][1], 'Mach', 0.6)
+C._rmVars(t, 'Density')
 test.testT(t, 2)
 
 # Sur une liste de zones

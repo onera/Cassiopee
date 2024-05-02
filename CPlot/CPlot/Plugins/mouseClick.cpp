@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -23,38 +23,38 @@
 // Mouse plugins
 //=============================================================================
 
-int findNearestPoint(double xp, double yp, double zp,
-                     StructZone* zone, int& ind, double& dist);
-int findNearestPoint(double xp, double yp, double zp,
-                     UnstructZone* zone, int& ind, double& dist);
-int findElement(double xp, double yp, double zp,
-                UnstructZone* zone, double& dist);
-int findElement(double xp, double yp, double zp,
-                StructZone* zone, double& dist);
-int findFace(double xp, double yp, double zp, int elt, 
-             UnstructZone* zone, double& dist);
+E_Int findNearestPoint(double xp, double yp, double zp,
+                       StructZone* zone, E_Int& ind, double& dist);
+E_Int findNearestPoint(double xp, double yp, double zp,
+                       UnstructZone* zone, E_Int& ind, double& dist);
+E_Int findElement(double xp, double yp, double zp,
+                  UnstructZone* zone, double& dist, E_Int& ncon);
+E_Int findElement(double xp, double yp, double zp,
+                  StructZone* zone, double& dist);
+E_Int findFace(double xp, double yp, double zp, E_Int elt, 
+               UnstructZone* zone, double& dist);
 
 //=============================================================================
 // Click selects
 //=============================================================================
-void mouseClickSelect(Data* d, int button, int etat, int x, int y)
+void mouseClickSelect(Data* d, E_Int button, E_Int etat, E_Int x, E_Int y)
 {
   d->dataMouseClickSelect(button, etat, x, y, 0, 0);
 }
-void mouseClickMultipleSelect(Data* d, int button, int etat, int x, int y)
+void mouseClickMultipleSelect(Data* d, E_Int button, E_Int etat, E_Int x, E_Int y)
 {
   d->dataMouseClickSelect(button, etat, x, y, 1, 0);
 }
-void mouseClickAccurateSelect(Data* d, int button, int etat, int x, int y)
+void mouseClickAccurateSelect(Data* d, E_Int button, E_Int etat, E_Int x, E_Int y)
 {
   d->dataMouseClickSelect(button, etat, x, y, 0, 1);
 }
-void mouseRightClickSelect(Data* d, int button, int etat, int x, int y)
+void mouseRightClickSelect(Data* d, E_Int button, E_Int etat, E_Int x, E_Int y)
 {
   d->dataMouseRightClickSelect(button, etat, x, y);
 }
-void Data::dataMouseClickSelect(int button, int etat, int x, int y, 
-                                int multiple, int accurate)
+void Data::dataMouseClickSelect(E_Int button, E_Int etat, E_Int x, E_Int y, 
+                                E_Int multiple, E_Int accurate)
 {
   if (etat == 1) {
     // Bouton relache
@@ -65,7 +65,7 @@ void Data::dataMouseClickSelect(int button, int etat, int x, int y,
   GLdouble projection[16];
   GLfloat winX, winY, winZ;
   GLdouble posX, posY, posZ;
-  int n;
+  E_Int n;
 
   //---------------------------------------------------------------
   // Compute mouse position: posX, posY, posZ in real coordinates
@@ -96,15 +96,15 @@ void Data::dataMouseClickSelect(int button, int etat, int x, int y,
   //              &xorig, &yorig, &zorig);
 
   // Blocs contenant un point le plus proche de P
-  int ret; int zone, ind, indE; double dist;
-  ret = findBlockContaining(posX, posY, posZ, zone, ind, indE, dist);
+  E_Int ret; E_Int zone, ind, indE, ncon; double dist;
+  ret = findBlockContaining(posX, posY, posZ, zone, ind, indE, dist, ncon);
 
   // Projection posX, posY, posZ sur la face adhoc
   //projectP(posX, posY, posZ, _zones[zone], indE);
   //printf("click: %f %f %f : %d\n", posX, posY, posZ, ret);
 
   // save selected status before click
-  for (int i = 0; i < _numberOfZones; i++)
+  for (E_Int i = 0; i < _numberOfZones; i++)
     _zones[i]->previouslySelected = _zones[i]->selected;
 
   Zone* z = _zones[zone];
@@ -129,11 +129,11 @@ void Data::dataMouseClickSelect(int button, int etat, int x, int y,
     if (zone < _numberOfStructZones)
     {
       StructZone* zz = (StructZone*)z;
-      int ni = zz->ni; 
-      int nj = zz->nj;
-      int k = ind / (ni*nj);
-      int j = (ind - k*ni*nj)/ni;
-      int i = ind - k*ni*nj - j*ni;
+      E_Int ni = zz->ni; 
+      E_Int nj = zz->nj;
+      E_Int k = ind / (ni*nj);
+      E_Int j = (ind - k*ni*nj)/ni;
+      E_Int i = ind - k*ni*nj - j*ni;
       ptrState->activePointI = i+1;
       ptrState->activePointJ = j+1;
       ptrState->activePointK = k+1;
@@ -142,16 +142,19 @@ void Data::dataMouseClickSelect(int button, int etat, int x, int y,
     {
       ptrState->activePointI = ind; // indice du noeud le plus proche
       ptrState->activePointJ = indE; // indice de l'element contenant P
+      ptrState->activePointL = ncon; // connectivite contenant l'element
       UnstructZone* zz = (UnstructZone*)z;
-      if (zz->eltType != 10) // autre que NGON
+      if (zz->eltType[0] != 10) // autre que NGON
       {
-        int* c = zz->connect;
-        int size = zz->eltSize;
-        int ne = zz->ne;
-        int v = 0;
+        E_Int* c = zz->connect[ncon];
+        E_Int size = zz->eltSize[ncon];
+        E_Int ne = zz->nec[ncon];
+        E_Int v = 0;
+        E_Int prev = 0;
+        for (E_Int nc = 0; nc < ncon; nc++) prev += zz->nec[nc];
         for (v = 0; v < size; v++)
         {
-          if (c[indE+v*ne] == ind+1) break;
+          if (c[indE-prev+v*ne] == ind+1) break;
         }
         ptrState->activePointK = -v-1;
       }
@@ -163,7 +166,7 @@ void Data::dataMouseClickSelect(int button, int etat, int x, int y,
       ptrState->activePointF[n] = f[ind];
     }
 
-    int previousSelected = ptrState->selectedZone;
+    E_Int previousSelected = ptrState->selectedZone;
     ptrState->selectedZone = zone+1;
 
     Zone* z = _zones[zone];
@@ -182,7 +185,7 @@ void Data::dataMouseClickSelect(int button, int etat, int x, int y,
     }
     else // not multiple select
     {
-      for (int i = 0; i < _numberOfZones; i++) _zones[i]->selected = 0;
+      for (E_Int i = 0; i < _numberOfZones; i++) _zones[i]->selected = 0;
       z->selected = 1;
     }
   }
@@ -191,7 +194,7 @@ void Data::dataMouseClickSelect(int button, int etat, int x, int y,
 //=============================================================================
 // Shift + Right Click: deactivate zone
 //=============================================================================
-void Data::dataMouseRightClickSelect(int button, int etat, int x, int y)
+void Data::dataMouseRightClickSelect(E_Int button, E_Int etat, E_Int x, E_Int y)
 {
   if (etat == 1) return;
   GLint viewport[4];
@@ -200,9 +203,9 @@ void Data::dataMouseRightClickSelect(int button, int etat, int x, int y)
   GLfloat winX, winY, winZ;
   GLdouble posX, posY, posZ;
 
-  glGetDoublev( GL_MODELVIEW_MATRIX, modelview );
-  glGetDoublev( GL_PROJECTION_MATRIX, projection );
-  glGetIntegerv( GL_VIEWPORT, viewport );
+  glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+  glGetDoublev(GL_PROJECTION_MATRIX, projection);
+  glGetIntegerv(GL_VIEWPORT, viewport);
 
   winX = (float)x;
   winY = (float)viewport[3] - (float)y;
@@ -212,16 +215,16 @@ void Data::dataMouseRightClickSelect(int button, int etat, int x, int y)
   gluUnProject( winX, winY, winZ, modelview, projection, viewport, 
                 &posX, &posY, &posZ);
   // Des erreurs peuvent exister sur posX, posY, posZ.
-  int ret; int zone, ind, indE; double dist;
-  ret = findBlockContaining(posX, posY, posZ, zone, ind, indE, dist);
+  E_Int ret; E_Int zone, ind, indE, ncon; double dist;
+  ret = findBlockContaining(posX, posY, posZ, zone, ind, indE, dist, ncon);
   
   Zone* z = _zones[zone];
   if (ret == 1 && (z->active == 1 || ptrState->ghostifyDeactivatedZones == 1))
   {
-  
     if (z->active == 1)
     {
       z->active = 0;
+      /*
       if (ptrState->deactivatedZones == NULL)
       {
         struct chain_int* ci;
@@ -239,6 +242,9 @@ void Data::dataMouseRightClickSelect(int button, int etat, int x, int y)
         ci->value = zone+1;
         ci->next = NULL;
       }
+      */
+      ptrState->insertDeactivatedZones(zone+1);
+      //ptrState->printDeactivatedZones();
     }
     else z->active = 1;
   }
@@ -253,14 +259,14 @@ void Data::dataMouseRightClickSelect(int button, int etat, int x, int y)
 // OUT: d: distance entre P et le point ind
 // Retourne 1 si une zone a ete trouvee, 0 sinon.
 //=============================================================================
-int Data::findBlockContaining(double x, double y, double z,
-                              int& zone, int& ind, int& indE,
-                              double& dist)
+E_Int Data::findBlockContaining(double x, double y, double z,
+                                E_Int& zone, E_Int& ind, E_Int& indE,
+                                double& dist, E_Int& ncon)
 {
-  int nz, indl, inde;
+  E_Int nz, indl, inde;
   double xmi, ymi, zmi, xma, yma, zma;
   double d, dn, de;
-  int nzmin = -1;
+  E_Int nzmin = -1;
   double dmin = 1.e6; // distMin node/element
   double dminNode = 1.e6; // distMin node
   double dminElt = 1.e6; // distMin element
@@ -270,6 +276,7 @@ int Data::findBlockContaining(double x, double y, double z,
   d = MAX(d, zmax-zmin);
   eps = d*eps;
   //printf("eps: %f\n", eps);
+  ncon = 0;
 
   for (nz = 0; nz < _numberOfZones; nz++)
   {
@@ -296,7 +303,7 @@ int Data::findBlockContaining(double x, double y, double z,
         else 
         {
           findNearestPoint(x, y, z, (UnstructZone*)zone, indl, dn);
-          inde = findElement(x, y, z, (UnstructZone*)zone, de);
+          inde = findElement(x, y, z, (UnstructZone*)zone, de, ncon);
         }
         d = MIN(dn, de);
         if (zone->active == 0) d = d + eps*0.01; // malus
@@ -332,18 +339,18 @@ int Data::findBlockContaining(double x, double y, double z,
 //=============================================================================
 // pour les grilles non structurees
 //=============================================================================
-int findNearestPoint(double xp, double yp, double zp,
-                     UnstructZone* zone, int& ind, double& dist)
+E_Int findNearestPoint(double xp, double yp, double zp,
+                       UnstructZone* zone, E_Int& ind, double& dist)
 {
   double d, dx, dy, dz;
   dist = 1.e6;
-  int npts = zone->npts;
+  E_Int npts = zone->npts;
   double* x = zone->x;
   double* y = zone->y;
   double* z = zone->z;
   ind = 0;
  
-  for (int i = 0; i < npts; i++)
+  for (E_Int i = 0; i < npts; i++)
   {
     dx = x[i]-xp; dy = y[i]-yp; dz = z[i]-zp;
     d = dx*dx + dy*dy + dz*dz;
@@ -357,29 +364,29 @@ int findNearestPoint(double xp, double yp, double zp,
 //=============================================================================
 // pour les grilles structurees
 //=============================================================================
-int findNearestPoint(double xp, double yp, double zp,
-                     StructZone* zone, int& ind, double& dist)
+E_Int findNearestPoint(double xp, double yp, double zp,
+                       StructZone* zone, E_Int& ind, double& dist)
 {
   double d, dx, dy, dz;
   dist = 1.e6;
   double* x = zone->x;
   double* y = zone->y;
   double* z = zone->z;
-  int iplane = zone->iPlane; // from 0 to ni-1, -1 means min-max planes
-  int jplane = zone->jPlane;
-  int kplane = zone->kPlane;
-  int ni = zone->ni;
-  int nj = zone->nj;
-  int nk = zone->nk;
-  int ninj = ni*nj;
+  E_Int iplane = zone->iPlane; // from 0 to ni-1, -1 means min-max planes
+  E_Int jplane = zone->jPlane;
+  E_Int kplane = zone->kPlane;
+  E_Int ni = zone->ni;
+  E_Int nj = zone->nj;
+  E_Int nk = zone->nk;
+  E_Int ninj = ni*nj;
   ind = 0;
-  int inds, inc; 
+  E_Int inds, inc;
 
   if (iplane >= 0) // un plan
   {
     inc = iplane;
-    for (int k = 0; k < nk; k++)
-      for (int j = 0; j < nj; j++)
+    for (E_Int k = 0; k < nk; k++)
+      for (E_Int j = 0; j < nj; j++)
       {
         inds = inc + j*ni + k* ninj;
         dx = x[inds]-xp; dy = y[inds]-yp; dz = z[inds]-zp;
@@ -409,8 +416,8 @@ int findNearestPoint(double xp, double yp, double zp,
   if (jplane >= 0) 
   {
     inc = jplane*ni;
-    for (int k = 0; k < nk; k++)
-      for (int i = 0; i < ni; i++)
+    for (E_Int k = 0; k < nk; k++)
+      for (E_Int i = 0; i < ni; i++)
       {
         inds = i + inc + k* ninj;
         dx = x[inds]-xp; dy = y[inds]-yp; dz = z[inds]-zp;
@@ -422,8 +429,8 @@ int findNearestPoint(double xp, double yp, double zp,
   else 
   {
     inc = (nj-1)*ni;
-    for (int k = 0; k < nk; k++)
-      for (int i = 0; i < ni; i++)
+    for (E_Int k = 0; k < nk; k++)
+      for (E_Int i = 0; i < ni; i++)
       {
         inds = i +  k*ninj;
         dx = x[inds]-xp; dy = y[inds]-yp; dz = z[inds]-zp;
@@ -441,8 +448,8 @@ int findNearestPoint(double xp, double yp, double zp,
   if (kplane >= 0) 
   {
     inc = kplane*ninj;
-    for (int j = 0; j < nj; j++)
-      for (int i = 0; i < ni; i++)
+    for (E_Int j = 0; j < nj; j++)
+      for (E_Int i = 0; i < ni; i++)
       {
         inds = i + j*ni + inc;
         dx = x[inds]-xp; dy = y[inds]-yp; dz = z[inds]-zp;
@@ -454,8 +461,8 @@ int findNearestPoint(double xp, double yp, double zp,
   else // plans kmin/kmax
   {
     inc = (nk-1)*ninj;
-    for (int j = 0; j < nj; j++)
-      for (int i = 0; i < ni; i++)
+    for (E_Int j = 0; j < nj; j++)
+      for (E_Int i = 0; i < ni; i++)
       {
         inds = i + j*ni;
         dx = x[inds]-xp; dy = y[inds]-yp; dz = z[inds]-zp;
@@ -475,66 +482,79 @@ int findNearestPoint(double xp, double yp, double zp,
 // Trouve l'element dont le centre est le plus proche de P (xp, yp, zp). 
 // (pour une zone non structuree)
 // Retourne distMin: la distance du centre a P
+// L'element est en numerotation globale
+// Retourne ncon: le numero de la connectivite qui contient l'element
 //=============================================================================
-int findElement(double xp, double yp, double zp,
-                UnstructZone* zone, double& distMin)
+E_Int findElement(double xp, double yp, double zp,
+                  UnstructZone* zone, double& distMin, E_Int& ncon)
 {
-  int ne = zone->ne;
-  int nv = zone->eltSize;
-  double nvi = 1./MAX(nv,1);
-  int* c = zone->connect;
   double* x = zone->x;
   double* y = zone->y;
   double* z = zone->z;
-  int i, indl, v;
+  E_Int i, indl, v;
   double xc, yc, zc, dist, dx, dy, dz;
+
   distMin = 1.e6; 
-  int best = 0;
-  if (zone->eltType != 10) // basic elements
+  E_Int best = 0;
+  ncon = 0;
+
+  for (size_t nc = 0; nc < zone->connect.size(); nc++)
   {
-    for (i = 0; i < ne; i++)
+    E_Int ne = zone->nec[nc];
+    E_Int nv = zone->eltSize[nc];
+    E_Int* c = zone->connect[nc];
+    E_Int eltType = zone->eltType[nc];
+
+    double nvi = 1./MAX(nv,1);
+
+    if (eltType != 10) // basic elements
     {
-      xc = 0.; yc = 0.; zc = 0.;
-      for (v = 0; v < nv; v++)
+      for (i = 0; i < ne; i++)
       {
-        indl = c[i+ne*v]-1;
-        xc += x[indl]; yc += y[indl]; zc += z[indl];
-      }
-      xc = xc * nvi; yc = yc * nvi; zc = zc * nvi;
-      dx = xp-xc; dy = yp-yc; dz = zp-zc;
-      dist = dx*dx + dy*dy + dz*dz;
-      if (dist < distMin)
-      {distMin = dist; best = i;}
-    }
-  }
-  else
-  { // NGONS
-    int* ptr = PTRELTS(c); // ptr sur les elts
-    int nf, f, p, np, rt;
-    int* lp;
-    int* posf = zone->posFaces;
-    for (i = 0; i < ne; i++)
-    {
-      xc = 0.; yc = 0.; zc = 0.; rt = 0;
-      nf = ptr[0];
-      for (f = 0; f < nf; f++) // pour chaque face
-      {
-        lp = &c[posf[ptr[f+1]-1]];
-        np = lp[0];
-        for (p = 0; p < np; p++)
+        xc = 0.; yc = 0.; zc = 0.;
+        for (v = 0; v < nv; v++)
         {
-          xc += x[lp[p+1]-1];
-          yc += y[lp[p+1]-1];
-          zc += z[lp[p+1]-1]; rt++;
+          indl = c[i+ne*v]-1;
+          xc += x[indl]; yc += y[indl]; zc += z[indl];
         }
+        xc = xc * nvi; yc = yc * nvi; zc = zc * nvi;
+        dx = xp-xc; dy = yp-yc; dz = zp-zc;
+        dist = dx*dx + dy*dy + dz*dz;
+        if (dist < distMin) {distMin = dist; best = i; ncon = nc;}
       }
-      ptr += nf+1;
-      rt = MAX(rt, 1);
-      xc = xc * 1./rt; yc = yc * 1./rt; zc = zc * 1./rt;
-      dx = xp-xc; dy = yp-yc; dz = zp-zc;
-      dist = dx*dx + dy*dy + dz*dz;
-      if (dist < distMin)
-      {distMin = dist; best = i;}
+      // shift element if not in first connect
+      E_Int prev = 0;
+      for (E_Int i = 0; i < ncon; i++) prev += zone->nec[i];
+      best += prev;
+    }
+    else
+    { // NGONS
+      E_Int* ptr = PTRELTS(c); // ptr sur les elts
+      E_Int nf, f, p, np, rt;
+      E_Int* lp;
+      E_Int* posf = zone->posFaces;
+      for (i = 0; i < ne; i++)
+      {
+        xc = 0.; yc = 0.; zc = 0.; rt = 0;
+        nf = ptr[0];
+        for (f = 0; f < nf; f++) // pour chaque face
+        {
+          lp = &c[posf[ptr[f+1]-1]];
+          np = lp[0];
+          for (p = 0; p < np; p++)
+          {
+            xc += x[lp[p+1]-1];
+            yc += y[lp[p+1]-1];
+            zc += z[lp[p+1]-1]; rt++;
+          }
+        }
+        ptr += nf+1;
+        rt = MAX(rt, 1);
+        xc = xc * 1./rt; yc = yc * 1./rt; zc = zc * 1./rt;
+        dx = xp-xc; dy = yp-yc; dz = zp-zc;
+        dist = dx*dx + dy*dy + dz*dz;
+        if (dist < distMin) {distMin = dist; best = i; ncon = nc;}
+      }
     }
   }
   return best;
@@ -545,36 +565,36 @@ int findElement(double xp, double yp, double zp,
 // (pour une zone structuree)
 // Retourne: distMin: la distance de P au centre.
 //=============================================================================
-int findElement(double xp, double yp, double zp,
-                StructZone* zone, double& distMin)
+E_Int findElement(double xp, double yp, double zp,
+                  StructZone* zone, double& distMin)
 {
-  int ni = zone->ni;
-  int nj = zone->nj;
-  int nk = zone->nk;
-  int ninj = ni*nj;
+  E_Int ni = zone->ni;
+  E_Int nj = zone->nj;
+  E_Int nk = zone->nk;
+  E_Int ninj = ni*nj;
   double* x = zone->x;
   double* y = zone->y;
   double* z = zone->z;
-  int iplane = zone->iPlane; // from 0 to ni-1, -1 means min-max planes
-  int jplane = zone->jPlane;
-  int kplane = zone->kPlane;
+  E_Int iplane = zone->iPlane; // from 0 to ni-1, -1 means min-max planes
+  E_Int jplane = zone->jPlane;
+  E_Int kplane = zone->kPlane;
   double xc, yc, zc, dist;
-  int indElt = 0;
-  int inc, incp, indE; 
-  int ii1, jj1, kk1, ii2, jj2, kk2, ind1, ind2, ind3, ind4, ind5;
-  int ind6, ind7, ind8;
-  int isup, jsup, ksup;
-  int ni1 = ni-1, nj1 = nj-1, nk1 = nk-1, ni1nj1 = ni1*nj1;
+  E_Int indElt = 0;
+  E_Int inc, incp, indE; 
+  E_Int ii1, jj1, kk1, ii2, jj2, kk2, ind1, ind2, ind3, ind4, ind5;
+  E_Int ind6, ind7, ind8;
+  E_Int isup, jsup, ksup;
+  E_Int ni1 = ni-1, nj1 = nj-1, nk1 = nk-1, ni1nj1 = ni1*nj1;
   isup = MAX(ni1,1); jsup = MAX(nj1,1); ksup = MAX(nk1,1);
   distMin = 1.e6;
 
   if (iplane >= 0) // un plan
   {
     ii1 = iplane; ii2 = MIN(ii1+1, ni1);
-    for (int ks = 0; ks < ksup; ks++)
+    for (E_Int ks = 0; ks < ksup; ks++)
     {
       kk1 = ks; kk2 = MIN(kk1+1, nk1);
-      for (int js = 0; js < jsup; js++)
+      for (E_Int js = 0; js < jsup; js++)
       {
         jj1 = js; jj2 = MIN(jj1+1, nj1);
         indE = ii1 + jj1*ni1 + kk1*ni1nj1;
@@ -601,10 +621,10 @@ int findElement(double xp, double yp, double zp,
     inc = MAX(ni1-1,0);
     if (ni == 1) incp = 0;
     else incp = 1;
-    for (int ks = 0; ks < ksup; ks++)
+    for (E_Int ks = 0; ks < ksup; ks++)
     {
       kk1 = ks; kk2 = MIN(kk1+1, nk1);
-      for (int js = 0; js < jsup; js++)
+      for (E_Int js = 0; js < jsup; js++)
       {
         jj1 = js; jj2 = MIN(jj1+1, nj1);
         indE = jj1*ni1 + kk1*ni1nj1;
@@ -636,10 +656,10 @@ int findElement(double xp, double yp, double zp,
   if (jplane >= 0) // un plan
   {
     jj1 = jplane; jj2 = MIN(jj1+1, nj1);
-    for (int ks = 0; ks < ksup; ks++)
+    for (E_Int ks = 0; ks < ksup; ks++)
     {
       kk1 = ks; kk2 = MIN(kk1+1, nk1); 
-      for (int is = 0; is < isup; is++)
+      for (E_Int is = 0; is < isup; is++)
       {
         ii1 = is; ii2 = MIN(ii1+1, ni1);
         indE = ii1 + jj1*ni1 + kk1*ni1nj1;
@@ -666,10 +686,10 @@ int findElement(double xp, double yp, double zp,
     inc = MAX((nj1-1)*ni,0);
     if (nj == 1) incp = 0;
     else incp = ni;
-    for (int ks = 0; ks < ksup; ks++)
+    for (E_Int ks = 0; ks < ksup; ks++)
     {
       kk1 = ks; kk2 = MIN(kk1+1, nk1);
-      for (int is = 0; is < isup; is++)
+      for (E_Int is = 0; is < isup; is++)
       {
         ii1 = is; ii2 = MIN(ii1+1, ni1);
         indE = ii1 + kk1*ni1nj1;
@@ -701,10 +721,10 @@ int findElement(double xp, double yp, double zp,
   if (kplane >= 0) // un plan
   {
     kk1 = kplane; kk2 = MIN(kk1+1, nk1);
-    for (int js = 0; js < jsup; js++)
+    for (E_Int js = 0; js < jsup; js++)
     {
       jj1 = js; jj2 = MIN(jj1+1, nj1);
-      for (int is = 0; is < isup; is++)
+      for (E_Int is = 0; is < isup; is++)
       {
         ii1 = is; ii2 = MIN(ii1+1, ni1);
         indE = ii1 + jj1*ni1 + kk1*ni1nj1;
@@ -731,10 +751,10 @@ int findElement(double xp, double yp, double zp,
     inc = MAX((nk1-1)*ninj, 0);
     if (nk == 1) incp = 0;
     else incp = ninj;
-    for (int js = 0; js < jsup; js++)
+    for (E_Int js = 0; js < jsup; js++)
     {
       jj1 = js; jj2 = MIN(jj1+1, nj1);
-      for (int is = 0; is < isup; is++)
+      for (E_Int is = 0; is < isup; is++)
       {
         ii1 = is; ii2 = MIN(ii1+1, ni1);
         indE = ii1 + jj1*ni1;
@@ -771,21 +791,21 @@ int findElement(double xp, double yp, double zp,
 // proche de xp,yp,zp
 // le no de la face commence a 0, elt commence a 0
 //=============================================================================
-int findFace(double xp, double yp, double zp, int elt, 
-             UnstructZone* zone, double& dist)
+E_Int findFace(double xp, double yp, double zp, E_Int elt, 
+               UnstructZone* zone, double& dist)
 {
-  int* c = zone->connect;
-  int* ptr = PTRELTS(c); // ptr sur les elts
-  int f, p, np, rt, nf, i, ne;
-  ne = zone->ne;
+  E_Int* c = zone->connect[0];
+  E_Int* ptr = PTRELTS(c); // ptr sur les elts
+  E_Int f, p, np, rt, nf, i, ne;
+  ne = zone->nec[0];
   double xc, yc, zc, d;
   double* x = zone->x;
   double* y = zone->y;
   double* z = zone->z;
-  int* lp;
-  int* posf = zone->posFaces;
+  E_Int* lp;
+  E_Int* posf = zone->posFaces;
   dist = 1.e6;
-  int face = 0;
+  E_Int face = 0;
 
   for (i = 0; i < ne; i++)
   {

@@ -1,5 +1,7 @@
-# - demo like app -
-import Tkinter as TK
+# - tkDemo -
+"""Demo like app."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -43,11 +45,12 @@ def rotate():
         zc = 0.5*(bb[5]+bb[2])
         pos = CPlot.getState('posCam')
         posCam = [pos[0], pos[1], pos[2]]
-        posEye = [xc, yc, zc]
-        dirCam = [0,0,1]
+        #posEye = [xc, yc, zc]
+        #dirCam = [0,0,1]
         CTK.__BUSY__ = True
         TTK.sunkButton(WIDGETS['rotate'])
         CPlot.setState(cursor=2)
+        CTK.setCursor(2, WIDGETS['rotate'])
         i = 0
         while CTK.__BUSY__:
             speed = WIDGETS['speed'].get() * 0.0006 / 100.
@@ -63,10 +66,12 @@ def rotate():
         CTK.__BUSY__ = False
         TTK.raiseButton(WIDGETS['rotate'])
         CPlot.setState(cursor=0)
+        CTK.setCursor(0, WIDGETS['rotate'])
     else:
         CTK.__BUSY__ = False
         TTK.raiseButton(WIDGETS['rotate'])
         CPlot.setState(cursor=0)
+        CTK.setCursor(0, WIDGETS['rotate'])
 
 #==============================================================================
 def fly():
@@ -83,6 +88,7 @@ def fly():
         CTK.__BUSY__ = True
         TTK.sunkButton(WIDGETS['fly'])
         CPlot.setState(cursor=2)
+        CTK.setCursor(2, WIDGETS['fly'])
         i = 0
         while CTK.__BUSY__:
             speed = WIDGETS['speed'].get() / 50.
@@ -104,11 +110,13 @@ def fly():
         CTK.__BUSY__ = False
         TTK.raiseButton(WIDGETS['fly'])
         CPlot.setState(cursor=0)
+        CTK.setCursor(0, WIDGETS['fly'])
     else:
         CTK.__BUSY__ = False
         TTK.raiseButton(WIDGETS['fly'])
         CPlot.setState(cursor=0)
-
+        CTK.setCursor(0, WIDGETS['fly'])
+        
 #==============================================================================
 def orbite():
     if CTK.t == []: return
@@ -129,8 +137,8 @@ def orbite():
         path = []
         for p in paths:
             dim = Internal.getZoneDim(p)
-            if (dim[0] == 'Unstructured' and dim[3] == 'BAR'): path.append(p)
-            if (dim[0] == 'Structured' and dim[2] == 1 and dim[3] == 1):
+            if dim[0] == 'Unstructured' and dim[3] == 'BAR': path.append(p)
+            if dim[0] == 'Structured' and dim[2] == 1 and dim[3] == 1:
                 path.append(C.convertArray2Tetra(p))
         if path == []: return
         path = T.join(path)
@@ -142,6 +150,7 @@ def orbite():
         CTK.__BUSY__ = True
         TTK.sunkButton(WIDGETS['orbite'])
         CPlot.setState(cursor=2)
+        CTK.setCursor(2, WIDGETS['orbite'])
         i = 0
         while CTK.__BUSY__:
             speed = 100. - WIDGETS['speed'].get()
@@ -157,10 +166,12 @@ def orbite():
         CTK.__BUSY__ = False
         TTK.raiseButton(WIDGETS['orbite'])
         CPlot.setState(cursor=0)
+        CTK.setCursor(0, WIDGETS['orbite'])
     else:
         CTK.__BUSY__ = False
         TTK.raiseButton(WIDGETS['orbite'])
         CPlot.setState(cursor=0)
+        CTK.setCursor(0, WIDGETS['orbite'])
         
 #==============================================================================
 # Create app widgets
@@ -168,9 +179,10 @@ def orbite():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkDemo', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Demo mode.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkDemo  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Demo mode.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=2)
@@ -178,8 +190,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
 
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkDemo')
     WIDGETS['frameMenu'] = FrameMenu
 
@@ -223,13 +235,17 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['RenderNoteBook'].add(WIDGETS['frame'], text='tkDemo')
+    except: pass
+    CTK.WIDGETS['RenderNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['RenderNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -241,9 +257,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

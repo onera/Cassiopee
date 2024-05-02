@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -36,8 +36,7 @@ using namespace K_FUNC;
 PyObject* K_POST::selectInteriorFaces(PyObject* self, PyObject* args)
 {
   PyObject* array; E_Int strict;
-  if (!PYPARSETUPLEI(args,
-                    "Ol", "Oi",
+  if (!PYPARSETUPLE_(args, O_ I_,
                     &array, &strict))
   {
       return NULL;

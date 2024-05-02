@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -27,8 +27,12 @@ static PyMethodDef Pyconverter [] =
   {"copy", K_CONVERTER::copy, METH_VARARGS},
   {"setPartialFields", K_CONVERTER::setPartialFields, METH_VARARGS},
   {"_setPartialFields", K_CONVERTER::_setPartialFields, METH_VARARGS},
-  {"filterPartialFields", K_CONVERTER::filterPartialFields, METH_VARARGS},
   {"setPartialFieldsPT", K_CONVERTER::setPartialFieldsPT, METH_VARARGS},
+  {"updatePartialFields", K_CONVERTER::updatePartialFields, METH_VARARGS},
+  {"updatePartialFieldsPT", K_CONVERTER::updatePartialFieldsPT, METH_VARARGS},
+  {"_updatePartialFields", K_CONVERTER::_updatePartialFields, METH_VARARGS},
+  {"filterPartialFields", K_CONVERTER::filterPartialFields, METH_VARARGS},
+  {"_setPartialFieldsAverage", K_CONVERTER::_setPartialFieldsAverage, METH_VARARGS},
   {"extractVars", K_CONVERTER::extractVars, METH_VARARGS},
   {"addVars", K_CONVERTER::addVars, METH_VARARGS},
   {"addVar", K_CONVERTER::addVar, METH_VARARGS},
@@ -45,6 +49,8 @@ static PyMethodDef Pyconverter [] =
   {"normL2", K_CONVERTER::normL2, METH_VARARGS},
   {"normalize", K_CONVERTER::normalize, METH_VARARGS},
   {"magnitude", K_CONVERTER::magnitude, METH_VARARGS},
+  {"isFinite", K_CONVERTER::isFinite, METH_VARARGS},
+  {"setNANValuesAt", K_CONVERTER::setNANValuesAt, METH_VARARGS},
   {"convertBAR2Struct", K_CONVERTER::convertBAR2Struct, METH_VARARGS},
   {"convertStruct2Tetra", K_CONVERTER::convertStruct2Tetra, METH_VARARGS},
   {"convertStruct2TetraBary", K_CONVERTER::convertStruct2TetraBary, METH_VARARGS},
@@ -61,12 +67,18 @@ static PyMethodDef Pyconverter [] =
   {"convertArray2TetraBaryBoth", K_CONVERTER::convertArray2TetraBaryBoth, METH_VARARGS},
   {"convertNGon2TetraBary", K_CONVERTER::convertNGon2TetraBary, METH_VARARGS},
   {"convertNGon2TetraBaryBoth", K_CONVERTER::convertNGon2TetraBaryBoth, METH_VARARGS},
+  {"convertHO2LO", K_CONVERTER::convertHO2LO, METH_VARARGS},
+  {"convertLO2HO", K_CONVERTER::convertLO2HO, METH_VARARGS},
   {"convertTri2Quad", K_CONVERTER::convertTri2Quad, METH_VARARGS},
   {"convertQuad2Tri", K_CONVERTER::convertQuad2Tri, METH_VARARGS},
   {"convertMix2BE", K_CONVERTER::convertMix2BE, METH_VARARGS},
   {"convertArray2Node", K_CONVERTER::convertArray2Node, METH_VARARGS},
+  {"convertStrand2Penta", K_CONVERTER::convertStrand2Penta, METH_VARARGS},
+  {"convertPenta2Strand", K_CONVERTER::convertPenta2Strand, METH_VARARGS},
   {"node2Center", K_CONVERTER::node2Center, METH_VARARGS},
+  {"node2Center_OLD", K_CONVERTER::node2Center_OLD, METH_VARARGS},
   {"center2Node", K_CONVERTER::center2Node, METH_VARARGS},
+  {"center2Node_OLD", K_CONVERTER::center2Node_OLD, METH_VARARGS},
   {"node2ExtCenter", K_CONVERTER::node2ExtCenter, METH_VARARGS},
   {"extCenter2Node", K_CONVERTER::extCenter2Node, METH_VARARGS},
   {"center2ExtCenter", K_CONVERTER::center2ExtCenter, METH_VARARGS},
@@ -92,6 +104,7 @@ static PyMethodDef Pyconverter [] =
   {"nullifyVectorAtBCFaceStruct", K_CONVERTER::nullifyVectorAtBCFaceStruct, METH_VARARGS},
   {"cpyConnectA2ConnectP", K_CONVERTER::cpyConnectA2ConnectP, METH_VARARGS},
   {"cpyConnectP2ConnectA", K_CONVERTER::cpyConnectP2ConnectA, METH_VARARGS},
+  {"cpyConnectP2ConnectA2", K_CONVERTER::cpyConnectP2ConnectA2, METH_VARARGS},
   {"cpyValueByField", K_CONVERTER::cpyValueByField, METH_VARARGS},
   {"detectEmptyBC", K_CONVERTER::detectEmptyBC, METH_VARARGS},
   {"tagDefinedBC", K_CONVERTER::tagDefinedBC, METH_VARARGS},
@@ -118,34 +131,75 @@ static PyMethodDef Pyconverter [] =
   {"nearestElements", K_CONVERTER::nearestElements, METH_VARARGS},
   {"nearestFaces", K_CONVERTER::nearestFaces, METH_VARARGS},
   {"nearestNodes", K_CONVERTER::nearestNodes, METH_VARARGS},
+  {"createGlobalIndex", K_CONVERTER::createGlobalIndex, METH_VARARGS},
+  {"recoverGlobalIndex", K_CONVERTER::recoverGlobalIndex, METH_VARARGS},
   {"adaptPE2NFace", K_CONVERTER::adaptPE2NFace, METH_VARARGS},
   {"adaptNFace2PE", K_CONVERTER::adaptNFace2PE, METH_VARARGS},
   {"adaptNGon2Index", K_CONVERTER::adaptNGon2Index, METH_VARARGS},
   {"adaptNFace2Index", K_CONVERTER::adaptNFace2Index, METH_VARARGS},
   {"adaptBCFace2BCC", K_CONVERTER::adaptBCFace2BCC, METH_VARARGS},
+  {"adaptNGon42NGon3", K_CONVERTER::adaptNGon42NGon3, METH_VARARGS},
+  {"adaptNGon32NGon4", K_CONVERTER::adaptNGon32NGon4, METH_VARARGS},
+  {"signNGonFaces", K_CONVERTER::signNGonFaces, METH_VARARGS},
+  {"unsignNGonFaces", K_CONVERTER::unsignNGonFaces, METH_VARARGS},
+  {"makeParentElements", K_CONVERTER::makeParentElements, METH_VARARGS},
+  {"convertSurfaceNGon", K_CONVERTER::convertSurfaceNGon, METH_VARARGS},
   {"adapt2FastP", K_CONVERTER::adapt2FastP, METH_VARARGS},
   {"createElsaHybrid", K_CONVERTER::createElsaHybrid, METH_VARARGS},
   {"diffIndex", K_CONVERTER::diffIndex, METH_VARARGS},
   {"pointList2Ranges", K_CONVERTER::pointList2Ranges, METH_VARARGS},
   {"pointList2SPL", K_CONVERTER::pointList2SPL, METH_VARARGS},
   {"range2PointList", K_CONVERTER::range2PointList, METH_VARARGS},
+  {"PR2VL", K_CONVERTER::PR2VL, METH_VARARGS},
   {"addGhostCellsNG", K_CONVERTER::addGhostCellsNG, METH_VARARGS},
-  {"extractBCMatch", K_CONVERTER::extractBCMatch, METH_VARARGS},
-  {"buildBCMatchField", K_CONVERTER::buildBCMatchField, METH_VARARGS},
+  {"extractBCMatchStruct", K_CONVERTER::extractBCMatchStruct, METH_VARARGS},
+  {"extractBCMatchNG", K_CONVERTER::extractBCMatchNG, METH_VARARGS},
+  {"buildBCMatchFieldStruct", K_CONVERTER::buildBCMatchFieldStruct, METH_VARARGS},
+  {"buildBCMatchFieldNG", K_CONVERTER::buildBCMatchFieldNG, METH_VARARGS},
   {"extractBCFields", K_CONVERTER::extractBCFields, METH_VARARGS},
+  {"extractFields", K_CONVERTER::extractFields, METH_VARARGS},
+  {"iSend", K_CONVERTER::iSend, METH_VARARGS},
+  {"recv", K_CONVERTER::recv, METH_VARARGS},
+  {"waitAll", K_CONVERTER::waitAll, METH_VARARGS},
+  {"createBBTree", K_CONVERTER::createBBTree, METH_VARARGS},
+  {"intersect", K_CONVERTER::intersect, METH_VARARGS},
+  {"intersect2", K_CONVERTER::intersect2, METH_VARARGS},
+  {"deleteBBTree", K_CONVERTER::deleteBBTree, METH_VARARGS},
   {NULL, NULL}
 };
+
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "converter",
+        NULL,
+        -1,
+        Pyconverter
+};
+#endif
 
 // ============================================================================
 /* Init of module */
 // ============================================================================
 extern "C"
 {
+#if PY_MAJOR_VERSION >= 3
+  PyMODINIT_FUNC PyInit_converter();
+  PyMODINIT_FUNC PyInit_converter()
+#else
   PyMODINIT_FUNC initconverter();
   PyMODINIT_FUNC initconverter()
+#endif
   {
-    Py_InitModule("converter", Pyconverter);
     import_array();
+#if PY_MAJOR_VERSION >= 3
+    PyObject* module = PyModule_Create(&moduledef);
+#else
+    Py_InitModule("converter", Pyconverter);
+#endif
+#if PY_MAJOR_VERSION >= 3
+    return module;
+#endif
   }
 }
 

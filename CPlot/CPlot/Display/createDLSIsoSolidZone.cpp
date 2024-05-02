@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -34,9 +34,9 @@
   est forcee a 0.
 */
 //=============================================================================
-void DataDL::createGPUSIsoSolidZone(StructZone* zonep, int zone, int nofield)
+void DataDL::createGPUSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield)
 {
-  int stepi, stepj, stepk;
+  E_Int stepi, stepj, stepk;
   float offb;
   stepi = 1; stepj = 1; stepk = 1;
   offb = 0.;
@@ -60,10 +60,10 @@ void DataDL::createGPUSIsoSolidZone(StructZone* zonep, int zone, int nofield)
   est forcee a 0.
 */
 //=============================================================================
-void DataDL::createGPUSIsoSolidZone(StructZone* zonep, int zone, int nofield1,
-				    int nofield2, int nofield3)
+void DataDL::createGPUSIsoSolidZone(StructZone* zonep, E_Int zone, 
+    E_Int nofield1, E_Int nofield2, E_Int nofield3)
 {
-  int stepi, stepj, stepk;
+  E_Int stepi, stepj, stepk;
   float offb;
   stepi = 1; stepj = 1; stepk = 1;
   offb = 0.;
@@ -72,6 +72,15 @@ void DataDL::createGPUSIsoSolidZone(StructZone* zonep, int zone, int nofield1,
   zImpl->_DLiso = glGenLists(1);
   glNewList(zImpl->_DLiso, GL_COMPILE);
 #undef PLOT
+  double* f1 = zonep->f[nofield1];
+  double* f2 = zonep->f[nofield2];
+  double* f3 = zonep->f[nofield3];
+  double fmin1, fmax1, fmin2, fmax2, fmin3, fmax3;
+  fmax1 = maxf[nofield1]; fmin1 = minf[nofield1];
+  fmax2 = maxf[nofield2]; fmin2 = minf[nofield2];
+  fmax3 = maxf[nofield3]; fmin3 = minf[nofield3];
+#define GL_QUADS_ARE GL_TRIANGLES
+#define PLOT PLOTT  
 #include "displaySVectSolidZone.h"
   glEndList();
 }

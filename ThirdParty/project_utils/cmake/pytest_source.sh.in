@@ -1,0 +1,13 @@
+export LD_LIBRARY_PATH=@PYTEST_ENV_PREPEND_LD_LIBRARY_PATH@:$LD_LIBRARY_PATH
+export PYTHONPATH=@PYTEST_ENV_PREPEND_PYTHONPATH@:$PYTHONPATH
+export PATH=@PYTEST_ENV_PREPEND_PATH@:$PATH
+export @PYTEST_ENV_PYCACHE_ENV_VAR@
+export PYTEST_PLUGINS=@PYTEST_PLUGINS@
+
+# Trick so that pytest is aliased to pytest with forced rootdir
+# The rootdir option tells pytest where to put the temporary files
+PYTEST_EXEC=$(which pytest)
+py_test() {
+  $PYTEST_EXEC --rootdir=@PYTEST_ROOTDIR@ "$@"
+}
+export -f py_test

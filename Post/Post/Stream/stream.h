@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -86,7 +86,7 @@ namespace K_POST
                      vector<FldArrayF*>& unstrFields,
                      vector<FldArrayI*>& connectu,
                      FldArrayF& streamPt,
-                     K_INTERP::InterpAdt::InterpolationType interpType);
+                     K_INTERP::InterpData::InterpolationType interpType);
 
 /* Initialisation de la ligne de courant : vitesse et dt calcules
    IN : (xp,yp,xp) : coordonnees du pt X0
@@ -101,13 +101,13 @@ namespace K_POST
    et 0 si pas interpolable */
   short 
   initStreamLine(E_Float xp, E_Float yp, E_Float zp,
-                 vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+                 vector<K_INTERP::InterpData*>& listOfStructInterpData, 
                  vector<FldArrayF*>& listOfStructFields,
                  vector<FldArrayF*>& listOfStructVelocities,
                  vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks,
                  vector<E_Int>& posxs, vector<E_Int>& posys, 
                  vector<E_Int>& poszs, vector<E_Int>& poscs,
-                 vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+                 vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
                  vector<FldArrayF*>& listOfUnstrFields,
                  vector<FldArrayF*>& listOfUnstrVelocities,
                  vector<FldArrayI*>& connectu,
@@ -118,7 +118,7 @@ namespace K_POST
                  E_Int sizeSurf, 
                  E_Float& up, E_Float& vp, E_Float& wp, E_Float& dt,
                  FldArrayI& indi, FldArrayF& cf, FldArrayF& streamPts, 
-                 K_INTERP::InterpAdt::InterpolationType interpType);
+                 K_INTERP::InterpData::InterpolationType interpType);
 
 //------------------------------------------------------------------
 //2 - methodes specifiques a streamLine
@@ -131,13 +131,13 @@ namespace K_POST
    coordonnees + champs initiaux */
   E_Int computeStreamLineElts(
     E_Float x0, E_Float y0, E_Float z0, 
-    vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+    vector<K_INTERP::InterpData*>& listOfStructInterpData, 
     vector<FldArrayF*>& listOfStructFields,
     vector<FldArrayF*>& listOfStructVelocities,
     vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks, 
     vector<E_Int>& posxs, vector<E_Int>& posys, vector<E_Int>& poszs, 
     vector<E_Int>& poscs,
-    vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+    vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
     vector<FldArrayF*>& listOfUnstrFields,
     vector<FldArrayF*>& listOfUnstrVelocities,
     vector<FldArrayI*>& connectu,
@@ -162,21 +162,21 @@ namespace K_POST
     E_Float& up, E_Float& vp, E_Float& wp,
     E_Int& type, FldArrayI& indip, FldArrayF& cfp,
     E_Float& dt, 
-    vector<K_INTERP::InterpAdt*>& listOfStructInterpData,
+    vector<K_INTERP::InterpData*>& listOfStructInterpData,
     vector<FldArrayF*>& listOfStructFields,
     vector<FldArrayF*>& listOfStructVelocities,
     vector<E_Int>& nis, vector<E_Int>& njs,
     vector<E_Int>& nks, vector<E_Int>& posxs, 
     vector<E_Int>& posys, vector<E_Int>& poszs, 
     vector<E_Int>& poscs, 
-    vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData,
+    vector<K_INTERP::InterpData*>& listOfUnstrInterpData,
     vector<FldArrayF*>& listOfUnstrFields,
     vector<FldArrayF*>& listOfUnstrVelocities,
     vector<FldArrayI*>& connectu,
     vector<E_Int>& posxu, vector<E_Int>& posyu, 
     vector<E_Int>& poszu, vector<E_Int>& poscu, 
     FldArrayI& connectSurf, E_Float* xSurf, E_Float* ySurf, E_Float* zSurf, E_Int sizeSurf, 
-    K_INTERP::InterpAdt::InterpolationType interpType);
+    K_INTERP::InterpData::InterpolationType interpType);
 
 /* Calcul des 4 coefs de Runge-Kutta4 
    IN : xp,yp,zp : coordonnees du pt X(n)
@@ -189,21 +189,21 @@ namespace K_POST
   short compRungeKutta4(E_Float xp, E_Float yp, E_Float zp,
                         E_Float up, E_Float vp, E_Float wp, 
                         E_Float& dt, E_Float& xn, E_Float& yn, E_Float& zn,
-                        vector<K_INTERP::InterpAdt*>& listOfStructInterpData,
+                        vector<K_INTERP::InterpData*>& listOfStructInterpData,
                         vector<FldArrayF*>& listOfStructFields,
                         vector<FldArrayF*>& listOfStructVelocities,
                         vector<E_Int>& nis,vector<E_Int>& njs,
                         vector<E_Int>& nks, vector<E_Int>& posxs, 
                         vector<E_Int>& posys, vector<E_Int>& poszs, 
                         vector<E_Int>& poscs, 
-                        vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData,
+                        vector<K_INTERP::InterpData*>& listOfUnstrInterpData,
                         vector<FldArrayF*>& listOfUnstrFields,
                         vector<FldArrayF*>& listOfUnstrVelocities,
                         vector<FldArrayI*>& connectu,
                         vector<E_Int>& posxu, vector<E_Int>& posyu, 
                         vector<E_Int>& poszu, vector<E_Int>& poscu, 
                         FldArrayI& connectSurf, E_Float* xSurf, E_Float* ySurf, E_Float* zSurf, E_Int sizeSurf, 
-                        K_INTERP::InterpAdt::InterpolationType interpType);
+                        K_INTERP::InterpData::InterpolationType interpType);
 
 //------------------------------------------------------------------
 // 3 - methodes specifiques a streamRibbon
@@ -217,13 +217,13 @@ namespace K_POST
   E_Int computeStreamRibbonElts(
     E_Float xp, E_Float yp, E_Float zp, 
     E_Float nxp, E_Float nyp, E_Float nzp,
-    vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+    vector<K_INTERP::InterpData*>& listOfStructInterpData, 
     vector<FldArrayF*>& listOfStructFields,
     vector<FldArrayF*>& listOfStructVelocities,
     vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks, 
     vector<E_Int>& posxs, vector<E_Int>& posys, vector<E_Int>& poszs, 
     vector<E_Int>& poscs,
-    vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+    vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
     vector<FldArrayF*>& listOfUnstrFields,
     vector<FldArrayF*>& listOfUnstrVelocities,
     vector<FldArrayI*>& connectu,
@@ -244,13 +244,13 @@ namespace K_POST
    pt, et 0 si pas interpolable */
   short initStreamRibbon(
     E_Float xp, E_Float yp, E_Float zp,
-    vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+    vector<K_INTERP::InterpData*>& listOfStructInterpData, 
     vector<FldArrayF*>& listOfStructFields,
     vector<FldArrayF*>& listOfStructVelocities,
     vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks,
     vector<E_Int>& posxs, vector<E_Int>& posys, 
     vector<E_Int>& poszs, vector<E_Int>& poscs,
-    vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+    vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
     vector<FldArrayF*>& listOfUnstrFields,
     vector<FldArrayF*>& listOfUnstrVelocities,
     vector<FldArrayI*>& connectu,
@@ -260,7 +260,7 @@ namespace K_POST
     E_Float& nxp, E_Float& nyp, E_Float& nzp,
     FldArrayI& indi, FldArrayF& cf, 
     FldArrayF& streamPts1, FldArrayF& streamPts2, 
-    K_INTERP::InterpAdt::InterpolationType interpType);
+    K_INTERP::InterpData::InterpolationType interpType);
 
 /* Initialisation de la normale a la ligne de courant
    IN : (x0,y0,z0) : point de depart P0 
@@ -282,18 +282,18 @@ namespace K_POST
     const E_Int nopt,
     const E_Float xp, const E_Float yp, const E_Float zp,
     const E_Float nxp, const E_Float nyp, const E_Float nzp,
-    vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+    vector<K_INTERP::InterpData*>& listOfStructInterpData, 
     vector<FldArrayF*>& listOfStructFields,
     vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks,
     vector<E_Int>& posxs, vector<E_Int>& posys, 
     vector<E_Int>& poszs, vector<E_Int>& poscs,
-    vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+    vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
     vector<FldArrayF*>& listOfUnstrFields,
     vector<FldArrayI*>& connectu,
     vector<E_Int>& posxu, vector<E_Int>& posyu, 
     vector<E_Int>& poszu, vector<E_Int>& poscu,
     FldArrayF& streamPts2,  
-    K_INTERP::InterpAdt::InterpolationType interpType);
+    K_INTERP::InterpData::InterpolationType interpType);
 
 /* Calcule les coordonnees du pt X(n+1), ses cf et indi et la vitesse U(n+1)
    Si necessaire, le pas dt est modifie 
@@ -320,19 +320,19 @@ namespace K_POST
     E_Float& thetap,
     FldArrayI& indip, FldArrayF& cfp, E_Float& dt, 
     FldArrayF& streamPts1, FldArrayF& streamPts2,
-    vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+    vector<K_INTERP::InterpData*>& listOfStructInterpData, 
     vector<FldArrayF*>& listOfStructFields,
     vector<FldArrayF*>& listOfStructVelocities,
     vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks,
     vector<E_Int>& posxs, vector<E_Int>& posys, 
     vector<E_Int>& poszs, vector<E_Int>& poscs,
-    vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+    vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
     vector<FldArrayF*>& listOfUnstrFields,
     vector<FldArrayF*>& listOfUnstrVelocities,
     vector<FldArrayI*>& connectu,
     vector<E_Int>& posxu, vector<E_Int>& posyu, 
     vector<E_Int>& poszu, vector<E_Int>& poscu,
-    K_INTERP::InterpAdt::InterpolationType interpType,
+    K_INTERP::InterpData::InterpolationType interpType,
     E_Int& noblkn, E_Int& typen);
 
 /* Calcul des 4 coefs de Runge-Kutta4 
@@ -350,19 +350,19 @@ namespace K_POST
                                  E_Float up, E_Float vp, E_Float wp, 
                                  FldArrayI& indip, FldArrayF& cfp,
                                  E_Float& dt, E_Float& xn, E_Float& yn, E_Float& zn, E_Float& thetan,
-                                 vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+                                 vector<K_INTERP::InterpData*>& listOfStructInterpData, 
                                  vector<FldArrayF*>& listOfStructFields,
                                  vector<FldArrayF*>& listOfStructVelocities,
                                  vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks,
                                  vector<E_Int>& posxs, vector<E_Int>& posys, 
                                  vector<E_Int>& poszs, vector<E_Int>& poscs,
-                                 vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+                                 vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
                                  vector<FldArrayF*>& listOfUnstrFields,
                                  vector<FldArrayF*>& listOfUnstrVelocities,
                                  vector<FldArrayI*>& connectu,
                                  vector<E_Int>& posxu, vector<E_Int>& posyu, 
                                  vector<E_Int>& poszu, vector<E_Int>& poscu,
-                                 K_INTERP::InterpAdt::InterpolationType interpType);
+                                 K_INTERP::InterpData::InterpolationType interpType);
 
 /* Calcul du coefficient ki du sous pas i de Runge Kutta 4 pour l equation 
    en theta : dtheta/dt = 0.5*(rotv . v/normv) 
@@ -408,12 +408,12 @@ namespace K_POST
     vector<E_Int>& posxIn, vector<E_Int>& posyIn, vector<E_Int>& poszIn,
     vector<E_Int>& poscIn, vector<char*>& varStringIn, 
     vector<FldArrayF*>& fieldsIn, 
-    vector<K_INTERP::InterpAdt*>& structInterpDataIn,
+    vector<K_INTERP::InterpData*>& structInterpDataIn,
     vector<E_Int>& niOut, vector<E_Int>& njOut, vector<E_Int>& nkOut,
     vector<E_Int>& posxOut, vector<E_Int>& posyOut, vector<E_Int>& poszOut,
     vector<E_Int>& poscOut, vector<char*>& varStringOut, 
     vector<FldArrayF*>& fieldsOut, 
-    vector<K_INTERP::InterpAdt*>& structInterpDataOut,
+    vector<K_INTERP::InterpData*>& structInterpDataOut,
     vector<FldArrayF*>& vectorf, vector<char*>& vnames);
 
 /* Determine la liste des arrays non structures TETRA, dont un des champs
@@ -427,12 +427,12 @@ namespace K_POST
     vector<E_Int>& poszIn, vector<E_Int>& poscIn, 
     vector<char*>& varStringIn, vector<FldArrayF*>& fieldsIn, 
     vector<FldArrayI*>& cntIn, vector<char*>& eltTypeIn,
-    vector<K_INTERP::InterpAdt*>& interpDataIn,
+    vector<K_INTERP::InterpData*>& interpDataIn,
     vector<E_Int>& posxOut, vector<E_Int>& posyOut, 
     vector<E_Int>& poszOut, vector<E_Int>& poscOut, 
     vector<char*>& varStringOut, vector<FldArrayF*>& fieldsOut, 
     vector<FldArrayI*>& cntOut, vector<char*>& eltTypeOut,
-    vector<K_INTERP::InterpAdt*>& interpDataOut,
+    vector<K_INTERP::InterpData*>& interpDataOut,
     vector<FldArrayF*>& vectorf, vector<char*>& vnames);
 
 /* Initialisation de la ligne de courant : vitesse et dt calcules
@@ -444,13 +444,13 @@ namespace K_POST
    OUT: streamPts: mise a jour pour le point X0 */
   void 
   initStreamSurf(E_Float xp, E_Float yp, E_Float zp,
-                 vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+                 vector<K_INTERP::InterpData*>& listOfStructInterpData, 
                  vector<FldArrayF*>& listOfStructFields,
                  vector<FldArrayF*>& listOfStructVelocities,
                  vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks,
                  vector<E_Int>& posxs, vector<E_Int>& posys, 
                  vector<E_Int>& poszs, vector<E_Int>& poscs,
-                 vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+                 vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
                  vector<FldArrayF*>& listOfUnstrFields,
                  vector<FldArrayF*>& listOfUnstrVelocities,
                  vector<FldArrayI*>& connectu,
@@ -458,7 +458,7 @@ namespace K_POST
                  vector<E_Int>& poszu, vector<E_Int>& poscu,
                  E_Float& up, E_Float& vp, E_Float& wp, E_Float& dt,
                  FldArrayI& indi, FldArrayF& cf, FldArrayF& streamPts, 
-                 K_INTERP::InterpAdt::InterpolationType interpType);
+                 K_INTERP::InterpData::InterpolationType interpType);
 
 
 /* creation du front d'avancement pour le calcul des nappes de courant 
@@ -477,13 +477,13 @@ void createFront(E_Float* xBAR, E_Float* yBAR, E_Float* zBAR, FldArrayI& cn,
    OUT    : nt               : nombre de triangles constituant la nappe de courant */
 void advanceFront(vector<tracer*> front, tracer* tleft, tracer* tright, E_Int npts, E_Int& nt,
                   FldArrayF* field, FldArrayI* cn,
-                  vector<K_INTERP::InterpAdt*>& structInterpDatas, 
+                  vector<K_INTERP::InterpData*>& structInterpDatas, 
                   vector<FldArrayF*>& structFields, 
                   vector<FldArrayF*>& structVelocities,
                   vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks, 
                   vector<E_Int>& posxs, vector<E_Int>& posys, vector<E_Int>& poszs, 
                   vector<E_Int>& poscs,
-                  vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+                  vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
                   vector<FldArrayF*>& listOfUnstrFields,
                   vector<FldArrayF*>& listOfUnstrVelocities,
                   vector<FldArrayI*>& connectu,
@@ -496,13 +496,13 @@ void advanceFront(vector<tracer*> front, tracer* tleft, tracer* tright, E_Int np
    OUT    : nt               : nombre de triangles constituant la nappe de courant */
 void advanceRibbonLeft(tracer* t, E_Int npts, E_Int& nt,
                        FldArrayF* field, FldArrayI* cn,
-                       vector<K_INTERP::InterpAdt*>& structInterpDatas, 
+                       vector<K_INTERP::InterpData*>& structInterpDatas, 
                        vector<FldArrayF*>& structFields, 
                        vector<FldArrayF*>&structVelocities,
                        vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks, 
                        vector<E_Int>& posxs, vector<E_Int>& posys, vector<E_Int>& poszs, 
                        vector<E_Int>& poscs,
-                       vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+                       vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
                        vector<FldArrayF*>& listOfUnstrFields,
                        vector<FldArrayF*>& listOfUnstrVelocities,
                        vector<FldArrayI*>& connectu,
@@ -515,13 +515,13 @@ void advanceRibbonLeft(tracer* t, E_Int npts, E_Int& nt,
    OUT    : nt               : nombre de triangles constituant la nappe de courant */
 void advanceRibbonRight(tracer* t, E_Int npts, E_Int& nt,
                         FldArrayF* field, FldArrayI* cn,
-                        vector<K_INTERP::InterpAdt*>& structInterpDatas, 
+                        vector<K_INTERP::InterpData*>& structInterpDatas, 
                         vector<FldArrayF*>& structFields, 
                         vector<FldArrayF*>&structVelocities,
                         vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks, 
                         vector<E_Int>& posxs, vector<E_Int>& posys, vector<E_Int>& poszs, 
                         vector<E_Int>& poscs,
-                        vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+                        vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
                         vector<FldArrayF*>& listOfUnstrFields,
                         vector<FldArrayF*>& listOfUnstrVelocities,
                         vector<FldArrayI*>& connectu,

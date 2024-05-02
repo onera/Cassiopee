@@ -1,12 +1,12 @@
 # Adapt the module name
 import os, sys
 if len(sys.argv) < 2:
-    print 'python rename.py <Module>'
-    print 'rename template module as <Module>.'
+    print('python rename.py <Module>')
+    print('rename template module as <Module>.')
     import sys; sys.exit()
 
 MODULE = sys.argv[1]
-print 'Renaming module as '+MODULE
+print('Renaming module as '+MODULE)
 
 st1 = MODULE.capitalize()
 st2 = MODULE.lower()
@@ -16,7 +16,7 @@ w = os.walk('.')
 for f in w:
     # exclude .svn, build
     dirName = f[0]
-    if (dirName.find('build') == -1 and dirName.find('.svn') == -1):
+    if dirName.find('build') == -1 and dirName.find('.svn') == -1:
         files = f[2]
         for f in files:
             d = open(dirName+'/'+f)

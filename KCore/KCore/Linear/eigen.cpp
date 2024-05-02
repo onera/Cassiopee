@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -18,7 +18,7 @@
 */
 
 #include "linear.h"
-#include "Linear/DelaunayMath.h"
+#include "Nuga/include/DelaunayMath.h"
 # include <math.h>
 
 #define SWAP(a, b) { temp = a; a = b; b = temp; }

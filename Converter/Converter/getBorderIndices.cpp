@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -36,14 +36,14 @@ PyObject* K_CONVERTER::getJoinBorderIndices(PyObject* self, PyObject* args)
   E_Int Im, Jm, Km;
   E_Int Direction, D, Dim, Dim1;
   E_Int Shift;
-  if (!PYPARSETUPLEI(args, "Ollllllllllllll", "Oiiiiiiiiiiiiii", 
+  if (!PYPARSETUPLE_(args, O_ IIII_ IIII_ IIII_ II_, 
                      &arrayI, &Dim1, &Im, &Jm, &Km,
                      &Wimin, &Wimax, &Wjmin, &Wjmax, &Wkmin, &Wkmax,
                      &Direction, &Dim, &D, &Shift)) return NULL;
 
   // Get array
   PyArrayObject* arI = (PyArrayObject*)arrayI;
-  int* arrayIndices = (int*)PyArray_DATA(arI);
+  E_Int* arrayIndices = (E_Int*)PyArray_DATA(arI);
 
   E_Int im = Im;
   E_Int jm = Jm;

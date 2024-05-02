@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -39,13 +39,13 @@ c***********************************************************************
 c 
 c ---- declaration de la fonction
 c 
-      integer ind_interp
+      INTEGER_E ind_interp
 
 c 
 c ---- declaration des variables de la fonction
 c 
-      integer ind_interp_npts_1d__
-      integer ind_interp_i__, ind_interp_j__, ind_interp_k__
+      INTEGER_E ind_interp_npts_1d__
+      INTEGER_E ind_interp_i__, ind_interp_j__, ind_interp_k__
 
 c 
 c ---- definition de la fonction

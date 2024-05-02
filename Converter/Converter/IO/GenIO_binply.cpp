@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -83,7 +83,6 @@ E_Int K_IO::GenIO::plyread(
   if (strcmp(dummy, "vertex") != 0) { fclose(ptrFile); return 1; }
   fscanf(ptrFile, "%s", dummy); // nbre de vertex
   E_Int nd = atoi(dummy);
-  //printf("nd = %d\n", nd);
   
   // Recherche property
   E_Int typeVar[20];
@@ -104,8 +103,7 @@ E_Int K_IO::GenIO::plyread(
     nvar++;
     fscanf(ptrFile, "%s", dummy);
   }
-  //printf("nvar=%d\n", nvar);
-
+  
   // recherche element face
   if (strcmp(dummy, "element") == 0) found = 1;
   else found = 0;
@@ -120,8 +118,7 @@ E_Int K_IO::GenIO::plyread(
 
   fscanf(ptrFile, "%s", dummy); // nbre de face
   E_Int ne = atoi(dummy);
-  //printf("ne = %d\n", ne);
-
+  
   // Recherche property
   //E_Int typec = 0;
   fscanf(ptrFile, "%s", dummy);
@@ -326,7 +323,7 @@ E_Int K_IO::GenIO::plyread(
   for (E_Int i = 0; i < unstructFieldSize; i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone%d", i);
+    sprintf(zoneName, "Zone" SF_D_, i);
     zoneNames.push_back(zoneName);
   }
 
@@ -402,7 +399,7 @@ E_Int K_IO::GenIO::plywrite(
   E_Int nv = 0;
   if (at != NULL) nv += at->getSize();
   if (aq != NULL) nv += aq->getSize();
-  fprintf(ptrFile, "element vertex %d\n", nv);
+  fprintf(ptrFile, "element vertex " SF_D_ "\n", nv);
   fprintf(ptrFile, "property double x\n");
   fprintf(ptrFile, "property double y\n");
   fprintf(ptrFile, "property double z\n");
@@ -411,7 +408,7 @@ E_Int K_IO::GenIO::plywrite(
   E_Int nf = 0;
   if (ct != NULL) nf += ct->getSize();
   if (cq != NULL) nf += cq->getSize();
-  fprintf(ptrFile, "element face %d\n", nf);
+  fprintf(ptrFile, "element face " SF_D_ "\n", nf);
   fprintf(ptrFile, "property list uchar uint vertex_index\n");
   
   fprintf(ptrFile, "end_header\n");
@@ -473,18 +470,15 @@ E_Int K_IO::GenIO::plywrite(
   unsigned char ubuf[1]; unsigned int ibuf[4];
   if (ct != NULL)
   {
-    E_Int* c1 = ct->begin(1);
-    E_Int* c2 = ct->begin(2);
-    E_Int* c3 = ct->begin(3);
     E_Int ne = ct->getSize();
-
+    FldArrayI& c = *ct;
     if (endianess == 0)
     {
       ubuf[0] = 3;
       for (E_Int i = 0; i < ne; i++)
       {
         fwrite(ubuf, sizeof(unsigned char), 1, ptrFile);
-        ibuf[0] = c1[i]-1; ibuf[1] = c2[i]-1; ibuf[2] = c3[i]-1;
+        ibuf[0] = c(i,1)-1; ibuf[1] = c(i,2)-1; ibuf[2] = c(i,3)-1;
         fwrite(ibuf, sizeof(unsigned int), 3, ptrFile);
       }
     }
@@ -495,28 +489,23 @@ E_Int K_IO::GenIO::plywrite(
       for (E_Int i = 0; i < ne; i++)
       {
         fwrite(ubuf, sizeof(unsigned char), 1, ptrFile);
-        ibuf[0] = IBE(c1[i]-1); ibuf[1] = IBE(c2[i]-1); ibuf[2] = IBE(c3[i]-1);
+        ibuf[0] = IBE(c(i,1)-1); ibuf[1] = IBE(c(i,2)-1); ibuf[2] = IBE(c(i,3)-1);
         fwrite(ibuf, sizeof(unsigned int), 3, ptrFile);
       }
     }
   }
   if (cq != NULL)
   {
-    E_Int* c1 = cq->begin(1);
-    E_Int* c2 = cq->begin(2);
-    E_Int* c3 = cq->begin(3);
-    E_Int* c4 = cq->begin(4);
     E_Int ne = cq->getSize();
-
+    FldArrayI& c = *cq;
     if (endianess == 0)
     {
       ubuf[0] = 4;
       for (E_Int i = 0; i < ne; i++)
       {
         fwrite(ubuf, sizeof(unsigned char), 1, ptrFile);
-        ibuf[0] = c1[i]-1+ndec; ibuf[1] = c2[i]-1+ndec; 
-        ibuf[2] = c3[i]-1+ndec; ibuf[3] = c4[i]-1+ndec;
-        //printf("%d %d %d %d\n", ibuf[0], ibuf[1], ibuf[2], ibuf[3]);
+        ibuf[0] = c(i,1)-1+ndec; ibuf[1] = c(i,2)-1+ndec; 
+        ibuf[2] = c(i,3)-1+ndec; ibuf[3] = c(i,4)-1+ndec;
         fwrite(ibuf, sizeof(unsigned int), 4, ptrFile);
       }
     }
@@ -527,8 +516,8 @@ E_Int K_IO::GenIO::plywrite(
       for (E_Int i = 0; i < ne; i++)
       {
         fwrite(ubuf, sizeof(unsigned char), 1, ptrFile);
-        ibuf[0] = IBE(c1[i]-1+ndec); ibuf[1] = IBE(c2[i]-1+ndec); 
-        ibuf[2] = IBE(c3[i]-1+ndec); ibuf[3] = IBE(c4[i]-1+ndec);
+        ibuf[0] = IBE(c(i,1)-1+ndec); ibuf[1] = IBE(c(i,2)-1+ndec); 
+        ibuf[2] = IBE(c(i,3)-1+ndec); ibuf[3] = IBE(c(i,4)-1+ndec);
         fwrite(ibuf, sizeof(unsigned int), 4, ptrFile);
       }
     }

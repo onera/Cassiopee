@@ -1,4 +1,132 @@
 ==============================================================================
+Converter 3.7 [10/2023]
+Require: C++ compiler, f77 compiler, python > 2.7, numpy > 1.0, KCore 3.7
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 3.7
+Optional: Mpi requires mpi4py
+- read/write selig format (airfoils)
+- tecplot read version 101 (for coda)
+- add jpeg load and write
+- Internal: adaptNGon32NGon4: adapt a CGNSv3 NGON to a CGNSv4 NGON
+- Internal.adaptNGon42NGon3: adapt a CGNSv4 NGON to a CGNSv3 NGON
+- Internal.adaptNFace2PE: create a ParentElement node from a NFACE node
+- Internal.adaptPE2NFace: create NFace node from ParentElement node
+- initVars by vectorized function 
+==============================================================================
+Converter 3.6 [03/2023]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.6
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 3.6
+Optional: Mpi requires mpi4py
+- Internal.checkPyTree/correctPyTree: add check/correct name length > 32 chars
+==============================================================================
+Converter 3.5 [12/2022]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.5
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 3.5
+Optional: Mpi requires mpi4py
+- Cmpi.trace : write CPU time and memory for each node
+- extractBCOfType and extractBCOfName + shift for structured grids
+==============================================================================
+Converter 3.4 [07/2022]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.4
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 3.4
+Optional: Mpi requires mpi4py
+- hdf: write of periodic nodes in R8
+- suppress automatic elsA name conversion to CGNS names
+==============================================================================
+Converter 3.3 [10/2021]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.3
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 3.3
+Optional: Mpi requires mpi4py
+==============================================================================
+Converter 3.2 [02/2021]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.2
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 3.2
+Optional: Mpi requires mpi4py
+- Internal: newZoneSubRegion
+- Converter: isFinite
+- Internal: getVal: direct return of numpy [1]
+- Internal: getChildFromName: search limited to children
+- Internal: getChildFromType: search limited to children
+- Internal: moveNodeFromPaths: move a node from path1 to path2 in a pyTree
+==============================================================================
+Converter 3.1 [06/2020]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.1
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 3.1
+Optional: Mpi requires mpi4py
+==============================================================================
+Converter 3.0 [12/2019]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.0
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 3.0
+Optional: Mpi requires mpi4py
+- Internal: rmNodesFromType optimised
+- Internal: rmNodesFromType1,2
+- Filter: loadZones
+- Filter: writeZones
+- Filter: writeZonesWoVariables
+- Filter: writeVariables
+- Filter: writePyTreeFromPaths
+- Filter: writePyTreeFromFilter
+- bin_tp read with field in centers
+==============================================================================
+Converter 2.9 [06/2019]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.9
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 2.9
+Optional: Mpi requires mpi4py
+- Internal: getSizeOf
+- ADF/HDF: high order elements read/write
+- convertHO2LO
+- convertLO2HO (partial)
+==============================================================================
+Converter 2.8 [12/2018]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.8
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 2.8
+Optional: Mpi requires mpi4py
+- Internal: getZonesPerIteration: retourne les zones si BaseIterativeData
+- Filter: readNodesFromFilter: lecture partielle de noeuds
+- Filter: Handle, loadZonesWoVariables, loadVariables (load partiel par zones)
+- Filter: loadZonesWoVars + bbox : permet de sp�cifier les zones � charger par une bbox
+- Internal: elsAProfile.createElsaHybrid: option pour g�n�rer le noeud ParentElement de fa�on topologique, donc valable pour des maillages conformes quelconques (pas n�cessairement � cellule convexe)
+==============================================================================
+Converter 2.7 [07/2018]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.7
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 2.7
+Optional: Mpi requires mpi4py
+- Internal: getParentFromType
+- Internal: isChild
+- Internal: getNodeFromNameAndType
+- rmBCDataVars: suppression de variables dans les BCDataSet
+==============================================================================
+Converter 2.6 [03/2018]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.6
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 2.6
+Optional: Mpi requires mpi4py
+- readNodesFromPaths
+- writeNodesFromPaths
+- readPyTreeFromPaths
+==============================================================================
+Converter 2.5 [20/09/2017]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.5
+Optional: libhdf5 > 1.8.6 (hdf file format)
+Optional: extractBCOfType, extractBCOfName requires Transform 2.5
+Optional: Mpi requires mpi4py
+- Converter : getFamilyBCNamesDict
+- Internal : getZonePaths
+- Converter : _createBCDataSetOfType
+- Internal : faster path routines
+- Internal : new documentation
+- Internal : getPathLeaf, getPathAncestor
+==============================================================================
 Converter 2.4 [29/03/2017]
 Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.4
 Optional: libhdf5 > 1.8.6 (hdf file format)

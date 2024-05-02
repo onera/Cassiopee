@@ -9,5 +9,5 @@ f = P.exteriorElts(a)
 # Enregistre les centres des elements dans le hook
 hook = C.createHook(a, function='elementCenters')
 # Indices des elements de a correspondant aux centres des elts de f
-elts = C.identifyElements(hook, f)
-print elts
+elts = C.identifyElements(hook, f); print(elts)
+#>> [  1   2   3   4   5 ... 726 727 728 729]

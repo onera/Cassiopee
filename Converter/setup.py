@@ -1,5 +1,5 @@
-#!/usr/bin/env python
 from distutils.core import setup, Extension
+#from setuptools import setup, Extension
 import os
 
 #=============================================================================
@@ -24,39 +24,26 @@ Dist.writeSetupCfg()
 from KCore.config import *
 
 # Test if libhdf5 exists ======================================================
-(hdf, hdfIncDir, hdfLibDir) = Dist.checkHdf(additionalLibPaths,
-                                            additionalIncludePaths)
-
-# Test if libpng exists ======================================================
-(png, pngIncDir, pngLibDir) = Dist.checkPng(additionalLibPaths,
-                                            additionalIncludePaths)
+(hdf, hdfIncDir, hdfLibDir, hdflibs) = Dist.checkHdf(additionalLibPaths,
+                                                     additionalIncludePaths)
 
 # Test if libmpi exists ======================================================
-(mpi, mpiIncDir, mpiLibDir) = Dist.checkMpi(additionalLibPaths,
-                                            additionalIncludePaths)
+(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
+                                                     additionalIncludePaths)
 (mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py(additionalLibPaths,
                                                         additionalIncludePaths)
 
 # Compilation des fortrans ====================================================
-if f77compiler == "None":
-    print "Error: a fortran 77 compiler is required for compiling Converter."
-args = Dist.getForArgs(); opt = ''
-for c in xrange(len(args)):
-    opt += 'FOPT'+str(c)+'='+args[c]+' '
-os.system("make -e FC="+f77compiler+" WDIR=Converter/Fortran "+opt)
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 
 # Setting libraryDirs, include dirs and libraries =============================
 libraryDirs = ["build/"+prod, kcoreLibDir]
 includeDirs = [numpyIncDir, kcoreIncDir]
-libraries = ["ConverterF", "kcore"]
+libraries = ["converter", "kcore"]
 if hdf:
     libraryDirs.append(hdfLibDir)
     includeDirs.append(hdfIncDir)
-if png:
-    libraryDirs.append(pngLibDir)
-    includeDirs.append(pngIncDir)
 ADDITIONALCPPFLAGS = []
 if mpi:
     libraryDirs.append(mpiLibDir)
@@ -64,44 +51,47 @@ if mpi:
     ADDITIONALCPPFLAGS += ['-D_MPI']
 if mpi4py:
     includeDirs.append(mpi4pyIncDir)
-if hdf: libraries.append('hdf5')
-if png: libraries.append('png')
-if mpi: libraries.append('mpi')
+
+if hdf: 
+  for l in hdflibs: libraries.append(l)
+if mpi: libraries += mpiLibs
+
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
-libraryDirs += paths; libraries += libs
-
-ADDITIONALCPPFLAGS = ['-DUSE_C_REGEX'] # for old gcc < 5.0
-
+libraryDirs += paths; libraries += libs    
+    
 # Extensions ==================================================================
-import srcs
 listExtensions = []
 listExtensions.append(
     Extension('Converter.converter',
-              sources=['Converter/converter.cpp']+srcs.cpp_srcs,
+              sources=['Converter/converter.cpp'],
               include_dirs=["Converter"]+additionalIncludePaths+includeDirs,
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
               extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
               extra_link_args=Dist.getLinkArgs()
-              ))
-listExtensions.append(
+              ) )
+import srcs
+if srcs.EXPRESSION:
+  listExtensions.append(
     Extension('Converter.expression',
-              sources=['Converter/Expression/Expression.cpp']+stds.cpp_srcs,
+              sources=['Converter/Expression/Expression.cpp'],
               include_dirs=["Converter"]+additionalIncludePaths+includeDirs,
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
               extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
               extra_link_args=Dist.getLinkArgs() ) )
+
 # setup ======================================================================
 setup(
     name="Converter",
-    version="2.7",
+    version="4.0",
     description="Converter for *Cassiopee* modules.",
-    author="Onera",
-    package_dir={"":"."},
+    author="ONERA",
+    url="https://cassiopee.onera.fr",
     packages=['Converter'],
+    package_dir={"":"."},
     ext_modules=listExtensions
     )
 

@@ -9,7 +9,7 @@
 namespace {
     struct fim_t {
         struct indice_t {
-            // Pour des raisons d'optimisation, on stocke les indices (i,j,k) et l'indice global de la vue à plat
+            // Pour des raisons d'optimisation, on stocke les indices (i,j,k) et l'indice global de la vue a plat
             size_t i, j, k, ind;
             indice_t( ) {}
             indice_t( size_t ii, size_t ij, size_t ik, size_t iind ) : i( ii ), j( ij ), k( ik ), ind( iind ) {}
@@ -35,8 +35,8 @@ namespace {
             unsigned       stride_k = ni * nj;
             /* Préalloue de la place pour la liste des noeuds actifs */
             L.reserve( ni );
-            /* On préalloue le deuxième tableau de liste des noeuds actifs qui s'échangera à chaque itération
-               avec le tableau L pour pouvoir insérer et supprimer sans beaucoup d'efforts et d'allocations/désallocations
+            /* On prealloue le deuxieme tableau de liste des noeuds actifs qui s'echangera a chaque iteration
+               avec le tableau L pour pouvoir inserer et supprimer sans beaucoup d'efforts et d'allocations/desallocations
                inutiles les nouveaux et anciens noeuds actifs )
                */
             m_active_swapper.reserve( ni );

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -30,7 +30,7 @@
 #endif
 
 //=============================================================================
-Zone::Zone( CPlotState* states, ZoneImpl* impl ) : ptr_impl(impl)
+Zone::Zone(CPlotState* states, ZoneImpl* impl) : ptr_impl(impl)
 {
   dim = 3;
   nfield = 0;
@@ -38,7 +38,6 @@ Zone::Zone( CPlotState* states, ZoneImpl* impl ) : ptr_impl(impl)
   x = NULL; y = NULL; z = NULL;
   f = NULL;
   varnames = NULL;
-  surf = NULL;
   minf = NULL; maxf = NULL;
   xmin = 1.e6; ymin = 1.e6; zmin = 1.e6;
   xmax = -1.e6; ymax = -1.e6; zmax = -1.e6;
@@ -57,29 +56,31 @@ Zone::~Zone()
   if (x != NULL) delete [] x;
   if (y != NULL) delete [] y;
   if (z != NULL) delete [] z;
-  if (surf != NULL) delete [] surf;
+  for (size_t i = 0; i < surf.size(); i++) delete [] surf[i];
   if (f != NULL)
   {
-    for (int i = 0; i < nfield; i++) delete [] f[i];
+    for (E_Int i = 0; i < nfield; i++) delete [] f[i];
     delete [] f;
   }
   if (varnames != NULL)
   {
-    for (int i = 0; i < nfield; i++) delete [] varnames[i];
+    for (E_Int i = 0; i < nfield; i++) delete [] varnames[i];
     delete [] varnames;
   }
   if (minf != NULL) delete [] minf;
   if (maxf != NULL) delete [] maxf;
   
+  if (regtexu != NULL) delete [] regtexu;
+  if (regtexv != NULL) delete [] regtexv;
+  
   delete [] _voxelArray;
   ptr_impl->freeGPURes(ptrState);
-  delete ptr_impl;
+  delete ptr_impl; ptr_impl = NULL;
 }
 // ------------------------------------------------------------------------
-void
-Zone::freeGPURessources( bool useGPURessources, bool freeIso )
+void Zone::freeGPURessources(bool useGPURessources, bool freeIso)
 {
-  ptr_impl->freeGPURes( ptrState, freeIso );
-  if ( useGPURessources ) setUseGPURessources();
+  if (ptr_impl != NULL) ptr_impl->freeGPURes(ptrState, freeIso);
+  if (useGPURessources) setUseGPURessources();
   else unsetUseGPURessources();
 }

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -39,17 +39,10 @@ PyObject* K_CONVERTER::getValueOfArray(PyObject* self, PyObject* args)
   E_Int k = -1; 
   E_Int ind = -1;
 
-#ifdef E_DOUBLEINT
-  if (PyArg_ParseTuple(args, "O(lll)", &array, &i0, &j0, &k0))
+  if (PYPARSETUPLE_(args, O_ TIII_, &array, &i0, &j0, &k0))
   { i = i0; j = j0; k = k0; }
-  else if (PyArg_ParseTuple(args, "Ol", &array, &ind0)) ind = ind0;
+  else if (PYPARSETUPLE(args, O_ I_, &array, &ind0)) ind = ind0;
   else return NULL;
-#else
-  if (PyArg_ParseTuple(args, "O(iii)", &array, &i0, &j0, &k0))
-  { i = i0; j = j0; k = k0; }
-  else if (PyArg_ParseTuple(args, "Oi", &array, &ind0)) ind = ind0;
-  else return NULL;
-#endif
 
   // Check array
   E_Int im, jm, km;

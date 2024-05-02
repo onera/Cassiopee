@@ -50,8 +50,8 @@ for x in mshList:
     ni = distrib[2]
     nj = distrib[3]
 #   if (hj > hi*l):
-#       print "Warning, mesh generator may be unstable because"
-#       print "cell height is greater than cell length" 
+#       print("Warning, mesh generator may be unstable because")
+#       print("cell height is greater than cell length")
     temp1 = x 
     angleLeft = 180.
     angleRight = 180.
@@ -65,7 +65,7 @@ for x in mshList:
         niv = mshList[c-1][2]
         temp2 = mshList[c-1]
         dn = D.getDistantIndex(temp2, niv, -dl)
-#        print 'dn gauche ', dn, dl, niv
+#        print('dn gauche ', dn, dl, niv)
         temp2 = T.subzone( temp2, (dn,1,1), (niv,1,1) )
         temp1 = T.join( temp2, temp1 )
         curv = D.getCurvatureAngle( temp1 )
@@ -81,15 +81,15 @@ for x in mshList:
         temp2 = mshList[c+1]
         niv = temp2[2]
         dn = D.getDistantIndex(temp2, 1, dl)
-#        print 'dn droit ', dn, dl
+#        print('dn droit ', dn, dl)
         temp2 = T.subzone( temp2, (1,1,1), (dn,1,1) )
         temp2 = T.join( temp1, temp2 )
         temp1 = temp2
         curv = D.getCurvatureAngle( temp1 )
         angleRight = curv[1][0][temp1[2]-dn+1]
 
-    print "Angles =", angleLeft, " ", angleRight
+    print("Angles =", angleLeft, " ", angleRight)
     temp1 = G.hyper2D3(temp1, distrib, "C", angleLeft, angleRight)
     C.convertArrays2File([temp1], "mesh"+repr(c)+".plt", "bin_tp")
-    c = c+1
+    c += 1
          

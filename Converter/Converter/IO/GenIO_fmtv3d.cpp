@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -81,8 +81,7 @@ E_Int K_IO::GenIO::fv3dread(
   // Read format
   fscanf(ptrFile, "%s", t);
   E_Int formatLength = getFormatLength(t);
-  //printf("format length %d\n", formatLength);
-
+  
   // Read im, jm, km
   ret = readInt(ptrFile, valueInt); // no var
   if (strcmp(var, "x") != 0 && strcmp(var, "CoordinateX") != 0 &&
@@ -98,7 +97,6 @@ E_Int K_IO::GenIO::fv3dread(
   ret = readInt(ptrFile, valueInt);
   E_Int km = valueInt;
   ni.push_back(im); nj.push_back(jm); nk.push_back(km);
-  //printf("%d %d %d\n", im, jm, km);
   if (ret == 1) // garbage
   { int c = fgetc(ptrFile);
     while (c != '\n' && c != '\r') c = fgetc(ptrFile);
@@ -111,7 +109,7 @@ E_Int K_IO::GenIO::fv3dread(
 
   // Cree les noms des zones
   char* zoneName = new char [128];
-  sprintf(zoneName, "Zone%d", numzone); numzone++;
+  sprintf(zoneName, "Zone" SF_D_, numzone); numzone++;
   zoneNames.push_back(zoneName);
 
   // Read block
@@ -190,7 +188,7 @@ E_Int K_IO::GenIO::fv3dwrite(
   }
 
   // Write header (number of variables)
-  fprintf(ptrFile, "%5d\n", field[0]->getNfld());
+  fprintf(ptrFile, SF_W5D_ "\n", field[0]->getNfld());
   vector<char*> vars;
   extractVars(varString, vars);
   
@@ -203,10 +201,10 @@ E_Int K_IO::GenIO::fv3dwrite(
   }
 
   // Build writing data format
-  char format1[20], format2[40], format3[60], format4[80], 
-    format5[100], format6[120];
+  char format1[30], format2[60], format3[90], format4[120], 
+    format5[150], format6[180];
 
-  char dataFmtl[40];
+  char dataFmtl[29];
   strcpy(dataFmtl, dataFmt);
   // length of dataFmt
   int l = strlen(dataFmt); 
@@ -300,13 +298,15 @@ E_Int K_IO::GenIO::fv3dwrite(
       {
         fprintf(ptrFile, "%s                   6%s%s.%s\n", 
                 varsn1, specifier, width, precision);
-        fprintf(ptrFile, "%6d%6d%6d%6d\n", 1, ni[cnt], nj[cnt], nk[cnt]);
+        fprintf(ptrFile, SF_W6D_ SF_W6D_ SF_W6D_ SF_W6D_ "\n",
+                E_Int(1), ni[cnt], nj[cnt], nk[cnt]);
       }
       else 
       {
         fprintf(ptrFile, "%s                   6%s%s.%s\n", 
                 varsn1, specifier, width, precision);
-        fprintf(ptrFile, "%6d%6d%6d%6d%6d\n", n, 1, ni[cnt], nj[cnt], nk[cnt]);
+        fprintf(ptrFile, SF_W6D_ SF_W6D_ SF_W6D_ SF_W6D_ SF_W6D_ "\n",
+                n, E_Int(1), ni[cnt], nj[cnt], nk[cnt]);
       }
     
       E_Int i = 0;

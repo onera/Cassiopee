@@ -8,39 +8,44 @@ import Converter.Internal as Internal
 import Generator.PyTree as G
 import KCore.test as test
 
+LOCAL = test.getLocal()
+
 # Case
 N = 11
 t = C.newPyTree(['Base'])
 pos = 0
-for i in xrange(N):
+for i in range(N):
     a = G.cart((pos,0,0), (1,1,1), (10+i, 10, 10))
     pos += 10 + i - 1
     t[2][1][2].append(a)
 t = X.connectMatch(t)
-if Cmpi.rank == 0: C.convertPyTree2File(t, 'in.cgns')
+if Cmpi.rank == 0: C.convertPyTree2File(t, LOCAL+'/in.cgns')
 Cmpi.barrier()
 
 # lecture du squelette
-a = Cmpi.convertFile2SkeletonTree('in.cgns')
+a = Cmpi.convertFile2SkeletonTree(LOCAL+'/in.cgns')
 
 # equilibrage 1
 (a, dic) = D2.distribute(a, NProc=Cmpi.size, algorithm='fast', useCom=0)
 
 # load des zones locales dans le squelette
-a = Cmpi.readZones(a, 'in.cgns', rank=Cmpi.rank)
+a = Cmpi.readZones(a, LOCAL+'/in.cgns', rank=Cmpi.rank)
 
 # equilibrage 2 (a partir d'un squelette charge)
 (a, dic) = D2.distribute(a, NProc=Cmpi.size, algorithm='gradient1', 
                          useCom='match')
+Cmpi._convert2PartialTree(a)
+D2mpi._redispatch(a)
+Internal._sortByName(a)
 
-a = D2mpi.redispatch(a)
 if Cmpi.rank == 0: test.testT(a, 1)
 
 # force toutes les zones sur 0
-zones = Internal.getNodesFromType(a, 'Zone_t')
+zones = Internal.getZones(a)
 for z in zones:
-    nodes = Internal.getNodesFromName(z, 'proc')
-    Internal.setValue(nodes[0], 0)
+    node = Internal.getNodeFromName2(z, 'proc')
+    Internal.setValue(node, 0)
 
-a = D2mpi.redispatch(a)
+D2mpi._redispatch(a)
+Internal._sortByName(a)
 if Cmpi.rank == 0: test.testT(a, 2)

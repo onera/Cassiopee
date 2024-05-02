@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -58,13 +58,11 @@ PyObject* K_GEOM::getNearestPointIndex(PyObject* self, PyObject* args)
 
   // Check array
   E_Int ni, nj, nk;
-  FldArrayF* f;
-  FldArrayI* cn;
-  char* varString;
-  char* eltType;
+  FldArrayF* f; FldArrayI* cn;
+  char* varString; char* eltType;
   E_Int res = K_ARRAY::getFromArray(array, varString, f, 
                                     ni, nj, nk, cn, eltType, true);
-  if ( res != 1 && res != 2 ) 
+  if (res != 1 && res != 2) 
   {
     PyErr_SetString(PyExc_TypeError, "getNearestPointIndex: invalid array.");
     RELEASESHAREDB(res, array, f, cn); return NULL;
@@ -74,7 +72,7 @@ PyObject* K_GEOM::getNearestPointIndex(PyObject* self, PyObject* args)
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
 
-  if ( posx == -1 || posy == -1 || posz == -1)
+  if (posx == -1 || posy == -1 || posz == -1)
   {
     PyErr_SetString(PyExc_TypeError,
                     "getNearestPointIndex: array must be contains coordinates.");

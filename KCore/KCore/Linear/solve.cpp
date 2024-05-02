@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -59,5 +59,4 @@ E_Int K_LINEAR::solve(E_Int n, E_Int m,
     else return 1;
   }
   else return 1;
-  return 0;
 }

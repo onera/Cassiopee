@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -33,7 +33,7 @@ PyObject* K_GEOM::getCurvatureAngle(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Float dirVect[3];
-  dirVect[0] = 0;  dirVect[1] = 0;  dirVect[2] = 1; 
+  dirVect[0] = 0.;  dirVect[1] = 0.;  dirVect[2] = 1.;
   if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
 
   // Check array

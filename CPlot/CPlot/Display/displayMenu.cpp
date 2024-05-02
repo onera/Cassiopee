@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -26,8 +26,8 @@
 void Data::displayMenu()
 {
 #define NMENU 4
-  int pos, posn, i, l;
-  int width[NMENU];
+  E_Int pos, posn, i, l;
+  E_Int width[NMENU];
 
   setOrthographicProjection();
   glPushMatrix();
@@ -67,25 +67,25 @@ void Data::displayMenu()
 //=============================================================================
 void Data::displayDimensionMenu(int* x)
 {
-  int posx = *x + 4;
-  int posy = _view.h - 20;
+  E_Int posx = *x + 4;
+  E_Int posy = _view.h - 20;
 
   switch (ptrState->dim)
   {
     case 1:
-      renderBitmapString(posx, posy, 0, GLUT_BITMAP_HELVETICA_12, "1D");
+      renderBitmapString(posx, posy, 0, _fontSize1, "1D");
       break;
       
     case 2:
-      renderBitmapString(posx, posy, 0, GLUT_BITMAP_HELVETICA_12, "2D");
+      renderBitmapString(posx, posy, 0, _fontSize1, "2D");
       break;
 
     case 3:
-      renderBitmapString(posx, posy, 0, GLUT_BITMAP_HELVETICA_12, "3D");
+      renderBitmapString(posx, posy, 0, _fontSisze1, "3D");
       break;
   }
   posy = _view.h - 5;
-  renderBitmapString(posx, posy, 0, GLUT_BITMAP_HELVETICA_12, "(m)");
+  renderBitmapString(posx, posy, 0, _fontSize1, "(m)");
       
   *x = *x + 12*2 + 4;
 }
@@ -96,8 +96,8 @@ void Data::displayDimensionMenu(int* x)
 void Data::displayVariableMenu(int* x)
 {
   char msg[30];
-  int posx = *x + 4;
-  int posy = _view.h - 20;
+  E_Int posx = *x + 4;
+  E_Int posy = _view.h - 20;
 
   switch (ptrState->mode)
   {
@@ -129,11 +129,11 @@ void Data::displayVariableMenu(int* x)
       strcpy(msg, "unknown mode");
       break;
   }
-  renderBitmapString(posx, posy, 0, GLUT_BITMAP_HELVETICA_12, msg);
+  renderBitmapString(posx, posy, 0, _fontSize1, msg);
 
   posx = posx + strlen(msg);
   posy = _view.h - 5;
-  renderBitmapString(posx, posy, 0, GLUT_BITMAP_HELVETICA_12, "(1)");
+  renderBitmapString(posx, posy, 0, _fontSize1, "(1)");
       
   *x = *x + 8*strlen(msg) + 4;
 }
@@ -144,8 +144,8 @@ void Data::displayVariableMenu(int* x)
 void Data::displayAxisMenu(int* x)
 {
   char msg[30];
-  int posx = *x + 4;
-  int posy = _view.h - 20;
+  E_Int posx = *x + 4;
+  E_Int posy = _view.h - 20;
 
   if (ptrState->dim != 1)
   {
@@ -186,11 +186,11 @@ void Data::displayAxisMenu(int* x)
         break;
     }
   }
-  renderBitmapString(posx, posy, 0, GLUT_BITMAP_HELVETICA_12, msg);
+  renderBitmapString(posx, posy, 0, _fontSize1, msg);
 
   posx = posx + strlen(msg);
   posy = _view.h - 5;
-  renderBitmapString(posx, posy, 0, GLUT_BITMAP_HELVETICA_12, "(2)");
+  renderBitmapString(posx, posy, 0, _fontSize1, "(2)");
       
   *x = *x + 8*strlen(msg) + 4;
 }
@@ -201,22 +201,22 @@ void Data::displayAxisMenu(int* x)
 void Data::displayZoneMenu(int* x)
 {
   char msg[100];
-  int posx = *x + 4;
-  int posy = _view.h - 20;
+  E_Int posx = *x + 4;
+  E_Int posy = _view.h - 20;
   if (ptrState->selectedZone > 0)
   {
-    int nz = ptrState->selectedZone-1;
+    E_Int nz = ptrState->selectedZone-1;
     strcpy(msg, _zones[nz]->zoneName);
   }
   else
   {
     strcpy(msg, "Select zone");
   }
-  renderBitmapString(posx, posy, 0, GLUT_BITMAP_HELVETICA_12, msg);
+  renderBitmapString(posx, posy, 0, _fontSize1, msg);
 
   posx = posx + strlen(msg) - 5;
   posy = _view.h - 5;
-  renderBitmapString(posx, posy, 0, GLUT_BITMAP_HELVETICA_12, "(z-Z ; a-A)");
+  renderBitmapString(posx, posy, 0, _fontSize1, "(z-Z ; a-A)");
       
   *x = *x + 8*MAX(strlen(msg), strlen("(z-Z ; a-A)")) + 4;
 }

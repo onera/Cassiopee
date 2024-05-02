@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -29,94 +29,27 @@ using namespace std;
 //=============================================================================
 PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
 {
-  PyObject* arrays;
-  int dim;
-  PyObject* modeObject;
-  PyObject* scalarFieldObject;
-  PyObject* vectorFieldObject1, *vectorFieldObject2, *vectorFieldObject3;
-  int displayBB, displayInfo, displayIsoLegend;
-  int winx, winy;
-  int meshStyle, solidStyle, scalarStyle, vectorStyle, colormap, niso;
-  E_Float xcam, ycam, zcam, xeye, yeye, zeye, dirx, diry, dirz, isoEdges;
-  E_Float viewAngle, stereoDist, vectorScale, vectorDensity;
-  int vectorNormalize, vectorShowSurface;
-  char* exportFile; char* exportResolution;
-  PyObject* zoneNamesObject;
-  PyObject* renderTagsObject;
-  PyObject* isoScales;
-  int bgColor, shadow, dof, offscreen, stereo;
-  if (!PyArg_ParseTuple(args, 
-			"OiOOOOOiiiiiiiddiiiidO(ii)(ddd)(ddd)(ddd)diiiidssOOi",
-                        &arrays, &dim, &modeObject, &scalarFieldObject,
-                        &vectorFieldObject1, &vectorFieldObject2, &vectorFieldObject3,
-                        &displayBB, &displayInfo, &displayIsoLegend,
-                        &meshStyle, &solidStyle, &scalarStyle, 
-                        &vectorStyle, &vectorScale, &vectorDensity, &vectorNormalize, 
-                        &vectorShowSurface, &colormap,
-                        &niso, &isoEdges, &isoScales,
-                        &winx, &winy, &xcam, &ycam, &zcam,
-                        &xeye, &yeye, &zeye,
-                        &dirx, &diry, &dirz, &viewAngle,
-                        &bgColor, &shadow, &dof, &stereo, &stereoDist, 
-                        &exportFile, &exportResolution,
-                        &zoneNamesObject, &renderTagsObject,
-                        &offscreen))
-  {
-    return NULL;
-  }
+  #include "display1.h"
 
-  // Recuperation des noms de zones (eventuellement)
-  vector<char*> zoneNames;
-  getStringsFromPyObj(zoneNamesObject, zoneNames);
-
-  // Recuperation des tags de render (eventuellement)
-  vector<char*> renderTags;
-  getStringsFromPyObj(renderTagsObject, renderTags);
-
-  // Recuperation du container de donnees
-  Data* d = Data::getInstance();
-  
-  // Lecture des arrays
-  vector<E_Int> res;
-  vector<char*> structVarString;
-  vector<char*> unstrVarString;
-  vector<FldArrayF*> structF;  vector<FldArrayF*> unstrF;
-  vector<E_Int> nit; vector<E_Int> njt; vector<E_Int> nkt;
-  vector<FldArrayI*> cnt;
-  vector<char*> eltType;
-  vector<PyObject*> objs, obju;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
-
-  E_Int isOk = K_ARRAY::getFromArrays(
-    arrays, res, structVarString, unstrVarString,
-    structF, unstrF, nit, njt, nkt, cnt, eltType, objs, obju, 
-    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
-
-  if (isOk == -1)
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "display: invalid list of arrays.");
-    E_Int structFSize = structF.size();
-    for (E_Int i = 0; i < structFSize; i++) 
-      RELEASESHAREDS(objs[i], structF[i]);
-
-    E_Int unstrFSize = unstrF.size();
-    for (E_Int i = 0; i < unstrFSize; i++)
-      RELEASESHAREDU(obju[i], unstrF[i], cnt[i]);
-    
-    return NULL;
-  }
+  // Construction de la chaine de toutes les variables
+  E_Int referenceNfield;
+  char** referenceVarNames;
+  d->getAllVars(structVarString, unstrVarString,
+                referenceNfield, referenceVarNames);
 
   // Init et remplace
   d->initZoneData(structF, structVarString, nit, njt, nkt,
                   unstrF, unstrVarString, cnt, eltType, 
-                  zoneNames, renderTags);
-  for (unsigned int i = 0; i < zoneNames.size(); i++)
-    delete [] zoneNames[i];
+                  zoneNames, renderTags,
+                  referenceNfield, referenceVarNames);
 
+  for (size_t i = 0; i < zoneNames.size(); i++) delete [] zoneNames[i];
+  for (size_t i = 0; i < renderTags.size(); i++) delete [] renderTags[i];
+
+  for (E_Int i = 0; i < referenceNfield; i++) delete [] referenceVarNames[i];
+  delete [] referenceVarNames;
+  d->ptrState->clearDeactivatedZones();
+  
   // enforce given data
   E_Int mode = getMode(modeObject);
   E_Int scalarField = getScalarField(scalarFieldObject);
@@ -131,40 +64,69 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
                        dirx, diry, dirz, viewAngle, 
                        meshStyle, solidStyle, scalarStyle, 
                        vectorStyle, vectorScale, vectorDensity, vectorNormalize, vectorShowSurface,
-                       colormap,
+                       vectorShape, vectorProjection,
+                       colormap, colormapC1, colormapC2, colormapC3, colormapC,
                        niso, isoEdges, isoScales,
-                       bgColor, -1, -1, -1, shadow, dof,
+                       bgColor, backgroundFile,
+                       -1, -1, -1, shadow, dof,
                        exportFile, exportResolution);
 
   if (stereo != -1) d->ptrState->stereo = stereo;
   if (stereoDist != -1.) d->ptrState->stereoDist = stereoDist;
 
   // offscreen rendering?
-  if (offscreen > 0) d->ptrState->offscreen = offscreen;
+  if (offscreen > 0) { d->ptrState->offscreen = offscreen; d->ptrState->shootScreen = 1; }
+  if (frameBuffer >= 0 && frameBuffer < 10) d->ptrState->frameBuffer = frameBuffer;
 
-  if (d->ptrState->offscreen == 1) // MESA offscreen
+  // Free the input arrays
+  E_Int structFSize = structF.size();
+  for (E_Int i = 0; i < structFSize; i++) RELEASESHAREDS(objs[i], structF[i]);
+
+  E_Int unstrFSize = unstrF.size();
+  for (E_Int i = 0; i < unstrFSize; i++) RELEASESHAREDU(obju[i], unstrF[i], cnt[i]);
+
+  if (d->ptrState->offscreen == 1 ||
+      d->ptrState->offscreen == 5 ||
+      d->ptrState->offscreen == 6 ||
+      d->ptrState->offscreen == 7) // MESA offscreen
   {
 #ifdef __MESA__
-  //printf("Creating OS context...");
-  OSMesaContext ctx; 
-  ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
-  d->ptrState->offscreenBuffer = (char*)malloc(d->_view.w * d->_view.h * 4 * 
-                                               sizeof(GLubyte));
-  OSMesaMakeCurrent(ctx, d->ptrState->offscreenBuffer, GL_UNSIGNED_BYTE, 
-                    d->_view.w, d->_view.h);
+  if (d->ptrState->ctx == NULL) 
+  {
+      //printf("recreating context\n");
+      OSMesaContext* ctx = new OSMesaContext();
+      (*ctx) = OSMesaCreateContextExt(OSMESA_RGBA, 32, 0, 0, NULL);
+      d->ptrState->ctx = ctx;
 
-  glShadeModel(GL_SMOOTH);
-  glEnable(GL_DEPTH_TEST);
-  d->setBgColor();
+      if (d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] == NULL)
+        d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = 
+        (char*)malloc(d->_view.w * d->_view.h * 4 * sizeof(GLubyte));
+      OSMesaMakeCurrent(*ctx, d->ptrState->offscreenBuffer[d->ptrState->frameBuffer], 
+                    GL_UNSIGNED_BYTE, d->_view.w, d->_view.h);
+      d->_shaders.init(); // shader are attached to context
+      d->_shaders.load();
+  }
+  else
+  {
+      OSMesaContext& ctx = *((OSMesaContext*)(d->ptrState->ctx));
+      if (d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] == NULL)
+        d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = 
+        (char*)malloc(d->_view.w * d->_view.h * 4 * sizeof(GLubyte));
+      OSMesaMakeCurrent(ctx, d->ptrState->offscreenBuffer[d->ptrState->frameBuffer], 
+                        GL_UNSIGNED_BYTE, d->_view.w, d->_view.h);
+
+  }
+
   d->ptrState->farClip = 1;
-  d->ptrState->render = 0;
-  d->display();
+  d->ptrState->render = 0; // 1 ou pas?
+  d->ptrState->shootScreen = 0;
+  gdisplay(); // build DL
+  if (d->ptrState->stereo == 0) d->display();
+  else d->displayAnaglyph();
   d->exportFile();
   //printf("done.\n");
-  free(d->ptrState->offscreenBuffer);
-  OSMesaDestroyContext(ctx);
 #else
-  printf("Error: CPlot: MESA offscreen unavailable.\n");
+  printf("Error: CPlot: mesa offscreen unavailable.\n");
 #endif
   }
   else
@@ -172,15 +134,6 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
     d->ptrState->farClip = 1;
     d->ptrState->render = 1;
   }
-
-  // Free the input arrays
-  E_Int structFSize = structF.size();
-  for (E_Int i = 0; i < structFSize; i++) 
-    RELEASESHAREDS(objs[i], structF[i]);
-
-  E_Int unstrFSize = unstrF.size();
-  for (E_Int i = 0; i < unstrFSize; i++)
-    RELEASESHAREDU(obju[i], unstrF[i], cnt[i]);
 
   // Retourne le hook
   return Py_BuildValue("l", d);

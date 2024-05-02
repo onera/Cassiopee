@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -37,7 +37,7 @@ using namespace K_FUNC;
 PyObject* K_CONVERTER::convertQuad2Tri(PyObject* self, PyObject* args)
 {
   PyObject* pArray;
-  if (!PYPARSETUPLEF(args, "O", "O", &pArray)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &pArray)) return NULL;
  
   // Check array
   E_Int ni, nj, nk;
@@ -239,7 +239,7 @@ PyObject* K_CONVERTER::convertQuad2Tri(PyObject* self, PyObject* args)
         dir4[1] = (ptB4[2]-ptA4[2])*(ptC4[0]-ptA4[0])-(ptB4[0]-ptA4[0])*(ptC4[2]-ptA4[2]);
         dir4[2] = (ptB4[0]-ptA4[0])*(ptC4[1]-ptA4[1])-(ptB4[1]-ptA4[1])*(ptC4[0]-ptA4[0]);
         ndirl = sqrt(dir4[0]*dir4[0]+dir4[1]*dir4[1]+dir4[2]*dir4[2]);
-        if (ndirl < 1.e-11) printf("convertTri2Quad: %d: quad=%d is tri degen with edge contracted\n", ntr, i);
+        if (ndirl < 1.e-11) printf("convertTri2Quad: " SF_D_ ": quad=" SF_D_ " is tri degen with edge contracted\n", ntr, i);
         ntr++;
         goto end0; 
       }
@@ -253,7 +253,7 @@ PyObject* K_CONVERTER::convertQuad2Tri(PyObject* self, PyObject* args)
         dir1[1] = (ptB1[2]-ptA1[2])*(ptC1[0]-ptA1[0])-(ptB1[0]-ptA1[0])*(ptC1[2]-ptA1[2]);
         dir1[2] = (ptB1[0]-ptA1[0])*(ptC1[1]-ptA1[1])-(ptB1[1]-ptA1[1])*(ptC1[0]-ptA1[0]);
         ndirl = sqrt(dir1[0]*dir1[0]+dir1[1]*dir1[1]+dir1[2]*dir1[2]);
-        if (ndirl < 1.e-11) printf("convertTri2Quad: %d: quad=%d is 2-tri degen with edge contracted\n", ntr, i);
+        if (ndirl < 1.e-11) printf("convertTri2Quad: " SF_D_ ": quad=" SF_D_ " is 2-tri degen with edge contracted\n", ntr, i);
         ntr++;
         goto end0;
       }
@@ -267,7 +267,7 @@ PyObject* K_CONVERTER::convertQuad2Tri(PyObject* self, PyObject* args)
         dir2[1] = (ptB2[2]-ptA2[2])*(ptC2[0]-ptA2[0])-(ptB2[0]-ptA2[0])*(ptC2[2]-ptA2[2]);
         dir2[2] = (ptB2[0]-ptA2[0])*(ptC2[1]-ptA2[1])-(ptB2[1]-ptA2[1])*(ptC2[0]-ptA2[0]);
         ndirl = sqrt(dir2[0]*dir2[0]+dir2[1]*dir2[1]+dir2[2]*dir2[2]);
-        if (ndirl < 1.e-11) printf("convertTri2Quad:%d: quad=%d is 3-tri degen with edge contracted\n", ntr, i);
+        if (ndirl < 1.e-11) printf("convertTri2Quad:" SF_D_ ": quad=" SF_D_ " is 3-tri degen with edge contracted\n", ntr, i);
         ntr++;
         goto end0; 
       }
@@ -281,7 +281,7 @@ PyObject* K_CONVERTER::convertQuad2Tri(PyObject* self, PyObject* args)
         dir2[1] = (ptB2[2]-ptA2[2])*(ptC2[0]-ptA2[0])-(ptB2[0]-ptA2[0])*(ptC2[2]-ptA2[2]);
         dir2[2] = (ptB2[0]-ptA2[0])*(ptC2[1]-ptA2[1])-(ptB2[1]-ptA2[1])*(ptC2[0]-ptA2[0]);
         ndirl = sqrt(dir2[0]*dir2[0]+dir2[1]*dir2[1]+dir2[2]*dir2[2]);
-        if (ndirl < 1.e-11) printf("convertTri2Quad:%d: quad=%d is 4-tri degen with edge contracted\n", ntr, i); 
+        if (ndirl < 1.e-11) printf("convertTri2Quad:" SF_D_ ": quad=" SF_D_ " is 4-tri degen with edge contracted\n", ntr, i); 
         ntr++; 
         goto end0; 
       }
@@ -438,7 +438,7 @@ PyObject* K_CONVERTER::convertQuad2Tri(PyObject* self, PyObject* args)
       dir4[2] = (ptB4[0]-ptA4[0])*(ptC4[1]-ptA4[1])-(ptB4[1]-ptA4[1])*(ptC4[0]-ptA4[0]);
       ndir4 = sqrt(dir4[0]*dir4[0]+dir4[1]*dir4[1]+dir4[2]*dir4[2]);
         
-      if (ndir1 < 1.e-11 && ndir2 < 1.e-11 && ndir3 < 1.e-11 && ndir4 < 1.e-11) printf("elt=%d is degenerated\n", i);
+      if (ndir1 < 1.e-11 && ndir2 < 1.e-11 && ndir3 < 1.e-11 && ndir4 < 1.e-11) printf("elt=" SF_D_ " is degenerated\n", i);
 
       // Qualite de la coupe1 124-234
       deg1 = false; inverse1 = 0.;
@@ -508,13 +508,13 @@ PyObject* K_CONVERTER::convertQuad2Tri(PyObject* self, PyObject* args)
       //alpha4 = K_COMPGEOM::getAlphaAngleBetweenBars(ptA4, ptB4, ptA4, ptC4, dir4);
 
       /*
-      printf("elt=%d, ptA=%f %f %f, ptB=%f %f %f, ptC=%f %f %f, ptD=%f %f %f\n",i,
+      printf("elt=" SF_D_ ", ptA=%f %f %f, ptB=%f %f %f, ptC=%f %f %f, ptD=%f %f %f\n",i,
               x[ind1],y[ind1],z[ind1],x[ind2],y[ind2],z[ind2],
               x[ind3],y[ind3],z[ind3],x[ind4],y[ind4],z[ind4]);
-      printf("elt=%d, dir1=%f %f %f, dir2=%f %f %f, dir3=%f %f %f, dir4=%f %f %f\n", i, 
+      printf("elt=" SF_D_ ", dir1=%f %f %f, dir2=%f %f %f, dir3=%f %f %f, dir4=%f %f %f\n", i, 
               dir1[0], dir1[1], dir1[2], dir2[0], dir2[1], dir2[2], 
               dir3[0], dir3[1], dir3[2], dir4[0], dir4[1], dir4[2]);
-      printf("elt=%d, alpha= %f %f %f %f\n", i, alpha1, alpha2, alpha3, alpha4);
+      printf("elt=" SF_D_ ", alpha= %f %f %f %f\n", i, alpha1, alpha2, alpha3, alpha4);
       */
       /*
       if (alpha1 > alpha2 || alpha1 > alpha4 || alpha3 > alpha2 || alpha3 > alpha4) // coupe le plus obtu
@@ -566,7 +566,7 @@ PyObject* K_CONVERTER::convertQuad2Tri(PyObject* self, PyObject* args)
   
   for (E_Int n = 0; n < 0; n++)
   {
-    printf("iteration %d=================\n",n);
+    printf("iteration " SF_D_ "=================\n",n);
     //K_TRANSFORM::flipEdges(ct, f->getSize(), x, y, z,indic);
   }
   PyObject* tpl = K_ARRAY::buildArray(*f, varString, ct, 2, NULL);

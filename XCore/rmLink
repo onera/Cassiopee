@@ -1,0 +1,6 @@
+#!/bin/bash
+# rm paradigma links if exist and is a link
+if [ -L XCore/paradigma ] ; then
+   echo 'removing paradigma link'
+   rm XCore/paradigma
+fi

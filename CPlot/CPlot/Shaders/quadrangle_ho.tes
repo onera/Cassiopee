@@ -1,0 +1,456 @@
+#version 400 compatibility
+
+uniform int patch_size;
+
+layout( quads, equal_spacing, ccw ) in;
+
+in TCS_OUT
+{
+    vec4 position;
+    vec4 color;
+    ivec4 data_comp; // Raconte si vdata1,2,3 ou 4 est utilise
+    vec4 vdata1, vdata2, vdata3, vdata4;    
+} tcs_in[];
+
+
+out V2F_OUT
+{
+    vec4 position;
+    vec4 mv_position;
+    vec4 mvp_position;
+    vec4 view_normal;
+    vec4 nrm_view_normal;
+    vec4 color;
+    vec4 vdata1, vdata2, vdata3, vdata4;
+} v2f_out;
+
+void interpolate_q2()
+{
+    vec3 p0 = gl_in[0].gl_Position.xyz;
+    vec3 p1 = gl_in[1].gl_Position.xyz;
+    vec3 p2 = gl_in[2].gl_Position.xyz;
+    vec3 p3 = gl_in[3].gl_Position.xyz;
+    vec3 p4 = gl_in[4].gl_Position.xyz;
+    vec3 p5 = gl_in[5].gl_Position.xyz;
+    vec3 p6 = gl_in[6].gl_Position.xyz;
+    vec3 p7 = gl_in[7].gl_Position.xyz;
+
+    vec3 a00 = p0;
+    vec3 a10 = -3. * p0 - p1 + 4. * p4;
+    vec3 a01 = -3. * p0 - p3 + 4. * p7;
+    vec3 a11 =  5. * p0 - p1 -3*p2 -p3 + 4 * (p5+p6-p4-p7);
+    vec3 a20 =  2. * p0 + 2. * p1 - 4. * p4;
+    vec3 a02 =  2. * p0 + 2. * p3 - 4. * p7;
+    vec3 a21 = 2 * (p2+p3-p0-p1) + 4 * (p4 - p6);
+    vec3 a12 = 2 * (p1+p2-p0-p3) + 4 * (p7-p5);
+
+    float u = gl_TessCoord.x;
+    float v = gl_TessCoord.y;
+    float w = gl_TessCoord.z;
+
+    // vertex en coordonnees modele...
+    float v2 = v*v;
+    float u2 = u*u;
+    vec4 xyz = vec4(a00 + u*a10 + v*a01 + u*v*a11 + u2*a20 + v2*a02 + u2*v*a21 + u*v2*a12,1);
+    vec3 dx  = a10 + v*a11 + 2*u*(a20 + v*a21) + v2*a12;
+    vec3 dy  = a01 + u*a11 + 2*v*(a02 + u*a12) + u2*a21;
+    vec3 n   = cross(dx,dy);
+
+    v2f_out.position    = xyz;
+    v2f_out.view_normal = vec4(gl_NormalMatrix * n, 0.);
+}
+
+void interpolate_p2()
+{
+    vec3 p0 = gl_in[0].gl_Position.xyz;
+    vec3 p1 = gl_in[1].gl_Position.xyz;
+    vec3 p2 = gl_in[2].gl_Position.xyz;
+    vec3 p3 = gl_in[3].gl_Position.xyz;
+    vec3 p4 = gl_in[4].gl_Position.xyz;
+    vec3 p5 = gl_in[5].gl_Position.xyz;
+    vec3 p6 = gl_in[6].gl_Position.xyz;
+    vec3 p7 = gl_in[7].gl_Position.xyz;
+    vec3 p8 = gl_in[8].gl_Position.xyz;
+
+    vec3 a00 = p0;
+    vec3 a10 = -3. * p0 - p1 + 4. * p4;
+    vec3 a01 = -3. * p0 - p3 + 4. * p7;
+    vec3 a11 =  9. * p0 + 3* (p1 + p3) + p2 - 12 * (p4 + p7) - 4 * (p5 + p6) + 16 * p8 ;
+    vec3 a20 =  2. * (p0 + p1) - 4. * p4;
+    vec3 a02 =  2. * (p0 + p3) - 4. * p7;
+    vec3 a21 = -6. * (p0 + p1) - 2 * (p2 + p3) + 12 * p4 + 8 * (p5 + p7) + 4 * p6 - 16 * p8;
+    vec3 a12 = -6. * (p0 + p3) - 2 * (p1 + p2) + 8 * (p4 + p6) + 4 * p5 + 12 * p7 - 16 * p8;
+    vec3 a22 =  4 * (p0+p1+p2+p3) - 8 * (p4+p5+p6+p7) + 16 * p8;
+
+    float u = gl_TessCoord.x;
+    float v = gl_TessCoord.y;
+    float w = gl_TessCoord.z;
+
+    // vertex en coordonnees modele...
+    float u2 = u*u;
+    float v2 = v*v;
+    vec4 xyz = vec4(a00 + u*a10 + v*a01 + u*v*a11 + u2*a20 + v2*a02 + u2*v*a21 + u*v2*a12 + u2*v2*a22,1);
+    vec3 dx  = a10 + v*a11 + 2*u*(a20 + v*a21 + v2*a22) + v2*a12;
+    vec3 dy  = a01 + u*a11 + 2*v*(a02 + u*a12 + u2*a22) + u2*a21;
+    vec3 n   = cross(dx,dy);
+
+    v2f_out.position    = xyz;
+    v2f_out.view_normal = vec4(gl_NormalMatrix * n, 0.);
+
+}
+
+void interpolate_q3()
+{
+    vec3 p00 = gl_in[ 0].gl_Position.xyz;
+    vec3 p01 = gl_in[ 1].gl_Position.xyz;
+    vec3 p02 = gl_in[ 2].gl_Position.xyz;
+    vec3 p03 = gl_in[ 3].gl_Position.xyz;
+    vec3 p04 = gl_in[ 4].gl_Position.xyz;
+    vec3 p05 = gl_in[ 5].gl_Position.xyz;
+    vec3 p06 = gl_in[ 6].gl_Position.xyz;
+    vec3 p07 = gl_in[ 7].gl_Position.xyz;
+    vec3 p08 = gl_in[ 8].gl_Position.xyz;
+    vec3 p09 = gl_in[ 9].gl_Position.xyz;
+    vec3 p10 = gl_in[10].gl_Position.xyz;
+    vec3 p11 = gl_in[11].gl_Position.xyz;
+    
+    vec3 e_01_00 = p01 - p00;
+    vec3 e_02_01 = p02 - p01;
+    vec3 e_03_00 = p03 - p00;
+    vec3 e_03_02 = p03 - p02;
+    vec3 e_08_05 = p08 - p05;
+    vec3 e_09_04 = p09 - p04;
+    vec3 e_10_07 = p10 - p07;
+    vec3 e_11_06 = p11 - p06;
+/* Sortie Sympy de la matrice inverse pour vérification (sans factorisation des termes )
+[                                                                                                                  p00], a00
+[                                                                                    -11*p00/2 + p01 + 9*p04 - 9*p05/2], a10
+[                                                                                  9*p00 - 9*p01/2 - 45*p04/2 + 18*p05], a20
+[                                                                             -9*p00/2 + 9*p01/2 + 27*p04/2 - 27*p05/2], a30
+[                                                                                    -11*p00/2 + p03 - 9*p10/2 + 9*p11], a01
+[                                                                                  9*p00 - 9*p03/2 + 18*p10 - 45*p11/2], a02
+[                                                                             -9*p00/2 + 9*p03/2 - 27*p10/2 + 27*p11/2], a03
+[                                                  11*p00/2 - 11*p01/2 + p02 - p03 + 9*p06 - 9*p07/2 + 9*p10/2 - 9*p11], a31
+[                                                  11*p00/2 - p01 + p02 - 11*p03/2 - 9*p04 + 9*p05/2 - 9*p08/2 + 9*p09], a13
+[                                           -9*p00 + 9*p01 - 9*p02/2 + 9*p03/2 - 45*p06/2 + 18*p07 - 18*p10 + 45*p11/2], a32
+[                                           -9*p00 + 9*p01/2 - 9*p02/2 + 9*p03 + 45*p04/2 - 18*p05 + 18*p08 - 45*p09/2], a23
+[8*p00 - 8*p01 + 8*p02 - 8*p03 - 27*p04/2 + 27*p05/2 + 27*p06/2 - 27*p07/2 - 27*p08/2 + 27*p09/2 + 27*p10/2 - 27*p11/2]  a33
+*/
+
+    vec3 a00 = p00;
+    vec3 a10 =-(11/2.)*p00 + p01 + 9*p04 - (9/2.)*p05;
+    vec3 a20 = 9*p00 - (9/2.)*p01 - (45/2.)*p04 + 18*p05;
+    vec3 a30 =-(9/2.)*p00 + (9/2.)*p01 + (27/2.)*p04 - (27/2.)*p05;
+    vec3 a01 =-(11/2.)*p00 + p03 - (9/2.)*p10 + 9*p11;
+    vec3 a02 = 9*p00 - (9/2.)*p03 + 18*p10 - (45/2.)*p11;
+    vec3 a03 =-(9/2.)*p00 + (9/2.)*p03 - (27/2.)*p10 + (27/2.)*p11;
+    vec3 a31 =-a01 -(11/2.)*p01 +p02 +9*p06 -(9/2.)*p07;
+    vec3 a13 =-a10 +p02 -(11/2.)*p03 -(9/2.)*p08 +9*p09;
+    vec3 a32 =-a02 +9*p01 -(9/2.)*p02 -(45/2.)*p06 +18*p07;
+    vec3 a23 =-a20 -(9/2.)*p02 +9*p03 +18*p08 -(45/2.)*p09;
+    vec3 a33 = 8*(p00 - p01 + p02 - p03) + (27/2.)*(p05 -p04 + p06 - p07 - p08 + p09 + p10 - p11);
+
+    float u = gl_TessCoord.x;
+    float v = gl_TessCoord.y;
+    float w = gl_TessCoord.z;
+
+    // vertex en coordonnees modele...
+    float u2 = u*u;
+    float v2 = v*v;
+    float u3 = u2*u;
+    float v3 = v2*v;
+
+
+    vec4 xyz = vec4(a00 + u*a10 + v*a01 + u2*a20 + v2*a02 + u3*a30 + v3*a03 + u*v3*a13 + u3*v*a31 + u2*v3*a23 + u3*v2*a32 + u3*v3*a33,1);
+    vec3 dx  = a10 + v3*a13 + 2*u*(a20 + v3*a23) + 3*u2*(a30 + v*a31 + v2*a32 + v3*a33);
+    vec3 dy  = a01 + u3*a31 + 2*v*(a02 + u3*a32) + 3*v2*(a03 + u*a13 + u2*a23 + u3*a33);
+    vec3 n   = cross(dx,dy);
+
+    v2f_out.position    = xyz;
+    v2f_out.view_normal = vec4(gl_NormalMatrix * n, 0.);
+}
+
+void interpolate_p3()
+{
+
+    vec3 p00 = gl_in[ 0].gl_Position.xyz;
+    vec3 p01 = gl_in[ 1].gl_Position.xyz;
+    vec3 p02 = gl_in[ 2].gl_Position.xyz;
+    vec3 p03 = gl_in[ 3].gl_Position.xyz;
+    vec3 p04 = gl_in[ 4].gl_Position.xyz;
+    vec3 p05 = gl_in[ 5].gl_Position.xyz;
+    vec3 p06 = gl_in[ 6].gl_Position.xyz;
+    vec3 p07 = gl_in[ 7].gl_Position.xyz;
+    vec3 p08 = gl_in[ 8].gl_Position.xyz;
+    vec3 p09 = gl_in[ 9].gl_Position.xyz;
+    vec3 p10 = gl_in[10].gl_Position.xyz;
+    vec3 p11 = gl_in[11].gl_Position.xyz;
+    vec3 p12 = gl_in[12].gl_Position.xyz;
+    vec3 p13 = gl_in[13].gl_Position.xyz;
+    vec3 p14 = gl_in[14].gl_Position.xyz;
+    vec3 p15 = gl_in[15].gl_Position.xyz;
+
+    vec3 b10 = p01 + 9*p04 - (9./2)*p05;
+    vec3 b01 = p03 - (9./2)*p10 + 9*p11;
+    vec3 b20 = -(9./2)*p01 -(45./2)*p04 + 18*p05;
+    vec3 b02 = -(9./2)*p03 -(45./2)*p11 + 18*p10;
+    vec3 b03 = (9./2)*p03 + (27/2.)*(p11-p10);
+
+    vec3 b11 = p02 +9*p06 -(9./2)*p07;
+    vec3 b112= p08 +9*p13 -(9./2)*p14;
+    vec3 b113= p09 +9*p12 -(9./2)*p15;
+
+    vec3 b211= p02 +5*p06 -4*p07;
+    vec3 b212= p08 +5*p13 -4*p14;
+    vec3 b213= p09 +5*p12 -4*p15;
+
+    vec3 b311= p02 + 3*(p06-p07);
+    vec3 b312= p08 + 3*(p13-p14);
+    vec3 b313= p09 + 3*(p12-p15);
+
+    vec3 a00 = p00;
+
+    vec3 a10 = -(11./2)*p00 + b10;
+    vec3 a20 = 9*p00 + b20;
+    vec3 a30 = (9./2)*(p01-p00) - (27./2)*(p05-p04);
+
+    vec3 a01 = -(11./2)*p00 + b01;
+    vec3 a02 = 9*p00 + b02;
+    vec3 a03 = -(9/2.)*p00 + b03;
+
+    vec3 a11 = (-11./2)*(a10+b01) +b11 -(9./2)*b112 +9*b113;
+
+    vec3 a21 = 9*a01 -(11./2)*b20 -(9./2)*b11 +18*b112 -(45./2)*b113;
+    vec3 a31 = -(11./2)*a30 +(9./2)*(b11-b01) +(27./2)*(b113-b112);
+
+    vec3 a12 = 9*a10 -(11./2)*b02 -(9./2)*b211 -(81./2)*b213 + (81./4)*b212;
+    vec3 a13 = -(11./2)*a03 +(9./2)*(b311-b10) +(81./2)*b313 -(81./4)*b312;
+
+    vec3 a22 = 9*a20 -81*b212 +9*b02 +(81./4)*b211 +(405./4)*b213;
+
+    vec3 a32 = 9*a30 -(81./4)*b211 +(243./4)*(b212-b213) -(9./2)*b02;
+    vec3 a23 = 9*a03 -(81./4)*b311 -(405./4)*b313 +81*b312 -(9./2)*b20;
+
+    vec3 a33 = (-9./2)*(a30+b03) + (81./4)*b311 +(243./4)*(b313-b312);
+
+    float u = gl_TessCoord.x;
+    float v = gl_TessCoord.y;
+    float w = gl_TessCoord.z;
+
+    // vertex en coordonnees modele...
+    float u2 = u*u;
+    float v2 = v*v;
+    float u3 = u2*u;
+    float v3 = v2*v;
+
+    vec3 tv1 = a01 + u*a11 + u2*a21 + u3*a31;
+    vec3 tv2 = a02 + u*a12 + u2*a22 + u3*a32;
+    vec3 tv3 = a03 + u*a13 + u2*a23 + u3*a33;
+
+    vec4 xyz = vec4(a00 + u*a10 + u2*a20 + u3*a30+ v*tv1 + v2*tv2 + v3*tv3,1);
+    vec3 dx  = a10 + v*a11 + v2*a12 + v3*a13 + 2*u*(a20 + v*a21 + v2*a22 + v3*a23) + 3*u2*(a30 + v*a31 + v2*a32 + v3*a33);
+    vec3 dy  = tv1 + 2*v*tv2 + 3*v2*tv3;
+    vec3 n   = cross(dx,dy);
+
+    v2f_out.position    = xyz;
+    v2f_out.view_normal = vec4(gl_NormalMatrix * n, 0.);
+}
+
+void interpolate_p4()
+{
+    vec3 p00 = gl_in[ 0].gl_Position.xyz;
+    vec3 p01 = gl_in[ 1].gl_Position.xyz;
+    vec3 p02 = gl_in[ 2].gl_Position.xyz;
+    vec3 p03 = gl_in[ 3].gl_Position.xyz;
+    vec3 p04 = gl_in[ 4].gl_Position.xyz;
+    vec3 p05 = gl_in[ 5].gl_Position.xyz;
+    vec3 p06 = gl_in[ 6].gl_Position.xyz;
+    vec3 p07 = gl_in[ 7].gl_Position.xyz;
+    vec3 p08 = gl_in[ 8].gl_Position.xyz;
+    vec3 p09 = gl_in[ 9].gl_Position.xyz;
+    vec3 p10 = gl_in[10].gl_Position.xyz;
+    vec3 p11 = gl_in[11].gl_Position.xyz;
+    vec3 p12 = gl_in[12].gl_Position.xyz;
+    vec3 p13 = gl_in[13].gl_Position.xyz;
+    vec3 p14 = gl_in[14].gl_Position.xyz;
+    vec3 p15 = gl_in[15].gl_Position.xyz;
+    vec3 p16 = gl_in[16].gl_Position.xyz;
+    vec3 p17 = gl_in[17].gl_Position.xyz;
+    vec3 p18 = gl_in[18].gl_Position.xyz;
+    vec3 p19 = gl_in[19].gl_Position.xyz;
+    vec3 p20 = gl_in[20].gl_Position.xyz;
+    vec3 p21 = gl_in[21].gl_Position.xyz;
+    vec3 p22 = gl_in[22].gl_Position.xyz;
+    vec3 p23 = gl_in[23].gl_Position.xyz;
+    vec3 p24 = gl_in[24].gl_Position.xyz;
+
+    vec3 b0001 = p00+p01;
+    vec3 b0003 = p00+p03;
+    vec3 b0102 = p01+p02;
+    vec3 b0103 = p01+p03;
+    vec3 b0203 = p02+p03;
+
+    vec3 b040506_0 = p04 - (3./2.)  *p05 +          p06;
+    vec3 b040506_1 = p04 - (3./4.)  *p05 + (1./3.) *p06;
+    vec3 b040506_2 = p04 - (4./3.)  *p05 + (7./9.) *p06;
+    vec3 b040506_3 = p04 - (57./52.)*p05 + (7./13.)*p06;
+
+    vec3 b070809_0 = p07 - (3./2.)  *p08 +          p09;
+    vec3 b070809_1 = p07 - (3./4.)  *p08 + (1./3.) *p09;
+    vec3 b070809_2 = p07 - (4./3.)  *p08 + (7./9.) *p09;
+    vec3 b070809_3 = p07 - (57./52.)*p08 + (7./13.)*p09;
+
+    vec3 b121110_0 = p12 - (3./2.)  *p11 +          p10;
+    vec3 b121110_1 = p12 - (3./4.)  *p11 + (1./3.) *p10;
+    vec3 b121110_2 = p12 - (4./3.)  *p11 + (7./9.) *p10;
+    vec3 b121110_3 = p12 - (57./52.)*p11 + (7./13.)*p10;
+
+    vec3 b151413_0 = p15 - (3./2.)  *p14 +          p13;
+    vec3 b151413_1 = p15 - (3./4.)  *p14 + (1./3.) *p13;
+    vec3 b151413_2 = p15 - (4./3.)  *p14 + (7./9.) *p13;
+    vec3 b151413_3 = p15 - (57./52.)*p14 + (7./13.)*p13;
+
+    vec3 b161718_0 = p16 - (3./2.)  *p17 +          p18;
+    vec3 b161718_1 = p16 - (3./4.)  *p17 + (1./3.) *p18;
+    vec3 b161718_2 = p16 - (4./3.)  *p17 + (7./9.) *p18;
+    vec3 b161718_3 = p16 - (57./52.)*p17 + (7./13.)*p18;
+
+    vec3 b222120_0 = p22 - (3./2.)  *p21 +          p20;
+    vec3 b222120_1 = p22 - (3./4.)  *p21 + (1./3.) *p20;
+    vec3 b222120_2 = p22 - (4./3.)  *p21 + (7./9.) *p20;
+    vec3 b222120_3 = p22 - (57./52.)*p21 + (7./13.)*p20;
+
+    vec3 b232419_0 = p23 - (3./2.)  *p24 +          p19;
+    vec3 b232419_1 = p23 - (3./4.)  *p24 + (1./3.) *p19;
+    vec3 b232419_2 = p23 - (4./3.)  *p24 + (7./9.) *p19;
+    vec3 b232419_3 = p23 - (57./52.)*p24 + (7./13.)*p19;
+
+    vec3 a00 = p00;
+    vec3 a10 = -(25/3.)*p00 - p01 + 16*b040506_1;
+
+    vec3 a20 = (70/3.)*p00 + (22/3.)*p01 - (208/3.)*b040506_3;
+
+    vec3 a30 =-(80/3.)*p00 - 16*p01 + 96*b040506_2;
+
+    vec3 a40 = (32/3.)*b0001 - (128/3.)*b040506_0;
+
+    vec3 a01 =-(25/3.)*p00 - p03 + 16*b151413_1;
+
+    vec3 a11 = (625/9.)*p00 +(25/3.)*b0103 + p02 -(400/3.)*(b040506_1+b151413_1) -16*(b070809_1+b121110_1) + 256*b161718_1 -192*b232419_1 +(256/3.)*b222120_1;
+
+    vec3 a21 =-(1750/9.)*p00-(550/9.)*p01-(22/3.)*p02-(70/3.)*p03+(5200/9.)*b040506_3+(352/3.)*b070809_1+(208/3.)*b121110_3+(1120/3.)*b151413_1-(3328/3.)*b161718_3
+              -(3328/9.)*b222120_3+832*b232419_3;
+
+    vec3 a31 = (2000/9.)*p00+(400/3.)*p01+16*p02+(80/3.)*p03-800*b040506_2-256*b070809_1-96*b121110_2-(1280/3.)*b151413_1+1536*b161718_2+512*b222120_2-1152*b232419_2;
+
+    vec3 a41 = -(800/9.)*b0001 -(32/3.)*b0203 +(3200/9.)*b040506_0 +(512/3.)*(b070809_1+b151413_1) +(128/3.)*b121110_0 -(2048/3.)*b161718_0 + b232419_0 -(2048/9.)*b222120_0;
+
+    vec3 a02 = (70/3.)*p00 + (22/3.)*p03 - (208/3.)*b151413_3;
+
+    vec3 a12 =-(1750/9.)*p00 - (70./3.)*p01 - (22./3.)*p02 - (550./9.)*p03 + (1120/3.)*b040506_1 + (208/3.)*b070809_3 + (352/3.)*b121110_1 + (5200/9.)*b151413_3 
+              - (3328/3.)*b161718_1 - (1792/3.)*b222120_1 + 1216*b232419_1;
+
+    vec3 a22 = (4900/9.)*p00 + (1540/9.)*b0103 +(484/9.)*p02 -(14560/9.)*(b040506_3+b151413_3) -(4576/9.)*(b070809_3+b121110_3) 
+             + (43264/9.)*b161718_3 - (15808/3.)*b232419_2 + (23296/9.)*b222120_2;
+
+    vec3 a32 =-(5600/9.)*p00 - (1120/3.)*p01 - (352/3.)*p02 - (1760/9.)*p03 + 2240*b040506_2 + (3328/3.)*b070809_3 + 704*b121110_2 + (16640/9.)*b151413_3 
+              - 6656*b161718_2 - 3584*b222120_2 + 7296*b232419_2;
+
+    vec3 a42 = (2240/9.)*b0001 +(704/9.)*b0203 -(8960/9.)*b040506_0 -(6656/9.)*(b070809_3+b151413_3) -(2816/9.)*b121110_0 
+              +(26624/9.)*b161718_0 -(9728/3.)*b232419_0 +(14336/9.)*b222120_0;
+
+    vec3 a03 =-(80/3.)*p00 - 16*p03 + 96*b151413_2;
+
+    vec3 a13 = (2000/9.)*p00 + -(80/3.)*p01 + 16*p02 + (400/3.)*p03 -(1280/3.)*b040506_1 -96*b070809_2 - 256*b121110_1 - - 800*b151413_2 
+             + 1536*b161718_1 + (3584/3.)*b222120_1 - 2048*b232419_1;
+
+    vec3 a23 =-(5600/9.)*p00 -(1760/9.)*p01 -(352/3.)*p02 -(1120/3.)*p03 +(16640/9.)*b040506_3 +704*b070809_2 + (3328/3.)*b121110_3 + 2240*b151413_2 
+              - 6656*b161718_3 -(46592/9.)*b222120_3 + (26624/3.)*b232419_3;
+
+    vec3 a33 = (6400/9.)*p00 +(1280/3.)*b0103 +256*p02 -2560*(b040506_2+b151413_2) -1536*(b070809_2+b121110_2) + 9216*b161718_2 + 7168*b222120_2 - 12288*b232419_2;
+
+    vec3 a43 = (-2560/9.)*b0001 -(512/3.)*b0203 +(10240/9.)*b040506_0 +1024*(b070809_2+b151413_2) +(2048/3.)*b121110_0 
+              - 4096*b161718_0 + (16384/3.)*b232419_0 -(28672/9.)*b222120_0;
+
+    vec3 a04 = (32/3.)*b0003 -(128/3.)*b151413_0;
+
+    vec3 a14 = (-800/9.)*b0003 - (32/3.)*b0102 +(512/3.)*(b040506_1+b121110_1) +(128/3.)*b070809_0 + (3200/9.)*b151413_0 
+              -(2048/3.)*(b161718_1+b222120_1) +1024*b232419_1;
+
+    vec3 a24 = (2240/9.)*b0003 +(704/9.)*b0102 -(6656/9.)*(b040506_3+b121110_3) -(2816/9.)*b070809_0 -(8960/9.)*b151413_0 
+              +(26624/9.)*(b161718_3+b222120_3) -(13312/3.)*b232419_3;
+
+    vec3 a34 = (-2560/9.)*b0003 -(512/3.)*b0102 +1024*(b040506_2+b121110_2) +(2048/3.)*b070809_0 +(10240/9.)*b151413_0 
+              - 4096*(b161718_2+b222120_2) + 6144*b232419_2;
+
+    vec3 a44 = (1024/9.)*(b0003+b0102) -(4096/9.)*(b040506_0+b070809_0+b121110_0+b151413_0) +(16384/9.)*(b161718_0+b222120_0) -(8192/3.)*b232419_0;
+
+    float u = gl_TessCoord.x;
+    float v = gl_TessCoord.y;
+    float w = gl_TessCoord.z;
+
+    // vertex en coordonnees modele...
+    float u2 = u*u;
+    float v2 = v*v;
+    float u3 = u2*u;
+    float v3 = v2*v;
+    float u4 = u3*u;
+    float v4 = v3*v;
+
+    vec3 tv1 = a01 + u*a11 + u2*a21 + u3*a31 + u4*a41;
+    vec3 tv2 = a02 + u*a12 + u2*a22 + u3*a32 + u4*a42;
+    vec3 tv3 = a03 + u*a13 + u2*a23 + u3*a33 + u4*a43;
+    vec3 tv4 = a04 + u*a14 + u2*a24 + u3*a34 + u4*a44;
+
+    vec4 xyz = vec4(a00 + u*a10 + u2*a20 + u3*a30+ u4*a40 + v*tv1 + v2*tv2 + v3*tv3 + v4*tv4,1);
+    vec3 dx  =  a10 + v*a11 + v2*a12 + v3*a13 + v4*a14 + 
+          2*u *(a20 + v*a21 + v2*a22 + v3*a23 + v4*a24) + 
+          3*u2*(a30 + v*a31 + v2*a32 + v3*a33 + v4*a34) + 
+          4*u3*(a40 + v*a41 + v2*a42 + v3*a43 + v4*a44);
+    vec3 dy  = tv1 + 2*v*tv2 + 3*v2*tv3 + 4*v3*tv4;
+    vec3 n   = cross(dx,dy);
+
+    v2f_out.position    = xyz;
+    v2f_out.view_normal = vec4(gl_NormalMatrix * n, 0.);
+}
+
+void main()
+{
+    if (patch_size == 8) interpolate_q2();
+    if (patch_size == 9) interpolate_p2();
+    if (patch_size ==12) interpolate_q3();
+    if (patch_size ==16) interpolate_p3();
+    if (patch_size ==25) interpolate_p4();
+
+    float u = gl_TessCoord.x;
+    float v = gl_TessCoord.y;
+    float w = gl_TessCoord.z;
+
+    v2f_out.mv_position = gl_ModelViewMatrix * v2f_out.position;
+    v2f_out.mvp_position = gl_ModelViewProjectionMatrix * v2f_out.position;
+    v2f_out.nrm_view_normal = normalize(v2f_out.view_normal);
+
+    // Pour la couleur, sans doute a changer, il faut voir quel est la fonction de forme associee
+    // Ce sera surement une fonction dans un fichier a rajouter au programme de tesselation shader
+    vec4  c0 = tcs_in[0].color;
+    vec4  c1 = tcs_in[1].color;
+    vec4  c2 = tcs_in[2].color;
+    vec4  c3 = tcs_in[3].color;
+    v2f_out.color       = u * c1 + v * c2 + w * c0  + (1-u-v-w) * c3;
+    // Les interpolations suivantes surement aussi a changer selon une fonction bien definie
+    // qu'on nommera par exemple : interpol_data1, interpol_data2, interpol_data3 et
+    // interpol_data4...
+    // Par defaut, on fera une interpolation lineaire par rapport aux sommets.
+    if ( tcs_in[0].data_comp.x == 1 )
+        v2f_out.vdata1 = u * tcs_in[1].vdata1 + v * tcs_in[2].vdata1 + w * tcs_in[0].vdata1;
+    if ( tcs_in[0].data_comp.y == 1 )
+        v2f_out.vdata2 = u * tcs_in[1].vdata2 + v * tcs_in[2].vdata2 + w * tcs_in[0].vdata2;
+    if ( tcs_in[0].data_comp.z == 1 )
+        v2f_out.vdata3 = u * tcs_in[1].vdata3 + v * tcs_in[2].vdata3 + w * tcs_in[0].vdata3;
+    if ( tcs_in[0].data_comp.w == 1 )
+        v2f_out.vdata4 = u * tcs_in[1].vdata4 + v * tcs_in[2].vdata4 + w * tcs_in[0].vdata4;
+
+    // gl_position en repere camera projetee
+    gl_Position = gl_ModelViewProjectionMatrix * v2f_out.position;
+
+}

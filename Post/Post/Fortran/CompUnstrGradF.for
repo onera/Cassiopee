@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -78,7 +78,7 @@ c     calcul du gradient au centre des elts
          sumx = ZERO
          sumy = ZERO
          sumz = ZERO
-         invvol = ONE/vol(eti)
+         invvol = ONE/MAX(vol(eti), E_MIN_VOL)
          
          DO fi = 1, nedges
             sumx = sumx + snx(eti, fi) * fieldf(eti,fi)

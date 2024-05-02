@@ -175,7 +175,7 @@ int CheckInputGraphWeights(idx_t nvtxs, idx_t ncon, idx_t *xadj, idx_t *adjncy,
 /*************************************************************************/
 graph_t *FixGraph(graph_t *graph)
 {
-  idx_t i, j, k, l, nvtxs, nedges;
+  idx_t i, j, k, nvtxs, nedges;
   idx_t *xadj, *adjncy, *adjwgt;
   idx_t *nxadj, *nadjncy, *nadjwgt;
   graph_t *ngraph;

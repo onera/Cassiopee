@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -82,7 +82,7 @@ E_Int K_IO::GenIO::df3write(
   FldArrayF& density = *d;
 
   // Build Adt for all blocks
-  vector<K_INTERP::InterpAdt*> adts;
+  vector<K_INTERP::InterpData*> adts;
   vector<void*> a1; vector<void*> a2; vector<void*> a3; vector<void*> a4;
   E_Int isBuilt;
   for (E_Int n = 0; n < s; n++)
@@ -104,9 +104,9 @@ E_Int K_IO::GenIO::df3write(
   E_Float hi = (xmax - xmin)/(nig-1);
   E_Float hj = (ymax - ymin)/(njg-1);
   E_Float hk = (zmax - zmin)/(nkg-1);
-  //printf("xmax = %f %f %f %f %f %f \n", xmax, ymax, zmax, xmin, ymin, zmin);
   FldArrayI indi(1);
   FldArrayF cf(8);
+  FldArrayI tmpIndi(1); FldArrayF tmpCf(8);
   E_Int ind;
   E_Float voli = 0.;
   E_Int noblk = 0;
@@ -124,7 +124,7 @@ E_Int K_IO::GenIO::df3write(
           x, y, z, adts, structField, 
           a1, a2, a3, a4,
           posxt, posyt, poszt, posct,
-          voli, indi, cf, type, noblk); 
+          voli, indi, cf, tmpIndi, tmpCf, type, noblk);
         if (found > 0)
         {
           FldArrayF& field0 = *structField[noblk-1];
@@ -134,7 +134,6 @@ E_Int K_IO::GenIO::df3write(
             type, density[ind]);
         }
         else density[ind] = -K_CONST::E_MAX_FLOAT;
-        //printf("%f %f %f %f %d %d\n", density[ind]);
       }
 
   // Delete Adt
@@ -162,7 +161,6 @@ E_Int K_IO::GenIO::df3write(
   {
     if (density[i] <= -K_CONST::E_MAX_FLOAT+1.) density[i] = dmin;
   }
-  //printf("min-max : %f %f \n", dmin, dmax);
   unsigned int* buf = new unsigned int[nig*njg*nkg];
   E_Float val;
   for (E_Int i = 0; i < density.getSize(); i++)
@@ -170,7 +168,6 @@ E_Int K_IO::GenIO::df3write(
     val = (density[i]-dmin) / (dmax - dmin) * 4294967295.;
     buf[i] = (unsigned int)val;
     //buf[i] = density[i] / dmax * 255;
-    //printf("%f %f %u\n",(density[i]-dmin) / (dmax - dmin), density[i], buf[i] );
   }
 
   // Write density grid (df3)

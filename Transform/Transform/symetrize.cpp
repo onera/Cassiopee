@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -35,8 +35,7 @@ PyObject* K_TRANSFORM::symetrize(PyObject* self, PyObject* args)
   E_Float v1x, v1y, v1z;
   E_Float v2x, v2y, v2z;
   PyObject* array;
-  if (!PYPARSETUPLEF(args,
-                    "O(ddd)(ddd)(ddd)", "O(fff)(fff)(fff)",
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ TRRR_,
                     &array, &x0, &y0, &z0, &v1x, &v1y, &v1z, &v2x, &v2y, &v2z))
   {
       return NULL;
@@ -48,7 +47,7 @@ PyObject* K_TRANSFORM::symetrize(PyObject* self, PyObject* args)
   E_Int res; E_Float norm;
 
   res = 
-    K_ARRAY::getFromArray2(array, varString, f, nil, njl, nkl, cn, eltType); 
+    K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, cn, eltType); 
   
   if (res == 1 || res == 2)
   {
@@ -90,22 +89,22 @@ PyObject* K_TRANSFORM::symetrize(PyObject* self, PyObject* args)
     // Symetry
 #pragma omp parallel
     {
-    E_Float sigma1, sigma0, dist2;
-    E_Boolean in;
-    E_Float xint, yint, zint;
-    E_Float p[3];
-#pragma omp for
-    for (E_Int i = 0; i < npts; i++)
-    {
-      p[0] = xp[i]; p[1] = yp[i]; p[2] = zp[i];
-      K_COMPGEOM::distanceToTriangle(p1, p2, p3, p, 0,
+        E_Float sigma1, sigma0, dist2;
+        E_Boolean in;
+        E_Float xint, yint, zint;
+        E_Float p[3];
+        #pragma omp for
+        for (E_Int i = 0; i < npts; i++)
+        {
+            p[0] = xp[i]; p[1] = yp[i]; p[2] = zp[i];
+            K_COMPGEOM::distanceToTriangle(p1, p2, p3, p, 0,
 				     dist2, in, xint, yint, zint,
 				     sigma0, sigma1);
     
-      xp[i] = 2*xint - xp[i]; 
-      yp[i] = 2*yint - yp[i];
-      zp[i] = 2*zint - zp[i];
-    }
+            xp[i] = 2*xint - xp[i]; 
+            yp[i] = 2*yint - yp[i];
+            zp[i] = 2*zint - zp[i];
+        }
     }
     RELEASESHAREDB(res, array, f, cn);
     Py_INCREF(Py_None);

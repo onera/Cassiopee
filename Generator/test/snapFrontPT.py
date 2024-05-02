@@ -37,6 +37,3 @@ s2 = C.initVars(s2,'cellN',1)
 t[2][2][2].append(s2)
 
 C.convertPyTree2File(t, 'out.cgns')
-
-
- 

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -208,7 +208,7 @@ void CString::searchForMatchingStrings( vector<CString*>& strings,
 
     if (found == false)
     {      
-      printf("Error: searchForMatchingString: failed in %d.\n", ind);
+      printf("Error: searchForMatchingString: failed in " SF_D_ ".\n", ind);
       exit(0);
     }
    

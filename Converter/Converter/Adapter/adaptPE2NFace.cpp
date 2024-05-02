@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -26,7 +26,8 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::adaptPE2NFace(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  E_Int api;
+  if (!PYPARSETUPLE_(args, O_ I_, &array, &api)) return NULL;
 
   // Check numpy (parentElement)
   FldArrayI* cFE;
@@ -39,13 +40,15 @@ PyObject* K_CONVERTER::adaptPE2NFace(PyObject* self, PyObject* args)
     return NULL;
   }
   
-  FldArrayI cNFace; E_Int nelts;
-  K_CONNECT::connectFE2NFace(*cFE, cNFace, nelts);
+  FldArrayI cNFace, off; E_Int nelts;
+  if (api < 3) K_CONNECT::connectFE2NFace3(*cFE, cNFace, off, nelts);
+  else K_CONNECT::connectFE2NFace4(*cFE, cNFace, off, nelts);
   
   RELEASESHAREDN(array, cFE);
 
-  // Construction du numpy de sortie
   PyObject* tpl = K_NUMPY::buildNumpyArray(cNFace, false);
-  PyObject* tpl2 = Py_BuildValue("Ol", tpl, nelts);
+  PyObject* tplO = K_NUMPY::buildNumpyArray(off, false);
+  PyObject* tpl2 = Py_BuildValue("OOl", tpl, tplO, nelts);
   return tpl2;
 }
+

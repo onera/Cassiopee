@@ -2,11 +2,8 @@
 
 # ------------------------------------------------------------------------
 # 1/ Import section
-import Converter.PyTree   as C
-import Converter.Internal as I
-
-from   mpi4py             import MPI
-import numpy              as     NPY
+import Converter.PyTree as C
+from mpi4py import MPI
 
 # ------------------------------------------------------------------------
 # 2/ Initilise MPI
@@ -38,6 +35,6 @@ t = C.convertFile2PartialPyTreeFromPath(filenamein, Filter, comm)
 
 # ------------------------------------------------------------------------
 # 6/ Print CGNS Tree
-print '*'*23, t[0][1]
-print '*'*23, t[1][1]
+print('*'*23, t[0][1])
+print('*'*23, t[1][1])
 C.printTree(t)

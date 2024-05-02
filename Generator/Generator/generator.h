@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -34,6 +34,8 @@ namespace K_GENERATOR
   PyObject* cartPenta(PyObject* self, PyObject* args);
   PyObject* cartPyra(PyObject* self, PyObject* args);
   PyObject* cartNGon(PyObject* self, PyObject* args);
+  PyObject* cartr1(PyObject* self, PyObject* args);
+  PyObject* cartr2(PyObject* self, PyObject* args);
   PyObject* cylinderMesh(PyObject* self, PyObject* args);
   PyObject* cylinderMesh2(PyObject* self, PyObject* args);
   PyObject* cylinderMesh3(PyObject* self, PyObject* args);
@@ -54,8 +56,11 @@ namespace K_GENERATOR
   PyObject* barycenter(PyObject* self, PyObject* args);
   PyObject* getCEBBIntersectionOfArrays(PyObject* self, PyObject* args);
   PyObject* getVolumeMapOfMesh(PyObject* self, PyObject* args);
+  PyObject* getCellCenters(PyObject* self, PyObject* args);
+  PyObject* getFaceCentersAndAreas(PyObject* self, PyObject* args);
   PyObject* getOrthogonalityMap(PyObject* self, PyObject* args);
   PyObject* getRegularityMap(PyObject* self, PyObject* args);
+  PyObject* getAngleRegularityMap(PyObject* self, PyObject* args);
   PyObject* getNormalMapOfMesh(PyObject* self, PyObject* args);
   PyObject* getCircumCircleMap(PyObject* self, PyObject* args);
   PyObject* getInCircleMap(PyObject* self, PyObject* args);
@@ -74,7 +79,7 @@ namespace K_GENERATOR
   PyObject* hyper2D3Mesh(PyObject* self, PyObject* args);
   PyObject* hyper2D4Mesh(PyObject* self, PyObject* args);
   PyObject* closeMesh(PyObject* self, PyObject* args);
-  PyObject* closeAllMeshes(PyObject* self, PyObject* args);
+  PyObject* closeBorders(PyObject* self, PyObject* args);
   PyObject* pointedHat(PyObject* self, PyObject* args);
   PyObject* stitchedHat(PyObject* self, PyObject* args);
   PyObject* growMesh(PyObject* self, PyObject* args);
@@ -106,12 +111,20 @@ namespace K_GENERATOR
   PyObject* straightenVector(PyObject* self, PyObject* args);
   PyObject* computeEta(PyObject* self, PyObject* args);
   PyObject* getLocalStepFactor(PyObject* self, PyObject* args);
+  PyObject* getLocalStepFactor2(PyObject* self, PyObject* args);
   PyObject* getEdgeRatio(PyObject* self, PyObject* args);
   PyObject* getMaxLength(PyObject* self, PyObject* args);
   PyObject* getTriQualityMap(PyObject* self, PyObject* args);
   PyObject* netgen1(PyObject* self, PyObject* args);
   PyObject* netgen2(PyObject* self, PyObject* args);
   PyObject* tetgen(PyObject* self, PyObject* args);
+  PyObject* mmgs(PyObject* self, PyObject* args);
+  PyObject* quad2Pyra(PyObject* self, PyObject* args);
+  PyObject* blankSelf(PyObject* self, PyObject* args);
+  PyObject* blankFirst(PyObject* self, PyObject* args);
+  PyObject* blankExt(PyObject* self, PyObject* args);
+  PyObject* blankPrev(PyObject* self, PyObject* args);
+  PyObject* extrapWithCellN(PyObject* self, PyObject* args);  
 
   void computeEta(E_Int nic, E_Float* xc, E_Float* yc, E_Float* zc, 
                   E_Float* nxc, E_Float* nyc, E_Float* nzc, 
@@ -176,7 +189,7 @@ namespace K_GENERATOR
                            E_Int ni, E_Int nj, E_Int nk, E_Float eps);    
 /* close an unstructured mesh */
   void closeUnstructuredMesh(E_Int posx, E_Int posy,E_Int posz,E_Float eps,
-                             char* eltType, FldArrayF& f, FldArrayI& cn);
+                             char* eltType, FldArrayF& f, FldArrayI& cn, E_Int removeDegen=0);
 /* close a BAR mesh */
   void closeBARMesh(E_Int posx, E_Int posy, E_Int posz, 
                     FldArrayF& f, FldArrayI& cn);
@@ -362,8 +375,10 @@ namespace K_GENERATOR
                            FldArrayF& fo, FldArrayI& cno, FldArrayI& levelso, 
                            E_Int& no, E_Int& eto);
   /* Balancing of an octree or an octree3 */
+
   void checkBalancing2(FldArrayI& cn, FldArrayF& coords);
   void checkBalancing3(FldArrayI& cn, FldArrayF& coords);
+  void balanceOctree2(FldArrayF& f, FldArrayI& cn, E_Int corners);
 
   void getValidNgbrsForMerge(E_Int et, E_Float* indict, E_Float* dht, 
                              E_Float xs, E_Float ys, E_Float zs,
@@ -372,21 +387,18 @@ namespace K_GENERATOR
                              FldArrayIS& dejaVu, FldArrayI& cn,
                              std::vector<E_Int>& candidats);
   /* close */
-  void closeOneWindow(
-    FldArrayF& f1, E_Int ni1, E_Int nj1, E_Int nk1,
-    E_Int posx1, E_Int posy1, E_Int posz1,
-    E_Int im1, E_Int im2, E_Int jm1, E_Int jm2, E_Int km1, E_Int km2,
-    FldArrayF& f2, E_Int ni2, E_Int nj2, E_Int nk2,
-    E_Int posx2, E_Int posy2, E_Int posz2,
-    E_Int is1, E_Int is2, E_Int js1, E_Int js2, E_Int ks1, E_Int ks2,
-    E_Float eps, E_Boolean check);
-
   void closeAllStructuredMeshes(
     std::vector<FldArrayF*>& structF,
     std::vector<E_Int>& nit, std::vector<E_Int>& njt, std::vector<E_Int>& nkt,
     std::vector<E_Int>& posx, std::vector<E_Int>& posy, std::vector<E_Int>& posz,
     E_Float eps);
 
+void closeAllUnstructuredMeshes(
+  std::vector<FldArrayF*>& unstructF,  std::vector<FldArrayI*>& connectsEV,
+  std::vector<E_Int>& posxt, std::vector<E_Int>& posyt, std::vector<E_Int>& poszt,
+  std::vector<FldArrayF*>& exteriorFacesF,  std::vector<FldArrayI*>& connectsEF,
+  std::vector<E_Int>& posxe, std::vector<E_Int>& posye, std::vector<E_Int>& posze,
+  E_Float eps);
 /* determination des blocs intersectants noz1 ds bboxes
    IN : noz1 : numero de la zone dans bboxes
    IN : minB : xmin(z1), ymin(z1), zmin(z1) 

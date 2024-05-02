@@ -17,7 +17,7 @@ namespace netgen
     if (!w) w = h;
     width = w;
     height = h;
-    if (h*w)
+    if (h*w != 0)
       data = new double[h*w];
     else 
       data = 0;
@@ -68,7 +68,7 @@ namespace netgen
     
     delete[] data;
     
-    if (h*w)  
+    if (h*w != 0)  
       data = new double[h*w];
     else
       data = NULL;

@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -75,11 +75,6 @@ namespace K_FLD
 // @Memo Array of basic type elements (int, float,...)
 /* @Text
 
-Design
-> Array of basic type elements (int, float,...)
-> Basic encapsulation of of a (single dimension) dynamic C array
-> (attribute _data)
-
 > Caution: indices for elements go from 0 to size-1
 >          indices for number of fields go from NUMFIELD0 to NUMFIELD0+nfld-1
 
@@ -136,7 +131,11 @@ class FldArray
     /** Constructor for NGON connectivity (shared, array2). */
     FldArray(E_Int nfaces, E_Int nelts,
              value_type* ngon, value_type* nface,
-             value_type* indPG, value_type* indPH, E_Int sizeNGon, E_Int sizeNFace);
+             value_type* indPG, value_type* indPH, 
+             E_Int sizeNGon, E_Int sizeNFace, value_type* PE=NULL);
+    /** Constructor for ME connectivities (shared, array3). */
+    FldArray(std::vector< FldArray<T>* >& list);
+    
     /** Destructor */
     ~FldArray();
     ///-
@@ -185,10 +184,13 @@ class FldArray
     inline E_Int getStride() const { return _stride; }
     /** Return true if array is compact */
     inline E_Boolean getCompact() const { return _compact; }
-    /** GetApi (1: array 1, 2: array2) */
+    /** GetApi (1: compact, 2: rake) */
     inline E_Int getApi() { if (_compact == false) return 2; else return 1; }
-    /** Get NGon */
+
+    /** Get/Set NGon */
     inline E_Int isNGon() const { return _ngon; }
+    // 1: compact array1 CGNSv3, 2: rake CGNSv3, 3: rake CGNSv4
+    void setNGon(E_Int ngon) { _ngon = ngon; };
     /** Only if  ngon */
     inline E_Int getNFaces();
     inline E_Int getNElts();
@@ -196,8 +198,18 @@ class FldArray
     inline E_Int* getNFace();
     inline E_Int* getIndPG();
     inline E_Int* getIndPH();
+    inline E_Int* getPE();
     inline E_Int getSizeNGon();
     inline E_Int getSizeNFace();
+    inline E_Int* getFace(E_Int no, E_Int& size);
+    inline E_Int* getFace(E_Int no, E_Int& size, E_Int* ngon, E_Int* indPG); // faster
+    inline E_Int* getElt(E_Int no, E_Int& size);
+    inline E_Int* getElt(E_Int no, E_Int& size, E_Int* nface, E_Int* indPH); // faster
+
+    /** ME */
+    inline size_t getNConnect();
+    inline FldArray<T>* getConnect(E_Int i=0);
+    
     /** Get l-th element of array of values (0<=l < _nfldLoc*_sizeMax) */
     inline value_type  operator[]  (E_Int l) const;
     /** Get/set l-th element of array of values (0<=l < _nfldLoc*_sizeMax) */
@@ -245,6 +257,10 @@ class FldArray
     /** Resize with new array allocation WITH copy, keeping
         elements at the same position in the matrix. */
     void reAllocMat(E_Int l, E_Int q);
+    /** Resize with new array allocation WITH copy, keeping
+        elements at the same position in the matrix. 
+        No openMP in this version */
+    void reAllocMatSeq(E_Int l, E_Int q);
     /** Resize the array. No new allocation if the new dimension
         if smaller than oldest dimension and WITHOUT copy. */
     void resize(E_Int nsize, E_Int nnfld=NUMFIELD0);
@@ -303,6 +319,10 @@ class FldArray
 
     void setitem(int i, T value);
     void setitems(int i, int j, T value);
+    void setNGonType(int i) {
+      if (i < 1 && i > 3) return;
+      _ngon = i;
+    };
 
   private:
     // set all elements to val
@@ -333,12 +353,19 @@ class FldArray
     E_Boolean _compact;
     /* stride */
     E_Int _stride;
-    /* si _ngon > 1, connect NGON (stockage rake, NGON, NFACE, PE, indir */
+
+    /* si _ngon==1, connect compact NGONv3 array1
+       si _ngon==2, connect NGONv3 (stockage rake, NGON, NFACE, indPG, indPH, PE)
+       si _ngon==3, connect NGONv4 (stockage rake, NGON, NFACE, indPG, indPH, PE) */
     E_Int _ngon;
     E_Int _nfaces; // nbre de faces (NGON)
     E_Int _nelts; // nbre d'elements (NGON)
     E_Int _sizeNGon; // taille de la connectivite NGon (NGON)
     E_Int _sizeNFace; // taille de la connectivite NFace (NGON)
+
+    /* si multiple element connectivities */
+    std::vector< FldArray<T>* > _BEConnects; 
+
     /* The data array (deprecated) */
     value_type* _data;
     /* The data rake */
@@ -411,7 +438,9 @@ inline
 T* FldArray<T>::begin(E_Int fld)
 {
   assert (fld >= NUMFIELD0);
-  assert (fld <= _nfldLoc);
+  // either we ask for a existing field in a non-empty array 
+  // OR the array is empty and we ask only for the first field i.e ask for &rake[0] 
+  assert ( (_nfldLoc && (fld <= _nfldLoc)) || (_nfldLoc == 0 && fld == NUMFIELD0) );
   //return (_data+((fld-NUMFIELD0)*_sizeMax));
   return _rake[fld-NUMFIELD0];
 }
@@ -498,7 +527,7 @@ void FldArray<T>::setitems(int i, int j, T value)
 TEMPLATE_T
 E_Int FldArray<T>::getNFaces()
 {
-  if (_ngon == 2) // Array 2
+  if (_ngon >= 2) // Array2/3
   {
     return _nfaces;
   }
@@ -512,7 +541,7 @@ E_Int FldArray<T>::getNFaces()
 TEMPLATE_T
 E_Int FldArray<T>::getNElts()
 {
-  if (_ngon == 2) // Array 2
+  if (_ngon >= 2) // Array2/3
   {
     return _nelts;
   }
@@ -521,13 +550,18 @@ E_Int FldArray<T>::getNElts()
     E_Int sizeNGon = _rake[0][1];
     return _rake[0][sizeNGon+2]; 
   }
+  /*
+  else // suppose a BE connectivity
+  {
+      return _sizeLoc;
+  }*/
 }
 
 //==============================================================================
 TEMPLATE_T
 E_Int* FldArray<T>::getNGon()
 {
-  if (_ngon == 2) // Array 2
+  if (_ngon >= 2) // Array2/3
   {
     return _rake[0];
   }
@@ -541,7 +575,7 @@ E_Int* FldArray<T>::getNGon()
 TEMPLATE_T
 E_Int* FldArray<T>::getNFace()
 {
-  if (_ngon == 2) // Array 2
+  if (_ngon >= 2) // Array2/3
   {
     return _rake[1];
   }
@@ -556,20 +590,22 @@ E_Int* FldArray<T>::getNFace()
 TEMPLATE_T
 E_Int* FldArray<T>::getIndPG()
 {
-  if (_ngon == 2) // Array 2
+  if (_ngon >= 2) // Array 2/3
   {
     return _rake[2];
   }
   else // Array1
   {
+    // if _ngon == 0; -> ngon=1 et cree le rake
     if (_rake[2] == NULL)
     {
+      _ngon = 1;
       E_Int nfaces = _rake[0][0];
       E_Int* ptrf = _rake[0]+2;
       E_Int c = 0;
       _rake[2] = new E_Int [nfaces];
       E_Int* indPG = _rake[2];
-      for (E_Int i = 0; i < nfaces; i++) { indPG[i] = c; c += ptrf[c]; }
+      for (E_Int i = 0; i < nfaces; i++) { indPG[i] = c; c += ptrf[c]+1; }
     }
     return _rake[2];
   }
@@ -579,7 +615,7 @@ E_Int* FldArray<T>::getIndPG()
 TEMPLATE_T
 E_Int* FldArray<T>::getIndPH()
 {
-  if (_ngon == 2) // Array 2
+  if (_ngon >= 2) // Array 2/3
   {
     return _rake[3];
   }
@@ -587,13 +623,14 @@ E_Int* FldArray<T>::getIndPH()
   {
     if (_rake[3] == NULL)
     {
+      _ngon = 1;
       E_Int sizeNGon = _rake[0][1];
       E_Int nelts = _rake[0][2+sizeNGon];
       E_Int* ptre = _rake[0]+4+sizeNGon;
       E_Int c = 0;
       _rake[3] = new E_Int [nelts];
       E_Int* indPH = _rake[3];
-      for (E_Int i = 0; i < nelts; i++) { indPH[i] = c; c += ptre[c]; }
+      for (E_Int i = 0; i < nelts; i++) { indPH[i] = c; c += ptre[c]+1; }
     }
     return _rake[3];
   }
@@ -601,9 +638,24 @@ E_Int* FldArray<T>::getIndPH()
 
 //==============================================================================
 TEMPLATE_T
+E_Int* FldArray<T>::getPE()
+{
+  if (_ngon >= 2) // Array 2/3
+  {
+    return _rake[3];
+  }
+  else // Array1
+  {
+    return NULL; // inexistant en Array1
+    // peut etre le cree dans un rake?
+  }
+}
+
+//==============================================================================
+TEMPLATE_T
 E_Int FldArray<T>::getSizeNGon()
 {
-  if (_ngon == 2) // Array2
+  if (_ngon >= 2) // Array2/3
   {
     return _sizeNGon;
   }
@@ -617,7 +669,7 @@ E_Int FldArray<T>::getSizeNGon()
 TEMPLATE_T
 E_Int FldArray<T>::getSizeNFace()
 {
-  if (_ngon == 2) // Array2
+  if (_ngon >= 2) // Array2/3
   {
     return _sizeNFace;
   }
@@ -628,6 +680,98 @@ E_Int FldArray<T>::getSizeNFace()
   } 
 }
 
+//==============================================================================
+TEMPLATE_T
+E_Int* FldArray<T>::getFace(E_Int no, E_Int& size)
+{
+  if (_ngon == 3) // Array3
+  {
+    E_Int* ngon = _rake[0];
+    E_Int* indPG = _rake[2];
+    E_Int pos = indPG[no];
+    size = indPG[no+1]-pos;
+    return ngon+pos;
+  }
+  else if (_ngon == 2) // Array 2
+  {
+    E_Int* ngon = _rake[0];
+    E_Int* indPG = _rake[2];
+    E_Int pos = indPG[no];
+    size = ngon[pos];
+    return ngon+pos+1;
+  }
+  else // Array1
+  {
+    E_Int* ngon = getNGon();
+    E_Int* indPG = getIndPG();
+    E_Int pos = indPG[no];
+    size = ngon[pos];
+    return ngon+pos+1;
+  }
+}
+
+TEMPLATE_T
+E_Int* FldArray<T>::getFace(E_Int no, E_Int& size, E_Int* ngon, E_Int* indPG)
+{
+  E_Int pos = indPG[no];
+  if (_ngon == 3) // Array3
+  {
+    size = indPG[no+1]-pos;
+    return ngon+pos;
+  }
+  else // Array 1 or 2
+  {
+    size = ngon[pos];
+    return ngon+pos+1;
+  }
+}
+
+//==============================================================================
+TEMPLATE_T
+E_Int* FldArray<T>::getElt(E_Int no, E_Int& size)
+{
+  if (_ngon == 3) // Array3
+  {
+    E_Int* nface = _rake[1];
+    E_Int* indPH = _rake[3];
+    E_Int pos = indPH[no];
+    size = indPH[no+1]-pos;
+    return nface+pos;
+  }
+  else if (_ngon == 2) // Array 2
+  {
+    E_Int* nface = _rake[1];
+    E_Int* indPH = _rake[3];
+    E_Int pos = indPH[no];
+    size = nface[pos];
+    return nface+pos+1;
+  }
+  else // Array1
+  {
+    E_Int* nface = getNFace();
+    E_Int* indPH = getIndPH();
+    E_Int pos = indPH[no];
+    size = nface[pos];
+    return nface+pos+1;
+  }
+}
+
+TEMPLATE_T
+E_Int* FldArray<T>::getElt(E_Int no, E_Int& size, E_Int* nface, E_Int* indPH)
+{
+  E_Int pos = indPH[no];
+  if (_ngon == 3) // Array3
+  {
+    size = indPH[no+1]-pos;
+    return nface+pos;
+  }
+  else // Array 1 or 2
+  {
+    size = nface[pos];
+    return nface+pos+1;
+  }
+}
+
 //OK---------------------------------------------------------------------------------
 TEMPLATE_T
 FldArray<T>::FldArray()
@@ -636,7 +780,7 @@ FldArray<T>::FldArray()
     _nelts(0), _sizeNGon(0),
     _sizeNFace(0), _data(NULL)
 {
-  //_rake = NULL;
+  _rake[2] = NULL; _rake[3] = NULL;
 }
 
 //OK-----------------------------------------------------------------------------
@@ -649,28 +793,10 @@ FldArray<T>::FldArray(E_Int size, E_Int nfld, E_Boolean compact,
     _stride(1), _ngon(0), _nfaces(0), _nelts(0), 
     _sizeNGon(0), _sizeNFace(0), _data(NULL)
 {
+  _rake[2] = NULL; _rake[3] = NULL;
   if (fortranOrdered == false) _stride = _nfldLoc;
   acquireMemory();
 }
-
-//NOT USED----------------------------------------------------------------------
-// TEMPLATE_T
-// const FldArray<T> *
-// FldArray<T>::setMemoryZone(value_type* zone)
-// {
-//   E_Int s = _sizeLoc;
-//   E_Int n = _nfldLoc;
-//   releaseMemory();
-//   _shared = true;
-//   _compact = true;
-//   _stride = 1;
-//   _ngon = 0;
-//   _data = zone;
-//   _sizeMax = _sizeLoc = s;
-//   _nfldMax = _nfldLoc = n;
-//   _sizeTot = n*s;
-//   return this;
-// }
 
 //OK----------------------------------------------------------------------
 TEMPLATE_T
@@ -703,6 +829,7 @@ FldArray<T>::FldArray(const FldArray& rhs)
    _nelts(rhs._nelts),
    _data(NULL)
 {
+  _rake[2] = NULL; _rake[3] = NULL;
   acquireMemory();
   copy(rhs, 1, _nfldLoc);
 }
@@ -723,6 +850,7 @@ FldArray<T>::FldArray(const FldArray& rhs, E_Int begin, E_Int end)
    _nelts(rhs._nelts),
    _data(NULL)
 {
+  _rake[2] = NULL; _rake[3] = NULL;
   assert (rhs._nfldLoc >= (end-begin+1));
   acquireMemory();
   copy(rhs, begin, end);
@@ -746,6 +874,7 @@ FldArray<T>::FldArray(E_Int size, E_Int nfld,
    _nelts(0),
    _data(NULL)
 {
+  _rake[2] = NULL; _rake[3] = NULL;
   if (fortranOrdered == false) _stride = _nfldLoc;
 
   if (shared == false)
@@ -783,6 +912,7 @@ FldArray<T>::FldArray(E_Int size, E_Int nfld,
    _nelts(0),
    _data(NULL)
 {
+  _rake[2] = NULL; _rake[3] = NULL;
   if (fortranOrdered == false) _stride = _nfldLoc;
 
   if (shared == false)
@@ -800,7 +930,7 @@ FldArray<T>::FldArray(E_Int size, E_Int nfld,
 }
 
 //OK forcement NGON (array1) ----------------------------------------------------------------------
-// Ne pas utiliser : on utilise le constructeur standard dans le cas Array1
+// Ne pas utiliser: on utilise le constructeur standard dans le cas Array1
 TEMPLATE_T
 FldArray<T>::FldArray(E_Int nfaces, E_Int nelts, E_Int sizeNGon, E_Int sizeNFace, T* ngonc)
  : _sizeTot(4+sizeNGon+sizeNFace),
@@ -827,10 +957,10 @@ FldArray<T>::FldArray(E_Int nfaces, E_Int nelts, E_Int sizeNGon, E_Int sizeNFace
   _rake[3] = NULL;
 }
 
-//OK forcement NGON (array2) ------------------------------------------------------------------------
+//OK forcement NGON (array2 ou array3) ---------------------------------------------------------------------
 TEMPLATE_T
 FldArray<T>::FldArray(E_Int nfaces, E_Int nelts, T* ngon, T* nface, T* indPG, T* indPH, 
-                      E_Int sizeNGon, E_Int sizeNFace)
+                      E_Int sizeNGon, E_Int sizeNFace, T* PE)
  : _sizeTot(nfaces*nelts),
    _sizeLoc(nfaces), // nbre de faces
    _sizeMax(nelts), // nbre d'elements
@@ -849,6 +979,7 @@ FldArray<T>::FldArray(E_Int nfaces, E_Int nelts, T* ngon, T* nface, T* indPG, T*
   _rake[1] = nface;
   _rake[2] = indPG;
   _rake[3] = indPH;
+  _rake[4] = PE;
   _sizeNGon = sizeNGon;
   _sizeNFace = sizeNFace;
 }
@@ -1045,7 +1176,8 @@ void FldArray<T>::acquireMemory()
   {
     assert((_nfldLoc > 0) && "_nfldLoc must be greater than zero !");
     assert((_sizeLoc > 0) && "_sizeLoc must be greater than zero !");
-    for (E_Int i = 0; i < _nfldLoc; i++) _rake[i] = new T[_sizeLoc];
+    _rake[0] = new T[_sizeLoc];
+    for (E_Int i = 1; i < _nfldLoc; i++) _rake[i] = new T[_sizeLoc];
     _data = _rake[0];
   }
 }
@@ -1067,6 +1199,7 @@ void FldArray<T>::releaseMemory(void)
   _sizeTot = _sizeMax = _sizeLoc = _nfldMax = _nfldLoc = 0;
   if (_ngon == 1) { delete [] _rake[2]; delete [] _rake[3]; }
   //delete [] _rake; _rake = NULL;
+  for (size_t i = 0; i < _BEConnects.size(); i++) delete _BEConnects[i];
 }
 
 // ---------------------------------------------------------------------------
@@ -1342,6 +1475,49 @@ void FldArray<T>::reAllocMat(E_Int size, E_Int nfld)
   SETRAKE;
 }
 //-----------------------------------------------------------------------------
+// For a matrix, copy and keep elements at the same position in the matrix
+// for ex: A(12,12) will be B(12,12) after reAlloc
+// This is not the case with the previous method.
+// No open MP.
+//-----------------------------------------------------------------------------
+TEMPLATE_T
+void FldArray<T>::reAllocMatSeq(E_Int size, E_Int nfld)
+{
+  T* newdata = NULL;
+  E_Int sizeTot = size*nfld;
+  assert(sizeTot >= 0);
+
+#ifdef E_DEBUG_MEMORY
+    newdata = (T*) ::malloc( sizeof(T)*sizeTot);
+#else
+    newdata = new T[sizeTot];
+#endif
+
+  assert(newdata != NULL);
+
+  E_Int sz = K_FUNC::E_min(size, _sizeLoc);
+  E_Int nf = K_FUNC::E_min(nfld, _nfldLoc);
+
+  for (E_Int j = 0; j < nf; j++)
+  {
+    for (E_Int i = 0; i < sz; i++)
+      newdata[i+j*size] = _data[i+j*_sizeLoc];
+    for (E_Int i = sz; i < size; i++)
+      newdata[i+j*size] = 0;
+  }
+  for (E_Int i = size*nf; i < sizeTot; i++) newdata[i] = 0;
+
+  releaseMemory();
+  _shared = false;
+  _compact = true;
+  _sizeTot = size*nfld;
+  _sizeMax = _sizeLoc = size;
+  _nfldMax = _nfldLoc = nfld;
+  _data = newdata;
+  //_rake = new T* [nfld];
+  SETRAKE;
+}
+//-----------------------------------------------------------------------------
 /*
 SPECIALISE
 inline void FldArray<E_Float>::matMultVec(const FldArray<E_Float>& array)
@@ -1480,11 +1656,11 @@ void FldArray<T>::reserve(E_Int nfld, E_Int size)
 
 //-----------------------------------------------------------------------------
 TEMPLATE_T
-void FldArray<T>:: resize(E_Int nfld, E_Int size, const T& val)
+void FldArray<T>::resize(E_Int nfld, E_Int size, const T& val)
 {
   // WARNING ; structure (_nfldMax, _sizeMax) are changed only when reallocation is required.
 
-  nfld = std::max(1, nfld);
+  nfld = std::max(E_Int(1), nfld);
 
   E_Int sizeTot = size*nfld;
   E_Int sz = K_FUNC::E_min(size, _sizeLoc);
@@ -1640,7 +1816,7 @@ E_Int FldArray<T>::compact(FldArray& a, const Vector1& keep, Vector2& new_Ids)
   new_Ids.clear();
   new_Ids.resize(cols, E_IDX_NONE);
 
-  do{
+  do {
 
     while ((i1 <= i2) && keep[i1]){new_Ids[i1] = i1; ++i1;}  // Get the first empty column.
     while ((i1 <= i2) && !keep[i2]){--i2;} // Get the first column to move from the tail.
@@ -1664,7 +1840,29 @@ E_Int FldArray<T>::compact(FldArray& a, const Vector1& keep, Vector2& new_Ids)
   return (cols - i1);
 }
 
-}  // End namespace K_FLD
+// ME connectivities
+TEMPLATE_T
+FldArray<T>::FldArray(std::vector< FldArray<T>* >& list)
+{
+    _compact = false;
+    _nfldMax = 0;
+    _BEConnects = list;
+}
 
+TEMPLATE_T
+FldArray<T>* FldArray<T>::getConnect(E_Int i)
+{
+    if (_BEConnects.size() == 0) return this;
+    else return _BEConnects[i];
+}
+
+TEMPLATE_T
+size_t FldArray<T>::getNConnect()
+{
+    E_Int size = (E_Int)_BEConnects.size();
+    if (size == 0) return 1;
+    else return size;
+}
+} // End namespace K_FLD
 #endif
 

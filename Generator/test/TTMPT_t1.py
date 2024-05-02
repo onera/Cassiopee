@@ -1,5 +1,4 @@
 # - TTM (pyTree) -
-import Converter.PyTree as C
 import Generator.PyTree as G
 import Geom.PyTree as D
 import KCore.test as test

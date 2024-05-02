@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -30,11 +30,11 @@ PyObject* K_CONVERTER::pointList2SPL(PyObject* self, PyObject* args)
 {
   PyObject* PLarray; PyObject* PLDarray;
   E_Int ni, nj, nk;
-  if (!PYPARSETUPLEI(args, "OOlll", "OOiii", &PLarray, &PLDarray, &ni, &nj, &nk)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ III_, &PLarray, &PLDarray, &ni, &nj, &nk)) return NULL;
 
   // Check numpy (pointlist)
   FldArrayI* PL;
-  E_Int res1 = K_NUMPY::getFromNumpyArray(PLarray, PL, true);
+  E_Int res1 = K_NUMPY::getFromPointList(PLarray, PL, true);
 
   if (res1 == 0)
   {
@@ -44,7 +44,7 @@ PyObject* K_CONVERTER::pointList2SPL(PyObject* self, PyObject* args)
   }
   // Chekc numpy (pointList donor)
   FldArrayI* PLD;
-  E_Int res2 = K_NUMPY::getFromNumpyArray(PLDarray, PLD, true);
+  E_Int res2 = K_NUMPY::getFromPointList(PLDarray, PLD, true);
 
   if (res2 == 0)
   {
@@ -62,7 +62,6 @@ PyObject* K_CONVERTER::pointList2SPL(PyObject* self, PyObject* args)
   
   E_Int ninti = ni*nj1*nk1;
   E_Int nintj = ni1*nj*nk1;
-  E_Int nintk = ni1*nj1*nk;
   E_Int i,j,k,ind;
 
   E_Int nimin = 0; // nbre d'interfaces imin
@@ -115,12 +114,12 @@ PyObject* K_CONVERTER::pointList2SPL(PyObject* self, PyObject* args)
   PyObject* pdkmin = NULL;
   PyObject* pdkmax = NULL;
 
-  E_Int* imin; E_Int* imax;
-  E_Int* jmin; E_Int* jmax;
-  E_Int* kmin; E_Int* kmax;
-  E_Int* dimin; E_Int* dimax;
-  E_Int* djmin; E_Int* djmax;
-  E_Int* dkmin; E_Int* dkmax;
+  E_Int* imin=NULL; E_Int* imax=NULL;
+  E_Int* jmin=NULL; E_Int* jmax=NULL;
+  E_Int* kmin=NULL; E_Int* kmax=NULL;
+  E_Int* dimin=NULL; E_Int* dimax=NULL;
+  E_Int* djmin=NULL; E_Int* djmax=NULL;
+  E_Int* dkmin=NULL; E_Int* dkmax=NULL;
   
   if (nimin > 0) 
   {

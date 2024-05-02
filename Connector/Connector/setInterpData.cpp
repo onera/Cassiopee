@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -16,79 +16,101 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
+// 0: version sans openMP de setInterpData, 1: avec openMP
+#define SETINTERPDATA 1
+
 # include <stdio.h>
 # include "connector.h"
 
 using namespace std;
 using namespace K_FLD;
 
+#if SETINTERPDATA == 0
 //=============================================================================
 /* Calcule et stocke les coefficients d'interpolation 
    CAS SANS DOUBLE WALL 
-   IN: receiverArray: points a interpoler définis sous forme de maillage
+   IN: receiverArray: points a interpoler definis sous forme de maillage
    IN: donorArrays: maillages donneurs. La localisation du donneur 
-        (noeuds/centres/centres étendus) doit être effectuee au prealable
+        (noeuds/centres/centres etendus) doit etre effectuee au prealable
    IN: Order: ordre des interpolations (2, 3, 5)
    IN: Nature: 0: produit des cellN=0 -> donneur invalide; 
                1: cellN=0 ou 2 -> donneur invalide
    IN: PenaliseBorders: 1: penalite sur le volume des pts ou cellules frontieres
-   IN: allHooks != Py_None: un hook par adt associé à un donor 
+   IN: allHooks != Py_None: un hook par adt associe a un donor 
    OUT: [donorBlks,donorInd1D, donorType, coefs, extrapInd1D, orphanInd1D] 
-        donorBlks: no du blk donneur, démarre à 0
+        donorBlks: no du blk donneur, demarre a 0
         donorInd1D: indice global (structure), de l elt (NS) du donneur
-        donorType: type d interpolation effectué localement
-        coefs: coefficients d interpolation, stockés selon le type
-        extrapInd1D: indices des pts extrapolés
+        donorType: type d interpolation effectue localement
+        coefs: coefficients d interpolation, stockes selon le type
+        extrapInd1D: indices des pts extrapoles
         orphanInd1D: indices des pts orphelins
 */
 //=============================================================================
 PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
 {
-  PyObject *receiverArray; 
-  PyObject *donorArrays;// domaines d interpolation
+  PyObject* receiverArray;
+  PyObject* donorArrays; // domaines d'interpolation
   E_Int Order;
   E_Int Nature;
+  E_Int enableExtrap;
   E_Int PenalizeBorders;
+  PyObject* InterpDataType; // liste pour chaque zone donneuse 1: ADT ou 0: CART
   PyObject* allHooks;
-  if (!PYPARSETUPLEI(args,
-                    "OOlllO", "OOiiiO",
-                    &receiverArray, &donorArrays, &Order, &Nature, &PenalizeBorders, &allHooks))
+  if (!PYPARSETUPLE_(args, OO_ IIII_ OO_,
+                    &receiverArray, &donorArrays, &Order, &Nature, &PenalizeBorders, &enableExtrap,
+                    &InterpDataType, &allHooks))
   {
       return NULL;
   }
+  
+  // Extraction du type d'InterpData (0: CART, 1: ADT)
+  vector<E_Int> listOfInterpDataTypes;
+  E_Int ninterptypes = PyList_Size(InterpDataType);
 
+  for (int i = 0; i < ninterptypes; i++)
+  {
+    E_Int itype = PyLong_AsLong(PyList_GetItem(InterpDataType, i)); 
+    if (itype != 0 && itype != 1)
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "setInterpData: InterpDataType must be 0 for CART or 1 for ADT.");
+      return NULL;
+    }
+    listOfInterpDataTypes.push_back(itype);
+  }
   // ordre des interpolations
   E_Int interporder = Order;
   E_Int nature = Nature; // O: produit des cellN=0 -> donneur invalide; 1: cellN=0 ou 2 -> donneur invalide
-  E_Int penalty = PenalizeBorders;//1 : penalité sur le volume des pts ou cellules frontieres
+  E_Int penalty = PenalizeBorders; //1: penalite sur le volume des pts ou cellules frontieres
   // Interpolation type
-  K_INTERP::InterpAdt::InterpolationType interpType;
+  K_INTERP::InterpData::InterpolationType interpType;
   E_Int nindi, ncfmax;
   switch (interporder)
   {
     case 2:
-      interpType = K_INTERP::InterpAdt::O2CF;
+      interpType = K_INTERP::InterpData::O2CF;
       ncfmax = 8; nindi = 1;
       break;
 
     case 3:
-      interpType = K_INTERP::InterpAdt::O3ABC;
+      interpType = K_INTERP::InterpData::O3ABC;
       ncfmax = 9; nindi = 1;
       break;
 
     case 5:
-      interpType = K_INTERP::InterpAdt::O5ABC;
+      interpType = K_INTERP::InterpData::O5ABC;
       ncfmax = 15; nindi = 1;
       break;
         
     default:
       printf("Warning: setInterpData: unknown interpolation order.");
       printf(" Set to 2nd order.\n");
-      interpType = K_INTERP::InterpAdt::O2CF;
+      interpType = K_INTERP::InterpData::O2CF;
       ncfmax = 8; nindi = 1;
       break;
   } 
   FldArrayI indi(nindi); FldArrayF cf(ncfmax);
+  FldArrayI tmpIndi(nindi); FldArrayF tmpCf(ncfmax);
 
   /*--------------------------------------------------*/
   /* Extraction des infos sur le domaine a interpoler */
@@ -111,11 +133,11 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
     return NULL;
   }
   posxr++; posyr++; poszr++;
-  E_Int posdir = K_ARRAY::isNamePresent("EXdir",varStringr);
+  E_Int posdir = K_ARRAY::isNamePresent("EXdir", varStringr);
   E_Int isEX = 0;
   if (posdir > -1) {isEX=1; posdir++;}
   /*-------------------------------------------------------*/
-  /* Extraction des infos sur les domaines d interpolation */
+  /* Extraction des infos sur les domaines d'interpolation */
   /*-------------------------------------------------------*/
   vector<E_Int> resl;  vector<char*> varString;
   vector<FldArrayF*> fields;
@@ -152,7 +174,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
     if (resl[noz] == 2) 
     {
       char* eltType0 = (char*)a3[noz];
-      if (K_STRING::cmp(eltType0,"TETRA")!= 0)
+      if (K_STRING::cmp(eltType0, "TETRA")!= 0)
       {
         RELEASESHAREDB(resr, receiverArray, fr, cnr); 
         for (E_Int no = 0; no < nzones; no++)
@@ -186,31 +208,63 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
     E_Int posc = K_ARRAY::isCellNatureField2Present(varString[no]); posc++;
     if (a4[no] == NULL) nzonesU++;
     else nzonesS++;
-    posxs.push_back(posx); 
+    posxs.push_back(posx);
     posys.push_back(posy); 
     poszs.push_back(posz); 
     poscs.push_back(posc); 
     a5.push_back(NULL);// PAS DE CONNECTIVITE ELTS/ELTS VOISINS
   }
+  if ((size_t)nzones != listOfInterpDataTypes.size())
+  {
+    RELEASESHAREDB(resr, receiverArray, fr, cnr); 
+    for (E_Int no = 0; no < nzones; no++)
+      RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);   
+    PyErr_SetString(PyExc_TypeError,
+                    "setInterpData: structured donor zones must be 3D or 2D with z=constant.");
+    return NULL;
+  }
+
   // Liste des interpDatas
   vector<E_Int> nis; vector<E_Int> njs; vector<E_Int> nks;
   vector<FldArrayI*> cnt;
-  vector<K_INTERP::InterpAdt*> interpDatas;
+  vector<K_INTERP::InterpData*> interpDatas;
   E_Int isBuilt;
   // creation des interpDatas
   if (allHooks == Py_None)
   {
+    E_Int failed = 0;
     for (E_Int no = 0; no < nzones; no++)
     {
-      K_INTERP::InterpAdt* adt = new K_INTERP::InterpAdt(
-        fields[no]->getSize(), 
-        fields[no]->begin(posxs[no]),
-        fields[no]->begin(posys[no]),
-        fields[no]->begin(poszs[no]),
-        a2[no], a3[no], a4[no], isBuilt);
-      if ( isBuilt == 1 ) 
-        interpDatas.push_back(adt);
-      else 
+      E_Int interpdatatype = listOfInterpDataTypes[no];
+      if (interpdatatype == 1)
+      {
+        K_INTERP::InterpAdt* adt = new K_INTERP::InterpAdt(fields[no]->getSize(), 
+                                                           fields[no]->begin(posxs[no]),
+                                                           fields[no]->begin(posys[no]),
+                                                           fields[no]->begin(poszs[no]),
+                                                           a2[no], a3[no], a4[no], isBuilt);
+        if (isBuilt == 1) interpDatas.push_back(adt);
+        else failed = 1;
+      }
+      else //CART
+      {
+        if (resl[no] == 1)
+        {
+          E_Float* xt = fields[no]->begin(posxs[no]);
+          E_Float* yt = fields[no]->begin(posys[no]);
+          E_Float* zt = fields[no]->begin(poszs[no]);
+          E_Int ni = *(E_Int*)a2[no];
+          E_Int nj = *(E_Int*)a3[no];
+          E_Int nk = *(E_Int*)a4[no];
+          E_Float x0 = xt[0]; E_Float y0 = yt[0]; E_Float z0 = zt[0];
+          E_Float hi = xt[1]-xt[0];
+          E_Float hj = yt[ni]-yt[0];
+          E_Float hk = zt[ni*nj]-zt[0];
+          K_INTERP::InterpCart* interpCart = new K_INTERP::InterpCart(ni,nj,nk,hi,hj,hk,x0,y0,z0);
+          interpDatas.push_back(interpCart);
+        }
+      }
+      if (failed == 1)
       {
         RELEASESHAREDB(resr, receiverArray, fr, cnr); 
         for (E_Int no = 0; no < nzones; no++)
@@ -225,54 +279,40 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
   }
   else //hook fourni pour chq donneur
   {
-    if (PyList_Check(allHooks) == false)
+    E_Int oki = 1;
+    if (PyList_Check(allHooks) == false) 
     {
-      RELEASESHAREDB(resr, receiverArray, fr, cnr); 
-      for (E_Int no = 0; no < nzones; no++)
-        RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);  
+      oki = 0;
       PyErr_SetString(PyExc_TypeError, 
                       "setInterpData: hook must be a list of hooks.");
-      return NULL;
     }
     E_Int nHooks = PyList_Size(allHooks);
     E_Int nDonorZones = fields.size();
-    if (nHooks != nDonorZones)
+    if (nHooks != nDonorZones) 
     {
-      RELEASESHAREDB(resr, receiverArray, fr, cnr); 
-      for (E_Int no = 0; no < nzones; no++)
-        RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);   
+      oki = 0;
       PyErr_SetString(PyExc_TypeError,
                       "setInterpData: size of list of hooks must be equal to the number of donor zones.");
-      return NULL;
     }
-    for (E_Int noh = 0; noh < nHooks; noh++)
+    oki = K_INTERP::extractADTFromHooks(allHooks, interpDatas);
+
+    if (oki < 1) 
     {
-      PyObject* hook = PyList_GetItem(allHooks,noh);
-#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
-      void** packet = (void**) PyCObject_AsVoidPtr(hook);
-#else
-      void** packet = (void**) PyCapsule_GetPointer(hook, NULL);
-#endif
-      E_Int* type = (E_Int*)packet[0];
-      if (type[0] != 1) 
+      if (oki == -1)
       {
-        RELEASESHAREDB(resr, receiverArray, fr, cnr); 
-        for (E_Int no = 0; no < nzones; no++)
-          RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);   
         PyErr_SetString(PyExc_TypeError,
                         "setInterpData: hook must define an ADT.");
-        return NULL;
       }
-      if (type[1] != 1) 
+      else if (oki == -2)
       {
-        RELEASESHAREDB(resr, receiverArray, fr, cnr); 
-        for (E_Int no = 0; no < nzones; no++)
-          RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);   
         PyErr_SetString(PyExc_TypeError,
-                        "setInterpData: one ADT must be defined per hook.");
-        return NULL;
+                        "setInterpData: one ADT per hook only.");
       }
-      interpDatas.push_back((K_INTERP::InterpAdt*)(packet[1])); 
+
+      RELEASESHAREDB(resr, receiverArray, fr, cnr); 
+      for (E_Int no = 0; no < nzones; no++)
+        RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);  
+      return NULL;
     }
   }
    // cas seulement non structure : ncf a 4 (minimum)
@@ -329,17 +369,18 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
   E_Float* EXdir0 = NULL;
   if (isEX == 1) EXdir0 = fr->begin(posdir);
   
-  E_Float x, y, z; E_Int noblk = 0;
+  E_Float x, y, z; E_Int noblk = 0; short ok;
+
 
   for (E_Int ind = 0; ind < nbI; ind++)
   {
     x = xr[ind]; y = yr[ind]; z = zr[ind];
-    short ok = K_INTERP::getInterpolationCell(
+    ok = K_INTERP::getInterpolationCell(
       x, y, z, interpDatas, fields,
       a2, a3, a4, a5, posxs, posys, poszs, poscs,
-      vol, indi, cf, type, noblk, interpType, nature, penalty);   
+      vol, indi, cf, tmpIndi, tmpCf, type, noblk, interpType, nature, penalty);   
     isExtrapolated = 0;
-    if (ok != 1)
+    if (ok != 1 && enableExtrap == 1)
     {
       ok = K_INTERP::getExtrapolationCell(
         x, y, z, interpDatas, fields,
@@ -373,7 +414,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
           donorCf[sizecf] = cf[0];
           sizecf += 1;
           donorInd1D[sizeOfIndDonor1DForBlk] = indi[0];
-          sizeOfIndDonor1DForBlk++; 
+          sizeOfIndDonor1DForBlk++;
           break;
 
         case 2:          
@@ -401,7 +442,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
           break;
 
         case 4:
-          if (a4[noDonorBlk] == NULL ) //non structure
+          if (a4[noDonorBlk] == NULL) //non structure
           {
             for (E_Int nocf = 0; nocf < 4; nocf++) 
               donorCf[sizecf+nocf] = cf[nocf];
@@ -490,7 +531,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
   {   
     //     coefficients d'interpolation
     PyObject* fout = K_NUMPY::buildNumpyArray(*listOfInterpCoefs[noz],1);
-    PyList_Append(PyListCoefficients, fout);  Py_DECREF(fout);
+    PyList_Append(PyListCoefficients, fout); Py_DECREF(fout);
     delete listOfInterpCoefs[noz];
 
     //     donorIndices1D
@@ -534,27 +575,740 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
   Py_DECREF(PyListCellIndicesD); 
   return tpl;
 }
+#else
+//=============================================================================
+PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
+{
+  PyObject* receiverArray; 
+  PyObject* donorArrays; // domaines d'interpolation
+  E_Int Order;
+  E_Int Nature;
+  E_Int enableExtrap;
+  E_Int PenalizeBorders;
+  PyObject* InterpDataType; // liste pour chaque zone donneuse 1: ADT ou 0: CART
+  PyObject* allHooks;
+  if (!PYPARSETUPLE_(args, OO_ IIII_ OO_,
+                    &receiverArray, &donorArrays, &Order, &Nature, &PenalizeBorders, &enableExtrap,
+                    &InterpDataType, &allHooks))
+  {
+      return NULL;
+  }
+  
+  // Extraction du type d'InterpData (0: CART, 1: ADT)
+  vector<E_Int> listOfInterpDataTypes;
+  E_Int ninterptypes = PyList_Size(InterpDataType);
 
+  for (int i = 0; i < ninterptypes; i++)
+  {
+    E_Int itype = PyLong_AsLong(PyList_GetItem(InterpDataType, i)); 
+    if (itype != 0 && itype != 1)
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "setInterpData: InterpDataType must be 0 for CART or 1 for ADT.");
+      return NULL;
+    }
+    listOfInterpDataTypes.push_back(itype);
+  }
+  // ordre des interpolations
+  E_Int interporder = Order;
+  E_Int nature = Nature; // O: produit des cellN=0 -> donneur invalide; 1: cellN=0 ou 2 -> donneur invalide
+  E_Int penalty = PenalizeBorders; // 1: penalite sur le volume des pts ou cellules frontieres
+  // Interpolation type
+  K_INTERP::InterpData::InterpolationType interpType;
+  E_Int nindi, ncfmax;
+  switch (interporder)
+  {
+    case 2:
+      interpType = K_INTERP::InterpData::O2CF;
+      ncfmax = 8; nindi = 1;
+      break;
+
+    case 3:
+      interpType = K_INTERP::InterpData::O3ABC;
+      ncfmax = 9; nindi = 1;
+      break;
+
+    case 5:
+      interpType = K_INTERP::InterpData::O5ABC;
+      ncfmax = 15; nindi = 1;
+      break;
+        
+    default:
+      printf("Warning: setInterpData: unknown interpolation order.");
+      printf(" Set to 2nd order.\n");
+      interpType = K_INTERP::InterpData::O2CF;
+      ncfmax = 8; nindi = 1;
+      break;
+  } 
+
+  /*--------------------------------------------------*/
+  /* Extraction des infos sur le domaine a interpoler */
+  /*--------------------------------------------------*/
+  E_Int imr, jmr, kmr;
+  FldArrayF* fr; FldArrayI* cnr;
+  char* varStringr; char* eltTyper;
+  E_Int resr = K_ARRAY::getFromArray(receiverArray, varStringr, fr, 
+                                     imr, jmr, kmr, cnr, eltTyper, true); 
+
+  // Verif des coordonnees dans la zone a interpoler
+  E_Int posxr = K_ARRAY::isCoordinateXPresent(varStringr);
+  E_Int posyr = K_ARRAY::isCoordinateYPresent(varStringr);
+  E_Int poszr = K_ARRAY::isCoordinateZPresent(varStringr);
+  if (posxr == -1 || posyr == -1 || poszr == -1)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "setInterpData: 1st arg must contain coordinates.");
+    RELEASESHAREDB(resr, receiverArray, fr, cnr); 
+    return NULL;
+  }
+  posxr++; posyr++; poszr++;
+  E_Int posdir = K_ARRAY::isNamePresent("EXdir", varStringr);
+  E_Int isEX = 0;
+  if (posdir > -1) {isEX=1; posdir++;}
+  /*-------------------------------------------------------*/
+  /* Extraction des infos sur les domaines d'interpolation */
+  /*-------------------------------------------------------*/
+  vector<E_Int> resl;  vector<char*> varString;
+  vector<FldArrayF*> fields;
+  vector<void*> a2; //ni,nj,nk ou cnt en NS
+  vector<void*> a3; //eltType en NS
+  vector<void*> a4;
+  vector<PyObject*> objs;
+  E_Boolean skipNoCoord = true; E_Boolean skipStructured = false;
+  E_Boolean skipUnstructured = false; E_Boolean skipDiffVars = true;
+  E_Int isOk = K_ARRAY::getFromArrays(donorArrays, resl, varString, fields, a2, a3, a4, objs,  
+                                      skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
+  E_Int nzones = objs.size();
+
+  if (isOk == -1)
+  {
+    RELEASESHAREDB(resr, receiverArray, fr, cnr); 
+    for (E_Int no = 0; no < nzones; no++)
+      RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);   
+    PyErr_SetString(PyExc_TypeError,
+                    "setInterpData: 2nd argument is not valid.");
+    return NULL;
+  }   
+  if (nzones == 0) 
+  {
+    RELEASESHAREDB(resr, receiverArray, fr, cnr); 
+    for (E_Int no = 0; no < nzones; no++)
+      RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);   
+    PyErr_SetString(PyExc_TypeError,
+                    "setInterpData: no valid donor zone found.");
+    return NULL;
+  }
+  for (E_Int noz = 0; noz < nzones; noz++)
+  {
+    if (resl[noz] == 2) 
+    {
+      char* eltType0 = (char*)a3[noz];
+      if (K_STRING::cmp(eltType0, "TETRA")!= 0)
+      {
+        RELEASESHAREDB(resr, receiverArray, fr, cnr); 
+        for (E_Int no = 0; no < nzones; no++)
+          RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);   
+        PyErr_SetString(PyExc_TypeError,
+                        "setInterpData: unstructured donor zones must be TETRA.");
+        return NULL;
+      }
+    }
+    else if (resl[noz] == 1) 
+    {
+      if (*(E_Int*)a2[noz]<2 || *(E_Int*)a3[noz]<2 ) 
+      {
+        RELEASESHAREDB(resr, receiverArray, fr, cnr); 
+        for (E_Int no = 0; no < nzones; no++)
+          RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);   
+        PyErr_SetString(PyExc_TypeError,
+                        "setInterpData: structured donor zones must be 3D or nk=1.");
+        return NULL;
+      }
+    }
+  }
+  E_Int nzonesS = 0; E_Int nzonesU = 0;
+  vector<E_Int> posxs; vector<E_Int> posys; vector<E_Int> poszs; vector<E_Int> poscs;
+  vector<void*> a5;
+  for (E_Int no = 0; no < nzones; no++)
+  {
+    E_Int posx = K_ARRAY::isCoordinateXPresent(varString[no]); posx++;
+    E_Int posy = K_ARRAY::isCoordinateYPresent(varString[no]); posy++;
+    E_Int posz = K_ARRAY::isCoordinateZPresent(varString[no]); posz++;
+    E_Int posc = K_ARRAY::isCellNatureField2Present(varString[no]); posc++;
+    if (a4[no] == NULL) nzonesU++;
+    else nzonesS++;
+    posxs.push_back(posx);
+    posys.push_back(posy); 
+    poszs.push_back(posz); 
+    poscs.push_back(posc); 
+    a5.push_back(NULL);// PAS DE CONNECTIVITE ELTS/ELTS VOISINS
+  }
+  if ((size_t)nzones != listOfInterpDataTypes.size())
+  {
+    RELEASESHAREDB(resr, receiverArray, fr, cnr); 
+    for (E_Int no = 0; no < nzones; no++)
+      RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);   
+    PyErr_SetString(PyExc_TypeError,
+                    "setInterpData: structured donor zones must be 3D or 2D with z=constant.");
+    return NULL;
+  }
+
+  // Liste des interpDatas
+  vector<E_Int> nis; vector<E_Int> njs; vector<E_Int> nks;
+  vector<FldArrayI*> cnt;
+  vector<K_INTERP::InterpData*> interpDatas;
+  E_Int isBuilt;
+  // creation des interpDatas
+  if (allHooks == Py_None)
+  {
+    E_Int failed = 0;
+    for (E_Int no = 0; no < nzones; no++)
+    {
+      E_Int interpdatatype = listOfInterpDataTypes[no];
+      if (interpdatatype == 1)
+      {
+        K_INTERP::InterpAdt* adt = new K_INTERP::InterpAdt(fields[no]->getSize(), 
+                                                           fields[no]->begin(posxs[no]),
+                                                           fields[no]->begin(posys[no]),
+                                                           fields[no]->begin(poszs[no]),
+                                                           a2[no], a3[no], a4[no], isBuilt);
+        if (isBuilt == 1) interpDatas.push_back(adt);
+        else failed = 1;
+      }
+      else //CART
+      {
+        if (resl[no] == 1)
+        {
+          E_Float* xt = fields[no]->begin(posxs[no]);
+          E_Float* yt = fields[no]->begin(posys[no]);
+          E_Float* zt = fields[no]->begin(poszs[no]);
+          E_Int ni = *(E_Int*)a2[no];
+          E_Int nj = *(E_Int*)a3[no];
+          E_Int nk = *(E_Int*)a4[no];
+          E_Float x0 = xt[0]; E_Float y0 = yt[0]; E_Float z0 = zt[0];
+          E_Float hi = xt[1]-xt[0];
+          E_Float hj = yt[ni]-yt[0];
+          E_Float hk = zt[ni*nj]-zt[0];
+          K_INTERP::InterpCart* interpCart = new K_INTERP::InterpCart(ni,nj,nk,hi,hj,hk,x0,y0,z0);
+          interpDatas.push_back(interpCart);
+        }
+      }
+      if (failed == 1)
+      {
+        RELEASESHAREDB(resr, receiverArray, fr, cnr); 
+        for (E_Int no = 0; no < nzones; no++)
+          RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);   
+        for (size_t noi = 0; noi < interpDatas.size(); noi++)
+          delete interpDatas[noi];
+        PyErr_SetString(PyExc_TypeError,
+                        "setInterpData: structured donor zones must be 3D or 2D with z=constant.");
+        return NULL;
+      }
+    }
+  }
+  else //hook fourni pour chq donneur
+  {
+    E_Int oki = 1;
+    if (PyList_Check(allHooks) == false) 
+    {
+      oki = 0;
+      PyErr_SetString(PyExc_TypeError, 
+                      "setInterpData: hook must be a list of hooks.");
+    }
+    E_Int nHooks = PyList_Size(allHooks);
+    E_Int nDonorZones = fields.size();
+    if (nHooks != nDonorZones) 
+    {
+      oki = 0;
+      PyErr_SetString(PyExc_TypeError,
+                      "setInterpData: size of list of hooks must be equal to the number of donor zones.");
+    }
+    //oki = K_INTERP::extractADTFromHooks(allHooks, interpDatas);
+    for (E_Int no = 0; no < nHooks; no++)
+    {
+      PyObject* hook = PyList_GetItem(allHooks,no);
+      if (hook == Py_None) //CARTESIAN
+      {
+        E_Float* xt = fields[no]->begin(posxs[no]);
+        E_Float* yt = fields[no]->begin(posys[no]);
+        E_Float* zt = fields[no]->begin(poszs[no]);
+        E_Int ni = *(E_Int*)a2[no];
+        E_Int nj = *(E_Int*)a3[no];
+        E_Int nk = *(E_Int*)a4[no];
+        E_Float x0 = xt[0]; E_Float y0 = yt[0]; E_Float z0 = zt[0];
+        E_Float hi = xt[1]-xt[0];
+        E_Float hj = yt[ni]-yt[0];
+        E_Float hk = zt[ni*nj]-zt[0];
+        K_INTERP::InterpCart* interpCart = new K_INTERP::InterpCart(ni,nj,nk,hi,hj,hk,x0,y0,z0);
+        interpDatas.push_back(interpCart);
+      }
+      else 
+      {
+#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
+      void** packet = (void**) PyCObject_AsVoidPtr(hook);
+#else
+      void** packet = (void**) PyCapsule_GetPointer(hook, NULL);
+#endif
+
+      E_Int* type = (E_Int*)packet[0];
+      if (type[0] != 1) 
+      {
+        oki = -1;
+        PyErr_SetString(PyExc_TypeError,
+                        "setInterpData: hook must define an ADT.");
+      }
+      if (type[1] != 1)   
+      {
+        oki = -1;
+        PyErr_SetString(PyExc_TypeError,
+                        "setInterpData: one ADT per hook only.");
+      }
+      interpDatas.push_back((K_INTERP::InterpAdt*)(packet[1])); 
+     }
+    }  
+    if (oki < 1) 
+    {
+      RELEASESHAREDB(resr, receiverArray, fr, cnr); 
+      for (E_Int no = 0; no < nzones; no++)
+        RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);  
+      return NULL;
+    }
+  }
+  
+   // cas seulement non structure : ncf a 4 (minimum)
+  if (nzonesU != 0)
+  {
+    if (interporder != 2) printf("Warning: setInterpData: interpolation order is 2 for tetra arrays.\n");
+    if (nzonesS == 0) ncfmax = 4;
+  }
+  /*-------------------------------------------------------*/
+  /* Calcul des coefficients d'interpolation               */
+  /*-------------------------------------------------------*/
+  E_Float* xr = fr->begin(posxr);
+  E_Float* yr = fr->begin(posyr);
+  E_Float* zr = fr->begin(poszr);
+  E_Int nbI = fr->getSize();
+
+  // Vars OpenMP
+  E_Int ths = __NUMTHREADS__;
+  
+  // Donnees d'interpolation
+  vector<FldArrayF**> listOfInterpCoefs;
+  vector<FldArrayI**> listOfDonorInd1D;
+  vector<FldArrayI**> listOfRcvInd1D;
+  vector<FldArrayI**> listOfDonorTypes;
+  vector<FldArrayI**> listOfExtrapInd1D;
+  vector<FldArrayF**> listOfEXdirs;
+  for (E_Int noz = 0; noz < nzones; noz++)
+  {
+    // Tableau par thread
+    FldArrayF** OMPlistOfInterpCoefs  = new FldArrayF* [ths];
+    FldArrayI** OMPlistOfDonorInd1D   = new FldArrayI* [ths];
+    FldArrayI** OMPlistOfRcvInd1D     = new FldArrayI* [ths];
+    FldArrayI** OMPlistOfDonorTypes   = new FldArrayI* [ths];
+    FldArrayI** OMPlistOfExtrapInd1D  = new FldArrayI* [ths];
+    FldArrayF** OMPlistOfEXdirs = NULL;
+    if (isEX == 1) OMPlistOfEXdirs = new FldArrayF* [ths];
+    for (E_Int t=0; t < ths; t++)
+    {
+      FldArrayF* donorInterpCoefs = new FldArrayF((nbI*ncfmax)/ths+ncfmax);  donorInterpCoefs->setAllValuesAtNull();
+      OMPlistOfInterpCoefs[t] = donorInterpCoefs;
+      FldArrayI* donorInd1D   = new FldArrayI((nbI*2)/ths+2);       donorInd1D->setAllValuesAt(-1);
+      OMPlistOfDonorInd1D[t]  = donorInd1D;
+      FldArrayI* rcvInd1D     = new FldArrayI(nbI/ths+1);           rcvInd1D->setAllValuesAt(-1);
+      OMPlistOfRcvInd1D[t]    = rcvInd1D;
+      FldArrayI* donorType    = new FldArrayI(nbI/ths+1);           donorType->setAllValuesAtNull();
+      OMPlistOfDonorTypes[t]  = donorType;
+      FldArrayI* extrapPoints = new FldArrayI(nbI/ths+1);           extrapPoints->setAllValuesAt(-1);
+      OMPlistOfExtrapInd1D[t] = extrapPoints;  
+      if (isEX == 1) 
+      {
+        FldArrayF* EXdirs     = new FldArrayF(nbI/ths+1);           EXdirs->setAllValuesAtNull();
+        OMPlistOfEXdirs[t]    = EXdirs;
+      }
+    }
+    listOfInterpCoefs           .push_back(OMPlistOfInterpCoefs);
+    listOfDonorInd1D            .push_back(OMPlistOfDonorInd1D);
+    listOfRcvInd1D              .push_back(OMPlistOfRcvInd1D);
+    listOfDonorTypes            .push_back(OMPlistOfDonorTypes);
+    listOfExtrapInd1D           .push_back(OMPlistOfExtrapInd1D);  
+    if (isEX == 1) {listOfEXdirs.push_back(OMPlistOfEXdirs);}
+  }
+  
+  // Listes par thread des compteurs
+  FldArrayI** OMPlistOrphanPts = new FldArrayI* [ths];
+  for (E_Int t=0; t < ths; t++)
+  {
+    FldArrayI* orphanPts = new FldArrayI(nbI/ths+1); orphanPts->setAllValuesAt(-1);
+    OMPlistOrphanPts[t]  = orphanPts;
+  }
+
+  FldArrayI** OMPlistSizeOfIndDonor1D = new FldArrayI* [nzones];
+  FldArrayI** OMPlistSizeCoefs        = new FldArrayI* [nzones];
+  FldArrayI** OMPlistUsedDomp         = new FldArrayI* [nzones];
+  FldArrayI** OMPlistNbExtraps        = new FldArrayI* [nzones];
+  for (E_Int noz = 0; noz < nzones; noz++)
+  {  
+    FldArrayI* sizeOfIndDonor1D = new FldArrayI(ths); sizeOfIndDonor1D->setAllValuesAtNull();   // un par thread
+    FldArrayI* sizeCoefs        = new FldArrayI(ths); sizeCoefs->setAllValuesAtNull();          // taille du tableau de coefficients par domaine donneur
+    FldArrayI* usedDomp         = new FldArrayI(ths); usedDomp->setAllValuesAtNull();           // nb de pts interpoles par domaine donneur
+    FldArrayI* nbExtraps        = new FldArrayI(ths); nbExtraps->setAllValuesAtNull();
+    OMPlistSizeOfIndDonor1D[noz]  = sizeOfIndDonor1D;
+    OMPlistSizeCoefs[noz]         = sizeCoefs;
+    OMPlistUsedDomp[noz]          = usedDomp;
+    OMPlistNbExtraps[noz]         = nbExtraps;
+  }
+  
+  vector<E_Int> nExtrapPts(ths, 0); // par thread
+  vector<E_Int> noOrphanPt(ths, 0);
+
+  E_Float* EXdir0 = NULL;
+  if (isEX == 1) EXdir0 = fr->begin(posdir);
+
+  #pragma omp parallel
+  {
+    // Vars privees
+    FldArrayI indi(nindi); FldArrayF cf(ncfmax);
+    FldArrayI tmpIndi(nindi); FldArrayF tmpCf(ncfmax);
+    E_Float x, y, z, vol;
+    E_Int noblk = 0;
+    short ok;
+    E_Int type, isExtrapolated;
+    E_Int th = __CURRENT_THREAD__;
+
+    #pragma omp for
+    for (E_Int ind = 0; ind < nbI; ind++)
+    {
+      x = xr[ind]; y = yr[ind]; z = zr[ind];
+      ok = K_INTERP::getInterpolationCell(
+        x, y, z, interpDatas, fields,
+        a2, a3, a4, a5, posxs, posys, poszs, poscs,
+        vol, indi, cf, tmpIndi, tmpCf, type, noblk, interpType, nature, penalty);   
+      isExtrapolated = 0;
+      // if Extrap=1, enable extrapolation
+      if (ok != 1 && enableExtrap == 1)
+      {
+        ok = K_INTERP::getExtrapolationCell(
+          x, y, z, interpDatas, fields,
+          a2, a3, a4, a5, posxs, posys, poszs, poscs,
+          vol, indi, cf, type, noblk, interpType, nature, penalty); 
+        if (noblk > 0) isExtrapolated = 1;
+      }
+      if (noblk > 0)
+      {
+        E_Int     noDonorBlk              = noblk-1;
+        E_Int&    noInterpPtForBlk        = (*OMPlistUsedDomp         [noDonorBlk]) [th]; // on met une reference car on va modifier cette valeur
+        E_Int&    sizeOfIndDonor1DForBlk  = (*OMPlistSizeOfIndDonor1D [noDonorBlk]) [th];//idem
+        E_Int&    sizecf                  = (*OMPlistSizeCoefs        [noDonorBlk]) [th];//idem
+        E_Int&    noExtrapPtForBlk        = (*OMPlistNbExtraps        [noDonorBlk]) [th]; 
+        E_Float*  donorCf                 = listOfInterpCoefs         [noDonorBlk]  [th]->begin();
+        E_Int*    donorType               = listOfDonorTypes          [noDonorBlk]  [th]->begin();
+        E_Int*    donorInd1D              = listOfDonorInd1D          [noDonorBlk]  [th]->begin();
+        E_Int*    rcvInd1D                = listOfRcvInd1D            [noDonorBlk]  [th]->begin();
+        E_Int*    extrapInd1D             = listOfExtrapInd1D         [noDonorBlk]  [th]->begin();
+        E_Float*  EXdir                   = NULL;
+
+        if (isEX == 1)  
+        {
+          EXdir                           = listOfEXdirs              [noDonorBlk]  [th]->begin();
+          EXdir[noInterpPtForBlk]         = EXdir0[ind];
+        }
+        donorType[noInterpPtForBlk] = type;         
+        rcvInd1D[noInterpPtForBlk] = ind;
+        switch (type)
+        {
+          case 1:
+            donorCf[sizecf] = cf[0];
+            sizecf += 1;
+            donorInd1D[sizeOfIndDonor1DForBlk] = indi[0];
+            sizeOfIndDonor1DForBlk++;
+            break;
+
+          case 2:          
+            for (E_Int nocf = 0; nocf < 8; nocf++)
+              donorCf[sizecf+nocf] = cf[nocf];
+            sizecf += 8;
+            donorInd1D[sizeOfIndDonor1DForBlk] = indi[0];
+            sizeOfIndDonor1DForBlk++; 
+            break;
+
+          case 22:
+            for (E_Int nocf = 0; nocf < 4; nocf++)
+              donorCf[sizecf+nocf] = cf[nocf];
+            sizecf += 4;
+            donorInd1D[sizeOfIndDonor1DForBlk] = indi[0];
+            sizeOfIndDonor1DForBlk++; 
+            break;
+
+          case 3: 
+            for (E_Int nocf = 0; nocf < 9; nocf++) 
+              donorCf[sizecf+nocf] = cf[nocf];
+            sizecf += 9;
+            donorInd1D[sizeOfIndDonor1DForBlk] = indi[0];
+            sizeOfIndDonor1DForBlk++;
+            break;
+
+          case 4:
+            if (a4[noDonorBlk] == NULL) //non structure
+            {
+              for (E_Int nocf = 0; nocf < 4; nocf++) 
+                donorCf[sizecf+nocf] = cf[nocf];
+              sizecf += 4;
+              donorInd1D[sizeOfIndDonor1DForBlk] = indi[0];
+              sizeOfIndDonor1DForBlk++;
+            }
+            else // structure
+            {
+              for (E_Int nocf = 0; nocf < 8; nocf++) 
+                donorCf[sizecf+nocf] = cf[nocf];
+              sizecf += 8;
+              donorInd1D[sizeOfIndDonor1DForBlk] = indi[0];
+              sizeOfIndDonor1DForBlk++;
+            } 
+            break;
+
+          case 5:
+            for (E_Int nocf = 0; nocf < 15; nocf++) 
+              donorCf[sizecf+nocf] = cf[nocf];
+            sizecf += 15;
+            donorInd1D[sizeOfIndDonor1DForBlk] = indi[0];
+            sizeOfIndDonor1DForBlk++;
+            break;
+
+          default:
+            //print("Error: setInterpData: type not yet implemented.\n");
+            exit(0);
+        }
+         
+        if (isExtrapolated == 1) 
+        {
+          extrapInd1D[noExtrapPtForBlk] = ind; 
+          noExtrapPtForBlk++;// = nbExtraps[noDonorBlk]++;
+          nExtrapPts[th]++;
+        }
+        noInterpPtForBlk++;
+        
+      }
+      else {(*OMPlistOrphanPts[th])[noOrphanPt[th]] = ind; noOrphanPt[th]++;}
+    }
+  }
+
+
+  // Reduction des tailles
+  FldArrayI GLOBsizeCoefs       (nzones); GLOBsizeCoefs       .setAllValuesAtNull();
+  FldArrayI GLOBusedDomp        (nzones); GLOBusedDomp        .setAllValuesAtNull();
+  FldArrayI GLOBnbExtraps       (nzones); GLOBnbExtraps       .setAllValuesAtNull();
+  FldArrayI GLOBsizeOfIndDonor1D(nzones); GLOBsizeOfIndDonor1D.setAllValuesAtNull();
+  E_Int GLOBnoOrphanPts=0;
+  for (E_Int noz = 0; noz < nzones; noz++)
+  {
+    for (E_Int t=0; t < ths; t++)
+    {
+      GLOBsizeCoefs[noz]        += (*OMPlistSizeCoefs[noz])        [t];
+      GLOBusedDomp[noz]         += (*OMPlistUsedDomp[noz])         [t];
+      GLOBnbExtraps[noz]        += (*OMPlistNbExtraps[noz])        [t];
+      GLOBsizeOfIndDonor1D[noz] += (*OMPlistSizeOfIndDonor1D[noz]) [t];
+    }
+  }
+  // taille orphans
+  for (E_Int t=0; t < ths; t++) {GLOBnoOrphanPts += noOrphanPt[t];}
+
+
+  // for (E_Int noz = 0; noz < nzones; noz++)
+  // {
+  //   printf("[setInterpData] ZONE%d :: %d ; %d ; %d ; %d ; %d\n", noz, GLOBsizeCoefs[noz], GLOBusedDomp[noz], GLOBnbExtraps[noz], GLOBsizeOfIndDonor1D[noz], GLOBnoOrphanPts);
+  // }
+
+
+  // Nettoyages
+  for (E_Int no = 0; no < nzones; no++)
+  {
+    if (allHooks == Py_None) delete interpDatas[no];
+    RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);  
+  }
+  RELEASESHAREDB(resr, receiverArray, fr, cnr); 
+  // Fin nettoyages
+
+
+  /*----------------------------------------------------------*/
+  /* Ecriture dans des objets Python retournes par la methode */
+  /*----------------------------------------------------------*/
+  // listes pour stocker les indices de cellules (receveuse et donneuses) par bloc de domaine d'interpolation correspondant
+  PyObject* PyListCellIndicesR  = PyList_New(0);
+  PyObject* PyListCellIndicesD  = PyList_New(0);
+  // liste pour stocker les coefficients d'interpolation par bloc de domaine d'interpolation correspondant
+  PyObject* PyListCoefficients  = PyList_New(0);
+  // liste pour stocker les types d interpolation par domaine d'interpolation correspondant
+  PyObject* PyListInterpTypes   = PyList_New(0);
+  // listes pour marquer les indices des cellules extrapoles
+  PyObject* PyListCellIndicesE  = PyList_New(0);
+  // listes pour marquer les EXdir (directions pour les pts EX)
+  PyObject* PyListEXDir = PyList_New(0);
+
+  // ------------------------------
+  // Construction des PyArrays
+  // ------------------------------
+  for (E_Int noz = 0; noz < nzones; noz++)
+  {  
+    // Construction des objets Python
+    PyObject* fout          = K_NUMPY::buildNumpyArray(GLOBsizeCoefs[noz],        1, 0);  // coefficients d'interpolation
+    PyObject* donorIndOut   = K_NUMPY::buildNumpyArray(GLOBsizeOfIndDonor1D[noz], 1, 1);  // donorIndices1D
+    PyObject* rcvIndOut     = K_NUMPY::buildNumpyArray(GLOBusedDomp[noz],         1, 1);  // receiverIndices1D
+    PyObject* donorTypeOut  = K_NUMPY::buildNumpyArray(GLOBusedDomp[noz],         1, 1);  // donorType
+    PyObject* cellIndE      = K_NUMPY::buildNumpyArray(GLOBnbExtraps[noz],        1, 1);  // indices des points extrapoles
+    PyObject* pyEXDir       = NULL;
+    if (isEX == 1) {pyEXDir = K_NUMPY::buildNumpyArray(GLOBusedDomp[noz],         1, 0);}
+    
+    // Pointeurs vers tableaux des objets Python
+    E_Float*  TOFILLfout          = K_NUMPY::getNumpyPtrF(fout);
+    E_Int*    TOFILLdonorIndOut   = K_NUMPY::getNumpyPtrI(donorIndOut);
+    E_Int*    TOFILLrcvIndOut     = K_NUMPY::getNumpyPtrI(rcvIndOut);
+    E_Int*    TOFILLdonorTypeOut  = K_NUMPY::getNumpyPtrI(donorTypeOut);
+    E_Int*    TOFILLcellIndE      = K_NUMPY::getNumpyPtrI(cellIndE);
+    E_Float*  TOFILLpyEXDir       = NULL;
+    if (isEX == 1) {TOFILLpyEXDir = K_NUMPY::getNumpyPtrF(pyEXDir);}
+
+    E_Int* size1 = OMPlistSizeCoefs[noz]->begin();
+    E_Int* size2 = OMPlistSizeOfIndDonor1D[noz]->begin();
+    E_Int* size3 = OMPlistUsedDomp[noz]->begin();
+    E_Int* size4 = OMPlistNbExtraps[noz]->begin();
+    E_Int* size5 = OMPlistUsedDomp[noz]->begin();
+
+    #pragma omp parallel
+    {
+
+    E_Int t = __CURRENT_THREAD__;
+    
+    E_Int offset = 0;
+    for (E_Int tl = 0; tl < t; tl++) offset += size1[tl];
+    E_Float* ptf = listOfInterpCoefs[noz][t]->begin();
+    for (E_Int i=0; i < size1[t]; i++) { TOFILLfout[offset+i] = ptf[i];}
+    
+    offset = 0;
+    for (E_Int tl = 0; tl < t; tl++) offset += size2[tl];
+    E_Int* pt = listOfDonorInd1D[noz][t]->begin();
+    for (E_Int i=0; i < size2[t]; i++) { TOFILLdonorIndOut[offset+i] = pt[i];}
+
+    offset = 0;
+    for (E_Int tl = 0; tl < t; tl++) offset += size3[tl];
+    pt = listOfRcvInd1D[noz][t]->begin();
+    for (E_Int i=0; i < size3[t]; i++) { TOFILLrcvIndOut[offset+i] = pt[i];}
+    pt = listOfDonorTypes[noz][t]->begin();
+    for (E_Int i=0; i < size3[t]; i++) { TOFILLdonorTypeOut[offset+i] = pt[i];}
+
+    offset = 0;
+    for (E_Int tl = 0; tl < t; tl++) offset += size4[tl];
+    pt = listOfExtrapInd1D[noz][t]->begin();
+    for (E_Int i=0; i < size4[t]; i++) { TOFILLcellIndE[offset+i] = pt[i];}
+    
+    if (isEX == 1)
+    {
+        offset = 0;
+        for (E_Int tl = 0; tl < t; tl++) offset += size5[tl];
+        E_Float* pt = listOfEXdirs[noz][t]->begin();
+        for (E_Int i=0; i < size5[t]; i++) { TOFILLpyEXDir[offset+i] = pt[i];}
+    }
+    }
+
+    PyList_Append(PyListCoefficients, fout);              Py_DECREF(fout);
+    PyList_Append(PyListCellIndicesD, donorIndOut);       Py_DECREF(donorIndOut);
+    PyList_Append(PyListCellIndicesR, rcvIndOut);         Py_DECREF(rcvIndOut);
+    PyList_Append(PyListInterpTypes,  donorTypeOut);      Py_DECREF(donorTypeOut);
+    PyList_Append(PyListCellIndicesE, cellIndE);          Py_DECREF(cellIndE);
+    if (isEX == 1) {PyList_Append(PyListEXDir, pyEXDir);  Py_DECREF(pyEXDir);}
+
+  } // fin parcours des zones donneuses
+
+
+  // Concatenation des orphans (NON PARALLELISEE CAR NORMALEMENT PEU d'ORPHANS)
+  PyObject* cellIndO    = K_NUMPY::buildNumpyArray(GLOBnoOrphanPts, 1, 1);  // indices des points orphelins
+  E_Int* TOFILLcellIndO = K_NUMPY::getNumpyPtrI(cellIndO);
+
+  E_Int indOrph=0;
+  E_Int j=0;
+  for (E_Int proc=0; proc < ths; proc++)
+  {
+    j=0;
+    for (E_Int i=indOrph; i < indOrph+noOrphanPt[proc]; i++)
+    {
+      TOFILLcellIndO[i] = (*OMPlistOrphanPts[proc])[j];
+      j++;
+    }
+    indOrph += noOrphanPt[proc];
+  }
+
+  PyObject* tpl = Py_BuildValue("[OOOOOOO]", PyListCellIndicesR, PyListCellIndicesD, PyListInterpTypes, PyListCoefficients,
+                                PyListCellIndicesE, cellIndO, PyListEXDir);
+  Py_DECREF(cellIndO); Py_DECREF(PyListInterpTypes); 
+  Py_DECREF(PyListCellIndicesE); Py_DECREF(PyListEXDir); 
+  Py_DECREF(PyListCoefficients); Py_DECREF(PyListCellIndicesR); 
+  Py_DECREF(PyListCellIndicesD);
+
+  // Suppression des pointeurs DATAS
+  for (E_Int noz = 0; noz < nzones; noz++)
+  {
+    for (E_Int t = 0; t < ths; t++)
+    {
+      // Suppression des pointeurs par thread
+      delete                  listOfInterpCoefs [noz][t];
+      delete                  listOfDonorInd1D  [noz][t];
+      delete                  listOfRcvInd1D    [noz][t];
+      delete                  listOfDonorTypes  [noz][t];
+      delete                  listOfExtrapInd1D [noz][t];
+      if (isEX == 1) {delete  listOfEXdirs      [noz][t];}
+    }
+    // Suppression des pointeurs par zone
+    delete []  listOfInterpCoefs [noz];
+    delete []  listOfDonorInd1D  [noz];
+    delete []  listOfRcvInd1D    [noz];
+    delete []  listOfDonorTypes  [noz];
+    delete []  listOfExtrapInd1D [noz];
+    if (isEX == 1) {delete  [] listOfEXdirs[noz];}
+  }
+
+  // Suppression des pointeurs COMPTEUR
+  for (E_Int noz = 0; noz < nzones; noz++)
+  {
+    delete OMPlistSizeOfIndDonor1D[noz];
+    delete OMPlistSizeCoefs[noz];
+    delete OMPlistUsedDomp[noz];
+    delete OMPlistNbExtraps[noz];
+  }
+  delete [] OMPlistSizeOfIndDonor1D;
+  delete [] OMPlistSizeCoefs;
+  delete [] OMPlistUsedDomp;
+  delete [] OMPlistNbExtraps;
+  
+  // Suppression des orphans points
+  for (E_Int t = 0; t < ths; t++)
+  {
+    delete OMPlistOrphanPts[t];
+  } 
+  delete [] OMPlistOrphanPts;
+
+  return tpl;
+}
+#endif
 //=============================================================================
 /* Calcule et stocke les coefficients d'interpolation 
    CAS AVEC DOUBLE WALL 
-   IN: receiverArrays: points à interpoler définis sous forme de maillage     
-                       chaque array correspond aux mêmes points mais modifiés par changeWall
+   IN: receiverArrays: points a interpoler definis sous forme de maillage     
+                       chaque array correspond aux memes points mais modifies par changeWall
                        en fonction des donneurs
    IN: donorArrays: maillages donneurs. La localisation du donneur 
-       (noeuds/centres/centres étendus) doit être effectuée au préalable
-   !!  receiverArrays et donorArrays doivent être ordonnés de la même manière
+       (noeuds/centres/centres etendus) doit etre effectuee au prealable
+   !!  receiverArrays et donorArrays doivent etre ordonnes de la meme maniere
    IN: Order: ordre des interpolations (2, 3, 5)
    IN: Nature: 0: produit des cellN=0 -> donneur invalide; 
                1: cellN=0 ou 2 -> donneur invalide
-   IN: PenaliseBorders: 1: penalité sur le volume des pts ou cellules frontières
-   IN: hook != Py_None: hook sur les adt associés à donorArrays 
+   IN: PenaliseBorders: 1: penalite sur le volume des pts ou cellules frontieres
+   IN: hook != Py_None: hook sur les adt associes a donorArrays 
    OUT: [donorBlks,donorInd1D, donorType, coefs, extrapInd1D, orphanInd1D] 
-        donorBlks: no du blk donneur, démarre à 0
+        donorBlks: no du blk donneur, demarre a 0
         donorInd1D: indice global (structure), de l elt (NS) du donneur
-        donorType: type d interpolation effectué localement
-        coefs: coefficients d interpolation, stockés selon le type
-        extrapInd1D: indices des pts extrapolés
+        donorType: type d interpolation effectue localement
+        coefs: coefficients d interpolation, stockes selon le type
+        extrapInd1D: indices des pts extrapoles
         orphanInd1D: indices des pts orphelins */
 //=============================================================================
 PyObject* K_CONNECTOR::setInterpDataDW(PyObject* self, PyObject* args)
@@ -566,8 +1320,7 @@ PyObject* K_CONNECTOR::setInterpDataDW(PyObject* self, PyObject* args)
   E_Int PenalizeBorders;
   PyObject* hook;
 
-  if (!PYPARSETUPLEI(args,
-                    "OOlllO", "OOiiiO",
+  if (!PYPARSETUPLE_(args, OO_ III_ O_,
                     &receiverArrays, &donorArrays, &Order, &Nature, &PenalizeBorders, &hook))
   {
       return NULL;
@@ -576,31 +1329,31 @@ PyObject* K_CONNECTOR::setInterpDataDW(PyObject* self, PyObject* args)
   // ordre des interpolations
   E_Int interporder = Order;
   E_Int nature = Nature; // O: produit des cellN=0 -> donneur invalide; 1: cellN=0 ou 2 -> donneur invalide
-  E_Int penalty = PenalizeBorders;//1 : penalité sur le volume des pts ou cellules frontieres
+  E_Int penalty = PenalizeBorders;//1 : penalite sur le volume des pts ou cellules frontieres
   // Interpolation type
-  K_INTERP::InterpAdt::InterpolationType interpType;
+  K_INTERP::InterpData::InterpolationType interpType;
   E_Int nindi, ncfmax;
   switch (interporder)
   {
     case 2:
-      interpType = K_INTERP::InterpAdt::O2CF;
+      interpType = K_INTERP::InterpData::O2CF;
       ncfmax = 8; nindi = 1;
       break;
 
     case 3:
-      interpType = K_INTERP::InterpAdt::O3ABC;
+      interpType = K_INTERP::InterpData::O3ABC;
       ncfmax = 9; nindi = 1;
       break;
 
     case 5:
-      interpType = K_INTERP::InterpAdt::O5ABC;
+      interpType = K_INTERP::InterpData::O5ABC;
       ncfmax = 15; nindi = 1;
       break;
 
     default:
       printf("Warning: setInterpDataDW: unknown interpolation order.");
       printf(" Set to 2nd order.\n");
-      interpType = K_INTERP::InterpAdt::O2CF;
+      interpType = K_INTERP::InterpData::O2CF;
       ncfmax = 8; nindi = 1;
       break;
   } 
@@ -733,7 +1486,7 @@ PyObject* K_CONNECTOR::setInterpDataDW(PyObject* self, PyObject* args)
   // Liste des interpDatas
   vector<E_Int> nis; vector<E_Int> njs; vector<E_Int> nks;
   vector<FldArrayI*> cnt;
-  vector<K_INTERP::InterpAdt*> interpDatas;
+  vector<K_INTERP::InterpData*> interpDatas;
   E_Int isBuilt;
   // creation des interpDatas
   if (hook == Py_None)
@@ -816,7 +1569,7 @@ PyObject* K_CONNECTOR::setInterpDataDW(PyObject* self, PyObject* args)
   FldArrayI usedDomp(nzones); usedDomp.setAllValuesAtNull();//nb de pts interpoles par domaine donneur
   FldArrayI sizeCoefs(nzones); sizeCoefs.setAllValuesAtNull();// taille du tableau de coefficients par domaine donneur
   FldArrayI nbExtraps(nzones); nbExtraps.setAllValuesAtNull();
-  // pour l instant un seul indice 1D est stocke par pt interpole, donc pas besoin de specifier la taille de donorInd1D par zoneD  
+  // pour l'instant un seul indice 1D est stocke par pt interpole, donc pas besoin de specifier la taille de donorInd1D par zoneD  
   E_Int noblk = 0;
   vector<E_Float> xt(nzones); vector<E_Float> yt(nzones); vector<E_Float> zt(nzones);
   E_Float* EXdir0 = NULL;

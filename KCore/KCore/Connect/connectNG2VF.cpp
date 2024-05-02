@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -32,22 +32,24 @@ using namespace std;
 //=============================================================================
 void K_CONNECT::connectNG2VF(FldArrayI& cNG, vector< vector<E_Int> >& cVF)
 {
-  E_Int* cnp = cNG.begin();
-  E_Int nfaces = cnp[0];
-  E_Int* cFV = cnp+2; 
+  // Acces non universel sur le ptrs
+  E_Int* ngon = cNG.getNGon();
+  E_Int* indPG = cNG.getIndPG();
+  // Acces universel nbre de faces
+  E_Int nfaces = cNG.getNFaces();
+  
   E_Int nvert, node;
-
   for (E_Int nof = 0; nof < nfaces; nof++)
   {
-    nvert = cFV[0];
-
-    for (E_Int nov = 1; nov <= nvert; nov++)
+    // Acces universel face nof
+    E_Int* face = cNG.getFace(nof, nvert, ngon, indPG);
+    for (E_Int nov = 0; nov < nvert; nov++)
     {
-      node = cFV[nov]-1;
+      node = face[nov]-1;
       cVF[node].push_back(nof+1);
     }
-    cFV+= nvert+1;
   }
+  
   vector<E_Int>::iterator it;  
   for (unsigned int nov = 0; nov < cVF.size(); nov++)
   {
@@ -56,4 +58,3 @@ void K_CONNECT::connectNG2VF(FldArrayI& cNG, vector< vector<E_Int> >& cVF)
     cVF[nov].resize( it - cVF[nov].begin() );
   }
 }
-

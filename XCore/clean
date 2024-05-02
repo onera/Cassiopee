@@ -1,0 +1,2 @@
+rm -fr build
+rm XCore/paradigma/Cython/Pypdm.cpp

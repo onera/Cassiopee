@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -38,9 +38,7 @@ PyObject* K_GENERATOR::cartHexa(PyObject* self,  PyObject* args)
   E_Float xo, yo, zo;
   E_Float hi, hj, hk;
   E_Int api = 1;
-  if (!PYPARSETUPLE(args, 
-                    "(ddd)(ddd)(lll)l", "(ddd)(ddd)(iii)i", 
-                    "(fff)(fff)(lll)l", "(fff)(fff)(iii)i",
+  if (!PYPARSETUPLE_(args, TRRR_ TRRR_ TIII_ I_, 
                     &xo, &yo, &zo, &hi, &hj, &hk, &ni, &nj, &nk, &api))
   {
     return NULL;
@@ -73,7 +71,6 @@ PyObject* K_GENERATOR::cartHexa(PyObject* self,  PyObject* args)
   }
 
   // Create cartesian mesh
-  E_Int i, j, k, ind;
   E_Int ninj = ni*nj; E_Int npts = ninj*nk;
   E_Int ni1 = E_max(1, E_Int(ni)-1);
   E_Int nj1 = E_max(1, E_Int(nj)-1);
@@ -85,168 +82,144 @@ PyObject* K_GENERATOR::cartHexa(PyObject* self,  PyObject* args)
   else if (dim0 == 2) { strcpy(eltType, "QUAD"); }
   else { strcpy(eltType, "HEXA"); }
 
-  PyObject* tpl = K_ARRAY::buildArray2(3, "x,y,z", npts, ncells, -1, eltType, 0, 0, 0, 0, api);
+  PyObject* tpl = K_ARRAY::buildArray3(3, "x,y,z", npts, ncells, eltType, false, api);
   K_FLD::FldArrayF* f; K_FLD::FldArrayI* cn;
-  char* varString; char*eltType2;
-  K_ARRAY::getFromArray2(tpl, varString, f, ni, nj, nk, cn, eltType2);
-  E_Int stride = cn->getStride();
+  K_ARRAY::getFromArray3(tpl, f, cn);
 
+  K_FLD::FldArrayI& cm = *(cn->getConnect(0));
   E_Float* xt = f->begin(1);
   E_Float* yt = f->begin(2);
   E_Float* zt = f->begin(3);
 
-#pragma omp parallel for default(shared) private(k,j,i,ind)
-  for (ind = 0; ind < npts; ind++)
+  // Build the unstructured mesh (BE connectivity and fields)
+#pragma omp parallel if (ncells > __MIN_SIZE_MEAN__)
   {
-    k = ind/ninj;
-    j = (ind-k*ninj)/ni;
-    i = ind-j*ni-k*ninj;
-    xt[ind] = xo + i * hi;
-    yt[ind] = yo + j * hj;
-    zt[ind] = zo + k * hk;
-  } 
-
-  // Build the unstructured mesh
-  E_Int ind1, ind2, ind3, ind4;
-  E_Int c = 0;
-  E_Int* cn1 = NULL;
-  E_Int* cn2 = NULL;
-  E_Int* cn3 = NULL;
-  E_Int* cn4 = NULL;
-  E_Int* cn5 = NULL;
-  E_Int* cn6 = NULL;
-  E_Int* cn7 = NULL;
-  E_Int* cn8 = NULL;
-
-  switch (dim0)
-  {
-    case 1:
-    cn1 = cn->begin(1);
-    cn2 = cn->begin(2);
-   
-    if (nk1 == 1 && nj1 == 1)
+    E_Int i, j, k, c;
+    E_Int ind1, ind2, ind3, ind4;
+#pragma omp for
+    for (E_Int ind = 0; ind < npts; ind++)
     {
-      for (E_Int i = 0; i < ni1; i++)
+      k = ind/ninj;
+      j = (ind-k*ninj)/ni;
+      i = ind-j*ni-k*ninj;
+      xt[ind] = xo + i * hi;
+      yt[ind] = yo + j * hj;
+      zt[ind] = zo + k * hk;
+    } 
+  
+    if (dim0 == 1)
+    {
+      if (nk1 == 1 && nj1 == 1)
       {
-        cn1[c] = i+1;
-        cn2[c] = i+2;
-        c += stride;
+#pragma omp for
+        for (E_Int i = 0; i < ni1; i++)
+        {
+          cm(i,1) = i+1;
+          cm(i,2) = i+2;
+        }
+      }
+      else if (ni1 == 1 && nj1 == 1)
+      {
+#pragma omp for
+        for (E_Int k = 0; k < nk1; k++)
+        {
+          ind1 = k*ni*nj + 1;
+          ind2 = ind1 + ni*nj;
+          cm(k,1) = ind1;
+          cm(k,2) = ind2;
+        }
+      }
+      else if (ni1 == 1 && nk1 == 1)
+      {
+#pragma omp for
+        for (E_Int j = 0; j < nj1; j++)
+        {
+          ind1 = j*ni + 1;
+          ind2 = ind1 + ni;
+          cm(j,1) = ind1;
+          cm(j,2) = ind2;
+        }
       }
     }
-    else if (ni1 == 1 && nj1 == 1)
+    else if (dim0 == 2)
     {
-      for (E_Int k = 0; k < nk1; k++)
-      {
-        ind1 = k*ni*nj + 1;
-        ind2 = ind1 + ni*nj;
-        cn1[c] = ind1;
-        cn2[c] = ind2;
-        c += stride;
-      }
-    }
-    else if (ni1 == 1 && nk1 == 1)
-    {
-      for (E_Int j = 0; j < nj1; j++)
-      {
-        ind1 = j*ni + 1;
-        ind2 = ind1 + ni;
-        cn1[c] = ind1;
-        cn2[c] = ind2;
-        c += stride;
-      }
-    }
-    break;
-    
-    case 2:
-      cn1 = cn->begin(1);
-      cn2 = cn->begin(2);
-      cn3 = cn->begin(3);
-      cn4 = cn->begin(4);
-      cn->setAllValuesAtNull();
       if (nk1 == 1)
       {
+#pragma omp for
         for (E_Int j = 0; j < nj1; j++)
           for (E_Int i = 0; i < ni1; i++)
           {
             //starts from 1
             ind1 = i + j*ni + 1; //(i,j,1)
-            ind2 = ind1 + 1;  //(i+1,j,1)
-            ind3 = ind2 + ni; //(i+1,j+1,1)
-            ind4 = ind3 - 1; //(i,j+1,1)
-            
-            cn1[c] = ind1;
-            cn2[c] = ind2;
-            cn3[c] = ind3;
-            cn4[c] = ind4;
-            c += stride;
+            ind2 = ind1 + 1;     //(i+1,j,1)
+            ind3 = ind2 + ni;    //(i+1,j+1,1)
+            ind4 = ind3 - 1;     //(i,j+1,1)
+            c = j*ni1 + i;
+            cm(c,1) = ind1;
+            cm(c,2) = ind2;
+            cm(c,3) = ind3;
+            cm(c,4) = ind4;
           }
-          //for (E_Int i = 0; i < ni1*nj1; i=i+4) printf("%d %d %d %d\n", cn1[i], cn1[i+1], cn1[i+2], cn1[i+3]);
       }
       else if (nj1 == 1)
       {
+#pragma omp for
         for (E_Int k = 0; k < nk1; k++)
           for (E_Int i = 0; i < ni1; i++)
           {
             ind1 = i + k*ninj + 1;  //(i,1,k)
-            ind2 = ind1 + ninj; //(i,1,k+1)
-            ind3 = ind2 + 1;    //(i+1,1,k+1)
-            ind4 = ind3 - 1;    //(i,1,k+1)
-            
-            cn1[c] = ind1;
-            cn2[c] = ind2;
-            cn3[c] = ind3;
-            cn4[c] = ind4;
-            c += stride;         
+            ind2 = ind1 + ninj;     //(i,1,k+1)
+            ind3 = ind2 + 1;        //(i+1,1,k+1)
+            ind4 = ind3 - 1;        //(i,1,k+1)
+            c = k*ni1 + i;
+            cm(c,1) = ind1;
+            cm(c,2) = ind2;
+            cm(c,3) = ind3;
+            cm(c,4) = ind4;
           }
       }
       else // ni1 = 1 
       {
+#pragma omp for
         for (E_Int j = 0; j < nj1; j++)
           for (E_Int k = 0; k < nk1; k++)
           {
             ind1 = 1 + j*ni + k*ninj; //(1,j,k)
-            ind2 = ind1 + ni;  //(1,j+1,k)
-            ind3 = ind2 + ninj;//(1,j+1,k+1)
-            ind4 = ind3 - ni;   //(1,j,k+1)
-            
-            cn1[c] = ind1;
-            cn2[c] = ind2;
-            cn3[c] = ind3;
-            cn4[c] = ind4;
-            c += stride;
+            ind2 = ind1 + ni;         //(1,j+1,k)
+            ind3 = ind2 + ninj;       //(1,j+1,k+1)
+            ind4 = ind3 - ni;         //(1,j,k+1)
+            c = j*nk1 + k;
+            cm(c,1) = ind1;
+            cm(c,2) = ind2;
+            cm(c,3) = ind3;
+            cm(c,4) = ind4;
           }
       }// ni1 = 1
-      break;
-
-    default: //3
-      cn1 = cn->begin(1);
-      cn2 = cn->begin(2);
-      cn3 = cn->begin(3);
-      cn4 = cn->begin(4);
-      cn5 = cn->begin(5);
-      cn6 = cn->begin(6);
-      cn7 = cn->begin(7);
-      cn8 = cn->begin(8);
+    }
+    else
+    {
+#pragma omp for
       for(E_Int k = 0; k < nk1; k++)
         for (E_Int j = 0; j < nj1; j++)
           for (E_Int i = 0; i < ni1; i++)
           {
             ind1 = 1 + i + j*ni + k*ninj; //(i,j,k)
-            ind2 = ind1 + 1; // (i+1,j,k)
-            ind3 = ind2 + ni; // (i+1,j+1,k)
-            ind4 = ind3 -1; // (i,j+1,k)
-            cn1[c] = ind1;
-            cn2[c] = ind2;
-            cn3[c] = ind3;
-            cn4[c] = ind4;
-            cn5[c] = ind1 + ninj;
-            cn6[c] = ind2 + ninj;
-            cn7[c] = ind3 + ninj;
-            cn8[c] = ind4 + ninj;
-            c += stride;
+            ind2 = ind1 + 1;              // (i+1,j,k)
+            ind3 = ind2 + ni;             // (i+1,j+1,k)
+            ind4 = ind3 -1;               // (i,j+1,k)
+            c = (k*nj1 + j)*ni1 + i;
+            cm(c,1) = ind1;
+            cm(c,2) = ind2;
+            cm(c,3) = ind3;
+            cm(c,4) = ind4;
+            cm(c,5) = ind1 + ninj;
+            cm(c,6) = ind2 + ninj;
+            cm(c,7) = ind3 + ninj;
+            cm(c,8) = ind4 + ninj;
           }
-      break;
+    }
   }
+
   RELEASESHAREDU(tpl, f, cn);
   return tpl;
 }

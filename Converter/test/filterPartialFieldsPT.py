@@ -14,7 +14,7 @@ f2 = Converter.initVars(f2,'F=-10.')
 f2 = Converter.initVars(f2,'G=0.1')
 
 inds = numpy.array([0,1,2], dtype=numpy.int32)
-print inds
+print(inds)
 C._filterPartialFields(a, [f1,f2], inds, loc='nodes',filterName='G')
 t = C.newPyTree(['Base',a])
 C.convertPyTree2File(t, 'out.cgns')

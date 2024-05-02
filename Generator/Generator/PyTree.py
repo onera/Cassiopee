@@ -1,17 +1,15 @@
 """Grid generation module.
 """
-# 
-# Python Interface to create PyTrees defining meshes
-#
-import Generator
-import generator
+from . import Generator
+from . import generator
 __version__ = Generator.__version__
+import numpy
 
 try:
     import Converter.PyTree as C
     import Converter.Internal as Internal
     import Converter
-except:
+except ImportError:
     raise ImportError("Generator.PyTree: requires Converter.PyTree module.")
 
 def cart(Xo, H, N):
@@ -19,6 +17,19 @@ def cart(Xo, H, N):
     Usage: cart((xo,yo,zo), (hi,hj,hk), (ni,nj,nk))"""
     a = generator.cart(Xo, H, N, 2)
     return C.convertArrays2ZoneNode('cart', [a])
+
+def cartr1(Xo, H, R, N, doubleLeft=(0,0,0), doubleRight=(0,0,0)):
+    """Create a structured cartesian mesh with geometric distribution.
+    Usage: cartr1((xo,yo,zo), (hi,hj,hk), (ri,rj,rk), (ni,nj,nk))"""
+    a = generator.cartr1(Xo, H, R, N, doubleLeft, doubleRight, 2)
+    return C.convertArrays2ZoneNode('cartr1', [a])
+
+def cartr2(Xo, H, R, Xf, doubleLeft=(0,0,0), doubleRight=(0,0,0), skeleton=False):
+    """Create a structured cartesian mesh with geometric distribution fixing last point. 
+    Usage: cartr2((xo,yo,zo), (hi,hj,hk), (ri,rj,rk), (xf,yf,zf))"""
+    a = generator.cartr2(Xo, H, R, Xf, doubleLeft, doubleRight, 2, skeleton)
+    if skeleton: return a
+    return C.convertArrays2ZoneNode('cartr2', [a])
 
 def cartHexa(Xo, H, N):
     """Create a hexahedral cartesian mesh.
@@ -44,27 +55,53 @@ def cartPyra(Xo, H, N):
     a = generator.cartPyra(Xo, H, N, 2)
     return C.convertArrays2ZoneNode('cartPyra', [a])
 
-def cartNGon(Xo, H, N):
+def cartNGon(Xo, H, N, api=2):
     """Create a NGON cartesian mesh.
     Usage: cartNGon((xo,yo,zo), (hi,hj,hk), (ni,nj,nk))"""
-    a = generator.cartNGon(Xo, H, N, 2)
+    a = generator.cartNGon(Xo, H, N, api)
     return C.convertArrays2ZoneNode('cartNGon', [a])
+
+def cartRx(X0, H, N, Nb, depth=0, addCellN=False, addBCMatch=False, rank=None, size=None):
+    """Create a set of regular cartesian grids."""
+    from . import CartGen
+    return CartGen.cartRx(X0, H, N, Nb, depth, addCellN, addBCMatch, rank, size)
+
+def _cartRxRefit(a):
+    """Refit a cartRx to cartesian after addGhostCells."""
+    from . import CartGen
+    return CartGen._cartRxRefit(a)
+
+def cartRx2(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None):
+    """Create a set of regular and geometric cartesian grids."""
+    from . import CartGen
+    return CartGen.cartRx2(XC0, XC1, HC, XF0, XF1, R, dim, rank, size)
+
+def cartRx3(XC0, XC1, HC, XF0, XF1, R, dim=3, rank=None, size=None):
+    """Create a set of regular and geometric cartesian grids with double steps."""
+    from . import CartGen
+    return CartGen.cartRx3(XC0, XC1, HC, XF0, XF1, R, dim, rank, size)
+
+def cartRxHollow(XC0, XC1, HC, XH0, XH1, XF0, XF1, R, dim=3, rank=None, size=None):
+    """Create a set of regular and geometric cartesian grids with double steps and a hole inside the cartesian region."""
+    from . import CartGen
+    return CartGen.cartRxHollow(XC0, XC1, HC, XH0, XH1, XF0, XF1, R, dim, rank, size)
 
 #------------------------------------------------------------------------------
 # Generation d'un quadtree en 2D ou octree en 3D a partir d'une liste
 # de contours ou surfaces
 #------------------------------------------------------------------------------
-def octree(surfaces, snearList, dfar=5., balancing=0, levelMax=1000, ratio=2, octant=None):
+def octree(surfaces, snearList=[], dfarList=[], dfar=-1., balancing=0, levelMax=1000, ratio=2, octant=None, dfarDir=0, mode=0):
     """Generate an octree (or a quadtree) mesh starting from a list of TRI
     (or BAR) arrays defining bodies, a list of corresponding snears,
     and the extension dfar of the mesh.
-    Usage: octree(surfaces, snearList, dfar, balancing, levelMax, ratio)"""
-    stlArrays = C.getFields(Internal.__GridCoordinates__, surfaces)
-    stlArrays = Converter.convertArray2Tetra(stlArrays)
-    a = Generator.octree(stlArrays, snearList, dfar, balancing, levelMax, ratio, octant)
+    Usage: octree(surfaces, snearList, dfarList, dfar, balancing, levelMax, ratio)"""
+    surfaces = C.convertArray2Tetra(surfaces)
+    stlArrays = C.getFields(Internal.__GridCoordinates__, surfaces, api=2)
+    #stlArrays = Converter.convertArray2Tetra(stlArrays)
+    a = Generator.octree(stlArrays, snearList, dfarList, dfar, balancing, levelMax, ratio, octant, dfarDir, mode)
     return C.convertArrays2ZoneNode('octree', [a])
 
-#==============================================================================
+#------------------------------------------------------------------------------
 def conformOctree3(o):
     """Conformize an octree3.
     Usage: conformOctree3(octree)"""
@@ -78,11 +115,12 @@ def conformOctree3(o):
 def conformUnstr(surface1, surface2=None, tol=0., left_or_right=0):
     """Conformizes a TRI or BAR soup (surface1) with taking into account surface2 if it's provided.
     Usage: conformUnstr(s1, s2, tol)"""
+    import Intersector
     s1 = C.getFields(Internal.__GridCoordinates__, surface1)[0]
     if surface2 is not None:
         s2 = C.getFields(Internal.__GridCoordinates__, surface2)[0]
     else: s2 = None
-    s = Generator.conformUnstr(s1, s2, tol, left_or_right)
+    s = Intersector.conformUnstr(s1, s2, tol, left_or_right)
     return C.convertArrays2ZoneNode('conformized', [s])
 
 #------------------------------------------------------------------------------
@@ -100,28 +138,38 @@ def octree2Struct(o, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
     Usage: octree2Struct(a, vmin, ext, optimized, merged, AMR)"""
     if ext == 1: ext = 2
     dim = Internal.getZoneDim(o)
-    if (dim[0] != 'Unstructured'): raise ValueError("octree2Struct: zone must be unstructured.")
-    if (dim[3] == 'QUAD'): dimPb = 2
-    elif (dim[3] == 'HEXA'): dimPb = 3
+    if dim[0] != 'Unstructured': raise ValueError("octree2Struct: zone must be unstructured.")
+    if dim[3] == 'QUAD': dimPb = 2
+    elif dim[3] == 'HEXA': dimPb = 3
     else: raise ValueError("octree2Struct: zone must be QUAD or HEXA.")
+    if optimized != 1 and optimized != 0:
+        print('Warning: octree2Struct: optimized must be 0 or 1. Set to 1.')
+        optimized = 1
 
     eps = 1.e-6
     a = C.getFields(Internal.__GridCoordinates__, o)[0]
 
-    # Conversion en structure
+    # Conversion en structure (extension faites plus tard)
     cartzones = Generator.octree2Struct(a, vmin, ext, optimized, merged,
                                         AMR, sizeMax)
-    
     # Creation des zones du pyTree
     c = 1; zones = []
     for mc in cartzones:
         zone = C.convertArrays2ZoneNode('cart'+str(c), [mc])        
         zones.append(zone); c += 1
+
+    cartzones = None
+    # Extension des grilles
+    #if ext > 0:
+    #    coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
+    #    coords = Generator.extendOctreeGrids__(coords, ext=ext, optimized=optimized)
+    #    C.setFields(coords, zones, 'nodes')
+
     if AMR == 1: return zones
     if ext == 0:
         try: import Connector.PyTree as X
-        except: 
-            print 'Warning: octree2Struct requires Connector module. No grid connectivity built.'
+        except ImportError: 
+            print('Warning: octree2Struct requires Connector module. No grid connectivity built.')
             return zones
         
         if dimPb == 3: ratios = [[2,2,2],[4,4,4],[8,8,8],[16,16,16]]
@@ -130,27 +178,48 @@ def octree2Struct(o, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
         for ratio0 in ratios:
             zones = X.connectNearMatch(zones,ratio=ratio0,dim=dimPb)
         return zones 
-    else:
+    else:        
         #-----------------------
         # Creation des BCOverlap
         #-----------------------
         # determination de la bounding box de la grille
-        bbox0 = bbox(zones)
-        xmin = bbox0[0]; ymin = bbox0[1]; zmin = bbox0[2]
-        xmax = bbox0[3]; ymax = bbox0[4]; zmax = bbox0[5]
-        noz = 0
+        xmin = 1.e12; ymin = xmin; zmin = xmin
+        xmax =-xmin;  ymax =-ymin; zmax =-zmin
         for z in zones:
-            [x1,y1,z1,x2,y2,z2] = bbox(z)
-            if x1 > xmin+eps: z=C.addBC2Zone(z,'overlap1','BCOverlap','imin')
-            if x2 < xmax-eps: z=C.addBC2Zone(z,'overlap2','BCOverlap','imax')
-            if y1 > ymin+eps: z=C.addBC2Zone(z,'overlap3','BCOverlap','jmin')
-            if y2 < ymax-eps: z=C.addBC2Zone(z,'overlap4','BCOverlap','jmax')
-            if z1 > zmin+eps: z=C.addBC2Zone(z,'overlap5','BCOverlap','kmin')
-            if z2 < zmax-eps: z=C.addBC2Zone(z,'overlap6','BCOverlap','kmax')
-            zones[noz] = z; noz += 1
+            x1 = C.getValue(z,'CoordinateX',0)
+            y1 = C.getValue(z,'CoordinateY',0)
+            z1 = C.getValue(z,'CoordinateZ',0)
+            dimZ = Internal.getZoneDim(z)
+            ni = dimZ[1]; nj = dimZ[2]; nk = dimZ[3]
+            ind = ni-1 + (nj-1)*ni+(nk-1)*ni*nj
+            x2 = C.getValue(z,'CoordinateX',ind)
+            y2 = C.getValue(z,'CoordinateY',ind)
+            z2 = C.getValue(z,'CoordinateZ',ind) 
+            xmin = min(xmin,x1); xmax = max(xmax,x2)
+            ymin = min(ymin,y1); ymax = max(ymax,y2)
+            zmin = min(zmin,z1); zmax = max(zmax,z2)
+
+        for z in zones:
+            x1 = C.getValue(z,'CoordinateX',0)
+            y1 = C.getValue(z,'CoordinateY',0)
+            z1 = C.getValue(z,'CoordinateZ',0)
+            dimZ = Internal.getZoneDim(z)
+            ni = dimZ[1]; nj = dimZ[2]; nk = dimZ[3]
+            ind = ni-1 + (nj-1)*ni+(nk-1)*ni*nj
+            x2 = C.getValue(z,'CoordinateX',ind)
+            y2 = C.getValue(z,'CoordinateY',ind)
+            z2 = C.getValue(z,'CoordinateZ',ind)
+
+            #[x1,y1,z1,x2,y2,z2] = bbox(z)
+            if x1 > xmin+eps: C._addBC2Zone(z,'overlap1','BCOverlap','imin')
+            if x2 < xmax-eps: C._addBC2Zone(z,'overlap2','BCOverlap','imax')
+            if y1 > ymin+eps: C._addBC2Zone(z,'overlap3','BCOverlap','jmin')
+            if y2 < ymax-eps: C._addBC2Zone(z,'overlap4','BCOverlap','jmax')
+            if z1 > zmin+eps: C._addBC2Zone(z,'overlap5','BCOverlap','kmin')
+            if z2 < zmax-eps: C._addBC2Zone(z,'overlap6','BCOverlap','kmax')
     return zones
 
-def _adaptOctree(a,indicator="indicator",balancing=1,ratio=2):
+def _adaptOctree(a, indicator="indicator", balancing=1, ratio=2):
     indicator = indicator.split(':')
     if len(indicator) == 2: indicator = indicator[1]
     else: indicator = indicator[0]
@@ -159,31 +228,42 @@ def _adaptOctree(a,indicator="indicator",balancing=1,ratio=2):
     indic = C.getFields(Internal.__FlowSolutionCenters__,zones)
     indic = Converter.extractVars(indic, [indicator])
     C._deleteFlowSolutions__(a)
-    for noz in xrange(len(zones)):        
+    for noz, z in enumerate(zones):        
         res = Generator.adaptOctree(hexa[noz], indic[noz], balancing, ratio)
-        C.setFields([res],zones[noz],'nodes',writeDim=True)
+        C.setFields([res], zones[noz], 'nodes', writeDim=True)
     return None
 
 def adaptOctree(a, indicator='indicator', balancing=1, ratio=2):
     """Adapt the octree with respect to the field 'indicator' located at centers.
     Usage: adaptOctree(a, indicator, balancing, ratio)"""
     tp = Internal.copyRef(a)
-    _adaptOctree(tp,indicator=indicator,balancing=balancing,ratio=ratio)
+    _adaptOctree(tp, indicator=indicator, balancing=balancing, ratio=ratio)
     return tp
 
 def expandLayer(o, level=0, corners=0, balancing=0):
     """Expand layer of level l of an unstructured quadtree/octree.
-    Usage: expandLayer(o,level,corners,balancing)"""
+    Usage: expandLayer(o, level, corners, balancing)"""
     tp = Internal.copyRef(o)
-    _expandLayer(tp,level=level,corners=corners,balancing=balancing)
+    _expandLayer(tp, level=level, corners=corners, balancing=balancing)
     return tp
 
 def _expandLayer(o, level=0, corners=0, balancing=0):
+    """Expand layer of level l of an unstructured quadtree/octree."""
     zones = Internal.getZones(o)
     hexa = C.getFields(Internal.__GridCoordinates__,zones)
-    for noz in xrange(len(zones)):
+    for noz, z in enumerate(zones):
         res = Generator.expandLayer(hexa[noz], level, corners, balancing)
-        C.setFields([res],zones[noz],'nodes',writeDim=True)
+        C.setFields([res], z, 'nodes', writeDim=True)
+    return None
+
+def _forceMatch(z1, z2=None, P1=None, P2=None, C1=None, C2=None, tol=-1):
+    a1 = C.getFields(Internal.__GridCoordinates__, z1)[0]; a2 = None
+    if z2 is not None: a2 = C.getFields(Internal.__GridCoordinates__, z2)[0]
+    if C1 is not None: C1 = C.getFields(Internal.__GridCoordinates__, C1)[0]
+    if C2 is not None: C2 = C.getFields(Internal.__GridCoordinates__, C2)[0]
+    Generator._forceMatch(a1, a2, P1, P2, C1, C2, tol)
+    C.setFields([a1], z1, 'nodes', writeDim=False)
+    if z2 is not None: C.setFields([a2], z2, 'nodes', writeDim=False)
     return None
 
 def cylinder(Xo, R1, R2, tetas, tetae, H, N):
@@ -214,22 +294,22 @@ def delaunay(a, tol=1.e-10, keepBB=0):
     """Create a delaunay mesh given a set of points defined by array.
     Usage: delaunay(mesh, tol, keepBB)"""
     contour = C.deleteFlowSolutions__(a, 'centers')
-    return C.TZGC(contour, 'nodes', Generator.delaunay, tol, keepBB)
+    return C.TZGC1(contour, 'nodes', True, Generator.delaunay, tol, keepBB)
 
 def checkDelaunay(contour, tri):
     """Check if the Delaunay triangulation defined by tri is inside the contour.
     Usage: checkDelaunay(contour, tri)"""
     contour = C.deleteFlowSolutions__(contour, 'centers')
     tria = C.getFields(Internal.__GridCoordinates__, tri)[0]
-    return C.TZA(contour, 'nodes', 'nodes',
-                 Generator.checkDelaunay, None, tria)
+    return C.TZA1(contour, 'nodes', 'nodes', True,
+                  Generator.checkDelaunay, tria)
 
 def constrainedDelaunay(contour, tol=1.e-10, keepBB=0):
     """Create a constrained-Delaunay mesh starting from a BAR-array defining
     the contour.
     Usage: constrainedDelaunay( contour, tol, keepBB )"""
     contour = C.deleteFlowSolutions__(contour, 'centers')
-    return C.TZGC(contour, 'nodes',
+    return C.TZGC1(contour, 'nodes', True,
                   Generator.constrainedDelaunay, tol, keepBB)
 
 def plaster(contours, surfaces, side=0):
@@ -241,26 +321,29 @@ def plaster(contours, surfaces, side=0):
     return C.convertArrays2ZoneNode('plaster', [pa])
 
 def fittingPlaster(contour, bumpFactor=0.):
-    """Create a sticky plaster around a contour and pump it.
+    """Create a sticky plaster around a contour and bump it.
     Usage: plaster(contour, bumpFactor)"""
     c = C.getAllFields(contour, 'nodes')[0]
     pa = Generator.fittingPlaster(c, bumpFactor)
     return C.convertArrays2ZoneNode('plaster', [pa])
 
-def T3mesher2D(a, triangulateOnly=0):
+#---------------------------------------------------------------------------------------------------
+# Creates a Delaunay mesh or (only a triangulation) given a set of edges defined by a and a grading.
+#---------------------------------------------------------------------------------------------------
+def T3mesher2D(a, grading=1.2, triangulateOnly=0, metricInterpType=0):
     """Create a delaunay mesh given a set of points defined by a.
-    Usage: T3mesher2D(a, triangulateOnly) """
+    Usage: T3mesher2D(a, grading, triangulateOnly, metricInterpType) """
     c = C.getAllFields(a, 'nodes')[0]
-    c = Generator.T3mesher2D(c, triangulateOnly)
-    return C.convertArrays2ZoneNode('tri', [c]) 
+    c = Generator.T3mesher2D(c, grading, triangulateOnly, metricInterpType)
+    return C.convertArrays2ZoneNode('tri', [c])
 
 def tetraMesher(a, maxh=-1., grading=0.4, triangulateOnly=0, 
-                remeshBoundaries=0, algo=1):
+                remeshBoundaries=0, algo=1, optionString=""):
     """Create a TRI/TETRA mesh given a set of BAR or surfaces in a.
     Usage: tetraMesher(a, fineness, grading)"""
-    c = C.getAllFields(a, 'nodes')
+    c = C.getFields('coords', a)
     c = Generator.tetraMesher(c, maxh, grading, triangulateOnly,
-                              remeshBoundaries, algo)
+                              remeshBoundaries, algo, optionString)
     return C.convertArrays2ZoneNode('mesh', [c])
 
 def gapfixer(contour, cloud, hardPoints=None, refine=1):
@@ -268,8 +351,9 @@ def gapfixer(contour, cloud, hardPoints=None, refine=1):
     Some hard points can be sepcified to force the constructed surface to pass by.
     If the optional refine argument is set to 0, the resulting surface will be a contrained triangulation of the contour [and the additional hard nodes].
     Usage: gapFixer(contour, cloud, hardPoints, refine)"""
+    contour1 = C.deleteFlowSolutions__(contour)
+    c = C.getAllFields(contour1, 'nodes')[0]
     clouda = C.getFields(Internal.__GridCoordinates__, cloud)[0]
-    c = C.getAllFields(contour, 'nodes')[0]
     hp = None
     if hardPoints is not None:
         hp = C.getFields(Internal.__GridCoordinates__, hardPoints)[0]
@@ -290,7 +374,7 @@ def gapsmanager(components, mode=0, refine=0, coplanar=0):
     return zones
 
 def front2Hexa(a, surf, h, hf, hext, density=50):
-    """Generates an hexa grid starting from a front a, a surface surf,
+    """Generate an hexa grid starting from a front a, a surface surf,
     and h, hf, hext the height of the mesh, of the first and last cells."""
     arrayFront = C.getFields(Internal.__GridCoordinates__, a)[0]
     arraySurf = C.getFields(Internal.__GridCoordinates__, surf)[0]
@@ -299,7 +383,7 @@ def front2Hexa(a, surf, h, hf, hext, density=50):
     return zone
 
 def front2Struct(front, surf, distrib, Vmin):
-    """Generates struct grids starting from a front, a surface surf,
+    """Generate struct grids starting from a front, a surface surf,
     and a point distribution."""
     arrayFront = C.getFields(Internal.__GridCoordinates__, front)[0]
     arraySurf = C.getFields(Internal.__GridCoordinates__, surf)[0]
@@ -322,13 +406,13 @@ def snapFront(t, surfs, optimized=1):
     """Adapt t to a given surface (cellN defined in t). 
     Usage: snapFront(t, surfs, step, angle, optimized)"""
     arrays = C.getFields(Internal.__GridCoordinates__, surfs)
-    return C.TZA(t, 'nodes', 'nodes', Generator.snapFront, None,
-                 arrays, optimized)
+    return C.TZA1(t, 'nodes', 'nodes', True, Generator.snapFront,
+                  arrays, optimized)
 
 def _snapFront(t, surfs, optimized=1):
     arrays = C.getFields(Internal.__GridCoordinates__, surfs)
-    return C._TZA(t, 'nodes', 'nodes', Generator.snapFront, None,
-                  arrays, optimized)
+    return C._TZA1(t, 'nodes', 'nodes', True, Generator.snapFront,
+                   arrays, optimized)
 
 #------------------------------------------------------------------------------
 # Deplacement de points de t sur ceux des surfaces surfs discretisees
@@ -337,51 +421,53 @@ def snapSharpEdges(t, surfs, step=None, angle=30.):
     """Adapt t to a given surface. 
     Usage: snapSharpEdges(t, surfs, step)"""
     arrays = C.getFields(Internal.__GridCoordinates__, surfs)
-    return C.TZA(t, 'nodes', 'nodes', Generator.snapSharpEdges, None, 
-                 arrays, step, angle)
+    return C.TZA1(t, 'nodes', 'nodes', True, Generator.snapSharpEdges, 
+                  arrays, step, angle)
     
 def _snapSharpEdges(t, surfs, step=None, angle=30.):
+    """Adapt t to a given surface."""
     arrays = C.getFields(Internal.__GridCoordinates__, surfs)
-    return C._TZA(t, 'nodes', 'nodes', Generator.snapSharpEdges, None, 
-                  arrays, step, angle)
+    return C._TZA1(t, 'nodes', 'nodes', True, Generator.snapSharpEdges, 
+                   arrays, step, angle)
 
 def check(t):
     """Check a mesh for regularity, orthogonality...
-    Usage: check( t )"""
+    Usage: check(t)"""
     a = C.getFields(Internal.__GridCoordinates__, t)
     for i in a: Generator.check(i)
 
 def bbox(t):
     """Returns the bounding box of a pytree.
     Usage: bbox(t)"""
-    A = C.getFields(Internal.__GridCoordinates__, t)
+    A = C.getFields(Internal.__GridCoordinates__, t, api=3)
     return Generator.bbox(A)
 
-def BB(t, method='AABB', weighting=0):
-    """Return the bounding box of a pyTree as a pyTree.
-    Usage: b = BB(a, method, weighting)"""
+def BB(t, method='AABB', weighting=0, tol=0.):
+    """Return the bounding box of a pyTree as zones.
+    Usage: b = BB(a, method, weighting, tol)"""
     tp = Internal.copyRef(t)
-    C._deleteFlowSolutions__(tp)
-    C._deleteZoneBC__(tp)
-    C._deleteGridConnectivity__(tp)
-    C._TZGC(tp, 'nodes', Generator.BB, method, weighting)
+    _BB(tp, method, weighting, tol)
     return tp
 
-def _BB(t, method='AABB', weighting=0):
-    """Return the bounding box of a pyTree as a pyTree.
+def _BB(t, method='AABB', weighting=0, tol=0.):
+    """Return the bounding box of a pyTree as zones.
     Usage: b = BB(a, method, weighting)"""
     C._deleteFlowSolutions__(t)
     C._deleteZoneBC__(t)
     C._deleteGridConnectivity__(t)
-    C._TZGC(t, 'nodes', Generator.BB, method, weighting)
+    C._rmNodes(t, 'GridCoordinates#Init')
+    C._rmNodes(t, 'Motion')
+    C._rmNodes(t, 'Displacement#0')
+    C._rmNodes(t, '.Solver#ownData')
+    C._TZGC1(t, 'nodes', True, Generator.BB, method, weighting, tol)
     return None
 
 def barycenter(t, weight='None'):
     """Get the barycenter of a pyTree.
     Usage: barycenter(t)"""
-    A = C.getFields(Internal.__GridCoordinates__, t, api=2)
+    A = C.getFields(Internal.__GridCoordinates__, t, api=3)
     if weight != 'None':
-        W = C.getField(weight, t, api=2)
+        W = C.getField(weight, t, api=3)
         return Generator.barycenter(A, W)
     else: return Generator.barycenter(A)
 
@@ -390,19 +476,21 @@ def CEBBIntersection(a1, a2, tol=1.e-10):
     a1 = Internal.getZones(a1)
     a2 = Internal.getZones(a2)
     if len(a1) != 1 or len(a2) != 1:
-        print 'Warning: CEBBIntersection applied on one zone.'
+        print('Warning: CEBBIntersection applied on one zone.')
         return 0
-    
     m1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
     m2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
     return Generator.CEBBIntersection(m1, m2, tol)
-
         
 def bboxIntersection(z1, z2, tol=1.e-6, isBB=False, method='AABB'):
     """Return 1 if bounding boxes of z1 and z2 intersect."""       
+    if Internal.typeOfNode(z1) != 1:
+        raise ValueError("First arg must be a zone.")
+    if Internal.typeOfNode(z2) != 1:
+        raise ValueError("Second arg must be a zone.")
     if not isBB:
-        z1 = BB(z1,method)
-        z2 = BB(z2,method)
+        z1 = BB(z1, method)
+        z2 = BB(z2, method)
     if method == 'AABB':  # Computes the intersection between 2 AABB
         return generator._bboxIntersectionZ(z1, z2, tol, 
                                             Internal.__GridCoordinates__, 
@@ -419,7 +507,7 @@ def bboxIntersection(z1, z2, tol=1.e-6, isBB=False, method='AABB'):
                                             Internal.__FlowSolutionNodes__, 
                                             Internal.__FlowSolutionCenters__)
     else:
-        print 'Warning: bboxIntersection: method',method,'not implemented, switching to AABB.'
+        print('Warning: bboxIntersection: method',method,'not implemented, switching to AABB.')
         return generator._bboxIntersectionZ(z1, z2, tol,
                                             Internal.__GridCoordinates__, 
                                             Internal.__FlowSolutionNodes__, 
@@ -427,6 +515,10 @@ def bboxIntersection(z1, z2, tol=1.e-6, isBB=False, method='AABB'):
 
 def _bboxIntersection(z1, z2, tol=1.e-6, isBB=False, method='AABB'):
     """Return 1 if bounding boxes of z1 and z2 intersect."""       
+    if Internal.typeOfNode(z1) != 1:
+        raise ValueError("First arg must be a zone.")
+    if Internal.typeOfNode(z2) != 1:
+        raise ValueError("Second arg must be a zone.")
     if not isBB:
         _BB(z1,method)
         _BB(z2,method)
@@ -446,7 +538,7 @@ def _bboxIntersection(z1, z2, tol=1.e-6, isBB=False, method='AABB'):
                                             Internal.__FlowSolutionNodes__, 
                                             Internal.__FlowSolutionCenters__)
     else:
-        print 'Warning: bboxIntersection: method',method,'not implemented, switching to AABB.'
+        print('Warning: bboxIntersection: method %s not implemented, switching to AABB.'%method)
         return generator._bboxIntersectionZ(z1, z2, tol, 
                                             Internal.__GridCoordinates__, 
                                             Internal.__FlowSolutionNodes__, 
@@ -460,81 +552,129 @@ def checkPointInCEBB(t, P):
 def bboxOfCells(t):
     """Compute the bounding box of all cells of a mesh.
     Usage: getBBoxOfCells(t)"""
-    return C.TZGC(t, 'centers', Generator.bboxOfCells)
+    return C.TZGC1(t, 'centers', True, Generator.bboxOfCells)
 
 def _bboxOfCells(t):
-    return C._TZGC(t, 'centers', Generator.bboxOfCells)
+    return C._TZGC1(t, 'centers', False, Generator.bboxOfCells)
 
-def getVolumeMap(t):
+def getVolumeMap(t, method=0):
     """Return the volume map in an array.
     Usage: getVolumeMap(t)"""
-    return C.TZGC(t, 'centers', Generator.getVolumeMap)
+    return C.TZGC1(t, 'centers', True, Generator.getVolumeMap, method)
 
-def _getVolumeMap(t):
+def _getVolumeMap(t, method=0):
     """Return the volume map in an array.
     Usage: _getVolumeMap(t)"""
-    return C._TZGC(t, 'centers', Generator.getVolumeMap)
+    return C._TZGC1(t, 'centers', False, Generator.getVolumeMap, method)
+
+def getFaceCentersAndAreas(t):
+    fcenters = []
+    fareas = []
+    zones = Internal.getZones(t)
+    for zone in zones:
+        arr = C.getFields(Internal.__GridCoordinates__, zone, api=3)[0]
+        if len(arr) != 4:
+          fcenters.append(None)
+          fareas.append(None)
+          continue
+        
+        etype, stype = Internal.eltName2EltNo(arr[3])
+
+        if etype != 22:
+          fcenters.append(None)
+          fareas.append(None)
+          continue
+        [fc, fa] = Generator.getFaceCentersAndAreas(arr)
+        fcenters.append(fc)
+        fareas.append(fa)
+    return fcenters, fareas
+
+def getCellCenters(t, fc, fa, own=None, nei=None):
+    zones = Internal.getZones(t)
+    nzones = len(zones)
+    centers = []
+    for i in range(nzones):
+        zone = zones[i]
+
+        arr = C.getFields(Internal.__GridCoordinates__, zone, api=3)[0]
+
+        if len(arr) != 4:
+          centers.append(None)
+          continue
+        
+        etype, stype = Internal.eltName2EltNo(arr[3])
+
+        if etype != 22:
+          centers.append(None)
+          continue
+
+        if own == None and nei == None:
+            cx, cy, cz = Generator.getCellCenters(arr, fc[i], fa[i], None, None)
+        else:
+            cx, cy, cz = Generator.getCellCenters(arr, fc[i], fa[i], own[i], nei[i])
+        centers.append([cx, cy, cz])
+
+    return centers
 
 def getNormalMap(t):
     """Return the map of surface normals in an array.
     Usage: getNormalMap(t)""" 
-    return C.TZGC(t, 'centers', Generator.getNormalMap)
+    return C.TZGC1(t, 'centers', True, Generator.getNormalMap)
 
 def _getNormalMap(t):
-    return C._TZGC(t, 'centers', Generator.getNormalMap)
+    return C._TZGC1(t, 'centers', False, Generator.getNormalMap)
 
-def getSmoothNormalMap(t, niter=2, eps = 0.4):
+def getSmoothNormalMap(t, niter=2, eps=0.4):
     """Return the map of smoothed and non-normalized surface normals in an array.
     eps is the smoothing factor.
     Usage: getSmoothNormalMap(t, niter, eps)"""
-    return C.TZGC(t, 'nodes', Generator.getSmoothNormalMap, niter, eps)
+    return C.TZGC1(t, 'nodes', True, Generator.getSmoothNormalMap, niter, eps)
 
-def _getSmoothNormalMap(t, niter=2, eps = 0.4):
-    return C._TZGC(t, 'nodes', Generator.getSmoothNormalMap, niter, eps)
+def _getSmoothNormalMap(t, niter=2, eps=0.4):
+    return C._TZGC1(t, 'nodes', False, Generator.getSmoothNormalMap, niter, eps)
 
 def getCellPlanarity(t):
     """Return the cell planarity of a surface mesh in an array.
     Usage: getCellPlanarity(t)"""
-    return C.TZGC(t, 'centers', Generator.getCellPlanarity)
+    return C.TZGC1(t, 'centers', True, Generator.getCellPlanarity)
 
 def _getCellPlanarity(t):
-    return C._TZGC(t, 'centers', Generator.getCellPlanarity)
+    return C._TZGC1(t, 'centers', False, Generator.getCellPlanarity)
 
 def getCircumCircleMap(t):
     """Return the map of circum circle radius of a 'TRI' array.
     Usage: getCircumCircleMap(t)""" 
-    return C.TZGC(t, 'centers', Generator.getCircumCircleMap)
+    return C.TZGC1(t, 'centers', True, Generator.getCircumCircleMap)
 
 def _getCircumCircleMap(t):
-    return C._TZGC(t, 'centers', Generator.getCircumCircleMap)
+    return C._TZGC1(t, 'centers', False, Generator.getCircumCircleMap)
 
 def getInCircleMap(t):
     """Return the map of inscribed circle radius of a 'TRI' array.
     Usage: getInCircleMap(t)""" 
-    return C.TZGC(t, 'centers', Generator.getInCircleMap)
+    return C.TZGC1(t, 'centers', True, Generator.getInCircleMap)
 
 def _getInCircleMap(t):
-    return C._TZGC(t, 'centers', Generator.getInCircleMap)
+    return C._TZGC1(t, 'centers', False, Generator.getInCircleMap)
 
 def getEdgeRatio(t):
-    """Computes the ratio between the max and min lengths of all the edges of
+    """Compute the ratio between the max and min lengths of all the edges of
     cells in an array.
     Usage: getEdgeRatio(t)"""
-    return C.TZGC(t,'centers', Generator.getEdgeRatio)
+    return C.TZGC1(t, 'centers', True, Generator.getEdgeRatio)
 
 def _getEdgeRatio(t):
-    return C._TZGC(t,'centers', Generator.getEdgeRatio)
-
+    return C._TZGC1(t, 'centers', False, Generator.getEdgeRatio)
 
 def getMaxLength(t):
-    """Computes the max length of all the edges of cells in a zone.
+    """Compute the max length of all the edges of cells in a zone.
     Usage: getMaxLength(t)"""
-    return C.TZGC(t,'centers', Generator.getMaxLength)
+    return C.TZGC1(t, 'centers', True, Generator.getMaxLength)
 
 def _getMaxLength(t):
-    return C._TZGC(t,'centers', Generator.getMaxLength)
+    return C._TZGC1(t, 'centers', False, Generator.getMaxLength)
 
-def enforceX(a, x0, enforcedh, N, add=0):
+def enforceX(a, x0, enforcedh, N, add=0, verbose=True):
     """Enforce a x0-centered line in a distribution defined by an array.
     Usage: enforceX(a, x0, enforcedh, supp, add) -or-
     Usage: enforceX(a, x0, enforcedh, (supp,add))"""
@@ -542,12 +682,12 @@ def enforceX(a, x0, enforcedh, N, add=0):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforceX, x0, enforcedh, N, add )
-    dir = 1
-    a = modifyBC__(dir, ni0, nj0, nk0, a)
+    a = C.TZGC1(a, 'nodes', True, Generator.enforceX, x0, enforcedh, N, add, verbose)
+    rdir = 1
+    a = modifyBC__(rdir, ni0, nj0, nk0, a)
     return a
 
-def enforceY(a, y0, enforcedh, N, add=0):
+def enforceY(a, y0, enforcedh, N, add=0, verbose=True):
     """Enforce a y0-centered line in a distribution defined by an array.
     Usage: enforceY(a, y0, enforcedh, supp, add) -or-
     Usage: enforceY(a, y0, enforcedh, (supp,add))"""
@@ -555,7 +695,7 @@ def enforceY(a, y0, enforcedh, N, add=0):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforceY, y0, enforcedh, N, add )
+    a = C.TZGC1(a, 'nodes', True, Generator.enforceY, y0, enforcedh, N, add, verbose)
     dir = 2
     a = modifyBC__(dir, ni0, nj0, nk0, a)
     return a
@@ -568,12 +708,12 @@ def enforceZ(a, z0, enforcedh, N, add=0):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforceZ, z0, enforcedh, N, add )
+    a = C.TZGC1(a, 'nodes', True, Generator.enforceZ, z0, enforcedh, N, add)
     dir = 3
     a = modifyBC__(dir, ni0, nj0, nk0, a)
     return a
 
-def enforcePlusX(a, enforcedh, N, add=0):
+def enforcePlusX(a, enforcedh, N, add=0, verbose=True):
     """Enforce the first X-line in a distribution defined by an array.
     (one sided distribution, right).
     Usage: enforcePlusX(array, enforcedh, supp, add) -or-
@@ -582,12 +722,12 @@ def enforcePlusX(a, enforcedh, N, add=0):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforcePlusX, enforcedh, N, add )
+    a = C.TZGC1(a, 'nodes', True, Generator.enforcePlusX, enforcedh, N, add, verbose)
     dir = 1
     a = modifyBC__(dir, ni0, nj0, nk0, a)
     return a
 
-def enforcePlusY(a, enforcedh, N, add=0):
+def enforcePlusY(a, enforcedh, N, add=0, verbose=True):
     """Enforce the first Y-line in a distribution defined by an array.
     (one sided distribution, right).
     Usage: enforcePlusY(array, enforcedh, supp, add) -or-
@@ -596,7 +736,7 @@ def enforcePlusY(a, enforcedh, N, add=0):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforcePlusY, enforcedh, N, add )
+    a = C.TZGC1(a, 'nodes', True, Generator.enforcePlusY, enforcedh, N, add, verbose)
     dir = 2
     a = modifyBC__(dir, ni0, nj0, nk0, a)
     return a
@@ -610,12 +750,12 @@ def enforcePlusZ(a, enforcedh, N, add=0):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforcePlusZ, enforcedh, N, add )
+    a = C.TZGC1(a, 'nodes', True, Generator.enforcePlusZ, enforcedh, N, add )
     dir = 3
     a = modifyBC__(dir, ni0, nj0, nk0, a)
     return a
 
-def enforceMoinsX(a, enforcedh, N, add=0):
+def enforceMoinsX(a, enforcedh, N, add=0, verbose=True):
     """Enforce the last X-line in a distribution (one sided, left).
     Usage: enforceMoinsX(array, enforcedh, supp, add) -or-
     Usage: enforceMoinsX(array, enforcedh, (supp,add))"""
@@ -623,12 +763,12 @@ def enforceMoinsX(a, enforcedh, N, add=0):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforceMoinsX, enforcedh, N, add )
+    a = C.TZGC1(a, 'nodes', True, Generator.enforceMoinsX, enforcedh, N, add, verbose)
     dir = 1
     a = modifyBC__(dir, ni0, nj0, nk0, a)
     return a
 
-def enforceMoinsY(a, enforcedh, N, add=0):
+def enforceMoinsY(a, enforcedh, N, add=0, verbose=True):
     """Enforce the last Y-line in a distribution (one sided, left).
     Usage: enforceMoinsY(array, enforcedh, supp, add) -or-
     Usage: enforceMoinsY(array, enforcedh, (supp,add))"""
@@ -636,7 +776,7 @@ def enforceMoinsY(a, enforcedh, N, add=0):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforceMoinsY, enforcedh, N, add )
+    a = C.TZGC1(a, 'nodes', True, Generator.enforceMoinsY, enforcedh, N, add, verbose)
     dir = 2
     a = modifyBC__(dir, ni0, nj0, nk0, a)
     return a
@@ -649,7 +789,7 @@ def enforceMoinsZ(a, enforcedh, N, add=0):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     a = C.deleteFlowSolutions__(a)
-    a = C.TZGC(a, 'nodes', Generator.enforceMoinsZ, enforcedh, N, add)
+    a = C.TZGC1(a, 'nodes', True, Generator.enforceMoinsZ, enforcedh, N, add)
     dir = 3
     a = modifyBC__(dir, ni0, nj0, nk0, a)
     return a
@@ -659,13 +799,13 @@ def enforceLine(a, line, enforcedh, N):
     Usage: enforceLine(array, line, enforcedh, (supp,add))"""
     a = C.deleteAllBCAndSolutions__(a)
     l = C.getFields(Internal.__GridCoordinates__,line)[0]
-    return C.TZGC(a,  'nodes', Generator.enforceLine, l, enforcedh, N)
+    return C.TZGC1(a, 'nodes', True, Generator.enforceLine, l, enforcedh, N)
 
 def enforcePoint(a, x0):
     """Enforce a point in a distribution.
     Usage: enforcePoint(a, x0)"""
     a = C.deleteAllBCAndSolutions__(a)
-    return C.TZGC(a, 'nodes', Generator.enforcePoint, x0)
+    return C.TZGC1(a, 'nodes', True, Generator.enforcePoint, x0)
 
 def enforceCurvature(distrib, curvature, power=0.5):
     """Enforce curvature of a curve in a distribution.
@@ -673,7 +813,7 @@ def enforceCurvature(distrib, curvature, power=0.5):
     Usage: enforceCurvature( distrib, curvature, power )"""
     distrib = C.deleteAllBCAndSolutions__(distrib)
     ac = C.getFields(Internal.__GridCoordinates__, curvature)[0]
-    return C.TZGC(distrib, 'nodes', Generator.enforceCurvature, ac, power)
+    return C.TZGC1(distrib, 'nodes', True, Generator.enforceCurvature, ac, power)
 
 def enforceCurvature2(distrib, curve, alpha=1.e-2):
     """Enforce a 1D distribution wrt the curvature radius
@@ -681,75 +821,89 @@ def enforceCurvature2(distrib, curve, alpha=1.e-2):
     Usage: enforceCurvature2(distrib, curve, alpha)"""
     distrib = C.deleteAllBCAndSolutions__(distrib)
     ac = C.getFields(Internal.__GridCoordinates__, curve)[0]
-    return C.TZGC(distrib, 'nodes', Generator.enforceCurvature2, ac, alpha)
+    return C.TZGC1(distrib, 'nodes', True, Generator.enforceCurvature2, ac, alpha)
 
 def addPointInDistribution(a, ind):
     """Add a point in a distribution defined by a.
     Usage: addPointInDistribution(a, ind)"""
     a = C.deleteAllBCAndSolutions__(a)
-    return C.TZGC(a, 'nodes', Generator.addPointInDistribution, ind)
+    return C.TZGC1(a, 'nodes', True, Generator.addPointInDistribution, ind)
 
-def close(a, tol=1.e-12):
-    """Close a mesh defined by an array gathering points nearer than tol.
-    Usage: close(array, tol)"""
+def close(a, tol=1.e-12, suppressDegeneratedNGons=False):
+    """Merge vertices distant of tol and remove multiply defined vertices/faces/elements.
+    Usage: close(array, tol, suppressDegeneratedNGons)"""
     t = Internal.copyRef(a)
-    fields = C.getAllFields(t, 'nodes')
-    fields = Generator.close(fields, tol)
-    C.setFields(fields, t, 'nodes')
+    _close(t, tol=tol, suppressDegeneratedNGons=suppressDegeneratedNGons)
     return t
 
-def _close(t, tol=1.e-12):
+def _close(t, tol=1.e-12, suppressDegeneratedNGons=False):
     fields = C.getAllFields(t, 'nodes')
-    fields = Generator.close(fields, tol)
+    fields = Generator.close(fields, tol, suppressDegeneratedNGons)
     C.setFields(fields, t, 'nodes')
     return None
 
-def pointedHat(a, (x,y,z)):
+def zip(a, tol=1.e-12):
+    """Zip zones if they are distant of tol.
+    Usage: closeBorders(a, tol)"""
+    t = Internal.copyRef(a)
+    _zip(t, tol=tol)
+    return t
+
+def _zip(t, tol=1e-12):
+    fields = C.getAllFields(t, 'nodes')
+    fields = Generator.zip(fields, tol)
+    C.setFields(fields, t, 'nodes')
+    return None   
+
+def pointedHat(a, coord):
     """Create a structured surface defined by a contour and a point (x,y,z).
     Usage: pointedHat(array, (x,y,z))"""
     a = C.deleteFlowSolutions__(a, 'both')
-    return C.TZA(a, 'nodes', 'nodes', Generator.pointedHat, None, (x,y,z))
+    return C.TZA1(a, 'nodes', 'nodes', True, Generator.pointedHat, coord)
 
-def stitchedHat(a, (offx,offy,offz), tol=1.e-6, tol2=1.e-5):
+def stitchedHat(a, offset, tol=1.e-6, tol2=1.e-5):
     """Create a structured surface defined by a contour and an offset (dx,dy,dz).
     Usage: stitchedHat(a, (dx,dy,dz))"""
     a = C.deleteFlowSolutions__(a, 'both')
-    return C.TZGC(a, 'nodes', Generator.stitchedHat, \
-                  (offx,offy,offz), tol, tol2)
+    return C.TZGC1(a, 'nodes', True, Generator.stitchedHat, offset, tol, tol2)
 
 def selectInsideElts(a, curvesList):
     """Select elements whose center is in the surface delimited by curves.
     Usage: selectInsideElts(array, curvesList)"""
     a = C.deleteFlowSolutions__(a, 'centers')
     curves = C.getFields(Internal.__GridCoordinates__, curvesList)
-    return C.TZA(a, 'nodes', 'nodes', Generator.selectInsideElts, None,
-                 curves)
+    return C.TZA1(a, 'nodes', 'nodes', True, Generator.selectInsideElts, curves)
 
 def grow(t, vector):
     """Grow a surface array of one layer by moving points of vector.
-    Usage: grow( t, vector )"""
+    Usage: grow(t, vector)"""
     tp = Internal.copyRef(t)
-    if (len(vector) != 3): raise ValueError("grow: 3 variables are required.")
+    if len(vector) != 3: raise ValueError("grow: 3 variables are required.")
     nodes = Internal.getZones(tp)
     for z in nodes:
         fa = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
-        if (fa != []):
+        if fa != []:
             a = Converter.extractVars(fa, vector)
         else:
-            print "Warning: grow: variables not found in zone."
+            print("Warning: grow: variables not found in zone.")
             a = []
-        if (a != []):
+        if a != []:
             nodes = C.getAllFields(z, 'nodes')[0]
             nodes = Generator.grow(nodes, a)
             C.setFields([nodes], z, 'nodes')
     tp = Internal.addOneLayer2BC(tp, 3)
     return tp
 
-def stack(t1, t2):
+def stack(t1, t2=None):
     """Stack two meshes (with same nixnj) into a single mesh.
     Usage: stack(a1, a2)"""
-    a2 = C.getAllFields(t2, 'nodes')[0]
-    return C.TZA(t1, 'nodes', 'nodes', Generator.stack, None, a2)
+    if t2 is not None:
+        a2 = C.getAllFields(t2, 'nodes')[0]
+        return C.TZA1(t1, 'nodes', 'nodes', True, Generator.stack, a2)
+    else:
+        a1 = C.getAllFields(t1, 'nodes')
+        b = Generator.stack(a1)
+        return C.convertArrays2ZoneNode('stack', [b])
 
 #================================================================
 # traitement des BC seulement definies comme fenetres completes
@@ -840,15 +994,25 @@ def modifyBC__(dir, ni0, nj0, nk0, z):
                 elif k1 != k2: z=C.rmNodes(z, parent[0])
     return z
 
-def map(z, d, dir=0):
-    """Map a distribution d on a curve defined by zone z.
-    Usage: map( z, d )"""
+def map(t, d, dir=0, h1=None, h2=None, isAvg=False, nAvg=2):
+    """Map a distribution d on a curve defined by zone z."""
+    tp, ntype = Internal.node2PyTree(t)
+    bases = Internal.getBases(tp)
+    for b in bases:
+        for c, z in enumerate(b[2]):
+            if z[3] == 'Zone_t':
+                zp = map__(z, d, dir, h1, h2, isAvg, nAvg)
+                b[2][c] = zp
+    return Internal.pyTree2Node(tp, ntype)
+
+def map__(z, d, dir=0, h1=None, h2=None, isAvg=False, nAvg=2):
+    """Map a distribution d on a curve defined by zone z."""
     dims = Internal.getZoneDim(z)
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     z = C.deleteFlowSolutions__(z)
     dist = C.getFields(Internal.__GridCoordinates__, d)[0]
-    z = C.TZGC(z, 'nodes', Generator.map, dist, dir)
+    z = C.TZGC1(z, 'nodes', True, Generator.map, dist, dir, h1, h2, isAvg, nAvg)
     z = modifyBC__(dir, ni0, nj0, nk0, z)
     return z
 
@@ -859,7 +1023,7 @@ def mapCurvature(z, N, power, dir):
     ni0 = 1; nj0 = 1; nk0 = 1
     if dims[0] == 'Structured': ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
     z = C.deleteFlowSolutions__(z)
-    z = C.TZGC(z, 'nodes', Generator.mapCurvature, N, power, dir)
+    z = C.TZGC1(z, 'nodes', True, Generator.mapCurvature, N, power, dir)
     z = modifyBC__(dir, ni0, nj0, nk0, z)
     return z
 
@@ -948,6 +1112,7 @@ def _refineBC__(z, ni0, nj0, nk0, factor, dir):
     return None
 
 def refine(t, power, dir):
+    """Refine a mesh keeping original point distribution."""
     tp = Internal.copyRef(t)
     _refine(tp, power, dir)
     return tp
@@ -959,11 +1124,11 @@ def _refine(t, power, dir):
     for z in zones:
         dims = Internal.getZoneDim(z)
         if dims[0] != 'Structured':
-            print "Warning: refine: zone must be structured."
+            print("Warning: refine: zone must be structured.")
         else:
             ni0 = dims[1]; nj0 = dims[2]; nk0 = dims[3]
             C._deleteFlowSolutions__(z)
-            C._TZGC(z, 'nodes', Generator.refine, power, dir)
+            C._TZGC1(z, 'nodes', True, Generator.refine, power, dir)
             # delete Chimera data : OversetHoles and InterpolationData
             C._deleteChimeraInfo__(z)
             # modify BCs
@@ -974,15 +1139,33 @@ def _refine(t, power, dir):
             else: C._deleteZoneBC__(z); C._deleteGridConnectivity__(z)
     return None
 
+def mmgs(t, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1, 
+         anisotropy=0, optim=0, fixedConstraints=[], sizeConstraints=[]):
+    """Remesh a surface using MMGs."""
+    tp = Internal.copyRef(t)
+    _mmgs(tp, ridgeAngle, hmin, hmax, hausd, grow, anisotropy, optim, fixedConstraints, sizeConstraints)
+    return tp
+
+def _mmgs(t, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1, 
+          anisotropy=0, optim=0, fixedConstraints=[], sizeConstraints=[]):
+    arrays = C.getFields('nodes', t, api=1)
+    fixedConstraints = C.getFields('nodes', fixedConstraints, api=1)
+    sizeConstraints = C.getFields('nodes', sizeConstraints, api=1)
+    b = Generator.mmgs(arrays, ridgeAngle, hmin, hmax, hausd, grow, anisotropy, optim, 
+                       fixedConstraints, sizeConstraints)
+    C.setFields(b, t, 'nodes', True)
+    C._deleteFlowSolutions__(t)
+    return None
+
 def densify(z, h):
     """Return zone with densified mesh.
     Usage: densify(z, h)"""
     z = C.deleteFlowSolutions__(z)
-    return C.TZA(z, 'nodes', 'nodes', Generator.densify, None, h)
+    return C.TZA1(z, 'nodes', 'nodes', True, Generator.densify, h)
 
 def _densify(z, h):
     C._deleteFlowSolutions__(z)
-    return C._TZA(z, 'nodes', 'nodes', Generator.densify, None, h)
+    return C._TZA1(z, 'nodes', 'nodes', True, Generator.densify, h)
 
 def TFI(a):
     """Generate a transfinite interpolation mesh from boundaries.
@@ -1004,11 +1187,11 @@ def TFITri(a1, a2, a3):
             C.convertArrays2ZoneNode('tfi2', [r2]),
             C.convertArrays2ZoneNode('tfi3', [r3])]
 
-def TFIO(a):
+def TFIO(a, weight=None):
     """Generate a transfinite interpolation mesh from 1 input curve.
-    Usage: TFIO(a)"""
+    Usage: TFIO(a, weight)"""
     a = C.getFields(Internal.__GridCoordinates__, a)[0]
-    r1,r2,r3,r4,r5 = Generator.TFIO(a)
+    r1,r2,r3,r4,r5 = Generator.TFIO(a, weight)
     return [C.convertArrays2ZoneNode('tfi1', [r1]),
             C.convertArrays2ZoneNode('tfi2', [r2]),
             C.convertArrays2ZoneNode('tfi3', [r3]),
@@ -1017,7 +1200,7 @@ def TFIO(a):
 
 def TFIHalfO(a1, a2):
     """Generate a transfinite interpolation mesh from 2 input curves.
-    Usage: TFIHalfO(a)"""
+    Usage: TFIHalfO(a1,a2)"""
     a1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
     a2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
     r1,r2,r3,r4 = Generator.TFIHalfO(a1, a2)
@@ -1034,6 +1217,30 @@ def TFIMono(a1, a2):
     r = Generator.TFIMono(a1, a2)
     return [C.convertArrays2ZoneNode('tfi', [r[0]])]
 
+def TFIStar(a):
+    """Generate a transfinite interpolation mesh from a list of input curves.
+    Usage: TFIStar(a)"""
+    m = []
+    for ai in a:
+        m.append(C.getFields(Internal.__GridCoordinates__, ai)[0])
+    ret = Generator.TFIStar(m)
+    out = []
+    for c, r in enumerate(ret):
+        out.append(C.convertArrays2ZoneNode('tfi%d'%c, [r]))
+    return out
+
+def TFIStar2(a):
+    """Generate a transfinite interpolation mesh from a list of input curves.
+    Usage: TFIStar2(a)"""
+    m = []
+    for ai in a:
+        m.append(C.getFields(Internal.__GridCoordinates__, ai)[0])
+    ret = Generator.TFIStar2(m)
+    out = []
+    for c, r in enumerate(ret):
+        out.append(C.convertArrays2ZoneNode('tfi%d'%c, [r]))
+    return out
+
 def TTM(a, niter=100):
     """Smooth a mesh using Thomson-Mastin elliptic generator.
     Usage: TTM(a, niter)"""
@@ -1041,34 +1248,38 @@ def TTM(a, niter=100):
     m = Generator.TTM(m, niter)
     return C.convertArrays2ZoneNode('ttm', [m])
 
-def hyper2D(t, distrib, type):
+def hyper2D(t, distrib, type, 
+            eta_start=10, eta_end=-1, beta=0.):
     """Generate an hyperbolic mesh. 
     Usage: hyper2D(t, distrib, type)"""
     d = C.getFields(Internal.__GridCoordinates__, distrib)[0]
-    return C.TZGC(t, 'nodes', Generator.hyper2D, d, type)
+    return C.TZGC1(t, 'nodes', True, Generator.hyper2D, d, type, 
+                   eta_start, eta_end, beta)
 
 def hyper2D2(t, distrib, type, alpha):
     """Generate an hyperbolic mesh with a constant alpha angle.
     Usage: hyper2D2(array, arrayd, type, alpha)"""
     d = C.getFields(Internal.__GridCoordinates__,distrib)[0]
-    return C.TZGC(t, 'nodes', Generator.hyper2D2, d, type, alpha)
+    return C.TZGC1(t, 'nodes', True, Generator.hyper2D2, d, type, alpha)
 
 def hyper2D3(t, distrib, type, alpha1, alpha2):
     """Generate an hyperbolic mesh with boundary alpha angles.
     Usage: hyper2D3(array, arrayd, type, alpha1, alpha2)"""
-    d = C.getFields(Internal.__GridCoordinates__,distrib)[0]
-    return C.TZGC(t, 'nodes', Generator.hyper2D3, d, type, alpha1, alpha2)
+    d = C.getFields(Internal.__GridCoordinates__, distrib)[0]
+    return C.TZGC1(t, 'nodes', True, Generator.hyper2D3, d, type, alpha1, alpha2)
 
 def hyper2D4(t, distrib, type):
     """Generate an hyperbolic mesh.
     Usage: hyper2D4(array, arrayd, type)"""
     d = C.getFields(Internal.__GridCoordinates__, distrib)[0]
-    return C.TZGC(t, 'nodes', Generator.hyper2D4, d, type)
+    return C.TZGC1(t, 'nodes', True, Generator.hyper2D4, d, type)
 
-def addNormalLayers(t, distrib, check=0, niter=0):
+def addNormalLayers(t, distrib, check=0, niterType=0, niter=0, niterK=[], 
+                    smoothType=0, eps=0.4, nitLocal=3, kappaType=0, kappaS=[0.2,1.6], 
+                    blanking=False, algo=0):
     """Generate N layers to a surface following normals. Distrib is the 
     height of each layer.
-    If niter = 0, the normal are not smoothed; else niter is the number of
+    If niter=0, the normal are not smoothed; else niter is the number of
     smoothing iterations applied to normals.
     Usage: addNormalLayers(surface, distrib, check, niter)"""
     d = C.getFields(Internal.__GridCoordinates__, distrib)[0]
@@ -1076,9 +1287,12 @@ def addNormalLayers(t, distrib, check=0, niter=0):
     C._deleteZoneBC__(tp)
     C._deleteFlowSolutions__(tp, 'centers')
     C._deleteGridConnectivity__(tp)
+    cellNs = []
     coords = C.getAllFields(tp, 'nodes')
-    coords = Generator.addNormalLayers(coords, d, check, niter)
-    return C.setFields(coords, tp, 'nodes')
+    coords = Generator.addNormalLayers(coords, d, check, niterType, niter, niterK, smoothType, eps, nitLocal, kappaType, kappaS, blanking, cellNs, algo)
+    C.setFields(coords, tp, 'nodes')
+    if blanking: C.setFields(cellNs, tp, 'centers', writeDim=False)
+    return tp
 
 #===============================================================================
 # builds an extension starting from a contour c using the normals to surfaces
@@ -1092,7 +1306,7 @@ def buildExtension(c, surfaces, dh, niter=0):
     contours = C.getFields(Internal.__GridCoordinates__,cp)[0]
     surfacesA = C.getFields(Internal.__GridCoordinates__,surfaces)
     dhj = C.getFields(Internal.__GridCoordinates__,dh)[0]
-    coords = G.buildExtension(contours,surfacesA, dhj, niter)
+    coords = Generator.buildExtension(contours, surfacesA, dhj, niter)
     return C.setFields([coords], cp, 'nodes')
 
 #==============================================================================
@@ -1116,7 +1330,7 @@ def surfaceWalk(t, contour, distrib, constraints=[], niter=0,
 
 #=============================================================================
 # Create volume collar grid(s) starting from s1 and s2,
-# type: 'union' or 'difference': assembly type between s1 and s2
+# typer: union or difference: assembly type between s1 and s2
 # return the collar grids(s) and s0 the surface resulting from the
 # boolean operation between s1 and s2 as: collar1,collar2,s0
 #=============================================================================
@@ -1126,7 +1340,7 @@ def collarMesh(s1, s2, distribj, distribk,
     """Generates a collar mesh starting from s1 and s2 surfaces, distributions
     along the surfaces and along the normal direction, with respect to the assembly type between grids.
     Usage: collarMesh(s1, s2, distribj, distribk, niterj, niterk, ext, alphaRef, type, contour,constraints1,constraints2,toldist)"""
-    import Collar
+    from . import Collar
     surf1 = C.getFields(Internal.__GridCoordinates__,s1)
     surf2 = C.getFields(Internal.__GridCoordinates__,s2)
     dj = C.getFields(Internal.__GridCoordinates__,distribj)[0]
@@ -1144,7 +1358,7 @@ def collarMesh(s1, s2, distribj, distribk,
     for info in infos:
         ranges = info[1:]
         z = C.convertArrays2ZoneNode('Collar', [info[0]])
-        for r in ranges: z = C.addBC2Zone(z,'wall','BCWall',r)
+        for r in ranges: C._addBC2Zone(z,'wall','BCWall',r)
         # ajout des BCOverlaps 
         if type == 'union':
             C._addBC2Zone(z, 'match', 'BCMatch', 'jmin', z, 'jmax', trirac=[1,2,3]) 
@@ -1152,7 +1366,7 @@ def collarMesh(s1, s2, distribj, distribk,
         elif type =='difference':
             C._addBC2Zone(z, 'match', 'BCMatch', 'imin', z, 'imax', trirac=[1,2,3]) 
             C._addBC2Zone(z, 'match', 'BCMatch', 'imax', z, 'imin', trirac=[1,2,3]) 
-        z = C.fillEmptyBCWith(z, 'overlap', 'BCOverlap')               
+        C._fillEmptyBCWith(z, 'overlap', 'BCOverlap')               
         zones += [z]
         
     return zones
@@ -1183,8 +1397,8 @@ def polyLineMesher(z, h, yplus, density):
     Usage: polyLineMesher(z, h, yplus, density)"""
     try:
         import Connector.PyTree as X
-        import PolyLine as GP
-    except:
+        from . import PolyLine as GP
+    except ImportError:
         raise ImportError("polyLineMesher: requires Polyline and Connector modules.")
     name = z[0]
     coord = C.getFields(Internal.__GridCoordinates__,z)[0]
@@ -1198,9 +1412,9 @@ def polyLineMesher(z, h, yplus, density):
         zone = C.convertArrays2ZoneNode(name+suffz,[m])
         walls = allwalls[noz-1]
         now = 1
-        for range in walls :
+        for wrange in walls :
             bndName = 'wall'+str(noz)+'_'+str(now)
-            zone = C.addBC2Zone(zone, bndName, 'BCWall', range)
+            zone = C.addBC2Zone(zone, bndName, 'BCWall', wrange)
             now = now + 1
         noz += 1
         zones.append(zone)
@@ -1217,8 +1431,9 @@ def polyLineMesher(z, h, yplus, density):
 def polyC1Mesher(z, h, yplus, density, splitCrit=10., dalpha=5., depth=1):
     """Generate a multiple mesh for a polyC1-curve defined by z.
     Usage: polyC1Mesher(z, h, yplus, density, splitCrit, dalpha, depth)"""
-    try: import Connector.PyTree as X; import PolyC1 as GP
-    except: raise ImportError("polyC1Mesher: requires PolyC1 and Connector.PyTree modules.")
+    try: import Connector.PyTree as X; from . import PolyC1 as GP
+    except ImportError: 
+        raise ImportError("polyC1Mesher: requires PolyC1 and Connector.PyTree modules.")
     name = z[0]
     coord = C.getFields(Internal.__GridCoordinates__,z)[0]
     res = GP.polyC1Mesher(coord, h, yplus, density, splitCrit, dalpha, depth)
@@ -1232,9 +1447,9 @@ def polyC1Mesher(z, h, yplus, density, splitCrit=10., dalpha=5., depth=1):
         zone = C.convertArrays2ZoneNode(name+suffz,[m])
         walls = allwalls[noz-1]
         now = 1
-        for range in walls :
+        for wrange in walls :
             bndName = 'wall'+str(noz)+'_'+str(now)
-            zone = C.addBC2Zone(zone, bndName, 'BCWall', range)
+            zone = C.addBC2Zone(zone, bndName, 'BCWall', wrange)
             now += 1
         noz += 1
         zones.append(zone)
@@ -1253,8 +1468,8 @@ def polyQuadMesher(z, h, hf, density, next):
      Usage: polyQuadMesher(z, h, hf, density, next)"""
     try:
         import Connector.PyTree as X
-        import PolyQuad as GP
-    except:
+        from . import PolyQuad as GP
+    except ImportError:
         raise ImportError("polyQuadMesher: requires PolyQuad and Connector modules.")
     name = z[0]
     coord = C.getFields(Internal.__GridCoordinates__,z)[0]
@@ -1268,9 +1483,9 @@ def polyQuadMesher(z, h, hf, density, next):
         zone = C.convertArrays2ZoneNode(name+suffz,[m])
         walls = allwalls[noz-1]
         now = 1
-        for range in walls :
+        for wrange in walls :
             bndName = 'wall'+str(noz)+'_'+str(now)
-            zone = C.addBC2Zone(zone, bndName, 'BCWall', range)
+            zone = C.addBC2Zone(zone, bndName, 'BCWall', wrange)
             now = now + 1
         noz = noz + 1
         zones.append(zone)
@@ -1289,8 +1504,8 @@ def polyTriMesher(z, h, hf, density, next):
     Usage: polyTriMesher(z, h, hf, density, next)"""
     try:
         import Connector.PyTree as X
-        import PolyTri as GP
-    except:
+        from . import PolyTri as GP
+    except ImportError:
         raise ImportError("polyTriMesher: requires PolyTri and Connector modules.")
     name = z[0]
     coord = C.getFields(Internal.__GridCoordinates__,z)[0]
@@ -1304,9 +1519,9 @@ def polyTriMesher(z, h, hf, density, next):
         zone = C.convertArrays2ZoneNode(name+suffz,[m])
         walls = allwalls[noz-1]
         now = 1
-        for range in walls :
+        for wrange in walls :
             bndName = 'wall'+str(noz)+'_'+str(now)
-            zone = C.addBC2Zone(zone, bndName, 'BCWall', range)
+            zone = C.addBC2Zone(zone, bndName, 'BCWall', wrange)
             now += 1
         noz += 1
         zones.append(zone)
@@ -1333,49 +1548,6 @@ def mapSplit(z, d, split_crit, dens_max=1000):
         zones.append(zone); c += 1
     return zones
 
-def intersection(surface1, surface2, tol=0.):
-    """Compute the intersection between two input closed surfaces.
-    Usage: intersection(s1, s2, tol)"""
-    s1 = C.getFields(Internal.__GridCoordinates__, surface1)[0]
-    s2 = C.getFields(Internal.__GridCoordinates__, surface2)[0]
-    s = Generator.intersection(s1, s2, tol)
-    return C.convertArrays2ZoneNode('inter', [s])
-
-def booleanIntersection(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
-    """Compute the intersection between two input closed entities.
-    Usage for surfaces or bars: booleanIntersection(a1, a2, tol)
-    Usage for volumes: booleanIntersection(a1, a2, tol, preserve_right, solid_right)"""
-    s1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
-    s2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
-    s = Generator.booleanIntersection(s1, s2, tol, preserve_right, solid_right, agg_mode)
-    return C.convertArrays2ZoneNode('inter', [s])
-
-def booleanUnion(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
-    """Compute the union between two input closed entities.
-    Usage for surfaces or bars: booleanUnion(a1, a2, tol)
-    Usage for volumes: booleanUnion(a1, a2, tol, preserve_right, solid_right)"""
-    s1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
-    s2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
-    s = Generator.booleanUnion(s1, s2, tol, preserve_right, solid_right, agg_mode)
-    return C.convertArrays2ZoneNode('union', [s])
-
-def booleanMinus(a1, a2, tol=0., preserve_right=1, solid_right=1, agg_mode=1): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
-    """Compute the difference between the two input closed surfaces.
-    Usage for surfaces or bars: booleanMinus(a1, a2, tol)
-    Usage for volumes: booleanMinus(a1, a2, tol, preserve_right, solid_right)"""
-    s1 = C.getFields(Internal.__GridCoordinates__, a1)[0]
-    s2 = C.getFields(Internal.__GridCoordinates__, a2)[0]
-    s = Generator.booleanMinus(s1, s2, tol, preserve_right, solid_right, agg_mode)
-    return C.convertArrays2ZoneNode('minus', [s])
-    
-def booleanModifiedSolid(solid, a2, tol=0., preserve_solid=1, agg_mode=1): #agg_mode : 0(NONE), 1(CONVEX), 2(FULL)
-    """Compute the transformed input solid after solving the intersection of its skin with a2.
-    Usage: booleanMinus(a1, a2, tol, preserve_right, solid_right)"""
-    sld = C.getFields(Internal.__GridCoordinates__, solid)[0]
-    operand = C.getFields(Internal.__GridCoordinates__, a2)[0]
-    s = Generator.booleanModifiedSolid(operand, sld, tol, preserve_solid, agg_mode)
-    return C.convertArrays2ZoneNode('modified_solid', [s])
-
 #------------------------------------------------------------------------------
 # Calcul la carte d'orhogonalite d'une grille
 # 1D: retourne un tableau d'angles alpha constants egaux a 90 degres
@@ -1385,24 +1557,51 @@ def booleanModifiedSolid(solid, a2, tol=0., preserve_solid=1, agg_mode=1): #agg_
 def getOrthogonalityMap(t):
     """Return the orthogonality map in an array.
     Usage: getOrthogonalityMap(t)"""
-    return C.TZGC(t, 'centers', Generator.getOrthogonalityMap)
+    return C.TZGC1(t, 'centers', True, Generator.getOrthogonalityMap)
 
 def _getOrthogonalityMap(t):
-    return C._TZGC(t, 'centers', Generator.getOrthogonalityMap)
+    return C._TZGC1(t, 'centers', False, Generator.getOrthogonalityMap)
 
 #------------------------------------------------------------------------------
 # Calcul de la regularite (ratio entre des mailles adjacentes) d'une grille
 # 1D: retourne un champ "reg"
 # 2D: retourne deux champs "reg_i", "reg_j"
-# 3D: retourne 3 champs (dans l'ordre "reg_i", "reg_j", "reg_k" pour les grilles structures)
+# 3D: retourne 3 champs (dans l'ordre "reg_i", "reg_j", "reg_k" pour les grilles structurees)
 #------------------------------------------------------------------------------
-def getRegularityMap(t):
+def getRegularityMap(t, addGC=False):
     """Return the regularity map in an array.
     Usage: getRegularityMap(t)"""
-    return C.TZGC(t, 'centers', Generator.getRegularityMap)
+    if addGC: t = Internal.addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
+    t = C.TZGC1(t, 'centers', True, Generator.getRegularityMap)
+    if addGC: t = Internal.rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
+    return t
 
-def _getRegularityMap(t):
-    return C._TZGC(t, 'centers', Generator.getRegularityMap)
+def _getRegularityMap(t, addGC=False):
+    if addGC: Internal._addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
+    C._TZGC1(t, 'centers', False, Generator.getRegularityMap)
+    if addGC: Internal._rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
+    return None
+    
+#------------------------------------------------------------------------------
+# Calcul de la regularite (angles entre mailles adjacentes) d'une grille
+# 1D: retourne un champ "reg"
+# 2D: retourne deux champs "reg_i", "reg_j"
+# 3D: retourne 3 champs (dans l'ordre "reg_i", "reg_j", "reg_k" pour les grilles structurees)
+# WARNING !! : ONLY FOR STRUCTURED GRIDS
+#------------------------------------------------------------------------------
+def getAngleRegularityMap(t, addGC=False):
+    """Return the regularity map in an array (wrt angles).
+    Usage: getAngleRegularityMap(t)"""
+    if addGC: t = Internal.addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
+    t = C.TZGC1(t, 'centers', True, Generator.getAngleRegularityMap)
+    if addGC: t = Internal.rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
+    return t
+
+def _getAngleRegularityMap(t, addGC=False):
+    if addGC: Internal._addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
+    C._TZGC1(t, 'centers', False, Generator.getAngleRegularityMap)
+    if addGC: Internal._rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
+    return None
     
 #------------------------------------------------------------------------------
 # Calcul la qualite pour un maillage TRI (0. triangle degenere, 1. equilateral)
@@ -1410,7 +1609,148 @@ def _getRegularityMap(t):
 def getTriQualityMap(t):
     """Return the quality map of a TRI array (0. for a degenerated triangle, 1. for an equilateral one).
     Usage: getTriQualityMap(t)"""
-    return C.TZGC(t, 'centers', Generator.getTriQualityMap)
+    return C.TZGC1(t, 'centers', True, Generator.getTriQualityMap)
 
 def _getTriQualityMap(t):
-    return C._TZGC(t, 'centers', Generator.getTriQualityMap)
+    return C._TZGC1(t, 'centers', False, Generator.getTriQualityMap)
+
+#------------------------------------------------------------------------------
+# Genere des pyramides ayant pour base les QUAD d'une surface donnee
+#------------------------------------------------------------------------------
+def quad2Pyra(t, hratio=1.):
+    """Creates a set of pyramids from a set of quads.
+    Usage: quad2Pyra(array, hratio)"""
+    a = C.getFields(Internal.__GridCoordinates__, t)[0]
+    return C.convertArrays2ZoneNode('pyra', [Generator.quad2Pyra(a, hratio)])
+
+
+# IN: t: arbre deep copy de torig
+# IN: t: torig: maillage originale
+# IN: refine: direction (1,2,3)
+# IN: dim_local: dimension=2 ou 3 -> dim
+# refine__ [CB:AT]
+def refine__(t, torig, refine, dim):
+    """Refine xyz"""
+    list_of_types = ["BC_t","GridConnectivity_t"]
+
+    for type_local in list_of_types:
+        listofzones = []
+        zones = Internal.getZones(t)
+        for z in zones:
+            znodes = Internal.getNodesFromType(z, type_local)
+            if znodes:
+                listofzones.append(z[0])
+
+        for zname in listofzones:
+            z      = Internal.getNodeByName(t,zname)
+            znodes = Internal.getNodesFromType(z, type_local)
+            for bc in znodes:
+                bcname = bc[0]
+                bcarray= bc[2][0][1]
+                for j in range(0, dim):
+                    for i in range(0,2):
+                        if bcarray[j][i] !=1:
+                            bcarray[j][i]=(bcarray[j][i]-1)*refine[j]+1
+
+    ## CONNECT MATCH
+    listofzones = []
+    zones = Internal.getZones(torig)
+    for z in zones:
+        znodes = Internal.getNodesFromType(z, "GridConnectivity1to1_t")
+        if znodes:
+            listofzones.append(z[0])
+
+    for zname in listofzones:
+        z      = Internal.getNodeByName(t,zname)
+        zgc    = Internal.getNodeFromType(z, "ZoneGridConnectivity_t")
+
+        zorig  = Internal.getNodeByName(torig,zname)
+        znodes = Internal.getNodesFromType(zorig, "GridConnectivity1to1_t")
+        for gc in znodes:
+            gcarray_prange =gc[2][0][1] #PointRange
+            gcarray_prangeD=gc[2][1][1] #PointRangeDonor
+            for j in range(0, dim):
+                    for i in range(0,2):
+                        ##Point Range
+                        if gcarray_prange[j][i] !=1:
+                            gcarray_prange[j][i]=(gcarray_prange[j][i]-1)*refine[j]+1
+                        ##Point Range Donor
+                        if gcarray_prangeD[j][i] !=1:
+                            gcarray_prangeD[j][i]=(gcarray_prangeD[j][i]-1)*refine[j]+1
+            Internal.addChild(zgc,gc,pos=-1)
+    return t
+
+def refineIndependently(t, refine=[1,1,1], dim=2):
+    """Refine x, y, z directions independently per refine=[] and conserve the BCs.
+     Usage: refineIndependently(t, refine=[], dim)"""
+    import Converter.Mpi as Cmpi
+    torig      = Cmpi.convert2SkeletonTree(t)
+    list_nodes = ['GridCoordinates','ZoneBC']
+    for i in list_nodes:
+        Internal._rmNodesByName(torig,i)
+
+    for i in range(0, dim):
+        if refine[i]>1: _refine(t, refine[i], i+1)
+
+    t = refine__(t, torig, refine, dim)
+    return t
+
+#========================================================
+# Mesh quality informations
+#========================================================
+def getMeshFieldInfo(m, field, critValue, verbose):
+    fmin  = 1.e32
+    fsum  = 0
+    fmax  = -1.
+    fcrit = 0
+    size  = 0
+    info = 'INFO %s: min = %1.2e, max = %1.2e, mean = %1.2e, crit(%s %s %s) = %s cells out of %s | %2.2f%% (%s)'
+
+    for z in Internal.getZones(m):
+        f = Internal.getNodeFromName(z, field)[1]
+
+        size_loc  = numpy.size(f)
+        fcrit_loc = numpy.count_nonzero(f<critValue) if field == 'vol' else numpy.count_nonzero(f>critValue) 
+        fmin_loc  = numpy.min(f)
+        fmax_loc  = numpy.max(f)
+        fsum_loc  = numpy.sum(f)
+
+        fmin   = min(fmin_loc, fmin)
+        fmax   = max(fmax_loc, fmax)
+        fsum  += fsum_loc
+        fcrit += fcrit_loc
+        size  += size_loc
+
+        if verbose == 2 or (verbose == 1 and fcrit_loc > 0):
+            print(info%(field.upper(),fmin_loc,fmax_loc,fsum_loc/float(size_loc),field,'<' if field == 'vol' else '>',critValue,fcrit_loc,size_loc,fcrit_loc/float(size_loc)*100,z[0]))
+
+    if verbose == 2 or (verbose == 1 and fcrit_loc > 0):
+        print('#'*(len(field)+7))
+        print(info%(field.upper(),fmin,fmax,fsum/float(size),field,'<' if field == 'vol' else '>',critValue,fcrit,size,fcrit/float(size)*100,'GLOBAL'))
+        print('#'*(len(field)+7)+'\n')
+
+    return fmin, fmax, fsum/float(size), fcrit
+
+def checkMesh(m, critVol=0., critOrtho=15., critReg=0.1, critAngReg=15., addGC=False, verbose=0):
+    """Return information on mesh quality."""
+
+    _getVolumeMap(m)
+    vmin,vmax,vmean,vcrit = getMeshFieldInfo(m, 'vol', critVol, verbose)
+    Internal._rmNodesFromName(m, 'vol')
+
+    _getOrthogonalityMap(m)
+    omin,omax,omean,ocrit = getMeshFieldInfo(m, 'orthogonality', critOrtho, verbose)
+    Internal._rmNodesFromName(m, 'orthogonality')
+
+    _getRegularityMap(m, addGC)
+    rmin,rmax,rmean,rcrit = getMeshFieldInfo(m, 'regularity', critReg, verbose)
+    Internal._rmNodesFromName(m, 'regularity')
+
+    _getAngleRegularityMap(m, addGC)
+    amin,amax,amean,acrit = getMeshFieldInfo(m, 'regularityAngle', critAngReg, verbose)
+    Internal._rmNodesFromName(m, 'regularityAngle')
+    
+    return {'vmin':vmin,'vmax':vmax,'vmean':vmean,'vcrit':vcrit,
+            'rmin':rmin,'rmax':rmax,'rmean':rmean,'rcrit':rcrit,
+            'amin':amin,'amax':amax,'amean':amean,'acrit':acrit,
+            'omin':omin,'omax':omax,'omean':omean,'ocrit':ocrit}

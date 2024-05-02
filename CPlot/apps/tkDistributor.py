@@ -1,5 +1,7 @@
-# - block distributor -
-import Tkinter as TK
+# - tkDistributor -
+"""Block distribution over processors."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -76,7 +78,7 @@ def splitAndDistribute(event=None):
         CTK.t = X.connectMatch(CTK.t, dim=ndim)
             
         CTK.display(CTK.t)
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: distribute/split')
         CTK.TXT.insert('START', 'splitSize fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
@@ -107,13 +109,13 @@ def setProc(event=None):
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
         nodes = Internal.getNodesFromName1(z, '.Solver#Param')
-        if (nodes != []): param = nodes[0]
+        if nodes != []: param = nodes[0]
         else:
             param = ['.Solver#Param', None, [], 'UserDefinedData_t']
             z[2].append(param)
-        v = numpy.zeros((1,1), numpy.int32); v[0,0] = proc
+        v = numpy.zeros((1,1), dtype=Internal.E_NpyInt); v[0,0] = proc
         nodes = Internal.getNodesFromName(param, 'proc')
-        if (nodes != []):
+        if nodes != []:
             a = nodes[0]; a[1] = v
         else:
             a = ['proc', v, [], 'DataArray_t']
@@ -161,23 +163,23 @@ def computeStats():
          CTK.TXT.insert('START', 'Error: ', 'Error')
          return
 
-    a = numpy.zeros((NProc), numpy.int32)
+    a = numpy.zeros((NProc), dtype=Internal.E_NpyInt)
     m = 0; ntot = 0
     for z in zones:
         param = Internal.getNodesFromName1(z, '.Solver#Param')
-        if (param != []):
+        if param != []:
             proc = Internal.getNodesFromName1(param[0], 'proc')
-            if (proc != []):
+            if proc != []:
                 value = proc[0][1][0,0]
                 dim = Internal.getZoneDim(z)
-                if (dim[0] == 'Structured'): size = dim[1]*dim[2]*dim[3]
+                if dim[0] == 'Structured': size = dim[1]*dim[2]*dim[3]
                 else: size = dim[1]
                 a[value] += size
                 ntot += size
     m = ntot*1. / NProc
     varRMS = 0.; varMin = 1.e6; varMax = 0.
-    for i in xrange(NProc):
-        v = abs(a[i]-m)
+    for i in a:
+        v = abs(i-m)
         varMin = min(varMin, v)
         varMax = max(varMax, v)
         varRMS += v*v
@@ -216,12 +218,12 @@ def updateStats():
 
     # Calcul du nombre de pts par proc
     zones = Internal.getZones(CTK.t)
-    a = numpy.zeros((NProc), numpy.int32)
+    a = numpy.zeros((NProc), dtype=Internal.E_NpyInt)
     for z in zones:
         param = Internal.getNodesFromName1(z, '.Solver#Param')
         if param != []:
             proc = Internal.getNodesFromName1(param[0], 'proc')
-            if (proc != []):
+            if proc != []:
                 value = proc[0][1][0,0]
                 dim = Internal.getZoneDim(z)
                 if dim[0] == 'Structured':
@@ -231,17 +233,17 @@ def updateStats():
 
     m = STATS['meanPtsPerProc']
     fmin = 1.e10; fmax = 0
-    for i in xrange(NProc):
-        fmin = min(a[i], fmin); fmax = max(a[i], fmax)
+    for i in a:
+        fmin = min(i, fmin); fmax = max(i, fmax)
     
     alpha = min(1./abs(fmax-m+1.e-6), 1./abs(fmin-m+1.e-6))
     alpha = min(alpha, 1./m)
     
     barWidth = width*1. / (NProc*1.)
-    for i in xrange(NProc):
+    for i in range(NProc):
         v = -alpha*(a[i] - m*1.)
-        if (a[i] == 0): fillColor = 'yellow'
-        elif (i%2 == 0): fillColor = 'blue'
+        if a[i] == 0: fillColor = 'yellow'
+        elif i%2 == 0: fillColor = 'blue'
         else: fillColor = 'red'
        
         c.create_rectangle(i*barWidth, height/2., (i+1)*barWidth,
@@ -266,13 +268,13 @@ def updateStats():
     b.label.configure(text=stats)
 
 #==============================================================================
-# Essai d'ajuste le nbre de procs
-# (essai les classes de stelvio)
+# Essai d'ajuster le nbre de procs
+# (essai les classes de sator)
 # Note: je ne suis pas sur que ca soit tres utile
 #==============================================================================
 def adjustNProc():
     global STATS
-    if (CTK.t == []): return
+    if CTK.t == []: return
     try: NProc = int(VARS[0].get())
     except: NProc = 1
     try: comSpeed = float(VARS[1].get())
@@ -286,16 +288,16 @@ def adjustNProc():
     classes = [8,16,32,64,128,256,512]
     CTK.saveTree()
 
-    for c in xrange(len(classes)):
+    for c in range(len(classes)):
         if NProc > classes[c]: break;
     
     CTK.t, stat1 = D.distribute(CTK.t, classes[c], perfo=(1.,0.,comSpeed),
                                 useCom=useCom, algorithm=algo)
-    if (c > 0):
+    if c > 0:
         CTK.t, stat2 = D.distribute(CTK.t, classes[c-1],
                                     perfo=(1.,0.,comSpeed),
                                     useCom=useCom, algorithm=algo)
-    if (c < len(classes)-1):
+    if c < len(classes)-1:
         CTK.t, stat3 = D.distribute(CTK.t, classes[c+1],
                                     perfo=(1.,0.,comSpeed),
                                     useCom=useCom, algorithm=algo)
@@ -316,9 +318,10 @@ def adjustNProc():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkDistributor', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Distribute blocks\nover processors.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkDistributor  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Distribute blocks\nover processors.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -327,8 +330,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkDistributor')
@@ -337,25 +340,25 @@ def createApp(win):
     # - VARS -
     # -0- NProc -
     V = TK.StringVar(win); V.set('10'); VARS.append(V)
-    if CTK.PREFS.has_key('tkDistributorNProc'): 
+    if 'tkDistributorNProc' in CTK.PREFS: 
         V.set(CTK.PREFS['tkDistributorNProc'])
     # -1- ComSpeed -
     V = TK.StringVar(win); V.set('0.1'); VARS.append(V)
-    if CTK.PREFS.has_key('tkDistributorComSpeed'): 
+    if 'tkDistributorComSpeed' in CTK.PREFS: 
         V.set(CTK.PREFS['tkDistributorComSpeed'])
     # -2- Algorithm
-    V = TK.StringVar(win); V.set('gradient0'); VARS.append(V)
-    if CTK.PREFS.has_key('tkDistributorAlgorithm'): 
+    V = TK.StringVar(win); V.set('graph'); VARS.append(V)
+    if 'tkDistributorAlgorithm' in CTK.PREFS: 
         V.set(CTK.PREFS['tkDistributorAlgorithm'])
     # -3- Communication types
     V = TK.StringVar(win); V.set('all'); VARS.append(V)
-    if CTK.PREFS.has_key('tkDistributorComType'): 
+    if 'tkDistributorComType' in CTK.PREFS: 
         V.set(CTK.PREFS['tkDistributorComType'])
     # -4- Manual proc setting
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
     # -5- Multigrid level
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    if CTK.PREFS.has_key('tkDistributorMultigrid'): 
+    if 'tkDistributorMultigrid' in CTK.PREFS: 
         V.set(CTK.PREFS['tkDistributorMultigrid'])
 
     # - NProc -
@@ -375,7 +378,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Multigrid level.')
 
     # - Algorithms -
-    B = TTK.OptionMenu(Frame, VARS[2], 'gradient0', 'gradient1', 'genetic',
+    B = TTK.OptionMenu(Frame, VARS[2], 'graph', 'gradient0', 'gradient1', 'genetic',
                        'fast')
     B.grid(row=1, column=0, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Distribution algorithm.')
@@ -422,13 +425,17 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['SolverNoteBook'].add(WIDGETS['frame'], text='tkDistributor')
+    except: pass
+    CTK.WIDGETS['SolverNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['SolverNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -448,7 +455,7 @@ def saveApp():
 def resetApp():
     VARS[0].set('10')
     VARS[1].set('0.1')
-    VARS[2].set('gradient0')
+    VARS[2].set('graph')
     VARS[3].set('all')
     VARS[5].set('0')
     CTK.PREFS['tkDistributorNProc'] = VARS[0].get()
@@ -463,9 +470,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -22,7 +22,6 @@
 # include "../post.h"
 # include <vector>
 # include "PlaneIntersection.h"
-
 
 #define FldArrayF K_FLD::FldArrayF
 #define FldArrayI K_FLD::FldArrayI
@@ -49,19 +48,19 @@ namespace K_POST
    pour chq pt d intersection. Par array.*/
 void compIntersectionWithPlane(
   E_Float coefa, E_Float coefb, E_Float coefc, E_Float coefd,
-  std::vector<K_INTERP::InterpAdt*>& structInterpDatas,
+  std::vector<K_INTERP::InterpData*>& structInterpDatas,
   std::vector<E_Int>& nis, std::vector<E_Int>& njs, std::vector<E_Int>& nks,
   std::vector<E_Int>& posxs, std::vector<E_Int>& posys, 
   std::vector<E_Int>& poszs, std::vector<E_Int>& poscs,
   std::vector<FldArrayF*>& structFields, std::vector<FldArrayI*>& tagS, 
-  std::vector<K_INTERP::InterpAdt*>& unstrInterpDatas,
+  std::vector<K_INTERP::InterpData*>& unstrInterpDatas,
   std::vector<FldArrayI*>& connectu,
   std::vector<E_Int>& posxu, std::vector<E_Int>& posyu, 
   std::vector<E_Int>& poszu, std::vector<E_Int>& poscu,
   std::vector<FldArrayF*>& unstrFields, std::vector<FldArrayI*>& tagU, 
   std::vector<FldArrayF*>& vectOfIntersectPts,
   std::vector<FldArrayF*>& vectOfInterpCellVol,
-  K_INTERP::InterpAdt::InterpolationType interpType);
+  K_INTERP::InterpData::InterpolationType interpType);
 
 /* Select points from overlapping zones: 
    selected one is the one whose cell volume  is the smallest one 
@@ -71,17 +70,17 @@ void selectPointsInOverlappingZones(
   std::vector<E_Int>& nis, std::vector<E_Int>& njs,std::vector<E_Int>& nks,
   std::vector<E_Int>& posxs, std::vector<E_Int>& posys, 
   std::vector<E_Int>& poszs, std::vector<E_Int>& poscs,
-  std::vector<K_INTERP::InterpAdt*>& structInterpDatas,
+  std::vector<K_INTERP::InterpData*>& structInterpDatas,
   std::vector<FldArrayF*>& structFields,
   std::vector<FldArrayI*>& connectu,
   std::vector<E_Int>& posxu, std::vector<E_Int>& posyu, 
   std::vector<E_Int>& poszu, std::vector<E_Int>& poscu,
-  std::vector<K_INTERP::InterpAdt*>& unstrInterpDatas,
+  std::vector<K_INTERP::InterpData*>& unstrInterpDatas,
   std::vector<FldArrayF*>& unstrFields,
   std::vector<FldArrayF*>& vectOfIntersectPts,
   std::vector<FldArrayF*>& volOfIntersectPts,
   FldArrayF& selectedPts,
-  K_INTERP::InterpAdt::InterpolationType interpType);
+  K_INTERP::InterpData::InterpolationType interpType);
 
 /* Compute the triangulation of a given set of points.
    IN : coefa, coefb, coefc, coefd : coefficients defining the plane the
@@ -97,14 +96,14 @@ void makeTriangulation(
   std::vector<E_Int>& nks, std::vector<E_Int>& posxs,
   std::vector<E_Int>& posys, std::vector<E_Int>& poszs,
   std::vector<E_Int>& poscs, std::vector<FldArrayF*>& structF,
-  std::vector<K_INTERP::InterpAdt*>& structInterpDatas,
+  std::vector<K_INTERP::InterpData*>& structInterpDatas,
   std::vector<FldArrayI*>& connectu, 
   std::vector<E_Int>& posxu, std::vector<E_Int>& posyu, 
   std::vector<E_Int>& poszu, std::vector<E_Int>& poscu, 
   std::vector<FldArrayF*>& unstrF,
-  std::vector<K_INTERP::InterpAdt*>& unstrInterpDatas,
+  std::vector<K_INTERP::InterpData*>& unstrInterpDatas,
   FldArrayF& field, FldArrayI& connect,
-  K_INTERP::InterpAdt::InterpolationType interpType);
+  K_INTERP::InterpData::InterpolationType interpType);
 
 
 /* Test if the barycenter of the triangle is interpolated or not 
@@ -115,14 +114,14 @@ void removeTrianglesWithBlankedCenters(
   std::vector<E_Int>& nks, std::vector<E_Int>& posxs,
   std::vector<E_Int>& posys, std::vector<E_Int>& poszs,
   std::vector<E_Int>& poscs, std::vector<FldArrayF*>& structF,
-  std::vector<K_INTERP::InterpAdt*>& structInterpDatas,
+  std::vector<K_INTERP::InterpData*>& structInterpDatas,
   std::vector<FldArrayI*>& connectu, 
   std::vector<E_Int>& posxu, std::vector<E_Int>& posyu, 
   std::vector<E_Int>& poszu, std::vector<E_Int>& poscu, 
   std::vector<FldArrayF*>& unstrF,
-  std::vector<K_INTERP::InterpAdt*>& unstrInterpDatas,
+  std::vector<K_INTERP::InterpData*>& unstrInterpDatas,
   FldArrayF& field, FldArrayI& connect,
-  K_INTERP::InterpAdt::InterpolationType interpType);
+  K_INTERP::InterpData::InterpolationType interpType);
 
 // /* Remove triangles with one vertex that is blanked (masked)  */
 // void removeTrianglesWithBlankedVertices(FldArrayF& field, 

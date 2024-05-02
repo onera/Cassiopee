@@ -50,6 +50,9 @@ env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
 env.Replace(CXXFLAGS=Dist.getCppArgs())
 env.Replace(CFLAGS=Dist.getCArgs())
 
+ELSAPROD = os.environ.get('ELSAPROD', 'x86_r8')
+env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
+
 env = Dist.createFortranBuilder(env, [kcoreIncDir])
 ppf = Dist.createFortranFiles(env, srcs)
 
@@ -57,8 +60,7 @@ ppf = Dist.createFortranFiles(env, srcs)
 
 myMod = env.StaticLibrary('initiator',
                           srcs.cpp_srcs+ppf)
-modDir = installPath+'/Initiator/'
+modDir = 'build/'+ELSAPROD
 dp1 = env.Install(modDir, myMod)
-dp2 = env.Install(modDir, Glob('Initiator/*.py'))
 
-env.Alias(target="install", source=[dp1,dp2])
+env.Alias(target="install", source=[dp1])

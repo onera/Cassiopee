@@ -1,6 +1,7 @@
 # - tkLuxRender -
-# Interface avec Lux render
-import Tkinter as TK
+"""Interface with LuxRender ray tracer."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.Internal as Internal
 import Converter.PyTree as C
@@ -148,7 +149,7 @@ def createGeo(rep):
 #==============================================================================
 def writeMatte0(file, dict, c, colorR, colorG, colorB, scale):
     name = 'matte'
-    if not dict.has_key(name): dict[name] = 0
+    if name not in dict: dict[name] = 0
     
     file.write('MakeNamedMaterial "material'+str(c)+'"\n')
     file.write('      "color Kd" ['+str(colorR)+' '+str(colorG)+' '+str(colorB)+']\n')
@@ -163,7 +164,7 @@ def writeMatte0(file, dict, c, colorR, colorG, colorB, scale):
 #==============================================================================
 def writeGlass0(file, dict, c, colorR, colorG, colorB, scale):
     name = 'glass'
-    if not dict.has_key(name): dict[name] = 0
+    if name not in dict: dict[name] = 0
     
     file.write('MakeNamedMaterial "material'+str(c)+'"\n')
     file.write('      "bool architectural" ["false"]\n')
@@ -185,7 +186,7 @@ def writeGlass0(file, dict, c, colorR, colorG, colorB, scale):
 #==============================================================================
 def writeChrome0(file, dict, c, colorR, colorG, colorB, scale):
     name = 'chrome'
-    if not dict.has_key(name): dict[name] = 0
+    if name not in dict: dict[name] = 0
     
     file.write('MakeNamedMaterial "material'+str(c)+'"\n')   
     file.write('      "float film" [0.000000000000000]\n')
@@ -207,7 +208,7 @@ def writeChrome0(file, dict, c, colorR, colorG, colorB, scale):
 #==============================================================================
 def writeMetal0(file, dict, c, colorR, colorG, colorB, scale):
     name = 'metal'
-    if not dict.has_key(name): dict[name] = 0
+    if name not in dict: dict[name] = 0
     
     file.write('MakeNamedMaterial "material'+str(c)+'"\n')   
     file.write('	"bool multibounce" ["false"]\n')
@@ -228,32 +229,31 @@ def writeMetal0(file, dict, c, colorR, colorG, colorB, scale):
 #==============================================================================
 def writeMarble0(file, dict, c, colorR, colorG, colorB, scale):
     name = 'marble'
-    if not dict.has_key(name):
-        dict[name] = 0
+    if name not in dict: dict[name] = 0
     
-        file.write('Texture "Texture" "float" "blender_marble"\n')
-	file.write('      "float bright" [1.000000000000000]\n')
-	file.write('      "float contrast" [3.435120105743408]\n')
-	file.write('      "string type" ["sharp"]\n')
-	file.write('      "string noisetype" ["hard_noise"]\n')
-	file.write('      "string noisebasis" ["voronoi_f2"]\n')
-	file.write('      "string noisebasis2" ["tri"]\n')
-	file.write('      "float noisesize" [1.572026491165161]\n')
-	file.write('      "float turbulence" [17.708000183105469]\n')
-	file.write('      "integer noisedepth" [1]\n')
-	file.write('      "string coordinates" ["global"]\n')
-	file.write('      "vector translate" [0.0 0.0 0.0]\n')
-	file.write('      "vector rotate" [0.0 0.0 0.0]\n')
-        file.write('      "vector scale" ['+str(scale)+' '+str(scale)+' '+str(scale)+']\n')
-        file.write('\n')
+    file.write('Texture "Texture" "float" "blender_marble"\n')
+    file.write('      "float bright" [1.000000000000000]\n')
+    file.write('      "float contrast" [3.435120105743408]\n')
+    file.write('      "string type" ["sharp"]\n')
+    file.write('      "string noisetype" ["hard_noise"]\n')
+    file.write('      "string noisebasis" ["voronoi_f2"]\n')
+    file.write('      "string noisebasis2" ["tri"]\n')
+    file.write('      "float noisesize" [1.572026491165161]\n')
+    file.write('      "float turbulence" [17.708000183105469]\n')
+    file.write('      "integer noisedepth" [1]\n')
+    file.write('      "string coordinates" ["global"]\n')
+    file.write('      "vector translate" [0.0 0.0 0.0]\n')
+    file.write('      "vector rotate" [0.0 0.0 0.0]\n')
+    file.write('      "vector scale" ['+str(scale)+' '+str(scale)+' '+str(scale)+']\n')
+    file.write('\n')
 
-        file.write('Texture "Texture.002" "color" "mix"\n')
-        file.write('	"texture amount" ["Texture"]\n')
-        file.write('	"color tex1" [0.74838847 0.74838847 0.74838847]\n')
-        #file.write('    "color tex1" ['+str(colorR)+' '+str(colorG)+' '+str(colorB)+']\n')
-        #file.write('	"color tex2" [0.52770847 0.52770847 0.52770847]\n')
-        file.write('    "color tex2" ['+str(colorR)+' '+str(colorG)+' '+str(colorB)+']\n')
-        file.write('\n')
+    file.write('Texture "Texture.002" "color" "mix"\n')
+    file.write('	"texture amount" ["Texture"]\n')
+    file.write('	"color tex1" [0.74838847 0.74838847 0.74838847]\n')
+    #file.write('    "color tex1" ['+str(colorR)+' '+str(colorG)+' '+str(colorB)+']\n')
+    #file.write('	"color tex2" [0.52770847 0.52770847 0.52770847]\n')
+    file.write('    "color tex2" ['+str(colorR)+' '+str(colorG)+' '+str(colorB)+']\n')
+    file.write('\n')
         
     file.write('MakeNamedMaterial "material'+str(c)+'"\n')   
     file.write('      "bool multibounce" ["false"]\n')
@@ -273,77 +273,76 @@ def writeMarble0(file, dict, c, colorR, colorG, colorB, scale):
 #==============================================================================
 def writeWood0(file, dict, c, colorR, colorG, colorB, scale):
     name = 'wood alder'
-    if not dict.has_key(name):
-        dict[name] = 0
-        file.write('Texture "wood alder part 1" "float" "blender_wood"\n')
-	file.write('     "float bright" [1.000000000000000]\n')
-	file.write('     "float contrast" [2.000000000000000]\n')
-	file.write('     "string noisebasis" ["blender_original"]\n')
-	file.write('     "string noisebasis2" ["sin"]\n')
-	file.write('     "float noisesize" [0.250000000000000]\n')
-	file.write('     "string noisetype" ["hard_noise"]\n')
-	file.write('     "float turbulence" [2.000000000000000]\n')
-	file.write('     "string type" ["ringnoise"]\n')
-	file.write('     "string coordinates" ["local"]\n')
-	file.write('     "vector translate" [0.0 0.0 0.0]\n')
-	file.write('     "vector rotate" [0.0 0.0 0.0]\n')
-        file.write('     "vector scale" ['+str(scale)+' '+str(scale)+' '+str(scale)+']\n')
-        file.write('\n')
+    if name not in dict: dict[name] = 0
+    file.write('Texture "wood alder part 1" "float" "blender_wood"\n')
+    file.write('     "float bright" [1.000000000000000]\n')
+    file.write('     "float contrast" [2.000000000000000]\n')
+    file.write('     "string noisebasis" ["blender_original"]\n')
+    file.write('     "string noisebasis2" ["sin"]\n')
+    file.write('     "float noisesize" [0.250000000000000]\n')
+    file.write('     "string noisetype" ["hard_noise"]\n')
+    file.write('     "float turbulence" [2.000000000000000]\n')
+    file.write('     "string type" ["ringnoise"]\n')
+    file.write('     "string coordinates" ["local"]\n')
+    file.write('     "vector translate" [0.0 0.0 0.0]\n')
+    file.write('     "vector rotate" [0.0 0.0 0.0]\n')
+    file.write('     "vector scale" ['+str(scale)+' '+str(scale)+' '+str(scale)+']\n')
+    file.write('\n')
 
-        file.write('Texture "wood alder part 2" "float" "blender_wood"\n')
-	file.write('     "float bright" [1.000000000000000]\n')
-	file.write('     "float contrast" [2.000000000000000]\n')
-	file.write('     "string noisebasis" ["blender_original"]\n')
-	file.write('     "string noisebasis2" ["saw"]\n')
-	file.write('     "float noisesize" [0.250000000000000]\n')
-	file.write('     "string noisetype" ["hard_noise"]\n')
-	file.write('     "float turbulence" [2.000000000000000]\n')
-	file.write('     "string type" ["ringnoise"]\n')
-	file.write('     "string coordinates" ["local"]\n')
-	file.write('     "vector translate" [0.0 0.0 0.0]\n')
-	file.write('     "vector rotate" [0.0 0.0 0.0]\n')
-        file.write('     "vector scale" ['+str(scale)+' '+str(scale)+' '+str(scale)+']\n')	
-        file.write('\n')
+    file.write('Texture "wood alder part 2" "float" "blender_wood"\n')
+    file.write('     "float bright" [1.000000000000000]\n')
+    file.write('     "float contrast" [2.000000000000000]\n')
+    file.write('     "string noisebasis" ["blender_original"]\n')
+    file.write('     "string noisebasis2" ["saw"]\n')
+    file.write('     "float noisesize" [0.250000000000000]\n')
+    file.write('     "string noisetype" ["hard_noise"]\n')
+    file.write('     "float turbulence" [2.000000000000000]\n')
+    file.write('     "string type" ["ringnoise"]\n')
+    file.write('     "string coordinates" ["local"]\n')
+    file.write('     "vector translate" [0.0 0.0 0.0]\n')
+    file.write('     "vector rotate" [0.0 0.0 0.0]\n')
+    file.write('     "vector scale" ['+str(scale)+' '+str(scale)+' '+str(scale)+']\n')	
+    file.write('\n')
 
-        file.write('Texture "wood alder mix" "float" "mix"\n')
-	file.write('     "float amount" [0.500000000000000]\n')
-	file.write('     "texture tex1" ["wood alder part 1"]\n')
-	file.write('     "texture tex2" ["wood alder part 2"]\n')
-        file.write('\n')
+    file.write('Texture "wood alder mix" "float" "mix"\n')
+    file.write('     "float amount" [0.500000000000000]\n')
+    file.write('     "texture tex1" ["wood alder part 1"]\n')
+    file.write('     "texture tex2" ["wood alder part 2"]\n')
+    file.write('\n')
 
-        file.write('Texture "1b67fd720273dfb27261d" "float" "scale"\n')
-	file.write('     "float tex1" [0.002000000094995]\n')
-	file.write('     "texture tex2" ["wood alder mix"]\n')
-        file.write('\n')
+    file.write('Texture "1b67fd720273dfb27261d" "float" "scale"\n')
+    file.write('     "float tex1" [0.002000000094995]\n')
+    file.write('     "texture tex2" ["wood alder mix"]\n')
+    file.write('\n')
         
-        file.write('Texture "wood alder part 3" "float" "blender_clouds"\n')
-	file.write('     "float bright" [0.009999999776483]\n')
-	file.write('     "float contrast" [1.200000047683716]\n')
-	file.write('     "string noisetype" ["hard_noise"]\n')
-	file.write('     "string noisebasis" ["voronoi_f3"]\n')
-	file.write('     "float noisesize" [0.250000000000000]\n')
-	file.write('     "integer noisedepth" [2]\n')
-	file.write('     "string coordinates" ["local"]\n')
-	file.write('     "vector translate" [0.0 0.0 0.0]\n')
-	file.write('     "vector rotate" [0.0 0.0 0.0]\n')
-        file.write('     "vector scale" ['+str(scale)+' '+str(scale)+' '+str(scale)+']\n')
-        file.write('\n')
+    file.write('Texture "wood alder part 3" "float" "blender_clouds"\n')
+    file.write('     "float bright" [0.009999999776483]\n')
+    file.write('     "float contrast" [1.200000047683716]\n')
+    file.write('     "string noisetype" ["hard_noise"]\n')
+    file.write('     "string noisebasis" ["voronoi_f3"]\n')
+    file.write('     "float noisesize" [0.250000000000000]\n')
+    file.write('     "integer noisedepth" [2]\n')
+    file.write('     "string coordinates" ["local"]\n')
+    file.write('     "vector translate" [0.0 0.0 0.0]\n')
+    file.write('     "vector rotate" [0.0 0.0 0.0]\n')
+    file.write('     "vector scale" ['+str(scale)+' '+str(scale)+' '+str(scale)+']\n')
+    file.write('\n')
         
-        file.write('Texture "665d14f3da96af422fdff" "float" "scale"\n')
-	file.write('     "float tex1" [1.000000000000000]\n')
-	file.write('     "texture tex2" ["wood alder part 3"]\n')
+    file.write('Texture "665d14f3da96af422fdff" "float" "scale"\n')
+    file.write('     "float tex1" [1.000000000000000]\n')
+    file.write('     "texture tex2" ["wood alder part 3"]\n')
 
-        file.write('Texture "wood alder diffuse 1" "color" "mix"\n')
-	file.write('     "texture amount" ["wood alder mix"]\n')
-	file.write('     "color tex1" [0.64313728 0.45594707 0.29407442]\n')
-	file.write('     "color tex2" [0.36960801 0.25732201 0.16374999]\n')
-        file.write('\n')
+    file.write('Texture "wood alder diffuse 1" "color" "mix"\n')
+    file.write('     "texture amount" ["wood alder mix"]\n')
+    file.write('     "color tex1" [0.64313728 0.45594707 0.29407442]\n')
+    file.write('     "color tex2" [0.36960801 0.25732201 0.16374999]\n')
+    file.write('\n')
         
-        file.write('Texture "wood alder diffuse 2" "color" "mix"\n')
-	file.write('     "texture amount" ["665d14f3da96af422fdff"]\n')
-	file.write('     "texture tex1" ["wood alder diffuse 1"]\n')
-	file.write('     "color tex2" [0.17332031 0.09053276 0.04070793]\n')
-        file.write('\n')
+    file.write('Texture "wood alder diffuse 2" "color" "mix"\n')
+    file.write('     "texture amount" ["665d14f3da96af422fdff"]\n')
+    file.write('     "texture tex1" ["wood alder diffuse 1"]\n')
+    file.write('     "color tex2" [0.17332031 0.09053276 0.04070793]\n')
+    file.write('\n')
 
     file.write('MakeNamedMaterial "material'+str(c)+'"\n')
     file.write('      "texture bumpmap" ["1b67fd720273dfb27261d"]\n')
@@ -445,19 +444,19 @@ def createMat(rep):
         if ri != []:
             # Material
             mt = Internal.getNodesFromName1(ri[0], 'Material')
-            if (mt != []): material = Internal.getValue(mt[0])
+            if mt != []: material = Internal.getValue(mt[0])
             # Color
             co = Internal.getNodesFromName1(ri[0], 'Color')
-            if (co != []): color = Internal.getValue(co[0])
+            if co != []: color = Internal.getValue(co[0])
             # Blending
             co = Internal.getNodesFromName1(ri[0], 'Blending')
-            if (co != []): blending = Internal.getValue(co[0])
+            if co != []: blending = Internal.getValue(co[0])
 
         s = color.split(':')
-        if (len(s) == 2 and s[0] == 'Iso'):
+        if len(s) == 2 and s[0] == 'Iso':
             vref = C.getVarNames(z)[0]
-            for pos in xrange(len(vref)):
-                if (vref[pos] == s[1]): break
+            for pos in range(len(vref)):
+                if vref[pos] == s[1]: break
             
             if pos == len(vref): color = 'White'; mode = 0
             else: color = 'Iso'; mode = pos+1; material = 'Iso'
@@ -539,9 +538,9 @@ def createStl(rep):
             co = Internal.getNodesFromName1(ri[0], 'Color')
             if co != []: color = Internal.getValue(co[0])
         s = color.split(':')
-        if (len(s) == 2 and s[0] == 'Iso'):
+        if len(s) == 2 and s[0] == 'Iso':
             vref = C.getVarNames(z)[0]
-            for pos in xrange(len(vref)):
+            for pos in range(len(vref)):
                 if vref[pos] == s[1]: break
             
             if pos == len(vref): color = 'White'; mode = 0
@@ -562,10 +561,10 @@ def createFiles():
     dir = os.path.dirname(CTK.FILE)
     rep = os.path.join(dir, rep)
     a = os.access(rep, os.F_OK)
-    if a == False: os.mkdir(rep)
+    if not a: os.mkdir(rep)
     sceneRep = rep+'/'+'Scene'
     a = os.access(sceneRep, os.F_OK)
-    if a == False: os.mkdir(sceneRep)
+    if not a: os.mkdir(sceneRep)
     createStl(sceneRep)
     createGeo(sceneRep)
     createMat(sceneRep)
@@ -579,9 +578,10 @@ def createFiles():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkLuxRender', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Export to LuxRender.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkLuxRender  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Export to LuxRender.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -589,8 +589,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkLuxRender')
@@ -599,15 +599,15 @@ def createApp(win):
     # - VARS -
     # -0- Image size
     V = TK.StringVar(win); V.set('800x600'); VARS.append(V)
-    if CTK.PREFS.has_key('tkLuxRenderSize'): 
+    if 'tkLuxRenderSize' in CTK.PREFS: 
         V.set(CTK.PREFS['tkLuxRenderSize'])
     # -1- Rep name
     V = TK.StringVar(win); V.set('LuxRender'); VARS.append(V)
-    if CTK.PREFS.has_key('tkLuxRenderOutput'): 
+    if 'tkLuxRenderOutput' in CTK.PREFS: 
         V.set(CTK.PREFS['tkLuxRenderOutput'])
     # -2- Interior / exterior
     V = TK.StringVar(win); V.set('Exterior'); VARS.append(V)   
-    if CTK.PREFS.has_key('tkLuxRenderType'): 
+    if 'tkLuxRenderType' in CTK.PREFS: 
         V.set(CTK.PREFS['tkLuxRenderType'])
 
     # - Type of scene
@@ -635,13 +635,17 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['RenderNoteBook'].add(WIDGETS['frame'], text='tkLuxRender')
+    except: pass
+    CTK.WIDGETS['RenderNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['RenderNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -670,9 +674,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

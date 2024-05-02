@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -104,6 +104,9 @@ PyObject* K_POST::enforceIndicatorForFinestLevel(PyObject* self,
   E_Float eps = 1.e-10;
   for (E_Int et = 0; et < nelts; et++)
   {
+    //[AJ - KEEP FOR NOW - FROM MASTER]
+    //if (K_FUNC::fEqualZero(dhtp[et]-dhmin, eps) == true && indict[et]!=-1000)
+
     if (K_FUNC::fEqualZero(dhtp[et]-dhmin, eps) == true) 
       indict[et] = -2000.;
   }

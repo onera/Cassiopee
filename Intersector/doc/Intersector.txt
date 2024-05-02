@@ -1,4 +1,75 @@
 ===============================================================================
+Intersector 3.7 [10/2023]
+Require: C++ compiler, python > 2.7, numpy > 1.0, Transform, Generator, 
+KCore 3.7
+Optional: pyTree interface requires Converter 3.7
+- xcellN: export "ratio" instead of "xcellN"
+===============================================================================
+Intersector 3.6 [03/2023]
+Require: C++ compiler, python > 2.4, numpy > 1.0, Transform, Generator, 
+KCore 3.6
+Optional: pyTree interface requires Converter 3.6
+===============================================================================
+Intersector 3.5 [12/2022]
+Require: C++ compiler, python > 2.4, numpy > 1.0, Transform, Generator, 
+KCore 3.5
+Optional: pyTree interface requires Converter 3.5
+===============================================================================
+Intersector 3.4 [07/2022]
+Require: C++ compiler, python > 2.4, numpy > 1.0, Transform, Generator, 
+KCore 3.4
+Optional: pyTree interface requires Converter 3.4
+===============================================================================
+Intersector 3.3[10/2021]
+Require: C++ compiler, python > 2.4, numpy > 1.0, Transform, Generator, 
+KCore 3.3
+Optional: pyTree interface requires Converter 3.3
+- syncMatchPerioFaces: force periodicity on intersected/adapted meshes.
+- agglomerateSmallCells: improved algorithm
+===============================================================================
+Intersector 3.2[02/2021]
+Require: C++ compiler, python > 2.4, numpy > 1.0, Transform, Generator, 
+KCore 3.2
+Optional: pyTree interface requires Converter 3.2
+Intersector : adaptCells : cell_sensor mode : to specify the isotropic nb of subdivisions required per cell
+- adaptCells: coarse-grain multithreading (parallelism per block)
+- adaptCells: BC/Joins/Field preservation
+- adaptCells: Mesh & Sensor hooks for incremental adaptation  
+- TurboMachine.py: specific wrappers to use the intersection strategy for mesh generation for turbo machine applications
+===============================================================================
+Intersector 3.1 [06/2020]
+Require: C++ compiler, python > 2.4, numpy > 1.0, Transform, Generator, 
+KCore 3.1
+Optional: pyTree interface requires Converter 3.1
+-  XcellN: Chimera Post Processing feature for computing visibility coefficients on overset surface grids configurations of any kind (structured or polygonal unstructured)
+- adaptCells: smoothing_type option to extend the smoothing beyond the first neighborhood
+- booleanUnion: multi_zone option to preserve zoning of the configuration 
+===============================================================================
+Intersector 3.0 [12/2019]
+Require: C++ compiler, python > 2.4, numpy > 1.0, Transform, Generator, 
+KCore 3.0
+Optional: pyTree interface requires Converter 3.0
+===============================================================================
+Intersector 2.9 [06/2019]
+Require: C++ compiler, python > 2.4, numpy > 1.0, Transform, Generator, 
+KCore 2.9
+Optional: pyTree interface requires Converter 2.9
+===============================================================================
+Intersector 2.8 [12/2018]
+Require: C++ compiler, python > 2.4, numpy > 1.0, Transform, Generator, 
+KCore 2.8
+Optional: pyTree interface requires Converter 2.8
+===============================================================================
+Intersector 2.7 [07/2018]
+Require: C++ compiler, python > 2.4, numpy > 1.0, Transform, Generator, 
+KCore 2.7
+Optional: pyTree interface requires Converter 2.7
+===============================================================================
+Intersector 2.6 [03/2018]
+Require: C++ compiler, python > 2.4, numpy > 1.0, Transform, Generator, 
+KCore 2.6
+Optional: pyTree interface requires Converter 2.6
+===============================================================================
 Intersector 2.5 [20/09/2017]
 Require: C++ compiler, python > 2.4, numpy > 1.0, Transform, Generator, 
 KCore 2.5

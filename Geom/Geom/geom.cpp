@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -49,18 +49,41 @@ static PyMethodDef Pygeom [] =
   {"spline", K_GEOM::spline, METH_VARARGS},
   {"nurbs", K_GEOM::nurbs, METH_VARARGS},
   {"getSharpestAngle", K_GEOM::getSharpestAngleForVertices, METH_VARARGS},
+  {"getUV", K_GEOM::getUV, METH_VARARGS},
   {NULL, NULL}
 };
+
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "geom",
+        NULL,
+        -1,
+        Pygeom
+};
+#endif
 
 // ============================================================================
 /* Init of module */
 // ============================================================================
 extern "C"
 {
-  void initgeom();
-  void initgeom()
+#if PY_MAJOR_VERSION >= 3
+  PyMODINIT_FUNC PyInit_geom();
+  PyMODINIT_FUNC PyInit_geom()
+#else
+  PyMODINIT_FUNC initgeom();
+  PyMODINIT_FUNC initgeom()
+#endif
   {
-    Py_InitModule("geom", Pygeom);
     import_array();
+#if PY_MAJOR_VERSION >= 3
+    PyObject* module = PyModule_Create(&moduledef);
+#else
+    Py_InitModule("geom", Pygeom);
+#endif
+#if PY_MAJOR_VERSION >= 3
+    return module;
+#endif
   }
 }

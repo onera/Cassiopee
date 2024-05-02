@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -17,9 +17,11 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 // setBCDataInGhostCellsStruct
+
 # include "converter.h"
 using namespace K_FLD;
 using namespace std;
+
 //=============================================================================
 /* Copy array with ghost values in an array without ghost values */
 //=============================================================================
@@ -36,7 +38,7 @@ PyObject* K_CONVERTER::setBCDataInGhostCellsStruct(PyObject* self,
   PyObject* zone;// zone with ghost cells, zone dim may not be consistent
   PyObject *dataBC, *BCRanges;// dataFS is dimensioned as ghost cells already im+2*d etc
   char* varname; char *GridCoordinates, *FlowSolutionNodes, *FlowSolutionCenters;
-  if (!PYPARSETUPLEI(args, "OOOlllllssss", "OOOiiiiissss", &zone, &BCRanges, &dataBC , &im, &jm, &km, &d, &locI, 
+  if (!PYPARSETUPLE_(args, OOO_ IIII_ I_ SSSS_, &zone, &BCRanges, &dataBC , &im, &jm, &km, &d, &locI, 
                      &varname, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters)) 
     return NULL;
 
@@ -59,7 +61,7 @@ PyObject* K_CONVERTER::setBCDataInGhostCellsStruct(PyObject* self,
   // DataSetInfo : extract list
   E_Int nbc = PyList_Size(BCRanges);
   E_Int nbc0 = PyList_Size(dataBC);
-  if ( nbc0 != nbc)
+  if (nbc0 != nbc)
   {
     PyErr_SetString(PyExc_TypeError, 
                     "setBCDataInGhostCellsStruct: nb of bc ranges and bc datas are not equal.");
@@ -74,7 +76,7 @@ PyObject* K_CONVERTER::setBCDataInGhostCellsStruct(PyObject* self,
   {
     PyObject* tpl = PyList_GetItem(dataBC, v);
     FldArrayF* bcFieldR;
-    K_NUMPY::getFromNumpyArray(tpl, bcFieldR, true);    
+    K_NUMPY::getFromNumpyArray(tpl, bcFieldR, true);
     listOfBCFieldsR.push_back(bcFieldR);
     listOfNumBCArrays.push_back(tpl);
     PyObject* win = PyList_GetItem(BCRanges, v); // list of integers
@@ -88,7 +90,7 @@ PyObject* K_CONVERTER::setBCDataInGhostCellsStruct(PyObject* self,
       return NULL;
     }
     E_Int sizewin = PyList_Size(win);
-    if (sizewin != 6 )
+    if (sizewin != 6)
     {
       PyErr_SetString(PyExc_TypeError, 
                       "setBCDataInGhostCellsStruct: window must be [imin,imax,jmin,jmax,kmin,kmax].");
@@ -125,7 +127,7 @@ PyObject* K_CONVERTER::setBCDataInGhostCellsStruct(PyObject* self,
   }
   E_Float* ptrFieldG = fields[posf];
   E_Int imin, imax, jmin, jmax, kmin, kmax;  
-  if (locI==0)// nodes : the bcdata directly
+  if (locI == 0) // nodes : the bcdata directly
   {
     for (E_Int nobc = 0; nobc < nbc; nobc++)
     {
@@ -150,7 +152,7 @@ PyObject* K_CONVERTER::setBCDataInGhostCellsStruct(PyObject* self,
     E_Int jmgc = jmg-1;
     E_Int imgcjmgc=imgc*jmgc;
     E_Int incr;
-    if ( dim == 3)
+    if (dim == 3)
     {
       for (E_Int nobc = 0; nobc < nbc; nobc++)
       {
@@ -159,9 +161,9 @@ PyObject* K_CONVERTER::setBCDataInGhostCellsStruct(PyObject* self,
         imin = IMIN[nobc]+d; jmin = JMIN[nobc]+d; kmin = KMIN[nobc]+d;
         imax = IMAX[nobc]+d; jmax = JMAX[nobc]+d; kmax = KMAX[nobc]+d;
         E_Float* ptrBCFieldR = listOfBCFieldsR[nobc]->begin();
-        if ( imin == imax)
+        if (imin == imax)
         {
-          if ( imin == d+1 )
+          if (imin == d+1)
           { 
             incr = -1;
             ig = (imin-1);
@@ -184,14 +186,14 @@ PyObject* K_CONVERTER::setBCDataInGhostCellsStruct(PyObject* self,
               noindint++;
             }
         }
-        else if ( jmin == jmax)
+        else if (jmin == jmax)
         {
           if (jmin == d+1) 
           { 
-            incr = -imgc;            
+            incr = -imgc;         
             jg = (jmin-1);
           }
-          else 
+          else
           { 
             incr = imgc; 
             jg = (jmin-2); 
@@ -209,7 +211,7 @@ PyObject* K_CONVERTER::setBCDataInGhostCellsStruct(PyObject* self,
               noindint++;
             }
         }
-        else if ( kmin == kmax)
+        else if (kmin == kmax)
         {
           if (kmin == d+1) 
           { 
@@ -246,9 +248,9 @@ PyObject* K_CONVERTER::setBCDataInGhostCellsStruct(PyObject* self,
           imin = IMIN[nobc]+d; jmin = JMIN[nobc]+d;
           imax = IMAX[nobc]+d; jmax = JMAX[nobc]+d; 
           E_Float* ptrBCFieldR = listOfBCFieldsR[nobc]->begin();
-          if ( imin == imax)
+          if (imin == imax)
           {
-            if ( imin == d+1 )
+            if (imin == d+1)
             { 
               incr = -1;
               ig = (imin-1);
@@ -270,7 +272,7 @@ PyObject* K_CONVERTER::setBCDataInGhostCellsStruct(PyObject* self,
               noindint++;
             }
           }
-          else if ( jmin == jmax)
+          else if (jmin == jmax)
           {
             if (jmin == d+1) 
             { 

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -26,7 +26,7 @@ using namespace K_FLD;
 PyObject* K_GENERATOR::stitchedHat(PyObject* self, PyObject* args)
 {
   PyObject* array; E_Float epsilon;
-  if (!PyArg_ParseTuple(args, "Od", &array, &epsilon)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ R_, &array, &epsilon)) return NULL;
  
   // Check array
   E_Int im, jm, km;
@@ -104,7 +104,7 @@ PyObject* K_GENERATOR::stitchedHat(PyObject* self, PyObject* args)
   normals(npts, x0, y0, z0, nx, ny, nz);
 
   for (E_Int i = 0; i < npts; i++)
-  { found[i] = 0; hanging[i] = 0;}
+  { found[i] = 0; hanging[i] = 0; }
 
   // Calcul de l'axe median
   for (E_Int i = 0; i < npts; i++)

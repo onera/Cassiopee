@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -21,9 +21,9 @@
 # include <string>
 # include <sstream> 
 # include "intersector.h"
-# include "Fld/ngon_t.hxx"
-# include "Nuga/Delaunay/Triangulator.h"
-# include "Nuga/Boolean/SelfX.h"
+# include "Nuga/include/ngon_t.hxx"
+# include "Nuga/include/Triangulator.h"
+# include "Nuga/include/SelfX.h"
 
 //#include <iostream>
 
@@ -37,7 +37,7 @@ using namespace NUGA;
 PyObject* K_INTERSECTOR::selfX(PyObject* self, PyObject* args)
 {
   PyObject *arr;
-  E_Float vmin(0.), vratio(1000.);
+  //E_Float vmin(0.), vratio(1000.);
 
   if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
 

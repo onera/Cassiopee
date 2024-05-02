@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -31,8 +31,6 @@ extern "C"
     const E_Int& indcell, const E_Int& indnode, 
     const E_Float* xt, const E_Float* yt, const E_Float* zc, E_Float& vol);
 }
-# include "stub.h"
-extern int __activation__;
 //=============================================================================
 /* Calcul et stocke les coefficients d'interpolation pour les centres des 
    cellules
@@ -47,10 +45,6 @@ extern int __activation__;
 //=============================================================================
 PyObject* K_CONNECTOR::setInterpolations(PyObject* self, PyObject* args)
 {
-  if (__activation__ == 0)
-  {
-    PyErr_SetString(PyExc_NotImplementedError, STUBMSG); return NULL;
-  }
   PyObject *coordArrays; // pts a interpoler: vecteur par domaine d'interpolation pour le double wall
   PyObject *interpArrays, *interpCellN;// domaines d'interpolations
   E_Int Nir, Njr;
@@ -59,8 +53,7 @@ PyObject* K_CONNECTOR::setInterpolations(PyObject* self, PyObject* args)
   E_Float geomCutOff = 1.e-8;
   E_Float cfMax = 30.;
   //E_Float extrapTol;//tolerance sur la  somme des coefs d'extrapolation
-  if (!PYPARSETUPLE(args,
-                    "llOOOlld","iiOOOiid","llOOOllf", "iiOOOiif",
+  if (!PYPARSETUPLE_(args, II_ OOO_ II_ R_,
                      &Nir, &Njr, &coordArrays, &interpArrays, &interpCellN, &isEX, &Zid, &cfMax))
   {
       return NULL;
@@ -982,7 +975,7 @@ void K_CONNECTOR::compAndStoreEXInterpCoefs(
   } 
   delete [] indirection;
 
-  //recuperation des points interpolés par un bloc periodique
+  //recuperation des points interpolï¿½s par un bloc periodique
   E_Int sizeP = thetaPEx.size();
   E_Int sizeM = thetaMEx.size();
   FldArrayI periodicEXPtsP(sizeP);
@@ -1435,7 +1428,7 @@ void K_CONNECTOR::compAndStoreInterpCoefs(
   }
   delete [] indirection;
 
-  //recuperation des points interpolés par un bloc periodique
+  //recuperation des points interpolï¿½s par un bloc periodique
   E_Int sizeP = thetaPPoints.size();
   E_Int sizeM = thetaMPoints.size();
   FldArrayI periodicPtsP(sizeP);

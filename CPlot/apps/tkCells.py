@@ -1,5 +1,7 @@
-# - Manipulation au niveau des cellules d'un maillage -
-import Tkinter as TK
+# - tkCells -
+"""Cell mesh manipulations."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Post.PyTree as P
@@ -32,7 +34,7 @@ def selectCells(event=None):
         z = P.selectCells(z, formula, strict=strict)
         CTK.replace(CTK.t, nob, noz, z)
 
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TXT.insert('START', 'Cells selected.\n')
     CTK.TKTREE.updateApp()
@@ -47,20 +49,20 @@ def suppressCells():
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     W = WIDGETS['suppress']
-    if CTK.__BUSY__ == False:
+    if not CTK.__BUSY__:
         CPlot.unselectAllZones()
         CTK.__BUSY__ = True
         TTK.sunkButton(W)
         CPlot.setState(cursor=1)
         while CTK.__BUSY__:
             l = []
-            while (l == []):
+            while l == []:
                 nz = CPlot.getSelectedZone()
                 l = CPlot.getActivePointIndex()
                 CPlot.unselectAllZones()
                 time.sleep(CPlot.__timeStep__)
                 W.update()
-                if (CTK.__BUSY__ == False): break
+                if not CTK.__BUSY__: break
             if CTK.__BUSY__:
                 nob = CTK.Nb[nz]+1
                 noz = CTK.Nz[nz]
@@ -91,7 +93,7 @@ def refineCells():
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     W = WIDGETS['refine']
-    if CTK.__BUSY__ == False:
+    if not CTK.__BUSY__:
         CPlot.unselectAllZones()
         CTK.__BUSY__ = True
         TTK.sunkButton(W)
@@ -104,7 +106,7 @@ def refineCells():
                 CPlot.unselectAllZones()
                 time.sleep(CPlot.__timeStep__)
                 W.update()
-                if CTK.__BUSY__ == False: break
+                if not CTK.__BUSY__: break
             if CTK.__BUSY__:
                 nob = CTK.Nb[nz]+1
                 noz = CTK.Nz[nz]
@@ -112,7 +114,7 @@ def refineCells():
                 z = CTK.t[2][nob][2][noz]
                 C._initVars(z, 'centers:__tag__', 0)
                 C.setValue(z, 'centers:__tag__', l[1], 1)
-                try: 
+                try:
                     z = P.refine(z, '__tag__')
                     CTK.replace(CTK.t, nob, noz, z)
                 except: pass
@@ -132,9 +134,10 @@ def refineCells():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkCells', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Per cell operation\non meshes.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkCells  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Per cell operation\non meshes.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -143,8 +146,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkCells')
     WIDGETS['frameMenu'] = FrameMenu
 
@@ -180,13 +183,17 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['MeshNoteBook'].add(WIDGETS['frame'], text='tkCells')
+    except: pass
+    CTK.WIDGETS['MeshNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['MeshNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -198,9 +205,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

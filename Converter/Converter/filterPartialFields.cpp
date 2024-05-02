@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -34,10 +34,9 @@ using namespace std;
 //=============================================================================
 PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
 {
-  E_Float ZEROVOL=1.e-16;
-  E_Float penaltyExtrap = 1e6;
-  E_Float penaltyOrphan = 1e12;
-  E_Int countExtrap= 0; E_Int countOrphan = 0;
+  E_Float ZEROVOL = 1.e-16;
+  E_Float penaltyExtrap = 1.e6;
+  E_Float penaltyOrphan = 1.e12;
 
   char *GridCoordinates, *FlowSolutionNodes, *FlowSolutionCenters;
   PyObject* zone;
@@ -46,8 +45,9 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
   E_Int loc;
   E_Int startFrom;
   char *filterName;// nom du filtre dans fArrays
-  if (!PYPARSETUPLEI(args, "OOOllssss", "OOOiissss", &zone, &fArrays, &listIndicesO, &loc, &startFrom, 
-                     &filterName, &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters))
+  E_Int verbose;
+  if (!PYPARSETUPLE_(args, OOO_ II_ SSSS_ I_, &zone, &fArrays, &listIndicesO, &loc, &startFrom, 
+                     &filterName, &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters, &verbose))
     return NULL; 
 
   /* zone a modifier */
@@ -78,8 +78,8 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
   vector<void*> a3; //eltType en NS
   vector<void*> a4;
   vector<PyObject*> objsD;
-  E_Boolean skipNoCoord = false;  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = true;  E_Boolean skipDiffVars = true;
+  E_Boolean skipNoCoord = false; E_Boolean skipStructured = false;
+  E_Boolean skipUnstructured = true; E_Boolean skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(fArrays, resD, varStringD, fieldsD, a2, a3, a4, objsD,  
                                       skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   E_Int nzonesD = objsD.size();
@@ -93,7 +93,7 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
     return NULL; 
   }
 
-  /*--------------------------------------------*/
+  /*-------------------------------------------*/
   /* Extraction des indices des pts a modifier */
   /*-------------------------------------------*/
   FldArrayI* listIndices;
@@ -111,14 +111,13 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
   E_Int nPts = listIndices->getSize();
   E_Int* indices = listIndices->begin();
 
-
   /* Variables communes entre la zone et les champs a inserer */
   char* varStringC; // chaine de caractere commune
   E_Int lenD = strlen(varStringD[0]);
   E_Int lenZ = strlen(varStringZ);
   E_Int l = min(lenD,lenZ);
   varStringC = new char [l+1];
-  vector<E_Int> posvZ;//pos demarrent a 1
+  vector<E_Int> posvZ; //pos demarrent a 1
   vector<E_Int> posvD; 
   K_ARRAY::getPosition(varStringD[0], varStringZ, posvD, posvZ, varStringC);
   delete [] varStringC;
@@ -126,67 +125,155 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
   E_Int ncommonfields = posvZ.size(); // nb de variables communes
 
   vector<E_Int> posfD;
-  E_Int err = 0;
   for (E_Int i = 0; i < nzonesD; i++)
   {
     E_Int posf = K_ARRAY::isNamePresent(filterName, varStringD[i]);
-    if ( posf == -1) 
+    if (posf == -1)
     {
-        RELEASESHAREDZ(hook, varStringZ, eltTypeZ);
-        RELEASESHAREDN(listIndicesO, listIndices);
-        for (E_Int no = 0; no < nzonesD; no++)
-          RELEASESHAREDA(resD[no],objsD[no],fieldsD[no],a2[no],a3[no],a4[no]); 
-        PyErr_SetString(PyExc_TypeError, 
-                        "filterPartialFields: filter variable not found in 2nd arg.");
-        return NULL;        
+      RELEASESHAREDZ(hook, varStringZ, eltTypeZ);
+      RELEASESHAREDN(listIndicesO, listIndices);
+      for (E_Int no = 0; no < nzonesD; no++)
+        RELEASESHAREDA(resD[no],objsD[no],fieldsD[no],a2[no],a3[no],a4[no]); 
+      PyErr_SetString(PyExc_TypeError, 
+                      "filterPartialFields: filter variable not found in 2nd arg.");
+      return NULL;        
     }
     posfD.push_back(posf+1);
   }
-#pragma omp for
-  for (E_Int i = 0; i < nPts; i++)
-  {
-    E_Float filterMax = K_CONST::E_MAX_FLOAT;
-    E_Int bestDnr=-1;
-    for (E_Int nozD=0; nozD < nzonesD; nozD++)
-    {
-      E_Int posf = posfD[nozD];//demarre a 1
-      E_Float* ptrFilter = fieldsD[nozD]->begin(posf);
-      E_Float filterVal = ptrFilter[i];
-      if (filterVal < filterMax && filterVal> ZEROVOL)
-      {
-        filterMax = filterVal;
-        bestDnr=nozD;
-      }
-    }
-    if ( filterMax >= penaltyOrphan ) countOrphan++;
-    else
-    {
-      if ( filterMax >= penaltyExtrap) {
-        countExtrap++;}
-      if ( bestDnr>-1)
-      {
-        E_Int ind = indices[i]-startFrom;
 
-        for (E_Int eq = 0; eq < ncommonfields; eq++)
+  E_Int nthreads = __NUMTHREADS__;
+  E_Int* countOrphanL = new E_Int [nthreads];
+  for (E_Int i = 0; i < nthreads; i++) countOrphanL[i] = 0;
+  E_Int* countExtrapL = new E_Int [nthreads];
+  for (E_Int i = 0; i < nthreads; i++) countExtrapL[i] = 0;
+  
+#pragma omp parallel
+  {
+    E_Float filterMax, filterVal;
+    E_Int bestDnr;
+    E_Int posf, posZ, posD, ind;
+    E_Int ithread = __CURRENT_THREAD__;
+    E_Float *ptrFilter, *fZ, *ptrFieldD;
+
+#pragma omp for
+    for (E_Int i = 0; i < nPts; i++)
+    {
+      filterMax = K_CONST::E_MAX_FLOAT;
+      bestDnr = -1;
+      for (E_Int nozD=0; nozD < nzonesD; nozD++)
+      {
+        posf = posfD[nozD]; //demarre a 1
+        ptrFilter = fieldsD[nozD]->begin(posf);
+        filterVal = ptrFilter[i];
+        if (filterVal < filterMax && filterVal > ZEROVOL)
         {
-          E_Int posZ = posvZ[eq]; 
-          E_Float* fZ = fieldsZ[posZ-1];
-          E_Int posD = posvD[eq]; 
-          E_Float* ptrFieldD = fieldsD[bestDnr]->begin(posD);          
-          fZ[ind] = ptrFieldD[i];
+          filterMax = filterVal;
+          bestDnr = nozD;
+        }
+      }
+      if (filterMax >= penaltyOrphan) countOrphanL[ithread]++;
+      else
+      {
+        if (filterMax >= penaltyExtrap) { countExtrapL[ithread]++; }
+        if (bestDnr > -1)
+        {
+          ind = indices[i]-startFrom;
+
+          for (E_Int eq = 0; eq < ncommonfields; eq++)
+          {
+            posZ = posvZ[eq]; 
+            fZ = fieldsZ[posZ-1];
+            posD = posvD[eq]; 
+            ptrFieldD = fieldsD[bestDnr]->begin(posD);          
+            fZ[ind] = ptrFieldD[i];
+          }
         }
       }
     }
   }
 
+  E_Int countOrphan = 0;
+  for (E_Int i = 0; i < nthreads; i++) countOrphan += countOrphanL[i];
+  delete [] countOrphanL;
+  E_Int countExtrap = 0;
+  for (E_Int i = 0; i < nthreads; i++) countExtrap += countExtrapL[i];
+  delete [] countExtrapL;
+
   if (countExtrap>0 || countOrphan>0)
   {
     E_Int countInterp = nPts-countOrphan-countExtrap;
     PyObject* v = PyList_GetItem(zone, 0);
-    char* zname =  PyString_AsString(v);
-    printf("Zone %s : interpolated=%d; extrapolated=%d; orphans=%d.\n",zname, countInterp, countExtrap, countOrphan);
-    if ( countOrphan>0)
-      printf("WARNING: Zone %s has %d orphan points.\n",zname,countOrphan);
+    char* zname = NULL;
+    if (PyString_Check(v)) zname = PyString_AsString(v);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(v)) zname = (char*)PyUnicode_AsUTF8(v); 
+#endif
+    
+    if (verbose >= 1)
+    {
+      printf("Zone %s: interpolated=" SF_D_ "; extrapolated=" SF_D_ "; orphans=" SF_D_ ".\n",
+             zname, countInterp, countExtrap, countOrphan);
+      if (countOrphan > 0)
+        printf("WARNING: Zone %s has " SF_D_ " orphan points.\n",
+               zname, countOrphan);
+    }
+    if (verbose == 2)
+    {
+      // Ecrit les indices globaux des pts orphelins
+      E_Float filterMax, filterVal;
+      E_Int posf, ind;
+      E_Float* ptrFilter;
+      for (E_Int i = 0; i < nPts; i++)
+      {
+        filterMax = K_CONST::E_MAX_FLOAT;
+        for (E_Int nozD=0; nozD < nzonesD; nozD++)
+        {
+          posf = posfD[nozD]; //demarre a 1
+          ptrFilter = fieldsD[nozD]->begin(posf);
+          filterVal = ptrFilter[i];
+          if (filterVal < filterMax && filterVal > ZEROVOL)
+          {
+            filterMax = filterVal;
+          }
+        }
+        if (filterMax >= penaltyOrphan)
+        {
+          ind = indices[i]-startFrom;
+          printf("orphan %s: " SF_D_ "\n", zname, ind);
+        }
+      }
+    }
+    else if (verbose == 3)
+    {
+      // Met cellN=-1 pour les points orphelins
+      E_Float filterMax, filterVal;
+      E_Int posf, ind;
+      E_Float* ptrFilter;
+      E_Int posCellN = K_ARRAY::isNamePresent("cellN", varStringZ);
+      if (posCellN >= 0)
+      {
+        E_Float* cellN = fieldsZ[posCellN];
+        for (E_Int i = 0; i < nPts; i++)
+        {
+          filterMax = K_CONST::E_MAX_FLOAT;
+          for (E_Int nozD=0; nozD < nzonesD; nozD++)
+          {
+            posf = posfD[nozD]; //demarre a 1
+            ptrFilter = fieldsD[nozD]->begin(posf);
+            filterVal = ptrFilter[i];
+            if (filterVal < filterMax && filterVal > ZEROVOL)
+            {
+              filterMax = filterVal;
+            }
+          }
+          if (filterMax >= penaltyOrphan)
+          {
+            ind = indices[i]-startFrom;
+            cellN[ind] = -1;
+          }
+        }
+      }
+    }
   }
   for (E_Int no = 0; no < nzonesD; no++)
     RELEASESHAREDA(resD[no],objsD[no],fieldsD[no],a2[no],a3[no],a4[no]); 

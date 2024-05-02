@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -22,7 +22,7 @@
 // Comportement de cette routine:
 // A l'ecriture: on respecte les types d'entree, sauf pour les noeuds version
 // et periodic (R4)
-// A la lecture: on converti en numpy I4/R8.
+// A la lecture: on convertit en numpy I4/R8.
 
 # include "GenIO.h"
 # include "kcore.h"
@@ -51,6 +51,8 @@ class GenIOAdf
     PyObject* getArrayR8Skel(double node);
     PyObject* getArrayR4(double node);
     PyObject* getArrayR4Skel(double node);
+    PyObject* getArrayI1(double node);
+    PyObject* getArrayI1Skel(double node);
     PyObject* getArrayI4(double node);
     PyObject* getArrayI4Skel(double node);
     PyObject* getArrayI8(double node);
@@ -64,6 +66,7 @@ class GenIOAdf
     double setArrayMT(double node);
     double setArrayR4(double node, float *data, int dim, int *dims);
     double setArrayR8(double node, double *data, int dim, int *dims);
+    double setArrayI1(double node, char *data, int dim, int *dims);
     double setArrayI4(double node, int *data, int dim, int *dims);
     double setArrayI8(double node, E_LONG *data, int dim, int *dims);
     double setArrayC1(double node, char *data);
@@ -203,13 +206,18 @@ PyObject* K_IO::GenIOAdf::createNode(double node)
 
   // Valeur du noeud
   ADF_Get_Data_Type(node, _dtype, &_errorFlag);
-  npy_intp npy_dim_vals2[1]; npy_dim_vals2[0] = 0;
+  //npy_intp npy_dim_vals2[1]; npy_dim_vals2[0] = 0;
 
   PyObject* v = NULL; // set everything in numpys
   if (strcmp(_dtype, "I4") == 0)
   {
     if (_skeleton == 1 && (strcmp(_type, "IndexArray_t") == 0 || strcmp(_type, "DataArray_t") == 0)) v = getArrayI4Skel(node);
     else v = getArrayI4(node);
+  }
+  else if (strcmp(_dtype, "R8") == 0)
+  {
+    if (_skeleton == 1 && strcmp(_type, "DataArray_t") == 0) v = getArrayR8Skel(node);
+    else v = getArrayR8(node);
   }
   else if (strcmp(_dtype, "I8") == 0)
   {
@@ -226,6 +234,12 @@ PyObject* K_IO::GenIOAdf::createNode(double node)
     if (_skeleton == 1 && strcmp(_type, "DataArray_t") == 0) v = getArrayR8Skel(node);
     else v = getArrayR8(node);
   }
+  else if (strcmp(_dtype, "B1") == 0)
+  {
+    if (_skeleton == 1 && (strcmp(_type, "IndexArray_t") == 0 || strcmp(_type, "DataArray_t") == 0)) v = getArrayI1Skel(node);
+    else v = getArrayI1(node);
+  }
+  
   else if (strcmp(_dtype, "C1") == 0)
   {
     IMPORTNUMPY;
@@ -233,10 +247,10 @@ PyObject* K_IO::GenIOAdf::createNode(double node)
     /*
     char* s = getArrayC1(node);
     E_Int l = strlen(s); npy_dim_vals2[0] = l;
-    v = (PyObject*)PyArray_EMPTY(1, npy_dim_vals2, NPY_CHAR, 1);
+    v = (PyObject*)PyArray_EMPTY(1, npy_dim_vals2, NPY_STRING, 1);
     memcpy(PyArray_DATA((PyArrayObject*)v), s, l*sizeof(char));
     free(s);
-  */
+    */
     v = getArrayC1(node, 1);
   }
   else if (strcmp(_dtype, "MT") == 0)
@@ -311,11 +325,11 @@ PyObject* K_IO::GenIOAdf::getArrayR8(double node)
   ADF_Get_Dimension_Values(node, _dims, &_errorFlag);
 
   // Create numpy: toujours en double
-  npy_intp npy_dim_vals[dim];
+  npy_intp* npy_dim_vals = new npy_intp [dim];
   for (E_Int nn = 0; nn < dim; nn++) npy_dim_vals[nn] = _dims[nn];
   r = (PyObject*)PyArray_EMPTY(dim, npy_dim_vals, NPY_DOUBLE, 1);
   ADF_Read_All_Data(node, (char*)PyArray_DATA((PyArrayObject*)r), &_errorFlag);
-
+  delete [] npy_dim_vals;
   return r;
 }
 
@@ -365,6 +379,38 @@ PyObject* K_IO::GenIOAdf::getArrayR4(double node)
   r = (PyArrayObject*)PyArray_EMPTY(dim, &npy_dim_vals[0], NPY_DOUBLE, 1);
   memcpy(PyArray_DATA(r), ptr2, sizem*sizeof(double));
   free(ptr2);
+  return (PyObject*)r;
+}
+
+//=============================================================================
+PyObject* K_IO::GenIOAdf::getArrayI1Skel(double node)
+{
+  if (_maxFloatSize == 0) { Py_INCREF(Py_None); return Py_None; }
+  int  s, dim, sizem;
+  ADF_Get_Number_of_Dimensions(node, &dim, &_errorFlag);
+  ADF_Get_Dimension_Values(node, _dims, &_errorFlag);
+  sizem = 1;
+  for (s = 0; s < dim; s++) sizem = sizem*_dims[s];
+  if (sizem < _maxFloatSize) return getArrayI1(node);
+  else { Py_INCREF(Py_None); return Py_None; }
+}
+
+//=============================================================================
+PyObject* K_IO::GenIOAdf::getArrayI1(double node)
+{
+  IMPORTNUMPY;
+  int  dim;
+  PyArrayObject* r = NULL;
+
+  ADF_Get_Number_of_Dimensions(node, &dim, &_errorFlag);
+  ADF_Get_Dimension_Values(node, _dims, &_errorFlag);
+
+  // Create numpy : INT8
+  vector<npy_intp> npy_dim_vals(dim);
+  for (E_Int nn = 0; nn < dim; nn++) npy_dim_vals[nn] = _dims[nn];
+  r = (PyArrayObject*)PyArray_EMPTY(dim, &npy_dim_vals[0], NPY_BYTE, 1);
+
+  ADF_Read_All_Data(node, (char*)PyArray_DATA(r), &_errorFlag);
   return (PyObject*)r;
 }
 
@@ -483,7 +529,7 @@ PyObject* K_IO::GenIOAdf::getArrayC1(double node, int force)
     ADF_Read_All_Data(node, (char*)s, &_errorFlag);
     s[(sizem*sizeof(char))] = '\0'; // C arrays starts at zero
     E_Int l = strlen(s); npy_dim_vals[0] = l;                            
-    PyObject* v = (PyObject*)PyArray_EMPTY(1, npy_dim_vals, NPY_CHAR, 1);
+    PyObject* v = (PyObject*)PyArray_EMPTY(1, npy_dim_vals, NPY_STRING, 1);
     memcpy(PyArray_DATA((PyArrayObject*)v), s, l*sizeof(char));
     free(s);
     return v;
@@ -493,7 +539,7 @@ PyObject* K_IO::GenIOAdf::getArrayC1(double node, int force)
     char* s = (char*)::malloc((sizem*sizeof(char))+1);
     ADF_Read_All_Data(node, (char*)s, &_errorFlag);
     npy_dim_vals[0] = _dims[0]; npy_dim_vals[1] = _dims[1];      
-    PyObject* v = (PyObject*)PyArray_EMPTY(dim, npy_dim_vals, NPY_CHAR, 1);
+    PyObject* v = (PyObject*)PyArray_EMPTY(dim, npy_dim_vals, NPY_STRING, 1);
     memcpy(PyArray_DATA((PyArrayObject*)v), s, sizem*sizeof(char));
     free(s);
     return v;
@@ -580,9 +626,18 @@ double K_IO::GenIOAdf::writeNode(double node, PyObject* tree, double child)
   char s1[CGNSMAXLABEL+1];
   char s2[CGNSMAXLABEL+1];
   PyObject* pname = PyList_GetItem(tree, 0);
-  char* name = PyString_AsString(pname);
   PyObject* plabel = PyList_GetItem(tree, 3);
-  char* label = PyString_AsString(plabel);
+  char* name; char* label;
+  if (PyString_Check(pname)) name = PyString_AsString(pname);
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(pname)) name = (char*)PyUnicode_AsUTF8(pname);
+#endif
+  else name = NULL;
+  if (PyString_Check(plabel)) label = PyString_AsString(plabel);
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(plabel)) label = (char*)PyUnicode_AsUTF8(plabel);
+#endif
+  else label = NULL;
   blankAndCopy(s1, name, CGNSMAXLABEL);
   blankAndCopy(s2, label, CGNSMAXLABEL);
 
@@ -598,22 +653,28 @@ double K_IO::GenIOAdf::writeNode(double node, PyObject* tree, double child)
   {
     setArrayMT(child);
   }
-  else if (PyString_Check(v) == true)
+  else if (PyString_Check(v))
   {
     setArrayC1(child, PyString_AsString(v));
   }
-  else if (PyInt_Check(v) == true)
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(v))
+  {
+    setArrayC1(child, (char*)PyUnicode_AsUTF8(v));
+  }
+#endif
+  else if (PyInt_Check(v))
   {
     setSingleI4(child, PyInt_AsLong(v));
   }
-  else if (PyFloat_Check(v) == true)
+  else if (PyFloat_Check(v))
   {
     if (strcmp(name, "CGNSLibraryVersion") == 0)
       setSingleR4(child, PyFloat_AsDouble(v));
     else
       setSingleR8(child, PyFloat_AsDouble(v));
   }
-  else if (PyArray_Check(v) == true)
+  else if (PyArray_Check(v))
   {
     PyArrayObject* ar = (PyArrayObject*)v;
     int dim = PyArray_NDIM(ar);
@@ -656,11 +717,10 @@ double K_IO::GenIOAdf::writeNode(double node, PyObject* tree, double child)
           setSingleI8(child, ptr[0]);
         }
       }
-      else if (typeNum == NPY_CHAR ||
-               typeNum == NPY_STRING ||
+      else if (typeNum == NPY_STRING ||
                typeNum == NPY_BYTE ||
                //typeNum == NPY_SBYTE ||
-               typeNum == NPY_UBYTE )
+               typeNum == NPY_UBYTE)
       {
 	      E_Int diml = PyArray_DIMS(ar)[0];
         char* buf = new char [diml+1];
@@ -692,21 +752,7 @@ double K_IO::GenIOAdf::writeNode(double node, PyObject* tree, double child)
     {
       if (typeNum == NPY_DOUBLE)
       {
-        // patch pour la norme ADF
-        if (strcmp(name, "RotationCenter") == 0 ||
-            strcmp(name, "RotationAngle") == 0 ||
-            strcmp(name, "RotationRateVector") == 0 ||
-            strcmp(name, "Translation") == 0)
-        {
-          E_Int s = PyArray_Size(v);
-          float* buf = new float [s];
-          double* ptr = (double*)PyArray_DATA(ar);
-          for (int i = 0; i < s; i++) buf[i] = ptr[i];
-          setArrayR4(child, buf, dim, dims);
-          delete [] buf;
-        }
-        else
-          setArrayR8(child, (double*)PyArray_DATA(ar), dim, dims);
+        setArrayR8(child, (double*)PyArray_DATA(ar), dim, dims);
       }
       else if (typeNum == NPY_INT)
       {
@@ -714,22 +760,31 @@ double K_IO::GenIOAdf::writeNode(double node, PyObject* tree, double child)
         {
          setArrayI4(child, (int*)PyArray_DATA(ar), dim, dims);
         }
+        else if (elSize == 1)
+        {
+          setArrayI1(child, (char*)PyArray_DATA(ar), dim, dims);
+        }
         else
         {
           setArrayI8(child, (E_LONG*)PyArray_DATA(ar), dim, dims);
         }
       }
-      else if (typeNum == NPY_CHAR ||
-               typeNum == NPY_STRING ||
-               typeNum == NPY_BYTE ||
+      else if (typeNum == NPY_BYTE)
+      {
+        setArrayI1(child, (char*)PyArray_DATA(ar), dim, dims);
+      }
+      else if (typeNum == NPY_STRING ||
+               //typeNum == NPY_BYTE ||
                //typeNum == NPY_SBYTE ||
-               typeNum == NPY_UBYTE )
+               typeNum == NPY_UBYTE)
       {
         if (dim == 1) // one string
         {
           E_Int diml = PyArray_DIMS(ar)[0];
           char* buf = new char [diml+1];
-          strncpy(buf, (char*)PyArray_DATA(ar), diml);
+          char* pt = (char*)PyArray_DATA(ar);
+          for (E_Int i = 0; i < diml; i++) buf[i] = pt[i]; 
+          //strncpy(buf, (char*)PyArray_DATA(ar), diml); // pb align
           buf[diml] = '\0';
           setArrayC1(child, buf);
           delete [] buf;
@@ -744,6 +799,10 @@ double K_IO::GenIOAdf::writeNode(double node, PyObject* tree, double child)
         if (elSize == 4)
         {
          setArrayI4(child, (int*)PyArray_DATA(ar), dim, dims);
+        }
+        else if (elSize == 1)
+        {
+          setArrayI1(child, (char*)PyArray_DATA(ar), dim, dims);
         }
         else
         {
@@ -852,10 +911,17 @@ double K_IO::GenIOAdf::setArrayI8(double node, E_LONG *data, int dim,
 }
 
 //=============================================================================
-double K_IO::GenIOAdf::setArrayR4(double node, float *data, int dim,
-                                  int *dims)
+double K_IO::GenIOAdf::setArrayR4(double node, float *data, int dim, int *dims)
 {
   ADF_Put_Dimension_Information(node, "R4", dim, dims, &_errorFlag);
+  ADF_Write_All_Data(node, (char*)data, &_errorFlag);
+  return node;
+}
+
+//=============================================================================
+double K_IO::GenIOAdf::setArrayI1(double node, char *data, int dim, int *dims)
+{
+  ADF_Put_Dimension_Information(node, "B1", dim, dims, &_errorFlag);
   ADF_Write_All_Data(node, (char*)data, &_errorFlag);
   return node;
 }
@@ -907,7 +973,6 @@ void K_IO::GenIO::getABFromPath(char* path, vector<char*>& pelts)
   if (strcmp(path, "/") == 0) return;
   E_Int i, j;
   E_Int l = strlen(path);
-  E_Int cur = 0;
   i = 0; // parcours global
   while (i < l)
   {
@@ -939,15 +1004,6 @@ PyObject* K_IO::GenIO::adfcgnsReadFromPaths(char* file, PyObject* paths,
     return NULL;
   }
   E_Int size = PyList_Size(paths);
-  for (E_Int i = 0; i < size; i++)
-  {
-    if (PyString_Check(PyList_GetItem(paths, i)) == false)
-    {
-      PyErr_SetString(PyExc_TypeError,
-                      "adfcgnsread: paths must be a list of strings.");
-      return NULL;
-    }
-  }
 
   /* Open file */
   double rootId; int errorFlag;
@@ -968,7 +1024,18 @@ PyObject* K_IO::GenIO::adfcgnsReadFromPaths(char* file, PyObject* paths,
 
   for (E_Int i = 0; i < size; i++)
   {
-    char* path = PyString_AsString(PyList_GetItem(paths, i));
+    char* path; PyObject* l;
+    l = PyList_GetItem(paths, i);
+    if (PyString_Check(l)) path = PyString_AsString(l);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(l)) path = (char*)PyUnicode_AsUTF8(l);
+#endif
+    else 
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "adfcgnsread: paths must be a list of strings.");
+      return NULL;
+    }  
     int found = 0;
     vector<char*> pelts;
     getABFromPath(path, pelts);
@@ -1036,15 +1103,6 @@ E_Int K_IO::GenIO::adfcgnsWritePaths(char* file, PyObject* treeList,
     return 1;
   }
   E_Int size = PyList_Size(paths);
-  for (E_Int i = 0; i < size; i++)
-  {
-    if (PyString_Check(PyList_GetItem(paths, i)) == false)
-    {
-      PyErr_SetString(PyExc_TypeError,
-                      "adfcgnswrite: paths must be a list of strings.");
-      return 1;
-    }
-  }
 
   /* Ouverture du fichier pour l'ecriture */
   double rootId; int errorFlag;
@@ -1062,7 +1120,19 @@ E_Int K_IO::GenIO::adfcgnsWritePaths(char* file, PyObject* treeList,
 
   for (E_Int i = 0; i < size; i++)
   {
-    char* path = PyString_AsString(PyList_GetItem(paths, i));
+    found = 0;
+    char* path; PyObject* l;
+    l = PyList_GetItem(paths, i);
+    if (PyString_Check(l)) path = PyString_AsString(l);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(l)) path = (char*)PyUnicode_AsUTF8(l);
+#endif
+    else 
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "adfcgnswrite: paths must be a list of strings.");
+      return 1;
+    }  
     vector<char*> pelts;
     getABFromPath(path, pelts);
     
@@ -1102,7 +1172,13 @@ E_Int K_IO::GenIO::adfcgnsWritePaths(char* file, PyObject* treeList,
       {
         // node[0] existe deja dans les enfants du chemin?
         double idp;
-        char* nodeName = PyString_AsString(PyList_GetItem(node,0));
+        char* nodeName; PyObject* l;
+        l = PyList_GetItem(node,0);
+        if (PyString_Check(l)) nodeName = PyString_AsString(l);
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyUnicode_Check(l)) nodeName = (char*)PyUnicode_AsUTF8(l);
+#endif
+        else nodeName = NULL;
         found = 0;
         ADF_Number_of_Children(id, &nChildren, &errorFlag);
         for (int j = 1; j <= nChildren; j++)
@@ -1140,7 +1216,7 @@ E_Int K_IO::GenIO::adfcgnsWritePaths(char* file, PyObject* treeList,
         }
         else // maxDepth=0
         {
-          printf("%f\n", id); // NE MARCHE PAS
+          //printf(SF_F_ "\n", id); // NE MARCHE PAS
           ADF.writeNode(id, node, id); // replace data
           //ADF_Set_Label(id, "help", &ADF._errorFlag);                           
         }
@@ -1165,22 +1241,13 @@ E_Int K_IO::GenIO::adfcgnsDeletePaths(char* file,
     return 1;
   }
   E_Int size = PyList_Size(paths);
-  for (E_Int i = 0; i < size; i++)
-  {
-    if (PyString_Check(PyList_GetItem(paths, i)) == false)
-    {
-      PyErr_SetString(PyExc_TypeError,
-                      "adfcgnsdelete: paths must be a list of strings.");
-      return 1;
-    }
-  }
 
   /* Ouverture du fichier pour l'ecriture */
   double rootId; int errorFlag;
   ADF_Database_Open(file, "old", " ", &rootId, &errorFlag);
   if (errorFlag != -1)
   {
-    PyErr_SetString(PyExc_TypeError, "adcgnsdelete: cannot open file.");
+    PyErr_SetString(PyExc_TypeError, "adfcgnsdelete: cannot open file.");
     return 1;
   }
 
@@ -1191,7 +1258,19 @@ E_Int K_IO::GenIO::adfcgnsDeletePaths(char* file,
 
   for (E_Int i = 0; i < size; i++)
   {
-    char* path = PyString_AsString(PyList_GetItem(paths, i));
+    found = 0;
+    char* path; PyObject* l;
+    l = PyList_GetItem(paths, i);
+    if (PyString_Check(l)) path = PyString_AsString(l);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(l)) path = (char*)PyUnicode_AsUTF8(l);
+#endif
+    else
+    {
+      PyErr_SetString(PyExc_TypeError, "adfcgnsdelete: paths must be strings.");
+      return 1;
+    }
+
     vector<char*> pelts;
     getABFromPath(path, pelts);
                                               

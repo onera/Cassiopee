@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -47,15 +47,17 @@ PyObject* K_POST::computeNormGrad(PyObject* self, PyObject* args)
     return NULL;
   }
   // check varname
-  char* var;
-  if (PyString_Check(varname) == 0)
+  char* var = NULL;
+  if (PyString_Check(varname)) var = PyString_AsString(varname);
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(varname)) var = (char*)PyUnicode_AsUTF8(varname);
+#endif
+  else
   {
-    
     PyErr_SetString(PyExc_TypeError, 
                     "computeNormGrad: varname must be a string.");
     RELEASESHAREDB(res,array,f,cn); return NULL;
-  }
-  else var = PyString_AsString(varname);
+  } 
   E_Int posv = K_ARRAY::isNamePresent(var, varString);
   if (posv == -1)
   {

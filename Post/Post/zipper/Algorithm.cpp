@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -356,7 +356,7 @@ void closePockets(vector<CString*>& strings,
   E_Boolean add = false;
   for (E_Int p = 0; p < pocketsSize; p++)
   {
-    pockets[p]->writeLine("pockets.tp", add);
+    pockets[p]->writeLine((char*)"pockets.tp", add);
     delete pockets[p];
     add = true;
   }

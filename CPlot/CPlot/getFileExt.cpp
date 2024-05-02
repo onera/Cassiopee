@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -28,10 +28,10 @@
 //=============================================================================
 void getFileExt(char* file, char* ext)
 {
-  int l = strlen(file);
+  E_Int l = strlen(file);
   char* buf = new char[l];
-  int c = 0;
-  for (int i = l-1; i >=0; i--)
+  E_Int c = 0;
+  for (E_Int i = l-1; i >=0; i--)
   {
     if (file[i] == '.') break;
     else
@@ -41,7 +41,7 @@ void getFileExt(char* file, char* ext)
   }
   if (c < l && c < 5)
   {
-    for (int i = 0; i < c; i++)
+    for (E_Int i = 0; i < c; i++)
       ext[i] = buf[c-1-i];
     ext[c]='\0';
   }

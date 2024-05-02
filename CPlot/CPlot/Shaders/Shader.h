@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -21,7 +21,11 @@
 #include "GL/glew.h"
 #include <list>
 #include <string>
-#include "ShaderObject.h"
+#include <memory>
+#include "VertexShader.h"
+#include "TesselationControlShader.hpp"
+#include "TesselationEvaluationShader.hpp"
+#include "GeomShader.h"
 #include "FragmentShader.h"
 
 namespace CPlot
@@ -29,19 +33,63 @@ namespace CPlot
   class Shader
   {
   public:
+    enum stage
+    {
+        VERTEX=0, TESSELATION_CONTROL, TESSELATION_EVALUATION, GEOMETRY, FRAGMENT, COMPUTE, END=-1
+    };
+    std::shared_ptr<VertexShader> vertex_shader;
+    std::shared_ptr<TesselationControlShader> tesselation_control_shader;
+    std::shared_ptr<TesselationEvaluationShader> tesselation_evaluation_shader;
+    std::shared_ptr<GeomShader> geometry_shader;
+    std::shared_ptr<FragmentShader> fragment_shader;
+
     Shader();
     virtual ~Shader();
 
-    void add(const ShaderObject& shad);
-    
+    void add(const std::shared_ptr<VertexShader>& vshad) 
+    {
+        _isModified = true; 
+        vertex_shader = vshad; 
+    }
+    void add(const std::shared_ptr<TesselationControlShader>& tcshad) 
+    {
+        _isModified = true; 
+        tesselation_control_shader = tcshad; 
+    }
+    void add(const std::shared_ptr<TesselationEvaluationShader>& teshad)
+    { 
+        _isModified = true;
+        tesselation_evaluation_shader = teshad; 
+    }
+    void add(const std::shared_ptr<GeomShader>& gshad)
+    {
+        _isModified = true;
+        geometry_shader = gshad;
+    }
+    void add(const std::shared_ptr<FragmentShader>& fshad)
+    {
+        _isModified = true;
+        fragment_shader = fshad;
+    }
+    // void add(const ComputeShader& cshad);
+
+
+    // Remove a shader from the program (VERTEX, TESSELATION and so.)
+    void remove(stage st);
+    // Renvoie vrai si contient le proglet passe en parametre...
+    bool contain( const ShaderObject& proglet ) const;
+    int nb_proglets() const;
+
     GLhandleARB getProgramId() const { return _programId; }
+    bool link();
 
     bool start(); // Activate the shader. If not linked, link this shader before
     std::string getLinkerLog() const; // Return error log of the linker.
-    void end(); // Desactivate the shader. OpenGL calls with the standard pipeline.
+    void end(); // Deactivate the shader. OpenGL calls with the standard pipeline.
 
     unsigned int getAttributeLocation(const char* attributeName) const;
     unsigned int getUniformLocation  (const char* uniformName  ) const;
+    unsigned int getStorageBufferLocation(const char* bufferName  ) const;
 
     // Submitting Uniform Variables. 
     // To apply change in shader after changing uniform variables,
@@ -102,6 +150,14 @@ namespace CPlot
     void setAttribute(unsigned int index, unsigned int dim,
 		      const float* values);
     //@}
+
+    /** Shader buffer accessors */
+    //@{
+    /** Initialize a buffer object */
+    unsigned int initStorageBuffer( int nfloats, const float* values );
+    /** *update data in buffer object */
+    void updateStorageBuffer( unsigned int ssbo, int nfloats, const float* values );
+    //@}
   private:
     void unlink();
     // Tell if this shader program is active or not
@@ -112,9 +168,8 @@ namespace CPlot
     bool _isModified;
     // Identificator of vertex/fragment shader programs
     GLhandleARB _programId;
-    // List of Vertex/fragment shader subroutines (include unique main subroutine)
-    std::list<ShaderObject> _shaders;
   };
+
 }
 
 #endif

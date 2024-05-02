@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -22,10 +22,10 @@
 /*
   Display une texture de la taille de l'ecran dans l'ecran.
   mode=0: anaglyph
-  mode=2: DOF
+  mode=2: DOF+GAMMA+SOBEL
 */
 //============================================================================
-void Data::displayFrameTex(int mode)
+void Data::displayFrameTex(E_Int mode, double sobelThreshold)
 {
   glColor3f(1., 0, 0);
 
@@ -43,12 +43,12 @@ void Data::displayFrameTex(int mode)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    int shader = 12 + ptrState->stereo;
+    E_Int shader = _shaders.shader_id(12 + ptrState->stereo);
     if (_shaders.currentShader() != shader) _shaders.activate(shader);
     _shaders[shader]->setUniform("leftEyeTexture", (int)0);
     _shaders[shader]->setUniform("rightEyeTexture", (int)1);
   }
-  else if (mode == 2) // DOF
+  else if (mode == 2) // DOF + sobel + gamma
   { 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, _texRight);
@@ -61,14 +61,18 @@ void Data::displayFrameTex(int mode)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
  
-    int shader = 20;
+    E_Int shader = _shaders.shader_id(20);
     if (_shaders.currentShader() != shader) _shaders.activate(shader);
     _shaders[shader]->setUniform("FrameBuffer", (int)0);
     _shaders[shader]->setUniform("depthMap", (int)1);
-    _shaders[shader]->setUniform("windowWidth", (int)_view.w);
-    _shaders[shader]->setUniform("windowHeight", (int)_view.h);
     _shaders[shader]->setUniform("focalDepth", (float)ptrState->activePointZBuf);
     _shaders[shader]->setUniform("radius", (float)ptrState->dofPower);
+    _shaders[shader]->setUniform("ext", (float)1.);
+    _shaders[shader]->setUniform("toneMapping", (int)ptrState->toneMapping);
+    _shaders[shader]->setUniform("gamma", (float)ptrState->gamma);
+    _shaders[shader]->setUniform("sobelThreshold", (float)sobelThreshold);
+    _shaders[shader]->setUniform("sharpenCoeff", (float)ptrState->sharpenPower);
+    _shaders[shader]->setUniform("ssaoRadius", (float)ptrState->ssaoPower);
   }
 #endif
 
@@ -83,6 +87,7 @@ void Data::displayFrameTex(int mode)
   glTexCoord3f(0, 0, 0);
   glVertex3d(0, _view.h, 0);
   glEnd();
+
   glEnable(GL_DEPTH_TEST);
   glColor3f(1., 1., 1.);
 #ifdef __SHADERS__

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -18,8 +18,8 @@
 */
 
 # include "connector.h"
-# include "Search/BbTree.h"
-# include "Fld/ArrayAccessor.h"
+# include "Nuga/include/BbTree.h"
+# include "Nuga/include/ArrayAccessor.h"
 # include "Connect/connect.h"
 
 using namespace std;
@@ -75,8 +75,7 @@ PyObject* K_CONNECTOR::blankIntersectingCells(PyObject* self, PyObject* args)
 {
   PyObject *arrays, *cellnArrays;
   E_Float eps;
-  if (!PYPARSETUPLEF(args,
-                    "OOd", "OOf",
+  if (!PYPARSETUPLE_(args, OO_ R_,
                     &arrays, &cellnArrays, &eps))
   {
       return NULL;
@@ -859,7 +858,7 @@ E_Int K_CONNECTOR::blankIntersectingCellsStruct(
       //facettes en i
       for (E_Int i = 0; i < ni; i++)
       {
-        incg = -1; incd = 0; if (i == 0) incg = 0; if ( i == ni-1) incd = -1;  
+        incg = -1; incd = 0; if (i == 0) incg = 0; if (i == ni-1) incd = -1;  
         for (E_Int j = 0; j < nj-1; j++)
         {
           indA = i + j * ni + k * ninj; indB = indA+ni; indC = indB + ninj; indD = indA + ninj;
@@ -879,7 +878,7 @@ E_Int K_CONNECTOR::blankIntersectingCellsStruct(
       //facettes en j 
       for (E_Int j = 0; j < nj; j++)
       {
-        incg = -nic; incd = 0; if (j == 0) incg = 0; if ( j == nj-1) incd = -nic;  
+        incg = -nic; incd = 0; if (j == 0) incg = 0; if (j == nj-1) incd = -nic;  
         for (E_Int i = 0; i < ni-1; i++)
         {
           indA = i + j * ni + k * ninj; indB = indA+1; indC = indB + ninj; indD = indA + ninj;
@@ -898,7 +897,7 @@ E_Int K_CONNECTOR::blankIntersectingCellsStruct(
   }
   // preconditionnement par BBtree
   E_Int nfacettes = listFacettes.size();
-  typedef K_SEARCH::BoundingBox<3>  BBox3DType; 
+  typedef K_SEARCH::BoundingBox<3> BBox3DType; 
   E_Float minB[3];  E_Float maxB[3];
   FldArrayF bbox(nfacettes,6);
   E_Float* xminp = bbox.begin(1); E_Float* xmaxp = bbox.begin(2);
@@ -1030,8 +1029,7 @@ E_Int K_CONNECTOR::blankIntersectingCellsStruct(
       }
     }
   }
-  for (E_Int v = 0; v < nfacettes; v++)
-    delete listFacettes[v];
+  for (E_Int v = 0; v < nfacettes; v++) delete listFacettes[v];
   return 1;
 }
 //=====================================================================================
@@ -1681,8 +1679,7 @@ E_Int K_CONNECTOR::blankInvalidCellsStruct(
         }
       }
       end:;
-      for (E_Int v0 = 0; v0 < nfacettes; v0++)
-        delete listFacettes[v0];
+      for (E_Int v0 = 0; v0 < nfacettes; v0++) delete listFacettes[v0];
       listFacettes.clear();
     }
   }

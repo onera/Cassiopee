@@ -1,5 +1,7 @@
-# - tetraMesher -
-import Tkinter as TK
+# - tkTetraMesher -
+"""Generate TETRA meshes."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -26,6 +28,7 @@ def tetraMesher():
     if VARS[0].get() == 'netgen': algo = 0
     else: algo = 1
 
+    CTK.setCursor(2, WIDGETS['tetraMesher'])
     CTK.saveTree()
     out = []
     for nz in nzs:
@@ -40,14 +43,14 @@ def tetraMesher():
         nob = C.getNobOfBase(bases[0], CTK.t)
         CTK.add(CTK.t, nob, -1, mesh)
         CTK.TXT.insert('START', 'Tetra mesh created.\n')
-        CTK.t = C.fillMissingVariables(CTK.t)
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
         CTK.TKTREE.updateApp()
         CPlot.render()
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: TetraMesher')
         CTK.TXT.insert('START', 'Tetra mesh failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
+    CTK.setCursor(0, WIDGETS['tetraMesher'])
 
 #==============================================================================
 # Create app widgets
@@ -55,8 +58,9 @@ def tetraMesher():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkTetraMesher', font=CTK.FRAMEFONT, takefocus=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkTetraMesher  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -65,8 +69,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
 
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkTetraMesher')
@@ -75,7 +79,7 @@ def createApp(win):
     # - VARS -
     # -0- Mesher type -
     V = TK.StringVar(win); V.set('tetgen'); VARS.append(V)
-    if CTK.PREFS.has_key('tkTetraMesherType'): V.set(CTK.PREFS['tkTetraMesherType'])
+    if 'tkTetraMesherType' in CTK.PREFS: V.set(CTK.PREFS['tkTetraMesherType'])
 
     # - mesher menu -
     B = TTK.OptionMenu(Frame, VARS[0], 'netgen', 'tetgen')
@@ -84,19 +88,24 @@ def createApp(win):
     # - Run -
     B = TTK.Button(Frame, text="tetraMesher", command=tetraMesher)
     B.grid(row=0, column=0, sticky=TK.EW)
+    WIDGETS['tetraMesher'] = B
     BB = CTK.infoBulle(parent=B, text='Mesh with TETRAs or TRIs.')
     
 #==============================================================================
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['MeshNoteBook'].add(WIDGETS['frame'], text='tkTetraMesher')
+    except: pass
+    CTK.WIDGETS['MeshNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['MeshNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -121,7 +130,7 @@ def displayFrameMenu(event=None):
 #==============================================================================
 if (__name__ == "__main__"):
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

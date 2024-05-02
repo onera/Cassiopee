@@ -1,4 +1,4 @@
-NETGEN = True; TETGEN = True; MMG = False
+NETGEN = True; TETGEN = True; MMGS = True
 
 #==============================================================================
 # Fichiers C++
@@ -11,8 +11,11 @@ cpp_srcs = ["Generator/cart.cpp",
             "Generator/hyper2d.cpp",
             "Generator/getNormalMap.cpp",
             "Generator/getVolumeMap.cpp",
+            "Generator/getCellCenters.cpp",
+            "Generator/getFaceCentersAndAreas.cpp",
             "Generator/getOrthogonalityMap.cpp",
             "Generator/getRegularityMap.cpp",
+            "Generator/getAngleRegularityMap.cpp",
             "Generator/getCircumCircleMap.cpp",
             "Generator/getInCircleMap.cpp",
             "Generator/barycenter.cpp",
@@ -37,7 +40,10 @@ cpp_srcs = ["Generator/cart.cpp",
             "Generator/cartPenta.cpp",
             "Generator/cartNGon.cpp",
             "Generator/cartPyra.cpp",
+            "Generator/cartr1.cpp",
+            "Generator/cartr2.cpp",
             "Generator/close.cpp",
+            "Generator/closeBorders.cpp",
             "Generator/pointedHat.cpp",
             "Generator/stitchedHat.cpp",
             "Generator/delaunay.cpp",
@@ -71,7 +77,10 @@ cpp_srcs = ["Generator/cart.cpp",
             "Generator/surfaceWalk.cpp",
             "Generator/extrusionTbx.cpp",
             "Generator/getEdgeRatio.cpp",
-            "Generator/getMaxLength.cpp"
+            "Generator/getMaxLength.cpp",
+            "Generator/quad2pyra.cpp",
+            "Generator/blankSelf.cpp",
+            "Generator/extrapWithCellN.cpp"
             ]
 
 cpp_srcs2 = []
@@ -136,8 +145,12 @@ else:
     cpp_srcs2 += ["Generator/tetgen_stub.cpp"]
    
 # mmg
-if MMG:
-    cpp_srcs2 += ["Generator/MMGS/analys_s.c",
+if MMGS:
+    cpp_srcs2 += ["Generator/mmgs.cpp",
+                  "Generator/MMGS/mmg.c",    
+                  "Generator/MMGS/mmgs1.c",
+                  "Generator/MMGS/mmgs2.c",
+                  "Generator/MMGS/analys_s.c",
                   "Generator/MMGS/anisomovpt.c",
                   "Generator/MMGS/anisomovpt_s.c",
                   "Generator/MMGS/anisosiz.c",
@@ -174,7 +187,9 @@ if MMG:
                   "Generator/MMGS/swapar_s.c",
                   "Generator/MMGS/tools.c",
                   "Generator/MMGS/variadic_s.c",
-                  "Generator/MMGS/zaldy_s.c"]
+                  "Generator/MMGS/zaldy_s.c",
+                  "Generator/MMGS/mmgexterns.c",
+                  "Generator/MMGS/mmgsexterns.c"]
 
 #==============================================================================
 # Fichiers fortran

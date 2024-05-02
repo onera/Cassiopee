@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -44,7 +44,8 @@ extern "C"
                   const E_Int& type,
                   E_Float* xo, E_Float* yo, E_Float* zo,
                   E_Int* IP, E_Float* A, E_Float* B, E_Float* C,
-                  E_Float* RHS, E_Float* Z, E_Float* ZA, E_Float* vol);
+                  E_Float* RHS, E_Float* Z, E_Float* ZA, E_Float* vol,
+                  const E_Int& eta_start, const E_Int& eta_end, const E_Float& beta);
 
   void k6hyper2d2_(const E_Int& ni, const E_Int& nj,
                    const E_Float* distrib,
@@ -80,8 +81,12 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* arrayd;
   char* meshType;
+  E_Int eta_start, eta_end;
+  E_Float beta;
 
-  if (!PyArg_ParseTuple(args, "OOs", &array, &arrayd, &meshType))
+  if (!PYPARSETUPLE_(args, OO_ S_ II_ R_, 
+                    &array, &arrayd, &meshType, 
+                    &eta_start, &eta_end, &beta))
     return NULL;
 
   E_Int type = 0;
@@ -131,7 +136,7 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
                       "hyper2d: common variables list is empty.");
       return NULL;
     } 
-    else if (res0 == 0 )
+    else if (res0 == 0)
     {
       printf("Warning: hyper2d: some variables are different.");
       printf(" Only common variables are kept.\n");
@@ -154,38 +159,98 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
     posx++; posy++; posz++;
     posxd++; posyd++; poszd++;
 
+    // check forcing : si la distribution est a peu 
+    // pres celle de la grille fournie, on ne remaille pas le profil
+    E_Boolean forced = false;
+    if (nid == ni)
+    {
+        // abscisse curv
+        s.malloc(ni);
+        E_Float* fx = f->begin(posx);
+        E_Float* fy = f->begin(posy);
+        E_Float* fz = f->begin(posz);
+        E_Float* fdx = fd->begin(posx);
+        E_Float L = 0.;
+        E_Float l, lx, ly, lz;
+        s[0] = 0.;
+        for (E_Int i = 0; i < ni-1; i++)
+        {
+            lx = fx[i+1]-fx[i];
+            ly = fy[i+1]-fy[i];
+            lz = fz[i+1]-fz[i];
+            l = sqrt(lx*lx+ly*ly+lz*lz);
+            s[i+1] = s[i]+l;
+            L += l; 
+        }
+        for (E_Int i = 0; i < ni; i++)
+        {
+            s[i] = s[i]/L;
+        }
+        forced = true;
+        for (E_Int i = 0; i < ni; i++)
+        {
+            if (std::abs(s[i]-fdx[i])>1.e-6) forced = false;
+        }
+    }
+
     // Make the one D mapping
     coord1.malloc(nid, 3);
-    s.malloc(ni);
-    dx.malloc(ni);
-    dy.malloc(ni);
-    dz.malloc(ni);
-    k6onedmap_(ni, f->begin(posx), f->begin(posy), f->begin(posz),
-               nid, fd->begin(posxd),
-               coord1.begin(1), coord1.begin(2), coord1.begin(3),
-               s.begin(), dx.begin(), dy.begin(), dz.begin());
+    if (forced == false)
+    {
+        s.malloc(ni);
+        dx.malloc(ni); dy.malloc(ni); dz.malloc(ni);
+        k6onedmap_(ni, f->begin(posx), f->begin(posy), f->begin(posz),
+                   nid, fd->begin(posxd),
+                   coord1.begin(1), coord1.begin(2), coord1.begin(3),
+                   s.begin(), dx.begin(), dy.begin(), dz.begin());
+    }
+    else
+    {
+        printf("forcing...\n");
+        E_Float* fx = f->begin(posx);
+        E_Float* fy = f->begin(posy);
+        E_Float* fz = f->begin(posz);
+        E_Float* c1x = coord1.begin(1);
+        E_Float* c1y = coord1.begin(2);
+        E_Float* c1z = coord1.begin(3);
+        for (E_Int i = 0; i < nid; i++)
+        {
+            c1x[i] = fx[i]; c1y[i] = fy[i]; c1z[i] = fz[i];
+        }
+    }
 
     // Generate the mesh using hyperbolic grid generator
-    coord.malloc((nid+1)*(njd+1), 3);
-    IP.malloc(2*(nid-1));
-    A.malloc(2*2*nid);
-    B.malloc(2*2*nid);
-    C.malloc(2*2*nid);
-    RHS.malloc(2*nid);
-    Z.malloc(2*2*(nid-1));
-    ZA.malloc(2*(nid-2));
+    coord.malloc(nid*njd, 3);
+
+    if (type == 0)
+    {
+        IP.malloc(2*(nid-2));
+        A.malloc(2*2*(nid-2));
+        B.malloc(2*2*(nid-2));
+        C.malloc(2*2*(nid-2));
+        RHS.malloc(2*(nid-2));
+    }
+    else
+    {
+        IP.malloc(2*(nid-2));
+        A.malloc(2*2*(nid-1));
+        B.malloc(2*2*(nid-1));
+        C.malloc(2*2*(nid-1));
+        RHS.malloc(2*(nid-1));
+        Z.malloc(2*2*(nid-1));
+        ZA.malloc(2*(nid-2));
+    }
     vol.malloc(nid*njd);
     
-    k6hyper2d_(nid, njd, 
+    k6hyper2d_(nid, njd,
                fd->begin(posyd),
                coord1.begin(1), coord1.begin(2), coord1.begin(3),
                type,
                coord.begin(1), coord.begin(2), coord.begin(3),
                IP.begin(), A.begin(), B.begin(), C.begin(),
-               RHS.begin(), Z.begin(), ZA.begin(), vol.begin());
+               RHS.begin(), Z.begin(), ZA.begin(), vol.begin(),
+               eta_start, eta_end, beta);
     
-    coord.reAllocMat(nid*njd, 3);
-
     // Array Creation 
     delete f; delete fd;
     PyObject* tpl = 
@@ -206,7 +271,7 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
   else 
   {
     PyErr_SetString(PyExc_TypeError,
-                    "hyper2d: unrecognised type of array.");
+                    "hyper2d: unknown type of array.");
     return NULL;
   }
 }
@@ -214,8 +279,7 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
 // ============================================================================
 /* Hyperbolic mesh generation for a mesh. Constant alpha angle. */
 // ============================================================================
-PyObject* K_GENERATOR::hyper2D2Mesh(PyObject* self,
-                                    PyObject* args)
+PyObject* K_GENERATOR::hyper2D2Mesh(PyObject* self, PyObject* args)
 {
   PyObject* array;
   PyObject* arrayd;
@@ -272,7 +336,7 @@ PyObject* K_GENERATOR::hyper2D2Mesh(PyObject* self,
     K_ARRAY::getFromArray(arrayd, varStringd, fd, 
                           nid, njd, nkd, cnd, eltTyped);
  
-  if ( res == 1 && resd == 1)
+  if (res == 1 && resd == 1)
   {
     char* varString0 = new char [strlen(varString)+strlen(varStringd)+4];
     E_Int res0 = 
@@ -310,10 +374,7 @@ PyObject* K_GENERATOR::hyper2D2Mesh(PyObject* self,
     // Make the one D mapping
     coord1.malloc(nid, 3);
     s.malloc(ni);
-    dx.malloc(ni);
-    dy.malloc(ni);
-    dz.malloc(ni);
-    
+    dx.malloc(ni); dy.malloc(ni); dz.malloc(ni);
     k6onedmap_( ni,  f->begin(posx), f->begin(posy), f->begin(posz),
                 nid, fd->begin(posxd),
                 coord1.begin(1), coord1.begin(2), coord1.begin(3),

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -47,11 +47,9 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
   E_Int interpOrder;
   E_Int extrapOrder;
   E_Float constraint;
-  PyObject* hook;
-  if (!PYPARSETUPLE(args,
-                    "OOlldO", "OOiidO",
-                    "OOllfO", "OOiifO",
-                    &listFields, &arrays, &interpOrder, &extrapOrder, &constraint, &hook))
+  PyObject* allHooks;
+  if (!PYPARSETUPLE_(args, OO_ II_ R_ O_,
+                    &listFields, &arrays, &interpOrder, &extrapOrder, &constraint, &allHooks))
   {
       return NULL;
   }
@@ -103,7 +101,6 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
     poszi = K_ARRAY::isCoordinateZPresent(unstrVarString0[i]); poszi++;
     posxu0.push_back(posxi); posyu0.push_back(posyi); poszu0.push_back(poszi); 
   }
-
   /* Extraction et Verification des arrays listFields (grilles a interpoler)
      - les champs x,y,z doivent etre en premier
      - le nb de champs doit etre identique */
@@ -120,25 +117,25 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
 
   // Interpolation type 
   E_Int nindi; E_Int ncf;
-  K_INTERP::InterpAdt::InterpolationType interpType;
+  K_INTERP::InterpData::InterpolationType interpType;
   // attention le cas purement non structure est traite apres les interpDatas 
   switch (interpOrder)
   {
     case 2:
-      interpType = K_INTERP::InterpAdt::O2CF;
+      interpType = K_INTERP::InterpData::O2CF;
       ncf = 8; nindi = 1;
       break;
     case 3: 
-      interpType = K_INTERP::InterpAdt::O3ABC;
+      interpType = K_INTERP::InterpData::O3ABC;
       ncf = 9; nindi = 1;
       break;
     case 5:
-      interpType = K_INTERP::InterpAdt::O5ABC;
+      interpType = K_INTERP::InterpData::O5ABC;
       ncf = 15; nindi = 1;
       break;
     default:
       printf("Warning: extractMesh: unknown interpolation order. Set to 2nd order.\n");
-      interpType = K_INTERP::InterpAdt::O2CF;
+      interpType = K_INTERP::InterpData::O2CF;
       ncf = 8; nindi = 1;
       break;
   }
@@ -150,7 +147,7 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
   vector<void*> a4;
   vector<PyObject*> objs;
   skipNoCoord = true; skipStructured = false;
-  skipUnstructured = false; skipDiffVars = true;
+  skipUnstructured = false; skipDiffVars = false;
   isOk = K_ARRAY::getFromArrays(
     listFields, resl, varString, fields, a2, a3, a4, objs,  
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
@@ -180,6 +177,47 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
     return arrays;
   }
   E_Int nvars = nfldTot;
+  for (E_Int no = 0; no < nzones; no++)
+  {
+    if ( fields[no]->getNfld() != nvars)
+    {
+      for (E_Int nos = 0; nos < ns0; nos++)
+        RELEASESHAREDS(objst0[nos], structF0[nos]);
+      for (E_Int nos = 0; nos < nu0; nos++)
+        RELEASESHAREDU(objut0[nos], unstrF0[nos], cnt0[nos]);
+      for (E_Int no = 0; no < nzones; no++)
+        RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);   
+      PyErr_SetString(PyExc_TypeError,
+                      "extractMesh: all arrays must have the same number of variables.");
+      return NULL;      
+    }
+  }
+  vector < vector<E_Int> > posCommonVars(nzones);
+  vector<char*> vars1; vector<char*> vars2;
+  K_ARRAY::extractVars(varString[0], vars1);
+  vector<E_Int> posVars(nvars);
+  for (E_Int i = 0; i < nvars; i++)
+    posVars[i]=i;
+  posCommonVars[0] = posVars;
+  
+  for (E_Int no = 1; no < nzones; no++)
+  {
+    K_ARRAY::extractVars(varString[no], vars2);
+    vector<E_Int> posVars2(nvars);
+    for (E_Int i2 = 0 ; i2 < nvars; i2++)
+    {
+      for (E_Int i1 = 0; i1 < nvars; i1++)
+      {
+        if (K_STRING::cmp(vars1[i1],vars2[i2]) == 0 )
+        {
+          posVars2[i1]=i2;
+          break;
+        }
+      }
+    }
+    posCommonVars[no] = posVars2;
+  }
+    
   E_Int nzonesS = 0; E_Int nzonesU = 0;
   vector<E_Int> posxa; vector<E_Int> posya; vector<E_Int> posza; 
   vector<E_Int> posca;
@@ -202,9 +240,9 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
   // Liste des interpDatas
   vector<E_Int> nis; vector<E_Int> njs; vector<E_Int> nks;
   vector<FldArrayI*> cnt;
-  vector<K_INTERP::InterpAdt*> interpDatas;
+  vector<K_INTERP::InterpData*> interpDatas;
   // creation des interpDatas
-  if (hook == Py_None)
+  if (allHooks == Py_None)
   {
     E_Int isBuilt;
     for (E_Int no = 0; no < nzones; no++)
@@ -232,67 +270,93 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
       }
     }
   }
-  else //if (hook != Py_None) // hook fourni
+  else //if (hook != Py_None) // hook on ADT provided for each donor zone
   {
-#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
-    void** packet = (void**) PyCObject_AsVoidPtr(hook);
-#else
-    void** packet = (void**) PyCapsule_GetPointer(hook, NULL);
-#endif
-    E_Int s1 = fields.size();
-    for (E_Int i = 0; i < s1; i++) 
-      interpDatas.push_back((K_INTERP::InterpAdt*)(packet[i+1])); 
+    E_Int oki = 1;
+    if (PyList_Check(allHooks) == false) 
+    {
+      oki = 0;
+      PyErr_SetString(PyExc_TypeError, 
+                      "extractMesh: hook must be a list of hooks.");
+    }
+    E_Int nHooks = PyList_Size(allHooks);
+    if (nHooks != nzones) 
+    {
+      oki = 0;
+      PyErr_SetString(PyExc_TypeError,
+                      "extractMesh: size of list of hooks must be equal to the number of donor zones.");
+    }
+    oki = K_INTERP::extractADTFromHooks(allHooks, interpDatas);
+    if ( oki < 1)
+    {
+      for (E_Int nos = 0; nos < ns0; nos++)
+        RELEASESHAREDS(objst0[nos], structF0[nos]);
+      for (E_Int nos = 0; nos < nu0; nos++)
+        RELEASESHAREDU(objut0[nos], unstrF0[nos], cnt0[nos]);
+      for (E_Int no = 0; no < nzones; no++)
+        RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]); 
+      PyErr_SetString(PyExc_TypeError,
+                      "extractMesh: no ADT built.");
+      return NULL;
+    }
   }
-  if (interpDatas.size() == 0)
-  {
-    for (E_Int nos = 0; nos < ns0; nos++)
-      RELEASESHAREDS(objst0[nos], structF0[nos]);
-    for (E_Int nos = 0; nos < nu0; nos++)
-      RELEASESHAREDU(objut0[nos], unstrF0[nos], cnt0[nos]);
-    for (E_Int no = 0; no < nzones; no++)
-      RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]); 
-    PyErr_SetString(PyExc_TypeError,
-                    "extractMesh: no ADT built.");
-    return NULL;
-  }
-
   // cas seulement non structure: ncf a 4 (minimum)
   if (nzonesU != 0)
   {
     if (interpOrder != 2) printf("Warning: extractMesh: interpolation order is 2 for tetra arrays.\n");
     if (nzonesS == 0) ncf = 4;
   }
+  // variables de sortie
+  char* varStringOut;
+  if (varString.size() > 0)
+  {
+    varStringOut = new char [strlen(varString[0])+2];
+    strcpy(varStringOut, varString[0]);
+  }
+   else
+  {
+    varStringOut = new char [2]; varStringOut[0] = '\0';
+  }
+  E_Int posxo = K_ARRAY::isCoordinateXPresent(varStringOut); posxo++;
+  E_Int posyo = K_ARRAY::isCoordinateYPresent(varStringOut); posyo++; 
+  E_Int poszo = K_ARRAY::isCoordinateZPresent(varStringOut); poszo++;
+
   // Recherche des cellules d'interpolation
   vector<FldArrayF*> structFields;
   vector<FldArrayF*> unstructFields; vector<FldArrayI*> cnout;
   E_Int type, noblk;
   for (E_Int v = 0; v < ns0; v++)
   {
-    FldArrayF& f = *structF0[v];
+    FldArrayF& f = *structF0[v];// receptor
     E_Int nbI = f.getSize();
     E_Float vol = K_CONST::E_MAX_FLOAT;
     FldArrayF* interp = new FldArrayF(nbI, nvars); //x,y,z + interpolated field
     interp->setAllValuesAtNull();
     posxi = posxs0[v]; posyi = posys0[v]; poszi = poszs0[v];
-
+    FldArrayF interp2(nbI, nvars); //x,y,z + interpolated field
+    interp2.setAllValuesAtNull();
+    
     // Interpolation from all interpDatas
     E_Float* xt = f.begin(posxi);
     E_Float* yt = f.begin(posyi);
     E_Float* zt = f.begin(poszi);  
-    E_Float* xi = interp->begin(1);
-    E_Float* yi = interp->begin(2);
-    E_Float* zi = interp->begin(3);
+    E_Float* xi = interp->begin(posxo);
+    E_Float* yi = interp->begin(posyo);
+    E_Float* zi = interp->begin(poszo);
 #pragma omp parallel default(shared) private(vol, noblk, type) if (nbI > 50)
     {
       FldArrayI indi(nindi*2); FldArrayF cf(ncf);
-#pragma omp for
+      FldArrayI tmpIndi(nindi*2); FldArrayF tmpCf(ncf);
+      E_Float x,y,z; short ok;
+
+#pragma omp for schedule(dynamic)
       for (E_Int ind = 0; ind < nbI; ind++)
       {
-        E_Float x = xt[ind]; E_Float y = yt[ind]; E_Float z = zt[ind];
-        short ok = K_INTERP::getInterpolationCell(
+        x = xt[ind]; y = yt[ind]; z = zt[ind];
+        ok = K_INTERP::getInterpolationCell(
           x, y, z, interpDatas, fields,
           a2, a3, a4, a5, posxa, posya, posza, posca,
-          vol, indi, cf, type, noblk, interpType, 0, 0);
+          vol, indi, cf, tmpIndi, tmpCf, type, noblk, interpType, 0, 0);
         if (ok != 1)
         {
           ok = K_INTERP::getExtrapolationCell(
@@ -306,7 +370,13 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
           noblk = noblk-1;
           K_INTERP::compInterpolatedValues(indi.begin(), cf, *fields[noblk],
                                            a2[noblk], a3[noblk], a4[noblk], 
-                                           ind, type, *interp);      
+                                           ind, type, interp2);
+          vector<E_Int>& posVarsLoc = posCommonVars[noblk];
+          for (E_Int novar = 0; novar < nvars; novar++)
+          {
+            E_Int novar2 = posVarsLoc[novar];
+            (*interp)(ind,novar+1) = interp2(ind,novar2+1);
+          }
         }
         xi[ind] = x; yi[ind] = y; zi[ind] = z;
       }
@@ -329,21 +399,27 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
     E_Float* yt = f.begin(posyi);
     E_Float* zt = f.begin(poszi);
   
-    E_Float* xi = interp->begin(1);
-    E_Float* yi = interp->begin(2);
-    E_Float* zi = interp->begin(3);
+    E_Float* xi = interp->begin(posxo);
+    E_Float* yi = interp->begin(posyo);
+    E_Float* zi = interp->begin(poszo);
+    FldArrayF interp2(nbI, nvars); //x,y,z + interpolated field
+    interp2.setAllValuesAtNull();
+
 #pragma omp parallel default(shared) private(vol, noblk, type) if (nbI > 50)
     {
       FldArrayI indi(nindi*2); FldArrayF cf(ncf);
-#pragma omp for
+      FldArrayI tmpIndi(nindi*2); FldArrayF tmpCf(ncf);
+      E_Float x,y,z; short ok;
+
+#pragma omp for schedule(dynamic)
       for (E_Int ind = 0; ind < nbI; ind++)
       {
-        E_Float x = xt[ind]; E_Float y = yt[ind]; E_Float z = zt[ind];
-        short ok = K_INTERP::getInterpolationCell(
+        x = xt[ind]; y = yt[ind]; z = zt[ind];
+        ok = K_INTERP::getInterpolationCell(
           x, y, z,
           interpDatas, fields,
           a2, a3, a4, a5, posxa, posya, posza, posca,
-          vol, indi, cf, type, noblk, interpType, 0, 0); 
+          vol, indi, cf, tmpIndi, tmpCf, type, noblk, interpType, 0, 0); 
   
         if (ok != 1)
           ok = K_INTERP::getExtrapolationCell(
@@ -358,7 +434,13 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
           noblk = noblk-1;
           K_INTERP::compInterpolatedValues(indi.begin(), cf, *fields[noblk],
                                            a2[noblk], a3[noblk], a4[noblk], 
-                                           ind, type, *interp);
+                                           ind, type, interp2);
+          vector<E_Int>& posVarsLoc = posCommonVars[noblk];
+          for (E_Int novar = 0; novar < nvars; novar++)
+          {
+            E_Int novar2 = posVarsLoc[novar];
+            (*interp)(ind,novar+1) = interp2(ind,novar2+1);
+          }
         }
         xi[ind] = x; yi[ind] = y; zi[ind] = z;
       }
@@ -367,7 +449,7 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
   }
   for (E_Int no = 0; no < nzones; no++)
   {
-    if (hook == Py_None) delete interpDatas[no];
+    if (allHooks == Py_None) delete interpDatas[no];
     RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);     
   }
  
@@ -379,34 +461,24 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
   //------------------------------------//
   // Construction de l'arrays de sortie //
   //------------------------------------//
-  char* varStringOut;
-  if (varString.size() > 0)
-  {
-    varStringOut = new char [strlen(varString[0])+2];
-    strcpy(varStringOut, varString[0]);
-  }
-   else
-  {
-    varStringOut = new char [2]; varStringOut[0] = '\0';
-  }
 
-  if (ns0 != 0 && nu0 != 0) 
-    printf("Warning: extractMesh: structured then unstructured arrays are stored.\n");
+  // if (ns0 != 0 && nu0 != 0) 
+  //   printf("Warning: extractMesh: structured then unstructured arrays are stored.\n");
 
   // Build arrays
   PyObject* l = PyList_New(0);
   PyObject* tpl;
   for (E_Int nos = 0; nos < ns0; nos++)
   {
-    tpl = K_ARRAY::buildArray(*structFields[nos], varStringOut,
-                              nit0[nos], njt0[nos], nkt0[nos]);
+    tpl = K_ARRAY::buildArray3(*structFields[nos], varStringOut,
+                               nit0[nos], njt0[nos], nkt0[nos]);
     delete structFields[nos]; 
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
   for (E_Int nou = 0; nou < nu0; nou++)
   {
-    tpl = K_ARRAY::buildArray(*unstructFields[nou], varStringOut, *cnout[nou],
-                              -1, eltType0[nou]);
+    tpl = K_ARRAY::buildArray3(*unstructFields[nou], varStringOut, *cnout[nou],
+                               eltType0[nou]);
     
     delete unstructFields[nou]; delete cnout[nou];
     PyList_Append(l, tpl); Py_DECREF(tpl);

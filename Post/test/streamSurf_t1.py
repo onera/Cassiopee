@@ -30,7 +30,7 @@ C._addVars(b,'row')
 p = P.streamSurf(m, b,['rou','rov','row'])
 test.testA([p], 1)
 
-# 3D non struct
+# 3D non struct TETRA
 m2 = C.convertArray2Tetra(m)
 p = P.streamSurf(m2,b,['rou','rov','row'])
 test.testA([p], 2)
@@ -38,3 +38,14 @@ test.testA([p], 2)
 # 4e test : mixte
 p = P.streamSurf([m[0],m2[1]], b,['rou','rov','row'])
 test.testA([p], 3)
+
+
+# 3D non struct HEXA
+m2 = C.convertArray2Hexa(m)
+p = P.streamSurf(m2,b,['rou','rov','row'])
+test.testA([p], 2)
+
+# 3D non struct NGon
+m2 = C.convertArray2NGon(m)
+p = P.streamSurf(m2,b,['rou','rov','row'])
+test.testA([p], 4)

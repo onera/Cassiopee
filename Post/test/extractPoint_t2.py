@@ -17,8 +17,8 @@ ref = [F(0.55,0.38,0.)]
 a = C.initVars(a, 'F', F, ['x','y','z'])
 val = P.extractPoint([a], (0.55, 0.38, 0.))
 # Une fonction lineaire doit etre interpolee exactement
-print "Test1... done."
-for i in xrange(len(val)):
+print("Test1... done.")
+for i in range(len(val)):
     if abs(val[i]-ref[i]) > 1.e-10:
-        print 'DIFF: reference: '+str(ref[i])+'.'
-        print 'DIFF: courant: '+str(val[i])+'.'
+        print('DIFF: reference: '+str(ref[i])+'.')
+        print('DIFF: courant: '+str(val[i])+'.')

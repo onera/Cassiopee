@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Rotate functions
+// Rotate functions - code obsolete -> voir rotate2
 # include "transform.h"
 
 using namespace std;
@@ -34,64 +34,6 @@ extern "C"
                  E_Float* xo, E_Float* yo, E_Float* zo);
 }
 
-//==============================================================================
-E_Int K_TRANSFORM::extractVectorComponents(char* varString, 
-                                           PyObject* listOfFieldVectors, 
-                                           vector<E_Int>& posvx, vector<E_Int>& posvy, vector<E_Int>& posvz)
-{
-  if (PyList_Check(listOfFieldVectors) == 0) 
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "rotate: last argument must be a list.");
-    return -1;
-  }
-  E_Int nvectors = PyList_Size(listOfFieldVectors);
-  if (nvectors == 0) return 0;
-
-  for (E_Int novar = 0; novar < nvectors; novar++)
-  {
-    PyObject* tpl0 = PyList_GetItem(listOfFieldVectors, novar);
-    if (PyList_Check(tpl0) == 0)
-    {
-      PyErr_SetString(PyExc_TypeError,
-                      "rotate: vector fields must be a list.");
-      return -1;
-    }
-    E_Int sizeVect = PyList_Size(tpl0);
-    if (sizeVect != 3)
-    {
-      PyErr_SetString(PyExc_TypeError,
-                      "rotate: vector fields must be defined by 3 components.");
-      return -1;       
-    }
-    // Check if each component is a string
-    vector<char*> vars;
-    for (E_Int noc = 0; noc < 3; noc++)
-    {
-      PyObject* tpl1 = PyList_GetItem(tpl0, noc);
-      if (PyString_Check(tpl1) == 0)
-      {
-        PyErr_SetString(PyExc_TypeError,
-                        "rotate: vector component name must be a string.");
-        return -1;
-      }
-      char* vect = PyString_AsString(tpl1); vars.push_back(vect);
-    }
-    E_Int posu = K_ARRAY::isNamePresent(vars[0], varString);
-    E_Int posv = K_ARRAY::isNamePresent(vars[1], varString);
-    E_Int posw = K_ARRAY::isNamePresent(vars[2], varString);
-    if (posu == -1 || posv == -1 || posw == -1) 
-    {
-      // printf("Warning: rotate: vector field (%s,%s,%s) not found in array.\n",vars[0],vars[1],vars[2]);
-      ;
-    }
-    else 
-    {
-      posvx.push_back(posu+1); posvy.push_back(posv+1); posvz.push_back(posw+1); 
-    }
-  }
-  return 0;
-}
 // ============================================================================
 /* Rotate an array describing a mesh */
 // ============================================================================
@@ -101,8 +43,7 @@ PyObject* K_TRANSFORM::rotateA1(PyObject* self, PyObject* args)
   PyObject* listOfFieldVectors;
   E_Float xc, yc, zc;
   E_Float nx, ny, nz, teta;
-  if (!PYPARSETUPLEF(args,
-                    "O(ddd)(ddd)dO", "O(fff)(fff)fO",
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ R_ O_,
                     &array, &xc, &yc, &zc, &nx, &ny, &nz, &teta, &listOfFieldVectors))
   {
       return NULL;
@@ -208,8 +149,7 @@ PyObject* K_TRANSFORM::rotateA2(PyObject* self, PyObject* args)
   E_Float f1x, f1y, f1z, f2x, f2y, f2z, f3x, f3y, f3z;
   PyObject* listOfFieldVectors;
 
-  if (!PYPARSETUPLEF(args,
-                    "O(ddd)((ddd)(ddd)(ddd))((ddd)(ddd)(ddd))O", "O(fff)((fff)(fff)(fff))((fff)(fff)(fff))O",
+  if (!PYPARSETUPLE_(args, O_ TRRR_ "(" TRRR_ TRRR_ TRRR_ ")" "(" TRRR_ TRRR_ TRRR_ ")" O_,
                     &array,
                     &xc, &yc, &zc, 
                     &e1x, &e1y, &e1z,
@@ -377,8 +317,7 @@ PyObject* K_TRANSFORM::rotateA3(PyObject* self, PyObject* args)
   E_Float alpha, beta, gamma;
   PyObject* listOfFieldVectors;
 
-  if (!PYPARSETUPLEF(args,
-                    "O(ddd)(ddd)O", "O(fff)(fff)O",
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ O_,
                     &array, &xc, &yc, &zc, &alpha, &beta, &gamma, &listOfFieldVectors))
   {
       return NULL;

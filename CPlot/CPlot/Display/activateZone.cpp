@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -24,11 +24,11 @@
 //=============================================================================
 void Data::activateZone()
 {
-  int i, ind;
-  int nroll = _pref.nroll;
+  E_Int i, ind;
+  E_Int nroll = _pref.nroll;
   double froll = 1./((double)nroll);
   Zone* z = _zones[ptrState->selectedZone-1];
-  int npts = z->npts;
+  E_Int npts = z->npts;
   double dx, dy, dz; // deltas
   double xc, yc, zc;
 
@@ -36,7 +36,7 @@ void Data::activateZone()
   xc = z->xc; yc = z->yc; zc = z->zc;
 
   // Temporary storage of point coordinates
-  int size = sizeof(double) * npts;
+  E_Int size = sizeof(double) * npts;
   double *vx = (double*)malloc(size);
   double *vy = (double*)malloc(size);
   double *vz = (double*)malloc(size);
@@ -77,11 +77,11 @@ void Data::activateZone()
 //=============================================================================
 void Data::deactivateZone()
 {
-  int i, ind;
-  int nroll = _pref.nroll;
+  E_Int i, ind;
+  E_Int nroll = _pref.nroll;
   double froll = 1./((double)nroll);
   Zone* z = _zones[ptrState->selectedZone-1];
-  int npts = z->npts;
+  E_Int npts = z->npts;
   double dx, dy, dz; // deltas
   double xc, yc, zc;
 
@@ -91,7 +91,7 @@ void Data::deactivateZone()
   zc = z->zc;
 
   // Temporary storage of point coordinates
-  int size = sizeof(double) * npts;
+  E_Int size = sizeof(double) * npts;
   double *vx = (double*)malloc(size);
   double *vy = (double*)malloc(size);
   double *vz = (double*)malloc(size);

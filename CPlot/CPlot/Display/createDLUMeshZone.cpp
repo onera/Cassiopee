@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -24,11 +24,16 @@
   Display une zone en mesh.
 */
 //=============================================================================
-void DataDL::createGPUUMeshZone(UnstructZone* zonep, int zone, int zonet)
+void DataDL::createGPUUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet)
 {
-  int i, n1, n2, ret1, ret2;
+  if (zonep->_is_high_order == true) 
+  {
+    createGPUUMeshZoneHO(zonep, zone, zonet);
+    return;
+  }
+  E_Int i, n1, n2, ret1, ret2;
   ZoneImplDL* zImpl = static_cast<ZoneImplDL*>(zonep->ptr_impl);
-
+  
   zImpl->_DLmesh = glGenLists(1);
   glNewList(zImpl->_DLmesh, GL_COMPILE);
 #include "displayUMeshZone.h"

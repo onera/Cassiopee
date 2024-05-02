@@ -1,314 +1,261 @@
 # - IBC app -
-import Tkinter as TK
+"""Interface to set IBCs."""
+
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
+import Converter.PyTree as C
+import Geom.PyTree as D
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
-import Converter.PyTree as C
-import Connector.PyTree as X
 import Converter.Internal as Internal
-import Dist2Walls.PyTree as DTW
-import Generator.PyTree as G
-import Post.PyTree as P
-import Transform.PyTree as T
-import Converter
-import numpy
+import Geom.IBM as D_IBM
+import CPlot.iconics as iconics
 
 # local widgets list
 WIDGETS = {}; VARS = []
 
-#==============================================================================
-# Creation des premiers pts IBC
-# IN: a: zone avec cellN=2 pour les pts IBC
-# OUT: retourne les pts IBC sous forme de 'NODE'
-#==============================================================================
-def getIBCFrontForZone__(a):
-    f0 =  P.selectCells(a, '{centers:cellN} == 2.')
-    f0 = T.join(f0); f0 = G.close(f0)
-    
-    # recuperation des champs en centres perdus par selectCells
-    a2 = C.initVars(a, 'centers:cellN', 1.)
-    ta = C.newPyTree(['Base', a2])
-    tf0 = C.newPyTree(['Base', f0])
-    tf0 = P.extractMesh(ta, tf0)
-    tf0 = C.rmVars(tf0,['centers:cellN','cellN'])
-    coords = C.getFields(Internal.__GridCoordinates__,tf0)
-    solc =  C.getFields(Internal.__FlowSolutionCenters__,tf0)
-    coords = Converter.node2Center(coords) # passage en centres pour recuperer les coordonnees des centres
-    coords = Converter.addVars([coords,solc])
-    # passage en 'NODE'
-    coords = Converter.convertArray2Node(coords)[0]
-    # Sortie : conversion en zone node CGNS
-    return C.convertArrays2ZoneNode('Front_'+a[0], [coords])
+# Set IBM data in zone
+# if zone is 1D STRUCT or BAR: remesh
+def _setDataInZone(z, snear, ibctype, dfar, inv):
+    # set IBM data in .Solver#define
+    n = Internal.createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
+    Internal.createUniqueChild(n, 'snear', 'DataArray_t', value=snear)
+    Internal.createUniqueChild(n, 'ibctype', 'DataArray_t', value=ibctype)
+    Internal.createUniqueChild(n, 'dfar', 'DataArray_t', value=dfar)
+    Internal.createUniqueChild(n, 'inv', 'DataArray_t', value=inv)
+    # Set Extractions triggers in .Solver#define
+    if VARS[4].get() == "1": value = 1
+    else: value = 0
+    Internal.createUniqueChild(n, 'extractWalls', 'DataArray_t', value=value)
+    if VARS[5].get() == "1": value = 1
+    else: value = 0
+    Internal.createUniqueChild(n, 'extractLoads', 'DataArray_t', value=value)
+
+    # remesh surface eventually
+    dim = Internal.getZoneDim(z)
+    remesh = False
+    if dim[0] == 'Structured' and dim[2] == 1 and dim[3] == 1: remesh = True
+    if dim[0] == 'Unstructured' and dim[3] == 'BAR': remesh = True
+    if remesh: D._uniformize(z, h=float(snear))
+    return None
+
 
 #==============================================================================
-# Calcul de la normale et de delta pour les pts du front
-# IN: fc1: front IBC sous forme de zone
-# IN: parentZone: zone dont provient la zone IBC, localisee comme 
-# souhaitee pour les interpolations (ex en centres avec cell fict)
-# OUT: front fc1 avec delta 
-#          la normale = delta * grad TurbulentDistance
-#          l'indice global dans le maillage parent correspondant au pt IBC 
+# Creates a symmetry plane
 #==============================================================================
-def getIBCFrontInfo__(fc1, parentZone, dhloc, toldist=1.e-10):
-    listPts = [] # on ne modifie pas localement le maillage
-    eps = 0. # decalage de distance pour listpts
-
-    # Determination de l indice du pt dans le maillage donneur
-    hook = C.createHook(parentZone, function='nodes')
-    indices,distances = C.nearestNodes(hook,fc1)
-    C.freeHook(hook)
-
-    coords1 = C.getFields(Internal.__GridCoordinates__,fc1)[0]
-    Converter._initVars(coords1,'ind',-1.)
-    Converter._initVars(coords1,'indI',-1.)
-    Converter._initVars(coords1,'indJ',-1.)
-    Converter._initVars(coords1,'indK',-1.)
-    coords1 = Converter.extractVars(coords1,['ind','indI','indJ','indK'])
-
-    npts = coords1[1].shape[1]
-    dimGC = Internal.getZoneDim(parentZone)
-    nigc = dimGC[1]; njgc = dimGC[2]; nkgc = dimGC[3]; nigcnjgc = nigc*njgc
-    dhLoc = [dhloc]*npts # tableau dhLoc
-    xt = C.getField('CoordinateX',parentZone)[0][1]
-    yt = C.getField('CoordinateY',parentZone)[0][1]
-    zt = C.getField('CoordinateZ',parentZone)[0][1]
-    for ind in xrange(npts):
-        index = indices[ind]-1
-        dist  = distances[ind]
-        if dist < toldist:
-            indk = index/nigcnjgc
-            indj = (index-indk*nigcnjgc)/nigc
-            indi = index - indj*nigc - indk*nigcnjgc
-            coords1[1][0,ind] = index
-            coords1[1][1,ind] = indi
-            coords1[1][2,ind] = indj
-            coords1[1][3,ind] = indk
-            if indi == nigc-1: dxloc = abs(xt[0,index]-xt[0,index-1])
-            else: dxloc = abs(xt[0,index]-xt[0,index+1])
-            if indj == njgc-1: dyloc = abs(yt[0,index]-yt[0,index-nigc])
-            else: dyloc = abs(yt[0,index]-yt[0,index+nigc])
-            if indk == nkgc-1: dzloc = abs(zt[0,index]-zt[0,index-nigcnjgc])
-            else: dzloc = abs(zt[0,index]-zt[0,index+nigcnjgc])
-            
-            if dxloc < toldist: dxloc = 1.e10
-            if dyloc < toldist: dyloc = 1.e10
-            if dzloc < toldist: dzloc = 1.e10            
-            dhLoc[ind] = min(dxloc,dyloc,dzloc)
-
-    C.setFields([coords1], fc1, loc='nodes')
-
-    # delta * normale
-    varnx = 'gradxTurbulentDistance'
-    varny = 'gradyTurbulentDistance'
-    varnz = 'gradzTurbulentDistance'
-    fc1 = C.normalize(fc1, [varnx, varny, varnz])
-    
-    if listPts == []:
-        C._initVars(fc1,'delta',0.)
-        deltaa = C.getField('delta',fc1)[0]
-        distance = C.getField('TurbulentDistance',fc1)[0][1]
-        # formule d obtention du frontC2
-        for ind in xrange(deltaa[1].shape[1]):
-            dist = distance[0,ind]
-            # NOUVELLE VERSION
-            # # cas 1 : le centre est proche paroi, le point interpole est alors positionne a dhloc+eps de la paroi
-	    # if abs(dist) < dhLoc[ind]: deltaa[1][0,ind] =  2*dhLoc[ind] + eps
-            # # cas 2 : le centre est loin de la paroi, le point interpole est alors positionne a dist+eps de la paroi
-	    # else: deltaa[1][0,ind] = 2.*abs(dist) + eps
-            # FIN NOUVELLE VERSION
-
-            # cas 1 : le centre est proche paroi, le point interpole est alors positionne a dhloc+eps de la paroi
-	    if abs(dist) < dhloc: deltaa[1][0,ind] = abs(dist) + dhloc + eps
-            # cas 2 : le centre est loin de la paroi, le point interpole est alors positionne a dist+eps de la paroi
-	    else: deltaa[1][0,ind] = 2.*abs(dist) + eps
-        C.setFields([deltaa], fc1, loc='nodes')
-
-    else:
-        # modification locale de delta : a modifier ?
-        deltaa = C.getField('delta',fc1)[0]
-        for ind in listPts: deltaa[1][0,ind] += eps
-        C.setFields([deltaa], fc1, loc='nodes')
-    
-    C._initVars(fc1, '{nx} = {gradxTurbulentDistance} * {delta}')
-    C._initVars(fc1, '{ny} = {gradyTurbulentDistance} * {delta}')
-    C._initVars(fc1, '{nz} = {gradzTurbulentDistance} * {delta}')
-    return fc1
-
-#==============================================================================
-def setSurface():
+def symmetrize():
     if CTK.t == []: return
     if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    axis = VARS[7].get()
+
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
-        CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
-        CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    selected = ''
-    for nz in nzs:
-        nob = CTK.Nb[nz]+1
-        noz = CTK.Nz[nz]
-        z = CTK.t[2][nob][2][noz]
-        selected += CTK.t[2][nob][0]+'/'+z[0]+';'
-    selected = selected[0:-1]
-    VARS[5].set(selected)
-
-#==============================================================================
-# blanking de la selection avec la surface fournie 
-#==============================================================================
-def blank():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
-        CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
-        CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    # type de blanking
-    type0 = VARS[0].get()
-    # EquationDimension
-    node = Internal.getNodeFromName(CTK.t, 'EquationDimension')
-    if node is not None: dimPb = Internal.getValue(node)
-    else:
-        CTK.TXT.insert('START', 'EquationDimension not found (tkState). Using 3D.\n')
-        CTK.TXT.insert('START', 'Warning: ', 'Warning'); dimPb = 3
-
-    # Blanking surfaces
-    name = VARS[5].get()
-    names = name.split(';')
-    surfaces = []
-    for v in names:
-        v = v.lstrip(); v = v.rstrip()
-        sname = v.split('/', 1)
-        bases = Internal.getNodesFromName1(CTK.t, sname[0])
-        if (bases != []):
-            nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
-            for z in nodes:
-                if (z[0] == sname[1]): surfaces.append(z)
-    # Reglages XRay
-    delta = float(VARS[2].get())
-    tol = float(VARS[3].get())
-
-    # Blank in/out ?
-    # Create blanking Matrix
-    BM = numpy.zeros((1, 1), numpy.int32)
-    isIn = VARS[4].get()
-    if isIn == 'inside': BM[0,0] = 1
-    else: BM[0,0] = -1
-
-    # Creation de l'arbre temporaire
-    nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    t = C.newPyTree(['Base'])
-    for nz in nzs:
-        nob = CTK.Nb[nz]+1
-        noz = CTK.Nz[nz]
-        z = CTK.t[2][nob][2][noz]
-        t[2][1][2].append(z)
-    # BlankCells
     CTK.saveTree()
-    depth = VARS[6].get(); depth = int(depth)
-    t = X.blankCells(t, [surfaces], blankingMatrix=BM,
-                     blankingType=type0,
-                     delta=delta, dim=dimPb, tol=tol)
-    C._initVars(t, '{centers:cellN}=minimum(1.,{centers:cellN})')
-    t = X.cellN2OversetHoles(t)
-    t = X.setHoleInterpolatedPoints(t, depth=-depth)
+        
+    bodySymName=None
+    snear_sym = 0
 
-    tp = C.newPyTree(['Base']); donorNoz=[]
-    for noz in xrange(len(t[2][1][2])):       
-        z = t[2][1][2][noz]
-        valmax = C.getMaxValue(z, 'centers:cellN')
-        if valmax == 2.: tp[2][1][2].append(z); donorNoz.append(noz)
+    nob = CTK.Nb[0]+1
+    noz = CTK.Nz[0]
+    bodySymName = CTK.t[2][nob][0]
+    z = CTK.t[2][nob][2][noz]
+    snear_sym = Internal.getValue(Internal.getNodeFromName(z,'snear'))
     
-    tp = DTW.distance2Walls(tp, surfaces, type='ortho', loc='centers', signed=1,dim=dimPb)
-    tp = Internal.correctPyTree(tp, level= 6) 
-    tp = C.center2Node(tp,'centers:TurbulentDistance')
-    tp = P.computeGrad(tp, 'TurbulentDistance')
-    for noz2 in xrange(len(donorNoz)):
-        noz = donorNoz[noz2]
-        t[2][1][2][noz] = tp[2][1][2][noz2]
+    if axis == 'Around XY-': dir_sym = 1
+    elif axis == 'Around XZ-': dir_sym = 2
+    elif axis == 'Around YZ-': dir_sym = 3    
 
-    # Back to tree
-    c = 0
-    for nz in nzs:
-        nob = CTK.Nb[nz]+1
-        noz = CTK.Nz[nz]
-        z = t[2][1][2][c]
-        CTK.t[2][nob][2][noz] = z
-        c += 1
-
-    CTK.t = C.fillMissingVariables(CTK.t)
-    CTK.TXT.insert('START', 'Blanking done.\n')
+    D_IBM._symetrizePb(CTK.t, bodySymName, snear_sym, dir_sym=dir_sym)
+    CTK.TXT.insert('START', 'Symmetry plane has been created with snear=%f.\n'%snear_sym)
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
-    CTK.display(CTK.t)    
+    CTK.display(CTK.t)
+    CPlot.render()
 
 #==============================================================================
-def getIBCFront():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
-        CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
-        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+# Set data in selected zones
+#==============================================================================
+def setData():
+    if CTK.t == []: return
+    
+    snear = VARS[0].get()
+    ibctype = VARS[1].get()
+    dfar = VARS[2].get()
+    if VARS[3].get() == 'out': inv = 0
+    else: inv = 1
+    
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    CTK.saveTree()
 
-    front1 = [];nozDonors=[]# numerotation ds td
-    td = C.newPyTree(['Donors'])
-    nozloc = 0
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
-        td[2][1][2].append(z)
-        z2 = getIBCFrontForZone__(z)
-        dims = Internal.getZoneDim(z2)
-        if dims[1] != 0: front1.append(z2); nozDonors.append(nozloc)
-        nozloc+= 1 # numerotation ds td
+        _setDataInZone(z, snear, ibctype, dfar, inv)
+        CTK.replace(CTK.t, nob, noz, z)
 
-    # donneurs : add ghostcells ? localisation ?
-    nghostcells = int(VARS[7].get())
-    locD = VARS[8].get()
-
-    if nghostcells > 0: td = Internal.addGhostCells(td,td,nghostcells)
-    if locD == 'centers': td = C.node2Center(td)
-    elif locD == 'ext_centers': td = C.node2ExtCenter(td)       
-    CTK.saveTree()
-
-    # dhloc : distmin a partir de laquelle on peut symetriser fc1
-    dhloc = float(VARS[9].get())
-    # get ind,indi,indj,indk,delta,nx,ny,nz pour les pts du front1
-    for nof1 in xrange(len(front1)):
-        fc1 = front1[nof1]
-        fc1 = getIBCFrontInfo__(fc1, td[2][1][2][nozDonors[nof1]], dhloc)
-        fc1 = C.rmNodes(fc1,'gradxTurbulentDistance')
-        fc1 = C.rmNodes(fc1,'gradyTurbulentDistance')
-        fc1 = C.rmNodes(fc1,'gradzTurbulentDistance')
-        front1[nof1] = fc1
-
-    # Front2
-    front2 = T.deform(front1, ['nx','ny','nz'])
-
-    # Interpolation
-    interpType = VARS[10].get()
-    interpOrder = 2
-    if interpType == '2nd order': interpOrder = 2
-    elif interpType == '3rd order Lagrangian': interpOrder = 3
-    elif interpType == '5th order Lagrangian': interpOrder = 5
-    front2 = X.setInterpData(front2, td, order=interpOrder,loc='nodes',penalty=1,nature=0)      
-    front2 = C.rmNodes(front2,Internal.__FlowSolutionCenters__)
-
-    CTK.t = C.addBase2PyTree(CTK.t, 'IBCFront')
-    bases = Internal.getNodesFromName1(CTK.t, 'IBCFront')
-    nob = C.getNobOfBase(bases[0], CTK.t)
-    for i in front2: CTK.add(CTK.t, nob, -1, i)
-
-    CTK.t = C.fillMissingVariables(CTK.t)
-    CTK.t = C.rmVars(CTK.t,'centers:cellN')
-    CTK.TXT.insert('START', 'IBC front zones added.\n')    
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
+    CTK.TXT.insert('START', 'IBC data set on surface.\n')
+
+#==============================================================================
+# View undefined IBC
+#==============================================================================
+def ViewUndefinedIBC():
+    CTK.TXT.insert('START', 'Display undefined IBC zones.\n')
+    if CTK.t == []: return
+            
+    nzs             = Internal.getNodesFromType2(CTK.t, 'Zone_t')
+    VARSlocal       = 10e10
+    ZoneLocalString = ''
+    ZoneLocal       = []
+    bases           = CTK.t[2][1:]
+    for b in bases:
+        for zone in Internal.getZones(b):            
+            n = Internal.getNodeFromPath(zone, '.Solver#define/snear')
+            if n is not None:
+                val = Internal.getValue(n)
+                i   = CPlot.getCPlotNumber(CTK.t, b[0], zone[0])
+                ZoneLocal.append((i,0))
+            else:
+                val = -1000
+                VARSlocal = min(val,VARSlocal)
+                ZoneLocalString += zone[0]+','
+
+    if VARSlocal < 0:
+        #VARS[6].set(ZoneLocalString[:-1])
+        TTK.setButtonRed(WIDGETS['ViewUndefinedIBC'])
+        
+    if VARSlocal > 0:
+        #VARS[6].set(ZoneLocalString[:])
+        TTK.setButtonGreen(WIDGETS['ViewUndefinedIBC'])
+    
+    CPlot.setActiveZones(ZoneLocal)
+    WIDGETS['ViewUndefinedIBC'].update()
+    CPlot.setState(ghostifyDeactivatedZones=1)
+                
+#==============================================================================
+# View all defined IBC
+#==============================================================================
+def ViewAllDefinedIBC(t):
+    natives = set()
+    zones = Internal.getZones(t)
+    for zone in zones:            
+        n = Internal.getNodeFromPath(zone, '.Solver#define/ibctype')
+        if n is not None:
+            natives.add(Internal.getValue(n))
+    natives = list(natives)
+    natives.sort(key=str.lower)
+    return natives
+                
+#==============================================================================
+# Automatic update of all defined IBC
+#==============================================================================
+# Pour list box
+def updateIBCNameList(event=None):
+    if CTK.t == []: return
+
+    lb = WIDGETS['IBCLB']
+    lb.focus_set()
+    varsbc = ['-All IBC-']+ViewAllDefinedIBC(CTK.t)
+    
+    # Remplace tous les elements
+    lb.delete(0, TK.END)
+    for i, value in enumerate(['-All IBC-']+ViewAllDefinedIBC(CTK.t)): lb.insert(i, value)
+    return lb
+
+#==============================================================================
+# View specific IBC
+#==============================================================================
+def ViewIBC(event=None):
+    if CTK.t == []: return
+
+    nz  = len(Internal.getZones(CTK.t))  
+    nzs = CPlot.getActiveZones()
+    active = [(i,1) for i in range(nz)]
+    CPlot.setActiveZones(active)
+
+    IBCTypes = []
+    selection = WIDGETS['IBCLB'].curselection()
+    for s in selection:
+        t = WIDGETS['IBCLB'].get(s)
+        IBCTypes.append(t)
+        
+    nzs = Internal.getNodesFromType2(CTK.t, 'Zone_t')
+    ZoneLocal = []
+    bases = CTK.t[2][1:]
+    for b in bases:
+        for zone in Internal.getZones(b):            
+            n = Internal.getNodeFromPath(zone, '.Solver#define/ibctype')
+            
+            if n is not None:
+                val = Internal.getValue(n)
+                if val not in IBCTypes and '-All IBC-' not in IBCTypes:
+                    i = CPlot.getCPlotNumber(CTK.t, b[0], zone[0])
+                    ZoneLocal.append((i,0))
+            else:
+                i = CPlot.getCPlotNumber(CTK.t, b[0], zone[0])
+                ZoneLocal.append((i,0))
+    CPlot.setActiveZones(ZoneLocal)
+    CPlot.setState(ghostifyDeactivatedZones=1)
+    return
+
+#==============================================================================
+# Get data from selected zone
+#==============================================================================
+def getData():
+    if CTK.t == []: return
+    nzs = CPlot.getSelectedZones()
+    if nzs == []:
+        zone = Internal.getNodeFromType2(CTK.t, 'Zone_t')
+    else: # get first of selection
+        nz = nzs[0]
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        zone = CTK.t[2][nob][2][noz]
+    if zone is not None:
+        n = Internal.getNodeFromPath(zone, '.Solver#define/snear')
+        if n is not None:
+            val = Internal.getValue(n)
+            VARS[0].set(val)
+        else:
+            VARS[0].set(-1000)
+        n = Internal.getNodeFromPath(zone, '.Solver#define/ibctype')
+        if n is not None:
+            val = Internal.getValue(n)
+            VARS[1].set(val)
+        else:
+            VARS[1].set('None')
+        n = Internal.getNodeFromPath(zone, '.Solver#define/dfar')
+        if n is not None:
+            val = Internal.getValue(n)
+            VARS[2].set(val)
+        else:
+            VARS[2].set(-1000)
+        n = Internal.getNodeFromPath(zone, '.Solver#define/inv')
+        if n is not None:
+            val = Internal.getValue(n)
+            if val == 0: VARS[3].set('out')
+            else: VARS[3].set('in')
+        n = Internal.getNodeFromPath(zone, '.Solver#define/extractWalls')
+        if n is not None:
+            val = Internal.getValue(n)
+            if val == 0: VARS[4].set('0')
+            else: VARS[4].set('1')
+        n = Internal.getNodeFromPath(zone, '.Solver#define/extractLoads')
+        if n is not None:
+            val = Internal.getValue(n)
+            if val == 0: VARS[5].set('0')
+            else: VARS[5].set('1')
 
 #==============================================================================
 # Create app widgets
@@ -316,174 +263,168 @@ def getIBCFront():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkIBC', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Compute OBC points.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkIBC  [ + ]  ', font=CTK.FRAMEFONT, 
+                           takefocus=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=0)
     Frame.columnconfigure(1, weight=1)
+    Frame.columnconfigure(2, weight=0)
     WIDGETS['frame'] = Frame
-
+    
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkIBC')
     WIDGETS['frameMenu'] = FrameMenu
 
     # - VARS -
-    # -0- Blanking type
-    V = TK.StringVar(win); V.set('cell_intersect_opt'); VARS.append(V)
-    # -1- Blanking surface
+    # -0- Snear -
+    V = TK.DoubleVar(win); V.set(0.01); VARS.append(V)
+    # -1- IBC type -
+    V = TK.StringVar(win); V.set('WallLaw'); VARS.append(V)
+    # -2- dfar local -
+    V = TK.DoubleVar(win); V.set(20.); VARS.append(V)
+    # -3- mask inv or not -
+    V = TK.StringVar(win); V.set('out'); VARS.append(V)
+    # -4- extract fields on surface
+    V = TK.StringVar(win); V.set('0'); VARS.append(V)
+    # -5- extract loads for each component
+    V = TK.StringVar(win); V.set('0'); VARS.append(V)
+    # -6- Zones missing IBC info -
     V = TK.StringVar(win); V.set(''); VARS.append(V)
-    # -2- delta XRay -
-    V = TK.StringVar(win); V.set('1.e-10'); VARS.append(V)    
-    # -3- tolerance XRay -
-    V = TK.StringVar(win); V.set('1.e-8'); VARS.append(V)
-    # -4- blank inside bodies - outside
-    V = TK.StringVar(win); V.set('inside'); VARS.append(V)
-    # -5- Blanking surface
-    V = TK.StringVar(win); V.set(''); VARS.append(V)
-    # -6- Nb de rangees de pts du front1
-    V = TK.StringVar(win); V.set('2'); VARS.append(V)   
-    # -7- Nb de rangees de ghost cells du maillage donneur
-    V = TK.StringVar(win); V.set('0'); VARS.append(V)   
-    # -8- Localisation du maillage donneur
-    V = TK.StringVar(win); V.set('centers'); VARS.append(V)
-    # -9- distance minimale a la paroi des pts du front interieur pour pouvoir construire le symetrique
-    V = TK.StringVar(win); V.set('0.00973457'); VARS.append(V)
-    # -10- Interpolation type
-    V = TK.StringVar(win); V.set('2nd order'); VARS.append(V)
+    # -7- Symmetry plane -
+    V = TK.StringVar(win); V.set('Around XZ-'); VARS.append(V)
 
-
-    r = 0 # row
-    # - inside/outside -
-    B = TTK.Label(Frame,text='Blanking region')
-    B.grid(row=r, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Blank region: inside or outside surfaces.')
-    B = TTK.OptionMenu(Frame, VARS[4], 'inside', 'outside')
-    B.grid(row=r, column=1, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Blank region: inside or outside surfaces.')
-    r += 1
-    # - Blanking type -
-    B = TTK.Label(Frame,text='Blanking type')
-    B.grid(row=r, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Blanking type.')
-    B = TTK.OptionMenu(Frame, VARS[0], 'cell_intersect', 'cell_intersect_opt',
-                       'center_in', 'node_in')
-    B.grid(row=r, column=1, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Blanking type.')
-    r += 1
+    # - Snear settings -
+    B = TTK.Label(Frame, text="snear")
+    B.grid(row=0, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='The generated grid spacing for selected curve.')
+    B = TTK.Entry(Frame, textvariable=VARS[0], width=4, background="White")
+    B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
     
-    # - XRay delta  -
-    B = TTK.Label(Frame, text="XRay delta")
-    B.grid(row=r, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B,
-                       text='The created holes will expand of this value.')
-    B = TTK.Entry(Frame, textvariable=VARS[2], background='White', width=5)
-    B.grid(row=r, column=1, sticky=TK.EW)
-    r+=1
+    # - dfar settings  -
+    B = TTK.Label(Frame, text="dfar")
+    B.grid(row=1, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='The distance from the center of object to the far boundary.\nIf set to -1, not taken into account.')
+    B = TTK.Entry(Frame, textvariable=VARS[2], width=4, background="White")
+    B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
 
-    # - Xray tol -
-    B = TTK.Label(Frame, text="Tol")
-    B.grid(row=r, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Two surface points distant from this value\nwill be considered as identical.')
-    B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=5)
-    B.grid(row=r, column=1, sticky=TK.EW)
-    r += 1
+    # - IBC type -
+    B = TTK.Label(Frame, text="IBC type")
+    B.grid(row=2, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Type of Immersed Boundary Condition.')
+    B = TTK.OptionMenu(Frame, VARS[1], 'slip', 'noslip', 'Log', 'Musker', 'WallLaw', 'outpress', 'inj', 'TBLE', 'slip_cr', 'overlap','wiremodel','WallLawLinearized','None')
+    B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
+
+    # - Mask settings (in or out) -
+    B = TTK.Label(Frame, text="Fluid")
+    B.grid(row=3, column=0, sticky=TK.EW)
+    B = TTK.OptionMenu(Frame, VARS[3], 'out', 'in')
+    B.grid(row=3, column=1, columnspan=2, sticky=TK.EW)
+
+    # - Symmetry plane -
+    B = TTK.Button(Frame, text="Set symmetry plane", command=symmetrize)
+    B.grid(row=4, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B,
+                       text='Create a symmetry plane.')    
+    B = TTK.OptionMenu(Frame, VARS[7], 'Around YZ-', 'Around XZ-', 'Around XY-')
+    B.grid(row=4, column=1, columnspan=2, sticky=TK.EW)
+
+    # - Extract fields on surface
+    B = TTK.Label(Frame, text="Extract")
+    B.grid(row=5, column=0, sticky=TK.EW)
+    B = TTK.Checkbutton(Frame, text='Wall Fields', variable=VARS[4])
+    BB = CTK.infoBulle(parent=B, text='Extract various fields on surface.')
+    B.grid(row=5, column=1, columnspan=2, sticky=TK.EW)
+
+    # - Extract loads on components
+    B = TTK.Label(Frame, text="Extract")
+    B.grid(row=6, column=0, sticky=TK.EW)
+    B = TTK.Checkbutton(Frame, text='Loads', variable=VARS[5])
+    BB = CTK.infoBulle(parent=B, text='Extract loads for each component.')
+    B.grid(row=6, column=1, columnspan=2, sticky=TK.EW)
+
+    # - Set data -
+    B = TTK.Button(Frame, text="Set data", command=setData)
+    BB = CTK.infoBulle(parent=B, text='Set data into selected zone.')
+    B.grid(row=7, column=0, columnspan=1, sticky=TK.EW)
+
+    # - Get data -
+    B = TTK.Button(Frame, text="Get data", command=getData,
+                   image=iconics.PHOTO[8], padx=0, pady=0, compound=TK.RIGHT)
+    BB = CTK.infoBulle(parent=B, text='Get data from selected zone.')
+    B.grid(row=7, column=1, columnspan=2, sticky=TK.EW)
+
+    # - View type de IBC -
+    B = TTK.Button(Frame, text="View IBC", command=ViewIBC)
+    B.grid(row=8, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B,
+                       text='View specified IBC.\nTree is NOT modified.')
+
+    # - Type of IBC - ListBox Frame -
+    LBFrame = TTK.Frame(Frame)
+    LBFrame.grid(row=8, column=1, rowspan=4, columnspan=2, sticky=TK.EW)
+    LBFrame.rowconfigure(0, weight=1)
+    LBFrame.columnconfigure(0, weight=1)
+    LBFrame.columnconfigure(1, weight=0)
+    SB  = TTK.Scrollbar(LBFrame)
+    LB  = TTK.Listbox(LBFrame, selectmode=TK.EXTENDED, height=5)
+    LB.bind('<Double-1>', ViewIBC)
+    LB.bind('<Enter>', updateIBCNameList)
+    for i, value in enumerate(['-All IBC-']+ViewAllDefinedIBC(CTK.t)): LB.insert(i, value)
+    SB.config(command = LB.yview)
+    LB.config(yscrollcommand = SB.set)
+    LB.grid(row=0, column=0, sticky=TK.NSEW)
+    SB.grid(row=0, column=1, sticky=TK.NSEW)
+    WIDGETS['IBCLB'] = LB
+
+    # - View Undefined IBC data -
+    B = TTK.Button(Frame, text="View Undefined\n     IBC", command=ViewUndefinedIBC)
+    WIDGETS['ViewUndefinedIBC'] = B
+    BB = CTK.infoBulle(parent=B, text='View Undefined IBC.')
+    B.grid(row=9, column=0, sticky=TK.EW)
+
+    ## - Zones that are missing IBC info  -
+    #B = TTK.Label(Frame, text="No IBC (Zones)")
+    #B.grid(row=8, column=0, sticky=TK.EW)
+    #BB = CTK.infoBulle(parent=B, text='Zones that are missing IBC info.')
+    #B = TTK.Entry(Frame, textvariable=VARS[6], width=4, background="White")
+    #B.grid(row=8, column=1, columnspan=2, sticky=TK.EW)
+
     
-    # - Surface -
-    B = TTK.Button(Frame, text="Bodies", command=setSurface)
-    B.grid(row=r, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Blanking bodies.')
-    B = TTK.Entry(Frame, textvariable=VARS[5], background='White')
-    B.grid(row=r, column=1, columnspan=3, sticky=TK.EW)
-    r += 1
-
-    # - depth -
-    B = TTK.Label(Frame, text="Depth")
-    B.grid(row=r, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Number of IBC front layers.')
-    #B = TK.Entry(Frame, textvariable=VARS[6], background='White', width=5)
-    B = TTK.OptionMenu(Frame, VARS[6], '1', '2', '3', '4', '5')
-    B.grid(row=r, column=1, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Number of IBC front layers.')
-    r += 1
-
-    # - blanking -
-    B = TTK.Button(Frame, text="Blank by bodies", command=blank)
-    B.grid(row=r, column=0, columnspan=4, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Blank cells with with surface.')
-    r += 1
-
-    # - Donor zones : add ghost cells -
-    B = TTK.Label(Frame, text="Add ghost cells")
-    B.grid(row=r, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Add ghost cells to donor zones.')
-    B = TTK.OptionMenu(Frame, VARS[7], '0','1', '2', '3', '4', '5')
-    B.grid(row=r, column=1, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Add ghost cells to donor zones.')
-    r += 1
-
-    # - Donor zones : location
-    B = TTK.Label(Frame,text='Donors location')
-    B.grid(row=r, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Donor zones location.')
-    B = TTK.OptionMenu(Frame, VARS[8], 'nodes', 'centers','ext_centers')
-    B.grid(row=r, column=1, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Donor zones location.')
-    r += 1
-
-    # - dhloc : modification de delta selon la formule ecrite en dur dans getIBCFrontInfo
-    B = TTK.Label(Frame, text="distMin")
-    B.grid(row=r, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B,
-                       text='Minimum distance to symmetrize inside and resulting fronts.')
-    B = TTK.Entry(Frame, textvariable=VARS[9], background='White', width=5)
-    B.grid(row=r, column=1, sticky=TK.EW)
-    r += 1
-
-    # - interpolation type : 
-    B = TTK.Label(Frame, text="Interpolation type")
-    B.grid(row=r, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Interpolation type of IBC points.')
-    B = TTK.OptionMenu(Frame, VARS[10], '2nd order','3rd order Lagrangian', '5th order Lagrangian')
-    B.grid(row=r, column=1, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Interpolation type of IBC points.')
-    r += 1
-   
-
-    # - create IBC front - 
-    B = TTK.Button(Frame, text="Create IBC front", command=getIBCFront)
-    B.grid(row=r, column=0, columnspan=4, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Create inside front.')
-    r += 1
-
 #==============================================================================
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW); updateApp()
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['BCNoteBook'].add(WIDGETS['frame'], text='tkIBC')
+    except: pass
+    CTK.WIDGETS['BCNoteBook'].select(WIDGETS['frame'])
+    getData()
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['BCNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
 #==============================================================================
-def updateApp(event=None): return
+def updateApp(): return
 
 #==============================================================================
 def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
 
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

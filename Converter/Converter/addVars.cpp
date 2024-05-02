@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -45,10 +45,18 @@ PyObject* K_CONVERTER::addVar(PyObject* self, PyObject* args)
   if (res != 1 && res != 2) return NULL; // errors are alread set
   PyObject* tpl; 
   // Check additional
-  if (PyString_Check(additional) != 0)
+#if PY_VERSION_HEX >= 0x03000000
+  if (PyString_Check(additional) || PyUnicode_Check(additional))
+  {
+    char* name;
+    if (PyString_Check(additional)) name = PyString_AsString(additional);
+    else name = (char*)PyUnicode_AsUTF8(additional);
+#else
+  if (PyString_Check(additional))
   {
     // String name
     char* name = PyString_AsString(additional);
+#endif
     
     // Name must be a unique var name
     E_Int i = 0;
@@ -269,11 +277,15 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
   E_Int sizevars;
 
   // dimensionnement varString
-  E_Int varStringL = 0;
+  E_Int varStringL = 1;
   for (int l = 0; l < n; l++)
   {
     array = PyList_GetItem(arrays, l);
-    varString = PyString_AsString(PyList_GetItem(array,0));
+    tpl = PyList_GetItem(array,0);
+    if (PyString_Check(tpl)) varString = PyString_AsString(tpl);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(tpl)) varString = (char*)PyUnicode_AsUTF8(tpl);
+#endif    
     varStringL += strlen(varString)+4;
   }
   char* fstring = new char [varStringL];  // var string du array de sortie

@@ -18,7 +18,7 @@ WIDTH=40
 # tous les chemins dans config.py (ancien systeme).
 #==============================================================================
 try: import Tkinter as TK
-except: raise ImportError, 'Cassiopee installer requires tkInter.\nIf your python dont run tkinter, edit the installBase.py file manually and add your machine settings.'
+except: raise ImportError('Cassiopee installer requires tkinter.\nIf your python dont run tkinter, edit the installBase.py file manually and add your machine settings.')
 
 import Dist
 import os.path
@@ -39,7 +39,6 @@ def setDefaultVars():
 
     VuseOMP.set(1)
     VuseStatic.set(0)
-    VCPlotOffScreen.set(0)
     
     VadditionalIncludePaths.set("[]")
     VadditionalLibs.set("[]")
@@ -56,7 +55,6 @@ def setVars(v):
 
     VuseOMP.set(v[6])
     VuseStatic.set(v[7])
-    VCPlotOffScreen.set(v[8])
     
     VadditionalIncludePaths.set(v[9])
     VadditionalLibs.set(v[10])
@@ -79,7 +77,7 @@ def saveConfigFile(event=None):
                      Vf77compiler.get(), 
                      Vf90compiler.get(),
                      VCppcompiler.get(),
-                     VuseOMP.get(), VuseStatic.get(), VCPlotOffScreen.get(),
+                     VuseOMP.get(), VuseStatic.get(),
                      additionalIncludePaths, additionalLibs,
                      additionalLibPaths]
     Dist.writeInstallBase(dict)
@@ -110,7 +108,7 @@ def changeMachineName(event=None):
             entry.config(foreground=entry.master.cget('fg'))
     
     key = ''
-    for i in dict.keys():
+    for i in dict:
         if re.compile(i).search(machine) is not None:
             key = i; break
 
@@ -173,8 +171,8 @@ def check__(name):
     elif name == 'hdf':
         additionalLibPaths = eval(VadditionalLibPaths.get())
         additionalIncludePaths = eval(VadditionalIncludePaths.get())
-        (ok, hdfIncDir, hdfLib) = Dist.checkHdf(additionalLibPaths,
-                                                additionalIncludePaths)
+        (ok, hdfIncDir, hdfLib, hdflibs) = Dist.checkHdf(additionalLibPaths,
+                                                         additionalIncludePaths)
         if ok: out = ['hdf: OK']
         else: out = ['hdf: missing']
     return out
@@ -223,7 +221,7 @@ def checkAdf(event=None):
 def checkHdf(event=None):
     path = VhdfPath.get()
     entry = WIDGETS['hdfPath']
-    (ok, hdfIncDir, hdfLib) = Dist.checkHdf(path)
+    (ok, hdfIncDir, hdfLib, hdflibs) = Dist.checkHdf(path)
     if path == '': # guess
         if ok:
             hdfLib = os.path.split(hdfLib)
@@ -281,7 +279,7 @@ dict = installBase.installDict
 
 #==============================================================================
 # Get machine
-import platform, sys, re, os
+import platform, re, os
 a = platform.uname()
 system = a[0] # Linux, Windows
 host = a[1]   # host name
@@ -299,7 +297,6 @@ Vf77compiler = TK.StringVar(master) ; Vf77compiler.set('')
 Vf90compiler = TK.StringVar(master) ; Vf90compiler.set('')
 VuseOMP = TK.IntVar(master) ; VuseOMP.set(0)
 VuseStatic = TK.IntVar(master) ; VuseStatic.set(0)
-VCPlotOffScreen = TK.IntVar(master) ; VCPlotOffScreen.set(0)
 VadditionalIncludePaths = TK.StringVar(master) ; VadditionalIncludePaths.set('')
 VadditionalLibs = TK.StringVar(master) ; VadditionalLibs.set('')
 VadditionalLibPaths = TK.StringVar(master) ; VadditionalLibPaths.set('')
@@ -391,7 +388,7 @@ file.add_command(label='Save installBase', command=saveConfigFile)
 file.add_command(label='Quit', command=quit)
 machines = TK.Menu(menu, tearoff=0)
 menu.add_cascade(label='Machines', menu=machines)
-for i in dict.keys():
+for i in dict:
     machines.add_command(label=i, command=lambda i=i : setMachineName(i))
 master.config(menu=menu)
 help = TK.Menu(menu, tearoff=0)

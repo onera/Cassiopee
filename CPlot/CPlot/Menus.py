@@ -1,5 +1,5 @@
 # Create menus and submenus in CPlot
-import PyTree as CPlot
+from . import PyTree as CPlot
 import time
 dt = 0.01
 
@@ -25,7 +25,7 @@ def submenu(items):
     while go:  
         while l == '':
             l = CPlot.getKeyboard(); time.sleep(dt)
-        v = ord(l[0]); print v
+        v = ord(l[0]); print(v)
         if v == 1: # up 
             b = CPlot.addRender2Zone(out[current], color='White')
             CPlot.replace(t, 1, current, b)
@@ -59,7 +59,7 @@ def submenu(items):
             CPlot.replace(t, 1, current, b)
             CPlot.render()
         elif v == 13: 
-            print 'returning', current
+            print('returning %s.'%str(current))
             return current, items[current]   
         time.sleep(dt)
         l = ''; v = -1; CPlot.resetKeyboard()

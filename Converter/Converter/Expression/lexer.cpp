@@ -32,7 +32,7 @@ namespace Expression {
             throw std::runtime_error(msg);
         }
         nmatch_func_regex      = func_regex.re_nsub;
-        error = regcomp(&var_regex, "(\\{[_a-zA-Z0-9]+\\})", REG_EXTENDED);
+        error = regcomp(&var_regex, "(\\{[:_a-zA-Z0-9]+\\})", REG_EXTENDED);
         if (error) {
             char * error_msg;
             size_t err_sz      = regerror(error, &func_regex, NULL, 0);
@@ -61,7 +61,7 @@ namespace Expression {
         regmatch_t * sm_number = (regmatch_t *)malloc(sizeof(regmatch_t) * nmatch_number_regex);
 #else
         std::regex  func_regex(R"RAW(\w+ *\()RAW");
-        std::regex  var_regex(R"RAW(\{[_a-zA-Z1-90]+\})RAW");
+        std::regex  var_regex(R"RAW(\{[:_a-zA-Z1-90]+\})RAW");
         std::regex  number_regex(R"RAW([\d.]+(?:[eE][+-]?\d+)?)RAW");
         std::smatch sm_var, sm_func, sm_number;
 #endif
@@ -129,10 +129,15 @@ namespace Expression {
             } break;
             case '!': {
                 if ((index >= expr.size() - 1) || (expr[index + 1] != '=')) {
-                    throw std::logic_error("Wrong operator : ! doesn't exist. Want to use != ? ");
+                    m_tokens.push_back({"!", OPERATOR});
+                    index +=1;
                 }
+                else
+                {
                 m_tokens.push_back({"!=", OPERATOR});
+                    index += 2;
             }
+            } break;
             case '{': // Cas d'une variable
             {
                 std::string substr(expr, index);
@@ -142,7 +147,7 @@ namespace Expression {
                 if (match != 0) {
                     if (match == REG_NOMATCH) {
                         std::ostringstream ostr;
-                        ostr << expr << " : Ill-formed variable at position " << index << " !";
+                        ostr << expr << " : Ill-formed C variable at position " << index << " !";
                         throw std::logic_error(ostr.str());
                     } else {
                         char * text;
@@ -168,7 +173,7 @@ namespace Expression {
                 bool b = std::regex_search(substr, sm_var, var_regex);
                 if (not b) {
                     std::ostringstream ostr;
-                    ostr << expr << " : Ill-formed variable at position " << index << " !";
+                    ostr << expr << " : Ill-formed variable C++ at position " << index << " !";
                     throw std::logic_error(ostr.str());
                 }
                 m_tokens.push_back({std::string(expr, index + 1, sm_var.length() - 2), VARIABLE});

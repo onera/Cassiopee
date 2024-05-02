@@ -1,0 +1,17 @@
+digraph G {
+  "std_e"  -> "project_utils"
+  "Maia" -> "project_utils"
+  "Tasky" -> "project_utils"
+  "Project_B" -> "project_utils"
+  "Project_A" -> "project_utils"
+  "My_project" -> "project_utils"
+  "Maia" -> "std_e"
+  "Tasky" -> "std_e"
+  "Project_A" -> "std_e"
+  "My_project" -> "std_e"
+  "Project_B" -> "std_e"
+  "Project_A" -> "Maia"
+  "My_project" -> "Maia"
+  "My_project" -> "Tasky"
+  "Project_B" -> "Tasky"
+}

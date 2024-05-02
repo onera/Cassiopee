@@ -40,7 +40,7 @@ void Balance2Way(ctrl_t *ctrl, graph_t *graph, real_t *ntpwgts)
 **************************************************************************/
 void Bnd2WayBalance(ctrl_t *ctrl, graph_t *graph, real_t *ntpwgts)
 {
-  idx_t i, ii, j, k, kwgt, nvtxs, nbnd, nswaps, from, to, pass, me, tmp;
+  idx_t i, ii, j, k, kwgt, nvtxs, nbnd, nswaps, from, to, tmp;
   idx_t *xadj, *vwgt, *adjncy, *adjwgt, *where, *id, *ed, *bndptr, *bndind, *pwgts;
   idx_t *moved, *perm;
   rpq_t *queue;
@@ -168,7 +168,7 @@ void Bnd2WayBalance(ctrl_t *ctrl, graph_t *graph, real_t *ntpwgts)
 **************************************************************************/
 void General2WayBalance(ctrl_t *ctrl, graph_t *graph, real_t *ntpwgts)
 {
-  idx_t i, ii, j, k, kwgt, nvtxs, nbnd, nswaps, from, to, pass, me, tmp;
+  idx_t i, ii, j, k, kwgt, nvtxs, nbnd, nswaps, from, to, tmp;
   idx_t *xadj, *vwgt, *adjncy, *adjwgt, *where, *id, *ed, *bndptr, *bndind, *pwgts;
   idx_t *moved, *perm;
   rpq_t *queue;
@@ -280,8 +280,8 @@ void General2WayBalance(ctrl_t *ctrl, graph_t *graph, real_t *ntpwgts)
 **************************************************************************/
 void McGeneral2WayBalance(ctrl_t *ctrl, graph_t *graph, real_t *ntpwgts)
 {
-  idx_t i, ii, j, k, l, kwgt, nvtxs, ncon, nbnd, nswaps, from, to, pass, 
-        me, limit, tmp, cnum;
+  idx_t i, ii, j, k, l, kwgt, nvtxs, ncon, nbnd, nswaps, from, to,  
+        limit, tmp, cnum;
   idx_t *xadj, *adjncy, *vwgt, *adjwgt, *where, *pwgts, *id, *ed, *bndptr, *bndind;
   idx_t *moved, *swaps, *perm, *qnum, *qsizes;
   idx_t higain, mincut, newcut, mincutorder;

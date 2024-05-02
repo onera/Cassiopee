@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -40,15 +40,14 @@ extern "C"
                       E_Float* x, E_Float* y, E_Float* z);
 }
 // ============================================================================
-/* Homothety python from an array describing a mesh */
+/* Homothety from an array describing a mesh */
 // ============================================================================
 PyObject* K_TRANSFORM::homothety(PyObject* self, PyObject* args)
 {
   E_Float xc, yc, zc;
   E_Float alpha;
   PyObject* array;
-  if (!PYPARSETUPLEF(args,
-                    "O(ddd)d", "O(fff)f",
+  if (!PYPARSETUPLE_(args, O_ TRRR_ R_,
                     &array, &xc, &yc, &zc, &alpha))
   {
       return NULL;
@@ -59,7 +58,7 @@ PyObject* K_TRANSFORM::homothety(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = 
-    K_ARRAY::getFromArray2(array, varString, f, nil, njl, nkl, cn, eltType);
+    K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, cn, eltType);
 
   if (res != 1 && res != 2)
   {
@@ -102,8 +101,7 @@ PyObject* K_TRANSFORM::contract(PyObject* self, PyObject* args)
   E_Float alpha;
   PyObject* array;
 
-  if (!PYPARSETUPLEF(args,
-                    "O(ddd)(ddd)(ddd)d", "O(fff)(fff)(fff)f",
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ TRRR_ R_,
                     &array, &xc, &yc, &zc, &dir1x, &dir1y, &dir1z,
                     &dir2x, &dir2y, &dir2z, &alpha))
   {
@@ -115,7 +113,7 @@ PyObject* K_TRANSFORM::contract(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = 
-    K_ARRAY::getFromArray2(array, varString, f, nil, njl, nkl, cn, eltType); 
+    K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, cn, eltType); 
 
   if (res != 1 && res != 2)
   {
@@ -124,9 +122,9 @@ PyObject* K_TRANSFORM::contract(PyObject* self, PyObject* args)
     return NULL;
   }
   
-  E_Int posx = K_ARRAY::isCoordinateXPresent( varString);
-  E_Int posy = K_ARRAY::isCoordinateYPresent( varString);
-  E_Int posz = K_ARRAY::isCoordinateZPresent( varString);
+  E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
+  E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
+  E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
   if (posx == -1 || posy == -1 || posz == -1)
   {
     RELEASESHAREDB(res, array, f, cn);
@@ -197,8 +195,7 @@ PyObject* K_TRANSFORM::deformPoint(PyObject* self, PyObject* args)
   E_Float depth;
   E_Float width;
   PyObject* array;
-  if (!PYPARSETUPLEF(args,
-                    "O(ddd)(ddd)dd", "O(fff)(fff)ff",
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ RR_,
                     &array, &xi, &yi, &zi, &dx, &dy, &dz, &depth, &width))
   {
       return NULL;

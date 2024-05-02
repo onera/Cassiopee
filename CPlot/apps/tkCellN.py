@@ -1,5 +1,7 @@
-# - cellNatureField visualisation and extraction -
-import Tkinter as TK
+# - tkCellN -
+"""CellNatureField visualisation and extraction."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Post.PyTree as P
@@ -204,7 +206,7 @@ def extract():
         base = b[0]
         base[2] += Z
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
-        C._fillMissingVariables(CTK.t)
+        #C._fillMissingVariables(CTK.t)
         CTK.TKTREE.updateApp()
         CTK.display(CTK.t)
     else:
@@ -217,9 +219,10 @@ def extract():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkCellN', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Chimera cellN analysis.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkCellN  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Chimera cellN analysis.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -227,8 +230,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkCellN')
@@ -238,7 +241,7 @@ def createApp(win):
     # -0- cellN filter -
     norow = 0
     V = TK.StringVar(win); V.set('cellN=0'); VARS.append(V)
-    if CTK.PREFS.has_key('tkCellNFilter'): V.set(CTK.PREFS['tkCellNFilter'])
+    if 'tkCellNFilter' in CTK.PREFS: V.set(CTK.PREFS['tkCellNFilter'])
 
     # Filter
     B = TTK.OptionMenu(Frame, VARS[0], 'Mesh', 'cellN=0', 'cellN=-99999',
@@ -247,7 +250,7 @@ def createApp(win):
     B.grid(row=norow, column=0, columnspan=2, sticky=TK.EW) 
 
     # - View cellN -
-    norow+=1
+    norow += 1
     B = TTK.Button(Frame, text="View", command=view)
     B.grid(row=norow, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='View the location of specified cellN.\nTree is NOT modified.')
@@ -259,9 +262,9 @@ def createApp(win):
     
     # - chimeraInfo
     # -1- chimeraInfo type
-    norow+=1
+    norow += 1
     V = TK.StringVar(win); V.set('interpolated'); VARS.append(V)
-    if CTK.PREFS.has_key('tkChimeraInfoType'): V.set(CTK.PREFS['tkChimeraInfoType'])
+    if 'tkChimeraInfoType' in CTK.PREFS: V.set(CTK.PREFS['tkChimeraInfoType'])
 
     # Filter
     B = TTK.Button(Frame, text="Chimera info", command=chimeraInfo)
@@ -274,13 +277,17 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['VisuNoteBook'].add(WIDGETS['frame'], text='tkCellN')
+    except: pass
+    CTK.WIDGETS['VisuNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['VisuNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -303,9 +310,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

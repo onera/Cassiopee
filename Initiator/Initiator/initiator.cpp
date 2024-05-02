@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -26,21 +26,45 @@ static PyMethodDef Pyinitiator [] =
 {
   {"initLamb", K_INITIATOR::initLamb, METH_VARARGS},
   {"initVisbal", K_INITIATOR::initVisbal, METH_VARARGS},
+  {"initWissocq", K_INITIATOR::initWissocq, METH_VARARGS},
   {"initYee", K_INITIATOR::initYee, METH_VARARGS},
   {"initScully", K_INITIATOR::initScully, METH_VARARGS},
   {"overlayField", K_INITIATOR::overlayField, METH_VARARGS},
+  {"applyGaussianAL", K_INITIATOR::applyGaussianAL, METH_VARARGS},
   {NULL, NULL}
 };
+
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "initiator",
+        NULL,
+        -1,
+        Pyinitiator
+};
+#endif
 
 // ============================================================================
 /* Init of module */
 // ============================================================================
 extern "C"
 {
+#if PY_MAJOR_VERSION >= 3
+  PyMODINIT_FUNC PyInit_initiator();
+  PyMODINIT_FUNC PyInit_initiator()
+#else
   PyMODINIT_FUNC initinitiator();
   PyMODINIT_FUNC initinitiator()
+#endif
   {
-    Py_InitModule("initiator", Pyinitiator);
     import_array();
+#if PY_MAJOR_VERSION >= 3
+    PyObject* module = PyModule_Create(&moduledef);
+#else
+    Py_InitModule("initiator", Pyinitiator);
+#endif
+#if PY_MAJOR_VERSION >= 3
+    return module;
+#endif
   }
 }

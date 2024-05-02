@@ -32,7 +32,7 @@
 idx_t FindPartitionInducedComponents(graph_t *graph, idx_t *where, 
           idx_t *cptr, idx_t *cind)
 {
-  idx_t i, ii, j, jj, k, me=0, nvtxs, first, last, nleft, ncmps;
+  idx_t i, j, k, me=0, nvtxs, first, last, nleft, ncmps;
   idx_t *xadj, *adjncy;
   idx_t *touched, *perm, *todo;
   idx_t mustfree_ccsr=0, mustfree_where=0;
@@ -267,7 +267,7 @@ idx_t IsConnectedSubdomain(ctrl_t *ctrl, graph_t *graph, idx_t pid, idx_t report
 idx_t FindSepInducedComponents(ctrl_t *ctrl, graph_t *graph, idx_t *cptr, 
           idx_t *cind)
 {
-  idx_t i, j, k, nvtxs, first, last, nleft, ncmps, wgt;
+  idx_t i, j, k, nvtxs, first, last, nleft, ncmps;
   idx_t *xadj, *adjncy, *where, *touched, *queue;
 
   nvtxs  = graph->nvtxs;
@@ -335,7 +335,7 @@ idx_t FindSepInducedComponents(ctrl_t *ctrl, graph_t *graph, idx_t *cptr,
 /*************************************************************************/
 void EliminateComponents(ctrl_t *ctrl, graph_t *graph)
 {
-  idx_t i, ii, j, jj, k, me, nparts, nvtxs, ncon, ncmps, other, 
+  idx_t i, ii, j, jj, k, me, nparts, nvtxs, ncon, ncmps, 
         ncand, target;
   idx_t *xadj, *adjncy, *vwgt, *adjwgt, *where, *pwgts;
   idx_t *cptr, *cind, *cpvec, *pcptr, *pcind, *cwhere;

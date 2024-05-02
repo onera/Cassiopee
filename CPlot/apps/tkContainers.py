@@ -1,9 +1,11 @@
-# - gestion des containers -
-import Tkinter as TK
+# - tkContainers -
+"""Data container setup (FlowSolution, GridCoordinates)."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
-import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
+import Converter.PyTree as C
 import Converter.Internal as Internal
 
 # local widgets list
@@ -19,7 +21,7 @@ def updateGridCoordinates(event=None):
     seen = set()
     seen_add = seen.add
     vars = [x for x in vars if x not in seen and not seen_add(x)]
-    if WIDGETS.has_key('GridCoordinates'):
+    if 'GridCoordinates' in WIDGETS:
         WIDGETS['GridCoordinates']['values'] = vars
 
 #==============================================================================
@@ -27,35 +29,35 @@ def updateGridCoordinates(event=None):
 #==============================================================================
 def updateFlowSolution(event=None):
     f = Internal.getNodesFromType3(CTK.t, 'FlowSolution_t')
-    vars = ['FlowSolution']
+    zvars = ['FlowSolution']
     for b in f:
         loc = Internal.getNodesFromType1(b, 'GridLocation_t')
-        if loc == []: vars.append(b[0])
+        if loc == []: zvars.append(b[0])
         else:
             loc = loc[0]; v = Internal.getValue(loc)
-            if v == 'Vertex': vars.append(b[0])
+            if v == 'Vertex': zvars.append(b[0])
     seen = set()
     seen_add = seen.add
-    vars = [x for x in vars if x not in seen and not seen_add(x)]
-    if WIDGETS.has_key('FlowSolution'):
-        WIDGETS['FlowSolution']['values'] = vars
+    zvars = [x for x in zvars if x not in seen and not seen_add(x)]
+    if 'FlowSolution' in WIDGETS:
+        WIDGETS['FlowSolution']['values'] = zvars
 
 #==============================================================================
 # Cree une liste des containers FlowSolution_t + CellCenter
 #==============================================================================
 def updateFlowSolutionCenters(event=None):
     f = Internal.getNodesFromType3(CTK.t, 'FlowSolution_t')
-    vars = ['FlowSolution#Centers']
+    zvars = ['FlowSolution#Centers']
     for b in f:
         loc = Internal.getNodesFromType1(b, 'GridLocation_t')
         if loc != []:
             loc = loc[0]; v = Internal.getValue(loc)
-            if v == 'CellCenter': vars.append(b[0])
+            if v == 'CellCenter': zvars.append(b[0])
     seen = set()
     seen_add = seen.add
-    vars = [x for x in vars if x not in seen and not seen_add(x)]
-    if WIDGETS.has_key('FlowSolutionCenters'):
-        WIDGETS['FlowSolutionCenters']['values'] = vars
+    zvars = [x for x in zvars if x not in seen and not seen_add(x)]
+    if 'FlowSolutionCenters' in WIDGETS:
+        WIDGETS['FlowSolutionCenters']['values'] = zvars
 
 #==============================================================================
 def setNames(event=None):
@@ -74,9 +76,10 @@ def createApp(win):
 
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkContainers', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Manage container names.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkContainers  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Manage container names.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -84,8 +87,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
 
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkContainers')
@@ -94,16 +97,16 @@ def createApp(win):
     # - VARS -
     # -0- GridCoordinates container -
     V = TK.StringVar(win); V.set('GridCoordinates'); VARS.append(V)
-    if CTK.PREFS.has_key('GridCoordinatesContainer'):
+    if 'GridCoordinatesContainer' in CTK.PREFS:
         V.set(CTK.PREFS['GridCoordinatesContainer'])
 
     # -1- FlowSolutionNodes container -
     V = TK.StringVar(win); V.set('FlowSolution'); VARS.append(V)
-    if CTK.PREFS.has_key('FlowSolutionNodesContainer'):
+    if 'FlowSolutionNodesContainer' in CTK.PREFS:
         V.set(CTK.PREFS['FlowSolutionNodesContainer'])
     # -2- FlowSolutionCenters container -
     V = TK.StringVar(win); V.set('FlowSolution#Centers'); VARS.append(V)
-    if CTK.PREFS.has_key('FlowSolutionCentersContainer'):
+    if 'FlowSolutionCentersContainer' in CTK.PREFS:
         V.set(CTK.PREFS['FlowSolutionCentersContainer'])
 
     # - GridCoordinates -
@@ -121,6 +124,7 @@ def createApp(win):
     else:
         B = ttk.Combobox(F, textvariable=VARS[0],
                          values=[], state='normal')
+        B.bind("<<ComboboxSelected>>", setNames)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateGridCoordinates)
         B.bind('<Return>', setNames)
@@ -142,6 +146,7 @@ def createApp(win):
     else:
         B = ttk.Combobox(F, textvariable=VARS[1],
                          values=[], state='normal')
+        B.bind("<<ComboboxSelected>>", setNames)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateFlowSolution)
         B.bind('<Return>', setNames)
@@ -163,6 +168,7 @@ def createApp(win):
     else:
         B = ttk.Combobox(F, textvariable=VARS[2],
                          values=[], state='normal')
+        B.bind("<<ComboboxSelected>>", setNames)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateFlowSolutionCenters)
         B.bind('<Return>', setNames)
@@ -178,14 +184,18 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
-
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['StateNoteBook'].add(WIDGETS['frame'], text='tkContainers')
+    except: pass
+    CTK.WIDGETS['StateNoteBook'].select(WIDGETS['frame'])
+    
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
-
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['StateNoteBook'].hide(WIDGETS['frame'])
+    
 #==============================================================================
 # Update widgets when global pyTree t changes
 #==============================================================================
@@ -217,9 +227,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

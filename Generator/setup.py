@@ -1,9 +1,9 @@
-#!/usr/bin/env python
 from distutils.core import setup, Extension
+#from setuptools import setup, Extension
 import os
 
 #=============================================================================
-# Generator requires :
+# Generator requires:
 # ELSAPROD variable defined in environment
 # C++ compiler
 # Fortran compiler
@@ -21,35 +21,23 @@ Dist.writeSetupCfg()
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
-# Compilation des fortrans ====================================================
+# Setting libraryDirs and libraries ===========================================
 from KCore.config import *
-if (f77compiler == "None"):
-    print "Error: a fortran 77 compiler is required for compiling Generator."
-args = Dist.getForArgs(); opt = ''
-for c in xrange(len(args)):
-    opt += 'FOPT'+str(c)+'='+args[c]+' '
-os.system("make -e FC="+f77compiler+" WDIR=Generator/Fortran "+opt)
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
-
-# Setting libraryDirs and libraries ===========================================
 libraryDirs = ["build/"+prod, kcoreLibDir]
-libraries = ["GeneratorF", "kcore"]
+libraries = ["generator", "generator2", "generator3", "kcore"]
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 
-# Hack: compilation of predicate
-#os.system(Cppcompiler+" -c -O0 -fPIC Generator/Tetgen/predicates.cxx -o build/temp.linux-x86_64-2.7/Generator/Tetgen/predicates.o")
-
 # Extensions =================================================================
-import srcs
 listExtensions = []
 listExtensions.append(
     Extension('Generator.generator',
-              sources=["Generator/generator.cpp"]+srcs.cpp_srcs+srcs.cpp_srcs2,
-              include_dirs=["Generator", "Generator/Netgen/include"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
+              sources=["Generator/generator.cpp"],
+              include_dirs=["Generator"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
               extra_compile_args=Dist.getCppArgs(),
@@ -59,11 +47,12 @@ listExtensions.append(
 # setup =======================================================================
 setup(
     name="Generator",
-    version="2.7",
+    version="4.0",
     description="*Cassiopee* module of mesh generation.",
-    author="Onera",
-    package_dir={"":"."},
+    author="ONERA",
+    url="https://cassiopee.onera.fr",
     packages=['Generator'],
+    package_dir={"":"."},
     ext_modules=listExtensions
     )
 

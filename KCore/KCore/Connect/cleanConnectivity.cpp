@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -19,11 +19,11 @@
 #include <string.h>
 #include "String/kstring.h"
 #include "Connect/connect.h"
-#include "Fld/ArrayAccessor.h"
-#include "Connect/merge.h"
-#include "Search/BbTree.h"
+# include "Nuga/include/ArrayAccessor.h"
+#include "Nuga/include/merge.h"
+# include "Nuga/include/BbTree.h"
 #include <iostream>
-#include "Fld/ngon_t.hxx"
+#include "Nuga/include/ngon_t.hxx"
 
 using namespace K_FLD;
 using namespace std;
@@ -35,12 +35,12 @@ using namespace std;
 //=============================================================================
 void K_CONNECT::cleanConnectivity(E_Int posx, E_Int posy, E_Int posz, 
                                   E_Float eps,  const char* eltType, 
-                                  FldArrayF& f, FldArrayI& cn)
+                                  FldArrayF& f, FldArrayI& cn, bool remove_degen, bool ordered_merge)
 {
   if (K_STRING::cmp(eltType, "NGON") == 0 || K_STRING::cmp(eltType, "NGON*") == 0) 
-    cleanConnectivityNGon(posx, posy, posz, eps, f, cn);
+    cleanConnectivityNGon(posx, posy, posz, eps, f, cn, remove_degen, ordered_merge);
   else
-    cleanConnectivityBasic(posx, posy, posz, eps, eltType, f, cn);
+    cleanConnectivityBasic(posx, posy, posz, eps, eltType, f, cn, ordered_merge);
 }
 
 //=============================================================================
@@ -51,13 +51,12 @@ void K_CONNECT::cleanConnectivity(E_Int posx, E_Int posy, E_Int posz,
 //=============================================================================
 void K_CONNECT::cleanConnectivity_opt(E_Int posx, E_Int posy, E_Int posz, 
                                   E_Float eps,  const char* eltType, 
-                                  FldArrayF& f, FldArrayI& cn)
+                                  FldArrayF& f, FldArrayI& cn, bool remove_degen, bool ordered_merge)
 {
-  if (K_STRING::cmp(eltType, "NGON") == 0 || 
-      K_STRING::cmp(eltType, "NGON*") == 0) 
-    cleanConnectivityNGon(posx, posy, posz, eps, f, cn);
+  if (K_STRING::cmp(eltType, "NGON") == 0 || K_STRING::cmp(eltType, "NGON*") == 0) 
+    cleanConnectivityNGon(posx, posy, posz, eps, f, cn, remove_degen, ordered_merge);
   else
-    cleanConnectivityBasic_opt(posx, posy, posz, eps, eltType, f, cn);
+    cleanConnectivityBasic_opt(posx, posy, posz, eps, eltType, f, cn, ordered_merge);
 }
 
 
@@ -75,7 +74,8 @@ void K_CONNECT::cleanConnectivity_opt(E_Int posx, E_Int posy, E_Int posz,
 //=============================================================================
 void K_CONNECT::cleanConnectivityBasic(E_Int posx, E_Int posy, E_Int posz, 
                                        E_Float eps,  const char* eltType, 
-                                       FldArrayF& f, FldArrayI& cn)
+                                       FldArrayF& f, FldArrayI& cn,
+                                       bool ordered_merge)
 {
   E_Int nelts = cn.getSize(); E_Int nvert = cn.getNfld();
   E_Int npts = f.getSize(); E_Int nfld = f.getNfld();
@@ -148,8 +148,11 @@ void K_CONNECT::cleanConnectivityBasic(E_Int posx, E_Int posy, E_Int posz,
   vector<E_Int> newId;
   {
     ArrayAccessor<FldArrayF> coordAcc(f2, posx, posy, posz);
-    //::merge_no_order_omp(coordAcc, eps, newId);
-    ::merge(coordAcc, eps, newId);
+
+    if (ordered_merge)
+      ::merge(coordAcc, eps, newId, true /*do omp*/);
+    else
+      ::merge_no_order_omp(coordAcc, eps, newId);
     
     for (E_Int i = 0; i < npts; i++)
     {
@@ -236,7 +239,8 @@ void K_CONNECT::cleanConnectivityBasic(E_Int posx, E_Int posy, E_Int posz,
 //=============================================================================
 void K_CONNECT::cleanConnectivityBasic_opt(E_Int posx, E_Int posy, E_Int posz, 
                                            E_Float eps,  const char* eltType, 
-                                           FldArrayF& f, FldArrayI& cn)
+                                           FldArrayF& f, FldArrayI& cn,
+                                           bool ordered_merge)
 {
   E_Int nelts = cn.getSize(); 
   E_Int nvert = cn.getNfld();
@@ -304,8 +308,12 @@ void K_CONNECT::cleanConnectivityBasic_opt(E_Int posx, E_Int posy, E_Int posz,
   vector<E_Int> newId;
   {
     ArrayAccessor<FldArrayF> coordAcc(f2, posx, posy, posz);
-    //::merge_no_order_omp(coordAcc, eps, newId);
-    ::merge(coordAcc, eps, newId);
+
+    if (ordered_merge)
+      ::merge(coordAcc, eps, newId, true/*do omp*/);
+    else
+      ::merge_no_order_omp(coordAcc, eps, newId);
+
     
     for (E_Int i = 0; i < npts; i++)
     {
@@ -320,12 +328,12 @@ void K_CONNECT::cleanConnectivityBasic_opt(E_Int posx, E_Int posy, E_Int posz,
   // Copie de la solution
   f.malloc(np, nfld);
 
-    for (E_Int n1 = 1; n1 <= nfld; n1++)
-    {
-      E_Float* fp = f.begin(n1);
-      E_Float* f2p = f2.begin(n1);
-      for (E_Int i = 0; i < np; i++) fp[i] = f2p[indir2p[i]];
-    }
+  for (E_Int n1 = 1; n1 <= nfld; n1++)
+  {
+    E_Float* fp = f.begin(n1);
+    E_Float* f2p = f2.begin(n1);
+    for (E_Int i = 0; i < np; i++) fp[i] = f2p[indir2p[i]];
+  }
   delete indir2; 
 
   // Creation de la nouvelle connectivite  Elements -> Noeuds
@@ -372,6 +380,77 @@ void K_CONNECT::cleanConnectivityBasic_opt(E_Int posx, E_Int posy, E_Int posz,
                         cn, cnout);
     cn = cnout;
   }
+}
+
+//=======================================================================
+// Elimination des vertex non utilise par une connectivite basique
+// Retourne un nouvel fout, un nouvel cnout
+//=======================================================================
+void K_CONNECT::cleanUnreferencedVertexBasic(FldArrayF& f, FldArrayI& cn,
+                                             FldArrayF& fout, FldArrayI& cnout)
+{
+  E_Int nelts = cn.getSize(); E_Int nvert = cn.getNfld();
+  E_Int npts = f.getSize(); E_Int nfld = f.getNfld();
+  E_Int et1, ind1, np, indp;
+  FldArrayI indir(npts); //indir.setAllValuesAt(-1);
+  E_Int* indirp = indir.begin();
+  FldArrayI* indir2 = new FldArrayI(npts);
+  E_Int* indir2p = indir2->begin();
+
+  // Recherche des vertex non utilises dans la connectivite
+  // Construit fout a partir de f, cn est modifie en cnout
+  FldArrayI* used = new FldArrayI(npts);
+  if (nelts == 0) used->setAllValuesAt(1); // cas NODE
+  else used->setAllValuesAtNull(); // autres cas
+  E_Int* usedp = used->begin();
+  for (E_Int n1 = 1; n1 <= nvert; n1++)
+  {
+    E_Int* cnp = cn.begin(n1);
+    for (et1 = 0; et1 < nelts; et1++)
+    {
+      ind1 = cnp[et1]-1; usedp[ind1]++;
+    }
+  }
+
+  np = 0;
+  for (E_Int i = 0; i < npts; i++)
+  {
+    if (usedp[i] > 0) // used
+    {
+      indirp[i] = np; indir2p[np] = i; np++;
+    }
+  }
+  delete used;
+
+  // Copie de la solution
+  fout.malloc(np, nfld);
+#pragma omp parallel default(shared)
+  {
+    for (E_Int n1 = 1; n1 <= nfld; n1++)
+    {
+      E_Float* fp = f.begin(n1);
+      E_Float* f2p = fout.begin(n1);
+#pragma omp for nowait
+      for (E_Int i = 0; i < np; i++) { f2p[i] = fp[indir2p[i]]; }
+    }
+  }
+
+  cnout.malloc(nelts, nvert);
+#pragma omp parallel default(shared) private(et1, indp)
+  {
+    for (E_Int n1 = 1; n1 <= nvert; n1++)
+    {
+      E_Int* cnp = cn.begin(n1);
+      E_Int* cn2p = cnout.begin(n1);
+#pragma omp for nowait
+      for (et1 = 0; et1 < nelts; et1++)
+      {
+        indp = cnp[et1]-1;
+        cn2p[et1] = indirp[indp]+1;
+      }
+    }
+  }
+  delete indir2;
 }
 
 //=============================================================================
@@ -425,19 +504,19 @@ void K_CONNECT::createConnectEV_opt(FldArrayI& cn, vector<E_Int> newId,
 {
   E_Int nelts = cn.getSize(); E_Int nvert = cn.getNfld();
 
-    E_Int indp, indn;
-    E_Int n1, et1;
+  E_Int indp, indn;
+  E_Int n1, et1;
     
-    for (n1 = 1; n1 <= nvert; n1++)
+  for (n1 = 1; n1 <= nvert; n1++)
+  {
+    E_Int* cnp = cn.begin(n1);
+    E_Int* cnoutp = cnout.begin(n1);
+    for (et1 = 0; et1 < nelts; et1++)
     {
-      E_Int* cnp = cn.begin(n1);
-      E_Int* cnoutp = cnout.begin(n1);
-      for (et1 = 0; et1 < nelts; et1++)
-      {
-        indp = cnp[et1]-1; indn = newId[indp];
-        cnoutp[et1] = indirp[indn]+1;
-      }
+      indp = cnp[et1]-1; indn = newId[indp];
+      cnoutp[et1] = indirp[indn]+1;
     }
+  }
 }
 //=============================================================================
 /* 
@@ -449,13 +528,16 @@ void K_CONNECT::createConnectEV_opt(FldArrayI& cn, vector<E_Int> newId,
    (ex une face quad degeneree passe en tri)
    3. elimination des faces doubles et maj dans cEF
    4. elimination des faces non utilisees dans les elements
-   [5. supp des elemts doubles]
+   [5. supp des elemts doubles] : INACTIF
+   [6. elimination, des elemts degeneres]
+
 */
 //=============================================================================
 void K_CONNECT::cleanConnectivityNGon(E_Int posx, E_Int posy, E_Int posz, 
-                                      E_Float eps, FldArrayF& f, FldArrayI& cn)
+                                      E_Float eps, FldArrayF& f, FldArrayI& cn, bool remove_degen, bool ordered_merge)
 {
-  ArrayAccessor<FldArrayF> fcA(f, posx, posy, posz);
+  using acrd_t = K_FLD::ArrayAccessor<FldArrayF> ;
+  acrd_t fcA(f, posx, posy, posz);
   typedef ngon_t<K_FLD::FldArrayI> ngon_type;
   ngon_type NG(cn);
   
@@ -474,19 +556,58 @@ void K_CONNECT::cleanConnectivityNGon(E_Int posx, E_Int posy, E_Int posz,
     ngon_dim=2;
 
   // 1- Referencement unique pour les noeuds confondus par kdtree (les doublons seront supprimes a la fin)
-  if (eps >= 0.) NG.join_phs(f, posx, posy, posz, eps);
+  // si la tolerance est :
+  // * positive : absolue
+  // * nulle => pas de merge
+  // * negative => relative
+  if (eps >= 0.)
+  {
+    Vector_t<E_Int> nids;
+
+    if (ordered_merge)
+      ::merge(fcA, eps, nids, true/*do omp*/);
+    else
+      ::merge_no_order_omp(fcA, eps, nids);
+
+    NG.PGs.change_indices(nids);
+  }
+  else // if (eps < 0.) 
+  {
+    /*std::cout << "RELATIVE TOL !!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+    NG.flag_external_pgs(INITIAL_SKIN);
+    std::vector<double> nodal_metric2;
+    NUGA::MeshTool::computeNodalDistance2<acrd_t, ngon_unit>(fcA, NG.PGs, nodal_metric2);
+    
+    double RTOL = -eps;
+    NG.join_phs2(f, posx, posy, posz, nodal_metric2, RTOL);*/
+
+    std::vector<double> nodal_metric2;
+    NUGA::MeshTool::computeNodalDistance2<acrd_t, ngon_unit>(fcA, NG.PGs, nodal_metric2);
+    
+    double RTOL = -eps;
+
+    Vector_t<E_Int> nids;
+
+    ::merge(fcA, nodal_metric2, RTOL, nids, true /*do_omp*/);
+    // merge_no_order_omp not implemented for relative tol
+
+    NG.PGs.change_indices(nids);
+  }
   
   // 2- Elimination des faces degenerees
   std::vector<E_Int> pgids, phnids;
   if (ngon_dim != 1)
   {
-    NG.remove_degenerated_pgs(pgids, phnids);
+    NG.remove_degenerated_pgs(ngon_dim, pgids, phnids);
     NG.PGs.remove_consecutive_duplicated(); //compact representation
   }
    
   // 3- Elimination des faces confondues
-  if (ngon_dim ==3) //volumic
-    NG.remove_duplicated_pgs(fcA);
+  if (ngon_dim == 3) //volumic
+  {
+    Vector_t<E_Int> pgnidstmp;
+    NG.remove_duplicated_pgs(fcA,pgnidstmp, true/*do_omp*/);
+  }
   else if (ngon_dim == 2) //surfacic
     NG.remove_duplicated_edges();
   else // lineic
@@ -495,13 +616,30 @@ void K_CONNECT::cleanConnectivityNGon(E_Int posx, E_Int posy, E_Int posz,
   // remove duplicated references to PGs within each elements
   NG.PHs.remove_duplicated();
 
-  // 4- Elimination des elts degeneres
-  //Vector_t<E_Int> toremove, nids;
-  //NG.PHs.get_degenerated(toremove);
-  //NG.PHs.remove_entities(toremove, nids);
+  NG.PHs.updateFacets();
 
-  // 5- Elimination des elts doubles
-  //
+  // 4- Elimination des elts degeneres
+  Vector_t<E_Int> toremove;
+  if (remove_degen)
+  {
+    //std::cout << "REMOVE DEGN ENABLED" << std::endl;
+    E_Int min_nb_facets = ngon_dim + 1;
+    NG.PHs.get_degenerated(min_nb_facets, toremove);
+  }
+
+  // 5- Elimination des elts doubles : do not care of multiple occ in toremove as remove_entities handles it.
+  /*if (remove_dups)
+  {
+    std::vector<E_Int> duphnids;
+    NG.detect_phs_with_same_centroid(f, duphnids);
+    for (size_t k = 0; k < duphnids.size(); ++k)
+    {
+      if (duphnids[k] != (E_Int)k)
+        toremove.push_back(k);
+    }
+  }*/
+
+  NG.PHs.remove_entities(toremove, phnids);
   
   // 6- Suppression des faces non referencees
   NG.remove_unreferenced_pgs(pgids, phnids);
@@ -509,7 +647,7 @@ void K_CONNECT::cleanConnectivityNGon(E_Int posx, E_Int posy, E_Int posz,
   // 7- Compression du ngon aux seuls noeuds utilises
   FldArrayF fcopy = f;
   ngon_type::compact_to_used_nodes(NG.PGs, fcopy);
-  f = fcopy;//fixme: FldArrayF not ready for dynamic
+  f = fcopy; //fixme: FldArrayF not ready for dynamic
   
   // 8- Mise a disposition de la cn de sortie au format FldArrayI
   NG.export_to_array(cn);

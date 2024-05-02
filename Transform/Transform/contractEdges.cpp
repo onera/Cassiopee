@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -31,7 +31,7 @@ using namespace K_FUNC;
 PyObject* K_TRANSFORM::contractEdges(PyObject* self, PyObject* args)
 {
   PyObject* o; E_Int mode;
-  if (!PYPARSETUPLEI(args, "Ol", "Oi", &o, &mode)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &o, &mode)) return NULL;
    
   // Check array
   E_Int ni, nj, nk;
@@ -102,16 +102,15 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
   ct1 = ct.begin(1); ct2 = ct.begin(2); ct3 = ct.begin(3);
 
   // swap edges dans les triangles
-  E_Float ndir1, ndir2, ndir3, ndir4;
+  E_Float ndir1, ndir2;
   E_Float ptA[3], ptB[3], ptC[3], dir1[3];
-  E_Float ptD[3], dir2[3], dir3[3], dir4[3];
-  E_Float inverse1, inverse2, rad1, rad2, rad3, rad4, ndirl;
-  E_Int indA, indB, indC, indD, ind5, ind6, swap, ie, iv1, iv2, iv, pos1, pos2;
-  E_Int tA, tB, tC, tD;
+  E_Float ptD[3], dir2[3];
+  E_Float inverse1, rad1, rad2, ndirl;
+  E_Int indA, indB, indC, indD, ind5, ind6, swap;
   E_Float xx, yy, zz, e1, e2, e3, rad;
   E_Int neigh, mat, v;
-  E_Int maillesEcrasees = 0;
-  E_Int maillesInversees = 0;
+  //E_Int maillesEcrasees = 0;
+  //E_Int maillesInversees = 0;
 
   short* decim = new short [ntr];
   for (E_Int i = 0; i < ntr; i++) decim[i] = 1;
@@ -132,7 +131,7 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
     dir1[1] = (ptB[2]-ptA[2])*(ptC[0]-ptA[0])-(ptB[0]-ptA[0])*(ptC[2]-ptA[2]);
     dir1[2] = (ptB[0]-ptA[0])*(ptC[1]-ptA[1])-(ptB[1]-ptA[1])*(ptC[0]-ptA[0]);
     ndirl = sqrt(dir1[0]*dir1[0]+dir1[1]*dir1[1]+dir1[2]*dir1[2]);
-    if (ndirl < 1.e-11) printf("contractEdges: %d: %f init ecrase.\n", i, ndirl); 
+    if (ndirl < 1.e-11) printf("contractEdges: " SF_D_ ": " SF_F_ " init ecrase.\n", i, ndirl); 
 
     if (mode == 1) // decimate si degenere (ecrase)
     {
@@ -159,7 +158,7 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
           y[ind1] = yy; y[ind2] = yy;
           z[ind1] = zz; z[ind2] = zz;
           fixed[ind1] = 1; fixed[ind2] = 1;
-          for (E_Int k = 0; k < voisins.size(); k++)
+          for (size_t k = 0; k < voisins.size(); k++)
           {
             v = voisins[k]; mat = 0;
             if (ct1[v] == ind1+1 || ct1[v] == ind2+1) mat++;
@@ -177,7 +176,7 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
           y[ind2] = yy; y[ind3] = yy;
           z[ind2] = zz; z[ind3] = zz;
           fixed[ind2] = 1; fixed[ind3] = 1;
-          for (E_Int k = 0; k < voisins.size(); k++)
+          for (size_t k = 0; k < voisins.size(); k++)
           {
             v = voisins[k]; mat = 0;
             if (ct1[v] == ind2+1 || ct1[v] == ind3+1) mat++;
@@ -195,7 +194,7 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
           y[ind1] = yy; y[ind3] = yy;
           z[ind1] = zz; z[ind3] = zz;
           fixed[ind1] = 1; fixed[ind3] = 1;
-          for (E_Int k = 0; k < voisins.size(); k++)
+          for (size_t k = 0; k < voisins.size(); k++)
           {
             v = voisins[k]; mat = 0;
             if (ct1[v] == ind1+1 || ct1[v] == ind3+1) mat++;
@@ -209,7 +208,9 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
     }
     else if (mode == 3) // decimate si radius trop grand
     {
-      rad = K_COMPGEOM::circumCircleRadius(ptA, ptB, ptC);
+      rad = K_COMPGEOM::circumCircleRadius(ptA[0], ptA[1], ptA[2],
+                                           ptB[0], ptB[1], ptB[2],
+                                           ptC[0], ptC[1], ptC[2]);
       e1 = sqrt((ptB[0]-ptA[0])*(ptB[0]-ptA[0])+
                 (ptB[1]-ptA[1])*(ptB[1]-ptA[1])+
                 (ptB[2]-ptA[2])*(ptB[2]-ptA[2]));
@@ -253,9 +254,9 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
           indA = 0; indB = 0; indC = 0; indD = 0;
           printf("what?? problem\n");
         }
-        //printf("ind1 %d %d %d\n", ind1, ind2, ind3);
-        //printf("ind4 %d %d %d\n", ind4, ind5, ind6);
-        //printf("indA %d %d %d %d\n", indA, indB, indC, indD);
+        //printf("ind1 " SF_D3_ "\n", ind1, ind2, ind3);
+        //printf("ind4" SF_D3_ "\n", ind4, ind5, ind6);
+        //printf("indA " SF_D4_ "\n", indA, indB, indC, indD);
 
         ptA[0] = x[indA]; ptA[1] = y[indA]; ptA[2] = z[indA];
         ptB[0] = x[indB]; ptB[1] = y[indB]; ptB[2] = z[indB];
@@ -267,7 +268,9 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
         dir1[1] = (ptB[2]-ptA[2])*(ptC[0]-ptA[0])-(ptB[0]-ptA[0])*(ptC[2]-ptA[2]);
         dir1[2] = (ptB[0]-ptA[0])*(ptC[1]-ptA[1])-(ptB[1]-ptA[1])*(ptC[0]-ptA[0]);
         ndir1 = sqrt(dir1[0]*dir1[0]+dir1[1]*dir1[1]+dir1[2]*dir1[2]);
-        rad1 = K_COMPGEOM::circumCircleRadius(ptA, ptB, ptC);
+        rad1 = K_COMPGEOM::circumCircleRadius(ptA[0], ptA[1], ptA[2], 
+                                              ptB[0], ptB[1], ptB[2], 
+                                              ptC[0], ptC[1], ptC[2]);
 
         // DC ^ DB
         dir2[0] = (ptC[1]-ptD[1])*(ptB[2]-ptD[2])-(ptC[2]-ptD[2])*(ptB[1]-ptD[1]);
@@ -276,9 +279,11 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
         ndir2 = sqrt(dir2[0]*dir2[0]+dir2[1]*dir2[1]+dir2[2]*dir2[2]);
         inverse1 = dir1[0]*dir2[0]+dir1[1]*dir2[1]+dir1[2]*dir2[2];
         if (ndir1 > 1.e-12 && ndir2 > 1.e-12) inverse1 = inverse1/(ndir1*ndir2);
-        rad2 = K_COMPGEOM::circumCircleRadius(ptB, ptC, ptD);
+        rad2 = K_COMPGEOM::circumCircleRadius(ptB[0], ptB[1], ptB[2],
+                                              ptC[0], ptC[1], ptC[2],
+                                              ptD[0], ptD[1], ptD[2]);
 
-        if (inverse1 < -0.9) printf("contractEdges: %d: %f inverse.\n", i, inverse1); 
+        if (inverse1 < -0.9) printf("contractEdges: " SF_D_ ": " SF_F_ " inverse.\n", i, inverse1); 
 
         if (inverse1 < -0.9 && decim[i] == 1 && decim[ie] == 1 && fixed[indB] == 0 && fixed[indC] == 0) 
         {
@@ -300,7 +305,7 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
   E_Int ne = 0;
   for (E_Int i = 0; i < ntr; i++) ne += decim[i];
 
-  printf("contractEdges: final number of elements=%d\n", ne);
+  printf("contractEdges: final number of elements=" SF_D_ "\n", ne);
   FldArrayI ctn(ne, 3);
   E_Int* ctn1 = ctn.begin(1);
   E_Int* ctn2 = ctn.begin(2);
@@ -316,7 +321,7 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
 
   ct = ctn;
 
-  //printf("Mailles inversees=%d - mailles ecrasees=%d\n", maillesInversees, maillesEcrasees);
+  //printf("Mailles inversees=" SF_D_ " - mailles ecrasees=" SF_D_ "\n", maillesInversees, maillesEcrasees);
   delete [] decim;
   delete [] fixed;
 }

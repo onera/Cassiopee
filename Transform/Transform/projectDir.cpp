@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -18,7 +18,7 @@
 */
 
 # include "transform.h"
-# include "Search/BbTree.h"
+# include "Nuga/include/BbTree.h"
 
 using namespace K_FLD;
 using namespace std;
@@ -32,9 +32,7 @@ PyObject* K_TRANSFORM::projectDir(PyObject* self, PyObject* args)
   PyObject* arrays; PyObject* array2;
   E_Float nx, ny, nz;
   E_Int oriented;
-  if (!PYPARSETUPLE(args,
-                    "OO(ddd)l", "OO(ddd)i",
-                    "OO(fff)l", "OO(fff)i",
+  if (!PYPARSETUPLE_(args, OO_ TRRR_ I_,
                     &arrays, &array2, &nx, &ny, &nz, &oriented))
   {
       return NULL;

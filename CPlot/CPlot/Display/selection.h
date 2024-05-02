@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -33,7 +33,7 @@ else if (ptrState->selectionStyle == 1)
   if (ptrState->selectedZone <= 0) v2 = ptrState->alpha;
   else 
   { 
-    if (zonep->selected == 0) v2 = 0.12; 
+    if (zonep->selected == 0) v2 = 0.12;
     else v2 = ptrState->alpha; 
   } 
   if (zonep->active == 1)

@@ -18,13 +18,13 @@ test.testA(a2,1)
 
 # Extrait la solution sur le maillage d'extraction
 for i in [2,3,5]:
-    #print 'Computing order',i,'...'
+    #print('Computing order %d...'%i)
     a2 = P.extractMesh([m], a, i)
     test.testA([m,a2], i)
 
 # With a hook
 hook = C.createHook([m], function='extractMesh')
 for i in [2,3,5]:
-    a2 = P.extractMesh([m], a, i, hook=hook)
+    a2 = P.extractMesh([m], a, i, hook=[hook])
     test.testA([m,a2], i)
 C.freeHook(hook)

@@ -1,5 +1,6 @@
 # - CPlot control app  -
-import Tkinter as TK
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -76,7 +77,7 @@ def updateVarNameList2(event=None):
         vars = C.getVarNames(CTK.t[2][nob][2][noz], excludeXYZ=True)
     if len(vars) == 0: return
     vars = ['All fields', 'No field'] + vars[0]
-    if WIDGETS.has_key('fields'):
+    if 'fields' in WIDGETS:
         WIDGETS['fields']['values'] = vars
 
 #==============================================================================
@@ -114,9 +115,10 @@ def createApp(win):
 
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkPerfo', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Improve performance of Cassiopee.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkPerfo  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Improve performance of Cassiopee.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -126,8 +128,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkPerfo')
@@ -138,7 +140,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('All fields'); VARS.append(V)
     # -1- Oneovern -
     V = TK.StringVar(win); V.set('All points'); VARS.append(V)
-    if CTK.PREFS.has_key('tkPerfoPoints'): V.set(CTK.PREFS['tkPerfoPoints'])
+    if 'tkPerfoPoints' in CTK.PREFS: V.set(CTK.PREFS['tkPerfoPoints'])
     # -2- Threads
     V = TK.StringVar(win); V.set('1'); VARS.append(V)
     
@@ -198,13 +200,17 @@ def createApp(win):
 #==============================================================================
 def showApp():
     getThreads()
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['StateNoteBook'].add(WIDGETS['frame'], text='tkPerfo')
+    except: pass
+    CTK.WIDGETS['StateNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['StateNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes

@@ -1,8 +1,13 @@
-# Calcul des autres variables de computeVariables
+"""Compute other complex variables than computeVariables."""
 
-import PyTree as P
+from . import PyTree as P
+from . import Mpi as Pmpi
 import Converter.PyTree as C
 import Converter.Internal as Internal
+import Generator.PyTree as G
+import Transform.PyTree as T
+import Geom.PyTree as D
+import numpy
 
 #==============================================================================
 # Vorticite en centres
@@ -12,7 +17,7 @@ def computeVorticity(t):
     presvx = C.isNamePresent(t2, 'VelocityX')
     if presvx == -1: 
         presvxc = C.isNamePresent(t2, 'centers:VelocityX') 
-        if presvxc > -1: t2 = C.center2Node(t2,['centers:VelocityX','centers:VelocityY','centers:VelocityZ'])
+        if presvxc > -1: t2 = C.center2Node(t2, ['centers:VelocityX','centers:VelocityY','centers:VelocityZ'])
         else: t2 = P.computeVariables(t2, ['VelocityX', 'VelocityY', 'VelocityZ'])
 
     t2 = P.computeCurl(t2, ['VelocityX', 'VelocityY', 'VelocityZ'])
@@ -28,9 +33,9 @@ def computeVorticity(t):
 def computeVorticityMagnitude(t):
     t2 = Internal.copyRef(t)
     presvx = C.isNamePresent(t2, 'centers:VorticityX')
-    if presvx==-1: t2 = computeVorticity(t)
+    if presvx == -1: t2 = computeVorticity(t)
     t2 = C.magnitude(t2, ['centers:VorticityX', 'centers:VorticityY', 'centers:VorticityZ'])
-    if presvx==-1: t2 = C.rmVars(t2, ['centers:VorticityX','centers:VorticityY','centers:VorticityZ'])
+    if presvx == -1: t2 = C.rmVars(t2, ['centers:VorticityX','centers:VorticityY','centers:VorticityZ'])
     Internal._renameNode(t2, 'magnitudeVorticityXVorticityYVorticityZ', 'VorticityMagnitude')
     return t2
 
@@ -123,7 +128,7 @@ def computeShearStress(t, gamma=1.4, rgp=287.053,
     
 
 #-------------------------------------------------------------------------------
-# INPUT : t : tree of skin/wall borders (velocity gradients must be defined yet)
+# INPUT: t: tree of skin/wall borders (velocity gradients must be defined yet)
 #-------------------------------------------------------------------------------
 def _computeWallShearStress(t):
     dimPb = Internal.getNodeFromName(t, 'EquationDimension')
@@ -144,7 +149,7 @@ def _computeWallShearStress(t):
         if presgx == 1: loc = 'centers'
         else:
            raise ValueError('gradxVelocity is required in tree.')
-        for nov in xrange(len(vars1)): 
+        for nov in range(len(vars1)): 
             vars1[nov]='centers:'+vars1[nov]
 
     [RoInf, RouInf, RovInf, RowInf, RoeInf, PInf, TInf, cvInf, MInf, ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf, Mus, Cs, Ts, Pr] = C.getState(t)
@@ -295,9 +300,9 @@ def computeSkinFriction(t, centers=0, tangent=0):
             if pres2n > -1:
                 t2 = C.center2Node(t2, ['centers:SkinFrictionX','centers:SkinFrictionY','centers:SkinFrictionZ'])
             else:
-                t2=C.initVars(t2, '{SkinFrictionX}={ShearStressXX}*{sx}+{ShearStressXY}*{sy}+{ShearStressXZ}*{sz}')
-                t2=C.initVars(t2, '{SkinFrictionY}={ShearStressXY}*{sx}+{ShearStressYY}*{sy}+{ShearStressYZ}*{sz}')
-                t2=C.initVars(t2, '{SkinFrictionZ}={ShearStressXZ}*{sx}+{ShearStressYZ}*{sy}+{ShearStressZZ}*{sz}')
+                t2 = C.initVars(t2, '{SkinFrictionX}={ShearStressXX}*{sx}+{ShearStressXY}*{sy}+{ShearStressXZ}*{sz}')
+                t2 = C.initVars(t2, '{SkinFrictionY}={ShearStressXY}*{sx}+{ShearStressYY}*{sy}+{ShearStressYZ}*{sz}')
+                t2 = C.initVars(t2, '{SkinFrictionZ}={ShearStressXZ}*{sx}+{ShearStressYZ}*{sy}+{ShearStressZZ}*{sz}')
         
         if tangent == 1:
             t2 = C.initVars(t2, '{SkinFrictionTangentialX}={SkinFrictionX} - {sx}*({SkinFrictionX}*{sx}+{SkinFrictionY}*{sy}+{SkinFrictionZ}*{sz})')

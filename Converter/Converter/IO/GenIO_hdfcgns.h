@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -20,6 +20,16 @@
 #include "GenIO.h"
 #include "kcore.h"
 #include "hdf5.h"
+#include <map>
+#include <array>
+
+// For now, force output of v1.8 of HDF
+#if H5_VERSION_GE(1,10,2)
+#define KHDFVERSION H5F_LIBVER_V18
+#else
+#define KHDFVERSION H5F_LIBVER_LATEST
+#endif
+//#define KHDFVERSION H5F_LIBVER_LATEST
 
 //# define CGNSMAXLABEL 33
 # define CGNSMAXLABEL 128
@@ -50,15 +60,13 @@
 #define L3T_LK "LK"
 #define L3T_B1 "B1"
 #define L3T_C1 "C1"
+#define L3T_I1 "I1"
 #define L3T_I4 "I4"
 #define L3T_I8 "I8"
 #define L3T_U4 "U4"
 #define L3T_U8 "U8"
 #define L3T_R4 "R4"
 #define L3T_R8 "R8"
-
-// si 0 check la propriete order pour iterate, sinon prend l'ordre natif
-#define ITERATE 0
 
 // Usefull inline function
 #define L3M_CLEARDIMS(dims) \
@@ -80,7 +88,18 @@ typedef struct DataSpace_t
 
   hsize_t GlobDataSetDim[L3C_MAX_DIMS];   /* Number of Block Entry */
 
-  hsize_t Flags[L3C_MAX_DIMS];   /* Number of Block Entry */
+  hsize_t Flags[L3C_MAX_DIMS];            /* Number of Block Entry */
+
+  bool data_space_combine;
+  std::vector<std::array<hsize_t, L3C_MAX_DIMS>> List_Src_Offset;  /* Begin                 */
+  std::vector<std::array<hsize_t, L3C_MAX_DIMS>> List_Src_Count;   /* Number of Entry       */
+  std::vector<std::array<hsize_t, L3C_MAX_DIMS>> List_Src_Stride;  /* Stride Block to Block */
+  std::vector<std::array<hsize_t, L3C_MAX_DIMS>> List_Src_Block;   /* Number of Block Entry */
+
+  std::vector<std::array<hsize_t, L3C_MAX_DIMS>> List_Dst_Offset;  /* Begin                 */
+  std::vector<std::array<hsize_t, L3C_MAX_DIMS>> List_Dst_Count;   /* Number of Entry       */
+  std::vector<std::array<hsize_t, L3C_MAX_DIMS>> List_Dst_Stride;  /* Stride Block to Block */
+  std::vector<std::array<hsize_t, L3C_MAX_DIMS>> List_Dst_Block;   /* Number of Block Entry */
 
 } DataSpace_t;
 
@@ -91,20 +110,22 @@ class GenIOHdf
 {
   public:
     /* Load one with depth deep */
-    PyObject* loadOne(PyObject* tree, int depth, PyObject* dataShape=NULL);
+    PyObject* loadOne(PyObject* tree, int depth, 
+                      PyObject* dataShape=NULL, PyObject* links=NULL);
 
     /* get* of a current HDFObject */
     hid_t* getChildren(hid_t);
     char*  getName(double node);
     char*  getLabel(double node);
-    void   getType(double node, char* type, int dim, int* dims);
+    void   getType(double node, char* type, int dim, hsize_t* dims);
+    bool   isAnodeToSkip();
 
     /* Create HDF Method */
-    PyObject* createNode(hid_t& node, PyObject* dataShape=NULL);
+    PyObject* createNode(hid_t& node, PyObject* dataShape=NULL, PyObject* links=NULL);
     PyObject* createNodePartial(hid_t& node);
     PyObject* createNodePartialContigous(hid_t& node, int iField, int &nField, PyObject* data);
 
-    /* Get HDF Method */
+    /* Write HDF Method */
     hid_t writeNode(hid_t node, PyObject* tree);
     hid_t writeNodePartial(hid_t node, PyObject* tree);
     hid_t modifyNode(hid_t node, PyObject* tree);
@@ -117,19 +138,29 @@ class GenIOHdf
     double getSingleR8(hid_t node, hid_t tid);
 
     /* Method to getArray in HDF */
-    PyObject* getArrayI8Skel(hid_t node, hid_t tid, int dim, int* dims);
-    PyObject* getArrayI4Skel(hid_t node, hid_t tid, int dim, int* dims);
-    PyObject* getArrayR8Skel(hid_t node, hid_t tid, int dim, int* dims);
-    PyObject* getArrayR4Skel(hid_t node, hid_t tid, int dim, int* dims);
-
-    PyObject* getArrayR8(hid_t node, hid_t tid, int dim, int* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
-    PyObject* getArrayR4(hid_t node, hid_t tid, int dim, int* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
-    PyObject* getArrayI4(hid_t node, hid_t tid, int dim, int* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
-    PyObject* getArrayI8(hid_t node, hid_t tid, int dim, int* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
-    char* getArrayC1(hid_t node, hid_t tid, int dim, int* dims);
+    PyObject* getArrayR8Skel(hid_t node, hid_t tid, int dim, hsize_t* dims);
+    PyObject* getArrayR4Skel(hid_t node, hid_t tid, int dim, hsize_t* dims);
+    PyObject* getArrayI1Skel(hid_t node, hid_t tid, int dim, hsize_t* dims);
+    PyObject* getArrayI8Skel(hid_t node, hid_t tid, int dim, hsize_t* dims);
+    PyObject* getArrayI4Skel(hid_t node, hid_t tid, int dim, hsize_t* dims);
+    
+    PyObject* getArrayR8(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    PyObject* getArrayR42R8(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    PyObject* getArrayR4Raw(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    #define getArrayR4 getArrayR42R8
+    PyObject* getArrayI1(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    PyObject* getArrayI4Raw(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    PyObject* getArrayI42I8(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    PyObject* getArrayI82I4(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    PyObject* getArrayI82I4C(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    PyObject* getArrayI8Raw(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    PyObject* getArrayI8(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+    PyObject* getArrayI4(hid_t node, hid_t tid, int dim, hsize_t* dims, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL);
+              
+    char* getArrayC1(hid_t node, hid_t tid, int dim, hsize_t* dims);
 
     /* Method for contiguous array **/
-    PyObject* getArrayContigous(hid_t node, hid_t tid, int dim, int* dims, int NPYtype, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL, PyObject* r = NULL);
+    PyObject* getArrayContigous(hid_t node, hid_t tid, int dim, hsize_t* dims, int NPYtype, hid_t mid=H5S_ALL, hid_t sid=H5S_ALL, PyObject* r = NULL);
 
     /* Method to setSingle in HDF */
     hid_t setSingleR4(hid_t node, float  data);
@@ -138,22 +169,26 @@ class GenIOHdf
     hid_t setSingleI8(hid_t node, E_LONG data);
 
     /* Method to setArray in HDF */
-    hid_t setArrayR4(hid_t node, float*  data, int dim, int *dims);
-    hid_t setArrayR8(hid_t node, double* data, int dim, int *dims);
-    hid_t setArrayI4(hid_t node, int*    data, int dim, int *dims);
-    hid_t setArrayI8(hid_t node, E_LONG* data, int dim, int *dims);
+    hid_t setArrayR4(hid_t node, float*  data, int dim, hsize_t *dims);
+    hid_t setArrayR8(hid_t node, double* data, int dim, hsize_t *dims);
+    hid_t setArrayI1(hid_t node, char*   data, int dim, hsize_t *dims);
+    hid_t setArrayI4(hid_t node, int*    data, int dim, hsize_t *dims);
+    hid_t setArrayI8(hid_t node, E_LONG* data, int dim, hsize_t *dims);
+    hid_t setArrayI8Raw(hid_t node, E_LONG* data, int dim, hsize_t *dims);
+    hid_t setArrayI8B(hid_t node, E_LONG* data, int dim, hsize_t *dims);
     hid_t setArrayC1(hid_t node, char*   data, char* label=(char*)L3S_DATA);
-    hid_t setArrayC1(hid_t node, char*   data, int dim, int *dims);
+    hid_t setArrayC1(hid_t node, char*   data, int dim, hsize_t *dims);
 
     /* Method to setPartialArray in HDF */
-    hid_t setArrayPartial(hid_t node, void* data, int idim, int* idims,
+    hid_t setArrayPartial(hid_t node, void* data, int idim, hsize_t* idims,
                           hid_t DataType, char *CGNSType);
 
     /* DataSpace Fill */
     void fillDataSpaceWithFilter(PyObject* Filter);
+    void fillDataSpaceWithFilterCombine(PyObject* Filter);
 
     /* Full dump of a tree */
-    PyObject* dumpOne(PyObject* tree, int depth);
+    PyObject* dumpOne(PyObject* tree, int depth, PyObject* links=NULL);
     hid_t ADF_to_HDF_datatype(const char *tp);
 
   /* Constructor */
@@ -161,6 +196,12 @@ class GenIOHdf
   {
     /* Fill some attributes */
     _skeleton=0; _maxFloatSize=1e6; _maxDepth=1e6;
+
+    /* read mode. 0: convert int to Cassiopee compilation type, 1: return what is in the file. */
+    _readMode = 0; 
+
+    /* write mode. 0: write what we have in memory, 1: write int32 if possible without loss. */
+    _writeMode = 0;
 
     /* Create basic data types used everywhere */
     _NATIVE_FLOAT  = H5Tcopy(H5T_NATIVE_FLOAT ); H5Tset_precision(_NATIVE_FLOAT , 32);
@@ -171,8 +212,6 @@ class GenIOHdf
     /* Group creation */
     _group = H5Pcreate(H5P_GROUP_CREATE);
     H5Pset_link_creation_order(_group, H5P_CRT_ORDER_TRACKED | H5P_CRT_ORDER_INDEXED);
-
-    /* Prepare DataSpace for partial load  */
 
   }
 
@@ -189,8 +228,12 @@ class GenIOHdf
 
   /* Public attributes   */
   public:
+    int _readMode;
+    int _writeMode;
     std::list<hid_t> _fatherStack;
     std::list<std::string> _stringStack;
+    std::map<std::string, bool> _skipTypes;
+    std::map<std::pair<std::string, std::string>, bool> _skipNameAndTypes;
     hid_t _NATIVE_FLOAT;
     hid_t _NATIVE_DOUBLE;
     hid_t _NATIVE_INT;
@@ -202,8 +245,8 @@ class GenIOHdf
     char  _type[CGNSMAXLABEL+1];
     char  _name[CGNSMAXLABEL+1];
     char  _dtype[CGNSMAXLABEL+1];
-    int   _dims[CGNSMAXDIM];
-    int   _dims2[CGNSMAXDIM];
+    hsize_t _dims[CGNSMAXDIM];
+    hsize_t _dims2[CGNSMAXDIM];
     int   _tmp[CGNSMAXDIM];  /* Just use to swap dims and dims2 */
     /* Store CGNS Path */
     char  *_path;
@@ -221,9 +264,10 @@ class GenIOHdf
 
 
 void fillArrayLongWithList( PyObject* obj, int item, hsize_t *val);
+bool haveMultipleDataSpace(PyObject* Filter);
 // void fillDataSpaceWithList( PyObject* obj, DataSpace_t *DataSpace);
 
-int HDF_Get_DataDimensionsPartial(hid_t nid, int     *dims,
+int HDF_Get_DataDimensionsPartial(hid_t nid, hsize_t *dims,
                                              hsize_t *dst_offset,
                                              hsize_t *dst_stride,
                                              hsize_t *dst_count,
@@ -234,8 +278,13 @@ hid_t createDataSpaceEntry(hid_t nid, hsize_t *src_offset,
                                       hsize_t *src_count,
                                       hsize_t *src_block);
 
-hid_t createDataSpaceOutput(hid_t nid, int     *dst_dims,
+hid_t createDataSpaceOutput(hid_t nid, hsize_t *dst_dims,
                                        hsize_t *dst_offset,
                                        hsize_t *dst_stride,
                                        hsize_t *dst_count,
                                        hsize_t *dst_block);
+
+hid_t createDataSpaceEntryCombine(hid_t nid, std::vector<std::array<hsize_t, L3C_MAX_DIMS>>& src_offset,
+                                             std::vector<std::array<hsize_t, L3C_MAX_DIMS>>& src_stride,
+                                             std::vector<std::array<hsize_t, L3C_MAX_DIMS>>& src_count,
+                                             std::vector<std::array<hsize_t, L3C_MAX_DIMS>>& src_block);

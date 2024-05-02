@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -19,7 +19,7 @@ C    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
       SUBROUTINE k6lamb(x0, y0, Gamma, MInf,
      &                  npts,      
      &                  xc, yc, zc,
-     &                  u)
+     &                  u1, u2, u3, u4, u5)
 C
       IMPLICIT NONE 
 C
@@ -34,7 +34,12 @@ C_IN
       REAL_E yc(0:npts-1) ! y cooord of points
       REAL_E zc(0:npts-1) ! z cooord of points
 C_OUT
-      REAL_E u(0:npts-1,5) ! field to be initialized
+      REAL_E u1(0:npts-1) ! field to be initialized
+      REAL_E u2(0:npts-1) ! field to be initialized
+      REAL_E u3(0:npts-1) ! field to be initialized
+      REAL_E u4(0:npts-1) ! field to be initialized
+      REAL_E u5(0:npts-1) ! field to be initialized
+
 C_LOCAL  
       INTEGER_E nd
       PARAMETER (nd=50000)   !discretisation
@@ -44,7 +49,7 @@ C_LOCAL
       INTEGER_E ind
       REAL_E dr, r, aa
       REAL_E Sinf, roinf, uinf, pinf
-      INTEGER_E i,j,k,m
+      INTEGER_E i,m
       REAL_E rmax, vr, vrdr
       REAL_E cos_teta, sin_teta
       REAL_E va, ss, ro, pp
@@ -87,7 +92,7 @@ C_LOCAL
                                 
       Sinf = S(2*nd)
       roinf = 0.4D0*h0/(1.4D0*Sinf)
-      roinf = roinf**(1.D0/0.4D0)	
+      roinf = roinf**(1.D0/0.4D0)
       pinf = roinf*(0.4D0/1.4D0)*(h0)
       uinf = MInf*SQRT(1.4D0*pinf/roinf)
                                 
@@ -104,34 +109,27 @@ C     &     pinf/0.4+0.5*roinf*uinf*uinf
             sin_teta = 0.D0
             va = 0.D0
          ELSE
-            cos_teta = (yc(ind)-y0)/r	
+            cos_teta = (yc(ind)-y0)/r
             sin_teta = -(xc(ind)-x0)/r
             va = gam*(1.D0-EXP(-r*r))/(2*pi*r)
          ENDIF
                
-         m = INT(r*nd/rmax)+1			
+         m = INT(r*nd/rmax)+1
          ss = S(m)
-         ro = 0.4D0*(h0-0.5D0*va*va)/(1.4D0*ss)	
-         ro = ro**(1.D0/0.4D0)			
+         ro = 0.4D0*(h0-0.5D0*va*va)/(1.4D0*ss)
+         ro = ro**(1.D0/0.4D0)
          pp = ro*0.4D0*(h0-0.5D0*va*va)/1.4D0
          
-         u(ind,1) = ro
-         u(ind,2) = ro*uinf+ro*cos_teta*va
-         u(ind,3) = ro*sin_teta*va
-         u(ind,4) = 0.D0
-         u(ind,5) = pp/0.4D0+0.5D0*(u(ind,2)**2+u(ind,3)**2)/ro
+         u1(ind) = ro
+         u2(ind) = ro*uinf+ro*cos_teta*va
+         u3(ind) = ro*sin_teta*va
+         u4(ind) = 0.D0
+         u5(ind) = pp/0.4D0+0.5D0*(u2(ind)**2+u3(ind)**2)/ro
       ENDDO
       
       RETURN
 
       END
-
-
-
-
-
-
-
 
 
 

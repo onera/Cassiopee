@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -32,7 +32,7 @@ using namespace K_CONST;
 PyObject* K_GEOM::getLength(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check array
   E_Int im, jm, km;
@@ -140,9 +140,7 @@ PyObject* K_GEOM::getDistantIndex(PyObject* self, PyObject* args)
   E_Int ind;
   E_Float l;
 
-  if (!PYPARSETUPLE(args,
-                    "Old", "Oid",
-                    "Olf", "Oif",
+  if (!PYPARSETUPLE_(args, O_ I_ R_,
                     &array, &ind, &l))
   {
       return NULL;
@@ -238,12 +236,7 @@ PyObject* K_GEOM::getDistantIndex(PyObject* self, PyObject* args)
     }
 
     RELEASESHAREDS(array, f);
-
-#ifdef E_DOUBLEINT
-    return Py_BuildValue("l", long(is));
-#else
-    return Py_BuildValue("i", is);
-#endif
+    return Py_BuildValue(I_, is);
   }
   else if (res == 2)
   {
@@ -266,7 +259,7 @@ PyObject* K_GEOM::getDistantIndex(PyObject* self, PyObject* args)
 PyObject* K_GEOM::getCurvilinearAbscissa(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if ( !PyArg_ParseTuple(args, "O", &array) ) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check array
   E_Int im, jm, km;
@@ -327,16 +320,16 @@ PyObject* K_GEOM::getCurvilinearAbscissa(PyObject* self, PyObject* args)
   }
   else if (res == 2)
   {
-    if ( strcmp(eltType, "BAR") != 0 ) 
+    if (strcmp(eltType, "BAR") != 0) 
     {
       RELEASESHAREDU(array, f, cn);
       PyErr_SetString(PyExc_TypeError,
                       "getCurvilinearAbscissa: only for BAR-array.");
       return NULL;
     }
-    posx = K_ARRAY::isCoordinateXPresent( varString );
-    posy = K_ARRAY::isCoordinateYPresent( varString );
-    posz = K_ARRAY::isCoordinateZPresent( varString );
+    posx = K_ARRAY::isCoordinateXPresent(varString);
+    posy = K_ARRAY::isCoordinateYPresent(varString);
+    posz = K_ARRAY::isCoordinateZPresent(varString);
     if (posx == -1 || posy == -1 || posz == -1)
     {
       RELEASESHAREDU(array, f, cn);

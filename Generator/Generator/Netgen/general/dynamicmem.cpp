@@ -149,8 +149,8 @@ namespace netgen
 
     while (p)
       {
-        long unsigned hptr = (long unsigned) (p->ptr);
-	// uintptr_t hptr = reinterpret_cast<uintptr_t>(p->ptr); //??
+        //long unsigned hptr = (long unsigned) (p->ptr);
+	       uintptr_t hptr = reinterpret_cast<uintptr_t>(p->ptr); //??
 
 	hptr /= (1024*1024);
 	hptr /= (4096/nr);

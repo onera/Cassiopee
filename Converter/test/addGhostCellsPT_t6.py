@@ -16,11 +16,11 @@ for b in Internal.getNodesFromName(a, 'wall*'):
     else: nfaces = (N-1)**2
     d1 = Internal.newDataArray('Density', value=nfaces*[1.*nobc], parent=d)
     d2 = Internal.newDataArray('G', value=nfaces*[-1.*nobc], parent=d)
-    nobc+=1
+    nobc += 1
 C._initVars(a,'centers:Density',2.)
 C._initVars(a,'centers:G', 2.)
 t = C.newPyTree(['Base',a,dim])
-t = Internal.addGhostCells(t,t,2)
+t = Internal.addGhostCells(t,t,2,adaptBCs=0)
 test.testT(t,1)
 #
 N = 10; dim = 3
@@ -40,7 +40,7 @@ for b in Internal.getNodesFromName(a, 'wall*'):
 C._initVars(a,'centers:Density',2.)
 C._initVars(a,'centers:G', 2.)
 t = C.newPyTree(['Base',a,dim])
-t = Internal.addGhostCells(t,t,2)
+t = Internal.addGhostCells(t,t,2,adaptBCs=0)
 test.testT(t,2)
 #
 # located at nodes: nothing is done yet
@@ -57,5 +57,5 @@ nobc+=1
 C._initVars(a,'{centers:Density}={centers:CoordinateX}')
 C._initVars(a,'centers:G', 2.)
 t = C.newPyTree(['Base',a,dim])
-t = Internal.addGhostCells(t,t,2)
+t = Internal.addGhostCells(t,t,2,adaptBCs=0)
 test.testT(t,3)

@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -41,8 +41,7 @@ PyObject* K_POST::refineButterfly(PyObject* self, PyObject* args)
   // surf: maillage a raffiner (x,y,z+sol)
   // w: parametre pour le butterfly
   PyObject* surf; E_Float w;
-  if (!PYPARSETUPLEF(args,
-                    "Od", "Of",
+  if (!PYPARSETUPLE_(args, O_ R_,
                     &surf, &w))
   {
       return NULL;

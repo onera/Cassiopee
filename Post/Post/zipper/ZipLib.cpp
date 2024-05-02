@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -130,7 +130,7 @@ E_Int testIfPointsAreMatching(E_Float matchTol, E_Int i1,
 //==========================================================================
 void writeSingleSegments(vector<SingleSegment*>& singleSegments)
 {
-  E_Boolean add = false;
+  //E_Boolean add = false;
   E_Int ssSize = singleSegments.size();
   for (E_Int v = 0; v < ssSize; v++)
   {
@@ -150,7 +150,7 @@ void writeSingleSegments(vector<SingleSegment*>& singleSegments)
     {
       //K_IO::GenIO::getInstance()->tpwriteTriangles("strings2.tp", field, 
       //                                             connect, add);
-      add = true;
+      //add = true;
     }
   }
 }
@@ -261,7 +261,7 @@ void buildPocket(E_Float matchTol,
   for (E_Int i = 0; i < dejaVu.getSize();i++)
   {
     if (dejaVu[i] == 0)
-      printf("Warning: buildPocket: segment number %d is not in a pocket.\n", i+1);  
+      printf("Warning: buildPocket: segment number " SF_D_ " is not in a pocket.\n", i+1);  
   }
   for (E_Int i = 0; i < size; i++)
     delete singleSegments[i];

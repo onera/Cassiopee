@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -30,8 +30,7 @@ PyObject* K_TRANSFORM::projectRay(PyObject* self, PyObject* args)
 {
   PyObject* arrays; PyObject* array2;
   E_Float Px,Py,Pz;
-  if (!PYPARSETUPLEF(args,
-                    "OO(ddd)", "OO(fff)",
+  if (!PYPARSETUPLE_(args, OO_ TRRR_,
                     &arrays, &array2, &Px, &Py, &Pz))
   {
       return NULL;
@@ -170,10 +169,8 @@ PyObject* K_TRANSFORM::projectRay(PyObject* self, PyObject* args)
                          sizet, coordx, coordy, coordz);
  
   RELEASESHAREDU(array2, f2, cn2);
-  for (E_Int nos = 0; nos < ns; nos++)
-    RELEASESHAREDS(objst[nos], structF[nos]);
-  for (E_Int nou = 0; nou < nu; nou++)
-    RELEASESHAREDU(objut[nou], unstrF[nou], cnt[nou]);
+  for (E_Int nos = 0; nos < ns; nos++) RELEASESHAREDS(objst[nos], structF[nos]);
+  for (E_Int nou = 0; nou < nu; nou++) RELEASESHAREDU(objut[nou], unstrF[nou], cnt[nou]);
 
   return l;
 }

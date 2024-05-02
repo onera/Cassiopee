@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -88,7 +88,7 @@ c     calcul du rotationnel au centre des elts
          curly = ZERO
          curlz = ZERO
 
-         vinv = -ONE/vol(eti)
+         vinv = -ONE/MAX(vol(eti), E_MIN_VOL)
 
          DO fi = 1, nedges
             sxi = snx(eti,fi) 

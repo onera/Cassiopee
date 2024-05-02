@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -40,9 +40,7 @@ PyObject* K_GEOM::nacaMesh(PyObject* self, PyObject* args)
 {
   E_Int N; E_Float e;
   E_Int im, ip, it, ith, iq, sharpte;
-  if (!PYPARSETUPLE(args,
-                    "dlllllll", "diiiiiii",
-                    "flllllll", "fiiiiiii",
+  if (!PYPARSETUPLE_(args, R_ IIII_ III_,
                     &e, &N,
                     &im, &ip, &it, &ith, &iq, &sharpte))
   {
@@ -62,7 +60,7 @@ PyObject* K_GEOM::nacaMesh(PyObject* self, PyObject* args)
     if ((N/2)*2-N == 0)
     {
       printf("Warning: naca: number of points must be odd.\n");
-      printf("Warning: naca: number of points set to %d.\n", N+1);
+      printf("Warning: naca: number of points set to " SF_D_ ".\n", N+1);
       N = N+1;
     }
   
@@ -79,14 +77,14 @@ PyObject* K_GEOM::nacaMesh(PyObject* self, PyObject* args)
     {
       // sharp : 2N+1
       printf("Warning: naca: number of points must be odd.\n");
-      printf("Warning: naca: number of points set to %d.\n", N+1);
+      printf("Warning: naca: number of points set to " SF_D_ ".\n", N+1);
       N = N+1;
     }
     if (sharpte == 0 && (N/2)*2-N == 1)
     {
       // pas sharp : 2N
       printf("Warning: naca: number of points must be even.\n");
-      printf("Warning: naca: number of points set to %d.\n", N+1);
+      printf("Warning: naca: number of points set to " SF_D_ ".\n", N+1);
       N = N+1;
     }
 
@@ -94,9 +92,8 @@ PyObject* K_GEOM::nacaMesh(PyObject* self, PyObject* args)
     if (sharpte == 1) npt++;
 
     FldArrayF xl(npt);
-    FldArrayF coord(N, 3);
-    //printf("sharpte=%d, size N=%d, npt=%d\n",sharpte, N, npt);
-    //printf("type = %d %d %d %d %d\n", im, ip, iq, it, ith);
+    FldArrayF coord(2*npt, 3);
+    coord.setAllValuesAtNull();
 
     // determination de la serie
     if (im > -0.5 && ip > -0.5 && ith > -0.5 && it > -0.5 && iq > -0.5)
@@ -116,7 +113,7 @@ PyObject* K_GEOM::nacaMesh(PyObject* self, PyObject* args)
       k6nacas4g_(im, ip, it, sharpte,
                  npt, coord.begin(1), coord.begin(2), coord.begin(3), xl.begin());
     }
-    
+    coord.reAllocMat(N, 3);
     tpl = K_ARRAY::buildArray(coord, "x,y,z", N, 1, 1);
   }
 

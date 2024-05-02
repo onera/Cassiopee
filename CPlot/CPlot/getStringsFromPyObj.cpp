@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -26,16 +26,24 @@
 int getStringsFromPyObj(PyObject* obj, std::vector<char*>& strings)
 {
   if (PyList_Check(obj) == false) return 0; // failed
-  int l = PyList_Size(obj);
-  for (int i = 0; i < l; i++)
+  E_Int l = PyList_Size(obj);
+  for (E_Int i = 0; i < l; i++)
   {
     PyObject* o = PyList_GetItem(obj, i);
-    if (PyString_Check(o) == true)
+    if (PyString_Check(o))
     {
       char* s = new char[128];
       strcpy(s, PyString_AsString(o));
       strings.push_back(s);
     }
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(o))
+    {
+      char* s = new char[128];
+      strcpy(s, PyUnicode_AsUTF8(o));
+      strings.push_back(s);
+    }
+#endif
   }
   return 1;
 }
@@ -46,13 +54,22 @@ int getStringsFromPyObj(PyObject* obj, std::vector<char*>& strings)
 //=============================================================================
 int getStringFromPyObj(PyObject* obj, char*& string)
 {
-  if (PyString_Check(obj) == true)
+  if (PyString_Check(obj))
   {
     char* s = new char[128];
     strcpy(s, PyString_AsString(obj));
     string = s;
     return 1;
   }
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(obj))
+  {
+    char* s = new char[128];
+    strcpy(s, PyUnicode_AsUTF8(obj));
+    string = s;
+    return 1;
+  }
+#endif
   else
   {
     string = NULL;

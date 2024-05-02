@@ -13,7 +13,6 @@ a2 = T.subzone(a2, (1,2,1),(10,2,10)); a2[0]='cyl2'
 
 a1 = C.initVars(a1, 'centers:cellN',1.)
 a2 = C.initVars(a2, 'centers:cellN',1.)
-t = C.newPyTree(['Base',2])
-t[2][1][2] += [a1, a2]
+t = C.newPyTree(['Base',2]); t[2][1][2] += [a1, a2]
 t = P.usurp(t)
 C.convertPyTree2File(t, 'out.cgns')

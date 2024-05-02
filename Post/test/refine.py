@@ -16,6 +16,6 @@ C.convertArrays2File(a, 'out.plt')
 a = G.cartTetra((0,0,0), (2,1,1), (3,3,3))
 a = P.exteriorFaces(a)
 #a = C.initVars(a, "z = 0.1*{x}*{x}+0.2*{y}")
-for i in xrange(6):
+for i in range(6):
     a = P.refine(a, w=1./64.)
 C.convertArrays2File(a, 'out.plt')

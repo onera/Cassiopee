@@ -7,7 +7,7 @@ import KCore.test as test
 def nearest(a):
     f = P.exteriorElts(a)
     f = T.translate(f,(0.15,0.,0.))
-    if (isinstance(a[0], list) == True): a=a[0]
+    if isinstance(a[0], list): a=a[0]
     hook = C.createHook(a, function='elementCenters')
     elts = C.nearestElements(hook, f)
     C.freeHook(hook)

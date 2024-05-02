@@ -1,5 +1,6 @@
 # - rigid motion settings -
-import Tkinter as TK
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -14,10 +15,10 @@ WIDGETS = {}; VARS = []
 # Retourne le no du motion (1,2,..) suivant VARS[11]
 #==============================================================================
 def getMotionType():
-    type = VARS[11].get()
-    if type == '1:MotionStrings': return 1
-    elif type == '2:KMotionRotor': return 2
-    elif type == '3:ConstantMotion': return 3
+    ntype = VARS[11].get()
+    if ntype == '1:MotionStrings': return 1
+    elif ntype == '2:KMotionRotor': return 2
+    elif ntype == '3:ConstantMotion': return 3
 
 #==============================================================================
 def setTransOrigin():
@@ -39,9 +40,9 @@ def setCenterRotation():
 def set2Axis():
     point = CPlot.getActivePoint()
     if point != []:
-        VARS[7].set( str(point[0]) )
-        VARS[8].set( str(point[1]) )
-        VARS[9].set( str(point[2]) )
+        VARS[7].set(str(point[0]))
+        VARS[8].set(str(point[1]))
+        VARS[9].set(str(point[2]))
 
 #==============================================================================
 def resetVars():
@@ -99,13 +100,13 @@ def getVars(event=None):
 
     motion = motion[0]
     t = Internal.getNodesFromName1(motion, 'MotionType')
-    type = t[0][1][0]
+    ntype = t[0][1][0]
     
-    if type == 1:
+    if ntype == 1:
         VARS[11].set('1:MotionStrings'); changeMotionType(); getVars1()
-    elif type == 2:
+    elif ntype == 2:
         VARS[11].set('2:KMotionRotor'); changeMotionType(); getVars2()
-    elif type == 3:
+    elif ntype == 3:
         VARS[11].set('3:ConstantMotion'); changeMotionType(); getVars3()
     
 #==============================================================================
@@ -123,38 +124,38 @@ def getVars1(event=None):
     z = CTK.t[2][nob][2][noz]
         
     cont = Internal.getNodesFromName1(z, 'TimeMotion')
-    if (cont == []):
+    if cont == []:
         CTK.TXT.insert('START', 'No motion in this zone.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     name = VARS[0].get()
 
     motion = Internal.getNodesFromName1(cont[0], name)
-    if (motion == []):
+    if motion == []:
         CTK.TXT.insert('START', 'No motion named '+name+' in this zone.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     motion = motion[0]
     t = Internal.getNodesFromName1(motion, 'tx')
-    VARS[1].set(t[0][1].tostring())
+    VARS[1].set(t[0][1].tobytes().decode())
     t = Internal.getNodesFromName1(motion, 'ty')
-    VARS[2].set(t[0][1].tostring())
+    VARS[2].set(t[0][1].tobytes().decode())
     t = Internal.getNodesFromName1(motion, 'tz')
-    VARS[3].set(t[0][1].tostring())
+    VARS[3].set(t[0][1].tobytes().decode())
     t = Internal.getNodesFromName1(motion, 'cx')
-    VARS[4].set(t[0][1].tostring())
+    VARS[4].set(t[0][1].tobytes().decode())
     t = Internal.getNodesFromName1(motion, 'cy')
-    VARS[5].set(t[0][1].tostring())
+    VARS[5].set(t[0][1].tobytes().decode())
     t = Internal.getNodesFromName1(motion, 'cz')
-    VARS[6].set(t[0][1].tostring())
+    VARS[6].set(t[0][1].tobytes().decode())
     t = Internal.getNodesFromName1(motion, 'ex')
-    VARS[7].set(t[0][1].tostring())
+    VARS[7].set(t[0][1].tobytes().decode())
     t = Internal.getNodesFromName1(motion, 'ey')
-    VARS[8].set(t[0][1].tostring())
+    VARS[8].set(t[0][1].tobytes().decode())
     t = Internal.getNodesFromName1(motion, 'ez')
-    VARS[9].set(t[0][1].tostring())
+    VARS[9].set(t[0][1].tobytes().decode())
     t = Internal.getNodesFromName1(motion, 'angle')
-    VARS[10].set(t[0][1].tostring())
+    VARS[10].set(t[0][1].tobytes().decode())
 
 #==============================================================================
 # Si Name existe deja dans la selection, affiche
@@ -171,13 +172,13 @@ def getVars2(event=None):
     z = CTK.t[2][nob][2][noz]
         
     cont = Internal.getNodesFromName1(z, 'TimeMotion')
-    if (cont == []):
+    if cont == []:
         CTK.TXT.insert('START', 'No motion in this zone.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     name = VARS[0].get()
     motion = Internal.getNodesFromName1(cont[0], name)
-    if (motion == []):
+    if motion == []:
         CTK.TXT.insert('START', 'No motion named '+name+' in this zone.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -257,7 +258,7 @@ def getVars2(event=None):
 #==============================================================================
 def getVars3(event=None):
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -266,14 +267,14 @@ def getVars3(event=None):
     z = CTK.t[2][nob][2][noz]
         
     cont = Internal.getNodesFromName1(z, 'TimeMotion')
-    if (cont == []):
+    if cont == []:
         CTK.TXT.insert('START', 'No motion in this zone.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     name = VARS[0].get()
 
     motion = Internal.getNodesFromName1(cont[0], name)
-    if (motion == []):
+    if motion == []:
         CTK.TXT.insert('START', 'No motion named '+name+' in this zone.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -289,17 +290,17 @@ def getVars3(event=None):
     
 #==============================================================================
 def setVars(event=None):
-    type = getMotionType()
-    if (type == 1): setVars1()
-    elif (type == 2): setVars2()
-    elif (type == 3): setVars3()
+    ntype = getMotionType()
+    if ntype == 1: setVars1()
+    elif ntype == 2: setVars2()
+    elif ntype == 3: setVars3()
     
 #==============================================================================
 # set vars pour le motion type 1
 #==============================================================================
 def setVars1(event=None):
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -325,7 +326,7 @@ def setVars1(event=None):
 #==============================================================================
 def setVars2(event=None):
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -404,7 +405,7 @@ def setVars2(event=None):
 #==============================================================================
 def setVars3(event=None):
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
@@ -429,15 +430,15 @@ def setVars3(event=None):
     
 #==============================================================================
 def changeMotionType(event=None):
-    type = getMotionType()
+    ntype = getMotionType()
     WIDGETS['frame1'].grid_forget()
     WIDGETS['frame2'].grid_forget()
     WIDGETS['frame3'].grid_forget()
-    if (type == 1):
+    if ntype == 1:
         WIDGETS['frame1'].grid(row=2, column=0, columnspan=3, sticky=TK.EW)
-    elif (type == 2):
+    elif ntype == 2:
         WIDGETS['frame2'].grid(row=2, column=0, columnspan=3, sticky=TK.EW)
-    elif (type == 3):
+    elif ntype == 3:
         WIDGETS['frame3'].grid(row=2, column=0, columnspan=3, sticky=TK.EW)
     return
 
@@ -447,9 +448,10 @@ def changeMotionType(event=None):
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkRigidMotion', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Define block rigid motions.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkRigidMotion  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Define block rigid motions.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=0)
@@ -458,8 +460,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkRigidMotion')
     WIDGETS['frameMenu'] = FrameMenu
 
@@ -638,7 +640,7 @@ def createApp(win):
 
     B = TTK.Button(Frame1, text="Set", command=setTransOrigin)
     B.grid(row=1, column=2, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Set trans origin from mouse.')
+    BB = CTK.infoBulle(parent=B, text='Set translation of origin from mouse.')
 
     B = TTK.Label(Frame1, text="cx:")
     BB = CTK.infoBulle(parent=B,
@@ -708,11 +710,11 @@ def createApp(win):
     
     B = TTK.Label(Frame1, text="angle:")
     BB = CTK.infoBulle(parent=B,
-                       text='Rotation angle.\Can depend on {t}. In degrees.')
+                       text='Rotation angle.\nCan depend on {t}. In degrees.')
     B.grid(row=10, column=0, sticky=TK.EW)
     B = TTK.Entry(Frame1, textvariable=VARS[10], background='White')
     BB = CTK.infoBulle(parent=B,
-                       text='Rotation angle.\Can depend on {t}. In degrees.')
+                       text='Rotation angle.\nCan depend on {t}. In degrees.')
     B.grid(row=10, column=1, sticky=TK.EW)
     B.bind('<Return>', setVars1)
 
@@ -923,13 +925,17 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['MotionNoteBook'].add(WIDGETS['frame'], text='tkRigidMotion')
+    except: pass
+    CTK.WIDGETS['MotionNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['MotionNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes

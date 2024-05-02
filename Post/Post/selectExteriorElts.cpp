@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -22,7 +22,7 @@
 # include <stdio.h>
 # include <string.h>
 # include "post.h"
-# include "Connect/merge.h"
+# include "Nuga/include/merge.h"
 
 using namespace std;
 using namespace K_FLD;

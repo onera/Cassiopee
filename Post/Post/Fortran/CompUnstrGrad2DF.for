@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -79,7 +79,7 @@ C     CAS TRI
             nz = snz(et,1)
             nn = sqrt(nx*nx+ny*ny+nz*nz)
             vinv = 2D0 * surf(et,1) * nn 
-            vinv = ONE/vinv
+            vinv = ONE/MAX(vinv, E_MIN_VOL)
 
             xAB = xt(indB)-xt(indA)
             yAB = yt(indB)-yt(indA)
@@ -128,7 +128,7 @@ C     CAS TRI
             
             nn = sqrt(nx*nx+ny*ny+nz*nz)
             vinv = 2 * surf(et,1) * nn 
-            vinv = ONE/vinv
+            vinv = ONE/MAX(vinv, E_MIN_VOL)
             
             xAB = xt(indB)-xt(indA)
             yAB = yt(indB)-yt(indA)

@@ -8,9 +8,7 @@ a = G.cartHexa((0.,0.,0.), (0.1,0.1,0.1), (5,5,5))
 a = C.convertArray2NGon(a); a = G.close(a)
 
 m = XOR.adaptBox(a, box_ratio=10.)
-
-m = C.conformizeNGon(m)    # optional : to get a polyhedral conformal mesh
-m = XOR.closeOctalCells(m) # optional : to close the polyhedral cells
+m = XOR.closeCells(m) # optional : to close the polyhedral cells
 
 C.convertArrays2File([m], 'out.plt')
 

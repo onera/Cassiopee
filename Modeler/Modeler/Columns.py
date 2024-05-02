@@ -3,7 +3,7 @@ import Geom as D
 import Transform as T
 import Generator as G
 import Converter as C
-import Boxes
+from . import Boxes
 import math
 
 #==============================================================================
@@ -18,7 +18,7 @@ def column(R=0.2, N=10, h=1.):
     b = G.gapfixer(c, p)
     b2 = T.translate(b, (0,0,h))
     l = D.line((0,0,0), (0,0,h), N=5)
-    c2 = D.lineGenerate(c, l)
+    c2 = D.lineDrive(c, l)
     c2 = C.convertArray2Tetra(c2)
     o = T.join([b,b2,c2])
     o = G.close(o)
@@ -39,7 +39,7 @@ def column(R=0.2, N=10, h=1.):
 # IN: h: hauteur de la colonne
 #==============================================================================
 def column2(R1=0.2, R2=0.2, N=10, h=1.):
-    l = D.line((R1,0,0),(R2,0,h), N=N/2+2)
+    l = D.line((R1,0,0),(R2,0,h), N=N//2+2)
     Rc = R2; Rc2 = Rc*0.8
     p = D.polyline([(R1,0,0), (R1+Rc,0,0), (R1+Rc,0,-Rc2), (R1,0,-Rc2)])
     s1 = D.spline(p, N=N, M=N)
@@ -53,9 +53,9 @@ def column2(R1=0.2, R2=0.2, N=10, h=1.):
 
 #==============================================================================
 def column3(R1=0.2, R2=0.2, N=10, h=1.):
-    import Circles
-    a = Circles.circle1(1., 0.9, Nd=N/2, fracD=0.2, N=N)
-    l = D.line((R1,0,0),(R2,0,h), N=N/2+2)
+    from . import Circles
+    a = Circles.circle1(1., 0.9, Nd=N//2, fracD=0.2, N=N)
+    l = D.line((R1,0,0),(R2,0,h), N=N//2+2)
     o = D.axisym(l, (0,0,0), (0,0,1), rmod=a)
     Rc = R2; Rc2 = Rc*0.8
     p = D.polyline([(R1,0,0), (R1+Rc,0,0), (R1+Rc,0,-Rc2), (R1,0,-Rc2)])

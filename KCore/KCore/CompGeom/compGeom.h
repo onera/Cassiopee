@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -281,7 +281,7 @@ typedef struct {
   E_Float getAlphaAngleBetweenBars(E_Float* ptA1, E_Float* ptB1, 
                                    E_Float* ptA2, E_Float* ptB2,   E_Float* dirVect);
 
-  /* Intersection de triangles (algo de Sam : cf MeshElement/Triangle.h) 
+  /* Intersection de triangles (algo de Sam : cf Nuga/include/Triangle.h) 
      Retourne -1 si intersection entre 2 triangles non coplanaires
      Retourne  0 si pas d'intersection 
   */
@@ -296,7 +296,7 @@ typedef struct {
            -1: intersection en un point commun
            -2: intersection sur une arete commune
            -3: coplanaires et intersectant sur des edges
-           -4: coplanaires et un triangle est interne a l autre */
+           -4: coplanaires et un triangle est interne a l'autre */
   E_Int trianglesIntersection(E_Float* ptA1, E_Float* ptB1, E_Float* ptC1,
                               E_Float* ptA2, E_Float* ptB2, E_Float* ptC2,
                               E_Float eps=1.e-10);
@@ -396,8 +396,10 @@ typedef struct {
 
   /* Calcul du rayon du cercle circonscrit au triangle P1P2P3. 
      Retourne 0 si le triangle est degenere */
-  E_Float circumCircleRadius(E_Float* p1, E_Float* p2, E_Float* p3);
-
+  E_Float circumCircleRadius(E_Float& p1x, E_Float& p1y, E_Float& p1z,
+			     E_Float& p2x, E_Float& p2y, E_Float& p2z,
+			     E_Float& p3x, E_Float& p3y, E_Float& p3z);
+  
   /* Calcul du rayon du cercle inscrit au triangle P1P2P3. 
      Retourne 0 si triangle degenere */
   E_Float inscribedCircleRadius(E_Float* p1, E_Float* p2, E_Float* p3);
@@ -461,7 +463,7 @@ typedef struct {
   E_Int projectDir(E_Float x, E_Float y, E_Float z,
                    E_Float dirx, E_Float diry, E_Float dirz,
                    E_Float* fx2, E_Float* fy2, E_Float* fz2,
-                   std::vector<E_Int> indices, K_FLD::FldArrayI& cn2, 
+                   std::vector<E_Int>& indices, K_FLD::FldArrayI& cn2, 
                    E_Float& xo, E_Float& yo, E_Float& zo, E_Int oriented=0);
 
   /* Projette les pts de coordonnees fx, fy, fz suivant une direction 
@@ -508,13 +510,15 @@ typedef struct {
   E_Int projectOrtho(E_Float x, E_Float y, E_Float z,
                      E_Float* fx2, E_Float* fy2, E_Float* fz2,
                      K_FLD::FldArrayI& cn2, 
-                     E_Float& xo, E_Float& yo, E_Float& zo);
+                     E_Float& xo, E_Float& yo, E_Float& zo,
+                     E_Float* p0, E_Float* p1, E_Float* p2, E_Float* p);
   /* Meme chose mais indices est la liste des elements de cn2 a 
      parcourir uniquement */
   E_Int projectOrthoPrecond(E_Float x, E_Float y, E_Float z,
                             E_Float* fx2, E_Float* fy2, E_Float* fz2,
-                            std::vector<E_Int> indices, K_FLD::FldArrayI& cn2, 
-                            E_Float& xo, E_Float& yo, E_Float& zo);
+                            std::vector<E_Int>& indices, K_FLD::FldArrayI& cn2, 
+                            E_Float& xo, E_Float& yo, E_Float& zo,
+                            E_Float* p0, E_Float* p1, E_Float* p2, E_Float* p);
 
   /* Projection orthogonale des pts de coordonnees fx,fy,fz a projeter 
      orthogonalement sur une surface de cn cn2, coords fx2, fy2, fz2. 
@@ -833,17 +837,17 @@ typedef struct {
                                  K_FLD::FldArrayI& cn, 
                                  K_FLD::FldArrayF& angle);
 
-  /* calcul de la hauteur liée à la courbure pour des i-arrays */
+  /* calcul de la hauteur liï¿½e ï¿½ la courbure pour des i-arrays */
   void compStructCurvatureHeight1D(E_Int im, E_Float* xt, E_Float* yt, E_Float* zt, 
                                    E_Float* hmaxt);
-  /* calcul de la hauteur liée à la courbure pour des (i,j)-arrays */
+  /* calcul de la hauteur liï¿½e ï¿½ la courbure pour des (i,j)-arrays */
   void compStructCurvatureHeight2D(E_Int im, E_Int jm, 
                                    E_Float* xt, E_Float* yt, E_Float* zt, 
                                    E_Float* hmaxt);
-  /* calcul de la hauteur liée à la courbure pour des BAR*/
+  /* calcul de la hauteur liï¿½e ï¿½ la courbure pour des BAR*/
   void compCurvatureHeightForBAR(E_Int npts, E_Float* xt, E_Float* yt, E_Float* zt, 
                                  K_FLD::FldArrayI& cn, E_Float* hmaxt);
-  /* calcul de la hauteur liée à la courbure pour des surfaces TRI et QUAD */
+  /* calcul de la hauteur liï¿½e ï¿½ la courbure pour des surfaces TRI et QUAD */
   void compCurvatureHeightForTRIQUAD(E_Int npts, E_Float* xt, E_Float* yt, E_Float* zt, 
                                      K_FLD::FldArrayI& cn,
                                      E_Float* hmaxt);

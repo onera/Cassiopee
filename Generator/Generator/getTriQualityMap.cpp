@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -20,7 +20,7 @@
 // getTriQualityMap
 
 # include "generator.h"
-#include "MeshElement/Triangle.h"
+#include "Nuga/include/Triangle.h"
 
 using namespace K_FLD;
 

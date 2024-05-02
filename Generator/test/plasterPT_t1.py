@@ -6,8 +6,8 @@ import Post.PyTree as P
 import Geom.PyTree as D
 import KCore.test as test
 
-a = D.sphere( (0,0,0), 1 )
-a = T.subzone(a, (6,1,1), (50,200,1))
+a = D.sphere((0,0,0), 1, N=50)
+a = T.subzone(a, (6,1,1), (25,100,1))
 a = C.convertArray2Hexa(a); a = G.close(a)
 a = C.initVars(a,'F',1.); a = C.initVars(a,'centers:G',2.)
 # contours

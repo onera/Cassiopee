@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -16,54 +16,132 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
+# ifndef _INTERP_INTERPADT_H
+#define _INTERP_INTERPADT_H
+
+# include "Interp/IntTreeNode.h"
+# include "Interp/InterpData.h"
+using namespace K_FLD;
+
+namespace K_INTERP 
+{
 // ============================================================================
 // Remarque : en non structure tetra, les noeuds de l adt correspondent
 // aux elements et non aux sommets des elts 
 //=============================================================================
-class InterpAdt
+class InterpAdt  : public InterpData
 {
-public: 
-  
-  enum InterpolationType
-  {
-    O2CF, O2ABC, O3ABC, O5ABC
-  };
-  
-  ///+ 1- Constructor / Destructor
-  
-  /* 1- Destructor. */
-  virtual ~InterpAdt();
-  void destroy();
-  
-  /* Construit l'ADT a partir du maillage donné par xD,yD,zD 
-   a1, a2, a3: ni,nj,nk en structure, connect,eltType,NULL en non structure
-   OUT: built: 0 si echec, 1 si succes */
-  InterpAdt(E_Int npts, E_Float* xD, E_Float* yD, E_Float* zD,
-            void* a1, void* a2, void* a3, E_Int& built);
-  
-  /* Construit l'adt a partir d'un maillage structure 
-     Retourne 0 si nk=1 mais maillage non plan, 1 dans les autres cas. */
-  E_Int buildStructAdt(E_Int ni, E_Int nj, E_Int nk,
-                       E_Float* x, E_Float* y, E_Float* z);
-  /* construit l'adt a partir d'un maillage TETRA */
-  E_Int buildUnstrAdt(E_Int npts, FldArrayI& cEV,
-                      E_Float* x, E_Float* y, E_Float* z);
-  
-  void insert(E_Int ind, 
-              E_Float xmin, E_Float ymin, E_Float zmin,
-              E_Float xmax, E_Float ymax, E_Float zmax);
+    public: 
 
-  /* Recherche de la liste des cellules candidates. 
-     Retourne la taille de listOfCandidateCells */
-  E_Int getListOfCandidateCells(E_Float x, E_Float y, E_Float z,
-                                std::list<E_Int>& listOfCandidateCells,
-                                E_Float alphaTol=0.);
+    ///+ 1- Constructor / Destructor
   
-  E_Float _xmax;   // bounding box of mesh
-  E_Float _ymax;
-  E_Float _zmax;
-  E_Float _xmin;
-  E_Float _ymin;
-  E_Float _zmin;
-  IntTreeNode* _tree;
+    /* 1- Destructor. */
+    virtual ~InterpAdt();
+    void destroy();
+
+    InterpAdt();  
+    /* Construit l'ADT a partir du maillage donne par xD,yD,zD 
+    a1, a2, a3: ni,nj,nk en structure, connect,eltType,NULL en non structure
+    OUT: built: 0 si echec, 1 si succes */
+    InterpAdt(E_Int npts, E_Float* xD, E_Float* yD, E_Float* zD,
+              void* a1, void* a2, void* a3, E_Int& built);
+    /* Construit l'ADT en coordonnees cylindrique */
+    InterpAdt(E_Int npts, E_Float* xD, E_Float* yD, E_Float* zD,
+              void* a1, void* a2, void* a3,
+              E_Float centerX, E_Float centerY, E_Float centerZ,
+              E_Float axisX, E_Float axisY, E_Float axisZ,
+              E_Float thetaShift, E_Int depth, 
+              E_Int& built);
+    
+    private:
+    /* Construit l'adt a partir d'un maillage structure 
+    Retourne 0 si nk=1 mais maillage non plan, 1 dans les autres cas. */
+    E_Int buildStructAdt(E_Int ni, E_Int nj, E_Int nk,
+                         E_Float* x, E_Float* y, E_Float* z);
+    /* construit l'adt a partir d'un maillage TETRA */
+    E_Int buildUnstrAdt(E_Int npts, FldArrayI& cEV,
+                        E_Float* x, E_Float* y, E_Float* z);
+  
+    void insert(E_Int ind, 
+                E_Float xmin, E_Float ymin, E_Float zmin,
+                E_Float xmax, E_Float ymax, E_Float zmax);
+
+    public:
+
+    // Passe le vecteur de pts x,y,z en cylindrique
+    void cart2Cyl(E_Int npts, E_Float* x, E_Float* y, E_Float* z);
+    // Pas le point x,y,z en cylindrique
+    void cart2Cyl(E_Float& x, E_Float& y, E_Float& z);
+
+    virtual
+    short searchInterpolationCellUnstruct(
+        E_Float* xt, E_Float* yt, E_Float* zt,
+        FldArrayI& connectEV,
+        E_Float x, E_Float y, E_Float z,
+        E_Int& noelt, FldArrayF& cf);
+    virtual 
+    short searchInterpolationCellStruct(
+        E_Int ni, E_Int nj, E_Int nk, 
+        E_Float* xl, E_Float* yl, E_Float* zl,
+        E_Float x, E_Float y, E_Float z,
+        E_Int& ic, E_Int& jc, E_Int& kc,
+        FldArrayF& cf);
+
+    virtual
+    short searchExtrapolationCellUnstruct(
+        E_Float* xt, E_Float* yt, E_Float* zt,
+        E_Float* cellNp,
+        FldArrayI& connectEV,
+        E_Float x, E_Float y, E_Float z,
+        E_Int& noet, FldArrayF& cf,
+        E_Int nature, E_Int extrapOrder, E_Float constraint);
+
+    virtual
+    short searchExtrapolationCellStruct(
+        E_Int ni, E_Int nj, E_Int nk, 
+        E_Float* xl, E_Float* yl, E_Float* zl,
+        E_Float* cellNp,
+        E_Float x, E_Float y, E_Float z,
+        E_Int& ic, E_Int& jc, E_Int& kc,
+        FldArrayF& cf,
+        E_Int nature, E_Int extrapOrder, E_Float constraint);
+    virtual
+    short searchInterpolationCellCartO2(
+        E_Int ni, E_Int nj, E_Int nk,
+        E_Float x, E_Float y, E_Float z,
+        E_Int& ic, E_Int& jc, E_Int& kc,
+        FldArrayF& cf);
+    virtual
+    short searchInterpolationCellCartO3(
+        E_Int ni, E_Int nj, E_Int nk,
+        E_Float x, E_Float y, E_Float z,
+        E_Int& icHO, E_Int& jcHO, E_Int& kcHO,
+        FldArrayF& cf);
+    virtual 
+    short searchExtrapolationCellCart(
+        E_Int ni, E_Int nj, E_Int nk, 
+        E_Float* xl, E_Float* yl, E_Float* zl,
+        E_Float* cellNp,
+        E_Float x, E_Float y, E_Float z,
+        E_Int& ic, E_Int& jc, E_Int& kc,
+        FldArrayF& cf,
+        E_Int nature, E_Int extrapOrder, E_Float constraint);
+    /* Recherche de la liste des cellules candidates. 
+       Retourne la taille de listOfCandidateCells */
+    virtual E_Int getListOfCandidateCells(
+        E_Float x, E_Float y, E_Float z,
+        std::list<E_Int>& listOfCandidateCells,
+        E_Float alphaTol=1.e-10);
+
+    public:
+    E_Int _cylCoord; // true if cylindrical coordinates
+    E_Float _centerX, _centerY, _centerZ; // centre pour les coord. cylindriques
+    E_Float _axisX, _axisY, _axisZ; // axe pour les coord. cylindriques
+    E_Float *_xlc, *_ylc, *_zlc; // coords cylindrique
+    E_Float _theta_min, _theta_max, _thetaShift;
+    
+    protected:
+    IntTreeNode* _tree;
 };
+}
+#endif

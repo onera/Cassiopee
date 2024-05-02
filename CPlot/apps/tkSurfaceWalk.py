@@ -1,5 +1,7 @@
-# - surface walker -
-import Tkinter as TK
+# - tkSurfaceWalk -
+"""Generate meshes by walking on surface."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -73,7 +75,7 @@ def walkIn():
             z = G.surfaceWalk(surfaces, c, dh, constraints=constraints,
                               niter=nit, check=1)
             zlist.append(z)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
             
     # Ajout dans la base SURFACES
@@ -81,7 +83,7 @@ def walkIn():
     bases = Internal.getNodesFromName1(CTK.t, 'SURFACES')
     nob = C.getNobOfBase(bases[0], CTK.t)
     for i in zlist: CTK.add(CTK.t, nob, -1, i)
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     if not fail: CTK.TXT.insert('START', 'Surface walk done.\n')
     else:
         Panels.displayErrors(errors, header='Error: surfaceWalk')
@@ -93,8 +95,8 @@ def walkIn():
     
 #==============================================================================
 def walkOut():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     # Constraints
@@ -152,7 +154,7 @@ def walkOut():
             z = G.surfaceWalk(surfaces, c, dh, constraints=constraints,
                               niter=nit, check=1)
             zlist.append(z)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
             
     # Ajout dans la base SURFACES
@@ -160,7 +162,7 @@ def walkOut():
     bases = Internal.getNodesFromName1(CTK.t, 'SURFACES')
     nob = C.getNobOfBase(bases[0], CTK.t)
     for i in zlist: CTK.add(CTK.t, nob, -1, i)
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     if not fail: CTK.TXT.insert('START', 'Surface walk done.\n')
     else:
         Panels.displayErrors(errors, header='Error: surfaceWalk')
@@ -214,9 +216,10 @@ def setSurface():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkSurfaceWalk', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Generate meshes by orthogonal\nwalk on surfaces.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkSurfaceWalk  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Generate meshes by orthogonal\nwalk on surfaces.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -225,8 +228,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
 
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkSurfaceWalk')
@@ -239,15 +242,15 @@ def createApp(win):
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -2- Hauteur de chaque maille -
     V = TK.StringVar(win); V.set('1.e-1'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSurfaceWalkHeight'): 
+    if 'tkSurfaceWalkHeight' in CTK.PREFS: 
         V.set(CTK.PREFS['tkSurfaceWalkHeight'])
     # -3- Nombre de layers a ajouter
     V = TK.StringVar(win); V.set('1'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSurfaceWalkNLayers'): 
+    if 'tkSurfaceWalkNLayers' in CTK.PREFS: 
         V.set(CTK.PREFS['tkSurfaceWalkNLayers'])
     # -4- Nombre d'iterations de lissage
     V = TK.StringVar(win); V.set('0'); VARS.append(V)
-    if CTK.PREFS.has_key('tkSurfaceWalkSmooth'): 
+    if 'tkSurfaceWalkSmooth' in CTK.PREFS: 
         V.set(CTK.PREFS['tkSurfaceWalkSmooth'])
 
     # - Surface -
@@ -293,13 +296,17 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['SurfNoteBook'].add(WIDGETS['frame'], text='tkSurfaceWalk')
+    except: pass
+    CTK.WIDGETS['SurfNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['SurfNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes

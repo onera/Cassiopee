@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -26,7 +26,7 @@
 //=============================================================================
 void Data::findBlankedZones()
 {
-  int i, j;
+  E_Int i, j;
   char* var;
   Zone* z;
 

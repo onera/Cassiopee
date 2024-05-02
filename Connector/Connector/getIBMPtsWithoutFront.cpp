@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -18,9 +18,9 @@
 */
 
 # include "connector.h"
-# include "Search/BbTree.h"
-# include "Search/KdTree.h"
-# include "Fld/ArrayAccessor.h"
+# include "Nuga/include/BbTree.h"
+# include "Nuga/include/KdTree.h"
+# include "Nuga/include/ArrayAccessor.h"
 using namespace K_FLD;
 using namespace std;
 using namespace K_SEARCH;
@@ -44,53 +44,27 @@ using namespace K_SEARCH;
 // ============================================================================
 PyObject* K_CONNECTOR::getIBMPtsWithoutFront(PyObject* self, PyObject* args)
 {
-    PyObject *allCorrectedPts, *bodySurfaces, *normalNames, *distName, *ListOfIBCTypes;
+    PyObject *allCorrectedPts, *bodySurfaces, *normalNames, *distName;
     E_Int signOfDist; //if correctedPts are inside bodies: sign = -1, else sign=1
-    if (!PYPARSETUPLEI(args, "OOOOOl","OOOOOi", &allCorrectedPts, &bodySurfaces, 
-                       &ListOfIBCTypes, &normalNames, &distName, &signOfDist))
+    if (!PYPARSETUPLE_(args, OOOO_ I_,
+                       &allCorrectedPts, &bodySurfaces, 
+                       &normalNames, &distName, &signOfDist))
         return NULL;
 
-    if (PyList_Size(ListOfIBCTypes) == 0)
-    {
-        PyErr_SetString(PyExc_TypeError, 
-                        "getIBMPtsWithoutFront: 3rd argument is an empty list.");
-        return NULL;
-    }
-    E_Int nibcTypes = PyList_Size(ListOfIBCTypes);
-    vector<E_Int> vectOfIBCTypes;
-    PyObject* tpl0 = NULL;
-    for (int i = 0; i < nibcTypes; i++)
-    {
-        tpl0 = PyList_GetItem(ListOfIBCTypes,i);
-        if (PyLong_Check(tpl0) && PyInt_Check(tpl0) == 0)
-        {
-            PyErr_Warn(PyExc_Warning,
-                            "getIBMPtsWithoutFront: ibctypes must be integers.");
-            return NULL;
-        } 
-        else 
-        {
-            E_Int ibcTypeL = E_Int(PyLong_AsLong(tpl0));
-            if ( ibcTypeL < 0 || ibcTypeL > 5 )
-            {
-                PyErr_SetString(PyExc_TypeError, 
-                                "getIBMPtsWithoutFront: value of IBC type is not valid.");
-                return NULL;                
-            }
-        } 
-    }
     E_Int sign = -signOfDist; // sens de projection sur la paroi
 
     // check distname
     char* distname;
-    if (PyString_Check(distName) == 0)
+    if (PyString_Check(distName)) distname = PyString_AsString(distName);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(distName)) distname = (char*)PyUnicode_AsUTF8(distName);
+#endif
+    else
     {    
         PyErr_SetString(PyExc_TypeError, 
                         "getIBMPtsWithoutFront: distName must be a string.");
         return NULL;
     }
-    else distname = PyString_AsString(distName);
-
 
     // Check normal components
     if (PyList_Check(normalNames) == 0)
@@ -110,16 +84,24 @@ PyObject* K_CONNECTOR::getIBMPtsWithoutFront(PyObject* self, PyObject* args)
     vector<char*> varsn;// normal components names
     for (E_Int v = 0; v < 3; v++)
     {
-        if (PyString_Check(PyList_GetItem(normalNames, v)) == 0)
+        PyObject* l = PyList_GetItem(normalNames, v);
+        if (PyString_Check(l))
+        {
+            var = PyString_AsString(l);
+            varsn.push_back(var);
+        }
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyUnicode_Check(l)) 
+        {
+            var = (char*)PyUnicode_AsUTF8(l);
+            varsn.push_back(var);
+        } 
+#endif
+        else
         {
             PyErr_SetString(PyExc_TypeError,
                             "getIBMPtsWithoutFront: invalid string for normal component.");
             return NULL;
-        }
-        else 
-        {
-            var = PyString_AsString(PyList_GetItem(normalNames, v));
-            varsn.push_back(var);
         }
     }
     // Extract correctedPts
@@ -217,12 +199,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithoutFront(PyObject* self, PyObject* args)
             return NULL;
         }
     }
-    if ( nibcTypes != nbodies ) 
-    {
-        PyErr_SetString(PyExc_TypeError,"getIBMPtsWithoutFront: number of bodies and ibc types must ne equal.");
-        RELEASEZONES; RELEASEBODIES;
-        return NULL;        
-    }
+
     vector<E_Int> posxb; vector<E_Int> posyb; vector<E_Int> poszb;
     for (E_Int no = 0; no < nbodies; no++)
     {
@@ -322,11 +299,13 @@ PyObject* K_CONNECTOR::getIBMPtsWithoutFront(PyObject* self, PyObject* args)
     // projectDir of all the points onto the bodies-> wall pts
     /*--------------------------------------------------------*/    
     E_Float tol = K_CONST::E_GEOM_CUTOFF;
-    E_Float dirn, dirx0, diry0, dirz0, xsav, ysav, zsav;
+    E_Float dirn, dirx0, diry0, dirz0;
+    E_Float xsb, ysb, zsb;
     E_Float dist0, xc0, yc0, zc0, xw0, yw0, zw0, xi0, yi0, zi0;
     E_Float dist2, distl;
     vector<E_Int> indicesBB; 
     E_Float pr1[3]; E_Float pr2[3]; E_Float pt[3];
+    E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3];
     E_Int oriented = 1;
     E_Int ok, notri, indp;
     E_Float rx, ry, rz, rad;
@@ -376,7 +355,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithoutFront(PyObject* self, PyObject* args)
             if ( ok == -1) goto projectOrthoBody;
             else 
             {
-                ptrXW[ind] = xsav; ptrYW[ind] = ysav; ptrZW[ind] = zsav;
+                ptrXW[ind] = xsb; ptrYW[ind] = ysb; ptrZW[ind] = zsb;
                 goto endofwpt;
             }
             /*----------------------------------------*/
@@ -392,10 +371,10 @@ PyObject* K_CONNECTOR::getIBMPtsWithoutFront(PyObject* self, PyObject* args)
 
             if (ok==-1) //closest pt
             {
-                xsav = xb2[indp]; ysav = yb2[indp]; zsav = zb2[indp];
+                xsb = xb2[indp]; ysb = yb2[indp]; zsb = zb2[indp];
             }
 
-            ptrXW[ind] = xsav; ptrYW[ind] = ysav; ptrZW[ind] = zsav;
+            ptrXW[ind] = xsb; ptrYW[ind] = ysb; ptrZW[ind] = zsb;
             endofwpt:;            
             /*----------------------------------------*/
             /* STEP3/ determination of image pts      */

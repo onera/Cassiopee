@@ -4,8 +4,8 @@
 #pragma omp simd
 #endif 
 
-double tol = 1.e-86;
-double Cv1 = 7.1;
+E_Float tol = 1.e-12;
+E_Float Cv1 = 7.1;
 
 for (E_Int noind = 0; noind < ifin-ideb; noind++)
 {
@@ -28,17 +28,20 @@ for (E_Int noind = 0; noind < ifin-ideb; noind++)
   uext = sqrt(ut_vec[noind]*ut_vec[noind]+vt_vec[noind]*vt_vec[noind]+wt_vec[noind]*wt_vec[noind]);
   uext = std::max(uext, 1.e-12);
 
-  tcible_vec[noind] = tcible_vec[noind] + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext*uext - umod*umod); // Crocco-Busemann
+  // tcible_vec[noind] = tcible_vec[noind] + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext*uext - umod*umod); // Crocco-Busemann
+
+  twall = tcible_vec[noind] + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext*uext);
+  tcible_vec[noind] =  twall + (tcible_vec[noind] + 0.5*(uext*uext)/(cv*gamma) - twall)*(umod/uext) - 0.5*(umod*umod)/(cv*gamma); // Equations de Crocco, plus precises pour ecoulements compressibles
   
   // van dryst pour nut
   expy                = 1.-exp(-yplus/19.);// ranges 17 a 26
-  nutcible_vec[noind] = (kappa * alpha_vec[noind])*utau_vec[noind ] * expy*expy;//negatif si pt ibc interieur aux corps
+  nutcible_vec[noind] = (kappa * alpha_vec[noind])*utau_vec[noind] * expy*expy;//negatif si pt ibc interieur aux corps
 
-  double nutcible = K_FUNC::E_abs( nutcible_vec[noind] );
+  E_Float nutcible = K_FUNC::E_abs( nutcible_vec[noind] );
   
   // equation 4eme degre
-  double a = nutcible;
-  double b = nutcible*pow( (mu_vec[noind]/ro_vec[noind])*Cv1, 3.);
+  E_Float a = nutcible;
+  E_Float b = nutcible*pow( (mu_vec[noind]/ro_vec[noind])*Cv1, 3.);
   //printf("x^4 + %g x^3 +%g = 0\n", -a,-b);
 
   // debug
@@ -46,33 +49,33 @@ for (E_Int noind = 0; noind < ifin-ideb; noind++)
   //b = -12.;
 
   // changement de variable 4eme degre
-  double p = -3*a*a/8.;
-  double q = -a*a*a/8.;
-  double r = -3*pow(a/4.,4.)-b;
+  E_Float p = -3*a*a/8.;
+  E_Float q = -a*a*a/8.;
+  E_Float r = -3*pow(a/4.,4.)-b;
 
   // equation 3eme degre
-  double ap = 8.;
-  double bp = -4*p;
-  double cp = -8*r;
-  //double dp = (a*a)/2.*(pow(a/4.,4.)+3*b);
-  double dp = 4*p*r-q*q;
+  E_Float ap = 8.;
+  E_Float bp = -4*p;
+  E_Float cp = -8*r;
+  //E_Float dp = (a*a)/2.*(pow(a/4.,4.)+3*b);
+  E_Float dp = 4*p*r-q*q;
   //printf("cubique: %g x^3 + %g x^2 + %g x + %g\n",ap,bp,cp,dp);
 
   // racines du 3eme degre
-  double delta = 18*ap*bp*cp*dp-4*bp*bp*bp*dp+bp*bp*cp*cp-4*ap*cp*cp*cp-27*ap*ap*dp*dp;
-  double delta0 = bp*bp-3*ap*cp;
-  double delta1 = 2*bp*bp*bp-9*ap*bp*cp+27*ap*ap*dp;
+  E_Float delta = 18*ap*bp*cp*dp-4*bp*bp*bp*dp+bp*bp*cp*cp-4*ap*cp*cp*cp-27*ap*ap*dp*dp;
+  E_Float delta0 = bp*bp-3*ap*cp;
+  E_Float delta1 = 2*bp*bp*bp-9*ap*bp*cp+27*ap*ap*dp;
 
-  double superdelta = -27.*ap*ap*delta;
+  E_Float superdelta = -27.*ap*ap*delta;
 
   //printf("delta %g superdelta>0 = %g\n", delta, superdelta);
   
   
-  double y1 = -1;
-  double y2 = -1;
+  E_Float y1 = -1.;
+  E_Float y2 = -1.;
   if (fabs(delta) < tol && fabs(delta0) < tol) 
   {
-    y1 = -bp/(3*ap);  printf("racine y1=%g\n", y1);
+    y1 = -bp/(3*ap);  //printf("racine y1=%g\n", y1);
   }
   else if (fabs(delta) < tol)
   {
@@ -83,10 +86,10 @@ for (E_Int noind = 0; noind < ifin-ideb; noind++)
   else
   { 
     /* version super delta */
-    double C1 = -1.; double C2 = -1.;
+    E_Float C1 = -1.; E_Float C2 = -1.;
     if (superdelta >= 0.)
     {
-      double root = sqrt(superdelta);
+      E_Float root = sqrt(superdelta);
       if (delta1-root >= 0.)
         C1 = pow( (delta1 -root) /2., 1./3. );
       else
@@ -104,35 +107,35 @@ for (E_Int noind = 0; noind < ifin-ideb; noind++)
   }
  
 
-  // racine de l equation du 4eme degre
-  double c1 = 2*y1-p;
-  double c2 = 2*y2-p;
+  // racine de l'equation du 4eme degre
+  E_Float c1 = 2*y1-p;
+  E_Float c2 = 2*y2-p;
   //printf("c1 > 0 = %g, c2 > 0 = %g\n",c1,c2);
 
-  double z1 = -123456.;
+  E_Float z1 = -123456.;
   if (c1 >= tol)
   {
-    double p1 = -2*y1-p+2*q/(sqrt(c1));
-    double p2 = -2*y1-p-2*q/(sqrt(c1));
+    E_Float p1 = -2*y1-p+2*q/(sqrt(c1));
+    E_Float p2 = -2*y1-p-2*q/(sqrt(c1));
     //printf("1. p1=%g p2=%g\n", p1,p2);
     if (p1 >= tol) { z1 = 0.5*(sqrt(c1)+sqrt(p1));}
     else if (p2 >= tol) { z1 = 0.5*(sqrt(c1)+sqrt(p2));}
   }
   if (c2 >= tol && z1 == -123456)
   {
-    double p1 = -2*y2-p+2*q/(sqrt(c2));
-    double p2 = -2*y2-p-2*q/(sqrt(c2));
+    E_Float p1 = -2*y2-p+2*q/(sqrt(c2));
+    E_Float p2 = -2*y2-p-2*q/(sqrt(c2));
     //printf("2. p1=%g p2=%g\n", p1,p2);
     if (p1 >= tol) { z1 = 0.5*(sqrt(c2)+sqrt(fabs(p1)));}
     else if (p2 >= tol) { z1 = 0.5*(sqrt(c2)+sqrt(fabs(p2)));}
   }
   if (c1 <= tol && z1 == -123456)
   {
-    double b0 = y1*y1-r;
+    E_Float b0 = y1*y1-r;
     if (b0 >= tol) 
     {
-      double p1 = -2*y1-p+4.*sqrt(b0);
-      double p2 = -2*y1-p-4.*sqrt(b0);
+      E_Float p1 = -2*y1-p+4.*sqrt(b0);
+      E_Float p2 = -2*y1-p-4.*sqrt(b0);
       //printf("3. p1=%g p2=%g\n", p1,p2);
       if (p1 >= tol) { z1 = 0.5*(sqrt(fabs(c1))+sqrt(fabs(p1))); }
       else if (p2 >= tol) { z1 = 0.5*(sqrt(fabs(c1))+sqrt(fabs(p2))); }
@@ -140,11 +143,11 @@ for (E_Int noind = 0; noind < ifin-ideb; noind++)
   }
   if (c2 <= tol && z1 == -123456)
   {
-    double b0 = y2*y2-r;
-    if (b0 >= tol) 
+    E_Float b0 = y2*y2-r;
+    if (b0 >= tol)
     {
-      double p1 = -2*y2-p+4.*sqrt(b0);
-      double p2 = -2*y2-p-4.*sqrt(b0);
+      E_Float p1 = -2*y2-p+4.*sqrt(b0);
+      E_Float p2 = -2*y2-p-4.*sqrt(b0);
       //printf("4. p1=%g p2=%g\n", p1,p2);
       if (p1 >= tol) { z1 = 0.5*(sqrt(fabs(c2))+sqrt(fabs(p1))); }
       else if (p2 >= tol) { z1 = 0.5*(sqrt(fabs(c2))+sqrt(fabs(p2))); }
@@ -152,7 +155,7 @@ for (E_Int noind = 0; noind < ifin-ideb; noind++)
   }
 
   // nutile final
-  double nutilde1 = z1 + a/4.;
+  E_Float nutilde1 = z1 + a/4.;
   aa_vec[noind] = nutilde1;
   //printf("nutilde final = %g\n", nutilde1);
 

@@ -1,25 +1,34 @@
-#
-# Interface Tkinter pour CPlot
-#
-import Tkinter as TK
-import Ttk as TTK
+"""Tkinter interface for CPlot"""
+try: import tkinter as TK
+except ImportError: import Tkinter as TK
+from . import Ttk as TTK
 import Converter.PyTree as C
 import Converter
 import Converter.Internal as Internal
-import CPlot as CP
+from . import CPlot as CP
 import Transform
 import Post
-import PyTree as CPlot
-import cplot
-import Panels
+from . import PyTree as CPlot
+from . import Panels
+from . import iconics
 import os, os.path
+from sys import version_info
+import re, fnmatch
+
+try: range = xrange
+except: pass
 
 #==============================================================================
 # Variables globales partagees entre toutes les apps tk
-# Fichier de donnees lu (en cours)
+#==============================================================================
+# Fichier de donnees lu (en cours), nom du fichier et/ou Filter handle et/ou CAD hook
 FILE = ''
+HANDLE = None
+CADHOOK = None
 # Fichier pour les exports
 EXPORTFILE = ''
+# Update du menu Apps (semble poser pb sur certains linux)
+UPDATEAPPSMENU = False
 # pyTree contenant les donnees affichee
 t = []
 # pyTree contenant l'arbre precedent (pour le undo)
@@ -55,7 +64,8 @@ __FIELD__ = '__all__'
 # Status de l'arbre (MAIN=1 ou <=0 - voir ci-dessous)
 __MAINTREE__ = 1
 # Les differents status pour l'arbre
-MAIN=1; DEFINEDBC=-1; TIME=-2; SLICE=-2; CELLN=-3; MESHQUAL=-4; UNDEFINEDBC=-5
+MAIN=1; DEFINEDBC=-1; TIME=-2; SLICE=-2; CELLN=-3; MESHQUAL=-4; 
+UNDEFINEDBC=-5; IJK=-6; MONITOR=-7;UNDEFINEDIBC=-8;
 
 # Sauvegarde des zones actives de main (avant de basculer sur un arbre
 # temporaire)
@@ -80,7 +90,7 @@ def defineFonts(FONTTYPE, FONTSIZE):
             TEXTFONT, MSGDFONT, FIXEDFONT)
 
 FONTTYPE = 'Helvetica'
-FONTSIZE = 9
+FONTSIZE = 10
 (GENERALFONT, FRAMEFONT, LABELFONT, MENUFONT, BUTTONFONT, TEXTFONT, MSGDFONT, FIXEDFONT) = defineFonts(FONTTYPE, FONTSIZE)
 
 #==============================================================================
@@ -122,6 +132,10 @@ fileTypes=[('converter', '*.plt'),
            ('fmt iges','*.iges'),
            ('converter','*.igs'),
            ('fmt iges','*.igs'),
+           ('converter','*.step'),
+           ('fmt step','*.step'),
+           ('converter','*.stp'),
+           ('fmt step','*.stp'),
            ('converter', '*.obj'),
            ('fmt obj', '*.obj'),
            ('converter', '*.3ds'),
@@ -140,6 +154,10 @@ fileTypes=[('converter', '*.plt'),
            ('fmt gts', '*.gts'),
            ('converter', '*.png'),
            ('bin png', '*.png'),
+           ('converter', '*.jpg'),
+           ('bin jpg', '*.jpg'),
+           ('converter', '*.jpeg'),
+           ('bin jpg', '*.jpeg'),
            ('converter', '*.PLT'),
            ('bin tecplot', '*.PLT'),
            ('converter','*.TP'),
@@ -188,6 +206,10 @@ fileTypes=[('converter', '*.plt'),
            ('fmt gts', '*.GTS'),
            ('converter', '*.PNG'),
            ('bin png', '*.PNG'),
+           ('converter', '*.JPG'),
+           ('bin jpg', '*.JPG'),
+           ('converter', '*.JPEG'),
+           ('bin jpg', '*.JPEG'),
            ('All files', '*')
            ]
 
@@ -196,20 +218,43 @@ fileTypes=[('converter', '*.plt'),
 #==============================================================================
 def getModule(app):
   global TKMODULES
+  if app not in TKMODULES: return None
   if TKMODULES[app] is None:
-      try:
-        module = __import__(app)
-        TKMODULES[app] = module
-        frame = TKMODULEFRAMES[app]
-        module.createApp(frame)
-      except: print 'Warning: module %s can not be loaded.'%app
+      #try:
+      module = __import__(app)
+      TKMODULES[app] = module
+      frame = TKMODULEFRAMES[app]
+      module.createApp(frame)
+      #except: print('Warning: module %s can not be loaded.'%app)
   return TKMODULES[app]
 
 def openApp(app):
-  global TKMODULES
   module = getModule(app)
-  module.showApp()
+  if module is not None: module.showApp()
 
+# 0: None, 2: watch, 3: cross
+def setCursor(cursor, B=None, C=None, D=None):
+  win = WIDGETS['masterWin']
+  if cursor == 2: win.config(cursor="watch")
+  elif cursor == 1: win.config(cursor="cross")
+  elif cursor == 0: win.config(cursor="")
+  win.update()
+  if B is not None:
+    if cursor == 2: B.config(cursor="watch")
+    elif cursor == 1: B.config(cursor="cross")
+    elif cursor == 0: B.config(cursor="")
+    B.update()
+  if C is not None:
+    if cursor == 2: C.config(cursor="watch")
+    elif cursor == 1: C.config(cursor="cross")
+    elif cursor == 0: C.config(cursor="")
+    C.update()
+  if D is not None:
+    if cursor == 2: D.config(cursor="watch")
+    elif cursor == 1: D.config(cursor="cross")
+    elif cursor == 0: D.config(cursor="")
+    D.update()
+    
 #==============================================================================
 # Extrait des arrays de a pour les envoyer au plotter
 # - transforme la solution en centres en noeuds
@@ -236,19 +281,19 @@ def buildCPlotArrays(a, topTree=[]):
         if len(v) == 2: v = v[1]
         else: v = __FIELD__
         arrays2 = C.getField(v, a)
-        for i in xrange(len(arrays)):
+        for i in range(len(arrays)):
             if arrays2[i] != []:
                 Converter._addVars([arrays[i], arrays2[i]])
 
     if __ONEOVERN__ > 1:
-        for i in xrange(len(arrays)):
+        for i in range(len(arrays)):
             if len(arrays[i]) == 5:
                 arrays[i] = Transform.oneovern(arrays[i], (__ONEOVERN__,__ONEOVERN__,__ONEOVERN__))
 
     # Transmet les maillages contenant les borders elts pour HEXA, TETRA,
     # PYRA, PENTA, NGON
     if __ONEOVERN__ > 0:
-        for i in xrange(len(arrays)):
+        for i in range(len(arrays)):
             b = arrays[i]
             if b[3] == 'TETRA' or b[3] == 'HEXA' or b[3] == 'PYRA' or b[3] == 'PENTA':
                 arrays[i] = Post.exteriorElts(b)
@@ -275,7 +320,10 @@ def display(t, dim=-1,
             vectorDensity=-1.,
             vectorNormalize=-1,
             vectorShowSurface=-1,
+            vectorShape=-1,
+            vectorProjection=-1,
             colormap=-1,
+            colormapC1="", colormapC2="", colormapC3="", colormapC=None,
             niso=-1,
             isoEdges=-1,
             isoScales=[],
@@ -285,12 +333,11 @@ def display(t, dim=-1,
             dirCam=(-999,-999,-999),
             viewAngle=-1.,
             bgColor=-1,
-            shadow=-1,
-            dof=-1,
-            stereo=-1,
-            stereoDist=-1.,
-            export='None',
-            exportResolution='None',
+            backgroundFile="None",
+            shadow=-1, lightOffset=(-999,-999),
+            dof=-1, dofPower=-1, gamma=-1, toneMapping=-1, 
+            stereo=-1, stereoDist=-1.,
+            export='None', exportResolution='None',
             location='unchanged',
             mainTree=1):
     """Display pyTrees.
@@ -305,10 +352,13 @@ def display(t, dim=-1,
     CP.display(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                vectorField3, displayBB, displayInfo, displayIsoLegend,
                meshStyle, solidStyle, scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize,
-               vectorShowSurface,
-               colormap, niso, isoEdges, isoScales,
+               vectorShowSurface, vectorShape, vectorProjection,
+               colormap, colormapC1, colormapC2, colormapC3, colormapC,
+               niso, isoEdges, isoScales,
                win, posCam, posEye, dirCam, viewAngle,
-               bgColor, shadow, dof, stereo, stereoDist,
+               bgColor, backgroundFile, 
+               shadow, lightOffset, dof, dofPower, gamma, toneMapping,
+               stereo, stereoDist,
                export, exportResolution,
                zoneNames, renderTags)
     if mainTree == 1 and __MAINTREE__ <= 0:
@@ -331,6 +381,7 @@ def replace(t, nob, noz, zone):
     if CP.__slot__ is None: display(t); return
     (nzs, nzu) = CPlot.getNzs(t, zone)
     array = buildCPlotArrays(zone, topTree=t)[0]
+    from . import cplot
     cplot.replace(array, (nzs, nzu, oldType), zoneName, renderTag)
 
 #==============================================================================
@@ -346,6 +397,7 @@ def add(t, nob, noz, zone):
     if CP.__slot__ is None: display(t); return
     (nzs, nzu) = CPlot.getNzs(t, zone)
     array = buildCPlotArrays(zone, topTree=t)[0]
+    from . import cplot
     cplot.add(array, (nzs, nzu), zoneName, renderTag)
 
 #==============================================================================
@@ -414,6 +466,19 @@ def showSelectionInTkTree(event=None):
             baseName = zoneName[0]
             zoneName = zoneName[1]
             TKTREE.WIDGETS['tree'].focusOnGivenZone(baseName, zoneName)
+    elif __MAINTREE__ == UNDEFINEDIBC: # id par baseName/zoneName/c
+        (Nob, Noz) = CPlot.updateCPlotNumbering(dt)
+        nz = nzs[0]
+        nob = Nob[nz]+1
+        noz = Noz[nz]
+        baseName = dt[2][nob][0]
+        zoneName = dt[2][nob][2][noz][0]
+        # zoneName a ete etendu par appendBaseName2ZoneName
+        zoneName = zoneName.split(Internal.SEP1,2)
+        if len(zoneName) == 3:
+            baseName = zoneName[0]
+            zoneName = zoneName[1]
+            TKTREE.WIDGETS['tree'].focusOnGivenZone(baseName, zoneName)
 
 #==============================================================================
 # Upgrade a pyTree to work flawlessly with tkCassiopee
@@ -422,17 +487,13 @@ def showSelectionInTkTree(event=None):
 #==============================================================================
 def upgradeTree(t):
     Internal.autoSetContainers(t)
-    t = C.fillMissingVariables(t)
     Internal._correctPyTree(t, level=0) # version node
     #t = Internal.correctPyTree(t, level=9) # connectivity
     Internal._fixNGon(t)
     try:
-      if C.isNamePresent(t, 'CoordinateX') <= 0:
-        C._addVars(t, 'CoordinateX')
-      if C.isNamePresent(t, 'CoordinateY') <= 0:
-        C._addVars(t, 'CoordinateY')
-      if C.isNamePresent(t, 'CoordinateZ') <= 0:
-        C._addVars(t, 'CoordinateZ')
+      if C.isNamePresent(t, 'CoordinateX') <= 0: C._addVars(t, 'CoordinateX')
+      if C.isNamePresent(t, 'CoordinateY') <= 0: C._addVars(t, 'CoordinateY')
+      if C.isNamePresent(t, 'CoordinateZ') <= 0: C._addVars(t, 'CoordinateZ')
     except: pass
     return t
 
@@ -450,7 +511,7 @@ def fixFileString__(files, initFile=None):
       system = platform.uname()[0]
     except: system = 'unix'
 
-    if isinstance(files, unicode): # windows old bug (single unicode)
+    if version_info[0] == 2 and isinstance(files, unicode): # windows old bug (single unicode)
         import sys
         encoding = sys.getfilesystemencoding()
         # try to find { and }
@@ -480,9 +541,10 @@ def fixFileString__(files, initFile=None):
         # unix retourne aussi initFile en premier
         if initFile != '' and initFile is not None:
           if len(files) == 0: out = [initFile]
-          else:
-            out = files[1:]
+          else: out = files[1:]
         else: out = files
+    if version_info[0] == 2:
+      out = [o.encode('utf-8') for o in out] # Force utf-8
     return out
 
 #==============================================================================
@@ -490,13 +552,15 @@ def fixFileString__(files, initFile=None):
 # necessaire
 #==============================================================================
 def fixFileString2__(file):
-    if isinstance(file, unicode):
-        import sys
-        encoding = sys.getfilesystemencoding()
-        s = file.encode(encoding)
-        return s
+    #if isinstance(file, unicode):
+    #    import sys
+    #    encoding = sys.getfilesystemencoding()
+    #    s = file.encode(encoding)
+    #    return s
+    #else: return file
+    if version_info[0] == 2: return file.encode('utf-8')
     else: return file
-
+    
 #==============================================================================
 # Load a file par un dialog
 # OUT: FILE: nom du fichier choisi
@@ -505,13 +569,13 @@ def fixFileString2__(file):
 #==============================================================================
 def loadFile(event=None):
     global FILE; global t; global Nb; global Nz; global __FIELD__
-    import tkFileDialog
+    try: import tkinter.filedialog as tkFileDialog
+    except: import tkFileDialog
     files = tkFileDialog.askopenfilenames(
         filetypes=fileTypes, initialfile=FILE, multiple=1)
     if files == '' or files is None or files == (): # user cancel
         return
     files = fixFileString__(files, FILE)
-
     try:
         FILE = files[0]
         t = []
@@ -521,12 +585,13 @@ def loadFile(event=None):
             else: t = C.mergeTrees(t, t2)
         t = upgradeTree(t)
         (Nb, Nz) = CPlot.updateCPlotNumbering(t); TKTREE.updateApp()
-        if TKMODULES.has_key('tkContainers'): TKMODULES['tkContainers'].updateApp()
+        if 'tkContainers' in TKMODULES: TKMODULES['tkContainers'].updateApp()
         if TKPLOTXY is not None: TKPLOTXY.updateApp()
         Panels.updateRenderPanel()
         fileName = os.path.split(FILE)[1]
+        filePath = os.path.split(FILE)[0]
         TXT.insert('START', 'File %s read.\n'%fileName)
-        changeWindowTitle(fileName)
+        changeWindowTitle(fileName, filePath)
         errors = Internal.checkPyTree(t, level=5)
         if errors == []: display(t)
         else:
@@ -543,7 +608,8 @@ def loadFile(event=None):
 #==============================================================================
 def addFile():
     global t; global Nb; global Nz
-    import tkFileDialog
+    try: import tkinter.filedialog as tkFileDialog
+    except: import tkFileDialog
     files = tkFileDialog.askopenfilenames(
         filetypes=fileTypes, initialfile=FILE, multiple=1)
     if files == '' or files is None or files == (): # user cancel
@@ -556,10 +622,16 @@ def addFile():
             t2 = C.convertFile2PyTree(f, density=1.)
             # Fusion des bases de t et t2
             if t == []: t = t2
-            else: t = C.mergeTrees(t, t2)
+            else:
+                #t = C.mergeTrees(t, t2)
+                if Internal.getBases(t2) != []: # merge trees 
+                    t = C.mergeTrees(t, t2)
+                else: # ajoute le noeud sous la selection de tkTree
+                    node = TKTREE.getCurrentSelectedNode()
+                    node[2] += t2[2][1:]
         t = upgradeTree(t)
         (Nb, Nz) = CPlot.updateCPlotNumbering(t); TKTREE.updateApp()
-        if TKMODULES.has_key('tkContainers'): TKMODULES['tkContainers'].updateApp()
+        if 'tkContainers' in TKMODULES: TKMODULES['tkContainers'].updateApp()
         if TKPLOTXY is not None: TKPLOTXY.updateApp()
         Panels.updateRenderPanel()
         TXT.insert('START', 'File '+os.path.split(files[0])[1]+' added.\n')
@@ -578,7 +650,8 @@ def addFile():
 #==============================================================================
 def saveFile():
     global FILE
-    import tkFileDialog
+    try: import tkinter.filedialog as tkFileDialog
+    except ImportError: import tkFileDialog
     ret = tkFileDialog.asksaveasfilename(filetypes=fileTypes, initialfile=FILE)
     if ret == '' or ret is None or ret == (): # user cancel
         return
@@ -586,7 +659,8 @@ def saveFile():
         FILE = fixFileString2__(ret)
         C.convertPyTree2File(t, FILE)
         fileName = os.path.split(FILE)[1]
-        changeWindowTitle(fileName)
+        filePath = os.path.split(FILE)[0]
+        changeWindowTitle(fileName, filePath)
         TXT.insert('START', 'File '+fileName+' saved.\n')
     except:
         TXT.insert('START', 'Can not save file '+os.path.split(ret)[1]+'.\n')
@@ -596,7 +670,8 @@ def saveFile():
 #==============================================================================
 def quickSaveFile(event=None):
     global FILE
-    import tkFileDialog
+    try: import tkinter.filedialog as tkFileDialog
+    except: import tkFileDialog
     if FILE == '':
         ret = tkFileDialog.asksaveasfilename(filetypes=fileTypes)
         if ret == '' or ret is None or ret == (): # user cancel
@@ -617,11 +692,13 @@ def quickReloadFile(event=None):
     t = C.convertFile2PyTree(FILE, density=1.)
     t = upgradeTree(t)
     (Nb, Nz) = CPlot.updateCPlotNumbering(t); TKTREE.updateApp()
-    if TKMODULES.has_key('tkContainers'): TKMODULES['tkContainers'].updateApp()
+    if 'tkContainers' in TKMODULES: TKMODULES['tkContainers'].updateApp()
+    if TKPLOTXY is not None: TKPLOTXY.updateApp()
     Panels.updateRenderPanel()
     fileName = os.path.split(FILE)[1]
+    filePath = os.path.split(FILE)[0]
     TXT.insert('START', 'File %s reloaded.\n'%fileName)
-    changeWindowTitle(fileName)
+    changeWindowTitle(fileName, filePath)
     errors = Internal.checkPyTree(t, level=5)
     if errors == []: display(t)
     else:
@@ -631,17 +708,67 @@ def quickReloadFile(event=None):
       TXT.insert('START', 'Can not reload file '+os.path.split(FILE)[1]+'.\n')
 
 #==============================================================================
-# Save selected zones to as file. Open a dialog.
+# Quick reload skeleton from file
 #==============================================================================
-def saveSelFile():
+def quickReloadSkeleton(event=None):
+  global t; global HANDLE
+  try:
+    import Converter.Filter as Filter
+    h = Filter.Handle(FILE)
+    t = h.loadSkeleton(maxDepth=-1)
+    HANDLE = h
+    TKTREE.updateApp()
+    fileName = os.path.split(FILE)[1]
+    filePath = os.path.split(FILE)[0]
+    TXT.insert('START', 'File %s reloaded.\n'%fileName)
+    changeWindowTitle(fileName, filePath)
+  except:
+    TXT.insert('START', 'Can not reload file '+os.path.split(FILE)[1]+'.\n')
+
+#==============================================================================
+# Load skeleton from file
+#==============================================================================
+def loadFileSkeleton(event=None):
+    global FILE; global t
+    try: import tkinter.filedialog as tkFileDialog
+    except: import tkFileDialog
+    files = tkFileDialog.askopenfilenames(
+        filetypes=fileTypes, initialfile=FILE, multiple=1)
+    if files == '' or files is None or files == (): # user cancel
+        return
+    files = fixFileString__(files, FILE)
+    try:
+        FILE = files[0]
+        t = []
+        for file in files:
+            import Converter.Filter as Filter
+            h = Filter.Handle(file)
+            t2 = h.loadSkeleton(maxDepth=-1)
+            if t == []: t = t2
+            else: t = C.mergeTrees(t, t2)
+        HANDLE = Filter.Handle(FILE)
+        TKTREE.updateApp()
+        fileName = os.path.split(FILE)[1]
+        filePath = os.path.split(FILE)[0]
+        TXT.insert('START', 'File %s read.\n'%fileName)
+        changeWindowTitle(fileName, filePath)
+    except:
+        TXT.insert('START', 'Cannot read file '+os.path.split(files[0])[1]+'.\n')
+        TXT.insert('START', 'Error: ', 'Error')
+
+#==============================================================================
+# Save selected zones to a file. Open a dialog.
+#==============================================================================
+def saveSelZones2File():
     if t == []: return
     nzs = CPlot.getSelectedZones()
     if nzs == []:
         TXT.insert('START', 'Selection is empty.\n')
         TXT.insert('START', 'Error: ', 'Error'); return
-    import tkFileDialog
+    try: import tkinter.filedialog as tkFileDialog
+    except: import tkFileDialog
     ret = tkFileDialog.asksaveasfilename(filetypes=fileTypes)
-    if (ret == '' or ret is None or ret == ()): # user cancel
+    if ret == '' or ret is None or ret == (): # user cancel
         return
 
     base1 = []; base2 = []; base3 = []
@@ -674,32 +801,59 @@ def saveSelFile():
         TXT.insert('START', 'Can not save file '+os.path.split(ret)[1]+'.\n')
 
 #==============================================================================
+# Save selected node to a file. Open a dialog.
+#==============================================================================
+def saveNode2File():
+    if t == []: return
+
+    # Get selected node from tkTree    
+    if TKTREE is None: return
+
+    node = TKTREE.getCurrentSelectedNode()
+    if node is None:
+        TXT.insert('START', 'No selected node.\n')
+        return
+
+    try: import tkinter.filedialog as tkFileDialog
+    except: import tkFileDialog
+    ret = tkFileDialog.asksaveasfilename(filetypes=fileTypes)
+    if ret == '' or ret is None or ret == (): # user cancel
+        return
+
+    try:
+        tp = C.newPyTree([])
+        tp[2].append(node)
+        C.convertPyTree2File(tp, ret)
+        fileName = os.path.split(ret)[1]
+        TXT.insert('START', 'Selected node saved to '+fileName+'.\n')
+    except:
+        TXT.insert('START', 'Can not save file '+os.path.split(ret)[1]+'.\n')
+
+#==============================================================================
 # Load file that stores *Cassiopee* preferences
 # load $HOME/.cassiopee or $HOME/.cassiopee/config
 # Remplit le dictionnaire PREFS
 #==============================================================================
 def loadPrefFile():
     global PREFS
-    homePath = os.getenv('HOME')
+    homePath = os.path.expanduser('~')
+    if homePath is None: homePath = os.getenv('HOME')
     if homePath is None: homePath = os.getenv('USERPROFILE')
     if homePath is None: homePath = ''
     kdir = homePath+'/.cassiopee'
     exist = os.path.exists(kdir)
     if not exist: savePrefFile(); return []
     isdir = os.path.isdir(kdir)
-    if not isdir:
-      #os.rename(kdir, homePath+'/.cassiopee_save')
-      #os.makedirs(kdir)
-      #os.rename(homePath+'/.cassiopee_save', homePath+'/.cassiopee/config')
-      file = open(homePath+'/.cassiopee', 'r')
+    if not isdir: file = open(homePath+'/.cassiopee', 'r')
     else:
-      file = open(homePath+'/.cassiopee/config', 'r')
-    list = file.read()
+      try: file = open(homePath+'/.cassiopee/config', 'r')
+      except: savePrefFile(); return []
+    plist = file.read()
     file.close()
-    list = list.split('\n')
-    for i in list:
+    plist = plist.split('\n')
+    for i in plist:
         if i != '':
-            a = i.split(':')
+            a = i.split(':',1)
             if len(a) == 2:
                 prefName = a[0]
                 val = a[1]
@@ -710,8 +864,10 @@ def loadPrefFile():
 # Essai d'importer ttk
 #==============================================================================
 def importTtk():
-    try: import ttk
-    except: ttk = None
+    try: import tkinter.ttk as ttk
+    except ImportError:
+      try: import ttk
+      except ImportError: ttk = None
     return ttk
 
 #==============================================================================
@@ -725,7 +881,7 @@ def setPrefs():
     global __UNDO__, __ONEOVERN__, FONTTYPE, FONTSIZE
     global GENERALFONT, FRAMEFONT, LABELFONT, MENUFONT, BUTTONFONT
     global TEXTFONT, MSGDFONT, FIXEDFONT, FRAMESTYLE
-    for i in PREFS.iterkeys():
+    for i in PREFS:
         val = PREFS[i]
         if i == 'tkViewMode':
             if val == 'Mesh': CPlot.setState(mode=0)
@@ -734,18 +890,18 @@ def setPrefs():
             elif val == 'Scalar': CPlot.setState(mode=3)
             elif val == 'Vector': CPlot.setState(mode=4)
         elif i == 'tkViewMeshStyle':
-            if val == 'Monocolor wires+solid': style = 0
+            if val == 'Red wires+solid': style = 0
             elif val == 'Multicolor wireframes': style = 1
             elif val == 'Multicolor wires+solid': style = 2
             elif val == 'Black wires+solid': style = 3
-            elif val == 'White wires+solid': style = 4
+            elif val == 'Multicolor wires+solid2': style = 4
             else: style = 0
             CPlot.setState(meshStyle=style)
         elif i == 'tkViewSolidStyle':
             if val == 'Monocolor/1-side': style = 0
             elif val == 'Multicolor/2-sides': style = 1
             elif val == 'White/2-sides': style = 3
-            elif val == 'Black/2-sides': style = 4
+            elif val == 'Multicolor/outlined': style = 4
             else: style = 0
             CPlot.setState(solidStyle=style)
         elif i == 'tkEffectsAngle':
@@ -763,12 +919,14 @@ def setPrefs():
         elif i == 'tkViewColormap':
             if val == 'Blue2Red': style = 0
             elif val == 'Green2Red': style = 2
-            elif val == 'Black2White': style = 4
-            elif val == 'White2Black': style = 6
+            elif val == 'BiColorRGB': style = 4
+            elif val == 'BiColorHSV': style = 6
             elif val == 'Diverging': style = 8
+            elif val == 'TriColorRGB': style = 10
+            elif val == 'TriColorHSV': style = 12
             else: style = 0
-            if PREFS.has_key('tkViewIsoLight'):
-                if (PREFS['tkViewIsoLight'] == 'IsoLight on'): style += 1
+            if 'tkViewIsoLight' in PREFS:
+                if PREFS['tkViewIsoLight'] == 'IsoLight on': style += 1
             else: style += 1
             CPlot.setState(colormap=style)
         elif i == 'tkViewLegend':
@@ -791,6 +949,11 @@ def setPrefs():
             if val == 'Blue': style = 0
             elif val == 'Alpha': style = 1
             CPlot.setState(selectionStyle=style)
+        elif i == 'simplifyOnDrag':
+            if val == 'None': style = 0
+            elif val == 'BBox': style = 1
+            CPlot.setState(simplifyOnDrag=style)
+
         elif i == 'undo':
             val = int(val)
             if val == 0: __UNDO__ = False
@@ -802,6 +965,8 @@ def setPrefs():
         elif i == 'bgColor':
             val = int(val)
             CPlot.setState(bgColor=val)
+        elif i == 'backgroundFile':
+            CPlot.setState(backgroundFile=val)
         elif i == 'envmap':
             CPlot.setState(envmap=val)
         elif i == 'fontType':
@@ -841,6 +1006,9 @@ def setPrefs():
 #==============================================================================
 def savePrefFile():
     homePath = os.path.expanduser('~')
+    if homePath is None: homePath = os.getenv('HOME')
+    if homePath is None: homePath = os.getenv('USERPROFILE')
+    if homePath is None: homePath = ''
     kdir = homePath+'/.cassiopee'
     exist = os.path.exists(kdir)
     if not exist: 
@@ -855,8 +1023,7 @@ def savePrefFile():
         #os.rename(homePath+'/.cassiopee_save', homePath+'/.cassiopee/config')
       else:
         file = open(homePath+'/.cassiopee/config', 'w')
-    for i in PREFS.iterkeys():
-        file.write(i+':'+PREFS[i]+'\n')
+    for i in PREFS: file.write(i+':'+PREFS[i]+'\n')
     file.close()
 
 #==============================================================================
@@ -888,8 +1055,7 @@ def saveTree():
 def Quit():
     #WIDGETS['masterWin'].destroy()
     #WIDGETS['masterWin'].quit()
-    #import time
-    #time.sleep(2.)
+    del iconics.PHOTO
     os._exit(0)
 
 #==============================================================================
@@ -949,7 +1115,8 @@ def changeCPlotBlanking():
 #==============================================================================
 def cplotExport():
     global EXPORTFILE
-    import tkFileDialog
+    try: import tkinter.filedialog as tkFileDialog
+    except: import tkFileDialog
     ret = tkFileDialog.asksaveasfilename(
         title='Export as...',
         initialfile=EXPORTFILE,
@@ -1036,12 +1203,12 @@ def copyBlock():
 def unselectAll():
     if t == []: return
     if __MAINTREE__ <= 0: CPlot.display(t)
-    bases = Internal.getBases(t)
+    #bases = Internal.getBases(t)
     selected = []
     s = 0
 
     nodes = Internal.getZones(t)
-    for no in xrange(len(nodes)): selected.append( (no, s) )
+    for no in range(len(nodes)): selected.append( (no, s) )
 
     TXT.insert('START', 'Tree unselected.\n')
     CPlot.setSelectedZones(selected)
@@ -1066,12 +1233,22 @@ def toggleSelectAll():
                 break
 
     nodes = Internal.getZones(t)
-    for no in xrange(len(nodes)): selected.append( (no, s) )
+    for no in range(len(nodes)): selected.append( (no, s) )
 
     if s == 0: TXT.insert('START', 'Tree unselected.\n')
     elif s == 1: TXT.insert('START', 'Tree selected.\n')
     CPlot.setSelectedZones(selected)
 
+#==============================================================================
+# Inverse les zones activee et desactivees
+def revertActivated():
+  if t == []: return  
+  nz = len(Internal.getZones(t))  
+  nzs = CPlot.getActiveZones()
+  active = [(i,1) for i in range(nz)]
+  for n in nzs: active[n] = (n,0) 
+  CPlot.setActiveZones(active)
+  
 #==============================================================================
 class infoBulle(TK.Toplevel):
     # IN: text: text to be displayed
@@ -1089,7 +1266,7 @@ class infoBulle(TK.Toplevel):
         if btype == 1: # menu
             if textVariable is not None:
                 l = TK.Label(self, textvariable=textVariable, bg="white",
-                              justify='right', takefocus=0)
+                             justify='right', takefocus=0)
             else:
                 l = TK.Label(self, text=text, bg="white", justify='right', 
                              takefocus=0)
@@ -1127,10 +1304,14 @@ class infoBulle(TK.Toplevel):
         else:
             posX = self.parent.winfo_rootx()+self.parent.winfo_width()
             posY = self.parent.winfo_rooty()+self.parent.winfo_height()
-        if posX + self.tipwidth > self.winfo_screenwidth():
-            posX = posX-self.winfo_width()-self.tipwidth
+        
+        if posX > self.winfo_screenwidth():
+            posX = self.winfo_screenwidth() - self.tipwidth
+        elif posX + self.tipwidth > self.winfo_screenwidth():
+            posX -= self.winfo_width()
         if posY + self.tipheight > self.winfo_screenheight():
-            posY = posY-self.winfo_height()-self.tipheight
+            posY -= self.parent.winfo_height() + self.winfo_height()
+            
         self.geometry('+%d+%d'%(posX,posY))
         self.deiconify()
     def efface(self, event):
@@ -1196,10 +1377,19 @@ def varsFromWidget(varString, type=0):
     elif type == 3: # indices
         s = stt__(varString, mode=1)
         ret = []
-        from ast import literal_eval
+        
+        #from ast import literal_eval
+        #for i in s:
+        #    try: val = literal_eval(i); ret.append(val)
+        #    except: ret.append(0)
+        
         for i in s:
-            try: val = literal_eval(i); ret.append(val)
+            try: 
+              val = eval(i)
+              if isinstance(val, list): ret += val
+              else: ret.append(val)
             except: ret.append(0)
+            
         return ret
     return []
 
@@ -1239,72 +1429,119 @@ def getValidZones():
 #==============================================================================
 # Tool bar
 # Create a tool bar on top of win
+# mode = 0: for Cassiopee
+# mode = 1: for kcgnsview
 #==============================================================================
-def toolBar(win):
-    import iconics
+def toolBar(win, mode=0):
+    # Change l'icone de la fenetre
+    win.tk.call('wm', 'iconphoto', win._w, iconics.PHOTO[13])
+
     frame = TTK.Frame(win)
-    frame.grid(sticky=TK.W, columnspan=2)
-    B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
-                  image=iconics.PHOTO[0],
-                  borderwidth=0, command=quickSaveFile)
-    C = infoBulle(parent=B, text='Save.')
-    B.grid(row=0, column=0)
-    B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
-                  image=iconics.PHOTO[11],
-                  borderwidth=0, command=quickReloadFile)
-    C = infoBulle(parent=B, text='Reload current file.')
-    B.grid(row=0, column=1)
-    B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
-                  image=iconics.PHOTO[1],
-                  borderwidth=0, command=undo)
-    C = infoBulle(parent=B, text='Undo.')
-    B.grid(row=0, column=2)
-    B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
-                  image=iconics.PHOTO[2],
-                  borderwidth=0, command=rmBlock)
-    C = infoBulle(parent=B, text='Rm block.')
-    B.grid(row=0, column=3)
-    B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
-                   image=iconics.PHOTO[3],
-                   borderwidth=0, command=copyBlock)
-    C = infoBulle(parent=B, text='Copy block.')
-    B.grid(row=0, column=4)
-    B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
-                   image=iconics.PHOTO[4],
-                   borderwidth=0, command=lookFor)
-    C = infoBulle(parent=B, text='Fit view to selection\nor fit to full size.')
-    B.grid(row=0, column=5)
-    B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
-                   image=iconics.PHOTO[5],
-                   borderwidth=0, command=unselectAll)
-    C = infoBulle(parent=B, text='Unselect all blocks.')
-    B.grid(row=0, column=6)
-    B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
-                   image=iconics.PHOTO[6],
-                   borderwidth=0, command=viewDeactivatedZones)
-    C = infoBulle(parent=B, text='View deactivated zones.')
-    B.grid(row=0, column=7)
-    B = TK.Button(frame, compound=TK.TOP, width=20, height=20,
-                   image=iconics.PHOTO[7],
-                   borderwidth=0, command=displayMainTree)
-    C = infoBulle(parent=B, text='Display main tree.')
-    B.grid(row=0, column=8)
+    frame.rowconfigure(0, weight=0)
+
+    width, height = 30,30
+
+    if mode == 0: # Cassiopee
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height, 
+                    image=iconics.PHOTO[0], borderwidth=0,
+                    command=quickSaveFile)
+        BB = infoBulle(parent=B, text='Save.')
+        B.grid(row=0, column=0)
+
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
+                    image=iconics.PHOTO[1], borderwidth=0,
+                    command=undo)
+        BB = infoBulle(parent=B, text='Undo.')
+        B.grid(row=0, column=1)
+
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
+                    image=iconics.PHOTO[11], borderwidth=0,
+                    command=quickReloadFile)
+        BB = infoBulle(parent=B, text='Reload current file.')
+        B.grid(row=0, column=2)
+
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
+            image=iconics.PHOTO[3], borderwidth=0,
+            command=cplotExport)
+        BB = infoBulle(parent=B, text='Export image.')
+        B.grid(row=0, column=3)
+
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
+                    image=iconics.PHOTO[4], borderwidth=0,
+                    command=lookFor)
+        BB = infoBulle(parent=B, text='Fit view to selection\nor fit to full size.')
+        B.grid(row=0, column=4)
+
+        # B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
+        #             image=iconics.PHOTO[5], borderwidth=0,
+        #             command=toggleSelectAll)
+        # BB = infoBulle(parent=B, text='Select/unselect all zones.')
+        # B.grid(row=0, column=5)
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
+                    image=iconics.PHOTO[14], borderwidth=0,
+                    command=copyBlock)
+        BB = infoBulle(parent=B, text='Duplicate selected zones.')
+        B.grid(row=0, column=5)
+
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
+                    image=iconics.PHOTO[2], borderwidth=0,
+                    command=rmBlock)
+        BB = infoBulle(parent=B, text='Remove selected zones.')
+        B.grid(row=0, column=6)
+
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
+                    image=iconics.PHOTO[6], borderwidth=0, 
+                    command=viewDeactivatedZones)
+        BB = infoBulle(parent=B, text='View deactivated zones.')
+        B.grid(row=0, column=7)
+
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
+                    image=iconics.PHOTO[12], borderwidth=0, 
+                    command=revertActivated)
+        BB = infoBulle(parent=B, text='Switch active <-> inactive zones.')
+        B.grid(row=0, column=8)
+
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
+                    image=iconics.PHOTO[7], borderwidth=0, 
+                    command=displayMainTree)
+        BB = infoBulle(parent=B, text='Display main tree.')
+        B.grid(row=0, column=9)
+    else: # kcgnsview
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
+                    image=iconics.PHOTO[11], borderwidth=0,
+                    command=quickReloadSkeleton)
+        BB = infoBulle(parent=B, text='Reload current file.')
+        B.grid(row=0, column=0)
+        B = TTK.Button2(frame, compound=TK.TOP, width=width, height=height,
+                    image=iconics.PHOTO[1], borderwidth=0,
+                    command=undo)
+        BB = infoBulle(parent=B, text='Undo.')
+        B.grid(row=0, column=1)
+
+    frame.grid(sticky=TK.NSEW, columnspan=2)
 
 #==============================================================================
 # Minimum application: win, menu, txt
 # IN: title: application title
 # IN: show: create and show if true
+# IN: mode: 0 (Cassiopee), 1 (kcgnsview)
 #==============================================================================
-def minimal(title, show=True):
+def minimal(title, show=True, mode=0):
+    
     global TXT, TKTREE
-
     win = TK.Tk()
     WIDGETS['masterWin'] = win
     if not show: win.withdraw()
     win.title(title)
+
+    # ttk style
+    TTK.installLocalThemes(win)
+    TTK.setTheme(PREFS.get('guitheme', 'None'))
+
     win.protocol("WM_DELETE_WINDOW", Quit)
     win.bind('<Control-Key-s>', quickSaveFile)
     win.bind('<Control-Key-o>', loadFile)
+    win.bind('<Control-Key-p>', Panels.openLoadPanel)
     win.bind('<Control-Key-z>', undo)
     win.option_add('*Font', GENERALFONT)
     win.option_add('*Label.font', LABELFONT)
@@ -1312,69 +1549,81 @@ def minimal(title, show=True):
     win.option_add('*Button.font', BUTTONFONT)
     win.option_add('*Dialog.msg.font', MSGDFONT)
     win.columnconfigure(0, weight=1)
-    win.grid_rowconfigure(0, weight=1)
-    win.grid_columnconfigure(0, weight=1)
-    #win.grid_rowconfigure(1, weight=1)
-    #win.grid_columnconfigure(1, weight=1)
-    #win.grid_rowconfigure(2, weight=1)
-    #win.grid_columnconfigure(2, weight=1)
-    win.resizable(0,0)
+    win.columnconfigure(1, weight=1)
+    win.rowconfigure(0, weight=0)
+    win.rowconfigure(1, weight=0)
+    win.rowconfigure(2, weight=0)
+    win.rowconfigure(3, weight=1)
+    win.resizable(0,0) # fixed size window
+    #win.minsize(325, 325)
 
-    menu = TK.Menu(win)
+    menu = TK.Menu(win, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
+    win.config(menu=menu)
+
     # menu file
-    file = TK.Menu(menu, tearoff=0)
-    menu.add_cascade(label='File', menu=file)
-    file.add_command(label='Open', accelerator='Ctrl+o', command=loadFile)
-    file.add_command(label='Add', command=addFile)
-    file.add_command(label='Save', accelerator='Ctrl+s', command=quickSaveFile)
-    file.add_command(label='Save as...', command=saveFile)
-    file.add_command(label='Save sel. zones', command=saveSelFile)
-    file.add_separator()
-    file.add_command(label='Quit', command=Quit)
-
+    if mode == 0: # Cassiopee
+        file = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
+        menu.add_cascade(label='File', menu=file)
+        file.add_command(label='Open', accelerator='Ctrl+o', command=loadFile)
+        file.add_command(label='Add', command=addFile)
+        file.add_command(label='Open load panel', accelerator='Ctrl+p', command=Panels.openLoadPanel)
+        file.add_separator()
+        file.add_command(label='Save', accelerator='Ctrl+s', command=quickSaveFile)
+        file.add_command(label='Save as...', command=saveFile)
+        file.add_command(label='Save selected zones', command=saveSelZones2File)
+        file.add_command(label='Save selected node', command=saveNode2File)
+        file.add_separator()
+        file.add_command(label='Quit', command=Quit)
+    else: # kcgnsview
+        file = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
+        menu.add_cascade(label='File', menu=file)
+        file.add_command(label='Open', accelerator='Ctrl+o', command=loadFileSkeleton)
+        file.add_separator()
+        file.add_command(label='Quit', command=Quit)
+        
     # menu CPlot
-    cplot = TK.Menu(menu, tearoff=0)
-    WIDGETS['cplotMenu'] = cplot
-    menu.add_cascade(label='CPlot', menu=cplot)
-    cplot.add_command(label='Display Nodes*', command=setLocNodes)
-    cplot.add_command(label='Display Centers', command=setLocCenters)
-    cplot.add_command(label='Toggle blanking (on/off)',
-                      command=changeCPlotBlanking)
-    cplot.add_separator()
-    cplot.add_command(label='Export image/movie',
-                      command=cplotExport)
-    cplot.add_command(label='Finalize movie',
-                      command=finalizeExport)
-    cplot.add_command(label='E-mail image/report bug',
-                      command=mail2Friends)
-    cplot.add_command(label='Save image in doc/blog',
-                      command=save2Doc)
-    cplot.add_separator()
-    cplot.add_command(label='Undo change', accelerator='Ctrl+z',
-                      command=undo)
-
+    if mode == 0:
+        cplot = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
+        WIDGETS['cplotMenu'] = cplot
+        menu.add_cascade(label='CPlot', menu=cplot)
+        cplot.add_command(label='Display Nodes*', command=setLocNodes)
+        cplot.add_command(label='Display Centers', command=setLocCenters)
+        cplot.add_command(label='Toggle blanking (on/off)', command=changeCPlotBlanking)
+        cplot.add_separator()
+        cplot.add_command(label='Export image/movie', command=cplotExport)
+        cplot.add_command(label='Finalize movie', command=finalizeExport)
+        cplot.add_command(label='E-mail image/report bug', command=mail2Friends)
+        cplot.add_command(label='Save image in doc/blog', command=save2Doc)
+        cplot.add_separator()
+        cplot.add_command(label='Undo change', accelerator='Ctrl+z', command=undo)
+    else:
+        cplot = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
+        WIDGETS['cplotMenu'] = cplot
+        menu.add_cascade(label='CPlot', menu=cplot)
+                     
     # Menu specific tools
-    tools = TK.Menu(menu, tearoff=0)
-    menu.add_cascade(label='Tools', menu=tools)
-    tools.add_command(label='Save prefs', command=savePrefFile)
-    tools.add_separator()
-    tools.add_command(label='Activate key', command=Panels.activation)
-    tools.add_separator()
-
+    if mode == 0:
+        tools = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
+        menu.add_cascade(label='Tools', menu=tools)
+        tools.add_command(label='Save prefs', command=savePrefFile)
+        tools.add_separator()
+        #tools.add_command(label='Activate key', command=Panels.activation)
+    else:
+        tools = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
+        menu.add_cascade(label='Tools', menu=tools)
+        
     # Menu Help
-    help = TK.Menu(menu, tearoff=0)
+    help = TK.Menu(menu, tearoff=0, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
     menu.add_cascade(label='Help', menu=help)
-    help.add_command(label='Online User doc',
-                     command=getOnlineDoc)
-    help.add_command(label='Online Help forum',
-                     command=getOnlineForum)
-    help.add_command(label='Online Tutorials',
-                     command=getOnlineTutorials)
+    help.add_command(label='Online User doc', command=getOnlineDoc)
+    help.add_command(label='Online Help forum', command=getOnlineForum)
+    help.add_command(label='Online Tutorials', command=getOnlineTutorials)
     help.add_separator()
     help.add_command(label='About', command=Panels.about)
 
     win.config(menu=menu)
-    toolBar(win)
+
+    toolBar(win, mode=mode)
 
     # Text only
     #TXT = TK.Text(win, width=30, height=1, background='White', font=TEXTFONT)
@@ -1384,47 +1633,50 @@ def minimal(title, show=True):
     #TXT.mark_gravity('START', TK.LEFT)
     #TXT.grid(sticky=TK.EW, columnspan=2)
 
-    # ttk style
-    TTK.installLocalThemes(win)
-    TTK.setTheme(PREFS.get('guitheme', 'None'))
-
     # Text + search entry pour Cortano
     F = TTK.Frame(win, width=30, height=1, takefocus=1)
     F.columnconfigure(0, weight=1)
-    TXT = TK.Text(F, width=30, height=1, background='White', font=TEXTFONT)
+    TXT = TTK.Text(F, width=30, height=1, background='White', font=TEXTFONT)
     TXT.tag_config("Error", foreground="red")
     TXT.tag_config("Warning", foreground="green")
     TXT.mark_set('START', TK.INSERT)
     TXT.mark_gravity('START', TK.LEFT)
     TXT.grid(sticky=TK.EW)
-    import tkSearchBar 
+    from . import tkSearchBar 
     E = tkSearchBar.createSearchBar2(F)
-    E.grid(row=1, sticky=TK.EW)
-    F.grid(sticky=TK.EW, columnspan=2)
+    E.grid(row=1, sticky=TK.NSEW)
+    F.grid(sticky=TK.NSEW, columnspan=2)
 
     try: TKTREE = __import__('tkTree'); TKTREE.createApp(win)
     except: TKTREE = None 
+    
     return (win, menu, file, tools)
 
 #==============================================================================
 # Minimum application: tktree, notebook, frames, menu, txt
 # IN: title: application title
 # IN: show: create and show if true
+# IN: mode: 0 (Cassiopee), 1 (kcgnsview)
 #==============================================================================
-def minimal2(title, show=True):
+def minimal2(title, show=True, mode=0):
     global TKTREE
-    (win, menu, file, tools) = minimal(title, show)
-
+    (win, menu, file, tools) = minimal(title, show, mode)
+    
     # Frame container
     F = TTK.Frame(win)
-    F.grid(columnspan=2, sticky=TK.EW)
+    F.grid(columnspan=2, sticky=TK.NSEW)
     F.columnconfigure(0, weight=0)
-
+    F.columnconfigure(1, weight=1)
+    F.rowconfigure(0, weight=0)
+    F.rowconfigure(1, weight=0)
+    F.rowconfigure(2, weight=1)
+    F.rowconfigure(3, weight=0)
+    
     # Cree le TkTree (colonne1)
     TKTREE = __import__('tkTree')
     TKTREE.createApp(F); TKTREE.showApp()
-
-    # Cree le notebook
+    
+    # Cree le notebook avec boutons
     nb = noteBook(F, TK.LEFT, menu)
     frames = []; menus = []; buttons = []
 
@@ -1434,72 +1686,107 @@ def minimal2(title, show=True):
     tree = TK.Menu(menu, tearoff=0); menus.append(tree)
     bt = nb.add_screen(frame, 'Tree', tree)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['TreeNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['TreeNoteBook'].grid(sticky=TK.NSEW)
+
     # Frame pour state
     frame = TTK.Frame(nb())
     frame.columnconfigure(0, weight=1)
     state = TK.Menu(menu, tearoff=0); menus.append(state)
     bt = nb.add_screen(frame, 'State', state)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['StateNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['StateNoteBook'].grid(sticky=TK.NSEW)
+
     # Frame pour edge
     frame = TTK.Frame(nb())
     frame.columnconfigure(0, weight=1)
     edge = TK.Menu(menu, tearoff=0); menus.append(edge)
     bt = nb.add_screen(frame, 'Edge', edge)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['EdgeNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['EdgeNoteBook'].grid(sticky=TK.NSEW)
+
     # Frame pour surf
     frame = TTK.Frame(nb())
     frame.columnconfigure(0, weight=1)
     surf = TK.Menu(menu, tearoff=0); menus.append(surf)
     bt = nb.add_screen(frame, 'Surf', surf)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['SurfNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['SurfNoteBook'].grid(sticky=TK.NSEW)
+
     # Frame pour mesh
     frame = TTK.Frame(nb())
     frame.columnconfigure(0, weight=1)
     mesh = TK.Menu(menu, tearoff=0); menus.append(mesh)
     bt = nb.add_screen(frame, 'Mesh', mesh)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['MeshNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['MeshNoteBook'].grid(sticky=TK.NSEW)
+
     # Frame pour block
     frame = TTK.Frame(nb())
     frame.columnconfigure(0, weight=1)
     block = TK.Menu(menu, tearoff=0); menus.append(block)
     bt = nb.add_screen(frame, 'Block', block)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['BlockNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['BlockNoteBook'].grid(sticky=TK.NSEW)
+
     # Frame pour BC
     frame = TTK.Frame(nb())
     frame.columnconfigure(0, weight=1)
     bc = TK.Menu(menu, tearoff=0); menus.append(bc)
     bt = nb.add_screen(frame, 'BC', bc)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['BCNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['BCNoteBook'].grid(sticky=TK.NSEW)
+
     # Frame pour motion
     frame = TTK.Frame(nb())
     frame.columnconfigure(0, weight=1)
     bc = TK.Menu(menu, tearoff=0); menus.append(bc)
     bt = nb.add_screen(frame, 'Motion', bc)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['MotionNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['MotionNoteBook'].grid(sticky=TK.NSEW)
+
     # Frame pour Solver
     frame = TTK.Frame(nb())
     frame.columnconfigure(0, weight=1)
     solver = TK.Menu(menu, tearoff=0)
     bt = nb.add_screen(frame, 'Solver', solver); menus.append(solver)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['SolverNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['SolverNoteBook'].grid(sticky=TK.NSEW)
+
     # Frame pour Post
     frame = TTK.Frame(nb())
     frame.columnconfigure(0, weight=1)
     post = TK.Menu(menu, tearoff=0); menus.append(post)
     bt = nb.add_screen(frame, 'Post', post)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['PostNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['PostNoteBook'].grid(sticky=TK.NSEW)
+
     # Frame pour Visu
     frame = TTK.Frame(nb())
     frame.columnconfigure(0, weight=1)
     visu = TK.Menu(menu, tearoff=0); menus.append(visu)
     bt = nb.add_screen(frame, 'Visu', visu)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['VisuNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['VisuNoteBook'].grid(sticky=TK.NSEW)
+
     # Frame pour Render
     frame = TTK.Frame(nb())
     frame.columnconfigure(0, weight=1)
     render = TK.Menu(menu, tearoff=0); menus.append(render)
     bt = nb.add_screen(frame, 'Render', render)
     frames.append(frame); buttons.append(bt)
+    WIDGETS['RenderNoteBook'] = TTK.NoteBook(frame)
+    WIDGETS['RenderNoteBook'].grid(sticky=TK.NSEW)
 
     # Sauvegarde
     WIDGETS['noteBook'] = nb
@@ -1510,13 +1797,52 @@ def minimal2(title, show=True):
     return (win, frames, menu, menus, file, tools)
 
 #==============================================================================
+# IN: app: nom d'applet (tkChose ou --- ou Sub/tkChose)
+# si app=---, un separateur est affiche
+# si app=Sub/tkChose, un sous-menu Sub est ajoute
+# IN: menu: menu ou on ajoute l'app
+# IN: frame: la frame de l'app
+# IN: submenus: dict to keep trace of allready created submenus
+# OUT: TKMODULES: le dictionnaire des modules importes
+#==============================================================================
+def addMenuItem(app, menu, frame, submenus, auto):
+    global MODULES, MODULEFRAMES
+    app = app.split('/')
+    if len(app) == 2: submenu = app[0]; app = app[1]
+    else: submenu = None; app = app[0]
+
+    if submenu is None:
+        if app == '---': menu.add_separator()
+        else:
+            TKMODULES[app] = None
+            TKMODULEFRAMES[app] = frame
+            name = app; name = '  '+name
+            menu.add_command(label=name, command=lambda x=app:openApp(x))
+            if auto[app] == 1: openApp(app)
+
+    else: # submenu
+        if submenu in submenus:
+            myMenu = submenus[submenu]
+        else:
+            myMenu = TK.Menu(menu, tearoff=0)
+            submenus[submenu] = myMenu
+            menu.add_cascade(label=submenu, menu=myMenu)
+        if app == '---': myMenu.add_separator()
+        else:
+            TKMODULES[app] = None
+            TKMODULEFRAMES[app] = frame
+            name = app; name = '  '+name
+            myMenu.add_command(label=name, command=lambda x=app:openApp(x))
+            if auto[app] == 1: openApp(app)
+
+#==============================================================================
 class noteBook:
     # initialization. receives the master widget
     # reference and the notebook orientation
     def __init__(self, master, side=TK.LEFT, menu=None):
         self.active_fr = None
         self.count = 0
-        self.choice = TK.IntVar(0)
+        self.choice = TK.IntVar(value=0)
         self.menu = menu
 
         # allows the TOP and BOTTOM radiobuttons' positioning.
@@ -1525,7 +1851,7 @@ class noteBook:
 
         # creates notebook's frames structure
         self.rb_fr = TTK.Frame(master, borderwidth=0, relief=TK.RIDGE)
-        self.rb_fr.grid(sticky='ewn', row=0, rowspan=2)
+        self.rb_fr.grid(sticky='ewn', column=0, row=0, rowspan=2)
         self.screen_fr = TTK.Frame(master, borderwidth=1, relief=TK.GROOVE)
         self.screen_fr.columnconfigure(0, weight=1)
         self.screen_fr.grid(column=1, row=1, sticky=TK.NSEW)
@@ -1536,21 +1862,32 @@ class noteBook:
 
     # add a new frame (screen) to the (bottom/left of the) notebook
     def add_screen(self, fr, title, menu_fr=None):
-        b = TTK.Radiobutton(self.rb_fr, text=title, \
-                            #image=image, compound=TK.TOP, pady=0, border=TK.ROUND,
-                            offrelief=TK.GROOVE, \
-                            indicatoron=False, selectcolor='#ffffff', \
-                            variable=self.choice, value=self.count, \
-                            command=lambda: self.display(fr, menu_fr))
-        b.bind('<ButtonRelease-3>', lambda event: self.displayMenu(event, fr, menu_fr, b))
-        b.grid(sticky=TK.EW)
+        if menu_fr is None: 
+            b = TTK.Radiobutton(self.rb_fr, text=title,
+                                #image=image, compound=TK.TOP, pady=0, border=TK.ROUND,
+                                offrelief=TK.GROOVE,
+                                indicatoron=False, selectcolor='#ffffff',
+                                variable=self.choice, value=self.count)
+        else:
+            b = TTK.Radiobutton(self.rb_fr, text=title,
+                                #image=image, compound=TK.TOP, pady=0, border=TK.ROUND,
+                                offrelief=TK.GROOVE,
+                                indicatoron=False, selectcolor='#ffffff',
+                                variable=self.choice, value=self.count,
+                                command=lambda: self.display(fr, menu_fr))
+            b.bind('<ButtonRelease-3>', lambda event: self.displayMenu(event, fr, menu_fr, b))
+            menu_fr.config(bg=TTK.BACKGROUNDCOLOR)
+            menu_fr.config(fg=TTK.FOREGROUNDCOLOR)
+            b.grid(sticky=TK.EW)
 
         # ensures the first frame will be the first selected/enabled
         if not self.active_fr:
             fr.grid(sticky=TK.NSEW)
             self.active_fr = fr
             if self.menu is not None and menu_fr is not None:
-                self.menu.insert_cascade(index=3, label='Apps', menu=menu_fr)
+                if UPDATEAPPSMENU:
+                    self.menu.insert_cascade(index=3, label='Apps', menu=menu_fr)
+                
         self.count += 1
 
         # returns a reference to the newly created
@@ -1564,9 +1901,11 @@ class noteBook:
         fr.grid(sticky=TK.NSEW)
         self.active_fr = fr
         if self.menu is not None and menu_fr is not None:
-            self.menu.delete(3)
-            self.menu.insert_cascade(index=3, label='Apps', menu=menu_fr)
-
+            if UPDATEAPPSMENU:
+                self.menu.delete(3)
+                self.menu.insert_cascade(index=3, label='Apps', menu=menu_fr)
+                #self.menu.entryconfigure(3, menu=menu_fr)
+            
     # Display the gleize little menu
     def displayMenu(self, event, fr, menu_fr, b):
         menu_fr.tk_popup(event.x_root+50, event.y_root, 0)
@@ -1578,7 +1917,7 @@ def getOnlineDoc():
     try:
         import webbrowser
         TXT.insert('START', 'Opening online documentation.\n')
-        webbrowser.open('http://elsa.onera.fr/Cassiopee/Userguide.html')
+        webbrowser.open('https://cassiopee.onera.fr/Userguide.html')
     except:
         TXT.insert('START', 'Can not open online documentation.\n')
         TXT.insert('START', 'Error: ', 'Error')
@@ -1600,7 +1939,7 @@ def getOnlineTutorials():
     try:
         import webbrowser
         TXT.insert('START', 'Opening online tutorials.\n')
-        webbrowser.open('http://elsa.onera.fr/Cassiopee/Tutorials/Tutorials.html')
+        webbrowser.open('https://cassiopee.onera.fr/Tutorials/Tutorials.html')
     except:
         TXT.insert('START', 'Can not open online tutorials.\n')
         TXT.insert('START', 'Error: ', 'Error')
@@ -1611,7 +1950,7 @@ def getOnlineTutorials():
 # Retourne False: non, retourne True: oui
 #==============================================================================
 def isAppAutoOpen(name):
-    if not PREFS.has_key('auto'): return False
+    if 'auto' not in PREFS: return False
     auto = PREFS['auto']
     if auto.find(name) != -1: return True
     else: return False
@@ -1620,7 +1959,6 @@ def isAppAutoOpen(name):
 # Interne: appele pour changer le status d'une applet (auto-open ou non)
 #==============================================================================
 def toggleAutoOpen(name, m):
-    import iconics
     opened = isAppAutoOpen(name)
     if opened:
         # Le retire de la liste
@@ -1628,26 +1966,27 @@ def toggleAutoOpen(name, m):
         auto = auto.replace(name+';', '')
         auto = auto.replace(name, '')
         PREFS['auto'] = auto
-        m.entryconfigure('Pin ', image=iconics.PHOTO[9])
+        m.entryconfigure('Unpin ', image=iconics.PHOTO[9])
+        m.entryconfigure('Unpin ', label='Pin ')
     else:
-        if not PREFS.has_key('auto'): PREFS['auto'] = name+';'
+        if 'auto' not in PREFS: PREFS['auto'] = name+';'
         else:
             auto = PREFS['auto']
             auto += name+';'
             PREFS['auto'] = auto
         m.entryconfigure('Pin ', image=iconics.PHOTO[10])
+        m.entryconfigure('Pin ', label='Unpin ')
     savePrefFile()
 
 #==============================================================================
 # Ajoute a un TkMenu no m un pin menu
 #==============================================================================
 def addPinMenu(m, name):
-    import iconics
     opened = isAppAutoOpen(name)
-    if opened: icon = iconics.PHOTO[10]
-    else: icon = iconics.PHOTO[9]
+    if opened: txt='Unpin '; icon = iconics.PHOTO[10]
+    else: txt='Pin '; icon = iconics.PHOTO[9]
     m.add_command(
-        label='Pin ', image=icon, compound=TK.RIGHT,
+        label=txt, image=icon, compound=TK.RIGHT,
         command=lambda name=name, m=m: toggleAutoOpen(name, m))
 
 #==============================================================================
@@ -1677,13 +2016,13 @@ def GIF(Function, functionName='myFunction', *args):
         try:
             a = Function(t[2][nob][2][noz], *args)
             replace(t, nob, noz, a)
-        except Exception, e: fail = True; errors += [0, str(e)]
+        except Exception as e: fail = True; errors += [0, str(e)]
     if not fail: TXT.insert('START', functionName+' succeeds.\n')
     else:
         Panels.displayErrors(errors, header='Error: '+functionName)
         TXT.insert('START', functionName+' fails for at least one zone.\n')
         TXT.insert('START', 'Warning: ', 'Warning')
-    C._fillMissingVariables(t)
+    #C._fillMissingVariables(t)
     (Nb, Nz) = CPlot.updateCPlotNumbering(t)
     TKTREE.updateApp()
     CPlot.render()
@@ -1713,10 +2052,72 @@ def save2Doc():
   #Panels.docData['docWindow'].master.wait_window(Panels.docData['docWindow'])
 
 #==============================================================================
-# Change title : change le titre dans la fenetre CPlot + Tk
+# Change title : change le titre dans la fenetre CPlot (if top window) + Tk 
 #==============================================================================
-def changeWindowTitle(fileName):
+def changeWindowTitle(fileName, filePath="."):
   if fileName == '': return
-  CPlot.CPlot.cplot.setWindowTitle(fileName)
+  CPlot.setWindowTitle(fileName, filePath)
   win = WIDGETS['masterWin']
   win.title('Cassiopee'+C.__version__+' - '+fileName)
+
+# Fonction pour matcher un filter dans une chaine
+def matchString(filter, myString):
+    if ('*' in filter)|('?' in filter)|('[' in filter):
+        ret = fnmatch.fnmatch(myString, filter)
+    else:
+        ret = False
+        if re.search(filter, myString, re.IGNORECASE) is not None: ret = True
+    return ret
+
+#==============================================================================
+# Meta load function of multiple files
+# Si partial: load un CTK.t squelette + HANDLE
+# Si full: CTK.t full
+# mode = 'full', 'partial', 'auto'
+# Cette fonction ne fait pas upgrade et updateApps
+#==============================================================================
+def tkLoadFile(files, mode='full'):
+  global FILE; global HANDLE; global t
+  if mode == 'auto':
+    try:
+      size = 0
+      for f in files: size += os.path.getsize(f) # en octets
+    except: 
+      print('Error: convertFile2PyTree: fail to read file %s.'%files[0])
+      return
+    if size > 1000000000: print('INFO: size: %f Gb'%(size/1000000000))
+    elif size > 1000000: print('INFO: size: %f Mb'%(size/1000000))
+    else: print('INFO: size: %f kb'%(size/1000))
+    maxSize = PREFS.get('maxFileSizeForLoad', 6.) # en Gb
+    maxSize = maxSize * 100000000
+    if size > maxSize: mode = 'partial'
+    else: mode = 'full'
+
+  if mode == 'partial':
+    fileName = files[0]
+    try: format = Converter.checkFileType(fileName)
+    except:
+      print('Error: convertFile2PyTree: fail to read file %s.'%fileName)
+      return
+    if format != 'bin_adf' and format != 'bin_hdf': mode = 'full' 
+
+  if mode == 'partial': # partial load
+    import Converter.Filter as Filter
+    HANDLE = Filter.Handle(files[0])
+    t = HANDLE.loadSkeleton()
+    HANDLE._loadTreeExtras(t)
+    Filter._convert2PartialTree(t)
+    HANDLE.getVariables()
+    
+  if mode == 'full': # full load of multiple files
+    t = []
+    for file in files:
+      try:
+        t2 = C.convertFile2PyTree(file, density=1.)
+        if t == []: t = t2
+        else: t = C.mergeTrees(t, t2)
+      except:
+        print('Error: convertFile2PyTree: fail to read file %s.'%file)
+
+  # common part
+  FILE = files[0]

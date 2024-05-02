@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -19,14 +19,14 @@
 #define K_ARRAY_UNIQUE_SYMBOL
 #include "generator.h"
 
-int __activation__;
-
 // ============================================================================
 /* Dictionnary of all functions of the python module */
 // ============================================================================
 static PyMethodDef Pygenerator [] =
 {
   {"cart", K_GENERATOR::cartStruct, METH_VARARGS},
+  {"cartr1", K_GENERATOR::cartr1, METH_VARARGS},
+  {"cartr2", K_GENERATOR::cartr2, METH_VARARGS},
   {"cartHexa", K_GENERATOR::cartHexa, METH_VARARGS},
   {"cartTetra", K_GENERATOR::cartTetra, METH_VARARGS},
   {"cartPenta", K_GENERATOR::cartPenta, METH_VARARGS},
@@ -42,13 +42,16 @@ static PyMethodDef Pygenerator [] =
   {"map", K_GENERATOR::mapMesh, METH_VARARGS},
   {"TTM", K_GENERATOR::TTMMesh, METH_VARARGS},
   {"getVolumeMap", K_GENERATOR::getVolumeMapOfMesh, METH_VARARGS},
+  {"getCellCenters", K_GENERATOR::getCellCenters, METH_VARARGS},
+  {"getFaceCentersAndAreas", K_GENERATOR::getFaceCentersAndAreas, METH_VARARGS},
   {"getOrthogonalityMap", K_GENERATOR::getOrthogonalityMap, METH_VARARGS},
   {"getRegularityMap", K_GENERATOR::getRegularityMap, METH_VARARGS},
+  {"getAngleRegularityMap", K_GENERATOR::getAngleRegularityMap, METH_VARARGS},
   {"getNormalMap", K_GENERATOR::getNormalMapOfMesh, METH_VARARGS},
   {"getCircumCircleMap", K_GENERATOR::getCircumCircleMap, METH_VARARGS},
   {"getInCircleMap", K_GENERATOR::getInCircleMap, METH_VARARGS},
-  {"close", K_GENERATOR::closeMesh, METH_VARARGS},
-  {"closeAll", K_GENERATOR::closeAllMeshes, METH_VARARGS},
+  {"closeMesh", K_GENERATOR::closeMesh, METH_VARARGS},
+  {"closeBorders", K_GENERATOR::closeBorders, METH_VARARGS},
   {"pointedHat", K_GENERATOR::pointedHat, METH_VARARGS},
   {"stitchedHat", K_GENERATOR::stitchedHat, METH_VARARGS},
   {"hyper2D", K_GENERATOR::hyper2DMesh, METH_VARARGS},
@@ -104,25 +107,54 @@ static PyMethodDef Pygenerator [] =
   {"straightenVector", K_GENERATOR::straightenVector, METH_VARARGS},
   {"computeEta", K_GENERATOR::computeEta, METH_VARARGS},
   {"getLocalStepFactor", K_GENERATOR::getLocalStepFactor, METH_VARARGS},
+  {"getLocalStepFactor2", K_GENERATOR::getLocalStepFactor2, METH_VARARGS},
   {"getEdgeRatio", K_GENERATOR::getEdgeRatio, METH_VARARGS},
   {"getMaxLength", K_GENERATOR::getMaxLength, METH_VARARGS},
   {"getTriQualityMap", K_GENERATOR::getTriQualityMap, METH_VARARGS},
   {"netgen1", K_GENERATOR::netgen1, METH_VARARGS},
   {"netgen2", K_GENERATOR::netgen2, METH_VARARGS},
   {"tetgen", K_GENERATOR::tetgen, METH_VARARGS},
+  {"mmgs", K_GENERATOR::mmgs, METH_VARARGS},
+  {"quad2Pyra", K_GENERATOR::quad2Pyra, METH_VARARGS},
+  {"blankSelf", K_GENERATOR::blankSelf, METH_VARARGS},
+  {"blankFirst", K_GENERATOR::blankFirst, METH_VARARGS},
+  {"blankExt", K_GENERATOR::blankExt, METH_VARARGS},
+  {"blankPrev", K_GENERATOR::blankPrev, METH_VARARGS},
+  {"extrapWithCellN", K_GENERATOR::extrapWithCellN, METH_VARARGS},
   {NULL, NULL}
 };
+
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "generator",
+        NULL,
+        -1,
+        Pygenerator
+};
+#endif
 
 // ============================================================================
 /* Init of module */
 // ============================================================================
 extern "C"
 {
+#if PY_MAJOR_VERSION >= 3
+  PyMODINIT_FUNC PyInit_generator();
+  PyMODINIT_FUNC PyInit_generator()
+#else
   PyMODINIT_FUNC initgenerator();
   PyMODINIT_FUNC initgenerator()
+#endif
   {
-    __activation__ = K_KCORE::activation();
-    Py_InitModule("generator", Pygenerator);
     import_array();
+#if PY_MAJOR_VERSION >= 3
+    PyObject* module = PyModule_Create(&moduledef);
+#else
+    Py_InitModule("generator", Pygenerator);
+#endif
+#if PY_MAJOR_VERSION >= 3
+    return module;
+#endif
   }
 }

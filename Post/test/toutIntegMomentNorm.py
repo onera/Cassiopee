@@ -16,16 +16,14 @@ a2 = T.subzone(a, (1,1,1), (50,1,30))
 C.convertArrays2File([a], "new.plt", "bin_tp")
 
 # integMoment node2center, nj = 1
-ni = a[2]-1
-nj = a[3]-1
-nk = a[4]-1
+ni = a[2]-1; nj = a[3]-1; nk = a[4]-1
 dens = ones( (1, ni*nj*nk), float64 )
 densa = ['t', dens, ni,nj,nk]
 
 res = P.integMomentNorm([a2],[densa],[], (0.,0.,5.))
 ## if math.fabs(res[0]-res1) > 1.e-1:
 ##     print "pb in integMomentNodeCenter, nj=1"
-print res, res1
+print(res, res1)
 del res
 
 # integMoment, nj = 1
@@ -37,7 +35,7 @@ densa = ['t', dens, ni,nj,nk]
 res = P.integMomentNorm([a2],[densa],[], (0.,0.,5.))
 ## if math.fabs(res[0]-res1) > 1.e-1:
 ##     print "pb in integMoment, nj=1"
-print res, res1
+print(res, res1)
 del res, a, a2, dens, densa
 
 ##############################################################
@@ -56,7 +54,7 @@ densa = ['t', dens, ni,nj,nk]
 res = P.integMomentNorm([a2],[densa],[], (0.5,1.,0.))
 ## if math.fabs(res[0]-res2) > 1.e-1:
 ##     print "pb in integMomentNodeCenter, nk=1"
-print res, res2
+print(res, res2)
 del res
 
 # integMoment, nk = 1
@@ -71,7 +69,7 @@ res = P.integMomentNorm([a2],[densa],[], (0.5,1.,0.))
 ## if math.fabs(res[0]-res2) > 1.e-1:
 ##     print "pb in integMoment, nk=1"
 ## print res[0], res2
-print res, res2
+print(res, res2)
 del res, a, a2, dens, densa
 
 #######################################################
@@ -89,7 +87,7 @@ densa = ['t', dens, ni,nj,nk]
 res = P.integMomentNorm([a2],[densa],[], (0.,1.,0.5))
 ## if math.fabs(res[0]-res2) > 1.e-1:
 ##     print "pb in integMomentNodeCenter, ni=1"
-print res, res2
+print(res, res2)
 
 
 # integMoment, ni = 1
@@ -102,7 +100,7 @@ densa = ['t', dens, ni,nj,nk]
 res = P.integMomentNorm([a2],[densa],[], (0.,1.,0.5))
 ## if math.fabs(res[0]-res2) > 1.e-1:
 ##     print "pb in integMoment, ni=1"
-print res, res2
+print(res, res2)
 
 
 

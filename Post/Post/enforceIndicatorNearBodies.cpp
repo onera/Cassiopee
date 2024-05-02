@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -18,9 +18,9 @@
 */
 
 # include "post.h"
-# include "Search/BbTree.h"
-# include "Search/KdTree.h"
-# include "Fld/ArrayAccessor.h"
+# include "Nuga/include/BbTree.h"
+# include "Nuga/include/KdTree.h"
+# include "Nuga/include/ArrayAccessor.h"
 
 using namespace std;
 using namespace K_FLD;

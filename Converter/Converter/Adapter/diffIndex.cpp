@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -30,7 +30,7 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::diffIndex(PyObject* self, PyObject* args)
 {
   PyObject* arrayA; PyObject* arrayB;
-  if (!PYPARSETUPLEI(args, "OO", "OO", &arrayA, &arrayB)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &arrayA, &arrayB)) return NULL;
 
   // Check numpy (indexA)
   FldArrayI* indexA;
@@ -52,7 +52,6 @@ PyObject* K_CONVERTER::diffIndex(PyObject* self, PyObject* args)
     return NULL;
   }
 
-
   // Construit la difference
   E_Int sizeA = indexA->getSize();
   E_Int sizeB = indexB->getSize();
@@ -63,14 +62,14 @@ PyObject* K_CONVERTER::diffIndex(PyObject* self, PyObject* args)
   
   if (sizeA == sizeB) // retourne vide?
   {
-    PyObject* tpl = K_NUMPY::buildNumpyArray(0, 1, 1, 1);
+    PyObject* tpl = K_NUMPY::buildNumpyArray(E_Int(0), 1, 1, 1);
     return tpl;
   }
 
   if (sizeB > sizeA)
   {
     printf("Warning: diffIndex: listB is not included in listA.");
-    PyObject* tpl = K_NUMPY::buildNumpyArray(0, 1, 1, 1);
+    PyObject* tpl = K_NUMPY::buildNumpyArray(E_Int(0), 1, 1, 1);
     return tpl;
   }
 

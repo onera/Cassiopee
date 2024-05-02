@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -18,14 +18,14 @@
 */
 # include "stdio.h"
 # include "transform.h"
-# include "Connect/GeomAlgo.h"
+# include "Nuga/include/GeomAlgo.h"
 
 using namespace std;
 using namespace K_FLD;
 
 //=============================================================================
 /* Redresseur de normales: etant donnee une liste de bloc non structures 
-   paroi (TRI), oriente les blocs de telle sorte que les normales soient 
+   paroi (TRI, QUAD), oriente les blocs de telle sorte que les normales soient 
    toutes orientees vers l'exterieur ou l'interieur au choix.
 */ 
 //=============================================================================
@@ -34,8 +34,7 @@ PyObject* K_TRANSFORM::reorderAllUnstr(PyObject* self, PyObject* args)
   // Load block arrays 
   PyObject* listBlks;
   E_Int outward=1; // direction of the normals vers l'exterieur par defaut
-  if (!PYPARSETUPLEI(args,
-                    "Ol", "Oi",
+  if (!PYPARSETUPLE_(args, O_ I_,
                     &listBlks, &outward))
   {
       return NULL;
@@ -128,7 +127,7 @@ PyObject* K_TRANSFORM::reorderAllUnstr(PyObject* self, PyObject* args)
   }//parcours de toutes les zones
   
   bool otwd = (outward == 1);
-  K_CONNECT::GeomAlgo<K_MESH::Triangle>::reversi_chimera_skin(crds, tri_cnts, otwd);
+  NUGA::GeomAlgo<K_MESH::Triangle>::reversi_chimera_skin(crds, tri_cnts, otwd);
   
   /*--------------*/
   /* build arrays */

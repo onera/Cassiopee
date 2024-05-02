@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -31,13 +31,11 @@ PyObject* K_CONNECTOR::applyBCOverlapStruct(PyObject* self, PyObject* args)
   PyObject *array;
   E_Int imin, imax, jmin, jmax, kmin, kmax;
   E_Int depth; E_Int loc; E_Int cellNInterpValue;
-
-  if (!PYPARSETUPLEI(args,
-                    "O(lll)(lll)lll", "O(iii)(iii)iii",
-                    &array, &imin, &jmin, &kmin, &imax, &jmax, &kmax, &depth, &loc, &cellNInterpValue))
-  {
-      return NULL;
-  }
+  char* cellNName; 
+  if (!PYPARSETUPLE_(args, O_ TIII_ TIII_ III_ S_,
+                    &array, &imin, &jmin, &kmin, &imax, &jmax, &kmax, 
+                    &depth, &loc, &cellNInterpValue, &cellNName))
+    return NULL;
   
   E_Int shift = 0;
   if (loc == 0) shift = 1; // loc='nodes'
@@ -45,23 +43,23 @@ PyObject* K_CONNECTOR::applyBCOverlapStruct(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray2(array, varString, f, im, jm, km, 
+                                     cn, eltType);
   if (res != 1) 
   {    
     PyErr_SetString(PyExc_TypeError, 
-                    "applyBCOverlapStruct: 1st argument must be structured.");
+                    "applyBCOverlaps: 1st argument must be structured.");
     RELEASESHAREDB(res, array, f, cn); return NULL;
   }
 
   E_Float interpolatedValue = cellNInterpValue;
 
   // verif cellN 
-  E_Int posc = K_ARRAY::isCellNatureField2Present(varString);
-  if (posc == -1) 
+  E_Int posc = K_ARRAY::isNamePresent(cellNName,varString);
+  if (posc == -1)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "applyBCOverlapStruct: 1st arg must contain cellN variable.");
+                    "applyBCOverlaps: 1st arg must contain cellN variable.");
     RELEASESHAREDS(array, f); return NULL;
   }
   posc++;
@@ -71,7 +69,7 @@ PyObject* K_CONNECTOR::applyBCOverlapStruct(PyObject* self, PyObject* args)
     if (imin < 1 || imax > im || jmin < 1 || jmax > jm || kmin < 1 || kmax > km)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "applyBCOverlapStruct: indices of structured window are not valid.");
+                      "applyBCOverlaps: indices of structured window are not valid.");
       RELEASESHAREDS(array, f); return NULL;
     }
   }
@@ -80,15 +78,11 @@ PyObject* K_CONNECTOR::applyBCOverlapStruct(PyObject* self, PyObject* args)
     if (imin < 1 || imax > im+1 || jmin < 1 || jmax > jm+1 || kmin < 1 || kmax > km+1)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "applyBCOverlapStruct: indices of structured window are not valid.");
+                      "applyBCOverlaps: indices of structured window are not valid.");
       RELEASESHAREDS(array, f); return NULL;
     }
   }
-  E_Int npts = f->getSize(); E_Int nfld = f->getNfld();
-  PyObject* tpl = K_ARRAY::buildArray(nfld, varString, im, jm, km);
-  E_Float* foutp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF fout(npts, nfld, foutp, true); fout = *f;
-  E_Float* cellNt = fout.begin(posc);
+  //E_Int npts = f->getSize(); E_Int nfld = f->getNfld();
   
   if (imin == imax)
   {
@@ -114,16 +108,22 @@ PyObject* K_CONNECTOR::applyBCOverlapStruct(PyObject* self, PyObject* args)
   else {kmax = kmax-1+shift;}
 
   E_Int imjm = im*jm;
-  E_Int ind;
-  for (E_Int k = kmin; k <= kmax; k++)
-    for (E_Int j = jmin; j <= jmax; j++)
-      for (E_Int i = imin; i <= imax; i++)
-      {
-        ind = (i-1) + (j-1)* im + (k-1)*imjm;
-        if (cellNt[ind] != 0.) cellNt[ind] = interpolatedValue;
-      }
+  E_Float* cellNt = f->begin(posc);
+#pragma omp parallel default(shared)
+  {
+    E_Int ind;
+# pragma omp for
+    for (E_Int k = kmin; k <= kmax; k++)
+      for (E_Int j = jmin; j <= jmax; j++)
+        for (E_Int i = imin; i <= imax; i++)
+        {
+          ind = (i-1) + (j-1)* im + (k-1)*imjm;
+          if (cellNt[ind] != 0.) cellNt[ind] = interpolatedValue;
+        }
+  }
   RELEASESHAREDS(array, f);
-  return tpl;
+  Py_INCREF(Py_None);
+  return Py_None;
 }
 
 //=============================================================================
@@ -135,9 +135,10 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
 {
   PyObject *array, *faceList;
   E_Int depth; E_Int loc; E_Int cellNInterpValue;
-  if (!PYPARSETUPLEI(args,
-                    "OOlll", "OOiii",
-                    &array, &faceList, &depth, &loc, &cellNInterpValue))
+  char* cellNName;
+  if (!PYPARSETUPLE_(args, OO_ III_ S_,
+                    &array, &faceList, &depth, &loc, 
+                    &cellNInterpValue, &cellNName))
   {
       return NULL;
   }
@@ -156,7 +157,7 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
   }
   
   // verif cellN 
-  E_Int posc = K_ARRAY::isCellNatureField2Present(varString);
+  E_Int posc = K_ARRAY::isNamePresent(cellNName,varString);
   if (posc == -1) 
   {
     PyErr_SetString(PyExc_TypeError,
@@ -167,7 +168,7 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
   
   // Get list of face indices defined as a numpy array
   FldArrayI* indicesF;
-  E_Int ret = K_NUMPY::getFromNumpyArray(faceList, indicesF, true);
+  E_Int ret = K_NUMPY::getFromPointList(faceList, indicesF, true);
   if (ret != 1)
   {
     PyErr_SetString(PyExc_TypeError,

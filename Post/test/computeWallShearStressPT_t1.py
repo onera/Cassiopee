@@ -1,7 +1,6 @@
 # - computeWallShearStress (pyTree) -
 import Generator.PyTree as G
 import Converter.PyTree as C
-import Transform.PyTree as T
 import Post.PyTree as P
 import KCore.test as test
 

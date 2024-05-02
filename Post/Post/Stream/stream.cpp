@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -73,7 +73,7 @@ void K_POST::compInitialStep(
   {
     if (type != 2 && type != 3 && type != 5 )
     {
-      printf("Error: stream: compInitialStep: not a valid interpolation type: %d.\n", type);
+      printf("Error: stream: compInitialStep: not a valid interpolation type: " SF_D_ ".\n", type);
       exit(0);
     }
     FldArrayF* field = structFields[noblk0];
@@ -99,7 +99,7 @@ void K_POST::compInitialStep(
   {
     if (type != 4) 
     {
-      printf("Error: stream: compInitialStep: not a valid interp type: %d.\n", type);
+      printf("Error: stream: compInitialStep: not a valid interp type: " SF_D_ ".\n", type);
       exit(0);
     }
     noblk0 = noblk0-ns;// numero du bloc reel dans la liste des blocs non structures
@@ -160,7 +160,7 @@ void K_POST::compStreamPtFields(
   vector<E_Int>& poszu,  
   vector<FldArrayF*>& unstrFields, vector<FldArrayI*>& connectu,
   FldArrayF& streamPt,
-  K_INTERP::InterpAdt::InterpolationType interpType)
+  K_INTERP::InterpData::InterpolationType interpType)
 {
   E_Int ns = structFields.size();
   //E_Int nu = unstrFields.size();
@@ -199,14 +199,14 @@ short K_POST::compRungeKutta4(
   E_Float xp, E_Float yp, E_Float zp,
   E_Float up, E_Float vp, E_Float wp, 
   E_Float& dt, E_Float& xn, E_Float& yn, E_Float& zn,
-  vector<K_INTERP::InterpAdt*>& listOfStructInterpData,
+  vector<K_INTERP::InterpData*>& listOfStructInterpData,
   vector<FldArrayF*>& listOfStructFields,
   vector<FldArrayF*>& listOfStructVelocities,
   vector<E_Int>& nis,vector<E_Int>& njs,
   vector<E_Int>& nks, vector<E_Int>& posxs, 
   vector<E_Int>& posys, vector<E_Int>& poszs, 
   vector<E_Int>& poscs, 
-  vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData,
+  vector<K_INTERP::InterpData*>& listOfUnstrInterpData,
   vector<FldArrayF*>& listOfUnstrFields,
   vector<FldArrayF*>& listOfUnstrVelocities,
   vector<FldArrayI*>& connectu,
@@ -214,11 +214,11 @@ short K_POST::compRungeKutta4(
   vector<E_Int>& poszu, vector<E_Int>& poscu, 
   FldArrayI& connectSurf, 
   E_Float* xSurf, E_Float* ySurf, E_Float* zSurf, E_Int sizeSurf, 
-  K_INTERP::InterpAdt::InterpolationType interpType)
+  K_INTERP::InterpData::InterpolationType interpType)
 {
   E_Int nu = listOfUnstrInterpData.size();
   E_Int ns = listOfStructInterpData.size();
-  vector<K_INTERP::InterpAdt*> allInterpDatas;
+  vector<K_INTERP::InterpData*> allInterpDatas;
   vector<FldArrayF*> allFields;
   vector<void*> allA1;
   vector<void*> allA2;
@@ -283,7 +283,9 @@ short K_POST::compRungeKutta4(
   {cf.malloc(4); indi.malloc(1);}
   else //ordre 2 structure
   {cf.malloc(8); indi.malloc(1);}
+  FldArrayI tmpIndi(indi.getSize()); FldArrayF tmpCf(cf.getSize());
   FldArrayF up2(3);
+  E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3];
   E_Float vol2 = 0.;
   // Si la surface n'est pas nulle, on projette le point sur cette surface
   if (sizeSurf != 0)
@@ -291,15 +293,16 @@ short K_POST::compRungeKutta4(
     K_COMPGEOM::projectOrtho(xp2, yp2, zp2,
                              xSurf, ySurf, zSurf,
                              connectSurf, 
-                             xp2, yp2, zp2);
+                             xp2, yp2, zp2,
+                             p0, p1, p2, p);
   }
   E_Int type = 0; E_Int noblk = 0;
   short found = K_INTERP::getInterpolationCell(xp2, yp2, zp2, allInterpDatas,
                                                allFields, allA1, allA2, allA3, allA4,
                                                posxt, posyt, poszt, posct, 
-                                               vol2, indi, cf, type, noblk, interpType);
+                                               vol2, indi, cf, tmpIndi, tmpCf, type, noblk, interpType);
   
-  if ( found == 0 ) return 0;// pas de pt d interpolation trouve
+  if ( found == 0 ) return 0;// pas de pt d'interpolation trouve
   //Calcul de Up2
   noblk0 = noblk-1;
   if ( noblk0 < ns )
@@ -330,13 +333,14 @@ short K_POST::compRungeKutta4(
     K_COMPGEOM::projectOrtho(xp2, yp2, zp2,
                              xSurf, ySurf, zSurf,
                              connectSurf, 
-                             xp2, yp2, zp2);
+                             xp2, yp2, zp2,
+                             p0, p1, p2, p);
   }
   type = 0; noblk = 0;
   found = K_INTERP::getInterpolationCell( xp2, yp2, zp2, allInterpDatas,
                                           allFields, allA1, allA2, allA3, allA4,
                                           posxt, posyt, poszt, posct, 
-                                          vol2, indi, cf, type, noblk, interpType);
+                                          vol2, indi, cf, tmpIndi, tmpCf, type, noblk, interpType);
 
 
   if ( found == 0 ) return 0;// pas de pt d'interpolation trouve
@@ -372,13 +376,14 @@ short K_POST::compRungeKutta4(
     K_COMPGEOM::projectOrtho(xp2, yp2, zp2,
                              xSurf, ySurf, zSurf,
                              connectSurf, 
-                             xp2, yp2, zp2);
+                             xp2, yp2, zp2,
+                             p0, p1, p2, p);
   }
   type = 0; noblk = 0;
   found = K_INTERP::getInterpolationCell( xp2, yp2, zp2, allInterpDatas,
                                           allFields, allA1, allA2, allA3, allA4,
                                           posxt, posyt, poszt, posct, 
-                                          vol2, indi, cf, type, noblk, interpType);
+                                          vol2, indi, cf, tmpIndi, tmpCf, type, noblk, interpType);
 
   if ( noblk == 0 ) return 0;// pas de pt d interpolation trouve
 
@@ -423,13 +428,13 @@ short K_POST::compRungeKutta4(
 //===========================================================================
 short K_POST::initStreamLine(
   E_Float xp, E_Float yp, E_Float zp,
-  vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+  vector<K_INTERP::InterpData*>& listOfStructInterpData, 
   vector<FldArrayF*>& listOfStructFields,
   vector<FldArrayF*>& listOfStructVelocities,
   vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks,
   vector<E_Int>& posxs, vector<E_Int>& posys, 
   vector<E_Int>& poszs, vector<E_Int>& poscs,
-  vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+  vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
   vector<FldArrayF*>& listOfUnstrFields,
   vector<FldArrayF*>& listOfUnstrVelocities,
   vector<FldArrayI*>& connectu,
@@ -439,12 +444,14 @@ short K_POST::initStreamLine(
   E_Float* xSurf, E_Float* ySurf, E_Float* zSurf, E_Int sizeSurf, 
   E_Float& up, E_Float& vp, E_Float& wp, E_Float& dt,
   FldArrayI& indi, FldArrayF& cf, FldArrayF& streamPts, 
-  K_INTERP::InterpAdt::InterpolationType interpType)
+  K_INTERP::InterpData::InterpolationType interpType)
 {
+  FldArrayI tmpIndi(indi.getSize()); FldArrayF tmpCf(cf.getSize());
   E_Int noblkp0 = -1;
+  E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3]; 
   E_Int ns = listOfStructInterpData.size();
   E_Int nu = listOfUnstrInterpData.size();
-  vector<K_INTERP::InterpAdt*> allInterpDatas;
+  vector<K_INTERP::InterpData*> allInterpDatas;
   vector<FldArrayF*> allFields;
   vector<void*> allA1;
   vector<void*> allA2;
@@ -475,7 +482,7 @@ short K_POST::initStreamLine(
 
   for (E_Int noz = 0; noz < ns; noz++)
   {
-    allA1.push_back(&nis[noz]); 
+    allA1.push_back(&nis[noz]);
     allA2.push_back(&njs[noz]); 
     allA3.push_back(&nks[noz]); 
     allA4.push_back(NULL);
@@ -493,14 +500,15 @@ short K_POST::initStreamLine(
     K_COMPGEOM::projectOrtho(xp, yp, zp,
                              xSurf, ySurf, zSurf,
                              connectSurf, 
-                             xp, yp, zp);
+                             xp, yp, zp,
+                             p0, p1, p2, p);
   }
   // pt 0 : no du blk d interpolation dans interpDatas : demarre a 1 
   E_Int type = 0; E_Int noblkp = 0; E_Float voli = 0.;
   short found = K_INTERP::getInterpolationCell( xp, yp, zp, allInterpDatas,
                                                 allFields, allA1, allA2, allA3, allA4,
                                                 posxt, posyt, poszt, posct, 
-                                                voli, indi, cf, type, noblkp, interpType);
+                                                voli, indi, cf, tmpIndi, tmpCf, type, noblkp, interpType);
 
   if ( found < 1 ) //pas de pt trouve
   {
@@ -553,12 +561,12 @@ E_Int K_POST::extractVectorFromStructArrays(
   vector<E_Int>& posxIn, vector<E_Int>& posyIn, vector<E_Int>& poszIn,
   vector<E_Int>& poscIn, vector<char*>& varStringIn, 
   vector<FldArrayF*>& fieldsIn, 
-  vector<K_INTERP::InterpAdt*>& interpDataIn,
+  vector<K_INTERP::InterpData*>& interpDataIn,
   vector<E_Int>& niOut, vector<E_Int>& njOut, vector<E_Int>& nkOut,
   vector<E_Int>& posxOut, vector<E_Int>& posyOut, vector<E_Int>& poszOut,
   vector<E_Int>& poscOut, vector<char*>& varStringOut, 
   vector<FldArrayF*>& fieldsOut, 
-  vector<K_INTERP::InterpAdt*>& interpDataOut,
+  vector<K_INTERP::InterpData*>& interpDataOut,
   vector<FldArrayF*>& vect, vector<char*>& vnames)
 {
   E_Int size = fieldsIn.size();
@@ -620,12 +628,12 @@ E_Int K_POST::extractVectorFromUnstrArrays(
   vector<E_Int>& poszIn, vector<E_Int>& poscIn, 
   vector<char*>& varStringIn, vector<FldArrayF*>& fieldsIn, 
   vector<FldArrayI*>& cntIn, vector<char*>& eltTypeIn,
-  vector<K_INTERP::InterpAdt*>& interpDataIn,
+  vector<K_INTERP::InterpData*>& interpDataIn,
   vector<E_Int>& posxOut, vector<E_Int>& posyOut, 
   vector<E_Int>& poszOut, vector<E_Int>& poscOut, 
   vector<char*>& varStringOut, vector<FldArrayF*>& fieldsOut, 
   vector<FldArrayI*>& cntOut, vector<char*>& eltTypeOut,
-  vector<K_INTERP::InterpAdt*>& interpDataOut,
+  vector<K_INTERP::InterpData*>& interpDataOut,
   vector<FldArrayF*>& vect, vector<char*>& vnames)
 {
   E_Int size = fieldsIn.size();
@@ -688,13 +696,13 @@ E_Int K_POST::extractVectorFromUnstrArrays(
 //===========================================================================
 void K_POST::initStreamSurf(
   E_Float xp, E_Float yp, E_Float zp,
-  vector<K_INTERP::InterpAdt*>& listOfStructInterpData, 
+  vector<K_INTERP::InterpData*>& listOfStructInterpData, 
   vector<FldArrayF*>& listOfStructFields,
   vector<FldArrayF*>& listOfStructVelocities,
   vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks,
   vector<E_Int>& posxs, vector<E_Int>& posys, 
   vector<E_Int>& poszs, vector<E_Int>& poscs,
-  vector<K_INTERP::InterpAdt*>& listOfUnstrInterpData, 
+  vector<K_INTERP::InterpData*>& listOfUnstrInterpData, 
   vector<FldArrayF*>& listOfUnstrFields,
   vector<FldArrayF*>& listOfUnstrVelocities,
   vector<FldArrayI*>& connectu,
@@ -702,11 +710,12 @@ void K_POST::initStreamSurf(
   vector<E_Int>& poszu, vector<E_Int>& poscu,
   E_Float& up, E_Float& vp, E_Float& wp, E_Float& dt,
   FldArrayI& indi, FldArrayF& cf, FldArrayF& streamPts, 
-  K_INTERP::InterpAdt::InterpolationType interpType)
+  K_INTERP::InterpData::InterpolationType interpType)
 {
+  FldArrayI tmpIndi(indi.getSize()); FldArrayF tmpCf(cf.getSize());  
   E_Int ns = listOfStructFields.size();
   E_Int nu = listOfUnstrFields.size();
-  vector<K_INTERP::InterpAdt*> allInterpDatas;
+  vector<K_INTERP::InterpData*> allInterpDatas;
   vector<FldArrayF*> allFields;
   vector<void*> allA1;
   vector<void*> allA2;
@@ -761,7 +770,7 @@ void K_POST::initStreamSurf(
     short found = K_INTERP::getInterpolationCell(xp, yp, zp, allInterpDatas,
                                                  allFields, allA1, allA2, allA3, allA4,
                                                  posxt, posyt, poszt, posct, 
-                                                 voli, indi, cf, type, noblkp[p], interpType);
+                                                 voli, indi, cf, tmpIndi, tmpCf, type, noblkp[p], interpType);
     if (found<1 ) //pas de pt trouve
     {
       streamPts.malloc(0);
@@ -790,7 +799,7 @@ void K_POST::initStreamSurf(
     }
     else// non structure 
     {
-      E_Int noblku =  noblkp0-ns;
+      E_Int noblku = noblkp0-ns;
       K_INTERP::compInterpolatedField(indi.begin(), cf, *listOfUnstrVelocities[noblku],
                                       connectu[noblku], NULL, NULL, type, u);
     }

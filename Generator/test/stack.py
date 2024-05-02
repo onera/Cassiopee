@@ -10,10 +10,10 @@ b = T.rotate(a, (0,0,0), (1,0,0), 5.)
 b = T.translate(b, (0,0,0.5))
 c = G.stack(a, b)
 
-# Conacatenate n structured grids
+# Concatenate a list of structured grids
 a = []
-for i in xrange(10):
+for i in range(10):
     a.append(D.circle((0,0,i), 1.))
 c = G.stack(a)
 
-C.convertArrays2File([c], 'out.plt')
+C.convertArrays2File(c, 'out.plt')

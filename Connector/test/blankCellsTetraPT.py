@@ -2,7 +2,6 @@
 import Converter.PyTree as C
 import Connector.PyTree as X
 import Generator.PyTree as G
-import Geom.PyTree as D
 
 # Tet mask
 mT4 = G.cart((0.,0.,0.), (0.1,0.1,0.2), (10,10,10))
@@ -19,5 +18,13 @@ masks = [[mT4]]
 import numpy
 BM = numpy.array([[1]])
 
-t = X.blankCellsTetra(t, masks, BM, blankingType='node_in', tol=1.e-12)
-C.convertPyTree2File(t, 'out.cgns')
+t1 = X.blankCellsTetra(t, masks, BM, blankingType='node_in', tol=1.e-12)
+C.convertPyTree2File(t1, 'out.cgns')
+
+t2 = C.convertArray2Tetra(t)
+t2 = X.blankCellsTetra(t2, masks, BM, blankingType='node_in', tol=1.e-12)
+C.convertPyTree2File(t2, 'out2.cgns')
+
+t3 = C.convertArray2NGon(t)
+t3 = X.blankCellsTetra(t3, masks, BM, blankingType='node_in', tol=1.e-12)
+C.convertPyTree2File(t3, 'out3.cgns')

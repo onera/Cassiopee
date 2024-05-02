@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -16,6 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+// fieldview format (not usable)
 
 // ecriture_bin_fv : ecrit un champ structuré au format binaire fieldview
 // entrées: 

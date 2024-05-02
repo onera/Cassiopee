@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -37,44 +37,40 @@ using namespace std;
 //=============================================================================
 void K_CONNECT::connectNG2VNbrs(FldArrayI& cNG, vector< vector<E_Int> >& cVN)
 {
-  E_Int* cnp = cNG.begin();             // pointeur sur la connectivite
-  E_Int nfaces = cnp[0];
-  E_Int sizeFN = cnp[1];                // dimension du tableau de connectivite Face/Noeuds
-  E_Int nelts = cnp[sizeFN+2];          // nombre d'elements
-  vector< vector<E_Int> > cEV(nelts);   // connectivite Element/Noeuds
-  E_Int nv = cVN.size();                // nombre total de noeuds
-  E_Int vertex1, vertex2;
-  FldArrayI posFaces(nfaces); // tableau de position des faces dans la connectivite
-  K_CONNECT::getPosFaces(cNG, posFaces);
-  E_Int* posFacesp = posFaces.begin(); // pointeur sur posFace
-  E_Int pos; // position d une face donnee dans la connectivite
+  // Acces non universel sur le ptrs
+  E_Int* ngon = cNG.getNGon();
+  E_Int* nface = cNG.getNFace();
+  E_Int* indPG = cNG.getIndPG();
+  E_Int* indPH = cNG.getIndPH();
+  // Acces universel nbre d'elements
+  E_Int nelts = cNG.getNElts();
+  // nombre total de noeuds
+  E_Int nv = cVN.size();
 
-  // 1- construction de la connectivite Face/Noeuds (les noeuds sont definis plusieurs fois)
-  E_Int* ptr = cnp+sizeFN+4;//debut connectivite EF
-  E_Int nf, face, nv2;
+  // construction de la connectivite Face/Noeuds (les noeuds sont definis plusieurs fois)
+  E_Int nf, nv2, vertex1, vertex2;
   for (E_Int et = 0; et < nelts; et++)
   {
-    nf = ptr[0]; //nb de faces pour l elt
-    for (E_Int j = 1; j <= nf; j++)
+    // Acces universel element et
+    E_Int* elt = cNG.getElt(et, nf, nface, indPH);
+    for (E_Int j = 0; j < nf; j++)
     {
-      face = ptr[j]-1;// numero de la face
-      pos = posFacesp[face];
-      nv2 = cnp[pos];//nb de noeuds pour la face courante 
-      for (E_Int nov = 1; nov < nv2; nov++)
+      // Acces universel face elt[j]-1
+      E_Int* face = cNG.getFace(elt[j]-1, nv2, ngon, indPG);
+      for (E_Int nov = 0; nov < nv2-1; nov++)
       {
-        vertex1 = cnp[pos+nov];//demarre a 1
-        vertex2 = cnp[pos+nov+1];//demarre a 1
+        vertex1 = face[nov];
+        vertex2 = face[nov+1];
         cVN[vertex1-1].push_back(vertex2);
         cVN[vertex2-1].push_back(vertex1);
       }
       // pour cycler
-      vertex1 = cnp[pos+nv2];//demarre a 1
-      vertex2 = cnp[pos+1];//demarre a 1
+      vertex1 = face[nv2-1];
+      vertex2 = face[0];
       cVN[vertex1-1].push_back(vertex2);
       cVN[vertex2-1].push_back(vertex1);
     }    
-    ptr += nf+1;
-  }  
+  } 
 
   // classement et unicite des noeuds voisins
   for (E_Int i = 0; i < nv; i++)

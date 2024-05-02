@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -18,7 +18,7 @@ C    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 
 C ============================================================================
 C Routine extraite de sAbrinA par G. Desquesnes
-C Calcule les coordonnees d un point donné dans le rep de reference.
+C Calcule les coordonnees d un point donnï¿½ dans le rep de reference.
 C =============================================================================
       subroutine coord_in_ref_frame_3d(pts, x1, y1, z1, x2, y2, z2 )
 c***********************************************************************
@@ -79,7 +79,7 @@ c
          mat(i,3) = w(i)
       ENDDO
       
-      call determinant( 3, mat, invdet )
+      call determinant( THREE_I, mat, invdet )
       if( idebug.ge.1 ) then
         write(*,*) '  det(u,v,w)=', invdet
       endif 
@@ -93,7 +93,7 @@ c.... x dans le nouveau repere
          mat(i,3) = w(i) 
       ENDDO
 
-      call determinant(3, mat, x2)
+      call determinant(THREE_I, mat, x2)
       if( idebug.ge.1 ) then
         write(*,*) '  det(t, v, w)=', x2
       endif
@@ -105,7 +105,7 @@ c.... y dans le nouveau repere
          mat(i,2) = t(i)
          mat(i,3) = w(i)
       ENDDO
-      call determinant(3, mat, y2)
+      call determinant(THREE_I, mat, y2)
       if( idebug.ge.1 ) then
         write(*,*) '  det(u, t, w)=', y2
       endif
@@ -117,7 +117,7 @@ c.... z dans le nouveau repere
          mat(i,2) = v(i)
          mat(i,3) = t(i)
       ENDDO
-      call determinant(3, mat, z2)
+      call determinant(THREE_I, mat, z2)
       if( idebug.ge.1 ) then
         write(*,*) '  det(u, v, t)=', z2
       endif

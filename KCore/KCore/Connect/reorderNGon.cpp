@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -31,22 +31,23 @@ using namespace std;
 // ============================================================================
 E_Int K_CONNECT::reorderNGON(FldArrayF& f, FldArrayI& cn, E_Int dir)
 {
-  E_Int* cnp = cn.begin();
-  E_Int sizeFN = cnp[1];
-  E_Int nelts = cnp[sizeFN+2];
-  //connectivite ets/ets voisins
+  // Acces non universel sur le ptrs
+  E_Int* ngon = cn.getNGon();
+  E_Int* nface = cn.getNFace();
+  E_Int* indPG = cn.getIndPG();
+  E_Int* indPH = cn.getIndPH();
+  // Acces universel nbre d'elements
+  E_Int nelts = cn.getNElts();
+  // Connectivite ets/ets voisins
   vector< vector<E_Int> > cEEN(nelts);
   FldArrayI cFE; connectNG2FE(cn, cFE);
-
   connectFE2EENbrs(cFE, cEEN);
-  FldArrayI posElts; K_CONNECT::getPosElts(cn, posElts);
-  FldArrayI posFaces; K_CONNECT::getPosFaces(cn, posFaces);
 
   E_Int nev = 0; // nbre d'elements deja visites
   char* isVisited = (char*)calloc(nelts, sizeof(char)); // elt deja visite?
   E_Int* mustBeVisited = (E_Int*)malloc(nelts * sizeof(E_Int));
   E_Int mbv = 0;
-  E_Int p, size, elt,iv, ie;
+  E_Int p, size, ie, iv, ienei, nbFaces, nbFacesNei, dummy;
   vector<E_Int> indices;
 
   while (nev < nelts)
@@ -55,22 +56,15 @@ E_Int K_CONNECT::reorderNGON(FldArrayF& f, FldArrayI& cn, E_Int dir)
     for (p = 0; (isVisited[p] != 0); p++);
     // appartient a un nouveau composant connexe
     // alors on recupere les vertex dans l'ordre rotatif et on ordonne l'elt de depart
-    K_CONNECT::getVertexIndices(cn.begin(), posFaces.begin(), posElts[p], indices);
+    K_CONNECT::getVertexIndices(cn, ngon, nface, indPG, indPH, p, indices);
 
 /*    printf("vertices initiaux\n");
     for (E_Int i = 0; i < indices.size(); i++) printf("%d ", indices[i]);
     printf("\n");
 */
     if (dir == -1) reverse(indices.begin(),indices.end());
-    orderNGONElement(p, indices, posElts, posFaces, cn);
+    orderNGONElement(p, indices, ngon, nface, indPG, indPH, cn);
 
-/*    // DBX
-    K_CONNECT::getVertexIndices(cn.begin(), posFaces.begin(), posElts[p], indices);
-    printf("vertices finaux\n");
-    for (E_Int i = 0; i < indices.size(); i++) printf("%d ", indices[i]);
-    printf("\n");
-    // ENDDBX
-*/
     indices.clear();
 
     mustBeVisited[mbv] = p;
@@ -80,22 +74,23 @@ E_Int K_CONNECT::reorderNGON(FldArrayF& f, FldArrayI& cn, E_Int dir)
     while (mbv > 0)
     {
       mbv--;
-      elt = mustBeVisited[mbv];
-      size = cEEN[elt].size();
-      E_Int* ptre = &cn[posElts[elt]];
+      ie = mustBeVisited[mbv];
+      size = cEEN[ie].size();
+      E_Int* elt = cn.getElt(ie, nbFaces, nface, indPH);
       for (iv = 0; iv < size; iv++)
       {
-        ie = cEEN[elt][iv]; // no de l'elt voisin
-        if (isVisited[ie] == 0)
+        ienei = cEEN[ie][iv]; // index de l'elt voisin: ienei
+        if (isVisited[ienei] == 0)
         {
-          E_Int* ptren = &cn[posElts[ie]];
+          // Acces universel element voisin ienei
+          E_Int* eltn = cn.getElt(ienei, nbFacesNei, nface, indPH);
           indices.clear();
 
           // Trouve 1 face commune entre les deux elements
-          for (E_Int nof1 = 1; nof1 <= ptre[0]; nof1++)
-            for (E_Int nof2 = 1; nof2 <= ptren[0]; nof2++)
+          for (E_Int nof1 = 0; nof1 < nbFaces; nof1++)
+            for (E_Int nof2 = 0; nof2 < nbFacesNei; nof2++)
             {
-              if (ptre[nof1] == ptren[nof2]) // face commune
+              if (elt[nof1] == eltn[nof2])
               {
                 // Une fois la face commune trouvee, on reconstruit le cycle des sommets
                 // en accord avec la circulation de la cellule voisine mbv
@@ -112,7 +107,7 @@ E_Int K_CONNECT::reorderNGON(FldArrayF& f, FldArrayI& cn, E_Int dir)
                 |    |                      ^     |                               |
                 |    |                      |     |                               |
                 |    |                      |     |                               |
-                |    |         mbv          |     |              ie               |
+                |    |         mbv          |     |            ienei              |
                 |    v  dont la circulation |     |                               |
                 |    v      est connue      |     |                               |
                 |                                 |                               |
@@ -125,33 +120,32 @@ E_Int K_CONNECT::reorderNGON(FldArrayF& f, FldArrayI& cn, E_Int dir)
                                            et pn1 (resp pn2)
 
                 */
-                E_Int face = ptren[nof2]-1;
-                E_Int* ptrface = &cn[posFaces[face]];
+                // Acces universel aux faces
+                E_Int* faceNei = cn.getFace(eltn[nof2]-1, dummy, ngon, indPG);
                 // Noeuds de la face commune
-                E_Int indv1 = ptrface[1];//demarre a 1
-                E_Int indv2 = ptrface[2];
+                E_Int indv1 = faceNei[0];
+                E_Int indv2 = faceNei[1];
                 // Recherche de la face precedente (notee pface et reperee par ipface) sur la cellule d'indice mbv
-                E_Int pface,ipface;
-                // Remarque : si la face commune == 1 alors on boucle et on retombe sur nbface pour ipface
-                if (nof1==1)
+                E_Int pface, ipface;
+                // Remarque : si la face commune == 0 alors on boucle et on retombe sur nbFaces-1 pour ipface
+                if (nof1 == 0)
                 {
-                  ipface = ptre[0];
+                  ipface = nbFaces-1;
                 }
                 else
                 {
                   ipface = nof1-1;
                 }
-                pface = ptre[ipface]-1;
+                pface = elt[ipface]-1;
                 // Noeuds de la face precedente (pn1 = previous node 1, idem pour pn2)
-                E_Int* ptrpface = &cn[posFaces[pface]];
-                E_Int pn1       = ptrpface[1];
-                E_Int pn2       = ptrpface[2];
+                E_Int* facep = cn.getFace(pface, dummy, ngon, indPG);
+                E_Int pn1 = facep[0];
+                E_Int pn2 = facep[1];
                 // Trouver le noeud commun entre la face precedente et la face commune
                 // alors l'autre neoud de la face commune devient le first du cycle
                 // le noeud commun entre la face commune et la precedente devient le second noeud du cycle
                 E_Int drawn=0;
-                E_Int prev, j, first, next, n1, n2, nextface;
-                const E_Int* ptrnextface;
+                E_Int prev, j, first, next, n1, n2;
                 if (indv1==pn1 || indv1==pn2)
                 {
                   indices.push_back(indv2);indices.push_back(indv1);
@@ -164,20 +158,19 @@ E_Int K_CONNECT::reorderNGON(FldArrayF& f, FldArrayI& cn, E_Int dir)
                 }
                 drawn++;
                 // Cherche
-                while (drawn < ptren[0])
+                while (drawn < nbFacesNei)
                 {
-                  for (j = 1; j <= ptren[0]; j++)
+                  for (j = 0; j < nbFacesNei; j++)
                   {
-                    nextface = ptren[j]-1;
-                    ptrnextface = &cn[posFaces[nextface]];
-                    n1 = ptrnextface[1];
-                    n2 = ptrnextface[2];
+                    E_Int* faceNext = cn.getFace(eltn[j]-1, dummy, ngon, indPG);
+                    n1 = faceNext[0];
+                    n2 = faceNext[1];
                     if (n1 == next && n2 != prev && n2 != first)
                     { indices.push_back(n2);  prev = n1; next = n2; drawn++; break; }
                     else if (n2 == next && n1 != prev && n1 != first)
                     { indices.push_back(n1); prev = n2; next = n1; drawn++; break; }
                   }
-                  if (j == ptren[0]+1) drawn++; // pour eviter les boucles infinies
+                  if (j == nbFacesNei) drawn++; // pour eviter les boucles infinies
                 }
                 indices.push_back(indices[0]); // pour boucler
                 goto orderie;
@@ -185,14 +178,14 @@ E_Int K_CONNECT::reorderNGON(FldArrayF& f, FldArrayI& cn, E_Int dir)
             }
 
           orderie:;
-          // Face commune trouvee: ordonne la connectivite pour l'elt ie
-          orderNGONElement(ie, indices, posElts, posFaces, cn);
+          // Face commune trouvee: ordonne la connectivite pour l'elt ienei
+          orderNGONElement(ienei, indices, ngon, nface, indPG, indPH, cn);
 
           // incremente
-          mustBeVisited[mbv] = ie;
+          mustBeVisited[mbv] = ienei;
           mbv++; nev++;
-          isVisited[ie] = 1;
-        }//test isVisited[ie] = 0
+          isVisited[ienei] = 1;
+        }//test isVisited[ienei] = 0
       }//fin boucle sur les voisins
     }// fin boucle while mbv > 0
   }
@@ -213,6 +206,46 @@ E_Int K_CONNECT::reorderNGON(FldArrayF& f, FldArrayI& cn, E_Int dir)
    IN/OUT: cNG modifie (retourne)
 */
 //=============================================================================
+void K_CONNECT::orderNGONElement(E_Int noe, vector<E_Int>& indices,
+                                 E_Int* ngon, E_Int* nface, E_Int* indPG,
+                                 E_Int* indPH, FldArrayI& cn)
+{
+  E_Int nvert = indices.size();
+  E_Int nf, indm, indp, dummy, nov = 0;
+  // Acces universel element noe
+  E_Int* elt = cn.getElt(noe, nf, nface, indPH);
+  vector<E_Int> sortedFaces;
+
+  while (nov < nvert)
+  {
+    indm = indices[nov];
+    if (nov < nvert-1) indp = indices[nov+1];
+    else indp = indices[0];
+
+    for (E_Int nof = 0; nof < nf; nof++)
+    {
+      // Acces universel face iface
+      E_Int iface = elt[nof]-1;
+      E_Int* face = cn.getFace(iface, dummy, ngon, indPG);
+      E_Int ind1 = face[0]; E_Int ind2 = face[1];
+
+      if ((ind1 == indm && ind2 == indp)||(ind1 == indp && ind2 == indm))
+      {
+        sortedFaces.push_back(iface+1);
+        break;
+      }
+    }
+    nov++;
+  }
+  E_Int nfaces = sortedFaces.size();
+  if (nfaces != nf) {printf("Warning: reorderNGON: NGON connectivity is not clean.");}
+  // trier selon sortedFaces les faces ds cEF
+  for (E_Int nof = 0; nof < nf; nof++)
+  {
+    elt[nof] = sortedFaces[nof];
+  }
+}
+
 void K_CONNECT::orderNGONElement(E_Int noe, vector<E_Int>& indices,
                                  FldArrayI& posElts, FldArrayI& posFaces,
                                  FldArrayI& cNG)

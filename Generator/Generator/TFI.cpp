@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -41,7 +41,7 @@ PyObject* K_GENERATOR::TFIMesh(PyObject* self, PyObject* args)
   
   E_Int size = PyList_Size(arrays);
 
-  switch ( size ) 
+  switch (size) 
   {
     case 6:
       return TFI3D(arrays);

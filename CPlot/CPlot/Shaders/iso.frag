@@ -14,6 +14,8 @@ uniform float edgeStyle;
 uniform sampler1D colormap;
 uniform float alpha; // colormap range
 uniform float beta;
+uniform float amin;
+uniform float amax;
 uniform float blend;
 uniform int shadow;
 uniform sampler2D ShadowMap;
@@ -22,14 +24,37 @@ void main()
 {
   float f, fs;
   int vali;
-  f = color.r; f = alpha*f + beta;
-  f = clamp(f, 0.0f, 1.f-0.5/niso);
+  f = color.r;
+
+  // discard
+  if (amax > amin)
+  { 
+    if (f > amax) discard;
+    if (f < amin) discard;
+  }
+  else
+  {
+    if (f > amax && f < amin) discard;
+  }
+
+  /*
+  Essai pour avoir de l'antialiasing sur la coupure.
+  float delta = 0.003;
+  float blend2 = blend;
+  if (f > amax+delta) discard;
+  else if (f > amax) blend2 = (-blend/delta)*f+blend*(1.+amax/delta);
+  else if (f < amin-delta) discard;
+  else if (f < amin) blend2 = (blend/delta)*f+blend*(1.-amin/delta);
+  */
+
+  f = alpha*f + beta;
+  f = clamp(f, 0.0, 1.-0.5/niso);
   
   fs = f;
   vali = int(f*niso);
   f = float(vali)/niso;
   vec3 val; 
-  val = vec3(texture1D(colormap, f+0.5f/niso));
+  val = vec3(texture1D(colormap, f+0.5/niso));
 
   float df, borne, borne1, borne2;
   df = fwidth(fs);
@@ -81,9 +106,14 @@ void main()
      // Z buffer du point dans la texture rendu du pt de vue de la lumiere
      float distanceFromLight = texture2D(ShadowMap, shadowCoordinateW.st).r;
      float s = shadowCoordinateW.s;
-     float t = shadowCoordinateW.t;      
+     float t = shadowCoordinateW.t;
      if (ShadowCoord.w > 0.0 && s > 0.001 && s < 0.999 && t > 0.001 && t < 0.999)
-       shadowValue = distanceFromLight < shadowCoordinateW.z ? 0.5 : 1.0;
+      {
+      //shadowValue = distanceFromLight < shadowCoordinateW.z ? 0.5 : 1.0;
+      if (distanceFromLight < shadowCoordinateW.z - 0.001) shadowValue = 0.5;
+      else if (distanceFromLight >= shadowCoordinateW.z) shadowValue = 1.;
+      else shadowValue = 500.*distanceFromLight-499.*shadowCoordinateW.z;
+      }
   }
 
   gl_FragColor = shadowValue * color2;

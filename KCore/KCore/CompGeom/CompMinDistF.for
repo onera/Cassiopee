@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -42,7 +42,7 @@ C_OUT
       INTEGER_E ind1s, ind2s
       REAL_E dmin
 C_LOCAL
-      INTEGER_E i1, j1, i2, j2, m1, m2
+      INTEGER_E i1, j1, i2, j2
       INTEGER_E ind1, ind2
       REAL_E dist
       REAL_E x10, y10, z10 

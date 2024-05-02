@@ -1,5 +1,7 @@
-# - edge mapping -
-import Tkinter as TK
+# - tkMapEdge -
+"""Remap mesh edges."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -29,8 +31,10 @@ def copyDistrib1D(source):
         z = CTK.t[2][nob][2][noz]
         try:
             zp = G.map(z, source, 1)
+            cad = Internal.getNodeFromName1(z, 'CAD')
+            if cad is not None: zp[2].append(cad) 
             CTK.replace(CTK.t, nob, noz, zp)
-        except Exception, e:
+        except Exception as e:
             fail = True; errors += [0,str(e)]
     if len(errors)>0: Panels.displayErrors(errors, header='Error: copyDistrib1D')
     return fail
@@ -48,9 +52,9 @@ def stretch1D(h):
     dims = Internal.getZoneDim(z)
     try:
         if dims[0] == 'Unstructured': a = C.convertBAR2Struct(z)
-        else: a = z
-    except Exception, e:
-        #print 'Error: stretch1D: %s.'%str(e)
+        else: a = Internal.copyTree(z)
+    except Exception as e:
+        #print('Error: stretch1D: %s.'%str(e))
         Panels.displayErrors([0,str(e)], header='Error: stretch1D')
         return True # Fail
 
@@ -58,14 +62,14 @@ def stretch1D(h):
     if ind == []: return True # Fail
     ind = ind[0]
     
+    zp = D.getCurvilinearAbscissa(z)
     l = D.getLength(a)
     a = D.getCurvilinearAbscissa(a)
-    zp = D.getCurvilinearAbscissa(z)
     distrib = C.cpVars(a, 's', a, 'CoordinateX')
     C._initVars(distrib, 'CoordinateY', 0.)
     C._initVars(distrib, 'CoordinateZ', 0.)
-    distrib = C.rmVars(distrib, 's')
-    
+    C._rmVars(distrib, 's')
+
     N = dims[1]
     val = C.getValue(zp, 's', ind)
     
@@ -92,16 +96,118 @@ def stretch1D(h):
     if h < 0: # enforce point
         distrib = G.enforcePoint(distrib, valf)
     else: # enforce h
-        if val == 0: distrib = G.enforcePlusX(distrib, h/l, N/10, 1)
-        elif val == 1: distrib = G.enforceMoinsX(distrib, h/l, N/10, 1)
-        else: distrib = G.enforceX(distrib, valf, h/l, N/10, 1)
+        if val == 0: distrib = G.enforcePlusX(distrib, h/l, N//10, 1)
+        elif val == 1: distrib = G.enforceMoinsX(distrib, h/l, N//10, 1)
+        else: distrib = G.enforceX(distrib, valf, h/l, N//10, 1)
     try:
-        a1 = G.map(a, distrib)
+        a1 = G.map(z, distrib)
+        cad = Internal.getNodeFromName1(z, 'CAD')
+        if cad is not None: a1[2].append(cad)
         CTK.replace(CTK.t, nob, noz, a1)
-    except Exception, e:
+    except Exception as e:
         fail = True
         Panels.displayErrors([0,str(e)], header='Error: stretch1D')
     return fail
+
+#==============================================================================
+# Set enforce h as a sizemap
+def setEnforce(event=None):
+    nzs = CPlot.getSelectedZones()
+    nz = nzs[0]
+    nob = CTK.Nb[nz]+1
+    noz = CTK.Nz[nz]
+    z = CTK.t[2][nob][2][noz]
+    setEnforceZ(z)
+
+# Perform a setH on z with clicked point
+def setEnforceZ(z):
+    h = CTK.varsFromWidget(VARS[1].get(), 1)
+    if len(h) != 1:
+        CTK.TXT.insert('START', 'Invalid spacing.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error')
+    h = h[0]
+
+    npts = C.getNPts(z)
+    ind = CPlot.getActivePointIndex()
+    if ind == []: return True
+    ind = ind[0]
+    if VARS[8].get() == 'HFactor':
+        P0 = C.getValue(z, 'GridCoordinates', ind)
+        if ind == npts-1: P1 = C.getValue(z, 'GridCoordinates', ind-1)
+        else: P1 = C.getValue(z, 'GridCoordinates', ind+1)
+        hloc = Vector.norm(Vector.sub(P1,P0))
+        h = h*hloc
+        #print("setting %f"%hloc)
+    D.setH(z, ind, h)
+    CTK.TXT.insert('START', 'Spacing set to %f.\n'%h)
+
+# Pass in clik mode for setting H
+def setEnforceMode(event=None):
+    import time
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
+        CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    W = WIDGETS['enforceMode']
+    if not CTK.__BUSY__:
+        CPlot.unselectAllZones()
+        CTK.__BUSY__ = True
+        TTK.sunkButton(W)
+        CPlot.setState(cursor=1)
+        while CTK.__BUSY__:
+            l = []
+            while l == []:
+                nz = CPlot.getSelectedZone()
+                l = CPlot.getActivePointIndex()
+                time.sleep(CPlot.__timeStep__)
+                W.update()
+                if not CTK.__BUSY__: break
+            if CTK.__BUSY__:
+                nob = CTK.Nb[nz]+1
+                noz = CTK.Nz[nz]
+                z = CTK.t[2][nob][2][noz]
+                setEnforceZ(z)
+
+        CTK.__BUSY__ = False
+        TTK.raiseButton(W)
+        CPlot.setState(cursor=0)
+    else:
+       CTK.__BUSY__ = False
+       TTK.raiseButton(W)
+       CPlot.setState(cursor=0)
+
+def enforceH(event=None):
+    v = CTK.varsFromWidget(VARS[10].get(), 1)
+    if len(v) != 1:
+        CTK.TXT.insert('START', 'Invalid number of points or factor.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error')
+    v = v[0]
+    CTK.saveTree()
+    CPlot.setState(cursor=1)
+    nzs = CPlot.getSelectedZones()
+    zones = []
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        z = CTK.t[2][nob][2][noz]
+        zones.append(z)
+    npts = C.getNPts(zones)
+    if VARS[9].get() == 'NFactor': N = v*npts
+    else: N = v 
+    D._enforceh(zones, N=N)
+    for c, nz in enumerate(nzs):
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        CTK.replace(CTK.t, nob, noz, zones[c])
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
+    CPlot.render()
+    CTK.TXT.insert('START', 'Spacings enforced.\n')
+        
+    # add CAD remesh if possible
+    edges = getSelection(nzs)
+    remeshCAD(edges)
+    CPlot.setState(cursor=0)
 
 #==============================================================================
 # Smooth pour les zones edges
@@ -113,21 +219,10 @@ def smooth1D(niter, eps):
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
-        dims = Internal.getZoneDim(z)
         try:
-            if dims[0] == 'Unstructured': a = C.convertBAR2Struct(z)
-            else: a = z
-            a = D.getCurvilinearAbscissa(a)
-            distrib = C.cpVars(a, 's', a, 'CoordinateX')
-            C._initVars(distrib, 'CoordinateY', 0.)
-            C._initVars(distrib, 'CoordinateZ', 0.)
-            distrib = C.rmVars(distrib, 's')
-            bornes = P.exteriorFaces(distrib)
-            distrib = T.smooth(distrib, eps=eps, niter=niter, 
-                               fixedConstraints=[bornes])
-            b = G.map(a, distrib)
-            CTK.replace(CTK.t, nob, noz, b)
-        except Exception, e:
+            D._smooth(z, eps, niter)
+            CTK.replace(CTK.t, nob, noz, z)
+        except Exception as e:
             fail = True
             Panels.displayErrors([0,str(e)], header='Error: smooth1D')
     return fail
@@ -148,9 +243,9 @@ def refine1D(density, npts, factor):
                 a = C.convertBAR2Struct(z); np = dims[1]
             else: a = z; np = dims[1]*dims[2]*dims[3]
             if factor < 0: factor = (npts-1.)/(np-1)
-            b = G.refine(a, factor, 1)
-            CTK.replace(CTK.t, nob, noz, b)
-        except Exception, e:
+            G._refine(a, factor, 1)
+            CTK.replace(CTK.t, nob, noz, a)
+        except Exception as e:
             fail = True
             Panels.displayErrors([0,str(e)], header='Error: refine1D')
     return fail
@@ -161,24 +256,21 @@ def refine1D(density, npts, factor):
 def uniformize1D(density, npts, factor):
     fail = False
     nzs = CPlot.getSelectedZones()
+    zones = []
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
-        dims = Internal.getZoneDim(z)
-        try:
-            if dims[0] == 'Unstructured':
-                a = C.convertBAR2Struct(z); np = dims[1]
-            else: a = z; np = dims[1]*dims[2]*dims[3]
-            if density > 0: npts = D.getLength(a)*density
-            if factor > 0: npts = np*factor[0]
-            npts = int(max(npts, 2))
-            distrib = G.cart((0,0,0), (1./(npts-1.),1,1), (npts,1,1))
-            b = G.map(a, distrib)
-            CTK.replace(CTK.t, nob, noz, b)
-        except Exception, e:
-            fail = True
-            Panels.displayErrors([0,str(e)], header='Error: uniformize1D')
+        zones.append(z)
+    try:
+        D._uniformize(zones, npts, -1, factor, density)
+        for c, nz in enumerate(nzs):
+            nob = CTK.Nb[nz]+1
+            noz = CTK.Nz[nz]
+            CTK.replace(CTK.t, nob, noz, zones[c])
+    except Exception as e:
+        fail = True
+        Panels.displayErrors([0,str(e)], header='Error: uniformize1D')
     return fail
 
 #==============================================================================
@@ -206,7 +298,7 @@ def apply2D(density, npts, factor, ntype=0):
     np = dims[1]*dims[2]*dims[3]
     if ntype == 0: # uniformize
         if density > 0: npts = D.getLength(i)*density
-        if factor > 0: npts = np*factor[0]
+        if factor > 0: npts = np*factor
         npts = int(max(npts, 2))
         distrib = G.cart((0,0,0), (1./(npts-1.),1,1), (npts,1,1))
         b = G.map(i, distrib)
@@ -299,7 +391,7 @@ def apply2D(density, npts, factor, ntype=0):
         b = T.projectOrtho(b, [zone])
         CTK.replace(CTK.t, nob, noz, b)
         return False
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: apply2D')
         return True
 
@@ -328,7 +420,7 @@ def apply3D(density, npts, factor, ntype):
     np = dims[1]*dims[2]*dims[3]
     if ntype == 0: # uniformize
         if density > 0: npts = D.getLength(i)*density
-        if factor > 0: npts = np*factor[0]
+        if factor > 0: npts = np*factor
         npts = int(max(npts, 2))
         distrib = G.cart((0,0,0), (1./(npts-1.),1,1), (npts,1,1))
         b = G.map(i, distrib)
@@ -420,7 +512,7 @@ def apply3D(density, npts, factor, ntype):
                 Q1 = C.getValue(ei, Internal.__GridCoordinates__, npi)
                 t1 = Vector.norm2(Vector.sub(P0,Q0))
                 t2 = Vector.norm2(Vector.sub(P1,Q1))
-                if (t1 < 1.e-12 and t2 < 1.e-12): match.append(ei)
+                if t1 < 1.e-12 and t2 < 1.e-12: match.append(ei)
         if len(match) == 4: # OK
             fn = G.TFI(match)
             # Projection du patch interieur
@@ -437,7 +529,7 @@ def apply3D(density, npts, factor, ntype):
         b = G.TFI(outf)
         CTK.replace(CTK.t, nob, noz, b)
         return False
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: apply3D')
         return True
 
@@ -547,79 +639,79 @@ def getEdges3D(zone, factor):
     (i,j,k) = forceIJK(i,j,k,ni,nj,nk)
 
     r = [] # refined edges
-    if (i == 1 and j == 1):
+    if i == 1 and j == 1:
         ind = k-1
         m = [e9]
         f = [f3,f5]
-        if (factor != 1.): r = [e11,e12,e10]; f += [f4,f6]
+        if factor != 1.: r = [e11,e12,e10]; f += [f4,f6]
 
-    elif (i == ni and j == 1):
+    elif i == ni and j == 1:
         ind = k-1
         m = [e10]
         f = [f6,f3]
-        if (factor != 1.): 
+        if factor != 1.: 
             r = [e9,e11,e12]
             f += [f5,f4]
 
-    elif (i == 1 and j == nj):
+    elif i == 1 and j == nj:
         ind = k-1
         m = [e11]
         f = [f5,f4]
-        if (factor != 1.): r = [e9,e10,e12]; f += [f3,f6]
+        if factor != 1.: r = [e9,e10,e12]; f += [f3,f6]
 
-    elif (i == ni and j == nj):
+    elif i == ni and j == nj:
         ind = k-1
         m = [e12]
         f = [f6,f4]
-        if (factor != 1.): r = [e10,e9,e11]; f += [f3,f5]
+        if factor != 1.: r = [e10,e9,e11]; f += [f3,f5]
 
-    elif (i == 1 and k == 1):
+    elif i == 1 and k == 1:
         ind = j-1
         m = [e3]
         f = [f1,f5]
-        if (factor != 1.): r = [e4,e8,e7]; f += [f2,f6]
+        if factor != 1.: r = [e4,e8,e7]; f += [f2,f6]
 
-    elif (i == ni and k == 1):
+    elif i == ni and k == 1:
         ind = j-1
         m = [e4]
         f = [f6,f1]
-        if (factor != 1.): r = [e3,e8,e7]; f += [f2,f5]
+        if factor != 1.: r = [e3,e8,e7]; f += [f2,f5]
 
-    elif (i == 1 and k == nk):
+    elif i == 1 and k == nk:
         ind = j-1
         m = [e7]
         f = [f5,f2]
-        if (factor != 1.): r = [e8,e4,e3]; f += [f6,f1]
+        if factor != 1.: r = [e8,e4,e3]; f += [f6,f1]
 
-    elif (i == ni and k == nk):
+    elif i == ni and k == nk:
         ind = j-1
         m = [e8]
         f = [f6,f2]
-        if (factor != 1.): r = [e7,e3,e4]; f += [f5,f1]
+        if factor != 1.: r = [e7,e3,e4]; f += [f5,f1]
 
-    elif (j == 1 and k == 1):
+    elif j == 1 and k == 1:
         ind = i-1
         m = [e1]
         f = [f1,f3]
-        if (factor != 1.): r = [e2,e6,e5]; f += [f2,f4]
+        if factor != 1.: r = [e2,e6,e5]; f += [f2,f4]
 
-    elif (j == nj and k == 1):
+    elif j == nj and k == 1:
         ind = i-1
         m = [e2]
         f = [f4,f1]
-        if (factor != 1.): r = [e1,e6,e5]; f += [f2,f3]
+        if factor != 1.: r = [e1,e6,e5]; f += [f2,f3]
 
-    elif (j == 1 and k == nk):
+    elif j == 1 and k == nk:
         ind = i-1
         m = [e5]
         f = [f2,f3]
-        if (factor != 1.): r = [e6,e2,e1]; f += [f1,f4]
+        if factor != 1.: r = [e6,e2,e1]; f += [f1,f4]
 
-    elif (j == nj and k == nk):
+    elif j == nj and k == nk:
         ind = i-1
         m = [e6]
         f = [f2,f4]
-        if (factor != 1.): r = [e5,e1,e2]; f += [f3,f1]
+        if factor != 1.: r = [e5,e1,e2]; f += [f3,f1]
 
     for i in m+r: ue.remove(i)
     for i in f: uf.remove(i)
@@ -636,7 +728,7 @@ def uniformize(event=None):
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
-    type = VARS[2].get()
+    rtype = VARS[2].get()
     density = -1; npts = 2; factor = -1
     if type == 'Density':
         density = CTK.varsFromWidget(VARS[0].get(), 1)
@@ -644,19 +736,20 @@ def uniformize(event=None):
             CTK.TXT.insert('START', 'Invalid points density.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')
         density = density[0]
-    elif type == 'Npts':
+    elif rtype == 'Npts':
         npts = CTK.varsFromWidget(VARS[0].get(), 2)
         if len(npts) != 1:
             CTK.TXT.insert('START', 'Invalid number of points.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')
         npts = npts[0]
-    elif type == 'Factor':
+    elif rtype == 'NFactor':
         factor = CTK.varsFromWidget(VARS[0].get(), 1)
         if len(factor) != 1:
             CTK.TXT.insert('START', 'Invalid number factor.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')
-
+        factor = factor[0]
     CTK.saveTree()
+    CTK.setCursor(2, WIDGETS['frame'])
 
     # Get first selected zone
     nz = nzs[0]
@@ -677,10 +770,15 @@ def uniformize(event=None):
     else:
         CTK.TXT.insert('START', 'Uniformize edge fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
+    
+    # add CAD remesh if possible
+    edges = getSelection(nzs)
+    remeshCAD(edges)
+    CTK.setCursor(0, WIDGETS['frame'])
     
 #==============================================================================
 def enforce(event=None):
@@ -700,7 +798,8 @@ def enforce(event=None):
     h = h[0]
 
     CTK.saveTree()
-    
+    CTK.setCursor(2, WIDGETS['frame'])
+
     # Get first selected zone
     nz = nzs[0]
     nob = CTK.Nb[nz]+1
@@ -720,10 +819,11 @@ def enforce(event=None):
     else:
         CTK.TXT.insert('START', 'stretch failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C.fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
+    CTK.setCursor(0, WIDGETS['frame'])
 
 #==============================================================================
 def refine(event=None):
@@ -736,9 +836,9 @@ def refine(event=None):
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
-    type = VARS[4].get()
+    rtype = VARS[4].get()
     factor = -1; npts = 2
-    if type == 'Factor':
+    if rtype == 'NFactor':
         factor = CTK.varsFromWidget(VARS[5].get(), 1)
         if len(factor) != 1:
             CTK.TXT.insert('START', 'Invalid refinement factor.\n')
@@ -752,6 +852,7 @@ def refine(event=None):
         npts = npts[0]
 
     CTK.saveTree()
+    CTK.setCursor(2, WIDGETS['frame'])
 
     # Get first selected zone
     nz = nzs[0]
@@ -772,10 +873,15 @@ def refine(event=None):
     else:
         CTK.TXT.insert('START', 'Refine fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
+
+    # add CAD remesh if possible
+    edges = getSelection(nzs)
+    remeshCAD(edges)
+    CTK.setCursor(0, WIDGETS['frame'])
 
 #==============================================================================
 def smooth(event=None):
@@ -800,6 +906,7 @@ def smooth(event=None):
     niter = niter[0]
 
     CTK.saveTree()
+    CTK.setCursor(2, WIDGETS['frame'])
 
     # Get first selected zone
     nz = nzs[0]
@@ -820,11 +927,16 @@ def smooth(event=None):
     else:
         CTK.TXT.insert('START', 'Smooth fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
     
+    # add CAD remesh if possible
+    edges = getSelection(nzs)
+    remeshCAD(edges)
+    CTK.setCursor(0, WIDGETS['frame'])
+
 #==============================================================================
 def setSourceEdge():
     if CTK.t == []: return
@@ -860,6 +972,8 @@ def copyDistrib():
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     CTK.saveTree()
+    CTK.setCursor(2, WIDGETS['frame'])
+
     # source edge
     v = VARS[3].get()
     v = v.split(';')
@@ -912,6 +1026,9 @@ def copyDistrib():
             source = T.subzone(source, (pt[0],1,pt[2]),(pt[0],nj,pt[2]))
         else:
             source = T.subzone(source, (pt[0],pt[1],1),(pt[0],pt[1],nk))
+    else: # source is 1D
+        source = Internal.copyTree(source)
+
     # Extrait la distribution en i
     source = D.getCurvilinearAbscissa(source)
     C._initVars(source, '{CoordinateX}={s}')
@@ -931,22 +1048,58 @@ def copyDistrib():
     if not fail:
         CTK.TXT.insert('START', 'Distribution copy done.\n')
     else:
-        CTK.TXT.insert('START', 'Distirbution copy fails for at least one zone.\n')
+        CTK.TXT.insert('START', 'Distribution copy fails for at least one zone.\n')
         CTK.TXT.insert('START', 'Warning: ', 'Warning')
-    CTK.t = C.fillMissingVariables(CTK.t)
+    #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
     
+    # add CAD remesh if possible
+    edges = getSelection(nzs)
+    remeshCAD(edges)
+    CTK.setCursor(0, WIDGETS['frame'])
+
+
+# get selection from CTK.t
+def getSelection(nzs):
+    zones = []
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        zones.append(CTK.t[2][nob][2][noz])
+    return zones
+
+# remesh CAD when an edge is modified
+def remeshCAD(edges):
+    try: import OCC.PyTree as OCC
+    except: return
+    if CTK.CADHOOK is None: return
+    valids = []
+    for e in edges:
+        zdim = Internal.getZoneDim(e)
+        if zdim[0] != 'Structured': continue
+        if zdim[4] != 1: continue
+        CAD = Internal.getNodeFromName1(e, 'CAD')
+        no = Internal.getNodeFromName1(CAD, 'no')
+        if CAD is None: continue
+        D._getCurvilinearAbscissa(e)
+        valids.append(e)
+    [h,hmax,hausd] = CTK.CADHOOK
+    OCC._remeshTreeFromEdges(h, CTK.t, valids)
+    CTK.display(CTK.t)
+    
+
 #==============================================================================
 # Create app widgets
 #==============================================================================
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkMapEdge', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Map distributions on edges.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkMapEdge  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Map distributions on edges.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -956,8 +1109,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkMapEdge')
@@ -966,93 +1119,120 @@ def createApp(win):
     # - VARS -
     # -0- Point density or Npts -
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
-    # -1- Enforce height
-    V = TK.StringVar(win); V.set('1.e-6'); VARS.append(V)
-    if CTK.PREFS.has_key('tkMapEdgeEnforceHeight'):
+    # -1- Enforce step
+    V = TK.StringVar(win); V.set('1.'); VARS.append(V)
+    if 'tkMapEdgeEnforceHeight' in CTK.PREFS:
         V.set(CTK.PREFS['tkMapEdgeEnforceHeight'])
     # -2- Option for uniformize
-    V = TK.StringVar(win); V.set('Factor'); VARS.append(V)
+    V = TK.StringVar(win); V.set('NFactor'); VARS.append(V)
     # -3- Source mesh for copy -
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -4- Option for refine
-    V = TK.StringVar(win); V.set('Factor'); VARS.append(V)
+    V = TK.StringVar(win); V.set('NFactor'); VARS.append(V)
     # -5-  Number of points/factor for refine 
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
     # -6- Smoothing iterations
     V = TK.StringVar(win); V.set('5'); VARS.append(V)
-    if CTK.PREFS.has_key('tkMapEdgeSmoothIt'):
+    if 'tkMapEdgeSmoothIt' in CTK.PREFS:
         V.set(CTK.PREFS['tkMapEdgeSmoothIt'])
     # -7- Smoothing eps
     V = TK.StringVar(win); V.set('0.5'); VARS.append(V)
-    if CTK.PREFS.has_key('tkMapEdgeSmoothEps'):
+    if 'tkMapEdgeSmoothEps' in CTK.PREFS:
         V.set(CTK.PREFS['tkMapEdgeSmoothEps'])
+    # -8- Type of set enforce
+    V = TK.StringVar(win); V.set('HFactor'); VARS.append(V)
+    # -9- Type of h enforce
+    V = TK.StringVar(win); V.set('NFactor'); VARS.append(V)
+    # -10- Nbre de pts pour h enforce
+    V = TK.StringVar(win); V.set('1.'); VARS.append(V)
 
     # - Uniformize -
     B = TTK.Button(Frame, text="Uniformize", command=uniformize)
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Uniformize an edge with regular spacing.')
-    B = TTK.OptionMenu(Frame, VARS[2], 'Factor', 'Density', 'Npts')
+    B = TTK.OptionMenu(Frame, VARS[2], 'NFactor', 'Density', 'Npts')
     B.grid(row=0, column=1, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=7)
     B.grid(row=0, column=2, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Point multiplication factor/point density/number of points.')
     B.bind('<Return>', uniformize)
 
-    # - Enforce -
-    B = TTK.Button(Frame, text="Enforce", command=enforce)
-    B.grid(row=1, column=0, columnspan=2, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Enforce given spacing in edge.')
-    B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=7)
-    B.grid(row=1, column=2, columnspan=2, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Enforced spacing.')
-    B.bind('<Return>', enforce)
-
     # - Refine edge -
     B = TTK.Button(Frame, text="Refine", command=refine)
-    B.grid(row=2, column=0, sticky=TK.EW)
+    B.grid(row=1, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Refine an edge keeping distribution.')
-    B = TTK.OptionMenu(Frame, VARS[4], 'Factor', 'Npts')
-    B.grid(row=2, column=1, sticky=TK.EW)
+    B = TTK.OptionMenu(Frame, VARS[4], 'NFactor', 'Npts')
+    B.grid(row=1, column=1, sticky=TK.EW)
     B = TTK.Entry(Frame, textvariable=VARS[5], background='White', width=7)
-    B.grid(row=2, column=2, columnspan=2, sticky=TK.EW)
+    B.grid(row=1, column=2, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Refinement factor or number of points.')
     B.bind('<Return>', refine)
 
     # - Copy distribution -
     B = TTK.Button(Frame, command=setSourceEdge,
                    image=iconics.PHOTO[8], padx=0, pady=0)
-    B.grid(row=3, column=3, sticky=TK.EW)
+    B.grid(row=2, column=3, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Set source edge defining distribution to copy.')
     B = TTK.Entry(Frame, textvariable=VARS[3], background='White', width=10)
-    B.grid(row=3, column=1, columnspan=2, sticky=TK.EW)
+    B.grid(row=2, column=1, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Source edge for distribution copy.')
     B = TTK.Button(Frame, text="Copy", command=copyDistrib)
-    B.grid(row=3, column=0, columnspan=1, sticky=TK.EW)
+    B.grid(row=2, column=0, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Copy distribution from source edge.')
 
     # - Smooth edge -
     B = TTK.Button(Frame, text="Smooth", command=smooth)
-    B.grid(row=4, column=0, sticky=TK.EW)
+    B.grid(row=3, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Smooth an edge distribution.')
     B = TTK.Entry(Frame, textvariable=VARS[7], background='White', width=7)
-    B.grid(row=4, column=1, sticky=TK.EW)
+    B.grid(row=3, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Smoother power.')
     B = TTK.Entry(Frame, textvariable=VARS[6], background='White', width=7)
-    B.grid(row=4, column=2, columnspan=2, sticky=TK.EW)
+    B.grid(row=3, column=2, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Number of smoother iterations.')
     B.bind('<Return>', smooth)
+    
+    # - Enforce -
+    B = TTK.Button(Frame, text="Set", command=setEnforce)
+    B.grid(row=4, column=0, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Set step on curve.')
+    B = TTK.OptionMenu(Frame, VARS[8], 'HFactor', 'H')
+    B.grid(row=4, column=1, sticky=TK.EW)
+    B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=7)
+    B.grid(row=4, column=2, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Enforced spacing.')
+    B.bind('<Return>', setEnforce)
+    B = TTK.Button(Frame, command=setEnforceMode,
+                   image=iconics.PHOTO[8], padx=0, pady=0)
+    B.grid(row=4, column=3, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Set size mode.')
+    WIDGETS['enforceMode'] = B
+
+    B = TTK.Button(Frame, text="Enforce", command=enforceH)
+    B.grid(row=5, column=0, columnspan=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Enforce all given spacing.')
+    B = TTK.OptionMenu(Frame, VARS[9], 'NFactor', 'Npts')
+    B.grid(row=5, column=1, sticky=TK.EW)
+    B = TTK.Entry(Frame, textvariable=VARS[10], background='White', width=7)
+    B.grid(row=5, column=2, columnspan=2, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Enforced number of points.')
+    B.bind('<Return>', enforceH)
     
 #==============================================================================
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['EdgeNoteBook'].add(WIDGETS['frame'], text='tkMapEdge')
+    except: pass
+    CTK.WIDGETS['EdgeNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['EdgeNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -1081,9 +1261,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

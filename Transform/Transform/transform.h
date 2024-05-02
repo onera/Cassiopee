@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -32,11 +32,11 @@ namespace K_TRANSFORM
 {
 
 /* joint deux arrays 1 et 2 structures
-   IN: f1: champs de l array 1 : contient coord
+   IN: f1: champs de l'array 1 : contient coord
    IN: im1, jm1, km1: dimensions de array1
    IN: posx1, posy1, posz1: position des coordonnees ds f1
    IN: pos1: position des champs communs a f2 ds f1
-   IN: f2: champs de l array 2 : contient coord
+   IN: f2: champs de l'array 2 : contient coord
    IN: im2, jm2, km2: dimensions de array2
    IN: posx2, posy2, posz2: position des coordonnees ds f2
    IN: pos2: position des champs communs a f1 ds f2
@@ -131,42 +131,27 @@ namespace K_TRANSFORM
                              FldArrayF& fieldc, E_Int& imc, E_Int& jmc, E_Int& kmc, E_Float tol);
 
   /* Join 2 arrays non structures */
-  E_Int joinUnstructured(FldArrayF& f1, FldArrayI& cn1,
-                         E_Int posx1, E_Int posy1, E_Int posz1,
-                         FldArrayF& f2, FldArrayI& cn2,
-                         E_Int posx2, E_Int posy2, E_Int posz2,
-                         E_Int nfld, char* eltType,
-                         FldArrayF& field, FldArrayI& cn, E_Float tol);
-  E_Int joinBothUnstructured(FldArrayF& f1, FldArrayI& cn1,
-                             FldArrayF& fc1, FldArrayI& cnc1,
-                             E_Int posx1, E_Int posy1, E_Int posz1,
+  PyObject* joinUnstructured(FldArrayF& f1, FldArrayI& cn1,
                              FldArrayF& f2, FldArrayI& cn2,
-                             FldArrayF& fc2, FldArrayI& cnc2,
-                             E_Int posx2, E_Int posy2, E_Int posz2,
-                             std::vector<E_Int>& pos1, std::vector<E_Int>& pos2,
-                             std::vector<E_Int>& posc1, std::vector<E_Int>& posc2,
-                             char* eltType,
-                             FldArrayF& field, FldArrayI& cn, 
-                             FldArrayF& fieldc, FldArrayI& cnc,
-                             E_Float tol);
+                             E_Int posx, E_Int posy, E_Int posz,
+                             char* eltType1, char* eltType2,
+                             char* varString, E_Float tol);
+  PyObject* joinBothUnstructured(FldArrayF& f1, FldArrayF& fc1, FldArrayI& cn1,
+                                 FldArrayF& f2, FldArrayF& fc2, FldArrayI& cn2,
+                                 E_Int posx, E_Int posy, E_Int posz,
+                                 char* eltType1, char* eltType2,
+                                 char* varString, char* varStringc,
+                                 E_Float tol);
 
   /* Join 2 arrays NGON */
-  E_Int joinNGON(FldArrayF& f1, FldArrayI& cn1,
-                 E_Int posx1, E_Int posy1, E_Int posz1,
-                 FldArrayF& f2, FldArrayI& cn2,
-                 E_Int posx2, E_Int posy2, E_Int posz2,
-                 E_Int nfld, FldArrayF& field, FldArrayI& cn, E_Float tol);
-  E_Int joinBothNGON(FldArrayF& f1, FldArrayI&  cn1,
-                     FldArrayF& fc1, FldArrayI&  cnc1,
-                     E_Int posx1, E_Int posy1, E_Int posz1,
+  PyObject* joinNGON(FldArrayF& f1, FldArrayI& cn1,
                      FldArrayF& f2, FldArrayI& cn2,
-                     FldArrayF& fc2, FldArrayI& cnc2,
-                     E_Int posx2, E_Int posy2, E_Int posz2,
-                     std::vector<E_Int>& pos1,  std::vector<E_Int>& pos2,
-                     std::vector<E_Int>& posc1,  std::vector<E_Int>& posc2,
-                     FldArrayF& field, FldArrayI& cn,
-                     FldArrayF& fieldc, FldArrayI& cnc,
-                     E_Float tol);
+                     E_Int posx, E_Int posy, E_Int posz,
+                     char* varString, E_Float tol);
+  PyObject* joinBothNGON(FldArrayF& f1, FldArrayF& fc1, FldArrayI& cn1,
+                         FldArrayF& f2, FldArrayF& fc2, FldArrayI& cn2,
+                         E_Int posx, E_Int posy, E_Int posz,
+                         char* varString, char* varStringc, E_Float tol);
 
   /* Split d'une courbe structuree  definie par f */
   void splitSplineStruct(E_Float dmax, E_Float cvmax,
@@ -243,18 +228,27 @@ namespace K_TRANSFORM
                                 E_Int dir2, E_Int ni2, E_Int nj2,
                                 E_Float* xt2, E_Float* yt2, E_Float* zt2);
 
+  /* break a NGON connectivity into elements */
   void breakNGonElements(FldArrayF& field, FldArrayI& cFNEF, 
                          std::vector<FldArrayI*>& cEV, 
                          std::vector<FldArrayF*>& fields, 
+                         std::vector<E_Int>& eltType,
+                         char* varString);
+  /* break a MIXED connectivity into elements */
+  void breakMixedElements(FldArrayF& field, FldArrayI& ce, 
+                         std::vector<FldArrayI*>& cEV,
+                         std::vector<FldArrayF*>& fields, 
                          std::vector<E_Int>& eltType);
   
-  /* Cree le dual d un maillage NGON 2D ou 3D.
+  /* Cree le dual d un maillage NGON 1D, 2D ou 3D.
    IN: f: champs contenant les coordonnees localises aux noeuds du 
    maillage primal
    IN: cn: connectivite NGON  du primal
    OUT: fd: champs aux noeuds du maillage dual
    OUT: cNGD: connectivite NGON du dual 
    fd et cNGD sont alloues dans ces fonctions */
+  void dualNGON1D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
+                  FldArrayF& fd, FldArrayI& cNGD);
   void dualNGON2D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
                   FldArrayF& fd, FldArrayI& cNGD);
   void dualNGON3D(FldArrayF& f, FldArrayI& cn, 
@@ -292,14 +286,18 @@ namespace K_TRANSFORM
   PyObject* _cyl2CartZ(PyObject* self, PyObject* args);
   PyObject* _cyl2CartA(PyObject* self, PyObject* args);
   PyObject* translate(PyObject* self, PyObject* args);
-  PyObject* rotateA1(PyObject* self, PyObject* args);
-  PyObject* rotateA2(PyObject* self, PyObject* args);
-  PyObject* rotateA3(PyObject* self, PyObject* args);
+  //PyObject* rotateA1(PyObject* self, PyObject* args);
+  //PyObject* rotateA2(PyObject* self, PyObject* args);
+  //PyObject* rotateA3(PyObject* self, PyObject* args);
+  PyObject* _rotateA1(PyObject* self, PyObject* args);
+  PyObject* _rotateA2(PyObject* self, PyObject* args);
+  PyObject* _rotateA3(PyObject* self, PyObject* args);
   PyObject* homothety(PyObject* self, PyObject* args);
   PyObject* contract(PyObject* self, PyObject* args);
   PyObject* symetrize(PyObject* self, PyObject* args);
   PyObject* perturbate(PyObject* self, PyObject* args);
   PyObject* smooth(PyObject* self, PyObject* args);
+  PyObject* _smoothField(PyObject* self, PyObject* args);
   PyObject* deform(PyObject* self, PyObject* args);
   PyObject* deform2(PyObject* self, PyObject* args);
   PyObject* deformPoint(PyObject* self, PyObject* args);
@@ -336,6 +334,7 @@ namespace K_TRANSFORM
   PyObject* projectOrthoSmooth(PyObject* self, PyObject* args);
   PyObject* projectRay(PyObject* self, PyObject* args);
   PyObject* projectSmoothDir(PyObject* self, PyObject* args);
+  PyObject* _alignVectorFieldWithRadialCylindricProjection(PyObject* self, PyObject* args);
 
   PyObject* splitCurvatureAngle(PyObject* self, PyObject* args);
   PyObject* splitCurvatureRadius(PyObject* self, PyObject* args);
@@ -369,6 +368,7 @@ namespace K_TRANSFORM
   PyObject* mergeStructGrids(PyObject* self, PyObject* args);
   PyObject* breakElements(PyObject* self, PyObject* args);
   PyObject* splitNGon(PyObject* self, PyObject* args);
+  PyObject* splitNGon2(PyObject* self, PyObject* args);
   PyObject* splitElement(PyObject* self, PyObject* args);
   PyObject* dualNGon(PyObject* self, PyObject* args);
   PyObject* flipEdges(PyObject* self, PyObject* args);

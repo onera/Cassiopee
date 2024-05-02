@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -30,13 +30,13 @@ void CreateNoise3D();
   Create a mipmap of textures.
 */
 //=============================================================================
-int Data::createNodeTexture(void)
+E_Int Data::createNodeTexture(void)
 {
-  int texWidth = 256;
-  int texHeight = 256;
+  E_Int texWidth = 256;
+  E_Int texHeight = 256;
   GLubyte *texPixels, *p;
-  int texSize;
-  int i, j;
+  E_Int texSize;
+  E_Int i, j;
   
   glGenTextures(1, &_texNodes);
   glBindTexture(GL_TEXTURE_2D, _texNodes);
@@ -52,7 +52,7 @@ int Data::createNodeTexture(void)
     _texNodes = 0;
     return 0;
   }
-
+  
   p = texPixels;
   for (i = 0; i < texHeight; i++) 
   {
@@ -68,10 +68,12 @@ int Data::createNodeTexture(void)
       p += 4;
     }
   }
-
-  gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, texWidth, texHeight, GL_RGBA, 
-                    GL_UNSIGNED_BYTE, texPixels);
   
+  //gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, texWidth, texHeight, GL_RGBA, 
+  //                  GL_UNSIGNED_BYTE, texPixels);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texWidth, texHeight, 0, GL_RGBA, 
+               GL_UNSIGNED_BYTE, texPixels);
+
   free(texPixels);
   return 1;
 }
@@ -82,7 +84,7 @@ int Data::createNodeTexture(void)
   Noise3D est une texture 3D qui sert comme tirage aleatoire dans les shaders.
 */
 //=============================================================================
-int Data::createNoise3DTexture(void)
+E_Int Data::createNoise3DTexture(void)
 {
 #ifdef __SHADERS__
   if (glewIsSupported("GL_EXT_texture3D") != 0)
@@ -101,14 +103,31 @@ int Data::createNoise3DTexture(void)
   Cette texture sert a stocker une copie de l'ecran (courant)
 */
 //=============================================================================
-int Data::createFrameBufferTexture(void)
+E_Int Data::createFrameBufferTexture(void)
 {
-  glGenTextures(1, &_texFrameBuffer);
-  glBindTexture(GL_TEXTURE_2D, _texFrameBuffer);
+  glGenTextures(1, &_texFrameBuffer[ptrState->frameBuffer]);
+  glBindTexture(GL_TEXTURE_2D, _texFrameBuffer[ptrState->frameBuffer]);
   glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, 
-                   _frameBufferSize, _frameBufferSize, 0);
+                   _frameBufferSize[ptrState->frameBuffer], _frameBufferSize[ptrState->frameBuffer], 0);
   glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   return 1;
+}
+
+//=============================================================================
+// Create image teture from an image file
+// call createPngTexture or createJpgTexture depending on file end
+//=============================================================================
+E_Int Data::createImageTexture(const char* filename, GLuint &tex, 
+                               E_Int &width, E_Int &height, bool mipmap)
+{
+  E_Int l = strlen(filename);
+  if (filename[l-3] == 'p' && filename[l-2] == 'n' && filename[l-1] == 'g') 
+    return createPngTexture(filename, tex, width, height, mipmap);
+  else if (filename[l-3] == 'j' && filename[l-2] == 'p' && filename[l-1] == 'g') 
+    return createJpgTexture(filename, tex, width, height, mipmap);
+  else if (filename[l-4] == 'j' && filename[l-3] == 'p' && filename[l-2] == 'e' && filename[l-1] == 'g') 
+    return createJpgTexture(filename, tex, width, height, mipmap);
+  else return createPngTexture(filename, tex, width, height, mipmap);
 }

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -18,6 +18,8 @@
 */
 #include "../Data.h"
 
+#define EPSBLANKING 1.e-2
+
 //=============================================================================
 // Blanking plugins
 //=============================================================================
@@ -35,12 +37,12 @@
    This variable is: blanked (0), interpolated or discretized (1)
 */
 //=============================================================================
-int blankCellN(Data* d, int p1, int blank, int zone)
+int blankCellN(Data* d, E_Int p1, E_Int blank, E_Int zone)
 {
   Zone* z = d->_zones[zone];
-  double* cellN = z->f[blank-1]; 
+  double* cellN = z->f[blank-1];
   double val = cellN[p1];
-  if (val >= 0 && val < 1) return 0; // blanked
+  if (val >= -EPSBLANKING && val < 1.-EPSBLANKING) return 0; // blanked
   else return 1;
 }
 
@@ -52,12 +54,12 @@ int blankCellN(Data* d, int p1, int blank, int zone)
    interpolated (-noOfInterpolatedDomain)
 */
 //=============================================================================
-int blankCellNF(Data* d, int p1, int blank, int zone)
+int blankCellNF(Data* d, E_Int p1, E_Int blank, E_Int zone)
 {
   Zone* z = d->_zones[zone];
   double* cellN = z->f[blank-1];
   double val = cellN[p1];
-  if (val == 0) return 0; // blanked
+  if (val >= -EPSBLANKING && val <= EPSBLANKING) return 0; // blanked
   else return 1;
 }
 
@@ -69,7 +71,7 @@ int blankCellNF(Data* d, int p1, int blank, int zone)
    interpolated (-noOfInterpolatedDomain)
 */
 //=============================================================================
-int blankStatus(Data* d, int p1, int blank, int zone)
+int blankStatus(Data* d, E_Int p1, E_Int blank, E_Int zone)
 {
   Zone* z = d->_zones[zone];
   double* cellN = z->f[blank-1];

@@ -9,3 +9,6 @@ b = G.cart((12,0,0), (1,1,1), (10,10,10)); b[0] = 'a'
 t = C.newPyTree(['Base',a,b])
 t = Internal.sortByName(t)
 test.testO(t, 1)
+t = C.newPyTree(['Base',a,b])
+Internal._sortByName(t)
+test.testO(t, 1)

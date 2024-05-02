@@ -20,4 +20,4 @@ t = Cmpi.readZones(t, 'test.cgns', proc=Cmpi.rank)
 tb = Cmpi.createBBoxTree(t)
 # Cree le graph
 graph = Cmpi.computeGraph(tb)
-if Cmpi.rank == 0: print graph
+if Cmpi.rank == 0: print(graph)

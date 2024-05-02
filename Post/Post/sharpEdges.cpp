@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -29,10 +29,9 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Float dirVect[3];
-  dirVect[0] = 0;  dirVect[1] = 0;  dirVect[2] = 1; 
+  dirVect[0] = 0; dirVect[1] = 0; dirVect[2] = 1; 
   E_Float alpref;
-  if (!PYPARSETUPLEF(args,
-                    "Od", "Of",
+  if (!PYPARSETUPLE_(args, O_ R_,
                     &array, &alpref))
   {
       return NULL;
@@ -295,13 +294,13 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
     // tableau des positions des faces dans la connectivite
     FldArrayI posFaces; K_CONNECT::getPosFaces(*cn, posFaces);
     FldArrayI dimElts; // tableau donnant pour chaque element sa dimension
-    K_CONNECT::getDimElts(*cn, posFaces, dimElts);
+    K_CONNECT::getDimElts(*cn, dimElts);
     E_Int* dimEltsp = dimElts.begin();
     // taille du champ f
     E_Int nfld = f->getNfld();
     // pointeur sur le champ f
     vector<E_Float*> fp(nfld);
-    for (E_Int p=0;p<nfld;p++) fp[p] = f->begin(p+1);
+    for (E_Int p = 0; p < nfld; p++) fp[p] = f->begin(p+1);
 
     // noeuds des elements elt1 et elt2 
     vector<E_Float*> pts1; vector<E_Float*> pts2;
@@ -427,7 +426,7 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
       // parcours des elements
       for (E_Int elt1 = 0; elt1 < nelts; elt1++)
       {
-        // dimension de l element elt1
+        // dimension de l'element elt1
         dim = dimEltsp[elt1];
         // nombre de faces de elt1
         nbfaces1 = ptrEF[0];
@@ -469,7 +468,7 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
             E_Float* ptB = new E_Float[3]; 
             E_Float* ptC = new E_Float[3]; 
             E_Float* ptD = new E_Float[3]; 
-            // determination de la face (donc d un noeud en 1D) commune
+            // determination de la face (donc d'un noeud en 1D) commune
             ptA[0] = pts1[0][0];  ptA[1] = pts1[0][1];  ptA[2] = pts1[0][2];
             ptB[0] = pts1[1][0];  ptB[1] = pts1[1][1];  ptB[2] = pts1[1][2];
             ptC[0] = pts2[0][0];  ptC[1] = pts2[0][1];  ptC[2] = pts2[0][2];
@@ -494,7 +493,7 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
               dirVect[0] = 0.; dirVect[1] = 0.; dirVect[2] = 1.;
             }
             alpha = K_COMPGEOM::getAlphaAngleBetweenBars(ptA,ptB,ptC,ptD,dirVect);
-            if ( (alpha < alphamin || alpha > alphamax) && alpha != -1000.) 
+            if ((alpha < alphamin || alpha > alphamax) && alpha != -1000.) 
             {
               found1 = 0; found2 = 0;
               if ( indices1[0] == indices2[0] || indices1[0] == indices2[1] ) 
@@ -543,7 +542,7 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
                     newptrEF[v1] = nof; nof++;
                     // noeud  de la nouvelle face
                     newptrFN[0] = 1;
-                    newptrFN[1] =  indpt1;
+                    newptrFN[1] = indpt1;
                     newptrFN += 2;
                   } 
                   newptrEF += matchingPoints.size();
@@ -562,7 +561,6 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
         for (unsigned int k = 0; k < pts1.size(); k++) delete [] pts1[k];
         pts1.clear();
       } // fin boucle elt1
-
 
       // reallocation pour la nouvelle connectivite
       newcnFN.resize(sizeco1); newcnEF.resize(sizeco2);

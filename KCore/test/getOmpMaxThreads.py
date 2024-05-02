@@ -1,2 +1,3 @@
+# - getOmpMaxThreads -
 import KCore
-print KCore.kcore.getOmpMaxThreads()
+print(KCore.getOmpMaxThreads())

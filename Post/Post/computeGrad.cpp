@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -79,15 +79,15 @@ extern "C"
 PyObject* K_POST::computeGrad(PyObject* self,PyObject* args)
 {
   PyObject* array; PyObject* varname;
-  if (!PyArg_ParseTuple(args, "OO", &array, &varname)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &varname)) return NULL;
   
   // Check array
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
   E_Int ni, nj, nk;// number of points of array
   E_Int posx = -1; E_Int posy = -1; E_Int posz = -1;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, 
-                                    eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, 
+                                     eltType);
 
   if (res != 1 && res != 2)
   {
@@ -96,14 +96,17 @@ PyObject* K_POST::computeGrad(PyObject* self,PyObject* args)
     return NULL;
   }
   // check varname
-  char* var;
-  if (PyString_Check(varname) == 0)
+  char* var = NULL;
+  if (PyString_Check(varname)) var = PyString_AsString(varname);
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(varname)) var = (char*)PyUnicode_AsUTF8(varname);
+#endif
+  else
   {    
     PyErr_SetString(PyExc_TypeError, 
                     "computeGrad: varname must be a string.");
     RELEASESHAREDB(res,array,f,cn); return NULL;
-  }
-  else var = PyString_AsString(varname);
+  } 
   E_Int posv = K_ARRAY::isNamePresent(var, varString);
   if (posv == -1)
   {
@@ -139,7 +142,7 @@ PyObject* K_POST::computeGrad(PyObject* self,PyObject* args)
     E_Int nj1 = K_FUNC::E_max(1,nj-1);
     E_Int nk1 = K_FUNC::E_max(1,nk-1);    
     E_Int ncells = ni1*nj1*nk1;
-    tpl = K_ARRAY::buildArray(3, varStringOut, ni1, nj1, nk1);
+    tpl = K_ARRAY::buildArray3(3, varStringOut, ni1, nj1, nk1);
     E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
     FldArrayF fp(ncells, 3, fnp, true); 
     computeGradStruct(ni, nj, nk, 
@@ -151,27 +154,23 @@ PyObject* K_POST::computeGrad(PyObject* self,PyObject* args)
   {
     if (strcmp(eltType, "NGON") == 0)
     {
-      E_Int npts = f->getSize();
-      E_Int* cnp = cn->begin();
-      //E_Int nfaces = cnp[0]; // nombre total de faces
-      E_Int sizeFN = cnp[1]; //  taille de la connectivite Face/Noeuds
-      E_Int nelts = cnp[sizeFN+2];  // nombre total d elements
-      E_Int csize = cn->getSize();
-      tpl = K_ARRAY::buildArray(3, varStringOut, npts, nelts, -1, eltType, true, csize);
-      E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-      FldArrayF fp(nelts, 3, fnp, true);
-      E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-      FldArrayI cnn(cn->getSize(), 1, cnnp, true); cnn = *cn;
+      // Build unstructured NGON array from existing connectivity & empty fields
+      E_Int nelts = cn->getNElts();
+      FldArrayF* fp = new FldArrayF(nelts, 3, true); fp->setAllValuesAtNull();
+      tpl = K_ARRAY::buildArray3(*fp, varStringOut, *cn, "NGON");
+      delete fp; K_ARRAY::getFromArray3(tpl, fp);
+      
       E_Int err = computeGradNGon(
         f->begin(posx), f->begin(posy), f->begin(posz), 
         f->begin(posv), *cn, 
-        fp.begin(1), fp.begin(2), fp.begin(3));    
+        fp->begin(1), fp->begin(2), fp->begin(3));
       if (err == 1)
       {
         PyErr_SetString(PyExc_TypeError, 
                         "computeGrad: gradient can only be computed for 3D NGONs.");
         RELEASESHAREDB(res,array,f,cn); return NULL;         
       }
+      RELEASESHAREDS(tpl, fp);
     }
     else 
     {
@@ -184,7 +183,7 @@ PyObject* K_POST::computeGrad(PyObject* self,PyObject* args)
       {
         PyErr_SetString(PyExc_TypeError,
                         "computeGrad: not a valid element type.");
-        RELEASESHAREDU(array,f, cn); return NULL;
+        RELEASESHAREDU(array, f, cn); return NULL;
       }
       E_Int npts = f->getSize();
       tpl = K_ARRAY::buildArray(3, varStringOut, npts, cn->getSize(), -1, eltType, true, 
@@ -201,7 +200,7 @@ PyObject* K_POST::computeGrad(PyObject* self,PyObject* args)
                     fp.begin(1), fp.begin(2), fp.begin(3));    
     }
   }
-  RELEASESHAREDB(res,array,f,cn);
+  RELEASESHAREDB(res, array, f, cn);
   delete [] varStringOut;
   return tpl;
 }
@@ -404,12 +403,15 @@ E_Int K_POST::computeGradNGon(E_Float* xt, E_Float* yt, E_Float* zt,
                               E_Float* fp, FldArrayI& cn,
                               E_Float* gradx, E_Float* grady, E_Float* gradz)
 {
-  E_Int* cnp = cn.begin();
-  // Donnees liees a la connectivite
-  E_Int nfaces = cnp[0]; // nombre total de faces
-  E_Int sizeFN = cnp[1]; //  taille de la connectivite Face/Noeuds
-  E_Int nelts = cnp[sizeFN+2];  // nombre total d elements
-  E_Int* cEFp = cnp+4+sizeFN;// debut connectivite Elmt/Faces
+  // Acces non universel sur le ptrs
+  E_Int* ngon = cn.getNGon();
+  E_Int* nface = cn.getNFace();
+  E_Int* indPG = cn.getIndPG();
+  E_Int* indPH = cn.getIndPH();
+  // Acces universel nbres d'elements et de faces
+  E_Int nelts = cn.getNElts();
+  E_Int nfaces = cn.getNFaces();
+  E_Int ierr = 0; // error index
 
   // calcul de la metrique
   E_Float* sxp = new E_Float [3*nfaces];
@@ -425,50 +427,33 @@ E_Int K_POST::computeGradNGon(E_Float* xt, E_Float* yt, E_Float* zt,
   // Connectivite Element/Noeuds
   vector< vector<E_Int> > cnEV(nelts);
   K_CONNECT::connectNG2EV(cn, cnEV); //deja calculee dans NGONVol
+  // Tableau de la dimension des elements
+  FldArrayI dimElt(nelts); 
+  K_CONNECT::getDimElts(cn, dimElt);
 
-  // sommets associes a l'element
-  vector<E_Int> vertices;
+#pragma omp parallel
+  {
+    E_Float fpmeanface, invvol;
+    E_Int dim, ind, noface, indnode, nbFaces, nbNodes, nbNodesPerFace;
+    E_Float xbe, ybe, zbe; // coordonnees du barycentre d un element
+    E_Float xbf, ybf, zbf; // coordonnees du barycentre d une face
+    E_Float sens, sx, sy, sz;
 
-  FldArrayI posFace(nfaces); // tableau de position des faces dans la connectivite
-  K_CONNECT::getPosFaces(cn, posFace);
-
-  E_Float fpmeanface, invvol;
-  E_Int dim, ind, noface, indnode, nbFaces, nbNodes, nbNodesPerFace, pos;
-  E_Float xbe, ybe, zbe; // coordonnees du barycentre d un element
-  E_Float xbf, ybf, zbf; // coordonnees du barycentre d une face
-  E_Float  sens, sx, sy, sz;
-  FldArrayI dimElt(nelts); // tableau de la dimension des elements
-  K_CONNECT::getDimElts(cn, posFace, dimElt);
-  // parcours des elements
-  for (E_Int et = 0; et < nelts; et++)
-  { 
-    dim = dimElt[et]; // dimension de l'element
-    switch (dim) 
-    {
-      case 1: // NGon 1D
-        printf("computeGrad: not valid for 1D NGONs\n");
-        delete [] volp;
-        delete [] sxp; 
-        delete [] syp;
-        delete [] szp;
-        delete [] snp;
-        return 1;     
-
-      case 2: // NGon 2D
-        printf("computeGrad: not valid for 2D NGONs\n");
-        delete [] volp;
-        delete [] sxp; 
-        delete [] syp;
-        delete [] szp;
-        delete [] snp;
-        return 1;
-
-      case 3:
+    // parcours des elements
+#pragma omp for
+    for (E_Int et = 0; et < nelts; et++)
+    { 
+      // An error occurred - skip the rest of the calculations
+      if (ierr == 1) continue;
+      
+      dim = dimElt[et]; // dimension de l'element
+      if (dim == 3) 
+      {
         invvol = 1./volp[et];
         gradx[et] = 0.; grady[et] = 0.; gradz[et] = 0.;
         
         // calcul du barycentre be (xbe, ybe, zbe) de l'element
-        vertices = cnEV[et];
+        const vector<E_Int>& vertices = cnEV[et]; // sommets associes a l'element et
         nbNodes = vertices.size();
         xbe = 0.; ybe = 0.; zbe = 0.;
         for (E_Int n = 0; n < nbNodes; n++)
@@ -478,20 +463,21 @@ E_Int K_POST::computeGradNGon(E_Float* xt, E_Float* yt, E_Float* zt,
         }
         xbe = xbe/nbNodes; ybe = ybe/nbNodes; zbe = zbe/nbNodes;
 
+        // Acces universel element et
+        E_Int* elt = cn.getElt(et, nbFaces, nface, indPH);
         // parcours des faces de l element et
-        nbFaces = cEFp[0]; 
         for (E_Int fa = 0; fa < nbFaces; fa++)
         {
-          noface = cEFp[fa+1]-1;
-          pos = posFace[noface];
-          nbNodesPerFace = cnp[pos]; pos++;
+          // Acces universel face noface
+          noface = elt[fa]-1;
+          E_Int* face = cn.getFace(noface, nbNodesPerFace, ngon, indPG);
           //valeur moyenne de fp pour la face
           fpmeanface = 0.;
           // calcul du barycentre bf (xbf, ybf, zbf) de la face
           xbf = 0.; ybf = 0.; zbf = 0.;
           for (E_Int n = 0; n < nbNodesPerFace; n++)
           {
-            indnode = cnp[pos+n]-1;
+            indnode = face[n]-1; // indice du point n
             xbf += xt[indnode]; ybf += yt[indnode]; zbf += zt[indnode];
             fpmeanface += fp[indnode];
           }
@@ -506,19 +492,15 @@ E_Int K_POST::computeGradNGon(E_Float* xt, E_Float* yt, E_Float* zt,
           grady[et] += fpmeanface*sy;
           gradz[et] += fpmeanface*sz;
         }
-        cEFp += nbFaces+1;
         gradx[et] *= invvol;
         grady[et] *= invvol;
         gradz[et] *= invvol;
-        break;
-        
-      default: 
-        delete [] volp;
-        delete [] sxp; 
-        delete [] syp;
-        delete [] szp;
-        delete [] snp;
-        return 1;
+      }
+      else
+      {
+        printf("computeGrad: not valid for " SF_D_ "D NGONs\n", dim);
+        ierr = 1;
+      }
     }
   }
   delete [] volp;
@@ -526,5 +508,5 @@ E_Int K_POST::computeGradNGon(E_Float* xt, E_Float* yt, E_Float* zt,
   delete [] syp;
   delete [] szp;
   delete [] snp;
-  return 0;
+  return ierr;
 }

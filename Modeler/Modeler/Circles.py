@@ -1,4 +1,4 @@
-# - all circles -
+"""All models of circles."""
 import Geom as D
 import Transform as T
 import Generator as G
@@ -13,11 +13,10 @@ def circle1(R=1., Rd=0.8, Nd=10, fracD=0.5, N=180):
     """Circle"""
     c1 = D.circle((0,0,0), R, N=N)
     c2 = D.circle((0,0,0), Rd, N=N)
-    ad = 360./Nd
     Npts = int(N*1./Nd)
     Npts1 = int((1.-fracD)*Npts)
     out = []; c = 1
-    for i in xrange(Nd):
+    for i in range(Nd):
         bx = min(c+Npts, N)
         a1 = T.subzone(c1, (c,1,1), (c+Npts1,1,1))
         a2 = T.subzone(c2, (c+Npts1,1,1), (bx,1,1))
@@ -33,15 +32,14 @@ def circle1(R=1., Rd=0.8, Nd=10, fracD=0.5, N=180):
 #=============================================================================
 # Cercle avec bumps
 #=============================================================================
-def circle2(R=1.,  Rd=0.8, Nd=10, fracD=0.5, N=180):
+def circle2(R=1., Rd=0.8, Nd=10, fracD=0.5, N=180):
     """Circle"""
     c1 = D.circle((0,0,0), R, N=N)
     c2 = D.circle((0,0,0), Rd, N=N)
-    ad = 360./Nd
     Npts = int(N*1./Nd)
     Npts1 = int((1.-fracD)*Npts)
     out = []; c = 1
-    for i in xrange(Nd):
+    for i in range(Nd):
         bx = min(c+Npts, N)
         a1 = T.subzone(c1, (c,1,1), (c+Npts1,1,1))
         a2 = T.subzone(c2, (c+Npts1,1,1), (bx,1,1))
@@ -56,6 +54,4 @@ def circle2(R=1.,  Rd=0.8, Nd=10, fracD=0.5, N=180):
     out = C.convertArray2Hexa(out)
     out = T.join(out)
     out = G.close(out)
-    return out    
-
-
+    return out

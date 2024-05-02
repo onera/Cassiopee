@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -22,7 +22,7 @@
 // Calcul les steps en se basant sur la distance a la BBOX
 //=============================================================================
 void Data::computeSteps0(StructZone* zonep, 
-                         int& stepi, int& stepj, int& stepk)
+                         E_Int& stepi, E_Int& stepj, E_Int& stepk)
 {
   double Di = zonep->Di;
   double Dj = zonep->Dj;
@@ -38,21 +38,21 @@ void Data::computeSteps0(StructZone* zonep,
   d = pow(d, beta);
   d = d*alpha;
 
-  stepi = (int)(d*Di);
-  stepj = (int)(d*Dj);
-  stepk = (int)(d*Dk);
-  stepi = MAX(1, stepi);
-  stepj = MAX(1, stepj);
-  stepk = MAX(1, stepk);
-  stepi = MIN(stepi, 20);
-  stepj = MIN(stepj, 20);
+  stepi = (E_Int)(d*Di);
+  stepj = (E_Int)(d*Dj);
+  stepk = (E_Int)(d*Dk);
+  stepi = MAX(E_Int(1), stepi);
+  stepj = MAX(E_Int(1), stepj);
+  stepk = MAX(E_Int(1), stepk);
+  stepi = MIN(stepi, E_Int(20));
+  stepj = MIN(stepj, E_Int(20));
 }
 
 //=============================================================================
 // Calcul les steps en ses basant sur la distance a la BBOX
 //=============================================================================
 void Data::computeSteps1(StructZone* zonep, 
-                         int& stepi, int& stepj, int& stepk)
+                         E_Int& stepi, E_Int& stepj, E_Int& stepk)
 {
   double Di = zonep->Di;
   double Dj = zonep->Dj;
@@ -67,15 +67,15 @@ void Data::computeSteps1(StructZone* zonep,
   d = (sqrt(d)/dmoy)*2.;
   //printf("dist %f %f\n", d, Di);
 
-  stepi = (int)(d*Di);
-  stepj = (int)(d*Dj);
-  stepk = (int)(d*Dk);
-  stepi = MAX(1, stepi);
-  stepj = MAX(1, stepj);
-  stepk = MAX(1, stepk);
-  stepi = MIN(stepi, 20);
-  stepj = MIN(stepj, 20);
-  stepk = MIN(stepk, 20);
+  stepi = (E_Int)(d*Di);
+  stepj = (E_Int)(d*Dj);
+  stepk = (E_Int)(d*Dk);
+  stepi = MAX(E_Int(1), stepi);
+  stepj = MAX(E_Int(1), stepj);
+  stepk = MAX(E_Int(1), stepk);
+  stepi = MIN(stepi, E_Int(20));
+  stepj = MIN(stepj, E_Int(20));
+  stepk = MIN(stepk, E_Int(20));
 }
 
 //=============================================================================
@@ -84,7 +84,7 @@ void Data::computeSteps1(StructZone* zonep,
 // Si il fait moins d'un pixel, on augmente le step
 //=============================================================================
 void Data::computeSteps(StructZone* zonep, 
-                        int& stepi, int& stepj, int& stepk)
+                        E_Int& stepi, E_Int& stepj, E_Int& stepk)
 {
   GLint viewport[4];
   GLdouble modelview[16];
@@ -123,8 +123,10 @@ void Data::computeSteps(StructZone* zonep,
   Dy = K_FUNC::E_abs(winY-winY3);
   Dz = K_FUNC::E_abs(winZ-winZ3);
   DD = MAX(DD, Dx); DD = MAX(DD, Dy); DD = MAX(DD, Dz);
-  //printf("%f \n", DD);
-  stepi = int(0.8/DD)+1; stepi = MIN(stepi, 20);
+  //printf("DD=%f \n", DD);
+  stepi = E_Int(0.8/DD)+1; 
+  stepi = MIN(stepi, E_Int(20));
+  stepi = MAX(stepi, 1);
   stepj = stepi; stepk = stepi;
   //if (stepi >= 2) printf("%d\n", stepi);
 }

@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -28,7 +28,7 @@
 //=============================================================================
 void findMinMax(Zone* zone)
 {
-  int npts = zone->npts;
+  E_Int npts = zone->npts;
   double xminl = 1.e6;
   double xmaxl = -1.e6;
   double yminl = 1.e6;
@@ -42,7 +42,7 @@ void findMinMax(Zone* zone)
 
 //#pragma omp parallel default(shared)
   {
-    int i;
+    E_Int i;
     double xminloc = 1.e6;
     double xmaxloc = -1.e6;
     double yminloc = 1.e6;
@@ -112,8 +112,8 @@ void findMinMax(Zone* zone)
 //============================================================================
 void findFMinMax(Zone* zone)
 {
-  int npts = zone->npts;
-  int nf = zone->nfield;
+  E_Int npts = zone->npts;
+  E_Int nf = zone->nfield;
 
 /* avec openmp
   double* fmin = new double[nf];
@@ -160,7 +160,7 @@ void findFMinMax(Zone* zone)
 */
 
   // sans openmp
-  int i, j;
+  E_Int i, j;
   double* f; double fi;
   for (j = 0; j < nf; j++)
   {
@@ -182,13 +182,13 @@ void findFMinMax(Zone* zone)
 // IN: zones: All Zones
 // IN: nz: number of zones
 //=============================================================================
-void globMinMax(Zone** zones, int nz,
+void globMinMax(Zone** zones, E_Int nz,
                 double& xmin, double& xmax,
                 double& ymin, double& ymax,
                 double& zmin, double& zmax,
                 double& epsup, double& epsstrafe, double& dmoy)
 {
-  int i;
+  E_Int i;
   Zone* z;
   xmin = 1.e6; ymin = 1.e6; zmin = 1.e6;
   xmax = -1.e6; ymax = -1.e6; zmax = -1.e6;
@@ -219,10 +219,10 @@ void globMinMax(Zone** zones, int nz,
   The min max of each zone must have been computed before
 */
 //============================================================================
-void globFMinMax(Zone** zones, int nz,
+void globFMinMax(Zone** zones, E_Int nz,
                  double* minf, double* maxf)
 {
-  int i, j, nf;
+  E_Int i, j, nf;
 
   if (nz > 0) nf = zones[0]->nfield;
   else nf = 0;

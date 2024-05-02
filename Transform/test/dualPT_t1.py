@@ -43,3 +43,17 @@ a = C.initVars(a,'F',1.)
 res = T.dual(a)
 t = C.newPyTree(['Base']); t[2][1][2]+=[res]
 test.testT(t,5)
+
+# NGON 1D - closed contour
+a = D.circle((0,0,0), 1. , 0., 360., 10)
+a = C.initVars(a,'F',1.); a = C.initVars(a,'centers:G',1.)
+res = T.dual(a)
+t = C.newPyTree(['Base']); t[2][1][2]+=[res]
+test.testT(t,6)
+
+# NGON 1D - open coutour
+a = D.circle((0,0,0), 1. , 0., 180., 10)
+a = C.initVars(a,'F',1.); a = C.initVars(a,'centers:G',1.)
+res = T.dual(a)
+t = C.newPyTree(['Base']); t[2][1][2]+=[res]
+test.testT(t,7)

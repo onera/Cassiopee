@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -21,7 +21,7 @@ C ============================================================================
       SUBROUTINE k6scully2(x0, y0, Gamma, a, MInf,
      &                     npts,
      &                     xc, yc, zc,
-     &                     u)
+     &                     u1, u2, u3, u4, u5)
 C
       IMPLICIT NONE
 C
@@ -37,12 +37,16 @@ C_IN
       REAL_E yc(0:npts-1)    ! y cooord of centers
       REAL_E zc(0:npts-1)    ! z cooord of centers
 C_OUT
-      REAL_E u(0:npts-1,5)     ! field to be initialized
+      REAL_E u1(0:npts-1) ! field to be initialized
+      REAL_E u2(0:npts-1) ! field to be initialized
+      REAL_E u3(0:npts-1) ! field to be initialized
+      REAL_E u4(0:npts-1) ! field to be initialized
+      REAL_E u5(0:npts-1) ! field to be initialized
+
 C_LOCAL
       INTEGER_E ind
       REAL_E r, p, ptmp
       REAL_E roinf, uinf, pinf
-      INTEGER_E i,j,k
       REAL_E cos_teta, sin_teta
       REAL_E va, ro, pi
 C==============================================================================
@@ -66,7 +70,7 @@ C     Initialisation
             sin_teta = 0.D0
             va = 0.D0
          ELSE
-            cos_teta = (yc(ind)-y0)/r	
+            cos_teta = (yc(ind)-y0)/r
             sin_teta = -(xc(ind)-x0)/r
             va = Gamma/(2.*pi)*r/(r*r+a*a)
          ENDIF
@@ -74,24 +78,13 @@ C     Initialisation
          p = pinf*((1-ptmp/(r*r+a*a))**(1.4D0/0.4D0))
          ro = ((1-ptmp/(r*r+a*a))**(1.D0/0.4D0))*roinf
 
-         u(ind,1) = ro
-         u(ind,2) = ro*uinf + ro*cos_teta*va
-         u(ind,3) = ro*sin_teta*va
-         u(ind,4) = 0.D0
-         u(ind,5) = p/0.4D0+0.5D0*(u(ind,2)**2+u(ind,3)**2)/ro
+         u1(ind) = ro
+         u2(ind) = ro*uinf + ro*cos_teta*va
+         u3(ind) = ro*sin_teta*va
+         u4(ind) = 0.D0
+         u5(ind) = p/0.4D0+0.5D0*(u2(ind)**2+u3(ind)**2)/ro
       ENDDO
       
       RETURN
 
       END
-
-
-
-
-
-
-
-
-
-
-

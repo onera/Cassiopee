@@ -13,4 +13,5 @@ tp = C.deleteEmptyZones(tp)
 test.testT(tp, 1)
 
 # Sur une liste de zones
-l = C.deleteEmptyZones([a,b]); print len(l)
+l = C.deleteEmptyZones([a,b])
+test.testT(l, 2)

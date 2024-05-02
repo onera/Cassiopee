@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -29,7 +29,7 @@ using namespace K_FLD;
 //=============================================================================
 E_Int K_ARRAY::getFromList(PyObject* o, FldArrayI& out)
 {
-  E_Int val;
+  E_Int val; E_Float valf;
   IMPORTNUMPY;
   if (PyList_Check(o) == true)
   {
@@ -37,14 +37,38 @@ E_Int K_ARRAY::getFromList(PyObject* o, FldArrayI& out)
     if (n == 0) return 0; // nothing in list
     out.malloc(n);
     PyObject* first = PyList_GetItem(o, 0);
-    if (PyLong_Check(first) == false &&
-        PyInt_Check(first) == false) return 0;
-    for (E_Int i = 0; i < n; i++)
+
+    if (PyLong_Check(first) == true || PyInt_Check(first) == true)
     {
-      val = PyLong_AsLong(PyList_GetItem(o, i));
-      out[i] = val;
+      for (E_Int i = 0; i < n; i++)
+      {
+        val = PyLong_AsLong(PyList_GetItem(o, i));
+        out[i] = val;
+      }
+      return 1;
     }
-    return 1;
+    
+    val = PyArray_PyIntAsInt(first);
+    if ((val != -1) || (not PyErr_Occurred()))
+    {
+      for (E_Int i = 0; i < n; i++)
+      {
+        val = PyArray_PyIntAsInt(PyList_GetItem(o, i));
+        out[i] = val;
+      }
+      return 1;
+    }
+
+    if (PyFloat_Check(first) == true)
+    {
+      for (E_Int i = 0; i < n; i++)
+      {
+        valf = PyFloat_AsDouble(PyList_GetItem(o, i));
+        out[i] = (E_Int)valf;
+      } 
+      return 1;
+    }
+    return 0;
   }
   else if (PyArray_Check(o) == true)
   {
@@ -75,17 +99,27 @@ E_Int K_ARRAY::getFromList(PyObject* o, FldArrayI& out)
 //=============================================================================
 E_Int K_ARRAY::getFromList(PyObject* o, FldArrayF& out)
 {
-  E_Float val;
+  E_Float val; E_Int vali;
   IMPORTNUMPY;
   if (PyList_Check(o) == true)
   {
     E_Int n = PyList_Size(o);
     out.malloc(n);
-    if (PyFloat_Check(PyList_GetItem(o, 0)) == false) return 0;
-    for (E_Int i = 0; i < n; i++)
+    if (PyFloat_Check(PyList_GetItem(o, 0)) == true)
     {
-      val = PyFloat_AsDouble(PyList_GetItem(o, i));
-      out[i] = val;
+      for (E_Int i = 0; i < n; i++)
+      {
+        val = PyFloat_AsDouble(PyList_GetItem(o, i));
+        out[i] = val;
+      }
+    }
+    else // suppose int
+    {
+      for (E_Int i = 0; i < n; i++)
+      {
+        vali = PyLong_AsLong(PyList_GetItem(o, i));
+        out[i] = (E_Float)vali;
+      } 
     }
     return 1;
   }

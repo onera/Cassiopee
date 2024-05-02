@@ -1,4 +1,59 @@
 ===============================================================================
+Connector 3.7 [10/2023]
+Require: C++ compiler, f77 compiler, python > 2.7, numpy > 1.0, KCore 3.7
+Optional: pyTree interface requires Converter 3.7
+Optional: preconditionning requires Generator, Transform 3.7
+- setHoleInterpolated point + octahedron stencil
+===============================================================================
+Connector 3.6 [03/2023]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.6
+Optional: pyTree interface requires Converter 3.6
+Optional: preconditionning requires Generator, Transform 3.6
+- setInterpData2: interpolation from one tree to another. 
+===============================================================================
+Connector 3.5 [12/2022]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.5
+Optional: pyTree interface requires Converter 3.5
+Optional: preconditionning requires Generator, Transform 3.5
+===============================================================================
+Connector 3.4 [07/2022]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.4
+Optional: pyTree interface requires Converter 3.4
+Optional: preconditionning requires Generator, Transform 3.4
+===============================================================================
+Connector 3.3 [10/2021]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.3
+Optional: pyTree interface requires Converter 3.3
+Optional: preconditionning requires Generator, Transform 3.3
+- optmisation blankCells
+- optimisation getHoleInterpolatedPoints
+===============================================================================
+Connector 3.2 [02/2021]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.2
+Optional: pyTree interface requires Converter 3.2
+Optional: preconditionning requires Generator, Transform 3.2
+===============================================================================
+Connector 3.1 [06/2020]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.1
+Optional: pyTree interface requires Converter 3.1
+Optional: preconditionning requires Generator, Transform 3.1
+===============================================================================
+Connector 3.0 [12/2019]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 3.0
+Optional: pyTree interface requires Converter 3.0
+Optional: preconditionning requires Generator, Transform 3.0
+===============================================================================
+Connector 2.9 [06/2019]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.9
+Optional: pyTree interface requires Converter 2.9
+Optional: preconditionning requires Generator, Transform 2.9
+- setIBCTransfers + injection + imposed pressure
+===============================================================================
+Connector 2.8 [12/2018]
+Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.8
+Optional: pyTree interface requires Converter 2.8
+Optional: preconditionning requires Generator, Transform 2.8
+===============================================================================
 Connector 2.7 [07/2018]
 Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore 2.7
 Optional: pyTree interface requires Converter 2.7

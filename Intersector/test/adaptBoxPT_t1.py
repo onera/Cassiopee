@@ -8,7 +8,7 @@ a = G.cartHexa((0.,0.,0.), (0.1,0.1,0.1), (5,5,5))
 a = C.convertArray2NGon(a); a = G.close(a)
 
 m = XOR.adaptBox(a, box_ratio=10.)
-m = C.conformizeNGon(m)
-m = XOR.closeOctalCells(m)
+
+m = XOR.closeCells(m)
 test.testT(m,1)
 

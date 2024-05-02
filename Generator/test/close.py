@@ -1,7 +1,6 @@
 # - close (array) -
 import Converter as C
 import Generator as G
-import Transform as T
 
 a = G.cylinder((0.,0.,0.), 0.5, 1., 360., 0.01, 10., (20,20,10)) 
 a = C.convertArray2Tetra(a)

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -26,6 +26,7 @@
 
 # include "GenIO.h"
 # include "Array/Array.h"
+# include "String/kstring.h"
 # include "Def/DefFunction.h"
 # include "Connect/connect.h"
 # include "CompGeom/compGeom.h"
@@ -92,15 +93,15 @@ E_Int K_IO::GenIO::cedreread(
     skipLine(ptrFile); // echelle de longueur
     ret = readInt(ptrFile, nvertex);
     if (ret == 1) skipLine(ptrFile);
-    //printf("nbre de vertex=%d\n", nvertex);
+    //printf("nbre de vertex=" SF_D_ "\n", nvertex);
 
-    ret = readInt(ptrFile, nfaces); 
+    ret = readInt(ptrFile, nfaces);
     if (ret == 1) skipLine(ptrFile);
-    //printf("nbre de faces=%d\n", nfaces);
+    //printf("nbre de faces=" SF_D_ "\n", nfaces);
 
     ret = readInt(ptrFile, ncells); 
     if (ret == 1) skipLine(ptrFile);
-    //printf("nbre de cellules=%d\n", ncells);
+    //printf("nbre de cellules=" SF_D_ "\n", ncells);
     
     ret = readInt(ptrFile, nboundaryfaces); 
     if (ret == 1) skipLine(ptrFile);
@@ -121,7 +122,7 @@ E_Int K_IO::GenIO::cedreread(
       readDouble(ptrFile, y); 
       ret = readDouble(ptrFile, z);
       xp[i] = x; yp[i] = y; zp[i] = z;
-      //printf("%f %f %f\n", x,y,z);
+      //printf(SF_F3_ "\n", x,y,z);
     }
     if (ret == 1) skipLine(ptrFile);
     //printf("connect face\n");
@@ -142,7 +143,7 @@ E_Int K_IO::GenIO::cedreread(
     }                 
     KFSEEK(ptrFile, lpos, SEEK_SET);
 
-    //printf("size=%d\n", size);
+    //printf("size=" SF_D_ "\n", size);
     FldArrayI connect1(size);
     size = 0;
     
@@ -150,7 +151,7 @@ E_Int K_IO::GenIO::cedreread(
     {
       readInt(ptrFile, value); // no de la face
       ret = readInt(ptrFile, np); connect1[size] = np; size++;
-      //printf("np=%d\n", np);
+      //printf("np=" SF_D_ "\n", np);
       //if (size+np+1 > connect1.getSize()) 
       //  connect1.reAlloc(size+(nfaces-i+10)*(np+1));
       for (E_Int j = 0; j < np; j++)
@@ -159,7 +160,7 @@ E_Int K_IO::GenIO::cedreread(
       }
     }
     //connect1.reAlloc(size);
-    //printf("%d\n", size);
+    //printf(SF_D_ "\n", size);
 
     // Connectivite faces->elts
     //printf("face elts\n");
@@ -168,11 +169,12 @@ E_Int K_IO::GenIO::cedreread(
     E_Int* cn2 = connect2.begin();
     for (E_Int i = 0; i < nfaces; i++)
     {
-      readInt(ptrFile, value); //printf("no=%d\n", value); // no face
-      readInt(ptrFile, value);  //printf("nv=%d\n", value); // nbre de faces valides (1 ou 2)
+      readInt(ptrFile, value); //printf("no=" SF_D_ "\n", value); // no face
+      readInt(ptrFile, value);  //printf("nv=" SF_D_ "\n", value); // nbre de faces valides (1 ou 2)
       ret = readInt(ptrFile, value); cn2[2*i] = value;
-      ret = readInt(ptrFile, value); cn2[2*i+1] = value;
-      //printf("%d %d\n", cn2[2*i], cn2[2*i+1]);
+      if (ret == 1) { ret = readInt(ptrFile, value); cn2[2*i+1] = value; }
+      else cn2[2*i+1] = 0;
+      //printf(SF_D2_ "\n", cn2[2*i], cn2[2*i+1]);
     }
     if (ret == 1) skipLine(ptrFile);
 
@@ -188,11 +190,11 @@ E_Int K_IO::GenIO::cedreread(
       nbfacep[a-1]++;
       if (b != 0) nbfacep[b-1]++;
     }
-    //for (E_Int i = 0; i < ncells; i++) printf("%d %d\n", i, nbfacep[i]);
+    //for (E_Int i = 0; i < ncells; i++) printf(SF_D2_ "\n", i, nbfacep[i]);
 
     size = ncells;
     for (E_Int i = 0; i < ncells; i++) size += nbfacep[i];
-    //printf("pos %d\n", ncells);
+    //printf("pos " SF_D_ "\n", ncells);
     FldArrayI pos(ncells); // position des faces pour chaque elt
     E_Int* posp = pos.begin();
     posp[0] = 0;
@@ -201,7 +203,7 @@ E_Int K_IO::GenIO::cedreread(
       posp[i+1] = posp[i]+(nbfacep[i]+1);
     }
 
-    //printf("pb %d\n", size);
+    //printf("pb " SF_D_ "\n", size);
     FldArrayI connect3(size); E_Int* connect3p = connect3.begin();
     for (E_Int i = 0; i < ncells; i++)
     {
@@ -238,7 +240,7 @@ E_Int K_IO::GenIO::cedreread(
     connect3.malloc(0); connect1.malloc(0);
 
     // Lit les frontieres
-    //printf("Lecture frontieres %d\n", nboundaryfaces);
+    //printf("Lecture frontieres " SF_D_ "\n", nboundaryfaces);
     skipLine(ptrFile);
 #define BCSTRINGMAXSIZE 50
     FldArrayI* faces = new FldArrayI(nboundaryfaces);
@@ -249,7 +251,7 @@ E_Int K_IO::GenIO::cedreread(
 
     for (E_Int i = 0; i < nboundaryfaces; i++)
     {
-      ret = readInt(ptrFile, value); // numerotation (skip) 
+      ret = readInt(ptrFile, value); // numerotation (skip)
       ret = readInt(ptrFile, value); // no de la face
       facesp[i] = value;
       ret = readWord(ptrFile, buf); // nom de la BC
@@ -294,41 +296,41 @@ E_Int K_IO::GenIO::cedrewrite(
   }
   posx++; posy++; posz++;
 
- char format1[40]; char fmtcrd[40]; char dataFmtl[40];
- strcpy(dataFmtl, dataFmt);
- int l = strlen(dataFmt); 
- if (dataFmt[l-1] == ' ') dataFmtl[l-1] = '\0';
+  char format1[40]; char fmtcrd[121]; char dataFmtl[40];
+  strcpy(dataFmtl, dataFmt);
+  int l = strlen(dataFmt); 
+  if (dataFmt[l-1] == ' ') dataFmtl[l-1] = '\0';
 
- // Build format for data
- strcpy(format1,"%d ");
- sprintf(fmtcrd,"%s %s %s\n", dataFmt, dataFmt, dataFmtl);
- strcat(format1,fmtcrd);
+  // Build format for data
+  strcpy(format1, SF_D_ " ");
+  sprintf(fmtcrd, "%s %s %s\n", dataFmt, dataFmt, dataFmtl);
+  strcat(format1, fmtcrd);
 
- // BCFaces size
- E_Int BCFacesSize = 0;
- if (PyList_Check(BCFaces) == true) BCFacesSize = PyList_Size(BCFaces);
- IMPORTNUMPY;
+  // BCFaces size
+  E_Int BCFacesSize = 0;
+  if (PyList_Check(BCFaces) == true) BCFacesSize = PyList_Size(BCFaces);
+  IMPORTNUMPY;
 
   // Ecriture de l'entete
   FILE* ptrFile = fopen(file, "w");
   if (ptrFile == NULL) 
   {
-    printf("cedrewrite: I can't open file %s.\n", file);
+    printf("Warning: cedrewrite: can't open file %s.\n", file);
     return 1;
   }
 
   // Nbre de domaines
-  unsigned int nd = 0;
-  for (unsigned int i = 0; i < eltType.size(); i++)
+  E_Int nd = 0;
+  E_Int eltTypeSize = eltType.size();
+  for (E_Int i = 0; i < eltTypeSize; i++)
   {
     if (eltType[i] == 8) nd++; 
   }
-  if (nd != eltType.size())
+  if (nd != eltTypeSize)
     printf("Warning: cedrewrite: array list contain non-NGons arrays. Skipped...\n");
 
-  fprintf(ptrFile, "%d : Nb de dom.\n", nd);
+  fprintf(ptrFile, SF_D_ " : Nb de dom.\n", nd);
 
-  E_Int eltTypeSize = eltType.size();
   for (E_Int i = 0; i < eltTypeSize; i++)
   {
     if (eltType[i] == 8)
@@ -341,11 +343,9 @@ E_Int K_IO::GenIO::cedrewrite(
       
       FldArrayI& cn = *connect[i];
       FldArrayF& f = *unstructField[i];
-      E_Int* cnp = cn.begin();
       E_Int nvertex = f.getSize();
-      E_Int nfaces = cnp[0];
-      E_Int pt = cnp[1];
-      E_Int ncells = cnp[pt+2];
+      E_Int nfaces = cn.getNFaces();
+      E_Int ncells = cn.getNElts();
       E_Int facLim = 0;
       if (i < BCFacesSize)
       {
@@ -358,10 +358,10 @@ E_Int K_IO::GenIO::cedrewrite(
           facLim += np;
         }
       }
-      fprintf(ptrFile, "     %d       NB NOEUDS\n", nvertex);
-      fprintf(ptrFile, "     %d       NB FACES\n", nfaces);
-      fprintf(ptrFile, "     %d       NB ELMTS\n", ncells);
-      fprintf(ptrFile, "     %d       NB FAC LIM\n", facLim);
+      fprintf(ptrFile, "     " SF_D_ "       NB NOEUDS\n", nvertex);
+      fprintf(ptrFile, "     " SF_D_ "       NB FACES\n", nfaces);
+      fprintf(ptrFile, "     " SF_D_ "       NB ELMTS\n", ncells);
+      fprintf(ptrFile, "     " SF_D_ "       NB FAC LIM\n", facLim);
       
       // Coordonnees des noeuds
       fprintf(ptrFile, "1. GRID NODES : NODE no., x, y, z\n");
@@ -370,16 +370,18 @@ E_Int K_IO::GenIO::cedrewrite(
         fprintf(ptrFile, format1, 
                 j+1, f(j,posx), f(j,posy), f(j,posz)); 
       }
-
+      
       // Connectivite faces->noeuds
       fprintf(ptrFile, "2. FACES -> NODES : FACE no., number of NODES, no of NODE 1,...\n");
-      pt = 2; E_Int nf;
+      E_Int* ngon = cn.getNGon();
+      E_Int* indPG = cn.getIndPG();
+      E_Int nv;
       for (E_Int j = 0; j < nfaces; j++)
       {
-        nf = cnp[pt]; pt++;
-        fprintf(ptrFile, " %d  %d", j+1, nf);
-        for (E_Int k = 0; k < nf; k++)
-        { fprintf(ptrFile, " %d", cnp[pt]); pt++; }
+        E_Int* face = cn.getFace(j, nv, ngon, indPG);
+        fprintf(ptrFile, " " SF_D_ "  " SF_D_, j+1, nv);
+        for (E_Int k = 0; k < nv; k++)
+        { fprintf(ptrFile, " " SF_D_, face[k]); }
         fprintf(ptrFile, "\n");
       }
             
@@ -390,26 +392,29 @@ E_Int K_IO::GenIO::cedrewrite(
       E_Int* facesp2 = cFE.begin(2);
 
       fprintf(ptrFile, "3. FACES -> ELTS : FACE no., number of Elts, ELT 1, ELT2\n");
+      E_Int jp = 1;
       for (E_Int j = 0; j < nfaces; j++)
       {
         nd = 2;
         if (facesp1[j] == 0 && facesp2[j] == 0)
         {
           nd = 0;
-          fprintf(ptrFile, "%d %d %d %d\n", j+1, nd, facesp1[j], facesp2[j]);
+          fprintf(ptrFile, SF_D4_ "\n", jp, nd, facesp1[j]+1, facesp2[j]+1); jp++; // this is strange!
         }
-        if (facesp1[j] == 0)
+        else if (facesp1[j] == 0)
         {
           nd = 1;
-          fprintf(ptrFile, "%d %d %d %d\n", j+1, nd, facesp2[j], facesp1[j]);
+          fprintf(ptrFile, SF_D4_ "\n", jp, nd, facesp2[j], facesp1[j]); jp++;
         }
         else if (facesp2[j] == 0)
         {
           nd = 1;
-          fprintf(ptrFile, "%d %d %d %d\n", j+1, nd, facesp1[j], facesp2[j]);
+          fprintf(ptrFile, SF_D4_ "\n", jp, nd, facesp1[j], facesp2[j]); jp++;
         }
         else
-          fprintf(ptrFile, "%d %d %d %d\n", j+1, nd, facesp1[j], facesp2[j]);
+        { 
+          fprintf(ptrFile, SF_D4_ "\n", jp, nd, facesp1[j], facesp2[j]); jp++;
+        }
       }
 
       // Faces marquees, a partir de l'objet python BCFaces
@@ -422,18 +427,22 @@ E_Int K_IO::GenIO::cedrewrite(
         E_Int c = 1;
         for (E_Int j = 0; j < size/2; j++)
         {
-          char* name = PyString_AsString(PyList_GetItem(BCs, 2*j));
+          char* name = NULL; 
+          PyObject* o = PyList_GetItem(BCs, 2*j);
+          if (PyString_Check(o)) name = PyString_AsString(o);
+#if PY_VERSION_HEX >= 0x03000000
+          else if (PyUnicode_Check(o)) name = (char*)PyUnicode_AsUTF8(o);
+#endif
           PyArrayObject* array = (PyArrayObject*)PyList_GetItem(BCs, 2*j+1);
-          int* ptr = (int*)PyArray_DATA(array);
+          E_Int* ptr = (E_Int*)PyArray_DATA(array);
           E_Int np = PyArray_SIZE(array);
           for (E_Int k = 0; k < np; k++)
           {
-            fprintf(ptrFile, "%d %d %s\n", c, ptr[k], name); c++;
+            fprintf(ptrFile, SF_D2_ " %s\n", c, ptr[k], name); c++;
           }
         }
       }
-      
-    } // NGONS
+    }
   }
  
   fclose(ptrFile);

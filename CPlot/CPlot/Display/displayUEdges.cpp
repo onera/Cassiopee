@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "../Data.h"
+#include "Data.h"
 
 //=============================================================================
 /* 
@@ -29,7 +29,7 @@ void Data::displayUEdges()
   if (_numberOfUnstructZones == 0) return;
   if (ptrState->edgifyDeactivatedZones == 0 && ptrState->edgifyActivatedZones == 0)
     return;
-  int zone;
+  E_Int zone;
 
   glColor4f(0.8, 0.8, 0.8, 1.);
   glEnable(GL_BLEND);
@@ -37,27 +37,28 @@ void Data::displayUEdges()
   glEnable(GL_LINE_SMOOTH);
   glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
-  int ne, n1, n2, elt;
+  E_Int ne, n1, n2, elt;
 
   zone = 0;
   while (zone < _numberOfUnstructZones)
   {
-    UnstructZone* zonep = _uzones[_numberOfStructZones + zone];
-    if ((zonep->eltType == 1) || (zonep->eltType == 10 && zonep->nelts1D > 0))
+    UnstructZone* zonep = _uzones[zone];
+    E_Int eltType = zonep->eltType[0];
+    if ((eltType == 1) || (eltType == 10 && zonep->nelts1D > 0))
     {
       if (isInFrustum(zonep, _view) == 1)
       {
-         // if zone is active and in frustum
+        // if zone is active and in frustum
         if ((zonep->active == 1 && ptrState->edgifyActivatedZones == 1) ||
             (zonep->active == 0 && ptrState->edgifyDeactivatedZones == 1))        
         {
           double* x = zonep->x; double* y = zonep->y; double* z = zonep->z;
-          int* connect = zonep->connect;
-          if (zonep->eltType == 1) // BAR
+          E_Int* connect = zonep->connect[0];
+          if (eltType == 1) // BAR
           {
             ne = zonep->ne;
             glBegin(GL_LINES);
-            for (int i = 0; i < ne; i++)
+            for (E_Int i = 0; i < ne; i++)
             {
               n1 = connect[i]-1;
               n2 = connect[i+ne]-1;
@@ -66,15 +67,15 @@ void Data::displayUEdges()
             }
             glEnd();
           }
-          if (zonep->eltType == 10) // NGON1D
+          if (eltType == 10) // NGON1D
           {
             glBegin(GL_LINES);
-            for (int i = 0; i < zonep->nelts1D; i++)
+            for (E_Int i = 0; i < zonep->nelts1D; i++)
             {
               elt = zonep->posElts1D[i];
-              int* ptrelt = &connect[elt];
-              int face = ptrelt[1]-1; // indice de la face
-              int* ptrface = &connect[zonep->posFaces[face]];
+              E_Int* ptrelt = &connect[elt];
+              E_Int face = ptrelt[1]-1; // indice de la face
+              E_Int* ptrface = &connect[zonep->posFaces[face]];
               n1 = ptrface[1]-1;
               face = ptrelt[2]-1; // indice de la face
               ptrface = &connect[zonep->posFaces[face]];

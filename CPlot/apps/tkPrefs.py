@@ -1,5 +1,6 @@
 # - global preferences -
-import Tkinter as TK
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -32,6 +33,9 @@ def buildPrefs():
     elif v == 'Arch': va = '8'
     elif v == 'Jarvis': va = '9'
     elif v == 'Onera': va = '10'
+    elif v == 'Clouds': va = '11'
+    elif v == 'Blueprint': va = '12'
+    elif v == 'Custom': va = '13'
     CTK.PREFS['bgColor'] = va
     v = VARS[6].get()
     CTK.PREFS['envmap'] = v
@@ -52,8 +56,12 @@ def setPrefs(event=None):
 
 def setUndo(event=None):
     v = VARS[1].get()
-    if v == 'Active': Tk.__UNDO__ = True
-    else: Tk.__UNDO__ = False
+    if v == 'Active': CTK.__UNDO__ = True
+    else: CTK.__UNDO__ = False
+    va = '0'
+    if v == 'Active': va = '1'
+    elif v == 'Inactive': va = '0'
+    CTK.PREFS['undo'] = va
 
 def setBgColor(event=None):
     v = VARS[3].get(); va = 0
@@ -68,7 +76,24 @@ def setBgColor(event=None):
     elif v == 'Arch': va = 8
     elif v == 'Jarvis': va = 9
     elif v == 'Onera': va = 10
+    elif v == 'Clouds': va = 11
+    elif v == 'Blueprint': va = 12
+    elif v == 'Custom':
+        try: import tkinter.filedialog as tkFileDialog
+        except: import tkFileDialog
+        if 'backgroundFile' in CTK.PREFS: initFile = CTK.PREFS['backgroundFile']
+        else: initFile = 'paperBackground1.png'
+        files = tkFileDialog.askopenfilenames(
+        filetypes=[('png image file', '*.png')], initialfile=initFile, multiple=0)
+        if files == '' or files is None or files == (): # user cancel
+            return
+        files = CTK.fixFileString__(files, initFile)
+        CPlot.setState(backgroundFile=files[0])
+        CTK.PREFS['backgroundFile'] = files[0]
+        va = 13
+        
     CPlot.setState(bgColor=va)
+    CTK.PREFS['bgColor'] = str(va)
 
 def setDisplayInfo(event=None):
     v = VARS[2].get(); va = 0
@@ -76,24 +101,34 @@ def setDisplayInfo(event=None):
     elif v == 'Inactive': va = 0
     CPlot.setState(displayInfo=va)
     CPlot.setState(displayBB=va)
+    CTK.PREFS['displayInfo'] = str(va)
 
 def setSelectionStyle(event=None):
     v = VARS[7].get(); style = 0
     if v == 'Blue': style = 0
     elif v == 'Alpha': style = 1
     CPlot.setState(selectionStyle=style)
+    CTK.PREFS['selectionStyle'] = v
+
+def setOnDragStyle(event=None):
+    v = VARS[10].get(); ondrag = 0
+    if v == 'None': ondrag = 0
+    elif v == 'BBox': ondrag = 1
+    CPlot.setState(simplifyOnDrag=ondrag)
+    CTK.PREFS['simplifyOnDrag'] = v
 
 def setEnvmap(event=None):
     val = VARS[6].get()
     CPlot.setState(envmap=val)
+    CTK.PREFS['envmap'] = val
 
 def setExportRes(event=None):
-    # must be in PREFS
-    PREFS['exportResolution'] = VARS[12]
+    CTK.PREFS['exportResolution'] = VARS[8].get()
 
 def setTheme(event=None):
     theme = VARS[9].get()
     TTK.setTheme(theme)
+    CTK.PREFS['guitheme'] = theme
 
 def updateThemeList(event=None):
     m = WIDGETS['guitheme'].children['menu']
@@ -140,9 +175,10 @@ def createApp(win):
     
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkPrefs', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Set Cassiopee preferences.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkPrefs  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Set Cassiopee preferences.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -150,8 +186,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     #FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkPrefs')
@@ -175,13 +211,15 @@ def createApp(win):
     # -7- Selection style
     V = TK.StringVar(win); V.set('Blue'); VARS.append(V)
     # -8- Export resolution
-    V = TK.StringVar(win); V.set('1120x820'); VARS.append(V)
+    V = TK.StringVar(win); V.set('1920x1080'); VARS.append(V)
     # -9- GUI Theme
     V = TK.StringVar(win); V.set('default'); VARS.append(V)
+    # -10- simplify on drag
+    V = TK.StringVar(win); V.set('None'); VARS.append(V)
 
     # Init VARS par le fichier de preferences
     CTK.loadPrefFile()
-    for i in CTK.PREFS.iterkeys():
+    for i in CTK.PREFS:
         k1 = CTK.PREFS[i]
         if i == 'undo':
             if k1 == '1': VARS[1].set('Active')
@@ -201,9 +239,14 @@ def createApp(win):
             elif k1 == '8': VARS[3].set('Arch')
             elif k1 == '9': VARS[3].set('Jarvis')
             elif k1 == '10': VARS[3].set('Onera')
+            elif k1 == '11': VARS[3].set('Clouds')
+            elif k1 == '12': VARS[3].set('Blueprint')
+            elif k1 == '13': VARS[3].set('Custom')
+        
         elif i == 'auto': VARS[4].set(k1)
         elif i == 'envmap': VARS[6].set(k1)
         elif i == 'selectionStyle': VARS[7].set(k1)
+        elif i == 'simplifyOnDrag': VARS[10].set(k1)
         elif i == 'exportResolution': VARS[8].set(k1)
         elif i == 'guitheme': VARS[9].set(k1)
         
@@ -245,7 +288,8 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Default background color or image.')
     B = TTK.OptionMenu(Frame, VARS[3], 'Black', 'White', 'Grey', 'Yellow',
                        'Blue', 'Red', 'Paper1', 'Paper2',
-                      'Arch', 'Jarvis', 'Onera', command=setBgColor)
+                       'Arch', 'Jarvis', 'Onera', 'Clouds',
+                       'Blueprint', 'Custom', command=setBgColor)
     B.grid(row=r, column=1, sticky=TK.EW)
     r += 1
 
@@ -262,6 +306,14 @@ def createApp(win):
     B.grid(row=r, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Selection style.')
     B = TTK.OptionMenu(Frame, VARS[7], 'Blue', 'Alpha', command=setSelectionStyle)
+    B.grid(row=r, column=1, sticky=TK.EW)
+    r += 1
+
+    # - simplify on drag mode -
+    B = TTK.Label(Frame, text="On drag")
+    B.grid(row=r, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Kind of simplification when dragging.')
+    B = TTK.OptionMenu(Frame, VARS[10], 'None', 'BBox', command=setOnDragStyle)
     B.grid(row=r, column=1, sticky=TK.EW)
     r += 1
 
@@ -316,13 +368,17 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['StateNoteBook'].add(WIDGETS['frame'], text='tkPrefs')
+    except: pass
+    CTK.WIDGETS['StateNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['StateNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -338,9 +394,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
 
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

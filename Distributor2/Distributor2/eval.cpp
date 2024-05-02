@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -28,7 +28,7 @@ using namespace K_FLD;
 E_Float K_DISTRIBUTOR2::eval(
   E_Int nb, E_Int NProc, E_Float meanPtsPerProc,
   vector<E_Float>& solver, vector<E_Float>& latence,
-  vector<E_Float>& comSpeed, int* com,
+  vector<E_Float>& comSpeed, E_Int* com, E_Int* comd, E_Int sizeComd,
   FldArrayF& nbPtsPerProcs, vector<E_Float>& nbPts,
   E_Int* dis)
 {
@@ -47,22 +47,47 @@ E_Float K_DISTRIBUTOR2::eval(
   for (p = 0; p < NProc; p++)
     res += solver[p] * K_FUNC::E_abs(nbPtsPerProcsp[p]-meanPtsPerProc);
 
-  for (i = 0; i < nb; i++)
+  // avec com
+  if (com != NULL)
   {
-    proci = dis[i];
-    lati = latence[proci];
-    speedi = comSpeed[proci];
-    for (k = 0; k < nb; k++)
+    for (i = 0; i < nb; i++)
     {
-      volcom = com[k + i*nb];
-      if (volcom > 0)
+      proci = dis[i];
+      lati = latence[proci];
+      speedi = comSpeed[proci];
+      for (k = 0; k < nb; k++)
       {
-        prock = dis[k];
-        // le voisin est-il sur le meme processeur?
-        if (proci != prock)
+        volcom = com[k + i*nb];
+        if (volcom > 0)
         {
-          res += lati + speedi*volcom;
+          prock = dis[k];
+          // le voisin est-il sur le meme processeur?
+          if (proci != prock)
+          {
+            res += lati + speedi*volcom;
+          }
         }
+      }
+    }
+  }
+  
+  // avec comd
+  if (comd != NULL)
+  {
+    E_Int v1;
+    for (E_Int v = 0; v < sizeComd/2; v++)
+    {
+      v1 = comd[2*v]; volcom = comd[2*v+1];
+      k = E_Int(v1/nb);
+      i = v1-k*nb;
+      proci = dis[i];
+      lati = latence[proci];
+      speedi = comSpeed[proci];
+      prock = dis[k];
+      // le voisin est-il sur le meme processeur?
+      if (proci != prock)
+      {
+        res += lati + speedi*volcom;
       }
     }
   }

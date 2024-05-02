@@ -1,7 +1,35 @@
 #! /bin/sh
-if test -e "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py"
+if [ "$PYTHONEXE" = "" ]; then
+    export PYTHONEXE=python
+fi
+export MPIRUN=0
+
+if ! command -v xdpyinfo &> /dev/null
 then
-    python "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py" $1
+    if test -e "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py"
+    then
+        $PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py" "$@"
+    else
+        $PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.pyc" "$@"
+    fi
+    exit
+fi
+
+xdpyinfo | grep VNC > /dev/null
+if [ $? -eq 0 ]; then
+    if test -e "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py"
+    then
+        vglrun $PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py" "$@"
+    else
+        vglrun $PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.pyc" "$@"
+    fi
+    exit
 else
-    python "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.pyc" $1
+    if test -e "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py"
+    then
+        $PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py" "$@"
+    else
+        $PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.pyc" "$@"
+    fi
+    exit
 fi

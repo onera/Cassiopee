@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -48,16 +48,9 @@ PyObject* K_GENERATOR::enforceMesh(PyObject* self, PyObject* args)
   char* name;
   E_Float eh;             // enforce length
   E_Float P0;
-
-#if defined E_DOUBLEREAL && defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Osddll", &array, &name, &P0, &eh, &supp, &add)) return NULL;
-#elif defined E_DOUBLEREAL && !defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Osddii", &array, &name, &P0, &eh, &supp, &add)) return NULL;
-#elif !defined E_DOUBLEREAL && defined E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Osffll", &array, &name, &P0, &eh, &supp, &add)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Osffii", &array, &name, &P0, &eh, &supp, &add)) return NULL;
-#endif
+  
+  if (!PYPARSETUPLE_(args, O_ S_ RR_ II_,
+                    &array, &name, &P0, &eh, &supp, &add)) return NULL;
  
   // Check array
   E_Int ni, nj, nk;
@@ -72,7 +65,7 @@ PyObject* K_GENERATOR::enforceMesh(PyObject* self, PyObject* args)
     E_Int niout, njout, nkout;
     E_Int ret = enforceCommon( name, varString, ni, nj, nk, 
                                *f, P0, eh, supp, add, 
-                               *out, niout, njout, nkout );
+                               *out, niout, njout, nkout);
     delete f;
     if (ret != 0) return NULL;
     PyObject* tpl = K_ARRAY::buildArray(*out, "x,y,z", 
@@ -279,13 +272,13 @@ E_Int K_GENERATOR::enforceCommon(const char* name, char* varString,
     if ( (hl <= coordp[binf]) || (hl >= coordp[bsup]) )
     {
       sprintf(msg, 
-              "%s (P0=%f, eh=%f): cannot find P0 in array, stopped.",
+              "%s (P0=" SF_F_ ", eh=" SF_F_ "): cannot find P0 in array, stopped.",
               name, P0, eh);
       PyErr_SetString(PyExc_TypeError, msg);
       return 3;
     }
 
-    //printf("hl=%f %f %f\n", hl, coordp[bsupm], eh);
+    //printf("hl=" SF_F3_ "\n", hl, coordp[bsupm], eh);
 
     if ( hl <= coordp[binfp] )
     {
@@ -338,7 +331,7 @@ E_Int K_GENERATOR::enforceCommon(const char* name, char* varString,
   else if (side == 1) suppr = E_min(suppr, N-2);
   else suppl = E_min(suppl, N-2);
 
-  //printf("supp %d %d\n", suppl, suppr);
+  //printf("supp " SF_D2_ "\n", suppl, suppr);
 
   E_Int addl, addr;
   if (cmax == 1) // pas de recherche
@@ -425,7 +418,7 @@ E_Int K_GENERATOR::enforceCommon(const char* name, char* varString,
         npr = suppr + addr + 2;
         snr.malloc(npr);
         k6stretch_(pt3, pt2, snr.begin(), npr, eh, deltar, 2, 1);
-        printf("Info: %s: regularity %f.\n", name, regularityBest);
+        printf("Info: %s: regularity " SF_F_ ".\n", name, regularityBest);
 
         if (pos == posx)
         {
@@ -601,7 +594,7 @@ E_Int K_GENERATOR::enforceCommon(const char* name, char* varString,
       // taille de la derniere maille inchangee = x(iend) - x(iend-1)
       k6stretch_(pt1, pt2, sn1.begin(), np1, eh, delta1, 2, 1);
       checkDistribution(sn1, croissante, monotonic, regularity);
-      //printf("pt1 %f %f -> %f %f (npts=%d) -> reg=%f,%d\n",pt1,pt2,eh,delta1,np1,regularity,monotonic);
+      //printf("pt1 " SF_F2_ " -> " SF_F2_ " (npts=" SF_D_ ") -> reg=" SF_F_ "," SF_D_ "\n",pt1,pt2,eh,delta1,np1,regularity,monotonic);
       addrn = addr + 1;
 
       if (regularity < regularityBest)
@@ -620,7 +613,7 @@ E_Int K_GENERATOR::enforceCommon(const char* name, char* varString,
         np1 = suppr+addr+2;
         sn1.malloc(np1);
         k6stretch_(pt1, pt2, sn1.begin(), np1, eh, delta1, 2, 1);
-        printf("Info: %s: regularity %f.\n", name, regularityBest);
+        printf("Info: %s: regularity " SF_F_ ".\n", name, regularityBest);
 
         if (pos == posx)
         { 
@@ -749,7 +742,7 @@ E_Int K_GENERATOR::enforceCommon(const char* name, char* varString,
         k6stretch_(pt1, pt2, sn2.begin(), np1, eh, delta1, 2, 1);
         for (i = 0; i < np1; i++)
           sn1[i] = -sn2[np1-1-i]+pt2+pt1;
-        printf("Info: %s: regularity %f.\n", name, regularityBest);
+        printf("Info: %s: regularity " SF_F_ ".\n", name, regularityBest);
 
         if (pos == posx)
         { 

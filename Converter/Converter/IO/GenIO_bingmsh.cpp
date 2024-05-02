@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -135,14 +135,9 @@ E_Int K_IO::GenIO::bingmshread(
   E_Int ne = atoi(buf); // Global
   //printf("Number of elements %d\n", ne);
   FldArrayI indirElements(ne);
-  E_Int nNODE = 0; FldArrayI* indNODE = NULL; // type = 15
-  E_Int nBAR = 0; FldArrayI* cnBAR = NULL; // type = 1
-  E_Int nTRI = 0; FldArrayI* cnTRI = NULL; // type = 2
-  E_Int nQUAD = 0; FldArrayI* cnQUAD = NULL; // type = 3
-  E_Int nTETRA = 0; FldArrayI* cnTETRA = NULL; // type = 4
-  E_Int nHEXA = 0; FldArrayI* cnHEXA = NULL; // type = 5
-  E_Int nPENTA = 0; FldArrayI* cnPENTA = NULL; // type = 6
-  E_Int nPYRA = 0; FldArrayI* cnPYRA = NULL; // type = 7
+  // declarations
+#include "GenIO_gmsh3.h"
+  
   E_Int nDiscard = 0;
 
   E_Int tagl, ind;
@@ -165,40 +160,9 @@ E_Int K_IO::GenIO::bingmshread(
   //       nBAR, nTRI, nQUAD, nTETRA, nHEXA, nNODE);
 
   /* Allocations */
-  if (nBAR > 0) {
-    cnBAR = new FldArrayI(nBAR, 2);
-    connect.push_back(cnBAR);
-    eltType.push_back(1); nBAR = 0; }
-  if (nTRI > 0) {
-    cnTRI = new FldArrayI(nTRI, 3);
-    connect.push_back(cnTRI);
-    eltType.push_back(2); nTRI = 0; }
-  if (nQUAD > 0) {
-    cnQUAD = new FldArrayI(nQUAD, 4);
-    connect.push_back(cnQUAD);
-    eltType.push_back(3); nQUAD = 0; }
-  if (nTETRA > 0) {
-    cnTETRA = new FldArrayI(nTETRA, 4);
-    connect.push_back(cnTETRA);
-    eltType.push_back(4); nTETRA = 0; }
-  if (nHEXA > 0) {
-    cnHEXA = new FldArrayI(nHEXA, 8);
-    connect.push_back(cnHEXA);
-    eltType.push_back(7); nHEXA = 0; }
-  if (nPENTA > 0) {
-    cnPENTA = new FldArrayI(nPENTA, 6);
-    connect.push_back(cnPENTA);
-    eltType.push_back(6); nPENTA = 0; }
-  if (nPYRA > 0) {
-    cnPYRA = new FldArrayI(nPYRA, 5);
-    connect.push_back(cnPYRA);
-    eltType.push_back(5); nPYRA = 0; }
-  if (nNODE > 0) {
-    indNODE = new FldArrayI(nNODE);
-    connect.push_back(new FldArrayI());
-    eltType.push_back(0);
-    nNODE = 0; }
-
+  E_Boolean fo = true;
+#include "GenIO_gmsh4.h"
+  
   /* Lecture reelle des elements par type */
   KFSEEK(ptrFile, pos, SEEK_SET);
   if (changeEndian == false)
@@ -214,58 +178,14 @@ E_Int K_IO::GenIO::bingmshread(
 #include "GenIO_gmsh2.h"
   }
   /* Nodes duplications */
-  if (nBAR > 0)
-  {
-    FldArrayF* an = new FldArrayF(f);
-    unstructField.push_back(an);
-  }
-  if (nTRI > 0)
-  {
-    FldArrayF* an = new FldArrayF(f);
-    unstructField.push_back(an);
-  }
-  if (nQUAD > 0)
-  {
-    FldArrayF* an = new FldArrayF(f);
-    unstructField.push_back(an);
-  }
-  if (nTETRA > 0)
-  {
-    FldArrayF* an = new FldArrayF(f);
-    unstructField.push_back(an);
-  }
-  if (nHEXA > 0)
-  {
-    FldArrayF* an = new FldArrayF(f);
-    unstructField.push_back(an);
-  }
-  if (nPENTA > 0)
-  {
-    FldArrayF* an = new FldArrayF(f);
-    unstructField.push_back(an);
-  }
-  if (nPYRA > 0)
-  {
-    FldArrayF* an = new FldArrayF(f);
-    unstructField.push_back(an);
-  }
-  //printf("node %d\n", nNODE);
-  if (nNODE > 0)
-  {
-    FldArrayF* an = new FldArrayF(nNODE,3);
-    for (E_Int i = 0; i < nNODE; i++) 
-    { ind = (*indNODE)[i]-1; ind = indirNodes[ind]-1;
-      (*an)(i,1) = f1[ind]; (*an)(i,2) = f2[ind]; (*an)(i,3) = f3[ind]; }
-    unstructField.push_back(an);
-    delete indNODE;
-  }
+#include "GenIO_gmsh5.h"
 
   // Cree le nom des zones
   //printf("Number of zones %d\n", unstructField.size());
-  for (unsigned int i=0; i < unstructField.size(); i++)
+  for (size_t i = 0; i < unstructField.size(); i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone%d", i);
+    sprintf(zoneName, "Zone%zu", i);
     zoneNames.push_back(zoneName);
   }
   //printf("sizes: %d %d\n", unstructField.size(), connect.size());
@@ -296,7 +216,7 @@ E_Int K_IO::GenIO::bingmshwrite(
     // NODE, BAR, TRI, QUADS, TETRA, HEXA , PENTA, PYRA, supported
     if (eltType[zone] < 8) nvalidZones++;
     else
-      printf("Warning: gmshwrite: zone %d not written (not a valid elements in zone).", zone);
+      printf("Warning: gmshwrite: zone " SF_D_ " not written (not a valid elements in zone).", zone);
   }
 
   if (nvalidZones == 0) return 1;
@@ -355,7 +275,7 @@ E_Int K_IO::GenIO::bingmshwrite(
   fwrite("$EndMeshFormat\n", sizeChar, 15, ptrFile);
 
   fwrite("$Nodes\n", sizeChar, 7, ptrFile);
-  sprintf(buf, "%d\n", v.getSize());
+  sprintf(buf, SF_D_ "\n", v.getSize());
   fwrite(buf, sizeChar, strlen(buf), ptrFile);
 
   /* Nodes */
@@ -374,7 +294,7 @@ E_Int K_IO::GenIO::bingmshwrite(
   {
     size += connect[i]->getSize();
   }
-  sprintf(buf, "%d\n", size);
+  sprintf(buf, SF_D_ "\n", size);
   fwrite(buf, sizeChar, strlen(buf), ptrFile);
 
   // Connectivite par elts par rapport a la definition globale des vertices

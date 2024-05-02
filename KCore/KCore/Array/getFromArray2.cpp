@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -16,9 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <string.h>
 #include "Array/Array.h"
-#include "String/kstring.h"
 
 using namespace K_FLD;
 
@@ -83,14 +81,25 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
   }
  
   // -- varString --
-  if (PyString_Check(PyList_GetItem(o,0)) == false)
+  PyObject* l = PyList_GetItem(o,0);
+  if (PyString_Check(l))
+  {
+    // pointeur sur la chaine python
+    varString = PyString_AsString(PyList_GetItem(o,0));
+  }
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(l))
+  {
+    varString = (char*)PyUnicode_AsUTF8(l); 
+  }
+#endif
+  else
   {
     PyErr_Warn(PyExc_Warning,
                "getFromArray: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. First element must be a string.");
     return -3;
   }
-  // pointeur sur la chaine python
-  varString = PyString_AsString(PyList_GetItem(o,0));
+  
   E_Int nvar = getNumberOfVariables(varString);
 
   // -- field --
@@ -123,8 +132,8 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
     f = new FldArrayF(s, nfld, (E_Float*)PyArray_DATA(a), true, true);
   }
   else if (PyList_Check(tpl) == true) // -- Array2 --
-  {
-    E_Int nfld = PyList_Size(tpl);
+  {  
+    E_Int nfld = PyList_Size(tpl);  
     E_Float** acu = new E_Float* [nfld];
     E_Int s = 0;
     for (E_Int i = 0; i < nfld; i++)
@@ -160,6 +169,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
     tpl = PyList_GetItem(o, 2);
     //ref2 = tpl; Py_INCREF(ref2);
     Py_INCREF(tpl);
+
     if (PyArray_Check(tpl) == true) // -- Array1 --
     {
       ac = (PyArrayObject*)tpl;
@@ -180,7 +190,14 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
     else if (PyList_Check(tpl) == true) // -- Array2 --
     {
       E_Int nc = PyList_Size(tpl);
-      if (nc == 1) // BE => compact + stride
+      if (nc == 1 && PyList_GetItem(tpl,0) == Py_None) nc = 0;
+
+      if (nc == 0) // BE NODE
+      {
+        //c = NULL;
+        c = new FldArrayI(0, 1, (E_Int*)NULL, true, false);
+      }
+      else if (nc == 1) // BE => compact + stride
       {
         ac = (PyArrayObject*)PyList_GetItem(tpl,0);
         E_Int s, nfld;
@@ -215,33 +232,27 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
     }
 
     // -- element type --
-    if (PyString_Check(PyList_GetItem(o,3)) == false)
+    PyObject* l = PyList_GetItem(o,3);
+    if (PyString_Check(l))
+    {
+      eltType = PyString_AsString(l);
+    }
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(l))
+    {
+      eltType = (char*)PyUnicode_AsUTF8(l); 
+    }
+#endif
+    else
     {
       PyErr_Warn(PyExc_Warning,
                  "getFromArray: an unstruct array must be of list of type ['vars', a, c, 'ELTTYPE']. Last element must be a string.");
       Py_DECREF(ref); Py_DECREF(tpl);
       return -7;
     }
-    eltType = PyString_AsString(PyList_GetItem(o,3));
-
-    if (K_STRING::cmp(eltType, "NODE") != 0 &&
-        K_STRING::cmp(eltType, "BAR") != 0 &&
-        K_STRING::cmp(eltType, "TRI") != 0 &&
-        K_STRING::cmp(eltType, "QUAD") != 0 &&
-        K_STRING::cmp(eltType, "TETRA") != 0 &&
-        K_STRING::cmp(eltType, "PYRA") != 0 &&
-        K_STRING::cmp(eltType, "PENTA") != 0 &&
-        K_STRING::cmp(eltType, "HEXA") != 0 &&
-        K_STRING::cmp(eltType, "NGON") != 0 &&
-        K_STRING::cmp(eltType, "NODE*") != 0 &&
-        K_STRING::cmp(eltType, "BAR*") != 0 &&
-        K_STRING::cmp(eltType, "TRI*") !=0 &&
-        K_STRING::cmp(eltType, "QUAD*") != 0 &&
-        K_STRING::cmp(eltType, "TETRA*") !=0 &&
-        K_STRING::cmp(eltType, "PYRA*") != 0 &&
-        K_STRING::cmp(eltType, "PENTA*") != 0 &&
-        K_STRING::cmp(eltType, "HEXA*") != 0 &&
-        K_STRING::cmp(eltType, "NGON*") != 0)
+    
+    char st[256]; E_Int dummy;
+    if (eltString2TypeId(eltType, st, dummy, dummy, dummy) == 0)
     {
       PyErr_Warn(PyExc_Warning,
                  "getFromArray: element type unknown: %s. Must be in NODE, BAR, TRI, QUAD, TETRA, PYRA, PENTA, HEXA, NGON or NODE*, BAR*, TRI*, QUAD*, TETRA*, PYRA*, PENTA*, HEXA*, NGON*.");
@@ -283,17 +294,41 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
   }
 }
 
+// Extrait sans ni,nj,nk
+E_Int K_ARRAY::getFromArray2(PyObject* o,
+                             char*& varString,
+                             FldArrayF*& f,
+                             FldArrayI*& c,
+                             char*& eltType)
+{
+  E_Int ni, nj, nk;
+  E_Int ret = getFromArray2(o, varString, f,
+                            ni, nj, nk, c, eltType);
+  return ret;
+}
+
+// Extrait sans ni,nj,nk,varString,eltType
+E_Int K_ARRAY::getFromArray2(PyObject* o,
+                             FldArrayF*& f,
+                             FldArrayI*& c)
+{
+  E_Int ni, nj, nk; char* varString; char* eltType;
+  E_Int ret = getFromArray2(o, varString, f,
+                            ni, nj, nk, c, eltType);
+  return ret;
+}
+
 //=============================================================================
 // Extrait les donnees (shared) d'un objet python struct array
 // defini par: Array1: [ 'vars', a, ni, nj, nk ]
 //             Array2: [ 'vars', [a], ni, nj, nk ]
 // ou d'un objet python unstruct array
-// defini par: Array1: [ 'vars', a, c, "ELTTYPE"]
-//             Array2: [ 'vars', [a], [c], "ELTTYPE"]
+// defini par: Array1: [ 'vars', a, c, "ELTTYPE" ]
+//             Array2: [ 'vars', [a], [c], "ELTTYPE" ]
 // ou ELTTYPE vaut: NODE, BAR, TRI, QUAD, TETRA, PYRA, PENTA, HEXA, NGON
 // avec ou sans star.
 // Ne retourne que les champs et la varstring
-// // Retourne 1 si ok.
+// Retourne 1 si ok.
 //=============================================================================
 E_Int K_ARRAY::getFromArray2(PyObject* o,
                              char*& varString,
@@ -301,7 +336,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
 {
   PyObject* tpl; PyObject* p;
   PyArrayObject* a;
-  PyObject* ref; //PyObject* ref2;
+  //PyObject* ref; PyObject* ref2;
   IMPORTNUMPY;
 
   // -- list --
@@ -320,20 +355,30 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
   }
  
   // -- varString --
-  if (PyString_Check(PyList_GetItem(o,0)) == false)
+  PyObject* l = PyList_GetItem(o,0);
+  if (PyString_Check(l))
+  {
+    // pointeur sur la chaine python
+    varString = PyString_AsString(l);
+  }
+#if PY_VERSION_HEX >= 0x03000000
+  else if (PyUnicode_Check(l))
+  {
+    varString = (char*)PyUnicode_AsUTF8(l); 
+  }
+#endif
+  else
   {
     PyErr_Warn(PyExc_Warning,
                "getFromArray: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. First element must be a string.");
     return -3;
   }
-  // pointeur sur la chaine python
-  varString = PyString_AsString(PyList_GetItem(o,0));
   E_Int nvar = getNumberOfVariables(varString);
 
   // -- field --
   tpl = PyList_GetItem(o, 1);
-  ref = tpl; Py_INCREF(ref); // trick
-  Py_INCREF(tpl); ref = tpl;
+  //ref = tpl; Py_INCREF(ref); // trick
+  Py_INCREF(tpl); //ref = tpl;
 
   if (PyArray_Check(tpl) == true) // -- Array1 --
   {
@@ -392,4 +437,12 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
   }
   
   return 1;
+}
+// Extrait uniquement les champs
+E_Int K_ARRAY::getFromArray2(PyObject* o,
+                             FldArrayF*& f)
+{
+  char* varString;
+  E_Int ret = getFromArray2(o, varString, f);
+  return ret;
 }

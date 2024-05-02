@@ -8,7 +8,7 @@
   E_Float* xPC = coordxPC->begin();
   E_Float* yPC = coordyPC->begin();
   E_Float* zPC = coordzPC->begin();
-  
+
   /*----------------------------------------*/
   /* Extraction des coordonnees du pt paroi */
   /*----------------------------------------*/
@@ -34,19 +34,16 @@
   E_Float* zPI = coordzPI->begin();
 
   /*--------------------------------------------*/
-  /* Extraction des var posttraitememnt */
+  /* Extraction des var post traitement */
   /*--------------------------------------------*/
-  FldArrayF* densF; FldArrayF* pressF; FldArrayF* utauF; FldArrayF* yplusF;
-  E_Int okD = K_NUMPY::getFromNumpyArray(pyArrayDens    , densF , true);
-  E_Int okP = K_NUMPY::getFromNumpyArray(pyArrayPressure, pressF, true);
-  E_Float* density  = densF->begin();
-  E_Float* pressure = pressF->begin();
-  E_Int okU, okY;  E_Float* utau; E_Float* yplus;
+  FldArrayF* densF; 
+  // FldArrayF* pressF; FldArrayF* utauF; FldArrayF* yplusF;
+  // FldArrayF* vxF; FldArrayF* vyF; FldArrayF* vzF; FldArrayF* kcurvF;
 
-  okU = K_NUMPY::getFromNumpyArray(pyArrayUtau , utauF , true);
-  okY = K_NUMPY::getFromNumpyArray(pyArrayYplus, yplusF, true);
-  if (okU == 1) utau = utauF->begin();
-  else utau = NULL;
-  if (okY == 1) yplus = yplusF->begin();
-  else yplus = NULL;
-    
+  E_Int okD = K_NUMPY::getFromNumpyArray(pyArrayDens, densF, true);
+
+  E_Float* density  = densF->begin();
+  // E_Float* pressure = densF->begin()+nbRcvPts;
+  // E_Float* vx = densF->begin()+nbRcvPts*2;
+  // E_Float* vy = densF->begin()+nbRcvPts*3;
+  // E_Float* vz = densF->begin()+nbRcvPts*4;

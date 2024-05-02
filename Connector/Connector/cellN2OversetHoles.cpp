@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -28,8 +28,7 @@ PyObject* K_CONNECTOR::cellN2OversetHolesStruct(PyObject* self, PyObject* args)
   PyObject* CellN;
   E_Int Im, Jm, CellDim;
   E_Int SizeCellN;
-  if (!PYPARSETUPLEI(args,
-                    "OOllll", "OOiiii",
+  if (!PYPARSETUPLE_(args, OO_ IIII_,
                     &PointList, &CellN, &Im, &Jm, &CellDim, &SizeCellN))
   {
       return NULL;
@@ -114,8 +113,7 @@ PyObject* K_CONNECTOR::cellN2OversetHolesUnStruct(PyObject* self,
   PyObject* PointList;
   PyObject* CellN;
   E_Int SizeCellN;
-  if (!PYPARSETUPLEI(args,
-                    "OOl", "OOi",
+  if (!PYPARSETUPLE_(args, OO_ I_,
                     &PointList, &CellN, &SizeCellN))
   {
       return NULL;

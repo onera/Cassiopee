@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -111,11 +111,11 @@ PyObject* K_CONVERTER::pointList2Ranges(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Int ni, nj, nk;
-  if (!PYPARSETUPLEI(args, "Olll", "Oiii", &array, &ni, &nj, &nk)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ III_, &array, &ni, &nj, &nk)) return NULL;
 
   // Check numpy (pointlist)
   FldArrayI* PL;
-  E_Int res = K_NUMPY::getFromNumpyArray(array, PL, true);
+  E_Int res = K_NUMPY::getFromPointList(array, PL, true);
 
   if (res == 0)
   {
@@ -142,29 +142,24 @@ PyObject* K_CONVERTER::pointList2Ranges(PyObject* self, PyObject* args)
   E_Int nkmin = 0;
   E_Int nkmax = 0;
 
-  E_Int type = 0;
-  E_Int NI; E_Int NJ; E_Int KP;
+  E_Int KP;
   
   for (E_Int n = 0; n < nf; n++)
   {
     ind = p[n];
-    type = 0;
     if (ind >= ninti+nintj) // interface k
     { 
-      NI = ni; NJ = nj; type = 3;
       KP = (ind-ninti-nintj)/(ni1*nj1);
       if (KP == 0) nkmin++; else nkmax++;
     }
     else if (ind >= ninti) // interface j 
     { 
-      NI = ni; NJ = nk; type = 2;
       k = (ind-ninti)/(ni1*nj);
       KP = (ind-ninti-k*ni1*nj)/ni1;
       if (KP == 0) njmin++; else njmax++; 
     }
     else // interface i
     { 
-      NI = nj; NJ = nk; type = 1;
       k = ind/(ni*nj1);
       j = (ind-k*ni*nj1)/ni;
       KP = ind-j*ni-k*ni*nj1;
@@ -173,8 +168,7 @@ PyObject* K_CONVERTER::pointList2Ranges(PyObject* self, PyObject* args)
   }
 
   //printf("ni,nj=%d %d - %d\n",ni,nj,ind);
-  //printf("interface type=%d, KP=%d\n", type, KP);
-
+  
   std::vector< std::vector<E_Int> > line1; // imin 
   if (nimin > 0) line1.resize(nk);
   std::vector< std::vector<E_Int> > line2; // imax

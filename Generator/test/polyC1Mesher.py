@@ -16,6 +16,6 @@ for i in m[0]:
     v = G.getVolumeMap(i)
     min = C.getMinValue(v, 'vol')
     if min <= 0:
-        print 'negative volume detected.'
+        print('negative volume detected.')
         
 C.convertArrays2File(m[0], 'out.plt')

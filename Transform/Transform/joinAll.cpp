@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -30,12 +30,7 @@ using namespace K_CONST;
 PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
 {
   PyObject* arrays; E_Float tol;
-  if (!PYPARSETUPLEF(args,
-                    "Od", "Of",
-                    &arrays, &tol))
-  {
-      return NULL;
-  }
+  if (!PYPARSETUPLE_(args, O_ R_, &arrays, &tol)) return NULL;
 
   // Check arrays
   vector<E_Int> res;
@@ -51,246 +46,643 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
                          true, true, true, false, true);
 
   // Fusion des zones non-structures
+  PyObject* tpl = NULL;
   E_Int nu = unstructF.size();
-  char* eltRef = NULL;
-  if (nu > 0) eltRef = eltType[0];
+  if (nu == 0) return NULL;
+  char* eltRef = eltType[0];
   E_Int missed = 0;
-  E_Int size = 0;
-  E_Int ne = 0;
-  for (E_Int i = 0; i < nu; i++)
+
+  E_Int nc = 0, dimRef = -1, dim;
+  char newEltType[K_ARRAY::VARSTRINGLENGTH]; newEltType[0] = '\0';
+  // Counters for all arrays
+  E_Int npts = 0;
+  E_Int nfaces = 0, neltsNGON = 0, sizeFN = 0, sizeEF = 0;
+  // Table d'indirection des connectivites ME
+  vector<vector<E_Int> > indir(nu);
+
+  for (E_Int k = 0; k < nu; k++)
   {
-    if (strcmp(eltRef, eltType[i]) == 0)
+    npts += unstructF[k]->getSize();
+    
+    if (strcmp(eltType[k], "NGON") == 0)
     {
-      size = size + unstructF[i]->getSize();
-      ne = ne + cn[i]->getSize();
+      // La connectivite fusionee ne doit avoir que des NGONs
+      if (strcmp(eltRef, "NGON") == 0)
+      {
+        neltsNGON += cn[k]->getNElts();
+        nfaces += cn[k]->getNFaces();
+        sizeFN += cn[k]->getSizeNGon();
+        sizeEF += cn[k]->getSizeNFace();
+      }
+      else missed++;
+    }
+    else if (strcmp(eltRef, "NGON") != 0)
+    {
+      // Calcul du nombre d'elt types dans la connectivite ME fusionee
+      // et de leur identite
+      vector<char*> eltTypesk;
+      K_ARRAY::extractVars(eltType[k], eltTypesk);
+
+      E_Int nck = cn[k]->getNConnect();
+      for (E_Int ic = 0; ic < nck; ic++)
+      {
+        char* eltTypConn = eltTypesk[ic];
+        // Check dimensionality: allow merge if identical
+        if (dimRef == -1)
+        {
+          if (strcmp(eltTypesk[ic], "NODE") == 0) dimRef = 0;
+          else if (strcmp(eltTypesk[ic], "BAR") == 0) dimRef = 1;
+          else if (strcmp(eltTypesk[ic], "TRI") == 0 or
+                   strcmp(eltTypesk[ic], "QUAD") == 0) dimRef = 2;
+          else dimRef = 3;
+        }
+        else
+        {
+          if (strcmp(eltTypesk[ic], "NODE") == 0) dim = 0;
+          else if (strcmp(eltTypesk[ic], "BAR") == 0) dim = 1;
+          else if (strcmp(eltTypesk[ic], "TRI") == 0 or
+                   strcmp(eltTypesk[ic], "QUAD") == 0) dim = 2;
+          else dim = 3;
+          if (dim != dimRef) { indir[k].push_back(-2); missed++; continue; }
+        }
+        // Add default value in mapping table
+        indir[k].push_back(-1);
+        // Concatenate elttypes, discard duplicates
+        if (strstr(newEltType, eltTypConn) == NULL)
+        {
+          strcat(newEltType, eltTypConn); strcat(newEltType, ",");
+          nc += 1;
+        }
+      }
+
+      for (size_t ic = 0; ic < eltTypesk.size(); ic++)
+        delete [] eltTypesk[ic];
     }
     else missed++;
   }
-  if (missed > 0) printf("Warning: joinAll: some arrays are not joined: different element types.\n");
-  E_Int nfld = unstructF[0]->getNfld();
-  FldArrayF field(size, nfld);
 
-  E_Int c = 0; E_Int csav = 0;
-  for (E_Int i = 0; i < nu; i++)
+  if (missed > 0)
+    printf("Warning: joinAll: some arrays cannot be joined: different element "
+           "types.\n");
+
+  // Build unstructured connectivity
+  E_Int nfld = unstructF[0]->getNfld();
+  E_Int api = unstructF[0]->getApi();
+  vector<E_Int> neltsME;
+
+  if (strcmp(eltRef, "NGON") == 0)
   {
-    if (strcmp(eltRef, eltType[i]) == 0)
+    strcat(newEltType, "NGON");
+    E_Int ngonType = 1; // CGNSv3 compact array1
+    if (api == 2) ngonType = 2; // CGNSv3, array2
+    else if (api == 3) ngonType = 3; // force CGNSv4, array3
+    tpl = K_ARRAY::buildArray3(nfld, unstructVarString[0], npts, neltsNGON,
+                               nfaces, newEltType, sizeFN, sizeEF,
+                               ngonType, false, api);
+  }
+  else
+  {
+    // Remove trailing comma in newEltType
+    E_Int len = strlen(newEltType);
+    newEltType[len-1] = '\0';
+    
+    // ME: api = 3 only
+    if (nc > 1) api = 3;
+    if (nc == 2 && dimRef == 3)
     {
-      FldArrayF& f2 = *unstructF[i];
-      csav = c;
+      // HEXA & TETRA cannot be joined in a conformal mesh, skipping the last
+      // one of the two
+      if (strstr(newEltType, "HEXA") != NULL && strstr(newEltType, "TETRA") != NULL)
+      {
+        len = strchr(newEltType, ',') - newEltType + 1;
+        newEltType[len-1] = '\0';
+        nc = 1;
+        printf("Warning: joinAll: joining HEXA and TETRA would result in a "
+               "non-conformal mesh. Keeping %s only.\n", newEltType);
+      }
+    }
+
+    vector<char*> newEltTypes;
+    K_ARRAY::extractVars(newEltType, newEltTypes);
+
+    // Remplissage table d'indirection et nombre d'elements par eltType
+    neltsME.resize(nc); neltsME.assign(nc, 0);
+    for (E_Int k = 0; k < nu; k++)
+    {
+      vector<char*> eltTypesk;
+      K_ARRAY::extractVars(eltType[k], eltTypesk);
+      
+      E_Int nck = cn[k]->getNConnect();
+      for (E_Int ic = 0; ic < nck; ic++)
+      {
+        if (indir[k][ic] == -2) continue; // skip
+        for (E_Int icglb = 0; icglb < nc; icglb++)
+        {
+          if (strcmp(newEltTypes[icglb], eltTypesk[ic]) == 0)
+          {indir[k][ic] = icglb; break;}
+        }
+        if (indir[k][ic] < 0) continue; // skip
+        FldArrayI& cmkic = *(cn[k]->getConnect(ic));
+        neltsME[indir[k][ic]] += cmkic.getSize();
+      }
+
+      for (size_t ic = 0; ic < eltTypesk.size(); ic++)
+        delete [] eltTypesk[ic];
+    }
+    for (size_t ic = 0; ic < newEltTypes.size(); ic++)
+        delete [] newEltTypes[ic];
+    tpl = K_ARRAY::buildArray3(nfld, unstructVarString[0], npts, neltsME,
+                               newEltType, false, api);
+  }
+  FldArrayF* f; FldArrayI* cno;
+  K_ARRAY::getFromArray3(tpl, f, cno);
+
+  // Acces non universel sur les ptrs NGON
+  E_Int *ngon = NULL, *nface = NULL, *indPG = NULL, *indPH = NULL;
+  if (strcmp(eltRef, "NGON") == 0)
+  {
+    ngon = cno->getNGon(); nface = cno->getNFace();
+    if (api == 2 || api == 3)
+    {
+      indPG = cno->getIndPG(); indPH = cno->getIndPH();
+    }
+  }
+
+  #pragma omp parallel
+  {
+    E_Int offsetSizeFN = 0, offsetSizeEF = 0;
+    E_Int offsetPts = 0, offsetFaces = 0, offsetElts = 0;
+    for (E_Int k = 0; k < nu; k++)
+    {
+      // Skip if the ref elt type is NGON and if current elt type is not NGON
+      // NB: Dissimilar BE elt types can be combined to form ME
+      if (strcmp(eltRef, "NGON") == 0 and strcmp(eltRef, eltType[k]) != 0)
+        continue;
+
+      E_Int nptsk = unstructF[k]->getSize();
+      // Copie des champs aux noeuds
       for (E_Int n = 1; n <= nfld; n++)
       {
-        E_Float* f2n = f2.begin(n);
-        E_Float* fn = field.begin(n);
-        c = csav;
-        for (E_Int j = 0; j < f2.getSize(); j++)
-        {
-          fn[c] = f2n[j]; c++;
-        }
+        E_Float* fkn = unstructF[k]->begin(n);
+        E_Float* fn = f->begin(n);
+        #pragma omp for
+        for (E_Int i = 0; i < nptsk; i++) fn[i+offsetPts] = fkn[i];
       }
-    }
-  }
 
-  // Fusion des connectivites
-  E_Int nt = cn[0]->getNfld();
-  FldArrayI cno(ne, nt);
-  E_Int nf1 = 0;
-
-  c = 0; csav = 0;
-  for (E_Int i = 0; i < nu; i++)
-  {
-    if (strcmp(eltRef, eltType[i]) == 0)
-    {
-      csav = c;
-      for (E_Int n = 1; n <= nt; n++)
+      if (strcmp(eltRef, "NGON") == 0)
       {
-        E_Int* cn1n = cn[i]->begin(n);
-        E_Int* cnn = cno.begin(n);
-        
-        c = csav;
-        for (E_Int j = 0; j < cn[i]->getSize(); j++)
+        E_Int neltsk = cn[k]->getNElts();
+        E_Int nfacesk = cn[k]->getNFaces();
+        E_Int sizeFNk = cn[k]->getSizeNGon();
+        E_Int sizeEFk = cn[k]->getSizeNFace();
+
+        // Ajout de la connectivite NGON k
+        E_Int *ngonk = cn[k]->getNGon(), *nfacek = cn[k]->getNFace();
+        E_Int *indPGk = NULL, *indPHk = NULL;
+
+        #pragma omp for
+        for (E_Int i = 0; i < sizeFNk; i++)
+          ngon[i+offsetSizeFN] = ngonk[i] + offsetPts;
+        #pragma omp for
+        for (E_Int i = 0; i < sizeEFk; i++)
+          nface[i+offsetSizeEF] = nfacek[i] + offsetFaces;
+
+        if (api == 2 || api == 3)
         {
-          cnn[c] = cn1n[j]+nf1; c++;
+          indPGk = cn[k]->getIndPG(); indPHk = cn[k]->getIndPH();
+          #pragma omp for
+          for (E_Int i = 0; i < nfacesk; i++)
+            indPG[i+offsetFaces] = indPGk[i] + offsetFaces;
+          #pragma omp for
+          for (E_Int i = 0; i < neltsk; i++)
+            indPH[i+offsetElts] = indPHk[i] + offsetElts;
+        }
+
+        // Increment NGON offsets
+        offsetFaces += nfacesk;
+        offsetElts += neltsk;
+        offsetSizeFN += sizeFNk;
+        offsetSizeEF += sizeEFk;
+      }
+      else
+      {
+        // Ajout de la connectivite BE/ME k
+        E_Int nck = cn[k]->getNConnect();
+        for (E_Int ic = 0; ic < nck; ic++)
+        {
+          if (indir[k][ic] < 0) continue; // skip
+          FldArrayI& cmkic = *(cn[k]->getConnect(ic));
+          FldArrayI& cm = *(cno->getConnect(indir[k][ic]));
+          E_Int neltskic = cmkic.getSize();
+          
+          #pragma omp for
+          for (E_Int i = 0; i < neltskic; i++)
+            for (E_Int j = 1; j <= cmkic.getNfld(); j++)
+              // Add offsets
+              cm(i+offsetElts,j) = cmkic(i,j) + offsetPts;
+
+          // Increment ME offsets
+          offsetElts += neltskic;
         }
       }
-      nf1 = nf1 + unstructF[i]->getSize();
+      offsetPts += nptsk;
     }
   }
-  
-  for (E_Int i = 0; i < nu; i++)
-    RELEASESHAREDU(obju[i], unstructF[i], cn[i]);
+
+  // NGON: Correction for number of vertices per face and number of faces per
+  // element for all but the first array
+  if (strcmp(eltRef, "NGON") == 0 and api != 3)
+  {
+    E_Int offsetSizeFN = cn[0]->getSizeNGon();
+    E_Int offsetSizeEF = cn[0]->getSizeNFace();
+    for (E_Int k = 1; k < nu; k++)
+    {
+      E_Int ind = 0;
+      E_Int *ngonk = cn[k]->getNGon(), *nfacek = cn[k]->getNFace();
+      for (E_Int i = 0; i < cn[k]->getNFaces(); i++)
+      {
+        ngon[offsetSizeFN+ind] = ngonk[ind];
+        ind += ngonk[ind]+1;
+      }
+      
+      ind = 0;
+      for (E_Int i = 0; i < cn[k]->getNElts(); i++)
+      {
+        nface[offsetSizeEF+ind] = nfacek[ind];
+        ind += nfacek[ind]+1;
+      }
+
+      offsetSizeFN += cn[k]->getSizeNGon();
+      offsetSizeEF += cn[k]->getSizeNFace();
+    }
+  }
+
+  for (E_Int k = 0; k < nu; k++)
+    RELEASESHAREDU(obju[k], unstructF[k], cn[k]);
 
   E_Int posx = K_ARRAY::isCoordinateXPresent(unstructVarString[0])+1;
   E_Int posy = K_ARRAY::isCoordinateYPresent(unstructVarString[0])+1;
   E_Int posz = K_ARRAY::isCoordinateZPresent(unstructVarString[0])+1;
-  K_CONNECT::cleanConnectivity(posx, posy, posz, tol, eltRef, 
-                               field, cno);
-
-  PyObject* tpl = K_ARRAY::buildArray(field, unstructVarString[0], 
-                                      cno, -1, eltRef);
-  return tpl;
-
+  if (posx > 0 && posy > 0 && posz > 0)
+  {
+    K_CONNECT::cleanConnectivity(posx, posy, posz, tol, newEltType, 
+                                 *f, *cno);
+    PyObject* tpl2 = K_ARRAY::buildArray3(*f, unstructVarString[0], *cno, newEltType);
+    RELEASESHAREDU(tpl, f, cno); Py_DECREF(tpl);
+    return tpl2;
+  }
+  else
+  {
+    RELEASESHAREDU(tpl, f, cno);
+    return tpl;
+  }
 }
+
 // ============================================================================
 /* Join all arrays and their arrays at centers */
 // ============================================================================
 PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
 {
-  PyObject *arrays, *arraysc;
-  E_Float tol;
-  if (!PYPARSETUPLEF(args,
-                    "OOd", "OOf",
-                    &arrays, &arraysc, &tol))
-  {
-      return NULL;
-  }
+  PyObject *arrays, *arraysc; E_Float tol;
+  if (!PYPARSETUPLE_(args, OO_ R_, &arrays, &arraysc, &tol)) return NULL;
 
   // Check arrays for fields located at nodes 
   vector<E_Int> res;
-  vector<char*> structVarString;
-  vector<char*> unstructVarString;
-  vector<FldArrayF*> structF;
-  vector<FldArrayF*> unstructF;
+  vector<char*> structVarString; vector<char*> unstructVarString;
+  vector<FldArrayF*> structF; vector<FldArrayF*> unstructF;
   vector<E_Int> ni; vector<E_Int> nj; vector<E_Int> nk;
-  vector<FldArrayI*> cn;
-  vector<char*> eltType;
+  vector<FldArrayI*> cn; vector<char*> eltType;
   vector<PyObject*> objs, obju;
   K_ARRAY::getFromArrays(arrays, res, structVarString,
-			 unstructVarString, structF,
-			 unstructF, ni, nj, nk,
-			 cn, eltType, objs, obju, 
-			 true, true, true, false, true);
+                         unstructVarString, structF,
+                         unstructF, ni, nj, nk,
+                         cn, eltType, objs, obju, 
+                         true, true, true, false, true);
 
   // Check arrays for fields located at centers
   vector<E_Int> resc;
-  vector<char*> structVarStringc;
-  vector<char*> unstructVarStringc;
-  vector<FldArrayF*> structFc;
-  vector<FldArrayF*> unstructFc;
-  vector<E_Int> nic;
-  vector<E_Int> njc; 
-  vector<E_Int> nkc;
-  vector<FldArrayI*> cnc;
-  vector<char*> eltTypec;
+  vector<char*> structVarStringc; vector<char*> unstructVarStringc;
+  vector<FldArrayF*> structFc; vector<FldArrayF*> unstructFc;
+  vector<E_Int> nic, njc, nkc;
+  vector<FldArrayI*> cnc; vector<char*> eltTypec;
   vector<PyObject*> objsc, objuc;
   K_ARRAY::getFromArrays(arraysc, resc, structVarStringc,
-			 unstructVarStringc, structFc,
-			 unstructFc, nic, njc, nkc,
-			 cnc, eltTypec, objsc, objuc, 
-			 false, false, false, false, true);
+			                   unstructVarStringc, structFc,
+			                   unstructFc, nic, njc, nkc,
+			                   cnc, eltTypec, objsc, objuc, 
+			                   false, false, false, false, true);
 
   // Fusion des zones non-structures
+  PyObject* tpln = NULL;
   E_Int nu = unstructF.size(); E_Int nuc = unstructFc.size();
-  if (nu != nuc)
+  if (nu != nuc or (nu == 0 && nuc == 0))
   {
-    for (E_Int i = 0; i < nu; i++) RELEASESHAREDU(obju[i], unstructF[i], cn[i]);
-    for (E_Int i = 0; i < nuc; i++) RELEASESHAREDU(objuc[i], unstructFc[i], cnc[i]);  
+    for (E_Int k = 0; k < nu; k++) RELEASESHAREDU(obju[k], unstructF[k], cn[k]);
+    for (E_Int k = 0; k < nuc; k++) RELEASESHAREDU(objuc[k], unstructFc[k], cnc[k]);  
     PyErr_SetString(PyExc_ValueError,
-                    "joinAllBoth: number of arrays at nodes and centers must be equal.");
+                    "joinAllBoth: number of arrays at nodes and centers must "
+                    "be equal.");
     return NULL;
   }
-  char* eltRef = NULL; char* eltRefc = NULL;
-  eltRef = eltType[0]; eltRefc = eltTypec[0];
+  
+  char* eltRef = NULL;
+  eltRef = eltType[0];
+  E_Int missed = 0;
 
-  E_Int missed = 0; E_Int missedc = 0; 
-  E_Int size = 0; E_Int sizec = 0;
-  E_Int ne = 0; E_Int nec = 0;
-  for (E_Int i = 0; i < nu; i++)
+  E_Int nc = 0, dimRef = -1, dim;
+  char newEltType[K_ARRAY::VARSTRINGLENGTH]; newEltType[0] = '\0';
+  // Counters for all arrays
+  E_Int npts = 0;
+  E_Int nfaces = 0, neltsNGON = 0, sizeFN = 0, sizeEF = 0;
+  // Table d'indirection des connectivites ME
+  vector<vector<E_Int> > indir(nu);
+
+  for (E_Int k = 0; k < nu; k++)
   {
-    if (strcmp(eltRef, eltType[i]) == 0)
+    npts += unstructF[k]->getSize();
+    
+    if (strcmp(eltType[k], "NGON") == 0)
     {
-      size += unstructF[i]->getSize();
-      ne += cn[i]->getSize();
-    }
-    else missed++;
-
-    if (strcmp(eltRefc, eltTypec[i]) == 0)
-    {
-      sizec += unstructFc[i]->getSize();
-      nec += cnc[i]->getSize();
-    }
-    else missedc++;
-  }
-  if (missed > 0 || missedc > 0) printf("Warning: joinAllBoth: some arrays are not joined: different element types.\n");
-
-  // Fusion des connectivites
-  E_Int nt = cn[0]->getNfld();
-  FldArrayI* cno = new FldArrayI(ne, nt);
-  E_Int c = 0; E_Int csav = 0;
-  E_Int nf1 = 0;
-  for (E_Int i = 0; i < nu; i++)
-  {
-    if (strcmp(eltRef, eltType[i]) == 0)
-    {
-      csav = c;
-      for (E_Int n = 1; n <= nt; n++)
+      // La connectivite fusionee ne doit avoir que des NGONs
+      if (strcmp(eltRef, "NGON") == 0)
       {
-        E_Int* cn1n = cn[i]->begin(n);
-        E_Int* cnn = cno->begin(n);        
-        c = csav;
-        for (E_Int j = 0; j < cn[i]->getSize(); j++)
+        neltsNGON += cn[k]->getNElts();
+        nfaces += cn[k]->getNFaces();
+        sizeFN += cn[k]->getSizeNGon();
+        sizeEF += cn[k]->getSizeNFace();
+      }
+      else missed++;
+    }
+    else if (strcmp(eltRef, "NGON") != 0)
+    {
+      // Calcul du nombre d'elt types dans la connectivite ME fusionee
+      // et de leur identite
+      vector<char*> eltTypesk;
+      K_ARRAY::extractVars(eltType[k], eltTypesk);
+      
+      E_Int nck = cn[k]->getNConnect();
+      for (E_Int ic = 0; ic < nck; ic++)
+      {
+        char* eltTypConn = eltTypesk[ic];
+        // Check dimensionality: allow merge if identical
+        if (dimRef == -1)
         {
-          cnn[c] = cn1n[j]+nf1; c++;
+          if (strcmp(eltTypesk[ic], "NODE") == 0) dimRef = 0;
+          else if (strcmp(eltTypesk[ic], "BAR") == 0) dimRef = 1;
+          else if (strcmp(eltTypesk[ic], "TRI") == 0 or
+                   strcmp(eltTypesk[ic], "QUAD") == 0) dimRef = 2;
+          else dimRef = 3;
+        }
+        else
+        {
+          if (strcmp(eltTypesk[ic], "NODE") == 0) dim = 0;
+          else if (strcmp(eltTypesk[ic], "BAR") == 0) dim = 1;
+          else if (strcmp(eltTypesk[ic], "TRI") == 0 or
+                   strcmp(eltTypesk[ic], "QUAD") == 0) dim = 2;
+          else dim = 3;
+          if (dim != dimRef) { indir[k].push_back(-2); missed++; continue; }
+        }
+        // Add default value in mapping table
+        indir[k].push_back(-1);
+        // Concatenate elttypes, discard duplicates
+        if (strstr(newEltType, eltTypConn) == NULL)
+        {
+          strcat(newEltType, eltTypConn); strcat(newEltType, ",");
+          nc += 1;
         }
       }
-      nf1 += unstructF[i]->getSize();
+
+      for (size_t ic = 0; ic < eltTypesk.size(); ic++)
+        delete [] eltTypesk[ic];
+    }
+    else missed++;
+  }
+
+  if (missed > 0)
+    printf("Warning: joinAll: some arrays cannot be joined: different element "
+           "types.\n");
+
+  // Build unstructured connectivity
+  E_Int nfld = unstructF[0]->getNfld();
+  E_Int nfldc = unstructFc[0]->getNfld();
+  E_Int api = unstructF[0]->getApi();
+  vector<E_Int> neltsME; E_Int neltstot = 0;
+
+  if (strcmp(eltRef, "NGON") == 0)
+  {
+    strcpy(newEltType, "NGON");
+    neltstot = neltsNGON;
+    E_Int ngonType = 1; // CGNSv3 compact array1
+    if (api == 2) ngonType = 2; // CGNSv3, array2
+    else if (api == 3) ngonType = 3; // force CGNSv4, array3
+    tpln = K_ARRAY::buildArray3(nfld, unstructVarString[0], npts, neltsNGON,
+                                nfaces, newEltType, sizeFN, sizeEF,
+                                ngonType, false, api);
+  }
+  else
+  {
+    // Remove trailing comma in newEltType
+    E_Int len = strlen(newEltType);
+    newEltType[len-1] = '\0';
+    
+    // ME: api = 3 only
+    if (nc > 1) api = 3;
+
+    vector<char*> newEltTypes;
+    K_ARRAY::extractVars(newEltType, newEltTypes);
+
+    // Remplissage table d'indirection et nombre d'elements par eltType
+    neltsME.resize(nc); neltsME.assign(nc, 0);
+    for (E_Int k = 0; k < nu; k++)
+    {
+      vector<char*> eltTypesk;
+      K_ARRAY::extractVars(eltType[k], eltTypesk);
+      
+      E_Int nck = cn[k]->getNConnect();
+      for (E_Int ic = 0; ic < nck; ic++)
+      {
+        if (indir[k][ic] == -2) continue; // skip
+        for (E_Int icglb = 0; icglb < nc; icglb++)
+        {
+          if (strcmp(newEltTypes[icglb], eltTypesk[ic]) == 0)
+          {indir[k][ic] = icglb; break;}
+        }
+        if (indir[k][ic] < 0) continue; // skip
+        FldArrayI& cmkic = *(cn[k]->getConnect(ic));
+        neltsME[indir[k][ic]] += cmkic.getSize();
+        neltstot += cmkic.getSize();
+      }
+
+      for (size_t ic = 0; ic < eltTypesk.size(); ic++)
+        delete [] eltTypesk[ic];
+    }
+    for (size_t ic = 0; ic < newEltTypes.size(); ic++)
+        delete [] newEltTypes[ic];
+    tpln = K_ARRAY::buildArray3(nfld, unstructVarString[0], npts, neltsME,
+                                newEltType, false, api);
+  }
+  FldArrayF* f; FldArrayI* cno;
+  K_ARRAY::getFromArray3(tpln, f, cno);
+
+  // Nouveaux champs aux centres (la connectivite sera identique a cno)
+  E_Boolean compact = false;
+  if (api == 1) compact = true;
+  FldArrayF* fc = new FldArrayF(neltstot, nfldc, compact);
+
+  // Acces non universel sur les ptrs NGON
+  E_Int *ngon = NULL, *nface = NULL, *indPG = NULL, *indPH = NULL;
+  if (strcmp(eltRef, "NGON") == 0)
+  {
+    ngon = cno->getNGon(); nface = cno->getNFace();
+    if (api == 2 || api == 3)
+    {
+      indPG = cno->getIndPG(); indPH = cno->getIndPH();
     }
   }
-  // join des champs en noeuds
-  E_Int nfld = unstructF[0]->getNfld();
-  FldArrayF* field = new FldArrayF(size, nfld);
-  c = 0; csav = 0;
-  for (E_Int i = 0; i < nu; i++)
+
+  #pragma omp parallel
   {
-    if (strcmp(eltRef, eltType[i]) == 0)
+    E_Int offsetSizeFN = 0, offsetSizeEF = 0;
+    E_Int offsetPts = 0, offsetFaces = 0, offsetElts = 0;
+    for (E_Int k = 0; k < nu; k++)
     {
-      csav = c;
-      E_Int nf2 = unstructF[i]->getSize();
+      // Skip if the ref elt type is NGON and if current elt type is not NGON
+      // NB: Dissimilar BE elt types can be combined to form ME
+      if (strcmp(eltRef, "NGON") == 0 and strcmp(eltRef, eltType[k]) != 0)
+        continue;
+
+      E_Int nptsk = unstructF[k]->getSize();
+      // Copie des champs aux noeuds
       for (E_Int n = 1; n <= nfld; n++)
       {
-        E_Float* f2n = unstructF[i]->begin(n);
-        E_Float* fn = field->begin(n);
-        c = csav;
-        for (E_Int j = 0; j < nf2; j++)
-        {fn[c] = f2n[j]; c++;}
+        E_Float* fkn = unstructF[k]->begin(n);
+        E_Float* fn = f->begin(n);
+        #pragma omp for
+        for (E_Int i = 0; i < nptsk; i++) fn[i+offsetPts] = fkn[i];
       }
-    }
-  }
-  // join des champs en centres
-  E_Int nfldc = unstructFc[0]->getNfld();
-  FldArrayF* fieldc = new FldArrayF(sizec, nfldc);
-  c = 0; csav = 0;
-  for (E_Int i = 0; i < nuc; i++)
-  {
-    if (strcmp(eltRefc, eltTypec[i]) == 0)
-    {
-      csav = c;
-      E_Int nf2 = unstructFc[i]->getSize();
+
+      // Copie des champs aux centres
       for (E_Int n = 1; n <= nfldc; n++)
       {
-        E_Float* f2n = unstructFc[i]->begin(n);
-        E_Float* fn = fieldc->begin(n);
-        c = csav;
-        for (E_Int j = 0; j < nf2; j++)
-        {fn[c] = f2n[j]; c++;}
+        E_Float* fckn = unstructFc[k]->begin(n);
+        E_Float* fcn = fc->begin(n);
+        #pragma omp for
+        for (E_Int i = 0; i < unstructFc[k]->getSize(); i++)
+          fcn[i+offsetElts] = fckn[i];
       }
+
+      if (strcmp(eltRef, "NGON") == 0)
+      {
+        E_Int neltsk = cn[k]->getNElts();
+        E_Int nfacesk = cn[k]->getNFaces();
+        E_Int sizeFNk = cn[k]->getSizeNGon();
+        E_Int sizeEFk = cn[k]->getSizeNFace();
+
+        // Ajout de la connectivite NGON k
+        E_Int *ngonk = cn[k]->getNGon(), *nfacek = cn[k]->getNFace();
+        E_Int *indPGk = NULL, *indPHk = NULL;
+
+        #pragma omp for
+        for (E_Int i = 0; i < sizeFNk; i++)
+          ngon[i+offsetSizeFN] = ngonk[i] + offsetPts;
+        #pragma omp for
+        for (E_Int i = 0; i < sizeEFk; i++)
+          nface[i+offsetSizeEF] = nfacek[i] + offsetFaces;
+
+        if (api == 2 || api == 3)
+        {
+          indPGk = cn[k]->getIndPG(); indPHk = cn[k]->getIndPH();
+          #pragma omp for
+          for (E_Int i = 0; i < nfacesk; i++)
+            indPG[i+offsetFaces] = indPGk[i] + offsetFaces;
+          #pragma omp for
+          for (E_Int i = 0; i < neltsk; i++)
+            indPH[i+offsetElts] = indPHk[i] + offsetElts;
+        }
+
+        // Increment NGON offsets
+        offsetFaces += nfacesk;
+        offsetElts += neltsk;
+        offsetSizeFN += sizeFNk;
+        offsetSizeEF += sizeEFk;
+      }
+      else
+      {
+        // Ajout de la connectivite BE/ME k
+        E_Int nck = cn[k]->getNConnect();
+        for (E_Int ic = 0; ic < nck; ic++)
+        {
+          if (indir[k][ic] < 0) continue; // skip
+          FldArrayI& cmkic = *(cn[k]->getConnect(ic));
+          FldArrayI& cm = *(cno->getConnect(indir[k][ic]));
+          E_Int neltskic = cmkic.getSize();
+
+          #pragma omp for
+          for (E_Int i = 0; i < neltskic; i++)
+            for (E_Int j = 1; j <= cmkic.getNfld(); j++)
+              // Add offsets
+              cm(i+offsetElts,j) = cmkic(i,j) + offsetPts;
+
+          // Increment ME offsets
+          offsetElts += neltskic;
+        }
+      }
+      offsetPts += nptsk;
     }
   }
-  for (E_Int i = 0; i < nu; i++)
+
+  // NGON: Correction for number of vertices per face and number of faces per
+  // element for all but the first array
+  if (strcmp(eltRef, "NGON") == 0 and api != 3)
   {
-    RELEASESHAREDU(obju[i], unstructF[i], cn[i]);
-    RELEASESHAREDU(objuc[i], unstructFc[i], cnc[i]);  
+    E_Int offsetSizeFN = cn[0]->getSizeNGon();
+    E_Int offsetSizeEF = cn[0]->getSizeNFace();
+    for (E_Int k = 1; k < nu; k++)
+    {
+      E_Int ind = 0;
+      E_Int *ngonk = cn[k]->getNGon(), *nfacek = cn[k]->getNFace();
+      for (E_Int i = 0; i < cn[k]->getNFaces(); i++)
+      {
+        ngon[offsetSizeFN+ind] = ngonk[ind];
+        ind += ngonk[ind]+1;
+      }
+      
+      ind = 0;
+      for (E_Int i = 0; i < cn[k]->getNElts(); i++)
+      {
+        nface[offsetSizeEF+ind] = nfacek[ind];
+        ind += nfacek[ind]+1;
+      }
+
+      offsetSizeFN += cn[k]->getSizeNGon();
+      offsetSizeEF += cn[k]->getSizeNFace();
+    }
   }
+
+  for (E_Int k = 0; k < nu; k++)
+  {
+    RELEASESHAREDU(obju[k], unstructF[k], cn[k]);
+    RELEASESHAREDU(objuc[k], unstructFc[k], cnc[k]);  
+  }
+
   E_Int posx = K_ARRAY::isCoordinateXPresent(unstructVarString[0])+1;
   E_Int posy = K_ARRAY::isCoordinateYPresent(unstructVarString[0])+1;
   E_Int posz = K_ARRAY::isCoordinateZPresent(unstructVarString[0])+1;
-  K_CONNECT::cleanConnectivity(posx, posy, posz, tol, eltRef, *field, *cno);
+  
+  if (posx > 0 && posy > 0 && posz > 0)
+  {
+    K_CONNECT::cleanConnectivity(posx, posy, posz, tol, newEltType, *f, *cno);
+    //PyObject* tpln3 = K_ARRAY::buildArray3(*f, unstructVarString[0], *cno, newEltType);
+  }
+
   PyObject* l = PyList_New(0);
-  PyObject* tpl1 = K_ARRAY::buildArray(*field, unstructVarString[0], 
-                                       *cno, -1, eltRef);
-  PyList_Append(l, tpl1); Py_DECREF(tpl1); delete field;
-  PyObject* tpl2 = K_ARRAY::buildArray(*fieldc, unstructVarStringc[0], 
-                                       *cno, -1, eltRefc);
-  PyList_Append(l, tpl2); Py_DECREF(tpl2); delete fieldc;
-  delete cno; 
+  PyObject* tpln2 = K_ARRAY::buildArray3(*f, unstructVarString[0], *cno, newEltType);
+  PyList_Append(l, tpln2); Py_DECREF(tpln2);
+  char newEltTypec[K_ARRAY::VARSTRINGLENGTH];
+  K_ARRAY::starVarString(newEltType, newEltTypec);
+  PyObject* tplc = K_ARRAY::buildArray3(*fc, unstructVarStringc[0], 
+                                        *cno, newEltTypec);
+  PyList_Append(l, tplc); Py_DECREF(tplc); delete fc;
+  RELEASESHAREDU(tpln, f, cno);
   return l;
 }

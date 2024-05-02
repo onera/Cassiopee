@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -40,7 +40,7 @@ C_OUT
       REAL_E   surf(0:5,3)      ! tableau des vecteurs surfaces sur chaque interface 
 
 C_LOCAL
-      INTEGER_E i,j,k,n
+      INTEGER_E i,j,k
       INTEGER_E ninj
       INTEGER_E l1, l2, l3, l4 
       REAL_E   d13x, d13y, d13z, d24x, d24y, d24z

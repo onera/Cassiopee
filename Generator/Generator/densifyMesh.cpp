@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -32,7 +32,7 @@ PyObject* K_GENERATOR::densifyMesh(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Float h;
-  if (!PYPARSETUPLEF(args, "Od", "Of", &array, &h))
+  if (!PYPARSETUPLE_(args, O_ R_, &array, &h))
     return NULL;
   
   // Check array

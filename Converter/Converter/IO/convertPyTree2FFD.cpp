@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -87,13 +87,13 @@ PyObject* K_CONVERTER::convertPyTree2FFD(PyObject* self, PyObject* args)
   E_Int nd , ii;
   E_Int neq = 5 ;
 
-  if (!PYPARSETUPLEI(args, "OOOlsss", "OOOisss", 
+  if (!PYPARSETUPLE_(args, OOO_ I_ SSS_, 
                      &zone, &RefStat, &FlowEq, &nd,                 
                      &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters)) return NULL;
 
   if( test == 1 ){
      printf("je rentre dans convertPyTree2FFD\n");
-     printf("nd = %d\n", nd);
+     printf("nd = " SF_D_ "\n", nd);
    }
   vector<PyArrayObject*> hook;
   E_Float real_state1[10];
@@ -104,7 +104,7 @@ PyObject* K_CONVERTER::convertPyTree2FFD(PyObject* self, PyObject* args)
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
      E_Int lrefstat = PyList_Size(RefStat);
-     if( test == 1 )printf("longueur de RefStat = %d\n", lrefstat);
+     if( test == 1 )printf("longueur de RefStat = " SF_D_ "\n", lrefstat);
      for  ( ii = 0 ; ii < lrefstat ; ii++)
         {
       PyObject* fl   = PyList_GetItem(RefStat, ii);
@@ -125,19 +125,18 @@ PyObject* K_CONVERTER::convertPyTree2FFD(PyObject* self, PyObject* args)
   char* varString; char* eltType;
   vector<E_Float*> fields; vector<E_Int> locs;
   vector<E_Int*> cn;
-  E_Int loc = 2 ;
-//  
-//  
+  E_Int loc = 2;
+
   E_Int res = K_PYTREE::getFromZone(zone, 1, loc, varString,
                         fields, locs, nnode, nelmt, km,
                         cn, cnSize, cnNfld, eltType, hook, 
                         GridCoordinates, FlowSolutionNodes, FlowSolutionCenters);
    if( test == 1 ){
      printf("getFromZone a repondu :\n");
-     printf("res = %d\n", res);
+     printf("res = " SF_D_ "\n", res);
      printf("varString : %s\n", varString);
-     printf("nnode = %d, nelmt = %d, km = %d \n",nnode, nelmt, km);
-     printf("cnSize= %d, cnNfld= %d \n",cnSize,cnNfld);
+     printf("nnode = " SF_D_ ", nelmt = " SF_D_ ", km = " SF_D_ " \n", nnode, nelmt, km);
+     printf("cnSize= " SF_D_ ", cnNfld= " SF_D_ " \n", cnSize, cnNfld);
      //printf("cn[0]= %d, cn2[0]= %d \n",cn[0],cn2[0]);
    }
     /* Plus d'info dans KCore/PyTree/PyTree.h */
@@ -344,7 +343,7 @@ PyObject* K_CONVERTER::convertPyTree2FFD(PyObject* self, PyObject* args)
 //   fin de convertPyTree2FFD 
      if( test == 1 ){
      printf("je sors de convertPyTree2FFD\n");
-     printf("nd = %d\n", nd);
+     printf("nd = " SF_D_ "\n", nd);
      }
     RELEASESHAREDZ(hook, varString, eltType);
     Py_INCREF(Py_None);
@@ -373,10 +372,10 @@ void K_CONVERTER::scanBC(PyObject* zone,  E_Int* nlimt)
     //E_Int type_bc;
     *nlimt = 0;
     vector<PyObject*> data_set;
-    K_PYTREE::getNodesFromType1(zone, "ZoneBC_t", data_set );
+    K_PYTREE::getNodesFromType1(zone, "ZoneBC_t", data_set);
     zonebc = data_set[0];
 //   zonebc   = K_PYTREE::getNodeFromName1(zone, "ZoneBC" );
-    if(zonebc == NULL)
+    if (zonebc == NULL)
     {  printf("pas de ZoneBC \n"); 
     }
     else
@@ -393,7 +392,11 @@ void K_CONVERTER::scanBC(PyObject* zone,  E_Int* nlimt)
     {
       bc   = PyList_GetItem(list_bc, ibc);
       node = PyList_GetItem(bc, 3);
-      str  = PyString_AsString(node); // type_bc
+      str = NULL;
+      if (PyString_Check(node)) str = PyString_AsString(node); // type_bc
+#if PY_VERSION_HEX >= 0x03000000
+      else if (PyUnicode_Check(node)) str = PyBytes_AsString(PyUnicode_AsUTF8String(node));
+#endif
       if (K_STRING::cmp(str, "BC_t") == 0)
       {
         //E_Int s;
@@ -443,7 +446,11 @@ void K_CONVERTER::getVarBC(PyObject* zone, E_Float* Var_l, E_Int* ielmtmtch2, E_
     {
       bc   = PyList_GetItem(list_bc, ibc);
       node = PyList_GetItem(bc, 3);
-      str  = PyString_AsString(node); // type_bc
+      str = NULL;
+      if (PyString_Check(node)) str = PyString_AsString(node); // type_bc
+#if PY_VERSION_HEX >= 0x03000000
+      else if (PyUnicode_Check(node)) str = PyBytes_AsString(PyUnicode_AsUTF8String(node));
+#endif
       if (K_STRING::cmp(str, "BC_t") == 0)
       {
         E_Int s;
@@ -682,7 +689,10 @@ void K_CONVERTER::splitElementConnectivity(PyObject* zone, E_Int* npoint,E_Int* 
 //  {
 //    l = PyList_GetItem(childrens, i);
 //    node = PyList_GetItem(l, 3);
-//    str = PyString_AsString(node);
+//    if (PyString_Check(node)) str = PyString_AsString(node); // type_bc
+//#if PY_VERSION_HEX >= 0x03000000
+//       else if (PyUnicode_Check(node)) str = PyBytes_AsString(PyUnicode_AsUTF8String(node));
+//#endif
 //    if (K_STRING::cmp(str, type) == 0) out.push_back(l);
 //  }
 //}

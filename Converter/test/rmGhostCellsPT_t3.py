@@ -9,43 +9,43 @@ import KCore.test as test
 a = D.sphere((0,0,0),1,N=10)
 dhk = G.cart((0,0,0),(0.1,1,1),(2,1,1))
 a = G.addNormalLayers(a,dhk)
-a = C.convertArray2NGon(a)
+a = C.convertArray2NGon(a); a = G.close(a, 1.e-12)
 a = G.close(a)
 a = C.initVars(a, '{centers:F}={centers:CoordinateX}')
 a = C.initVars(a,'{Density}={CoordinateX}')
-t = C.newPyTree(['Base']); t[2][1][2] = [a]
-t = Internal.addGhostCells(t, t, 2)
-t = Internal.rmGhostCells(t, t, 2)
+t = C.newPyTree(['Base',a])
+t = Internal.addGhostCells(t, t, 2, adaptBCs=0)
+t = Internal.rmGhostCells(t, t, 2, adaptBCs=0)
 test.testT(t,1)
 
 # 3D sur un arbre
 a = D.sphere((0,0,0),1,N=10)
 dhk = G.cart((0,0,0),(0.1,1,1),(2,1,1))
 a = G.addNormalLayers(a,dhk)
-a = C.convertArray2NGon(a)
+a = C.convertArray2NGon(a); a = G.close(a, 1.e-12)
 a = G.close(a)
 a = C.initVars(a, '{centers:F}={centers:CoordinateX}**2')
 a = C.initVars(a,'{Density}=3*{CoordinateX}+2*{CoordinateY}')
-t = C.newPyTree(['Base']); t[2][1][2] = [a]
-t = Internal.addGhostCells(t, t, 1)
-t = Internal.rmGhostCells(t, t, 1)
+t = C.newPyTree(['Base',a])
+t = Internal.addGhostCells(t, t, 1, adaptBCs=0)
+t = Internal.rmGhostCells(t, t, 1, adaptBCs=0)
 test.testT(t,2)
 
 #  2D sans frontieres exterieures
 a = D.sphere((0,0,0),1,N=10)
-a = C.convertArray2NGon(a)
+a = C.convertArray2NGon(a); a = G.close(a, 1.e-12)
 a = C.initVars(a, '{centers:F}={centers:CoordinateX}**2')
 a = C.initVars(a,'{Density}=3*{CoordinateX}+2*{CoordinateY}')
-t = C.newPyTree(['Base']); t[2][1][2] = [a]
-t = Internal.addGhostCells(t, t, 1)
-t = Internal.rmGhostCells(t, t, 1)
+t = C.newPyTree(['Base',a])
+t = Internal.addGhostCells(t, t, 1, adaptBCs=0)
+t = Internal.rmGhostCells(t, t, 1, adaptBCs=0)
 test.testT(t,3)
 
 # 2D avec frontieres exterieures
 a = G.cartNGon((0,0,0),(1,1,1),(21,21,1))
 a = C.initVars(a, '{centers:F}={centers:CoordinateX}**2')
 a = C.initVars(a,'{Density}=3*{CoordinateX}+2*{CoordinateY}')
-t = C.newPyTree(['Base']); t[2][1][2] = [a]
-t = Internal.addGhostCells(t, t, 1)
-t = Internal.rmGhostCells(t, t, 1)
+t = C.newPyTree(['Base',a])
+t = Internal.addGhostCells(t, t, 1, adaptBCs=0)
+t = Internal.rmGhostCells(t, t, 1, adaptBCs=0)
 test.testT(t,4)

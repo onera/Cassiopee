@@ -1,5 +1,7 @@
-# - backgrounds -
-import Tkinter as TK
+# - tkBackgrounds -
+"""Set backgrounds in GUI."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -211,7 +213,7 @@ def createGround():
     if hy < 1.e-10: hy = 0.1
     if hz < 1.e-10: hz = 0.001
     h = max(hx, hy)
-    ay = ax; bx = ax; by = ax; # force square
+    ay = ax; bx = ax; by = ax # force square
     deltax = 0.5*(h-hx); deltay = 0.5*(h-hy)
 
     hx = h * 0.5; hy = h * 0.5; hz = 0.1*hz
@@ -244,26 +246,26 @@ def setBackground(event=None):
     if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-    type = VARS[0].get()
+    btype = VARS[0].get()
     CTK.saveTree()
-    if type == 'None':
+    if btype == 'None':
         deleteBackgroundBase()
     else:
         deleteBackgroundBase()
         CTK.t = C.addBase2PyTree(CTK.t, 'BACKGROUND', 2)
         
-        if type == 'Half-Box': B = createBox(1)
-        elif type == 'Box': B = createBox(0)
-        elif type == 'Z-Half-Box': B = createBox(1, 1)
-        elif type == 'Z-Box': B = createBox(0, 1)
-        elif type == 'Z-Ellipse': B = createZEllipse()
-        elif type == 'Z-Plane': B = createZPlane()
-        elif type == 'Z-Square-Ground': B = createGround()
+        if btype == 'Half-Box': B = createBox(1)
+        elif btype == 'Box': B = createBox(0)
+        elif btype == 'Z-Half-Box': B = createBox(1, 1)
+        elif btype == 'Z-Box': B = createBox(0, 1)
+        elif btype == 'Z-Ellipse': B = createZEllipse()
+        elif btype == 'Z-Plane': B = createZPlane()
+        elif btype == 'Z-Square-Ground': B = createGround()
 
         base = Internal.getNodesFromName1(CTK.t, 'BACKGROUND')[0]
         nob = C.getNobOfBase(base, CTK.t)
         for b in B: CTK.add(CTK.t, nob, -1, b)
-        CTK.t = C.fillMissingVariables(CTK.t)
+        #C._fillMissingVariables(CTK.t)
         
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -275,9 +277,10 @@ def setBackground(event=None):
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkBackground', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Create a background.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkBackground  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Create a background.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -286,8 +289,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkBackground')
@@ -296,11 +299,11 @@ def createApp(win):
     # - VARS -
     # -0- Type de background -
     V = TK.StringVar(win); V.set('None'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBackgroundType'): 
+    if 'tkBackgroundType' in CTK.PREFS: 
         V.set(CTK.PREFS['tkBackgroundType'])
     # -1- Border
     V = TK.StringVar(win); V.set('2'); VARS.append(V)
-    if CTK.PREFS.has_key('tkBackgroundBorder'): 
+    if 'tkBackgroundBorder' in CTK.PREFS: 
         V.set(CTK.PREFS['tkBackgroundBorder'])
 
     # - Type de background -
@@ -324,14 +327,18 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['VisuNoteBook'].add(WIDGETS['frame'], text='tkBackground')
+    except: pass
+    CTK.WIDGETS['VisuNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
-
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['VisuNoteBook'].hide(WIDGETS['frame'])
+    
 #==============================================================================
 # Update widgets when global pyTree t changes
 #==============================================================================
@@ -356,9 +363,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
 
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

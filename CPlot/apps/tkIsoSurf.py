@@ -1,5 +1,7 @@
-# - Draw isosurfaces -
-import Tkinter as TK
+# - tkIsoSurf -
+"""Compute isosurfaces."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -16,31 +18,31 @@ WIDGETS = {}; VARS = []
 def updateVarNameList(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
-    if (CTK.__MAINTREE__ <= 0 or nzs == []):
-        vars = C.getVarNames(CTK.t)
+    if CTK.__MAINTREE__ <= 0 or nzs == []:
+        zvars = C.getVarNames(CTK.t)
     else:
         nob = CTK.Nb[0]+1
         noz = CTK.Nz[0]
-        vars = C.getVarNames(CTK.t[2][nob][2][noz])
+        zvars = C.getVarNames(CTK.t[2][nob][2][noz])
     m = WIDGETS['field'].children['menu']
     m.delete(0, TK.END)
-    if len(vars) == 0: return
-    for i in vars[0]:
+    if len(zvars) == 0: return
+    for i in zvars[0]:
         m.add_command(label=i, command=lambda v=VARS[0],l=i:v.set(l))
 
 def updateVarNameList2(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
-    if (CTK.__MAINTREE__ <= 0 or nzs == []):
-        vars = C.getVarNames(CTK.t)
+    if CTK.__MAINTREE__ <= 0 or nzs == []:
+        zvars = C.getVarNames(CTK.t)
     else:
         nob = CTK.Nb[0]+1
         noz = CTK.Nz[0]
-        vars = C.getVarNames(CTK.t[2][nob][2][noz])
+        zvars = C.getVarNames(CTK.t[2][nob][2][noz])
     
-    if len(vars) == 0: return
-    if WIDGETS.has_key('field'):
-        WIDGETS['field']['values'] = vars[0]
+    if len(zvars) == 0: return
+    if 'field' in WIDGETS:
+        WIDGETS['field']['values'] = zvars[0]
         
 #==============================================================================
 def extractIsoSurf(event=None):
@@ -68,10 +70,11 @@ def extractIsoSurf(event=None):
             z.append(CTK.t[2][nob][2][noz])
 
     isos = []
+    CTK.setCursor(2, WIDGETS['frame'])
     try:
         iso = P.isoSurfMC(z, field, value)
         isos += iso
-    except Exception, e:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: isoSurf')
     if isos == []:
         CTK.TXT.insert('START', 'isoSurf failed.\n')
@@ -79,11 +82,13 @@ def extractIsoSurf(event=None):
     else:
         CTK.TXT.insert('START', 'isoSurf of '+field+'='
                        +str(value)+' computed.\n')
+    CTK.setCursor(0, WIDGETS['frame'])
     for i in isos: i[0] = C.getZoneName(i[0]) # unique name
     CTK.t = C.addBase2PyTree(CTK.t, 'SURFACES', 2)
     base = Internal.getNodeFromName1(CTK.t, 'SURFACES')
     nob = C.getNobOfBase(base, CTK.t)
     for i in isos: CTK.add(CTK.t, nob, -1, i)
+
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()
@@ -113,7 +118,7 @@ def getValueFromMouse():
         c = c-3 # a cause des coord
         values = CPlot.getActivePointF()
         if values != []: val = values[c]
-    if val != None: VARS[1].set(str(val))
+    if val is not None: VARS[1].set(str(val))
 
 #==============================================================================
 # Create app widgets
@@ -123,9 +128,10 @@ def createApp(win):
 
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkIsoSurf', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Compute iso-surfaces.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkIsoSurf  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Compute iso-surfaces.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -134,8 +140,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkIsoSurf')
@@ -146,7 +152,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('CoordinateX'); VARS.append(V)
     # -1- value -
     V = TK.StringVar(win); V.set('1.'); VARS.append(V)
-    if CTK.PREFS.has_key('tkIsoSurfValue'): 
+    if 'tkIsoSurfValue' in CTK.PREFS: 
         V.set(CTK.PREFS['tkIsoSurfValue'])
 
     # - field name -
@@ -190,13 +196,17 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['PostNoteBook'].add(WIDGETS['frame'], text='tkIsoSurf')
+    except: pass
+    CTK.WIDGETS['PostNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['PostNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -219,9 +229,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

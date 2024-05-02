@@ -49,7 +49,7 @@ C******************************************************************************
 C
       INTEGER_E M,N,IER
       REAL_E EPS
-      REAL_E R(1), A(1)
+      REAL_E R(*), A(*)
 
       INTEGER_E MM, NM, I,J,K,L,LST,LEND,II,LL,IST
       REAL_E TB, PIV, TOL, PIVI
@@ -59,24 +59,24 @@ C
       IF (M.LE.0) GOTO 23
 C  SEARCH FOR GREATEST ELEMENT IN MATRIX A
     1 IER = 0
-      PIV = 0.
+      PIV = 0.D0
       MM = M*M
       NM = N*M
       DO 3 L=1,MM
-      TB = ABS(A(L))
-      IF (TB-PIV.LE.0) GOTO 3
-    2 PIV = TB
-      I=L
+        TB = ABS(A(L))
+        IF (TB-PIV.LE.0) GOTO 3
+    2   PIV = TB
+        I = L
     3 CONTINUE
-      TOL=EPS*PIV
+      TOL = EPS*PIV
 C  A(I) IS PIVOT ELEMENT. PIV CONTAINS THE ABSOLUTE VALUE OF A(I).
 C  START ELIMINATION LOOP
       LST=1
       DO 17 K=1,M
 C  TEST ON SINGULARITY
-      IF (PIV.LE.0) GOTO 23
+      IF (PIV.LE.0.) GOTO 23
     4 IF (IER.NE.0) GOTO 7
-    5 IF (PIV-TOL.GT.0) GOTO 7
+    5 IF (PIV-TOL.GT.0.) GOTO 7
     6 IER=K-1
     7 PIVI=1.D0/A(I)
       J=(I-1)/M
@@ -85,34 +85,37 @@ C  TEST ON SINGULARITY
 C  I+K IS ROW-INDEX, J+K COLUMN-INDEX OF PIVOT ELEMENT
 C  PIVOT ROW REDUCTION AND ROW INTERCHANGE IN RIGHT HAND SIDE R
       DO 8 L=K,NM,M
-      LL=L+I
-      TB=PIVI*R(LL)
-      R(LL)=R(L)
-    8 R(L)=TB
+        LL=L+I
+        TB=PIVI*R(LL)
+        R(LL)=R(L)
+        R(L)=TB
+    8 CONTINUE
 C  IS ELIMINATION TERMINATED
-      IF (K-M.GE.0) GOTO 18
+      IF (K-M.GE.0) GOTO 18 
 C  COLUMN INTERCHANGE IN MATRIX A
     9 LEND=LST+M-K
-      IF(J.LE.0) GOTO 12
+      IF (J.LE.0) GOTO 12
    10 II=J*M
       DO 11 L=LST,LEND
-      TB=A(L)
-      LL=L+II
-      A(L)=A(LL)
-   11 A(LL)=TB
+        TB=A(L)
+        LL=L+II
+        A(L)=A(LL)
+        A(LL)=TB
+   11 CONTINUE
 C  ROW INTERCHANGE AND PIVOT ROW REDUCTION IN MATRIX A
    12 DO 13 L=LST,MM,M
-      LL=L+I
-      TB=PIVI*A(LL)
-      A(LL)=A(L)
-   13 A(L)=TB
+        LL=L+I
+        TB=PIVI*A(LL)
+        A(LL)=A(L)
+        A(L)=TB
+   13 CONTINUE
 C  SAVE COLUMN INTERCHANGE INFORMATION
       A(LST)=J
 C  ELEMENT REDUCTION AND NEXT PIVOT SEARCH
-      PIV=0.
+      PIV=0.D0
       LST=LST+1
       J=0
-      DO 16 II=LST,LEND
+      DO 96 II=LST,LEND
       PIVI=-A(II)
       IST=II+M
       J=J+1
@@ -126,28 +129,34 @@ C  ELEMENT REDUCTION AND NEXT PIVOT SEARCH
    15 CONTINUE
       DO 16 L=K,NM,M
       LL=L+J
-   16 R(LL)=R(LL)+PIVI*R(L)
-   17 LST=LST+M
+      R(LL)=R(LL)+PIVI*R(L)
+   16 CONTINUE
+   96 CONTINUE
+      LST=LST+M
+   17 CONTINUE
 C  END OF ELIMINATION LOOP
 C  BACK SUBSTITUTION AND BACK INTERCHANGE
    18 IF (M-1.LT.0) GOTO 23
       IF (M-1.EQ.0) GOTO 22
    19 IST=MM+M
       LST=M+1
-      DO 21 I=2,M
-      II=LST-I
-      IST=IST-LST
-      L=IST-M
-      L=A(L)+0.5D0
+      DO 91 I=2,M
+        II=LST-I
+        IST=IST-LST
+        L=IST-M
+        L=A(L)+0.5D0
       DO 21 J=II,NM,M
-      TB=R(J)
-      LL=J
+        TB=R(J)
+        LL=J
       DO 20 K=IST,MM,M
       LL=LL+1
-   20 TB=TB-A(K)*R(LL)
+      TB=TB-A(K)*R(LL)
+   20 CONTINUE
       K=J+L
       R(J)=R(K)
-   21 R(K)=TB
+      R(K)=TB
+   21 CONTINUE
+   91 CONTINUE
    22 RETURN
 C  ERROR RETURN
    23 IER=-1

@@ -1,20 +1,17 @@
-#!/usr/bin/env python
-
-import os, sys
+import os
 from distutils.core import setup, Extension
+#from setuptools import setup, Extension
 
 #=============================================================================
 # KCore requires:
 # C++ compiler
 # Fortran compiler: defined in config.py
 # Numpy
+# Scons
 #=============================================================================
 # Compiler settings must be set in config.py
 from config import *
-
-# Write KCore installation path to installPath.py
 import Dist
-Dist.writeInstallPath()
 
 # Write setup.cfg file
 Dist.writeSetupCfg()
@@ -22,50 +19,38 @@ Dist.writeSetupCfg()
 # Test if numpy exists =======================================================
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
-# Fortran compilation ========================================================
-if (f77compiler == "None"):
-    print "Error: a fortran 77 compiler is required for compiling KCore."
-args = Dist.getForArgs(); opt = ''
-for c in xrange(len(args)):
-    opt += 'FOPT%d=%s '%(c, args[c])
-os.system("make -e FC="+f77compiler+" WDIR=KCore/Fld "+opt)
-os.system("make -e FC="+f77compiler+" WDIR=KCore/Interp "+opt)
-os.system("make -e FC="+f77compiler+" WDIR=KCore/Metric "+opt)
-os.system("make -e FC="+f77compiler+" WDIR=KCore/CompGeom "+opt)
-os.system("make -e FC="+f77compiler+" WDIR=KCore/Loc "+opt)
-os.system("make -e FC="+f77compiler+" WDIR=KCore/Linear "+opt)
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 
 # Setting libraries path =====================================================
 libraryDirs = ["build/"+prod]
-libraries = ["Fld", "Interp", "Metric", "CompGeom", "Loc", "Linear"]
+libraries = ["kcore"]
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 
 # Extensions =================================================================
-import srcs
+srcs = ['KCore/kcore.cpp']
 extensions = [
     Extension('KCore.kcore',
-              sources=['KCore/kcore.cpp']+srcs.cpp_srcs,
-              include_dirs=["KCore", "KCore/Metis"]+additionalIncludePaths+[numpyIncDir],
+              sources=srcs,
+              include_dirs=["KCore"]+additionalIncludePaths+[numpyIncDir],
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
               extra_compile_args=Dist.getCppArgs(),
-              extra_link_args=Dist.getLinkArgs()
-	)
+              extra_link_args=Dist.getLinkArgs())
     ]
 
 # Setup ======================================================================
 setup(
     name="KCore",
-    version="2.7",
+    version="4.0",
     description="Core for *Cassiopee* modules.",
-    author="Onera",
-    package_dir={"":"."},
+    author="ONERA",
+    url="https://cassiopee.onera.fr",
     packages=['KCore'],
+    package_dir={"":"."},
     ext_modules=extensions
     )
 

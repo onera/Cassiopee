@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "../DataDL.h"
-#include "../ZoneImplDL.h"
+#include "DataDL.h"
+#include "ZoneImplDL.h"
 
 //=============================================================================
 /* 
@@ -30,7 +30,7 @@
 void DataDL::displaySMesh()
 {
   if (_numberOfStructZones == 0) return;
-  int zone, isDL;
+  E_Int zone, isDL;
 
   // Enable blending
   glEnable(GL_BLEND);
@@ -92,8 +92,12 @@ void DataDL::displaySMesh()
 #else
       isDL = zoneImpl->_DLsolid;
 #endif
-      if (isDL == 0) displaySMeshZone(zonep, zone);
-      else renderGPUSMeshZone(zonep, zone);
+      if (ptrState->simplifyOnDrag == 1 && ptrState->ondrag == 1) displaySBBZone(zonep);
+      else
+      {
+        if (isDL == 0) displaySMeshZone(zonep, zone);
+        else renderGPUSMeshZone(zonep, zone);
+      }
     }
     zone++;
   }
@@ -108,7 +112,7 @@ void DataDL::displaySMesh()
   glColor3f(1., 1., 1.);
 
   float alphaSav = ptrState->alpha;
-  int solidStyleSav = ptrState->solidStyle;
+  E_Int solidStyleSav = ptrState->solidStyle;
   ptrState->alpha = 0.01;
   switch (ptrState->meshStyle)
   {

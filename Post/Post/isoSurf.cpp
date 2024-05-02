@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -32,10 +32,8 @@ PyObject* K_POST::isoSurf(PyObject* self, PyObject* args)
   // field: nom du field dont on cherche l'iso
   // value: valeur de l'iso
   PyObject* grid;
-  char* field;
-  E_Float value;
-  if (!PYPARSETUPLEF(args,
-                    "Osd", "Osf",
+  char* field; E_Float value;
+  if (!PYPARSETUPLE_(args, O_ S_ R_,
                     &grid, &field, &value))
   {
       return NULL;

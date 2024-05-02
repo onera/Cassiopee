@@ -1,5 +1,7 @@
-# - extract BCs in a pyTree -
-import Tkinter as TK
+# - tkExtractBC -
+"""Extract Bcs in a pyTree."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -20,12 +22,12 @@ def updateFamilyBCNameList(event=None):
     m.delete(0, TK.END)
     varsp = ['-All BC-']+getAllDefinedBC(CTK.t)
     for i in varsp:
-        m.add_command(label=i, command=lambda v=VARS[0],l=i:viewl(v,l))
+        m.add_command(label=i, command=lambda v=VARS[0],l=i:v.set(l))
 
 def updateFamilyBCNameList2(event=None):
     if CTK.t == []: return
     varsp = ['-All BC-']+getAllDefinedBC(CTK.t)
-    if WIDGETS.has_key('BC'): WIDGETS['BC']['values'] = varsp
+    if 'BC' in WIDGETS: WIDGETS['BC']['values'] = varsp
 
 #==============================================================================
 def setBC2Recover():
@@ -79,13 +81,13 @@ def extract(event=None):
         (Zp, BCNames, BCTypes) = C.getBCs(zones)
         Z = []
         for i in Zp: Z += i
-        for i in xrange(len(Z)): Internal._createChild(Z[i], 'BCType', 'UserDefine_t', BCTypes[i])
+        for i, z in enumerate(Z): Internal._createChild(z, 'BCType', 'UserDefined_t', BCTypes[i])
 
     nob = C.getNobOfBase(base, CTK.t)
     for i in Z:
         i[0] = C.getZoneName(i[0])
         CTK.add(CTK.t, nob, -1, i)
-    CTK.t = C.fillMissingVariables(CTK.t) # a cause du BC data set
+    #C._fillMissingVariables(CTK.t) # a cause du BC data set
     CTK.TXT.insert('START', 'BCs of type %s extracted.\n'%BCtype)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -118,7 +120,7 @@ def recover(event=None):
                     BCNames.append(r[1])
                     n = Internal.getNodeFromName1(z, 'BCType')
                     if n is not None: BCTypes.append(Internal.getValue(n))
-                    else: BCTypes.append('BCUserDefined')
+                    else: BCTypes.append('UserDefined')
     CTK.saveTree()
     nzs = CPlot.getSelectedZones()
     if CTK.__MAINTREE__ <= 0 or nzs == []:
@@ -148,9 +150,10 @@ def createApp(win):
 
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkExtractBC', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Extract boundary conditions.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkExtractBC  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Extract boundary conditions.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=2)
@@ -159,8 +162,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     FrameMenu.add_command(label='Save', command=saveApp)
     FrameMenu.add_command(label='Reset', command=resetApp)
     CTK.addPinMenu(FrameMenu, 'tkExtractBC')
@@ -169,7 +172,7 @@ def createApp(win):
     # - VARS -
     # - 0 - Type de BC -
     V = TK.StringVar(win); V.set('-All BC-'); VARS.append(V)
-    if CTK.PREFS.has_key('tkExtractBCType'): 
+    if 'tkExtractBCType' in CTK.PREFS: 
         V.set(CTK.PREFS['tkExtractBCType'])
     # - 1 - List of zoneBCs to recover
     V = TK.StringVar(win); V.set(''); VARS.append(V)
@@ -211,11 +214,15 @@ def createApp(win):
 
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['BCNoteBook'].add(WIDGETS['frame'], text='tkExtractBC')
+    except: pass
+    CTK.WIDGETS['BCNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['BCNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 def saveApp():
@@ -233,9 +240,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

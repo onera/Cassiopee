@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -20,6 +20,7 @@
 # include "Interp/Interp.h"
 # include "Linear/linear.h"
 # include "Metric/metric.h"
+#include "String/kstring.h"
 using namespace std;
 using namespace K_FLD;
 using namespace K_ARRAY;
@@ -117,7 +118,7 @@ E_Int K_INTERP::getInterpCoefMLS(E_Int order, E_Int dimPb, E_Int sizeBasis,
       // {
       //   for (E_Int j=0; j<sizeBasis; j++)
       //   {
-      //     printf("%f ", A[i+j*sizeBasis]);
+      //     printf(SF_F_ " ", A[i+j*sizeBasis]);
       //   }
       //   printf("\n");
       // }
@@ -323,7 +324,7 @@ E_Int K_INTERP::polyBasis(E_Int order, E_Int dimPb, E_Int sizeBasis,
   E_Int basisSize = basis.size();
   if (basisSize != sizeBasis)
   {
-    // printf("Error: K_INTERP:getInterpCoefsMLS: basis generation failed %d %d %d\n",
+    // printf("Error: K_INTERP:getInterpCoefsMLS: basis generation failed " SF_D3_ "\n",
     //        axisConst[0], axisConst[1], axisConst[2]);
     return -1;
   }
@@ -425,7 +426,10 @@ void K_INTERP::structStencil(E_Int dimPb, E_Int indi, E_Int depth,
           for (E_Int i = -depth; i <= depth; i++)
             if (indi+i >= j_*ni+k_*nij && indi+i < (j_+1)*ni+k_*nij && indi+i+ni*j+nij*k != indi)      //(indi+i)/ni ==j_+k_*nj   On reste sur la bonne ligne j_
             {
-              if (indi+i+ni*j+nij*k < 0) printf("indices negatif i=%d j=%d k=%d\n", i, j, k);
+              if (indi+i+ni*j+nij*k < 0)
+              {
+                printf("indices negatif i=" SF_D_ " j=" SF_D_ " k=" SF_D_ "\n", i, j, k);
+              }
               else indicesIn.push_back(indi+i+ni*j+nij*k);
             }
       }
@@ -645,7 +649,7 @@ void K_INTERP::findRadius(
   radius[1] = factor*K_FUNC::E_max(bbox[4]-Pe2, Pe2-bbox[1]);
   radius[2] = factor*K_FUNC::E_max(bbox[5]-Pe3, Pe3-bbox[2]);
   //printf("radius ellipse %g %g %g\n", radius[0], radius[1], radius[2]);
-  //printf("axis %d %d %d\n", axisConst[0], axisConst[1], axisConst[2]);
+  //printf("axis " SF_D3_ "\n", axisConst[0], axisConst[1], axisConst[2]);
 
   // Si le rayon est nul c'est que la direction de l'axe est constante
   // On met alors le rayon a 1 pour ne pas diviser par 0 ensuite
@@ -1146,33 +1150,40 @@ void K_INTERP::getBestDonor(
         nj=*(E_Int*)a3[no];
         nk=*(E_Int*)a4[no];
       }
-      E_Float radius[3]; // longueurs des axes de l'ellipse
-      radius[0] = radius[1] = radius[2] = 1.;
-      E_Float axis[9];  // Axes de l'ellipse
-      vector<E_Int> indicesIn;
-      E_Int ok = buildStencil(dimPb, order, nature, sizeBasis,
-                              indDnr, resl[no], ni, nj, nk, vectOfcVN[no],
-                              xtDnr, ytDnr, ztDnr, cellN,
-                              pt, radius, axis, axisConst, indicesIn);
-      if (vol < volMin && ok == 1)
-      {
-        volMin = vol;    // volume minimal
-        noBest = no;     // numero de la zone donneuse
-        indBestDnr = indDnr; // indice du meilleur donneur
-        dBestDnr = dDnr;
-      }
       if (dDnr < K_CONST::E_GEOM_CUTOFF)//pt coincident
       {
         indCandidates.push_back(indDnr);
         blkCandidates.push_back(no);
         volCandidates.push_back(realVol);
+        dBestDnr = dDnr;
+        indBestDnr = indDnr;
+        noBest = no;
+        volMin = vol;
+      }
+      else 
+      {
+        E_Float radius[3]; // longueurs des axes de l'ellipse
+        radius[0] = radius[1] = radius[2] = 1.;
+        E_Float axis[9];  // Axes de l'ellipse
+        vector<E_Int> indicesIn;
+        E_Int ok = buildStencil(dimPb, order, nature, sizeBasis,
+                                indDnr, resl[no], ni, nj, nk, vectOfcVN[no],
+                                xtDnr, ytDnr, ztDnr, cellN,
+                                pt, radius, axis, axisConst, indicesIn);
+
+        if (vol < volMin && ok == 1)
+        {
+          volMin = vol;    // volume minimal
+          noBest = no;     // numero de la zone donneuse
+          indBestDnr = indDnr; // indice du meilleur donneur
+          dBestDnr = dDnr;
+        }
       }
     }
   }
 
   // si points coincidents, on definit celui de plus petit volume comme donneur
   volMin = K_CONST::E_MAX_FLOAT;
-
   for (size_t i = 0; i < indCandidates.size(); i++)
   {
     if (volCandidates[i] < volMin)

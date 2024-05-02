@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -33,7 +33,7 @@ C_OUT
       
 C_LOCAL
       INTEGER_E j, k, n, indnode
-      INTEGER_E i0, j0, k0
+      INTEGER_E j0, k0
       INTEGER_E ind0, ind1, ind2, ind3
       INTEGER_E njn
       INTEGER_E beta, gamma
@@ -91,7 +91,7 @@ C_OUT
       
 C_LOCAL
       INTEGER_E j, k, n, indnode
-      INTEGER_E i0, j0, k0
+      INTEGER_E j0, k0
       INTEGER_E ind0, ind1, ind2, ind3
       INTEGER_E njn
       INTEGER_E beta, gamma
@@ -163,7 +163,7 @@ C_OUT
       REAL_E Fnz(0:nj*nk-1)
             
 C_LOCAL
-      INTEGER_E i, j, k, i0, j0, k0, n
+      INTEGER_E i, j, k, j0, k0, n
       INTEGER_E ind, ind0, ind1, ind2, ind3, indnode
       INTEGER_E nin, njn, ninnjn, ninj
       REAL_E a, b, c
@@ -283,7 +283,7 @@ C_OUT
       REAL_E fieldnode(0:(nj+1)*(nk+1)-1)
       
 C_LOCAL
-      INTEGER_E j, k, indcenter, indnode, i0, j0, k0
+      INTEGER_E j, k, indnode, j0, k0
       INTEGER_E ind0, ind1, ind2, ind3, ind4, ind5, ind6, ind7
       INTEGER_E njn, ninnjn
       INTEGER_E beta, gamma
@@ -340,7 +340,7 @@ C_OUT
       REAL_E fieldnode(0:(nj+1)*(nk+1)-1)
       
 C_LOCAL
-      INTEGER_E j, k, indcenter, indnode, i0, j0, k0
+      INTEGER_E j, k, indnode, j0, k0
       INTEGER_E ind0, ind1, ind2, ind3, ind4, ind5, ind6, ind7
       INTEGER_E njn, ninnjn
       INTEGER_E beta, gamma
@@ -400,10 +400,10 @@ C_OUT
       REAL_E fieldnode(0:(nj+1)*(nk+1)-1)
       
 C_LOCAL
-      INTEGER_E j, k, indcenter, indnode, j0, k0
+      INTEGER_E j, k, indnode, j0, k0
       INTEGER_E ind0, ind1, ind2, ind3
-      INTEGER_E njn
-      REAL_E f, prod, beta, gamma
+      INTEGER_E njn, beta, gamma
+      REAL_E f, prod
 
       njn = nj+1
       DO k = 1, nk-1
@@ -546,10 +546,10 @@ C_OUT
       REAL_E fieldnode(0:(nj+1)*(nk+1)-1)
       
 C_LOCAL
-      INTEGER_E j, k, indcenter, indnode, j0, k0
+      INTEGER_E j, k, indnode, j0, k0
       INTEGER_E ind0, ind1, ind2, ind3
-      INTEGER_E njn
-      REAL_E f, sum, beta, gamma
+      INTEGER_E njn, beta, gamma
+      REAL_E f, sum
 
       njn = nj+1
       DO k = 1, nk-1
@@ -560,7 +560,7 @@ C_LOCAL
             ind2 = ind0+nj
             ind3 = ind2+1
             sum = fieldcenter(ind0) + fieldcenter(ind1)
-     &           *fieldcenter(ind2) + fieldcenter(ind3)
+     &           +fieldcenter(ind2) + fieldcenter(ind3)
             IF (sum .EQ. 0) THEN
                fieldnode(indnode) = 0.D0
             ELSE
@@ -611,7 +611,7 @@ C     j = nj
          
          ind0 = nj-1+k0*nj 
          ind1 = ind0+gamma                      
-         sum = fieldcenter(ind0)*fieldcenter(ind1)
+         sum = fieldcenter(ind0) + fieldcenter(ind1)
          IF (sum .EQ. 0.) THEN
             fieldnode(indnode) = 0.D0
          ELSE
@@ -627,7 +627,7 @@ C     k = 0
       DO j = 0, nj
          indnode = j
          beta = 1
-         IF (k.EQ.0 .OR. k.EQ.nk) THEN
+         IF (j.EQ.0 .OR. j.EQ.nj) THEN
             beta = 0
          ENDIF
          j0 = MAX(j, 1)-1

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -31,6 +31,7 @@ void gmouseMotion(int x, int y)
 }
 void gmousePassiveMotion(int x, int y)
 {
+  // unused
   Data* d = Data::getInstance();
   d->mousePassiveMotion(x, y);
 }
@@ -43,12 +44,14 @@ void gmousePassiveMotion(int x, int y)
    Clicking selects the active mouse plugin.
 */
 //=============================================================================
-void Data::mouseButton(int button, int etat, int x, int y)
+void Data::mouseButton(E_Int button, E_Int etat, E_Int x, E_Int y)
 {
-  if (etat == 1) { ptrState->currentMouseButton = 5; return; } // button released
-  int modif = glutGetModifiers();
-  ptrState->render = 1;
-
+  //ptrState->render = 1;
+  if (etat == 1) 
+  { ptrState->currentMouseButton = 5; ptrState->ondrag = 0; ptrState->render = 1; return; } // button released
+  
+  E_Int modif = glutGetModifiers();
+  
   switch (button)
   {
     case GLUT_LEFT_BUTTON:
@@ -63,7 +66,7 @@ void Data::mouseButton(int button, int etat, int x, int y)
           double dx = _view.xcam-_view.xeye;
           double dy = _view.ycam-_view.yeye;
           double dz = _view.zcam-_view.zeye;
-          int suiviDir = -1;
+          E_Int suiviDir = -1;
           if (fabs(dx) < 1.e-6 && fabs(dy) < 1.e-6) suiviDir = 1; // xy
           else if (fabs(dx) < 1.e-6 && fabs(dz) < 1.e-6) suiviDir = 2; // xz
           else if (fabs(dy) < 1.e-6 && fabs(dz) < 1.e-6) suiviDir = 3; // yz
@@ -92,7 +95,8 @@ void Data::mouseButton(int button, int etat, int x, int y)
                 break;
             }
           }
-
+          ptrState->ondrag = 0;
+          ptrState->render = 1;
         }
       }
       else
@@ -106,18 +110,21 @@ void Data::mouseButton(int button, int etat, int x, int y)
         // Mouse multiple action
         if (_pref.mouseMultipleClick != NULL)
           _pref.mouseMultipleClick->f(this, button, etat, x, y);
+        ptrState->render = 1;
       }
       else if (modif == GLUT_ACTIVE_SHIFT)
       {
         // Mouse click action
         if (_pref.mouseClick != NULL)
           _pref.mouseClick->f(this, button, etat, x, y);
+        ptrState->render = 1;
       }
       else if (modif == GLUT_ACTIVE_CTRL)
       {
         // Mouse click accurate action
         if (_pref.mouseClick != NULL)
           _pref.mouseAccurateClick->f(this, button, etat, x, y);
+        ptrState->render = 1;
       }
       break;
 
@@ -127,12 +134,14 @@ void Data::mouseButton(int button, int etat, int x, int y)
         // Reverse mouse click action
         if (_pref.mouseRightClick != NULL)
           _pref.mouseRightClick->f(this, button, etat, x, y);
+        ptrState->render = 1;
       }
       break;
 
     case 3: // mouse wheel, zoom in
     {
-      double alpha = 0.08;
+      //double alpha = 0.08;
+      double alpha = 0.15;
       double dx = (_view.xeye - _view.xcam)*alpha;
       double dy = (_view.yeye - _view.ycam)*alpha;
       double dz = (_view.zeye - _view.zcam)*alpha;
@@ -149,23 +158,15 @@ void Data::mouseButton(int button, int etat, int x, int y)
         _view.zeye += dz;
       }
       
-      /*
-      if (d <= epsup*1.e-3)
-      { if (_view.clipping != 3) veryVeryCloseClipping(); }
-      else if (d <= epsup*1.e-2)
-      { if (_view.clipping != 2) veryCloseClipping(); }
-      else if (d <= epsup*1.)
-      { if (_view.clipping != 1) { printf("dist %f\n",d); closeClipping(); } }
-      else
-      { if (_view.clipping != 0) farClipping(); }
-      */
       adaptiveClipping(d);
       button = GLUT_MIDDLE_BUTTON;
+      ptrState->render = 1;
     }
 
     case 4: // mouse wheel, zoom out
     {
-      double alpha = 0.04;
+      //double alpha = 0.04;
+      double alpha = 0.075;
       double dx = (_view.xeye - _view.xcam)*alpha;
       double dy = (_view.yeye - _view.ycam)*alpha;
       double dz = (_view.zeye - _view.zcam)*alpha;
@@ -186,6 +187,7 @@ void Data::mouseButton(int button, int etat, int x, int y)
       */
       adaptiveClipping(d);
       button = GLUT_MIDDLE_BUTTON;
+      ptrState->render = 1;
     }
   }
   ptrState->activeMouseButton = button;
@@ -196,14 +198,16 @@ void Data::mouseButton(int button, int etat, int x, int y)
 }
 
 //=============================================================================
-void Data::mouseMotion(int x, int y)
+// Called when moving mouse
+void Data::mouseMotion(E_Int x, E_Int y)
 {
-  // Mouvement de la souris + shift = selection par BBOX
+  // Mouvement de la souris + shift = selection par mouse drag
   if (ptrState->modifier == GLUT_ACTIVE_SHIFT) { mouseDrag(x, y); return;}
   if (ptrState->modifier == (GLUT_ACTIVE_SHIFT | GLUT_ACTIVE_CTRL)) 
   { mouseDrag(x, y); return;}
 
   // Mouvement de la souris sans shift
+  ptrState->ondrag = 1;
   ptrState->render = 1;
 
   // Zoom / dezoom
@@ -280,8 +284,9 @@ void Data::mouseMotion(int x, int y)
     double d = sqrt(dx*dx + dy*dy + dz*dz);
     double alpha = 0.009;
     //alpha = MIN(0.0015+d/dmoy*0.0035, 0.005);
-    alpha = 0.005+d/dmoy*0.005;
+    //alpha = 0.005+d/dmoy*0.005;
     //alpha = MIN(0.000001+d/dmoy*0.0025, 0.005);
+    alpha = 0.005+d/dmoy*0.008;
     dx = dx*alpha; dy = dy*alpha; dz = dz*alpha; d = d*alpha;
 
     double dirx = _view.dirx;
@@ -329,7 +334,8 @@ void Data::mouseMotion(int x, int y)
     double dy = (_view.yeye - _view.ycam);
     double dz = (_view.zeye - _view.zcam);
     double d = sqrt(dx*dx + dy*dy + dz*dz);
-    double alpha = 0.003 + d/dmoy*0.0010;
+    //double alpha = 0.003 + d/dmoy*0.0010;
+    double alpha = 0.003 + d/dmoy*0.003;
     dx = dx*alpha; dy = dy*alpha; dz = dz*alpha; d = d*alpha;
 
     double dirx = _view.dirx;
@@ -364,18 +370,19 @@ void Data::mouseMotion(int x, int y)
 }
 
 //=============================================================================
-// Appele quand la souris se balade dans la fenetre sans cliquer
+// Appele quand la souris se balade dans la fenetre sans cliquer (unused)
 //=============================================================================
-void Data::mousePassiveMotion(int x, int y)
+void Data::mousePassiveMotion(E_Int x, E_Int y)
 {
   //printf("Mouse passive motion triggered.\n");
   //fdisplay();
 }
 
 //=============================================================================
-// Appele quand la souris est presse + motion
+// Called from mouseMotion only
+// Select by dragging
 //=============================================================================
-void Data::mouseDrag(int x, int y)
+void Data::mouseDrag(E_Int x, E_Int y)
 {
   if (ptrState->render == 1) return; // attend que le render se fasse
   GLint viewport[4];
@@ -399,11 +406,11 @@ void Data::mouseDrag(int x, int y)
     ptrState->currentMousePosZ = posZ;
 
     // coloriage
-    int zone, ind, indE, ret;
+    E_Int zone, ind, indE, ncon, ret;
     double dist;
     ret = findBlockContaining(posX, posY, posZ,
                               zone, ind, indE, 
-                              dist);
+                              dist, ncon);
     
     // mise a jour du state
     /*
@@ -452,6 +459,7 @@ void Data::mouseDrag(int x, int y)
         if (z->active == 1)
         {
           z->active = 0;
+          /*
           if (ptrState->deactivatedZones == NULL)
           {
             struct chain_int* ci;
@@ -469,6 +477,9 @@ void Data::mouseDrag(int x, int y)
             ci->value = zone+1;
             ci->next = NULL;
           }
+          */
+          ptrState->insertDeactivatedZones(zone+1);
+          //ptrState->printDeactivatedZones();
         }
       }
     }

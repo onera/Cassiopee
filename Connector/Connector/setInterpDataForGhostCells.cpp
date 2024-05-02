@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -22,7 +22,7 @@ using namespace K_FLD;
 
 //=============================================================================
 /* Returns the indices of ghost points (cells or nodes) and the indices of 
-   donor points according to the 1-to-1 grid connectivity */
+   donor points according to the 1-to-1 grid connectivity for structured grids */
 //=============================================================================
 PyObject* K_CONNECTOR::setInterpDataForGC(PyObject* self, PyObject* args)
 {
@@ -33,8 +33,7 @@ PyObject* K_CONNECTOR::setInterpDataForGC(PyObject* self, PyObject* args)
   PyObject* pyArrayBorderIndices;
   PyObject* listOfDonorIndices;
 
-  if (!PYPARSETUPLEI(args,
-                    "OOlllll", "OOiiiii",
+  if (!PYPARSETUPLE_(args, OO_ IIII_ I_,
                     &pyArrayBorderIndices, &listOfDonorIndices,
                     &dim, &loc, &depth, &incrR, &incrD))
   {

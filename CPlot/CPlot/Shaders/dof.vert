@@ -1,3 +1,4 @@
+#version 130
 // Depth of field shader
 void main()
 {

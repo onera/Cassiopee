@@ -17,8 +17,8 @@ for location in ['nodes', 'centers']:
         for pen in [0,1]:
             for nat in [0,1]:
                 for order in [2,3,5]:
-                    pts2 = X.setInterpData(
-                        pts, a, order=order, penalty=pen,
-                        nature=nat, loc=location, storage=stk, hook=None)
+                    pts2 = X.setInterpData(pts, a, order=order, penalty=pen,
+                                           nature=nat, loc=location, 
+                                           storage=stk, hook=None)
                     test.testT(pts2, notest)
                     notest += 1

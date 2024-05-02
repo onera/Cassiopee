@@ -1,9 +1,9 @@
 # - Extension of a surface starting from an edge of the surface following normals -
-import Tkinter as TK
+try: import tkinter as TK
+except: import Tkinter as TK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
-import Post.PyTree as P
 import Converter.Internal as Internal
 import Generator.PyTree as G
 
@@ -90,9 +90,9 @@ def setSurface():
 def createApp(win):
     # - Frame -
     Frame = TK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                          text='tkExtension', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Surface extension.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                          text='tkExtension  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Surface extension.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
     WIDGETS['frame'] = Frame
@@ -137,7 +137,7 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    WIDGETS['frame'].grid(sticky=TK.NSEW)
 
 #==============================================================================
 # Called to hide widgets
@@ -151,7 +151,7 @@ def hideApp(event=None):
 def updateApp(): return
 
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
     if (len(sys.argv) == 2):
         CTK.FILE = sys.argv[1]

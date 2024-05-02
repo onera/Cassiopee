@@ -5,8 +5,8 @@ import Generator.PyTree as G
 
 ni = 30; nj = 40; nk = 10
 m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
-m = C.initVars(m, 'Density', 2.)
-m = C.initVars(m, 'centers:cellN', 1)
+C._initVars(m, 'Density', 2.)
+C._initVars(m, 'centers:cellN', 1)
 
 # Extraction mesh
 a = G.cart((0.,0.,0.5), (1., 0.1, 1.), (20, 20, 1)); a[0] = 'extraction'

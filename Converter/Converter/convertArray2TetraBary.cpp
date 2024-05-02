@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -26,7 +26,7 @@ using namespace K_FLD;
 using namespace std;
 
 // ============================================================================
-/* Convert  non-polyhedral 3D array to a tetraedrical mesh with addition of 
+/* Convert non-polyhedral 3D array to a tetraedrical mesh with addition of 
    points (barycenter of elements and faces) 
    The method deals only with fields located at nodes */
 // ============================================================================
@@ -132,20 +132,20 @@ PyObject* K_CONVERTER::convertArray2TetraBary(PyObject* self, PyObject* args)
 
   // pointeurs sur le nouveau champ
   vector<E_Float*> fnewp(nfld);
-  for (E_Int p=0;p<nfld;p++) {fnewp[p] = fnew.begin(p+1);}
+  for (E_Int p=0; p < nfld; p++) {fnewp[p] = fnew.begin(p+1);}
   // pointeurs sur l ancien champ
   vector<E_Float*> fp(nfld);
-  for (E_Int p=0;p<nfld;p++) {fp[p] = f->begin(p+1);}  
+  for (E_Int p=0; p < nfld; p++) {fp[p] = f->begin(p+1);}  
 
   // Nouvelle connectivite
   E_Int nconnect = 2; // nb de points par element
   if (dim == 2) nconnect = 3; // elmt triangle
-  else if (dim == 1) nconnect = 2;// elt BAR
+  else if (dim == 1) nconnect = 2; // elt BAR
   else nconnect = 4;          // elmt tetraedre
   FldArrayI newcn(newElts,nconnect);  
   // Pointeurs sur la nouvelle connectivite
   vector<E_Int*> newcnp(nconnect);
-  for (E_Int p=0; p<nconnect; p++) {newcnp[p] = newcn.begin(p+1);}
+  for (E_Int p=0; p < nconnect; p++) {newcnp[p] = newcn.begin(p+1);}
   // Pointeurs sur l ancienne connectivite
   vector<E_Int*> cnp(npoints);
   for (E_Int p = 0; p < npoints; p++) {cnp[p] = cn->begin(p+1);}
@@ -287,7 +287,7 @@ PyObject* K_CONVERTER::convertArray2TetraBary(PyObject* self, PyObject* args)
           fbf[p] = fbf[p]/nptsInFace;
           fnewp[p][indpt] = fbf[p];
         }
-        indNewFace = indpt; indpt ++;
+        indNewFace = indpt; indpt++;
         // construction des nouveaux elements tetraedriques
         for (E_Int n = 0; n < nptsInFace; n++)
         {

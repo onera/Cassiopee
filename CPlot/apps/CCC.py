@@ -15,8 +15,8 @@ ttk = CTK.importTtk()
 
 # CASSIOPEE var
 CASSIOPEE = os.getenv('CASSIOPEE')
-if (CASSIOPEE == ''):
-    print 'Error: CASSIOPEE must be present in your environement.'
+if CASSIOPEE == '':
+    print('Error: CASSIOPEE must be present in your environement.')
     sys.exit()
 
 # Systeme
@@ -99,7 +99,7 @@ def caseSelector():
         B.grid(row=1, column=9)
         # populate list
         getCases()
-        for i in xrange(len(CASES)):
+        for i in range(len(CASES)):
             txt = CASES[i].ljust(20) + separatorl + INFOS[i].ljust(75) + STATUS[i].ljust(6) 
             lb.insert(TK.END, txt)
     else:
@@ -183,8 +183,7 @@ def launchAndSurvey(cmd, no, info):
         try: line = q.get_nowait() # non bloquant
         except: line = ''
        
-        #if (line != ''): print line
-        if (line != ''):
+        if line != '':
             ret = analyse(line, int(nit))
             if (ret[0] > -0.5):
                 info[4] = 'RUNNING (%2.2f'%ret[0]
@@ -259,7 +258,7 @@ def updateCases1(event=None):
 #==============================================================================
 def updateCases2(event=None):
     getCases()
-    if WIDGETS.has_key('case'):
+    if 'case' in WIDGETS:
         WIDGETS['case']['values'] = CASES
 
 #==============================================================================

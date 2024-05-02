@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -184,7 +184,7 @@ PyObject* K_ARRAY::buildArray(FldArrayF& field, const char* varString,
   dim[1] = cSize;
   dim[0] = c.getNfld();
   E_Int s2 = dim[0]*dim[1];
-  PyArrayObject* ac = (PyArrayObject*)PyArray_SimpleNew(2, dim, NPY_INT);
+  PyArrayObject* ac = (PyArrayObject*)PyArray_SimpleNew(2, dim, E_NPY_INT);
 
   E_Float* ptrf = field.begin();
   E_Float* ptra = (E_Float*)PyArray_DATA(a);
@@ -338,7 +338,7 @@ PyObject* K_ARRAY::buildArray(E_Int nfld, const char* varString,
 
   // Build array for connectivity
   dim[1] = cSize; dim[0] = nvpe;
-  ac = PyArray_SimpleNew(2, dim, NPY_INT);
+  ac = PyArray_SimpleNew(2, dim, E_NPY_INT);
   tpl = Py_BuildValue("[sOOs]", varString, a, ac, eltType);
   Py_DECREF(a); Py_DECREF(ac);
 

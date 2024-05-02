@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -30,19 +30,19 @@ using namespace K_FUNC;
 //===========================================================================
 void K_POST::compIntersectionWithPlane(
   E_Float coefa, E_Float coefb, E_Float coefc, E_Float coefd,
-  vector<K_INTERP::InterpAdt*>& structInterpDatas,
+  vector<K_INTERP::InterpData*>& structInterpDatas,
   vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks,
   vector<E_Int>& posxs, vector<E_Int>& posys, vector<E_Int>& poszs,
   vector<E_Int>& poscs,
   vector<FldArrayF*>& structFields, vector<FldArrayI*>& tagS, 
-  vector<K_INTERP::InterpAdt*>& unstrInterpDatas,
+  vector<K_INTERP::InterpData*>& unstrInterpDatas,
   vector<FldArrayI*>& connectu,
   vector<E_Int>& posxu, vector<E_Int>& posyu, vector<E_Int>& poszu,
   vector<E_Int>& poscu,
   vector<FldArrayF*>& unstrFields, vector<FldArrayI*>& tagU, 
   vector<FldArrayF*>& vectOfIntersectPts,
   vector<FldArrayF*>& vectOfInterpCellVol,
-  K_INTERP::InterpAdt::InterpolationType interpType)
+  K_INTERP::InterpData::InterpolationType interpType)
 {
   E_Int nzones = structInterpDatas.size();
   
@@ -90,17 +90,17 @@ void K_POST::selectPointsInOverlappingZones(
   vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks,
   vector<E_Int>& posxs, vector<E_Int>& posys, 
   vector<E_Int>& poszs, vector<E_Int>& poscs,
-  vector<K_INTERP::InterpAdt*>& structInterpDatas,
+  vector<K_INTERP::InterpData*>& structInterpDatas,
   vector<FldArrayF*>& structFields,
   vector<FldArrayI*>& connectu,
   vector<E_Int>& posxu, vector<E_Int>& posyu, 
   vector<E_Int>& poszu, vector<E_Int>& poscu,
-  vector<K_INTERP::InterpAdt*>& unstrInterpDatas,
+  vector<K_INTERP::InterpData*>& unstrInterpDatas,
   vector<FldArrayF*>& unstrFields,
   vector<FldArrayF*>& vectOfIntersectPts,
   vector<FldArrayF*>& volOfIntersectPts,
   FldArrayF& selectedPts,
-  K_INTERP::InterpAdt::InterpolationType interpType)
+  K_INTERP::InterpData::InterpolationType interpType)
 {
   E_Int nzones = vectOfIntersectPts.size();
 
@@ -122,17 +122,17 @@ void K_POST::selectPointsInOverlappingZones(
   E_Int nindi, ncf;
   switch (interpType)
   {
-    case K_INTERP::InterpAdt::O2CF:
+    case K_INTERP::InterpData::O2CF:
       ncf = 8;
       nindi = 1;
       //order = 2;
       break; 
-    case K_INTERP::InterpAdt::O3ABC: 
+    case K_INTERP::InterpData::O3ABC: 
       ncf = 9;
       nindi = 1;
       //order = 3;
       break;
-    case K_INTERP::InterpAdt::O5ABC: 
+    case K_INTERP::InterpData::O5ABC: 
       ncf = 15;
       nindi = 1;
       //order = 5;
@@ -141,7 +141,7 @@ void K_POST::selectPointsInOverlappingZones(
       ncf = 8;
       nindi = 1;
       //order = 2;
-      interpType = K_INTERP::InterpAdt::O2CF;
+      interpType = K_INTERP::InterpData::O2CF;
       break;
   }
 
@@ -150,6 +150,7 @@ void K_POST::selectPointsInOverlappingZones(
  
   FldArrayI indi(nindi);
   FldArrayF cf(ncf);
+  FldArrayI tmpIndi(nindi); FldArrayF tmpCf(ncf);
   
   /* Compute sizeMax of selectedPts and allocate it */
   E_Float vol1, vol2;
@@ -175,7 +176,7 @@ void K_POST::selectPointsInOverlappingZones(
   {posx1 = posxu[0]; posy1 = posyu[0]; posz1 = poszu[0]; posc1 = poscu[0];} 
   else {selectedPts.malloc(0); return;}
 
-  vector<K_INTERP::InterpAdt*> allInterpDatas;
+  vector<K_INTERP::InterpData*> allInterpDatas;
   vector<FldArrayF*> allFields;
   vector<void*> allA1;
   vector<void*> allA2;
@@ -246,7 +247,7 @@ void K_POST::selectPointsInOverlappingZones(
           found = K_INTERP::getInterpolationCell(x, y, z, allInterpDatas,
                                                  allFields, allA1, allA2, allA3, allA4,
                                                  posxt, posyt, poszt, posct, 
-                                                 vol2, indi, cf, type, noblk, interpType);
+                                                 vol2, indi, cf, tmpIndi, tmpCf, type, noblk, interpType);
           if (found > 0) // interpolable 
           {          
             noblk = noblk-1;//no du bloc d interpolation             
@@ -315,13 +316,13 @@ void K_POST::makeTriangulation(
   vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks,
   vector<E_Int>& posxs, vector<E_Int>& posys, vector<E_Int>& poszs, 
   vector<E_Int>& poscs, vector<FldArrayF*>& structF,
-  vector<K_INTERP::InterpAdt*>& structInterpDatas,
+  vector<K_INTERP::InterpData*>& structInterpDatas,
   vector<FldArrayI*>& connectu, 
   vector<E_Int>& posxu, vector<E_Int>& posyu, vector<E_Int>& poszu, 
   vector<E_Int>& poscu, vector<FldArrayF*>& unstrF,
-  std::vector<K_INTERP::InterpAdt*>& unstrInterpDatas,
+  std::vector<K_INTERP::InterpData*>& unstrInterpDatas,
   FldArrayF& field, FldArrayI& connect,
-  K_INTERP::InterpAdt::InterpolationType interpType)
+  K_INTERP::InterpData::InterpolationType interpType)
 {
   K_COMPGEOM::delaunay(coefa, coefb, coefc, coefd, field,connect, 0);
 
@@ -343,35 +344,36 @@ void K_POST::removeTrianglesWithBlankedCenters(
   vector<E_Int>& nis, vector<E_Int>& njs, vector<E_Int>& nks,
   vector<E_Int>& posxs, vector<E_Int>& posys, vector<E_Int>& poszs, 
   vector<E_Int>& poscs, vector<FldArrayF*>& structF,
-  vector<K_INTERP::InterpAdt*>& structInterpDatas,
+  vector<K_INTERP::InterpData*>& structInterpDatas,
   vector<FldArrayI*>& connectu,
   vector<E_Int>& posxu, vector<E_Int>& posyu, vector<E_Int>& poszu,  
   vector<E_Int>& poscu, vector<FldArrayF*>& unstrF,
-  vector<K_INTERP::InterpAdt*>& unstrInterpDatas,
+  vector<K_INTERP::InterpData*>& unstrInterpDatas,
   FldArrayF& field, FldArrayI& connect,
-  K_INTERP::InterpAdt::InterpolationType interpType)
+  K_INTERP::InterpData::InterpolationType interpType)
 {
   // interpolation data
   E_Int nindi, ncf;
   switch (interpType)
   {
-    case K_INTERP::InterpAdt::O2CF:
+    case K_INTERP::InterpData::O2CF:
       ncf = 8; nindi = 1; //order = 2;
       break; 
-    case K_INTERP::InterpAdt::O3ABC: 
+    case K_INTERP::InterpData::O3ABC: 
       ncf = 9; nindi = 1; //order = 3;
       break;
-    case K_INTERP::InterpAdt::O5ABC: 
+    case K_INTERP::InterpData::O5ABC: 
       ncf = 15; nindi = 1; //order = 5;
       break;
     default:
         ncf = 8; nindi = 1; //order = 2;
-       interpType = K_INTERP::InterpAdt::O2CF;
+       interpType = K_INTERP::InterpData::O2CF;
   }
   if (structInterpDatas.size() == 0) // purement non structure
     {ncf = 4; nindi = 1; } //order = 2;
   FldArrayI indi(nindi);
   FldArrayF cf(ncf);
+  FldArrayI tmpIndi(nindi); FldArrayF tmpCf(ncf);
 
   E_Float inv = 1./3;
   E_Float* x = field.begin(1);
@@ -392,7 +394,7 @@ void K_POST::removeTrianglesWithBlankedCenters(
   E_Float vol2;
  
 
-  vector<K_INTERP::InterpAdt*> allInterpDatas;
+  vector<K_INTERP::InterpData*> allInterpDatas;
   vector<FldArrayF*> allFields;
   vector<void*> allA1;
   vector<void*> allA2;
@@ -450,11 +452,11 @@ void K_POST::removeTrianglesWithBlankedCenters(
     short found = K_INTERP::getInterpolationCell(xc, yc, zc, allInterpDatas,
                                                  allFields, allA1, allA2, allA3, allA4,
                                                  posxt, posyt, poszt, posct, 
-                                                 vol2, indi, cf, type, noblk, interpType);
+                                                 vol2, indi, cf, tmpIndi, tmpCf, type, noblk, interpType);
 //     short found = K_INTERP::getInterpolationCell(
 //       xc, yc, zc, structInterpDatas, structF, nis, njs, nks, 
 //       posxs, posys, poszs, poscs, unstrInterpDatas, unstrF,
-//       connectu, posxu, posyu, poszu, poscu, indi, cf, 
+//       connectu, posxu, posyu, poszu, poscu, indi, cf, tmpIndi, tmpCf,
 //       interpMeshType, interpType);
 
     cellN = 1.;

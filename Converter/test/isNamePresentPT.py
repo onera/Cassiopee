@@ -12,14 +12,14 @@ C._initVars(b, 'centers:H', 3.)
 
 t = C.newPyTree(['Base',a,b])
 
-print C.getVarNames([a, b])
+print(C.getVarNames([a, b]))
 #>> [['CoordinateX', 'CoordinateY', 'CoordinateZ', 'F', 'centers:G'], ['CoordinateX', 'CoordinateY', 'CoordinateZ', 'F', 'centers:H']]
 
-print C.isNamePresent(a, 'F')
+print(C.isNamePresent(a, 'F'))
 #>> 1
-print C.isNamePresent(a, 'centers:F')
+print(C.isNamePresent(a, 'centers:F'))
 #>> -1
-print C.isNamePresent([a, b], 'F')
+print(C.isNamePresent([a, b], 'F'))
 #>> 1
-print C.isNamePresent([a, b], 'centers:G')
+print(C.isNamePresent([a, b], 'centers:G'))
 #>> 0

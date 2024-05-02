@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 # include "connector.h"
-# include "Search/BbTree.h"
+# include "Nuga/include/BbTree.h"
 
 using namespace K_FLD;
 using namespace std;
@@ -29,12 +29,11 @@ PyObject* K_CONNECTOR::changeWallEX(PyObject* self, PyObject* args)
 {
   PyObject *arrayEX, *arrayNodes, *arrayCenters,*firstWallCenters;//domaine a interpoler
   PyObject *projectSurfArrays; // liste des surfaces de projection : TRI
-  if (!PyArg_ParseTuple(args, "OOOOO",
-                        &arrayEX, &arrayNodes, &arrayCenters, &firstWallCenters, &projectSurfArrays))
-  {
-      return NULL;
-  }
-     
+  E_Float planarTol;
+  if (!PYPARSETUPLE_(args, OOOO_ O_ R_,
+                     &arrayEX, &arrayNodes, &arrayCenters, &firstWallCenters, &projectSurfArrays, &planarTol))
+    return NULL;
+
   if (PyList_Check(firstWallCenters) == 0)
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -283,7 +282,7 @@ PyObject* K_CONNECTOR::changeWallEX(PyObject* self, PyObject* args)
                im, jm, km, f->begin(posx), f->begin(posy), f->begin(posz),
                imc, jmc, kmc, fc->begin(posxc), fc->begin(posyc), fc->begin(poszc), fc->begin(poscc),
                f1->getSize(), f1->begin(posindw), f1->begin(posdir1), f1->begin(posdir2), f1->begin(posdir3),f1->begin(poshw),
-               posxt, posyt, poszt, posht, posct, cnt, unstrF);
+               posxt, posyt, poszt, posht, posct, cnt, unstrF, planarTol);
             
   RELEASESHAREDU(arrayEX,fEX,cnEX);
   RELEASESHAREDS(arrayNodes,f);
@@ -303,7 +302,7 @@ void K_CONNECTOR::changeWallEX(
   E_Int imc, E_Int jmc, E_Int kmc, E_Float* xc, E_Float* yc, E_Float* zc, E_Float* cellnc,
   E_Int nbCentersW, E_Float* indicesw, E_Float* dirw1, E_Float* dirw2, E_Float* dirw3, E_Float* hmaxw,
   vector<E_Int> posxt, vector<E_Int> posyt, vector<E_Int> poszt, vector<E_Int> posht, vector<E_Int> posct, 
-  vector<FldArrayI*>& cnt, vector<FldArrayF*>& unstrF)
+  vector<FldArrayI*>& cnt, vector<FldArrayF*>& unstrF, E_Float planartol)
 {
   E_Float coefhmax = 2.; // tolerance de projection : coefhmax * hmax
   E_Float tolbb = 1.e-6;
@@ -352,10 +351,10 @@ void K_CONNECTOR::changeWallEX(
   E_Int dirEX, indEX, indcell1, indicew, nodemin, indEX2;
   E_Int iA, jA, kA;
 
-  // Poids du vecteur delta pour chq pt au dessus du pt près de la paroi à interpoler : si i < no1 : alpha = 1, si no1 <= i< no2 : alpha decroissant, 0 ensuite
+  // Poids du vecteur delta pour chq pt au dessus du pt prï¿½s de la paroi ï¿½ interpoler : si i < no1 : alpha = 1, si no1 <= i< no2 : alpha decroissant, 0 ensuite
   vector<E_Float> xbt; vector<E_Float> ybt; vector<E_Float> zbt; vector<E_Int> dirt;vector<E_Float> hmaxt;
 
-  // Indirection : isWallEX[indEX] retourne le numéro du premier centre paroi associé dans indicesw
+  // Indirection : isWallEX[indEX] retourne le numï¿½ro du premier centre paroi associï¿½ dans indicesw
   vector<E_Int> isWallEX(nEXPts);
   FldArrayI indirEX(ncells,6); indirEX.setAllValuesAt(-1);
   E_Int* indirEX1 = indirEX.begin(1);
@@ -483,6 +482,10 @@ void K_CONNECTOR::changeWallEX(
             hmax = K_FUNC::E_max(hmax1, hmax2); hmax = hmax*hmax;
             if ( dAP2 < coefhmax*hmax && dAP2 < delta)  
             {delta = dAP2; deltax = dxa; deltay = dya; deltaz = dza; isProjected = true;}
+            else if ( hmax < 0.1*K_CONST::E_GEOM_CUTOFF && dAP2 < planartol)
+            {
+              delta = dAP2; deltax = dxa; deltay = dya; deltaz = dza; isProjected = true; 
+            }
           }//elt trouve
         }//parcours de ts les surfaces de projection
         if (isProjected == false) goto nextptB;

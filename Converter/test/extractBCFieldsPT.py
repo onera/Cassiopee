@@ -22,7 +22,7 @@ d = Internal.newDataArray('MomentumX', value=nfaces*[0.3], parent=d1)
 #varList=['Density','MomentumX']
 varList=None
 res = C.extractBCFields(a,varList=varList)
-print 'variables = ', res[0]
-print 'fields = ',  res[1]
-print 'indices = ', res[2]
+print('variables = ', res[0])
+print('fields = ',  res[1])
+print('indices = ', res[2])
 

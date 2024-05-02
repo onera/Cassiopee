@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -20,6 +20,7 @@
 # include "Connect/connect.h"
 # include "metric.h"
 # include <vector>
+# include <iostream>
 
 using namespace K_FUNC;
 using namespace K_CONST;
@@ -36,156 +37,156 @@ using namespace std;
 E_Int K_METRIC::CompNGonVol(E_Float* xt,E_Float* yt,E_Float* zt, 
                             FldArrayI& cn, E_Float* volp)
 {
-  // Donnees liees a la connectivite
-  E_Int* cnp = cn.begin(); // pointeur sur la connectivite NGon
-  E_Int nfaces = cnp[0]; // nombre total de faces
-  E_Int sizeFN = cnp[1]; //  taille de la connectivite Face/Noeuds
-  E_Int nelts = cnp[sizeFN+2];  // nombre total d elements
-  E_Int* cEFp = cnp+4+sizeFN;// debut connectivite Elmt/Faces
+  // Donnees liees a la connectivite - Acces non universel sur le ptrs
+  E_Int* ngon = cn.getNGon();
+  E_Int* nface = cn.getNFace();
+  E_Int* indPG = cn.getIndPG();
+  E_Int* indPH = cn.getIndPH();
+  // Acces universel nbre d'elements
+  E_Int nelts = cn.getNElts(); // nombre total d elements
 
   // Connectivite Element/Noeuds
   vector< vector<E_Int> > cnEV(nelts);
   K_CONNECT::connectNG2EV(cn, cnEV);
+  // Tableau de la dimensions des elements
+  FldArrayI dimElt(nelts); 
+  K_CONNECT::getDimElts(cn, dimElt);
 
-  // sommets associes a l'element
-  vector<E_Int> vertices;
-        
-  E_Int nbFaces; // nombre de faces pour un element donne
-  E_Int nbNodes; // nombre de noeuds pour une face donnee
-  FldArrayI posFace(nfaces); // tableau de position des faces dans la connectivite
-  K_CONNECT::getPosFaces(cn, posFace);
-  E_Int* posFacep = posFace.begin(); // pointeur sur posFace
-  FldArrayI dimElt(nelts); // tableau de la dimensions des elements
-  K_CONNECT::getDimElts(cn, posFace, dimElt);
-  E_Int dim; // dimension d un element
-  E_Int pos; // position d une face donnee dans la connectivite
-  E_Float xbe, ybe, zbe; // coordonnees du barycentre d un element
-  E_Float xbf, ybf, zbf; // coordonnees du barycentre d une face
-  E_Float xc, yc, zc; // coordonnees du barycentre d un triangle composant une face
-  E_Int ind, ind1, ind2; // indices de noeuds
-  E_Float surfnx, surfny, surfnz; // normale a la surface d un triangle 
-  E_Float sens; // sens de la normale d une face (>0 : interieure, <0 : exterieure) 
-  E_Float l1x, l1y, l1z, l2x, l2y, l2z; // delta de coordonnees de noeuds
+  E_Int ierr = 0; // error index
 
-  // parcours des elements
-  for (E_Int elt = 0; elt < nelts; elt++)
+  #pragma omp parallel
   {
-    volp[elt] = 0.;
-    dim = dimElt[elt]; // dimension de l element
-    switch(dim)
+    E_Int nbFaces; // nombre de faces pour un element donne
+    E_Int nbNodes; // nombre de noeuds pour une face donnee
+    E_Int dim; // dimension d un element
+    E_Float xbe, ybe, zbe; // coordonnees du barycentre d un element
+    E_Float xbf, ybf, zbf; // coordonnees du barycentre d une face
+    E_Float xc, yc, zc; // coordonnees du barycentre d un triangle composant une face
+    E_Int ind, ind1, ind2; // indices de noeuds
+    E_Float surfnx, surfny, surfnz; // normale a la surface d un triangle 
+    E_Float sens; // sens de la normale d une face (>0 : interieure, <0 : exterieure) 
+    E_Float l1x, l1y, l1z, l2x, l2y, l2z; // delta de coordonnees de noeuds
+    E_Int dummy; // dummy variable
+    
+    // parcours des elements
+    #pragma omp for
+    for (E_Int elt = 0; elt < nelts; elt++)
     {
-      case 1: // NGon 1D
+      volp[elt] = 0.;
+      dim = dimElt[elt]; // dimension de l element
+      switch(dim)
       {
-        E_Float dx, dy, dz; // delta  de coordonnees de noeuds
-        volp[elt] = 0.;
-        nbFaces = cEFp[0];
-        ind1 = cnp[posFacep[cEFp[1]-1]+1]-1; // indice du point de la premiere face
-        for (E_Int fa = 1; fa < nbFaces; fa++) // parcours des faces de l'element elt
+        case 1: // NGon 1D
         {
-          pos = posFacep[cEFp[fa+1]-1];
-          nbNodes = cnp[pos];
-          ind2 = cnp[pos+1]-1; // indice du point associe a la face
-          dx = xt[ind2]-xt[ind1]; dy = yt[ind2]-yt[ind1]; dz = zt[ind2]-zt[ind1];
-          volp[elt] += sqrt(dx*dx + dy*dy + dz*dz); //  "volume" = longueur du segment
-          ind1 = ind2;
-        }
-        cEFp += nbFaces + 1;
-     }
-      break;
-      case 2: // NGon 2D
-      {
-        // sommets associes a l'element
-        vertices = cnEV[elt];
-
-        // calcul du barycentre be (xbe, ybe, zbe) de l'element
-        nbNodes = vertices.size();
-        xbe = 0.; ybe = 0.; zbe = 0.;
-        for (E_Int n = 0; n < nbNodes; n++)
-        {
-          ind = vertices[n]-1;
-          xbe += xt[ind]; ybe += yt[ind]; zbe += zt[ind];
-        }
-        xbe = xbe/nbNodes; ybe = ybe/nbNodes; zbe = zbe/nbNodes;
-
-        // parcours des faces de l element elt
-        nbFaces = cEFp[0];
-        for (E_Int fa = 0; fa < nbFaces; fa++)
-        {
-          pos = posFacep[cEFp[fa+1]-1];
-          ind1 = cnp[pos+1]-1;
-          ind2 = cnp[pos+2]-1;
-          // calcul de la normal au triangle (n, n+1, be)
-          l1x = xt[ind2]-xt[ind1]; l1y = yt[ind2]-yt[ind1]; l1z = zt[ind2]-zt[ind1];
-          l2x = xt[ind2]-xbe; l2y = yt[ind2]-ybe; l2z = zt[ind2]-zbe;
-          surfnx = l1y*l2z-l1z*l2y; 
-          surfny = l1z*l2x-l1x*l2z; 
-          surfnz = l1x*l2y-l1y*l2x;
-          volp[elt] += ONE_HALF*sqrt(surfnx*surfnx+surfny*surfny+surfnz*surfnz);
-        }
-        cEFp += nbFaces + 1;
-      }
-      break;
-      case 3: // NGon 3D
-      {
-        // sommets associes a l'element
-        vertices = cnEV[elt];
-
-        // calcul du barycentre be (xbe, ybe, zbe) de l'element
-        nbNodes = vertices.size();
-        xbe = 0.; ybe = 0.; zbe = 0.;
-        for (E_Int n = 0; n < nbNodes; n++)
-        {
-          ind = vertices[n]-1;
-          xbe += xt[ind]; ybe += yt[ind]; zbe += zt[ind];
-        }
-        xbe = xbe/nbNodes; ybe = ybe/nbNodes; zbe = zbe/nbNodes;
-              
-        // parcours des faces de l element elt
-        nbFaces = cEFp[0]; 
-        for (E_Int fa = 0; fa < nbFaces; fa++)
-        {
-          pos = posFacep[cEFp[fa+1]-1];
-          nbNodes = cnp[pos]; pos++;
-          // calcul du barycentre bf (xbf, ybf, zbf) de la face
-          xbf = 0.; ybf = 0.; zbf = 0.;
-          for (E_Int n = 0; n < nbNodes; n++) // parcours des noeuds de la face fa
+          E_Float dx, dy, dz; // delta  de coordonnees de noeuds
+          volp[elt] = 0.;
+          // Acces universel element elt
+          E_Int* elem = cn.getElt(elt, nbFaces, nface, indPH);
+          // Acces universel face elem[0]-1
+          E_Int* face = cn.getFace(elem[0]-1, dummy, ngon, indPG);
+          ind1 = face[0]-1; // indice du point de la premiere face
+          for (E_Int fa = 1; fa < nbFaces; fa++) // parcours des faces de l'element elt
           {
-            ind = cnp[pos+n]-1;
-            xbf += xt[ind]; ybf += yt[ind]; zbf += zt[ind];
+            // Acces universel face elem[fa]-1
+            E_Int* face = cn.getFace(elem[fa]-1, dummy, ngon, indPG);
+            ind2 = face[0]-1; // indice du point associe a la face
+            dx = xt[ind2]-xt[ind1]; dy = yt[ind2]-yt[ind1]; dz = zt[ind2]-zt[ind1];
+            volp[elt] += sqrt(dx*dx + dy*dy + dz*dz); //  "volume" = longueur du segment
+            ind1 = ind2;
           }
-          xbf = xbf/nbNodes; ybf = ybf/nbNodes; zbf = zbf/nbNodes;            
-          for (E_Int n = 0; n < nbNodes; n++ ) // parcours des noeuds de la face fa
+        }
+        break;
+        case 2: // NGon 2D
+        {
+          // sommets associes a l'element
+          const vector<E_Int>& vertices = cnEV[elt];
+
+          // calcul du barycentre be (xbe, ybe, zbe) de l'element
+          nbNodes = vertices.size();
+          xbe = 0.; ybe = 0.; zbe = 0.;
+          for (E_Int n = 0; n < nbNodes; n++)
           {
-            ind1 = cnp[pos+n]-1; // indice du point n
-            ind2 = cnp[pos+(n+1)%(nbNodes)]-1; // indice du point n+1
-            // calcul de la normal au triangle (n, n+1, bf)
+            ind = vertices[n]-1;
+            xbe += xt[ind]; ybe += yt[ind]; zbe += zt[ind];
+          }
+          xbe = xbe/nbNodes; ybe = ybe/nbNodes; zbe = zbe/nbNodes;
+
+          // parcours des faces de l element elt
+          E_Int* elem = cn.getElt(elt, nbFaces, nface, indPH);
+          for (E_Int fa = 0; fa < nbFaces; fa++)
+          {
+            E_Int* face = cn.getFace(elem[fa]-1, dummy, ngon, indPG);
+            ind1 = face[0]-1;
+            ind2 = face[1]-1;
+            // calcul de la normal au triangle (n, n+1, be)
             l1x = xt[ind2]-xt[ind1]; l1y = yt[ind2]-yt[ind1]; l1z = zt[ind2]-zt[ind1];
-            l2x = xt[ind2]-xbf; l2y = yt[ind2]-ybf; l2z = zt[ind2]-zbf;
-            surfnx = ONE_HALF * (l1y*l2z-l1z*l2y); 
-            surfny = ONE_HALF * (l1z*l2x-l1x*l2z); 
-            surfnz = ONE_HALF * (l1x*l2y-l1y*l2x);
-
-            // verification du sens de la normale. Celle-ci doit etre exterieure
-            sens = (xbe - xbf)*surfnx + (ybe - ybf)*surfny + (zbe - zbf)*surfnz;
-            if (sens > 0.) {surfnx = -surfnx; surfny = -surfny; surfnz = -surfnz;}
-
-            // ajout de la contribution du triangle (n, n+1, bf) au volume de l element elt
-            xc = (xt[ind1]+xt[ind2]+xbf)/3.; 
-            yc = (yt[ind1]+yt[ind2]+ybf)/3.; // coordonnees du centre du triangle(n, n+1, bf) 
-            zc = (zt[ind1]+zt[ind2]+zbf)/3.; 
-            volp[elt] += xc * surfnx + yc * surfny + zc * surfnz;
+            l2x = xt[ind2]-xbe; l2y = yt[ind2]-ybe; l2z = zt[ind2]-zbe;
+            surfnx = l1y*l2z-l1z*l2y; 
+            surfny = l1z*l2x-l1x*l2z; 
+            surfnz = l1x*l2y-l1y*l2x;
+            volp[elt] += ONE_HALF*sqrt(surfnx*surfnx+surfny*surfny+surfnz*surfnz);
           }
         }
-        volp[elt] = volp[elt]/3.;
-        cEFp += nbFaces + 1;
-      }
-      break;
-      default:
-        return 1;
+        break;
+        case 3: // NGon 3D
+        {
+          // sommets associes a l'element
+          const vector<E_Int>& vertices = cnEV[elt];
 
+          // calcul du barycentre be (xbe, ybe, zbe) de l'element
+          nbNodes = vertices.size();
+          xbe = 0.; ybe = 0.; zbe = 0.;
+          for (E_Int n = 0; n < nbNodes; n++)
+          {
+            ind = vertices[n]-1;
+            xbe += xt[ind]; ybe += yt[ind]; zbe += zt[ind];
+          }
+          xbe = xbe/nbNodes; ybe = ybe/nbNodes; zbe = zbe/nbNodes;
+                
+          // parcours des faces de l element elt
+          E_Int* elem = cn.getElt(elt, nbFaces, nface, indPH);
+          for (E_Int fa = 0; fa < nbFaces; fa++)
+          {
+            E_Int* face = cn.getFace(elem[fa]-1, nbNodes, ngon, indPG);
+            // calcul du barycentre bf (xbf, ybf, zbf) de la face
+            xbf = 0.; ybf = 0.; zbf = 0.;
+            for (E_Int n = 0; n < nbNodes; n++) // parcours des noeuds de la face fa
+            {
+              ind = face[n]-1;
+              xbf += xt[ind]; ybf += yt[ind]; zbf += zt[ind];
+            }
+            xbf = xbf/nbNodes; ybf = ybf/nbNodes; zbf = zbf/nbNodes;            
+            for (E_Int n = 0; n < nbNodes; n++ ) // parcours des noeuds de la face fa
+            {
+              ind1 = face[n]-1; // indice du point n
+              ind2 = face[(n+1)%(nbNodes)]-1; // indice du point n+1
+              // calcul de la normal au triangle (n, n+1, bf)
+              l1x = xt[ind2]-xt[ind1]; l1y = yt[ind2]-yt[ind1]; l1z = zt[ind2]-zt[ind1];
+              l2x = xt[ind2]-xbf; l2y = yt[ind2]-ybf; l2z = zt[ind2]-zbf;
+              surfnx = ONE_HALF * (l1y*l2z-l1z*l2y); 
+              surfny = ONE_HALF * (l1z*l2x-l1x*l2z); 
+              surfnz = ONE_HALF * (l1x*l2y-l1y*l2x);
+
+              // verification du sens de la normale. Celle-ci doit etre exterieure
+              sens = (xbe - xbf)*surfnx + (ybe - ybf)*surfny + (zbe - zbf)*surfnz;
+              if (sens > 0.) {surfnx = -surfnx; surfny = -surfny; surfnz = -surfnz;}
+
+              // ajout de la contribution du triangle (n, n+1, bf) au volume de l element elt
+              xc = (xt[ind1]+xt[ind2]+xbf)/3.; 
+              yc = (yt[ind1]+yt[ind2]+ybf)/3.; // coordonnees du centre du triangle(n, n+1, bf) 
+              zc = (zt[ind1]+zt[ind2]+zbf)/3.; 
+              volp[elt] += xc * surfnx + yc * surfny + zc * surfnz;
+            }
+          }
+          volp[elt] = volp[elt]/3.;
+        }
+        break;
+        default:
+          ierr = 1;
+      }
     }
   }
-  return 0;
+  return ierr;
 }
 
 
@@ -206,20 +207,18 @@ E_Int K_METRIC::CompNGonVolOfElement(E_Float* xt,E_Float* yt,E_Float* zt, FldArr
                                      E_Float& vol)
 {
 
-  // Donnees liees a la connectivite
-  E_Int* cnp = cn.begin(); // pointeur sur la connectivite NGon
-  E_Int sizeFN = cnp[1]; //  taille de la connectivite Face/Noeuds
-  E_Int* cEFp = cnp+4+sizeFN;// debut connectivite Elmt/Faces
-  
+  // Donnees liees a la connectivite - Acces non universel sur le ptrs
+  E_Int* ngon = cn.getNGon();
+  E_Int* nface = cn.getNFace();
+  E_Int* indPG = cn.getIndPG();
+  E_Int* indPH = cn.getIndPH();
+
   // sommets associes a l element
   vector<E_Int> vertices;
-        
+      
   E_Int nbFaces; // nombre de faces pour un element donne
   E_Int nbNodes; // nombre de noeuds pour une face donnee
-  E_Int* posFacep = posFace.begin(); // pointeur sur posFace
-  E_Int* posEltp = posElt.begin(); // pointeur sur posElt
 
-  E_Int pos; // position d une face donnee dans la connectivite
   E_Float xbe, ybe, zbe; // coordonnees du barycentre de l element
   E_Float xbf, ybf, zbf; // coordonnees du barycentre d une face
   E_Float xc, yc, zc; // coordonnees du barycentre d un triangle composant une face
@@ -227,6 +226,7 @@ E_Int K_METRIC::CompNGonVolOfElement(E_Float* xt,E_Float* yt,E_Float* zt, FldArr
   E_Float surfnx, surfny, surfnz; // normale a la surface d un triangle 
   E_Float sens; // sens de la normale d une face (>0 : interieure, <0 : exterieure) 
   E_Float l1x, l1y, l1z, l2x, l2y, l2z; // delta de coordonnees de noeuds
+  E_Int dummy; // dummy variable
   
   vol = 0.;
   E_Int dim = dimElt[indE];// dimension de l element
@@ -236,14 +236,16 @@ E_Int K_METRIC::CompNGonVolOfElement(E_Float* xt,E_Float* yt,E_Float* zt, FldArr
     {
       E_Float dx, dy, dz; // delta  de coordonnees de noeuds
       vol = 0.;
-      cEFp += posEltp[indE]-posEltp[0];
-      nbFaces = cEFp[0];
-      ind1 = cnp[posFacep[cEFp[1]-1]+1]-1; // indice du point de la premiere face
-      for (E_Int fa = 1; fa < nbFaces; fa++) // parcours des faces de l element elt
+      // Acces universel element indE
+      E_Int* elem = cn.getElt(indE, nbFaces, nface, indPH);
+      // Acces universel à la première face, elem[0]-1
+      E_Int* face = cn.getFace(elem[0]-1, dummy, ngon, indPG);
+      ind1 = face[0]-1; // indice du point de la premiere face
+      for (E_Int fa = 1; fa < nbFaces; fa++) // parcours des faces de l element indE
       {
-        pos = posFacep[cEFp[fa+1]-1];
-        nbNodes = cnp[pos];
-        ind2 = cnp[pos+1]-1; // indice du point associe a la face
+        // Acces universel face elem[fa]-1
+        E_Int* face = cn.getFace(elem[fa]-1, dummy, ngon, indPG);
+        ind2 = face[0]-1; // indice du point associe a la face
         dx = xt[ind2]-xt[ind1]; dy = yt[ind2]-yt[ind1]; dz = zt[ind2]-zt[ind1];
         vol += sqrt(dx*dx + dy*dy + dz*dz); //  "volume" = longueur du segment
         ind1 = ind2;
@@ -265,14 +267,13 @@ E_Int K_METRIC::CompNGonVolOfElement(E_Float* xt,E_Float* yt,E_Float* zt, FldArr
       }
       xbe = xbe/nbNodes; ybe = ybe/nbNodes; zbe = zbe/nbNodes;
       
-      // parcours des faces de l element elt
-      cEFp += posEltp[indE]-posEltp[0];
-      nbFaces = cEFp[0];
+      // parcours des faces de l element indE
+      E_Int* elem = cn.getElt(indE, nbFaces, nface, indPH);
       for (E_Int fa = 0; fa < nbFaces; fa++)
       {
-        pos = posFacep[cEFp[fa+1]-1];
-        ind1 = cnp[pos+1]-1;
-        ind2 = cnp[pos+2]-1;
+        E_Int* face = cn.getFace(elem[fa]-1, dummy, ngon, indPG);
+        ind1 = face[0]-1;
+        ind2 = face[1]-1;
         // calcul de la normal au triangle (n, n+1, be)
         l1x = xt[ind2]-xt[ind1]; l1y = yt[ind2]-yt[ind1]; l1z = zt[ind2]-zt[ind1];
         l2x = xt[ind2]-xbe; l2y = yt[ind2]-ybe; l2z = zt[ind2]-zbe;
@@ -298,25 +299,23 @@ E_Int K_METRIC::CompNGonVolOfElement(E_Float* xt,E_Float* yt,E_Float* zt, FldArr
       }
       xbe = xbe/nbNodes; ybe = ybe/nbNodes; zbe = zbe/nbNodes;
               
-      // parcours des faces de l element elt
-      cEFp += posEltp[indE]-posEltp[0];  // position de l element
-      nbFaces = cEFp[0];
+      // parcours des faces de l element indE
+      E_Int* elem = cn.getElt(indE, nbFaces, nface, indPH);
       for (E_Int fa = 0; fa < nbFaces; fa++)
       {
-        pos = posFacep[cEFp[fa+1]-1];
-        nbNodes = cnp[pos]; pos++;
+        E_Int* face = cn.getFace(elem[fa]-1, nbNodes, ngon, indPG);
         // calcul du barycentre bf (xbf, ybf, zbf) de la face
         xbf = 0.; ybf = 0.; zbf = 0.;
         for (E_Int n=0; n <nbNodes; n++ ) // parcours des noeuds de la face fa
         {
-          ind = cnp[pos+n]-1;
+          ind = face[n]-1;
           xbf += xt[ind]; ybf += yt[ind]; zbf += zt[ind];
         }
         xbf = xbf/nbNodes; ybf = ybf/nbNodes; zbf = zbf/nbNodes;                
         for (E_Int n=0; n <nbNodes; n++ ) // parcours des noeuds de la face fa
         {
-          ind1 = cnp[pos+n]-1; // indice du point n
-          ind2 = cnp[pos+(n+1)%(nbNodes)]-1; // indice du point n+1
+          ind1 = face[n]-1; // indice du point n
+          ind2 = face[(n+1)%(nbNodes)]-1; // indice du point n+1
           // calcul de la normal au triangle (n, n+1, bf)
           l1x = xt[ind2]-xt[ind1]; l1y = yt[ind2]-yt[ind1]; l1z = zt[ind2]-zt[ind1];
           l2x = xt[ind2]-xbf; l2y = yt[ind2]-ybf; l2z = zt[ind2]-zbf;
@@ -328,7 +327,7 @@ E_Int K_METRIC::CompNGonVolOfElement(E_Float* xt,E_Float* yt,E_Float* zt, FldArr
           sens = (xbe - xbf)*surfnx + (ybe - ybf)*surfny + (zbe - zbf)*surfnz;
           if (sens > 0.) {surfnx = -surfnx; surfny = -surfny; surfnz = -surfnz;}
 
-          // ajout de la contribution du triangle (n, n+1, bf) au volume de l element elt
+          // ajout de la contribution du triangle (n, n+1, bf) au volume de l element indE
           xc = (xt[ind1]+xt[ind2]+xbf)/3.; 
           yc = (yt[ind1]+yt[ind2]+ybf)/3.; // coordonnees du centre du triangle(n, n+1, bf) 
           zc = (zt[ind1]+zt[ind2]+zbf)/3.; 
@@ -340,7 +339,6 @@ E_Int K_METRIC::CompNGonVolOfElement(E_Float* xt,E_Float* yt,E_Float* zt, FldArr
     break;
     default:
       return 1;
-      
   }
   return 0;
 }

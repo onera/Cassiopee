@@ -1,19 +1,32 @@
 # - tkTree -
-# View a pyTree in a tree widget
-import Tkinter as TK
+"""View a pyTree in a tree widget."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
-import tkTreeOps # for node inspector
+import tkNodeEdit # for node inspector
 import Converter.Internal as Internal
-import Tkdnd # drag and drop
+try: import tkinter.dnd as Tkdnd # drag and drop
+except: import Tkdnd
 import numpy
+
+try: range = xrange
+except: pass
 
 # local widgets list
 STATUS = 0
 WIDGETS = {}; VARS = []
 
+# buffer for copy/paste
+BUFFER = None
+
+def strFormat(v):
+    if isinstance(v, int): return "%ld"%v
+    elif isinstance(v, float): return "%g"%v
+    else: return "%s"%v
+    
 #==============================================================================
 def report_callback_exception():
     """report exception on sys.stderr."""
@@ -93,7 +106,7 @@ class Node:
             sw.tag_bind(self.indic, '<Button-1>', self.PVT_click)
             sw.tag_bind(self.symbol, '<Button-1>', self.PVT_click)
             sw.tag_bind(self.label, '<Button-1>', self.PVT_clickSelect)
-            sw.tag_bind(self.label, '<Control-Button-1>',
+            sw.tag_bind(self.label, '<Control-Shift-Button-1>',
                         self.PVT_clickMultipleSelect)
             sw.tag_bind(self.label, '<Double-Button-1>',
                         self.PVT_clickEdit)
@@ -217,10 +230,8 @@ class Node:
         n = self.next_visible()
         x1, y1 = sw.coords(self.symbol)
         x2, y2 = sw.coords(n.symbol)
-        if me_too:
-            dist = y2-y1
-        else:
-            dist = y2-y1-sw.dist_y
+        if me_too: dist = y2-y1
+        else: dist = y2-y1-sw.dist_y
         self.PVT_tag_move(-dist)
         n = self
         if me_too:
@@ -236,7 +247,7 @@ class Node:
             self.parent_node.child_nodes.remove(self)
             # break circular ref now, so parent may be GC'ed later
             n = self.parent_node
-            self.parent_node=None
+            self.parent_node = None
         n.PVT_cleanup_lines()
         n.PVT_update_scrollregion()
 
@@ -486,7 +497,10 @@ class Node:
             self.PVT_highlight(item)
         elif event.keysym == "Return":
             pid = self.id
+            # Change the node name
             pid[0] = sw.itemcget(item, "text")
+            try: tkNodeEdit.updateNode(pid)
+            except: pass
             sw.focus('')
             sw.select_clear()
             sw.delete("highlight")
@@ -552,7 +566,6 @@ class Node:
             bases = Internal.getBases(pid)
             activated = []
             s = -1
-            
             for b in bases:
                 baseName = b[0]
                 nodes = Internal.getNodesFromType1(b, 'Zone_t')
@@ -563,10 +576,8 @@ class Node:
                         if sp == 0: s = 1
                         else: s = 0
                         break
-                    
             nodes = Internal.getZones(CTK.t)
-            for no in xrange(len(nodes)): activated.append((no, s))
-           
+            for no in range(len(nodes)): activated.append((no, s))
             if s == 0: CTK.TXT.insert('START', 'Tree deactivated.\n')
             elif s == 1: CTK.TXT.insert('START', 'Tree activated.\n')
             CPlot.setActiveZones(activated)
@@ -576,7 +587,7 @@ class Node:
             for b in bases:
                 zones = Internal.getNodesFromType1(b, 'Zone_t')
                 for z in zones:
-                    if (id(z) == id(pid)): ret = b; break
+                    if id(z) == id(pid): ret = b; break
             noz = CPlot.getCPlotNumber(CTK.t, ret[0], pid[0])
             active = CPlot.getActiveStatus(noz)
             if active == 1:
@@ -642,12 +653,12 @@ class Node:
             
     def PVT_displayNode(self, clear=False):
         pid = self.id
-        try: tkTreeOps.updateNode(pid)
+        try: tkNodeEdit.updateNode(pid)
         except: pass
 
         if pid[3] == 'CGNSLibraryVersion_t':
             v = pid[1]
-            if isinstance(v, float): v = str(v)
+            if isinstance(v, float): v = strFormat(v)
             if isinstance(v, numpy.ndarray): v = str(v[0])
             CTK.TXT.insert('START', v+'\n')
             
@@ -674,7 +685,7 @@ class Node:
             nodes = Internal.getZones(CTK.t)
             if clear: CPlot.unselectAllZones(); s = 1 # force select
             selected = []
-            for no in xrange(len(nodes)): selected.append((no, s))
+            for no in range(len(nodes)): selected.append((no, s))
             
             CPlot.setSelectedZones(selected)
             if s == 1: CTK.TXT.insert('START', 'Tree selected.\n')
@@ -751,33 +762,49 @@ class Node:
             v = pid[1]
             txt = ''
             if isinstance(v, numpy.ndarray):
-                if v.dtype == 'c': txt = v.tostring()
+                if v.dtype == 'c': txt = Internal.getValue(pid)
                 else:
+                    pt = v.ravel('k'); size = pt.size
                     txt += str(v.shape)+': '
-                    if v.shape[0] > 0: txt += str(v[0])
-                    if v.shape[0] > 1: txt += ',' + str(v[1])
-                    if v.shape[0] > 2: txt += ',' + str(v[2])
-                    if v.shape[0] > 3: txt += '...'
+                    if size > 0: txt += strFormat(pt[0])
+                    if size > 1: txt += ' ' + strFormat(pt[1])
+                    if size > 2: txt += ' ' + strFormat(pt[2])
+                    if size > 3: txt += ' ' + strFormat(pt[3])
+                    if size > 4: txt += ' ' + strFormat(pt[4])
+                    if size > 5: txt += ' ' + strFormat(pt[5])
+                    if size > 6: txt += '...'
             else: txt += str(v)
             CTK.TXT.insert('START', txt+'\n')
             ret = Internal.getParentOfNode(CTK.t, pid)
-            if (ret[0][3] == 'FlowSolution_t' and
-                (ret[0][0] == Internal.__FlowSolutionNodes__ or
-                 ret[0][0] == Internal.__FlowSolutionCenters__)):
-                field = pid[0]
-                if (ret[0][0] == Internal.__FlowSolutionCenters__):
-                    field = 'centers:'+field
-                vars = C.getVarNames(CTK.t)[0]
+            cont = ret[0]
+            if cont[3] == 'FlowSolution_t':
+                gp = Internal.getNodeFromType1(cont, 'GridLocation_t')
+                
+                field = None
+                if cont[0] == Internal.__FlowSolutionNodes__:
+                    field = pid[0]
+                elif cont[0] == Internal.__FlowSolutionCenters__:
+                    field = 'centers:'+pid[0]
+                elif gp is not None and Internal.getValue(gp) == 'CellCenter':
+                    Internal.__FlowSolutionCenters__ = cont[0]
+                    field = 'centers:'+pid[0]
+                    if 'tkContainers' in CTK.TKMODULES: CTK.TKMODULES['tkContainers'].updateApp()
+                else:
+                    Internal.__FlowSolutionNode__ = cont[0]
+                    field = pid[0]
+                    if 'tkContainers' in CTK.TKMODULES: CTK.TKMODULES['tkContainers'].updateApp()
+
+                zvars = C.getVarNames(CTK.t)[0]
                 ifield = 0; lenvars = 0
-                for i in vars:
-                    if (i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ'):
+                for i in zvars:
+                    if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
                         lenvars += 1
-                for i in vars:
+                for i in zvars:
                     if i == field: break
-                    if (i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ'):
+                    if i != 'CoordinateX' and i != 'CoordinateY' and i != 'CoordinateZ':
                         ifield += 1
                 CPlot.setState(mode=3, scalarField=ifield)
-                
+
         elif pid[3] == 'BC_t':
             v = Internal.getValue(pid)
             CTK.TXT.insert('START', 'BC type: %s\n'%v)
@@ -803,10 +830,11 @@ class Node:
             txt = ''
             if isinstance(v, numpy.ndarray):
                 txt += str(v.shape)+': '
-                if v.shape[0] > 0: txt += str(v[0])
-                if v.shape[0] > 1: txt += ',' + str(v[1])
-                if v.shape[0] > 2: txt += ',' + str(v[2])
-                if v.shape[0] > 3: txt += '...'
+                p = v.ravel('k'); ln = p.size
+                if ln > 0: txt += strFormat(p[0])
+                if ln > 1: txt += ' ' + strFormat(p[1])
+                if ln > 2: txt += ' ' + strFormat(p[2])
+                if ln > 3: txt += '...'
             else: txt += str(v)
             CTK.TXT.insert('START', txt+'\n')
 
@@ -819,9 +847,20 @@ class Node:
 
         elif pid[3] == 'FlowSolution_t':
             CTK.TXT.insert('START', 'Displaying '+pid[0]+'\n')
+            contName = pid[0]
             CPlot.setMode(3)
+            gp = Internal.getNodeFromType1(pid, 'GridLocation_t') 
+            if gp is not None:
+                if Internal.getValue(gp) == 'CellCenter' and Internal.__FlowSolutionCenters__ != contName:
+                    Internal.__FlowSolutionCenters__ = contName
+                    if 'tkContainers' in CTK.TKMODULES: CTK.TKMODULES['tkContainers'].updateApp()
+                    CTK.display(CTK.t)
+                elif Internal.__FlowSolutionNodes__ != contName:
+                    Internal.__FlowSolutionNodes__ = contName
+                    if 'tkContainers' in CTK.TKMODULES: CTK.TKMODULES['tkContainers'].updateApp()
+                    CTK.display(CTK.t)
 
-        elif pid[3] == 'FamilyName_t':
+        elif pid[3] == 'FamilyName_t' or pid[3] == 'AdditionalFamilyName_t':
             v = Internal.getValue(pid)
             CTK.TXT.insert('START', v+'\n')
 
@@ -869,16 +908,9 @@ class Node:
             val = pid[1]
             connectType = val[0]; boundary = val[1]
             v = 'Connectivity of type '
-            if connectType == 2: v += 'NODE.'
-            elif connectType == 3 or connectType == 4: v += 'BAR'
-            elif connectType == 5 or connectType == 6: v += 'TRI'
-            elif connectType >= 7 and connectType <= 9: v += 'QUAD'
-            elif connectType == 10 or connectType == 11: v += 'TETRA'
-            elif connectType == 12 or connectType == 13: v += 'PYRA'
-            elif connectType >= 14 and connectType <= 16: v += 'PENTA'
-            elif connectType >= 17 and connectType <= 19: v += 'HEXA'
-            elif connectType == 22: v += 'NGON_n'
-            elif connectType == 23: v += 'NFACE_n'
+            name, nnodes = Internal.eltNo2EltName(connectType)
+            v += name
+
             if boundary > 0: v += ' (boundary)'
             CTK.TXT.insert('START', v+'.\n')
 
@@ -1061,10 +1093,10 @@ tcuom2foARAAyKRSmQAAOw==
             deletedZoneNames = []
             for z in id[2]:
                 if z[3] == 'Zone_t': deletedZoneNames.append(id[0]+Internal.SEP1+z[0])
-            if (Internal.isStdNode(ret[0]) >= 0): del ret[0][ret[1]]
+            if Internal.isStdNode(ret[0]) >= 0: del ret[0][ret[1]]
             else: del ret[0][2][ret[1]]
+            (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
             if deletedZoneNames != []:
-                (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
                 CPlot.delete(deletedZoneNames)
                 CPlot.render()
         elif id[3] == 'Zone_t': # efface une zone
@@ -1076,7 +1108,7 @@ tcuom2foARAAyKRSmQAAOw==
             CPlot.render()
         else: # efface un autre type de noeuds
             ret = Internal.getParentOfNode(CTK.t, id)
-            if (Internal.isStdNode(ret[0]) >= 0): del ret[0][ret[1]]
+            if Internal.isStdNode(ret[0]) >= 0: del ret[0][ret[1]]
             else: del ret[0][2][ret[1]]
         sav = self.pos.prev_visible()
         self.pos.delete()
@@ -1087,7 +1119,8 @@ tcuom2foARAAyKRSmQAAOw==
         """Keep track of callback bindings so we can delete them later. I
         shouldn't have to do this!!!!"""
         # pass args to superclass
-        func_id = apply(TK.Canvas.tag_bind, (self, tag, seq)+args, kw_args)
+        aargs = (self, tag, seq)+args
+        func_id = TK.Canvas.tag_bind(*aargs, **kw_args)
         # save references
         self.bindings[tag] = self.bindings.get(tag, [])+[(seq, func_id)]
 
@@ -1121,17 +1154,17 @@ tcuom2foARAAyKRSmQAAOw==
     def add_node(self, name=None, id=None, flag=0, expanded_icon=None,
                  collapsed_icon=None):
         """Add a node during get_contents_callback()"""
-        if (id is not None and len(id) >= 4):
+        if id is not None and len(id) >= 4:
             if id[3] == 'Zone_t': 
                 collapsed_icon = self.collapsed_zone
                 expanded_icon = self.expanded_zone
             elif id[3] == 'CGNSBase_t':
                 collapsed_icon = self.collapsed_base
                 expanded_icon = self.expanded_base
-            elif id[3] == 'Family_t' or id[3] == 'FamilyName_t':
+            elif id[3] == 'Family_t' or id[3] == 'FamilyName_t' or id[3] == 'AdditionalFamilyName_t':
                 collapsed_icon = self.collapsed_family
                 expanded_icon = self.expanded_family
-            elif (id[3] == 'UserDefinedData_t' and len(id[2])>0):
+            elif id[3] == 'UserDefinedData_t' and len(id[2])>0:
                 collapsed_icon = self.collapsed_user
                 expanded_icon = self.expanded_user
         self.add_list(self.new_nodes, name, id, flag, expanded_icon,
@@ -1147,7 +1180,8 @@ tcuom2foARAAyKRSmQAAOw==
         
     def see(self, *items):
         """Scroll (in a series of nudges) so items are visible"""
-        x1, y1, x2, y2 = apply(self.bbox, items)
+        x1, y1, x2, y2 = self.bbox(*items)
+        
         while x2 > self.canvasx(0)+self.winfo_width():
             old = self.canvasx(0)
             self.xview('scroll', 1, 'units')
@@ -1220,7 +1254,7 @@ tcuom2foARAAyKRSmQAAOw==
     def pageup(self, event=None):
         """Previous page"""
         n = self.pos
-        j = self.winfo_height()/self.dist_y
+        j = self.winfo_height()//self.dist_y
         for i in range(j-3):
             n = n.prev_visible()
         self.yview('scroll', -1, 'pages')
@@ -1229,7 +1263,7 @@ tcuom2foARAAyKRSmQAAOw==
     def pagedown(self, event=None):
         """Next page"""
         n = self.pos
-        j = self.winfo_height()/self.dist_y
+        j = self.winfo_height()//self.dist_y
         for i in range(j-3):
             n = n.next_visible()
         self.yview('scroll', 1, 'pages')
@@ -1394,13 +1428,14 @@ tcuom2foARAAyKRSmQAAOw==
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, border=2, relief=CTK.FRAMESTYLE,
-                           text='tkTree', font=CTK.FRAMEFONT)
+                           text='tkTree  [ + ]  ', font=CTK.FRAMEFONT)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.columnconfigure(0, weight=1)
     WIDGETS['frame'] = Frame
 
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
     FrameMenu.add_command(label='Expand', accelerator='Ctrl+e',
                           command=expandCanvas)
     FrameMenu.add_command(label='Shrink', accelerator='Ctrl+r',
@@ -1412,11 +1447,11 @@ def createApp(win):
     # - Frame sunken -
     Frame2 = TK.Frame(Frame, border=1, relief=TK.SUNKEN)
     Frame2.columnconfigure(0, weight=1)
-    Frame2.grid(sticky=TK.EW)
+    Frame2.grid(sticky=TK.NSEW)
 
     aw = 230; ah = 210
-    if CTK.PREFS.has_key('tkTreeWidth'): aw = CTK.PREFS['tkTreeWidth']
-    if CTK.PREFS.has_key('tkTreeHeight'): aw = CTK.PREFS['tkTreeHeight']
+    if 'tkTreeWidth' in CTK.PREFS: aw = int(CTK.PREFS['tkTreeWidth'])
+    if 'tkTreeHeight' in CTK.PREFS: ah = int(CTK.PREFS['tkTreeHeight'])
 
     # - Tree -
     B = Tree(master=Frame2,
@@ -1428,6 +1463,9 @@ def createApp(win):
     B.bind('<MouseWheel>', onMouseWheel)
     B.bind('<Button-4>', onMouseWheel)
     B.bind('<Button-5>', onMouseWheel)
+    B.bind('<Control-c>', onCopy)
+    B.bind('<Control-x>', onCut)
+    B.bind('<Control-v>', onPaste)
     B.grid(row=0, column=0, sticky=TK.NSEW)
     WIDGETS['tree'] = B
     sb = TTK.Scrollbar(Frame, width=10)
@@ -1448,12 +1486,46 @@ def onMouseWheel(event):
     tree = WIDGETS['tree']
     if event.num == 5 or event.delta == -120:
         tree.yview('scroll', +1, 'units')
-    elif (event.num == 4 or event.delta == 120):
+    elif event.num == 4 or event.delta == 120:
         tree.yview('scroll', -1, 'units')
 
 #==============================================================================
+def onCopy(event):
+    global BUFFER
+    node = getCurrentSelectedNode()
+    BUFFER = node
+    
+#==============================================================================
+def onCut(event):
+    CTK.saveTree()
+    global BUFFER
+    CTK.saveTree()
+    node = getCurrentSelectedNode()
+    sw = WIDGETS['tree'].cursor_node()
+    sw.widget.move_cursor(sw.parent_node)
+    BUFFER = node
+    (p, c) = Internal.getParentOfNode(CTK.t, node)
+    del p[2][c]
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.display(CTK.t)
+    updateApp()
+
+#==============================================================================
+def onPaste(event):
+    CTK.saveTree()
+    nodep = Internal.copyTree(BUFFER)
+    node = getCurrentSelectedNode()
+    node[2].append(nodep)
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.display(CTK.t)
+    updateApp()
+    sw = WIDGETS['tree'].cursor_node()
+    for n in sw.children():
+        if n.id[0] == nodep[0]: n.widget.move_cursor(n)
+    
+#==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW, column=1); updateApp()
+    WIDGETS['frame'].grid(sticky=TK.NSEW, column=1); updateApp()
 
 #==============================================================================
 def hideApp(event=None):
@@ -1512,7 +1584,7 @@ def updateApp():
         children = newRoot.children()
         bcount = 0
         for c in children: # Bases
-            if OPENBASES.has_key(c.get_label()): c.expand()
+            if c.get_label() in OPENBASES: c.expand()
             if LEVSEL == 0 and c.get_label() == SELECTED: 
                 c.widget.move_cursor(c)
 
@@ -1520,21 +1592,21 @@ def updateApp():
             zcount = 0
             for d in children2: # Zones
                 dlabel = d.get_label()
-                if OPENZONES[bcount].has_key(dlabel): d.expand()
-                if (LEVSEL == 1 and dlabel == SELECTED): d.widget.move_cursor(d)
+                if dlabel in OPENZONES[bcount]: d.expand()
+                if LEVSEL == 1 and dlabel == SELECTED: d.widget.move_cursor(d)
                 children3 = d.children()
                 for e in children3:
                     elabel = e.get_label()
-                    if OPENNODES[bcount][zcount].has_key(elabel): 
+                    if elabel in OPENNODES[bcount][zcount]: 
                         e.expand()
-                    if (LEVSEL == 2 and elabel == SELECTED): 
+                    if LEVSEL == 2 and elabel == SELECTED: 
                         e.widget.move_cursor(e)
                     children4 = e.children()
                     for f in children4:
-                        if (LEVSEL == 3 and f.get_label() == SELECTED): 
+                        if LEVSEL == 3 and f.get_label() == SELECTED: 
                             f.widget.move_cursor(f)
-                if (len(children3) > 0): zcount += 1
-            if (len(children2) > 0): bcount += 1
+                if len(children3) > 0: zcount += 1
+            if len(children2) > 0: bcount += 1
 
 #==============================================================================
 def saveApp():
@@ -1583,9 +1655,9 @@ def shrinkCanvas():
     WIDGETS['tree'].shrinkCanvas()
 
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

@@ -1,7 +1,6 @@
 # - octree (array) -
 # Test avec ratio 3
 import Generator as G
-import Converter as C
 import Geom as D
 import KCore.test as test
 

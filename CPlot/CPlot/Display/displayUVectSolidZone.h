@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -16,41 +16,45 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
+// change this to draw 2 triangles instead of one quad
+//#define GL_QUADS_ARE GL_QUADS/GL_TRIANGLES
+//#define PLOTQUAD PLOTQUADQ/PLOTSQUADT
+//#define PLOTQUAD2 PLOTQUADQ2/PLOTQUADT2
 
 #define PLOTTRI r = f1[n1]*deltai+0.5;                              \
   g = f2[n1]*deltai+0.5;                                            \
   b = f3[n1]*deltai+0.5;                                            \
-  glColor3f(r, g, b);                                                   \
-  glNormal3f(surfx[n1], surfy[n1], surfz[n1]);                          \
-  glVertex3d(x[n1], y[n1], z[n1]);                                      \
-  r = f1[n2]*deltai+0.5;                                            \
-  g = f2[n2]*deltai+0.5;                                            \
-  b = f3[n2]*deltai+0.5;                                           \
-  glColor3f(r, g, b);                                                   \
-  glNormal3f(surfx[n2], surfy[n2], surfz[n2]);                          \
-  glVertex3d(x[n2], y[n2], z[n2]);                                      \
-  r = f1[n3]*deltai+0.5;                                            \
-  g = f2[n3]*deltai+0.5;                                            \
-  b = f3[n3]*deltai+0.5;                                            \
-  glColor3f(r, g, b);                                                   \
-  glNormal3f(surfx[n3], surfy[n3], surfz[n3]);                          \
-  glVertex3d(x[n3], y[n3], z[n3]);
-                              
-#define PLOTTRI2 r =f1[n1]*deltai+0.5;                              \
-  g = f2[n1]*deltai+0.5;                                            \
-  b = f3[n1]*deltai+0.5;                                            \
-  glColor3f(r, g, b);                                                   \
-  glNormal3f(surfx[ff], surfy[ff], surfz[ff]);                          \
-  glVertex3d(x[n1], y[n1], z[n1]);                                      \
+  glColor3f(r, g, b);                                               \
+  glNormal3f(surfx[n1], surfy[n1], surfz[n1]);                      \
+  glVertex3d(x[n1], y[n1], z[n1]);                                  \
   r = f1[n2]*deltai+0.5;                                            \
   g = f2[n2]*deltai+0.5;                                            \
   b = f3[n2]*deltai+0.5;                                            \
-  glColor3f(r, g, b);                                                   \
-  glVertex3d(x[n2], y[n2], z[n2]);                                      \
+  glColor3f(r, g, b);                                               \
+  glNormal3f(surfx[n2], surfy[n2], surfz[n2]);                      \
+  glVertex3d(x[n2], y[n2], z[n2]);                                  \
   r = f1[n3]*deltai+0.5;                                            \
   g = f2[n3]*deltai+0.5;                                            \
   b = f3[n3]*deltai+0.5;                                            \
-  glColor3f(r, g, b);                                                   \
+  glColor3f(r, g, b);                                               \
+  glNormal3f(surfx[n3], surfy[n3], surfz[n3]);                      \
+  glVertex3d(x[n3], y[n3], z[n3]);
+                              
+#define PLOTTRI2 r = f1[n1]*deltai+0.5;                             \
+  g = f2[n1]*deltai+0.5;                                            \
+  b = f3[n1]*deltai+0.5;                                            \
+  glColor3f(r, g, b);                                               \
+  glNormal3f(surfx[ff], surfy[ff], surfz[ff]);                      \
+  glVertex3d(x[n1], y[n1], z[n1]);                                  \
+  r = f1[n2]*deltai+0.5;                                            \
+  g = f2[n2]*deltai+0.5;                                            \
+  b = f3[n2]*deltai+0.5;                                            \
+  glColor3f(r, g, b);                                               \
+  glVertex3d(x[n2], y[n2], z[n2]);                                  \
+  r = f1[n3]*deltai+0.5;                                            \
+  g = f2[n3]*deltai+0.5;                                            \
+  b = f3[n3]*deltai+0.5;                                            \
+  glColor3f(r, g, b);                                               \
   glVertex3d(x[n3], y[n3], z[n3]); 
 
 #define PLOTTRIB ret1 = _pref.blanking->f(this, n1, zonep->blank, zonet); \
@@ -63,49 +67,121 @@
   ret3 = _pref.blanking->f(this, n3, zonep->blank, zonet);               \
   if (ret1*ret2*ret3 != 0) { PLOTTRI2; }
 
-#define PLOTQUAD r = f1[n1]*deltai+0.5;                             \
+#define PLOTQUADQ r = f1[n1]*deltai+0.5;                            \
   g = f2[n1]*deltai+0.5;                                            \
   b = f3[n1]*deltai+0.5;                                            \
-  glColor3f(r, g, b);                                                   \
-  glNormal3f(surfx[n1], surfy[n1], surfz[n1]);                          \
-  glVertex3d(x[n1], y[n1], z[n1]);                                      \
+  glColor3f(r, g, b);                                               \
+  glNormal3f(surfx[n1], surfy[n1], surfz[n1]);                      \
+  glVertex3d(x[n1], y[n1], z[n1]);                                  \
   r = f1[n2]*deltai+0.5;                                            \
   g = f2[n2]*deltai+0.5;                                            \
   b = f3[n2]*deltai+0.5;                                            \
-  glColor3f(r, g, b);                                                   \
-  glNormal3f(surfx[n2], surfy[n2], surfz[n2]);                          \
-  glVertex3d(x[n2], y[n2], z[n2]);                                      \
+  glColor3f(r, g, b);                                               \
+  glNormal3f(surfx[n2], surfy[n2], surfz[n2]);                      \
+  glVertex3d(x[n2], y[n2], z[n2]);                                  \
   r = f1[n3]*deltai+0.5;                                            \
   g = f2[n3]*deltai+0.5;                                            \
   b = f3[n3]*deltai+0.5;                                            \
-  glColor3f(r, g, b);                                                   \
-  glNormal3f(surfx[n3], surfy[n3], surfz[n3]);                          \
-  glVertex3d(x[n3], y[n3], z[n3]);                                      \
-  r = f1[n4]*deltai+0.5;                                            \
-  glColor3f(r, g, 0.);                                                 \
-  glNormal3f(surfx[n4], surfy[n4], surfz[n4]);                          \
-  glVertex3d(x[n4], y[n4], z[n4]);                                    
-
-#define PLOTQUAD2 r = f1[n1]*deltai+0.5;                            \
-  g = f2[n1]*deltai+0.5;                                            \
-  b = f3[n1]*deltai+0.5;                                            \
-  glColor3f(r, g, b);                                                   \
-  glNormal3f(surfx[ff], surfy[ff], surfz[ff]);                          \
-  glVertex3d(x[n1], y[n1], z[n1]);                                      \
-  r = f1[n2]*deltai+0.5;                                            \
-  g = f2[n2]*deltai+0.5;                                            \
-  b = f3[n2]*deltai+0.5;                                            \
-  glColor3f(r, g, b);                                                   \
-  glVertex3d(x[n2], y[n2], z[n2]);                                      \
-  r = f1[n3]*deltai+0.5;                                            \
-  g = f2[n3]*deltai+0.5;                                            \
-  b = f3[n3]*deltai+0.5;                                            \
-  glColor3f(r, g, b);                                                   \
-  glVertex3d(x[n3], y[n3], z[n3]);                                      \
+  glColor3f(r, g, b);                                               \
+  glNormal3f(surfx[n3], surfy[n3], surfz[n3]);                      \
+  glVertex3d(x[n3], y[n3], z[n3]);                                  \
   r = f1[n4]*deltai+0.5;                                            \
   g = f2[n4]*deltai+0.5;                                            \
   b = f3[n4]*deltai+0.5;                                            \
-  glColor3f(r, g, b);                                                   \
+  glColor3f(r, g, b);                                               \
+  glNormal3f(surfx[n4], surfy[n4], surfz[n4]);                      \
+  glVertex3d(x[n4], y[n4], z[n4]);                                    
+
+#define PLOTQUADT r = f1[n1]*deltai+0.5;                            \
+  g = f2[n1]*deltai+0.5;                                            \
+  b = f3[n1]*deltai+0.5;                                            \
+  glColor3f(r, g, b);                                               \
+  glNormal3f(surfx[n1], surfy[n1], surfz[n1]);                      \
+  glVertex3d(x[n1], y[n1], z[n1]);                                  \
+  r = f1[n2]*deltai+0.5;                                            \
+  g = f2[n2]*deltai+0.5;                                            \
+  b = f3[n2]*deltai+0.5;                                            \
+  glColor3f(r, g, b);                                               \
+  glNormal3f(surfx[n2], surfy[n2], surfz[n2]);                      \
+  glVertex3d(x[n2], y[n2], z[n2]);                                  \
+  r = f1[n4]*deltai+0.5;                                            \
+  g = f2[n4]*deltai+0.5;                                            \
+  b = f3[n4]*deltai+0.5;                                            \
+  glColor3f(r, g, b);                                               \
+  glNormal3f(surfx[n4], surfy[n4], surfz[n4]);                      \
+  glVertex3d(x[n4], y[n4], z[n4]);                                  \
+  r = f1[n2]*deltai+0.5;                                            \
+  g = f2[n2]*deltai+0.5;                                            \
+  b = f3[n2]*deltai+0.5;                                            \
+  glColor3f(r, g, b);                                               \
+  glNormal3f(surfx[n2], surfy[n2], surfz[n2]);                      \
+  glVertex3d(x[n2], y[n2], z[n2]);                                  \
+  r = f1[n3]*deltai+0.5;                                            \
+  g = f2[n3]*deltai+0.5;                                            \
+  b = f3[n3]*deltai+0.5;                                            \
+  glColor3f(r, g, b);                                               \
+  glNormal3f(surfx[n3], surfy[n3], surfz[n3]);                      \
+  glVertex3d(x[n3], y[n3], z[n3]);                                  \
+  r = f1[n4]*deltai+0.5;                                            \
+  g = f2[n4]*deltai+0.5;                                            \
+  b = f3[n4]*deltai+0.5;                                            \
+  glColor3f(r, g, b);                                               \
+  glNormal3f(surfx[n4], surfy[n4], surfz[n4]);                      \
+  glVertex3d(x[n4], y[n4], z[n4]);
+
+#define PLOTQUADQ2 r = f1[n1]*deltai+0.5;                           \
+  g = f2[n1]*deltai+0.5;                                            \
+  b = f3[n1]*deltai+0.5;                                            \
+  glColor3f(r, g, b);                                               \
+  glNormal3f(surfx[ff], surfy[ff], surfz[ff]);                      \
+  glVertex3d(x[n1], y[n1], z[n1]);                                  \
+  r = f1[n2]*deltai+0.5;                                            \
+  g = f2[n2]*deltai+0.5;                                            \
+  b = f3[n2]*deltai+0.5;                                            \
+  glColor3f(r, g, b);                                               \
+  glVertex3d(x[n2], y[n2], z[n2]);                                  \
+  r = f1[n3]*deltai+0.5;                                            \
+  g = f2[n3]*deltai+0.5;                                            \
+  b = f3[n3]*deltai+0.5;                                            \
+  glColor3f(r, g, b);                                               \
+  glVertex3d(x[n3], y[n3], z[n3]);                                  \
+  r = f1[n4]*deltai+0.5;                                            \
+  g = f2[n4]*deltai+0.5;                                            \
+  b = f3[n4]*deltai+0.5;                                            \
+  glColor3f(r, g, b);                                               \
+  glVertex3d(x[n4], y[n4], z[n4]);
+
+#define PLOTQUADT2 r = f1[n1]*deltai+0.5;                           \
+  g = f2[n1]*deltai+0.5;                                            \
+  b = f3[n1]*deltai+0.5;                                            \
+  glColor3f(r, g, b);                                               \
+  glNormal3f(surfx[ff], surfy[ff], surfz[ff]);                      \
+  glVertex3d(x[n1], y[n1], z[n1]);                                  \
+  r = f1[n2]*deltai+0.5;                                            \
+  g = f2[n2]*deltai+0.5;                                            \
+  b = f3[n2]*deltai+0.5;                                            \
+  glColor3f(r, g, b);                                               \
+  glVertex3d(x[n2], y[n2], z[n2]);                                  \
+  r = f1[n4]*deltai+0.5;                                            \
+  g = f2[n4]*deltai+0.5;                                            \
+  b = f3[n4]*deltai+0.5;                                            \
+  glColor3f(r, g, b);                                               \
+  glVertex3d(x[n4], y[n4], z[n4]);                                  \
+  r = f1[n2]*deltai+0.5;                                            \
+  g = f2[n2]*deltai+0.5;                                            \
+  b = f3[n2]*deltai+0.5;                                            \
+  glColor3f(r, g, b);                                               \
+  glNormal3f(surfx[ff], surfy[ff], surfz[ff]);                      \
+  glVertex3d(x[n2], y[n2], z[n2]);                                  \
+  r = f1[n3]*deltai+0.5;                                            \
+  g = f2[n3]*deltai+0.5;                                            \
+  b = f3[n3]*deltai+0.5;                                            \
+  glColor3f(r, g, b);                                               \
+  glVertex3d(x[n3], y[n3], z[n3]);                                  \
+  r = f1[n4]*deltai+0.5;                                            \
+  g = f2[n4]*deltai+0.5;                                            \
+  b = f3[n4]*deltai+0.5;                                            \
+  glColor3f(r, g, b);                                               \
   glVertex3d(x[n4], y[n4], z[n4]);
 
 #define PLOTQUADB ret1 = _pref.blanking->f(this, n1, zonep->blank, zonet); \
@@ -123,13 +199,8 @@
 #define PLOTNGON(n) r = f1[n]*deltai+0.5;                           \
   g = f2[n]*deltai+0.5;                                             \
   b = f3[n]*deltai+0.5;                                             \
-  glColor3f(r, g, b);                                                   \
+  glColor3f(r, g, b);                                               \
   glVertex3d(x[n], y[n], z[n]);
-
-  double fmin1, fmax1, fmin2, fmax2, fmin3, fmax3;
-  fmax1 = maxf[nofield1]; fmin1 = minf[nofield1];
-  fmax2 = maxf[nofield2]; fmin2 = minf[nofield2];
-  fmax3 = maxf[nofield3]; fmin3 = minf[nofield3];
   
   double deltai1 = MAX(ABS(fmax1), 1.e-6);
   deltai1 = MAX(deltai1, ABS(fmin1));
@@ -144,24 +215,24 @@
   deltai = 0.5/deltai;
 
   // Colormap
-  void (*getrgb)(Data* data, double, float*, float*, float*);
-  getrgb = _pref.colorMap->f;
+  //void (*getrgb)(Data* data, double, float*, float*, float*);
+  //getrgb = _pref.colorMap->f;
 
-  double* f1 = zonep->f[nofield1];
-  double* f2 = zonep->f[nofield2];
-  double* f3 = zonep->f[nofield3];
-
-  int ne = zonep->ne;
-  int ne2 = 2*ne; int ne3 = 3*ne;
-  int ne4 = 4*ne; int ne5 = 5*ne;
-  int np = zonep->np;
-
+  E_Int np = zonep->np;
   double* x = zonep->x; double* y = zonep->y; double* z = zonep->z;
-  int* connect = zonep->connect;
 
-  if (zonep->eltType == 2) // TRI
+  for (size_t nc = 0; nc < zonep->connect.size(); nc++) {
+
+  E_Int ne = zonep->nec[nc];
+  E_Int ne2 = 2*ne; int ne3 = 3*ne;
+  E_Int ne4 = 4*ne; int ne5 = 5*ne;
+  E_Int* connect = zonep->connect[nc];
+  E_Int eltType = zonep->eltType[nc];
+
+  if (eltType == 2) // TRI
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[0];
+    float* surfx = surfp;
     float* surfy = surfx + np;
     float* surfz = surfy + np;
     
@@ -189,13 +260,14 @@
     }
     glEnd();
   }
-  else if (zonep->eltType == 3) // QUAD
+  else if (eltType == 3) // QUAD
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[0];
+    float* surfx = surfp;
     float* surfy = surfx + np;
     float* surfz = surfy + np;
     
-    glBegin(GL_QUADS);
+    glBegin(GL_QUADS_ARE);
     if (zonep->blank == 0)
     {
       for (i = 0; i < ne; i++)
@@ -221,9 +293,10 @@
     }
     glEnd();
   }
-  else if (zonep->eltType == 4) // TETRA
+  else if (eltType == 4) // TETRA
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[nc];
+    float* surfx = surfp;
     float* surfy = surfx + ne4;
     float* surfz = surfy + ne4;
     
@@ -283,9 +356,10 @@
     }
     glEnd();
   }
-  else if (zonep->eltType == 5) // PENTA
+  else if (eltType == 5) // PENTA
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[nc];
+    float* surfx = surfp;
     float* surfy = surfx + ne5;
     float* surfz = surfy + ne5;
     
@@ -325,7 +399,7 @@
     }
     glEnd();
     
-    glBegin(GL_QUADS);
+    glBegin(GL_QUADS_ARE);
     if (zonep->blank == 0)
     {
       for (i = 0; i < ne; i++)
@@ -377,9 +451,10 @@
     }
     glEnd();
   } 
-  else if (zonep->eltType == 6) // PYRA
+  else if (eltType == 6) // PYRA
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[nc];
+    float* surfx = surfp;
     float* surfy = surfx + ne5;
     float* surfz = surfy + ne5;
     
@@ -439,7 +514,7 @@
     }
     glEnd();
     
-    glBegin(GL_QUADS);
+    glBegin(GL_QUADS_ARE);
     if (zonep->blank == 0)
     {
       for (i = 0; i < ne; i++)
@@ -467,13 +542,14 @@
     }
     glEnd();
   } 
-  else if (zonep->eltType == 7) // HEXA
+  else if (eltType == 7) // HEXA
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[nc];
+    float* surfx = surfp;
     float* surfy = surfx + 6*ne;
     float* surfz = surfy + 6*ne;
     
-    glBegin(GL_QUADS);      
+    glBegin(GL_QUADS_ARE);      
     if (zonep->blank == 0)
     {
       for (i = 0; i < ne; i++)
@@ -561,14 +637,15 @@
     }
     glEnd();
   }
-  else if (zonep->eltType == 10) // NGON
+  else if (eltType == 10) // NGON
   {
-    int nf = connect[0];
-    int l, nd, c;
-    float* surfx = zonep->surf;
+    E_Int nf = connect[nc];
+    E_Int l, nd, c;
+    float* surfp = zonep->surf[nc];
+    float* surfx = surfp;
     float* surfy = surfx + nf;
     float* surfz = surfy + nf;
-    int next, prev;
+    E_Int next, prev;
     
     if (zonep->blank == 0)
     {
@@ -583,6 +660,7 @@
           n1 = connect[c+1]-1;
           n2 = connect[c+2]-1;
           n3 = connect[c+3]-1;
+          ff = i; // a verifier CB
           PLOTTRI2;
         }
         c += nd+1;
@@ -590,7 +668,7 @@
       glEnd();
 
       c = 2;
-      glBegin(GL_QUADS); 
+      glBegin(GL_QUADS_ARE); 
       for (i = 0; i < nf; i++)
       {
         nd = connect[c];
@@ -600,6 +678,7 @@
           n2 = connect[c+2]-1;
           n3 = connect[c+3]-1;
           n4 = connect[c+4]-1;
+          ff = i; // a verifier
           PLOTQUAD2;
         }
         c += nd+1;
@@ -625,18 +704,17 @@
       }
 
       // Elements 2D
+      E_Int j, first, elt, nf, face;
       for (i = 0; i < zonep->nelts2D; i++)
       {
         glBegin(GL_POLYGON);
-        int elt = zonep->posElts2D[i];
-        int* ptrelt = &connect[elt];
-        int nf = ptrelt[0];
-        int drawn = 0;
-        int j, first;
-
-        int face = ptrelt[1]-1;
+        elt = zonep->posElts2D[i];
+        E_Int* ptrelt = &connect[elt];
+        nf = ptrelt[0];
+        E_Int drawn = 0;
+        face = ptrelt[1]-1;
         glNormal3f(surfx[face], surfy[face], surfz[face]);
-        int* ptrface = &connect[zonep->posFaces[face]];
+        E_Int* ptrface = &connect[zonep->posFaces[face]];
         n1 = ptrface[1]-1; first = n1;
         n2 = ptrface[2]-1;
         PLOTNGON(n1);
@@ -680,6 +758,7 @@
           n1 = connect[c+1]-1;
           n2 = connect[c+2]-1;
           n3 = connect[c+3]-1;
+          ff = i; // a verifier CB
           PLOTTRI2B;
         }
         c += nd+1;
@@ -687,7 +766,7 @@
       glEnd();
 
       c = 2;
-      glBegin(GL_QUADS);
+      glBegin(GL_QUADS_ARE);
       for (i = 0; i < nf; i++)
       {
         nd = connect[c];
@@ -697,12 +776,12 @@
           n2 = connect[c+2]-1;
           n3 = connect[c+3]-1;
           n4 = connect[c+4]-1;
+          ff = i; // a verifier
           PLOTQUAD2B;
         }
         c += nd+1;
       }
       glEnd();
-
 
       c = 2;
       for (i = 0; i < nf; i++)
@@ -710,7 +789,7 @@
         nd = connect[c]; // nbre de noeuds de la face
         if (nd > 2) // elt 3D
         {
-          int blank = 0;
+          E_Int blank = 0;
           for (l = 0; l < nd; l++)
           {
             n1 = connect[c+l+1]-1;
@@ -735,15 +814,15 @@
       // Elements 2D
       for (i = 0; i < zonep->nelts2D; i++)
       {
-        int elt = zonep->posElts2D[i];
-        int* ptrelt = &connect[elt];
-        int nf = ptrelt[0];
+        E_Int elt = zonep->posElts2D[i];
+        E_Int* ptrelt = &connect[elt];
+        E_Int nf = ptrelt[0];
 
-        int blank = 0;
-        for (int j = 1; j <= nf; j++)
+        E_Int blank = 0;
+        for (E_Int j = 1; j <= nf; j++)
         {
-          int face = ptrelt[1]-1;
-          int* ptrface = &connect[zonep->posFaces[face]];
+          E_Int face = ptrelt[1]-1;
+          E_Int* ptrface = &connect[zonep->posFaces[face]];
           n1 = ptrface[1]-1;
           n2 = ptrface[2]-1;
           if (_pref.blanking->f(this, n1, zonep->blank, zonet) == 0)
@@ -754,15 +833,15 @@
         if (blank == 0)
         {
           glBegin(GL_POLYGON);
-          int elt = zonep->posElts2D[i];
-          int* ptrelt = &connect[elt];
-          int nf = ptrelt[0];
-          int drawn = 0;
-          int j, first;
+          E_Int elt = zonep->posElts2D[i];
+          E_Int* ptrelt = &connect[elt];
+          E_Int nf = ptrelt[0];
+          E_Int drawn = 0;
+          E_Int j, first;
 
-          int face = ptrelt[1]-1;
+          E_Int face = ptrelt[1]-1;
           glNormal3f(surfx[face], surfy[face], surfz[face]);
-          int* ptrface = &connect[zonep->posFaces[face]];
+          E_Int* ptrface = &connect[zonep->posFaces[face]];
           n1 = ptrface[1]-1; first = n1;
           n2 = ptrface[2]-1;
           PLOTNGON(n1); 
@@ -798,7 +877,7 @@
   }
 
   // Pour les BAR
-  if (zonep->eltType == 1)
+  if (eltType == 1)
   {
     glLineWidth(3.);
     glPolygonOffset(-1.,-10.); // force offset
@@ -850,7 +929,7 @@
   }
 
   // Pour les NGONS 1D
-  if (zonep->eltType == 10 && zonep->nelts1D > 0)
+  if (eltType == 10 && zonep->nelts1D > 0)
   {
     glLineWidth(3.);
     glBegin(GL_LINES);
@@ -858,12 +937,12 @@
     {
       for (i = 0; i < zonep->nelts1D; i++)
       {
-        int elt = zonep->posElts1D[i];
-        int* ptrelt = &connect[elt];
-        int face1 = ptrelt[1]-1;
-        int face2 = ptrelt[2]-1;
-        int posface1 = zonep->posFaces[face1];
-        int posface2 = zonep->posFaces[face2];
+        E_Int elt = zonep->posElts1D[i];
+        E_Int* ptrelt = &connect[elt];
+        E_Int face1 = ptrelt[1]-1;
+        E_Int face2 = ptrelt[2]-1;
+        E_Int posface1 = zonep->posFaces[face1];
+        E_Int posface2 = zonep->posFaces[face2];
         n1 = connect[posface1+1]-1;
         n2 = connect[posface2+1]-1;
         r = (f1[n1]-fmin1)*deltai;         
@@ -882,12 +961,12 @@
     {
       for (i = 0; i < zonep->nelts1D; i++)
       {
-        int elt = zonep->posElts1D[i];
-        int* ptrelt = &connect[elt];
-        int face1 = ptrelt[1]-1;
-        int face2 = ptrelt[2]-1;
-        int posface1 = zonep->posFaces[face1];
-        int posface2 = zonep->posFaces[face2];
+        E_Int elt = zonep->posElts1D[i];
+        E_Int* ptrelt = &connect[elt];
+        E_Int face1 = ptrelt[1]-1;
+        E_Int face2 = ptrelt[2]-1;
+        E_Int posface1 = zonep->posFaces[face1];
+        E_Int posface2 = zonep->posFaces[face2];
         n1 = connect[posface1+1]-1;
         n2 = connect[posface2+1]-1;
         ret1 = _pref.blanking->f(this, n1, zonep->blank, zonet);
@@ -910,3 +989,5 @@
     glEnd();
     glLineWidth(1.);
   }
+
+  } // connects

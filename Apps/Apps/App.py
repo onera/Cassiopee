@@ -2,6 +2,9 @@
 # Data oriented 
 # One method: run
 
+__version__ = '3.1'
+__author__ = "Stephanie Peron, Christophe Benoit, Thomas Renaud, Ivan Mary"
+
 import Converter.PyTree as C
 
 class App:
@@ -22,24 +25,26 @@ class App:
         """Return a value stored in data dict."""
         return self.data[key]
 
-    def readDataIn(self):
+    def readDataIn(self, name=None):
         """Return a pyTree depending on dataIn."""
-        inp = self.data['dataIn']
+        if name is None: name = 'dataIn'
+        inp = self.data[name]
         if isinstance(inp, str): t = C.convertFile2PyTree(inp)
         else: t = inp
         return t
 
-    def writeDataOut(self, t):
+    def writeDataOut(self, t, name=None):
         """Export a pyTree to dataOut."""
-        outp = self.data['dataOut']
+        if name is None: name = 'dataOut'
+        outp = self.data[name]
         if isinstance(outp, str): C.convertPyTree2File(t, outp)
-        else: self.data['dataOut'] = t
+        else: self.data[name] = t
         return None
 
     def run(self):
         """Run function."""
         # Cette fonction doit etre redefinie par l'applicatif
-        print self.data
+        print(self.data)
         return
 
     def requires(self, listKwrd):
@@ -53,9 +58,9 @@ class App:
     def check(self):
         """Check if all keywords have been set."""
         for i in self.required:
-            if not self.data.has_key(i):
-                print 'key: %s is not present.'%i
-                print 'all required keys: '+str(self.required)
+            if i not in self.data:
+                print('key: %s is not present.'%i)
+                print('all required keys: %s.'%self.required)
                 return False
         return True
 

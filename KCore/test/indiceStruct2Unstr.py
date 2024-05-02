@@ -17,8 +17,8 @@ indicesS = numpy.arange(0, npts, dtype=numpy.int32)
 
 # Liste des indices des vertex correspondants dans le maillage QUAD b
 indicesU = KCore.indiceStruct2Unstr(a[0], b, indicesS, 1.e-14)
-print indicesU
+print(indicesU)
 
 # Liste de tous les indices correspondants
 indicesU = KCore.indiceStruct2Unstr2(a, b, 1.e-14)
-print indicesU
+print(indicesU)

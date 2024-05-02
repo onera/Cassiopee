@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -48,17 +48,26 @@ E_Int K_ARRAY::getVarName(PyObject* varNames, char* varString)
   for (int i = 0; i < nvars; i++)
   {
     tpl = PyList_GetItem(varNames, i);
-    if (PyString_Check(tpl) == 0)
+    if (PyString_Check(tpl))
+    {
+      s = PyString_AsString(tpl);
+      strcat(varString, ",");
+      strcat(varString, s); 
+    }
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(tpl))
+    {
+      s = (char*)PyUnicode_AsUTF8(tpl); 
+      strcat(varString, ",");
+      strcat(varString, s);
+    }
+#endif
+    else
     {
       printf("Error: getVarName: variables must be strings.\n");
       return -1;
     }
-    else
-    {
-      s = PyString_AsString(tpl);
-      strcat(varString, ",");
-      strcat(varString, s);
-    }
+    
   }
   return nvars;
 }

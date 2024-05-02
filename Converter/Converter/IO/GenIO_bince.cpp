@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -52,7 +52,7 @@ E_Int K_IO::GenIO::readHeaderCE(FILE *ptrFile, E_Int& nfield,
   /* Endian check 1 */
   fread(&ib, si, 1, ptrFile);
 
-  /* FileType : ajoute depuis la version 112 */
+  /* FileType: ajoute depuis la version 112 */
   if (nversion >= 112) fread(&ib, si, 1, ptrFile);
 
   /* Title */
@@ -66,7 +66,6 @@ E_Int K_IO::GenIO::readHeaderCE(FILE *ptrFile, E_Int& nfield,
   /* Number of variables */
   fread(&ib, si, 1, ptrFile);
   nfield = IBE(ib);
-
   varString = new char [nfield*K_ARRAY::VARNAMELENGTH];
 
   /* Variables name */

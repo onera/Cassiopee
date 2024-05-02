@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -19,12 +19,13 @@
 #ifndef _CPLOT_ZONEIMPL_H_
 #define _CPLOT_ZONEIMPL_H_
 #include "CPlotState.h"
+#include "shaders_id.h"
 
 struct ZoneImpl {
     ZoneImpl( ) : _GPUResUse( 1 ) {}
     virtual ~ZoneImpl( ) {}
-    int          _GPUResUse;  // =1 si cette zone utilise les ressources internes du GPU ( Display Lists ou VBO )
-    virtual void freeGPURes( CPlotState* state, bool freeIso = true ) = 0;
+    E_Int _GPUResUse; // =1 si cette zone utilise les ressources internes du GPU (Display Lists ou VBO)
+    virtual void freeGPURes(CPlotState* state, bool freeIso=true) = 0;
     virtual void destroyIsoField( ) = 0;
 };
 

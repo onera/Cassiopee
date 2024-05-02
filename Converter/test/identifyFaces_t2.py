@@ -47,4 +47,4 @@ hook = C.createHook(a, function='faceCenters')
 faces = C.identifyFaces(hook,b,tol=eps)
 ret = faces[faces<0].shape[0]
 #if ret >0: print 'identifyFaces (NGON) FAILED: FPU is not correct [NGON/FACES]. Check compilation options.'
-print 'done.'
+print('done.')

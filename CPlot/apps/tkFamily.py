@@ -1,9 +1,12 @@
-# - Gestion des familles -
-import Tkinter as TK
+# - tkFamily -
+"""Gestion des familles."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
+import Converter.Internal as Internal
 
 # local widgets list
 WIDGETS = {}; VARS = []
@@ -26,7 +29,8 @@ def updateFamilyZoneNameList2(event=None):
     if CTK.t == []: return
     varsl = C.getFamilyZoneNames(CTK.t)
     varsl = list(set(varsl))
-    if WIDGETS.has_key('zones'):
+    varsl.sort(key=str.lower)
+    if 'zones' in WIDGETS:
         WIDGETS['zones']['values'] = varsl
 
 #==============================================================================
@@ -59,17 +63,17 @@ def createZoneFamily(event=None):
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
     CTK.saveTree()
-    if (CTK.__MAINTREE__ <= 0 or nzs == []):
+    if CTK.__MAINTREE__ <= 0 or nzs == []:
         bases = CTK.t[2]
-        for b in xrange(len(bases)):
-            if CTK.t[2][b][3] == 'CGNSBase_t':
-                CTK.t[2][b] = C.addFamily2Base(CTK.t[2][b], name)
+        for b in bases:
+            if b[3] == 'CGNSBase_t':
+                C._addFamily2Base(b, name)
         CTK.TXT.insert('START', 'Zone Family '+name+' added to all bases.\n')
     else:
         nob = CTK.Nb[nzs[0]]+1
         noz = CTK.Nz[nzs[0]]
         z = CTK.t[2][nob][2][noz]
-        CTK.t[2][nob] = C.addFamily2Base(CTK.t[2][nob], name)
+        C._addFamily2Base(CTK.t[2][nob], name)
         CTK.TXT.insert('START', 'Zone Family '+name+' added to base '+CTK.t[2][nob][0]+'.\n')
     CTK.TKTREE.updateApp()
 
@@ -78,21 +82,21 @@ def createBCFamily(event=None):
     if CTK.t == []: return
     name = VARS[1].get()
     if name == '':
-        CTK.TXT.insert('START', 'FamilyZone name is invalid.\n')
+        CTK.TXT.insert('START', 'FamilyBC name is invalid.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
     CTK.saveTree()
-    if (CTK.__MAINTREE__ <= 0 or nzs == []):
+    if CTK.__MAINTREE__ <= 0 or nzs == []:
         bases = CTK.t[2]
-        for b in xrange(len(bases)):
-            if CTK.t[2][b][3] == 'CGNSBase_t':
-                CTK.t[2][b] = C.addFamily2Base(CTK.t[2][b], name, 'UserDefined')
+        for b in bases:
+            if b[3] == 'CGNSBase_t':
+                C._addFamily2Base(b, name, VARS[3].get())
         CTK.TXT.insert('START', 'BC Family '+name+' added to all bases.\n')
     else:
         nob = CTK.Nb[nzs[0]]+1
         noz = CTK.Nz[nzs[0]]
         z = CTK.t[2][nob][2][noz]
-        CTK.t[2][nob] = C.addFamily2Base(CTK.t[2][nob], name, 'UserDefined')
+        C._addFamily2Base(CTK.t[2][nob], name, VARS[3].get())
         CTK.TXT.insert('START', 'BC Family '+name+' added to base '+CTK.t[2][nob][0]+'.\n')
     CTK.TKTREE.updateApp()
 
@@ -105,18 +109,20 @@ def createApp(win):
 
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkFamily', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Create famlies of\nblocks or BCs.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkFamily  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Create famlies of\nblocks or BCs.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
-    Frame.columnconfigure(1, weight=4)
+    Frame.columnconfigure(1, weight=2)
+    Frame.columnconfigure(2, weight=2)
     WIDGETS['frame'] = Frame
 
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkFamily')
     WIDGETS['frameMenu'] = FrameMenu
     
@@ -127,20 +133,22 @@ def createApp(win):
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -2- Nom de la famille zone pour le tag
     V = TK.StringVar(win); V.set(''); VARS.append(V)
+    # -3- Type de BC pour createFamilyBC -
+    V = TK.StringVar(win); V.set('UserDefined'); VARS.append(V)
     
     # - Create zone family name -
     B = TTK.Button(Frame, text="NewZoneFamily", command=createZoneFamily)
     B.grid(row=0, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Create a new zone family tag.')
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=15)
-    BB = CTK.infoBulle(parent=B, text='Zone family name.')
-    B.grid(row=0, column=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Zone family name to be created.')
+    B.grid(row=0, column=1, columnspan=2, sticky=TK.EW)
     B.bind('<Return>', createZoneFamily)
 
     # - Tag with zone family -
     B = TTK.Button(Frame, text="Tag zone", command=tagWithZoneFamily)
     B.grid(row=1, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Tag a zone with a zone family.')
+    BB = CTK.infoBulle(parent=B, text='Tag a zone with a zone family tag.')
     F = TTK.Frame(Frame, borderwidth=0)
     F.columnconfigure(0, weight=1)
 
@@ -149,15 +157,15 @@ def createApp(win):
         B.grid(sticky=TK.EW)
         BB = CTK.infoBulle(parent=B, text='Family zone name.')
         F.bind('<Enter>', updateFamilyZoneNameList)
-        F.grid(row=1, column=1, sticky=TK.EW)
+        F.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
         WIDGETS['zones'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[2], 
+        B = TTK.Combobox(F, textvariable=VARS[2], 
                          values=[], state='readonly')
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateFamilyZoneNameList2)
-        F.grid(row=1, column=1, sticky=TK.EW)
-        BB = CTK.infoBulle(parent=B, text='Family zone name.')
+        F.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
+        #BB = CTK.infoBulle(parent=B, text='Family zone name.')
         WIDGETS['zones'] = B
 
     # - Create BC family -
@@ -165,21 +173,33 @@ def createApp(win):
     B.grid(row=2, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Create a new BC family tag.')
     B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=15)
-    BB = CTK.infoBulle(parent=B, text='BC family name.')
+    BB = CTK.infoBulle(parent=B, text='BC family name to be created.')
     B.grid(row=2, column=1, sticky=TK.EW)
     B.bind('<Return>', createBCFamily)
     
+    if ttk is None:
+        B = TK.OptionMenu(Frame, VARS[3], *(Internal.KNOWNBCS))
+        B.grid(row=2, column=2, sticky=TK.EW)
+    else:
+        B = TTK.Combobox(Frame, textvariable=VARS[3], 
+                         values=Internal.KNOWNBCS, state='readonly', width=10)
+        B.grid(row=2, column=2, sticky=TK.EW)
+
 #==============================================================================
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['TreeNoteBook'].add(WIDGETS['frame'], text='tkFamily')
+    except: pass
+    CTK.WIDGETS['TreeNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['TreeNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -191,9 +211,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

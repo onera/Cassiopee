@@ -1,4 +1,4 @@
-# test maskXRay : points de percage (array)
+# - maskXRay : points de percage (array) -
 # cas 2D TRI
 
 import Converter as C
@@ -7,7 +7,6 @@ import Converter as C
 
 import Connector as X
 import Generator as G
-import Geom as D
 import Transform as T
 
 surf = G.cylinder((0.,0.,0.), 0., 1., 360., 0., 1., (50,50,2)) 

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "../DataDL.h"
-#include "../ZoneImplDL.h"
+#include "DataDL.h"
+#include "ZoneImplDL.h"
 
 // Affichage des maillages non structures
 
@@ -29,9 +29,9 @@
 */
 //=============================================================================
 void DataDL::displayUMesh()
-{
+{  
   if (_numberOfUnstructZones == 0) return;
-  int zone, zonet, isDL;
+  E_Int zone, zonet, isDL;
 
   // Enable blending
   glEnable(GL_BLEND);
@@ -94,8 +94,12 @@ void DataDL::displayUMesh()
 #else
       isDL = zoneImpl->_DLsolid;
 #endif
-      if (isDL == 0) displayUMeshZone(zonep, zone, zonet);
-      else renderGPUUMeshZone(zonep, zone, zonet);
+      if (ptrState->simplifyOnDrag == 1 && ptrState->ondrag == 1) displayUBBZone(zonep);
+      else
+      {
+        if (isDL == 0) displayUMeshZone(zonep, zone, zonet);
+        else renderGPUUMeshZone(zonep, zone, zonet);
+      }
     }
     zone++;
   }
@@ -110,7 +114,7 @@ void DataDL::displayUMesh()
   glColor3f(1., 1., 1.);
 
   float alphaSav = ptrState->alpha;
-  int solidStyleSav = ptrState->solidStyle;
+  E_Int solidStyleSav = ptrState->solidStyle;
   ptrState->alpha = 0.01;
   switch (ptrState->meshStyle)
   {

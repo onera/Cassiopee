@@ -1,11 +1,13 @@
-import KCore.Dist as Dist
-from KCore.config import *
-EXPRESSION = False
+EXPRESSION = True
 
-(hdf, hdfIncDir, hdfLibDir) = Dist.checkHdf(additionalLibPaths,
-                                            additionalIncludePaths)
-(png, pngIncDir, pngLibDir) = Dist.checkPng(additionalLibPaths,
-                                            additionalIncludePaths)
+try:
+  import KCore.Dist as Dist
+  from KCore.config import *
+  (hdf, hdfIncDir, hdfLibDir, hdflibs) = Dist.checkHdf(additionalLibPaths,
+                                                       additionalIncludePaths)
+except ModuleNotFoundError:
+  hdf = True
+
 #==============================================================================
 # Fichiers c++
 #==============================================================================
@@ -20,6 +22,8 @@ cpp_srcs =  ['Converter/Converter1.cpp',
              'Converter/norm.cpp',
              'Converter/normalize.cpp',
              'Converter/magnitude.cpp',
+             'Converter/isFinite.cpp',
+             'Converter/setNANValuesAt.cpp',
              'Converter/convertBAR2Struct.cpp',
              'Converter/convertStruct2Tetra.cpp',
              'Converter/convertStruct2TetraBary.cpp',
@@ -33,17 +37,25 @@ cpp_srcs =  ['Converter/Converter1.cpp',
              'Converter/convertPyra2Tetra.cpp',
              'Converter/convertNGon2TetraBary.cpp',
              'Converter/convertArray2TetraBary.cpp',
+             'Converter/convertHO2LO.cpp',
+             'Converter/convertLO2HO.cpp',
              'Converter/convertTri2Quad.cpp',
              'Converter/convertQuad2Tri.cpp',
              'Converter/convertMix2BE.cpp',
+             'Converter/convertStrand2Penta.cpp',
+             'Converter/convertPenta2Strand.cpp',
              'Converter/center2Node.cpp',
+             'Converter/center2Node_OLD.cpp',
              'Converter/node2Center.cpp',
+             'Converter/node2Center_OLD.cpp',
              'Converter/node2ExtCenter.cpp',
              'Converter/extCenter2Node.cpp',
              'Converter/center2ExtCenter.cpp',
              'Converter/convertFilePyTree.cpp',
              'Converter/setPartialFields.cpp',
+             'Converter/setPartialFieldsToSum.cpp',
              'Converter/filterPartialFields.cpp',
+             'Converter/sendRecv.cpp',
              'Converter/IO/DynArrayIO.cpp',
              'Converter/IO/GenIO.cpp',
              'Converter/IO/GenIO_endian.cpp',
@@ -58,6 +70,7 @@ cpp_srcs =  ['Converter/Converter1.cpp',
              'Converter/IO/GenIO_binstl.cpp',
              'Converter/IO/GenIO_binply.cpp',
              'Converter/IO/GenIO_fmtstl.cpp',
+             'Converter/IO/GenIO_fmtselig.cpp',
              'Converter/IO/GenIO_bin3ds.cpp',
              'Converter/IO/GenIO_bintp.cpp',
              'Converter/IO/GenIO_bince.cpp',
@@ -68,15 +81,17 @@ cpp_srcs =  ['Converter/Converter1.cpp',
              'Converter/IO/GenIO_binv3d.cpp',
              'Converter/IO/GenIO_bindf3.cpp',
              'Converter/IO/GenIO_binwav.cpp',
+             'Converter/IO/GenIO_binvtk.cpp',
              'Converter/IO/GenIO_fmtxfig.cpp',
              'Converter/IO/GenIO_fmtsvg.cpp',
              'Converter/IO/GenIO_fmtgts.cpp',
-             'Converter/IO/GenIO_fmtiges.cpp',
              'Converter/IO/GenIO_fmtcedre.cpp',
+             'Converter/IO/GenIO_binarc.cpp',
+             'Converter/IO/GenIO_fmtfoam.cpp',
              'Converter/IO/GenIO_fmtSU2.cpp',
+             'Converter/IO/GenIO_bingltf.cpp',
              'Converter/IO/GenIO_createElts.cpp',
              'Converter/IO/GenIO_cplot.cpp',
-             'Converter/IO/GenIO_fmttgf.cpp',
              'Converter/IO/getBCFaces.cpp',
              'Converter/IO/convertPyTree2FFD.cpp',
              'Converter/cpyGhost2Real.cpp',
@@ -96,6 +111,8 @@ cpp_srcs =  ['Converter/Converter1.cpp',
              'Converter/identifySolutions.cpp',
              'Converter/hook.cpp',
              'Converter/globalHook.cpp',
+             'Converter/globalIndex.cpp',
+             'Converter/createBBTree.cpp',
              'Converter/ADF/ADF_interface.cpp',
              'Converter/ADF/ADF_internals.cpp',
              'Converter/ADF/cgns_io.cpp',
@@ -108,22 +125,26 @@ cpp_srcs =  ['Converter/Converter1.cpp',
              'Converter/Adapter/adaptBCC2BCFace.cpp',
              'Converter/Adapter/adaptNGon2Index.cpp',
              'Converter/Adapter/adaptNFace2Index.cpp',
+             'Converter/Adapter/adaptNGon42NGon3.cpp',
+             'Converter/Adapter/adaptNGon32NGon4.cpp',
+             'Converter/Adapter/signNGonFaces.cpp',
+             'Converter/Adapter/unsignNGonFaces.cpp',
+             'Converter/Adapter/makeParentElements.cpp',
+             'Converter/Adapter/convertSurfaceNGon.cpp',
              'Converter/Adapter/adapt2FastP.cpp',
              'Converter/Adapter/createElsaHybrid.cpp',
              'Converter/Adapter/pointList2Ranges.cpp',
              'Converter/Adapter/pointList2SPL.cpp',
              'Converter/Adapter/range2PointList.cpp',
+             'Converter/Adapter/PR2VL.cpp',
              'Converter/Adapter/diffIndex.cpp',
              'Converter/setBCDataInGhostCells.cpp',
              'Converter/extrapInterior2BCFace.cpp',
              'Converter/nullifyVectorAtBCFace.cpp',
              'Converter/nuga_ghost.cpp',
-             'Converter/extractBCFields.cpp']
+             'Converter/extractBCFields.cpp',
+             'Converter/Extract/extractFields.cpp']
 cpp_srcs += ['Converter/IO/GenIO_adfcgns.cpp']
-
-#import glob
-#h5files = glob.glob('Converter/HDF/*.c')
-#cpp_srcs += h5files
 
 if EXPRESSION:
    cpp_srcs += ['Converter/Expression/ast.cpp',
@@ -140,10 +161,10 @@ if hdf:
 else:
     cpp_srcs += ['Converter/IO/GenIO_hdfcgns_stub.cpp']
 
-if png:
-    cpp_srcs += ['Converter/IO/GenIO_binpng.cpp']
-else:
-    cpp_srcs += ['Converter/IO/GenIO_binpng_stub.cpp']
+# png
+cpp_srcs += ['Converter/IO/GenIO_binpng.cpp']
+# jpg
+cpp_srcs += ['Converter/IO/GenIO_binjpg.cpp']
 
 #==============================================================================
 # Fichiers fortran

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -21,14 +21,14 @@
 #ifndef __MASKGEN_H__
 #define __MASKGEN_H__
 
-//#include "Fld/ArrayAccessor.h"
-#include "Fld/ArrayWriter.h"
+//#include "Nuga/include/ArrayAccessor.h"
+#include "Nuga/include/ArrayWriter.h"
 #include <vector>
 #define Vector_t std::vector
-#include "Search/BbTree.h"
-#include "Search/KdTree.h"
-#include "MeshElement/Tetrahedron.h"
-#include "Connect/EltAlgo.h"
+#include "Nuga/include/BbTree.h"
+#include "Nuga/include/KdTree.h"
+#include "Nuga/include/Tetrahedron.h"
+#include "Nuga/include/EltAlgo.h"
 
 #ifdef DEBUG_MASK
 #include "IO/io.h"
@@ -165,16 +165,16 @@ namespace K_CONNECTOR
 #ifdef DEBUG_MASK
     
 if (dbg_switch)
-  std::cout << "number of caucht boxes for [" << pt[0] << "," << pt[1] << "," << pt[2] << "] :" << sz << std::endl;
+  std::cout << "number of caught boxes for [" << pt[0] << "," << pt[1] << "," << pt[2] << "] :" << sz << std::endl;
     
 static int count = 0;
 if (dbg_switch && sz)
 {
   std::ostringstream fname;
-  fname << "/home/slandier/tmp/MASK/caught_" << count++ << ".mesh";
+  fname << "caught_" << count++ << ".mesh";
   K_FLD::IntArray connect;
   E_Int t4[4];
-  for (size_t i = sz-1; i < sz; ++i)
+  for (size_t i = 0; i < sz; ++i)
   {
     _connT4->getEntry(boxes[i], t4);
     connect.pushBack(t4, t4+4);
@@ -282,7 +282,7 @@ if (dbg_switch && sz)
         if (!K_MESH::Triangle::intersectv2<3>(Q0, Q1, Q2, pt, A, tol, tol_is_abs,  u0, u1, tx, overlap, coincident))
           continue;
       
-        if (IS_ZERO(u0)) // lying on the mask surface
+        if (IS_ZERO(u0, E_EPSILON)) // lying on the mask surface
           return 1;
         
         if (overlap || coincident) //ambiguous : overlap (but pt is not inside - otherwise u0=0. -) or coincident : touching a triangle's border
@@ -295,7 +295,7 @@ if (dbg_switch && sz)
         candidates[0]=candidates[b]; //overwrite candidates to have real candidates between rank 0 and (nb_visibles-1)
         mindp=u0;
       }
-      else if (IS_ZERO(u0-mindp))
+      else if (IS_ZERO(u0-mindp, E_EPSILON))
         candidates[nb_visibles++]=candidates[b];
     }
     

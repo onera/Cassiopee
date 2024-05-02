@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -48,8 +48,8 @@ PyObject* K_CONVERTER::convertPenta2Tetra(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, 
-                                    eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f,
+                                     ni, nj, nk, cn, eltType);
 
   // Test non structure ?
   if (res != 1 && res != 2)
@@ -75,103 +75,106 @@ PyObject* K_CONVERTER::convertPenta2Tetra(PyObject* self, PyObject* args)
     return NULL;
   }
   
+  // Build new connectivity and fields
+  FldArrayI& cm = *(cn->getConnect(0));
+  E_Int neltsp = cm.getSize();
   // Chaque prisme se decompose en 3 tetraedres
-  E_Int neltsp = cn->getSize();
   E_Int nelts = 3*neltsp;
-  FldArrayI& cn0 = *cn;
-  E_Int eltt = 4; //TETRA 
-  PyObject* tpl = K_ARRAY::buildArray(f->getNfld(), varString, f->getSize(), nelts, eltt, NULL);
-  E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF fn(f->getSize(), f->getNfld(), fnp, true); fn = *f;
-  E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-  FldArrayI ct(nelts, 4, cnnp, true);
+  E_Int npts = f->getSize(), api = f->getApi(), nfld = f->getNfld();
 
-  E_Int* ct1 = ct.begin(1);
-  E_Int* ct2 = ct.begin(2);
-  E_Int* ct3 = ct.begin(3);
-  E_Int* ct4 = ct.begin(4);
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, nelts,
+                                       "TETRA", false, api);
+  FldArrayF* f2; FldArrayI* cn2;
+  K_ARRAY::getFromArray3(tpl, f2, cn2);
+  FldArrayI& cm2 = *(cn2->getConnect(0));
 
 #pragma omp parallel default(shared)
   {
-  E_Int cnt;
-  E_Int indir[6];
-  E_Int diag;
-  E_Int i1,i2,i3,i4,i5,i6;
-  E_Int *cn01, *cn02, *cn03, *cn04, *cn05, *cn06;
+    E_Int cnt;
+    E_Int indir[6];
+    E_Int diag;
+    E_Int i1, i2, i3, i4, i5, i6;
 
 #pragma omp for
-  for (E_Int elt = 0; elt < neltsp; elt++)
-  {
-    /* determination du prisme tourne: imin -> pt 1
-       determination du second point min sur la facette quad opposee: diag
-       retour du tableau d'indirection I1I2I3I4I5I6 */
-    diag = 0;
-    buildSortedPrism(elt, *cn, diag, indir);
-   
-    i1 = indir[0]; cn01 = cn0.begin(i1);
-    i2 = indir[1]; cn02 = cn0.begin(i2);
-    i3 = indir[2]; cn03 = cn0.begin(i3);
-    i4 = indir[3]; cn04 = cn0.begin(i4);
-    i5 = indir[4]; cn05 = cn0.begin(i5);
-    i6 = indir[5]; cn06 = cn0.begin(i6);
-    if (diag == -1) //config 2-6
+    for (E_Int elt = 0; elt < neltsp; elt++)
     {
-      // build tetras: I1I2I3I6,I1I2I6I5,I1I5I6I4 
-      // t1: I1I2I3I6
-      cnt = 3*elt;
-      ct1[cnt] = cn01[elt];
-      ct2[cnt] = cn02[elt];
-      ct3[cnt] = cn03[elt];
-      ct4[cnt] = cn06[elt];
+      /* determination du prisme tourne: imin -> pt 1
+        determination du second point min sur la facette quad opposee: diag
+        retour du tableau d'indirection I1I2I3I4I5I6 */
+      diag = 0;
+      buildSortedPrism(elt, cm, diag, indir);
+    
+      i1 = indir[0]; i2 = indir[1];
+      i3 = indir[2]; i4 = indir[3];
+      i5 = indir[4]; i6 = indir[5];
+      if (diag == -1) //config 2-6
+      {
+        // build tetras: I1I2I3I6,I1I2I6I5,I1I5I6I4 
+        // t1: I1I2I3I6
+        cnt = 3*elt;
+        cm2(cnt,1) = cm(elt,i1);
+        cm2(cnt,2) = cm(elt,i2);
+        cm2(cnt,3) = cm(elt,i3);
+        cm2(cnt,4) = cm(elt,i6);
 
-      // t2: I1I2I6I5
-      cnt = 3*elt+1;
-      ct1[cnt] = cn01[elt];
-      ct2[cnt] = cn02[elt];
-      ct3[cnt] = cn06[elt];
-      ct4[cnt] = cn05[elt];
+        // t2: I1I2I6I5
+        cnt = 3*elt+1;
+        cm2(cnt,1) = cm(elt,i1);
+        cm2(cnt,2) = cm(elt,i2);
+        cm2(cnt,3) = cm(elt,i6);
+        cm2(cnt,4) = cm(elt,i5);
 
-      // t3: I1I5I6I4
-      cnt = 3*elt+2;
-      ct1[cnt] = cn01[elt];
-      ct2[cnt] = cn05[elt];
-      ct3[cnt] = cn06[elt];
-      ct4[cnt] = cn04[elt];
+        // t3: I1I5I6I4
+        cnt = 3*elt+2;
+        cm2(cnt,1) = cm(elt,i1);
+        cm2(cnt,2) = cm(elt,i5);
+        cm2(cnt,3) = cm(elt,i6);
+        cm2(cnt,4) = cm(elt,i4);
+      }
+      else if (diag == 1)//config 3-5
+      {
+        // build tetras: I1I2I3I5, I1I5I3I6, I1I5I6I4
+        // t1: I1I2I3I5
+        cnt = 3*elt;
+        cm2(cnt,1) = cm(elt,i1);
+        cm2(cnt,2) = cm(elt,i2);
+        cm2(cnt,3) = cm(elt,i3);
+        cm2(cnt,4) = cm(elt,i5);
+
+        // t2: I1I5I3I6
+        cnt = 3*elt+1;
+        cm2(cnt,1) = cm(elt,i1);
+        cm2(cnt,2) = cm(elt,i5);
+        cm2(cnt,3) = cm(elt,i3);
+        cm2(cnt,4) = cm(elt,i6);
+
+        // t3: I1I5I6I4
+        cnt = 3*elt+2;
+        cm2(cnt,1) = cm(elt,i1);
+        cm2(cnt,2) = cm(elt,i5);
+        cm2(cnt,3) = cm(elt,i6);
+        cm2(cnt,4) = cm(elt,i4);
+      }
+      //else //erreur de codage
+      //{
+      //  printf("Error: convertPenta2Tetra: bad value for diag.\n");
+      //  RELEASESHAREDU(array, f, cn);
+      //  return NULL;
+      //}
     }
-    else if (diag == 1)//config 3-5
+
+    // Copy fields to f2
+    for (E_Int n = 1; n <= nfld; n++)
     {
-      // build tetras: I1I2I3I5, I1I5I3I6, I1I5I6I4
-      // t1: I1I2I3I5
-      cnt = 3*elt;
-      ct1[cnt] = cn01[elt];
-      ct2[cnt] = cn02[elt];
-      ct3[cnt] = cn03[elt];
-      ct4[cnt] = cn05[elt];
-
-      // t2: I1I5I3I6
-      cnt = 3*elt+1;
-      ct1[cnt] = cn01[elt];
-      ct2[cnt] = cn05[elt];
-      ct3[cnt] = cn03[elt];
-      ct4[cnt] = cn06[elt];
-
-      // t3: I1I5I6I4
-      cnt = 3*elt+2;
-      ct1[cnt] = cn01[elt];
-      ct2[cnt] = cn05[elt];
-      ct3[cnt] = cn06[elt];
-      ct4[cnt] = cn04[elt];
+      E_Float* fp = f->begin(n);
+      E_Float* f2p = f2->begin(n);
+#pragma omp for
+      for (E_Int i = 0; i < npts; i++) f2p[i] = fp[i];
     }
-    //else //erreur de codage
-    //{
-    //  printf("Error: convertPenta2Tetra: bad value for diag.\n");
-    //  RELEASESHAREDU(array, f, cn);
-    //  return NULL;
-    //}
-  }
   }
   
   RELEASESHAREDU(array, f, cn);
+  RELEASESHAREDU(tpl, f2, cn2);
   return tpl;
 }
 

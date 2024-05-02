@@ -7,7 +7,7 @@ then
     if [ "$CASSIOPEE" = "" ]; then
         echo "You must specify a CASSIOPEE variable in your environment."
         echo "This variable specifies the installation path of *Cassiopee*."
-        exit
+        exit 1
     fi
     if [ "$ELSAPROD" = "" ]; then
        export ELSAPROD=x86_r8
@@ -21,24 +21,42 @@ else
     echo 'install: install in $CASSIOPEE/Dist/bin/$ELSAPROD'
     echo ' -or-'
     echo 'install <dir>: install in directory <dir>.'
-    exit
+    exit 1
+fi
+
+# if specific python exe name
+if [ "$PYTHONEXE" != "" ]; then
+    alias python=$PYTHONEXE
+fi
+
+# set production mode (0: scons+setup, 1: scons+pip, 2: setup legacy)
+if [ "$PRODMODE" = "" ]; then
+    PRODMODE=0
 fi
 
 # Compilation et installation
-which scons &>/dev/null
-if [ $? -eq 0 ]; then
+if [ $PRODMODE -le 1 ]; then
+    sconsf=`which scons`
     if [ "$OMP_NUM_THREADS" != "" ]; then
         export SCONSOPT="-j $OMP_NUM_THREADS"
     else
         export SCONSOPT=""
     fi
-    scons install prefix="$INSTALLPATH" "$SCONSOPT"
-    [ $? != 0 ] && exit;
+    python $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
+    [ $? != 0 ] && exit 1;
     #touch Dist2Walls/dist2walls.cpp
     rm -f build/lib.*/Dist2Walls/dist2walls.*
-    python setupScons.py install --prefix="$INSTALLPATH"
+    rm -f build/lib.*/Dist2Walls/dist2walls-*.*
+    if [ $PRODMODE -eq 0 ]; then
+        python setup.py install --prefix="$INSTALLPATH"
+        [ $? != 0 ] && exit 1;
+    elif [ $PRODMODE -eq 1 ]; then
+        python -m pip install --ignore-installed --upgrade --prefix="$INSTALLPATH" .
+        [ $? != 0 ] && exit 1;
+    fi
 else
-    python setup.py install --prefix="$INSTALLPATH"
+    python setupLegacy.py install --prefix="$INSTALLPATH"
+    [ $? != 0 ] && exit 1;
 fi
 
 # Test l'installation

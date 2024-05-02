@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -20,6 +20,8 @@
 #include "../Zone.h"
 #include <math.h>
 #include <stdio.h>
+
+#define TOL 1.e-6
 
 //=============================================================================
 // Compute frustum planes
@@ -158,10 +160,15 @@ void computeFrustumPlanes(ViewInfo& view)
 // Return 1 if zone is in frustum
 // 0 otherwise
 //=============================================================================
-int isInFrustum(Zone* z, ViewInfo& view)
+E_Int isInFrustum(Zone* z, ViewInfo& view)
 {
-  int out, in;
-  double dist;
+#ifdef __MESA__
+  // to avoid abusive clipping in osmesa
+  return 1;
+#endif
+
+  E_Int out;
+  double dist1, dist2, dist3, dist4;
 
   // Bounding box of zone
   double xmin = z->xmin;
@@ -184,59 +191,64 @@ int isInFrustum(Zone* z, ViewInfo& view)
   double leftNx = view.LeftNx;
   double leftNy = view.LeftNy;
   double leftNz = view.LeftNz;
-  out = 0; in = 0;
-  for (int k = 0; k < 8 && (in == 0 || out == 0); k++)
-  {
-    // Calcul de la distance du plan a bbx
-    dist = leftNx*bbx[k] + leftNy*bby[k] + leftNz*bbz[k] + leftD;
-    if (dist < 0) out++;
-    else in++;
-  }
-  //printf("left %d\n", in);
-  //printf("%f %f %f %f\n", leftD, leftNx, leftNy, leftNz);
-  if (!in) return 0;
-
   double rightD = view.RightD;
   double rightNx = view.RightNx;
   double rightNy = view.RightNy;
   double rightNz = view.RightNz;
-  out = 0; in = 0;
-  for (int k = 0; k < 8 && (in == 0 || out == 0); k++)
-  {
-    // Calcul de la distance du plan a bbx
-    dist = rightNx*bbx[k] + rightNy*bby[k] + rightNz*bbz[k] + rightD;
-    if (dist < 0) out++;
-    else in++;
-  }
-  if (!in) return 0;
-
   double topD = view.TopD;
   double topNx = view.TopNx;
   double topNy = view.TopNy;
   double topNz = view.TopNz;
-  out = 0; in = 0;
-  for (int k = 0; k < 8 && (in == 0 || out == 0); k++)
-  {
-    // Calcul de la distance du plan a bbx
-    dist = topNx*bbx[k] + topNy*bby[k] + topNz*bbz[k] + topD;
-    if (dist < 0) out++;
-    else in++;
-  }
-  if (!in) return 0;
-
   double bottomD = view.BottomD;
   double bottomNx = view.BottomNx;
   double bottomNy = view.BottomNy;
   double bottomNz = view.BottomNz;
-  out = 0; in = 0;
-  for (int k = 0; k < 8 && (in == 0 || out == 0); k++)
+
+  // all points in
+  for (E_Int k = 0; k < 8; k++)
   {
-    // Calcul de la distance du plan a bbx
-    dist = bottomNx*bbx[k] + bottomNy*bby[k] + bottomNz*bbz[k] + bottomD;
-    if (dist < 0) out++;
-    else in++;
+    dist1 = leftNx*bbx[k] + leftNy*bby[k] + leftNz*bbz[k] + leftD;
+    dist2 = rightNx*bbx[k] + rightNy*bby[k] + rightNz*bbz[k] + rightD;
+    dist3 = topNx*bbx[k] + topNy*bby[k] + topNz*bbz[k] + topD;
+    dist4 = bottomNx*bbx[k] + bottomNy*bby[k] + bottomNz*bbz[k] + bottomD;
+    if (dist1 >= -TOL && dist2 >= -TOL && dist3 >= -TOL && dist4 >= -TOL) return 1;
   }
-  if (!in) return 0;
+
+  // all points left of left plane
+  out = 0;
+  for (E_Int k = 0; k < 8; k++)
+  {
+    dist1 = leftNx*bbx[k] + leftNy*bby[k] + leftNz*bbz[k] + leftD;
+    if (dist1 < -TOL) out++;
+  }
+  if (out == 8) return 0;
   
+  // all points roght of righ plane
+  out = 0;
+  for (E_Int k = 0; k < 8; k++)
+  {
+    dist2 = rightNx*bbx[k] + rightNy*bby[k] + rightNz*bbz[k] + rightD;
+    if (dist2 < -TOL) out++;
+  }
+  if (out == 8) return 0;
+  
+  // all points top of top plane
+  out = 0;
+  for (E_Int k = 0; k < 8; k++)
+  {
+    dist3 = topNx*bbx[k] + topNy*bby[k] + topNz*bbz[k] + topD;
+    if (dist3 < -TOL) out++;
+  }
+  if (out == 8) return 0;
+  
+  // all points bottom of bottom plane
+  out = 0;
+  for (E_Int k = 0; k < 8; k++)
+  {
+    dist4 = bottomNx*bbx[k] + bottomNy*bby[k] + bottomNz*bbz[k] + bottomD;
+    if (dist4 < -TOL) out++;
+  }
+  if (out == 8) return 0;
+
   return 1;
 }

@@ -62,15 +62,17 @@ C PROCESS THE FIRST BLOCK-ROW.------------------------------------------
       DO 10 J = 1,M
         CALL k6SOL (M,M,A,B(1,J,1),IP)
         CALL k6SOL (M,M,A,C(1,J,1),IP)
- 10     CONTINUE
+ 10   CONTINUE
 C ADJUST B(,,2).--------------------------------------------------------
       DO 40 J=1,M
         DO 30 I=1,M
           DP = 0.D0
           DO 20 L=1,M
- 20         DP=DP+C(I,L,2)*C(L,J,1)
- 30         B(I,J,2)=B(I,J,2)-DP
-40      CONTINUE
+            DP=DP+C(I,L,2)*C(L,J,1)
+ 20       CONTINUE
+            B(I,J,2)=B(I,J,2)-DP
+ 30      CONTINUE
+ 40   CONTINUE
 C MAIN LOOP. PROCESS BLOCK-ROWS 2 TO N-1.-------------------------------
       DO 100 K=2,NM1
         KM1=K-1
@@ -78,31 +80,38 @@ C MAIN LOOP. PROCESS BLOCK-ROWS 2 TO N-1.-------------------------------
           DO 60 I=1,M
             DP=0.D0
             DO 50 L=1,M
- 50           DP=DP+C(I,L,K)*B(L,J,KM1)
- 60         A(I,J,K)=A(I,J,K)-DP
- 70       CONTINUE
+              DP=DP+C(I,L,K)*B(L,J,KM1)
+ 50         CONTINUE
+            A(I,J,K)=A(I,J,K)-DP
+ 60       CONTINUE
+ 70   CONTINUE
  
       CALL k6DEC (M,M,A(1,1,K),IP(1,K),IER)
       
       IF (IER.NE.0) GO TO 200
       DO 80 J=1,M
- 80     CALL k6SOL (M,M,A(1,1,K),B(1,J,K),IP(1,K))
+        CALL k6SOL (M,M,A(1,1,K),B(1,J,K),IP(1,K))
+ 80   CONTINUE
  100    CONTINUE
 C PROCESS LAST BLOCK-ROW AND RETURN.------------------------------------
       DO 130 J=1,M
         DO 120 I=1,M
           DP=0.D0
           DO 110 L=1,M
- 110        DP=DP+B(I,L,N)*B(L,J,NM2)
- 120      C(I,J,N)=C(I,J,N)-DP
- 130    CONTINUE
+            DP=DP+B(I,L,N)*B(L,J,NM2)
+ 110      CONTINUE
+          C(I,J,N)=C(I,J,N)-DP
+ 120    CONTINUE
+ 130  CONTINUE
       DO 160 J=1,M
         DO 150 I=1,M
           DP=0.D0
           DO 140 L=1,M
- 140        DP=DP+C(I,L,N)*B(L,J,NM1)
- 150      A(I,J,N)=A(I,J,N)-DP
- 160    CONTINUE
+            DP=DP+C(I,L,N)*B(L,J,NM1)
+ 140      CONTINUE
+          A(I,J,N)=A(I,J,N)-DP
+ 150    CONTINUE
+ 160  CONTINUE
  	K = N
       CALL k6DEC (M,M,A(1,1,N),IP(1,N),IER)
       K = N

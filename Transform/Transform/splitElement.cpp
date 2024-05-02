@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -31,8 +31,7 @@ using namespace std;
 PyObject* K_TRANSFORM::splitElement(PyObject* self, PyObject* args)
 {
   PyObject* array; E_Int nparts;
-  if (!PYPARSETUPLEI(args,
-                    "Ol", "Oi",
+  if (!PYPARSETUPLE_(args, O_ I_,
                     &array, &nparts))
   {
       return NULL;
@@ -74,9 +73,8 @@ PyObject* K_TRANSFORM::splitElement(PyObject* self, PyObject* args)
     vector<E_Int>& voisins = cEEN[i]; 
     size += voisins.size();
   }
-  //printf("size = %d\n", size);
+  //printf("size = " SF_D_ "\n", size);
 
-  E_Int e1, e2, indf;
   idx_t* adj1 = new idx_t [size];
   idx_t* adj = adj1;
   idx_t* xadj = new idx_t [ne+1];
@@ -86,7 +84,7 @@ PyObject* K_TRANSFORM::splitElement(PyObject* self, PyObject* args)
     vector<E_Int>& voisins = cEEN[i]; 
     xadj[i] = size;
     
-    for (E_Int n = 0; n < voisins.size(); n++)
+    for (size_t n = 0; n < voisins.size(); n++)
     {
       adj[size+n] = voisins[n];
     }
@@ -96,7 +94,14 @@ PyObject* K_TRANSFORM::splitElement(PyObject* self, PyObject* args)
   adj = adj1;
   
   E_Int ncon = 1;
-  E_Int objval = 0;
+  E_Int objval = 0; // retour
+  
+  //idx_t options[METIS_NOPTIONS];
+  //METIS_SetDefaultOptions(options);
+  //options[METIS_OPTION_CONTIG] = 1; // force contiguite
+  //options[METIS_OPTION_OBJTYPE] = METIS_OBJTYPE_CUT; // METIS_OBJTYPE_VOL
+  //options[METIS_OPTION_MINCONN] = 1; // force min connectivite externe
+
   idx_t* parts = new idx_t [ne];
   //for (E_Int i = 0; i < ne; i++) parts[i] = 0; // dbx
   //METIS_PartGraphRecursive(&ne, &ncon, xadj, adj, NULL, NULL, NULL, 
@@ -115,7 +120,7 @@ PyObject* K_TRANSFORM::splitElement(PyObject* self, PyObject* args)
   {
     p = parts[i]; partSize[p] += 1;
   }
-  for (E_Int i = 0; i < nparts; i++) printf("partSize=%d\n", partSize[i]);
+  for (E_Int i = 0; i < nparts; i++) printf("partSize=" SF_D_ "\n", partSize[i]);
 
   // output numpy of elements
   PyObject* tpl;

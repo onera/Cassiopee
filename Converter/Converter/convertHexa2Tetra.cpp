@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -39,14 +39,12 @@ PyObject* K_CONVERTER::convertHexa2Tetra(PyObject* self, PyObject* args)
   if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
 
   // Check array
-  E_Int nil, njl, nkl;
+  E_Int nil, njl, nkl, res;
   FldArrayF* f; FldArrayI* cnl;
-  char* varString; char* eltType;
-  E_Int res;
+  char* varString; char* eltType; string eltType2;
 
-  E_Int elt = 1;
-  res = K_ARRAY::getFromArray(array, varString, 
-                              f, nil, njl, nkl, cnl, eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, f,
+                               nil, njl, nkl, cnl, eltType);
 
   if (res == 1)
   {
@@ -72,167 +70,176 @@ PyObject* K_CONVERTER::convertHexa2Tetra(PyObject* self, PyObject* args)
   }
       
   // 2D or 3D ?
-  dim0 = 3;
-  if (strcmp(eltType, "QUAD") == 0) dim0 = 2;
+  dim0 = 3; eltType2 = "TETRA";
+  if (strcmp(eltType, "QUAD") == 0) 
+  {
+    dim0 = 2; eltType2 = "TRI";
+  }
       
-  // build the unstructured mesh
-  E_Int ncells = cnl->getSize(); // nb de cellules structurees
-  FldArrayI& cl = *cnl;
+  // Build the unstructured mesh
+  FldArrayI& cm = *(cnl->getConnect(0));
+  E_Int ncells = cm.getSize();
 
   // build array (shared)
-  E_Int nelts, nvert;
-  if (dim0 == 2) {nelts = 2*ncells; elt = 2; nvert = 3;}// TRI
-  else {nelts = 5*ncells; elt = 4; nvert = 4;}//TETRA
-  PyObject* tpl = K_ARRAY::buildArray(f->getNfld(), varString, f->getSize(), nelts, elt, NULL);
-  E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF fn(f->getSize(), f->getNfld(), fnp, true); fn = *f;
-  E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-  FldArrayI cn(nelts, nvert, cnnp, true);
+  E_Int nelts;
+  if (dim0 == 2) nelts = 2*ncells; // TRI
+  else {nelts = 5*ncells;} // TETRA
+  E_Int npts = f->getSize();
+  E_Int api = f->getApi();
+  E_Int nfld = f->getNfld();
 
-  if (dim0 == 2)
-  {
-    // define the type TRI: tetra 2d 
-    E_Int* cl1 = cl.begin(1);
-    E_Int* cl2 = cl.begin(2);
-    E_Int* cl3 = cl.begin(3);
-    E_Int* cl4 = cl.begin(4);
-    E_Int* cn1 = cn.begin(1);
-    E_Int* cn2 = cn.begin(2);
-    E_Int* cn3 = cn.begin(3);
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, nelts,
+                                       eltType2.c_str(), false, api);
+  FldArrayF* f2; FldArrayI* cnl2;
+  K_ARRAY::getFromArray3(tpl, f2, cnl2);
+  FldArrayI& cm2 = *(cnl2->getConnect(0));
 
 #pragma omp parallel default(shared) if (ncells > __MIN_SIZE_MEAN__)
+  {
+    if (dim0 == 2)
     {
+      // define the type TRI: tetra 2d 
       E_Int ind, ind1, ind2, ind3, ind4;
 #pragma omp for
       for (E_Int i = 0; i < ncells; i++)
       {
         //starts from 1
-        ind1 = cl1[i]; 
-        ind2 = cl2[i];
-        ind3 = cl3[i];
-        ind4 = cl4[i];
+        ind1 = cm(i,1); 
+        ind2 = cm(i,2);
+        ind3 = cm(i,3);
+        ind4 = cm(i,4);
         
         ind = 2*i;
-        cn1[ind] = ind1;
-        cn2[ind] = ind2;
-        cn3[ind] = ind3;
+        cm2(ind,1) = ind1;
+        cm2(ind,2) = ind2;
+        cm2(ind,3) = ind3;
         
         ind++;
-        cn1[ind] = ind1;
-        cn2[ind] = ind3;
-        cn3[ind] = ind4;
+        cm2(ind,1) = ind1;
+        cm2(ind,2) = ind3;
+        cm2(ind,3) = ind4;
       }
-    }
-  }//dim 2
-  else 
-  { 
-    E_Int* cl1 = cl.begin(1);
-    E_Int* cl2 = cl.begin(2);
-    E_Int* cl3 = cl.begin(3);
-    E_Int* cl4 = cl.begin(4);
-    E_Int* cl5 = cl.begin(5);
-    E_Int* cl6 = cl.begin(6);
-    E_Int* cl7 = cl.begin(7);
-    E_Int* cl8 = cl.begin(8);
-
-    E_Int* cn1 = cn.begin(1);
-    E_Int* cn2 = cn.begin(2);
-    E_Int* cn3 = cn.begin(3);
-    E_Int* cn4 = cn.begin(4);
-#pragma omp parallel default(shared) if (ncells > __MIN_SIZE_MEAN__)
-    {
+    }//dim 2
+    else 
+    { 
       E_Int ind, sum, ind1, ind2, ind3, ind4, ind5, ind6, ind7, ind8;
 #pragma omp for
       for (E_Int i = 0; i < ncells; i++)
       {
         sum = i;
-        ind1 = cl1[i];
-        ind2 = cl2[i];
-        ind3 = cl3[i];
-        ind4 = cl4[i];
-        ind5 = cl5[i];
-        ind6 = cl6[i];
-        ind7 = cl7[i];
-        ind8 = cl8[i];
+        ind1 = cm(i,1);
+        ind2 = cm(i,2);
+        ind3 = cm(i,3);
+        ind4 = cm(i,4);
+        ind5 = cm(i,5);
+        ind6 = cm(i,6);
+        ind7 = cm(i,7);
+        ind8 = cm(i,8);
         
         if (sum%2 == 0) // pair 
         {
           //tetra ABDE
           ind = 5*i;
-          cn1[ind] = ind1;
-          cn2[ind] = ind2;
-          cn3[ind] = ind4;
-          cn4[ind] = ind5;
+          cm2(ind,1) = ind1;
+          cm2(ind,2) = ind2;
+          cm2(ind,3) = ind4;
+          cm2(ind,4) = ind5;
           
           //tetra BCDG
           ind++;
-          cn1[ind] = ind2;
-          cn2[ind] = ind3;
-          cn3[ind] = ind4;
-          cn4[ind] = ind7;
+          cm2(ind,1) = ind2;
+          cm2(ind,2) = ind3;
+          cm2(ind,3) = ind4;
+          cm2(ind,4) = ind7;
           
           //tetra DEGH
           ind++;
-          cn1[ind] = ind4;
-          cn2[ind] = ind5;
-          cn3[ind] = ind7;
-          cn4[ind] = ind8;
+          cm2(ind,1) = ind4;
+          cm2(ind,2) = ind5;
+          cm2(ind,3) = ind7;
+          cm2(ind,4) = ind8;
           
           //tetra BEFG
           ind++;
-          cn1[ind] = ind2;
-          cn2[ind] = ind5;
-          cn3[ind] = ind6;
-          cn4[ind] = ind7;
+          cm2(ind,1) = ind2;
+          cm2(ind,2) = ind5;
+          cm2(ind,3) = ind6;
+          cm2(ind,4) = ind7;
           
           //tetra BDEG
           ind++;
-          cn1[ind] = ind2;
-          cn2[ind] = ind4;
-          cn3[ind] = ind5;
-          cn4[ind] = ind7;
+          cm2(ind,1) = ind2;
+          cm2(ind,2) = ind4;
+          cm2(ind,3) = ind5;
+          cm2(ind,4) = ind7;
         }
         else // impair 
         {
           //tetra ACDH : 1348
           ind = 5*i;
-          cn1[ind] = ind1;
-          cn2[ind] = ind3;
-          cn3[ind] = ind4;
-          cn4[ind] = ind8;
+          cm2(ind,1) = ind1;
+          cm2(ind,2) = ind3;
+          cm2(ind,3) = ind4;
+          cm2(ind,4) = ind8;
           
           //tetra AFBC : 1623
           ind++;
-          cn1[ind] = ind1;
-          cn2[ind] = ind6;
-          cn3[ind] = ind2;
-          cn4[ind] = ind3;
-          
+          cm2(ind,1) = ind1;
+          cm2(ind,2) = ind2;
+          cm2(ind,3) = ind3;
+          cm2(ind,4) = ind6;
+          //cm2(ind,1) = ind1;
+          //cm2(ind,2) = ind6;
+          //cm2(ind,3) = ind2;
+          //cm2(ind,4) = ind3;
+
           //tetra HFGC : 8673
           ind++;
-          cn1[ind] = ind8;
-          cn2[ind] = ind6;
-          cn3[ind] = ind7;
-          cn4[ind] = ind3;
-          
+          cm2(ind,1) = ind3;
+          cm2(ind,2) = ind6;
+          cm2(ind,3) = ind7;
+          cm2(ind,4) = ind8;
+          //cm2(ind,1) = ind8;
+          //cm2(ind,2) = ind6;
+          //cm2(ind,3) = ind7;
+          //cm2(ind,4) = ind3;
+
           //tetra FHAE : 6815
           ind++;
-          cn1[ind] = ind6;
-          cn2[ind] = ind8;
-          cn3[ind] = ind1;
-          cn4[ind] = ind5;
-          
+          cm2(ind,1) = ind6;
+          cm2(ind,2) = ind5;
+          cm2(ind,3) = ind8;
+          cm2(ind,4) = ind1;
+          //cm2(ind,1) = ind6;
+          //cm2(ind,2) = ind8;
+          //cm2(ind,3) = ind1;
+          //cm2(ind,4) = ind5;
+
           //tetra FHAC : 6813
           ind++;
-          cn1[ind] = ind6;
-          cn2[ind] = ind8;
-          cn3[ind] = ind1;
-          cn4[ind] = ind3;
+          cm2(ind,1) = ind6;
+          cm2(ind,2) = ind3;
+          cm2(ind,3) = ind1;
+          cm2(ind,4) = ind8;
+          //cm2(ind,1) = ind6;
+          //cm2(ind,2) = ind8;
+          //cm2(ind,3) = ind1;
+          //cm2(ind,4) = ind3;
         }
-      }
+      }//dim = 3
     }
-  } //dim = 3
+
+    // Copy fields to f2
+    for (E_Int n = 1; n <= nfld; n++)
+    {
+      E_Float* fp = f->begin(n);
+      E_Float* f2p = f2->begin(n);
+#pragma omp for
+      for (E_Int i = 0; i < npts; i++) f2p[i] = fp[i];
+    }
+  }
   
   RELEASESHAREDU(array, f, cnl);
+  RELEASESHAREDU(tpl, f2, cnl2);
   return tpl;
 }

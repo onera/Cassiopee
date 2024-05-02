@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -49,7 +49,7 @@ PyObject* K_CONVERTER::nullifyVectorAtBCFaceStruct(PyObject* self, PyObject* arg
   E_Int Loc;
   char *vectx, *vecty, *vectz; 
   char *GridCoordinates, *FlowSolutionNodes, *FlowSolutionCenters;
-  if (!PYPARSETUPLEI(args, "OOOOlllllllssssss", "OOOOiiiiiiissssss", 
+  if (!PYPARSETUPLE_(args, OOOO_ IIII_ III_ SSSS_ SS_, 
                     &zone, &dataBCX, &dataBCY, &dataBCZ, 
                     &imin, &imax, &jmin, &jmax, &kmin, &kmax, &Loc,
                     &vectx, &vecty, &vectz, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters)) return NULL;
@@ -185,7 +185,6 @@ PyObject* K_CONVERTER::nullifyVectorAtBCFaceStruct(PyObject* self, PyObject* arg
   RELEASESHAREDN(dataBCX, fXInt);
   RELEASESHAREDN(dataBCY, fYInt);
   RELEASESHAREDN(dataBCZ, fZInt);
-
   RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
   Py_INCREF(Py_None);
   return Py_None;  

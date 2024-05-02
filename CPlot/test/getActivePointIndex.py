@@ -9,5 +9,5 @@ CPlot.display([a], dim=2)
 l = []
 while l == []:
     l = CPlot.getActivePointIndex(); time.sleep(0.1)
-print 'ActivePointIndex : ', l
+print('ActivePointIndex : ', l)
 #>> ActivePointIndex :  [16, 19, 3, 0, 0]

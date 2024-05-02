@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -30,11 +30,8 @@ PyObject* K_GENERATOR::octree2AMR(PyObject* self, PyObject* args)
 {
   PyObject* octree;
   E_Int vmin;
-#ifdef E_DOUBLEINT
-  if (!PyArg_ParseTuple(args, "Ol", &octree, &vmin)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Oi", &octree, &vmin)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, O_ I_, &octree, &vmin)) return NULL;
+  
   if (vmin < 1) 
   { 
     PyErr_SetString(PyExc_TypeError, 

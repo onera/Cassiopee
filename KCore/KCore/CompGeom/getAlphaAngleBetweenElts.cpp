@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -92,6 +92,8 @@ E_Float K_COMPGEOM::getAlphaAngleBetweenTriangles(
   if (c < 2) {return -1000.;}
   // Calcul les vecteurs t1 et t2
   E_Float t1[3]; E_Float t2[3];
+  t1[0]=0.;t1[1]=0.;t1[2]=0.;
+  t2[0]=0.;t2[1]=0.;t2[2]=0.;
   if (foundA1 == 0)
   {
     t1[0] = K_CONST::ONE_HALF*(ptB1[0]+ptC1[0])-ptA1[0];
@@ -311,6 +313,8 @@ E_Float K_COMPGEOM::getAlphaAngleBetweenQuads(
   if (c < 2) {return -1000.;}
 
   E_Float t1[3]; E_Float t2[3];
+  t1[0]=0.;t1[1]=0.;t1[2]=0.;
+  t2[0]=0.;t2[1]=0.;t2[2]=0.;
   if (foundA1 == 0 && foundB1 == 0) 
   {
     t1[0] = K_CONST::ONE_HALF*((ptD1[0]+ptC1[0])-(ptA1[0]+ptB1[0]));
@@ -487,6 +491,7 @@ E_Float K_COMPGEOM::getAlphaAngleBetweenQuads(
   }
   return alpha1;
 }
+
 //=============================================================================
 /* Return the alpha angle between two vectors ptA1ptB1 and ptA2ptB2
    dirVect must be (approximatively) the direction vector orthogonal to the 
@@ -544,7 +549,7 @@ E_Float K_COMPGEOM::getAlphaAngleBetweenBars(E_Float* ptA1, E_Float* ptB1,
 
   fin:;
 
-  // Compute angle
+  // Calcul l'angle par produit scalaire et produit vectoriel
   E_Float dx1 = t1[0]; E_Float dx2 = t2[0];
   E_Float dy1 = t1[1]; E_Float dy2 = t2[1];
   E_Float dz1 = t1[2]; E_Float dz2 = t2[2];
@@ -557,9 +562,14 @@ E_Float K_COMPGEOM::getAlphaAngleBetweenBars(E_Float* ptA1, E_Float* ptB1,
   E_Float pv1 = dy1*dz2 - dz1*dy2;
   E_Float pv2 = dz1*dx2 - dx1*dz2;
   E_Float pv3 = dx1*dy2 - dy1*dx2;
-  E_Float pv = pv1*dirVect[0] + pv2*dirVect[1] + pv3*dirVect[2]; 
+  E_Float pv = pv1*pv1+pv2*pv2+pv3*pv3;
+  pv = sqrt(pv);
+  if (pv1*dirVect[0] + pv2*dirVect[1] + pv3*dirVect[2] < 0) pv = -pv; 
+  //E_Float pv = pv1*dirVect[0] + pv2*dirVect[1] + pv3*dirVect[2]; 
+  
   pv = pv * inv;
-  E_Float ps = dx2*dx1 + dy2*dy1 + dz1*dz2;
+  
+  E_Float ps = dx1*dx2 + dy1*dy2 + dz1*dz2;
   ps = ps * inv;
   
   // avec un meilleur conditionnement

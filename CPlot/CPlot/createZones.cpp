@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -32,25 +32,26 @@ using namespace std;
    IN: ni,nj,nk: nbre de noeuds
    IN: zoneName: nom de la zone
    IN: zoneTags: tags de la zone (peut etre NULL)
-   IN: referenceZone: sert de reference pour les variables
+   IN: referenceXX: sert de reference pour les variables
+   IN: mustComplete: dit qu'il faut completer les variables (si appeler de add ou replace)
 */
 //=============================================================================
 StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
                                    E_Int posx, E_Int posy, E_Int posz,
                                    E_Int ni, E_Int nj, E_Int nk,
                                    char* zoneName, char* zoneTags,
-                                   Zone* referenceZone)
+                                   E_Int referenceNfield, char** referenceVarNames,
+                                   E_Int mustComplete)
 {
-  StructZone* sz = new StructZone( ptrState, createZoneImpl() );
+  StructZone* sz = new StructZone(ptrState, createZoneImpl());
   StructZone& z = *sz;
   strcpy(z.zoneName, zoneName);
- 
-  z.ni = ni;
-  z.nj = nj;
-  z.nk = nk;
+
+  z.ni = ni; z.nj = nj; z.nk = nk;
   z.npts = z.ni * z.nj * z.nk;
-  if (referenceZone != NULL) z.nfield = referenceZone->nfield;
+  if (referenceNfield != -1) z.nfield = referenceNfield;
   else z.nfield = structF->getNfld()-3;
+
   if (z.nk != 1) z.dim = 3;
   else if (z.nj != 1) z.dim = 2;
   else z.dim = 1;
@@ -75,29 +76,118 @@ StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
   z.minf = new double [z.nfield];
   z.maxf = new double [z.nfield];
 
-  if (referenceZone != NULL)
+  if (referenceNfield != -1)
   {
-    for (E_Int n = 0; n < referenceZone->nfield; n++)
+    E_Int nall = 0;
+    for (E_Int n = 0; n < referenceNfield; n++)
     {
       for (E_Int p = 0; p < varsSize; p++)
       {
-        if (K_STRING::cmp(vars[p], referenceZone->varnames[n]) == 0)
+        if (K_STRING::cmp(vars[p], referenceVarNames[n]) == 0)
         {
+          nall++;
           z.f[n] = new E_Float[z.npts];
           memcpy(z.f[n], structF->begin(p+1), z.npts*sizeof(E_Float));
           strcpy(z.varnames[n], vars[p]); break;
         }
       }
     }
-    for (E_Int n = 0; n < referenceZone->nfield; n++)
+    nall = varsSize+referenceNfield-nall-3;
+    for (E_Int n = 0; n < referenceNfield; n++)
     {
       if (z.f[n] == NULL)
       {
         z.f[n] = new E_Float[z.npts];
-        if (K_STRING::cmp(referenceZone->varnames[n], "cellN") == 0)
+        if (K_STRING::cmp(referenceVarNames[n], "cellN") == 0)
         { for (int i = 0; i < z.npts; i++) z.f[n][i] = 1.; }
         else { for (int i = 0; i < z.npts; i++) z.f[n][i] = 0.; }
-        strcpy(z.varnames[n], referenceZone->varnames[n]);
+        strcpy(z.varnames[n], referenceVarNames[n]);
+      }
+    }
+    // Complete all zones
+    //printf("nall %d %d\n", nall, referenceNfield);
+    if (nall > referenceNfield && mustComplete == 1)
+    {
+      // reallocate (previous zones)
+      reallocNFieldArrays(nall);
+      for (E_Int nz = 0; nz < _numberOfZones; nz++)
+      {
+        Zone* zp = _zones[nz];
+        double** t = new double* [nall];
+        for (E_Int i = 0; i < zp->nfield; i++) t[i] = zp->f[i];
+        delete [] zp->f; zp->f = t;
+
+        char** t1 = new char* [nall];
+        for (E_Int i = 0; i < zp->nfield; i++) t1[i] = zp->varnames[i];
+        for (E_Int i = zp->nfield; i < nall; i++) t1[i] = new char [MAXSTRINGLENGTH];
+        delete [] zp->varnames; zp->varnames = t1;
+
+        double* t2 = new double [nall];
+        for (E_Int i = 0; i < zp->nfield; i++) t2[i] = zp->minf[i];
+        delete [] zp->minf; zp->minf = t2;
+        
+        double* t3 = new double [nall];
+        for (E_Int i = 0; i < zp->nfield; i++) t3[i] = zp->maxf[i];
+        delete [] zp->maxf; zp->maxf = t3;
+        
+        zp->nfield = nall;
+      }
+      // reallocate current zone
+      {
+        double** t = new double* [nall];
+        for (E_Int i = 0; i < z.nfield; i++) t[i] = z.f[i];
+        delete [] z.f; z.f = t;
+
+        char** t1 = new char* [nall];
+        for (E_Int i = 0; i < z.nfield; i++) t1[i] = z.varnames[i];
+        for (E_Int i = z.nfield; i < nall; i++) t1[i] = new char [MAXSTRINGLENGTH];
+        delete [] z.varnames; z.varnames = t1;
+
+        double* t2 = new double [nall];
+        for (E_Int i = 0; i < z.nfield; i++) t2[i] = z.minf[i];
+        delete [] z.minf; z.minf = t2;
+        
+        double* t3 = new double [nall];
+        for (E_Int i = 0; i < z.nfield; i++) t3[i] = z.maxf[i];
+        delete [] z.maxf; z.maxf = t3;
+
+        z.nfield = nall;
+      }
+      
+      nall = referenceNfield;
+      for (E_Int p = 0; p < varsSize; p++)
+      {
+        E_Boolean found = false; 
+        for (E_Int n = 0; n < referenceNfield; n++)
+        {
+          if (K_STRING::cmp(vars[p], referenceVarNames[n]) == 0)
+          {
+            found = true; break;
+          }
+        }
+        if (K_STRING::cmp(vars[p], "x") == 0 || K_STRING::cmp(vars[p], "y") == 0 ||
+            K_STRING::cmp(vars[p], "z") == 0 || K_STRING::cmp(vars[p], "CoordinateX") == 0 ||
+            K_STRING::cmp(vars[p], "CoordinateY") == 0 || K_STRING::cmp(vars[p], "CoordinateZ") == 0)
+          found = true;
+        
+        if (found == false)
+        {
+          // ajoute vars[p] a la fin pour toutes les zones
+          for (E_Int nz = 0; nz < _numberOfZones; nz++)
+          {
+            //printf("adding var %s (%d) in zone %d\n", vars[p], nall, nz);
+            Zone* zp = _zones[nz];
+            zp->f[nall] = new E_Float[zp->npts];
+            if (K_STRING::cmp(vars[p], "cellN") == 0)
+            { for (int i = 0; i < zp->npts; i++) zp->f[nall][i] = 1.; }
+            else { for (int i = 0; i < zp->npts; i++) zp->f[nall][i] = 0.; }
+            strcpy(zp->varnames[nall], vars[p]);
+          }
+          z.f[nall] = new E_Float[z.npts];
+          memcpy(z.f[nall], structF->begin(p+1), z.npts*sizeof(E_Float));
+          strcpy(z.varnames[nall], vars[p]);
+          nall++;
+        }
       }
     }
   }
@@ -115,7 +205,7 @@ StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
     }
   }
 
-  for (E_Int n = 0; n < varsSize; n++) delete [] vars[n];
+  for (size_t n = 0; n < vars.size(); n++) delete [] vars[n];
 
   if (zoneTags != NULL)
   {
@@ -132,7 +222,8 @@ StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
     z.shaderParam2 = 1.;
   }
 
-  z.surf = NULL; z.compNorm();
+  // Calcul les normales
+  z.compNorm();
 
   z.activePlane = 0;
   z.iPlane = -1;
@@ -145,6 +236,42 @@ StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
   z.active = 1;
   z.selected = 0;
   findMinMax(&z); findFMinMax(&z);
+
+  /* met les pointeurs sur _u_,_v_,_w_ pour le rendu texture */
+  z.texu = NULL; z.texv = NULL; z.texw = NULL;
+  z.regtexu = NULL; z.regtexv = NULL;
+  if (z.material == 14)
+  {
+    for (E_Int n = 0; n < z.nfield; n++)
+    { 
+      if (strcmp(z.varnames[n], "texu") == 0 || strcmp(z.varnames[n], "_u_") == 0 || strcmp(z.varnames[n], "_U_") == 0) { z.texu = z.f[n]; }
+      else if (strcmp(z.varnames[n], "texv") == 0 || strcmp(z.varnames[n], "_v_") == 0 || strcmp(z.varnames[n], "_V_") == 0) { z.texv = z.f[n]; }
+      else if (strcmp(z.varnames[n], "texw") == 0 || strcmp(z.varnames[n], "_w_") == 0 || strcmp(z.varnames[n], "_W_") == 0) { z.texw = z.f[n]; }
+    }
+    if (z.texu == NULL)
+    {
+      // Create uniform texture field
+      z.regtexu = new E_Float [z.npts];
+      E_Float di = 1./(z.ni-1);
+      for (E_Int j = 0; j < z.nj; j++)
+        for (E_Int i = 0; i < z.ni; i++)
+            z.regtexu[i+j*ni] = i*di;
+      z.texu = z.regtexu;
+    }
+    if (z.texv == NULL)
+    {
+      // Create uniform texture field
+      z.regtexv = new E_Float [z.npts];
+      E_Float dj = 1./(z.nj-1);
+      for (E_Int j = 0; j < z.nj; j++)
+        for (E_Int i = 0; i < z.ni; i++)
+            z.regtexv[i+j*ni] = j*dj;
+      z.texv = z.regtexv;
+    }
+    
+    if (z.texu != NULL && z.texv == NULL) z.texu = NULL;
+    if (z.texu != NULL && z.texw == NULL) z.texw = z.texu;
+  }
 
   return sz;
 }
@@ -164,17 +291,36 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
                                     E_Int posx, E_Int posy, E_Int posz,
                                     FldArrayI* cn, char* eltType,
                                     char* zoneName, char* zoneTags,
-                                    Zone* referenceZone)
+                                    E_Int referenceNfield, char** referenceVarNames,
+                                    E_Int mustComplete)
 {
-  E_Int api = unstrF->getApi();
-  UnstructZone* uz = new UnstructZone( ptrState, createZoneImpl() );
+  UnstructZone* uz = new UnstructZone(ptrState, createZoneImpl());
   UnstructZone& z = *uz;
   strcpy(z.zoneName, zoneName);
   z.npts = unstrF->getSize();
   z.np = z.npts;
-  if (referenceZone != NULL) z.nfield = referenceZone->nfield;
+  if (referenceNfield != -1) z.nfield = referenceNfield;
   else z.nfield = unstrF->getNfld()-3;
-  
+
+# if defined(__SHADERS__)
+  const char* high_order_types[] = {
+    "TRI_6", "TRI_9", "TRI_10", "TRI_12", "TRI_15", 
+    "QUAD_8", "QUAD_9", "QUAD_12", "QUAD_16", "QUAD_P4_16", "QUAD_25",
+    NULL
+  };
+  const short nb_nodes_per_elts[] = {
+    6, 9, 10, 12, 15, 8, 9, 12, 16, 16, 25, -1  
+  };
+  unsigned short ind_type = 0;
+  const char* pt_type = high_order_types[ind_type];
+  while ( (pt_type != NULL) and (K_STRING::cmp(eltType, pt_type) != 0) )
+  {
+    ind_type++;
+    pt_type = high_order_types[ind_type];
+  }
+  bool is_high_order = (pt_type != NULL);
+  z._is_high_order = is_high_order;
+# endif
   z.x = new E_Float[z.npts];
   memcpy(z.x, unstrF->begin(posx), z.npts*sizeof(E_Float));
   z.y = new E_Float[z.npts];
@@ -191,34 +337,122 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
   z.f = new double* [z.nfield];
   for (E_Int i = 0; i < z.nfield; i++) z.f[i] = NULL;
   z.varnames = new char* [z.nfield];
-  for (E_Int n = 0; n < z.nfield; n++) 
+  for (E_Int n = 0; n < z.nfield; n++)
     z.varnames[n] = new char [MAXSTRINGLENGTH];
   z.minf = new double [z.nfield];
   z.maxf = new double [z.nfield];
 
-  if (referenceZone != NULL)
+  if (referenceNfield != -1)
   {
-    for (E_Int n = 0; n < referenceZone->nfield; n++)
+    E_Int nall = 0;
+    for (E_Int n = 0; n < referenceNfield; n++)
     {
       for (E_Int p = 0; p < varsSize; p++)
       {
-        if (K_STRING::cmp(vars[p], referenceZone->varnames[n]) == 0)
+        if (K_STRING::cmp(vars[p], referenceVarNames[n]) == 0)
         {
+          nall++;
           z.f[n] = new E_Float[z.npts];
           memcpy(z.f[n], unstrF->begin(p+1), z.npts*sizeof(E_Float));
           strcpy(z.varnames[n], vars[p]); break;
         }
       }
     }
-    for (E_Int n = 0; n < referenceZone->nfield; n++)
+    nall = varsSize+referenceNfield-nall-3;
+    for (E_Int n = 0; n < referenceNfield; n++)
     {
       if (z.f[n] == NULL)
       {
         z.f[n] = new E_Float[z.npts];
-        if (K_STRING::cmp(referenceZone->varnames[n], "cellN") == 0)
-        { for (int i = 0; i < z.npts; i++) z.f[n][i] = 1.; }
-        else { for (int i = 0; i < z.npts; i++) z.f[n][i] = 0.; }
-        strcpy(z.varnames[n], referenceZone->varnames[n]);
+        if (K_STRING::cmp(referenceVarNames[n], "cellN") == 0)
+        { for (E_Int i = 0; i < z.npts; i++) z.f[n][i] = 1.; }
+        else { for (E_Int i = 0; i < z.npts; i++) z.f[n][i] = 0.; }
+        strcpy(z.varnames[n], referenceVarNames[n]);
+      }
+    }
+    // Complete all zones
+    if (nall > referenceNfield && mustComplete == 1)
+    {
+      // reallocate (previous zones)
+      reallocNFieldArrays(nall);
+      for (E_Int nz = 0; nz < _numberOfZones; nz++)
+      {
+        Zone* zp = _zones[nz];
+        double** t = new double* [nall];
+        for (E_Int i = 0; i < zp->nfield; i++) t[i] = zp->f[i];
+        delete [] zp->f; zp->f = t;
+
+        char** t1 = new char* [nall];
+        for (E_Int i = 0; i < zp->nfield; i++) t1[i] = zp->varnames[i];
+        for (E_Int i = zp->nfield; i < nall; i++) t1[i] = new char [MAXSTRINGLENGTH];
+        delete [] zp->varnames; zp->varnames = t1;
+
+        double* t2 = new double [nall];
+        for (E_Int i = 0; i < zp->nfield; i++) t2[i] = zp->minf[i];
+        delete [] zp->minf; zp->minf = t2;
+        
+        double* t3 = new double [nall];
+        for (E_Int i = 0; i < zp->nfield; i++) t3[i] = zp->maxf[i];
+        delete [] zp->maxf; zp->maxf = t3;
+        
+        zp->nfield = nall;
+      }
+      // reallocate current zone
+      {
+        double** t = new double* [nall];
+        for (E_Int i = 0; i < z.nfield; i++) t[i] = z.f[i];
+        delete [] z.f; z.f = t;
+
+        char** t1 = new char* [nall];
+        for (E_Int i = 0; i < z.nfield; i++) t1[i] = z.varnames[i];
+        for (E_Int i = z.nfield; i < nall; i++) t1[i] = new char [MAXSTRINGLENGTH];
+        delete [] z.varnames; z.varnames = t1;
+
+        double* t2 = new double [nall];
+        for (E_Int i = 0; i < z.nfield; i++) t2[i] = z.minf[i];
+        delete [] z.minf; z.minf = t2;
+        
+        double* t3 = new double [nall];
+        for (E_Int i = 0; i < z.nfield; i++) t3[i] = z.maxf[i];
+        delete [] z.maxf; z.maxf = t3;
+
+        z.nfield = nall;
+      }
+      
+      nall = referenceNfield;
+      for (E_Int p = 0; p < varsSize; p++)
+      {
+        E_Boolean found = false; 
+        for (E_Int n = 0; n < referenceNfield; n++)
+        {
+          if (K_STRING::cmp(vars[p], referenceVarNames[n]) == 0)
+          {
+            found = true; break;
+          }
+        }
+        if (K_STRING::cmp(vars[p], "x") == 0 || K_STRING::cmp(vars[p], "y") == 0 ||
+            K_STRING::cmp(vars[p], "z") == 0 || K_STRING::cmp(vars[p], "CoordinateX") == 0 ||
+            K_STRING::cmp(vars[p], "CoordinateY") == 0 || K_STRING::cmp(vars[p], "CoordinateZ") == 0)
+          found = true;
+            
+        if (found == false)
+        {
+          // ajoute vars[p] a la fin pour toutes les zones
+          for (E_Int nz = 0; nz < _numberOfZones; nz++)
+          {
+            //printf("adding var %s (%d) in zone %d\n", vars[p], nall, nz);
+            Zone* zp = _zones[nz];
+            zp->f[nall] = new E_Float[zp->npts];
+            if (K_STRING::cmp(vars[p], "cellN") == 0)
+            { for (E_Int i = 0; i < zp->npts; i++) zp->f[nall][i] = 1.; }
+            else { for (E_Int i = 0; i < zp->npts; i++) zp->f[nall][i] = 0.; }
+            strcpy(zp->varnames[nall], vars[p]);
+          }
+          z.f[nall] = new E_Float[z.npts];
+          memcpy(z.f[nall], unstrF->begin(p+1), z.npts*sizeof(E_Float));
+          strcpy(z.varnames[nall], vars[p]);
+          nall++;
+        }
       }
     }
   }
@@ -253,128 +487,176 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
     z.shaderParam2 = 1.;
   }
 
-  if (K_STRING::cmp(eltType, "NODE") == 0)
+  /* Explore connectivities */
+  std::vector<char*> eltTypes;
+  K_ARRAY::extractVars(eltType, eltTypes);
+
+  for (size_t i = 0; i < eltTypes.size(); i++)
   {
-    z.eltType = 0;
-    z.eltSize = 0;
-    z.dim = 0;
-  }
-  else if (K_STRING::cmp(eltType, "BAR") == 0)
-  {
-    z.eltType = 1;
-    z.eltSize = 2;
-    z.dim = 1;
-  }
-  else if (K_STRING::cmp(eltType, "TRI") == 0)
-  {
-    z.eltType = 2;
-    z.eltSize = 3;
-    z.dim = 2;
-  }
-  else if (K_STRING::cmp(eltType, "QUAD") == 0)
-  {
-    z.eltType = 3;
-    z.eltSize = 4;
-    z.dim = 2;
-  }
-  else if (K_STRING::cmp(eltType, "TETRA") == 0)
-  {
-    z.eltType = 4;
-    z.eltSize = 4;
-    z.dim = 3;
-  }
-  else if (K_STRING::cmp(eltType, "PENTA") == 0)
-  {
-    z.eltType = 5;
-    z.eltSize = 6;
-    z.dim = 3;
-  }
-  else if (K_STRING::cmp(eltType, "PYRA") == 0)
-  {
-    z.eltType = 6;
-    z.eltSize = 5;
-    z.dim = 3;
-  }
-  else if (K_STRING::cmp(eltType, "HEXA") == 0)
-  {
-    z.eltType = 7;
-    z.eltSize = 8;
-    z.dim = 3;
-  }
-  else if (K_STRING::cmp(eltType, "NGON") == 0)
-  {
-    z.ne = cn->getNElts();
-    z.eltType = 10;
-    z.eltSize = 1;
-    z.dim = 3;
-  }
-  else
-  {
-    printf("Warning: element type is unknown. Set to TRI.\n");
-    z.eltType = 2;
-    z.eltSize = 3;
-    z.dim = 2;
-  }
-  E_Int size = cn->getSize() * cn->getNfld();
-  if (api == 2 && z.eltType == 10) // array2 NGon
-  {
-    // store as compact
-    int size1 = cn->getSizeNGon();
-    int size2 = cn->getSizeNFace();
-    int nfaces = cn->getNFaces();
-    int nelts = cn->getNElts();
-    z.connect = new E_Int[size1+size2+4];
-    z.connect[0] = nfaces;
-    z.connect[1] = size1;
-    z.connect[size1+2] = nelts;
-    z.connect[size1+3] = size2;
-    memcpy(z.connect+2, cn->getNGon(), size1*sizeof(E_Int));
-    memcpy(z.connect+size1+4, cn->getNFace(), size2*sizeof(E_Int));
-  }
-  else
-  {
-    z.connect = new E_Int[size];
-    if (api == 1) // array1, copie directe
-      memcpy(z.connect, cn->begin(), size*sizeof(E_Int));
-    else // array2, inverse les indices
+    if (K_STRING::cmp(eltTypes[i], "NODE") == 0)
     {
-      E_Int nfld = cn->getNfld();
-      E_Int s = cn->getSize();
-      E_Int* cnp = cn->begin();
-      E_Int* znp = z.connect;
-      for (E_Int n = 0; n < nfld; n++)
-        for (E_Int i = 0; i < s; i++)
-          znp[i+n*s] = cnp[n+i*nfld]; 
+      z.eltType.push_back(0);
+      z.eltSize.push_back(0);
+      z.dim = 0;
+    }
+    else if (K_STRING::cmp(eltTypes[i], "BAR") == 0)
+    {
+      z.eltType.push_back(1);
+      z.eltSize.push_back(2);
+      z.dim = 1;
+    }
+    else if (K_STRING::cmp(eltTypes[i], "TRI") == 0)
+    {
+      z.eltType.push_back(2);
+      z.eltSize.push_back(3);
+      z.dim = 2;
+    }
+    else if (K_STRING::cmp(eltTypes[i], "QUAD") == 0)
+    {
+      z.eltType.push_back(3);
+      z.eltSize.push_back(4);
+      z.dim = 2;
+    }
+    else if (K_STRING::cmp(eltTypes[i], "TETRA") == 0)
+    {
+      z.eltType.push_back(4);
+      z.eltSize.push_back(4);
+      z.dim = 3;
+    }
+    else if (K_STRING::cmp(eltTypes[i], "PENTA") == 0)
+    {
+      z.eltType.push_back(5);
+      z.eltSize.push_back(6);
+      z.dim = 3;
+    }
+    else if (K_STRING::cmp(eltTypes[i], "PYRA") == 0)
+    {
+      z.eltType.push_back(6);
+      z.eltSize.push_back(5);
+      z.dim = 3;
+    }
+    else if (K_STRING::cmp(eltTypes[i], "HEXA") == 0)
+    {
+      z.eltType.push_back(7);
+      z.eltSize.push_back(8);
+      z.dim = 3;
+    }
+    else if (K_STRING::cmp(eltTypes[i], "NGON") == 0)
+    {
+      z.ne = cn->getNElts();
+      z.nec.push_back(z.ne);
+      z.eltType.push_back(10);
+      z.eltSize.push_back(1);
+      z.dim = 3;
+    }
+    else if (not z._is_high_order)
+    {
+      printf("Warning: element type is unknown. Set to TRI.\n");
+      z.eltType.push_back(2);
+      z.eltSize.push_back(3);
+      z.dim = 2;
     }
   }
+# if defined(__SHADERS__)
+  if (is_high_order)
+  {
+    z.eltSize.push_back(nb_nodes_per_elts[ind_type]);
+    z.eltType.push_back((ind_type < 5 ? 2 : 3));
+    z.dim = 2;
+  }
+# endif
+
+  for (size_t i = 0; i < eltTypes.size(); i++) delete [] eltTypes[i];
+  
+  // copie par access universel
+  if (z.eltType[0] == 10) // NGON
+  {
+    E_Int nfaces = cn->getNFaces();
+    E_Int nelts = cn->getNElts();
+    E_Int size1 = cn->getSizeNGon();
+    E_Int size2 = cn->getSizeNFace();
+    if (cn->isNGon() == 3)
+    {
+      size1 += nfaces; size2 += nelts;
+    }
+    z.connect.push_back(new E_Int[size1+size2+4]);
+    E_Int* zconnect = z.connect[0];
+    zconnect[0] = nfaces;
+    zconnect[1] = size1;
+    zconnect[size1+2] = nelts;
+    zconnect[size1+3] = size2;
+    E_Int* znp = zconnect+2;
+    E_Int* fp; E_Int size;
+    E_Int* ngon = cn->getNGon();
+    E_Int* nface = cn->getNFace();
+    E_Int* indPG = cn->getIndPG();
+    E_Int* indPH = cn->getIndPH();
+    for (E_Int i = 0; i < nfaces; i++)
+    {
+      fp = cn->getFace(i, size, ngon, indPG);
+      znp[0] = size;
+      for (E_Int v = 0; v < size; v++) znp[v+1] = fp[v];
+      znp += size+1;
+    }
+    znp += 2;
+    for (E_Int i = 0; i < nelts; i++)
+    {
+      fp = cn->getElt(i, size, nface, indPH);
+      znp[0] = size;
+      for (E_Int v = 0; v < size; v++) znp[v+1] = std::abs(fp[v]);
+      znp += size+1;
+    }
+  }
+  else // BE
+  {
+    E_Int ncon = cn->getNConnect();
+    E_Int neTot = 0;
+    for (E_Int nc = 0; nc < ncon; nc++)
+    {
+      FldArrayI& cm = *(cn->getConnect(nc));
+      E_Int nvpe = cm.getNfld();
+      E_Int nelts = cm.getSize();
+      neTot += nelts;
+      E_Int size = nelts * nvpe;
+      z.connect.push_back(new E_Int[size]);
+      E_Int* znp = z.connect[nc];
+      for (E_Int n = 0; n < nvpe; n++)
+        for (E_Int i = 0; i < nelts; i++)
+          znp[i+n*nelts] = cm(i, n+1);
+      z.nec.push_back(nelts);
+    }
+    z.ne = neTot;
+  }
+
 
   z.posFaces = NULL;
 
-  if (z.eltType == 10) // NGONS
+  if (z.eltType[0] == 10) // NGONS
   {
     // calcul posFaces (position des faces dans connect)
-    int nfaces = NFACES(z.connect);
+    E_Int* zconnect = z.connect[0];
+    E_Int nfaces = NFACES(zconnect);
     z.posFaces = new E_Int[nfaces];
-    int c = POSFACES(z.connect); int l;
-    for (int i = 0; i < nfaces; i++)
+    E_Int c = POSFACES(zconnect); E_Int l;
+    for (E_Int i = 0; i < nfaces; i++)
     {
-      z.posFaces[i] = c; l = z.connect[c]; c += l+1;
+      z.posFaces[i] = c; l = zconnect[c]; c += l+1;
     }
 
     // calcul le nombre d'elements 1D et 2D
-    int nelts = NELTS(z.connect);
+    E_Int nelts = NELTS(zconnect);
     
-    c = POSELTS(z.connect);
-    int dim, s, c1, c2;
+    c = POSELTS(zconnect);
+    E_Int dim, s, c1, c2;
     z.nelts1D = 0; z.nelts2D = 0;
-    for (int i = 0; i < nelts; i++)
+    for (E_Int i = 0; i < nelts; i++)
     {
-      l = z.connect[c]; // nbre de faces
+      l = zconnect[c]; // nbre de faces
       dim = 0;
-      for (int j = 0; j < l; j++)
+      for (E_Int j = 0; j < l; j++)
       {
-        s = z.posFaces[z.connect[c+j+1]-1];
-        dim = max(dim, z.connect[s]);
+        s = z.posFaces[zconnect[c+j+1]-1];
+        dim = max(dim, zconnect[s]);
       }
       if (dim == 1) { z.nelts1D++; }
       else if (dim == 2) { z.nelts2D++; }
@@ -384,16 +666,16 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
     //printf("1D: %d, 2D: %d\n", z.nelts1D, z.nelts2D);
     if (z.nelts1D > 0) z.posElts1D = new E_Int[z.nelts1D];
     if (z.nelts2D > 0) z.posElts2D = new E_Int[z.nelts2D];
-    c = POSELTS(z.connect);
+    c = POSELTS(zconnect);
     c1 = 0; c2 = 0;
-    for (int i = 0; i < nelts; i++)
+    for (E_Int i = 0; i < nelts; i++)
     {
-      l = z.connect[c]; // nbre de faces
+      l = zconnect[c]; // nbre de faces
       dim = 0;
-      for (int j = 0; j < l; j++)
+      for (E_Int j = 0; j < l; j++)
       {
-        s = z.posFaces[z.connect[c+j+1]-1];
-        dim = max(dim, z.connect[s]);
+        s = z.posFaces[zconnect[c+j+1]-1];
+        dim = max(dim, zconnect[s]);
       }
       if (dim == 1) { z.posElts1D[c1] = c; c1++; }
       else if (dim == 2) { z.posElts2D[c2] = c; c2++; }
@@ -401,11 +683,26 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
     }
   }
 
-  z.surf = NULL; z.compNorm();
+  z.compNorm();
   z.blank = 0;
   z.active = 1;
   z.selected = 0;
   findMinMax(&z); findFMinMax(&z);
 
+  /* met les pointeurs sur u,v,w pour le rendu texture */
+  z.texu = NULL; z.texv = NULL; z.texw = NULL;
+  z.regtexu = NULL; z.regtexv = NULL;
+  if (z.material == 14)
+  {
+    for (E_Int n = 0; n < z.nfield; n++)
+    { 
+      if (strcmp(z.varnames[n], "texu") == 0 || strcmp(z.varnames[n], "_u_") == 0 || strcmp(z.varnames[n], "_U_") == 0) { z.texu = z.f[n]; }
+      else if (strcmp(z.varnames[n], "texv") == 0 || strcmp(z.varnames[n], "_v_") == 0 || strcmp(z.varnames[n], "_V_") == 0) { z.texv = z.f[n]; }
+      else if (strcmp(z.varnames[n], "texw") == 0 || strcmp(z.varnames[n], "_w_") == 0 || strcmp(z.varnames[n], "_W_") == 0) { z.texw = z.f[n]; }
+    }
+    
+    if (z.texu != NULL && z.texv == NULL) z.texu = NULL;
+    if (z.texu != NULL && z.texw == NULL) z.texw = z.texu;
+  }
   return uz;
 }

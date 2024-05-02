@@ -13,8 +13,8 @@ t = C.newPyTree(['Base',a,b])
 C._addFamily2Base(t[2][1], 'CARTER', bndType='BCWall')
 
 # Toutes les familyBCs de type BCwall
-names = C.getFamilyBCNamesOfType(t, 'BCWall'); print names
+names = C.getFamilyBCNamesOfType(t, 'BCWall'); print(names)
 #>> ['CARTER']
 # Toutes les familyBCs de l'arbre
-names = C.getFamilyBCNamesOfType(t); print names
+names = C.getFamilyBCNamesOfType(t); print(names)
 #>> ['CARTER']

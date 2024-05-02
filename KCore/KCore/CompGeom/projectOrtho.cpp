@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -18,13 +18,14 @@
 */
 
 # include "CompGeom/compGeom.h"
-# include "Search/KdTree.h"
-# include "Search/BbTree.h"
-# include "Fld/ArrayAccessor.h"
+# include "Nuga/include/KdTree.h"
+# include "Nuga/include/BbTree.h"
+# include "Nuga/include/ArrayAccessor.h"
 # include <stdio.h>
 
 using namespace K_FLD;
 using namespace std;
+
 //=============================================================================
 /* Projete un point (x,y,z) sur un surface array (TRI ou BAR) orthogonalement
    ou projete sur le sommet du plus proche triangle
@@ -37,12 +38,11 @@ using namespace std;
 E_Int K_COMPGEOM::projectOrtho(E_Float x, E_Float y, E_Float z,
                                E_Float* fx2, E_Float* fy2, E_Float* fz2,
                                K_FLD::FldArrayI& cn2, 
-                               E_Float& xo, E_Float& yo, E_Float& zo)
+                               E_Float& xo, E_Float& yo, E_Float& zo,
+                               E_Float* p0, E_Float* p1, E_Float* p2, E_Float* p)
 {
   E_Int noet = -1;
-  E_Float p0[3]; E_Float p1[3]; E_Float p2[3];
   E_Int ret; 
-  E_Float p[3];
   p[0] = x; p[1] = y; p[2] = z;
   
   E_Float distc = 1.e6;
@@ -113,16 +113,15 @@ E_Int K_COMPGEOM::projectOrtho(E_Float x, E_Float y, E_Float z,
 E_Int K_COMPGEOM::projectOrthoPrecond(
   E_Float x, E_Float y, E_Float z,
   E_Float* fx2, E_Float* fy2, E_Float* fz2,
-  std::vector<E_Int> indices, K_FLD::FldArrayI& cn2, 
-  E_Float& xo, E_Float& yo, E_Float& zo)
+  std::vector<E_Int>& indices, K_FLD::FldArrayI& cn2, 
+  E_Float& xo, E_Float& yo, E_Float& zo,
+  E_Float* p0, E_Float* p1, E_Float* p2, E_Float* p)
 {
   E_Int noet = -1;
-  E_Float p0[3]; E_Float p1[3]; E_Float p2[3];
   E_Int ret;
-  E_Float p[3];
   p[0] = x; p[1] = y; p[2] = z;
   
-  E_Float distc = 1e6;
+  E_Float distc = 1.e6;
   E_Float dist2; E_Float sigma0, sigma1;
   E_Float xp, yp, zp;
   E_Int ind1, ind2, ind3;
@@ -131,7 +130,6 @@ E_Int K_COMPGEOM::projectOrthoPrecond(
   E_Int* cn2p2 = cn2.begin(2);
   E_Int nvert = cn2.getNfld();
   xo = x; yo = y; zo = z;
-  
   E_Int nbb = indices.size();
   E_Int et = 0;
   if (nvert == 2) // bar
@@ -157,7 +155,7 @@ E_Int K_COMPGEOM::projectOrthoPrecond(
     for (E_Int noe = 0; noe < nbb; noe++)
     {
       et = indices[noe];
-      ind1 = cn2p1[et]-1; ind2 = cn2p2[et]-1;  ind3 = cn2p3[et]-1;
+      ind1 = cn2p1[et]-1; ind2 = cn2p2[et]-1; ind3 = cn2p3[et]-1;
       p0[0] = fx2[ind1]; p0[1] = fy2[ind1]; p0[2] = fz2[ind1];
       p1[0] = fx2[ind2]; p1[1] = fy2[ind2]; p1[2] = fz2[ind2];
       p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];        
@@ -192,13 +190,19 @@ void K_COMPGEOM::projectOrthoWithoutPrecond(
   E_Float* fx2, E_Float* fy2, E_Float* fz2,
   E_Float* fx, E_Float* fy, E_Float* fz)
 {
-  E_Float xo, yo, zo;
-  E_Int ret = 0;
-  for (E_Int ind = 0; ind < npts; ind++)
+  #pragma omp parallel
   {
-    ret = projectOrtho(fx[ind], fy[ind], fz[ind], 
-                       fx2, fy2, fz2, cn2, xo, yo, zo);
-    if (ret != -1) {fx[ind] = xo; fy[ind] = yo; fz[ind] = zo;}
+    E_Int ret = 0;
+    E_Float xo, yo, zo;
+    E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3];
+
+    #pragma omp for
+    for (E_Int ind = 0; ind < npts; ind++)
+    {
+      ret = projectOrtho(fx[ind], fy[ind], fz[ind], 
+                         fx2, fy2, fz2, cn2, xo, yo, zo, p0, p1, p2, p);
+      if (ret != -1) {fx[ind] = xo; fy[ind] = yo; fz[ind] = zo;}
+    }
   }
 }
 //=============================================================================
@@ -217,7 +221,7 @@ void K_COMPGEOM::projectOrthoWithPrecond(
   E_Float* fy2 = f2.begin(posy2);
   E_Float* fz2 = f2.begin(posz2);
   // Creation du kdtree
-  ArrayAccessor<FldArrayF> coordAcc(f2, posx2, posy2, posz2);
+  K_FLD::ArrayAccessor<FldArrayF> coordAcc(f2, posx2, posy2, posz2);
   K_SEARCH::KdTree<FldArrayF> kdt(coordAcc);
   // Creation du bboxtree
   typedef K_SEARCH::BoundingBox<3>  BBox3DType; 
@@ -225,54 +229,72 @@ void K_COMPGEOM::projectOrthoWithPrecond(
   K_FLD::FldArrayF bbox(nelts2, 6);// xmin, ymin, zmin, xmax, ymax, zmax
   K_COMPGEOM::boundingBoxOfUnstrCells(cn2, fx2, fy2, fz2, bbox);
 
-  E_Float minB[3];  E_Float maxB[3];
   E_Float* xminp = bbox.begin(1); E_Float* xmaxp = bbox.begin(4);
   E_Float* yminp = bbox.begin(2); E_Float* ymaxp = bbox.begin(5);
   E_Float* zminp = bbox.begin(3); E_Float* zmaxp = bbox.begin(6);
-  for (E_Int et = 0; et < nelts2; et++)
+  
+  #pragma omp parallel
   {
-    minB[0] = xminp[et]; minB[1] = yminp[et]; minB[2] = zminp[et];
-    maxB[0] = xmaxp[et]; maxB[1] = ymaxp[et]; maxB[2] = zmaxp[et]; 
-    boxes[et] = new BBox3DType(minB, maxB);
+    E_Float minB[3]; E_Float maxB[3];
+    #pragma omp for
+    for (E_Int et = 0; et < nelts2; et++)
+    {
+      minB[0] = xminp[et]; minB[1] = yminp[et]; minB[2] = zminp[et];
+      maxB[0] = xmaxp[et]; maxB[1] = ymaxp[et]; maxB[2] = zmaxp[et]; 
+      boxes[et] = new BBox3DType(minB, maxB);
+    }
   }
+    
   // Build the box tree.
   K_SEARCH::BbTree3D bbtree(boxes);
   
   // projection des pts de f sur f2
-  E_Float xo, yo, zo; E_Float pt[3];
-  E_Int ret = 0; E_Int indp = 0; 
-  E_Float rx, ry, rz, rad;
-  vector<E_Int> indicesBB; // liste des indices des facettes intersectant la bbox
   E_Int nzones = fxt.size();
-  for (E_Int v = 0; v < nzones; v++)
+
+  #pragma omp parallel
   {
-    E_Int npts = sizet[v];
-    E_Float* fx = fxt[v];
-    E_Float* fy = fyt[v];
-    E_Float* fz = fzt[v];
-    
-    for (E_Int ind = 0; ind < npts; ind++)
+    E_Float xo, yo, zo; E_Float pt[3];
+    E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3];
+    E_Int ret=0; E_Int indp=0; 
+    E_Float rx, ry, rz, rad;
+    E_Float minB[3]; E_Float maxB[3];
+    vector<E_Int> indicesBB; // liste des indices des facettes intersectant la bbox
+  
+    for (E_Int v = 0; v < nzones; v++)
     {
-      // recherche du pt le plus proche P' de P
-      pt[0] = fx[ind]; pt[1] = fy[ind]; pt[2] = fz[ind];
-      indp = kdt.getClosest(pt);
+      E_Int npts = sizet[v];
+      E_Float* fx = fxt[v];
+      E_Float* fy = fyt[v];
+      E_Float* fz = fzt[v];
+    
+      #pragma omp for
+      for (E_Int ind = 0; ind < npts; ind++)
+      {
+        // recherche du pt le plus proche P' de P
+        pt[0] = fx[ind]; pt[1] = fy[ind]; pt[2] = fz[ind];
+        indp = kdt.getClosest(pt);
       
-      // calcul de la bounding box de la sphere de rayon PP'
-      rx = pt[0]-fx2[indp]; ry = pt[1]-fy2[indp]; rz = pt[2]-fz2[indp];
-      rad = sqrt(rx*rx+ry*ry+rz*rz);
-      minB[0] = pt[0]-rad; minB[1] = pt[1]-rad; minB[2] = pt[2]-rad;
-      maxB[0] = pt[0]+rad; maxB[1] = pt[1]+rad; maxB[2] = pt[2]+rad;
-      bbtree.getOverlappingBoxes(minB, maxB, indicesBB);
+        // calcul de la bounding box de la sphere de rayon PP'
+        rx = pt[0]-fx2[indp]; ry = pt[1]-fy2[indp]; rz = pt[2]-fz2[indp];
+        rad = sqrt(rx*rx+ry*ry+rz*rz);
+        minB[0] = pt[0]-rad; minB[1] = pt[1]-rad; minB[2] = pt[2]-rad;
+        maxB[0] = pt[0]+rad; maxB[1] = pt[1]+rad; maxB[2] = pt[2]+rad;
+        bbtree.getOverlappingBoxes(minB, maxB, indicesBB);
       
-      ret = projectOrthoPrecond(fx[ind], fy[ind], fz[ind], 
-                                fx2, fy2, fz2, indicesBB, cn2, xo, yo, zo);
-      if (ret != -1) {fx[ind] = xo; fy[ind] = yo; fz[ind] = zo;}
-      indicesBB.clear();
+        ret = projectOrthoPrecond(fx[ind], fy[ind], fz[ind], 
+                                  fx2, fy2, fz2, indicesBB, cn2, xo, yo, zo,
+                                  p0, p1, p2, p);
+        if (ret != -1) {fx[ind] = xo; fy[ind] = yo; fz[ind] = zo;}
+        indicesBB.clear();
+      }
     }
   }
+
+  // delete boxes
   E_Int size = boxes.size();
   for (E_Int v = 0; v < size; v++) delete boxes[v];    
 }
+
 //=============================================================================
 // Algorithme de projection avec preconditionnement
 // IN: npts: nombre de pts a projeter
@@ -291,7 +313,7 @@ void K_COMPGEOM::projectOrthoWithPrecond(
   E_Float* fz2 = f2.begin(posz2);
  
   // Creation du kdtree
-  ArrayAccessor<FldArrayF> coordAcc(f2, posx2, posy2, posz2);
+  K_FLD::ArrayAccessor<FldArrayF> coordAcc(f2, posx2, posy2, posz2);
   K_SEARCH::KdTree<FldArrayF> kdt(coordAcc);
 
   // Creation du bboxtree
@@ -300,43 +322,56 @@ void K_COMPGEOM::projectOrthoWithPrecond(
   K_FLD::FldArrayF bbox(nelts2,6);// xmin, ymin, zmin, xmax, ymax, zmax
   K_COMPGEOM::boundingBoxOfUnstrCells(cn2, fx2, fy2, fz2, bbox);
 
-  E_Float minB[3];  E_Float maxB[3];
   E_Float* xminp = bbox.begin(1); E_Float* xmaxp = bbox.begin(4);
   E_Float* yminp = bbox.begin(2); E_Float* ymaxp = bbox.begin(5);
   E_Float* zminp = bbox.begin(3); E_Float* zmaxp = bbox.begin(6);
-  for (E_Int et = 0; et < nelts2; et++)
+  
+  #pragma omp parallel
   {
-    minB[0] = xminp[et]; minB[1] = yminp[et]; minB[2] = zminp[et];
-    maxB[0] = xmaxp[et]; maxB[1] = ymaxp[et]; maxB[2] = zmaxp[et]; 
-    boxes[et] = new BBox3DType(minB, maxB);
+    E_Float minB[3];  E_Float maxB[3];
+    #pragma omp for
+    for (E_Int et = 0; et < nelts2; et++)
+    {
+      minB[0] = xminp[et]; minB[1] = yminp[et]; minB[2] = zminp[et];
+      maxB[0] = xmaxp[et]; maxB[1] = ymaxp[et]; maxB[2] = zmaxp[et]; 
+      boxes[et] = new BBox3DType(minB, maxB);
+    }
   }
   // Build the box tree.
   K_SEARCH::BbTree3D bbtree(boxes);
   
   // projection des pts de f sur f2
-  E_Float xo, yo, zo; E_Float pt[3];
-  E_Int ret = 0; E_Int indp = 0; 
-  E_Float rx, ry, rz, rad;
-  vector<E_Int> indicesBB; // liste des indices des facettes intersectant la bbox
-
-  for (E_Int ind = 0; ind < npts; ind++)
+  #pragma omp parallel
   {
-    // recherche du pt le plus proche P' de P
-    pt[0] = fx[ind]; pt[1] = fy[ind]; pt[2] = fz[ind];
-    indp = kdt.getClosest(pt);
+    E_Float xo, yo, zo; E_Float pt[3];
+    E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3];
+    E_Float minB[3];  E_Float maxB[3];
+    E_Int ret=0; E_Int indp=0; 
+    E_Float rx, ry, rz, rad;
+    vector<E_Int> indicesBB; // liste des indices des facettes intersectant la bbox
 
-    // calcul de la bounding box de la sphere de rayon PP'
-    rx = pt[0]-fx2[indp]; ry = pt[1]-fy2[indp]; rz = pt[2]-fz2[indp];
-    rad = sqrt(rx*rx+ry*ry+rz*rz);
-    minB[0] = pt[0]-rad; minB[1] = pt[1]-rad; minB[2] = pt[2]-rad;
-    maxB[0] = pt[0]+rad; maxB[1] = pt[1]+rad; maxB[2] = pt[2]+rad;
-    bbtree.getOverlappingBoxes(minB, maxB, indicesBB);
+    #pragma omp for
+    for (E_Int ind = 0; ind < npts; ind++)
+    {
+      // recherche du pt le plus proche P' de P
+      pt[0] = fx[ind]; pt[1] = fy[ind]; pt[2] = fz[ind];
+      indp = kdt.getClosest(pt);
 
-    ret = projectOrthoPrecond(fx[ind], fy[ind], fz[ind], 
-                              fx2, fy2, fz2, indicesBB, cn2, xo, yo, zo);
-    if (ret != -1) {fx[ind] = xo; fy[ind] = yo; fz[ind] = zo;}
-    indicesBB.clear();
+      // calcul de la bounding box de la sphere de rayon PP'
+      rx = pt[0]-fx2[indp]; ry = pt[1]-fy2[indp]; rz = pt[2]-fz2[indp];
+      rad = sqrt(rx*rx+ry*ry+rz*rz);
+      minB[0] = pt[0]-rad; minB[1] = pt[1]-rad; minB[2] = pt[2]-rad;
+      maxB[0] = pt[0]+rad; maxB[1] = pt[1]+rad; maxB[2] = pt[2]+rad;
+      bbtree.getOverlappingBoxes(minB, maxB, indicesBB);
+
+      ret = projectOrthoPrecond(fx[ind], fy[ind], fz[ind], 
+                                fx2, fy2, fz2, indicesBB, cn2, xo, yo, zo,
+                                p0, p1, p2, p);
+      if (ret != -1) {fx[ind] = xo; fy[ind] = yo; fz[ind] = zo;}
+      indicesBB.clear();
+    }
   }
+  // delete boxes
   E_Int size = boxes.size();
   for (E_Int v = 0; v < size; v++) delete boxes[v];
 }

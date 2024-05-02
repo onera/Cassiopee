@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -46,7 +46,7 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
 {
   PyObject* array; PyObject* deltas;
   E_Float beta;
-  if (!PYPARSETUPLEF(args,"OOd", "OOf",
+  if (!PYPARSETUPLE_(args, OO_ R_,
                      &array, &deltas, &beta))
     return NULL;
 
@@ -259,10 +259,10 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
     
     // deformation vector computation for each node 
     // detection of the nearest surface point
-    if ( dir == 1 || dir == 2)
+    if (dir == 1 || dir == 2)
     {
       noi = 0;
-      if ( dir == 1) { shift0 = 0; shift1 = im-1;}
+      if (dir == 1) { shift0 = 0; shift1 = im-1;}
       else { shift0 = im-1; shift1 = 0;}
 
       for(E_Int j=0; j<jm; j++)
@@ -291,13 +291,13 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
         noi++;
       }
     }//dir=1 or 2
-    else if ( dir == 3 || dir == 4)
+    else if (dir == 3 || dir == 4)
     {
       noi = 0;
-      if ( dir == 3) {shift0 = 0; shift1 = (jm-1)*im;}
+      if (dir == 3) {shift0 = 0; shift1 = (jm-1)*im;}
       else { shift0 = (jm-1)*im; shift1 = 0;}
 
-      for(E_Int i=0; i<im; i++)
+      for(E_Int i=0; i < im; i++)
       {
         ind = i+shift0;
         indw = ptrIndices[noi];
@@ -312,7 +312,7 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
         AMORTI;
 
         // Lateral borders - pas tres joli...
-        if ( i == 0 || i == im-1)
+        if (i == 0 || i == im-1)
         {
           for (E_Int j = 1; j < jm-1; j++)
           {
@@ -340,11 +340,13 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
     ptrIndices=vectOfIndices[4].begin();
     noi=0;
     for(E_Int j=0; j < jm; j++)
+    { 
       for (E_Int i = 0; i < im; i++)
       { 
         ind = i+j*im;
         BLOCK;
       }
+    } 
     distmax = distmaxloc; dir = 5;
 
     //k=km
@@ -353,12 +355,14 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
     ok = 1; noi=0;
     E_Int imjm = im*jm;
     for (E_Int j = 0; j < jm; j++)
+    { 
       for (E_Int i = 0; i < im; i++)
       {      
         ind = i+j*im+(km-1)*imjm;
         BLOCK;
         if (distmaxloc > distmax) {ok = -1; break;}
       }
+    } 
     if (distmaxloc < distmax && ok == 1) {distmax = distmaxloc; dir=6;}
 
     //i=1
@@ -366,12 +370,14 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
     ptrIndices=vectOfIndices[0].begin();
     ok = 1; noi=0;
     for (E_Int k = 0; k < km; k++)
+    { 
       for (E_Int j = 0; j < jm; j++)
       {      
         ind = j*im+k*imjm;
         BLOCK;
         if (distmaxloc > distmax) {ok = -1; break;}
       }
+    } 
     if (distmaxloc < distmax && ok == 1) {distmax = distmaxloc; dir=1;}
 
     //i=im
@@ -379,12 +385,14 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
     ptrIndices=vectOfIndices[1].begin();
     ok = 1; noi=0;
     for (E_Int k = 0; k < km; k++)
+    { 
       for (E_Int j = 0; j < jm; j++)
       {      
         ind = im-1+j*im+k*imjm;
         BLOCK;
         if (distmaxloc > distmax) {ok = -1; break;}
       }
+    } 
     if (distmaxloc < distmax && ok == 1) {distmax = distmaxloc; dir=2;}
 
     //j=1
@@ -420,14 +428,14 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
     ptrIndices = vectOfIndices[dir-1].begin();
     // deformation vector computation for each node 
     // detection of the nearest surface point
-    if ( dir == 1 || dir == 2)
+    if (dir == 1 || dir == 2)
     {
       noi = 0;
-      if ( dir == 1) { shift0 = 0; shift1 = im-1;}
+      if (dir == 1) { shift0 = 0; shift1 = im-1;}
       else { shift0 = im-1; shift1 = 0;}
 
-      for(E_Int k=0; k<km; k++)
-        for(E_Int j=0; j<jm; j++)
+      for (E_Int k=0; k<km; k++)
+        for (E_Int j=0; j<jm; j++)
         {
           ind = shift0+j*im+k*imjm;
           indw = ptrIndices[noi];
@@ -461,7 +469,7 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
           noi++;
         }
     }//dir=1 or 2
-    else if ( dir == 3 || dir == 4)
+    else if (dir == 3 || dir == 4)
     {
       noi = 0;
       if ( dir == 3) {shift0 = 0; shift1 = (jm-1)*im;}
@@ -490,7 +498,7 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
               AMORTI;
             }
           }    
-          if ( k == 0 || k == km-1)
+          if (k == 0 || k == km-1)
           {
             for (E_Int j = 1; j < jm-1; j++)
             {
@@ -501,10 +509,10 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
           noi++;
       }
     }//dir=3 or 4
-    else if ( dir == 5 || dir == 6)
+    else if (dir == 5 || dir == 6)
     {
       noi = 0;
-      if ( dir == 5) {shift0 = 0; shift1 = (km-1)*imjm;}
+      if (dir == 5) {shift0 = 0; shift1 = (km-1)*imjm;}
       else { shift0 = (km-1)*imjm; shift1 = 0;}
       for(E_Int j=0; j<jm; j++)
         for(E_Int i=0; i<im; i++)
@@ -522,7 +530,7 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
           AMORTI;
           
           // Lateral borders - pas tres joli...
-          if ( i == 0 || i == im-1)
+          if (i == 0 || i == im-1)
           {
             for (E_Int k = 1; k < km-1; k++)
             {
@@ -530,7 +538,7 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
               AMORTI;
             }
           }    
-          if ( j == 0 || j == jm-1)
+          if (j == 0 || j == jm-1)
           {
             for (E_Int k = 1; k < km-1; k++)
             {

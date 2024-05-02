@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -34,16 +34,15 @@ PyObject* K_CONVERTER::node2Center(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Int sorted;
-  if (!PYPARSETUPLEI(args, "Ol","Oi", &array, &sorted)) return NULL;
-
+  if (!PYPARSETUPLE_(args, O_ I_, &array, &sorted)) return NULL;
 
   PyObject* tpl;
   E_Int ni, nj, nk;
   char* varString; char* eltType;
   E_Int res; 
   FldArrayF* FNode; FldArrayI* c;
-  res = K_ARRAY::getFromArray(array, varString, FNode, ni, nj, nk, 
-                              c, eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, FNode, ni, nj, nk,
+                               c, eltType);
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -64,7 +63,7 @@ PyObject* K_CONVERTER::node2Center(PyObject* self, PyObject* args)
   {
     mod = 1;
     E_Float* cellNat = FNode->begin(cellN);
-    for (E_Int ind = 0; ind < FNode->getSize(); ind++) 
+    for (E_Int ind = 0; ind < FNode->getSize(); ind++)
     {
       nature = cellNat[ind];
       if (K_FUNC::fEqualZero(nature-2.) == true) { mod = 2; break; }
@@ -72,10 +71,13 @@ PyObject* K_CONVERTER::node2Center(PyObject* self, PyObject* args)
     }
   }
 
+  E_Int nfld = FNode->getNfld();
+  E_Int api = FNode->getApi();
+  FldArrayF* FCenter;
+    
   if (res == 1)
   {
     E_Int nil=ni, njl=nj, nkl=nk;
-    E_Int nfld = FNode->getNfld();
     if (ni == 1 && nj == 1) { nil = nk-1; nkl = 1; }
     else if (ni == 1 && nk == 1) {nil = nj-1; njl = 1;}
     else
@@ -84,52 +86,59 @@ PyObject* K_CONVERTER::node2Center(PyObject* self, PyObject* args)
       if (nj != 1) njl = nj-1;
       if (nk != 1) nkl = nk-1;
     }
-    tpl = K_ARRAY::buildArray(nfld, varString, 
-                              nil, njl, nkl);
+    tpl = K_ARRAY::buildArray3(nfld, varString, nil, njl, nkl, api);
+    K_ARRAY::getFromArray3(tpl, FCenter);
 
-    E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF FCenter(nil*njl*nkl, nfld, fnp, true);
-    ret = K_LOC::node2centerStruct(*FNode, ni, nj, nk, cellN, mod, FCenter);
+    ret = K_LOC::node2centerStruct(*FNode, ni, nj, nk, cellN, mod, *FCenter);
     RELEASESHAREDS(array, FNode);
+    RELEASESHAREDS(tpl, FCenter);
     if (ret == 0) return NULL;
     return tpl;
   }
   else if (res == 2)
   {
-    E_Int ncells;
-    FldArrayF* FCenter;
-    E_Int nfld = FNode->getNfld();
-    if (strcmp(eltType, "NGON") == 0) 
+    char* eltType2 = new char[K_ARRAY::VARSTRINGLENGTH];
+    K_ARRAY::starVarString(eltType, eltType2);
+    E_Int ncells = 0;
+    E_Boolean compact = false;
+    if (api == 1) compact = true;
+    if (strcmp(eltType, "NGON") == 0)
     {
-      E_Int* cnp = c->begin();
-      E_Int sizeFN = cnp[1];  
-      ncells = cnp[sizeFN+2];
-      FCenter = new FldArrayF(ncells, nfld);
+      ncells = c->getNElts();
+      FCenter = new FldArrayF(ncells, nfld, compact);
       ret = K_LOC::node2centerNGon(*FNode, *c, *FCenter, sorted);
     }
     else if (strcmp(eltType, "NODE") == 0)
     {
       ncells = FNode->getSize();
-      FCenter = new FldArrayF(ncells, nfld);
-      E_Float* fn = FNode->begin();
-      E_Float* fc = FCenter-> begin(); 
-      for (E_Int i = 0; i < ncells*nfld; i++) fc[i] = fn[i]; 
+      FCenter = new FldArrayF(ncells, nfld, compact);
+      for (E_Int n = 1; n <= nfld; n++)
+      {
+        E_Float* fn = FNode->begin(n);
+        E_Float* fc = FCenter-> begin(n); 
+        for (E_Int i = 0; i < ncells; i++) fc[i] = fn[i];
+      }
     }
     else // autres elements basiques
     { 
-      ncells = c->getSize(); 
-      FCenter = new FldArrayF(ncells, nfld);
+      E_Int nc = c->getNConnect();
+      for (E_Int ic = 0; ic < nc; ic++)
+      { 
+        FldArrayI& cm = *(c->getConnect(ic));
+        ncells += cm.getSize();
+      }
+
+      FCenter = new FldArrayF(ncells, nfld, compact);
       ret = K_LOC::node2centerUnstruct(*FNode, *c, cellN, mod, *FCenter);
     }
-    
+        
     if (ret == 0) 
     {
       delete FCenter; RELEASESHAREDU(array, FNode, c); 
       return NULL;
     }
-    tpl = K_ARRAY::buildArray(*FCenter, varString, *c, -1, 
-                              eltType, true);
-    delete FCenter; RELEASESHAREDU(array, FNode, c);
+    tpl = K_ARRAY::buildArray3(*FCenter, varString, *c, eltType2);
+    delete[] eltType2; delete FCenter; RELEASESHAREDU(array, FNode, c);
     return tpl;
   }
   else return NULL;

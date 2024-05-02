@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -30,9 +30,7 @@ PyObject* K_POST::perlinNoise(PyObject* self,PyObject* args)
   PyObject* array;
   E_Float alpha, beta;
   E_Int n;
-  if (!PYPARSETUPLE(args,
-                    "Oddl", "Oddi",
-                    "Offl", "Offi",
+  if (!PYPARSETUPLE_(args, O_ RR_ I_,
                     &array, &alpha, &beta, &n))
   {
       return NULL;

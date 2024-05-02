@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -19,6 +19,7 @@
  
 # include "BlkInterp.h"
 # include "Def/DefCplusPlusConst.h"
+# include "String/kstring.h"
 # include <stdio.h>
 # include <stdlib.h>
 
@@ -620,7 +621,7 @@ searchInterpolationCellByJumpv(FldArrayF& coord,E_Int istart, E_Int iend,
         else
         {
           // the point is always in the cell
-          // printf("Point is always in the cell (jump = %d).\n", i);
+          // printf("Point is always in the cell (jump = " SF_D_ ").\n", i);
           jump = true;
           break;
         }     
@@ -669,8 +670,8 @@ searchInterpolationCellByJumpv(FldArrayF& coord,E_Int istart, E_Int iend,
   }
   //cerr << "Nb Jump valides : " << nbJump << endl;
 
-  printf("Nbre de points sans cellule previous: %d \n", nocell);
-  printf("Nbre de points pour recherche classique: %d\n",storeEnd);
+  printf("Nbre de points sans cellule previous: " SF_D_ " \n", nocell);
+  printf("Nbre de points pour recherche classique: " SF_D_ "\n",storeEnd);
   
   if ( storeEnd != 0 )
   {
@@ -1227,7 +1228,7 @@ getExtrapolationCoeffForCell(E_Float x, E_Float y, E_Float z,
   }
 
   // Coord of interpolation cell
-  //printf("%d %d %d: %d %d %d\n",ic,jc,kc,nic,njc,nkc);
+  //printf(SF_3D_ ": " SF_D3_ "\n",ic,jc,kc,nic,njc,nkc);
   ind = mesh.getPos(ic, jc, kc);
   E_Int icdummy,jcdummy,kcdummy;
   coordHexa(ind,nic,njc,xl,yl,zl,icdummy,jcdummy,kcdummy,xt,yt,zt);
@@ -1568,7 +1569,7 @@ getExtrapolationCoeffForCell(E_Float x, E_Float y, E_Float z,
 }
 
 //=============================================================================
-/* Calcul les coefficients d extrapolation pour le pt (x,y,z) à partir des 
+/* Calcul les coefficients d extrapolation pour le pt (x,y,z) a partir des 
    indices (ic,jc,kc) du premier point de la molecule d'interpolation.
    C'est base sur les coefficients du meilleur tetraedre.
    (ic,jc,kc) correspond au KMesh _mesh 

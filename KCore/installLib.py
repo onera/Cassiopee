@@ -6,9 +6,6 @@
 import os, shutil
 import Dist
 
-# Symlinks eventuel
-Dist.symLinks()
-
 system = Dist.getSystem()[0]
 
 if system == 'Windows':
@@ -19,36 +16,39 @@ else:
     __EXTSHARED__ = '.so'
 
 try: import KCore.installPath as K
-except: import installPath as K
+except ImportError: import installPath as K
 libPath = K.libPath
-installPathLocal = K.installPath
+prod = os.getenv("ELSAPROD")
+if prod is None: prod = 'xx'
+installPathLocal = 'build/'+prod
 
 # La librarie statique existe?
-a = os.access(installPathLocal+"/KCore/libkcore.a", os.F_OK)
+a = os.access(installPathLocal+"/libkcore.a", os.F_OK)
 if a:
-    shutil.copy(installPathLocal+"/KCore/libkcore.a", libPath+"/libkcore.a")
+    shutil.copyfile(installPathLocal+"/libkcore.a", libPath+"/libkcore.a")
 else: # Essai en dynamique
-    a = os.access(installPathLocal+"/KCore/kcore"+__EXTMODULE__, os.F_OK)
+    a = os.access(installPathLocal+"/kcore"+__EXTMODULE__, os.F_OK)
     if a:
-        shutil.copy(installPathLocal+"/KCore/kcore"+__EXTMODULE__,
-                    libPath+"/libkcore"+__EXTSHARED__) 
+        shutil.copyfile(installPathLocal+"/kcore"+__EXTMODULE__,
+                        libPath+"/libkcore"+__EXTSHARED__)
     else:
-        print "Error: kcore%s can not be found in %s."%(__EXTMODULE__,installPathLocal)
+        print("Error: kcore%s can not be found in %s."%(__EXTMODULE__,installPathLocal))
+
+installPath = K.installPath+'/KCore'
 
 # Copie aussi les .py
-shutil.copy("config.py", installPathLocal+"/KCore/config.py")
-shutil.copy("Dist.py", installPathLocal+"/KCore/Dist.py")
-shutil.copy("installPath.py", installPathLocal+"/KCore/installPath.py")
-shutil.copy("installBase.py", installPathLocal+"/KCore/installBase.py")
+shutil.copyfile("config.py", installPath+"/config.py")
+shutil.copyfile("Dist.py", installPath+"/Dist.py")
+shutil.copyfile("installPath.py", installPath+"/installPath.py")
+shutil.copyfile("installBase.py", installPath+"/installBase.py")
 
 # Ecrit les infos d'install
-import Dist
 Dist.writeBuildInfo()
-shutil.copy("buildInfo.py", installPathLocal+"/KCore/buildInfo.py")
+shutil.copyfile("buildInfo.py", installPath+"/buildInfo.py")
 
 # Ecrit les fichiers d'environnement
 Dist.writeEnvs()
 
 # Installe la licence
 f = open('KCore/installKey.py'); a = f.read(); f.close()
-exec a
+exec(a)

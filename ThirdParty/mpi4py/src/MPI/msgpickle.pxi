@@ -124,7 +124,7 @@ cdef class Pickle:
         n[0] = downcast(PyBytes_Size(buf))
         return buf
 
-    cdef object alloc(self, void **p, int n):
+    cdef object alloc(self, void **p, Py_ssize_t n):
         if n == 0:
             p[0] = NULL
             return None
@@ -176,7 +176,7 @@ cdef class Pickle:
         return buf
 
     cdef object allocv(self, void **p,
-                       int n, int cnt[], int dsp[]):
+                       Py_ssize_t n, int cnt[], int dsp[]):
         cdef int i=0, d=0
         for i from 0 <= i < n:
             dsp[i] = d

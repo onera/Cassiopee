@@ -1,7 +1,6 @@
 # - axisym (pyTree) -
 import Generator.PyTree as G
 import Converter.PyTree as C
-import Transform.PyTree as T
 import Geom.PyTree as D
 import KCore.test as test
 
@@ -22,7 +21,7 @@ t = C.newPyTree(['Base', 3, a])
 test.testT(t, 2)
 
 # test BAR-array + variable
-a = D.circle( (0,0,0), 1., 20., 60., 10)
+a = D.circle((0,0,0), 1., 20., 60., 10)
 a = C.convertArray2Tetra(a)
 a = C.addVars(a, 'F'); a = C.initVars(a, 'F', F, ['CoordinateY'])
 a = D.axisym(a, (0,0,0), (0,1,0), 360., 50)

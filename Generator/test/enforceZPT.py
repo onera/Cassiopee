@@ -1,6 +1,5 @@
 # - enforceZ (pyTree)-
 import Generator.PyTree as G
-import KCore.test as test
 import Converter.PyTree as C
 
 Ni = 50; Nj = 2; Nk = 50

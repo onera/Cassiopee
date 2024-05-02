@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -27,7 +27,7 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::conformizeNGon(PyObject* self, PyObject* args)
 {
   PyObject* array; E_Float tol;
-  if (!PYPARSETUPLEF(args, "Od", "Of", &array, &tol)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ R_, &array, &tol)) return NULL;
 
   // Check array
   E_Int ni, nj, nk, res;

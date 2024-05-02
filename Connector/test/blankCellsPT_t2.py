@@ -9,10 +9,10 @@ import KCore.test as test
 surf = D.circle((0,0,0), 0.5, 20)
 
 a = G.cart((-1.,-1.,0.),(0.1,0.1,1), (20,20,1))
-a = C.addBC2Zone(a, 'ov', 'BCOverlap', 'jmin')
+C._addBC2Zone(a, 'ov', 'BCOverlap', 'jmin')
 t = C.newPyTree(['Cart',2,a])
 t[2][1] = C.addState(t[2][1], 'EquationDimension', 2)
-t = C.fillEmptyBCWith(t, 'wall', 'BCWall')
+C._fillEmptyBCWith(t, 'wall', 'BCWall')
 C._addVars(t, 'Density')
 C._initVars(t, 'centers:cellN', 1.)
 bodies = [[surf]]

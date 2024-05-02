@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -133,7 +133,7 @@ PyObject* K_CONVERTER::adaptBCFace2BCC(PyObject* self, PyObject* args)
     else if (type == -1) { if (indf>3) nQUADS++; else nTRIS++; }
     else if (type == -2) { if (indf>2) nTRIS++; else nQUADS++; }
   }
-  printf("count %d %d %d\n", nBARS, nTRIS, nQUADS);
+  printf("count " SF_D3_ "\n", nBARS, nTRIS, nQUADS);
   PyObject* tplB = K_NUMPY::buildNumpyArray(nBARS*2, 1, 1, 1);
   PyObject* tplT = K_NUMPY::buildNumpyArray(nTRIS*3, 1, 1, 1);
   PyObject* tplQ = K_NUMPY::buildNumpyArray(nQUADS*4, 1, 1, 1);
@@ -148,7 +148,7 @@ PyObject* K_CONVERTER::adaptBCFace2BCC(PyObject* self, PyObject* args)
     indFace = faces[i]-1;
     inde = indFace / nfaces;
     indf = indFace - inde*nfaces;
-    printf("inde %d %d\n", inde, indf);
+    printf("inde " SF_D2_ "\n", inde, indf);
     if (type == 1) // BARS
     {
       for (E_Int f = 0; f < 2; f++) 

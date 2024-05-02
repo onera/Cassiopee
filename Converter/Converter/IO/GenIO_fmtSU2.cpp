@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -23,7 +23,9 @@
 # include <stdio.h>
 # include "GenIO.h"
 # include "Array/Array.h"
+# include "String/kstring.h"
 # include <vector>
+# include <unordered_map>
 # include "Def/DefFunction.h"
 # include "Connect/connect.h"
 
@@ -61,13 +63,13 @@ E_Int K_IO::GenIO::su2read(
   res = readInt(ptrFile, ti, -1);
   E_Int dim = ti;
   if (dim != 2 && dim != 1 && dim != 3)
-    printf("Warning: su2read: dimension is strange (%d).\n", ti);
+    printf("Warning: su2read: dimension is strange (" SF_D_ ").\n", ti);
 
   // Lecture du nombre d'elements
   res = readGivenKeyword(ptrFile, "NELEM=");
   res = readInt(ptrFile, ti, -1);
   E_Int ne = ti;
-  //printf("ne=%d, res=%d\n", ne, res);
+  //printf("ne=" SF_D_ ", res=" SF_D_ "\n", ne, res);
 
   //===========================================================================
   // Lecture polyedrique
@@ -250,7 +252,8 @@ E_Int K_IO::GenIO::su2read(
         res = readInt(ptrFile, ti, -1);
         res = readInt(ptrFile, ti, -1);
         res = readInt(ptrFile, ti, -1);
-        
+        res = readInt(ptrFile, ti, -1);
+        res = readInt(ptrFile, ti, -1);
         break;
 
       case 13: // PENTA
@@ -299,7 +302,7 @@ E_Int K_IO::GenIO::su2read(
   while (c < ne)
   { 
     res = readInt(ptrFile, ti, -1); // type d'element
-    //printf("%d\n", ti);
+    //printf(SF_D_ "\n", ti);
     switch (ti)
     { 
       case 3: //BAR
@@ -339,6 +342,8 @@ E_Int K_IO::GenIO::su2read(
         res = readInt(ptrFile, ti, -1);
         res = readInt(ptrFile, ti, -1);
         res = readInt(ptrFile, ti, -1);
+        res = readInt(ptrFile, ti, -1);
+        res = readInt(ptrFile, ti, -1);
         break;
 
       case 13: // PENTA
@@ -368,14 +373,14 @@ E_Int K_IO::GenIO::su2read(
   FldArrayI *cBAR, *cTRI, *cQUAD, *cTETRA, *cPENTA, *cPYRA, *cHEXA;
   E_Int *cBAR1, *cBAR2, *cTRI1, *cTRI2, *cTRI3, *cQUAD1, *cQUAD2;
   E_Int *cQUAD3, *cQUAD4, *cTETRA1, *cTETRA2, *cTETRA3, *cTETRA4;
-  E_Int *cHEXA1, *cHEXA2, *cHEXA3, *cHEXA4, *cHEXA5, *cHEXA6;
+  E_Int *cHEXA1, *cHEXA2, *cHEXA3, *cHEXA4, *cHEXA5, *cHEXA6, *cHEXA7, *cHEXA8;
   E_Int *cPENTA1, *cPENTA2, *cPENTA3, *cPENTA4, *cPENTA5, *cPENTA6;
   E_Int *cPYRA1, *cPYRA2, *cPYRA3, *cPYRA4, *cPYRA5;
   cBAR1 = NULL; cBAR2 = NULL; cTRI1 = NULL; cTRI2 = NULL; cTRI3 = NULL;
   cQUAD1 = NULL; cQUAD2 = NULL; cQUAD3 = NULL; cQUAD4 = NULL;
   cTETRA1 = NULL; cTETRA2 = NULL; cTETRA3 = NULL; cTETRA4 = NULL;
   cHEXA1 = NULL; cHEXA2 = NULL; cHEXA3 = NULL; cHEXA4 = NULL;
-  cHEXA5 = NULL; cHEXA6 = NULL;
+  cHEXA5 = NULL; cHEXA6 = NULL; cHEXA7 = NULL; cHEXA8 = NULL;
   cPENTA1 = NULL; cPENTA2 = NULL; cPENTA3 = NULL; cPENTA4 = NULL;
   cPENTA5 = NULL; cPENTA6 = NULL;
   cPYRA1 = NULL; cPYRA2 = NULL; cPYRA3 = NULL; cPYRA4 = NULL; cPYRA5 = NULL;
@@ -404,10 +409,11 @@ E_Int K_IO::GenIO::su2read(
   }
   if (HEXAS > 0) 
   {
-    cHEXA = new FldArrayI(HEXAS, 6);
+    cHEXA = new FldArrayI(HEXAS, 8);
     cHEXA1 = cHEXA->begin(1); cHEXA2 = cHEXA->begin(2);
     cHEXA3 = cHEXA->begin(3); cHEXA4 = cHEXA->begin(4);
     cHEXA5 = cHEXA->begin(5); cHEXA6 = cHEXA->begin(6);
+    cHEXA7 = cHEXA->begin(7); cHEXA8 = cHEXA->begin(8);
   }
   if (PENTAS > 0) 
   {
@@ -466,6 +472,8 @@ E_Int K_IO::GenIO::su2read(
         res = readInt(ptrFile, ti, -1); cHEXA4[HEXAS] = ti+1;
         res = readInt(ptrFile, ti, -1); cHEXA5[HEXAS] = ti+1;
         res = readInt(ptrFile, ti, -1); cHEXA6[HEXAS] = ti+1;
+        res = readInt(ptrFile, ti, -1); cHEXA7[HEXAS] = ti+1;
+        res = readInt(ptrFile, ti, -1); cHEXA8[HEXAS] = ti+1;
         HEXAS++;
         break;
 
@@ -495,7 +503,7 @@ E_Int K_IO::GenIO::su2read(
   res = readGivenKeyword(ptrFile, "NPOIN=");
   res = readInt(ptrFile, ti, -1);
   E_Int np = ti;
-  //printf("np %d - res=%d\n", np, res);
+  //printf("np " SF_D_ " - res=" SF_D_ "\n", np, res);
   // skip - parfois il semble y avoir un autre entier
   if (res == 1) skipLine(ptrFile);
   FldArrayF f(np, 3); E_Float fx, fy, fz;
@@ -520,7 +528,7 @@ E_Int K_IO::GenIO::su2read(
       res = readDouble(ptrFile, fz, -1);
       res = readInt(ptrFile, ti, -1);
     }
-    //printf("%d\n", res); 
+    //printf(SF_D_ "\n", res); 
     if (res == 1) skipLine(ptrFile);
     f(ti,1)= fx; f(ti,2) = fy; f(ti,3) = fz;
     //printf("%f %f %f\n", f(ti,1), f(ti,2), f(ti,3));
@@ -578,13 +586,13 @@ E_Int K_IO::GenIO::su2read(
   }
 
   // Cree le nom de zone
-  for (unsigned int i=0; i < unstructField.size(); i++)
+  for (size_t i=0; i < unstructField.size(); i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone%d", i);
+    sprintf(zoneName, "Zone%zu", i);
     zoneNames.push_back(zoneName);
   }
-  //printf("%d %d\n", unstructField.size(), connect.size());
+  //printf(SF_D2_ "\n", unstructField.size(), connect.size());
 
   varString = new char [8];
   strcpy(varString, "x,y,z");
@@ -649,7 +657,7 @@ E_Int K_IO::GenIO::su2read(
 
   KFSEEK(ptrFile, pos, SEEK_SET);
   res = readGivenKeyword(ptrFile, "MARKER_TAG=");
-  //printf("nafectot=%d\n", nfacetot);
+  //printf("nafectot=" SF_D_ "\n", nfacetot);
   char* names = new char [BUFSIZE*nfacetot];
   BCNames.push_back(names);
   FldArrayI* faceList = new FldArrayI (nfacetot);
@@ -662,11 +670,11 @@ E_Int K_IO::GenIO::su2read(
   while (res == 1) // trouve des BCS
   {
     res = readWord(ptrFile, buf);
-    lenbuf = strlen(buf); //printf("%s %d\n", buf, lenbuf);
+    lenbuf = strlen(buf); //printf("%s " SF_D_ "\n", buf, lenbuf);
 
     res = readGivenKeyword(ptrFile, "MARKER_ELEMS=");
     res = readInt(ptrFile, nfaces, -1);
-    //printf("%s %d\n", buf, nfaces);
+    //printf("%s " SF_D_ "\n", buf, nfaces);
 
     for (E_Int i = 0; i < nfaces; i++)
     { 
@@ -680,7 +688,7 @@ E_Int K_IO::GenIO::su2read(
           res = readInt(ptrFile, inds[0], -1);
           res = readInt(ptrFile, inds[1], -1);
           indf = K_CONNECT::identifyFace(inds, 2, cVF);
-          facep[c] = std::max(indf,1);
+          facep[c] = std::max(indf,E_Int(1));
           break;
 
         case 5: // TRI
@@ -688,7 +696,7 @@ E_Int K_IO::GenIO::su2read(
           res = readInt(ptrFile, inds[1], -1);
           res = readInt(ptrFile, inds[2], -1);
           indf = K_CONNECT::identifyFace(inds, 3, cVF);
-          facep[c] = std::max(indf,1);
+          facep[c] = std::max(indf,E_Int(1));
           break;
 
         case 9: // QUAD
@@ -697,7 +705,7 @@ E_Int K_IO::GenIO::su2read(
           res = readInt(ptrFile, inds[2], -1);
           res = readInt(ptrFile, inds[3], -1);
           indf = K_CONNECT::identifyFace(inds, 4, cVF);
-          facep[c] = std::max(indf,1);
+          facep[c] = std::max(indf,E_Int(1));
           break;
       }
       if (res == 1) skipLine(ptrFile);
@@ -705,7 +713,307 @@ E_Int K_IO::GenIO::su2read(
     }
     res = readGivenKeyword(ptrFile, "MARKER_TAG=");
   }
-  //printf("final: %d %d\n", c, nfacetot); 
+  //printf("final: " SF_D2_ "\n", c, nfacetot); 
+
+  fclose(ptrFile);
+  return 0;
+}
+
+//=============================================================================
+/* su2read
+   Lit une zone comme plusieurs zones en elements basiques en api 1
+   ou comme une zone en multiple elements en api 3.
+*/
+//=============================================================================
+E_Int K_IO::GenIO::su2read(
+  char* file, char*& varString,
+  vector<FldArrayF*>& structField,
+  vector<E_Int>& ni, vector<E_Int>& nj, vector<E_Int>& nk,
+  vector<FldArrayF*>& unstructField,
+  vector<FldArrayI*>& connect,
+  vector<vector<E_Int> >& eltType, vector<char*>& zoneNames,
+  vector<FldArrayI*>& BCFaces, vector<char*>& BCNames,
+  E_Int api)
+{
+  E_Int res; E_Int ti;
+  
+  /* File Opening */
+  FILE* ptrFile;
+  ptrFile = fopen(file, "rb");
+
+  if (ptrFile == NULL)
+  {
+    printf("Warning: su2read: cannot open file %s.\n", file);
+    return 1;
+  }
+
+  // Lecture de la dimension
+  res = readGivenKeyword(ptrFile, "NDIME=");
+  res = readInt(ptrFile, ti, -1);
+  E_Int dim = ti;
+  if (dim != 2 && dim != 1 && dim != 3)
+    printf("Warning: su2read: dimension is strange (" SF_D_ ").\n", ti);
+
+  // Lecture du nombre d'elements
+  res = readGivenKeyword(ptrFile, "NELEM=");
+  res = readInt(ptrFile, ti, -1);
+  E_Int ne = ti;
+
+  //============================================================================
+  // Lecture par elements basiques
+  //============================================================================
+  E_Int el;
+  const E_Int ncmax = 8;
+  vector<E_Int> nelts(ncmax);
+  for (E_Int i = 0; i < ncmax; i++) nelts[i] = 0;
+  vector<E_Int> tmpConnect(8*ne);
+  // indirBE: element indices for each basic element
+  vector<vector<E_Int> > indirBE(ncmax);
+
+  // Create a map between basic elements and element numbers
+  E_Int elt;
+  std::unordered_map<E_Int, E_Int> beMap;
+  beMap[3] = 1; // BAR
+  beMap[5] = 2; // TRI
+  beMap[9] = 3; // QUAD
+  beMap[10] = 4; // TETRA
+  beMap[14] = 5; // PYRA
+  beMap[13] = 6; // PENTA
+  beMap[12] = 7; // HEXA
+
+  vector<E_Int> nvpe(ncmax);
+  nvpe[1] = 2; nvpe[2] = 3; nvpe[3] = 4;
+  nvpe[4] = 4; nvpe[5] = 5; nvpe[6] = 6; nvpe[7] = 8;
+
+  E_Int c = 0;
+  while (c < ne)
+  { 
+    el = ncmax*c;
+    res = readInt(ptrFile, ti, -1); // type d'element
+    elt = beMap[ti];
+    for (E_Int j = 0; j < nvpe[elt]; j++)
+    {
+      res = readInt(ptrFile, ti, -1); tmpConnect[el+j] = ti+1;
+    }
+    indirBE[elt].push_back(c); nelts[elt]++;
+    res = readInt(ptrFile, ti, -1); // index of cell (unused here)
+    c++;
+  }
+
+  // Lecture Vertices (Global)
+  res = readGivenKeyword(ptrFile, "NPOIN=");
+  res = readInt(ptrFile, ti, -1);
+  E_Int npts = ti;
+  // skip - parfois il semble y avoir un autre entier
+  if (res == 1) skipLine(ptrFile);
+  FldArrayF f(npts, 3);
+  E_Float fx, fy, fz;
+  for (E_Int i = 0; i < npts; i++)
+  {
+    fy = 0.; fz = 0.;
+    if (dim == 1)
+    {
+      res = readDouble(ptrFile, fx, -1);
+    }
+    else if (dim == 2)
+    { 
+      res = readDouble(ptrFile, fx, -1);
+      res = readDouble(ptrFile, fy, -1);
+    }
+    else 
+    {
+      res = readDouble(ptrFile, fx, -1);
+      res = readDouble(ptrFile, fy, -1);
+      res = readDouble(ptrFile, fz, -1);
+    }
+    res = readInt(ptrFile, ti, -1);
+    if (res == 1) skipLine(ptrFile);
+    f(ti,1)= fx; f(ti,2) = fy; f(ti,3) = fz;
+  }
+
+  // Set varString and eltType
+  varString = new char [8];
+  strcpy(varString, "x,y,z");
+
+  eltType.clear();
+  if (api == 3) eltType.resize(1);
+  for (E_Int ic = 0; ic < ncmax; ic++)
+  {
+    if (nelts[ic] > 0)
+    {
+      if (api == 3) eltType[0].push_back(ic);
+      else eltType.push_back({ic});
+    }
+  }
+
+  E_Int nc; vector<E_Int> nepc;
+  vector<E_Int> tmpEltType, indirEltType(ncmax);
+  char eltString[256]; vector<E_Int> dummy(1);
+  for (E_Int ic = 0; ic < ncmax; ic++) indirEltType[ic] = -1;
+  if (api == 3)
+  {
+    nc = eltType[0].size(); nepc.resize(nc); tmpEltType.resize(nc);
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      tmpEltType[ic] = eltType[0][ic];
+      indirEltType[tmpEltType[ic]] = ic;
+    }
+    nc = 0;
+    for (E_Int ic = 0; ic < ncmax; ic++)
+      if (nelts[ic] > 0) { nepc[nc] = nelts[ic]; nc++; }
+    K_ARRAY::typeId2eltString(tmpEltType, 0, eltString, dummy);
+  }
+  else
+  {
+    nc = eltType.size(); nepc.resize(nc); tmpEltType.resize(nc);
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      tmpEltType[ic] = eltType[ic][0];
+      indirEltType[tmpEltType[ic]] = ic;
+    }
+    nc = 0;
+    for (E_Int ic = 0; ic < ncmax; ic++)
+      if (nelts[ic] > 0) { nepc[nc] = nelts[ic]; nc++; }
+    K_ARRAY::typeId2eltString(tmpEltType, 0, eltString, dummy);
+  }
+
+  PyObject* tpl = K_ARRAY::buildArray3(3, varString, npts, nepc,
+                                       eltString, 0, 3); // forcing api 3
+  FldArrayI* cn2; FldArrayF* f2;
+  K_ARRAY::getFromArray3(tpl, f2, cn2);
+
+  #pragma omp parallel
+  {
+    E_Int et, ind;
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      et = tmpEltType[ic];
+      FldArrayI& cm2 = *(cn2->getConnect(ic));
+      const vector<E_Int>& eltIds = indirBE[et];
+      #pragma omp for
+      for (E_Int i = 0; i < nepc[ic]; i++)
+      {
+        ind = 8*eltIds[i];
+        for (E_Int j = 0; j < cm2.getNfld(); j++)
+          cm2(i,j+1) = tmpConnect[ind+j];
+      }
+    }
+  }
+
+  indirBE.clear(); tmpConnect.clear();
+  delete f2;
+
+  if (api == 3)
+  {
+    FldArrayF* an = new FldArrayF(f);
+    unstructField.push_back(an);
+    connect.push_back(cn2);
+  }
+  else
+  {
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      FldArrayF* an = new FldArrayF(f);
+      unstructField.push_back(an);
+      connect.push_back(cn2->getConnect(ic));
+    }
+  }
+
+  // Cree le nom de zone
+  for (size_t i = 0; i < unstructField.size(); i++)
+  {
+    char* zoneName = new char [128];
+    sprintf(zoneName, "Zone%zu", i);
+    zoneNames.push_back(zoneName);
+  }
+
+  //====================================
+  // Lecture des conditions aux limites
+  //====================================
+  E_Int nbnds, nfaces;
+  res = readGivenKeyword(ptrFile, "NMARK=");
+  if (res == 0) { fclose(ptrFile); return 0; }
+  res = readInt(ptrFile, nbnds, -1);
+  if (nbnds == 0) { fclose(ptrFile); return 0; }
+
+  vector<vector<E_Int> > cVF(npts);
+  if (nelts[2] > 0)
+    K_CONNECT::connectEV2VF(*(cn2->getConnect(indirEltType[2])), "TRI", cVF);
+  if (nelts[3] > 0)
+    K_CONNECT::connectEV2VF(*(cn2->getConnect(indirEltType[3])), "QUAD", cVF);
+  if (nelts[4] > 0)
+    K_CONNECT::connectEV2VF(*(cn2->getConnect(indirEltType[4])), "TETRA", cVF);
+  if (nelts[5] > 0)
+    K_CONNECT::connectEV2VF(*(cn2->getConnect(indirEltType[5])), "PYRA", cVF);
+  if (nelts[6] > 0)
+    K_CONNECT::connectEV2VF(*(cn2->getConnect(indirEltType[6])), "PENTA", cVF);
+  if (nelts[7] > 0)
+    K_CONNECT::connectEV2VF(*(cn2->getConnect(indirEltType[7])), "HEXA", cVF);
+
+  E_LONG pos = KFTELL(ptrFile);
+  res = readGivenKeyword(ptrFile, "MARKER_TAG=");
+  E_Int inds[4]; E_Int indf;
+  char buf[BUFSIZE];
+
+  E_Int nfacetot = 0; res = 1;
+  while (res == 1) // compte les faces
+  {
+    res = readWord(ptrFile, buf);
+    res = readGivenKeyword(ptrFile, "MARKER_ELEMS=");
+    res = readInt(ptrFile, nfaces, -1);
+    nfacetot += nfaces;
+    
+    for (E_Int i = 0; i < nfaces; i++)
+    { 
+      res = readInt(ptrFile, ti, -1); // type d'element
+      elt = beMap[ti];
+      for (E_Int j = 0; j < nvpe[elt]; j++)
+      {
+        res = readInt(ptrFile, inds[j], -1);
+      }
+      if (res == 1) skipLine(ptrFile);
+    }
+    res = readGivenKeyword(ptrFile, "MARKER_TAG=");
+  }
+
+  KFSEEK(ptrFile, pos, SEEK_SET);
+  res = readGivenKeyword(ptrFile, "MARKER_TAG=");
+  char* names = new char [BUFSIZE*nfacetot];
+  BCNames.push_back(names);
+  FldArrayI* faceList = new FldArrayI (nfacetot);
+  BCFaces.push_back(faceList);
+  E_Int* facep = faceList->begin();
+  E_Int lenbuf;
+
+  c = 0;
+  E_Int p = 0; res = 1;
+  while (res == 1) // trouve des BCS
+  {
+    res = readWord(ptrFile, buf);
+    lenbuf = strlen(buf);
+
+    res = readGivenKeyword(ptrFile, "MARKER_ELEMS=");
+    res = readInt(ptrFile, nfaces, -1);
+
+    for (E_Int i = 0; i < nfaces; i++)
+    { 
+      for (E_Int k = 0; k < lenbuf; k++) names[k+p] = buf[k];
+      p += lenbuf; names[p] = '\0'; p++;
+
+      res = readInt(ptrFile, ti, -1); // type d'element
+      elt = beMap[ti];
+      for (E_Int j = 0; j < nvpe[elt]; j++)
+      {
+        res = readInt(ptrFile, inds[j], -1);
+      }
+      indf = K_CONNECT::identifyFace(inds, nvpe[elt], cVF);
+      facep[c] = std::max(indf, E_Int(1));
+
+      if (res == 1) skipLine(ptrFile);
+      c++;
+    }
+    res = readGivenKeyword(ptrFile, "MARKER_TAG=");
+  }
 
   fclose(ptrFile);
   return 0;
@@ -724,9 +1032,9 @@ E_Int K_IO::GenIO::su2write(
   vector<char*>& zoneNames, 
   PyObject* BCFaces)
 {
-  E_Int nzone = unstructField.size();
+  E_Int nzones = unstructField.size();
   E_Int nvalidZones = 0;
-  for (E_Int zone = 0; zone < nzone; zone++)
+  for (E_Int zone = 0; zone < nzones; zone++)
   {
     // triangles, quads, tetra, hexa supported
     if (eltType[zone] == 1 || eltType[zone] == 2 || eltType[zone] == 3 ||
@@ -734,7 +1042,7 @@ E_Int K_IO::GenIO::su2write(
         eltType[zone] == 7)
       nvalidZones++;
     else
-      printf("Warning: su2write: zone %d not written (not a valid elements in zone).", zone);
+      printf("Warning: su2write: zone " SF_D_ " not written (not a valid elements in zone).", zone);
   }
 
   if (nvalidZones == 0) return 1;
@@ -751,7 +1059,7 @@ E_Int K_IO::GenIO::su2write(
   }
   posx++; posy++; posz++;
 
-  char format1[40]; char format2[40]; char format3[40]; 
+  char format1[43]; char format2[85]; char format3[127]; 
   char dataFmtl[40];
   strcpy(dataFmtl, dataFmt);
   int l = strlen(dataFmt); 
@@ -761,14 +1069,14 @@ E_Int K_IO::GenIO::su2write(
   sprintf(format1,"\t%s ", dataFmtl);
   sprintf(format2,"\t%s \t%s ", dataFmt, dataFmtl);
   sprintf(format3,"\t%s \t%s \t%s ", dataFmt, dataFmt, dataFmtl);
-  strcat(format1,"\t%d \n");
-  strcat(format2,"\t%d \n");
-  strcat(format3,"\t%d \n");
+  strcat(format1,"\t" SF_D_ " \n");
+  strcat(format2,"\t" SF_D_ " \n");
+  strcat(format3,"\t" SF_D_ " \n");
   //printf("format=%s\n", format3);
 
   // Concatenate all vertices in one field
   E_Int size = 0;
-  for (E_Int i = 0; i < nzone; i++)
+  for (E_Int i = 0; i < nzones; i++)
   {
     size += unstructField[i]->getSize();
   }
@@ -778,7 +1086,7 @@ E_Int K_IO::GenIO::su2write(
   E_Float* v2 = v.begin(2);
   E_Float* v3 = v.begin(3);
   E_Int c = 0;
-  for (E_Int i = 0; i < nzone; i++)
+  for (E_Int i = 0; i < nzones; i++)
   {
     FldArrayF& field = *unstructField[i];
     for (E_Int n = 0; n < field.getSize(); n++)
@@ -799,7 +1107,7 @@ E_Int K_IO::GenIO::su2write(
   vector<FldArrayI*> connectPenta;
   vector<FldArrayI*> connectHexa;
 
-  for (E_Int i = 0; i < nzone; i++)
+  for (E_Int i = 0; i < nzones; i++)
   {
     FldArrayI& cn = *connect[i];
     E_Int elt = eltType[i];
@@ -891,10 +1199,10 @@ E_Int K_IO::GenIO::su2write(
         cp(n,2) = cn(n,2) + shift;
         cp(n,3) = cn(n,3) + shift;
         cp(n,4) = cn(n,4) + shift;
-        cp(n,5) = cn(n,1) + shift;
-        cp(n,6) = cn(n,2) + shift;
-        cp(n,7) = cn(n,3) + shift;
-        cp(n,8) = cn(n,4) + shift;
+        cp(n,5) = cn(n,5) + shift;
+        cp(n,6) = cn(n,6) + shift;
+        cp(n,7) = cn(n,7) + shift;
+        cp(n,8) = cn(n,8) + shift;
       }
       connectHexa.push_back(cpp);
     }
@@ -933,8 +1241,8 @@ E_Int K_IO::GenIO::su2write(
     return 1;  
   }
 
-  fprintf(ptrFile, "NDIME= %d\n", dim);
-  fprintf(ptrFile, "NELEM= %d\n", ne);
+  fprintf(ptrFile, "NDIME= " SF_D_ "\n", dim);
+  fprintf(ptrFile, "NELEM= " SF_D_ "\n", ne);
 
   c = 0;
   for (E_Int i = 0; i < connectBarSize; i++) 
@@ -942,7 +1250,8 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectBar[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
-      fprintf(ptrFile, "3 \t%d \t%d \t%d \n", cp(i,1)-1, cp(i,2)-1, c); c++;
+      fprintf(ptrFile, "3 \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \n",
+              cp(i,1)-1, cp(i,2)-1, c); c++;
     }
   }
 
@@ -951,7 +1260,7 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectTri[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
-      fprintf(ptrFile, "5 \t%d \t%d \t%d \t%d \n", 
+      fprintf(ptrFile, "5 \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, c); c++;
     }
   }
@@ -961,7 +1270,7 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectQuad[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
-      fprintf(ptrFile, "9 \t%d \t%d \t%d \t%d \t%d \n", 
+      fprintf(ptrFile, "9 \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, c); c++;
     }
   }
@@ -971,7 +1280,7 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectTetra[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
-      fprintf(ptrFile, "10 \t%d \t%d \t%d \t%d \t%d \n", 
+      fprintf(ptrFile, "10 \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, c); c++;
     }
   }
@@ -981,7 +1290,7 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectPyra[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
-      fprintf(ptrFile, "14 \t%d \t%d \t%d \t%d \t%d \t%d \n", 
+      fprintf(ptrFile, "14 \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, cp(i,5)-1, c); c++;
     }
   }
@@ -991,7 +1300,7 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectPenta[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
-      fprintf(ptrFile, "13 \t%d \t%d \t%d \t%d \t%d \t%d \t%d \n", 
+      fprintf(ptrFile, "13 \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, 
               cp(i,5)-1, cp(i,6)-1, c); c++;
     }
@@ -1002,15 +1311,15 @@ E_Int K_IO::GenIO::su2write(
     FldArrayI& cp = *connectHexa[i];
     for (E_Int i = 0; i < cp.getSize(); i++)
     {
-      fprintf(ptrFile, "12 \t%d \t%d \t%d \t%d \t%d \t%d \t%d \n", 
+      fprintf(ptrFile, "12 \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \t" SF_D_ " \n", 
               cp(i,1)-1, cp(i,2)-1, cp(i,3)-1, cp(i,4)-1, 
-              cp(i,5)-1, cp(i,6)-1, c); c++;
+              cp(i,5)-1, cp(i,6)-1, cp(i,7)-1, cp(i,8)-1, c); c++;
     }
   }
   
   // Vertices
   c = 0;
-  fprintf(ptrFile, "NPOIN= %d\n", v.getSize());
+  fprintf(ptrFile, "NPOIN= " SF_D_ "\n", v.getSize());
   if (dim == 1)
   {
     for (E_Int i = 0; i < v.getSize(); i++)
@@ -1046,12 +1355,12 @@ E_Int K_IO::GenIO::su2write(
     IMPORTNUMPY;
     shift = 0;
     E_Int face[6][4];
-    for (E_Int i = 0; i < nzone; i++)
+    for (E_Int i = 0; i < nzones; i++)
     {
       FldArrayI& cn = *connect[i];
       E_Int elt = eltType[i];
       //E_Int ne = cn.getSize();
-      // nf: nbre de faces, nn : nbre de noeud par face
+      // nf: nbre de faces, nn: nbre de noeuds par face
       E_Int eltBnd = 1; E_Int nf = 1; E_Int nn = 1;
       switch (elt)
       {
@@ -1104,43 +1413,364 @@ E_Int K_IO::GenIO::su2write(
       }
       PyObject* BCs = PyList_GetItem(BCFaces, i);
       E_Int size = PyList_Size(BCs);
-      fprintf(ptrFile, "NMARK= %d\n", size/2);
+      fprintf(ptrFile, "NMARK= " SF_D_ "\n", size/2);
       for (E_Int j = 0; j < size/2; j++) // marker differents
       {
-        char* name = PyString_AsString(PyList_GetItem(BCs, 2*j)); 
+        char* name = NULL;
+        PyObject* o = PyList_GetItem(BCs, 2*j);
+        if (PyString_Check(o)) name = PyString_AsString(o);
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyUnicode_Check(o)) name = (char*)PyUnicode_AsUTF8(o);
+#endif
         fprintf(ptrFile, "MARKER_TAG= %s\n", name);
         PyArrayObject* array = (PyArrayObject*)PyList_GetItem(BCs, 2*j+1);
         int* ptr = (int*)PyArray_DATA(array);
         E_Int np = PyArray_SIZE(array);
-        fprintf(ptrFile, "MARKER_ELEMS= %d\n", np);
+        fprintf(ptrFile, "MARKER_ELEMS= " SF_D_ "\n", np);
         for (E_Int j = 0; j < np; j++)
         {
           indFace = ptr[j];
           inde = (indFace-1)/nf;
           nof = (indFace-1)-inde*nf;
-          fprintf(ptrFile, "%d ", eltBnd);
+          fprintf(ptrFile, SF_D_ " ", eltBnd);
           if (elt == 5) // PYRA
           {
             if (nof == 4) // base
-              for (E_Int i = 0; i < 4; i++) fprintf(ptrFile, "%d ", cn(inde,face[nof][i]));
+              for (E_Int i = 0; i < 4; i++)
+                fprintf(ptrFile, SF_D_ " ", cn(inde,face[nof][i])-1);
             else
-              for (E_Int i = 0; i < nn; i++) fprintf(ptrFile, "%d ", cn(inde,face[nof][i]));
+              for (E_Int i = 0; i < nn; i++)
+                fprintf(ptrFile, SF_D_ " ", cn(inde,face[nof][i])-1);
           }
           else if (elt == 6) // PENTA
           {
             if (nof == 3 || nof == 4) 
-              for (E_Int i = 0; i < 3; i++) fprintf(ptrFile, "%d ", cn(inde,face[nof][i]));
+              for (E_Int i = 0; i < 3; i++)
+                fprintf(ptrFile, SF_D_ " ", cn(inde,face[nof][i])-1);
             else
-              for (E_Int i = 0; i < nn; i++) fprintf(ptrFile, "%d ", cn(inde,face[nof][i]));
+              for (E_Int i = 0; i < nn; i++)
+                fprintf(ptrFile, SF_D_ " ", cn(inde,face[nof][i])-1);
           }
           else
           {
-            for (E_Int i = 0; i < nn; i++) fprintf(ptrFile, "%d ", cn(inde,face[nof][i]));
+            for (E_Int i = 0; i < nn; i++)
+              fprintf(ptrFile, SF_D_ " ", cn(inde,face[nof][i])-1);
           }
           fprintf(ptrFile, "\n");
         }
       }
       shift += unstructField[i]->getSize();
+    } // pour chaque zone
+  }
+
+  fclose(ptrFile);
+  return 0;
+}
+
+E_Int K_IO::GenIO::su2write(
+  char* file, char* dataFmt, char* varString,
+  vector<E_Int>& ni, vector<E_Int>& nj, vector<E_Int>& nk,
+  vector<FldArrayF*>& structField,
+  vector<FldArrayF*>& unstructField,
+  vector<FldArrayI*>& connect,
+  vector<vector<E_Int> >& eltType,
+  vector<char*>& zoneNames, 
+  PyObject* BCFaces)
+{
+  // Get number of valid zones, ie, zones containing element types that are all
+  // valid. NB: this format supports one zone only
+  E_Int nzones = unstructField.size();
+  E_Int nvalidZones = 0;
+  E_Int zoneId = -1;
+
+  for (E_Int zn = 0; zn < nzones; zn++)
+  {
+    vector<E_Int>& eltTypeZn = eltType[zn];
+    E_Int nvalidEltTypes = 0;
+    for (size_t ic = 0; ic < eltTypeZn.size(); ic++)
+    {
+      // All 1D, 2D, and 3D basic elements are supported
+      if (eltTypeZn[ic] >= 1 && eltTypeZn[ic] <= 7) nvalidEltTypes++;
+      else
+        printf("Warning: su2write: zone " SF_D_ " not written (not a valid element "
+               "type: " SF_D_ ").", zn, eltTypeZn[ic]);
+    }
+    if (nvalidEltTypes == (E_Int)eltTypeZn.size())
+    {
+      nvalidZones++;
+      if (zoneId == -1) zoneId = zn;
+    }
+  }
+
+  if (nvalidZones == 0) return 1;
+  else if (nvalidZones > 1)
+    printf("Warning: su2write: monozone format, only the first valid zone "
+           "will be written: zone #" SF_D_ ".\n", zoneId+1);
+
+  // All zones must have posx, posy, posz
+  E_Int posx, posy, posz;
+  posx = K_ARRAY::isCoordinateXPresent(varString);
+  posy = K_ARRAY::isCoordinateYPresent(varString);
+  posz = K_ARRAY::isCoordinateZPresent(varString);
+  if (posx == -1 || posy == -1)
+  {
+    printf("Warning: su2write: zone does not have coordinates. Not written.\n");
+    return 1;
+  }
+  posx++; posy++; posz++;
+
+  // Build format for data
+  char format1[43]; char format2[85]; char format3[127]; 
+  char dataFmtl[40];
+  strcpy(dataFmtl, dataFmt);
+  int l = strlen(dataFmt); 
+  if (dataFmt[l-1] == ' ') dataFmtl[l-1] = '\0';
+  
+  sprintf(format1,"\t%s ", dataFmtl);
+  sprintf(format2,"\t%s \t%s ", dataFmt, dataFmtl);
+  sprintf(format3,"\t%s \t%s \t%s ", dataFmt, dataFmt, dataFmtl);
+  strcat(format1,"\t" SF_D_ " \n");
+  strcat(format2,"\t" SF_D_ " \n");
+  strcat(format3,"\t" SF_D_ " \n");
+
+  // Connectivite par elts
+  E_Int npts = unstructField[zoneId]->getSize();
+  vector<FldArrayI*> connectBE(8, NULL);
+  vector<E_Int> nvpe(8);
+  nvpe[1] = 2; nvpe[2] = 3; nvpe[3] = 4;
+  nvpe[4] = 4; nvpe[5] = 5; nvpe[6] = 6; nvpe[7] = 8;
+
+  // Concatenate all vertices in one field
+  FldArrayF* vertices;
+  vertices = new FldArrayF(npts,3);
+  FldArrayF& v = *vertices;
+  vector<E_Int> posCoords; posCoords.reserve(6);
+  if (posx > 0) {posCoords.push_back(1); posCoords.push_back(posx);}
+  if (posy > 0) {posCoords.push_back(2); posCoords.push_back(posy);}
+  if (posz > 0) {posCoords.push_back(3); posCoords.push_back(posz);}
+
+  #pragma omp parallel
+  {
+    E_Int ind1, ind2;
+    
+    // Field
+    FldArrayF& field = *unstructField[zoneId];
+    if (posx > 0 && posy > 0 && posz > 0)
+    {
+      #pragma omp for
+      for (E_Int n = 0; n < field.getSize(); n++)
+      {
+        v(n,1) = field(n,posx);
+        v(n,2) = field(n,posy);
+        v(n,3) = field(n,posz);
+      }
+    }
+    else
+    {
+      #pragma omp for
+      for (E_Int n = 0; n < field.getSize(); n++)
+        for (E_Int j = 1; j <= 3; j++)
+          v(n,j) = 0.;
+
+      #pragma omp for
+      for (E_Int n = 0; n < field.getSize(); n++)
+        for (size_t j = 0; j < posCoords.size(); j+=2)
+        {
+          ind1 = posCoords[j];
+          ind2 = posCoords[j+1];
+          v(n,ind1) = field(n,ind2);
+        }
+    }
+
+    // Connectivities
+    const vector<E_Int>& eltTypeZn = eltType[zoneId];
+    for (size_t ic = 0; ic < eltTypeZn.size(); ic++)
+    {
+      E_Int elt = eltTypeZn[ic];
+      FldArrayI& cn = *connect[zoneId]->getConnect(ic);
+      FldArrayI* cpp = new FldArrayI(cn);
+      FldArrayI& cp = *cpp;
+      #pragma omp for
+      for (E_Int n = 0; n < cn.getSize(); n++)
+        for (E_Int j = 1; j <= nvpe[elt]; j++)
+          cp(n,j) = cn(n,j);
+      connectBE[elt] = cpp;
+    }
+  }
+
+  // Get dimensionality and number of elements
+  E_Int ne = 0; E_Int dim = 3;
+  for (size_t elt = 1; elt < connectBE.size(); elt++)
+  {
+    if (connectBE[elt] == NULL) continue;
+    ne += connectBE[elt]->getSize();
+  }
+    
+  if (connectBE[1] != NULL) dim = 1;
+  else if (connectBE[2] != NULL || connectBE[3] != NULL) dim = 2;
+
+  // Ecriture
+  E_Int c = 0;
+  FILE* ptrFile = fopen(file, "w");
+  if (ptrFile == NULL)
+  {
+    printf("Warning: su2write: can't open file %s.\n", file);
+    return 1;  
+  }
+
+  fprintf(ptrFile, "NDIME= " SF_D_ "\n", dim);
+  fprintf(ptrFile, "NELEM= " SF_D_ "\n", ne);
+
+  vector<E_Int> eltNoSU2(8);
+  eltNoSU2[1] = 3; eltNoSU2[2] = 5; eltNoSU2[3] = 9;
+  eltNoSU2[4] = 10; eltNoSU2[5] = 14; eltNoSU2[6] = 13; eltNoSU2[7] = 12;
+
+  for (size_t elt = 1; elt < connectBE.size(); elt++)
+  {
+    if (connectBE[elt] == NULL) continue;
+    
+    FldArrayI& cp = *connectBE[elt];
+    for (E_Int i = 0; i < cp.getSize(); i++)
+    {
+      fprintf(ptrFile, SF_D_ " \t", eltNoSU2[elt]);
+      for (E_Int j = 1; j <= nvpe[elt]; j++)
+        fprintf(ptrFile, SF_D_ " \t", cp(i,j)-1);
+      fprintf(ptrFile, SF_D_ " \n", c);
+      c++;
+    }
+  }
+  
+  // Vertices
+  c = 0;
+  fprintf(ptrFile, "NPOIN= " SF_D_ "\n", v.getSize());
+  if (dim == 1)
+  {
+    for (E_Int i = 0; i < v.getSize(); i++)
+    { fprintf(ptrFile, format1, v(i,1), c); c++; }
+  }
+  else if (dim == 2)
+  {
+    for (E_Int i = 0; i < v.getSize(); i++)
+    { fprintf(ptrFile, format2, v(i,1), v(i,2), c); c++; }
+  }
+  else if (dim == 3)
+  {
+    for (E_Int i = 0; i < v.getSize(); i++)
+    { fprintf(ptrFile, format3, v(i,1), v(i,2), v(i,3), c); c++; }
+  }
+
+  delete vertices;
+  for (size_t i = 0; i < connectBE.size(); i++)
+    delete connectBE[i];
+  connectBE.clear();
+
+  // BC (if any) // TODO rethink how BCs are build
+  E_Int BCFacesSize = 0;
+  if (PyList_Check(BCFaces) == true) BCFacesSize = PyList_Size(BCFaces);
+  if (BCFacesSize > 0) // il y a des BCs
+  {
+    E_Int indFace, inde, nof;
+    IMPORTNUMPY;
+    E_Int face[6][4];
+    for (E_Int i = 0; i < nzones; i++)
+    {
+      FldArrayI& cn = *connect[i]->getConnect(0); // TODO
+      E_Int elt = eltType[i][0];
+      //E_Int ne = cn.getSize();
+      // nf: nbre de faces, nn: nbre de noeuds par face
+      E_Int eltBnd = 1; E_Int nf = 1; E_Int nn = 1;
+      switch (elt)
+      {
+        case 2: // TRI
+          eltBnd = 3; nf = 3; nn = 2;
+          face[0][0] = 1; face[0][1] = 2;
+          face[1][0] = 2; face[1][1] = 3;
+          face[2][0] = 3; face[2][1] = 1;
+          break;
+        case 3: // QUAD
+          eltBnd = 3; nf = 4; nn = 2;
+          face[0][0] = 1; face[0][1] = 2;
+          face[1][0] = 2; face[1][1] = 3;
+          face[2][0] = 3; face[2][1] = 4;
+          face[3][0] = 4; face[3][1] = 1;
+          break;
+        case 4: // TETRA
+          eltBnd = 5; nf = 4; nn = 3;
+          face[0][0] = 1; face[0][1] = 3; face[0][2] = 2;
+          face[1][0] = 1; face[1][1] = 2; face[1][2] = 4;
+          face[2][0] = 2; face[2][1] = 3; face[2][2] = 4;
+          face[3][0] = 3; face[3][1] = 1; face[3][2] = 4;
+          break;
+        case 5: // PYRA
+          eltBnd = 5; nf = 5; nn = 3; // vary
+          face[0][0] = 1; face[0][1] = 4; face[0][2] = 3;
+          face[1][0] = 3; face[1][1] = 2; face[1][2] = 1;
+          face[2][0] = 1; face[2][1] = 2; face[2][2] = 5; 
+          face[3][0] = 2; face[3][1] = 3; face[3][2] = 5;
+          face[4][0] = 3; face[4][1] = 4; face[4][2] = 5; face[4][3] = 2;
+          break;
+        case 6: // PENTA
+          eltBnd = 5; nf = 5; nn = 4; // vary
+          face[0][0] = 1; face[0][1] = 2; face[0][2] = 5; face[0][3] = 4;
+          face[1][0] = 2; face[1][1] = 3; face[1][2] = 6; face[1][3] = 5;
+          face[2][0] = 3; face[2][1] = 1; face[2][2] = 4; face[2][3] = 6;
+          face[3][0] = 1; face[3][1] = 3; face[3][2] = 2;
+          face[4][0] = 4; face[4][1] = 5; face[4][2] = 6;
+          break; // vary
+          
+        case 7: // HEXA
+          eltBnd = 9; nf = 6; nn = 4;
+          face[0][0] = 1; face[0][1] = 4; face[0][2] = 3; face[0][3] = 2;
+          face[1][0] = 1; face[1][1] = 2; face[1][2] = 6; face[1][3] = 5;
+          face[2][0] = 2; face[2][1] = 3; face[2][2] = 7; face[2][3] = 6;
+          face[3][0] = 3; face[3][1] = 4; face[3][2] = 8; face[3][3] = 7;
+          face[4][0] = 1; face[4][1] = 5; face[4][2] = 8; face[4][3] = 4;
+          face[5][0] = 5; face[5][1] = 6; face[5][2] = 7; face[5][3] = 8;
+          break; 
+      }
+      PyObject* BCs = PyList_GetItem(BCFaces, i);
+      E_Int size = PyList_Size(BCs);
+      fprintf(ptrFile, "NMARK= " SF_D_ "\n", size/2);
+      for (E_Int j = 0; j < size/2; j++) // marker differents
+      {
+        char* name = NULL;
+        PyObject* o = PyList_GetItem(BCs, 2*j);
+        if (PyString_Check(o)) name = PyString_AsString(o);
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyUnicode_Check(o)) name = (char*)PyUnicode_AsUTF8(o);
+#endif
+        fprintf(ptrFile, "MARKER_TAG= %s\n", name);
+        PyArrayObject* array = (PyArrayObject*)PyList_GetItem(BCs, 2*j+1);
+        E_Int* ptr = (E_Int*)PyArray_DATA(array);
+        E_Int np = PyArray_SIZE(array);
+        fprintf(ptrFile, "MARKER_ELEMS= " SF_D_ "\n", np);
+        for (E_Int j = 0; j < np; j++)
+        {
+          indFace = ptr[j];
+          inde = (indFace-1)/nf;
+          nof = (indFace-1)-inde*nf;
+          fprintf(ptrFile, SF_D_ " ", eltBnd);
+          if (elt == 5) // PYRA
+          {
+            if (nof == 4) // base
+              for (E_Int i = 0; i < 4; i++) fprintf(ptrFile, SF_D_ " ", cn(inde,face[nof][i])-1);
+            else
+              for (E_Int i = 0; i < nn; i++) fprintf(ptrFile, SF_D_ " ", cn(inde,face[nof][i])-1);
+          }
+          else if (elt == 6) // PENTA
+          {
+            if (nof == 3 || nof == 4) 
+              for (E_Int i = 0; i < 3; i++) fprintf(ptrFile, SF_D_ " ", cn(inde,face[nof][i])-1);
+            else
+              for (E_Int i = 0; i < nn; i++) fprintf(ptrFile, SF_D_ " ", cn(inde,face[nof][i])-1);
+          }
+          else
+          {
+            for (E_Int i = 0; i < nn; i++) fprintf(ptrFile, SF_D_ " ", cn(inde,face[nof][i])-1);
+          }
+          fprintf(ptrFile, "\n");
+        }
+      }
     } // pour chaque zone
   }
 

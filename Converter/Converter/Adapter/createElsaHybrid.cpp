@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -31,10 +31,12 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
   PyObject* inct;
   PyObject* ox; PyObject* oy; PyObject* oz;
   E_Int axe2D, method;
-  if (!PYPARSETUPLEI(args, "OOOOOllOOO", "OOOOOiiOOO", 
+  PyObject* ESO;
+  if (!PYPARSETUPLE_(args, OOOO_ O_ II_ OOOO_, 
                      &NGon, &PE, &ict, &bcct, &inct, 
-                     &method, &axe2D, &ox, &oy, &oz))
+                     &method, &axe2D, &ox, &oy, &oz, &ESO))
     return NULL;
+
   // Check numpy NGon
   FldArrayI* cNGon;
   E_Int res = K_NUMPY::getFromNumpyArray(NGon, cNGon, true);
@@ -44,7 +46,7 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
                     "createElsaHybrid: numpy is invalid.");
     return NULL;
   }
-
+ 
   // Check numpy PE (ParentElements)
   FldArrayI* cPE;
   res = K_NUMPY::getFromNumpyArray(PE, cPE, true);
@@ -97,7 +99,17 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
   E_Int nfaces = cICT->getSize();
   E_Int* ptNGon = cNGon->begin();
   FldArrayI posFaces(nfaces);
-  K_CONNECT::getPosFacets(ptNGon, 0, nfaces, posFaces);
+
+  // Check numpy ESO (ElementStartOffSet)
+  FldArrayI* cESO;
+  if (ESO != Py_None)
+  {
+    res = K_NUMPY::getFromNumpyArray(ESO, cESO, true);
+    if (res == 1) posFaces = (*cESO);
+    else K_CONNECT::getPosFacets(ptNGon, 0, nfaces, posFaces);
+  }
+  else K_CONNECT::getPosFacets(ptNGon, 0, nfaces, posFaces);
+
   E_Int* posFacesp = posFaces.begin();
 
   //printf("here nfaces=%d\n", nfaces);
@@ -154,7 +166,7 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
         if (PED[i]*PEG[i] == 0) { peQUAD[eQUAD] = i+1; eQUAD++; }
         else { piQUAD[iQUAD] = i+1; iQUAD++; }
       }
-      else printf("Face no=%d non TRI et non QUAD (%d)\n",i,np);
+      else printf("Face no=" SF_D_ " non TRI et non QUAD (" SF_D_ ")\n",i,np);
     }
     ints = iTRI+iQUAD; exts = eTRI+eQUAD;
   }
@@ -189,7 +201,7 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
   // inverse CT
   E_Int* pICT = cICT->begin();
   E_Int* pCT = CT.begin();
-  for (E_Int i = 0; i < nfaces; i++)
+  for (E_Int i = 0; i < ints+exts; i++)
   {
     //if (pCT[i]-1 <= 0 || pCT[i]-1 > cICT->getSize())
     //{ printf("%d %d %d\n",i,pCT[i],cICT->getSize());}
@@ -278,11 +290,13 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
 
   // IndexNGONCrossTable (c'est le posFace)
   E_Int* pINCT = cINCT->begin();
-  for (E_Int i = 0; i < nfaces; i++) pINCT[i]=posFacesp[i];
+  for (E_Int i = 0; i < nfaces; i++) pINCT[i] = posFacesp[i];
 
   RELEASESHAREDN(NGon, cNGon);
   RELEASESHAREDN(PE, cPE);
   RELEASESHAREDN(ict, cICT);
   RELEASESHAREDN(bcct, cBCCT);
+  RELEASESHAREDN(inct, cINCT);
+  if (ESO != Py_None) RELEASESHAREDN(ESO, cESO);
   return Py_BuildValue("(llll)", iTRI, iQUAD, eTRI, eQUAD);
 }

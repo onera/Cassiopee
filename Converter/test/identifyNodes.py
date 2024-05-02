@@ -9,5 +9,5 @@ hook = C.createHook(a, function='nodes')
 
 # Indices des noeuds de a correspondant aux noeuds de f
 f = P.exteriorFaces(a)
-nodes = C.identifyNodes(hook, f); print nodes
+nodes = C.identifyNodes(hook, f); print(nodes)
 #>> [   1    2    3    4    5    6    7  ...]

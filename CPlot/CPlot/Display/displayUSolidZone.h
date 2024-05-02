@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -160,19 +160,24 @@
   ret4 = _pref.blanking->f(this, n4, zonep->blank, zonet);               \
   if (ret1*ret2*ret3*ret4 != 0) { PLOTQUAD2; }
 
-  int ne = zonep->ne;
-  int ne2 = 2*ne;
-  int ne3 = 3*ne;
-  int np = zonep->np;
-  
   double* x = zonep->x;
   double* y = zonep->y;
   double* z = zonep->z;
-  int* connect = zonep->connect;
+
+  E_Int np = zonep->np;
+
+  for (size_t nc = 0; nc < zonep->connect.size(); nc++) {
+
+  E_Int ne = zonep->nec[nc];
+  E_Int ne2 = 2*ne;
+  E_Int ne3 = 3*ne;
+  E_Int eltType = zonep->eltType[nc];
+  E_Int* connect = zonep->connect[nc];
   
-  if (zonep->eltType == 2) // TRI
+  if (eltType == 2) // TRI
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[0];
+    float* surfx = surfp;
     float* surfy = surfx + np;
     float* surfz = surfy + np;
     
@@ -201,9 +206,10 @@
     }
     glEnd();
   }
-  else if (zonep->eltType == 3) // QUADS
+  else if (eltType == 3) // QUADS
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[0];
+    float* surfx = surfp;
     float* surfy = surfx + np;
     float* surfz = surfy + np;
     
@@ -234,9 +240,10 @@
     }
     glEnd();
   }
-  else if (zonep->eltType == 4) // TETRA
+  else if (eltType == 4) // TETRA
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[nc];
+    float* surfx = surfp;
     float* surfy = surfx + 4*ne;
     float* surfz = surfy + 4*ne;
     
@@ -297,9 +304,10 @@
     }
     glEnd();
   }
-  else if (zonep->eltType == 5) // PENTA
+  else if (eltType == 5) // PENTA
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[nc];
+    float* surfx = surfp;
     float* surfy = surfx + 5*ne;
     float* surfz = surfy + 5*ne;
     
@@ -391,9 +399,10 @@
     }
     glEnd();
   }
-  else if (zonep->eltType == 6) // PYRA
+  else if (eltType == 6) // PYRA
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[nc];
+    float* surfx = surfp;
     float* surfy = surfx + 5*ne;
     float* surfz = surfy + 5*ne;
     
@@ -481,9 +490,10 @@
     }
     glEnd();
   }
-  else if (zonep->eltType == 7 && zonep->material != 6) // HEXA
+  else if (eltType == 7 && zonep->material != 6) // HEXA
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[nc];
+    float* surfx = surfp;
     float* surfy = surfx + 6*ne;
     float* surfz = surfy + 6*ne;
     
@@ -576,9 +586,10 @@
     }
     glEnd();
   }
-  else if (zonep->eltType == 7 && zonep->material == 6) // HEXA for SMOKE
+  else if (eltType == 7 && zonep->material == 6) // HEXA for SMOKE
   {
-    float* surfx = zonep->surf;
+    float* surfp = zonep->surf[nc];
+    float* surfx = surfp;
     float* surfy = surfx + np;
     float* surfz = surfy + np;
     
@@ -597,14 +608,15 @@
     }
     glEnd();
   }
-  else if (zonep->eltType == 10) // NGON
+  else if (eltType == 10) // NGON
   {
-    int nf = connect[0];
-    int l, nd, c;
-    float* surfx = zonep->surf;
+    E_Int nf = connect[0];
+    E_Int l, nd, c;
+    float* surfp = zonep->surf[nc];
+    float* surfx = surfp;
     float* surfy = surfx + nf;
     float* surfz = surfy + nf;
-    int next;
+    E_Int next;
 
     if (zonep->blank == 0)
     {
@@ -666,16 +678,16 @@
       for (i = 0; i < zonep->nelts2D; i++)
       {
         glBegin(GL_POLYGON);
-        int elt = zonep->posElts2D[i];
-        int* ptrelt = &connect[elt];
-        int nf = ptrelt[0];
-        int drawn = 0;
-        int prev, j, first;
+        E_Int elt = zonep->posElts2D[i];
+        E_Int* ptrelt = &connect[elt];
+        E_Int nf = ptrelt[0];
+        E_Int drawn = 0;
+        E_Int prev, j, first;
 
-        int face = ptrelt[1]-1;
+        E_Int face = ptrelt[1]-1;
         glNormal3f(surfx[face], surfy[face], surfz[face]);
         
-        int* ptrface = &connect[zonep->posFaces[face]];
+        E_Int* ptrface = &connect[zonep->posFaces[face]];
         n1 = ptrface[1]-1; n2 = ptrface[2]-1;
 
         face = ptrelt[2]-1;
@@ -753,7 +765,7 @@
         nd = connect[c]; 
         if (nd > 4) // elt 3D
         {
-          int blank = 0;
+          E_Int blank = 0;
           for (l = 0; l < nd; l++)
           {
             n1 = connect[c+l+1]-1;
@@ -778,15 +790,15 @@
       // Elements 2D
       for (i = 0; i < zonep->nelts2D; i++)
       {
-        int elt = zonep->posElts2D[i];
-        int* ptrelt = &connect[elt];
-        int nf = ptrelt[0];
+        E_Int elt = zonep->posElts2D[i];
+        E_Int* ptrelt = &connect[elt];
+        E_Int nf = ptrelt[0];
 
-        int blank = 0;
-        for (int j = 1; j <= nf; j++)
+        E_Int blank = 0;
+        for (E_Int j = 1; j <= nf; j++)
         {
-          int face = ptrelt[1]-1;
-          int* ptrface = &connect[zonep->posFaces[face]];
+          E_Int face = ptrelt[1]-1;
+          E_Int* ptrface = &connect[zonep->posFaces[face]];
           n1 = ptrface[1]-1;
           n2 = ptrface[2]-1;
           if (_pref.blanking->f(this, n1, zonep->blank, zonet) == 0)
@@ -797,15 +809,15 @@
         if (blank == 0)
         {
           glBegin(GL_POLYGON);
-          int elt = zonep->posElts2D[i];
-          int* ptrelt = &connect[elt];
-          int nf = ptrelt[0];
-          int drawn = 0;
-          int prev, j, first;
+          E_Int elt = zonep->posElts2D[i];
+          E_Int* ptrelt = &connect[elt];
+          E_Int nf = ptrelt[0];
+          E_Int drawn = 0;
+          E_Int prev, j, first;
 
-          int face = ptrelt[1]-1;
+          E_Int face = ptrelt[1]-1;
           glNormal3f(surfx[face], surfy[face], surfz[face]);
-          int* ptrface = &connect[zonep->posFaces[face]];
+          E_Int* ptrface = &connect[zonep->posFaces[face]];
           n1 = ptrface[1]-1; first = n1;
           n2 = ptrface[2]-1;
           glVertex3d(x[n1], y[n1], z[n1]);
@@ -838,7 +850,7 @@
   }
 
   // Pour les BAR
-  if (zonep->eltType == 1)
+  if (eltType == 1)
   {
     glPolygonOffset(-1.,-10.); // force offset
     glBegin(GL_LINES);
@@ -872,19 +884,20 @@
   }
 
   // Pour les NGONS 1D
-  if (zonep->eltType == 10 && zonep->nelts1D > 0)
+  if (eltType == 10 && zonep->nelts1D > 0)
   {
+    E_Int elt, face1, face2, posface1, posface2;
     glBegin(GL_LINES);
     if (zonep->blank == 0)
     {
       for (i = 0; i < zonep->nelts1D; i++)
       {
-        int elt = zonep->posElts1D[i];
-        int* ptrelt = &connect[elt];
-        int face1 = ptrelt[1]-1;
-        int face2 = ptrelt[2]-1;
-        int posface1 = zonep->posFaces[face1];
-        int posface2 = zonep->posFaces[face2];
+        elt = zonep->posElts1D[i];
+        E_Int* ptrelt = &connect[elt];
+        face1 = ptrelt[1]-1;
+        face2 = ptrelt[2]-1;
+        posface1 = zonep->posFaces[face1];
+        posface2 = zonep->posFaces[face2];
         n1 = connect[posface1+1]-1;
         n2 = connect[posface2+1]-1;
         glVertex3d(x[n1], y[n1], z[n1]);
@@ -895,12 +908,12 @@
     {
       for (i = 0; i < zonep->nelts1D; i++)
       {
-        int elt = zonep->posElts1D[i];
-        int* ptrelt = &connect[elt];
-        int face1 = ptrelt[1]-1;
-        int face2 = ptrelt[2]-1;
-        int posface1 = zonep->posFaces[face1];
-        int posface2 = zonep->posFaces[face2];
+        elt = zonep->posElts1D[i];
+        E_Int* ptrelt = &connect[elt];
+        face1 = ptrelt[1]-1;
+        face2 = ptrelt[2]-1;
+        posface1 = zonep->posFaces[face1];
+        posface2 = zonep->posFaces[face2];
         n1 = connect[posface1+1]-1;
         n2 = connect[posface2+1]-1;
         ret1 = _pref.blanking->f(this, n1, zonep->blank, zonet);
@@ -914,3 +927,5 @@
     }
     glEnd();
   }
+
+  } // connects

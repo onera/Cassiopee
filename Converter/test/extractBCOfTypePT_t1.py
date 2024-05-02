@@ -1,6 +1,7 @@
 # - extractBCOfType (pyTree) -
 import Converter.PyTree as C
 import Generator.PyTree as G
+import Converter.Internal as Internal
 import KCore.test as test
 
 # Sur une zone structure + champ en noeuds + champ en centres
@@ -50,7 +51,7 @@ a = G.cartNGon( (0,0,0), (1,1,1), (10,10,10) )
 subzone = G.cartNGon( (0,0,0), (1,1,1), (10,10,1) )
 hook = C.createHook(a, function='faceCenters')
 ids = C.identifyElements(hook, subzone)
-a = C.addBC2Zone(a, 'wall', 'BCWall', faceList=ids)
+C._addBC2Zone(a, 'wall', 'BCWall', faceList=ids)
 ext = C.extractBCOfType(a, 'BCWall')
 test.testT(ext, 5)
 
@@ -62,3 +63,23 @@ ids = C.identifyElements(hook, subzone)
 a = C.addBC2Zone(a, 'wall', 'BCWall', faceList=ids)
 ext = C.extractBCOfType(a, 'BCWall')
 test.testT(ext, 6)
+
+# BC sur un BE + connectivite QUAD de boundary
+a = G.cartHexa((0,0,0), (1,1,1), (10,10,10)) 
+b = G.cartHexa((0,0,0), (1,1,1), (10,10,1))
+C._addBC2Zone(a, 'wall', 'BCWall', subzone=b)
+bc = Internal.getNodeFromType(a,'BC_t')
+ER = Internal.getNodeFromName(bc,'ElementRange')
+ER = Internal.getValue(ER)[0]
+ermin = ER[0]
+ermax = ER[1]
+Internal._rmNodesFromName(bc,'ElementRange')
+import numpy
+nfaces = ermax-ermin+1
+r = numpy.zeros(nfaces, dtype=Internal.E_NpyInt)
+for i in range(nfaces): r[i]=ermin+i
+Internal._createChild(bc, 'GridLocation', 'GridLocation_t', value='FaceCenter')
+r = r.reshape((1,r.size), order='F')
+bc[2].append([Internal.__FACELIST__, r, [], 'IndexArray_t'])
+ext = C.extractBCOfType(a, 'BCWall')
+test.testT(ext, 7)

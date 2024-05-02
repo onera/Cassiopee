@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -45,8 +45,7 @@ PyObject* K_POST::coarsen(PyObject* self, PyObject* args)
   PyObject* surf; PyObject* aindic;
   E_Float eps, argqual;
   
-  if (!PYPARSETUPLEF(args,
-                    "OOdd", "OOff",
+  if (!PYPARSETUPLE_(args, OO_ RR_,
                     &surf, &aindic, &argqual, &eps))
   {
       return NULL;
@@ -537,12 +536,14 @@ void K_POST::selectBestCandidatesForMerge(
           p2[0] = xt[indt2]; p2[1] = yt[indt2]; p2[2] = zt[indt2];
           p3[0] = xt[indt3]; p3[1] = yt[indt3]; p3[2] = zt[indt3];
           E_Float r1 = K_COMPGEOM::inscribedCircleRadius(p1, p2, p3);
-          E_Float r2 = K_COMPGEOM::circumCircleRadius(p1, p2, p3);
-          if ( K_FUNC::fEqualZero(r2) == false)
-          { E_Float crit = r1/r2; if ( crit < minratio ) minratio = crit; }
+          E_Float r2 = K_COMPGEOM::circumCircleRadius(p1[0], p1[1], p1[2], 
+                                                      p2[0], p2[1], p2[2],
+                                                      p3[0], p3[1], p3[2]);
+          if (K_FUNC::fEqualZero(r2) == false)
+          { E_Float crit = r1/r2; if (crit < minratio) minratio = crit; }
         }
       }//parcours de ts les triangles de la triangulation candidate
-      if ( minratio > best)
+      if (minratio > best)
       {
         best = minratio; indo1 = ind1; indo2 = ind2;
       }

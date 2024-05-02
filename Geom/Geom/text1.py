@@ -759,6 +759,30 @@ def RIGHTBRACE():
                        ])
     return [a], 1
 
+
+def EACUTE():
+    a, s = E()
+    a = Transform.contract(a, (0,0,0), (1,0,0), (0,0,1), 0.6)
+    return a, s
+
+def ELOW():
+    a, s = E()
+    a = Transform.contract(a, (0,0,0), (1,0,0), (0,0,1), 0.6)
+    return a, s
+
+def CCEDILLE():
+    a, s = C()
+    a = Transform.contract(a, (0,0,0), (1,0,0), (0,0,1), 0.6)
+    return a, s
+
+def INTERROGATION():
+    return RIGHTBRACE()
+
+def ALOW():
+    a, s = A()
+    a = Transform.contract(a, (0,0,0), (1,0,0), (0,0,1), 0.6)
+    return a, s
+  
 def a():
     a, s = A()
     a = Transform.contract(a, (0,0,0), (1,0,0), (0,0,1), 0.6)

@@ -1,0 +1,156 @@
+/*
+
+
+
+--------- NUGA v1.0
+
+
+
+*/
+//Authors : Sâm Landier (sam.landier@onera.fr)
+
+#include "Nuga/include/BooleanOperator.h"
+#include "Nuga/include/MeshTool.h"
+
+#ifdef DEBUG_BOOLEAN
+#include "IO/io.h"
+#endif
+
+namespace NUGA
+{
+  
+//
+BooleanOperator::BooleanOperator
+(const K_FLD::FloatArray& coord1, const K_FLD::IntArray& connect1,
+ const K_FLD::FloatArray& coord2, const K_FLD::IntArray& connect2, E_Float tolerance,
+ ConformizerRoot* c, int itermax):_conformizer(c), _initialized(false)
+{
+  E_Int                             ret(1), ROWS(connect1.rows());
+  std::vector<E_Int>                ancestors;
+  K_FLD::FloatArray                 coord(coord1);
+  K_FLD::IntArray                   connect(connect1);
+  K_FLD::IntArray::const_iterator   pS;
+  std::vector<E_Int>                color(connect1.cols(), 0);
+  
+  //Fast return.
+  if (coord1.cols() * connect1.cols() * coord2.cols() * connect2.cols()== 0)
+    return; // One input container is empty.
+  
+#ifdef DEBUG_BOOLEAN
+  std::string EType = "TRI";
+  if (connect1.rows() == 2)
+    EType = "BAR";
+#endif
+
+#ifdef DEBUG_BOOLEAN
+  {
+    E_Int mini, maxi;
+    NUGA::MeshTool::computeMinMaxIndices(connect1, mini, maxi);
+    assert (mini >= 0);
+    assert (maxi < coord1.cols() || maxi == IDX_NONE);
+  }
+  {
+    E_Int mini, maxi;
+    NUGA::MeshTool::computeMinMaxIndices(connect2, mini, maxi);
+    assert (mini >= 0);
+    assert (maxi < coord2.cols() || maxi == IDX_NONE);
+  }
+#endif
+  
+  {
+    K_FLD::IntArray connect_tmp(connect2);
+    connect_tmp.shift(coord1.cols());
+    connect.pushBack(connect_tmp);
+    color.resize(connect.cols(), 1);
+  }
+
+  coord.pushBack(coord2);
+  
+  //E_Float zero = 0.;
+  //coord.resize(DIM, coord.cols(), &zero);
+    
+  std::vector<E_Int> nids;
+  NUGA::MeshTool::compact_to_mesh(coord, connect, nids);
+ 
+#ifdef DEBUG_BOOLEAN
+  {
+    E_Int mini, maxi;
+    NUGA::MeshTool::computeMinMaxIndices(connect, mini, maxi);
+    assert (mini >= 0);
+    assert (maxi < coord.cols() || maxi == IDX_NONE);
+  }
+#endif
+ 
+  ret = _conformizer->run(coord, connect, ancestors, 0, tolerance, connect1.cols()/*X0*/, itermax);
+  if (ret) return;
+  
+#ifdef DEBUG_BOOLEAN
+  medith::write("conformized.mesh", coord, connect, EType.c_str(), 0, &ancestors);
+#endif
+
+  _coord = coord;
+
+  // Split the 2 parts.
+  for (E_Int i = 0; i < connect.cols(); ++i)
+  {
+    pS = connect.col(i);
+    _connects[color[ancestors[i]]].pushBack(pS, pS+ROWS);
+  }
+  
+  if (_connects[0].cols()*_connects[1].cols() == 0)
+    return; // Errror : at least one is empty.
+  
+#ifdef DEBUG_BOOLEAN
+  //medith::write("connect1split0.mesh", _coord, _connects[0], EType.c_str());
+  //medith::write("connect2split0.mesh", _coord, _connects[1], EType.c_str());
+#endif
+  
+  // Remove eventual duplicates in each part individually
+  {
+    std::vector<E_Int> dumIds;
+    NUGA::MeshTool::removeDuplicated(_connects[0], dumIds, false/*strict orient*/);
+    NUGA::MeshTool::removeDuplicated(_connects[1], dumIds, false/*strict orient*/);
+  }
+
+#ifdef DEBUG_BOOLEAN
+  medith::write("connect1split.mesh", _coord, _connects[0], EType.c_str());
+  medith::write("connect2split.mesh", _coord, _connects[1], EType.c_str());
+#endif
+}
+
+///
+E_Int BooleanOperator::initialized()
+{
+  if (_initialized) return 1;
+  
+  if (this->check_sanity()) return 0;
+  
+  if (this->compute_zones()) return 0;
+  
+  _initialized = true;
+  return 1;
+}
+
+///
+E_Int BooleanOperator::getSum
+(K_FLD::FloatArray& coord, K_FLD::IntArray& connect, std::vector<E_Int>& colors)
+{
+  if (!initialized()) return 1;
+
+  coord = _coord;
+  connect = _connects[0];
+  connect.pushBack(_connects[1]);
+
+  colors.clear();
+  colors.resize(_connects[0].cols(), 0);
+  colors.resize(colors.size() + _connects[1].cols(), 1);
+
+  return 0;
+}
+
+
+
+
+}
+
+

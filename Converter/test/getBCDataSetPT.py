@@ -12,4 +12,4 @@ d = Internal.newBCData('BCNeumann', parent=d)
 d = Internal.newDataArray('Density', value=10*[1.], parent=d)
 
 # Get data array node list
-datas = Internal.getBCDataSet(a, b); print datas
+datas = Internal.getBCDataSet(a, b); print(datas)

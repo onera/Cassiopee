@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -36,19 +36,42 @@ static PyMethodDef Pykcore [] =
   {"getOmpMaxThreads", K_KCORE::getOmpMaxThreads, METH_VARARGS},
   {"empty", K_KCORE::empty, METH_VARARGS},
   {"tester", K_KCORE::tester, METH_VARARGS},
+  {"testerAcc", K_KCORE::testerAcc, METH_VARARGS},
   {NULL, NULL}
 };
+
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "kcore",
+        NULL,
+        -1,
+        Pykcore
+};
+#endif
 
 // ============================================================================
 /* Init of module */
 // ============================================================================
 extern "C"
 {
+#if PY_MAJOR_VERSION >= 3
+  PyMODINIT_FUNC PyInit_kcore();
+  PyMODINIT_FUNC PyInit_kcore()
+#else
   PyMODINIT_FUNC initkcore();
   PyMODINIT_FUNC initkcore()
+#endif
   {
-    Py_InitModule("kcore", Pykcore);
     import_array();
+#if PY_MAJOR_VERSION >= 3
+    PyObject* module = PyModule_Create(&moduledef);
+#else
+    Py_InitModule("kcore", Pykcore);
+#endif
+#if PY_MAJOR_VERSION >= 3
+    return module;
+#endif
   }
 }
 
@@ -194,7 +217,7 @@ extern "C"
 //=============================================================================
 void K_KCORE::testFooKCore()
 {
-  E_Int i; E_Float f;
+  E_Int i=0; E_Float f=0.;
   
   k6conv2center1_(i, i, i, i, NULL, NULL);
 

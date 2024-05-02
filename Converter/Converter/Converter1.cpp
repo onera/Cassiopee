@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -24,6 +24,14 @@
 #include "kcore.h"
 #include "IO/GenIO.h"
 
+#ifdef _MPI
+#if defined(_WIN64)
+#define __int64 long long
+#endif
+//#include "mpi.h"
+//#include "mpi4py/mpi4py.h"
+#endif
+
 using namespace std;
 using namespace K_FLD;
 
@@ -32,15 +40,15 @@ using namespace K_FLD;
 // ============================================================================
 PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
 {
-  E_Int n;
-  E_Int nLine; E_Int nCurve; E_Float density;
+  E_Int nLine; E_Int nCurve; E_Int api; E_Float density;
   char* fileName; char* fileFmt;
-  PyObject* zoneNamesO; PyObject* BCFacesO;
+  PyObject* zoneNamesO; PyObject* BCFacesO; PyObject* centerArrays;
+  PyObject *BCFieldsO;
 
-  if (!PYPARSETUPLE(args, "sslldOO", "ssiidOO",
-                    "ssllfOO", "ssiifOO", &fileName, &fileFmt, 
+  if (!PYPARSETUPLE_(args, SS_ II_ R_ OOOO_ I_,
+                    &fileName, &fileFmt, 
                     &nCurve, &nLine, &density, &zoneNamesO,
-                    &BCFacesO)) return NULL;
+                    &BCFacesO, &BCFieldsO, &centerArrays, &api)) return NULL;
 
   E_Int NptsLine = nLine;
   E_Int NptsCurve = nCurve;
@@ -74,15 +82,23 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     printf("Warning: convertFile2Arrays: zoneNames is not empty. zones names will be appended to zoneNames.\n");
   }
 
-  vector<FldArrayF*> field;            // field read for each zone
+  char* varString = NULL;  // variable strings (node fields) 
+  char* varStringc = NULL; // varstring for center variables
+  
+  vector<FldArrayF*> field;   // structured node fields
+  vector<FldArrayF*> fieldc; // structured center fields
+  
   vector<E_Int> im; vector<E_Int> jm; vector<E_Int> km;
-  char* varString = NULL;
-  vector<FldArrayI*> c;
-  vector<FldArrayF*> ufield;
-  vector<E_Int> et;
-  vector<char*> zoneNames;
+  vector<FldArrayI*> c; // unstructured connectivities
+  
+  vector<FldArrayF*> ufield; // unstructured node fields
+  vector<FldArrayF*> ufieldc; // unstructured center fields
+  
+  vector<vector<E_Int> > et(1); // element types
+  vector<char*> zoneNames; // zone names
   vector<FldArrayI*> BCFaces;
   vector<char*> BCNames;
+  vector<FldArrayF*> BCFields;
   E_Int ret = 1;
 
   printf("Reading %s (%s)...", fileName, fileFmt);
@@ -93,14 +109,17 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     // Binary tecplot read
     ret = K_IO::GenIO::getInstance()->tecread(fileName, varString, field, 
                                               im, jm, km, 
-                                              ufield, c, et, zoneNames);
+                                              ufield, c, et[0], zoneNames,
+                                              varStringc, fieldc, ufieldc);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_tp") == 0)
   {
     // Formatted tecplot read
     ret = K_IO::GenIO::getInstance()->tpread(fileName, varString, field,
                                              im, jm, km, 
-                                             ufield, c, et, zoneNames);
+                                             ufield, c, et, zoneNames, api);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_v3d") == 0)
   {
@@ -113,6 +132,15 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     // Binary v3d read
     ret = K_IO::GenIO::getInstance()->v3dread(fileName, varString, 
                                               im, jm, km, field, zoneNames);
+  }
+  else if (K_STRING::cmp(fileFmt, "bin_vtk") == 0)
+  {
+    // Binary vtk (legacy) read
+    ret = K_IO::GenIO::getInstance()->binvtkread(fileName, varString, field, 
+                                                 im, jm, km, 
+                                                 ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_plot3d") == 0)
   {
@@ -131,63 +159,95 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     // Formatted pov read
     ret = K_IO::GenIO::getInstance()->povread(fileName, varString, field, 
                                               im, jm, km, 
-                                              ufield, c, et, zoneNames);
+                                              ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_mesh") == 0)
   {
     // Formatted mesh read
     ret = K_IO::GenIO::getInstance()->meshread(fileName, varString, field, 
                                                im, jm, km, 
-                                               ufield, c, et, zoneNames);
+                                               ufield, c, et, zoneNames, api);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_gmsh") == 0)
   {
     // Formatted gmsh read
     ret = K_IO::GenIO::getInstance()->gmshread(fileName, varString, field, 
                                                im, jm, km, 
-                                               ufield, c, et, zoneNames);
+                                               ufield, c, et, zoneNames, api);
   }
   else if (K_STRING::cmp(fileFmt, "bin_gmsh") == 0)
   {
     // Formatted gmsh read
     ret = K_IO::GenIO::getInstance()->bingmshread(fileName, varString, field, 
                                                   im, jm, km, 
-                                                  ufield, c, et, zoneNames);
+                                                  ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_obj") == 0)
   {
     // Formatted obj read
     ret = K_IO::GenIO::getInstance()->objread(fileName, varString, field, 
                                               im, jm, km, 
-                                              ufield, c, et, zoneNames);
+                                              ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "bin_stl") == 0)
   {
     // Binary STL read
     ret = K_IO::GenIO::getInstance()->stlread(fileName, varString, field, 
                                               im, jm, km, 
-                                              ufield, c, et, zoneNames);
+                                              ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
+  }
+  else if (K_STRING::cmp(fileFmt, "bin_gltf") == 0)
+  {
+    // Binary GLTF read
+    ret = K_IO::GenIO::getInstance()->gltfread(fileName, varString, field, 
+                                               im, jm, km, 
+                                               ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_stl") == 0)
   {
     // Formatted STL read
     ret = K_IO::GenIO::getInstance()->fstlread(fileName, varString, field, 
                                                im, jm, km, 
-                                               ufield, c, et, zoneNames);
+                                               ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
+  }
+  else if (K_STRING::cmp(fileFmt, "fmt_selig") == 0)
+  {
+    // fmt selig file
+    ret = K_IO::GenIO::getInstance()->seligread(fileName, varString, field, 
+                                                im, jm, km, 
+                                                ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "bin_3ds") == 0)
   {
     // Binary 3DS read
     ret = K_IO::GenIO::getInstance()->f3dsread(fileName, varString, field, 
                                                im, jm, km, 
-                                               ufield, c, et, zoneNames);
+                                               ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);                                           
   }
   else if (K_STRING::cmp(fileFmt, "bin_ply") == 0)
   {
     // Binary PLY read
     ret = K_IO::GenIO::getInstance()->plyread(fileName, varString, field, 
                                               im, jm, km, 
-                                              ufield, c, et, zoneNames);
+                                              ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);                                          
   }
   else if (K_STRING::cmp(fileFmt, "fmt_xfig") == 0)
   {
@@ -195,7 +255,9 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     ret = K_IO::GenIO::getInstance()->xfigread(fileName, varString, 
                                                NptsCurve, NptsLine, 
                                                field, im, jm, km, 
-                                               ufield, c, et, zoneNames);
+                                               ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);                                           
   }
   else if (K_STRING::cmp(fileFmt, "fmt_svg") == 0)
   {
@@ -205,17 +267,19 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
       ret = K_IO::GenIO::getInstance()->svgread(fileName, varString, 
                                                 NptsCurve, NptsLine, 
                                                 field, im, jm, km, 
-                                                ufield, c, et, zoneNames);
+                                                ufield, c, et[0], zoneNames);
     else 
       ret = K_IO::GenIO::getInstance()->svgread(fileName, varString, 
                                                 density,
                                                 field, im, jm, km, 
-                                                ufield, c, et, zoneNames);
+                                                ufield, c, et[0], zoneNames);
                                                 */
     ret = K_IO::GenIO::getInstance()->svgread(fileName, varString, density,
                                               NptsCurve, NptsLine, 
                                               field, im, jm, km, 
-                                              ufield, c, et, zoneNames);
+                                              ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);                                          
     
   }
   else if (K_STRING::cmp(fileFmt, "fmt_gts") == 0)
@@ -223,21 +287,27 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     // Formatted GTS read
     ret = K_IO::GenIO::getInstance()->gtsread(fileName, varString, field, 
                                               im, jm, km, 
-                                              ufield, c, et, zoneNames);
-  }
-  else if (K_STRING::cmp(fileFmt, "fmt_iges") == 0)
-  {
-    // Formatted IGES read
-    ret = K_IO::GenIO::getInstance()->igesread(fileName, varString, field, 
-                                               im, jm, km, 
-                                               ufield, c, et, zoneNames);
+                                              ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);                                          
   }
   else if (K_STRING::cmp(fileFmt, "bin_png") == 0)
   {
     // Binary PNG read
     ret = K_IO::GenIO::getInstance()->pngread(fileName, varString, field, 
                                               im, jm, km, 
-                                              ufield, c, et, zoneNames);
+                                              ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
+  }
+  else if (K_STRING::cmp(fileFmt, "bin_jpg") == 0)
+  {
+    // Binary JPG read
+    ret = K_IO::GenIO::getInstance()->jpgread(fileName, varString, field, 
+                                              im, jm, km, 
+                                              ufield, c, et[0], zoneNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_su2") == 0)
   {
@@ -245,23 +315,45 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     ret = K_IO::GenIO::getInstance()->su2read(fileName, varString, 
                                               field, im, jm, km, 
                                               ufield, c, et, zoneNames,
-                                              BCFaces, BCNames);
+                                              BCFaces, BCNames, api);
+    
+    // Pour l'instant, on ne peut pas les traiter en elements
+    for (size_t i = 0; i < BCFaces.size(); i++) delete BCFaces[i];
+    for (size_t i = 0; i < BCNames.size(); i++) delete [] BCNames[i];
+    BCFaces.clear(); BCNames.clear();
+  }
+  else if (K_STRING::cmp(fileFmt, "fmt_foam") == 0)
+  {
+    // Formatted foam read
+    ret = K_IO::GenIO::getInstance()->foamread(fileName, varString, 
+                                               field, im, jm, km, 
+                                               ufield, c, et[0], zoneNames,
+                                               BCFaces, BCNames, BCFields,
+                                               varStringc,
+                                               fieldc,
+                                               ufieldc);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_cedre") == 0)
   {
-    // Formatted cedre read
+    // Formatted cedre read (Cedre input)
     ret = K_IO::GenIO::getInstance()->cedreread(fileName, varString, field, 
                                                 im, jm, km, 
-                                                ufield, c, et, zoneNames,
+                                                ufield, c, et[0], zoneNames,
                                                 BCFaces, BCNames);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
-  else if (K_STRING::cmp(fileFmt, "fmt_tgf") == 0)
+  else if (K_STRING::cmp(fileFmt, "bin_arc") == 0)
   {
-    // Formatted tgf read
-    ret = K_IO::GenIO::getInstance()->tgfread(fileName, varString, field, 
+    // Binary archive read (Cedre output)
+    ret = K_IO::GenIO::getInstance()->arcread(fileName, varString, field, 
                                               im, jm, km, 
-                                              ufield, c, et, zoneNames,
-                                              BCFaces, BCNames);
+                                              ufield, c, et[0], zoneNames,
+                                              varStringc, fieldc, ufieldc);
+    et.resize(et[0].size()); // TODO hack tmp
+    for (size_t i = 1; i < et.size(); i++) et[i].push_back(et[0][i]);
   }
   else
   {
@@ -280,6 +372,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     {
       char* myBCNames = BCNames[j];
       FldArrayI& myBCFaces = *BCFaces[j];
+
       vector<char*> names; // unique BC names
       E_Int np = myBCFaces.getSize();
       FldArrayI indir(np);
@@ -292,16 +385,17 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
         l = 0;
         while (myBCNames[c] != '\0') { n[l] = myBCNames[c]; c++; l++; }
         n[l] = '\0'; c++;
-        //printf("%s\n", myBCNames);
         // BC deja existante?
         exist = false;
-        for (unsigned int k = 0; k < names.size(); k++)
+        for (size_t k = 0; k < names.size(); k++)
         {
           if (K_STRING::cmp(n, names[k]) == 0) { indir[i] = k; exist = true; break; }
         }
-        if (exist == false)
-        { char* na = new char[128]; strcpy(na, n); 
-          names.push_back(na); indir[i] = names.size()-1; }
+        if (!exist)
+        {
+          char* na = new char[128]; strcpy(na, n); 
+          names.push_back(na); indir[i] = names.size()-1;
+        }
       }
       //for (E_Int i = 0; i < names.size(); i++) printf("%s\n", names[i]);
 
@@ -340,7 +434,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     PyErr_SetString(PyExc_IOError, error);
     return NULL;
   }
-  printf("done.\n");
+  printf("done.\n"); fflush(stdout);
 
   // Building numpy arrays
   PyObject* tpl;
@@ -352,26 +446,83 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
   }
   
   PyObject* l = PyList_New(0);
+
+  for (size_t i = 0; i < field.size(); i++)
+  {
+    if (field[i] != NULL)
+    {
+      // Build array
+      tpl = K_ARRAY::buildArray3(*field[i], varString,
+                                 im[i], jm[i], km[i]);
+      delete field[i];
+    }
+    else 
+    {
+      FldArrayF fl(0,1);
+      tpl = K_ARRAY::buildArray3(fl, varString,
+                                 im[i], jm[i], km[i]);
+    }
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+  }
+
+  for (size_t i = 0; i < ufield.size(); i++)
+  {
+    char eltType[256]; vector<E_Int> dummy(1);
+    if (api == 3) K_ARRAY::typeId2eltString(et[i], 0, eltType, dummy);
+    else K_ARRAY::typeId2eltString(et[i][0], 0, eltType, dummy[0]);
+
+    if (ufield[i] != NULL)
+    {
+      tpl = K_ARRAY::buildArray3(*ufield[i], varString, *c[i], eltType, api);
+      delete ufield[i];
+    }
+    else 
+    {
+      FldArrayF fl(0,1);
+      tpl = K_ARRAY::buildArray3(fl, varString, *c[i], eltType, api); 
+    }
+    delete c[i];
+    PyList_Append(l, tpl);
+    Py_DECREF(tpl);
+  }
   
-  n = im.size();
-  for (E_Int i = 0; i < n; i++)
+  for (size_t i = 0; i < fieldc.size(); i++)
   {
-    // Build array
-    tpl = K_ARRAY::buildArray(*field[i], varString, 
-                              im[i], jm[i], km[i]);
-    delete field[i];
-    PyList_Append(l, tpl);
-    Py_DECREF(tpl);
-  } 
-    
-  n = ufield.size();    
-  for (E_Int i = 0; i < n; i++)
+    if (centerArrays != Py_None)
+    {
+      if (fieldc[i] != NULL)
+      {
+        tpl = K_ARRAY::buildArray3(*fieldc[i], varStringc,
+                                   std::max(im[i]-1,E_Int(1)),
+                                   std::max(jm[i]-1,E_Int(1)),
+                                   std::max(km[i]-1,E_Int(1)));
+        delete fieldc[i];
+      }
+      else tpl = PyList_New(0);
+      PyList_Append(centerArrays, tpl);
+      Py_DECREF(tpl);
+    }
+    else delete fieldc[i];
+  }
+  
+  for (size_t i = 0; i < ufieldc.size(); i++)
   {
-    tpl = K_ARRAY::buildArray(*ufield[i], varString,
-                              *c[i], et[i]);
-    delete ufield[i]; delete c[i];
-    PyList_Append(l, tpl);
-    Py_DECREF(tpl);
+    if (centerArrays != Py_None)
+    {
+      if (ufieldc[i] != NULL)
+      {
+        FldArrayI* cnl = new FldArrayI();
+        char eltType[28]; strcpy(eltType, "NODE"); // hack
+        tpl = K_ARRAY::buildArray3(*ufieldc[i], varStringc,
+                                   *cnl, eltType); // hack
+        delete ufieldc[i]; delete cnl;
+      }
+      else tpl = PyList_New(0);
+      PyList_Append(centerArrays, tpl);
+      Py_DECREF(tpl);
+    }
+    else delete ufieldc[i];
   }
 
   // build zoneNames list. Les fonctions de lecture ont alloue un char* par
@@ -410,7 +561,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   char* eltType;
   PyObject* zoneNamesO; PyObject* BCFacesO;
 
-  if (!PYPARSETUPLEI(args, "OssllslsOO", "OssiisisOO", 
+  if (!PYPARSETUPLE_(args, O_ SS_ II_ S_ I_ S_ OO_,
                      &arrays, &fileName, &fileFmt, &is, &rs, &e, &c, 
                      &dataFmt, &zoneNamesO, &BCFacesO)) return NULL;
 
@@ -453,14 +604,21 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   for (int z = 0; z < PyList_Size(zoneNamesO); z++)
   {
     PyObject* tplz = PyList_GetItem(zoneNamesO, z);
-    if (PyString_Check(tplz) == 0)
-    {
-      printf("Warning: convertArrays2File: zone name must be a string. Skipped...\n");
-    }
-    else
+    if (PyString_Check(tplz))
     {
       char* str = PyString_AsString(tplz);
       zoneNames.push_back(str);
+    }
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(tplz))
+    {
+      char* str = (char*)PyUnicode_AsUTF8(tplz);
+      zoneNames.push_back(str);  
+    }
+#endif  
+    else
+    {
+      printf("Warning: convertArrays2File: zone name must be a string. Skipped...\n");
     }
   }
 
@@ -478,15 +636,16 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   vector<FldArrayF*> fieldc;
   char* varString;
   vector<E_Int> elt;
+  vector<vector<E_Int> > eltIds;
   FldArrayF* f; FldArrayI* cn;
   E_Int res;
-  vector<FldArrayF*> fieldu; // non structuré
+  vector<FldArrayF*> fieldu; // non structure
   vector<FldArrayI*> connectu;
-  for (int i = 0; i < n; i++)
+  for (E_Int i = 0; i < n; i++)
   {
     tpl = PyList_GetItem(arrays, i);
-    res = K_ARRAY::getFromArray(tpl, varString, 
-                                f, nil, njl, nkl, cn, eltType);
+    res = K_ARRAY::getFromArray3(tpl, varString, 
+                                 f, nil, njl, nkl, cn, eltType);
       
     if (res == 1)
     {
@@ -502,21 +661,40 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
     {
       if (f->getSize() > 0)
       {
-        E_Int id = getElementTypeId(eltType);
         // Ecriture non structuree
-        if (id == 0) // NODE-> structure
+        vector<E_Int> ids = getElementTypesId(eltType);
+        E_Int nc = ids.size();
+        E_Boolean allNodes = true;
+        E_Boolean allValid = true;
+        for (E_Int ic = 0; ic < nc; ic++)
+        {
+          if (ids[ic] < 0)
+          {
+            printf("Warning: convertArrays2File: invalid element type %s in "
+                   "position " SF_D_ ", BE/ME connectivity disregarded.\n",
+                   eltType, ic+1);
+            allValid = false;
+            allNodes = false;
+            break;
+          }
+          else if (ids[ic] > 0) allNodes = false;
+        }
+
+        if (allNodes)
         {
           ni.push_back(f->getSize()); nj.push_back(1); nk.push_back(1);
           fieldc.push_back(f); 
         }
-        else if (id > 0)
+        else if (allValid)
         {
           fieldu.push_back(f);
           connectu.push_back(cn);
-          elt.push_back(id);
+          for (E_Int ic = 0; ic < nc; ic++)
+          {
+            elt.push_back(ids[ic]);
+            eltIds.push_back(ids);
+          }
         }
-        else //id == -1
-          printf("Warning: convertArrays2File: element type %s not taken into account.\n", eltType);
       }
       else 
         printf("Warning: convertArrays2File: one array is empty.\n");
@@ -550,7 +728,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   { 
     isok = K_IO::GenIO::getInstance()->tpwrite(fileName, dataFmt, varString,
                                                ni, nj, nk,
-                                               fieldc, fieldu, connectu, elt,
+                                               fieldc, fieldu, connectu, eltIds,
                                                zoneNames);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_v3d") == 0) // fmt v3d
@@ -622,14 +800,14 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
     
     isok = K_IO::GenIO::getInstance()->meshwrite(fileName, dataFmt, varString,
                                                  ni, nj, nk,
-                                                 fieldc, fieldu, connectu, elt,
+                                                 fieldc, fieldu, connectu, eltIds,
                                                  zoneNames);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_gmsh") == 0) // fmt gmsh
   {
     isok = K_IO::GenIO::getInstance()->gmshwrite(fileName, dataFmt, varString,
                                                  ni, nj, nk,
-                                                 fieldc, fieldu, connectu, elt,
+                                                 fieldc, fieldu, connectu, eltIds,
                                                  zoneNames);
   }
   else if (K_STRING::cmp(fileFmt, "bin_gmsh") == 0) // bin gmsh
@@ -640,6 +818,25 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
       fieldc, fieldu, connectu, elt,
       zoneNames);
   }
+  else if (K_STRING::cmp(fileFmt, "bin_png") == 0) // in png
+  {
+    if (fieldu.size() != 0)
+      printf("Warning: convertArrays2File: unstructured arrays not converted.\n"); 
+    
+    isok = K_IO::GenIO::getInstance()->pngwrite(fileName, dataFmt, varString,
+                                                ni, nj, nk,
+                                                fieldc, fieldu, connectu, elt,
+                                                zoneNames);
+  }
+  else if (K_STRING::cmp(fileFmt, "bin_jpg") == 0) // in jpg
+  {
+    if (fieldu.size() != 0)
+      printf("Warning: convertArrays2File: unstructured arrays not converted.\n"); 
+    isok = K_IO::GenIO::getInstance()->jpgwrite(fileName, dataFmt, varString,
+                                                ni, nj, nk,
+                                                fieldc, fieldu, connectu, elt,
+                                                zoneNames);
+  }
   else if (K_STRING::cmp(fileFmt, "fmt_su2") == 0) // fmt su2
   {
     if (fieldc.size() != 0)
@@ -647,8 +844,18 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
     
     isok = K_IO::GenIO::getInstance()->su2write(fileName, dataFmt, varString,
                                                 ni, nj, nk,
-                                                fieldc, fieldu, connectu, elt,
+                                                fieldc, fieldu, connectu, eltIds,
                                                 zoneNames, BCFacesO);
+  }
+  else if (K_STRING::cmp(fileFmt, "fmt_foam") == 0) // fmt open foam
+  {
+    if (fieldc.size() != 0)
+      printf("Warning: convertArrays2File: structured arrays not converted.\n"); 
+    
+    isok = K_IO::GenIO::getInstance()->foamwrite(fileName, dataFmt, varString,
+                                                 ni, nj, nk,
+                                                 fieldc, fieldu, connectu, elt,
+                                                 zoneNames, BCFacesO);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_obj") == 0) // fmt obj
   {
@@ -679,6 +886,16 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
                                                  ni, nj, nk,
                                                  fieldc, fieldu, connectu, elt,
                                                  zoneNames);
+  }
+  else if (K_STRING::cmp(fileFmt, "fmt_selig") == 0) // fmt selig
+  {
+    if (fieldu.size() != 0)
+      printf("Warning: convertArrays2File: structured arrays not converted.\n"); 
+    
+    isok = K_IO::GenIO::getInstance()->seligwrite(fileName, dataFmt, varString,
+                                                  ni, nj, nk,
+                                                  fieldc, fieldu, connectu, elt,
+                                                  zoneNames);
   }
   else if (K_STRING::cmp(fileFmt, "bin_3ds") == 0) // 3ds
   {
@@ -743,7 +960,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
                     "convertArrays2File: file not written.");
     return NULL;
   }
-  printf("done.\n");
+  printf("done.\n"); fflush(stdout);
   
   // Deleting fields
   E_Int sizefieldc = fieldc.size();
@@ -770,6 +987,7 @@ E_Int K_CONVERTER::checkRecognisedFormat(char* fileFmt)
       K_STRING::cmp(fileFmt, "bin_tp") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_v3d") == 0 ||
       K_STRING::cmp(fileFmt, "bin_v3d") == 0 ||
+      K_STRING::cmp(fileFmt, "bin_vtk") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_plot3d") == 0 ||
       K_STRING::cmp(fileFmt, "bin_plot3d") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_pov") == 0 ||
@@ -779,18 +997,21 @@ E_Int K_CONVERTER::checkRecognisedFormat(char* fileFmt)
       K_STRING::cmp(fileFmt, "bin_gmsh") == 0 ||
       K_STRING::cmp(fileFmt, "bin_stl") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_stl") == 0 ||
+      K_STRING::cmp(fileFmt, "bin_gltf") == 0 ||
       K_STRING::cmp(fileFmt, "bin_wav") == 0 ||
+      K_STRING::cmp(fileFmt, "fmt_selig") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_xfig") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_svg") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_obj") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_gts") == 0 ||
-      K_STRING::cmp(fileFmt, "fmt_iges") == 0 ||
       K_STRING::cmp(fileFmt, "bin_png") == 0 ||
+      K_STRING::cmp(fileFmt, "bin_jpg") == 0 ||
       K_STRING::cmp(fileFmt, "bin_3ds") == 0 ||
       K_STRING::cmp(fileFmt, "bin_ply") == 0 ||
       K_STRING::cmp(fileFmt, "fmt_cedre") == 0 ||
-      K_STRING::cmp(fileFmt, "fmt_tgf") == 0 ||
-      K_STRING::cmp(fileFmt, "fmt_su2") == 0)
+      K_STRING::cmp(fileFmt, "bin_arc") == 0 ||
+      K_STRING::cmp(fileFmt, "fmt_su2") == 0 ||
+      K_STRING::cmp(fileFmt, "fmt_foam") == 0)
   {
     return 1;
   }
@@ -820,7 +1041,21 @@ E_Int K_CONVERTER::getElementTypeId(const char* eltType)
     return 7;
   if (K_STRING::cmp(eltType, "NGON") == 0)
     return 8;
-  return -1;//unknown
+  return -1; //unknown
+}
+
+vector<E_Int> K_CONVERTER::getElementTypesId(const char* eltType)
+{
+  // Acces universel aux eltTypes
+  vector<char*> eltTypes;
+  K_ARRAY::extractVars(eltType, eltTypes);
+  vector<E_Int> eltIds;
+  for (size_t ic = 0; ic < eltTypes.size(); ic++)
+  {
+    eltIds.push_back(getElementTypeId(eltTypes[ic]));
+    delete [] eltTypes[ic];
+  }
+  return eltIds;
 }
 
 //=============================================================================
@@ -830,20 +1065,24 @@ E_Int K_CONVERTER::getElementTypeId(const char* eltType)
 //=============================================================================
 PyObject* K_CONVERTER::readPyTreeFromPaths(PyObject* self, PyObject* args)
 {
-  char* fileName; char* format; E_Int maxFloatSize; E_Int maxDepth; 
-  PyObject* paths;
-  if (!PYPARSETUPLEI(args, "sOsll", "sOsii", 
+  char* fileName; char* format; 
+  E_Int maxFloatSize; E_Int maxDepth; E_Int readMode; 
+  PyObject* paths; PyObject* skipTypes; PyObject* dataShape; PyObject* mpi4pyCom;
+  if (!PYPARSETUPLE_(args, S_ O_ S_ III_ OOO_,
                      &fileName, &paths, &format, 
-                     &maxFloatSize, &maxDepth)) return NULL;
+                     &maxFloatSize, &maxDepth, &readMode, 
+                     &dataShape, &skipTypes, &mpi4pyCom)) return NULL;
   
+  if (skipTypes == Py_None) skipTypes = NULL;
+  if (dataShape == Py_None) dataShape = NULL;
   PyObject* ret = NULL;
-  if (K_STRING::cmp(format, "bin_hdf") == 0)
-    ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth);
+  if (K_STRING::cmp(format, "bin_cgns") == 0)
+    ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth, readMode, dataShape, skipTypes, mpi4pyCom);
+  else if (K_STRING::cmp(format, "bin_hdf") == 0)
+    ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth, readMode, dataShape, skipTypes, mpi4pyCom);
   else if (K_STRING::cmp(format, "bin_adf") == 0)
     ret = K_IO::GenIO::getInstance()->adfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth);
-  else if (K_STRING::cmp(format, "bin_cgns") == 0)
-    ret = K_IO::GenIO::getInstance()->adfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth);
-  else 
+  else
   {
     PyErr_SetString(PyExc_TypeError, 
                     "readPyTreeFromPaths: unknown file format.");
@@ -858,20 +1097,21 @@ PyObject* K_CONVERTER::readPyTreeFromPaths(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::writePyTreePaths(PyObject* self, PyObject* args)
 {
   char* fileName; char* format; E_Int maxDepth; E_Int mode;
-  PyObject* paths; PyObject* nodeList;
-  if (!PYPARSETUPLEI(args, "sOOsll", "sOOsii", &fileName, &nodeList, &paths, &format, &maxDepth, &mode))
+  PyObject* paths; PyObject* nodeList; PyObject* links;
+  if (!PYPARSETUPLE_(args, S_ OO_ S_ II_ O_,
+                     &fileName, &nodeList, &paths, &format, &maxDepth, &mode, &links))
     return NULL;
   
+  if (links == Py_None) { links = NULL; }
+  
   E_Int ret = 1;
-  if (K_STRING::cmp(format, "bin_adf") == 0)
-    ret = 
-      K_IO::GenIO::getInstance()->adfcgnsWritePaths(fileName, nodeList, paths, maxDepth, mode);
+
+  if (K_STRING::cmp(format, "bin_cgns") == 0)
+    ret = K_IO::GenIO::getInstance()->hdfcgnsWritePaths(fileName, nodeList, paths, links, maxDepth, mode);
   else if (K_STRING::cmp(format, "bin_hdf") == 0)
-    ret = 
-      K_IO::GenIO::getInstance()->hdfcgnsWritePaths(fileName, nodeList, paths, maxDepth, mode);
-  else if (K_STRING::cmp(format, "bin_cgns") == 0)
-    ret = 
-      K_IO::GenIO::getInstance()->adfcgnsWritePaths(fileName, nodeList, paths, maxDepth, mode);
+    ret = K_IO::GenIO::getInstance()->hdfcgnsWritePaths(fileName, nodeList, paths, links, maxDepth, mode);
+  else if (K_STRING::cmp(format, "bin_adf") == 0)
+    ret = K_IO::GenIO::getInstance()->adfcgnsWritePaths(fileName, nodeList, paths, maxDepth, mode);
   if (ret == 1) return NULL; // exceptions deja levees
 
   Py_INCREF(Py_None);
@@ -885,19 +1125,16 @@ PyObject* K_CONVERTER::deletePyTreePaths(PyObject* self, PyObject* args)
 {
   char* fileName; char* format;
   PyObject* paths;
-  if (!PYPARSETUPLEI(args, "sOs", "sOs", &fileName, &paths, &format))
+  if (!PYPARSETUPLE_(args, S_ O_ S_, &fileName, &paths, &format))
     return NULL;
   
   E_Int ret = 1;
-  if (K_STRING::cmp(format, "bin_adf") == 0)
-    ret = 
-      K_IO::GenIO::getInstance()->adfcgnsDeletePaths(fileName, paths);
+  if (K_STRING::cmp(format, "bin_cgns") == 0)
+    ret = K_IO::GenIO::getInstance()->hdfcgnsDeletePaths(fileName, paths);
   else if (K_STRING::cmp(format, "bin_hdf") == 0)
-    ret =
-      K_IO::GenIO::getInstance()->hdfcgnsDeletePaths(fileName, paths);
-  else if (K_STRING::cmp(format, "bin_cgns") == 0)
-    ret = 
-      K_IO::GenIO::getInstance()->adfcgnsDeletePaths(fileName, paths);
+    ret = K_IO::GenIO::getInstance()->hdfcgnsDeletePaths(fileName, paths);
+  else if (K_STRING::cmp(format, "bin_adf") == 0)
+    ret = K_IO::GenIO::getInstance()->adfcgnsDeletePaths(fileName, paths);
   if (ret == 1) return NULL; // exceptions deja levees
 
   Py_INCREF(Py_None);

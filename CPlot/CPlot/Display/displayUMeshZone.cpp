@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -51,9 +51,14 @@
   IN: zonet: le no de la zone dans liste globale des zones
 */
 //=============================================================================
-void Data::displayUMeshZone(UnstructZone* zonep, int zone, int zonet)
+void Data::displayUMeshZone(UnstructZone* zonep, E_Int zone, E_Int zonet)
 {
-  int i, n1, n2, ret1, ret2, ret;
+  if (zonep->_is_high_order == true)
+  {
+    displayUMeshZone_ho(zonep, zone, zonet);
+    return;
+  }
+  E_Int i, n1, n2, ret1, ret2, ret;
 
   // Style colors
   float color1[3]; float color2[3];
@@ -61,10 +66,10 @@ void Data::displayUMeshZone(UnstructZone* zonep, int zone, int zonet)
   // Colormap
   float r, g, b;
   void (*getrgb)(Data* data, double, float*, float*, float*);
-  getrgb = _plugins.colorMap->next->f;
+  getrgb = _plugins.zoneColorMap->f;
 
   // For node rendering (1D zones)
-  double dref = 0.003;
+  double dref = 0.004;
   double xi, yi, zi;
   double viewMatrix[16];
   glGetDoublev(GL_MODELVIEW_MATRIX, viewMatrix);
@@ -86,32 +91,48 @@ void Data::displayUMeshZone(UnstructZone* zonep, int zone, int zonet)
   E_Float nz = 1./_numberOfUnstructZones;
 #include "meshStyles.h"
 
+  E_Int eltType0 = zonep->eltType[0]; 
+  if (eltType0 == 1 || eltType0 == 0 || (eltType0 == 10 && zonep->nelts1D > 0)) 
+  { glLineWidth(3.); color2[0] = 0.1; color2[1] = 0.1; color2[2] = 1.; }
+      
 #include "selection.h"
+    
+    /*if ( zonep->_is_high_order == true )
+    {
+      int ishader = 0;
+      if ( eltType0 == UnstructZone::TRI )
+        ishader = 1;  // OK, element de type Tri_6
+      if ( eltType0 == UnstructZone::QUAD )
+        ishader = 2;  // OK, element de type Quad_8
+      if ( not this->_shaders.has_tesselation() ) {
+        this->_shaders.set_tesselation( ishader );
+      }
 
-  if (zonep->eltType == 1 || zonep->eltType == 0 || (zonep->eltType == 10 && zonep->nelts1D > 0)) glLineWidth(3.);
+      this->_shaders.activate( (short unsigned int)this->_shaders.shader_id(0) );
+      std::cerr << "Shader id ::: " << this->_shaders.currentShader() << std::flush << std::endl;
+      int t_inner = this->ptrState->inner_tesselation;
+      int t_outer = this->ptrState->outer_tesselation;
+      this->_shaders[ this->_shaders.currentShader() ]->setUniform( "uInner", (float)t_inner );
+      this->_shaders[ this->_shaders.currentShader() ]->setUniform( "uOuter", (float)t_outer );
+      glPatchParameteri( GL_PATCH_VERTICES, zonep->eltSize );
+    }*/
 
 #include "displayUMeshZone.h"
 
   // For BARS or NODES or 1D NGONS: display node
-  if (eltType == 1 || eltType ==  0 || (eltType == 10 && zonep->nelts1D > 0))
+  if (eltType0 == 1 || eltType0 == 0 || (eltType0 == 10 && zonep->nelts1D > 0))
   {
     glBegin(GL_QUADS);
     if (zonep->blank == 0)
     {
-      for (i = 0; i < zonep->np; i++)
-      {
-        PLOTNODE;
-      }
+      for (i = 0; i < zonep->np; i++) { PLOTNODE; }
     }
     else
     {
       for (i = 0; i < zonep->np; i++)
       {
-        ret = _pref.blanking->f(this, i, zonep->blank, zone);
-        if (ret != 0)
-        {
-          PLOTNODE;
-        }
+        ret = _pref.blanking->f(this, i, zonep->blank, zonet);
+        if (ret != 0) { PLOTNODE; }
       }
     }
     glEnd();

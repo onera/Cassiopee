@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -19,29 +19,38 @@
 // conversion file / pyTrees
 
 #ifdef _MPI
-#include "mpi.h"
-#include "mpi4py/mpi4py.h"
+#if defined(_WIN64)
+#define __int64 long long
+#endif
+
 #endif
 #include "converter.h"
 #include "kcore.h"
 #include "IO/GenIO.h"
+#ifdef _HDF5
+#include "hdf5.h" // necessary for definition of H5_HAVE_PARALLEL
+#endif
 
 // ============================================================================
 /* Convert file to pyTree */
 // ============================================================================
 PyObject* K_CONVERTER::convertFile2PyTree(PyObject* self, PyObject* args)
 {
-  char* fileName;
-  char* format; PyObject* skeletonData;
-  PyObject* dataShape;
-  if (!PyArg_ParseTuple(args, "ssOO", &fileName, &format, &skeletonData, &dataShape))
+  char* fileName; char* format; 
+  PyObject* skeletonData; PyObject* dataShape; 
+  PyObject* links; PyObject* skipTypes;
+  E_Int readMode;
+  if (!PYPARSETUPLE_(args, SS_ OOOO_ I_, &fileName, &format, &skeletonData, 
+                     &dataShape, &links, &skipTypes, &readMode))
     return NULL;
   
   if (dataShape == Py_None) { dataShape = NULL; }
+  if (links == Py_None) { links = NULL; }
+  if (skipTypes == Py_None) { skipTypes = NULL; }
 
   E_Int l = strlen(format);
   char* myFormat = new char [l+1]; strcpy(myFormat, format);
-  if (strcmp(myFormat, "bin_cgns") == 0) strcpy(myFormat, "bin_adf");
+  if (strcmp(myFormat, "bin_cgns") == 0) strcpy(myFormat, "bin_hdf");
 
   // Get skeleton data if any
   int skeleton=0; int maxFloatSize=5; int maxDepth=-1;
@@ -66,7 +75,8 @@ PyObject* K_CONVERTER::convertFile2PyTree(PyObject* self, PyObject* args)
   if (strcmp(myFormat, "bin_adf") == 0)
     ret = K_IO::GenIO::getInstance()->adfcgnsread(fileName, tree, skeleton, maxFloatSize, maxDepth);
   else if (strcmp(myFormat, "bin_hdf") == 0)
-    ret = K_IO::GenIO::getInstance()->hdfcgnsread(fileName, tree, dataShape, skeleton, maxFloatSize, maxDepth);
+    ret = K_IO::GenIO::getInstance()->hdfcgnsread(fileName, tree, dataShape, links, skeleton, maxFloatSize, 
+                                                  maxDepth, readMode, skipTypes);
   else
     ret = K_IO::GenIO::getInstance()->adfcgnsread(fileName, tree, skeleton, maxFloatSize, maxDepth);
   printf("done.\n");
@@ -88,8 +98,8 @@ PyObject* K_CONVERTER::convertFile2PyTree(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::convertFile2PyTreeFromPath(PyObject* self, PyObject* args)
 {
   char* fileName;
-  char* format; PyObject* Filter;
-  if (!PyArg_ParseTuple(args, "ssO", &fileName, &format, &Filter))
+  char* format; PyObject* paths; E_Int readMode;
+  if (!PYPARSETUPLE_(args, SS_ O_ I_, &fileName, &format, &paths, &readMode))
     return NULL;
 
   E_Int l = strlen(format);
@@ -97,7 +107,7 @@ PyObject* K_CONVERTER::convertFile2PyTreeFromPath(PyObject* self, PyObject* args
   if (strcmp(myFormat, "bin_cgns") == 0) strcpy(myFormat, "bin_adf");
   
   PyObject* ret = NULL;
-  ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, Filter);
+  ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, 1.e6, -1, readMode);
   printf("done.\n");
  
   delete [] myFormat;
@@ -112,17 +122,17 @@ PyObject* K_CONVERTER::convertPyTree2File(PyObject* self, PyObject* args)
 {
   char* fileName; char* format;
   PyObject* t; PyObject* links;
-  if (!PyArg_ParseTuple(args, "OssO", &t, &fileName, &format, &links)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ SS_ O_, &t, &fileName, &format, &links)) return NULL;
 
   printf("Writing %s (%s)...", fileName, format);
   fflush(stdout);
 
-  if (strcmp(format, "bin_adf") == 0)
-    K_IO::GenIO::getInstance()->adfcgnswrite(fileName, t);
-  else if (strcmp(format, "bin_cgns") == 0)
-    K_IO::GenIO::getInstance()->adfcgnswrite(fileName, t);
-  else if (strcmp(format, "bin_hdf") == 0)
+  if (strcmp(format, "bin_cgns") == 0)
     K_IO::GenIO::getInstance()->hdfcgnswrite(fileName, t, links);
+  else if (strcmp(format, "bin_hdf") == 0)
+    K_IO::GenIO::getInstance()->hdfcgnswrite(fileName, t, links);  
+  else if (strcmp(format, "bin_adf") == 0)
+    K_IO::GenIO::getInstance()->adfcgnswrite(fileName, t);
   else
     K_IO::GenIO::getInstance()->hdfcgnswrite(fileName, t, links);
   printf("done.\n");
@@ -132,89 +142,72 @@ PyObject* K_CONVERTER::convertPyTree2File(PyObject* self, PyObject* args)
 }
 
 // ============================================================================
-/* Convert file to pyTree - hdf only */
+/* Lit des noeuds definis dans Filter (partiellement) - hdf only */
 // ============================================================================
 PyObject* K_CONVERTER::convertFile2PartialPyTree(PyObject* self, PyObject* args)
 {
   char* fileName;
   char* format;
   PyObject* skeletonData;
-  PyObject* mpi4pyObj;
+  PyObject* mpi4pyCom;
   PyObject* filter; // dictionnaire des slices
-  if (!PyArg_ParseTuple(args, "ssOOO", &fileName, &format, &skeletonData,
-                        &mpi4pyObj, &filter))
+  E_Int readMode;
+  if (!PYPARSETUPLE_(args, SS_ OOO_ I_, &fileName, &format, &skeletonData,
+                        &mpi4pyCom, &filter, &readMode))
     return NULL;
-
-#ifdef _MPI
-  void* pt_comm;
-  pt_comm = (void*)&(((PyMPICommObject*)mpi4pyObj)->ob_mpi);
-  MPI_Comm comm = *((MPI_Comm*) pt_comm);
-#else
-  int comm = 0;
-#endif
   
   E_Int l = strlen(format);
   char* myFormat = new char [l+1]; strcpy(myFormat, format);
   if (strcmp(myFormat, "bin_cgns") == 0) strcpy(myFormat, "bin_hdf");
+  if (strcmp(myFormat, "bin_hdf") != 0)
+  { printf("convertFile2PartialPyTree: only for HDF.\n"); return NULL; }
 
-  if (skeletonData == Py_None) printf("Reading %s (%s)...", fileName, myFormat);
-  else printf("Reading %s (%s, skeleton)...", fileName, myFormat);
-  fflush(stdout);
+  //if (skeletonData == Py_None) printf("Reading %s (%s)...", fileName, myFormat);
+  //else printf("Reading %s (%s, skeleton)...", fileName, myFormat);
+  //fflush(stdout);
+  printf("Reading %s (%s, partial)...", fileName, myFormat);
 
-  PyObject* tree;
-  tree = K_IO::GenIO::getInstance()->hdfcgnsReadFromPathsPartial(fileName, filter, &comm);
+  PyObject* ret;
+  ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPathsPartial(fileName, readMode, filter, mpi4pyCom);
   printf("done.\n");
   delete [] myFormat;
-  
-  return tree;
+  return ret;
 }
 
 // ============================================================================
-/* Convert file to PartialpyTree - hdf only */
+/* Convert file to partial pyTree - hdf only */
 // ============================================================================
 PyObject* K_CONVERTER::convertPyTree2FilePartial(PyObject* self, PyObject* args)
 {
   /* ***************************************************** */
-  /* Declaration */
   char*     fileName;
   char*     format;
   int       skeleton;
-  PyObject* mpi4pyObj;
+  PyObject* mpi4pyCom;
   PyObject* Filter;
   PyObject* t;
-
   PyObject* skeletonData;
-  /* ***************************************************** */
+  if (!PYPARSETUPLE_(args, O_ SS_ OOO_, &t, &fileName, &format, &skeletonData, &mpi4pyCom, &Filter)) return NULL;
 
-  if (!PyArg_ParseTuple(args, "OssOOO", &t, &fileName, &format, &skeletonData, &mpi4pyObj, &Filter)) return NULL;
+  //printf("Writing (partial) %s (%s)...", fileName, format);
+  //fflush(stdout); 
 
-  printf("Writing %s (%s)...", fileName, format);
-  fflush(stdout); 
-
-  if(skeletonData != Py_None){skeleton = 0;}
-  else{skeleton = 1;}
-
+  if (skeletonData != Py_None) {skeleton = 0;}
+  else {skeleton = 1;}
+  
 #ifdef _MPI
-  void*     pt_comm;
-  // > Transform in C form
-  pt_comm       = (void*)&(((PyMPICommObject*)mpi4pyObj)->ob_mpi);
-  MPI_Comm comm = *((MPI_Comm *) pt_comm);
-  int nRank, myRank;
-  // MPI_Comm_size(comm, &nRank);
-  // MPI_Comm_rank(comm, &myRank);
-  // printf("Converter:: Rank   : %d \n", nRank );
-  // printf("Converter:: myRank : %d \n", myRank);
-
-  /** Dans le cas MPI on creer les dataSpace en parallèle - Pas besoin de Skelette **/
+  // CB: Je conserve l'option skeleton si compile avec MPI mais sans HDF parallele
+#if defined(H5_HAVE_PARALLEL)
+  /** Dans le cas MPI+HDF parallele, on cree les dataSpaces en parallele - Pas besoin de Skeleton **/
   skeleton = 0;
-  K_IO::GenIO::getInstance()->hdfcgnsWritePathsPartial(fileName, t, Filter, skeleton, &comm);
+#endif
+  K_IO::GenIO::getInstance()->hdfcgnsWritePathsPartial(fileName, t, Filter, skeleton, mpi4pyCom);
 
 #else
   E_Int comm = 0; // dummy
-
-  /* En sequentielle */
+  /* En sequentiel */
   // skeleton = 1;
-  K_IO::GenIO::getInstance()->hdfcgnsWritePathsPartial(fileName, t, Filter, skeleton, &comm);
+  K_IO::GenIO::getInstance()->hdfcgnsWritePathsPartial(fileName, t, Filter, skeleton, mpi4pyCom);
 #endif
 
   printf("done.\n");

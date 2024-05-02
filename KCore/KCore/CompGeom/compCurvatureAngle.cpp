@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -45,7 +45,7 @@ void K_COMPGEOM::compCurvatureAngle(E_Int npts,
   E_Float z, zp, zm;
   E_Float dx1, dx2, dy1, dy2, dz1, dz2;
   E_Float n1, n2;
-  E_Float inv, pv1, pv2, pv3;
+  E_Float inv, pv1, pv2, pv3, pvn;
   E_Float pv, ps;
   E_Float pi = 4*atan(1.);
   E_Float alp = 180./pi;
@@ -91,23 +91,23 @@ void K_COMPGEOM::compCurvatureAngle(E_Int npts,
     pv3 = dx1*dy2 - dy1*dx2;
     
     //E_Float normdir = K_FUNC::normalize<3>(dirVect);
-    pv = pv1*dirVect[0] + pv2*dirVect[1] + pv3*dirVect[2]; 
+    pv = pv1*dirVect[0] + pv2*dirVect[1] + pv3*dirVect[2];
+    pvn = pv1*pv1+pv2*pv2+pv3*pv3;
+    pvn = sqrt(pvn) * inv;
+    
+    //printf("%f %f\n", pv, pvn);
     pv = pv * inv;
     ps = dx2*dx1 + dy2*dy1 + dz1*dz2;
     ps = ps * inv;
-    pv = K_FUNC::E_min(pv, 1.);
-    pv = K_FUNC::E_max(pv,-1.);
-    ps = K_FUNC::E_min(ps, 1.);
-    ps = K_FUNC::E_max(ps,-1.);
-
+    
     if (pv >= 0. && ps >= 0.)
-      angle[ind] = asin(pv)* alp; 
+      angle[ind] = asin(pvn)* alp;
     else if (pv <= 0. && ps >= 0.)
-      angle[ind] = 360. + asin(pv) * alp;
+      angle[ind] = 360. - asin(pvn) * alp;
     else if (pv >= 0. && ps <= 0.)
-      angle[ind] = 180. - asin(pv) * alp;
+      angle[ind] = 180. - asin(pvn) * alp;
     else
-      angle[ind] = 180. - asin(pv) * alp;
+      angle[ind] = 180. + asin(pvn) * alp;
   }
 }
 

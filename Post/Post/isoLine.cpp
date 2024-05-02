@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -33,8 +33,7 @@ PyObject* K_POST::isoLine(PyObject* self, PyObject* args)
   // value: valeur de l'iso
   PyObject* surf;
   char* field; E_Float value;
-  if (!PYPARSETUPLEF(args,
-                    "Osd", "Osf",
+  if (!PYPARSETUPLE_(args, O_ S_ R_,
                     &surf, &field, &value))
   {
       return NULL;

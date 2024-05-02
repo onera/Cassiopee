@@ -8,5 +8,5 @@ child2 = Internal.createNode('child2', 'DataArray_t', value=3.)
 # add children nodes to node
 Internal.addChild(node, child1, pos=-1) # at the end
 Internal.addChild(node, child2, pos=0) # first
-print node
+print(node)
 #>> ['myNode', array([ 1.]), [['child2', array([ 3.]), [], 'DataArray_t'], ['child1', array([ 2.]), [], 'DataArray_t']], 'DataArray_t']

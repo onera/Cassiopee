@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -304,8 +304,8 @@ PyObject* K_POST::usurpF(PyObject* self, PyObject* args)
   FldArrayF ratio(ncellmax);
 
   usurp_(nzone, nit.begin(), njt.begin(), nkt.begin(), 
-	 iblank.begin(),ncellmax, coord.begin(), nptsmax,
-	 ratio.begin());
+         iblank.begin(), ncellmax, coord.begin(), nptsmax,
+         ratio.begin());
 
   //------------------------
   // convert 2 arrays 

@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -18,7 +18,7 @@ C    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 
 C ============================================================================
 C Routine extraite de coef_lag_3d de sAbrinA par G. Desquesnes
-C Calcule les coordonnees du point à interpoler dans l element de 
+C Calcule les coordonnees du point a interpoler dans l element de 
 C reference
 
 C =============================================================================
@@ -267,10 +267,10 @@ C a l ordre 5 :                                 entre -2 et 2
          if ( xx .lt. eps .or. yy .lt. eps .or. zz .lt. eps .or.
      &        xx .ge. thres .or. yy .ge. thres .or. zz .ge. thres) then
             if ( idebug .ge. 1 ) then
-               write(*,*) ' Warning: compLagrangeCoef: computation of 
-     &              the interpolated point coordinates in reference frame 
-     &           is wrong.'
-               write(*,*) ' thres = ' ,thres
+               write(*,*) 'Warning: compLagrangeCoef: computation of' 
+               write(*,*) 'the interpolated point coordinates in '
+               write(*,*) 'reference frame is wrong.'
+               write(*,*) 'thres = ' ,thres
                write(*,*) 'x0 = ', x0, y0, z0
                write(*,*) 'xp = ', xp, yp, zp
                write(*,*) 'ksi =', xx, yy, zz
@@ -281,10 +281,10 @@ C a l ordre 5 :                                 entre -2 et 2
          if(abs(xx).ge.thres .or. abs(yy).ge.thres .or.abs(zz).ge.thres)
      &        then
             if ( idebug .ge. 1 ) then
-               write(*,*) ' Warning: compLagrangeCoef: computation of 
-     &              the interpolated point coordinates in reference frame 
-     &           is wrong.'
-               write(*,*) ' thres = ' ,thres
+               write(*,*) 'Warning: compLagrangeCoef: computation of'
+               write(*,*) 'the interpolated point coordinates in '
+               write(*,*) 'reference frame is wrong.'
+               write(*,*) 'thres = ' ,thres
                write(*,*) 'x0 = ', x0, y0, z0
                write(*,*) 'xp = ', xp, yp, zp
                write(*,*) 'ksi =', xx, yy, zz

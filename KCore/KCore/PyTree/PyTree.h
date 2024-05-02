@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -27,7 +27,7 @@
 #include "Numpy/importNumpy.h"
 #include <numpy/arrayobject.h>
 #include "Fld/FldArray.h"
-#include "Fld/DynArray.h"
+# include "Nuga/include/DynArray.h"
 #include <vector>
 
 #define FldArrayF K_FLD::FldArrayF
@@ -144,6 +144,12 @@ namespace K_PYTREE
      OUT: hook: contient les numpy de doubles
      OUT: retoure le ptr sur le tableau de doubles. */
   E_Float* getValueAF(PyObject* o, std::vector<PyArrayObject*>& hook);
+
+  /* Retourne le nombre d'éléments d'une zone d'un pyTree
+     IN: zone
+     OUT: number of points
+  */
+  E_Int getNumberOfPointsOfZone(PyObject* o, std::vector<PyArrayObject*>& hook);
 
   /* Ajoute un noeud a o
      IN: o: objet representant un noeud de pyTree

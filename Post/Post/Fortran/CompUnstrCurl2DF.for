@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2018 Onera.
+C    Copyright 2013-2024 Onera.
 C
 C    This file is part of Cassiopee.
 C
@@ -70,7 +70,7 @@ C     calcul de la surface des elts
      &                    xt, yt, zt, snx, sny, snz, surf)
  
 C     cas tri
-      IF ( nnodes .eq. 3 ) THEN 
+      IF (nnodes .eq. 3) THEN 
          DO eti = 0, nelts-1
             
             nx = snx(eti,1)
@@ -79,7 +79,7 @@ C     cas tri
             nn = sqrt(nx*nx+ny*ny+nz*nz)
 
             vinv = 2D0 * surf(eti,1) * nn 
-            vinv = -ONE/vinv
+            vinv = -ONE/MAX(vinv, E_MIN_VOL)
 
             indA = cn(eti,1)-1
             indB = cn(eti,2)-1
@@ -112,7 +112,7 @@ C     cas tri
             curlx = curlx + vy*n1z - vz*n1y
             curly = curly + vz*n1x - vx*n1z
             curlz = curlz + vx*n1y - vy*n1x
-C     
+     
             n1x = yBC*nz - zBC*ny
             n1y = zBC*nx - xBC*nz
             n1z = xBC*ny - yBC*nx
@@ -124,7 +124,7 @@ C
             curlx = curlx + vy*n1z - vz*n1y
             curly = curly + vz*n1x - vx*n1z
             curlz = curlz + vx*n1y - vy*n1x
-C     
+     
             n1x = yCA*nz - zCA*ny
             n1y = zCA*nx - xCA*nz
             n1z = xCA*ny - yCA*nx
@@ -136,7 +136,7 @@ C
             curlx = curlx + vy*n1z - vz*n1y
             curly = curly + vz*n1x - vx*n1z
             curlz = curlz + vx*n1y - vy*n1x
-C     
+     
             rotx(eti) = vinv * curlx
             roty(eti) = vinv * curly
             rotz(eti) = vinv * curlz
@@ -156,7 +156,7 @@ C
             nn = sqrt(nx*nx+ny*ny+nz*nz)
 
             vinv = 2 * surf(eti,1) * nn 
-            vinv = -ONE/vinv
+            vinv = -ONE/MAX(vinv, E_MIN_VOL)
 
             xAB = xt(indB)-xt(indA)
             yAB = yt(indB)-yt(indA)

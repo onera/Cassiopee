@@ -9,5 +9,5 @@ f = P.exteriorElts(a)
 # Enregistre les centres des faces dans le hook
 hook = C.createHook(a, function='elementCenters')
 # Indices des faces de a correspondant aux centres des elts de f
-elts = C.identifyElements(hook, f)
-print elts
+elts = C.identifyElements(hook, f); print(elts)
+#>> [  1   2   3  ... 726 727 728 729]

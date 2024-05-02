@@ -11,9 +11,9 @@ a = C.convertArray2Tetra(a); a = G.close(a)
 b = D.sphere6((0,0,0),1.,N=15)
 b = C.convertArray2Tetra(b); b = T.join(b)
 pts = C.convertArray2Node(b)
-print "Init for pts", pts
 C._initVars(pts, '{F}={CoordinateX}*{CoordinateY}')
-print "Init for a"
 C._initVars(a, 'F', 0.)
-a = P.projectCloudSolution(pts,a)
+P._projectCloudSolution(pts,a, loc='nodes')
 test.testT(a)
+P._projectCloudSolution(pts,a, loc='centers')
+test.testT(a,2)

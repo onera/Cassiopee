@@ -1,15 +1,16 @@
 """Geometry definition module.
 """
-__version__ = '2.7'
+__version__ = '4.0'
 __author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud, Sam Landier"
-# 
-# Python Interface to define geometries in arrays
-#
-import geom
+
+from . import geom
 import numpy
 import KCore.Vector as Vector
 
-from MapEdge import *
+from .MapEdge import enforceh, uniformize, refine, setH, setF, enforce, distrib1, distrib2, smooth, mapCurvature, enforceh3D
+
+try: range = xrange
+except: pass
 
 # - Basic entities -
 def point(P):
@@ -19,6 +20,14 @@ def point(P):
     a[0,0] = P[0]; a[1,0] = P[1]; a[2,0] = P[2]
     c = numpy.ones((1, 0), numpy.int32)
     return ['x,y,z', a, c, 'NODE']
+    
+def cloud(arr):
+    """Create a point cloud. 
+    Usage: a = cloud([(x1,x2,...,xn),(y1,y2,...,yn),(z1,z2,...,zn)])"""
+    if not isinstance(arr, numpy.ndarray):
+        arr = numpy.asarray(arr, numpy.float64)
+    c = numpy.ones((arr.shape[1], 0), numpy.int32)
+    return ['x,y,z', arr, c, 'NODE']
 
 def naca(e, N=101, sharpte=True):
     """Create a NACA00xx profile of N points and thickness e. 
@@ -41,22 +50,24 @@ def naca(e, N=101, sharpte=True):
             iq = int(e[5:6]) # ii
             it = int(e[6:7])
         e = 0.
-    if sharpte == False: sharpte = 0
+    if not sharpte: sharpte = 0
     else: sharpte = 1
     return geom.naca(e, N, im, ip, it, ith, iq, sharpte)    
     
 def line(P1, P2, N=100):
     """Create a line of N points. 
     Usage: a = line((x1,y1,z1), (x2,y2,z2), N)"""
+    if len(P1) == 2: P1 = (P1[0],P1[1],0.)
+    if len(P2) == 2: P2 = (P2[0],P2[1],0.)
     return geom.line(P1, P2, N)
 
 def spline(Pts, order=3, N=100, M=100, density=-1):
     """Create a spline of N points. 
-    Usage: a = spline(ctrlsPts, order, N)"""
+    Usage: a = spline(Pts, order, N, M, density)"""
     return geom.spline(Pts, order, N, order, M, density)
 
 def nurbs(Pts, weight='weight', order=3, N=100, M=100, density=-1):
-    """Create a nurbs of N points. 
+    """Create a nurbs of N points.
     Usage: a = nurbs(ctrlsPts, order, N)"""
     try:
         import Converter
@@ -74,6 +85,7 @@ def polyline(Pts):
 def circle(C, R, tetas=0., tetae=360., N=100):
     """Create a portion of circle of N points and of center C, radius R, between angle tetas and tetae.
     Usage: a = circle((xc,yc,zc), R, tetas, tetae, N)"""
+    if len(C) == 2: C = (C[0],C[1],0.)
     return geom.circle(C, R, tetas, tetae, N)
 
 def sphere(C, R, N=100):
@@ -85,16 +97,19 @@ def sphere6(C, R, N=100, ntype='STRUCT'):
     """Create a sphere of 6NxN points and of center C and radius R, made of 6 parts.
     Usage: a = sphere6((xc,yc,zc), R, N)"""
     try: import Transform as T; import Generator as G
-    except: raise ImportError("sphere6: requires Transform and Generator modules.")
+    except ImportError:
+        raise ImportError("sphere6: requires Transform and Generator modules.")
     s = sphere(C, R, 2*N)
-    b = G.cart((-R/2.+C[0],-R/2.+C[1],-R/2.+C[2]),
-               (R/(N-1.),R/(N-1.),R/(N-1.)), (N,N,N))
-    b1 = T.subzone(b, (1,1,1), (N,N,1))
-    b2 = T.subzone(b, (1,1,1), (1,N,N))
-    b3 = T.subzone(b, (1,1,1), (N,1,N))
-    b4 = T.subzone(b, (N,1,1), (N,N,N))
-    b5 = T.subzone(b, (1,1,N), (N,N,N))
-    b6 = T.subzone(b, (1,N,1), (N,N,N))
+
+    (x0,y0,z0) = (-R/2.+C[0],-R/2.+C[1],-R/2.+C[2])
+    (hx,hy,hz) = (R/(N-1.),R/(N-1.),R/(N-1.))
+    b1 = G.cart((x0,y0,z0), (hx,hy,hz), (N,N,1)) # k=1
+    b2 = G.cart((x0,y0,z0), (hx,hy,hz), (1,N,N)) # i=1
+    b3 = G.cart((x0,y0,z0), (hx,hy,hz), (N,1,N)) # j=1
+    b4 = G.cart((x0+(N-1)*hx,y0,z0), (hx,hy,hz), (1,N,N)) # i=imax
+    b5 = G.cart((x0,y0,z0+(N-1)*hz), (hx,hy,hz), (N,N,1)) # k=kmax
+    b6 = G.cart((x0,y0+(N-1)*hy,z0), (hx,hy,hz), (N,1,N)) # j=jmax
+
     c1 = T.projectRay(b1, [s], C); c1 = T.reorder(c1, (-1,2,3))
     c2 = T.projectRay(b2, [s], C); c2 = T.reorder(c2, (3,2,1))
     c3 = T.projectRay(b3, [s], C); c3 = T.reorder(c3, (1,3,2))
@@ -108,11 +123,11 @@ def sphereYinYang(C, R, N=100, ntype='STRUCT'):
     """Create a sphere of center C and radius R made of two overset parts.
     Usage: a = sphereYinYang((xc,yc,zc), R, N)"""
     try: import Transform as T
-    except: raise ImportError("sphereYinYang: requires Transform module.")
-    fringe = 2
-    Ni = 4*(N/2)
+    except ImportError:
+        raise ImportError("sphereYinYang: requires Transform module.")
+    Ni = 4*(N//2)
     a = sphere(C, R, N=Ni)
-    a = T.subzone(a, (Ni/4-2,Ni/4-2,1), (3*Ni/4+2,7*Ni/4+2,1))
+    a = T.subzone(a, (Ni//4-2,Ni//4-2,1), (3*Ni//4+2,7*Ni//4+2,1))
     b = T.rotate(a, (0,0,0), (0,1,0), 90.)
     b = T.rotate(b, (0,0,0), (0,0,1), 180.)
     m = [a, b]
@@ -121,7 +136,8 @@ def sphereYinYang(C, R, N=100, ntype='STRUCT'):
 # IN: liste de maillages struct
 def export__(a, ntype='STRUCT'):
     try: import Converter as C; import Transform as T; import Generator as G
-    except: raise ImportError("export: requires Converter, Generator and Transform modules.")
+    except ImportError: 
+        raise ImportError("export: requires Converter, Generator and Transform modules.")
     if ntype == 'STRUCT': return a
     elif ntype == 'QUAD':
         a = C.convertArray2Hexa(a)
@@ -138,7 +154,8 @@ def disc(C, R, N=100, ntype='STRUCT'):
     """Create a disc of center C and radius R made of 5 parts.
     Usage: a = disc((xc,yc,zc), R, N)"""
     try: import Generator as G; import Transform as T; import math
-    except: raise ImportError("disc: requires Generator and Transform module.")
+    except ImportError:
+        raise ImportError("disc: requires Generator and Transform module.")
     coeff = R*math.sqrt(2.)*0.25
     x = C[0]; y = C[1]; z = C[2]
     c = circle(C, R, tetas=-45., tetae=45., N=N)
@@ -175,7 +192,8 @@ def quadrangle(P1, P2, P3, P4, N=0, ntype='QUAD'):
     """Create a single quadrangle with points P1, P2, P3, P4.
     Usage: a = quadrangle((x1,y,1,z1), (x2,y2,z2), (x3,y3,z3), (x4,y4,z4))"""
     try: import Generator as G
-    except: raise ImportError("quadrangle: requires Generator module.")
+    except ImportError:
+        raise ImportError("quadrangle: requires Generator module.")
     if N == 0 and ntype == 'QUAD': return geom.quadrangle(P1, P2, P3, P4)
     l1 = line(P1, P2, N)
     l2 = line(P2, P3, N)
@@ -187,9 +205,13 @@ def quadrangle(P1, P2, P3, P4, N=0, ntype='QUAD'):
 def triangle(P0, P1, P2, N=0, ntype='TRI'):
     """Create a triangle made of 3 parts.
     Usage: a = triangle(P1, P2, P3, N)"""
+    if len(P0) == 2: P0 = (P0[0],P0[1],0.)
+    if len(P1) == 2: P1 = (P1[0],P1[1],0.)
+    if len(P2) == 2: P2 = (P2[0],P2[1],0.)
     if N == 0 and ntype == 'TRI': return geom.triangle(P0, P1, P2)
     try: import Generator as G; import Transform as T
-    except: raise ImportError("disc: requires Generator and Transform module.")
+    except ImportError:
+        raise ImportError("triangle: requires Generator and Transform module.")
     C01 = (0.5*(P0[0]+P1[0]), 0.5*(P0[1]+P1[1]), 0.5*(P0[2]+P1[2]))
     C12 = (0.5*(P1[0]+P2[0]), 0.5*(P1[1]+P2[1]), 0.5*(P1[2]+P2[2]))
     C02 = (0.5*(P0[0]+P2[0]), 0.5*(P0[1]+P2[1]), 0.5*(P0[2]+P2[2]))
@@ -223,7 +245,8 @@ def triangle(P0, P1, P2, N=0, ntype='TRI'):
 def box(Pmin, Pmax, N=100, ntype='STRUCT'):
     """Create a box passing by Pmin and Pmax (axis aligned)."""
     try: import Generator as G; import Transform as T
-    except: raise ImportError("box: requires Generator and Transform module.")
+    except ImportError:
+        raise ImportError("box: requires Generator and Transform module.")
     N = max(N, 2)
     (xmin,ymin,zmin) = Pmin
     (xmax,ymax,zmax) = Pmax
@@ -235,8 +258,9 @@ def box(Pmin, Pmax, N=100, ntype='STRUCT'):
     s1 = T.reorder(s1, (-1,2,3))
     s2 = G.cart((xmin,ymin,zmax), (hx,hy,hz), (N, N, 1))
     s3 = G.cart( Pmin, (hx,hy,hz), (N, 1, N) )
+    s3 = T.reorder(s3, (2,1,3))
     s4 = G.cart((xmin,ymax,zmin), (hx,hy,hz), (N, 1, N))
-    s4 = T.reorder(s4, (-1,2,3))
+    s4 = T.reorder(s4, (-2,1,3))
     s5 = G.cart(Pmin, (hx,hy,hz), (1, N, N))
     s5 = T.reorder(s5, (1,-2,3))
     s6 = G.cart((xmax,ymin,zmin), (hx,hy,hz), (1, N, N))
@@ -245,15 +269,16 @@ def box(Pmin, Pmax, N=100, ntype='STRUCT'):
 
 def cylinder(C, R, H, N=100, ntype='STRUCT'):
     """Create a cylinder of center C, radius R and height H."""
-    try: import Generator as G; import Transform as T
-    except: raise ImportError("cylinder: requires Generator and Transform module.")
+    try: import Transform as T
+    except ImportError:
+        raise ImportError("cylinder: requires Generator and Transform module.")
     (x0,y0,z0) = C
     m0 = disc(C, R, N)
     m1 = disc((x0,y0,z0+H), R, N)
     m1 = T.reorder(m1, (-1,2,3))
     m2 = circle(C, R, tetas=-45, tetae=-45+360, N=4*N-3)
     l = line(C, (x0,y0,z0+H), N=N)
-    m2 = lineGenerate(m2, l)
+    m2 = lineDrive(m2, l)
     s = m0 + m1 + [m2]
     return export__(s, ntype)
 
@@ -293,7 +318,7 @@ def curve__(f, N):
     a = numpy.zeros((3, N), dtype=numpy.float64)
     r = f(0)
     if len(r) != 3:
-        print "Warning: curve: parametric function must return a (x,y,z) tuple."
+        print("Warning: curve: parametric function must return a (x,y,z) tuple.")
         return ['x,y,z', a, N, 1, 1]
     for i in range(N):
         t = 1.*i/(N-1)
@@ -321,11 +346,11 @@ def surface__(f, N):
     a = numpy.zeros((3, N*N), dtype=numpy.float64)
     r = f(0,0)
     if len(r) != 3:
-        print "Warning: surface: parametric function must return a (x,y,z) tuple."
+        print("Warning: surface: parametric function must return a (x,y,z) tuple.")
         return ['x,y,z', a, N, N, 1]
     for j in range(N):
         u = 1.*j/(N-1)
-        for i in xrange(N):
+        for i in range(N):
             ind = i + j*N
             t = 1.*i/(N-1)
             r = f(t,u)
@@ -358,11 +383,11 @@ def getNearestPointIndex(a, pointList):
     if isinstance(a[0], list):
         # keep nearest
         npts = len(pL)
-        res0 = [(0,1.e6) for i in xrange(npts)]
+        res0 = [(0,1.e6) for i in range(npts)]
         noi = 0
         for i in a:
             res = geom.getNearestPointIndex(i, pL)
-            for j in xrange(npts):
+            for j in range(npts):
                 if res0[j][1] > res[j][1]:
                     res0[j] = (res[j][0], res[j][1])
             noi += 1
@@ -426,20 +451,20 @@ def getCurvilinearAbscissa(a):
         return geom.getCurvilinearAbscissa(a)
         
 def getDistribution(a):
-    """Return the curvilinear abscissa for each point as coordinates.
+    """Return the curvilinear abscissa for each point as X coordinate.
     Usage: getDistribution(a)"""
     if isinstance(a[0], list):
         b = []
         for i in a:
-            if i[-1]=='BAR': raise TypeError("getDistribution: only for structured array.")
+            if i[-1] == 'BAR': raise TypeError("getDistribution: only for structured array.")
             c = line((0,0,0),(1,0,0),i[2])
             c[1][0] = geom.getCurvilinearAbscissa(i)[1]
             b.append(c)
         return b
     else:
-        if a[-1]=='BAR': raise TypeError("getDistribution: only for structured arrays.")
+        if a[-1] == 'BAR': raise TypeError("getDistribution: only for structured arrays.")
         c = line((0,0,0),(1,0,0),a[2])
-        c[1][0] = geom.getCurvilinearAbscissa(a)[1]    
+        c[1][0] = geom.getCurvilinearAbscissa(a)[1]   
         return c       
         
 def getTangent(a):
@@ -467,9 +492,13 @@ def getTangent(a):
     if len(b)==1: return b[0]
     else: return b
 
+# Obsolete
 def lineGenerate(a, d):
+    return lineDrive(a, d)
+
+def lineDrive(a, d):
     """Generate a surface mesh starting from a curve and a driving curve defined by d.
-    Usage: lineGenerate(a, d)"""
+    Usage: lineDrive(a, d)"""
     if isinstance(d[0], list): # set of driving curves
         if isinstance(a[0], list):
             b = []
@@ -492,12 +521,81 @@ def lineGenerate2__(array, drivingCurves):
     # Copie la distribution de 0 sur les autres courbes
     d = []
     ref = drivingCurves[0]; d += [ref]
-    l = getLength(ref)
+    #l = getLength(ref)
     distrib = getCurvilinearAbscissa(ref)
     distrib[0] = 'x'; distrib = Converter.addVars(distrib, ['y','z'])
     for i in drivingCurves[1:]:
         d += [Generator.map(i, distrib)]
     return geom.lineGenerate2(array, d)
+
+# Ortho drive avec copy ou avec stack
+# IN: a et d doivent etre orthogonals
+# IN: mode=0 (stack), mode=1 (copy)
+def orthoDrive(a, d, mode=0):
+    """Generate a surface mesh starting from a curve and a driving orthogonally to curve defined by d.
+    Usage: orthoDrive(a, d)"""
+    try: import Generator as G; import Transform as T
+    except ImportError:
+        raise ImportError("orthoDrive: requires Generator module.")
+    coord = d[1]
+    center = (coord[0,0],coord[1,0],coord[2,0])
+    coordA = a[1]
+    P0 = [coordA[0,0],coordA[1,0],coordA[2,0]]
+    P1 = [coordA[0,1],coordA[1,1],coordA[2,1]]
+    xg = G.barycenter(a)
+    v0 = Vector.sub(P0, xg)
+    v1 = Vector.sub(P1, xg)
+    S = Vector.cross(v0, v1)
+    S = Vector.normalize(S)
+    if abs(S[1]) > 1.e-12 and abs(S[2]) > 1.e-12: # x,S plane
+        alpha = -S[0]
+        U = Vector.mul(alpha, S)
+        U = Vector.add(U, [1,0,0])
+    else: # y,S plane
+        alpha = -S[0]
+        U = Vector.mul(alpha, S)
+        U = Vector.add(U, [0,1,0])
+    V = Vector.cross(U, S)
+    
+    n = d[2]
+    all = []
+    
+    e2p = None
+    P0 = [coord[0,0],coord[1,0],coord[2,0]]
+    for i in range(n):
+        if i == n-1:
+            Pi = [coord[0,i-1],coord[1,i-1],coord[2,i-1]]
+            Pip = [coord[0,i],coord[1,i],coord[2,i]]
+            v = Vector.sub(Pip, P0)
+        else:                
+            Pi = [coord[0,i],coord[1,i],coord[2,i]]
+            Pip = [coord[0,i+1],coord[1,i+1],coord[2,i+1]]
+            v = Vector.sub(Pi, P0)
+        # vecteur e1 (transformation de S)
+        e1 = Vector.sub(Pip, Pi)
+        e1 = Vector.normalize(e1)
+        # vecteur e2 (intersection plan)
+        # intersection du plan normal a e1 avec le plan x,y
+        if abs(S[1]) > 1.e-12 and abs(S[2]) > 1.e-12: # x,S plane
+            alpha = -e1[0]
+            e2 = Vector.mul(alpha, e1)
+            e2 = Vector.add(e2, [1,0,0])
+        else:
+            alpha = -e1[0]
+            e2 = Vector.mul(alpha, e1)
+            e2 = Vector.add(e2, [0,2,0])
+        e2 = Vector.normalize(e2)
+        if e2p is not None:
+            if Vector.dot(e2,e2p) < -0.9:
+                e2 = Vector.mul(-1,e2)
+        e2p = e2
+        e3 = Vector.cross(e2,e1)
+
+        b2 = T.rotate(a, center, (S,U,V), (e1,e2,e3))
+        b2 = T.translate(b2, v)
+        all.append(b2)
+    if mode == 0: all = G.stack(all)
+    return all
 
 def addSeparationLine(array, array2):
     """Add a separation line defined in array2 to a mesh defined in array.
@@ -523,11 +621,11 @@ def volumeFromCrossSections(contours):
     """Generate a 3D volume from cross sections contours in (x,y) planes.
     Usage: volumeFromCrossSections(contours)"""
     try:
-        import KCore
+        import KCore.kcore as KCore
         import Converter as C
         import Transform as T
         import Generator as G
-    except:
+    except ImportError:
         raise ImportError("volumeFromCrossSections: require Converter, Transform and Generator.")
 
     c = {}
@@ -560,7 +658,7 @@ def volumeFromCrossSections(contours):
     if len(sort) < 2:
         raise ValueError("volumeFromCrossSections: require at least two cross sections.")
 
-    l = 0
+    l = 0; vol = None
     for i in sort:
         if l == 0:
             vol = geom.volumeFromCrossSections(DT[l], DT[l+1], CT[l], CT[l+1])
@@ -571,95 +669,99 @@ def volumeFromCrossSections(contours):
     return vol
 
 # - text functions -
-def text1D(string, font='text1', smooth=0, offset=0.5):
+def text1D(string, font='vera', smooth=0, offset=0.5):
     """Create a 1D text.
     Usage: text1D(string, font, smooth, offset)"""
-    if font == 'text1': import text1 as Text
-    elif font == 'vera': import vera as Text
-    elif font == 'chancery': import chancery as Text
-    elif font == 'courier': import courier as Text
-    elif font == 'nimbus': import nimbus as Text
-    else: import text1 as Text
+    if font == 'text1': from . import text1 as Text
+    elif font == 'vera': from . import vera as Text
+    elif font == 'chancery': from . import chancery as Text
+    elif font == 'courier': from . import courier as Text
+    elif font == 'nimbus': from . import nimbus as Text
+    else: from . import text1 as Text
     try: import Transform
-    except: raise ImportError("text1D: requires Transform.")
+    except ImportError:
+        raise ImportError("text1D: requires Transform.")
     retour = []
     offx = 0.; offy = 0.; s = 6
     for i in string:
-        if (i == 'A'): a, s = Text.A()
-        elif (i == 'a'): a, s = Text.a()
-        elif (i == 'B'): a, s = Text.B()
-        elif (i == 'b'): a, s = Text.b()
-        elif (i == 'C'): a, s = Text.C()
-        elif (i == 'c'): a, s = Text.c()
-        elif (i == 'D'): a, s = Text.D()
-        elif (i == 'd'): a, s = Text.d()
-        elif (i == 'E'): a, s = Text.E()
-        elif (i == 'e'): a, s = Text.e()
-        elif (i == 'F'): a, s = Text.F()
-        elif (i == 'f'): a, s = Text.f()
-        elif (i == 'G'): a, s = Text.G()
-        elif (i == 'g'): a, s = Text.g()
-        elif (i == 'H'): a, s = Text.H()
-        elif (i == 'h'): a, s = Text.h()
-        elif (i == 'I'): a, s = Text.I()
-        elif (i == 'i'): a, s = Text.i()
-        elif (i == 'J'): a, s = Text.J()
-        elif (i == 'j'): a, s = Text.j()
-        elif (i == 'K'): a, s = Text.K()
-        elif (i == 'k'): a, s = Text.k()
-        elif (i == 'L'): a, s = Text.L()
-        elif (i == 'l'): a, s = Text.l()
-        elif (i == 'M'): a, s = Text.M()
-        elif (i == 'm'): a, s = Text.m()
-        elif (i == 'N'): a, s = Text.N()
-        elif (i == 'n'): a, s = Text.n()
-        elif (i == 'O'): a, s = Text.O()
-        elif (i == 'o'): a, s = Text.o()
-        elif (i == 'P'): a, s = Text.P()
-        elif (i == 'p'): a, s = Text.p()
-        elif (i == 'Q'): a, s = Text.Q()
-        elif (i == 'q'): a, s = Text.q()
-        elif (i == 'R'): a, s = Text.R()
-        elif (i == 'r'): a, s = Text.r()
-        elif (i == 'S'): a, s = Text.S()
-        elif (i == 's'): a, s = Text.s()
-        elif (i == 'T'): a, s = Text.T()
-        elif (i == 't'): a, s = Text.t()
-        elif (i == 'U'): a, s = Text.U()
-        elif (i == 'u'): a, s = Text.u()
-        elif (i == 'V'): a, s = Text.V()
-        elif (i == 'v'): a, s = Text.v()
-        elif (i == 'W'): a, s = Text.W()
-        elif (i == 'w'): a, s = Text.w()
-        elif (i == 'X'): a, s = Text.X()
-        elif (i == 'x'): a, s = Text.x()
-        elif (i == 'Y'): a, s = Text.Y()
-        elif (i == 'y'): a, s = Text.y()
-        elif (i == 'Z'): a, s = Text.Z()
-        elif (i == 'z'): a, s = Text.z()
-        elif (i == '0'): a, s = Text.C0()
-        elif (i == '1'): a, s = Text.C1()
-        elif (i == '2'): a, s = Text.C2()
-        elif (i == '3'): a, s = Text.C3()
-        elif (i == '4'): a, s = Text.C4()
-        elif (i == '5'): a, s = Text.C5()
-        elif (i == '6'): a, s = Text.C6()
-        elif (i == '7'): a, s = Text.C7()
-        elif (i == '8'): a, s = Text.C8()
-        elif (i == '9'): a, s = Text.C9()
-        elif (i == '.'): a, s = Text.POINT()
-        elif (i == ','): a, s = Text.COMMA()
-        elif (i == ';'): a, s = Text.POINTCOMMA()
-        elif (i == ':'): a, s = Text.TWOPOINTS()
-        elif (i == '!'): a, s = Text.EXCLAMATION()
-        elif (i == '+'): a, s = Text.PLUS()
-        elif (i == '-'): a, s = Text.MINUS()
-        elif (i == '='): a, s = Text.EQUAL()
-        elif (i == '('): a, s = Text.LEFTBRACE()
-        elif (i == ')'): a, s = Text.RIGHTBRACE()
-#        elif (i == u'\xe9'):
-#            a, s = Text.EACUTE()
-        elif (i == '\n'):
+        if i == 'A': a, s = Text.A()
+        elif i == 'a': a, s = Text.a()
+        elif i == 'B': a, s = Text.B()
+        elif i == 'b': a, s = Text.b()
+        elif i == 'C': a, s = Text.C()
+        elif i == 'c': a, s = Text.c()
+        elif i == 'D': a, s = Text.D()
+        elif i == 'd': a, s = Text.d()
+        elif i == 'E': a, s = Text.E()
+        elif i == 'e': a, s = Text.e()
+        elif i == 'F': a, s = Text.F()
+        elif i == 'f': a, s = Text.f()
+        elif i == 'G': a, s = Text.G()
+        elif i == 'g': a, s = Text.g()
+        elif i == 'H': a, s = Text.H()
+        elif i == 'h': a, s = Text.h()
+        elif i == 'I': a, s = Text.I()
+        elif i == 'i': a, s = Text.i()
+        elif i == 'J': a, s = Text.J()
+        elif i == 'j': a, s = Text.j()
+        elif i == 'K': a, s = Text.K()
+        elif i == 'k': a, s = Text.k()
+        elif i == 'L': a, s = Text.L()
+        elif i == 'l': a, s = Text.l()
+        elif i == 'M': a, s = Text.M()
+        elif i == 'm': a, s = Text.m()
+        elif i == 'N': a, s = Text.N()
+        elif i == 'n': a, s = Text.n()
+        elif i == 'O': a, s = Text.O()
+        elif i == 'o': a, s = Text.o()
+        elif i == 'P': a, s = Text.P()
+        elif i == 'p': a, s = Text.p()
+        elif i == 'Q': a, s = Text.Q()
+        elif i == 'q': a, s = Text.q()
+        elif i == 'R': a, s = Text.R()
+        elif i == 'r': a, s = Text.r()
+        elif i == 'S': a, s = Text.S()
+        elif i == 's': a, s = Text.s()
+        elif i == 'T': a, s = Text.T()
+        elif i == 't': a, s = Text.t()
+        elif i == 'U': a, s = Text.U()
+        elif i == 'u': a, s = Text.u()
+        elif i == 'V': a, s = Text.V()
+        elif i == 'v': a, s = Text.v()
+        elif i == 'W': a, s = Text.W()
+        elif i == 'w': a, s = Text.w()
+        elif i == 'X': a, s = Text.X()
+        elif i == 'x': a, s = Text.x()
+        elif i == 'Y': a, s = Text.Y()
+        elif i == 'y': a, s = Text.y()
+        elif i == 'Z': a, s = Text.Z()
+        elif i == 'z': a, s = Text.z()
+        elif i == '0': a, s = Text.C0()
+        elif i == '1': a, s = Text.C1()
+        elif i == '2': a, s = Text.C2()
+        elif i == '3': a, s = Text.C3()
+        elif i == '4': a, s = Text.C4()
+        elif i == '5': a, s = Text.C5()
+        elif i == '6': a, s = Text.C6()
+        elif i == '7': a, s = Text.C7()
+        elif i == '8': a, s = Text.C8()
+        elif i == '9': a, s = Text.C9()
+        elif i == '.': a, s = Text.POINT()
+        elif i == ',': a, s = Text.COMMA()
+        elif i == ';': a, s = Text.POINTCOMMA()
+        elif i == ':': a, s = Text.TWOPOINTS()
+        elif i == '!': a, s = Text.EXCLAMATION()
+        elif i == '?': a, s = Text.INTERROGATION()
+        elif i == '+': a, s = Text.PLUS()
+        elif i == '-': a, s = Text.MINUS()
+        elif i == '=': a, s = Text.EQUAL()
+        elif i == '(': a, s = Text.LEFTBRACE()
+        elif i == ')': a, s = Text.RIGHTBRACE()
+        elif i == 'é': a, s = Text.EACUTE()
+        elif i == 'è': a, s = Text.ELOW()
+        elif i == 'à': a, s = Text.ALOW()
+        elif i == 'ç': a, s = Text.CCEDILLE()
+        elif i == '\n':
             offy = offy - 8 - offset
             offx = -6 - offset
             a = []
@@ -672,7 +774,7 @@ def text1D(string, font='text1', smooth=0, offset=0.5):
 
     if smooth != 0:
         try: import Generator
-        except:
+        except ImportError:
             raise ImportError("text1D: requires Generator for smooth option.")
         if smooth == 1:
             nmap = 40; hdensify = 8./100
@@ -690,12 +792,14 @@ def text1D(string, font='text1', smooth=0, offset=0.5):
             
     return retour
 
-def text2D(string, font='text1', smooth=0, offset=0.5):
+def text2D(string, font='vera', smooth=0, offset=0.5):
     """Create a 2D text. 
     Usage: text2D(string, font, smooth, offset)"""
     try:
-        import Generator; import Transform; import Converter
-    except:
+        import Generator
+        import Transform
+        import Converter
+    except ImportError:
         raise ImportError("text2D: requires Generator, Transform, Converter.")
     a = text1D(string, font, smooth, offset)
     a = Converter.convertArray2Tetra(a)
@@ -704,18 +808,17 @@ def text2D(string, font='text1', smooth=0, offset=0.5):
     b = Generator.selectInsideElts(b, a)
     return b
 
-def text3D(string, font='text1', smooth=0, offset=0.5, thickness=8.):
+def text3D(string, font='vera', smooth=0, offset=0.5, thickness=8.):
     """Create a 3D text.
     Usage: text3D(string, font, smooth, offset)"""
     try:
-        import Generator
         import Transform
         import Converter
-    except:
+    except ImportError:
         raise ImportError("text3D: requires Generator, Transform, Converter.")
     a = text1D(string, font, smooth, offset)
     l = line((0,0,0),(0,0,thickness),2)
-    a = lineGenerate(a, l)
+    a = lineDrive(a, l)
     a = Converter.convertArray2Tetra(a)
     b = Transform.join(a)
     
@@ -738,8 +841,8 @@ def connect1D(curves, sharpness=0, N=10, lengthFactor=1.):
         import Transform as T
         import Converter as C
         import Generator as G    
-    except:
-        raise(ImportError,"connect1D requires Transform, Converter, Generator and KCore.Vector modules.")
+    except ImportError:
+        raise ImportError("connect1D requires Transform, Converter, Generator modules.")
     #curves = T.splitTBranch(curves)
     curves = C.convertBAR2Struct(curves)
     ncurves = len(curves)
@@ -755,7 +858,7 @@ def connect1D(curves, sharpness=0, N=10, lengthFactor=1.):
         PtsM.append([e1M, e2M])
 
     added = []
-    for c in xrange(ncurves):
+    for c in range(ncurves):
         lcurve = getLength(curves[c]) * lengthFactor
         P1 = Pts[c][0] 
         minDist, P2, d, ext = findNearest__(P1, Pts, c)
@@ -815,8 +918,8 @@ def intersectionPoint__(P1,n1,P2,n2):
 
 # trouve le pt le plus proche de Pt dans Pts mais different de c
 def findNearest__(Pt, Pts, c):
-    minDist = 1.e6; nearest = None; dmin = -1; ext=0;
-    for d in xrange(len(Pts)):
+    minDist = 1.e6; nearest = None; dmin = -1; ext=0
+    for d in range(len(Pts)):
         if d <= c: # possible sur lui meme !!
             e2a = Pts[d][0]; e2b = Pts[d][1]    
             d1 = Vector.squareDist(Pt, e2a)
@@ -826,3 +929,10 @@ def findNearest__(Pt, Pts, c):
             if d2 < minDist and d2 > 1.e-12:
                 minDist = d2; nearest = e2b; ext=1; dmin = d
     return minDist, nearest, dmin, ext
+
+def getUV(a, normalDeviationWeight=2., texResolution=1920, fields=None):
+    """Return uv of surface and atlas."""
+    import Converter
+    a = Converter.initVars(a, '_u_', 0.)
+    a = Converter.initVars(a, '_v_', 0.)
+    return geom.getUV(a, normalDeviationWeight, texResolution, fields)

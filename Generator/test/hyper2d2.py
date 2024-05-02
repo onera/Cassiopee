@@ -1,5 +1,4 @@
 # - hyper2D2 (array) -
-import Transform as T
 import Converter as C
 import Geom as D
 import Generator as G

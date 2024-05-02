@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -18,9 +18,9 @@
 */
 
 # include "dist2walls.h"
-# include "Search/KdTree.h"
-# include "Search/BbTree.h"
-# include "Fld/ArrayAccessor.h"
+# include "Nuga/include/KdTree.h"
+# include "Nuga/include/BbTree.h"
+# include "Nuga/include/ArrayAccessor.h"
 
 using namespace std;
 using namespace K_FLD;
@@ -34,7 +34,10 @@ using namespace K_SEARCH;
 PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
 {
   PyObject *centers, *bodiesC;
-  if (!PyArg_ParseTuple(args, "OO", &centers, &bodiesC)) return NULL;
+  E_Int isminortho;
+  E_Int isIBM_F1;
+  E_Float dTarget;
+  if (!PyArg_ParseTuple(args, "OOiid", &centers, &bodiesC, &isminortho, &isIBM_F1, &dTarget)) return NULL;
   
   if (PyList_Check(centers) == 0)
   {
@@ -49,6 +52,7 @@ PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
                     "distance2Walls: 2nd argument must be a list.");
     return NULL;
   }
+  
   // Maillage en noeuds
   // les coordonnees doivent etre en premier
   vector<PyObject*> objsn, objun;
@@ -206,11 +210,11 @@ PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
   if (structFn.size() > 0)
     computeOrthoDist(ncellss, posx, posy, posz, posflags, 
                      structFn, posxv, posyv, poszv, poscv, unstrF, cnt,
-                     distances);
+                     distances, isminortho, isIBM_F1, dTarget);
   if (unstrFn.size() > 0)
     computeOrthoDist(ncellsu, posx, posy, posz, posflagu,
                      unstrFn, posxv, posyv, poszv, poscv, unstrF, cnt, 
-                     distancesu);
+                     distancesu, isminortho, isIBM_F1, dTarget);
 
   for (E_Int nos = 0; nos < nwalls; nos++)
     RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
@@ -248,17 +252,23 @@ void K_DIST2WALLS::computeOrthoDist(
   vector<E_Int>& posxv, vector<E_Int>& posyv, vector<E_Int>& poszv, 
   vector<E_Int>& poscv,
   vector<FldArrayF*>& fieldsw, vector<FldArrayI*>& cntw,
-  vector<FldArrayF*>& distances)
+  vector<FldArrayF*>& distances,E_Int isminortho, E_Int isIBM_F1, E_Float dTarget)
 {
   E_Int nzones = fields.size();
   /* 1 - creation du kdtree et du bbtree */
-  typedef K_SEARCH::BoundingBox<3>  BBox3DType; 
-  E_Float minB[3]; E_Float maxB[3];
-  vector< vector<BBox3DType*> > vectOfBoxes;// a detruire a la fin
-  
+  typedef K_SEARCH::BoundingBox<3> BBox3DType; 
+  vector< vector<BBox3DType*> > vectOfBoxes; // a detruire a la fin
   // allocate kdtree array: kdtree points are cell vertices
-  E_Int nwalls = cntw.size(); E_Int nptsmax = 0; 
-  for (E_Int v = 0; v < nwalls; v++) nptsmax += fieldsw[v]->getSize();
+  E_Int nwalls = cntw.size();
+  E_Int nptsmax = 0;
+  E_Int npts_local = 0;
+  vector<vector< vector<E_Int>  > >cVE_all;
+  vector<E_Int> npts_walls_limit;
+  for (E_Int v = 0; v < nwalls; v++)
+  {
+    nptsmax += fieldsw[v]->getSize();
+    #include "mininterf_ortho_npts_limit.h"
+  }
   FldArrayF* wallpts = new FldArrayF(nptsmax, 3);
   FldArrayF* lmax = new FldArrayF(nptsmax);
 
@@ -271,6 +281,8 @@ void K_DIST2WALLS::computeOrthoDist(
   E_Int nop = 0;
   E_Int ind;
   vector<FldArrayF> bboxes;
+  E_Float minB[3]; E_Float maxB[3];
+  
   for (E_Int now = 0; now < nwalls; now++)
   {
     FldArrayF* fieldv = fieldsw[now];
@@ -283,7 +295,7 @@ void K_DIST2WALLS::computeOrthoDist(
     FldArrayI& cnloc = *cntw[now];
     E_Int nelts = cnloc.getSize(); E_Int nvert = cnloc.getNfld();
     vector<BBox3DType*> boxes(nelts); // liste des bbox de ts les elements de la paroi courante
-    FldArrayF bbox(nelts, 6);// xmin, ymin, zmin, xmax, ymax, zmax
+    FldArrayF bbox(nelts, 6); // xmin, ymin, zmin, xmax, ymax, zmax
     K_COMPGEOM::boundingBoxOfUnstrCells(cnloc, xw, yw, zw, bbox); bboxes.push_back(bbox);
     E_Float* xminp = bbox.begin(1); E_Float* xmaxp = bbox.begin(4);
     E_Float* yminp = bbox.begin(2); E_Float* ymaxp = bbox.begin(5);
@@ -342,107 +354,71 @@ void K_DIST2WALLS::computeOrthoDist(
     vectOfBBTrees.push_back(bbtree);
   }
 
-  /* Compute the distance with orthogonal projection */
-  E_Float pt[3]; 
-  vector<E_Int> indicesBB; vector<E_Int> candidates;
-  for (E_Int v = 0; v < nzones; v++)
+  /* Compute the distance with orthogonal projection */    
+  #pragma omp parallel
   {
-    E_Float* xt = fields[v]->begin(posx);
-    E_Float* yt = fields[v]->begin(posy);
-    E_Float* zt = fields[v]->begin(posz);
-    E_Float* distancep = distances[v]->begin(); 
-    E_Int npts = distances[v]->getSize();
-    E_Int isFlagged=false;
-    E_Float* flagp = NULL;
-    if (posflag[v] > 0 )
-    { 
-      flagp = fields[v]->begin(posflag[v]);
-      isFlagged=true;
-    }
-      
-#pragma omp parallel for default(shared) private(minB, maxB, pt, indicesBB, candidates) schedule(dynamic)
-    for (E_Int ind = 0; ind < npts; ind++)
+    E_Float pt[3]; 
+    vector<E_Int> indicesBB; vector<E_Int> candidates;
+    E_Float minB[3]; E_Float maxB[3];
+    E_Int ret,vw;
+    E_Float dist, dx, dy, dz, xp, yp, zp, rx, ry, rz, rad;
+    E_Float distmin, prod;
+    E_Int et, ind10, indw2, nbb, nvert;
+    E_Int posxw, posyw, poszw, poscw;
+    E_Float A, rad2, alpha, R, xQ, yQ, zQ, rmax;
+    E_Float* xw; E_Float* yw; E_Float* zw; E_Float* cellnw;
+    E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3];
+
+    for (E_Int v = 0; v < nzones; v++)
     {
-      E_Int ret;
-      E_Float dist, dx, dy, dz, xp, yp, zp, rx, ry, rz, rad;
-      E_Float distmin, prod;
-      E_Int et, ind10;
-      if ( isFlagged==true && flagp[ind] == 0.) { ;}
+      E_Float* xt = fields[v]->begin(posx);
+      E_Float* yt = fields[v]->begin(posy);
+      E_Float* zt = fields[v]->begin(posz);
+      E_Float* distancep = distances[v]->begin(); 
+      E_Int npts = distances[v]->getSize();
+      E_Int isFlagged=false;
+      E_Float* flagp = NULL;
+      if (posflag[v] > 0 )
+      { 
+        flagp = fields[v]->begin(posflag[v]);
+        isFlagged = true;
+      }
+      if (isFlagged == true)
+      {
+        #pragma omp for schedule(dynamic)
+        for (E_Int ind = 0; ind < npts; ind++)
+        {
+          if (flagp[ind] == 0.) { ; }
+          else
+          {
+            #include "algoOrtho.h"
+          }
+        }   
+      }
       else
       {
-      indicesBB.clear(); candidates.clear();
-      distmin = distancep[ind];
-
-      pt[0] = xt[ind]; pt[1] = yt[ind]; pt[2] = zt[ind];
-      // recherche du sommet P' des parois le plus proche de P
-      E_Int indw2 = kdt.getClosest(pt);
-      
-      rx = xw2[indw2]-pt[0]; ry = yw2[indw2]-pt[1]; rz = zw2[indw2]-pt[2];
-      dist = rx*rx + ry*ry + rz*rz;
-
-      // calcul de la bounding box de la sphere de rayon PP'
-      rad = sqrt(dist);
-      E_Float A = 1./(10.*lmaxp[indw2]);
-      E_Float rad2 = exp(-A*rad);
-      E_Float alpha = 1.-rad2;
-      E_Float R = rad*rad2;
-      E_Float xQ = pt[0] + alpha*(xw2[indw2]-pt[0]);
-      E_Float yQ = pt[1] + alpha*(yw2[indw2]-pt[1]);
-      E_Float zQ = pt[2] + alpha*(zw2[indw2]-pt[2]);
-      minB[0] = xQ-R; minB[1] = yQ-R; minB[2] = zQ-R;
-      maxB[0] = xQ+R; maxB[1] = yQ+R; maxB[2] = zQ+R;
-      //if (fabs(pt[1])<1.e-10) { printf("%f %f R=%f, delta=%f\n",pt[0],pt[2],R,rad); }
-
-      if (dist < distmin) { distancep[ind] = dist; distmin = dist; }
-
-      // calcul des cellules intersectantes
-      for (E_Int now = 0; now < nwalls; now++)
-      {
-        indicesBB.clear(); candidates.clear();
-        K_SEARCH::BbTree3D* bbtree = vectOfBBTrees[now];
-        bbtree->getOverlappingBoxes(minB, maxB, indicesBB);
-        FldArrayF* fieldv = fieldsw[now];
-        E_Int posxw = posxv[now]; E_Int posyw = posyv[now]; E_Int poszw = poszv[now]; E_Int poscw = poscv[now];
-        E_Float* xw = fieldv->begin(posxw);
-        E_Float* yw = fieldv->begin(posyw);
-        E_Float* zw = fieldv->begin(poszw);
-        E_Float* cellnw = fieldv->begin(poscw);
-        FldArrayI& cnloc = *cntw[now];
-        E_Int nbb = indicesBB.size();
-        E_Int nvert = cnloc.getNfld();
-        E_Float prodCellN2 = pow(2.,nvert);
-        for (E_Int i = 0; i < nbb; i++)
-        {
-          et = indicesBB[i];
-          prod = 1.;
-          for (E_Int novert = 1; novert <= nvert; novert++)
-          {
-            ind10 = cnloc(et, novert)-1;
-            prod = prod*cellnw[ind10];
-          }
-          if (prod != 0. && prod != prodCellN2) candidates.push_back(et);
-        }
-        ret = K_COMPGEOM::projectOrthoPrecond(pt[0], pt[1], pt[2], xw, yw, zw, 
-                                              candidates, cnloc, xp, yp, zp);
-        if (ret != -1)
-        {
-          dx = xp-pt[0]; dy = yp-pt[1]; dz = zp-pt[2];
-          dist = dx*dx + dy*dy + dz*dz;    
-          if (dist < distmin) { distancep[ind] = dist; distmin = dist; }
-        }
+        #pragma omp for schedule(dynamic)
+        for (E_Int ind = 0; ind < npts; ind++)
+        {   
+          #include "algoOrtho.h"
+        }  
       }
-      }//flag
-    } // fin boucle sur les centres sur lesquels la distance est calculee
-  }// fin boucle sur les zones ou la distance est a calculer
-  // Computes the distance (sqrt)
-  for (E_Int v = 0; v < nzones; v++)
-  {
-    E_Float* distancep = distances[v]->begin();
-    E_Int npts = distances[v]->getSize();
-#pragma omp parallel for shared(distancep, npts)
-    for (E_Int ind = 0; ind < npts; ind++)
-      distancep[ind] = sqrt(distancep[ind]);
+    }
   }
+  
+  // Computes the distance (sqrt)
+  #pragma omp parallel
+  {
+    for (E_Int v = 0; v < nzones; v++)
+    {
+        E_Float* distancep = distances[v]->begin();
+        E_Int npts = distances[v]->getSize();
+        #pragma omp for
+        for (E_Int ind = 0; ind < npts; ind++)
+          distancep[ind] = sqrt(distancep[ind]);
+    }
+  }
+
   // Cleaning
   E_Int nboxes = vectOfBoxes.size();
   for (E_Int v0 = 0; v0 < nboxes; v0++)

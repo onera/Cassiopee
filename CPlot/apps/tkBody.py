@@ -1,5 +1,7 @@
-# - tkBody: creates closed and watertight bodies -
-import Tkinter as TK
+# - tkBody -
+"""Creates closed and watertight bodies."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import Converter.Internal as Internal
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -17,7 +19,7 @@ WIDGETS = []; VARS = []
 def extractBodies():
     pref = 'BODY#'
     if CTK.t == []: return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
@@ -45,12 +47,12 @@ def extractBodies():
 
 #=========================================================================
 def extractExternalContours():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     CTK.saveTree()
@@ -67,20 +69,20 @@ def extractExternalContours():
     
 #=========================================================================
 def stitchedHat():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
     args = VARS[1].get(); args = args.split(';')
-    if ( len(args) != 2 ): return
+    if len(args) != 2: return
     eps = float(args[0]); eps2 = float(args[1])
     
     args = VARS[2].get(); args = args.split(';')
-    if (len(args) != 3): return
+    if len(args) != 3: return
     offx = float(args[0]); offy = float(args[1]); offz = float(args[2])
 
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     else:
@@ -98,16 +100,16 @@ def stitchedHat():
 
 #==============================================================================
 def pointedHat():
-    if (CTK.t == []): return
-    if (CTK.__MAINTREE__ <= 0):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     nzs = CPlot.getSelectedZones()
     args = VARS[3].get(); args = args.split(';')
-    if (len(args) != 3): return
+    if len(args) != 3: return
     x0 = float(args[0]); y0 = float(args[1]); z0 = float(args[2])
 
-    if (nzs == []):
+    if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     else :
@@ -125,7 +127,7 @@ def pointedHat():
 #==============================================================================
 def closeBody():
     type = VARS[0].get()
-    if (type == 'stitchedHat'): return stitchedHat()
+    if type == 'stitchedHat': return stitchedHat()
     else: return pointedHat()
 
 #==============================================================================
@@ -134,16 +136,16 @@ def closeBody():
 def createApp(win):
     # - Frame -
     Frame = TK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE, 
-                          text='tkBody', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Close surface meshes.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                          text='tkBody  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Close surface meshes.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
     WIDGETS['frame'] = Frame
 
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkBody')
     WIDGETS['frameMenu'] = FrameMenu
     
@@ -197,7 +199,7 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    WIDGETS['frame'].grid(sticky=TK.NSEW)
 
 #==============================================================================
 # Called to hide widgets
@@ -211,9 +213,9 @@ def hideApp(event=None):
 def updateApp(): return
 
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

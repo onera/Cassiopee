@@ -6,7 +6,7 @@ import KCore.test as test
 
 t = C.newPyTree(['Base1'])
 Ni = 4; Nj = 4; Nk = 4; dx = 0.
-for i in xrange(4):
+for i in range(4):
     z = G.cart((dx,dx,dx),(1./(Ni-1), 1./(Nj-1),1./(Nk-1)), (Ni,Nj,Nk))
     t[2][1][2] += [z]
     dx += 0.3

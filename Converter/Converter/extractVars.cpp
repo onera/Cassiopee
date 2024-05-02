@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -40,8 +40,8 @@ PyObject* K_CONVERTER::extractVars(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res, nv, n;
-  res = K_ARRAY::getFromArray(array, varString,
-                              f, nil, njl, nkl, cn, eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, f,
+                               nil, njl, nkl, cn, eltType);
 
   if (res == 1) nv = f->getNfld();
   else if (res == 2) nv = f->getNfld();
@@ -58,7 +58,7 @@ PyObject* K_CONVERTER::extractVars(PyObject* self, PyObject* args)
   }
 
   vector<E_Int> nvar;
-  for (int i = 0; i < PyList_Size(vars); i++)
+  for (E_Int i = 0; i < PyList_Size(vars); i++)
   {
     tpl = PyList_GetItem(vars, i);
     if (PyInt_Check(tpl) == 0)
@@ -103,30 +103,30 @@ PyObject* K_CONVERTER::extractVars(PyObject* self, PyObject* args)
   // Build array here
   if (res == 1)
   {
-    tpl = K_ARRAY::buildArray(nt, fstring, 
-                              nil, njl, nkl);
+    tpl = K_ARRAY::buildArray3(nt, fstring, nil, njl, nkl);
   }
   else
   {
-    E_Int csize = cn->getSize()*cn->getNfld();
-    tpl = K_ARRAY::buildArray(nt, fstring, fSize, cn->getSize(), -1, eltType, false, csize);
-    E_Int* cnRef = K_ARRAY::getConnectPtr(tpl);
-    K_KCORE::memcpy__(cnRef, cn->begin(), cn->getSize()*cn->getNfld());
+    E_Int api = f->getApi();
+    E_Boolean compact = false;
+    if (api == 1) compact = true;
+    FldArrayF f2(fSize, nt, compact);
+    tpl = K_ARRAY::buildArray3(f2, fstring, *cn, eltType);
   }
-  E_Float* sp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF s(fSize, nt, sp, true);
+  FldArrayF* f2; K_ARRAY::getFromArray3(tpl, f2);
 
-#pragma omp parallel default(shared)
+#pragma omp parallel
   {
     for (E_Int i = 0; i < nt; i++)
     {
-      E_Float* si = s.begin(i+1);
+      E_Float* f2p = f2->begin(i+1);
       E_Float* fp = f->begin(nvar[i]);
 #pragma omp for
-      for (E_Int j = 0; j < fSize; j++) si[j] = fp[j];
+      for (E_Int j = 0; j < fSize; j++) f2p[j] = fp[j];
     }
   }
   delete [] fstring;
   RELEASESHAREDB(res, array, f, cn);
+  RELEASESHAREDS(tpl, f2);
   return tpl;
 }

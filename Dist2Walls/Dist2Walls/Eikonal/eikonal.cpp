@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -99,7 +99,7 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
     return NULL;
   }
   E_Float* phi = fn.begin(pos+1);
-  E_Float max_float = 0;
+  E_Float max_float = 0.;
   for ( int i = 0; i < nil*njl*nkl; ++i )
     max_float = std::max(max_float,phi[i]);
 
@@ -117,24 +117,22 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
   E_Float dh = x[1]-x[0];
   //E_Int nbSubIter = 5;
 
-
   //clock_gettime(CLOCK_REALTIME, &end);
   //double seconds = (double)((end.tv_sec+end.tv_nsec*1.E-9) - (beg.tv_sec+beg.tv_nsec*1.E-9));
   //std::cout << "Temps passé en C avant appel Eikonal solver : " << seconds << "secondes" << std::endl;  
-  E_Int nt =  __NUMTHREADS__;  
-  nt = 0; // pas de multithread pour l instant
+  //E_Int nt = __NUMTHREADS__;  
+  //nt = 0; // pas de multithread pour l'instant
   //clock_gettime(CLOCK_REALTIME, &beg);
   if (algo == 0 ) // Algorithme d'origine FMM
-{
-   Eikonal::FMM::solveOnIsotropGrid( nil, njl, nkl, x[0], y[0], z[0], dh, phi, v);
-
-}
+  {
+    Eikonal::FMM::solveOnIsotropGrid( nil, njl, nkl, x[0], y[0], z[0], dh, phi, v);
+  }
   if (algo == 1 ) // Variant de l'algorithme d'origine : FIM
-{
+  {
     Eikonal::FIM::solveOnIsotropGrid( nil, njl, nkl, x[0], y[0], z[0], dh, phi, v, max_float);
-}
+  }
   if (algo == 2 )// Si on a choisit l'algorithme FIM
-//  if (nt == 0) 
+  //if (nt == 0) 
   {
     solveEikonalOnIsotropGrid(nil, njl, nkl,
                               x[0], y[0], z[0],

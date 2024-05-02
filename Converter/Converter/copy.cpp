@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -19,11 +19,13 @@
 
 # include <stdio.h>
 # include <stdlib.h>
-
 # include "converter.h"
 
 using namespace std;
 using namespace K_FLD;
+
+// 1: array1, 2: array1/2, 3: array1/2/3
+#define ARRAYCODE 3
 
 //=============================================================================
 /* Copy the contain of an array in another array */
@@ -33,7 +35,8 @@ PyObject* K_CONVERTER::copy(PyObject* self, PyObject* args)
   PyObject* array;  
   if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
 
-/*  // Check array
+#if ARRAYCODE == 1
+/* array1 only code */
   E_Int ni, nj, nk, res;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
@@ -66,18 +69,20 @@ PyObject* K_CONVERTER::copy(PyObject* self, PyObject* args)
   else
   {
     return NULL;
-  }*/
+  }
+#endif
 
-  // Check array
+#if ARRAYCODE == 2
   E_Int ni, nj, nk, res;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   res = K_ARRAY::getFromArray2(array, varString, f, ni, nj, nk, cn, eltType);
   E_Int api = f->getApi();
-  
+  E_Int nfld = f->getNfld(); E_Int npts = f->getSize();
+
   if (res == 1)
   { 
-    E_Int nfld = f->getNfld(); E_Int npts = f->getSize();
+    // for all arrays
     PyObject* tpl = K_ARRAY::buildArray2(nfld, varString, ni, nj, nk, api);
     FldArrayF* f2; FldArrayI* cn2;
     K_ARRAY::getFromArray2(tpl, varString, f2, ni, nj, nk, cn2, eltType);
@@ -97,9 +102,8 @@ PyObject* K_CONVERTER::copy(PyObject* self, PyObject* args)
   }
   else if (res == 2)
   {
-    E_Int l = strlen(eltType);
     E_Boolean center = false;
-    if (eltType[l-2] == '*') center = true;
+    if (strchr(eltType, '*') != NULL) center = true;
     E_Int nfld = f->getNfld(); E_Int npts = f->getSize();
     E_Int nelts=0, nfaces=0, sizeNGon=0, sizeNFace=0;
     if (strcmp(eltType, "NGON") == 0 || strcmp(eltType, "NGON*") == 0)
@@ -202,4 +206,139 @@ PyObject* K_CONVERTER::copy(PyObject* self, PyObject* args)
   {
     return NULL;
   }
+#endif
+
+#if ARRAYCODE == 3
+  E_Int ni, nj, nk, res;
+  FldArrayF* f; FldArrayI* cn;
+  char* varString; char* eltType;
+  res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
+  E_Int api = f->getApi();
+  if (api == 2) api = 3;
+  E_Int nfld = f->getNfld(); E_Int npts = f->getSize();
+
+  if (res == 1)
+  { 
+    PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, ni, nj, nk, api);
+    FldArrayF* f2; FldArrayI* cn2;
+    K_ARRAY::getFromArray3(tpl, f2, cn2);
+
+    #pragma omp parallel
+    {
+      for (E_Int n = 1; n <= nfld; n++)
+      {
+        E_Float* fp = f->begin(n);
+        E_Float* f2p = f2->begin(n);
+        #pragma omp for
+        for (E_Int i = 0; i < npts; i++) f2p[i] = fp[i];
+      }
+    } 
+    RELEASESHAREDS(array, f); RELEASESHAREDS(tpl, f2);
+    return tpl;
+  }
+  else if (res == 2)
+  {
+    PyObject* tpl = NULL;
+    if (strcmp(eltType, "NGON") == 0 || strcmp(eltType, "NGON*") == 0)
+    {
+      E_Int dim; 
+      E_Int ngonType = cn->isNGon();
+      E_Int nelts = cn->getNElts();
+      E_Int nfaces = cn->getNFaces();
+      E_Int sizeNGon = cn->getSizeNGon();
+      E_Int sizeNFace = cn->getSizeNFace();
+      E_Boolean center = false;
+      if (strchr(eltType, '*') != NULL) center = true;
+      PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, nelts, nfaces, 
+        eltType, sizeNGon, sizeNFace, ngonType, center, api);
+      FldArrayF* f2; FldArrayI* cn2;
+      K_ARRAY::getFromArray3(tpl, f2, cn2);
+
+      if (center == true) dim = nelts;
+      else dim = npts;
+      #pragma omp parallel
+      {
+        for (E_Int n = 1; n <= nfld; n++)
+        {
+          E_Float* fp = f->begin(n);
+          E_Float* f2p = f2->begin(n);
+          #pragma omp for
+          for (E_Int i = 0; i < dim; i++) f2p[i] = fp[i];
+        }
+        E_Int* ngonp = cn->getNGon();
+        E_Int* ngon2p = cn2->getNGon();
+        #pragma omp for
+        for (E_Int i = 0; i < sizeNGon; i++) ngon2p[i] = ngonp[i];
+        E_Int* nfacep = cn->getNFace();
+        E_Int* nface2p = cn2->getNFace();
+        #pragma omp for
+        for (E_Int i = 0; i < sizeNFace; i++) nface2p[i] = nfacep[i];
+        if (api > 1)
+        {
+          E_Int* indPGp = cn->getIndPG();
+          E_Int* indPG2p = cn2->getIndPG();
+          //if (indPGp == NULL) { printf("indPG is null\n"); fflush(stdout); }
+          if (ngonType == 2) dim = nfaces;
+          else dim = nfaces+1;
+          #pragma omp for
+          for (E_Int i = 0; i < dim; i++) indPG2p[i] = indPGp[i];
+          E_Int* indPHp = cn->getIndPH();
+          E_Int* indPH2p = cn2->getIndPH();
+          if (ngonType == 2) dim = nelts;
+          else dim = nelts+1;
+          #pragma omp for
+          for (E_Int i = 0; i < dim; i++) indPH2p[i] = indPHp[i];
+        } 
+      }
+      RELEASESHAREDU(array, f, cn); RELEASESHAREDU(tpl, f2, cn2);
+      return tpl;
+    }
+    else // BE
+    {
+      E_Int ncon = cn->getNConnect();
+      E_Boolean center = false;
+      if (strchr(eltType, '*') != NULL) center = true;
+      vector< E_Int > neltsPerConnect(ncon);
+      E_Int nelts = 0;
+      for (E_Int i = 0; i < ncon; i++)
+      { FldArrayI& cm = *(cn->getConnect(i));
+        neltsPerConnect[i] = cm.getSize(); 
+        nelts += cm.getSize(); }
+      tpl = K_ARRAY::buildArray3(nfld, varString, npts, neltsPerConnect, eltType, center, api);
+      FldArrayF* f2; FldArrayI* cn2;  
+      K_ARRAY::getFromArray3(tpl, f2, cn2);
+      
+      // copie des champs
+      E_Int dim;
+      if (center == true) dim = nelts;
+      else dim = npts;
+      #pragma omp parallel
+      {
+        for (E_Int n = 1; n <= nfld; n++)
+        {
+          E_Float* fp = f->begin(n);
+          E_Float* f2p = f2->begin(n);
+          #pragma omp for
+          for (E_Int i = 0; i < dim; i++) f2p[i] = fp[i];
+        }
+      
+        for (E_Int i = 0; i < ncon; i++)
+        { 
+          FldArrayI& cm = *(cn->getConnect(i));
+          FldArrayI& cm2 = *(cn2->getConnect(i));
+          E_Int* cmp = cm.begin();
+          E_Int* cm2p = cm2.begin();
+          #pragma omp for
+          for (E_Int i = 0; i < cm.getSize()*cm.getNfld(); i++) cm2p[i] = cmp[i];
+        }
+      }
+      RELEASESHAREDU(array, f, cn); RELEASESHAREDU(tpl, f2, cn2);
+      return tpl;
+    }
+  }
+  else
+  {
+    return NULL;
+  }
+#endif
 }

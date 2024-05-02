@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -22,19 +22,20 @@
 //=============================================================================
 #ifndef _CPLOT_STATEDL_H_
 # define _CPLOT_STATEDL_H_
-# include <list>
+# include <vector>
 # include "CPlotState.h"
 # include "Def/DefTypes.h"
 
 struct CPlotStateDL : public CPlotState
 {
   // Display lists  
-  std::list<unsigned int> freeDLList; // list des DL a liberer
+  std::vector<unsigned int> freeDLList; // list des DL a liberer
 
   virtual void freeGPUResources() {
-    for (std::list<unsigned int>::iterator itr = freeDLList.begin(); itr != freeDLList.end(); itr++)
+    for (std::vector<unsigned int>::iterator itr = freeDLList.begin(); itr != freeDLList.end(); itr++)
       glDeleteLists(*itr, 1);
     freeDLList.clear();
+    freeGPURes = 0; // nothing to clean any more
   }
 };
 

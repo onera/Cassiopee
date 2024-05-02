@@ -15,6 +15,13 @@ t[2][1] = C.addState(t[2][1], 'EquationDimension', 3)
 # --- Apply on PyTree
 t1 = X.applyBCOverlaps(t, depth=1,loc='centers')
 test.testT(t1, 1)
+
+# in place
+C._initVars(t,"centers:cellN=1")
+X._applyBCOverlaps(t, depth=1,loc='centers',checkCellN=False)
+test.testT(t, 1)
+
+
 # --- Apply on a zone
 a2 = X.applyBCOverlaps(a, depth = 1,loc='centers')
 t2 = C.newPyTree(['Base',a2])

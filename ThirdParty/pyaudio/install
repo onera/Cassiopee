@@ -28,6 +28,9 @@ else
     exit
 fi
 
+if [ "$PYTHONEXE" != "" ]; then
+    alias python=$PYTHONEXE
+fi
+
 # installation
-#cp -r odf "$INSTALLPATH/lib/python2.7/site-packages"
 python setup.py install --prefix="$INSTALLPATH"

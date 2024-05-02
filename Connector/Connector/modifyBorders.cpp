@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -20,6 +20,7 @@
 
 using namespace std;
 using namespace K_FLD;
+
 //==============================================================================
 /* Met a jour les coordonnees des points frontieres d un maillage surfacique 
    Specifique a la creation de surfaces de projection en centres etendues
@@ -29,8 +30,7 @@ PyObject* K_CONNECTOR::modifyBorders(PyObject* self, PyObject* args)
 {
   PyObject *a1;
   E_Int iminL0, jminL0, imaxL0, jmaxL0;
-  if (!PYPARSETUPLEI(args,
-                    "Ollll", "Oiiii",
+  if (!PYPARSETUPLE_(args, O_ IIII_,
                     &a1, &iminL0, &imaxL0, &jminL0, &jmaxL0))
   {
       return NULL;

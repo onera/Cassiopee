@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -27,7 +27,9 @@
 # include "Def/DefTypes.h"
 # include "Fld/FldArray.h"
 # include "Def/DefCplusPlusConst.h"
+# include "String/kstring.h"
 # include "kPython.h"
+# include "Nuga/include/ngon_t.hxx"
 
 // Define ftell and fseek (long return)
 #ifdef _WIN64
@@ -39,15 +41,17 @@
 #endif
 
 // Define conversion from int big endian to int little endian
-#define SBE(x) *((short*)GenIO::conv2((char*)&x))
+#define SBE(x) *((short*)K_IO::GenIO::conv2((char*)&x))
 // Define conversion from int big endian to int little endian
-#define IBE(x) *((int*)GenIO::conv4((char*)&x))
+#define IBE(x) *((int*)K_IO::GenIO::conv4((char*)&x))
+// Define conversion from unsigned int big endian to unsigned int little endian
+#define UIBE(x) *((unsigned int*)K_IO::GenIO::conv4((char*)&x))
 // Define conversion from long big endian to long little endian
-#define LBE(x) *((E_LONG*)GenIO::conv8((char*)&x))
+#define LBE(x) *((E_LONG*)K_IO::GenIO::conv8((char*)&x))
 // Define conversion between float big endian to double little endian
-#define FBE(x) *((float*)GenIO::conv4((char*)&x))
+#define FBE(x) *((float*)K_IO::GenIO::conv4((char*)&x))
 // Define conversion between double big endian to double little endian
-#define DBE(x) *((double*)GenIO::conv8((char*)&x))
+#define DBE(x) *((double*)K_IO::GenIO::conv8((char*)&x))
 
 #define FldArrayF K_FLD::FldArrayF
 #define FldArrayI K_FLD::FldArrayI
@@ -108,7 +112,10 @@ class GenIO
       std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connectivity,
-      std::vector<E_Int>& eltType, std::vector<char*>& zoneNames);
+      std::vector<E_Int>& eltType, std::vector<char*>& zoneNames,
+      char*& centerVarString,
+      std::vector<FldArrayF*>& centerStructField,
+      std::vector<FldArrayF*>& centerUnstructField);
     /** Write structured field in binary tec format. One zone.
         return 1 if failed */
     E_Int tecwrite(char* file, char* dataFmt, char* varstring,
@@ -219,6 +226,14 @@ class GenIO
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connectivity,
       std::vector<E_Int>& eltType, std::vector<char*>& zoneNames);
+    E_Int tpread(
+      char* file, char*& varString,
+      std::vector<FldArrayF*>& structField,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connectivity,
+      std::vector<std::vector<E_Int> >& eltType, std::vector<char*>& zoneNames,
+      E_Int api=1);
     E_Int tpwrite(
       char* file, char* dataFmt, char* varString,
       std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
@@ -226,6 +241,14 @@ class GenIO
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
       std::vector<E_Int>& eltType,
+      std::vector<char*>& zoneNames);
+    E_Int tpwrite(
+      char* file, char* dataFmt, char* varString,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector<FldArrayF*>& structField,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connect,
+      std::vector<std::vector<E_Int> >& eltType,
       std::vector<char*>& zoneNames);
     ///-
 
@@ -252,6 +275,15 @@ class GenIO
       std::vector<FldArrayI*>& connectivity,
       std::vector<E_Int>& eltType, std::vector<char*>& zoneNames,
       std::vector<FldArrayI*>& BCFaces, std::vector<char*>& BCNames);
+    E_Int su2read(
+      char* file, char*& varString,
+      std::vector<FldArrayF*>& structField,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connectivity,
+      std::vector<std::vector<E_Int> >& eltType, std::vector<char*>& zoneNames,
+      std::vector<FldArrayI*>& BCFaces, std::vector<char*>& BCNames,
+      E_Int api=1);
     /** Write */
     E_Int su2write(
       char* file, char* dataFmt, char* varString,
@@ -262,6 +294,74 @@ class GenIO
       std::vector<E_Int>& eltType,
       std::vector<char*>& zoneNames,
       PyObject* BCFaces);
+    E_Int su2write(
+      char* file, char* dataFmt, char* varString,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector <FldArrayF*>& structField,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connect,
+      std::vector<std::vector<E_Int> >& eltType,
+      std::vector<char*>& zoneNames,
+      PyObject* BCFaces);
+    ///-
+
+    ///+ fmt foam file functions
+    /** Read */
+    E_Int foamread(
+      char* file, char*& varString,
+      std::vector<FldArrayF*>& structField,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connectivity,
+      std::vector<E_Int>& eltType, std::vector<char*>& zoneNames,
+      std::vector<FldArrayI*>& BCFaces, std::vector<char*>& BCNames,
+      std::vector<FldArrayF*>& BCFields,
+      char*& varStringc,
+      std::vector<FldArrayF*>& centerStructField,
+      std::vector<FldArrayF*>& centerUnstructField);
+    /** Write */
+    E_Int foamwrite(
+      char* file, char* dataFmt, char* varString,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector <FldArrayF*>& structField,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connect,
+      std::vector<E_Int>& eltType,
+      std::vector<char*>& zoneNames,
+      PyObject* BCFaces);
+    E_Int foamWritePoints(char* file, FldArrayF& f);
+    E_Int foamReadPoints(char* file, FldArrayF& f);
+    E_Int foamReadFields(char* file,
+      std::vector<FldArrayF*>& centerUnstructField, E_Int ncells,
+      char*& varStringc,
+      const std::vector<char *> &BCNames,
+      const std::vector<FldArrayI *> &BCFaces,
+      std::vector<FldArrayF *> &BCFields, E_Int *owner,
+      const std::vector<E_Float> &delta, E_Int nifaces,
+      const std::vector<E_Int> &indir);
+    E_Int foamWriteFaces(char* file, FldArrayI& cn,
+      const std::vector<E_Int>& faces);
+    E_Int foamReadFaces(char* file, E_Int& nfaces, FldArrayI& cn);
+    E_Int foamWriteOwner(char* file, const std::vector<E_Int> &owner,
+      const std::vector<E_Int> &faces);
+    E_Int foamReadOwner(char* file, FldArrayI& PE);
+    E_Int foamWriteNeighbour(char* file, const std::vector<E_Int> &neigh,
+      const std::vector<E_Int> &faces);
+    E_Int foamReadNeighbour(char* file, FldArrayI& PE);
+    E_Int foamWriteBoundary(char* file, const std::vector<char*>& bc_names, 
+      const std::vector<E_Int>& bc_nfaces,
+      const std::vector<E_Int>& bc_startfaces);
+    E_Int foamReadBoundary(char* file, std::vector<FldArrayI*>& BCFaces,
+      std::vector<char*>& BCNames, std::vector<E_Int> &indir);
+    E_Int readScalarField(char *file, FldArrayF& f, E_Int idx, E_Int *owner,
+      const std::vector<FldArrayI *> &BCFaces,
+      std::vector<FldArrayF *> &BCFields, const std::vector<E_Float> &delta,
+      E_Int nifaces, const std::vector<E_Int> &indir);
+    E_Int readVectorField(char *file, FldArrayF& f, E_Int idx, E_Int *owner,
+      const std::vector<FldArrayI *> &BCFaces,
+      std::vector<FldArrayF *> &BCFields, const std::vector<E_Float> &delta,
+      E_Int nifaces, const std::vector<E_Int> &indir);
+    E_Int readTensorField(char *file, FldArrayF& f, E_Int idx);
     ///-
 
     ///+ Povray functions
@@ -304,6 +404,14 @@ class GenIO
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connectivity,
       std::vector<E_Int>& eltType, std::vector<char*>& zoneNames);
+    E_Int meshread(
+      char* file, char*& varString,
+      std::vector<FldArrayF*>& structField,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connectivity,
+      std::vector<std::vector<E_Int> >& eltType, std::vector<char*>& zoneNames,
+      E_Int api=1);
     /** Mesh write */
     E_Int meshwrite(
       char* file, char* dataFmt, char* varString,
@@ -312,6 +420,15 @@ class GenIO
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
       std::vector<E_Int>& eltType,
+      std::vector<char*>& zoneNames,
+      std::vector<std::vector<E_Int> > * colors=0);
+    E_Int meshwrite(
+      char* file, char* dataFmt, char* varString,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector <FldArrayF*>& structField,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connect,
+      std::vector<std::vector<E_Int> >& eltType,
       std::vector<char*>& zoneNames,
       std::vector<std::vector<E_Int> > * colors=0);
     ///-
@@ -325,6 +442,14 @@ class GenIO
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connectivity,
       std::vector<E_Int>& eltType, std::vector<char*>& zoneNames);
+    E_Int gmshread(
+      char* file, char*& varString,
+      std::vector<FldArrayF*>& structField,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connectivity,
+      std::vector<std::vector<E_Int> >& eltType, std::vector<char*>& zoneNames,
+      E_Int api=1);
     /** Formatted Gmsh write */
     E_Int gmshwrite(
       char* file, char* dataFmt, char* varString,
@@ -333,6 +458,14 @@ class GenIO
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
       std::vector<E_Int>& eltType,
+      std::vector<char*>& zoneNames);
+    E_Int gmshwrite(
+      char* file, char* dataFmt, char* varString,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector <FldArrayF*>& structField,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connect,
+      std::vector<std::vector<E_Int> >& eltType,
       std::vector<char*>& zoneNames);
     /** Binary Gmsh read */
     E_Int bingmshread(
@@ -408,6 +541,23 @@ class GenIO
       std::vector<char*>& zoneNames);
     ///-
 
+    ///+ fmt selig functions
+    E_Int seligread(
+      char* file, char*& varString,
+      std::vector<FldArrayF*>& structField,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connect,
+      std::vector<E_Int>& eltType, std::vector<char*>& zoneNames);
+    E_Int seligwrite(
+      char* file, char* dataFmt, char* varString,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector<FldArrayF*>& structField,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connect,
+      std::vector<E_Int>& eltType,
+      std::vector<char*>& zoneNames);
+
     /** PLY (Stanford) read */
     E_Int plyread(
       char* file, char*& varString,
@@ -444,6 +594,47 @@ class GenIO
       std::vector<char*>& zoneNames);
     ///-
 
+    ///+ GLTF functions
+    /** gltf read */
+    E_Int gltfread(
+      char* file, char*& varString,
+      std::vector<FldArrayF*>& structField,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connectivity,
+      std::vector<E_Int>& eltType, std::vector<char*>& zoneNames);
+    /** gltf write */
+    E_Int gltfwrite(
+      char* file, char* dataFmt, char* varString,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector <FldArrayF*>& structField,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connect,
+      std::vector<E_Int>& eltType,
+      std::vector<char*>& zoneNames);
+    ///-
+
+    ///+ VTK legacy functions
+    /** vtk read */
+    E_Int binvtkread(
+      char* file, char*& varString,
+      std::vector<FldArrayF*>& structField,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connectivity,
+      std::vector<E_Int>& eltType, std::vector<char*>& zoneNames);
+    /** gltf write */
+    E_Int binvtkwrite(
+      char* file, char* dataFmt, char* varString,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector <FldArrayF*>& structField,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connect,
+      std::vector<E_Int>& eltType,
+      std::vector<char*>& zoneNames);
+    ///-
+
+
     ///+ WAV functions
     /** wavwrite */
     E_Int wavwrite(
@@ -465,8 +656,28 @@ class GenIO
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connectivity,
       std::vector<E_Int>& eltType, std::vector<char*>& zoneNames);
-    /** pngwrite (stub) */
+    /** pngwrite */
     E_Int pngwrite(
+      char* file, char* dataFmt, char* varString,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector <FldArrayF*>& structField,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connect,
+      std::vector<E_Int>& eltType,
+      std::vector<char*>& zoneNames);
+    ///-
+
+    ///+ JPG functions
+    /** jpgread */
+    E_Int jpgread(
+      char* file, char*& varString,
+      std::vector<FldArrayF*>& structField,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connectivity,
+      std::vector<E_Int>& eltType, std::vector<char*>& zoneNames);
+    /** jpgwrite */
+    E_Int jpgwrite(
       char* file, char* dataFmt, char* varString,
       std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
       std::vector <FldArrayF*>& structField,
@@ -499,7 +710,8 @@ class GenIO
     ///+ SVG functions
     /** svg read */
     E_Int svgread(
-      char* file, char*& varString, E_Float density, E_Int NptsCurve, E_Int NptsLine,
+      char* file, char*& varString, E_Float density, E_Int NptsCurve,
+      E_Int NptsLine,
       std::vector<FldArrayF*>& structField,
       std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
       std::vector<FldArrayF*>& unstructField,
@@ -541,17 +753,6 @@ class GenIO
       std::vector<char*>& zoneNames);
     ///-
 
-    ///+ IGES functions
-    /** iges read */
-    E_Int igesread(
-      char* file, char*& varString,
-      std::vector<FldArrayF*>& structField,
-      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
-      std::vector<FldArrayF*>& unstructField,
-      std::vector<FldArrayI*>& connectivity,
-      std::vector<E_Int>& eltType, std::vector<char*>& zoneNames);
-    ///-
-
     ///+ CEDRE functions
     /** cedre read */
     E_Int cedreread(
@@ -576,28 +777,28 @@ class GenIO
       PyObject* BCFaces);
     ///-
 
-    ///+ TGF functions (Ansys - TGRID)
-    /** tgf read */
-    E_Int tgfread(
+    ///+ CEDRE archive functions
+    /** archive cedre read */
+    E_Int arcread(
       char* file, char*& varString,
       std::vector<FldArrayF*>& structField,
       std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connectivity,
       std::vector<E_Int>& eltType, std::vector<char*>& zoneNames,
-      std::vector<FldArrayI*>& BCFaces,
-      std::vector<char*>& BCNames);
+      char*& centerVarString,
+      std::vector<FldArrayF*>& centerStructField,
+      std::vector<FldArrayF*>& centerUntructField);
 
-    /** tgf write */
-    E_Int tgfwrite(
+    /** archive cedre write */
+    E_Int arcwrite(
       char* file, char* dataFmt, char* varString,
       std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
       std::vector <FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
       std::vector<E_Int>& eltType,
-      std::vector<char*>& zoneNames,
-      PyObject* BCFaces);
+      std::vector<char*>& zoneNames);
     ///-
 
     ///+ ADF functions
@@ -610,7 +811,8 @@ class GenIO
     PyObject* adfcgnsReadFromPaths(char* file, PyObject* paths, 
                                    E_Int maxFloatSize=1.e6, E_Int maxDepth=-1);
     /* Ecrit des parties d'un arbre python */
-    E_Int adfcgnsWritePaths(char* file, PyObject* nodeList, PyObject* paths, E_Int maxDepth=-1, E_Int mode=0);
+    E_Int adfcgnsWritePaths(char* file, PyObject* nodeList, PyObject* paths,
+      E_Int maxDepth=-1, E_Int mode=0);
     void getABFromPath(char* path, std::vector<char*>& pelts);
     /* Efface un chemin d'un fichier */
     E_Int adfcgnsDeletePaths(char* file, PyObject* paths);
@@ -618,26 +820,34 @@ class GenIO
 
     ///+ HDF functions
     /* Lecture dans un arbre */
-    E_Int hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape, 
-                      int skeleton=0, int maxFloatSize=5, int maxDepth=-1);
+    E_Int hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape,
+                      PyObject* links, 
+                      int skeleton=0, int maxFloatSize=5, int maxDepth=-1,
+                      int readMode=0, PyObject* skipTypes=NULL);
     /* Ecriture d'un arbre */
     E_Int hdfcgnswrite(char* file, PyObject* tree, PyObject* links=NULL);
 
     /* Lecture a partir de chemins donnes */
-    PyObject* hdfcgnsReadFromPaths(char* file, PyObject* paths, 
-                                   E_Int maxFloatSize=1.e6, E_Int maxDepth=-1);
-    PyObject* hdfcgnsReadFromPathsPartial(char* file, PyObject* Filters,
-                                          void* comm=NULL);
+    PyObject* hdfcgnsReadFromPaths(char* file, PyObject* paths,
+                                   E_Int maxFloatSize=1.e6, E_Int maxDepth=-1,
+                                   E_Int readMode=0, PyObject* dataShape=NULL,
+                                   PyObject* skipTypes=NULL, 
+                                   PyObject* mpi4pyCom=NULL);
+    PyObject* hdfcgnsReadFromPathsPartial(char* file, E_Int readMode,
+                                          PyObject* Filters,
+                                          PyObject* mpi4pyCom=NULL);
     /* Ecrit des parties d'un arbre python */
-    E_Int hdfcgnsWritePaths(char* file, PyObject* nodeList, PyObject* paths, E_Int maxDepth=-1, E_Int mode=0);
+    E_Int hdfcgnsWritePaths(char* file, PyObject* nodeList, PyObject* paths,
+                            PyObject* links=NULL, E_Int maxDepth=-1,
+                            E_Int mode=0);
     E_Int hdfcgnsWritePathsPartial(char* file, PyObject* tree,
                                    PyObject* Filter,
                                    int skeleton=0,
-                                   void* comm=NULL);
+                                   PyObject* mpi4pyCom=NULL);
     E_Int hdfcgnsDeletePaths(char* file, PyObject* paths);
     void ripEndOfPath(char* path, char*& startPath);
     void getEndOfPath(char* path, char*& startPath);
-    ///-char* file, PyObject* tree,
+    ///-
 
     ///+ CPlot functions
     /* Create the socket for communications */
@@ -684,7 +894,7 @@ class GenIO
       E_Int& npts, E_Int& nelts,
       E_Int& numFaces, E_Int& numFaceNodes,
       E_Int& numBoundaryFaces, E_Int& numBoundaryConnections,
-      E_Int& eltType,
+      E_Int& eltType, E_Int& rawlocal,
       char* zoneName, E_Int& dataPacking,
       E_Int& strand, E_Float& time,
       std::vector<E_Int>& loc,
@@ -696,30 +906,32 @@ class GenIO
       E_Int& npts, E_Int& nelts,
       E_Int& numFaces, E_Int& numFaceNodes,
       E_Int& numBoundaryFaces, E_Int& numBoundaryConnections,
-      E_Int& eltType,
+      E_Int& eltType, E_Int& rawlocal,
       char* zoneName, E_Int& dataPacking,
-      E_Int& strand, E_Float& time,
+      E_Int& strand, E_Float& time, 
       std::vector<E_Int>& loc,
       std::vector<FldArrayF*>& geom);
     /* bin_tp: read data */
-    E_Int readData108(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
-                      E_Int dataPacking,
-                      FldArrayF& f);
-    E_Int readData108(FILE* ptrFile,
-                      E_Int dataPacking, E_Int et,
+    E_Int readData108(E_Int version, FILE* ptrFile, E_Int ni, E_Int nj,
+                      E_Int nk,
+                      E_Int dataPacking, std::vector<E_Int>& loc,
+                      FldArrayF* f, FldArrayF* fc);
+    E_Int readData108(E_Int version, FILE* ptrFile,
+                      E_Int dataPacking, std::vector<E_Int>& loc, E_Int et,
                       E_Int numFaces, E_Int numFaceNodes,
                       E_Int numBoundaryFaces, E_Int numBoundaryConnections,
-                      E_Int ne,
-                      FldArrayF& f, FldArrayI& c);
-    E_Int readData108CE(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
-                        E_Int dataPacking,
-                        FldArrayF& f);
-    E_Int readData108CE(FILE* ptrFile,
-                        E_Int dataPacking, E_Int et,
+                      E_Int ne, E_Int rawlocal,
+                      FldArrayF* f, FldArrayI& c, FldArrayF* fc);
+    E_Int readData108CE(E_Int version, FILE* ptrFile, E_Int ni, E_Int nj,
+                        E_Int nk,
+                        E_Int dataPacking, std::vector<E_Int>& loc,
+                        FldArrayF* f, FldArrayF* fc);
+    E_Int readData108CE(E_Int version, FILE* ptrFile,
+                        E_Int dataPacking, std::vector<E_Int>& loc, E_Int et,
                         E_Int numFaces, E_Int numFaceNodes,
                         E_Int numBoundaryFaces, E_Int numBoundaryConnections,
-                        E_Int ne,
-                        FldArrayF& f, FldArrayI& c);
+                        E_Int ne, E_Int rawlocal,
+                        FldArrayF* f, FldArrayI& c, FldArrayF* fc);
     E_Int readData75(FILE* ptrFile, E_Int ni, E_Int nj, E_Int nk,
                      E_Int dataPacking,
                      FldArrayF& f);
@@ -746,6 +958,9 @@ class GenIO
                   E_Boolean convertEndian,
                   E_Int sizeInt, E_Int sizeLong);
     E_Int readIntTuple(FILE* ptrFile, E_Int& value);
+    E_Int readIntTuple2(FILE* ptrFile, E_Int& value1, E_Int& value2);
+    E_Int readIntTuple3(FILE* ptrFile, E_Int& value1, E_Int& value2,
+      E_Int& value3);
 
     E_Int convertString2Int(char* str);
 
@@ -784,6 +999,10 @@ class GenIO
       E_Boolean convertEndian, E_Boolean writeConservative);
     E_Int readWord(FILE* ptrFile, char* buf);
     E_Int readGivenKeyword(FILE* ptrFile, const char* keyword);
+    E_Int readGivenKeyword(FILE* ptrFile, const char* keyword1,
+      const char* keyword2);
+    E_Int readGivenKeyword(FILE* ptrFile, const char* keyword1,
+      const char* keyword2, const char* keyword3);
     E_Int readKeyword(FILE* ptrFile, char* buf);
     E_Int readDataAndKeyword(
       FILE* ptrFile, char* buf,

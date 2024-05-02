@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -24,6 +24,7 @@
 
 # include "GenIO.h"
 # include "Array/Array.h"
+# include "String/kstring.h"
 # include <vector>
 # include "Def/DefFunction.h"
 # include "Connect/connect.h"
@@ -103,7 +104,7 @@ E_Int K_IO::GenIO::xfigread(
   res = readDouble(ptrFile, scale, -1);
   res = readDouble(ptrFile, val, -1);
   scale = K_FUNC::E_max(scale, 1.e-6);
-  //printf("scale %f\n", scale);
+  //printf("scale " SF_F_ "\n", scale);
 
   // Lecture des elements
   varString = new char [8];
@@ -327,14 +328,14 @@ E_Int K_IO::GenIO::xfigread(
 
         // On cherche le cercle sous la forme x = xr + cos(at+b), 
         // y = yr + sin(at+b), passant par P1 (t=0) et P3 (t=1)
-        //printf("PR %f %f\n", xr, yr);
-        //printf("P1 %f %f\n", x1, y1);
-        //printf("P2 %f %f\n", x2, y2);
-        //printf("P3 %f %f\n", x3, y3);
+        //printf("PR " SF_F2_ "\n", xr, yr);
+        //printf("P1 " SF_F2_ "\n", x1, y1);
+        //printf("P2 " SF_F2_ "\n", x2, y2);
+        //printf("P3 " SF_F2_ "\n", x3, y3);
         
         // sens du parcours :
         E_Float prod = (x1-xr)*(y2-yr)-(x2-xr)*(y1-yr);
-        //printf("prod = %f\n", prod);
+        //printf("prod = " SF_F_ "\n", prod);
         E_Float a, b, R, t;
         R = (x1-xr)*(x1-xr)+(y1-yr)*(y1-yr);
         R = sqrt(R);
@@ -384,10 +385,10 @@ E_Int K_IO::GenIO::xfigread(
 
   // Cree les noms des zones structurees
   E_Int structSize = structField.size();
-  for (E_Int i=0; i<structSize;i++)
+  for (E_Int i = 0; i < structSize; i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone%d",i);
+    sprintf(zoneName, "Zone" SF_D_, i);
     zoneNames.push_back(zoneName);
   }
 
@@ -395,7 +396,7 @@ E_Int K_IO::GenIO::xfigread(
   for (unsigned int i=0; i < unstructField.size(); i++)
   {
     char* zoneName = new char [128];
-    sprintf(zoneName, "Zone%d",i+structSize);
+    sprintf(zoneName, "Zone" SF_D_, i+structSize);
     zoneNames.push_back(zoneName);
   }
 
@@ -492,13 +493,13 @@ E_Int K_IO::GenIO::xfigwrite(
     for (E_Int k = 0; k < nkl; k++)
       for (E_Int j = 0; j < njl; j++)
       {
-        fprintf(ptrFile, "2 1 0 1 0 7 %d -1 -1 0.000 0 0 -1 0 0 %d\n", 
+        fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 " SF_D_ "\n", 
                 depthi[zone], nil);
         fprintf(ptrFile, "\t");
         for (E_Int i = 0; i < nil; i++)
         {
           ind = i + j*nil + k*nil*njl;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
         }
         fprintf(ptrFile, "\n");
@@ -509,13 +510,13 @@ E_Int K_IO::GenIO::xfigwrite(
       for (E_Int k = 0; k < nkl; k++)
         for (E_Int i = 0; i < nil; i++)
         {
-          fprintf(ptrFile, "2 1 0 1 0 7 %d -1 -1 0.000 0 0 -1 0 0 %d\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 " SF_D_ "\n", 
                   depthi[zone], njl);
           fprintf(ptrFile, "\t");
           for (E_Int j = 0; j < njl; j++)
           {
             ind = i + j*nil + k*nil*njl;
-            fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+            fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                     E_Int(f(ind,posy)*scale));
           }
           fprintf(ptrFile, "\n");
@@ -527,13 +528,13 @@ E_Int K_IO::GenIO::xfigwrite(
       for (E_Int j = 0; j < njl; j++)
         for (E_Int i = 0; i < nil; i++)
         {
-          fprintf(ptrFile, "2 1 0 1 0 7 %d -1 -1 0.000 0 0 -1 0 0 %d\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 " SF_D_ "\n", 
                   depthi[zone], nkl);
           fprintf(ptrFile, "\t");
           for (E_Int k = 0; k < nkl; k++)
           {
             ind = i + j*nil + k*nil*njl;
-            fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+            fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                     E_Int(f(ind,posy)*scale));
           }
           fprintf(ptrFile, "\n");
@@ -553,238 +554,238 @@ E_Int K_IO::GenIO::xfigwrite(
       switch (eltType[zone])
       {
         case 1: // BAR
-          fprintf(ptrFile, "2 1 0 1 0 7 %d -1 -1 0.000 0 0 -1 0 0 %d\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 2);
           fprintf(ptrFile, "\t");
           ind = c(i,1) - 1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,2) - 1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
           break;
 
         case 2: // TRI
-          fprintf(ptrFile, "2 1 0 1 0 7 %d -1 -1 0.000 0 0 -1 0 0 %d\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 4);
           fprintf(ptrFile, "\t");
           ind = c(i,1) - 1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,2) - 1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,3) - 1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,1) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
           break;
           
         case 3: // QUAD
-          fprintf(ptrFile, "2 1 0 1 0 7 %d -1 -1 0.000 0 0 -1 0 0 %d\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 5);
           fprintf(ptrFile, "\t");
           ind = c(i,1) - 1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,2) - 1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,3) - 1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,4) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,1) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
           break;
 
         case 4: // TETRA
-          fprintf(ptrFile, "2 1 0 1 0 7 %d -1 -1 0.000 0 0 -1 0 0 %d\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 4);
           fprintf(ptrFile, "\t");
           ind = c(i,1) - 1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,2) - 1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,3) - 1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,1) - 1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
 
-          fprintf(ptrFile, "2 1 0 1 0 7 %d -1 -1 0.000 0 0 -1 0 0 %d\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 3);
           fprintf(ptrFile, "\t");
           ind = c(i,1) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,4) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,2) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
 
-          fprintf(ptrFile, "2 1 0 1 0 7 %d -1 -1 0.000 0 0 -1 0 0 %d\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 2);
           fprintf(ptrFile, "\t");
           ind = c(i,4) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,3) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
           break;
 
         case 6: // PENTA (PRISM)
-          fprintf(ptrFile, "2 1 0 1 0 7 %d -1 -1 0.000 0 0 -1 0 0 %d\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 4);
           fprintf(ptrFile, "\t");
           ind = c(i,1) - 1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,2) - 1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,3) - 1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,1) - 1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
 
-          fprintf(ptrFile, "2 1 0 1 0 7 %d -1 -1 0.000 0 0 -1 0 0 %d\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 4);
           fprintf(ptrFile, "\t");
           ind = c(i,1) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,4) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,5) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,2) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
 
-          fprintf(ptrFile, "2 1 0 1 0 7 %d -1 -1 0.000 0 0 -1 0 0 %d\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 3);
           fprintf(ptrFile, "\t");
           ind = c(i,4) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,6) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,3) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
 
-          fprintf(ptrFile, "2 1 0 1 0 7 %d -1 -1 0.000 0 0 -1 0 0 %d\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 2);
           fprintf(ptrFile, "\t");
           ind = c(i,6) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,5) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
           break;
 
         case 7: // HEXA
-          fprintf(ptrFile, "2 1 0 1 0 7 %d -1 -1 0.000 0 0 -1 0 0 %d\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 5);
           fprintf(ptrFile, "\t");
           ind = c(i,1) - 1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,2) - 1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,3) - 1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,4) - 1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,1) - 1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
 
-          fprintf(ptrFile, "2 1 0 1 0 7 %d -1 -1 0.000 0 0 -1 0 0 %d\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 4);
           fprintf(ptrFile, "\t");
           ind = c(i,1) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,5) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,6) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,2) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
 
-          fprintf(ptrFile, "2 1 0 1 0 7 %d -1 -1 0.000 0 0 -1 0 0 %d\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 4);
           fprintf(ptrFile, "\t");
           ind = c(i,4) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,8) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,7) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,3) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
 
-          fprintf(ptrFile, "2 1 0 1 0 7 %d -1 -1 0.000 0 0 -1 0 0 %d\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 2);
           fprintf(ptrFile, "\t");
           ind = c(i,5) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,8) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
 
-          fprintf(ptrFile, "2 1 0 1 0 7 %d -1 -1 0.000 0 0 -1 0 0 %d\n", 
+          fprintf(ptrFile, "2 1 0 1 0 7 " SF_D_ " -1 -1 0.000 0 0 -1 0 0 %d\n", 
                   depthi[zone+nzones], 2);
           fprintf(ptrFile, "\t");
           ind = c(i,6) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile, SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           ind = c(i,7) -1;
-          fprintf(ptrFile,"%d %d ", E_Int(f(ind,posx)*scale), 
+          fprintf(ptrFile,SF_D2_ " ", E_Int(f(ind,posx)*scale), 
                   E_Int(f(ind,posy)*scale));
           fprintf(ptrFile, "\n");
           break;

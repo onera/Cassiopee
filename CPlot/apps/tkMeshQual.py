@@ -1,5 +1,7 @@
-# - mesh quality -
-import Tkinter as TK
+# - tkMeshQual -
+"""Compute mesh quality indicators."""
+try: import tkinter as TK
+except: import Tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -29,14 +31,15 @@ def findVar(var):
     if len(v) > 0: vars = v[0]
     else: vars = []
     for i in vars:
-        if (var == i): return 1
-        if ('centers:'+var == i): return 2
+        if var == i: return 1
+        if 'centers:'+var == i: return 2
     return 0
 
 #==============================================================================
 def computeQual():
     if CTK.t == []: return
     CTK.saveTree()
+    CTK.setCursor(2, WIDGETS['frame'])
     qtype = VARS[0].get()
     if qtype == 'Volume map':
         CTK.t = G.getVolumeMap(CTK.t)
@@ -49,10 +52,12 @@ def computeQual():
         CTK.TXT.insert('START', 'Regularity map computed.\n')
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)
+    CTK.setCursor(0, WIDGETS['frame'])
 
 #==============================================================================
-def viewQual():
+def viewQual(event=None):
     if CTK.t == []: return
+    CTK.setCursor(2, WIDGETS['frame'])
     qtype = VARS[1].get()
     if qtype == 'Neg. volume cells':
         res = findVar('vol')
@@ -72,6 +77,7 @@ def viewQual():
             CTK.display(CTK.dt, mainTree=CTK.MESHQUAL)
     elif qtype == 'Mesh':
         CTK.display(CTK.t)
+    CTK.setCursor(0, WIDGETS['frame'])
                 
 #==============================================================================
 # Create app widgets
@@ -79,9 +85,10 @@ def viewQual():
 def createApp(win):
     # - Frame -
     Frame = TTK.LabelFrame(win, borderwidth=2, relief=CTK.FRAMESTYLE,
-                           text='tkMeshQual', font=CTK.FRAMEFONT, takefocus=1)
-    #BB = CTK.infoBulle(parent=Frame, text='Analyse mesh quality.\nCtrl+c to close applet.', temps=0, btype=1)
-    Frame.bind('<Control-c>', hideApp)
+                           text='tkMeshQual  [ + ]  ', font=CTK.FRAMEFONT, takefocus=1)
+    #BB = CTK.infoBulle(parent=Frame, text='Analyse mesh quality.\nCtrl+w to close applet.', temps=0, btype=1)
+    Frame.bind('<Control-w>', hideApp)
+    Frame.bind('<ButtonRelease-1>', displayFrameMenu)
     Frame.bind('<ButtonRelease-3>', displayFrameMenu)
     Frame.bind('<Enter>', lambda event : Frame.focus_set())
     Frame.columnconfigure(0, weight=1)
@@ -89,8 +96,8 @@ def createApp(win):
     WIDGETS['frame'] = Frame
     
     # - Frame menu -
-    FrameMenu = TK.Menu(Frame, tearoff=0)
-    FrameMenu.add_command(label='Close', accelerator='Ctrl+c', command=hideApp)
+    FrameMenu = TTK.Menu(Frame, tearoff=0)
+    FrameMenu.add_command(label='Close', accelerator='Ctrl+w', command=hideApp)
     CTK.addPinMenu(FrameMenu, 'tkMeshQual')
     WIDGETS['frameMenu'] = FrameMenu
 
@@ -111,20 +118,24 @@ def createApp(win):
     B = TTK.Button(Frame, text="View", command=viewQual)
     B.grid(row=1, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='View this filter.')
-    B = TTK.OptionMenu(Frame, VARS[1], 'Mesh', 'Neg. volume cells')
+    B = TTK.OptionMenu(Frame, VARS[1], 'Mesh', 'Neg. volume cells', command=viewQual)
     B.grid(row=1, column=1, sticky=TK.EW)
     
 #==============================================================================
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.EW)
+    #WIDGETS['frame'].grid(sticky=TK.NSEW)
+    try: CTK.WIDGETS['MeshNoteBook'].add(WIDGETS['frame'], text='tkMeshQual')
+    except: pass
+    CTK.WIDGETS['MeshNoteBook'].select(WIDGETS['frame'])
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    #WIDGETS['frame'].grid_forget()
+    CTK.WIDGETS['MeshNoteBook'].hide(WIDGETS['frame'])
 
 #==============================================================================
 # Update widgets when global pyTree t changes
@@ -136,9 +147,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
     
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

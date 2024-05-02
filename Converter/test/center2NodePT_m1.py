@@ -2,9 +2,7 @@
 import Converter.PyTree as C
 import Distributor2.PyTree as Distributor2
 import Converter.Mpi as Cmpi
-import Transform.PyTree as T
 import Connector.PyTree as X
-import Converter.Internal as Internal
 import Generator.PyTree as G
 import KCore.test as test
 
@@ -14,7 +12,7 @@ LOCAL = test.getLocal()
 N = 11
 t = C.newPyTree(['Base'])
 pos = 0
-for i in xrange(N):
+for i in range(N):
     a = G.cart( (pos,0,0), (1,1,1), (10+i, 10, 10) )
     pos += 10 + i - 1
     t[2][1][2].append(a)
@@ -38,5 +36,5 @@ a = Cmpi.center2Node(a, 'centers:Density')
 # a est maintenant un arbre partiel
 a = C.rmVars(a, 'centers:Density')
 
-# Reconstruit l'arbre complet a l'ecriture
 if Cmpi.rank == 0: test.testT(a, 1)
+Cmpi.barrier()

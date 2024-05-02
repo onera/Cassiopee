@@ -1,8 +1,12 @@
 """PolyQuad mesh generator. Extension of Generator.
 """
-import Generator as G
+from . import Generator as G
 import Geom as D
 import math
+
+try: range = xrange
+except: pass
+
 __version__ = G.__version__
 
 #=============================================================================
@@ -11,7 +15,7 @@ __version__ = G.__version__
 def polyQuadMesher(polyQuad, h, hf, density, next):
     """Generate a multiple mesh for a polyquad.
     Usage:
-    polyQuadMesher( polyQuad, h, hf, density, next)"""
+    polyQuadMesher(polyQuad, h, hf, density, next)"""
     import Converter as C
     
     polyQuad = G.close(polyQuad)
@@ -30,47 +34,47 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
     # Calcul des longueurs minimum et maximum des arretes
     lmin = 1.e6
     lmax = 0.
-    for i in xrange(ne):
+    for i in range(ne):
         ind1 = c[0,i]-1; ind2 = c[1,i]-1
         x1 = f[0,ind1]; y1 = f[1,ind1]; z1 = f[2,ind1]
         x2 = f[0,ind2]; y2 = f[1,ind2]; z2 = f[2,ind2]
         l = math.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2))
-        lmin = min( lmin, l)
-        lmax = max( lmax, l)
+        lmin = min(lmin, l)
+        lmax = max(lmax, l)
         ind1 = c[1,i]-1; ind2 = c[2,i]-1
         x1 = f[0,ind1]; y1 = f[1,ind1]; z1 = f[2,ind1]
         x2 = f[0,ind2]; y2 = f[1,ind2]; z2 = f[2,ind2]
         l = math.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2))
-        lmin = min( lmin, l)
-        lmax = max( lmax, l)
+        lmin = min(lmin, l)
+        lmax = max(lmax, l)
         ind1 = c[2,i]-1; ind2 = c[3,i]-1
         x1 = f[0,ind1]; y1 = f[1,ind1]; z1 = f[2,ind1]
         x2 = f[0,ind2]; y2 = f[1,ind2]; z2 = f[2,ind2]
         l = math.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2))
-        lmin = min( lmin, l)
-        lmax = max( lmax, l)
+        lmin = min(lmin, l)
+        lmax = max(lmax, l)
         ind1 = c[3,i]-1; ind2 = c[0,i]-1
         x1 = f[0,ind1]; y1 = f[1,ind1]; z1 = f[2,ind1]
         x2 = f[0,ind2]; y2 = f[1,ind2]; z2 = f[2,ind2]
         l = math.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2))
-        lmin = min( lmin, l)
-        lmax = max( lmax, l)
+        lmin = min(lmin, l)
+        lmax = max(lmax, l)
 
     # Detection de la hauteur maximum admissible
-    if (h > 0.9*lmin):
+    if h > 0.9*lmin:
         h = 0.9*lmin
-        print "Warning: height changed to", h,"..."
-        print "...because length of a line segment is", lmin
+        print("Warning: height changed to", h,"...")
+        print("...because length of a line segment is", lmin)
 
     # Detection de la densite minimum
     nk = int(h*density)+1
     if nk < 4:
         density = 4./h
-        print "Warning: density changed to", density, "to have 4 points in height."
+        print("Warning: density changed to", density, "to have 4 points in height.")
     n = int(lmax*density)+1
     if n < 4:
         density = 4./lmax
-        print "Warning: density changed to", density, "to have 4 points per segment",i
+        print("Warning: density changed to", density, "to have 4 points per segment",i)
 
     # Calcul automatique de l'extension
 #    extension = int(h*density)
@@ -84,12 +88,12 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
     distribk = G.enforcePlusX(distribk, hf/h, nk-1, add)
     nk = distribk[2]-1
     delta = C.array('d',nk,1,1)
-    for i in xrange(nk):
+    for i in range(nk):
         delta[1][0,i] = h*( distribk[1][0,i+1] - distribk[1][0,i])
     mesh = []; walls = []
     
     # Generation des maillages
-    for i in xrange(ne):
+    for i in range(ne):
         ind1 = c[0,i]-1; ind2 = c[1,i]-1 ; ind3 = c[2,i]-1; ind4 = c[3,i]-1
         x1 = f[0,ind1]; y1 = f[1,ind1]; z1 = f[2,ind1]
         x2 = f[0,ind2]; y2 = f[1,ind2]; z2 = f[2,ind2]
@@ -121,27 +125,27 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
         a3 = min(a3,1.); a3 = max(a3,-1.)
         a4 = -(nx*n4x + ny*n4y + nz*n4z)
         a4 = min(a4,1.); a4 = max(a4,-1.)
-        if (t1x*n1x + t1y*n1y + t1z*n1z < -1.e-10): # extension
+        if t1x*n1x + t1y*n1y + t1z*n1z < -1.e-10: # extension
             ext1 = 1
-        elif (math.acos(a1) < deuxPiSur3): # TFI 2 parois
+        elif math.acos(a1) < deuxPiSur3: # TFI 2 parois
             ext1 = 0
         else: # TFI MD + TTM
             ext1 = -1
-        if (t2x*n2x + t2y*n2y + t2z*n2z < -1.e-10): # extension
+        if t2x*n2x + t2y*n2y + t2z*n2z < -1.e-10: # extension
             ext2 = 1
-        elif (math.acos(a2) < deuxPiSur3): # TFI 2 parois
+        elif math.acos(a2) < deuxPiSur3: # TFI 2 parois
             ext2 = 0
         else: # TFI MD + TTM
             ext2 = -1
-        if (t3x*n3x + t3y*n3y + t3z*n3z < -1.e-10): # extension
+        if t3x*n3x + t3y*n3y + t3z*n3z < -1.e-10: # extension
             ext3 = 1
-        elif (math.acos(a3) < deuxPiSur3): # TFI 2 parois
+        elif math.acos(a3) < deuxPiSur3: # TFI 2 parois
             ext3 = 0
         else: # TFI MD + TTM
             ext3 = -1
-        if (t4x*n4x + t4y*n4y + t4z*n4z < -1.e-10): # extension
+        if t4x*n4x + t4y*n4y + t4z*n4z < -1.e-10: # extension
             ext4 = 1
-        elif (math.acos(a4) < deuxPiSur3): # TFI 2 parois
+        elif math.acos(a4) < deuxPiSur3: # TFI 2 parois
             ext4 = 0
         else: # TFI MD + TTM
             ext4 = -1
@@ -271,11 +275,11 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
         p4y = q0y + s*(q1y-q0y)
         p4z = q0z + s*(q1z-q0z)
         
-        if (ext1 == 1):
+        if ext1 == 1:
             n1x = ny*(p2z - p1z) - nz*(p2y - p1y)
             n1y = nz*(p2x - p1x) - nx*(p2z - p1z)
             n1z = nx*(p2y - p1y) - ny*(p2x - p1x)
-        elif (ext1 == -1):
+        elif ext1 == -1:
             rx = (n1y+ny)*(z2 - z1) - (n1z+nz)*(y2 - y1)
             ry = (n1z+nz)*(x2 - x1) - (n1x+nx)*(z2 - z1)
             rz = (n1x+nx)*(y2 - y1) - (n1y+ny)*(x2 - x1)
@@ -284,11 +288,11 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
             n1y = ry/norme
             n1z = rz/norme
 
-        if (ext2 == 1):
+        if ext2 == 1:
             n2x = ny*(p3z - p2z) - nz*(p3y - p2y)
             n2y = nz*(p3x - p2x) - nx*(p3z - p2z)
             n2z = nx*(p3y - p2y) - ny*(p3x - p2x)
-        elif (ext2 == -1):
+        elif ext2 == -1:
             rx = (n2y+ny)*(z3 - z2) - (n2z+nz)*(y3 - y2)
             ry = (n2z+nz)*(x3 - x2) - (n2x+nx)*(z3 - z2)
             rz = (n2x+nx)*(y3 - y2) - (n2y+ny)*(x3 - x2)
@@ -297,11 +301,11 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
             n2y = ry/norme
             n2z = rz/norme
 
-        if (ext3 == 1):
+        if ext3 == 1:
             n3x = ny*(p4z - p3z) - nz*(p4y - p3y)
             n3y = nz*(p4x - p3x) - nx*(p4z - p3z)
             n3z = nx*(p4y - p3y) - ny*(p4x - p3x)
-        elif (ext3 == -1):
+        elif ext3 == -1:
             rx = (n3y+ny)*(z4 - z3) - (n3z+nz)*(y4 - y3)
             ry = (n3z+nz)*(x4 - x3) - (n3x+nx)*(z4 - z3)
             rz = (n3x+nx)*(y4 - y3) - (n3y+ny)*(x4 - x3)
@@ -310,11 +314,11 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
             n3y = ry/norme
             n3z = rz/norme
 
-        if (ext4 == 1):
+        if ext4 == 1:
             n4x = ny*(p1z - p4z) - nz*(p1y - p4y)
             n4y = nz*(p1x - p4x) - nx*(p1z - p4z)
             n4z = nx*(p1y - p4y) - ny*(p1x - p4x)
-        elif (ext4 == -1):
+        elif ext4 == -1:
             rx = (n4y+ny)*(z1 - z4) - (n4z+nz)*(y1 - y4)
             ry = (n4z+nz)*(x1 - x4) - (n4x+nx)*(z1 - z4)
             rz = (n4x+nx)*(y1 - y4) - (n4y+ny)*(x1 - x4)
@@ -356,16 +360,16 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
 
         distribi1 = G.cart((0,0,0), (1./(ni-1),1,1), (ni,1,1))
         distribi2 = G.cart((0,0,0), (1./(ni-1),1,1), (ni,1,1))
-        if (ext4 == 0):
+        if ext4 == 0:
             distribi1 = G.enforcePlusX(distribi1, hf/max(l1,l3), nk-1, add)
             distribi2 = G.enforceMoinsX(distribi2, hf/max(l1,l3), nk-1, add)
-        if (ext2 == 0):
+        if ext2 == 0:
             distribi1 = G.enforceMoinsX(distribi1, hf/max(l1,l3), nk-1, add)
             distribi2 = G.enforcePlusX(distribi2, hf/max(l1,l3), nk-1, add)
         distribj = G.cart((0,0,0), (1./(nj-1),1,1), (nj,1,1))
-        if (ext1 == 0):
+        if ext1 == 0:
             distribj = G.enforcePlusX(distribj, hf/max(l2,l4), nk-1, add)
-        if (ext3 == 0):
+        if ext3 == 0:
             distribj = G.enforceMoinsX(distribj, hf/max(l2,l4), nk-1, add)
 
         Q0 = meshQuad((p1x,p1y,p1z), (p2x,p2y,p2z), (p3x,p3y,p3z), (p4x,p4y,p4z), distribi1, distribj)
@@ -380,76 +384,76 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
         mesh.append(m)
         # Walls
         rangesw = []
-        if (ext4 != 1):
+        if ext4 != 1:
             i1 = 1
         else:
             i1 = next+1
-        if (ext2 != 1):
+        if ext2 != 1:
             i2 = m[2]
         else:
             i2 = m[2]-next
-        if (ext1 != 1):
+        if ext1 != 1:
             j1 = 1
         else:
             j1 = next+1
-        if (ext3 != 1):
+        if ext3 != 1:
             j2 = m[3]
         else:
             j2 = m[3]-next
-        range = [i1,i2, j1, j2, 1, 1]
-        rangesw.append(range)
+        wrange = [i1,i2, j1, j2, 1, 1]
+        rangesw.append(wrange)
         
-        if (ext1 == 0):
-            if (ext4 == 1):
-                if (ext2 == 1):
-                    range = [next+1, m[2]-next, 1, 1, 1, m[4]]
+        if ext1 == 0:
+            if ext4 == 1:
+                if ext2 == 1:
+                    wrange = [next+1, m[2]-next, 1, 1, 1, m[4]]
                 else:
-                    range = [next+1, m[2], 1, 1, 1, m[4]]
+                    wrange = [next+1, m[2], 1, 1, 1, m[4]]
             else:
-                if (ext2 == 1):
-                    range = [1, m[2]-next, 1, 1, 1, m[4]]
+                if ext2 == 1:
+                    wrange = [1, m[2]-next, 1, 1, 1, m[4]]
                 else:
-                    range = [1, m[2], 1, 1, 1, m[4]]
-            rangesw.append(range)
+                    wrange = [1, m[2], 1, 1, 1, m[4]]
+            rangesw.append(wrange)
             
-        if (ext2 == 0):
-            if (ext1 == 1):
-                if (ext3 == 1):
-                    range = [m[2], m[2], next+1, m[3]-next, 1, m[4]]
+        if ext2 == 0:
+            if ext1 == 1:
+                if ext3 == 1:
+                    wrange = [m[2], m[2], next+1, m[3]-next, 1, m[4]]
                 else:
-                    range = [m[2], m[2], next+1, m[3], 1, m[4]]
+                    wrange = [m[2], m[2], next+1, m[3], 1, m[4]]
             else:
-                if (ext3 == 1):
-                    range = [m[2], m[2], 1, m[3]-next, 1, m[4]]
+                if ext3 == 1:
+                    wrange = [m[2], m[2], 1, m[3]-next, 1, m[4]]
                 else:
-                    range = [m[2], m[2], 1, m[3], 1, m[4]]
-            rangesw.append(range)
+                    wrange = [m[2], m[2], 1, m[3], 1, m[4]]
+            rangesw.append(wrange)
 
-        if (ext3 == 0):
-            if (ext4 == 1):
-                if (ext2 == 1):
-                    range = [next+1, m[2]-next, m[3], m[3], 1, m[4]]
+        if ext3 == 0:
+            if ext4 == 1:
+                if ext2 == 1:
+                    wrange = [next+1, m[2]-next, m[3], m[3], 1, m[4]]
                 else:
-                    range = [next+1, m[2], m[3], m[3], 1, m[4]]
+                    wrange = [next+1, m[2], m[3], m[3], 1, m[4]]
             else:
-                if (ext2 == 1):
-                    range = [1, m[2]-next, m[3], m[3], 1, m[4]]
+                if ext2 == 1:
+                    wrange = [1, m[2]-next, m[3], m[3], 1, m[4]]
                 else:
-                    range = [1, m[2], m[3], m[3], 1, m[4]]
-            rangesw.append(range)
+                    wrange = [1, m[2], m[3], m[3], 1, m[4]]
+            rangesw.append(wrange)
         
-        if (ext4 == 0):
-            if (ext1 == 1):
-                if (ext3 == 1):
-                    range = [1, 1, next+1, m[3]-next, 1, m[4]]
+        if ext4 == 0:
+            if ext1 == 1:
+                if ext3 == 1:
+                    wrange = [1, 1, next+1, m[3]-next, 1, m[4]]
                 else:
-                    range = [1, 1, next+1, m[3], 1, m[4]]
+                    wrange = [1, 1, next+1, m[3], 1, m[4]]
             else:
-                if (ext3 == 1):
-                    range = [1, 1, 1, m[3]-next, 1, m[4]]
+                if ext3 == 1:
+                    wrange = [1, 1, 1, m[3]-next, 1, m[4]]
                 else:
-                    range = [1, 1, 1, m[3], 1, m[4]]
-            rangesw.append(range)
+                    wrange = [1, 1, 1, m[3], 1, m[4]]
+            rangesw.append(wrange)
 
         walls.append(rangesw)
             
@@ -484,18 +488,18 @@ def meshQuad(P1, P2, P3, P4, distrib1, distrib2):
 def findNeighbourIndex(polyQuad,i,iP1,iP2):
     c = polyQuad[2]
     ne = c.shape[1]
-    for j in xrange(ne):
+    for j in range(ne):
         ind1 = c[0,j]-1; ind2 = c[1,j]-1 ; ind3 = c[2,j]-1; ind4 = c[3,j]-1
-        if (ind1 == iP1 and ind4 == iP2):
+        if ind1 == iP1 and ind4 == iP2:
             return j
 #            return [j,ind2,ind3]
-        if (ind2 == iP1 and ind1 == iP2):
+        if ind2 == iP1 and ind1 == iP2:
             return j
 #            return [j,ind3,ind4]
-        if (ind3 == iP1 and ind2 == iP2):
+        if ind3 == iP1 and ind2 == iP2:
             return j
 #            return [j,ind4,ind1]
-        if (ind4 == iP1 and ind3 == iP2):
+        if ind4 == iP1 and ind3 == iP2:
             return j
 #            return [j,ind1,ind2]
 
@@ -515,12 +519,12 @@ def normalVector(polyQuad,i):
     nz = (x3 - x1)*(y4 - y2) - (y3 - y1)*(x4 - x2)
     norme = math.sqrt(nx*nx + ny*ny + nz*nz)
     
-    if (norme == 0.):
-        print i
-        print ind1, x1, y1, z1
-        print ind2, x2, y2, z2
-        print ind3, x3, y3, z3
-        print ind4, x4, y4, z4
+    if norme == 0.:
+        print(i)
+        print(ind1, x1, y1, z1)
+        print(ind2, x2, y2, z2)
+        print(ind3, x3, y3, z3)
+        print(ind4, x4, y4, z4)
         raise TypeError("Division par 0! (1)")
     else:
         normi = 1./norme
@@ -544,7 +548,7 @@ def tangentVector(polyQuad,i,iP1,iP2):
     tz = nx*(y2 - y1) - ny*(x2 - x1)
     norme = math.sqrt(tx*tx + ty*ty + tz*tz)
     
-    if (norme == 0.):
+    if norme == 0.:
         raise TypeError("Division par 0! (2)")
     else:
         normi = 1./norme

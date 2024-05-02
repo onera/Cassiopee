@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -48,7 +48,7 @@ PyObject* K_KBRIDGE::evalKDesFunction(PyObject* self, PyObject* args)
 {
   E_Float t;
   PyObject* functionName;
-  if (!PyArg_ParseTuple(args, "Od", &functionName, &t)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ R_, &functionName, &t)) return NULL;
 
   DesFunction* desFunction;
   if (PyObject_HasAttrString(functionName, "this") == 1) 
@@ -91,7 +91,7 @@ PyObject* K_KBRIDGE::evalKDesFunction(PyObject* self, PyObject* args)
   else
   {
     PyErr_SetString(PyExc_TypeError,
-                     "evalKDesFunction: desFunction is not a known motion.");
+                    "evalKDesFunction: desFunction is not a known motion.");
     return NULL;
   }
 

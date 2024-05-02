@@ -1,5 +1,4 @@
 # - join (array) -
-import Geom as D
 import Transform as T
 import Converter as C
 import Generator as G

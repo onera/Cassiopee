@@ -1,5 +1,4 @@
 # - collarMesh (pyTree) -
-import Converter.PyTree as C
 import Geom.PyTree as D
 import Transform.PyTree as T
 import Generator.PyTree as G

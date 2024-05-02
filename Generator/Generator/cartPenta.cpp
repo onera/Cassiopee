@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2024 Onera.
 
     This file is part of Cassiopee.
 
@@ -39,9 +39,7 @@ PyObject* K_GENERATOR::cartPenta(PyObject* self, PyObject* args)
   E_Float xo, yo, zo;
   E_Float hi, hj, hk;
   E_Int api=1;
-  if (!PYPARSETUPLE(args, 
-                    "(ddd)(ddd)(lll)l", "(ddd)(ddd)(iii)i",
-                    "(fff)(fff)(lll)l", "(fff)(fff)(lll)l",
+  if (!PYPARSETUPLE_(args, TRRR_ TRRR_ TIII_ I_, 
                     &xo, &yo, &zo, &hi, &hj, &hk, &ni, &nj, &nk, &api))
   {
     return NULL;
@@ -60,40 +58,34 @@ PyObject* K_GENERATOR::cartPenta(PyObject* self, PyObject* args)
   E_Int nj1 = nj-1;
   E_Int nk1 = nk-1;
   E_Int nhexas = ni1*nj1*nk1;
-  E_Int nelts = 2 * nhexas;
-  E_Int ind1, ind2, ind3, ind4, ind5, ind6, ind7, ind8;
-  E_Int i, j, k, ind;
-  E_Int c = 0;
-  PyObject* tpl = K_ARRAY::buildArray2(3, "x,y,z", npts, nelts, -1, "PENTA", 0, 0, 0, 0, api);
+  E_Int ncells = 2*nhexas;
+  
+  PyObject* tpl = K_ARRAY::buildArray3(3, "x,y,z", npts, ncells, "PENTA", false, api);
   K_FLD::FldArrayF* f; K_FLD::FldArrayI* cn;
-  char* varString; char*eltType2;
-  K_ARRAY::getFromArray2(tpl, varString, f, ni, nj, nk, cn, eltType2);
-  E_Int stride = cn->getStride();
+  K_ARRAY::getFromArray3(tpl, f, cn);
 
-  E_Int* cn1 = cn->begin(1);
-  E_Int* cn2 = cn->begin(2);
-  E_Int* cn3 = cn->begin(3);
-  E_Int* cn4 = cn->begin(4);
-  E_Int* cn5 = cn->begin(5);
-  E_Int* cn6 = cn->begin(6);
-
-  // Create cartesian mesh
+  K_FLD::FldArrayI& cm = *(cn->getConnect(0));
   E_Float* xt = f->begin(1);
   E_Float* yt = f->begin(2);
   E_Float* zt = f->begin(3);
 
-#pragma omp parallel for default(shared) private(k,j,i,ind)
-  for (ind = 0; ind < npts; ind++)
+  // Build the unstructured mesh (BE connectivity and fields)
+#pragma omp parallel if (ncells > __MIN_SIZE_MEAN__)
   {
-    k = ind/ninj;
-    j = (ind-k*ninj)/ni;
-    i = ind-j*ni-k*ninj;
-    xt[ind] = xo + i * hi;
-    yt[ind] = yo + j * hj;
-    zt[ind] = zo + k * hk;
-  }
+    E_Int i, j, k, c;
+    E_Int ind1, ind2, ind3, ind4, ind5, ind6, ind7, ind8;
+#pragma omp for
+    for (E_Int ind = 0; ind < npts; ind++)
+    {
+      k = ind/ninj;
+      j = (ind-k*ninj)/ni;
+      i = ind-j*ni-k*ninj;
+      xt[ind] = xo + i * hi;
+      yt[ind] = yo + j * hj;
+      zt[ind] = zo + k * hk;
+    }
 
-  // build the unstructured mesh
+#pragma omp for
   for(E_Int k = 0; k < nk1; k++)
     for (E_Int j = 0; j < nj1; j++)
       for (E_Int i = 0; i < ni1; i++)
@@ -108,23 +100,23 @@ PyObject* K_GENERATOR::cartPenta(PyObject* self, PyObject* args)
         ind8 = ind4 + ninj;
 
         // prisme1
-        cn1[c] = ind1;
-        cn2[c] = ind3;
-        cn3[c] = ind4;
-        cn4[c] = ind5;
-        cn5[c] = ind7;
-        cn6[c] = ind8;
-        c += stride;
+        c = 2*((k*nj1 + j)*ni1 + i);
+        cm(c,1) = ind1;
+        cm(c,2) = ind3;
+        cm(c,3) = ind4;
+        cm(c,4) = ind5;
+        cm(c,5) = ind7;
+        cm(c,6) = ind8;
         
         // prisme2
-        cn1[c] = ind1;
-        cn2[c] = ind2;
-        cn3[c] = ind3;
-        cn4[c] = ind5;
-        cn5[c] = ind6;
-        cn6[c] = ind7;
-        c += stride;
-      }  
+        cm(c+1,1) = ind1;
+        cm(c+1,2) = ind2;
+        cm(c+1,3) = ind3;
+        cm(c+1,4) = ind5;
+        cm(c+1,5) = ind6;
+        cm(c+1,6) = ind7;
+      }
+  }
 
   RELEASESHAREDU(tpl, f, cn);
   return tpl;

@@ -1,10 +1,13 @@
 """Module for CFD solution compression.
 """
-__version__ = '2.7'
-__author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud"
+__version__ = '4.0'
+__author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud, Xavier Juvigny"
 
-import compressor
+from . import compressor
 import numpy
+import Converter.Internal as Internal
+try: import cPickle as pickle # best for now
+except: import pickle 
 
 #==============================================================================
 # deltaIndex
@@ -12,9 +15,9 @@ import numpy
 def deltaIndex(index, ref):
     """Return the delta between index and ref."""
     r1 = numpy.in1d(index, ref)
-    r1 = r1.astype(numpy.int32)
+    r1 = r1.astype(Internal.E_NpyInt)
     r2 = numpy.in1d(ref, index)
-    r2 = r2.astype(numpy.int32)
+    r2 = r2.astype(Internal.E_NpyInt)
     return compressor.deltaIndex(index, ref, r1, r2)
 
 #==============================================================================
@@ -27,22 +30,29 @@ def writeUnsteadyCoefs(iteration, indices, filename, loc, format="b"):
 #==============================================================================
 # Serialize/compress
 # method=0: pickle
+# method=1: pickle+zlib
 #==============================================================================
 def pack(a, method=0):
+    """Serialize or compress a."""
     if method == 0:
-        import cPickle as pickle# best for now
         return pickle.dumps(a, protocol=pickle.HIGHEST_PROTOCOL)
+    elif method == 1:
+        import zlib
+        return zlib.compress(pickle.dumps(a, protocol=pickle.HIGHEST_PROTOCOL), level=1)
     else:
-        import cPickle as pickle # best for now
         return pickle.dumps(a, protocol=pickle.HIGHEST_PROTOCOL)
    
 #==============================================================================
 # Unserialize/decompress
 #==============================================================================
 def unpack(a, method=0):
+    """Deserialize or decompress a."""
     if method == 0:
-        import cPickle as pickle# best for now
         return pickle.loads(a)
+    elif method == 1:
+        import zlib
+        return pickle.loads(zlib.decompress(a))
     else:
-        import cPickle as pickle # best for now
         return pickle.loads(a)
+
+    
