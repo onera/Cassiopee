@@ -208,6 +208,41 @@ def _setFluidInside(t):
     return None
 
 #==============================================================================
+# Set outpress control parameters in zones
+#==============================================================================
+def setOutPressControlParam(t, probeName='pointOutPress', AtestSection=1, AOutPress=1,
+                            machTarget=0.1, pStatTarget=1e05, tStatTarget=298.15,lmbd=0.1,
+                            cxSupport = 0.6, sSupport=0.1):
+    """Set the user input parameters for the outpress control algorithm.
+    Usage: setOutPressControlParam(t, probeName='X', AtestSection=Y, AOutPress=Z, machTarget=XX,pStatTarget=YY,tStatTarget=ZZ,lmbd=XXX,cxSupport=YYY,sSupport=ZZZ)"""
+    tp = Internal.copyRef(t)
+    _setOutPressControlParam(tp, probeName=probeName, AtestSection=AtestSection, AOutPress=AOutPress,
+                             machTarget=machTarget, pStatTarget=pStatTarget, tStatTarget=tStatTarget,lmbd=lmbd,
+                             cxSupport = cxSupport, sSupport=sSupport)
+    return tp
+
+
+def _setOutPressControlParam(t, probeName='pointOutPress', AtestSection=1, AOutPress=1,
+                             machTarget=0.1, pStatTarget=1e05, tStatTarget=298.15,lmbd=0.1,
+                             cxSupport = 0.6, sSupport=0.1):
+    """Set the user input parameters for the outpress control algorithm.
+    Usage: _setOutPressControlParam(t, probeName='X', AtestSection=Y, AOutPress=Z, machTarget=XX,pStatTarget=YY,tStatTarget=ZZ,lmbd=XXX,cxSupport=YYY,sSupport=ZZZ)"""
+    zones = Internal.getZones(t)
+    for z in zones:
+        Internal._createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
+        n = Internal.getNodeFromName1(z, '.Solver#define')
+        Internal._createUniqueChild(n, 'probeName'   , 'DataArray_t', probeName)
+        Internal._createUniqueChild(n, 'AtestSection', 'DataArray_t', AtestSection)
+        Internal._createUniqueChild(n, 'AOutPress'   , 'DataArray_t', AOutPress)
+        Internal._createUniqueChild(n, 'machTarget'  , 'DataArray_t', machTarget)
+        Internal._createUniqueChild(n, 'pStatTarget' , 'DataArray_t', pStatTarget)
+        Internal._createUniqueChild(n, 'tStatTarget' , 'DataArray_t', tStatTarget)
+        Internal._createUniqueChild(n, 'lmbd'        , 'DataArray_t', lmbd)
+        Internal._createUniqueChild(n, 'cxSupport'   , 'DataArray_t', cxSupport)
+        Internal._createUniqueChild(n, 'sSupport'    , 'DataArray_t', sSupport)
+        
+    return None
+#==============================================================================
 # Set the IBC type outpress for zones in familyName
 #==============================================================================
 def initOutflow(tc, familyName, PStatic, InterpolPlane=None, PressureVar=0, isDensityConstant=True):
