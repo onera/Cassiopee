@@ -8,3 +8,6 @@ Cassiopee/KCore/merge.l
 Cassiopee/XCore/merge.l
 Cassiopee/KCore/buildInfo.py
 Cassiopee/KCore/installPath.py
+
+tools/MigrationSVN
+web/doc
