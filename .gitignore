@@ -1,5 +1,10 @@
-opencascade-7.4.0.tgz
-/FFX
-/Fast
-/FastP
-/FastS
+.vscode
+build
+__pycache__
+*.egg-info
+setup.cfg
+Dist
+Cassiopee/KCore/merge.l
+Cassiopee/XCore/merge.l
+Cassiopee/KCore/buildInfo.py
+Cassiopee/KCore/installPath.py

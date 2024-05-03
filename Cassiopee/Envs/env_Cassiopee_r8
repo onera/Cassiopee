@@ -1,8 +1,8 @@
 #! /bin/csh
 # *Cassiopee* Compilation Environment
 
-if (-e $CASSIOPEE/Apps/Modules/Envs/env_Cassiopee_local) then
-    source $CASSIOPEE/Apps/Modules/Envs/env_Cassiopee_local
+if (-e $CASSIOPEE/Cassiopee/Envs/env_Cassiopee_local) then
+    source $CASSIOPEE/Cassiopee/Envs/env_Cassiopee_local
 else
     source $CASSIOPEE/Dist/env_Cassiopee_local
 endif
