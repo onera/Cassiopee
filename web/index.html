@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+
+<html>
+
+<head> 
+  <meta charset="utf-8" />
+  <title>*Cassiopée*: a CFD pre and post-processing python package</title>
+  <link href="Cassiopee.css" rel="stylesheet" type="text/css">
+  <link rel="icon" type="image/png" href="Images/iconc.png"> </link>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-L4031K45JM"></script><script> window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-L4031K45JM'); </script>
+  <script type="text/javascript" src="_static/jquery.js"></script>
+  <script type="text/javascript" src="_static/searchtools.js"></script>
+  <script type="text/javascript" src="JavaScript/all.js" defer> </script>
+</head>
+
+<body>
+
+<!-- Cassiopee banner -->
+<header class="headerIndex">
+  <img src="Images/logo10.png" id="cassiopeeLogo">
+</header>
+      
+ <!-- informations -->
+<table>
+  <tr>
+    <td> 
+      <img src="Images/icon5_new.png" class="icon">
+      <TEXTcenter>
+      <strong>Purpose:</strong> a set of python modules for pre- and post-processing of CFD computations <a href="More.html">[more]</a>.<br>
+      </TEXTcenter> 
+
+      <img src="Images/icon4_new.png" class="icon">
+      <TEXTcenter>
+      <strong>Authors: </strong>ONERA <a href="Authors.html">[more]</a>.<br>
+      </TEXTcenter>
+
+      <img src="Images/icon1_2_new.png" class="icon">
+      <TEXTcenter>
+      <strong>Current release:</strong> <strong>3.7</strong> (09/2023) <a href="News.html">[version content]</a>.<br>
+      </TEXTcenter>
+
+      <img src="Images/icon6_new.png" class="icon">
+      <TEXTcenter>
+      <strong>License:</strong> <a href="LICENSE">Gnu Public License v3</a>.<br>
+      </TEXTcenter>
+
+      <img src="Images/icon3_new.png" class="icon"></a>
+      <TEXTcenter>
+      <strong>Any questions?</strong> <a href="https://groups.google.com/forum/?utm_medium=email&utm_source=footer#!forum/cassiopee-community">News, Question and Answer Forum</a>.<br>
+      </TEXTcenter>
+
+      <img src="Images/icon0_new.png" class="icon"></a>
+      <TEXTcenter>
+      <strong>Miss the old theme?</strong> <button onclick="switchTheme()" id="fancyButton">Add some yellow</button><br>
+      </TEXTcenter>
+    </td>
+  </tr>
+</table>
+
+ <!-- documentation search bar -->
+<table class="darkBar">
+  <tr>
+    <td>
+
+      <strong>Reference documentation 3.7:</strong>
+
+      <form class="search" action="doc/search.html" method="get">
+        <input type="search" name="q" placeholder="Search a Cassiopée function..."/>
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+      <script type="text/javascript">$('#searchbox').show(0);</script>
+
+    </td>
+  </tr>
+</table>
+
+ <!-- documentation -->
+ <table class="doc">  
+  <tr>
+    <td>
+      <ul>
+        <li><a href="doc/Converter.html"><strong>Converter:</strong> Data conversion module</a></li>
+        <ul>
+          <li><a href="doc/Internal.html"><strong>Internal:</strong> pyTree basic management module</a></li>
+          <li><a href="doc/Filter.html"><strong>Filter:</strong> partial reading/writing of files</a></li>
+          <li><a href="doc/ConverterMpi.html"><strong>Converter.Mpi:</strong> parallel management of pyTrees</a></li>
+          <li><a href="doc/elsAProfile.html"><strong>elsAProfile:</strong> adaptation for elsA solver</a></li>
+        </ul>
+
+        <li><a href="doc/Geom.html"><strong>Geom:</strong> Geometry definition module</a></li>
+        <ul>
+          <li><a href="doc/Geom_IBM.html"><strong>IBM:</strong> Specific geometry operations for IBM simulations</a></li>
+        </ul>
+
+        <li><a href="doc/Transform.html"><strong>Transform:</strong> Generic mesh transformation module</a></li>
+        <li><a href="doc/Generator.html"><strong>Generator:</strong> Mesh generation module</a></li>
+        <li><a href="doc/Intersector.html"><strong>Intersector:</strong> Mesh intersection module</a></li>
+        <li><a href="doc/Connector.html"><strong>Connector:</strong> Mesh connectivity module</a></li>
+          <ul>
+            <li><a href="doc/Connector_IBM.html"><strong>IBM:</strong> Specific connectivity operations for IBM simulations</a></li>
+          </ul>
+        <li><a href="doc/Initiator.html"><strong>Initiator:</strong> Solution initialization module</a></li>
+
+        <li><a href="doc/Post.html"><strong>Post:</strong> Solution post-processing and solution extraction</a></li>
+          <ul>
+            <li><a href="doc/ExtraVariables2.html"><strong>ExtraVariables2:</strong> compute derived fields from primitive variables</a></li>
+            <li><a href="doc/Rotor.html"><strong>Rotor:</strong> Specific rotor and propeller post-processing</a></li>
+            <li><a href="doc/Post_IBM.html"><strong>IBM:</strong> Specific post-processing for IBM simulations</a></li>
+          </ul>
+
+        <li><a href="doc/Dist2Walls.html"><strong>Dist2Walls:</strong> Wall distance computation</a></li>
+        <li><a href="doc/RigidMotion.html"><strong>RigidMotion:</strong> Rigid motion management</a></li>
+        <li><a href="doc/Compressor.html"><strong>Compressor:</strong> Compression module</a></li>
+        <li><a href="doc/Distributor2.html"><strong>Distributor2:</strong> Distribute blocks over processors</a></li>
+        <li><a href="doc/OCC.html"><strong>OCC:</strong> Interface to open-cascade for CAD</a></li>
+
+        <li><a href="doc/CPlot.html"><strong>CPlot:</strong> Light plotter</a></li>
+          <ul>
+            <li><a href="doc/tkCassiopee.html"><strong>tkCassiopee:</strong> A Tk interface to module functions</a></li>
+            <li><a href="doc/tkPlotXY.html"><strong>tkPlotXY:</strong> A Tk module to draw 1D plot</a></li>
+            <li><a href="doc/Decorator.html"><strong>Decorator:</strong> Decorate CPlot images with matplotlib</a></li>
+          </ul>
+      </ul>    
+    </td>
+  </tr> 
+</table>
+
+<!-- Other links --> 
+<table class="darkBar">
+  <tr>
+    <td>
+      <strong>More:</strong>  <a href="Support.html" >Get support</a> - 
+      <a href="Gallery/Gallery.html" >Gallery</a> -
+      <a href="Tutorials/Tutorials.html"  >Tutorials</a> -
+      <a href="Download/Download.html" >Download</a> -
+      <a href="Citations/Citations.html" >Citations</a> -
+      <a href="Contribute.html" >Contribute</a> - 
+      <a href="Extra.html" >Other non open source modules</a>
+      <br>
+    </td>
+  </tr>
+</table>
+
+<!-- Other versions --> 
+<p><strong>Older versions of documentation:</strong>
+  <a href="3.6/Userguide.html">3.6</a> -
+  <a href="3.5/Userguide.html">3.5</a> -
+  <a href="3.4/Userguide.html">3.4</a>
+</p>
+
+<footer>
+  <a href="http://www.onera.fr"><img src="Images/logo-onera2.png"></a>
+</footer>
+
+</body>
+
+</html>
