@@ -1087,12 +1087,9 @@ def checkGenerator():
 #=============================================================================
 def checkFastC():
     try:
-        import FastC
+        import FastC.installPath
         import KCore.installPath
-        fastcIncDir = KCore.installPath.includePath
-        fastcIncDir = fastcIncDir.replace('Modules', 'PModules')
-        fastcIncDir = os.path.dirname(fastcIncDir)
-        fastcIncDir = os.path.join(fastcIncDir, 'FastC')
+        fastcIncDir = FastC.installPath.includePath
         fastcLibDir = KCore.installPath.libPath
         return (FastC.__version__, fastcIncDir, fastcLibDir)
 
@@ -1105,9 +1102,9 @@ def checkFastC():
 def checkFastS():
     try:
         import FastS
+        import FastC.installPath
         import KCore.installPath
-        fastsIncDir = KCore.installPath.includePath
-        fastsIncDir = fastsIncDir.replace('Modules', 'PModules')
+        fastsIncDir = FastC.installPath.includePath
         fastsIncDir = os.path.dirname(fastsIncDir)
         fastsIncDir = os.path.join(fastsIncDir, 'FastS')
         fastsLibDir = KCore.installPath.libPath
@@ -1122,9 +1119,9 @@ def checkFastS():
 def checkFastP():
     try:
         import FastP
+        import FastC.installPath
         import KCore.installPath
-        fastpIncDir = KCore.installPath.includePath
-        fastpIncDir = fastpIncDir.replace('Modules', 'PModules')
+        fastpIncDir = FastC.installPath.includePath
         fastpIncDir = os.path.dirname(fastpIncDir)
         fastpIncDir = os.path.join(fastpIncDir, 'FastP')
         fastpLibDir = KCore.installPath.libPath
@@ -1139,9 +1136,9 @@ def checkFastP():
 def checkFastLBM():
     try:
         import FastLBM
+        import FastC.installPath
         import KCore.installPath
-        fastlbmIncDir = KCore.installPath.includePath
-        fastlbmIncDir = fastlbmIncDir.replace('Modules', 'PModules')
+        fastlbmIncDir = FastC.installPath.includePath
         fastlbmIncDir = os.path.dirname(fastlbmIncDir)
         fastlbmIncDir = os.path.join(fastlbmIncDir, 'FastLBM')
         fastlbmLibDir = KCore.installPath.libPath
@@ -1156,9 +1153,9 @@ def checkFastLBM():
 def checkFastASLBM():
     try:
         import FastASLBM
+        import FastC.installPath
         import KCore.installPath
-        fastaslbmIncDir = KCore.installPath.includePath
-        fastaslbmIncDir = fastaslbmIncDir.replace('Modules', 'PModules')
+        fastaslbmIncDir = FastC.installPath.includePath
         fastaslbmIncDir = os.path.dirname(fastaslbmIncDir)
         fastaslbmIncDir = os.path.join(fastaslbmIncDir, 'FastASLBM')
         fastaslbmLibDir = KCore.installPath.libPath

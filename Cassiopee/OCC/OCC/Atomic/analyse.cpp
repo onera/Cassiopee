@@ -39,7 +39,7 @@
 E_Float __getLength(const TopoDS_Edge& E);
 
 //=====================================================================
-// Return min / max /mean length of all edges
+// Return min / max / mean length of all edges
 //=====================================================================
 PyObject* K_OCC::analyseEdges(PyObject* self, PyObject* args)
 {

@@ -89,8 +89,8 @@ PyObject* K_OCC::trimFaces(PyObject* self, PyObject* args)
   TopTools_IndexedMapOfShape* se = new TopTools_IndexedMapOfShape();
   TopExp::MapShapes(*newshp, TopAbs_EDGE, *se);
   packet[2] = se;
-  printf("INFO: after fix: Nb edges=%d\n", se->Extent());
-  printf("INFO: after fix: Nb faces=%d\n", sf->Extent());
+  printf("INFO: after trim: Nb edges=%d\n", se->Extent());
+  printf("INFO: after trim: Nb faces=%d\n", sf->Extent());
 
   Py_INCREF(Py_None);
   return Py_None;

@@ -792,6 +792,7 @@ E_Int K_IO::GenIO::foamReadFields(char *file,
     if (fileExist(path)) {
       // skip .swp files
       if (dir->d_name[0] == '.') continue;
+      if (K_STRING::cmp(dir->d_name, 9, "processor") == 0) continue;
       char path[1028];
       strcpy(path, fullPath);
       strcat(path, "/");
