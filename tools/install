@@ -1,0 +1,18 @@
+#! /bin/sh
+INSTALLPATH="$CASSIOPEE/Dist/bin/$ELSAPROD"
+echo 'Installing tree_grep'
+cp tree_grep "$INSTALLPATH"
+cp tree_grep.py "$INSTALLPATH"
+echo 'Installing tree_replace'
+cp tree_replace "$INSTALLPATH"
+cp tree_replace.py "$INSTALLPATH"
+echo 'Installing wc'
+cp wc.py "$INSTALLPATH"
+echo 'Installing importChecker'
+cp importchecker.py "$INSTALLPATH"
+echo 'Installing tarball/tarballAll/tarex'
+cp tarball "$INSTALLPATH"
+cp tarballAll "$INSTALLPATH"
+cp tarex "$INSTALLPATH"
+echo 'Installing propre'
+cp propre "$INSTALLPATH"

@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# man ------------------------------------------------------------------------
+if ([ $# -eq 0 ])
+then
+    echo 'tree_grep usage :'
+    echo 'tree_grep directory string'
+    echo 'Find string in all files of directory and subdirectories'
+    exit
+fi
+if [ "$PYTHONEXE" != "" ]; then
+    alias python=$PYTHONEXE
+fi
+# launch command
+python $CASSIOPEE/Apps/util/tree_grep.py $1 "$2" "$3"

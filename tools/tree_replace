@@ -1,0 +1,17 @@
+#!/bin/sh
+# tree_replace . toto tata
+# Replace toto with tata
+
+# man ------------------------------------------------------------------------
+if ([ $# -eq 0 ])
+then
+    echo 'tree_replace usage:'
+    echo 'tree_replace directory string replaceString'
+    echo 'Find string in all files of directory and subdirectories and replace.'
+    exit
+fi
+if [ "$PYTHONEXE" != "" ]; then
+    alias python=$PYTHONEXE
+fi
+# launch command
+tree_replace.py $1 "$2" "$3"

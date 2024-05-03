@@ -1,0 +1,13 @@
+#!/bin/sh
+# Tar avec exclusion de svn
+# usage: tarex rep en se placant au dessus du repertoire a tarer
+
+if ([ $# -eq 0 ])
+then
+    echo 'tarex usage :'
+    echo 'tarex directory'
+    echo 'Tar avec exclusion de svn. Se mettre au dessus du repertoire a tarer'
+    exit
+fi
+tar --exclude=.svn --exclude=build --exclude=Data -c -v -f $1.tar $1
+gzip $1.tar

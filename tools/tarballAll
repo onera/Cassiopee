@@ -1,0 +1,49 @@
+#!/bin/sh
+#
+# make an archive of all source files
+
+# Module list
+. $CASSIOPEE/Apps/Modules/MODULES
+cd $CASSIOPEE/Apps/Modules
+for i in $FULLMODULES
+do
+    cd $i
+    tarball $i
+    cd ..
+done
+
+# ThirdPrty
+THIRDPARTYMODULES='scons mpi4py paradigma'
+cd ThirdParty
+for i in $THIRDPARTYMODULES
+do
+    cd $i
+    tarball $i
+    cd ..
+    mv $i.tar.gz ..
+done
+cd ..
+
+# PModules list
+. $CASSIOPEE/Apps/PModules/MODULES
+cd $CASSIOPEE/Apps/PModules
+for i in $FULLMODULES
+do
+    cd $i
+    tarball $i
+    cd ..
+done
+
+# tar de Util
+cd $CASSIOPEE/Apps
+tar --exclude=.svn -c -v -f util.tar util
+gzip util.tar
+
+# Super tar
+tar cvf Cassiopee.tar Modules/*.tar.gz PModules/*.tar.gz
+gzip Cassiopee.tar
+
+# rm all tarballs
+rm Modules/*.tar.gz
+rm PModules/*.tar.gz
+rm util.tar.gz

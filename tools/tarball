@@ -1,0 +1,125 @@
+#!/bin/sh
+#
+# make an archive of source files
+# Se mettre dans le repertoire du module:
+# tarball MODULE -> fait un tar de MODULE
+# tarball MODULE VERSION -> Fait un tar, l'installe dans WWW/Main/Download (full versions)
+# tarball MODULE VERSION FREE -> Fait un tar, l'install dans cassiopee-web/Download (free)
+# Pour la version FREE, on exclut les repertoires Stubs
+# Made for *Cassiopee* 
+#
+if ([ $# -eq 0 ])
+then
+    echo 'tarball MODULE <or> tarball MODULE VERSION (install sous download)'
+    exit
+fi
+
+b=`basename $1`
+if ([ $# -ge 2 ])
+then
+    name=$1-$2
+else
+    name=$1
+fi
+
+cd ..
+
+# Pruning condition
+if ([ $# -eq 1 ]) # local tar
+then
+    export PRUNE="-name build -prune -o"
+fi
+if ([ $# -eq 2 ]) # full version
+then
+    export PRUNE="-name build -prune -o"
+fi
+if ([ $# -eq 3 ]) # free version (exclude Stubs + usurp)
+then
+    export PRUNE="-name build -prune -o -name Stubs -prune -o -name usurp -prune -o"
+fi
+
+alias find="/usr/bin/find.exe"
+alias tar="/usr/bin/tar.exe"
+
+if ([ $# -ge 1 ])
+then
+    find $b $PRUNE -name "*.h" -print | tee toto
+    find $b $PRUNE -name "*.hxx" -print | tee -a toto
+    find $b $PRUNE -name "*.hpp" -print | tee -a toto
+    find $b $PRUNE -name "*.tpp" -print | tee -a toto
+    find $b $PRUNE -name "*.cpp" -print | tee -a toto
+    find $b $PRUNE -name "*.C" -print | tee -a toto
+    find $b $PRUNE -name "*.cxx" -print | tee -a toto
+    find $b $PRUNE -name "*.c" -print | tee -a toto
+    find $b $PRUNE -name "*.for" -print | tee -a toto
+    find $b $PRUNE -name "*.f90" -print | tee -a toto
+    find $b $PRUNE -name "*.py" -print | tee -a toto
+    find $b $PRUNE -name "*.pyx" -print | tee -a toto
+    find $b $PRUNE -name "*.pxd" -print | tee -a toto
+    find $b $PRUNE -name "*.pxi" -print | tee -a toto
+    find $b $PRUNE -name "*.html"  -print | tee -a toto
+    find $b $PRUNE -name "*.pdf"  -print | tee -a toto
+    find $b $PRUNE -name "install"  -print | tee -a toto
+    find $b $PRUNE -name "Makefile" -print | tee -a toto
+    find $b $PRUNE -name "*.mk"  -print | tee -a toto
+    find $b $PRUNE -name "*.inc" -print | tee -a toto
+    find $b $PRUNE -name "*.g" -print | tee -a toto
+    find $b $PRUNE -name "*.txt" -print | tee -a toto
+    find $b $PRUNE -name "env_C*" -print | tee -a toto
+    find $b $PRUNE -name "sh_C*" -print | tee -a toto
+    find $b $PRUNE -name "*.el" -print | tee -a toto
+    find $b $PRUNE -name "*.rst" -print | tee -a toto
+    find $b $PRUNE -name "*.frag" -print | tee -a toto
+    find $b $PRUNE -name "*.vert" -print | tee -a toto
+    find $b $PRUNE -name "*.geom" -print | tee -a toto
+    find $b $PRUNE -name "*.tcs" -print | tee -a toto
+    find $b $PRUNE -name "*.tes" -print | tee -a toto
+    find $b $PRUNE -name "*.png" -print | tee -a toto
+    find $b $PRUNE -name "*.scons" -print | tee -a toto
+    find $b $PRUNE -name "SConstruct" -print | tee -a toto
+    find $b $PRUNE -name "README" -print | tee -a toto
+    find $b $PRUNE -name "LICENCE" -print | tee -a toto
+    find $b $PRUNE -name "go" -print | tee -a toto
+    find $b $PRUNE -name "ediff" -print | tee -a toto
+    find $b $PRUNE -name "cplot" -print | tee -a toto
+    find $b $PRUNE -name "cassiopee" -print | tee -a toto
+    find $b $PRUNE -name "kcgnsview" -print | tee -a toto
+    find $b $PRUNE -name "appCassiopee" -print | tee -a toto
+    find $b $PRUNE -name "kpython" -print | tee -a toto
+    find $b $PRUNE -name "validCassiopee" -print | tee -a toto
+    find $b $PRUNE -name "validFast" -print | tee -a toto
+    find $b $PRUNE -name "merge.ar" -print | tee -a toto
+    find $b $PRUNE -name "valid" -print | tee -a toto
+    find $b $PRUNE -name "CCC" -print | tee -a toto
+    find $b $PRUNE -name "*.bat" -print | tee -a toto
+    find $b $PRUNE -name "*.tar" -print | tee -a toto
+    find $b $PRUNE -name "*.ar" -print | tee -a toto
+
+    a=`cat toto`
+    tar cvf $name.tar $a
+    if ([ $# -eq 2 ])
+    then
+        if test -e $1/test/Data
+        then
+            tar rvf $name.tar $1/test/Data/*
+        fi
+    fi
+    gzip $name.tar
+    ls -als $name.tar.gz
+    rm toto
+fi
+if ([ $# -eq 2 ])
+then
+    mv $name.tar.gz $CASSIOPEE/WWW/Main/Download/
+    cd $b
+    rep=`pwd`
+    cd $CASSIOPEE/WWW/Main/Download/
+    #chmodBack
+    cd $rep
+fi
+
+if ([ $# -eq 3 ])
+then
+    mv $name.tar.gz $CASSIOPEE/WWW/cassiopee-web/Download/
+    cd $b
+fi
