@@ -52,7 +52,7 @@ True, # useCuda
 ['-arch=sm_60'] # NvccAdditionalOptions
 ],
 ###############################################################################
-'WDAAA859Z': [ 'Windows win64+msys2 (CB-Onera)',
+'Aryen': [ 'Windows win64+msys2 (CB-Onera)',
 'gfortran', # f77compiler
 'gfortran', # f90compiler
 'gcc', # Cppcompiler
@@ -60,11 +60,9 @@ True, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-#['c:/msys64/mingw64/include', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Include', 'c:/msys64/mingw64/include/OpenBLAS'], # additionalIncludePaths
-['d:/benoit/AppData/Local/msys2/mingw64/include', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Include', 'd:/benoit/AppData/Local/msys2/mingw64/include/openBLAS'],
+['c:/msys64/mingw64/include'], # additionalIncludePaths
 ['gomp', 'gfortran'], # additionalLibs
-#['c:/msys64/mingw64/lib', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64'], # additionalLibPaths
-['d:/benoit/AppData/Local/msys2/mingw64/lib', 'c:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64'],
+['c:/msys64/mingw64/lib'], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],

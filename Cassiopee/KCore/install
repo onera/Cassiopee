@@ -49,7 +49,12 @@ if [ $PRODMODE -le 1 ]; then
     else
         export SCONSOPT=""
     fi
-    python $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
+
+    if [[ -x $sconsf ]]; then
+        $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
+    else
+        python $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
+    fi
     [ $? != 0 ] && exit 1;
     #touch KCore/kcore.cpp
     rm -f build/lib.*/KCore/kcore.*
