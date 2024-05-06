@@ -1945,8 +1945,8 @@ class IBM(Common):
 
 
 ## IMPORTANT NOTE !!
-## FUNCTIONS MIGRATED TO $CASSIOPEE/Apps/Modules/Geom/Geom/IBM.py
-## The functions below will become decrepit after Jan. 1 2023
+## FUNCTIONS MIGRATED TO $CASSIOPEE/Cassiopee/Geom/Geom/IBM.py
+## The functions below will become deprecated after Jan. 1 2023
 #====================================================================================
 def setSnear(t, value):
     tp=D_IBM.setSnear(t, value)
@@ -2253,8 +2253,8 @@ def loads(t_case, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., gra
 #====================================================================================    
 
 ## IMPORTANT NOTE !!
-## FUNCTIONS MIGRATED TO $CASSIOPEE/Apps/Modules/Post/Post/IBM.py
-## The functions below will become decrepit after Jan. 1 2023
+## FUNCTIONS MIGRATED TO $CASSIOPEE/Cassiopee/Post/Post/IBM.py
+## The functions below will become deprecated after Jan. 1 2023
 #====================================================================================
 def extractIBMInfo(tc_in, t_out='IBMInfo.cgns'):
     tibm=P_IBM.extractIBMInfo(tc_in, t_out=t_out)
@@ -2295,8 +2295,8 @@ def _modifIBCD(tc):
 #====================================================================================
 
 ## IMPORTANT NOTE !!
-## FUNCTIONS MIGRATED TO $CASSIOPEE/Apps/Modules/Generator/Generator/IBMmodelHeight.py
-## The functions below will become decrepit after Jan. 1 2023
+## FUNCTIONS MIGRATED TO $CASSIOPEE/Cassiopee/Generator/Generator/IBMmodelHeight.py
+## The functions below will become deprecated after Jan. 1 2023
 #====================================================================================
 def compute_Cf(Re, Cf_law='ANSYS'):
     val=G_IBM_Height.compute_Cf(Re, Cf_law=Cf_law)

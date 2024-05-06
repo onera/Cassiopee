@@ -2741,8 +2741,8 @@ class IBM(Common):
 
 
 ## IMPORTANT NOTE !!
-## FUNCTIONS MIGRATED TO $CASSIOPEE/Apps/Modules/Post/Post/IBM.py
-## The functions below will become decrepit after Jan. 1 2023
+## FUNCTIONS MIGRATED TO $CASSIOPEE/Cassiopee/Post/Post/IBM.py
+## The functions below will become deprecated after Jan. 1 2023
 #====================================================================================
 def extractIBMInfo(tc_in, t_out='IBMInfo.cgns'):
     tibm = P_IBM.extractIBMInfo(tc_in, t_out=t_out)
@@ -2782,8 +2782,8 @@ def _modifIBCD(tc):
 
 
 ## IMPORTANT NOTE !!
-## FUNCTIONS MIGRATED TO $CASSIOPEE/Apps/Modules/Generator/Generator/IBMmodelHeight.py
-## The functions below will become decrepit after Jan. 1 2023
+## FUNCTIONS MIGRATED TO $CASSIOPEE/Cassiopee/Generator/Generator/IBMmodelHeight.py
+## The functions below will become deprecated after Jan. 1 2023
 #====================================================================================
 def compute_Cf(Re, Cf_law='ANSYS'):
     val=G_IBM_Height.compute_Cf(Re, Cf_law=Cf_law)
@@ -2798,8 +2798,8 @@ def computeSnearOpt(Re=None, tb=None, Lref=1., q=1.2, yplus=300., Cf_law='ANSYS'
     return val
 
 ## IMPORTANT NOTE !!
-## FUNCTIONS MIGRATED TO $CASSIOPEE/Apps/Modules/Post/Post/IBM.py
-## The functions below will become decrepit after April. 1 2023
+## FUNCTIONS MIGRATED TO $CASSIOPEE/Cassiopee/Post/Post/IBM.py
+## The functions below will become deprecated after April. 1 2023
 #================================================================================
 # IBM prepare - seq
 def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],

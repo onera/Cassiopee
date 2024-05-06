@@ -15,12 +15,7 @@ import CPlot.Tk as CTK
 
 # CASSIOPEE var
 # doit etre le chemin des sources avec les tests unitaires
-CASSIOPEE = os.getenv('CASSIOPEE_SOURCES')
-if CASSIOPEE is None or CASSIOPEE == '':
-    CASSIOPEE = os.getenv('CASSIOPEE')
-    if CASSIOPEE is None or CASSIOPEE == '':
-        print('Error: CASSIOPEE must be present in your environment.')
-        sys.exit()
+CASSIOPEE = None
 
 # CFD Base
 CFDBASEPATH = '/Validation/Cases'
@@ -39,7 +34,7 @@ try:
 except: isMpi = False
 
 # Check svn version
-CHECKSVNVERSION = True
+CHECKSVNVERSION = False
 
 # Regexprs
 regDiff = re.compile('DIFF')
@@ -78,6 +73,37 @@ STOP = 0
 
 # WIDGETS dict
 WIDGETS = {}
+
+#==============================================================================
+# Get installation paths of Cassiopee, Fast and all PModules
+#==============================================================================
+def getInstallPaths():
+  try:
+      # Check installPath
+      import KCore.installPath
+      import FastC.installPath
+      cassiopeeIncDir = KCore.installPath.includePath
+      cassiopeeIncDir = os.path.dirname(cassiopeeIncDir)
+      fastIncDir = FastC.installPath.includePath
+      fastIncDir = os.path.dirname(fastIncDir)
+      return cassiopeeIncDir, fastIncDir, []
+  except ImportError:
+      raise SystemError("Error: KCore and FastC libraries are required to use "
+                        "this script.")
+                        
+def checkEnvironment():
+  global CASSIOPEE
+  # Check environment
+  CASSIOPEE = os.getenv('CASSIOPEE_SOURCES')
+  if CASSIOPEE is None or CASSIOPEE == '':
+      CASSIOPEE = os.getenv('CASSIOPEE')
+      if CASSIOPEE is None or CASSIOPEE == '':
+          print('Error: CASSIOPEE must be present in your environment.')
+          sys.exit()
+  
+  if os.path.join(CASSIOPEE, "Cassiopee") != getInstallPaths()[0]:
+      print("Error: Path mismatch between $CASSIOPEE and KCore/installPath")
+      sys.exit()
 
 #==============================================================================
 # Simulate check_output since it doesn't existe for early version of python
@@ -201,15 +227,14 @@ def ljust(text, size):
 def buildString(module, test, CPUtime='...', coverage='...%', status='...',
                 tag=' '):
     if module == 'CFDBase':
-        path = CASSIOPEE+CFDBASEPATH
-        fileTime = '%s/%s/%s/%s.time'%(path, test, DATA, test)
-        fileStar = '%s/%s/%s/%s.star'%(path, test, DATA, test)
+        path = os.path.join(CASSIOPEE, CFDBASEPATH)
+        fileTime = os.path.join(path, test, DATA, test+'.time')
+        fileStar = os.path.join(path, test, DATA, test+'.star')
     else:
         modulesDir = MODULESDIR[module]
-        path = CASSIOPEE+'/Apps/'+modulesDir
         testr = os.path.splitext(test)
-        fileTime = '%s/%s/test/%s/%s.time'%(path, module, DATA, testr[0])
-        fileStar = '%s/%s/test/%s/%s.star'%(path, module, DATA, testr[0])
+        fileTime = os.path.join(modulesDir, module, 'test', DATA, testr[0]+'.time')
+        fileStar = os.path.join(modulesDir, module, 'test', DATA, testr[0]+'.star')
     a = os.access(fileTime, os.F_OK)
     if a:
         f = open(fileTime, 'r')
@@ -251,39 +276,39 @@ def buildString(module, test, CPUtime='...', coverage='...%', status='...',
     return s
 
 #==============================================================================
-# Retourne la liste des modules situes dans Apps/Modules et dans Apps/PModules
+# Retourne la liste des modules situes dans Cassiopee, Fast et PModules
 # Eventuellement peut ajouter "CFDBase", nom referencant les tests
 # de validation des solveurs (CFDBase)
 #==============================================================================
 def getModules():
+    cassiopeeIncDir, fastIncDir, pmodulesIncDir = getInstallPaths()
     # Tests unitaires des modules
-    print('Info: Getting tests in:%s.'%CASSIOPEE)
+    print('Info: Getting tests in: %s.'%cassiopeeIncDir)
     modules = []
-
-    path = CASSIOPEE+'/Apps/PModules'
-    try: mods = os.listdir(path)
-    except: mods = []
+    paths = pmodulesIncDir + [fastIncDir]
     notTested = ['Upmost', 'FastP']
-    for i in mods:
-        if i not in notTested and i not in modules:
-            a = os.access('%s/%s/test'%(path,i), os.F_OK)
-            if a:
-                modules.append(i)
-                MODULESDIR[i] = 'PModules'
+    for path in paths:
+        try: mods = os.listdir(path)
+        except: mods = []
+        for i in mods:
+            if i not in notTested and i not in modules:
+                a = os.access('%s/%s/test'%(path,i), os.F_OK)
+                if a:
+                    modules.append(i)
+                    MODULESDIR[i] = path
 
-    path = CASSIOPEE+'/Apps/Modules'
-    try: mods = os.listdir(path)
+    try: mods = os.listdir(cassiopeeIncDir)
     except: mods = []
     for i in mods:
         if i not in modules:
-            a = os.access('%s/%s/test'%(path,i), os.F_OK)
+            a = os.access('%s/%s/test'%(cassiopeeIncDir,i), os.F_OK)
             if a: 
                 modules.append(i)
-                MODULESDIR[i] = 'Modules'
+                MODULESDIR[i] = cassiopeeIncDir
     
     # Validation CFD
     modules.append('CFDBase')
-    MODULESDIR['CFDBase'] = ''
+    MODULESDIR['CFDBase'] = os.path.dirname(os.path.dirname(cassiopeeIncDir)) # TODO
     return sorted(modules)
 
 #==============================================================================
@@ -304,7 +329,7 @@ def getTests(module):
 #==============================================================================
 def getUnitaryTests(module):
     modulesDir = MODULESDIR[module]
-    path = '%s/Apps/%s/%s/test'%(CASSIOPEE, modulesDir, module)
+    path = os.path.join(modulesDir, module, 'test')
     files = os.listdir(path)
     tests = []
     for f in files:
@@ -324,7 +349,7 @@ def getUnitaryTests(module):
 # Il doivent etre dans Validation/Cases
 #==============================================================================
 def getCFDBaseTests():
-    path = CASSIOPEE+CFDBASEPATH
+    path = os.path.join(CASSIOPEE, CFDBASEPATH)
     try: reps = os.listdir(path)
     except: reps = []
     out = []
@@ -474,7 +499,7 @@ def runSingleUnitaryTest(no, module, test):
     global TESTS
     testr = os.path.splitext(test)
     modulesDir = MODULESDIR[module]
-    path = '%s/Apps/%s/%s/test'%(CASSIOPEE, modulesDir, module)
+    path = os.path.join(modulesDir, module, 'test')
 
     m1 = expTest1.search(test) # seq ou distribue
 
@@ -622,7 +647,7 @@ def runSingleUnitaryTest(no, module, test):
 def runSingleCFDTest(no, module, test):
     global TESTS
     print('Info: Running CFD test %s.'%test)
-    path = CASSIOPEE+CFDBASEPATH+'/'+test
+    path = os.path.join(CASSIOPEE, CFDBASEPATH, test)
 
     m1 = None # si False=seq
     # force mpi test pour certains cas
@@ -789,16 +814,15 @@ def updateTests():
         module = module.strip()
         test = test.strip()
         if module == 'CFDBase':
-            pathl = CASSIOPEE+CFDBASEPATH+'/'+test
+            pathl = os.path.join(CASSIOPEE, CFDBASEPATH, test)
             test2 = test+'.time'
             test = 'post'+'.ref*'
         else:
             modulesDir = MODULESDIR[module]
-            path = CASSIOPEE+'/Apps/'+modulesDir
             d = os.path.splitext(test)
             test = d[0]+'.ref*'
             test2 = d[0]+'.time'
-            pathl = '%s/%s/test'%(path,module)
+            pathl = os.path.join(modulesDir, module, 'test')
         rmFile(pathl, test)
         rmFile(pathl, test2)
     # Set le nombre de fois qu'un cas unitaire doit etre execute a 1
@@ -842,10 +866,12 @@ def buildTestList(loadSession=False, modules=[]):
         modules = getModules()
     # Read last sessionLog conditionally
     ncolumns = 8
+    cassiopeeIncDir = getInstallPaths()[0]
     logname = sorted(glob.glob(
-        '{}/Apps/Modules/Valid{}/session-*.log'.format(CASSIOPEE, DATA)))
+        os.path.join(cassiopeeIncDir, "Valid{}".format(DATA), "session-*.log")))
     if len(logname): logname = logname[-1]
-    else: logname = '{}/Apps/Modules/Valid{}/lastSession.log'.format(CASSIOPEE, DATA)
+    else: logname = os.path.join(cassiopeeIncDir, "Valid{}".format(DATA),
+                                 "lastSession.log")
 
     if loadSession and os.access(logname, os.R_OK) and os.path.getsize(logname) > 0:
         print("Loading last session: {}".format(logname))
@@ -866,7 +892,8 @@ def buildTestList(loadSession=False, modules=[]):
         # Read sessionLog and combine with lastSession. Priority given to
         # data from current session
         ncolumns = 8
-        logname = CASSIOPEE+'/Apps/Modules/Valid{}/session.log'.format(DATA)
+        logname = os.path.join(cassiopeeIncDir, "Valid{}".format(DATA),
+                               "session.log")
         if os.path.getsize(logname) > 0:
             with open(logname, "r") as g:
                 sessionLog = [line.rstrip().split(':') for line in g.readlines()]
@@ -1031,12 +1058,11 @@ def viewTest(event=None):
         module = module.strip()
         test = test.strip()
         if module == 'CFDBase':
-            pathl = CASSIOPEE+CFDBASEPATH+'/'+test
+            pathl = os.path.join(CASSIOPEE, CFDBASEPATH, test)
             test = 'compute.py'
         else:
             modulesDir = MODULESDIR[module]
-            path = CASSIOPEE+'/Apps/'+modulesDir
-            pathl = '%s/%s/test'%(path,module)
+            pathl = os.path.join(modulesDir, module, 'test')
         if mySystem == 'mingw' or mySystem == 'windows':
             pathl = pathl.replace('/', '\\')
             cmd = 'cd '+pathl+' && emacs '+test
@@ -1336,6 +1362,7 @@ def export2Text():
 #=======================================
 def writeSessionLog():
     svnVersion = 'Unknown'
+    cassiopeeIncDir = getInstallPaths()[0]
     if CHECKSVNVERSION:
         try:
             CASSIOPEEL = CASSIOPEE.replace('D:', '/d/') # patch pour msys2/CB
@@ -1347,18 +1374,17 @@ def writeSessionLog():
                 if 'vision' in t[0]: svnVersion = t[1]
         except: pass
 
-    messageText = 'Base from'+CASSIOPEE+'\n'
-    messageText += 'Based on version %s (can be locally modified).\n'%svnVersion
+    messageText = 'Base from'+cassiopeeIncDir+'\n'
+    messageText += 'Based on version %s (can be locally modified).\n'%svnVersion # TODO
     for t in TESTS:
         messageText += t+'\n'
 
     # Write time stamp dans ValidData/base.time et
     # log dans ValidData/session.log
-    cassiopee = os.getenv("CASSIOPEE")
-    writeFinal(cassiopee+'/Apps/Modules/Valid{}/base.time'.format(DATA),
-               svnVersion)
-    writeFinal(cassiopee+'/Apps/Modules/Valid{}/session.log'.format(DATA),
-               svnVersion, messageText, append=True)
+    validFolder = os.path.join(cassiopeeIncDir, 'Valid{}'.format(DATA))
+    writeFinal(os.path.join(validFolder, 'base.time'), svnVersion)
+    writeFinal(os.path.join(validFolder, 'session.log'), svnVersion,
+               messageText, append=True)
 
 #=======================================
 # Send an email
@@ -1396,6 +1422,7 @@ def notify(sender=None, recipients=[], messageSubject="", messageText=""):
 # Notify "Commit ready" 
 #=======================================    
 def notifyValidOK():
+    cassiopeeIncDir = getInstallPaths()[0]
     svnVersion = 'Unknown'
     if CHECKSVNVERSION:
         try:
@@ -1408,8 +1435,8 @@ def notifyValidOK():
                 if 'vision' in t[0]: svnVersion = t[1]
         except: pass
 
-    messageText = 'Base from'+CASSIOPEE+'\n'
-    messageText += 'Based on version %s (can be locally modified).\n'%svnVersion
+    messageText = 'Base from'+cassiopeeIncDir+'\n'
+    messageText += 'Based on version %s (can be locally modified).\n'%svnVersion # TODO
     for t in TESTS:
         messageText += t+'\n'
     notify(messageSubject='[Cassiopee] Ready to commit',
@@ -1419,13 +1446,14 @@ def notifyValidOK():
 def Quit(event=None):
     import os
     import shutil
-    dirname = CASSIOPEE+"/Apps/Modules/Valid{}".format(DATA)
+    cassiopeeIncDir = getInstallPaths()[0]
+    dirname = os.path.join(cassiopeeIncDir, "Valid{}".format(DATA))
     logname = os.path.join(dirname, "session.log")
     # The session log is copied if it is not empty and if we have write
     # permissions
     if os.access(dirname, os.W_OK) and (not os.path.getsize(logname) == 0):
         now = time.strftime("%y%m%d_%H%M%S", time.localtime())
-        dst = CASSIOPEE+"/Apps/Modules/Valid{}/session-{}.log".format(DATA, now)
+        dst = os.path.join(dirname, "session-{}.log".format(now))
         print("Saving session to: {}".format(dst))
         shutil.copyfile(logname, dst)
     os._exit(0)
@@ -1446,7 +1474,7 @@ def tagSelection(event=None):
         module = splits[0].strip()
         test = splits[1].strip()
         modulesDir = MODULESDIR[module]
-        path = CASSIOPEE+'/Apps/'+modulesDir+'/'+module+'/test'
+        path = os.path.join(modulesDir, module, 'test')
         testr = os.path.splitext(test)
         fileStar = os.path.join(path, DATA, testr[0]+'.star')
         tag = splits[6].strip()
@@ -1475,7 +1503,7 @@ def untagSelection(event=None):
         module = splits[0].strip()
         test = splits[1].strip()
         modulesDir = MODULESDIR[module]
-        path = CASSIOPEE+'/Apps/'+modulesDir+'/'+module+'/test'
+        path = os.path.join(modulesDir, module, 'test')
         testr = os.path.splitext(test)
         rmFile(path, testr[0]+'.star')
         splits[6] = ' '*3
@@ -1494,16 +1522,15 @@ def untagSelection(event=None):
 # Setup for use of global data base
 #===================================
 def setupGlobal():
-    global CASSIOPEE
-    CASSIOPEE = os.getenv('CASSIOPEE')
-    os.environ['VALIDLOCAL'] = CASSIOPEE+'/Apps/Modules/Valid{}'.format(DATA)
+    cassiopeeIncDir = getInstallPaths()[0]
+    os.environ['VALIDLOCAL'] = os.path.join(cassiopeeIncDir, "Valid{}".format(DATA))
     # Change to global ref
-    CASSIOPEE = '/stck/benoit/Cassiopee'
+    CASSIOPEE = '/stck/benoit/Cassiopee' # TODO '/stck/cassiopee/Cassiopee'
     # No update on global ref!
     WIDGETS['updateButton'].configure(state=TK.DISABLED)
     # Change also to match the numthreads of global
     try:
-        file = open('/stck/benoit/Cassiopee/Apps/Modules/Valid{}/base.time'.format(DATA))
+        file = open('/stck/benoit/Cassiopee/Apps/Modules/Valid{}/base.time'.format(DATA)) # TODO
         d = file.read(); d = d.split('\n')
         Threads.set(d[2])
         setThreads()
@@ -1512,9 +1539,7 @@ def setupGlobal():
     buildTestList()
 
 def setupLocal():
-    global CASSIOPEE
     os.environ['VALIDLOCAL'] = '.'
-    CASSIOPEE = os.getenv('CASSIOPEE')
     WIDGETS['updateButton'].configure(state=TK.NORMAL)
     buildTestList()
 
@@ -1652,8 +1677,9 @@ def parseArgs():
     
 # Purge session logs by date down to the last n most recent
 def purgeSessionLogs(n):
+    cassiopeeIncDir = getInstallPaths()[0]
     lognames = sorted(glob.glob(
-        '{}/Apps/Modules/Valid{}/session-*.log'.format(CASSIOPEE, DATA)))
+        os.path.join(cassiopeeIncDir, 'Valid{}'.format(DATA), 'session-*.log')))
     if len(lognames) > n:
         for log in lognames[:-n]: os.remove(log)
     return None
@@ -1664,11 +1690,13 @@ def purgeSessionLogs(n):
 
 if __name__ == '__main__':
     # Create local directory for valid
+    cassiopeeIncDir = getInstallPaths()[0]
+    checkEnvironment()
     DATA = Dist.getDataFolderName()
-    if not os.path.exists(CASSIOPEE+'/Apps/Modules/Valid{}'.format(DATA)):
-        os.mkdir(CASSIOPEE+'/Apps/Modules/Valid{}'.format(DATA))
+    validFolder = os.path.join(cassiopeeIncDir, 'Valid{}'.format(DATA))
+    if not os.path.exists(validFolder): os.mkdir(validFolder)
     # Cree sessionLog et le vide
-    f = open(CASSIOPEE+"/Apps/Modules/Valid{}/session.log".format(DATA), "w")
+    f = open(os.path.join(cassiopeeIncDir, "session.log"), "w")
     f.write("")
     f.close()
     
@@ -1730,7 +1758,7 @@ if __name__ == '__main__':
     tools.add_separator()
 
     try:
-        file = open('/stck/benoit/Cassiopee/Apps/Modules/Valid{}/base.time'.format(DATA))
+        file = open('/stck/benoit/Cassiopee/Apps/Modules/Valid{}/base.time'.format(DATA)) # TODO
         d = file.read(); d = d.split('\n')
         d = ' ['+d[0]+'/'+d[1]+'/'+d[2]+' threads]'
     except: d = ''
