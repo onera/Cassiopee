@@ -5,8 +5,6 @@ import os
 import sys
 import argparse
 
-CASSIOPEE = os.getenv("CASSIOPEE")
-
 # Parse command-line arguments
 def parseArgs():
   def _checkInt(i):
@@ -26,10 +24,21 @@ def parseArgs():
                       help="Size of Int: 4 or 8. Default: 4.")
   # Parse arguments
   return parser.parse_args()
+
+# Get installation path of Cassiopee
+def getInstallPath():
+  try:
+    import KCore.installPath
+    cassiopeeIncDir = KCore.installPath.includePath
+    cassiopeeIncDir = os.path.dirname(cassiopeeIncDir)
+    return cassiopeeIncDir
+  except ImportError:
+    raise SystemError("Error: KCore library is required to use this script.")
     
 # Read KCore/Dist
 def readDist():
-  filename = os.path.join(CASSIOPEE, "Apps/Modules/KCore/Dist.py")
+  cassiopeeIncDir = getInstallPath()
+  filename = os.path.join(cassiopeeIncDir, "KCore/Dist.py")
   if not os.access(filename, os.R_OK):
     raise Exception("Dist.py can't be read at: {}".format(filename))
   contents = []
@@ -53,7 +62,8 @@ def editDist(contents, intState):
   
 # Write KCore/Dist
 def writeDist(contents):
-  filename = os.path.join(CASSIOPEE, "Apps/Modules/KCore/Dist.py")
+  cassiopeeIncDir = getInstallPath()
+  filename = os.path.join(cassiopeeIncDir, "KCore/Dist.py")
   if not os.access(filename, os.W_OK):
     raise Exception("Modified Dist.py can't be written at: {}".format(filename))
   with open (filename, 'w') as f:
