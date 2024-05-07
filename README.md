@@ -1,3 +1,3 @@
 Cassiopee 4
 
--- Under construction - ONERA --
+-- Under construction --

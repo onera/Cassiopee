@@ -1,24 +1,16 @@
 #! /bin/sh
 echo 'Installing Generator tests and doc'
+if [ "$CASSIOPEE" = "" ]; then
+    echo "You must specify a CASSIOPEE variable in your environment."
+    echo "This variable specifies the installation path of *Cassiopee*."
+    exit
+fi
+
 if ([ $# -eq 0 ])
 then
-    if [ "$CASSIOPEE" = "" ]; then
-        echo "You must specify a CASSIOPEE variable in your environment."
-        echo "This variable specifies the installation path of *Cassiopee*."
-        exit
-    fi
     PRODUCTION=0
     # Destination docs
-    DEST="$CASSIOPEE/Dist/doc"
-    # Destination tests unitaires
-    DEST2="$DEST/Examples/Generator"
-    # Destination des release notes
-    DEST3="$DEST"
-elif ([ $# -eq 1 ])
-then
-    PRODUCTION=0
-    # Destination docs
-    DEST="$1/doc"
+    DEST="./doc"
     # Destination tests unitaires
     DEST2="$DEST/Examples/Generator"
     # Destination des release notes
@@ -27,14 +19,14 @@ elif ([ $# -eq 2 ])
 then
     PRODUCTION=1
     # Destination docs
-    DEST="$CASSIOPEE/WWW/cassiopee-web"
+    DEST="$CASSIOPEE/web/doc"
     # Destination tests unitaires
     DEST2="$DEST/Examples/Generator"
     # Destination des release notes
-    DEST3="$CASSIOPEE/WWW/Main/Download"
+    DEST3="$CASSIOPEE/web/Download"
 else
-    echo 'install: install in $CASSIOPEE/Dist/doc'
-    echo 'install <dir>: install in directory <dir/doc>.'
+    echo 'install: install locally'
+    echo 'install 1 2: install in web/doc.'
     exit
 fi
 
@@ -70,7 +62,7 @@ cd build
 if test ! -e Examples
 then
     mkdir Examples
-    ln -s $CASSIOPEE/Apps/Modules/Generator/test Examples/Generator
+    ln -s $CASSIOPEE/Cassiopee/Generator/test Examples/Generator
 fi
 cd ..
 
@@ -90,12 +82,10 @@ fi
 # Copie dans le DEST
 if ([ $PRODUCTION -eq 1 ])
 then
-    taghtml build/Generator.html
     sed -i 's/Generator.Generator/Generator/g' build/Generator.html
     cp build/Generator.html $DEST
     cp build/Generator.pdf $DEST
 
-    taghtml build/Generator_IBM.html
     sed -i 's/Generator.Generator_IBM.Generator.Generator_IBM/Generator.Generator_IBM/g' build/Generator_IBM.html
     sed -i 's/Generator\.pdf/Generator_IBM\.pdf/g' build/Generator_IBM.html
     cp build/Generator_IBM.html $DEST

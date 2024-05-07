@@ -81,15 +81,19 @@ def getInstallPaths():
   try:
       # Check installPath
       import KCore.installPath
-      import FastC.installPath
       cassiopeeIncDir = KCore.installPath.includePath
       cassiopeeIncDir = os.path.dirname(cassiopeeIncDir)
+  except ImportError:
+      raise SystemError("Error: KCore module is required to use "
+                        "this script.")
+  try:
+      import FastC.installPath
       fastIncDir = FastC.installPath.includePath
       fastIncDir = os.path.dirname(fastIncDir)
-      return cassiopeeIncDir, fastIncDir, []
-  except ImportError:
-      raise SystemError("Error: KCore and FastC libraries are required to use "
-                        "this script.")
+  except: 
+      fastIncDir = None
+  
+  return cassiopeeIncDir, fastIncDir, []
                         
 def checkEnvironment():
   global CASSIOPEE
@@ -283,7 +287,7 @@ def buildString(module, test, CPUtime='...', coverage='...%', status='...',
 def getModules():
     cassiopeeIncDir, fastIncDir, pmodulesIncDir = getInstallPaths()
     # Tests unitaires des modules
-    print('Info: Getting tests in: %s.'%cassiopeeIncDir)
+    print('Info: Getting tests in: %s.'%fastIncDir)
     modules = []
     paths = pmodulesIncDir + [fastIncDir]
     notTested = ['Upmost', 'FastP']
@@ -296,7 +300,7 @@ def getModules():
                 if a:
                     modules.append(i)
                     MODULESDIR[i] = path
-
+    print('Info: Getting tests in: %s.'%cassiopeeIncDir)
     try: mods = os.listdir(cassiopeeIncDir)
     except: mods = []
     for i in mods:

@@ -1,24 +1,16 @@
 #! /bin/sh
 echo 'Installing Post tests and doc'
+if [ "$CASSIOPEE" = "" ]; then
+    echo "You must specify a CASSIOPEE variable in your environment."
+    echo "This variable specifies the installation path of *Cassiopee*."
+    exit
+fi
+
 if ([ $# -eq 0 ])
 then
-    if [ "$CASSIOPEE" = "" ]; then
-        echo "You must specify a CASSIOPEE variable in your environment."
-        echo "This variable specifies the installation path of *Cassiopee*."
-        exit
-    fi
     PRODUCTION=0
     # Destination docs
-    DEST="$CASSIOPEE/Dist/doc"
-    # Destination tests unitaires
-    DEST2="$DEST/Examples/Post"
-    # Destination des release notes
-    DEST3="$DEST"
-elif ([ $# -eq 1 ])
-then
-    PRODUCTION=0
-    # Destination docs
-    DEST="$1/doc"
+    DEST="./doc"
     # Destination tests unitaires
     DEST2="$DEST/Examples/Post"
     # Destination des release notes
@@ -27,14 +19,14 @@ elif ([ $# -eq 2 ])
 then
     PRODUCTION=1
     # Destination docs
-    DEST="$CASSIOPEE/WWW/cassiopee-web"
+    DEST="$CASSIOPEE/web/doc"
     # Destination tests unitaires
     DEST2="$DEST/Examples/Post"
     # Destination des release notes
-    DEST3="$CASSIOPEE/WWW/Main/Download"
+    DEST3="$CASSIOPEE/web/Download"
 else
-    echo 'install: install in $CASSIOPEE/Dist/doc'
-    echo 'install <dir>: install in directory <dir/doc>.'
+    echo 'install: install locally'
+    echo 'install <dir>: install in web/doc.'
     exit
 fi
 
@@ -70,7 +62,7 @@ cd build
 if test ! -e Examples
 then
     mkdir Examples
-    ln -s $CASSIOPEE/Apps/Modules/Post/test Examples/Post
+    ln -s $CASSIOPEE/Cassiopee/Post/test Examples/Post
 fi
 cd ..
 
@@ -92,24 +84,20 @@ fi
 # Copie dans le DEST
 if ([ $PRODUCTION -eq 1 ])
 then
-    taghtml build/Post.html
     sed -i 's/Post.Post/Post/g' build/Post.html
     cp build/Post.html $DEST
     cp build/Post.pdf $DEST
 
-    taghtml build/Rotor.html
     sed -i 's/Post.Rotor.Post.Rotor/Post.Rotor/g' build/Rotor.html
     sed -i 's/Post\.pdf/Rotor\.pdf/g' build/Rotor.html
     cp build/Rotor.html $DEST
     cp build/Rotor.pdf $DEST
 
-    taghtml build/ExtraVariables2.html
     sed -i 's/Post.ExtraVariables2.Post.ExtraVariables2/Post.ExtraVariables2/g' build/ExtraVariables2.html
     sed -i 's/Post\.pdf/ExtraVariables2\.pdf/g' build/ExtraVariables2.html
     cp build/ExtraVariables2.html $DEST
     cp build/ExtraVariables2.pdf $DEST
 
-    taghtml build/Post_IBM.html
     sed -i 's/Post.Post_IBM.Post.Post_IBM/Post.Post_IBM/g' build/Post_IBM.html
     sed -i 's/Post\.pdf/Post_IBM\.pdf/g' build/Post_IBM.html
     cp build/Post_IBM.html $DEST

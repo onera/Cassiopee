@@ -1,24 +1,16 @@
-#! /bin/sh
+ #! /bin/sh
 echo 'Installing CPlot tests and doc'
+if [ "$CASSIOPEE" = "" ]; then
+    echo "You must specify a CASSIOPEE variable in your environment."
+    echo "This variable specifies the installation path of *Cassiopee*."
+    exit
+fi
+
 if ([ $# -eq 0 ])
 then
-    if [ "$CASSIOPEE" = "" ]; then
-        echo "You must specify a CASSIOPEE variable in your environment."
-        echo "This variable specifies the installation path of *Cassiopee*."
-        exit
-    fi
     PRODUCTION=0
     # Destination docs
-    DEST="$CASSIOPEE/Dist/doc"
-    # Destination tests unitaires
-    DEST2="$DEST/Examples/CPlot"
-    # Destination des release notes
-    DEST3="$DEST"
-elif ([ $# -eq 1 ])
-then
-    PRODUCTION=0
-    # Destination docs
-    DEST="$1/doc"
+    DEST="./doc"
     # Destination tests unitaires
     DEST2="$DEST/Examples/CPlot"
     # Destination des release notes
@@ -27,14 +19,14 @@ elif ([ $# -eq 2 ])
 then
     PRODUCTION=1
     # Destination docs
-    DEST="$CASSIOPEE/WWW/cassiopee-web"
+    DEST="$CASSIOPEE/web/doc"
     # Destination tests unitaires
     DEST2="$DEST/Examples/CPlot"
     # Destination des release notes
-    DEST3="$CASSIOPEE/WWW/Main/Download"
+    DEST3="$CASSIOPEE/web/Download"
 else
-    echo 'install: install in $CASSIOPEE/Dist/doc'
-    echo 'install <dir>: install in directory <dir/doc>.'
+    echo 'install: install locally'
+    echo 'install 1 2: install in web/doc.'
     exit
 fi
 
@@ -69,7 +61,7 @@ cd build
 if test ! -e Examples
 then
     mkdir Examples
-    ln -s $CASSIOPEE/Apps/Modules/CPlot/test Examples/CPlot
+    ln -s $CASSIOPEE/Cassiopee/CPlot/test Examples/CPlot
 fi
 cd ..
 
@@ -78,7 +70,7 @@ touch source/*.rst
 sphinx-build -b html ./source ./build
 if ([ $PRODUCTION -eq 1 ])
 then
-# Build pdf
+    # Build pdf
     sphinx-build -b latex ./source ./build
     cd build
     pdflatex CPlot >& /dev/null
@@ -91,19 +83,15 @@ fi
 # Copie dans le DEST
 if ([ $PRODUCTION -eq 1 ])
 then
-    taghtml build/CPlot.html
     sed -i 's/CPlot.CPlot/CPlot/g' build/CPlot.html
     cp build/CPlot.html $DEST
 
-    taghtml build/tkCassiopee.html
     sed -i 's/CPlot.pdf/tkCassiopee.pdf/g' build/tkCassiopee.html
     cp build/tkCassiopee.html $DEST
 
-    taghtml build/tkPlotXY.html
     sed -i 's/CPlot.pdf/tkPlotXY.pdf/g' build/tkPlotXY.html
     cp build/tkPlotXY.html $DEST
 
-    taghtml build/Decorator.html
     sed -i 's/CPlot.pdf/Decorator.pdf/g' build/Decorator.html
     cp build/Decorator.html $DEST
     

@@ -9,7 +9,7 @@ cp tree_replace.py "$INSTALLPATH"
 echo 'Installing wc'
 cp wc.py "$INSTALLPATH"
 echo 'Installing importChecker'
-cp importchecker.py "$INSTALLPATH"
+cp importChecker.py "$INSTALLPATH"
 echo 'Installing tarball/tarballAll/tarex'
 cp tarball "$INSTALLPATH"
 cp tarballAll "$INSTALLPATH"

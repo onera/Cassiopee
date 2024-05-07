@@ -1,24 +1,16 @@
 #! /bin/sh
 echo 'Installing Connector tests and doc'
+if [ "$CASSIOPEE" = "" ]; then
+    echo "You must specify a CASSIOPEE variable in your environment."
+    echo "This variable specifies the installation path of *Cassiopee*."
+    exit
+fi
+
 if ([ $# -eq 0 ])
 then
-    if [ "$CASSIOPEE" = "" ]; then
-        echo "You must specify a CASSIOPEE variable in your environment."
-        echo "This variable specifies the installation path of *Cassiopee*."
-        exit
-    fi
     PRODUCTION=0
     # Destination docs
-    DEST="$CASSIOPEE/Dist/doc"
-    # Destination tests unitaires
-    DEST2="$DEST/Examples/Connector"
-    # Destination des release notes
-    DEST3="$DEST"
-elif ([ $# -eq 1 ])
-then
-    PRODUCTION=0
-    # Destination docs
-    DEST="$1/doc"
+    DEST="./doc"
     # Destination tests unitaires
     DEST2="$DEST/Examples/Connector"
     # Destination des release notes
@@ -27,14 +19,14 @@ elif ([ $# -eq 2 ])
 then
     PRODUCTION=1
     # Destination docs
-    DEST="$CASSIOPEE/WWW/cassiopee-web"
+    DEST="$CASSIOPEE/web/doc"
     # Destination tests unitaires
     DEST2="$DEST/Examples/Connector"
     # Destination des release notes
-    DEST3="$CASSIOPEE/WWW/Main/Download"
+    DEST3="$CASSIOPEE/web/Download"
 else
-    echo 'install: install in $CASSIOPEE/Dist/doc'
-    echo 'install <dir>: install in directory <dir/doc>.'
+    echo 'install: install locally'
+    echo 'install 1 2: install in web/doc.'
     exit
 fi
 
@@ -78,7 +70,7 @@ touch source/*.rst
 sphinx-build -b html ./source ./build
 if ([ $PRODUCTION -eq 1 ])
 then
-# Build pdf
+    # Build pdf
     sphinx-build -b latex ./source ./build
     cd build
     pdflatex Connector >& /dev/null
@@ -92,18 +84,13 @@ fi
 # Copie dans le DEST
 if ([ $PRODUCTION -eq 1 ])
 then
-    #taghtml build/ConnectorMpi.html
     #sed -i 's/Connector.Mpi.Connector.Mpi/Connector.Mpi/g' build/ConnectorMpi.html
     #sed -i 's/Connector.pdf/ConnectorMpi.pdf/g' build/ConnectorMpi.html
     #cp build/ConnectorMpi.html $DEST
-    #taghtml build/OversetData.html
     #sed -i 's/OversetData.Connector/Connector/g' build/OversetData.html
     #sed -i 's/Connector.pdf/OversetData.pdf/g' build/OversetData.html
-    #taghtml build/OversetData.html
-    #taghtml build/OversetDataElsA.html
     #sed -i 's/OversetDataElsA.Connector/Connector/g' build/OversetDataElsA.html
     #sed -i 's/Connector.pdf/OversetDataElsA.pdf/g' build/OversetDataElsA.html
-    #taghtml build/OversetDataElsA.html
     sed -i 's/Connector.Connector/Connector/g' build/Connector.html    
     sed -i 's/Connector.Connector/Connector/g' build/Connector.html
     cp build/Connector.html $DEST
@@ -112,7 +99,6 @@ then
     #cp build/OversetData.pdf $DEST
     #cp build/OversetDataElsA.pdf $DEST
 
-    taghtml build/Connector_IBM.html
     sed -i 's/Connector.Connector_IBM.Connector.Connector_IBM/Connector.Connector_IBM/g' build/Connector_IBM.html
     sed -i 's/Connector\.pdf/Connector_IBM\.pdf/g' build/Connector_IBM.html
     cp build/Connector_IBM.html $DEST
