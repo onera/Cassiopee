@@ -38,6 +38,9 @@ PyObject* K_GENERATOR::tetgen(PyObject* self, PyObject* args)
                     &array, &maxh, &grading, &remeshBoundaries, &holes, &optionString))
     return NULL;
 
+  // grading is not used
+  // ambiguite sur maxh (max volume ou volume impose)
+
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
@@ -115,7 +118,9 @@ PyObject* K_GENERATOR::tetgen(PyObject* self, PyObject* args)
     // b.addsteiner_algo = 1; // 1 ou 2
     // Ajoute des pts pour la qualite
     b.quality = 1; // -q (ajoute de points)
-    //b.minratio = 1.2; // radius-edge ratio >= 0.612
+
+    //b.minratio = 1.2; // radius-edge ratio >= 0.612 - better control on aspect ratio
+    
     //b.diagnose = 1;
 
     //b.regionattrib = 1; // met des attributs de region
@@ -135,6 +140,8 @@ PyObject* K_GENERATOR::tetgen(PyObject* self, PyObject* args)
     }
     else b.varvolume = 1;
 
+    //b.varvolume = 0; // il faut garder 0 - CB
+
     // coplanar test
     b.epsilon = 1.e-10;
 
@@ -150,6 +157,82 @@ PyObject* K_GENERATOR::tetgen(PyObject* self, PyObject* args)
     // b.coarsen_param = 1; // ??
     // b.coarsen_percent = 0.5; // x % less points
   }
+
+  // print b
+  printf("plc %d\n", b.plc);                                      // '-p', 0.
+  printf("psc %d\n", b.psc);                                      // '-s', 0.
+  printf("refine %d\n", b.refine);                                // '-r', 0.
+  printf("quality %d\n", b.quality);                              // '-q', 0.
+  printf("nobisect %d\n", b.nobisect);                            // '-Y', 0.
+  printf("coarsen %d\n", b.coarsen);                              // '-R', 0.
+  printf("weighted %d\n", b.weighted);                            // '-w', 0.
+  printf("brio_hilbert %d\n", b.brio_hilbert);                    // '-b', 1.
+  printf("incrflip %d\n", b.incrflip);                            // '-l', 0.
+  printf("flipinsert %d\n", b.flipinsert);                        // '-L', 0.
+  printf("metric %d\n", b.metric);                                // '-m', 0.
+  printf("varvolume %d\n", b.varvolume);                          // '-a', 0.
+  printf("fixedvolume %d\n", b.fixedvolume);                      // '-a', 0.
+  printf("regionattrib %d\n", b.regionattrib);                    // '-A', 0.
+
+  printf("conforming %d\n", b.conforming);                        // '-D', 0.
+  printf("insertaddpoints %d\n", b.insertaddpoints);              // '-i', 0.
+  printf("diagnose %d\n", b.diagnose);                            // '-d', 0.
+  printf("convex %d\n", b.convex);                                // '-c', 0.
+  printf("nomergefacet %d\n", b.nomergefacet);                    // '-M', 0.
+  printf("nomergevertex %d\n", b.nomergevertex);                  // '-M', 0.
+  printf("noexact %d\n", b.noexact);                              // '-X', 0.
+  printf("nostaticfilter %d\n", b.nostaticfilter);                // '-X', 0.
+  printf("zeroindex %d\n", b.zeroindex);                          // '-z', 0.
+  printf("facesout %d\n", b.facesout);                            // '-f', 0.
+  printf("edgesout %d\n", b.edgesout);                            // '-e', 0.
+  printf("neighout %d\n", b.neighout);                            // '-n', 0.
+  printf("voroout %d\n", b.voroout);                              // '-v', 0.
+  printf("meditview %d\n", b.meditview);                          // '-g', 0.
+  printf("vtkview %d\n", b.vtkview);                              // '-k', 0.
+  printf("nobound %d\n", b.nobound);                              // '-B', 0.
+  printf("nonodewritten %d\n", b.nonodewritten);                  // '-N', 0.
+  printf("noelewritten %d\n", b.noelewritten);                    // '-E', 0.
+  printf("nofacewritten %d\n", b.nofacewritten);                  // '-F', 0.
+  printf("noiterationnum %d\n", b.noiterationnum);                // '-I', 0.
+  printf("nojettison %d\n", b.nojettison);                        // '-J', 0.
+  printf("reversetetori %d\n", b.reversetetori);                  // '-R', 0.
+  printf("docheck %d\n", b.docheck);                              // '-C', 0.
+  printf("quiet %d\n", b.quiet);                                  // '-Q', 0.
+  printf("verbose %d\n", b.verbose);                              // '-V', 0.
+
+  // Parameters of TetGen. 
+  printf("vertexperblock %d\n", b.vertexperblock);                 // '-x', 4092.
+  printf("tetrahedraperblock %d\n", b.tetrahedraperblock);         // '-x', 8188.
+  printf("shellfaceperblock %d\n", b.shellfaceperblock);           // '-x', 2044.
+  printf("nobisect_param %d\n", b.nobisect_param);                 // '-Y', 2.
+  printf("addsteiner_algo %d\n", b.addsteiner_algo);               // '-Y/', 1.
+  printf("coarsen_param %d\n", b.coarsen_param);                   // '-R', 0.
+  printf("weighted_param %d\n", b.weighted_param);                 // '-w', 0.
+  printf("fliplinklevel %d\n", b.fliplinklevel);                   // -1.
+  printf("flipstarsize %d\n", b.flipstarsize);                     // -1.
+  printf("fliplinklevelinc %d\n", b.fliplinklevelinc);             //  1.
+  printf("reflevel %d\n", b.reflevel);                             // '-D', 3.
+  printf("optlevel %d\n", b.optlevel);                             // '-O', 2.
+  printf("optscheme %d\n", b.optscheme);                           // '-O', 7.
+  printf("delmaxfliplevel %d\n", b.delmaxfliplevel);               // 1.
+  printf("order %d\n", b.order);                                   // '-o', 1.
+  printf("steinerleft %d\n", b.steinerleft);                       // '-S', 0.
+  printf("no_sort %d\n", b.no_sort);                               // 0.
+  printf("hilbert_order %d\n", b.hilbert_order);                   // '-b///', 52.
+  printf("hilbert_limit %d\n", b.hilbert_limit);                   // '-b//'  8.
+  printf("brio_threshold %d\n", b.brio_threshold);                 // '-b' 64.
+  printf("brio_ratio %g\n", b.brio_ratio);                         // '-b/' 0.125.
+  printf("facet_ang_tol %g\n", b.facet_ang_tol);                   // '-p', 179.9.
+  printf("maxvolume %g\n", b.maxvolume);                           // '-a', -1.0.
+  printf("minratio %g\n", b.minratio);                             // '-q', 0.0.
+  printf("mindihedral %g\n", b.mindihedral);                       // '-q', 5.0.
+  printf("optmaxdihedral %g\n", b.optmaxdihedral);                 // 165.0.
+  printf("optminsmtdihed %g\n", b.optminsmtdihed);                 // 179.0.
+  printf("optminslidihed %g\n", b.optminslidihed);                 // 179.0.  
+  printf("epsilon %g\n", b.epsilon);                               // '-T', 1.0e-8.
+  printf("minedgelength %g\n", b.minedgelength);                   // 0.0.
+  printf("coarsen_percent %g\n", b.coarsen_percent);               // -R1/#, 1.0.
+
 
   // Remplissage de in a partir de array
   in.mesh_dim = 3;

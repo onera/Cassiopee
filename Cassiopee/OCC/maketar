@@ -1,3 +1,0 @@
-cd OCC
-tar cvf occ_inc.tar occ_inc
-tar cvf occ_src.tar occ_src
