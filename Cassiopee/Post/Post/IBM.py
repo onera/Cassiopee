@@ -1205,7 +1205,7 @@ def fromBodyFrameToWindFrame__(vector, dimPb=3, alpha=0., beta=0.):
     return cx, cy, cz
 
 def computeAerodynamicCoefficients(ts, aeroLoads, dimPb=3, Sref=None, Lref=None, Qref=None, alpha=0., beta=0., verbose=0):
-    """Computes the normalized aerodynamic coefficients from the integration of aerodynamic forces and moments on the immsersed boundaries"""
+    """Computes the normalized aerodynamic coefficients from the integration of aerodynamic forces and moments on the immersed boundaries"""
 
     tw = Internal.copyRef(ts)
 
