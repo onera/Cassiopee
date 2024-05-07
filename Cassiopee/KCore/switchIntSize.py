@@ -28,8 +28,9 @@ def parseArgs():
 # Get installation path of Cassiopee
 def getInstallPath():
   try:
-    import KCore.installPath
-    cassiopeeIncDir = KCore.installPath.includePath
+    try: import KCore.installPath as installPath
+    except: import installPath
+    cassiopeeIncDir = installPath.includePath
     cassiopeeIncDir = os.path.dirname(cassiopeeIncDir)
     return cassiopeeIncDir
   except ImportError:
