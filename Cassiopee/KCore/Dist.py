@@ -87,8 +87,8 @@ def getDataFolderName(name='Data'):
     else: prod = 'xx'
     intType = 'i8' if EDOUBLEINT else 'i4'
     if sys.version_info[0] == 2: name += '2'
-    #if prod in 'juno': name += '_' + prod # TODO
-    #if intType == 'i8': name += '_' + intType # TODO add when ready
+    if prod not in 'juno': name += '_' + prod
+    if intType == 'i8': name += '_' + intType
     return name
 
 #==============================================================================
