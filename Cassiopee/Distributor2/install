@@ -45,7 +45,11 @@ if [ $PRODMODE -le 2 ]; then
     else
         export SCONSOPT=""
     fi
-    python $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
+    if [[ -x $sconsf ]]; then
+        $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
+    else
+        python $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
+    fi
     [ $? != 0 ] && exit 1;
     #touch Distributor2/distributor2.cpp
     rm -f build/lib.*/Distributor2/distributor2.*

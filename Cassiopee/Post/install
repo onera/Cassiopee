@@ -46,7 +46,11 @@ if [ $PRODMODE -le 1 ]; then
     fi
     # force a cause de usurp: on doit compiler dans l'ordre
     # export SCONSOPT=""
-    python $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
+    if [[ -x $sconsf ]]; then
+        $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
+    else
+        python $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
+    fi
     [ $? != 0 ] && exit 1;
     #touch Post/post.cpp
     rm -f build/lib.*/Post/post.*
