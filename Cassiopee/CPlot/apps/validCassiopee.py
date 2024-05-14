@@ -74,6 +74,92 @@ STOP = 0
 # WIDGETS dict
 WIDGETS = {}
 
+
+#==============================================================================
+# Classes used to by-pass tkinter in the absence of a display environment or 
+# for command-line execution 
+#==============================================================================
+class NoDisplayListbox:
+    def __init__(self, *args, **kwargs):
+        self.yview = 0
+        self._data = []
+        self._active = set()
+    def grid(self, *args, **kwargs): pass
+    def config(self, *args, **kwargs): pass
+    def update(self, *args, **kwargs): pass
+    
+    def insert(self, pos, entry):
+        if isinstance(pos, int): self._data.insert(pos, entry)
+        else: self._data.append(entry)
+    
+    def delete(self, pos, posEnd=None):
+        if not self._data: return
+        pos = int(pos)
+        if posEnd is None or posEnd == pos:
+            # Deleting a single entry
+            self._data.pop(pos)
+            return
+        ndata = len(self._data)
+        if isinstance(posEnd, str):
+            # Deleting entries from pos till the end
+            posEnd = ndata
+        else:
+            # Deleting a range of entries
+            posEnd = min(int(posEnd), ndata)
+        delIds = list(range(pos, posEnd))
+        self._data = [self._data[i] for i in range(ndata) if i not in delIds]
+        self._active = {i for i in self._active if i not in delIds}
+    
+    def selection_set(self, pos, posEnd=None):
+        pos = int(pos)
+        if posEnd is None:
+            # 1 new active entry
+            self._active.add(pos)
+            return
+        if isinstance(posEnd, str):
+            # Active entries from pos till the end
+            posEnd = len(self._data)
+        else:
+            # A range of new active entries
+            posEnd = min(int(posEnd), len(self._data))
+        self._active.update([i for i in range(pos, posEnd)])
+    
+    def curselection(self): return self._active
+    def get(self, pos): return self._data[pos]
+    
+class NoDisplayIntVar:
+    def __init__(self, value, *args, **kwargs): self._value = int(value)
+    def set(self, value): self._value = int(value)
+    def get(self): return self._value
+        
+class NoDisplayStringVar:
+    def __init__(self, *args, **kwargs): self._filters = ""
+    def set(self, filters): self._filters = str(filters)
+    def get(self): return self._filters
+        
+class NoDisplayLabel:
+    def __init__(self, *args, **kwargs): pass
+    def grid(self, *args, **kwargs): pass
+    def config(self, *args, **kwargs): pass
+    def update(self, *args, **kwargs): pass
+    
+class NoDisplayButton:
+    def __init__(self, *args, **kwargs): pass
+    def configure(self, *args, **kwargs): pass
+    
+class NoDisplayEntry:
+    def __init__(self, *args, **kwargs): pass
+    def grid(self, *args, **kwargs): pass
+    def bind(self, *args, **kwargs): pass
+    def update(self, *args, **kwargs): pass
+    
+class NoDisplayScrollbar:
+    def __init__(self, *args, **kwargs): pass
+    def grid(self, *args, **kwargs): pass
+    def config(self, *args, **kwargs): pass
+    def set(self): pass
+
+
 #==============================================================================
 # Get installation paths of Cassiopee, Fast and all PModules
 #==============================================================================
@@ -84,8 +170,7 @@ def getInstallPaths():
       cassiopeeIncDir = KCore.installPath.includePath
       cassiopeeIncDir = os.path.dirname(cassiopeeIncDir)
   except ImportError:
-      raise SystemError("Error: KCore module is required to use "
-                        "this script.")
+      raise SystemError("Error: KCore module is required to use this script.")
   try:
       import FastC.installPath
       fastIncDir = FastC.installPath.includePath
@@ -637,9 +722,9 @@ def runSingleUnitaryTest(no, module, test):
     for c, tt in enumerate(TESTS):
         if regModule.search(tt) is not None:
             if regTest.search(tt) is not None: TESTS[c] = s; break
-    listbox.delete(no, no)
-    listbox.insert(no, s)
-    if INTERACTIVE: listbox.update()
+    Listbox.delete(no, no)
+    Listbox.insert(no, s)
+    Listbox.update()
     CPUtime = string2Time(CPUtime)
     return CPUtime
 
@@ -748,9 +833,9 @@ def runSingleCFDTest(no, module, test):
     for c, tt in enumerate(TESTS):
         if regModule.search(tt) is not None:
             if regTest.search(tt) is not None: TESTS[c] = s; break
-    listbox.delete(no, no)
-    listbox.insert(no, s)
-    if INTERACTIVE: listbox.update()
+    Listbox.delete(no, no)
+    Listbox.insert(no, s)
+    Listbox.update()
     CPUtime = string2Time(CPUtime)
     return CPUtime
 
@@ -758,11 +843,11 @@ def runSingleCFDTest(no, module, test):
 # Recupere le nbre de tests selectionnes et le temps total correspondant
 #==============================================================================
 def getTestsTime():
-    selection = listbox.curselection()
+    selection = Listbox.curselection()
     total = len(selection)
     remaining = 0.
     for s in selection:
-        t = listbox.get(s)
+        t = Listbox.get(s)
         splits = t.split(separator)
         remaining += string2Time(splits[3])
     return (total, remaining)
@@ -773,7 +858,7 @@ def getTestsTime():
 #==============================================================================
 def runTests():
     global STOP, THREAD
-    selection = listbox.curselection()
+    selection = Listbox.curselection()
     displayStatus(1)
     current = 0
     (total, remaining) = getTestsTime()
@@ -781,7 +866,7 @@ def runTests():
 
     for s in selection:
         no = int(s)
-        t = listbox.get(s)
+        t = Listbox.get(s)
         splits = t.split(separator)
         module = splits[0]
         test = splits[1]
@@ -809,9 +894,9 @@ def runTestsInThread():
 #==============================================================================
 def updateTests():
     # Supprime les references
-    selection = listbox.curselection()
+    selection = Listbox.curselection()
     for s in selection:
-        t = listbox.get(s)
+        t = Listbox.get(s)
         splits = t.split(separator)
         module = splits[0]
         test = splits[1]
@@ -865,7 +950,7 @@ def rmFile(path, fileName):
 def buildTestList(loadSession=False, modules=[]):
     global TESTS
     TESTS = []
-    listbox.delete(0, TK.END)
+    Listbox.delete(0, TK.END)
     if not modules:
         modules = getModules()
     # Read last sessionLog conditionally
@@ -941,10 +1026,10 @@ def buildTestList(loadSession=False, modules=[]):
             else:
                 s = buildString(m, t)
             TESTS.append(s)
-            listbox.insert(TK.END, s)
+            Listbox.insert(TK.END, s)
     if loadSession and arr.size: writeSessionLog()
-    listbox.config(yscrollcommand=scrollbar.set)
-    scrollbar.config(command=listbox.yview)
+    Listbox.config(yscrollcommand=Scrollbar.set)
+    Scrollbar.config(command=Listbox.yview)
 
 #==============================================================================
 # Filtre la liste des tests avec la chaine de filter
@@ -1040,22 +1125,22 @@ def filterTestList(event=None):
                       insertedTests.discard(s)
                 except re.error: pass
         
-    listbox.delete(0, TK.END)
+    Listbox.delete(0, TK.END)
     if filters:
-        for s in sorted(insertedTests): listbox.insert(TK.END, s)
+        for s in sorted(insertedTests): Listbox.insert(TK.END, s)
     else:
-        for s in TESTS: listbox.insert(TK.END, s)
-    listbox.config(yscrollcommand=scrollbar.set)
-    scrollbar.config(command=listbox.yview)
+        for s in TESTS: Listbox.insert(TK.END, s)
+    Listbox.config(yscrollcommand=Scrollbar.set)
+    Scrollbar.config(command=Listbox.yview)
     return True
 
 #==============================================================================
 # Ouvre un editeur sur le test (emacs)
 #==============================================================================
 def viewTest(event=None):
-    selection = listbox.curselection()
+    selection = Listbox.curselection()
     for s in selection:
-        t = listbox.get(s)
+        t = Listbox.get(s)
         splits = t.split(separator)
         module = splits[0]
         test = splits[1]
@@ -1079,7 +1164,7 @@ def viewTest(event=None):
 # Met a jour les infos de progression
 #==============================================================================
 def selectAll(event=None):
-    listbox.selection_set(0, TK.END)
+    Listbox.selection_set(0, TK.END)
     (total, remaining) = getTestsTime()
     displayProgress(0, total, remaining, 0.)
 
@@ -1087,13 +1172,13 @@ def selectAll(event=None):
 # Affiche les test FAILED ou FAILEDMEM dans la listbox
 #==============================================================================
 def showFilter(filter='FAILED'):
-    listbox.delete(0, TK.END)
+    Listbox.delete(0, TK.END)
     for s in TESTS:
         if re.search(filter, s) is not None:
-            listbox.insert(TK.END, s)
-    listbox.config(yscrollcommand=scrollbar.set)
-    scrollbar.config(command=listbox.yview)
-    Filter.set(''); textFilter.update()
+            Listbox.insert(TK.END, s)
+    Listbox.config(yscrollcommand=Scrollbar.set)
+    Scrollbar.config(command=Listbox.yview)
+    Filter.set(''); TextFilter.update()
     return True
 
 #==============================================================================
@@ -1101,13 +1186,13 @@ def showFilter(filter='FAILED'):
 #==============================================================================
 def showRunCases():
     filter = '\.\.\.'
-    listbox.delete(0, TK.END)
+    Listbox.delete(0, TK.END)
     for s in TESTS:
         if re.search(filter, s) is None:
-            listbox.insert(TK.END, s)
-    listbox.config(yscrollcommand=scrollbar.set)
-    scrollbar.config(command=listbox.yview)
-    Filter.set(''); textFilter.update()
+            Listbox.insert(TK.END, s)
+    Listbox.config(yscrollcommand=Scrollbar.set)
+    Scrollbar.config(command=Listbox.yview)
+    Filter.set(''); TextFilter.update()
     return True
 
 #==============================================================================
@@ -1115,13 +1200,13 @@ def showRunCases():
 #==============================================================================
 def showUnrunCases():
     filter = '\.\.\.'
-    listbox.delete(0, TK.END)
+    Listbox.delete(0, TK.END)
     for s in TESTS:
         if re.search(filter, s) is not None:
-            listbox.insert(TK.END, s)
-    listbox.config(yscrollcommand=scrollbar.set)
-    scrollbar.config(command=listbox.yview)
-    Filter.set(''); textFilter.update()
+            Listbox.insert(TK.END, s)
+    Listbox.config(yscrollcommand=Scrollbar.set)
+    Scrollbar.config(command=Listbox.yview)
+    Filter.set(''); TextFilter.update()
     return True
 
 #=============================================================================
@@ -1129,13 +1214,13 @@ def showUnrunCases():
 #==============================================================================
 def showCovered():
     filter = '100%'
-    listbox.delete(0, TK.END)
+    Listbox.delete(0, TK.END)
     for s in TESTS:
         if re.search(filter, s) is not None:
-            listbox.insert(TK.END, s)
-    listbox.config(yscrollcommand=scrollbar.set)
-    scrollbar.config(command=listbox.yview)
-    Filter.set(''); textFilter.update()
+            Listbox.insert(TK.END, s)
+    Listbox.config(yscrollcommand=Scrollbar.set)
+    Scrollbar.config(command=Listbox.yview)
+    Filter.set(''); TextFilter.update()
     return True
 
 #=============================================================================
@@ -1143,13 +1228,13 @@ def showCovered():
 #==============================================================================
 def showUncovered():
     filter = ' 0%'
-    listbox.delete(0, TK.END)
+    Listbox.delete(0, TK.END)
     for s in TESTS:
         if re.search(filter, s) is not None:
-            listbox.insert(TK.END, s)
-    listbox.config(yscrollcommand=scrollbar.set)
-    scrollbar.config(command=listbox.yview)
-    Filter.set(''); textFilter.update()
+            Listbox.insert(TK.END, s)
+    Listbox.config(yscrollcommand=Scrollbar.set)
+    Scrollbar.config(command=Listbox.yview)
+    Filter.set(''); TextFilter.update()
     return True
 
 #==============================================================================
@@ -1159,14 +1244,14 @@ def showPartialCovered():
     filter1 = '100%'
     filter2 = ' 0%'
     filter3 = '\.%'
-    listbox.delete(0, TK.END)
+    Listbox.delete(0, TK.END)
     for s in TESTS:
         if (re.search(filter1, s) is None and re.search(filter2, s) is None
             and re.search(filter3, s) is None):
-            listbox.insert(TK.END, s)
-    listbox.config(yscrollcommand=scrollbar.set)
-    scrollbar.config(command=listbox.yview)
-    Filter.set(''); textFilter.update()
+            Listbox.insert(TK.END, s)
+    Listbox.config(yscrollcommand=Scrollbar.set)
+    Scrollbar.config(command=Listbox.yview)
+    Filter.set(''); TextFilter.update()
     return True
 
 #==============================================================================
@@ -1196,60 +1281,60 @@ def time2String(time):
 # Affiche les tests plus rapide que ref CPUtime dans la listbox
 #==============================================================================
 def showFaster():
-    listbox.delete(0, TK.END)
+    Listbox.delete(0, TK.END)
     for s in TESTS:
         s1 = s.split(separator)
         t1 = s1[2]; t2 = s1[3]
         t1 = string2Time(t1) # new time
         t2 = string2Time(t2)
         if t1 > 0 and t2 > 0:
-            if t1 < t2-0.15*t2: listbox.insert(TK.END, s)
-    listbox.config(yscrollcommand=scrollbar.set)
-    scrollbar.config(command=listbox.yview)
-    Filter.set(''); textFilter.update()
+            if t1 < t2-0.15*t2: Listbox.insert(TK.END, s)
+    Listbox.config(yscrollcommand=Scrollbar.set)
+    Scrollbar.config(command=Listbox.yview)
+    Filter.set(''); TextFilter.update()
     return True
 def showFasterP():
-    listbox.delete(0, TK.END)
+    Listbox.delete(0, TK.END)
     for s in TESTS:
         s1 = s.split(separator)
         t1 = s1[2]; t2 = s1[3]
         t1 = string2Time(t1) # new time
         t2 = string2Time(t2)
         if t1 > 0 and t2 > 0:
-            if t1 < t2-0.5*t2: listbox.insert(TK.END, s)
-    listbox.config(yscrollcommand=scrollbar.set)
-    scrollbar.config(command=listbox.yview)
-    Filter.set(''); textFilter.update()
+            if t1 < t2-0.5*t2: Listbox.insert(TK.END, s)
+    Listbox.config(yscrollcommand=Scrollbar.set)
+    Scrollbar.config(command=Listbox.yview)
+    Filter.set(''); TextFilter.update()
     return True
 
 #==============================================================================
 # Affiche les tests plus lent que la reference de 15%
 #==============================================================================
 def showSlower():
-    listbox.delete(0, TK.END)
+    Listbox.delete(0, TK.END)
     for s in TESTS:
         s1 = s.split(separator)
         t1 = s1[2]; t2 = s1[3]
         t1 = string2Time(t1) # new time
         t2 = string2Time(t2)
         if t1 > 0 and t2 > 0:
-            if (t1 > t2+0.15*t2): listbox.insert(TK.END, s)
-    listbox.config(yscrollcommand=scrollbar.set)
-    scrollbar.config(command=listbox.yview)
-    Filter.set(''); textFilter.update()
+            if (t1 > t2+0.15*t2): Listbox.insert(TK.END, s)
+    Listbox.config(yscrollcommand=Scrollbar.set)
+    Scrollbar.config(command=Listbox.yview)
+    Filter.set(''); TextFilter.update()
     return True
 def showSlowerP():
-    listbox.delete(0, TK.END)
+    Listbox.delete(0, TK.END)
     for s in TESTS:
         s1 = s.split(separator)
         t1 = s1[2]; t2 = s1[3]
         t1 = string2Time(t1) # new time
         t2 = string2Time(t2)
         if t1 > 0 and t2 > 0:
-            if t1 > t2+0.5*t2: listbox.insert(TK.END, s)
-    listbox.config(yscrollcommand=scrollbar.set)
-    scrollbar.config(command=listbox.yview)
-    Filter.set(''); textFilter.update()
+            if t1 > t2+0.5*t2: Listbox.insert(TK.END, s)
+    Listbox.config(yscrollcommand=Scrollbar.set)
+    Scrollbar.config(command=Listbox.yview)
+    Filter.set(''); TextFilter.update()
     return True
 
 
@@ -1257,7 +1342,7 @@ def showSlowerP():
 # Affiche tous les tests
 #==============================================================================
 def showAll():
-    Filter.set(''); textFilter.update()
+    Filter.set(''); TextFilter.update()
     filterTestList()
 
 #==============================================================================
@@ -1292,10 +1377,9 @@ def stopTests():
 # Affiche le status: running/stopped
 #==============================================================================
 def displayStatus(status):
-    if not INTERACTIVE: return
-    if status == 0: Status.set('Stopped'); label.config(bg='red')
-    else: Status.set('Running'); label.config(bg='green')
-    label.update()
+    if status == 0: Status.set('Stopped'); StatusLabel.config(bg='red')
+    else: Status.set('Running'); StatusLabel.config(bg='green')
+    StatusLabel.update()
 
 #==============================================================================
 # Affiche la progression
@@ -1305,10 +1389,9 @@ def displayStatus(status):
 # IN: elapsed: temps passe
 #==============================================================================
 def displayProgress(current, total, remaining, elapsed):
-    if not INTERACTIVE: return
     Progress.set("%3d/%3d [%s/%s]"%
                  (current,total,time2String(remaining),time2String(elapsed)))
-    progressLabel.update()
+    ProgressLabel.update()
         
 #==============================================================================
 # Modifie le nbre de fois qu'un test unitaire doit etre execute.
@@ -1345,7 +1428,7 @@ def setThreads(event=None):
 def getThreads():
     nt = KCore.kcore.getOmpMaxThreads()
     Threads.set(str(nt))
-    if INTERACTIVE: textThreads.update()
+    TextThreads.update()
 
 #==============================================================================
 # Exporte les resultats de la valid dans un fichier texte
@@ -1470,10 +1553,10 @@ def tagSelection(event=None):
     global TESTS
     tagSymbols = '* r g b'.split()
     ntags = len(tagSymbols)
-    selection = listbox.curselection()
+    selection = Listbox.curselection()
     for s in selection:
         no = int(s)
-        t = listbox.get(s)
+        t = Listbox.get(s)
         splits = t.split(separator)
         module = splits[0].strip()
         test = splits[1].strip()
@@ -1492,17 +1575,17 @@ def tagSelection(event=None):
         for c, tt in enumerate(TESTS):
             if regModule.search(tt) is not None:
                 if regTest.search(tt) is not None: TESTS[c] = s; break
-        listbox.delete(no, no)
-        listbox.insert(no, s)
-        listbox.selection_set(no)
+        Listbox.delete(no, no)
+        Listbox.insert(no, s)
+        Listbox.selection_set(no)
     return
 
 def untagSelection(event=None):
     global TESTS
-    selection = listbox.curselection()
+    selection = Listbox.curselection()
     for s in selection:
         no = int(s)
-        t = listbox.get(s)
+        t = Listbox.get(s)
         splits = t.split(separator)
         module = splits[0].strip()
         test = splits[1].strip()
@@ -1517,9 +1600,9 @@ def untagSelection(event=None):
         for c, tt in enumerate(TESTS):
             if regModule.search(tt) is not None:
                 if regTest.search(tt) is not None: TESTS[c] = s; break
-        listbox.delete(no, no)
-        listbox.insert(no, s)
-        listbox.selection_set(no)
+        Listbox.delete(no, no)
+        Listbox.insert(no, s)
+        Listbox.selection_set(no)
     return
 
 #===================================
@@ -1531,7 +1614,7 @@ def setupGlobal():
     # Change to global ref
     CASSIOPEE = '/stck/benoit/Cassiopee' # TODO '/stck/cassiopee/Cassiopee'
     # No update on global ref!
-    WIDGETS['updateButton'].configure(state=TK.DISABLED)
+    WIDGETS['UpdateButton'].configure(state=TK.DISABLED)
     # Change also to match the numthreads of global
     try:
         file = open('/stck/benoit/Cassiopee/Apps/Modules/Valid{}/base.time'.format(DATA)) # TODO
@@ -1544,117 +1627,117 @@ def setupGlobal():
 
 def setupLocal():
     os.environ['VALIDLOCAL'] = '.'
-    WIDGETS['updateButton'].configure(state=TK.NORMAL)
+    WIDGETS['UpdateButton'].configure(state=TK.NORMAL)
     buildTestList()
 
 #===================================================================================
 # Filter modules and tests to display. Tests can either be Sequential or Distributed
 #===================================================================================
-def filterModulesTests(master, event=None):
-    def _onDeselectAllModules(modSwitches):
-        [sw.set(0) for sw in modSwitches]
-    def _onDeselectPModules(modules, modSwitches):
-        [sw.set(0) for m, sw in zip(modules, modSwitches)
-            if (m.startswith("Fast") or m.startswith("Apps") or m.startswith("FF"))]
-    def _onSelectAllModules(modSwitches):
-        [sw.set(1) for sw in modSwitches]
-    def _onUpdating(modules, modSwitches, testSwitches):
-        global TESTS_FILTER
-        values = [testSwitches[i].get() for i in range(2)]
-        if sum(values) == 2:
-            TESTS_FILTER = 0
-        elif values[1] == 1:
-            TESTS_FILTER = 2
-        else:
-            TESTS_FILTER = 1
-        modules = [m for i, m in enumerate(modules) if modSwitches[i].get() == 1]
-        buildTestList(modules=modules)
-        newWin.destroy()
-    
-    newWin = TK.Toplevel(master)
-    newWin.title('Filter Modules and Tests')
-    newWin.geometry("460x775")
-
-    # Define new frame with lists of modules and tests to load as sub-frames
-    newFrame = TK.LabelFrame(newWin)
-    newFrame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
-    
-    leftFrame = TK.LabelFrame(newFrame, text="Modules to load:")
-    leftFrame.grid(row=0, column=0, padx=5, pady=10, sticky="nsew")
-    rightFrame = TK.LabelFrame(newFrame, text="Tests to load:")
-    rightFrame.grid(row=0, column=1, padx=5, pady=10, sticky="nsew")
-    
-    # > Modules
-    modules = getModules()
-    nmodules = len(modules)
-    modSwitches = [TK.IntVar(value=1) for _ in range(nmodules)]
-    
-    for i in range(nmodules):
-        label = TK.Label(leftFrame, text=modules[i], anchor="w")
-        label.grid(row=i, column=1, sticky="w")
-        button = TK.Checkbutton(leftFrame, variable=modSwitches[i],
-                                onvalue=1, offvalue=0, height=1, width=5)
-        button.grid(row=i, column=0, sticky="w")
-        
-    for i in range(nmodules):
-        leftFrame.grid_rowconfigure(i, weight=1)
-    leftFrame.grid_columnconfigure(0, weight=1)
-    leftFrame.grid_columnconfigure(1, weight=1)
-        
-    # > Tests
-    if not isMpi or TESTS_FILTER == 1: values = [1, 0]
-    elif TESTS_FILTER == 2: values = [0, 1]
-    else: values = [1, 1]
-    testSwitches = [TK.IntVar(value=values[i]) for i in range(2)]
-    labels = ["Sequential", "Distributed"]
-    
-    for i in range(2):
-        label = TK.Label(rightFrame, text=labels[i], anchor="w")
-        label.grid(row=i, column=1, sticky="nsew")
-        button = TK.Checkbutton(rightFrame, variable=testSwitches[i],
-                                onvalue=1, offvalue=0, height=1, width=5)
-        if i == 1 and not isMpi: button.configure(state='disabled')
-        button.grid(row=i, column=0, sticky="nsew")
-    
-    rightFrame.grid_columnconfigure(0, weight=1)
-    rightFrame.grid_columnconfigure(1, weight=1)
-        
-    # > Buttons at the bottom of the new frame
-    deselectAllModulesWithArgs = partial(_onDeselectAllModules, modSwitches)
-    deselectPModulesWithArgs = partial(_onDeselectPModules, modules, modSwitches)
-    selectAllModulesWithArgs = partial(_onSelectAllModules, modSwitches)
-    
-    updateWithArgs = partial(_onUpdating, modules, modSwitches, testSwitches)
-    
-    button = TK.Button(newFrame, text='Deselect All',
-                       command=deselectAllModulesWithArgs,
-                       height=1, fg='black', bg='white')
-    button.grid(row=1, column=0, padx=5, pady=1, sticky="nsew")
-    button = TK.Button(newFrame, text='Deselect PModules',
-                       command=deselectPModulesWithArgs,
-                       height=1, fg='black', bg='white')
-    button.grid(row=1, column=1, padx=5, pady=1, sticky="nsew")
-    button = TK.Button(newFrame, text='Select All',
-                       command=selectAllModulesWithArgs,
-                       height=1, fg='black', bg='white')
-    button.grid(row=2, column=0, padx=5, pady=1, sticky="nsew")
-    button = TK.Button(newFrame, text='Update', command=updateWithArgs,
-                       height=1, fg='blue', bg='white')
-    button.grid(row=2, column=1, padx=5, pady=1, sticky="nsew")
-    
-    for i in range(2):
-        newFrame.grid_columnconfigure(i, weight=1, minsize=220)
-                             
-    newWin.protocol("WM_DELETE_WINDOW", newWin.destroy)
-    newWin.mainloop()
+#def filterModulesTests(Master, event=None):
+#    def _onDeselectAllModules(modSwitches):
+#        [sw.set(0) for sw in modSwitches]
+#    def _onDeselectPModules(modules, modSwitches):
+#        [sw.set(0) for m, sw in zip(modules, modSwitches)
+#            if (m.startswith("Fast") or m.startswith("Apps") or m.startswith("FF"))]
+#    def _onSelectAllModules(modSwitches):
+#        [sw.set(1) for sw in modSwitches]
+#    def _onUpdating(modules, modSwitches, testSwitches):
+#        global TESTS_FILTER
+#        values = [testSwitches[i].get() for i in range(2)]
+#        if sum(values) == 2:
+#            TESTS_FILTER = 0
+#        elif values[1] == 1:
+#            TESTS_FILTER = 2
+#        else:
+#            TESTS_FILTER = 1
+#        modules = [m for i, m in enumerate(modules) if modSwitches[i].get() == 1]
+#        buildTestList(modules=modules)
+#        newWin.destroy()
+#    
+#    newWin = TK.Toplevel(Master)
+#    newWin.title('Filter Modules and Tests')
+#    newWin.geometry("460x775")
+#
+#    # Define new frame with lists of modules and tests to load as sub-frames
+#    newFrame = TK.LabelFrame(newWin)
+#    newFrame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+#    
+#    leftFrame = TK.LabelFrame(newFrame, text="Modules to load:")
+#    leftFrame.grid(row=0, column=0, padx=5, pady=10, sticky="nsew")
+#    rightFrame = TK.LabelFrame(newFrame, text="Tests to load:")
+#    rightFrame.grid(row=0, column=1, padx=5, pady=10, sticky="nsew")
+#    
+#    # > Modules
+#    modules = getModules()
+#    nmodules = len(modules)
+#    modSwitches = [TK.IntVar(value=1) for _ in range(nmodules)]
+#    
+#    for i in range(nmodules):
+#        Label = TK.Label(leftFrame, text=modules[i], anchor="w")
+#        Label.grid(row=i, column=1, sticky="w")
+#        Button = TK.Checkbutton(leftFrame, variable=modSwitches[i],
+#                                onvalue=1, offvalue=0, height=1, width=5)
+#        Button.grid(row=i, column=0, sticky="w")
+#        
+#    for i in range(nmodules):
+#        leftFrame.grid_rowconfigure(i, weight=1)
+#    leftFrame.grid_columnconfigure(0, weight=1)
+#    leftFrame.grid_columnconfigure(1, weight=1)
+#        
+#    # > Tests
+#    if not isMpi or TESTS_FILTER == 1: values = [1, 0]
+#    elif TESTS_FILTER == 2: values = [0, 1]
+#    else: values = [1, 1]
+#    testSwitches = [TK.IntVar(value=values[i]) for i in range(2)]
+#    labels = ["Sequential", "Distributed"]
+#    
+#    for i in range(2):
+#        Label = TK.Label(rightFrame, text=labels[i], anchor="w")
+#        Label.grid(row=i, column=1, sticky="nsew")
+#        Button = TK.Checkbutton(rightFrame, variable=testSwitches[i],
+#                                onvalue=1, offvalue=0, height=1, width=5)
+#        if i == 1 and not isMpi: Button.configure(state='disabled')
+#        Button.grid(row=i, column=0, sticky="nsew")
+#    
+#    rightFrame.grid_columnconfigure(0, weight=1)
+#    rightFrame.grid_columnconfigure(1, weight=1)
+#        
+#    # > Buttons at the bottom of the new frame
+#    deselectAllModulesWithArgs = partial(_onDeselectAllModules, modSwitches)
+#    deselectPModulesWithArgs = partial(_onDeselectPModules, modules, modSwitches)
+#    selectAllModulesWithArgs = partial(_onSelectAllModules, modSwitches)
+#    
+#    updateWithArgs = partial(_onUpdating, modules, modSwitches, testSwitches)
+#    
+#    Button = TK.Button(newFrame, text='Deselect All',
+#                       command=deselectAllModulesWithArgs,
+#                       height=1, fg='black', bg='white')
+#    Button.grid(row=1, column=0, padx=5, pady=1, sticky="nsew")
+#    Button = TK.Button(newFrame, text='Deselect PModules',
+#                       command=deselectPModulesWithArgs,
+#                       height=1, fg='black', bg='white')
+#    Button.grid(row=1, column=1, padx=5, pady=1, sticky="nsew")
+#    Button = TK.Button(newFrame, text='Select All',
+#                       command=selectAllModulesWithArgs,
+#                       height=1, fg='black', bg='white')
+#    Button.grid(row=2, column=0, padx=5, pady=1, sticky="nsew")
+#    Button = TK.Button(newFrame, text='Update', command=updateWithArgs,
+#                       height=1, fg='blue', bg='white')
+#    Button.grid(row=2, column=1, padx=5, pady=1, sticky="nsew")
+#    
+#    for i in range(2):
+#        newFrame.grid_columnconfigure(i, weight=1, minsize=220)
+#                             
+#    newWin.protocol("WM_DELETE_WINDOW", newWin.destroy)
+#    newWin.mainloop()
     
 # Parse command-line arguments
 def parseArgs():
     import argparse
     def _checkInt(n):
         def _throwError():
-            raise argparse.ArgumentTypeError("Number of remaining logs "
-                                             "must be a positive integer")
+            raise argparse.ArgumentTypeError("Number of remaining logs must be "
+                                             "a positive integer")
             sys.exit()
         try: n = int(n)
         except: _throwError()
@@ -1700,162 +1783,182 @@ if __name__ == '__main__':
     validFolder = os.path.join(cassiopeeIncDir, 'Valid{}'.format(DATA))
     if not os.path.exists(validFolder): os.mkdir(validFolder)
     # Cree sessionLog et le vide
-    f = open(os.path.join(cassiopeeIncDir, "session.log"), "w")
-    f.write("")
-    f.close()
+    with open(os.path.join(cassiopeeIncDir, "session.log"), "w") as f:
+        f.write("")
     
-    # Main window
-    master = TK.Tk()
-    master.title('*Cassiopee* valid @ '+machine)
-    master.columnconfigure(0, weight=1)
-    master.rowconfigure(0, weight=1)
-    #GENERALFONT = ('Courier', 9)
-    GENERALFONT = ('Andale Mono', 9)
-
-    master.option_add('*Font', GENERALFONT)
-    generalFont = Font.Font(family=GENERALFONT[0], size=GENERALFONT[1])
-    generalFontS = generalFont.measure(' ')*1.
-    generalFontA = generalFont.measure('a')*1.
-    generalFontFixed = generalFont.metrics('fixed')
-
-    # Main menu
-    menu = TK.Menu(master)
-    file = TK.Menu(menu, tearoff=0)
-    menu.add_cascade(label='File', menu=file)
-    tools = TK.Menu(menu, tearoff=0)
-    menu.add_cascade(label='Tools', menu=tools)
-    view = TK.Menu(menu, tearoff=0)
-    menu.add_cascade(label='View', menu=view)
-
-    loadSessionWithArgs = partial(buildTestList, True)
-    file.add_command(label='Load last session', command=loadSessionWithArgs)
-    file.add_command(label='Purge session', command=buildTestList)
-    file.add_command(label='Export to text file', command=export2Text)
-    file.add_command(label='Notify Ready for commit', command=notifyValidOK)
-    file.add_command(label='Quit', command=Quit, accelerator='Ctrl+Q')
-    view.add_command(label='Show FAILED', command=showFilter)
-    showFilterWithArgs = partial(showFilter, "FAILEDMEM")
-    view.add_command(label='Show FAILEDMEM', command=showFilterWithArgs)
-    view.add_command(label='Show ALL tests', command=showAll)
-    view.add_separator()
-    view.add_command(label='Show run cases', command=showRunCases)
-    view.add_command(label='Show unrun cases', command=showUnrunCases)
-    view.add_separator()
-    view.add_command(label='Show covered (100%)', command=showCovered)
-    view.add_command(label='Show partially covered (x%)',
-                     command=showPartialCovered)
-    view.add_command(label='Show uncovered (0%)', command=showUncovered)
-    view.add_separator()
-    view.add_command(label='Show faster (-15%)', command=showFaster)
-    view.add_command(label='Show slower (+15%)', command=showSlower)
-    view.add_command(label='Show faster (-50%)', command=showFasterP)
-    view.add_command(label='Show slower (+50%)', command=showSlowerP)
-    view.add_separator()
-    view.add_command(label='Select all visible tests', command=selectAll,
-                     accelerator='Ctrl+A')
-
-    #filterModulesTestsWithArgs = partial(filterModulesTests, master)
-    #tools.add_command(label='Filter modules and tests', command=filterModulesTestsWithArgs)
-    #tools.add_separator()
-    tools.add_command(label='Tag selection', command=tagSelection)
-    tools.add_command(label='Untag selection', command=untagSelection)
-    tools.add_separator()
-
     try:
         file = open('/stck/benoit/Cassiopee/Apps/Modules/Valid{}/base.time'.format(DATA)) # TODO
         d = file.read(); d = d.split('\n')
         d = ' ['+d[0]+'/'+d[1]+'/'+d[2]+' threads]'
     except: d = ''
-
-    tools.add_command(label='Switch to global data base'+d, command=setupGlobal)
-    tools.add_command(label='Switch to local data base', command=setupLocal)
-
-    master.config(menu=menu)
-    master.bind_all("<Control-q>", Quit)
-    master.protocol("WM_DELETE_WINDOW", Quit)
-    master.bind_all("<Control-a>", selectAll)
-
-    # Main frame
-    frame = TK.Frame(master)
-    frame.columnconfigure(0, weight=1)
-    frame.rowconfigure(0, weight=1)
-    frame.columnconfigure(1, weight=1)
-    frame.grid(row=0, column=0, sticky=TK.EW)
-
-    listbox = TK.Listbox(frame, selectmode=TK.EXTENDED, width=120, height=39,
-                         background='White')
-    listbox.grid(row=0, column=0, columnspan=11, sticky=TK.NSEW)
-
-    scrollbar = TK.Scrollbar(frame, orient=TK.VERTICAL)
-    scrollbar.grid(row=0, column=11, sticky=TK.NSEW)
-
-    Status = TK.StringVar(master)
-    label = TK.Label(frame, textvariable=Status)
-    Status.set('Stopped'); label.config(bg='red')
-    label.grid(row=1, column=0, sticky=TK.EW)
-
-    Progress = TK.StringVar(master)
-    progressLabel = TK.Label(frame, textvariable=Progress)
-    Progress.set('  0/  0 [0h 0m 0s/0h 0m 0s]')
-    progressLabel.grid(row=1, column=1, sticky=TK.EW)
-
-    Filter = TK.StringVar(master)
-    textFilter = TK.Entry(frame, textvariable=Filter, background='White', width=50)
-    textFilter.bind('<KeyRelease>', filterTestList)
-    textFilter.grid(row=1, column=2, columnspan=3, sticky=TK.EW)
-      
-    filterInfoBulle = 'Filter test database using a regexp.\n'+'-'*70+'\n'\
-      '1) White-spaced: ^cylinder ^sphere\n'\
-      '2) Module filter using #: #Apps #Fast #FF   or simply   #[A,F] \n'\
-      '3) Status filter using /: /FAILED /FAILEDMEM   or simply   /F\n'\
-      '4) Coverage filter using %: %100\n'\
-      '5) Tag symbol filter using @: @r   to catch red-coloured cases\n'\
-      '6) Keyworded filters: <SEQ>, <DIST>, <RUN>, <UNRUN>, <TAG>, <UNTAG>.\n'\
-      '7) Logical OR ops unless prefixed with & (AND): #Converter &/FAILED\n'\
-      '8) Negated using !: #Fast &#!FastC (innermost symbol)'
-
-    runButton = TK.Button(frame, text='Run', command=runTestsInThread, fg='blue')
-    runButton.grid(row=1, column=5, sticky=TK.EW)
-    button = TK.Button(frame, text='Stop', command=stopTests, fg='red')
-    button.grid(row=1, column=6, sticky=TK.EW)
-    updateButton = TK.Button(frame, text='Update', command=updateTestsInThread, fg='blue')
-    WIDGETS['updateButton'] = updateButton
-    updateButton.grid(row=1, column=7, sticky=TK.EW)
-    button = TK.Button(frame, text='Edit', command=viewTest)
-    button.grid(row=1, column=8, sticky=TK.EW)
-
-    Threads = TK.StringVar(master)
-    textThreads = TK.Entry(frame, textvariable=Threads, background='White', width=3)
-    textThreads.grid(row=1, column=9, sticky=TK.EW)
-    textThreads.bind('<Return>', setThreads)
-    textThreads.bind('<KP_Enter>', setThreads)
-    getThreads()
-
-    Repeats = TK.IntVar(master, value=1)
-    repeatsEntry = TK.Entry(frame, textvariable=Repeats, background='White',
-                            width=3)
-    if mySystem == 'windows' or mySystem == 'mingw':
-        repeatsEntry["state"] = "disabled"
-    repeatsEntry.grid(row=1, column=10, sticky=TK.EW)
-    repeatsEntry.bind('<Return>', setNRepeats)
-    repeatsEntry.bind('<KP_Enter>', setNRepeats)
-    frame.grid(sticky=TK.NSEW)
     
     if INTERACTIVE:
-        # Use GUI
-        CTK.infoBulle(parent=textFilter, text=filterInfoBulle)
-        CTK.infoBulle(parent=runButton, text='Run selected tests.')
-        CTK.infoBulle(parent=updateButton,
+        # --- Use GUI ---
+        # Main window
+        Master = TK.Tk()
+        Master.title('*Cassiopee* valid @ '+machine)
+        Master.columnconfigure(0, weight=1)
+        Master.rowconfigure(0, weight=1)
+        #GENERALFONT = ('Courier', 9)
+        GENERALFONT = ('Andale Mono', 9)
+
+        Master.option_add('*Font', GENERALFONT)
+        generalFont = Font.Font(family=GENERALFONT[0], size=GENERALFONT[1])
+        generalFontS = generalFont.measure(' ')*1.
+        generalFontA = generalFont.measure('a')*1.
+        generalFontFixed = generalFont.metrics('fixed')
+
+        # Main menu
+        menu = TK.Menu(Master)
+        file = TK.Menu(menu, tearoff=0)
+        menu.add_cascade(label='File', menu=file)
+        tools = TK.Menu(menu, tearoff=0)
+        menu.add_cascade(label='Tools', menu=tools)
+        view = TK.Menu(menu, tearoff=0)
+        menu.add_cascade(label='View', menu=view)
+
+        loadSessionWithArgs = partial(buildTestList, True)
+        file.add_command(label='Load last session', command=loadSessionWithArgs)
+        file.add_command(label='Purge session', command=buildTestList)
+        file.add_command(label='Export to text file', command=export2Text)
+        file.add_command(label='Notify Ready for commit', command=notifyValidOK)
+        file.add_command(label='Quit', command=Quit, accelerator='Ctrl+Q')
+        view.add_command(label='Show FAILED', command=showFilter)
+        showFilterWithArgs = partial(showFilter, "FAILEDMEM")
+        view.add_command(label='Show FAILEDMEM', command=showFilterWithArgs)
+        view.add_command(label='Show ALL tests', command=showAll)
+        view.add_separator()
+        view.add_command(label='Show run cases', command=showRunCases)
+        view.add_command(label='Show unrun cases', command=showUnrunCases)
+        view.add_separator()
+        view.add_command(label='Show covered (100%)', command=showCovered)
+        view.add_command(label='Show partially covered (x%)',
+                         command=showPartialCovered)
+        view.add_command(label='Show uncovered (0%)', command=showUncovered)
+        view.add_separator()
+        view.add_command(label='Show faster (-15%)', command=showFaster)
+        view.add_command(label='Show slower (+15%)', command=showSlower)
+        view.add_command(label='Show faster (-50%)', command=showFasterP)
+        view.add_command(label='Show slower (+50%)', command=showSlowerP)
+        view.add_separator()
+        view.add_command(label='Select all visible tests', command=selectAll,
+                         accelerator='Ctrl+A')
+
+        tools.add_command(label='Tag selection', command=tagSelection)
+        tools.add_command(label='Untag selection', command=untagSelection)
+        tools.add_separator()
+        
+        tools.add_command(label='Switch to global data base'+d, command=setupGlobal)
+        tools.add_command(label='Switch to local data base', command=setupLocal)
+
+        Master.config(menu=menu)
+        Master.bind_all("<Control-q>", Quit)
+        Master.protocol("WM_DELETE_WINDOW", Quit)
+        Master.bind_all("<Control-a>", selectAll)
+    
+        # Main frame
+        Frame = TK.Frame(Master)
+        Frame.columnconfigure(0, weight=1)
+        Frame.rowconfigure(0, weight=1)
+        Frame.columnconfigure(1, weight=1)
+        Frame.grid(row=0, column=0, sticky=TK.EW)
+    
+        Listbox = TK.Listbox(Frame, selectmode=TK.EXTENDED, width=120,
+                             height=39, background='White')
+        Listbox.grid(row=0, column=0, columnspan=11, sticky=TK.NSEW)
+    
+        Scrollbar = TK.Scrollbar(Frame, orient=TK.VERTICAL)
+        Scrollbar.grid(row=0, column=11, sticky=TK.NSEW)
+    
+        Status = TK.StringVar(Master)
+        StatusLabel = TK.Label(Frame, textvariable=Status)
+        Status.set('Stopped'); StatusLabel.config(bg='red')
+        StatusLabel.grid(row=1, column=0, sticky=TK.EW)
+        
+        Progress = TK.StringVar(Master)
+        ProgressLabel = TK.Label(Frame, textvariable=Progress)
+        Progress.set('  0/  0 [0h 0m 0s/0h 0m 0s]')
+        ProgressLabel.grid(row=1, column=1, sticky=TK.EW)
+        
+        Filter = TK.StringVar(Master)
+        TextFilter = TK.Entry(Frame, textvariable=Filter, background='White',
+                              width=50)
+        TextFilter.bind('<KeyRelease>', filterTestList)
+        TextFilter.grid(row=1, column=2, columnspan=3, sticky=TK.EW)
+        
+        filterInfoBulle = 'Filter test database using a regexp.\n'+'-'*70+'\n'\
+          '1) White-spaced: ^cylinder ^sphere\n'\
+          '2) Module filter using #: #Apps #Fast #FF   or simply   #[A,F] \n'\
+          '3) Status filter using /: /FAILED /FAILEDMEM   or simply   /F\n'\
+          '4) Coverage filter using %: %100\n'\
+          '5) Tag symbol filter using @: @r   to catch red-coloured cases\n'\
+          '6) Keyworded filters: <SEQ>, <DIST>, <RUN>, <UNRUN>, <TAG>, <UNTAG>.\n'\
+          '7) Logical OR ops unless prefixed with & (AND): #Converter &/FAILED\n'\
+          '8) Negated using !: #Fast &#!FastC (innermost symbol)'
+
+        RunButton = TK.Button(Frame, text='Run', command=runTestsInThread,
+                              fg='blue')
+        RunButton.grid(row=1, column=5, sticky=TK.EW)
+        
+        Button = TK.Button(Frame, text='Stop', command=stopTests, fg='red')
+        Button.grid(row=1, column=6, sticky=TK.EW)
+        UpdateButton = TK.Button(Frame, text='Update',
+                                 command=updateTestsInThread, fg='blue')
+        WIDGETS['UpdateButton'] = UpdateButton
+        UpdateButton.grid(row=1, column=7, sticky=TK.EW)
+        Button = TK.Button(Frame, text='Edit', command=viewTest)
+        Button.grid(row=1, column=8, sticky=TK.EW)
+
+        Threads = TK.StringVar(Master)
+        TextThreads = TK.Entry(Frame, textvariable=Threads, background='White',
+                               width=3)
+        TextThreads.grid(row=1, column=9, sticky=TK.EW)
+        TextThreads.bind('<Return>', setThreads)
+        TextThreads.bind('<KP_Enter>', setThreads)
+        getThreads()
+        
+        Repeats = TK.IntVar(Master, value=1)
+        RepeatsEntry = TK.Entry(Frame, textvariable=Repeats, background='White',
+                                width=3)
+        if mySystem == 'windows' or mySystem == 'mingw':
+            RepeatsEntry["state"] = "disabled"
+        RepeatsEntry.grid(row=1, column=10, sticky=TK.EW)
+        RepeatsEntry.bind('<Return>', setNRepeats)
+        RepeatsEntry.bind('<KP_Enter>', setNRepeats)
+        Frame.grid(sticky=TK.NSEW)
+        
+        CTK.infoBulle(parent=TextFilter, text=filterInfoBulle)
+        CTK.infoBulle(parent=RunButton, text='Run selected tests.')
+        CTK.infoBulle(parent=UpdateButton,
                       text='Update tests (replace data base files).')
-        CTK.infoBulle(parent=textThreads, text='Number of threads.')
-        CTK.infoBulle(parent=repeatsEntry,
+        CTK.infoBulle(parent=TextThreads, text='Number of threads.')
+        CTK.infoBulle(parent=RepeatsEntry,
                       text='Number of times each unit test gets executed.')
         buildTestList()
         TK.mainloop()
     else:
-        # Command line execution
+        # --- Command line execution ---
         vcargs = parseArgs()
         purgeSessionLogs(vcargs.purge)
+        
+        generalFontFixed = 1
+        Listbox = NoDisplayListbox()
+        Scrollbar = NoDisplayScrollbar()
+        Status = NoDisplayStringVar()
+        StatusLabel = NoDisplayLabel()
+        Progress = NoDisplayStringVar()
+        ProgressLabel = NoDisplayLabel()
+        Filter = NoDisplayStringVar()
+        TextFilter = NoDisplayEntry()
+        UpdateButton = NoDisplayButton()
+        WIDGETS['UpdateButton'] = UpdateButton
+        Threads = NoDisplayStringVar()
+        TextThreads = NoDisplayEntry()
+        getThreads()
+        
+        Repeats = NoDisplayIntVar(value=1)
+        RepeatsEntry = NoDisplayEntry()
+
         #if vcargs.global_db: setupGlobal() TODO when ready
         #else: setupLocal()
         buildTestList(loadSession=vcargs.loadSession)
