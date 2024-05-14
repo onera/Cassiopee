@@ -843,13 +843,13 @@ def _close(t, tol=1.e-12, suppressDegeneratedNGons=False):
     return None
 
 def zip(a, tol=1.e-12):
-    """Zip zones if they are distant of tol.
-    Usage: closeBorders(a, tol)"""
+    """Zip zones if they are distant of tol."""
     t = Internal.copyRef(a)
     _zip(t, tol=tol)
     return t
 
 def _zip(t, tol=1e-12):
+    """Zip zones if they are distant of tol."""
     fields = C.getAllFields(t, 'nodes')
     fields = Generator.zip(fields, tol)
     C.setFields(fields, t, 'nodes')

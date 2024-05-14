@@ -63,9 +63,9 @@ PyObject* K_GENERATOR::enforceMesh(PyObject* self, PyObject* args)
   {
     FldArrayF* out = new FldArrayF();
     E_Int niout, njout, nkout;
-    E_Int ret = enforceCommon( name, varString, ni, nj, nk, 
-                               *f, P0, eh, supp, add, 
-                               *out, niout, njout, nkout);
+    E_Int ret = enforceCommon(name, varString, ni, nj, nk, 
+                              *f, P0, eh, supp, add, 
+                              *out, niout, njout, nkout);
     delete f;
     if (ret != 0) return NULL;
     PyObject* tpl = K_ARRAY::buildArray(*out, "x,y,z", 
@@ -99,11 +99,11 @@ PyObject* K_GENERATOR::enforceMesh(PyObject* self, PyObject* args)
 // 2: fonction inconnue (name inconnu)
 //=============================================================================
 E_Int K_GENERATOR::enforceCommon(const char* name, char* varString, 
-				 E_Int ni, E_Int nj, E_Int nk,
-				 FldArrayF& coord, E_Float P0, E_Float eh, 
-				 E_Int supp, E_Int add, FldArrayF& out,
-				 E_Int& niout, E_Int& njout, E_Int& nkout,
-				 E_Int autoAdd)
+                E_Int ni, E_Int nj, E_Int nk,
+                FldArrayF& coord, E_Float P0, E_Float eh, 
+                E_Int supp, E_Int add, FldArrayF& out,
+                E_Int& niout, E_Int& njout, E_Int& nkout,
+                E_Int autoAdd)
 {
   char msg[256*8];
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);

@@ -44,7 +44,7 @@ set MAC0=`echo $KC | grep 'node6.cluster'`; if ($%MAC0 != 0) set MAC="macosx"
 set MAC0=`echo $KC | grep 'topaze'`; if ($%MAC0 != 0) set MAC="topaze"
 
 if ($?MACHINE != 0) then
-    setenv MAC $MACHINE
+    set MAC=$MACHINE
 endif
 
 unset KC

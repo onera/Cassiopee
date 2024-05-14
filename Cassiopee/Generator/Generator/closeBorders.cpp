@@ -33,7 +33,7 @@ using namespace std;
 PyObject* K_GENERATOR::closeBorders(PyObject* self, PyObject* args)
 {
   PyObject* arrays;
-  PyObject* arraysEF;//exterior faces for unstructured meshes
+  PyObject* arraysEF; //exterior faces for unstructured meshes
   E_Float eps;
   
   if (!PYPARSETUPLE_(args, O_ O_ R_ , &arrays, &arraysEF, &eps))   
@@ -296,7 +296,7 @@ void K_GENERATOR::closeAllUnstructuredMeshes(
     //indmin = -1; indtmin = -1;
     dmin.setAllValuesAt(K_CONST::E_MAX_FLOAT);
     indmin.setAllValuesAt(-1);
-    for (unsigned int cr = 0; cr < candidates.size(); cr++)
+    for (size_t cr = 0; cr < candidates.size(); cr++)
     {
       E_Int indkr = candidates[cr];
       E_Int nozr = indirB[indkr]; E_Int indr = indirI[indkr];
@@ -383,6 +383,7 @@ void K_GENERATOR::closeAllUnstructuredMeshes(
     }
   }
 }
+
 //=============================================================================
 /* closeAllStructuredMeshes */
 //=============================================================================

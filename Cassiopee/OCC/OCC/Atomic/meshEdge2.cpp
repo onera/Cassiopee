@@ -89,6 +89,78 @@ E_Int __getParamHausd(const TopoDS_Edge& E, E_Float hausd, E_Int& nbPoints, E_Fl
 }
 
 // ============================================================================
+// Return the nbPoints and ue for meshing E with best of deflection and hmax
+// ============================================================================
+E_Int __getParamHmaxHausd(const TopoDS_Edge& E, E_Float hmax, E_Float hausd, E_Int& nbPoints, E_Float*& ue)
+{
+  // First call param hausd
+  E_Int ret = __getParamHausd(E, hausd, nbPoints, ue);
+  
+  BRepAdaptor_Curve C0(E);
+  GeomAdaptor_Curve geomAdap(C0.Curve());
+  Standard_Real u0 = geomAdap.FirstParameter();
+  Standard_Real u1 = geomAdap.LastParameter();
+  E_Float L = (E_Float) GCPnts_AbscissaPoint::Length(geomAdap, u0, u1);
+
+  // Then split in region h > hmax and h < hmax
+  E_Float delta;
+  E_Int state = -1; // if 0, we are in a h < hmax zone, if 1 in a h >= hmax zone
+  std::vector<E_Int> index;
+  for (E_Int i = 1; i < nbPoints; i++)
+  {
+    delta = (ue[i]-ue[i-1])/(u1-u0)*L;
+    //printf("%f %f\n", (ue[i]-u0)/(u1-u0), delta);
+    if (state == -1)
+    {
+      if (delta < hmax) state = 0;
+      else state = 1;
+    }
+    if (state == 0 && delta >= hmax)
+    {
+      state = 1;
+      index.push_back(i);
+    }
+    else if (state == 1 && delta < hmax)
+    {
+      state = 1;
+      index.push_back(i);
+    }
+  }
+  for (size_t i = 0; i < index.size(); i++) printf("split %ld\n", i);
+  
+  E_Int size = index.size();
+  if (size == 0 && state == 0)
+  {
+    // One zone, all well refined, nothing to do
+    printf("already fine\n");
+  }
+  else if (size == 0 && state == 1)
+  {
+    // One zone but too coarse, we regenerate a full hmax distribution
+    E_Int np = E_Int(L/hmax)+1;
+    if (np == 1) np = 2;
+    printf("remesh 1 zone with hmax (%d)\n", np);
+    E_Float* ue2 = new E_Float [np];
+    E_Float hreg = L/(np-1);
+    for (E_Int i = 0; i < np; i++) ue2[i] = i/(np-1)*(u1-u0)+u0;
+    delete [] ue;
+    ue = ue2;
+    nbPoints = np;
+  }
+  else if (size == 1 && state == 0) 
+  {
+    // Two zones, the last is alread refined
+    printf("2 zones, last refined\n");
+  }
+  else
+  {
+    // general case
+    printf("pas encore code\n");
+  }
+  return ret;
+}
+
+// ============================================================================
 // Return ue for meshing with given param in [0,1]
 // ============================================================================
 E_Int __getParamExt(const TopoDS_Edge& E, E_Int nbPoints, E_Float* uext, E_Float*& ue)
@@ -254,6 +326,7 @@ PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
   else if (hmax > 0 && hausd > 0 && externalEdge == Py_None) // mix hmax + hausd
   {
     // pour l'instant on retourne hmax comme pour les mailleurs precedents
+    //__getParamHmaxHausd(E, hmax, hausd, nbPoints, ue);
     __getParamHmax(E, hmax, nbPoints, ue);
     PyObject* o = K_ARRAY::buildArray2(4, "x,y,z,u", nbPoints, 1, 1, 1);
     FldArrayF* f; K_ARRAY::getFromArray2(o, f);
