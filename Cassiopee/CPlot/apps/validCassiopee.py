@@ -33,9 +33,6 @@ try:
     isMpi = True
 except: isMpi = False
 
-# Check svn version
-CHECKSVNVERSION = False
-
 # Regexprs
 regDiff = re.compile('DIFF')
 regFailed = re.compile('FAILED')
@@ -81,50 +78,58 @@ WIDGETS = {}
 #==============================================================================
 class NoDisplayListbox:
     def __init__(self, *args, **kwargs):
-        self.yview = 0
         self._data = []
-        self._active = set()
+        self._active = [] # Mask associated with the data
     def grid(self, *args, **kwargs): pass
     def config(self, *args, **kwargs): pass
     def update(self, *args, **kwargs): pass
+    def yview(self, *args, **kwargs): pass
     
     def insert(self, pos, entry):
-        if isinstance(pos, int): self._data.insert(pos, entry)
-        else: self._data.append(entry)
+        if isinstance(pos, int):
+            self._data.insert(pos, entry)
+            self._active.insert(pos, False)
+        else:
+            self._data.append(entry)
+            self._active.append(False)
     
     def delete(self, pos, posEnd=None):
         if not self._data: return
         pos = int(pos)
         if posEnd is None or posEnd == pos:
             # Deleting a single entry
-            self._data.pop(pos)
+            del self._data[pos]
+            del self._active[pos]
             return
+        # Deleting entries ...
         ndata = len(self._data)
         if isinstance(posEnd, str):
-            # Deleting entries from pos till the end
+            # ... from pos till the end
             posEnd = ndata
         else:
-            # Deleting a range of entries
+            # ... given a range of indices
             posEnd = min(int(posEnd), ndata)
         delIds = list(range(pos, posEnd))
         self._data = [self._data[i] for i in range(ndata) if i not in delIds]
-        self._active = {i for i in self._active if i not in delIds}
+        self._active = [self._active[i] for i in range(ndata) if i not in delIds]
     
     def selection_set(self, pos, posEnd=None):
         pos = int(pos)
+        ndata = len(self._data)
         if posEnd is None:
             # 1 new active entry
-            self._active.add(pos)
+            self._active[pos] = True
             return
         if isinstance(posEnd, str):
             # Active entries from pos till the end
-            posEnd = len(self._data)
+            posEnd = ndata
         else:
             # A range of new active entries
-            posEnd = min(int(posEnd), len(self._data))
-        self._active.update([i for i in range(pos, posEnd)])
+            posEnd = min(int(posEnd), ndata)
+        for i in range(pos, posEnd): self._active[i] = True
     
-    def curselection(self): return self._active
+    def curselection(self):
+        return [i for i, state in enumerate(self._active) if state]
     def get(self, pos): return self._data[pos]
     
 class NoDisplayIntVar:
@@ -397,7 +402,7 @@ def getModules():
     
     # Validation CFD
     modules.append('CFDBase')
-    MODULESDIR['CFDBase'] = os.path.dirname(os.path.dirname(cassiopeeIncDir)) # TODO
+    MODULESDIR['CFDBase'] = os.path.dirname(os.path.dirname(cassiopeeIncDir))
     return sorted(modules)
 
 #==============================================================================
@@ -466,10 +471,10 @@ def writeTime(file, CPUtime, coverage):
     except: pass
 
 #==============================================================================
-# Ecrit un fichier contenant date, machine, nbre de threads, svnVersion 
+# Ecrit un fichier contenant date, machine, nbre de threads, git info 
 # et logTxt
 #==============================================================================
-def writeFinal(file, svnVersion=None, logTxt=None, append=False):
+def writeFinal(file, gitInfo="", logTxt=None, append=False):
     execTime = time.strftime('%d/%m/%y %Hh%M', time.localtime())
     machine = platform.uname()
     if len(machine) > 1: machine = machine[1]
@@ -481,7 +486,7 @@ def writeFinal(file, svnVersion=None, logTxt=None, append=False):
     f.write(execTime+'\n')
     f.write(machine+'\n')
     f.write(nthreads+'\n')
-    if svnVersion is not None: f.write(svnVersion+'\n')
+    if gitInfo: f.write(gitInfo+'\n')
     if logTxt is not None: f.write(logTxt+'\n')
     f.close()
 
@@ -1444,38 +1449,50 @@ def export2Text():
     for t in TESTS: file.write(t); file.write('\n')
     file.close()
 
-#=======================================
+#==============================================================================
+# Functions returning the names of the remote repo & branch and the commit hash
+#==============================================================================    
+def getGitOrigin(cassiopeeIncDir):
+    cmd = "cd {}; git config --get remote.origin.url 2>/dev/null".format(
+        cassiopeeIncDir)
+    origin = subprocess.check_output(cmd, shell=True)
+    return origin.decode('utf-8', 'ignore').strip()
+    
+def getGitBranch(cassiopeeIncDir):
+    cmd = "cd {}; git rev-parse --abbrev-ref HEAD 2>/dev/null".format(
+        cassiopeeIncDir)
+    branchName = subprocess.check_output(cmd, shell=True)
+    return branchName.decode('utf-8', 'ignore').strip()
+    
+def getGitHash(cassiopeeIncDir):
+    cmd = "cd {}; git rev-parse --short HEAD 2>/dev/null".format(cassiopeeIncDir)
+    sha = subprocess.check_output(cmd, shell=True)
+    return sha.decode('utf-8', 'ignore').strip()
+    
+#==============================================================================
 # writeSessionLog: write log and baseTime
-#=======================================
+#==============================================================================
 def writeSessionLog():
-    svnVersion = 'Unknown'
     cassiopeeIncDir = getInstallPaths()[0]
-    if CHECKSVNVERSION:
-        try:
-            CASSIOPEEL = CASSIOPEE.replace('D:', '/d/') # patch pour msys2/CB
-            svnInfo = subprocess.check_output("svn info %s/Apps/Modules"%CASSIOPEEL, shell=True)
-            svnInfo = svnInfo.decode('utf-8', 'ignore')
-            ss = svnInfo.split('\n')
-            for s in ss:
-                t = s.split(':')
-                if 'vision' in t[0]: svnVersion = t[1]
-        except: pass
-
-    messageText = 'Base from'+cassiopeeIncDir+'\n'
-    messageText += 'Based on version %s (can be locally modified).\n'%svnVersion # TODO
-    for t in TESTS:
-        messageText += t+'\n'
+    gitOrigin = getGitOrigin(cassiopeeIncDir)
+    gitBranch = getGitBranch(cassiopeeIncDir)
+    gitHash = getGitHash(cassiopeeIncDir)
+    gitInfo = "Git origin: {}\nGit branch: {}, commit hash: {}\n".format(
+        gitOrigin, gitBranch, gitHash)
+    
+    messageText = "Base from {}\n{}".format(cassiopeeIncDir, gitInfo)
+    for t in TESTS: messageText += t+'\n'
 
     # Write time stamp dans ValidData/base.time et
     # log dans ValidData/session.log
     validFolder = os.path.join(cassiopeeIncDir, 'Valid{}'.format(DATA))
-    writeFinal(os.path.join(validFolder, 'base.time'), svnVersion)
-    writeFinal(os.path.join(validFolder, 'session.log'), svnVersion,
-               messageText, append=True)
+    writeFinal(os.path.join(validFolder, 'base.time'), gitInfo)
+    writeFinal(os.path.join(validFolder, 'session.log'), gitInfo, messageText,
+               append=True)
 
-#=======================================
+#==============================================================================
 # Send an email
-#=======================================
+#==============================================================================
 def notify(sender=None, recipients=[], messageSubject="", messageText=""):
     try:
         import smtplib
@@ -1505,27 +1522,20 @@ def notify(sender=None, recipients=[], messageSubject="", messageText=""):
         s.quit()
     except: return
 
-#=======================================
+#==============================================================================
 # Notify "Commit ready" 
-#=======================================    
+#============================================================================== 
 def notifyValidOK():
     cassiopeeIncDir = getInstallPaths()[0]
-    svnVersion = 'Unknown'
-    if CHECKSVNVERSION:
-        try:
-            CASSIOPEEL = CASSIOPEE.replace('D:', '/d/') # patch pour msys2/CB
-            svnInfo = subprocess.check_output("svn info %s/Apps/Modules"%CASSIOPEEL, shell=True)
-            svnInfo = svnInfo.decode('utf-8', 'ignore')
-            ss = svnInfo.split('\n')
-            for s in ss:
-                t = s.split(':')
-                if 'vision' in t[0]: svnVersion = t[1]
-        except: pass
+    gitOrigin = getGitOrigin(cassiopeeIncDir)
+    gitBranch = getGitBranch(cassiopeeIncDir)
+    gitHash = getGitHash(cassiopeeIncDir)
+    gitInfo = "Git origin: {}\nGit branch: {}, commit hash: {}\n".format(
+        gitOrigin, gitBranch, gitHash)
 
-    messageText = 'Base from'+cassiopeeIncDir+'\n'
-    messageText += 'Based on version %s (can be locally modified).\n'%svnVersion # TODO
-    for t in TESTS:
-        messageText += t+'\n'
+    messageText = "Base from {}\n{}".format(cassiopeeIncDir, gitInfo)
+    for t in TESTS: messageText += t+'\n'
+    
     notify(messageSubject='[Cassiopee] Ready to commit',
            messageText=messageText)
     
@@ -1605,9 +1615,9 @@ def untagSelection(event=None):
         Listbox.selection_set(no)
     return
 
-#===================================
+#==============================================================================
 # Setup for use of global data base
-#===================================
+#==============================================================================
 def setupGlobal():
     cassiopeeIncDir = getInstallPaths()[0]
     os.environ['VALIDLOCAL'] = os.path.join(cassiopeeIncDir, "Valid{}".format(DATA))
@@ -1783,7 +1793,7 @@ if __name__ == '__main__':
     validFolder = os.path.join(cassiopeeIncDir, 'Valid{}'.format(DATA))
     if not os.path.exists(validFolder): os.mkdir(validFolder)
     # Cree sessionLog et le vide
-    with open(os.path.join(cassiopeeIncDir, "session.log"), "w") as f:
+    with open(os.path.join(validFolder, "session.log"), "w") as f:
         f.write("")
     
     try:

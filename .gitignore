@@ -9,10 +9,8 @@ Cassiopee/XCore/merge.l
 Cassiopee/KCore/buildInfo.py
 Cassiopee/KCore/installPath.py
 
-ValidData
-ValidData_*
-Data
-Data_*
+ValidData*
+Data*
 *.g
 *.pyc
 *.plt
