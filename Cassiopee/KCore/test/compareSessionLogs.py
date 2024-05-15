@@ -17,6 +17,26 @@ def parseArgs():
     # Parse arguments
     return parser.parse_args()
 
+# Read git info in a session log of validCassiopee
+def readGitInfo(filename):
+  if not os.access(filename, os.R_OK):
+    raise Exception("Session log can't be read: {}".format(filename))
+    
+  gitInfo = dict.fromkeys(['Base', 'Git origin', 'Git branch', 'Commit hash'])
+  with open (filename, 'r') as f:
+    for line in f:
+      if 'Base from' in line:
+        gitInfo['Base'] = line.strip().split(' ')[-1]
+      if 'Git origin' in line:
+        gitInfo['Git origin'] = line.strip().split(' ')[-1]
+      if 'Git branch' in line:
+        info = line.strip().split(' ')
+        gitInfo['Git branch'] = info[2][:-1]
+        gitInfo['Commit hash'] = info[-1]
+      if all(v is not None for v in gitInfo.values()):  
+        break
+  return gitInfo
+  
 # Read a session log of validCassiopee
 def readLog(filename):
   if not os.access(filename, os.R_OK):
@@ -25,7 +45,7 @@ def readLog(filename):
   session = []
   with open (filename, 'r') as f:
     for line in f:
-      if ':' in line: 
+      if ' :' in line: 
         test = line.strip().split(':')
         session.append([e.strip() for e in test])
   return session
@@ -65,7 +85,8 @@ def notify(sender=None, recipients=[], messageSubject="", messageText=""):
             else: sender = os.getenv('USER')+'@onera.fr'
         else: sender = os.getenv('CASSIOPEE_EMAIL')
       if isinstance(recipients, str): recipients = [recipients]
-      if not recipients: recipients = ['vincent.casseau@onera.fr']
+      if not recipients: recipients = ['vincent.casseau@onera.fr',
+                                       'christophe.benoit@onera.fr']
       
       msg = MIMEMultipart()
       msg['Subject'] = messageSubject
@@ -88,9 +109,10 @@ if __name__ == '__main__':
     raise Exception("Two session logs must be provided using the flag -l "
                     "or --logs")
   
-  # Read log files
+  # Read log files and git info
   refSession = readLog(script_args.logs[0])
   newSession = readLog(script_args.logs[1])
+  gitInfo = readGitInfo(script_args.logs[1])
   
   # Draw a one-to-one correspondance between tests of each session
   # (module + testname)
@@ -107,29 +129,46 @@ if __name__ == '__main__':
   deletedTests = sorted(refSet - newSet)
   
   # Write differences to file
+  baseState = 'OK'
   compStr = ""
-  header = "{} | {} | {} |\n{}\n".format("TESTS".center(60), "REF".center(10),
-                                         "NEW".center(10), '*'*88)
-  commonTestsHeader = "Common tests that differ:\n{}\n".format('-'*24)
+  header = "\n".join("{}: {}".format(k,v) for k,v in gitInfo.items())
+  header += "\n\nREF = {}\n".format(script_args.logs[0])
+  header += "NEW = {}\n\n\n".format(script_args.logs[1])
+  header += "{} | {} | {} |\n{}\n".format("TESTS".center(60), "REF".center(10),
+                                          "NEW".center(10), '*'*88)
+  commonTestsHeader = "Tests that differ:\n{}\n".format('-'*17)
   for test in commonTests:
     compStr += stringify(*diffTest(test, refDict[test], newDict[test]))
-  if len(compStr): compStr = commonTestsHeader + compStr
+  if len(compStr):
+    compStr = commonTestsHeader + compStr
+    baseState = 'FAIL'
+  else: compStr = commonTestsHeader + "[none]\n"
   
-  if len(newTests): compStr += "\nNew tests:\n{}\n".format('-'*9)
-  for test in newTests:
-    compStr += stringify(test)
+  newTestsHeader = "\nNew tests:\n{}\n".format('-'*9)
+  if len(newTests):
+    compStr += newTestsHeader
+    for test in newTests:
+      compStr += stringify(test)
+    if baseState == 'OK': baseState = 'NEW ADDITIONS'
+  else: compStr += newTestsHeader + "[none]\n"
   
-  if len(deletedTests): compStr += "\nDeleted tests:\n{}\n".format('-'*13)
-  for test in deletedTests:
-    compStr += stringify(test)
+  deletedTestsHeader = "\nDeleted tests:\n{}\n".format('-'*13)
+  if len(deletedTests):
+    compStr += deletedTestsHeader
+    for test in deletedTests:
+      compStr += stringify(test)
+    baseState = 'FAIL'
+  else: compStr += deletedTestsHeader + "[none]\n"
     
-  if compStr:
-    now = strftime("%y%m%d-%H%M%S", localtime())
-    if script_args.email:
-      notify(messageSubject="[compareSessionLogs] {}".format(now),
+  locTime = localtime()
+  now = strftime("%d/%m/%y at %T", locTime)
+  now2 = strftime("%y%m%d-%H%M%S", locTime)
+  if script_args.email:
+    notify(messageSubject="[validCassiopee] {} - "
+             "State: {}".format(now, baseState),
              messageText=header + compStr)
-    else:
-      filename = "./compSession_{}.txt".format(now)
-      if os.access('./', os.W_OK):
-        print("Writing comparison to {}".format(filename))
-        with open(filename, 'w') as f: f.write(header + compStr)
+  else:
+    filename = "./compSession_{}.txt".format(now2)
+    if os.access('./', os.W_OK):
+      print("Writing comparison to {}".format(filename))
+      with open(filename, 'w') as f: f.write(header + compStr)
