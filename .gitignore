@@ -10,7 +10,9 @@ Cassiopee/KCore/buildInfo.py
 Cassiopee/KCore/installPath.py
 
 ValidData
+ValidData_*
 Data
+Data_*
 *.g
 *.pyc
 *.plt

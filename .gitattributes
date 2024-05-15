@@ -4,6 +4,7 @@
 *.tpp text
 *.cpp text
 *.C text
+*.c text
 *.for text
 *.f90 text
 *.py text
@@ -15,6 +16,7 @@
 Makefile text
 *.mk text
 *.txt text
+*.tex text
 *.frag text
 *.vert text
 *.geom text

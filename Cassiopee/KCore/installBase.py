@@ -52,7 +52,7 @@ True, # useCuda
 ['-arch=sm_60'] # NvccAdditionalOptions
 ],
 ###############################################################################
-'Aryen': [ 'Windows win64+msys2 (CB-Onera)',
+'Aryen': [ 'Windows win64+msys2 (CB-Home)',
 'gfortran', # f77compiler
 'gfortran', # f90compiler
 'gcc', # Cppcompiler

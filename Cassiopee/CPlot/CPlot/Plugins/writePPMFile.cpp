@@ -41,8 +41,7 @@ void writePPMFile(Data* d, char *filename, char* buffer,
   int elt = 3;
   ibuffer = (unsigned char *)malloc(width*height*3);
 
-  fprintf(fp, "P6\n# CREATOR: CPlot\nSF_D3_\n",
-          width, height, 255);
+  fprintf(fp, "P6\n# CREATOR: CPlot\n" SF_D3_ "\n", width, height, 255);
   q = 0;
   for (i = 0; i < height; i++)
     for (j = 0; j < width; j++)

@@ -47,7 +47,6 @@ if mpi: # source that requires mpi
             'XCore/adaptMesh/computeHessianNGon.cpp',
             'XCore/adaptMesh/computeGradientNGon.cpp',
             'XCore/adaptMesh/computeCellCentersAndVolumes.cpp',
-            
 
             'XCore/adaptMesh2/PrepareMeshForAdaptation.cpp',
 
@@ -99,8 +98,10 @@ if mpi: # source that requires mpi
             ]
 else:
     cpp_srcs += [
+        'XCore/SplitElement/splitter_stub.cpp',
+        'XCore/exchangeFields_stub.cpp',
         'XCore/chunk2partNGon_stub.cpp',
         'XCore/chunk2partElt_stub.cpp',
         'XCore/adaptMesh/adaptMesh_stub.cpp',
-        'XCore/exchangeFields_stub.cpp',
-        'XCore/SplitElement/splitter_stub.cpp']
+        
+        ]

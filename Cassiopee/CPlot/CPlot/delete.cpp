@@ -212,8 +212,8 @@ PyObject* K_CPLOT::deletez(PyObject* self, PyObject* args)
         if (cp == NULL) d->ptrState->deactivatedZones = c->next;
         else cp->next = c->next;
         cn = c;
-        free(c);
         c = cn->next;
+        free(cn);
       }
       else 
       { 

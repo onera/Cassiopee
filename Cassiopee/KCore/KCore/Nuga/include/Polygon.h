@@ -534,7 +534,7 @@ E_Int Polygon::triangulate
 
   if (err)
   {
-    delete _triangles;
+    delete [] _triangles;
     _triangles = nullptr;
   }
 
@@ -1413,14 +1413,13 @@ E_Int Polygon::get_boundary
     assert(itN == w_n_map.end());
 #endif
 
-    w_n_map[Ni] = Nj;//Nj is next to Ni
+    w_n_map[Ni] = Nj; //Nj is next to Ni
   }
 
-  if (w_n_map.empty())
-    return 1;
+  if (w_n_map.empty()) return 1;
 
-  E_Int Nnext;
-  E_Int Nbegin;
+  E_Int Nnext = 0;
+  E_Int Nbegin = 0;
 
   int b = -1;
 
@@ -1442,7 +1441,7 @@ E_Int Polygon::get_boundary
       PGb.push_back(Ncur + 1);
       Ncur = Nnext;
     } while (Nnext != Nbegin && count-- > 0);
-  };
+  }
 
   return ((Nnext != Nbegin));// || (PGb.size() != nb_edge0) ); // unclosed or non-connex/holes
 }

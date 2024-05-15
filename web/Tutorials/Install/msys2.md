@@ -14,3 +14,4 @@ pacman -S mingw64/mingw-w64-x86_64-python-pip
 pacman -S mingw64/mingw-w64-x86_64-python-pip-tools
 pacman -S mingw64/mingw-w64-x86_64-hdf5
 pacman -S mingw64/mingw-w64-x86_64-msmpi
+pacman -S mingw64/mingw-w64-x86_64-oce

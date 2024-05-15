@@ -43,7 +43,7 @@ if hdf:
     libraryDirs.append(hdfLibDir)
     includeDirs.append(hdfIncDir)
 ADDITIONALCPPFLAGS = []
-if mpi:
+if mpi and mpi4py:
     libraryDirs.append(mpiLibDir)
     includeDirs.append(mpiIncDir)
     ADDITIONALCPPFLAGS += ['-D_MPI']
