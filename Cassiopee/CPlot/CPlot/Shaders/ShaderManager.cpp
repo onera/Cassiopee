@@ -546,5 +546,12 @@ int ShaderManager::load()
     strcat(frag, "isoSpheres.frag");
     addFromFile(vert, frag);
 
+    // - 37 - panorama
+    strcpy(vert, path);
+    strcat(vert, "panorama.vert");
+    strcpy(frag, path);
+    strcat(frag, "panorama.frag");
+    addFromFile(vert, frag);
+
     return 1;
 }

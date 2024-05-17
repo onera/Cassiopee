@@ -73,6 +73,7 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
 
   if (stereo != -1) d->ptrState->stereo = stereo;
   if (stereoDist != -1.) d->ptrState->stereoDist = stereoDist;
+  if (panorama != -1) d->ptrState->panorama = panorama;
 
   // offscreen rendering?
   if (offscreen > 0) { d->ptrState->offscreen = offscreen; d->ptrState->shootScreen = 1; }

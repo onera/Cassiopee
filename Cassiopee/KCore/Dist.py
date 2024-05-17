@@ -1358,9 +1358,12 @@ def checkOSMesa(additionalLibPaths=[], additionalIncludePaths=[]):
     l = checkLibFile__('libOSMesa.so', additionalLibPaths)
     if l is None:
         l = checkLibFile__('libOSMesa.a', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libosmesa.a', additionalLibPaths)
-            if l is not None: libname = 'osmesa'
+    if l is None:
+        l = checkLibFile__('libosmesa.a', additionalLibPaths)
+        if l is not None: libname = 'osmesa'
+    if l is None:
+        l = checkLibFile__('osmesa.dll.a', additionalLibPaths)
+        if l is not None: libname = 'osmesa'
         
     i = checkIncFile__('GL/osmesa.h', additionalIncludePaths)
     if i is not None and l is not None:

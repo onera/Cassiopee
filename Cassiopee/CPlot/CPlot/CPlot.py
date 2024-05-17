@@ -54,7 +54,7 @@ def display(arrays,
             bgColor=-1, backgroundFile="None",
             shadow=-1, lightOffset=(-999,-999), 
             dof=-1, dofPower=-1, gamma=-1, toneMapping=-1, 
-            stereo=-1, stereoDist=-1.,
+            stereo=-1, stereoDist=-1., panorama=-1,
             export="None", exportResolution="None",
             zoneNames=[], renderTags=[], frameBuffer=-1,
             offscreen=0):
@@ -76,7 +76,7 @@ def display(arrays,
                         niso, isoEdges, isoScales, win,
                         posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                         shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
-                        stereo, stereoDist,
+                        stereo, stereoDist, panorama,
                         export, exportResolution, zoneNames, renderTags,
                         frameBuffer, offscreen)
             __slot__ = 1
@@ -90,7 +90,7 @@ def display(arrays,
                         niso, isoEdges, isoScales, win,
                         posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                         shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
-                        stereo, stereoDist,
+                        stereo, stereoDist, panorama,
                         export, exportResolution, zoneNames, renderTags,
                         frameBuffer, offscreen)
         return
@@ -107,7 +107,7 @@ def display(arrays,
                      niso, isoEdges, isoScales, win,
                      posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                      shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
-                     stereo, stereoDist,
+                     stereo, stereoDist, panorama,
                      export, exportResolution, zoneNames, renderTags,
                      frameBuffer, offscreen)
     else:
@@ -120,7 +120,7 @@ def display(arrays,
                        niso, isoEdges, isoScales, win,
                        posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                        shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
-                       stereo, stereoDist,
+                       stereo, stereoDist, panorama,
                        export, exportResolution,
                        zoneNames, renderTags, frameBuffer, offscreen)
     
@@ -410,7 +410,8 @@ def setState(dim=-1,
                    edgifyDeactivatedZones, simplifyOnDrag,
                    export, exportResolution, continuousExport,
                    envmap, message,
-                   stereo, stereoDist, cursor, gridSize, timer, selectionStyle,
+                   stereo, stereoDist, 
+                   cursor, gridSize, timer, selectionStyle,
                    activateShortCuts, billBoards, billBoardSize, 
                    materials, bumpMaps, frameBuffer, offscreen)
 
@@ -761,7 +762,7 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                  niso, isoEdges, isoScales, win,
                  posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                  shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
-                 stereo, stereoDist,
+                 stereo, stereoDist, panorama,
                  export, exportResolution, zoneNames, renderTags, frameBuffer, offscreen):
     global __slot__
     import threading
@@ -783,7 +784,7 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                           win, posCam, posEye, dirCam, viewAngle, 
                           bgColor, backgroundFile,
                           shadow, lightOffset, dof, dofPower, gamma, toneMapping,  
-                          stereo, stereoDist,
+                          stereo, stereoDist, panorama,
                           export, exportResolution,
                           zoneNames, renderTags, frameBuffer, offscreen), {})
     else: # python3 - daemon
@@ -799,7 +800,7 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                           win, posCam, posEye, dirCam, viewAngle, 
                           bgColor, backgroundFile,
                           shadow, lightOffset, dof, dofPower, gamma, toneMapping,  
-                          stereo, stereoDist,
+                          stereo, stereoDist, panorama,
                           export, exportResolution,
                           zoneNames, renderTags, frameBuffer, offscreen), {}, daemon=daemon)
     a.start()
@@ -814,7 +815,7 @@ def displayAgain__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                    niso, isoEdges, isoScales,
                    win, posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                    shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
-                   stereo, stereoDist,
+                   stereo, stereoDist, panorama,
                    export, exportResolution, zoneNames, renderTags, frameBuffer, offscreen):
     if colormap != -1: 
         [colormap, colormapC1, colormapC2, colormapC3, colormapC] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3, colormapC] )
@@ -829,7 +830,7 @@ def displayAgain__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                        niso, isoEdges, isoScales,
                        win, posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                        shadow, lightOffset, dof, dofPower, gamma, toneMapping, 
-                       stereo, stereoDist,
+                       stereo, stereoDist, panorama, 
                        export, exportResolution, zoneNames, renderTags,
                        frameBuffer, offscreen)
     time.sleep(__timeStep__)

@@ -156,9 +156,9 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
   else if (ptrState->offscreen == 2 || ptrState->offscreen == 0) // FBO RGB
   {
     if (ptrState->offscreenBuffer[ptrState->frameBuffer] != NULL)
-        memcpy(buffer, ptrState->offscreenBuffer[ptrState->frameBuffer], 3*s*sizeof(char));
+      memcpy(buffer, ptrState->offscreenBuffer[ptrState->frameBuffer], 3*s*sizeof(char));
     else
-        glReadPixels(0, 0, exportWidth, exportHeight, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+      glReadPixels(0, 0, exportWidth, exportHeight, GL_RGB, GL_UNSIGNED_BYTE, buffer);
   }
   else if (ptrState->offscreen == 3 || ptrState->offscreen == 4) // FBO RGB+DEPTH+COMPOSE
   {

@@ -7,7 +7,7 @@ varying vec4 color;
 
 void main(void)
 {
-	  vec2 vTexCoord;
+      vec2 vTexCoord;
       // monochrome anaglyph
       vTexCoord = gl_TexCoord[0].xy;
       vec4 leftFrag = texture2D(leftEyeTexture, vTexCoord);

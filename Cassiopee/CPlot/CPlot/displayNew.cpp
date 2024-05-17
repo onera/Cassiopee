@@ -101,6 +101,7 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
 
   if (stereo != -1) d->ptrState->stereo = stereo;
   if (stereoDist != -1.) d->ptrState->stereoDist = stereoDist;
+  if (panorama != -1) d->ptrState->panorama = panorama;
   if (dofPower != -1.) d->ptrState->dofPower = dofPower;
   if (gamma != -1.) d->ptrState->gamma = gamma;
   if (toneMapping != -1) d->ptrState->toneMapping = toneMapping;

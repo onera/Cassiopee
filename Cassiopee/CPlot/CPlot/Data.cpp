@@ -306,6 +306,7 @@ void Data::initState()
   ptrState->sobelThreshold = -0.5; // inactif par defaut
   ptrState->sharpenPower = -0.5; // inactif par defaut
   ptrState->ssaoPower = -0.5; // inactif par defaut
+  ptrState->panorama = 0; // trigger panorama rendering
 
   strcpy(ptrState->winTitle, "CPlot - array/pyTree display");
   strcpy(ptrState->file, "tmp");

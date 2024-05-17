@@ -427,16 +427,23 @@ int ShaderManager::load()
   addFromFile(vert, frag);
   
   // - 35 - Textured material shader
-  strcpy(vert,path);  strcat(vert, "texmat.vert");
-  strcpy(frag,path);  strcat(frag, "texmat.frag");
+  strcpy(vert,path); strcat(vert, "texmat.vert");
+  strcpy(frag,path); strcat(frag, "texmat.frag");
   addFromFile(vert, frag);
 
   // - 36 - iso+sphere billboard
-  strcpy( vert, path );
-  strcat( vert, "isoSpheres.vert" );
-  strcpy( frag, path );
-  strcat( frag, "isoSpheres.frag" );
-  addFromFile( vert, frag );
+  strcpy(vert, path);
+  strcat(vert, "isoSpheres.vert");
+  strcpy(frag, path);
+  strcat(frag, "isoSpheres.frag");
+  addFromFile(vert, frag);
   
+  // - 37 - panorama
+  strcpy(vert, path);
+  strcat(vert, "panorama.vert");
+  strcpy(frag, path);
+  strcat(frag, "panorama.frag");
+  addFromFile(vert, frag);
+
   return 1;
 }

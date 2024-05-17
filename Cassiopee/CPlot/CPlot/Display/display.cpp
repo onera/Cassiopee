@@ -320,7 +320,8 @@ void Data::display()
   if (ptrState->gamma != 1.) { post = 1; sobelThreshold = ptrState->sobelThreshold; }
   if (ptrState->toneMapping != 0) { post = 1; sobelThreshold = ptrState->sobelThreshold; }
   if (ptrState->mode == SOLID && ptrState->solidStyle == 4) { post = 1; sobelThreshold = 0.5; }
-  
+  if (ptrState->panorama == 1) post =1;
+
   if (post == 1)
   { 
     // Recupere l'image standard dans _texRight
@@ -353,7 +354,10 @@ void Data::display()
     setOrthographicProjection();
     glPushMatrix();
     glLoadIdentity();
-    displayFrameTex(2, sobelThreshold);
+    if (ptrState->panorama == 0)
+      displayFrameTex(2, sobelThreshold); // DOF+sobel
+    else 
+      displayFrameTex(1, sobelThreshold); // panorama
     glPopMatrix();
     resetPerspectiveProjection();
   }

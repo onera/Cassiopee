@@ -110,7 +110,10 @@ struct CPlotState
 
     // ssao power
     double ssaoPower;
-    
+
+    // panorama mode
+    E_Int panorama;
+
     // Last selected zone
     E_Int selectedZone;
     // List of deactivated zones

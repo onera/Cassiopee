@@ -16,10 +16,10 @@
   PyObject* renderTagsObject;
   PyObject* isoScales;
   char* backgroundFile;
-  int bgColor, shadow, dof, offscreen, stereo, frameBuffer;
+  int bgColor, shadow, dof, offscreen, stereo, frameBuffer, panorama;
   E_Float lightOffsetX, lightOffsetY;
   E_Float dofPower, gamma; int toneMapping;
-  if (!PyArg_ParseTuple(args, "OiOOOOOiiiiiiiddiiiiisssOidO(ii)(ddd)(ddd)(ddd)disi(dd)iddiidssOOii",
+  if (!PyArg_ParseTuple(args, "OiOOOOOiiiiiiiddiiiiisssOidO(ii)(ddd)(ddd)(ddd)disi(dd)iddiidissOOii",
                         &arrays, &dim, &modeObject, &scalarFieldObject,
                         &vectorFieldObject1, &vectorFieldObject2, &vectorFieldObject3,
                         &displayBB, &displayInfo, &displayIsoLegend,
@@ -34,7 +34,7 @@
                         &bgColor, &backgroundFile,
                         &shadow, &lightOffsetX, &lightOffsetY,
                         &dof, &dofPower, &gamma, &toneMapping, 
-                        &stereo, &stereoDist,
+                        &stereo, &stereoDist, &panorama,
                         &exportFile, &exportResolution, 
                         &zoneNamesObject, &renderTagsObject,
                         &frameBuffer, &offscreen))

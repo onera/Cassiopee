@@ -11,6 +11,7 @@ Cassiopee/KCore/installPath.py
 
 ValidData*
 Data*
+*~
 *.g
 *.pyc
 *.plt
