@@ -6,7 +6,6 @@ uniform sampler2D cube_bottom;
 uniform sampler2D cube_top;
 uniform sampler2D cube_back;
 uniform sampler2D cube_front;
-varying vec4 color;
 
 #define M_PI 3.1415926535897932384626433832795
 
@@ -14,6 +13,7 @@ void main(void)
 {
     vec2 texcoord;
     texcoord = gl_TexCoord[0].xy;
+    vec4 color;
 
     float theta = texcoord.x * M_PI;
     float phi = (texcoord.y * M_PI) / 2.0;
@@ -32,14 +32,14 @@ void main(void)
             scale = -1.0 / x;
             px.x = ( z*scale + 1.0) / 2.0;
             px.y = ( y*scale + 1.0) / 2.0;
-            color = texture(cube_left, px);
+            color = texture2D(cube_left, px);
         }
         else 
         {
             scale = 1.0 / x;
             px.x = (-z*scale + 1.0) / 2.0;
             px.y = ( y*scale + 1.0) / 2.0;
-            color = texture(cube_right, px);
+            color = texture2D(cube_right, px);
         }
     }
     else if (abs(y) >= abs(z))
@@ -49,14 +49,14 @@ void main(void)
             scale = -1.0 / y;
             px.x = ( x*scale + 1.0) / 2.0;
             px.y = ( z*scale + 1.0) / 2.0;  
-            color = texture(cube_top, px);
+            color = texture2D(cube_top, px);
         }
         else 
         {
             scale = 1.0 / y;
             px.x = ( x*scale + 1.0) / 2.0;
             px.y = (-z*scale + 1.0) / 2.0;
-            color = texture(cube_bottom, px);
+            color = texture2D(cube_bottom, px);
         }
     }
     else 
@@ -66,14 +66,14 @@ void main(void)
             scale = -1.0 / z;
             px.x = (-x*scale + 1.0) / 2.0;
             px.y = ( y*scale + 1.0) / 2.0;
-            color = texture(cube_back, px);
+            color = texture2D(cube_back, px);
         }
         else
         {
             scale = 1.0 / z;
             px.x = ( x*scale + 1.0) / 2.0;      
             px.y = ( y*scale + 1.0) / 2.0;
-            color = texture(cube_front, px);
+            color = texture2D(cube_front, px);
         }
     }
     gl_FragColor = color;

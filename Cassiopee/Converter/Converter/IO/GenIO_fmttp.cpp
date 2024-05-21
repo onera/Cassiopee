@@ -1667,7 +1667,7 @@ E_Int K_IO::GenIO::tpwrite(
       // "FEPOINT": element connectivity can contain several elttypes (any order)
       char ffmt[] = "FEBLOCK";
       char etfmt[] = "QUADRILATERAL"; // used if F = "FEPOINT" only, covers all 2D cases
-      for (E_Int cnt = 0; cnt < nunsZones; cnt++)
+      for (E_Int cnt2 = 0; cnt2 < nunsZones; cnt2++)
       {
         if (eltTypeZone[0] > 3)
         {

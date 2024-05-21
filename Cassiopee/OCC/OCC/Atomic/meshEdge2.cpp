@@ -88,6 +88,131 @@ E_Int __getParamHausd(const TopoDS_Edge& E, E_Float hausd, E_Int& nbPoints, E_Fl
   return 0;
 }
 
+// Geom distrib entre u0 et u1, h0 et h1 (interieurs)
+void geom1(E_Float u0, E_Float u1, E_Float h0, E_Float h1, E_Int& N, E_Float*& ue)
+{
+  E_Float r = (u1-u0-h0)/(u1-u0-h1);
+  printf("r=%f\n", r);
+  E_Float a = log(r);
+  if (a > 1.e-12) // r!=1
+  {
+    N = round(log(h1/h0)/a)+2;
+    if (N < 2) N = 2;
+    h0 = (u1-u0)*(1.-r)/(1.-pow(r, N-1));
+    ue = new E_Float [N];
+    ue[0] = u0;
+    for (E_Int i = 1; i < N; i++) ue[i] = u0 + h0*(1.-pow(r,i))/(1.-r);
+  }
+  else // r=1
+  {
+    N = round((u1-u0)/h0+1);
+    if (N < 2) N = 2;
+    h0 = (u1-u0)/(N-1);
+    ue = new E_Float [N];
+    for (E_Int i = 0; i < N; i++) ue[i] = u0 + i*h0;
+  }
+  //for (E_Int i = 1; i < N; i++) ue[i] = ue[i-1] + h0*pow(r, i-1);  
+  //ue[N-1] = u1; // force
+  for (E_Int i = 0; i < N; i++) printf("%d %f\n", i, ue[i]);
+  printf("h0=%f real=%f\n", h0, ue[1]-ue[0]);
+  printf("h1=%f real=%f\n", h1, ue[N-1]-ue[N-2]);
+}
+
+// Geom distrib entre u0 et u1, h0 et h1/r (interieurs)
+void geom2(E_Float u0, E_Float u1, E_Float h0, E_Float h1, E_Int& N, E_Float*& ue)
+{
+  E_Float r = (u1-u0+h1-h0)/(u1-u0);
+  printf("r=%f\n", r);
+  E_Float a = log(r);
+  if (a > 1.e-12) // r!=1
+  {
+    N = round(log(h1/h0)/a)+2;
+    if (N < 2) N = 2;
+    h0 = (u1-u0)*(1.-r)/(1.-pow(r, N-1));
+    ue = new E_Float [N];
+    ue[0] = u0;
+    for (E_Int i = 1; i < N; i++) ue[i] = u0 + h0*(1.-pow(r,i))/(1.-r);
+  }
+  else // r=1
+  {
+    N = round((u1-u0)/h0+1);
+    if (N < 2) N = 2;
+    h0 = (u1-u0)/(N-1);
+    ue = new E_Float [N];
+    for (E_Int i = 0; i < N; i++) ue[i] = u0 + i*h0;
+  }
+  //for (E_Int i = 1; i < N; i++) ue[i] = ue[i-1] + h0*pow(r, i-1);  
+  //ue[N-1] = u1; // force
+  for (E_Int i = 0; i < N; i++) printf("%d %f\n", i, ue[i]);
+  printf("h0=%f real=%f\n", h0, ue[1]-ue[0]);
+  printf("h1/r=%f real=%f\n", h1/r, ue[N-1]-ue[N-2]);
+}
+
+// Geom distrib entre u0 et u1, h0/r et h1/r (interieurs)
+void geom3(E_Float u0, E_Float u1, E_Float h0, E_Float h1, E_Int& N, E_Float*& ue)
+{
+  E_Float delta = (u1-u0-h0)*(u1-u0-h0)+4*(u1-u0)*h1;
+  if (delta >= 0) delta = sqrt(delta);
+
+  E_Float r = ((u1-u0-h0)+delta)/(2*(u1-u0));
+  E_Float r1 = ((u1-u0-h0)-delta)/(2*(u1-u0));
+  
+  printf("r=%f\n", r);
+  E_Float a = log(r);
+  if (a > 1.e-12) // r!=1
+  {
+    N = round(log(h1/h0)/a)+2;
+    if (N < 2) N = 2;
+    h0 = (u1-u0)*(1.-r)/(1.-pow(r, N-1));
+    ue = new E_Float [N];
+    ue[0] = u0;
+    for (E_Int i = 1; i < N; i++) ue[i] = u0 + h0*(1.-pow(r,i))/(1.-r);
+  }
+  else // r=1
+  {
+    N = round((u1-u0)/h0+1);
+    if (N < 2) N = 2;
+    h0 = (u1-u0)/(N-1);
+    ue = new E_Float [N];
+    for (E_Int i = 0; i < N; i++) ue[i] = u0 + i*h0;
+  }
+  //for (E_Int i = 1; i < N; i++) ue[i] = ue[i-1] + h0*pow(r, i-1);  
+  //ue[N-1] = u1; // force
+  for (E_Int i = 0; i < N; i++) printf("%d %f\n", i, ue[i]);
+  printf("h0/r=%f real=%f\n", h0/r, ue[1]-ue[0]);
+  printf("h1/r=%f real=%f\n", h1/r, ue[N-1]-ue[N-2]);
+}
+
+// Geom distrib entre u0 et u1, h0/r et h1 (interieurs)
+void geom4(E_Float u0, E_Float u1, E_Float h0, E_Float h1, E_Int& N, E_Float*& ue)
+{
+  E_Float r = (u1-u0+h1-h0)/(u1-u0);
+  printf("r=%f\n", r);
+  E_Float a = log(r);
+  if (a > 1.e-12) // r!=1
+  {
+    N = round(log(h1/h0)/a)+2;
+    if (N < 2) N = 2;
+    h0 = (u1-u0)*(1.-r)/(1.-pow(r, N-1));
+    ue = new E_Float [N];
+    ue[0] = u0;
+    for (E_Int i = 1; i < N; i++) ue[i] = u0 + h0*(1.-pow(r,i))/(1.-r);
+  }
+  else // r=1
+  {
+    N = round((u1-u0)/h0+1);
+    if (N < 2) N = 2;
+    h0 = (u1-u0)/(N-1);
+    ue = new E_Float [N];
+    for (E_Int i = 0; i < N; i++) ue[i] = u0 + i*h0;
+  }
+  //for (E_Int i = 1; i < N; i++) ue[i] = ue[i-1] + h0*pow(r, i-1);  
+  //ue[N-1] = u1; // force
+  for (E_Int i = 0; i < N; i++) printf("%d %f\n", i, ue[i]);
+  printf("h0/r=%f real=%f\n", h0/r, ue[1]-ue[0]);
+  printf("h1=%f real=%f\n", h1, ue[N-1]-ue[N-2]);
+}
+
 // ============================================================================
 // Return the nbPoints and ue for meshing E with best of deflection and hmax
 // ============================================================================
@@ -95,7 +220,7 @@ E_Int __getParamHmaxHausd(const TopoDS_Edge& E, E_Float hmax, E_Float hausd, E_I
 {
   // First call param hausd
   E_Int ret = __getParamHausd(E, hausd, nbPoints, ue);
-  
+
   BRepAdaptor_Curve C0(E);
   GeomAdaptor_Curve geomAdap(C0.Curve());
   Standard_Real u0 = geomAdap.FirstParameter();
@@ -115,14 +240,14 @@ E_Int __getParamHmaxHausd(const TopoDS_Edge& E, E_Float hmax, E_Float hausd, E_I
       if (delta < hmax) state = 0;
       else state = 1;
     }
-    if (state == 0 && delta >= hmax)
+    else if (state == 0 && delta >= hmax)
     {
       state = 1;
       index.push_back(i);
     }
     else if (state == 1 && delta < hmax)
     {
-      state = 1;
+      state = 0;
       index.push_back(i);
     }
   }
@@ -141,22 +266,108 @@ E_Int __getParamHmaxHausd(const TopoDS_Edge& E, E_Float hmax, E_Float hausd, E_I
     if (np == 1) np = 2;
     printf("remesh 1 zone with hmax (%d)\n", np);
     E_Float* ue2 = new E_Float [np];
-    E_Float hreg = L/(np-1);
-    for (E_Int i = 0; i < np; i++) ue2[i] = i/(np-1)*(u1-u0)+u0;
+    //E_Float hreg = L/(np-1);
+    for (E_Int i = 0; i < np; i++) ue2[i] = (i*1.)/(np-1)*(u1-u0)+u0;
     delete [] ue;
     ue = ue2;
     nbPoints = np;
   }
   else if (size == 1 && state == 0) 
   {
-    // Two zones, the last is alread refined
-    printf("2 zones, last refined\n");
+    E_Int is = index[0];
+    // Two zones, the last is already refined
+    printf("2 zones, last refined, split in %d\n", is);
+    E_Float hr = ue[is+1]-ue[is];
+    E_Float h0 = ue[1]-ue[0];
+    E_Float* ur; E_Int N;
+    geom2(ue[0], ue[is], h0, hr, N, ur);
+    // merge distrib
+    E_Int Nf = nbPoints-is+N;
+    E_Float* uf = new E_Float [Nf];
+    for (E_Int i = 0; i < N; i++) uf[i] = ur[i];
+    for (E_Int i = N; i < Nf; i++) uf[i] = ue[is-N+i];
+    // switch
+    delete [] ue; delete [] ur;
+    ue = uf;
+    nbPoints = Nf;
   }
   else
   {
     // general case
-    printf("pas encore code\n");
+    printf("general case =========================\n");
+    std::vector<E_Float*> ul(size+1);
+    std::vector<E_Int> Nl(size+1);
+    E_Int isp = 0;
+    
+    if (state%2 != 0)
+    {
+      if (state == 1) state = 0;
+      else state = 1;
+    }
+    printf("starting state=%d\n", state);
+
+    for (E_Int l = 0; l < size; l++)
+    {
+      E_Int is = index[l];
+      if (state == 1) // remesh
+      {
+        E_Float u0 = ue[isp];
+        E_Float u1 = ue[is];
+        E_Float h0 = ue[isp+1]-ue[isp];
+        E_Float h1 = ue[is+1]-ue[is];
+        geom2(u0, u1, h0, h1, Nl[l], ul[l]);
+        state = 0;
+      }
+      else // copy
+      {
+        Nl[l] = is-isp+1;
+        ul[l] = new E_Float [Nl[l]];
+        E_Float* ull = ul[l];
+        for (E_Int i = isp; i <= is; i++) ull[i] = ue[i];
+        state = 1;
+      }
+      isp = is;
+    }
+    E_Int l = size;
+    E_Int is = index[l-1];
+    if (state == 1)
+    {
+      E_Float u0 = ue[is];
+      E_Float u1 = ue[nbPoints-1];
+      E_Float h0 = ue[is+1]-ue[is];
+      E_Float h1 = ue[nbPoints-1]-ue[nbPoints-2];
+      geom1(u0, u1, h0, h1, Nl[l], ul[l]);
+    }
+    else
+    {
+      Nl[l] = nbPoints-isp+1;
+      ul[l] = new E_Float [Nl[l]];
+      E_Float* ull = ul[l];
+      for (E_Int i = is; i < nbPoints; i++) ull[i] = ue[i];
+    }
+
+    // Merge
+    E_Int Nf = 0;
+    for (E_Int l = 0; l <= size; l++)
+    {
+      Nf += Nl[l];
+    }
+    E_Float* uf = new E_Float [Nf];
+    
+    E_Int b = 0;
+    for (E_Int l = 0; l <= size; l++)
+    {
+      E_Float* ull = ul[l];
+      for (E_Int i = 0; i < Nl[l]; i++) uf[b] = ull[i];
+      b += Nl[l]-1;
+    }
+    // switch
+    for (E_Int l = 0; l <= size; l++) delete [] ul[l];
+    delete [] ue;
+    ue = uf;
+    nbPoints = Nf;
   }
+
   return ret;
 }
 
@@ -326,8 +537,8 @@ PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
   else if (hmax > 0 && hausd > 0 && externalEdge == Py_None) // mix hmax + hausd
   {
     // pour l'instant on retourne hmax comme pour les mailleurs precedents
-    //__getParamHmaxHausd(E, hmax, hausd, nbPoints, ue);
     __getParamHmax(E, hmax, nbPoints, ue);
+    //__getParamHmaxHausd(E, hmax, hausd, nbPoints, ue);
     PyObject* o = K_ARRAY::buildArray2(4, "x,y,z,u", nbPoints, 1, 1, 1);
     FldArrayF* f; K_ARRAY::getFromArray2(o, f);
     __meshEdge(E, nbPoints, ue, *f, false);

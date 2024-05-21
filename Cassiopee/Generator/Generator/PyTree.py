@@ -124,7 +124,7 @@ def conformUnstr(surface1, surface2=None, tol=0., left_or_right=0):
     return C.convertArrays2ZoneNode('conformized', [s])
 
 #------------------------------------------------------------------------------
-# Conversion d un maillage octree en ensemble de grilles cartesiennes
+# Conversion d'un maillage octree en ensemble de grilles cartesiennes
 #------------------------------------------------------------------------------
 def octree2Struct(o, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
                   sizeMax=1000000000):
