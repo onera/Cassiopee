@@ -1,4 +1,4 @@
-// Fragment shader to perform Analyphic 3D conversion of two textures 
+// Fragment shader to perform Anaglyphic 3D conversion of two textures 
 // for the left and right eyes - Monochrome
  
 uniform sampler2D leftEyeTexture;

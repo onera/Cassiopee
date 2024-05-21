@@ -50,54 +50,47 @@ void Data::displayFrameTex(E_Int mode, double sobelThreshold)
   }
   else if (mode == 1) // panorama
   {
+    GLuint tex0, tex1, tex2, tex3, tex4, tex5;
+    E_Int w, h;
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _texRight);
+    createImageTexture("cube_left.png", tex0, w, h, false);
+    glBindTexture(GL_TEXTURE_2D, tex0);
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    GLuint tex1, tex2, tex3, tex4, tex5, tex6;
-    E_Int w, h;
-    createImageTexture("cube_left.png", tex1, w, h, false);
     glActiveTexture(GL_TEXTURE1);
+    createImageTexture("cube_right.png", tex1, w, h, false);
     glBindTexture(GL_TEXTURE_2D, tex1);
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    createImageTexture("cube_right.png", tex2, w, h, false);
     glActiveTexture(GL_TEXTURE2);
+    createImageTexture("cube_bottom.png", tex2, w, h, false);
     glBindTexture(GL_TEXTURE_2D, tex2);
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    createImageTexture("cube_bottom.png", tex3, w, h, false);
     glActiveTexture(GL_TEXTURE3);
+    createImageTexture("cube_top.png", tex3, w, h, false);
     glBindTexture(GL_TEXTURE_2D, tex3);
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    createImageTexture("cube_top.png", tex4, w, h, false);
     glActiveTexture(GL_TEXTURE4);
+    createImageTexture("cube_back.png", tex4, w, h, false);
     glBindTexture(GL_TEXTURE_2D, tex4);
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    createImageTexture("cube_back.png", tex5, w, h, false);
     glActiveTexture(GL_TEXTURE5);
+    createImageTexture("cube_front.png", tex5, w, h, false);
     glBindTexture(GL_TEXTURE_2D, tex5);
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    createImageTexture("cube_front.png", tex6, w, h, false);
-    glActiveTexture(GL_TEXTURE6);
-    glBindTexture(GL_TEXTURE_2D, tex6);
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     
     E_Int shader = _shaders.shader_id(37);
     if (_shaders.currentShader() != shader) _shaders.activate(shader);
-    //_shaders[shader]->setUniform("FrameBuffer", (int)0);
     _shaders[shader]->setUniform("cube_left", (int)0);
     _shaders[shader]->setUniform("cube_right", (int)1);
     _shaders[shader]->setUniform("cube_bottom", (int)2);

@@ -15,8 +15,8 @@ void main(void)
     vec2 texcoord;
     texcoord = gl_TexCoord[0].xy;
 
-    float theta = texcoord.x * M_PI;
-    float phi = (texcoord.y * M_PI) / 2.0;
+    float theta = -M_PI + texcoord.x * 2. * M_PI; // between -pi and pi
+    float phi = -M_PI/2. + texcoord.y * M_PI; // between -pi/2 and pi/2
 
     float x = cos(phi) * sin(theta);
     float y = sin(phi);
@@ -34,7 +34,7 @@ void main(void)
             px.y = ( y*scale + 1.0) / 2.0;
             color = texture(cube_left, px);
         }
-        else 
+        else
         {
             scale = 1.0 / x;
             px.x = (-z*scale + 1.0) / 2.0;
@@ -48,15 +48,15 @@ void main(void)
         {
             scale = -1.0 / y;
             px.x = ( x*scale + 1.0) / 2.0;
-            px.y = ( z*scale + 1.0) / 2.0;  
-            color = texture(cube_top, px);
+            px.y = ( z*scale + 1.0) / 2.0;
+            color = texture(cube_bottom, px); // inverse
         }
         else 
         {
             scale = 1.0 / y;
             px.x = ( x*scale + 1.0) / 2.0;
             px.y = (-z*scale + 1.0) / 2.0;
-            color = texture(cube_bottom, px);
+            color = texture(cube_top, px);
         }
     }
     else 
