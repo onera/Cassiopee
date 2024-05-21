@@ -139,7 +139,7 @@ if __name__ == '__main__':
   # Find failed tests in newSession
   failedTests = sorted([k for k, v in newDict.items() if v[5] != 'OK'])
   
-  # Write differences to file
+  # Write differences to file or send an email
   baseState = 'OK'
   compStr = ""
   header = "\n".join("{}: {}".format(k,v) for k,v in gitInfo.items())
@@ -188,3 +188,10 @@ if __name__ == '__main__':
     if os.access('./', os.W_OK):
       print("Writing comparison to {}".format(filename))
       with open(filename, 'w') as f: f.write(header + compStr)
+  
+  # If the state of the Base is OK, set the new session log to be the reference
+  if baseState == 'OK' and 'REF-' in script_args.logs[0]:
+      os.rename(script_args.logs[0], script_args.logs[0].replace('REF-', ''))
+      newRef = os.path.join(os.path.dirname(script_args.logs[1]),
+          'REF-' + os.path.basename(script_args.logs[1]))
+      os.rename(script_args.logs[1], newRef)
