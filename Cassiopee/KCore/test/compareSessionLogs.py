@@ -3,7 +3,7 @@
 #        python compareSessionLogs.py --logs='log1 log2' --email
 # Differences written in: compSession_DATE.txt where DATE is the current time
 import os
-from time import localtime, strftime
+from time import strptime, strftime
 
 # Parse command-line arguments
 def parseArgs():
@@ -49,6 +49,15 @@ def readLog(filename):
         test = line.strip().split(':')
         session.append([e.strip() for e in test])
   return session
+
+# Return time of creation of a session log of validCassiopee in two different
+# formats (email subject vs write to file)
+def extractTimeFromLog(filename):
+  if not os.access(filename, os.R_OK):
+    raise Exception("Session log can't be read: {}".format(filename))
+  time = filename[-17:-4]
+  time1 = strptime(time, "%y%m%d_%H%M%S")
+  return strftime("%d/%m/%y at %T", time1), time.replace("_", "-")
 
 # Check the status of two tests using the test strings of validCassiopee
 def diffTest(test, ref, new):
@@ -127,6 +136,8 @@ if __name__ == '__main__':
   newTests = sorted(newSet - refSet)
   # Find deleted tests (tests in refSession but not in newSession)
   deletedTests = sorted(refSet - newSet)
+  # Find failed tests in newSession
+  failedTests = sorted([k for k, v in newDict.items() if v[5] != 'OK'])
   
   # Write differences to file
   baseState = 'OK'
@@ -159,16 +170,21 @@ if __name__ == '__main__':
       compStr += stringify(test)
     baseState = 'FAIL'
   else: compStr += deletedTestsHeader + "[none]\n"
+  
+  failedTestsHeader = "\nReminder - Failed tests:\n{}\n".format('-'*23)
+  if len(failedTests):
+    compStr += failedTestsHeader
+    for test in failedTests:
+      compStr += stringify(test)
+  else: compStr += failedTestsHeader + "[none]\n"
     
-  locTime = localtime()
-  now = strftime("%d/%m/%y at %T", locTime)
-  now2 = strftime("%y%m%d-%H%M%S", locTime)
+  tlog, tlog2 = extractTimeFromLog(script_args.logs[1])
   if script_args.email:
     notify(messageSubject="[validCassiopee] {} - "
-             "State: {}".format(now, baseState),
+             "State: {}".format(tlog, baseState),
              messageText=header + compStr)
   else:
-    filename = "./compSession_{}.txt".format(now2)
+    filename = "./compSession_{}.txt".format(tlog2)
     if os.access('./', os.W_OK):
       print("Writing comparison to {}".format(filename))
       with open(filename, 'w') as f: f.write(header + compStr)
