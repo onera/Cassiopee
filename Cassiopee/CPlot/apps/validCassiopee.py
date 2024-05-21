@@ -1476,7 +1476,7 @@ def writeSessionLog():
     cassiopeeIncDir = getInstallPaths()[0]
     gitOrigin = getGitOrigin(cassiopeeIncDir)
     gitBranch = getGitBranch(cassiopeeIncDir)
-    gitHash = getGitHash(cassiopeeIncDir)
+    gitHash = getGitHash(cassiopeeIncDir)[:7]
     gitInfo = "Git origin: {}\nGit branch: {}, commit hash: {}\n".format(
         gitOrigin, gitBranch, gitHash)
     
