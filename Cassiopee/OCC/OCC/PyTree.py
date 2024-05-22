@@ -934,3 +934,11 @@ def _updateConnectivityTree(tc, name, nameDonor, ptList, ptListDonor):
   data = numpy.ones((npts), dtype=Internal.E_NpyInt)
   Internal.createNode('InterpolantsType', 'DataArray_t', value=data, parent=zsr)
   return None
+
+# External stitcher
+# Look to edges and replace identical edges (may join)
+# IN: t: CAD+Mesh tree
+def stitch(t):
+  edges = Internal.getNodeFromName1(t, 'EDGES')
+  faces = Internal.getNodeFromName1(t, 'FACES')
+  # identify identical edges
