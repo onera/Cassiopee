@@ -176,6 +176,11 @@ E_Int K_IO::GenIO::jpgread(
     strcpy(varString, "x,y,z,r,g,b,a");
     f = new FldArrayF(nil*njl, 7);
   }
+  else
+  {
+    printf("readjpg: the number of components is not possible.");
+    exit(0);
+  }
 
   f->setAllValuesAtNull();
   E_Float* fx = f->begin(1);

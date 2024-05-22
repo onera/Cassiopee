@@ -121,7 +121,7 @@ E_Int Data::createJpgTexture(const char* filename, GLuint &tex,
       for (E_Int i = 0; i < width; i++) 
       {
         value = bufferp[nc*i+n];
-        image[n+nc*i+j*width*nc] = value;
+        image[n+nc*i+(height-j-1)*width*nc] = value;
       }
     }
     j += 1;
