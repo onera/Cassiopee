@@ -6,7 +6,6 @@ uniform sampler2D cube_bottom;
 uniform sampler2D cube_top;
 uniform sampler2D cube_back;
 uniform sampler2D cube_front;
-varying vec4 color;
 
 #define M_PI 3.1415926535897932384626433832795
 
@@ -14,6 +13,7 @@ void main(void)
 {
     vec2 texcoord;
     texcoord = gl_TexCoord[0].xy;
+    vec4 color;
 
     float theta = -M_PI + texcoord.x * 2. * M_PI; // between -pi and pi
     float phi = -M_PI/2. + texcoord.y * M_PI; // between -pi/2 and pi/2
@@ -44,19 +44,19 @@ void main(void)
     }
     else if (abs(y) >= abs(z))
     {
-        if (y < 0.0) 
+        if (y > 0.0)
         {
             scale = -1.0 / y;
-            px.x = ( x*scale + 1.0) / 2.0;
+            px.x = (-x*scale + 1.0) / 2.0; // a shifter a droite
             px.y = ( z*scale + 1.0) / 2.0;
-            color = texture(cube_bottom, px); // inverse
+            color = texture(cube_top, px); // inverse
         }
         else 
         {
             scale = 1.0 / y;
-            px.x = ( x*scale + 1.0) / 2.0;
+            px.x = (-x*scale + 1.0) / 2.0;
             px.y = (-z*scale + 1.0) / 2.0;
-            color = texture(cube_top, px);
+            color = texture(cube_bottom, px);
         }
     }
     else 

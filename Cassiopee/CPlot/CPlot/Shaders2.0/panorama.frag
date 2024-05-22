@@ -44,17 +44,17 @@ void main(void)
     }
     else if (abs(y) >= abs(z))
     {
-        if (y < 0.0) 
+        if (y > 0.0) 
         {
             scale = -1.0 / y;
-            px.x = ( x*scale + 1.0) / 2.0;
+            px.x = (-x*scale + 1.0) / 2.0;
             px.y = ( z*scale + 1.0) / 2.0;  
             color = texture2D(cube_top, px);
         }
         else 
         {
             scale = 1.0 / y;
-            px.x = ( x*scale + 1.0) / 2.0;
+            px.x = (-x*scale + 1.0) / 2.0;
             px.y = (-z*scale + 1.0) / 2.0;
             color = texture2D(cube_bottom, px);
         }

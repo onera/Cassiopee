@@ -159,7 +159,7 @@ Actions
     :type vectorShowSurface: 0 or 1
     :param vectorShape: type of arrows for vectors (vectorStyle=1) (default: 0)
     :type vectorShape: 0 (3D arrows), 1 (Flat arrows), 2 (Tetra arrows)
-    :param vectorProjection: 1 of vectors are projected on surface (default: 0)
+    :param vectorProjection: if 1, vectors are projected on surface (default: 0)
     :type vectorProjection: 0 or 1
     :param colormap: 0-1: Blue2Red, 2-3: BiColorRGB, 4-5: BiColorHSV, 6-7: TriColorRGB, 8-9: TriColorHSV, 10-11: MultiColorRGB, 12-13: MultiColorHSV, 14-15: Diverging, 16-17: Viridis, 18-19: Inferno, 20-21: Magma, 22-23: Plasma, 24-25: Jet, 26-27: Greys, 28-29: Nice Blue, 30-31: Greens (default: 0)
     :type colormap: int (upper number activates light)
