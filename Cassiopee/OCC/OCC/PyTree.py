@@ -942,3 +942,4 @@ def stitch(t):
   edges = Internal.getNodeFromName1(t, 'EDGES')
   faces = Internal.getNodeFromName1(t, 'FACES')
   # identify identical edges
+  return None

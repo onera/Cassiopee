@@ -488,7 +488,7 @@ False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
-'cephee': [ 'Cluser de dev Cassiopee (Onera)',
+'cephee': [ 'Cluster de dev Cassiopee (Onera)',
 'ifort', # f77compiler
 'ifort', # f90compiler
 'icc', # Cppcompiler

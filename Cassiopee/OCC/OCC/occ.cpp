@@ -59,7 +59,8 @@ static PyMethodDef Pyocc [] =
   {"analyseEdges", K_OCC::analyseEdges, METH_VARARGS},
   {"getFaceArea", K_OCC::getFaceArea, METH_VARARGS},
   {"getFaceOrientation", K_OCC::getFaceOrientation, METH_VARARGS},
-  
+  {"areEdgeIdentical", K_OCC::areEdgeIdentical, METH_VARARGS},
+
   {"splitFaces", K_OCC::splitFaces, METH_VARARGS},
   {"fixShape", K_OCC::fixShape, METH_VARARGS},
   {"trimFaces", K_OCC::trimFaces, METH_VARARGS},

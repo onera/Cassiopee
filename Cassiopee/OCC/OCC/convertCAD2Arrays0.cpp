@@ -194,16 +194,11 @@ PyObject* K_OCC::convertCAD2Arrays0(PyObject* self, PyObject* args)
     {
       nbNodes++;  
     }
-
-    const Poly_Array1OfTriangle &tris = tri->Triangles();
-    for (Standard_Integer iCount = tris.Lower(); iCount <= tris.Upper(); iCount++)
-    {
-      nbTris++;
-    }
+    nbTris += tri->NbTriangles();
   }
   
   printf("INFO: total number of nodes: " SF_D_ "\n", nbNodes);
-  printf("INFO:  total number of triangles: " SF_D_ "\n", nbTris);
+  printf("INFO: total number of triangles: " SF_D_ "\n", nbTris);
   
   // buildArray
   PyObject* o = K_ARRAY::buildArray2(3, "x,y,z", nbNodes, nbTris, -1, "TRI", false, 0, 0, 0, 1);
@@ -252,10 +247,10 @@ PyObject* K_OCC::convertCAD2Arrays0(PyObject* self, PyObject* args)
     // copy the polygons
     Standard_Integer i1, i2, i3;
     const Poly_Array1OfTriangle &tris = tri->Triangles();
-    for (Standard_Integer iCount = tris.Lower(); iCount <= tris.Upper(); iCount++)
+    for (Standard_Integer iCount = 1; iCount <= tri->NbTriangles(); iCount++) 
     {
       // get the node indexes for this triangle
-      Poly_Triangle tril = tris(iCount);
+      Poly_Triangle tril = tri->Triangle(iCount);
       tril.Get(i1, i2, i3);
       c1[stride*(cTris+iCount-1)] = i1+cNodes;
       c2[stride*(cTris+iCount-1)] = i2+cNodes;
@@ -267,7 +262,7 @@ PyObject* K_OCC::convertCAD2Arrays0(PyObject* self, PyObject* args)
       //printf("TRI %d: %d %d %d\n", iCount, i1,i2,i3);
     }
     cNodes += nodes->Upper()-nodes->Lower()+1;
-    cTris += tris.Upper()-tris.Lower()+1;
+    cTris += tri->NbTriangles();
   }
   
   PyList_Append(out, o); Py_DECREF(o);

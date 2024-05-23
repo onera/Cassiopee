@@ -49,11 +49,6 @@ endif
 
 unset KC
 
-# ----------------------------- Common ----------------------------------------
-
-# Si la variable ELSA est dans l'environnement, on cree des chemins compatibles
-# avec la version public : par ex: ELSA=/home/elsa/Public/v3.6.02 [eos only]
-
 if ($MAC == "ld_pgi") then
 #------------------------------- ld+PGI ---------------------------------------
         setenv ELSAPROD pgi_r8

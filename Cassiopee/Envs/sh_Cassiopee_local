@@ -59,7 +59,7 @@ if [ "$MACHINE" != "" ]; then
     export MAC=$MACHINE
 fi
 #echo 'Cassiopee :: MACHINE NAME::'$MAC, $KC, $MACHINE
-echo $MAC0
+
 # ----------------------------- Common ----------------------------------------
 
 if [ "$MAC" = "ld_eos8" ]; then
