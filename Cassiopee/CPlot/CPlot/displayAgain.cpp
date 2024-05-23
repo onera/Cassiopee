@@ -92,6 +92,17 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
       d->ptrState->offscreen == 7) // MESA offscreen
   {
 #ifdef __MESA__
+  // Free context if resolution change
+  if ((d->ptrState->exportWidth != -1 && d->_view.w != d->ptrState->exportWidth) || 
+      (d->ptrState->exportHeight != -1 && d->_view.h != d->ptrState->exportHeight))  
+  {
+    d->_view.w = d->ptrState->exportWidth; d->_view.h = d->ptrState->exportHeight;
+    free(d->ptrState->offscreenBuffer[d->ptrState->frameBuffer]);
+    d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = NULL;
+    OSMesaDestroyContext(*(OSMesaContext*)(d->ptrState->ctx));
+    d->ptrState->ctx = NULL;
+  }
+
   if (d->ptrState->ctx == NULL) 
   {
       //printf("recreating context\n");

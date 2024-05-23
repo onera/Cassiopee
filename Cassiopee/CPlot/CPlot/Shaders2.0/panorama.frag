@@ -15,7 +15,7 @@ void main(void)
     texcoord = gl_TexCoord[0].xy;
     vec4 color;
 
-    float theta = -M_PI + texcoord.x * 2 * M_PI; // between -pi and pi
+    float theta = -M_PI + texcoord.x * 2. * M_PI; // between -pi and pi
     float phi = -M_PI/2. + texcoord.y * M_PI; // between -pi/2 and pi/2
 
     float x = cos(phi) * sin(theta);

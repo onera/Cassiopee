@@ -139,7 +139,6 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
     // un serveur X
 #ifdef __MESA__
     /* Init */
-
     // Window size base sur l'export
     if (d->ptrState->exportWidth == -1) d->ptrState->exportWidth = 1920;
     if (d->ptrState->exportHeight == -1) d->ptrState->exportHeight = 1080;

@@ -12,4 +12,4 @@ if [ "$PYTHONEXE" != "" ]; then
     alias python=$PYTHONEXE
 fi
 # launch command
-python $CASSIOPEE/Apps/util/tree_grep.py $1 "$2" "$3"
+python $CASSIOPEE/tools/tree_grep.py $1 "$2" "$3"
