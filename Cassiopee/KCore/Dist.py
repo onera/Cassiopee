@@ -82,10 +82,13 @@ def getenv(name):
 # Get name of the Data folder
 #==============================================================================
 def getDataFolderName(name='Data'):
-    prod = os.getenv("ELSAPROD")
-    if prod is not None: prod = prod.split('_')[0]
-    else: prod = 'xx'
-    intType = 'i8' if EDOUBLEINT else 'i4'
+    elsaprod = os.getenv("ELSAPROD")
+    if elsaprod is not None:
+        intType = 'i8' if elsaprod.endswith('_i8') else 'i4'
+        prod = elsaprod.replace('_i8', '')
+    else:
+        prod = 'xx'
+        intType = 'i4'
     if sys.version_info[0] == 2: name += '2'
     if prod not in 'juno': name += '_' + prod
     if intType == 'i8': name += '_' + intType

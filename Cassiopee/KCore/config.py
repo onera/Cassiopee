@@ -29,6 +29,7 @@ dict = installBase.installDict
 key = ''
 # prod est tout d'abord cherche dans le dictionnaire
 if prod is not None:
+    if prod.endswith('_i8'): prod = prod[:-3]
     for i in dict:
         if re.compile(i).search(prod) is not None:
             key = i; break
