@@ -148,12 +148,12 @@ struct edge {
 struct segment {
   vertex *p;
   vertex *q;
-  E_Int id;
+  int id;
   hedge *rep;
 
-  segment(hedge *, E_Int);
+  segment(hedge *, int);
   segment(edge *);
-  segment(vertex *, vertex *, E_Int);
+  segment(vertex *, vertex *, int);
   inline int color() { return rep ? rep->color : NO_IDEA; }
 };
 
@@ -164,7 +164,7 @@ struct event {
   event *left;
   event *right;
   
-  event(E_Float x, E_Float y, E_Int i);
+  event(E_Float x, E_Float y, int i);
   event(vertex *);
   void print();
   void inorder(std::vector<vertex *> &);
@@ -189,7 +189,7 @@ struct queue {
   void inorder(std::vector<vertex *> &);
 
   event *insert(vertex *);
-  event *insert(E_Float, E_Float, E_Int);
+  event *insert(E_Float, E_Float, int);
   void erase(event *);
   void erase(vertex *);
   event *min();
@@ -199,7 +199,7 @@ struct queue {
   int empty();
 
   event *_insert(event *&, vertex *);
-  event *_insert(event *&, E_Float, E_Float, E_Int);
+  event *_insert(event *&, E_Float, E_Float, int);
   event *_erase(event *, vertex *);
   event *_locate(event *, E_Float, E_Float);
   event *_lookup(event *, vertex *);
