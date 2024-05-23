@@ -48,14 +48,11 @@ MAC0=$(echo $KC | grep 'Aryen'); if [ "$MAC0" != "" ]; then export MAC="aryen"; 
 # Detect the type of integer that is used
 INTTYPE=""
 if [[ $MACHINE == *_i8 ]]; then
-    MACHINE=${MACHINE%"_i8"}
+    export MAC=${MACHINE%"_i8"}
     INTTYPE="_i8"
 elif [ "$MACHINE" == "i8" ]; then
-    MACHINE=""
     INTTYPE="_i8"
-fi
-
-if [ "$MACHINE" != "" ]; then
+elif [ "$MACHINE" != "" ]; then
     export MAC=$MACHINE
 fi
 #echo 'Cassiopee :: MACHINE NAME::'$MAC, $KC, $MACHINE
