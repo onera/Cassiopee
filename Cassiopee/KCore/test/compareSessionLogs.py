@@ -50,6 +50,12 @@ def readLog(filename):
         session.append([e.strip() for e in test])
   return session
 
+# Get the name of the ValidData directory containing the session log
+def getLogDirName(filename):
+  if not os.access(filename, os.R_OK):
+    raise Exception("Session log can't be read: {}".format(filename))
+  return os.path.basename(os.path.dirname(filename))
+
 # Return time of creation of a session log of validCassiopee in two different
 # formats (email subject vs write to file)
 def extractTimeFromLog(filename):
@@ -180,8 +186,10 @@ if __name__ == '__main__':
     
   tlog, tlog2 = extractTimeFromLog(script_args.logs[1])
   if script_args.email:
-    notify(messageSubject="[validCassiopee] {} - "
-             "State: {}".format(tlog, baseState),
+    prod = getLogDirName(script_args.logs[1])
+    if "_" in prod: prod = prod[10:]
+    notify(messageSubject="[validCassiopee - {}] {} - "
+             "State: {}".format(prod, tlog, baseState),
              messageText=header + compStr)
   else:
     filename = "./compSession_{}.txt".format(tlog2)
