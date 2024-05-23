@@ -186,8 +186,9 @@ if __name__ == '__main__':
     
   tlog, tlog2 = extractTimeFromLog(script_args.logs[1])
   if script_args.email:
-    prod = getLogDirName(script_args.logs[1])
-    if "_" in prod: prod = prod[10:]
+    prod = getLogDirName(script_args.logs[1])[10:]
+    if prod == "": prod = "juno"
+    elif prod == "i8": prod = "juno_i8"
     notify(messageSubject="[validCassiopee - {}] {} - "
              "State: {}".format(prod, tlog, baseState),
              messageText=header + compStr)
