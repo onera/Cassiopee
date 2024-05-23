@@ -4,7 +4,7 @@
 Download msys2 (https://www.msys2.org)
 Install it
 
-## Install dependency
+## Install dependencies
 In an msys2 mingw64 terminal:
 
     pacman -S mingw64/mingw-w64-x86_64-gcc
@@ -17,7 +17,17 @@ In an msys2 mingw64 terminal:
     pacman -S mingw64/mingw-w64-x86_64-msmpi
     pacman -S mingw64/mingw-w64-x86_64-oce
 
-# Some pacman commands
+## Install Cassiopee
+
+    export CASSIOPEE=/d/johndo/Cassiopee
+    export MACHINE=win64
+    
+    source $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8
+    cd $CASSIOPEE/Cassiopee
+    ./install
+
+## Some usefull pacman commands
+
 Update system:
 
     pacman -Syu

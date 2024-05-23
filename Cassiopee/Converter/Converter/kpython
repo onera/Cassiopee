@@ -37,10 +37,14 @@ then
     ELSAPROD=""
 fi
 
+# set mpi number of processes (-n)
 NPROCS="0"
+# set number of threads (-t)
 NTHREADS="0"
+# more args for mpirun (-a)
 ARGS=""
-while getopts hpn:t:a: OPTION
+
+while getopts :hpn:t:a: OPTION
 do
      case $OPTION in
          h)
@@ -64,9 +68,13 @@ do
          p) 
              ARGS+="-m cProfile -s tottime"
              ;;
+         \?)
+             PYARGS+=$OPTARG
+             ;;
      esac
 done
 shift $((OPTIND-1))
+# Remaining script name and arguments
 SCRIPT=$*
 
 # Machine avec remote GL (utilisant virtual GL)
@@ -116,51 +124,51 @@ else
     then
         set -x
         # openMpi
-        #mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
+        #mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT
         # intelMpi
-        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l $PYTHONEXE $SCRIPT $NPROCS
+        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l $PYTHONEXE $SCRIPT
         set +x
         [ $? != 0 ] && exit 1;
     elif [ $ELSAPROD == 'aus_r8' ] # austri
     then
         set -x
         # intelMpi
-        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l $PYTHONEXE $SCRIPT $NPROCS
+        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l $PYTHONEXE $SCRIPT
         set +x
         [ $? != 0 ] && exit 1;
     elif [ $ELSAPROD == 'sat_r8' ] # sator
     then
         set -x
         # intelMpi
-        mpirun $ARGS -n $NPROCS -l -ordered-output $PYTHONEXE $SCRIPT $NPROCS
+        mpirun $ARGS -n $NPROCS -l -ordered-output $PYTHONEXE $SCRIPT
         set +x
         [ $? != 0 ] && exit 1;
     elif [ $ELSAPROD == 'sat_cas_r8' ] # sator-new
     then
         set -x
         # intelMpi
-        mpirun $ARGS -n $NPROCS -l -ordered-output $PYTHONEXE $SCRIPT $NPROCS
+        mpirun $ARGS -n $NPROCS -l -ordered-output $PYTHONEXE $SCRIPT
         set +x
         [ $? != 0 ] && exit 1;
     elif [ $ELSAPROD == 'spiro_el8' ] || [ $ELSAPROD == 'spiro_amdrm_r8' ] || [ $ELSAPROD == 'spiro_amdnp_r8' ] || [ $ELSAPROD == 'spiro_sky_r8' ] || [ $ELSAPROD == 'spiro_cas_r8' ] # spiro
     then
     set -x
         # intelMpi
-        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l -ordered-output $PYTHONEXE $SCRIPT $NPROCS
+        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l -ordered-output $PYTHONEXE $SCRIPT
         set +x
         [ $? != 0 ] && exit 1;
     elif [ $ELSAPROD == 'juno' ] # juno
     then
     set -x
         # intelMpi
-        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l -ordered-output $PYTHONEXE $SCRIPT $NPROCS
+        mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l -ordered-output $PYTHONEXE $SCRIPT
         set +x
         [ $? != 0 ] && exit 1;
     elif [ $ELSAPROD == 'stv_r8' ] # stelvio
     then
         set -x
         # intelMpi
-        mptrun $ARGS -omp $NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
+        mptrun $ARGS -omp $NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT
         set +x
         [ $? != 0 ] && exit 1;
     elif [ $ELSAPROD == 'cob_r8' ] # cobalt
@@ -174,19 +182,19 @@ else
     then
         set -x
 	    # MSMPI
-	    mpiexec $ARGS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
+	    mpiexec $ARGS -np $NPROCS $PYTHONEXE $SCRIPT
         set +x    
         [ $? != 0 ] && exit 1;
     elif [ $ELSAPROD == 'win64' ] # MSYS 2 With Win64 production
     then
         set -x
 	    # MSMPI
-	    mpiexec $ARGS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
+	    mpiexec $ARGS -np $NPROCS $PYTHONEXE $SCRIPT
         set +x
         [ $? != 0 ] && exit 1;
     else
         set -x
-        mpirun $ARGS -np $NPROCS $PYTHONEXE $SCRIPT $NPROCS
+        mpirun $ARGS -np $NPROCS $PYTHONEXE $SCRIPT
         set +x
         [ $? != 0 ] && exit 1;
     fi
