@@ -72,6 +72,12 @@ extern void free JPP((void *ptr));
 
 static int next_file_num;	/* to distinguish among several temp files */
 
+// added for msys2
+#ifdef _WIN32
+//#define NO_MKTEMP
+#include <io.h>
+#endif
+
 #ifdef NO_MKTEMP
 
 #ifndef TEMP_FILE_NAME		/* can override from jconfig.h or Makefile */

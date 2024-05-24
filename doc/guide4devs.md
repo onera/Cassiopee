@@ -37,6 +37,7 @@ OpenMP :
 - when a computationaly intensive loops exist, if the treatment is independant, you must use
 omp for parallelisation. For example :
 
+~~~
 #pragma omp parallel
 {
     E_Int localInt;
@@ -49,14 +50,17 @@ omp for parallelisation. For example :
        /* ... */
     }
 }
+~~~
 
 - the pragma omp parallel creates threads and as a slight cost.
 - the pragma omp for only split the for loop into equal pieces
 - for more complex creation, you can access the thread id like this :
 
+~~~
 #pragma omp parallel
 {
   E_Int ithread = __CURRENT_THREAD__;
   E_Int numThreads = __NUMTHREADS__; 
   /* ... */
 }
+~~~

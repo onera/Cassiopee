@@ -208,7 +208,13 @@ const int                   typeval)              /*+ Compression algorithm +*/
   if (typeval <= FILECOMPRESSTYPENONE)            /* If nothing to do */
     return (0);
 
-  if (pipe (filetab) != 0) {
+#ifdef _WIN32
+#include <io.h>
+  if (_pipe (filetab, 2, 0) != 0)
+#else
+  if (pipe (filetab) != 0)
+#endif
+  {
     errorPrint ("fileCompress: cannot create pipe");
     return (1);
   }

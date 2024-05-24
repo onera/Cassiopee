@@ -109,7 +109,7 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
   ct1 = ct.begin(1); ct2 = ct.begin(2); ct3 = ct.begin(3);
 
   // swap edges dans les triangles
-  E_Float ndir1, ndir2, ndir3, ndir4;
+  E_Float ndir1=1, ndir2, ndir3, ndir4;
   E_Float ptA[3], ptB[3], ptC[3], dir1[3];
   E_Float ptD[3], dir2[3], dir3[3], dir4[3];
   E_Float inverse1=0, inverse2, rad1, rad2, rad3, rad4, ndirl;
