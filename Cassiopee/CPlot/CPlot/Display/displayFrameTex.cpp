@@ -28,7 +28,8 @@
 void Data::displayFrameTex(E_Int mode, double sobelThreshold)
 {
   glColor3f(1., 0, 0);
-
+  GLuint tex0, tex1, tex2, tex3, tex4, tex5;
+    
 #ifdef __SHADERS__
   if (mode == 0) // anaglyph
   {
@@ -50,7 +51,6 @@ void Data::displayFrameTex(E_Int mode, double sobelThreshold)
   }
   else if (mode == 1) // panorama
   {
-    GLuint tex0, tex1, tex2, tex3, tex4, tex5;
     E_Int w, h;
     glActiveTexture(GL_TEXTURE0);
     createImageTexture("cube_left.png", tex0, w, h, false);
@@ -137,6 +137,27 @@ void Data::displayFrameTex(E_Int mode, double sobelThreshold)
   glTexCoord3f(0, 0, 0);
   glVertex3d(0, _view.h, 0);
   glEnd();
+
+  if (mode == 1)
+  {
+    glDeleteTextures(1, &tex0);
+    glDeleteTextures(1, &tex1);
+    glDeleteTextures(1, &tex2);
+    glDeleteTextures(1, &tex3);
+    glDeleteTextures(1, &tex4);
+    glDeleteTextures(1, &tex5);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _texRight);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, _texLeft);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  }
 
   glEnable(GL_DEPTH_TEST);
   glColor3f(1., 1., 1.);

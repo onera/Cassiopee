@@ -103,7 +103,7 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
     d->ptrState->ctx = NULL;
   }
 
-  if (d->ptrState->ctx == NULL) 
+  if (d->ptrState->ctx == NULL)
   {
       //printf("recreating context\n");
       OSMesaContext* ctx = new OSMesaContext();

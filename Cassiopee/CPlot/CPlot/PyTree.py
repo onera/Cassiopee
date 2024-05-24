@@ -50,7 +50,7 @@ def display(t,
             backgroundFile="None",
             shadow=-1, lightOffset=(-999,-999),
             dof=-1, dofPower=-1, gamma=-1, toneMapping=-1, 
-            stereo=-1, stereoDist=-1., panorama=-1,
+            stereo=-1, stereoDist=-1., panorama=0,
             export="None", exportResolution="None",
             location='unchanged',
             frameBuffer=-1,
@@ -109,7 +109,7 @@ def displayRaw(t,
             backgroundFile="None",
             shadow=-1, lightOffset=(-999,-999),
             dof=-1, dofPower=-1, gamma=-1, toneMapping=-1, 
-            stereo=-1, stereoDist=-1., panorama=-1,
+            stereo=-1, stereoDist=-1., panorama=0,
             export="None", exportResolution="None",
             location='unchanged',
             frameBuffer=-1,
@@ -1044,4 +1044,109 @@ def loadImageFiles(t, offscreen=0):
         out = []
         for i in pos[2]: out.append(Internal.getValue(i))
         CPlot.setState(billBoards=out, offscreen=offscreen)
+    return None
+
+#==============================================================================
+# display360
+#==============================================================================
+def display360(t, **kwargs):
+    """Display for 360 images."""
+    import KCore.Vector as Vector
+    posCam = kwargs.get("posCam", (0,0,0))
+    posEye = kwargs.get("posEye", (1,0,0))
+    dirCam = kwargs.get("dirCam", (0,0,1))
+    
+    # check that dirCam and v1 are ortho
+    
+    # Compute all view vectors
+    v1 = Vector.sub(posEye, posCam)
+    vz = Vector.normalize(dirCam)
+    # orthogonalisation de v1
+    s = Vector.dot(v1, vz)
+    v1 = Vector.sub(v1, Vector.mul(s, vz))
+    
+    v2 = Vector.cross(vz, v1)
+    n = Vector.norm(v1)
+    v3 = Vector.mul(n, vz)
+
+    # get export resolution (final)
+    export = kwargs.get("export", "image360")
+    exportRez = kwargs.get("exportResolution", "3200x1600")
+    offscreen = kwargs.get("offscreen", 1)
+
+    # display the 6 views
+    # right
+    posEye0 = Vector.sub(posCam, v2); dirCam0 = dirCam
+    lkwargs = kwargs.copy()
+    lkwargs['posCam'] = posCam
+    lkwargs['posEye'] = posEye0
+    lkwargs['dirCam'] = dirCam0
+    lkwargs['viewAngle'] = 90.
+    lkwargs['exportResolution'] = '800x800'
+    lkwargs['export'] = 'cube_right.png'
+    display(t, **lkwargs)
+    finalizeExport(offscreen)
+
+    # left
+    posEye0 = Vector.add(posCam, v2); dirCam0 = dirCam
+    lkwargs['posCam'] = posCam
+    lkwargs['posEye'] = posEye0
+    lkwargs['dirCam'] = dirCam0
+    lkwargs['viewAngle'] = 90.
+    lkwargs['exportResolution'] = '800x800'
+    lkwargs['export'] = 'cube_left.png'
+    display(t, **lkwargs)
+    finalizeExport(offscreen)    
+
+    # front
+    posEye0 = posEye; dirCam0 = dirCam
+    #posEye0 = Vector.add(posCam, v1); dirCam0 = dirCam
+    lkwargs['posCam'] = posCam
+    lkwargs['posEye'] = posEye0
+    lkwargs['dirCam'] = dirCam0
+    lkwargs['viewAngle'] = 90.
+    lkwargs['exportResolution'] = '800x800'
+    lkwargs['export'] = 'cube_front.png'
+    display(t, **lkwargs)
+    finalizeExport(offscreen)    
+
+    # back
+    posEye0 = Vector.sub(posCam, v1); dirCam0 = dirCam
+    lkwargs['posCam'] = posCam
+    lkwargs['posEye'] = posEye0
+    lkwargs['dirCam'] = dirCam0
+    lkwargs['viewAngle'] = 90.
+    lkwargs['exportResolution'] = '800x800'
+    lkwargs['export'] = 'cube_back.png'
+    display(t, **lkwargs)
+    finalizeExport(offscreen)    
+
+    # top
+    posEye0 = Vector.add(posCam, v3); dirCam0 = Vector.mul(-1, v1)
+    lkwargs['posCam'] = posCam
+    lkwargs['posEye'] = posEye0
+    lkwargs['dirCam'] = dirCam0
+    lkwargs['viewAngle'] = 90.
+    lkwargs['exportResolution'] = '800x800'
+    lkwargs['export'] = 'cube_top.png'
+    display(t, **lkwargs)
+    finalizeExport(offscreen)    
+
+    # bot
+    posEye0 = Vector.sub(posCam, v3); dirCam0 = Vector.mul(+1, v1)
+    lkwargs['posCam'] = posCam
+    lkwargs['posEye'] = posEye0
+    lkwargs['dirCam'] = dirCam0
+    lkwargs['viewAngle'] = 90.
+    lkwargs['exportResolution'] = '800x800'
+    lkwargs['export'] = 'cube_bottom.png'
+    display(t, **lkwargs)
+    finalizeExport(offscreen)    
+
+    # Create 360 image
+    a = C.newPyTree(['Base'])
+    display(a, panorama=1,
+            offscreen=offscreen, export=export, exportResolution=exportRez)
+    finalizeExport(offscreen)
+
     return None

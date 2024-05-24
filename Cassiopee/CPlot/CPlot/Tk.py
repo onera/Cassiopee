@@ -336,7 +336,7 @@ def display(t, dim=-1,
             backgroundFile="None",
             shadow=-1, lightOffset=(-999,-999),
             dof=-1, dofPower=-1, gamma=-1, toneMapping=-1, 
-            stereo=-1, stereoDist=-1., panorama=-1,
+            stereo=-1, stereoDist=-1., panorama=0,
             export='None', exportResolution='None',
             location='unchanged',
             mainTree=1):
