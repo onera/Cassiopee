@@ -50,9 +50,9 @@ INTTYPE=""
 if [[ $MACHINE == *_i8 ]]; then
     export MAC=${MACHINE%"_i8"}
     INTTYPE="_i8"
-elif [ "$MACHINE" == "i8" ]; then
+elif [[ "$MACHINE" == "i8" ]]; then
     INTTYPE="_i8"
-elif [ "$MACHINE" != "" ]; then
+elif [[ "$MACHINE" != "" ]]; then
     export MAC=$MACHINE
 fi
 #echo 'Cassiopee :: MACHINE NAME::'$MAC, $KC, $MACHINE

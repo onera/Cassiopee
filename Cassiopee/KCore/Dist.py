@@ -90,7 +90,10 @@ def getDataFolderName(name='Data'):
         prod = 'xx'
         intType = 'i4'
     if sys.version_info[0] == 2: name += '2'
-    if prod not in 'juno': name += '_' + prod
+    if prod.startswith('juno'): prod = prod.replace('juno', '')
+    if prod:
+        if not prod.startswith('_'): name += '_' + prod
+        else: name += prod
     if intType == 'i8': name += '_' + intType
     return name
 
