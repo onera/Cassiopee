@@ -3,6 +3,7 @@
 #        python compareSessionLogs.py --logs='log1 log2' --email
 # Differences written in: compSession_DATE.txt where DATE is the current time
 import os
+import sys
 from time import strptime, strftime
 
 # Parse command-line arguments
@@ -14,6 +15,8 @@ def parseArgs():
                         help="Email results. Default: write to file")
     parser.add_argument("-l", "--logs", type=str, default='',
                         help="Single-quoted logs to compare.")
+    parser.add_argument("-s", "--status", type=int, default=0,
+                        help="Installation status: 0: OK, 1: FAIL.")
     # Parse arguments
     return parser.parse_args()
 
@@ -56,9 +59,17 @@ def getLogDirName(filename):
     raise Exception("Session log can't be read: {}".format(filename))
   return os.path.basename(os.path.dirname(filename))
 
+# Get the name of the prod from a session log
+def getProd(filename):
+  prod = getLogDirName(filename)[10:]
+  if prod == "": prod = "juno"
+  elif prod == "i8" or any(prod.startswith(s) for s in ["gcc", "coda"]):
+    prod = "juno_"+prod
+  return prod
+
 # Return time of creation of a session log of validCassiopee in two different
 # formats (email subject vs write to file)
-def extractTimeFromLog(filename):
+def getTimeFromLog(filename):
   if not os.access(filename, os.R_OK):
     raise Exception("Session log can't be read: {}".format(filename))
   time = filename[-17:-4]
@@ -124,6 +135,17 @@ if __name__ == '__main__':
     raise Exception("Two session logs must be provided using the flag -l "
                     "or --logs")
   
+  # Check input status
+  if script_args.status == 1:
+    # An error occurred during the installation
+    prod = getProd(script_args.logs[1])
+    tlog, _ = getTimeFromLog(script_args.logs[1])
+    messageText = "Installation failed for prod '{}' - no validation"
+    notify(messageSubject="[validCassiopee - {}] {} - "
+             "State: FAIL".format(prod, tlog),
+             messageText=messageText.format(prod))
+    sys.exit(1)
+
   # Read log files and git info
   refSession = readLog(script_args.logs[0])
   newSession = readLog(script_args.logs[1])
@@ -186,6 +208,7 @@ if __name__ == '__main__':
     
   # If the state of the Base is OK, set the new session log to be the reference
   baseStateMsg = ""
+  exitStatus = 0
   if baseState == 'OK' and 'REF-' in script_args.logs[0]:
       if os.access(script_args.logs[0], os.W_OK):
         import shutil
@@ -194,16 +217,11 @@ if __name__ == '__main__':
         newRef = os.path.join(os.path.dirname(script_args.logs[1]),
             'REF-' + os.path.basename(script_args.logs[1]))
         shutil.copyfile(script_args.logs[1], newRef)
-      else:
-        baseStateMsg = "Manually add 'REF-' prefix to session log {}".format(
-            script_args.logs[1])
+      else: exitStatus = 2
 
-  tlog, tlog2 = extractTimeFromLog(script_args.logs[1])
+  tlog, tlog2 = getTimeFromLog(script_args.logs[1])
   if script_args.email:
-    prod = getLogDirName(script_args.logs[1])[10:]
-    if prod == "": prod = "juno"
-    elif prod == "i8" or any(prod.startswith(s) for s in ["gcc", "coda"]):
-      prod = "juno_"+prod
+    prod = getProd(script_args.logs[1])
     if baseStateMsg: baseStateMsg = '\n\n'+baseStateMsg
     notify(messageSubject="[validCassiopee - {}] {} - "
              "State: {}".format(prod, tlog, baseState),
@@ -213,3 +231,4 @@ if __name__ == '__main__':
     if os.access('./', os.W_OK):
       print("Writing comparison to {}".format(filename))
       with open(filename, 'w') as f: f.write(header + compStr + baseStateMsg)
+  sys.exit(exitStatus)
