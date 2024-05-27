@@ -51,7 +51,7 @@ PyObject* K_OCC::evalEdge(PyObject* self, PyObject* args)
 {
   PyObject* hook;
   PyObject* arrayU;
-  E_Int edgeNo; // No de la face 
+  E_Int edgeNo; // No de l'edge
   if (!PYPARSETUPLE_(args, OO_ I_, &hook, &arrayU, &edgeNo)) return NULL;
 
   void** packet = NULL;

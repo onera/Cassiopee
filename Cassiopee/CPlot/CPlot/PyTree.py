@@ -1074,6 +1074,12 @@ def display360(t, **kwargs):
     exportRez = kwargs.get("exportResolution", "3200x1600")
     offscreen = kwargs.get("offscreen", 1)
 
+    locRez = exportRez.split('x')[1]
+    locRez = int(locRez)//2
+    print(locRez)
+    locRez = max(locRez, 800)
+    locRez = "%dx%d"%(locRez, locRez)
+
     # display the 6 views
     # right
     posEye0 = Vector.sub(posCam, v2); dirCam0 = dirCam
@@ -1082,7 +1088,7 @@ def display360(t, **kwargs):
     lkwargs['posEye'] = posEye0
     lkwargs['dirCam'] = dirCam0
     lkwargs['viewAngle'] = 90.
-    lkwargs['exportResolution'] = '800x800'
+    lkwargs['exportResolution'] = locRez
     lkwargs['export'] = 'cube_right.png'
     display(t, **lkwargs)
     finalizeExport(offscreen)
@@ -1093,7 +1099,7 @@ def display360(t, **kwargs):
     lkwargs['posEye'] = posEye0
     lkwargs['dirCam'] = dirCam0
     lkwargs['viewAngle'] = 90.
-    lkwargs['exportResolution'] = '800x800'
+    lkwargs['exportResolution'] = locRez
     lkwargs['export'] = 'cube_left.png'
     display(t, **lkwargs)
     finalizeExport(offscreen)    
@@ -1105,7 +1111,7 @@ def display360(t, **kwargs):
     lkwargs['posEye'] = posEye0
     lkwargs['dirCam'] = dirCam0
     lkwargs['viewAngle'] = 90.
-    lkwargs['exportResolution'] = '800x800'
+    lkwargs['exportResolution'] = locRez
     lkwargs['export'] = 'cube_front.png'
     display(t, **lkwargs)
     finalizeExport(offscreen)    
@@ -1116,10 +1122,10 @@ def display360(t, **kwargs):
     lkwargs['posEye'] = posEye0
     lkwargs['dirCam'] = dirCam0
     lkwargs['viewAngle'] = 90.
-    lkwargs['exportResolution'] = '800x800'
+    lkwargs['exportResolution'] = locRez
     lkwargs['export'] = 'cube_back.png'
     display(t, **lkwargs)
-    finalizeExport(offscreen)    
+    finalizeExport(offscreen)
 
     # top
     posEye0 = Vector.add(posCam, v3); dirCam0 = Vector.mul(-1, v1)
@@ -1127,10 +1133,10 @@ def display360(t, **kwargs):
     lkwargs['posEye'] = posEye0
     lkwargs['dirCam'] = dirCam0
     lkwargs['viewAngle'] = 90.
-    lkwargs['exportResolution'] = '800x800'
+    lkwargs['exportResolution'] = locRez
     lkwargs['export'] = 'cube_top.png'
     display(t, **lkwargs)
-    finalizeExport(offscreen)    
+    finalizeExport(offscreen)
 
     # bot
     posEye0 = Vector.sub(posCam, v3); dirCam0 = Vector.mul(+1, v1)
@@ -1138,10 +1144,10 @@ def display360(t, **kwargs):
     lkwargs['posEye'] = posEye0
     lkwargs['dirCam'] = dirCam0
     lkwargs['viewAngle'] = 90.
-    lkwargs['exportResolution'] = '800x800'
+    lkwargs['exportResolution'] = locRez
     lkwargs['export'] = 'cube_bottom.png'
     display(t, **lkwargs)
-    finalizeExport(offscreen)    
+    finalizeExport(offscreen)
 
     # Create 360 image
     a = C.newPyTree(['Base'])

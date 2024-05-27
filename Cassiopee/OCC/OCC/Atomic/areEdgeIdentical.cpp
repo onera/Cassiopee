@@ -21,7 +21,13 @@
 #include "TopoDS_Edge.hxx"
 #include "BRepAdaptor_Curve.hxx"
 #include "GeomAdaptor_Curve.hxx"
+#include "BRep_Tool.hxx"
+#include "TopExp_Explorer.hxx"
+#include "TopoDS.hxx"
+#include "TopTools_IndexedMapOfShape.hxx"
 
+// Return True if two edges are identical
+// Identification based on extreme coordinates only
 E_Boolean areEdgeIdentical(const TopoDS_Edge& E1, const TopoDS_Edge& E2)
 {
   BRepAdaptor_Curve C1(E1);
@@ -75,5 +81,26 @@ E_Boolean areEdgeIdentical(const TopoDS_Edge& E1, const TopoDS_Edge& E2)
 // Python function
 PyObject* K_OCC::areEdgeIdentical(PyObject* self, PyObject* args)
 {
-  return NULL;
+  PyObject* hook;
+  E_Int edgeNo1; // No de l'edge1
+  E_Int edgeNo2; // No de l'edge1
+  if (!PYPARSETUPLE_(args, OO_ I_, &hook, &edgeNo1, &edgeNo2)) return NULL;
+
+  void** packet = NULL;
+#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
+  packet = (void**) PyCObject_AsVoidPtr(hook);
+#else
+  packet = (void**) PyCapsule_GetPointer(hook, NULL);
+#endif
+
+  TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
+  TopExp_Explorer expl;
+
+  const TopoDS_Edge& E1 = TopoDS::Edge(edges(edgeNo1));
+  const TopoDS_Edge& E2 = TopoDS::Edge(edges(edgeNo2));
+  
+  E_Boolean ret = areEdgeIdentical(E1, E2);
+
+  if (ret == true) return Py_BuildValue("%d", 1);
+  else return Py_BuildValue("%d", 0);
 }

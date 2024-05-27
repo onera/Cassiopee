@@ -483,8 +483,10 @@ void Data::dumpWindow()
     if (ptrState->exportWidth != -1 && ptrState->exportHeight != -1)
     {
       exportWidth = ptrState->exportWidth;
-      //exportHeight = int(exportWidth * r); // force ratio
-      exportHeight = ptrState->exportHeight; // dont force ratio
+      if (ptrState->offscreen == 0)
+        exportHeight = int(exportWidth * r); // force ratio
+      else
+        exportHeight = ptrState->exportHeight; // dont force ratio
     }
     else if (ptrState->exportWidth != -1 && ptrState->exportHeight == -1)
     {
