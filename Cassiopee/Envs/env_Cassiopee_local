@@ -46,25 +46,26 @@ set MAC0=`echo $KC | grep 'topaze'`; if ($%MAC0 != 0) set MAC="topaze"
 # Detect the type of integer that is used
 set INTTYPE=""
 if ($?MACHINE == 0) then
-    if (?MAC == 0) then
+    if ($?MAC == 0) then
         echo 'Your machine is not known by uname. Try to set MACHINE.'
     endif
 else
     if ( "$MACHINE" =~ "*_i8") then
-        echo 'matching'
         set MAC=`echo $MACHINE | rev | cut -c 4- | rev`
         set INTTYPE="_i8"
     else if ( "$MACHINE" == "i8") then
-        echo 'uname+i8'
         set INTTYPE="_i8"
     else
         set MAC=$MACHINE
     endif
 endif
 
+echo $MAC
+
 if ($MAC == "ld_pgi") then
 #------------------------------- ld+PGI ---------------------------------------
         setenv ELSAPROD pgi_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         foreach x (`(echo "" ; module -t list) | & grep intel`)
             module unload $x
         end
@@ -81,6 +82,7 @@ if ($MAC == "ld_pgi") then
 else if ($MAC == "ld_eos8") then
 #-------------------------- ld centos 8 + python 3 -----------------------------
         setenv ELSAPROD eos8_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         #module purge
         # Modules
         #foreach x (`(echo "" ; module -t list) | & grep intel`)
@@ -109,8 +111,9 @@ else if ($MAC == "ld_eos8") then
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.6/site-packages
 
 else if ($MAC == "ld") then
-#------------------------------- ld centos 8 + python 3 -----------------------------------
-        setenv ELSAPROD ld
+#------------------------------- ld rocky 8 + python 3 -----------------------------------
+        setenv ELSAPROD "ld"
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         module purge
         module load occt/7.6.1-gnu831
         module load python/3.8.14-gnu831
@@ -135,6 +138,7 @@ else if ($MAC == "ld") then
 else if ($MAC == "eos814") then
 #-------------------------- ld centos 8 + python 3.8 -----------------------------
         setenv ELSAPROD eos814_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         module purge
         module load occt/7.6.1-gnu831
         #module load gcc/10.2.0
@@ -160,6 +164,7 @@ else if ($MAC == "eos814") then
 else if ($MAC == "ld_prev") then
 #-------------------------- ld centos 7 + python 3 -----------------------------
         setenv ELSAPROD x86_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Modules
         foreach x (`(echo "" ; module -t list) | & grep intel`)
             module unload $x
@@ -183,6 +188,7 @@ else if ($MAC == "ld_prev") then
 else if ($MAC == "ld_python2") then
 #----------------------------- ld centos 7 -------------------------------------
         setenv ELSAPROD x86_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Modules
         foreach x (`(echo "" ; module -t list) | & grep intel`)
             module unload $x
@@ -207,6 +213,7 @@ else if ($MAC == "ld_python2") then
 else if ($MAC == "eos") then
 #----------------------------- eos -------------------------------------
         setenv ELSAPROD x86_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Modules
         foreach x (`(echo "" ; module -t list) | & grep intel`)
             module unload $x
@@ -237,7 +244,8 @@ else if ($MAC == "eos") then
 
 else if ($MAC == "macosx") then
 #----------------------------- Mac OSX-----------------------------------------
-       setenv ELSAPROD macosx_r8
+       setenv ELSAPROD macosx
+       setenv ELSAPROD "$ELSAPROD$INTTYPE"
        setenv OMP_NUM_THREADS 2
        set path=($path $CASSIOPEE/Dist/bin/macosx_r8)
        setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/opt/intel/composer_xe_2015/lib
@@ -246,14 +254,10 @@ else if ($MAC == "macosx") then
        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
        setenv DYLD_LIBRARY_PATH $LD_LIBRARY_PATHL
 
-else if ($MAC == "sgi") then
-#-------------------------------- SGI -----------------------------------------
-        setenv ELSAPROD sgi_r8
-        setenv LD_LIBRARY_PATHL /tools/py/tmp/local/lib/
-
 else if ($MAC == "mangrove") then
 #------------------------------- mangrove --------------------------------------
         setenv ELSAPROD man_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         setenv OMP_NUM_THREADS 4
         set path=($path $CASSIOPEE/Dist/bin)
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
@@ -263,6 +267,7 @@ else if ($MAC == "mangrove") then
 else if ($MAC == "ubuntu") then
 #-------------------------------- ubuntu ------------------------------------
         setenv ELSAPROD ub_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         setenv OMP_NUM_THREADS 2
         # chemin de l'executable python
         set path=(/benoit/bin $path)
@@ -275,6 +280,7 @@ else if ($MAC == "ubuntu") then
 else if ($MAC == "fulvio") then
 #------------------------------- fulvio ---------------------------------------
         setenv ELSAPROD flv_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         foreach x (`(echo "" ; module -t list) | & grep intel`)
             module unload $x
         end
@@ -293,6 +299,7 @@ else if ($MAC == "fulvio") then
 else if ($MAC == "visio_python3") then
 #------------------------------- visio ---------------------------------------
         setenv ELSAPROD vis_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         foreach x (`(echo "" ; module -t list) | & grep intel`)
             module unload $x
         end
@@ -315,6 +322,7 @@ else if ($MAC == "visio_python3") then
 else if ($MAC == "visio") then
 #------------------------------- visio ---------------------------------------
         setenv ELSAPROD vis_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         module load subversion/1.7.6
         module load python/2.7.8
         foreach x (`(echo "" ; module -t list) | & grep intel`)
@@ -334,6 +342,7 @@ else if ($MAC == "visio") then
 else if ($MAC == "visung") then
 #------------------------------- visung ---------------------------------------
         setenv ELSAPROD visung_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         module purge
         module load subversion
         module load occt/7.6.1-gnu831
@@ -356,6 +365,7 @@ else if ($MAC == "visung") then
 else if ($MAC == "visung_el8") then
 #------------------------------- visung ---------------------------------------
         setenv ELSAPROD visung_el8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         module purge
         module load subversion
         module load python/3.7.4-intel2120
@@ -377,6 +387,7 @@ else if ($MAC == "visung_el8") then
 else if ($MAC == "austri") then
 #------------------------------- austri ---------------------------------------
         setenv ELSAPROD aus_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Nombre de threads
         setenv OMP_NUM_THREADS 24
         #setenv KMP_AFFINITY "verbose,granularity=fine,proclist=[0,2,4,6,8,10,12,14,16,18,20,22,1,3,5,7,9,11,13,15,17,19,21,23],explicit"
@@ -402,6 +413,7 @@ else if ($MAC == "austri") then
 else if ($MAC == "linux64") then
 #------------------------------- linux64 ---------------------------------------
         setenv ELSAPROD linux64
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Number of threads
         setenv OMP_NUM_THREADS 4
         # chemin de python
@@ -414,6 +426,7 @@ else if ($MAC == "linux64") then
 else if ($MAC == "moloch") then
 #------------------------------- moloch ---------------------------------------
         setenv ELSAPROD mol_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # modules
         module load python/2.6.4/11.mpt
         module load hdf5/1.8.8-intel-11
@@ -427,6 +440,7 @@ else if ($MAC == "moloch") then
 else if ($MAC == "giulia") then
 #------------------------------- giulia ---------------------------------------
         setenv ELSAPROD giu_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Nombre de threads
         set ncpu=`cat /proc/cpuinfo |grep processor |cut -f2 -d: |tail -1`
         @ ncpu++
@@ -449,6 +463,7 @@ else if ($MAC == "giulia") then
 else if ($MAC == "cobalt") then
 #------------------------------- cobalt ---------------------------------------
         setenv ELSAPROD cob_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Nombre de threads
         setenv OMP_NUM_THREADS 28
         # modules
@@ -468,6 +483,7 @@ else if ($MAC == "cobalt") then
 else if ($MAC == "tgcc_irene") then
 #------------------------------- irene ---------------------------------------
         setenv ELSAPROD irene_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Nombre de threads
         setenv OMP_NUM_THREADS 24
         # modules
@@ -484,6 +500,7 @@ else if ($MAC == "tgcc_irene") then
 else if ($MAC == "jean-zay") then
 #------------------------------- jean zay ------------------------------------
         setenv ELSAPROD jz_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         module load python/3.8.2
         module load gcc/9.1.0-cuda-openacc
         module load openmpi/4.1.1-cuda
@@ -501,6 +518,7 @@ else if ($MAC == "jean-zay") then
 else if ($MAC == "eos") then
 #-------------------------------- ld (centos6) -----------------------------------------
         ELSAPROD x86_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Modules
         foreach x (`(echo "" ; module -t list) | & grep intel`)
             module unload $x
@@ -531,6 +549,7 @@ else if ($MAC == "eos") then
 else if ($MAC == "xdaap") then
 #------------------------------- xdaap --------------------------------------
         setenv ELSAPROD xdaap_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Modules
         foreach x (`(echo "" ; module -t list) | & grep intel`)
             module unload $x
@@ -547,6 +566,7 @@ else if ($MAC == "xdaap") then
 else if ($MAC == "spiro") then
 #------------------------------- spiro --------------------------------------
         setenv ELSAPROD spiro_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Number of threads
         setenv OMP_NUM_THREADS 24
         foreach x (`(echo "" ; module -t list) | & grep intel`)
@@ -572,6 +592,7 @@ else if ($MAC == "spiro") then
 else if ($MAC == "spiro_sky") then
 #------------------------------- spiro --------------------------------------
         setenv ELSAPROD spiro_sky_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Number of threads
         setenv OMP_NUM_THREADS 24
         foreach x (`(echo "" ; module -t list) | & grep intel`)
@@ -594,6 +615,7 @@ else if ($MAC == "spiro_sky") then
 else if ($MAC == "spiro_cas") then
 #------------------------------- spiro --------------------------------------
         setenv ELSAPROD spiro_cas_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Number of threads
         setenv OMP_NUM_THREADS 24
         foreach x (`(echo "" ; module -t list) | & grep intel`)
@@ -616,6 +638,7 @@ else if ($MAC == "spiro_cas") then
 else if ($MAC == "topaze") then
 #------------------------------- topaze ccrt proc amd milan --------------------------------------
         setenv ELSAPROD topaze_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Number of threads
         foreach x (`(echo "" ; module -t list) | & grep intel`)
             module unload $x
@@ -637,6 +660,7 @@ else if ($MAC == "topaze") then
 else if ($MAC == "spiro_amdRM") then
 #------------------------------- spiro --------------------------------------
         setenv ELSAPROD spiro_amdrm_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Number of threads
         setenv OMP_NUM_THREADS 32
         foreach x (`(echo "" ; module -t list) | & grep intel`)
@@ -661,6 +685,7 @@ else if ($MAC == "spiro_amdRM") then
 else if ($MAC == "spiro_amdNP") then
 #------------------------------- spiro --------------------------------------
         setenv ELSAPROD spiro_amdnp_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Number of threads
         setenv OMP_NUM_THREADS 32
         foreach x (`(echo "" ; module -t list) | & grep intel`)
@@ -685,6 +710,7 @@ else if ($MAC == "spiro_amdNP") then
 else if ($MAC == "spiro_socle6") then
 #------------------------------- spiro --------------------------------------
         setenv ELSAPROD spiro_socle_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Number of threads
         setenv OMP_NUM_THREADS 24
         # Set next two lines only if python is not python
@@ -705,6 +731,7 @@ else if ($MAC == "spiro_socle6") then
 else if ($MAC == "spiro_sonics") then
 #------------------------------- spiro --------------------------------------
         setenv ELSAPROD linux64
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Number of threads
         setenv OMP_NUM_THREADS 24
         # Set next two lines only if python is not python
@@ -721,6 +748,7 @@ else if ($MAC == "spiro_sonics") then
 else if ($MAC == "spiro_python2") then
 #------------------------------- spiro --------------------------------------
         setenv ELSAPROD spiro_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         module load CFD/4.0-intel-17.impi
         # Number of threads
         setenv OMP_NUM_THREADS 24
@@ -732,6 +760,7 @@ else if ($MAC == "spiro_python2") then
 else if ($MAC == "spiro_anaconda") then
 #------------------------------- spiro --------------------------------------
         setenv ELSAPROD spiro_acda
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Number of threads
         setenv OMP_NUM_THREADS 24
         # Set next two lines only if python is not python
@@ -750,6 +779,7 @@ else if ($MAC == "spiro_anaconda") then
 else if ($MAC == "spiro_el8") then
 #------------------------------- spiro --------------------------------------
         setenv ELSAPROD spiro_el8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Number of threads
         setenv OMP_NUM_THREADS 24
         # Set next two lines only if python is not python
@@ -782,6 +812,7 @@ else if ($MAC == "spiro_el8") then
 else if ($MAC == "spiro_gcc") then
 #----------------------------- spiro -----------------------------------------
         setenv ELSAPROD spiro_gcc
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Nbre de threads
         setenv OMP_NUM_THREADS 24
         module purge
@@ -804,6 +835,7 @@ else if ($MAC == "spiro_gcc") then
 else if ($MAC == "spiro_coda") then
 #------------------------------- spiro --------------------------------------
         setenv ELSAPROD spiro_coda
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Number of threads
         setenv OMP_NUM_THREADS 24
         setenv PYTHONEXE python3
@@ -818,6 +850,7 @@ else if ($MAC == "spiro_coda") then
 else if ($MAC == "spiro_pgi") then
 #------------------------------- spiro --------------------------------------
         setenv ELSAPROD spiro_pgi
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Number of threads
         setenv OMP_NUM_THREADS 24
         # Set next two lines only if python is not python
@@ -839,6 +872,7 @@ else if ($MAC == "spiro_pgi") then
 else if ($MAC == "juno") then
 #------------------------------- juno --------------------------------------
         setenv ELSAPROD juno
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Number of threads
         setenv OMP_NUM_THREADS 48
         source /etc/profile.d/modules-onera.csh
@@ -870,6 +904,7 @@ else if ($MAC == "juno") then
 else if ($MAC == "juno_gcc") then
 #----------------------------- juno -----------------------------------------
         setenv ELSAPROD juno_gcc
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Nbre de threads
         setenv OMP_NUM_THREADS 48
         source /etc/profile.d/modules-onera.csh
@@ -899,6 +934,7 @@ else if ($MAC == "juno_gcc") then
 else if ($MAC == "juno_coda") then
 #------------------------------- juno --------------------------------------
         setenv ELSAPROD juno_coda
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Number of threads
         setenv OMP_NUM_THREADS 48
         setenv PYTHONEXE python3
@@ -913,9 +949,7 @@ else if ($MAC == "juno_coda") then
 else if ($MAC == "sator_brw") then
 #------------------------------- sator for broadwell ----------------------------------
         setenv ELSAPROD sat_r8
-
-        echo "Pour compiler sur skylake, setenv MACHINE sator_sky, puis sourcer env_Cassiopee_r8"
-
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         module purge
         module load python/3.7.4-intel2120
         module load hdf5/1.10.5-intel2120-impi
@@ -940,6 +974,7 @@ else if ($MAC == "sator_brw") then
 else if ($MAC == "sator_sky") then
 #------------------------------- sator for skylake ------------------------------------
         setenv ELSAPROD sat_sky_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         module purge
         #module load socle-cfd/5.0-intel2120-impi
         module load python/3.7.4-intel2120
@@ -961,6 +996,7 @@ else if ($MAC == "sator_sky") then
 else if ($MAC == "sator_cas") then
 #------------------------------- sator for cascade ------------------------------------
         setenv ELSAPROD sat_cas_r8
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
         module purge
         #module load socle-cfd/5.0-intel2120-impi
         module load python/3.7.4-intel2120

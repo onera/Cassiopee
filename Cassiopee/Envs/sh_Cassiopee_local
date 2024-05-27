@@ -61,7 +61,8 @@ fi
 
 if [ "$MAC" = "ld_eos8" ]; then
 #------------------------------- ld centos 8 + python 3 -----------------------------------
-    export ELSAPROD=eos8_r8$INTTYPE
+    export ELSAPROD=eos8_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     #module unload $(module -t list 2>&1 | grep -i intel)
     #module purge
     module unload intel/19.0.5
@@ -88,7 +89,8 @@ if [ "$MAC" = "ld_eos8" ]; then
 
 elif [ "$MAC" = "ld" ]; then
 #------------------------------- ld centos 8 + python 3 -----------------------------------
-    export ELSAPROD=ld$INTTYPE
+    export ELSAPROD=ld
+    export ELSAPROD=$ELSAPROD$INTTYPE
     module purge
     module load occt/7.6.1-gnu831
     module load python/3.8.14-gnu831
@@ -112,7 +114,8 @@ elif [ "$MAC" = "ld" ]; then
 
 elif [ "$MAC" = "ld_python2" ]; then
 #------------------------------- ld centos 7 -----------------------------------
-    export ELSAPROD=x86_r8$INTTYPE
+    export ELSAPROD=x86_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     module unload $(module -t list 2>&1 | grep -i intel)
     module load python/2.7.8
     module load intel/17.0.4
@@ -134,7 +137,8 @@ elif [ "$MAC" = "ld_python2" ]; then
 
 elif [ "$MAC" = "eos" ]; then
 #------------------------------- eos -----------------------------------
-    export ELSAPROD=x86_r8$INTTYPE
+    export ELSAPROD=x86_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     module unload $(module -t list 2>&1 | grep -i intel)
     module load python/2.7.8
     module load intel/17.0.4
@@ -156,7 +160,8 @@ elif [ "$MAC" = "eos" ]; then
 
 elif [ "$MAC" = "macosx" ]; then
 #----------------------------- Mac OSX-----------------------------------------
-    export ELSAPROD=macosx_r8$INTTYPE
+    export ELSAPROD=macosx
+    export ELSAPROD=$ELSAPROD$INTTYPE
     export OMP_NUM_THREADS=2
     export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$PATH
     export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/opt/intel/composer_xe_2015/lib
@@ -165,14 +170,10 @@ elif [ "$MAC" = "macosx" ]; then
     export PYTHONPATHL=$CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
     export DYLD_LIBRARY_PATH=$LD_LIBRARY_PATHL
 
-elif [ "$MAC" = "sgi" ]; then
-#-------------------------------- SGI -----------------------------------------
-    export ELSAPROD=sgi_r8$INTTYPE
-    export LD_LIBRARY_PATHL=/tools/py/tmp/local/lib/
-
 elif [ "$MAC" = "mangrove" ]; then
 #-------------------------------- mangrove -------------------------------------
-    export ELSAPROD=man_r8$INTTYPE
+    export ELSAPROD=man_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     export OMP_NUM_THREADS=4
     export PATH=$PATH:$CASSIOPEE/Dist/bin
     export PATH=$CASSIOPEE/Dist/bin/$ELSAPROD:$CASSIOPEE/Dist/bin/$ELSAPROD/bin:$PATH
@@ -181,7 +182,8 @@ elif [ "$MAC" = "mangrove" ]; then
 
 elif [ "$MAC" = "ubuntu" ]; then
 #-------------------------------- ubuntu --------------------------------------
-    export ELSAPROD=ub_r8$INTTYPE
+    export ELSAPROD=ub_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     export OMP_NUM_THREADS=2
     export PATH=$PATH:$CASSIOPEE/Dist/bin
     export PATH=$CASSIOPEE/Dist/bin/$ELSAPROD:$CASSIOPEE/Dist/bin/$ELSAPROD/bin:$PATH
@@ -190,7 +192,8 @@ elif [ "$MAC" = "ubuntu" ]; then
 
 elif [ "$MAC" = "fulvio" ]; then
 #----------------------------- fulvio -----------------------------------------
-    export ELSAPROD=flv_r8$INTTYPE
+    export ELSAPROD=flv_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     module unload $(module -t list 2>&1 | grep -i intel)
     module load gcc/4.8.1
     module load intel/15.0.6
@@ -206,7 +209,8 @@ elif [ "$MAC" = "fulvio" ]; then
 
 elif [ "$MAC" = "visio" ]; then
 #----------------------------- visio -----------------------------------------
-    export ELSAPROD=vis_r8$INTTYPE
+    export ELSAPROD=vis_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     . /etc/profile.d/modules-dri.sh
     module load subversion/1.7.6
     module load python/2.7.8
@@ -223,7 +227,8 @@ elif [ "$MAC" = "visio" ]; then
 
 elif [ "$MAC" = "spiro_gcc" ]; then
 #----------------------------- spiro -----------------------------------------
-    export ELSAPROD=spiro_gcc$INTTYPE
+    export ELSAPROD=spiro_gcc
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=24
     module purge
@@ -245,7 +250,8 @@ elif [ "$MAC" = "spiro_gcc" ]; then
 
 elif [ "$MAC" = "visung" ]; then
 #----------------------------- visung -----------------------------------------
-    export ELSAPROD=visung_r8$INTTYPE
+    export ELSAPROD=visung_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     . /etc/profile.d/modules-onera.sh
     module purge
     module load subversion
@@ -267,7 +273,8 @@ elif [ "$MAC" = "visung" ]; then
 
 elif [ "$MAC" = "visung_el8" ]; then
 #----------------------------- visung -----------------------------------------
-    export ELSAPROD=visung_el8$INTTYPE
+    export ELSAPROD=visung_el8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     #. /etc/profile.d/modules-dri.sh
     module purge
     module load subversion
@@ -288,7 +295,8 @@ elif [ "$MAC" = "visung_el8" ]; then
 
 elif [ "$MAC" = "austri" ]; then
 #----------------------------- austri -----------------------------------------
-    export ELSAPROD=aus_r8$INTTYPE
+    export ELSAPROD=aus_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=24
     export KMP_AFFINITY="verbose,granularity=fine,proclist=[0,2,4,6,8,10,12,14,16,18,20,22,1,3,5,7,9,11,13,15,17,19,21,23],explicit"
@@ -309,7 +317,8 @@ elif [ "$MAC" = "austri" ]; then
 
 elif [ "$MAC" = "moloch" ]; then
 #----------------------------- moloch -----------------------------------------
-    export ELSAPROD=mol_r8$INTTYPE
+    export ELSAPROD=mol_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=12
     # modules
@@ -324,7 +333,8 @@ elif [ "$MAC" = "moloch" ]; then
 
 elif [ "$MAC" = "giulia" ]; then
 #----------------------------- giulia -----------------------------------------
-    export ELSAPROD=giu_r8$INTTYPE
+    export ELSAPROD=giu_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     ncpu=$(grep processor /proc/cpuinfo |tail -1 |cut -f2 -d: )
     ncpu=$((ncpu + 1 ))
@@ -351,7 +361,8 @@ elif [ "$MAC" = "giulia" ]; then
 
 elif [ "$MAC" = "cobalt" ]; then
 #-------------------------------- cobalt -----------------------------------------
-    export ELSAPROD=cob_r8$INTTYPE
+    export ELSAPROD=cob_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=28
 
@@ -372,7 +383,8 @@ elif [ "$MAC" = "cobalt" ]; then
 
 elif [ "$MAC" = "tgcc_irene" ]; then
 #-------------------------------- irene -----------------------------------------
-    export ELSAPROD=irene_r8$INTTYPE
+    export ELSAPROD=irene_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=24
     echo 'TGCC_IRENE SH_CASSIOPEE_LOCAL _v2'
@@ -392,7 +404,8 @@ elif [ "$MAC" = "tgcc_irene" ]; then
 
 elif [ "$MAC" = "jean-zay" ]; then
 #-------------------------------- jean-zay -----------------------------------------
-    export ELSAPROD=jz_r8$INTTYPE
+    export ELSAPROD=jz_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     module load python/3.8.2
     module load gcc/9.1.0-cuda-openacc
     module load openmpi/4.1.1-cuda
@@ -409,7 +422,8 @@ elif [ "$MAC" = "jean-zay" ]; then
 
 elif [ "$MAC" = "xdaap" ]; then
 #----------------------------- xdaap -----------------------------------------
-    export ELSAPROD=xdaap_r8$INTTYPE
+    export ELSAPROD=xdaap_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     . /etc/profile.d/modules-dri.sh
     module unload $(module -t list 2>&1 | grep -i intel)
     module load gcc/5.2
@@ -426,7 +440,8 @@ elif [ "$MAC" = "xdaap" ]; then
 
 elif [ "$MAC" = "spiro" ]; then
 #----------------------------- spiro -----------------------------------------
-    export ELSAPROD=spiro_r8$INTTYPE
+    export ELSAPROD=spiro_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=24
     # modules
@@ -450,7 +465,8 @@ elif [ "$MAC" = "spiro" ]; then
 
 elif [ "$MAC" = "spiro_sky" ]; then
 #----------------------------- spiro -----------------------------------------
-    export ELSAPROD=spiro_sky_r8$INTTYPE
+    export ELSAPROD=spiro_sky_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=24
     # modules
@@ -473,7 +489,8 @@ elif [ "$MAC" = "spiro_sky" ]; then
 
 elif [ "$MAC" = "spiro_cas" ]; then
 #----------------------------- spiro -----------------------------------------
-    export ELSAPROD=spiro_cas_r8$INTTYPE
+    export ELSAPROD=spiro_cas_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=24
     # modules
@@ -496,7 +513,8 @@ elif [ "$MAC" = "spiro_cas" ]; then
 
 elif [ "$MAC" = "spiro_amdRM" ]; then
 #----------------------------- spiro -----------------------------------------
-    export ELSAPROD=spiro_amdrm_r8$INTTYPE
+    export ELSAPROD=spiro_amdrm_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=32
     # modules
@@ -520,7 +538,8 @@ elif [ "$MAC" = "spiro_amdRM" ]; then
 
 elif [ "$MAC" = "spiro_amdNP" ]; then
 #----------------------------- spiro -----------------------------------------
-    export ELSAPROD=spiro_amdnp_r8$INTTYPE
+    export ELSAPROD=spiro_amdnp_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=32
     # modules
@@ -544,7 +563,8 @@ elif [ "$MAC" = "spiro_amdNP" ]; then
 
 elif [ "$MAC" = "spiro_socle6" ]; then
 #----------------------------- spiro -----------------------------------------
-    export ELSAPROD=spiro_socle_r8$INTTYPE
+    export ELSAPROD=spiro_socle_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=24
     # modules
@@ -564,7 +584,8 @@ elif [ "$MAC" = "spiro_socle6" ]; then
 
 elif [ "$MAC" = "spiro_sonics" ]; then
 #----------------------------- spiro sonics -----------------------------------------
-    export ELSAPROD=linux64$INTTYPE
+    export ELSAPROD=linux64
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=24
     # modules
@@ -583,7 +604,8 @@ elif [ "$MAC" = "spiro_sonics" ]; then
 
 elif [ "$MAC" = "spiro_python2" ]; then
 #----------------------------- spiro -----------------------------------------
-    export ELSAPROD=spiro_r8$INTTYPE
+    export ELSAPROD=spiro_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=24
     # modules
@@ -602,7 +624,8 @@ elif [ "$MAC" = "spiro_python2" ]; then
 
 elif [ "$MAC" = "spiro_anaconda" ]; then
 #----------------------------- spiro -----------------------------------------
-    export ELSAPROD=spiro_acda$INTTYPE
+    export ELSAPROD=spiro_acda
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=24
     # modules
@@ -626,7 +649,8 @@ elif [ "$MAC" = "spiro_anaconda" ]; then
 
 elif [ "$MAC" = "spiro_el8" ]; then
 #----------------------------- spiro -----------------------------------------
-    export ELSAPROD=spiro_el8$INTTYPE
+    export ELSAPROD=spiro_el8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=24
     # modules
@@ -658,7 +682,8 @@ elif [ "$MAC" = "spiro_el8" ]; then
 
 elif [ "$MAC" = "spiro_intel" ]; then
 #----------------------------- spiro -----------------------------------------
-    export ELSAPROD=spiro_intel$INTTYPE
+    export ELSAPROD=spiro_intel
+    export ELSAPROD=$ELSAPROD$INTTYPE
     echo $ELSAPROD
     # Nbre de threads
     export OMP_NUM_THREADS=24
@@ -677,7 +702,8 @@ elif [ "$MAC" = "spiro_intel" ]; then
 
 elif [ "$MAC" = "spiro_coda" ]; then
 #----------------------------- spiro -----------------------------------------
-    export ELSAPROD=spiro_coda$INTTYPE
+    export ELSAPROD=spiro_coda
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=24
     # modules
@@ -695,7 +721,8 @@ elif [ "$MAC" = "spiro_coda" ]; then
 
 elif [ "$MAC" = "spiro_arm" ]; then
 #----------------------------- spiro -----------------------------------------
-    export ELSAPROD=spiro_arm$INTTYPE
+    export ELSAPROD=spiro_arm
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=56
     export PYTHONEXE=python3
@@ -708,7 +735,8 @@ elif [ "$MAC" = "spiro_arm" ]; then
 
 elif [ "$MAC" = "spiro_pgi" ]; then
 #----------------------------- spiro -----------------------------------------
-    export ELSAPROD=spiro_pgi$INTTYPE
+    export ELSAPROD=spiro_pgi
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=24
     export PYTHONEXE=python3
@@ -725,7 +753,8 @@ elif [ "$MAC" = "spiro_pgi" ]; then
 
 elif [ "$MAC" = "juno" ]; then
 #----------------------------- juno -----------------------------------------
-    export ELSAPROD=juno$INTTYPE
+    export ELSAPROD=juno
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=48
     # modules
@@ -757,7 +786,8 @@ elif [ "$MAC" = "juno" ]; then
 
 elif [ "$MAC" = "juno_gcc" ]; then
 #----------------------------- juno -----------------------------------------
-    export ELSAPROD=juno_gcc$INTTYPE
+    export ELSAPROD=juno_gcc
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=48
     # modules
@@ -791,7 +821,8 @@ elif [ "$MAC" = "juno_gcc" ]; then
 
 elif [ "$MAC" = "juno_coda" ]; then
 #----------------------------- juno -----------------------------------------
-    export ELSAPROD=juno_coda$INTTYPE
+    export ELSAPROD=juno_coda
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=48
     # modules
@@ -809,11 +840,8 @@ elif [ "$MAC" = "juno_coda" ]; then
 
 elif [ "$MAC" = "sator_brw" ]; then
 #----------------------------- sator for broadwell -----------------------------------------
-    echo 'SATOR - BROADWELL PARTITION'
-    export ELSAPROD=sat_r8$INTTYPE
-
-    echo "Pour compiler sur skylake, export MACHINE=sator_sky, puis sourcer sh_Cassiopee_r8"
-
+    export ELSAPROD=sat_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     . /etc/profile.d/module.sh
     module purge
     module load python/3.7.4-intel2120
@@ -843,8 +871,8 @@ elif [ "$MAC" = "sator_brw" ]; then
 
 elif [ "$MAC" = "topaze" ]; then
 #----------------------------- topaze ccrt proc amd milan ---------------------------------------
-    echo 'topaze - Milan PARTITION'
-    export ELSAPROD=topaze_r8$INTTYPE
+    export ELSAPROD=topaze_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     . /etc/profile.d/module.sh
     module purge
     module load intel/20 mpi/openmpi/4 flavor/hdf5/parallel hdf5/1.8.20
@@ -868,8 +896,8 @@ elif [ "$MAC" = "topaze" ]; then
 
 elif [ "$MAC" = "sator_sky" ]; then
 #----------------------------- sator skylake ---------------------------------------
-    echo 'SATOR - SKYLAKE PARTITION'
-    export ELSAPROD=sat_sky_r8$INTTYPE
+    export ELSAPROD=sat_sky_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     . /etc/profile.d/module.sh
     module purge
     #module load socle-cfd/5.0-intel2120-impi
@@ -893,8 +921,8 @@ elif [ "$MAC" = "sator_sky" ]; then
 
 elif [ "$MAC" = "sator_cas" ]; then
     #----------------------------- sator for cascade ---------------------------------------
-    echo 'SATOR - CASCADE PARTITION'
-    export ELSAPROD=sat_cas_r8$INTTYPE
+    export ELSAPROD=sat_cas_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=48
     export KMP_AFFINITY="compact,1,0,granularity=fine,verbose"
@@ -921,7 +949,8 @@ elif [ "$MAC" = "sator_cas" ]; then
 
 elif [ "$MAC" = "jean-zay" ]; then
 #-----------------------------jean-zay IDRIS  ---------------------------------------
-    export ELSAPROD=jz_r8$INTTYPE
+    export ELSAPROD=jz_r8
+    export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=40
     export KMP_AFFINITY="compact,1,0,granularity=fine,verbose"
@@ -944,7 +973,9 @@ elif [ "$MAC" = "jean-zay" ]; then
 
 elif [ "$MAC" = "aryen" ]; then
 #----------------------------- Aryen msys2  ---------------------------------------
-    export ELSAPROD=win64$INTTYPE
+    export ELSAPROD=win64
+    export ELSAPROD=$ELSAPROD$INTTYPE
+    
     # Nbre de threads
     export OMP_NUM_THREADS=2
 
