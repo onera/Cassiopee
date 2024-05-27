@@ -2,6 +2,7 @@
 build
 __pycache__
 *.egg-info
+core.*
 setup.cfg
 Dist
 Cassiopee/KCore/merge.l
