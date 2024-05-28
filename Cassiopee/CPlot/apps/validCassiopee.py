@@ -197,9 +197,10 @@ def checkEnvironment():
           print('Error: CASSIOPEE must be present in your environment.')
           sys.exit()
   
-  if os.path.join(CASSIOPEE, "Cassiopee") != getInstallPaths()[0]:
-      print("Error: Path mismatch between $CASSIOPEE and KCore/installPath")
-      sys.exit()
+  # Cannot work because of symbolic links to prods on juno
+  #if os.path.join(CASSIOPEE, "Cassiopee") != getInstallPaths()[0]:
+  #    print("Error: Path mismatch between $CASSIOPEE and KCore/installPath")
+  #    sys.exit()
 
 #==============================================================================
 # Simulate check_output since it doesn't existe for early version of python
@@ -382,7 +383,6 @@ def getModules():
     if VALIDGLOBAL is None:
         # The local base is used
         cassiopeeIncDir, fastIncDir, pmodulesIncDir = getInstallPaths()
-        print(cassiopeeIncDir, fastIncDir, pmodulesIncDir)
     else:
         # The global base is used
         parentDirname = os.path.dirname(CASSIOPEE)
@@ -1631,12 +1631,14 @@ def untagSelection(event=None):
 def setupLocal(**kwargs):
     global VALIDLOCAL, VALIDGLOBAL, CASSIOPEE
     # Change to local ref
+    print('Switching to local database')
     CASSIOPEE = os.getenv('CASSIOPEE')
-    os.environ['VALIDLOCAL'] = os.getcwd()
+    os.environ['VALIDLOCAL'] = '.'
     VALIDLOCAL = os.path.join(CASSIOPEE, "Cassiopee", "Valid{}".format(DATA))
     if not os.access(VALIDLOCAL, os.W_OK):
         VALIDLOCAL = os.path.join(os.getcwd(), "Valid{}".format(DATA))
-        os.mkdir(VALIDLOCAL)
+        if not os.path.isdir(VALIDLOCAL): os.mkdir(VALIDLOCAL)
+        os.environ['VALIDLOCAL'] = VALIDLOCAL
     VALIDGLOBAL = None
     
     if INTERACTIVE: WIDGETS['UpdateButton'].configure(state=TK.NORMAL)
@@ -1646,11 +1648,12 @@ def setupLocal(**kwargs):
 def setupGlobal(**kwargs):
     global VALIDLOCAL, VALIDGLOBAL, CASSIOPEE
     # Change to global ref
+    print('Switching to global database')
     CASSIOPEE = '/stck/cassiope/git/Cassiopee'
     VALIDLOCAL = os.path.join(os.getenv('CASSIOPEE'), 'Cassiopee', 'Valid{}'.format(DATA))
     if not os.access(VALIDLOCAL, os.W_OK):
         VALIDLOCAL = os.path.join(os.getcwd(), "Valid{}".format(DATA))
-        os.mkdir(VALIDLOCAL)
+        if not os.path.isdir(VALIDLOCAL): os.mkdir(VALIDLOCAL)
     os.environ['VALIDLOCAL'] = VALIDLOCAL
     VALIDGLOBAL = os.path.join(CASSIOPEE, 'Cassiopee', 'Valid{}'.format(DATA))
     
