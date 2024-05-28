@@ -17,6 +17,9 @@ def parseArgs():
                         help="Single-quoted logs to compare.")
     parser.add_argument("-s", "--status", type=int, default=0,
                         help="Installation status: 0: OK, 1: FAIL.")
+    parser.add_argument("-n", "--no-comparison", action="store_true",
+                        dest="no_comp",
+                        help="Check the installation status only.")
     # Parse arguments
     return parser.parse_args()
 
@@ -61,7 +64,7 @@ def getLogDirName(filename):
 
 # Get the name of the prod from a session log
 def getProd(filename):
-  prod = getLogDirName(filename)[10:]
+  prod = os.path.basename(os.path.dirname(filename))[10:]
   if prod == "": prod = "juno"
   elif prod == "i8" or any(prod.startswith(s) for s in ["gcc", "coda"]):
     prod = "juno_"+prod
@@ -131,6 +134,17 @@ def notify(sender=None, recipients=[], messageSubject="", messageText=""):
 if __name__ == '__main__':
   script_args = parseArgs()
   script_args.logs = script_args.logs.split(' ')
+
+  # Check install status only
+  if script_args.no_comp:
+    prod = getProd(script_args.logs[0])
+    baseState = 'FAILED' if script_args.status == 1 else 'OK'
+    messageText = "Installation {} for prod '{}'"
+    notify(messageSubject="[validCassiopee - {}] "
+             "State: {}".format(prod, baseState),
+             messageText=messageText.format(baseState, prod))
+    sys.exit(0)
+
   if len(script_args.logs) != 2:
     raise Exception("Two session logs must be provided using the flag -l "
                     "or --logs")
