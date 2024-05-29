@@ -2066,7 +2066,7 @@ class IBM(Common):
                             if Generator.bboxIntersection(interpPtsBB, bba, isBB=True):
                                 zname = z[0]
                                 popp  = Cmpi.getProc(z)
-                                if self.NP>1:
+                                if self.NP > 1:
                                     Distributed.updateGraph__(graph, popp, self.rank, zname)
                                 
                                 if zrname not in interDictIBM: interDictIBM[zrname]=[zname]
@@ -2086,14 +2086,16 @@ class IBM(Common):
                                     if Generator.bboxIntersection(interpPtsBB2,bba,isBB=True):
                                         zname = z[0]
                                         popp  = Cmpi.getProc(z)
-                                        if self.NP>1:
+                                        if self.NP > 1:
                                             Distributed.updateGraph__(graph, popp, self.rank, zname)
                                         if zrname not in interDictIBM2: interDictIBM2[zrname]=[zname]
                                         else:
                                             if zname not in interDictIBM2[zrname]: interDictIBM2[zrname].append(zname)
         else: graph={}
 
-        allGraph = KCOMM.allgather(graph)
+        if KCOMM is not None: allGraph = KCOMM.allgather(graph)
+        else: allGraph = [graph]
+
         graph = {}
         for i in allGraph:
             for k in i:

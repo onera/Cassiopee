@@ -883,7 +883,8 @@ def extendBBox__(tbb, hloc):
     return tbb
 
 def allGatherGraph__(graph):
-    g = Cmpi.KCOMM.allgather(graph)
+    if Cmpi.KCOMM is not None: g = Cmpi.KCOMM.allgather(graph)
+    else: g = [graph]
     graph = {}
     for i in g:
         for k in i:

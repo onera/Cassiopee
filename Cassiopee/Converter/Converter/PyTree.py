@@ -3619,12 +3619,12 @@ def _addBC2Zone(a, bndName, bndType, wrange=[],
 
 # -- Ajout Infos peridiques pour les BC match periodiques
 def _addPeriodicInfoInGC__(info, rotationCenter, rotationAngle, translation, unitAngle=None):
-  if rotationCenter != [] or rotationAngle != [] or translation != []:
-    if rotationCenter == []: rotCenter = (0,0,0)
+  if len(rotationCenter) != 0 or len(rotationAngle) != 0 or len(translation) != 0:
+    if len(rotationCenter) == 0: rotCenter = (0,0,0)
     else: rotCenter = rotationCenter
-    if rotationAngle == []: rotAngle = (0,0,0)
+    if len(rotationAngle) == 0: rotAngle = (0,0,0)
     else: rotAngle = rotationAngle
-    if translation == []: trans = (0,0,0)
+    if len(translation) == 0: trans = (0,0,0)
     else: trans = translation
 
     info[2].append(['GridConnectivityProperty', None, [], 'GridConnectivityProperty_t'])
@@ -3758,7 +3758,7 @@ def _addBC2StructZone__(z, bndName, bndType, wrange=[], faceList=[],
   if bndType1 == 'BCMatch' or bndType1 == 'Abutting1to1':
     if typeR == 0 and rangeDonor == [] and trirac == []:
       raise ValueError("addBC2Zone: match connectivity requires a donor point range and a trirac.")
-    elif typeR == 1 and faceListDonor == []:
+    elif typeR == 1 and len(faceListDonor) == 0:
       raise ValueError("addBC2Zone: match connectivity requires a donor face list.")
 
     if zoneDonor == []:

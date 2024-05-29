@@ -1463,21 +1463,25 @@ def export2Text():
 # Functions returning the names of the remote repo & branch and the commit hash
 #==============================================================================    
 def getGitOrigin(cassiopeeIncDir):
-    cmd = "cd {}; git config --get remote.origin.url 2>/dev/null".format(
-        cassiopeeIncDir)
-    origin = subprocess.check_output(cmd, shell=True)
-    return origin.decode('utf-8', 'ignore').strip()
-    
+    cmd = "cd {}; git config --get remote.origin.url 2>/dev/null".format(cassiopeeIncDir)
+    try:
+        origin = subprocess.check_output(cmd, shell=True)
+        return origin.decode('utf-8', 'ignore').strip()
+    except: return "unknown"
+
 def getGitBranch(cassiopeeIncDir):
-    cmd = "cd {}; git rev-parse --abbrev-ref HEAD 2>/dev/null".format(
-        cassiopeeIncDir)
-    branchName = subprocess.check_output(cmd, shell=True)
-    return branchName.decode('utf-8', 'ignore').strip()
-    
+    cmd = "cd {}; git rev-parse --abbrev-ref HEAD 2>/dev/null".format(cassiopeeIncDir)
+    try:
+        branchName = subprocess.check_output(cmd, shell=True)
+        return branchName.decode('utf-8', 'ignore').strip()
+    except: return "unknown"
+
 def getGitHash(cassiopeeIncDir):
     cmd = "cd {}; git rev-parse --short HEAD 2>/dev/null".format(cassiopeeIncDir)
-    sha = subprocess.check_output(cmd, shell=True)
-    return sha.decode('utf-8', 'ignore').strip()
+    try:
+        sha = subprocess.check_output(cmd, shell=True)
+        return sha.decode('utf-8', 'ignore').strip()
+    except: return "unknown"
     
 #==============================================================================
 # writeSessionLog: write log and baseTime

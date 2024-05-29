@@ -82,17 +82,17 @@ False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
-'WDAAA878Z': [ 'Windows win64+msys2 (SL-Onera)',
+'WDAAA161Z': [ 'Windows win64+msys2 (CB-Onera)',
 'gfortran', # f77compiler
 'gfortran', # f90compiler
 'gcc', # Cppcompiler
 ['-Wno-attributes', '-fcommon'], # CppAdditionalOptions
 [], # f77AdditionalOptions
-False, # useOMP
+True, # useOMP
 False, # static
-['c:/msys64/mingw64/include', 'c:/msys64/mingw64/include/OpenBLAS'], # additionalIncludePaths
+["c:/Users/benoit/msys64/mingw64/include"], # additionalIncludePaths
 ['gomp', 'gfortran'], # additionalLibs
-['c:/msys64/mingw64/lib'], # additionalLibPaths
+["c:/Users/benoit/msys64/mingw64/lib"], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],

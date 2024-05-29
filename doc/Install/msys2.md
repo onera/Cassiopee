@@ -8,6 +8,7 @@ Install it
 In an msys2 mingw64 terminal:
 
     pacman -S mingw64/mingw-w64-x86_64-gcc
+    pacman -S mingw64/mingw-w64-x86_64-gcc-fortran
     pacman -S mingw64/mingw-w64-x86_64-python
     pacman -S mingw64/mingw-w64-x86_64-python-numpy
     pacman -S mingw64/mingw-w64-x86_64-scons

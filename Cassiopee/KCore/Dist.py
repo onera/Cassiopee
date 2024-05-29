@@ -1516,7 +1516,7 @@ def checkHdf(additionalLibPaths=[], additionalIncludePaths=[]):
         print('Info: hdf5.h was not found on your system. No hdf5 support.')
         return (False, i, l, libnames)
     else:
-        print('Info: libhdf5 or hdf5.h was not found on your system. No hdf5 support.')
+        print('Info: libhdf5 and hdf5.h was not found on your system. No hdf5 support.')
         return (False, i, l, libnames)
 
 #=============================================================================

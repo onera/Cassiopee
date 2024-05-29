@@ -899,8 +899,9 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
                                     else:
                                         if zname not in interDictIBM2[zrname]: interDictIBM2[zrname].append(zname)
     else: graph={}
-    allGraph = Cmpi.KCOMM.allgather(graph)
-
+    if Cmpi.KCOMM is not None: allGraph = Cmpi.KCOMM.allgather(graph)
+    else: allGraph = [graph]
+    
     graph = {}
     for i in allGraph:
         for k in i:

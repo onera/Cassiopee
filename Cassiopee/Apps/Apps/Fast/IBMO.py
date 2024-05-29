@@ -882,8 +882,9 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
     else: graph={}
     del tbbc_cart
     del tbbc
-    allGraph = Cmpi.KCOMM.allgather(graph)
-    #if rank == 0: print allGraph
+    if Cmpi.KCOMM is not None: allGraph = Cmpi.KCOMM.allgather(graph)
+    else: allGraph = [graph]
+    #if rank == 0: print(allGraph)
 
     graph = {}
     for i in allGraph:

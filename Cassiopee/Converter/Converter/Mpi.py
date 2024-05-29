@@ -23,6 +23,7 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         def allgather(a): return [a]
         def allgatherZones(a, root=0): return a
         def allgatherTree(a): return a
+        def allgatherDict(a): return a
         def send(a, dest=0, tag=0): return None
         def recv(source=0, tag=0): return None # pb here
         def sendRecv(a, source=0, dest=0): return []
@@ -36,8 +37,16 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         def convertPyTree2File(t, fileName, format=None, links=[], ignoreProcNodes=False, merge=True): return C.convertPyTree2File(t, fileName, format, links)
         def addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True, keepOldNodes=True, zoneGC=True): return Internal.copyRef(t)
         def _addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True, keepOldNodes=True, zoneGC=True): return None
+        def _addLXZones(t, graph, variables=None, cartesian=False, interDict=[], bboxDict={}, layers=2, subr=True): return None
+        def _addBXZones(a, depth=2, allB=False): return None
         def rmXZones(t): return Internal.copyRef(t)
         def _rmXZones(t): return None
+        def _rmBXZones(t): return None
+        def createBboxDict(t):
+            import Generator.PyTree as G
+            bboxDict = {}
+            for z in Internal.getZones(t): bboxDict[z[0]] = G.bbox(z) 
+            return bboxDict
         #print("Warning: Converter:Mpi: Sequential behaviour is forced by MPIRUN=0.")
  
 else: # try import (may fail - core or hang)
@@ -55,6 +64,7 @@ else: # try import (may fail - core or hang)
         def allgather(a): return [a]
         def allgatherZones(a, root=0): return a
         def allgatherTree(a): return a
+        def allgatherDict(a): return a
         def send(a, dest=0, tag=0): return None
         def recv(source=0, tag=0): return None # pb here
         def sendRecv(a, source=0, dest=0): return []
@@ -68,8 +78,16 @@ else: # try import (may fail - core or hang)
         def convertPyTree2File(t, fileName, format=None, links=[], ignoreProcNodes=False, merge=True): return C.convertPyTree2File(t, fileName, format, links)
         def addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True, keepOldNodes=True, zoneGC=True): return Internal.copyRef(t)
         def _addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True, keepOldNodes=True, zoneGC=True): return None
+        def _addLXZones(t, graph, variables=None, cartesian=False, interDict=[], bboxDict={}, layers=2, subr=True): return None
+        def _addBXZones(a, depth=2, allB=False): return None
         def rmXZones(t): return Internal.copyRef(t)
         def _rmXZones(t): return None
+        def _rmBXZones(t): return None
+        def createBboxDict(t):
+            import Generator.PyTree as G
+            bboxDict = {}
+            for z in Internal.getZones(t): bboxDict[z[0]] = G.bbox(z) 
+            return bboxDict
         print("Warning: Converter:Mpi: mpi4py is not available. Sequential behaviour.")
 
 # Previous times for CPU time measures (trace)

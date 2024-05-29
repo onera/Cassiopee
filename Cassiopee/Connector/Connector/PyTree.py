@@ -518,7 +518,7 @@ def connectMatchPeriodicNGON__(a, rotationCenter, rotationAngle, translation, to
         id2 = numpy.empty(id1.size, dtype=Internal.E_NpyInt)
         id2[:] = indicesF[id1[:]-1]
         C.freeHook(hook)
-        if id2 != []:
+        if id2.size != 0:
             allExtIndices.append(id2)
             C._initVars(sel,'centers:tag1',-1.) # defines the opposite window
             C._initVars(sel,'centers:tag2',-1.) # defines the opp index in opp window
