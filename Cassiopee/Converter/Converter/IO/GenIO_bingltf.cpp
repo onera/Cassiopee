@@ -43,7 +43,8 @@ static void readAccessor(std::vector<float>& data, const cgltf_accessor* accesso
 void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField, 
   std::vector<FldArrayI*>& connect, std::vector<E_Int>& eltType)
 {
-   E_Int blockId = 0; 
+  cgltf_float lm[4*4];
+  E_Int blockId = 0;
   // Pour tous les maillages
   for (size_t ni = 0; ni < data->nodes_count; ++ni)
   {
@@ -55,6 +56,13 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
     //int mesh_id = int(&mesh - data->meshes);
     int coordCreated = false;
     
+    // transformation
+    lm[ 0] = 1.; lm[ 1] = 0.; lm[ 2] = 0.; lm[ 3] = 0.;
+    lm[ 4] = 0.; lm[ 5] = 1.; lm[ 6] = 0.; lm[ 7] = 0.;
+    lm[ 8] = 0.; lm[ 9] = 0.; lm[10] = 1.; lm[11] = 0.;
+    lm[12] = 0.; lm[13] = 0.; lm[14] = 0.; lm[15] = 1.;
+    cgltf_node_transform_world(&node, lm);
+
     //printf("bloc: " SF_D_ ", mpc: %lld\n", blockId, mesh.primitives_count);
     
     // Pour tous ce qu'il y a dans mesh
@@ -129,6 +137,7 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
           //  printf("%f %f %f\n", data[i*3+0], data[i*3+1], data[i*3+2]);
           E_Int npts = data1.size()/3;
           FldArrayF* f;
+          E_Float x,y,z;
           if (coordCreated) f = unstructField[blockId];
           else { f = new FldArrayF(npts, 8); unstructField.push_back(f); f->setAllValuesAtNull(); coordCreated = true; }
           E_Float* fx = f->begin(1);
@@ -139,9 +148,17 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
           for (E_Int i = 0; i < npts; i++)
           {
             //printf("%f %f %f\n", data[i*3+0], data[i*3+1], data[i*3+2]);
-            fx[i] = data1[i*3+0];
-            fy[i] = data1[i*3+1];
-            fz[i] = data1[i*3+2];
+            x = data1[i*3+0];
+            y = data1[i*3+1];
+            z = data1[i*3+2];
+
+            //fx[i] = lm[0]*x + lm[1]*y + lm[2]*z + lm[3];
+            //fy[i] = lm[5]*x + lm[5]*y + lm[6]*z + lm[7];
+            //fz[i] = lm[8]*x + lm[9]*y + lm[10]*z + lm[11];
+            fx[i] = lm[0]*x + lm[4]*y + lm[8]*z + lm[12];
+            fy[i] = lm[1]*x + lm[5]*y + lm[9]*z + lm[13];
+            fz[i] = lm[2]*x + lm[6]*y + lm[10]*z + lm[14];
+
           }
         }
 

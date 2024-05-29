@@ -1047,7 +1047,7 @@ def loadImageFiles(t, offscreen=0):
     return None
 
 #==============================================================================
-# display360
+# display360 (offscreen=1, 2 or 7)
 #==============================================================================
 def display360(t, **kwargs):
     """Display for 360 images."""
@@ -1069,14 +1069,14 @@ def display360(t, **kwargs):
     n = Vector.norm(v1)
     v3 = Vector.mul(n, vz)
 
-    # get export resolution (final)
+    # get export resolution (final image) and offscreen mode
     export = kwargs.get("export", "image360")
     exportRez = kwargs.get("exportResolution", "3200x1600")
     offscreen = kwargs.get("offscreen", 1)
 
+    # resolution for the 6 view images
     locRez = exportRez.split('x')[1]
     locRez = int(locRez)//2
-    print(locRez)
     locRez = max(locRez, 800)
     locRez = "%dx%d"%(locRez, locRez)
 
@@ -1106,7 +1106,6 @@ def display360(t, **kwargs):
 
     # front
     posEye0 = posEye; dirCam0 = dirCam
-    #posEye0 = Vector.add(posCam, v1); dirCam0 = dirCam
     lkwargs['posCam'] = posCam
     lkwargs['posEye'] = posEye0
     lkwargs['dirCam'] = dirCam0
@@ -1149,10 +1148,14 @@ def display360(t, **kwargs):
     display(t, **lkwargs)
     finalizeExport(offscreen)
 
-    # Create 360 image
-    a = C.newPyTree(['Base'])
-    display(a, panorama=1,
-            offscreen=offscreen, export=export, exportResolution=exportRez)
-    finalizeExport(offscreen)
+    # Create the 360 image
+    import Converter.Mpi as Cmpi
+    if Cmpi.rank == 0:
+        if offscreen == 7: foffscreen = 1
+        else: foffscreen = offscreen
+        a = C.newPyTree(['Base'])
+        display(a, panorama=1,
+                offscreen=foffscreen, export=export, exportResolution=exportRez)
+        finalizeExport(offscreen)
 
     return None

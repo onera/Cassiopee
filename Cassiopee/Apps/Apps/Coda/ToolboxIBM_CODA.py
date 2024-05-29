@@ -134,8 +134,7 @@ def prepare(t_case, t, tskel, check=False):
     # Ensures that the graph is the same for all the processors
     if Cmpi.KCOMM is not None: g = Cmpi.KCOMM.allgather(graphM)
     else: g = [graphM]
-    # CBX: BUG certainly here
-    graph = {}
+    graphM = {}
     for i in g:
         for k in i:
             if not k in graphM: graphM[k] = {}
@@ -539,8 +538,7 @@ def prepareOctree(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=
     
     if Cmpi.KCOMM is not None: g = Cmpi.KCOMM.allgather(graphM)
     else: g = [graphM]
-    # CBX: BUG here
-    graph = {}
+    graphM = {}
     for i in g:
         for k in i:
             if not k in graphM: graphM[k] = {}
