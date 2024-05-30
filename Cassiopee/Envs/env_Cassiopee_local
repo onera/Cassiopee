@@ -1017,6 +1017,32 @@ else if ($MAC == "sator_cas") then
         set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
         setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.7/site-packages
+
+else if ($MAC == "sator_sph") then
+#------------------------------- sator for cascade ------------------------------------
+        setenv ELSAPROD sat_sph
+        setenv ELSAPROD "$ELSAPROD$INTTYPE"
+        # Number of threads
+        setenv OMP_NUM_THREADS 48
+        module purge
+        module load socle-cfd/6.0-intel2220-impi
+        module load occt/7.6.1-gnu831
+        module load emacs/27.2-gnu831
+        unsetenv I_MPI_FABRICS_LIST
+        unsetenv I_MPI_FABRICS
+        unsetenv I_MPI_PMI_LIBRARY
+        unsetenv I_MPI_TCP_NETMASK
+        setenv OMP_PLACES cores
+        # Set next two lines only if python is not python
+        setenv PYTHONEXE python3
+        alias python python3
+        setenv PRODMODE 1
+        setenv PIP_DISABLE_PIP_VERSION_CHECK 1
+        
+        set path=($path $CASSIOPEE/Dist/bin)
+        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
+        setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.8/site-packages
 endif
 #---------------------------Common---------------------------------------------
 

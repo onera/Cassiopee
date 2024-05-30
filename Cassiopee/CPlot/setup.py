@@ -26,7 +26,7 @@ from KCore.config import *
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 libraryDirs = ["build/"+prod]
-includeDirs = [numpyIncDir, kcoreIncDir]
+includeDirs = [numpyIncDir, kcoreIncDir, kcoreLibDir+'/../include']
 
 libraries = []
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
@@ -73,7 +73,7 @@ else:
 
 # Test if OSMesa exists =======================================================
 (OSMesa, OSMesaIncDir, OSMesaLibDir, OSMesaLibname) = Dist.checkOSMesa(additionalLibPaths,
-                                                                 additionalIncludePaths)
+                                                                       additionalIncludePaths)
 
 # Extensions =================================================================
 EXTRA = ['-D__SHADERS__']

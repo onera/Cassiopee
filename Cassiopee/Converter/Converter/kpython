@@ -29,7 +29,7 @@ if [ -z "$ncpu" ]
 then
     ncpu=$OMP_NUM_THREADS
 else
-    ncpu=$((ncpu + 1 ))    
+    ncpu=$((ncpu + 1 ))
 fi
 
 if [ -z "$ELSAPROD" ]
