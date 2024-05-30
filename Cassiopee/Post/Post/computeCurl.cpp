@@ -280,8 +280,8 @@ E_Int K_POST::computeCurlNS(char* eltType, E_Int npts, FldArrayI& cn,
                             E_Float* rotx, E_Float* roty, E_Float* rotz)
 {
   E_Int nelts = cn.getSize();
-  E_Int nnodes; //nb de noeuds par elts
-  E_Int nedges; //nb de facettes par elts
+  E_Int nnodes=0; //nb de noeuds par elts
+  E_Int nedges=0; //nb de facettes par elts
   E_Int dim = 3; 
   if (strcmp(eltType, "TRI") == 0) 
   {

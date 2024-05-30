@@ -31,6 +31,8 @@ valid text
 kpython text
 cassiopee text
 kcgnsview text
+sh_Cassiopee* text
+env_Cassiopee* text
 
 *.png binary
 *.jpeg binary

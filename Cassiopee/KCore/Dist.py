@@ -1741,10 +1741,17 @@ def checkLapack(additionalLibPaths=[], additionalIncludePaths=[]):
     if l is None:
         l = checkLibFile__(libPrefix+'openblas*.a', additionalLibPaths)
     if l is None:
-        libname = 'lapacke'
+        libname = 'lapack'
         l = checkLibFile__(libPrefix+'lapack*.so', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__(libPrefix+'lapack*.a', additionalLibPaths)
+    if l is None:
+        l = checkLibFile__(libPrefix+'lapack*.a', additionalLibPaths)
+        
+    if l is None:
+        libname = 'lapacke'
+        l = checkLibFile__(libPrefix+'lapacke*.so', additionalLibPaths)
+    if l is None:
+        l = checkLibFile__(libPrefix+'lapacke*.a', additionalLibPaths)
+
     i = checkIncFile__(includePrefix+'lapack.h', additionalIncludePaths)
     if i is None:
         i = checkIncFile__(includePrefix+'lapacke.h', additionalIncludePaths)

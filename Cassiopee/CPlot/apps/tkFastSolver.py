@@ -7,7 +7,8 @@ import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import Converter.Internal as Internal
-import Fast.PyTree as Fast
+try: import Fast.PyTree as Fast
+except: pass
 import CPlot.iconics as iconics
 import math
 
