@@ -5,7 +5,7 @@ __pycache__
 core.*
 setup.cfg
 Dist
-Cassiopee/web/Download
+web/Download
 Cassiopee/KCore/merge.l
 Cassiopee/XCore/merge.l
 Cassiopee/KCore/buildInfo.py

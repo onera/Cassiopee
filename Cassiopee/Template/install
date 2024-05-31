@@ -42,8 +42,12 @@ if [ $PRODMODE -le 0 ]; then
     else
         export SCONSOPT=""
     fi
-    if [[ -x $sconsf ]]; then
-        $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
+    if [ -x "$sconsf" ]; then
+        if [ $(head -c 100 "$sconsf" | grep python) ]; then
+            python $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
+        else
+            $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
+        fi
     else
         python $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
     fi
