@@ -60,20 +60,20 @@ PyObject* K_CONNECT::V_cleanConnectivity(
   if (K_STRING::cmp(eltType, "NGON") == 0 || K_STRING::cmp(eltType, "NGON*") == 0)
   {
     tpl = V_cleanConnectivityNGon(posx, posy, posz, varString, f, cn,
-                                        tol, removeOverlappingPoints,
-                                        removeOrphanPoints,
-                                        removeDuplicatedFaces,
-                                        removeDuplicatedElements,
-                                        removeDegeneratedFaces,
-                                        removeDegeneratedElements);
+                                  tol, removeOverlappingPoints,
+                                  removeOrphanPoints,
+                                  removeDuplicatedFaces,
+                                  removeDuplicatedElements,
+                                  removeDegeneratedFaces,
+                                  removeDegeneratedElements);
   }
   else
   {
     tpl = V_cleanConnectivityME(posx, posy, posz, varString, f, cn,
-                                      eltType, tol, removeOverlappingPoints,
-                                      removeOrphanPoints,
-                                      removeDuplicatedElements,
-                                      removeDegeneratedElements);
+                                eltType, tol, removeOverlappingPoints,
+                                removeOrphanPoints,
+                                removeDuplicatedElements,
+                                removeDegeneratedElements);
   }
   return tpl;
 }
@@ -90,7 +90,6 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
   E_Bool removeDegeneratedElements
 )
 {
-  E_Bool removeDirtyPoints = (removeOverlappingPoints || removeOrphanPoints);
   E_Bool removeDirtyFaces = (removeDuplicatedFaces || removeDegeneratedFaces);
   E_Bool removeDirtyElements = (removeDuplicatedElements || removeDegeneratedElements);
   
@@ -113,10 +112,11 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
   std::cout<<"dim: " << dim << std::endl;
   
   // --- 1. Points ---
-  // 1a. Identify orphan points, ie, initialise indirection table used in 1b
-  E_Int nuniquePts = 0;
+  // 1a. Identify orphan points, ie, initialise indirection table for use in 1b
+  E_Int nuniquePts = npts;
   std::vector<E_Int> indir;
-  if (removeOrphanPoints and dim > 0)
+  if (dim == 0) removeOrphanPoints = false;
+  if (removeOrphanPoints)
   {
     E_Int nv, vidx;
     indir.resize(npts, -1);
@@ -129,6 +129,17 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
         indir[vidx] = vidx;
       }
     }
+
+    removeOrphanPoints = false;
+    for (E_Int i = 0; i < npts; i++)
+    {
+      if (indir[i] == -1)
+      {
+        removeOrphanPoints = true;
+        indir.clear();
+        break;
+      }
+    }
   }
 
   // 1b. Identify overlapping points geometrically
@@ -136,13 +147,12 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
   {
     nuniquePts = K_CONNECT::V_identifyOverlappingPoints(posx, posy, posz, f, tol, indir);
     if (nuniquePts < 0) return NULL;
-    else if (nuniquePts == npts) removeDirtyPoints = false;
-
-    // std::cout << "indir" << std::endl;
-    // for (E_Int i = 0; i < npts; i++) std::cout << indir[i] << std::endl;
+    else if (nuniquePts == npts) removeOverlappingPoints = false;
   }
   std::cout<<"npts: " << npts << std::endl;
   std::cout<<"nuniquePts: " << nuniquePts << std::endl;
+
+  E_Bool removeDirtyPoints = (removeOverlappingPoints || removeOrphanPoints);
 
   // An update is necessary before topological operations in 2. & 3.
   if (removeDirtyPoints)
@@ -166,11 +176,11 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
     {
       j = 0, itrl = -1;
       E_Float* fp = f.begin(fld);
-      for (E_Int i = 1; i < npts; i++)
+      for (E_Int i = 0; i < npts; i++)
       {
         // Write if point is neither a duplicate nor an orphan
         if (indir[i] < 0) continue;
-        if (itrl == -1 || abs(indir[i]) - abs(indir[itrl]) == 1)
+        if (itrl == -1 || indir[i] - indir[itrl] == 1)
         {
           fp[j] = fp[i];
           j += 1; itrl = i;
@@ -201,7 +211,6 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
   }
   std::cout<<"nfaces: " << nfaces << std::endl;
   std::cout<<"nuniqueFaces: " << nuniqueFaces << std::endl;
-  //for (E_Int i = 0; i < nfaces; i++) std::cout<<"indirPG[i]: " << i << " " << indirPG[i] << std::endl;
 
   // --- 4. Reindex & Compress connectivities ---
   E_Int j, k; // write pointers
@@ -788,6 +797,15 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
     nuniqueEltsTot = K_CONNECT::V_identifyDuplicatedElementsME(cn, indirPH, nuniqueElts, neltsTot, removeDegeneratedElements);
     if (nuniqueEltsTot == neltsTot) removeDuplicatedElements = false;
   }
+  else
+  {
+    nuniqueElts.resize(nc);
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      FldArrayI& cm = *(cn.getConnect(ic));
+      nuniqueElts[ic] = cm.getSize();
+    }
+  }
   std::cout<<"neltsTot: " << neltsTot << std::endl;
   std::cout<<"nuniqueEltsTot: " << nuniqueEltsTot << std::endl;
 
@@ -819,7 +837,7 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
   if (removeOverlappingPoints || removeDirtyElements)
   {  
     E_Boolean center = false;
-    tpl = K_ARRAY::buildArray3(nfld, varString, nuniquePts, nuniqueEltsTot,
+    tpl = K_ARRAY::buildArray3(nfld, varString, nuniquePts, nuniqueElts,
                                eltType, center, api);
     FldArrayF* f2; FldArrayI* cn2;
     K_ARRAY::getFromArray3(tpl, f2, cn2);
@@ -876,7 +894,7 @@ E_Int K_CONNECT::V_identifyDuplicatedElementsME(
   TopologyOpt E;
   std::unordered_map<TopologyOpt, E_Int, JenkinsHash<TopologyOpt> > eltMap;
   
-  // Loop over all ME connectivities
+  // Loop over ME connectivity
   for (E_Int ic = 0; ic < nc; ic++)
   {
     FldArrayI& cm = *(cn.getConnect(ic));
@@ -888,7 +906,7 @@ E_Int K_CONNECT::V_identifyDuplicatedElementsME(
     {
       for (E_Int j = 1; j <= nvpe; j++) elt[j-1] = cm(i,j);
       E.set(elt, nvpe, removeDegeneratedElements);
-      if (E.isDegen_) { indir[elOffset+i] = COLLAPSED; continue; } // TODO refine - no ME support yet
+      //if (E.isDegen_) { indir[elOffset+i] = COLLAPSED; continue; } // TODO refine - no ME support yet
       // Use insert to ensure E is initially mapped to -1 if it doesn't exist
       auto res = eltMap.insert(std::make_pair(E, -1));
       // Check the value associated with E. If it is -1, then first time this
