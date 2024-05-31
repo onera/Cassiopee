@@ -28,27 +28,35 @@ List of functions
 
 .. autosummary::
 
-
-
+    Modeler.Models.skySphere
     
+
+
 Boxes
----------
+-------
 
 
-.. py:function:: Models.box(a, ...)
+.. py:function:: Modeler.Models.skySphere(Xc, R)
 
-    .. A2.O0.D1
     
-    XX.
+    Create a sky sphere of center Xc and radius R. The sphere is uv mapped.
+    This sphere can be used to map 360 images obtained with equirectangular projection.
 
-    :param a: input data
-    :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param Xc: center of sphere
+    :type Xc: tuple of 3 floats
+    :param R: radius of sphere
+    :type R: float
     
     *Example of use:*
 
-    * `Display (array) <Examples/Modeler/box.py>`_:
+    * `Create a sky sphere (array) <Examples/Modeler/skySphere.py>`_:
 
-    .. literalinclude:: ../build/Examples/Modeler/box.py
+    .. literalinclude:: ../build/Examples/Modeler/skySphere.py
+
+    * `Create a sky sphere (pyTree) <Examples/Modeler/skySpherePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Modeler/skySpherePT.py
+
 
 .. toctree::
    :maxdepth: 2

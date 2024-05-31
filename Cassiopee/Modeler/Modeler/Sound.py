@@ -3,8 +3,16 @@
 # If you add a function, dont forget to add it also to SoundLess.py
 
 try: import pyaudio
-except ImportError: raise ImportError("Sound module requires pyaudio.")
-
+except ImportError: 
+    def initSound(): return None
+    def closeSound(): return None
+    def playMusic(fileName): return None
+    def stopMusic(): return None
+    def registerSound(fileName): return None
+    def playSound(soundHandle, poolNo=[]): return None
+    def closeAllSounds(): return None
+    #raise ImportError("Sound module requires pyaudio.")
+    
 import wave
 
 # Globals

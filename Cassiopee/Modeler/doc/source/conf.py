@@ -23,11 +23,12 @@ sys.path.insert(0, os.path.abspath('.'))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "sphinx.ext.autosummary",
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
-    'sphinx.ext.autosummary',
+    #'sphinx.ext.logo',
     #'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
@@ -216,7 +217,7 @@ latex_documents = [
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
-latex_logo = "../../../web/Images/logo-onera-ident.png"
+latex_logo = "../../../../web/Images/logo-onera-ident.png"
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
