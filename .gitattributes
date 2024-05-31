@@ -24,6 +24,7 @@ Makefile text
 *.csh text
 *.rst text
 *.scons text
+*.bat text
 merge.ar text
 LICENCE text
 install text
@@ -36,3 +37,4 @@ env_Cassiopee* text
 
 *.png binary
 *.jpeg binary
+*.gif binary

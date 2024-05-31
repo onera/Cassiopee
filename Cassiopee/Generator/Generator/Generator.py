@@ -832,7 +832,7 @@ def zip(array, tol=1e-12):
     if isinstance(array[0], list):
         extFaces = []
         try: 
-            import Post as P  
+            import Post as P
             for a in array: 
                 if len(a) == 4: extFaces.append(P.exteriorFaces(a))
         except: pass

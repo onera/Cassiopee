@@ -187,4 +187,20 @@ def ellipseSpikes2D(Pmin, Pmax, r=0.1, fill=True):
     a = T.deformNormals(a, b)
     a = T.contract(a, (xc,yc,0),(1,0,0),(0,0,1),dy*1./dx)
     if fill: a = G.tetraMesher(a)
-    return a    
+    return a
+
+def skySphere(Xc=(0,0,0), R=1.):
+    a = D.sphere(Xc, R, N=30)
+    # build _u_ _v_
+    a = C.initVars(a, '_u_=0')
+    a = C.initVars(a, '_v_=0')
+    if isinstance(a[1], list): # array2/3
+        pu = a[1][3].ravel('k'); pv = a[1][4].ravel('k')
+    else: # array1 
+        pu = a[1][3].ravel('k'); pv = a[1][4].ravel('k')
+    ni = a[2]; nj = a[3]
+    for j in range(nj):
+        for i in range(ni):
+            pu[i+j*ni] = j*1./(nj-1)
+            pv[i+j*ni] = i*1./(ni-1)
+    return a

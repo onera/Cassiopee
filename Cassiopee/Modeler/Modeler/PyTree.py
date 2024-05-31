@@ -58,3 +58,8 @@ def frame(w, h, border):
     out = []
     for z in a: out.append(C.convertArrays2ZoneNode('frame', [z]))
     return out
+
+def skySphere(Xc=(0,0,0), R=1.):
+    """Create a sky sphere."""
+    a = Models.skySphere(Xc, R)
+    return C.convertArrays2ZoneNode('skySphere', [a])
