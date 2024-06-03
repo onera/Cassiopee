@@ -64,11 +64,7 @@ def getLogDirName(filename):
 
 # Get the name of the prod from a session log
 def getProd(filename):
-  prod = os.path.basename(os.path.dirname(filename))[10:]
-  if prod == "": prod = "juno"
-  elif prod == "i8" or any(prod.startswith(s) for s in ["gcc", "coda"]):
-    prod = "juno_"+prod
-  return prod
+  return os.path.basename(os.path.dirname(filename))[10:]
 
 # Return time of creation of a session log of validCassiopee in two different
 # formats (email subject vs write to file)
@@ -223,7 +219,7 @@ if __name__ == '__main__':
   # If the state of the Base is OK, set the new session log to be the reference
   baseStateMsg = ""
   exitStatus = 0
-  if baseState == 'OK' and 'REF-' in script_args.logs[0]:
+  if baseState in ['OK', 'NEW ADDITIONS'] and 'REF-' in script_args.logs[0]:
       if os.access(script_args.logs[0], os.W_OK):
         import shutil
         shutil.copyfile(script_args.logs[0],

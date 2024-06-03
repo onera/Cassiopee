@@ -84,17 +84,13 @@ def getenv(name):
 def getDataFolderName(name='Data'):
     elsaprod = os.getenv("ELSAPROD")
     if elsaprod is not None:
-        intType = 'i8' if elsaprod.endswith('_i8') else 'i4'
-        prod = elsaprod.replace('_i8', '')
+        if not elsaprod.endswith('_i8') and EDOUBLEINT:
+            print("Warning: ELSAPROD {} compiled in i8 but recommended suffix "
+                  "'_i8' is missing".format(elsaprod))
+        name += '_' + elsaprod
     else:
-        prod = 'xx'
-        intType = 'i4'
+        name += '_xx'
     if sys.version_info[0] == 2: name += '2'
-    if prod.startswith('juno'): prod = prod.replace('juno', '')
-    if prod:
-        if not prod.startswith('_'): name += '_' + prod
-        else: name += prod
-    if intType == 'i8': name += '_' + intType
     return name
 
 #==============================================================================
