@@ -23,13 +23,18 @@ else
     OMPNUMTHREADSINIT="1"
 fi
 
-# Ressources
-ncpu=$(grep processor /proc/cpuinfo |tail -1 |cut -f2 -d: )
-if [ -z "$ncpu" ]
+# Ressources 
+if [ -z "$OMP_NUM_THREADS" ]
 then
-    ncpu=$OMP_NUM_THREADS
+    ncpu=$OMP_NUM_THREADS # suppose que l'OMP_NUM_THREADS de env est tous les coeurs disponibles
 else
-    ncpu=$((ncpu + 1 ))
+    ncpu=$(grep processor /proc/cpuinfo |tail -1 |cut -f2 -d: )
+    if [ -z "$ncpu" ]
+    then
+        ncpu=1
+    else
+        ncpu=$((ncpu + 1 ))
+    fi
 fi
 
 if [ -z "$ELSAPROD" ]
