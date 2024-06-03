@@ -7,7 +7,7 @@
 if ([ $# -eq 0 ])
 then
     if [ "$CASSIOPEE" = "" ]; then
-        echo "You must specify a CASSIOPEE variable in you environment."
+        echo "You must specify a CASSIOPEE variable in your environment."
         echo "This variable specifies the installation path of *Cassiopee*."
         exit 1
     fi
@@ -62,7 +62,7 @@ if [ $PRODMODE -le 1 ]; then
         python setup.py install --prefix="$INSTALLPATH"
         [ $? != 0 ] && exit 1;
     elif [ $PRODMODE -eq 1 ]; then
-        python -m pip install --ignore-installed --ignore-installed --upgrade --prefix="$INSTALLPATH" .
+        python -m pip install --ignore-installed --upgrade --prefix="$INSTALLPATH" .
         [ $? != 0 ] && exit 1;
     fi
 else

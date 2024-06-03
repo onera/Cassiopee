@@ -1,4 +1,4 @@
-import distutils.sysconfig, os
+import os
 import KCore.Dist as Dist
 from KCore.config import *
 #==============================================================================
@@ -23,8 +23,6 @@ installPath = Dist.getInstallPath(prefix)
 
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
-
-from KCore.config import *
 
 # Test if libmpi exists ======================================================
 (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,

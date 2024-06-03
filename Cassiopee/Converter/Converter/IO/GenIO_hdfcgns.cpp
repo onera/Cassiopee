@@ -159,8 +159,10 @@ char *HDF_Get_Attribute_As_Data(hid_t nodeid, const char *name, char *value)
 /* ------------------------------------------------------------------------- */
 #if H5_VERSION_LE(1,11,9)
 static herr_t count_children(hid_t id, const char *name, void *count)
-#else
+#elif H5_VERSION_LE(1,13,9)
 static herr_t count_children(hid_t id, const char *name, const H5L_info_t* linfo, void *count)
+#else
+static herr_t count_children(hid_t id, const char *name, const H5L_info2_t* linfo, void *count)
 #endif
 {
   if (name && (name[0] != ' '))
@@ -172,8 +174,10 @@ static herr_t count_children(hid_t id, const char *name, const H5L_info_t* linfo
 /* ------------------------------------------------------------------------- */
 #if H5_VERSION_LE(1,11,9)
 static herr_t gfind_name(hid_t id, const char *nm, void *snm)
-#else
+#elif H5_VERSION_LE(1,13,9)
 static herr_t gfind_name(hid_t id, const char *nm, const H5L_info_t* linfo, void *snm)
+#else
+static herr_t gfind_name(hid_t id, const char *nm, const H5L_info2_t* linfo, void *snm)
 #endif
 {
   /*  printf("GFIND [%s][%s]\n",nm,snm);fflush(stdout); */
@@ -189,8 +193,10 @@ static herr_t gfind_name(hid_t id, const char *nm, const H5L_info_t* linfo, void
 /* ------------------------------------------------------------------------- */
 #if H5_VERSION_LE(1,11,9)
 static herr_t delete_children(hid_t id, const char *name, void *data)
-#else
+#elif H5_VERSION_LE(1,13,9)
 static herr_t delete_children(hid_t id, const char *name, const H5L_info_t* linfo, void *data)
+#else
+static herr_t delete_children(hid_t id, const char *name, const H5L_info2_t* linfo, void *data)
 #endif
 {
   /* do not change link id with actual here, stop deletion at link node */
@@ -227,8 +233,13 @@ static herr_t delete_children(hid_t id, const char *name, const H5L_info_t* linf
 // }
 
 /* ------------------------------------------------------------------------- */
+#if H5_VERSION_LE(1,13,9)
 static herr_t feed_children_ids(hid_t id, const char* name,
                                 const H5L_info_t* linfo, void* idlist)
+#else
+static herr_t feed_children_ids(hid_t id, const char* name,
+                                const H5L_info2_t* linfo, void* idlist)
+#endif
 {
   hid_t cid; int n;
 
