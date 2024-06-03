@@ -1019,7 +1019,7 @@ else if ($MAC == "sator_cas") then
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python3.7/site-packages
 
 else if ($MAC == "sator_sph") then
-#------------------------------- sator for cascade ------------------------------------
+#------------------------------- sator for saphire ------------------------------------
         setenv ELSAPROD sat_sph
         setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Number of threads
