@@ -19,7 +19,7 @@ a1 = G.cartHexa((0,0,0), (1,1,1), (10,10,10))
 a2 = G.cartHexa((9,0,0), (1,1,1), (10,10,10))
 a = C.mergeConnectivity(a1, a2)
 T._translate(a, (1,0,0))
-#test.testT(a, 3) # only first connectivity is tested
+test.testT(a, 3)
 
 # NGONv3 - OK
 a = G.cartNGon((0,0,0), (1,1,1), (5,5,5))

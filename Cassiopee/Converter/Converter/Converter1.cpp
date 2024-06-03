@@ -65,7 +65,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
   E_Bool buildZoneNames = true;
   if (zoneNamesO == Py_None)
   {
-    buildZoneNames = false; // on ne construit la liste des noms de zone 
+    buildZoneNames = false; // on ne construit pas la liste des noms de zone 
     znOsize = 0;
   }
   else if (PyList_Check(zoneNamesO) != 0)
@@ -79,7 +79,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
   }
   if (znOsize > 0)
   {
-    printf("Warning: convertFile2Arrays: zoneNames is not empty. zones names will be appended to zoneNames.\n");
+    printf("Warning: convertFile2Arrays: zoneNames is not empty. Zone names will be appended to zoneNames.\n");
   }
 
   char* varString = NULL;  // variable strings (node fields) 

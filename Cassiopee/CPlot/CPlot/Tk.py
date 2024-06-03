@@ -15,8 +15,8 @@ import os, os.path
 from sys import version_info
 import re, fnmatch
 
-try: range = xrange
-except: pass
+# Set this to suppress CPlot firewalls (fixNGon, breakConnect) and enables direct v4
+FIREWALL = True
 
 #==============================================================================
 # Variables globales partagees entre toutes les apps tk
@@ -271,34 +271,36 @@ def buildCPlotArrays(a, topTree=[]):
                 a = C.center2Node(a, __FIELD__)
     else: a = C.node2Center(a)
 
+    if FIREWALL: api = 1
+    else: api = 3
+
     if __FIELD__ == '__all__':
-        arrays = C.getAllFields(a, 'nodes')
+        arrays = C.getAllFields(a, 'nodes', api=api)
     elif __FIELD__ == '__none__':
-        arrays = C.getFields(Internal.__GridCoordinates__, a)
+        arrays = C.getFields(Internal.__GridCoordinates__, a, api=api)
     else:
-        arrays = C.getFields(Internal.__GridCoordinates__, a)
+        arrays = C.getFields(Internal.__GridCoordinates__, a, api=api)
         v = __FIELD__.split(':')
         if len(v) == 2: v = v[1]
         else: v = __FIELD__
-        arrays2 = C.getField(v, a)
-        for i in range(len(arrays)):
-            if arrays2[i] != []:
-                Converter._addVars([arrays[i], arrays2[i]])
+        arrays2 = C.getField(v, a, api=api)
+        for i, b in enumerate(arrays):
+            if b != []: Converter._addVars([arrays[i], b])
 
     if __ONEOVERN__ > 1:
-        for i in range(len(arrays)):
-            if len(arrays[i]) == 5:
-                arrays[i] = Transform.oneovern(arrays[i], (__ONEOVERN__,__ONEOVERN__,__ONEOVERN__))
+        for i, b in enumerate(arrays):
+            if len(b) == 5:
+                arrays[i] = Transform.oneovern(b, (__ONEOVERN__,__ONEOVERN__,__ONEOVERN__))
 
     # Transmet les maillages contenant les borders elts pour HEXA, TETRA,
     # PYRA, PENTA, NGON
     if __ONEOVERN__ > 0:
-        for i in range(len(arrays)):
-            b = arrays[i]
-            if b[3] == 'TETRA' or b[3] == 'HEXA' or b[3] == 'PYRA' or b[3] == 'PENTA':
-                arrays[i] = Post.exteriorElts(b)
-            if b[3] == 'NGON' and b[2][0,2] > 2:
-                arrays[i] = Post.exteriorElts(b)
+        for i, b in enumerate(arrays):
+            if FIREWALL:
+                if b[3] == 'TETRA' or b[3] == 'HEXA' or b[3] == 'PYRA' or b[3] == 'PENTA':
+                    arrays[i] = Post.exteriorElts(b)
+                if b[3] == 'NGON' and b[2][0,2] > 2:
+                    arrays[i] = Post.exteriorElts(b)
     return arrays
 
 #==============================================================================
@@ -489,7 +491,7 @@ def upgradeTree(t):
     Internal.autoSetContainers(t)
     Internal._correctPyTree(t, level=0) # version node
     #t = Internal.correctPyTree(t, level=9) # connectivity
-    Internal._fixNGon(t)
+    if FIREWALL: Internal._fixNGon(t) # suppressed in v4
     try:
       if C.isNamePresent(t, 'CoordinateX') <= 0: C._addVars(t, 'CoordinateX')
       if C.isNamePresent(t, 'CoordinateY') <= 0: C._addVars(t, 'CoordinateY')
