@@ -16,7 +16,7 @@ __all__ = ['cart', 'cartr1', 'cartr2', 'cartHexa', 'cartTetra', 'cartPenta',
     'enforceLine', 'enforcePoint', 'enforceCurvature', 'enforceCurvature2',
     'addPointInDistribution', 'map', 'map1d', 'map1dpl', 'map2d',
     'mapCurvature', 'refine', 'defineSizeMapForMMGs', 'mmgs', 'densify',
-    'hyper2D', 'hyper2D2', 'hyper2D3', 'hyper2D4', 'close', 'zip',
+    'hyper2D', 'hyper2D2', 'hyper2D3', 'hyper2D4', 'close', 'closeLegacy', 'zip',
     'pointedHat', 'stitchedHat', 'plaster', 'selectInsideElts', 'grow',
     'stack', 'TFI', 'TFITri', 'TFIO', 'TFIHalfO', 'TFIMono', 'TFIStar',
     'TFIStar2', 'TTM', 'bboxOfCells', 'getCellPlanarity', 'getVolumeMap',
@@ -811,6 +811,22 @@ def hyper2D4(array, arrayd, type):
     Usage: hyper2D4(array, arrayd, type)"""
     return generator.hyper2D4(array, arrayd, type)
 
+def closeLegacy(array, tol=1.e-12, suppressDegeneratedNGons=False):
+    """Close an unstructured mesh defined by an array gathering points closer than tol.
+    Usage: close(array, tol)"""
+    if isinstance(array[0], list):
+        out = []
+        for a in array:
+
+            if len(a)==5: # merge intra-borders (C-type meshes)
+                outl = generator.closeBorders([a], [], tol)[0]
+            else:
+                outl = generator.closeMeshLegacy(a, tol, suppressDegeneratedNGons)
+            out.append(outl)
+        return out
+    else:
+        return generator.closeMeshLegacy(array, tol, suppressDegeneratedNGons)
+        
 def close(array, tol=1.e-12, suppressDegeneratedNGons=False):
     """Close an unstructured mesh defined by an array gathering points closer than tol.
     Usage: close(array, tol)"""

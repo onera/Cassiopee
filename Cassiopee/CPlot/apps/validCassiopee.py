@@ -42,7 +42,7 @@ separator = ':'
 separatorl = separator+' '
 expTest1 = re.compile("_t[0-9]+") # normal tests
 expTest2 = re.compile(".py")
-expTest3 = re.compile("\~")
+expTest3 = re.compile(r"\~")
 expTest4 = re.compile("_m[0-9]+") # distributed tests
 
 # Position after the last character in Tkinter
@@ -631,7 +631,7 @@ def runSingleUnitaryTest(no, module, test):
           cmdCmpiTrace = 'Cmpi.trace(">>> Iteration: ", cpu=False, stdout=False, fileName="proc_{0}.txt")'.format(test[:-3])
           cmdConverterImport = 'import Converter.PyTree as CP'
           cmdInitGlobalDicts = 'CP.__ZoneNameServer__ = {}; CP.__BCNameServer__ = {}; CP.__BaseNameServer__ = {}'
-          cmdReps = """rm -f proc_{7}???.txt tmp_{0}; cp {0} {6}; sed -i 's/^/  /' {0};
+          cmdReps = r"""rm -f proc_{7}???.txt tmp_{0}; cp {0} {6}; sed -i 's/^/  /' {0};
               sed -i '1i\{1}\\nfor _ in range({5}):' {0}; sed -i '$a\  {2}\\n  {3}\\n  {4}' {0};""".format(
               test, cmdCmpiImport, cmdCmpiTrace, cmdConverterImport,
               cmdInitGlobalDicts, nreps, bktest, test[:-3])
@@ -1077,15 +1077,15 @@ def filterTestList(event=None):
                     elif tmpFiltr == 'DIST': outFilters.add('&t.$')
                     elif tmpFiltr == 'RUN': outFilters.update(['&/!FAILED', '&/!FAILEDMEM', '&/!OK'])
                     elif tmpFiltr == 'UNRUN': outFilters.update(['/FAILED', '/FAILEDMEM', '/OK'])
-                    elif tmpFiltr == 'TAG': outFilters.add('@^(?![\*,r,g,b])')
-                    elif tmpFiltr == 'UNTAG': outFilters.add('@[\*,r,g,b]')
+                    elif tmpFiltr == 'TAG': outFilters.add(r'@^(?![\*,r,g,b])')
+                    elif tmpFiltr == 'UNTAG': outFilters.add(r'@[\*,r,g,b]')
                 else:
                     if tmpFiltr == 'SEQ': outFilters.add('&t.$')
                     elif tmpFiltr == 'DIST': outFilters.add('&m.$')
                     elif tmpFiltr == 'RUN': outFilters.update(['/FAILED', '/FAILEDMEM', '/OK'])
                     elif tmpFiltr == 'UNRUN': outFilters.update(['&/!FAILED', '&/!FAILEDMEM', '&/!OK'])
-                    elif tmpFiltr == 'TAG': outFilters.add('@[\*,r,g,b]')
-                    elif tmpFiltr == 'UNTAG': outFilters.add('@^(?![\*,r,g,b])')
+                    elif tmpFiltr == 'TAG': outFilters.add(r'@[\*,r,g,b]')
+                    elif tmpFiltr == 'UNTAG': outFilters.add(r'@^(?![\*,r,g,b])')
             else: outFilters.add(filtr)
         return outFilters
         
@@ -1200,7 +1200,7 @@ def showFilter(filter='FAILED'):
 # Affiche les test qui ont deja tournes dans la listbox
 #==============================================================================
 def showRunCases():
-    filter = '\.\.\.'
+    filter = r'\.\.\.'
     Listbox.delete(0, TK_END)
     for s in TESTS:
         if re.search(filter, s) is None:
@@ -1214,7 +1214,7 @@ def showRunCases():
 # Affiche les test qui n'ont deja tournes dans la listbox
 #==============================================================================
 def showUnrunCases():
-    filter = '\.\.\.'
+    filter = r'\.\.\.'
     Listbox.delete(0, TK_END)
     for s in TESTS:
         if re.search(filter, s) is not None:
@@ -1258,7 +1258,7 @@ def showUncovered():
 def showPartialCovered():
     filter1 = '100%'
     filter2 = ' 0%'
-    filter3 = '\.%'
+    filter3 = r'\.%'
     Listbox.delete(0, TK_END)
     for s in TESTS:
         if (re.search(filter1, s) is None and re.search(filter2, s) is None

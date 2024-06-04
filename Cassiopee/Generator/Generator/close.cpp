@@ -73,6 +73,72 @@ PyObject* K_GENERATOR::closeMesh(PyObject* self, PyObject* args)
       return NULL;
     }
 
+    PyObject* tpl = NULL;
+    if (strcmp(eltType, "NGON") == 0)
+    {
+      tpl = K_CONNECT::V_cleanConnectivity(varString, *f, *cn, eltType, eps);
+      if (tpl == NULL) tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType); // tpl = array;
+    }
+    else
+    {
+      closeUnstructuredMesh(posx, posy, posz, eps, eltType, *f, *cn, removeDegen);
+      tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType);
+    }
+
+    delete f; delete cn;
+    return tpl;
+  }
+  else
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "close: unrecognised type of array.");
+    return NULL;
+  }
+}
+
+PyObject* K_GENERATOR::closeMeshLegacy(PyObject* self, PyObject* args)
+{
+  PyObject* array;
+  E_Float eps;
+  E_Int removeDegen = 0;
+  
+  if (!PYPARSETUPLE_(args, O_ R_ I_, &array, &eps, &removeDegen)) return NULL;
+
+  // Check array
+  E_Int im, jm, km;
+  FldArrayF* f; FldArrayI* cn;
+  char* varString; char* eltType;
+
+  E_Int res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType);
+  E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
+  E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
+  E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
+  if (posx == -1 || posy == -1 || posz == -1)
+  {
+    delete f;
+    PyErr_SetString(PyExc_TypeError,
+                    "close: can't find coordinates in array.");
+    return NULL;
+  }
+  posx++; posy++; posz++;
+
+  if (res == 1)
+  {
+    closeStructuredMesh(f->begin(posx), f->begin(posy), f->begin(posz), im, jm, km, eps);
+    PyObject* tpl = K_ARRAY::buildArray3(*f, varString, im, jm, km); 
+    delete f;
+    return tpl;
+  }
+  else if (res == 2)
+  { 
+    if (strchr(eltType, '*') != NULL)
+    {
+      delete f; delete cn;
+      PyErr_SetString(PyExc_TypeError,
+                      "close: array must be defined at vertices.");
+      return NULL;
+    }
+
     closeUnstructuredMesh(posx, posy, posz, eps, eltType, *f, *cn, removeDegen);
     PyObject* tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType);
     delete f; delete cn;
