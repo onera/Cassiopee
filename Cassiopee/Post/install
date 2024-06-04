@@ -7,7 +7,7 @@
 if ([ $# -eq 0 ])
 then
     if [ "$CASSIOPEE" = "" ]; then
-        echo "You must specify a CASSIOPEE variable in you environment."
+        echo "You must specify a CASSIOPEE variable in your environment."
         echo "This variable specifies the installation path of *Cassiopee*."
         exit 1
     fi

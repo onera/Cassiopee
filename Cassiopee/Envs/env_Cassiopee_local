@@ -922,10 +922,6 @@ else if ($MAC == "juno_gcc") then
         alias python python3
         setenv PRODMODE 1
         setenv PIP_DISABLE_PIP_VERSION_CHECK 1
-        unsetenv I_MPI_FABRICS_LIST
-        unsetenv I_MPI_FABRICS
-        unsetenv I_MPI_PMI_LIBRARY
-        unsetenv I_MPI_TCP_NETMASK
         unsetenv SLURM*
         setenv OMP_PLACES cores
         # Chemin de l'executable python

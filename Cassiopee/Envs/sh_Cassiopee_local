@@ -806,10 +806,6 @@ elif [ "$MAC" = "juno_gcc" ]; then
     alias python=python3
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
-    unset I_MPI_FABRICS_LIST
-    unset I_MPI_FABRICS
-    unset I_MPI_TCP_NETMASK
-    unset I_MPI_PMI_LIBRARY
     unset $(env | grep SLURM | cut -d'=' -f 1)
     export OMP_PLACES=cores
     # Chemin de l'executable python

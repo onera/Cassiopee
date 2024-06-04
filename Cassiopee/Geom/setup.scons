@@ -61,5 +61,4 @@ ppf = Dist.createFortranFiles(env, srcs)
 myMod = env.StaticLibrary('geom', srcs.cpp_srcs+ppf)
 modDir = 'build/'+ELSAPROD
 dp1 = env.Install(modDir, myMod)
-
 env.Alias(target="install", source=[dp1])

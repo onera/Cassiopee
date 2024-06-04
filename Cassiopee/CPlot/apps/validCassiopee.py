@@ -638,7 +638,7 @@ def runSingleUnitaryTest(no, module, test):
                     
         if m1 is not None: cmd = 'cd %s; %s time %s %s'%(path, cmdReps, pythonExec, test)
         else: cmd = 'cd %s; %s time kpython -n 2 -t %d %s'%(path, cmdReps, nthreads//2, test)
-        
+
     try:
         if mySystem == 'mingw' or mySystem == 'windows':
             output1 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)
