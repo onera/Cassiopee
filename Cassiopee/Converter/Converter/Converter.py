@@ -904,8 +904,8 @@ def diffArrayGeom(array1, array2, tol=1.e-10):
         return diffArrayGeom__(array1, array2, tol)
     
 def diffArrayGeom__(array1, array2, tol=1.e-10):
-    hook = createHook(array2, 'nodes')
-    ids = identifyNodes(hook, array1, tol=tol)
+    hook = createHook(array1, 'nodes')
+    ids = identifyNodes(hook, array2, tol=tol)
     if numpy.any(ids == -1):
         print("ids", ids)
         freeHook(hook)

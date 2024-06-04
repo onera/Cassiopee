@@ -79,6 +79,7 @@ namespace K_GENERATOR
   PyObject* hyper2D3Mesh(PyObject* self, PyObject* args);
   PyObject* hyper2D4Mesh(PyObject* self, PyObject* args);
   PyObject* closeMesh(PyObject* self, PyObject* args);
+  PyObject* closeMeshLegacy(PyObject* self, PyObject* args);
   PyObject* closeBorders(PyObject* self, PyObject* args);
   PyObject* pointedHat(PyObject* self, PyObject* args);
   PyObject* stitchedHat(PyObject* self, PyObject* args);

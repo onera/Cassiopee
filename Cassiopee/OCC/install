@@ -80,4 +80,4 @@ cd OCC
 cd ..
 
 # Test l'installation
-python test/t1.py
+kpython test/t1.py

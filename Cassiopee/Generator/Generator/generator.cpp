@@ -51,6 +51,7 @@ static PyMethodDef Pygenerator [] =
   {"getCircumCircleMap", K_GENERATOR::getCircumCircleMap, METH_VARARGS},
   {"getInCircleMap", K_GENERATOR::getInCircleMap, METH_VARARGS},
   {"closeMesh", K_GENERATOR::closeMesh, METH_VARARGS},
+  {"closeMeshLegacy", K_GENERATOR::closeMeshLegacy, METH_VARARGS},
   {"closeBorders", K_GENERATOR::closeBorders, METH_VARARGS},
   {"pointedHat", K_GENERATOR::pointedHat, METH_VARARGS},
   {"stitchedHat", K_GENERATOR::stitchedHat, METH_VARARGS},
