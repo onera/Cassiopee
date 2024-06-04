@@ -76,8 +76,11 @@ PyObject* K_GENERATOR::closeMesh(PyObject* self, PyObject* args)
     PyObject* tpl = NULL;
     if (strcmp(eltType, "NGON") == 0)
     {
-      tpl = K_CONNECT::V_cleanConnectivity(varString, *f, *cn, eltType, eps);
-      if (tpl == NULL) tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType); // tpl = array;
+      closeUnstructuredMesh(posx, posy, posz, eps, eltType, *f, *cn, removeDegen);
+      tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType);
+      
+      //tpl = K_CONNECT::V_cleanConnectivity(varString, *f, *cn, eltType, eps);
+      //if (tpl == NULL) tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType); // tpl = array;
     }
     else
     {

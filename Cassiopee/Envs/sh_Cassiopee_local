@@ -814,7 +814,7 @@ elif [ "$MAC" = "juno_gcc" ]; then
     unset I_MPI_TCP_NETMASK
     unset I_MPI_PMI_LIBRARY
     unset $(env | grep SLURM | cut -d'=' -f 1)
-    export OMP_PLACES=cores
+    #export OMP_PLACES=cores
     # Chemin de l'executable python
     export PATH=$PATH:$CASSIOPEE/Dist/bin
     export PATH=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PATH
