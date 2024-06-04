@@ -1,4 +1,4 @@
-import distutils.sysconfig, os
+import os
 import KCore.Dist as Dist
 #==============================================================================
 # Distributor2 requires:
