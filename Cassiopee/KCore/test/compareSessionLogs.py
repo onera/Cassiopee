@@ -84,6 +84,23 @@ def diffTest(test, ref, new):
   else:
     return ''
 
+# Return test execution time of the Base, the reference log and the new log  
+def getExecTime(test, ref, new):
+  def _testStr2Time(t):
+    t = t[:-1].split('m')
+    return float(t[0])*60. + float(t[1])
+  baseExecTime = _testStr2Time(ref[1])
+  refExecTime = _testStr2Time(ref[0])
+  newExecTime = _testStr2Time(new[0])
+  return baseExecTime, refExecTime, newExecTime
+
+# Return test execution time difference in % between (ref, new) and the Base
+def getDiffExecTime(test, ref, new):
+  baseExecTime, refExecTime, newExecTime = getExecTime(test, ref, new)
+  diffRef = round((refExecTime-baseExecTime)/baseExecTime*100., 1)
+  diffNew = round((newExecTime-baseExecTime)/baseExecTime*100., 1)
+  return diffRef, diffNew
+
 # Stringify test comparison
 def stringify(test='', ref='', new=''):
   if not test:
@@ -92,6 +109,8 @@ def stringify(test='', ref='', new=''):
   test.split('.')[0]
   if not (ref or new):
     return "{:>15} | {:>42} |\n".format(mod, test)
+  elif not isinstance(ref, list):
+    return "{:>15} | {:>42} | {:>10} | {:>10} |\n".format(mod, test, ref, new)
   else:
     return "{:>15} | {:>42} | {:>10} | {:>10} |\n".format(mod, test, ref[5], new[5])
 
@@ -215,6 +234,24 @@ if __name__ == '__main__':
     for test in failedTests:
       compStr += stringify(test)
   else: compStr += failedTestsHeader + "[none]\n"
+  
+  execTime = []
+  for test in commonTests:
+    execTime.append([test, *getDiffExecTime(test, refDict[test], newDict[test])])
+  execTime.sort(key=lambda x: x[2])
+  
+  threshold = 50.
+  execTimeHeader = "\nExecution time - {.0f}% threshold:\n{}\n".format(threshold, '-'*30)
+  compStr += execTimeHeader
+  compStr += "{} | {} | {} |\n{}\n".format("TESTS".center(60),
+                                           "REF v Base".center(10),
+                                           "NEW v Base".center(10), '*'*88)
+  cmpt = 0
+  for test in execTime:
+    if abs(test[2]) > threshold and abs(test[1]) < threshold:
+        compStr += stringify(test[0], str(test[1])+'%', str(test[2])+'%')
+        cmpt += 1
+  if cmpt == 0: compStr += "[none]\n"
     
   # If the state of the Base is OK, set the new session log to be the reference
   baseStateMsg = ""
