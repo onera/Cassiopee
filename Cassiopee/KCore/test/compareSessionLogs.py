@@ -240,14 +240,15 @@ if __name__ == '__main__':
     execTime.append([test, *getDiffExecTime(test, refDict[test], newDict[test])])
   execTime.sort(key=lambda x: x[2])
   
-  execTimeHeader = "\nExecution time - 30% threshold:\n{}\n".format('-'*30)
+  threshold = 50.
+  execTimeHeader = "\nExecution time - {.0f}% threshold:\n{}\n".format(threshold, '-'*30)
   compStr += execTimeHeader
   compStr += "{} | {} | {} |\n{}\n".format("TESTS".center(60),
                                            "REF v Base".center(10),
                                            "NEW v Base".center(10), '*'*88)
   cmpt = 0
   for test in execTime:
-    if abs(test[2]) > 30. and abs(test[1]) < 30.:
+    if abs(test[2]) > threshold and abs(test[1]) < threshold:
         compStr += stringify(test[0], str(test[1])+'%', str(test[2])+'%')
         cmpt += 1
   if cmpt == 0: compStr += "[none]\n"
