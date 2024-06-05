@@ -7,17 +7,6 @@ import time
 import KCore
 import KCore.Dist as Dist
 
-# CASSIOPEE var (doit etre le chemin des sources avec les tests unitaires)
-CASSIOPEE = None
-# Name of the data folders
-DATA = None
-# Paths to the local and global ValidData folders
-VALIDLOCAL = None
-VALIDGLOBAL = None
-
-# CFD Base
-CFDBASEPATH = '/Validation/Cases'
-
 # System
 mySystem = Dist.getSystem()[0]
 
@@ -53,8 +42,17 @@ TK_END = 'end'
 TESTS = []
 # Test filter: 0 (no filter), 1: sequential tests only, 2: distributed tests only
 TESTS_FILTER = 0
+
+# Name of the data folders
+DATA = None
+# CFD Base
+CFDBASEPATH = os.path.join('Validation', 'Cases')
 # Repertoire 'module' des modules
-MODULESDIR = {}
+MODULESDIR = {'LOCAL': {}, 'GLOBAL': {}}
+# Paths to the local and global ValidData folders
+VALIDDIR = {'LOCAL': None, 'GLOBAL': None}
+# Base that is used. Default is the local base
+BASE_USED = 'LOCAL'
 
 # Si THREAD est None, les test unitaires ne tournent pas
 # Sinon, THREAD vaut le thread lance
@@ -188,17 +186,16 @@ def getInstallPaths():
   return cassiopeeIncDir, fastIncDir, pmodulesDir
                         
 def checkEnvironment():
-  global CASSIOPEE
   # Check environment
-  CASSIOPEE = os.getenv('CASSIOPEE_SOURCES')
-  if CASSIOPEE is None or CASSIOPEE == '':
-      CASSIOPEE = os.getenv('CASSIOPEE')
-      if CASSIOPEE is None or CASSIOPEE == '':
+  cassiopee = os.getenv('CASSIOPEE_SOURCES') # TODO set global env name 
+  if cassiopee is None or cassiopee == '':
+      cassiopee = os.getenv('CASSIOPEE')
+      if cassiopee is None or cassiopee == '':
           print('Error: CASSIOPEE must be present in your environment.')
           sys.exit()
   
   # Cannot work because of symbolic links to prods on juno
-  #if os.path.join(CASSIOPEE, "Cassiopee") != getInstallPaths()[0]:
+  #if os.path.join(cassiopee, "Cassiopee") != getInstallPaths()[0]:
   #    print("Error: Path mismatch between $CASSIOPEE and KCore/installPath")
   #    sys.exit()
 
@@ -325,12 +322,12 @@ def ljust(text, size):
 #==============================================================================
 def buildString(module, test, CPUtime='...', coverage='...%', status='...',
                 tag=' '):
+    modulesDir = MODULESDIR[BASE_USED][module]
     if module == 'CFDBase':
-        path = os.path.join(CASSIOPEE, CFDBASEPATH)
+        path = os.path.join(modulesDir, CFDBASEPATH)
         fileTime = os.path.join(path, test, DATA, test+'.time')
         fileStar = os.path.join(path, test, DATA, test+'.star')
     else:
-        modulesDir = MODULESDIR[module]
         testr = os.path.splitext(test)
         fileTime = os.path.join(modulesDir, module, 'test', DATA, testr[0]+'.time')
         fileStar = os.path.join(modulesDir, module, 'test', DATA, testr[0]+'.star')
@@ -375,51 +372,68 @@ def buildString(module, test, CPUtime='...', coverage='...%', status='...',
     return s
 
 #==============================================================================
+# Set paths in MODULESDIR for each module of Cassiopee, Fast, PModules and
+# CFDBase both locally and globally. Set paths for ValidData directories
+#==============================================================================
+def setPaths():
+    def _setModuleDirs(cassiopeeIncDir, fastIncDir, pmodulesIncDir, loc='LOCAL'):
+        global MODULESDIR
+        if loc not in ['LOCAL', 'GLOBAL']: loc = 'LOCAL'
+        notTested = ['Upmost', 'FastP']
+        paths = [fastIncDir, pmodulesIncDir]
+        for path in paths:
+            if path is None: continue
+            print('Info: Getting module names in: {}.'.format(path))
+            try: mods = os.listdir(path)
+            except: mods = []
+            for i in mods:
+                if i not in notTested and i not in MODULESDIR[loc]:
+                    a = os.access(os.path.join(path, i, 'test'), os.F_OK)
+                    if a:
+                        MODULESDIR[loc][i] = path
+        
+        print('Info: Getting module names in: {}.'.format(cassiopeeIncDir))
+        try: mods = os.listdir(cassiopeeIncDir)
+        except: mods = []
+        for i in mods:
+            if i not in MODULESDIR[loc]:
+                a = os.access(os.path.join(cassiopeeIncDir, i, 'test'), os.F_OK)
+                if a: 
+                    MODULESDIR[loc][i] = cassiopeeIncDir
+        
+        # Validation CFD
+        MODULESDIR[loc]['CFDBase'] = os.path.dirname(os.path.dirname(cassiopeeIncDir))
+    
+    # Module paths when the local base is used
+    cassiopeeIncDir, fastIncDir, pmodulesIncDir = getInstallPaths()
+    _setModuleDirs(cassiopeeIncDir, fastIncDir, pmodulesIncDir, loc='LOCAL')
+    
+    # Module paths when the global base is used
+    parentDirname = os.path.join('/stck', 'cassiope', 'git')
+    cassiopeeIncDir = os.path.join(parentDirname, 'Cassiopee', 'Cassiopee')
+    fastIncDir = os.path.join(parentDirname, 'Fast', 'Fast')
+    if not os.path.isdir(fastIncDir): fastIncDir = None
+    pmodulesIncDir = os.path.join(parentDirname, 'PModules')
+    if not os.path.isdir(pmodulesIncDir): pmodulesIncDir = None
+    _setModuleDirs(cassiopeeIncDir, fastIncDir, pmodulesIncDir, loc='GLOBAL')
+    
+    # Valid paths
+    global VALIDDIR
+    VALIDDIR['LOCAL'] = os.path.join(os.getenv('CASSIOPEE'), 'Cassiopee',
+                                     'Valid{}'.format(DATA))
+    if not os.access(VALIDDIR['LOCAL'], os.W_OK):
+        VALIDDIR['LOCAL'] = os.path.join(os.getcwd(), "Valid{}".format(DATA))
+        if not os.path.isdir(VALIDDIR['LOCAL']): os.mkdir(VALIDDIR['LOCAL'])
+    VALIDDIR['GLOBAL'] = os.path.join(parentDirname, 'Cassiopee',
+                                      'Cassiopee', 'Valid{}'.format(DATA))
+
+#==============================================================================
 # Retourne la liste des modules situes dans Cassiopee, Fast et PModules
 # Eventuellement peut ajouter "CFDBase", nom referencant les tests
 # de validation des solveurs (CFDBase)
 #==============================================================================
 def getModules():
-    if VALIDGLOBAL is None:
-        # The local base is used
-        cassiopeeIncDir, fastIncDir, pmodulesIncDir = getInstallPaths()
-    else:
-        # The global base is used
-        parentDirname = os.path.dirname(CASSIOPEE)
-        cassiopeeIncDir = os.path.join(CASSIOPEE, 'Cassiopee')
-        fastIncDir = os.path.join(parentDirname, 'Fast', 'Fast')
-        if not os.path.isdir(fastIncDir): fastIncDir = None
-        pmodulesIncDir = os.path.join(parentDirname, 'PModules')
-        if not os.path.isdir(pmodulesIncDir): pmodulesIncDir = None
-    # Tests unitaires des modules
-    modules = []
-    paths = [fastIncDir, pmodulesIncDir]
-    notTested = ['Upmost', 'FastP']
-    for path in paths:
-        if path is None: continue
-        print('Info: Getting tests in: {}.'.format(path))
-        try: mods = os.listdir(path)
-        except: mods = []
-        for i in mods:
-            if i not in notTested and i not in modules:
-                a = os.access(os.path.join(path, i, 'test'), os.F_OK)
-                if a:
-                    modules.append(i)
-                    MODULESDIR[i] = path
-    print('Info: Getting tests in: {}.'.format(cassiopeeIncDir))
-    try: mods = os.listdir(cassiopeeIncDir)
-    except: mods = []
-    for i in mods:
-        if i not in modules:
-            a = os.access(os.path.join(cassiopeeIncDir, i, 'test'), os.F_OK)
-            if a: 
-                modules.append(i)
-                MODULESDIR[i] = cassiopeeIncDir
-    
-    # Validation CFD
-    modules.append('CFDBase')
-    MODULESDIR['CFDBase'] = os.path.dirname(os.path.dirname(cassiopeeIncDir))
-    return sorted(modules)
+    return sorted(MODULESDIR[BASE_USED].keys())
 
 #==============================================================================
 # Retourne la liste des tests unitaires d'un module
@@ -438,7 +452,7 @@ def getTests(module):
 # distribues
 #==============================================================================
 def getUnitaryTests(module):
-    modulesDir = MODULESDIR[module]
+    modulesDir = MODULESDIR[BASE_USED][module]
     path = os.path.join(modulesDir, module, 'test')
     files = os.listdir(path)
     tests = []
@@ -459,7 +473,7 @@ def getUnitaryTests(module):
 # Il doivent etre dans Validation/Cases
 #==============================================================================
 def getCFDBaseTests():
-    path = os.path.join(CASSIOPEE, CFDBASEPATH)
+    path = os.path.join(MODULESDIR[BASE_USED]['CFDBase'], CFDBASEPATH)
     try: reps = os.listdir(path)
     except: reps = []
     out = []
@@ -606,7 +620,7 @@ def extractCPUTime2(output, nreps=1):
 def runSingleUnitaryTest(no, module, test):
     global TESTS
     testr = os.path.splitext(test)
-    modulesDir = MODULESDIR[module]
+    modulesDir = MODULESDIR[BASE_USED][module]
     path = os.path.join(modulesDir, module, 'test')
 
     m1 = expTest1.search(test) # seq ou distribue
@@ -725,8 +739,9 @@ def runSingleUnitaryTest(no, module, test):
     if not os.access(fileTime, os.F_OK):
         writeTime(fileTime, CPUtime, coverage)
         
-    # Recupere le tag
-    fileStar = '%s/%s/%s.star'%(path, DATA, testr[0])
+    # Recupere le tag local
+    pathStar = os.path.join(MODULESDIR['LOCAL'][module], module, 'test')
+    fileStar = os.path.join(pathStar, DATA, testr[0]+'.star')
     tag = ' '
     if os.access(fileStar, os.R_OK):
         tag = readStar(fileStar)
@@ -755,7 +770,7 @@ def runSingleUnitaryTest(no, module, test):
 def runSingleCFDTest(no, module, test):
     global TESTS
     print('Info: Running CFD test %s.'%test)
-    path = os.path.join(CASSIOPEE, CFDBASEPATH, test)
+    path = os.path.join(MODULESDIR[BASE_USED]['CFDBase'], CFDBASEPATH, test)
 
     m1 = None # si False=seq
     # force mpi test pour certains cas
@@ -837,8 +852,9 @@ def runSingleCFDTest(no, module, test):
     if not os.access(fileTime, os.F_OK):
         writeTime(fileTime, CPUtime, coverage)
         
-    # Recupere le tag
-    fileStar = '%s/%s/%s.star'%(path, DATA, test)
+    # Recupere le tag local
+    pathStar = os.path.join(MODULESDIR[BASE_USED][module], module, 'test')
+    fileStar = os.path.join(pathStar, DATA, test+'.star')
     tag = ' '
     if os.access(fileStar, os.R_OK):
         tag = readStar(fileStar)
@@ -921,12 +937,12 @@ def updateTests():
         test = splits[1]
         module = module.strip()
         test = test.strip()
+        modulesDir = MODULESDIR[BASE_USED][module]
         if module == 'CFDBase':
-            pathl = os.path.join(CASSIOPEE, CFDBASEPATH, test)
+            pathl = os.path.join(modulesDir, CFDBASEPATH, test)
             test2 = test+'.time'
             test = 'post'+'.ref*'
         else:
-            modulesDir = MODULESDIR[module]
             d = os.path.splitext(test)
             test = d[0]+'.ref*'
             test2 = d[0]+'.time'
@@ -974,9 +990,8 @@ def buildTestList(loadSession=False, modules=[]):
         modules = getModules()
     # Read last sessionLog conditionally
     ncolumns = 8
-    logname = sorted(glob.glob(os.path.join(VALIDLOCAL, "session-*.log")))
+    logname = sorted(glob.glob(os.path.join(VALIDDIR['LOCAL'], "session-*.log")))
     if len(logname): logname = logname[-1]
-    else: logname = os.path.join(VALIDLOCAL, "lastSession.log")
 
     if loadSession and os.access(logname, os.R_OK) and os.path.getsize(logname) > 0:
         print("Loading last session: {}".format(logname))
@@ -997,7 +1012,7 @@ def buildTestList(loadSession=False, modules=[]):
         # Read sessionLog and combine with lastSession. Priority given to
         # data from current session
         ncolumns = 8
-        logname = os.path.join(VALIDLOCAL, "session.log")
+        logname = os.path.join(VALIDDIR['LOCAL'], "session.log")
         if os.path.getsize(logname) > 0:
             with open(logname, "r") as g:
                 sessionLog = [line.rstrip().split(':') for line in g.readlines()]
@@ -1161,11 +1176,11 @@ def viewTest(event=None):
         test = splits[1]
         module = module.strip()
         test = test.strip()
+        modulesDir = MODULESDIR[BASE_USED][module]
         if module == 'CFDBase':
-            pathl = os.path.join(CASSIOPEE, CFDBASEPATH, test)
+            pathl = os.path.join(modulesDir, CFDBASEPATH, test)
             test = 'compute.py'
         else:
-            modulesDir = MODULESDIR[module]
             pathl = os.path.join(modulesDir, module, 'test')
         if mySystem == 'mingw' or mySystem == 'windows':
             pathl = pathl.replace('/', '\\')
@@ -1503,7 +1518,7 @@ def getGitHash(cassiopeeIncDir):
 #==============================================================================
 def createEmptySessionLog():
     # Create an empty session log
-    with open(os.path.join(VALIDLOCAL, "session.log"), "w") as f: f.write("")
+    with open(os.path.join(VALIDDIR['LOCAL'], "session.log"), "w") as f: f.write("")
     
 def writeSessionLog():
     cassiopeeIncDir = getInstallPaths()[0]
@@ -1518,8 +1533,8 @@ def writeSessionLog():
 
     # Write time stamp dans ValidData/base.time et
     # log dans ValidData/session.log
-    writeFinal(os.path.join(VALIDLOCAL, 'base.time'), gitInfo=gitInfo)
-    writeFinal(os.path.join(VALIDLOCAL, 'session.log'), logTxt=messageText)
+    writeFinal(os.path.join(VALIDDIR['LOCAL'], 'base.time'), gitInfo=gitInfo)
+    writeFinal(os.path.join(VALIDDIR['LOCAL'], 'session.log'), logTxt=messageText)
 
 #==============================================================================
 # Send an email
@@ -1574,12 +1589,12 @@ def notifyValidOK():
 def Quit(event=None):
     import os
     import shutil
-    logname = os.path.join(VALIDLOCAL, "session.log")
+    logname = os.path.join(VALIDDIR['LOCAL'], "session.log")
     # The session log is copied if it is not empty and if we have write
     # permissions
-    if os.access(VALIDLOCAL, os.W_OK) and (not os.path.getsize(logname) == 0):
+    if os.access(VALIDDIR['LOCAL'], os.W_OK) and (not os.path.getsize(logname) == 0):
         now = time.strftime("%y%m%d_%H%M%S", time.localtime())
-        dst = os.path.join(VALIDLOCAL, "session-{}.log".format(now))
+        dst = os.path.join(VALIDDIR['LOCAL'], "session-{}.log".format(now))
         print("Saving session to: {}".format(dst))
         shutil.copyfile(logname, dst)
     os._exit(0)
@@ -1587,6 +1602,8 @@ def Quit(event=None):
 #==============================================================================
 # Ajoute une etoile a la selection. Tagger plusieurs fois une selection permet
 # de changer de symbole: *, r, g, b
+# Les tags sont locaux, cad, propres a l'utilisateur meme quand la base choisie
+# est globale
 #==============================================================================
 def tagSelection(event=None):
     global TESTS
@@ -1599,9 +1616,9 @@ def tagSelection(event=None):
         splits = t.split(separator)
         module = splits[0].strip()
         test = splits[1].strip()
-        modulesDir = MODULESDIR[module]
-        path = os.path.join(modulesDir, module, 'test')
         testr = os.path.splitext(test)
+        modulesDir = MODULESDIR['LOCAL'][module]
+        path = os.path.join(modulesDir, module, 'test')
         fileStar = os.path.join(path, DATA, testr[0]+'.star')
         tag = splits[6].strip()
         if not tag: tag = '*'
@@ -1628,9 +1645,9 @@ def untagSelection(event=None):
         splits = t.split(separator)
         module = splits[0].strip()
         test = splits[1].strip()
-        modulesDir = MODULESDIR[module]
-        path = os.path.join(modulesDir, module, 'test')
         testr = os.path.splitext(test)
+        modulesDir = MODULESDIR['LOCAL'][module]
+        path = os.path.join(modulesDir, module, 'test')
         rmFile(path, testr[0]+'.star')
         splits[6] = ' '*3
         s = separator.join(i for i in splits)
@@ -1648,39 +1665,31 @@ def untagSelection(event=None):
 # Setups to either use the local or global databases
 #==============================================================================
 def setupLocal(**kwargs):
-    global VALIDLOCAL, VALIDGLOBAL, CASSIOPEE
+    global BASE_USED
     # Change to local ref
     print('Switching to local database')
-    CASSIOPEE = os.getenv('CASSIOPEE')
+    BASE_USED = 'LOCAL'
     os.environ['VALIDLOCAL'] = '.'
-    VALIDLOCAL = os.path.join(CASSIOPEE, "Cassiopee", "Valid{}".format(DATA))
-    if not os.access(VALIDLOCAL, os.W_OK):
-        VALIDLOCAL = os.path.join(os.getcwd(), "Valid{}".format(DATA))
-        if not os.path.isdir(VALIDLOCAL): os.mkdir(VALIDLOCAL)
-        os.environ['VALIDLOCAL'] = VALIDLOCAL
-    VALIDGLOBAL = None
+    casFolder = os.path.join(os.getenv('CASSIOPEE'), "Cassiopee", "Valid{}".format(DATA))
+    if not os.access(casFolder, os.W_OK):
+        os.environ['VALIDLOCAL'] = os.path.join(os.getcwd(), "Valid{}".format(DATA))
     
     if INTERACTIVE: WIDGETS['UpdateButton'].configure(state=TK.NORMAL)
     createEmptySessionLog()
     buildTestList(**kwargs)
     
 def setupGlobal(**kwargs):
-    global VALIDLOCAL, VALIDGLOBAL, CASSIOPEE
+    global BASE_USED
     # Change to global ref
     print('Switching to global database')
-    CASSIOPEE = '/stck/cassiope/git/Cassiopee'
-    VALIDLOCAL = os.path.join(os.getenv('CASSIOPEE'), 'Cassiopee', 'Valid{}'.format(DATA))
-    if not os.access(VALIDLOCAL, os.W_OK):
-        VALIDLOCAL = os.path.join(os.getcwd(), "Valid{}".format(DATA))
-        if not os.path.isdir(VALIDLOCAL): os.mkdir(VALIDLOCAL)
-    os.environ['VALIDLOCAL'] = VALIDLOCAL
-    VALIDGLOBAL = os.path.join(CASSIOPEE, 'Cassiopee', 'Valid{}'.format(DATA))
+    BASE_USED = 'GLOBAL'
+    os.environ['VALIDLOCAL'] = VALIDDIR['LOCAL']
     
     # No update on global ref
     if INTERACTIVE: WIDGETS['UpdateButton'].configure(state=TK.DISABLED)
     # Change to match the numthreads of global ref
     try:
-        with open(os.path.join(VALIDGLOBAL, 'base.time'), 'r') as f:
+        with open(os.path.join(VALIDDIR['GLOBAL'], 'base.time'), 'r') as f:
             db_info = f.read().split('\n')
             Threads.set(d[2])
             setThreads()
@@ -1721,7 +1730,7 @@ def parseArgs():
     
 # Purge session logs by date down to the last n most recent
 def purgeSessionLogs(n):
-    lognames = sorted(glob.glob(os.path.join(VALIDLOCAL, 'session-*.log')))
+    lognames = sorted(glob.glob(os.path.join(VALIDDIR['LOCAL'], 'session-*.log')))
     if len(lognames) > n:
         for log in lognames[:-n]: os.remove(log)
     return None
@@ -1735,6 +1744,8 @@ if __name__ == '__main__':
     checkEnvironment()
     # Get name of the ValidData folder
     DATA = Dist.getDataFolderName()
+    # Set MODULESDIR and VALIDDIR paths once, both locally and globally
+    setPaths()
     
     if INTERACTIVE:
         # --- Use GUI ---
