@@ -469,8 +469,8 @@ namespace K_CONNECT
     E_Bool removeDuplicatedElements=true,
     E_Bool removeDegeneratedElements=true);  
 
-  E_Int V_identifyDuplicatedElementsME(
-    K_FLD::FldArrayI& cn, std::vector<E_Int>& indir,
+  E_Int V_identifyDirtyElementsME(
+    E_Int dim, K_FLD::FldArrayI& cn, std::vector<E_Int>& indir,
     std::vector<E_Int>& nuniqueElts, E_Int neltsTot=0,
     E_Bool removeDegeneratedElements=true);
   
