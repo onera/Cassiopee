@@ -35,8 +35,6 @@ C_IN
       INTEGER_E nelts           ! nb d elements
       INTEGER_E nedges          ! nb de facettes par elemt
       INTEGER_E nnodes          ! nb de noeuds par elemt
-      INTEGER_E eq              !
-      INTEGER_E nfld            !
       INTEGER_E cn(0:nelts-1,nnodes) ! connectivite elt->noeud
       REAL_E fieldn(0:npts-1)   ! champ aux noeuds
       

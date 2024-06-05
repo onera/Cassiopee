@@ -37,11 +37,9 @@ PyObject* K_CONNECTOR::___setQintersectionLBM(PyObject* self, PyObject* args){
   E_Int nvars;
   E_Int vartype, type_transfert, no_transfert,It_target, nstep, nitmax;
   E_Int rk, exploc, num_passage;
-  if (!PYPARSETUPLE(args,
-                    "OOOOOllllllllll", "OOOOOiiiiiiiiii",
-                    "OOOOOllllllllll", "OOOOOiiiiiiiiii",
-                    &zonesR, &zonesD, &pyVariables, &pyParam_int,  &pyParam_real,&nvars,&vartype,
-		    &It_target,&type_transfert, &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage))
+  if (!PYPARSETUPLE_(args, OOOO_ O_ IIII_ IIII_ II_,
+                    &zonesR, &zonesD, &pyVariables, &pyParam_int, &pyParam_real,&nvars, &vartype,
+                    &It_target,&type_transfert, &no_transfert, &nstep, &nitmax, &rk, &exploc, &num_passage))
     {
       return NULL;
     }

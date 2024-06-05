@@ -105,9 +105,9 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
   E_Float ndir1, ndir2;
   E_Float ptA[3], ptB[3], ptC[3], dir1[3];
   E_Float ptD[3], dir2[3];
-  E_Float inverse1, rad1, rad2, ndirl;
-  E_Int indA, indB, indC, indD, ind5, ind6, swap;
-  E_Float xx, yy, zz, e1, e2, e3, rad;
+  E_Float inverse1, ndirl;
+  E_Int indA, indB, indC, indD, ind5, ind6;
+  E_Float xx, yy, zz, e1, e2, e3;
   E_Int neigh, mat, v;
   //E_Int maillesEcrasees = 0;
   //E_Int maillesInversees = 0;
@@ -121,7 +121,7 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
   {
     ind1 = ct1[i]-1; ind2 = ct2[i]-1; ind3 = ct3[i]-1;
     vector<E_Int>& voisins = cEEN[i];
-    swap = -1;
+    //swap = -1;
 
     /* verification du triangle initial */
     ptA[0] = x[ind1]; ptA[1] = y[ind1]; ptA[2] = z[ind1];
@@ -208,9 +208,9 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
     }
     else if (mode == 3) // decimate si radius trop grand
     {
-      rad = K_COMPGEOM::circumCircleRadius(ptA[0], ptA[1], ptA[2],
-                                           ptB[0], ptB[1], ptB[2],
-                                           ptC[0], ptC[1], ptC[2]);
+      //rad = K_COMPGEOM::circumCircleRadius(ptA[0], ptA[1], ptA[2],
+      //                                     ptB[0], ptB[1], ptB[2],
+      //                                     ptC[0], ptC[1], ptC[2]);
       e1 = sqrt((ptB[0]-ptA[0])*(ptB[0]-ptA[0])+
                 (ptB[1]-ptA[1])*(ptB[1]-ptA[1])+
                 (ptB[2]-ptA[2])*(ptB[2]-ptA[2]));
@@ -268,9 +268,9 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
         dir1[1] = (ptB[2]-ptA[2])*(ptC[0]-ptA[0])-(ptB[0]-ptA[0])*(ptC[2]-ptA[2]);
         dir1[2] = (ptB[0]-ptA[0])*(ptC[1]-ptA[1])-(ptB[1]-ptA[1])*(ptC[0]-ptA[0]);
         ndir1 = sqrt(dir1[0]*dir1[0]+dir1[1]*dir1[1]+dir1[2]*dir1[2]);
-        rad1 = K_COMPGEOM::circumCircleRadius(ptA[0], ptA[1], ptA[2], 
-                                              ptB[0], ptB[1], ptB[2], 
-                                              ptC[0], ptC[1], ptC[2]);
+        //rad1 = K_COMPGEOM::circumCircleRadius(ptA[0], ptA[1], ptA[2], 
+        //                                      ptB[0], ptB[1], ptB[2], 
+        //                                      ptC[0], ptC[1], ptC[2]);
 
         // DC ^ DB
         dir2[0] = (ptC[1]-ptD[1])*(ptB[2]-ptD[2])-(ptC[2]-ptD[2])*(ptB[1]-ptD[1]);
@@ -279,9 +279,9 @@ void K_TRANSFORM::contractEdges(FldArrayI& ct, E_Int np,
         ndir2 = sqrt(dir2[0]*dir2[0]+dir2[1]*dir2[1]+dir2[2]*dir2[2]);
         inverse1 = dir1[0]*dir2[0]+dir1[1]*dir2[1]+dir1[2]*dir2[2];
         if (ndir1 > 1.e-12 && ndir2 > 1.e-12) inverse1 = inverse1/(ndir1*ndir2);
-        rad2 = K_COMPGEOM::circumCircleRadius(ptB[0], ptB[1], ptB[2],
-                                              ptC[0], ptC[1], ptC[2],
-                                              ptD[0], ptD[1], ptD[2]);
+        //rad2 = K_COMPGEOM::circumCircleRadius(ptB[0], ptB[1], ptB[2],
+        //                                      ptC[0], ptC[1], ptC[2],
+        //                                      ptD[0], ptD[1], ptD[2]);
 
         if (inverse1 < -0.9) printf("contractEdges: " SF_D_ ": " SF_F_ " inverse.\n", i, inverse1); 
 

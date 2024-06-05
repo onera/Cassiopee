@@ -29,18 +29,15 @@
 //=============================================================================
 void DataDL::renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield)
 {
-  E_Int i, j, k, n1, n2;
+  //E_Int i, j, k, n1, n2;
   float offb;
   double blend;
-  E_Int ret1, ret2;
-
+  
   // Grid dimensions
   E_Int ni = zonep->ni;
   E_Int nj = zonep->nj;
   E_Int nk = zonep->nk;
-  if (ptrState->dim == 2) nk = 1;
-  E_Int nij = ni*nj;
-
+  
   ZoneImplDL* zoneImpl = static_cast<ZoneImplDL*>(zonep->ptr_impl);
 
   // Blending
@@ -57,8 +54,6 @@ void DataDL::renderSIsoSolidZone(StructZone* zonep, E_Int zone, E_Int nofield)
     if (curr != 0) _shaders[curr]->setUniform("lightOn", (int)0); // impose isoLight off on 1D meshes
   }
 #endif
-
-  double* x = zonep->x; double* y = zonep->y; double* z = zonep->z;
 
   glCallList(zoneImpl->_DLiso);
       

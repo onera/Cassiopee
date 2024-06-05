@@ -17,9 +17,9 @@ C    You should have received a copy of the GNU General Public License
 C    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 
 C  ============================================================================
-C  Calcul du rotationnel moyen d un champ u sur une grille
+C  Calcul du rotationnel moyen d'un champ u sur une grille
 C  IN: ni,nj,nk: dimensions du maillage en noeuds
-C  IN: nb./Post/Post/Fortran/CompStructCurlF.for de cellules
+C  IN: nb: nbre de cellules
 C  IN: xt,yt,zt: coordonnees de la grille
 C  IN: u: vecteur dont le rotationnel est a calculer
 C  OUT: rotu: rotationnel de u aux centres des cellules
@@ -59,7 +59,7 @@ C_OUT
 
 C_LOCAL
       INTEGER_E inci, incj, inck
-      INTEGER_E indcell, i, j, k, eq
+      INTEGER_E indcell, i, j, k
       INTEGER_E ninj, ni1, nj1, nk1, ni1nj, ninj1, ni1nj1
       INTEGER_E indint1, indint2, indint3, indint4, indint5, indint6
       INTEGER_E inti, intj, intij, intk

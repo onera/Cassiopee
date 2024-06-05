@@ -651,7 +651,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
     uint8_t color[3];
     color[0] = 126; color[1] = 126; color[2] = 255;
     uint8_t color2[3];
-    color[0] = 126; color[1] = 126; color[2] = 250;
+    color2[0] = 126; color2[1] = 126; color2[2] = 250;
     
     uint8_t *imageData = &outputBumpImage[atlasIndex * imageDataSize];
     if (faceVertexCount == 3)

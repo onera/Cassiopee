@@ -61,7 +61,7 @@ C_LOCAL
       REAL_E xint(0:nelts-1, nedges) ! coordonnees du centre des facettes
       REAL_E yint(0:nelts-1, nedges)
       REAL_E zint(0:nelts-1, nedges)
-      INTEGER_E i, eti, fi
+      INTEGER_E eti, fi
       REAL_E gradxx, gradyy, gradzz
       REAL_E invvol
 

@@ -54,10 +54,9 @@ PyObject* K_GENERATOR::cartStruct(PyObject* self, PyObject* args)
   PyObject* tpl;
   tpl = K_ARRAY::buildArray3(3, "x,y,z", ni, nj, nk, api);
   
-  K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
-  char* varString; char* eltType;
-  K_ARRAY::getFromArray3(tpl, varString, f, ni, nj, nk, c, eltType);
-
+  K_FLD::FldArrayF* f;
+  K_ARRAY::getFromArray3(tpl, f);
+  
   E_Int nij = ni*nj;
   E_Int nijk = ni*nj*nk;
 

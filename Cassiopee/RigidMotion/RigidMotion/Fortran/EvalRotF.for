@@ -373,6 +373,29 @@ c
         dc0(3,1) = 0.
         dc0(3,2) = 0.
         dc0(3,3) = 0.
+
+      ELSE
+
+        WRITE(*,*) 'Warning: evalrotfor: incorrect axis1. Set to 1.'
+        c0(1,1) = 1.
+        c0(1,2) = 0.
+        c0(1,3) = 0.
+        c0(2,1) = 0.
+        c0(2,2) = calp0
+        c0(2,3) = -salp0
+        c0(3,1) = 0.
+        c0(3,2) = salp0
+        c0(3,3) = calp0
+        dc0(1,1) = 0.
+        dc0(1,2) = 0.
+        dc0(1,3) = 0.
+        dc0(2,1) = 0.
+        dc0(2,2) = 0.
+        dc0(2,3) = 0.
+        dc0(3,1) = 0.
+        dc0(3,2) = 0.
+        dc0(3,3) = 0.
+
       ENDIF
 c
 c Passage dans le repere de la premiere pale (dans laquelle est donnee la 
@@ -413,6 +436,17 @@ c
         ca(3,1) = 0.
         ca(3,2) = 0.
         ca(3,3) = 1.
+      ELSE
+        WRITE(*,*) 'Warning: evalrotfor: incorrect axis1. Set to 1.'
+        ca(1,1) = 1.
+        ca(1,2) = 0.
+        ca(1,3) = 0.
+        ca(2,1) = 0.
+        ca(2,2) = cpsi0br
+        ca(2,3) = -spsi0br
+        ca(3,1) = 0.
+        ca(3,2) = spsi0br
+        ca(3,3) = cpsi0br
       ENDIF
 c
 c Tenseur 2eme mvt --> rotation uniforme
@@ -491,6 +525,28 @@ c
         dc1(3,1) = 0.
         dc1(3,2) = 0.
         dc1(3,3) = 0.
+
+      ELSE
+        WRITE(*,*) 'Warning: evalrotfor: incorrect axis1. Set to 1.'
+        c1(1,1) = 1.
+        c1(1,2) = 0.
+        c1(1,3) = 0.
+        c1(2,1) = 0.
+        c1(2,2) = cpsim
+        c1(2,3) = -spsim
+        c1(3,1) = 0.
+        c1(3,2) = spsim
+        c1(3,3) = cpsim
+        dc1(1,1) = 0.
+        dc1(1,2) = 0.
+        dc1(1,3) = 0.
+        dc1(2,1) = 0.
+        dc1(2,2) = -psimp*spsim
+        dc1(2,3) = -psimp*cpsim
+        dc1(3,1) = 0.
+        dc1(3,2) = psimp*cpsim
+        dc1(3,3) = -psimp*spsim
+
       ENDIF
 c
 c Tenseur 3eme mvt --> rotation de pre-traine (ind. du temps)
@@ -568,6 +624,28 @@ c
          dc2(3,1) = 0.
          dc2(3,2) = 0.
          dc2(3,3) = 0.
+      
+      ELSE
+
+        WRITE(*,*) 'Warning: evalrotfor: incorrect axis2. Set to 1.'
+        c2(1,1) = 1.
+        c2(1,2) = 0.
+        c2(1,3) = 0.
+        c2(2,1) = 0.
+        c2(2,2) = cprelag
+        c2(2,3) = -sprelag
+        c2(3,1) = 0.
+        c2(3,2) = sprelag
+        c2(3,3) = cprelag
+        dc2(1,1) = 0.
+        dc2(1,2) = 0.
+        dc2(1,3) = 0.
+        dc2(2,1) = 0.
+        dc2(2,2) = 0.
+        dc2(2,3) = 0.
+        dc2(3,1) = 0.
+        dc2(3,2) = 0.
+        dc2(3,3) = 0.
       ENDIF
 c
 c Tenseur 4eme mvt --> rotation de pre-conicite (ind. du temps)
@@ -645,6 +723,30 @@ c
          dc3(3,1) = 0.
          dc3(3,2) = 0.
          dc3(3,3) = 0.
+      ELSE
+         WRITE(*,*) 'Warning: evalrotfor: incorrect axis3. Set to 1.'
+         c3(1,1) = 1.
+         c3(1,2) = 0.
+         c3(1,3) = 0.
+         c3(2,1) = 0.
+         c3(2,2) = cprecon
+         c3(2,3) = -sprecon
+         c3(3,1) = 0.
+         c3(3,2) = sprecon
+         c3(3,3) = cprecon
+c 
+c tenseur vitesse d/dt C3(i,j)
+c
+         dc3(1,1) = 0.
+         dc3(1,2) = 0.
+         dc3(1,3) = 0.
+         dc3(2,1) = 0.
+         dc3(2,2) = 0.
+         dc3(2,3) = 0.
+         dc3(3,1) = 0.
+         dc3(3,2) = 0.
+         dc3(3,3) = 0.
+
       ENDIF
 c
 c Les autres mouvements sont fonction de l'azimut psi+psi0_b
@@ -741,6 +843,29 @@ c
         dc4(3,1) = 0.
         dc4(3,2) = 0.
         dc4(3,3) = 0.
+
+      ELSE
+
+        WRITE(*,*) 'Warning: evalrotfor: incorrect axis4. Set to 1.' 
+        c4(1,1) = 1.
+        c4(1,2) = 0.
+        c4(1,3) = 0.
+        c4(2,1) = 0.
+        c4(2,2) = cdel
+        c4(2,3) = -sdel
+        c4(3,1) = 0.
+        c4(3,2) = sdel
+        c4(3,3) = cdel
+        dc4(1,1) = 0.
+        dc4(1,2) = 0.
+        dc4(1,3) = 0.
+        dc4(2,1) = 0.
+        dc4(2,2) = -delp*sdel
+        dc4(2,3) = -delp*cdel
+        dc4(3,1) = 0.
+        dc4(3,2) = delp*cdel
+        dc4(3,3) = -delp*sdel
+
       ENDIF
 
 c
@@ -833,6 +958,28 @@ c
         dc5(3,1) = 0.
         dc5(3,2) = 0.
         dc5(3,3) = 0.
+
+      ELSE
+        WRITE(*,*) 'Warning: evalrotfor: incorrect axis5. Set to 1.'
+        c5(1,1) = 1.
+        c5(1,2) = 0.
+        c5(1,3) = 0.
+        c5(2,1) = 0.
+        c5(2,2) = cbet
+        c5(2,3) = -sbet
+        c5(3,1) = 0.
+        c5(3,2) = sbet
+        c5(3,3) = cbet
+        dc5(1,1) = 0.
+        dc5(1,2) = 0.
+        dc5(1,3) = 0.
+        dc5(2,1) = 0.
+        dc5(2,2) = -betp*sbet
+        dc5(2,3) = -betp*cbet
+        dc5(3,1) = 0.
+        dc5(3,2) = betp*cbet
+        dc5(3,3) = -betp*sbet
+
       ENDIF
 c
 c Tenseur 7eme mvt --> pas cyclique 
@@ -924,6 +1071,29 @@ c
         dc6(3,1) = 0.
         dc6(3,2) = 0.
         dc6(3,3) = 0.
+
+      ELSE
+
+        WRITE(*,*) 'Warning: evalrotfor: incorrect axis6. Set to 1.'
+        c6(1,1) = 1.
+        c6(1,2) = 0.
+        c6(1,3) = 0.
+        c6(2,1) = 0.
+        c6(2,2) = ctet
+        c6(2,3) = -stet
+        c6(3,1) = 0.
+        c6(3,2) = stet
+        c6(3,3) = ctet
+        dc6(1,1) = 0.
+        dc6(1,2) = 0.
+        dc6(1,3) = 0.
+        dc6(2,1) = 0.
+        dc6(2,2) = -tetp*stet
+        dc6(2,3) = -tetp*ctet
+        dc6(3,1) = 0.
+        dc6(3,2) = tetp*ctet
+        dc6(3,3) = -tetp*stet
+
       ENDIF
 c
 c  --------------------------------------------------------
