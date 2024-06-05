@@ -682,7 +682,6 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
   E_Bool removeDegeneratedElements
 )
 {
-  E_Bool removeDirtyPoints = (removeOverlappingPoints || removeOrphanPoints);
   E_Bool removeDirtyElements = (removeDuplicatedElements || removeDegeneratedElements);
   
   PyObject* tpl = NULL;
@@ -697,7 +696,8 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
   else if (strcmp(eltTypes[0], "BAR") == 0) dim = 1;
   else if (strcmp(eltTypes[0], "TRI") == 0 ||
            strcmp(eltTypes[0], "QUAD") == 0) dim = 2;
-  for (E_Int ic = 0; ic < nc; ic++) {std::cout<<"eltType: " << eltTypes[ic] << std::endl; delete [] eltTypes[ic];}
+  for (E_Int ic = 0; ic < nc; ic++)
+  {std::cout<<"eltType: " << eltTypes[ic] << std::endl; delete [] eltTypes[ic];}
   std::cout<<"dim: " << dim << std::endl;
 
   // Compute total number of elements
@@ -715,7 +715,8 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
   // 1a. Identify orphan points, ie, initialise indirection table used in 1b
   E_Int nuniquePts = 0;
   std::vector<E_Int> indir;
-  if (removeOrphanPoints and dim > 0)
+  if (dim == 0) removeOrphanPoints = false;
+  if (removeOrphanPoints)
   {
     E_Int vidx;
     indir.resize(npts, -1);
@@ -733,6 +734,17 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
         }
       }
     }
+    
+    removeOrphanPoints = false;
+    for (E_Int i = 0; i < npts; i++)
+    {
+      if (indir[i] == -1)
+      {
+        removeOrphanPoints = true;
+        indir.clear();
+        break;
+      }
+    }
   }
 
   // 1b. Identify overlapping points geometrically
@@ -740,10 +752,12 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
   {
     nuniquePts = K_CONNECT::V_identifyOverlappingPoints(posx, posy, posz, f, tol, indir);
     if (nuniquePts < 0) return NULL;
-    else if (nuniquePts == npts) removeDirtyPoints = false;
+    else if (nuniquePts == npts) removeOverlappingPoints = false;
   }
   std::cout<<"npts: " << npts << std::endl;
   std::cout<<"nuniquePts: " << nuniquePts << std::endl;
+  
+  E_Bool removeDirtyPoints = (removeOverlappingPoints || removeOrphanPoints);
 
   // An update is necessary before topological operations in 2.
   if (removeDirtyPoints)
@@ -777,7 +791,7 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
       {
         // Write if point is neither a duplicate nor an orphan
         if (indir[i] < 0) continue;
-        if (itrl == -1 || abs(indir[i]) - abs(indir[itrl]) == 1)
+        if (itrl == -1 || indir[i] - indir[itrl] == 1)
         {
           fp[j] = fp[i];
           j += 1; itrl = i;
@@ -789,12 +803,12 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
     //f.reAllocMat(nuniquePts,nfld);
   }
 
-  // --- 2. Identify duplicated elements topologically ---
+  // --- 2. Identify dirty elements topologically ---
   E_Int nuniqueEltsTot = neltsTot;
   std::vector<E_Int> indirPH, nuniqueElts;
   if (removeDirtyElements)
   {
-    nuniqueEltsTot = K_CONNECT::V_identifyDuplicatedElementsME(cn, indirPH, nuniqueElts, neltsTot, removeDegeneratedElements);
+    nuniqueEltsTot = K_CONNECT::V_identifyDirtyElementsME(dim, cn, indirPH, nuniqueElts, neltsTot, removeDegeneratedElements);
     if (nuniqueEltsTot == neltsTot) removeDuplicatedElements = false;
   }
   else
@@ -869,9 +883,10 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
   return tpl;
 }
 
-E_Int K_CONNECT::V_identifyDuplicatedElementsME(
-  FldArrayI& cn, std::vector<E_Int>& indir, std::vector<E_Int>& nuniqueElts,
-  E_Int neltsTot, E_Bool removeDegeneratedElements
+E_Int K_CONNECT::V_identifyDirtyElementsME(
+  E_Int dim, FldArrayI& cn, std::vector<E_Int>& indir,
+  std::vector<E_Int>& nuniqueElts, E_Int neltsTot,
+  E_Bool removeDegeneratedElements
 )
 {
   E_Int nc = cn.getNConnect();
@@ -911,7 +926,7 @@ E_Int K_CONNECT::V_identifyDuplicatedElementsME(
       auto res = eltMap.insert(std::make_pair(E, -1));
       // Check the value associated with E. If it is -1, then first time this
       // element is encountered
-      if (res.first->second == -1) 
+      if (res.first->second == -1)
       {
         res.first->second = nuniqueElts[ic]; nuniqueElts[ic]++;
       }

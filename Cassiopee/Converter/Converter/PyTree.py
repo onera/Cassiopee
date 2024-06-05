@@ -6626,6 +6626,7 @@ def diffArrayGeom(A, B, tol=1.e-10, removeCoordinates=True):
       setFields(diffn, zones1[no], 'nodes')
 
     # remplacement des solutions aux centres par diffc
+    if diffc is None: continue # one array is different on coordinates
     A1 = getAllFields(zones1[no], 'centers', api=3); A1 = Internal.clearList(A1)
     A2 = getAllFields(zones2[no], 'centers', api=3); A2 = Internal.clearList(A2)
     node = Internal.getNodesFromName1(zones1[no], Internal.__FlowSolutionCenters__)
