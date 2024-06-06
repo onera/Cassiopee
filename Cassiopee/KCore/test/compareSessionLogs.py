@@ -88,7 +88,7 @@ def diffTest(test, ref, new):
 def getExecTime(test, ref, new):
   def _testStr2Time(t):
     t = t[:-1].split('m')
-    if len(t) == 0: return 0. # No data
+    if len(t) == 1: return 1e-12 # No data
     return float(t[0])*60. + float(t[1])
   baseExecTime = _testStr2Time(ref[1])
   refExecTime = _testStr2Time(ref[0])
@@ -242,7 +242,7 @@ if __name__ == '__main__':
   execTime.sort(key=lambda x: x[2])
   
   threshold = 50.
-  execTimeHeader = "\nExecution time - {.0f}% threshold:\n{}\n".format(threshold, '-'*30)
+  execTimeHeader = "\nExecution time - {:.0f}% threshold:\n{}\n".format(threshold, '-'*30)
   compStr += execTimeHeader
   compStr += "{} | {} | {} |\n{}\n".format(" "*60, "REF v Base".center(10),
                                            "NEW v Base".center(10), '*'*88)
