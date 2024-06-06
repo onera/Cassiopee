@@ -47,19 +47,19 @@ TESTS_FILTER = 0
 DATA = None
 # CFD Base
 CFDBASEPATH = os.path.join('Validation', 'Cases')
-# Repertoire 'module' des modules
+# Paths for 'module' source tests and test/Data folder
 MODULESDIR = {'LOCAL': {}, 'GLOBAL': {}}
 # Paths to the local and global ValidData folders
 VALIDDIR = {'LOCAL': None, 'GLOBAL': None}
-# Base that is used. Default is the local base
-BASE_USED = 'LOCAL'
+# Base used for comparisons. Default is the local base.
+BASE4COMPARE = 'LOCAL'
 
 # Si THREAD est None, les test unitaires ne tournent pas
 # Sinon, THREAD vaut le thread lance
 THREAD = None
 # Le process lance sinon None
 PROCESS = None
-# Use the GUI (interactive) or not (command line execution)
+# True if the GUI is used (interactive) or False (command line execution)
 INTERACTIVE = len(sys.argv) == 1
 
 # Est egal a 1 si on doit s'arreter
@@ -187,12 +187,10 @@ def getInstallPaths():
                         
 def checkEnvironment():
   # Check environment
-  cassiopee = os.getenv('CASSIOPEE_SOURCES') # TODO set global env name 
+  cassiopee = os.getenv('CASSIOPEE')
   if cassiopee is None or cassiopee == '':
-      cassiopee = os.getenv('CASSIOPEE')
-      if cassiopee is None or cassiopee == '':
-          print('Error: CASSIOPEE must be present in your environment.')
-          sys.exit()
+    print('Error: CASSIOPEE must be present in your environment.')
+    sys.exit()
   
   # Cannot work because of symbolic links to prods on juno
   #if os.path.join(cassiopee, "Cassiopee") != getInstallPaths()[0]:
@@ -322,7 +320,7 @@ def ljust(text, size):
 #==============================================================================
 def buildString(module, test, CPUtime='...', coverage='...%', status='...',
                 tag=' '):
-    modulesDir = MODULESDIR[BASE_USED][module]
+    modulesDir = MODULESDIR[BASE4COMPARE][module]
     if module == 'CFDBase':
         path = os.path.join(modulesDir, CFDBASEPATH)
         fileTime = os.path.join(path, test, DATA, test+'.time')
@@ -383,7 +381,9 @@ def setPaths():
         paths = [fastIncDir, pmodulesIncDir]
         for path in paths:
             if path is None: continue
-            print('Info: Getting module names in: {}.'.format(path))
+            if loc == 'LOCAL': print('Info: getting local module tests in: {}.'.format(path))
+            else: print('Info: getting global module tests in: {}.'.format(path))
+
             try: mods = os.listdir(path)
             except: mods = []
             for i in mods:
@@ -392,7 +392,9 @@ def setPaths():
                     if a:
                         MODULESDIR[loc][i] = path
         
-        print('Info: Getting module names in: {}.'.format(cassiopeeIncDir))
+        
+        if loc == 'LOCAL': print('Info: getting local module names in: {}.'.format(cassiopeeIncDir))
+        else: print('Info: getting global module names in: {}.'.format(cassiopeeIncDir))
         try: mods = os.listdir(cassiopeeIncDir)
         except: mods = []
         for i in mods:
@@ -433,7 +435,7 @@ def setPaths():
 # de validation des solveurs (CFDBase)
 #==============================================================================
 def getModules():
-    return sorted(MODULESDIR[BASE_USED].keys())
+    return sorted(MODULESDIR[BASE4COMPARE].keys())
 
 #==============================================================================
 # Retourne la liste des tests unitaires d'un module
@@ -452,7 +454,7 @@ def getTests(module):
 # distribues
 #==============================================================================
 def getUnitaryTests(module):
-    modulesDir = MODULESDIR[BASE_USED][module]
+    modulesDir = MODULESDIR[BASE4COMPARE][module]
     path = os.path.join(modulesDir, module, 'test')
     files = os.listdir(path)
     tests = []
@@ -473,7 +475,7 @@ def getUnitaryTests(module):
 # Il doivent etre dans Validation/Cases
 #==============================================================================
 def getCFDBaseTests():
-    path = os.path.join(MODULESDIR[BASE_USED]['CFDBase'], CFDBASEPATH)
+    path = os.path.join(MODULESDIR[BASE4COMPARE]['CFDBase'], CFDBASEPATH)
     try: reps = os.listdir(path)
     except: reps = []
     out = []
@@ -620,7 +622,7 @@ def extractCPUTime2(output, nreps=1):
 def runSingleUnitaryTest(no, module, test):
     global TESTS
     testr = os.path.splitext(test)
-    modulesDir = MODULESDIR[BASE_USED][module]
+    modulesDir = MODULESDIR[BASE4COMPARE][module]
     path = os.path.join(modulesDir, module, 'test')
 
     m1 = expTest1.search(test) # seq ou distribue
@@ -735,7 +737,7 @@ def runSingleUnitaryTest(no, module, test):
             _ = check_output(cleanCmd, shell=True, stderr=subprocess.STDOUT)
 
     # update le fichier .time (si non present)
-    fileTime = '%s/%s/%s.time'%(path, DATA, testr[0])
+    fileTime = '%s/%s/%s/%s/%s.time'%(MODULESDIR['LOCAL'][module], module, 'test', DATA, testr[0])
     if not os.access(fileTime, os.F_OK):
         writeTime(fileTime, CPUtime, coverage)
         
@@ -770,7 +772,7 @@ def runSingleUnitaryTest(no, module, test):
 def runSingleCFDTest(no, module, test):
     global TESTS
     print('Info: Running CFD test %s.'%test)
-    path = os.path.join(MODULESDIR[BASE_USED]['CFDBase'], CFDBASEPATH, test)
+    path = os.path.join(MODULESDIR[BASE4COMPARE]['CFDBase'], CFDBASEPATH, test)
 
     m1 = None # si False=seq
     # force mpi test pour certains cas
@@ -853,7 +855,7 @@ def runSingleCFDTest(no, module, test):
         writeTime(fileTime, CPUtime, coverage)
         
     # Recupere le tag local
-    pathStar = os.path.join(MODULESDIR[BASE_USED][module], module, 'test')
+    pathStar = os.path.join(MODULESDIR[BASE4COMPARE][module], module, 'test')
     fileStar = os.path.join(pathStar, DATA, test+'.star')
     tag = ' '
     if os.access(fileStar, os.R_OK):
@@ -937,7 +939,7 @@ def updateTests():
         test = splits[1]
         module = module.strip()
         test = test.strip()
-        modulesDir = MODULESDIR[BASE_USED][module]
+        modulesDir = MODULESDIR[BASE4COMPARE][module]
         if module == 'CFDBase':
             pathl = os.path.join(modulesDir, CFDBASEPATH, test)
             test2 = test+'.time'
@@ -1176,7 +1178,7 @@ def viewTest(event=None):
         test = splits[1]
         module = module.strip()
         test = test.strip()
-        modulesDir = MODULESDIR[BASE_USED][module]
+        modulesDir = MODULESDIR[BASE4COMPARE][module]
         if module == 'CFDBase':
             pathl = os.path.join(modulesDir, CFDBASEPATH, test)
             test = 'compute.py'
@@ -1665,10 +1667,10 @@ def untagSelection(event=None):
 # Setups to either use the local or global databases
 #==============================================================================
 def setupLocal(**kwargs):
-    global BASE_USED
+    global BASE4COMPARE
     # Change to local ref
-    print('Switching to local database')
-    BASE_USED = 'LOCAL'
+    print('Info: comparing to local database.')
+    BASE4COMPARE = 'LOCAL'
     os.environ['VALIDLOCAL'] = '.'
     casFolder = os.path.join(os.getenv('CASSIOPEE'), "Cassiopee", "Valid{}".format(DATA))
     if not os.access(casFolder, os.W_OK):
@@ -1679,10 +1681,10 @@ def setupLocal(**kwargs):
     buildTestList(**kwargs)
     
 def setupGlobal(**kwargs):
-    global BASE_USED
+    global BASE4COMPARE
     # Change to global ref
-    print('Switching to global database')
-    BASE_USED = 'GLOBAL'
+    print('Info: comparing to global database.')
+    BASE4COMPARE = 'GLOBAL'
     os.environ['VALIDLOCAL'] = VALIDDIR['LOCAL']
     
     # No update on global ref
@@ -1691,7 +1693,7 @@ def setupGlobal(**kwargs):
     try:
         with open(os.path.join(VALIDDIR['GLOBAL'], 'base.time'), 'r') as f:
             db_info = f.read().split('\n')
-            Threads.set(d[2])
+            Threads.set(db_info[2])
             setThreads()
     except: pass
     createEmptySessionLog()

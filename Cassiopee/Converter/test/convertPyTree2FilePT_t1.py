@@ -19,15 +19,15 @@ test.testF(LOCAL+'/out2.tp', 2)
 a = G.cartHexa((0,0,0), (1,1,1), (10,10,10)) 
 b = G.cartTetra((9,0,0), (1,1,1), (10,10,10))
 z = C.mergeConnectivity(a, b, boundary=0)
-C.convertPyTree2File(z, 'out3.tp')
+C.convertPyTree2File(z, LOCAL+'/out3.tp')
 test.testF(LOCAL+'/out3.tp', 3)
 
 # NGON3
 z = G.cartNGon((0,0,0), (1,1,1), (10,10,10), api=1)
-C.convertPyTree2File(z, 'out4.tp')
+C.convertPyTree2File(z, LOCAL+'/out4.tp')
 test.testF(LOCAL+'/out4.tp', 4)
 
 # NGON4
 z = G.cartNGon((0,0,0), (1,1,1), (10,10,10), api=3)
-C.convertPyTree2File(z, 'out5.tp')
+C.convertPyTree2File(z, LOCAL+'/out5.tp')
 test.testF(LOCAL+'/out5.tp', 5)

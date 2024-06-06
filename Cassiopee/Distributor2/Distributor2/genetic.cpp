@@ -70,7 +70,7 @@ void K_DISTRIBUTOR2::genetic(
   meanPtsPerProc = nbTot*1./NProc;
 
   // Bloc le plus petit
-  E_Float nbPtsMin = 10000000;
+  E_Float nbPtsMin = K_CONST::E_MAX_FLOAT;
   for (E_Int i = 0; i < nb; i++) nbPtsMin = K_FUNC::E_min(nbPts[i], nbPtsMin);
   // Bloc le plus grand
   E_Float nbPtsMax = 0;
@@ -100,7 +100,7 @@ void K_DISTRIBUTOR2::genetic(
   E_Float* evalp = evalPop.begin();
   FldArrayI survivors(sizeOfPopulation);
   E_Int* survivorsp = survivors.begin();
-  
+
   // Initialization:
   // Pour le premier,
   // on essaie de mettre un truc pas trop con.
@@ -131,7 +131,7 @@ void K_DISTRIBUTOR2::genetic(
     else pop1[i] = setBlocks[i];
   }
 
-  // Pour le deuxieme, on repartie les blocs les uns apres les autres
+  // Pour le deuxieme, on repartit les blocs les uns apres les autres
   E_Int* pop2 = popp+nb;
   for (E_Int i = 0; i < nb; i++) 
   {
@@ -139,7 +139,7 @@ void K_DISTRIBUTOR2::genetic(
     else pop2[i] = setBlocks[i];
   }
 
-  // Pour le troisieme, on repartis les blocs par taille decroissante
+  // Pour le troisieme, on repartit les blocs par taille decroissante
   // Algo First Fit
   E_Int* largest = new E_Int [nb];
   vector<E_Float> npts(nbPts);
@@ -160,7 +160,7 @@ void K_DISTRIBUTOR2::genetic(
     else pop3[j] = setBlocks[j];
   }
 
-  // Pour le quatrieme, on repartis les blocs par taille decroissante
+  // Pour le quatrieme, on repartit les blocs par taille decroissante
   // Puis sur les procs les moins charges (Best fit)
   nbPtsPerProcs = nbNodePerProc;
   nbPtsPerProcsp = nbPtsPerProcs.begin();
@@ -175,7 +175,7 @@ void K_DISTRIBUTOR2::genetic(
       { pop4[j] = i; nbPtsPerProcs[i] += nbPts[j]; }
       else
       {
-        E_Int kless = 0; E_Float minProc = 10000000;
+        E_Int kless = 0; E_Float minProc = K_CONST::E_MAX_FLOAT;
         for (E_Int k = 0; k < NProc; k++)
         { 
           if (nbPtsPerProcs[k] < minProc) 
@@ -191,7 +191,7 @@ void K_DISTRIBUTOR2::genetic(
       nbPtsPerProcs[setBlocks[j]] += nbPts[j];
     }
   }
-
+  
   // Pour le cinquieme, best fit avec utilisation des coms
   /*
   E_Int* pop5 = popp+4*nb;
@@ -214,7 +214,7 @@ void K_DISTRIBUTOR2::genetic(
     if (alreadySet[j] == 0)
     {
       // on le met sur le proc le moins charge
-      E_Int kless = 0; E_Float minProc = 10000000;
+      E_Int kless = 0; E_Float minProc = K_CONST::E_MAX_FLOAT;
       for (E_Int k = 0; k < NProc; k++)
       { 
         if (nbPtsPerProcs[k] < minProc) 
@@ -293,7 +293,7 @@ void K_DISTRIBUTOR2::genetic(
 //     printf(" : %f\n", evalp[j-1]);
 //   }
 
-  bestEval = 1.E+12;
+  bestEval = K_CONST::E_MAX_FLOAT;
   E_Int jBest;
   jBest = 1;
   for (E_Int j = 1; j <= sizeOfPopulation; j++)
@@ -434,7 +434,7 @@ void K_DISTRIBUTOR2::genetic(
         E_Int b = E_Int(1.*nb*K_NOISE::stdRand(&idum));
         // Recherche du bloc ayant le nb de pt le + proche
         E_Float nbPts1 = nbPts[b];
-        E_Int kCross = 0; E_Float diff = 10000000;
+        E_Int kCross = 0; E_Float diff = K_CONST::E_MAX_FLOAT;
         E_Float nbPts2 = 0; E_Float diffl;
         for (E_Int k = 0; k < nb; k++)
         {
@@ -464,7 +464,7 @@ void K_DISTRIBUTOR2::genetic(
           {
             // Recherche du bloc ayant le nb de pt le + proche
             E_Float nbPts1 = nbPts[b];
-            E_Int kCross = 0; E_Float diff = 10000000;
+            E_Int kCross = 0; E_Float diff = K_CONST::E_MAX_FLOAT;
             E_Float nbPts2 = 0; E_Float diffl;
             for (E_Int k = 0; k < nb; k++)
             {

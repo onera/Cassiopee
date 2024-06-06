@@ -67,7 +67,7 @@ void K_DISTRIBUTOR2::gradient(
   meanPtsPerProc = E_Int(E_Float(nbTot)/E_Float(NProc));
 
   // Bloc le plus petit
-  E_Float nbPtsMin = 1000000;
+  E_Float nbPtsMin = K_CONST::E_MAX_FLOAT;
   for (E_Int i = 0; i < nb; i++) nbPtsMin = K_FUNC::E_min(nbPts[i], nbPtsMin);
   // Bloc le plus grand
   E_Float nbPtsMax = 0;
@@ -143,7 +143,7 @@ void K_DISTRIBUTOR2::gradient(
     if (alreadySet[j] == 0)
     {
       // on le met sur le proc le moins charge
-      E_Int kless = 0; E_Float minProc = 10000000;
+      E_Int kless = 0; E_Float minProc = K_CONST::E_MAX_FLOAT;
       for (E_Int k = 0; k < NProc; k++)
       { 
         if (nbPtsPerProcs[k] < minProc) 
