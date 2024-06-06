@@ -495,7 +495,7 @@ E_Int K_CONNECT::V_identifyOverlappingPoints(
 
   // Vertex set to discard orphans and/or duplicates
   indir.clear(); indir.resize(npts);
-  size_t nuniquePtsRef = npts - nb_merges;
+  //size_t nuniquePtsRef = npts - nb_merges;
   std::unordered_set<E_Int> vertexSet;
 
   // Loop over all vertices

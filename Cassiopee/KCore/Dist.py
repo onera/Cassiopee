@@ -1378,7 +1378,7 @@ def checkOSMesa(additionalLibPaths=[], additionalIncludePaths=[]):
         print('Info: GL/osmesa.h was not found on your system. No OSMESA offscreen support for CPlot.')
         return (False, i, l, libname)
     else:
-        print('Info: libOSMesa or GL/osmesa.h was not found on your system. No OSMESA offscreen support for CPlot.')
+        print('Info: libOSMesa and GL/osmesa.h was not found on your system. No OSMESA offscreen support for CPlot.')
         return (False, i, l, libname)
 
 #=============================================================================
@@ -1431,7 +1431,7 @@ def checkPng(additionalLibPaths=[], additionalIncludePaths=[]):
         print('Info: png.h was not found on your system. No png support.')
         return (False, i, l)
     else:
-        print('Info: libpng or png.h was not found on your system. No png support.')
+        print('Info: libpng and png.h was not found on your system. No png support.')
         return (False, i, l)
 
 #=============================================================================
@@ -1460,7 +1460,7 @@ def checkMpeg(additionalLibPaths=[], additionalIncludePaths=[]):
         print('Info: libavcodec/avcodec.h,  libavutil/mem.h or libavutil/imgutils.h was not found on your system. No mpeg support.')
         return (False, i, l)
     else:
-        print('Info: libavcodec or libavcodec/avcodec.h,  libavutil/mem.h or libavutil/imgutils.h was not found on your system. No mpeg support.')
+        print('Info: libavcodec and libavcodec/avcodec.h,  libavutil/mem.h or libavutil/imgutils.h was not found on your system. No mpeg support.')
         return (False, i, l)
 
 #=============================================================================
@@ -1552,7 +1552,7 @@ def checkMpi(additionalLibPaths=[], additionalIncludePaths=[]):
         print('Info: mpi.h was not found on your system. No Mpi support.')
         return (False, i, l, libnames)
     else:
-        print('Info: libmpi/msmpi or mpi.h was not found on your system. No Mpi support.')
+        print('Info: libmpi/msmpi and mpi.h was not found on your system. No Mpi support.')
         return (False, i, l, libnames)
 
 #=============================================================================
@@ -1641,7 +1641,7 @@ def checkCuda(additionalLibPaths=[], additionalIncludePaths=[]):
         print('Info: cuda.h was not found on your system. No cuda support.')
         return (False, i, l, libnames, nvcc_exec)
     else:
-        print('Info: libcuda/cuda.lib or cuda.h was not found on your system. No cuda support.')
+        print('Info: libcuda/cuda.lib and cuda.h was not found on your system. No cuda support.')
         return (False, i, l, libnames, nvcc_exec)
 
     return (False, i, l, libnames, nvcc_exec)
@@ -1692,32 +1692,46 @@ def checkBlas(additionalLibPaths=[], additionalIncludePaths=[]):
     else: # cherche std
         libPrefix = 'lib'; includePrefix = ''; compOpt = ''
 
-    # Cherche libname et le chemin des libs
+    # Search for openblas than contains blas generally
+    libnames = []
     libname = 'openblas'
     l = checkLibFile__(libPrefix+'openblas*.so', additionalLibPaths)
     if l is None:
         l = checkLibFile__(libPrefix+'openblas*.a', additionalLibPaths)
-    if l is None:
-        libname = 'blas'
+    if l is not None: libnames.append(libname)
+
+    if l is None: # search for blas and cblas
+        libname = 'blas'; foundBlas = None
         l = checkLibFile__(libPrefix+'blas*.so', additionalLibPaths)
         if l is None:
             l = checkLibFile__(libPrefix+'blas*.a', additionalLibPaths)
-    if libPrefix == 'libmkl_': libname = 'mkl'
+        if l is not None: libnames.append(libname); foundBlas = l
+        libname = 'cblas'; foundCBlas = None
+        l = checkLibFile__(libPrefix+'cblas*.so', additionalLibPaths)
+        if l is None:
+            l = checkLibFile__(libPrefix+'blas*.a', additionalLibPaths)
+        if l is not None: libnames.append(libname); foundCBlas = l
+        l = None
+        if foundBlas is not None: l = foundBlas
+        elif foundCBlas is not None: l = foundCBlas
+
+    # force of mkl
+    if libPrefix == 'libmkl_': libnames = ['mkl']; l = ''
 
     # Chemin des includes
     i = checkIncFile__(includePrefix+'cblas.h', additionalIncludePaths)
     if i is not None and l is not None:
         print('Info: Blas detected at %s.'%l)
-        return (True, i, l, compOpt, libname)
+        return (True, i, l, compOpt, libnames)
     elif l is None and i is not None:
         print('Info: libblas was not found on your system. No Blas support.')
-        return (False, i, l, compOpt, libname)
+        return (False, i, l, compOpt, libnames)
     elif l is not None and i is None:
         print('Info: cblas.h was not found on your system. No Blas support.')
-        return (False, i, l, compOpt, libname)
+        return (False, i, l, compOpt, libnames)
     else:
-        print('Info: libblas or cblas.h was not found on your system. No Blas support.')
-        return (False, i, l, compOpt, libname)
+        print('Info: libblas and cblas.h was not found on your system. No Blas support.')
+        return (False, i, l, compOpt, libnames)
 
 #=============================================================================
 # Check for LAPACK
@@ -1732,37 +1746,48 @@ def checkLapack(additionalLibPaths=[], additionalIncludePaths=[]):
         libPrefix = 'libmkl_'; includePrefix = 'mkl_'; compOpt = '-mkl'
     else: # cherche std
         libPrefix = 'lib'; includePrefix = ''; compOpt = ''
+    libnames = []
+
+    # Check for openblas, it contains lapack generally
     libname = 'openblas'
     l = checkLibFile__(libPrefix+'openblas*.so', additionalLibPaths)
     if l is None:
         l = checkLibFile__(libPrefix+'openblas*.a', additionalLibPaths)
-    if l is None:
-        libname = 'lapack'
-        l = checkLibFile__(libPrefix+'lapack*.so', additionalLibPaths)
-    if l is None:
-        l = checkLibFile__(libPrefix+'lapack*.a', additionalLibPaths)
-        
-    if l is None:
-        libname = 'lapacke'
-        l = checkLibFile__(libPrefix+'lapacke*.so', additionalLibPaths)
-    if l is None:
-        l = checkLibFile__(libPrefix+'lapacke*.a', additionalLibPaths)
+    if l is not None: libnames.append(libname) # no further search
+
+    else: # Check lapack and lapacke
+        libname = 'lapack'; foundLapack = None
+        if l is None:
+            l = checkLibFile__(libPrefix+'lapack*.so', additionalLibPaths)
+        if l is None:
+            l = checkLibFile__(libPrefix+'lapack*.a', additionalLibPaths)
+        if l is not None: libnames.append(libname); foundLapack = l; l = None
+        libname = 'lapacke'; foundLapacke = None
+        if l is None:
+            l = checkLibFile__(libPrefix+'lapacke*.so', additionalLibPaths)
+        if l is None:
+            l = checkLibFile__(libPrefix+'lapacke*.a', additionalLibPaths)
+        if l is not None: libnames.append(libname); foundLapacke = l
+    
+        l = None
+        if foundLapack is not None: l = foundLapack
+        elif foundLapacke is not None: l = foundLapacke
 
     i = checkIncFile__(includePrefix+'lapack.h', additionalIncludePaths)
     if i is None:
         i = checkIncFile__(includePrefix+'lapacke.h', additionalIncludePaths)
     if i is not None and l is not None:
         print('Info: Lapack detected at %s.'%l)
-        return (True, i, l, compOpt, libname)
+        return (True, i, l, compOpt, libnames)
     elif l is None and i is not None:
-        print('Info: liblapack or lapacke.h was not found on your system. No Lapack support.')
-        return (False, i, l, compOpt, libname)
+        print('Info: liblapack was not found on your system. No Lapack support.')
+        return (False, i, l, compOpt, libnames)
     elif l is not None and i is None:
         print('Info: lapack.h or lapacke.h was not found on your system. No Lapack support.')
-        return (False, i, l, compOpt, libname)
+        return (False, i, l, compOpt, libnames)
     else:
-        print('Info: liblapack or lapack.h or lapacke.h was not found on your system. No Lapack support.')
-        return (False, i, l, compOpt, libname)
+        print('Info: liblapack and lapack.h or lapacke.h was not found on your system. No Lapack support.')
+        return (False, i, l, compOpt, libnames)
 
 #=============================================================================
 # Check for Cython
