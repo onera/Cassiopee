@@ -70,10 +70,7 @@ if [ "$MAC" = "ld_eos8" ]; then
     #module load impi/21.2.0
     module load hdf5/1.8.17-intel2120
     unset I_MPI_PMI_LIBRARY
-    # Set next two lines only if python is not python
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
     # Nbre de threads
     ncpu=$(grep processor /proc/cpuinfo | tail -1 | cut -f2 -d: )
     ncpu=$((ncpu + 1))
@@ -92,10 +89,7 @@ elif [ "$MAC" = "ld" ]; then
     module load hdf5/1.10.5-gnu831-ompi405
     unset I_MPI_PMI_LIBRARY
     export PRODMODE=1
-    # Set next two lines only if python is not python
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
     # Nbre de threads
     ncpu=$(grep processor /proc/cpuinfo | tail -1 | cut -f2 -d: )
     ncpu=$((ncpu + 1))
@@ -167,8 +161,6 @@ elif [ "$MAC" = "spiro_gcc" ]; then
     module load gcc/10.2.0
     module load hdf5/1.10.5-gnu831-ompi405
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
     export PRODMODE=1
     export OMP_PLACES=cores
     unset $(env | grep SLURM | cut -d'=' -f 1)
@@ -190,8 +182,6 @@ elif [ "$MAC" = "visung" ]; then
     module load lapack/3.9.1-gnu831
     export PRODMODE=1
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
 
 elif [ "$MAC" = "visung_el8" ]; then
 #----------------------------- visung -----------------------------------------
@@ -205,8 +195,6 @@ elif [ "$MAC" = "visung_el8" ]; then
     module load hdf5/1.10.5-intel2120-impi
     module load occt/7.6.1-gnu831
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
     export OMP_NUM_THREADS=72
     #export PRODMODE=1
     #export PIP_DISABLE_PIP_VERSION_CHECK=1
@@ -290,8 +278,6 @@ elif [ "$MAC" = "jean-zay" ]; then
     module load hdf5/1.10.5
     # Set next two lines only if python is not python
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
     # Number of threads
     export OMP_NUM_THREADS=28
 
@@ -313,8 +299,6 @@ elif [ "$MAC" = "spiro" ]; then
     module unload hdf5/1.8.8
     module load subversion/1.14.1-gnu830
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
 
 elif [ "$MAC" = "spiro_sky" ]; then
 #----------------------------- spiro -----------------------------------------
@@ -333,8 +317,6 @@ elif [ "$MAC" = "spiro_sky" ]; then
     module load python/3.6.1
     module unload hdf5/1.8.8
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
 
 elif [ "$MAC" = "spiro_cas" ]; then
 #----------------------------- spiro -----------------------------------------
@@ -353,8 +335,6 @@ elif [ "$MAC" = "spiro_cas" ]; then
     module load python/3.6.1
     module unload hdf5/1.8.8
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
 
 elif [ "$MAC" = "spiro_amdRM" ]; then
 #----------------------------- spiro -----------------------------------------
@@ -372,8 +352,6 @@ elif [ "$MAC" = "spiro_amdRM" ]; then
     module load python/3.6.1
     module unload hdf5/1.8.8
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
 
 elif [ "$MAC" = "spiro_amdNP" ]; then
 #----------------------------- spiro -----------------------------------------
@@ -391,8 +369,6 @@ elif [ "$MAC" = "spiro_amdNP" ]; then
     module load python/3.6.1
     module unload hdf5/1.8.8
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
 
 elif [ "$MAC" = "spiro_socle6" ]; then
 #----------------------------- spiro -----------------------------------------
@@ -407,8 +383,6 @@ elif [ "$MAC" = "spiro_socle6" ]; then
     module load occt/7.6.1-gnu831
     module load subversion/1.14.1-gnu831
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
     export PRODMODE=1
 
 elif [ "$MAC" = "spiro_sonics" ]; then
@@ -423,8 +397,6 @@ elif [ "$MAC" = "spiro_sonics" ]; then
     source /scratchm/sonics/dist/spiro-el8.sh --compiler=intel@2022 --mpi=impi
     module load emacs
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
 
 elif [ "$MAC" = "spiro_python2" ]; then
 #----------------------------- spiro -----------------------------------------
@@ -459,8 +431,6 @@ elif [ "$MAC" = "spiro_anaconda" ]; then
     module load anaconda/2021.05
     module load subversion/1.14.1-gnu830
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
 
 elif [ "$MAC" = "spiro_el8" ]; then
 #----------------------------- spiro -----------------------------------------
@@ -481,8 +451,6 @@ elif [ "$MAC" = "spiro_el8" ]; then
     alias inspxe-gui="/opt/tools/intel/oneapi/inspector/2021.2.0/bin64/inspxe-gui result"
     alias vtune="vtune -collect hotspots -result-dir result -quiet"
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
     export PRODMODE=0
     unset I_MPI_FABRICS_LIST
     unset I_MPI_FABRICS
@@ -504,8 +472,6 @@ elif [ "$MAC" = "spiro_intel" ]; then
     module load python/3.6.1-gnu831
     module load hdf5/1.10.3-intel1905
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
 
 elif [ "$MAC" = "spiro_coda" ]; then
 #----------------------------- spiro -----------------------------------------
@@ -519,8 +485,6 @@ elif [ "$MAC" = "spiro_coda" ]; then
     #module load hdf5/1.10.5-gnu831-ompi405
     module load subversion/1.14.1-gnu831
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
 
 elif [ "$MAC" = "spiro_arm" ]; then
 #----------------------------- spiro -----------------------------------------
@@ -529,8 +493,6 @@ elif [ "$MAC" = "spiro_arm" ]; then
     # Nbre de threads
     export OMP_NUM_THREADS=56
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
 
 elif [ "$MAC" = "spiro_pgi" ]; then
 #----------------------------- spiro -----------------------------------------
@@ -539,8 +501,6 @@ elif [ "$MAC" = "spiro_pgi" ]; then
     # Nbre de threads
     export OMP_NUM_THREADS=24
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
     module purge
     module load python/3.6.1-gnu831
     module load nvhpc/22.2-gnu831-full
@@ -564,8 +524,6 @@ elif [ "$MAC" = "juno" ]; then
     alias inspxe-gui="/opt/tools/intel/oneapi/inspector/2021.2.0/bin64/inspxe-gui result"
     alias vtune="vtune -collect hotspots -result-dir result -quiet"
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
     unset I_MPI_FABRICS_LIST
@@ -593,8 +551,6 @@ elif [ "$MAC" = "juno_gcc" ]; then
     module load subversion/1.14.1-gnu831
     module load emacs/27.2-gnu831
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
     unset $(env | grep SLURM | cut -d'=' -f 1)
@@ -611,8 +567,6 @@ elif [ "$MAC" = "juno_coda" ]; then
     source /stck/rhea/dist/juno_v2024_02_python3108/source.sh --env coda_dev --compiler gcc@10 --mpi openmpi
     module load subversion/1.14.1-gnu831
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
     export PRODMODE=1
 
 elif [ "$MAC" = "sator_brw" ]; then
@@ -629,8 +583,6 @@ elif [ "$MAC" = "sator_brw" ]; then
     unset I_MPI_PMI_LIBRARY
     # Set next two lines only if python is not python
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
     # Other aliases
     alias ffmpeg=/opt/tools/altair/2021.1/altair/hwdesktop/hw/bin/linux64/ffmpeg
     # Number of threads
@@ -651,8 +603,6 @@ elif [ "$MAC" = "topaze" ]; then
     unset I_MPI_PMI_LIBRARY
     # Set next two lines only if python is not python
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
     # Number of threads
     export OMP_NUM_THREADS=64
     export KMP_AFFINITY=verbose
@@ -673,8 +623,6 @@ elif [ "$MAC" = "sator_sky" ]; then
     unset I_MPI_PMI_LIBRARY
     # Set next two lines only if python is not python
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
     # Number of threads
     export OMP_NUM_THREADS=44
 
@@ -695,8 +643,6 @@ elif [ "$MAC" = "sator_cas" ]; then
     module load occt/7.6.1-gnu831
     unset I_MPI_PMI_LIBRARY
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
     # Other aliases
     alias ffmpeg=/opt/tools/altair/2021.1/altair/hwdesktop/hw/bin/linux64/ffmpeg
 
@@ -716,8 +662,6 @@ elif [ "$MAC" = "sator_sph" ]; then
     unset I_MPI_TCP_NETMASK
     export OMP_PLACES=cores
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
 
@@ -728,7 +672,6 @@ elif [ "$MAC" = "jean-zay" ]; then
     # Nbre de threads
     export OMP_NUM_THREADS=40
     export KMP_AFFINITY="compact,1,0,granularity=fine,verbose"
-
     # modules
     #. /etc/profile.d/module.sh
     module load intel-compilers/19.1.3
@@ -736,8 +679,6 @@ elif [ "$MAC" = "jean-zay" ]; then
     module load python/3.7.10
     module load hdf5/1.12.0
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
 
 elif [ "$MAC" = "aryen" ]; then
 #----------------------------- Aryen msys2  ---------------------------------------
@@ -747,8 +688,6 @@ elif [ "$MAC" = "aryen" ]; then
     export OMP_NUM_THREADS=2
     # modules
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
     export PRODMODE=1
 
 elif [ "$MAC" = "WDAAA161Z" ]; then
@@ -759,8 +698,6 @@ elif [ "$MAC" = "WDAAA161Z" ]; then
     export OMP_NUM_THREADS=4
     # modules
     export PYTHONEXE=python3
-    python() { python3 "$@"; }
-    export -f python
     export PRODMODE=1
 fi
 
@@ -772,7 +709,13 @@ if ! [ -z $PATHL ]; then
     OLD_LD_LIBRARY_PATHL=$LD_LIBRARY_PATHL
     OLD_PYTHONPATHL=$PYTHONPATHL
 fi
+
+if [ "$PYTHONEXE" = "python3" ]; then
+    python() { python3 "$@"; }
+    export -f python
+fi
 pyversion="python"`python -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
+
 export PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin
 export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
 export PYTHONPATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/"$pyversion"/site-packages
