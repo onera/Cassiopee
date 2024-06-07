@@ -97,7 +97,9 @@ def getExecTime(test, ref, new):
 
 # Return test execution time difference in % between (ref, new) and the Base
 def getDiffExecTime(test, ref, new):
+  cutoff = 0.5 # cut-off time in sec under which a test is not considered
   baseExecTime, refExecTime, newExecTime = getExecTime(test, ref, new)
+  if baseExecTime < cutoff: return 0., 0.
   diffRef = round((refExecTime-baseExecTime)/baseExecTime*100., 1)
   diffNew = round((newExecTime-baseExecTime)/baseExecTime*100., 1)
   return diffRef, diffNew
