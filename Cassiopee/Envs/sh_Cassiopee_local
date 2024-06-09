@@ -122,12 +122,6 @@ elif [ "$MAC" = "macosx" ]; then
     unset BUNDLE
     export DYLD_LIBRARY_PATH=$LD_LIBRARY_PATHL
 
-elif [ "$MAC" = "mangrove" ]; then
-#-------------------------------- mangrove -------------------------------------
-    export ELSAPROD=man_r8
-    export ELSAPROD=$ELSAPROD$INTTYPE
-    export OMP_NUM_THREADS=4
-
 elif [ "$MAC" = "ubuntu" ]; then
 #-------------------------------- ubuntu --------------------------------------
     export ELSAPROD=ub_r8
@@ -259,7 +253,6 @@ elif [ "$MAC" = "tgcc_irene" ]; then
     export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=24
-    echo 'TGCC_IRENE SH_CASSIOPEE_LOCAL _v2'
     # modules
     module purge
     module load intel/20
@@ -719,7 +712,7 @@ pyversion="python"`python -c "import sys; print('.'.join(str(n) for n in sys.ver
 export PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin
 export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
 export PYTHONPATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/"$pyversion"/site-packages
-    
+
 if ! [ -z $OLD_PATHL ]; then
     # Remove all occurences of old paths
     PATH="${PATH//$OLD_PATHL/}"
@@ -737,4 +730,4 @@ export PATH=$PATHL:$PATH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATHL:$LD_LIBRARY_PATH
 export PYTHONPATH=$PYTHONPATHL:$PYTHONPATH
 
-echo $ELSAPROD' environment set.'
+echo 'Hello from '$MAC', '$ELSAPROD' prod is set.'

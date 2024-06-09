@@ -19,7 +19,6 @@ set KC=`uname -n`
 set MAC0=`echo $KC | grep 'n'`; if ($%MAC0 != 0) set MAC="sator_brw"
 set MAC0=`echo $KC | grep 'ld'`; if ($%MAC0 != 0) set MAC="ld"
 set MAC0=`echo $KC | grep 'clausius'`; if ($%MAC0 != 0) set MAC="ld"
-set MAC0=`echo $KC | grep 'eos'`; if ($%MAC0 != 0) set MAC="eos"
 set MAC0=`echo $KC | grep 'ubuntu'`; if ($%MAC0 != 0) set MAC="ubuntu"
 set MAC0=`echo $KC | grep 'fulvio'`; if ($%MAC0 != 0) set MAC="fulvio"
 set MAC0=`echo $KC | grep 'visio'`; if ($%MAC0 != 0) set MAC="visio"
@@ -27,17 +26,13 @@ set MAC0=`echo $KC | grep 'austri'`; if ($%MAC0 != 0) set MAC="austri"
 set MAC0=`echo $KC | grep 'laura'`; if ($%MAC0 != 0) set MAC="laura"
 set MAC0=`echo $KC | grep 'celeste'`; if ($%MAC0 != 0) set MAC="visio"
 set MAC0=`echo $KC | grep 'visung'`; if ($%MAC0 != 0) set MAC="visung"
-set MAC0=`echo $KC | grep 'linux64'`; if ($%MAC0 != 0) set MAC="linux64"
-set MAC0=`echo $KC | grep 'moloch'`; if ($%MAC0 != 0) set MAC="moloch"
 set MAC0=`echo $KC | grep 'giulia'`; if ($%MAC0 != 0) set MAC="giulia"
 set MAC0=`echo $KC | grep 'sator'`; if ($%MAC0 != 0) set MAC="sator_brw"
-set MAC0=`echo $KC | grep 'xdaap'`; if ($%MAC0 != 0) set MAC="xdaap"
 set MAC0=`echo $KC | grep 'spiro'`; if ($%MAC0 != 0) set MAC="spiro_el8"
 set MAC0=`echo $KC | grep 'f0'`; if ($%MAC0 != 0) set MAC="juno"
 set MAC0=`echo $KC | grep 'n0'`; if ($%MAC0 != 0) set MAC="juno"
 set MAC0=`echo $KC | grep 'v0'`; if ($%MAC0 != 0) set MAC="juno"
 set MAC0=`echo $KC | grep 'cobalt'`; if ($%MAC0 != 0) set MAC="cobalt"
-set MAC0=`echo $KC | grep 'mangrove'`; if ($%MAC0 != 0) set MAC="mangrove"
 set MAC0=`echo $KC | grep 'irene'`; if ($%MAC0 != 0) set MAC="irene"
 set MAC0=`echo $KC | grep 'jean-zay'`; if ($%MAC0 != 0) set MAC="jean-zay"
 set MAC0=`echo $KC | grep 'node6.cluster'`; if ($%MAC0 != 0) set MAC="macosx"
@@ -59,8 +54,6 @@ else
         set MAC=$MACHINE
     endif
 endif
-
-echo $MAC
 
 if ($MAC == "ld_pgi") then
 #------------------------------- ld+PGI ---------------------------------------
@@ -255,16 +248,6 @@ else if ($MAC == "macosx") then
        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
        setenv DYLD_LIBRARY_PATH $LD_LIBRARY_PATHL
 
-else if ($MAC == "mangrove") then
-#------------------------------- mangrove --------------------------------------
-        setenv ELSAPROD man_r8
-        setenv ELSAPROD "$ELSAPROD$INTTYPE"
-        setenv OMP_NUM_THREADS 4
-        set path=($path $CASSIOPEE/Dist/bin)
-        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
-        setenv LD_LIBRARY_PATHL /opt/intel/Compiler/11.0/083/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin//lib/python2.6/site-packages
-
 else if ($MAC == "ubuntu") then
 #-------------------------------- ubuntu ------------------------------------
         setenv ELSAPROD ub_r8
@@ -411,33 +394,6 @@ else if ($MAC == "austri") then
         setenv LD_LIBRARY_PATHL /stck/benoit/aus/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
         setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
-else if ($MAC == "linux64") then
-#------------------------------- linux64 ---------------------------------------
-        setenv ELSAPROD linux64
-        setenv ELSAPROD "$ELSAPROD$INTTYPE"
-        # Number of threads
-        setenv OMP_NUM_THREADS 4
-        # chemin de python
-        set path=(/usr/local/python/bin $path)
-        set path=($path $CASSIOPEE/Dist/bin)
-        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
-        setenv LD_LIBRARY_PATHL /stck/benoit/lib:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/linux64/lib:/usr/local/python/lib:/usr/lib64/openmpi/lib
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
-
-else if ($MAC == "moloch") then
-#------------------------------- moloch ---------------------------------------
-        setenv ELSAPROD mol_r8
-        setenv ELSAPROD "$ELSAPROD$INTTYPE"
-        # modules
-        module load python/2.6.4/11.mpt
-        module load hdf5/1.8.8-intel-11
-        # Nombre de threads
-        setenv OMP_NUM_THREADS 12
-        set path=(/usr/bin $path $CASSIOPEE/Dist/bin)
-        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
-        setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib64
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib64/python2.6/site-packages
-
 else if ($MAC == "giulia") then
 #------------------------------- giulia ---------------------------------------
         setenv ELSAPROD giu_r8
@@ -546,23 +502,6 @@ else if ($MAC == "eos") then
             setenv LD_LIBRARY_PATHL /stck/benoit/lib:$ELSA/Dist/bin/eos-intel:$ELSA/Dist/bin/eos-intel/lib:/usr/local/python/lib
             setenv PYTHONPATHL $CASSIOPEE/Dist/bin/x86_r8/lib/python2.7/site-packages:$ELSA/Dist/lib/py:$ELSA/Dist/bin/eos-intel
         endif
-
-else if ($MAC == "xdaap") then
-#------------------------------- xdaap --------------------------------------
-        setenv ELSAPROD xdaap_r8
-        setenv ELSAPROD "$ELSAPROD$INTTYPE"
-        # Modules
-        foreach x (`(echo "" ; module -t list) | & grep intel`)
-            module unload $x
-        end
-        module load gcc/5.2
-        module load intel/15.0.6
-        # Number of threads
-        setenv OMP_NUM_THREADS 16
-        set path=($path $CASSIOPEE/Dist/bin)
-        set path=($CASSIOPEE/Dist/bin/$ELSAPROD $CASSIOPEE/Dist/bin/$ELSAPROD/bin $path)
-        setenv LD_LIBRARY_PATHL /usr/lib64/:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/usr/local/hdf5-intel-1.8.8/lib:/usr/local/lib64
-        setenv PYTHONPATHL $CASSIOPEE/Dist/lib/py:$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/python2.7/site-packages
 
 else if ($MAC == "spiro") then
 #------------------------------- spiro --------------------------------------
@@ -1078,4 +1017,28 @@ else
 endif
 #echo $PYTHONPATH
 
-#echo $ELSAPROD' environment set.'
+#=====================
+# New code a finaliser
+#=====================
+#if ($?PATHL == 0) then
+#    set OLD_PATHL=$PATHL
+#    set OLD_LD_LIBRARY_PATHL=$LD_LIBRARY_PATHL
+#    set OLD_PYTHONPATHL=$PYTHONPATHL
+#endif
+#if ($PYTHONEXE == "python3") then
+#    alias python=python3
+#    set pyversion="python"`python3 -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
+#else
+#    set pyversion="python"`python -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
+#endif
+#setenv PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin
+#setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
+#setenv PYTHONPATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib/"$pyversion"/site-packages
+#if ($OLD_PATHL == 0) then
+#    # je sais pas trop comment faire
+#endif
+#setenv PATH $PATHL:$PATH
+#setenv LD_LIBRARY_PATH $LD_LIBRARY_PATHL:$LD_LIBRARY_PATH
+#setenv PYTHONPATH $PYTHONPATHL:$PYTHONPATH
+
+echo 'Hello from '$MAC', '$ELSAPROD' environement is set.'
