@@ -154,10 +154,11 @@ namespace
                 if (ind_cell == -1) break; // On n'a pas trouvé de zones correspondantes...
                 continue;
             }
-            E_Int facette_in = -1, facette_out = -1;
+            E_Int facette_in = -1;
+            E_Int facette_out = -1;
             auto facettes_candidates = zones[num_blk].get_faces_of_element(ind_cell, num_blk);
 
-#           if defined(DEBUG_VERBOSE)
+#if defined(DEBUG_VERBOSE)
             std::cout << "position initiale : " << std::string(cur_point) << std::endl;
             std::cout << "Vitesse initiale  : " << std::string(velocity) << std::endl;
             std::cout << "Facettes candidates : " << std::endl;
@@ -174,12 +175,12 @@ namespace
                                                      zone_coords[2][f.indices_vertices[ivert]]}) << " ";
                 std::cout << std::endl;
             }
-#           endif
+#endif
             if ((velocity|velocity) < 1.E-14)
             {
-#           if defined(DEBUG_VERBOSE)
+#if defined(DEBUG_VERBOSE)
                 std::cout << "Warning: streamLine2: null speed detected. End Streamline computation ..." << std::flush << std::endl;
-#           endif
+#endif
                 //istream -= 1;
                 break;
             }
@@ -196,7 +197,6 @@ namespace
                     if (is_entering) facette_in = ind_facette;
                     else             facette_out= ind_facette;
                 }
-
                 ind_facette ++;
             }
 #if defined(DEBUG_VERBOSE)
@@ -227,13 +227,11 @@ namespace
             {
 #endif*/
                 intersect_data = facette.compute_intersection(cur_point, velocity);
-            #define DEBUG_VERBOSE 
 #if defined(DEBUG_VERBOSE)
                 //std::cout << ".";
                 //std::cout << "Nouvelle position: " << std::string(intersect_data.first) << std::endl;
                 //std::cout << "No triangle d'intersection: " << intersect_data.second << "." << std::endl;
 #endif
-    #undef DEBUG_VERBOSE
 /*#if !defined(DEBUG_VERBOSE)            
             }
             catch(std::domain_error& err)

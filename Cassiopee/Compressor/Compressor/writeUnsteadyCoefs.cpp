@@ -160,6 +160,7 @@ PyObject* K_COMPRESSOR::writeUnsteadyCoefs(PyObject* self, PyObject* args)
       if (PyInt_Check(pyKey) == 0)
       {
         printf("Warning: deltaInterpolations: invalid int for variable " SF_D_ ". Skipped...\n", i);
+        intKey1 = 0;
       }
       else intKey1 = PyInt_AsLong(pyKey);
       // map <E_Int, <listE_Float > >
@@ -180,6 +181,7 @@ PyObject* K_COMPRESSOR::writeUnsteadyCoefs(PyObject* self, PyObject* args)
         if (PyInt_Check(keyIndexRcv) == 0)
         {
           printf("Warning: deltaInterpolations: invalid int for variable " SF_D_ ". Skipped ...\n", iterIndex);
+          intKey2 = 0;
         }
         else intKey2 = PyInt_AsLong(keyIndexRcv);
         // vector<E_Float>
