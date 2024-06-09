@@ -131,7 +131,7 @@ E_Int K_IO::GenIO::stlwrite(
   vector<FldArrayF*>& structField,
   vector<FldArrayF*>& unstructField,
   vector<FldArrayI*>& connect,
-  vector<E_Int>& eltType,
+  vector< vector<E_Int> >& eltTypes,
   vector<char*>& zoneNames)
 {
   E_Int nzone = unstructField.size();
@@ -139,7 +139,7 @@ E_Int K_IO::GenIO::stlwrite(
   E_Int no = -1;
   for (E_Int zone = 0; zone < nzone; zone++)
   {
-    if (eltType[zone] == 2) // triangles
+    if (eltTypes[zone][0] == 2) // triangles
     { nvalidZones++; if (no == -1) no = zone; }
     else
       printf("Warning: stlwrite: zone " SF_D_ " not written (not a triangle zone).", zone);

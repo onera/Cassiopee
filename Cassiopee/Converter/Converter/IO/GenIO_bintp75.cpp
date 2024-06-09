@@ -673,7 +673,7 @@ E_Int K_IO::GenIO::tecwrite75(
   vector <FldArrayF*>& structField,
   vector<FldArrayF*>& unstructField,
   vector<FldArrayI*>& connect,
-  vector<E_Int>& eltType,
+  vector< vector<E_Int> >& eltTypes,
   vector<char*>& zoneNames)
 {
   FILE* ptrFile;
@@ -826,7 +826,7 @@ E_Int K_IO::GenIO::tecwrite75(
       ib = connect[nol]->getSize(); /* Number of elts */
       fwrite(&ib, si, 1, ptrFile);	
       /* Type of elts */
-      switch (eltType[nol])
+      switch (eltTypes[nol][0])
       {
         case 1: // BAR
           ib = 4;
@@ -948,7 +948,7 @@ E_Int K_IO::GenIO::tecwrite75(
     nv = c.getNfld();
     int* bufferi;
     
-    if (eltType[no] == 5) // FIX pour PYRA as HEXA
+    if (eltTypes[no][0] == 5) // FIX pour PYRA as HEXA
     {
       bufferi = new int[nt * 8];
       for (n = 0; n < nt; n++)
@@ -965,7 +965,7 @@ E_Int K_IO::GenIO::tecwrite75(
       }
       nv = 8;
     }
-    else if (eltType[no] == 6) // FIX pour PENTA as HEXA
+    else if (eltTypes[no][0] == 6) // FIX pour PENTA as HEXA
     {
       bufferi = new int[nt * 8];
       for (n = 0; n < nt; n++)

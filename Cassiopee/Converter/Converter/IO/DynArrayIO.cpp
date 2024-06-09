@@ -307,7 +307,14 @@ const std::vector<K_FLD::IntArray>& connects,
     et.push_back(getElementTypeId(elt_type[i].c_str()));
   }
   
-  int l = strlen(fileName);
+  std::vector< std::vector<E_Int> > ets;
+  for (size_t i = 0; i < sz; ++i)
+  {
+    std::vector<E_Int> v(1); v[0] = et[i];
+    ets.push_back(v);
+  }
+
+  E_Int l = strlen(fileName);
   char* fname=0;
   
   if (wdir == "")
@@ -329,14 +336,14 @@ const std::vector<K_FLD::IntArray>& connects,
     ret = 
       K_IO::GenIO::getInstance()->tecwrite(fname, datfmt, varString,
                                            im_dum, jm_dum, km_dum,
-                                           dummyfield, ufield, c, et,
+                                           dummyfield, ufield, c, ets,
                                            zoneNames);
   }
   else if (strcmp(fileFmt, "fmt_tp") == 0) // fmt tecplot
   { 
     ret = K_IO::GenIO::getInstance()->tpwrite(fname, datfmt, varString,
                                               im_dum, jm_dum, km_dum,
-                                              dummyfield, ufield, c, et,
+                                              dummyfield, ufield, c, ets,
                                               zoneNames);
   }
   else if (strcmp(fileFmt, "fmt_mesh") == 0) // fmt mesh
@@ -346,7 +353,7 @@ const std::vector<K_FLD::IntArray>& connects,
     
     ret = K_IO::GenIO::getInstance()->meshwrite(fname, datfmt, varString,
                                                 im_dum, jm_dum, km_dum,
-                                                dummyfield, ufield, c, et,
+                                                dummyfield, ufield, c, ets,
                                                 zoneNames);
   }
   
@@ -423,7 +430,8 @@ E_Int DynArrayIO::write
     id = getElementTypeId(elt_type);
   
   et.push_back(id);
-    
+  std::vector< std::vector<E_Int> > ets(1); ets[0] = et;
+
   c[0] = new K_FLD::FldArrayI;
   E_Int shift = (et[0] == 8) ? 0 : 1;
   connect1.convert(*c[0], shift);
@@ -449,14 +457,14 @@ E_Int DynArrayIO::write
   {
     ret = K_IO::GenIO::getInstance()->tecwrite(fname, datfmt, varString,
                                                im_dum, jm_dum, km_dum,
-                                               dummyfield, ufield, c, et,
+                                               dummyfield, ufield, c, ets,
                                                zoneNames);
   }
   else if (strcmp(fileFmt, "fmt_tp") == 0) // fmt tecplot
   { 
     ret = K_IO::GenIO::getInstance()->tpwrite(fname, datfmt, varString,
                                               im_dum, jm_dum, km_dum,
-                                              dummyfield, ufield, c, et,
+                                              dummyfield, ufield, c, ets,
                                               zoneNames);
   }
   else if (strcmp(fileFmt, "fmt_mesh") == 0) // fmt mesh
@@ -470,12 +478,11 @@ E_Int DynArrayIO::write
     
     ret = K_IO::GenIO::getInstance()->meshwrite(fname, datfmt, varString,
                                                 im_dum, jm_dum, km_dum,
-                                                dummyfield, ufield, c, et,
+                                                dummyfield, ufield, c, ets,
                                                 zoneNames, (colors)? &cols : 0);
   } 
   
   // clean
-  
   delete [] fname;
   
   //field c ufield zoneNames
@@ -535,7 +542,8 @@ E_Int DynArrayIO::write
   ufield[0] = const_cast<K_FLD::FldArrayF*>(&coord);
     
   et.push_back(getElementTypeId(elt_type));
-    
+  std::vector< std::vector<E_Int> > ets(1); ets[0] = et;
+
   c[0] = &connect1;
 
   int l = strlen(fileName);
@@ -559,14 +567,14 @@ E_Int DynArrayIO::write
   {
     ret = K_IO::GenIO::getInstance()->tecwrite(fname, datfmt, varString,
                                                im_dum, jm_dum, km_dum,
-                                               dummyfield, ufield, c, et,
+                                               dummyfield, ufield, c, ets,
                                                zoneNames);
   }
   else if (strcmp(fileFmt, "fmt_tp") == 0) // fmt tecplot
   { 
     ret = K_IO::GenIO::getInstance()->tpwrite(fname, datfmt, varString,
                                               im_dum, jm_dum, km_dum,
-                                              dummyfield, ufield, c, et,
+                                              dummyfield, ufield, c, ets,
                                               zoneNames);
   }
   else if (strcmp(fileFmt, "fmt_mesh") == 0) // fmt mesh
@@ -580,7 +588,7 @@ E_Int DynArrayIO::write
     
     ret = K_IO::GenIO::getInstance()->meshwrite(fname, datfmt, varString,
                                                 im_dum, jm_dum, km_dum,
-                                                dummyfield, ufield, c, et,
+                                                dummyfield, ufield, c, ets,
                                                 zoneNames, (colors)? &cols : 0);
   } 
   

@@ -633,7 +633,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   PyObject* tpl;
   E_Int nil, njl, nkl;
   vector<E_Int> ni; vector<E_Int> nj; vector<E_Int> nk;
-  vector<FldArrayF*> fieldc;
+  vector<FldArrayF*> fieldc; // structure
   char* varString;
   vector<E_Int> elt;
   vector<vector<E_Int> > eltIds;
@@ -655,7 +655,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
         fieldc.push_back(f);
       }
       else 
-        printf("Warning: convertArrays2File: one array is empty.\n");
+        printf("Warning: convertArrays2File: array " SF_D_ " is empty.\n", i);
     }
     else if (res == 2)
     {
@@ -689,18 +689,21 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
         {
           fieldu.push_back(f);
           connectu.push_back(cn);
-          for (E_Int ic = 0; ic < nc; ic++)
-          {
-            elt.push_back(ids[ic]);
-            eltIds.push_back(ids);
-          }
+          //for (E_Int ic = 0; ic < nc; ic++)
+          //{
+          //  elt.push_back(ids[ic]);
+          //  eltIds.push_back(ids);
+          //}
+          elt.push_back(ids[0]); // only first connect of ME
+          eltIds.push_back(ids); // all ids
+
         }
       }
       else 
-        printf("Warning: convertArrays2File: one array is empty.\n");
+        printf("Warning: convertArrays2File: array " SF_D_ " is empty.\n", i);
     }
     else
-      printf("Warning: convertArrays2File: one array is invalid.\n");
+      printf("Warning: convertArrays2File: array " SF_D_ " is invalid.\n", i);
   }
 
   // Nfld
@@ -721,7 +724,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
     isok = 
       K_IO::GenIO::getInstance()->tecwrite(fileName, dataFmt, varString,
                                            ni, nj, nk,
-                                           fieldc, fieldu, connectu, elt,
+                                           fieldc, fieldu, connectu, eltIds,
                                            zoneNames);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_tp") == 0) // fmt tecplot
@@ -734,7 +737,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   else if (K_STRING::cmp(fileFmt, "fmt_v3d") == 0) // fmt v3d
   {
     if (fieldu.size() != 0)
-      printf("Warning: convertArrays2File: unstructured arrays not converted.\n"); 
+      printf("Warning: convertArrays2File: unstructured arrays not converted in v3d.\n"); 
     
     isok = K_IO::GenIO::getInstance()->fv3dwrite(fileName, dataFmt, varString,
                                                  ni, nj, nk,
@@ -743,7 +746,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   else if (K_STRING::cmp(fileFmt, "bin_v3d") == 0) // binary v3d
   {
     if (fieldu.size() != 0)
-      printf("Warning: convertArrays2File: unstructured arrays not converted.\n"); 
+      printf("Warning: convertArrays2File: unstructured arrays not converted in v3d.\n"); 
     
     if (rsize == 4)
     {
@@ -758,7 +761,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   else if (K_STRING::cmp(fileFmt, "fmt_plot3d") == 0) // fmt plot3d
   {
     if (fieldu.size() != 0)
-      printf("Warning: convertArrays2File: unstructured arrays not converted.\n"); 
+      printf("Warning: convertArrays2File: unstructured arrays not converted in plot3d.\n"); 
     
     isok = K_IO::GenIO::getInstance()->fp3dwrite(fileName, dataFmt, varString,
                                                  ni, nj, nk,
@@ -767,7 +770,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   else if (K_STRING::cmp(fileFmt, "bin_plot3d") == 0) // binary plot3d
   {
     if (fieldu.size() != 0)
-      printf("Warning: convertArrays2File: unstructured arrays not converted.\n"); 
+      printf("Warning: convertArrays2File: unstructured arrays not converted in plot3d.\n"); 
     
     isok = K_IO::GenIO::getInstance()->plot3dwrite(
       fileName, dataFmt, varString, ni, nj, nk,
@@ -776,27 +779,27 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   else if (K_STRING::cmp(fileFmt, "fmt_pov") == 0) // fmt pov
   {
     if (fieldc.size() != 0)
-      printf("Warning: convertArrays2File: structured arrays not converted.\n"); 
+      printf("Warning: convertArrays2File: structured arrays not converted in pov.\n"); 
     
     isok = K_IO::GenIO::getInstance()->povwrite(fileName, dataFmt, varString,
                                                 ni, nj, nk,
-                                                fieldc, fieldu, connectu, elt,
+                                                fieldc, fieldu, connectu, eltIds,
                                                 zoneNames, colormap);
   }
   else if (K_STRING::cmp(fileFmt, "bin_df3") == 0) // binary df3
   {
     if (fieldu.size() != 0)
-      printf("Warning: convertArrays2File: unstructured arrays not converted.\n"); 
+      printf("Warning: convertArrays2File: unstructured arrays not converted in bin_df3.\n"); 
     
     isok = K_IO::GenIO::getInstance()->df3write(fileName, dataFmt, varString,
                                                 ni, nj, nk,
-                                                fieldc, fieldu, connectu, elt,
+                                                fieldc, fieldu, connectu, eltIds,
                                                 zoneNames);
   } 
   else if (K_STRING::cmp(fileFmt, "fmt_mesh") == 0) // fmt mesh
   {
     if (fieldc.size() != 0)
-      printf("Warning: convertArrays2File: structured arrays not converted.\n"); 
+      printf("Warning: convertArrays2File: structured arrays not converted in mesh.\n"); 
     
     isok = K_IO::GenIO::getInstance()->meshwrite(fileName, dataFmt, varString,
                                                  ni, nj, nk,
@@ -815,32 +818,32 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
     isok = K_IO::GenIO::getInstance()->bingmshwrite(
       fileName, dataFmt, varString,
       ni, nj, nk,
-      fieldc, fieldu, connectu, elt,
+      fieldc, fieldu, connectu, eltIds,
       zoneNames);
   }
   else if (K_STRING::cmp(fileFmt, "bin_png") == 0) // in png
   {
     if (fieldu.size() != 0)
-      printf("Warning: convertArrays2File: unstructured arrays not converted.\n"); 
+      printf("Warning: convertArrays2File: unstructured arrays not converted in png.\n"); 
     
     isok = K_IO::GenIO::getInstance()->pngwrite(fileName, dataFmt, varString,
                                                 ni, nj, nk,
-                                                fieldc, fieldu, connectu, elt,
+                                                fieldc, fieldu, connectu, eltIds,
                                                 zoneNames);
   }
   else if (K_STRING::cmp(fileFmt, "bin_jpg") == 0) // in jpg
   {
     if (fieldu.size() != 0)
-      printf("Warning: convertArrays2File: unstructured arrays not converted.\n"); 
+      printf("Warning: convertArrays2File: unstructured arrays not converted in jpg.\n"); 
     isok = K_IO::GenIO::getInstance()->jpgwrite(fileName, dataFmt, varString,
                                                 ni, nj, nk,
-                                                fieldc, fieldu, connectu, elt,
+                                                fieldc, fieldu, connectu, eltIds,
                                                 zoneNames);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_su2") == 0) // fmt su2
   {
     if (fieldc.size() != 0)
-      printf("Warning: convertArrays2File: structured arrays not converted.\n"); 
+      printf("Warning: convertArrays2File: structured arrays not converted in su2.\n"); 
     
     isok = K_IO::GenIO::getInstance()->su2write(fileName, dataFmt, varString,
                                                 ni, nj, nk,
@@ -850,102 +853,102 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   else if (K_STRING::cmp(fileFmt, "fmt_foam") == 0) // fmt open foam
   {
     if (fieldc.size() != 0)
-      printf("Warning: convertArrays2File: structured arrays not converted.\n"); 
+      printf("Warning: convertArrays2File: structured arrays not convertedin foam.\n"); 
     
     isok = K_IO::GenIO::getInstance()->foamwrite(fileName, dataFmt, varString,
                                                  ni, nj, nk,
-                                                 fieldc, fieldu, connectu, elt,
+                                                 fieldc, fieldu, connectu, eltIds,
                                                  zoneNames, BCFacesO);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_obj") == 0) // fmt obj
   {
     if (fieldc.size() != 0)
-      printf("Warning: convertArrays2File: structured arrays not converted.\n"); 
+      printf("Warning: convertArrays2File: structured arrays not converted in obj.\n"); 
     
     isok = K_IO::GenIO::getInstance()->objwrite(fileName, dataFmt, varString,
                                                 ni, nj, nk,
-                                                fieldc, fieldu, connectu, elt, 
+                                                fieldc, fieldu, connectu, eltIds, 
                                                 zoneNames);
   }
   else if (K_STRING::cmp(fileFmt, "bin_stl") == 0) // bin stl
   {
     if (fieldc.size() != 0)
-      printf("Warning: convertArrays2File: structured arrays not converted.\n"); 
+      printf("Warning: convertArrays2File: structured arrays not converted in stl.\n"); 
     
     isok = K_IO::GenIO::getInstance()->stlwrite(fileName, dataFmt, varString,
                                                 ni, nj, nk,
-                                                fieldc, fieldu, connectu, elt,
+                                                fieldc, fieldu, connectu, eltIds,
                                                 zoneNames);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_stl") == 0) // fmt stl
   {
     if (fieldc.size() != 0)
-      printf("Warning: convertArrays2File: structured arrays not converted.\n"); 
+      printf("Warning: convertArrays2File: structured arrays not converted in stl.\n"); 
     
     isok = K_IO::GenIO::getInstance()->fstlwrite(fileName, dataFmt, varString,
                                                  ni, nj, nk,
-                                                 fieldc, fieldu, connectu, elt,
+                                                 fieldc, fieldu, connectu, eltIds,
                                                  zoneNames);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_selig") == 0) // fmt selig
   {
     if (fieldu.size() != 0)
-      printf("Warning: convertArrays2File: structured arrays not converted.\n"); 
+      printf("Warning: convertArrays2File: unstructured arrays not converted in selig.\n"); 
     
     isok = K_IO::GenIO::getInstance()->seligwrite(fileName, dataFmt, varString,
                                                   ni, nj, nk,
-                                                  fieldc, fieldu, connectu, elt,
+                                                  fieldc, fieldu, connectu, eltIds,
                                                   zoneNames);
   }
   else if (K_STRING::cmp(fileFmt, "bin_3ds") == 0) // 3ds
   {
     if (fieldc.size() != 0)
-      printf("Warning: convertArrays2File: structured arrays not converted.\n"); 
+      printf("Warning: convertArrays2File: structured arrays not converted in 3ds.\n"); 
     
     isok = K_IO::GenIO::getInstance()->f3dswrite(fileName, dataFmt, varString,
                                                  ni, nj, nk,
-                                                 fieldc, fieldu, connectu, elt,
+                                                 fieldc, fieldu, connectu, eltIds,
                                                  zoneNames);
   }
   else if (K_STRING::cmp(fileFmt, "bin_ply") == 0) // ply
   {
     if (fieldc.size() != 0)
-      printf("Warning: convertArrays2File: structured arrays not converted.\n"); 
+      printf("Warning: convertArrays2File: structured arrays not converted in ply.\n"); 
     
     isok = K_IO::GenIO::getInstance()->plywrite(fileName, dataFmt, varString,
                                                 ni, nj, nk,
-                                                fieldc, fieldu, connectu, elt,
+                                                fieldc, fieldu, connectu, eltIds,
                                                 zoneNames);
   }
   else if (K_STRING::cmp(fileFmt, "bin_wav") == 0) // bin wav
   { 
     isok = K_IO::GenIO::getInstance()->wavwrite(fileName, dataFmt, varString,
                                                 ni, nj, nk,
-                                                fieldc, fieldu, connectu, elt, 
+                                                fieldc, fieldu, connectu, eltIds, 
                                                 zoneNames);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_xfig") == 0) // fmt xfig
   { 
     isok = K_IO::GenIO::getInstance()->xfigwrite(fileName, dataFmt, varString,
                                                  ni, nj, nk,
-                                                 fieldc, fieldu, connectu, elt,
+                                                 fieldc, fieldu, connectu, eltIds,
                                                  zoneNames);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_svg") == 0) // fmt svg
   { 
     isok = K_IO::GenIO::getInstance()->svgwrite(fileName, dataFmt, varString,
                                                 ni, nj, nk,
-                                                fieldc, fieldu, connectu, elt,
+                                                fieldc, fieldu, connectu, eltIds,
                                                 zoneNames);
   }
   else if (K_STRING::cmp(fileFmt, "fmt_cedre") == 0) // fmt cedre
   { 
     if (fieldc.size() != 0)
-      printf("Warning: convertArrays2File: structured arrays not converted.\n"); 
+      printf("Warning: convertArrays2File: structured arrays not converted in cedre.\n"); 
     isok = K_IO::GenIO::getInstance()->cedrewrite(
       fileName, dataFmt, varString,
       ni, nj, nk,
-      fieldc, fieldu, connectu, elt,
+      fieldc, fieldu, connectu, eltIds,
       zoneNames, BCFacesO);
   }
   else
@@ -954,7 +957,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
                     "convertArrays2File: unrecognised format.");
     return NULL;
   }
-  if (isok == 1) 
+  if (isok == 1)
   {
     PyErr_SetString(PyExc_TypeError,
                     "convertArrays2File: file not written.");
@@ -1019,7 +1022,7 @@ E_Int K_CONVERTER::checkRecognisedFormat(char* fileFmt)
 }
 
 //=============================================================================
-/* Returns the element type id */
+/* Returns the element type id for a single eltType */
 //=============================================================================
 E_Int K_CONVERTER::getElementTypeId(const char* eltType)
 {
@@ -1044,6 +1047,9 @@ E_Int K_CONVERTER::getElementTypeId(const char* eltType)
   return -1; //unknown
 }
 
+//=============================================================================
+/* Returns the element type ids for a multiple eltType */
+//=============================================================================
 vector<E_Int> K_CONVERTER::getElementTypesId(const char* eltType)
 {
   // Acces universel aux eltTypes

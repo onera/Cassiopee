@@ -2340,8 +2340,6 @@ Array / PyTree input/output
     +------------+-----------+---------------------------------------+
     |fmt_plot3d  | .gfmt     | formatted plot 3d file (NASA)         |
     +------------+-----------+---------------------------------------+
-    |fmt_pov     | .pov      | formatted povray raytracer file       |
-    +------------+-----------+---------------------------------------+
     |fmt_mesh    | .mesh     | formatted mesh file (INRIA)           |
     +------------+-----------+---------------------------------------+
     |fmt_gmsh    | .msh      | formatted GMSH mesh file (UCL)        |
@@ -2350,11 +2348,15 @@ Array / PyTree input/output
     +------------+-----------+---------------------------------------+
     |fmt_su2     | .su2      | formatted SU2 file (STANFORD)         |
     +------------+-----------+---------------------------------------+
+    |fmt_foam    | .foam     | formatted FOAM file (OPENFOAM)        |
+    +------------+-----------+---------------------------------------+
     |fmt_cedre   | .d        | formatted CEDRE file (ONERA)          |
     +------------+-----------+---------------------------------------+
-    |bin_stl     | .stl      | binary STL file                       |
+    |bin_stl     | .bstl     | binary STL file                       |
     +------------+-----------+---------------------------------------+
-    |fmt_stl     | .fstl     | formatted STL file                    |
+    |fmt_stl     | .stl .fstl| formatted STL file                    |
+    +------------+-----------+---------------------------------------+
+    |fmt_pov     | .pov      | formatted povray raytracer file       |
     +------------+-----------+---------------------------------------+
     |fmt_selig   | .selig    | formatted selig file (airfoils)       |
     +------------+-----------+---------------------------------------+
@@ -2375,6 +2377,8 @@ Array / PyTree input/output
     |fmt_svg     | .svg      | formatted SVG file (INKSCAPE)         |
     +------------+-----------+---------------------------------------+
     |bin_png     | .png      | binary PNG file                       |
+    +------------+-----------+---------------------------------------+
+    |bin_jpg     | .jpg      | binary JPEG file                      |
     +------------+-----------+---------------------------------------+
     |fmt_iges    | .igs      | formatted IGES CAD file               |
     +------------+-----------+---------------------------------------+

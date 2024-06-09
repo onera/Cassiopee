@@ -38,7 +38,7 @@ E_Int K_IO::GenIO::df3write(
   vector<FldArrayF*>& structField,
   vector<FldArrayF*>& unstructField,
   vector<FldArrayI*>& connect,
-  vector<E_Int>& eltType,
+  vector< vector<E_Int> >& eltTypes,
   vector<char*>& zoneNames)
 {
   // Find posx, posy...

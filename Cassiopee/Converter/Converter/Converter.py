@@ -724,6 +724,7 @@ def convertExt2Format__(fileName):
     elif extension == '.jpeg': format = 'bin_jpg'
     elif extension == '.d': format = 'fmt_cedre'
     elif extension == '.su2': format = 'fmt_su2'
+    elif extension == '.foam': format = 'fmt_foam'
     elif extension == '.gbin': format = 'bin_plot3d'
     elif extension == '.gfmt': format = 'fmt_plot3d'
     elif extension == '.arc': format = 'bin_arc'

@@ -888,7 +888,7 @@ E_Int K_IO::GenIO::binvtkwrite(
   vector<FldArrayF*>& structField,
   vector<FldArrayF*>& unstructField,
   vector<FldArrayI*>& connect,
-  vector<E_Int>& eltType,
+  vector< vector<E_Int> >& eltTypes,
   vector<char*>& zoneNames)
 {
   E_Int nzone = unstructField.size();
@@ -896,7 +896,7 @@ E_Int K_IO::GenIO::binvtkwrite(
   for (E_Int zone = 0; zone < nzone; zone++)
   {
     // NODE, BAR, TRI, QUADS, TETRA, HEXA , PENTA, PYRA, supported
-    if (eltType[zone] < 8) nvalidZones++;
+    if (eltTypes[zone][0] < 8) nvalidZones++;
     else
       printf("Warning: binvtkwrite: zone " SF_D_ " not written (not a valid elements in zone).", zone);
   }

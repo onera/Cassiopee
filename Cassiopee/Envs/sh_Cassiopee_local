@@ -730,4 +730,4 @@ export PATH=$PATHL:$PATH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATHL:$LD_LIBRARY_PATH
 export PYTHONPATH=$PYTHONPATHL:$PYTHONPATH
 
-echo 'Hello from '$MAC', '$ELSAPROD' prod is set.'
+echo 'Hello from '$MAC', '$ELSAPROD' environement is set.'

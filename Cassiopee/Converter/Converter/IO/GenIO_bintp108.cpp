@@ -2211,7 +2211,7 @@ E_Int K_IO::GenIO::tecwrite108(
   vector <FldArrayF*>& structField,
   vector<FldArrayF*>& unstructField,
   vector<FldArrayI*>& connect,
-  vector<E_Int>& eltType,
+  vector< vector<E_Int> >& eltTypes,
   vector<char*>& zoneNames)
 { 
   FILE* ptrFile;
@@ -2368,7 +2368,7 @@ E_Int K_IO::GenIO::tecwrite108(
     {
       nol = no - structFieldSize;
       /* Type of elts */
-      switch (eltType[nol])
+      switch (eltTypes[nol][0])
       {
         case 1: // BAR
           ib = 1;
@@ -2432,7 +2432,7 @@ E_Int K_IO::GenIO::tecwrite108(
     {
       nol = no - structFieldSize;
 
-      if (eltType[nol] != 8) // elements basiques
+      if (eltTypes[nol][0] != 8) // elements basiques
       {
         // numPts
         ib = unstructField[nol]->getSize();
@@ -2592,7 +2592,7 @@ E_Int K_IO::GenIO::tecwrite108(
     nt = c.getSize(); nv = c.getNfld();
     int* bufferi;
 
-    if (eltType[no] == 5) // FIX pour PYRA as HEXA
+    if (eltTypes[no][0] == 5) // FIX pour PYRA as HEXA
     {
       bufferi = new int[nt * 8];
       for (n = 0; n < nt; n++)
@@ -2609,7 +2609,7 @@ E_Int K_IO::GenIO::tecwrite108(
       }
       nv = 8;
     }
-    else if (eltType[no] == 6) // FIX pour PENTA as HEXA
+    else if (eltTypes[no][0] == 6) // FIX pour PENTA as HEXA
     {
       bufferi = new int[nt * 8];
       for (n = 0; n < nt; n++)
@@ -2626,7 +2626,7 @@ E_Int K_IO::GenIO::tecwrite108(
       }
       nv = 8;
     }
-    else if (eltType[no] == 8) // NGONS
+    else if (eltTypes[no][0] == 8) // NGONS
     {
       E_Int* ngon = c.getNGon();
       E_Int* indPG = c.getIndPG();

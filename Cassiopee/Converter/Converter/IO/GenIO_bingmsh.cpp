@@ -206,7 +206,7 @@ E_Int K_IO::GenIO::bingmshwrite(
   vector<FldArrayF*>& structField,
   vector<FldArrayF*>& unstructField,
   vector<FldArrayI*>& connect,
-  vector<E_Int>& eltType,
+  vector< vector<E_Int> >& eltTypes,
   vector<char*>& zoneNames)
 {
   E_Int nzone = unstructField.size();
@@ -214,7 +214,7 @@ E_Int K_IO::GenIO::bingmshwrite(
   for (E_Int zone = 0; zone < nzone; zone++)
   {
     // NODE, BAR, TRI, QUADS, TETRA, HEXA , PENTA, PYRA, supported
-    if (eltType[zone] < 8) nvalidZones++;
+    if (eltTypes[zone][0] < 8) nvalidZones++;
     else
       printf("Warning: gmshwrite: zone " SF_D_ " not written (not a valid elements in zone).", zone);
   }
@@ -305,7 +305,7 @@ E_Int K_IO::GenIO::bingmshwrite(
   for (E_Int i = 0; i < nzone; i++)
   {
     FldArrayI& cn = *connect[i];
-    E_Int elt = eltType[i];
+    E_Int elt = eltTypes[i][0];
     switch(elt)
     {
       case 0: // NODE

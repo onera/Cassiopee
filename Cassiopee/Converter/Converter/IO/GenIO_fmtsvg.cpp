@@ -377,7 +377,7 @@ E_Int K_IO::GenIO::svgwrite(
   vector<FldArrayF*>& structField,
   vector<FldArrayF*>& unstructField,
   vector<FldArrayI*>& connect,
-  vector<E_Int>& eltType,   
+  vector< vector<E_Int> >& eltTypes,   
   vector<char*>& zoneNames)
 {
   // All zones must have posx, posy, posz
@@ -489,172 +489,184 @@ E_Int K_IO::GenIO::svgwrite(
   for (E_Int zone = 0; zone < nzoneu; zone++)
   {
     FldArrayF& f = *unstructField[zone];
-    FldArrayI& c = *connect[zone];
-
-    for (E_Int i = 0; i < c.getSize(); i++)
-    {
+    FldArrayI* cm = connect[zone];
+    E_Int nco = cm->getNConnect();
     
-      switch (eltType[zone])
+    for (E_Int n = 0; n < nco; n++)
+    {
+      FldArrayI& c = *(cm->getConnect(n));
+      E_Int elt = eltTypes[zone][n];
+  
+      if (elt != 1 && elt != 2 && elt != 3 && elt != 4 && elt != 6 && elt != 7)
+      {                       
+        printf("Error: svg: unrecognised element type: %d.\n", elt);
+        continue;
+      }
+
+      for (E_Int i = 0; i < c.getSize(); i++)
       {
-        case 1: // BAR
-          fprintf(ptrFile, "<path\n   d=\"M");
-          ind = c(i,1) - 1;
-          fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
-          ind = c(i,2) - 1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
-          break;
+        switch (elt)
+        {
+          case 1: // BAR
+            fprintf(ptrFile, "<path\n   d=\"M");
+            ind = c(i,1) - 1;
+            fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
+            ind = c(i,2) - 1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
+            break;
 
-        case 2: // TRI
-          fprintf(ptrFile, "<path\n   d=\"M");
-          ind = c(i,1) - 1;
-          fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
-          ind = c(i,2) - 1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          ind = c(i,3) - 1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          ind = c(i,1) -1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
-          break;
+          case 2: // TRI
+            fprintf(ptrFile, "<path\n   d=\"M");
+            ind = c(i,1) - 1;
+            fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
+            ind = c(i,2) - 1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            ind = c(i,3) - 1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            ind = c(i,1) -1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
+            break;
           
-        case 3: // QUAD
-          fprintf(ptrFile, "<path\n   d=\"M");
-          ind = c(i,1) - 1;
-          fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
-          ind = c(i,2) - 1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          ind = c(i,3) - 1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          ind = c(i,4) -1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          ind = c(i,1) -1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
-          break;
+          case 3: // QUAD
+            fprintf(ptrFile, "<path\n   d=\"M");
+            ind = c(i,1) - 1;
+            fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
+            ind = c(i,2) - 1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            ind = c(i,3) - 1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            ind = c(i,4) -1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            ind = c(i,1) -1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
+            break;
 
-        case 4: // TETRA
-          fprintf(ptrFile, "<path\n   d=\"M");
-          ind = c(i,1) - 1;
-          fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
-          ind = c(i,2) - 1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          ind = c(i,3) - 1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          ind = c(i,1) - 1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
+          case 4: // TETRA
+            fprintf(ptrFile, "<path\n   d=\"M");
+            ind = c(i,1) - 1;
+            fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
+            ind = c(i,2) - 1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            ind = c(i,3) - 1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            ind = c(i,1) - 1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
 
-          fprintf(ptrFile, "<path\n   d=\"M");
-          ind = c(i,1) -1;
-          fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
-          ind = c(i,4) -1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          ind = c(i,2) -1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
+            fprintf(ptrFile, "<path\n   d=\"M");
+            ind = c(i,1) -1;
+            fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
+            ind = c(i,4) -1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            ind = c(i,2) -1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
 
-          fprintf(ptrFile, "<path\n   d=\"M");
-          ind = c(i,4) -1;
-          fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
-          ind = c(i,3) -1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
-          break;
+            fprintf(ptrFile, "<path\n   d=\"M");
+            ind = c(i,4) -1;
+            fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
+            ind = c(i,3) -1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
+            break;
 
-        case 6: // PENTA (PRISM)
-          fprintf(ptrFile, "<path\n   d=\"M");
-          ind = c(i,1) - 1;
-          fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
-          ind = c(i,2) - 1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          ind = c(i,3) - 1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          ind = c(i,1) - 1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
+          case 6: // PENTA (PRISM)
+            fprintf(ptrFile, "<path\n   d=\"M");
+            ind = c(i,1) - 1;
+            fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
+            ind = c(i,2) - 1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            ind = c(i,3) - 1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            ind = c(i,1) - 1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
 
-          fprintf(ptrFile, "<path\n   d=\"M");
-          ind = c(i,1) -1;
-          fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
-          ind = c(i,4) -1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          ind = c(i,5) -1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          ind = c(i,2) -1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
+            fprintf(ptrFile, "<path\n   d=\"M");
+            ind = c(i,1) -1;
+            fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
+            ind = c(i,4) -1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            ind = c(i,5) -1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            ind = c(i,2) -1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
 
-          fprintf(ptrFile, "<path\n   d=\"M");
-          ind = c(i,4) -1;
-          fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
-          ind = c(i,6) -1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          ind = c(i,3) -1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
+            fprintf(ptrFile, "<path\n   d=\"M");
+            ind = c(i,4) -1;
+            fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
+            ind = c(i,6) -1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            ind = c(i,3) -1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
 
-          fprintf(ptrFile, "<path\n   d=\"M");
-          ind = c(i,6) -1;
-          fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
-          ind = c(i,5) -1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
-          break;
+            fprintf(ptrFile, "<path\n   d=\"M");
+            ind = c(i,6) -1;
+            fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
+            ind = c(i,5) -1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
+            break;
 
-        case 7: // HEXA
-          fprintf(ptrFile, "<path\n   d=\"M");
-          ind = c(i,1) - 1;
-          fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
-          ind = c(i,2) - 1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          ind = c(i,3) - 1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          ind = c(i,4) - 1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          ind = c(i,1) - 1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
+          case 7: // HEXA
+            fprintf(ptrFile, "<path\n   d=\"M");
+            ind = c(i,1) - 1;
+            fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
+            ind = c(i,2) - 1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            ind = c(i,3) - 1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            ind = c(i,4) - 1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            ind = c(i,1) - 1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
 
-          fprintf(ptrFile, "<path\n   d=\"M");
-          ind = c(i,1) -1;
-          fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
-          ind = c(i,5) -1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          ind = c(i,6) -1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          ind = c(i,2) -1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
+            fprintf(ptrFile, "<path\n   d=\"M");
+            ind = c(i,1) -1;
+            fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
+            ind = c(i,5) -1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            ind = c(i,6) -1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            ind = c(i,2) -1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
 
-          fprintf(ptrFile, "<path\n   d=\"M");
-          ind = c(i,4) -1;
-          fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
-          ind = c(i,8) -1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          ind = c(i,7) -1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          ind = c(i,3) -1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
+            fprintf(ptrFile, "<path\n   d=\"M");
+            ind = c(i,4) -1;
+            fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
+            ind = c(i,8) -1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            ind = c(i,7) -1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            ind = c(i,3) -1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
 
-          fprintf(ptrFile, "<path\n   d=\"M");
-          ind = c(i,5) -1;
-          fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
-          ind = c(i,8) -1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
+            fprintf(ptrFile, "<path\n   d=\"M");
+            ind = c(i,5) -1;
+            fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
+            ind = c(i,8) -1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
 
-          fprintf(ptrFile, "<path\n   d=\"M");
-          ind = c(i,6) -1;
-          fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
-          ind = c(i,7) -1;
-          fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
-          fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
-          break;
+            fprintf(ptrFile, "<path\n   d=\"M");
+            ind = c(i,6) -1;
+            fprintf(ptrFile,format3, f(ind,posx), f(ind,posy));
+            ind = c(i,7) -1;
+            fprintf(ptrFile,format4, f(ind,posx), f(ind,posy));
+            fprintf(ptrFile, "\"\nstyle=\"fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1\"\n   id=\"path" SF_D_ "\" />\n", nc); nc++;
+            break;
 
-        default:
-          printf("Error: unrecognised element type.\n");
+          default:
+            printf("Error: svg: unrecognised element type: %d.\n", elt);
+        }
       }
     }
   }

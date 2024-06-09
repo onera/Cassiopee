@@ -121,7 +121,7 @@ class GenIO
     E_Int tecwrite(char* file, char* dataFmt, char* varstring,
                    E_Int ni, E_Int nj, E_Int nk,
                    const FldArrayF& coord, const FldArrayF& field,
-		   std::vector<char*>& zoneNames);
+                   std::vector<char*>& zoneNames);
     /** Write structured field in binary tec format. Multiple zones. */
     E_Int tecwrite(
       char* file, char* dataFmt, char* varString,
@@ -134,7 +134,7 @@ class GenIO
     E_Int tecwrite(char* file, char* dataFmt, char* varString,
                    std::vector<FldArrayF*>& unstructField,
                    std::vector<FldArrayI*>& connect,
-                   std::vector<E_Int>& eltType,
+                   std::vector< std::vector<E_Int> >& eltTypes,
                    std::vector<char*>& zoneNames);
     /** Write structured and unstructured field in tec format.
         Multiple zones. */
@@ -144,7 +144,7 @@ class GenIO
       std::vector<FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames);
     E_Int tecwrite75(
       char* file, char* dataFmt, char* varString,
@@ -152,7 +152,7 @@ class GenIO
       std::vector<FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames);
     E_Int tecwrite108(
       char* file, char* dataFmt, char* varString,
@@ -160,7 +160,7 @@ class GenIO
       std::vector<FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames);
 
     /** Write triangles (tp format) described by field and connect.
@@ -248,7 +248,7 @@ class GenIO
       std::vector<FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<std::vector<E_Int> >& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames);
     ///-
 
@@ -300,7 +300,7 @@ class GenIO
       std::vector <FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<std::vector<E_Int> >& eltType,
+      std::vector<std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames,
       PyObject* BCFaces);
     ///-
@@ -326,7 +326,7 @@ class GenIO
       std::vector <FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames,
       PyObject* BCFaces);
     E_Int foamWritePoints(char* file, FldArrayF& f);
@@ -334,9 +334,9 @@ class GenIO
     E_Int foamReadFields(char* file,
       std::vector<FldArrayF*>& centerUnstructField, E_Int ncells,
       char*& varStringc,
-      const std::vector<char *> &BCNames,
-      const std::vector<FldArrayI *> &BCFaces,
-      std::vector<FldArrayF *> &BCFields, E_Int *owner,
+      const std::vector<char*> &BCNames,
+      const std::vector<FldArrayI*> &BCFaces,
+      std::vector<FldArrayF*> &BCFields, E_Int *owner,
       const std::vector<E_Float> &delta, E_Int nifaces,
       const std::vector<E_Int> &indir);
     E_Int foamWriteFaces(char* file, FldArrayI& cn,
@@ -345,23 +345,23 @@ class GenIO
     E_Int foamWriteOwner(char* file, const std::vector<E_Int> &owner,
       const std::vector<E_Int> &faces);
     E_Int foamReadOwner(char* file, FldArrayI& PE);
-    E_Int foamWriteNeighbour(char* file, const std::vector<E_Int> &neigh,
-      const std::vector<E_Int> &faces);
+    E_Int foamWriteNeighbour(char* file, const std::vector<E_Int>& neigh,
+      const std::vector<E_Int>& faces);
     E_Int foamReadNeighbour(char* file, FldArrayI& PE);
     E_Int foamWriteBoundary(char* file, const std::vector<char*>& bc_names, 
       const std::vector<E_Int>& bc_nfaces,
       const std::vector<E_Int>& bc_startfaces);
     E_Int foamReadBoundary(char* file, std::vector<FldArrayI*>& BCFaces,
       std::vector<char*>& BCNames, std::vector<E_Int> &indir);
-    E_Int readScalarField(char *file, FldArrayF& f, E_Int idx, E_Int *owner,
-      const std::vector<FldArrayI *> &BCFaces,
-      std::vector<FldArrayF *> &BCFields, const std::vector<E_Float> &delta,
-      E_Int nifaces, const std::vector<E_Int> &indir);
-    E_Int readVectorField(char *file, FldArrayF& f, E_Int idx, E_Int *owner,
-      const std::vector<FldArrayI *> &BCFaces,
-      std::vector<FldArrayF *> &BCFields, const std::vector<E_Float> &delta,
-      E_Int nifaces, const std::vector<E_Int> &indir);
-    E_Int readTensorField(char *file, FldArrayF& f, E_Int idx);
+    E_Int readScalarField(char *file, FldArrayF& f, E_Int idx, E_Int* owner,
+      const std::vector<FldArrayI*>& BCFaces,
+      std::vector<FldArrayF*> &BCFields, const std::vector<E_Float>& delta,
+      E_Int nifaces, const std::vector<E_Int>& indir);
+    E_Int readVectorField(char* file, FldArrayF& f, E_Int idx, E_Int* owner,
+      const std::vector<FldArrayI*>& BCFaces,
+      std::vector<FldArrayF*>& BCFields, const std::vector<E_Float>& delta,
+      E_Int nifaces, const std::vector<E_Int>& indir);
+    E_Int readTensorField(char* file, FldArrayF& f, E_Int idx);
     ///-
 
     ///+ Povray functions
@@ -380,7 +380,7 @@ class GenIO
       std::vector <FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames, E_Int colormap);
     /** Density df3 write */
     E_Int df3write(
@@ -389,7 +389,7 @@ class GenIO
       std::vector <FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames);
     /* Create colormaps */
     void createColormap(E_Int colormap, FldArrayF& rgb);
@@ -428,7 +428,7 @@ class GenIO
       std::vector <FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<std::vector<E_Int> >& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames,
       std::vector<std::vector<E_Int> > * colors=0);
     ///-
@@ -441,7 +441,8 @@ class GenIO
       std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connectivity,
-      std::vector<E_Int>& eltType, std::vector<char*>& zoneNames);
+      std::vector<E_Int>& eltType, 
+      std::vector<char*>& zoneNames);
     E_Int gmshread(
       char* file, char*& varString,
       std::vector<FldArrayF*>& structField,
@@ -454,7 +455,7 @@ class GenIO
     E_Int gmshwrite(
       char* file, char* dataFmt, char* varString,
       std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
-      std::vector <FldArrayF*>& structField,
+      std::vector<FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
       std::vector<E_Int>& eltType,
@@ -462,10 +463,10 @@ class GenIO
     E_Int gmshwrite(
       char* file, char* dataFmt, char* varString,
       std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
-      std::vector <FldArrayF*>& structField,
+      std::vector<FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<std::vector<E_Int> >& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames);
     /** Binary Gmsh read */
     E_Int bingmshread(
@@ -482,7 +483,7 @@ class GenIO
       std::vector <FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames);
     ///-
 
@@ -502,7 +503,7 @@ class GenIO
       std::vector <FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames);
     ///-
 
@@ -521,7 +522,7 @@ class GenIO
       std::vector<FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames);
     /** fmt STL */
     E_Int fstlread(
@@ -537,7 +538,7 @@ class GenIO
       std::vector<FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames);
     ///-
 
@@ -555,7 +556,7 @@ class GenIO
       std::vector<FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames);
 
     /** PLY (Stanford) read */
@@ -572,7 +573,7 @@ class GenIO
       std::vector<FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames);
     ///-
 
@@ -590,7 +591,7 @@ class GenIO
       std::vector<FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames);
     ///-
 
@@ -610,7 +611,7 @@ class GenIO
       std::vector <FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames);
     ///-
 
@@ -630,10 +631,9 @@ class GenIO
       std::vector <FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames);
     ///-
-
 
     ///+ WAV functions
     /** wavwrite */
@@ -643,7 +643,7 @@ class GenIO
       std::vector <FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames);
     ///-
 
@@ -663,7 +663,7 @@ class GenIO
       std::vector <FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames);
     ///-
 
@@ -683,7 +683,7 @@ class GenIO
       std::vector <FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames);
     ///-
 
@@ -703,7 +703,7 @@ class GenIO
       std::vector <FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames);
     ///-
 
@@ -725,7 +725,7 @@ class GenIO
       std::vector <FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames);
     /* Lecture des coordonnees x,y, ds le fichier
        retourne 0 si fin du fichier, 1 sinon */
@@ -741,7 +741,8 @@ class GenIO
       std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connectivity,
-      std::vector<E_Int>& eltType, std::vector<char*>& zoneNames);
+      std::vector<E_Int>& eltType, 
+      std::vector<char*>& zoneNames);
     /** gts write */
     E_Int gtswrite(
       char* file, char* dataFmt, char* varString,
@@ -749,7 +750,7 @@ class GenIO
       std::vector <FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames);
     ///-
 
@@ -772,7 +773,7 @@ class GenIO
       std::vector <FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames,
       PyObject* BCFaces);
     ///-
@@ -797,7 +798,7 @@ class GenIO
       std::vector <FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames);
     ///-
 

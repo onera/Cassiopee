@@ -145,7 +145,7 @@ E_Int K_IO::GenIO::gtswrite(
   vector<FldArrayF*>& structField,
   vector<FldArrayF*>& unstructField,
   vector<FldArrayI*>& connect,
-  vector<E_Int>& eltType,
+  vector< vector<E_Int> >& eltTypes,
   vector<char*>& zoneNames)
 {
   // All zones must have posx, posy, posz

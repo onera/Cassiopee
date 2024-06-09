@@ -280,7 +280,7 @@ E_Int K_IO::GenIO::cedrewrite(
   vector<FldArrayF*>& structField,
   vector<FldArrayF*>& unstructField,
   vector<FldArrayI*>& connect,
-  vector<E_Int>& eltType,
+  vector< vector<E_Int> >& eltTypes,
   vector<char*>& zoneNames,
   PyObject* BCFaces)
 {
@@ -321,10 +321,10 @@ E_Int K_IO::GenIO::cedrewrite(
 
   // Nbre de domaines
   E_Int nd = 0;
-  E_Int eltTypeSize = eltType.size();
+  E_Int eltTypeSize = eltTypes.size();
   for (E_Int i = 0; i < eltTypeSize; i++)
   {
-    if (eltType[i] == 8) nd++; 
+    if (eltTypes[i][0] == 8) nd++; 
   }
   if (nd != eltTypeSize)
     printf("Warning: cedrewrite: array list contain non-NGons arrays. Skipped...\n");
@@ -333,7 +333,7 @@ E_Int K_IO::GenIO::cedrewrite(
 
   for (E_Int i = 0; i < eltTypeSize; i++)
   {
-    if (eltType[i] == 8)
+    if (eltTypes[i][0] == 8)
     {
       fprintf(ptrFile, " -----------------\n");
       fprintf(ptrFile, " 1.0 DONNEES GENERALES DU DOMAINE\n");

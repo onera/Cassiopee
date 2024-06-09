@@ -1391,7 +1391,11 @@ E_Int K_IO::GenIO::foamWriteOwner(char* file, const std::vector<E_Int> &owner,
   strcpy(fullPath, file);
   strcat(fullPath, "/constant/polyMesh/owner");
   FILE* ptrFile = fopen(fullPath, "w");
-
+  if (ptrFile == NULL) 
+  {
+    printf("foamWrite: can not open constant/polyMesh/owner\n");
+    return 1;
+  }
   fprintf(ptrFile, "FoamFile\n");
   fprintf(ptrFile, "{\n");
   fprintf(ptrFile, "    version     2.0;\n");
@@ -1420,12 +1424,17 @@ E_Int K_IO::GenIO::foamWriteOwner(char* file, const std::vector<E_Int> &owner,
 // right=neighbour
 //=============================================================================
 E_Int K_IO::GenIO::foamWriteNeighbour(char* file,
-  const std::vector<E_Int> &neigh, const std::vector<E_Int> &faces)
+  const std::vector<E_Int>& neigh, const std::vector<E_Int>& faces)
 {
   char fullPath[1024];
   strcpy(fullPath, file);
   strcat(fullPath, "/constant/polyMesh/neighbour");
   FILE* ptrFile = fopen(fullPath, "w");
+  if (ptrFile == NULL) 
+  {
+    printf("foamWrite: can not open constant/polyMesh/neighbour\n");
+    return 1;
+  }
 
   fprintf(ptrFile, "FoamFile\n");
   fprintf(ptrFile, "{\n");
@@ -1441,7 +1450,8 @@ E_Int K_IO::GenIO::foamWriteNeighbour(char* file,
   fprintf(ptrFile, SF_D_ "\n", nfaces);
   fprintf(ptrFile, "(\n");
 
-  for (E_Int i = 0; i < nfaces; i++) {
+  for (E_Int i = 0; i < nfaces; i++) 
+  {
     E_Int nei = neigh[faces[i]];
     fprintf(ptrFile, SF_D_ "\n", nei);
   }
@@ -1458,6 +1468,11 @@ E_Int K_IO::GenIO::foamWriteBoundary(char* file, const std::vector<char*>& bc_na
   strcpy(fullPath, file);
   strcat(fullPath, "/constant/polyMesh/boundary");
   FILE* ptrFile = fopen(fullPath, "w");
+  if (ptrFile == NULL) 
+  {
+    printf("foamWrite: can not open constant/polyMesh/boundary\n");
+    return 1;
+  }
 
   fprintf(ptrFile, "FoamFile\n");
   fprintf(ptrFile, "{\n");
@@ -1517,7 +1532,7 @@ E_Int K_IO::GenIO::foamwrite(
   vector<FldArrayF*>& structField,
   vector<FldArrayF*>& unstructField,
   vector<FldArrayI*>& connect,
-  vector<E_Int>& eltType,
+  vector< vector<E_Int> >& eltTypes,
   vector<char*>& zoneNames,
   PyObject* BCFaces)
 {
@@ -1559,7 +1574,7 @@ E_Int K_IO::GenIO::foamwrite(
   E_Int no = -1;
   for (E_Int i = 0; i < nzone; i++)
   {
-    E_Int et = eltType[i];
+    E_Int et = eltTypes[i][0];
     if (et == 8) { no = i; break; }
   }
   if (no == -1)
@@ -1599,14 +1614,16 @@ E_Int K_IO::GenIO::foamwrite(
   E_Int *ngon = cn.getNGon();
   E_Int *indPG = cn.getIndPG();
 
-  for (E_Int PHi = 0; PHi < ncells; PHi++) {
+  for (E_Int PHi = 0; PHi < ncells; PHi++) 
+  {
     E_Int stride = -1;
     const E_Int *pF = cn.getElt(PHi, stride, nface, indPH);
 
     neis.clear();
     pgs.clear();
     
-    for (E_Int j = 0; j < stride; j++) {
+    for (E_Int j = 0; j < stride; j++) 
+    {
       PGi = pF[j] - 1;
       
       assert(owner[PGi] != -1);
@@ -1639,7 +1656,7 @@ E_Int K_IO::GenIO::foamwrite(
 
   E_Int ninternal_faces = faces.size();
 
-  std::cout << "internal faces: " << ninternal_faces << std::endl;
+  printf("Internal faces = " SF_D_ "\n", ninternal_faces);
 
   // BC
   E_Int BCFacesSize = 0;
@@ -1698,7 +1715,6 @@ E_Int K_IO::GenIO::foamwrite(
   }
 
   printf("total faces: %zu\n", faces.size());
-
   printf("cn faces: " SF_D_ "\n", nfaces);
 
   foamWriteOwner(file, owner, faces);

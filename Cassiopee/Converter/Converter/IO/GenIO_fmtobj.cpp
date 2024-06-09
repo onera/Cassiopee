@@ -383,7 +383,7 @@ E_Int K_IO::GenIO::objread(
     E_Int ind;
     E_Int pt = 0;
     E_Float* pu = texcoord.begin(1);
-    E_Float* pv = texcoord.begin(2); 
+    E_Float* pv = texcoord.begin(2);
     for (E_Int i = 0; i < nv; i++)
     {
       if (nmap[i] == 0) { fx[pt] = px[i]; fy[pt] = py[i]; fz[pt] = pz[i]; tu[pt] = 0.; tv[pt] = 0.; pt++; }
@@ -562,7 +562,7 @@ E_Int K_IO::GenIO::objwrite(
   vector<FldArrayF*>& structField,
   vector<FldArrayF*>& unstructField,
   vector<FldArrayI*>& connect,
-  vector<E_Int>& eltType,
+  vector< vector<E_Int> >& eltTypes,
   vector<char*>& zoneNames)
 {
   E_Int zone;
@@ -570,11 +570,17 @@ E_Int K_IO::GenIO::objwrite(
   E_Int nvalidZones = 0;
   for (zone = 0; zone < nzone; zone++)
   {
-    // triangles, quads supported
-    if (eltType[zone] == 2 || eltType[zone] == 3)
-      nvalidZones++;
-    else
-      printf("Warning: objwrite: zone " SF_D_ " not written (not a valid elements in zone).", zone);
+    E_Int nc = connect[zone]->getNConnect();
+    for (E_Int n = 0; n < nc; n++)
+    {
+      E_Int elt = eltTypes[zone][n];   
+      
+      // triangles, quads supported
+      if (elt == 2 || elt == 3)
+        nvalidZones++;
+      else
+        printf("Warning: objwrite: zone " SF_D_ " not written (not TRI or QUAD).", zone);
+    }
   }
 
   if (nvalidZones == 0) return 1;
@@ -621,29 +627,34 @@ E_Int K_IO::GenIO::objwrite(
     {
       fprintf(ptrFile, format1, fx[n], fy[n], fz[n]);
     }
-    if (eltType[i] == 2)
+    E_Int nc = connect[i]->getNConnect();
+    for (E_Int n = 0; n < nc; n++)
     {
-      // faces
-      FldArrayI& cn = *connect[i];
-      for (E_Int n = 0; n < cn.getSize(); n++)
+      FldArrayI& cn = *(connect[i]->getConnect());
+      E_Int elt = eltTypes[i][n];   
+      
+      if (elt == 2)
       {
-        fprintf(ptrFile, "f " SF_D_ "/" SF_D_ "/" SF_D_ " " SF_D_ "/" SF_D_ "/" SF_D_ " " SF_D_ "/" SF_D_ "/" SF_D_ "\n", 
-                cn(n,1)+ng, cn(n,1)+ng, cn(n,1)+ng,
-                cn(n,2)+ng, cn(n,2)+ng, cn(n,2)+ng,
-                cn(n,3)+ng, cn(n,3)+ng, cn(n,3)+ng);
+        // faces
+        for (E_Int n = 0; n < cn.getSize(); n++)
+        {
+          fprintf(ptrFile, "f " SF_D_ "/" SF_D_ "/" SF_D_ " " SF_D_ "/" SF_D_ "/" SF_D_ " " SF_D_ "/" SF_D_ "/" SF_D_ "\n", 
+                  cn(n,1)+ng, cn(n,1)+ng, cn(n,1)+ng,
+                  cn(n,2)+ng, cn(n,2)+ng, cn(n,2)+ng,
+                  cn(n,3)+ng, cn(n,3)+ng, cn(n,3)+ng);
+        }
       }
-    }
-    if (eltType[i] == 3)
-    {
-      // faces
-      FldArrayI& cn = *connect[i];
-      for (E_Int n = 0; n < cn.getSize(); n++)
+      else if (elt == 3)
       {
-        fprintf(ptrFile, "f " SF_D_ "/" SF_D_ "/" SF_D_ " " SF_D_ "/" SF_D_ "/" SF_D_ " " SF_D_ "/" SF_D_ "/" SF_D_ " " SF_D_ "/" SF_D_ "/" SF_D_ "\n",
-                cn(n,1)+ng, cn(n,1)+ng, cn(n,1)+ng,
-                cn(n,2)+ng, cn(n,2)+ng, cn(n,2)+ng,
-                cn(n,3)+ng, cn(n,3)+ng, cn(n,3)+ng,
-                cn(n,4)+ng, cn(n,4)+ng, cn(n,4)+ng);
+        // faces
+        for (E_Int n = 0; n < cn.getSize(); n++)
+        {
+          fprintf(ptrFile, "f " SF_D_ "/" SF_D_ "/" SF_D_ " " SF_D_ "/" SF_D_ "/" SF_D_ " " SF_D_ "/" SF_D_ "/" SF_D_ " " SF_D_ "/" SF_D_ "/" SF_D_ "\n",
+                  cn(n,1)+ng, cn(n,1)+ng, cn(n,1)+ng,
+                  cn(n,2)+ng, cn(n,2)+ng, cn(n,2)+ng,
+                  cn(n,3)+ng, cn(n,3)+ng, cn(n,3)+ng,
+                  cn(n,4)+ng, cn(n,4)+ng, cn(n,4)+ng);
+        }
       }
     }
     ng += field.getSize();

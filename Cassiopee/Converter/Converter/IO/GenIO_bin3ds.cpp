@@ -232,7 +232,7 @@ E_Int K_IO::GenIO::f3dswrite(
   vector<FldArrayF*>& structField,
   vector<FldArrayF*>& unstructField,
   vector<FldArrayI*>& connect,
-  vector<E_Int>& eltType,
+  vector< vector<E_Int> >& eltTypes,
   vector<char*>& zoneNames)
 {
   E_Int nzone = unstructField.size();
@@ -240,7 +240,7 @@ E_Int K_IO::GenIO::f3dswrite(
   E_Int no = -1;
   for (E_Int zone = 0; zone < nzone; zone++)
   {
-    if (eltType[zone] == 2) // triangles
+    if (eltTypes[zone][0] == 2) // triangles
     { nvalidZones++; if (no == -1) no = zone; }
     else
       printf("Warning: 3dswrite: zone " SF_D_ " not written (not a triangle zone).", zone);
@@ -279,7 +279,7 @@ E_Int K_IO::GenIO::f3dswrite(
   E_Int l4110, l4120, l4100, l4000;
   for (E_Int zone = 0; zone < nzone; zone++)
   {
-    if (eltType[zone] == 2) // triangles
+    if (eltTypes[zone][0] == 2) // triangles
     {
       FldArrayF& coord = *unstructField[zone];
       E_Int nv = coord.getSize();
@@ -317,7 +317,7 @@ E_Int K_IO::GenIO::f3dswrite(
 
   for (E_Int zone = 0; zone < nzone; zone++)
   {
-    if (eltType[zone] == 2) // triangles
+    if (eltTypes[zone][0] == 2) // triangles
     {
       FldArrayF& coord = *unstructField[zone];
       E_Float* coordx = coord.begin(posx);

@@ -149,14 +149,14 @@ E_Int K_IO::GenIO::povwrite(
   vector<FldArrayF*>& structField,
   vector<FldArrayF*>& unstructField,
   vector<FldArrayI*>& connect,
-  vector<E_Int>& eltType, 
+  vector< vector<E_Int> >& eltTypes, 
   vector<char*>& zoneNames, E_Int colormap)
 {
   E_Int nzone = unstructField.size();
   E_Int nvalidZones = 0;
   for (E_Int zone = 0; zone < nzone; zone++)
   {
-    if (eltType[zone] == 2) // triangles 
+    if (eltTypes[zone][0] == 2) // triangles 
       nvalidZones++;
     else
       printf("Warning: povwrite: zone " SF_D_ " not written (not a triangle zone).", zone);
@@ -343,15 +343,12 @@ E_Int K_IO::GenIO::povwrite(
     fprintf(ptrFile, "    face_indices {\n");
     fprintf(ptrFile, "       " SF_D_ ",\n", ne);
     l = 0;
-    E_Int* c1 = c.begin(1);
-    E_Int* c2 = c.begin(2);
-    E_Int* c3 = c.begin(3);
     if (colormap == 0)
     {
       for (E_Int i = 0; i < ne-1; i++)
       {
         fprintf(ptrFile, "<" SF_D_ "," SF_D_ "," SF_D_ ">,",
-                c1[i]-1, c2[i]-1, c3[i]-1);
+                c(i,1)-1, c(i,2)-1, c(i,3)-1);
         if (l > 3) 
         {
           l = 0; 
@@ -360,15 +357,15 @@ E_Int K_IO::GenIO::povwrite(
         l++;
       }
       fprintf(ptrFile, "<" SF_D_ "," SF_D_ "," SF_D_ ">\n}\n", 
-              c1[ne-1]-1, c2[ne-1]-1, c3[ne-1]-1);
+              c(ne-1,1)-1, c(ne-1,2)-1, c(ne-1,3)-1);
     }
     else
     {
       for (E_Int i = 0; i < ne-1; i++)
       {
-        col1 = E_Int(K_FUNC::E_min((f(c1[i]-1, posd) - fmin)*delta, N-1)); 
-        col2 = E_Int(K_FUNC::E_min((f(c2[i]-1, posd) - fmin)*delta, N-1)); 
-        col3 = E_Int(K_FUNC::E_min((f(c3[i]-1, posd) - fmin)*delta, N-1));
+        col1 = E_Int(K_FUNC::E_min((f(c(i,1)-1, posd) - fmin)*delta, N-1)); 
+        col2 = E_Int(K_FUNC::E_min((f(c(i,2)-1, posd) - fmin)*delta, N-1)); 
+        col3 = E_Int(K_FUNC::E_min((f(c(i,3)-1, posd) - fmin)*delta, N-1));
         fprintf(ptrFile, "<" SF_D_ "," SF_D_ "," SF_D_ ">," SF_D_ "," SF_D_ "," SF_D_ ",", 
                 c(i,1)-1, c(i,2)-1, c(i,3)-1,
                 col1, col2, col3);
@@ -379,9 +376,9 @@ E_Int K_IO::GenIO::povwrite(
         }
         l++;
       }
-      col1 = E_Int(K_FUNC::E_min((f(c1[ne-1]-1, posd) - fmin)*delta, N-1)); 
-      col2 = E_Int(K_FUNC::E_min((f(c2[ne-1]-1, posd) - fmin)*delta, N-1)); 
-      col3 = E_Int(K_FUNC::E_min((f(c3[ne-1]-1, posd) - fmin)*delta, N-1)); 
+      col1 = E_Int(K_FUNC::E_min((f(c(ne-1,1)-1, posd) - fmin)*delta, N-1)); 
+      col2 = E_Int(K_FUNC::E_min((f(c(ne-1,2)-1, posd) - fmin)*delta, N-1)); 
+      col3 = E_Int(K_FUNC::E_min((f(c(ne-1,3)-1, posd) - fmin)*delta, N-1)); 
       fprintf(ptrFile, "<" SF_D_ "," SF_D_ "," SF_D_ ">," SF_D_ "," SF_D_ "," SF_D_ "\n}\n", 
               c(ne-1,1)-1, c(ne-1,2)-1, c(ne-1,3)-1,
               col1, col2, col3);

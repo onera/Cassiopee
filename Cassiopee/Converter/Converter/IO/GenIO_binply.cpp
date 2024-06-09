@@ -342,7 +342,7 @@ E_Int K_IO::GenIO::plywrite(
   vector<FldArrayF*>& structField,
   vector<FldArrayF*>& unstructField,
   vector<FldArrayI*>& connect,
-  vector<E_Int>& eltType,
+  vector< vector<E_Int> >& eltTypes,
   vector<char*>& zoneNames)
 {
   E_Int nzone = unstructField.size();
@@ -351,9 +351,9 @@ E_Int K_IO::GenIO::plywrite(
   E_Int missed = 0;
   for (E_Int zone = 0; zone < nzone; zone++)
   {
-    if (eltType[zone] == 2) // triangles
+    if (eltTypes[zone][0] == 2) // triangles
     { if (ntri == -1) ntri = zone; else missed = 1; }
-    if (eltType[zone] == 3) // Quads
+    if (eltTypes[zone][0] == 3) // Quads
     { if (nquad == -1) nquad = zone; else missed = 1; }
   }
 

@@ -1048,7 +1048,7 @@ E_Int K_IO::GenIO::arcwrite(char* file, char* dataFmt, char* varString,
       std::vector <FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames)
 {
   printf("Error: arcwrite: not implemented.\n");

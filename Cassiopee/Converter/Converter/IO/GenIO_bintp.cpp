@@ -584,7 +584,7 @@ E_Int K_IO::GenIO::tecread(
 
 //=============================================================================
 /*
-  This routine enables binary tecplot of field.
+  This routine enables binary tecplot of structured field.
 */
 //=============================================================================
 E_Int K_IO::GenIO::tecwrite(char* file, char* dataFmt, char* varString,
@@ -614,7 +614,8 @@ E_Int K_IO::GenIO::tecwrite(char* file, char* dataFmt, char* varString,
     for (E_Int i = 0; i < np; i++) fp[i] = fieldp[i];
   }
   vfield.push_back(&f);
-  vector<FldArrayF*> dummy; vector<FldArrayI*> dummy2; vector<E_Int> dummy3;
+  vector<FldArrayF*> dummy; vector<FldArrayI*> dummy2; 
+  vector< std::vector<E_Int> > dummy3;
   return tecwrite108(file, dataFmt, varString, vni, vnj, vnk, vfield, 
                      dummy, dummy2, dummy3, zoneNames); 
 }
@@ -632,7 +633,7 @@ E_Int K_IO::GenIO::tecwrite(
 {
   vector<FldArrayF*> dummy;
   vector<FldArrayI*> dummy2;
-  vector<E_Int> dummy3;
+  vector< std::vector<E_Int> > dummy3;
   return tecwrite108(file, dataFmt, varString, ni, nj, nk, structField, 
                      dummy, dummy2, dummy3, zoneNames); 
 }
@@ -643,15 +644,15 @@ E_Int K_IO::GenIO::tecwrite(
 */
 //=============================================================================
 E_Int K_IO::GenIO::tecwrite(char* file, char* dataFmt, char* varString,
-			    vector<FldArrayF*>& unstructField, 
-			    vector<FldArrayI*>& connect,
-			    vector<E_Int>& eltType,
+                            vector<FldArrayF*>& unstructField, 
+                            vector<FldArrayI*>& connect,
+                            vector< std::vector<E_Int> >& eltTypes,
                             vector<char*>& zoneNames) 
 {
   vector<FldArrayF*> dummy;
   vector<E_Int> d1; vector<E_Int> d2; vector<E_Int> d3;  
   return tecwrite108(file, dataFmt, varString, d1, d2, d3, dummy, 
-                     unstructField, connect, eltType, zoneNames);
+                     unstructField, connect, eltTypes, zoneNames);
 }
 
 //=============================================================================
@@ -665,9 +666,9 @@ E_Int K_IO::GenIO::tecwrite(
       std::vector<FldArrayF*>& structField,
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connect,
-      std::vector<E_Int>& eltType,
+      std::vector< std::vector<E_Int> >& eltTypes,
       std::vector<char*>& zoneNames)
 {
   return tecwrite108(file, dataFmt, varString, ni, nj, nk, structField,  
-                     unstructField, connect, eltType, zoneNames);
+                     unstructField, connect, eltTypes, zoneNames);
 }
