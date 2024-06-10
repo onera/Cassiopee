@@ -79,22 +79,36 @@ if mpi: # source that requires mpi
 
             'XCore/intersectMesh/removeIntersectingKPlanes.cpp',
             'XCore/intersectMesh/intersectSurf.cpp',
-            'XCore/intersectMesh/smesh.cpp',
 
-            'XCore/intersectMesh/mesh.cpp',
-            'XCore/intersectMesh/io.cpp',
-            'XCore/intersectMesh/bbox.cpp',
-            'XCore/intersectMesh/geom.cpp',
-            'XCore/intersectMesh/topo.cpp',
-            
+            'XCore/intersectMesh/cycle.cpp',
             'XCore/intersectMesh/dcel.cpp',
             'XCore/intersectMesh/event.cpp',
             'XCore/intersectMesh/hedge.cpp',
-            'XCore/intersectMesh/predicate.cpp',
-            'XCore/intersectMesh/segment.cpp',
+            'XCore/intersectMesh/face.cpp',
+            'XCore/intersectMesh/vertex.cpp',
+            'XCore/intersectMesh/event.cpp',
             'XCore/intersectMesh/status.cpp',
+            'XCore/intersectMesh/snode.cpp',
+            'XCore/intersectMesh/queue.cpp',
+            'XCore/intersectMesh/segment.cpp',
             'XCore/intersectMesh/sweep.cpp',
-            'XCore/intersectMesh/vertex.cpp'
+
+
+            'XCore/intersectMesh/mesh.cpp',
+            'XCore/intersectMesh/meshRefine.cpp',
+            'XCore/intersectMesh/meshTopo.cpp',
+            'XCore/intersectMesh/smesh.cpp',
+            'XCore/intersectMesh/smeshRefine.cpp',
+            'XCore/intersectMesh/io.cpp',
+
+            'XCore/intersectMesh/primitives.cpp',
+            'XCore/intersectMesh/vec3.cpp',
+            'XCore/intersectMesh/triangle.cpp',
+            'XCore/intersectMesh/point.cpp',
+
+            'XCore/intersectMesh/ray.cpp',
+
+            'XCore/intersectMesh/karray.cpp'
             ]
 else:
     cpp_srcs += [

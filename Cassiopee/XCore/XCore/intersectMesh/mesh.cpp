@@ -1,526 +1,707 @@
-/*    
-    Copyright 2013-2024 Onera.
-
-    This file is part of Cassiopee.
-
-    Cassiopee is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Cassiopee is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
-*/
-#include "proto.h"
+#include <cstdio>
+#include <cassert>
+#include <cstring>
+#include <cstdlib>
+#include <limits>
 #include <map>
-#include <unordered_map>
+#include <set>
+#include <cmath>
+#include <algorithm>
+#include <ctime>
 
-#define MAXPOINTSPERCELL 8
+#include "mesh.h"
+#include "triangle.h"
+#include "primitives.h"
+#include "ray.h"
 
-void mesh_patch_intersect(Mesh *M, Mesh *S, E_Int *mpatch, E_Int mpatchc,
-  E_Int *spatch, E_Int spatchc)
+struct DEdge {
+    E_Int p, q;
+
+    DEdge(E_Int P, E_Int Q) : p(P), q(Q) {}
+
+    bool operator<(const DEdge &f) const
+    {
+        E_Int ep = std::min(p, q);
+        E_Int eq = std::max(p, q);
+        E_Int fp = std::min(f.p, f.q);
+        E_Int fq = std::max(f.p, f.q);
+        return (ep < fp) || (ep == fp && eq < fq);
+    }
+};
+
+void Mesh::make_edges()
 {
-  smesh Mf(M, mpatch, mpatchc);
-  smesh Sf(S, spatch, spatchc);
+    std::map<DEdge, E_Int> edges;
 
-  Mf.write_su2("Mf");
-  Sf.write_su2("Sf");
+    ne = 0;
 
-  dcel D(Mf, Sf);
-  D.find_intersections();
-  D.write_edges("out");
+    F2E.resize(nf);
+
+    for (E_Int i = 0; i < nf; i++) {
+        const auto &pn = F[i];
+        
+        F2E[i].resize(pn.size());
+
+        for (size_t j = 0; j < pn.size(); j++) {
+            E_Int p = pn[j];
+            E_Int q = pn[(j+1)%pn.size()];
+            DEdge e(p, q); 
+            auto it = edges.find(e);
+            if (it == edges.end()) {
+                F2E[i][j] = ne;
+                edges[e] = ne;
+                ne++;
+            } else {
+                F2E[i][j] = it->second;
+            }
+        }
+    }
+
+    E.resize(ne);
+
+    for (const auto &edata : edges) {
+        E[edata.second][0] = edata.first.p;
+        E[edata.second][1] = edata.first.q;
+    }
 }
 
-Mesh::Mesh() :
-  nc(0), nf(0), np(0), ne(0),
-  nface(NULL), indPH(NULL), ngon(NULL), indPG(NULL),
-  x(NULL), y(NULL), z(NULL),
-  owner(NULL), neigh(NULL)
+
+std::vector<pointFace> Mesh::locate(E_Float px, E_Float py,
+    const std::set<E_Int> &patch) const
+{
+    E_Int a, b, c;
+    E_Int hit;
+    std::vector<pointFace> hits;
+
+    for (E_Int face : patch) {
+        assert(face_is_active(face));
+
+        const auto &cn = F[face];
+
+        // First triangle
+
+        a = cn[0], b = cn[1], c = cn[2];
+
+        hit = Triangle::ispointInside(px, py, X[a], Y[a], X[b], Y[b], X[c],
+            Y[c]);
+
+        if (hit) {
+            hits.push_back(pointFace(face, 0));
+            continue;
+        }
+        
+        if (face_is_tri(face)) continue;
+
+        // Second triangle
+        a = cn[0], b = cn[2], c = cn[3];
+
+        hit = Triangle::ispointInside(px, py, X[a], Y[a], X[b], Y[b], X[c],
+            Y[c]);
+
+        if (hit) {
+            hits.push_back(pointFace(face, 1));
+        }
+    }
+
+    return hits;
+}
+
+void Mesh::init_adaptation_data()
+{
+    flevel.resize(nf, 0);
+
+    for (E_Int i = 0; i < nf; i++) factive.insert(i);
+}
+
+bool Mesh::faces_are_dups(E_Int mface, E_Int sface, const Mesh &S)
+{
+    const auto &pnm = F[mface];
+    const auto &pns = S.F[sface];
+
+    assert(face_is_quad(mface) || face_is_tri(mface));
+    assert(S.face_is_quad(sface) || S.face_is_tri(sface));
+
+    if (pnm.size() != pns.size()) return false;
+
+    E_Int mfound[4] = { 0, 0, 0, 0 };
+
+    for (size_t i = 0; i < pnm.size(); i++) {
+        E_Int pm = pnm[i];
+        for (size_t j = 0; j < pns.size(); j++) {
+            E_Int ps = pns[j];
+            if (cmp_points(X[pm], Y[pm], S.X[ps], S.Y[ps]) == 0) {
+                assert(mfound[i] == 0);
+                mfound[i] = 1;
+                break;
+            }
+        }
+
+        if (mfound[i] == 0) return false;
+    }
+
+    return true;
+}
+
+Mesh::Mesh()
 {}
 
-Mesh *mesh_init(K_FLD::FldArrayI &cn, E_Float *X, E_Float *Y, E_Float *Z,
-  E_Int np)
+Mesh::Mesh(K_FLD::FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z, E_Int npts)
 {
-  Mesh *M = new Mesh;
+    np = npts;
+    ne = 0;
+    nf = cn.getNFaces();
+    nc = cn.getNElts();
 
-  M->nc = cn.getNElts();
-  M->nf = cn.getNFaces();
-  M->np = np;
+    X.resize(np);
+    Y.resize(np);
+    Z.resize(np);
+    for (E_Int i = 0; i < np; i++) {
+        X[i] = x[i];
+        Y[i] = y[i];
+        Z[i] = z[i];
+    }
 
-  // Coordinates
-  M->x = (E_Float *)XMALLOC(M->np * sizeof(E_Float));
-  M->y = (E_Float *)XMALLOC(M->np * sizeof(E_Float));
-  M->z = (E_Float *)XMALLOC(M->np * sizeof(E_Float));
+    F.reserve(nf);
+    E_Int *indPG = cn.getIndPG();
+    E_Int *ngon = cn.getNGon();
+    for (E_Int i = 0; i < nf; i++) {
+        E_Int np = -1;
+        E_Int *pn = cn.getFace(i, np, ngon, indPG);
+        std::vector<E_Int> points(np);
+        for (E_Int j = 0; j < np; j++)
+            points[j] = pn[j] - 1;
+        F.push_back(points);
+    }
 
-  memcpy(M->x, X, M->np * sizeof(E_Float));
-  memcpy(M->y, Y, M->np * sizeof(E_Float));
-  memcpy(M->z, Z, M->np * sizeof(E_Float));
+    C.reserve(nc);
+    E_Int *indPH = cn.getIndPH();
+    E_Int *nface = cn.getNFace();
+    for (E_Int i = 0; i < nc; i++) {
+        E_Int nf = -1;
+        E_Int *pf = cn.getElt(i, nf, nface, indPH);
+        std::vector<E_Int> faces(nf);
+        for (E_Int j = 0; j < nf; j++)
+            faces[j] = pf[j] - 1;
+        C.push_back(faces);
+    }
 
-  // Connectivities
-  E_Int *indPH = cn.getIndPH();
+    make_skin();
 
-  E_Int *indPG = cn.getIndPG();
+    make_bbox();
 
-  M->indPH = (E_Int *)XMALLOC((M->nc+1) * sizeof(E_Int));
-  M->indPG = (E_Int *)XMALLOC((M->nf+1) * sizeof(E_Int));
+    hash_skin();
 
-  for (E_Int i = 0; i < M->nc+1; i++) M->indPH[i] = indPH[i];
-  for (E_Int i = 0; i < M->nf+1; i++) M->indPG[i] = indPG[i];
+    make_point_faces();
 
+    //make_edges();
 
-  M->nface = (E_Int *)XMALLOC(cn.getSizeNFace() * sizeof(E_Int));
-  M->ngon  = (E_Int *)XMALLOC(cn.getSizeNGon()  * sizeof(E_Int));
+    init_adaptation_data();
 
-  E_Int *nface = cn.getNFace();  
-  E_Int *ngon = cn.getNGon();
-  
-
-  for (E_Int i = 0; i < M->nc; i++) {
-    E_Int nf = -1;
-    E_Int *pf = cn.getElt(i, nf, nface, indPH);
-
-    E_Int *ptr = &M->nface[M->indPH[i]];
-    for (E_Int j = 0; j < nf; j++) ptr[j] = pf[j]-1;
-  }
-
-  for (E_Int i = 0; i < M->nf; i++) {
-    E_Int np = -1;
-    E_Int *pn = cn.getFace(i, np, ngon, indPG);
-
-    E_Int *ptr = &M->ngon[M->indPG[i]];
-    for (E_Int j = 0; j < np; j++) ptr[j] = pn[j]-1;
-  }
-
-  M->owner = (E_Int *)XMALLOC(M->nf * sizeof(E_Int));
-  M->neigh = (E_Int *)XMALLOC(M->nf * sizeof(E_Int));
-
-  //mesh_orient_boundary(M);
-  //mesh_build_own_nei(M);
-
-  return M;
+    srand(time(NULL));
 }
 
-E_Int *mesh_get_cell(E_Int cell, E_Int &stride, Mesh *M)
+void Mesh::make_point_faces()
 {
-  stride = M->indPH[cell+1] - M->indPH[cell];
-  return &M->nface[M->indPH[cell]]; 
+    P2F.clear();
+    P2F.resize(np);
+    
+    for (E_Int face : factive) {
+        const auto &pn = F[face];
+        for (E_Int p : pn) P2F[p].push_back(face);
+    }
 }
 
-E_Int *mesh_get_face(E_Int face, E_Int &stride, Mesh *M)
+Mesh::Mesh(const char *fname)
 {
-  stride = M->indPG[face+1] - M->indPG[face];
-  return &M->ngon[M->indPG[face]];
-}
+    FILE *fh = fopen(fname, "r");
+    assert(fh);
 
-std::vector<E_Int> mesh_make_cell_points(E_Int cell, Mesh *M)
-{
-  E_Int nf = -1;
-  E_Int *pf = mesh_get_cell(cell, nf, M);
+    np = ne = nf = nc = 0;
 
-  // Max number of points is less than or equal to the number of faces
-  std::vector<E_Int> cell_points(MAXPOINTSPERCELL);
+    char buf[256];
 
-  E_Int npoints = 0;
+    // POINTS
+    fgets(buf, 256, fh);
+    fgets(buf, 256, fh);
+    char *next = strtok(buf, "\n");
 
-  // Add the points of the first face
-  E_Int face = pf[0];
-  E_Int np = -1;
-  E_Int *pn = mesh_get_face(face, np, M);
+    char *bad_ptr = NULL;
+    np = strtod(next, &bad_ptr);
+    assert(*bad_ptr == '\0');
+    printf("points: %d\n", np);
 
-  for (E_Int i = 0; i < np; i++) cell_points[npoints++] = pn[i];
+    X.resize(np);
+    Y.resize(np);
+    Z.resize(np);
 
-  for (E_Int i = 1; i < nf; i++) {
-    face = pf[i];
-    np = -1;
-    pn = mesh_get_face(face, np, M);
+    E_Int ret;
 
-    // Check for duplicate points
-    for (E_Int j = 0; j < np; j++) {
-      E_Int cur_point = pn[j];
+    for (E_Int i = 0; i < np; i++) {
+        ret = fscanf(fh, "%lf %lf %lf\n", &X[i], &Y[i], &Z[i]);
+        assert(ret == 3);
+    }
 
-      E_Int found_point = 0;
+    // FACES
+    fgets(buf, 256, fh);
+    fgets(buf, 256, fh);
+    next = strtok(buf, "\n");
 
-      for (E_Int k = 0; k < npoints; k++) {
-        if (cur_point == cell_points[k]) {
-          found_point = 1;
-          break;
+    bad_ptr = NULL;
+    nf = strtod(next, &bad_ptr);
+    assert(*bad_ptr == '\0');
+    printf("Faces: %d\n", nf);
+
+    F.resize(nf);
+
+    for (E_Int i = 0; i < nf; i++) {
+        E_Int stride;
+        ret = fscanf(fh, "%d ", &stride);
+        assert(ret == 1);
+        auto &cn = F[i];
+        cn.resize(stride);
+        for (E_Int j = 0; j < stride-1; j++) {
+            ret = fscanf(fh, "%d ", &cn[j]);
+            assert(ret == 1);
         }
-      }
-
-      if (!found_point) cell_points[npoints++] = cur_point;
+        ret = fscanf(fh, "%d\n", &cn[stride-1]);
     }
-  }
 
-  assert(npoints <= MAXPOINTSPERCELL);
+    // CELLS
+    fgets(buf, 256, fh);
+    fgets(buf, 256, fh);
+    next = strtok(buf, "\n");
 
-  cell_points.resize(npoints);
+    bad_ptr = NULL;
+    nc = strtod(next, &bad_ptr);
+    assert(*bad_ptr == '\0');
+    printf("Cells: %d\n", nc);
 
-  return cell_points;
-}
+    C.resize(nc);
 
-std::vector<std::vector<E_Int>> mesh_make_point_cells(Mesh *M)
-{
-  std::vector<std::vector<E_Int>> point_cells(M->np);
-
-  // Count the number of cells per points
-  std::vector<E_Int> npc(M->np, 0);
-  
-  for (E_Int i = 0; i < M->nc; i++) {
-    auto cell_points = mesh_make_cell_points(i, M);
-    for (auto point : cell_points) npc[point] += 1;
-  }
-
-  // Resize
-  for (E_Int i = 0; i < M->np; i++) point_cells[i].resize(npc[i]);
-
-  // Fill
-  for (E_Int i = 0; i < M->np; i++) npc[i] = 0;
-
-  for (E_Int i = 0; i < M->nc; i++) {
-    auto cell_points = mesh_make_cell_points(i, M);
-
-    for (auto point : cell_points) point_cells[point][npc[point]++] = i;
-  }
-
-  return point_cells;
-}
-
-E_Int mesh_get_stride(E_Int cell, E_Int *ind)
-{
-  return ind[cell+1] - ind[cell];
-}
-
-Mesh *mesh_extract_from_cell_set(Mesh *M, const std::set<E_Int> &cell_set)
-{
-  Mesh *O = new Mesh;
-
-  O->nc = cell_set.size();
-  O->indPH = (E_Int *)XMALLOC((O->nc+1) * sizeof(E_Int));
-
-  // Count sizeNFace
-  E_Int sizeNFace = 0;
-
-  E_Int nc = 0;
-
-  for (auto cell : cell_set) {
-    E_Int stride = mesh_get_stride(cell, M->indPH);
-    sizeNFace += stride;
-    O->indPH[++nc] = stride;
-  }
-
-  O->indPH[0] = 0;
-  for (E_Int i = 0; i < nc; i++) O->indPH[i+1] += O->indPH[i];
-
-  O->nface = (E_Int *)XMALLOC(sizeNFace * sizeof(E_Int));
-
-  nc = 0;
-  E_Int *ptr = O->nface;
-
-  for (auto cell : cell_set) {
-    for (E_Int j = M->indPH[cell]; j < M->indPH[cell+1]; j++)
-      *ptr++ = M->nface[j];
-  }
-
-  assert(ptr - O->nface == sizeNFace);
-
-  // Hash kept faces and count sizeNGon
-  std::map<E_Int, E_Int> face_table;
-  E_Int sizeNGon = 0;
-
-  O->nf = 0;
-
-  for (E_Int i = 0; i < O->nc; i++) {
-    for (E_Int j = O->indPH[i]; j < O->indPH[i+1]; j++) {
-      E_Int face = O->nface[j];
-
-      auto search = face_table.find(face);
-
-      if (search == face_table.end()) {
-        face_table[face] = O->nf++;
-        sizeNGon += mesh_get_stride(face, M->indPG);
-      }
-    }
-  }
-
-  O->indPG = (E_Int *)XMALLOC((M->nf+1) * sizeof(E_Int));
-  O->ngon = (E_Int *)XMALLOC(sizeNGon * sizeof(E_Int));
-
-  O->indPG[0] = 0;
-  for (auto F : face_table) {
-    E_Int old_face = F.first;
-    E_Int new_face = F.second;
-
-    O->indPG[new_face+1] = mesh_get_stride(old_face, M->indPG);
-  }
-
-  for (E_Int i = 0; i < O->nf+1; i++) O->indPG[i+1] += O->indPG[i];
-
-  // Fill in the points
-  std::map<E_Int, E_Int> point_table;
-
-  O->np = 0;
-
-  for (E_Int i = 0; i < O->nc; i++) {
-    for (E_Int j = O->indPH[i]; j < O->indPH[i+1]; j++) {
-      E_Int old_face = O->nface[j];
-      E_Int new_face = face_table[old_face];
-
-      E_Int *ptr = &O->ngon[O->indPG[new_face]];
-
-      E_Int np = -1;
-      E_Int *pn = mesh_get_face(old_face, np, M);
-
-      for (E_Int k = 0; k < np; k++) {
-        E_Int point = pn[k];
-
-        *ptr++ = point;
-
-        auto search = point_table.find(point);
-
-        if (search == point_table.end()) {
-          point_table[point] = O->np;
-          O->np++;
+    for (E_Int i = 0; i < nc; i++) {
+        E_Int stride;
+        ret = fscanf(fh, "%d ", &stride);
+        assert(ret == 1);
+        auto &cn = C[i];
+        cn.resize(stride);
+        for (E_Int j = 0; j < stride-1; j++) {
+            ret = fscanf(fh, "%d ", &cn[j]);
+            assert(ret == 1);
         }
-      }
+        ret = fscanf(fh, "%d\n", &cn[stride-1]);
     }
-  }
 
-  // Get point coordinates
-  O->x = (E_Float *)XMALLOC(O->np * sizeof(E_Float));
-  O->y = (E_Float *)XMALLOC(O->np * sizeof(E_Float));
-  O->z = (E_Float *)XMALLOC(O->np * sizeof(E_Float));
+    fclose(fh);
 
+    make_skin();
 
-  for (auto P : point_table) {
-    E_Int old_point = P.first;
-    E_Int new_point = P.second;
+    make_bbox();
 
-    O->x[new_point] = M->x[old_point];
-    O->y[new_point] = M->y[old_point];
-    O->z[new_point] = M->z[old_point];
-  }
+    hash_skin();
 
-  // Set new faces/points in nface/ngon
-  for (E_Int i = 0; i < sizeNFace; i++) O->nface[i] = face_table[O->nface[i]];
-  for (E_Int i = 0; i < sizeNGon; i++) O->ngon[i] = point_table[O->ngon[i]];
+    make_point_faces();
 
-  return O;
+    init_adaptation_data();
+
+    srand(time(NULL));
 }
 
-std::vector<E_Int> mesh_get_external_faces_indices(Mesh *M)
+void Mesh::make_bbox()
 {
-  // External faces appear only once in nface
-  std::vector<E_Int> face_count(M->nf, 0);
+    xmin = ymin = zmin = std::numeric_limits<E_Float>::max();
+    xmax = ymax = zmax = std::numeric_limits<E_Float>::min();
 
-  for (E_Int i = 0; i < M->indPH[M->nc]; i++)
-    face_count[M->nface[i]]++;
+    for (E_Int i = 0; i < np; i++) {
+        if (X[i] < xmin) xmin = X[i];
+        if (Y[i] < ymin) ymin = Y[i];
+        if (Z[i] < zmin) zmin = Z[i];
+        if (X[i] > xmax) xmax = X[i];
+        if (Y[i] > ymax) ymax = Y[i];
+        if (Z[i] > zmax) zmax = Z[i];
+    }
 
-  std::vector<E_Int> external_faces;
-
-  for (E_Int i = 0; i < M->nf; i++) {
-    if (face_count[i] == 1)
-      external_faces.push_back(i);
-  }
-
-  return external_faces;
+    dmin = std::min(xmin, std::min(ymin, zmin));
+    dmax = std::max(xmax, std::max(ymax, zmax));
 }
 
-Mesh *mesh_make_surface_mesh_from_face_list(Mesh *M,
-  const std::vector<E_Int> &face_list)
+void Mesh::make_skin()
 {
-  Mesh *E = new Mesh;
+    skin.clear();
 
-  E->nc = face_list.size();
-  E->indPH = (E_Int *)XMALLOC((E->nc+1) * sizeof(E_Int));
-  E->indPH[0] = 0;
-
-  // Count sizeNFace
-  E_Int sizeNFace = 0;
-
-  for (size_t i = 0; i < face_list.size(); i++) {
-    E_Int face = face_list[i];
-
-    // A face has as many edges as it has points
-    sizeNFace += mesh_get_stride(face, M->indPG);
-    E->indPH[i+1] = sizeNFace;
-  }
-
-  E->nface = (E_Int *)XMALLOC(sizeNFace * sizeof(E_Int));
-
-  // Populate nface with edges
-  E_Int *ptr = E->nface;
-
-  std::map<Edge_NO, E_Int> edge_table;
-  std::unordered_map<E_Int, E_Int> point_table;
-
-  E->nf = 0;
-  E->np = 0;
-
-  for (size_t i = 0; i < face_list.size(); i++) {
-    E_Int face = face_list[i];
-
-    E_Int np = -1;
-    E_Int *pn = mesh_get_face(face, np, M);
-
-    // First pass: hash the points
-    for (E_Int j = 0; j < np; j++) {
-      E_Int p = pn[j];
-      
-      auto search = point_table.find(p);
-
-      if (search == point_table.end()) {
-        point_table[p] = E->np++;
-      }
+    std::vector<E_Int> count(nf, 0);
+    
+    for (const auto &cn : C) {
+        for (E_Int face : cn)
+            count[face]++;
     }
 
-    // Second pass: hash the edges
-    for (E_Int j = 0; j < np; j++) {
-      E_Int p = pn[j];
-      E_Int q = pn[(j+1)%np];
-
-      Edge_NO e(p,q);
-
-      auto search = edge_table.find(e);
-
-      if (search == edge_table.end()) {
-        *ptr++ = E->nf;
-        edge_table[e] = E->nf++;
-      } else {
-        *ptr++ = search->second;
-      }
+    for (E_Int i = 0; i < nf; i++) {
+        E_Int c = count[i];
+        assert(c == 1 || c == 2);
+        if (c == 1) skin.push_back(i);
     }
-  }
-
-  // Make ngon
-  E->indPG = (E_Int *)XMALLOC((E->nf+1) * sizeof(E_Int));
-  E->indPG[0] = 0;
-  for (E_Int i = 1; i < E->nf+1; i++) E->indPG[i] = 2;
-  for (E_Int i = 0; i < E->nf; i++) E->indPG[i+1] += E->indPG[i];
-
-  E_Int sizeNGon = E->indPG[E->nf];
-  E->ngon = (E_Int *)XMALLOC(sizeNGon * sizeof(E_Int));
-
-  // Populate ngon with points
-  for (auto e : edge_table) {
-    E_Int pos = e.second;
-    E_Int *ptr = &E->ngon[2*pos];
-    *ptr++ = point_table[e.first.p];
-    *ptr++ = point_table[e.first.q];
-  }
-
-  // Make xyz
-  E->x = (E_Float *)XMALLOC(E->np * sizeof(E_Float));
-  E->y = (E_Float *)XMALLOC(E->np * sizeof(E_Float));
-  E->z = (E_Float *)XMALLOC(E->np * sizeof(E_Float));
-
-  for (auto P : point_table) {
-    E_Int old_point = P.first;
-    E_Int new_point = P.second;
-
-    E->x[new_point] = M->x[old_point];
-    E->y[new_point] = M->y[old_point];
-    E->z[new_point] = M->z[old_point];
-  }
-
-  return E;
 }
 
-E_Int mesh_get_neighbour(E_Int cell, E_Int face, Mesh *M)
+void Mesh::hash_skin()
 {
-  assert(M->owner[face] == cell || M->neigh[face] == cell);
-  if (M->owner[face] == cell) return M->neigh[face];
-  return M->owner[face];
+    // Throw out the z-coordinate and hash the AABB of the skin faces to a
+    // 2D array.
+    //std::vector<E_Int, std::vector<E_Int>> box_to_faces;
+
+    NBIN = 100;
+    DX = (xmax - xmin);
+    DY = (ymax - ymin);
+    DZ = (zmax - zmin);
+
+    std::vector<E_Int> pbins(np, -1);
+
+    // Hash the points
+    // TODO: hash only the skin points
+    for (E_Int i = 0; i < np; i++) {
+        E_Float px = X[i];
+        E_Float py = Y[i];
+        E_Int I = floor(px / DX * NBIN);
+        E_Int J = floor(py / DY * NBIN);
+        E_Int bin = I + NBIN * J;
+        pbins[i] = bin;
+    }
+
+    // Hash the faces
+    // A face belongs to as many buckets as its points
+    bin_faces.clear();
+
+    for (E_Int face : skin) {
+        const auto &cn = F[face];
+        E_Float xmin, xmax, ymin, ymax;
+        xmin = ymin = std::numeric_limits<E_Float>::max();
+        xmax = ymax = std::numeric_limits<E_Float>::min();
+        for (E_Int p : cn) {
+            xmin = std::min(X[p], xmin);
+            xmax = std::max(X[p], xmax);
+            ymin = std::min(Y[p], ymin);
+            ymax = std::max(Y[p], ymax);
+        }
+
+        E_Int Imin = floor(xmin / DX * NBIN);
+        E_Int Imax = floor(xmax / DX * NBIN);
+        E_Int Jmin = floor(ymin / DY * NBIN);
+        E_Int Jmax = floor(ymax / DY * NBIN);
+
+        for (E_Int J = Jmin; J < Jmax; J++) {
+            for (E_Int I = Imin; I < Imax; I++) {
+                E_Int bin = I + NBIN * J;
+                bin_faces[bin].insert(face);
+            }
+        }
+    }
+
+    /*
+    for (auto &bdata : bin_faces) {
+        printf("%d -> ", bdata.first);
+        for (E_Int face : bdata.second)
+            printf("%d ", face);
+        puts("");
+    }
+    */
+
 }
 
-Mesh *mesh_make_surface_mesh_from_structured_points(E_Int ni, E_Int nj,
-  const std::vector<E_Float> &X, const std::vector<E_Float> &Y,
-  const std::vector<E_Float> &Z)
+bool Mesh::is_point_inside(E_Float px, E_Float py, E_Float pz)
 {
-  assert(ni*nj == (E_Int)X.size());
+    // point must be in bounding box
+    if (!(xmin <= px && px <= xmax &&
+          ymin <= py && py <= ymax &&
+          zmin <= pz && pz <= zmax))
+        return false;
+    
+    return true;
 
-  Mesh *M = new Mesh();
+    // Count the hits
+    E_Int hits = 0;
 
-  M->np = ni*nj;
-  M->nf = ni*(nj-1) + nj*(ni-1);
-  M->nc = 2 + M->nf - M->np - 1;
+    TriangleIntersection TI;
+    E_Int a, b, c, hit;
 
-  // Points
-  M->x = (E_Float *)XMALLOC(M->np * sizeof(E_Float));
-  M->y = (E_Float *)XMALLOC(M->np * sizeof(E_Float));
-  M->z = (E_Float *)XMALLOC(M->np * sizeof(E_Float));
+    // Choose a random ray direction
+    E_Float dx = 0;
+    E_Float dy = 0;
+    E_Float dz = 1;
 
-  memcpy(M->x, &X[0], M->np * sizeof(E_Float));
-  memcpy(M->y, &Y[0], M->np * sizeof(E_Float));
-  memcpy(M->z, &Z[0], M->np * sizeof(E_Float));
+    for (E_Int face : skin) {
+        const auto &cn = F[face];
 
-  // Edges
-  M->indPG = (E_Int *)XMALLOC((M->nf+1) * sizeof(E_Int));
-  M->indPG[0] = 0;
-  for (E_Int i = 1; i < M->nf+1; i++) M->indPG[i] = 2;
-  for (E_Int i = 0; i < M->nf; i++) M->indPG[i+1] += M->indPG[i];
+        // First triangle
+        a = cn[0]; b = cn[1]; c = cn[2];
 
-  M->ngon = (E_Int *)XMALLOC(M->indPG[M->nf] * sizeof(E_Int));
-  E_Int *ptr = M->ngon;
+        hit = MollerTrumbore(px, py, pz, dx, dy, dz, X[a], Y[a], Z[a],
+            X[b], Y[b], Z[b], X[c], Y[c], Z[c], TI);
+        
+        if (hit) {
+            hits++;
+            continue;
+        }
 
-  for (E_Int j = 0; j < nj; j++) {
-    for (E_Int i = 0; i < ni-1; i++) {
-      E_Int p = i + ni*j;
-      E_Int q = p + 1;
-      *ptr++ = p;
-      *ptr++ = q;
+        if (face_is_tri(face))
+            continue;
+        
+        // Second triangle
+
+        a = cn[0]; b = cn[2]; c = cn[3];
+
+        hits += MollerTrumbore(px, py, pz, dx, dy, dz, X[a], Y[a], Z[a],
+            X[b], Y[b], Z[b], X[c], Y[c], Z[c], TI);
     }
-  }
 
-  for (E_Int i = 0; i < ni; i++) {
-    for (E_Int j = 0; j < nj-1; j++) {
-      E_Int p = i + ni*j;
-      E_Int q = p + ni;
-      *ptr++ = p;
-      *ptr++ = q;
-    }
-  }
-
-  // Faces
-  M->indPH = (E_Int *)XMALLOC((M->nc+1) * sizeof(E_Int));
-  M->indPH[0] = 0;
-  for (E_Int i = 1; i < M->nc+1; i++) M->indPH[i] = 4;
-  for (E_Int i = 0; i < M->nc; i++) M->indPH[i+1] += M->indPH[i];
-
-  M->nface = (E_Int *)XMALLOC(M->indPH[M->nc] * sizeof(E_Int));
-
-  E_Int nie = nj*(ni-1);
-
-  // Face is bounded from the:
-  // Bottom by edge i+(ni-1)*j,
-  // Top by edge i+(ni-1)*(j+1),
-  // Left by edge nie + j + (nj-1)*i
-  // Right by edge nie + j + (nj-1)*(i+1)
-
-  ptr = M->nface;
-
-  for (E_Int j = 0; j < nj-1; j++) {
-    for (E_Int i = 0; i < ni-1; i++) {
-      *ptr++ = i + (ni-1)*j;
-      *ptr++ = i + (ni-1)*(j+1);
-      *ptr++ = j + (nj-1)*i + nie;
-      *ptr++ = j + (nj-1)*(i+1) + nie;
-    }
-  }
-
-  return M;
+    // point is inside if number of E_Intersections is odd
+    return hits % 2 == 1;
 }
 
-/*
-Mesh *mesh_make_face_point_mesh_from_face_list(Mesh *M,
-  const std::vector<E_Int> &face_list)
+void Mesh::write_ngon(const char *fname)
 {
-  Mesh *O = new Mesh;
+    FILE *fh = fopen(fname, "w");
+    assert(fh);
 
-  return O;
+    fprintf(fh, "POINTS\n");
+    fprintf(fh, "%d\n", np);
+    for (E_Int i = 0; i < np; i++) {
+        fprintf(fh, "%f %f %f\n", X[i], Y[i], Z[i]);
+    }
+
+    fprintf(fh, "INDPG\n");
+    fprintf(fh, "%d\n", nf+1);
+    E_Int sizeNGon = 0;
+    fprintf(fh, "%d ", sizeNGon);
+    for (E_Int i = 0; i < nf; i++) {
+        sizeNGon += F[i].size();
+        fprintf(fh, "%d ", sizeNGon);
+    }
+    fprintf(fh, "\n");
+
+    fprintf(fh, "NGON\n");
+    fprintf(fh, "%d\n", sizeNGon);
+    for (E_Int i = 0; i < nf; i++) {
+        for (E_Int p : F[i])
+            fprintf(fh, "%d ", p);
+    }
+    fprintf(fh, "\n");
+
+    fprintf(fh, "INDPH\n");
+    fprintf(fh, "%d\n", nc+1);
+    E_Int sizeNFace = 0;
+    fprintf(fh, "%d ", sizeNFace);
+    for (E_Int i = 0; i < nc; i++) {
+        sizeNFace += C[i].size();
+        fprintf(fh, "%d ", sizeNFace);
+    }
+    fprintf(fh, "\n");
+
+    fprintf(fh, "NFace\n");
+    fprintf(fh, "%d\n", sizeNFace);
+    for (E_Int i = 0; i < nc; i++) {
+        for (E_Int p : C[i])
+            fprintf(fh, "%d ", p);
+    }
+    fprintf(fh, "\n");
+
+    fclose(fh); 
 }
-*/
+
+
+bool Mesh::face_contains_sface(E_Int face, E_Int sface, const Mesh &S) const
+{
+    // face containes mface iff it contains all its points
+    assert(S.face_is_active(sface));
+    const auto &cn = S.F[sface];
+    for (E_Int p : cn) {
+        if (face_contains_point(face, S.X[p], S.Y[p]) == -1) return false;
+    }
+    return true;
+}
+
+E_Int Mesh::face_contains_point(E_Int face, E_Float x, E_Float y) const
+{
+    const auto &cn = F[face];
+
+    E_Int hit, a, b, c;
+
+    if (face_is_quad(face)) {
+
+        // First triangle 
+
+        a = cn[0], b = cn[1], c = cn[2];
+        
+        hit = Triangle::ispointInside(x, y, X[a], Y[a], X[b], Y[b], X[c], Y[c]);
+        
+        if (hit) return 0;
+
+        // Second triangle
+        a = cn[0], b = cn[2], c = cn[3];
+        
+        hit = Triangle::ispointInside(x, y, X[a], Y[a], X[b], Y[b], X[c], Y[c]);
+        
+        if (hit) return 1;
+    } else {
+
+        assert(face_is_tri(face));
+
+        a = cn[0], b = cn[1], c = cn[2];
+        
+        hit = Triangle::ispointInside(x, y, X[a], Y[a], X[b], Y[b], X[c], Y[c]);
+        
+        if (hit) return 0;
+    }
+
+    return -1;
+}
+
+UEdge::UEdge(E_Int P, E_Int Q)
+{
+    p = std::min(P, Q);
+    q = std::max(P, Q);
+}
+
+bool UEdge::operator<(const UEdge &E) const
+{
+    return (p < E.p) || (p == E.p && q < E.q);
+}
+
+Mesh Mesh::extract_conformized()
+{
+    // Keep all the points
+    std::vector<E_Float> new_X(X), new_Y(Y), new_Z(Z);
+
+    // Conformize the faces
+
+    std::vector<std::vector<E_Int>> new_F(factive.size());
+
+    E_Int new_nf = 0;
+    
+    std::map<E_Int, E_Int> new_fids;
+
+    for (E_Int face : factive) {
+        new_fids[face] = new_nf;
+
+        const auto &pn = F[face];
+
+        auto &new_face = new_F[new_nf];
+
+        for (size_t j = 0; j < pn.size(); j++) {
+            E_Int p = pn[j];
+            E_Int q = pn[(j+1)%pn.size()];
+
+            UEdge e(p, q);
+
+            auto it = ecenter.find(e);
+
+            if (it != ecenter.end()) {
+                new_face.push_back(p);
+                new_face.push_back(it->second);
+            } else {
+                new_face.push_back(p);
+            }
+        }
+
+        new_nf++;
+    }
+
+    // Update cell connectivity
+
+    std::vector<std::vector<E_Int>> new_C(C.size());
+
+    for (E_Int i = 0; i < nc; i++) {
+        const auto &pf = C[i];
+
+        auto &new_cell = new_C[i];
+
+        for (E_Int face : pf) {
+
+            if (face_is_active(face)) {
+                new_cell.push_back(new_fids[face]);
+            } else {
+                std::vector<E_Int> fleaves;
+                get_fleaves(face, fleaves);
+
+                for (E_Int fleaf : fleaves)
+                    new_cell.push_back(new_fids[fleaf]);
+            }
+        }
+    }
+
+    Mesh new_M;
+    new_M.np = np;
+    new_M.X = X;
+    new_M.Y = Y;
+    new_M.Z = Z;
+    new_M.nf = new_nf;
+    new_M.F = new_F;
+    new_M.nc = nc;
+    new_M.C = new_C;
+
+    for (E_Int face : patch) {
+        new_M.patch.insert(new_fids[face]);
+    }
+
+    return new_M;
+}
+
+void Mesh::get_fleaves(E_Int face, std::vector<E_Int> &fleaves)
+{
+    if (face_is_active(face)) {
+        fleaves.push_back(face);
+        return;
+    }
+
+    for (E_Int child : fchildren.at(face)) get_fleaves(child, fleaves);
+}
+
+PyObject *Mesh::export_karray()
+{
+    E_Int sizeNGon = 0, sizeNFace = 0;
+
+    for (const auto &pn : F) sizeNGon += (E_Int)pn.size();
+    for (const auto &pf : C) sizeNFace += (E_Int)pf.size();
+
+    const char *varString = "CoordinateX,CoordinateY,CoordinateZ";
+
+    PyObject *ret = K_ARRAY::buildArray3(3, varString, np, nc, nf, "NGON",
+        sizeNGon, sizeNFace, 3, false, 3);
+    
+    K_FLD::FldArrayF *f;
+    K_FLD::FldArrayI *cn;
+    K_ARRAY::getFromArray3(ret, f, cn);
+
+    E_Float *px = f->begin(1);
+    for (E_Int i = 0; i < np; i++) px[i] = X[i];
+    E_Float *py = f->begin(2);
+    for (E_Int i = 0; i < np; i++) py[i] = Y[i];
+    E_Float *pz = f->begin(3);
+    for (E_Int i = 0; i < np; i++) pz[i] = Z[i];
+
+    E_Int *indPG = cn->getIndPG();
+    E_Int *ngon = cn->getNGon();
+    E_Int *indPH = cn->getIndPH();
+    E_Int *nface = cn->getNFace();
+
+    indPG[0] = indPH[0] = 0;
+    for (E_Int i = 0; i < nf; i++) indPG[i+1] = indPG[i] + (E_Int)F[i].size();
+    for (E_Int i = 0; i < nc; i++) indPH[i+1] = indPH[i] + (E_Int)C[i].size();
+
+    assert(indPG[nf] == sizeNGon);
+    assert(indPH[nc] == sizeNFace);
+
+    E_Int *ptr = ngon;
+
+    for (E_Int i = 0; i < nf; i++) {
+        const auto &pn = F[i];
+        for (E_Int p : pn) *ptr++ = p+1;
+    }
+
+    ptr = nface;
+
+    for (E_Int i = 0; i < nc; i++) {
+        const auto &pf = C[i];
+        for (E_Int f : pf) *ptr++ = f+1;
+    }
+
+    return ret;
+}

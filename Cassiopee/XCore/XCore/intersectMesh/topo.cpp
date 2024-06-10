@@ -25,14 +25,23 @@
 #define DSMALL 1e-14
 
 static
+E_Int *mesh_get_face(E_Int face, E_Int &stride, Mesh *M)
+{
+    stride = M->fpoints[face].size();
+    return &(M->fpoints[face][0]);
+}
+
+static
+E_Int *mesh_get_cell(E_Int cell, E_Int &stride, Mesh *M)
+{
+    stride = M->cfaces[cell].size();
+    return &(M->cfaces[cell][0]);
+}
+
+static
 void Compute_cell_volume(E_Int cell, Mesh *M, E_Float *x, E_Float *y,
   E_Float *z, E_Float &vol, E_Int refIdx)
 {
-  //E_Int *nface = M->nface;
-  //E_Int *indPH = M->indPH;
-  //E_Int *ngon = M->ngon;
-  //E_Int *indPG = M->indPG;
-
   // Orient the faces coherently
   std::vector<E_Int> NGON;
   std::vector<E_Int> INDPG(1, 0);
@@ -223,8 +232,6 @@ void Extract_nface_of_kept_pgs(Mesh *M, const std::vector<bool> &kept_pgs,
   std::vector<E_Int> &NFACE, std::vector<E_Int> &xadj,
   std::vector<E_Int> &cells)
 {
-  //E_Int *nface = M->nface;
-  //E_Int *indPH = M->indPH;
   E_Int ncells = M->nc;
 
   NFACE.clear();
@@ -253,9 +260,6 @@ static
 void Flag_marked_external_cells(Mesh *M, const std::vector<E_Int> &cells,
   const std::vector<E_Int> &fflags, std::vector<E_Int> &cflags)
 {
-  //E_Int *nface = M->nface;
-  //E_Int *indPH = M->indPH;
-
   // External cells are those with at least one external face
   cflags.resize(cells.size(), INTERNAL);
   for (size_t i = 0; i < cells.size(); i++) {
@@ -276,8 +280,6 @@ static
 void Flag_all_external_cells(Mesh *M, const std::vector<E_Int> &fflags,
   std::vector<E_Int> &cflags)
 {
-  //E_Int *nface = M->nface;
-  //E_Int *indPH = M->indPH;
   E_Int ncells = M->nc;
 
   // External cells are those with at least one external face
@@ -295,15 +297,13 @@ void Flag_all_external_cells(Mesh *M, const std::vector<E_Int> &fflags,
   }
 }
 
-E_Int mesh_orient_boundary(Mesh *M)
+Int mesh_orient_boundary(Mesh *M)
 {
   E_Int nfaces = M->nf;
-  //E_Int *indPG = M->indPG;
-  //E_Int *ngon = M->ngon;
   E_Int ncells = M->nc;
-  E_Float *x = M->x;
-  E_Float *y = M->y;
-  E_Float *z = M->z;
+  E_Float *x = &(M->x[0]);
+  E_Float *y = &(M->y[0]);
+  E_Float *z = &(M->z[0]);
 
   // flag external cells and faces
   std::vector<E_Int> fflags, efaces;
@@ -389,8 +389,6 @@ void Build_cell_neighbourhood(Mesh *M, std::vector<E_Int>& neighbours,
 {
   E_Int nfaces = M->nf;
   E_Int ncells = M->nc;
-  //E_Int *indPH = M->indPH;
-  //E_Int *nface = M->nface;
 
   xadj.resize(ncells+1);
   xadj[0] = 0;
@@ -428,15 +426,11 @@ void Build_cell_neighbourhood(Mesh *M, std::vector<E_Int>& neighbours,
   }
 }
 
-E_Int mesh_build_own_nei(Mesh *M)
+Int mesh_build_own_nei(Mesh *M)
 {
   E_Int ncells = M->nc;
-  //E_Int *nface = M->nface;
-  //E_Int *ngon = M->ngon;
-  //E_Int *indPH = M->indPH;
-  //E_Int *indPG = M->indPG;
-  E_Int *owner = M->owner;
-  E_Int *neigh = M->neigh;
+  E_Int *owner = &(M->owner[0]);
+  E_Int *neigh = &(M->neigh[0]);
 
   std::vector<E_Int> neighbours, xadj;
   Build_cell_neighbourhood(M, neighbours, xadj);

@@ -1,158 +1,122 @@
-#include "proto.h"
 #include <cstddef>
 #include <cassert>
-#include <cstdio>
 
-snode::snode(segment *S)
-: s(S), inf(NULL), left(NULL), right(NULL)
+#include "status.h"
+#include "primitives.h"
+
+Status::Status()
+: root(NULL), rx(0.0), ry(0.0)
 {}
 
-status::status()
-: root(NULL), xs(0), ys(0)
-{}
-
-snode *status::insert(segment *s)
+static
+E_Int Segment_cmp(Segment *s0, Segment *s1, E_Float rx, E_Float ry)
 {
-    return _insert(root, s);
+    if (s0 == s1) return 0;
+
+    E_Int cmp = compare(*s0, *s1, rx, ry);
+
+    if (cmp == 0) {
+        cmp = cmp_mySeg(*s0, *s1);
+    }
+
+    return cmp;
 }
 
-snode *status::_insert(snode *&root, segment *s)
+Snode *Status::insert(Segment *key, void *inf)
+{
+    if (key == NULL) return NULL;
+    return insert_(root, key, inf);
+}
+
+Snode *Status::insert_(Snode *&root, Segment *key, void *inf)
 {
     if (root == NULL) {
-        root = new snode(s);
+        root = new Snode(key, inf);
         return root;
     }
 
-    int cmp = _segment_cmp(root->s, s);
+    E_Int cmp = Segment_cmp(root->key, key, rx, ry);
 
-    if (cmp == 0)
+    if (cmp == 0) {
+        root->inf = inf;
         return root;
-    else if (cmp < 0)
-        return _insert(root->right, s);
-    else
-        return _insert(root->left, s);
-}
-
-snode *status::locate(segment *s)
-{
-    return _locate(root, s);
-}
-
-snode *status::_locate(snode *root, segment *s)
-{
-    if (root == NULL)
-        return NULL;
-
-    int cmp = _segment_cmp_sweep(root->s, s);
-
-    if (cmp == 0)
-        return root;
-    else if (cmp < 0)
-        return _locate(root->right, s);
-    else
-        return _locate(root->left, s);
-}
-
-snode *status::lookup(segment *s)
-{
-    return _lookup(root, s);
-}
-
-snode *status::_lookup(snode *root, segment *s)
-{
-    if (root == NULL) {
-        root = new snode(s);
-        return root;
-    }
-
-    int cmp = _segment_cmp(root->s, s);
-
-    if (cmp == 0)
-        return root;
-    else if (cmp < 0)
-        return _insert(root->right, s);
-    else
-        return _insert(root->left, s);
-}
-
-void status::erase(segment *s)
-{
-    root = _erase(root, s);
-}
-
-snode *status::_erase(snode *root, segment *s)
-{
-    if (!root)
-        return root;
-
-    int cmp = _segment_cmp(root->s, s);
-
-    if (cmp < 0) {
-        root->right = _erase(root->right, s);
-        return root;
-    } else if (cmp > 0) {
-        root->left = _erase(root->left, s);
-        return root;
-    }
-
-    assert(root->s == s);
-
-    if (root->left == NULL) {
-        snode *tmp = root->right;
-        delete root;
-        return tmp;
-    } else if (root->right == NULL) {
-        snode *tmp = root->left;
-        delete root;
-        return tmp;
+    } else if (cmp < 0) {
+        return insert_(root->right, key, inf);
     } else {
-        snode *succ_parent = root;
-
-        snode *succ = root->right;
-        while (succ->left) {
-            succ_parent = succ;
-            succ = succ->left;
-        }
-
-        if (succ_parent != root)
-            succ_parent->left = succ->right;
-        else
-            succ_parent->right = succ->right;
-
-        root->s = succ->s;
-        root->inf = succ->inf;
-
-        delete succ;
-        return root;
+        return insert_(root->left, key, inf);
     }
 }
 
-snode *status::pred(snode *sit)
+Snode *Status::locate(Segment *seg)
 {
-    return pred(sit->s);
+    if (seg == NULL) return NULL;
+    return locate_(root, seg);
 }
 
-snode *status::pred(segment *s)
+Snode *Status::locate_(Snode *root, Segment *seg)
 {
-    snode *pre = NULL;
-    _pred(root, s, pre);
+    if (root == NULL) return NULL;
+
+    E_Int cmp = compare(*root->key, *seg, rx, ry);
+
+    if (cmp == 0) return root;
+    else if (cmp < 0) return locate_(root->right, seg);
+    else return locate_(root->left, seg);
+}
+
+Snode *Status::lookup(Segment *seg)
+{
+    if (seg == NULL) return NULL;
+    return lookup_(root, seg);
+}
+
+Snode *Status::lookup_(Snode *root, Segment *seg)
+{
+    if (root == NULL) return NULL;
+
+    E_Int cmp = Segment_cmp(root->key, seg, rx, ry);
+
+    if (cmp == 0) return root;
+    else if (cmp < 0) return lookup_(root->right, seg);
+    else return lookup_(root->left, seg);
+}
+
+Snode *Status::pred(Segment *seg)
+{
+    Snode *pre = NULL;
+    pred_(root, seg, pre);
     return pre;
 }
 
-void status::_pred(snode *root, segment *s, snode *&pre)
+Snode *Status::succ(Segment *seg)
 {
-    if (!root)
-        return;
+    Snode *suc = NULL;
+    succ_(root, seg, suc);
+    return suc;
+}
 
-    int cmp = _segment_cmp(root->s, s);
+Snode *Status::pred(Snode *sit)
+{
+    return pred(sit->key);
+}
 
+Snode *Status::succ(Snode *sit)
+{
+    return succ(sit->key);
+}
+
+void Status::pred_(Snode *root, Segment *seg, Snode *&pre)
+{
+    if (root == NULL) return;
+
+    E_Int cmp = Segment_cmp(root->key, seg, rx, ry);
+    
     if (cmp == 0) {
-        assert(root->s == s);
+        assert(root->key == seg);
 
         if (root->left != NULL) {
-            snode *tmp = root->left;
-            while (tmp->right)
-                tmp = tmp->right;
+            Snode *tmp = root->left;
+            while (tmp->right) tmp = tmp->right;
             pre = tmp;
         }
 
@@ -160,39 +124,25 @@ void status::_pred(snode *root, segment *s, snode *&pre)
     }
 
     if (cmp > 0) {
-        _pred(root->left, s, pre);
+        pred_(root->left, seg, pre);
     } else {
         pre = root;
-        _pred(root->right, s, pre);
+        pred_(root->right, seg, pre);
     }
 }
 
-snode *status::succ(snode *sit)
+void Status::succ_(Snode *root, Segment *seg, Snode *&suc)
 {
-    return succ(sit->s);
-}
+    if (root == NULL) return;
 
-snode *status::succ(segment *s)
-{
-    snode *suc = NULL;
-    _succ(root, s, suc);
-    return suc;
-}
-
-void status::_succ(snode *root, segment *s, snode *&suc)
-{
-    if (!root)
-        return;
-
-    int cmp = _segment_cmp(root->s, s);
-
+    E_Int cmp = Segment_cmp(root->key, seg, rx, ry);
+    
     if (cmp == 0) {
-        assert(root->s == s);
+        assert(root->key == seg);
 
         if (root->right != NULL) {
-            snode *tmp = root->right;
-            while (tmp->left)
-                tmp = tmp->left;
+            Snode *tmp = root->right;
+            while (tmp->left) tmp = tmp->left;
             suc = tmp;
         }
 
@@ -201,98 +151,62 @@ void status::_succ(snode *root, segment *s, snode *&suc)
 
     if (cmp > 0) {
         suc = root;
-        _succ(root->left, s, suc);
+        succ_(root->left, seg, suc);
     } else {
-        _succ(root->right, s, suc);
+        succ_(root->right, seg, suc);
     }
 }
 
-
-int status::_segment_cmp(segment *s0, segment *s1)
+void Status::erase(Segment *seg)
 {
-    if (s0 == s1)
-        return 0;
-
-    int cmp = _segment_cmp_sweep(s0, s1);
-
-    if (cmp == 0) {
-        //cmp = sign(s0->id - s1->id);
-        cmp = segment_cmp_lexico(s0, s1);
-    }
-
-    return cmp;
+    root = erase_(root, seg);
 }
 
-int status::_segment_cmp_sweep(segment *s0, segment *s1)
+Snode *Status::erase_(Snode *root, Segment *seg)
 {
-    double px0 = s0->p->x;
-    double py0 = s0->p->y;
-    double qx0 = s0->q->x;
-    double qy0 = s0->q->y;
-    double px1 = s1->p->x;
-    double py1 = s1->p->y;
-    double qx1 = s1->q->x;
-    double qy1 = s1->q->y;
-    double dx0 = qx0 - px0;
-    double dy0 = qy0 - py0;
-    double dx1 = qx1 - px1;
-    double dy1 = qy1 - py1; 
+    if (root == NULL) return NULL;
 
-    double T1 = dy0*dx1 - dy1*dx0;
-    int sign1 = sign(T1);
-    if (sign1 == 0) {
-        int sign2 = vertex_orient(s0->p, s0->q, s1->p);
-        if (sign2 == 0) {
-            assert(vertex_orient(s0->p, s0->q, s1->q) == 0);
-            return 0;
+    E_Int cmp = Segment_cmp(root->key, seg, rx, ry);
+
+    if (cmp < 0) {
+        root->right = erase_(root->right, seg);
+        return root;
+    } else if (cmp > 0) {
+        root->left = erase_(root->left, seg);
+        return root;
+    }
+
+    assert(root->key == seg);
+
+    if (root->left == NULL) {
+        Snode *tmp = root->right;
+        delete root;
+        return tmp;
+    } else if (root->right == NULL) {
+        Snode *tmp = root->left;
+        delete root;
+        return tmp;
+    } else {
+        Snode *succ_parent = root;
+
+        Snode *succ = root->right;
+        while (succ->left) {
+            succ_parent = succ;
+            succ = succ->left;
         }
+
+        if (succ_parent != root) succ_parent->left = succ->right;
+        else succ_parent->right = succ->right;
+
+        root->key = succ->key;
+        root->inf = succ->inf;
+
+        delete succ;
+        return root;
     }
-
-    if (sign(dx0) == 0) {
-        double T2 = py1*dx1 - px1*dy1 + dy1*xs - ys*dx1;
-        int sign2 = sign(T2);
-        return (sign2 <= 0) ? 1 : -1;
-    }
-
-    if (sign(dx1) == 0) {
-        double T2 = py0*dx0 - px0*dy0 + dy0*xs - ys*dx0;
-        int sign2 = sign(T2);
-        return (sign2 <= 0) ? -1 : 1;
-    }
-
-    double T2 = dx1*(py0*dx0 + dy0*(xs - px0)) -
-                dx0*(py1*dx1 + dy1*(xs - px1));
-    int sign2 = sign(T2);
-    if (sign2 != 0)
-        return sign2;
-
-    double T3 = (py0*dx0 - px0*dy0) + (dy0*xs - ys*dx0);
-    int sign3 = sign(T3);
-    return (sign3 <= 0) ? sign1 : -sign1;
 }
 
-void status::update_sweep_position(double x, double y)
+void Status::print()
 {
-    xs = x;
-    ys = y;
-}
-
-void status::print()
-{
-    snode_print(root);
-}
-
-void snode_print(snode *root)
-{
-    if (!root)
-        return;
-
-    snode_print(root->left);
-    root->print();
-    snode_print(root->right);
-}
-
-void snode::print()
-{
-    printf("<S" SF_D_ ">\n", s->id);
+    return Snode::print_tree(root);
 }
