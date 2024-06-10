@@ -1,231 +1,182 @@
-#include "proto.h"
-#include <cstddef>
-#include <algorithm>
+#include <vector>
 #include <cassert>
-#include <cstdio>
-#include <cmath>
+
+#include "queue.h"
+#include "status.h"
+#include "primitives.h"
+#include "dcel.h"
+#include "event.h"
 
 static
-void _find_new_event(queue &Q, status &T, std::vector<vertex *> &V,
-    snode *sit0, snode *sit1)
+E_Int report_E_Intersection_(const std::vector<Segment *> &L,
+    const std::vector<Segment *> &C, const std::vector<Segment *> &U)
 {
-    segment *s0 = sit0->s;
-    segment *s1 = sit1->s;
+    E_Int ncolors[2] = {0, 0};
 
-    vertex a = *(s0->p);
-    vertex b = *(s0->q);
-    vertex c = *(s1->p);
-    vertex d = *(s1->q);
-    
-    double denom = a.x * (d.y - c.y) +
-                   b.x * (c.y - d.y) + 
-                   d.x * (b.y - a.y) +
-                   c.x * (a.y - b.y);
+    for (Segment *s : L) ncolors[s->color]++;
+    for (Segment *s : C) ncolors[s->color]++;
+    for (Segment *s : U) ncolors[s->color]++;
 
-    if (sign(denom) == 0) return;
-
-    double num = a.x * (d.y - c.y) +
-                 c.x * (a.y - d.y) +
-                 d.x * (c.y - a.y);
-
-    double s = num / denom;
-
-    if (s < -TOL || s > 1.0+TOL) return;
-
-    num = - ( a.x * (c.y - b.y) +
-              b.x * (a.y - c.y) +
-              c.x * (b.y - a.y) );
-
-    double t = num / denom;
-
-    if (t < -TOL || t > 1.0+TOL) return;
-
-    double x = a.x + s * (b.x - a.x);
-    double y = a.y + s * (b.y - a.y);
-
-    // Where does the intersection lie wrt to sweep vertex
-    int cmp = xy_cmp(T.xs, T.ys, x, y);
-
-    if (cmp == 1) return;
-
-    // Intersection is to the right of sweep vertex
-
-    // Does a vertex with the same coordinate already exist in Q?
-    event *I = Q.locate(x, y);
-
-    if (I == NULL) {
-        // No: insert new event and set its sit to S1
-        vertex *v = new vertex(x, y, V.size(), true);
-        I = Q.insert(v);
-        V.push_back(v);
-    }
-
-    // Set intersection info of S1 to I
-    I->inf = s0;
-    sit0->inf = I->key;
-}
-
-
-static
-int _report_intersection(const std::vector<segment *> &L,
-    const std::vector<segment *> &C, const std::vector<segment *> &U)
-{
-    int ncolors[2] = {0, 0};
-
-    for (segment *s : L) ncolors[s->color()]++;
-    for (segment *s : U) ncolors[s->color()]++;
-    for (segment *s : C) ncolors[s->color()]++;
-
-    // We have an intersection if both colors exist
-    if (ncolors[RED] == 0 || ncolors[BLACK] == 0)
-        return 0;
+    // We have an E_Intersection if both colors exist
+    if (ncolors[Dcel::RED] == 0 || ncolors[Dcel::BLACK] == 0) return 0;
 
     return 1;
 }
 
-static
-void _handle_event(event *E, queue &Q, status &T, std::vector<vertex *> &V,
-    std::vector<segment *> &S, std::vector<hedge *> &H)
+void sweep(Queue &Q, Status &T, std::vector<Segment *> &S,
+    std::vector<Vertex *> &I, std::vector<Hedge *> &H)
 {
-    // Get starting segments
-    segment *s = E->inf;
-    vertex *v = E->key;
-    std::vector<segment *> U;
-
-    while (S.size() && S.back()->p == v) {
-        U.push_back(S.back());
-        S.pop_back();
-    }
-
-    snode *sit = NULL;
-    
-    if (s == NULL) {
-        segment dummy(v, v, -1);
-        sit = T.locate(&dummy);
-        if (sit)
-            s = sit->s;
-    }
-
-    // Handle passing and ending segments
-    std::vector<segment *> L, C;
-    std::vector<void *> C_info;
-    
-    segment *s_succ = NULL;
-    segment *s_pred = NULL;
-
-    if (s != NULL) {
-        sit = T.lookup(s);
-        assert(sit);
-
-        while (sit->inf == v || sit->inf == T.succ(sit)->s)
-            sit = T.succ(sit);
-
-        snode *sit_succ = T.succ(sit);    
-        s_succ = sit_succ->s;
-
-        do {
-            s = sit->s;
-
-            if (s->q == v) {
-                L.push_back(s);
-
-                snode *sit_pred = T.pred(sit);
-
-                if (sit_pred->inf == s) {
-                    sit_pred->inf = s->q;
-                    //sit_pred->inf = sit->inf;
-                }
-
-                sit = sit_pred;
-            } else {
-                C.push_back(s);
-                
-                sit = T.pred(sit);
-            }
-        } while (sit->inf == v || sit->inf == T.succ(sit)->s);
-
-        s_pred = sit->s;
-    }
-
-    if (L.size() + C.size() + U.size() > 1) {
-        int intersect = _report_intersection(L, C, U);
-        if (intersect)
-            dcel_resolve(v, L, C, U, H);
-    }
-
-    for (segment *s : C) {
-        sit = T.lookup(s);
-        if (sit->inf == T.succ(sit)->s)
-            C_info.push_back(sit->inf);
-        else
-            C_info.push_back(NULL);
-        T.erase(s);
-    }
-
-    assert(C_info.size() == C.size());
-    
-    for (segment *s : L)
-        T.erase(s);
-    
-    T.update_sweep_position(v->x, v->y);
-
-    for (size_t i = 0; i < C.size(); i++) {
-        segment *s = C[i];
-        sit = T.insert(s);
-        sit->inf = C_info[i];
-    }
-
-    for (size_t i = 0; i < U.size(); i++) {
-        s = U[i];
-
-        event *xit = Q.insert(s->q);
-        xit->inf = s;
-        s->q = xit->key;
-        
-        sit = T.insert(s);
-        
-        snode *sit_succ = T.succ(s);
-        snode *sit_pred = T.pred(s);
-
-        if (s_succ == NULL) {
-            s_succ = sit_succ->s;
-            s_pred = sit_pred->s;
-        }
-
-        assert(!segments_are_colli(sit_succ->s, s));
-
-        if (segments_are_colli(sit_pred->s, s))
-            sit_pred->inf = s;
-    }
-
-
-    if (s_succ) {
-        snode *sit_succ = T.lookup(s_succ);
-        snode *sit_pred = T.lookup(s_pred);
-        
-        snode *sit_first = T.succ(sit_pred);
-        _find_new_event(Q, T, V, sit_pred, sit_first);
-
-        snode *sit_last = T.pred(sit_succ);
-        if (sit_last != sit_pred)
-            _find_new_event(Q, T, V, sit_last, sit_succ);
-
-
-        // Store the half-edge immediately to the left of v on the sweep line
-        v->left = s_pred->rep;
-    }
-}
-
-void sweep(std::vector<segment *> &S, std::vector<vertex *> &V,
-    std::vector<hedge *> &H, queue &Q, status &T)
-{
-    puts("SWEEP START...");
+    size_t s_pos = 0;
 
     while (!Q.empty()) {
-        event *E = Q.min();
-        _handle_event(E, Q, T, V, S, H);
-        Q.erase(E);
-    }
+        Event *event = Q.min();
+        Segment *seg = event->inf;
+        Vertex *p = event->key;
 
-    puts("SWEEP DONE.");
+        // Get starting segments
+        std::vector<Segment *> U;
+
+        while (s_pos < S.size() && S[s_pos]->p == p) {
+            U.push_back(S[s_pos]);
+            s_pos++;
+            //S.pop_back();
+        }
+
+        Snode *sit = NULL;
+
+        if (seg == NULL) {
+            Segment s(p);
+            sit = T.locate(&s);
+            if (sit) {
+                seg = sit->key;
+            }
+        }
+
+        // Handle passing and ending segments
+        std::vector<Segment *> L, C;
+        std::vector<void *> C_info;
+
+        Segment *seg_succ = NULL;
+        Segment *seg_pred = NULL;
+
+        if (seg != NULL) {
+            sit = T.lookup(seg);
+            assert(sit);
+
+            while (sit->inf == p || sit->inf == T.succ(sit)->key) {
+                sit = T.succ(sit);
+            }
+
+            Snode *sit_succ = T.succ(sit);
+            seg_succ = sit_succ->key;
+
+            do {
+                seg = sit->key;
+
+                if (seg->q == p) {
+                    L.push_back(seg);
+
+                    Snode *sit_pred = T.pred(sit);
+
+                    if (sit_pred->inf == seg) {
+                        //assert(0);
+                        sit_pred->inf = seg->q;
+                    }
+
+                    sit = sit_pred;
+                } else {
+                    C.push_back(seg);
+
+                    sit = T.pred(sit);
+                }
+            } while (sit->inf == p || sit->inf == T.succ(sit)->key);
+
+            seg_pred = sit->key;
+            assert(T.lookup(seg_pred) == sit);
+        }
+
+        // Resolve dcel E_Intersections
+        if (L.size() + C.size() + U.size() > 1) {
+            E_Int E_Intersect = report_E_Intersection_(L, C, U);
+            if (E_Intersect) Dcel::resolve(p, L, C, U, H);
+        }
+
+        // Cache collinear segments info and delete passing segments
+
+        for (Segment *seg : C) {
+            sit = T.lookup(seg);
+            if (sit->inf == T.succ(sit)->key) {
+                C_info.push_back(sit->inf);
+            } else {
+                C_info.push_back(NULL);
+            }
+            T.erase(seg);
+        }
+
+        assert(C_info.size() == C.size());
+
+        // Delete ending segments
+        for (Segment *seg : L) T.erase(seg);
+    
+        // Advance sweep line
+        T.rx = p->x, T.ry = p->y;
+
+        // Insert passing segments
+        for (size_t i = 0; i < C.size(); i++) {
+            Segment *s = C[i];
+            T.insert(s, C_info[i]);
+        }
+
+        // Insert starting segments and compute new E_Intersections
+        for (size_t i = 0; i < U.size(); i++) {
+            seg = U[i];
+
+            // TODO: optimize
+            Event *xit = Q.lookup(seg->q->x, seg->q->y);
+            assert(xit);
+            xit->inf = seg;
+
+            //Event *xit = Q.insert(seg->q->x, seg->q->y, seg);
+            //seg->q = xit->key;
+            
+            sit = T.insert(seg);
+
+            Snode *sit_succ = T.succ(seg);
+            Snode *sit_pred = T.pred(seg);
+
+            if (seg_succ == NULL) {
+                seg_succ = sit_succ->key;
+                seg_pred = sit_pred->key;
+            }
+
+            assert(!seg->overlaps(*sit_succ->key));
+
+            if (seg->overlaps(*sit_pred->key)) {
+                sit_pred->inf = seg;
+            }
+        }
+
+        if (seg_succ) {
+            assert(seg_pred);
+            Snode *sit_succ = T.lookup(seg_succ);
+            Snode *sit_pred = T.lookup(seg_pred);
+
+            assert(sit_succ);
+            assert(sit_pred);
+            
+            Snode *sit_first = T.succ(sit_pred);
+            compute_E_Intersection(Q, sit_pred, sit_first, I); 
+
+            Snode *sit_last = T.pred(sit_succ);
+            if (sit_last != sit_pred) {
+                compute_E_Intersection(Q, sit_last, sit_succ, I);
+            }
+
+            // Store the half-edge immediately to the left of v on the sweep line
+            p->left = seg_pred->rep;
+        }
+
+        // Done
+        Q.erase(event);
+    }
 }

@@ -1,20 +1,24 @@
-#include "proto.h"
 #include <algorithm>
 #include <cassert>
 
-hedge::hedge(vertex *v)
-: orig(v), twin(NULL), next(NULL), prev(NULL), left(NULL), color(RED),
-  cycl(NULL), s(0)
+#include "hedge.h"
+#include "vertex.h"
+#include "primitives.h"
+#include "dcel.h"
+
+Hedge::Hedge(Vertex *v)
+: orig(v), twin(NULL), prev(NULL), next(NULL), left(NULL), color(Dcel::NO_IDEA),
+  cycle(NULL)
 {}
 
 static
-int _partition(std::vector<hedge *> &H, int low, int high)
+E_Int _partition(std::vector<Hedge *> &H, E_Int low, E_Int high)
 {
-    hedge *pivot = H[high];
-    int i = low-1;
+    Hedge *pivot = H[high];
+    E_Int i = low-1;
 
-    for (int j = low; j < high; j++) {
-        if (hedge_cmp_cwise(H[j], pivot) <= 0) {
+    for (E_Int j = low; j < high; j++) {
+        if (Hedge::cmp_cwise(H[j], pivot) <= 0) {
             i++;
             std::swap(H[i], H[j]);
         }
@@ -25,59 +29,66 @@ int _partition(std::vector<hedge *> &H, int low, int high)
     return i;
 }
 
-void hedge_sort_cwise(std::vector<hedge *> &H, int low, int high)
+void Hedge::sort_cwise(std::vector<Hedge *> &H, E_Int low, E_Int high)
 {
     if (low >= high)
         return;
 
-    int p = _partition(H, low, high);
+    E_Int p = _partition(H, low, high);
 
-    hedge_sort_cwise(H, low, p-1);
-    hedge_sort_cwise(H, p+1, high);
+    sort_cwise(H, low, p - 1);
+    sort_cwise(H, p + 1, high);
 }
 
-void hedge_sort_ccwise(std::vector<hedge *> &H, int low, int high)
+void Hedge::sort_ccwise(std::vector<Hedge *> &H, E_Int low, E_Int high)
 {
-    hedge_sort_cwise(H, low, high);
+    sort_cwise(H, low, high);
     std::reverse(H.begin(), H.end());
 }
 
-int hedge_cmp_cwise(hedge *h, hedge *w)
+E_Int Hedge::cmp_cwise(const Hedge *h, const Hedge *w)
 {
     assert(h->orig == w->orig);
-    vertex *c = h->orig;
-    vertex *a = h->twin->orig;
-    vertex *b = w->twin->orig;
+    Vertex *c = h->orig;
+    Vertex *a = h->twin->orig;
+    Vertex *b = w->twin->orig;
 
-    double ax = a->x;
-    double ay = a->y;
-    double bx = b->x;
-    double by = b->y;
-    double cx = c->x;
-    double cy = c->y;
+    E_Float ax = a->x;
+    E_Float ay = a->y;
+    E_Float bx = b->x;
+    E_Float by = b->y;
+    E_Float cx = c->x;
+    E_Float cy = c->y;
 
-    double acx = ax - cx;
-    double acy = ay - cy;
-    double bcx = bx - cx;
-    double bcy = by - cy;
+    long double acx = (long double)ax - (long double)cx;
+    long double acy = (long double)ay - (long double)cy;
+    long double bcx = (long double)bx - (long double)cx;
+    long double bcy = (long double)by - (long double)cy;
 
-    int sign_acx = sign(acx);
-    int sign_acy = sign(acy);
-    int sign_bcx = sign(bcx);
-    int sign_bcy = sign(bcy);
+    E_Int sign_acx = Sign(acx);
+    E_Int sign_acy = Sign(acy);
+    E_Int sign_bcx = Sign(bcx);
+    E_Int sign_bcy = Sign(bcy);
 
     if (sign_acx >= 0 && sign_bcx < 0)
         return -1;
     if (sign_acx < 0 && sign_bcx >= 0)
         return 1;
     if (sign_acx == 0 && sign_bcx == 0) {
-        if (sign_acy >= 0 || sign_bcy >= 0)
-            return sign(by - ay);
-        return sign(ay - by);
+        if (sign_acy >= 0 || sign_bcy >= 0) {
+            long double diff = (long double)ay - (long double)by;
+            if (Sign(diff) > 0) return -1;
+            else return 1;
+        }
+
+        long double diff = (long double)by - (long double)ay;
+        if (Sign(diff) > 0) return -1;
+        else return 1;
     }
     
-    double det = acx*bcy - bcx*acy;
-    int cmp = sign(det);
+    E_Float det = acx * bcy - bcx * acy;
+    //E_Float det = DifferenceOfProducts(acx, bcy, bcx, acy);
+    E_Int cmp = Sign(det);
 
     if (cmp < 0)
         return -1;
@@ -91,39 +102,12 @@ int hedge_cmp_cwise(hedge *h, hedge *w)
     // If right half, red before black
     // Otherwise, black before red
 
-    cmp = sign(h->color - w->color);
+    cmp = Sign(h->color - w->color);
 
-    if (sign(acx) >= 0) {
-        assert(sign(bcx) >= 0);
+    if (sign_acx >= 0) {
+        assert(sign_bcx >= 0);
         return cmp;
     } else {
         return -cmp;
     }
-}
-
-int hedges_are_collinear(hedge *h, hedge *w)
-{
-    vertex *hp = h->orig;
-    vertex *hq = h->twin->orig;
-    vertex *wp = w->orig;
-    vertex *wq = w->twin->orig;
-
-    return vertex_orient(hp, hq, wp) == 0 &&
-           vertex_orient(hp, hq, wq) == 0;
-}
-
-int hedges_incident_overlap(hedge *h, hedge *w)
-{
-    assert(h->orig == w->orig);
-    vertex *a = h->orig;
-    vertex *b = h->twin->orig;
-    vertex *c = w->twin->orig;
-
-    if (vertex_orient(a, b, c) != 0)
-        return 0;
-
-    // Dot product should be positive.
-    double dp = (b->x-a->x)*(c->x-a->x) + (b->y-a->y)*(c->y-a->y);
-    
-    return sign(dp) >= 0;
 }

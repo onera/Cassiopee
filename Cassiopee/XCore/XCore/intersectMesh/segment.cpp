@@ -1,66 +1,85 @@
-#include "proto.h"
 #include <algorithm>
 #include <cassert>
 
-segment::segment(hedge *h, int i)
-: p(h->orig), q(h->twin->orig), id(i), rep(h)
-{
-    int cmp = vertex_cmp(p, q);
+#include "segment.h"
+#include "primitives.h"
+#include "hedge.h"
+#include "dcel.h"
 
-    if (cmp > 0) {
-        vertex *tmp = p;
-        p = q;
-        q = tmp;
-        rep = h->twin;
+Segment::Segment(Vertex *P, Vertex *Q, E_Int Id)
+{
+    p = P;
+    q = Q;
+    dx = q->x - p->x;
+    dy = q->y - p->y;
+    rep = NULL;
+    id = Id;
+    color = Dcel::NO_IDEA;
+    assert(Sign(dx) >= 0);
+}
+
+Segment::Segment(Vertex *P)
+: p(P), q(P), dx(0.0), dy(0.0), rep(NULL), id(-1), color(Dcel::NO_IDEA)
+{}
+
+Segment::Segment(Hedge *h, E_Int Id)
+{
+    p = h->orig;
+    Hedge *t = h->twin;
+    q = t->orig;
+    rep = h;
+    if (compare(*p, *q) > 0) {
+        std::swap(p, q);
+        rep = t;
+    }
+    dx = q->x - p->x;
+    dy = q->y - p->y;
+    id = Id;
+    color = rep->color;
+    assert(Sign(dx) >= 0);
+}
+
+bool Segment::overlaps(const Segment &s)
+{
+    E_Float sdx = s.dx;
+    E_Float sdy = s.dy;
+    E_Float sqx = s.q->x;
+    E_Float sqy = s.q->y;
+    E_Float px = p->x;
+    E_Float py = p->y;
+
+    E_Float T1 = dy * sdx - sdy * dx;
+    E_Int sign1 = Sign(T1);
+
+    if (sign1 == 0) {
+        E_Float mdx = sqx - px;
+        E_Float mdy = sqy - py;
+
+        E_Int sign2 = Sign(dy * mdx - mdy * dx);
+
+        if (sign2 == 0) {
+            E_Int sign3 = Sign(sdy * mdx - mdy * sdx);
+
+            assert(sign3 == 0);
+
+            if (sign3 == 0) {
+                return true;
+            }
+        }
     }
 
-    assert(sign(q->x - p->x) >= 0);
+    return false;
 }
 
-segment::segment(edge *e)
-: p(e->p), q(e->q), id(-1), rep(NULL)
+static
+E_Int _partition(std::vector<Segment *> &S, E_Int low, E_Int high,
+    E_Int (*cmp)(const Segment &, const Segment &))
 {
-    int cmp = vertex_cmp(p, q);
+    Segment *pivot = S[high];
+    E_Int i = low-1;
 
-    if (cmp > 0) {
-        vertex *tmp = p;
-        p = q;
-        q = tmp;
-    }
-}
-
-segment::segment(vertex *P, vertex *Q, int Id)
-: p(P), q(Q), id(Id), rep(NULL)
-{
-    int cmp = vertex_cmp(p, q);
-
-    if (cmp > 0) {
-        vertex *tmp = p;
-        p = q;
-        q = tmp;
-    }
-}
-
-int segment_cmp_lexico(segment *s0, segment *s1)
-{
-    int cmp = vertex_cmp(s0->p, s1->p);
-    if (cmp)
-        return cmp;
-    cmp = sign(s0->color() - s1->color());
-    if (cmp)
-        return cmp;
-    return sign(s0->id - s1->id);
-}
-
-int _partition(std::vector<segment *> &S, int (*cmp)(segment *, segment *),
-    int low, int high)
-{
-    segment *pivot = S[high];
-    
-    int i = low-1;
-
-    for (int j = low; j < high; j++) {
-        if (cmp(S[j], pivot) <= 0) {
+    for (E_Int j = low; j < high; j++) {
+        if (cmp(*S[j], *pivot) <= 0) {
             i++;
             std::swap(S[i], S[j]);
         }
@@ -70,24 +89,14 @@ int _partition(std::vector<segment *> &S, int (*cmp)(segment *, segment *),
     std::swap(S[i], S[high]);
     return i;
 }
-        
 
-void segment_sort(std::vector<segment *> &S, int (*cmp)(segment *, segment *),
-    int low, int high)
+void Segment::sort(std::vector<Segment *> &S, E_Int start, E_Int end,
+    E_Int (*cmp)(const Segment &, const Segment &))
 {
-    if (low >= high)
-        return;
+    if (start >= end) return;
 
-    int part = _partition(S, cmp, low, high);
+    E_Int p = _partition(S, start, end, cmp);
 
-    segment_sort(S, cmp, low, part-1);
-    segment_sort(S, cmp, part+1, high);
+    sort(S, start, p - 1, cmp);
+    sort(S, p + 1, end, cmp);
 }
-
-int segments_are_colli(segment *s0, segment *s1)
-{
-    return vertex_orient(s0->p, s0->q, s1->p) == 0 &&
-           vertex_orient(s0->p, s0->q, s1->q) == 0;
-}
-
-
