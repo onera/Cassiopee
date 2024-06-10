@@ -123,7 +123,6 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
   if (method == 0)
   {
     // Compte
-    E_Int* PEG = cPE->begin(1);
     E_Int* PED = cPE->begin(2);
 
     for (E_Int i = 0; i < nfaces; i++)
@@ -132,12 +131,12 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
       np = ptr[0];
       if (np == 3)
       {
-        if (PED[i]*PEG[i] == 0) eTRI++;
+        if (PED[i] == 0) eTRI++;
         else iTRI++;
       }
       else if (np == 4)
       {
-        if (PED[i]*PEG[i] == 0) eQUAD++;
+        if (PED[i] == 0) eQUAD++;
         else iQUAD++;
       }
     }
@@ -158,12 +157,12 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
       np = ptr[0];
       if (np == 3)
       {
-        if (PED[i]*PEG[i] == 0) { peTRI[eTRI] = i+1; eTRI++; }
+        if (PED[i] == 0) { peTRI[eTRI] = i+1; eTRI++; }
         else { piTRI[iTRI] = i+1; iTRI++; }
       }
       else if (np == 4)
       {
-        if (PED[i]*PEG[i] == 0) { peQUAD[eQUAD] = i+1; eQUAD++; }
+        if (PED[i] == 0) { peQUAD[eQUAD] = i+1; eQUAD++; }
         else { piQUAD[iQUAD] = i+1; iQUAD++; }
       }
       else printf("Face no=" SF_D_ " non TRI et non QUAD (" SF_D_ ")\n",i,np);
@@ -173,13 +172,12 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
   else // method 1
   {
     // Compte les faces int et ext
-    E_Int* PEG = cPE->begin(1);
     E_Int* PED = cPE->begin(2);
 
     for (E_Int i = 0; i < nfaces; i++)
     {
       ptr = ptNGon+posFacesp[i];
-      if (PED[i]*PEG[i] == 0) exts++;
+      if (PED[i] == 0) exts++;
       else ints++;
     }
     //printf("here %d %d - %d %d\n", ints, exts, nfaces, ints+exts);
@@ -192,7 +190,7 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
     for (E_Int i = 0; i < nfaces; i++)
     {
       ptr = ptNGon+posFacesp[i];
-      if (PED[i]*PEG[i] == 0) { pexts[exts] = i+1; exts++; }
+      if (PED[i] == 0) { pexts[exts] = i+1; exts++; }
       else { pints[ints] = i+1; ints++; }
     }
     iTRI=ints; iQUAD=ints; eTRI=exts; eQUAD=exts; // only for output

@@ -34,7 +34,8 @@ def getInstallPath():
     cassiopeeIncDir = os.path.dirname(cassiopeeIncDir)
     return cassiopeeIncDir
   except ImportError:
-    raise SystemError("Error: KCore library is required to use this script.")
+    print("Warning: KCore library is required to use this script. Skipping...")
+    sys.exit()
     
 # Read KCore/Dist
 def readDist():
