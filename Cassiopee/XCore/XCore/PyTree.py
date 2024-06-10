@@ -2,7 +2,6 @@ import Converter.Filter2 as Filter2
 import Converter.Mpi as Cmpi
 import Converter.Internal as I
 import Converter.PyTree as C
-import Intersector.PyTree as XOR
 from . import xcore
 
 # Returns for each zone, exchanged fields
@@ -352,6 +351,9 @@ def intersectSurf(master, slave, patch_name):
 
     tm = C.newPyTree(["Base", zmo])
     ts = C.newPyTree(["Base", zso])
+
+    try: import Intersector.PyTree as XOR
+    except: raise ImportError("XCore.PyTree: requires Intersector.PyTree module.")
 
     tm = XOR.closeCells(tm)
     ts = XOR.closeCells(ts)
