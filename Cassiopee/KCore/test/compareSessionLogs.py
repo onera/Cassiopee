@@ -158,7 +158,7 @@ if __name__ == '__main__':
     prod = getProd(script_args.logs[0])
     baseState = 'FAILED' if script_args.status == 1 else 'OK'
     messageText = "Installation {} for prod '{}'"
-    notify(messageSubject="[validCassiopee - {}] "
+    notify(messageSubject="[Installation - {}] "
              "State: {}".format(prod, baseState),
              messageText=messageText.format(baseState, prod))
     sys.exit(0)
