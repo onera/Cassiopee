@@ -1170,7 +1170,11 @@ E_Int K_IO::GenIO::foamReadBoundary(char* file,
   strcpy(fullPath, file);
   strcat(fullPath, "/constant/polyMesh/boundary");
   FILE* ptrFile = fopen(fullPath, "r");
-
+  if (ptrFile == NULL)
+  {
+    printf("foamread: can not open constant/polyMesh/boundary.\n");
+    return 1;
+  }
   E_Int ret;
   ret = readGivenKeyword(ptrFile, "FOAMFILE");
   assert(ret == 1);
@@ -1490,14 +1494,16 @@ E_Int K_IO::GenIO::foamWriteBoundary(char* file, const std::vector<char*>& bc_na
 
   for (E_Int i = 0; i < nbcs; i++)
   {
-    char *token = strtok(bc_names[i], "@");
+    char *token = strtok(bc_names[i], "@"); // token is first part of bc_names
+    
     char name[256];
     strcpy(name, token);
 
     fprintf(ptrFile, "    %s\n", token);
     fprintf(ptrFile, "    {\n");
 
-    token = strtok(NULL, "@");
+    token = strtok(NULL, "@"); // token is now second part of bc_names (CGNS type if any)
+
     if (token == NULL) {
       fprintf(stderr, "No type for BC %s, defaulting to wall.\n", bc_names[i]);
       fprintf(ptrFile, "        type            %s;\n", "wall");
@@ -1654,14 +1660,13 @@ E_Int K_IO::GenIO::foamwrite(
     }
   }
 
-  E_Int ninternal_faces = faces.size();
-
-  printf("Internal faces = " SF_D_ "\n", ninternal_faces);
+  //E_Int ninternal_faces = faces.size();
+  //printf("Internal faces = " SF_D_ "\n", ninternal_faces);
 
   // BC
   E_Int BCFacesSize = 0;
   if (PyList_Check(BCFaces)) BCFacesSize = PyList_Size(BCFaces);
-  printf("BCFacesSize = " SF_D_ "\n", BCFacesSize);
+  //printf("BCFacesSize = " SF_D_ "\n", BCFacesSize);
 
   std::vector<E_Int> start_face_per_bc;
   std::vector<E_Int> nfaces_per_bc;
@@ -1674,9 +1679,10 @@ E_Int K_IO::GenIO::foamwrite(
     PyObject* BCs = PyList_GetItem(BCFaces, 0);
     E_Int size = PyList_Size(BCs);
 
-    if (size == 0) {
+    if (size == 0) 
+    {
       printf("Warning: foamwrite: requires boundary patches.\n");
-      //exit(1);
+      return 1;
     }
 
     E_Int np;
@@ -1686,15 +1692,15 @@ E_Int K_IO::GenIO::foamwrite(
       name = NULL;
       PyObject *o = PyList_GetItem(BCs, 2*j);
       
-      
 #if PY_VERSION_HEX >= 0x03000000
       if (PyUnicode_Check(o)) name = (char *)PyUnicode_AsUTF8(o);
 #else
       if (PyString_Check(o)) name = PyString_AsString(o);
 #endif
-      else {
+      else 
+      {
         printf("Bad " SF_D_ "-th bcname %s\n", j, name);
-        abort();
+        return 1;
       }
 
       name_per_bc.push_back(0);
@@ -1714,8 +1720,8 @@ E_Int K_IO::GenIO::foamwrite(
     }
   }
 
-  printf("total faces: %zu\n", faces.size());
-  printf("cn faces: " SF_D_ "\n", nfaces);
+  //printf("total faces: %zu\n", faces.size());
+  //printf("cn faces: " SF_D_ "\n", nfaces);
 
   foamWriteOwner(file, owner, faces);
   foamWriteNeighbour(file, neigh, faces);
