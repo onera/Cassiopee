@@ -8,7 +8,7 @@
 #include "event.h"
 
 static
-E_Int report_E_Intersection_(const std::vector<Segment *> &L,
+E_Int report_intersection_(const std::vector<Segment *> &L,
     const std::vector<Segment *> &C, const std::vector<Segment *> &U)
 {
     E_Int ncolors[2] = {0, 0};
@@ -17,7 +17,7 @@ E_Int report_E_Intersection_(const std::vector<Segment *> &L,
     for (Segment *s : C) ncolors[s->color]++;
     for (Segment *s : U) ncolors[s->color]++;
 
-    // We have an E_Intersection if both colors exist
+    // We have an intersection if both colors exist
     if (ncolors[Dcel::RED] == 0 || ncolors[Dcel::BLACK] == 0) return 0;
 
     return 1;
@@ -95,10 +95,10 @@ void sweep(Queue &Q, Status &T, std::vector<Segment *> &S,
             assert(T.lookup(seg_pred) == sit);
         }
 
-        // Resolve dcel E_Intersections
+        // Resolve dcel intersections
         if (L.size() + C.size() + U.size() > 1) {
-            E_Int E_Intersect = report_E_Intersection_(L, C, U);
-            if (E_Intersect) Dcel::resolve(p, L, C, U, H);
+            E_Int intersect = report_intersection_(L, C, U);
+            if (intersect) Dcel::resolve(p, L, C, U, H);
         }
 
         // Cache collinear segments info and delete passing segments
@@ -127,7 +127,7 @@ void sweep(Queue &Q, Status &T, std::vector<Segment *> &S,
             T.insert(s, C_info[i]);
         }
 
-        // Insert starting segments and compute new E_Intersections
+        // Insert starting segments and compute new intersections
         for (size_t i = 0; i < U.size(); i++) {
             seg = U[i];
 
@@ -165,11 +165,11 @@ void sweep(Queue &Q, Status &T, std::vector<Segment *> &S,
             assert(sit_pred);
             
             Snode *sit_first = T.succ(sit_pred);
-            compute_E_Intersection(Q, sit_pred, sit_first, I); 
+            compute_intersection(Q, sit_pred, sit_first, I); 
 
             Snode *sit_last = T.pred(sit_succ);
             if (sit_last != sit_pred) {
-                compute_E_Intersection(Q, sit_last, sit_succ, I);
+                compute_intersection(Q, sit_last, sit_succ, I);
             }
 
             // Store the half-edge immediately to the left of v on the sweep line

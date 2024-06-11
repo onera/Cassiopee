@@ -452,7 +452,7 @@ bool Mesh::is_point_inside(E_Float px, E_Float py, E_Float pz)
             X[b], Y[b], Z[b], X[c], Y[c], Z[c], TI);
     }
 
-    // point is inside if number of E_Intersections is odd
+    // point is inside if number of intersections is odd
     return hits % 2 == 1;
 }
 

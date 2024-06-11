@@ -17,69 +17,12 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/xmpi/context_stub_impl.cpp',
             'XCore/xmpi/communicator.cpp',
             'XCore/test/xmpi_t1.cpp',
-            ]
-if mpi: # source that requires mpi
-    cpp_srcs += [
-            'XCore/SplitElement/splitter.cpp',
-
-            'XCore/exchangeFields.cpp',
 
             'XCore/common/mem.cpp',
             'XCore/common/common.cpp',
 
-            'XCore/chunk2partNGon.cpp',
-            'XCore/chunk2partElt.cpp',
-
-            'XCore/adaptMesh/cut.cpp',
-            'XCore/adaptMesh/tree.cpp',
-            'XCore/adaptMesh/mesh.cpp',
-            'XCore/adaptMesh/math.cpp',
-            'XCore/adaptMesh/adaptMesh.cpp',
-            'XCore/adaptMesh/comm.cpp',
-            'XCore/adaptMesh/metric.cpp',
-            'XCore/adaptMesh/topo.cpp',
-            'XCore/adaptMesh/distribute.cpp',
-
-            'XCore/adaptMesh/adaptMeshSeq.cpp',
-            'XCore/adaptMesh/createAdaptMesh.cpp',
-            'XCore/adaptMesh/extractLeafMesh.cpp',
-            'XCore/adaptMesh/adaptMeshDir.cpp',
-            'XCore/adaptMesh/computeHessianNGon.cpp',
-            'XCore/adaptMesh/computeGradientNGon.cpp',
-            'XCore/adaptMesh/computeCellCentersAndVolumes.cpp',
-
-            'XCore/adaptMesh2/PrepareMeshForAdaptation.cpp',
-
-            'XCore/adaptMesh2/AdaptMesh.cpp',
-            'XCore/adaptMesh2/Mesh.cpp',
-            'XCore/adaptMesh2/Topo.cpp',
-            'XCore/adaptMesh2/Tree.cpp',
-            'XCore/adaptMesh2/Refine.cpp',
-            'XCore/adaptMesh2/Unrefine.cpp',
-            'XCore/adaptMesh2/Geom.cpp',
-            
-            'XCore/adaptMesh2/Comm.cpp',
-            
-            'XCore/adaptMesh2/RenumberMesh.cpp',
-
-            'XCore/adaptMesh2/Gradient.cpp',
-            'XCore/adaptMesh2/Hessian.cpp',
-            'XCore/adaptMesh2/HessianToMetric.cpp',
-            'XCore/adaptMesh2/MetricToRefData.cpp',
-            
-            'XCore/adaptMesh2/IO.cpp',
-
-            'XCore/adaptMesh2/Quad.cpp',
-            'XCore/adaptMesh2/Tri.cpp',
-
-            'XCore/adaptMesh2/Penta.cpp',
-            'XCore/adaptMesh2/Hexa.cpp',
-            'XCore/adaptMesh2/Tetra.cpp',
-            'XCore/adaptMesh2/Pyra.cpp',
-
             'XCore/intersectMesh/removeIntersectingKPlanes.cpp',
             'XCore/intersectMesh/intersectSurf.cpp',
-
             'XCore/intersectMesh/cycle.cpp',
             'XCore/intersectMesh/dcel.cpp',
             'XCore/intersectMesh/event.cpp',
@@ -92,23 +35,47 @@ if mpi: # source that requires mpi
             'XCore/intersectMesh/queue.cpp',
             'XCore/intersectMesh/segment.cpp',
             'XCore/intersectMesh/sweep.cpp',
-
-
             'XCore/intersectMesh/mesh.cpp',
             'XCore/intersectMesh/meshRefine.cpp',
             'XCore/intersectMesh/meshTopo.cpp',
             'XCore/intersectMesh/smesh.cpp',
             'XCore/intersectMesh/smeshRefine.cpp',
             'XCore/intersectMesh/io.cpp',
-
             'XCore/intersectMesh/primitives.cpp',
             'XCore/intersectMesh/vec3.cpp',
             'XCore/intersectMesh/triangle.cpp',
             'XCore/intersectMesh/point.cpp',
-
             'XCore/intersectMesh/ray.cpp',
-
             'XCore/intersectMesh/karray.cpp'
+            ]
+if mpi: # source that requires mpi
+    cpp_srcs += [
+            'XCore/SplitElement/splitter.cpp',
+            'XCore/exchangeFields.cpp',
+            'XCore/chunk2partNGon.cpp',
+            'XCore/chunk2partElt.cpp',
+
+            'XCore/adaptMesh2/PrepareMeshForAdaptation.cpp',
+            'XCore/adaptMesh2/AdaptMesh.cpp',
+            'XCore/adaptMesh2/Mesh.cpp',
+            'XCore/adaptMesh2/Topo.cpp',
+            'XCore/adaptMesh2/Tree.cpp',
+            'XCore/adaptMesh2/Refine.cpp',
+            'XCore/adaptMesh2/Unrefine.cpp',
+            'XCore/adaptMesh2/Geom.cpp',
+            'XCore/adaptMesh2/Comm.cpp',
+            'XCore/adaptMesh2/RenumberMesh.cpp',
+            'XCore/adaptMesh2/Gradient.cpp',
+            'XCore/adaptMesh2/Hessian.cpp',
+            'XCore/adaptMesh2/HessianToMetric.cpp',
+            'XCore/adaptMesh2/MetricToRefData.cpp',
+            'XCore/adaptMesh2/IO.cpp',
+            'XCore/adaptMesh2/Quad.cpp',
+            'XCore/adaptMesh2/Tri.cpp',
+            'XCore/adaptMesh2/Penta.cpp',
+            'XCore/adaptMesh2/Hexa.cpp',
+            'XCore/adaptMesh2/Tetra.cpp',
+            'XCore/adaptMesh2/Pyra.cpp',
             ]
 else:
     cpp_srcs += [
@@ -116,6 +83,5 @@ else:
         'XCore/exchangeFields_stub.cpp',
         'XCore/chunk2partNGon_stub.cpp',
         'XCore/chunk2partElt_stub.cpp',
-        'XCore/adaptMesh/adaptMesh_stub.cpp',
-        
+        'XCore/adaptMesh2/AdaptMesh_stub.cpp'
         ]

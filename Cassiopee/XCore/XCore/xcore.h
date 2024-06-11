@@ -36,14 +36,6 @@ namespace K_XCORE
 
   PyObject *exchangeFields(PyObject *self, PyObject *args);
 
-  PyObject *adaptMesh(PyObject *self, PyObject *args);
-  
-  PyObject *adaptMeshSeq(PyObject *self, PyObject *args);
-  PyObject *extractLeafMesh(PyObject *self, PyObject *args);
-  PyObject *createAdaptMesh(PyObject *self, PyObject *args);
-
-  PyObject *adaptMeshDir(PyObject *self, PyObject *args);
-
   PyObject *AdaptMesh(PyObject *self, PyObject *args);
   PyObject *CreateAdaptMesh(PyObject *self, PyObject *args);
   PyObject *computeHessian(PyObject *self, PyObject *args);

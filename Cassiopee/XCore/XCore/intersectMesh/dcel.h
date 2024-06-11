@@ -38,7 +38,7 @@ struct Dcel {
     static E_Int check_faces(const std::vector<Hedge *> &H,
         const std::vector<Face *> &F);
 
-    void find_E_Intersections();
+    void find_intersections();
 
     static void resolve(Vertex *p, const std::vector<Segment *> &L,
         const std::vector<Segment *> &C, const std::vector<Segment *> &U,

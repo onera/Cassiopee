@@ -147,4 +147,4 @@ struct Mesh {
     void compute_cell_volume(E_Int cell, E_Float &vol, E_Int refIdx);
 };
 
-void meshes_mutual_refinement(Mesh &M, Mesh &S);
+int meshes_mutual_refinement(Mesh &M, Mesh &S);
