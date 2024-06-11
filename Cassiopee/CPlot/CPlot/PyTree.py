@@ -1046,17 +1046,9 @@ def loadImageFiles(t, offscreen=0):
         CPlot.setState(billBoards=out, offscreen=offscreen)
     return None
 
-#==============================================================================
-# display360 (offscreen=1, 2 or 7)
-#==============================================================================
-def display360(t, **kwargs):
-    """Display for 360 images."""
+# subfunction of display 360. DIsplay the 6 views.
+def display360__(t, posCam, posEye, dirCam, offscreen, locRez, kwargs):
     import KCore.Vector as Vector
-    posCam = kwargs.get("posCam", (0,0,0))
-    posEye = kwargs.get("posEye", (1,0,0))
-    dirCam = kwargs.get("dirCam", (0,0,1))
-    
-    # check that dirCam and v1 are ortho
     
     # Compute all view vectors
     v1 = Vector.sub(posEye, posCam)
@@ -1064,23 +1056,10 @@ def display360(t, **kwargs):
     # orthogonalisation de v1
     s = Vector.dot(v1, vz)
     v1 = Vector.sub(v1, Vector.mul(s, vz))
-    
     v2 = Vector.cross(vz, v1)
     n = Vector.norm(v1)
     v3 = Vector.mul(n, vz)
 
-    # get export resolution (final image) and offscreen mode
-    export = kwargs.get("export", "image360")
-    exportRez = kwargs.get("exportResolution", "3200x1600")
-    offscreen = kwargs.get("offscreen", 1)
-
-    # resolution for the 6 view images
-    locRez = exportRez.split('x')[1]
-    locRez = int(locRez)//2
-    locRez = max(locRez, 800)
-    locRez = "%dx%d"%(locRez, locRez)
-
-    # display the 6 views
     # right
     posEye0 = Vector.sub(posCam, v2); dirCam0 = dirCam
     lkwargs = kwargs.copy()
@@ -1147,8 +1126,36 @@ def display360(t, **kwargs):
     lkwargs['export'] = 'cube_bottom.png'
     display(t, **lkwargs)
     finalizeExport(offscreen)
+    return None
 
-    # Create the 360 image
+#==============================================================================
+# display360 (offscreen=1, 2 or 7)
+#==============================================================================
+def display360(t, **kwargs):
+    """Display for 360 images."""
+    import KCore.Vector as Vector
+    posCam = kwargs.get("posCam", (0,0,0))
+    posEye = kwargs.get("posEye", (1,0,0))
+    dirCam = kwargs.get("dirCam", (0,0,1))
+
+    # get export resolution (final image), offscreen mode, stereo and stereo dist
+    export = kwargs.get("export", "image360.png")
+    exportRez = kwargs.get("exportResolution", "4096x2048")
+    offscreen = kwargs.get("offscreen", 1)
+    stereo = kwargs.get("stereo", 0)
+    stereoDist = kwargs.get("stereoDist", 1./30.)
+    if stereo == 1: kwargs['stereo'] = 0
+
+    # resolution for the 6 view images
+    locRez = exportRez.split('x')[1]
+    locRez = int(locRez)//2
+    locRez = max(locRez, 800)
+    locRez = "%dx%d"%(locRez, locRez)
+
+    # display 6 views
+    display360__(t, posCam, posEye, dirCam, offscreen, locRez, kwargs)
+
+    # Create the 360 image from cube images
     import Converter.Mpi as Cmpi
     if Cmpi.rank == 0:
         if offscreen == 7: foffscreen = 1
@@ -1156,6 +1163,41 @@ def display360(t, **kwargs):
         a = C.newPyTree(['Base'])
         display(a, panorama=1,
                 offscreen=foffscreen, export=export, exportResolution=exportRez)
-        finalizeExport(offscreen)
+        finalizeExport(foffscreen)
 
+    if stereo == 1: # left eye
+        import Transform.PyTree as T
+        export2 = export.rsplit('.', 1)
+        if len(export2) == 2: export2 = export2[0]+'_2.'+export2[1]
+        else: export2 = export+'_2'
+
+        v1 = Vector.sub(posEye, posCam)
+        vz = Vector.normalize(dirCam)
+        v2 = Vector.cross(vz, v1)
+        v3 = Vector.mul(stereoDist, v2)
+        posCam = Vector.add(posCam, v3)
+    
+        display360__(t, posCam, posEye, dirCam, offscreen, locRez, kwargs)
+        if Cmpi.rank == 0:
+            if offscreen == 7: foffscreen = 1
+            else: foffscreen = offscreen
+            a = C.newPyTree(['Base'])
+            display(a, panorama=1,
+                    offscreen=foffscreen, export=export2, exportResolution=exportRez)
+            finalizeExport(foffscreen)
+
+            # assemble images
+            a1 = C.convertFile2PyTree(export)
+            a2 = C.convertFile2PyTree(export2)
+            a1 = Internal.getZones(a1)[0]
+            a2 = Internal.getZones(a2)[0]
+            a1[0] = "right"
+            a2[0] = "left"
+            locRez = exportRez.split('x')[1]
+            locRez = float(locRez)
+            T._translate(a1, (0.,locRez-1.,0.))
+            a = T.join(a1, a2, tol=0.5)
+            #a = [a1,a2]
+            C.convertPyTree2File(a, 'final.png') # finale
+    Cmpi.barrier() # wait for completion
     return None
