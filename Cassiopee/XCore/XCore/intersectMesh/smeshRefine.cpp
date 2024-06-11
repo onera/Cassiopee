@@ -247,7 +247,7 @@ void Smesh::refine_quad(E_Int quad)
     fchildren[quad] = { nf0, nf1, nf2, nf3 };
     flevel[nf0] = flevel[nf1] = flevel[nf2] = flevel[nf3] = flevel[quad] + 1;
 
-    // Enable E_Internal edges
+    // Enable internal edges
     eactive.insert(ne0);
     eactive.insert(ne1);
     eactive.insert(ne2);

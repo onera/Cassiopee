@@ -28,16 +28,9 @@ static PyMethodDef Pyxcore [] =
 {
   {"test_all", xcore::test_all, METH_VARARGS}, // all xmpi tests
   {"splitElements", splitElements, METH_VARARGS},
-  {"adaptMesh", K_XCORE::adaptMesh, METH_VARARGS},
   {"chunk2partNGon", K_XCORE::chunk2partNGon, METH_VARARGS},
   {"chunk2partElt", K_XCORE::chunk2partElt, METH_VARARGS},
   {"exchangeFields", K_XCORE::exchangeFields, METH_VARARGS},
-
-  {"createAdaptMesh", K_XCORE::createAdaptMesh, METH_VARARGS},
-  {"adaptMeshSeq", K_XCORE::adaptMeshSeq, METH_VARARGS},
-  {"extractLeafMesh", K_XCORE::extractLeafMesh, METH_VARARGS},
-  
-  {"adaptMeshDir", K_XCORE::adaptMeshDir, METH_VARARGS},
 
   {"CreateAdaptMesh", K_XCORE::CreateAdaptMesh, METH_VARARGS},
   {"AdaptMesh", K_XCORE::AdaptMesh, METH_VARARGS},

@@ -1,4 +1,5 @@
 #include "xcore.h"
+#include "karray.h"
 #include "../common/common.h"
 #include "mesh.h"
 #include "smesh.h"
@@ -55,10 +56,6 @@ Mesh reconstruct_mesh(Mesh &M, const Dcel &D, E_Int color)
 
     std::map<E_Int, E_Int> new_ipids;
 
-    std::vector<Face *> faces;
-
-    std::vector<Vertex *> Vold, Vnew;
-
     for (size_t i = 0; i < D.F.size(); i++) {
         Face *f = D.F[i];
 
@@ -91,14 +88,6 @@ Mesh reconstruct_mesh(Mesh &M, const Dcel &D, E_Int color)
                 assert(new_ppids.find(oid) != new_ppids.end());
                 
                 assert(ppset.find(oid) != ppset.end());
-                
-
-                Vold.push_back(v);
-                /*
-                if (new_ppids.find(oid) == new_ppids.end()) {
-                    new_ppids[oid] = np++;
-                }
-                */
 
 
             } else {
@@ -108,15 +97,11 @@ Mesh reconstruct_mesh(Mesh &M, const Dcel &D, E_Int color)
                 assert(vid != -1);
 
                 if (new_ipids.find(vid) == new_ipids.end()) {
-                    Vnew.push_back(v);
                     new_ipids[vid] = np++;
                 }
             }
         }
     }
-
-    point_write("vold", Vold);
-    point_write("vnew", Vnew);
 
     // All ofaces must be present in the map
     assert(ofid_to_ofids.size() == pfset.size());
@@ -205,7 +190,7 @@ Mesh reconstruct_mesh(Mesh &M, const Dcel &D, E_Int color)
         }
     }
 
-    // Add the E_Intersection faces
+    // Add the intersection faces
 
     for (const auto &fdata : ofid_to_ofids) {
         const auto &ofids = fdata.second;
@@ -273,6 +258,7 @@ Mesh reconstruct_mesh(Mesh &M, const Dcel &D, E_Int color)
 
     assert(M.np == (E_Int)ppset.size() + nop);
     
+    /*
     std::vector<E_Int> IP;
     for (E_Int i = M.np; i < np; i++) IP.push_back(i);
 
@@ -282,7 +268,8 @@ Mesh reconstruct_mesh(Mesh &M, const Dcel &D, E_Int color)
     for (E_Int i = nop; i < M.np; i++) OP.push_back(i);
 
     point_write("OPOINTS", new_X.data(), new_Y.data(), new_Z.data(), OP);
-    
+    */
+
     return new_M;
 }
 
@@ -295,112 +282,53 @@ PyObject *K_XCORE::intersectSurf(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    // Check master mesh
+    Karray marray;
+    Karray sarray;
+
     E_Int ret;
-    E_Int ni, nj, nk;
-    K_FLD::FldArrayF *fm;
-    K_FLD::FldArrayI *cnm;
-    char *varString, *eltType;
-    ret = K_ARRAY::getFromArray3(MASTER, varString, fm, ni, nj, nk, cnm, eltType);
 
-    if (ret <= 0) {
-        RAISE("Bad master mesh");
+    ret = Karray_parse_ngon(MASTER, marray);
+
+    if (ret != 0) return NULL;
+
+    ret = Karray_parse_ngon(SLAVE, sarray);
+
+    if (ret != 0) {
+        Karray_free_ngon(marray);
         return NULL;
     }
 
-    if (ret == 1) {
-        RAISE("Master mesh is not NGon.");
-        RELEASESHAREDS(MASTER, fm);
-        return NULL;
-    }
+    // Init and orient master/slave meshes
+    Mesh M(*marray.cn, marray.X, marray.Y, marray.Z, marray.npts);
+    Mesh S(*sarray.cn, sarray.X, sarray.Y, sarray.Z, sarray.npts);
 
-    E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
-    E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
-    E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
-
-    if (posx == -1 || posy == -1 || posz == -1) {
-        RELEASESHAREDU(MASTER, fm, cnm);
-        RAISE("Bad master point coordinates.");
-        return NULL;
-    }
-
-    posx++; posy++; posz++;
-
-    E_Float *Xm = fm->begin(posx);
-    E_Float *Ym = fm->begin(posy);
-    E_Float *Zm = fm->begin(posz);
-    E_Int npm = fm->getSize();
-
-    // Check slave mesh
-    K_FLD::FldArrayF *fs;
-    K_FLD::FldArrayI *cns;
-    ret = K_ARRAY::getFromArray3(SLAVE, varString, fs, ni, nj, nk, cns, eltType);
-
-    if (ret <= 0) {
-        RELEASESHAREDU(MASTER, fm, cnm);
-        RAISE("Bad slave mesh");
-        return NULL;
-    }
-
-    if (ret != 2) {
-        RAISE("Slave mesh is not NGon.");
-        RELEASESHAREDU(MASTER, fm, cnm);
-        RELEASESHAREDB(ret, SLAVE, fs, cns);
-        return NULL;
-    }
-
-    posx = K_ARRAY::isCoordinateXPresent(varString);
-    posy = K_ARRAY::isCoordinateYPresent(varString);
-    posz = K_ARRAY::isCoordinateZPresent(varString);
-
-    if (posx == -1 || posy == -1 || posz == -1) {
-        RELEASESHAREDU(MASTER, fm, cnm);
-        RELEASESHAREDU(SLAVE, fs, cns);
-        RAISE("Bad slave point coordinates.");
-        return NULL;
-    }
-
-    posx++; posy++; posz++;
-
-    E_Float *Xs = fs->begin(posx);
-    E_Float *Ys = fs->begin(posy);
-    E_Float *Zs = fs->begin(posz);
-    E_Int nps = fs->getSize();
-
-    // Check E_Intersection patch
+    // Check intersection patch
     E_Int *mpatch = NULL;
     E_Int mpatch_size = -1;
     ret = K_NUMPY::getFromNumpyArray(PATCH, mpatch, mpatch_size, true);
     if (ret != 1) {
-        RELEASESHAREDU(MASTER, fm, cnm);
-        RELEASESHAREDU(SLAVE, fs, cns);
+        Karray_free_ngon(marray);
+        Karray_free_ngon(sarray);
         RAISE("Bad master patch.");
         return NULL;
     }
 
     printf("Master patch: " SF_D_ " faces\n", mpatch_size);
 
+    for (E_Int i = 0; i < mpatch_size; i++) M.patch.insert(mpatch[i]);
+
     // Check slave point tags
     E_Float *tag = NULL;
     E_Int tag_size = -1;
     ret = K_NUMPY::getFromNumpyArray(TAG, tag, tag_size, true);
     if (ret != 1) {
-        RELEASESHAREDU(MASTER, fm, cnm);
-        RELEASESHAREDU(SLAVE, fs, cns);
+        Karray_free_ngon(marray);
+        Karray_free_ngon(sarray);
         RAISE("Bad slave points tag.");
         return NULL;
     }
-
-    // Init and orient master/slave meshes
-    Mesh M(*cnm, Xm, Ym, Zm, npm);
-    Mesh S(*cns, Xs, Ys, Zs, nps);
-
-    //M.orient_skin(OUT);
-    //S.orient_skin(IN);
-
-    for (E_Int i = 0; i < mpatch_size; i++) M.patch.insert(mpatch[i]);
  
-    // Extract Mf and Sf, the planar surfaces to E_Intersect
+    // Extract Mf and Sf, the planar surfaces to intersect
     // TODO(Imad): quasi-planar surfaces
     for (E_Int i = 0; i < S.nf; i++) {
         const auto &pn = S.F[i];
@@ -420,7 +348,12 @@ PyObject *K_XCORE::intersectSurf(PyObject *self, PyObject *args)
         if (keep) S.patch.insert(i);
     }
 
-    meshes_mutual_refinement(M, S);
+    ret = meshes_mutual_refinement(M, S);
+    if (ret != 0) {
+        Karray_free_ngon(marray);
+        Karray_free_ngon(sarray);
+        return NULL;
+    }
     
     Mesh new_M = M.extract_conformized();
     Mesh new_S = S.extract_conformized();
@@ -428,34 +361,29 @@ PyObject *K_XCORE::intersectSurf(PyObject *self, PyObject *args)
     new_M.orient_skin(OUT);
     new_S.orient_skin(IN);
 
-    new_M.write_ngon("new_M.ngon");
-    new_S.write_ngon("new_S.ngon");
-
     // Extract surface meshes
     Smesh Mf(new_M);
     Smesh Sf(new_S);
 
-    Mf.write_ngon("Mf.ngon");
-    Sf.write_ngon("Sf.ngon");
-
     Dcel D(Mf, Sf);
  
-    D.find_E_Intersections();
+    D.find_intersections();
 
-    Mesh M_E_Inter = reconstruct_mesh(new_M, D, Dcel::RED);
-    M_E_Inter.write_ngon("M_E_Inter.ngon");
+    Mesh M_inter = reconstruct_mesh(new_M, D, Dcel::RED);
     
-    Mesh S_E_Inter = reconstruct_mesh(new_S, D, Dcel::BLACK);
-    S_E_Inter.write_ngon("S_E_Inter.ngon");
+    Mesh S_inter = reconstruct_mesh(new_S, D, Dcel::BLACK);
 
     // Export
-    PyObject *Mout = M_E_Inter.export_karray();
-    PyObject *Sout = S_E_Inter.export_karray();
+    PyObject *Mout = M_inter.export_karray();
+    PyObject *Sout = S_inter.export_karray();
 
     PyObject *Out = PyList_New(0);
     PyList_Append(Out, Mout);
     PyList_Append(Out, Sout);
     Py_DECREF(Mout);
     Py_DECREF(Sout);
+    Karray_free_ngon(marray);
+    Karray_free_ngon(sarray);
+
     return Out;
 }

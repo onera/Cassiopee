@@ -32,7 +32,7 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    // Check E_Intersection patch
+    // Check intersection patch
     E_Int *patch = NULL;
     E_Int patch_size = -1;
     ret = K_NUMPY::getFromNumpyArray(PATCH, patch, patch_size, true);
@@ -60,10 +60,10 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
 
     /**************************************************************************/
 
-    // Detect at which k does the slave mesh E_Intersect the marray mesh
+    // Detect at which k does the slave mesh intersect the marray mesh
     // Get projected points coordinates
 
-    // Max plane index that doesn't E_Intersection with marray bbox (zero-based)
+    // Max plane index that doesn't intersection with marray bbox (zero-based)
     E_Int kmax = 0;
 
     for (E_Int k = 0; k < nk; k++) {
@@ -164,6 +164,8 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
         // point must hit!
         assert(hit == 1);
     }
+
+    edge_write("projection", Xs, Ys, Zs, point_hit_table);
 
     /*************************************************************************/
 

@@ -113,7 +113,7 @@ E_Int cmp_mySeg(const Segment &s1, const Segment &s2)
     return cmp;
 }
 
-void compute_E_Intersection(Queue &Q, Snode *sit0, Snode *sit1,
+void compute_intersection(Queue &Q, Snode *sit0, Snode *sit1,
     std::vector<Vertex *> &I)
 {
     Segment s0 = *sit0->key;

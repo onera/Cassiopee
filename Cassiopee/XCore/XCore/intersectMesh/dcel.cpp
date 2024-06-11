@@ -93,7 +93,7 @@ void Dcel::resolve(Vertex *p, const std::vector<Segment *> &L,
     }
 }
 
-void Dcel::find_E_Intersections()
+void Dcel::find_intersections()
 {
     Status T;
 

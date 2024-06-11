@@ -7,7 +7,7 @@
 
 extern E_Float TOL;
 
-void compute_E_Intersection(Queue &Q, Snode *sit0, Snode *sit1,
+void compute_intersection(Queue &Q, Snode *sit0, Snode *sit1,
     std::vector<Vertex *> &I);
 
 E_Int compare(const Vertex &a, const Vertex &b);

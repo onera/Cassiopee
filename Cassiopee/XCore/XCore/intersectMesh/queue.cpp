@@ -9,7 +9,7 @@ Queue::Queue()
 : root(NULL), nelem(0)
 {}
 
-// Insert an E_Intersection
+// Insert an intersection
 Event *Queue::insert(E_Float x, E_Float y)
 {
     return insert_(root, x, y);

@@ -1,15 +1,26 @@
 #include <stack>
 
 #include "mesh.h"
+#include "../common/common.h"
 
-void meshes_mutual_refinement(Mesh &M, Mesh &S)
+int meshes_mutual_refinement(Mesh &M, Mesh &S)
 {
     size_t refM, refS;
+    int iter = 0;
 
     do {
+        iter++;
+        /*
+        if (iter > 1) {
+            RAISE("Cannot refine surface meshes more than once, for now.\n");
+            return 1;
+        }
+        */
         refM = M.refine(M.patch, S.patch, S);
         refS = S.refine(S.patch, M.patch, M);
     } while (refM > 0 || refS > 0);
+
+    return 0;
 }
 
 size_t Mesh::refine(std::set<E_Int> &mpatch, std::set<E_Int> &spatch,
