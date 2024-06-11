@@ -50,6 +50,7 @@ Data*
 *.pov
 *.obj
 *.d
+*.foam/
 out_foam/
 chm000*
 

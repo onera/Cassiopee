@@ -1185,7 +1185,7 @@ def convertPyTree2File(t, fileName, format=None, isize=4, rsize=8,
     a = getAllFields(a, 'nodes', api=3)
     a = Internal.clearList(a)
     zoneNames = getZoneNames(t, prefixByBase=False)
-    BCFaces = getBCFaces(t)
+    BCFaces = getBCFaces(t, nameType=1)
     Converter.convertArrays2File(a, fileName, format, isize, rsize, endian,
                                  colormap, dataFormat, zoneNames, BCFaces)
 
@@ -3942,12 +3942,10 @@ def _addBC2NGonZone__(z, bndName, bndType, faceList, data, subzone,
       freeHook(hook)
 
     # Cree le noeud zoneGridConnectivity si besoin
-    zoneGC = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
-    if zoneGC == []:
+    zoneGC = Internal.getNodeFromType1(z, 'ZoneGridConnectivity_t')
+    if zoneGC is None:
       z[2].append(['ZoneGridConnectivity', None, [], 'ZoneGridConnectivity_t'])
       zoneGC = z[2][len(z[2])-1]
-    else:
-      zoneGC = zoneGC[0]
 
     if isinstance(zoneDonor, str): v = zoneDonor
     else: v = zoneDonor[0]
@@ -6118,7 +6116,7 @@ def _fillEmptyBCWith(t, bndName, bndType, dim=3):
           else:
             try:
               import Transform.PyTree as T
-              zbc = T.subzone(z,w, type='faces')
+              zbc = T.subzone(z, w, type='faces')
               _addBC2Zone(z, bndName+str(c), bndType, subzone=zbc); c += 1
             except:
               raise ImportError("_fillEmptyBCWith: requires Transform module for unstructured MIXED zones")
