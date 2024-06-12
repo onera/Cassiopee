@@ -1143,7 +1143,7 @@ def display360(t, **kwargs):
     exportRez = kwargs.get("exportResolution", "4096x2048")
     offscreen = kwargs.get("offscreen", 1)
     stereo = kwargs.get("stereo", 0)
-    stereoDist = kwargs.get("stereoDist", 1./30.)
+    stereoDist = kwargs.get("stereoDist", 0.07) # stereoDist is in real world distance
     if stereo == 1: kwargs['stereo'] = 0
 
     # resolution for the 6 view images
@@ -1166,7 +1166,7 @@ def display360(t, **kwargs):
         finalizeExport(foffscreen)
 
     if stereo == 1: # left eye
-        import Transform.PyTree as T
+        import Generator.PyTree as G
         export2 = export.rsplit('.', 1)
         if len(export2) == 2: export2 = export2[0]+'_2.'+export2[1]
         else: export2 = export+'_2'
@@ -1174,6 +1174,7 @@ def display360(t, **kwargs):
         v1 = Vector.sub(posEye, posCam)
         vz = Vector.normalize(dirCam)
         v2 = Vector.cross(vz, v1)
+        v2 = Vector.normalize(v2)
         v3 = Vector.mul(stereoDist, v2)
         posCam = Vector.add(posCam, v3)
     
@@ -1193,11 +1194,16 @@ def display360(t, **kwargs):
             a2 = Internal.getZones(a2)[0]
             a1[0] = "right"
             a2[0] = "left"
-            locRez = exportRez.split('x')[1]
-            locRez = float(locRez)
-            T._translate(a1, (0.,locRez-1.,0.))
-            a = T.join(a1, a2, tol=0.5)
-            #a = [a1,a2]
-            C.convertPyTree2File(a, 'final.png') # finale
+            locRez = exportRez.split('x')
+            ni = int(locRez[0]); nj = int(locRez[1])
+            a = G.cart((0,0,0), (1,1,1), (ni,2*nj,1))
+            C._addVars(a, ['r','g','b','a'])
+            for v in ['r','g','b','a']:
+                pr = Internal.getNodeFromName2(a, v)[1]
+                pr1 = Internal.getNodeFromName2(a1, v)[1]
+                pr2 = Internal.getNodeFromName2(a2, v)[1]
+                pr[0:ni,0:nj] = pr1[0:ni,0:nj]
+                pr[0:ni,nj:2*nj] = pr2[0:ni,0:nj]
+            C.convertPyTree2File(a, export) # finale
     Cmpi.barrier() # wait for completion
     return None
