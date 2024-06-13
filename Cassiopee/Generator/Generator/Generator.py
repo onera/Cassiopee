@@ -827,7 +827,9 @@ def closeLegacy(array, tol=1.e-12, suppressDegeneratedNGons=False):
     else:
         return generator.closeMeshLegacy(array, tol, suppressDegeneratedNGons)
         
-def close(array, tol=1.e-12, suppressDegeneratedNGons=False):
+def close(array, tol=1.e-12, rmOverlappingPts=True, rmOrphanPts=True,
+          rmDuplicatedFaces=True, rmDuplicatedElts=True,
+          rmDegeneratedFaces=True, rmDegeneratedElts=True):
     """Close an unstructured mesh defined by an array gathering points closer than tol.
     Usage: close(array, tol)"""
     if isinstance(array[0], list):
@@ -836,11 +838,18 @@ def close(array, tol=1.e-12, suppressDegeneratedNGons=False):
             if len(a) == 5: # merge intra-borders (C-type meshes)
                 outl = generator.closeBorders([a], [], tol)[0]
             else:
-                outl = generator.closeMesh(a, tol, suppressDegeneratedNGons)
+                outl = generator.closeMesh(a, tol, rmOverlappingPts,
+                                           rmOrphanPts, rmDuplicatedFaces,
+                                           rmDuplicatedElts,
+                                           rmDegeneratedFaces,
+                                           rmDegeneratedElts)
             out.append(outl)
         return out
     else:
-        return generator.closeMesh(array, tol, suppressDegeneratedNGons)
+        return generator.closeMesh(array, tol, rmOverlappingPts,
+                                   rmOrphanPts, rmDuplicatedFaces,
+                                   rmDuplicatedElts, rmDegeneratedFaces,
+                                   rmDegeneratedElts)
 
 def zip(array, tol=1e-12):
     """Zip a set of meshes defined by gathering exterior points closer than tol.
