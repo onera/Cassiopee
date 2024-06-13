@@ -239,7 +239,8 @@ Setting IBC Type
     
     * `Symmetrize the surface (pyTree) <Examples/Geom/symetrizePbPT.py>`_:
     
-    .. literalinclude:: ../build/Examples/Geom/symetrizePbPT.py                        
+    .. literalinclude:: ../build/Examples/Geom/symetrizePbPT.py
+                                
 ---------------------------------------
 
 .. py:function:: Geom.IBM.initOutflow(tc, familyName, Pstatic, InterpolPlane=None, PressureVar=0,isDensityConstant=False)
