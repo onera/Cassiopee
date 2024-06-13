@@ -2261,7 +2261,21 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
     {
       if (typeNum == NPY_DOUBLE)
       {
-        setArrayR8(child, (double*)PyArray_DATA(ar), dim, dims);
+        // patch pour la norme CGNS
+        if (strcmp(name, "RotationCenter") == 0 ||
+            strcmp(name, "RotationAngle") == 0 ||
+            strcmp(name, "RotationRateVector") == 0 ||
+            strcmp(name, "Translation") == 0)
+        {
+          E_Int s = PyArray_SIZE(ar);
+          float* buf = new float [s];
+          double* ptr = (double*)PyArray_DATA(ar);
+          for (E_Int i = 0; i < s; i++) buf[i] = ptr[i];
+          setArrayR4(child, buf, dim, dims);
+          delete [] buf;
+        }
+        else
+          setArrayR8(child, (double*)PyArray_DATA(ar), dim, dims);
       }
       else if (typeNum == NPY_INT || typeNum == NPY_INT64 || typeNum == NPY_LONG)
       {

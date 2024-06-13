@@ -18,7 +18,7 @@ ulimit -s unlimited
 
 # Detect machine (shortest first)
 KC=`uname -n`
-MAC0=$(echo $KC | grep 'n'); if [ "$MAC0" != "" ]; then export MAC="sator_brw"; fi
+MAC0=$(echo $KC | grep 'n'); if [ "$MAC0" != "" ]; then export MAC="sator_cas"; fi
 MAC0=$(echo $KC | grep 'ld'); if [ "$MAC0" != "" ]; then export MAC="ld"; fi
 MAC0=$(echo $KC | grep 'clausius'); if [ "$MAC0" != "" ]; then export MAC="ld"; fi
 MAC0=$(echo $KC | grep 'ubuntu'); if [ "$MAC0" != "" ]; then export MAC="ubuntu"; fi
@@ -27,7 +27,7 @@ MAC0=$(echo $KC | grep 'austri'); if [ "$MAC0" != "" ]; then export MAC="austri"
 MAC0=$(echo $KC | grep 'celeste'); if [ "$MAC0" != "" ]; then export MAC="visio"; fi
 MAC0=$(echo $KC | grep 'visung'); if [ "$MAC0" != "" ]; then export MAC="visung"; fi
 MAC0=$(echo $KC | grep 'giulia'); if [ "$MAC0" != "" ]; then export MAC="giulia"; fi
-MAC0=$(echo $KC | grep 'sator'); if [ "$MAC0" != "" ]; then export MAC="sator_brw"; fi
+MAC0=$(echo $KC | grep 'sator'); if [ "$MAC0" != "" ]; then export MAC="sator_cas"; fi
 MAC0=$(echo $KC | grep 'jean-zay'); if [ "$MAC0" != "" ]; then export MAC="jean-zay"; fi
 MAC0=$(echo $KC | grep 'spiro'); if [ "$MAC0" != "" ]; then export MAC="spiro_el8"; fi
 MAC0=$(echo $KC | grep 'f0'); if [ "$MAC0" != "" ]; then export MAC="juno"; fi

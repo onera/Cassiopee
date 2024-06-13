@@ -15,7 +15,7 @@ limit stacksize unlimited
 
 # Detection machine (shortest first)
 set KC=`uname -n`
-set MAC0=`echo $KC | grep 'n'`; if ($%MAC0 != 0) set MAC="sator_brw"
+set MAC0=`echo $KC | grep 'n'`; if ($%MAC0 != 0) set MAC="sator_cas"
 set MAC0=`echo $KC | grep 'ld'`; if ($%MAC0 != 0) set MAC="ld"
 set MAC0=`echo $KC | grep 'clausius'`; if ($%MAC0 != 0) set MAC="ld"
 set MAC0=`echo $KC | grep 'ubuntu'`; if ($%MAC0 != 0) set MAC="ubuntu"
@@ -26,7 +26,7 @@ set MAC0=`echo $KC | grep 'laura'`; if ($%MAC0 != 0) set MAC="laura"
 set MAC0=`echo $KC | grep 'celeste'`; if ($%MAC0 != 0) set MAC="visio"
 set MAC0=`echo $KC | grep 'visung'`; if ($%MAC0 != 0) set MAC="visung"
 set MAC0=`echo $KC | grep 'giulia'`; if ($%MAC0 != 0) set MAC="giulia"
-set MAC0=`echo $KC | grep 'sator'`; if ($%MAC0 != 0) set MAC="sator_brw"
+set MAC0=`echo $KC | grep 'sator'`; if ($%MAC0 != 0) set MAC="sator_cas"
 set MAC0=`echo $KC | grep 'spiro'`; if ($%MAC0 != 0) set MAC="spiro_el8"
 set MAC0=`echo $KC | grep 'f0'`; if ($%MAC0 != 0) set MAC="juno"
 set MAC0=`echo $KC | grep 'n0'`; if ($%MAC0 != 0) set MAC="juno"
@@ -231,7 +231,6 @@ else if ($MAC == "visio_python3") then
         module load python/3.6.1
         # Set next two lines only if python is not python
         setenv PYTHONEXE python3
-        alias python python3
         module load gcc/4.8.1
         module load intel/17.0.4
         module load impi/17
@@ -285,7 +284,6 @@ else if ($MAC == "visung_el8") then
         module load occt/7.6.1-gnu831
         # Set next two lines only if python is not python
         setenv PYTHONEXE python3
-        alias python python3
         unsetenv I_MPI_PMI_LIBRARY
         #setenv PRODMODE 1
         #setenv PIP_DISABLE_PIP_VERSION_CHECK 1
@@ -371,7 +369,6 @@ else if ($MAC == "jean-zay") then
         module load hdf5/1.10.5
         # Set next two lines only if python is not python
         setenv PYTHONEXE python3
-        alias python python3
         # Number of threads
         setenv OMP_NUM_THREADS 28
 
@@ -748,7 +745,7 @@ if ($?PATHL != 0) then
 endif
 if ($?PYTHONEXE) then
     if ($PYTHONEXE == "python3") then
-        alias python=python3
+        alias python python3
         set pyversion="python"`python3 -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
     else
         set pyversion="python"`python -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
