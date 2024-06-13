@@ -34,9 +34,17 @@ PyObject* K_GENERATOR::closeMesh(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Float eps;
-  E_Int removeDegen = 0;
+  E_Bool rmOverlappingPts = true;
+  E_Bool rmOrphanPts = true;
+  E_Bool rmDuplicatedFaces = true;
+  E_Bool rmDuplicatedElts = true;
+  E_Bool rmDegeneratedFaces = true;
+  E_Bool rmDegeneratedElts = true;
   
-  if (!PYPARSETUPLE_(args, O_ R_ I_, &array, &eps, &removeDegen)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ R_ II_ IIII_,
+                    &array, &eps, &rmOverlappingPts, &rmOrphanPts,
+                    &rmDuplicatedFaces, &rmDuplicatedElts,
+                    &rmDegeneratedFaces, &rmDegeneratedElts)) return NULL;
 
   // Check array
   E_Int im, jm, km;
@@ -73,17 +81,11 @@ PyObject* K_GENERATOR::closeMesh(PyObject* self, PyObject* args)
       return NULL;
     }
 
-    PyObject* tpl = NULL;
-    if (strcmp(eltType, "NGON") == 0)
-    {
-      tpl = K_CONNECT::V_cleanConnectivity(varString, *f, *cn, eltType, eps);
-      if (tpl == NULL) tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType); // tpl = array;
-    }
-    else
-    {
-      closeUnstructuredMesh(posx, posy, posz, eps, eltType, *f, *cn, removeDegen);
-      tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType);
-    }
+    PyObject* tpl = K_CONNECT::V_cleanConnectivity(
+        varString, *f, *cn, eltType, eps,
+        rmOverlappingPts, rmOrphanPts, rmDuplicatedFaces, rmDuplicatedElts,
+        rmDegeneratedFaces, rmDegeneratedElts);
+    if (tpl == NULL) tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType); // tpl = array;
 
     delete f; delete cn;
     return tpl;

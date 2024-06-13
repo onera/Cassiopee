@@ -41,6 +41,7 @@ shutil.copyfile("config.py", installPath+"/config.py")
 shutil.copyfile("Dist.py", installPath+"/Dist.py")
 shutil.copyfile("installPath.py", installPath+"/installPath.py")
 shutil.copyfile("installBase.py", installPath+"/installBase.py")
+shutil.copyfile("test/notify.py", installPath+"/notify.py")
 
 # Ecrit les infos d'install
 Dist.writeBuildInfo()

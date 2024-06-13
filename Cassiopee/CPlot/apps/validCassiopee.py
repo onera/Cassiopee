@@ -1539,38 +1539,6 @@ def writeSessionLog():
     writeFinal(os.path.join(VALIDDIR['LOCAL'], 'session.log'), logTxt=messageText)
 
 #==============================================================================
-# Send an email
-#==============================================================================
-def notify(sender=None, recipients=[], messageSubject="", messageText=""):
-    try:
-        import smtplib
-        from email.mime.text import MIMEText
-        from email.mime.multipart import MIMEMultipart
-
-        if sender is None:
-            if os.getenv('CASSIOPEE_EMAIL') is None:
-                if os.getenv('USER') is None:
-                    print("Sender email address not found.")
-                    return
-                else: sender = os.getenv('USER')+'@onera.fr'
-            else: sender = os.getenv('CASSIOPEE_EMAIL')
-        if isinstance(recipients, str): recipients = [recipients]
-        if not recipients: recipients = ['christophe.benoit@onera.fr']
-        
-        msg = MIMEMultipart()
-        msg['Subject'] = messageSubject
-        msg['From'] = sender
-        msg['To'] = ", ".join(recipients)
-        msg['Cc'] = sender
-        msg.preamble = 'Sent by Cassiopee.'
-        if messageText:
-            msg.attach(MIMEText(messageText, 'plain'))
-        s = smtplib.SMTP('localhost')
-        s.sendmail(sender, recipients, msg.as_string())
-        s.quit()
-    except: return
-
-#==============================================================================
 # Notify "Commit ready" 
 #============================================================================== 
 def notifyValidOK():
@@ -1584,8 +1552,13 @@ def notifyValidOK():
     messageText = "Base from {}\n{}\n".format(cassiopeeIncDir, gitInfo)
     for t in TESTS: messageText += t+'\n'
     
-    notify(messageSubject='[Cassiopee] Ready to commit',
-           messageText=messageText)
+    try:
+        from KCore.notify import notify
+        notify(recipients=['christophe.benoit@onera.fr'],
+               messageSubject='[Cassiopee] Ready to commit',
+               messageText=messageText)
+    except ImportError:
+        raise SystemError("Error: KCore is required to import notify.")
     
 #==============================================================================
 def Quit(event=None):
