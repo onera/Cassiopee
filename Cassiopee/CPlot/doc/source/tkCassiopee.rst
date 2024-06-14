@@ -206,11 +206,13 @@ Cassiopee:Block
 This menu gathers applets related to block creation/modification.
 
     - **tkBlock**: enables basic block operations (remove, copy...).
+    
     Exterior faces returns the exterior faces of a zone as an unstructured
     zone. Close merge points in a mesh that are closer than epsilon, the
     resulting mesh connectivity is cleaned.
 
     - **tkTransform**: enables basic transformation of blocks (rotation, translation, ...). 
+    
     When clicking on 'Translate by clicking', you
     must then click on a point of the zone to translate, then on 
     the destination point.
@@ -218,6 +220,7 @@ This menu gathers applets related to block creation/modification.
     - **tkNGon**: preforms NGon (polyedral) operations.
 
     - **tkSplit**: enables splitting or join operations on a block. 
+    
     'Splitsize' splits each zone in order to get the required number of points.
 
     'SplitMP' eliminates multiple point junction in a structured mesh.
@@ -225,6 +228,7 @@ This menu gathers applets related to block creation/modification.
     'SplitConnexity' identifies connex parts in an unstructured block.
 
     - **tkReorder**: enables to reorder a zone. 
+
     Unstructured zones are reordered in order to have normals with the same orientation on each zone. 
     Structured zones are reordered by exchanging i- and j- numerotation.
 
