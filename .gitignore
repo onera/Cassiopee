@@ -5,11 +5,13 @@ __pycache__
 core.*
 setup.cfg
 Dist
+web/doc/Examples
 web/Download
 Cassiopee/KCore/merge.l
 Cassiopee/XCore/merge.l
 Cassiopee/KCore/buildInfo.py
 Cassiopee/KCore/installPath.py
+Cassiopee/KCore/doc/source/*.rst
 
 ValidData*
 Data*
@@ -55,4 +57,3 @@ out_foam/
 chm000*
 
 tools/MigrationSVN
-web/doc

@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="ASCII" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Post.IBM: immersed boundary method specific post-processing &#8212; Post 4.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=514cf933" />
+    
+    <script src="_static/documentation_options.js?v=9f5556dd"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Post.html">Post 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Post.IBM: immersed boundary method specific post-processing</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="post-ibm-immersed-boundary-method-specific-post-processing">
+<h1>Post.IBM: immersed boundary method specific post-processing</h1>
+<p>Specific post-processing for immersed boundaries (IB).</p>
+<p>These functions work with a solution tree &#8220;t&#8221;, a geometry tree &#8220;tb&#8221;, and/or a connectivity tree &#8220;tc&#8221;.</p>
+<section id="list-of-functions">
+<span id="module-Post.IBM"></span><h2>List of functions</h2>
+<p><strong>&#8211; Post-processing for IB</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.IBM.Post.IBM.extractIBMWallFields" title="Post.IBM.Post.IBM.extractIBMWallFields"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.IBM.extractIBMWallFields</span></code></a>(tc[,&#160;tb,&#160;...])</p></td>
+<td><p>Extracts the flow field stored at IBM points onto the surface.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.IBM.Post.IBM.extractShearStress" title="Post.IBM.Post.IBM.extractShearStress"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.IBM.extractShearStress</span></code></a>(ts)</p></td>
+<td><p>Computes the shear stress on the surface.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.IBM.Post.IBM.extractLocalPressureGradients" title="Post.IBM.Post.IBM.extractLocalPressureGradients"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.IBM.extractLocalPressureGradients</span></code></a>(ts)</p></td>
+<td><p>Computes the pressure gradients in the wall normal/tangent direction.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.IBM.Post.IBM.extractYplusIP" title="Post.IBM.Post.IBM.extractYplusIP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.IBM.extractYplusIP</span></code></a>(tc)</p></td>
+<td><p>Computes yplus values at image points and store them in the tc.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.IBM.Post.IBM.extractPressureHO" title="Post.IBM.Post.IBM.extractPressureHO"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.IBM.extractPressureHO</span></code></a>(tc[,&#160;order,&#160;...])</p></td>
+<td><p>Extrapolates the wall pressure (1st or 2nd order) at the immersed boundaries and stores the solution in the tc.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.IBM.Post.IBM.extractConvectiveTerms" title="Post.IBM.Post.IBM.extractConvectiveTerms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.IBM.extractConvectiveTerms</span></code></a>(tc)</p></td>
+<td><p>Computes the convective terms required for the thin boundary layers equations (TBLE) and stores them in the tc.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.IBM.Post.IBM.computeExtraVariables" title="Post.IBM.Post.IBM.computeExtraVariables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.IBM.computeExtraVariables</span></code></a>(ts,&#160;PInf,&#160;QInf)</p></td>
+<td><p>Computes additional variables required for the IBM post-processing.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.IBM.Post.IBM.loads" title="Post.IBM.Post.IBM.loads"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.IBM.loads</span></code></a>(tb_in[,&#160;tc_in,&#160;tc2_in,&#160;...])</p></td>
+<td><p>Computes the viscous and pressure forces on the immersed boundaries</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="contents">
+<h2>Contents</h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.IBM.Post.IBM.extractIBMWallFields">
+<span class="sig-prename descclassname"><span class="pre">Post.IBM.</span></span><span class="sig-name descname"><span class="pre">extractIBMWallFields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordRef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'wall'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">famZones</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">IBCNames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'IBCD_*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extractIBMInfo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Projects the solution computed and stored at IBM points onto the vertices of the surface.</p>
+<p>If tb is None, returns the cloud of IBM points.
+Else, the solution is projected onto the bodies, using a third-order accurate Moving Least Squares interpolation.</p>
+<p>Returns density, pressure, utau, yplus, velocity components. (Optional: yplus at image points, pressure gradients, curvature coefficient, temperature)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tc</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; connectivity tree</p></li>
+<li><p><strong>tb</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; surface mesh (TRI-type)</p></li>
+<li><p><strong>coordRef</strong> (<em>'wall'</em><em>,</em><em>'target'</em><em> or </em><em>'image'</em>) &#8211; reference coordinates for the cloud of IBM points (default is IBM wall points)</p></li>
+<li><p><strong>famZones</strong> (<em>list</em><em> of </em><em>family names</em>) &#8211; list of IBC families to be projected</p></li>
+<li><p><strong>extractIBMInfo</strong> (<em>boolean</em>) &#8211; if True, extracts all IBM point coordinates (wall, target and image points)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>surface tree with the flow solution (density, pressure, friction velocity, yplus)</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/extractIBMWallFieldsPT.py">Projects the solution at IBM wall points onto the vertices of the surface (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - extractionIBM a la paroi (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Post.IBM</span> <span class="k">as</span> <span class="nn">P_IBM</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">KCore.test</span> <span class="k">as</span> <span class="nn">test</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">sphere</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span><span class="mi">1</span><span class="p">,</span><span class="n">N</span><span class="o">=</span><span class="mi">20</span><span class="p">);</span> <span class="n">a</span><span class="o">=</span><span class="n">C</span><span class="o">.</span><span class="n">convertArray2Tetra</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">ts</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s2">&quot;Base&quot;</span><span class="p">,</span><span class="n">a</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addState</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="s1">&#39;EquationDimension&#39;</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addState</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="s1">&#39;GoverningEquations&#39;</span><span class="p">,</span> <span class="s1">&#39;Euler&#39;</span><span class="p">)</span>
+
+<span class="n">x0</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span><span class="p">;</span> <span class="n">N</span> <span class="o">=</span> <span class="mi">41</span><span class="p">;</span> <span class="n">h</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="nb">abs</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="n">x0</span><span class="p">,</span><span class="n">x0</span><span class="p">,</span><span class="n">x0</span><span class="p">),(</span><span class="n">h</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">h</span><span class="p">),(</span><span class="n">N</span><span class="p">,</span><span class="n">N</span><span class="p">,</span><span class="n">N</span><span class="p">))</span>
+<span class="n">zname</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getName</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+<span class="n">zsr</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">createNode</span><span class="p">(</span><span class="s1">&#39;IBCD_&#39;</span><span class="o">+</span><span class="n">zname</span><span class="p">,</span> <span class="s1">&#39;ZoneSubRegion_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">zname</span><span class="p">)</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">_createChild</span><span class="p">(</span><span class="n">zsr</span><span class="p">,</span> <span class="s1">&#39;GridLocation&#39;</span><span class="p">,</span> <span class="s1">&#39;GridLocation_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">&#39;CellCenter&#39;</span><span class="p">)</span>
+
+<span class="c1"># mimic the IBM wall pt info</span>
+<span class="n">a2</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">sphere</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span><span class="mi">1</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">30</span><span class="p">);</span> <span class="n">a2</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2Tetra</span><span class="p">(</span><span class="n">a2</span><span class="p">);</span> <span class="n">a2</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">a2</span><span class="p">)</span>
+<span class="n">GC</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromType</span><span class="p">(</span><span class="n">a2</span><span class="p">,</span><span class="s2">&quot;GridCoordinates_t&quot;</span><span class="p">)</span>
+<span class="n">FSN</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromType</span><span class="p">(</span><span class="n">a2</span><span class="p">,</span><span class="s1">&#39;FlowSolution_t&#39;</span><span class="p">)</span>
+<span class="n">nIBC</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getZoneDim</span><span class="p">(</span><span class="n">a2</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">XP</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nIBC</span><span class="p">),</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="n">XN</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromName</span><span class="p">(</span><span class="n">GC</span><span class="p">,</span><span class="s1">&#39;CoordinateX&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">];</span> <span class="n">XP</span><span class="p">[:]</span><span class="o">=</span><span class="n">XN</span><span class="p">[:]</span>
+<span class="n">YP</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nIBC</span><span class="p">),</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="n">YN</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromName</span><span class="p">(</span><span class="n">GC</span><span class="p">,</span><span class="s1">&#39;CoordinateY&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">];</span> <span class="n">YP</span><span class="p">[:]</span><span class="o">=</span><span class="n">YN</span><span class="p">[:]</span>
+<span class="n">ZP</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nIBC</span><span class="p">),</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="n">ZN</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromName</span><span class="p">(</span><span class="n">GC</span><span class="p">,</span><span class="s1">&#39;CoordinateZ&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">];</span> <span class="n">ZP</span><span class="p">[:]</span><span class="o">=</span><span class="n">ZN</span><span class="p">[:]</span>
+<span class="n">DENS</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">nIBC</span><span class="p">),</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="n">DENS</span><span class="p">[:]</span><span class="o">=</span><span class="n">XP</span><span class="p">[:]</span><span class="o">*</span><span class="n">YP</span><span class="p">[:]</span><span class="o">*</span><span class="n">ZP</span><span class="p">[:]</span>
+<span class="n">PRESS</span> <span class="o">=</span> <span class="mi">101325</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">nIBC</span><span class="p">),</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateX_PW&#39;</span><span class="p">,</span> <span class="n">XP</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+<span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateY_PW&#39;</span><span class="p">,</span> <span class="n">YP</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+<span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateZ_PW&#39;</span><span class="p">,</span> <span class="n">ZP</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+<span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;Pressure&#39;</span><span class="p">,</span> <span class="n">PRESS</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+<span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;Density&#39;</span><span class="p">,</span> <span class="n">DENS</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+<span class="n">z</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">zsr</span><span class="p">)</span>
+<span class="n">tc</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;CART&#39;</span><span class="p">]);</span> <span class="n">tc</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">P_IBM</span><span class="o">.</span><span class="n">extractIBMWallFields</span><span class="p">(</span><span class="n">tc</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="n">ts</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;nodes&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">z</span><span class="p">,</span><span class="s1">&#39;</span><span class="si">{Density0}</span><span class="s1">=</span><span class="si">{CoordinateX}</span><span class="s1">*</span><span class="si">{CoordinateY}</span><span class="s1">*</span><span class="si">{CoordinateZ}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">z</span><span class="p">,</span><span class="s2">&quot;out.cgns&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.IBM.Post.IBM.extractShearStress">
+<span class="sig-prename descclassname"><span class="pre">Post.IBM.</span></span><span class="sig-name descname"><span class="pre">extractShearStress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Computes the shear stress on the immersed boundary surface using utau values. Exists also as in-place (_extractShearStress).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tb</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; surface mesh (TRI-type) with density, velocity, utau variable</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>surface tree with the shear stress variables located at the cell centers (&#8220;ShearStressXX&#8221;, &#8220;ShearStressYY&#8221;, &#8220;ShearStressZZ&#8221;, &#8220;ShearStressXY&#8221;, &#8220;ShearStressXZ&#8221;, &#8220;ShearStressYZ&#8221;)</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/computeShearStressPT.py">Computes the shear stress on the immersed boundary surface using utau values. (pyTree)</a>:</p></li>
+</ul>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.IBM.Post.IBM.extractLocalPressureGradients">
+<span class="sig-prename descclassname"><span class="pre">Post.IBM.</span></span><span class="sig-name descname"><span class="pre">extractLocalPressureGradients</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Computes the pressure gradients in the wall normal/tangent direction. Exists also as in-place (_extractLocalPressureGradients).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tb</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; surface mesh (TRI-type) with pressure gradients in x, y and z directions</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>surface tree with the normal and tangential pressure gradient variables located at the cell centers (&#8220;gradtP&#8221; and &#8220;gradnP&#8221;)</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.IBM.Post.IBM.extractYplusIP">
+<span class="sig-prename descclassname"><span class="pre">Post.IBM.</span></span><span class="sig-name descname"><span class="pre">extractYplusIP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tc</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Computes yplus values at image points and stores them in the tc. Exists also as in-place (_extractYplusIP).</p>
+<p>These new yplus values require yplus information located at target points as well as all IBM point coordinates (wall, target and image points)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tc</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; connectivity tree</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>same as input with yplusIP field in each IBCD zone.</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.IBM.Post.IBM.extractPressureHO">
+<span class="sig-prename descclassname"><span class="pre">Post.IBM.</span></span><span class="sig-name descname"><span class="pre">extractPressureHO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extractDensity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Extrapolates the wall pressure (1st order) at the immersed boundaries and stores the solution in the tc. Exists also as in-place (_extractPressureHO).</p>
+<p>Requires pressure gradient information in the x, y and z directions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tc</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; connectivity tree</p></li>
+<li><p><strong>extractDensity</strong> (<em>boolean</em>) &#8211; if True, modifies the density solution using perfect gas law and the updated pressure solution</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>same as input with updated pressure solution in each IBCD zone.</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/extractPressureHOPT.py">1st order extrapolation of the pressure at the IB (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - extractPressureHO (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">KCore.test</span> <span class="k">as</span> <span class="nn">test</span>
+<span class="kn">import</span> <span class="nn">Post.IBM</span> <span class="k">as</span> <span class="nn">P_IBM</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.2</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">12</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">node2Center</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+    <span class="n">Internal</span><span class="o">.</span><span class="n">_createChild</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;IBCD_2_&#39;</span><span class="o">+</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">,</span> <span class="s1">&#39;ZoneSubRegion_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="n">Nlength</span>  <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">10</span><span class="p">),</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+    <span class="n">subRegions</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodesFromType1</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;ZoneSubRegion_t&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">zsr</span> <span class="ow">in</span> <span class="n">subRegions</span><span class="p">:</span>
+        <span class="n">Internal</span><span class="o">.</span><span class="n">_createChild</span><span class="p">(</span><span class="n">zsr</span><span class="p">,</span> <span class="s1">&#39;ZoneRole&#39;</span><span class="p">,</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">&#39;Donor&#39;</span><span class="p">)</span>
+        <span class="n">Internal</span><span class="o">.</span><span class="n">_createChild</span><span class="p">(</span><span class="n">zsr</span><span class="p">,</span> <span class="s1">&#39;GridLocation&#39;</span><span class="p">,</span> <span class="s1">&#39;GridLocation_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">&#39;CellCenter&#39;</span><span class="p">)</span>
+        
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;Pressure&#39;</span><span class="p">,</span> <span class="n">Nlength</span><span class="o">+</span><span class="mi">3</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;Density&#39;</span> <span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateX_PW&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">),</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateY_PW&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">),</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateZ_PW&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">),</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateX_PC&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">14</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateY_PC&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">14</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateZ_PC&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">14</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateX_PI&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">15</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateY_PI&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">15</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateZ_PI&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">15</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradxPressure&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradyPressure&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradzPressure&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        
+<span class="n">a</span><span class="o">=</span><span class="n">P_IBM</span><span class="o">.</span><span class="n">extractPressureHO</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.IBM.Post.IBM.extractPressureHO2">
+<span class="sig-prename descclassname"><span class="pre">Post.IBM.</span></span><span class="sig-name descname"><span class="pre">extractPressureHO2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extractDensity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Extrapolates the wall pressure (2nd order) at the immersed boundaries and stores the solution in the tc. Exists also as in-place (_extractPressureHO2).</p>
+<p>Requires first and second order pressure gradient information in the x, y and z directions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tc</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; connectivity tree</p></li>
+<li><p><strong>extractDensity</strong> (<em>boolean</em>) &#8211; if True, modifies the density solution using perfect gas law and the updated pressure solution</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>same as input with updated pressure solution in each IBCD zone.</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/extractPressureHO2PT.py">2nd order extrapolation of the pressure at the IB (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - extractPressureHO2 (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">KCore.test</span> <span class="k">as</span> <span class="nn">test</span>
+<span class="kn">import</span> <span class="nn">Post.IBM</span> <span class="k">as</span> <span class="nn">P_IBM</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.2</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">12</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">node2Center</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+    <span class="n">Internal</span><span class="o">.</span><span class="n">_createChild</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;IBCD_2_&#39;</span><span class="o">+</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">,</span> <span class="s1">&#39;ZoneSubRegion_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="n">Nlength</span>  <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">10</span><span class="p">),</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+    <span class="n">subRegions</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodesFromType1</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;ZoneSubRegion_t&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">zsr</span> <span class="ow">in</span> <span class="n">subRegions</span><span class="p">:</span>
+        <span class="n">Internal</span><span class="o">.</span><span class="n">_createChild</span><span class="p">(</span><span class="n">zsr</span><span class="p">,</span> <span class="s1">&#39;ZoneRole&#39;</span><span class="p">,</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">&#39;Donor&#39;</span><span class="p">)</span>
+        <span class="n">Internal</span><span class="o">.</span><span class="n">_createChild</span><span class="p">(</span><span class="n">zsr</span><span class="p">,</span> <span class="s1">&#39;GridLocation&#39;</span><span class="p">,</span> <span class="s1">&#39;GridLocation_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">&#39;CellCenter&#39;</span><span class="p">)</span>
+        
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;Pressure&#39;</span><span class="p">,</span> <span class="n">Nlength</span><span class="o">+</span><span class="mi">3</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;Density&#39;</span> <span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateX_PW&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">),</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateY_PW&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">),</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateZ_PW&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">),</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateX_PC&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">14</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateY_PC&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">14</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateZ_PC&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">14</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateX_PI&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">15</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateY_PI&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">15</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateZ_PI&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">15</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradxPressure&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradyPressure&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradzPressure&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradxxPressure&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">3</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradxyPressure&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">3</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradxzPressure&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">3</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradyxPressure&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">4</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradyyPressure&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">4</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradyzPressure&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">4</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradzxPressure&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">5</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradzyPressure&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">5</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradzzPressure&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">5</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        
+<span class="n">a</span><span class="o">=</span><span class="n">P_IBM</span><span class="o">.</span><span class="n">extractPressureHO</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.IBM.Post.IBM.extractConvectiveTerms">
+<span class="sig-prename descclassname"><span class="pre">Post.IBM.</span></span><span class="sig-name descname"><span class="pre">extractConvectiveTerms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tc</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Computes the convective terms required for the thin boundary layers equations (TBLE) and stores them in the tc.</p>
+<p>Requires velocity gradient information in the x, y and z directions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tc</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; connectivity tree</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>same as input with convective terms in each IBCD zone (conv1: u*(du/dx) and conv2: v*(du/dy)).</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/extractConvectiveTermsPT.py">Computes the convective terms (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - extractConvectiveTerms (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">KCore.test</span> <span class="k">as</span> <span class="nn">test</span>
+<span class="kn">import</span> <span class="nn">Post.IBM</span> <span class="k">as</span> <span class="nn">P_IBM</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.2</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">12</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">node2Center</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+    <span class="n">Internal</span><span class="o">.</span><span class="n">_createChild</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;IBCD_2_&#39;</span><span class="o">+</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">,</span> <span class="s1">&#39;ZoneSubRegion_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="n">Nlength</span>  <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">10</span><span class="p">),</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+    <span class="n">subRegions</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodesFromType1</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;ZoneSubRegion_t&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">zsr</span> <span class="ow">in</span> <span class="n">subRegions</span><span class="p">:</span>
+        <span class="n">Internal</span><span class="o">.</span><span class="n">_createChild</span><span class="p">(</span><span class="n">zsr</span><span class="p">,</span> <span class="s1">&#39;ZoneRole&#39;</span><span class="p">,</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">&#39;Donor&#39;</span><span class="p">)</span>
+        <span class="n">Internal</span><span class="o">.</span><span class="n">_createChild</span><span class="p">(</span><span class="n">zsr</span><span class="p">,</span> <span class="s1">&#39;GridLocation&#39;</span><span class="p">,</span> <span class="s1">&#39;GridLocation_t&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">&#39;CellCenter&#39;</span><span class="p">)</span>
+        
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateX_PW&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">),</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateY_PW&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">),</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateZ_PW&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">),</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateX_PC&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">14</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateY_PC&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">14</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateZ_PC&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">14</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateX_PI&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">15</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateY_PI&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">15</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;CoordinateZ_PI&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">15</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;Pressure&#39;</span><span class="p">,</span> <span class="n">Nlength</span><span class="o">+</span><span class="mi">3</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;Density&#39;</span> <span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+            
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradxPressure&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradyPressure&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradzPressure&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradxVelocityX&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">3</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradyVelocityX&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">3</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradzVelocityX&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">3</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradxVelocityY&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">4</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradyVelocityY&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">4</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradzVelocityY&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">4</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradxVelocityZ&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">5</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradyVelocityZ&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">5</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gradzVelocityZ&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">5</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;VelocityX&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">6</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;VelocityY&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">7</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        <span class="n">zsr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;VelocityZ&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">Nlength</span><span class="p">)</span><span class="o">+</span><span class="mi">8</span><span class="p">,</span> <span class="p">[],</span> <span class="s1">&#39;DataArray_t&#39;</span><span class="p">])</span>
+        
+<span class="n">a</span><span class="o">=</span><span class="n">P_IBM</span><span class="o">.</span><span class="n">extractConvectiveTerms</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.IBM.Post.IBM.computeExtraVariables">
+<span class="sig-prename descclassname"><span class="pre">Post.IBM.</span></span><span class="sig-name descname"><span class="pre">computeExtraVariables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PInf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">QInf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['Cp',</span> <span class="pre">'Cf',</span> <span class="pre">'frictionX',</span> <span class="pre">'frictionY',</span> <span class="pre">'frictionZ',</span> <span class="pre">'frictionMagnitude',</span> <span class="pre">'ShearStress']</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Computes additional variables required for the IBM post-processing. Uses density, pressure, utau, and velocity variables located at the vertices of tb.</p>
+<p>Possible extra variables are &#8216;Cp&#8217;, &#8216;Cf&#8217;, &#8216;frictionX&#8217;, &#8216;frictionY&#8217;, &#8216;frictionZ&#8217;, &#8216;frictionMagnitude&#8217;, &#8216;ShearStress&#8217;, &#8216;gradnP&#8217; and &#8216;gradtP&#8217;.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tb</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; surface mesh (TRI-type) with density, pressure, utau, and velocity variables.</p></li>
+<li><p><strong>PInf</strong> (<em>real</em>) &#8211; reference pressure to compute Cp</p></li>
+<li><p><strong>QInf</strong> (<em>real</em>) &#8211; reference dynamic pressure</p></li>
+<li><p><strong>variables</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; list of variables to be computed</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>surface tree with additional variables located at the cell centers</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/computeExtraVariablesIBMPT.py">Computes variables using variables density, pressure, utau, and velocity at vertices of tb (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#compute shear stress for IBM</span>
+<span class="kn">import</span> <span class="nn">Post.IBM</span> <span class="k">as</span> <span class="nn">P_IBM</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="n">a</span><span class="o">=</span><span class="n">D</span><span class="o">.</span><span class="n">sphere</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span><span class="mf">0.5</span><span class="p">,</span><span class="n">N</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2Tetra</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s1">&#39;{centers:utau}={centers:CoordinateX}**2&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s1">&#39;{centers:VelocityX}={centers:CoordinateZ}*{centers:CoordinateY}&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s1">&#39;{centers:VelocityY}={centers:CoordinateX}*{centers:CoordinateZ}&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s1">&#39;{centers:VelocityZ}={centers:CoordinateX}*{centers:CoordinateY}&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s1">&#39;{centers:Density}=1&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s1">&#39;{centers:Pressure}=0.71&#39;</span><span class="p">)</span>
+
+<span class="n">P_IBM</span><span class="o">.</span><span class="n">_computeExtraVariables</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">PInf</span><span class="o">=</span><span class="mf">0.71</span><span class="p">,</span> <span class="n">QInf</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Cp&#39;</span><span class="p">,</span><span class="s1">&#39;Cf&#39;</span><span class="p">,</span><span class="s1">&#39;ShearStress&#39;</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s2">&quot;out.cgns&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.IBM.Post.IBM.loads">
+<span class="sig-prename descclassname"><span class="pre">Post.IBM.</span></span><span class="sig-name descname"><span class="pre">loads</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb_in</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tc_in</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tc2_in</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Sref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gradP</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">famZones</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Computes the viscous and pressure forces on the immersed boundaries (IB). If tc_in=None, tb_in must also contain the projection of the flow field solution onto the surface.</p>
+<p>if tc and tc2 are not None, uses the pressure information at second image points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tb_in</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>]</em>) &#8211; geometry tree</p></li>
+<li><p><strong>tc_in</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>, or </em><em>None</em><em>]</em>) &#8211; connectivity tree</p></li>
+<li><p><strong>tc2_in</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>tree</em><em>, or </em><em>None</em><em>]</em>) &#8211; connectivity tree containing IBM information for the second image point (optional)</p></li>
+<li><p><strong>wall_out</strong> (<em>string</em><em> or </em><em>None</em>) &#8211; file name for the output</p></li>
+<li><p><strong>alpha</strong> (<em>float</em>) &#8211; angle of attack (x-y plane) (in degrees)</p></li>
+<li><p><strong>beta</strong> (<em>float</em>) &#8211; angle of attack (x-z plane) (in degrees)</p></li>
+<li><p><strong>gradP</strong> (<em>boolean</em>) &#8211; if True, extracts the wall pressure using pressure gradient information (see extractPressureHO() or extractPressureHO2())</p></li>
+<li><p><strong>order</strong> (<em>1</em><em> or </em><em>2</em>) &#8211; pressure extrapolation order (when gradP is active)</p></li>
+<li><p><strong>Sref</strong> (<em>float</em><em> or </em><em>None</em>) &#8211; reference surface area for calculating the aerodynamic coefficients (CD/CL). if Sref is None, Sref is computed as the surface area</p></li>
+<li><p><strong>famZones</strong> (<em>list</em><em> of </em><em>strings</em><em> or </em><em>None</em>) &#8211; List of IBC families on which loads are computed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>surface tree with the flow solution. Lists of CD/CL per base.</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/loadsPT.py">Computes the viscous and pressure forces on an IB (pyTree)</a>:</p></li>
+</ul>
+</dd></dl>
+
+<hr class="docutils" />
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="Post.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Post.IBM: immersed boundary method specific post-processing</a><ul>
+<li><a class="reference internal" href="#list-of-functions">List of functions</a></li>
+<li><a class="reference internal" href="#contents">Contents</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><a  href="Post_IBM.pdf" target="_self">Download pdf version</a>
+<head>
+<style>
+#myBtn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  background-color: rgba(26,85,85,0.5);
+  color: rgb(0, 0, 0);
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 6px 6px 6px black;
+}
+
+#myBtn:hover {
+  background-color: rgb(26,85,85);
+  color: rgb(255, 255, 255);
+}
+</style>
+</head>
+<body>
+
+<button onclick="topFunction()" id="myBtn" title="Go to top"><img src="./_static/icon.png" width="20" height="20"></button>
+
+<script>
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = function() {scrollFunction()};
+
+function scrollFunction() {
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        document.getElementById("myBtn").style.display = "block";
+    } else {
+        document.getElementById("myBtn").style.display = "none";
+    }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+}
+</script>
+</body>
+<!-- <img src="logo-onera-ident.png">>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Post.html">Post 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Post.IBM: immersed boundary method specific post-processing</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright ONERA.
+    </div>
+  </body>
+</html>
