@@ -703,10 +703,11 @@ if ! [ -z $PATHL ]; then
 fi
 
 if [ "$PYTHONEXE" = "python3" ]; then
-    python() { python3 "$@"; }
-    export -f python
+    pyversion="python"`python3 -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
+    alias python=python3
+else
+    pyversion="python"`python -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
 fi
-pyversion="python"`python -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
 
 export PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin
 export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
