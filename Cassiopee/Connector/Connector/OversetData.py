@@ -1726,16 +1726,15 @@ def _adaptForRANSLES__(tR, tD, dictOfModels=None):
                 model_zr = dictOfModels[zr[0]]
 
                 if model_zr != 'None' and model_zd != 'None':
-                    print("Info: _adaptForRANSLES__: {}/{} <-> {}/{}".format(zr[0], model_zr, zd[0], model_zd))
-
                     if (model_zr=='NSTurbulent' or model_zd=='NSTurbulent') and  model_zr != model_zd:
+                        print("Info: _adaptForRANSLES__: {}/{} <-> {}/{}".format(zr[0], model_zr, zd[0], model_zd))
                         datap = numpy.ones(1, numpy.int32)
                         Internal.createUniqueChild(s, 'RANSLES', 'DataArray_t', datap)
 
                     if (model_zr=='LBMLaminar' or model_zd=='LBMLaminar') and model_zr != model_zd:
+                        print("Info: _adaptForRANSLES__: {}/{} <-> {}/{}".format(zr[0], model_zr, zd[0], model_zd))
                         datap = numpy.ones(1, numpy.int32)
                         Internal.createUniqueChild(s, 'NSLBM', 'DataArray_t', datap)
-
     return None
 
 def _createInterpRegion__(z, zname, pointlist, pointlistdonor, interpCoef, interpType, interpVol, indicesExtrap, indicesOrphan, \

@@ -363,7 +363,9 @@ def _addBCsForSymmetry(t, bbox=None, dimPb=3, dir_sym=0, X_SYM=0., depth=2):
 
 def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[], tbox=None,
                         snearsf=None, check=True, to=None, ext=2,
-                        expand=3, dfarDir=0, check_snear=False, mode=0):    
+                        expand=3, dfarDir=0, check_snear=False, mode=0,
+                        tbOneOver=None, listF1save=[]):
+    import KCore.test as test
     # list of dfars
     if dfarList == []:
         zones = Internal.getZones(tb)
@@ -455,7 +457,7 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
     del o
 
     # fill vmin + merge in parallel
-    res = octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000)
+    res = octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000, tbOneOver=tbOneOver)
     del p
     if parento is not None:
         for po in parento: del po
@@ -466,12 +468,49 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
 
     C._addState(t, 'EquationDimension', dimPb)
 
+    # Keep F1 regions - for F1 & F42 synergy
+    if tbOneOver:
+        tbF1            = Internal.getNodesFromNameAndType(tbOneOver, '*KeepF1*', 'CGNSBase_t')
+        tbbBTmp         = G.BB(tbF1)
+        interDict_scale = X.getIntersectingDomains(tbbBTmp, t)
+        for kk in interDict_scale:
+            for kkk in interDict_scale[kk]: listF1save.append(kkk)
+
     # Add xzones for ext
     tbb = Cmpi.createBBoxTree(t)
     interDict = X.getIntersectingDomains(tbb)
     graph = Cmpi.computeGraph(tbb, type='bbox', intersectionsDict=interDict, reduction=False)
     del tbb
     Cmpi._addXZones(t, graph, variables=[], cartesian=True)
+
+    # Turn Cartesian grid into a rectilinear grid
+    test.printMem(">>> cart grids --> rectilinear grids [start]")        
+    listDone = []
+    if tbOneOver:
+        tbb = G.BB(t)
+        if dimPb==2:
+            T._addkplane(tbb)
+            T._contract(tbb, (0,0,0), (1,0,0), (0,1,0), 0.01)
+
+        ## RECTILINEAR REGION
+        ## Select regions that need to be coarsened
+        tbbB            = G.BB(tbOneOver)                
+        interDict_scale = X.getIntersectingDomains(tbbB, tbb)
+        ## Avoid a zone to be coarsened twice
+        for i in interDict_scale:
+            (b,btmp) = Internal.getParentOfNode(tbOneOver,Internal.getNodeByName(tbOneOver,i))
+            checkOneOver = Internal.getNodeByName(b,".Solver#define") ##Needed for F1 & F42 approach
+            if checkOneOver:
+                b        = Internal.getNodeByName(b,".Solver#define")
+                oneoverX = int(Internal.getNodeByName(b, 'dirx')[1])
+                oneoverY = int(Internal.getNodeByName(b, 'diry')[1])
+                oneoverZ = int(Internal.getNodeByName(b, 'dirz')[1])
+                for z in interDict_scale[i]:
+                    if z not in listDone:
+                        zLocal = Internal.getNodeFromName(t,z)
+                        T._oneovern(zLocal, (oneoverX,oneoverY,oneoverZ));
+                        listDone.append(z)
+    test.printMem(">>> cart grids --> rectilinear grids [end]")     
 
     zones = Internal.getZones(t)
     coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
@@ -484,7 +523,7 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
     Cmpi._rmXZones(t)
     coords = None; zones = None
     
-    if symmetry==0:
+    if symmetry == 0:
         _addBCOverlaps(t, bbox=bb)
         _addExternalBCs(t, bbox=bb, dimPb=dimPb)
     else:
@@ -758,7 +797,7 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
     return Internal.getNodeFromType2(to, 'Zone_t')
 
 # only in generateIBMMeshPara and generateCartMesh__
-def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6,tbOneOver=None):
+def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6, tbOneOver=None):
     sizeMax=int(sizeMax)
     dim = Internal.getZoneDim(o)
     if dim[3] == 'QUAD': dimPb = 2
@@ -915,7 +954,7 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
                 for i in range(NBases):
                     ZONEStbOneOverTmp[i] = T.mergeCart(ZONEStbOneOverTmp[i][0]+ZONEStbOneOverTmp[i][1]+ZONEStbOneOverTmp[i][2]+ \
                                                        ZONEStbOneOverTmp[i][3]+ZONEStbOneOverTmp[i][4]+ZONEStbOneOverTmp[i][5]+ \
-                                                       ZONEStbOneOverTmp[i][6]+ZONEStbOneOverTmp[i][7],sizeMax=sizeMax)
+                                                       ZONEStbOneOverTmp[i][6]+ZONEStbOneOverTmp[i][7], sizeMax=sizeMax)
                     zones +=ZONEStbOneOverTmp[i]
             del ZONEStbOneOver
             del ZONEStbOneOverTmp
@@ -931,7 +970,7 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
             if ZONEStbOneOver is not None:
                 for i in range(NBases):
                     ZONEStbOneOverTmp[i] = T.mergeCart(ZONEStbOneOverTmp[i][0]+ZONEStbOneOverTmp[i][1]+ \
-                                                       ZONEStbOneOverTmp[i][2]+ZONEStbOneOverTmp[i][3],sizeMax=sizeMax)
+                                                       ZONEStbOneOverTmp[i][2]+ZONEStbOneOverTmp[i][3], sizeMax=sizeMax)
                     zones +=ZONEStbOneOverTmp[i]
             del ZONEStbOneOver
             del ZONEStbOneOverTmp
@@ -1049,4 +1088,46 @@ def buildParentOctrees__(o, tb, snears=None, snearFactor=4., dfar=10., dfarList=
                     OCTREEPARENTS.append(parento2)
     return OCTREEPARENTS
 
+
+
+def _projectMeshSize(t, NPas=10, span=1, dictNz=None, isCartesianExtrude=False):
+    """Predicts the final size of the mesh when extruding 2D to 3D in the z-direction.
+    Usage: loads(t, NPas, span, dictNz, isCartesianExtrude)"""
+    NP             = Cmpi.size
+    rank           = Cmpi.rank
+    NPTS           = numpy.zeros(NP)
+    NCELLS         = numpy.zeros(NP)
+    NPTS_noghost   = numpy.zeros(NP)
+    NCELLS_noghost = numpy.zeros(NP)    
+    if isinstance(t, str):
+        h = Filter.Handle(t)
+        t = h.loadFromProc(loadVariables=False)
+        h._loadVariables(t, var=['CoordinateX'])
+
+    
+    for z in Internal.getZones(t):
+        name_zone = z[0]
+        if not isCartesianExtrude:
+            if dictNz is not None: Nk = int(dictNz[name_zone])
+            else: Nk = NPas-1
+        else:
+            h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
+            NPas_local = int(round(span/h)/4)
+            if NPas_local < 2:
+                print("WARNING:: MPI rank %d || Zone %s has Nz=%d and is being clipped to Nz=2"%(rank,z[0],NPas_local))
+                NPas_local = 2
+            Nk = NPas_local
+        Nk += 1
+        NPTS[rank]           += C.getNPts(z)/2*(Nk+4)
+        NCELLS[rank]         += C.getNCells(z)*(Nk+3)
+        NPTS_noghost[rank]   += C.getNPts(C.rmGhostCells(z, z, 2))*Nk
+        NCELLS_noghost[rank] += C.getNCells(C.rmGhostCells(z, z, 2))*(Nk-1)
+    NPTS             = Cmpi.allreduce(NPTS  ,op=Cmpi.SUM)
+    NCELLS           = Cmpi.allreduce(NCELLS,op=Cmpi.SUM)
+    NPTS_noghost     = Cmpi.allreduce(NPTS_noghost  ,op=Cmpi.SUM)
+    NCELLS_noghost   = Cmpi.allreduce(NCELLS_noghost,op=Cmpi.SUM)   
+    if rank ==0:
+        print('Projected mesh size with ghost: {} million points & {} million cells'.format(numpy.sum(NPTS)/1.e6,numpy.sum(NCELLS)/1.e6))
+        print('Projected mesh size without ghost: {} million points & {} million cells'.format(numpy.sum(NPTS_noghost)/1.e6,numpy.sum(NCELLS_noghost)/1.e6))
+    return None
 
