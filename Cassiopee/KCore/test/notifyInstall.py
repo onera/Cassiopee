@@ -2,6 +2,7 @@
 # status of different prods. Please set the environment variable CASSIOPEE_EMAIL
 # Usage: python notifyInstall.py --recipients='a.b@onera.fr c.d@onera.fr'
 import os
+import sys
 from time import strptime, strftime
 
 # Parse command-line arguments
@@ -19,7 +20,7 @@ if __name__ == '__main__':
   script_args = parseArgs()
   recipients = script_args.recipients.split(' ')
   if not recipients[0]:
-    recipients = ['vincent.casseau@onera.fr'] #, 'christophe.benoit@onera.fr']
+    recipients = ['vincent.casseau@onera.fr', 'christophe.benoit@onera.fr']
   
   # Check install status
   log_entries = []
@@ -44,4 +45,5 @@ if __name__ == '__main__':
            messageSubject="[Installation] State: {}".format(baseState),
            messageText=messageText)
   except ImportError:
-    raise SystemError("Error: KCore is required to import notify.")
+    print("Error: KCore is required to import notify.")
+    sys.exit()

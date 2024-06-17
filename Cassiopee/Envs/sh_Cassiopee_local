@@ -79,6 +79,7 @@ elif [ "$MAC" = "ld" ]; then
 #------------------------------- ld centos 8 + python 3 -----------------------------------
     export ELSAPROD=ld
     export ELSAPROD=$ELSAPROD$INTTYPE
+    . /etc/profile.d/modules-onera.sh
     module purge
     module load occt/7.6.1-gnu831
     module load python/3.8.14-gnu831
@@ -726,17 +727,17 @@ if ! [ -z $OLD_PATHL ]; then
 fi
 
 # Prefix with new paths
-if [ -n $PATH ]; then
+if [ -n "$PATH" ]; then
     export PATH=$PATHL:$PATH
 else
     export PATH=$PATHL
 fi
-if [ -n $LD_LIBRARY_PATH ]; then
+if [ -n "$LD_LIBRARY_PATH" ]; then
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATHL:$LD_LIBRARY_PATH
 else
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATHL
 fi
-if [ -n $PYTHONPATH ]; then
+if [ -n "$PYTHONPATH" ]; then
     export PYTHONPATH=$PYTHONPATHL:$PYTHONPATH
 else
     export PYTHONPATH=$PYTHONPATHL
