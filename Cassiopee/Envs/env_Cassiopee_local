@@ -94,7 +94,7 @@ else if ($MAC == "ld") then
 #------------------------------- ld rocky 8 + python 3 -----------------------------------
         setenv ELSAPROD ld
         setenv ELSAPROD "$ELSAPROD$INTTYPE"
-        . /etc/profile.d/modules-onera.sh
+        source /etc/profile.d/modules-onera.csh
         module purge
         module load occt/7.6.1-gnu831
         module load python/3.8.14-gnu831
