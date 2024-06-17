@@ -19,8 +19,7 @@ def parseArgs():
 if __name__ == '__main__':
   script_args = parseArgs()
   recipients = script_args.recipients.split(' ')
-  if not recipients[0]:
-    recipients = ['vincent.casseau@onera.fr', 'christophe.benoit@onera.fr']
+  if not recipients[0]: recipients = []
   
   # Check install status
   log_entries = []

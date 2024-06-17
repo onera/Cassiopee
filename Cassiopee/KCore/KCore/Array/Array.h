@@ -108,6 +108,10 @@
 #define TRRR_ "(fff)"
 #define TRRRR_ "(ffff)"
 #endif
+#define B_ "i"
+#define BB_ "ii"
+#define BBB_ "iii"
+#define BBBB_ "iiii"
 #define O_ "O"
 #define OO_ "OO"
 #define OOO_ "OOO"
