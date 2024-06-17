@@ -304,29 +304,64 @@ def enforceh__(a, N, h):
                 href = h
                 N = D.getLength(a)/(factorMoy*href)+1
                 N = int(T.kround(N))
+                hl[:] = hl[:]*href
             else:
                 href = D.getLength(a)/((N-1.)*factorMoy)
-            hl[:] = hl[:]*href
+                hl[:] = hl[:]*href
     else: hl = a[1][pos]
     npts = hl.size
     # Calcul h1s, h2s, i1s, i2s
     h1s=[]; h2s=[]; Ps=[]; i1s=[]; i2s=[]
     h1 = -1; h2 = -1; i1 = -1; i2 = -1
+    
+    # compute h
+    vol = G.getVolumeMap(a)
+    vol = C.center2Node(vol)
+    vol = vol[1].ravel('k')
+
+    # introduce delta h step (input:delta)
+    #firstH = -1
+    #for i in range(0, npts):
+    #    hi = hl[i]
+    #    if hi > 1.e-12: firstH = i; break
+    #lastH = -1
+    #for i in range(npts-1, -1, -1):
+    #    hi = hl[i]
+    #    if hi > 1.e-12: lastH = i; break
+    #a1 = None; a2 = None
+    #if firstH > delta and lastH < npts-delta:
+    #    a1 = T.subzone(a, (1,1,1), (firstH-delta,-1,-1))
+    #    a2 = T.subzone(a, (lastH+delta,1,1), (-1,-1,-1))
+    #    a = T.subzone(a, (firstH-delta,1,1), (lastH+delta,-1,-1))
+    #elif firstH > delta:
+    #    a1 = T.subzone(a, (1,1,1), (firstH-delta,-1,-1))
+    #    a = T.subzone(a, (firstH-delta,1,1), (-1,-1,-1))
+    #elif lastH < npts-delta:
+    #    a = T.subzone(a, (firstH-delta,1,1), (-1,-1,-1))
+    #    a2 = T.subzone(a, (lastH+delta,1,1), (-1,-1,-1))
+
     for i in range(npts):
         hi = hl[i]
-        if hi == 0. and i == npts-1: hi = h1
+        if i == 0: # set first h1
+            i1 = 0; h1 = hi
+            if hi == 0.: h1 = vol[0]
+            continue
+        if hi == 0. and i == npts-1:
+            hi = h1 # extrapolation
+            hi = vol[npts-1]
+        
         if hi > 1.e-12:
-            if i == 0: i1 = 0; h1 = hi
-            if i > 0:
-                if i1 == -1: i1 = 0; i2 = i; h1 = hi; h2 = hi
-                if h1 > 0: i2 = i; h2 = hi
-                sub = T.subzone(a, (i1+1,1,1), (i2+1,1,1))             
-                Li = D.getLength(sub)
-                Pi = Li*1./(0.5*(h1+h2)+1.e-12)
-                i1s.append(i1); i2s.append(i2)
-                h1s.append(h1/Li); h2s.append(h2/Li)
-                Ps.append(Pi)
-                i1 = i2; h1 = h2
+            #if i1 == -1: i1 = 0; i2 = i; h1 = hi; h2 = hi # propagate hi from inside if not set on borders
+            # keep border h if not set
+            i2 = i; h2 = hi
+            sub = T.subzone(a, (i1+1,1,1), (i2+1,1,1))             
+            Li = D.getLength(sub)
+            Pi = Li*1./(0.5*(h1+h2)+1.e-12)
+            i1s.append(i1); i2s.append(i2)
+            h1s.append(h1/Li); h2s.append(h2/Li)
+            Ps.append(Pi)
+            i1 = i2; h1 = h2
+
     Pt = 0.
     for x in range(len(h1s)):
         Pi = Ps[x]
@@ -344,10 +379,11 @@ def enforceh__(a, N, h):
         sub = T.subzone(a, (i1+1,1,1), (i2+1,1,1))
         d = buildDistrib(h1, h2, Ps[x])
         c = G.map(sub, d)
-        if h < -0.5:
-            setH(c, 0, sub[1][pos,0]); setH(c, -1, sub[1][pos,-1])
+        #if h < -0.5: # pourquoi?
+        #    setH(c, 0, sub[1][pos,0]); setH(c, -1, sub[1][pos,-1])
         out.append(c)
     out = T.join(out)
+    out = C.rmVars(out, ['h'])
     return out
 
 # Enforce h at ind (STRUCT)
