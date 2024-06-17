@@ -457,7 +457,7 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
     del o
 
     # fill vmin + merge in parallel
-    res = octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000,tbOneOver=tbOneOver)
+    res = octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000, tbOneOver=tbOneOver)
     del p
     if parento is not None:
         for po in parento: del po
@@ -797,7 +797,7 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
     return Internal.getNodeFromType2(to, 'Zone_t')
 
 # only in generateIBMMeshPara and generateCartMesh__
-def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6,tbOneOver=None):
+def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6, tbOneOver=None):
     sizeMax=int(sizeMax)
     dim = Internal.getZoneDim(o)
     if dim[3] == 'QUAD': dimPb = 2
@@ -954,7 +954,7 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
                 for i in range(NBases):
                     ZONEStbOneOverTmp[i] = T.mergeCart(ZONEStbOneOverTmp[i][0]+ZONEStbOneOverTmp[i][1]+ZONEStbOneOverTmp[i][2]+ \
                                                        ZONEStbOneOverTmp[i][3]+ZONEStbOneOverTmp[i][4]+ZONEStbOneOverTmp[i][5]+ \
-                                                       ZONEStbOneOverTmp[i][6]+ZONEStbOneOverTmp[i][7],sizeMax=sizeMax)
+                                                       ZONEStbOneOverTmp[i][6]+ZONEStbOneOverTmp[i][7], sizeMax=sizeMax)
                     zones +=ZONEStbOneOverTmp[i]
             del ZONEStbOneOver
             del ZONEStbOneOverTmp
@@ -970,7 +970,7 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
             if ZONEStbOneOver is not None:
                 for i in range(NBases):
                     ZONEStbOneOverTmp[i] = T.mergeCart(ZONEStbOneOverTmp[i][0]+ZONEStbOneOverTmp[i][1]+ \
-                                                       ZONEStbOneOverTmp[i][2]+ZONEStbOneOverTmp[i][3],sizeMax=sizeMax)
+                                                       ZONEStbOneOverTmp[i][2]+ZONEStbOneOverTmp[i][3], sizeMax=sizeMax)
                     zones +=ZONEStbOneOverTmp[i]
             del ZONEStbOneOver
             del ZONEStbOneOverTmp
