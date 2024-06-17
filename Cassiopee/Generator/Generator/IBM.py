@@ -1089,3 +1089,45 @@ def buildParentOctrees__(o, tb, snears=None, snearFactor=4., dfar=10., dfarList=
     return OCTREEPARENTS
 
 
+
+def _projectMeshSize(t, NPas=10, span=1, dictNz=None, isCartesianExtrude=False):
+    """Predicts the final size of the mesh when extruding 2D to 3D in the z-direction.
+    Usage: loads(t, NPas, span, dictNz, isCartesianExtrude)"""
+    NP             = Cmpi.size
+    rank           = Cmpi.rank
+    NPTS           = numpy.zeros(NP)
+    NCELLS         = numpy.zeros(NP)
+    NPTS_noghost   = numpy.zeros(NP)
+    NCELLS_noghost = numpy.zeros(NP)    
+    if isinstance(t, str):
+        h = Filter.Handle(t)
+        t = h.loadFromProc(loadVariables=False)
+        h._loadVariables(t, var=['CoordinateX'])
+
+    
+    for z in Internal.getZones(t):
+        name_zone = z[0]
+        if not isCartesianExtrude:
+            if dictNz is not None: Nk = int(dictNz[name_zone])
+            else: Nk = NPas-1
+        else:
+            h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
+            NPas_local = int(round(span/h)/4)
+            if NPas_local < 2:
+                print("WARNING:: MPI rank %d || Zone %s has Nz=%d and is being clipped to Nz=2"%(rank,z[0],NPas_local))
+                NPas_local = 2
+            Nk = NPas_local
+        Nk += 1
+        NPTS[rank]           += C.getNPts(z)/2*(Nk+4)
+        NCELLS[rank]         += C.getNCells(z)*(Nk+3)
+        NPTS_noghost[rank]   += C.getNPts(C.rmGhostCells(z, z, 2))*Nk
+        NCELLS_noghost[rank] += C.getNCells(C.rmGhostCells(z, z, 2))*(Nk-1)
+    NPTS             = Cmpi.allreduce(NPTS  ,op=Cmpi.SUM)
+    NCELLS           = Cmpi.allreduce(NCELLS,op=Cmpi.SUM)
+    NPTS_noghost     = Cmpi.allreduce(NPTS_noghost  ,op=Cmpi.SUM)
+    NCELLS_noghost   = Cmpi.allreduce(NCELLS_noghost,op=Cmpi.SUM)   
+    if rank ==0:
+        print('Projected mesh size with ghost: {} million points & {} million cells'.format(numpy.sum(NPTS)/1.e6,numpy.sum(NCELLS)/1.e6))
+        print('Projected mesh size without ghost: {} million points & {} million cells'.format(numpy.sum(NPTS_noghost)/1.e6,numpy.sum(NCELLS_noghost)/1.e6))
+    return None
+

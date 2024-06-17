@@ -130,7 +130,11 @@ def computeMeshInfo__(z, dim):
 def _computeMeshInfo(t):
     np_total, nc_total, nf_total, nzones = 0,0,0,0
     nc0, nc1, nc2 = 0,0,0
-
+    
+    NP     = Cmpi.size
+    rank   = Cmpi.rank
+    NPTS   = numpy.zeros(NP)
+    NCELLS = numpy.zeros(NP)
     for z in Internal.getZones(t):
         cellN = Internal.getNodeFromName(z, 'cellN')[1]
         c0 = numpy.count_nonzero(cellN == 0); nc0 += c0
@@ -142,10 +146,22 @@ def _computeMeshInfo(t):
         np_total += np
         nc_total += nc
         nf_total += nf
-        nzones += 1
+        nzones   += 1
 
-    Cmpi.barrier()
-    print("Info: mesh info for rank {}: number of points: {:.2f}M / number of cells: {:.2f}M".format(Cmpi.rank, np_total/1.e6, nc_total/1.e6))
+        zNoGhost      = C.rmGhostCells(z, z, 2)
+        NPTS[rank]   += C.getNPts(zNoGhost)
+        NCELLS[rank] += C.getNCells(zNoGhost)
+
+    NPTS     = Cmpi.allreduce(NPTS  ,op=Cmpi.SUM)
+    NCELLS   = Cmpi.allreduce(NCELLS,op=Cmpi.SUM)
+    print("Info: mesh info for rank {}: number of points: {:.2f}M / number of cells: {:.2f}M".format(rank, np_total/1.e6, nc_total/1.e6),flush=True)
+    if rank ==0:
+        NcellsTot     = numpy.sum(NCELLS)
+        ncells_percent= []
+        for i in range(NP):
+            ncells_percent.append(NCELLS[i]/NcellsTot*100)
+            print('Info: Rank {} has {:.3f}e06 points & {:.3f}e06 cells & {} % of cells - no ghost cells'.format(i,int(NPTS[i])/1e06,int(NCELLS[i])/1e06,round(ncells_percent[i],2)),flush=True)
+        print('Info: Range of % of cells: {} - {}'.format(round(min(ncells_percent),2),round(max(ncells_percent),2)),flush=True)    
     Cmpi.barrier()
 
     np_total = Cmpi.allreduce(np_total, op=Cmpi.SUM)
@@ -157,9 +173,8 @@ def _computeMeshInfo(t):
     natures = [ncx/float(nc_total)*100. for ncx in [nc2, nc1, nc0]]
 
     if Cmpi.rank == 0:
-        print("Info: global mesh info: Interpolated cells (cellN 2): {:.2f}%, Computed cells (cellN 1): {:.2f}%, Blanked cells (cellN 0): {:.2f}%".format(*natures))
-        print("Info: global mesh info: total number of points: {:.2f}M / total number of cells: {:.2f}M".format(np_total/1.e6, nc_total/1.e6))
-    
+        print("Info: global mesh info: Interpolated cells (cellN 2): {:.2f}%, Computed cells (cellN 1): {:.2f}%, Blanked cells (cellN 0): {:.2f}%".format(*natures),flush=True)
+        print("Info: global mesh info: total number of points: {:.2f}M / total number of cells: {:.2f}M".format(np_total/1.e6, nc_total/1.e6),flush=True)
     Cmpi.barrier()
 
     return None
