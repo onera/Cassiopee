@@ -65,6 +65,33 @@ def getIBCDName(proposedName):
     (ibcname,__IBCNameServer__)=C.getUniqueName(proposedName, __IBCNameServer__)
     return ibcname
 
+
+#====================================================================================
+#Add .Solver#Define with dirx,diry, & dirz to the base of the tboneover. tboneover is the
+#PyTree that defines the region in space wherein a one over n coarsening will be pursued
+#during the automatic cartesian grid generator of FastIBC.
+#IN: FileName: name of the file. tboneover is read in this function.
+#IN: oneOver: list of list of dirx,diry,dirz for each base in tboneover. E.g. oneOver=[[1,1,2],[1,2,1],[2,1,1]]
+#             for a tboneover with 3 bases where the 1st base has dirx=1, diry=1, & dirz=2
+#                                                    2nd base has dirx=1, diry=2, & dirz=1
+#                                                    3rd base has dirx=2, diry=1, & dirz=1
+#OUT: Nothing. Rewrite tboneover with the same FileName as that original used
+##NOTE # 1: To be run SEQUENTIALLY ONLY. This is ok as we are dealing with a surface geometry which tend to be
+##          relatively small.
+##NOTE # 2: Generation of tboneover is similar to that used for tbox.
+def _addOneOverLocally(FileName,oneOver):
+    count   = 0
+    t_local = C.convertFile2PyTree(FileName)
+    for b in Internal.getBases(t_local):
+        Internal._createUniqueChild(b, '.Solver#define', 'UserDefinedData_t')
+        n = Internal.getNodeFromName1(b, '.Solver#define')
+        Internal._createUniqueChild(n, 'dirx', 'DataArray_t', value=oneOver[count][0])
+        Internal._createUniqueChild(n, 'diry', 'DataArray_t', value=oneOver[count][1])
+        Internal._createUniqueChild(n, 'dirz', 'DataArray_t', value=oneOver[count][2])
+        count+=1
+    C.convertPyTree2File(t_local,FileName)
+    return None
+
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## MACRO FUNCTIONS
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -138,10 +165,11 @@ def _computeMeshInfo(t):
     return None
 
 def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=None,
-                    snears=0.01, snearsf=None, dfar=10., dfarDir=0, dfarList=[], vmin=21, depth=2, frontType=1, mode=0,
-                    IBCType=1, verbose=True,
-                    check=False, balancing=False, distribute=False, twoFronts=False, cartesian=False,
-                    yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.):
+                       snears=0.01, snearsf=None, dfar=10., dfarDir=0, dfarList=[], vmin=21, depth=2, frontType=1, mode=0,
+                       IBCType=1, verbose=True,
+                       check=False, balancing=False, distribute=False, twoFronts=False, cartesian=False,
+                       yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.,
+                       tbOneOver=None):
     
     import Generator.IBM as G_IBM
     import time as python_time
@@ -180,12 +208,14 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
     #===================
     # STEP 1 : GENERATE MESH
     #===================
+    listF1save = []
     if t_in is None:
         if verbose: pt0 = python_time.time(); printTimeAndMemory__('generate Cartesian mesh', time=-1)
         test.printMem("Info: prepareIBMDataPara: generate Cartesian mesh [start]")
         t = G_IBM.generateIBMMeshPara(tb, vmin=vmin, snears=snears, dimPb=dimPb, dfar=dfar, dfarList=dfarList, tbox=tbox,
-                    snearsf=snearsf, check=check, to=to, ext=depth+1,
-                    expand=expand, dfarDir=dfarDir, check_snear=False, mode=mode)
+                                      snearsf=snearsf, check=check, to=to, ext=depth+1,
+                                      expand=expand, dfarDir=dfarDir, check_snear=False, mode=mode,
+                                      tbOneOver=tbOneOver,listF1save = listF1save)
         Internal._rmNodesFromName(tb,"SYM")
 
         if balancing and Cmpi.size > 1: _redispatch__(t=t)
@@ -213,7 +243,7 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
     _blankingIBM(t, tb, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth, 
                 Reynolds=Reynolds, yplus=yplus, Lref=Lref, twoFronts=twoFronts, 
                 heightMaxF42=heightMaxF42, correctionMultiCorpsF42=correctionMultiCorpsF42, 
-                wallAdaptF42=wallAdaptF42, blankingF42=blankingF42)
+                 wallAdaptF42=wallAdaptF42, blankingF42=blankingF42,listF1save = listF1save)
     Cmpi.barrier()
     _redispatch__(t=t)
     if verbose: printTimeAndMemory__('blank by IBC bodies', time=python_time.time()-pt0)
@@ -426,7 +456,8 @@ def _dist2wallIBM(t, tb, dimPb=3, frontType=1, Reynolds=1.e6, yplus=100, Lref=1.
 # OUT: (optional) centers:cellNIBC_2, centers:cellNFront_2 fields for second image points
 #=========================================================================
 def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6, yplus=100, Lref=1., 
-                correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.):
+                   correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.,
+                   listF1save=[]):
     
     snear_min = 10e10
     for z in Internal.getZones(tb):
@@ -470,6 +501,8 @@ def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e
         X._setHoleInterpolatedPoints(t,depth=depth,dir=0,loc='centers',cellNName='cellNMin',addGC=False)
 
         for z in Internal.getZones(t):
+            if z[0] in listF1save: continue
+            
             h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
             if yplus > 0.:
                 height = G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
@@ -561,17 +594,18 @@ def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e
     return None
 
 def blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6, yplus=100, Lref=1., twoFronts=False,
-                correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.):
+                correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.,listF1save=[]):
     """Blank the computational tree by IBC bodies for IBM pre-processing."""
     tp = Internal.copyRef(t)
     _blankingIBM(t, tb, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth, 
                 Reynolds=Reynolds, yplus=yplus, Lref=Lref, twoFronts=twoFronts, 
                 heightMaxF42=heightMaxF42, correctionMultiCorpsF42=correctionMultiCorpsF42, 
-                wallAdaptF42=wallAdaptF42, blankingF42=blankingF42)
+                 wallAdaptF42=wallAdaptF42, blankingF42=blankingF42,listF1save=listF1save)
     return tp
 
 def _blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6, yplus=100, Lref=1., twoFronts=False,
-                correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.):
+                 correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.,
+                 listF1save=[]):
     """Blank the computational tree by IBC bodies for IBM pre-processing."""
     if dimPb == 2:
         T._addkplane(tb)
@@ -584,7 +618,7 @@ def _blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6,
     _blankingIBM__(t, tb, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth, 
                 Reynolds=Reynolds, yplus=yplus, Lref=Lref,
                 heightMaxF42=heightMaxF42, correctionMultiCorpsF42=correctionMultiCorpsF42, 
-                wallAdaptF42=wallAdaptF42, blankingF42=blankingF42)
+                   wallAdaptF42=wallAdaptF42, blankingF42=blankingF42,listF1save=listF1save)
 
     C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
     

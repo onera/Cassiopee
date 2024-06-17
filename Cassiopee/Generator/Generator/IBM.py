@@ -363,7 +363,9 @@ def _addBCsForSymmetry(t, bbox=None, dimPb=3, dir_sym=0, X_SYM=0., depth=2):
 
 def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[], tbox=None,
                         snearsf=None, check=True, to=None, ext=2,
-                        expand=3, dfarDir=0, check_snear=False, mode=0):    
+                        expand=3, dfarDir=0, check_snear=False, mode=0,
+                        tbOneOver=None, listF1save = []):
+    import KCore.test as test
     # list of dfars
     if dfarList == []:
         zones = Internal.getZones(tb)
@@ -455,7 +457,7 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
     del o
 
     # fill vmin + merge in parallel
-    res = octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000)
+    res = octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000,tbOneOver=tbOneOver)
     del p
     if parento is not None:
         for po in parento: del po
@@ -466,12 +468,49 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
 
     C._addState(t, 'EquationDimension', dimPb)
 
+    ##Keep F1 regions - for F1 & F42 synergy
+    if tbOneOver:
+        tbF1            = Internal.getNodesFromNameAndType(tbOneOver, '*KeepF1*', 'CGNSBase_t')
+        tbbBTmp         = G.BB(tbF1)
+        interDict_scale = X.getIntersectingDomains(tbbBTmp, t)
+        for kk in interDict_scale:
+            for kkk in interDict_scale[kk]: listF1save.append(kkk)
+
     # Add xzones for ext
     tbb = Cmpi.createBBoxTree(t)
     interDict = X.getIntersectingDomains(tbb)
     graph = Cmpi.computeGraph(tbb, type='bbox', intersectionsDict=interDict, reduction=False)
     del tbb
     Cmpi._addXZones(t, graph, variables=[], cartesian=True)
+
+    #Turn Cartesian grid into a rectilinear grid
+    test.printMem(">>> cart grids --> rectilinear grids [start]")        
+    listDone = []
+    if tbOneOver:
+        tbb = G.BB(t)
+        if dimPb==2:
+            T._addkplane(tbb)
+            T._contract(tbb, (0,0,0), (1,0,0), (0,1,0), 0.01)
+
+        ##RECTILINEAR REGION
+        ##Select regions that need to be coarsened
+        tbbB            = G.BB(tbOneOver)                
+        interDict_scale = X.getIntersectingDomains(tbbB, tbb)
+        ##Avoid a zone to be coarsened twice
+        for i in interDict_scale:
+            (b,btmp) = Internal.getParentOfNode(tbOneOver,Internal.getNodeByName(tbOneOver,i))
+            checkOneOver = Internal.getNodeByName(b,".Solver#define") ##Needed for F1 & F42 approach
+            if checkOneOver:
+                b        = Internal.getNodeByName(b,".Solver#define")
+                oneoverX = int(Internal.getNodeByName(b, 'dirx')[1])
+                oneoverY = int(Internal.getNodeByName(b, 'diry')[1])
+                oneoverZ = int(Internal.getNodeByName(b, 'dirz')[1])
+                for z in interDict_scale[i]:
+                    if z not in listDone:
+                        zLocal = Internal.getNodeFromName(t,z)
+                        T._oneovern(zLocal, (oneoverX,oneoverY,oneoverZ));
+                        listDone.append(z)
+    test.printMem(">>> cart grids --> rectilinear grids [end]")     
 
     zones = Internal.getZones(t)
     coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
