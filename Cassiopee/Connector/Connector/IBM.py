@@ -156,7 +156,7 @@ def _computeMeshInfo(t):
     NPTS     = Cmpi.allreduce(NPTS  ,op=Cmpi.SUM)
     NCELLS   = Cmpi.allreduce(NCELLS,op=Cmpi.SUM)
     print("Info: mesh info for rank {}: number of points: {:.2f}M / number of cells: {:.2f}M".format(rank, np_total/1.e6, nc_total/1.e6),flush=True)
-    if rank ==0:
+    if rank == 0:
         NcellsTot     = numpy.sum(NCELLS)
         ncells_percent= []
         for i in range(NP):
@@ -184,7 +184,7 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
                        snears=0.01, snearsf=None, dfar=10., dfarDir=0, dfarList=[], vmin=21, depth=2, frontType=1, mode=0,
                        IBCType=1, verbose=True,
                        check=False, balancing=False, distribute=False, twoFronts=False, cartesian=False,
-                       yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.,
+                       yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1., 
                        tbOneOver=None):
     
     import Generator.IBM as G_IBM
@@ -665,13 +665,13 @@ def _blankingIBM__(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e
     return None
 
 def blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6, yplus=100, Lref=1., twoFronts=False,
-                correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.,listF1save=[]):
+                correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1., listF1save=[]):
     """Blank the computational tree by IBC bodies for IBM pre-processing."""
     tp = Internal.copyRef(t)
     _blankingIBM(t, tb, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth, 
                 Reynolds=Reynolds, yplus=yplus, Lref=Lref, twoFronts=twoFronts, 
                 heightMaxF42=heightMaxF42, correctionMultiCorpsF42=correctionMultiCorpsF42, 
-                 wallAdaptF42=wallAdaptF42, blankingF42=blankingF42,listF1save=listF1save)
+                 wallAdaptF42=wallAdaptF42, blankingF42=blankingF42, listF1save=listF1save)
     return tp
 
 def _blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6, yplus=100, Lref=1., twoFronts=False,
@@ -687,9 +687,9 @@ def _blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6,
     C._initVars(t, 'centers:cellN', 1.)
 
     _blankingIBM__(t, tb, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth, 
-                Reynolds=Reynolds, yplus=yplus, Lref=Lref,
-                heightMaxF42=heightMaxF42, correctionMultiCorpsF42=correctionMultiCorpsF42, 
-                   wallAdaptF42=wallAdaptF42, blankingF42=blankingF42,listF1save=listF1save)
+                   Reynolds=Reynolds, yplus=yplus, Lref=Lref,
+                   heightMaxF42=heightMaxF42, correctionMultiCorpsF42=correctionMultiCorpsF42, 
+                   wallAdaptF42=wallAdaptF42, blankingF42=blankingF42, listF1save=listF1save)
 
     C._initVars(t, '{centers:cellNIBC}={centers:cellN}')
     

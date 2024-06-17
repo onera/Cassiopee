@@ -364,7 +364,7 @@ def _addBCsForSymmetry(t, bbox=None, dimPb=3, dir_sym=0, X_SYM=0., depth=2):
 def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[], tbox=None,
                         snearsf=None, check=True, to=None, ext=2,
                         expand=3, dfarDir=0, check_snear=False, mode=0,
-                        tbOneOver=None, listF1save = []):
+                        tbOneOver=None, listF1save=[]):
     import KCore.test as test
     # list of dfars
     if dfarList == []:
@@ -457,7 +457,7 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
     del o
 
     # fill vmin + merge in parallel
-    res = octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000,tbOneOver=tbOneOver)
+    res = octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000, tbOneOver=tbOneOver)
     del p
     if parento is not None:
         for po in parento: del po
@@ -468,7 +468,7 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
 
     C._addState(t, 'EquationDimension', dimPb)
 
-    ##Keep F1 regions - for F1 & F42 synergy
+    # Keep F1 regions - for F1 & F42 synergy
     if tbOneOver:
         tbF1            = Internal.getNodesFromNameAndType(tbOneOver, '*KeepF1*', 'CGNSBase_t')
         tbbBTmp         = G.BB(tbF1)
@@ -483,7 +483,7 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
     del tbb
     Cmpi._addXZones(t, graph, variables=[], cartesian=True)
 
-    #Turn Cartesian grid into a rectilinear grid
+    # Turn Cartesian grid into a rectilinear grid
     test.printMem(">>> cart grids --> rectilinear grids [start]")        
     listDone = []
     if tbOneOver:
@@ -492,11 +492,11 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
             T._addkplane(tbb)
             T._contract(tbb, (0,0,0), (1,0,0), (0,1,0), 0.01)
 
-        ##RECTILINEAR REGION
-        ##Select regions that need to be coarsened
+        ## RECTILINEAR REGION
+        ## Select regions that need to be coarsened
         tbbB            = G.BB(tbOneOver)                
         interDict_scale = X.getIntersectingDomains(tbbB, tbb)
-        ##Avoid a zone to be coarsened twice
+        ## Avoid a zone to be coarsened twice
         for i in interDict_scale:
             (b,btmp) = Internal.getParentOfNode(tbOneOver,Internal.getNodeByName(tbOneOver,i))
             checkOneOver = Internal.getNodeByName(b,".Solver#define") ##Needed for F1 & F42 approach
@@ -523,7 +523,7 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
     Cmpi._rmXZones(t)
     coords = None; zones = None
     
-    if symmetry==0:
+    if symmetry == 0:
         _addBCOverlaps(t, bbox=bb)
         _addExternalBCs(t, bbox=bb, dimPb=dimPb)
     else:
@@ -797,7 +797,7 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
     return Internal.getNodeFromType2(to, 'Zone_t')
 
 # only in generateIBMMeshPara and generateCartMesh__
-def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6,tbOneOver=None):
+def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6, tbOneOver=None):
     sizeMax=int(sizeMax)
     dim = Internal.getZoneDim(o)
     if dim[3] == 'QUAD': dimPb = 2
@@ -955,7 +955,7 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
                 for i in range(NBases):
                     ZONEStbOneOverTmp[i] = T.mergeCart(ZONEStbOneOverTmp[i][0]+ZONEStbOneOverTmp[i][1]+ZONEStbOneOverTmp[i][2]+ \
                                                        ZONEStbOneOverTmp[i][3]+ZONEStbOneOverTmp[i][4]+ZONEStbOneOverTmp[i][5]+ \
-                                                       ZONEStbOneOverTmp[i][6]+ZONEStbOneOverTmp[i][7],sizeMax=sizeMax)
+                                                       ZONEStbOneOverTmp[i][6]+ZONEStbOneOverTmp[i][7], sizeMax=sizeMax)
                     zones +=ZONEStbOneOverTmp[i]
             del ZONEStbOneOver
             del ZONEStbOneOverTmp
@@ -971,7 +971,7 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
             if ZONEStbOneOver is not None:
                 for i in range(NBases):
                     ZONEStbOneOverTmp[i] = T.mergeCart(ZONEStbOneOverTmp[i][0]+ZONEStbOneOverTmp[i][1]+ \
-                                                       ZONEStbOneOverTmp[i][2]+ZONEStbOneOverTmp[i][3],sizeMax=sizeMax)
+                                                       ZONEStbOneOverTmp[i][2]+ZONEStbOneOverTmp[i][3], sizeMax=sizeMax)
                     zones +=ZONEStbOneOverTmp[i]
             del ZONEStbOneOver
             del ZONEStbOneOverTmp
