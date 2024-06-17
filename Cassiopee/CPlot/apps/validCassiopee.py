@@ -1558,7 +1558,8 @@ def notifyValidOK():
                messageSubject='[Cassiopee] Ready to commit',
                messageText=messageText)
     except ImportError:
-        raise SystemError("Error: KCore is required to import notify.")
+        print("Error: KCore is required to import notify.")
+        sys.exit()
     
 #==============================================================================
 def Quit(event=None):
