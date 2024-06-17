@@ -506,3 +506,37 @@ def _transformTc2(tc2):
     return None
 
 
+
+#================================================================================
+# Selection/determination of tb for closed solid & filament
+#================================================================================
+def determineClosedSolidFilament__(tb):
+    ##OUT - filamentBases        :list of names of open geometries
+    ##OUT - isFilamentOnly       :boolean if there is only a filament in tb
+    ##OUT - isOrthoProjectFirst  :bolean to do orthonormal projection first
+    ##OUT - tb                   :tb of solid geometries only
+    ##OUT - tbFilament           :tb of filament geometries only
+
+    ## General case where only a closeSolid is in tb
+    ## or tb only has a filament
+    filamentBases = []
+    isFilamentOnly= False
+    
+    len_tb = len(Internal.getBases(tb))
+    for b in Internal.getBases(tb):
+        if "IBCFil" in b[0]:filamentBases.append(b[0])
+
+    if len(filamentBases) == len_tb:isFilamentOnly=True
+    isOrthoProjectFirst = isFilamentOnly
+
+    ## if tb has both a closed solid and filaments
+    tbFilament = Internal.copyTree(tb)
+    if not isFilamentOnly:
+        tbFilament = []
+        for b in filamentBases:
+            node_local = Internal.getNodeFromNameAndType(tb, b, 'CGNSBase_t')
+            tbFilament.append(node_local)
+            Internal._rmNode(tb,node_local)     
+            isOrthoProjectFirst = True
+        tbFilament = C.newPyTree(tbFilament);
+    return [filamentBases, isFilamentOnly, isOrthoProjectFirst, tb, tbFilament]

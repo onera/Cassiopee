@@ -12,6 +12,7 @@ import Generator.PyTree as G
 import Initiator.PyTree as I
 import Converter.Distributed as Distributed
 import Generator.IBMmodelHeight as G_IBM_Height
+import Geom.IBM as D_IBM
 import Transform.PyTree as T
 import Converter.Internal as Internal
 import Compressor.PyTree as Compressor
@@ -221,6 +222,11 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
             raise ValueError("prepareIBMDataPara: governing equations (Euler) not consistent with ibc types %s"%(ibctypes))
 
     #===================
+    # STEP 0 : GET FILAMENT BODIES
+    #===================
+    [filamentBases, isFilamentOnly, isOrthoProjectFirst, tb, tbFilament]=D_IBM.determineClosedSolidFilament__(tb)  
+
+    #===================
     # STEP 1 : GENERATE MESH
     #===================
     listF1save = []
@@ -230,7 +236,7 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
         t = G_IBM.generateIBMMeshPara(tb, vmin=vmin, snears=snears, dimPb=dimPb, dfar=dfar, dfarList=dfarList, tbox=tbox,
                                       snearsf=snearsf, check=check, to=to, ext=depth+1,
                                       expand=expand, dfarDir=dfarDir, check_snear=False, mode=mode,
-                                      tbOneOver=tbOneOver,listF1save = listF1save)
+                                      tbOneOver=tbOneOver, listF1save=listF1save)
         Internal._rmNodesFromName(tb,"SYM")
 
         if balancing and Cmpi.size > 1: _redispatch__(t=t)
@@ -248,17 +254,21 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
     #=================== 
     if verbose: pt0 = python_time.time(); printTimeAndMemory__('compute wall distance', time=-1)
     _dist2wallIBM(t, tb, dimPb=dimPb, frontType=frontType, Reynolds=Reynolds, yplus=yplus, Lref=Lref,
-                correctionMultiCorpsF42=correctionMultiCorpsF42, heightMaxF42=heightMaxF42)
+                  correctionMultiCorpsF42=correctionMultiCorpsF42, heightMaxF42=heightMaxF42,
+                  filamentBases=filamentBases, isFilamentOnly=isFilamentOnly, tbFilament=tbFilament)
     if verbose: printTimeAndMemory__('compute wall distance', time=python_time.time()-pt0)
+
+    C.convertPyTree2File(t,'t_Check.cgns')
+    exit()
 
     #===================
     # STEP 3 : BLANKING IBM
     #===================
     if verbose: pt0 = python_time.time(); printTimeAndMemory__('blank by IBC bodies', time=-1)
     _blankingIBM(t, tb, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth, 
-                Reynolds=Reynolds, yplus=yplus, Lref=Lref, twoFronts=twoFronts, 
-                heightMaxF42=heightMaxF42, correctionMultiCorpsF42=correctionMultiCorpsF42, 
-                 wallAdaptF42=wallAdaptF42, blankingF42=blankingF42,listF1save = listF1save)
+                 Reynolds=Reynolds, yplus=yplus, Lref=Lref, twoFronts=twoFronts, 
+                 heightMaxF42=heightMaxF42, correctionMultiCorpsF42=correctionMultiCorpsF42, 
+                 wallAdaptF42=wallAdaptF42, blankingF42=blankingF42, listF1save=listF1save)
     Cmpi.barrier()
     _redispatch__(t=t)
     if verbose: printTimeAndMemory__('blank by IBC bodies', time=python_time.time()-pt0)
@@ -367,15 +377,50 @@ def _redispatch__(t=None, tc=None, tc2=None, twoFronts=False):
 # OUT: (optional) centers:TurbulentDistance_body%i fields
 #=========================================================================
 def dist2wallIBM(t, tb, dimPb=3, frontType=1, Reynolds=1.e6, yplus=100, Lref=1.,
-                correctionMultiCorpsF42=False, heightMaxF42=-1.):
+                 correctionMultiCorpsF42=False, heightMaxF42=-1., filamentBases=[], isFilamentOnly=False,
+                 tbFilament=None):
     """Compute the wall distance for IBM pre-processing."""
     tp = Internal.copyRef(t)
     _dist2wallIBM(t, tb, dimPb=dimPb, frontType=frontType, Reynolds=Reynolds, yplus=yplus, Lref=Lref,
-                correctionMultiCorpsF42=correctionMultiCorpsF42, heightMaxF42=heightMaxF42)
+                  correctionMultiCorpsF42=correctionMultiCorpsF42, heightMaxF42=heightMaxF42,
+                  filamentBases=filamentBases, isFilamentOnly=isFilamentOnly, tbFilament=tbFilament)
     return tp
 
+def _dist2wallIBMFilamentWMM__(t, tb2, tbsave, dimPb):
+    tbFilamentnoWMM = []
+    tbFilamentWMM   = []
+    for z in Internal.getZones(tb2):
+        soldef  = Internal.getNodeFromName(z,'.Solver#define')
+        ibctype = Internal.getNodeFromName(soldef,'ibctype')
+        if Internal.getValue(ibctype) != "wiremodel":
+            tbFilamentnoWMM.append(z)
+        else:
+            tbFilamentWMM.append(z)
+
+    if tbFilamentnoWMM:
+        tbFilamentnoWMM = C.newPyTree(['BasenoWMM', tbFilamentnoWMM])
+        tbsave          = Internal.merge([tbsave,tbFilamentnoWMM])
+        C._initVars(t,'{centers:TurbulentDistance}=1e06')
+        DTW._distance2Walls(t, tbFilamentnoWMM, type='ortho', signed=0, dim=dimPb, loc='centers')
+        C._initVars(t,'{centers:TurbulentDistanceFilament}={centers:TurbulentDistance}')
+        C._initVars(t,'{centers:TurbulentDistance}=minimum({centers:TurbulentDistanceSolid},{centers:TurbulentDistanceFilament})')
+                
+    if tbFilamentWMM:
+        C._initVars(t,'{centers:TurbulentDistance}=1e06')
+        DTW._distance2Walls(t, tbFilamentWMM, type='ortho', signed=0, dim=dimPb, loc='centers')
+        C._initVars(t,'{centers:TurbulentDistanceFilamentWMM}={centers:TurbulentDistance}')
+        C._initVars(t,'{centers:TurbulentDistance}=minimum({centers:TurbulentDistanceSolid},{centers:TurbulentDistanceFilamentWMM})')
+        if tbFilamentnoWMM:
+            C._initVars(t,'{centers:TurbulentDistance}=minimum({centers:TurbulentDistance},{centers:TurbulentDistanceFilamentWMM})')
+                
+    C._initVars(t,"{centers:TurbulentDistanceSolid}=({centers:TurbulentDistanceSolid}>1e03)*0+({centers:TurbulentDistanceSolid}<1e03)*{centers:TurbulentDistanceSolid}")
+    C._initVars(t,"{centers:TurbulentDistanceFilament}=({centers:TurbulentDistanceFilament}>1e03)*0+({centers:TurbulentDistanceFilament}<1e03)*{centers:TurbulentDistanceFilament}")
+    C._initVars(t,"{centers:TurbulentDistanceFilamentWMM}=({centers:TurbulentDistanceFilamentWMM}>1e03)*0+({centers:TurbulentDistanceFilamentWMM}<1e03)*{centers:TurbulentDistanceFilamentWMM}")
+    return None
+
 def _dist2wallIBM(t, tb, dimPb=3, frontType=1, Reynolds=1.e6, yplus=100, Lref=1.,
-                correctionMultiCorpsF42=False, heightMaxF42=-1.):
+                  correctionMultiCorpsF42=False, heightMaxF42=-1.,
+                  filamentBases=[], isFilamentOnly=False, tbFilament=None):
     """Compute the wall distance for IBM pre-processing."""
     if dimPb == 2:
         # Set CoordinateZ to a fixed value
@@ -387,8 +432,19 @@ def _dist2wallIBM(t, tb, dimPb=3, frontType=1, Reynolds=1.e6, yplus=100, Lref=1.
     else:
         tb2 = tb
 
-    # Compute distance to bodies
     DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dimPb, loc='centers')
+
+    tbsave = tb2
+
+    if filamentBases and not isFilamentOnly:
+        C._initVars(t,'{centers:TurbulentDistanceSolid}={centers:TurbulentDistance}')
+        if dimPb ==2: tb2 = C.initVars(tbFilament, 'CoordinateZ', dz)
+        _dist2wallIBMFilamentWMM__(t, tb2, tbsave, dimPb)                             
+    elif isFilamentOnly:
+        C._initVars(t,"{centers:TurbulentDistanceSolid}=0")
+        C._initVars(t,"{centers:TurbulentDistanceFilament}={centers:TurbulentDistance}")
+        C._initVars(t,"{centers:TurbulentDistanceFilamentWMM}={centers:TurbulentDistance}")
+
 
     # Compute turbulentdistance wrt each body that is not a sym plan (centers:TurbulentDistance_bodyX)
     if correctionMultiCorpsF42 and frontType == 42:
