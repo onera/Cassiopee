@@ -41,7 +41,7 @@ PyObject* K_GENERATOR::closeMesh(PyObject* self, PyObject* args)
   E_Bool rmDegeneratedFaces = true;
   E_Bool rmDegeneratedElts = true;
   
-  if (!PYPARSETUPLE_(args, O_ R_ II_ IIII_,
+  if (!PYPARSETUPLE_(args, O_ R_ BB_ BBBB_,
                     &array, &eps, &rmOverlappingPts, &rmOrphanPts,
                     &rmDuplicatedFaces, &rmDuplicatedElts,
                     &rmDegeneratedFaces, &rmDegeneratedElts)) return NULL;
@@ -51,7 +51,7 @@ PyObject* K_GENERATOR::closeMesh(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
 
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
