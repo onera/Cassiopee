@@ -703,34 +703,34 @@ E_Int K_IO::GenIO::readData108(E_Int version, FILE* ptrFile,
       if (passive[n] == 0)
       {
         if (varType[n] == 1) 
-        {
-            fread(buf1, sizeof(float), size, ptrFile);
-            for (i = 0; i < size; i++) fp[i] = buf1[i];
-            delete [] buf1;
+        {  
+          fread(buf1, sizeof(float), size, ptrFile);
+          for (i = 0; i < size; i++) fp[i] = buf1[i];
+          delete [] buf1;
         }    
         else if (varType[n] == 2) 
         {
-            fread(buf2, sizeof(double), size, ptrFile);
-            for (i = 0; i < size; i++) fp[i] = buf2[i];
-            delete [] buf2;
+          fread(buf2, sizeof(double), size, ptrFile);
+          for (i = 0; i < size; i++) fp[i] = buf2[i];
+          delete [] buf2;
         }
         else if (varType[n] == 3) 
         {
-            fread(buf3, sizeof(int64_t), size, ptrFile);
-            for (i = 0; i < size; i++) fp[i] = buf3[i];
-            delete [] buf3;
+          fread(buf3, sizeof(int64_t), size, ptrFile);
+          for (i = 0; i < size; i++) fp[i] = buf3[i];
+          delete [] buf3;
         }
         else if (varType[n] == 4) 
         {
-            fread(buf4, sizeof(int32_t), size, ptrFile);
-            for (i = 0; i < size; i++) fp[i] = buf4[i];
-            delete [] buf4;
+          fread(buf4, sizeof(int32_t), size, ptrFile);
+          for (i = 0; i < size; i++) fp[i] = buf4[i];
+          delete [] buf4;
         }
         else if (varType[n] == 5) 
         {
-            fread(buf5, sizeof(int8_t), size, ptrFile);
-            for (i = 0; i < size; i++) fp[i] = buf5[i];
-            delete [] buf5;
+          fread(buf5, sizeof(int8_t), size, ptrFile);
+          for (i = 0; i < size; i++) fp[i] = buf5[i];
+          delete [] buf5;
         }
       }
       else
@@ -750,58 +750,58 @@ E_Int K_IO::GenIO::readData108(E_Int version, FILE* ptrFile,
     vector<int> pos(nfield+1); // pos of non passive field in buffer
     for (i = 0; i < nfield; i++)
     {
-        if (passive[i] == 0) 
-        {
-            if (varType[i] == 1) { pos[nfieldLoc] = bsize; bsize += 4; }
-            else if (varType[i] == 2) { pos[nfieldLoc] = bsize; bsize += 8;  }
-            else if (varType[i] == 3) { pos[nfieldLoc] = bsize; bsize += 8;  }
-            else if (varType[i] == 4) { pos[nfieldLoc] = bsize; bsize += 4;  }
-            else if (varType[i] == 5) { pos[nfieldLoc] = bsize; bsize += 1;  }
-            index[nfieldLoc] = i; nfieldLoc += 1;
-        }
+      if (passive[i] == 0) 
+      {
+        if (varType[i] == 1) { pos[nfieldLoc] = bsize; bsize += 4; }
+        else if (varType[i] == 2) { pos[nfieldLoc] = bsize; bsize += 8;  }
+        else if (varType[i] == 3) { pos[nfieldLoc] = bsize; bsize += 8;  }
+        else if (varType[i] == 4) { pos[nfieldLoc] = bsize; bsize += 4;  }
+        else if (varType[i] == 5) { pos[nfieldLoc] = bsize; bsize += 1;  }
+        index[nfieldLoc] = i; nfieldLoc += 1;
+      }
     }
     char* buf = new char[bsize];
 
     for (n = 0; n < npts; n++)
     {
-       for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
-       fread(buf, sizeof(char), bsize, ptrFile);
-       for (i = 0; i < nfieldLoc; i++) 
-       {
-           switch (varType[index[i]])
-           {
-               case 1:
-               {
-                float* ptr = (float*)&buf[pos[i]]; 
-                fp(n, index[i]+1) = ptr[0];
-               }
-               break;
-               case 2:
-               {
-                double* ptr = (double*)&buf[pos[i]]; 
-                fp(n, index[i]+1) = ptr[0];
-               }
-               break;
-               case 3:
-               {
-                int64_t* ptr = (int64_t*)&buf[pos[i]]; 
-                fp(n, index[i]+1) = ptr[0];
-               }
-               break;
-               case 4:
-               {
-                int32_t* ptr = (int32_t*)&buf[pos[i]]; 
-                fp(n, index[i]+1) = ptr[0];
-               }
-               break;
-               case 5:
-               {
-                int8_t* ptr = (int8_t*)&buf[pos[i]]; 
-                fp(n, index[i]+1) = ptr[0];
-               }
-               break;
-           }
-       }    
+      for (i = 0; i < nfield; i++) fp(n, i+1) = 0.;
+      fread(buf, sizeof(char), bsize, ptrFile);
+      for (i = 0; i < nfieldLoc; i++) 
+      {
+        switch (varType[index[i]])
+        {
+          case 1:
+          {
+            float* ptr = (float*)&buf[pos[i]]; 
+            fp(n, index[i]+1) = ptr[0];
+          }
+          break;
+          case 2:
+          {
+            double* ptr = (double*)&buf[pos[i]]; 
+            fp(n, index[i]+1) = ptr[0];
+          }
+          break;
+          case 3:
+          {
+            int64_t* ptr = (int64_t*)&buf[pos[i]]; 
+            fp(n, index[i]+1) = ptr[0];
+          }
+          break;
+          case 4:
+          {
+            int32_t* ptr = (int32_t*)&buf[pos[i]]; 
+            fp(n, index[i]+1) = ptr[0];
+          }
+          break;
+          case 5:
+          {
+            int8_t* ptr = (int8_t*)&buf[pos[i]]; 
+            fp(n, index[i]+1) = ptr[0];
+          }
+          break;
+        }
+      }    
     }
     delete [] buf;
   }
@@ -811,8 +811,8 @@ E_Int K_IO::GenIO::readData108(E_Int version, FILE* ptrFile,
     FldArrayF& fp = *f;
     for (n = 0; n < npts; n++)
     {
-        fread(buf, sizeof(float), nfield, ptrFile);
-        for (i = 0; i < nfield; i++) fp(n, i+1) = buf[i];
+      fread(buf, sizeof(float), nfield, ptrFile);
+      for (i = 0; i < nfield; i++) fp(n, i+1) = buf[i];
     }
     delete [] buf;
   }
@@ -822,8 +822,8 @@ E_Int K_IO::GenIO::readData108(E_Int version, FILE* ptrFile,
     double* buf = new double[nfield];
     for (n = 0; n < npts; n++)
     {
-        fread(buf, sizeof(E_Float), nfield, ptrFile);
-        for (i = 0; i < nfield; i++) fp(n, i+1) = buf[i];
+      fread(buf, sizeof(E_Float), nfield, ptrFile);
+      for (i = 0; i < nfield; i++) fp(n, i+1) = buf[i];
     }
     delete [] buf;
   }
@@ -2394,7 +2394,9 @@ E_Int K_IO::GenIO::tecwrite108(
         case 8: // NGON
         {
           E_Int* ngon = connect[nol]->getNGon();
-          if (ngon[0] > 2) ib = 7; // polyhedron
+          E_Int* indPG = connect[nol]->getIndPG();
+          E_Int nf; connect[nol]->getFace(0, nf, ngon, indPG);
+          if (nf > 2) ib = 7; // polyhedron
           else ib = 6; // polygon
         }
         break;
@@ -2455,7 +2457,10 @@ E_Int K_IO::GenIO::tecwrite108(
         // num faces
         ib = connect[nol]->getNFaces(); fwrite(&ib, si, 1, ptrFile);
         // numFacesNodes
-        ib = connect[nol]->getSizeNGon()-ib; fwrite(&ib, si, 1, ptrFile);
+        E_Int isNGon = connect[nol]->isNGon();
+        E_Int size = connect[nol]->getSizeNGon();
+        if (isNGon != 3) size -= connect[nol]->getNFaces();
+        ib = size; fwrite(&ib, si, 1, ptrFile);
         // Boundary faces
         ib = 0; fwrite(&ib, si, 1, ptrFile);
         // Boundary connections
@@ -2631,13 +2636,16 @@ E_Int K_IO::GenIO::tecwrite108(
       E_Int* ngon = c.getNGon();
       E_Int* indPG = c.getIndPG();
       E_Int numFaces = c.getNFaces();
+      E_Int isNGon = c.isNGon();
       E_Int size = c.getSizeNGon();
-      E_Int nf = ngon[0];
-      nv = 1;
+      if (isNGon == 3) size += numFaces;
+      E_Int nf; c.getFace(0, nf, ngon, indPG);
       if (nf > 2) nt = numFaces+1 + (size-numFaces) + 2*numFaces;
       else nt = (size-numFaces) + 2*numFaces;
+      
       bufferi = new int[nt];
-
+      nv = 1;
+      
       // face offset
       int* ptri = bufferi;
       if (nf > 2) // only for volumic
@@ -2666,7 +2674,6 @@ E_Int K_IO::GenIO::tecwrite108(
 
       // left
       for (E_Int i = 0; i < numFaces; i++) ptri[i] = cFE1[i]-1;
-
       ptri += numFaces;
       // right
       for (E_Int i = 0; i < numFaces; i++) ptri[i] = cFE2[i]-1;

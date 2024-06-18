@@ -32,14 +32,14 @@ void main(void)
             scale = -1.0 / x;
             px.x = ( z*scale + 1.0) / 2.0;
             px.y = ( y*scale + 1.0) / 2.0;
-            color = texture(cube_left, px);
+            color = texture2D(cube_left, px);
         }
         else
         {
             scale = 1.0 / x;
             px.x = (-z*scale + 1.0) / 2.0;
             px.y = ( y*scale + 1.0) / 2.0;
-            color = texture(cube_right, px);
+            color = texture2D(cube_right, px);
         }
     }
     else if (abs(y) >= abs(z))
@@ -49,14 +49,14 @@ void main(void)
             scale = -1.0 / y;
             px.x = (-x*scale + 1.0) / 2.0; // a shifter a droite
             px.y = ( z*scale + 1.0) / 2.0;
-            color = texture(cube_top, px); // inverse
+            color = texture2D(cube_top, px); // inverse
         }
         else 
         {
             scale = 1.0 / y;
             px.x = (-x*scale + 1.0) / 2.0;
             px.y = (-z*scale + 1.0) / 2.0;
-            color = texture(cube_bottom, px);
+            color = texture2D(cube_bottom, px);
         }
     }
     else 
@@ -66,14 +66,14 @@ void main(void)
             scale = -1.0 / z;
             px.x = (-x*scale + 1.0) / 2.0;
             px.y = ( y*scale + 1.0) / 2.0;
-            color = texture(cube_back, px);
+            color = texture2D(cube_back, px);
         }
         else
         {
             scale = 1.0 / z;
             px.x = ( x*scale + 1.0) / 2.0;      
             px.y = ( y*scale + 1.0) / 2.0;
-            color = texture(cube_front, px);
+            color = texture2D(cube_front, px);
         }
     }
     gl_FragColor = color;
