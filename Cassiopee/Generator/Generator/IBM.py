@@ -16,7 +16,7 @@ import Converter.GhostCells as CGC
 import Connector.PyTree as X
 import Converter.Mpi as Cmpi
 import numpy
-
+##TEST git reset HEAD^
 EPSCART = 1.e-6
 
 def generateCartMesh__(o, parento=None, dimPb=3, vmin=11, DEPTH=2, sizeMax=4000000, check=True,
@@ -364,7 +364,7 @@ def _addBCsForSymmetry(t, bbox=None, dimPb=3, dir_sym=0, X_SYM=0., depth=2):
 def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[], tbox=None,
                         snearsf=None, check=True, to=None, ext=2,
                         expand=3, dfarDir=0, check_snear=False, mode=0,
-                        tbOneOver=None, listF1save=[]):
+                        tbOneOver=None, listF1save=[], fileoutpre='./'):
     import KCore.test as test
     # list of dfars
     if dfarList == []:
@@ -387,7 +387,9 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
                 else: snearsf.append(1.)
                 
     fileout = None
-    if check: fileout = 'octree.cgns'
+    if check:
+        fileoutpre[-1]='octree.cgns'
+        fileout = '/'.join(fileoutpre)
     # Octree identical on all procs
     if to is not None:
         if isinstance(to, str):
@@ -398,9 +400,9 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
         parento = None
     else:
         o = buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList,
-                                to=to, tbox=tbox, snearsf=snearsf,
-                                dimPb=dimPb, vmin=vmin, fileout=None, rank=Cmpi.rank,
-                                expand=expand, dfarDir=dfarDir, mode=mode)
+                        to=to, tbox=tbox, snearsf=snearsf,
+                        dimPb=dimPb, vmin=vmin, fileout=None, rank=Cmpi.rank,
+                        expand=expand, dfarDir=dfarDir, mode=mode)
 
     if Cmpi.rank==0 and check: C.convertPyTree2File(o,fileout)
     # build parent octree 3 levels higher
@@ -732,6 +734,7 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
 
 
 def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
+    tbSolid = Internal.rmNodesByName(tb, 'IBCFil*')
     boxes = []
     for b in Internal.getBases(tbox):
         boxes.append(Internal.getNodesFromType1(b, 'Zone_t'))
@@ -752,7 +755,7 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
                         snearl = Internal.getValue(snearl)
                         snearsf.append(snearl*(vmin-1))
 
- 
+
     to = C.newPyTree(['Base', o])
     end = 0
     G._getVolumeMap(to)
@@ -762,7 +765,7 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
     while end == 0:
         # Do not refine inside obstacles
         C._initVars(to, 'centers:cellN', 1.)
-        to = X_IBM.blankByIBCBodies(to, tb, 'centers', dim)
+        to = X_IBM.blankByIBCBodies(to, tbSolid, 'centers', dim)
         C._initVars(to, '{centers:cellNBody}={centers:cellN}')
         nob = 0
         C._initVars(to, 'centers:indicator', 0.)
@@ -771,7 +774,6 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
             C._initVars(to,'centers:cellN',1.)
             tboxl = C.newPyTree(['BOXLOC']); tboxl[2][1][2] = box
             to = X_IBM.blankByIBCBodies(to, tboxl, 'centers', dim)
-
             fact = 1.1
             while C.getMinValue(to, 'centers:cellN') == 1 and fact < 10.:
                 print("Info: addRefinementZones: tbox too small - increase tbox by fact = %2.1f"%(fact))
@@ -782,10 +784,11 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
 
             C._initVars(to,'{centers:indicator}=({centers:indicator}>0.)+({centers:indicator}<1.)*logical_and({centers:cellN}<0.001, {centers:vol}>%g)'%volmin2)
             nob += 1
-
+            
+            
         end = 1
         C._initVars(to,'{centers:indicator}={centers:indicator}*({centers:cellNBody}>0.)*({centers:vol}>%g)'%volmin0)
-
+        
         if  C.getMaxValue(to, 'centers:indicator') == 1.:
             end = 0
             # Maintien du niveau de raffinement le plus fin
