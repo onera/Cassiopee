@@ -156,7 +156,7 @@ def _prepareProjectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False):
         children.append(Internal.createNode('offset' , 'DataArray_t', offset))
         children.append(Internal.createNode('interpDonor' , 'DataArray_t', interpDonor))
         children.append(Internal.createNode('interpCoef' , 'DataArray_t', interpCoef))
-        Internal._createChild(zones[noz], 'POST_MLS', 'ZoneSubRegion_t', value=None, children=children)
+        Internal._createChild(zones[noz], 'POST_MLS', 'UserDefinedData_t', value=None, children=children)
 
     return None
     
