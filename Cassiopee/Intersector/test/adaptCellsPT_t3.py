@@ -18,9 +18,9 @@ t = T.splitNParts(t, 2, multigrid=0, dirs=[1,2,3])
 zones = I.getZones(t)
 p1 = zones[0]
 p1 = C.convertArray2Tetra(p1, split='withBarycenters')
-p1 = C.convertArray2NGon(p1); p1 = G.close(p1)
+p1 = C.convertArray2NGon(p1)
 
-p2 = C.convertArray2NGon(zones[1]); p2 = G.close(p2)
+p2 = C.convertArray2NGon(zones[1])
 
 mesh = XOR.booleanUnion(p1,p2) #conformize the join
 #C.convertPyTree2File(mesh, 'u.cgns')
