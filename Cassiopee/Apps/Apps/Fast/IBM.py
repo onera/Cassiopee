@@ -43,6 +43,13 @@ RENAMEIBCNODES=False # renommage des ibcd*
 
 __IBCNameServer__={}
 
+
+## ============================= June 2024 =================================
+## No further developments in this file. All IBM developments need to be
+## performed in the IBM.py files in each Cassiopee module (e.g.$CASSIOPEE/Cassiopee/Connector/Connector/IBM.py)
+## Any developments in this file will be REJECTED to be merged (pull request) in the official/upstream ONERA Cassiopee.
+## Please address any questions to: Christophe Benoit, Benjamin Constant, Antoine Jost, and Stephanie Peron.
+
 def getIBCDName(proposedName):
     global __IBCNameServer__
     (ibcname,__IBCNameServer__) = C.getUniqueName(proposedName, __IBCNameServer__)
