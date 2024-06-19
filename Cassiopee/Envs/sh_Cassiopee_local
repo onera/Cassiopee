@@ -528,7 +528,7 @@ elif [ "$MAC" = "juno" ]; then
 
 elif [ "$MAC" = "junoMain" ]; then
 #----------------------------- juno -----------------------------------------
-    export ELSAPROD=juno
+    export ELSAPROD=junoMain
     export ELSAPROD=$ELSAPROD$INTTYPE
     # Nbre de threads
     export OMP_NUM_THREADS=48
