@@ -370,7 +370,7 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
       }
     }
 
-    RELEASESHAREDU(tpl, f2, cn2)
+    RELEASESHAREDU(tpl, f2, cn2);
   }
   return tpl;
 }
@@ -869,7 +869,7 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
           for (E_Int j = 1; j <= nvpe; j++) cm2(i,j) = cm(i,j);
       }
     }
-    RELEASESHAREDU(tpl, f2, cn2)
+    RELEASESHAREDU(tpl, f2, cn2);
   }
   return tpl;
 }
