@@ -212,21 +212,21 @@ def _setFluidInside(t):
 #==============================================================================
 def setOutPressControlParam(t, probeName='pointOutPress', AtestSection=1, AOutPress=1,
                             machTarget=0.1, pStatTarget=1e05, tStatTarget=298.15,lmbd=0.1,
-                            cxSupport = 0.6, sSupport=0.1):
+                            cxSupport = 0.6, sSupport=0.1, itExtrctPrb=10):
     """Set the user input parameters for the outpress control algorithm.
-    Usage: setOutPressControlParam(t, probeName='X', AtestSection=Y, AOutPress=Z, machTarget=XX,pStatTarget=YY,tStatTarget=ZZ,lmbd=XXX,cxSupport=YYY,sSupport=ZZZ)"""
+    Usage: setOutPressControlParam(t, probeName='X', AtestSection=Y, AOutPress=Z, machTarget=XX,pStatTarget=YY,tStatTarget=ZZ,lmbd=XXX,cxSupport=YYY,sSupport=ZZZ,itExtrctPrb=XXXX)"""
     tp = Internal.copyRef(t)
     _setOutPressControlParam(tp, probeName=probeName, AtestSection=AtestSection, AOutPress=AOutPress,
                              machTarget=machTarget, pStatTarget=pStatTarget, tStatTarget=tStatTarget,lmbd=lmbd,
-                             cxSupport = cxSupport, sSupport=sSupport)
+                             cxSupport = cxSupport, sSupport=sSupport, itExtrctPrb=itExtrctPrb)
     return tp
 
 
 def _setOutPressControlParam(t, probeName='pointOutPress', AtestSection=1, AOutPress=1,
                              machTarget=0.1, pStatTarget=1e05, tStatTarget=298.15,lmbd=0.1,
-                             cxSupport = 0.6, sSupport=0.1):
+                             cxSupport = 0.6, sSupport=0.1, itExtrctPrb=10):
     """Set the user input parameters for the outpress control algorithm.
-    Usage: _setOutPressControlParam(t, probeName='X', AtestSection=Y, AOutPress=Z, machTarget=XX,pStatTarget=YY,tStatTarget=ZZ,lmbd=XXX,cxSupport=YYY,sSupport=ZZZ)"""
+    Usage: _setOutPressControlParam(t, probeName='X', AtestSection=Y, AOutPress=Z, machTarget=XX,pStatTarget=YY,tStatTarget=ZZ,lmbd=XXX,cxSupport=YYY,sSupport=ZZZ,itExtrctPrb=XXXX)"""
     zones = Internal.getZones(t)
     for z in zones:
         Internal._createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
@@ -240,6 +240,7 @@ def _setOutPressControlParam(t, probeName='pointOutPress', AtestSection=1, AOutP
         Internal._createUniqueChild(n, 'lmbd'        , 'DataArray_t', lmbd)
         Internal._createUniqueChild(n, 'cxSupport'   , 'DataArray_t', cxSupport)
         Internal._createUniqueChild(n, 'sSupport'    , 'DataArray_t', sSupport)
+        Internal._createUniqueChild(n, 'itExtrctPrb' , 'DataArray_t', itExtrctPrb)
         
     return None
 #==============================================================================
