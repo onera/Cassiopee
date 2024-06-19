@@ -26,7 +26,7 @@ import Transform
 import KCore
 import numpy
 import math
-##TEST git reset HEAD^
+
 varsn       = ['gradxTurbulentDistance','gradyTurbulentDistance','gradzTurbulentDistance']
 varsnDouble = ['gradxTurbulentDistanceDouble','gradyTurbulentDistanceDouble','gradzTurbulentDistanceDouble']
 TOLDIST  = 1.e-14
