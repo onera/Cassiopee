@@ -4075,7 +4075,7 @@ def _convertTree2NUGANGON(t, keep_BC=False):
     #print((typ,d))
     if typ == 'BASIC':
       #print('BASic -> NGON cassiopee')
-      C._convertArray2NGon(z); G._close(z, tol=1e-12)
+      C._convertArray2NGon(z)
       if d == 2 : typ = 'NGON_CASSIOPEE'
     # now it s a NGON (cassiopee or NUGA)
     if typ == 'NGON_CASSIOPEE':

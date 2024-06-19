@@ -375,6 +375,10 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
   }
 
   RELEASESHAREDU(array, f, cnl);
-  RELEASESHAREDU(tpl, f2, cn2);
+
+  // Clean connectivity
+  E_Float tol = 1.e-12;
+  tpl = K_CONNECT::V_cleanConnectivity(varString, *f2, *cn2, "NGON", tol);
+  delete f2; delete cn2;
   return tpl;  
 }

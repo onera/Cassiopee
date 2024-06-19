@@ -1,11 +1,10 @@
 # - identifyFaces (array) -
-import Generator as G
 import Converter as C
 import Post as P
 import KCore.test as test
 
 def identify(a):
-    a = C.convertArray2NGon(a); a = G.close(a, tol=1e-12)
+    a = C.convertArray2NGon(a)
     f = P.exteriorElts(a)
     if isinstance(a[0], list): a=a[0]
     hook = C.createHook(a, function='faceCenters')
