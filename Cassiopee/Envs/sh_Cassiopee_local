@@ -526,6 +526,33 @@ elif [ "$MAC" = "juno" ]; then
     unset $(env | grep SLURM | cut -d'=' -f 1)
     export OMP_PLACES=cores
 
+elif [ "$MAC" = "junoMain" ]; then
+#----------------------------- juno -----------------------------------------
+    export ELSAPROD=juno
+    export ELSAPROD=$ELSAPROD$INTTYPE
+    # Nbre de threads
+    export OMP_NUM_THREADS=48
+    # modules
+    source /opt/tools/Modules/init/bash
+    module purge
+    module load socle-cfd/6.0-intel2220-impi
+    module load occt/7.6.1-gnu831
+    module load subversion/1.14.1-gnu831
+    module load emacs/27.2-gnu831
+    alias inspxe-cl="/opt/tools/intel/oneapi/inspector/2021.2.0/bin64/inspxe-cl -r result -collect mi3 -- python3 "
+    alias inspxe-cl2="/opt/tools/intel/oneapi/inspector/2021.2.0/bin64/inspxe-cl -r result -collect ti3 -- python3 "
+    alias inspxe-gui="/opt/tools/intel/oneapi/inspector/2021.2.0/bin64/inspxe-gui result"
+    alias vtune="vtune -collect hotspots -result-dir result -quiet"
+    export PYTHONEXE=python3
+    export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
+    unset I_MPI_FABRICS_LIST
+    unset I_MPI_FABRICS
+    unset I_MPI_TCP_NETMASK
+    unset I_MPI_PMI_LIBRARY
+    unset $(env | grep SLURM | cut -d'=' -f 1)
+    export OMP_PLACES=cores    
+
 elif [ "$MAC" = "juno_gcc" ]; then
 #----------------------------- juno -----------------------------------------
     export ELSAPROD=juno_gcc
