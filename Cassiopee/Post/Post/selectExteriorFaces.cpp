@@ -909,7 +909,7 @@ PyObject* K_POST::selectExteriorFacesNGon3D(char* varString, FldArrayF& f,
     if (boolIndir) indirp[i] = fidx;
 
     nface2[c2] = nbnodes;
-    if (api == 2 || api == 3) indPH2[c2] = nbnodes;
+    if (api == 2 || api == 3) indPH2[i] = nbnodes;
     for (E_Int p = 0; p < nbnodes; p++)
     {
       edge[0] = face[p]-1;
