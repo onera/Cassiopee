@@ -2321,6 +2321,10 @@ E_Int K_IO::GenIO::tecwrite108(
   ib = 0;
   fwrite(&ib, si, 1, ptrFile);
 
+  // To keep track of type change due to tecplot limitations
+  E_Int changeME2HEXA = 0;
+  E_Int changePENTA2HEXA = 0;
+
   no = 0;
   while (no < structFieldSize + unstructFieldSize)
   {
@@ -2367,6 +2371,8 @@ E_Int K_IO::GenIO::tecwrite108(
     else
     {
       nol = no - structFieldSize;
+      FldArrayI* c = connect[nol];
+      E_Int nc = c->getNConnect();
       /* Type of elts */
       switch (eltTypes[nol][0])
       {
@@ -2375,12 +2381,14 @@ E_Int K_IO::GenIO::tecwrite108(
           break;
         case 2:  // TRI
           ib = 2;
+          if (nc > 1) { ib = 3; } // FIX as QUAD for ME
           break;
         case 3: // QUAD
           ib = 3;
           break;
         case 4: // TETRA
           ib = 4;
+          if (nc > 1) { ib = 5; } // FIX as HEXA for ME
           break;
         case 5: // PYRA - FIX as HEXA
           ib = 5; // Dans ce cas, on trace des hexa degeneres
@@ -2393,9 +2401,9 @@ E_Int K_IO::GenIO::tecwrite108(
           break;
         case 8: // NGON
         {
-          E_Int* ngon = connect[nol]->getNGon();
-          E_Int* indPG = connect[nol]->getIndPG();
-          E_Int nf; connect[nol]->getFace(0, nf, ngon, indPG);
+          E_Int* ngon = c->getNGon();
+          E_Int* indPG = c->getIndPG();
+          E_Int nf; c->getFace(0, nf, ngon, indPG);
           if (nf > 2) ib = 7; // polyhedron
           else ib = 6; // polygon
         }
@@ -2405,7 +2413,7 @@ E_Int K_IO::GenIO::tecwrite108(
           return 1;
       }
     }
-    fwrite(&ib, si, 1, ptrFile);
+    fwrite(&ib, si, 1, ptrFile); // write type
 
     // data packing (supp in 112)
     //ib = 0; // block
@@ -2433,7 +2441,9 @@ E_Int K_IO::GenIO::tecwrite108(
     else
     {
       nol = no - structFieldSize;
-
+      FldArrayI* c = connect[nol];
+      E_Int nc = c->getNConnect();
+      
       if (eltTypes[nol][0] != 8) // elements basiques
       {
         // numPts
@@ -2441,7 +2451,10 @@ E_Int K_IO::GenIO::tecwrite108(
         fwrite(&ib, si, 1, ptrFile);
 
         // num elts
-        ib = connect[nol]->getSize();
+        E_Int nelts = 0;
+        for (E_Int n = 0; n < nc; n++) nelts += c->getConnect(n)->getSize(); 
+        ib = nelts;
+        //ib = c->getSize();
         fwrite(&ib, si, 1, ptrFile);
 
         // cellDim
@@ -2455,18 +2468,18 @@ E_Int K_IO::GenIO::tecwrite108(
         ib = unstructField[nol]->getSize();
         fwrite(&ib, si, 1, ptrFile);
         // num faces
-        ib = connect[nol]->getNFaces(); fwrite(&ib, si, 1, ptrFile);
+        ib = c->getNFaces(); fwrite(&ib, si, 1, ptrFile);
         // numFacesNodes
-        E_Int isNGon = connect[nol]->isNGon();
-        E_Int size = connect[nol]->getSizeNGon();
-        if (isNGon != 3) size -= connect[nol]->getNFaces();
+        E_Int isNGon = c->isNGon();
+        E_Int size = c->getSizeNGon();
+        if (isNGon != 3) size -= c->getNFaces();
         ib = size; fwrite(&ib, si, 1, ptrFile);
         // Boundary faces
         ib = 0; fwrite(&ib, si, 1, ptrFile);
         // Boundary connections
         ib = 0; fwrite(&ib, si, 1, ptrFile);
         // num elts
-        ib = connect[nol]->getNElts(); fwrite(&ib, si, 1, ptrFile);
+        ib = c->getNElts(); fwrite(&ib, si, 1, ptrFile);
         // cellDim
         ib = 0; fwrite(&ib, si, 1, ptrFile);
         ib = 0; fwrite(&ib, si, 1, ptrFile);
@@ -2594,44 +2607,46 @@ E_Int K_IO::GenIO::tecwrite108(
       fwrite(f.begin(n), sizeof(E_Float), f.getSize(), ptrFile);
 
     // Connectivity
-    nt = c.getSize(); nv = c.getNfld();
+    E_Int nc = c.getNConnect();
     int* bufferi;
+    E_Int sizet = 0;
+    if (eltTypes[no][0] == 8) // NGON
+    {
+      E_Int* ngon = c.getNGon();
+      E_Int* indPG = c.getIndPG();
+      E_Int numFaces = c.getNFaces();
+      E_Int isNGon = c.isNGon();
+      E_Int size = c.getSizeNGon();
+      if (isNGon == 3) size += numFaces;
+      E_Int nf; c.getFace(0, nf, ngon, indPG);
+      if (nf > 2) sizet = numFaces+1 + (size-numFaces) + 2*numFaces;
+      else sizet = (size-numFaces) + 2*numFaces;
+    }
+    else if (nc > 1) // ME
+    {
+      for (E_Int n = 0; n < nc; n++)
+      {
+        FldArrayI* cl = c.getConnect(n);
+        switch (eltTypes[no][n])
+        {
+          case 2: sizet += 4*cl->getSize(); break; // ALL FIX
+          case 3: sizet += 4*cl->getSize(); break;
+          case 4: sizet += 8*cl->getSize(); break;
+          case 5: sizet += 8*cl->getSize(); break;
+          case 6: sizet += 8*cl->getSize(); break;
+          case 7: sizet += 8*cl->getSize(); break;
+          default: break;
+        }
+      }
+    }
+    else // BE
+    {
+      sizet = c.getSize() * c.getNfld();
+    }
+    
+    bufferi = new int [sizet];
 
-    if (eltTypes[no][0] == 5) // FIX pour PYRA as HEXA
-    {
-      bufferi = new int[nt * 8];
-      for (n = 0; n < nt; n++)
-      {
-        p = n * 8;
-        bufferi[p  ] = c(n, 1)-1;
-        bufferi[p+1] = c(n, 2)-1;
-        bufferi[p+2] = c(n, 3)-1;
-        bufferi[p+3] = c(n, 4)-1;
-        bufferi[p+4] = c(n, 5)-1;
-        bufferi[p+5] = c(n, 5)-1;
-        bufferi[p+6] = c(n, 5)-1;
-        bufferi[p+7] = c(n, 5)-1;
-      }
-      nv = 8;
-    }
-    else if (eltTypes[no][0] == 6) // FIX pour PENTA as HEXA
-    {
-      bufferi = new int[nt * 8];
-      for (n = 0; n < nt; n++)
-      {
-        p = n * 8;
-        bufferi[p  ] = c(n, 1)-1;
-        bufferi[p+1] = c(n, 2)-1;
-        bufferi[p+2] = c(n, 2)-1;
-        bufferi[p+3] = c(n, 3)-1;
-        bufferi[p+4] = c(n, 4)-1;
-        bufferi[p+5] = c(n, 5)-1;
-        bufferi[p+6] = c(n, 5)-1;
-        bufferi[p+7] = c(n, 6)-1;
-      }
-      nv = 8;
-    }
-    else if (eltTypes[no][0] == 8) // NGONS
+    if (eltTypes[no][0] == 8) // NGON
     {
       E_Int* ngon = c.getNGon();
       E_Int* indPG = c.getIndPG();
@@ -2642,9 +2657,6 @@ E_Int K_IO::GenIO::tecwrite108(
       E_Int nf; c.getFace(0, nf, ngon, indPG);
       if (nf > 2) nt = numFaces+1 + (size-numFaces) + 2*numFaces;
       else nt = (size-numFaces) + 2*numFaces;
-      
-      bufferi = new int[nt];
-      nv = 1;
       
       // face offset
       int* ptri = bufferi;
@@ -2678,22 +2690,98 @@ E_Int K_IO::GenIO::tecwrite108(
       // right
       for (E_Int i = 0; i < numFaces; i++) ptri[i] = cFE2[i]-1;
     }
-    else // CAS standard
+    else // ME and BE
     {
-      bufferi = new int[nt * nv];
-      for (n = 0; n < nt; n++)
+      int* ptri = bufferi;
+      for (E_Int n = 0; n < nc; n++)
       {
-        p = n * nv;
-        for (nf = 1; nf <= nv; nf++) bufferi[p+nf-1] = c(n, nf)-1;
+        FldArrayI& cl = *(c.getConnect(n));
+        nt = cl.getSize(); nv = cl.getNfld();
+        if (eltTypes[no][n] == 5) // FIX pour PYRA as HEXA
+        {
+          changePENTA2HEXA += 1;
+          for (i = 0; i < nt; i++)
+          {
+            p = i * 8;
+            ptri[p  ] = cl(i, 1)-1;
+            ptri[p+1] = cl(i, 2)-1;
+            ptri[p+2] = cl(i, 3)-1;
+            ptri[p+3] = cl(i, 4)-1;
+            ptri[p+4] = cl(i, 5)-1;
+            ptri[p+5] = cl(i, 5)-1;
+            ptri[p+6] = cl(i, 5)-1;
+            ptri[p+7] = cl(i, 5)-1;
+          }
+          ptri += nt*8;
+        }
+        else if (eltTypes[no][n] == 6) // FIX pour PENTA as HEXA
+        {
+          changePENTA2HEXA += 1;
+          for (i = 0; i < nt; i++)
+          {
+            p = i * 8;
+            ptri[p  ] = cl(i, 1)-1;
+            ptri[p+1] = cl(i, 2)-1;
+            ptri[p+2] = cl(i, 2)-1;
+            ptri[p+3] = cl(i, 3)-1;
+            ptri[p+4] = cl(i, 4)-1;
+            ptri[p+5] = cl(i, 5)-1;
+            ptri[p+6] = cl(i, 5)-1;
+            ptri[p+7] = cl(i, 6)-1;
+          }
+          ptri += nt*8;
+        }
+        else if (eltTypes[no][n] == 2 && nc > 1) // FIX pour TRI as QUAD for ME
+        {
+          changeME2HEXA += 1;
+          for (i = 0; i < nt; i++)
+          {
+            p = i * 4;
+            ptri[p  ] = cl(i, 1)-1;
+            ptri[p+1] = cl(i, 2)-1;
+            ptri[p+2] = cl(i, 3)-1;
+            ptri[p+3] = cl(i, 3)-1;
+          }
+          ptri += nt*4;
+        }
+        else if (eltTypes[no][n] == 4 && nc > 1) // FIX pour TETRA as HEXA for ME
+        {
+          changeME2HEXA += 1;
+          for (i = 0; i < nt; i++)
+          {
+            p = i * 8;
+            ptri[p  ] = cl(i, 1)-1;
+            ptri[p+1] = cl(i, 2)-1;
+            ptri[p+2] = cl(i, 3)-1;
+            ptri[p+3] = cl(i, 3)-1;
+            ptri[p+4] = cl(i, 4)-1;
+            ptri[p+5] = cl(i, 4)-1;
+            ptri[p+6] = cl(i, 4)-1;
+            ptri[p+7] = cl(i, 4)-1;
+          }
+          ptri += nt*8;
+        }
+        else // CAS standard
+        {
+          for (i = 0; i < nt; i++)
+          {
+            p = i * nv;
+            for (nf = 1; nf <= nv; nf++) ptri[p+nf-1] = cl(i, nf)-1;
+          }
+          ptri += nt*nv;
+        }
       }
     }
 
-    fwrite(bufferi, si, nt*nv, ptrFile);
+    fwrite(bufferi, si, sizet, ptrFile);
     delete [] bufferi;
 
     no++;
   }
 
+  if (changeME2HEXA > 0) printf("Warning: tecwrite: I changed some multi-elements to HEXA or QUAD.\n");
+  if (changePENTA2HEXA > 0) printf("Warning: tecwrite: I changed PENTA or PYRA to HEXA.\n");
+  
   fclose(ptrFile);
   return 0;
 }

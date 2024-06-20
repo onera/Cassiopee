@@ -13,7 +13,7 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
     else:
         rank = 0; size = 1; KCOMM = None; COMM_WORLD = None
         SUM = 0; MAX = 0; MIN = 0; LAND = 0
-        from .Distributed import setProc, _setProc, getProc, getProcDict, getProperty, getPropertyDict, convertFile2SkeletonTree, computeGraph, splitGraph, mergeGraph, readZones, convert2PartialTree, convert2SkeletonTree, readPyTreeFromPaths
+        from .Distributed import setProc, _setProc, getProc, getProcDict, getProperty, getPropertyDict, convertFile2SkeletonTree, computeGraph, splitGraph, mergeGraph, readZones, writeZones, convert2PartialTree, convert2SkeletonTree, readPyTreeFromPaths
         def barrier(): return
         def bcast(a, root=0): return a
         def Bcast(a, root=0): return a
