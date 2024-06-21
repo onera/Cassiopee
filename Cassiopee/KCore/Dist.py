@@ -83,7 +83,6 @@ def getenv(name):
 #==============================================================================
 def getDataFolderName(name='Data'):
     elsaprod = os.getenv("ELSAPROD")
-    if elsaprod=='junoMain': elsaprod='juno'
     if elsaprod is not None:
         if not elsaprod.endswith('_i8') and EDOUBLEINT:
             print("Warning: ELSAPROD {} compiled in i8 but recommended suffix "

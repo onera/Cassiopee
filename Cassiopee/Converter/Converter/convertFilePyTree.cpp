@@ -204,7 +204,6 @@ PyObject* K_CONVERTER::convertPyTree2FilePartial(PyObject* self, PyObject* args)
   K_IO::GenIO::getInstance()->hdfcgnsWritePathsPartial(fileName, t, Filter, skeleton, mpi4pyCom);
 
 #else
-  E_Int comm = 0; // dummy
   /* En sequentiel */
   // skeleton = 1;
   K_IO::GenIO::getInstance()->hdfcgnsWritePathsPartial(fileName, t, Filter, skeleton, mpi4pyCom);
