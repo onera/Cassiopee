@@ -1,0 +1,30 @@
+#! /bin/bash
+
+## If mutliple Cassiopee & Fast executables are required at the same time (e.g. test various long developments) various Dist directories are required.
+## This scripts copies the $CASSIOPEE/Dist directory to a new location called $CASIOP/Dist. To access the each set of executables one only needs to set
+## the correct cassiopee directory and load the correct ELSAPROD.
+
+## ================
+##      Example
+## ================
+## (0) export the MACHINE upon which you are currently on (e.g. export MACHINE=juno)
+
+## (1) Creating the extra executable
+## load the standard Cassiopee environment 
+## ./copyCassiopee juno /stck/$CASSIOPEE/CassiopeeTmp --> create a new CassiopeeTmp directory in $CASSIOPEE
+## You presently have Cassiopee & CassiopeeTmp
+
+## (2) Executing code with the new extra executable
+## export $CASSIOPEE='path to CassiopeeTmp'
+## source $CASSIOPEE/Dist/sh_Cassiopee_local (for bash)
+
+export PROD="$1"
+export CASIOP="$2"
+
+rm -r $CASIOP/Dist/bin/$PROD
+./moveDist $CASIOP/Dist/bin/$PROD
+cp -r $CASSIOPEE/Cassiopee/Envs/*  $CASIOP/Dist/.
+
+echo '================================'
+echo 'Cassiopee='$CASIOP', Prod='$PROD
+echo '================================'
