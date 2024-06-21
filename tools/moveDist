@@ -33,57 +33,57 @@ fi
 
 # push module a la position dir
 if [ $# -eq 2 ]; then
-	module=$1
-	path=$2
+    module=$1
+    path=$2
     mkdir -p $path
-
-	here=`pwd`
-	cd "$CASSIOPEE/Dist/bin/$ELSAPROD/lib/$pyversion/site-packages"
-	tar cvf $module.tar $module
-	mv $module.tar $path
-        cd $path
-	mkdir -p lib/$pyversion/site-packages
-	if [ -L lib64 ]; then
-	    rm lib64
-	    ln -s lib lib64
+    
+    here=`pwd`
+    cd "$CASSIOPEE/Dist/bin/$ELSAPROD/lib/$pyversion/site-packages"
+    tar cvf $module.tar $module
+    mv $module.tar $path
+    cd $path
+    mkdir -p lib/$pyversion/site-packages
+    if [ -L lib64 ]; then
+         rm lib64
+         ln -s lib lib64
     else
         ln -s lib lib64
-	fi
+    fi
     mv $module.tar lib/$pyversion/site-packages
-	cd lib/$pyversion/site-packages
-	tar xvf $module.tar
-	rm $module.tar
-	cd $here
+    cd lib/$pyversion/site-packages
+    tar xvf $module.tar
+    rm $module.tar
+    cd $here
 fi
 
 # push all modules a la position dir
 if [ $# -eq 1 ]; then
-	path=$1
+    path=$1
     mkdir -p $path
-	here=`pwd`
-	cd "$CASSIOPEE/Dist/bin/$ELSAPROD"
-	tar cvf all.tar .
-	mv all.tar $path
-	cd $path
-	tar xvf all.tar
-	rm all.tar
-	if [ -L lib64 ]; then
-	    rm lib64
-	    ln -s lib lib64
+    here=`pwd`
+    cd "$CASSIOPEE/Dist/bin/$ELSAPROD"
+    tar cvf all.tar .
+    mv all.tar $path
+    cd $path
+    tar xvf all.tar
+    rm all.tar
+    if [ -L lib64 ]; then
+        rm lib64
+        ln -s lib lib64
     else
         ln -s lib lib64
-	fi
-	# Change installPath
-	cd lib/$pyversion/site-packages
-	cd KCore
+    fi
+    # Change installPath
+    cd lib/$pyversion/site-packages
+    cd KCore
     cp "$CASSIOPEE/Dist/bin/$ELSAPROD/lib/$pyversion/site-packages/KCore/installPath.py" .
-
+    
     cp installPath.py installPath_old.py
     dirname=$(dirname $(dirname $(dirname $path)))
     s1=$(sed 's/[\/&]/\\&/g' <<< $CASSIOPEE)
     s2=$(sed 's/[\/&]/\\&/g' <<< $dirname)
     # Remplace $CASSIOPEE par $dirname 
     sed -i "s/$s1/$s2/g" installPath.py
-	more installPath.py
-	cd $here
+    more installPath.py
+    cd $here
 fi
