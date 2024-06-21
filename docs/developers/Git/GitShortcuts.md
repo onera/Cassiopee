@@ -42,7 +42,7 @@ gitgrep () {
 	echo git grep -n "$1";
 	git grep -n "$1";
     elif [ "$#" -lt 3 ]
-    else
+    then
 	echo git grep -n "$1" -- ':!'"$2"'/test/*'  ':!*.rst' "$2";
 	git grep -n "$1" -- ':!'"$2"'/test/*'  ':!*.rst' "$2";
     else
