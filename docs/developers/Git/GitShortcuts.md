@@ -26,3 +26,27 @@ The above command adds the '@main' seen below:
 
 ![image](https://github.com/onera/Cassiopee/assets/124277807/e15c130f-9b80-4a1c-b2b8-7c6a44e3584e)
 
+
+## Git grep with line number
+Git grep with line number for (1) a single variable or (2) a single variable in a specific working directory. The latter automatically ignores the */test directory and ignores the .rst files.
+
+e.g. 
+1) gitgrep var2
+2) gitgrep var 2 Converter
+```shell
+#first argument: variable names
+#second argument: local path to directory
+gitgrep () {
+    if [ "$#" -lt 2 ]
+    then
+	echo git grep -n "$1";
+	git grep -n "$1";
+    elif [ "$#" -lt 3 ]
+    else
+	echo git grep -n "$1" -- ':!'"$2"'/test/*'  ':!*.rst' "$2";
+	git grep -n "$1" -- ':!'"$2"'/test/*'  ':!*.rst' "$2";
+    else
+	echo "gitgrep can only take a max of 2 arguments"
+    fi
+}
+```
