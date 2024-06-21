@@ -15,13 +15,20 @@ if [ "$ELSAPROD" = "" ]; then
     exit
 fi
 
+if [ "$PYTHONEXE" = "python3" ]; then
+    pyversion="python"`python3 -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
+    alias python=python3
+else
+    pyversion="python"`python -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
+fi
+
 if ([ $# -eq 0 ]); then
     echo "moveDist <dir>"
     echo "moveDist /tmp/Cassiopee/Dist/bin/x86_r8"
     echo "Recopie le Dist dans <dir>"
     echo "moveDist <module> <dir>"
     echo "ex: moveDist Transform /tmp/Cassiopee/Dist/bin/x86_r8"
-    echo "Recopie le Dist du module dans <dir>/lib/python3.7/site-packages"
+    echo "Recopie le Dist du module dans <dir>/lib/$pyversion/site-packages"
 fi
 
 # push module a la position dir
@@ -31,19 +38,19 @@ if [ $# -eq 2 ]; then
     mkdir -p $path
 
 	here=`pwd`
-	cd "$CASSIOPEE/Dist/bin/$ELSAPROD/lib/python3.7/site-packages"
+	cd "$CASSIOPEE/Dist/bin/$ELSAPROD/lib/$pyversion/site-packages"
 	tar cvf $module.tar $module
 	mv $module.tar $path
         cd $path
-	mkdir -p lib/python3.7/site-packages
+	mkdir -p lib/$pyversion/site-packages
 	if [ -L lib64 ]; then
 	    rm lib64
 	    ln -s lib lib64
     else
         ln -s lib lib64
 	fi
-    mv $module.tar lib/python3.7/site-packages
-	cd lib/python3.7/site-packages
+    mv $module.tar lib/$pyversion/site-packages
+	cd lib/$pyversion/site-packages
 	tar xvf $module.tar
 	rm $module.tar
 	cd $here
@@ -67,9 +74,9 @@ if [ $# -eq 1 ]; then
         ln -s lib lib64
 	fi
 	# Change installPath
-	cd lib/python3.7/site-packages
+	cd lib/$pyversion/site-packages
 	cd KCore
-    cp "$CASSIOPEE/Dist/bin/$ELSAPROD/lib/python3.7/site-packages/KCore/installPath.py" .
+    cp "$CASSIOPEE/Dist/bin/$ELSAPROD/lib/$pyversion/site-packages/KCore/installPath.py" .
 
     cp installPath.py installPath_old.py
     dirname=$(dirname $(dirname $(dirname $path)))
