@@ -18,8 +18,8 @@
 ## export $CASSIOPEE='path to CassiopeeTmp'
 ## source $CASSIOPEE/Dist/sh_Cassiopee_local (for bash)
 
-export PROD="$1"
-export CASIOP="$2"
+PROD="$1"
+CASIOP="$2"
 
 rm -r $CASIOP/Dist/bin/$PROD
 ./moveDist $CASIOP/Dist/bin/$PROD
