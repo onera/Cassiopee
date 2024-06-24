@@ -10,7 +10,7 @@ import numpy, scipy.optimize
 R_GAZ       = 287.05       # J/kg/K
 GAMMA       = 1.4
 
-def tauFunction(mach, gamma=GAMMA):
+def tauFunction__(mach, gamma=GAMMA):
     """Return :math:`1 + \\frac{\\gamma - 1}{2} M^2`
     
     Parameters
@@ -23,7 +23,7 @@ def tauFunction(mach, gamma=GAMMA):
     return 1. + 0.5*(gamma - 1.)*mach**2
     
 
-def sigmaFunction(mach, gamma=GAMMA):
+def sigmaFunction__(mach, gamma=GAMMA):
     """Return :math:`\\Sigma(M)`
     
     Parameters
@@ -36,7 +36,7 @@ def sigmaFunction(mach, gamma=GAMMA):
     return ( 2./(gamma + 1.) + (gamma - 1.)/(gamma + 1.) * mach**2 )**(0.5*(gamma + 1.)/(gamma - 1.)) / mach
     
 
-def sigmaFunctionDerivate(mach, gamma=GAMMA):
+def sigmaFunctionDerivate__(mach, gamma=GAMMA):
     """Return :math:`\\Sigma'(M)`, first derivative of :math:`\\Sigma(M)`
     
     Parameters
@@ -50,21 +50,21 @@ def sigmaFunctionDerivate(mach, gamma=GAMMA):
         * (-1/mach**2 + 1./(2./(gamma + 1.) + (gamma - 1.)/(gamma + 1.) * mach**2))
 
 
-def _scalarSigmaFunctionInv(s, gamma=GAMMA, range='subsonic'):
+def _scalarSigmaFunctionInv__(s, gamma=GAMMA, range='subsonic'):
     eps = numpy.finfo(float).eps
     if range == 'subsonic':
-        sol = scipy.optimize.root_scalar(lambda M: sigmaFunction(M, gamma) - s, 
+        sol = scipy.optimize.root_scalar(lambda M: sigmaFunction__(M, gamma) - s, 
             x0=0.5, bracket=(2*eps, 1. - 2*eps), method='brentq')
     elif range == 'supersonic':
-        sol = scipy.optimize.root_scalar(lambda M: sigmaFunction(M, gamma) - s, 
+        sol = scipy.optimize.root_scalar(lambda M: sigmaFunction__(M, gamma) - s, 
             x0=1.5, bracket=(1. + 2*eps, 1e3), method='brentq') # it is unlikely that user require Mach number above 1000.
     else:
         raise RuntimeError("Unexpected value for `range`: {:s}".format(str(range)))
     return sol.root
 
 
-def sigmaFunctionInv(s, gamma=1.4, range='subsonic'):
-    # This method vectorizes _scalarSigmaFunctionInv
+def sigmaFunctionInv__(s, gamma=1.4, range='subsonic'):
+    # This method vectorizes _scalarSigmaFunctionInv__
     """Return the inverse of the function :math:`\\Sigma(M)`
     
     Parameters
@@ -80,7 +80,7 @@ def sigmaFunctionInv(s, gamma=1.4, range='subsonic'):
         op_flags = [['readonly'], ['writeonly', 'allocate', 'no_broadcast']],
         op_dtypes=['float64', 'float64']) as it:
         for x, y in it:
-            y[...] = _scalarSigmaFunctionInv(s, gamma=gamma)
+            y[...] = _scalarSigmaFunctionInv__(s, gamma=gamma)
         return it.operands[1]
         
 
@@ -123,9 +123,9 @@ def getInfo(tcase,familyName):
 
     
     ## Calculated Values
-    _tau        = tauFunction(m1)                                   # Eqn. (10) || τ(M)= 1 + (γ-1)/2 M²
-    m2is        = sigmaFunctionInv(A2/A1 * sigmaFunction(m1))     # Eqn. (11) || M_2,is=Σ⁻¹(A_2 /A_1 Σ(M_1))
-    p2is        = pi1 * tauFunction(m2is)**(-GAMMA/(GAMMA - 1.))    # Eqn. (12) || p_2,is=p_i1 τ(M_2,is)^(−γ∕(γ−1))
+    _tau        = tauFunction__(m1)                                   # Eqn. (10) || τ(M)= 1 + (γ-1)/2 M²
+    m2is        = sigmaFunctionInv__(A2/A1 * sigmaFunction__(m1))     # Eqn. (11) || M_2,is=Σ⁻¹(A_2 /A_1 Σ(M_1))
+    p2is        = pi1 * tauFunction__(m2is)**(-GAMMA/(GAMMA - 1.))    # Eqn. (12) || p_2,is=p_i1 τ(M_2,is)^(−γ∕(γ−1))
 
     # coefficient de perte de charge entre l'entrée et la sortie du domaine,
     # ici uniquement du au support, et calculé à partir d'une estimation de la traînée du support
@@ -138,10 +138,10 @@ def getInfo(tcase,familyName):
     values4gain  =[p2,
                    m1,
                    p2is*GAMMA*m2is,
-                   tauFunction(m2is),
+                   tauFunction__(m2is),
                    A2/A1,
-                   sigmaFunctionDerivate(m1),
-                   sigmaFunctionDerivate(m2is),
+                   sigmaFunctionDerivate__(m1),
+                   sigmaFunctionDerivate__(m2is),
                    0,
                    0]        
     
