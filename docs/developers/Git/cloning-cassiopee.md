@@ -10,10 +10,10 @@ eval `ssh-agent -s`
 2. Create a new SSH key (no passphrase, add a meaningful suffix to the key) and add it to the SSH agent
 ```sh
 ssh-keygen -t ed25519 -C <firstname.name@example.com>
-ssh-add <full path to the private key>
+ssh-add <full path to the private key (id_edXXXXX)>
 ```
 
-3. Copy the contents of the public key (.pub) to your online Github account
+3. Copy the contents of the public key (id_edXXXXX.pub) to your online Github account
 ```sh    
 cat <full path to the public key>
 ```
