@@ -201,7 +201,6 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
         print(RED + "===========================================" + END)
         print("Note: Assuming " + RED + "CARTESIAN " + END + "grid")
         print(RED + "===========================================" + END)
-    
     ##[AJ] keep for now...will delete in the near future
     ##if isinstance(tc_out, str):
     ##    if '/' in tc_out: fileoutpre = tc_out.split('/')
@@ -357,214 +356,348 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
     if tc2 is not None: return t, tc, tc2
     else: return t, tc
 
-#def prepareIBMDataExtrude(t_case, t_out, tc_out, t, to=None,
-#                          depth=2, frontType=1, octreeMode=0, IBCType=1, 
-#                          verbose=True, check=False, balancing=False, distribute=False, twoFronts=False, cartesian=True,
-#                          yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1., 
-#                          tbox=None, extrusion='cart'):
-#    STILL IN DEV - DO NOT USE
-#    import Generator.IBM as G_IBM
-#    import time as python_time
-#
-#    if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
-#    else: tb = Internal.copyTree(t_case)
-#
-#    tbF1 = None
-#    if tbox:
-#        tbF1 = Internal.getNodesFromNameAndType(tbox, '*KeepF1*', 'CGNSBase_t')
-#        tbox = None
-#
-#    ##if isinstance(tc_out, str):  fileoutpre = tc_out.split('/')
-#    ##else:                        fileoutpre = ['.','template.cgns']
-#
-#    refstate = Internal.getNodeFromName(tb, 'ReferenceState')
-#    flowEqn  = Internal.getNodeFromName(tb, 'FlowEquationSet')          
-#
-#    Reynolds = Internal.getNodeFromName(tb, 'Reynolds')
-#    if Reynolds is not None:
-#        Reynolds = Internal.getValue(Reynolds)
-#        if Reynolds < 1.e5: frontType = 1
-#    else: Reynolds = 1.e6
-#
-#    expand = 3 if frontType != 42 else 4
-#
-#    dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
-#    if dimPb is None: raise ValueError('prepareIBMDataPara: EquationDimension is missing in input geometry tree.')
-#    dimPb = Internal.getValue(dimPb)
-#    if dimPb == 2: C._initVars(tb, 'CoordinateZ', 0.)
-#    
-#    model = Internal.getNodeFromName(tb, 'GoverningEquations')
-#    if model is None: raise ValueError('prepareIBMDataPara: GoverningEquations is missing in input geometry tree.')
-#    model = Internal.getValue(model)
-#
-#    ibctypes = Internal.getNodesFromName(tb, 'ibctype')
-#    if ibctypes is None: raise ValueError('prepareIBMDataPara: ibc type is missing in input geometry tree.')
-#    ibctypes = list(set(Internal.getValue(ibc) for ibc in ibctypes))
-#
-#    if model == 'Euler':
-#        if any(ibc in ['Musker', 'MuskerMob', 'Mafzal', 'Log', 'TBLE', 'TBLE_FULL'] for ibc in ibctypes):
-#            raise ValueError("prepareIBMDataPara: governing equations (Euler) not consistent with ibc types %s"%(ibctypes))
-#
-#    #===================
-#    # STEP 0 : GET FILAMENT BODIES Modified
-#    #===================    
-#    [filamentBases, isFilamentOnly, isOrthoProjectFirst, tb, tbFilament]=D_IBM.determineClosedSolidFilament__(tb)  
-#    isWireModel=False
-#    for z in Internal.getZones(t_case):
-#        soldef  = Internal.getNodeFromName(z,'.Solver#define')
-#        if soldef is not None:
-#            ibctype = Internal.getNodeFromName(soldef,'ibctype')
-#            if ibctype is not None:
-#                if Internal.getValue(ibctype) == "wiremodel":
-#                    isWireModel=True
-#                    break
-#    if isFilamentOnly: tbLocal=tbFilament
-#    else: tbLocal=Internal.merge([tb,tbFilament])
-#
-#    # Modification needed for Extrude
-#    # Keep F1 regions - for F1 & F42 synergy
-#    if tbF1:
-#        tbbBTmp         = G.BB(tbF1)
-#        interDict_scale = X.getIntersectingDomains(tbbBTmp, t)
-#        for kk in interDict_scale:
-#            for kkk in interDict_scale[kk]:
-#                z=Internal.getNodeFromName(t, kkk)
-#                Internal._createUniqueChild(z, '.Solver#defineTMP', 'UserDefinedData_t')
-#                Internal._createUniqueChild(Internal.getNodeFromName1(z, '.Solver#defineTMP'), 'SaveF1', 'DataArray_t', value=1)
-#                node=Internal.getNodeFromName(t, kkk)
-#                
-#    ## New to extrude Prep            
-#    if extrusion=='cyl': cartesian = False
-#
-#    C._initVars(t, 'centers:cellN', 1.)
-#    X._applyBCOverlaps(t, depth=depth, loc='centers', val=2, cellNName='cellN')
-#    C._initVars(t,'{centers:cellNChim}={centers:cellN}')
-#    C._initVars(t, 'centers:cellN', 1.)
-#    
-#    #===================
-#    # STEP 1 : BLANKING IBM Modified
-#    #===================
-#    if verbose: pt0 = python_time.time(); printTimeAndMemory__('blank by IBC bodies', time=-1, functionName='setInterpDataIBMExtrude')
-#    _blankingIBM(t, tb, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth, 
-#                 Reynolds=Reynolds, yplus=yplus, Lref=Lref, twoFronts=twoFronts, 
-#                 heightMaxF42=heightMaxF42, correctionMultiCorpsF42=correctionMultiCorpsF42, 
-#                 wallAdaptF42=wallAdaptF42, blankingF42=blankingF42,
-#                 filamentBases=filamentBases, isFilamentOnly=isFilamentOnly, tbFilament=tbFilament,
-#                 isWireModel=isWireModel)
-#    
-#    ##Modify needed for extrude & to replicate previous behavior
-#    ##Ghost kmin et kmax donneuse potentiel
-#    listvars_local =['cellNChim','cellNIBC']
-#    for z in Internal.getZones(t):
-#        sol            = Internal.getNodeFromName(z,'FlowSolution#Centers')
-#        for var in listvars_local:
-#            cellN          = Internal.getNodeFromName(sol,var)[1]
-#            sh             = numpy.shape(cellN)
-#            for k in [0,1, sh[2]-2, sh[2]-1]:
-#                for j in range(sh[1]):
-#                    for i in range(sh[0]):
-#                        if  cellN[i,j,k] != 0:  cellN[i,j,k] =1
-#    C._initVars(t,'{centers:cellN}=maximum(0.,{centers:cellNChim})') # vaut -3, 0, 1, 2 initialement
-#    
-#    Cmpi.barrier()
-#    _redispatch__(t=t)
-#    if verbose: printTimeAndMemory__('blank by IBC bodies', time=python_time.time()-pt0, functionName='setInterpDataIBMExtrude')
-#
-#    ##Same as prepareIBMDataPara
-#    #===================
-#    # STEP 2 : INTERP DATA CHIM
-#    #===================
-#    ## cellN mush be correct here
-#    ## _setInterpData uses cellN
-#    if verbose: pt0 = python_time.time(); printTimeAndMemory__('compute interpolation data (Abutting & Chimera)', time=-1, functionName='setInterpDataIBMExtrude')
-#    tc = C.node2Center(t)
-#
-#    if Internal.getNodeFromType(t, "GridConnectivity1to1_t") is not None:
-#        Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, dim=dimPb, itype='abutting', order=2, cartesian=cartesian)
-#    Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, itype='chimera', order=2, cartesian=cartesian)
-#    if verbose: printTimeAndMemory__('compute interpolation data (Abutting & Chimera)', time=python_time.time()-pt0, functionName='setInterpDataIBMExtrude')
-#
-#    #===================
-#    # STEP 3 : BUILD FRONT
-#    #===================
-#    if verbose: pt0 = python_time.time(); printTimeAndMemory__('build IBM front', time=-1, functionName='setInterpDataIBMExtrude')
-#    t, tc, front, front2, frontWMM = buildFrontIBM(t, tc, dimPb=dimPb, frontType=frontType, 
-#                                         cartesian=cartesian, twoFronts=twoFronts, check=check,
-#                                         isWireModel=isWireModel)
-#    if verbose: printTimeAndMemory__('build IBM front', time=python_time.time()-pt0, functionName='setInterpDataIBMExtrude')
-#
-#    #===================
-#    # STEP 4 : INTERP DATA IBM
-#    #===================
-#    if verbose: pt0 = python_time.time(); printTimeAndMemory__('compute interpolation data (IBM)', time=-1, functionName='setInterpDataIBMExtrude')
-#    _setInterpDataIBM(t, tc, tb, front, front2=front2, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth, 
-#                      Reynolds=Reynolds, yplus=yplus, Lref=Lref, 
-#                      cartesian=cartesian, twoFronts=twoFronts, check=check,
-#                      isWireModel=isWireModel, tbFilament=tbFilament, isOrthoProjectFirst=isOrthoProjectFirst, isFilamentOnly=isFilamentOnly,
-#                      frontWMM=frontWMM)
-#    if verbose: printTimeAndMemory__('compute interpolation data (IBM)', time=python_time.time()-pt0, functionName='setInterpDataIBMExtrude')
-#
-#
-#    #===================
-#    # STEP 5 : INIT IBM Modified
-#    #===================
-#    tc2 = Internal.copyTree(tc) if twoFronts or isWireModel else None
-#
-#    if isWireModel:
-#        Internal._rmNodesByName(tc2, 'IBCD*')
-#        Internal._rmNodesByName(tc, '2_IBCD*')
-#        D_IBM._transformTc2(tc2)
-#        tc2 = Internal.rmNodesByName(tc2, 'ID*')
-#        NewIBCD= 141
-#        _changeNameIBCD__(tc2,NewIBCD)
-#        tc  = Internal.merge([tc,tc2])
-#        tc2 = None
-#
-#    ## New to extrude Prep            
-#    if extrusion == 'cyl':
-#        T._cyl2Cart(t, (0,0,0),(1,0,0))
-#        T._cyl2Cart(tc,(0,0,0),(1,0,0))
-#
-#        # modif info mesh in zonesubregion_t
-#        for z in Internal.getZones(tc):
-#            for zsr in Internal.getNodesFromType(z, "ZoneSubRegion_t"):
-#                zsrname = Internal.getName(zsr)
-#                zsrname = zsrname.split('_')
-#                if zsrname[0]=='IBCD':
-#                    for var in ['C','W','I']:            
-#                        r     = Internal.getNodeFromName(zsr,'CoordinateY_P'+var)[1]
-#                        theta = Internal.getNodeFromName(zsr,'CoordinateZ_P'+var)[1]
-#                        for l in range(numpy.size(r)):
-#                            yy  = r[l]*numpy.cos( theta[l] )
-#                            zz  = r[l]*numpy.sin( theta[l] )
-#                            r[l]= yy; theta[l] = zz
-#
-#    if distribute and Cmpi.size > 1: _redispatch__(t=t, tc=tc, tc2=tc2, twoFronts=twoFronts)
-#
-#    ## New to extrude Prep            
-#    vars = ['centers:TurbulentDistanceAllBC','centers:TurbulentDistanceWallBC', 'centers:cellNIBC_hole']
-#    C._rmVars(t, vars)
-#    
-#    if isinstance(tc_out, str):
-#        tcp = Compressor.compressCartesian(tc)
-#        Cmpi.convertPyTree2File(tcp, tc_out, ignoreProcNodes=True)
-#        
-#        if twoFronts:
-#            tcp2 = Compressor.compressCartesian(tc2)
-#            tc2_out = tc_out.replace('tc', 'tc2') if 'tc' in tc_out else 'tc2.cgns'
-#            Cmpi.convertPyTree2File(tcp2, tc2_out, ignoreProcNodes=True)
-#        
-#    if isinstance(t_out, str):
-#        tp = Compressor.compressCartesian(t)
-#        Cmpi.convertPyTree2File(tp, t_out, ignoreProcNodes=True)
-#
-#    _computeMeshInfo(t)
-#
-#    if Cmpi.size > 1: Cmpi.barrier()
-#    if verbose: printTimeAndMemory__('initialize and clean', time=python_time.time()-pt0, functionName='setInterpDataIBMExtrude')
-#
-#    if tc2 is not None: return t, tc, tc2
-#    else: return t, tc
+def prepareIBMDataExtrude(t_case, t_out, tc_out, t, to=None,
+                          depth=2, frontType=1, octreeMode=0, IBCType=1, 
+                          verbose=True, check=False, balancing=False, distribute=False, twoFronts=False, cartesian=False,
+                          yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1., 
+                          tbox=None, extrusion='cart'):
+    
+    import Generator.IBM as G_IBM
+    import time as python_time
+
+    if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
+    else: tb = Internal.copyTree(t_case)
+
+    tbF1 = None
+    if tbox:
+        tbF1 = Internal.getNodesFromNameAndType(tbox, '*KeepF1*', 'CGNSBase_t')
+        tbox = None
+
+    ##if isinstance(tc_out, str):  fileoutpre = tc_out.split('/')
+    ##else:                        fileoutpre = ['.','template.cgns']
+
+    refstate = Internal.getNodeFromName(tb, 'ReferenceState')
+    flowEqn  = Internal.getNodeFromName(tb, 'FlowEquationSet')          
+
+    Reynolds = Internal.getNodeFromName(tb, 'Reynolds')
+    if Reynolds is not None:
+        Reynolds = Internal.getValue(Reynolds)
+        if Reynolds < 1.e5: frontType = 1
+    else: Reynolds = 1.e6
+
+    expand = 3 if frontType != 42 else 4
+
+    dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
+    if dimPb is None: raise ValueError('prepareIBMDataPara: EquationDimension is missing in input geometry tree.')
+    dimPb = Internal.getValue(dimPb)
+    if dimPb == 2: C._initVars(tb, 'CoordinateZ', 0.)
+    
+    model = Internal.getNodeFromName(tb, 'GoverningEquations')
+    if model is None: raise ValueError('prepareIBMDataPara: GoverningEquations is missing in input geometry tree.')
+    model = Internal.getValue(model)
+
+    ibctypes = Internal.getNodesFromName(tb, 'ibctype')
+    if ibctypes is None: raise ValueError('prepareIBMDataPara: ibc type is missing in input geometry tree.')
+    ibctypes = list(set(Internal.getValue(ibc) for ibc in ibctypes))
+
+    if model == 'Euler':
+        if any(ibc in ['Musker', 'MuskerMob', 'Mafzal', 'Log', 'TBLE', 'TBLE_FULL'] for ibc in ibctypes):
+            raise ValueError("prepareIBMDataPara: governing equations (Euler) not consistent with ibc types %s"%(ibctypes))
+
+    #===================
+    # STEP 0 : GET FILAMENT BODIES Modified
+    #===================    
+    [filamentBases, isFilamentOnly, isOrthoProjectFirst, tb, tbFilament]=D_IBM.determineClosedSolidFilament__(tb)  
+    isWireModel=False
+    for z in Internal.getZones(t_case):
+        soldef  = Internal.getNodeFromName(z,'.Solver#define')
+        if soldef is not None:
+            ibctype = Internal.getNodeFromName(soldef,'ibctype')
+            if ibctype is not None:
+                if Internal.getValue(ibctype) == "wiremodel":
+                    isWireModel=True
+                    break
+    if isFilamentOnly: tbLocal=tbFilament
+    else: tbLocal=Internal.merge([tb,tbFilament])
+
+    # Modification needed for Extrude
+    # Keep F1 regions - for F1 & F42 synergy
+    if tbF1:
+        tbbBTmp         = G.BB(tbF1)
+        interDict_scale = X.getIntersectingDomains(tbbBTmp, t)
+        for kk in interDict_scale:
+            for kkk in interDict_scale[kk]:
+                z=Internal.getNodeFromName(t, kkk)
+                Internal._createUniqueChild(z, '.Solver#defineTMP', 'UserDefinedData_t')
+                Internal._createUniqueChild(Internal.getNodeFromName1(z, '.Solver#defineTMP'), 'SaveF1', 'DataArray_t', value=1)
+                node=Internal.getNodeFromName(t, kkk)
+                
+    ## New to extrude Prep            
+    if extrusion=='cyl': cartesian = False
+
+    _redispatch__(t=t)
+    
+    C._initVars(t, 'centers:cellN', 1.)
+    X._applyBCOverlaps(t, depth=depth, loc='centers', val=2, cellNName='cellN')
+    C._initVars(t,'{centers:cellNChim}={centers:cellN}')
+    C._initVars(t, 'centers:cellN', 1.)
+    
+    #===================
+    # STEP 1 : BLANKING IBM Modified
+    #===================
+    if verbose: pt0 = python_time.time(); printTimeAndMemory__('blank by IBC bodies', time=-1, functionName='setInterpDataIBMExtrude')
+    _blankingIBM(t, tb, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth, 
+                 Reynolds=Reynolds, yplus=yplus, Lref=Lref, twoFronts=twoFronts, 
+                 heightMaxF42=heightMaxF42, correctionMultiCorpsF42=correctionMultiCorpsF42, 
+                 wallAdaptF42=wallAdaptF42, blankingF42=blankingF42,
+                 filamentBases=filamentBases, isFilamentOnly=isFilamentOnly, tbFilament=tbFilament,
+                 isWireModel=isWireModel)
+    
+    ##Modify needed for extrude & to replicate previous behavior
+    ##Ghost kmin et kmax donneuse potentiel
+    listvars_local =['cellNChim','cellNIBC']
+    for z in Internal.getZones(t):
+        sol            = Internal.getNodeFromName(z,'FlowSolution#Centers')
+        for var in listvars_local:
+            cellN          = Internal.getNodeFromName(sol,var)[1]
+            sh             = numpy.shape(cellN)
+            for k in [0,1, sh[2]-2, sh[2]-1]:
+                for j in range(sh[1]):
+                    for i in range(sh[0]):
+                        if  cellN[i,j,k] != 0:  cellN[i,j,k] =1
+    C._initVars(t,'{centers:cellN}=maximum(0.,{centers:cellNChim})') # vaut -3, 0, 1, 2 initialement
+    
+    Cmpi.barrier()
+    _redispatch__(t=t)
+    if verbose: printTimeAndMemory__('blank by IBC bodies', time=python_time.time()-pt0, functionName='setInterpDataIBMExtrude')
+
+    ##Same as prepareIBMDataPara
+    #===================
+    # STEP 2 : INTERP DATA CHIM
+    #===================
+    ## cellN mush be correct here
+    ## _setInterpData uses cellN
+    if verbose: pt0 = python_time.time(); printTimeAndMemory__('compute interpolation data (Abutting & Chimera)', time=-1, functionName='setInterpDataIBMExtrude')
+    tc = C.node2Center(t)
+
+    if Internal.getNodeFromType(t, "GridConnectivity1to1_t") is not None:
+        Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, dim=dimPb, itype='abutting', order=2, cartesian=cartesian)
+    Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, itype='chimera', order=2, cartesian=cartesian)
+    if verbose: printTimeAndMemory__('compute interpolation data (Abutting & Chimera)', time=python_time.time()-pt0, functionName='setInterpDataIBMExtrude')
+
+    #===================
+    # STEP 3 : BUILD FRONT
+    #===================
+    if verbose: pt0 = python_time.time(); printTimeAndMemory__('build IBM front', time=-1, functionName='setInterpDataIBMExtrude')
+    t, tc, front, front2, frontWMM = buildFrontIBM(t, tc, dimPb=dimPb, frontType=frontType, 
+                                         cartesian=cartesian, twoFronts=twoFronts, check=check,
+                                         isWireModel=isWireModel)
+    if verbose: printTimeAndMemory__('build IBM front', time=python_time.time()-pt0, functionName='setInterpDataIBMExtrude')
+
+    #===================
+    # STEP 4 : INTERP DATA IBM
+    #===================
+    if verbose: pt0 = python_time.time(); printTimeAndMemory__('compute interpolation data (IBM)', time=-1, functionName='setInterpDataIBMExtrude')
+    _setInterpDataIBM(t, tc, tb, front, front2=front2, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth, 
+                      Reynolds=Reynolds, yplus=yplus, Lref=Lref, 
+                      cartesian=cartesian, twoFronts=twoFronts, check=check,
+                      isWireModel=isWireModel, tbFilament=tbFilament, isOrthoProjectFirst=isOrthoProjectFirst, isFilamentOnly=isFilamentOnly,
+                      frontWMM=frontWMM)
+    if verbose: printTimeAndMemory__('compute interpolation data (IBM)', time=python_time.time()-pt0, functionName='setInterpDataIBMExtrude')
+
+
+    #===================
+    # STEP 5 : INIT IBM Modified
+    #===================
+    tc2 = Internal.copyTree(tc) if twoFronts or isWireModel else None
+
+    if isWireModel:
+        Internal._rmNodesByName(tc2, 'IBCD*')
+        Internal._rmNodesByName(tc, '2_IBCD*')
+        D_IBM._transformTc2(tc2)
+        tc2 = Internal.rmNodesByName(tc2, 'ID*')
+        NewIBCD= 141
+        _changeNameIBCD__(tc2,NewIBCD)
+        tc  = Internal.merge([tc,tc2])
+        tc2 = None
+
+    ## New to extrude Prep            
+    if extrusion == 'cyl':
+        T._cyl2Cart(t, (0,0,0),(1,0,0))
+        T._cyl2Cart(tc,(0,0,0),(1,0,0))
+
+        # modif info mesh in zonesubregion_t
+        for z in Internal.getZones(tc):
+            for zsr in Internal.getNodesFromType(z, "ZoneSubRegion_t"):
+                zsrname = Internal.getName(zsr)
+                zsrname = zsrname.split('_')
+                if zsrname[0]=='IBCD':
+                    for var in ['C','W','I']:            
+                        r     = Internal.getNodeFromName(zsr,'CoordinateY_P'+var)[1]
+                        theta = Internal.getNodeFromName(zsr,'CoordinateZ_P'+var)[1]
+                        for l in range(numpy.size(r)):
+                            yy  = r[l]*numpy.cos( theta[l] )
+                            zz  = r[l]*numpy.sin( theta[l] )
+                            r[l]= yy; theta[l] = zz
+
+    if distribute and Cmpi.size > 1: _redispatch__(t=t, tc=tc, tc2=tc2, twoFronts=twoFronts)
+
+    ## New to extrude Prep            
+    vars = ['centers:TurbulentDistanceAllBC','centers:TurbulentDistanceWallBC', 'centers:cellNIBC_hole']
+    C._rmVars(t, vars)
+    
+    if isinstance(tc_out, str):
+        tcp = Compressor.compressCartesian(tc)
+        Cmpi.convertPyTree2File(tcp, tc_out, ignoreProcNodes=True)
+        
+        if twoFronts:
+            tcp2 = Compressor.compressCartesian(tc2)
+            tc2_out = tc_out.replace('tc', 'tc2') if 'tc' in tc_out else 'tc2.cgns'
+            Cmpi.convertPyTree2File(tcp2, tc2_out, ignoreProcNodes=True)
+        
+    if isinstance(t_out, str):
+        tp = Compressor.compressCartesian(t)
+        Cmpi.convertPyTree2File(tp, t_out, ignoreProcNodes=True)
+
+    _computeMeshInfo(t)
+
+    if Cmpi.size > 1: Cmpi.barrier()
+    if verbose: printTimeAndMemory__('initialize and clean', time=python_time.time()-pt0, functionName='setInterpDataIBMExtrude')
+
+    if tc2 is not None: return t, tc, tc2
+    else: return t, tc
+
+def setInterpDataHybrid(t_3d, tc_3d, t_curvi, extrusion=None, interpDataType=1):
+    import FastS.ToolboxChimera as TBX
+    #================================================================================
+    # IBM prepare hybride cart + curvi
+    # IN: t_3d arbre cartesien   (from prepare1)
+    # IN: tc_3d arbre cartesien connectivite   (from prepare1)
+    # IN: t_curvi arbre curviligne   (with bc and connectivity but without ghost)
+    #================================================================================
+    overlap         = '14' # Overlap IBC
+    InterpOrder     = 2
+    root_racHybride = 'joinIBC'
+    
+    #add 2 ghost cells to the curvilinear mesh
+    Internal._addGhostCells(t_curvi, t_curvi, 2, adaptBCs=1, fillCorner=0)
+    C._initVars(t_curvi,"centers:cellN",1.)
+    t_curvi = TBX.modifyBCOverlapsForGhostMesh(t_curvi,2)
+    
+    dimPb = Internal.getValue(Internal.getNodeFromName(t_3d, 'EquationDimension'))
+    
+    for z in Internal.getZones(t_curvi):
+        if root_racHybride in z[0]:
+            C._fillEmptyBCWith(z,'inactive','BCExtrapolated',dim=dimPb)
+            C._rmBCOfType(z,'BCOverlap')
+            C._fillEmptyBCWith(z,'trou','BCOverlap',dim=dimPb)
+            X._applyBCOverlaps(z,loc='centers',depth=2, val=0)
+            X._applyBCOverlaps(z,loc='centers',depth=4, val=2)
+    
+    if extrusion == 'cyl':
+        T._cart2Cyl(t_3d , (0,0,0),(1,0,0))
+        T._cart2Cyl(tc_3d, (0,0,0),(1,0,0))
+        T._cart2Cyl(t_curvi   , (0,0,0),(1,0,0))
+    
+    tBB2 = G.BB(t_curvi)
+    tBB  = G.BB(t_3d)
+    
+    tc2 = C.node2Center(t_curvi)
+    
+    X._setInterpData(t_curvi, tc2, nature=1, loc='centers', storage='inverse', sameName=1, dim=dimPb, itype='abutting')
+    
+    C._initVars(t_3d,"{centers:cellN#Init}={centers:cellN}")
+    
+    for var in ['wall','racChimer']:
+        C._initVars(t_3d,"centers:cellN",1.)
+        if var == 'wall': itype ="3"
+        else: itype = overlap
+        for zc in Internal.getZones(tc_3d):
+            for zsr in Internal.getNodesFromType(zc, "ZoneSubRegion_t"):
+                zsrname = Internal.getName(zsr)
+                zsrname = zsrname.split('_')
+                if zsrname[0]=='IBCD' and zsrname[1] == itype: 
+                    zrname = Internal.getValue(zsr)
+                    ptlistD= Internal.getNodeFromName(zsr,'PointListDonor')[1]
+                    zloc   = Internal.getNodeFromName(t_3d,zrname)
+                    sol    = Internal.getNodeFromName(zloc,'FlowSolution#Centers')
+                    cellN  = Internal.getNodeFromName(sol,'cellN')[1]
+                    sh     = numpy.shape(cellN)
+                    ni= sh[0]; ninj = sh[0]*sh[1]
+                    for l0 in range(numpy.size(ptlistD)):
+                        l = ptlistD[ l0]
+                        k = l//ninj
+                        j = (l-k*ninj)//ni
+                        i =  l-k*ninj - j*ni
+                        cellN[ i,j,k ]=2
+        
+        if var == 'wall': C._initVars(t_3d,"{centers:cellN#wall}={centers:cellN}")
+        else:             C._initVars(t_3d,"{centers:cellN#racChim}={centers:cellN}")
+    
+    Internal._rmNodesFromName(tc_3d,'IBCD_'+overlap+'_*')
+    
+    for z in Internal.getZones(t_3d):
+        sol            = Internal.getNodeFromName(z,'FlowSolution#Centers')
+        cellNRac       = Internal.getNodeFromName(sol,'cellN#racChim')[1]
+        cellN          = Internal.getNodeFromName(sol,'cellN')[1]
+        C._initVars(z,"{centers:cellN}={centers:cellN#racChim}")
+        sh             = numpy.shape(cellN)
+        
+        if sh[2]> 1:
+            for k in [0,1, sh[2]-2, sh[2]-1]:
+                for j in range(sh[1]):
+                    for i in range(sh[0]):
+                        if  cellN[i,j,k] != 0:  cellN[i,j,k] =1
+    
+    interDict = X.getIntersectingDomains(tBB, t2=tBB2, method='AABB', taabb=tBB, taabb2=tBB2)
+    print(" Interp Cartesian from curvilinear")
+    zonelist=[]
+    for z in Internal.getZones(t_3d):
+        if C.getMaxValue(z,'centers:cellN')==2:
+            dnrZones = []    
+            for zdname in interDict[z[0]]:
+                zd = Internal.getNodeFromName(tc2,zdname)
+                dnrZones.append(zd)
+            X._setInterpData(z,dnrZones, nature=0,penalty=1,loc='centers',storage='inverse',sameName=1,\
+                             interpDataType=interpDataType, itype='chimera', order=InterpOrder)
+            z = X.getOversetInfo(z, dnrZones, loc='center',type='extrapolated')
+            zonelist.append(z)
+    
+    interDict_curvi = X.getIntersectingDomains(tBB2, t2=tBB, method='AABB', taabb=tBB2, taabb2=tBB)
+    print(" Interp curvi from Cartesian")
+    for z in Internal.getZones(t_curvi):
+        if C.getMaxValue(z,'centers:cellN')==2:
+            dnrZones = []    
+            for zdname in interDict_curvi[z[0]]:
+                zd = Internal.getNodeFromName(tc_3d,zdname)
+                dnrZones.append(zd)
+            
+            X._setInterpData(z,dnrZones,nature=0,penalty=1,loc='centers',storage='inverse',sameName=1,\
+                             interpDataType=interpDataType, itype='chimera', order=InterpOrder)
+            
+            # to check orphans
+            #z = X.getOversetInfo(z, dnrZones, loc='center',type='extrapolated')
+            #z = X.getOversetInfo(z, dnrZones, loc='center',type='orphan')
+            #zonelist.append(z)
+            #C.convertPyTree2File(z,"rcv2.cgns")
+    
+    C._initVars(t_3d, '{centers:cellN}={centers:cellN#Init}')
+    
+    if extrusion == 'cyl':
+        T._cyl2Cart(t_3d,   (0,0,0),(1,0,0))
+        T._cyl2Cart(t_curvi,  (0,0,0),(1,0,0))
+        T._cyl2Cart(tc_3d,  (0,0,0),(1,0,0))
+        T._cyl2Cart(tc2, (0,0,0),(1,0,0))
+    
+    for z in Internal.getZones(t_curvi):
+        for bc in  Internal.getNodesFromType(z,'BC_t'):
+            if 'inactive' in bc[0] and Internal.getValue(bc) == 'BCExtrapolated':
+                Internal._rmNodesByName(z, bc[0])
+    
+    t  = C.mergeTrees(t_3d ,t_curvi )
+    tc = C.mergeTrees(tc_3d,tc2)
+    
+    return t, tc
 
 def _redispatch__(t=None, tc=None, tc2=None):
     import Distributor2.Mpi as D2mpi
