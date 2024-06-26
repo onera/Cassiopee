@@ -631,6 +631,14 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
             // BILAN 
         }// ind in zone
         // printf(" ZONE %d Nb de type 1 : %d, type2 = %d, type3 = %d, type4 = %d\n", noz, nType1, nType2,nType3,nType4);
+        if (nType3 > 0 || nType4 > 0)
+        {
+            printf("Warning getIBMPtsWithFront: #Zone " SF_D_ " has " SF_D_ " pts of type 3 or 4 ! (Bilan: t1/t2/t3/t4 = %.2f%%/%.2f%%/%.2f%%/%.2f%%)\n", noz, nType2+nType3+nType4,
+            nType1/E_Float(nType1+nType2+nType3+nType4)*100.,
+            nType2/E_Float(nType1+nType2+nType3+nType4)*100.,
+            nType3/E_Float(nType1+nType2+nType3+nType4)*100.,
+            nType4/E_Float(nType1+nType2+nType3+nType4)*100. );
+        }
 
         PyObject* PyListIndicesByIBCTypeForZone = PyList_New(0);
         for (E_Int noibctype = 0; noibctype < nbodies; noibctype++)
