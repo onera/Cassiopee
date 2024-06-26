@@ -364,7 +364,7 @@ def _addBCsForSymmetry(t, bbox=None, dimPb=3, dir_sym=0, X_SYM=0., depth=2):
 def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[], tbox=None,
                         snearsf=None, check=True, to=None, ext=2,
                         expand=3, dfarDir=0, check_snear=False, mode=0,
-                        tbOneOver=None, listF1save=[], fileoutpre='./'):
+                        tbOneOver=None, listF1save=[], fileoutpre=['./','template.cgns']):
     import KCore.test as test
     # list of dfars
     if dfarList == []:
