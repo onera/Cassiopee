@@ -47,7 +47,7 @@ def withCart__(a, offset, pointsPerUnitLength, dim=3):
     h = max(h, 1.e-6)
     ni = int((xmax-xmin)/h)+7; nj = int((ymax-ymin)/h)+7
     nk = int((zmax-zmin)/h)+7
-    ni += int(2*offset/h); nj += int(2*offset/h); nk += int(2*offset/h)
+    ni += int(2*abs(offset)/h); nj += int(2*abs(offset)/h); nk += int(2*abs(offset)/h)
     xc = (xmax+xmin)*0.5; Lx = ni*h*0.5
     yc = (ymax+ymin)*0.5; Ly = nj*h*0.5
     zc = (zmax+zmin)*0.5; Lz = nk*h*0.5
