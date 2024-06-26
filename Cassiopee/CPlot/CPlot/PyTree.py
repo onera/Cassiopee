@@ -1126,6 +1126,7 @@ def display360__(t, posCam, posEye, dirCam, offscreen, locRez, kwargs):
     lkwargs['export'] = 'cube_bottom.png'
     display(t, **lkwargs)
     finalizeExport(offscreen)
+
     return None
 
 #==============================================================================
@@ -1149,7 +1150,7 @@ def display360(t, **kwargs):
     # resolution for the 6 view images
     locRez = exportRez.split('x')[1]
     locRez = int(locRez)//2
-    locRez = max(locRez, 800)
+    locRez = max(locRez, 100)
     locRez = "%dx%d"%(locRez, locRez)
 
     # display 6 views
@@ -1164,6 +1165,7 @@ def display360(t, **kwargs):
         display(a, panorama=1,
                 offscreen=foffscreen, export=export, exportResolution=exportRez)
         finalizeExport(foffscreen)
+    Cmpi.barrier() # wait for completion
 
     if stereo == 1: # left eye
         import Generator.PyTree as G
@@ -1205,5 +1207,5 @@ def display360(t, **kwargs):
                 pr[0:ni,0:nj] = pr1[0:ni,0:nj]
                 pr[0:ni,nj:2*nj] = pr2[0:ni,0:nj]
             C.convertPyTree2File(a, export) # finale
-    Cmpi.barrier() # wait for completion
+        Cmpi.barrier() # wait for completion
     return None

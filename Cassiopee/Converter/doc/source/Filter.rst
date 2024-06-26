@@ -472,7 +472,7 @@ High level layer
     Load on each processor the zones with the corresponding proc node.
     The zones in file must have a .Solver#Param/proc node.
 
-    :param loadVariables: If true, load all variables in file. Otherwise load only coordinates
+    :param loadVariables: If true, load all variables in file. Otherwise load only coordinates.
     :type loadVariables: Boolean
     :rtype: partial tree on each processor
 
