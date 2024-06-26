@@ -204,7 +204,8 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
         
       char* offscreen = (char*)ptrState->offscreenBuffer[ptrState->frameBuffer];
       float* offscreenD = (float*)ptrState->offscreenDepthBuffer[ptrState->frameBuffer];
-      for (E_Int i = 0; i < exportHeight; ++i) {
+      for (E_Int i = 0; i < exportHeight; ++i) 
+      {
         for (E_Int j = 0; j < exportWidth; ++j) 
         {
           unsigned ind = i*exportWidth+j;
@@ -231,10 +232,10 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
     //printf("Rendering: w=%d ew=%d h=%d eh=%d\n", _view.w, exportWidth, _view.h, exportHeight);
     
     // Recupere le depth buffer et l'adimensionne
-    void* depthl;
     float* depth = (float*)malloc(screenSize * sizeof(float));
     
 #if GETDEPTH == 0
+    void* depthl;
     // depth buffer par OSMESA
     OSMesaContext* ctx = (OSMesaContext*)(ptrState->ctx);
     E_Int w, h, bpv;
@@ -265,7 +266,7 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
     //MPI_Allreduce(&_view.nearD, &zNear, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
     //MPI_Allreduce(&_view.farD, &zFar, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 
-    for (int i = 0; i < screenSize; i++)
+    for (E_Int i = 0; i < screenSize; i++)
     {
       double z_n = 2.*double(depth[i])-1.0;
       double z_e = 2.0*zNear*zFar/(zFar+zNear-z_n*(zFar-zNear));
@@ -498,14 +499,15 @@ void Data::dumpWindow()
       exportHeight = ptrState->exportHeight;
       exportWidth = int(exportHeight * (1./r));
     }
-
-    exportWidth = (exportWidth/2)*2;
-    exportHeight = (exportHeight/2)*2; // doit etre pair
     
     char* buffer; char* buffer2;
     E_Int antialiasing = 0;
-    if (ptrState->offscreen == 2) antialiasing=1; // FBO rendering with no compositing
-
+    if (ptrState->offscreen == 2)
+    { 
+      exportWidth = (exportWidth/2)*2;
+      exportHeight = (exportHeight/2)*2; // doit etre pair
+      antialiasing=1; // FBO rendering with no compositing
+    } 
     if (antialiasing == 1)
     {
       // get image X2
