@@ -792,7 +792,7 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
     vector<E_Int> neltspc(nc+1), neltspc2(nc), nvpe(nc);
 
     char* eltType2 = new char[50]; strcpy(eltType2, "");
-    std::vector<char*> eltTypes;
+    vector<char*> eltTypes;
     K_ARRAY::extractVars(eltType, eltTypes);
     
     // Compute the cumulative number of elements per connectivity,
@@ -809,7 +809,7 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
     }
 
     // Bin input elements
-    std::vector<std::vector<E_Int> > binnedEltList(nc);
+    vector<vector<E_Int> > binnedEltList(nc);
     for (E_Int i = 0; i < n; i++)
     {
       E_Int noe = eltList[i];
@@ -1110,7 +1110,7 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
     vector<E_Int> neltspc(nc+1), neltspc2(nc), nvpe(nc);
 
     char* eltType2 = new char[50]; strcpy(eltType2, "");
-    std::vector<char*> eltTypes;
+    vector<char*> eltTypes;
     K_ARRAY::extractVars(eltType, eltTypes);
     
     // Compute the cumulative number of elements per connectivity,
@@ -1127,7 +1127,7 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
     }
 
     // Bin input elements
-    std::vector<std::vector<E_Int> > binnedEltList(nc);
+    vector<vector<E_Int> > binnedEltList(nc);
     for (E_Int i = 0; i < n; i++)
     {
       E_Int noe = eltList[i];
@@ -1268,166 +1268,29 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzone: cannot be used on a structured array.");
-    RELEASESHAREDS(array,f); return NULL;
+    RELEASESHAREDS(array, f); return NULL;
   }
   
   E_Int n = faceList.getSize();
   E_Int* faceListp = faceList.begin();
-  E_Int nf, nt2;
-
-  char eltTypeFaces[10];
-  int fBAR[] = { 
-    1, 
-    2 };
-  int fTRI[] = {
-    1, 2,
-    2, 3,
-    3, 1 };
-  int fQUAD[] = {
-    1, 2,
-    2, 3,
-    3, 4,
-    4, 1 };
-  int fTETRA[] = {
-    1, 3, 2,
-    1, 2, 4,
-    2, 3, 4,
-    3, 1, 4 };
-  int fPENTA[] = {
-    1, 2, 5, 4,
-    2, 3, 6, 5,
-    3, 1, 4, 6,
-    1, 3, 2, 1,
-    4, 5, 6, 4
-  };
-  int fPYRA[] = {
-    1, 4, 3, 2,
-    1, 2, 5, 5,
-    2, 3, 5, 2,
-    3, 4, 5, 3,
-    4, 1, 5, 4
-  };  
-  int fHEXA[] = {
-    1, 4, 3, 2,
-    1, 2, 6, 5,
-    2, 3, 7, 6,
-    3, 4, 8, 7,
-    1, 5, 8, 4,
-    5, 6, 7, 8 };
-  
-  int* fPtr = NULL; E_Int type = 0;
-  nt2 = 0; nf = 0;
-  // nf: nbre de face de l'element d'entree
-  // eltTypeFaces: type de l'element de sortie (face de l'elt d'entree)
-  // nt2: nbre de noeuds de l'element de sortie
-  // type=0 (les faces de sortie sont a elements basiques
-  // type=1 (entree: elements basiques, sortie: NGON)
-  if (K_STRING::cmp(eltType, "BAR") == 0)
-  {
-    type = 0; nf = 2; strcpy(eltTypeFaces, "NODE"); nt2 = 1; fPtr = fBAR;
-  }
-  else if (K_STRING::cmp(eltType, "TRI") == 0)
-  {
-    type = 0; nf = 3; strcpy(eltTypeFaces, "BAR"); nt2 = 2; fPtr = fTRI;
-  }
-  else if (K_STRING::cmp(eltType, "QUAD") == 0)
-  {
-    type = 0; nf = 4; strcpy(eltTypeFaces, "BAR"); nt2 = 2; fPtr = fQUAD;
-  }
-  else if (K_STRING::cmp(eltType, "TETRA") == 0)
-  {
-    type = 0; nf = 4; strcpy(eltTypeFaces, "TRI"); nt2 = 3; fPtr = fTETRA;
-  }
-  else if (K_STRING::cmp(eltType, "HEXA") == 0)
-  {
-    type = 0; nf = 6; strcpy(eltTypeFaces, "QUAD"); nt2 = 4; fPtr = fHEXA;
-  }
-  else if (K_STRING::cmp(eltType, "PENTA") == 0)
-  {
-    type = 0; nf = 5; strcpy(eltTypeFaces, "QUAD"); nt2 = 4; fPtr = fPENTA;
-  }
-  else if (K_STRING::cmp(eltType, "PYRA") == 0)
-  {
-    type = 0; nf = 5; strcpy(eltTypeFaces, "QUAD"); nt2 = 4; fPtr = fPYRA; 
-  }
-  else if (K_STRING::cmp(eltType, "NGON") == 0)
-  {
-    type = 2; strcpy(eltTypeFaces, "NGON");
-  }
-  else
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "subzone: element type not taken into account.");
-    RELEASESHAREDU(array, f, cn); return NULL;
-  }
   E_Int nfld = f->getNfld(); E_Int npts = f->getSize();
-  if (type == 0) // Basic faces
-  {    
-    FldArrayI* c2n = new FldArrayI(n,nt2);
-    // Selectionne les faces subzonees
-    FldArrayI indirNodes(npts); indirNodes.setAllValuesAt(-1);
-    E_Int* indirNp = indirNodes.begin();
+  E_Int api = f->getApi();
 
-    E_Int ind, indElt, nof, indnode, indnodef;
-    indnodef = 0;
-    for (E_Int i = 0; i < n; i++)
-    {
-      ind = faceListp[i]-1;
-      indElt = ind / nf;
-      nof = ind - indElt*nf;
-      // printf("elt=%d face=%d\n", indElt, nof);
-      for (E_Int v = 1; v <= nt2; v++)
-      { 
-        indnode = (*cn)(indElt, fPtr[nof*nt2+v-1])-1;
-        if (indirNp[indnode] == -1) 
-        {
-          indnodef += 1;
-          indirNp[indnode] = indnodef;
-          (*c2n)(i,v) = indnodef;
-        }
-        else 
-          (*c2n)(i,v) = indirNp[indnode];
-      }
-    }
-    
-    FldArrayF* f2 = new FldArrayF(indnodef, nfld);
-    E_Int indf;
-    for(E_Int eq = 1; eq <= nfld; eq++)
-    {
-      E_Float* fp = f->begin(eq);
-      E_Float* fnp = f2->begin(eq);
-      for (E_Int ind = 0; ind < npts; ind++)
-      {
-        indf = indirNp[ind]-1;
-        if (indf > -1) fnp[indf] = fp[ind];
-      }
-    }
-    // Build array 
-    PyObject* tpl = K_ARRAY::buildArray(*f2, varString, 
-                                        *c2n, -1, eltTypeFaces);
-    RELEASESHAREDU(array,f, cn);
-    delete f2; delete c2n;
-    return tpl;
-  }
-  else if (type == 2) // IN: NGON, OUT: NGON
+  if (K_STRING::cmp(eltType, "NGON") == 0) // IN: NGON, OUT: NGON
   {
     E_Int nbnodes, fidx;
-    E_Int indvertn = 1, indedgen = 1;
-    E_Int sizeEF2 = 0;
+    E_Int indedgen = 1;
+    E_Int npts2 = 0; E_Int sizeEF2 = 0;
     
     // Acces non universel sur les ptrs
     E_Int* ngon = cn->getNGon();
     E_Int* indPG = cn->getIndPG();
-    E_Int shift = 1; E_Int api = f->getApi();
+    E_Int shift = 1;
     if (api == 3) shift = 0;
 
     // Calcul du nombre de points et aretes uniques dans la nouvelle
     // connectivite
     vector<E_Int> indirVertices(npts, -1);
-    // Les vertices sont mappes pour construire une table d'indirection: leur 
-    // nombre n'est pas connu a priori et ils ne sont pas parcourus
-    // dans l'ordre.
-    std::unordered_map<E_Int, E_Int> vertexMap;
     // Les aretes sont hashees pour determiner le nombre unique d'aretes et
     // construire la nouvelle connectivite 2D
     vector<E_Int> edge(2);
@@ -1448,15 +1311,10 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
         edge[0] = face[j]-1; edge[1] = face[(j+1)%nbnodes]-1;
         E.set(edge.data(), 2);
         
-        // Increment the value associated with the first vertex.
-        // If it is 1, then first time this vertex is encountered
-        // The second vertex will be dealt with when considering the next edge
-        auto resV = vertexMap.insert(std::make_pair(edge[0], 0));
-        if (++resV.first->second == 1)
-        {
-          indirVertices[edge[0]] = indvertn;
-          indvertn++;
-        }
+        // If indirection table is -1 for the first vertex, then first time
+        // this vertex is encountered. The second vertex will be dealt with
+        // when considering the next edge
+        if (indirVertices[edge[0]] == -1) indirVertices[edge[0]] = ++npts2;
 
         // If the value associated with E is -1, then first time this edge
         // is encountered, set to current unique edge count
@@ -1470,7 +1328,6 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     }
 
     // Construction des nouvelles connectivites Elmt/Faces et Face/Noeuds
-    E_Int npts2 = vertexMap.size();
     E_Int nfaces2 = edgeMap.size();
     E_Int sizeFN2 = (2+shift)*nfaces2;
     E_Int nelts2 = n;
@@ -1724,7 +1581,8 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(arrayNodes, varString, f, im, jm, km, cn, eltType, true); 
+  E_Int res = K_ARRAY::getFromArray3(arrayNodes, varString, f,
+                                     im, jm, km, cn, eltType); 
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -1735,14 +1593,15 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzone: cannot be used on a structured array.");
-    RELEASESHAREDS(arrayNodes,f); return NULL;
+    RELEASESHAREDS(arrayNodes, f); return NULL;
   }
   
   // Check array of centers
   E_Int imc, jmc, kmc;
   FldArrayF* fc; FldArrayI* cnc;
   char* varStringc; char* eltTypec;
-  E_Int resc = K_ARRAY::getFromArray(arrayCenters, varStringc, fc, imc, jmc, kmc, cnc, eltTypec, true); 
+  E_Int resc = K_ARRAY::getFromArray3(arrayCenters, varStringc, fc,
+                                      imc, jmc, kmc, cnc, eltTypec); 
   if (resc != 1 && resc != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -1753,7 +1612,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzone: cannot be used on a structured array.");
-    RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDS(arrayCenters,fc); return NULL;
+    RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDS(arrayCenters, fc); return NULL;
   }
 
   E_Int n = faceList.getSize();
@@ -2161,6 +2020,6 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
     return l;
   }
 
-  RELEASESHAREDU(arrayNodes,f, cn); RELEASESHAREDU(arrayCenters, fc, cnc); 
+  RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDU(arrayCenters, fc, cnc); 
   return NULL;
 }

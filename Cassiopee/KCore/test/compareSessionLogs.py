@@ -154,7 +154,7 @@ if __name__ == '__main__':
     compStr += stringify(*diffTest(test, refDict[test], newDict[test]))
   if len(compStr):
     compStr = commonTestsHeader + compStr
-    baseState = 'FAIL'
+    baseState = 'FAILED'
   else: compStr = commonTestsHeader + "[none]\n"
   
   newTestsHeader = "\nNew tests:\n{}\n".format('-'*9)
@@ -170,7 +170,7 @@ if __name__ == '__main__':
     compStr += deletedTestsHeader
     for test in deletedTests:
       compStr += stringify(test)
-    baseState = 'FAIL'
+    baseState = 'FAILED'
   else: compStr += deletedTestsHeader + "[none]\n"
   
   failedTestsHeader = "\nReminder - Failed tests:\n{}\n".format('-'*23)
@@ -203,16 +203,15 @@ if __name__ == '__main__':
   if baseState in ['OK', 'NEW ADDITIONS'] and 'REF-' in script_args.logs[0]:
       if os.access(script_args.logs[0], os.W_OK):
         import shutil
-        shutil.copyfile(script_args.logs[0],
-                        script_args.logs[0].replace('REF-', ''))
+        os.remove(script_args.logs[0])
         newRef = os.path.join(os.path.dirname(script_args.logs[1]),
             'REF-' + os.path.basename(script_args.logs[1]))
         shutil.copyfile(script_args.logs[1], newRef)
       else: exitStatus = 2
 
+  prod = getProd(script_args.logs[1])
   tlog, tlog2 = getTimeFromLog(script_args.logs[1])
   if script_args.email:
-    prod = getProd(script_args.logs[1])
     if baseStateMsg: baseStateMsg = '\n\n'+baseStateMsg
     try:
       from KCore.notify import notify
@@ -227,4 +226,20 @@ if __name__ == '__main__':
     if os.access('./', os.W_OK):
       print("Writing comparison to {}".format(filename))
       with open(filename, 'w') as f: f.write(header + compStr + baseStateMsg)
+      
+  # Amend state of the base in logs/validation_status.txt
+  logAllValids = "/stck/cassiope/git/logs/validation_status.txt"
+  entry = "{} - {} - {}\n".format(prod, tlog2, baseState)
+  if os.access(os.path.dirname(logAllValids), os.W_OK):
+    with open(logAllValids, 'r') as f: contents = f.readlines()
+    prodFound = False
+    for i, line in enumerate(contents):
+      if line.startswith(prod):
+        contents[i] = entry
+        prodFound = True
+        break
+
+    if not prodFound: contents.append(entry)
+    with open(logAllValids, 'w') as f: f.writelines(contents)
+  
   sys.exit(exitStatus)
