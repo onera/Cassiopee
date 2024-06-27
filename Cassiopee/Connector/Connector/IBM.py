@@ -358,11 +358,12 @@ def _redispatch__(t=None, tc=None, tc2=None, twoFronts=False):
     if tc is not None: 
         algo = 'graph'
         tskel = Cmpi.convert2SkeletonTree(tc)
+        Internal._rmNodesByType(tskel, 'ZoneSubRegion_t')
         tcs    = Cmpi.allgatherTree(tskel)
         stats  = D2._distribute(tcs, Cmpi.size, algorithm=algo)
 
         D2._copyDistribution(tc, tcs)
-        D2mpi._redispatch(tc)
+        D2mpi._redispatch(tc, verbose=1)
 
         if t is not None: 
             D2._copyDistribution(t, tcs)
@@ -378,7 +379,7 @@ def _redispatch__(t=None, tc=None, tc2=None, twoFronts=False):
         stats = D2._distribute(ts, Cmpi.size, algorithm=algo)
         D2._copyDistribution(t, ts)
         del ts
-        D2mpi._redispatch(t)
+        D2mpi._redispatch(t, verbose=1)
 
     return None
 
