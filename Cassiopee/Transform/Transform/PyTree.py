@@ -613,9 +613,9 @@ def subzoneUnstruct__(t, indices, type):
     nodes = Internal.getZones(tp)
     for z in nodes:
         dimz = Internal.getZoneDim(z)
-        fc = C.getFields(Internal.__GridCoordinates__, z)[0]
-        fa = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
-        fb = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+        fc = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
+        fa = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
+        fb = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
         if fa != []: fc = Converter.addVars([fc, fa])
         if fb == []: # no flow sol at centers
             nodes = Transform.subzone(fc, indices, type=type)
