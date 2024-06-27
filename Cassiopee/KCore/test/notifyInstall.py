@@ -37,6 +37,9 @@ if __name__ == '__main__':
     status = log_machine[2]
     messageText += '{:>20} |      {}      | {:>10}\n'.format(prod, date, status)
     if 'FAILED' in log_machine: baseState = 'FAILED'
+    
+  if baseState == 'FAILED':
+    messageText += '\n\nIf the prod. you wish to use is marked as FAILED, please contact the maintainers:\nchristophe.benoit@onera.fr, vincent.casseau@onera.fr'
   
   try:
     from KCore.notify import notify
