@@ -139,6 +139,13 @@ else
         mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT
         set +x
         [ $? != 0 ] && exit 1;
+    elif [ "$ELSAPROD" = 'visung_r8' ] || [ "$ELSAPROD" = 'visung_r8_i8' ] # visung
+    then
+        set -x
+        # openMpi
+        mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT
+        set +x
+        [ $? != 0 ] && exit 1;
     elif [ "$ELSAPROD" = 'aus_r8' ] # austri
     then
         set -x

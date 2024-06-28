@@ -12,7 +12,6 @@
 #include <queue>
 #include <stack>
 
-
 bool Smesh::ccw_oriented(E_Int face)
 {
     E_Float sum = 0;
@@ -576,7 +575,7 @@ void Smesh::write_su2(const char *fname, const std::vector<E_Int> &faces)
     FILE *fh = fopen(fname, "w");
     assert(fh);
     fprintf(fh, "NDIME= 2\n");
-    fprintf(fh, "NELEM= %lu\n", faces.size());
+    fprintf(fh, "NELEM= %zu\n", faces.size());
 
     for (size_t i = 0; i < faces.size(); i++) {
         E_Int f = faces[i];
@@ -584,17 +583,17 @@ void Smesh::write_su2(const char *fname, const std::vector<E_Int> &faces)
         if (cn.size() == 4) fprintf(fh, "%d ", QUAD);
         else fprintf(fh, "%d ", TRI);
         for (auto p : cn) fprintf(fh, "%d ", pmap[p]);
-        fprintf(fh, "%lu\n", i);
+        fprintf(fh, "%zu\n", i);
     }
 
     std::vector<E_Int> ipmap(pmap.size());
     for (auto &pdata : pmap) ipmap[pdata.second] = pdata.first;
 
-    fprintf(fh, "NPOIN= %lu\n", ipmap.size());
+    fprintf(fh, "NPOIN= %zu\n", ipmap.size());
     for (size_t i = 0; i < ipmap.size(); i++) {
         E_Int op = ipmap[i];
         fprintf(fh, "%f %f ", X[op], Y[op]);
-        fprintf(fh, "%lu\n", i);
+        fprintf(fh, "%zu\n", i);
     }
 
     fclose(fh);
@@ -748,12 +747,12 @@ void Smesh::write_ngon(const char *fname)
     fprintf(fh, "0 ");
     for (E_Int i = 0; i < ne; i++) {
         sizeNGon += 2;
-        fprintf(fh, "%lu ", sizeNGon);
+        fprintf(fh, "%zu ", sizeNGon);
     }
     fprintf(fh, "\n");
 
     fprintf(fh, "NGON\n");
-    fprintf(fh, "%lu\n", sizeNGon);
+    fprintf(fh, "%zu\n", sizeNGon);
     for (E_Int i = 0; i < ne; i++) {
         fprintf(fh, "%d %d ", E[i].p, E[i].q);
     }
@@ -765,12 +764,12 @@ void Smesh::write_ngon(const char *fname)
     fprintf(fh, "0 ");
     for (E_Int i = 0; i < nf; i++) {
         sizeNFace += F2E[i].size();
-        fprintf(fh, "%lu ", sizeNFace);
+        fprintf(fh, "%zu ", sizeNFace);
     }
     fprintf(fh, "\n");
 
     fprintf(fh, "NFACE\n");
-    fprintf(fh, "%lu\n", sizeNFace);
+    fprintf(fh, "%zu\n", sizeNFace);
     for (E_Int i = 0; i < nf; i++) {
         for (E_Int e : F2E[i]) fprintf(fh, "%d ", e);
         //fprintf(fh, "\n");

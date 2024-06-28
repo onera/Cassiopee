@@ -602,10 +602,10 @@ def subzoneGC__(z, dim, imin, imax, jmin, jmax, kmin, kmax, \
                           zoneDonor=[ddDnrs[nor]], rangeDonor='doubly_defined')
     return z
 
-def subzone(t, minIndex, maxIndex=(), type=None):
+def subzone(t, minIndex, maxIndex=None, type=None):
    """Take a subzone of mesh.
    Usage: subzone(t, (imin,jmin,kmin), (imax,jmax,kmax))"""
-   if maxIndex == (): return subzoneUnstruct__(t, minIndex, type)
+   if maxIndex is None: return subzoneUnstruct__(t, minIndex, type)
    else: return subzoneStruct__(t, minIndex, maxIndex)
 
 def subzoneUnstruct__(t, indices, type):
