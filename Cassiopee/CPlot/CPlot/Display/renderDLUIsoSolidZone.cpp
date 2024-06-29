@@ -28,27 +28,16 @@
 //=============================================================================
 void DataDL::renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield)
 {
-  E_Int i, n1, n2;
   float offb;
   double blend;
-  E_Int ret1, ret2;
-
-  E_Int ne = zonep->ne;
+  
   ZoneImplDL* zoneImpl = static_cast<ZoneImplDL*>(zonep->ptr_impl);
   
   // Blending
   blend = 1.;
 #include "selection2.h"
 
-  double* x = zonep->x; double* y = zonep->y; double* z = zonep->z;
   E_Int eltType0 = zonep->eltType[0];
-  E_Int* connect = zonep->connect[0];
-  double fmin, fmax;
-  fmax = maxf[nofield]; fmin = minf[nofield];
-  double deltai = MAX(fmax-fmin, ISOCUTOFF);
-  float r;
-  deltai = 1./deltai;
-  double* f = zonep->f[nofield];
   
 #ifdef __SHADERS__
   int curr = _shaders.currentShader();

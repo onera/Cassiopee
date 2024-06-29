@@ -547,7 +547,7 @@ elif [ "$MAC" = "juno_gcc" ]; then
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
     unset $(env | grep SLURM | cut -d'=' -f 1)
-    #export OMP_PLACES=cores
+    unset OMP_PLACES
 
 elif [ "$MAC" = "juno_coda" ]; then
 #----------------------------- juno -----------------------------------------

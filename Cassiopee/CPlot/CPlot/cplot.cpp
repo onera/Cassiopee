@@ -68,6 +68,7 @@ static PyMethodDef Pycplot [] =
   {"show", K_CPLOT::show, METH_VARARGS},
   {"display1D", K_CPLOT::display1D, METH_VARARGS},
   {"configure", K_CPLOT::configure, METH_VARARGS},
+  {"panorama", K_CPLOT::panorama, METH_VARARGS},
   {NULL, NULL}
 };
 

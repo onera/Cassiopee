@@ -654,7 +654,7 @@ else if ($MAC == "juno_gcc") then
         setenv PRODMODE 1
         setenv PIP_DISABLE_PIP_VERSION_CHECK 1
         unsetenv SLURM*
-        setenv OMP_PLACES cores
+        unsetenv OMP_PLACES
 
 else if ($MAC == "juno_coda") then
 #------------------------------- juno --------------------------------------
