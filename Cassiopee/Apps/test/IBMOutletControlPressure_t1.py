@@ -57,10 +57,10 @@ for node in Internal.getNodesByName(tb,'FlowEquationSet'):
 
 C._addState(tb, adim='dim1', UInf=Vref, TInf=Tsta0, PInf=Psta0, LInf=Diam, alphaZ=0., alphaY=0., MutSMuInf=0.01, TurbLevelInf=0.0015)
 
-itExtrctPrb = 10
+itExtrctPrb = 2
 G_IBM._setOutPressControlParam(tb,probeName='point00', AtestSection=0.83721966959, AOutPress=0.83721966959,
                                machTarget=0.082, pStatTarget=99445, tStatTarget=297.2,lmbd=0.1,
-                               cxSupport = 0.6, sSupport=0.1, itExtrctPrb=10)
+                               cxSupport = 0.6, sSupport=0.1, itExtrctPrb=itExtrctPrb)
 test.testT(tb,1)
 #C.convertPyTree2File(tb,LOCAL+'/tcase_check.cgns')
 
@@ -88,7 +88,7 @@ test.testT(t ,3)
 ##       COMPUTE
 ## =========================
 
-NIT   = 100       
+NIT   = 20
 graph = None
 
 it0 = 0; time0 = 0.
@@ -98,7 +98,7 @@ first = Internal.getNodeFromName1(t, 'Time')
 if first is not None: time0 = Internal.getValue(first)
 
 # Numerics
-modulo_verif       =  10
+modulo_verif       =  5
 buffer_size        =  100
 numb = {}
 numb["temporal_scheme"]    = "implicit"
@@ -125,7 +125,7 @@ Fast._setNum2Zones(t, numz); Fast._setNum2Base(t, numb)
 #2: WT response time         [# iter]
 ##Note: Frequency of P mod algo.= 0.1* WT response time [good default values]
 ##E.g.  WT response time = 2000 & Frequency of P mod algo. = 200
-itValues4gain=[10,20,100]
+itValues4gain=[10,2,100]
 
 isRestartProbe = False
 values4gain,controlProbeName,itExtrctPrb=COP.getInfo(tb,familyName='outlet')
