@@ -7,7 +7,8 @@ import Converter.PyTree as C
 import Fast.PyTree as Fast
 import FastC.PyTree as FastC
 import FastS.PyTree as FastS
-import Geom.IBM as G_IBM
+import Geom.IBM as D_IBM
+import Geom.PyTree as D
 import KCore.test as test
 import Connector.IBM as X_IBM
 import sys, os
@@ -56,9 +57,9 @@ for node in Internal.getNodesByName(tb,'FlowEquationSet'):
     Internal._createUniqueChild(node,'TurbulenceModel', 'TurbulenceModel_t', value='OneEquation_SpalartAllmaras', children=[])
 
 C._addState(tb, adim='dim1', UInf=Vref, TInf=Tsta0, PInf=Psta0, LInf=Diam, alphaZ=0., alphaY=0., MutSMuInf=0.01, TurbLevelInf=0.0015)
-
+D_IBM._snearFactor(tb, 3)
 itExtrctPrb = 2
-G_IBM._setOutPressControlParam(tb,probeName='point00', AtestSection=0.83721966959, AOutPress=0.83721966959,
+D_IBM._setOutPressControlParam(tb,probeName='point', AtestSection=0.83721966959, AOutPress=0.83721966959,
                                machTarget=0.082, pStatTarget=99445, tStatTarget=297.2,lmbd=0.1,
                                cxSupport = 0.6, sSupport=0.1, itExtrctPrb=itExtrctPrb)
 test.testT(tb,1)
@@ -83,6 +84,9 @@ Apps._initInj(tc, 'inlet', Pgen0, stagEnt, injDir=[1.,0.,0.])
 test.testT(tc,2)
 test.testT(t ,3)
 #C.convertPyTree2File(t,LOCAL+'/t_check.cgns')
+
+a = D.point((-1,0,0))
+C.convertPyTree2File(a,LOCAL+'/probes.cgns')
 
 ## =========================
 ##       COMPUTE
@@ -125,7 +129,7 @@ Fast._setNum2Zones(t, numz); Fast._setNum2Base(t, numb)
 #2: WT response time         [# iter]
 ##Note: Frequency of P mod algo.= 0.1* WT response time [good default values]
 ##E.g.  WT response time = 2000 & Frequency of P mod algo. = 200
-itValues4gain=[10,2,100]
+itValues4gain=[5,2,100]
 
 isRestartProbe = False
 values4gain,controlProbeName,itExtrctPrb=COP.getInfo(tb,familyName='outlet')
@@ -136,7 +140,7 @@ for it in range(NIT):
     FastS._compute(t, metrics, it, tc, graph=graph)
     if it%modulo_verif == 0:        
         FastS.display_temporal_criteria(t, metrics, it)
-    if it%10==0:
+    if it%itExtrctPrb==0:
         dctProbes=COP.recordDataMach(t,dctProbes,it)
         if it>itValues4gain[0] and it%itValues4gain[1] == 0:
             COP._controlOutletPressureMachProbe(tc,dctProbes,controlProbeName,DIRECTORY_PROBES,itValues4gain,values4gain,itExtrctPrb,it,familyName='outlet')
@@ -145,7 +149,8 @@ for it in range(NIT):
 #C.convertPyTree2File(t ,LOCAL+'/t_restart.cgns' )
 
 for name, probe in dctProbes.items(): probe.flush()
-os.remove(LOCAL+'/probe_point00.cgns')
+os.remove(LOCAL+'/probe_point.cgns')
+os.remove(LOCAL+'/probes.cgns')
 
 test.testT(tc,4)
 test.testT(t ,5)
