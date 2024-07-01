@@ -46,6 +46,8 @@ void interp(E_Int ind,
 
 // perform the stitching (identical to panorama.frag but on the cpu)
 // it doesnt have the texture size limit
+// si type360=0 -> 360 deg
+// si type360=1 -> 180 deg
 PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
 {
   // Get the 4 arrays of cube images (left, right, bottom, top, back, front)
@@ -53,8 +55,9 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
   PyObject* bottomArray; PyObject* topArray;
   PyObject* backArray; PyObject* frontArray;
   PyObject* finalArray;
-  if (!PyArg_ParseTuple(args, "OOOOOOO", &leftArray, &rightArray,
-    &bottomArray, &topArray, &backArray, &frontArray, &finalArray))
+  E_Int type360;
+  if (!PYPARSETUPLE_(args, OOOO_ OOO_ I_, &leftArray, &rightArray,
+    &bottomArray, &topArray, &backArray, &frontArray, &finalArray, &type360))
   {
     return NULL;
   }
@@ -124,7 +127,6 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
   E_Int nil, njl, nkl;
   res = K_ARRAY::getFromArray3(finalArray, varString, final, 
                                nil, njl, nkl, cn, eltType);
-  printf("varstring final=%s\n", varString);
   if (res != 1)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -136,7 +138,6 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
 #define M_PI 3.1415926535897932384626433832795
 
   E_Int nijl = nil*njl;
-  printf("nijl=%d\n", nijl);
   E_Int nil1 = nil-1;
   E_Int njl1 = njl-1;
   E_Int ni1 = ni-1;
@@ -176,7 +177,10 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
   E_Float* final2 = final->begin(5);
   E_Float* final3 = final->begin(6);
   E_Float* final4 = final->begin(7);
-  
+  E_Float tinf, tsup;
+  if (type360 == 0) { tinf = -M_PI; tsup = 2*M_PI; } // 360
+  else  { tinf = -M_PI/2.; tsup = M_PI; } // 180
+
   #pragma omp parallel
   {
     E_Int ii, jj;
@@ -191,7 +195,7 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
       tx = (1.*ii) / nil1;
       ty = (1.*jj) / njl1;
 
-      theta = -M_PI + tx * 2. * M_PI; // between -pi and pi
+      theta = tinf + tx * tsup; // between -pi and pi
       phi = -M_PI/2. + ty * M_PI; // between -pi/2 and pi/2
 
       x = cos(phi) * sin(theta);

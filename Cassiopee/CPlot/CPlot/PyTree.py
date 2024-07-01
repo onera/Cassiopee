@@ -1132,7 +1132,7 @@ def display360__(t, posCam, posEye, dirCam, offscreen, locRez, kwargs):
 #==============================================================================
 # display360 (offscreen=1, 2 or 7)
 #==============================================================================
-def display360(t, **kwargs):
+def display360(t, type360=0, **kwargs):
     """Display for 360 images."""
     import KCore.Vector as Vector
     posCam = kwargs.get("posCam", (0,0,0))
@@ -1166,7 +1166,7 @@ def display360(t, **kwargs):
         #display(a, panorama=1,
         #        offscreen=foffscreen, export=export, exportResolution=exportRez)
         #finalizeExport(foffscreen)
-        panorama(export, exportRez)
+        panorama(export, exportRez, type360=type360)
     Cmpi.barrier() # wait for completion
 
     if stereo == 1: # left eye
@@ -1190,7 +1190,7 @@ def display360(t, **kwargs):
             #display(a, panorama=1,
             #        offscreen=foffscreen, export=export2, exportResolution=exportRez)
             #finalizeExport(foffscreen)
-            panorama(export, exportRez)
+            panorama(export2, exportRez, type360=type360)
 
             # assemble images
             a1 = C.convertFile2PyTree(export)
@@ -1212,7 +1212,8 @@ def display360(t, **kwargs):
         Cmpi.barrier() # wait for completion
     return None
 
-def panorama(export, exportResolution):
+# type360=0 -> 360, mode=1 -> 180
+def panorama(export, exportResolution, type360=0):
     res = exportResolution.split('x')
     resx = int(res[0]); resy = int(res[1])
     import Generator.PyTree as G
@@ -1232,6 +1233,6 @@ def panorama(export, exportResolution):
     a7 = G.cart((0,0,0), (1,1,1), (resx, resy,1))
     C._addVars(a7, ['r','g','b','a'])
     a7f = C.getFields('nodes', a7, api=3)[0]
-    CPlot.cplot.panorama(a1, a2, a3, a4, a5, a6, a7f)
+    CPlot.cplot.panorama(a1, a2, a3, a4, a5, a6, a7f, type360)
     C.convertPyTree2File(a7, export)
     return a7
