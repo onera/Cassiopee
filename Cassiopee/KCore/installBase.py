@@ -982,6 +982,36 @@ False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
+'spiro_gpu': [ 'K80 onera',
+'nvfortran', # f77compiler
+'nvfortran', # f90compiler
+'nvc', # Cppcompiler
+[], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+[], # additionalIncludePaths
+[], # additionalLibs
+[],  # additionalLibPaths
+True, # useCuda
+[] # NvccAdditionalOptions
+],
+###############################################################################
+'juno_gpu': [ 'GPU A30 onera',
+'nvfortran', # f77compiler
+'nvfortran', # f90compiler
+'nvc', # Cppcompiler
+[], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+[], # additionalIncludePaths
+[], # additionalLibs
+[],  # additionalLibPaths
+True, # useCuda
+[] # NvccAdditionalOptions
+],
+###############################################################################
 'juno_gcc': [ 'Machine dev Juno rocky8 (Onera)',
 'gfortran', # f77compiler
 'gfortran', # f90compiler
