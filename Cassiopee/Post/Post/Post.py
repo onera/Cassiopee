@@ -22,7 +22,7 @@ __all__ = ['coarsen', 'computeCurl', 'computeDiff', 'computeExtraVariable',
     'exteriorFaces', 'exteriorFacesStructured', 'extractMesh', 'extractPlane',
     'extractPoint', 'frontFaces', 'integ', 'integMoment', 'integMomentNorm',
     'integNorm', 'integNormProduct', 'interiorFaces', 'isoLine', 'isoSurf',
-    'isoSurfMC', 'isoSurfMC_opt', 'perlinNoise', 'projectCloudSolution',
+    'isoSurfMC', 'perlinNoise', 'projectCloudSolution',
     'refine', 'renameVars', 'selectCells', 'selectCells2', 'selectCells3',
     'sharpEdges', 'silhouette', 'slice', 'streamLine', 'streamLine2',
     'streamRibbon', 'streamRibbon2', 'streamSurf', 'usurp', 'zip', 'zipper',
@@ -1012,41 +1012,6 @@ def isoSurfMC(array, var, value, split='simple'):
                 return [b]
             except: return []
         else: return isoSurf(array, var, value, split)
-
-#==============================================================================
-def isoSurfMC_opt(array, var, value):
-    """Compute an isoSurf correponding to value of field 'var' in
-    volume arrays.
-    Usage: isoSurfMC_opt(array, 'Density', 1.2)"""
-    try: import Transform
-    except: return []
-
-    if isinstance(array[0], list):
-        ret = []; pool = []
-        for i in array:
-            if len(i) == 5: i = Converter.convertArray2Hexa(i)
-            if i[3] == 'HEXA':
-                try:
-                    i = post.isoSurfMC_opt(i, var, value)
-                    #i = Transform.reorder(i, (1,))
-                    ret.append(i)
-                except: pass
-            else: pool.append(i)
-
-        if pool != []: ret2 = isoSurf(pool, var, value)
-        else: ret2 = []
-        return ret + ret2
-    else:
-        if len(array) == 5:
-            array = Converter.convertArray2Hexa(array)
-        if array[3] == 'HEXA':
-            try:
-                b = post.isoSurfMC_opt(array, var, value)
-                #for a in b:
-                  #a = Transform.reorder(a, (1,))
-                return b
-            except: return []
-        else: return isoSurf(array, var, value)
 
 #==============================================================================
 def enforceIndicatorNearBodies(indicator, octreeHexa, bodies):

@@ -77,7 +77,6 @@ static PyMethodDef Pypost [] =
   {"isoLine", K_POST::isoLine, METH_VARARGS},
   {"isoSurf", K_POST::isoSurf, METH_VARARGS},
   {"isoSurfMC", K_POST::isoSurfMC, METH_VARARGS},
-  {"isoSurfMC_opt", K_POST::isoSurfMC_opt, METH_VARARGS},
   {"isoSurfNGon", K_POST::isoSurfNGon, METH_VARARGS},
   {"enforceIndicatorNearBodies", K_POST::enforceIndicatorNearBodies, METH_VARARGS},
   {"enforceIndicatorForFinestLevel", K_POST::enforceIndicatorForFinestLevel, METH_VARARGS},

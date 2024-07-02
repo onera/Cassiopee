@@ -81,7 +81,6 @@ namespace K_POST
   PyObject* isoLine(PyObject* self, PyObject* args);
   PyObject* isoSurf(PyObject* self, PyObject* args);
   PyObject* isoSurfMC(PyObject* self, PyObject* args);
-  PyObject* isoSurfMC_opt(PyObject* self, PyObject* args);
   PyObject* isoSurfNGon(PyObject* self, PyObject* args);
   PyObject* computeIndicatorValue(PyObject* self, PyObject* args);
   PyObject* enforceIndicatorNearBodies(PyObject* self, PyObject* args);
@@ -639,13 +638,6 @@ namespace K_POST
   /* Isosurface dans un maillage hexa (sortie QUAD) */
   void doIsoSurfMCQuads(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
                         E_Int poscellN, FldArrayF& fiso, FldArrayI& ciso);
-  /* Isosurface dans un maillage hexa (sortie QUAD) */
-  void doIsoSurfMCQuads_opt(FldArrayF& f, FldArrayI& cn, E_Int posf,  E_Float value,
-                        E_Int poscellN, E_Int& Thread_max, E_Int& ithread,
-                        E_Int& nelts, E_Int& nfld, E_Int& net,
-                        E_Int& npt  , E_Int& nquad,
-                        FldArrayF& fisos, FldArrayI& cisos, FldArrayI& map_cifi );
-
 
   /* Construit partiellement une isoSurf pour les cellules taggees par tagC = 0*/
   void createMCQuadsForStructZone(E_Int ni, E_Int nj, E_Int nk,
