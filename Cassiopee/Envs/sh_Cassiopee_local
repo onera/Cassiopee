@@ -499,7 +499,7 @@ elif [ "$MAC" = "spiro_pgi" ]; then
     module load nvhpc/22.2-gnu831-full
     module load subversion/1.14.1-gnu831
 
-else if ($MAC == "spiro_gpu") then
+elif [ "$MAC" = "spiro_gpu" ]; then
 #----------------------------- juno gpu ------------------------------------
         export ELSAPROD=spiro_gpu
         export ELSAPROD="$ELSAPROD$INTTYPE"
@@ -567,7 +567,7 @@ elif [ "$MAC" = "juno_gcc" ]; then
     unset $(env | grep SLURM | cut -d'=' -f 1)
     unset OMP_PLACES
 
-else if ($MAC == "juno_gpu") then
+elif [ "$MAC" = "juno_gpu" ]; then
 #----------------------------- juno gpu ------------------------------------
         export ELSAPROD=juno_gpu
         export ELSAPROD="$ELSAPROD$INTTYPE"

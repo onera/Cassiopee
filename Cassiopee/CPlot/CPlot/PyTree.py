@@ -1199,15 +1199,27 @@ def display360(t, type360=0, **kwargs):
             a2 = Internal.getZones(a2)[0]
             a1[0] = "right"; a2[0] = "left"
             locRez = exportRez.split('x')
-            ni = int(locRez[0]); nj = int(locRez[1])
-            a = G.cart((0,0,0), (1,1,1), (ni,2*nj,1))
-            C._addVars(a, ['r','g','b','a'])
-            for v in ['r','g','b','a']:
-                pr = Internal.getNodeFromName2(a, v)[1]
-                pr1 = Internal.getNodeFromName2(a1, v)[1]
-                pr2 = Internal.getNodeFromName2(a2, v)[1]
-                pr[0:ni,0:nj] = pr1[0:ni,0:nj]
-                pr[0:ni,nj:2*nj] = pr2[0:ni,0:nj]
+            if type360 == 0: # 360
+                ni = int(locRez[0]); nj = int(locRez[1])
+                a = G.cart((0,0,0), (1,1,1), (ni,2*nj,1))
+                C._addVars(a, ['r','g','b','a'])
+                for v in ['r','g','b','a']:
+                    pr = Internal.getNodeFromName2(a, v)[1]
+                    pr1 = Internal.getNodeFromName2(a1, v)[1]
+                    pr2 = Internal.getNodeFromName2(a2, v)[1]
+                    pr[0:ni,0:nj] = pr1[0:ni,0:nj]
+                    pr[0:ni,nj:2*nj] = pr2[0:ni,0:nj]
+            else: # 180
+                ni = int(locRez[1]); nj = int(locRez[1])
+                a = G.cart((0,0,0), (1,1,1), (2*ni,nj,1))
+                C._addVars(a, ['r','g','b','a'])
+                for v in ['r','g','b','a']:
+                    pr = Internal.getNodeFromName2(a, v)[1]
+                    pr1 = Internal.getNodeFromName2(a1, v)[1]
+                    pr2 = Internal.getNodeFromName2(a2, v)[1]
+                    pr[0:ni,0:nj] = pr1[0:ni,0:nj]
+                    pr[ni:2*ni,0:nj] = pr2[0:ni,0:nj]
+               
             C.convertPyTree2File(a, export) # finale
         Cmpi.barrier() # wait for completion
     return None
@@ -1215,7 +1227,8 @@ def display360(t, type360=0, **kwargs):
 # type360=0 -> 360, mode=1 -> 180
 def panorama(export, exportResolution, type360=0):
     res = exportResolution.split('x')
-    resx = int(res[0]); resy = int(res[1])
+    if type360 == 0: resx = int(res[0]); resy = int(res[1])
+    else: resx = int(res[1]); resy = int(res[1])
     import Generator.PyTree as G
     import CPlot.cplot
     a1 = C.convertFile2PyTree('cube_left.png')

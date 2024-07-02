@@ -53,7 +53,7 @@ C.convertPyTree2File(tbOneOver, LOCAL+'/tbOneOver.cgns')
 ##ADD DIRECTION OF ONE OVER IN TB RECTILINEAR REGION
 FileNameOneOver = LOCAL+'/tbOneOver.cgns'
 listOneOver     = [[2,1,1]]
-X_IBM._addOneOverLocally(FileNameOneOver,listOneOver)
+X_IBM._addOneOverLocally(FileNameOneOver, listOneOver)
 tbOneOver = C.convertFile2PyTree(FileNameOneOver)
 
 ##IBM PREP
@@ -62,8 +62,8 @@ t,tc=X_IBM.prepareIBMDataPara(tb         , None     , None     , tbOneOver=tbOne
 os.remove(FileNameOneOver)
 
 ##NON-REGRESSION CHECK
-test.testT(t,1)
-test.testT(tc,2)
+test.testT(t, 1)
+test.testT(tc, 2)
 
 #C.convertPyTree2File(t ,LOCAL+'/t_check.cgns')
 #C.convertPyTree2File(tc,LOCAL+'/tc_check.cgns')
