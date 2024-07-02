@@ -279,7 +279,6 @@
 #define LBM_zlim                53
 #define LBM_DX                  54
 
-
 /*schema HYPERSONIC*/
 #define HYPER_COEF1  55  
 #define HYPER_COEF2  56
@@ -297,6 +296,15 @@
 
 /*Rotation - IBM*/
 #define MotionType   64
+
+/*coeff NudGing */
+#define NUDGING_AMPLI 65
+#define NUDGING_EQ1   66
+#define NUDGING_EQ2   67
+#define NUDGING_EQ3   68
+#define NUDGING_EQ4   69
+#define NUDGING_EQ5   70
+#define NUDGING_EQ6   71
 
 /*CONSTANTS*/
 #define SA_CKARM    0.41 
