@@ -11,7 +11,9 @@ import Geom.IBM as D_IBM
 import Geom.PyTree as D
 import KCore.test as test
 import Connector.IBM as X_IBM
-import sys, os
+import os
+
+test.TOLERANCE = 1.e-6
 
 LOCAL           = test.getLocal()
 FastC.MX_SYNCHRO= 1761
@@ -21,7 +23,7 @@ rank = Cmpi.rank
 
 filename_t       = LOCAL+'/t'
 filename_tc      = LOCAL+'/tc'
-filename_tcase   = LOCAL+'/case.cgns'
+filename_tcase   = LOCAL+'/windTunnel.cgns'
 DIRECTORY_PROBES = LOCAL+'/'
 ## =========================
 ##       PREP

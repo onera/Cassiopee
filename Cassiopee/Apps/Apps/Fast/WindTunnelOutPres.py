@@ -5,7 +5,7 @@ import Post.Probe as Probe
 import Post.PyTree as Post
 import Geom.IBM as D_IBM
 import sys, os
-import numpy, scipy.optimize
+import numpy
 
 R_GAZ       = 287.05       # J/kg/K
 GAMMA       = 1.4
@@ -51,6 +51,7 @@ def sigmaFunctionDerivate__(mach, gamma=GAMMA):
 
 
 def _scalarSigmaFunctionInv__(s, gamma=GAMMA, range='subsonic'):
+    import scipy.optimize
     eps = numpy.finfo(float).eps
     if range == 'subsonic':
         sol = scipy.optimize.root_scalar(lambda M: sigmaFunction__(M, gamma) - s, 
