@@ -28,6 +28,9 @@
 #define MPI_Comm void
 #endif
 
+// to be suppressed in next release
+#define FORCEPERIODICR4 0
+
 # include "GenIO.h"
 # include "kcore.h"
 # include "hdf5.h"
@@ -2261,7 +2264,8 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
     {
       if (typeNum == NPY_DOUBLE)
       {
-        // patch pour la norme CGNS
+#if (FORCEPERIODICR4 == 1)
+        // patch pour l'ancienne norme CGNS
         if (strcmp(name, "RotationCenter") == 0 ||
             strcmp(name, "RotationAngle") == 0 ||
             strcmp(name, "RotationRateVector") == 0 ||
@@ -2276,6 +2280,9 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
         }
         else
           setArrayR8(child, (double*)PyArray_DATA(ar), dim, dims);
+#else
+      setArrayR8(child, (double*)PyArray_DATA(ar), dim, dims);
+#endif
       }
       else if (typeNum == NPY_INT || typeNum == NPY_INT64 || typeNum == NPY_LONG)
       {

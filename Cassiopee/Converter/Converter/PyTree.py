@@ -1157,6 +1157,16 @@ def checkLinks__(links, t):
   #for c, i in enumerate(links): print(out[c], links[c])
   return out
 
+# Force periodic nodes to be R4 (old CGNS norm)
+def _forceR4PeriodicNodes__(t):
+  nodes = Internal.getNodesFromName(t, "RotationCenter")
+  nodes += Internal.getNodesFromName(t, "RotationAngle")
+  nodes += Internal.getNodesFromName(t, "RotationRateVector")
+  nodes += Internal.getNodesFromName(t, "Translation")
+  for n in nodes:
+    n[1] = n[1].astype(numpy.float32)
+  return None
+
 # -- convertPyTree2File
 def convertPyTree2File(t, fileName, format=None, isize=4, rsize=8,
                        endian='big', colormap=0, dataFormat='%.9e ', links=[]):

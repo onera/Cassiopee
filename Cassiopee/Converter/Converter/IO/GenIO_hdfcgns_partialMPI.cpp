@@ -933,6 +933,7 @@ hid_t K_IO::GenIOHdf::writeNodePartial(hid_t     node,
     {
       if (typeNum == NPY_DOUBLE)
       {
+#if (FORCEPERIODICR4 == 1)
         // patch pour la norme CGNS
         if (strcmp(name, "RotationCenter") == 0 ||
             strcmp(name, "RotationAngle") == 0 ||
@@ -951,6 +952,10 @@ hid_t K_IO::GenIOHdf::writeNodePartial(hid_t     node,
           setArrayPartial(node, (void*)PyArray_DATA(ar), dim, dims,
                           _NATIVE_DOUBLE, (char*)L3T_R8);
         }
+#else
+        setArrayPartial(node, (void*)PyArray_DATA(ar), dim, dims,
+                        _NATIVE_DOUBLE, (char*)L3T_R8);
+#endif
       }
       else if (typeNum == NPY_INT)
       {
