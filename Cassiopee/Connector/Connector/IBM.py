@@ -1995,7 +1995,8 @@ def extractIBMInfo(tc_in, IBCNames="IBCD_*", filename_out=None):
 # IN: isWireModel: is the Wire Mesh Model used?
 # IN: isOrthoFirst: Apply orthogonal projection first and level set normal decscent second. Needed for IBC filaments only.
 # =============================================================================
-def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=None, frontType=0, cellNName='cellN', IBCType=1, depth=2, Reynolds=6.e6, yplus=100., Lref=1., hmod=0.1, isLBM=False,isWireModel=False, isOrthoFirst=False):
+def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=None, frontType=0, cellNName='cellN', IBCType=1, depth=2, Reynolds=6.e6, yplus=100., Lref=1.,
+                    hmod=0.1, isLBM=False, isWireModel=False, isOrthoFirst=False):
     """Returns the dictionary of IBM points."""
     if IBCType == -1: signOfDistCorrected = -1
     else: signOfDistCorrected=1 # signe de la distance aux points corriges
