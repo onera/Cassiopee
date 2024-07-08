@@ -11,7 +11,7 @@ for i in range(10):
     t[2][1][2].append(a)
 
 t = Internal.rmNodesByName(t, 'Cart0')
-test.testO(t, 1)
+test.testT(t, 1)
 
 t = Internal.rmNodesByName(t, 'Cart*')
-test.testO(t, 2)
+test.testT(t, 2)

@@ -834,7 +834,7 @@ void K_POST::doIsoSurfMCQuads(
   E_Int npartition = 10*nthreads;
   E_Int chunk = nelts/npartition;
 
-  if(chunk==0){ chunk=1; npartition=nelts;}
+  if (chunk==0) { chunk=1; npartition=nelts; }
 
   // Dimensionnement: npts et ntri (par thread)
   E_Int* nquads = new E_Int [npartition];
@@ -902,7 +902,7 @@ void K_POST::doIsoSurfMCQuads(
     }//loop element
     npts[part] = np;
     nquads[part] = nquad;
-  }//lopp partition
+  }//loop partition
  }//omp para
 
   E_Int* prevQ = new E_Int [npartition];
@@ -918,7 +918,6 @@ void K_POST::doIsoSurfMCQuads(
 
 #pragma omp parallel default(shared)
   {
-  E_Int ithread = __CURRENT_THREAD__;
   E_Float f0, f1, f2, f3, f4, f5, f6, f7;
   E_Int ind0, ind1, ind2, ind3, ind4, ind5, ind6, ind7;
   int cubeindex;

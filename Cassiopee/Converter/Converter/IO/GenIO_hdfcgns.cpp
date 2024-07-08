@@ -2297,7 +2297,7 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
        else if (elSize == 8)
        {
          if (strcmp(label, "CGNSBase_t") == 0 ||
-             strcmp(label, "Elements_t") == 0) // to comply with paraview
+             strcmp(label, "Elements_t") == 0) // to comply with cgns 4 norm
          {
           // convert to i4
           E_Int s = PyArray_SIZE(ar);

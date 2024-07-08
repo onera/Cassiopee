@@ -7,9 +7,9 @@ import KCore.test as test
 c = D.polyline([(0,0,0),(1,1,0),(2,-1,0)])
 a = D.spline(c, order=3, density=10.)  
 res =  D.getTangent(a)
-test.testO(res, 1)
+test.testT(res, 1)
 
 # Along a tree made of splines zones
 t = C.newPyTree(['Base',a])
 res = D.getTangent(t)
-test.testO(res, 2)
+test.testT(res, 2)
