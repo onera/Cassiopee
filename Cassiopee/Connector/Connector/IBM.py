@@ -1995,7 +1995,8 @@ def extractIBMInfo(tc_in, IBCNames="IBCD_*", filename_out=None):
 # IN: isWireModel: is the Wire Mesh Model used?
 # IN: isOrthoFirst: Apply orthogonal projection first and level set normal decscent second. Needed for IBC filaments only.
 # =============================================================================
-def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=None, frontType=0, cellNName='cellN', IBCType=1, depth=2, Reynolds=6.e6, yplus=100., Lref=1.,
+def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=None, frontType=0, cellNName='cellN', 
+                    IBCType=1, depth=2, Reynolds=6.e6, yplus=100., Lref=1.,
                     hmod=0.1, isLBM=False, isWireModel=False, isOrthoFirst=False):
     """Returns the dictionary of IBM points."""
     if IBCType == -1: signOfDistCorrected = -1
@@ -2006,24 +2007,24 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, tfront2=
     #-------------------------------------------
     # 1. Get the list of IBC corrected pts
     #-------------------------------------------
-    listOfSnearsLoc=[]
+    listOfSnearsLoc = []
     listOfModelisationHeightsLoc = []
     if loc == 'nodes':
         for z in Internal.getZones(t):
-            an = C.getFields(Internal.__GridCoordinates__,z)[0]
-            ac1 = C.getField(cellNName,z)[0]
+            an = C.getFields(Internal.__GridCoordinates__, z)[0]
+            ac1 = C.getField(cellNName, z)[0]
             ac1[0] = 'cellN'
-            ac2 = C.getField('TurbulentDistance',z)[0]
-            ac3 = C.getField('gradxTurbulentDistance',z)[0]
-            ac4 = C.getField('gradyTurbulentDistance',z)[0]
-            ac5 = C.getField('gradzTurbulentDistance',z)[0]
+            ac2 = C.getField('TurbulentDistance', z)[0]
+            ac3 = C.getField('gradxTurbulentDistance', z)[0]
+            ac4 = C.getField('gradyTurbulentDistance', z)[0]
+            ac5 = C.getField('gradzTurbulentDistance', z)[0]
             an = Converter.addVars([an,ac1,ac2,ac3,ac4,ac5])
-            ah = C.getField('hi',z)[0]
+            ah = C.getField('hi', z)[0]
             if ah != []: an = Converter.addVars([an,ah])
-            ah = C.getField('he',z)[0]
+            ah = C.getField('he', z)[0]
             if ah != []: an = Converter.addVars([an,ah])
             correctedPts = Connector.getInterpolatedPoints__(an)
-            xt = C.getField('CoordinateX',z)[0][1][0]
+            xt = C.getField('CoordinateX', z)[0][1][0]
             snearl = xt[1]-xt[0]
             listOfSnearsLoc.append(snearl)
             allCorrectedPts.append(correctedPts)

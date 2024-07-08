@@ -728,6 +728,7 @@ elif [ "$MAC" = "WDAAA161Z" ]; then
     # modules
     export PYTHONEXE=python3
     export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
 fi
 
 
