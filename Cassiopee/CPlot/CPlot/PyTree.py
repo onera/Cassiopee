@@ -1205,21 +1205,28 @@ def display360(t, type360=0, **kwargs):
                 C._addVars(a, ['r','g','b','a'])
                 for v in ['r','g','b','a']:
                     pr = Internal.getNodeFromName2(a, v)[1]
-                    pr1 = Internal.getNodeFromName2(a1, v)[1]
-                    pr2 = Internal.getNodeFromName2(a2, v)[1]
-                    pr[0:ni,0:nj] = pr1[0:ni,0:nj]
-                    pr[0:ni,nj:2*nj] = pr2[0:ni,0:nj]
+                    pr1 = Internal.getNodeFromName2(a1, v)
+                    pr2 = Internal.getNodeFromName2(a2, v)
+                    if pr1 is not None and pr2 is not None:
+                        pr1 = pr1[1]; pr2 = pr2[1]
+                        pr[0:ni,0:nj] = pr1[0:ni,0:nj]
+                        pr[0:ni,nj:2*nj] = pr2[0:ni,0:nj]
+                    else:
+                        pr[0:ni, 0:2*nj] = 1.
             else: # 180
                 ni = int(locRez[1]); nj = int(locRez[1])
                 a = G.cart((0,0,0), (1,1,1), (2*ni,nj,1))
                 C._addVars(a, ['r','g','b','a'])
                 for v in ['r','g','b','a']:
                     pr = Internal.getNodeFromName2(a, v)[1]
-                    pr1 = Internal.getNodeFromName2(a1, v)[1]
-                    pr2 = Internal.getNodeFromName2(a2, v)[1]
-                    pr[0:ni,0:nj] = pr1[0:ni,0:nj]
-                    pr[ni:2*ni,0:nj] = pr2[0:ni,0:nj]
-               
+                    pr1 = Internal.getNodeFromName2(a1, v)
+                    pr2 = Internal.getNodeFromName2(a2, v)
+                    if pr1 is not None and pr2 is not None:
+                        pr1 = pr1[1]; pr2 = pr2[1]
+                        pr[0:ni,0:nj] = pr1[0:ni,0:nj]
+                        pr[ni:2*ni,0:nj] = pr2[0:ni,0:nj]
+                    else:
+                        pr[0:2*ni,0:nj] = 1.
             C.convertPyTree2File(a, export) # finale
         Cmpi.barrier() # wait for completion
     return None
