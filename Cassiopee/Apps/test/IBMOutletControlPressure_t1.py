@@ -139,7 +139,7 @@ COP._setUpOutletPressure(values4gain,itValues4gain)
 dctProbeLocationsCheck,dctProbes=COP.setupMachProbe(t,buffer_size,isRestartProbe,DIRECTORY_PROBES)
                     
 for it in range(NIT):
-    FastS._compute(t, metrics, it, tc, graph=graph)
+    FastS._compute(t, metrics, it, tc, graph=graph, layer='Python')
     if it%modulo_verif == 0:        
         FastS.display_temporal_criteria(t, metrics, it)
     if it%itExtrctPrb==0:

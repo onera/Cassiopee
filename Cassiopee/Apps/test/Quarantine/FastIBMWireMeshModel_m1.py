@@ -29,7 +29,7 @@ numb["temporal_scheme"]    = "implicit"
 numb["ss_iteration"]       = 30
 numb["modulo_verif"]       = display_probe_freq
 numz = {}
-numz["time_step"]          = 1.0e-4 # CFL 1
+numz["time_step"]          = 5.0e-5 
 numz["time_step_nature"]   = "global"
 numz["epsi_newton"]        = 0.1
 Red                        = 360
@@ -38,7 +38,6 @@ kwire_local                = (0.5+26/Red)*(1.-beta*beta)/(beta*beta)
 dv                         = numpy.sqrt((0.25*kwire_local)**2+1)-0.25*kwire_local
 numz["DiameterWire_p"]     = 0.08e-03
 numz["CtWire_p"]           = 0.065
-
 numz["KWire_p"]            = kwire_local
 
 dim=Internal.getValue(Internal.getNodeFromName(t, 'EquationDimension'))
@@ -67,11 +66,8 @@ for it in range(NIT):
         if Cmpi.rank==0: print('- %d / %d - %f'%(it+it0, NIT+it0, time0))
         FastS.display_temporal_criteria(t, metrics, it, format='double')
 
-# time stamp
-Internal.createUniqueChild(t, 'Iteration', 'DataArray_t', value=it0+NIT)
-Internal.createUniqueChild(t, 'Time', 'DataArray_t', value=time0)
-
-#Cmpi.convertPyTree2File(t,LOCAL+'/checking.cgns')
+##TO VISUALIZE
+#Cmpi.convertPyTree2File(t,LOCAL+'/t_restart_WMM_checkMPI.cgns')
 
 if Cmpi.rank == 0:
     Internal._rmNodesFromType(t, 'Rind_t')
@@ -84,3 +80,5 @@ if Cmpi.rank == 0:
     Internal._rmNodesByName(tc, '.Solver#dtloc')
     test.testT(t , 1)
     test.testT(tc, 2)
+    
+
