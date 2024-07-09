@@ -44,10 +44,10 @@ if ($?MACHINE == 0) then
         echo 'Your machine is not known by uname. Try to set MACHINE.'
     endif
 else
-    if ( "$MACHINE" =~ "*_i8") then
+    if ("$MACHINE" =~ "*_i8") then
         set MAC=`echo $MACHINE | rev | cut -c 4- | rev`
         set INTTYPE="_i8"
-    else if ( "$MACHINE" == "i8") then
+    else if ("$MACHINE" == "i8") then
         set INTTYPE="_i8"
     else
         set MAC=$MACHINE
@@ -609,7 +609,7 @@ else if ($MAC == "spiro_pgi") then
         module load subversion/1.14.1-gnu831
 
 else if ($MAC == "spiro_gpu") then
-#----------------------------- juno gpu ------------------------------------
+#----------------------------- spiro gpu ------------------------------------
         setenv ELSAPROD spiro_gpu
         setenv ELSAPROD "$ELSAPROD$INTTYPE"
         source /etc/profile.d/modules-onera.csh
@@ -658,7 +658,7 @@ else if ($MAC == "juno") then
         alias vtune "vtune -collect hotspots -result-dir result -quiet"
 
 else if ($MAC == "juno_gcc") then
-#----------------------------- juno -----------------------------------------
+#----------------------------- juno gcc -----------------------------------------
         setenv ELSAPROD juno_gcc
         setenv ELSAPROD "$ELSAPROD$INTTYPE"
         # Nbre de threads

@@ -480,7 +480,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     else 
     {
       FldArrayF fl(0,1);
-      tpl = K_ARRAY::buildArray3(fl, varString, *c[i], eltType, api); 
+      tpl = K_ARRAY::buildArray3(fl, varString, *c[i], eltType, api);
     }
     delete c[i];
     PyList_Append(l, tpl);
