@@ -862,6 +862,21 @@ False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
+'sat_sph': [ 'Cluster de calcul Sator Saphire (Onera)',
+'ifort', # f77compiler
+'ifort', # f90compiler
+'icc', # Cppcompiler
+['-DCACHELINE=64','-DNB_SOCKET=2','-DCORE_PER_SOCK=48','-DSIMD=AVX2P512'], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+[], # additionalIncludePaths
+[], # additionalLibs
+[], # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
+],
+###############################################################################
 'spiro_sky': [ 'Machine dev Spiro (proc skylake)',
 'ifort', # f77compiler
 'ifort', # f90compiler

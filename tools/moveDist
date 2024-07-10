@@ -86,4 +86,7 @@ if [ $# -eq 1 ]; then
     sed -i "s/$s1/$s2/g" installPath.py
     more installPath.py
     cd $here
+    # Copie les fichiers d'environnement
+    cp "$CASSIOPEE"/Dist/env_* $path/../..
+    cp "$CASSIOPEE"/Dist/sh_* $path/../..
 fi

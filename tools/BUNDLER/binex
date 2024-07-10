@@ -1,0 +1,119 @@
+#! /bin/sh
+# Dans Dist : 
+# - compile les .py en .pyc, enleve les .py
+# - Enleve la cle
+# - Enleve FFX, FFD, thermolib...
+if ([ $# -eq 0 ])
+then
+    if [ "$CASSIOPEE" = "" ]; then
+        echo "You must specify a CASSIOPEE variable in your environment."
+        echo "This variable specifies the installation path of *Cassiopee*."
+        exit
+    fi
+    if [ "$ELSAPROD" = "" ]; then
+        echo "You must specify a ELSAPROD in your environment."
+        echo "This variable identifies the processor type."
+        exit
+    fi
+    INSTALLPATH="$CASSIOPEE/Dist/bin/$ELSAPROD"
+
+elif ([ $# -eq 1 ])
+then
+    if [ "$ELSAPROD" = "" ]; then
+        echo "You must specify a ELSAPROD in your environment."
+        echo "This variable identifies the processor type."
+        exit
+    fi
+    INSTALLPATH="$1"
+else
+    echo 'install: install in $CASSIOPEE/Dist/bin/$ELSAPROD'
+    echo 'install <dir>: install in directory <dir>.'
+    exit
+fi
+
+cd $INSTALLPATH
+
+# compile les .py dans la racine (supprime car tout est open source)
+#if test -e tkCassiopee.py
+#then
+#    ret=`ls '*.py'`
+#    for i in $ret; do
+#        python $CASSIOPEE/Apps/util/BUNDLER/compile.py $i && rm -f $i
+#    done
+#    rm -fr __pycache__
+#fi
+
+# Enleve la cle
+echo 'Removing key'
+if test -e lib/.CassiopeeKey
+then
+    rm lib/.CassiopeeKey
+fi
+
+if test -e  "lib/site-packages"
+then
+    cd lib/site-packages
+else
+    cd lib/python3.8/site-packages
+fi
+
+pwd
+
+# Compile les .py, enleve les .py dans les modules
+. $CASSIOPEE/Apps/Modules/MODULES
+FULLMODULES='Apps'
+for mod in $FULLMODULES
+do
+   echo 'compiling '$mod
+   if test -e "$mod"
+   then
+       cd $mod
+       ret=`/usr/bin/find . -name '*.py'`
+       for i in $ret; do
+           python $CASSIOPEE/Apps/util/BUNDLER/compile.py $i && rm -f $i
+       done
+       rm -fr __pycache__
+       cd ..
+    fi
+done
+
+. $CASSIOPEE/Apps/PModules/MODULES
+FULLMODULES=''
+for mod in $FULLMODULES
+do
+   echo 'compiling '$mod
+   if [ "$mod" == "FFX" ]
+   then
+       mod="Ffx"
+   fi
+   if [ "$mod" == "FFD" ]
+   then
+       mod="Ffd"
+   fi
+   if test -e "$mod"
+   then
+       cd $mod
+       ret=`/usr/bin/find . -name '*.py'`
+       for i in $ret; do
+           python $CASSIOPEE/Apps/util/BUNDLER/compile.py $i && rm -f $i
+       done
+       rm -fr __pycache__
+       cd ..
+    fi
+done
+
+# Suppressions des modules non distribues
+#echo 'Removing Ael'
+#rm -fr Ael
+echo 'Removing FFX'
+rm -fr Ffx
+echo 'Removing FFD'
+rm -fr Ffd
+echo 'Removing Thermolib'
+rm -fr Thermolib
+echo 'Removing PUMA'
+rm -fr PUMA
+echo 'Removing MOLA'
+rm -fr ../../../MOLA
+echo 'Removing Upmost'
+rm -fr Upmost
