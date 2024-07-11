@@ -791,6 +791,7 @@ def createCloudIBM__(tc, ibctypes=[]):
             XW = Internal.getNodeFromName(IBCD,'CoordinateX_PW')[1]
             YW = Internal.getNodeFromName(IBCD,'CoordinateY_PW')[1]
             ZW = Internal.getNodeFromName(IBCD,'CoordinateZ_PW')[1]
+            if len(XW) < 2: continue
             zsize = numpy.empty((1,3), Internal.E_NpyInt, order='F')
             zsize[0,0] = XW.shape[0]; zsize[0,1] = 0; zsize[0,2] = 0
             newName = 'IBW_%sX%d'%(cpt_name, Cmpi.rank)

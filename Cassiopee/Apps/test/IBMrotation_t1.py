@@ -174,8 +174,6 @@ C.convertPyTree2File(t, LOCAL+'/t.cgns')
 R._copyGrid2GridInit(tc)
 C.convertPyTree2File(tc, LOCAL+'/tc.cgns')
 
-os.remove(LOCAL+'/octree.cgns')
-
 Internal._rmNodesByName(t, '.Solver#Param')
 Internal._rmNodesByName(t, '.Solver#ownData')
 Internal._rmNodesByName(tc, '.Solver#Param')
