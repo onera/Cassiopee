@@ -6,7 +6,6 @@ import KCore.test as test
 
 a = G.cart((0,0,0), (1,1,1), (10,10,10))
 t = C.newPyTree(['Base', a])
-C.convertPyTree2File(t, 'out.cgns')
 
 # Return nodes with given value
 paths = Internal.getPathsFromValue(t, 'Structured')
