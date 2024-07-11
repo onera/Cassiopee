@@ -131,9 +131,9 @@ timeiter  = time0
 varType   = 0
 
 # Get models
-eqs    = Internal.getNodeFromType(Internal.getNodeFromName1(t,baseNameIBM),'GoverningEquations_t')
+eqs    = Internal.getNodeFromType(Internal.getNodeFromName1(t,baseNameIBM), 'GoverningEquations_t')
 Model1 = Internal.getValue(eqs)
-eqs    = Internal.getNodeFromType(Internal.getNodeFromName1(t, baseNameBKGD),'GoverningEquations_t')
+eqs    = Internal.getNodeFromType(Internal.getNodeFromName1(t, baseNameBKGD), 'GoverningEquations_t')
 Model2 = Internal.getValue(eqs)
 
 if Model1 == 'NSTurbulent' and Model2 == 'NSTurbulent': varType = 1
@@ -155,10 +155,10 @@ for it in range(it0,NIT+it0):
 
     R._evalPositionIBC(tc,timeiter)
 
-    FastS.copy_velocity_ale(t, metrics, it=it) #get motion velocities @ face centers
+    FastS.copy_velocity_ale(t, metrics, it=it) # get motion velocities @ face centers
 
     # Masquage
-    C._initVars(t,"{centers:cellN#Motion}={centers:cellN#MotionInit}")
+    C._initVars(t, "{centers:cellN#Motion}={centers:cellN#MotionInit}")
     bodies=[]
     for base in Internal.getBases(tb):
         bodies.append(Internal.getZones(base))
@@ -188,6 +188,11 @@ for adt in dictOfADT.values():
 
 Internal.createUniqueChild(t, 'Iteration', 'DataArray_t', value=NIT+it0)
 Internal.createUniqueChild(t, 'Time', 'DataArray_t', value=timeiter)
+
+Internal._rmNodesByName(t, '.Solver#Param')
+Internal._rmNodesByName(t, '.Solver#ownData')
+Internal._rmNodesByName(tc, '.Solver#Param')
+Internal._rmNodesByName(tc, '.Solver#ownData')
 
 test.testT(t,1)
 test.testT(tc,2)

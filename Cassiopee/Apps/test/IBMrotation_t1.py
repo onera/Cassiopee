@@ -139,21 +139,20 @@ R._copyGrid2GridInit(tb_blank)
 C.convertPyTree2File(tb_blank, LOCAL+'/bodiesBlank.cgns')
 
 # suppress static BCOverlap in t_off
-C._rmBCOfType(t_off,'BCFarfield')
-C._fillEmptyBCWith(t_off,'nref','BCFarfield',dim=dimPb)
-C._rmBCOfType(t_off,'BCOverlap')
+C._rmBCOfType(t_off, 'BCFarfield')
+C._fillEmptyBCWith(t_off, 'nref', 'BCFarfield', dim=dimPb)
+C._rmBCOfType(t_off, 'BCOverlap')
 # t_ibm
 C._fillEmptyBCWith(t_ibm,'dummy','BCExtrapolate',dim=dimPb)# corners
-C._rmBCOfType(t_ibm,'BCOverlap')
-C._fillEmptyBCWith(t_ibm,'dummy','DUMMY',dim=dimPb)# overlap static
-C._rmBCOfType(t_ibm,'BCExtrapolate')
-C._fillEmptyBCWith(t_ibm,'ovst_dyn','BCOverlap',dim=dimPb)
-C._rmBCOfType(t_ibm,'DUMMY')
+C._rmBCOfType(t_ibm, 'BCOverlap')
+C._fillEmptyBCWith(t_ibm, 'dummy', 'DUMMY', dim=dimPb) # overlap static
+C._rmBCOfType(t_ibm, 'BCExtrapolate')
+C._fillEmptyBCWith(t_ibm, 'ovst_dyn', 'BCOverlap', dim=dimPb)
+C._rmBCOfType(t_ibm, 'DUMMY')
 
 # Init field
 vars = ['Density', 'MomentumX', 'MomentumY', 'MomentumZ', 'EnergyStagnationDensity']
-C._initVars(t_off,"centers:TurbulentDistance",1e3)
-
+C._initVars(t_off, "centers:TurbulentDistance", 1e3)
 
 t  = C.mergeTrees(t_ibm, t_off)
 tc = C.mergeTrees(tc_ibm, tc_off)
@@ -177,6 +176,11 @@ C.convertPyTree2File(tc, LOCAL+'/tc.cgns')
 
 os.remove(LOCAL+'/octree.cgns')
 
-test.testT(t,1)
-test.testT(tc,2)
+Internal._rmNodesByName(t, '.Solver#Param')
+Internal._rmNodesByName(t, '.Solver#ownData')
+Internal._rmNodesByName(tc, '.Solver#Param')
+Internal._rmNodesByName(tc, '.Solver#ownData')
+
+test.testT(t, 1)
+test.testT(tc, 2)
 

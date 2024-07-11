@@ -62,6 +62,11 @@ t,tc=X_IBM.prepareIBMDataPara(tb         , None     , None     , tbOneOver=tbOne
 os.remove(FileNameOneOver)
 
 ##NON-REGRESSION CHECK
+Internal._rmNodesByName(t, '.Solver#Param')
+Internal._rmNodesByName(t, '.Solver#ownData')
+Internal._rmNodesByName(tc, '.Solver#Param')
+Internal._rmNodesByName(tc, '.Solver#ownData')
+
 test.testT(t, 1)
 test.testT(tc, 2)
 

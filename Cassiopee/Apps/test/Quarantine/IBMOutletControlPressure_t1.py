@@ -134,15 +134,15 @@ Fast._setNum2Zones(t, numz); Fast._setNum2Base(t, numb)
 itValues4gain=[5,2,100]
 
 isRestartProbe = False
-values4gain,controlProbeName,itExtrctPrb=COP.getInfo(tb,familyName='outlet')
-COP._setUpOutletPressure(values4gain,itValues4gain)    
-dctProbeLocationsCheck,dctProbes=COP.setupMachProbe(t,buffer_size,isRestartProbe,DIRECTORY_PROBES)
+values4gain,controlProbeName,itExtrctPrb=COP.getInfo(tb, familyName='outlet')
+COP._setUpOutletPressure(values4gain, itValues4gain)    
+dctProbeLocationsCheck,dctProbes=COP.setupMachProbe(t, buffer_size, isRestartProbe, DIRECTORY_PROBES)
                     
 for it in range(NIT):
     FastS._compute(t, metrics, it, tc, graph=graph, layer='Python')
     if it%modulo_verif == 0:        
         FastS.display_temporal_criteria(t, metrics, it)
-    if it%itExtrctPrb==0:
+    if it%itExtrctPrb == 0:
         dctProbes=COP.recordDataMach(t,dctProbes,it)
         if it>itValues4gain[0] and it%itValues4gain[1] == 0:
             COP._controlOutletPressureMachProbe(tc,dctProbes,controlProbeName,DIRECTORY_PROBES,itValues4gain,values4gain,itExtrctPrb,it,familyName='outlet')
@@ -153,6 +153,11 @@ for it in range(NIT):
 for name, probe in dctProbes.items(): probe.flush()
 os.remove(LOCAL+'/probe_point.cgns')
 os.remove(LOCAL+'/probes.cgns')
+
+Internal._rmNodesByName(t, '.Solver#Param')
+Internal._rmNodesByName(t, '.Solver#ownData')
+Internal._rmNodesByName(tc, '.Solver#Param')
+Internal._rmNodesByName(tc, '.Solver#ownData')
 
 test.testT(tc,4)
 test.testT(t ,5)
