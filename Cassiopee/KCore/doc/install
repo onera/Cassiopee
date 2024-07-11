@@ -77,7 +77,7 @@ sed -i 's/Converter\.Converter/Converter/g' $FILE
 #sed -i 's/Converter\:{/converter\:{/g' $FILE
 
 sed -i 's/Geom\.IBM\.Geom\.IBM/Geom\.IBM/g' $FILE
-sed -i 's/Geom\.Geom/Geom/g' $FILE
+sed -i 's/Geom\.Geom/geom/g' $FILE
 #sed -i 's/Geom\:{/geom\:{/g' $FILE
 
 sed -i 's/Compressor\.Compressor/Compressor/g' $FILE
@@ -138,7 +138,6 @@ sed -i 's/CPlot\.CPlot/CPlot/g' $FILE
 #sed -i 's/CPlot\:{/cplot\:{/g' $FILE
 
 sed -i 's/Intersector\.Intersector/Intersector/g' $FILE
-
 
 cp build/searchindex.js $DEST
 cp build/genindex.html $DEST

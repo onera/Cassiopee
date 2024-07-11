@@ -1,17 +1,21 @@
+
 <!DOCTYPE html>
 
-<html lang="en" data-content_root="./">
+<html lang="en">
   <head>
     <meta charset="ASCII" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>CPlot.Decorator: decoration of CPlot images using matplotlib &#8212; CPlot 4.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=514cf933" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
-    <script src="_static/documentation_options.js?v=9f5556dd"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" /> 
@@ -46,9 +50,9 @@ further enhanced with any additional matplotlib items using this module.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">CPlot.Decorator</span> <span class="k">as</span> <span class="nn">Decorator</span>
 </pre></div>
 </div>
-</section>
+<span class="target" id="module-CPlot.Decorator"></span></section>
 <section id="list-of-functions">
-<span id="module-CPlot.Decorator"></span><h2>List of functions</h2>
+<h2>List of functions</h2>
 <p><strong>&#8211; Actions</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -58,7 +62,7 @@ further enhanced with any additional matplotlib items using this module.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#CPlot.Decorator.CPlot.Decorator.createColorBar" title="CPlot.Decorator.CPlot.Decorator.createColorBar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CPlot.Decorator.createColorBar</span></code></a>(fig,&#160;ax[,&#160;...])</p></td>
 <td><p>Create a color bar.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#CPlot.Decorator.CPlot.Decorator.createText" title="CPlot.Decorator.CPlot.Decorator.createText"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CPlot.Decorator.createText</span></code></a>(ax[,&#160;posx,&#160;posy,&#160;...])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">CPlot.Decorator.createText</span></code>(ax[,&#160;posx,&#160;posy,&#160;...])</p></td>
 <td><p>Create text.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#CPlot.Decorator.CPlot.Decorator.createArrow" title="CPlot.Decorator.CPlot.Decorator.createArrow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CPlot.Decorator.createArrow</span></code></a>(ax,&#160;X1,&#160;X2[,&#160;...])</p></td>
@@ -175,8 +179,8 @@ The returned figure and axis can be further modified with any matplotlib command
 
 <hr class="docutils" />
 <dl class="py function">
-<dt class="sig sig-object py" id="CPlot.Decorator.CPlot.Decorator.createText">
-<span class="sig-prename descclassname"><span class="pre">CPlot.Decorator.</span></span><span class="sig-name descname"><span class="pre">createText</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">posx=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">posy=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text=''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size=20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color=&quot;black&quot;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boxColor=&quot;black&quot;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boxBackColor=&quot;white&quot;</span></span></em><span class="sig-paren">)</span></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">CPlot.Decorator.createText(ax,</span> <span class="pre">posx=0,</span> <span class="pre">posy=0,</span> <span class="pre">text='',</span> <span class="pre">size=20,</span> <span class="pre">color=&quot;black&quot;,</span> <span class="pre">box=False,</span> <span class="pre">box=False,</span> <span class="pre">boxColor=&quot;black&quot;,</span> <span class="pre">boxBackColor=&quot;white&quot;)</span></span></dt>
 <dd><p>Create a text on figure.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -409,7 +413,7 @@ function topFunction() {
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-    &#169; Copyright ONERA.
+        &#169; Copyright ONERA.
     </div>
   </body>
 </html>

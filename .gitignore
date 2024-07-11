@@ -6,6 +6,7 @@ core.*
 setup.cfg
 Dist
 docs/doc/Examples
+docs/doc/*.pdf
 docs/Download
 Cassiopee/KCore/merge.l
 Cassiopee/XCore/merge.l

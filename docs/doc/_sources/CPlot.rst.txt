@@ -20,7 +20,7 @@ For use with the array interface, you have to import CPlot module::
 
 For use with the pyTree interface::
 
-    import CPlot.PyTree as CPlot
+   import CPlot.PyTree as CPlot
 
 
 .. py:module:: CPlot

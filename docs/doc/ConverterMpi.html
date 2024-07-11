@@ -1,17 +1,21 @@
+
 <!DOCTYPE html>
 
-<html lang="en" data-content_root="./">
+<html lang="en">
   <head>
     <meta charset="ASCII" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>Converter.Mpi: distributed pyTree services &#8212; Converter 4.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=514cf933" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
-    <script src="_static/documentation_options.js?v=9f5556dd"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" /> 
@@ -66,9 +70,9 @@ requires exchanges and is redefined in Converter.Mpi.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">2</span> <span class="n">python</span> <span class="n">script</span><span class="o">.</span><span class="n">py</span>
 </pre></div>
 </div>
-</section>
+<span class="target" id="module-Converter.Mpi"></span></section>
 <section id="list-of-functions">
-<span id="module-Converter.Mpi"></span><h2>List of functions</h2>
+<h2>List of functions</h2>
 <p><strong>&#8211; Input/output</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -76,13 +80,16 @@ requires exchanges and is redefined in Converter.Mpi.</p>
 <td><p>Read a file and return a skeleton tree.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#Converter.Mpi.convertFile2PyTree" title="Converter.Mpi.convertFile2PyTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.convertFile2PyTree</span></code></a>(fileName[,&#160;...])</p></td>
-<td><p></p></td>
+<td><p>Read a file and return a full tree or partial tree.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Mpi.readZones" title="Converter.Mpi.readZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.readZones</span></code></a>(t,&#160;fileName[,&#160;...])</p></td>
 <td><p>Read some zones in a skeleton tree (by rank or name).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Mpi.convertPyTree2File" title="Converter.Mpi.convertPyTree2File"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.convertPyTree2File</span></code></a>(t,&#160;fileName)</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Mpi.writeZones" title="Converter.Mpi.writeZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.writeZones</span></code></a>(t,&#160;fileName[,&#160;...])</p></td>
+<td><p>Write zones in parallel.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Mpi.convertPyTree2File" title="Converter.Mpi.convertPyTree2File"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.convertPyTree2File</span></code></a>(t,&#160;fileName)</p></td>
+<td><p>Write a skeleton or partial tree.</p></td>
 </tr>
 </tbody>
 </table>
@@ -103,13 +110,13 @@ requires exchanges and is redefined in Converter.Mpi.</p>
 <p><strong>&#8211; Communication Graphs</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Mpi.getProc" title="Converter.Mpi.getProc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.getProc</span></code></a>(a)</p></td>
-<td><p>Return the proc of zone.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Mpi.getProc" title="Converter.Mpi.getProc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.getProc</span></code></a>(z)</p></td>
+<td><p>Return the proc where zone is affected to.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Mpi.setProc" title="Converter.Mpi.setProc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.setProc</span></code></a>(t,&#160;nproc)</p></td>
-<td><p>Set the proc to a zone or a set of zones.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Mpi.setProc" title="Converter.Mpi.setProc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.setProc</span></code></a>(t,&#160;rank)</p></td>
+<td><p>Set the proc number to a zone or a set of zones.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Mpi.getProcDict" title="Converter.Mpi.getProcDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.getProcDict</span></code></a>(t)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Mpi.getProcDict" title="Converter.Mpi.getProcDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.getProcDict</span></code></a>(t[,&#160;reduction])</p></td>
 <td><p>Return the dictionary proc['zoneName'].</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#Converter.Mpi.computeGraph" title="Converter.Mpi.computeGraph"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.computeGraph</span></code></a>(t[,&#160;type,&#160;t2,&#160;...])</p></td>
@@ -120,14 +127,17 @@ requires exchanges and is redefined in Converter.Mpi.</p>
 <p><strong>&#8211; Exchanges</strong></p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Mpi.addXZones" title="Converter.Mpi.addXZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.addXZones</span></code></a>(t,&#160;graph[,&#160;...])</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Mpi.setCommunicator" title="Converter.Mpi.setCommunicator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.setCommunicator</span></code></a>(com)</p></td>
+<td><p>Set MPI communicator to com.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Mpi.rmXZones" title="Converter.Mpi.rmXZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.rmXZones</span></code></a>(t)</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Mpi.addXZones" title="Converter.Mpi.addXZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.addXZones</span></code></a>(t,&#160;graph[,&#160;...])</p></td>
+<td><p>Add zones specified in graph on current proc.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Mpi.allgatherTree" title="Converter.Mpi.allgatherTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.allgatherTree</span></code></a>(a)</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Mpi.rmXZones" title="Converter.Mpi.rmXZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.rmXZones</span></code></a>(t)</p></td>
+<td><p>Remove zones added by addXZones.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Mpi.allgatherTree" title="Converter.Mpi.allgatherTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.allgatherTree</span></code></a>(t)</p></td>
+<td><p>Gather a distributed tree on all processors.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1099,7 +1109,7 @@ function topFunction() {
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-    &#169; Copyright ONERA.
+        &#169; Copyright ONERA.
     </div>
   </body>
 </html>
