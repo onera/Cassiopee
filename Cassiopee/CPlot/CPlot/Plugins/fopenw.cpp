@@ -42,7 +42,11 @@ FILE* Data::fopenw(const char* path, const char* mode)
     if (r == NULL) 
     { 
       //printf("Info: CPlot: %s not found. creating.\n", dirname); 
+#ifdef _WIN32
+      mkdir(dirname);
+#else
       mkdir(dirname, 0755);
+#endif
     };
     delete [] dirname;
   }

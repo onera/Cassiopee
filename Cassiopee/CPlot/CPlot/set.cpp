@@ -355,12 +355,9 @@ PyObject* K_CPLOT::changeVariable(PyObject* self, PyObject* args)
 //=============================================================================
 PyObject* K_CPLOT::changeStyle(PyObject* self, PyObject* args)
 {
-  printf("coucou\n");
   Data* d = Data::getInstance();
-  d->fopenw("tata/titi/toto.png", "wb");
-
-  //d->changeAppearance();
-  //d->ptrState->render = 1;
+  d->changeAppearance();
+  d->ptrState->render = 1;
   return Py_BuildValue("i", KSUCCESS);
 }
 

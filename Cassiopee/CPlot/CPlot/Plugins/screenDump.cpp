@@ -455,7 +455,7 @@ void Data::dumpWindow()
     else if (strcmp(_pref.screenDump->extension, "svg") == 0) format = GL2PS_SVG;
     GLint viewport[4]; glGetIntegerv(GL_VIEWPORT, viewport);
 
-    FILE* fp = fopen(fileName, "wb");
+    FILE* fp = fopenw(fileName, "wb");
     while (state == GL2PS_OVERFLOW)
     {
       buffsize += 1024*1024;

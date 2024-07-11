@@ -30,7 +30,7 @@ typedef struct my_error_mgr* my_error_ptr;
 void my_error_exit (j_common_ptr cinfo)
 {
   /* cinfo->err really points to a my_error_mgr struct, so coerce pointer */
-  my_error_ptr myerr = (my_error_ptr) cinfo->err;
+  //my_error_ptr myerr = (my_error_ptr) cinfo->err;
 
   /* Always display the message. */
   /* We could postpone this until after returning, if we chose. */

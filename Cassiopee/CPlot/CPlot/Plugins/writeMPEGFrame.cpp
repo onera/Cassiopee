@@ -145,7 +145,7 @@ void writeMPEGFrame(Data* d, char *filename, char* buffer,
   FILE *f;
   if (d->ptrState->ptrFile == NULL)
   {
-    f = fopen(filename, "wb");
+    f = d->fopenw(filename, "wb");
     if (!f) 
     {
       fprintf(stderr, "Error: CPlot: could not open file %s.\n", filename);

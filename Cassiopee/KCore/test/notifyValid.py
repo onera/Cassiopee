@@ -1,7 +1,6 @@
 # Send a notification by email to a list of recipients about the validation
 # status of different prods. Please set the environment variable CASSIOPEE_EMAIL
 # Usage: python notifyValid.py --recipients='a.b@onera.fr c.d@onera.fr'
-import os
 import sys
 from time import strptime, strftime
 
