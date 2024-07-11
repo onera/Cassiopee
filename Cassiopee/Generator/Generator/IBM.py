@@ -7,19 +7,18 @@ import Converter.PyTree as C
 import Transform.PyTree as T
 import Converter.Internal as Internal
 import Connector.IBM as X_IBM
-import Geom.IBM as D_IBM
 import Geom.PyTree as D
 import Post.PyTree as P
 import Converter
-import Transform
 import Converter.GhostCells as CGC
 import Connector.PyTree as X
 import Converter.Mpi as Cmpi
+import Converter.Filter as Filter
 import numpy
 
 EPSCART = 1.e-6
 
-def generateCartMesh__(o, parento=None, dimPb=3, vmin=11, DEPTH=2, sizeMax=4000000, check=True,
+def generateCartMesh__(o, parento=None, dimPb=3, vmin=11, DEPTH=2, sizeMax=4000000, check=False,
                        externalBCType='BCFarfield', bbox=None):
 
     # Estimation du nb de pts engendres
@@ -47,7 +46,7 @@ def generateCartMesh__(o, parento=None, dimPb=3, vmin=11, DEPTH=2, sizeMax=40000
 
     if bbox is None: bbox = G.bbox(o)
     del o
-    X_IBM._addExternalBCs(t, bbox, DEPTH, externalBCType, dimPb)
+    _addExternalBCs(t, bbox, DEPTH, externalBCType, dimPb)
 
     nptsTot = 0
     for zp in Internal.getZones(t):
@@ -60,7 +59,7 @@ def generateCartMesh__(o, parento=None, dimPb=3, vmin=11, DEPTH=2, sizeMax=40000
 
 def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, sizeMax=4000000,
                  variables=None, refineFinestLevel=False, refineNearBodies=False,
-                 check=True, externalBCType='BCFarfield', fileo='octree.cgns',
+                 check=False, externalBCType='BCFarfield', fileo='octree.cgns',
                  isAMR=False,valMin=0,valMax=1):
     if fileo is None: raise ValueError("adaptIBMMesh: Octree mesh must be specified by a file.")
     try: to = C.convertFile2PyTree(fileo)
@@ -117,7 +116,7 @@ def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, sizeMax=4000000,
 
 
 def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tbox=None,
-                    snearsf=None, check=True, sizeMax=4000000,
+                    snearsf=None, check=False, sizeMax=4000000,
                     externalBCType='BCFarfield', to=None,
                     fileo=None, expand=2, dfarDir=0, mode=0):
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
@@ -362,7 +361,7 @@ def _addBCsForSymmetry(t, bbox=None, dimPb=3, dir_sym=0, X_SYM=0., depth=2):
 
 
 def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[], tbox=None,
-                        snearsf=None, check=True, to=None, ext=2,
+                        snearsf=None, check=False, to=None, ext=2,
                         expand=3, dfarDir=0, check_snear=False, mode=0,
                         tbOneOver=None, listF1save=[], fileoutpre=['./','template.cgns']):
     import KCore.test as test
@@ -1000,7 +999,7 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
         return zones
     else:
         bbox0 = G.bbox(o)
-        X_IBM._addBCOverlaps(zones, bbox0)
+        _addBCOverlaps(zones, bbox0)
     return zones
 
 # only in octree2StructLoc__
