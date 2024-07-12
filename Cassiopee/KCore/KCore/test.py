@@ -227,7 +227,11 @@ def checkObject_(objet, refObjet, reference):
             print("DIFF: object type differs from "+reference+'.')
             return False
     # autres tests
-    if isinstance(refObjet, (int, numpy.int32, numpy.int64)):
+    if isinstance(refObjet, bool):
+        if refObjet != objet:
+            print("DIFF: object value differs from %s (diff=%g,%g)."%(reference, objet, refObjet))
+            return False 
+    elif isinstance(refObjet, (int, numpy.int32, numpy.int64)):
         diff = abs(refObjet-objet)
         if diff > 0:
             print("DIFF: object value differs from %s (diff=%g)."%(reference, diff))

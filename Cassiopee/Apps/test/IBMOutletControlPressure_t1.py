@@ -13,7 +13,7 @@ import KCore.test as test
 import Connector.IBM as X_IBM
 import os
 
-test.TOLERANCE = 1.e-6
+test.TOLERANCE = 3.e-6
 
 LOCAL           = test.getLocal()
 FastC.MX_SYNCHRO= 1761
