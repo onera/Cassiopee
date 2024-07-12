@@ -276,6 +276,7 @@ def xyz2Pixel(Xs):
 # Draw an arrow. X2 is the arrow head.
 #==========================================================
 def createArrow(ax, X1, X2, width=0.001, text=None, textSize=10, shiftText=(0,0), **kwargs):
+    """Draw on arrow."""
     poss = xyz2Pixel([X1,X2])
     pos1x, pos1y = poss[0]; pos2x, pos2y = poss[1]
     ax.arrow(pos1x, pos1y, pos2x-pos1x, pos2y-pos1y, width=width, length_includes_head=True, **kwargs)
