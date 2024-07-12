@@ -1,7 +1,5 @@
 # - check -
 """Check pyTree integrity."""""
-try: range = xrange
-except: pass
 
 from . import Internal
 from . import PyTree as C
@@ -1131,14 +1129,25 @@ def checkElementNodes(t):
                    else: iBEMultiple = 1
                 i += 1
 
+            if iBE != -1:
+                c = Internal.getNodeFromName1(connects[iBE], 'ElementConnectivity')
+                if c[1] is None: print("CheckPyTree: ElementConnectivity is None (may not be loaded).")
+                else:
+                    minv = numpy.min(c[1]); maxv = numpy.max(c[1]) 
+                    npts = C.getNPts(z)
+                    if minv < 1 or maxv > npts:
+                        print(z[0], minv, maxv, npts)
+                        errors += [z, b, 'Connectivity referenced unexisting vertices in zone %s.'%z[0]]
             if iNFace != -1: # NFace exist
                 c = Internal.getNodeFromName1(connects[iNFace], 'ElementConnectivity')
-                minv = numpy.min(c[1])
-                if minv < 1: errors += [c, connects[iNFace], 'Negative NFace index']
+                if c[1] is None: print("CheckPyTree: ElementConnectivity is None (may not be loaded).")
+                else:
+                    minv = numpy.min(c[1])
+                    if minv < 1: errors += [c, connects[iNFace], 'Negative NFace index']
             if iNGon != -1 and iNFace != -1: pass
             elif iNGon != -1 and iNFace == -1: 
                 errors += [z, b, 'NFace is missing for zone %s.'%z[0]]
-            elif iBEMultiple == 1: 
+            elif iBEMultiple == 1:
                 errors += [z, b, 'Multiple BE connectivity for zone %s.'%z[0]]
     return errors
 
@@ -1297,7 +1306,17 @@ def checkCoordinatesInFields(t):
     errors = []
     zones = Internal.getZones(t)
     for z in zones:
-        # Change on container
+        # Check GridCoordinates size
+        npts = C.getNPts(z)
+        cont = Internal.getNodesFromType1(z, 'GridCoordinates_t')
+        for c in cont:
+            datas = Internal.getNodesFromType1(c, 'DataArray_t')
+            for d in datas:
+                if d[1] is None: print("CheckPyTree: coordinates is None (may not be loaded).")
+                elif d[1].shape != npts:
+                    errors += [d, c, 'zone %s has coordinates of wrong size.'%(z[0])]
+
+        # Check if coordinates are in a FlowSolution_t
         cont = Internal.getNodesFromType1(z, 'FlowSolution_t')
         for c in cont:
             datas = Internal.getNodesFromType1(c, 'DataArray_t')

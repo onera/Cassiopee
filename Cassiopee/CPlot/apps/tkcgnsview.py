@@ -34,9 +34,10 @@ def run(a, q):
     auto = {}
     auto['tkNodeEdit'] = True
     auto['tkMeshInfo'] = True
+    auto['tkCheckPyTree'] = False
     auto['tkPlotXY'] = False
     submenus = {}
-    for app in ['tkNodeEdit']: CTK.addMenuItem(app, menus[0], frames[0], submenus, auto)
+    for app in ['tkCheckPyTree', 'tkNodeEdit',]: CTK.addMenuItem(app, menus[0], frames[0], submenus, auto)
     submenus = {}
     for app in ['tkMeshInfo']: CTK.addMenuItem(app, menus[4], frames[4], submenus, auto)
     try:
