@@ -453,14 +453,14 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     {
       // Build array
       tpl = K_ARRAY::buildArray3(*field[i], varString,
-                                 im[i], jm[i], km[i]);
+                                 im[i], jm[i], km[i], api);
       delete field[i];
     }
     else 
     {
       FldArrayF fl(0,1);
       tpl = K_ARRAY::buildArray3(fl, varString,
-                                 im[i], jm[i], km[i]);
+                                 im[i], jm[i], km[i], api);
     }
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
@@ -496,7 +496,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
         tpl = K_ARRAY::buildArray3(*fieldc[i], varStringc,
                                    std::max(im[i]-1,E_Int(1)),
                                    std::max(jm[i]-1,E_Int(1)),
-                                   std::max(km[i]-1,E_Int(1)));
+                                   std::max(km[i]-1,E_Int(1)), api);
         delete fieldc[i];
       }
       else tpl = PyList_New(0);
@@ -515,7 +515,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
         FldArrayI* cnl = new FldArrayI();
         char eltType[28]; strcpy(eltType, "NODE"); // hack
         tpl = K_ARRAY::buildArray3(*ufieldc[i], varStringc,
-                                   *cnl, eltType); // hack
+                                   *cnl, eltType, api); // hack
         delete ufieldc[i]; delete cnl;
       }
       else tpl = PyList_New(0);

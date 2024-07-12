@@ -219,8 +219,8 @@ def checkObject_(objet, refObjet, reference):
     # tests sur les types
     if type(refObjet) != type(objet):
         if isinstance(refObjet, (int, float)): pass
-        elif (isinstance(refObjet, (numpy.int32, numpy.int64)) and
-              isinstance(objet, (numpy.int32, numpy.int64))): pass
+        elif (isinstance(refObjet, (numpy.int32, numpy.int64, numpy.intc)) and
+              isinstance(objet, (numpy.int32, numpy.int64, numpy.intc))): pass
         elif (isinstance(refObjet, (numpy.float32, numpy.float64)) and
               isinstance(objet, (numpy.float32, numpy.float64))): pass
         else:
@@ -231,7 +231,7 @@ def checkObject_(objet, refObjet, reference):
         if refObjet != objet:
             print("DIFF: object value differs from %s (diff=%g,%g)."%(reference, objet, refObjet))
             return False 
-    elif isinstance(refObjet, (int, numpy.int32, numpy.int64)):
+    elif isinstance(refObjet, (int, numpy.int32, numpy.int64, numpy.intc)):
         diff = abs(refObjet-objet)
         if diff > 0:
             print("DIFF: object value differs from %s (diff=%g)."%(reference, diff))
