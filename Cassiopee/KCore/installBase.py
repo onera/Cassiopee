@@ -721,7 +721,7 @@ True, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-['/usr/include/hdf5/openmpi', '/usr/lib/x86_64-linux-gnu/openmpi/include'], # additionalIncludePaths
+['/usr/include', '/usr/include/hdf5/openmpi', '/usr/lib/x86_64-linux-gnu/openmpi/include'], # additionalIncludePaths
 ['gfortran', 'gomp'], # additionalLibs
 ['/usr/lib/x86_64-linux-gnu/hdf5/openmpi', '/usr/lib/x86_64-linux-gnu'], # additionalLibPaths
 False, # useCuda

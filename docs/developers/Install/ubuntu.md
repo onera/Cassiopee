@@ -12,12 +12,15 @@ sudo apt-get install scons
 sudo apt-get install gcc
 sudo apt-get install g++
 sudo apt-get install gfortran
+
 sudo apt-get install libopenmpi-dev
+sudo apt-get install python3-mpi4py
 sudo apt-get install libhdf5-openmpi-dev
 
-sudo apt-get install python3-mpi4py
+sudo apt-get install python3-tk
 sudo apt-get install libglu1-mesa-dev
 sudo apt-get install mesa-common-dev
+sudo apt-get install libosmesa6-dev
 sudo apt-get install xorg-dev
 
 ```
@@ -42,4 +45,9 @@ apt-cache search <keyword>
 Install package:
 ```shell
 sudo apt-get install <package>
+```
+
+Remove package:
+```shell
+sudo apt-get remove <package>
 ```

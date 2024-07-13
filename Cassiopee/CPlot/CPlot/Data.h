@@ -47,6 +47,7 @@
 
 #ifdef __MESA__
 #define GLAPI extern
+//#define APIENTRY // added for ubuntu, to be checked on other linux
 #include <GL/osmesa.h>
 #endif
 
