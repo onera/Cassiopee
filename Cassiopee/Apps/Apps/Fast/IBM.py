@@ -952,9 +952,8 @@ class IBM_Input:
         self.generateCartesianMeshOnly = False
         self.tbOneOver                 = None
         self.correctionMultiCorpsF42   = False
-        self.dfar                      = 10.
+        self.dfars                     = 10.
         self.dfarDir                   = 0
-        self.dfarList                  = []
         self.dictNz                    = None
         self.distrib                   = True
         self.dz                        = 0.01 
@@ -1054,12 +1053,12 @@ class IBM(Common):
     #================================================================================
     def generateCartesian__(self, tb, ext_local=3, to=None):    
         # list of dfars
-        if self.input_var.dfarList == []:
+        if self.input_var.dfars == []:
             zones = Internal.getZones(tb)
-            self.input_var.dfarList = [self.input_var.dfar*1.]*len(zones)
+            self.input_var.dfars = [10.]*len(zones)
             for c, z in enumerate(zones):
                 n = Internal.getNodeFromName2(z, 'dfar')
-                if n is not None: self.input_var.dfarList[c] = Internal.getValue(n)*1.
+                if n is not None: self.input_var.dfars[c] = Internal.getValue(n)*1.
     
          # refinementSurfFile: surface meshes describing refinement zones
         if self.input_var.tbox is not None:
@@ -1085,17 +1084,17 @@ class IBM(Common):
                 o = Internal.getZones(self.input_var.to)[0]
             parento = None
         else:
-            o = G_IBM.buildOctree(tb, snears=self.input_var.snears, snearFactor=1., dfar=self.input_var.dfar, dfarList=self.input_var.dfarList,
+            o = G_IBM.buildOctree(tb, snears=self.input_var.snears, snearFactor=1., dfars=self.input_var.dfars,
                                   to=self.input_var.to, tbox=self.input_var.tbox, snearsf=self.input_var.snearsf,
-                                  dimPb=self.dimPb, vmin=self.input_var.vmin, fileout=None, rank=self.rank,
+                                  dimPb=self.dimPb, vmin=self.input_var.vmin,
                                   expand=self.input_var.expand, dfarDir=self.input_var.dfarDir)
     
         if self.rank==0 and self.input_var.check: C.convertPyTree2File(o, fileout)
         # build parent octree 3 levels higher
         # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
-        parento = G_IBM.buildParentOctrees__(o, tb, snears=self.input_var.snears, snearFactor=4., dfar=self.input_var.dfar, dfarList=self.input_var.dfarList, to=self.input_var.to,
+        parento = G_IBM.buildParentOctrees__(o, tb, snears=self.input_var.snears, snearFactor=4., dfars=self.input_var.dfars, to=self.input_var.to,
                                              tbox=self.input_var.tbox, snearsf=self.input_var.snearsf,
-                                             dimPb=self.dimPb, vmin=self.input_var.vmin, fileout=None, rank=self.rank)
+                                             dimPb=self.dimPb, vmin=self.input_var.vmin)
         test.printMem(">>> Octree unstruct [end]")
 
         if self.input_var.check_snear: exit()
@@ -2811,14 +2810,13 @@ def computeSnearOpt(Re=None, tb=None, Lref=1., q=1.2, yplus=300., Cf_law='ANSYS'
 ## The functions below will become deprecated after April. 1 2023
 #================================================================================
 # IBM prepare - seq
-def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
+def prepare0(t_case, t_out, tc_out, snears=0.01, dfars=10.,
              tbox=None, snearsf=None, yplus=100.,
              vmin=21, check=False, format='single', frontType=1, recomputeDist=False,
              expand=3, tinit=None, initWithBBox=-1., wallAdapt=None, dfarDir=0, check_snear=False):
     prep_local=IBM()
     prep_local.input_var.snears                 =snears
-    prep_local.input_var.dfar                   =dfar
-    prep_local.input_var.dfarList               =dfarList
+    prep_local.input_var.dfars                  =dfars
     prep_local.input_var.tbox                   =tbox
     prep_local.input_var.snearsf                =snearsf
     prep_local.input_var.yplus                  =yplus
@@ -2840,7 +2838,7 @@ def prepare0(t_case, t_out, tc_out, snears=0.01, dfar=10., dfarList=[],
 
 #================================================================================
 # IBM prepare - parallel
-def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., dfarList=[],
+def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfars=10.,
              tbox=None, snearsf=None, yplus=100., Lref=1.,
              vmin=21, check=False, format='single', interpDataType=0, order=2, ext=2, nature=1,optimized=1,
              frontType=1, extrusion=None, smoothing=False, balancing=False, recomputeDist=False,
@@ -2851,8 +2849,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
     prep_local.input_var.t_in                   =t_in
     prep_local.input_var.to                     =to
     prep_local.input_var.snears                 =snears
-    prep_local.input_var.dfar                   =dfar
-    prep_local.input_var.dfarList               =dfarList
+    prep_local.input_var.dfars                  =dfars
     prep_local.input_var.tbox                   =tbox
     prep_local.input_var.snearsf                =snearsf
     prep_local.input_var.yplus                  =yplus

@@ -7,7 +7,7 @@ from Connector.IBM import _blankClosestTargetCells, _removeBlankedGrids, blankBy
     extractIBMInfo, getAllIBMPoints, prepareIBMData, prepareIBMData2, createWallAdapt, \
     createIBMWZones, _computeKcurvParameter, _signDistance
 
-from Generator.IBM import generateCartMesh__, adaptIBMMesh, generateIBMMesh, buildOctree, addRefinementZones, octree2StructLoc__, \
+from Generator.IBM import generateCartMesh__, adaptIBMMesh, generateIBMMesh, buildOctree, addRefinementZones__, octree2StructLoc__, \
     mergeByParent__, buildParentOctrees__, _addBCOverlaps, _addExternalBCs, \
     _modifPhysicalBCs__
 
