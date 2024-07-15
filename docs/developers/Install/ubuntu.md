@@ -35,7 +35,7 @@ cd $CASSIOPEE/Cassiopee
 ./install
 ```
 
-## Using apt_get
+## More apt-get commands
 
 Find package from keyword:
 ```shell

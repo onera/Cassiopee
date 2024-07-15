@@ -2,10 +2,10 @@
 
 ## Forks
 To help developping Cassiopee, you have to first fork the
-Cassiopee repository.
+Cassiopee repository. On cassiopee github web page, click on "Fork", "create new fork".
 
 Regularly, you will have to "sync" your fork using the "sync" button
-on the web site of your fork.
+on your github fork web page.
 When syncing, your fork is updated from the main repository.
 
 ## Pulling
