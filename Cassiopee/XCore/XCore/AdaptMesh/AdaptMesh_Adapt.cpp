@@ -103,10 +103,11 @@ PyObject *K_XCORE::AdaptMesh_Adapt(PyObject *self, PyObject *args)
     if (M->pid == 0) puts("    Conformizing face edges...");
     Mesh_conformize_face_edge(M);
  
-    if (M->pid == 0) puts("    Exporting CGNS array...");
-    PyObject *karray = Mesh_export_karray(M);
+    //if (M->pid == 0) puts("    Exporting CGNS array...");
+    //PyObject *karray = Mesh_export_karray(M);
 
     if (M->pid == 0) puts("    Done.");
 
-    return karray;
+    return Py_None;
+    //return karray;
 }
