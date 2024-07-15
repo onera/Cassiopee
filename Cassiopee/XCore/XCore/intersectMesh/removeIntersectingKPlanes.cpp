@@ -65,7 +65,7 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     for (E_Int i = 0; i < patch_size; i++) patch[i] -= 1;
 
     // Init and orient marray mesh
-    Mesh M(*marray.cn, marray.X, marray.Y, marray.Z, marray.npts);
+    IMesh M(*marray.cn, marray.X, marray.Y, marray.Z, marray.npts);
 
     E_Float *Xs = sarray.X;
     E_Float *Ys = sarray.Y;

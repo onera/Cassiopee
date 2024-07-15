@@ -40,7 +40,7 @@ struct UEdge {
     bool operator<(const UEdge &E) const;
 };
 
-struct Mesh {
+struct IMesh {
     E_Int np, ne, nf, nc;
 
     std::vector<E_Float> X, Y, Z;
@@ -65,11 +65,11 @@ struct Mesh {
 
     std::map<E_Int, std::set<E_Int>> bin_faces;
 
-    Mesh();
+    IMesh();
 
-    Mesh(const char *fname);
+    IMesh(const char *fname);
 
-    Mesh(K_FLD::FldArrayI &cn, E_Float *X, E_Float *Y, E_Float *Z, E_Int npts);
+    IMesh(K_FLD::FldArrayI &cn, E_Float *X, E_Float *Y, E_Float *Z, E_Int npts);
 
     void make_skin();
 
@@ -91,7 +91,7 @@ struct Mesh {
 
     bool is_point_inside(E_Float px, E_Float py, E_Float pz);
 
-    Mesh reconstruct_after_smesh_adaptation(const Smesh &Mf, E_Int patchc);
+    IMesh reconstruct_after_smesh_adaptation(const Smesh &Mf, E_Int patchc);
 
     // Adaptation
     void init_adaptation_data();
@@ -108,7 +108,7 @@ struct Mesh {
 
     std::map<UEdge, E_Int> ecenter;
 
-    size_t refine(std::set<E_Int> &mpatch, std::set<E_Int> &spatch, Mesh &S);
+    size_t refine(std::set<E_Int> &mpatch, std::set<E_Int> &spatch, IMesh &S);
 
     std::vector<pointFace> locate(E_Float x, E_Float y,
         const std::set<E_Int> &patch) const;
@@ -116,11 +116,11 @@ struct Mesh {
     inline bool face_is_active(E_Int face) const
     { return factive.find(face) != factive.end(); }
 
-    bool faces_are_dups(E_Int mface, E_Int sface, const Mesh &S);
+    bool faces_are_dups(E_Int mface, E_Int sface, const IMesh &S);
 
     void refine_faces(const std::vector<E_Int> &ref_faces);
 
-    bool face_contains_sface(E_Int face, E_Int sface, const Mesh &S) const;
+    bool face_contains_sface(E_Int face, E_Int sface, const IMesh &S) const;
 
     void resize_point_data(size_t nref_faces);
 
@@ -134,7 +134,7 @@ struct Mesh {
 
     E_Int face_contains_point(E_Int face, E_Float x, E_Float y) const;
 
-    Mesh extract_conformized();
+    IMesh extract_conformized();
 
     void get_fleaves(E_Int face, std::vector<E_Int> &fleaves);
 
@@ -165,4 +165,4 @@ struct Mesh {
     void compute_cell_volume(E_Int cell, E_Float &vol, E_Int refIdx);
 };
 
-int meshes_mutual_refinement(Mesh &M, Mesh &S);
+int meshes_mutual_refinement(IMesh &M, IMesh &S);

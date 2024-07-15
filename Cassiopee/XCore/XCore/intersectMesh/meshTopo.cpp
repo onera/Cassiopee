@@ -26,7 +26,7 @@
 
 #define DSMALL 1e-14
 
-E_Int Mesh::orient_skin(E_Int normal_direction)
+E_Int IMesh::orient_skin(E_Int normal_direction)
 {
     // flag external cells and faces
     std::vector<E_Int> fflags, efaces;
@@ -105,7 +105,7 @@ E_Int Mesh::orient_skin(E_Int normal_direction)
     return ret;
 }
 
-void Mesh::flag_and_get_external_faces(std::vector<E_Int> &fflags,
+void IMesh::flag_and_get_external_faces(std::vector<E_Int> &fflags,
     std::vector<E_Int> &efaces)
 {
     std::vector<E_Int> face_count(nf, 0);
@@ -129,7 +129,7 @@ void Mesh::flag_and_get_external_faces(std::vector<E_Int> &fflags,
     }
 }
 
-void Mesh::extract_nface_of_kept_pgs(const std::vector<bool> &kept_pgs,
+void IMesh::extract_nface_of_kept_pgs(const std::vector<bool> &kept_pgs,
     std::vector<E_Int> &NFACE, std::vector<E_Int> &xadj,
     std::vector<E_Int> &cells)
 {
@@ -151,7 +151,7 @@ void Mesh::extract_nface_of_kept_pgs(const std::vector<bool> &kept_pgs,
     for (size_t i = 0; i < xadj.size(); i++) xadj[i+1] += xadj[i];
 }
 
-void Mesh::flag_marked_external_cells(const std::vector<E_Int> &cells,
+void IMesh::flag_marked_external_cells(const std::vector<E_Int> &cells,
     const std::vector<E_Int> &fflags, std::vector<E_Int> &cflags)
 {
     // External cells are those with at least one external face
@@ -170,7 +170,7 @@ void Mesh::flag_marked_external_cells(const std::vector<E_Int> &cells,
     }
 }
 
-E_Int Mesh::orient_boundary(E_Int ncells, E_Int *efadj, E_Int *efxadj,
+E_Int IMesh::orient_boundary(E_Int ncells, E_Int *efadj, E_Int *efxadj,
     E_Int nefaces, E_Int *fneis, E_Int *efaces, std::vector<E_Int> &forient,
     const std::vector<E_Int> &cflags, const std::vector<E_Int> &fflags,
     E_Int *cells, E_Int normal_direction)
@@ -250,7 +250,7 @@ E_Int Mesh::orient_boundary(E_Int ncells, E_Int *efadj, E_Int *efxadj,
     return 0;
 }
 
-void Mesh::compute_cell_volume(E_Int cell, E_Float &vol, E_Int refIdx)
+void IMesh::compute_cell_volume(E_Int cell, E_Float &vol, E_Int refIdx)
 {
     // Orient the faces coherently
     std::vector<E_Int> NGON;
@@ -327,7 +327,7 @@ void Mesh::compute_cell_volume(E_Int cell, E_Float &vol, E_Int refIdx)
     vol *= K_MATH::ONE_THIRD;
 }
 
-void Mesh::flag_all_external_cells(const std::vector<E_Int> &fflags,
+void IMesh::flag_all_external_cells(const std::vector<E_Int> &fflags,
     std::vector<E_Int> &cflags)
 {
     // External cells are those with at least one external face

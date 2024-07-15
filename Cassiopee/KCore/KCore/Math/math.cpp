@@ -17,36 +17,10 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "math.h"
-#include <cmath>
 
 const E_Float K_MATH::ONE_THIRD = 0.333333333333333;
 const E_Float K_MATH::PI        = 3.141592653589793;
 const E_Float K_MATH::SMALL     = 1.0e-15;
-
-E_Float K_MATH::dot(const E_Float *a, const E_Float *b, const E_Int n)
-{
-  E_Float res = 0.0;
-  for (E_Int i = 0; i < n; i++)
-    res += a[i]*b[i];
-  return res;
-}
-
-void K_MATH::cross(const E_Float a[3], const E_Float b[3], E_Float c[3])
-{
-  c[0] = a[1]*b[2] - a[2]*b[1];
-  c[1] = a[2]*b[0] - a[0]*b[2];
-  c[2] = a[0]*b[1] - a[1]*b[0];
-}
-
-E_Float K_MATH::norm(const E_Float *a, const E_Int n)
-{
-  return sqrt(K_MATH::dot(a, a, n));
-}
-
-E_Int K_MATH::feq(const E_Float a, const E_Float b, const E_Float tol)
-{
-  return fabs(a-b) < tol;
-}
 
 void K_MATH::sqrmat_dot_vec(const E_Float *A, const E_Float *x, const E_Int n,
   E_Float *y)

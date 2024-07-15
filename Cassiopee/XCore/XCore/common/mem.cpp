@@ -29,8 +29,10 @@ void *xcalloc(size_t count, size_t size, const char *file, E_Int line)
 
 void xfree(void *ptr, const char *file, E_Int line)
 {
-  if (ptr)
+  if (ptr) {
     free(ptr);
+    ptr = NULL;
+  }
 }
 
 void *xresize(void *ptr, size_t nbytes, const char *file, E_Int line)

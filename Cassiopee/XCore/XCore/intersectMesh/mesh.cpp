@@ -47,7 +47,7 @@ struct DEdge {
     }
 };
 
-void Mesh::make_edges()
+void IMesh::make_edges()
 {
     std::map<DEdge, E_Int> edges;
 
@@ -84,7 +84,7 @@ void Mesh::make_edges()
 }
 
 
-std::vector<pointFace> Mesh::locate(E_Float px, E_Float py,
+std::vector<pointFace> IMesh::locate(E_Float px, E_Float py,
     const std::set<E_Int> &patch) const
 {
     E_Int a, b, c;
@@ -124,14 +124,14 @@ std::vector<pointFace> Mesh::locate(E_Float px, E_Float py,
     return hits;
 }
 
-void Mesh::init_adaptation_data()
+void IMesh::init_adaptation_data()
 {
     flevel.resize(nf, 0);
 
     for (E_Int i = 0; i < nf; i++) factive.insert(i);
 }
 
-bool Mesh::faces_are_dups(E_Int mface, E_Int sface, const Mesh &S)
+bool IMesh::faces_are_dups(E_Int mface, E_Int sface, const IMesh &S)
 {
     const auto &pnm = F[mface];
     const auto &pns = S.F[sface];
@@ -160,10 +160,10 @@ bool Mesh::faces_are_dups(E_Int mface, E_Int sface, const Mesh &S)
     return true;
 }
 
-Mesh::Mesh()
+IMesh::IMesh()
 {}
 
-Mesh::Mesh(K_FLD::FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z, E_Int npts)
+IMesh::IMesh(K_FLD::FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z, E_Int npts)
 {
     np = npts;
     ne = 0;
@@ -218,7 +218,7 @@ Mesh::Mesh(K_FLD::FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z, E_Int npts)
     srand(time(NULL));
 }
 
-void Mesh::make_point_faces()
+void IMesh::make_point_faces()
 {
     P2F.clear();
     P2F.resize(np);
@@ -229,7 +229,7 @@ void Mesh::make_point_faces()
     }
 }
 
-Mesh::Mesh(const char *fname)
+IMesh::IMesh(const char *fname)
 {
     FILE *fh = fopen(fname, "r");
     assert(fh);
@@ -324,7 +324,7 @@ Mesh::Mesh(const char *fname)
     srand(time(NULL));
 }
 
-void Mesh::make_bbox()
+void IMesh::make_bbox()
 {
     xmin = ymin = zmin = std::numeric_limits<E_Float>::max();
     xmax = ymax = zmax = std::numeric_limits<E_Float>::min();
@@ -342,7 +342,7 @@ void Mesh::make_bbox()
     dmax = std::max(xmax, std::max(ymax, zmax));
 }
 
-void Mesh::make_skin()
+void IMesh::make_skin()
 {
     skin.clear();
 
@@ -360,7 +360,7 @@ void Mesh::make_skin()
     }
 }
 
-void Mesh::hash_skin()
+void IMesh::hash_skin()
 {
     // Throw out the z-coordinate and hash the AABB of the skin faces to a
     // 2D array.
@@ -424,7 +424,7 @@ void Mesh::hash_skin()
 
 }
 
-bool Mesh::is_point_inside(E_Float px, E_Float py, E_Float pz)
+bool IMesh::is_point_inside(E_Float px, E_Float py, E_Float pz)
 {
     // point must be in bounding box
     if (!(xmin <= px && px <= xmax &&
@@ -474,7 +474,7 @@ bool Mesh::is_point_inside(E_Float px, E_Float py, E_Float pz)
     return hits % 2 == 1;
 }
 
-void Mesh::write_ngon(const char *fname)
+void IMesh::write_ngon(const char *fname)
 {
     FILE *fh = fopen(fname, "w");
     assert(fh);
@@ -525,7 +525,7 @@ void Mesh::write_ngon(const char *fname)
 }
 
 
-bool Mesh::face_contains_sface(E_Int face, E_Int sface, const Mesh &S) const
+bool IMesh::face_contains_sface(E_Int face, E_Int sface, const IMesh &S) const
 {
     // face containes mface iff it contains all its points
     assert(S.face_is_active(sface));
@@ -536,7 +536,7 @@ bool Mesh::face_contains_sface(E_Int face, E_Int sface, const Mesh &S) const
     return true;
 }
 
-E_Int Mesh::face_contains_point(E_Int face, E_Float x, E_Float y) const
+E_Int IMesh::face_contains_point(E_Int face, E_Float x, E_Float y) const
 {
     const auto &cn = F[face];
 
@@ -583,7 +583,7 @@ bool UEdge::operator<(const UEdge &E) const
     return (p < E.p) || (p == E.p && q < E.q);
 }
 
-Mesh Mesh::extract_conformized()
+IMesh IMesh::extract_conformized()
 {
     // Keep all the points
     std::vector<E_Float> new_X(X), new_Y(Y), new_Z(Z);
@@ -645,7 +645,7 @@ Mesh Mesh::extract_conformized()
         }
     }
 
-    Mesh new_M;
+    IMesh new_M;
     new_M.np = np;
     new_M.X = X;
     new_M.Y = Y;
@@ -662,7 +662,7 @@ Mesh Mesh::extract_conformized()
     return new_M;
 }
 
-void Mesh::get_fleaves(E_Int face, std::vector<E_Int> &fleaves)
+void IMesh::get_fleaves(E_Int face, std::vector<E_Int> &fleaves)
 {
     if (face_is_active(face)) {
         fleaves.push_back(face);
@@ -672,7 +672,7 @@ void Mesh::get_fleaves(E_Int face, std::vector<E_Int> &fleaves)
     for (E_Int child : fchildren.at(face)) get_fleaves(child, fleaves);
 }
 
-PyObject *Mesh::export_karray()
+PyObject *IMesh::export_karray()
 {
     E_Int sizeNGon = 0, sizeNFace = 0;
 
