@@ -28,25 +28,33 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
     Int nc = karray.ncells();
     Int nf = karray.nfaces();
 
-    ret = K_NUMPY::getFromNumpyArray(CGIDS, cgids, size, nfld, true);
-    if (ret != 1 || size != nc || nfld != 1) {
-        RAISE("Bad cell global ids.");
-        Karray_free_ngon(karray);
-        return NULL;
+    if (CGIDS != Py_None) {
+        ret = K_NUMPY::getFromNumpyArray(CGIDS, cgids, size, nfld, true);
+        if (ret != 1 || size != nc || nfld != 1) {
+            RAISE("Bad cell global ids.");
+            Karray_free_ngon(karray);
+            return NULL;
+        }
+    } else {
+        cgids = IntArray(nc);
+        for (Int i = 0; i < nc; i++) cgids[i] = i;
     }
 
-    ret = K_NUMPY::getFromNumpyArray(FGIDS, fgids, size, nfld, true);
-    if (ret != 1 || size != nf || nfld != 1) {
-        RAISE("Bad face global ids.");
-        Karray_free_ngon(karray);
-        return NULL;
+    if (FGIDS != Py_None) {
+        ret = K_NUMPY::getFromNumpyArray(FGIDS, fgids, size, nfld, true);
+        if (ret != 1 || size != nf || nfld != 1) {
+            RAISE("Bad face global ids.");
+            Karray_free_ngon(karray);
+            return NULL;
+        }
+    } else {
+        fgids = IntArray(nf);
+        for (Int i = 0; i < nf; i++) fgids[i] = i+1;
     }
 
     // Init Mesh
 
     Mesh *M = Mesh_from_Karray(&karray);
-
-    for (Int i = 0; i < M->nf; i++) assert(fgids[i] >= 1);
  
     // Init global-to-local ids maps
     for (Int i = 0; i < M->nf; i++) M->g2lf[fgids[i]-1] = i;

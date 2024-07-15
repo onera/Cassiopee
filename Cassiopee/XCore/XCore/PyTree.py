@@ -6,7 +6,7 @@ from . import xcore
 
 BCType_l = set(I.KNOWNBCS)
 
-def AdaptMesh_Init(t, normal2D, comm, gcells=None, gfaces=None):
+def AdaptMesh_Init(t, normal2D=None, comm=[], gcells=None, gfaces=None):
     zones = I.getZones(t)
     z = zones[0]
     array = C.getFields(I.__GridCoordinates__, z, api=3)[0]
