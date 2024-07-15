@@ -449,6 +449,7 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
   }
 
   E_Int nncells = c_rdist[nproc];
+
   std::vector<E_Int> scells(c_sdist[nproc]);
   std::vector<E_Int> rcells(c_rdist[nproc]);
   std::vector<E_Int> c_stride(c_sdist[nproc]);

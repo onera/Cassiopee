@@ -10,7 +10,7 @@
 #include "io.h"
 #include "cycle.h"
 
-Mesh reconstruct_mesh(Mesh &M, const Dcel &D, E_Int color)
+IMesh reconstruct_mesh(IMesh &M, const Dcel &D, E_Int color)
 {
     // Isolate patch faces
     std::set<E_Int> pfset(M.patch);
@@ -246,7 +246,7 @@ Mesh reconstruct_mesh(Mesh &M, const Dcel &D, E_Int color)
     }
 
 
-    Mesh new_M;
+    IMesh new_M;
     new_M.np = np;
     new_M.nf = nf;
     new_M.nc = M.nc;
@@ -299,8 +299,8 @@ PyObject *K_XCORE::intersectSurf(PyObject *self, PyObject *args)
     }
 
     // Init and orient master/slave meshes
-    Mesh M(*marray.cn, marray.X, marray.Y, marray.Z, marray.npts);
-    Mesh S(*sarray.cn, sarray.X, sarray.Y, sarray.Z, sarray.npts);
+    IMesh M(*marray.cn, marray.X, marray.Y, marray.Z, marray.npts);
+    IMesh S(*sarray.cn, sarray.X, sarray.Y, sarray.Z, sarray.npts);
 
     // Check intersection patch
     E_Int *mpatch = NULL;
@@ -355,8 +355,8 @@ PyObject *K_XCORE::intersectSurf(PyObject *self, PyObject *args)
         return NULL;
     }
     
-    Mesh new_M = M.extract_conformized();
-    Mesh new_S = S.extract_conformized();
+    IMesh new_M = M.extract_conformized();
+    IMesh new_S = S.extract_conformized();
 
     new_M.orient_skin(OUT);
     new_S.orient_skin(IN);
@@ -369,9 +369,9 @@ PyObject *K_XCORE::intersectSurf(PyObject *self, PyObject *args)
  
     D.find_intersections();
 
-    Mesh M_inter = reconstruct_mesh(new_M, D, Dcel::RED);
+    IMesh M_inter = reconstruct_mesh(new_M, D, Dcel::RED);
     
-    Mesh S_inter = reconstruct_mesh(new_S, D, Dcel::BLACK);
+    IMesh S_inter = reconstruct_mesh(new_S, D, Dcel::BLACK);
 
     // Export
     PyObject *Mout = M_inter.export_karray();

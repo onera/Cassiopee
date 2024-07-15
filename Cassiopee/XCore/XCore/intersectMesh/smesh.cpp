@@ -31,7 +31,7 @@ bool Smesh::ccw_oriented(E_Int face)
     return sign < 0;
 }
 
-Smesh::Smesh(const Mesh &M)
+Smesh::Smesh(const IMesh &M)
 {
     F.resize(M.patch.size());
 

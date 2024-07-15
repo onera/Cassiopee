@@ -9,7 +9,7 @@
 #include "point.h"
 #include "xcore.h"
 
-struct Mesh;
+struct IMesh;
 
 struct o_edge {
     E_Int p, q;
@@ -58,9 +58,9 @@ struct Smesh {
 
     Smesh(const char *fname);
 
-    Smesh(const Mesh &M);
+    Smesh(const IMesh &M);
     
-    Smesh(const Mesh &M, const std::vector<E_Int> &faces);
+    Smesh(const IMesh &M, const std::vector<E_Int> &faces);
 
     bool ccw_oriented(E_Int face);
 

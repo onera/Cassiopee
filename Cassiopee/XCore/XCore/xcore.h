@@ -26,28 +26,40 @@
 #endif
 
 # include "kcore.h"
+
 namespace K_XCORE
 {
-  //PyObject* setBCDataInGhostCellsStruct(PyObject* self, PyObject* args);
-  PyObject *zoltan1(PyObject *self, PyObject *args);
+    //PyObject* setBCDataInGhostCellsStruct(PyObject* self, PyObject* args);
+    PyObject *zoltan1(PyObject *self, PyObject *args);
 
-  PyObject *chunk2partNGon(PyObject *self, PyObject *args);
-  PyObject *chunk2partElt(PyObject *self, PyObject *args);
+    PyObject *chunk2partNGon(PyObject *self, PyObject *args);
+    PyObject *chunk2partElt(PyObject *self, PyObject *args);
 
-  PyObject *exchangeFields(PyObject *self, PyObject *args);
+    PyObject *exchangeFields(PyObject *self, PyObject *args);
 
-  PyObject *AdaptMesh(PyObject *self, PyObject *args);
-  PyObject *CreateAdaptMesh(PyObject *self, PyObject *args);
-  PyObject *computeHessian(PyObject *self, PyObject *args);
-  PyObject *computeGradient(PyObject *self, PyObject *args);
-  PyObject *hessianToMetric(PyObject *self, PyObject *args);
-  PyObject *_makeRefDataFromGradAndHess(PyObject *self, PyObject *args);
-  PyObject *_prepareMeshForAdaptation(PyObject *self, PyObject *args);
-  PyObject *ExtractLeafMesh(PyObject *self, PyObject *args);
-  PyObject *_assignRefDataToAM(PyObject *self, PyObject *args);
-  PyObject *extractBoundaryMesh(PyObject *self, PyObject *args);
 
-  PyObject *intersectSurf(PyObject *self, PyObject *args);
-  PyObject *removeIntersectingKPlanes(PyObject *self, PyObject *args);
+    PyObject *AdaptMesh_Init(PyObject *self, PyObject *args);
+
+    PyObject *AdaptMesh_AssignRefData(PyObject *self, PyObject *args);
+
+    PyObject *AdaptMesh_LoadBalance(PyObject *self, PyObject *args);
+
+    PyObject *AdaptMesh_Adapt(PyObject *self, PyObject *args);
+
+    PyObject *AdaptMesh_ExtractMesh(PyObject *self, PyObject *args);
+
+    /*
+    PyObject *computeHessian(PyObject *self, PyObject *args);
+    PyObject *computeGradient(PyObject *self, PyObject *args);
+    PyObject *hessianToMetric(PyObject *self, PyObject *args);
+    PyObject *_makeRefDataFromGradAndHess(PyObject *self, PyObject *args);
+    PyObject *_prepareMeshForAdaptation(PyObject *self, PyObject *args);
+    PyObject *_assignRefDataToAM(PyObject *self, PyObject *args);
+    PyObject *extractBoundaryMesh(PyObject *self, PyObject *args);
+    */
+
+    PyObject *intersectSurf(PyObject *self, PyObject *args);
+    PyObject *removeIntersectingKPlanes(PyObject *self, PyObject *args);
 }
+
 #endif

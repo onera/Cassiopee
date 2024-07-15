@@ -26,26 +26,33 @@
 // ============================================================================
 static PyMethodDef Pyxcore [] =
 {
-  {"test_all", xcore::test_all, METH_VARARGS}, // all xmpi tests
-  {"splitElements", splitElements, METH_VARARGS},
-  {"chunk2partNGon", K_XCORE::chunk2partNGon, METH_VARARGS},
-  {"chunk2partElt", K_XCORE::chunk2partElt, METH_VARARGS},
-  {"exchangeFields", K_XCORE::exchangeFields, METH_VARARGS},
+    {"test_all", xcore::test_all, METH_VARARGS}, // all xmpi tests
+    {"splitElements", splitElements, METH_VARARGS},
+    {"chunk2partNGon", K_XCORE::chunk2partNGon, METH_VARARGS},
+    {"chunk2partElt", K_XCORE::chunk2partElt, METH_VARARGS},
+    {"exchangeFields", K_XCORE::exchangeFields, METH_VARARGS},
 
-  {"CreateAdaptMesh", K_XCORE::CreateAdaptMesh, METH_VARARGS},
-  {"AdaptMesh", K_XCORE::AdaptMesh, METH_VARARGS},
-  {"computeHessian", K_XCORE::computeHessian, METH_VARARGS},
-  {"computeGradient", K_XCORE::computeGradient, METH_VARARGS},
-  {"hessianToMetric", K_XCORE::hessianToMetric, METH_VARARGS},
-  {"_makeRefDataFromGradAndHess", K_XCORE::_makeRefDataFromGradAndHess, METH_VARARGS},
-  {"_prepareMeshForAdaptation", K_XCORE::_prepareMeshForAdaptation, METH_VARARGS},
-  {"ExtractLeafMesh", K_XCORE::ExtractLeafMesh, METH_VARARGS},
-  {"_assignRefDataToAM", K_XCORE::_assignRefDataToAM, METH_VARARGS},
-  {"extractBoundaryMesh", K_XCORE::extractBoundaryMesh, METH_VARARGS},
+    {"AdaptMesh_Init", K_XCORE::AdaptMesh_Init, METH_VARARGS},
+    {"AdaptMesh_AssignRefData", K_XCORE::AdaptMesh_AssignRefData, METH_VARARGS},
+    {"AdaptMesh_LoadBalance", K_XCORE::AdaptMesh_LoadBalance, METH_VARARGS},
+    {"AdaptMesh_Adapt", K_XCORE::AdaptMesh_Adapt, METH_VARARGS},
+    {"AdaptMesh_ExtractMesh", K_XCORE::AdaptMesh_ExtractMesh, METH_VARARGS},
 
-  {"intersectSurf", K_XCORE::intersectSurf, METH_VARARGS},
-  {"removeIntersectingKPlanes", K_XCORE::removeIntersectingKPlanes, METH_VARARGS},
-  {NULL, NULL}
+
+    /*
+    {"computeHessian", K_XCORE::computeHessian, METH_VARARGS},
+    {"computeGradient", K_XCORE::computeGradient, METH_VARARGS},
+    {"hessianToMetric", K_XCORE::hessianToMetric, METH_VARARGS},
+    {"_makeRefDataFromGradAndHess", K_XCORE::_makeRefDataFromGradAndHess, METH_VARARGS},
+    {"_prepareMeshForAdaptation", K_XCORE::_prepareMeshForAdaptation, METH_VARARGS},
+    {"_assignRefDataToAM", K_XCORE::_assignRefDataToAM, METH_VARARGS},
+    {"extractBoundaryMesh", K_XCORE::extractBoundaryMesh, METH_VARARGS},
+    */
+
+    {"intersectSurf", K_XCORE::intersectSurf, METH_VARARGS},
+    {"removeIntersectingKPlanes", K_XCORE::removeIntersectingKPlanes, METH_VARARGS},
+    
+    {NULL, NULL}
 };
 
 #if PY_MAJOR_VERSION >= 3

@@ -3,7 +3,7 @@
 #include "mesh.h"
 #include "../common/common.h"
 
-int meshes_mutual_refinement(Mesh &M, Mesh &S)
+int meshes_mutual_refinement(IMesh &M, IMesh &S)
 {
     size_t refM, refS;
     int iter = 0;
@@ -23,8 +23,8 @@ int meshes_mutual_refinement(Mesh &M, Mesh &S)
     return 0;
 }
 
-size_t Mesh::refine(std::set<E_Int> &mpatch, std::set<E_Int> &spatch,
-    Mesh &S)
+size_t IMesh::refine(std::set<E_Int> &mpatch, std::set<E_Int> &spatch,
+    IMesh &S)
 {
     // Isolate spatch points
     std::set<E_Int> spoints;
@@ -158,7 +158,7 @@ size_t Mesh::refine(std::set<E_Int> &mpatch, std::set<E_Int> &spatch,
 }
 
 
-std::vector<E_Int> Mesh::smooth_ref_data(
+std::vector<E_Int> IMesh::smooth_ref_data(
     const std::map<E_Int, std::vector<E_Int>> &sensor)
 {
     // TODO(Imad): shouldn't the size be factive.size() instead of nf?
@@ -201,7 +201,7 @@ std::vector<E_Int> Mesh::smooth_ref_data(
     return ref_data;
 }
 
-std::vector<E_Int> Mesh::prepare_for_refinement(const std::vector<E_Int> &ref_data)
+std::vector<E_Int> IMesh::prepare_for_refinement(const std::vector<E_Int> &ref_data)
 {
     std::vector<E_Int> ref_faces;
     
@@ -221,13 +221,13 @@ std::vector<E_Int> Mesh::prepare_for_refinement(const std::vector<E_Int> &ref_da
 }
 
 /*
-std::vector<E_Int> Mesh::get_active_neighbours(E_Int face)
+std::vector<E_Int> IMesh::get_active_neighbours(E_Int face)
 {
     return std::vector<E_Int>();
 }
 */
 
-void Mesh::refine_faces(const std::vector<E_Int> &ref_faces)
+void IMesh::refine_faces(const std::vector<E_Int> &ref_faces)
 {
     for (E_Int ref_face : ref_faces) {
         if (face_is_tri(ref_face)) refine_tri(ref_face);
@@ -235,7 +235,7 @@ void Mesh::refine_faces(const std::vector<E_Int> &ref_faces)
     }
 }
 
-void Mesh::resize_point_data(size_t nref_faces)
+void IMesh::resize_point_data(size_t nref_faces)
 {
     size_t nnew_points = np + nref_faces * 5;
     X.resize(nnew_points);
@@ -243,14 +243,14 @@ void Mesh::resize_point_data(size_t nref_faces)
     Z.resize(nnew_points);
 }
 
-void Mesh::resize_face_data(size_t nref_faces)
+void IMesh::resize_face_data(size_t nref_faces)
 {
     size_t nnew_faces = nf + nref_faces * 4;
     F.resize(nnew_faces);
     flevel.resize(nnew_faces, -1);
 }
 
-void Mesh::refine_quad(E_Int quad)
+void IMesh::refine_quad(E_Int quad)
 {
     // Refine the edges
     const auto &pn = F[quad];
@@ -311,7 +311,7 @@ void Mesh::refine_quad(E_Int quad)
     nf += 4;
 }
 
-void Mesh::refine_tri(E_Int tri)
+void IMesh::refine_tri(E_Int tri)
 {
     printf(SF_D_ "\n", tri);
     assert(0);
