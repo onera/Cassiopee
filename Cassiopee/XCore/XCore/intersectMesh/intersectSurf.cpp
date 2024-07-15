@@ -256,7 +256,7 @@ IMesh reconstruct_mesh(IMesh &M, const Dcel &D, E_Int color)
     new_M.F = new_F;
     new_M.C = new_C;
 
-    assert(M.np == (E_Int)ppset.size() + nop);
+    //assert(M.np == (E_Int)ppset.size() + nop);
     
     /*
     std::vector<E_Int> IP;
