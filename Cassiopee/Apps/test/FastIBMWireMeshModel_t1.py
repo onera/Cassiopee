@@ -44,7 +44,7 @@ vmin      = 11
 
 t,tc = X_IBM.prepareIBMDataPara(tb               , None       , None     , tbox=tboffset,      
                                 snears=snears    , dfars=dfars  , vmin=vmin, 
-                                check=True      , frontType=1)
+                                check=False      , frontType=1)
 
 test.testT(t , 1)
 test.testT(tc, 2)
