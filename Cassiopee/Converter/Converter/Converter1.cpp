@@ -362,14 +362,15 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
                     "convertFile2Arrays: unrecognised format.");
     return NULL;
   }
-
+      
   // Ajout des BCFaces dans l'arbre
   E_Int size = BCFaces.size();
   if (BCFacesO != Py_None)
   {
-    char n[128]; E_Int c = 0;
+    char n[128];
     for (E_Int j = 0; j < size; j++) // pour chaque bloc
     {
+      E_Int c = 0;
       char* myBCNames = BCNames[j];
       FldArrayI& myBCFaces = *BCFaces[j];
 
@@ -393,12 +394,12 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
         }
         if (!exist)
         {
-          char* na = new char[128]; strcpy(na, n); 
+          char* na = new char[128]; strcpy(na, n);
           names.push_back(na); indir[i] = names.size()-1;
         }
       }
-      //for (E_Int i = 0; i < names.size(); i++) printf("%s\n", names[i]);
-
+      //for (E_Int i = 0; i < names.size(); i++) printf("%s\n", names[i]); 
+      
       // Construction de l'objet python de sortie
       PyObject* lc = PyList_New(0);
       E_Int sizeNames = names.size();
@@ -696,7 +697,6 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
           //}
           elt.push_back(ids[0]); // only first connect of ME
           eltIds.push_back(ids); // all ids
-
         }
       }
       else 
@@ -1090,7 +1090,7 @@ PyObject* K_CONVERTER::readPyTreeFromPaths(PyObject* self, PyObject* args)
     ret = K_IO::GenIO::getInstance()->adfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth);
   else
   {
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "readPyTreeFromPaths: unknown file format.");
     return NULL;
   }
