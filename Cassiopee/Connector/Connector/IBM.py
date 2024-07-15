@@ -181,20 +181,17 @@ def _computeMeshInfo(t):
     return None
 
 def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=None,
-                       snears=0.01, snearsf=None, dfar=10., dfarDir=0, dfarList=[], vmin=21, depth=2, frontType=1, mode=0,
+                       snears=0.01, snearsf=None, dfars=10., dfarDir=0, vmin=21, depth=2, frontType=1, mode=0,
                        IBCType=1, verbose=True,
                        check=False, balancing=False, distribute=False, twoFronts=False, cartesian=False,
                        yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1., 
-                       tbOneOver=None, generateCartesianMeshOnly=False):
+                       tbOneOver=None):
     
     import Generator.IBM as G_IBM
     import time as python_time
 
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = Internal.copyTree(t_case)
-
-    if isinstance(tc_out, str):  fileoutpre = tc_out.split('/')
-    else:                        fileoutpre = ['.','template.cgns']
 
     refstate = Internal.getNodeFromName(tb, 'ReferenceState')
     flowEqn  = Internal.getNodeFromName(tb, 'FlowEquationSet')          
@@ -246,20 +243,14 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
     if t_in is None:
         if verbose: pt0 = python_time.time(); printTimeAndMemory__('generate Cartesian mesh', time=-1)
         test.printMem("Info: prepareIBMDataPara: generate Cartesian mesh [start]")
-        t = G_IBM.generateIBMMeshPara(tbLocal, vmin=vmin, snears=snears, dimPb=dimPb, dfar=dfar, dfarList=dfarList, tbox=tbox,
+        t = G_IBM.generateIBMMeshPara(tbLocal, vmin=vmin, snears=snears, dimPb=dimPb, dfars=dfars, tbox=tbox,
                                       snearsf=snearsf, check=check, to=to, ext=depth+1,
-                                      expand=expand, dfarDir=dfarDir, check_snear=False, mode=mode,
-                                      tbOneOver=tbOneOver, listF1save=listF1save, fileoutpre=fileoutpre)
+                                      expand=expand, dfarDir=dfarDir, mode=mode,
+                                      tbOneOver=tbOneOver, listF1save=listF1save)
         Internal._rmNodesFromName(tb,"SYM")
 
         if balancing and Cmpi.size > 1: _redispatch__(t=t)
         if verbose: printTimeAndMemory__('generate Cartesian mesh', time=python_time.time()-pt0)
-        if generateCartesianMeshOnly:
-            fileoutpre[-1]='CartMesh.cgns'
-            fileout = '/'.join(fileoutpre)
-            Cmpi.convertPyTree2File(t,fileout)
-            if Cmpi.rank == 0: print("Wrote CartMesh.cgns...Exiting Prep...Bye")
-            exit()
         
     else: 
         t = t_in
@@ -308,7 +299,7 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
     if verbose: pt0 = python_time.time(); printTimeAndMemory__('build IBM front', time=-1)
     t, tc, front, front2, frontWMM = buildFrontIBM(t, tc, dimPb=dimPb, frontType=frontType, 
                                          cartesian=cartesian, twoFronts=twoFronts, check=check,
-                                         isWireModel=isWireModel, fileoutpre=fileoutpre)
+                                         isWireModel=isWireModel)
     if verbose: printTimeAndMemory__('build IBM front', time=python_time.time()-pt0)
 
     #===================
@@ -319,7 +310,7 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
                       Reynolds=Reynolds, yplus=yplus, Lref=Lref, 
                       cartesian=cartesian, twoFronts=twoFronts, check=check,
                       isWireModel=isWireModel, tbFilament=tbFilament, isOrthoProjectFirst=isOrthoProjectFirst, isFilamentOnly=isFilamentOnly,
-                      frontWMM=frontWMM, fileoutpre=fileoutpre)
+                      frontWMM=frontWMM)
     if verbose: printTimeAndMemory__('compute interpolation data (IBM)', time=python_time.time()-pt0)
 
     #===================
@@ -951,7 +942,7 @@ def _pushBackImageFront2__(t, tc, tbbc, cartesian=False):
     return None
 
 def buildFrontIBM(t, tc, dimPb=3, frontType=1, cartesian=False, twoFronts=False, check=False,
-                  isWireModel=False, fileoutpre='./'):
+                  isWireModel=False):
     """Build the IBM front for IBM pre-processing."""
     tbbc = Cmpi.createBBoxTree(tc)
 
@@ -999,17 +990,11 @@ def buildFrontIBM(t, tc, dimPb=3, frontType=1, cartesian=False, twoFronts=False,
         frontWMM = None
 
     if check and Cmpi.rank == 0:
-        fileoutpre[-1]='front.cgns'
-        fileout = '/'.join(fileoutpre)
-        C.convertPyTree2File(front, fileout)
+        C.convertPyTree2File(front, 'front.cgns')
         if twoFronts:
-            fileoutpre[-1]='front2.cgns'
-            fileout = '/'.join(fileoutpre)
-            C.convertPyTree2File(front2, fileout)
+            C.convertPyTree2File(front2, 'front2.cgns')
         if isWireModel:
-            fileoutpre[-1]='frontWMM.cgns'
-            fileout = '/'.join(fileoutpre)
-            C.convertPyTree2File(frontWMM, fileout)
+            C.convertPyTree2File(frontWMM, 'frontWMM.cgns')
         
     return t, tc, front, front2, frontWMM
 
@@ -1034,19 +1019,19 @@ def buildFrontIBM(t, tc, dimPb=3, frontType=1, cartesian=False, twoFronts=False,
 #=========================================================================
 def setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6, 
                      yplus=100, Lref=1., cartesian=False, twoFronts=False, check=False,
-                     isWireModel=False, tbFilament=None, isOrthoProjectFirst=False, frontWMM=None, fileoutpre='./'):
+                     isWireModel=False, tbFilament=None, isOrthoProjectFirst=False, frontWMM=None):
     """Compute the transfer coefficients and data for IBM pre-processing."""
     tp = Internal.copyRef(t)
     _setInterpDataIBM(t, tc, tb, front, front2=front2, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth, 
                       Reynolds=Reynolds, yplus=yplus, Lref=Lref, 
                       cartesian=cartesian, twoFronts=twoFronts, check=check,
                       isWireModel=isWireModel, tbFilament=tbFilament, isOrthoProjectFirst=isOrthoProjectFirst,
-                      frontWMM=frontWMM, fileoutpre=fileoutpre)
+                      frontWMM=frontWMM)
     return tp
 
 def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6, 
                       yplus=100, Lref=1., cartesian=False, twoFronts=False, check=False,
-                      isWireModel=False, tbFilament=None, isOrthoProjectFirst=False, isFilamentOnly=False, frontWMM=None, fileoutpre='./'): 
+                      isWireModel=False, tbFilament=None, isOrthoProjectFirst=False, isFilamentOnly=False, frontWMM=None): 
     """Compute the transfer coefficients and data for IBM pre-processing."""
     tbbc = Cmpi.createBBoxTree(tc)
 
@@ -1317,14 +1302,10 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
     C._rmVars(t, varsRM)
 
     if check:
-        fileoutpre[-1]='IBMInfo.cgns'
-        fileout = '/'.join(fileoutpre)
-        extractIBMInfo(tc, IBCNames="IBCD_*", filename_out=fileout)
+        extractIBMInfo(tc, IBCNames="IBCD_*", fileout='IBMInfo.cgns')
 
         if twoFronts:
-            fileoutpre[-1]='IBMInfo2.cgns'
-            fileout = '/'.join(fileoutpre)
-            extractIBMInfo(tc, IBCNames="2_IBCD_*", filename_out=fileout)
+            extractIBMInfo(tc, IBCNames="2_IBCD_*", fileout='IBMInfo2.cgns')
 
     return None
 
@@ -1842,7 +1823,7 @@ def _extractIBMInfo_param(t, tc):
 # Extraction des pts IBM: retourne un arbre avec les coordonnees des
 # pts IBM a corriger, paroi, miroirs
 #=============================================================================
-def extractIBMInfo(tc_in, IBCNames="IBCD_*", filename_out=None):
+def extractIBMInfo(tc_in, IBCNames="IBCD_*", fileout=None):
     """Extract IBM informations in a pyTree."""
     if isinstance(tc_in, str): tc = Cmpi.convertFile2PyTree(tc_in, proc=Cmpi.rank)
     else: tc = tc_in
@@ -1971,7 +1952,7 @@ def extractIBMInfo(tc_in, IBCNames="IBCD_*", filename_out=None):
             if int(z[0][-1]) != Cmpi.rank:
                 z[0] = z[0]+"%"+str(Cmpi.rank)
 
-    if isinstance(filename_out, str): Cmpi.convertPyTree2File(t, filename_out)
+    if isinstance(fileout, str): Cmpi.convertPyTree2File(t, fileout)
 
     return t
 

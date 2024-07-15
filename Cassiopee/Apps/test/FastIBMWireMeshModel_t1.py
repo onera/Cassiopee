@@ -38,13 +38,13 @@ D_IBM._setSnear(tboffset, 0.0025)
 tboffset = C.newPyTree(['Base', tboffset])
 
 ##PREP
-dfar      = 5
+dfars      = 5
 snears    = 1
 vmin      = 11
 
 t,tc = X_IBM.prepareIBMDataPara(tb               , None       , None     , tbox=tboffset,      
-                                snears=snears    , dfar=dfar  , vmin=vmin, 
-                                check=False      , frontType=1)
+                                snears=snears    , dfars=dfars  , vmin=vmin, 
+                                check=True      , frontType=1)
 
 test.testT(t , 1)
 test.testT(tc, 2)

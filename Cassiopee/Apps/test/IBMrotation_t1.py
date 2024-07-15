@@ -61,9 +61,9 @@ D_IBM._setIBCType(tb,"noslip")
 C._addState(tb, adim='dim1', UInf=UInf, TInf=TInf, PInf=PInf, LInf=diam,EquationDimension=dimPb, GoverningEquations=ModelTmp)
     
 ##CREATING OVERSET IBM MESH AROUND GEOMETRY
-dfarList=[]
-for z in Internal.getZones(tb): dfarList.append(dfar_nb)
-t_ibm = G_IBM.generateIBMMeshPara(tb, vmin=vmin, dfar=dfar_nb,dfarList=dfarList,dimPb=2, expand=2, ext=3)
+dfars=[]
+for z in Internal.getZones(tb): dfars.append(dfar_nb)
+t_ibm = G_IBM.generateIBMMeshPara(tb, vmin=vmin, dfars=dfars, dimPb=2, expand=2, ext=3)
 
 R._setPrescribedMotion3(t_ibm ,'rot', axis_pnt=(0.,0.,0.), axis_vct=(0,0,1),omega=-OMG)
 t_ibm[2][1][0]='CARTESIAN_NEARBODY'
@@ -96,9 +96,9 @@ tb_off = C.newPyTree(['Base', ovs])
 
 ##CREATING BACKGROUND CARTESIAN MESH
 vmin    = 21
-dfarList=[]
-for z in Internal.getZones(tb_off): dfarList.append(dfar_ext)
-t_off = G_IBM.generateIBMMeshPara(tb_off, vmin=vmin, dfar=dfar_ext, dfarList=dfarList, dimPb=2, expand=2, ext=3)
+dfars=[]
+for z in Internal.getZones(tb_off): dfars.append(dfar_ext)
+t_off = G_IBM.generateIBMMeshPara(tb_off, vmin=vmin, dfars=dfars, dimPb=2, expand=2, ext=3)
 
 t_off[2][1][0]='CARTESIAN_OFFBODY'
 X._applyBCOverlaps(t_off,depth=2,loc='centers')

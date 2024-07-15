@@ -34,8 +34,8 @@ def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=
     # Octree identical on all procs
     test.printMem('>>> Octree unstruct [start]')
     # Build octree
-    o = TIBM.buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList, to=to,
-                         dimPb=dimPb, vmin=vmin, fileout=fileout, rank=rank, expand=expand)
+    o = TIBM.buildOctree(tb, snears=snears, snearFactor=1., dfars=dfarList, to=to,
+                         dimPb=dimPb, vmin=vmin, expand=expand)
     # addRefinementZones
     if tbox is not None:
         o = addRefinementZones(o, tbox, snearsf, vmin=vmin, dim=dimPb)
@@ -43,8 +43,8 @@ def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=
   
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
-    parento = TIBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, 
-                                        snearsf=snearsf, dimPb=dimPb, vmin=vmin, fileout=fileout, rank=rank)
+    parento = TIBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfars=dfarList, to=to, tbox=tbox, 
+                                        snearsf=snearsf, dimPb=dimPb, vmin=vmin)
     test.printMem(">>> Octree unstruct [end]")
 
     # Split octree

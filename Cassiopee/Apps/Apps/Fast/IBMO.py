@@ -43,7 +43,7 @@ def buildAllBodies__(t_case, distrib, motion=False):
         if distrib:
             tb = h.loadAndSplit(NParts=Cmpi.size)
         else:
-            tb = h.loadAndSplit(NParts=max(NP, Cmpi.size))
+            tb = h.loadAndSplit(NParts=max(1, Cmpi.size))
         #tb = Cmpi.convertFile2SkeletonTree(t_case)
     else: tb = t_case
     
@@ -210,7 +210,7 @@ def createChimeraTree__(tb, tbchim, tball, baseNamesChim, dimPb=3, motion=False)
         
     return t2, tc2
         
-def prepareMotion(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., dfarList=[],
+def prepareMotion(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfars=10.,
             tbox=None, snearsf=None, yplus=100., Lref=1.,  
             vmin=21, check=False, NP=0, format='single',   
             frontType=1, extrusion=False, smoothing=False, balancing=False,
@@ -246,7 +246,7 @@ def prepareMotion(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=1
     # if bodies in motion taken into account
     # either by a tbox or  input octree to defined
     t,tc = AppIBM.prepare1(tbibm, None, None, t_in=None, to=to,
-                        snears=snears, dfar=dfar, dfarList=dfarList,
+                        snears=snears, dfars=dfars,
                         tbox=tbox, snearsf=snearsf, yplus=yplus, Lref=Lref,
                         vmin=vmin, check=check, NP=NP, format='single',
                         frontType=1, extrusion=extrusion, smoothing=smoothing, balancing=balancing,
@@ -482,19 +482,19 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
 
         # Extraction de la liste des dfars de tb
         zones = Internal.getZones(tbo)
-        dfarList = [10.]*len(zones)
+        dfars = [10.]*len(zones)
         for c, z in enumerate(zones): 
             n = Internal.getNodeFromName2(z, 'dfar')
-            if n is not None: dfarList[c] = Internal.getValue(n)*1.
+            if n is not None: dfars[c] = Internal.getValue(n)*1.
 
-        o = TIBM.buildOctree(tbo, snearFactor=1., dfarList=dfarList, 
-                             dimPb=dimPb, vmin=vmin, rank=rank,
+        o = TIBM.buildOctree(tbo, snearFactor=1., dfars=dfars, 
+                             dimPb=dimPb, vmin=vmin,
                              expand=expand, dfarDir=dfarDir)
 
         # build parent octree 3 levels higher
         # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
-        parento = TIBM.buildParentOctrees__(o, tbo, snearFactor=4., dfarList=dfarList,
-                                            dimPb=dimPb, vmin=vmin, rank=rank)
+        parento = TIBM.buildParentOctrees__(o, tbo, snearFactor=4., dfars=dfars,
+                                            dimPb=dimPb, vmin=vmin)
     test.printMem(">>> Octree unstruct [end]")
 
     # Split octree

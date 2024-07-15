@@ -68,7 +68,7 @@ test.testT(tb,1)
 #C.convertPyTree2File(tb,LOCAL+'/tcase_check.cgns')
 
 t,tc=X_IBM.prepareIBMDataPara(tb         , None  , None   ,
-                              snears=0.01, dfar=0, vmin=11)
+                              snears=0.01, dfars=0, vmin=11)
 
 [RoInf, RouInf, RovInf, RowInf, RoeInf, PInf, TInf, cvInf, MInf,
  ReInf, Cs, Gamma, RokInf, RoomegaInf, RonutildeInf,
