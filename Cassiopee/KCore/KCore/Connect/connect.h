@@ -159,6 +159,10 @@ namespace K_CONNECT
   /*----------------------------------*/
   /* - Connectivite element basique - */
   /*----------------------------------*/
+  /* Get all facets of a basic element*/
+  E_Int getEVFacets(std::vector<std::vector<E_Int> >& facets,
+                    const char* eltType, E_Bool allow_degenerated=true);
+  
   /* Change a Elts-Vertex connectivity to a Vertex-Elts connectivity.
      cVE doit deja etre alloue au nombre de noeuds. */
   void connectEV2VE(K_FLD::FldArrayI& cEV,
@@ -417,62 +421,50 @@ namespace K_CONNECT
   PyObject* V_cleanConnectivity(
     const char* varString, K_FLD::FldArrayF& f,
     K_FLD::FldArrayI& cn, const char* eltType,
-    E_Float tol=0., E_Bool removeOverlappingPoints=true,
-    E_Bool removeOrphanPoints=true,
-    E_Bool removeDuplicatedFaces=true,
-    E_Bool removeDuplicatedElements=true,
-    E_Bool removeDegeneratedFaces=true,
-    E_Bool removeDegeneratedElements=true);
+    E_Float tol=0., E_Bool rmOverlappingPts=true, E_Bool rmOrphanPts=true,
+    E_Bool rmDuplicatedFaces=true, E_Bool rmDuplicatedElts=true,
+    E_Bool rmDegeneratedFaces=true, E_Bool rmDegeneratedElts=true);
 
   // Clean connectivity - NGON
   PyObject* V_cleanConnectivityNGon(
     E_Int posx, E_Int posy, E_Int posz, const char* varString,
     K_FLD::FldArrayF& f, K_FLD::FldArrayI& cn,
-    E_Float tol=0., E_Bool removeOverlappingPoints=true,
-    E_Bool removeOrphanPoints=true,
-    E_Bool removeDuplicatedFaces=true,
-    E_Bool removeDuplicatedElements=true,
-    E_Bool removeDegeneratedFaces=true,
-    E_Bool removeDegeneratedElements=true);
+    E_Float tol=0., E_Bool rmOverlappingPts=true, E_Bool rmOrphanPts=true,
+    E_Bool rmDuplicatedFaces=true, E_Bool rmDuplicatedElts=true,
+    E_Bool rmDegeneratedFaces=true, E_Bool rmDegeneratedElts=true);
 
-  E_Int V_identifyOverlappingPoints(
+  E_Int V_identifyDirtyPoints(
     E_Int posx, E_Int posy, E_Int posz, 
     K_FLD::FldArrayF& f, E_Float tol,
-    std::vector<E_Int>& indir);
+    std::vector<E_Int>& indir, E_Bool rmOverlappingPts=true);
 
   E_Int V_identifyDirtyFacesNGon(
     E_Int dim, K_FLD::FldArrayF& f, K_FLD::FldArrayI& cn,
-    std::vector<E_Int>& indirPG,
-    E_Bool removeDegeneratedFaces=true);
+    std::vector<E_Int>& indirPG, E_Bool rmDegeneratedFaces=true);
 
   E_Int V_identifyDirtyFacesNGon(
     E_Int dim, K_FLD::FldArrayI& cn, E_Int* ngon, E_Int* indPG,
-    std::vector<E_Int>& indirPG,
-    E_Bool removeDegeneratedFaces=true);
+    std::vector<E_Int>& indirPG, E_Bool rmDegeneratedFaces=true);
 
   E_Int V_identifyDirtyElementsNGon(
     E_Int dim, K_FLD::FldArrayF& f, K_FLD::FldArrayI& cn,
-    std::vector<E_Int>& indirPH,
-    E_Bool removeDegeneratedFaces=true);
+    std::vector<E_Int>& indirPH, E_Bool rmDegeneratedFaces=true);
 
   E_Int V_identifyDirtyElementsNGon(
     E_Int dim, K_FLD::FldArrayI& cn, E_Int* nface, E_Int* indPH,
-    std::vector<E_Int>& indirPH,
-    E_Bool removeDegeneratedElements=true);
+    std::vector<E_Int>& indirPH, E_Bool rmDegeneratedElts=true);
 
   // Clean connectivity - ME
   PyObject* V_cleanConnectivityME(
     E_Int posx, E_Int posy, E_Int posz, const char* varString,
     K_FLD::FldArrayF& f, K_FLD::FldArrayI& cn, const char* eltType,
-    E_Float tol=0., E_Bool removeOverlappingPoints=true,
-    E_Bool removeOrphanPoints=true,
-    E_Bool removeDuplicatedElements=true,
-    E_Bool removeDegeneratedElements=true);  
+    E_Float tol=0., E_Bool rmOverlappingPts=true, E_Bool rmOrphanPts=true,
+    E_Bool rmDuplicatedElts=true, E_Bool rmDegeneratedElts=true);  
 
   E_Int V_identifyDirtyElementsME(
     E_Int dim, K_FLD::FldArrayI& cn, std::vector<E_Int>& indir,
     std::vector<E_Int>& nuniqueElts, E_Int neltsTot=0,
-    E_Bool removeDegeneratedElements=true);
+    E_Bool rmDegeneratedElts=true);
   
   /* Retourne l'image de vert0 issu de la face0 dans l'element et0 
      IN: cNG: connectivite NGON: Faces/Noeuds et Elts/Faces

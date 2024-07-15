@@ -8,4 +8,4 @@ t = C.newPyTree(['Base', 'Base2'])
 
 a = G.cart( (0,0,0), (1,1,1), (10,10,10) )
 t = Internal.append(t, a, '/Base')
-test.testO(t, 1)
+test.testT(t, 1)

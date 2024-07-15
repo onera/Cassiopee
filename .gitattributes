@@ -1,3 +1,5 @@
+* text=auto
+
 *.h text
 *.hxx text
 *.hpp text

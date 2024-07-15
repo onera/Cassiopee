@@ -247,7 +247,7 @@ int ShaderManager::init()
 //=============================================================================
 int ShaderManager::load()
 {
-  char vert[256*8]; char frag[256*8]; char geom[256*8];
+  char vert[256*8]; char frag[256*8];
   Data* d = Data::getInstance();
   char* path = d->ptrState->shaderPath;
 

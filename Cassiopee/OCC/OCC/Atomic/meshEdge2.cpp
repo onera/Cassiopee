@@ -251,7 +251,7 @@ E_Int __getParamHmaxHausd(const TopoDS_Edge& E, E_Float hmax, E_Float hausd, E_I
       index.push_back(i);
     }
   }
-  for (size_t i = 0; i < index.size(); i++) printf("split %ld\n", i);
+  for (size_t i = 0; i < index.size(); i++) printf("split %zu\n", i);
   
   E_Int size = index.size();
   if (size == 0 && state == 0)

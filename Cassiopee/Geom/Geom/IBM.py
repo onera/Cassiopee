@@ -212,21 +212,21 @@ def _setFluidInside(t):
 #==============================================================================
 def setOutPressControlParam(t, probeName='pointOutPress', AtestSection=1, AOutPress=1,
                             machTarget=0.1, pStatTarget=1e05, tStatTarget=298.15,lmbd=0.1,
-                            cxSupport = 0.6, sSupport=0.1):
+                            cxSupport = 0.6, sSupport=0.1, itExtrctPrb=10):
     """Set the user input parameters for the outpress control algorithm.
-    Usage: setOutPressControlParam(t, probeName='X', AtestSection=Y, AOutPress=Z, machTarget=XX,pStatTarget=YY,tStatTarget=ZZ,lmbd=XXX,cxSupport=YYY,sSupport=ZZZ)"""
+    Usage: setOutPressControlParam(t, probeName='X', AtestSection=Y, AOutPress=Z, machTarget=XX,pStatTarget=YY,tStatTarget=ZZ,lmbd=XXX,cxSupport=YYY,sSupport=ZZZ,itExtrctPrb=XXXX)"""
     tp = Internal.copyRef(t)
     _setOutPressControlParam(tp, probeName=probeName, AtestSection=AtestSection, AOutPress=AOutPress,
                              machTarget=machTarget, pStatTarget=pStatTarget, tStatTarget=tStatTarget,lmbd=lmbd,
-                             cxSupport = cxSupport, sSupport=sSupport)
+                             cxSupport = cxSupport, sSupport=sSupport, itExtrctPrb=itExtrctPrb)
     return tp
 
 
 def _setOutPressControlParam(t, probeName='pointOutPress', AtestSection=1, AOutPress=1,
                              machTarget=0.1, pStatTarget=1e05, tStatTarget=298.15,lmbd=0.1,
-                             cxSupport = 0.6, sSupport=0.1):
+                             cxSupport = 0.6, sSupport=0.1, itExtrctPrb=10):
     """Set the user input parameters for the outpress control algorithm.
-    Usage: _setOutPressControlParam(t, probeName='X', AtestSection=Y, AOutPress=Z, machTarget=XX,pStatTarget=YY,tStatTarget=ZZ,lmbd=XXX,cxSupport=YYY,sSupport=ZZZ)"""
+    Usage: _setOutPressControlParam(t, probeName='X', AtestSection=Y, AOutPress=Z, machTarget=XX,pStatTarget=YY,tStatTarget=ZZ,lmbd=XXX,cxSupport=YYY,sSupport=ZZZ,itExtrctPrb=XXXX)"""
     zones = Internal.getZones(t)
     for z in zones:
         Internal._createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
@@ -240,6 +240,7 @@ def _setOutPressControlParam(t, probeName='pointOutPress', AtestSection=1, AOutP
         Internal._createUniqueChild(n, 'lmbd'        , 'DataArray_t', lmbd)
         Internal._createUniqueChild(n, 'cxSupport'   , 'DataArray_t', cxSupport)
         Internal._createUniqueChild(n, 'sSupport'    , 'DataArray_t', sSupport)
+        Internal._createUniqueChild(n, 'itExtrctPrb' , 'DataArray_t', itExtrctPrb)
         
     return None
 #==============================================================================
@@ -505,4 +506,36 @@ def _transformTc2(tc2):
                 
     return None
 
+#================================================================================
+# Selection/determination of tb for closed solid & filament
+#================================================================================
+def determineClosedSolidFilament__(tb):
+    ##OUT - filamentBases        :list of names of open geometries
+    ##OUT - isFilamentOnly       :boolean if there is only a filament in tb
+    ##OUT - isOrthoProjectFirst  :bolean to do orthonormal projection first
+    ##OUT - tb                   :tb of solid geometries only
+    ##OUT - tbFilament           :tb of filament geometries only
 
+    ## General case where only a closeSolid is in tb
+    ## or tb only has a filament
+    filamentBases = []
+    isFilamentOnly= False
+    
+    len_tb = len(Internal.getBases(tb))
+    for b in Internal.getBases(tb):
+        if "IBCFil" in b[0]:filamentBases.append(b[0])
+
+    if len(filamentBases) == len_tb:isFilamentOnly=True
+    isOrthoProjectFirst = isFilamentOnly
+
+    ## if tb has both a closed solid and filaments
+    tbFilament = Internal.copyTree(tb)
+    if not isFilamentOnly:
+        tbFilament = []
+        for b in filamentBases:
+            node_local = Internal.getNodeFromNameAndType(tb, b, 'CGNSBase_t')
+            tbFilament.append(node_local)
+            Internal._rmNode(tb,node_local)     
+            isOrthoProjectFirst = True
+        tbFilament = C.newPyTree(tbFilament);
+    return [filamentBases, isFilamentOnly, isOrthoProjectFirst, tb, tbFilament]

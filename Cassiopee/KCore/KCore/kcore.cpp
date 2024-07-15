@@ -24,7 +24,6 @@
 // ============================================================================
 static PyMethodDef Pykcore [] =
 {
-  {"activation", K_KCORE::activation, METH_VARARGS},
   {"isNamePresent", K_KCORE::isNamePresent, METH_VARARGS},
   {"isCoordinateXPresent", K_KCORE::isCoordinateXPresent, METH_VARARGS},
   {"isCoordinateYPresent", K_KCORE::isCoordinateYPresent, METH_VARARGS},

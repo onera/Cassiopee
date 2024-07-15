@@ -47,6 +47,7 @@
 
 #ifdef __MESA__
 #define GLAPI extern
+//#define APIENTRY // added for ubuntu, to be checked on other linux
 #include <GL/osmesa.h>
 #endif
 
@@ -545,6 +546,7 @@ public:
                  double alpha, double beta);
   void sharpenImage(E_Int w, E_Int h, char* im1, char* im2, double amount,
                     E_Int radius, E_Int threshold);
+  FILE* fopenw(const char* path, const char* mode);                                                              
   void exportFile();
   void finalizeExport();
   void dataMouseClickSelect(E_Int button, E_Int etat, E_Int x, E_Int y, 

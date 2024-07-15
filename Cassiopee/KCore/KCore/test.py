@@ -219,15 +219,19 @@ def checkObject_(objet, refObjet, reference):
     # tests sur les types
     if type(refObjet) != type(objet):
         if isinstance(refObjet, (int, float)): pass
-        elif (isinstance(refObjet, (numpy.int32, numpy.int64)) and
-              isinstance(objet, (numpy.int32, numpy.int64))): pass
+        elif (isinstance(refObjet, (numpy.int32, numpy.int64, numpy.intc)) and
+              isinstance(objet, (numpy.int32, numpy.int64, numpy.intc))): pass
         elif (isinstance(refObjet, (numpy.float32, numpy.float64)) and
               isinstance(objet, (numpy.float32, numpy.float64))): pass
         else:
             print("DIFF: object type differs from "+reference+'.')
             return False
     # autres tests
-    if isinstance(refObjet, (int, numpy.int32, numpy.int64)):
+    if isinstance(refObjet, bool):
+        if refObjet != objet:
+            print("DIFF: object value differs from %s (diff=%g,%g)."%(reference, objet, refObjet))
+            return False 
+    elif isinstance(refObjet, (int, numpy.int32, numpy.int64, numpy.intc)):
         diff = abs(refObjet-objet)
         if diff > 0:
             print("DIFF: object value differs from %s (diff=%g)."%(reference, diff))
@@ -329,8 +333,11 @@ def checkTree(t1, t2):
     """Check that pyTree t1 and t2 are identical."""
     dict1 = {}
     buildDict__('.', dict1, t1)
+    dict1.pop('./CGNSTree/CGNSLibraryVersion', None) # avoid comparison when version change
     dict2 = {}
     buildDict__('.', dict2, t2)
+    dict2.pop('./CGNSTree/CGNSLibraryVersion', None)
+    
     for k in dict2.keys():
         node2 = dict2[k]
         # cherche le noeud equivalent dans t1
@@ -438,6 +445,22 @@ def checkTree__(node1, node2):
                 print('DIFF: reference:', val2)
                 print('DIFF: courant:', val1)
                 return 0
+        if val1.dtype == numpy.float32:
+            if val2.dtype != numpy.float32:
+                print('DIFF: types numpy de valeurs differents pour le noeud: %s.'%node1[0])
+                print('DIFF: reference:', val2.dtype)
+                print('DIFF: courant:', val1.dtype)
+                print('DIFF: reference:', val2)
+                print('DIFF: courant:', val1)
+                return 0
+            if val1.shape != val2.shape:
+                print('DIFF: shape differentes pour le noeud: %s.'%node1[0])
+                print('DIFF: reference:', val2.shape)
+                print('DIFF: courant:', val1.shape)
+                print('DIFF: reference:', val2)
+                print('DIFF: courant:', val1)
+                return 0
+            
         #     if (numpy.abs(val1 -val2)<1.e-6).all() == False:
         #         print('DIFF: valeurs differentes pour le noeud: %s.'%node1[0])
         #         delta = numpy.max(numpy.abs(val1 -val2))

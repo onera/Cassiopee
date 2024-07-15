@@ -9,4 +9,4 @@ b = G.cart((11,0,0), (1,1,1), (10,10,10)); b[0] = 'a'
 t = C.newPyTree(['Base',a,b])
 
 t = Internal.appendBaseName2ZoneName(t)
-test.testO(t, 1)
+test.testT(t, 1)

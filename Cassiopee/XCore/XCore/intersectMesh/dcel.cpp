@@ -1,3 +1,21 @@
+/*    
+    Copyright 2013-2024 Onera.
+
+    This file is part of Cassiopee.
+
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include <cstdio>
 #include <cassert>
 #include <cmath>
@@ -134,7 +152,7 @@ void Dcel::find_intersections()
 
     sweep(Q, T, S, V, H);
 
-    printf("Intersections: %lu\n", V.size());
+    printf("Intersections: %zu\n", V.size());
 
     point_write("ipoints", V);
 
@@ -438,7 +456,7 @@ Dcel::Dcel(const Smesh &M0, const Smesh &M1)
     for (size_t i = 0; i < V.size(); i++) {
         Vertex *v = V[i];
         if (v->oid[0] != -1 && v->oid[1] != -1) {
-            printf("Vertex %lu is dup (" SF_D_ " " SF_D_ ")\n", i,
+            printf("Vertex %zu is dup (" SF_D_ " " SF_D_ ")\n", i,
                 v->oid[0], v->oid[1]);
         }
         V[i]->id = i;

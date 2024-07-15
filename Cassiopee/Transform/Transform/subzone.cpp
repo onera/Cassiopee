@@ -17,9 +17,12 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// subzone 
+// subzone
+#include <map>
+#include <unordered_set>
+#include <unordered_map>
+#include "transform.h"
 
-# include "transform.h"
 using namespace std;
 using namespace K_FLD;
 
@@ -66,7 +69,8 @@ PyObject* K_TRANSFORM::subzoneStruct(PyObject* self, PyObject* args)
         k2 > km || k1 > km || k2 < k1 || k1 < 1)
     {
       RELEASESHAREDS(array, f);
-      printf("Warning: subzone: mesh dimensions are: %d x %d x %d\n", im,jm,km);
+      printf("Warning: subzone: mesh dimensions are: " SF_D_ " x " SF_D_ " x " SF_D_ "\n",
+             im, jm, km);
       PyErr_SetString(PyExc_TypeError,
                       "subzone: wrong choice of index.");
       return NULL;
@@ -788,7 +792,7 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
     vector<E_Int> neltspc(nc+1), neltspc2(nc), nvpe(nc);
 
     char* eltType2 = new char[50]; strcpy(eltType2, "");
-    std::vector<char*> eltTypes;
+    vector<char*> eltTypes;
     K_ARRAY::extractVars(eltType, eltTypes);
     
     // Compute the cumulative number of elements per connectivity,
@@ -805,7 +809,7 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
     }
 
     // Bin input elements
-    std::vector<std::vector<E_Int> > binnedEltList(nc);
+    vector<vector<E_Int> > binnedEltList(nc);
     for (E_Int i = 0; i < n; i++)
     {
       E_Int noe = eltList[i];
@@ -1106,7 +1110,7 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
     vector<E_Int> neltspc(nc+1), neltspc2(nc), nvpe(nc);
 
     char* eltType2 = new char[50]; strcpy(eltType2, "");
-    std::vector<char*> eltTypes;
+    vector<char*> eltTypes;
     K_ARRAY::extractVars(eltType, eltTypes);
     
     // Compute the cumulative number of elements per connectivity,
@@ -1123,7 +1127,7 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
     }
 
     // Bin input elements
-    std::vector<std::vector<E_Int> > binnedEltList(nc);
+    vector<vector<E_Int> > binnedEltList(nc);
     for (E_Int i = 0; i < n; i++)
     {
       E_Int noe = eltList[i];
@@ -1264,301 +1268,288 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzone: cannot be used on a structured array.");
-    RELEASESHAREDS(array,f); return NULL;
+    RELEASESHAREDS(array, f); return NULL;
   }
   
   E_Int n = faceList.getSize();
   E_Int* faceListp = faceList.begin();
-  E_Int nf, nt2;
-
-  char eltTypeFaces[10];
-  int fBAR[] = { 
-    1, 
-    2 };
-  int fTRI[] = {
-    1, 2,
-    2, 3,
-    3, 1 };
-  int fQUAD[] = {
-    1, 2,
-    2, 3,
-    3, 4,
-    4, 1 };
-  int fTETRA[] = {
-    1, 3, 2,
-    1, 2, 4,
-    2, 3, 4,
-    3, 1, 4 };
-  int fPENTA[] = {
-    1, 2, 5, 4,
-    2, 3, 6, 5,
-    3, 1, 4, 6,
-    1, 3, 2, 1,
-    4, 5, 6, 4
-  };
-  int fPYRA[] = {
-    1, 4, 3, 2,
-    1, 2, 5, 5,
-    2, 3, 5, 2,
-    3, 4, 5, 3,
-    4, 1, 5, 4
-  };  
-  int fHEXA[] = {
-    1, 4, 3, 2,
-    1, 2, 6, 5,
-    2, 3, 7, 6,
-    3, 4, 8, 7,
-    1, 5, 8, 4,
-    5, 6, 7, 8 };
-  
-  int* fPtr = NULL; E_Int type = 0;
-  nt2 = 0; nf = 0;
-  // nf: nbre de face de l'element d'entree
-  // eltTypeFaces: type de l'element de sortie (face de l'elt d'entree)
-  // nt2: nbre de noeuds de l'element de sortie
-  // type=0 (les faces de sortie sont a elements basiques
-  // type=1 (entree: elements basiques, sortie: NGON)
-  if (K_STRING::cmp(eltType, "BAR") == 0)
-  {
-    type = 0; nf = 2; strcpy(eltTypeFaces, "NODE"); nt2 = 1; fPtr = fBAR;
-  }
-  else if (K_STRING::cmp(eltType, "TRI") == 0)
-  {
-    type = 0; nf = 3; strcpy(eltTypeFaces, "BAR"); nt2 = 2; fPtr = fTRI;
-  }
-  else if (K_STRING::cmp(eltType, "QUAD") == 0)
-  {
-    type = 0; nf = 4; strcpy(eltTypeFaces, "BAR"); nt2 = 2; fPtr = fQUAD;
-  }
-  else if (K_STRING::cmp(eltType, "TETRA") == 0)
-  {
-    type = 0; nf = 4; strcpy(eltTypeFaces, "TRI"); nt2 = 3; fPtr = fTETRA;
-  }
-  else if (K_STRING::cmp(eltType, "HEXA") == 0)
-  {
-    type = 0; nf = 6; strcpy(eltTypeFaces, "QUAD"); nt2 = 4; fPtr = fHEXA;
-  }
-  else if (K_STRING::cmp(eltType, "PENTA") == 0)
-  {
-    type = 0; nf = 5; strcpy(eltTypeFaces, "QUAD"); nt2 = 4; fPtr = fPENTA;
-  }
-  else if (K_STRING::cmp(eltType, "PYRA") == 0)
-  {
-    type = 0; nf = 5; strcpy(eltTypeFaces, "QUAD"); nt2 = 4; fPtr = fPYRA; 
-  }
-  else if (K_STRING::cmp(eltType, "NGON") == 0)
-  {
-    type = 2; strcpy(eltTypeFaces, "NGON");
-  }
-  else
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "subzone: element type not taken into account.");
-    RELEASESHAREDU(array, f, cn); return NULL;
-  }
   E_Int nfld = f->getNfld(); E_Int npts = f->getSize();
-  if (type == 0) // Basic faces
-  {    
-    FldArrayI* c2n = new FldArrayI(n,nt2);
-    // Selectionne les faces subzonees
-    FldArrayI indirNodes(npts); indirNodes.setAllValuesAt(-1);
-    E_Int* indirNp = indirNodes.begin();
+  E_Int api = f->getApi();
 
-    E_Int ind, indElt, nof, indnode, indnodef;
-    indnodef = 0;
+  if (K_STRING::cmp(eltType, "NGON") == 0) // IN: NGON, OUT: NGON
+  {
+    E_Int nbnodes, fidx;
+    E_Int indedgen = 1;
+    E_Int npts2 = 0; E_Int sizeEF2 = 0;
+    
+    // Acces non universel sur les ptrs
+    E_Int* ngon = cn->getNGon();
+    E_Int* indPG = cn->getIndPG();
+    E_Int shift = 1;
+    if (api == 3) shift = 0;
+
+    // Calcul du nombre de points et aretes uniques dans la nouvelle
+    // connectivite
+    vector<E_Int> indirVertices(npts, -1);
+    // Les aretes sont hashees pour determiner le nombre unique d'aretes et
+    // construire la nouvelle connectivite 2D
+    vector<E_Int> edge(2);
+    std::pair<E_Int, E_Bool> initEdge(-1, false);
+    TopologyOpt E;
+    std::unordered_map<TopologyOpt, std::pair<E_Int, E_Bool>, JenkinsHash<TopologyOpt> > edgeMap;
+
+    // Loop over all faces to extract
     for (E_Int i = 0; i < n; i++)
     {
-      ind = faceListp[i]-1;
-      indElt = ind / nf;
-      nof = ind - indElt*nf;
-      // printf("elt=%d face=%d\n", indElt, nof);
-      for (E_Int v = 1; v <= nt2; v++)
-      { 
-        indnode = (*cn)(indElt, fPtr[nof*nt2+v-1])-1;
-        if (indirNp[indnode] == -1) 
-        {
-          indnodef += 1;
-          indirNp[indnode] = indnodef;
-          (*c2n)(i,v) = indnodef;
-        }
-        else 
-          (*c2n)(i,v) = indirNp[indnode];
-      }
-    }
-    
-    FldArrayF* f2 = new FldArrayF(indnodef, nfld);
-    E_Int indf;
-    for(E_Int eq = 1; eq <= nfld; eq++)
-    {
-      E_Float* fp = f->begin(eq);
-      E_Float* fnp = f2->begin(eq);
-      for (E_Int ind = 0; ind < npts; ind++)
+      fidx = faceListp[i]-1;
+      E_Int* face = cn->getFace(fidx, nbnodes, ngon, indPG);
+      sizeEF2 += nbnodes+shift;
+
+      // Loop over all edges of that face
+      for (E_Int j = 0; j < nbnodes; j++)
       {
-        indf = indirNp[ind]-1;
-        if (indf > -1) fnp[indf] = fp[ind];
+        edge[0] = face[j]-1; edge[1] = face[(j+1)%nbnodes]-1;
+        E.set(edge.data(), 2);
+        
+        // If indirection table is -1 for the first vertex, then first time
+        // this vertex is encountered. The second vertex will be dealt with
+        // when considering the next edge
+        if (indirVertices[edge[0]] == -1) indirVertices[edge[0]] = ++npts2;
+
+        // If the value associated with E is -1, then first time this edge
+        // is encountered, set to current unique edge count
+        auto resE = edgeMap.insert(std::make_pair(E, initEdge));
+        if (resE.first->second.first == -1)
+        {
+          resE.first->second.first = indedgen;
+          indedgen++;
+        }
       }
     }
-    // Build array 
-    PyObject* tpl = K_ARRAY::buildArray(*f2, varString, 
-                                        *c2n, -1, eltTypeFaces);
-    RELEASESHAREDU(array,f, cn);
-    delete f2; delete c2n;
+
+    // Construction des nouvelles connectivites Elmt/Faces et Face/Noeuds
+    E_Int nfaces2 = edgeMap.size();
+    E_Int sizeFN2 = (2+shift)*nfaces2;
+    E_Int nelts2 = n;
+    
+    E_Int ngonType = 1; // CGNSv3 compact array1
+    if (api == 2) ngonType = 2; // CGNSv3, array2
+    else if (api == 3) ngonType = 3; // force CGNSv4, array3
+    E_Boolean center = false;
+    PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts2, nelts2,
+                                         nfaces2, "NGON", sizeFN2, sizeEF2,
+                                         ngonType, center, api);
+    FldArrayF* f2; FldArrayI* cn2;
+    K_ARRAY::getFromArray3(tpl, f2, cn2);
+    E_Int* ngon2 = cn2->getNGon();
+    E_Int* nface2 = cn2->getNFace();
+    E_Int *indPG2 = NULL, *indPH2 = NULL;
+    if (api == 2 || api == 3)
+    {
+      indPG2 = cn2->getIndPG(); indPH2 = cn2->getIndPH();
+    }
+
+    E_Int c1 = 0, c2 = 0; // positions in ngon2 and nface2
+    for (E_Int i = 0; i < nelts2; i++)
+    {
+      fidx = faceListp[i]-1;
+      E_Int* face = cn->getFace(fidx, nbnodes, ngon, indPG);
+      nface2[c2] = nbnodes;
+      if (api == 2 || api == 3) indPH2[i] = nbnodes;
+
+      for (E_Int p = 0; p < nbnodes; p++)
+      {
+        edge[0] = face[p]-1; edge[1] = face[(p+1)%nbnodes]-1;
+        E.set(edge.data(), 2);
+        // Find the edge in the edge map
+        auto resE = edgeMap.find(E);
+        if (not resE->second.second)
+        {
+          resE->second.second = true;
+          ngon2[c1] = 2;
+          ngon2[c1+shift] = indirVertices[edge[0]];
+          ngon2[c1+1+shift] = indirVertices[edge[1]];
+          c1 += 2+shift;
+        }
+        nface2[c2+p+shift] = resE->second.first;
+      }
+      c2 += nbnodes+shift;
+    }
+
+    #pragma omp parallel
+    {
+      E_Int indv;
+      if (api == 2 || api == 3)
+      {
+        #pragma omp for
+        for(E_Int i = 0; i < nfaces2; i++) indPG2[i] = 2;
+      }
+    
+      for(E_Int eq = 1; eq <= nfld; eq++)
+      {
+        E_Float* fp = f->begin(eq);
+        E_Float* f2p = f2->begin(eq);
+        #pragma omp for
+        for (E_Int ind = 0; ind < npts; ind++)
+        {
+          indv = indirVertices[ind]-1;
+          if (indv > -1) f2p[indv] = fp[ind];
+        }
+      }
+    }
+
+    RELEASESHAREDU(array, f, cn);
+    RELEASESHAREDU(tpl, f2, cn2);
     return tpl;
   }
+  else // Basic faces
+  {    
+    E_Int ierr, vidx, fidx, eidx, fic, nfpe, nvpf, nfaces, nelts;
+    
+    vector<char*> eltTypes;
+    K_ARRAY::extractVars(eltType, eltTypes);
+    // facetspc: list of facets per connectivity
+    E_Int nc = cn->getNConnect();
+    vector<vector<vector<E_Int> > > facetspc(nc);
 
-  else if (type == 2) // IN: NGON, OUT: NGON
-  {
-    E_Int* ptr = cn->begin();
-    //E_Int sizeFN = ptr[1]; ptr += 2; 
-    //E_Int ne = ptr[sizeFN]; // ncnmbre d'elements pour la connectivite cn
-    E_Int next1=0; // nbre de faces pour la nouvelle connectivite 
-    E_Int next2=0; // nbre d'elements pour la nouvelle connectivite
-    E_Int sizeco1=0; // taille de la nouvelle connectivite de faces 
-    E_Int sizeco2=0; // taille de la nouvelle connectivite d'elements 
-    E_Int nbnodes;
+    // Get dimensionality
+    E_Int dim = 3;
+    if (strcmp(eltTypes[0], "NODE") == 0) dim = 0;
+    else if (strcmp(eltTypes[0], "BAR") == 0) dim = 1;
+    else if (strcmp(eltTypes[0], "TRI") == 0 ||
+             strcmp(eltTypes[0], "QUAD") == 0) dim = 2;
 
-    E_Int pos, ind;
-    FldArrayI posFace;
-    K_CONNECT::getPosFaces(*cn, posFace);
-    E_Int* posFacep = posFace.begin();
-    for (E_Int i = 0; i < n; i++)
+    // Compute total number of faces and fill facets of ME
+    E_Int nfacesTot = 0;
+    // nfpc: number of faces per connectivity (cumulative)
+    vector<E_Int> nfpc(nc+1); nfpc[0] = 0; 
+    
+    for (E_Int ic = 0; ic < nc; ic++)
     {
-      ind = faceListp[i]-1;
-      pos = posFacep[ind];
-      ptr = cn->begin()+pos;
-      nbnodes = ptr[0];
-      sizeco1 += 3*nbnodes; next1 += nbnodes;
-      sizeco2 += nbnodes+1; next2++;
-    }
-
-    FldArrayI c2n(sizeco1+sizeco2+4);
-    E_Int* coutp = c2n.begin();
-    E_Int* ptro1 = coutp+2;
-    E_Int* ptro2 = coutp+4+sizeco1;
-    FldArrayI indirNodes(npts); indirNodes.setAllValuesAt(-1);
-    E_Int* indirNp = indirNodes.begin();
-    E_Int indnewface = 1;
-    E_Int indvertp1, indvertp2;
-    E_Int indvertn = 0;
-    vector< vector<E_Int> > indicesFaces(npts); // faces creees associees aux noeuds 
-
-    for (E_Int i = 0; i < n; i++)
-    {
-      ind = faceListp[i]-1;
-      pos = posFacep[ind];
-      ptr = cn->begin()+pos;
-      nbnodes = ptr[0];
-      
-      ptro2[0] = nbnodes;
-      for (E_Int p = 0; p < nbnodes; p++)
-      { 
-        ptro1[0] = 2;
-        indvertp1 = ptr[p+1]-1;
-        indvertp2 = ptr[(p+1)%(nbnodes)+1]-1;
-        vector<E_Int>& facesp1 = indicesFaces[indvertp1];
-        vector<E_Int>& facesp2 = indicesFaces[indvertp2];
-
-        // creation de la face P1P2 
-        E_Int foundFace = -1; 
-        if (facesp1.size() > 0 && facesp2.size() > 0) 
-        {
-          for (size_t fi = 0; fi < facesp1.size(); fi++)
-            for (size_t fj = 0; fj < facesp2.size(); fj++)
-            {
-              if (facesp1[fi] == facesp2[fj] ) 
-              {
-                foundFace = facesp1[fi]; 
-                break;
-              }
-              if (foundFace != -1) break;
-            }
-        }
-        if (foundFace == -1)
-        { 
-          if (indirNp[indvertp1] == -1) 
-          {
-            indvertn += 1;
-            indirNp[indvertp1] = indvertn;
-            ptro1[1] = indvertn;
-          }
-          else 
-          {
-            ptro1[1] = indirNp[indvertp1];
-          }
-        
-          if (indirNp[indvertp2] == -1) 
-          {
-            indvertn += 1;
-            indirNp[indvertp2] = indvertn;
-            ptro1[2] = indvertn;
-          }
-          else 
-          {
-            ptro1[2] = indirNp[indvertp2];
-          }
-          ptro1 += 3;
-
-          facesp1.push_back(indnewface); facesp2.push_back(indnewface);
-          ptro2[p+1] = indnewface; indnewface++;
-        }
-        else 
-        {
-          ptro2[p+1] = foundFace;
-        }
+      FldArrayI& cm = *(cn->getConnect(ic));
+      nelts = cm.getSize();
+      // fill the list of facets for this BE
+      ierr = K_CONNECT::getEVFacets(facetspc[ic], eltTypes[ic]);
+      if (ierr == 1)
+      {
+        PyErr_SetString(PyExc_TypeError,
+                        "subzone: element type not taken into account.");
+        for (E_Int ic = 0; ic < nc; ic++) delete [] eltTypes[ic];
+        RELEASESHAREDU(array, f, cn); return NULL;
       }
-      ptro2 += nbnodes+1;
-    }
-    FldArrayF* f2 = new FldArrayF(indvertn, nfld);
 
-#pragma omp parallel default(shared)
+      // number of faces for this connectivity is the product of the number
+      // of elements by the number of facets
+      nfaces = nelts*facetspc[ic].size();
+      nfpc[ic+1] = nfaces;
+      nfacesTot += nfaces;
+    }
+    //std::cout << "nfacesTot: " << nfacesTot << std::endl;
+    for (E_Int ic = 1; ic < nc+1; ic++) nfpc[ic] += nfpc[ic-1]; // cumulated
+
+    // Faces are hashed to build the new 2D connectivity
+    TopologyOpt F;
+    vector<E_Int> face(4);
+    struct FaceAttrs {
+      E_Int ic_; E_Int eidx_; E_Int fidx_;
+
+      FaceAttrs(E_Int ic, E_Int eidx, E_Int fidx):
+        ic_(ic), eidx_(eidx), fidx_(fidx) {}
+    };
+    std::map<TopologyOpt, FaceAttrs> faceMap; // std::map for reproducibility
+
+    // Loop over all faces to extract and fill the mapping table
+    E_Int npts2 = 0;
+    vector<E_Int> indirVertices(npts);
+
+    #pragma omp parallel for if (npts > __MIN_SIZE_MEAN__)
+    for (E_Int i = 0; i < npts; i++) indirVertices[i] = -1;
+
+    for (E_Int i = 0; i < n; i++)
     {
-      E_Int indf;
+      fidx = faceListp[i]-1; // global face indexing
+      fic = -1; // connectivity associated to this face index
+      for (E_Int j = 0; j < nc; j++)
+        if (fidx < nfpc[j+1]) { fic = j; break; }
+      if (fic == -1)
+      {
+        printf("Warning: subzone: face index " SF_D_ " is larger than the "
+               "total number of faces: " SF_D_ ". Skipping...\n", fidx+1, nfacesTot);
+        continue;
+      }
+      fidx -= nfpc[fic]; // face indexing relative to this connectivity
+      nfpe = facetspc[fic].size();
+      eidx = fidx/nfpe; fidx = fidx%nfpe; // relative to the element eidx
+
+      FldArrayI& cm = *(cn->getConnect(fic));
+
+      // Loop over vertices of the facet
+      const vector<E_Int>& facet = facetspc[fic][fidx];
+      nvpf = facet.size();
+      for (E_Int j = 0; j < nvpf; j++)
+      {
+        vidx = cm(eidx, facet[j])-1;
+        if (indirVertices[vidx] == -1) indirVertices[vidx] = ++npts2;
+        face[j] = indirVertices[vidx];
+      }
+      F.set(face.data(), nvpf);
+      faceMap.insert({F, FaceAttrs(fic, eidx, fidx)});
+    }
+
+    // Build new BE connectivity
+    E_Int nelts2 = faceMap.size();
+    E_Boolean center = false;
+    char eltTypeFaces[10];
+    if (dim == 1) strcpy(eltTypeFaces, "NODE");
+    else if (dim == 2) strcpy(eltTypeFaces, "BAR");
+    else if (strcmp(eltTypes[0], "TETRA") == 0) strcpy(eltTypeFaces, "TRI");
+    else strcpy(eltTypeFaces, "QUAD");
+    PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts2, nelts2,
+                                         eltTypeFaces, center, api);
+    FldArrayF* f2; FldArrayI* cn2;
+    K_ARRAY::getFromArray3(tpl, f2, cn2);
+    FldArrayI& cm2 = *(cn2->getConnect(0));
+
+    // Copy connectivity to cn2
+    eidx = 0;
+    E_Int indv;
+    for (const auto& face : faceMap)
+    {
+      nvpf = face.first.n_;
+      FaceAttrs fattrs = face.second;
+      FldArrayI& cm = *(cn->getConnect(fattrs.ic_));
+      const vector<E_Int>& facet = facetspc[fattrs.ic_][fattrs.fidx_];
+      
+      for (E_Int j = 0; j < nvpf; j++)
+      {
+        indv = cm(fattrs.eidx_,facet[j])-1;
+        cm2(eidx,j+1) = indirVertices[indv];
+      }
+      eidx++;
+    }
+    
+    #pragma omp parallel if (npts > __MIN_SIZE_MEAN__)
+    {
+      E_Int indv;
+      // Copy fields to f2
       for (E_Int eq = 1; eq <= nfld; eq++)
       {
         E_Float* fp = f->begin(eq);
-        E_Float* fnp = f2->begin(eq);
-#pragma omp for
-        for (E_Int ind = 0; ind < npts; ind++)
+        E_Float* f2p = f2->begin(eq);
+        #pragma omp for
+        for (E_Int i = 0; i < npts; i++)
         {
-          indf = indirNp[ind]-1;
-          if (indf > -1) fnp[indf] = fp[ind];
+          indv = indirVertices[i]-1;
+          if (indv > -1) f2p[indv] = fp[i];
         }
       }
     }
-    // Cree la nouvelle connectivite complete
-    E_Int nbFaces = indnewface-1;
-    E_Int sizeFN = nbFaces*3;
-    E_Int nbElts = next2;
-    E_Int sizeEF = sizeco2;
-    FldArrayI* cnout = new FldArrayI(sizeFN+sizeEF+4);
-    E_Int* cnoutp = cnout->begin();
-    ptro1 = c2n.begin()+2;
-    ptro2 = c2n.begin()+4+sizeco1;
-    cnoutp[0] = nbFaces; // nombre de faces
-    cnoutp[1] = sizeFN; // taille du tableau de faces
-    cnoutp += 2;
-    E_Int* cnoute = cnoutp + sizeFN;
-    cnoute[0] = nbElts; 
-    cnoute[1] = sizeEF;
-    cnoute += 2;
 
-#pragma omp parallel default(shared)
-    {
-#pragma omp for
-      for (E_Int i = 0; i < sizeFN; i++) cnoutp[i] = ptro1[i];
-#pragma omp for
-      for (E_Int i = 0; i < sizeEF; i++) cnoute[i] = ptro2[i];
-    }
-    // Build array 
-    PyObject* tpl = K_ARRAY::buildArray(*f2, varString, 
-                                        *cnout, -1, eltTypeFaces);
-    RELEASESHAREDU(array,f, cn);
-    delete f2; delete cnout;
+    for (E_Int ic = 0; ic < nc; ic++) delete [] eltTypes[ic];
+    RELEASESHAREDU(tpl, f2, cn2);
+    RELEASESHAREDU(array, f, cn);
     return tpl;
   }
-  else if (type == 1)
-    PyErr_SetString(PyExc_TypeError,
-                    "subzone: not implemented.\n");
 
   RELEASESHAREDU(array, f, cn);
   return NULL;
@@ -1571,8 +1562,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
 {
   PyObject *arrayNodes, *arrayCenters;
   PyObject* listOfFaces;
-  if (!PYPARSETUPLE_(args, OOO_,
-                        &arrayNodes, &arrayCenters, &listOfFaces))
+  if (!PYPARSETUPLE_(args, OOO_, &arrayNodes, &arrayCenters, &listOfFaces))
   {
     return NULL;
   }
@@ -1591,7 +1581,8 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(arrayNodes, varString, f, im, jm, km, cn, eltType, true); 
+  E_Int res = K_ARRAY::getFromArray3(arrayNodes, varString, f,
+                                     im, jm, km, cn, eltType); 
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -1602,14 +1593,15 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzone: cannot be used on a structured array.");
-    RELEASESHAREDS(arrayNodes,f); return NULL;
+    RELEASESHAREDS(arrayNodes, f); return NULL;
   }
   
   // Check array of centers
   E_Int imc, jmc, kmc;
   FldArrayF* fc; FldArrayI* cnc;
   char* varStringc; char* eltTypec;
-  E_Int resc = K_ARRAY::getFromArray(arrayCenters, varStringc, fc, imc, jmc, kmc, cnc, eltTypec, true); 
+  E_Int resc = K_ARRAY::getFromArray3(arrayCenters, varStringc, fc,
+                                      imc, jmc, kmc, cnc, eltTypec); 
   if (resc != 1 && resc != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -1620,401 +1612,414 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzone: cannot be used on a structured array.");
-    RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDS(arrayCenters,fc); return NULL;
+    RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDS(arrayCenters, fc); return NULL;
   }
 
   E_Int n = faceList.getSize();
   E_Int* faceListp = faceList.begin();
-  E_Int nf, nt2;
-
-  char eltTypeFaces[10];
-  int fBAR[] = { 
-    1, 
-    2 };
-  int fTRI[] = {
-    1, 2,
-    2, 3,
-    3, 1 };
-  int fQUAD[] = {
-    1, 2,
-    2, 3,
-    3, 4,
-    4, 1 };
-  int fTETRA[] = {
-    1, 3, 2,
-    1, 2, 4,
-    2, 3, 4,
-    3, 1, 4 };
-
-  int fPENTA[] = {
-    1, 2, 5, 4,
-    2, 3, 6, 5,
-    3, 1, 4, 6,
-    1, 3, 2, 1,
-    4, 5, 6, 4
-  };
-  int fPYRA[] = {
-    1, 4, 3, 2,
-    1, 2, 5, 1,
-    2, 3, 5, 2,
-    3, 4, 5, 3,
-    4, 1, 5, 4
-  };  
-
-  int fHEXA[] = {
-    1, 4, 3, 2,
-    1, 2, 6, 5,
-    2, 3, 7, 6,
-    3, 4, 8, 7,
-    1, 5, 8, 4,
-    5, 6, 7, 8 };
-  
-  int* fPtr = NULL; E_Int type = 0;
-  nt2 = 0; nf = 0;
-  // nf: nbre de faces de l'element d'entree
-  // eltTypeFaces: type de l'element de sortie (face de l'elt d'entree)
-  // nt2: nbre de noeuds de l'element de sortie
-  // type=0 (les faces de sortie est a elements basiques
-  // type=1 (entree: elements basiques, sortie: NGONS)
-  // type=2 (entree: NGON, sortie: NGON)
-  if (K_STRING::cmp(eltType, "BAR") == 0)
-  {
-    type = 0; nf = 2; strcpy(eltTypeFaces, "NODE"); nt2 = 1; fPtr = fBAR;
-  }
-  else if (K_STRING::cmp(eltType, "TRI") == 0)
-  {
-    type = 0; nf = 3; strcpy(eltTypeFaces, "BAR"); nt2 = 2; fPtr = fTRI;
-  }
-  else if (K_STRING::cmp(eltType, "QUAD") == 0)
-  {
-    type = 0; nf = 4; strcpy(eltTypeFaces, "BAR"); nt2 = 2; fPtr = fQUAD;
-  }
-  else if (K_STRING::cmp(eltType, "TETRA") == 0)
-  {
-    type = 0; nf = 4; strcpy(eltTypeFaces, "TRI"); nt2 = 3; fPtr = fTETRA;
-  }
-  else if (K_STRING::cmp(eltType, "HEXA") == 0)
-  {
-    type = 0; nf = 6; strcpy(eltTypeFaces, "QUAD"); nt2 = 4; fPtr = fHEXA;
-  }
-  else if (K_STRING::cmp(eltType, "PENTA") == 0)
-  {
-    //type = 1; nf = 5; strcpy(eltTypeFaces, "NGON");
-    type = 0; nf = 5; strcpy(eltTypeFaces, "QUAD"); nt2 = 4; fPtr = fPENTA;
-  }
-  else if (K_STRING::cmp(eltType, "PYRA") == 0)
-  {
-    //type = 1; nf = 5; strcpy(eltTypeFaces, "NGON");
-    type = 0; nf = 5; strcpy(eltTypeFaces, "QUAD"); nt2 = 4; fPtr = fPYRA; 
-  }
-  else if (K_STRING::cmp(eltType, "NGON") == 0)
-  {
-    type = 2; strcpy(eltTypeFaces, "NGON");
-  }
-  else
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "subzone: element type not taken into account.");
-    RELEASESHAREDU(arrayNodes,f, cn); RELEASESHAREDU(arrayCenters, fc, cnc); return NULL;
-  }
-  E_Int nfld = f->getNfld(); E_Int npts = f->getSize();
-  E_Int nfldc = fc->getNfld();
+  E_Int nfld = f->getNfld(); E_Int nfldc = fc->getNfld();
+  E_Int npts = f->getSize(); E_Int api = f->getApi();
   PyObject* l = PyList_New(0);
 
-  if (type == 0) // Basic faces
-  { 
-    E_Int nvert = cn->getNfld();
-    FldArrayF* fc2 = new FldArrayF(n, nfldc);
-    FldArrayI* c2n = new FldArrayI(n,nt2);
-    // Selectionne les faces subzonees
-    FldArrayI indirNodes(npts); indirNodes.setAllValuesAt(-1);
-    E_Int* indirNp = indirNodes.begin();
-    vector< vector<E_Int> > cVE(npts);
-    K_CONNECT::connectEV2VE(*cn, cVE);
-    E_Int ind, indElt, nof, indnode, indnodef, sizeVE1, eltV, eltOpp, match, indnode2;
-    indnodef = 0;
-    for (E_Int i = 0; i < n; i++)
-    {
-      ind = faceListp[i]-1;
-      indElt = ind / nf;
-      nof = ind - indElt*nf;
-      // printf("elt=%d face=%d\n", indElt, nof);
-      
-      // Determination du 2e elt partageant cette face
-      // on prend le 1er noeud de la face + recup des elts contenant ce noeud
-      indnode = (*cn)(indElt, fPtr[nof*nt2])-1;
-      vector<E_Int>& cVE1 = cVE[indnode];
-      sizeVE1 = cVE1.size();
-      eltOpp = -1;
-      for (E_Int ve = 0; ve < sizeVE1; ve++)
-      {
-        eltV = cVE1[ve]; 
-        if ( eltV != indElt)
-        {
-          match = 0;
-          for (E_Int v = 1; v <= nt2; v++)
-          {
-            indnode = (*cn)(indElt,fPtr[nof*nt2+v-1])-1;
-            for (E_Int nodei = 1; nodei <= nvert; nodei++)
-            {
-              indnode2 = (*cn)(eltV, nodei)-1;
-              if (indnode == indnode2) { match++; break; }
-            }
-          }
-          if (match == nt2){ eltOpp = eltV; break;}
-        }
-      }
-      if ( eltOpp == -1) //pas d elt voisin trouve
-      {
-        for (E_Int eq = 1; eq <= nfldc; eq++)
-          (*fc2)(i,eq) = (*fc)(indElt,eq); 
-      }
-      else 
-      {
-        for (E_Int eq = 1; eq <= nfldc; eq++)
-          (*fc2)(i,eq) = 0.5*((*fc)(indElt,eq)+(*fc)(eltOpp,eq)); 
-      }
-      // Creation de la connectivite pour la face creee
-      for (E_Int v = 1; v <= nt2; v++)
-      { 
-        indnode = (*cn)(indElt, fPtr[nof*nt2+v-1])-1;
-        if (indirNp[indnode] == -1) 
-        {
-          indnodef += 1;
-          indirNp[indnode] = indnodef;
-          (*c2n)(i,v) = indnodef;
-        }
-        else 
-          (*c2n)(i,v) = indirNp[indnode];
-      }
-    }
-    
-    FldArrayF* f2 = new FldArrayF(indnodef, nfld);
-    E_Int indf;
-    for(E_Int eq = 1; eq <= nfld; eq++)
-    {
-      E_Float* fp = f->begin(eq);
-      E_Float* fnp = f2->begin(eq);
-      for (E_Int ind = 0; ind < npts; ind++)
-      {
-        indf = indirNp[ind]-1;
-        if (indf > -1) fnp[indf] = fp[ind];
-      }
-    }
-    // Build array 
-    PyObject* tpln = K_ARRAY::buildArray(*f2, varString, 
-                                         *c2n, -1, eltTypeFaces);
-    PyList_Append(l, tpln); Py_DECREF(tpln); delete f2;
-    RELEASESHAREDU(arrayNodes,f, cn);RELEASESHAREDU(arrayCenters, fc, cnc); 
-    FldArrayI* cncout = new FldArrayI(); *cncout = *c2n;
-    PyObject* tplc = K_ARRAY::buildArray(*fc2, varStringc, 
-                                         *cncout, -1, eltTypeFaces, true);
-    PyList_Append(l, tplc); Py_DECREF(tplc); delete fc2;  delete cncout; delete c2n;
-    return l;
-  }
-  else if (type == 2) // IN: NGON, OUT: NGON
+  if (K_STRING::cmp(eltType, "NGON") == 0) // IN: NGON, OUT: NGON
   {
-    E_Int* ptr = cn->begin();
-    E_Int nfacesTot = ptr[0];
-    E_Int sizeFN = ptr[1]; ptr += 2; 
-    E_Int ne = ptr[sizeFN]; // nombre d'elements pour la connectivite cn
-    E_Int nfaces2=0; // nbre de faces pour la nouvelle connectivite 
-    E_Int nelts2=0; // nbre d'elements pour la nouvelle connectivite
-    E_Int sizeFN2=0; // taille de la nouvelle connectivite de faces 
-    E_Int sizeEF2=0; // taille de la nouvelle connectivite d'elements 
+    E_Int nbnodes, fidx, nf;
+    E_Int indedgen = 1;
+    E_Int npts2 = 0; E_Int sizeEF2 = 0;
+    
+    // Acces non universel sur les ptrs
+    E_Int* ngon = cn->getNGon(); E_Int* nface = cn->getNFace();
+    E_Int* indPG = cn->getIndPG(); E_Int* indPH = cn->getIndPH();
+    E_Int shift = 1;
+    E_Int nelts = cn->getNElts(); E_Int nfaces = cn->getNFaces();
+    if (api == 3) shift = 0;
 
-    FldArrayI posFace;
-    K_CONNECT::getPosFaces(*cn, posFace);
-    E_Int* posFacep = posFace.begin();
-    E_Int ind, pos, nf, nbnodes;
+    // Calcul du nombre de points et aretes uniques dans la nouvelle
+    // connectivite
+    vector<E_Int> indirVertices(npts, -1);
+    // Les aretes sont hashees pour determiner le nombre unique d'aretes et
+    // construire la nouvelle connectivite 2D
+    vector<E_Int> edge(2);
+    std::pair<E_Int, E_Bool> initEdge(-1, false);
+    TopologyOpt E;
+    std::unordered_map<TopologyOpt, std::pair<E_Int, E_Bool>, JenkinsHash<TopologyOpt> > edgeMap;
+
+    // Loop over all faces to extract
     for (E_Int i = 0; i < n; i++)
     {
-      ind = faceListp[i]-1;
-      pos = posFacep[ind];
-      ptr = cn->begin()+pos;
-      nbnodes = ptr[0];
-      sizeFN2 += 3*nbnodes; nfaces2 += nbnodes;
-      sizeEF2 += nbnodes+1; nelts2++;
+      fidx = faceListp[i]-1;
+      E_Int* face = cn->getFace(fidx, nbnodes, ngon, indPG);
+      sizeEF2 += nbnodes+shift;
+
+      // Loop over all edges of that face
+      for (E_Int j = 0; j < nbnodes; j++)
+      {
+        edge[0] = face[j]-1; edge[1] = face[(j+1)%nbnodes]-1;
+        E.set(edge.data(), 2);
+        
+        // If indirection table is -1 for the first vertex, then first time
+        // this vertex is encountered. The second vertex will be dealt with
+        // when considering the next edge
+        if (indirVertices[edge[0]] == -1) indirVertices[edge[0]] = ++npts2;
+
+        // If the value associated with E is -1, then first time this edge
+        // is encountered, set to current unique edge count
+        auto resE = edgeMap.insert(std::make_pair(E, initEdge));
+        if (resE.first->second.first == -1)
+        {
+          resE.first->second.first = indedgen;
+          indedgen++;
+        }
+      }
     }
 
-    FldArrayI c2n(sizeFN2+sizeEF2+4);
-    E_Int* coutp = c2n.begin();
-    E_Int* ptro1 = coutp+2;
-    E_Int* ptro2 = coutp+4+sizeFN2;
-    FldArrayI indirNodes(npts); indirNodes.setAllValuesAt(-1);
-    E_Int* indirNp = indirNodes.begin();
-    E_Int indnewface = 1;
-    E_Int indvertp1, indvertp2;
-    E_Int indvertn = 0;
-    vector< vector<E_Int> > indicesFaces(npts);// faces creees associees aux noeuds 
+    // Construction des nouvelles connectivites Elmt/Faces et Face/Noeuds
+    E_Int nfaces2 = edgeMap.size();
+    E_Int sizeFN2 = (2+shift)*nfaces2;
+    E_Int nelts2 = n;
     
-    E_Int* ptrNF = cn->begin()+sizeFN+4;
-    FldArrayI parentElts(nfacesTot,2); parentElts.setAllValuesAtNull();
-    E_Int* PE1 = parentElts.begin(1);
-    E_Int* PE2 = parentElts.begin(2);
-    for (E_Int i = 0; i < ne; i++)
+    E_Int ngonType = 1; // CGNSv3 compact array1
+    if (api == 2) ngonType = 2; // CGNSv3, array2
+    else if (api == 3) ngonType = 3; // force CGNSv4, array3
+    E_Boolean center = false;
+    PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts2, nelts2,
+                                         nfaces2, "NGON", sizeFN2, sizeEF2,
+                                         ngonType, center, api);
+    FldArrayF* f2; FldArrayI* cn2;
+    K_ARRAY::getFromArray3(tpl, f2, cn2);
+    E_Int* ngon2 = cn2->getNGon();
+    E_Int* nface2 = cn2->getNFace();
+    E_Int *indPG2 = NULL, *indPH2 = NULL;
+    if (api == 2 || api == 3)
     {
-      nf = ptrNF[0];
-      for (E_Int j = 1; j <= nf; j++)
+      indPG2 = cn2->getIndPG(); indPH2 = cn2->getIndPH();
+    }
+
+    E_Int c1 = 0, c2 = 0; // positions in ngon2 and nface2
+    for (E_Int i = 0; i < nelts2; i++)
+    {
+      fidx = faceListp[i]-1;
+      E_Int* face = cn->getFace(fidx, nbnodes, ngon, indPG);
+      nface2[c2] = nbnodes;
+      if (api == 2 || api == 3) indPH2[i] = nbnodes;
+
+      for (E_Int p = 0; p < nbnodes; p++)
       {
-        ind = ptrNF[j]-1;
+        edge[0] = face[p]-1; edge[1] = face[(p+1)%nbnodes]-1;
+        E.set(edge.data(), 2);
+        // Find the edge in the edge map
+        auto resE = edgeMap.find(E);
+        if (not resE->second.second)
+        {
+          resE->second.second = true;
+          ngon2[c1] = 2;
+          ngon2[c1+shift] = indirVertices[edge[0]];
+          ngon2[c1+1+shift] = indirVertices[edge[1]];
+          c1 += 2+shift;
+        }
+        nface2[c2+p+shift] = resE->second.first;
+      }
+      c2 += nbnodes+shift;
+    }
+
+    // Build parent elements array to compute face-centered data from
+    // cell-centered data
+    FldArrayI parentElts(nfaces, 2); parentElts.setAllValuesAtNull();
+    E_Int* PE1 = parentElts.begin(1); E_Int* PE2 = parentElts.begin(2);
+    for (E_Int i = 0; i < nelts; i++)
+    {
+      E_Int* elem = cn->getElt(i, nf, nface, indPH);
+      for (E_Int j = 0; j < nf; j++)
+      {
+        E_Int ind = elem[j]-1;
         if (PE1[ind] == 0) PE1[ind] = i+1;
         else PE2[ind] = i+1;
       }
-      ptrNF += nf+1;
     }
-    FldArrayF* fc2 = new FldArrayF(n, nfldc);
 
-#pragma omp parallel default(shared)
+    FldArrayF* fc2 = new FldArrayF(nelts2, nfldc);
+    #pragma omp parallel
     {
-      E_Int indf, etg, etd;
-      for (E_Int eq = 1; eq <= nfldc; eq++)
+      E_Int indv, indf, etg, etd;
+      if (api == 2 || api == 3)
       {
-        E_Float* fp2l = fc2->begin(eq);
-        E_Float* fpl = fc->begin(eq);
-#pragma omp for
-        for (E_Int i = 0; i < n; i++)
+        #pragma omp for
+        for(E_Int i = 0; i < nfaces2; i++) indPG2[i] = 2;
+      }
+    
+      for(E_Int eq = 1; eq <= nfld; eq++)
+      {
+        E_Float* fp = f->begin(eq);
+        E_Float* f2p = f2->begin(eq);
+        
+        #pragma omp for
+        for (E_Int ind = 0; ind < npts; ind++)
         {
-          indf = faceListp[i]-1;
+          indv = indirVertices[ind]-1;
+          if (indv > -1) f2p[indv] = fp[ind];
+        }
+      }
+
+      for(E_Int eq = 1; eq <= nfldc; eq++)
+      {
+        E_Float* fcp = fc->begin(eq);
+        E_Float* fc2p = fc2->begin(eq);
+
+        #pragma omp for
+        for (E_Int ind = 0; ind < nelts2; ind++)
+        {
+          indf = faceListp[ind]-1;
           etg = PE1[indf]; etd = PE2[indf];
-          if (etg > 0 && etd > 0 )
-            fp2l[i] = 0.5*(fpl[etg-1]+fpl[etd-1]);
-          else if (etg==0 && etd>0)
-            fp2l[i] = fpl[etd-1];        
-          else if (etg>0 && etd==0) 
-            fp2l[i] = fpl[etg-1];        
+          if (etd > 0) fc2p[ind] = 0.5*(fcp[etg-1] + fcp[etd-1]);
+          else fc2p[ind] = fcp[etg-1];        
         }
       }
     }
-    parentElts.malloc(0);
 
+    parentElts.malloc(0);
+    RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDU(arrayCenters, fc, cnc);
+
+    // Build array
+    PyList_Append(l, tpl);
+    FldArrayI* cnc2 = new FldArrayI(); *cnc2 = *cn2;
+    PyObject* tplc = K_ARRAY::buildArray3(*fc2, varStringc, *cnc2, "NGON", api);
+    PyList_Append(l, tplc); Py_DECREF(tplc); delete fc2;
+    RELEASESHAREDU(tpl, f2, cn2);
+    return l;
+  }
+  else // Basic faces
+  {
+    E_Int ierr, vidx, fidx, eidx, fic, nfpe, nvpf, nfaces, nelts;
+    
+    vector<char*> eltTypes;
+    K_ARRAY::extractVars(eltType, eltTypes);
+    // facetspc: list of facets per connectivity
+    E_Int nc = cn->getNConnect();
+    vector<vector<vector<E_Int> > > facetspc(nc);
+
+    // Get dimensionality
+    E_Int dim = 3;
+    if (strcmp(eltTypes[0], "NODE") == 0) dim = 0;
+    else if (strcmp(eltTypes[0], "BAR") == 0) dim = 1;
+    else if (strcmp(eltTypes[0], "TRI") == 0 ||
+             strcmp(eltTypes[0], "QUAD") == 0) dim = 2;
+
+    // Compute total number of faces and fill facets of ME
+    E_Int nfacesTot = 0;
+    // nfpc: number of faces per connectivity (cumulative)
+    vector<E_Int> nfpc(nc+1); nfpc[0] = 0; 
+    
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      FldArrayI& cm = *(cn->getConnect(ic));
+      nelts = cm.getSize();
+      // fill the list of facets for this BE
+      ierr = K_CONNECT::getEVFacets(facetspc[ic], eltTypes[ic]);
+      if (ierr == 1)
+      {
+        PyErr_SetString(PyExc_TypeError,
+                        "subzone: element type not taken into account.");
+        for (E_Int ic = 0; ic < nc; ic++) delete [] eltTypes[ic];
+        RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDU(arrayCenters, fc, cnc);
+        return NULL;
+      }
+
+      // number of faces for this connectivity is the product of the number
+      // of elements by the number of facets
+      nfaces = nelts*facetspc[ic].size();
+      nfpc[ic+1] = nfaces;
+      nfacesTot += nfaces;
+    }
+    for (E_Int ic = 1; ic < nc+1; ic++) nfpc[ic] += nfpc[ic-1]; // cumulated
+
+    // Build parent elements array to compute face-centered data from
+    // cell-centered data
+    vector<vector<E_Int> > parentElts(2);
+    parentElts[0].resize(nfacesTot); parentElts[1].resize(nfacesTot);
+    auto pe1 = parentElts[0].begin();
+    auto pe2 = parentElts[1].begin();
+
+    // Faces are hashed to build the new 2D connectivity
+    TopologyOpt F;
+    vector<E_Int> face(4);
+    struct FaceAttrs {
+      E_Int ic_; E_Int eidx_; E_Int fidx_; E_Int glbFidx_;
+
+      FaceAttrs(E_Int ic, E_Int eidx, E_Int fidx, E_Int glbFidx):
+        ic_(ic), eidx_(eidx), fidx_(fidx), glbFidx_(glbFidx) {}
+    };
+    //std::unordered_map<TopologyOpt, FaceAttrs, JenkinsHash<TopologyOpt> > faceMap;
+    std::map<TopologyOpt, FaceAttrs> faceMap; // std::map for reproducibility
+
+    // Loop over all faces to extract and fill the indirection table
+    E_Int npts2 = 0;
+    vector<E_Int> indirVertices(npts);
+
+    #pragma omp parallel if (npts > __MIN_SIZE_MEAN__)
+    {
+      #pragma omp for
+      for (E_Int i = 0; i < npts; i++) indirVertices[i] = -1;
+      #pragma omp for
+      for (E_Int i = 0; i < nfacesTot; i++) { pe1[i] = -1; pe2[i] = -1; }
+    }
+
+    // Loop over all faces to select
     for (E_Int i = 0; i < n; i++)
     {
-      ind = faceListp[i]-1;
-      pos = posFacep[ind];
-      ptr = cn->begin()+pos;
-      nbnodes = ptr[0];
-      
-      ptro2[0] = nbnodes;
-      for (E_Int p = 0; p < nbnodes; p++)
-      { 
-        ptro1[0] = 2;
-        indvertp1 = ptr[p+1]-1;
-        indvertp2 = ptr[(p+1)%(nbnodes)+1]-1;
-        vector<E_Int>& facesp1 = indicesFaces[indvertp1];
-        vector<E_Int>& facesp2 = indicesFaces[indvertp2];
-
-        //creation de la face P1P2 
-        E_Int foundFace = -1; 
-        if (facesp1.size() > 0 && facesp2.size() > 0) 
-        {
-          for (size_t fi = 0; fi < facesp1.size(); fi++)
-            for (size_t fj = 0; fj < facesp2.size(); fj++)
-            {
-              if (facesp1[fi] == facesp2[fj] ) 
-              {
-                foundFace = facesp1[fi]; 
-                break;
-              }
-              if (foundFace != -1) break;
-            }        
-        }
-        if (foundFace == -1)
-        { 
-          if (indirNp[indvertp1] == -1) 
-          {
-            indvertn += 1;
-            indirNp[indvertp1] = indvertn;
-            ptro1[1] = indvertn;
-          }
-          else 
-          {
-            ptro1[1] = indirNp[indvertp1];
-          }
-        
-          if (indirNp[indvertp2] == -1) 
-          {
-            indvertn += 1;
-            indirNp[indvertp2] = indvertn;
-            ptro1[2] = indvertn;
-          }
-          else 
-          {
-            ptro1[2] = indirNp[indvertp2];
-          }
-          ptro1 += 3;
-
-          facesp1.push_back(indnewface); facesp2.push_back(indnewface);
-          ptro2[p+1] = indnewface; indnewface++;
-        }
-        else 
-        {
-          ptro2[p+1] = foundFace;
-        }
+      E_Int indf = faceListp[i]-1; // global face indexing
+      fic = -1; // connectivity associated to this face index
+      for (E_Int j = 0; j < nc; j++)
+        if (indf < nfpc[j+1]) { fic = j; break; }
+      if (fic == -1)
+      {
+        printf("Warning: subzone: face index " SF_D_ " is larger than the "
+               "total number of faces: " SF_D_ ". Skipping...\n", indf+1, nfacesTot);
+        continue;
       }
-      ptro2 += nbnodes+1;
-    }
-    posFace.malloc(0);
-    for (E_Int i = 0; i < npts; i++)
-      indicesFaces[i].clear();
-    indicesFaces.clear();
-    FldArrayF* f2 = new FldArrayF(indvertn, nfld);
+      fidx = indf - nfpc[fic]; // face indexing relative to this connectivity
+      nfpe = facetspc[fic].size();
+      eidx = fidx/nfpe; fidx = fidx%nfpe; // relative to the element eidx
 
-#pragma omp parallel default(shared)
+      FldArrayI& cm = *(cn->getConnect(fic));
+
+      // Loop over vertices of the facet
+      const vector<E_Int>& facet = facetspc[fic][fidx];
+      nvpf = facet.size();
+      for (E_Int j = 0; j < nvpf; j++)
+      {
+        vidx = cm(eidx, facet[j])-1;
+        if (indirVertices[vidx] == -1) { indirVertices[vidx] = ++npts2; }
+        face[j] = indirVertices[vidx];
+      }
+      F.set(face.data(), nvpf);
+      auto resF = faceMap.insert({F, FaceAttrs(fic, eidx, fidx, indf)});
+      if (resF.second) pe1[indf] = eidx+1;
+      else pe2[resF.first->second.glbFidx_] = eidx+1;
+    }
+
+    // Build new BE connectivity
+    E_Int nelts2 = faceMap.size();
+    E_Boolean center = false;
+    char eltTypeFaces[10];
+    if (dim == 1) strcpy(eltTypeFaces, "NODE");
+    else if (dim == 2) strcpy(eltTypeFaces, "BAR");
+    else if (strcmp(eltTypes[0], "TETRA") == 0) strcpy(eltTypeFaces, "TRI");
+    else strcpy(eltTypeFaces, "QUAD");
+    PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts2, nelts2,
+                                         eltTypeFaces, center, api);
+    FldArrayF* f2; FldArrayI* cn2;
+    K_ARRAY::getFromArray3(tpl, f2, cn2);
+    FldArrayI& cm2 = *(cn2->getConnect(0));
+
+    // Copy connectivity to cn2
+    eidx = 0;
+    E_Int indv;
+    for (const auto& face : faceMap)
     {
-      E_Int indf;
+      nvpf = face.first.n_;
+      FaceAttrs fattrs = face.second;
+      FldArrayI& cm = *(cn->getConnect(fattrs.ic_));
+      const vector<E_Int>& facet = facetspc[fattrs.ic_][fattrs.fidx_];
+      
+      for (E_Int j = 0; j < nvpf; j++)
+      {
+        indv = cm(fattrs.eidx_,facet[j])-1;
+        cm2(eidx,j+1) = indirVertices[indv];
+      }
+      eidx++;
+    }
+
+    // To fill fc2, continue populating parentElement by looping over all
+    // remaining faces
+    // Convert faceList to an unordered_set for fast lookups
+    std::unordered_set<E_Int> selectedFacesSet(faceList.begin(), faceList.end());
+    for (E_Int i = 0; i < nfacesTot; i++)
+    {
+      if (selectedFacesSet.find(i+1) == selectedFacesSet.end()) // new face
+      {
+        fic = -1; // connectivity associated to this face index
+        for (E_Int j = 0; j < nc; j++)
+          if (i < nfpc[j+1]) { fic = j; break; }
+        if (fic == -1)
+        {
+          printf("Warning: subzone: face index " SF_D_ " is larger than the "
+                "total number of faces: " SF_D_ ". Skipping...\n", i+1, nfacesTot);
+          continue;
+        }
+        fidx = i - nfpc[fic]; // face indexing relative to this connectivity
+        nfpe = facetspc[fic].size();
+        eidx = fidx/nfpe; fidx = fidx%nfpe; // relative to the element eidx
+
+        FldArrayI& cm = *(cn->getConnect(fic));
+
+        // Loop over vertices of the facet
+        const vector<E_Int>& facet = facetspc[fic][fidx];
+        nvpf = facet.size();
+        for (E_Int j = 0; j < nvpf; j++)
+        {
+          vidx = cm(eidx, facet[j])-1;
+          if (indirVertices[vidx] == -1) { indirVertices[vidx] = -(++npts2); }
+          face[j] = K_FUNC::E_abs(indirVertices[vidx]);
+        }
+        F.set(face.data(), nvpf);
+        auto resF = faceMap.insert({F, FaceAttrs(fic, eidx, fidx, i)});
+        if (resF.second) pe1[i] = eidx+1;
+        else pe2[resF.first->second.glbFidx_] = eidx+1;
+      }
+    }
+
+    FldArrayF* fc2 = new FldArrayF(nelts2, nfldc);
+    #pragma omp parallel if (npts > __MIN_SIZE_MEAN__)
+    {
+      E_Int indv;
+      // Copy nodal fields to f2
       for (E_Int eq = 1; eq <= nfld; eq++)
       {
         E_Float* fp = f->begin(eq);
-        E_Float* fnp = f2->begin(eq);
-#pragma omp for
-        for (E_Int ind = 0; ind < npts; ind++)
+        E_Float* f2p = f2->begin(eq);
+        #pragma omp for
+        for (E_Int i = 0; i < npts; i++)
         {
-          indf = indirNp[ind]-1;
-          if (indf > -1) fnp[indf] = fp[ind];
+          indv = indirVertices[i]-1;
+          if (indv > -1) f2p[indv] = fp[i];
         }
       }
     }
-    // Cree la nouvelle connectivite complete
-    E_Int nbFaces = indnewface-1;
-    sizeFN = nbFaces*3;
-    E_Int nbElts = nelts2;
-    E_Int sizeEF = sizeEF2;
-    FldArrayI* cnout = new FldArrayI(sizeFN+sizeEF+4);
-    E_Int* cnoutp = cnout->begin();
-    ptro1 = c2n.begin()+2;
-    ptro2 = c2n.begin()+4+sizeFN2;
-    cnoutp[0] = nbFaces; // nombre de faces
-    cnoutp[1] = sizeFN; // taille du tableau de faces
-    cnoutp += 2;
-    E_Int* cnoute = cnoutp + sizeFN;
-    cnoute[0] = nbElts; 
-    cnoute[1] = sizeEF;
-    cnoute += 2;
 
-#pragma omp parallel default(shared)
+    E_Int indf, etg, etd;
+    E_Int j = 0;
+    for (E_Int eq = 1; eq <= nfldc; eq++)
     {
-#pragma omp for
-      for (E_Int i = 0; i < sizeFN; i++) cnoutp[i] = ptro1[i];
-#pragma omp for
-      for (E_Int i = 0; i < sizeEF; i++) cnoute[i] = ptro2[i];
+      E_Float* fcp = fc->begin(eq);
+      E_Float* fc2p = fc2->begin(eq);
+
+      for (E_Int i = 0; i < n; i++)
+      {
+        indf = faceListp[i]-1;
+        etg = pe1[indf];
+        if (etg > 0) // to skip duplicated faces in the input
+        {
+          etd = pe2[indf];
+          if (etd > 0) fc2p[j] = 0.5*(fcp[etg-1] + fcp[etd-1]);
+          else fc2p[j] = fcp[etg-1];
+          j++;
+        }
+      }
     }
-    // Build array 
-    PyObject* tpln = K_ARRAY::buildArray(*f2, varString, 
-                                         *cnout, -1, eltTypeFaces);
-    PyList_Append(l, tpln); Py_DECREF(tpln); delete f2;
-    RELEASESHAREDU(arrayNodes,f, cn); RELEASESHAREDU(arrayCenters, fc, cnc); 
-    FldArrayI* cncout = new FldArrayI(); *cncout = *cnout;
-    PyObject* tplc = K_ARRAY::buildArray(*fc2, varStringc, 
-                                         *cncout, -1, eltTypeFaces, true);
-    PyList_Append(l, tplc); Py_DECREF(tplc); delete fc2; 
-    delete cnout; delete cncout;
+
+    parentElts.clear();
+    for (E_Int ic = 0; ic < nc; ic++) delete [] eltTypes[ic];
+    RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDU(arrayCenters, fc, cnc);
+
+    // Build array
+    PyList_Append(l, tpl);
+    FldArrayI* cnc2 = new FldArrayI(); *cnc2 = *cn2;
+    PyObject* tplc = K_ARRAY::buildArray3(*fc2, varStringc, *cnc2, eltTypeFaces, api);
+    PyList_Append(l, tplc); Py_DECREF(tplc); delete fc2;
+    RELEASESHAREDU(tpl, f2, cn2);
     return l;
   }
-  else if (type == 1)
-    PyErr_SetString(PyExc_TypeError,
-                    "subzone: not implemented.\n");
 
-  RELEASESHAREDU(arrayNodes,f, cn); RELEASESHAREDU(arrayCenters, fc, cnc); 
+  RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDU(arrayCenters, fc, cnc); 
   return NULL;
 }

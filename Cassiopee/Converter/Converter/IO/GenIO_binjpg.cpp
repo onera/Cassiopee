@@ -152,7 +152,7 @@ E_Int K_IO::GenIO::jpgread(
   E_Int nc = cinfo.output_components;
   E_Int nil = cinfo.output_width;
   E_Int njl = cinfo.output_height;
-  printf("size=" SF_D2_ ", components=" SF_D_ "\n", nil, njl, nc);
+  //printf("size=" SF_D2_ ", components=" SF_D_ "\n", nil, njl, nc);
   
   varString = new char [128];
 

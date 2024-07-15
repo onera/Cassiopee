@@ -1,0 +1,1419 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="ASCII" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>tkPlotXY : plot of curves &#8212; CPlot 4.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="CPlot.html">CPlot 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">tkPlotXY : plot of curves</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tkplotxy-plot-of-curves">
+<h1>tkPlotXY : plot of curves</h1>
+<section id="preamble">
+<h2>Preamble</h2>
+<p>tkPlotXY is a 2D plotting library based on Matplotlib. The aim of tkPlotXY is to provide
+to users an easier scriptable interface and a useful graphical interface for plotting data in
+arrays or pyTrees.</p>
+<p>tkPlotXY uses preferentially 1D-data from pyTrees but in the scriptable interface, some other ways to
+define datas are available and will be exposed in this document.</p>
+<p>This module is part of Cassiopee, a free open-source pre- and post-processor for CFD simulations.</p>
+<p>For use in a python script, you have to import tkPlotXY module:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tkPlotXY</span>
+</pre></div>
+</div>
+<span class="target" id="module-tkPlotXY"></span></section>
+<section id="one-line-plot-function">
+<h2>One line plot function</h2>
+<p>tkPlotXY can be used with a single function.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="tkPlotXY.tkPlotXY.plot">
+<span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rangex=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rangey=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">...</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Plot 1D zones of a.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>varx</strong> (<em>string</em>) &#8211; name of variable to plot in X</p></li>
+<li><p><strong>vary</strong> (<em>string</em>) &#8211; name of variable to plot in Y</p></li>
+<li><p><strong>rangex</strong> (<em>None</em><em> or </em><em>list</em><em> of </em><em>two floats</em>) &#8211; if not None, range for x variable. If None, automatic setting.</p></li>
+<li><p><strong>rangey</strong> (<em>None</em><em> or </em><em>list</em><em> of </em><em>two floats</em>) &#8211; if not None, range for y variable. If None, automatic setting.</p></li>
+<li><p><strong>xlabel</strong> (<em>None</em><em> or </em><em>string</em>) &#8211; if not None, name to display on x axis.</p></li>
+<li><p><strong>ylabel</strong> (<em>None</em><em> or </em><em>string</em>) &#8211; if not None, name to display on y axis.</p></li>
+<li><p><strong>xformat</strong> (<em>None</em><em> or </em><em>string like '9.3f'</em>) &#8211; if not None, format for x axis values.</p></li>
+<li><p><strong>yformat</strong> (<em>None</em><em> or </em><em>string like '9.3f'</em>) &#8211; if not None, format for y axis values.</p></li>
+<li><p><strong>legends</strong> (<em>None</em><em> or </em><em>list</em><em> of </em><em>strings</em>) &#8211; if not None, the name of curves to be displayed in legend.</p></li>
+<li><p><strong>export</strong> (<em>None</em><em> or </em><em>name</em><em> of </em><em>export file</em>) &#8211; if None, interactive plot, otherwise name of export file.</p></li>
+<li><p><strong>lineWidth</strong> (<em>float</em><em> (</em><em>default: 1.5</em><em>) or </em><em>list</em><em> of </em><em>floats for each zone</em>) &#8211; width of plot lines</p></li>
+<li><p><strong>lineColor</strong> (<em>string</em><em> or </em><em>list</em><em> of </em><em>strings for each zone</em>) &#8211; color of plot lines. Html string (#FFFFFF) or color name (&#8216;black).</p></li>
+<li><p><strong>markerStyle</strong> (<em>string</em><em> or </em><em>list</em><em> of </em><em>strings for each zone</em>) &#8211; style of marker, &#8216;none&#8217;, &#8216;+&#8217;, &#8216;o&#8217;, &#8230;</p></li>
+<li><p><strong>markerWidth</strong> (<em>float</em><em> (</em><em>default: 6.5</em><em>) or </em><em>list</em><em> of </em><em>floats for each zone</em>) &#8211; width of markers</p></li>
+<li><p><strong>markerFaceColor</strong> (<em>string</em><em> or </em><em>list</em><em> of </em><em>string for each zone</em>) &#8211; face color of markers. Html string (#FFFFFF) or color name (&#8216;black).</p></li>
+<li><p><strong>markerEdgeColor</strong> (<em>string</em>) &#8211; edge color of markers. Html string (#FFFFFF) or color name (&#8216;black).</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/CPlot/tkPlotXYSingleLine.py">Plot 1d zones (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - tkPlotXY (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">tkPlotXY</span>
+
+<span class="c1"># Cas test</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{F}</span><span class="s1">=</span><span class="si">{CoordinateX}</span><span class="s1">*</span><span class="si">{CoordinateX}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{centers:G}</span><span class="s1">={centers:CoordinateX}&#39;</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">100</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{F}</span><span class="s1">=</span><span class="si">{CoordinateX}</span><span class="s1">*</span><span class="si">{CoordinateX}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{centers:G}</span><span class="s1">={centers:CoordinateX}&#39;</span><span class="p">)</span>
+
+<span class="n">tkPlotXY</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">],</span> <span class="n">varx</span><span class="o">=</span><span class="s1">&#39;CoordinateX&#39;</span><span class="p">,</span> <span class="n">vary</span><span class="o">=</span><span class="s1">&#39;centers:G&#39;</span><span class="p">,</span> 
+              <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span>
+              <span class="n">xformat</span><span class="o">=</span><span class="s1">&#39;03.1f&#39;</span><span class="p">,</span> <span class="n">yformat</span><span class="o">=</span><span class="s1">&#39;03.1f&#39;</span><span class="p">,</span>
+              <span class="n">legends</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;courbe1&#39;</span><span class="p">,</span> <span class="s1">&#39;courbe2&#39;</span><span class="p">],</span>
+              <span class="n">export</span><span class="o">=</span><span class="s1">&#39;fig.png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="usage-with-classes">
+<h2>Usage with classes</h2>
+<p>In case of the previous function doesnt provide enough flexibility, you can use
+tkPlotXY with classes that provide access to a full customization. The list of class
+is in the next chapter. Here goes two simple examples, an interactive one and a batch one.</p>
+<blockquote>
+<div><p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/CPlot/tkPlotXYInteractive.py">Interactive tkPlotXY classes usage (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - tkPlotXY (interactive) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">tkPlotXY</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.e-3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{F}</span><span class="s1">=</span><span class="si">{CoordinateX}</span><span class="s1">*</span><span class="si">{CoordinateX}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{centers:G}</span><span class="s1">={centers:CoordinateX}*{centers:CoordinateX}&#39;</span><span class="p">)</span>
+
+<span class="n">desktop</span><span class="p">,</span> <span class="n">win</span> <span class="o">=</span> <span class="n">tkPlotXY</span><span class="o">.</span><span class="n">createTkDesktop</span><span class="p">()</span>
+<span class="n">desktop</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+<span class="n">graph0</span> <span class="o">=</span> <span class="n">desktop</span><span class="o">.</span><span class="n">createGraph</span><span class="p">(</span><span class="s1">&#39;graph&#39;</span><span class="p">,</span> <span class="s1">&#39;1:1&#39;</span><span class="p">)</span>
+<span class="c1"># La localisation des champs dans Curve doit etre homogene</span>
+<span class="n">curve0</span> <span class="o">=</span> <span class="n">tkPlotXY</span><span class="o">.</span><span class="n">Curve</span><span class="p">(</span><span class="n">zone</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Base/cart&#39;</span><span class="p">],</span> <span class="n">varx</span><span class="o">=</span><span class="s1">&#39;CoordinateX&#39;</span><span class="p">,</span> 
+                        <span class="n">vary</span><span class="o">=</span><span class="s1">&#39;F@FlowSolution&#39;</span><span class="p">,</span> <span class="n">line_color</span><span class="o">=</span><span class="s1">&#39;#7f00ff&#39;</span><span class="p">,</span> 
+                        <span class="n">marker_face_color</span><span class="o">=</span><span class="s1">&#39;#7f00ff&#39;</span><span class="p">,</span> 
+                        <span class="n">marker_edge_color</span><span class="o">=</span><span class="s1">&#39;#7f00ff&#39;</span><span class="p">,</span>
+                        <span class="n">legend_label</span><span class="o">=</span><span class="s1">&#39;expe0&#39;</span><span class="p">)</span>
+<span class="n">graph0</span><span class="o">.</span><span class="n">addCurve</span><span class="p">(</span><span class="s1">&#39;1:1&#39;</span><span class="p">,</span> <span class="n">curve0</span><span class="p">)</span>
+
+<span class="n">win</span><span class="o">.</span><span class="n">mainloop</span><span class="p">()</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/CPlot/tkPlotXYBatch.py">Batch tkPlotXY classes usage (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - tkPlotXY (batch) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">tkPlotXY</span>
+<span class="n">tkPlotXY</span><span class="o">.</span><span class="n">setBatch</span><span class="p">()</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{F}</span><span class="s1">=</span><span class="si">{CoordinateX}</span><span class="s1">*</span><span class="si">{CoordinateX}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{centers:G}</span><span class="s1">={centers:CoordinateX}*{centers:CoordinateX}&#39;</span><span class="p">)</span>
+
+<span class="n">desktop</span> <span class="o">=</span> <span class="n">tkPlotXY</span><span class="o">.</span><span class="n">Desktop</span><span class="p">()</span>
+<span class="n">desktop</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+<span class="n">graph0</span> <span class="o">=</span> <span class="n">desktop</span><span class="o">.</span><span class="n">createGraph</span><span class="p">(</span><span class="s1">&#39;graph&#39;</span><span class="p">,</span> <span class="s1">&#39;1:1&#39;</span><span class="p">)</span>
+<span class="n">curve0</span> <span class="o">=</span> <span class="n">tkPlotXY</span><span class="o">.</span><span class="n">Curve</span><span class="p">(</span><span class="n">zone</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Base/cart&#39;</span><span class="p">],</span> <span class="n">varx</span><span class="o">=</span><span class="s1">&#39;CoordinateX&#39;</span><span class="p">,</span> 
+                        <span class="n">vary</span><span class="o">=</span><span class="s1">&#39;F@FlowSolution&#39;</span><span class="p">,</span> <span class="n">line_color</span><span class="o">=</span><span class="s1">&#39;#7f00ff&#39;</span><span class="p">,</span> 
+                        <span class="n">marker_face_color</span><span class="o">=</span><span class="s1">&#39;#7f00ff&#39;</span><span class="p">,</span> 
+                        <span class="n">marker_edge_color</span><span class="o">=</span><span class="s1">&#39;#7f00ff&#39;</span><span class="p">)</span>
+<span class="n">graph0</span><span class="o">.</span><span class="n">addCurve</span><span class="p">(</span><span class="s1">&#39;1:1&#39;</span><span class="p">,</span> <span class="n">curve0</span><span class="p">)</span>
+
+<span class="c1"># Modify axis range</span>
+<span class="n">axis</span> <span class="o">=</span> <span class="n">graph0</span><span class="o">.</span><span class="n">getAxis</span><span class="p">(</span><span class="s1">&#39;1:1&#39;</span><span class="p">)</span>
+<span class="n">axis</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;axis_autoscale&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+<span class="n">axis</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;axis_min&#39;</span><span class="p">,</span> <span class="mf">30.</span><span class="p">)</span>
+<span class="n">axis</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;axis_max&#39;</span><span class="p">,</span> <span class="mf">50.</span><span class="p">)</span>
+<span class="n">axis</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;axis_autoscale&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+<span class="n">axis</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;axis_min&#39;</span><span class="p">,</span> <span class="mf">1000.</span><span class="p">)</span>
+<span class="n">axis</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;axis_max&#39;</span><span class="p">,</span> <span class="mf">2000.</span><span class="p">)</span>
+<span class="n">graph0</span><span class="o">.</span><span class="n">updateGraph</span><span class="p">(</span><span class="s1">&#39;1:1&#39;</span><span class="p">)</span>
+
+<span class="n">graph0</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;fig.png&#39;</span><span class="p">)</span>
+<span class="n">graph0</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+<section id="list-of-classes">
+<h2>List of classes</h2>
+<p>tkPlotXY is based on classes. Some of them are internal classes used for display. They are not documented here. It has to be remarked that some classes have a &#8216;TK&#8217; suffix at the end
+of their name. These classes are equivalent to the one without suffix, but they have been developped to work inside the tkInter context. It means that for python scripting
+only classes without the suffix &#8216;TK&#8217; should be used.</p>
+<p><strong>&#8211; Classes</strong></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="tkPlotXY.GraphEditor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">GraphEditor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">display</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#GraphEditor"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>The class GraphEditor is an encapsulation of class Desktop.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tkPlotXY.Desktop">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">Desktop</span></span><a class="reference internal" href="_modules/tkPlotXY.html#Desktop"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>An object of class Desktop allows you to create all your graphs.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tkPlotXY.Graph">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">Graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>An object of class Graph corresponds to a window where plots are drawn. A graph window can manage several plots.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tkPlotXY.Axis">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">Axis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Axis"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>An Axis object contains the X-DirAxis and the Y-DirAxis of a given plot inside a Graph object. Multiple axis are available for a single plot.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tkPlotXY.DirAxis">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">DirAxis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis_logscale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_autoscale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_inverted</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_visible</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_position</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_offset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_label_fontsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_label_format</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#DirAxis"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>DirAxis contains the settings of the X or Y axis. This settings can directly be accessed from the class Axis.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tkPlotXY.Legend">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">Legend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Legend"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>An object of class Legend configures the legend for a given plot inside a Graph window.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tkPlotXY.AxisGrid">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">AxisGrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">display</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_style</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_tick_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_tick_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#AxisGrid"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tkPlotXY.Grid">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">Grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Grid contains the main grid and the second grid. They can be configured directly by accessing to Grid or to the proper GridLevel object.
+In case of a multiple axis usage, then multiple Grid objects can be attached to a given plot.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tkPlotXY.LevelGrid">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">LevelGrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_display</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_grid_color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_grid_style</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_grid_width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_grid_tick_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_grid_tick_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_display</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_grid_color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_grid_style</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_grid_width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_grid_tick_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_grid_tick_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#LevelGrid"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tkPlotXY.Curve">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">Curve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Curve"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Curve class describes all the settings concerning a given curve itself.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tkPlotXY.SubPlotParams">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">SubPlotParams</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#SubPlotParams"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>SubPlotParams is one way (TightLayout) to set margin, padding for plots positionning inside the Graph window.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tkPlotXY.TightLayout">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">TightLayout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#TightLayout"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>TightLayout is one way (SubPlotParams) to set margin, padding for plots positionning inside the Graph window.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tkPlotXY.Movie">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">Movie</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Movie"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Class Movie can be used to generate a movie in case of a dynamic plot (Co-processing for instance)</p>
+</dd></dl>
+
+</section>
+<section id="grapheditor">
+<h2>GraphEditor</h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="tkPlotXY.tkPlotXY.GraphEditor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">GraphEditor</span></span></dt>
+<dd></dd></dl>
+
+<p>An object of class GraphEditor allows you to create a Desktop. Accessing to the Desktop will give you the possibility to plot all your graphs. Moreover, the Desktop contains all the data that can be used to generate plots.
+For python scripting interface, the first step is to create an object of this class GraphEditor and to access its Desktop. This is performed by the function openGraphEditor that directly returns the Desktop. Then the data can be added to this Desktop object. Finally it is used to generate all the graphs.</p>
+<p>The first step is to create a graphEditor and to get its Desktop using :</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="tkPlotXY.tkPlotXY.openGraphEditor">
+<span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">openGraphEditor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#tkPlotXY.tkPlotXY.openGraphEditor" title="tkPlotXY.tkPlotXY.openGraphEditor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tkPlotXY.openGraphEditor</span></code></a>(display)</p></td>
+<td><p>Create an object of class GraphEditor and returns its Desktop.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tkPlotXY</span> <span class="k">as</span> <span class="nn">tkP</span>
+<span class="c1"># Create a graphEditor</span>
+<span class="n">graphDesktop</span> <span class="o">=</span> <span class="n">tkP</span><span class="o">.</span><span class="n">openGraphEditor</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="desktop">
+<h2>Desktop</h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="tkPlotXY.tkPlotXY.Desktop">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">Desktop</span></span></dt>
+<dd></dd></dl>
+
+<p>The Desktop deals with the data management and the graph plotting.</p>
+<section id="data-management">
+<h3>Data management</h3>
+<p>The data can be loaded by a Desktop object from a pyTree or from a dictionnary. Only the 1D-array data from a pyTree will be loaded while the data loaded from a dictionnary has to be compliant with the following structure :
+{Base/Zone (string) : {Variable name (string): data (array)}}</p>
+<p>Several methods are available to set, update or even remove data :</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tkPlotXY.Desktop.addZone">
+<span class="sig-prename descclassname"><span class="pre">Desktop.</span></span><span class="sig-name descname"><span class="pre">addZone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoneName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baseName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.*'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Desktop.addZone"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Add a specific zone to the set of data. If pyTree format is used as input, then &#8216;basename&#8217; can be specified to add only the zone from a specific base. If &#8216;basename&#8217; is not specified in case of pyTree format, then the specified zone for all the bases from the pyTree will be added.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tkPlotXY.Desktop.setData">
+<span class="sig-prename descclassname"><span class="pre">Desktop.</span></span><span class="sig-name descname"><span class="pre">setData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Desktop.setData"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Set all the data from the input pyTree or dictionnary to the Desktop data manager.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tkPlotXY.Desktop.replaceZone">
+<span class="sig-prename descclassname"><span class="pre">Desktop.</span></span><span class="sig-name descname"><span class="pre">replaceZone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oldZoneName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">newZoneName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oldBaseName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">newBaseName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Desktop.replaceZone"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Allows you to replace a given zone by a new one. If some data from the old zone are plotted, then the plot remains but the data are updated with the data loaded from the new zone. According to the method addZone, old basename and new basename can be given to specify the targeted base.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tkPlotXY.Desktop.deleteZoneFromData">
+<span class="sig-prename descclassname"><span class="pre">Desktop.</span></span><span class="sig-name descname"><span class="pre">deleteZoneFromData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zoneName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oldBaseName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Desktop.deleteZoneFromData"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Simply delete data from a given zone and base to the set of data from the Desktop object.</p>
+</dd></dl>
+
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tkPlotXY</span> <span class="k">as</span> <span class="nn">tkP</span>
+<span class="c1"># Create a graphEditor</span>
+<span class="n">graphDesktop</span> <span class="o">=</span> <span class="n">tkP</span><span class="o">.</span><span class="n">openGraphEditor</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<span class="c1"># Generate data</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">,</span> <span class="mf">0.002</span><span class="p">)</span>
+<span class="n">dataFromDict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Zone1&#39;</span><span class="p">:</span>
+                        <span class="p">{</span>
+                            <span class="s1">&#39;Iteration&#39;</span><span class="p">:</span><span class="n">t</span><span class="p">,</span>
+                            <span class="s1">&#39;Residual&#39;</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">t</span><span class="p">),</span>
+                            <span class="s1">&#39;Cf&#39;</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">t</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span>
+                            <span class="s1">&#39;Debit&#39;</span><span class="p">:</span><span class="n">t</span><span class="o">*</span><span class="n">t</span>
+                        <span class="p">}</span>
+                <span class="p">}</span>
+<span class="c1"># Set data</span>
+<span class="n">graphDesktop</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">dataFromDict</span><span class="p">)</span>
+<span class="c1"># Display data</span>
+<span class="k">for</span> <span class="n">zone</span> <span class="ow">in</span> <span class="n">graphDesktop</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">graphDesktop</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">zone</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">zone</span><span class="p">,</span> <span class="s1">&#39; : &#39;</span><span class="p">,</span> <span class="n">var</span><span class="p">,</span> <span class="s1">&#39; : &#39;</span><span class="p">,</span><span class="n">graphDesktop</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">zone</span><span class="p">][</span><span class="n">var</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tkPlotXY</span> <span class="k">as</span> <span class="nn">tkP</span>
+<span class="c1"># Create a graphEditor</span>
+<span class="n">graphDesktop</span> <span class="o">=</span> <span class="n">tkP</span><span class="o">.</span><span class="n">openGraphEditor</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<span class="c1"># Generate data with a Lamb vortex (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Initiator.PyTree</span> <span class="k">as</span> <span class="nn">I</span>
+<span class="kn">import</span> <span class="nn">Post.PyTree</span> <span class="k">as</span> <span class="nn">P</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+
+<span class="n">NI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span> <span class="n">NJ</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">HI</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NI</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="n">HJ</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NJ</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">tree</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="n">HI</span><span class="p">,</span><span class="n">HJ</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="n">NI</span><span class="p">,</span><span class="n">NJ</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">tree</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">initLamb</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mf">7.</span><span class="p">,</span><span class="mf">7.</span><span class="p">),</span> <span class="n">Gamma</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">)</span>
+<span class="n">tree</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">isoSurfMC</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="s1">&#39;CoordinateZ&#39;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+<span class="n">tree</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">isoSurfMC</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="s1">&#39;CoordinateY&#39;</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">)</span>
+
+<span class="c1"># Save generated data as cgns</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span><span class="s1">&#39;vortex_slice.hdf&#39;</span><span class="p">)</span>
+<span class="c1"># Load data as pyTree</span>
+<span class="n">tree</span><span class="o">=</span><span class="n">C</span><span class="o">.</span><span class="n">convertFile2PyTree</span><span class="p">(</span><span class="s1">&#39;./vortex_slice.hdf&#39;</span><span class="p">)</span>
+
+<span class="c1"># Set data</span>
+<span class="n">graphDesktop</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span>
+<span class="c1"># Display data</span>
+<span class="k">for</span> <span class="n">zone</span> <span class="ow">in</span> <span class="n">graphDesktop</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">graphDesktop</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">zone</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">zone</span><span class="p">,</span> <span class="s1">&#39; : &#39;</span><span class="p">,</span> <span class="n">var</span><span class="p">,</span> <span class="s1">&#39; : &#39;</span><span class="p">,</span><span class="n">graphDesktop</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">zone</span><span class="p">][</span><span class="n">var</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="graph-creation">
+<h3>Graph creation</h3>
+<p>Once data have been loaded into the Desktop, you can create as many graphs as you need with the Desktop object. After that, all the drawing will be driven by the graph object itself. This is performed by the method :</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tkPlotXY.Desktop.createGraph">
+<span class="sig-prename descclassname"><span class="pre">Desktop.</span></span><span class="sig-name descname"><span class="pre">createGraph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Desktop.createGraph"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Create a window where the plots will be drawn. A matricial description is used to define this window. For instance, here are described some settings for &#8216;conf&#8217; variable:</p>
+<ul class="simple">
+<li><p>&#8216;1:1&#8217; : a single plot in this graph window</p></li>
+<li><p>&#8216;2:2&#8217; : 4 plots (2 rows and 2 columns)</p></li>
+<li><p>&#8216;2:1&#8217; : 2 plots (2 rows and 1 column)</p></li>
+<li><p>&#8216;1:2&#8217; : 2 plots (1 row and 2 columns)</p></li>
+</ul>
+<p>figsize and dpi can configured to adapt the size and the resolution of the graph window if needed. You can for instance use figsize=(12,3) to enlarge your image.</p>
+</dd></dl>
+
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create First Graph</span>
+<span class="n">graph_0</span> <span class="o">=</span> <span class="n">graphDesktop</span><span class="o">.</span><span class="n">createGraph</span><span class="p">(</span><span class="s1">&#39;MyFirstGraph&#39;</span><span class="p">,</span><span class="s1">&#39;1:1&#39;</span><span class="p">)</span>
+<span class="c1"># Create Second Graph</span>
+<span class="n">graph_1</span> <span class="o">=</span> <span class="n">graphDesktop</span><span class="o">.</span><span class="n">createGraph</span><span class="p">(</span><span class="s1">&#39;MySecondGraph&#39;</span><span class="p">,</span><span class="s1">&#39;2:1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="graph">
+<h2>Graph</h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="id0">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">Graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>An object of class Graph corresponds to a window where plots are drawn. A graph window can manage several plots.</p>
+</dd></dl>
+
+<p>Creating a Graph object will automatically generate an Axis, a Grid and a Legend objects for each plots on the graph.
+Only curves have to be created and then attached to a given graph.</p>
+<p>Then each object can be configured. To do so, it is mandatory to access these objects thanks to the graph.</p>
+<p>All of these actions are described in the concerned item section (Curve, Axis, Grid or Legend).</p>
+<section id="configure-the-graph-object">
+<h3>Configure the Graph object</h3>
+<p>Some times, using a matricial Graph (for instance &#8216;2:2&#8217;) will provide you an unacceptable drawing. Indeed, the axis label of a plot may be overlapped by the plot below. For all these reasons, you may be interested in advanced configuration for your Graph object such as positionning, padding, margin &#8230;</p>
+<p>Two possibilities are available: TightLayout or SubPlotParams.</p>
+<p>In order to improve your drawing using SubPlotParams, please use the method:</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tkPlotXY.Graph.updateSubPlotParams">
+<span class="sig-prename descclassname"><span class="pre">Graph.</span></span><span class="sig-name descname"><span class="pre">updateSubPlotParams</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Graph.updateSubPlotParams"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<p>where <em>params</em> is a dictionnary such that:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;left&#39;</span><span class="p">:</span><span class="o">...</span><span class="p">,</span><span class="s1">&#39;right&#39;</span><span class="p">:</span><span class="o">...</span><span class="p">,</span><span class="s1">&#39;top&#39;</span><span class="p">:</span><span class="o">...</span><span class="p">,</span><span class="s1">&#39;bottom&#39;</span><span class="p">:</span><span class="o">...</span><span class="p">,</span><span class="s1">&#39;hspace&#39;</span><span class="p">:</span><span class="o">...</span><span class="p">,</span><span class="s1">&#39;wspace&#39;</span><span class="p">:</span><span class="o">...</span><span class="p">,</span><span class="s1">&#39;isActive&#39;</span><span class="p">:</span><span class="kc">True</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>For example, let us create a Graph object <em>graph_3</em> with 4 plots inside (&#8216;2:2&#8217;) and let us try to improve the poisitionnment of this graph with SubPlotParams:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Graph creation</span>
+<span class="n">graph_3</span> <span class="o">=</span> <span class="n">graphDesktop</span><span class="o">.</span><span class="n">createGraph</span><span class="p">(</span><span class="s1">&#39;MyThirdGraph&#39;</span><span class="p">,</span><span class="s1">&#39;2:2&#39;</span><span class="p">)</span>
+<span class="c1"># Improving drawing of the Graph thanks to SubPlotParams</span>
+<span class="n">graph_3</span><span class="o">.</span><span class="n">updateSubPlotParams</span><span class="p">({</span><span class="s1">&#39;isActive&#39;</span><span class="p">:</span><span class="kc">True</span><span class="p">,</span><span class="s1">&#39;right&#39;</span><span class="p">:</span><span class="mf">0.97</span><span class="p">,</span><span class="s1">&#39;top&#39;</span><span class="p">:</span><span class="mf">0.97</span><span class="p">,</span><span class="s1">&#39;wspace&#39;</span><span class="p">:</span><span class="mf">0.3</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>The other way to improve this kind of drawing is to use TightLayout:</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tkPlotXY.Graph.updateTightLayout">
+<span class="sig-prename descclassname"><span class="pre">Graph.</span></span><span class="sig-name descname"><span class="pre">updateTightLayout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Graph.updateTightLayout"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<p>where:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;isActive&#39;</span><span class="p">:</span><span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;pad&#39;</span><span class="p">:</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;hpad&#39;</span><span class="p">:</span><span class="o">...</span><span class="p">,</span> <span class="s1">&#39;wpad&#39;</span><span class="p">:</span><span class="o">...</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>For example, let us create a Graph object <em>graph_3</em> with 4 plots inside (&#8216;2:2&#8217;) and let us try to improve the poisitionnment of this graph with TightLayout.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Graph creation</span>
+<span class="n">graph_3</span> <span class="o">=</span> <span class="n">graphDesktop</span><span class="o">.</span><span class="n">createGraph</span><span class="p">(</span><span class="s1">&#39;MyThirdGraph&#39;</span><span class="p">,</span><span class="s1">&#39;2:2&#39;</span><span class="p">)</span>
+<span class="c1"># Improving drawing of the Graph thanks to TightLayout</span>
+<span class="n">graph_3</span><span class="o">.</span><span class="n">updateTightLayout</span><span class="p">({</span><span class="s1">&#39;isActive&#39;</span><span class="p">:</span><span class="kc">True</span><span class="p">,</span><span class="s1">&#39;pad&#39;</span><span class="p">:</span><span class="mf">1.1</span><span class="p">,</span><span class="s1">&#39;hpad&#39;</span><span class="p">:</span><span class="mf">0.1</span><span class="p">,</span><span class="s1">&#39;wpad&#39;</span><span class="p">:</span><span class="mf">0.1</span><span class="p">})</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="curve">
+<h2>Curve</h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="id1">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">Curve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Curve"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Curve class describes all the settings concerning a given curve itself.</p>
+</dd></dl>
+
+<section id="creating-a-curve">
+<h3>Creating a curve</h3>
+<p>To create a curve, one has just to create an object of class Curve. All the settings, listed in the section &#8216;Editing a curve&#8217;, can be already configured during the creation of the object. For instance:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">curve_0</span> <span class="o">=</span> <span class="n">Curve</span><span class="p">(</span><span class="n">zone</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Base/cart&#39;</span><span class="p">],</span><span class="n">varx</span><span class="o">=</span><span class="s1">&#39;CoordinateX&#39;</span><span class="p">,</span><span class="n">vary</span><span class="o">=</span><span class="s1">&#39;Density_FlowSolution&#39;</span> <span class="p">,</span> <span class="n">line_color</span><span class="o">=</span><span class="s1">&#39;#7f00ff&#39;</span> <span class="p">,</span> <span class="n">marker_face_color</span><span class="o">=</span><span class="s1">&#39;#7f00ff&#39;</span> <span class="p">,</span><span class="n">marker_edge_color</span><span class="o">=</span><span class="s1">&#39;#7f00ff&#39;</span> <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="editing-a-curve">
+<h3>Editing a curve</h3>
+<p>To edit a curve, you can use the method :</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tkPlotXY.Curve.setValue">
+<span class="sig-prename descclassname"><span class="pre">Curve.</span></span><span class="sig-name descname"><span class="pre">setValue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Curve.setValue"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<p>with <em>variable</em> according to the following tab:</p>
+<table class="docutils align-default" id="id8">
+<caption><span class="caption-text"><strong>Available variables to set a curve</strong></span></caption>
+<colgroup>
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Variable</p></th>
+<th class="head"><p>Allowed values</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>zone</p></td>
+<td><p><cite>List of zones</cite></p></td>
+<td><p><cite>List of zones that should be plotted</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>varx</p></td>
+<td><p><cite>Variable name (string)</cite></p></td>
+<td><p><cite>X-coordinate variable name (LaTeX available with $$)</cite></p></td>
+</tr>
+<tr class="row-even"><td><p>vary</p></td>
+<td><p><cite>Variable name (string)</cite></p></td>
+<td><p><cite>Y-coordinate variable name (LaTeX available with $$)</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>line_color</p></td>
+<td><p><cite>Html color code (string)</cite></p></td>
+<td><p><cite>Color used to plot the line</cite></p></td>
+</tr>
+<tr class="row-even"><td><p>line_style</p></td>
+<td><p><cite>&#8216;solid&#8217;, &#8216;dashed&#8217;, &#8216;dashdot&#8217;, &#8216;dotted&#8217;, &#8216;None&#8217;</cite></p></td>
+<td><p><cite>Style of line to use</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>line_width</p></td>
+<td><p><cite>(float)</cite></p></td>
+<td><p><cite>Width of the line</cite></p></td>
+</tr>
+<tr class="row-even"><td><p>marker_style</p></td>
+<td><p><cite>&#8216;none&#8217;, &#8216;plus&#8217;, &#8216;star&#8217;, &#8216;pixel&#8217;, &#8216;point&#8217;, &#8216;star3_down&#8217;, &#8216;star3_up&#8217;, &#8216;star3_left&#8217;, &#8216;star3_right&#8217;, &#8216;triangle_left&#8217;, &#8216;triangle_right&#8217;, &#8216;diamond&#8217;, &#8216;hexagon2&#8217;, &#8216;triangle_up&#8217;, &#8216;hline&#8217;, &#8216;thin_diamond&#8217;, &#8216;hexagon1&#8217;, &#8216;circle&#8217;, &#8216;pentagon&#8217;, &#8216;square&#8217;, &#8216;triangle_down&#8217;, &#8216;x&#8217;</cite></p></td>
+<td><p><cite>Type of marker to use</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>marker_size</p></td>
+<td><p><cite>(float)</cite></p></td>
+<td><p><cite>Size of the marker</cite></p></td>
+</tr>
+<tr class="row-even"><td><p>marker_edge_color</p></td>
+<td><p><cite>Html color code (string)</cite></p></td>
+<td><p><cite>Color of the edge of the marker</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>marker_edge_width</p></td>
+<td><p><cite>(float)</cite></p></td>
+<td><p><cite>Width of the edge of the marker</cite></p></td>
+</tr>
+<tr class="row-even"><td><p>marker_face_color</p></td>
+<td><p><cite>Html color code (string)</cite></p></td>
+<td><p><cite>Color of the face marker</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>marker_sampling_start</p></td>
+<td><p><cite>(int)</cite></p></td>
+<td><p><cite>Index on data to start plotting markers</cite></p></td>
+</tr>
+<tr class="row-even"><td><p>marker_sampling_end</p></td>
+<td><p><cite>(int)</cite></p></td>
+<td><p><cite>Index on data to stop plotting markers</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>marker_sampling_step</p></td>
+<td><p><cite>(int)</cite></p></td>
+<td><p><cite>Step between index to plot markers</cite></p></td>
+</tr>
+<tr class="row-even"><td><p>legend_label</p></td>
+<td><p><cite>(string)</cite></p></td>
+<td><p><cite>Name of the curve to display in the legend</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>legend_display</p></td>
+<td><p><cite>(bool)</cite></p></td>
+<td><p><cite>Display the current curve in the legend</cite></p></td>
+</tr>
+<tr class="row-even"><td><p>visible</p></td>
+<td><p><cite>(bool)</cite></p></td>
+<td><p><cite>Hide or show the curve</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>axis</p></td>
+<td><p><cite>(int)</cite></p></td>
+<td><p><cite>Axis in which the curve has to be plotted</cite></p></td>
+</tr>
+</tbody>
+</table>
+<p>For instance to edit a curve to a dashed curve:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">curve_0</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;line_style&#39;</span><span class="p">,</span><span class="s1">&#39;dashed&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A curve can be edited all the time. The graph has just to be updated after the modification of the curve property.</p>
+</section>
+<section id="adding-a-curve-to-a-given-plot-on-a-given-graph">
+<h3>Adding a curve to a given plot on a given graph</h3>
+<p>To attach a curve to a given plot inside a given graph, use the method:</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tkPlotXY.Graph.addCurve">
+<span class="sig-prename descclassname"><span class="pre">Graph.</span></span><span class="sig-name descname"><span class="pre">addCurve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iCurSubGraph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">curve</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Graph.addCurve"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<p>where <em>iCurSubGraph</em> identifies the plot inside the graph thanks to its matricial position. For instance, to add a curve on the second line and first column of the graph <em>graph_1</em>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">graph_1</span><span class="o">.</span><span class="n">addCurve</span><span class="p">(</span><span class="s1">&#39;2:1&#39;</span><span class="p">,</span><span class="n">curve_0</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="axis">
+<h2>Axis</h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="id2">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">Axis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Axis"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>An Axis object contains the X-DirAxis and the Y-DirAxis of a given plot inside a Graph object. Multiple axis are available for a single plot.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="id3">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">DirAxis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis_logscale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_autoscale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_inverted</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_visible</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_position</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_offset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_label_fontsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_label_format</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#DirAxis"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>DirAxis contains the settings of the X or Y axis. This settings can directly be accessed from the class Axis.</p>
+</dd></dl>
+
+<p>While a Graph object  is created, an axis system (X and Y DirAxis) is generated for each plot on the graph. This system of X and Y DirAxis is an Axis object.</p>
+<section id="access-the-axis-system">
+<h3>Access the Axis system</h3>
+<p>To get the Axis system of  given plot on a given graph, use the method on your graph:</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tkPlotXY.Graph.getAxis">
+<span class="sig-prename descclassname"><span class="pre">Graph.</span></span><span class="sig-name descname"><span class="pre">getAxis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iCurSubGraph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Graph.getAxis"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<p>where <em>iCurSubGraph</em> identifies the plot inside the graph thanks to its matricial position. Moreover, in case of a multiple axis plot (2 or more Y DirAxis on the same plot for instance, see <em>Multiple axis system section</em>), you can specify the number identifying your axis system using <em>ind</em>. Note that the original axis system has the index 0 and then the index is increased for each new axis system.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">axis_2</span> <span class="o">=</span> <span class="n">graph_1</span><span class="o">.</span><span class="n">getAxis</span><span class="p">(</span><span class="s1">&#39;2:1&#39;</span><span class="p">,</span><span class="n">ind</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># Equivalent to axis_2 = graph_1.getAxis(&#39;2:1&#39;)</span>
+</pre></div>
+</div>
+</section>
+<section id="multiple-axis-system">
+<h3>Multiple axis system</h3>
+<p>On the same plot, you can use multiple axis system. You can decide to twin your X or Y DirAxis or even to create a new independant axis system. to generate your new axis system (twin or independant), use the method:</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tkPlotXY.Graph.addAxis">
+<span class="sig-prename descclassname"><span class="pre">Graph.</span></span><span class="sig-name descname"><span class="pre">addAxis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iCurSubGraph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Graph.addAxis"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<p>where <em>iCurSubGraph</em> identifies the plot inside the graph thanks to its matricial position, <em>shared</em> can take the value : &#8216;x&#8217;,&#8217;X&#8217;,&#8217;y&#8217;,&#8217;Y&#8217; or None. If None is used, then an independant axis system will be created. If an other value is used, then <em>axis</em> allows you to specify the index of the axis system you want to clone. Remember, this index starts at 0 for each plot and is then locally increased for each new axis system in a plot. Or you can directly give the object Axis you want to clone by using the parameter &#8216;axis&#8217;. This function returns the newly created axis object.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get axis_2</span>
+<span class="n">ind_axis_2</span> <span class="o">=</span> <span class="n">axis_2</span><span class="o">.</span><span class="n">getInd</span><span class="p">()</span> <span class="c1"># returns the index of the current axis</span>
+<span class="n">axis_2</span> <span class="o">=</span> <span class="n">graph_1</span><span class="o">.</span><span class="n">getAxis</span><span class="p">(</span><span class="s1">&#39;2:1&#39;</span><span class="p">,</span> <span class="n">ind_axis_2</span><span class="p">)</span> <span class="c1"># Equivalent to axis_2 = graph_1.getAxis(&#39;2:1&#39;) because here ind_axis_2 = 0 !</span>
+
+<span class="c1"># Twin X DirAxis of axis_2</span>
+<span class="n">axis_3</span> <span class="o">=</span> <span class="n">graph_1</span><span class="o">.</span><span class="n">addAxis</span><span class="p">(</span><span class="s1">&#39;2:1&#39;</span><span class="p">,</span><span class="n">shared</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="n">axis_2</span><span class="p">)</span> <span class="c1"># equivalent to &quot;axis_3 = graph_1.addAxis(&#39;2:1&#39;,shared=&#39;x&#39;,ind=ind_axis_2)&quot;</span>
+<span class="n">ind_axis_3</span> <span class="o">=</span> <span class="n">axis_3</span><span class="o">.</span><span class="n">getInd</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="changing-the-axis-of-a-curve">
+<h3>Changing the Axis of a curve</h3>
+<p>Once a curve has been added to a given plot on a given graph and that this plot is composed of several axis, then it is possible to change the axis where the curve will be drawn into the given plot. To do so, you just need to edit the attribute <em>axis</em> of your Curve object. You can either use the axis object itself or its index.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">curve_3</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;axis&#39;</span><span class="p">,</span><span class="n">axis_3</span><span class="p">)</span>
+<span class="c1"># equivalent to</span>
+<span class="n">curve_3</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;ind_axis&#39;</span><span class="p">,</span><span class="n">ind_axis_3</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="editing-the-axis-system">
+<h3>Editing the Axis system</h3>
+<p>You can edit it by accessing to the Axis object and using the method:</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tkPlotXY.Axis.setValue">
+<span class="sig-prename descclassname"><span class="pre">Axis.</span></span><span class="sig-name descname"><span class="pre">setValue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Axis.setValue"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<p>where <em>axis</em> has to be &#8216;x&#8217; or &#8216;y&#8217;.</p>
+<p>Or you can directly access the X (resp. Y) DirAxis object by using the attribute <em>x</em> (resp. <em>y</em>) of the class Axis that will return the X DirAxis (resp. Y DirAxis) and then you can use the method:</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tkPlotXY.DirAxis.setValue">
+<span class="sig-prename descclassname"><span class="pre">DirAxis.</span></span><span class="sig-name descname"><span class="pre">setValue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#DirAxis.setValue"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<p>with <em>variable</em> according to the following tab:</p>
+<table class="docutils align-default" id="id9">
+<caption><span class="caption-text"><strong>Available variables to set a DirAxis</strong></span></caption>
+<colgroup>
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Variable</p></th>
+<th class="head"><p>Allowed values</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>axis_logscale</p></td>
+<td><p><cite>(bool)</cite></p></td>
+<td><p><cite>Use logscale for selected DirAxis</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>axis_autoscale</p></td>
+<td><p><cite>(bool)</cite></p></td>
+<td><p><cite>Use auto-scaling for selected DirAxis</cite></p></td>
+</tr>
+<tr class="row-even"><td><p>axis_min</p></td>
+<td><p><cite>(float)</cite></p></td>
+<td><p><cite>Minimum range to plot for the selected DirAxis</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>axis_max</p></td>
+<td><p><cite>(float)</cite></p></td>
+<td><p><cite>Maximum range to plot for the selected DirAxis</cite></p></td>
+</tr>
+<tr class="row-even"><td><p>axis_label</p></td>
+<td><p><cite>Label name (string)</cite></p></td>
+<td><p><cite>Label for the selected DirAxis (LaTeX formula are available with $$)</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>axis_inverted</p></td>
+<td><p><cite>(bool)</cite></p></td>
+<td><p><cite>Invert the orientation for the selected DirAxis</cite></p></td>
+</tr>
+<tr class="row-even"><td><p>axis_visible</p></td>
+<td><p><cite>(bool)</cite></p></td>
+<td><p><cite>Show or hide the selected DirAxis</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>axis_position</p></td>
+<td><p><cite>For X-DirAxis : &#8216;top&#8217;,&#8217;bottom&#8217;,&#8217;both&#8217; and for Y-DirAxis : &#8216;left&#8217;,&#8217;right&#8217;,&#8217;both&#8217;</cite></p></td>
+<td><p><cite>Position where to plot the axis line, its ticks and the  label for selected DirAxis</cite></p></td>
+</tr>
+<tr class="row-even"><td><p>axis_offset</p></td>
+<td><p><cite>(float)</cite></p></td>
+<td><p><cite>Introduce an offset for the axis line, its ticks and the label for selected DirAxis</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>axis_label_fontsize</p></td>
+<td><p><cite>(float)</cite></p></td>
+<td><p><cite>Set the size of the label font for the selected DirAxis</cite></p></td>
+</tr>
+</tbody>
+</table>
+<p>For instance, setting logscale on the Y-DirAxis of the <em>axis_3</em> previously defined as a twin X-DirAxis of <em>axis_2</em> (See <em>Multiple axis system</em> section)</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">axis_3</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;axis_logscale&#39;</span><span class="p">,</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># equivalent to axis_3.setValue(&#39;y&#39;,&#39;axis_inverted&#39;,True)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="grid">
+<h2>Grid</h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="id4">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">Grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Grid contains the main grid and the second grid. They can be configured directly by accessing to Grid or to the proper GridLevel object.
+In case of a multiple axis usage, then multiple Grid objects can be attached to a given plot.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="id5">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">LevelGrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_display</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_grid_color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_grid_style</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_grid_width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_grid_tick_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_grid_tick_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_display</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_grid_color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_grid_style</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_grid_width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_grid_tick_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_grid_tick_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#LevelGrid"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="id6">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">AxisGrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">display</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_style</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_tick_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_tick_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#AxisGrid"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<p>Once an axis system is created, a Grid object is attached to this new axis system. It means that for each Axis object there exists a unique associated Grid object. This Grid object is composed of two LevelGrid objects : <em>major</em> and <em>minor</em> which corresponds to the main grid and the second grid. Each LevelGrid object contains two AxisGrid : <em>X</em> and <em>Y</em>. To put it in a nutshell, a Grid object describes 4 AxisGrid objects : <em>major X</em>, <em>major Y</em>, <em>minor X</em> and <em>minor Y</em>.</p>
+<p>Since Grid objects are automatically generated during the creation of Axis object, there is no need to create Grid object. It is just needed to be able to access it.</p>
+<section id="access-a-grid-object">
+<h3>Access a Grid object</h3>
+<p>To access the associated Grid object to a given Axis on a given plot inside a given Graph, use the method:</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tkPlotXY.Graph.getGrid">
+<span class="sig-prename descclassname"><span class="pre">Graph.</span></span><span class="sig-name descname"><span class="pre">getGrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iCurSubGraph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Graph.getGrid"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<p>where <em>iCurSubGraph</em> identifies the plot inside the graph thanks to its matricial position. Moreover, in case of a multiple axis plot (2 or more Y DirAxis on the same plot for instance, see <em>Multiple axis system section</em>), you can specify the number identifying your axis system using <em>ind</em> or directly specify the axis object using <em>axis</em>. Note that the original axis system has the index 0 and then the index is increased for each new axis system.</p>
+<p>For instance, to get the Grid associated to the Axis <em>axis_3</em> previously defined:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">grid_3</span> <span class="o">=</span> <span class="n">graph_1</span><span class="o">.</span><span class="n">getGrid</span><span class="p">(</span><span class="s1">&#39;2:1&#39;</span><span class="p">,</span><span class="n">ind</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="c1"># is equivalent to</span>
+<span class="n">grid_3</span> <span class="o">=</span> <span class="n">graph_1</span><span class="o">.</span><span class="n">getGrid</span><span class="p">(</span><span class="s1">&#39;2:1&#39;</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="n">axis_3</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If needed, you can access directly the LevelGrid object using the attributes <em>minor</em> and <em>major</em> of class Grid and then you can get the <em>AxisGrid</em> using the attributes <em>x</em> and <em>y</em> of class LevelGrid.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">grid_3</span> <span class="o">=</span> <span class="n">graph_1</span><span class="o">.</span><span class="n">getGrid</span><span class="p">(</span><span class="s1">&#39;2:1&#39;</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="n">axis_3</span><span class="p">)</span>
+<span class="n">grid_3_majorX</span> <span class="o">=</span> <span class="n">grid_3</span><span class="o">.</span><span class="n">major</span><span class="o">.</span><span class="n">x</span>
+<span class="n">grid_3_majorY</span> <span class="o">=</span> <span class="n">grid_3</span><span class="o">.</span><span class="n">major</span><span class="o">.</span><span class="n">y</span>
+<span class="n">grid_3_minorX</span> <span class="o">=</span> <span class="n">grid_3</span><span class="o">.</span><span class="n">minor</span><span class="o">.</span><span class="n">x</span>
+<span class="n">grid_3_minorY</span> <span class="o">=</span> <span class="n">grid_3</span><span class="o">.</span><span class="n">minor</span><span class="o">.</span><span class="n">y</span>
+</pre></div>
+</div>
+</section>
+<section id="editing-a-grid-object">
+<h3>Editing a Grid object</h3>
+<p>You can edit a Grid object using the method:</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tkPlotXY.Grid.setValue">
+<span class="sig-prename descclassname"><span class="pre">Grid.</span></span><span class="sig-name descname"><span class="pre">setValue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Grid.setValue"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<p>where <em>level</em> (&#8216;major&#8217; or &#8216;minor&#8217; expected) and <em>direction</em> (&#8216;x&#8217; or &#8216;y&#8217; expected) identify the AxisGrid to edit</p>
+<p>or the LevelGrid object using the method:</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tkPlotXY.LevelGrid.setValue">
+<span class="sig-prename descclassname"><span class="pre">LevelGrid.</span></span><span class="sig-name descname"><span class="pre">setValue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#LevelGrid.setValue"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<p>where <em>direction</em> (&#8216;x&#8217; or &#8216;y&#8217; expected) identifies the AxisGrid to edit</p>
+<p>or directly the AxisGrid object using the method:</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tkPlotXY.AxisGrid.setValue">
+<span class="sig-prename descclassname"><span class="pre">AxisGrid.</span></span><span class="sig-name descname"><span class="pre">setValue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#AxisGrid.setValue"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<p>Authorized <em>variable</em> and <em>value</em> are described in the following tab:</p>
+<table class="docutils align-default" id="id10">
+<caption><span class="caption-text"><strong>Available variables to set an AxisGrid</strong></span></caption>
+<colgroup>
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Variable</p></th>
+<th class="head"><p>Allowed values</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>display</p></td>
+<td><p><cite>(bool)</cite></p></td>
+<td><p><cite>Show or hide the AxisGrid</cite>&#8221;</p></td>
+</tr>
+<tr class="row-odd"><td><p>grid_color</p></td>
+<td><p><cite>Html color code (string)</cite></p></td>
+<td><p><cite>Modify the color of the AxisGrid</cite>&#8221;</p></td>
+</tr>
+<tr class="row-even"><td><p>grid_style</p></td>
+<td><p><cite>&#8216;solid&#8217;, &#8216;dashed&#8217;, &#8216;dashdot&#8217;, &#8216;dotted&#8217;, &#8216;None&#8217;</cite></p></td>
+<td><p><cite>Modify the line style for the AxisGrid</cite>&#8221;</p></td>
+</tr>
+<tr class="row-odd"><td><p>grid_width</p></td>
+<td><p><cite>(float)</cite></p></td>
+<td><p><cite>Modify the line width for the AxisGrid</cite>&#8221;</p></td>
+</tr>
+<tr class="row-even"><td><p>grid_tick_number</p></td>
+<td><p><cite>(int)</cite></p></td>
+<td><p><cite>Change the number of ticks on the AxisGrid</cite>&#8221;</p></td>
+</tr>
+<tr class="row-odd"><td><p>grid_tick_size</p></td>
+<td><p><cite>(float)</cite></p></td>
+<td><p><cite>Change the size of the ticks</cite>&#8221;</p></td>
+</tr>
+</tbody>
+</table>
+<p>For instance, to add the major grid as dashed lines for X and Y axis on the Grid grid_3 previously defined:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">grid_3</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;major&#39;</span><span class="p">,</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="s1">&#39;display&#39;</span><span class="p">,</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">grid_3</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;major&#39;</span><span class="p">,</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="s1">&#39;grid_style&#39;</span><span class="p">,</span><span class="s1">&#39;dashed&#39;</span><span class="p">)</span>
+
+<span class="n">grid_3</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;major&#39;</span><span class="p">,</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="s1">&#39;display&#39;</span><span class="p">,</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">grid_3</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;major&#39;</span><span class="p">,</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="s1">&#39;grid_style&#39;</span><span class="p">,</span><span class="s1">&#39;dashed&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="legend">
+<h2>Legend</h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="id7">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">Legend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Legend"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>An object of class Legend configures the legend for a given plot inside a Graph window.</p>
+</dd></dl>
+
+<p>While a Graph object  is created, a Legend object is associated to each plot of the Graph. There is no need to create manually a Legend object. You just need to access it in order to edit it.</p>
+<section id="accessing-a-legend-object">
+<h3>Accessing a Legend object</h3>
+<p>To access a Legend object of a given plot inside a given Graph, use the method:</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tkPlotXY.Graph.getLegend">
+<span class="sig-prename descclassname"><span class="pre">Graph.</span></span><span class="sig-name descname"><span class="pre">getLegend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iCurSubGraph</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Graph.getLegend"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<p>where <em>iCurSubGraph</em> identifies the plot inside the graph thanks to its matricial position.</p>
+<p>For example, to get the Legend of the plot on the second line of graph_1:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">legend_2</span> <span class="o">=</span> <span class="n">graph_1</span><span class="o">.</span><span class="n">getLegend</span><span class="p">(</span><span class="s1">&#39;2:1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="editing-a-legend-object">
+<h3>Editing a Legend object</h3>
+<p>To edit a Legend object, you can use the method:</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tkPlotXY.Legend.setValue">
+<span class="sig-prename descclassname"><span class="pre">Legend.</span></span><span class="sig-name descname"><span class="pre">setValue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Legend.setValue"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<p>Authorized <em>variable</em> and <em>value</em> are described in the following tab:</p>
+<table class="docutils align-default" id="id11">
+<caption><span class="caption-text"><strong>Available variables to set a Legend</strong></span></caption>
+<colgroup>
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+<col style="width: 33.3%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Variable</p></th>
+<th class="head"><p>Allowed values</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>legend_display</p></td>
+<td><p><cite>(bool)</cite></p></td>
+<td><p><cite>Show or hide the legend box</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>legend_title</p></td>
+<td><p><cite>(string)</cite></p></td>
+<td><p><cite>Title of the legend</cite></p></td>
+</tr>
+<tr class="row-even"><td><p>legend_border_width</p></td>
+<td><p><cite>(float)</cite></p></td>
+<td><p><cite>Width of the legend box border</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>legend_border_color</p></td>
+<td><p><cite>Html color code (string)</cite></p></td>
+<td><p><cite>Color of the border of the legend box</cite></p></td>
+</tr>
+<tr class="row-even"><td><p>legend_background_color</p></td>
+<td><p><cite>Html color code (string)</cite></p></td>
+<td><p><cite>Background color of the legend box</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>legend_background_color_active</p></td>
+<td><p><cite>(bool)</cite></p></td>
+<td><p><cite>Use or not transparency as background for the box of the legend</cite></p></td>
+</tr>
+<tr class="row-even"><td><p>legend_position</p></td>
+<td><p><cite>&#8216;best&#8217;, &#8216;upper left&#8217;, &#8216;upper center&#8217;, &#8216;upper right&#8217;, &#8216;center left&#8217;, &#8216;center&#8217;, &#8216;center right&#8217;, &#8216;lower left&#8217;, &#8216;lower center&#8217;, &#8216;lower    right&#8217;</cite></p></td>
+<td><p><cite>Position of the legend box</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>legend_ncol</p></td>
+<td><p><cite>(int)</cite></p></td>
+<td><p><cite>Number of columns to display the legend</cite></p></td>
+</tr>
+<tr class="row-even"><td><p>legend_label_weight</p></td>
+<td><p><cite>&#8216;normal&#8217;,&#8217;bold&#8217;</cite></p></td>
+<td><p><cite>Use bold font for the curves name</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>legend_label_style</p></td>
+<td><p><cite>&#8216;normal&#8217;,&#8217;italic&#8217;</cite></p></td>
+<td><p><cite>Use italic font for the curves name</cite></p></td>
+</tr>
+<tr class="row-even"><td><p>legend_label_size</p></td>
+<td><p><cite>(float)</cite></p></td>
+<td><p><cite>Font size for the curves name</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>legend_label_color</p></td>
+<td><p><cite>Html color code (string)</cite></p></td>
+<td><p><cite>Font color used for the name of the curves</cite></p></td>
+</tr>
+<tr class="row-even"><td><p>legend_title_weight</p></td>
+<td><p><cite>&#8216;normal&#8217;,&#8217;bold&#8217;</cite></p></td>
+<td><p><cite>Use bold font for the legend title</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>legend_title_style</p></td>
+<td><p><cite>&#8216;normal&#8217;,&#8217;italic&#8217;</cite></p></td>
+<td><p><cite>Use italic font for the legend title</cite></p></td>
+</tr>
+<tr class="row-even"><td><p>legend_title_size</p></td>
+<td><p><cite>(float)</cite></p></td>
+<td><p><cite>Font size for the legend title</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p>legend_title_color</p></td>
+<td><p><cite>Html color code (string)</cite></p></td>
+<td><p><cite>Font color used for the legend title</cite></p></td>
+</tr>
+</tbody>
+</table>
+<p>For example, the following code set the title of Legend legend_2, that has been previously defined, with a bold font:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">legend_2</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;legend_title_weight&#39;</span><span class="p">,</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="update-view-and-save-your-graph">
+<h2>Update, View and Save your graph</h2>
+<p>Now that ve have listed all elements that can be used to configure your plots, let us address the main objective of your python script: visualize your plot. First of all, you will need to update them to take into account all the modifications that have been added. Then you can either display on screen or save the figure.</p>
+<section id="update-figures">
+<h3>Update figures</h3>
+<p>To update a given plot on a given Graph, use the method:</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tkPlotXY.Graph.updateGraph">
+<span class="sig-prename descclassname"><span class="pre">Graph.</span></span><span class="sig-name descname"><span class="pre">updateGraph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iCurSubGraph</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Graph.updateGraph"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<p>where <em>iCurSubGraph</em> identifies the plot inside the graph thanks to its matricial position.</p>
+<p>For instance, in order to update the plot on second line of <em>graph_2</em>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">graph_2</span><span class="o">.</span><span class="n">updateGraph</span><span class="p">(</span><span class="s1">&#39;2:1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you want to update all the plots of a given Graph, you can use the method:</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tkPlotXY.Graph.drawFigure">
+<span class="sig-prename descclassname"><span class="pre">Graph.</span></span><span class="sig-name descname"><span class="pre">drawFigure</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Graph.drawFigure"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<p>For example, to update the two plots on our <em>graph_2</em>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">graph_2</span><span class="o">.</span><span class="n">drawFigure</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Please, do not be confused, the method <strong>drawFigure</strong> does not display the figure !</p>
+</section>
+<section id="display-on-screen">
+<h3>Display on screen</h3>
+<p>In order to display on screen a Graph, use the method:</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tkPlotXY.Graph.showFigure">
+<span class="sig-prename descclassname"><span class="pre">Graph.</span></span><span class="sig-name descname"><span class="pre">showFigure</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Graph.showFigure"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<p>Do not forget to add a call to <strong>time.sleep()</strong> after this command in order to let the display active more longer than just a pop-up !</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">time</span>
+<span class="c1">####</span>
+<span class="c1">#...</span>
+<span class="c1">####</span>
+<span class="n">graph_2</span><span class="o">.</span><span class="n">showFigure</span><span class="p">()</span>
+<span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">5.</span><span class="p">)</span>  <span class="c1"># stop for 5 sec. here</span>
+</pre></div>
+</div>
+</section>
+<section id="save-figures">
+<h3>Save figures</h3>
+<p>Use the method <strong>save</strong> of the class Graph to save your drawing in a file:</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tkPlotXY.Graph.save">
+<span class="sig-prename descclassname"><span class="pre">Graph.</span></span><span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tkPlotXY.html#Graph.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<p>where <em>path</em> is the output file path and format is the format you wish to use to save your figure (available formats are : &#8216;emf&#8217;, &#8216;eps&#8217;, &#8216;pdf&#8217;, &#8216;png&#8217;, &#8216;ps&#8217;, &#8216;raw&#8217;, &#8216;rgba&#8217;, &#8216;svg&#8217;, &#8216;svgz&#8217;).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">graph_2</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;/home/User/Example/myNiceGraph.png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="extra-usages">
+<h2>Extra usages</h2>
+<section id="load-save-configurations-script">
+<h3>Load &amp; Save configurations script</h3>
+<p>Configurations scripts are python scripts automatically generated by the GUI. They can be loaded to ease the proccess of tunning your plot. For instance, if you have a plot that you often draw, instead of re-creating each time your drawing, you can simply load your configuration and use it as a base. Moreover, this configurations scripts are created by the graphical user interface and you will only need to adapt a few elements (removing the &#8216;TK&#8217; suffix of all the classes basically) to use them directly as script without the GUI.</p>
+</section>
+</section>
+<section id="complete-example">
+<h2>Complete example</h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tkPlotXY</span> <span class="k">as</span> <span class="nn">tkP</span>
+<span class="c1"># Create a graphEditor</span>
+<span class="n">graphDesktop</span> <span class="o">=</span> <span class="n">tkP</span><span class="o">.</span><span class="n">openGraphEditor</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<span class="c1"># Generate data with a Lamb vortex (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Initiator.PyTree</span> <span class="k">as</span> <span class="nn">I</span>
+<span class="kn">import</span> <span class="nn">Post.PyTree</span> <span class="k">as</span> <span class="nn">P</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">time</span><span class="o">,</span><span class="nn">os</span>
+<span class="n">cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+
+<span class="n">DEBUG_CHECKDATA</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="c1"># Creating a vortex</span>
+<span class="n">NI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span> <span class="n">NJ</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">HI</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NI</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="n">HJ</span> <span class="o">=</span> <span class="mf">50.</span><span class="o">/</span><span class="p">(</span><span class="n">NJ</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">tree</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="n">HI</span><span class="p">,</span><span class="n">HJ</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="n">NI</span><span class="p">,</span><span class="n">NJ</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">tree</span> <span class="o">=</span> <span class="n">I</span><span class="o">.</span><span class="n">initLamb</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mf">7.</span><span class="p">,</span><span class="mf">7.</span><span class="p">),</span> <span class="n">Gamma</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="n">MInf</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">)</span>
+<span class="n">tree</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">isoSurfMC</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="s1">&#39;CoordinateZ&#39;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+<span class="n">tree</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">isoSurfMC</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="s1">&#39;CoordinateY&#39;</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">)</span>
+
+<span class="c1"># Save generated data as cgns</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span><span class="s1">&#39;vortex_slice.hdf&#39;</span><span class="p">)</span>
+<span class="c1"># Load data as pyTree</span>
+<span class="n">tree</span><span class="o">=</span><span class="n">C</span><span class="o">.</span><span class="n">convertFile2PyTree</span><span class="p">(</span><span class="s1">&#39;./vortex_slice.hdf&#39;</span><span class="p">)</span>
+
+<span class="c1">########################### Set data</span>
+<span class="n">graphDesktop</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">DEBUG_CHECKDATA</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">graphDesktop</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;*-&#39;</span><span class="o">*</span><span class="mi">15</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Zone : &#39;</span><span class="p">,</span><span class="n">z</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">graphDesktop</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">z</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;---&gt; Var : &#39;</span><span class="p">,</span><span class="n">k</span><span class="p">)</span>
+
+<span class="c1">########################### Graph creation</span>
+<span class="c1"># Create First Graph</span>
+<span class="n">graph_0</span> <span class="o">=</span> <span class="n">graphDesktop</span><span class="o">.</span><span class="n">createGraph</span><span class="p">(</span><span class="s1">&#39;MyFirstGraph&#39;</span><span class="p">,</span><span class="s1">&#39;1:1&#39;</span><span class="p">)</span>
+<span class="c1"># Create Second Graph</span>
+<span class="n">graph_1</span> <span class="o">=</span> <span class="n">graphDesktop</span><span class="o">.</span><span class="n">createGraph</span><span class="p">(</span><span class="s1">&#39;MySecondGraph&#39;</span><span class="p">,</span><span class="s1">&#39;2:1&#39;</span><span class="p">)</span>
+
+<span class="c1">########################### Curve creation</span>
+<span class="c1"># Create the first curve</span>
+<span class="n">curve_0</span> <span class="o">=</span> <span class="n">tkP</span><span class="o">.</span><span class="n">Curve</span><span class="p">(</span><span class="n">zone</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Base/cart&#39;</span><span class="p">],</span><span class="n">varx</span><span class="o">=</span><span class="s1">&#39;CoordinateX&#39;</span><span class="p">,</span><span class="n">vary</span><span class="o">=</span><span class="s1">&#39;Density@FlowSolution&#39;</span> <span class="p">,</span> <span class="n">line_color</span><span class="o">=</span><span class="s1">&#39;#7f00ff&#39;</span> <span class="p">,</span> <span class="n">marker_face_color</span><span class="o">=</span><span class="s1">&#39;#7f00ff&#39;</span> <span class="p">,</span><span class="n">marker_edge_color</span><span class="o">=</span><span class="s1">&#39;#7f00ff&#39;</span> <span class="p">)</span>
+
+<span class="c1"># Create the second curve</span>
+<span class="n">curve_1</span> <span class="o">=</span> <span class="n">tkP</span><span class="o">.</span><span class="n">Curve</span><span class="p">(</span><span class="n">zone</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Base/cart&#39;</span><span class="p">],</span><span class="n">varx</span><span class="o">=</span><span class="s1">&#39;CoordinateX&#39;</span><span class="p">,</span><span class="n">vary</span><span class="o">=</span><span class="s1">&#39;MomentumZ@FlowSolution&#39;</span> <span class="p">,</span> <span class="n">line_color</span><span class="o">=</span><span class="s1">&#39;#0404B4&#39;</span> <span class="p">,</span> <span class="n">marker_face_color</span><span class="o">=</span><span class="s1">&#39;#0404B4&#39;</span> <span class="p">,</span><span class="n">marker_edge_color</span><span class="o">=</span><span class="s1">&#39;#0404B4&#39;</span> <span class="p">)</span>
+
+<span class="c1"># Create the third curve</span>
+<span class="n">curve_2</span> <span class="o">=</span> <span class="n">tkP</span><span class="o">.</span><span class="n">Curve</span><span class="p">(</span><span class="n">zone</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Base/cart&#39;</span><span class="p">],</span><span class="n">varx</span><span class="o">=</span><span class="s1">&#39;CoordinateX&#39;</span><span class="p">,</span><span class="n">vary</span><span class="o">=</span><span class="s1">&#39;MomentumX@FlowSolution&#39;</span> <span class="p">,</span> <span class="n">line_color</span><span class="o">=</span><span class="s1">&#39;#FF00FF&#39;</span> <span class="p">,</span> <span class="n">marker_face_color</span><span class="o">=</span><span class="s1">&#39;#FF00FF&#39;</span> <span class="p">,</span><span class="n">marker_edge_color</span><span class="o">=</span><span class="s1">&#39;#FF00FF&#39;</span> <span class="p">)</span>
+
+<span class="c1"># Create the fourth curve</span>
+<span class="n">curve_3</span> <span class="o">=</span> <span class="n">tkP</span><span class="o">.</span><span class="n">Curve</span><span class="p">(</span><span class="n">zone</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Base/cart&#39;</span><span class="p">],</span><span class="n">varx</span><span class="o">=</span><span class="s1">&#39;CoordinateX&#39;</span><span class="p">,</span><span class="n">vary</span><span class="o">=</span><span class="s1">&#39;MomentumY@FlowSolution&#39;</span> <span class="p">,</span> <span class="n">line_color</span><span class="o">=</span><span class="s1">&#39;#FFBF00&#39;</span> <span class="p">,</span> <span class="n">marker_face_color</span><span class="o">=</span><span class="s1">&#39;#FFBF00&#39;</span> <span class="p">,</span><span class="n">marker_edge_color</span><span class="o">=</span><span class="s1">&#39;#FFBF00&#39;</span> <span class="p">)</span>
+
+<span class="c1">########################### Attaching curves to graph</span>
+<span class="c1"># First curve to graph_0</span>
+<span class="n">graph_0</span><span class="o">.</span><span class="n">addCurve</span><span class="p">(</span><span class="s1">&#39;1:1&#39;</span><span class="p">,</span><span class="n">curve_0</span><span class="p">)</span>
+<span class="c1"># Second curve to graph_1 first line</span>
+<span class="n">graph_1</span><span class="o">.</span><span class="n">addCurve</span><span class="p">(</span><span class="s1">&#39;1:1&#39;</span><span class="p">,</span><span class="n">curve_1</span><span class="p">)</span>
+<span class="c1"># Third curve to graph_1 second line</span>
+<span class="n">graph_1</span><span class="o">.</span><span class="n">addCurve</span><span class="p">(</span><span class="s1">&#39;2:1&#39;</span><span class="p">,</span><span class="n">curve_2</span><span class="p">)</span>
+<span class="c1"># Fourth curve to graph_1 second line</span>
+<span class="n">graph_1</span><span class="o">.</span><span class="n">addCurve</span><span class="p">(</span><span class="s1">&#39;2:1&#39;</span><span class="p">,</span><span class="n">curve_3</span><span class="p">)</span>
+
+<span class="c1">########################### Editing curves</span>
+<span class="c1">## Name for the legend</span>
+<span class="n">curve_0</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;legend_label&#39;</span><span class="p">,</span><span class="s1">&#39;Density&#39;</span><span class="p">)</span>
+<span class="n">curve_1</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;legend_label&#39;</span><span class="p">,</span><span class="s1">&#39;MomentumZ&#39;</span><span class="p">)</span>
+<span class="n">curve_2</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;legend_label&#39;</span><span class="p">,</span><span class="s1">&#39;MomentumX&#39;</span><span class="p">)</span>
+<span class="n">curve_3</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;legend_label&#39;</span><span class="p">,</span><span class="s1">&#39;MomentumY&#39;</span><span class="p">)</span>
+
+<span class="c1">## curve_3 : dashed</span>
+<span class="n">curve_3</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;line_style&#39;</span><span class="p">,</span><span class="s1">&#39;dashed&#39;</span><span class="p">)</span>
+
+<span class="c1">## curve_2 : add markers</span>
+<span class="n">curve_2</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;marker_style&#39;</span><span class="p">,</span><span class="s1">&#39;circle&#39;</span><span class="p">)</span>
+<span class="n">curve_2</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;marker_sampling_step&#39;</span><span class="p">,</span><span class="mi">20</span><span class="p">)</span> <span class="c1"># 1 marker over 20</span>
+
+<span class="c1">########################### Axis properties</span>
+<span class="c1">## 1/- Get axis</span>
+<span class="n">axis_0</span> <span class="o">=</span> <span class="n">graph_0</span><span class="o">.</span><span class="n">getAxis</span><span class="p">(</span><span class="s1">&#39;1:1&#39;</span><span class="p">)</span> <span class="c1"># ind = 0</span>
+<span class="n">ind_axis_0</span> <span class="o">=</span> <span class="n">axis_0</span><span class="o">.</span><span class="n">getInd</span><span class="p">()</span>
+<span class="c1"># #</span>
+<span class="n">axis_1</span> <span class="o">=</span> <span class="n">graph_1</span><span class="o">.</span><span class="n">getAxis</span><span class="p">(</span><span class="s1">&#39;1:1&#39;</span><span class="p">)</span> <span class="c1"># ind = 0</span>
+<span class="n">ind_axis_1</span> <span class="o">=</span> <span class="n">axis_1</span><span class="o">.</span><span class="n">getInd</span><span class="p">()</span>
+<span class="c1">#</span>
+<span class="n">axis_2</span> <span class="o">=</span> <span class="n">graph_1</span><span class="o">.</span><span class="n">getAxis</span><span class="p">(</span><span class="s1">&#39;2:1&#39;</span><span class="p">)</span> <span class="c1"># ind = 0</span>
+<span class="n">ind_axis_2</span> <span class="o">=</span> <span class="n">axis_2</span><span class="o">.</span><span class="n">getInd</span><span class="p">()</span>
+<span class="c1">## 2/- Twining X axis for plot 2:1 on graph_1</span>
+<span class="n">axis_3</span> <span class="o">=</span> <span class="n">graph_1</span><span class="o">.</span><span class="n">addAxis</span><span class="p">(</span><span class="s1">&#39;2:1&#39;</span><span class="p">,</span><span class="n">shared</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="n">axis_2</span><span class="p">)</span> <span class="c1"># equivalent to &quot;axis_3 = graph_1.addAxis(&#39;2:1&#39;,shared=&#39;x&#39;,ind=ind_axis_2)&quot;&quot;</span>
+<span class="n">ind_axis_3</span> <span class="o">=</span> <span class="n">axis_3</span><span class="o">.</span><span class="n">getInd</span><span class="p">()</span>
+
+<span class="c1"># Set the position of axis label</span>
+<span class="n">axis_2</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="s1">&#39;axis_position&#39;</span><span class="p">,</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+<span class="n">axis_3</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="s1">&#39;axis_position&#39;</span><span class="p">,</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
+<span class="c1"># Change the label text</span>
+<span class="n">axis_1</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="s1">&#39;axis_label&#39;</span><span class="p">,</span><span class="s1">&#39;$</span><span class="se">\\</span><span class="s1">rho W$&#39;</span><span class="p">)</span>
+<span class="n">axis_2</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="s1">&#39;axis_label&#39;</span><span class="p">,</span><span class="s1">&#39;$</span><span class="se">\\</span><span class="s1">rho U$&#39;</span><span class="p">)</span>
+<span class="n">axis_3</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="s1">&#39;axis_label&#39;</span><span class="p">,</span><span class="s1">&#39;$</span><span class="se">\\</span><span class="s1">rho V$&#39;</span><span class="p">)</span>
+
+<span class="c1"># ########################### Changing axis for curve_3</span>
+<span class="n">curve_3</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;axis&#39;</span><span class="p">,</span><span class="n">axis_3</span><span class="p">)</span> <span class="c1"># equivalent to &quot;curve_3.setValue(&#39;ind_axis&#39;,ind_axis_3)&quot;</span>
+
+<span class="c1">########################### Editing Grid properties</span>
+<span class="c1"># Get the grid objects</span>
+<span class="n">grid_0</span> <span class="o">=</span> <span class="n">graph_0</span><span class="o">.</span><span class="n">getGrid</span><span class="p">(</span><span class="s1">&#39;1:1&#39;</span><span class="p">,</span><span class="n">ind</span><span class="o">=</span><span class="n">ind_axis_0</span><span class="p">)</span>   <span class="c1"># equivalent to &quot;grid_0 = graph_0.getGrid(&#39;1:1&#39;,axis=axis_0)&quot;</span>
+<span class="n">grid_1</span> <span class="o">=</span> <span class="n">graph_1</span><span class="o">.</span><span class="n">getGrid</span><span class="p">(</span><span class="s1">&#39;1:1&#39;</span><span class="p">,</span><span class="n">ind</span><span class="o">=</span><span class="n">ind_axis_1</span><span class="p">)</span>   <span class="c1"># equivalent to &quot;grid_1 = graph_1.getGrid(&#39;1:1&#39;,axis=axis_1)&quot;</span>
+<span class="n">grid_2</span> <span class="o">=</span> <span class="n">graph_1</span><span class="o">.</span><span class="n">getGrid</span><span class="p">(</span><span class="s1">&#39;2:1&#39;</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="n">axis_2</span><span class="p">)</span>   <span class="c1"># equivalent to &quot;grid_2 = graph_1.getGrid(&#39;2:1&#39;,ind=ind_axis_2)&quot;</span>
+<span class="n">grid_3</span> <span class="o">=</span> <span class="n">graph_1</span><span class="o">.</span><span class="n">getGrid</span><span class="p">(</span><span class="s1">&#39;2:1&#39;</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="n">axis_3</span><span class="p">)</span>   <span class="c1"># equivalent to &quot;grid_3 = graph_1.getGrid(&#39;2:1&#39;,ind=ind_axis_3)&quot;</span>
+<span class="c1"># Display a solid grid for the major grids on X &amp; Y axis_2</span>
+<span class="n">grid_2</span><span class="o">.</span><span class="n">major</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;grid_style&#39;</span><span class="p">,</span><span class="s1">&#39;solid&#39;</span><span class="p">)</span>
+<span class="n">grid_2</span><span class="o">.</span><span class="n">major</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;grid_style&#39;</span><span class="p">,</span><span class="s1">&#39;solid&#39;</span><span class="p">)</span>
+
+<span class="c1">########################### Editing Legend properties</span>
+<span class="c1"># Get the legend objects</span>
+<span class="n">legend_0</span> <span class="o">=</span> <span class="n">graph_0</span><span class="o">.</span><span class="n">getLegend</span><span class="p">(</span><span class="s1">&#39;1:1&#39;</span><span class="p">)</span>
+<span class="n">legend_1</span> <span class="o">=</span> <span class="n">graph_1</span><span class="o">.</span><span class="n">getLegend</span><span class="p">(</span><span class="s1">&#39;1:1&#39;</span><span class="p">)</span>
+<span class="n">legend_2</span> <span class="o">=</span> <span class="n">graph_1</span><span class="o">.</span><span class="n">getLegend</span><span class="p">(</span><span class="s1">&#39;2:1&#39;</span><span class="p">)</span>
+<span class="c1"># Hide legend_1</span>
+<span class="n">legend_1</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;legend_display&#39;</span><span class="p">,</span><span class="kc">False</span><span class="p">)</span>
+<span class="c1"># Reduce legend label size</span>
+<span class="n">legend_2</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;legend_label_size&#39;</span><span class="p">,</span><span class="mi">8</span><span class="p">)</span>
+<span class="c1"># Increase legend title size and set its font as bold</span>
+<span class="n">legend_2</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;legend_title_size&#39;</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">legend_2</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;legend_title_weight&#39;</span><span class="p">,</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+<span class="c1"># Position legend in the lower right corner</span>
+<span class="n">legend_2</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="s1">&#39;legend_position&#39;</span><span class="p">,</span><span class="s1">&#39;lower right&#39;</span><span class="p">)</span>
+
+<span class="c1">########################### Use SubPlotParams</span>
+<span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;left&#39;</span><span class="p">:</span><span class="mf">0.12</span><span class="p">,</span><span class="s1">&#39;right&#39;</span><span class="p">:</span><span class="mf">0.87</span><span class="p">,</span><span class="s1">&#39;top&#39;</span><span class="p">:</span><span class="mf">0.90</span><span class="p">,</span><span class="s1">&#39;bottom&#39;</span><span class="p">:</span><span class="mf">0.12</span><span class="p">,</span><span class="s1">&#39;isActive&#39;</span><span class="p">:</span><span class="kc">True</span><span class="p">,</span><span class="s1">&#39;hspace&#39;</span><span class="p">:</span><span class="mf">0.3</span><span class="p">}</span>
+<span class="n">graph_1</span><span class="o">.</span><span class="n">updateSubPlotParams</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+<span class="c1">########################### Update, view &amp; save</span>
+<span class="c1"># Update</span>
+<span class="n">graph_1</span><span class="o">.</span><span class="n">drawFigure</span><span class="p">()</span>
+<span class="c1"># Display</span>
+<span class="n">graph_1</span><span class="o">.</span><span class="n">showFigure</span><span class="p">()</span>
+<span class="c1"># Wait</span>
+<span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">5.</span><span class="p">)</span>
+<span class="c1"># Save</span>
+<span class="n">graph_1</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cwd</span><span class="p">,</span><span class="s1">&#39;MyNiceFigure.png&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+<section id="index">
+<h2>Index</h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="CPlot.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">tkPlotXY : plot of curves</a><ul>
+<li><a class="reference internal" href="#preamble">Preamble</a></li>
+<li><a class="reference internal" href="#one-line-plot-function">One line plot function</a><ul>
+<li><a class="reference internal" href="#tkPlotXY.tkPlotXY.plot"><code class="docutils literal notranslate"><span class="pre">tkPlotXY.plot()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#usage-with-classes">Usage with classes</a></li>
+<li><a class="reference internal" href="#list-of-classes">List of classes</a><ul>
+<li><a class="reference internal" href="#tkPlotXY.GraphEditor"><code class="docutils literal notranslate"><span class="pre">GraphEditor</span></code></a></li>
+<li><a class="reference internal" href="#tkPlotXY.Desktop"><code class="docutils literal notranslate"><span class="pre">Desktop</span></code></a></li>
+<li><a class="reference internal" href="#tkPlotXY.Graph"><code class="docutils literal notranslate"><span class="pre">Graph</span></code></a></li>
+<li><a class="reference internal" href="#tkPlotXY.Axis"><code class="docutils literal notranslate"><span class="pre">Axis</span></code></a></li>
+<li><a class="reference internal" href="#tkPlotXY.DirAxis"><code class="docutils literal notranslate"><span class="pre">DirAxis</span></code></a></li>
+<li><a class="reference internal" href="#tkPlotXY.Legend"><code class="docutils literal notranslate"><span class="pre">Legend</span></code></a></li>
+<li><a class="reference internal" href="#tkPlotXY.AxisGrid"><code class="docutils literal notranslate"><span class="pre">AxisGrid</span></code></a></li>
+<li><a class="reference internal" href="#tkPlotXY.Grid"><code class="docutils literal notranslate"><span class="pre">Grid</span></code></a></li>
+<li><a class="reference internal" href="#tkPlotXY.LevelGrid"><code class="docutils literal notranslate"><span class="pre">LevelGrid</span></code></a></li>
+<li><a class="reference internal" href="#tkPlotXY.Curve"><code class="docutils literal notranslate"><span class="pre">Curve</span></code></a></li>
+<li><a class="reference internal" href="#tkPlotXY.SubPlotParams"><code class="docutils literal notranslate"><span class="pre">SubPlotParams</span></code></a></li>
+<li><a class="reference internal" href="#tkPlotXY.TightLayout"><code class="docutils literal notranslate"><span class="pre">TightLayout</span></code></a></li>
+<li><a class="reference internal" href="#tkPlotXY.Movie"><code class="docutils literal notranslate"><span class="pre">Movie</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#grapheditor">GraphEditor</a><ul>
+<li><a class="reference internal" href="#tkPlotXY.tkPlotXY.GraphEditor"><code class="docutils literal notranslate"><span class="pre">tkPlotXY.GraphEditor</span></code></a></li>
+<li><a class="reference internal" href="#tkPlotXY.tkPlotXY.openGraphEditor"><code class="docutils literal notranslate"><span class="pre">tkPlotXY.openGraphEditor()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#desktop">Desktop</a><ul>
+<li><a class="reference internal" href="#tkPlotXY.tkPlotXY.Desktop"><code class="docutils literal notranslate"><span class="pre">tkPlotXY.Desktop</span></code></a></li>
+<li><a class="reference internal" href="#data-management">Data management</a><ul>
+<li><a class="reference internal" href="#tkPlotXY.Desktop.addZone"><code class="docutils literal notranslate"><span class="pre">Desktop.addZone()</span></code></a></li>
+<li><a class="reference internal" href="#tkPlotXY.Desktop.setData"><code class="docutils literal notranslate"><span class="pre">Desktop.setData()</span></code></a></li>
+<li><a class="reference internal" href="#tkPlotXY.Desktop.replaceZone"><code class="docutils literal notranslate"><span class="pre">Desktop.replaceZone()</span></code></a></li>
+<li><a class="reference internal" href="#tkPlotXY.Desktop.deleteZoneFromData"><code class="docutils literal notranslate"><span class="pre">Desktop.deleteZoneFromData()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#graph-creation">Graph creation</a><ul>
+<li><a class="reference internal" href="#tkPlotXY.Desktop.createGraph"><code class="docutils literal notranslate"><span class="pre">Desktop.createGraph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#graph">Graph</a><ul>
+<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">Graph</span></code></a></li>
+<li><a class="reference internal" href="#configure-the-graph-object">Configure the Graph object</a><ul>
+<li><a class="reference internal" href="#tkPlotXY.Graph.updateSubPlotParams"><code class="docutils literal notranslate"><span class="pre">Graph.updateSubPlotParams()</span></code></a></li>
+<li><a class="reference internal" href="#tkPlotXY.Graph.updateTightLayout"><code class="docutils literal notranslate"><span class="pre">Graph.updateTightLayout()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#curve">Curve</a><ul>
+<li><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">Curve</span></code></a></li>
+<li><a class="reference internal" href="#creating-a-curve">Creating a curve</a></li>
+<li><a class="reference internal" href="#editing-a-curve">Editing a curve</a><ul>
+<li><a class="reference internal" href="#tkPlotXY.Curve.setValue"><code class="docutils literal notranslate"><span class="pre">Curve.setValue()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#adding-a-curve-to-a-given-plot-on-a-given-graph">Adding a curve to a given plot on a given graph</a><ul>
+<li><a class="reference internal" href="#tkPlotXY.Graph.addCurve"><code class="docutils literal notranslate"><span class="pre">Graph.addCurve()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#axis">Axis</a><ul>
+<li><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">Axis</span></code></a></li>
+<li><a class="reference internal" href="#id3"><code class="docutils literal notranslate"><span class="pre">DirAxis</span></code></a></li>
+<li><a class="reference internal" href="#access-the-axis-system">Access the Axis system</a><ul>
+<li><a class="reference internal" href="#tkPlotXY.Graph.getAxis"><code class="docutils literal notranslate"><span class="pre">Graph.getAxis()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#multiple-axis-system">Multiple axis system</a><ul>
+<li><a class="reference internal" href="#tkPlotXY.Graph.addAxis"><code class="docutils literal notranslate"><span class="pre">Graph.addAxis()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#changing-the-axis-of-a-curve">Changing the Axis of a curve</a></li>
+<li><a class="reference internal" href="#editing-the-axis-system">Editing the Axis system</a><ul>
+<li><a class="reference internal" href="#tkPlotXY.Axis.setValue"><code class="docutils literal notranslate"><span class="pre">Axis.setValue()</span></code></a></li>
+<li><a class="reference internal" href="#tkPlotXY.DirAxis.setValue"><code class="docutils literal notranslate"><span class="pre">DirAxis.setValue()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#grid">Grid</a><ul>
+<li><a class="reference internal" href="#id4"><code class="docutils literal notranslate"><span class="pre">Grid</span></code></a></li>
+<li><a class="reference internal" href="#id5"><code class="docutils literal notranslate"><span class="pre">LevelGrid</span></code></a></li>
+<li><a class="reference internal" href="#id6"><code class="docutils literal notranslate"><span class="pre">AxisGrid</span></code></a></li>
+<li><a class="reference internal" href="#access-a-grid-object">Access a Grid object</a><ul>
+<li><a class="reference internal" href="#tkPlotXY.Graph.getGrid"><code class="docutils literal notranslate"><span class="pre">Graph.getGrid()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#editing-a-grid-object">Editing a Grid object</a><ul>
+<li><a class="reference internal" href="#tkPlotXY.Grid.setValue"><code class="docutils literal notranslate"><span class="pre">Grid.setValue()</span></code></a></li>
+<li><a class="reference internal" href="#tkPlotXY.LevelGrid.setValue"><code class="docutils literal notranslate"><span class="pre">LevelGrid.setValue()</span></code></a></li>
+<li><a class="reference internal" href="#tkPlotXY.AxisGrid.setValue"><code class="docutils literal notranslate"><span class="pre">AxisGrid.setValue()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#legend">Legend</a><ul>
+<li><a class="reference internal" href="#id7"><code class="docutils literal notranslate"><span class="pre">Legend</span></code></a></li>
+<li><a class="reference internal" href="#accessing-a-legend-object">Accessing a Legend object</a><ul>
+<li><a class="reference internal" href="#tkPlotXY.Graph.getLegend"><code class="docutils literal notranslate"><span class="pre">Graph.getLegend()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#editing-a-legend-object">Editing a Legend object</a><ul>
+<li><a class="reference internal" href="#tkPlotXY.Legend.setValue"><code class="docutils literal notranslate"><span class="pre">Legend.setValue()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#update-view-and-save-your-graph">Update, View and Save your graph</a><ul>
+<li><a class="reference internal" href="#update-figures">Update figures</a><ul>
+<li><a class="reference internal" href="#tkPlotXY.Graph.updateGraph"><code class="docutils literal notranslate"><span class="pre">Graph.updateGraph()</span></code></a></li>
+<li><a class="reference internal" href="#tkPlotXY.Graph.drawFigure"><code class="docutils literal notranslate"><span class="pre">Graph.drawFigure()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#display-on-screen">Display on screen</a><ul>
+<li><a class="reference internal" href="#tkPlotXY.Graph.showFigure"><code class="docutils literal notranslate"><span class="pre">Graph.showFigure()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#save-figures">Save figures</a><ul>
+<li><a class="reference internal" href="#tkPlotXY.Graph.save"><code class="docutils literal notranslate"><span class="pre">Graph.save()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#extra-usages">Extra usages</a><ul>
+<li><a class="reference internal" href="#load-save-configurations-script">Load &amp; Save configurations script</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#complete-example">Complete example</a></li>
+<li><a class="reference internal" href="#index">Index</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><a  href="tkPlotXY.pdf" target="_self">Download pdf version</a>
+<head>
+<style>
+#myBtn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  background-color: rgba(26,85,85,0.5);
+  color: rgb(0, 0, 0);
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 6px 6px 6px black;
+}
+
+#myBtn:hover {
+  background-color: rgb(26,85,85);
+  color: rgb(255, 255, 255);
+}
+</style>
+</head>
+<body>
+
+<button onclick="topFunction()" id="myBtn" title="Go to top"><img src="./_static/icon.png" width="20" height="20"></button>
+
+<script>
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = function() {scrollFunction()};
+
+function scrollFunction() {
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        document.getElementById("myBtn").style.display = "block";
+    } else {
+        document.getElementById("myBtn").style.display = "none";
+    }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+}
+</script>
+</body>
+<!-- <img src="logo-onera-ident.png">>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="CPlot.html">CPlot 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">tkPlotXY : plot of curves</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright ONERA.
+    </div>
+  </body>
+</html>

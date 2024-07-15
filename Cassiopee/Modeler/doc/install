@@ -19,14 +19,14 @@ elif ([ $# -eq 2 ])
 then
     PRODUCTION=1
     # Destination docs
-    DEST="$CASSIOPEE/web/doc"
+    DEST="$CASSIOPEE/docs/doc"
     # Destination tests unitaires
     DEST2="$DEST/Examples/Modeler"
     # Destination des release notes
-    DEST3="$CASSIOPEE/web/Download"
+    DEST3="$CASSIOPEE/docs/Download"
 else
     echo 'install: install locally'
-    echo 'install 1 2: install in web/doc.'
+    echo 'install 1 2: install in docs/doc.'
     exit
 fi
 

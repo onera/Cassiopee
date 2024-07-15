@@ -713,7 +713,7 @@ True, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
-'ubuntu': [ 'Linux ubuntu (Onera)',
+'ubuntu': [ 'Linux ubuntu 24.04',
 'gfortran', # f77compiler
 'gfortran', # f90compiler
 'gcc', # Cppcompiler
@@ -721,9 +721,9 @@ True, # useCuda
 [], # f77AdditionalOptions
 True, # useOMP
 False, # static
-[], # additionalIncludePaths
-[], # additionalLibs
-[], # additionalLibPaths
+['/usr/include', '/usr/include/hdf5/openmpi', '/usr/lib/x86_64-linux-gnu/openmpi/include'], # additionalIncludePaths
+['gfortran', 'gomp'], # additionalLibs
+['/usr/lib/x86_64-linux-gnu/hdf5/openmpi', '/usr/lib/x86_64-linux-gnu'], # additionalLibPaths
 False, # useCuda
 [] # NvccAdditionalOptions
 ],
@@ -862,6 +862,21 @@ False, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################
+'sat_sph': [ 'Cluster de calcul Sator Saphire (Onera)',
+'ifort', # f77compiler
+'ifort', # f90compiler
+'icc', # Cppcompiler
+['-DCACHELINE=64','-DNB_SOCKET=2','-DCORE_PER_SOCK=48','-DSIMD=AVX2P512'], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+[], # additionalIncludePaths
+[], # additionalLibs
+[], # additionalLibPaths
+False, # useCuda
+[] # NvccAdditionalOptions
+],
+###############################################################################
 'spiro_sky': [ 'Machine dev Spiro (proc skylake)',
 'ifort', # f77compiler
 'ifort', # f90compiler
@@ -979,6 +994,36 @@ False, # static
 [], # additionalLibs
 [],  # additionalLibPaths
 False, # useCuda
+[] # NvccAdditionalOptions
+],
+###############################################################################
+'spiro_gpu': [ 'K80 onera',
+'nvfortran', # f77compiler
+'nvfortran', # f90compiler
+'nvc', # Cppcompiler
+[], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+[], # additionalIncludePaths
+[], # additionalLibs
+[],  # additionalLibPaths
+True, # useCuda
+[] # NvccAdditionalOptions
+],
+###############################################################################
+'juno_gpu': [ 'GPU A30 onera',
+'nvfortran', # f77compiler
+'nvfortran', # f90compiler
+'nvc', # Cppcompiler
+[], # CppAdditionalOptions
+[], # f77AdditionalOptions
+True, # useOMP
+False, # static
+[], # additionalIncludePaths
+[], # additionalLibs
+[],  # additionalLibPaths
+True, # useCuda
 [] # NvccAdditionalOptions
 ],
 ###############################################################################

@@ -658,8 +658,7 @@ PyObject* K_POST::isoSurfMC(PyObject* self, PyObject* args)
   RELEASESHAREDU(grid, f, cn);
   E_Float tolc = 1.e-12; 
 
-  K_CONNECT::cleanConnectivity(posx, posy, posz, tolc, 
-                               "QUAD", fiso, ciso);
+  K_CONNECT::cleanConnectivity(posx, posy, posz, tolc, "QUAD", fiso, ciso);
 
   if (fiso.getSize() == 0 || ciso.getSize() == 0)
   {
@@ -831,787 +830,225 @@ void K_POST::doIsoSurfMCQuads(
   E_Int* cn7 = cn.begin(7); E_Int* cn8 = cn.begin(8);
 
   E_Int nthreads = __NUMTHREADS__;
+ 
+  E_Int npartition = 10*nthreads;
+  E_Int chunk = nelts/npartition;
+
+  if (chunk==0) { chunk=1; npartition=nelts; }
 
   // Dimensionnement: npts et ntri (par thread)
-  E_Int* nquads = new E_Int [nthreads];
-  E_Int* npts = new E_Int [nthreads];
+  E_Int* nquads = new E_Int [npartition];
+  E_Int* npts = new E_Int [npartition];
   
 #pragma omp parallel default(shared)
   {
-  E_Int ithread = __CURRENT_THREAD__;
   E_Float f0, f1, f2, f3, f4, f5, f6, f7;
   E_Int ind0, ind1, ind2, ind3, ind4, ind5, ind6, ind7;
   int cubeindex, edgeVal; int* qt;
-  E_Int np = 0; E_Int nquad = 0;
-#pragma omp for
-  for (E_Int i = 0; i < nelts; i++)
+#pragma omp for schedule(dynamic,1)
+  for (E_Int part = 0; part < npartition ; part++)
   {
-    ind0 = cn1[i]-1; ind1 = cn2[i]-1; ind2 = cn3[i]-1; 
-    ind3 = cn4[i]-1; ind4 = cn5[i]-1; ind5 = cn6[i]-1;
-    ind6 = cn7[i]-1; ind7 = cn8[i]-1;
+    E_Int ideb = chunk*part;
+    E_Int ifin = chunk*(part+1);
+    if (part == npartition-1) {ifin = nelts;}
 
-    f0 = fp[ind0]; f1 = fp[ind1];
-    f2 = fp[ind2]; f3 = fp[ind3];
-    f4 = fp[ind4]; f5 = fp[ind5];
-    f6 = fp[ind6]; f7 = fp[ind7];
+    E_Int np = 0; E_Int nquad = 0;
+    for (E_Int i = ideb; i < ifin; i++)
+    {
+      ind0 = cn1[i]-1; ind1 = cn2[i]-1; ind2 = cn3[i]-1; 
+      ind3 = cn4[i]-1; ind4 = cn5[i]-1; ind5 = cn6[i]-1;
+      ind6 = cn7[i]-1; ind7 = cn8[i]-1;
+
+      f0 = fp[ind0]; f1 = fp[ind1];
+      f2 = fp[ind2]; f3 = fp[ind3];
+      f4 = fp[ind4]; f5 = fp[ind5];
+      f6 = fp[ind6]; f7 = fp[ind7];
     
-    cubeindex = 0;
-    if (f0 < value) cubeindex |= 1;
-    if (f1 < value) cubeindex |= 2;
-    if (f2 < value) cubeindex |= 4;
-    if (f3 < value) cubeindex |= 8;
-    if (f4 < value) cubeindex |= 16;
-    if (f5 < value) cubeindex |= 32;
-    if (f6 < value) cubeindex |= 64;
-    if (f7 < value) cubeindex |= 128;
+      cubeindex = 0;
+      if (f0 < value) cubeindex |= 1;
+      if (f1 < value) cubeindex |= 2;
+      if (f2 < value) cubeindex |= 4;
+      if (f3 < value) cubeindex |= 8;
+      if (f4 < value) cubeindex |= 16;
+      if (f5 < value) cubeindex |= 32;
+      if (f6 < value) cubeindex |= 64;
+      if (f7 < value) cubeindex |= 128;
 
-    edgeVal = edgeTable[cubeindex];
+      edgeVal = edgeTable[cubeindex];
 
-    /* Cube is entirely in/out of the surface */
-    if (edgeVal == 0) goto endc;
+      /* Cube is entirely in/out of the surface */
+      if (edgeVal == 0) goto endc;
     
-    /* Find the vertices where the surface intersects the cube */
-    if (edgeVal & 1)
-    {
-      np += 4;
-    }
-    if (edgeVal & 2)
-    {
-      np += 4;
-    }
-    if (edgeVal & 4)
-    {
-      np += 4;
-    }
-    if (edgeVal & 8)
-    {
-      np += 4;
-    }
-    if (edgeVal & 16)
-    {
-      np += 4;
-    }
-    if (edgeVal & 32)
-    {
-      np += 4;
-    }
-    if (edgeVal & 64)
-    {
-      np += 4;
-    }
-    if (edgeVal & 128)
-    {
-      np += 4;
-    }
-    if (edgeVal & 256)
-    {
-      np += 4;
-    }
-    if (edgeVal & 512)
-    {
-      np += 4;
-    }
-    if (edgeVal & 1024)
-    {
-      np += 4;
-    }
-    if (edgeVal & 2048)
-    {
-      np += 4;
-    }
-    /* Create the quadrangle */
-    qt = quadTable[cubeindex];
-    for (E_Int j = 0; qt[j] != -1; j += 4)
-    {
-      nquad++;
-    }
-    endc:;
-  }
-  npts[ithread] = np;
-  nquads[ithread] = nquad;
-  }
-  
-  FldArrayI** cisos = new FldArrayI* [nthreads];
-  for (E_Int i = 0; i < nthreads; i++) cisos[i] = new FldArrayI(nquads[i],4);
-  FldArrayF** fisos = new FldArrayF* [nthreads];
-  for (E_Int i = 0; i < nthreads; i++) fisos[i] = new FldArrayF(npts[i],nfld);
-  E_Int* prevQ = new E_Int [nthreads];
-  E_Int* prevF = new E_Int [nthreads];
+      /* Find the vertices where the surface intersects the cube */
+      if (edgeVal & 1)    { np += 4; }
+      if (edgeVal & 2)    { np += 4; }
+      if (edgeVal & 4)    { np += 4; }
+      if (edgeVal & 8)    { np += 4; }
+      if (edgeVal & 16)   { np += 4; }
+      if (edgeVal & 32)   { np += 4; }
+      if (edgeVal & 64)   { np += 4; }
+      if (edgeVal & 128)  { np += 4; }
+      if (edgeVal & 256)  { np += 4; }
+      if (edgeVal & 512)  { np += 4; }
+      if (edgeVal & 1024) { np += 4; }
+      if (edgeVal & 2048) { np += 4; }
+      /* Create the quadrangle */
+      qt = quadTable[cubeindex];
+      for (E_Int j = 0; qt[j] != -1; j += 4)
+      {
+        nquad++;
+      }
+      endc:;
+    }//loop element
+    npts[part] = np;
+    nquads[part] = nquad;
+  }//loop partition
+ }//omp para
 
-#pragma omp parallel default(shared)
-  {
-  E_Int ithread = __CURRENT_THREAD__;
-  E_Float f0, f1, f2, f3, f4, f5, f6, f7;
-  E_Int ind0, ind1, ind2, ind3, ind4, ind5, ind6, ind7;
-  int cubeindex;
-
-  E_Int nquad = 0; // locals
-  E_Int npt = 0;
-  
-  FldArrayI& cisop = *cisos[ithread];
-  E_Int* ciso1 = cisop.begin(1);
-  E_Int* ciso2 = cisop.begin(2);
-  E_Int* ciso3 = cisop.begin(3);
-  E_Int* ciso4 = cisop.begin(4);
-  FldArrayF& fisop = *fisos[ithread];
-
-  int indir[12]; int* qt;
-  E_Int nptSav; int edgeVal;
-
-#pragma omp for schedule(static)
-  for (E_Int i = 0; i < nelts; i++)
-  {
-    ind0 = cn1[i]-1; ind1 = cn2[i]-1; ind2 = cn3[i]-1; 
-    ind3 = cn4[i]-1; ind4 = cn5[i]-1; ind5 = cn6[i]-1;
-    ind6 = cn7[i]-1; ind7 = cn8[i]-1;
-
-    f0 = fp[ind0]; f1 = fp[ind1];
-    f2 = fp[ind2]; f3 = fp[ind3];
-    f4 = fp[ind4]; f5 = fp[ind5];
-    f6 = fp[ind6]; f7 = fp[ind7];
-    
-    cubeindex = 0;
-    if (f0 < value) cubeindex |= 1;
-    if (f1 < value) cubeindex |= 2;
-    if (f2 < value) cubeindex |= 4;
-    if (f3 < value) cubeindex |= 8;
-    if (f4 < value) cubeindex |= 16;
-    if (f5 < value) cubeindex |= 32;
-    if (f6 < value) cubeindex |= 64;
-    if (f7 < value) cubeindex |= 128;
-
-    nptSav = npt;
-    edgeVal = edgeTable[cubeindex];
-
-    /* Cube is entirely in/out of the surface */
-    if (edgeVal == 0) goto end;
-    
-    /* Find the vertices where the surface intersects the cube */
-    if (edgeVal & 1)
-    {
-      vertexInterp(nfld, value, f, poscellN, f0, f1, ind0, ind1, fisop, npt);
-      indir[0] = npt-nptSav; 
-    }
-    if (edgeVal & 2)
-    {
-      vertexInterp(nfld, value, f, poscellN, f1, f2, ind1, ind2, fisop, npt);
-      indir[1] = npt-nptSav; 
-    }
-    if (edgeVal & 4)
-    {
-      vertexInterp(nfld, value, f, poscellN, f2, f3, ind2, ind3, fisop, npt);
-      indir[2] = npt-nptSav; 
-    }
-    if (edgeVal & 8)
-    {
-      vertexInterp(nfld, value, f, poscellN, f3, f0, ind3, ind0, fisop, npt);
-      indir[3] = npt-nptSav; 
-    }
-    if (edgeVal & 16)
-    {
-      vertexInterp(nfld, value, f, poscellN, f4, f5, ind4, ind5, fisop, npt);
-      indir[4] = npt-nptSav; 
-    }
-    if (edgeVal & 32)
-    {
-      vertexInterp(nfld, value, f, poscellN, f5, f6, ind5, ind6, fisop, npt);
-      indir[5] = npt-nptSav; 
-    }
-    if (edgeVal & 64)
-    {
-      vertexInterp(nfld, value, f, poscellN, f6, f7, ind6, ind7, fisop, npt);
-      indir[6] = npt-nptSav; 
-    }
-    if (edgeVal & 128)
-    {
-      vertexInterp(nfld, value, f, poscellN, f7, f4, ind7, ind4, fisop, npt);
-      indir[7] = npt-nptSav; 
-    }
-    if (edgeVal & 256)
-    {
-      vertexInterp(nfld, value, f, poscellN, f0, f4, ind0, ind4, fisop, npt);
-      indir[8] = npt-nptSav; 
-    }
-    if (edgeVal & 512)
-    {
-      vertexInterp(nfld, value, f, poscellN, f1, f5, ind1, ind5, fisop, npt);
-      indir[9] = npt-nptSav; 
-    }
-    if (edgeVal & 1024)
-    {
-      vertexInterp(nfld, value, f, poscellN, f2, f6, ind2, ind6, fisop, npt);
-      indir[10] = npt-nptSav;
-    }
-    if (edgeVal & 2048)
-    {
-      vertexInterp(nfld, value, f, poscellN, f3, f7, ind3, ind7, fisop, npt);
-      indir[11] = npt-nptSav; 
-    }
-    /* Create the quadrangle */
-    qt = quadTable[cubeindex];
-    
-    for (E_Int j = 0; qt[j] != -1; j += 4)
-    {
-      ciso1[nquad] = nptSav + indir[qt[j]];
-      ciso2[nquad] = nptSav + indir[qt[j+1]];
-      ciso3[nquad] = nptSav + indir[qt[j+2]];
-      ciso4[nquad] = nptSav + indir[qt[j+3]];
-      nquad++;
-    }
-    end: ;
-  }
-  }
-
+  E_Int* prevQ = new E_Int [npartition];
+  E_Int* prevF = new E_Int [npartition];
   // rebuild
   E_Int nquad = 0; E_Int npt = 0;
-  for (E_Int i = 0; i < nthreads; i++) 
+  for (E_Int i = 0; i < npartition; i++) 
   { prevQ[i] = nquad; nquad += nquads[i]; 
     prevF[i] = npt; npt += npts[i]; }
-  //printf(SF_D2_ "\n", npt, nquad);
 
   fiso.malloc(npt, nfld);
   ciso.malloc(nquad, 4);
-  
+
 #pragma omp parallel default(shared)
   {
-  E_Int ithread = __CURRENT_THREAD__;
-  E_Int nq = nquads[ithread];
-  E_Int p = prevQ[ithread];
-  E_Int f = prevF[ithread];
-  for (E_Int n = 1; n <= 4; n++)
-  {
-    E_Int* cisop = ciso.begin(n);
-    E_Int* cisol = cisos[ithread]->begin(n);
-    for (E_Int e = 0; e < nq; e++) cisop[e+p] = cisol[e]+f;
-  }
-  E_Int np = npts[ithread];
-  for (E_Int n = 1; n <= nfld; n++)
-  {
-    E_Float* fisop = fiso.begin(n);
-    E_Float* fisol = fisos[ithread]->begin(n);
-    for (E_Int e = 0; e < np; e++) fisop[e+f] = fisol[e];
-  }
-  }
-  delete [] prevQ; delete [] prevF;
-  delete [] npts; delete [] nquads;
-  for (E_Int i = 0; i < nthreads; i++) delete fisos[i];
-  for (E_Int i = 0; i < nthreads; i++) delete cisos[i];
-  delete [] fisos; delete [] cisos;
-}
-
-//=============================================================================
-/* Construit une isoSurf dans un maillage hexa: optim ivan */
-//=============================================================================
-PyObject* K_POST::isoSurfMC_opt(PyObject* self, PyObject* args)
-{
-  // grid: maillage volumique hexa (x,y,z+sol)
-  // field: nom du field dont on cherche l'iso
-  // value: valeur de l'iso
-  PyObject* grid;
-  char* field;
-  E_Float value;
-  if (!PYPARSETUPLE_(args, O_ S_ R_,
-                    &grid, &field, &value))
-  {
-      return NULL;
-  }
-
-  /*----------------------------------------------*/
-  /* Extraction des donnees du maillage volumique */ 
-  /*----------------------------------------------*/
-  FldArrayF* f;
-  E_Int nil, njl, nkl;
-  FldArrayI* cn = NULL;
-  char* eltType0; char* varString0;
-  E_Int res = 
-    K_ARRAY::getFromArray(grid, varString0, f, nil, njl, nkl, 
-                          cn, eltType0, true);
-
-  if (res != 1 && res != 2)
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "isoSurfMC: input array is invalid.");
-    return NULL;
-  }
-  if (res != 2 || strcmp(eltType0, "HEXA") != 0)
-  {
-    RELEASESHAREDB(res, grid, f, cn);
-    PyErr_SetString(PyExc_TypeError,
-                    "isoSurfMC: input array must be HEXA.");
-    return NULL;
-  }
-  
-  // Check size of array
-  E_Int posx = K_ARRAY::isCoordinateXPresent(varString0);
-  E_Int posy = K_ARRAY::isCoordinateYPresent(varString0);
-  E_Int posz = K_ARRAY::isCoordinateZPresent(varString0);
-
-  if (posx == -1 || posy == -1 || posz == -1)
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "isoSurfMC: coordinates not found in array.");
-    RELEASESHAREDU(grid, f, cn);
-    return NULL;
-  }
-  posx++; posy++; posz++;
-  // position de la variable iso
-  E_Int posf = K_ARRAY::isNamePresent(field, varString0);
-  if (posf == -1)
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "isoSurfMC: variable doesn't exist in array.");
-    RELEASESHAREDU(grid, f, cn);
-    return NULL;
-  }
-  posf++;
-
-  // Position du cellN eventuellement
-  E_Int poscellN = K_ARRAY::isCellNatureField2Present(varString0)+1;
-
-  FldArrayF* fiso = new FldArrayF[__NUMTHREADS__];
-  FldArrayI* ciso = new FldArrayI[__NUMTHREADS__];
-
-  FldArrayI vi = *cn; FldArrayF vf = *f;
-  E_Int nelts = vi.getSize();
-  E_Int nfld  = vf.getNfld();
-
-  E_Int Thread_max;
-  if(__NUMTHREADS__ != 1) {Thread_max = __NUMTHREADS__*10; if(Thread_max > nelts) Thread_max= nelts;}
-  else                    Thread_max = 1;
-
-  E_Int net = nelts/Thread_max  +1;
-  //Marge memmoire pour eviter realloc qui plante....
-  net = net+300;
-
-
-  FldArrayI tab_nquad1   ( __NUMTHREADS__); E_Int* nquad1    = tab_nquad1.begin();
-  FldArrayI tab_npt1     ( __NUMTHREADS__); E_Int* npt1      = tab_npt1.begin();
-  FldArrayI tab_nbloc    ( __NUMTHREADS__); E_Int* nbloc     = tab_nbloc.begin();
-  FldArrayI tab_npt      ( Thread_max    ); E_Int* npt       = tab_npt.begin();
-
-  FldArrayI tab_shift_npt( Thread_max, __NUMTHREADS__  );
-  FldArrayI tab_ideb_in  ( Thread_max, __NUMTHREADS__  );
-  FldArrayI tab_iend     ( Thread_max, __NUMTHREADS__  );
-  FldArrayI tab_Nopart   ( Thread_max, __NUMTHREADS__  ); 
-
-  E_Float tolc = 1.e-12; 
-  E_Int npts   = 0;
-  E_Int nquads = 0;
-
-// debut bloc memoire
-{
-  FldArrayI cisos(     net,    4*Thread_max);
-  FldArrayI mapcifi( 4*net,      Thread_max);
-  FldArrayF fisos(   4*net, nfld*Thread_max); 
-#pragma omp parallel default(shared)
-  {
-      // IN: nelement/Nthreads
-      #pragma omp for schedule(dynamic) reduction( + : npts, nquads)
-      for (E_Int ithread = 0; ithread < Thread_max; ithread++)
-      {
-        npt[ithread]  = 0;
-        E_Int nquad   = 0;
-        doIsoSurfMCQuads_opt(*f, *cn, posf, value, poscellN, Thread_max, ithread,
-                             nelts, nfld, net,
-                             npt[ithread], nquad,
-                             fisos, cisos, mapcifi); 
-
-        npts   = npts   + npt[ithread];
-        nquads = nquads + nquad;
-
-        //printf("npt= " SF_D_ ", nquad= " SF_D_ ", net=, " SF_D_ ", ith= " SF_D_ "  \n", npt[ithread], nquad, net, ithread);
-
-      }
-
-
-        //printf("npts " SF_D2_ " \n", npts, nquads);
-        //#pragma omp barrier
-
-      if (npts!= 0 && nquads != 0)
-      {
-
-         #pragma omp single
-         { net = npts/ __NUMTHREADS__; 
-           if(net==0) net = npts;      // blindage pour npts < nthread
-          
-           E_Int ipart     = 0;
-           E_Int ideb_ipart= 0; 
-           E_Int shift2    = 0;
-
-
-           for (E_Int ithread = 0; ithread <  __NUMTHREADS__; ithread++)
-            {
-              E_Int lgo           = 0;
-              npt1[ithread]       = 0;
-              nquad1[ithread]     = 0;
-              nbloc[ithread]      = 0;
-
-
-              E_Int* shift_npt = tab_shift_npt.begin(1+ithread);
-              E_Int* ideb_in   = tab_ideb_in.begin(ithread+1);
-              E_Int* iend      = tab_iend.begin(ithread+1);
-              E_Int* Nopart    = tab_Nopart.begin(1+ithread);
-
-              //printf("net " SF_D4_ " \n", net, npt1[ithread],  npt[ipart], ipart) ;
-
-
-              // balancing OMP des points a traiter 
-              while( npt1[ithread] < net && (ipart < Thread_max) && lgo == 0) 
-                     { 
-                      E_Int* map_cifi =  mapcifi.begin(1 + ipart);
-                      E_Int l1        = npt[ipart]-ideb_ipart;
-                      E_Int l2        = net - npt1[ithread];
-
-                      //printf("IPART= " SF_D_ ", lg0= " SF_D_ ", ith= " SF_D_ " \n", ipart, lgo, ithread);
-
-                      if (npt[ipart]==0) ipart = ipart +1;
-                      else
-                      {
-                         // Size Part restant >  Size vide de thread
-                         if (l1 > l2) 
-                              { 
-                                E_Int l = ideb_ipart + l2;
-                                while( l > ideb_ipart && map_cifi[ l ] == 0 ) l =l-1;
-
-                                //le dernier thread prend tout ce qui reste
-                                if(ithread ==  __NUMTHREADS__-1)  l = npt[ipart]; 
-
-                                ideb_in[ nbloc[ithread] ] = ideb_ipart;
-                                iend[    nbloc[ithread] ] = l;
-                                Nopart[  nbloc[ithread] ] = ipart;
-                                shift_npt[nbloc[ithread]] = shift2;
-
-                                //printf("verif0, nb= " SF_D_ ", ideb= " SF_D_ ", ifin= " SF_D_ ", ipart= " SF_D_ ", ith= " SF_D_ " \n",nbloc[ithread] , ideb_in[ipart], iend[ipart], ipart, ithread);
-                                nbloc[ithread]            = nbloc[ithread]  +1;
-
-                                npt1[  ithread]           = npt1[  ithread] +      l      -            ideb_ipart;
-                                nquad1[ithread]           = nquad1[ithread] + map_cifi[l] -  map_cifi[ ideb_ipart ];
-                                shift2                    = shift2 +  l -  ideb_ipart;
-                                ideb_ipart                = l;
-                                lgo                       = 1;
-                              }
-                         else
-                              { E_Int      l              = npt[ipart];
-                                ideb_in[ nbloc[ithread] ] = ideb_ipart;
-                                iend[    nbloc[ithread] ] = l;
-                                Nopart[ nbloc[ithread] ]  = ipart;
-                                shift_npt[nbloc[ithread]] = shift2;
-
-                                //printf("verif1, nb=, " SF_D_ " ideb= " SF_D_ ", ifin= " SF_D_ ", ipart= " SF_D_ ", ith= " SF_D_ " \n",nbloc[ithread] , ideb_in[ipart], iend[ipart], ipart, ithread);
-                                nbloc[ithread]            = nbloc[ithread]  +1;
-
-                                npt1[  ithread]           = npt1[  ithread] +      l      -            ideb_ipart;
-                                nquad1[ithread]           = nquad1[ithread] + map_cifi[l] -  map_cifi[ ideb_ipart ];
-
-                                shift2                    = 0;
-                                ideb_ipart                = 0; 
-                                ipart                     = ipart +1;
-                               
-                              }
-
-                                //if(ithread<=2) printf("ipart= " SF_D_ ", ith= " SF_D_ "    \n",  ipart-1, ithread );
-                                //if(ithread<=2) printf("npt1 et nquad1 " SF_D2_ ", ith= " SF_D_ " \n",  npt1[ithread], nquad1[ithread], ithread);
-                                //if(ithread<=2) printf("ideb= " SF_D_ ", ifin= " SF_D_ ", nbloc= " SF_D_ ", shift= " SF_D_ ", ith= " SF_D_ " \n",  ideb_in[nbloc[ithread]-1], iend[nbloc[ithread]-1], nbloc[ithread]-1,shift_npt[nbloc[ithread]-1] , ithread );
-                         }
-
-                       }// while equilibrage
-
-             //if(ithread==0) printf("nbloc " SF_D3_ " \n", nbloc[ithread], blocstart[ithread], ithread);
-            }// loop thread
-         } //single
-
-         E_Int  ithread = __CURRENT_THREAD__;
-         E_Int* ideb_in   = tab_ideb_in.begin(ithread+1);
-         E_Int* iend      = tab_iend.begin(ithread+1);
-         E_Int* Nopart    = tab_Nopart.begin(1+ithread);
-         E_Int* shift_npt = tab_shift_npt.begin(1+ithread);
-
-
-         fiso[ithread].malloc(  npt1[ithread], nfld);
-         ciso[ithread].malloc(nquad1[ithread], 4);
-
-         //if(ithread==0) printf("malloc " SF_D_ " " SF_D2_ " \n",  npt1[ithread], nquad1[ithread], ithread);
-         //#pragma omp barrier
-
-         E_Int nquad_sav;
-         for (E_Int n = 1; n <= 4; n++)
-            {
-              nquad_sav = 0;
-              E_Int*    cisop = ciso[ithread].begin(n);
-
-              E_Int shift1=0;
-
-              for (E_Int nb = 0; nb < nbloc[ithread]; nb++)
-                {
-                  E_Int  ipart    = Nopart[ nb ];   
-                  E_Int* cisol    = cisos.begin(n + ipart*4);
-                  E_Int* map_cifi = mapcifi.begin(1 + ipart  );
-
-                  
-                  E_Int ideb = map_cifi [  ideb_in[nb] ];
-                  E_Int ifin = map_cifi [     iend[nb] ];
-
-                  //E_Int nquad = ifin - ideb;
-
-                  shift1 = shift1 - shift_npt[nb];
-
-                //if(n==1){ printf("cisp ipar= " SF_D_ ", nb= " SF_D_ ", shift_npt= " SF_D_ ",  ith= " SF_D_ " \n",  ipart, nb, shift_npt[nb], ithread );
-		//		   printf("cisp deb= " SF_D_ ", fin=" SF_D_ ", nquad=" SF_D_ ", ith= " SF_D_ " \n", ideb, ifin, nquad,  ithread);}
-
-                  for (E_Int e = ideb; e < ifin; e++) { cisop[nquad_sav] = cisol[e]+shift1; nquad_sav = nquad_sav+1;}// if(n==1) printf("cisol= " SF_D_ ", l=" SF_D_ ", e= " SF_D_ ", ith= " SF_D_ " \n", cisop[nquad_sav-1], nquad_sav-1 , e, ithread); }
-                  shift1 = shift1 + npt[ipart];
-                  
-                }
-            }
-
-         //printf("ciso OK: nquad= " SF_D_ ", ith= " SF_D_ "  \n", nquad_sav, ithread);
-         //#pragma omp barrier
-
-         E_Int npt_sav;
-
-         for (E_Int n = 1; n <= nfld; n++)
-            {
-              npt_sav  = 0;
-              E_Float* fisop = fiso[ithread].begin(n);
-
-              for (E_Int nb = 0; nb < nbloc[ithread]; nb++)
-                {
-                  E_Int    ipart = Nopart[ nb ];   
-                  E_Float* fisol = fisos.begin(n + ipart*nfld);
-
-                  for (E_Int e = ideb_in[nb]; e <  iend[nb]; e++) { fisop[npt_sav] = fisol[e]; npt_sav +=1;}// if(n==1) printf("fisol= %f, l=" SF_D_ ", e= " SF_D_ ", ith= " SF_D_ " \n", fisop[npt_sav-1], npt_sav-1 , e, ithread);}
-
-                }
-            }
-  }    //parallele
-
-} //bloc memoire
-#pragma omp parallel default(shared)
-  {
-         E_Int  ithread = __CURRENT_THREAD__;
-           // OUT: npt
-           //printf("Fiso OK: npt = " SF_D_ "  ith= " SF_D_ "  \n", fiso[ithread].getSize(), ithread);
-           K_CONNECT::cleanConnectivity_opt(posx, posy, posz, tolc, "QUAD", fiso[ithread], ciso[ithread]);
-           //printf("Clean OK: npt= " SF_D_ ", ith= " SF_D_ "  \n", fiso[ithread].getSize(), ithread);
-
-         // voir avec christophe si on peut brancher le reoder par ici....
-         //K_CONNECT::reorderQuadTriField(fiso[ithread],  ciso[ithread], E_Int(oi));
-         //
-
-     } //npts =0
-
-  }    //parallele
-
-  RELEASESHAREDU(grid, f, cn);
-
-  PyObject* out     = PyList_New(0);
-
-  for (E_Int ithread = 0; ithread < __NUMTHREADS__; ithread++)
-  {
-
-   if (fiso[ithread].getSize() != 0 && ciso[ithread].getSize() != 0)
-    {
-      PyObject* souzone = PyList_New(0);
-
-      PyObject* t = K_ARRAY::buildArray(fiso[ithread], varString0, ciso[ithread], -1, "QUAD");
-      PyList_Append(souzone , t    );     Py_DECREF(t);
-      PyList_Append(out, souzone   );     Py_DECREF(souzone);
-    }
-  }
-
-  delete [] fiso; delete [] ciso;
-  return out;
-}
-
-
-//=============================================================================
-// Genere une isoSurface en utilisant des marching cubes avec une sortie QUAD
-//=============================================================================
-void K_POST::doIsoSurfMCQuads_opt(
-  FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value, E_Int poscellN, 
-  E_Int& Thread_max,  E_Int& ithread, 
-  E_Int& nelts,  E_Int& nfld,   E_Int& net, 
-  E_Int& npt  ,  E_Int& nquad, 
-  FldArrayF& fisos, FldArrayI& cisos,  FldArrayI& mapcifi )
-{
-  E_Float* fp = f.begin(posf);
-  E_Int* cn1 = cn.begin(1); E_Int* cn2 = cn.begin(2); 
-  E_Int* cn3 = cn.begin(3); E_Int* cn4 = cn.begin(4);
-  E_Int* cn5 = cn.begin(5); E_Int* cn6 = cn.begin(6); 
-  E_Int* cn7 = cn.begin(7); E_Int* cn8 = cn.begin(8);
-
-  E_Int  shift = ithread*4;
-  E_Int* ciso1 = cisos.begin(1+ shift); E_Int* ciso2 = cisos.begin(2 +shift);
-  E_Int* ciso3 = cisos.begin(3+ shift); E_Int* ciso4 = cisos.begin(4 +shift);
-
-  E_Int* map_cifi = mapcifi.begin(1+ ithread);
-  map_cifi[0]     = 0;
-
-
   E_Float f0, f1, f2, f3, f4, f5, f6, f7;
   E_Int ind0, ind1, ind2, ind3, ind4, ind5, ind6, ind7;
   int cubeindex;
 
-  E_Int nptSize   = 4*net; // init values
-  E_Int nquadSize = net;
-
+  
+  E_Int* ciso1_glob = ciso.begin(1);
+  E_Int* ciso2_glob = ciso.begin(2);
+  E_Int* ciso3_glob = ciso.begin(3);
+  E_Int* ciso4_glob = ciso.begin(4);
 
   int indir[12]; int* qt;
   E_Int nptSav; int edgeVal;
 
-  E_Int imin = (nelts/Thread_max)* ithread;
-  E_Int imax = (nelts/Thread_max)*(ithread+1);
-  if(ithread+1 == Thread_max) imax = nelts;
-  if(nelts < Thread_max )  //protection race si nelts> nb thread
-    {  if(ithread==0) { imin= 0; imax = nelts;}
-       else           { imin= 1; imax = -10;  }
-    }
-
-  //if(ithread==1) printf("imin=  " SF_D3_ " %p  \n", imin, imax, ithread, map_cifi);
-
-  for (E_Int i = imin; i < imax; i++)
+#pragma omp for schedule(dynamic,1)
+  for (E_Int part = 0; part < npartition ; part++)
   {
-    ind0 = cn1[i]-1; ind1 = cn2[i]-1; ind2 = cn3[i]-1; 
-    ind3 = cn4[i]-1; ind4 = cn5[i]-1; ind5 = cn6[i]-1;
-    ind6 = cn7[i]-1; ind7 = cn8[i]-1;
+    E_Int pglob = prevQ[part];
+    E_Int fglob = prevF[part];
 
-    f0 = fp[ind0]; f1 = fp[ind1];
-    f2 = fp[ind2]; f3 = fp[ind3];
-    f4 = fp[ind4]; f5 = fp[ind5];
-    f6 = fp[ind6]; f7 = fp[ind7];
+    E_Int nquad = 0; // locals
+    E_Int npt = fglob;
+
+    E_Int ideb = chunk*part;
+    E_Int ifin = chunk*(part+1);
+    if (part == npartition-1) {ifin = nelts;}
+
+    for (E_Int i = ideb; i < ifin; i++)
+    {
+      ind0 = cn1[i]-1; ind1 = cn2[i]-1; ind2 = cn3[i]-1; 
+      ind3 = cn4[i]-1; ind4 = cn5[i]-1; ind5 = cn6[i]-1;
+      ind6 = cn7[i]-1; ind7 = cn8[i]-1;
+
+      f0 = fp[ind0]; f1 = fp[ind1];
+      f2 = fp[ind2]; f3 = fp[ind3];
+      f4 = fp[ind4]; f5 = fp[ind5];
+      f6 = fp[ind6]; f7 = fp[ind7];
     
-    cubeindex = 0;
-    if (f0 < value) cubeindex |= 1;
-    if (f1 < value) cubeindex |= 2;
-    if (f2 < value) cubeindex |= 4;
-    if (f3 < value) cubeindex |= 8;
-    if (f4 < value) cubeindex |= 16;
-    if (f5 < value) cubeindex |= 32;
-    if (f6 < value) cubeindex |= 64;
-    if (f7 < value) cubeindex |= 128;
+      cubeindex = 0;
+      if (f0 < value) cubeindex |= 1;
+      if (f1 < value) cubeindex |= 2;
+      if (f2 < value) cubeindex |= 4;
+      if (f3 < value) cubeindex |= 8;
+      if (f4 < value) cubeindex |= 16;
+      if (f5 < value) cubeindex |= 32;
+      if (f6 < value) cubeindex |= 64;
+      if (f7 < value) cubeindex |= 128;
 
-    nptSav = npt;
-    //E_Int qua_sav = nquad;
-    edgeVal = edgeTable[cubeindex];
+      nptSav = npt;
+      edgeVal = edgeTable[cubeindex];
 
-    if (edgeVal == 0) goto end;
- 
-    if (edgeVal & 1)
-    {
-
-      //vertexInterp(nfld, value, f, poscellN, f0, f1, ind0, ind1, fisos, npt);
-      VERTEXINTERP(nfld, value, f, poscellN, f0, f1, ind0, ind1, fisos, npt)
-      indir[0] = npt-nptSav; 
-    }
-    if (edgeVal & 2)
-    {
-      //vertexInterp(nfld, value, f, poscellN, f1, f2, ind1, ind2, fisos, npt);
-      VERTEXINTERP(nfld, value, f, poscellN, f1, f2, ind1, ind2, fisos, npt)
-      indir[1] = npt-nptSav; 
-    }
-    if (edgeVal & 4)
-    {
-      //vertexInterp(nfld, value, f, poscellN, f2, f3, ind2, ind3, fisos, npt);
-      VERTEXINTERP(nfld, value, f, poscellN, f2, f3, ind2, ind3, fisos, npt)
-      indir[2] = npt-nptSav; 
-    }
-    if (edgeVal & 8)
-    {
-      //vertexInterp(nfld, value, f, poscellN, f3, f0, ind3, ind0, fisos, npt);
-      VERTEXINTERP(nfld, value, f, poscellN, f3, f0, ind3, ind0, fisos, npt)
-      indir[3] = npt-nptSav; 
-    }
-    if (edgeVal & 16)
-    {
-      //vertexInterp(nfld, value, f, poscellN, f4, f5, ind4, ind5, fisos, npt);
-      VERTEXINTERP(nfld, value, f, poscellN, f4, f5, ind4, ind5, fisos, npt)
-      indir[4] = npt-nptSav;
-    }
-    if (edgeVal & 32)
-    {
-      //vertexInterp(nfld, value, f, poscellN, f5, f6, ind5, ind6, fisos, npt);
-      VERTEXINTERP(nfld, value, f, poscellN, f5, f6, ind5, ind6, fisos, npt)
-      indir[5] = npt-nptSav; 
-    }
-    if (edgeVal & 64)
-    {
-      //vertexInterp(nfld, value, f, poscellN, f6, f7, ind6, ind7, fisos, npt);
-      VERTEXINTERP(nfld, value, f, poscellN, f6, f7, ind6, ind7, fisos, npt)
-      indir[6] = npt-nptSav; 
-    }
-    if (edgeVal & 128)
-    {
-      //vertexInterp(nfld, value, f, poscellN, f7, f4, ind7, ind4, fisos, npt);
-      VERTEXINTERP(nfld, value, f, poscellN, f7, f4, ind7, ind4, fisos, npt)
-      indir[7] = npt-nptSav; 
-    }
-    if (edgeVal & 256)
-    {
-      //vertexInterp(nfld, value, f, poscellN, f0, f4, ind0, ind4, fisos, npt);
-      VERTEXINTERP(nfld, value, f, poscellN, f0, f4, ind0, ind4, fisos, npt)
-      indir[8] = npt-nptSav; 
-    }
-    if (edgeVal & 512)
-    {
-      //vertexInterp(nfld, value, f, poscellN, f1, f5, ind1, ind5, fisos, npt);
-      VERTEXINTERP(nfld, value, f, poscellN, f1, f5, ind1, ind5, fisos, npt)
-      indir[9] = npt-nptSav; 
-    }
-    if (edgeVal & 1024)
-    {
-      //vertexInterp(nfld, value, f, poscellN, f2, f6, ind2, ind6, fisos, npt);
-      VERTEXINTERP(nfld, value, f, poscellN, f2, f6, ind2, ind6, fisos, npt)
-      indir[10] = npt-nptSav;
-    }
-    if (edgeVal & 2048)
-    {
-      //vertexInterp(nfld, value, f, poscellN, f3, f7, ind3, ind7, fisos, npt);
-      VERTEXINTERP(nfld, value, f, poscellN, f3, f7, ind3, ind7, fisos, npt)
-      indir[11] = npt-nptSav; 
-    }
-    qt = quadTable[cubeindex];
+      /* Cube is entirely in/out of the surface */
+      if (edgeVal == 0) goto end;
     
-
-    for (E_Int j = 0; qt[j] != -1; j += 4)
-    {
-      ciso1[nquad] = nptSav + indir[qt[j]];
-      ciso2[nquad] = nptSav + indir[qt[j+1]];
-      ciso3[nquad] = nptSav + indir[qt[j+2]];
-      ciso4[nquad] = nptSav + indir[qt[j+3]];
-
-    // printf("ciso1= " SF_D_ ", nquad_tot= " SF_D_ ", nquad(i)= " SF_D_ ", npt_tot= " SF_D_ ", npt(i)= " SF_D_ ", j= " SF_D_ ", i= " SF_D_ ", ith= " SF_D_ " \n",  ciso1[nquad] , nquad, nquad-qua_sav, npt, npt - nptSav, j,  i, ithread);
-    // printf("ciso2= " SF_D_ ", nquad_tot= " SF_D_ ", nquad(i)= " SF_D_ ", npt_tot= " SF_D_ ", npt(i)= " SF_D_ ", j= " SF_D_ ", i= " SF_D_ ", ith= " SF_D_ " \n",  ciso2[nquad] , nquad, nquad-qua_sav, npt, npt - nptSav, j,  i, ithread);
-    // printf("ciso3= " SF_D_ ", nquad_tot= " SF_D_ ", nquad(i)= " SF_D_ ", npt_tot= " SF_D_ ", npt(i)= " SF_D_ ", j= " SF_D_ ", i= " SF_D_ ", ith= " SF_D_ " \n",  ciso3[nquad] , nquad, nquad-qua_sav, npt, npt - nptSav, j,  i, ithread);
-    // printf("ciso4= " SF_D_ ", nquad_tot= " SF_D_ ", nquad(i)= " SF_D_ ", npt_tot= " SF_D_ ", npt(i)= " SF_D_ ", j= " SF_D_ ", i= " SF_D_ ", ith= " SF_D_ " \n",  ciso4[nquad] , nquad, nquad-qua_sav, npt, npt - nptSav, j,  i, ithread);
-
-      nquad++;
-    }
-
-    map_cifi[npt]= nquad;
-
-    if (npt  >= nptSize) printf("isoSurfMC_opt: (Pour C. benoit) probleme realloc fiso " SF_D3_ " \n", npt, nptSize, ithread);
-    if (nquad  >= nquadSize) printf("isoSurfMC_opt: (Pour C. benoit) probleme realloc ciso " SF_D3_ " \n", nquad,nquadSize , ithread); 
-
-    if (npt + 13 >= nptSize) 
-    { 
-      printf("isoSurfMC_opt: (Pour C. benoit) probleme realloc fiso " SF_D3_ " \n", npt, nptSize, ithread);
-
-      //nptSize += nelts; fisos.reAllocMat(nptSize, nfld); 
-     }
-
-    if (nquad + 5 >= nquadSize)
-    { 
-      printf("isoSurfMC_opt: (Pour C. benoit) probleme realloc ciso  " SF_D3_ " \n", nquad, nquadSize, ithread);
-      //nquadSize += nelts; cisos.reAllocMat(nquadSize, 4); 
-      //ciso1 = cisos;
-      //ciso2 = cisos+net;
-      //ciso3 = cisos+net*2;
-      //ciso4 = cisos+net*3;
-    }
+      /* Find the vertices where the surface intersects the cube */
+      if (edgeVal & 1)
+      {
+        vertexInterp(nfld, value, f, poscellN, f0, f1, ind0, ind1, fiso, npt);
+        indir[0] = npt-nptSav; 
+      }
+      if (edgeVal & 2)
+      {
+        vertexInterp(nfld, value, f, poscellN, f1, f2, ind1, ind2, fiso, npt);
+        indir[1] = npt-nptSav; 
+      }
+      if (edgeVal & 4)
+      {
+        vertexInterp(nfld, value, f, poscellN, f2, f3, ind2, ind3, fiso, npt);
+        indir[2] = npt-nptSav; 
+      }
+      if (edgeVal & 8)
+      {
+        vertexInterp(nfld, value, f, poscellN, f3, f0, ind3, ind0, fiso, npt);
+        indir[3] = npt-nptSav; 
+      }
+      if (edgeVal & 16)
+      {
+        vertexInterp(nfld, value, f, poscellN, f4, f5, ind4, ind5, fiso, npt);
+        indir[4] = npt-nptSav; 
+      }
+      if (edgeVal & 32)
+      {
+        vertexInterp(nfld, value, f, poscellN, f5, f6, ind5, ind6, fiso, npt);
+        indir[5] = npt-nptSav; 
+      }
+      if (edgeVal & 64)
+      {
+        vertexInterp(nfld, value, f, poscellN, f6, f7, ind6, ind7, fiso, npt);
+        indir[6] = npt-nptSav; 
+      }
+      if (edgeVal & 128)
+      {
+        vertexInterp(nfld, value, f, poscellN, f7, f4, ind7, ind4, fiso, npt);
+        indir[7] = npt-nptSav; 
+      }
+      if (edgeVal & 256)
+      {
+        vertexInterp(nfld, value, f, poscellN, f0, f4, ind0, ind4, fiso, npt);
+        indir[8] = npt-nptSav; 
+      }
+      if (edgeVal & 512)
+      {
+        vertexInterp(nfld, value, f, poscellN, f1, f5, ind1, ind5, fiso, npt);
+        indir[9] = npt-nptSav; 
+      }
+      if (edgeVal & 1024)
+      {
+        vertexInterp(nfld, value, f, poscellN, f2, f6, ind2, ind6, fiso, npt);
+        indir[10] = npt-nptSav;
+      }
+      if (edgeVal & 2048)
+      {
+        vertexInterp(nfld, value, f, poscellN, f3, f7, ind3, ind7, fiso, npt);
+        indir[11] = npt-nptSav; 
+      }
+      /* Create the quadrangle */
+      qt = quadTable[cubeindex];
     
+      for (E_Int j = 0; qt[j] != -1; j += 4)
+      {
+        ciso1_glob[nquad + pglob] = nptSav + indir[qt[j  ]] ;
+        ciso2_glob[nquad + pglob] = nptSav + indir[qt[j+1]] ;
+        ciso3_glob[nquad + pglob] = nptSav + indir[qt[j+2]] ;
+        ciso4_glob[nquad + pglob] = nptSav + indir[qt[j+3]] ;
+        nquad++;
+      }
     end: ;
 
-  }
+    }//loop i
+  }//loop part
+  }//zone omp
 
+  delete [] prevQ; delete [] prevF;
+  delete [] npts; delete [] nquads;
 }
-

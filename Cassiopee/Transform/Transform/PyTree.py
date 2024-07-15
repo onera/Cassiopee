@@ -602,10 +602,10 @@ def subzoneGC__(z, dim, imin, imax, jmin, jmax, kmin, kmax, \
                           zoneDonor=[ddDnrs[nor]], rangeDonor='doubly_defined')
     return z
 
-def subzone(t, minIndex, maxIndex=(), type=None):
+def subzone(t, minIndex, maxIndex=None, type=None):
    """Take a subzone of mesh.
    Usage: subzone(t, (imin,jmin,kmin), (imax,jmax,kmax))"""
-   if maxIndex == (): return subzoneUnstruct__(t, minIndex, type)
+   if maxIndex is None: return subzoneUnstruct__(t, minIndex, type)
    else: return subzoneStruct__(t, minIndex, maxIndex)
 
 def subzoneUnstruct__(t, indices, type):
@@ -613,9 +613,9 @@ def subzoneUnstruct__(t, indices, type):
     nodes = Internal.getZones(tp)
     for z in nodes:
         dimz = Internal.getZoneDim(z)
-        fc = C.getFields(Internal.__GridCoordinates__, z)[0]
-        fa = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
-        fb = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+        fc = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
+        fa = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
+        fb = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
         if fa != []: fc = Converter.addVars([fc, fa])
         if fb == []: # no flow sol at centers
             nodes = Transform.subzone(fc, indices, type=type)

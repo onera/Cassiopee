@@ -1866,8 +1866,7 @@ E_Int K_IO::GenIO::tpwrite(
           {          
             for (E_Int i = 0; i < nelts; i++)
             {
-              for (E_Int n = 1; n <= nvpe; n++)
-                fprintf(ptrFile, SF_D_ " ", cm(i,n));
+              fprintf(ptrFile, SF_D4_ " ", cm(i,1), cm(i,2), cm(i,3), cm(i,3));
               fprintf(ptrFile, SF_D4_ "\n", cm(i,4), cm(i,4), cm(i,4), cm(i,4));
             }
           }

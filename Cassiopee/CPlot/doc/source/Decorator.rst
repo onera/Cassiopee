@@ -100,6 +100,8 @@ Actions
     
     Create a text on figure.
 
+    :param ax: subplot axis
+    :type ax: matplotlib axis
     :param posx: position of text in x axis
     :type posx: float
     :param posy: position of text in y axis

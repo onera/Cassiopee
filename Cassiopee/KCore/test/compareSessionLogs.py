@@ -15,11 +15,6 @@ def parseArgs():
                         help="Email results. Default: write to file")
     parser.add_argument("-l", "--logs", type=str, default='',
                         help="Single-quoted logs to compare.")
-    parser.add_argument("-s", "--status", type=int, default=0,
-                        help="Installation status: 0: OK, 1: FAIL.")
-    parser.add_argument("-n", "--no-comparison", action="store_true",
-                        dest="no_comp",
-                        help="Check the installation status only.")
     # Parse arguments
     return parser.parse_args()
 
@@ -117,67 +112,14 @@ def stringify(test='', ref='', new=''):
   else:
     return "{:>15} | {:>42} | {:>10} | {:>10} |\n".format(mod, test, ref[5], new[5])
 
-# Send an email
-def notify(sender=None, recipients=[], messageSubject="", messageText=""):
-    try:
-      import smtplib
-      from email.mime.text import MIMEText
-      from email.mime.multipart import MIMEMultipart
-
-      if sender is None:
-        if os.getenv('CASSIOPEE_EMAIL') is None:
-            if os.getenv('USER') is None:
-              print("Sender email address not found.")
-              return
-            else: sender = os.getenv('USER')+'@onera.fr'
-        else: sender = os.getenv('CASSIOPEE_EMAIL')
-      if isinstance(recipients, str): recipients = [recipients]
-      if not recipients: recipients = ['vincent.casseau@onera.fr',
-                                       'christophe.benoit@onera.fr']
-      
-      msg = MIMEMultipart()
-      msg['Subject'] = messageSubject
-      msg['From'] = sender
-      msg['To'] = ", ".join(recipients)
-      msg['Cc'] = sender
-      msg.preamble = 'Sent by Cassiopee.'
-      if messageText:
-        msg.attach(MIMEText(messageText, 'plain'))
-      s = smtplib.SMTP('localhost')
-      s.sendmail(sender, recipients, msg.as_string())
-      s.quit()
-    except: return
-
 # Main
 if __name__ == '__main__':
   script_args = parseArgs()
   script_args.logs = script_args.logs.split(' ')
-
-  # Check install status only
-  if script_args.no_comp:
-    prod = getProd(script_args.logs[0])
-    baseState = 'FAILED' if script_args.status == 1 else 'OK'
-    messageText = "Installation {} for prod '{}'"
-    notify(messageSubject="[Installation - {}] "
-             "State: {}".format(prod, baseState),
-             messageText=messageText.format(baseState, prod))
-    sys.exit(0)
-
   if len(script_args.logs) != 2:
     raise Exception("Two session logs must be provided using the flag -l "
                     "or --logs")
   
-  # Check input status
-  if script_args.status == 1:
-    # An error occurred during the installation
-    prod = getProd(script_args.logs[1])
-    tlog, _ = getTimeFromLog(script_args.logs[1])
-    messageText = "Installation failed for prod '{}' - no validation"
-    notify(messageSubject="[validCassiopee - {}] {} - "
-             "State: FAIL".format(prod, tlog),
-             messageText=messageText.format(prod))
-    sys.exit(1)
-
   # Read log files and git info
   refSession = readLog(script_args.logs[0])
   newSession = readLog(script_args.logs[1])
@@ -212,7 +154,7 @@ if __name__ == '__main__':
     compStr += stringify(*diffTest(test, refDict[test], newDict[test]))
   if len(compStr):
     compStr = commonTestsHeader + compStr
-    baseState = 'FAIL'
+    baseState = 'FAILED'
   else: compStr = commonTestsHeader + "[none]\n"
   
   newTestsHeader = "\nNew tests:\n{}\n".format('-'*9)
@@ -228,7 +170,7 @@ if __name__ == '__main__':
     compStr += deletedTestsHeader
     for test in deletedTests:
       compStr += stringify(test)
-    baseState = 'FAIL'
+    baseState = 'FAILED'
   else: compStr += deletedTestsHeader + "[none]\n"
   
   failedTestsHeader = "\nReminder - Failed tests:\n{}\n".format('-'*23)
@@ -261,23 +203,43 @@ if __name__ == '__main__':
   if baseState in ['OK', 'NEW ADDITIONS'] and 'REF-' in script_args.logs[0]:
       if os.access(script_args.logs[0], os.W_OK):
         import shutil
-        shutil.copyfile(script_args.logs[0],
-                        script_args.logs[0].replace('REF-', ''))
+        os.remove(script_args.logs[0])
         newRef = os.path.join(os.path.dirname(script_args.logs[1]),
             'REF-' + os.path.basename(script_args.logs[1]))
         shutil.copyfile(script_args.logs[1], newRef)
       else: exitStatus = 2
 
+  prod = getProd(script_args.logs[1])
   tlog, tlog2 = getTimeFromLog(script_args.logs[1])
   if script_args.email:
-    prod = getProd(script_args.logs[1])
     if baseStateMsg: baseStateMsg = '\n\n'+baseStateMsg
-    notify(messageSubject="[validCassiopee - {}] {} - "
+    try:
+      from KCore.notify import notify
+      notify(recipients=['vincent.casseau@onera.fr', 'christophe.benoit@onera.fr'],
+             messageSubject="[validCassiopee - {}] {} - "
              "State: {}".format(prod, tlog, baseState),
              messageText=header + compStr + baseStateMsg)
+    except ImportError:
+      raise SystemError("Error: KCore is required to import notify.")
   else:
     filename = "./compSession_{}.txt".format(tlog2)
     if os.access('./', os.W_OK):
       print("Writing comparison to {}".format(filename))
       with open(filename, 'w') as f: f.write(header + compStr + baseStateMsg)
+      
+  # Amend state of the base in logs/validation_status.txt
+  logAllValids = "/stck/cassiope/git/logs/validation_status.txt"
+  entry = "{} - {} - {}\n".format(prod, tlog2, baseState)
+  if os.access(os.path.dirname(logAllValids), os.W_OK):
+    with open(logAllValids, 'r') as f: contents = f.readlines()
+    prodFound = False
+    for i, line in enumerate(contents):
+      if line.startswith(prod):
+        contents[i] = entry
+        prodFound = True
+        break
+
+    if not prodFound: contents.append(entry)
+    with open(logAllValids, 'w') as f: f.writelines(contents)
+  
   sys.exit(exitStatus)

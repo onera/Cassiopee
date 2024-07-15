@@ -362,14 +362,15 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
                     "convertFile2Arrays: unrecognised format.");
     return NULL;
   }
-
+      
   // Ajout des BCFaces dans l'arbre
   E_Int size = BCFaces.size();
   if (BCFacesO != Py_None)
   {
-    char n[128]; E_Int c = 0;
+    char n[128];
     for (E_Int j = 0; j < size; j++) // pour chaque bloc
     {
+      E_Int c = 0;
       char* myBCNames = BCNames[j];
       FldArrayI& myBCFaces = *BCFaces[j];
 
@@ -393,12 +394,12 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
         }
         if (!exist)
         {
-          char* na = new char[128]; strcpy(na, n); 
+          char* na = new char[128]; strcpy(na, n);
           names.push_back(na); indir[i] = names.size()-1;
         }
       }
-      //for (E_Int i = 0; i < names.size(); i++) printf("%s\n", names[i]);
-
+      //for (E_Int i = 0; i < names.size(); i++) printf("%s\n", names[i]); 
+      
       // Construction de l'objet python de sortie
       PyObject* lc = PyList_New(0);
       E_Int sizeNames = names.size();
@@ -453,14 +454,14 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     {
       // Build array
       tpl = K_ARRAY::buildArray3(*field[i], varString,
-                                 im[i], jm[i], km[i]);
+                                 im[i], jm[i], km[i], api);
       delete field[i];
     }
     else 
     {
       FldArrayF fl(0,1);
       tpl = K_ARRAY::buildArray3(fl, varString,
-                                 im[i], jm[i], km[i]);
+                                 im[i], jm[i], km[i], api);
     }
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
@@ -480,7 +481,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
     else 
     {
       FldArrayF fl(0,1);
-      tpl = K_ARRAY::buildArray3(fl, varString, *c[i], eltType, api); 
+      tpl = K_ARRAY::buildArray3(fl, varString, *c[i], eltType, api);
     }
     delete c[i];
     PyList_Append(l, tpl);
@@ -496,7 +497,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
         tpl = K_ARRAY::buildArray3(*fieldc[i], varStringc,
                                    std::max(im[i]-1,E_Int(1)),
                                    std::max(jm[i]-1,E_Int(1)),
-                                   std::max(km[i]-1,E_Int(1)));
+                                   std::max(km[i]-1,E_Int(1)), api);
         delete fieldc[i];
       }
       else tpl = PyList_New(0);
@@ -515,7 +516,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
         FldArrayI* cnl = new FldArrayI();
         char eltType[28]; strcpy(eltType, "NODE"); // hack
         tpl = K_ARRAY::buildArray3(*ufieldc[i], varStringc,
-                                   *cnl, eltType); // hack
+                                   *cnl, eltType, api); // hack
         delete ufieldc[i]; delete cnl;
       }
       else tpl = PyList_New(0);
@@ -696,7 +697,6 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
           //}
           elt.push_back(ids[0]); // only first connect of ME
           eltIds.push_back(ids); // all ids
-
         }
       }
       else 
@@ -1090,7 +1090,7 @@ PyObject* K_CONVERTER::readPyTreeFromPaths(PyObject* self, PyObject* args)
     ret = K_IO::GenIO::getInstance()->adfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth);
   else
   {
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "readPyTreeFromPaths: unknown file format.");
     return NULL;
   }

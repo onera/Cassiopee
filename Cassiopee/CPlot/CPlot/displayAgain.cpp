@@ -114,7 +114,16 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
         d->ptrState->offscreenBuffer[d->ptrState->frameBuffer] = 
         (char*)malloc(d->_view.w * d->_view.h * 4 * sizeof(GLubyte));
       OSMesaMakeCurrent(*ctx, d->ptrState->offscreenBuffer[d->ptrState->frameBuffer], 
-                    GL_UNSIGNED_BYTE, d->_view.w, d->_view.h);
+                        GL_UNSIGNED_BYTE, d->_view.w, d->_view.h);
+      //d->createNodeTexture();
+      //d->createNoise3DTexture();
+      //d->createFrameBufferTexture();
+      //d->createPngTexture("windtunnel.png", _texEnviron1, width, height);
+      //d->createVoxelTexture();
+      d->_texColormap = 0; // textures may be lost when destroying context
+      d->setBgColor();
+      glShadeModel(GL_SMOOTH);
+      glEnable(GL_DEPTH_TEST);
       d->_shaders.init(); // shader are attached to context
       d->_shaders.load();
   }
@@ -126,7 +135,6 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
         (char*)malloc(d->_view.w * d->_view.h * 4 * sizeof(GLubyte));
       OSMesaMakeCurrent(ctx, d->ptrState->offscreenBuffer[d->ptrState->frameBuffer], 
                         GL_UNSIGNED_BYTE, d->_view.w, d->_view.h);
-
   }
 
   d->ptrState->farClip = 1;

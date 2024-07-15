@@ -29,6 +29,7 @@ DEFAULT_TITLE = 'FAST4KIM'
 DEFAULT_ID = 0
 DEFAULT_OVERN = 0
 DEFAULT_OMEGA = 0
+DEFAULT_REPRISE = 1
 
 #=======================================
 class KIM:
@@ -71,6 +72,8 @@ class KIM:
             self.config["overn"] = DEFAULT_OVERN            
         if "omega" not in self.config:
             self.config["omega"] = DEFAULT_OMEGA
+        if "it_reprise" not in self.config:
+            self.config["it_reprise"] = DEFAULT_REPRISE
             
     def createDirs(self):
         '''Create the KIM directories'''
@@ -95,7 +98,7 @@ class KIM:
         '''
         tmp = type_size * len(vector)
         mesh_file.write(struct.pack('i', tmp))
-        mesh_file.write(vector.astype(vector_type).tobytes())
+        mesh_file.write(vector.astype(vector_type).tostring())
         mesh_file.write(struct.pack('i', tmp))
 
     def createKimDonn(self):
@@ -358,77 +361,144 @@ idom nuda imax jmax kmax imi ima jmi  ...\n'''%(dimdomD)
         '''Create the KIM aero files'''
 
         # Lit "walls.cgns" pour avoir les dimensions uniquement
-        tw = Cmpi.convertFile2SkeletonTree('stress.cgns')
-        zonesw = Internal.getZones(tw)
-
-        # write dim dom entetes des domaines
-        dimdom = open(self.kimEntreeDir+os.sep+'dimdom.in','a')
-        for c, z in enumerate(zonesw):
-            nB_Pts = C.getNPts(z)
-            nb_Elts = C.getNCells(z)
-            dimz = Internal.getZoneDim(z)
-            indom = c+1
-            dim = [1,1,1]
-            #dim[0] = 1
-            #dim[1] = -nB_Pts
-            #dim[2] = nb_Elts
-            dim[0] = dimz[1]-1
-            dim[1] = dimz[2]-1
-            dim[2] = 1
-            nuikim = 1
-            invnorm = 1
-            dimdom.write(str(indom)+' '+str(indom)+' '+str(dim[0])+' '+str(dim[1])+' '+str(dim[2])+'  1  '+ str(dim[0])+'  0  0  1  '+str(dim[2])+' '+str(nuikim)+' '+str(invnorm)+'\n')
-        dimdom.close()
+        #tw = Cmpi.convertFile2SkeletonTree('stress.cgns')
+        #zonesw = Internal.getZones(tw)
 
         # Lit le fichier des probes
         t = Cmpi.convertFile2SkeletonTree(self.config['filename'])
         zones = Internal.getZones(t)
         
+        # write dim dom entetes des domaines
+        if self.config['it_reprise']==1:
+            dimdom = open(self.kimEntreeDir+os.sep+'dimdom.in','a')
+            for c, z in enumerate(zones):
+                nB_Pts = C.getNPts(z)
+                nb_Elts = C.getNCells(z)
+                dimz = Internal.getZoneDim(z)
+                indom = c+1
+                dim = [1,1,1]
+                #dim[0] = 1
+                #dim[1] = -nB_Pts
+                #dim[2] = nb_Elts
+                dim[0] = dimz[2]
+                dim[1] = dimz[3]
+                dim[2] = 1
+                nuikim = 3
+                invnorm = 1
+                dimdom.write(str(indom)+' '+str(indom)+' '+str(dim[0])+' '+str(dim[1])+' '+str(dim[2])+'  1  '+ str(dim[0])+'  1  '+str(dim[1])+' 1  1 '+str(nuikim)+' '+str(invnorm)+'\n')
+            dimdom.close()
+
+        
         # Pour chaque domaine, load tous les instants
         checkZones = [] # Pour verification
         for iDom, zone in enumerate(zones):
-            zonew = zonesw[iDom]
-            dimz = Internal.getZoneDim(zonew)
-            #print(zone[0], zonew[0], flush=True)
+            dimz = Internal.getZoneDim(zone)
+            #print(zone[0], flush=True)
 
-            nodes = Internal.getNodesFromName(zone, 'FlowSolution#*')
+            nodes = Internal.getNodesFromName(zone, 'FlowSolution#Centers#*')
             ncont = len(nodes) # nbre de containers pleins
-            print('ncont=%d'%ncont); ncont = 1
+            print('ncont=%d'%ncont)
 
-            itglob = 1
+            itglob = self.config['it_reprise']
             for nc in range(ncont):
                 paths = ['CGNSTree/Base/%s/GridCoordinates#%d'%(zone[0],nc)]
-                paths += ['CGNSTree/Base/%s/FlowSolution#%d'%(zone[0],nc)]
+                paths += ['CGNSTree/Base/%s/FlowSolution#Centers#%d'%(zone[0],nc)]
+                
                 nodes2 = Distributed.readNodesFromPaths(self.config['filename'], paths)
                 px = Internal.getNodeFromName(nodes2[0], 'CoordinateX')[1]
-                nrec = px.shape[0] # 50
-                print('nrec=%d'%nrec); nrec = 1
-
+                nrec = px.shape[0]-1 # 50
+                #print('nrec=%d'%nrec)
                 for it in range(0, nrec):
                     px = Internal.getNodeFromName(nodes2[0], 'CoordinateX')[1][it,:]
                     py = Internal.getNodeFromName(nodes2[0], 'CoordinateY')[1][it,:]
                     pz = Internal.getNodeFromName(nodes2[0], 'CoordinateZ')[1][it,:]
                     p =  Internal.getNodeFromName(nodes2[1], 'Pressure')[1][it,:]
-            #        kimAeroFile = self.kimAeroDir+os.sep+'aerod%03dt%04d'%(iDom+self.config['dom_id'],itglob); itglob += 1
-            #        fich = open(kimAeroFile, 'wb')                    
-            #        self.write_fortran_block(fich, px, DOUBLE_SIZE) #X
-            #        self.write_fortran_block(fich, py, DOUBLE_SIZE) #Y
-            #        self.write_fortran_block(fich, pz, DOUBLE_SIZE) #Z
-            #        self.write_fortran_block(fich, p, DOUBLE_SIZE) #P
-            #        #for i in range(C.getNCells(data)):
-            #        #    element = numpy.array([data[0][2][0][i],data[0][2][1][i],data[0][2][2][i]])
-            #        #    self.write_fortran_block(fich,element, INT_SIZE, vector_type='i')#Connectivity
-            #        fich.close()
-                    
-                    # Rebuild zone for check
-                    cz = Internal.newZone(zone[0], zsize=[[dimz[1]-1,dimz[1]-2,0],[dimz[2]-1,dimz[2]-2,0]], ztype='Structured')
+                    #p = C.center2Node(p)
+                    #print(p.shape,px.shape)
+                    kimAeroFile = self.kimAeroDir+os.sep+'aerod%03dt%04d'%(iDom+1,itglob)
+                    cz = Internal.newZone(zone[0]+'_%d'%itglob, zsize=[[dimz[2],dimz[2]-1,0],[dimz[3],dimz[3]-1,0]], ztype='Structured')
                     gc = Internal.newGridCoordinates(parent=cz)
                     ox = Internal.newDataArray('CoordinateX', value=px, parent=gc)
                     oy = Internal.newDataArray('CoordinateY', value=py, parent=gc)
                     oz = Internal.newDataArray('CoordinateZ', value=pz, parent=gc)                    
-                    fs = Internal.newFlowSolution('FlowSolution', 'Vertex', parent=cz)
+                    fs = Internal.newFlowSolution('FlowSolution#Centers', 'CellCenter', parent=cz)
                     op = Internal.newDataArray('Pressure', value=p, parent=fs)
-                    checkZones.append(cz)
+                    cz = C.center2Node(cz, 'FlowSolution#Centers')
+                    cz = Internal.rmNodesByName(cz, 'FlowSolution#Centers')
+                    
+                    if self.config['form_file']=='bin': 
+                        #fich = FortranFile(kimAeroFile, 'w')
+                        #fich.write_record(px)
+                        #fich.write_record(py)
+                        #fich.write_record(pz)
+                        #fich.write_record(p)
+                        x=Internal.getByName(cz, 'CoordinateX')
+                        y=Internal.getByName(cz, 'CoordinateY')
+                        z=Internal.getByName(cz, 'CoordinateZ')
+                        pressure=Internal.getByName(cz, 'Pressure')
+                        #print(x[2][0][1].reshape(x[2][0][1].shape[0]*x[2][0][1].shape[1]))
+                        fich = open(kimAeroFile, 'wb')
+                        self.write_fortran_block(fich, x[2][0][1].reshape(x[2][0][1].shape[0]*x[2][0][1].shape[1]), DOUBLE_SIZE) #X
+                        self.write_fortran_block(fich, y[2][0][1].reshape(y[2][0][1].shape[0]*y[2][0][1].shape[1]), DOUBLE_SIZE) #Y
+                        self.write_fortran_block(fich, z[2][0][1].reshape(z[2][0][1].shape[0]*z[2][0][1].shape[1]), DOUBLE_SIZE) #Z
+                        self.write_fortran_block(fich, pressure[2][0][1].reshape(pressure[2][0][1].shape[0]*pressure[2][0][1].shape[1]), DOUBLE_SIZE) #P
+                        fich.close()
+                    #itglob += 1
+                    else:
+                        C.convertPyTree2File(cz, kimAeroFile, 'fmt_tp')
+                        #C.convertPyTree2File(cz,'out%d.cgns'%itglob )
+                    #checkZones.append(cz)
 
-        Internal.printTree(checkZones)
-        C.convertPyTree2File(checkZones, 'out%d.cgns'%nc)
+                    itglob += 1
+
+            # Container courant
+            paths = ['CGNSTree/Base/%s/GridCoordinates'%(zone[0])]
+            paths += ['CGNSTree/Base/%s/FlowSolution#Centers'%(zone[0])]
+            paths += ['CGNSTree/Base/%s/FlowSolution'%(zone[0])]
+            print(paths)
+            nodes2 = Distributed.readNodesFromPaths(self.config['filename'], paths)
+            #print(nodes2)
+            #exit()
+            px = Internal.getNodeFromName(nodes2[0], 'CoordinateX')[1]
+            time = Internal.getNodeFromName(nodes2[2], 'time')[1]
+            nrec = px.shape[0]-1 # 50
+
+            for it in range(0, nrec):
+                if time[it,0,0] > -1:
+                    px = Internal.getNodeFromName(nodes2[0], 'CoordinateX')[1][it,:]
+                    py = Internal.getNodeFromName(nodes2[0], 'CoordinateY')[1][it,:]
+                    pz = Internal.getNodeFromName(nodes2[0], 'CoordinateZ')[1][it,:]
+                    p =  Internal.getNodeFromName(nodes2[1], 'Pressure')[1][it,:]
+                    kimAeroFile = self.kimAeroDir+os.sep+'aerod%03dt%04d'%(iDom+1,itglob)
+                    cz = Internal.newZone(zone[0]+'_%d'%itglob, zsize=[[dimz[2],dimz[2]-1,0],[dimz[3],dimz[3]-1,0]], ztype='Structured')
+                    gc = Internal.newGridCoordinates(parent=cz)
+                    ox = Internal.newDataArray('CoordinateX', value=px, parent=gc)
+                    oy = Internal.newDataArray('CoordinateY', value=py, parent=gc)
+                    oz = Internal.newDataArray('CoordinateZ', value=pz, parent=gc)                    
+                    fs = Internal.newFlowSolution('FlowSolution#Centers', 'CellCenter', parent=cz)
+                    op = Internal.newDataArray('Pressure', value=p, parent=fs)
+                    cz = C.center2Node(cz, 'FlowSolution#Centers')
+                    cz = Internal.rmNodesByName(cz, 'FlowSolution#Centers')                        
+                    if self.config['form_file']=='bin': 
+                        #fich = FortranFile(kimAeroFile, 'w')
+                        #fich.write_record(px)
+                        #fich.write_record(py)
+                        #fich.write_record(pz)
+                        #fich.write_record(p)
+                        x=Internal.getByName(cz, 'CoordinateX')
+                        y=Internal.getByName(cz, 'CoordinateY')
+                        z=Internal.getByName(cz, 'CoordinateZ')
+                        pressure=Internal.getByName(cz, 'Pressure')                            
+                        fich = open(kimAeroFile, 'wb')
+                        self.write_fortran_block(fich, x[2][0][1].reshape(x[2][0][1].shape[0]*x[2][0][1].shape[1]), DOUBLE_SIZE) #X
+                        self.write_fortran_block(fich, y[2][0][1].reshape(y[2][0][1].shape[0]*y[2][0][1].shape[1]), DOUBLE_SIZE) #Y
+                        self.write_fortran_block(fich, z[2][0][1].reshape(z[2][0][1].shape[0]*z[2][0][1].shape[1]), DOUBLE_SIZE) #Z
+                        self.write_fortran_block(fich, pressure[2][0][1].reshape(pressure[2][0][1].shape[0]*pressure[2][0][1].shape[1]), DOUBLE_SIZE) #P
+                        fich.close()
+                            #itglob += 1
+                    else:
+                        C.convertPyTree2File(cz, kimAeroFile, 'fmt_tp')      
+                    itglob += 1
+                    
+        #Internal.printTree(checkZones)
+        #C.convertPyTree2File(checkZones, 'out%d.cgns'%nc)

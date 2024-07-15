@@ -10,5 +10,5 @@ t = C.newPyTree(['Base']); t[2][1][2] += [a]
 # t2 has numpy copy only for nodes of type 'DataArray_t'
 t2 = Internal.copyValue(t, byType='DataArray_t')
 x = Internal.getNodeFromName(t2, 'CoordinateX')
-x[1][0,0,0]=5.
-test.testO([t,t2], 1)
+x[1][0,0,0] = 5.
+test.testT(t2, 1)

@@ -9,4 +9,4 @@ a = C.fillEmptyBCWith(a, 'far', 'BCFarfield')
 
 a = Internal.rmNodesByValue(a, 'BCFarfield')
 t = C.newPyTree(['Base']); t[2][1][2] += [a]
-test.testO(t, 1)
+test.testT(t, 1)

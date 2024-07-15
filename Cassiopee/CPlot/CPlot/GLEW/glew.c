@@ -38,6 +38,7 @@
 
 #if defined(GLEW_OSMESA)
 #  define GLAPI extern
+//#  define APIENTRY // added for ubuntu, to be checked on other linux
 #  include <GL/osmesa.h>
 #elif defined(GLEW_EGL)
 #  include <GL/eglew.h>

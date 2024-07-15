@@ -10,14 +10,14 @@ s = D.sphere((0,0,0), 1., 100); snear = 0.1
 t = G.octree([s],[snear], dfar=5., balancing=1,ratio=2)
 
 print("ngon conversion...")
-t = C.convertArray2NGon(t); t = G.close(t)
+t = C.convertArray2NGon(t)
 print("ngon conformization...")
-t = C.conformizeNGon(t)
+t = C.conformizeNGon(t); t = G.close(t)
 print("ngon close cells...")
 t = XOR.closeCells(t)
 #t = XOR.reorientExternalFaces(t)
 
-s = C.convertArray2NGon(s); s = G.close(s, 1.e-12)
+s = C.convertArray2NGon(s)
 s = XOR.convertNGON2DToNGON3D(s)
 #s = XOR.reorientExternalFaces(s)
 

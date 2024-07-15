@@ -28,6 +28,9 @@
 #define MPI_Comm void
 #endif
 
+// to be suppressed in next release
+#define FORCEPERIODICR4 0
+
 # include "GenIO.h"
 # include "kcore.h"
 # include "hdf5.h"
@@ -2261,7 +2264,25 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
     {
       if (typeNum == NPY_DOUBLE)
       {
-        setArrayR8(child, (double*)PyArray_DATA(ar), dim, dims);
+#if (FORCEPERIODICR4 == 1)
+        // patch pour l'ancienne norme CGNS
+        if (strcmp(name, "RotationCenter") == 0 ||
+            strcmp(name, "RotationAngle") == 0 ||
+            strcmp(name, "RotationRateVector") == 0 ||
+            strcmp(name, "Translation") == 0)
+        {
+          E_Int s = PyArray_SIZE(ar);
+          float* buf = new float [s];
+          double* ptr = (double*)PyArray_DATA(ar);
+          for (E_Int i = 0; i < s; i++) buf[i] = ptr[i];
+          setArrayR4(child, buf, dim, dims);
+          delete [] buf;
+        }
+        else
+          setArrayR8(child, (double*)PyArray_DATA(ar), dim, dims);
+#else
+      setArrayR8(child, (double*)PyArray_DATA(ar), dim, dims);
+#endif
       }
       else if (typeNum == NPY_INT || typeNum == NPY_INT64 || typeNum == NPY_LONG)
       {
@@ -2276,7 +2297,7 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
        else if (elSize == 8)
        {
          if (strcmp(label, "CGNSBase_t") == 0 ||
-             strcmp(label, "Elements_t") == 0) // to comply with paraview
+             strcmp(label, "Elements_t") == 0) // to comply with cgns 4 norm
          {
           // convert to i4
           E_Int s = PyArray_SIZE(ar);

@@ -13,6 +13,9 @@ __ZoneNameServer__ = {}
 __BCNameServer__ = {}
 __BaseNameServer__ = {}
 
+# Force R4 perdiodic nodes
+FORCER4PERIODIC = True
+
 #==============================================================================
 # -- Gestion du nommage unique --
 #==============================================================================
@@ -1157,12 +1160,38 @@ def checkLinks__(links, t):
   #for c, i in enumerate(links): print(out[c], links[c])
   return out
 
+# Force periodic nodes to be R4 (old CGNS norm)
+def _forceR4PeriodicNodes__(t):
+  nodes = Internal.getNodesFromName(t, "RotationCenter")
+  nodes += Internal.getNodesFromName(t, "RotationAngle")
+  nodes += Internal.getNodesFromName(t, "RotationRateVector")
+  nodes += Internal.getNodesFromName(t, "Translation")
+  for n in nodes:
+    n[1] = n[1].astype(numpy.float32)
+  return None
+
+# Force specific type nodes imposed by v4 CGNS norm
+def _forceCGNSProfile__(t):
+  # version node (R4)
+  n = Internal.getNodeFromName1(t, "CGNSVersion")
+  if n is not None: n[1] = n[1].astype(numpy.float32)
+  # base node (I4)
+  nodes = Internal.getNodesFromName1(t, "CGNSBase_t")
+  for n in nodes:
+    n[1] = n[1].astype(numpy.int32)
+  # Elements_t (i4)
+  nodes = Internal.getNodesFromName2(t, "Elements_t")
+  for n in nodes:
+    n[1] = n[1].astype(numpy.int32)
+  return None
+
 # -- convertPyTree2File
 def convertPyTree2File(t, fileName, format=None, isize=4, rsize=8,
                        endian='big', colormap=0, dataFormat='%.9e ', links=[]):
   """Write a pyTree to a file.
   Usage: convertPyTree2File(t, fileName, format, options)"""
   if t == []: print('Warning: convertPyTree2File: nothing to write.'); return
+  #if FORCER4PERIODIC: _forceR4PeriodicNodes__(t)
   if links is not None: links = checkLinks__(links, t)
   if format is None:
     format = Converter.convertExt2Format__(fileName)

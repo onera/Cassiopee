@@ -1126,12 +1126,13 @@ def display360__(t, posCam, posEye, dirCam, offscreen, locRez, kwargs):
     lkwargs['export'] = 'cube_bottom.png'
     display(t, **lkwargs)
     finalizeExport(offscreen)
+
     return None
 
 #==============================================================================
 # display360 (offscreen=1, 2 or 7)
 #==============================================================================
-def display360(t, **kwargs):
+def display360(t, type360=0, **kwargs):
     """Display for 360 images."""
     import KCore.Vector as Vector
     posCam = kwargs.get("posCam", (0,0,0))
@@ -1143,13 +1144,14 @@ def display360(t, **kwargs):
     exportRez = kwargs.get("exportResolution", "4096x2048")
     offscreen = kwargs.get("offscreen", 1)
     stereo = kwargs.get("stereo", 0)
-    stereoDist = kwargs.get("stereoDist", 1./30.)
+    stereoDist = kwargs.get("stereoDist", 0.07) # stereoDist is in real world distance
     if stereo == 1: kwargs['stereo'] = 0
 
     # resolution for the 6 view images
     locRez = exportRez.split('x')[1]
     locRez = int(locRez)//2
-    locRez = max(locRez, 800)
+    locRez = max(locRez, 100) # minimum 100 pixels
+    locRez = min(locRez, 8192) # maximum 8192 pixels, generally the max texture size
     locRez = "%dx%d"%(locRez, locRez)
 
     # display 6 views
@@ -1158,15 +1160,17 @@ def display360(t, **kwargs):
     # Create the 360 image from cube images
     import Converter.Mpi as Cmpi
     if Cmpi.rank == 0:
-        if offscreen == 7: foffscreen = 1
-        else: foffscreen = offscreen
-        a = C.newPyTree(['Base'])
-        display(a, panorama=1,
-                offscreen=foffscreen, export=export, exportResolution=exportRez)
-        finalizeExport(foffscreen)
+        #if offscreen == 7: foffscreen = 1
+        #else: foffscreen = offscreen
+        #a = C.newPyTree(['Base'])
+        #display(a, panorama=1,
+        #        offscreen=foffscreen, export=export, exportResolution=exportRez)
+        #finalizeExport(foffscreen)
+        panorama(export, exportRez, type360=type360)
+    Cmpi.barrier() # wait for completion
 
     if stereo == 1: # left eye
-        import Transform.PyTree as T
+        import Generator.PyTree as G
         export2 = export.rsplit('.', 1)
         if len(export2) == 2: export2 = export2[0]+'_2.'+export2[1]
         else: export2 = export+'_2'
@@ -1174,30 +1178,81 @@ def display360(t, **kwargs):
         v1 = Vector.sub(posEye, posCam)
         vz = Vector.normalize(dirCam)
         v2 = Vector.cross(vz, v1)
+        v2 = Vector.normalize(v2)
         v3 = Vector.mul(stereoDist, v2)
         posCam = Vector.add(posCam, v3)
     
         display360__(t, posCam, posEye, dirCam, offscreen, locRez, kwargs)
         if Cmpi.rank == 0:
-            if offscreen == 7: foffscreen = 1
-            else: foffscreen = offscreen
-            a = C.newPyTree(['Base'])
-            display(a, panorama=1,
-                    offscreen=foffscreen, export=export2, exportResolution=exportRez)
-            finalizeExport(foffscreen)
+            #if offscreen == 7: foffscreen = 1
+            #else: foffscreen = offscreen
+            #a = C.newPyTree(['Base'])
+            #display(a, panorama=1,
+            #        offscreen=foffscreen, export=export2, exportResolution=exportRez)
+            #finalizeExport(foffscreen)
+            panorama(export2, exportRez, type360=type360)
 
             # assemble images
             a1 = C.convertFile2PyTree(export)
             a2 = C.convertFile2PyTree(export2)
             a1 = Internal.getZones(a1)[0]
             a2 = Internal.getZones(a2)[0]
-            a1[0] = "right"
-            a2[0] = "left"
-            locRez = exportRez.split('x')[1]
-            locRez = float(locRez)
-            T._translate(a1, (0.,locRez-1.,0.))
-            a = T.join(a1, a2, tol=0.5)
-            #a = [a1,a2]
-            C.convertPyTree2File(a, 'final.png') # finale
-    Cmpi.barrier() # wait for completion
+            a1[0] = "right"; a2[0] = "left"
+            locRez = exportRez.split('x')
+            if type360 == 0: # 360
+                ni = int(locRez[0]); nj = int(locRez[1])
+                a = G.cart((0,0,0), (1,1,1), (ni,2*nj,1))
+                C._addVars(a, ['r','g','b','a'])
+                for v in ['r','g','b','a']:
+                    pr = Internal.getNodeFromName2(a, v)[1]
+                    pr1 = Internal.getNodeFromName2(a1, v)
+                    pr2 = Internal.getNodeFromName2(a2, v)
+                    if pr1 is not None and pr2 is not None:
+                        pr1 = pr1[1]; pr2 = pr2[1]
+                        pr[0:ni,0:nj] = pr1[0:ni,0:nj]
+                        pr[0:ni,nj:2*nj] = pr2[0:ni,0:nj]
+                    else:
+                        pr[0:ni, 0:2*nj] = 1.
+            else: # 180
+                ni = int(locRez[1]); nj = int(locRez[1])
+                a = G.cart((0,0,0), (1,1,1), (2*ni,nj,1))
+                C._addVars(a, ['r','g','b','a'])
+                for v in ['r','g','b','a']:
+                    pr = Internal.getNodeFromName2(a, v)[1]
+                    pr1 = Internal.getNodeFromName2(a1, v)
+                    pr2 = Internal.getNodeFromName2(a2, v)
+                    if pr1 is not None and pr2 is not None:
+                        pr1 = pr1[1]; pr2 = pr2[1]
+                        pr[0:ni,0:nj] = pr1[0:ni,0:nj]
+                        pr[ni:2*ni,0:nj] = pr2[0:ni,0:nj]
+                    else:
+                        pr[0:2*ni,0:nj] = 1.
+            C.convertPyTree2File(a, export) # finale
+        Cmpi.barrier() # wait for completion
     return None
+
+# type360=0 -> 360, mode=1 -> 180
+def panorama(export, exportResolution, type360=0):
+    res = exportResolution.split('x')
+    if type360 == 0: resx = int(res[0]); resy = int(res[1])
+    else: resx = int(res[1]); resy = int(res[1])
+    import Generator.PyTree as G
+    import CPlot.cplot
+    a1 = C.convertFile2PyTree('cube_left.png')
+    a1 = C.getFields('nodes', a1, api=3)[0]
+    a2 = C.convertFile2PyTree('cube_right.png')
+    a2 = C.getFields('nodes', a2, api=3)[0]
+    a3 = C.convertFile2PyTree('cube_bottom.png')
+    a3 = C.getFields('nodes', a3, api=3)[0]
+    a4 = C.convertFile2PyTree('cube_top.png')
+    a4 = C.getFields('nodes', a4, api=3)[0]
+    a5 = C.convertFile2PyTree('cube_back.png')
+    a5 = C.getFields('nodes', a5, api=3)[0]
+    a6 = C.convertFile2PyTree('cube_front.png')
+    a6 = C.getFields('nodes', a6, api=3)[0]
+    a7 = G.cart((0,0,0), (1,1,1), (resx, resy,1))
+    C._addVars(a7, ['r','g','b','a'])
+    a7f = C.getFields('nodes', a7, api=3)[0]
+    CPlot.cplot.panorama(a1, a2, a3, a4, a5, a6, a7f, type360)
+    C.convertPyTree2File(a7, export)
+    return a7

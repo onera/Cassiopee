@@ -64,7 +64,9 @@ void writePNGFile(Data* d, char* filename, char* buffer,
   png_infop info_ptr;
   png_bytep* row_pointers;
 
-  if ((fp = fopen(filename, "wb")) == NULL) {
+  fp = d->fopenw(filename, "wb");
+  if (fp == NULL) 
+  {
     printf("Warning: cannot open %s.\n", filename);
     return;
   }

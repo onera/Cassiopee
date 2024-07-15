@@ -12,10 +12,10 @@ import KCore.test         as test
 # ----------------------------------------------------------------
 # Maillages 
 a    = G.cartHexa((0.,0.,0.), (1.,1.,1.), (3,2,2))
-a    = C.convertArray2NGon(a); a = G.close(a)
+a    = C.convertArray2NGon(a)
 a    = C.initVars(a,'{centers:varA} = 5.')
 b    = G.cartHexa((2.,0.,0.), (1.,1.,1.), (3,2,2))
-b    = C.convertArray2NGon(b); b = G.close(b)
+b    = C.convertArray2NGon(b)
 b    = C.initVars(b,'{centers:varB} = 9.')
 
 # BCs 
@@ -47,7 +47,7 @@ test.testT(t, 1)
 # ----------------------------------------------------------------
 # Maillages 
 a    = G.cartHexa((0.,0.,0.), (1.,1.,1.), (11,7,3))
-a    = C.convertArray2NGon(a); a = G.close(a)
+a    = C.convertArray2NGon(a)
 
 # BCs 
 subz = G.cartNGon( (0,0,0), (1,1,1), (11,7,1) )

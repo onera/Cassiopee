@@ -18,7 +18,7 @@ ulimit -s unlimited
 
 # Detect machine (shortest first)
 KC=`uname -n`
-MAC0=$(echo $KC | grep 'n'); if [ "$MAC0" != "" ]; then export MAC="sator_brw"; fi
+MAC0=$(echo $KC | grep 'n'); if [ "$MAC0" != "" ]; then export MAC="sator_cas"; fi
 MAC0=$(echo $KC | grep 'ld'); if [ "$MAC0" != "" ]; then export MAC="ld"; fi
 MAC0=$(echo $KC | grep 'clausius'); if [ "$MAC0" != "" ]; then export MAC="ld"; fi
 MAC0=$(echo $KC | grep 'ubuntu'); if [ "$MAC0" != "" ]; then export MAC="ubuntu"; fi
@@ -27,7 +27,7 @@ MAC0=$(echo $KC | grep 'austri'); if [ "$MAC0" != "" ]; then export MAC="austri"
 MAC0=$(echo $KC | grep 'celeste'); if [ "$MAC0" != "" ]; then export MAC="visio"; fi
 MAC0=$(echo $KC | grep 'visung'); if [ "$MAC0" != "" ]; then export MAC="visung"; fi
 MAC0=$(echo $KC | grep 'giulia'); if [ "$MAC0" != "" ]; then export MAC="giulia"; fi
-MAC0=$(echo $KC | grep 'sator'); if [ "$MAC0" != "" ]; then export MAC="sator_brw"; fi
+MAC0=$(echo $KC | grep 'sator'); if [ "$MAC0" != "" ]; then export MAC="sator_cas"; fi
 MAC0=$(echo $KC | grep 'jean-zay'); if [ "$MAC0" != "" ]; then export MAC="jean-zay"; fi
 MAC0=$(echo $KC | grep 'spiro'); if [ "$MAC0" != "" ]; then export MAC="spiro_el8"; fi
 MAC0=$(echo $KC | grep 'f0'); if [ "$MAC0" != "" ]; then export MAC="juno"; fi
@@ -79,6 +79,7 @@ elif [ "$MAC" = "ld" ]; then
 #------------------------------- ld centos 8 + python 3 -----------------------------------
     export ELSAPROD=ld
     export ELSAPROD=$ELSAPROD$INTTYPE
+    . /etc/profile.d/modules-onera.sh
     module purge
     module load occt/7.6.1-gnu831
     module load python/3.8.14-gnu831
@@ -123,9 +124,12 @@ elif [ "$MAC" = "macosx" ]; then
 
 elif [ "$MAC" = "ubuntu" ]; then
 #-------------------------------- ubuntu --------------------------------------
-    export ELSAPROD=ub_r8
+    export ELSAPROD=ubuntu
     export ELSAPROD=$ELSAPROD$INTTYPE
-    export OMP_NUM_THREADS=2
+    export OMP_NUM_THREADS=4
+    export PYTHONEXE=python3
+    export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
 
 elif [ "$MAC" = "visio" ]; then
 #----------------------------- visio -----------------------------------------
@@ -190,7 +194,6 @@ elif [ "$MAC" = "visung_el8" ]; then
     export PYTHONEXE=python3
     export OMP_NUM_THREADS=72
     #export PRODMODE=1
-    #export PIP_DISABLE_PIP_VERSION_CHECK=1
     unset I_MPI_PMI_LIBRARY
 
 elif [ "$MAC" = "austri" ]; then
@@ -498,6 +501,24 @@ elif [ "$MAC" = "spiro_pgi" ]; then
     module load nvhpc/22.2-gnu831-full
     module load subversion/1.14.1-gnu831
 
+elif [ "$MAC" = "spiro_gpu" ]; then
+#----------------------------- juno gpu ------------------------------------
+        export ELSAPROD=spiro_gpu
+        export ELSAPROD="$ELSAPROD$INTTYPE"
+        source /opt/tools/Modules/init/bash
+        module purge
+        module load python/3.12.2-gnu850
+        module load nvhpc/23.7-gnu850-full
+        module load hdf5/1.10.5-gnu831-ompi405
+        # Set next two lines only if python is not python
+        export PYTHONEXE=python3
+        # Number of threads
+        export OMP_NUM_THREADS=48
+        export PRODMODE=1
+        export PIP_DISABLE_PIP_VERSION_CHECK=1
+        unset $(env | grep SLURM | cut -d'=' -f 1)
+        unset OMP_PLACES
+
 elif [ "$MAC" = "juno" ]; then
 #----------------------------- juno -----------------------------------------
     export ELSAPROD=juno
@@ -546,7 +567,25 @@ elif [ "$MAC" = "juno_gcc" ]; then
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
     unset $(env | grep SLURM | cut -d'=' -f 1)
-    #export OMP_PLACES=cores
+    unset OMP_PLACES
+
+elif [ "$MAC" = "juno_gpu" ]; then
+#----------------------------- juno gpu ------------------------------------
+        export ELSAPROD=juno_gpu
+        export ELSAPROD="$ELSAPROD$INTTYPE"
+        source /opt/tools/Modules/init/bash
+        module purge
+        module load python/3.12.2-gnu850
+        module load nvhpc/23.7-gnu850-full
+        module load hdf5/1.10.5-gnu831-ompi405
+        # Set next two lines only if python is not python
+        export PYTHONEXE=python3
+        # Number of threads
+        export OMP_NUM_THREADS=48
+        export PRODMODE=1
+        export PIP_DISABLE_PIP_VERSION_CHECK=1
+        unset $(env | grep SLURM | cut -d'=' -f 1)
+        unset OMP_PLACES
 
 elif [ "$MAC" = "juno_coda" ]; then
 #----------------------------- juno -----------------------------------------
@@ -691,6 +730,7 @@ elif [ "$MAC" = "WDAAA161Z" ]; then
     # modules
     export PYTHONEXE=python3
     export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
 fi
 
 
@@ -703,10 +743,11 @@ if ! [ -z $PATHL ]; then
 fi
 
 if [ "$PYTHONEXE" = "python3" ]; then
-    python() { python3 "$@"; }
-    export -f python
+    pyversion="python"`python3 -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
+    alias python=python3
+else
+    pyversion="python"`python -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
 fi
-pyversion="python"`python -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
 
 export PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin
 export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib
@@ -725,17 +766,17 @@ if ! [ -z $OLD_PATHL ]; then
 fi
 
 # Prefix with new paths
-if [ -n $PATH ]; then
+if [ -n "$PATH" ]; then
     export PATH=$PATHL:$PATH
 else
     export PATH=$PATHL
 fi
-if [ -n $LD_LIBRARY_PATH ]; then
+if [ -n "$LD_LIBRARY_PATH" ]; then
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATHL:$LD_LIBRARY_PATH
 else
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATHL
 fi
-if [ -n $PYTHONPATH ]; then
+if [ -n "$PYTHONPATH" ]; then
     export PYTHONPATH=$PYTHONPATHL:$PYTHONPATH
 else
     export PYTHONPATH=$PYTHONPATHL

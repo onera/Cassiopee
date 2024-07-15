@@ -1,4 +1,3 @@
-
 # Functions used in *Cassiopee* modules setup.py
 import os, sys, distutils.sysconfig, platform, glob, subprocess
 
@@ -193,14 +192,22 @@ def getInstallPath(prefix):
         pythonVersion = pythonLib[-2]
         Site = pythonLib[-1]
         Lib = pythonLib[-3]
-        installPath = '%s/%s/%s/site-packages'%(prefix, Lib, pythonVersion) 
+        installPath = '%s/%s/%s/site-packages'%(prefix, Lib, pythonVersion)
+    elif os.environ['ELSAPROD'][0:6] == 'ubuntu': # debian style
+        pythonLib = distutils.sysconfig.get_python_lib()
+        pythonLib = pythonLib.split('/')
+        pversion = sys.version_info
+        pythonVersion = "python{}.{}".format(pversion[0], pversion[1])
+        Site = pythonLib[-1]
+        Lib = pythonLib[-3]
+        installPath = '%s/local/%s/%s/dist-packages'%(prefix, Lib, pythonVersion)
     elif mySystem == 'Windows' or mySystem == 'mingw':
         installPath = prefix + "/Lib/site-packages"
     elif mySystem == 'Darwin':
         pythonLib = distutils.sysconfig.get_python_lib()
         pythonLib = pythonLib.split('/')
         pythonVersion = pythonLib[-2]
-        installPath = prefix + '/lib/python'+pythonVersion+'/site-packages'
+        installPath = prefix + '/lib/python'+pythonVersion+'/site-packages'        
     else: # unix
         pythonLib = distutils.sysconfig.get_python_lib()
         pythonLib = pythonLib.split('/')

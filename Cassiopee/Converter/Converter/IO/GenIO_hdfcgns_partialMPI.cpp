@@ -933,7 +933,8 @@ hid_t K_IO::GenIOHdf::writeNodePartial(hid_t     node,
     {
       if (typeNum == NPY_DOUBLE)
       {
-        // patch pour la norme ADF
+#if (FORCEPERIODICR4 == 1)
+        // patch pour la norme CGNS
         if (strcmp(name, "RotationCenter") == 0 ||
             strcmp(name, "RotationAngle") == 0 ||
             strcmp(name, "RotationRateVector") == 0 ||
@@ -942,7 +943,7 @@ hid_t K_IO::GenIOHdf::writeNodePartial(hid_t     node,
           E_Int s = PyArray_Size(v);
           float* buf = new float [s];
           double* ptr = (double*)PyArray_DATA(ar);
-          for (int i = 0; i < s; i++) buf[i] = ptr[i];
+          for (E_Int i = 0; i < s; i++) buf[i] = ptr[i];
           setArrayR4(node, buf, dim, dims);
           delete [] buf;
         }
@@ -951,6 +952,10 @@ hid_t K_IO::GenIOHdf::writeNodePartial(hid_t     node,
           setArrayPartial(node, (void*)PyArray_DATA(ar), dim, dims,
                           _NATIVE_DOUBLE, (char*)L3T_R8);
         }
+#else
+        setArrayPartial(node, (void*)PyArray_DATA(ar), dim, dims,
+                        _NATIVE_DOUBLE, (char*)L3T_R8);
+#endif
       }
       else if (typeNum == NPY_INT)
       {

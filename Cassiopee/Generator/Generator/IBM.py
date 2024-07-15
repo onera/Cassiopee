@@ -7,19 +7,18 @@ import Converter.PyTree as C
 import Transform.PyTree as T
 import Converter.Internal as Internal
 import Connector.IBM as X_IBM
-import Geom.IBM as D_IBM
 import Geom.PyTree as D
 import Post.PyTree as P
 import Converter
-import Transform
 import Converter.GhostCells as CGC
 import Connector.PyTree as X
 import Converter.Mpi as Cmpi
+import Converter.Filter as Filter
 import numpy
 
 EPSCART = 1.e-6
 
-def generateCartMesh__(o, parento=None, dimPb=3, vmin=11, DEPTH=2, sizeMax=4000000, check=True,
+def generateCartMesh__(o, parento=None, dimPb=3, vmin=11, DEPTH=2, sizeMax=4000000, check=False,
                        externalBCType='BCFarfield', bbox=None):
 
     # Estimation du nb de pts engendres
@@ -47,7 +46,7 @@ def generateCartMesh__(o, parento=None, dimPb=3, vmin=11, DEPTH=2, sizeMax=40000
 
     if bbox is None: bbox = G.bbox(o)
     del o
-    X_IBM._addExternalBCs(t, bbox, DEPTH, externalBCType, dimPb)
+    _addExternalBCs(t, bbox, DEPTH, externalBCType, dimPb)
 
     nptsTot = 0
     for zp in Internal.getZones(t):
@@ -60,7 +59,7 @@ def generateCartMesh__(o, parento=None, dimPb=3, vmin=11, DEPTH=2, sizeMax=40000
 
 def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, sizeMax=4000000,
                  variables=None, refineFinestLevel=False, refineNearBodies=False,
-                 check=True, externalBCType='BCFarfield', fileo='octree.cgns',
+                 check=False, externalBCType='BCFarfield', fileo='octree.cgns',
                  isAMR=False,valMin=0,valMax=1):
     if fileo is None: raise ValueError("adaptIBMMesh: Octree mesh must be specified by a file.")
     try: to = C.convertFile2PyTree(fileo)
@@ -117,7 +116,7 @@ def adaptIBMMesh(t, tb, vmin, sensor, factor=1.2, DEPTH=2, sizeMax=4000000,
 
 
 def generateIBMMesh(tb, vmin=15, snears=None, dfar=10., dfarList=[], DEPTH=2, tbox=None,
-                    snearsf=None, check=True, sizeMax=4000000,
+                    snearsf=None, check=False, sizeMax=4000000,
                     externalBCType='BCFarfield', to=None,
                     fileo=None, expand=2, dfarDir=0, mode=0):
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
@@ -362,8 +361,10 @@ def _addBCsForSymmetry(t, bbox=None, dimPb=3, dir_sym=0, X_SYM=0., depth=2):
 
 
 def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[], tbox=None,
-                        snearsf=None, check=True, to=None, ext=2,
-                        expand=3, dfarDir=0, check_snear=False, mode=0):    
+                        snearsf=None, check=False, to=None, ext=2,
+                        expand=3, dfarDir=0, check_snear=False, mode=0,
+                        tbOneOver=None, listF1save=[], fileoutpre=['./','template.cgns']):
+    import KCore.test as test
     # list of dfars
     if dfarList == []:
         zones = Internal.getZones(tb)
@@ -385,7 +386,9 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
                 else: snearsf.append(1.)
                 
     fileout = None
-    if check: fileout = 'octree.cgns'
+    if check:
+        fileoutpre[-1]='octree.cgns'
+        fileout = '/'.join(fileoutpre)
     # Octree identical on all procs
     if to is not None:
         if isinstance(to, str):
@@ -396,9 +399,9 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
         parento = None
     else:
         o = buildOctree(tb, snears=snears, snearFactor=1., dfar=dfar, dfarList=dfarList,
-                                to=to, tbox=tbox, snearsf=snearsf,
-                                dimPb=dimPb, vmin=vmin, fileout=None, rank=Cmpi.rank,
-                                expand=expand, dfarDir=dfarDir, mode=mode)
+                        to=to, tbox=tbox, snearsf=snearsf,
+                        dimPb=dimPb, vmin=vmin, fileout=None, rank=Cmpi.rank,
+                        expand=expand, dfarDir=dfarDir, mode=mode)
 
     if Cmpi.rank==0 and check: C.convertPyTree2File(o,fileout)
     # build parent octree 3 levels higher
@@ -455,7 +458,7 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
     del o
 
     # fill vmin + merge in parallel
-    res = octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000)
+    res = octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000, tbOneOver=tbOneOver)
     del p
     if parento is not None:
         for po in parento: del po
@@ -466,12 +469,49 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
 
     C._addState(t, 'EquationDimension', dimPb)
 
+    # Keep F1 regions - for F1 & F42 synergy
+    if tbOneOver:
+        tbF1            = Internal.getNodesFromNameAndType(tbOneOver, '*KeepF1*', 'CGNSBase_t')
+        tbbBTmp         = G.BB(tbF1)
+        interDict_scale = X.getIntersectingDomains(tbbBTmp, t)
+        for kk in interDict_scale:
+            for kkk in interDict_scale[kk]: listF1save.append(kkk)
+
     # Add xzones for ext
     tbb = Cmpi.createBBoxTree(t)
     interDict = X.getIntersectingDomains(tbb)
     graph = Cmpi.computeGraph(tbb, type='bbox', intersectionsDict=interDict, reduction=False)
     del tbb
     Cmpi._addXZones(t, graph, variables=[], cartesian=True)
+
+    # Turn Cartesian grid into a rectilinear grid
+    test.printMem(">>> cart grids --> rectilinear grids [start]")        
+    listDone = []
+    if tbOneOver:
+        tbb = G.BB(t)
+        if dimPb==2:
+            T._addkplane(tbb)
+            T._contract(tbb, (0,0,0), (1,0,0), (0,1,0), 0.01)
+
+        ## RECTILINEAR REGION
+        ## Select regions that need to be coarsened
+        tbbB            = G.BB(tbOneOver)                
+        interDict_scale = X.getIntersectingDomains(tbbB, tbb)
+        ## Avoid a zone to be coarsened twice
+        for i in interDict_scale:
+            (b,btmp) = Internal.getParentOfNode(tbOneOver,Internal.getNodeByName(tbOneOver,i))
+            checkOneOver = Internal.getNodeByName(b,".Solver#define") ##Needed for F1 & F42 approach
+            if checkOneOver:
+                b        = Internal.getNodeByName(b,".Solver#define")
+                oneoverX = int(Internal.getNodeByName(b, 'dirx')[1])
+                oneoverY = int(Internal.getNodeByName(b, 'diry')[1])
+                oneoverZ = int(Internal.getNodeByName(b, 'dirz')[1])
+                for z in interDict_scale[i]:
+                    if z not in listDone:
+                        zLocal = Internal.getNodeFromName(t,z)
+                        T._oneovern(zLocal, (oneoverX,oneoverY,oneoverZ));
+                        listDone.append(z)
+    test.printMem(">>> cart grids --> rectilinear grids [end]")     
 
     zones = Internal.getZones(t)
     coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
@@ -484,7 +524,7 @@ def generateIBMMeshPara(tb, vmin=15, snears=None, dimPb=3, dfar=10., dfarList=[]
     Cmpi._rmXZones(t)
     coords = None; zones = None
     
-    if symmetry==0:
+    if symmetry == 0:
         _addBCOverlaps(t, bbox=bb)
         _addExternalBCs(t, bbox=bb, dimPb=dimPb)
     else:
@@ -693,6 +733,7 @@ def buildOctree(tb, snears=None, snearFactor=1., dfar=10., dfarList=[], to=None,
 
 
 def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
+    tbSolid = Internal.rmNodesByName(tb, 'IBCFil*')
     boxes = []
     for b in Internal.getBases(tbox):
         boxes.append(Internal.getNodesFromType1(b, 'Zone_t'))
@@ -713,7 +754,7 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
                         snearl = Internal.getValue(snearl)
                         snearsf.append(snearl*(vmin-1))
 
- 
+
     to = C.newPyTree(['Base', o])
     end = 0
     G._getVolumeMap(to)
@@ -723,7 +764,7 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
     while end == 0:
         # Do not refine inside obstacles
         C._initVars(to, 'centers:cellN', 1.)
-        to = X_IBM.blankByIBCBodies(to, tb, 'centers', dim)
+        to = X_IBM.blankByIBCBodies(to, tbSolid, 'centers', dim)
         C._initVars(to, '{centers:cellNBody}={centers:cellN}')
         nob = 0
         C._initVars(to, 'centers:indicator', 0.)
@@ -732,7 +773,6 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
             C._initVars(to,'centers:cellN',1.)
             tboxl = C.newPyTree(['BOXLOC']); tboxl[2][1][2] = box
             to = X_IBM.blankByIBCBodies(to, tboxl, 'centers', dim)
-
             fact = 1.1
             while C.getMinValue(to, 'centers:cellN') == 1 and fact < 10.:
                 print("Info: addRefinementZones: tbox too small - increase tbox by fact = %2.1f"%(fact))
@@ -743,10 +783,11 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
 
             C._initVars(to,'{centers:indicator}=({centers:indicator}>0.)+({centers:indicator}<1.)*logical_and({centers:cellN}<0.001, {centers:vol}>%g)'%volmin2)
             nob += 1
-
+            
+            
         end = 1
         C._initVars(to,'{centers:indicator}={centers:indicator}*({centers:cellNBody}>0.)*({centers:vol}>%g)'%volmin0)
-
+        
         if  C.getMaxValue(to, 'centers:indicator') == 1.:
             end = 0
             # Maintien du niveau de raffinement le plus fin
@@ -758,7 +799,7 @@ def addRefinementZones(o, tb, tbox, snearsf, vmin, dim):
     return Internal.getNodeFromType2(to, 'Zone_t')
 
 # only in generateIBMMeshPara and generateCartMesh__
-def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6,tbOneOver=None):
+def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6, tbOneOver=None):
     sizeMax=int(sizeMax)
     dim = Internal.getZoneDim(o)
     if dim[3] == 'QUAD': dimPb = 2
@@ -791,9 +832,10 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
 
     if parento is None:
         ## Rectilinear mesh modifications
+        ZONEStbOneOver    = None
+        ZONEStbOneOverTmp = None
         if tbOneOver:
             listSavetbOneOverZones = []
-            ZONEStbOneOver         = None
 
             ##Add zones to list of TbOneOver list &
             ##Remove zone from orig list of zones
@@ -814,8 +856,8 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
             zones = T.mergeCart(zones,sizeMax=sizeMax)
     else:
         ## Rectilinear mesh modifications
-        ZONEStbOneOver = None
-        
+        ZONEStbOneOver    = None
+        ZONEStbOneOverTmp = None
         eps = 1.e-10
         bbo = G.bbox(parento[0])# 1st octant lower left side
         xmeano=bbo[3]; ymeano=bbo[4]; zmeano=bbo[5]
@@ -915,7 +957,7 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
                 for i in range(NBases):
                     ZONEStbOneOverTmp[i] = T.mergeCart(ZONEStbOneOverTmp[i][0]+ZONEStbOneOverTmp[i][1]+ZONEStbOneOverTmp[i][2]+ \
                                                        ZONEStbOneOverTmp[i][3]+ZONEStbOneOverTmp[i][4]+ZONEStbOneOverTmp[i][5]+ \
-                                                       ZONEStbOneOverTmp[i][6]+ZONEStbOneOverTmp[i][7],sizeMax=sizeMax)
+                                                       ZONEStbOneOverTmp[i][6]+ZONEStbOneOverTmp[i][7], sizeMax=sizeMax)
                     zones +=ZONEStbOneOverTmp[i]
             del ZONEStbOneOver
             del ZONEStbOneOverTmp
@@ -931,7 +973,7 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
             if ZONEStbOneOver is not None:
                 for i in range(NBases):
                     ZONEStbOneOverTmp[i] = T.mergeCart(ZONEStbOneOverTmp[i][0]+ZONEStbOneOverTmp[i][1]+ \
-                                                       ZONEStbOneOverTmp[i][2]+ZONEStbOneOverTmp[i][3],sizeMax=sizeMax)
+                                                       ZONEStbOneOverTmp[i][2]+ZONEStbOneOverTmp[i][3], sizeMax=sizeMax)
                     zones +=ZONEStbOneOverTmp[i]
             del ZONEStbOneOver
             del ZONEStbOneOverTmp
@@ -957,7 +999,7 @@ def octree2StructLoc__(o, parento=None, vmin=21, ext=0, optimized=0, sizeMax=4e6
         return zones
     else:
         bbox0 = G.bbox(o)
-        X_IBM._addBCOverlaps(zones, bbox0)
+        _addBCOverlaps(zones, bbox0)
     return zones
 
 # only in octree2StructLoc__
@@ -1049,4 +1091,46 @@ def buildParentOctrees__(o, tb, snears=None, snearFactor=4., dfar=10., dfarList=
                     OCTREEPARENTS.append(parento2)
     return OCTREEPARENTS
 
+
+
+def _projectMeshSize(t, NPas=10, span=1, dictNz=None, isCartesianExtrude=False):
+    """Predicts the final size of the mesh when extruding 2D to 3D in the z-direction.
+    Usage: loads(t, NPas, span, dictNz, isCartesianExtrude)"""
+    NP             = Cmpi.size
+    rank           = Cmpi.rank
+    NPTS           = numpy.zeros(NP)
+    NCELLS         = numpy.zeros(NP)
+    NPTS_noghost   = numpy.zeros(NP)
+    NCELLS_noghost = numpy.zeros(NP)    
+    if isinstance(t, str):
+        h = Filter.Handle(t)
+        t = h.loadFromProc(loadVariables=False)
+        h._loadVariables(t, var=['CoordinateX'])
+
+    
+    for z in Internal.getZones(t):
+        name_zone = z[0]
+        if not isCartesianExtrude:
+            if dictNz is not None: Nk = int(dictNz[name_zone])
+            else: Nk = NPas-1
+        else:
+            h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
+            NPas_local = int(round(span/h)/4)
+            if NPas_local < 2:
+                print("WARNING:: MPI rank %d || Zone %s has Nz=%d and is being clipped to Nz=2"%(rank,z[0],NPas_local))
+                NPas_local = 2
+            Nk = NPas_local
+        Nk += 1
+        NPTS[rank]           += C.getNPts(z)/2*(Nk+4)
+        NCELLS[rank]         += C.getNCells(z)*(Nk+3)
+        NPTS_noghost[rank]   += C.getNPts(C.rmGhostCells(z, z, 2))*Nk
+        NCELLS_noghost[rank] += C.getNCells(C.rmGhostCells(z, z, 2))*(Nk-1)
+    NPTS             = Cmpi.allreduce(NPTS  ,op=Cmpi.SUM)
+    NCELLS           = Cmpi.allreduce(NCELLS,op=Cmpi.SUM)
+    NPTS_noghost     = Cmpi.allreduce(NPTS_noghost  ,op=Cmpi.SUM)
+    NCELLS_noghost   = Cmpi.allreduce(NCELLS_noghost,op=Cmpi.SUM)   
+    if rank ==0:
+        print('Projected mesh size with ghost: {} million points & {} million cells'.format(numpy.sum(NPTS)/1.e6,numpy.sum(NCELLS)/1.e6))
+        print('Projected mesh size without ghost: {} million points & {} million cells'.format(numpy.sum(NPTS_noghost)/1.e6,numpy.sum(NCELLS_noghost)/1.e6))
+    return None
 

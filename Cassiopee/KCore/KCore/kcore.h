@@ -58,8 +58,6 @@ namespace K_KCORE
   PyObject* empty(PyObject* self, PyObject* args);
   PyObject* tester(PyObject* self, PyObject* args);
   PyObject* testerAcc(PyObject* self, PyObject* args);
-  PyObject* activation(PyObject* self, PyObject* args);
-  int activation(const char* name=NULL);
   void memcpy__(E_Int* a, E_Int* b, E_Int s);
   void memcpy__(E_Float* a, E_Float* b, E_Int s);
 } 

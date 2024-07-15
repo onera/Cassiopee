@@ -32,7 +32,8 @@ void writePPMFile(Data* d, char *filename, char* buffer,
   FILE *fp;
   int pixelSize = GL_RGB==GL_RGBA?4:3;
   
-  if ( (fp = fopen(filename, "wb")) == NULL ) 
+  fp = d->fopenw(filename, "wb");
+  if ( fp == NULL ) 
   {
     printf("Warning: cannot open %s.\n", filename);
     return;

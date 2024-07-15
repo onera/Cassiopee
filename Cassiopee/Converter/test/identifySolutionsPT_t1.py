@@ -23,6 +23,6 @@ a2 = C.identifySolutions(a1,m,hookN,hookC,tol=1000.)
 test.testT([a2],2)
 
 # NGON
-a1 = C.convertArray2NGon(a); a1 = G.close(a1, 1.e-12)
+a1 = C.convertArray2NGon(a)
 a2 = C.identifySolutions(a1,m,hookN,hookC,tol=1000.)
 test.testT([a2],3)

@@ -1,16 +1,17 @@
 # - convertPyTree2File (pyTree) -
+# - formated tecplot -
 import Converter.PyTree as C
 import Generator.PyTree as G
 import KCore.test as test
 
 LOCAL = test.getLocal()
 
-# Struct - OK
+# Struct
 z = G.cart((0,0,0), (1,1,1), (10,10,10))
 C.convertPyTree2File(z, LOCAL+'/out1.tp')
 test.testF(LOCAL+'/out1.tp', 1)
 
-# BE - OK
+# BE
 z = G.cartHexa((0,0,0), (1,1,1), (10,10,10))
 C.convertPyTree2File(z, LOCAL+'/out2.tp')
 test.testF(LOCAL+'/out2.tp', 2)

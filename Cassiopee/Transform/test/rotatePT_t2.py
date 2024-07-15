@@ -24,12 +24,12 @@ C.setFields([vy], a, loc='centers')
 a = C.center2Node(a, 'centers:VelocityX')
 # Rotate with axis+angle
 b = T.rotate(a, (0.,0.,0.), (0.,0.,1.), 90., vectors=vectnames)
-test.testT(b,1)
+test.testT(b, 1)
 # Rotate with axis transformations
 c = T.rotate(a, (0.,0.,0.), ((1.,0.,0.),(0,1,0),(0,0,1)),
              ((1,1,0), (1,-1,0), (0,0,1)), vectors=vectnames)
-test.testT(c,2)
+test.testT(c, 2)
 
 # Rotate with three angles
 d = T.rotate(a, (0.,0.,0.), (0.,0.,90.), vectors=vectnames)
-test.testT(d,3)
+test.testT(d, 3)
