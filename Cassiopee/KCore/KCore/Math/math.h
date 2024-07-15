@@ -19,6 +19,7 @@
 #ifndef _KCORE_MATH_H
 #define _KCORE_MATH_H
 
+#include <cmath>
 #include "Def/DefTypes.h"
 
 namespace K_MATH
@@ -29,14 +30,35 @@ namespace K_MATH
 
   extern const E_Float SMALL;
 
-  E_Float dot(const E_Float *, const E_Float *, const E_Int);
+  inline
+  E_Float dot(const E_Float *a, const E_Float *b, const E_Int n)
+  {
+    E_Float res = 0.0;
+    for (E_Int i = 0; i < n; i++)
+      res += a[i]*b[i];
+    return res;
+  }
   
-  void cross(const E_Float [3], const E_Float [3], E_Float [3]);
-  
-  E_Float norm(const E_Float *, const E_Int);
-  
-  E_Int feq(const E_Float, const E_Float, const E_Float tol = SMALL);
-  
+  inline
+  void cross(const E_Float a[3], const E_Float b[3], E_Float c[3])
+  {
+    c[0] = a[1]*b[2] - a[2]*b[1];
+    c[1] = a[2]*b[0] - a[0]*b[2];
+    c[2] = a[0]*b[1] - a[1]*b[0];
+  }
+
+  inline
+  E_Float norm(const E_Float *a, const E_Int n)
+  {
+    return sqrt(K_MATH::dot(a, a, n));
+  }
+
+  inline
+  E_Int feq(const E_Float a, const E_Float b, const E_Float tol = 1e-12)
+  {
+    return fabs(a-b) < tol;
+  }
+
   void sqrmat_dot_vec(const E_Float *, const E_Float *, const E_Int,
     E_Float *);
     

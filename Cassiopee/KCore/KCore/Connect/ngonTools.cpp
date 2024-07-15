@@ -645,8 +645,9 @@ void build_cell_neighbourhood(K_FLD::FldArrayI &cn, std::vector<E_Int>& neighbou
   }
 }
 
-// Assumes external faces have been properly oriented outwards
+// Assumes that the external faces follow the same orientation (all outwards/inwards)
 // Arrays owner and neigh should be allocated by caller
+// Returns zero-based parent elements
 E_Int K_CONNECT::build_parent_elements_ngon(K_FLD::FldArrayI &cn, E_Int *owner,
   E_Int *neigh)
 {
@@ -743,6 +744,12 @@ E_Int K_CONNECT::build_parent_elements_ngon(K_FLD::FldArrayI &cn, E_Int *owner,
           break;
         }
       }
+
+      if (iref == -1) {
+        break;
+        return 1;
+      }
+
       assert(iref != -1);
 
       // set orientation of face if prescribed
