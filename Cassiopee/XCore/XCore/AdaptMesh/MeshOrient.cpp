@@ -87,7 +87,7 @@ void build_faces_neighbourhood(const std::vector<Int> &xadj,
 
     std::map<UEdge, std::pair<IntPair, IntPair>> EM;
 
-    Int nf = (Int)xadj.size() - 1;
+    size_t nf = xadj.size() - 1;
 
     for (size_t i = 0; i < nf; i++) {
         Int start = xadj[i];

@@ -131,7 +131,7 @@ size_t IMesh::refine(std::set<E_Int> &mpatch, std::set<E_Int> &spatch,
         }
     }
 
-    printf("Faces to refine: %lu\n", ref_mfaces_to_sfaces.size());
+    printf("Faces to refine: %zu\n", ref_mfaces_to_sfaces.size());
 
     E_Int iter = 0;
     size_t ret = 0;

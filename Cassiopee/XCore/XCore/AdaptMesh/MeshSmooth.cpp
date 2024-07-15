@@ -61,6 +61,7 @@ Int Mesh_smooth_cref_local(Mesh *M)
             stk.push(cell_to_mod);
         }
     }
+    return 0;
 }
 
 Int Mesh_smooth_cref(Mesh *M)

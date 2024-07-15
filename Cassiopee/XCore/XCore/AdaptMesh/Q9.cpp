@@ -56,7 +56,7 @@ void Q9_refine(Int quad, Mesh *M)
         fc[2] += M->Z[NODES[i]];
     }
 
-    for (Int i = 0; i < 4; i++) fc[i] *= 0.25;
+    for (Int i = 0; i < 3; i++) fc[i] *= 0.25;
 
     M->X[M->np] = fc[0];
     M->Y[M->np] = fc[1];

@@ -70,7 +70,7 @@ size_t Smesh::refine(Smesh &M)
         }
     }
     
-    printf("Faces to refine: %lu\n", ref_faces_to_Mfaces.size());
+    printf("Faces to refine: %zu\n", ref_faces_to_Mfaces.size());
 
     filtered_faces.clear();
 

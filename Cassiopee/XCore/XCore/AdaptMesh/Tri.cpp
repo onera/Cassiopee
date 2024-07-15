@@ -7,4 +7,4 @@ void reorder_tri(Int tri, Mesh *M)
 {}
 
 Int check_canon_tri(Int tri, Mesh *M)
-{}
+{ return 1;}

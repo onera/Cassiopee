@@ -73,10 +73,10 @@ Mesh *Mesh_from_Karray(Karray *karray)
     Float *Z = karray->Z();
 
     Int nf = karray->nfaces();
-    Int *indpg = karray->indpg();
+    //Int *indpg = karray->indpg();
     
     Int nc = karray->ncells();
-    Int *indph = karray->indph();
+    //Int *indph = karray->indph();
 
     Mesh *M = new Mesh;
 

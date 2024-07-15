@@ -41,7 +41,7 @@ IMesh reconstruct_mesh(IMesh &M, const Dcel &D, E_Int color)
             new_pids[i] = np++;
     }
 
-    E_Int nop = np;
+    //E_Int nop = np;
 
     for (E_Int p : ppset) new_ppids[p] = np++;
 
