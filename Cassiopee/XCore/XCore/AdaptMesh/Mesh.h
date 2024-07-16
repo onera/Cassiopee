@@ -326,7 +326,7 @@ void Mesh_free(Mesh *M);
 
 Mesh *Mesh_from_Karray(Karray *karray);
 
-PyObject *Mesh_export_karray(Mesh *M);
+PyObject *Mesh_export_karray(Mesh *M, int conformize);
 
 
 /* Parallel */

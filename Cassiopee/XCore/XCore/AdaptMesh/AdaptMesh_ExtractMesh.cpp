@@ -21,8 +21,9 @@
 PyObject *K_XCORE::AdaptMesh_ExtractMesh(PyObject *self, PyObject *args)
 {
     PyObject *MESH;
+    int conformize;
 
-    if (!PYPARSETUPLE_(args, O_, &MESH)) {
+    if (!PYPARSETUPLE_(args, O_ I_, &MESH, &conformize)) {
         RAISE("Wrong input.");
         return NULL;
     }
@@ -36,7 +37,7 @@ PyObject *K_XCORE::AdaptMesh_ExtractMesh(PyObject *self, PyObject *args)
 
     if (M->pid == 0) puts("Extracting mesh...");
 
-    PyObject *karray = Mesh_export_karray(M);
+    PyObject *karray = Mesh_export_karray(M, conformize);
 
     return karray;
 }

@@ -215,6 +215,9 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
         return NULL;
     }
 
+    // Reorder cells, useful?
+
+
     M->fparent = IntArray(M->nf);
     for (Int i = 0; i < M->nf; i++) M->fparent[i] = i;
 
