@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Karray.h"
-#include "../common/common.h"
+#include "common/common.h"
 
 void Karray_free_ngon(Karray &karray)
 {

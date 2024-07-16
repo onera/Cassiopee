@@ -18,7 +18,7 @@
 */
 #pragma once
 
-#include "../common/common.h" 
+#include "common/common.h" 
 
 struct Mesh;
 
@@ -35,4 +35,4 @@ struct DEdge {
     }
 };
 
-void refine_edge(Int eid, Mesh *M);
+int refine_edge(Int eid, Mesh *M);

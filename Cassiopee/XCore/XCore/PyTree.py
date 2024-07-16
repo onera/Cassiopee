@@ -15,11 +15,15 @@ def AdaptMesh_Init(t, normal2D=None, comm=[], gcells=None, gfaces=None):
     zonebc = I.getNodeFromType(z, 'ZoneBC_t')
     if zonebc is not None:
         zbc = I.getNodesFromType(zonebc, 'BC_t')
-  
+
+    bc_count = 0
+
     for bc in zbc:
         plist = I.getNodeFromName(bc, 'PointList')
         name = bc[0]
-        tag = I.getNodeFromName(bc, 'Tag')[1][0]
+        #tag = I.getNodeFromName(bc, 'Tag')[1][0]
+        try: tag = I.getNodeFromName(bc, 'Tag')[1][0]
+        except: tag = bc_count; bc_count += 1
         bctype = I.getValue(bc)
         bcs.append([plist[1], tag, name, bctype])
 

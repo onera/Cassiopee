@@ -3,9 +3,9 @@
 #include "common/common.h"
 #include "Mesh.h"
 
-void Q9_refine(Int quad, Mesh *M);
+int Q9_refine(Int quad, Mesh *M);
 
-void Q6_refine(Int quad, Mesh *M);
+int Q6_refine(Int quad, Mesh *M);
 
 void Q4_reorder(Int *pn, Int reorient, Int i0, Int local[4]);
 

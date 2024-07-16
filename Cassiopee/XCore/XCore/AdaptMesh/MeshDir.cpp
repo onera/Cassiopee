@@ -57,10 +57,10 @@ static inline
 Int get_face_pattern(Int fid, Mesh *M)
 {
     Int own = M->owner[fid];
-    Int cref = M->cref[own];
     Int fpos = -1;
     Int *cell = Mesh_get_cell(M, own);
     Int *crange = Mesh_get_crange(M, own);
+
     for (Int j = 0; j < M->cstride[own] && fpos == -1; j++) {
         Int *pf = cell + 4*j;
         for (Int k = 0; k < crange[j]; k++) {

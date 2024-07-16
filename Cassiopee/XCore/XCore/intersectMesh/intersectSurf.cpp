@@ -18,7 +18,7 @@
 */
 #include "xcore.h"
 #include "karray.h"
-#include "../common/common.h"
+#include "common/common.h"
 #include "mesh.h"
 #include "smesh.h"
 #include "dcel.h"

@@ -252,11 +252,12 @@ IMesh::IMesh(const char *fname)
     Y.resize(np);
     Z.resize(np);
 
-    E_Int ret;
+    int ret;
 
     for (E_Int i = 0; i < np; i++) {
         ret = fscanf(fh, "%lf %lf %lf\n", &X[i], &Y[i], &Z[i]);
-        assert(ret == 3);
+        if (ret != 3) abort();
+        //assert(ret == 3);
     }
 
     // FACES
@@ -274,14 +275,15 @@ IMesh::IMesh(const char *fname)
     for (E_Int i = 0; i < nf; i++) {
         E_Int stride;
         ret = fscanf(fh, SF_D_ " ", &stride);
-        assert(ret == 1);
+        if (ret != 1) abort();
         auto &cn = F[i];
         cn.resize(stride);
         for (E_Int j = 0; j < stride-1; j++) {
-            ret = fscanf(fh, "%d ", &cn[j]);
-            assert(ret == 1);
+            ret = fscanf(fh, SF_D_ " ", &cn[j]);
+            if (ret != 1) abort();
         }
-        ret = fscanf(fh, "%d\n", &cn[stride-1]);
+        ret = fscanf(fh, SF_D_ "\n", &cn[stride-1]);
+        if (ret != 1) abort();
     }
 
     // CELLS
@@ -292,21 +294,22 @@ IMesh::IMesh(const char *fname)
     bad_ptr = NULL;
     nc = strtod(next, &bad_ptr);
     assert(*bad_ptr == '\0');
-    printf("Cells: %d\n", nc);
+    printf("Cells: " SF_D_ "\n", nc);
 
     C.resize(nc);
 
     for (E_Int i = 0; i < nc; i++) {
         E_Int stride;
-        ret = fscanf(fh, "%d ", &stride);
-        assert(ret == 1);
+        ret = fscanf(fh, SF_D_ " ", &stride);
+        if (ret != 1) abort();
         auto &cn = C[i];
         cn.resize(stride);
         for (E_Int j = 0; j < stride-1; j++) {
-            ret = fscanf(fh, "%d ", &cn[j]);
-            assert(ret == 1);
+            ret = fscanf(fh, SF_D_ " ", &cn[j]);
+            if (ret != 1) abort();
         }
-        ret = fscanf(fh, "%d\n", &cn[stride-1]);
+        ret = fscanf(fh, SF_D_ "\n", &cn[stride-1]);
+        if (ret != 1) abort();
     }
 
     fclose(fh);
@@ -412,16 +415,6 @@ void IMesh::hash_skin()
             }
         }
     }
-
-    /*
-    for (auto &bdata : bin_faces) {
-        printf("%d -> ", bdata.first);
-        for (E_Int face : bdata.second)
-            printf("%d ", face);
-        puts("");
-    }
-    */
-
 }
 
 bool IMesh::is_point_inside(E_Float px, E_Float py, E_Float pz)
@@ -480,44 +473,44 @@ void IMesh::write_ngon(const char *fname)
     assert(fh);
 
     fprintf(fh, "POINTS\n");
-    fprintf(fh, "%d\n", np);
+    fprintf(fh, SF_D_ "\n", np);
     for (E_Int i = 0; i < np; i++) {
         fprintf(fh, "%f %f %f\n", X[i], Y[i], Z[i]);
     }
 
     fprintf(fh, "INDPG\n");
-    fprintf(fh, "%d\n", nf+1);
+    fprintf(fh, SF_D_ "\n", nf+1);
     E_Int sizeNGon = 0;
-    fprintf(fh, "%d ", sizeNGon);
+    fprintf(fh, SF_D_ " ", sizeNGon);
     for (E_Int i = 0; i < nf; i++) {
         sizeNGon += F[i].size();
-        fprintf(fh, "%d ", sizeNGon);
+        fprintf(fh, SF_D_ " ", sizeNGon);
     }
     fprintf(fh, "\n");
 
     fprintf(fh, "NGON\n");
-    fprintf(fh, "%d\n", sizeNGon);
+    fprintf(fh, SF_D_ "\n", sizeNGon);
     for (E_Int i = 0; i < nf; i++) {
         for (E_Int p : F[i])
-            fprintf(fh, "%d ", p);
+            fprintf(fh, SF_D_ " ", p);
     }
     fprintf(fh, "\n");
 
     fprintf(fh, "INDPH\n");
-    fprintf(fh, "%d\n", nc+1);
+    fprintf(fh, SF_D_ "\n", nc+1);
     E_Int sizeNFace = 0;
-    fprintf(fh, "%d ", sizeNFace);
+    fprintf(fh, SF_D_ " ", sizeNFace);
     for (E_Int i = 0; i < nc; i++) {
         sizeNFace += C[i].size();
-        fprintf(fh, "%d ", sizeNFace);
+        fprintf(fh, SF_D_ " ", sizeNFace);
     }
     fprintf(fh, "\n");
 
     fprintf(fh, "NFace\n");
-    fprintf(fh, "%d\n", sizeNFace);
+    fprintf(fh, SF_D_ "\n", sizeNFace);
     for (E_Int i = 0; i < nc; i++) {
         for (E_Int p : C[i])
-            fprintf(fh, "%d ", p);
+            fprintf(fh, SF_D_ " ", p);
     }
     fprintf(fh, "\n");
 

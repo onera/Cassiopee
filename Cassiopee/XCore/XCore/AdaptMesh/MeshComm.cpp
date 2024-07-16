@@ -233,40 +233,52 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     Int count_size = M->npc;
 
-    Int *counts = IntArray(13 * count_size);
+    int *counts = (int *)XCALLOC(19 * count_size, sizeof(int));
 
-    Int *cscount = counts;
-    Int *crcount = counts + 1  * count_size;
-    Int *scount  = counts + 2  * count_size;
-    Int *rcount  = counts + 3  * count_size;
-    Int *sfcount = counts + 4  * count_size;
-    Int *rfcount = counts + 5  * count_size;
-    Int *spcount = counts + 6  * count_size;
-    Int *rpcount = counts + 7  * count_size;
-    Int *sicount = counts + 8  * count_size;
-    Int *ricount = counts + 9  * count_size;
-    Int *sbcount = counts + 10 * count_size;
-    Int *rbcount = counts + 11 * count_size;
-    Int *idx     = counts + 12 * count_size;
+    int *cscount = counts;
+    int *crcount = counts + 1  * count_size;
+    int *scount  = counts + 2  * count_size;
+    int *rcount  = counts + 3  * count_size;
+    int *sfcount = counts + 4  * count_size;
+    int *rfcount = counts + 5  * count_size;
+    int *spcount = counts + 6  * count_size;
+    int *rpcount = counts + 7  * count_size;
+    int *sicount = counts + 8  * count_size;
+    int *ricount = counts + 9  * count_size;
+    int *sbcount = counts + 10 * count_size;
+    int *rbcount = counts + 11 * count_size;
+    int *idx     = counts + 12 * count_size;
+    int *stagcount  = counts + 13 * count_size;
+    int *rtagcount  = counts + 14 * count_size;
+    int *snamecount = counts + 15 * count_size;
+    int *rnamecount = counts + 16 * count_size;
+    int *stypecount = counts + 17 * count_size;
+    int *rtypecount = counts + 18 * count_size;
 
     // Allocate contiguous dists array
 
     Int dist_size = M->npc + 1;
 
-    Int *dists = IntArray(12 * dist_size);
+    int *dists = (int *)XCALLOC(18 * dist_size, sizeof(int));
 
-    Int *csdist = dists;
-    Int *crdist = dists + 1  * dist_size;
-    Int *sdist  = dists + 2  * dist_size;
-    Int *rdist  = dists + 3  * dist_size;
-    Int *sfdist = dists + 4  * dist_size;
-    Int *rfdist = dists + 5  * dist_size;
-    Int *spdist = dists + 6  * dist_size;
-    Int *rpdist = dists + 7  * dist_size;
-    Int *sidist = dists + 8  * dist_size;
-    Int *sbdist = dists + 9  * dist_size;
-    Int *ridist = dists + 10 * dist_size;
-    Int *rbdist = dists + 11 * dist_size;
+    int *csdist = dists;
+    int *crdist = dists + 1  * dist_size;
+    int *sdist  = dists + 2  * dist_size;
+    int *rdist  = dists + 3  * dist_size;
+    int *sfdist = dists + 4  * dist_size;
+    int *rfdist = dists + 5  * dist_size;
+    int *spdist = dists + 6  * dist_size;
+    int *rpdist = dists + 7  * dist_size;
+    int *sidist = dists + 8  * dist_size;
+    int *sbdist = dists + 9  * dist_size;
+    int *ridist = dists + 10 * dist_size;
+    int *rbdist = dists + 11 * dist_size;
+    int *stagdist  = dists + 12 * dist_size;
+    int *rtagdist  = dists + 13 * dist_size;
+    int *snamedist = dists + 14 * dist_size;
+    int *rnamedist = dists + 15 * dist_size;
+    int *stypedist = dists + 16 * dist_size;
+    int *rtypedist = dists + 17 * dist_size;
 
     // Redistribute cells
 
@@ -274,7 +286,7 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     for (Int i = 0; i < M->nc; i++) cscount[cmap[i]]++;
 
-    MPI_Alltoall(cscount, 1, XMPI_INT, crcount, 1, XMPI_INT, MPI_COMM_WORLD);
+    MPI_Alltoall(cscount, 1, MPI_INT, crcount, 1, MPI_INT, MPI_COMM_WORLD);
 
     for (Int i = 0; i < M->npc; i++) {
         csdist[i+1] = csdist[i] + cscount[i];
@@ -287,7 +299,7 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
     // TODO(Imad): could be made better...
 
     if (nc == 0) {
-        merr("WARNING: Proc %d has 0 cells after mesh redistribution. "
+        merr("WARNING: Proc " SF_D_ " has 0 cells after mesh redistribution. "
              "This case is currently not handled.\n\n", M->pid);
     }
 
@@ -414,7 +426,7 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
         }
     }
 
-    MPI_Alltoall(rfcount, 1, XMPI_INT, sfcount, 1, XMPI_INT, MPI_COMM_WORLD);
+    MPI_Alltoall(rfcount, 1, MPI_INT, sfcount, 1, MPI_INT, MPI_COMM_WORLD);
 
     for (Int i = 0; i < M->npc; i++) {
         sfdist[i+1] = sfdist[i] + sfcount[i];
@@ -547,7 +559,7 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
         }
     }
 
-    MPI_Alltoall(rpcount, 1, XMPI_INT, spcount, 1, XMPI_INT, MPI_COMM_WORLD);
+    MPI_Alltoall(rpcount, 1, MPI_INT, spcount, 1, MPI_INT, MPI_COMM_WORLD);
 
     for (Int i = 0; i < M->npc; i++) {
         spdist[i+1] = spdist[i] + spcount[i];
@@ -678,9 +690,6 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
         }
     }
 
-    //printf("%d -> dups: %lu\n", M->pid, dup_to_unique.size());
-    //printf("%d -> unique np: %d\n", M->pid, unique_np);
-
     if (M->pid == 0) puts("    Building point coordinates...");
 
     Float *X = FloatArray(unique_np);
@@ -744,7 +753,7 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     if (M->pid == 0) puts("Creating comm patches...");
 
-    memset(rcount, 0, M->npc * sizeof(Int));
+    memset(rcount, 0, M->npc * sizeof(int));
 
     for (Int i = 0; i < M->npc; i++) {
         Int *pf = &rfids[rfdist[i]];
@@ -759,7 +768,7 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
         }
     }
 
-    MPI_Alltoall(rcount, 1, XMPI_INT, scount, 1, XMPI_INT, MPI_COMM_WORLD);
+    MPI_Alltoall(rcount, 1, MPI_INT, scount, 1, MPI_INT, MPI_COMM_WORLD);
 
     for (Int i = 0; i < M->npc; i++) {
         rdist[i+1] = rdist[i] + rcount[i];
@@ -790,15 +799,8 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
                   MPI_COMM_WORLD);
 
 
-    memset(spcount, 0, M->npc * sizeof(Int));
-    memset(rpcount, 0, M->npc * sizeof(Int));
-
-    Int *stagcount = IntArray(M->npc);
-    Int *rtagcount = IntArray(M->npc);
-    Int *snamecount = IntArray(M->npc);
-    Int *rnamecount = IntArray(M->npc);
-    Int *stypecount = IntArray(M->npc);
-    Int *rtypecount = IntArray(M->npc);
+    memset(spcount, 0, M->npc * sizeof(int));
+    memset(rpcount, 0, M->npc * sizeof(int));
 
     for (Int i = 0; i < M->npc; i++) {
         Int *pf = &sbinfo[sdist[i]];
@@ -845,20 +847,13 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
         }
     }
 
-    MPI_Alltoall(sicount, 1, XMPI_INT, ricount, 1, XMPI_INT, MPI_COMM_WORLD);
-    MPI_Alltoall(rpcount, 1, XMPI_INT, spcount, 1, XMPI_INT, MPI_COMM_WORLD);
-    MPI_Alltoall(sbcount, 1, XMPI_INT, rbcount, 1, XMPI_INT, MPI_COMM_WORLD);
+    MPI_Alltoall(sicount, 1, MPI_INT, ricount, 1, MPI_INT, MPI_COMM_WORLD);
+    MPI_Alltoall(rpcount, 1, MPI_INT, spcount, 1, MPI_INT, MPI_COMM_WORLD);
+    MPI_Alltoall(sbcount, 1, MPI_INT, rbcount, 1, MPI_INT, MPI_COMM_WORLD);
 
-    MPI_Alltoall(stagcount, 1, XMPI_INT, rtagcount, 1, XMPI_INT, MPI_COMM_WORLD);
-    MPI_Alltoall(snamecount, 1, XMPI_INT, rnamecount, 1, XMPI_INT, MPI_COMM_WORLD);
-    MPI_Alltoall(stypecount, 1, XMPI_INT, rtypecount, 1, XMPI_INT, MPI_COMM_WORLD);
-
-    Int *stagdist = IntArray(M->npc+1);
-    Int *rtagdist = IntArray(M->npc+1);
-    Int *snamedist = IntArray(M->npc+1);
-    Int *rnamedist = IntArray(M->npc+1);
-    Int *stypedist = IntArray(M->npc+1);
-    Int *rtypedist = IntArray(M->npc+1);
+    MPI_Alltoall(stagcount,  1, MPI_INT, rtagcount,  1, MPI_INT, MPI_COMM_WORLD);
+    MPI_Alltoall(snamecount, 1, MPI_INT, rnamecount, 1, MPI_INT, MPI_COMM_WORLD);
+    MPI_Alltoall(stypecount, 1, MPI_INT, rtypecount, 1, MPI_INT, MPI_COMM_WORLD);
 
     for (Int i = 0; i < M->npc; i++) {
         sidist[i+1] = sidist[i] + sicount[i];
@@ -950,11 +945,11 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
             *tptr++ = M->bps[tag].gid;
 
             char *bcname = M->bps[tag].name;
-            for (Int j = 0; j < strlen(bcname); j++) *nptr++ = bcname[j];
+            for (size_t j = 0; j < strlen(bcname); j++) *nptr++ = bcname[j];
             *nptr++ = '\0';
 
             char *bctype = M->bps[tag].type;
-            for (Int j = 0; j < strlen(bctype); j++) *Tptr++ = bctype[j];
+            for (size_t j = 0; j < strlen(bctype); j++) *Tptr++ = bctype[j];
             *Tptr++ = '\0';
         }
     }
@@ -986,14 +981,15 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
                   MPI_COMM_WORLD);
 
     // Warning(Imad): reusing scount, rcount, sdist and rdist
-    memset(scount, 0, M->npc * sizeof(Int));
+    memset(scount, 0, M->npc * sizeof(int));
 
     for (Int i = 0; i < M->npc; i++) {
         Int *pf = &spdata[spdist[i]];
 
         for (Int j = 0; j < spcount[i]; ) {
-            Int gfid = pf[j++];
-            assert(M->g2lf.find(gfid) != M->g2lf.end());
+            //Int gfid = pf[j++];
+            j++; // skip gfid
+            //if (M->g2lf.find(gfid) == M->g2lf.end()) abort();
             Int proc = pf[j++];
 
             // We will be sending cmap[gown], gfid and gown
@@ -1001,7 +997,7 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
         }
     }
 
-    MPI_Alltoall(scount, 1, XMPI_INT, rcount, 1, XMPI_INT, MPI_COMM_WORLD);
+    MPI_Alltoall(scount, 1, MPI_INT, rcount, 1, MPI_INT, MPI_COMM_WORLD);
 
     for (Int i = 0; i < M->npc; i++) {
         sdist[i+1] = sdist[i] + scount[i];
@@ -1052,8 +1048,12 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
         for (Int j = 0; j < ricount[i]; ) {
             Int proc = pf[j++];
-            Int gfid = pf[j++];
-            Int gnei = pf[j++];
+            
+            //Int gfid = pf[j++];
+            j++; // skip gfid
+
+            //Int gnei = pf[j++];
+            j++; // skip gnei
 
             auto it = gproc_to_lproc.find(proc);
 
@@ -1066,9 +1066,9 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
                 lproc_to_size[it->second]++;
             }
 
-            assert(g2lf.find(gfid) != g2lf.end());
+            //assert(g2lf.find(gfid) != g2lf.end());
 
-            assert(g2lc.find(gnei) == g2lc.end());
+            //assert(g2lc.find(gnei) == g2lc.end());
         }
     }
     
@@ -1092,11 +1092,17 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
                 lproc_to_size[it->second]++;
             }
 
-            Int gfid = pf[j++];
-            assert(g2lf.find(gfid) != g2lf.end());
+            // skip gfid;
+            j++;
 
-            Int gnei = pf[j++];
-            assert(g2lc.find(gnei) == g2lc.end());
+            // skip gnei;
+            j++;
+
+            //Int gfid = pf[j++];
+            //assert(g2lf.find(gfid) != g2lf.end());
+
+            //Int gnei = pf[j++];
+            //assert(g2lc.find(gnei) == g2lc.end());
         }
     }
 
@@ -1188,8 +1194,11 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
         for (Int j = 0; j < rbcount[i]; ) {
             Int gid = pf[j++];
-            Int gfid = pf[j++];
-            assert(g2lf.find(gfid) != g2lf.end());
+
+            // skip gfid
+            j++;
+            //Int gfid = pf[j++];
+            //assert(g2lf.find(gfid) != g2lf.end());
 
             auto it = gbc_to_lbc.find(gid);
 
@@ -1228,7 +1237,7 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
             char bcname[1024];
             char c;
             Int k = 0;
-            while (c = *nptr++) {
+            while ((c = *nptr++)) {
                 bcname[k++] = c;
             }
             bcname[k] = '\0';
@@ -1244,7 +1253,7 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
             // bctype
             char bctype[1024];
             k = 0;
-            while (c = *Tptr++) {
+            while ((c = *Tptr++)) {
                 bctype[k++] = c;
             }
             bctype[k] = '\0';
@@ -1462,6 +1471,13 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
     // Clean-up
 
     if (M->pid == 0) puts("Cleaning-up...");
+
+    XFREE(stag);
+    XFREE(rtag);
+    XFREE(sname);
+    XFREE(rname);
+    XFREE(stype);
+    XFREE(rtype);
 
     XFREE(rx);
     XFREE(ry);

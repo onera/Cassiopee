@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Mesh.h"
-#include "../common/mem.h"
+#include "common/mem.h"
 #include "Edge.h"
 
 static inline
@@ -164,13 +164,6 @@ void Mesh_make_edge_connectivity(Mesh *M)
                 Int eid = pe[j];
                 M->E2F[M->xedf[eid] + count[eid]++] = fid;
             }
-        }
-    }
-
-    for (Int i = 0; i < M->ne; i++) {
-        for (Int j = M->xedf[i]; j < M->xedf[i+1]; j++) {
-            Int fid = M->E2F[j];
-            assert(fid != -1);
         }
     }
 }
@@ -521,8 +514,6 @@ void Mesh_update_global_face_ids(Mesh *M)
             Int fstate = M->fref[lfid];
 
             if (fstate != FACE_NEW) {
-                Int gfid = M->l2gf[lfid];
-                assert(gfid == rfid);
                 continue;
             }
 

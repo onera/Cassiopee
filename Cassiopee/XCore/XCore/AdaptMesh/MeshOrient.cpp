@@ -92,7 +92,7 @@ void Mesh_get_faces_connectivity(Mesh *M, const std::vector<Int> &faces,
         xadj[i+1] = xadj[i] + np;
     }
 
-    assert(xadj[faces.size()] == fadj.size());
+    assert((size_t)xadj[faces.size()] == fadj.size());
 }
 
 typedef std::pair<Int, Int> IntPair;
@@ -185,6 +185,7 @@ void build_faces_neighbourhood(const std::vector<Int> &xadj,
     }
 }
 
+/*
 static
 void flag_all_external_cells(Mesh *M, const std::vector<Int> &fflags,
     std::vector<Int> &cflags)
@@ -212,6 +213,7 @@ void flag_all_external_cells(Mesh *M, const std::vector<Int> &fflags,
         }
     }
 }
+*/
 
 static
 void compute_cell_volume_for_orient(Mesh *M, Int seed, Int ref_face,
@@ -253,7 +255,7 @@ void compute_cell_volume_for_orient(Mesh *M, Int seed, Int ref_face,
         }
     }
 
-    for (size_t i = 0; i < nf; i++) INDPG[i+1] += INDPG[i];
+    for (Int i = 0; i < nf; i++) INDPG[i+1] += INDPG[i];
 
     // Make the rest of the faces follow the orientation of ref_face
     std::vector<Int> orient(nf, 1);
@@ -322,9 +324,6 @@ void compute_cell_volume_for_orient(Mesh *M, Int seed, Int ref_face,
     }
 
     cvol /= 3.0;
-
-    //printf("%d -> computed cell %d (%d) volume: %e\n", M->pid, seed,
-    //    M->l2gc[seed], cvol);
 }   
 
 static
@@ -368,38 +367,6 @@ Int Mesh_orient_skin(Mesh *M)
     // Extract external faces
     std::vector<Int> fflags, efaces;
     flag_and_get_external_faces(M, fflags, efaces);
-
-    /*
-    std::vector<Int> owner(M->nf, -1), neigh(M->nf, -1);
-
-    for (Int i = 0; i < M->nc; i++) {
-        Int *cell = Mesh_get_cell(M, i);
-        Int *crange = Mesh_get_crange(M, i);
-
-        for (Int j = 0; j < M->cstride[i]; j++) {
-            Int *pf = cell + 4*j;
-
-            for (Int k = 0; k < crange[j]; k++) {
-                Int fid = pf[k];
-                assert(fid >= 0 && fid < M->nf);
-                if (owner[fid] == -1) owner[fid] = i;
-                else {
-                    assert(neigh[fid] == -1);
-                    neigh[fid] = i;
-                }
-            }
-        }
-    }
-
-    fflags.resize(M->nf, INTERNAL);
-
-    for (Int i = 0; i < M->nf; i++) {
-        if (neigh[i] == -1) {
-            fflags[i] = EXTERNAL;
-            efaces.push_back(i);
-        }
-    }
-    */
 
     // Extract external faces connectivity
     std::vector<Int> xadj, fpts;
@@ -643,8 +610,8 @@ Int Mesh_build_pe(Mesh *M)
                 }
             }
 
-            for (size_t i = 0; i < nf; i++) xpgs[i+1] += xpgs[i];
-            assert(xpgs[nf] == pgs.size());
+            for (Int i = 0; i < nf; i++) xpgs[i+1] += xpgs[i];
+            assert((size_t)xpgs[nf] == pgs.size());
 
             std::vector<Int> fneis;
             build_faces_neighbourhood(xpgs, pgs, fneis);
@@ -714,25 +681,6 @@ Int Mesh_build_pe(Mesh *M)
     }
 
     assert(nconnex == M->nconnex);
-
-    for (Int i = 0; i < M->nc; i++) {
-        Int *cell = Mesh_get_cell(M, i);
-        Int *crange = Mesh_get_crange(M, i);
-        Int cstride = M->cstride[i];
-
-        for (Int j = 0; j < cstride; j++) {
-            Int *pf = cell + 4*j;
-
-            for (Int k = 0; k < crange[j]; k++) {
-                Int fid = pf[k];
-                Int own = M->owner[fid];
-                Int nei = M->neigh[fid];
-                assert(own == i || nei == i);
-            }
-        }
-    }
-
-    for (Int i = 0; i < M->nc; i++) assert(processed[i] == 1);
 
     return 0;
 }

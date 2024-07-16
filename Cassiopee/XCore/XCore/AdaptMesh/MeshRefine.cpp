@@ -90,8 +90,6 @@ void Mesh_resize_for_refinement(Mesh *M, const std::vector<Int> &ref_cells,
     Int new_nf = M->nf + face_incr;
     Int new_np = M->np + point_incr;
 
-    //printf("%d -> cells before: %d - cells after: %d\n", M->pid, M->nc, new_nc);
-
     M->X = (Float *)XRESIZE(M->X, new_np * sizeof(Float));
     M->Y = (Float *)XRESIZE(M->Y, new_np * sizeof(Float));
     M->Z = (Float *)XRESIZE(M->Z, new_np * sizeof(Float));
