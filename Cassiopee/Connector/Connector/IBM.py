@@ -1326,31 +1326,30 @@ def _recomputeDistForViscousWall__(t, tb, tbCurvi=None, dimPb=3, tbFilament=None
 
     filteredBC=['outpress', 'inj', 'slip', 'overlap']
     recompute=False
-    for z in Internal.getZones(tb):
+    tb2 = Internal.copyRef(tb)
+    for z in Internal.getZones(tb2):
         ibc = Internal.getValue( Internal.getNodeFromName(z, 'ibctype') )
         if ibc in filteredBC:
-            Internal._rmNode(tb,z)
+            Internal._rmNode(tb2, z)
             recompute=True
     if tbCurvi is not None:
        recompute=True # on recalcule distance si cas hybride cart + curvi
        bases = Internal.getBases(tbCurvi)
        for base in bases: base[0]='curvi'+base[0]
-       tb[2]+=bases
+       tb2[2] += bases
 
     if recompute:
       if dimPb == 2:
         z0 = Internal.getNodeFromType2(t, "Zone_t")
         bb0 = G.bbox(z0); dz = (bb0[5]-bb0[2])*0.5
-        tb2 = Internal.copyRef(tb)
         tb2 = Internal.copyValue(tb2, byName='CoordinateZ')
         C._initVars(tb2, 'CoordinateZ', dz)
-      else:
-        tb2 = tb
+    else: return None
 
     tbsave = tb2
 
     if filamentBases and not isFilamentOnly:
-        if dimPb ==2: tb2 = C.initVars(tbFilament, 'CoordinateZ', dz)
+        if dimPb == 2: tb2 = C.initVars(tbFilament, 'CoordinateZ', dz)
         tbFilamentnoWMM = []
         tbFilamentWMM   = []
         for z in Internal.getZones(tb2):
@@ -2615,7 +2614,7 @@ def _pushBackImageFront2(t, tc, tbb, interpDataType=1):
                             allInterpFields.append(fields)
                             if interpDataType == 1: C.freeHook(HOOKADT)
                     if allInterpFields != []:
-                        C._filterPartialFields(z, allInterpFields, indicesI, loc='centers', startFrom=0, filterName='donorVol',verbose=False)
+                        C._filterPartialFields(z, allInterpFields, indicesI, loc='centers', startFrom=0, filterName='donorVol', verbose=False)
                         # C._initVars(z,'{centers:cellNFront}=({centers:cellNFront}>0.5)') #ancienne version
                         C._initVars(z,'{centers:cellNFront}={centers:cellNFront}*({centers:cellNFront_origin}>0.5)') # Modification du Front uniquement lorsque celui-ci est repousse
                         # i.e. if cellNFront_origin == 0 and cellNFront == 1 => cellNfront = 0

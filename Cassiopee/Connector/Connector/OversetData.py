@@ -1291,7 +1291,7 @@ def _setInterpDataChimera(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                     for noi in range(nborphan):
                         noind = resInterp[5][noi]
                         resInterp[5][noi] = indcells[noind]
-                    if verbose==2: # cellN=-1
+                    if verbose == 3: # cellN=-1
                         ListOrphan = resInterp[5]
                         #print("verbose interp", ListOrphan.size, z[0], locR)
                         cellNOrphan = Converter.array('cellN', ListOrphan.size,1,1)
@@ -1313,7 +1313,7 @@ def _setInterpDataChimera(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                             for noi in range(nextraploc):
                                 index = resInterp[4][noz][noi]
                                 resInterp[4][noz][noi] = indcells[index]
-                            if verbose==2: # cellN=-2
+                            if verbose == 3: # cellN=-2
                                ListOrphan = resInterp[4][noz]
                                cellNOrphan = Converter.array('cellN', ListOrphan.size,1,1)
                                cellNOrphan = Converter.initVars(cellNOrphan, 'cellN', -2.)
