@@ -38,32 +38,34 @@ def AdaptMesh_LoadBalance(AM):
 def AdaptMesh_Adapt(AM):
     return xcore.AdaptMesh_Adapt(AM)
 
-def AdaptMesh_ExtractMesh(t):
-    mesh, bcs, comm = xcore.AdaptMesh_ExtractMesh(t)
+def AdaptMesh_ExtractMesh(t, conformize=1):
+    mesh, bcs, comm = xcore.AdaptMesh_ExtractMesh(t, conformize)
     name = 'Proc' + '%d'%Cmpi.rank
     zone = I.createZoneNode(name, mesh)
 
-    for data in comm:
-        cont = I.createUniqueChild(zone, 'ZoneGridConnectivity', 'ZoneGridConnectivity_t')
-        Name = 'Match_'+str(data[0])
-        I.newGridConnectivity1to1(name=Name, donorName=str(data[0]), pointList=data[1], parent=cont)
+    if comm is not None:
+        for data in comm:
+            cont = I.createUniqueChild(zone, 'ZoneGridConnectivity', 'ZoneGridConnectivity_t')
+            Name = 'Match_'+str(data[0])
+            I.newGridConnectivity1to1(name=Name, donorName=str(data[0]), pointList=data[1], parent=cont)
     
     # add BCs
-    for i in range(len(bcs)):
-        bc = bcs[i]
-        if len(bc) != 0:
-            cont = I.createUniqueChild(zone, 'ZoneBC', 'ZoneBC_t')
-            ptlist = bc[0]
-            tag = bc[1]
-            bcname = bc[2]
-            bctype = bc[3]
-
-            if bctype not in BCType_l:
-                bc = I.newBC(name=bcname, pointList=ptlist, family=bctype, parent=cont)
-            else:
-                bc = I.newBC(name=bcname, pointList=ptlist, btype=bctype, parent=cont)
-            
-            I.newUserDefinedData(name='Tag', value=tag, parent=bc)
+    if bcs is not None:
+        for i in range(len(bcs)):
+            bc = bcs[i]
+            if len(bc) != 0:
+                cont = I.createUniqueChild(zone, 'ZoneBC', 'ZoneBC_t')
+                ptlist = bc[0]
+                tag = bc[1]
+                bcname = bc[2]
+                bctype = bc[3]
+    
+                if bctype not in BCType_l:
+                    bc = I.newBC(name=bcname, pointList=ptlist, family=bctype, parent=cont)
+                else:
+                    bc = I.newBC(name=bcname, pointList=ptlist, btype=bctype, parent=cont)
+                
+                I.newUserDefinedData(name='Tag', value=tag, parent=bc)
  
     t = C.newPyTree([name, zone])
     return t
