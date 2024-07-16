@@ -98,7 +98,7 @@ def _projectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False, isPreProje
     ##old=True for wind tunnel test cases. Has shown to yield more physically accurate results.
     ##old means we are reverting back to predominant extrapolations for the projectCloudSolution.
     ##When a more stable & robust solution is obtained for these test cases this argument will be removed.
-    ##See Antoine J. @ DAAA/DEFI for more questions. - error appears at 90° edges of the wind tunnels.
+    ##See Antoine J. @ DAAA/DEFI for more questions. - error appears at 90 edges of the wind tunnels.
     
     ##This orthogonal projection does a projection of the cloud solution onto the surface.
     ##Provides better results and is needed when the surface mesh for post processing is different than
@@ -107,7 +107,7 @@ def _projectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False, isPreProje
     ##Suggestion proposed by Stephanie P. @ DAAA/DEFI.
     ##See Antoine J. @ DAAA/DEFI for more questions.
     if isPreProjectOrtho:
-        print("Project Cloud Solution::performing pre orthogonal projection", flush=True)
+        print("Project Cloud Solution::performing pre orthogonal projection")
         import Transform.PyTree as T
         cloud = T.projectOrtho(cloud, surf);
 

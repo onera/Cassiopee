@@ -180,9 +180,9 @@ def _computeMeshInfo(t):
 
     return None
 
-def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=None,
+def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=None, tbCurvi=None,
                        snears=0.01, snearsf=None, dfars=10., dfarDir=0, vmin=21, depth=2, frontType=1, mode=0,
-                       IBCType=1, verbose=True,
+                       IBCType=1, verbose=True, expand=3,
                        check=False, balancing=False, distribute=False, twoFronts=False, cartesian=False,
                        yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1., 
                        tbOneOver=None):
@@ -202,7 +202,7 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
         if Reynolds < 1.e5: frontType = 1
     else: Reynolds = 1.e6
 
-    expand = 3 if frontType != 42 else 4
+    if frontType == 42: expand= 4
     
     dimPb = Internal.getNodeFromName(tb, 'EquationDimension')
     if dimPb is None: raise ValueError('prepareIBMDataPara: EquationDimension is missing in input geometry tree.')
@@ -258,7 +258,7 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
     for b in Internal.getBases(t):
         Internal.addChild(b, refstate, pos=0)
         Internal.addChild(b, flowEqn , pos=0)
-        
+     
     #===================
     # STEP 2 : DIST2WALL
     #=================== 
@@ -317,7 +317,8 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
     # STEP 6 : INIT IBM
     #===================
     if verbose: pt0 = python_time.time(); printTimeAndMemory__('initialize and clean', time=-1)
-    t, tc, tc2 = initializeIBM(t, tc, tb, tinit=tinit, dimPb=dimPb, twoFronts=twoFronts,
+
+    t, tc, tc2 = initializeIBM(t, tc, tb, tinit=tinit, tbCurvi=tbCurvi, dimPb=dimPb, twoFronts=twoFronts,
                                isWireModel=isWireModel, tbFilament=tbFilament, filamentBases=filamentBases, isFilamentOnly=isFilamentOnly)
 
     if distribute and Cmpi.size > 1: _redispatch__(t=t, tc=tc, tc2=tc2, twoFronts=twoFronts)
@@ -1315,31 +1316,40 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
 # IN: tc (tree): connectivity tree
 # IN: tb (tree): geometry tree (IBM bodies)
 # IN: tinit (tree): computational tree from previous computation used to initialize the flow solution in t
+# IN: tbCurvi (tree): geometry tree (curvilign bodies) for hybrid computation cart + curvi
 # IN: dimPb (2 or 3): problem dimension
 # IN: twoFronts (boolean): if True, creates a new connectivity tree that contains second image points information
 # OUT: updated t, tc
 # OUT: (optional) new connectivity tree tc2
 #=========================================================================
-def _recomputeDistForViscousWall__(t, tb, dimPb=3, tbFilament=None, filamentBases=[], isFilamentOnly=False):
+def _recomputeDistForViscousWall__(t, tb, tbCurvi=None, dimPb=3, tbFilament=None, filamentBases=[], isFilamentOnly=False):
 
-    for z in Internal.getZones(tb):
-        ibc = Internal.getNodeFromName(z, 'ibctype')
-        if Internal.getValue(ibc)=='outpress' or Internal.getValue(ibc)=='inj' or Internal.getValue(ibc)=='slip':
-            Internal._rmNode(tb,z)    
+    filteredBC=['outpress', 'inj', 'slip', 'overlap']
+    recompute=False
+    tb2 = Internal.copyRef(tb)
+    for z in Internal.getZones(tb2):
+        ibc = Internal.getValue( Internal.getNodeFromName(z, 'ibctype') )
+        if ibc in filteredBC:
+            Internal._rmNode(tb2, z)
+            recompute=True
+    if tbCurvi is not None:
+       recompute=True # on recalcule distance si cas hybride cart + curvi
+       bases = Internal.getBases(tbCurvi)
+       for base in bases: base[0]='curvi'+base[0]
+       tb2[2] += bases
 
-    if dimPb == 2:
+    if recompute:
+      if dimPb == 2:
         z0 = Internal.getNodeFromType2(t, "Zone_t")
         bb0 = G.bbox(z0); dz = (bb0[5]-bb0[2])*0.5
-        tb2 = Internal.copyRef(tb)
         tb2 = Internal.copyValue(tb2, byName='CoordinateZ')
         C._initVars(tb2, 'CoordinateZ', dz)
-    else:
-        tb2 = tb
+    else: return None
 
     tbsave = tb2
 
     if filamentBases and not isFilamentOnly:
-        if dimPb ==2: tb2 = C.initVars(tbFilament, 'CoordinateZ', dz)
+        if dimPb == 2: tb2 = C.initVars(tbFilament, 'CoordinateZ', dz)
         tbFilamentnoWMM = []
         tbFilamentWMM   = []
         for z in Internal.getZones(tb2):
@@ -1427,7 +1437,7 @@ def _tInitialize__(t, tinit=None, model='NSTurbulent', isWireModel=False):
                 C._initVars(z,'{centers:'+v_local+'_WM}=0.')
     return None
 
-def initializeIBM(t, tc, tb, tinit=None, dimPb=3, twoFronts=False, isWireModel=False,
+def initializeIBM(t, tc, tb, tinit=None, tbCurvi=None, dimPb=3, twoFronts=False, isWireModel=False,
                   tbFilament=None, filamentBases=[], isFilamentOnly=False):
     """Initialize the computational and connectivity trees for IBM pre-processing."""
 
@@ -1440,8 +1450,7 @@ def initializeIBM(t, tc, tb, tinit=None, dimPb=3, twoFronts=False, isWireModel=F
     ibctypes = list(set(Internal.getValue(ibc) for ibc in ibctypes))
 
     if model != 'Euler':
-        if any(ibc in ['outpress', 'inj', 'slip'] for ibc in ibctypes):
-            _recomputeDistForViscousWall__(t, tb, dimPb=dimPb, tbFilament=tbFilament, filamentBases=filamentBases, isFilamentOnly=isFilamentOnly)
+      _recomputeDistForViscousWall__(t, tb, tbCurvi=tbCurvi, dimPb=dimPb, tbFilament=tbFilament, filamentBases=filamentBases, isFilamentOnly=isFilamentOnly )
 
     tc2 = Internal.copyTree(tc) if twoFronts or isWireModel else None
 
@@ -2605,7 +2614,7 @@ def _pushBackImageFront2(t, tc, tbb, interpDataType=1):
                             allInterpFields.append(fields)
                             if interpDataType == 1: C.freeHook(HOOKADT)
                     if allInterpFields != []:
-                        C._filterPartialFields(z, allInterpFields, indicesI, loc='centers', startFrom=0, filterName='donorVol',verbose=False)
+                        C._filterPartialFields(z, allInterpFields, indicesI, loc='centers', startFrom=0, filterName='donorVol', verbose=False)
                         # C._initVars(z,'{centers:cellNFront}=({centers:cellNFront}>0.5)') #ancienne version
                         C._initVars(z,'{centers:cellNFront}={centers:cellNFront}*({centers:cellNFront_origin}>0.5)') # Modification du Front uniquement lorsque celui-ci est repousse
                         # i.e. if cellNFront_origin == 0 and cellNFront == 1 => cellNfront = 0

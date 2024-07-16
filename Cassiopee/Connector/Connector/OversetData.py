@@ -1291,6 +1291,13 @@ def _setInterpDataChimera(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                     for noi in range(nborphan):
                         noind = resInterp[5][noi]
                         resInterp[5][noi] = indcells[noind]
+                    if verbose == 3: # cellN=-1
+                        ListOrphan = resInterp[5]
+                        #print("verbose interp", ListOrphan.size, z[0], locR)
+                        cellNOrphan = Converter.array('cellN', ListOrphan.size,1,1)
+                        cellNOrphan = Converter.initVars(cellNOrphan, 'cellN', -1.)
+                        C._setPartialFields(z, [cellNOrphan], [ListOrphan], loc=locR)
+
                 # Interpoles/Extrapoles
                 for noz in range(nzonesDnr):
                     ninterploc = resInterp[0][noz].size
@@ -1306,6 +1313,12 @@ def _setInterpDataChimera(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                             for noi in range(nextraploc):
                                 index = resInterp[4][noz][noi]
                                 resInterp[4][noz][noi] = indcells[index]
+                            if verbose == 3: # cellN=-2
+                               ListOrphan = resInterp[4][noz]
+                               cellNOrphan = Converter.array('cellN', ListOrphan.size,1,1)
+                               cellNOrphan = Converter.initVars(cellNOrphan, 'cellN', -2.)
+                               C._setPartialFields(z, [cellNOrphan], [ListOrphan], loc=locR)
+
 
                 #----------------------------------
                 # Etape 3: Stockage dans l'arbre
@@ -1726,15 +1739,17 @@ def _adaptForRANSLES__(tR, tD, dictOfModels=None):
                 model_zr = dictOfModels[zr[0]]
 
                 if model_zr != 'None' and model_zd != 'None':
+
                     if (model_zr=='NSTurbulent' or model_zd=='NSTurbulent') and  model_zr != model_zd:
-                        print("Info: _adaptForRANSLES__: {}/{} <-> {}/{}".format(zr[0], model_zr, zd[0], model_zd))
                         datap = numpy.ones(1, numpy.int32)
                         Internal.createUniqueChild(s, 'RANSLES', 'DataArray_t', datap)
+                        print("Info: _adaptForRANSLES__: {}/{} <-> {}/{}".format(zr[0], model_zr, zd[0], model_zd))
 
                     if (model_zr=='LBMLaminar' or model_zd=='LBMLaminar') and model_zr != model_zd:
-                        print("Info: _adaptForRANSLES__: {}/{} <-> {}/{}".format(zr[0], model_zr, zd[0], model_zd))
                         datap = numpy.ones(1, numpy.int32)
                         Internal.createUniqueChild(s, 'NSLBM', 'DataArray_t', datap)
+                        print("Info: _adaptForNSLBM__: {}/{} <-> {}/{}".format(zr[0], model_zr, zd[0], model_zd))
+
     return None
 
 def _createInterpRegion__(z, zname, pointlist, pointlistdonor, interpCoef, interpType, interpVol, indicesExtrap, indicesOrphan, \

@@ -727,7 +727,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
 def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                    method='lagrangian', loc='nodes', storage='direct',
                    interpDataType=1, hook=None, cartesian=False, sameBase=0,
-                   topTreeRcv=None, topTreeDnr=None, sameName=1, 
+                   topTreeRcv=None, topTreeDnr=None, sameName=1, verbose=2,
                    dim=3, itype='abutting'):
     """Compute interpolation data for abutting or chimera intergrid connectivity."""
 
@@ -849,7 +849,7 @@ def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
             
             if dnrZones != []:
                 X._setInterpData(zr, dnrZones, order=order, penalty=penalty, 
-                         nature=nature, extrap=extrap, 
+                         nature=nature, extrap=extrap, verbose=verbose,
                          method=method, loc=loc, storage=storage, 
                          interpDataType=interpDataTypeL, hook=hookL, 
                          topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr,

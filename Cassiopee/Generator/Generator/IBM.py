@@ -591,8 +591,8 @@ def octree2StructLoc__(o, parento=None, vmin=15, ext=0, optimized=0, sizeMax=4e6
                                                        ZONEStbOneOverTmp[i][3]+ZONEStbOneOverTmp[i][4]+ZONEStbOneOverTmp[i][5]+ \
                                                        ZONEStbOneOverTmp[i][6]+ZONEStbOneOverTmp[i][7], sizeMax=sizeMax)
                     zones +=ZONEStbOneOverTmp[i]
+            if ZONEStbOneOver is not None: del ZONEStbOneOverTmp
             del ZONEStbOneOver
-            del ZONEStbOneOverTmp
             
         else: # dim=2
             ZONES[0] = T.mergeCart(ZONES[0]+ZONES[2],sizeMax=sizeMax)# XM
