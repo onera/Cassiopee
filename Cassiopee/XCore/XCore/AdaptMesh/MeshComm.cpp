@@ -233,7 +233,7 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
 
     Int count_size = M->npc;
 
-    int *counts = (int *)XCALLOC(13 * count_size, sizeof(int));
+    int *counts = (int *)XCALLOC(19 * count_size, sizeof(int));
 
     int *cscount = counts;
     int *crcount = counts + 1  * count_size;
@@ -248,12 +248,18 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
     int *sbcount = counts + 10 * count_size;
     int *rbcount = counts + 11 * count_size;
     int *idx     = counts + 12 * count_size;
+    int *stagcount  = counts + 13 * count_size;
+    int *rtagcount  = counts + 14 * count_size;
+    int *snamecount = counts + 15 * count_size;
+    int *rnamecount = counts + 16 * count_size;
+    int *stypecount = counts + 17 * count_size;
+    int *rtypecount = counts + 18 * count_size;
 
     // Allocate contiguous dists array
 
     Int dist_size = M->npc + 1;
 
-    int *dists = (int *)XCALLOC(12 * dist_size, sizeof(int));
+    int *dists = (int *)XCALLOC(18 * dist_size, sizeof(int));
 
     int *csdist = dists;
     int *crdist = dists + 1  * dist_size;
@@ -267,6 +273,12 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
     int *sbdist = dists + 9  * dist_size;
     int *ridist = dists + 10 * dist_size;
     int *rbdist = dists + 11 * dist_size;
+    int *stagdist  = dists + 12 * dist_size;
+    int *rtagdist  = dists + 13 * dist_size;
+    int *snamedist = dists + 14 * dist_size;
+    int *rnamedist = dists + 15 * dist_size;
+    int *stypedist = dists + 16 * dist_size;
+    int *rtypedist = dists + 17 * dist_size;
 
     // Redistribute cells
 
@@ -790,13 +802,6 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
     memset(spcount, 0, M->npc * sizeof(int));
     memset(rpcount, 0, M->npc * sizeof(int));
 
-    int *stagcount  = (int *)XCALLOC(M->npc, sizeof(int));
-    int *rtagcount  = (int *)XCALLOC(M->npc, sizeof(int));
-    int *snamecount = (int *)XCALLOC(M->npc, sizeof(int));
-    int *rnamecount = (int *)XCALLOC(M->npc, sizeof(int));
-    int *stypecount = (int *)XCALLOC(M->npc, sizeof(int));
-    int *rtypecount = (int *)XCALLOC(M->npc, sizeof(int));
-
     for (Int i = 0; i < M->npc; i++) {
         Int *pf = &sbinfo[sdist[i]];
 
@@ -849,13 +854,6 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
     MPI_Alltoall(stagcount,  1, MPI_INT, rtagcount,  1, MPI_INT, MPI_COMM_WORLD);
     MPI_Alltoall(snamecount, 1, MPI_INT, rnamecount, 1, MPI_INT, MPI_COMM_WORLD);
     MPI_Alltoall(stypecount, 1, MPI_INT, rtypecount, 1, MPI_INT, MPI_COMM_WORLD);
-
-    int *stagdist  = (int *)XCALLOC(M->npc+1, sizeof(int));
-    int *rtagdist  = (int *)XCALLOC(M->npc+1, sizeof(int));
-    int *snamedist = (int *)XCALLOC(M->npc+1, sizeof(int));
-    int *rnamedist = (int *)XCALLOC(M->npc+1, sizeof(int));
-    int *stypedist = (int *)XCALLOC(M->npc+1, sizeof(int));
-    int *rtypedist = (int *)XCALLOC(M->npc+1, sizeof(int));
 
     for (Int i = 0; i < M->npc; i++) {
         sidist[i+1] = sidist[i] + sicount[i];
@@ -1473,6 +1471,13 @@ Int Mesh_redistribute(Mesh *M, Int *cmap)
     // Clean-up
 
     if (M->pid == 0) puts("Cleaning-up...");
+
+    XFREE(stag);
+    XFREE(rtag);
+    XFREE(sname);
+    XFREE(rname);
+    XFREE(stype);
+    XFREE(rtype);
 
     XFREE(rx);
     XFREE(ry);
