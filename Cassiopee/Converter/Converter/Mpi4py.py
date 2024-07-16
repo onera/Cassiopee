@@ -1066,7 +1066,7 @@ def subzone(a, indMin, indMax, supp):
     
 # Ajoute les bandelettes des autres procs sur le procs locaux
 # si allB=True, les 6 bandelettes de chaque zone voisine sont ramenees (necessaire pour connectMatchPeriodic).
-def _addBXZones(a, depth=2, allB=False):
+def _addBXZones(a, depth=2, allB=False, NoVar=False):
     import Generator.PyTree as G
     # Calcul des bbox des zones locales
     zones = Internal.getZones(a)
@@ -1098,7 +1098,6 @@ def _addBXZones(a, depth=2, allB=False):
             if rj2 - rj1 < 2: rjp1 = int(nj/2)-1; rjp2 = int(nj/2)+1
             else: rjp1 = rj1; rjp2 = rj2
             
-
             # Bandelettes non recouvrantes
             b1 = subzone(z, (1,1,1), (ri1,nj,nk), 'S1')
             b2 = subzone(z, (ri2,1,1), (ni,nj,nk), 'S2')
@@ -1106,6 +1105,33 @@ def _addBXZones(a, depth=2, allB=False):
             b4 = subzone(z, (rip1,rj2,1), (rip2,nj,nk), 'S4') 
             b5 = subzone(z, (rip1,rjp1,1), (rip2,rjp2,rk1), 'S5') 
             b6 = subzone(z, (rip1,rjp1,rk2), (rip2,rjp2,nk), 'S6') 
+
+            if NoVar==True:
+               Internal._rmNodesByName(b1, "FlowSolution#Centers")
+               Internal._rmNodesByName(b2, "FlowSolution#Centers")
+               Internal._rmNodesByName(b3, "FlowSolution#Centers")
+               Internal._rmNodesByName(b4, "FlowSolution#Centers")
+               Internal._rmNodesByName(b5, "FlowSolution#Centers")
+               Internal._rmNodesByName(b6, "FlowSolution#Centers")
+               #Internal._rmNodesByName(b1, "ZoneGridConnectivity")
+               #Internal._rmNodesByName(b2, "ZoneGridConnectivity")
+               #Internal._rmNodesByName(b3, "ZoneGridConnectivity")
+               #Internal._rmNodesByName(b4, "ZoneGridConnectivity")
+               #Internal._rmNodesByName(b5, "ZoneGridConnectivity")
+               #Internal._rmNodesByName(b6, "ZoneGridConnectivity")
+               Internal._rmNodesByName(b1, "ZoneBC")
+               Internal._rmNodesByName(b2, "ZoneBC")
+               Internal._rmNodesByName(b3, "ZoneBC")
+               Internal._rmNodesByName(b4, "ZoneBC")
+               Internal._rmNodesByName(b5, "ZoneBC")
+               Internal._rmNodesByName(b6, "ZoneBC")
+               for name in [".Solver#define",".Solver#Param", "Parameter_int", "Parameter_real"]:
+                  Internal._rmNodesByName(b1, name)
+                  Internal._rmNodesByName(b2, name)
+                  Internal._rmNodesByName(b3, name)
+                  Internal._rmNodesByName(b4, name)
+                  Internal._rmNodesByName(b5, name)
+                  Internal._rmNodesByName(b6, name)
             
             sz[b1[0]] = b1
             sz[b2[0]] = b2
