@@ -246,7 +246,7 @@ IMesh::IMesh(const char *fname)
     char *bad_ptr = NULL;
     np = strtod(next, &bad_ptr);
     assert(*bad_ptr == '\0');
-    printf("points: %d\n", np);
+    printf("points: " SF_D_ "\n", np);
 
     X.resize(np);
     Y.resize(np);
@@ -267,13 +267,13 @@ IMesh::IMesh(const char *fname)
     bad_ptr = NULL;
     nf = strtod(next, &bad_ptr);
     assert(*bad_ptr == '\0');
-    printf("Faces: %d\n", nf);
+    printf("Faces: " SF_D_ "\n", nf);
 
     F.resize(nf);
 
     for (E_Int i = 0; i < nf; i++) {
         E_Int stride;
-        ret = fscanf(fh, "%d ", &stride);
+        ret = fscanf(fh, SF_D_ " ", &stride);
         assert(ret == 1);
         auto &cn = F[i];
         cn.resize(stride);
