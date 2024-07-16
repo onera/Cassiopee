@@ -24,7 +24,6 @@ void H18_refine(Int hexa, Mesh *M)
     H18_reorder(hexa, M);
 
     Int *cell = Mesh_get_cell(M, hexa);
-    Int *crange = Mesh_get_crange(M, hexa);
 
     Int FACES[24];
     memcpy(FACES, cell, 24 * sizeof(Int));
@@ -43,7 +42,6 @@ void H18_refine(Int hexa, Mesh *M)
     Int fid, *pn, i0, reorient, local[9];
 
     // BOT
-    assert(crange[0] == 4);
 
     fid = BOT[0];
     pn = Mesh_get_face(M, fid);
@@ -92,7 +90,6 @@ void H18_refine(Int hexa, Mesh *M)
     NODES[3] = local[3];
 
     // LFT
-    assert(crange[2] == 2);
 
     fid = LFT[0];
     pn = Mesh_get_face(M, fid);
@@ -119,7 +116,6 @@ void H18_refine(Int hexa, Mesh *M)
     NODES[7] = local[2];
 
     // RGT
-    assert(crange[3] == 2);
 
     fid = RGT[0];
     pn = Mesh_get_face(M, fid);
@@ -146,7 +142,6 @@ void H18_refine(Int hexa, Mesh *M)
     NODES[6] = local[2];
 
     // FRO
-    assert(crange[4] == 2);
 
     fid = FRO[0];
     pn = Mesh_get_face(M, fid);
@@ -173,7 +168,6 @@ void H18_refine(Int hexa, Mesh *M)
     assert(local[3] == NODES[15]);
 
     // BCK
-    assert(crange[5] == 2);
 
     fid = BCK[0];
     pn = Mesh_get_face(M, fid);
@@ -200,7 +194,6 @@ void H18_refine(Int hexa, Mesh *M)
     assert(local[3] == NODES[16]);
 
     // TOP
-    assert(crange[1] == 4);
 
     fid = TOP[0];
     pn = Mesh_get_face(M, fid);

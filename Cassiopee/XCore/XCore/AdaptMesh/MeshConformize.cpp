@@ -17,9 +17,9 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Mesh.h"
-#include "../common/mem.h"
+#include "common/mem.h"
 
-void Mesh_conformize_cell_face(Mesh *M, Int cid, Int fid, Int fpos, Int nf)
+int Mesh_conformize_cell_face(Mesh *M, Int cid, Int fid, Int fpos, Int nf)
 {
     Int *cell = Mesh_get_cell(M, cid);
     Int *crange = Mesh_get_crange(M, cid);
@@ -39,7 +39,7 @@ void Mesh_conformize_cell_face(Mesh *M, Int cid, Int fid, Int fpos, Int nf)
         }
     }
 
-    assert(found);
+    return !found;
 }
 
 
@@ -89,8 +89,7 @@ void Mesh_conformize_face_edge(Mesh *M)
 
             for (Int k = 0; k < 4; k++) ptr[k] = frange[k];
 
-            Int gfid = M->l2gf[fid];
-            Int fstate = M->fref[fid];
+            //Int fstate = M->fref[fid];
             //assert(fstate != FACE_NEW);
 
             // Face is oriented in the opposite order

@@ -164,7 +164,7 @@ void Smesh::make_edges()
             }
         }
 
-        assert(found);
+        if (!found) abort();
 
         if (fj == -1) continue;
 
@@ -177,7 +177,7 @@ void Smesh::make_edges()
             }
         }
 
-        assert(found);
+        if (!found) abort();
     }
 
     // Make faces neighbourhood
@@ -215,28 +215,28 @@ void Smesh::make_edges()
             E_Int nei = neis[j];
             
             E_Int p = face[j];
-            E_Int q = face[(j+1)%face.size()];
+            //E_Int q = face[(j+1)%face.size()];
             
             E_Int e = edgs[j];
             
             if (nei == -1) {
-                assert(E[e].p == p);
-                assert(E[e].q == q);
+                //assert(E[e].p == p);
+                //assert(E[e].q == q);
                 continue;
             }
 
             if (visited[nei]) {
-                assert(E2F[e][0] == nei);
-                assert(E2F[e][1] == f);
-                assert(E[e].p == q);
-                assert(E[e].q == p);
+                //assert(E2F[e][0] == nei);
+                //assert(E2F[e][1] == f);
+                //assert(E[e].p == q);
+                //assert(E[e].q == p);
                 continue;
             }
  
             if (E[e].p != p) {
                 assert(visited[nei] == 0);
-                assert(E[e].q == p);
-                assert(E[e].p == q);
+                //assert(E[e].q == p);
+                //assert(E[e].p == q);
                 std::swap(E[e].p, E[e].q);
                 E2F[e][0] = f;
                 E2F[e][1] = nei;
@@ -246,6 +246,7 @@ void Smesh::make_edges()
     }
 
     // Check
+    /*
     for (E_Int i = 0; i < nf; i++) {
         auto &face = F[i];
         for (size_t j = 0; j < face.size(); j++) {
@@ -264,6 +265,7 @@ void Smesh::make_edges()
             }
         }
     }
+    */
 }
 
 #define TRI 5
@@ -284,7 +286,7 @@ Smesh::Smesh(const char *fname)
     char *bad_ptr = NULL;
     nf = strtod(next, &bad_ptr);
     assert(*bad_ptr == '\0'); 
-    printf("Faces: %d\n", nf);
+    printf("Faces: " SF_D_ "\n", nf);
 
     F.resize(nf);
 
@@ -292,16 +294,18 @@ Smesh::Smesh(const char *fname)
 
     for (E_Int i = 0; i < nf; i++) {
         auto &cn = F[i];
-        ret = fscanf(fh, "%d ", &type);
-        assert(ret == 1);
+        ret = fscanf(fh, SF_D_ " ", &type);
+        if (ret != 1) abort();
         if (type == TRI) {
             cn.resize(3);
-            ret = fscanf(fh, "%d %d %d %d\n", &cn[0], &cn[1], &cn[2], &dummy);
-            assert(ret == 4);
+            ret = fscanf(fh, SF_D_ SF_D_ SF_D_ SF_D_ "\n", 
+                &cn[0], &cn[1], &cn[2], &dummy);
+            if (ret != 4) abort();
         } else if (type == QUAD) {
             cn.resize(4);
-            ret = fscanf(fh, "%d %d %d %d %d\n", &cn[0], &cn[1], &cn[2], &cn[3], &dummy);
-            assert(ret == 5);
+            ret = fscanf(fh, SF_D_ SF_D_ SF_D_ SF_D_ SF_D_ "\n",
+                &cn[0], &cn[1], &cn[2], &cn[3], &dummy);
+            if (ret != 5) abort();
         } else {
             assert(0);
         }
@@ -313,14 +317,14 @@ Smesh::Smesh(const char *fname)
    
     np = strtod(next, &bad_ptr);
     assert(*bad_ptr == '\0'); 
-    printf("points: %d\n", np);
+    printf("points: " SF_D_ "\n", np);
 
     X.resize(np);
     Y.resize(np);
 
     for (E_Int i = 0; i < np; i++) {
-        ret = fscanf(fh, "%lf %lf %d\n", &X[i], &Y[i], &dummy);
-        assert(ret == 3);
+        ret = fscanf(fh, "%lf %lf " SF_D_ "\n", &X[i], &Y[i], &dummy);
+        if (ret != 3) abort();
     }
 
     fclose(fh);
@@ -600,7 +604,7 @@ void Smesh::write_su2(const char *fname, const std::vector<E_Int> &faces)
         const auto &cn = F[f];
         if (cn.size() == 4) fprintf(fh, "%d ", QUAD);
         else fprintf(fh, "%d ", TRI);
-        for (auto p : cn) fprintf(fh, "%d ", pmap[p]);
+        for (auto p : cn) fprintf(fh, SF_D_ " ", pmap[p]);
         fprintf(fh, "%zu\n", i);
     }
 
@@ -708,6 +712,7 @@ Smesh Smesh::extract_conformized()
     }
 
     // Check consistent E2F and F2E
+    /*
     for (E_Int i = 0; i < new_nf; i++) {
         const auto &pe = new_F2E[i];
 
@@ -715,6 +720,7 @@ Smesh Smesh::extract_conformized()
             assert(i == new_E2F[e][0] || i == new_E2F[e][1]);
         }
     }
+    */
 
     // F
     std::vector<std::vector<E_Int>> new_F(new_nf);
@@ -754,13 +760,13 @@ void Smesh::write_ngon(const char *fname)
     assert(fh);
 
     fprintf(fh, "POINTS\n");
-    fprintf(fh, "%d\n", np);
+    fprintf(fh, SF_D_ "\n", np);
     for (E_Int i = 0; i < np; i++) {
         fprintf(fh, "%f %f 0.0\n", X[i], Y[i]);
     }
 
     fprintf(fh, "INDPG\n");
-    fprintf(fh, "%d\n", ne+1);
+    fprintf(fh, SF_D_ "\n", ne+1);
     size_t sizeNGon = 0;
     fprintf(fh, "0 ");
     for (E_Int i = 0; i < ne; i++) {
@@ -772,12 +778,12 @@ void Smesh::write_ngon(const char *fname)
     fprintf(fh, "NGON\n");
     fprintf(fh, "%zu\n", sizeNGon);
     for (E_Int i = 0; i < ne; i++) {
-        fprintf(fh, "%d %d ", E[i].p, E[i].q);
+        fprintf(fh, SF_D_  " " SF_D_  " ", E[i].p, E[i].q);
     }
     fprintf(fh, "\n");
 
     fprintf(fh, "INDPH\n");
-    fprintf(fh, "%d\n", nf+1);
+    fprintf(fh, SF_D_ "\n", nf+1);
     size_t sizeNFace = 0;
     fprintf(fh, "0 ");
     for (E_Int i = 0; i < nf; i++) {
@@ -789,8 +795,7 @@ void Smesh::write_ngon(const char *fname)
     fprintf(fh, "NFACE\n");
     fprintf(fh, "%zu\n", sizeNFace);
     for (E_Int i = 0; i < nf; i++) {
-        for (E_Int e : F2E[i]) fprintf(fh, "%d ", e);
-        //fprintf(fh, "\n");
+        for (E_Int e : F2E[i]) fprintf(fh, SF_D_ " ", e);
     }
     fprintf(fh, "\n");
 

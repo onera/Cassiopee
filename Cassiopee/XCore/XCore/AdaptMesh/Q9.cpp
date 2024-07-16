@@ -1,6 +1,6 @@
 #include "Quad.h"
 
-void Q9_refine(Int quad, Mesh *M)
+int Q9_refine(Int quad, Mesh *M)
 {
     Int NODES[8];
 
@@ -96,14 +96,14 @@ void Q9_refine(Int quad, Mesh *M)
 
     assert(M->clevel[own] == M->flevel[quad]);
 
-    Mesh_conformize_cell_face(M, own, quad, M->nf, 4);
+    if (Mesh_conformize_cell_face(M, own, quad, M->nf, 4) != 0) return 1;
 
     Int nei = M->neigh[quad];
 
     if (nei != -1) {
         assert(M->clevel[nei] == M->flevel[quad]);
 
-        Mesh_conformize_cell_face(M, nei, quad, M->nf, 4);
+        if (Mesh_conformize_cell_face(M, nei, quad, M->nf, 4) != 0) return 1;
     }
 
     for (Int i = 0; i < 3; i++) {
@@ -134,6 +134,8 @@ void Q9_refine(Int quad, Mesh *M)
     // Increment face/edge/point count
     M->nf += 3;
     M->np += 1;
+
+    return 0;
 }
 
 void Q4_reorder(Int *pn, Int reorient, Int i0, Int local[4])

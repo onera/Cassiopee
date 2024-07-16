@@ -21,6 +21,7 @@
 #include <mpi.h>
 #include <unordered_map>
 #include "common/mem.h"
+#include "common/common.h"
 #include <numeric>
 
 #include "scotch/ptscotch.h"
@@ -148,37 +149,37 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
   // 1 must be coordinateX chunk
   o = PyList_GetItem(l, 0);
   res = K_NUMPY::getFromNumpyArray(o, X, npoints, nfld, true);
-  assert(res == 1);
+  if (res != 1) { RAISE("Input error."); return NULL; };
 
   // 2 must be coordinateY chunk
   o = PyList_GetItem(l, 1);
   res = K_NUMPY::getFromNumpyArray(o, Y, npoints, nfld, true);
-  assert(res == 1);
+  if (res != 1) { RAISE("Input error."); return NULL; };
     
   // 3 must be coordinateZ chunk
   o = PyList_GetItem(l, 2);
   res = K_NUMPY::getFromNumpyArray(o, Z, npoints, nfld, true);
-  assert(res == 1);
+  if (res != 1) { RAISE("Input error."); return NULL; };
  
   // 4 must be ngon chunk
   o = PyList_GetItem(l, 3);
   res = K_NUMPY::getFromNumpyArray(o, faces, faces_size, nfld, true);
-  assert(res == 1);  
+  if (res != 1) { RAISE("Input error."); return NULL; };
     
   // 5 must be ngon so chunk
   o = PyList_GetItem(l, 4);
   res = K_NUMPY::getFromNumpyArray(o, xfaces, nfaces, nfld, true);
-  assert(res == 1);
+  if (res != 1) { RAISE("Input error."); return NULL; };
     
   // 6 must be nface chunk
   o = PyList_GetItem(l, 5);
   res = K_NUMPY::getFromNumpyArray(o, cells, cells_size, nfld, true);
-  assert(res == 1);
+  if (res != 1) { RAISE("Input error."); return NULL; };
     
   // 7 must be nface so chunk
   o = PyList_GetItem(l, 6);
   res = K_NUMPY::getFromNumpyArray(o, xcells, ncells, nfld, true);
-  assert(res == 1);
+  if (res != 1) { RAISE("Input error."); return NULL; };
 
   ncells--;
   nfaces--;
@@ -389,7 +390,12 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
   SCOTCH_Dgraph graph;
   SCOTCH_dgraphInit(&graph, MPI_COMM_WORLD);
 
-  E_Int ret;
+  assert(sizeof(SCOTCH_Num) <= sizeof(SCOTCH_Idx));
+  assert(sizeof(SCOTCH_Idx) >= sizeof(void *));
+  assert(sizeof(SCOTCH_Num) == sizeof(E_Int));
+  assert(SCOTCH_numSizeof() == sizeof(SCOTCH_Num));
+
+  int ret;
   ret = SCOTCH_dgraphBuild(
     &graph,       // grafptr
     0,            // baseval
@@ -1075,7 +1081,7 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
     for (E_Int i = 0; i < csize; i++) {
       PyObject *csol = PyList_GetItem(o, i);
       res = K_NUMPY::getFromNumpyArray(csol, csols[i], ncells, nfld, true);
-      assert(res == 1);
+      if (res != 1) { RAISE("Bad input."); return NULL; }
     }
 
     PyObject *clist = PyList_New(0);
@@ -1123,7 +1129,7 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
     for (E_Int i = 0; i < psize; i++) {
       PyObject *psol = PyList_GetItem(o, i);
       res = K_NUMPY::getFromNumpyArray(psol, psols[i], npoints, nfld, true);
-      assert(res == 1);
+      if (res != 1) { RAISE("Input error."); return NULL; };
     }
 
     PyObject *plist = PyList_New(0);
@@ -1176,8 +1182,8 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
     for (E_Int i = 0; i < nbc; i++) {
       PyObject *plist = PyList_GetItem(o, i);
       res = K_NUMPY::getFromNumpyArray(plist, plists[i], size, nfld, true);
+      if (res != 1) { RAISE("Input error."); return NULL; };
       bcsize[i] = int(size);
-      assert(res == 1);
 
       auto& list = plists[i];
       paraSort(&list[0], bcsize[i], myptlists[i], pivots[i]);

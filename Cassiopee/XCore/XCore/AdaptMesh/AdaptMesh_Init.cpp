@@ -40,7 +40,7 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
     if (ret != 0) return NULL;
 
     // Parse cell/face/point global ids
-    Int *cgids, *fgids, *pgids;
+    Int *cgids, *fgids;
 
     Int size, nfld;
     Int nc = karray.ncells();
@@ -107,15 +107,11 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
 
         M->bps[i].name = (char *)XMALLOC(strlen(bcname)+1);
         strcpy(M->bps[i].name, bcname);
-        Int len = strlen(M->bps[i].name);
-        assert(M->bps[i].name[len] == '\0');
 
         const char *bctype = PyUnicode_AsUTF8(PyList_GetItem(PATCH, 3));
 
         M->bps[i].type = (char *)XMALLOC(strlen(bctype)+1);
         strcpy(M->bps[i].type, bctype);
-        len = strlen(M->bps[i].type);
-        assert(M->bps[i].type[len] == '\0');
 
         // Convert to local ids
         BPatch *P = &M->bps[i];

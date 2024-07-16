@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Mesh.h"
-#include "../common/mem.h"
+#include "common/mem.h"
 #include "Hexa.h"
 #include "Tetra.h"
 #include "Penta.h"
@@ -68,7 +68,7 @@ Int set_HEXA_for_2D(Int cid, Mesh *M)
     }
 
     if (start == M->cstride[cid]) {
-        merr("Cell %d is not aligned with 2D vector.", cid);
+        merr("Cell " SF_D_ " is not aligned with 2D vector.", cid);
         assert(0);
         return 1;
     }
@@ -124,7 +124,7 @@ Int Mesh_set_face_types(Mesh *M)
                 M->ftype[i] = TRI;
                 break;
             default:
-                fprintf(stderr, "Face %d is neither a TRI nor a QUAD.", i);
+                fprintf(stderr, "Face " SF_D_ " is neither a TRI nor a QUAD.", i);
                 assert(0);
                 return 1;
         }
@@ -166,16 +166,16 @@ Int Mesh_set_cell_types(Mesh *M)
                 } else if (ntri == 4 && nquad == 1) {
                     M->ctype[i] = PYRA;
                 } else {
-                    fprintf(stderr, "Cell %d has five faces but is neither a"
-                            " PENTA nor a PYRA.\n", i);
+                    fprintf(stderr, "Cell " SF_D_ " has five faces but is "
+                            "neither a PENTA nor a PYRA.\n", i);
                     assert(0);
                     return 1;
                 }
                 break;
             }
             default: {
-                fprintf(stderr, "Cell %d is not one of the following types"
-                            ": TETRA, HEXA, PENTA, PYRA.\n", i);
+                fprintf(stderr, "Cell " SF_D_ " is not one of the following"
+                        "types: TETRA, HEXA, PENTA, PYRA.\n", i);
                 assert(0);
                 return 1;
             }

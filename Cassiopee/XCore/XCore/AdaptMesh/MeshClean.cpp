@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "Mesh.h"
-#include "../common/mem.h"
+#include "common/mem.h"
 
 static
 void PPatch_free(PPatch *pp)

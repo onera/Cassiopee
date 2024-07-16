@@ -18,7 +18,7 @@
 */
 #include "Mesh.h"
 
-void refine_edge(Int eid, Mesh *M)
+int refine_edge(Int eid, Mesh *M)
 {
     Int p = M->edges[eid].p;
     Int q = M->edges[eid].q;
@@ -54,10 +54,12 @@ void refine_edge(Int eid, Mesh *M)
             }
         }
 
-        assert(found);
+        if (!found) return 1;
     }
 
     M->edges[eid].q = M->np;
 
     M->np++;
+
+    return 0;
 }

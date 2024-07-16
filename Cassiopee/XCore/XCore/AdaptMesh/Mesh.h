@@ -353,7 +353,7 @@ void Mesh_sort_ref_entities_by_level(Mesh *M,
 void Mesh_refine(Mesh *M, std::vector<Int> &ref_cells,
     std::vector<Int> &ref_faces, std::set<UEdge> &ref_edges);
 
-void Mesh_conformize_cell_face(Mesh *M, Int cid, Int fid, Int fpos, Int nf);
+int Mesh_conformize_cell_face(Mesh *M, Int cid, Int fid, Int fpos, Int nf);
 
 void Mesh_conformize_face_edge(Mesh *M);
 

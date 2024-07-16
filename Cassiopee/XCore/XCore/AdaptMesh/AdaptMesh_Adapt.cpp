@@ -48,7 +48,7 @@ void print_postrefinement_data(Mesh *M)
     Int gnc = 0;
     MPI_Allreduce(&M->nc, &gnc, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
     if (M->pid == 0) {
-        printf("    Total cells after refinement: %d\n", gnc);
+        printf("    Total cells after refinement: " SF_D_ "\n", gnc);
     }
 
     Float balanced = gnc / (Float) M->npc;

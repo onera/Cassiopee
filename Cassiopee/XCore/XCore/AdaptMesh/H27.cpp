@@ -553,10 +553,6 @@ void H27_reorder(Int hexa, Mesh *M)
         Int first = 0;
 
         Int fid = BOT[first];
-        
-        Int *frange = Mesh_get_frange(M, fid); 
-
-        //for (Int i = 0; i < 4; i++) assert(frange[i] == 1);
 
         Int *pn = Mesh_get_face(M, fid);
 
@@ -1083,7 +1079,6 @@ void H27_reorder(Int hexa, Mesh *M)
         assert(FRO[2] == -1);
         assert(FRO[3] == -1);
         Int *pn = Mesh_get_face(M, FRO[0]);
-        Int *frange = Mesh_get_frange(M, FRO[0]);
         for (Int i = 0; i < 8; i++) local[i] = pn[i];
         i0 = Get_pos(NODES[1], local, 8);
         Right_shift(local, i0, 8);
@@ -1359,9 +1354,6 @@ void reconstruct_quad(Mesh *M, Int hexa, Int *fids, Int crange, Int normalIn,
     Int NODE, Int pn[4])
 {
     Int fid = fids[0];
-    Int own = M->owner[fid];
-    Int nei = M->neigh[fid];
-    assert(own == hexa || nei == hexa);
 
     Int local[4];
     Int NODES[9] = {-1, -1, -1, -1, -1, -1, -1, -1, -1};
@@ -1471,9 +1463,8 @@ Int check_canon_hexa(Int hexa, Mesh *M)
 
     Int *cell = Mesh_get_cell(M, hexa);
     Int *crange = Mesh_get_crange(M, hexa);
-    Int cstride = M->cstride[hexa];
 
-    Int fid, *face, i0, reorient, local[4];
+    Int local[4];
 
     Int *BOT = cell;
     Int *TOP = cell+4;
