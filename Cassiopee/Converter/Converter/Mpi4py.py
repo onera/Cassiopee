@@ -26,9 +26,6 @@ __all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'SUM', 'MIN', 'MAX', 'LAND',
 from mpi4py import MPI
 import numpy
 
-try: range = xrange
-except: pass
-
 COMM_WORLD = MPI.COMM_WORLD
 KCOMM = COMM_WORLD
 
@@ -1066,7 +1063,8 @@ def subzone(a, indMin, indMax, supp):
     
 # Ajoute les bandelettes des autres procs sur le procs locaux
 # si allB=True, les 6 bandelettes de chaque zone voisine sont ramenees (necessaire pour connectMatchPeriodic).
-def _addBXZones(a, depth=2, allB=False, NoVar=False):
+# IN: variables: None (all vars), ['Density'], []                    
+def _addBXZones(a, depth=2, allB=False, variables=None):
     import Generator.PyTree as G
     # Calcul des bbox des zones locales
     zones = Internal.getZones(a)
@@ -1106,33 +1104,14 @@ def _addBXZones(a, depth=2, allB=False, NoVar=False):
             b5 = subzone(z, (rip1,rjp1,1), (rip2,rjp2,rk1), 'S5') 
             b6 = subzone(z, (rip1,rjp1,rk2), (rip2,rjp2,nk), 'S6') 
 
-            if NoVar==True:
-               Internal._rmNodesByName(b1, "FlowSolution#Centers")
-               Internal._rmNodesByName(b2, "FlowSolution#Centers")
-               Internal._rmNodesByName(b3, "FlowSolution#Centers")
-               Internal._rmNodesByName(b4, "FlowSolution#Centers")
-               Internal._rmNodesByName(b5, "FlowSolution#Centers")
-               Internal._rmNodesByName(b6, "FlowSolution#Centers")
-               #Internal._rmNodesByName(b1, "ZoneGridConnectivity")
-               #Internal._rmNodesByName(b2, "ZoneGridConnectivity")
-               #Internal._rmNodesByName(b3, "ZoneGridConnectivity")
-               #Internal._rmNodesByName(b4, "ZoneGridConnectivity")
-               #Internal._rmNodesByName(b5, "ZoneGridConnectivity")
-               #Internal._rmNodesByName(b6, "ZoneGridConnectivity")
-               Internal._rmNodesByName(b1, "ZoneBC")
-               Internal._rmNodesByName(b2, "ZoneBC")
-               Internal._rmNodesByName(b3, "ZoneBC")
-               Internal._rmNodesByName(b4, "ZoneBC")
-               Internal._rmNodesByName(b5, "ZoneBC")
-               Internal._rmNodesByName(b6, "ZoneBC")
-               for name in [".Solver#define",".Solver#Param", "Parameter_int", "Parameter_real"]:
-                  Internal._rmNodesByName(b1, name)
-                  Internal._rmNodesByName(b2, name)
-                  Internal._rmNodesByName(b3, name)
-                  Internal._rmNodesByName(b4, name)
-                  Internal._rmNodesByName(b5, name)
-                  Internal._rmNodesByName(b6, name)
-            
+            if variables is not None: # no var
+                b1 = C.extractVars(b1, vars=variables, keepOldNodes=False)
+                b2 = C.extractVars(b2, vars=variables, keepOldNodes=False)
+                b3 = C.extractVars(b3, vars=variables, keepOldNodes=False)
+                b4 = C.extractVars(b4, vars=variables, keepOldNodes=False)
+                b5 = C.extractVars(b5, vars=variables, keepOldNodes=False)
+                b6 = C.extractVars(b6, vars=variables, keepOldNodes=False)
+                            
             sz[b1[0]] = b1
             sz[b2[0]] = b2
             sz[b3[0]] = b3

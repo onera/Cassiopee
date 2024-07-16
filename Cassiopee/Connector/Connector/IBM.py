@@ -180,7 +180,7 @@ def _computeMeshInfo(t):
 
     return None
 
-def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=None, t_curvi=None,
+def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=None, tbCurvi=None,
                        snears=0.01, snearsf=None, dfars=10., dfarDir=0, vmin=21, depth=2, frontType=1, mode=0,
                        IBCType=1, verbose=True, expand=3,
                        check=False, balancing=False, distribute=False, twoFronts=False, cartesian=False,
@@ -259,8 +259,6 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
         Internal.addChild(b, refstate, pos=0)
         Internal.addChild(b, flowEqn , pos=0)
      
-        if b[0]=="SYM": Internal._rmNodesByNameAndType(t, b[0], 'CGNSBase_t')
-   
     #===================
     # STEP 2 : DIST2WALL
     #=================== 
@@ -320,7 +318,7 @@ def prepareIBMDataPara(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tin
     #===================
     if verbose: pt0 = python_time.time(); printTimeAndMemory__('initialize and clean', time=-1)
 
-    t, tc, tc2 = initializeIBM(t, tc, tb, tinit=tinit, t_curvi=t_curvi, dimPb=dimPb, twoFronts=twoFronts,
+    t, tc, tc2 = initializeIBM(t, tc, tb, tinit=tinit, tbCurvi=tbCurvi, dimPb=dimPb, twoFronts=twoFronts,
                                isWireModel=isWireModel, tbFilament=tbFilament, filamentBases=filamentBases, isFilamentOnly=isFilamentOnly)
 
     if distribute and Cmpi.size > 1: _redispatch__(t=t, tc=tc, tc2=tc2, twoFronts=twoFronts)
@@ -1318,23 +1316,24 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
 # IN: tc (tree): connectivity tree
 # IN: tb (tree): geometry tree (IBM bodies)
 # IN: tinit (tree): computational tree from previous computation used to initialize the flow solution in t
-# IN: t_curvi (tree): geometry tree (curvilign bodies) for hybrid computation cart + curvi
+# IN: tbCurvi (tree): geometry tree (curvilign bodies) for hybrid computation cart + curvi
 # IN: dimPb (2 or 3): problem dimension
 # IN: twoFronts (boolean): if True, creates a new connectivity tree that contains second image points information
 # OUT: updated t, tc
 # OUT: (optional) new connectivity tree tc2
 #=========================================================================
-def _recomputeDistForViscousWall__(t, tb, t_curvi=None, dimPb=3, tbFilament=None, filamentBases=[], isFilamentOnly=False, filter_bc=['nada']):
+def _recomputeDistForViscousWall__(t, tb, tbCurvi=None, dimPb=3, tbFilament=None, filamentBases=[], isFilamentOnly=False):
 
+    filteredBC=['outpress', 'inj', 'slip', 'overlap']
     recompute=False
     for z in Internal.getZones(tb):
         ibc = Internal.getValue( Internal.getNodeFromName(z, 'ibctype') )
-        if ibc in filter_bc:
+        if ibc in filteredBC:
             Internal._rmNode(tb,z)
             recompute=True
-    if t_curvi is not None:
+    if tbCurvi is not None:
        recompute=True # on recalcule distance si cas hybride cart + curvi
-       bases = Internal.getBases(t_curvi)
+       bases = Internal.getBases(tbCurvi)
        for base in bases: base[0]='curvi'+base[0]
        tb[2]+=bases
 
@@ -1439,7 +1438,7 @@ def _tInitialize__(t, tinit=None, model='NSTurbulent', isWireModel=False):
                 C._initVars(z,'{centers:'+v_local+'_WM}=0.')
     return None
 
-def initializeIBM(t, tc, tb, tinit=None, t_curvi=None, dimPb=3, twoFronts=False, isWireModel=False,
+def initializeIBM(t, tc, tb, tinit=None, tbCurvi=None, dimPb=3, twoFronts=False, isWireModel=False,
                   tbFilament=None, filamentBases=[], isFilamentOnly=False):
     """Initialize the computational and connectivity trees for IBM pre-processing."""
 
@@ -1452,10 +1451,7 @@ def initializeIBM(t, tc, tb, tinit=None, t_curvi=None, dimPb=3, twoFronts=False,
     ibctypes = list(set(Internal.getValue(ibc) for ibc in ibctypes))
 
     if model != 'Euler':
-#        if any(ibc in ['outpress', 'inj', 'slip'] for ibc in ibctypes):
-#            _recomputeDistForViscousWall__(t, tb, dimPb=dimPb, tbFilament=tbFilament, filamentBases=filamentBases, isFilamentOnly=isFilamentOnly)
-      filter_bc=['outpress', 'inj', 'slip','overlap']
-      _recomputeDistForViscousWall__(t, tb, t_curvi=t_curvi, dimPb=dimPb, filter_bc=filter_bc, tbFilament=tbFilament, filamentBases=filamentBases, isFilamentOnly=isFilamentOnly )
+      _recomputeDistForViscousWall__(t, tb, tbCurvi=tbCurvi, dimPb=dimPb, tbFilament=tbFilament, filamentBases=filamentBases, isFilamentOnly=isFilamentOnly )
 
     tc2 = Internal.copyTree(tc) if twoFronts or isWireModel else None
 
