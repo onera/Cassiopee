@@ -208,6 +208,27 @@ def _setFluidInside(t):
     return None
 
 #==============================================================================
+# Set the fluid outside the geometry
+#==============================================================================
+def setFluidOutside(t):
+    """Set fluid inside a geometry tree.
+    Usage: setFluidInside(t)"""
+    tp = Internal.copyRef(t)
+    _setFluidInside(tp)
+    return tp
+
+def _setFluidOutside(t):
+    """Set fluid inside a geometry tree.
+    Usage: _setFluidInside(t)"""
+    zones = Internal.getZones(t)
+    for z in zones:
+        Internal._createUniqueChild(z, '.Solver#define', 'UserDefinedData_t')
+        n = Internal.getNodeFromName1(z, '.Solver#define')
+        Internal._createUniqueChild(n, 'inv', 'DataArray_t', value=0)
+    return None
+
+
+#==============================================================================
 # Set outpress control parameters in zones
 #==============================================================================
 def setOutPressControlParam(t, probeName='pointOutPress', AtestSection=1, AOutPress=1,
