@@ -7,7 +7,6 @@ PARADIGMA=0
 
 (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
                                                      additionalIncludePaths)
-
 #==============================================================================
 # Fichiers c++
 #==============================================================================
@@ -20,7 +19,6 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             
             'XCore/common/mem.cpp',
             'XCore/common/common.cpp',
-
 
             'XCore/intersectMesh/removeIntersectingKPlanes.cpp',
             'XCore/intersectMesh/intersectSurf.cpp',
@@ -96,5 +94,9 @@ else:
         'XCore/exchangeFields_stub.cpp',
         'XCore/chunk2partNGon_stub.cpp',
         'XCore/chunk2partElt_stub.cpp',
-        'XCore/adaptMesh2/AdaptMesh_stub.cpp'
+        'XCore/AdaptMesh/stubs/AdaptMesh_Adapt_stub.cpp',
+        'XCore/AdaptMesh/stubs/AdaptMesh_Init_stub.cpp',
+        'XCore/AdaptMesh/stubs/AdaptMesh_ExtractMesh_stub.cpp',
+        'XCore/AdaptMesh/stubs/AdaptMesh_AssignRefData_stub.cpp',
+        'XCore/AdaptMesh/stubs/AdaptMesh_LoadBalance_stub.cpp'
         ]
