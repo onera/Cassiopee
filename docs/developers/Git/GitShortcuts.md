@@ -1,4 +1,4 @@
-# -- Useful git shortcuts --
+# Useful git shortcuts
 
 ## Detailed & compact display of git log with graph
 ```shell
@@ -34,8 +34,8 @@ e.g.
 1) gitgrep var2
 2) gitgrep var 2 Converter
 ```shell
-#first argument: variable names
-#second argument: local path to directory
+# first argument: variable names
+# second argument: local path to directory
 gitgrep () {
     if [ "$#" -lt 2 ]
     then
