@@ -82,6 +82,7 @@ int Q6_refine(Int quad, Mesh *M)
         fpts[4] = NODES[2]; fpts[6] = NODES[3];
 
         fpts = Mesh_get_face(M, quad);
+        memset(fpts, -1, 8*sizeof(Int));
         fpts[0] = NODES[0]; fpts[2] = NODES[1];
         fpts[4] = NODES[4]; fpts[6] = NODES[5];
     }
