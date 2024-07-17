@@ -1,4 +1,4 @@
-# Cloning Cassiopee on Linux
+# Cloning Cassiopee
 
 ## Add an SSH key to your Github account
 
@@ -28,7 +28,15 @@ git config --global user.name <username>
 git config --global user.email <firstname.name@example.com>
 ```
 
-5. Clone Cassiopee
+## Cloning/forking Cassiopee
+
+If you consider developping and propose pull request, please fork the repository: on the github page, click on "Fork" and "Create new fork".
+Then:
+```sh 
+git clone git@github.com:<yourName>/Cassiopee.git
+```
+else, tou can directly clone the main repository:
+
 ```sh 
 git clone git@github.com:onera/Cassiopee.git
 ```
