@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../common/common.h"
+#include "common/common.h"
 
 extern const Int normalIn_Py[5];
 

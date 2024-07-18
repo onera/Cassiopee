@@ -168,12 +168,13 @@ void Mesh_make_edge_connectivity(Mesh *M)
     }
 }
 
-
 void Mesh_update_global_cell_ids(Mesh *M)
 {
+    if (M->npc == 1) return;
+
     Int new_cells = M->nc - M->nc_old;
 
-    Int first_new_cell = 0;
+    Int first_new_cell = new_cells;
     MPI_Scan(&new_cells, &first_new_cell, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
     Int gnc_old = 0;
@@ -196,8 +197,6 @@ void Mesh_update_global_cell_ids(Mesh *M)
             M->g2lc[gcid] = lcid; 
         }
     }
-
-    //MPI_Barrier(MPI_COMM_WORLD);
 }
 
 void Mesh_update_ppatches(Mesh *M)
@@ -365,6 +364,8 @@ void Mesh_update_bpatches(Mesh *M)
 
 void Mesh_update_global_face_ids(Mesh *M)
 {
+    if (M->npc == 1) return;
+
     M->l2gf = (Int *)XRESIZE(M->l2gf, M->nf * sizeof(Int)); 
     for (Int i = M->nf_old; i < M->nf; i++) M->l2gf[i] = -1; 
 
@@ -377,10 +378,10 @@ void Mesh_update_global_face_ids(Mesh *M)
 
     Int ndup = M->nf - nfree;
 
-    Int gnfree;
+    Int gnfree = nfree;
     MPI_Allreduce(&nfree, &gnfree, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
-    Int gndup;
+    Int gndup = ndup;
     MPI_Allreduce(&ndup, &gndup, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
     gndup /= 2;

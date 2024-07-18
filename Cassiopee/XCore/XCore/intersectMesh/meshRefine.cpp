@@ -19,7 +19,7 @@
 #include <stack>
 
 #include "mesh.h"
-#include "../common/common.h"
+#include "common/common.h"
 
 int meshes_mutual_refinement(IMesh &M, IMesh &S)
 {

@@ -18,12 +18,12 @@
 */
 #pragma once
 
-#include <mpi.h>
+#include "Mpi.h"
 #include <map>
 #include <array>
 
 #include "xcore.h"
-#include "../common/common.h"
+#include "common/common.h"
 
 #define HEXA 0
 #define TETRA 1
@@ -152,9 +152,9 @@ struct Mesh {
 
     /* Parallel */
 
-    Int pid;
-    Int npc;
-    Int nrq;
+    int pid;
+    int npc;
+    int nrq;
     MPI_Request *reqs;
 
     Int *l2gc;
@@ -331,10 +331,14 @@ PyObject *Mesh_export_karray(Mesh *M, int conformize);
 
 /* Parallel */
 
-void Mesh_comm_waitall(Mesh *M);
+inline
+void Mesh_comm_waitall(Mesh *M)
+{
+    MPI_Waitall(M->nrq, M->reqs, MPI_STATUSES_IGNORE);
+    M->nrq = 0;
+}
 
 Int Mesh_load_balance(Mesh *M);
-
 
 /* Adaptation */
 
