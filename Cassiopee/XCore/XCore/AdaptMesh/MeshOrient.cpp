@@ -21,7 +21,7 @@
 #include <stack>
 
 #include "Mesh.h"
-#include "../common/mem.h"
+#include "common/mem.h"
 #include "Edge.h"
 
 #define INTERNAL 0

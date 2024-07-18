@@ -18,8 +18,7 @@
 */
 #pragma once
 
-#include "../common/common.h"
-
+#include "common/common.h"
 #include "Mesh.h"
 
 void refine_tri(Int tri, Mesh *M);

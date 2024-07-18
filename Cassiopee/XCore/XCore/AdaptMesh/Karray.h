@@ -19,7 +19,7 @@
 #pragma once
 
 #include "xcore.h"
-#include "../common/common.h"
+#include "common/common.h"
 
 struct Karray {
     // Reference to the python array
