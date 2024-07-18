@@ -37,7 +37,6 @@ namespace K_XCORE
 
     PyObject *exchangeFields(PyObject *self, PyObject *args);
 
-
     PyObject *AdaptMesh_Init(PyObject *self, PyObject *args);
 
     PyObject *AdaptMesh_AssignRefData(PyObject *self, PyObject *args);
@@ -47,16 +46,6 @@ namespace K_XCORE
     PyObject *AdaptMesh_Adapt(PyObject *self, PyObject *args);
 
     PyObject *AdaptMesh_ExtractMesh(PyObject *self, PyObject *args);
-
-    /*
-    PyObject *computeHessian(PyObject *self, PyObject *args);
-    PyObject *computeGradient(PyObject *self, PyObject *args);
-    PyObject *hessianToMetric(PyObject *self, PyObject *args);
-    PyObject *_makeRefDataFromGradAndHess(PyObject *self, PyObject *args);
-    PyObject *_prepareMeshForAdaptation(PyObject *self, PyObject *args);
-    PyObject *_assignRefDataToAM(PyObject *self, PyObject *args);
-    PyObject *extractBoundaryMesh(PyObject *self, PyObject *args);
-    */
 
     PyObject *intersectSurf(PyObject *self, PyObject *args);
     PyObject *removeIntersectingKPlanes(PyObject *self, PyObject *args);

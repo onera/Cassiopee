@@ -38,17 +38,6 @@ static PyMethodDef Pyxcore [] =
     {"AdaptMesh_Adapt", K_XCORE::AdaptMesh_Adapt, METH_VARARGS},
     {"AdaptMesh_ExtractMesh", K_XCORE::AdaptMesh_ExtractMesh, METH_VARARGS},
 
-
-    /*
-    {"computeHessian", K_XCORE::computeHessian, METH_VARARGS},
-    {"computeGradient", K_XCORE::computeGradient, METH_VARARGS},
-    {"hessianToMetric", K_XCORE::hessianToMetric, METH_VARARGS},
-    {"_makeRefDataFromGradAndHess", K_XCORE::_makeRefDataFromGradAndHess, METH_VARARGS},
-    {"_prepareMeshForAdaptation", K_XCORE::_prepareMeshForAdaptation, METH_VARARGS},
-    {"_assignRefDataToAM", K_XCORE::_assignRefDataToAM, METH_VARARGS},
-    {"extractBoundaryMesh", K_XCORE::extractBoundaryMesh, METH_VARARGS},
-    */
-
     {"intersectSurf", K_XCORE::intersectSurf, METH_VARARGS},
     {"removeIntersectingKPlanes", K_XCORE::removeIntersectingKPlanes, METH_VARARGS},
     

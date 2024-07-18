@@ -63,8 +63,36 @@ PyObject *export_BE_mesh(Mesh *M)
             NODES[12] = local[2];
             NODES[11] = local[3];
 
+            Int second, third, fourth;
+            second = third = fourth = -1;
+
+            for (Int i = 1; i < 4; i++) {
+
+                Int fid = BOT[i];
+                Int *pn = Mesh_get_face(M, fid);
+                Int common[4] = {0, 0, 0, 0};
+
+                for (Int j = 0; j < 4; j++) {
+                    Int point = pn[2*j];
+                    for (Int k = 0; k < 4; k++) {
+                        if (local[k] == point) {
+                            common[k] = 1;
+                            break;
+                        }
+                    }
+                }
+
+                if (common[1] && common[2]) second = i;
+                else if (common[2] && common[3]) fourth = i;
+                else third = i;
+            }
+
+            assert(second != -1);
+            assert(third != -1);
+            assert(fourth != -1);
+
             // Setup second face
-            fid = BOT[1];
+            fid = BOT[second];
             pn = Mesh_get_face(M, fid);
             for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
             i0 = Get_pos(NODES[8], local, 4);
@@ -77,7 +105,7 @@ PyObject *export_BE_mesh(Mesh *M)
             NODES[9] = local[2];
 
             // Setup third face
-            fid = BOT[2];
+            fid = BOT[third];
             pn = Mesh_get_face(M, fid);
             for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
             i0 = Get_pos(NODES[12], local, 4);
@@ -90,7 +118,7 @@ PyObject *export_BE_mesh(Mesh *M)
             NODES[10] = local[3];
 
             // Setup fourth face
-            fid = BOT[3];
+            fid = BOT[fourth];
             pn = Mesh_get_face(M, fid);
             for (Int i = 0; i < 4; i++) local[i] = pn[2*i];
             i0 = Get_pos(NODES[11], local, 4);
@@ -365,8 +393,8 @@ PyObject *export_BE_mesh(Mesh *M)
             Int reorient = Mesh_get_reorient(M, fid, cid, normalIn_H[top]);
             if (reorient) std::swap(local[1], local[3]);
             assert(local[0] == NODES[4]);
+            assert(local[3] == NODES[14]);
             NODES[21] = local[1];
-            NODES[14] = local[3];
             NODES[25] = local[2];
 
             // Get second, third and fourth sides
@@ -409,9 +437,8 @@ PyObject *export_BE_mesh(Mesh *M)
             reorient = Mesh_get_reorient(M, fid, cid, normalIn_H[top]);
             if (reorient) std::swap(local[1], local[3]);
             assert(local[0] == NODES[21]);
-            assert(local[1] == NODES[5]);
-            assert(local[2] == NODES[18]);
             assert(local[3] == NODES[25]);
+            NODES[5] = local[1];
 
             // Setup third face
             fid = TOP[third];
@@ -422,9 +449,8 @@ PyObject *export_BE_mesh(Mesh *M)
             reorient = Mesh_get_reorient(M, fid, cid, normalIn_H[top]);
             if (reorient) std::swap(local[1], local[3]);
             assert(local[0] == NODES[25]);
-            assert(local[1] == NODES[18]);
-            assert(local[2] == NODES[6]);
-            assert(local[3] == NODES[23]);
+            NODES[6] = local[2];
+            NODES[23] = local[3];
 
             // Setup fourth face
             fid = TOP[fourth];
