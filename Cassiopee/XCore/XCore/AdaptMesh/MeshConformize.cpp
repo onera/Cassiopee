@@ -70,6 +70,8 @@ void Mesh_conformize_face_edge(Mesh *M)
         }
     }
 
+    if (M->npc == 1) return;
+
     // Exchange franges at the interface
 
     for (Int i = 0; i < M->npp; i++) {

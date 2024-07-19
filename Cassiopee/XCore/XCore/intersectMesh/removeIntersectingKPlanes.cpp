@@ -19,7 +19,7 @@
 #include <unordered_map>
 
 #include "xcore.h"
-#include "../common/common.h"
+#include "common/common.h"
 #include "karray.h"
 #include "mesh.h"
 #include "ray.h"

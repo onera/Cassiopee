@@ -7,7 +7,6 @@ PARADIGMA=0
 
 (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
                                                      additionalIncludePaths)
-
 #==============================================================================
 # Fichiers c++
 #==============================================================================
@@ -20,7 +19,6 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             
             'XCore/common/mem.cpp',
             'XCore/common/common.cpp',
-
 
             'XCore/intersectMesh/removeIntersectingKPlanes.cpp',
             'XCore/intersectMesh/intersectSurf.cpp',
@@ -47,36 +45,27 @@ cpp_srcs = ['XCore/CMP/src/recv_buffer.cpp',
             'XCore/intersectMesh/triangle.cpp',
             'XCore/intersectMesh/point.cpp',
             'XCore/intersectMesh/ray.cpp',
-            'XCore/intersectMesh/karray.cpp'
-            ]
-if mpi: # source that requires mpi
-    cpp_srcs += [
-            'XCore/SplitElement/splitter.cpp',
-            'XCore/exchangeFields.cpp',
-            'XCore/chunk2partNGon.cpp',
-            'XCore/chunk2partElt.cpp',
+            'XCore/intersectMesh/karray.cpp',
+
 
             'XCore/AdaptMesh/AdaptMesh_Init.cpp',
-            'XCore/AdaptMesh/AdaptMesh_Adapt.cpp',
-            'XCore/AdaptMesh/AdaptMesh_AssignRefData.cpp',
-            'XCore/AdaptMesh/AdaptMesh_LoadBalance.cpp',
             'XCore/AdaptMesh/AdaptMesh_ExtractMesh.cpp',
+            'XCore/AdaptMesh/AdaptMesh_AssignRefData.cpp',
+            'XCore/AdaptMesh/AdaptMesh_Adapt.cpp',
             
-            'XCore/AdaptMesh/MeshClean.cpp',
             'XCore/AdaptMesh/MeshInit.cpp',
             'XCore/AdaptMesh/MeshOrient.cpp', 
-            'XCore/AdaptMesh/MeshIO.cpp',
+            'XCore/AdaptMesh/MeshClean.cpp',
             'XCore/AdaptMesh/MeshTopo.cpp',
+            'XCore/AdaptMesh/MeshIO.cpp',
+            'XCore/AdaptMesh/MeshSmooth.cpp',
+
             'XCore/AdaptMesh/MeshConnectivity.cpp', 
             'XCore/AdaptMesh/MeshConformize.cpp', 
-            'XCore/AdaptMesh/MeshSmooth.cpp',
-            'XCore/AdaptMesh/MeshComm.cpp',
             'XCore/AdaptMesh/MeshRefine.cpp',
             'XCore/AdaptMesh/MeshIso.cpp',
             'XCore/AdaptMesh/MeshDir.cpp',
-            
-            'XCore/AdaptMesh/Karray.cpp',
-            
+
             'XCore/AdaptMesh/H27.cpp',
             'XCore/AdaptMesh/H18.cpp',
             'XCore/AdaptMesh/Tetra.cpp',
@@ -88,7 +77,19 @@ if mpi: # source that requires mpi
             
             'XCore/AdaptMesh/Tri.cpp',
 
-            'XCore/AdaptMesh/Edge.cpp'
+            'XCore/AdaptMesh/Edge.cpp',
+            
+            'XCore/AdaptMesh/Karray.cpp'
+            ]
+if mpi: # source that requires mpi
+    cpp_srcs += [
+            'XCore/SplitElement/splitter.cpp',
+            'XCore/exchangeFields.cpp',
+            'XCore/chunk2partNGon.cpp',
+            'XCore/chunk2partElt.cpp',
+
+            'XCore/AdaptMesh/AdaptMesh_LoadBalance.cpp',
+            'XCore/AdaptMesh/MeshComm.cpp',
             ]
 else:
     cpp_srcs += [
@@ -96,5 +97,5 @@ else:
         'XCore/exchangeFields_stub.cpp',
         'XCore/chunk2partNGon_stub.cpp',
         'XCore/chunk2partElt_stub.cpp',
-        'XCore/adaptMesh2/AdaptMesh_stub.cpp'
+        'XCore/AdaptMesh/stubs/AdaptMesh_LoadBalance_stub.cpp'
         ]

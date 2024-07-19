@@ -16,13 +16,12 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "Tri.h"
 
-void refine_tri(Int tri, Mesh *M)
-{}
+#include "xcore.h"
 
-void reorder_tri(Int tri, Mesh *M)
-{}
-
-Int check_canon_tri(Int tri, Mesh *M)
-{ return 1;}
+PyObject* K_XCORE::AdaptMesh_ExtractMesh(PyObject *self, PyObject *args)
+{
+  PyErr_SetString(PyExc_TypeError,
+                  "AdaptMesh_ExtractMesh: not available (no mpi).");
+  return NULL;
+}

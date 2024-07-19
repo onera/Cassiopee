@@ -20,8 +20,8 @@
 #include <limits>
 
 #include "Mesh.h"
+#include "common/mem.h"
 #include "scotch/ptscotch.h"
-#include "../common/mem.h"
 
 #define TOL 1e-12
 
@@ -93,20 +93,6 @@ Int *compute_cell_weights(Mesh *M)
     for (Int i = 0; i < M->nc; i++) {
         cwgts[i] = ((weights[i]/min_weight - 1)*range_scale) + 1;
     }
-
-    /*
-    for (Int i = 0; i < M->nc; i++) {
-        Int cval = M->cref[i];
-
-        cwgts[i] = 1;
-        if (cval > 0) cwgts[i] += gnc;
-
-        //if (cval == 0) cwgts[i] = 1;
-        //else cwgts[i] = 8 + 8*20;
-
-        //cwgts[i] = 1 + ((1 << (3*cval)) - 1);
-    }
-    */
 
     return cwgts;
 }
@@ -1546,10 +1532,4 @@ Int Mesh_load_balance(Mesh *M)
     MPI_Allreduce(&M->nf, &gnf, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD); 
 
     return gret;
-}
-
-void Mesh_comm_waitall(Mesh *M)
-{
-    MPI_Waitall(M->nrq, M->reqs, MPI_STATUSES_IGNORE);
-    M->nrq = 0;
 }

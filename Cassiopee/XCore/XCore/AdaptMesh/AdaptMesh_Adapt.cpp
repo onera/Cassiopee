@@ -45,11 +45,13 @@ void cache_prerefinement_data(Mesh *M)
 static
 void print_postrefinement_data(Mesh *M)
 {
-    Int gnc = 0;
+    Int gnc = M->nc;
     MPI_Allreduce(&M->nc, &gnc, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
     if (M->pid == 0) {
         printf("    Total cells after refinement: " SF_D_ "\n", gnc);
     }
+
+    if (M->npc == 1) return;
 
     Float balanced = gnc / (Float) M->npc;
     Float my_imbalance = fabs((M->nc - balanced) / (Float)balanced * 100.0);
@@ -120,12 +122,8 @@ PyObject *K_XCORE::AdaptMesh_Adapt(PyObject *self, PyObject *args)
 
     if (M->pid == 0) puts("    Conformizing face edges...");
     Mesh_conformize_face_edge(M);
- 
-    //if (M->pid == 0) puts("    Exporting CGNS array...");
-    //PyObject *karray = Mesh_export_karray(M);
 
     if (M->pid == 0) puts("    Done.");
 
     return Py_None;
-    //return karray;
 }

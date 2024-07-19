@@ -1,3 +1,21 @@
+/*    
+    Copyright 2013-2024 Onera.
+
+    This file is part of Cassiopee.
+
+    Cassiopee is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Cassiopee is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "Quad.h"
 
 int Q6_refine(Int quad, Mesh *M)
@@ -82,6 +100,7 @@ int Q6_refine(Int quad, Mesh *M)
         fpts[4] = NODES[2]; fpts[6] = NODES[3];
 
         fpts = Mesh_get_face(M, quad);
+        memset(fpts, -1, 8*sizeof(Int));
         fpts[0] = NODES[0]; fpts[2] = NODES[1];
         fpts[4] = NODES[4]; fpts[6] = NODES[5];
     }

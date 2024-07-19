@@ -103,12 +103,16 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
         
         M->bps[i].gid = PyLong_AsLong(PyList_GetItem(PATCH, 1));
 
+#if PY_VERSION_HEX >= 0x03000000
         const char *bcname = PyUnicode_AsUTF8(PyList_GetItem(PATCH, 2));
+        const char *bctype = PyUnicode_AsUTF8(PyList_GetItem(PATCH, 3));
+#else
+        const char *bcname = PyString_AsString(PyList_GetItem(PATCH, 2));
+        const char *bctype = PyString_AsString(PyList_GetItem(PATCH, 3));
+#endif
 
         M->bps[i].name = (char *)XMALLOC(strlen(bcname)+1);
         strcpy(M->bps[i].name, bcname);
-
-        const char *bctype = PyUnicode_AsUTF8(PyList_GetItem(PATCH, 3));
 
         M->bps[i].type = (char *)XMALLOC(strlen(bctype)+1);
         strcpy(M->bps[i].type, bctype);

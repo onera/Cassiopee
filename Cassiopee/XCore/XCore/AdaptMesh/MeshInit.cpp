@@ -68,10 +68,10 @@ Mesh::Mesh()
     nf_old = 0;
 
     /* Parallel */
-    int pid_; int npc_;
-    MPI_Comm_rank(MPI_COMM_WORLD, &pid_);
-    MPI_Comm_size(MPI_COMM_WORLD, &npc_);
-    pid = E_Int(pid_); npc = E_Int(npc_);
+    pid = 0;
+    npc = 1;
+    MPI_Comm_rank(MPI_COMM_WORLD, &pid);
+    MPI_Comm_size(MPI_COMM_WORLD, &npc);
     
     nrq = 0;
     reqs = (MPI_Request *)XMALLOC(2 * npc * sizeof(MPI_Request));

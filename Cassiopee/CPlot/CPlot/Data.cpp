@@ -336,7 +336,7 @@ void Data::initState()
 
   // Styles
   ptrState->meshStyle = 2;
-  ptrState->solidStyle = 0;
+  ptrState->solidStyle = 1;
   ptrState->scalarStyle = 0;
   ptrState->vectorStyle = 0;
   ptrState->vectorScale = 100.f;

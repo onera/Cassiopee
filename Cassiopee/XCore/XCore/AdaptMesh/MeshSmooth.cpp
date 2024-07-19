@@ -19,7 +19,7 @@
 #include <stack>
 
 #include "Mesh.h"
-#include "../common/mem.h"
+#include "common/mem.h"
 
 inline
 Int Mesh_get_cnei(Mesh *M, Int cid, Int fid)
@@ -125,7 +125,7 @@ Int Mesh_smooth_cref(Mesh *M)
             }
         }
 
-        Int gstop;
+        Int gstop = 0;
         MPI_Allreduce(&lstop, &gstop, 1, XMPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
         if (gstop == 0) break;

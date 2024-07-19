@@ -74,6 +74,7 @@ PyObject* K_TRANSFORM::splitElement(PyObject* self, PyObject* args)
     size += voisins.size();
   }
   //printf("size = " SF_D_ "\n", size);
+  //printf("size of idx=%d, int=%d\n", sizeof(idx_t), sizeof(E_Int));
 
   idx_t* adj1 = new idx_t [size];
   idx_t* adj = adj1;
