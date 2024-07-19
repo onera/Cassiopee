@@ -1187,6 +1187,4 @@ class Handle:
       # Ecrit les zones partiellement
       fr = {}
       writePyTreeFromFilter(a, fileName, fr, skelData=[])
-      
-
 

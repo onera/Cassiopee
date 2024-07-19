@@ -655,7 +655,6 @@ def subzoneStruct__(t, minIndex, maxIndex):
                Transform.subzone, Transform.subzone,
                minIndex, maxIndex,
                (imin, jmin, kmin), (imax,jmax,kmax))
-    
     C._rmBCOfType(t2, 'BCMatch'); C._rmBCOfType(t2, 'BCNearMatch')
     imin = minIndex[0]; imax = maxIndex[0]
     jmin = minIndex[1]; jmax = maxIndex[1]
