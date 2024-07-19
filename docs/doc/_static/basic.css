@@ -26,6 +26,7 @@ div.section::after {
 div.related {
     width: 100%;
     font-size: 90%;
+    visibility: hidden;
 }
 
 div.related h3 {
@@ -56,10 +57,16 @@ div.sphinxsidebarwrapper {
 div.sphinxsidebar {
     float: left;
     width: 230px;
-    margin-left: -100%;
+    margin-left: 2%;
+    padding-right: 3%;
+    padding-bottom: 1%;
+    padding-top: 0%;
     font-size: 90%;
     word-wrap: break-word;
     overflow-wrap : break-word;
+    position: fixed;
+    border-right: var(--border);
+    border-width: 2px;
 }
 
 div.sphinxsidebar ul {
@@ -77,15 +84,16 @@ div.sphinxsidebar ul ul {
     margin-bottom: 0;
 }
 
-div.sphinxsidebar form {
+/* div.sphinxsidebar form {
     margin-top: 10px;
-}
+} */
 
-div.sphinxsidebar input {
+/* div.sphinxsidebar input {
     border: 1px solid #98dbcc;
     font-family: sans-serif;
     font-size: 1em;
-}
+    margin-bottom: 10px;
+} */
 
 div.sphinxsidebar #searchbox form.search {
     overflow: hidden;
@@ -96,14 +104,28 @@ div.sphinxsidebar #searchbox input[type="text"] {
     width: 80%;
     padding: 0.25em;
     box-sizing: border-box;
+    background-color: white;
+    border-color: black;
+    border-radius: 8px;
+    border: 2px solid;
+    outline: none;
+    margin-right: 1%;
+    margin-top: 5%;
+    margin-bottom: 5%;
 }
 
 div.sphinxsidebar #searchbox input[type="submit"] {
     float: left;
-    width: 20%;
-    border-left: none;
+    width: 19%;
     padding: 0.25em;
     box-sizing: border-box;
+    background-color: white;
+    border-color: black;
+    border-radius: 8px;
+    border: 2px solid;
+    outline: none;
+    margin-top: 5%;
+    margin-bottom: 5%;
 }
 
 
@@ -181,6 +203,7 @@ table.indextable ul {
 
 table.indextable > tbody > tr > td > ul {
     padding-left: 0em;
+    width: 100%;
 }
 
 table.indextable tr.pcap {
@@ -222,8 +245,11 @@ table.modindextable td {
 /* -- general body styles --------------------------------------------------- */
 
 div.body {
-    min-width: 360px;
-    max-width: 800px;
+    /* min-width: 360px;
+    max-width: 800px; */
+    min-width: 600px;
+    width: 80%;
+    margin-left: 10%;
 }
 
 div.body p, div.body dd, div.body li, div.body blockquote {
@@ -259,7 +285,9 @@ div.body p.caption {
 }
 
 div.body td {
-    text-align: left;
+    text-align: center;
+    width: 20%;
+    /* font-size: 10%; */
 }
 
 .first {
@@ -403,6 +431,7 @@ table.docutils {
     margin-bottom: 10px;
     border: 0;
     border-collapse: collapse;
+    width: 100%;
 }
 
 table.align-center {
@@ -424,10 +453,7 @@ table caption span.caption-text {
 
 table.docutils td, table.docutils th {
     padding: 1px 8px 1px 5px;
-    border-top: 0;
-    border-left: 0;
-    border-right: 0;
-    border-bottom: 1px solid #aaa;
+    border: 2px solid #aaa;
 }
 
 th {
@@ -794,7 +820,7 @@ table.highlighttable {
 }
 
 table.highlighttable tbody {
-    display: block;
+    width:100%;
 }
 
 table.highlighttable tr {
