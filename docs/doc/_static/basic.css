@@ -25,7 +25,7 @@ div.section::after {
 
 div.related {
     width: 100%;
-    font-size: 90%;
+    font-size: 1px;
     visibility: hidden;
 }
 
@@ -57,9 +57,9 @@ div.sphinxsidebarwrapper {
 div.sphinxsidebar {
     float: left;
     width: 230px;
-    margin-left: 2%;
-    padding-right: 3%;
-    padding-bottom: 1%;
+    margin-left: 30px;
+    padding-right: 45px;
+    padding-bottom: 20px;
     padding-top: 0%;
     font-size: 90%;
     word-wrap: break-word;
@@ -186,6 +186,10 @@ span.linkdescr {
 
 /* -- general index --------------------------------------------------------- */
 
+table{
+    font-size: 1vw;
+}
+
 table.indextable {
     width: 100%;
 }
@@ -247,9 +251,10 @@ table.modindextable td {
 div.body {
     /* min-width: 360px;
     max-width: 800px; */
-    min-width: 600px;
-    width: 80%;
-    margin-left: 10%;
+    /* min-width: 600px; */
+    min-width: 1%;
+    max-width: 80%;
+    margin-left: 130px;
 }
 
 div.body p, div.body dd, div.body li, div.body blockquote {
@@ -536,6 +541,7 @@ table.hlist td {
 
 .sig {
 	font-family: 'Consolas', 'Menlo', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
+    font-size: 1.2vw;
 }
 
 .sig-name, code.descname {
@@ -544,11 +550,13 @@ table.hlist td {
 }
 
 .sig-name {
-	font-size: 1.1em;
+	/* font-size: 1.1em; */
+    font-size: 1.5vw;
 }
 
 code.descname {
-    font-size: 1.2em;
+    /* font-size: 1.2em; */
+    font-size: 1.2vw;
 }
 
 .sig-prename, code.descclassname {
@@ -556,11 +564,13 @@ code.descname {
 }
 
 .optional {
-    font-size: 1.3em;
+    /* font-size: 1.3em; */
+    font-size: 1.5vw;
 }
 
 .sig-paren {
-    font-size: larger;
+    /* font-size: larger; */
+    font-size: 1.5vw;
 }
 
 .sig-param.n {
