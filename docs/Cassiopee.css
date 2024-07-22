@@ -121,6 +121,10 @@ footer a:hover {
   opacity: 50%;
 }
 
+header img {
+  border: none;
+}
+
 /* local styles ############################## */
 
 .icon {

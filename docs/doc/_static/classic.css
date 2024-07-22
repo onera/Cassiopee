@@ -13,19 +13,13 @@
 
 /* -- page layout ----------------------------------------------------------- */
 
-:root {
-    --border-width: 5px;
-    --border: var(--border-width) solid #282a35;
-    --border-radius: 8px;
-  }
-
 html {
     /* CSS hack for macOS's scrollbar (see #1125) */
-    background-color: #f0fdff;
+    background-color: var(--background-color);
 }
 
 hr {
-    border: 1px solid black;
+    border: 1px solid var(--border-color);
     margin-bottom: 5%;
     margin-top: 5%;
 }
@@ -33,8 +27,8 @@ hr {
 body {
     font-family: sans-serif;
     font-size: 100%;
-    background-color: #f0fdff;
-    color: #000;
+    background-color: var(--background-color);
+    color: var(--font-color);
     margin: 0;
     padding: 0;
     margin-top: 30px;
@@ -42,7 +36,7 @@ body {
 
 div.document {
     display: flex;
-    background-color: #f0fdff;
+    background-color: var(--background-color);
 }
 
 div.documentwrapper {
@@ -52,59 +46,49 @@ div.documentwrapper {
 
 div.bodywrapper {
     margin: 0 0 0 230px;
+    padding-right: 70px;
 }
 
 div.body {
-    background-color: #f0fdff;
-    color: #000000;
+    background-color: var(--background-color);
+    color: var(--font-color);
     padding: 0 20px 30px 20px;
+    margin: 0 0 0 135px;
 }
 
 div.footer {
-    color: #f0fdff;
+    color: var(--font-color);
     width: 100%;
     padding: 9px 0 9px 0;
     text-align: center;
     font-size: 75%;
 }
 
-/* div.footer a {
-    color: #f0fdff;
-    text-decoration: underline;
-} */
-
 div.related {
-    background-color: #f0fdff;
+    background-color: var(--background-color);
     line-height: 30px;
-    color: #f0fdff;
+    color: var(--font-color);
 }
 
-/* div.related a {
-    color: #f0fdff;
+/* div.sphinxsidebar {
+    position: fixed;
+    top: 40px;
+    bottom: 40px;
+    border-right: var(--border);
 } */
-
-div.sphinxsidebar {
-    /* position: fixed; */
-    /* top: 40px; */
-    /* bottom: 10px; */
-}
 
 div.sphinxsidebar h3 {
     font-family: 'Trebuchet MS', sans-serif;
-    color: black;
+    color: var(--font-color);
     font-size: 160%;
     font-weight: bold;
     margin: 0;
     padding: 0;
 }
 
-/* div.sphinxsidebar h3 a {
-    color: #f0fdff;
-} */
-
 div.sphinxsidebar h4 {
     font-family: 'Trebuchet MS', sans-serif;
-    color: black;
+    color: var(--font-color);
     font-size: 1.3em;
     font-weight: normal;
     margin: -5px 0 0 0;
@@ -112,7 +96,7 @@ div.sphinxsidebar h4 {
 }
 
 div.sphinxsidebar p {
-    color: black;
+    color: var(--font-color);
 }
 
 div.sphinxsidebar p.topless {
@@ -122,7 +106,7 @@ div.sphinxsidebar p.topless {
 div.sphinxsidebar ul {
     margin: 10px;
     padding: 0;
-    color: black;
+    color: var(--font-color);
     font-size: 100%;
     margin-bottom: 20px;
 }
@@ -131,25 +115,13 @@ div.sphinxsidebar ul ul li {
     list-style: circle;
 }
 
-/* div.sphinxsidebar a {
-    color: green;
-} */
-
-/* div.sphinxsidebar input {
-    border: 1px solid #98dbcc;
-    font-family: sans-serif;
-    font-size: 1em;
-} */
-
-
-
 /* -- hyperlink styles ------------------------------------------------------ */
 
 a {
     text-decoration: none;
 }
 a:link, a:visited {
-color: green;
+color: var(--link-color);
 }
 a:hover, a:active {
 color: red;
@@ -169,14 +141,11 @@ div.body h4,
 div.body h5,
 div.body h6 {
     font-family: 'Trebuchet MS', sans-serif;
-    /* background-color: #282a35; */
     font-weight: bold;
-    /* color: #a5f4e4; */
-    color: black;
+    color: var(--font-color);
     margin: 20px -20px 10px -20px;
     padding: 3px 0 3px 10px;
     border-radius: var(--border-radius);
-    /* border: 2.5px solid #282a35; */
 }
 
 div.body h1 { margin-top: 0; font-size: 200%; }
@@ -231,7 +200,7 @@ div.admonition ul, div.admonition ol {
 div.note {
     padding: 4px;
     border: 2px solid #d19a66;
-    background-color: white;
+    background-color: rgb(209, 154, 102, 0.2);
     border-radius: var(--border-radius);
     width: 95%;
 }
@@ -244,7 +213,7 @@ div.note {
 div.seealso {
     padding: 4px;
     border: 2px solid #c678dd;
-    background-color: white;
+    background-color: rgb(198, 120, 221, 0.2);
     border-radius: var(--border-radius);
     width: 95%;
 }
@@ -263,7 +232,7 @@ div.topic {
 div.warning {
     padding: 4px;
     border: 2px solid #c12e3a;
-    background-color: white;
+    background-color: rgb(193, 46, 58, 0.2);
     border-radius: var(--border-radius);
     width: 95%;
 }
@@ -286,7 +255,6 @@ pre {
     background-color: unset;
     color: unset;
     line-height: 120%;
-    /* border: 1px solid #ac9; */
     border-left: none;
     border-right: none;
 }
@@ -330,8 +298,8 @@ div.viewcode-block:target {
 }
 
 div.code-block-caption {
-    color: #efefef;
-    background-color: #f0fdff;
+    color: var(--font-color);
+    background-color: var(--background-color);
 }
 
 #myBtn {
