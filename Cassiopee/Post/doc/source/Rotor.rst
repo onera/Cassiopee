@@ -3,7 +3,7 @@
 :tocdepth: 2
 
 
-Rotor: rotor specific post-processing 
+Post.Rotor: rotor specific post-processing 
 ======================================
 
 Specific post-processing for rotors or propellers.
