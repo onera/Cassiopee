@@ -16,6 +16,13 @@ def parseArgs():
     
 # Main
 if __name__ == '__main__':
+  try:
+    import KCore.Dist as Dist
+    from KCore.notify import notify
+  except ImportError:
+    print("Error: KCore is required to execute notifyValid.py")
+    sys.exit()
+    
   script_args = parseArgs()
   recipients = script_args.recipients.split(' ')
   if not recipients[0]: recipients = []
@@ -27,8 +34,17 @@ if __name__ == '__main__':
       log_entries.append(line.strip().split(' - '))
   log_entries.sort(key=lambda x: x[1], reverse=True)
   
+  # Get git info
+  cassiopeeIncDir = '/stck/cassiope/git/Cassiopee/Cassiopee'
+  gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
+  gitBranch = Dist.getGitBranch(cassiopeeIncDir)
+  gitHash = Dist.getGitHash(cassiopeeIncDir)[:7]
+  gitInfo = "Git origin: {}\nGit branch: {}\nCommit hash: {}".format(
+    gitOrigin, gitBranch, gitHash)
+  
   vnvState = 'OK'
-  messageText = "Non-regression testing of Cassiopee, Fast and all PModules:\n{}\n\n".format(58*'-')
+  messageText = "Non-regression testing of Cassiopee, Fast and all "\
+    "PModules:\n{}\n\n{}\n\n\n".format(58*'-', gitInfo)
   for log_machine in log_entries:
     prod = log_machine[0]
     date = strptime(log_machine[1], "%y%m%d-%H%M%S")
@@ -38,13 +54,10 @@ if __name__ == '__main__':
     if 'FAILED' in log_machine: vnvState = 'FAILED'
     
   if vnvState == 'FAILED':
-    messageText += '\n\nIf the prod. you wish to use is marked as FAILED, please contact the maintainers:\nchristophe.benoit@onera.fr, vincent.casseau@onera.fr'
+    messageText += '\n\nIf the prod. you wish to use is marked as FAILED, '\
+      'please contact the maintainers:\nchristophe.benoit@onera.fr, '\
+      'vincent.casseau@onera.fr'
   
-  try:
-    from KCore.notify import notify
-    notify(recipients=recipients,
-           messageSubject="[V&V Cassiopee] State: {}".format(vnvState),
-           messageText=messageText)
-  except ImportError:
-    print("Error: KCore is required to import notify.")
-    sys.exit()
+  notify(recipients=recipients,
+         messageSubject="[V&V Cassiopee] State: {}".format(vnvState),
+         messageText=messageText)
