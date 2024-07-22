@@ -18,7 +18,7 @@
 */
 #include "Quad.h"
 
-int Q9_refine(Int quad, Mesh *M)
+Int Q9_refine(Int quad, Mesh *M)
 {
     Int NODES[8];
 

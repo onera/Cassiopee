@@ -21,10 +21,10 @@
 #include "mesh.h"
 #include "common/common.h"
 
-int meshes_mutual_refinement(IMesh &M, IMesh &S)
+Int meshes_mutual_refinement(IMesh &M, IMesh &S)
 {
     size_t refM, refS;
-    int iter = 0;
+    Int iter = 0;
 
     do {
         iter++;
@@ -41,41 +41,41 @@ int meshes_mutual_refinement(IMesh &M, IMesh &S)
     return 0;
 }
 
-size_t IMesh::refine(std::set<E_Int> &mpatch, std::set<E_Int> &spatch,
+size_t IMesh::refine(std::set<Int> &mpatch, std::set<Int> &spatch,
     IMesh &S)
 {
     // Isolate spatch points
-    std::set<E_Int> spoints;
-    for (E_Int sface : spatch) {
+    std::set<Int> spoints;
+    for (Int sface : spatch) {
         assert(S.face_is_active(sface));
         const auto &spn = S.F[sface];
-        for (E_Int sp : spn)
+        for (Int sp : spn)
             spoints.insert(sp);
     }
 
     // Locate spatch points within mpatch
-    std::map<E_Int, std::vector<pointFace>> spoints_to_mfaces;
+    std::map<Int, std::vector<pointFace>> spoints_to_mfaces;
 
-    for (E_Int spt : spoints) {
+    for (Int spt : spoints) {
         auto pf = locate(S.X[spt], S.Y[spt], mpatch);
         spoints_to_mfaces[spt] = pf;
     }
 
     // Mface to spoints located within it
-    std::map<E_Int, std::vector<E_Int>> mfpoints;
+    std::map<Int, std::vector<Int>> mfpoints;
 
     for (const auto &spt_to_mfs : spoints_to_mfaces) {
-        E_Int spt = spt_to_mfs.first;
+        Int spt = spt_to_mfs.first;
         const auto &mptfaces = spt_to_mfs.second;
 
         for (const auto &mptface : mptfaces) {
-            E_Int mface = mptface.F;
+            Int mface = mptface.F;
             mfpoints[mface].push_back(spt);
         }
     }
 
     // Keep the mfaces which contain 3 points or more
-    std::map<E_Int, std::vector<E_Int>> filtered_mfaces_map;
+    std::map<Int, std::vector<Int>> filtered_mfaces_map;
 
     for (const auto &mfpts : mfpoints) {
         if (mfpts.second.size() >= 3) {
@@ -87,20 +87,20 @@ size_t IMesh::refine(std::set<E_Int> &mpatch, std::set<E_Int> &spatch,
     S.make_point_faces();
 
     // Sensor
-    std::map<E_Int, std::vector<E_Int>> ref_mfaces_to_sfaces;
+    std::map<Int, std::vector<Int>> ref_mfaces_to_sfaces;
 
     for (const auto &mfdata : filtered_mfaces_map) {
-        E_Int mface = mfdata.first;
+        Int mface = mfdata.first;
         const auto &spoints = mfdata.second;
 
         // For every sface, how many points are contained within mface?
-        std::map<E_Int, size_t> scontained;
+        std::map<Int, size_t> scontained;
 
-        for (E_Int sp : spoints) {
+        for (Int sp : spoints) {
             // Sfaces sharing sp
             const auto &sfaces = S.P2F[sp];
  
-            for (E_Int sface : sfaces) {
+            for (Int sface : sfaces) {
                 assert(S.face_is_active(sface));
 
                 // Sface should belong to spatch
@@ -112,7 +112,7 @@ size_t IMesh::refine(std::set<E_Int> &mpatch, std::set<E_Int> &spatch,
         }
 
         for (const auto &sfdat : scontained) {
-            E_Int sface = sfdat.first;
+            Int sface = sfdat.first;
 
             // The number of points of sface contained within mface...
             size_t npts = sfdat.second;
@@ -133,7 +133,7 @@ size_t IMesh::refine(std::set<E_Int> &mpatch, std::set<E_Int> &spatch,
 
     printf("Faces to refine: %zu\n", ref_mfaces_to_sfaces.size());
 
-    E_Int iter = 0;
+    Int iter = 0;
     size_t ret = 0;
 
     while (!ref_mfaces_to_sfaces.empty()) {
@@ -147,16 +147,16 @@ size_t IMesh::refine(std::set<E_Int> &mpatch, std::set<E_Int> &spatch,
 
         refine_faces(ref_faces);
 
-        std::map<E_Int, std::vector<E_Int>> new_sensor;
+        std::map<Int, std::vector<Int>> new_sensor;
 
         for (const auto &fdata : ref_mfaces_to_sfaces) {
-            E_Int parent = fdata.first;
+            Int parent = fdata.first;
             const auto &sfaces = fdata.second;
 
             const auto &children = fchildren[parent];
 
-            for (E_Int child : children) {
-                for (E_Int sface : sfaces) {
+            for (Int child : children) {
+                for (Int sface : sfaces) {
                     if (face_contains_sface(child, sface, S)) {
                         assert(!faces_are_dups(child, sface, S));
                         new_sensor[child].push_back(sface);
@@ -166,7 +166,7 @@ size_t IMesh::refine(std::set<E_Int> &mpatch, std::set<E_Int> &spatch,
 
             // Update mpatch
             patch.erase(parent);
-            for (E_Int child : children) patch.insert(child);
+            for (Int child : children) patch.insert(child);
         }
 
         ref_mfaces_to_sfaces = new_sensor;
@@ -176,12 +176,12 @@ size_t IMesh::refine(std::set<E_Int> &mpatch, std::set<E_Int> &spatch,
 }
 
 
-std::vector<E_Int> IMesh::smooth_ref_data(
-    const std::map<E_Int, std::vector<E_Int>> &sensor)
+std::vector<Int> IMesh::smooth_ref_data(
+    const std::map<Int, std::vector<Int>> &sensor)
 {
     // TODO(Imad): shouldn't the size be factive.size() instead of nf?
-    std::vector<E_Int> ref_data(nf, 0);
-    std::stack<E_Int> stk;
+    std::vector<Int> ref_data(nf, 0);
+    std::stack<Int> stk;
 
     for (const auto &fdata : sensor) {
         assert(face_is_active(fdata.first));
@@ -191,23 +191,23 @@ std::vector<E_Int> IMesh::smooth_ref_data(
 
     /*
     while (!stk.empty()) {
-        E_Int face = stk.top();
+        Int face = stk.top();
         stk.pop();
 
-        E_Int face_incr = ref_data[face] + flevel[face];
+        Int face_incr = ref_data[face] + flevel[face];
 
         auto neis = get_active_neighbours(face);
 
         for (auto nei : neis) {
             assert(nei) != -1;
 
-            E_Int nei_incr = ref_data[nei] + flevel[nei];
+            Int nei_incr = ref_data[nei] + flevel[nei];
 
-            E_Int diff = abs(face_incr - nei_incr);
+            Int diff = abs(face_incr - nei_incr);
 
             if (diff <= 1) continue;
 
-            E_Int fid = face_incr > nei_incr ? nei : face;
+            Int fid = face_incr > nei_incr ? nei : face;
 
             ref_data[fid] += 1;
 
@@ -219,9 +219,9 @@ std::vector<E_Int> IMesh::smooth_ref_data(
     return ref_data;
 }
 
-std::vector<E_Int> IMesh::prepare_for_refinement(const std::vector<E_Int> &ref_data)
+std::vector<Int> IMesh::prepare_for_refinement(const std::vector<Int> &ref_data)
 {
-    std::vector<E_Int> ref_faces;
+    std::vector<Int> ref_faces;
     
     for (size_t i = 0; i < ref_data.size(); i++) {
         if (ref_data[i] > 0) ref_faces.push_back(i);
@@ -229,7 +229,7 @@ std::vector<E_Int> IMesh::prepare_for_refinement(const std::vector<E_Int> &ref_d
 
     // Refine the lower-level faces first
     std::sort(ref_faces.begin(), ref_faces.end(),
-        [&] (E_Int i, E_Int j) { return flevel[i] < flevel[j]; });
+        [&] (Int i, Int j) { return flevel[i] < flevel[j]; });
     
     // Resize data structures
     resize_point_data(ref_faces.size());
@@ -239,15 +239,15 @@ std::vector<E_Int> IMesh::prepare_for_refinement(const std::vector<E_Int> &ref_d
 }
 
 /*
-std::vector<E_Int> IMesh::get_active_neighbours(E_Int face)
+std::vector<Int> IMesh::get_active_neighbours(Int face)
 {
-    return std::vector<E_Int>();
+    return std::vector<Int>();
 }
 */
 
-void IMesh::refine_faces(const std::vector<E_Int> &ref_faces)
+void IMesh::refine_faces(const std::vector<Int> &ref_faces)
 {
-    for (E_Int ref_face : ref_faces) {
+    for (Int ref_face : ref_faces) {
         if (face_is_tri(ref_face)) refine_tri(ref_face);
         else refine_quad(ref_face);
     }
@@ -268,15 +268,15 @@ void IMesh::resize_face_data(size_t nref_faces)
     flevel.resize(nnew_faces, -1);
 }
 
-void IMesh::refine_quad(E_Int quad)
+void IMesh::refine_quad(Int quad)
 {
     // Refine the edges
     const auto &pn = F[quad];
-    E_Int ec[4];
+    Int ec[4];
 
     for (size_t i = 0; i < pn.size(); i++) {
-        E_Int p = pn[i];
-        E_Int q = pn[(i+1)%pn.size()];
+        Int p = pn[i];
+        Int q = pn[(i+1)%pn.size()];
         UEdge edge(p, q);
 
         auto it = ecenter.find(edge);
@@ -296,8 +296,8 @@ void IMesh::refine_quad(E_Int quad)
     // Face centroid
 
     X[np] = Y[np] = Z[np] = 0.0;
-    for (E_Int i = 0; i < 4; i++) {
-        E_Int p = pn[i];
+    for (Int i = 0; i < 4; i++) {
+        Int p = pn[i];
         X[np] += X[p];
         Y[np] += Y[p];
         Z[np] += Z[p];
@@ -307,7 +307,7 @@ void IMesh::refine_quad(E_Int quad)
     Z[np] *= 0.25;
 
     // New face points
-    E_Int nf0 = nf, nf1 = nf+1, nf2 = nf+2, nf3 = nf+3;
+    Int nf0 = nf, nf1 = nf+1, nf2 = nf+2, nf3 = nf+3;
 
     F[nf0] = { pn[0], ec[0], np,    ec[3] };
     F[nf1] = { ec[0], pn[1], ec[1], np    };
@@ -329,7 +329,7 @@ void IMesh::refine_quad(E_Int quad)
     nf += 4;
 }
 
-void IMesh::refine_tri(E_Int tri)
+void IMesh::refine_tri(Int tri)
 {
     printf(SF_D_ "\n", tri);
     assert(0);

@@ -23,8 +23,8 @@
 typedef Vec3 point;
 
 struct pointFace {
-    E_Int F;
-    E_Int T;
+    Int F;
+    Int T;
 
-    pointFace(E_Int face, E_Int tri);
+    pointFace(Int face, Int tri);
 };

@@ -19,9 +19,10 @@
 #pragma once
 
 #include "xcore.h"
+#include "common/common.h"
 
 struct TriangleIntersection {
-    E_Float x, y, z;
-    E_Float u, v;
-    E_Float t;
+    Float x, y, z;
+    Float u, v;
+    Float t;
 };

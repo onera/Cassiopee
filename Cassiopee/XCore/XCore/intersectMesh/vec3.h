@@ -19,19 +19,20 @@
 #pragma once
 
 #include "xcore.h"
+#include "common/common.h"
 
 struct Vec3 {
-    E_Float x, y, z;
+    Float x, y, z;
 
     Vec3();
 
-    Vec3(E_Float X, E_Float Y, E_Float Z);
+    Vec3(Float X, Float Y, Float Z);
 
     Vec3 operator-(const Vec3 &v) const;
 
     Vec3 operator+(const Vec3 &v) const;
 
-    Vec3 operator*(E_Float a) const;
+    Vec3 operator*(Float a) const;
 };
 
-Vec3 operator*(E_Float a, const Vec3 &v);
+Vec3 operator*(Float a, const Vec3 &v);

@@ -35,4 +35,4 @@ struct DEdge {
     }
 };
 
-int refine_edge(Int eid, Mesh *M);
+Int refine_edge(Int eid, Mesh *M);

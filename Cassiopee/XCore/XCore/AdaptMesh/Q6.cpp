@@ -18,7 +18,7 @@
 */
 #include "Quad.h"
 
-int Q6_refine(Int quad, Mesh *M)
+Int Q6_refine(Int quad, Mesh *M)
 {
     Int NODES[6];
     for (Int i = 0; i < 6; i++) NODES[i] = -1;

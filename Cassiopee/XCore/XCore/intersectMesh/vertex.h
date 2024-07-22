@@ -21,19 +21,20 @@
 #include <cstdio>
 
 #include "xcore.h"
+#include "common/common.h"
 
 struct Hedge;
 
 struct Vertex {
-    E_Float x, y;
+    Float x, y;
     Hedge *rep;
-    E_Int id;
+    Int id;
     Hedge *left;
-    E_Int oid[2];
+    Int oid[2];
 
-    Vertex(E_Float X, E_Float Y, E_Int Oid, E_Int color);
+    Vertex(Float X, Float Y, Int Oid, Int color);
 
-    Vertex(E_Float X, E_Float Y);
+    Vertex(Float X, Float Y);
 
     inline void print() { printf("P" SF_D_ ": %f %f\n", id, x, y); }
 };

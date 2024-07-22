@@ -21,6 +21,7 @@
 #include <vector>
 #include <cstddef>
 
+#include "common/common.h"
 #include "queue.h"
 
 struct Vertex;
@@ -40,20 +41,20 @@ struct Dcel {
 
     Face *f_unbounded[2];
 
-    static E_Int RED;
-    static E_Int BLACK;
-    static E_Int NO_IDEA;
+    static Int RED;
+    static Int BLACK;
+    static Int NO_IDEA;
 
     Dcel(const Smesh &M0, const Smesh &M1);
     ~Dcel();
     
     void init_vertices(const Smesh &M0, const Smesh &M1);
 
-    void init_hedges_and_faces(const Smesh &M, E_Int color);
+    void init_hedges_and_faces(const Smesh &M, Int color);
 
-    static E_Int check_hedges(const std::vector<Hedge *> &H);
+    static Int check_hedges(const std::vector<Hedge *> &H);
 
-    static E_Int check_faces(const std::vector<Hedge *> &H,
+    static Int check_faces(const std::vector<Hedge *> &H,
         const std::vector<Face *> &F);
 
     void find_intersections();
@@ -66,7 +67,7 @@ struct Dcel {
 
     void set_face_labels(std::vector<Face *> &F);
 
-    Hedge *get_hedge_of_color(Face *f, E_Int color);
+    Hedge *get_hedge_of_color(Face *f, Int color);
 
     std::vector<Face *> make_cycle_faces(const std::vector<Cycle *> &C);
 
@@ -74,10 +75,10 @@ struct Dcel {
 
     void set_cycles_inout();
 
-    std::vector<E_Int> extract_indices_of_type(E_Int inout);
+    std::vector<Int> extract_indices_of_type(Int inout);
     
     std::vector<Face *> extract_faces_of_indices(
-        const std::vector<E_Int> &indices);
+        const std::vector<Int> &indices);
 
     void write_ngon(const char *fname, const std::vector<Face *> &faces) const;
 
