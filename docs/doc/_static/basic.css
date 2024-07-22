@@ -9,6 +9,28 @@
  *
  */
 
+ /* FAST */
+ /* :root {
+    --border-width: 2px;
+    --border-color: #f0fdff;
+    --border: var(--border-width) solid var(--border-color);
+    --border-radius: 8px;
+    --background-color: #282a35;
+    --font-color: white;
+    --link-color: rgb(35, 187, 35);
+  } */
+
+  /* CASSIOPEE */
+  :root { 
+    --border-width: 2px;
+    --border-color: #282a35;
+    --border: var(--border-width) solid var(--border-color);
+    --border-radius: 8px;
+    --background-color: #f0fdff;
+    --font-color: black; 
+    --link-color: green;
+  }
+
 /* -- main layout ----------------------------------------------------------- */
 
 div.clearer {
@@ -66,7 +88,6 @@ div.sphinxsidebar {
     overflow-wrap : break-word;
     position: fixed;
     border-right: var(--border);
-    border-width: 2px;
 }
 
 div.sphinxsidebar ul {
@@ -226,15 +247,15 @@ img.toggler {
 }
 
 div.modindex-jumpbox {
-    border-top: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
+    border-top: 2px solid #282a35;
+    border-bottom: 2px solid #282a35;
     margin: 1em 0 1em 0;
     padding: 0.4em;
 }
 
 div.genindex-jumpbox {
-    border-top: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
+    border-top: 2px solid #282a35;
+    border-bottom: 2px solid #282a35;
     margin: 1em 0 1em 0;
     padding: 0.4em;
 }
@@ -249,12 +270,13 @@ table.modindextable td {
 /* -- general body styles --------------------------------------------------- */
 
 div.body {
-    /* min-width: 360px;
-    max-width: 800px; */
-    /* min-width: 600px; */
     min-width: 1%;
     max-width: 80%;
-    margin-left: 130px;
+}
+
+div.bodywrapper {
+    min-width: 1%;
+    max-width: 80%;
 }
 
 div.body p, div.body dd, div.body li, div.body blockquote {
@@ -292,7 +314,6 @@ div.body p.caption {
 div.body td {
     text-align: center;
     width: 20%;
-    /* font-size: 10%; */
 }
 
 .first {
@@ -550,12 +571,10 @@ table.hlist td {
 }
 
 .sig-name {
-	/* font-size: 1.1em; */
     font-size: 1.5vw;
 }
 
 code.descname {
-    /* font-size: 1.2em; */
     font-size: 1.2vw;
 }
 
@@ -564,12 +583,10 @@ code.descname {
 }
 
 .optional {
-    /* font-size: 1.3em; */
     font-size: 1.5vw;
 }
 
 .sig-paren {
-    /* font-size: larger; */
     font-size: 1.5vw;
 }
 
