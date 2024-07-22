@@ -1661,6 +1661,8 @@ def parseArgs():
                         help="Purge session logs down to the last X. Default: 50")
     parser.add_argument("-r", "--run", action="store_true",
                         help="Run selected tests")
+    parser.add_argument("-u", "--update", action="store_true",
+                        help="Update local database")
 
     # Parse arguments
     return parser.parse_args()
@@ -1856,8 +1858,7 @@ if __name__ == '__main__':
         ProgressLabel = NoDisplayLabel()
         Filter = NoDisplayStringVar()
         TextFilter = NoDisplayEntry()
-        UpdateButton = NoDisplayButton()
-        WIDGETS['UpdateButton'] = UpdateButton
+        WIDGETS['UpdateButton'] = NoDisplayButton()
         Threads = NoDisplayStringVar()
         TextThreads = NoDisplayEntry()
         getThreads()
@@ -1874,4 +1875,8 @@ if __name__ == '__main__':
         if vcargs.run:
             selectAll()
             runTests()
+            Quit()
+        elif vcargs.update:
+            selectAll()
+            updateTests()
             Quit()

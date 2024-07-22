@@ -92,7 +92,7 @@ def getExecTime(test, ref, new):
 
 # Return test execution time difference in % between (ref, new) and the Base
 def getDiffExecTime(test, ref, new):
-  cutoff = 0.5 # cut-off time in sec under which a test is not considered
+  cutoff = 1.0 # cut-off time in sec under which a test is not considered
   baseExecTime, refExecTime, newExecTime = getExecTime(test, ref, new)
   if baseExecTime < cutoff: return 0., 0.
   diffRef = round((refExecTime-baseExecTime)/baseExecTime*100., 1)
@@ -162,7 +162,7 @@ if __name__ == '__main__':
     compStr += newTestsHeader
     for test in newTests:
       compStr += stringify(test)
-    if baseState == 'OK': baseState = 'NEW ADDITIONS'
+    if baseState == 'OK': baseState = 'ADDITIONS'
   else: compStr += newTestsHeader + "[none]\n"
   
   deletedTestsHeader = "\nDeleted tests:\n{}\n".format('-'*13)
@@ -170,7 +170,8 @@ if __name__ == '__main__':
     compStr += deletedTestsHeader
     for test in deletedTests:
       compStr += stringify(test)
-    baseState = 'FAILED'
+    if baseState == 'OK': baseState = 'DELETIONS'
+    elif baseState == 'ADDITIONS': baseState += ' & DELETIONS'
   else: compStr += deletedTestsHeader + "[none]\n"
   
   failedTestsHeader = "\nReminder - Failed tests:\n{}\n".format('-'*23)
@@ -200,7 +201,8 @@ if __name__ == '__main__':
   # If the state of the Base is OK, set the new session log to be the reference
   baseStateMsg = ""
   exitStatus = 0
-  if baseState in ['OK', 'NEW ADDITIONS'] and 'REF-' in script_args.logs[0]:
+  if (any(st in baseState for st in ['OK', 'ADDITIONS', 'DELETIONS']) and
+          script_args.logs[0].startswith('REF-')):
       if os.access(script_args.logs[0], os.W_OK):
         import shutil
         os.remove(script_args.logs[0])
