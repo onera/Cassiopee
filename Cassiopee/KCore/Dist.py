@@ -221,6 +221,48 @@ def getInstallPath(prefix):
         Lib = pythonLib[-3]
         installPath = '%s/%s/%s/site-packages'%(prefix, Lib, pythonVersion)
     return installPath
+    
+#==============================================================================
+# Functions returning the names of the remote repo & branch and the commit hash
+#==============================================================================    
+def getGitOrigin(cassiopeeIncDir):    
+    mySystem = getSystem()[0]
+    if mySystem == 'mingw' or mySystem == 'Windows':
+        lpath = cassiopeeIncDir.replace('/', '\\')
+        cmd = "cd {} && git config --get remote.origin.url".format(lpath)
+    else: # unix 
+        lpath = cassiopeeIncDir    
+        cmd = "cd {}; git config --get remote.origin.url 2>/dev/null".format(lpath)
+    try:
+        origin = subprocess.check_output(cmd, shell=True)
+        return origin.decode('utf-8', 'ignore').strip()
+    except: return "unknown"
+
+def getGitBranch(cassiopeeIncDir):
+    mySystem = getSystem()[0]
+    if mySystem == 'mingw' or mySystem == 'Windows':
+        lpath = cassiopeeIncDir.replace('/', '\\')
+        cmd = "cd {} && git rev-parse --abbrev-ref HEAD".format(lpath)
+    else: # unix
+        lpath = cassiopeeIncDir    
+        cmd = "cd {}; git rev-parse --abbrev-ref HEAD 2>/dev/null".format(lpath)
+    try:
+        branchName = subprocess.check_output(cmd, shell=True)
+        return branchName.decode('utf-8', 'ignore').strip()
+    except: return "unknown"
+
+def getGitHash(cassiopeeIncDir):
+    mySystem = getSystem()[0]
+    if mySystem == 'mingw' or mySystem == 'Windows':
+        lpath = cassiopeeIncDir.replace('/', '\\')
+        cmd = "cd {} && git rev-parse --short HEAD".format(lpath)
+    else: # unix 
+        lpath = cassiopeeIncDir    
+        cmd = "cd {}; git rev-parse --short HEAD 2>/dev/null".format(lpath)
+    try:
+        sha = subprocess.check_output(cmd, shell=True)
+        return sha.decode('utf-8', 'ignore').strip()
+    except: return "unknown"
 
 #=============================================================================
 # nom de l'egg cree par setup tools
