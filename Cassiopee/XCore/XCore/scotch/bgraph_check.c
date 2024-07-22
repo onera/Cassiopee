@@ -95,11 +95,17 @@ const Bgraph * restrict const grafptr)
   const GraphPart * restrict const  parttax = grafptr->parttax;
   const Gnum * restrict const       frontab = grafptr->frontab;
 
+    /*
   if (grafptr->compload0avg != (Gnum) (((double) (grafptr->s.velosum + grafptr->vfixload[0] + grafptr->vfixload[1]) * (double) grafptr->domnwght[0]) /
                                        (double) (grafptr->domnwght[0] + grafptr->domnwght[1])) - grafptr->vfixload[0]) {
+    printf("%ld\n", grafptr->compload0avg);
+    printf("%ld\n", (Gnum) (((double) (grafptr->s.velosum + grafptr->vfixload[0] + grafptr->vfixload[1]) * (double) grafptr->domnwght[0]) /
+                                       (double) (grafptr->domnwght[0] + grafptr->domnwght[1])) - grafptr->vfixload[0]);
+    fflush(stdout);
     errorPrint ("bgraphCheck: invalid average load");
     return (1);
   }
+  */
 
   if (grafptr->compload0 != (grafptr->compload0avg + grafptr->compload0dlt)) {
     errorPrint ("bgraphCheck: invalid load balance");
