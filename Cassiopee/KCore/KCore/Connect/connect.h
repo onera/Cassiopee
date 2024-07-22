@@ -20,12 +20,12 @@
 #ifndef _KCORE_CONNECT_H
 #define _KCORE_CONNECT_H
 # include <utility>
-# include <kPython.h>
+# include "kPython.h"
+
 # include "Def/DefTypes.h"
 # include "Fld/FldArray.h"
 # include "Def/DefFunction.h"
-#include "Numpy/importNumpy.h"
-#include <numpy/arrayobject.h>
+
 # include "topologyMapping.h"
 # include "hashFunctions.h"
 
@@ -44,16 +44,16 @@ namespace K_CONNECT
   void cleanConnectivity(E_Int posx, E_Int posy, E_Int posz, 
                          E_Float eps, const char* eltType, 
                          K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV,
-                         bool remove_degen = false,
-                         bool ordered_merge = true);
+                         bool remove_degen=false,
+                         bool ordered_merge=true);
 
   /* Nettoyage de la connectivite de maillage non-structures 
      (openmp coarse grain) */
   void cleanConnectivity_opt(E_Int posx, E_Int posy, E_Int posz, 
                              E_Float eps, const char* eltType, 
                              K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV,
-                             bool remove_degen = false,
-                             bool ordered_merge = true);
+                             bool remove_degen=false,
+                             bool ordered_merge=true);
 
   /*-------------*/
   /*- Structure -*/
