@@ -43,7 +43,7 @@ struct Topology
   
   void set(const E_Int* p, std::size_t n, E_Bool search4Degen=false)
   {
-    size_ = -1; isDegen_ = false;
+    size_ = 0; isDegen_ = false;
     n_ = n; p_.assign(p, p+n_);
     std::sort(p_.begin(), p_.end());
     if (search4Degen) countUnique();
@@ -51,7 +51,7 @@ struct Topology
   
   void set(const std::vector<E_Int>& p, E_Bool search4Degen=false)
   {
-    size_ = -1; isDegen_ = false;
+    size_ = 0; isDegen_ = false;
     n_ = p.size(); p_ = p;
     std::sort(p_.begin(), p_.end());
     if (search4Degen) countUnique();
@@ -127,7 +127,7 @@ struct TopologyOpt
   
   void set(const E_Int* p, const std::size_t n, E_Bool search4Degen=false)
   {
-    size_ = -1; isDegen_ = false;
+    size_ = 0; isDegen_ = false;
     n_ = n; assert(n_ <= nmaxitems);
     for (std::size_t i = 0; i < n_; i++) p_[i] = p[i];
     std::sort(p_, p_ + n_);
@@ -137,7 +137,7 @@ struct TopologyOpt
   void set(const std::vector<E_Int>& p, const std::size_t n,
            E_Bool search4Degen=false)
   {
-    size_ = -1; isDegen_ = false;
+    size_ = 0; isDegen_ = false;
     n_ = n; assert(n_ <= nmaxitems);
     for (std::size_t i = 0; i < n_; i++) p_[i] = p[i];
     std::sort(p_, p_ + n_);
